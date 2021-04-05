@@ -1,0 +1,13 @@
+# Compiled Object files
+*.o
+
+# Compiled Dynamic libraries
+*.so
+
+# Compiled Static libraries
+*.a
+
+# MacOS files
+.DS_Store
+.dir-locals.el
+*~
