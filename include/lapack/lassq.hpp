@@ -1,7 +1,7 @@
 #ifndef __LASSQ_HH__
 #define __LASSQ_HH__
 
-#include "lapack/utils.hh"
+#include "lapack/utils.hpp"
 
 namespace lapack {
 

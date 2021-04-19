@@ -1,0 +1,25 @@
+1, n = -1
+2, m = -1
+3, k = -1
+4, incx = 0
+5, incx = -1
+6, incy = 0
+7, incy = -1
+8, layout = Layout(0)
+9, trans = Op(0)
+10, transA = Op(0)
+11, transB = Op(0)
+12, uplo = Uplo(0)
+13, diag = Diag(0)
+14, side = Side(0)
+15, lda = 1; m = 2
+16, lda = 1; n = 2
+17, ldb = 1; m = 2
+18, ldb = 1; n = 2
+19, ldb = 1; k = 2
+20, ldc = 1; m = 2
+21, ldc = 1; n = 2
+22, trans = Op('T')
+23, trans = Op('C')
+24, layout = Layout::RowMajor; lda = 1; n = 2
+25, layout = Layout::RowMajor; lda = 1; k = 2
