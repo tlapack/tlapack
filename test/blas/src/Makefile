@@ -1,7 +1,7 @@
 ROOTDIR = ..
 -include $(ROOTDIR)/make.inc
 
-CXXFLAGS += -I$(ROOTDIR)
+CXXFLAGS += -I$(ROOTDIR)/include
 
 #-------------------------------------------------------------------------------
 # Rules

@@ -1,15 +1,17 @@
 #include "catch.hpp"
-#include "blas.hh"
+#include "blas.hpp"
 #include "defines.hpp"
+#include "test_types.hpp"
+#include "exception.hpp"
 
 using namespace blas;
 
 TEMPLATE_TEST_CASE( "asum satisfies all corner cases", "[asum][BLASlv1]", TEST_TYPES ) {
     
     // Default arguments:
-    blas_size_t n = 1;
+    blas::size_t n = 1;
     TestType const x[] = {1, 1, 1, 1};
-    blas_int_t incx = 1;
+    blas::int_t incx = 1;
 
     // Corner cases:
     SECTION( "Throw Error Tests" ) {
@@ -25,12 +27,12 @@ TEMPLATE_TEST_CASE( "asum satisfies all corner cases", "[asum][BLASlv1]", TEST_T
 TEMPLATE_TEST_CASE( "axpy satisfies all corner cases", "[axpy][BLASlv1]", TEST_TYPES ) {
     
     // Default arguments:
-    blas_size_t n = 1;
+    blas::size_t n = 1;
     TestType alpha = 1;
     TestType const x[] = {1, 1, 1, 1};
-    blas_int_t incx = 1;
+    blas::int_t incx = 1;
     TestType y[] = {1, 1, 1, 1};
-    blas_int_t incy = 1;
+    blas::int_t incy = 1;
 
     // Corner cases:
     SECTION( "n = -1" ) {
@@ -56,11 +58,11 @@ TEMPLATE_TEST_CASE( "axpy satisfies all corner cases", "[axpy][BLASlv1]", TEST_T
 TEMPLATE_TEST_CASE( "copy satisfies all corner cases", "[copy][BLASlv1]", TEST_TYPES ) {
     
     // Default arguments:
-    blas_size_t n = 1;
+    blas::size_t n = 1;
     TestType const x[] = {1, 1, 1, 1};
-    blas_int_t incx = 1;
+    blas::int_t incx = 1;
     TestType y[] = {1, 1, 1, 1};
-    blas_int_t incy = 1;
+    blas::int_t incy = 1;
 
     // Corner cases:
     SECTION( "n = -1" ) {
@@ -80,11 +82,11 @@ TEMPLATE_TEST_CASE( "copy satisfies all corner cases", "[copy][BLASlv1]", TEST_T
 TEMPLATE_TEST_CASE( "dot satisfies all corner cases", "[dot][BLASlv1]", TEST_TYPES ) {
     
     // Default arguments:
-    blas_size_t n = 1;
+    blas::size_t n = 1;
     TestType const x[] = {1, 1, 1, 1};
-    blas_int_t incx = 1;
+    blas::int_t incx = 1;
     TestType const y[] = {1, 1, 1, 1};
-    blas_int_t incy = 1;
+    blas::int_t incy = 1;
 
     // Corner cases:
     SECTION ( "n <= 0" ) {
@@ -96,11 +98,11 @@ TEMPLATE_TEST_CASE( "dot satisfies all corner cases", "[dot][BLASlv1]", TEST_TYP
 TEMPLATE_TEST_CASE( "dotu satisfies all corner cases", "[dotu][BLASlv1]", TEST_TYPES ) {
     
     // Default arguments:
-    blas_size_t n = 1;
+    blas::size_t n = 1;
     TestType const x[] = {1, 1, 1, 1};
-    blas_int_t incx = 1;
+    blas::int_t incx = 1;
     TestType const y[] = {1, 1, 1, 1};
-    blas_int_t incy = 1;
+    blas::int_t incy = 1;
 
     // Corner cases:
     SECTION ( "n <= 0" ) {
@@ -112,9 +114,9 @@ TEMPLATE_TEST_CASE( "dotu satisfies all corner cases", "[dotu][BLASlv1]", TEST_T
 TEMPLATE_TEST_CASE( "iamax satisfies all corner cases", "[iamax][BLASlv1]", TEST_TYPES ) {
     
     // Default arguments:
-    blas_size_t n = 1;
+    blas::size_t n = 1;
     TestType const x[] = {1, 1, 1, 1};
-    blas_int_t incx = 1;
+    blas::int_t incx = 1;
 
     // Corner cases:
     SECTION( "Throw Error Tests" ) {
@@ -130,9 +132,9 @@ TEMPLATE_TEST_CASE( "iamax satisfies all corner cases", "[iamax][BLASlv1]", TEST
 TEMPLATE_TEST_CASE( "nrm2 satisfies all corner cases", "[nrm2][BLASlv1]", TEST_TYPES ) {
     
     // Default arguments:
-    blas_size_t n = 1;
+    blas::size_t n = 1;
     TestType const x[] = {1, 1, 1, 1};
-    blas_int_t incx = 1;
+    blas::int_t incx = 1;
 
     // Corner cases:
     SECTION( "Throw Error Tests" ) {
@@ -148,11 +150,11 @@ TEMPLATE_TEST_CASE( "nrm2 satisfies all corner cases", "[nrm2][BLASlv1]", TEST_T
 TEMPLATE_TEST_CASE( "rot satisfies all corner cases", "[rot][BLASlv1]", TEST_REAL_TYPES ) {
     
     // Default arguments:
-    blas_size_t n = 1;
+    blas::size_t n = 1;
     TestType x[] = {1, 1, 1, 1};
-    blas_int_t incx = 1;
+    blas::int_t incx = 1;
     TestType y[] = {1, 1, 1, 1};
-    blas_int_t incy = 1;
+    blas::int_t incy = 1;
     real_type<TestType> c = 1;
     TestType s = 1;
 
@@ -199,11 +201,11 @@ TEMPLATE_TEST_CASE( "rotg satisfies all corner cases", "[rotg][BLASlv1]", TEST_T
 TEMPLATE_TEST_CASE( "rotm satisfies all corner cases", "[rotm][BLASlv1]", TEST_REAL_TYPES ) {
     
     // Default arguments:
-    blas_size_t n = 1;
+    blas::size_t n = 1;
     TestType x[] = {1, 1, 1, 1};
-    blas_int_t incx = 1;
+    blas::int_t incx = 1;
     TestType y[] = {1, 1, 1, 1};
-    blas_int_t incy = 1;
+    blas::int_t incy = 1;
     TestType const param[] = {1, 1, 1, 1};
 
     // Corner cases:
@@ -251,10 +253,10 @@ TEMPLATE_TEST_CASE( "rotmg satisfies all corner cases", "[rotmg][BLASlv1]", TEST
 TEMPLATE_TEST_CASE( "scal satisfies all corner cases", "[scal][BLASlv1]", TEST_TYPES ) {
     
     // Default arguments:
-    blas_size_t n = 1;
+    blas::size_t n = 1;
     TestType alpha = 1;
     TestType x[] = {1, 1, 1, 1};
-    blas_int_t incx = 1;
+    blas::int_t incx = 1;
 
     // Corner cases:
     SECTION( "Throw Error Tests" ) {
@@ -278,11 +280,11 @@ TEMPLATE_TEST_CASE( "scal satisfies all corner cases", "[scal][BLASlv1]", TEST_T
 TEMPLATE_TEST_CASE( "swap satisfies all corner cases", "[swap][BLASlv1]", TEST_TYPES ) {
     
     // Default arguments:
-    blas_size_t n = 1;
+    blas::size_t n = 1;
     TestType x[] = {1, 1, 1, 1};
-    blas_int_t incx = 1;
+    blas::int_t incx = 1;
     TestType y[] = {1, 1, 1, 1};
-    blas_int_t incy = 1;
+    blas::int_t incy = 1;
 
     // Corner cases:
     SECTION( "n = -1" ) {
@@ -308,16 +310,16 @@ TEMPLATE_TEST_CASE( "gemv satisfies all corner cases", "[gemv][BLASlv2]", TEST_T
     // Default arguments:
     Layout layout = Layout::ColMajor;
     Op trans = Op::NoTrans;
-    blas_size_t m = 1;
-    blas_size_t n = 1;
+    blas::size_t m = 1;
+    blas::size_t n = 1;
     TestType alpha = 1;
     TestType const A[] = {1, 1, 1, 1};
-    blas_int_t lda = 1;
+    blas::int_t lda = 1;
     TestType const x[] = {1, 1, 1, 1};
-    blas_int_t incx = 1;
+    blas::int_t incx = 1;
     TestType beta = 1;
     TestType y[] = {1, 1, 1, 1};
-    blas_int_t incy = 1;
+    blas::int_t incy = 1;
 
     // Corner cases:
     SECTION( "Throw Error Tests" ) {
@@ -354,15 +356,15 @@ TEMPLATE_TEST_CASE( "ger satisfies all corner cases", "[ger][BLASlv2]", TEST_TYP
     
     // Default arguments:
     Layout layout = Layout::ColMajor;
-    blas_size_t m = 1;
-    blas_size_t n = 1;
+    blas::size_t m = 1;
+    blas::size_t n = 1;
     TestType alpha = 1;
     TestType const x[] = {1, 1, 1, 1};
-    blas_int_t incx = 1;
+    blas::int_t incx = 1;
     TestType const y[] = {1, 1, 1, 1};
-    blas_int_t incy = 1;
+    blas::int_t incy = 1;
     TestType A[] = {1, 1, 1, 1};
-    blas_int_t lda = 1;
+    blas::int_t lda = 1;
 
     // Corner cases:
     SECTION( "Throw Error Tests" ) {
@@ -392,15 +394,15 @@ TEMPLATE_TEST_CASE( "geru satisfies all corner cases", "[geru][BLASlv2]", TEST_T
     
     // Default arguments:
     Layout layout = Layout::ColMajor;
-    blas_size_t m = 1;
-    blas_size_t n = 1;
+    blas::size_t m = 1;
+    blas::size_t n = 1;
     TestType alpha = 1;
     TestType const x[] = {1, 1, 1, 1};
-    blas_int_t incx = 1;
+    blas::int_t incx = 1;
     TestType const y[] = {1, 1, 1, 1};
-    blas_int_t incy = 1;
+    blas::int_t incy = 1;
     TestType A[] = {1, 1, 1, 1};
-    blas_int_t lda = 1;
+    blas::int_t lda = 1;
 
     // Corner cases:
     SECTION( "Throw Error Tests" ) {
@@ -431,15 +433,15 @@ TEMPLATE_TEST_CASE( "hemv satisfies all corner cases", "[hemv][BLASlv2]", TEST_T
     // Default arguments:
     Layout layout = Layout::ColMajor;
     Uplo uplo = Uplo::Upper;
-    blas_size_t n = 1;
+    blas::size_t n = 1;
     TestType alpha = 1;
     TestType const A[] = {1, 1, 1, 1};
-    blas_int_t lda = 1;
+    blas::int_t lda = 1;
     TestType const x[] = {1, 1, 1, 1};
-    blas_int_t incx = 1;
+    blas::int_t incx = 1;
     TestType beta = 1;
     TestType y[] = {1, 1, 1, 1};
-    blas_int_t incy = 1;
+    blas::int_t incy = 1;
 
     // Corner cases:
     SECTION( "Throw Error Tests" ) {
@@ -478,12 +480,12 @@ TEMPLATE_TEST_CASE( "her satisfies all corner cases", "[her][BLASlv2]", TEST_TYP
     // Default arguments:
     Layout layout = Layout::ColMajor;
     Uplo uplo = Uplo::Upper;
-    blas_size_t n = 1;
+    blas::size_t n = 1;
     real_type<TestType> alpha = 1;
     TestType const x[] = {1, 1, 1, 1};
-    blas_int_t incx = 1;
+    blas::int_t incx = 1;
     TestType A[] = {1, 1, 1, 1};
-    blas_int_t lda = 1;
+    blas::int_t lda = 1;
 
     // Corner cases:
     SECTION( "Throw Error Tests" ) {
@@ -521,14 +523,14 @@ TEMPLATE_TEST_CASE( "her2 satisfies all corner cases", "[her2][BLASlv2]", TEST_T
     // Default arguments:
     Layout layout = Layout::ColMajor;
     Uplo uplo = Uplo::Upper;
-    blas_size_t n = 1;
+    blas::size_t n = 1;
     TestType alpha = 1;
     TestType const x[] = {1, 1, 1, 1};
-    blas_int_t incx = 1;
+    blas::int_t incx = 1;
     TestType const y[] = {1, 1, 1, 1};
-    blas_int_t incy = 1;
+    blas::int_t incy = 1;
     TestType A[] = {1, 1, 1, 1};
-    blas_int_t lda = 1;
+    blas::int_t lda = 1;
 
     // Corner cases:
     SECTION( "Throw Error Tests" ) {
@@ -567,15 +569,15 @@ TEMPLATE_TEST_CASE( "symv satisfies all corner cases", "[symv][BLASlv2]", TEST_R
     // Default arguments:
     Layout layout = Layout::ColMajor;
     Uplo uplo = Uplo::Upper;
-    blas_size_t n = 1;
+    blas::size_t n = 1;
     TestType alpha = 1;
     TestType const A[] = {1, 1, 1, 1};
-    blas_int_t lda = 1;
+    blas::int_t lda = 1;
     TestType const x[] = {1, 1, 1, 1};
-    blas_int_t incx = 1;
+    blas::int_t incx = 1;
     TestType beta = 1;
     TestType y[] = {1, 1, 1, 1};
-    blas_int_t incy = 1;
+    blas::int_t incy = 1;
 
     // Corner cases:
     SECTION( "Throw Error Tests" ) {
@@ -606,12 +608,12 @@ TEMPLATE_TEST_CASE( "syr satisfies all corner cases", "[syr][BLASlv2]", TEST_REA
     // Default arguments:
     Layout layout = Layout::ColMajor;
     Uplo uplo = Uplo::Upper;
-    blas_size_t n = 1;
+    blas::size_t n = 1;
     TestType alpha = 1;
     TestType const x[] = {1, 1, 1, 1};
-    blas_int_t incx = 1;
+    blas::int_t incx = 1;
     TestType A[] = {1, 1, 1, 1};
-    blas_int_t lda = 1;
+    blas::int_t lda = 1;
 
     // Corner cases:
     SECTION( "Throw Error Tests" ) {
@@ -641,14 +643,14 @@ TEMPLATE_TEST_CASE( "syr2 satisfies all corner cases", "[syr2][BLASlv2]", TEST_T
     // Default arguments:
     Layout layout = Layout::ColMajor;
     Uplo uplo = Uplo::Upper;
-    blas_size_t n = 1;
+    blas::size_t n = 1;
     TestType alpha = 1;
     TestType const x[] = {1, 1, 1, 1};
-    blas_int_t incx = 1;
+    blas::int_t incx = 1;
     TestType const y[] = {1, 1, 1, 1};
-    blas_int_t incy = 1;
+    blas::int_t incy = 1;
     TestType A[] = {1, 1, 1, 1};
-    blas_int_t lda = 1;
+    blas::int_t lda = 1;
 
     // Corner cases:
     SECTION( "Throw Error Tests" ) {
@@ -681,11 +683,11 @@ TEMPLATE_TEST_CASE( "trmv satisfies all corner cases", "[trmv][BLASlv2]", TEST_T
     Uplo uplo = Uplo::Upper;
     Op trans = Op::NoTrans;
     Diag diag = Diag::NonUnit;
-    blas_size_t n = 1;
+    blas::size_t n = 1;
     TestType const A[] = {1, 1, 1, 1};
-    blas_int_t lda = 1;
+    blas::int_t lda = 1;
     TestType x[] = {1, 1, 1, 1};
-    blas_int_t incx = 1;
+    blas::int_t incx = 1;
 
     // Corner cases:
     SECTION( "Throw Error Tests" ) {
@@ -719,11 +721,11 @@ TEMPLATE_TEST_CASE( "trsv satisfies all corner cases", "[trsv][BLASlv2]", TEST_T
     Uplo uplo = Uplo::Upper;
     Op trans = Op::NoTrans;
     Diag diag = Diag::NonUnit;
-    blas_size_t n = 1;
+    blas::size_t n = 1;
     TestType const A[] = {1, 1, 1, 1};
-    blas_int_t lda = 1;
+    blas::int_t lda = 1;
     TestType x[] = {1, 1, 1, 1};
-    blas_int_t incx = 1;
+    blas::int_t incx = 1;
 
     // Corner cases:
     SECTION( "Throw Error Tests" ) {
@@ -756,17 +758,17 @@ TEMPLATE_TEST_CASE( "gemm satisfies all corner cases", "[gemm][BLASlv3]", TEST_T
     Layout layout = Layout::ColMajor;
     Op transA = Op::NoTrans;
     Op transB = Op::NoTrans;
-    blas_size_t m = 1;
-    blas_size_t n = 1;
-    blas_size_t k = 1;
+    blas::size_t m = 1;
+    blas::size_t n = 1;
+    blas::size_t k = 1;
     TestType alpha = 1;
     TestType const A[] = {1, 1, 1, 1};
-    blas_int_t lda = 1;
+    blas::int_t lda = 1;
     TestType const B[] = {1, 1, 1, 1};
-    blas_int_t ldb = 1;
+    blas::int_t ldb = 1;
     TestType beta = 1;
     TestType C[] = {1, 1, 1, 1};
-    blas_int_t ldc = 1;
+    blas::int_t ldc = 1;
 
     // Corner cases:
     SECTION( "Throw Error Tests" ) {
@@ -819,16 +821,16 @@ TEMPLATE_TEST_CASE( "hemm satisfies all corner cases", "[hemm][BLASlv3]", TEST_T
     Layout layout = Layout::ColMajor;
     Side side = Side::Left;
     Uplo uplo = Uplo::Upper;
-    blas_size_t m = 1;
-    blas_size_t n = 1;
+    blas::size_t m = 1;
+    blas::size_t n = 1;
     TestType alpha = 1;
     TestType const A[] = {1, 1, 1, 1};
-    blas_int_t lda = 1;
+    blas::int_t lda = 1;
     TestType const B[] = {1, 1, 1, 1};
-    blas_int_t ldb = 1;
+    blas::int_t ldb = 1;
     TestType beta = 1;
     TestType C[] = {1, 1, 1, 1};
-    blas_int_t ldc = 1;
+    blas::int_t ldc = 1;
 
     // Corner cases:
     SECTION( "Throw Error Tests" ) {
@@ -876,16 +878,16 @@ TEMPLATE_TEST_CASE( "her2k satisfies all corner cases", "[her2k][BLASlv3]", TEST
     Layout layout = Layout::ColMajor;
     Uplo uplo = Uplo::Upper;
     Op trans = Op::NoTrans;
-    blas_size_t n = 1;
-    blas_size_t k = 1;
+    blas::size_t n = 1;
+    blas::size_t k = 1;
     TestType alpha = 1;
     TestType const A[] = {1, 1, 1, 1};
-    blas_int_t lda = 1;
+    blas::int_t lda = 1;
     TestType const B[] = {1, 1, 1, 1};
-    blas_int_t ldb = 1;
+    blas::int_t ldb = 1;
     real_type<TestType> beta = 1;
     TestType C[] = {1, 1, 1, 1};
-    blas_int_t ldc = 1;
+    blas::int_t ldc = 1;
 
     // Corner cases:
     SECTION( "Throw Error Tests" ) {
@@ -939,14 +941,14 @@ TEMPLATE_TEST_CASE( "herk satisfies all corner cases", "[herk][BLASlv3]", TEST_T
     Layout layout = Layout::ColMajor;
     Uplo uplo = Uplo::Upper;
     Op trans = Op::NoTrans;
-    blas_size_t n = 1;
-    blas_size_t k = 1;
+    blas::size_t n = 1;
+    blas::size_t k = 1;
     real_type<TestType> alpha = 1;
     TestType const A[] = {1, 1, 1, 1};
-    blas_int_t lda = 1;
+    blas::int_t lda = 1;
     real_type<TestType> beta = 1;
     TestType C[] = {1, 1, 1, 1};
-    blas_int_t ldc = 1;
+    blas::int_t ldc = 1;
 
     // Corner cases:
     SECTION( "Throw Error Tests" ) {
@@ -999,16 +1001,16 @@ TEMPLATE_TEST_CASE( "symm satisfies all corner cases", "[symm][BLASlv3]", TEST_T
     Layout layout = Layout::ColMajor;
     Side side = Side::Left;
     Uplo uplo = Uplo::Upper;
-    blas_size_t m = 1;
-    blas_size_t n = 1;
+    blas::size_t m = 1;
+    blas::size_t n = 1;
     TestType alpha = 1;
     TestType const A[] = {1, 1, 1, 1};
-    blas_int_t lda = 1;
+    blas::int_t lda = 1;
     TestType const B[] = {1, 1, 1, 1};
-    blas_int_t ldb = 1;
+    blas::int_t ldb = 1;
     TestType beta = 1;
     TestType C[] = {1, 1, 1, 1};
-    blas_int_t ldc = 1;
+    blas::int_t ldc = 1;
 
     // Corner cases:
     SECTION( "Throw Error Tests" ) {
@@ -1048,16 +1050,16 @@ TEMPLATE_TEST_CASE( "syr2k satisfies all corner cases", "[syr2k][BLASlv3]", TEST
     Layout layout = Layout::ColMajor;
     Uplo uplo = Uplo::Upper;
     Op trans = Op::NoTrans;
-    blas_size_t n = 1;
-    blas_size_t k = 1;
+    blas::size_t n = 1;
+    blas::size_t k = 1;
     TestType alpha = 1;
     TestType const A[] = {1, 1, 1, 1};
-    blas_int_t lda = 1;
+    blas::int_t lda = 1;
     TestType const B[] = {1, 1, 1, 1};
-    blas_int_t ldb = 1;
+    blas::int_t ldb = 1;
     TestType beta = 1;
     TestType C[] = {1, 1, 1, 1};
-    blas_int_t ldc = 1;
+    blas::int_t ldc = 1;
 
     // Corner cases:
     SECTION( "Throw Error Tests" ) {
@@ -1104,14 +1106,14 @@ TEMPLATE_TEST_CASE( "syrk satisfies all corner cases", "[syrk][BLASlv3]", TEST_T
     Layout layout = Layout::ColMajor;
     Uplo uplo = Uplo::Upper;
     Op trans = Op::NoTrans;
-    blas_size_t n = 1;
-    blas_size_t k = 1;
+    blas::size_t n = 1;
+    blas::size_t k = 1;
     TestType alpha = 1;
     TestType const A[] = {1, 1, 1, 1};
-    blas_int_t lda = 1;
+    blas::int_t lda = 1;
     TestType beta = 1;
     TestType C[] = {1, 1, 1, 1};
-    blas_int_t ldc = 1;
+    blas::int_t ldc = 1;
 
     // Corner cases:
     SECTION( "Throw Error Tests" ) {
@@ -1159,13 +1161,13 @@ TEMPLATE_TEST_CASE( "trmm satisfies all corner cases", "[trmm][BLASlv3]", TEST_T
     Uplo uplo = Uplo::Upper;
     Op trans = Op::NoTrans;
     Diag diag = Diag::NonUnit;
-    blas_size_t m = 1;
-    blas_size_t n = 1;
+    blas::size_t m = 1;
+    blas::size_t n = 1;
     TestType alpha = 1;
     TestType const A[] = {1, 1, 1, 1};
-    blas_int_t lda = 1;
+    blas::int_t lda = 1;
     TestType B[] = {1, 1, 1, 1};
-    blas_int_t ldb = 1;
+    blas::int_t ldb = 1;
 
     // Corner cases:
     SECTION( "Throw Error Tests" ) {
@@ -1202,13 +1204,13 @@ TEMPLATE_TEST_CASE( "trsm satisfies all corner cases", "[trsm][BLASlv3]", TEST_T
     Uplo uplo = Uplo::Upper;
     Op trans = Op::NoTrans;
     Diag diag = Diag::NonUnit;
-    blas_size_t m = 1;
-    blas_size_t n = 1;
+    blas::size_t m = 1;
+    blas::size_t n = 1;
     TestType alpha = 1;
     TestType const A[] = {1, 1, 1, 1};
-    blas_int_t lda = 1;
+    blas::int_t lda = 1;
     TestType B[] = {1, 1, 1, 1};
-    blas_int_t ldb = 1;
+    blas::int_t ldb = 1;
 
     // Corner cases:
     SECTION( "Throw Error Tests" ) {
