@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.1)
 
-# Read project version:
+# Read project version
 file(READ version.txt version_txt)
 
 #
@@ -9,55 +9,60 @@ file(READ version.txt version_txt)
 project(TestBLAS
     VERSION ${version_txt}
     LANGUAGES CXX)
-
 message(STATUS "TestBLAS version " ${PROJECT_VERSION})
 
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+
 #
-# Include
+# Options
 #
 
-# BLAS 'blas.hpp' header file in C++
-find_path(blas_inc NAMES "blas.hpp"
-    HINTS ${CMAKE_SOURCE_DIR}/include)
-if(blas_inc)
-    message(STATUS "blas.hpp => " ${blas_inc})
-    include_directories( ${blas_inc} )
+find_package(Catch2 REQUIRED
+    HINTS ${CMAKE_SOURCE_DIR}/thirdparty)
+if (Catch2_FOUND)
+    message(STATUS "Catch2 found at " ${Catch2_DIR})
 else()
-    message(STATUS "blas.hpp was NOT FOUND")
-endif(blas_inc)
+    message(STATUS "Catch2 not found!")
+endif()
 
-# CATCH2 'catch.hpp' header file
-find_path(catch_inc NAMES "catch.hpp"
-    HINTS ${CMAKE_SOURCE_DIR}/thirdparty/include/catch2)
-if(catch_inc)
-    message(STATUS "catch.hpp => " ${catch_inc})
-    include_directories( ${catch_inc} )
+# We ask for a `BLASConfig.cmake` on the C++-based BLAS
+# to link diferent BLAS projects to TestBLAS.
+#
+find_package(BLAS)
+if (BLAS_FOUND)
+    message(STATUS "BLAS found at " ${BLAS_DIR})
 else()
-    message(STATUS "catch.hpp was NOT FOUND")
-endif(catch_inc)
+    include_directories( "../../include" )
+    message(STATUS "Using BLAS from ${CMAKE_SOURCE_DIR}/include")
+endif()
+
+# # BLAS 'blas.hpp' header file in C++
+# find_path(blas_inc NAMES "blas.hpp"
+#     HINTS ${CMAKE_SOURCE_DIR}/include)
+# if(blas_inc)
+#     message(STATUS "blas.hpp => " ${blas_inc})
+#     include_directories( ${blas_inc} )
+# else()
+#     message(STATUS "blas.hpp was NOT FOUND")
+# endif(blas_inc)
+
+if (OPENMP_FOUND)
+    # set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+    set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+endif()
 
 #
 # Targets
 #
 
 # C++ file for tests with corner cases
-set(test_corner_cases_tables
-    "${CMAKE_CURRENT_SOURCE_DIR}/scripts/blas_routines.csv"
-    "${CMAKE_CURRENT_SOURCE_DIR}/scripts/returnImmediately_corner_rules.csv"
-    "${CMAKE_CURRENT_SOURCE_DIR}/scripts/returnImmediately_corner_tests.csv"
-    "${CMAKE_CURRENT_SOURCE_DIR}/scripts/throwException_corner_rules.csv"
-    "${CMAKE_CURRENT_SOURCE_DIR}/scripts/throwException_corner_tests.csv"
-    )
-add_custom_command(
-    OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/src/test_corner_cases.cpp"
+add_custom_target(corner-cases
     COMMAND
-        cd ${CMAKE_CURRENT_SOURCE_DIR}/scripts && ./wrapper_tests.py
+        cd "${CMAKE_CURRENT_SOURCE_DIR}/scripts" && ./wrapper_tests.py
         > "${CMAKE_CURRENT_SOURCE_DIR}/src/test_corner_cases.cpp"
-    MAIN_DEPENDENCY "${CMAKE_CURRENT_SOURCE_DIR}/scripts/wrapper_tests.py"
-    DEPENDS ${test_corner_cases_tables}
-    VERBATIM)
-add_custom_target(corner-cases ALL
-    DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/test_corner_cases.cpp")
+    )
 
 # Create tester 
 set(tester "tester")
@@ -66,6 +71,7 @@ file(GLOB test_sources
     )
 add_executable(tester tests_main.cpp ${test_sources})
 target_include_directories(tester PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
+target_link_libraries(tester PRIVATE Catch2::Catch2)
 
 # Run tests
 add_custom_target(run-tests
@@ -76,10 +82,6 @@ add_custom_target(run-tests
 #
 # CTest
 #
-
-find_package(Catch2 REQUIRED
-    HINTS ${CMAKE_SOURCE_DIR}/thirdparty)
-target_link_libraries(tester PRIVATE Catch2::Catch2)
 
 include(CTest)
 include(Catch)

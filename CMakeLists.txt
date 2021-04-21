@@ -1,40 +1,36 @@
 cmake_minimum_required(VERSION 3.1)
 
-# Read project version:
+# Read project version
 file(READ version.txt version_txt)
 
+#
+# T-LAPACK project
+#
 project(TLAPACK
     VERSION ${version_txt}
     LANGUAGES CXX)
-
-# Version:
 message(STATUS "T-LAPACK version " ${PROJECT_VERSION})
 
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+
 #
-# Options:
+# Options
 #
 
-# option(BLASPP "Use BLASPP templates" ON)
-# if(BLASPP)
-#     find_path(blaspp_inc NAMES "blas.hh")
-#     if(blaspp_inc)
-#         message(STATUS "blas.hh => ${blaspp_inc}")
-#         find_library(blaspp_lib "blaspp")
-#         message(STATUS "libblaspp => ${blaspp_lib}")
-#     else(blaspp_inc)
-#         message(STATUS "blas.hh was NOT FOUND")
-#     endif(blaspp_inc)
-# endif(BLASPP)
+if(CMAKE_USE_OPENMP)
+    find_package(OpenMP REQUIRED)
+    add_definitions(-DUSE_OPENMP)
+    if (OPENMP_FOUND)
+        # set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+        set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+        set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+    endif()
+endif()
 
-# Options:
-# option(OPTIMIZED_BLAS "Use an optimized BLAS library" ON)
-
-# if(OPTIMIZED_BLAS)
-#     find_library(blas_lib blas)
-#     message(STATUS "libblas   => ${blas_lib}")
-#     find_library(cblas_lib cblas)
-#     message(STATUS "libcblas   => ${cblas_lib}")
-# endif(OPTIMIZED_BLAS)
+#
+# Include subdirectories
+#
 
 add_subdirectory(examples)
 add_subdirectory(config)

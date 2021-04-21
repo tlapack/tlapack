@@ -1,5 +1,5 @@
 #include <iostream>
-#include "config/version.h"
+#include "version.h"
 
 int main(int argc, char const *argv[])
 {
