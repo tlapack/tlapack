@@ -67,7 +67,7 @@ add_custom_target(corner-cases
 # Create tester 
 set(tester "tester")
 file(GLOB test_sources
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/test_corner_cases.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/test_*.cpp"
     )
 add_executable(tester tests_main.cpp ${test_sources})
 target_include_directories(tester PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
