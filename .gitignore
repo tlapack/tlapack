@@ -11,3 +11,18 @@
 .DS_Store
 .dir-locals.el
 *~
+
+# Doxygen generated files
+docs/Doxyfile
+docs/errors.txt
+docs/html
+docs/latex
+
+# Version.h
+config/version.h
+
+# Build directories
+build*
+
+# Visual Studio Code files
+.vscode

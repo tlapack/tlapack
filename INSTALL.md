@@ -1,7 +1,7 @@
 # T-LAPACK Installation Notes
 
-Option 1: Makefile
-
 ```sh
-make && make install
+mkdir build && cd build
+cmake ..
+cmake --build . --target all
 ```
