@@ -1,1 +1,1 @@
-configure_file(version.h.in version.h)
+configure_file(version.h.in ${CMAKE_CURRENT_SOURCE_DIR}/version.h)

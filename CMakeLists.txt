@@ -32,6 +32,7 @@ endif()
 # Include subdirectories
 #
 
-add_subdirectory(examples)
+add_subdirectory(docs)
 add_subdirectory(config)
+add_subdirectory(examples)
 add_subdirectory(test)

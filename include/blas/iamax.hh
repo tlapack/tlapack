@@ -11,19 +11,20 @@
 #include "utils.hpp"
 #include "constants.hpp"
 
-#include <limits>
-
 namespace blas {
 
 // =============================================================================
-/// @return Index of infinity-norm of vector, $|| x ||_{inf}$,
-///     $\text{argmax}_{i=0}^{n-1} |Re(x_i)| + |Im(x_i)|$.
-/// Returns -1 if n = 0.
+/// @return In priority order:
+/// 1. INVALID_INDEX if $n \le 0$,
+/// 2. the index of the first `NAN` in $x$ if it exists and if `checkInput == true`,
+/// 3. the index of the first `Infinity` in $x$ if it exists,
+/// 4. the Index of infinity-norm of $x$, $|| x ||_{inf}$,
+///     $\arg\max_{i=0}^{n-1} \left(|Re(x_i)| + |Im(x_i)|\right)$.
 ///
 /// Generic implementation for arbitrary data types.
 ///
 /// @param[in] n
-///     Number of elements in x. n >= 0.
+///     Number of elements in x.
 ///
 /// @param[in] x
 ///     The n-element vector x, in an array of length (n-1)*incx + 1.
@@ -31,11 +32,86 @@ namespace blas {
 /// @param[in] incx
 ///     Stride between elements of x. incx > 0.
 ///
+/// @param[in] checkInput
+///     If true, check for invalid values in the input.
+///
 /// @ingroup iamax
 
-// Real case
 template< typename T >
 size_t iamax(
+    size_t n,
+    T const *x, int_t incx,
+    bool checkInput = true );
+
+/// @ingroup iamax
+/// GIGO: Garbage In Garbage Out
+///
+template< typename T >
+size_t iamax_GIGO(
+    size_t n,
+    T const *x, int_t incx );
+
+/// @ingroup iamax
+/// SAFE: Check for Infs and NaNs
+///
+template< typename T >
+size_t iamax_SAFE(
+    size_t n,
+    T const *x, int_t incx );
+
+// =============================================================================
+// Implementation
+
+template< typename T >
+size_t iamax(
+    size_t n,
+    T const *x, int_t incx,
+    bool checkInput ) {
+
+    if ( checkInput ) {
+        blas_error_if( incx <= 0 );
+        return iamax_SAFE( n, x, incx );
+    } else
+        return iamax_GIGO( n, x, incx );
+}
+
+template< typename T >
+size_t iamax_GIGO(
+    size_t n,
+    T const *x, int_t incx )
+{    
+    typedef real_type<T> real_t;
+
+    size_t index = INVALID_INDEX;
+    real_t smax = -1;
+
+    if (incx == 1) {
+        // unit stride
+        for (size_t i = 0; i < n; ++i) {
+            real_t a = std::abs(x[i]);
+            if ( a > smax ) {
+                smax = a;
+                index = i;
+            }
+        }
+    }
+    else {
+        // non-unit stride
+        int_t ix = 0;
+        for (size_t i = 0; i < n; ++i) {
+            real_t a = std::abs(x[ix]);
+            if ( a > smax ) {
+                smax = a;
+                index = i;
+            }
+            ix += incx;
+        }
+    }
+    return index;
+}
+
+template< typename T >
+size_t iamax_SAFE(
     size_t n,
     T const *x, int_t incx )
 {    
@@ -55,6 +131,7 @@ size_t iamax(
             else if ( isinf(x[i]) ) {
                 // record location of first Inf
                 index = i;
+                i++;
                 break;
             }
             else { // still no Inf found yet
@@ -84,11 +161,12 @@ size_t iamax(
             else if ( isinf(x[ix]) ) {
                 // record location of first Inf
                 index = i;
+                i++; ix += incx;
                 break;
             }
             else { // still no Inf found yet
                 real_t a = std::abs(x[ix]);
-                if ( a > smax ) { // and everything finite so far
+                if ( a > smax ) {
                     smax = a;
                     index = i;
                 }
@@ -106,15 +184,79 @@ size_t iamax(
     return index;
 }
 
-// Complex case
 template< typename T >
-size_t iamax(
+size_t iamax_GIGO(
     size_t n,
     std::complex<T> const *x, int_t incx )
 {
     typedef T real_t;
 
-    bool scaledsmax = false; // indicates whether sx(i) finite but abs(real(sx(i))) + abs(imag(sx(i))) = Inf
+    bool scaledsmax = false; // indicates whether |Re(x_i)| + |Im(x_i)| = Inf
+    real_t smax = -1;
+    size_t index = INVALID_INDEX;
+    const real_t oneFourth = 0.25;
+
+    if (incx == 1) {
+        // unit stride
+        for (size_t i = 0; i < n; ++i) {
+            if ( !scaledsmax ) { // no |Re(x_i)| + |Im(x_i)| = Inf  yet
+                real_t a = abs1(x[i]);
+                if ( isinf(a) ) {
+                    scaledsmax = true;
+                    smax = abs1( oneFourth*x[i] );
+                    index = i;
+                }
+                else if ( a > smax ) {
+                    smax = a;
+                    index = i;
+                }
+            }
+            else { // scaledsmax = true
+                real_t a = abs1( oneFourth*x[i] );
+                if ( a > smax ) {
+                    smax = a;
+                    index = i;
+                }
+            }
+        }
+    }
+    else {
+        // non-unit stride
+        int_t ix = 0;
+        for (size_t i = 0; i < n; ++i) {
+            if ( !scaledsmax ) { // no |Re(x_i)| + |Im(x_i)| = Inf  yet
+                real_t a = abs1(x[ix]);
+                if ( isinf(a) ) {
+                    scaledsmax = true;
+                    smax = abs1( oneFourth*x[ix] );
+                    index = i;
+                }
+                else if ( a > smax ) {
+                    smax = a;
+                    index = i;
+                }
+            }
+            else { // scaledsmax = true
+                real_t a = abs1( oneFourth*x[ix] );
+                if ( a > smax ) {
+                    smax = a;
+                    index = i;
+                }
+            }
+            ix += incx;
+        }
+    }
+    return index;
+}
+
+template< typename T >
+size_t iamax_SAFE(
+    size_t n,
+    std::complex<T> const *x, int_t incx )
+{
+    typedef T real_t;
+
+    bool scaledsmax = false; // indicates whether x_i finite but |Re(x_i)| + |Im(x_i)| = Inf
     real_t smax = -1;
     size_t index = INVALID_INDEX;
     const real_t oneFourth = 0.25;
@@ -130,10 +272,11 @@ size_t iamax(
             else if ( isinf(x[i]) ) {
                 // record location of first Inf
                 index = i;
+                i++;
                 break;
             }
             else { // still no Inf found yet
-                if ( !scaledsmax ) { // no abs(real(sx(i))) + abs(imag(sx(i))) = Inf  yet
+                if ( !scaledsmax ) { // no |Re(x_i)| + |Im(x_i)| = Inf  yet
                     real_t a = abs1(x[i]);
                     if ( isinf(a) ) {
                         scaledsmax = true;
@@ -173,10 +316,11 @@ size_t iamax(
             else if ( isinf(x[ix]) ) {
                 // record location of first Inf
                 index = i;
+                i++; ix += incx;
                 break;
             }
             else { // still no Inf found yet
-                if ( !scaledsmax ) { // no abs(real(sx(i))) + abs(imag(sx(i))) = Inf  yet
+                if ( !scaledsmax ) { // no |Re(x_i)| + |Im(x_i)| = Inf  yet
                     real_t a = abs1(x[ix]);
                     if ( isinf(a) ) {
                         scaledsmax = true;
