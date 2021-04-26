@@ -33,14 +33,87 @@ namespace blas {
 ///
 /// @ingroup iamax
 
+// Real case
 template< typename T >
 size_t iamax(
     size_t n,
     T const *x, int_t incx )
-{
+{    
     typedef real_type<T> real_t;
 
-    bool noinfyet = true;  // no Inf has been found yet
+    size_t index = INVALID_INDEX;
+    real_t smax = -1;
+
+    if (incx == 1) {
+        // unit stride
+        size_t i = 0;
+        for (; i < n; ++i) {
+            if ( isnan(x[i]) ) {
+                // return when first NaN found
+                return i;
+            }
+            else if ( isinf(x[i]) ) {
+                // record location of first Inf
+                index = i;
+                break;
+            }
+            else { // still no Inf found yet
+                real_t a = std::abs(x[i]);
+                if ( a > smax ) {
+                    smax = a;
+                    index = i;
+                }
+            }
+        }
+        for (; i < n; ++i) { // keep looking for first NaN
+            if ( isnan(x[i]) ) {
+                // return when first NaN found
+                return i;
+            }
+        }
+    }
+    else {
+        // non-unit stride
+        size_t i = 0;
+        int_t ix = 0;
+        for (; i < n; ++i) {
+            if ( isnan(x[ix]) ) {
+                // return when first NaN found
+                return i;
+            }
+            else if ( isinf(x[ix]) ) {
+                // record location of first Inf
+                index = i;
+                break;
+            }
+            else { // still no Inf found yet
+                real_t a = std::abs(x[ix]);
+                if ( a > smax ) { // and everything finite so far
+                    smax = a;
+                    index = i;
+                }
+            }
+            ix += incx;
+        }
+        for (; i < n; ++i) { // keep looking for first NaN
+            if ( isnan(x[ix]) ) {
+                // return when first NaN found
+                return i;
+            }
+            ix += incx;
+        }
+    }
+    return index;
+}
+
+// Complex case
+template< typename T >
+size_t iamax(
+    size_t n,
+    std::complex<T> const *x, int_t incx )
+{
+    typedef T real_t;
+
     bool scaledsmax = false; // indicates whether sx(i) finite but abs(real(sx(i))) + abs(imag(sx(i))) = Inf
     real_t smax = -1;
     size_t index = INVALID_INDEX;
@@ -48,76 +121,87 @@ size_t iamax(
 
     if (incx == 1) {
         // unit stride
-        for (size_t i = 0; i < n; ++i) {
+        size_t i = 0;
+        for (; i < n; ++i) {
             if ( isnan(x[i]) ) {
                 // return when first NaN found
                 return i;
             }
-            else if ( noinfyet ) {
-                if ( isinf(x[i]) ) {
-                    // record location of first Inf, keep looking for first NaN
-                    index = i;
-                    noinfyet = false;
-                }
-                else { // still no Inf found yet
-                    if ( !scaledsmax ) { // no abs(real(sx(i))) + abs(imag(sx(i))) = Inf  yet
-                        real_t a = abs1(x[i]);
-                        if ( isinf(a) ) {
-                            scaledsmax = true;
-                            smax = abs1( oneFourth*x[i] );
-                            index = i;
-                        }
-                        else if ( a > smax ) { // and everything finite so far
-                            smax = a;
-                            index = i;
-                        }
+            else if ( isinf(x[i]) ) {
+                // record location of first Inf
+                index = i;
+                break;
+            }
+            else { // still no Inf found yet
+                if ( !scaledsmax ) { // no abs(real(sx(i))) + abs(imag(sx(i))) = Inf  yet
+                    real_t a = abs1(x[i]);
+                    if ( isinf(a) ) {
+                        scaledsmax = true;
+                        smax = abs1( oneFourth*x[i] );
+                        index = i;
                     }
-                    else { // scaledsmax = true
-                        real_t a = abs1( oneFourth*x[i] );
-                        if ( a > smax ) { // and everything finite so far
-                            smax = a;
-                            index = i;
-                        }
+                    else if ( a > smax ) { // and everything finite so far
+                        smax = a;
+                        index = i;
                     }
                 }
+                else { // scaledsmax = true
+                    real_t a = abs1( oneFourth*x[i] );
+                    if ( a > smax ) {
+                        smax = a;
+                        index = i;
+                    }
+                }
+            }
+        }
+        for (; i < n; ++i) { // keep looking for first NaN
+            if ( isnan(x[i]) ) {
+                // return when first NaN found
+                return i;
             }
         }
     }
     else {
         // non-unit stride
+        size_t i = 0;
         int_t ix = 0;
-        for (size_t i = 0; i < n; ++i) {
+        for (; i < n; ++i) {
             if ( isnan(x[ix]) ) {
                 // return when first NaN found
                 return i;
             }
-            else if ( noinfyet ) {
-                if ( isinf(x[ix]) ) {
-                    // record location of first Inf, keep looking for first NaN
-                    index = i;
-                    noinfyet = false;
-                }
-                else { // still no Inf found yet
-                    if ( !scaledsmax ) { // no abs(real(sx(i))) + abs(imag(sx(i))) = Inf  yet
-                        real_t a = abs1(x[ix]);
-                        if ( isinf(a) ) {
-                            scaledsmax = true;
-                            smax = abs1( oneFourth*x[ix] );
-                            index = i;
-                        }
-                        else if ( a > smax ) { // and everything finite so far
-                            smax = a;
-                            index = i;
-                        }
+            else if ( isinf(x[ix]) ) {
+                // record location of first Inf
+                index = i;
+                break;
+            }
+            else { // still no Inf found yet
+                if ( !scaledsmax ) { // no abs(real(sx(i))) + abs(imag(sx(i))) = Inf  yet
+                    real_t a = abs1(x[ix]);
+                    if ( isinf(a) ) {
+                        scaledsmax = true;
+                        smax = abs1( oneFourth*x[ix] );
+                        index = i;
                     }
-                    else { // scaledsmax = true
-                        real_t a = abs1( oneFourth*x[ix] );
-                        if ( a > smax ) { // and everything finite so far
-                            smax = a;
-                            index = i;
-                        }
+                    else if ( a > smax ) { // and everything finite so far
+                        smax = a;
+                        index = i;
                     }
                 }
+                else { // scaledsmax = true
+                    real_t a = abs1( oneFourth*x[ix] );
+                    if ( a > smax ) {
+                        smax = a;
+                        index = i;
+                    }
+                }
+            }
+            ix += incx;
+        }
+        for (; i < n; ++i) { // keep looking for first NaN
+            if ( isnan(x[ix]) ) {
+                // return when first NaN found
+                return i;
             }
             ix += incx;
         }
