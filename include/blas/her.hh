@@ -61,10 +61,10 @@ template< typename TA, typename TX >
 void her(
     blas::Layout layout,
     blas::Uplo uplo,
-    int64_t n,
+    size_t n,
     blas::real_type<TA, TX> alpha,  // zher takes double alpha; use real
-    TX const *x, int64_t incx,
-    TA       *A, int64_t lda )
+    TX const *x, int_t incx,
+    TA       *A, int_t lda )
 {
     typedef blas::scalar_type<TA, TX> scalar_t;
     typedef blas::real_type<TA, TX> real_t;
@@ -92,14 +92,14 @@ void her(
         uplo = (uplo == Uplo::Lower ? Uplo::Upper : Uplo::Lower);
     }
 
-    int64_t kx = (incx > 0 ? 0 : (-n + 1)*incx);
+    int_t kx = (incx > 0 ? 0 : (-n + 1)*incx);
     if (uplo == Uplo::Upper) {
         if (incx == 1) {
             // unit stride
-            for (int64_t j = 0; j < n; ++j) {
+            for (size_t j = 0; j < n; ++j) {
                 // note: NOT skipping if x[j] is zero, for consistent NAN handling
                 scalar_t tmp = alpha * conj( x[j] );
-                for (int64_t i = 0; i <= j-1; ++i) {
+                for (size_t i = 0; i <= j-1; ++i) {
                     A(i, j) += x[i] * tmp;
                 }
                 A(j, j) = real( A(j, j) ) + real( x[j] * tmp );
@@ -107,11 +107,11 @@ void her(
         }
         else {
             // non-unit stride
-            int64_t jx = kx;
-            for (int64_t j = 0; j < n; ++j) {
+            int_t jx = kx;
+            for (size_t j = 0; j < n; ++j) {
                 scalar_t tmp = alpha * conj( x[jx] );
-                int64_t ix = kx;
-                for (int64_t i = 0; i <= j-1; ++i) {
+                int_t ix = kx;
+                for (size_t i = 0; i <= j-1; ++i) {
                     A(i, j) += x[ix] * tmp;
                     ix += incx;
                 }
@@ -124,22 +124,22 @@ void her(
         // lower triangle
         if (incx == 1) {
             // unit stride
-            for (int64_t j = 0; j < n; ++j) {
+            for (size_t j = 0; j < n; ++j) {
                 scalar_t tmp = alpha * conj( x[j] );
                 A(j, j) = real( A(j, j) ) + real( tmp * x[j] );
-                for (int64_t i = j+1; i < n; ++i) {
+                for (size_t i = j+1; i < n; ++i) {
                     A(i, j) += x[i] * tmp;
                 }
             }
         }
         else {
             // non-unit stride
-            int64_t jx = kx;
-            for (int64_t j = 0; j < n; ++j) {
+            int_t jx = kx;
+            for (size_t j = 0; j < n; ++j) {
                 scalar_t tmp = alpha * conj( x[jx] );
                 A(j, j) = real( A(j, j) ) + real( tmp * x[jx] );
-                int64_t ix = jx;
-                for (int64_t i = j+1; i < n; ++i) {
+                int_t ix = jx;
+                for (size_t i = j+1; i < n; ++i) {
                     ix += incx;
                     A(i, j) += x[ix] * tmp;
                 }

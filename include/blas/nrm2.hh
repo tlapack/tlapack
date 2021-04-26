@@ -35,8 +35,8 @@ namespace blas {
 template< typename T >
 real_type<T>
 nrm2(
-    int64_t n,
-    T const * x, int64_t incx )
+    size_t n,
+    T const * x, int_t incx )
 {
     typedef real_type<T> real_t;
 
@@ -48,14 +48,14 @@ nrm2(
     real_t result = 0;
     if (incx == 1) {
         // unit stride
-        for (int64_t i = 0; i < n; ++i) {
+        for (size_t i = 0; i < n; ++i) {
             result += real(x[i]) * real(x[i]) + imag(x[i]) * imag(x[i]);
         }
     }
     else {
         // non-unit stride
-        int64_t ix = 0;
-        for (int64_t i = 0; i < n; ++i) {
+        int_t ix = 0;
+        for (size_t i = 0; i < n; ++i) {
             result += real(x[ix]) * real(x[ix]) + imag(x[ix]) * imag(x[ix]);
             ix += incx;
         }

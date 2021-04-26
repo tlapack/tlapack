@@ -28,7 +28,7 @@ inline T conj( T x )
 }
 
 // -----------------------------------------------------------------------------
-// max that works with different data types: int64_t = max( int, int64_t )
+// max that works with different data types
 // and any number of arguments: max( a, b, c, d )
 
 // one argument
@@ -55,7 +55,7 @@ scalar_type< T1, Types... >
 }
 
 // -----------------------------------------------------------------------------
-// min that works with different data types: int64_t = min( int, int64_t )
+// min that works with different data types
 // and any number of arguments: min( a, b, c, d )
 
 // one argument
@@ -118,6 +118,28 @@ template< typename T >
 T abs1( std::complex<T> x )
 {
     return std::abs( real(x) ) + std::abs( imag(x) );
+}
+
+// -----------------------------------------------------------------------------
+// is nan
+template< typename T >
+bool isnan( T x )
+{
+    return x != x;
+}
+
+// -----------------------------------------------------------------------------
+// is inf
+template< typename T >
+bool isinf( T x )
+{
+    return std::isinf(x);
+}
+
+template< typename T >
+bool isinf( std::complex<T> x )
+{
+    return std::isinf( real(x) ) || std::isinf( imag(x) );
 }
 
 } // namespace blas

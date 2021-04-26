@@ -16,183 +16,183 @@
 // /// @ingroup asum
 // float asum(
 //     tlapack::size_t n,
-//     float const *x, int64_t incx );
+//     float const *x, int_t incx );
 
 // /// @ingroup asum
 // double asum(
 //     tlapack::size_t n,
-//     double const *x, int64_t incx );
+//     double const *x, int_t incx );
 
 // /// @ingroup asum
 // float asum(
 //     tlapack::size_t n,
-//     std::complex<float> const *x, int64_t incx );
+//     std::complex<float> const *x, int_t incx );
 
 // /// @ingroup asum
 // double asum(
 //     tlapack::size_t n,
-//     std::complex<double> const *x, int64_t incx );
+//     std::complex<double> const *x, int_t incx );
 
 // // -----------------------------------------------------------------------------
 // /// @ingroup axpy
 // void axpy(
 //     tlapack::size_t n,
 //     float alpha,
-//     float const *x, int64_t incx,
-//     float       *y, int64_t incy );
+//     float const *x, int_t incx,
+//     float       *y, int_t incy );
 
 // /// @ingroup axpy
 // void axpy(
 //     tlapack::size_t n,
 //     double alpha,
-//     double const *x, int64_t incx,
-//     double       *y, int64_t incy );
+//     double const *x, int_t incx,
+//     double       *y, int_t incy );
 
 // /// @ingroup axpy
 // void axpy(
 //     tlapack::size_t n,
 //     std::complex<float> alpha,
-//     std::complex<float> const *x, int64_t incx,
-//     std::complex<float>       *y, int64_t incy );
+//     std::complex<float> const *x, int_t incx,
+//     std::complex<float>       *y, int_t incy );
 
 // /// @ingroup axpy
 // void axpy(
 //     tlapack::size_t n,
 //     std::complex<double> alpha,
-//     std::complex<double> const *x, int64_t incx,
-//     std::complex<double>       *y, int64_t incy );
+//     std::complex<double> const *x, int_t incx,
+//     std::complex<double>       *y, int_t incy );
 
 // // -----------------------------------------------------------------------------
 // /// @ingroup copy
 // void copy(
 //     tlapack::size_t n,
-//     float const *x, int64_t incx,
-//     float       *y, int64_t incy );
+//     float const *x, int_t incx,
+//     float       *y, int_t incy );
 
 // /// @ingroup copy
 // void copy(
 //     tlapack::size_t n,
-//     double const *x, int64_t incx,
-//     double       *y, int64_t incy );
+//     double const *x, int_t incx,
+//     double       *y, int_t incy );
 
 // /// @ingroup copy
 // void copy(
 //     tlapack::size_t n,
-//     std::complex<float> const *x, int64_t incx,
-//     std::complex<float>       *y, int64_t incy );
+//     std::complex<float> const *x, int_t incx,
+//     std::complex<float>       *y, int_t incy );
 
 // /// @ingroup copy
 // void copy(
 //     tlapack::size_t n,
-//     std::complex<double> const *x, int64_t incx,
-//     std::complex<double>       *y, int64_t incy );
+//     std::complex<double> const *x, int_t incx,
+//     std::complex<double>       *y, int_t incy );
 
 // // -----------------------------------------------------------------------------
 // /// @ingroup dot
 // float dot(
 //     tlapack::size_t n,
-//     float const *x, int64_t incx,
-//     float const *y, int64_t incy );
+//     float const *x, int_t incx,
+//     float const *y, int_t incy );
 
 // /// @ingroup dot
 // double dot(
 //     tlapack::size_t n,
-//     double const *x, int64_t incx,
-//     double const *y, int64_t incy );
+//     double const *x, int_t incx,
+//     double const *y, int_t incy );
 
 // /// @ingroup dot
 // std::complex<float> dot(
 //     tlapack::size_t n,
-//     std::complex<float> const *x, int64_t incx,
-//     std::complex<float> const *y, int64_t incy );
+//     std::complex<float> const *x, int_t incx,
+//     std::complex<float> const *y, int_t incy );
 
 // /// @ingroup dot
 // std::complex<double> dot(
 //     tlapack::size_t n,
-//     std::complex<double> const *x, int64_t incx,
-//     std::complex<double> const *y, int64_t incy );
+//     std::complex<double> const *x, int_t incx,
+//     std::complex<double> const *y, int_t incy );
 
 // // -----------------------------------------------------------------------------
 // /// @ingroup dotu
 // float dotu(
 //     tlapack::size_t n,
-//     float const *x, int64_t incx,
-//     float const *y, int64_t incy );
+//     float const *x, int_t incx,
+//     float const *y, int_t incy );
 
 // /// @ingroup dotu
 // double dotu(
 //     tlapack::size_t n,
-//     double const *x, int64_t incx,
-//     double const *y, int64_t incy );
+//     double const *x, int_t incx,
+//     double const *y, int_t incy );
 
 // /// @ingroup dotu
 // std::complex<float> dotu(
 //     tlapack::size_t n,
-//     std::complex<float> const *x, int64_t incx,
-//     std::complex<float> const *y, int64_t incy );
+//     std::complex<float> const *x, int_t incx,
+//     std::complex<float> const *y, int_t incy );
 
 // /// @ingroup dotu
 // std::complex<double> dotu(
 //     tlapack::size_t n,
-//     std::complex<double> const *x, int64_t incx,
-//     std::complex<double> const *y, int64_t incy );
+//     std::complex<double> const *x, int_t incx,
+//     std::complex<double> const *y, int_t incy );
 
 // // -----------------------------------------------------------------------------
 // /// @ingroup iamax
 // tlapack::size_t iamax(
 //     tlapack::size_t n,
-//     float const *x, int64_t incx );
+//     float const *x, int_t incx );
 
 // /// @ingroup iamax
 // tlapack::size_t iamax(
 //     tlapack::size_t n,
-//     double const *x, int64_t incx );
+//     double const *x, int_t incx );
 
 // /// @ingroup iamax
 // tlapack::size_t iamax(
 //     tlapack::size_t n,
-//     std::complex<float> const *x, int64_t incx );
+//     std::complex<float> const *x, int_t incx );
 
 // /// @ingroup iamax
 // tlapack::size_t iamax(
 //     tlapack::size_t n,
-//     std::complex<double> const *x, int64_t incx );
+//     std::complex<double> const *x, int_t incx );
 
 // // -----------------------------------------------------------------------------
 // /// @ingroup nrm2
 // float nrm2(
 //     tlapack::size_t n,
-//     float const *x, int64_t incx );
+//     float const *x, int_t incx );
 
 // /// @ingroup nrm2
 // double nrm2(
 //     tlapack::size_t n,
-//     double const *x, int64_t incx );
+//     double const *x, int_t incx );
 
 // /// @ingroup nrm2
 // float nrm2(
 //     tlapack::size_t n,
-//     std::complex<float> const *x, int64_t incx );
+//     std::complex<float> const *x, int_t incx );
 
 // /// @ingroup nrm2
 // double nrm2(
 //     tlapack::size_t n,
-//     std::complex<double> const *x, int64_t incx );
+//     std::complex<double> const *x, int_t incx );
 
 // // -----------------------------------------------------------------------------
 // /// @ingroup rot
 // void rot(
 //     tlapack::size_t n,
-//     float *x, int64_t incx,
-//     float *y, int64_t incy,
+//     float *x, int_t incx,
+//     float *y, int_t incy,
 //     float c,
 //     float s );
 
 // /// @ingroup rot
 // void rot(
 //     tlapack::size_t n,
-//     double *x, int64_t incx,
-//     double *y, int64_t incy,
+//     double *x, int_t incx,
+//     double *y, int_t incy,
 //     double c,
 //     double s );
 
@@ -200,8 +200,8 @@
 // // real cosine, real sine
 // void rot(
 //     tlapack::size_t n,
-//     std::complex<float> *x, int64_t incx,
-//     std::complex<float> *y, int64_t incy,
+//     std::complex<float> *x, int_t incx,
+//     std::complex<float> *y, int_t incy,
 //     float c,
 //     float s );
 
@@ -209,8 +209,8 @@
 // // real cosine, real sine
 // void rot(
 //     tlapack::size_t n,
-//     std::complex<double> *x, int64_t incx,
-//     std::complex<double> *y, int64_t incy,
+//     std::complex<double> *x, int_t incx,
+//     std::complex<double> *y, int_t incy,
 //     double c,
 //     double s );
 
@@ -218,8 +218,8 @@
 // // real cosine, complex sine
 // void rot(
 //     tlapack::size_t n,
-//     std::complex<float> *x, int64_t incx,
-//     std::complex<float> *y, int64_t incy,
+//     std::complex<float> *x, int_t incx,
+//     std::complex<float> *y, int_t incy,
 //     float c,
 //     std::complex<float> s );
 
@@ -227,8 +227,8 @@
 // // real cosine, complex sine
 // void rot(
 //     tlapack::size_t n,
-//     std::complex<double> *x, int64_t incx,
-//     std::complex<double> *y, int64_t incy,
+//     std::complex<double> *x, int_t incx,
+//     std::complex<double> *y, int_t incy,
 //     double c,
 //     std::complex<double> s );
 
@@ -266,15 +266,15 @@
 // /// @ingroup rotm
 // void rotm(
 //     tlapack::size_t n,
-//     float *x, int64_t incx,
-//     float *y, int64_t incy,
+//     float *x, int_t incx,
+//     float *y, int_t incy,
 //     float const param[5] );
 
 // /// @ingroup rotm
 // void rotm(
 //     tlapack::size_t n,
-//     double *x, int64_t incx,
-//     double *y, int64_t incy,
+//     double *x, int_t incx,
+//     double *y, int_t incy,
 //     double const param[5] );
 
 // // -----------------------------------------------------------------------------
@@ -300,50 +300,50 @@
 // void scal(
 //     tlapack::size_t n,
 //     float alpha,
-//     float *x, int64_t incx );
+//     float *x, int_t incx );
 
 // /// @ingroup scal
 // void scal(
 //     tlapack::size_t n,
 //     double alpha,
-//     double *x, int64_t incx );
+//     double *x, int_t incx );
 
 // /// @ingroup scal
 // void scal(
 //     tlapack::size_t n,
 //     std::complex<float> alpha,
-//     std::complex<float> *x, int64_t incx );
+//     std::complex<float> *x, int_t incx );
 
 // /// @ingroup scal
 // void scal(
 //     tlapack::size_t n,
 //     std::complex<double> alpha,
-//     std::complex<double> *x, int64_t incx );
+//     std::complex<double> *x, int_t incx );
 
 // // -----------------------------------------------------------------------------
 // /// @ingroup swap
 // void swap(
 //     tlapack::size_t n,
-//     float *x, int64_t incx,
-//     float *y, int64_t incy );
+//     float *x, int_t incx,
+//     float *y, int_t incy );
 
 // /// @ingroup swap
 // void swap(
 //     tlapack::size_t n,
-//     double *x, int64_t incx,
-//     double *y, int64_t incy );
+//     double *x, int_t incx,
+//     double *y, int_t incy );
 
 // /// @ingroup swap
 // void swap(
 //     tlapack::size_t n,
-//     std::complex<float> *x, int64_t incx,
-//     std::complex<float> *y, int64_t incy );
+//     std::complex<float> *x, int_t incx,
+//     std::complex<float> *y, int_t incy );
 
 // /// @ingroup swap
 // void swap(
 //     tlapack::size_t n,
-//     std::complex<double> *x, int64_t incx,
-//     std::complex<double> *y, int64_t incy );
+//     std::complex<double> *x, int_t incx,
+//     std::complex<double> *y, int_t incy );
 // // =============================================================================
 // // Level 2 BLAS
 
@@ -354,10 +354,10 @@
 //     blas::Op trans,
 //     tlapack::size_t m, tlapack::size_t n,
 //     float alpha,
-//     float const *A, int64_t lda,
-//     float const *x, int64_t incx,
+//     float const *A, int_t lda,
+//     float const *x, int_t incx,
 //     float beta,
-//     float       *y, int64_t incy );
+//     float       *y, int_t incy );
 
 // /// @ingroup gemv
 // void gemv(
@@ -365,10 +365,10 @@
 //     blas::Op trans,
 //     tlapack::size_t m, tlapack::size_t n,
 //     double alpha,
-//     double const *A, int64_t lda,
-//     double const *x, int64_t incx,
+//     double const *A, int_t lda,
+//     double const *x, int_t incx,
 //     double beta,
-//     double       *y, int64_t incy );
+//     double       *y, int_t incy );
 
 // /// @ingroup gemv
 // void gemv(
@@ -376,10 +376,10 @@
 //     blas::Op trans,
 //     tlapack::size_t m, tlapack::size_t n,
 //     std::complex<float> alpha,
-//     std::complex<float> const *A, int64_t lda,
-//     std::complex<float> const *x, int64_t incx,
+//     std::complex<float> const *A, int_t lda,
+//     std::complex<float> const *x, int_t incx,
 //     std::complex<float> beta,
-//     std::complex<float>       *y, int64_t incy );
+//     std::complex<float>       *y, int_t incy );
 
 // /// @ingroup gemv
 // void gemv(
@@ -387,10 +387,10 @@
 //     blas::Op trans,
 //     tlapack::size_t m, tlapack::size_t n,
 //     std::complex<double> alpha,
-//     std::complex<double> const *A, int64_t lda,
-//     std::complex<double> const *x, int64_t incx,
+//     std::complex<double> const *A, int_t lda,
+//     std::complex<double> const *x, int_t incx,
 //     std::complex<double> beta,
-//     std::complex<double>       *y, int64_t incy );
+//     std::complex<double>       *y, int_t incy );
 
 // // -----------------------------------------------------------------------------
 // /// @ingroup ger
@@ -398,36 +398,36 @@
 //     blas::Layout layout,
 //     tlapack::size_t m, tlapack::size_t n,
 //     float alpha,
-//     float const *x, int64_t incx,
-//     float const *y, int64_t incy,
-//     float       *A, int64_t lda );
+//     float const *x, int_t incx,
+//     float const *y, int_t incy,
+//     float       *A, int_t lda );
 
 // /// @ingroup ger
 // void ger(
 //     blas::Layout layout,
 //     tlapack::size_t m, tlapack::size_t n,
 //     double alpha,
-//     double const *x, int64_t incx,
-//     double const *y, int64_t incy,
-//     double       *A, int64_t lda );
+//     double const *x, int_t incx,
+//     double const *y, int_t incy,
+//     double       *A, int_t lda );
 
 // /// @ingroup ger
 // void ger(
 //     blas::Layout layout,
 //     tlapack::size_t m, tlapack::size_t n,
 //     std::complex<float> alpha,
-//     std::complex<float> const *x, int64_t incx,
-//     std::complex<float> const *y, int64_t incy,
-//     std::complex<float>       *A, int64_t lda );
+//     std::complex<float> const *x, int_t incx,
+//     std::complex<float> const *y, int_t incy,
+//     std::complex<float>       *A, int_t lda );
 
 // /// @ingroup ger
 // void ger(
 //     blas::Layout layout,
 //     tlapack::size_t m, tlapack::size_t n,
 //     std::complex<double> alpha,
-//     std::complex<double> const *x, int64_t incx,
-//     std::complex<double> const *y, int64_t incy,
-//     std::complex<double>       *A, int64_t lda );
+//     std::complex<double> const *x, int_t incx,
+//     std::complex<double> const *y, int_t incy,
+//     std::complex<double>       *A, int_t lda );
 
 // // -----------------------------------------------------------------------------
 // /// @ingroup geru
@@ -435,36 +435,36 @@
 //     blas::Layout layout,
 //     tlapack::size_t m, tlapack::size_t n,
 //     float alpha,
-//     float const *x, int64_t incx,
-//     float const *y, int64_t incy,
-//     float       *A, int64_t lda );
+//     float const *x, int_t incx,
+//     float const *y, int_t incy,
+//     float       *A, int_t lda );
 
 // /// @ingroup geru
 // void geru(
 //     blas::Layout layout,
 //     tlapack::size_t m, tlapack::size_t n,
 //     double alpha,
-//     double const *x, int64_t incx,
-//     double const *y, int64_t incy,
-//     double       *A, int64_t lda );
+//     double const *x, int_t incx,
+//     double const *y, int_t incy,
+//     double       *A, int_t lda );
 
 // /// @ingroup geru
 // void geru(
 //     blas::Layout layout,
 //     tlapack::size_t m, tlapack::size_t n,
 //     std::complex<float> alpha,
-//     std::complex<float> const *x, int64_t incx,
-//     std::complex<float> const *y, int64_t incy,
-//     std::complex<float>       *A, int64_t lda );
+//     std::complex<float> const *x, int_t incx,
+//     std::complex<float> const *y, int_t incy,
+//     std::complex<float>       *A, int_t lda );
 
 // /// @ingroup geru
 // void geru(
 //     blas::Layout layout,
 //     tlapack::size_t m, tlapack::size_t n,
 //     std::complex<double> alpha,
-//     std::complex<double> const *x, int64_t incx,
-//     std::complex<double> const *y, int64_t incy,
-//     std::complex<double>       *A, int64_t lda );
+//     std::complex<double> const *x, int_t incx,
+//     std::complex<double> const *y, int_t incy,
+//     std::complex<double>       *A, int_t lda );
 
 // // -----------------------------------------------------------------------------
 // /// @ingroup hemv
@@ -473,10 +473,10 @@
 //     blas::Uplo uplo,
 //     tlapack::size_t n,
 //     float alpha,
-//     float const *A, int64_t lda,
-//     float const *x, int64_t incx,
+//     float const *A, int_t lda,
+//     float const *x, int_t incx,
 //     float beta,
-//     float       *y, int64_t incy );
+//     float       *y, int_t incy );
 
 // /// @ingroup hemv
 // void hemv(
@@ -484,10 +484,10 @@
 //     blas::Uplo uplo,
 //     tlapack::size_t n,
 //     double alpha,
-//     double const *A, int64_t lda,
-//     double const *x, int64_t incx,
+//     double const *A, int_t lda,
+//     double const *x, int_t incx,
 //     double beta,
-//     double       *y, int64_t incy );
+//     double       *y, int_t incy );
 
 // /// @ingroup hemv
 // void hemv(
@@ -495,10 +495,10 @@
 //     blas::Uplo uplo,
 //     tlapack::size_t n,
 //     std::complex<float> alpha,
-//     std::complex<float> const *A, int64_t lda,
-//     std::complex<float> const *x, int64_t incx,
+//     std::complex<float> const *A, int_t lda,
+//     std::complex<float> const *x, int_t incx,
 //     std::complex<float> beta,
-//     std::complex<float>       *y, int64_t incy );
+//     std::complex<float>       *y, int_t incy );
 
 // /// @ingroup hemv
 // void hemv(
@@ -506,10 +506,10 @@
 //     blas::Uplo uplo,
 //     tlapack::size_t n,
 //     std::complex<double> alpha,
-//     std::complex<double> const *A, int64_t lda,
-//     std::complex<double> const *x, int64_t incx,
+//     std::complex<double> const *A, int_t lda,
+//     std::complex<double> const *x, int_t incx,
 //     std::complex<double> beta,
-//     std::complex<double>       *y, int64_t incy );
+//     std::complex<double>       *y, int_t incy );
 
 // // -----------------------------------------------------------------------------
 // /// @ingroup her
@@ -518,8 +518,8 @@
 //     blas::Uplo uplo,
 //     tlapack::size_t n,
 //     float alpha,
-//     float const *x, int64_t incx,
-//     float       *A, int64_t lda );
+//     float const *x, int_t incx,
+//     float       *A, int_t lda );
 
 // /// @ingroup her
 // void her(
@@ -527,8 +527,8 @@
 //     blas::Uplo uplo,
 //     tlapack::size_t n,
 //     double alpha,
-//     double const *x, int64_t incx,
-//     double       *A, int64_t lda );
+//     double const *x, int_t incx,
+//     double       *A, int_t lda );
 
 // /// @ingroup her
 // void her(
@@ -536,8 +536,8 @@
 //     blas::Uplo uplo,
 //     tlapack::size_t n,
 //     float alpha,
-//     std::complex<float> const *x, int64_t incx,
-//     std::complex<float>       *A, int64_t lda );
+//     std::complex<float> const *x, int_t incx,
+//     std::complex<float>       *A, int_t lda );
 
 // /// @ingroup her
 // void her(
@@ -545,8 +545,8 @@
 //     blas::Uplo uplo,
 //     tlapack::size_t n,
 //     double alpha,
-//     std::complex<double> const *x, int64_t incx,
-//     std::complex<double>       *A, int64_t lda );
+//     std::complex<double> const *x, int_t incx,
+//     std::complex<double>       *A, int_t lda );
 
 // // -----------------------------------------------------------------------------
 // /// @ingroup her2
@@ -555,9 +555,9 @@
 //     blas::Uplo uplo,
 //     tlapack::size_t n,
 //     float alpha,
-//     float const *x, int64_t incx,
-//     float const *y, int64_t incy,
-//     float       *A, int64_t lda );
+//     float const *x, int_t incx,
+//     float const *y, int_t incy,
+//     float       *A, int_t lda );
 
 // /// @ingroup her2
 // void her2(
@@ -565,9 +565,9 @@
 //     blas::Uplo uplo,
 //     tlapack::size_t n,
 //     double alpha,
-//     double const *x, int64_t incx,
-//     double const *y, int64_t incy,
-//     double       *A, int64_t lda );
+//     double const *x, int_t incx,
+//     double const *y, int_t incy,
+//     double       *A, int_t lda );
 
 // /// @ingroup her2
 // void her2(
@@ -575,9 +575,9 @@
 //     blas::Uplo uplo,
 //     tlapack::size_t n,
 //     std::complex<float> alpha,
-//     std::complex<float> const *x, int64_t incx,
-//     std::complex<float> const *y, int64_t incy,
-//     std::complex<float>       *A, int64_t lda );
+//     std::complex<float> const *x, int_t incx,
+//     std::complex<float> const *y, int_t incy,
+//     std::complex<float>       *A, int_t lda );
 
 // /// @ingroup her2
 // void her2(
@@ -585,9 +585,9 @@
 //     blas::Uplo uplo,
 //     tlapack::size_t n,
 //     std::complex<double> alpha,
-//     std::complex<double> const *x, int64_t incx,
-//     std::complex<double> const *y, int64_t incy,
-//     std::complex<double>       *A, int64_t lda );
+//     std::complex<double> const *x, int_t incx,
+//     std::complex<double> const *y, int_t incy,
+//     std::complex<double>       *A, int_t lda );
 
 // // -----------------------------------------------------------------------------
 // /// @ingroup symv
@@ -596,10 +596,10 @@
 //     blas::Uplo uplo,
 //     tlapack::size_t n,
 //     float alpha,
-//     float const *A, int64_t lda,
-//     float const *x, int64_t incx,
+//     float const *A, int_t lda,
+//     float const *x, int_t incx,
 //     float beta,
-//     float       *y, int64_t incy );
+//     float       *y, int_t incy );
 
 // /// @ingroup symv
 // void symv(
@@ -607,10 +607,10 @@
 //     blas::Uplo uplo,
 //     tlapack::size_t n,
 //     double alpha,
-//     double const *A, int64_t lda,
-//     double const *x, int64_t incx,
+//     double const *A, int_t lda,
+//     double const *x, int_t incx,
 //     double beta,
-//     double       *y, int64_t incy );
+//     double       *y, int_t incy );
 
 // /// @ingroup symv
 // void symv(
@@ -618,10 +618,10 @@
 //     blas::Uplo uplo,
 //     tlapack::size_t n,
 //     std::complex<float> alpha,
-//     std::complex<float> const *A, int64_t lda,
-//     std::complex<float> const *x, int64_t incx,
+//     std::complex<float> const *A, int_t lda,
+//     std::complex<float> const *x, int_t incx,
 //     std::complex<float> beta,
-//     std::complex<float>       *y, int64_t incy );
+//     std::complex<float>       *y, int_t incy );
 
 // /// @ingroup symv
 // void symv(
@@ -629,10 +629,10 @@
 //     blas::Uplo uplo,
 //     tlapack::size_t n,
 //     std::complex<double> alpha,
-//     std::complex<double> const *A, int64_t lda,
-//     std::complex<double> const *x, int64_t incx,
+//     std::complex<double> const *A, int_t lda,
+//     std::complex<double> const *x, int_t incx,
 //     std::complex<double> beta,
-//     std::complex<double>       *y, int64_t incy );
+//     std::complex<double>       *y, int_t incy );
 
 // // -----------------------------------------------------------------------------
 // // only real; complex in lapack++
@@ -642,8 +642,8 @@
 //     blas::Uplo uplo,
 //     tlapack::size_t n,
 //     float alpha,
-//     float const *x, int64_t incx,
-//     float       *A, int64_t lda );
+//     float const *x, int_t incx,
+//     float       *A, int_t lda );
 
 // /// @ingroup syr
 // void syr(
@@ -651,8 +651,8 @@
 //     blas::Uplo uplo,
 //     tlapack::size_t n,
 //     double alpha,
-//     double const *x, int64_t incx,
-//     double       *A, int64_t lda );
+//     double const *x, int_t incx,
+//     double       *A, int_t lda );
 
 // // -----------------------------------------------------------------------------
 // /// @ingroup syr2
@@ -661,9 +661,9 @@
 //     blas::Uplo uplo,
 //     tlapack::size_t n,
 //     float alpha,
-//     float const *x, int64_t incx,
-//     float const *y, int64_t incy,
-//     float       *A, int64_t lda );
+//     float const *x, int_t incx,
+//     float const *y, int_t incy,
+//     float       *A, int_t lda );
 
 // /// @ingroup syr2
 // void syr2(
@@ -671,9 +671,9 @@
 //     blas::Uplo uplo,
 //     tlapack::size_t n,
 //     double alpha,
-//     double const *x, int64_t incx,
-//     double const *y, int64_t incy,
-//     double       *A, int64_t lda );
+//     double const *x, int_t incx,
+//     double const *y, int_t incy,
+//     double       *A, int_t lda );
 
 // /// @ingroup syr2
 // void syr2(
@@ -681,9 +681,9 @@
 //     blas::Uplo uplo,
 //     tlapack::size_t n,
 //     std::complex<float> alpha,
-//     std::complex<float> const *x, int64_t incx,
-//     std::complex<float> const *y, int64_t incy,
-//     std::complex<float>       *A, int64_t lda );
+//     std::complex<float> const *x, int_t incx,
+//     std::complex<float> const *y, int_t incy,
+//     std::complex<float>       *A, int_t lda );
 
 // /// @ingroup syr2
 // void syr2(
@@ -691,9 +691,9 @@
 //     blas::Uplo uplo,
 //     tlapack::size_t n,
 //     std::complex<double> alpha,
-//     std::complex<double> const *x, int64_t incx,
-//     std::complex<double> const *y, int64_t incy,
-//     std::complex<double>       *A, int64_t lda );
+//     std::complex<double> const *x, int_t incx,
+//     std::complex<double> const *y, int_t incy,
+//     std::complex<double>       *A, int_t lda );
 
 // // -----------------------------------------------------------------------------
 // /// @ingroup trmv
@@ -703,8 +703,8 @@
 //     blas::Op trans,
 //     blas::Diag diag,
 //     tlapack::size_t n,
-//     float const *A, int64_t lda,
-//     float       *x, int64_t incx );
+//     float const *A, int_t lda,
+//     float       *x, int_t incx );
 
 // /// @ingroup trmv
 // void trmv(
@@ -713,8 +713,8 @@
 //     blas::Op trans,
 //     blas::Diag diag,
 //     tlapack::size_t n,
-//     double const *A, int64_t lda,
-//     double       *x, int64_t incx );
+//     double const *A, int_t lda,
+//     double       *x, int_t incx );
 
 // /// @ingroup trmv
 // void trmv(
@@ -723,8 +723,8 @@
 //     blas::Op trans,
 //     blas::Diag diag,
 //     tlapack::size_t n,
-//     std::complex<float> const *A, int64_t lda,
-//     std::complex<float>       *x, int64_t incx );
+//     std::complex<float> const *A, int_t lda,
+//     std::complex<float>       *x, int_t incx );
 
 // /// @ingroup trmv
 // void trmv(
@@ -733,8 +733,8 @@
 //     blas::Op trans,
 //     blas::Diag diag,
 //     tlapack::size_t n,
-//     std::complex<double> const *A, int64_t lda,
-//     std::complex<double>       *x, int64_t incx );
+//     std::complex<double> const *A, int_t lda,
+//     std::complex<double>       *x, int_t incx );
 
 // // -----------------------------------------------------------------------------
 // /// @ingroup trsv
@@ -744,8 +744,8 @@
 //     blas::Op trans,
 //     blas::Diag diag,
 //     tlapack::size_t n,
-//     float const *A, int64_t lda,
-//     float       *x, int64_t incx );
+//     float const *A, int_t lda,
+//     float       *x, int_t incx );
 
 // /// @ingroup trsv
 // void trsv(
@@ -754,8 +754,8 @@
 //     blas::Op trans,
 //     blas::Diag diag,
 //     tlapack::size_t n,
-//     double const *A, int64_t lda,
-//     double       *x, int64_t incx );
+//     double const *A, int_t lda,
+//     double       *x, int_t incx );
 
 // /// @ingroup trsv
 // void trsv(
@@ -764,8 +764,8 @@
 //     blas::Op trans,
 //     blas::Diag diag,
 //     tlapack::size_t n,
-//     std::complex<float> const *A, int64_t lda,
-//     std::complex<float>       *x, int64_t incx );
+//     std::complex<float> const *A, int_t lda,
+//     std::complex<float>       *x, int_t incx );
 
 // /// @ingroup trsv
 // void trsv(
@@ -774,8 +774,8 @@
 //     blas::Op trans,
 //     blas::Diag diag,
 //     tlapack::size_t n,
-//     std::complex<double> const *A, int64_t lda,
-//     std::complex<double>       *x, int64_t incx );
+//     std::complex<double> const *A, int_t lda,
+//     std::complex<double>       *x, int_t incx );
 // // =============================================================================
 // // Level 3 BLAS
 
@@ -789,10 +789,10 @@
 //     blas::Op transB,
 //     tlapack::size_t m, tlapack::size_t n, tlapack::size_t k,
 //     float alpha,
-//     float const *A, int64_t lda,
-//     float const *B, int64_t ldb,
+//     float const *A, int_t lda,
+//     float const *B, int_t ldb,
 //     float beta,
-//     float       *C, int64_t ldc );
+//     float       *C, int_t ldc );
 
 // /// @ingroup gemm
 // void gemm(
@@ -801,10 +801,10 @@
 //     blas::Op transB,
 //     tlapack::size_t m, tlapack::size_t n, tlapack::size_t k,
 //     double alpha,
-//     double const *A, int64_t lda,
-//     double const *B, int64_t ldb,
+//     double const *A, int_t lda,
+//     double const *B, int_t ldb,
 //     double beta,
-//     double       *C, int64_t ldc );
+//     double       *C, int_t ldc );
 
 // /// @ingroup gemm
 // void gemm(
@@ -813,10 +813,10 @@
 //     blas::Op transB,
 //     tlapack::size_t m, tlapack::size_t n, tlapack::size_t k,
 //     std::complex<float> alpha,
-//     std::complex<float> const *A, int64_t lda,
-//     std::complex<float> const *B, int64_t ldb,
+//     std::complex<float> const *A, int_t lda,
+//     std::complex<float> const *B, int_t ldb,
 //     std::complex<float> beta,
-//     std::complex<float>       *C, int64_t ldc );
+//     std::complex<float>       *C, int_t ldc );
 
 // /// @ingroup gemm
 // void gemm(
@@ -825,10 +825,10 @@
 //     blas::Op transB,
 //     tlapack::size_t m, tlapack::size_t n, tlapack::size_t k,
 //     std::complex<double> alpha,
-//     std::complex<double> const *A, int64_t lda,
-//     std::complex<double> const *B, int64_t ldb,
+//     std::complex<double> const *A, int_t lda,
+//     std::complex<double> const *B, int_t ldb,
 //     std::complex<double> beta,
-//     std::complex<double>       *C, int64_t ldc );
+//     std::complex<double>       *C, int_t ldc );
 
 // #endif
 
@@ -840,10 +840,10 @@
 //     blas::Uplo uplo,
 //     tlapack::size_t m, tlapack::size_t n,
 //     float alpha,
-//     float const *A, int64_t lda,
-//     float const *B, int64_t ldb,
+//     float const *A, int_t lda,
+//     float const *B, int_t ldb,
 //     float beta,
-//     float       *C, int64_t ldc );
+//     float       *C, int_t ldc );
 
 // /// @ingroup hemm
 // void hemm(
@@ -852,10 +852,10 @@
 //     blas::Uplo uplo,
 //     tlapack::size_t m, tlapack::size_t n,
 //     double alpha,
-//     double const *A, int64_t lda,
-//     double const *B, int64_t ldb,
+//     double const *A, int_t lda,
+//     double const *B, int_t ldb,
 //     double beta,
-//     double       *C, int64_t ldc );
+//     double       *C, int_t ldc );
 
 // /// @ingroup hemm
 // void hemm(
@@ -864,10 +864,10 @@
 //     blas::Uplo uplo,
 //     tlapack::size_t m, tlapack::size_t n,
 //     std::complex<float> alpha,
-//     std::complex<float> const *A, int64_t lda,
-//     std::complex<float> const *B, int64_t ldb,
+//     std::complex<float> const *A, int_t lda,
+//     std::complex<float> const *B, int_t ldb,
 //     std::complex<float> beta,
-//     std::complex<float>       *C, int64_t ldc );
+//     std::complex<float>       *C, int_t ldc );
 
 // /// @ingroup hemm
 // void hemm(
@@ -876,10 +876,10 @@
 //     blas::Uplo uplo,
 //     tlapack::size_t m, tlapack::size_t n,
 //     std::complex<double> alpha,
-//     std::complex<double> const *A, int64_t lda,
-//     std::complex<double> const *B, int64_t ldb,
+//     std::complex<double> const *A, int_t lda,
+//     std::complex<double> const *B, int_t ldb,
 //     std::complex<double> beta,
-//     std::complex<double>       *C, int64_t ldc );
+//     std::complex<double>       *C, int_t ldc );
 
 // // -----------------------------------------------------------------------------
 // /// @ingroup her2k
@@ -889,10 +889,10 @@
 //     blas::Op trans,
 //     tlapack::size_t n, tlapack::size_t k,
 //     float alpha,
-//     float const *A, int64_t lda,
-//     float const *B, int64_t ldb,
+//     float const *A, int_t lda,
+//     float const *B, int_t ldb,
 //     float beta,
-//     float       *C, int64_t ldc );
+//     float       *C, int_t ldc );
 
 // /// @ingroup her2k
 // void her2k(
@@ -901,10 +901,10 @@
 //     blas::Op trans,
 //     tlapack::size_t n, tlapack::size_t k,
 //     double alpha,
-//     double const *A, int64_t lda,
-//     double const *B, int64_t ldb,
+//     double const *A, int_t lda,
+//     double const *B, int_t ldb,
 //     double beta,
-//     double       *C, int64_t ldc );
+//     double       *C, int_t ldc );
 
 // /// @ingroup her2k
 // void her2k(
@@ -913,10 +913,10 @@
 //     blas::Op trans,
 //     tlapack::size_t n, tlapack::size_t k,
 //     std::complex<float> alpha,  // note: complex
-//     std::complex<float> const *A, int64_t lda,
-//     std::complex<float> const *B, int64_t ldb,
+//     std::complex<float> const *A, int_t lda,
+//     std::complex<float> const *B, int_t ldb,
 //     float beta,   // note: real
-//     std::complex<float>       *C, int64_t ldc );
+//     std::complex<float>       *C, int_t ldc );
 
 // /// @ingroup her2k
 // void her2k(
@@ -925,10 +925,10 @@
 //     blas::Op trans,
 //     tlapack::size_t n, tlapack::size_t k,
 //     std::complex<double> alpha,  // note: complex
-//     std::complex<double> const *A, int64_t lda,
-//     std::complex<double> const *B, int64_t ldb,
+//     std::complex<double> const *A, int_t lda,
+//     std::complex<double> const *B, int_t ldb,
 //     double beta,  // note: real
-//     std::complex<double>       *C, int64_t ldc );
+//     std::complex<double>       *C, int_t ldc );
 
 // // -----------------------------------------------------------------------------
 // /// @ingroup herk
@@ -938,9 +938,9 @@
 //     blas::Op trans,
 //     tlapack::size_t n, tlapack::size_t k,
 //     float alpha,
-//     float const *A, int64_t lda,
+//     float const *A, int_t lda,
 //     float beta,
-//     float       *C, int64_t ldc );
+//     float       *C, int_t ldc );
 
 // /// @ingroup herk
 // void herk(
@@ -949,9 +949,9 @@
 //     blas::Op trans,
 //     tlapack::size_t n, tlapack::size_t k,
 //     double alpha,
-//     double const *A, int64_t lda,
+//     double const *A, int_t lda,
 //     double beta,
-//     double       *C, int64_t ldc );
+//     double       *C, int_t ldc );
 
 // /// @ingroup herk
 // void herk(
@@ -960,9 +960,9 @@
 //     blas::Op trans,
 //     tlapack::size_t n, tlapack::size_t k,
 //     float alpha,  // note: real
-//     std::complex<float> const *A, int64_t lda,
+//     std::complex<float> const *A, int_t lda,
 //     float beta,   // note: real
-//     std::complex<float>       *C, int64_t ldc );
+//     std::complex<float>       *C, int_t ldc );
 
 // /// @ingroup herk
 // void herk(
@@ -971,9 +971,9 @@
 //     blas::Op trans,
 //     tlapack::size_t n, tlapack::size_t k,
 //     double alpha,
-//     std::complex<double> const *A, int64_t lda,
+//     std::complex<double> const *A, int_t lda,
 //     double beta,
-//     std::complex<double>       *C, int64_t ldc );
+//     std::complex<double>       *C, int_t ldc );
 
 // // -----------------------------------------------------------------------------
 // /// @ingroup symm
@@ -983,10 +983,10 @@
 //     blas::Uplo uplo,
 //     tlapack::size_t m, tlapack::size_t n,
 //     float alpha,
-//     float const *A, int64_t lda,
-//     float const *B, int64_t ldb,
+//     float const *A, int_t lda,
+//     float const *B, int_t ldb,
 //     float beta,
-//     float       *C, int64_t ldc );
+//     float       *C, int_t ldc );
 
 // /// @ingroup symm
 // void symm(
@@ -995,10 +995,10 @@
 //     blas::Uplo uplo,
 //     tlapack::size_t m, tlapack::size_t n,
 //     double alpha,
-//     double const *A, int64_t lda,
-//     double const *B, int64_t ldb,
+//     double const *A, int_t lda,
+//     double const *B, int_t ldb,
 //     double beta,
-//     double       *C, int64_t ldc );
+//     double       *C, int_t ldc );
 
 // /// @ingroup symm
 // void symm(
@@ -1007,10 +1007,10 @@
 //     blas::Uplo uplo,
 //     tlapack::size_t m, tlapack::size_t n,
 //     std::complex<float> alpha,
-//     std::complex<float> const *A, int64_t lda,
-//     std::complex<float> const *B, int64_t ldb,
+//     std::complex<float> const *A, int_t lda,
+//     std::complex<float> const *B, int_t ldb,
 //     std::complex<float> beta,
-//     std::complex<float>       *C, int64_t ldc );
+//     std::complex<float>       *C, int_t ldc );
 
 // /// @ingroup symm
 // void symm(
@@ -1019,10 +1019,10 @@
 //     blas::Uplo uplo,
 //     tlapack::size_t m, tlapack::size_t n,
 //     std::complex<double> alpha,
-//     std::complex<double> const *A, int64_t lda,
-//     std::complex<double> const *B, int64_t ldb,
+//     std::complex<double> const *A, int_t lda,
+//     std::complex<double> const *B, int_t ldb,
 //     std::complex<double> beta,
-//     std::complex<double>       *C, int64_t ldc );
+//     std::complex<double>       *C, int_t ldc );
 
 // // -----------------------------------------------------------------------------
 // /// @ingroup syr2k
@@ -1032,10 +1032,10 @@
 //     blas::Op trans,
 //     tlapack::size_t n, tlapack::size_t k,
 //     float alpha,
-//     float const *A, int64_t lda,
-//     float const *B, int64_t ldb,
+//     float const *A, int_t lda,
+//     float const *B, int_t ldb,
 //     float beta,
-//     float       *C, int64_t ldc );
+//     float       *C, int_t ldc );
 
 // /// @ingroup syr2k
 // void syr2k(
@@ -1044,10 +1044,10 @@
 //     blas::Op trans,
 //     tlapack::size_t n, tlapack::size_t k,
 //     double alpha,
-//     double const *A, int64_t lda,
-//     double const *B, int64_t ldb,
+//     double const *A, int_t lda,
+//     double const *B, int_t ldb,
 //     double beta,
-//     double       *C, int64_t ldc );
+//     double       *C, int_t ldc );
 
 // /// @ingroup syr2k
 // void syr2k(
@@ -1056,10 +1056,10 @@
 //     blas::Op trans,
 //     tlapack::size_t n, tlapack::size_t k,
 //     std::complex<float> alpha,
-//     std::complex<float> const *A, int64_t lda,
-//     std::complex<float> const *B, int64_t ldb,
+//     std::complex<float> const *A, int_t lda,
+//     std::complex<float> const *B, int_t ldb,
 //     std::complex<float> beta,
-//     std::complex<float>       *C, int64_t ldc );
+//     std::complex<float>       *C, int_t ldc );
 
 // /// @ingroup syr2k
 // void syr2k(
@@ -1068,10 +1068,10 @@
 //     blas::Op trans,
 //     tlapack::size_t n, tlapack::size_t k,
 //     std::complex<double> alpha,
-//     std::complex<double> const *A, int64_t lda,
-//     std::complex<double> const *B, int64_t ldb,
+//     std::complex<double> const *A, int_t lda,
+//     std::complex<double> const *B, int_t ldb,
 //     std::complex<double> beta,
-//     std::complex<double>       *C, int64_t ldc );
+//     std::complex<double>       *C, int_t ldc );
 
 // // -----------------------------------------------------------------------------
 // /// @ingroup syrk
@@ -1081,9 +1081,9 @@
 //     blas::Op trans,
 //     tlapack::size_t n, tlapack::size_t k,
 //     float alpha,
-//     float const *A, int64_t lda,
+//     float const *A, int_t lda,
 //     float beta,
-//     float       *C, int64_t ldc );
+//     float       *C, int_t ldc );
 
 // /// @ingroup syrk
 // void syrk(
@@ -1092,9 +1092,9 @@
 //     blas::Op trans,
 //     tlapack::size_t n, tlapack::size_t k,
 //     double alpha,
-//     double const *A, int64_t lda,
+//     double const *A, int_t lda,
 //     double beta,
-//     double       *C, int64_t ldc );
+//     double       *C, int_t ldc );
 
 // /// @ingroup syrk
 // void syrk(
@@ -1103,9 +1103,9 @@
 //     blas::Op trans,
 //     tlapack::size_t n, tlapack::size_t k,
 //     std::complex<float> alpha,
-//     std::complex<float> const *A, int64_t lda,
+//     std::complex<float> const *A, int_t lda,
 //     std::complex<float> beta,
-//     std::complex<float>       *C, int64_t ldc );
+//     std::complex<float>       *C, int_t ldc );
 
 // /// @ingroup syrk
 // void syrk(
@@ -1114,9 +1114,9 @@
 //     blas::Op trans,
 //     tlapack::size_t n, tlapack::size_t k,
 //     std::complex<double> alpha,
-//     std::complex<double> const *A, int64_t lda,
+//     std::complex<double> const *A, int_t lda,
 //     std::complex<double> beta,
-//     std::complex<double>       *C, int64_t ldc );
+//     std::complex<double>       *C, int_t ldc );
 
 // // -----------------------------------------------------------------------------
 // /// @ingroup trmm
@@ -1129,8 +1129,8 @@
 //     tlapack::size_t m,
 //     tlapack::size_t n,
 //     float alpha,
-//     float const *A, int64_t lda,
-//     float       *B, int64_t ldb );
+//     float const *A, int_t lda,
+//     float       *B, int_t ldb );
 
 // /// @ingroup trmm
 // void trmm(
@@ -1142,8 +1142,8 @@
 //     tlapack::size_t m,
 //     tlapack::size_t n,
 //     double alpha,
-//     double const *A, int64_t lda,
-//     double       *B, int64_t ldb );
+//     double const *A, int_t lda,
+//     double       *B, int_t ldb );
 
 // /// @ingroup trmm
 // void trmm(
@@ -1155,8 +1155,8 @@
 //     tlapack::size_t m,
 //     tlapack::size_t n,
 //     std::complex<float> alpha,
-//     std::complex<float> const *A, int64_t lda,
-//     std::complex<float>       *B, int64_t ldb );
+//     std::complex<float> const *A, int_t lda,
+//     std::complex<float>       *B, int_t ldb );
 
 // /// @ingroup trmm
 // void trmm(
@@ -1168,8 +1168,8 @@
 //     tlapack::size_t m,
 //     tlapack::size_t n,
 //     std::complex<double> alpha,
-//     std::complex<double> const *A, int64_t lda,
-//     std::complex<double>       *B, int64_t ldb );
+//     std::complex<double> const *A, int_t lda,
+//     std::complex<double>       *B, int_t ldb );
 
 // // -----------------------------------------------------------------------------
 // /// @ingroup trsm
@@ -1182,8 +1182,8 @@
 //     tlapack::size_t m,
 //     tlapack::size_t n,
 //     float alpha,
-//     float const *A, int64_t lda,
-//     float       *B, int64_t ldb );
+//     float const *A, int_t lda,
+//     float       *B, int_t ldb );
 
 // /// @ingroup trsm
 // void trsm(
@@ -1195,8 +1195,8 @@
 //     tlapack::size_t m,
 //     tlapack::size_t n,
 //     double alpha,
-//     double const *A, int64_t lda,
-//     double       *B, int64_t ldb );
+//     double const *A, int_t lda,
+//     double       *B, int_t ldb );
 
 // /// @ingroup trsm
 // void trsm(
@@ -1208,8 +1208,8 @@
 //     tlapack::size_t m,
 //     tlapack::size_t n,
 //     std::complex<float> alpha,
-//     std::complex<float> const *A, int64_t lda,
-//     std::complex<float>       *B, int64_t ldb );
+//     std::complex<float> const *A, int_t lda,
+//     std::complex<float>       *B, int_t ldb );
 
 // /// @ingroup trsm
 // void trsm(
@@ -1221,7 +1221,7 @@
 //     tlapack::size_t m,
 //     tlapack::size_t n,
 //     std::complex<double> alpha,
-//     std::complex<double> const *A, int64_t lda,
-//     std::complex<double>       *B, int64_t ldb );
+//     std::complex<double> const *A, int_t lda,
+//     std::complex<double>       *B, int_t ldb );
 
 // }

@@ -61,11 +61,11 @@ namespace blas {
 template< typename TA, typename TX, typename TY >
 void ger(
     blas::Layout layout,
-    int64_t m, int64_t n,
+    size_t m, size_t n,
     blas::scalar_type<TA, TX, TY> alpha,
-    TX const *x, int64_t incx,
-    TY const *y, int64_t incy,
-    TA *A, int64_t lda )
+    TX const *x, int_t incx,
+    TY const *y, int_t incy,
+    TA *A, int_t lda )
 {
     typedef blas::scalar_type<TA, TX, TY> scalar_t;
 
@@ -94,20 +94,20 @@ void ger(
     if (layout == Layout::ColMajor) {
         if (incx == 1 && incy == 1) {
             // unit stride
-            for (int64_t j = 0; j < n; ++j) {
+            for (size_t j = 0; j < n; ++j) {
                 // note: NOT skipping if y[j] is zero, for consistent NAN handling
                 scalar_t tmp = alpha * conj( y[j] );
-                for (int64_t i = 0; i < m; ++i) {
+                for (size_t i = 0; i < m; ++i) {
                     A(i, j) += x[i] * tmp;
                 }
             }
         }
         else if (incx == 1) {
             // x unit stride, y non-unit stride
-            int64_t jy = (incy > 0 ? 0 : (-n + 1)*incy);
-            for (int64_t j = 0; j < n; ++j) {
+            int_t jy = (incy > 0 ? 0 : (-n + 1)*incy);
+            for (size_t j = 0; j < n; ++j) {
                 scalar_t tmp = alpha * conj( y[jy] );
-                for (int64_t i = 0; i < m; ++i) {
+                for (size_t i = 0; i < m; ++i) {
                     A(i, j) += x[i] * tmp;
                 }
                 jy += incy;
@@ -115,12 +115,12 @@ void ger(
         }
         else {
             // x and y non-unit stride
-            int64_t kx = (incx > 0 ? 0 : (-m + 1)*incx);
-            int64_t jy = (incy > 0 ? 0 : (-n + 1)*incy);
-            for (int64_t j = 0; j < n; ++j) {
+            int_t kx = (incx > 0 ? 0 : (-m + 1)*incx);
+            int_t jy = (incy > 0 ? 0 : (-n + 1)*incy);
+            for (size_t j = 0; j < n; ++j) {
                 scalar_t tmp = alpha * conj( y[jy] );
-                int64_t ix = kx;
-                for (int64_t i = 0; i < m; ++i) {
+                int_t ix = kx;
+                for (size_t i = 0; i < m; ++i) {
                     A(i, j) += x[ix] * tmp;
                     ix += incx;
                 }
@@ -132,20 +132,20 @@ void ger(
         // RowMajor
         if (incx == 1 && incy == 1) {
             // unit stride
-            for (int64_t i = 0; i < m; ++i) {
+            for (size_t i = 0; i < m; ++i) {
                 // note: NOT skipping if x[i] is zero, for consistent NAN handling
                 scalar_t tmp = alpha * x[i];
-                for (int64_t j = 0; j < n; ++j) {
+                for (size_t j = 0; j < n; ++j) {
                     A(j, i) += tmp * conj( y[j] );
                 }
             }
         }
         else if (incy == 1) {
             // x non-unit stride, y unit stride
-            int64_t ix = (incx > 0 ? 0 : (-m + 1)*incx);
-            for (int64_t i = 0; i < m; ++i) {
+            int_t ix = (incx > 0 ? 0 : (-m + 1)*incx);
+            for (size_t i = 0; i < m; ++i) {
                 scalar_t tmp = alpha * x[ix];
-                for (int64_t j = 0; j < n; ++j) {
+                for (size_t j = 0; j < n; ++j) {
                     A(j, i) += tmp * conj( y[j] );
                 }
                 ix += incx;
@@ -153,12 +153,12 @@ void ger(
         }
         else {
             // x and y non-unit stride
-            int64_t ky = (incy > 0 ? 0 : (-n + 1)*incy);
-            int64_t ix = (incx > 0 ? 0 : (-m + 1)*incx);
-            for (int64_t i = 0; i < m; ++i) {
+            int_t ky = (incy > 0 ? 0 : (-n + 1)*incy);
+            int_t ix = (incx > 0 ? 0 : (-m + 1)*incx);
+            for (size_t i = 0; i < m; ++i) {
                 scalar_t tmp = alpha * x[ix];
-                int64_t jy = ky;
-                for (int64_t j = 0; j < n; ++j) {
+                int_t jy = ky;
+                for (size_t j = 0; j < n; ++j) {
                     A(j, i) += tmp * conj( y[jy] );
                     jy += incy;
                 }

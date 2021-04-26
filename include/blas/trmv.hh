@@ -73,9 +73,9 @@ void trmv(
     blas::Uplo uplo,
     blas::Op trans,
     blas::Diag diag,
-    int64_t n,
-    TA const *A, int64_t lda,
-    TX       *x, int64_t incx )
+    size_t n,
+    TA const *A, int_t lda,
+    TX       *x, int_t incx )
 {
     typedef blas::scalar_type<TA, TX> scalar_t;
 
@@ -120,7 +120,7 @@ void trmv(
     }
 
     bool nonunit = (diag == Diag::NonUnit);
-    int64_t kx = (incx > 0 ? 0 : (-n + 1)*incx);
+    int_t kx = (incx > 0 ? 0 : (-n + 1)*incx);
 
     if (trans == Op::NoTrans && ! doconj) {
         // Form x := A*x
@@ -128,10 +128,10 @@ void trmv(
             // upper
             if (incx == 1) {
                 // unit stride
-                for (int64_t j = 0; j < n; ++j) {
+                for (size_t j = 0; j < n; ++j) {
                     // note: NOT skipping if x[j] is zero, for consistent NAN handling
                     TX tmp = x[j];
-                    for (int64_t i = 0; i <= j-1; ++i) {
+                    for (size_t i = 0; i <= j-1; ++i) {
                         x[i] += tmp * A(i, j);
                     }
                     if (nonunit) {
@@ -141,12 +141,12 @@ void trmv(
             }
             else {
                 // non-unit stride
-                int64_t jx = kx;
-                for (int64_t j = 0; j < n; ++j) {
+                int_t jx = kx;
+                for (size_t j = 0; j < n; ++j) {
                     // note: NOT skipping if x[j] is zero ...
                     TX tmp = x[jx];
-                    int64_t ix = kx;
-                    for (int64_t i = 0; i <= j-1; ++i) {
+                    int_t ix = kx;
+                    for (size_t i = 0; i <= j-1; ++i) {
                         x[ix] += tmp * A(i, j);
                         ix += incx;
                     }
@@ -161,10 +161,10 @@ void trmv(
             // lower
             if (incx == 1) {
                 // unit stride
-                for (int64_t j = n-1; j >= 0; --j) {
+                for (size_t j = n-1; j >= 0; --j) {
                     // note: NOT skipping if x[j] is zero ...
                     TX tmp = x[j];
-                    for (int64_t i = n-1; i >= j+1; --i) {
+                    for (size_t i = n-1; i >= j+1; --i) {
                         x[i] += tmp * A(i, j);
                     }
                     if (nonunit) {
@@ -175,12 +175,12 @@ void trmv(
             else {
                 // non-unit stride
                 kx += (n - 1)*incx;
-                int64_t jx = kx;
-                for (int64_t j = n-1; j >= 0; --j) {
+                int_t jx = kx;
+                for (size_t j = n-1; j >= 0; --j) {
                     // note: NOT skipping if x[j] is zero ...
                     TX tmp = x[jx];
-                    int64_t ix = kx;
-                    for (int64_t i = n-1; i >= j+1; --i) {
+                    int_t ix = kx;
+                    for (size_t i = n-1; i >= j+1; --i) {
                         x[ix] += tmp * A(i, j);
                         ix -= incx;
                     }
@@ -198,10 +198,10 @@ void trmv(
             // upper
             if (incx == 1) {
                 // unit stride
-                for (int64_t j = 0; j < n; ++j) {
+                for (size_t j = 0; j < n; ++j) {
                     // note: NOT skipping if x[j] is zero, for consistent NAN handling
                     TX tmp = x[j];
-                    for (int64_t i = 0; i <= j-1; ++i) {
+                    for (size_t i = 0; i <= j-1; ++i) {
                         x[i] += tmp * conj( A(i, j) );
                     }
                     if (nonunit) {
@@ -211,12 +211,12 @@ void trmv(
             }
             else {
                 // non-unit stride
-                int64_t jx = kx;
-                for (int64_t j = 0; j < n; ++j) {
+                int_t jx = kx;
+                for (size_t j = 0; j < n; ++j) {
                     // note: NOT skipping if x[j] is zero ...
                     TX tmp = x[jx];
-                    int64_t ix = kx;
-                    for (int64_t i = 0; i <= j-1; ++i) {
+                    int_t ix = kx;
+                    for (size_t i = 0; i <= j-1; ++i) {
                         x[ix] += tmp * conj( A(i, j) );
                         ix += incx;
                     }
@@ -231,10 +231,10 @@ void trmv(
             // lower
             if (incx == 1) {
                 // unit stride
-                for (int64_t j = n-1; j >= 0; --j) {
+                for (size_t j = n-1; j >= 0; --j) {
                     // note: NOT skipping if x[j] is zero ...
                     TX tmp = x[j];
-                    for (int64_t i = n-1; i >= j+1; --i) {
+                    for (size_t i = n-1; i >= j+1; --i) {
                         x[i] += tmp * conj( A(i, j) );
                     }
                     if (nonunit) {
@@ -245,12 +245,12 @@ void trmv(
             else {
                 // non-unit stride
                 kx += (n - 1)*incx;
-                int64_t jx = kx;
-                for (int64_t j = n-1; j >= 0; --j) {
+                int_t jx = kx;
+                for (size_t j = n-1; j >= 0; --j) {
                     // note: NOT skipping if x[j] is zero ...
                     TX tmp = x[jx];
-                    int64_t ix = kx;
-                    for (int64_t i = n-1; i >= j+1; --i) {
+                    int_t ix = kx;
+                    for (size_t i = n-1; i >= j+1; --i) {
                         x[ix] += tmp * conj( A(i, j) );
                         ix -= incx;
                     }
@@ -268,12 +268,12 @@ void trmv(
             // upper
             if (incx == 1) {
                 // unit stride
-                for (int64_t j = n-1; j >= 0; --j) {
+                for (size_t j = n-1; j >= 0; --j) {
                     TX tmp = x[j];
                     if (nonunit) {
                         tmp *= A(j, j);
                     }
-                    for (int64_t i = j - 1; i >= 0; --i) {
+                    for (size_t i = j - 1; i >= 0; --i) {
                         tmp += A(i, j) * x[i];
                     }
                     x[j] = tmp;
@@ -281,14 +281,14 @@ void trmv(
             }
             else {
                 // non-unit stride
-                int64_t jx = kx + (n - 1)*incx;
-                for (int64_t j = n-1; j >= 0; --j) {
+                int_t jx = kx + (n - 1)*incx;
+                for (size_t j = n-1; j >= 0; --j) {
                     TX tmp = x[jx];
-                    int64_t ix = jx;
+                    int_t ix = jx;
                     if (nonunit) {
                         tmp *= A(j, j);
                     }
-                    for (int64_t i = j - 1; i >= 0; --i) {
+                    for (size_t i = j - 1; i >= 0; --i) {
                         ix -= incx;
                         tmp += A(i, j) * x[ix];
                     }
@@ -301,12 +301,12 @@ void trmv(
             // lower
             if (incx == 1) {
                 // unit stride
-                for (int64_t j = 0; j < n; ++j) {
+                for (size_t j = 0; j < n; ++j) {
                     TX tmp = x[j];
                     if (nonunit) {
                         tmp *= A(j, j);
                     }
-                    for (int64_t i = j + 1; i < n; ++i) {
+                    for (size_t i = j + 1; i < n; ++i) {
                         tmp += A(i, j) * x[i];
                     }
                     x[j] = tmp;
@@ -314,14 +314,14 @@ void trmv(
             }
             else {
                 // non-unit stride
-                int64_t jx = kx;
-                for (int64_t j = 0; j < n; ++j) {
+                int_t jx = kx;
+                for (size_t j = 0; j < n; ++j) {
                     TX tmp = x[jx];
-                    int64_t ix = jx;
+                    int_t ix = jx;
                     if (nonunit) {
                         tmp *= A(j, j);
                     }
-                    for (int64_t i = j + 1; i < n; ++i) {
+                    for (size_t i = j + 1; i < n; ++i) {
                         ix += incx;
                         tmp += A(i, j) * x[ix];
                     }
@@ -338,12 +338,12 @@ void trmv(
             // upper
             if (incx == 1) {
                 // unit stride
-                for (int64_t j = n-1; j >= 0; --j) {
+                for (size_t j = n-1; j >= 0; --j) {
                     TX tmp = x[j];
                     if (nonunit) {
                         tmp *= conj( A(j, j) );
                     }
-                    for (int64_t i = j - 1; i >= 0; --i) {
+                    for (size_t i = j - 1; i >= 0; --i) {
                         tmp += conj( A(i, j) ) * x[i];
                     }
                     x[j] = tmp;
@@ -351,14 +351,14 @@ void trmv(
             }
             else {
                 // non-unit stride
-                int64_t jx = kx + (n - 1)*incx;
-                for (int64_t j = n-1; j >= 0; --j) {
+                int_t jx = kx + (n - 1)*incx;
+                for (size_t j = n-1; j >= 0; --j) {
                     TX tmp = x[jx];
-                    int64_t ix = jx;
+                    int_t ix = jx;
                     if (nonunit) {
                         tmp *= conj( A(j, j) );
                     }
-                    for (int64_t i = j - 1; i >= 0; --i) {
+                    for (size_t i = j - 1; i >= 0; --i) {
                         ix -= incx;
                         tmp += conj( A(i, j) ) * x[ix];
                     }
@@ -371,12 +371,12 @@ void trmv(
             // lower
             if (incx == 1) {
                 // unit stride
-                for (int64_t j = 0; j < n; ++j) {
+                for (size_t j = 0; j < n; ++j) {
                     TX tmp = x[j];
                     if (nonunit) {
                         tmp *= conj( A(j, j) );
                     }
-                    for (int64_t i = j + 1; i < n; ++i) {
+                    for (size_t i = j + 1; i < n; ++i) {
                         tmp += conj( A(i, j) ) * x[i];
                     }
                     x[j] = tmp;
@@ -384,14 +384,14 @@ void trmv(
             }
             else {
                 // non-unit stride
-                int64_t jx = kx;
-                for (int64_t j = 0; j < n; ++j) {
+                int_t jx = kx;
+                for (size_t j = 0; j < n; ++j) {
                     TX tmp = x[jx];
-                    int64_t ix = jx;
+                    int_t ix = jx;
                     if (nonunit) {
                         tmp *= conj( A(j, j) );
                     }
-                    for (int64_t i = j + 1; i < n; ++i) {
+                    for (size_t i = j + 1; i < n; ++i) {
                         ix += incx;
                         tmp += conj( A(i, j) ) * x[ix];
                     }

@@ -62,11 +62,11 @@ namespace blas {
 template< typename TA, typename TX, typename TY >
 void geru(
     blas::Layout layout,
-    int64_t m, int64_t n,
+    size_t m, size_t n,
     blas::scalar_type<TA, TX, TY> alpha,
-    TX const *x, int64_t incx,
-    TY const *y, int64_t incy,
-    TA *A, int64_t lda )
+    TX const *x, int_t incx,
+    TY const *y, int_t incy,
+    TA *A, int_t lda )
 {
     typedef blas::scalar_type<TA, TX, TY> scalar_t;
 
@@ -101,20 +101,20 @@ void geru(
 
     if (incx == 1 && incy == 1) {
         // unit stride
-        for (int64_t j = 0; j < n; ++j) {
+        for (size_t j = 0; j < n; ++j) {
             // note: NOT skipping if y[j] is zero, for consistent NAN handling
             scalar_t tmp = alpha * y[j];
-            for (int64_t i = 0; i < m; ++i) {
+            for (size_t i = 0; i < m; ++i) {
                 A(i, j) += x[i] * tmp;
             }
         }
     }
     else if (incx == 1) {
         // x unit stride, y non-unit stride
-        int64_t jy = (incy > 0 ? 0 : (-n + 1)*incy);
-        for (int64_t j = 0; j < n; ++j) {
+        int_t jy = (incy > 0 ? 0 : (-n + 1)*incy);
+        for (size_t j = 0; j < n; ++j) {
             scalar_t tmp = alpha * y[jy];
-            for (int64_t i = 0; i < m; ++i) {
+            for (size_t i = 0; i < m; ++i) {
                 A(i, j) += x[i] * tmp;
             }
             jy += incy;
@@ -122,12 +122,12 @@ void geru(
     }
     else {
         // x and y non-unit stride
-        int64_t kx = (incx > 0 ? 0 : (-m + 1)*incx);
-        int64_t jy = (incy > 0 ? 0 : (-n + 1)*incy);
-        for (int64_t j = 0; j < n; ++j) {
+        int_t kx = (incx > 0 ? 0 : (-m + 1)*incx);
+        int_t jy = (incy > 0 ? 0 : (-n + 1)*incy);
+        for (size_t j = 0; j < n; ++j) {
             scalar_t tmp = alpha * y[jy];
-            int64_t ix = kx;
-            for (int64_t i = 0; i < m; ++i) {
+            int_t ix = kx;
+            for (size_t i = 0; i < m; ++i) {
                 A(i, j) += x[ix] * tmp;
                 ix += incx;
             }

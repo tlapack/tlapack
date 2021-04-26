@@ -50,9 +50,9 @@ namespace blas {
 
 template< typename TX, typename TY >
 void rotm(
-    int64_t n,
-    TX *x, int64_t incx,
-    TY *y, int64_t incy,
+    size_t n,
+    TX *x, int_t incx,
+    TY *y, int_t incy,
     blas::scalar_type<TX, TY> const param[5] )
 {
     typedef scalar_type<TX, TY> scalar_t;
@@ -73,7 +73,7 @@ void rotm(
             const scalar_t& h21 = param[2];
             const scalar_t& h12 = param[3];
             const scalar_t& h22 = param[4];
-            for (int64_t i = 0; i < n; ++i) {
+            for (size_t i = 0; i < n; ++i) {
                 scalar_t stmp = h11*x[i] + h12*y[i];
                 y[i] = h22*y[i] + h21*x[i];
                 x[i] = stmp;
@@ -82,7 +82,7 @@ void rotm(
         else if ( param[0] == 1 ) {
             const scalar_t& h11 = param[1];
             const scalar_t& h22 = param[4];
-            for (int64_t i = 0; i < n; ++i) {
+            for (size_t i = 0; i < n; ++i) {
                 scalar_t stmp = h11*x[i] + y[i];
                 y[i] = h22*y[i] - x[i];
                 x[i] = stmp;
@@ -91,7 +91,7 @@ void rotm(
         else if ( param[0] == 0 ) {
             const scalar_t& h21 = param[2];
             const scalar_t& h12 = param[3];
-            for (int64_t i = 0; i < n; ++i) {
+            for (size_t i = 0; i < n; ++i) {
                 scalar_t stmp = x[i] + h12*y[i];
                 y[i] = y[i] + h21*x[i];
                 x[i] = stmp;
@@ -103,14 +103,14 @@ void rotm(
     }
     else {
         // non-unit stride
-        int64_t ix = (incx > 0 ? 0 : (-n + 1)*incx);
-        int64_t iy = (incy > 0 ? 0 : (-n + 1)*incy);
+        int_t ix = (incx > 0 ? 0 : (-n + 1)*incx);
+        int_t iy = (incy > 0 ? 0 : (-n + 1)*incy);
         if ( param[0] == -1 ) {
             const scalar_t& h11 = param[1];
             const scalar_t& h21 = param[2];
             const scalar_t& h12 = param[3];
             const scalar_t& h22 = param[4];
-            for (int64_t i = 0; i < n; ++i) {
+            for (size_t i = 0; i < n; ++i) {
                 scalar_t stmp = h11*x[ix] + h12*y[iy];
                 y[iy] = h22*y[iy] + h21*x[ix];
                 x[ix] = stmp;
@@ -121,7 +121,7 @@ void rotm(
         else if ( param[0] == 1 ) {
             const scalar_t& h11 = param[1];
             const scalar_t& h22 = param[4];
-            for (int64_t i = 0; i < n; ++i) {
+            for (size_t i = 0; i < n; ++i) {
                 scalar_t stmp = h11*x[ix] + y[iy];
                 y[iy] = h22*y[iy] - x[ix];
                 x[ix] = stmp;
@@ -132,7 +132,7 @@ void rotm(
         else if ( param[0] == 0 ) {
             const scalar_t& h21 = param[2];
             const scalar_t& h12 = param[3];
-            for (int64_t i = 0; i < n; ++i) {
+            for (size_t i = 0; i < n; ++i) {
                 scalar_t stmp = x[ix] + h12*y[iy];
                 y[iy] = y[iy] + h21*x[ix];
                 x[ix] = stmp;

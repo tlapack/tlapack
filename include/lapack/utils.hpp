@@ -118,7 +118,7 @@ struct real_type_traits< T1, Types... >
 };
 
 // -----------------------------------------------------------------------------
-// max that works with different data types: int64_t = max( int, int64_t )
+// max that works with different data types
 // and any number of arguments: max( a, b, c, d )
 
 // one argument
@@ -145,7 +145,7 @@ scalar_type< T1, Types... >
 }
 
 // -----------------------------------------------------------------------------
-// min that works with different data types: int64_t = min( int, int64_t )
+// min that works with different data types
 // and any number of arguments: min( a, b, c, d )
 
 // one argument

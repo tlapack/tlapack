@@ -93,12 +93,12 @@ void gemm(
     blas::Layout layout,
     blas::Op transA,
     blas::Op transB,
-    int64_t m, int64_t n, int64_t k,
+    size_t m, size_t n, size_t k,
     scalar_type<TA, TB, TC> alpha,
-    TA const *A, int64_t lda,
-    TB const *B, int64_t ldb,
+    TA const *A, int_t lda,
+    TB const *B, int_t ldb,
     scalar_type<TA, TB, TC> beta,
-    TC       *C, int64_t ldc )
+    TC       *C, int_t ldc )
 {
     // redirect if row major
     if (layout == Layout::RowMajor) {
@@ -150,14 +150,14 @@ void gemm(
     // alpha == zero
     if (alpha == zero) {
         if (beta == zero) {
-            for(int64_t j = 0; j < n; ++j) {
-                for(int64_t i = 0; i < m; ++i)
+            for(size_t j = 0; j < n; ++j) {
+                for(size_t i = 0; i < m; ++i)
                     C(i,j) = zero;
             }
         }
         else if (beta != one) {
-            for(int64_t j = 0; j < n; ++j) {
-                for(int64_t i = 0; i < m; ++i)
+            for(size_t j = 0; j < n; ++j) {
+                for(size_t i = 0; i < m; ++i)
                     C(i,j) *= beta;
             }
         }
@@ -167,34 +167,34 @@ void gemm(
     // alpha != zero
     if (transA == Op::NoTrans) {
         if (transB == Op::NoTrans) {
-            for(int64_t j = 0; j < n; ++j) {
-                for(int64_t i = 0; i < m; ++i)
+            for(size_t j = 0; j < n; ++j) {
+                for(size_t i = 0; i < m; ++i)
                     C(i,j) *= beta;
-                for(int64_t l = 0; l < k; ++l) {
+                for(size_t l = 0; l < k; ++l) {
                     scalar_t alphaTimesblj = alpha*B(l,j);
-                    for(int64_t i = 0; i < m; ++i)
+                    for(size_t i = 0; i < m; ++i)
                         C(i,j) += A(i,l)*alphaTimesblj;
                 }
             }
         }
         else if (transB == Op::Trans) {
-            for(int64_t j = 0; j < n; ++j) {
-                for(int64_t i = 0; i < m; ++i)
+            for(size_t j = 0; j < n; ++j) {
+                for(size_t i = 0; i < m; ++i)
                     C(i,j) *= beta;
-                for(int64_t l = 0; l < k; ++l) {
+                for(size_t l = 0; l < k; ++l) {
                     scalar_t alphaTimesbjl = alpha*B(j,l);
-                    for(int64_t i = 0; i < m; ++i)
+                    for(size_t i = 0; i < m; ++i)
                         C(i,j) += A(i,l)*alphaTimesbjl;
                 }
             }
         }
         else { // transB == Op::ConjTrans
-            for(int64_t j = 0; j < n; ++j) {
-                for(int64_t i = 0; i < m; ++i)
+            for(size_t j = 0; j < n; ++j) {
+                for(size_t i = 0; i < m; ++i)
                     C(i,j) *= beta;
-                for(int64_t l = 0; l < k; ++l) {
+                for(size_t l = 0; l < k; ++l) {
                     scalar_t alphaTimesbjl = alpha*conj(B(j,l));
-                    for(int64_t i = 0; i < m; ++i)
+                    for(size_t i = 0; i < m; ++i)
                         C(i,j) += A(i,l)*alphaTimesbjl;
                 }
             }
@@ -202,30 +202,30 @@ void gemm(
     }
     else if (transA == Op::Trans) {
         if (transB == Op::NoTrans) {
-            for(int64_t j = 0; j < n; ++j) {
-                for(int64_t i = 0; i < m; ++i) {
+            for(size_t j = 0; j < n; ++j) {
+                for(size_t i = 0; i < m; ++i) {
                     scalar_t sum = zero;
-                    for(int64_t l = 0; l < k; ++l)
+                    for(size_t l = 0; l < k; ++l)
                         sum += A(l,i)*B(l,j);
                     C(i,j) = alpha*sum + beta*C(i,j);
                 }
             }
         }
         else if (transB == Op::Trans) {
-            for(int64_t j = 0; j < n; ++j) {
-                for(int64_t i = 0; i < m; ++i) {
+            for(size_t j = 0; j < n; ++j) {
+                for(size_t i = 0; i < m; ++i) {
                     scalar_t sum = zero;
-                    for(int64_t l = 0; l < k; ++l)
+                    for(size_t l = 0; l < k; ++l)
                         sum += A(l,i)*B(j,l);
                     C(i,j) = alpha*sum + beta*C(i,j);
                 }
             }
         }
         else { // transB == Op::ConjTrans
-            for(int64_t j = 0; j < n; ++j) {
-                for(int64_t i = 0; i < m; ++i) {
+            for(size_t j = 0; j < n; ++j) {
+                for(size_t i = 0; i < m; ++i) {
                     scalar_t sum = zero;
-                    for(int64_t l = 0; l < k; ++l)
+                    for(size_t l = 0; l < k; ++l)
                         sum += A(l,i)*conj(B(j,l));
                     C(i,j) = alpha*sum + beta*C(i,j);
                 }
@@ -234,30 +234,30 @@ void gemm(
     }
     else { // transA == Op::ConjTrans
         if (transB == Op::NoTrans) {
-            for(int64_t j = 0; j < n; ++j) {
-                for(int64_t i = 0; i < m; ++i) {
+            for(size_t j = 0; j < n; ++j) {
+                for(size_t i = 0; i < m; ++i) {
                     scalar_t sum = zero;
-                    for(int64_t l = 0; l < k; ++l)
+                    for(size_t l = 0; l < k; ++l)
                         sum += conj(A(l,i))*B(l,j);
                     C(i,j) = alpha*sum + beta*C(i,j);
                 }
             }
         }
         else if (transB == Op::Trans) {
-            for(int64_t j = 0; j < n; ++j) {
-                for(int64_t i = 0; i < m; ++i) {
+            for(size_t j = 0; j < n; ++j) {
+                for(size_t i = 0; i < m; ++i) {
                     scalar_t sum = zero;
-                    for(int64_t l = 0; l < k; ++l)
+                    for(size_t l = 0; l < k; ++l)
                         sum += conj(A(l,i))*B(j,l);
                     C(i,j) = alpha*sum + beta*C(i,j);
                 }
             }
         }
         else { // transB == Op::ConjTrans
-            for(int64_t j = 0; j < n; ++j) {
-                for(int64_t i = 0; i < m; ++i) {
+            for(size_t j = 0; j < n; ++j) {
+                for(size_t i = 0; i < m; ++i) {
                     scalar_t sum = zero;
-                    for(int64_t l = 0; l < k; ++l)
+                    for(size_t l = 0; l < k; ++l)
                         sum += A(l,i)*B(j,l); // little improvement here
                     C(i,j) = alpha*conj(sum) + beta*C(i,j);
                 }

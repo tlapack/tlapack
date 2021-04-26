@@ -81,12 +81,12 @@ template< typename TA, typename TX, typename TY >
 void gemv(
     blas::Layout layout,
     blas::Op trans,
-    int64_t m, int64_t n,
+    size_t m, size_t n,
     blas::scalar_type<TA, TX, TY> alpha,
-    TA const *A, int64_t lda,
-    TX const *x, int64_t incx,
+    TA const *A, int_t lda,
+    TX const *x, int_t incx,
     blas::scalar_type<TA, TX, TY> beta,
-    TY *y, int64_t incy )
+    TY *y, int_t incy )
 {
     typedef blas::scalar_type<TA, TX, TY> scalar_t;
 
@@ -132,36 +132,36 @@ void gemv(
         }
     }
 
-    int64_t lenx = (trans == Op::NoTrans ? n : m);
-    int64_t leny = (trans == Op::NoTrans ? m : n);
-    int64_t kx = (incx > 0 ? 0 : (-lenx + 1)*incx);
-    int64_t ky = (incy > 0 ? 0 : (-leny + 1)*incy);
+    size_t lenx = (trans == Op::NoTrans ? n : m);
+    size_t leny = (trans == Op::NoTrans ? m : n);
+    int_t kx = (incx > 0 ? 0 : (-lenx + 1)*incx);
+    int_t ky = (incy > 0 ? 0 : (-leny + 1)*incy);
 
     // ----------
     // form y = beta*y
     if (beta != one) {
         if (incy == 1) {
             if (beta == zero) {
-                for (int64_t i = 0; i < leny; ++i) {
+                for (size_t i = 0; i < leny; ++i) {
                     y[i] = zero;
                 }
             }
             else {
-                for (int64_t i = 0; i < leny; ++i) {
+                for (size_t i = 0; i < leny; ++i) {
                     y[i] *= beta;
                 }
             }
         }
         else {
-            int64_t iy = ky;
+            int_t iy = ky;
             if (beta == zero) {
-                for (int64_t i = 0; i < leny; ++i) {
+                for (size_t i = 0; i < leny; ++i) {
                     y[iy] = zero;
                     iy += incy;
                 }
             }
             else {
-                for (int64_t i = 0; i < leny; ++i) {
+                for (size_t i = 0; i < leny; ++i) {
                     y[iy] *= beta;
                     iy += incy;
                 }
@@ -174,22 +174,22 @@ void gemv(
     // ----------
     if (trans == Op::NoTrans && ! doconj) {
         // form y += alpha * A * x
-        int64_t jx = kx;
+        int_t jx = kx;
         if (incy == 1) {
-            for (int64_t j = 0; j < n; ++j) {
+            for (size_t j = 0; j < n; ++j) {
                 scalar_t tmp = alpha*x[jx];
                 jx += incx;
-                for (int64_t i = 0; i < m; ++i) {
+                for (size_t i = 0; i < m; ++i) {
                     y[i] += tmp * A(i, j);
                 }
             }
         }
         else {
-            for (int64_t j = 0; j < n; ++j) {
+            for (size_t j = 0; j < n; ++j) {
                 scalar_t tmp = alpha*x[jx];
                 jx += incx;
-                int64_t iy = ky;
-                for (int64_t i = 0; i < m; ++i) {
+                int_t iy = ky;
+                for (size_t i = 0; i < m; ++i) {
                     y[iy] += tmp * A(i, j);
                     iy += incy;
                 }
@@ -199,22 +199,22 @@ void gemv(
     else if (trans == Op::NoTrans && doconj) {
         // form y += alpha * conj( A ) * x
         // this occurs for row-major A^H * x
-        int64_t jx = kx;
+        int_t jx = kx;
         if (incy == 1) {
-            for (int64_t j = 0; j < n; ++j) {
+            for (size_t j = 0; j < n; ++j) {
                 scalar_t tmp = alpha*x[jx];
                 jx += incx;
-                for (int64_t i = 0; i < m; ++i) {
+                for (size_t i = 0; i < m; ++i) {
                     y[i] += tmp * conj(A(i, j));
                 }
             }
         }
         else {
-            for (int64_t j = 0; j < n; ++j) {
+            for (size_t j = 0; j < n; ++j) {
                 scalar_t tmp = alpha*x[jx];
                 jx += incx;
-                int64_t iy = ky;
-                for (int64_t i = 0; i < m; ++i) {
+                int_t iy = ky;
+                for (size_t i = 0; i < m; ++i) {
                     y[iy] += tmp * conj(A(i, j));
                     iy += incy;
                 }
@@ -223,11 +223,11 @@ void gemv(
     }
     else if (trans == Op::Trans) {
         // form y += alpha * A^T * x
-        int64_t jy = ky;
+        int_t jy = ky;
         if (incx == 1) {
-            for (int64_t j = 0; j < n; ++j) {
+            for (size_t j = 0; j < n; ++j) {
                 scalar_t tmp = zero;
-                for (int64_t i = 0; i < m; ++i) {
+                for (size_t i = 0; i < m; ++i) {
                     tmp += A(i, j) * x[i];
                 }
                 y[jy] += alpha*tmp;
@@ -235,10 +235,10 @@ void gemv(
             }
         }
         else {
-            for (int64_t j = 0; j < n; ++j) {
+            for (size_t j = 0; j < n; ++j) {
                 scalar_t tmp = zero;
-                int64_t ix = kx;
-                for (int64_t i = 0; i < m; ++i) {
+                int_t ix = kx;
+                for (size_t i = 0; i < m; ++i) {
                     tmp += A(i, j) * x[ix];
                     ix += incx;
                 }
@@ -249,11 +249,11 @@ void gemv(
     }
     else {
         // form y += alpha * A^H * x
-        int64_t jy = ky;
+        int_t jy = ky;
         if (incx == 1) {
-            for (int64_t j = 0; j < n; ++j) {
+            for (size_t j = 0; j < n; ++j) {
                 scalar_t tmp = zero;
-                for (int64_t i = 0; i < m; ++i) {
+                for (size_t i = 0; i < m; ++i) {
                     tmp += conj(A(i, j)) * x[i];
                 }
                 y[jy] += alpha*tmp;
@@ -261,10 +261,10 @@ void gemv(
             }
         }
         else {
-            for (int64_t j = 0; j < n; ++j) {
+            for (size_t j = 0; j < n; ++j) {
                 scalar_t tmp = zero;
-                int64_t ix = kx;
-                for (int64_t i = 0; i < m; ++i) {
+                int_t ix = kx;
+                for (size_t i = 0; i < m; ++i) {
                     tmp += conj(A(i, j)) * x[ix];
                     ix += incx;
                 }

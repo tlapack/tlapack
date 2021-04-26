@@ -9,6 +9,7 @@
 #include "types.hpp"
 #include "exception.hpp"
 #include "utils.hpp"
+#include "constants.hpp"
 
 #include <limits>
 
@@ -33,37 +34,90 @@ namespace blas {
 /// @ingroup iamax
 
 template< typename T >
-int64_t iamax(
-    int64_t n,
-    T const *x, int64_t incx )
+size_t iamax(
+    size_t n,
+    T const *x, int_t incx )
 {
     typedef real_type<T> real_t;
 
-    // check arguments
-    blas_error_if( n < 0 );      // standard BLAS returns, doesn't fail
-    blas_error_if( incx <= 0 );  // standard BLAS returns, doesn't fail
+    bool noinfyet = true;  // no Inf has been found yet
+    bool scaledsmax = false; // indicates whether sx(i) finite but abs(real(sx(i))) + abs(imag(sx(i))) = Inf
+    real_t smax = -1;
+    size_t index = INVALID_INDEX;
+    const real_t oneFourth = 0.25;
 
-    // todo: check NAN
-    real_t result = -1;
-    int64_t index = -1;
     if (incx == 1) {
         // unit stride
-        for (int64_t i = 0; i < n; ++i) {
-            real_t tmp = abs1( x[i] );
-            if (tmp > result) {
-                result = tmp;
-                index = i;
+        for (size_t i = 0; i < n; ++i) {
+            if ( isnan(x[i]) ) {
+                // return when first NaN found
+                return i;
+            }
+            else if ( noinfyet ) {
+                if ( isinf(x[i]) ) {
+                    // record location of first Inf, keep looking for first NaN
+                    index = i;
+                    noinfyet = false;
+                }
+                else { // still no Inf found yet
+                    if ( !scaledsmax ) { // no abs(real(sx(i))) + abs(imag(sx(i))) = Inf  yet
+                        real_t a = abs1(x[i]);
+                        if ( isinf(a) ) {
+                            scaledsmax = true;
+                            smax = abs1( oneFourth*x[i] );
+                            index = i;
+                        }
+                        else if ( a > smax ) { // and everything finite so far
+                            smax = a;
+                            index = i;
+                        }
+                    }
+                    else { // scaledsmax = true
+                        real_t a = abs1( oneFourth*x[i] );
+                        if ( a > smax ) { // and everything finite so far
+                            smax = a;
+                            index = i;
+                        }
+                    }
+                }
             }
         }
     }
     else {
         // non-unit stride
-        int64_t ix = 0;
-        for (int64_t i = 0; i < n; ++i) {
-            real_t tmp = abs1( x[ix] );
-            if (tmp > result) {
-                result = tmp;
-                index = i;
+        int_t ix = 0;
+        for (size_t i = 0; i < n; ++i) {
+            if ( isnan(x[ix]) ) {
+                // return when first NaN found
+                return i;
+            }
+            else if ( noinfyet ) {
+                if ( isinf(x[ix]) ) {
+                    // record location of first Inf, keep looking for first NaN
+                    index = i;
+                    noinfyet = false;
+                }
+                else { // still no Inf found yet
+                    if ( !scaledsmax ) { // no abs(real(sx(i))) + abs(imag(sx(i))) = Inf  yet
+                        real_t a = abs1(x[ix]);
+                        if ( isinf(a) ) {
+                            scaledsmax = true;
+                            smax = abs1( oneFourth*x[ix] );
+                            index = i;
+                        }
+                        else if ( a > smax ) { // and everything finite so far
+                            smax = a;
+                            index = i;
+                        }
+                    }
+                    else { // scaledsmax = true
+                        real_t a = abs1( oneFourth*x[ix] );
+                        if ( a > smax ) { // and everything finite so far
+                            smax = a;
+                            index = i;
+                        }
+                    }
+                }
             }
             ix += incx;
         }

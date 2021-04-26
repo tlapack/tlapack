@@ -186,8 +186,8 @@ TEMPLATE_TEST_CASE( \"""" + f_name + """ satisfies all corner cases", "[""" + \
     elif f_name == "iamax":
         buffer += """
     SECTION ( "n <= 0" ) {
-        CHECK( iamax(-1, x, incx ) == -1 );
-        CHECK( iamax( 0, x, incx ) == -1 );
+        CHECK( iamax(-1, x, incx ) == INVALID_INDEX );
+        CHECK( iamax( 0, x, incx ) == INVALID_INDEX );
     }""",
         countCases += 2
 

@@ -6,6 +6,8 @@
 
 namespace blas {
 
+const blas::size_t INVALID_INDEX = std::numeric_limits< blas::size_t >::max();
+
 // -----------------------------------------------------------------------------
 // Macros to compute scaling constants
 //

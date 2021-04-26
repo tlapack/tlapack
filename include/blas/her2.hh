@@ -68,11 +68,11 @@ template< typename TA, typename TX, typename TY >
 void her2(
     blas::Layout layout,
     blas::Uplo  uplo,
-    int64_t n,
+    size_t n,
     blas::scalar_type<TA, TX, TY> alpha,
-    TX const *x, int64_t incx,
-    TY const *y, int64_t incy,
-    TA *A, int64_t lda )
+    TX const *x, int_t incx,
+    TY const *y, int_t incy,
+    TA *A, int_t lda )
 {
     typedef blas::scalar_type<TA, TX, TY> scalar_t;
 
@@ -100,16 +100,16 @@ void her2(
         uplo = (uplo == Uplo::Lower ? Uplo::Upper : Uplo::Lower);
     }
 
-    int64_t kx = (incx > 0 ? 0 : (-n + 1)*incx);
-    int64_t ky = (incy > 0 ? 0 : (-n + 1)*incy);
+    int_t kx = (incx > 0 ? 0 : (-n + 1)*incx);
+    int_t ky = (incy > 0 ? 0 : (-n + 1)*incy);
     if (uplo == Uplo::Upper) {
         if (incx == 1 && incy == 1) {
             // unit stride
-            for (int64_t j = 0; j < n; ++j) {
+            for (size_t j = 0; j < n; ++j) {
                 // note: NOT skipping if x[j] or y[j] is zero, for consistent NAN handling
                 scalar_t tmp1 = alpha * conj( y[j] );
                 scalar_t tmp2 = conj( alpha * x[j] );
-                for (int64_t i = 0; i <= j-1; ++i) {
+                for (size_t i = 0; i <= j-1; ++i) {
                     A(i, j) += x[i]*tmp1 + y[i]*tmp2;
                 }
                 A(j, j) = real( A(j, j) ) + real( x[j]*tmp1 + y[j]*tmp2 );
@@ -117,14 +117,14 @@ void her2(
         }
         else {
             // non-unit stride
-            int64_t jx = kx;
-            int64_t jy = ky;
-            for (int64_t j = 0; j < n; ++j) {
+            int_t jx = kx;
+            int_t jy = ky;
+            for (size_t j = 0; j < n; ++j) {
                 scalar_t tmp1 = alpha * conj( y[jy] );
                 scalar_t tmp2 = conj( alpha * x[jx] );
-                int64_t ix = kx;
-                int64_t iy = ky;
-                for (int64_t i = 0; i <= j-1; ++i) {
+                int_t ix = kx;
+                int_t iy = ky;
+                for (size_t i = 0; i <= j-1; ++i) {
                     A(i, j) += x[ix]*tmp1 + y[iy]*tmp2;
                     ix += incx;
                     iy += incy;
@@ -139,26 +139,26 @@ void her2(
         // lower triangle
         if (incx == 1 && incy == 1) {
             // unit stride
-            for (int64_t j = 0; j < n; ++j) {
+            for (size_t j = 0; j < n; ++j) {
                 scalar_t tmp1 = alpha * conj( y[j] );
                 scalar_t tmp2 = conj( alpha * x[j] );
                 A(j, j) = real( A(j, j) ) + real( x[j]*tmp1 + y[j]*tmp2 );
-                for (int64_t i = j+1; i < n; ++i) {
+                for (size_t i = j+1; i < n; ++i) {
                     A(i, j) += x[i]*tmp1 + y[i]*tmp2;
                 }
             }
         }
         else {
             // non-unit stride
-            int64_t jx = kx;
-            int64_t jy = ky;
-            for (int64_t j = 0; j < n; ++j) {
+            int_t jx = kx;
+            int_t jy = ky;
+            for (size_t j = 0; j < n; ++j) {
                 scalar_t tmp1 = alpha * conj( y[jy] );
                 scalar_t tmp2 = conj( alpha * x[jx] );
                 A(j, j) = real( A(j, j) ) + real( x[jx]*tmp1 + y[jy]*tmp2 );
-                int64_t ix = jx;
-                int64_t iy = jy;
-                for (int64_t i = j+1; i < n; ++i) {
+                int_t ix = jx;
+                int_t iy = jy;
+                for (size_t i = j+1; i < n; ++i) {
                     ix += incx;
                     iy += incy;
                     A(i, j) += x[ix]*tmp1 + y[iy]*tmp2;

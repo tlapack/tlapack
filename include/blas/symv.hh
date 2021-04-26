@@ -68,12 +68,12 @@ template< typename TA, typename TX, typename TY >
 void symv(
     blas::Layout layout,
     blas::Uplo uplo,
-    int64_t n,
+    size_t n,
     blas::scalar_type<TA, TX, TY> alpha,
-    TA const *A, int64_t lda,
-    TX const *x, int64_t incx,
+    TA const *A, int_t lda,
+    TX const *x, int_t incx,
     blas::scalar_type<TA, TX, TY> beta,
-    TY *y, int64_t incy )
+    TY *y, int_t incy )
 {
     typedef blas::scalar_type<TA, TX, TY> scalar_t;
 
@@ -102,33 +102,33 @@ void symv(
         uplo = (uplo == Uplo::Lower ? Uplo::Upper : Uplo::Lower);
     }
 
-    int64_t kx = (incx > 0 ? 0 : (-n + 1)*incx);
-    int64_t ky = (incy > 0 ? 0 : (-n + 1)*incy);
+    int_t kx = (incx > 0 ? 0 : (-n + 1)*incx);
+    int_t ky = (incy > 0 ? 0 : (-n + 1)*incy);
 
     // form y = beta*y
     if (beta != one) {
         if (incy == 1) {
             if (beta == zero) {
-                for (int64_t i = 0; i < n; ++i) {
+                for (size_t i = 0; i < n; ++i) {
                     y[i] = zero;
                 }
             }
             else {
-                for (int64_t i = 0; i < n; ++i) {
+                for (size_t i = 0; i < n; ++i) {
                     y[i] *= beta;
                 }
             }
         }
         else {
-            int64_t iy = ky;
+            int_t iy = ky;
             if (beta == zero) {
-                for (int64_t i = 0; i < n; ++i) {
+                for (size_t i = 0; i < n; ++i) {
                     y[iy] = zero;
                     iy += incy;
                 }
             }
             else {
-                for (int64_t i = 0; i < n; ++i) {
+                for (size_t i = 0; i < n; ++i) {
                     y[iy] *= beta;
                     iy += incy;
                 }
@@ -143,10 +143,10 @@ void symv(
         // form y += alpha * A * x
         if (incx == 1 && incy == 1) {
             // unit stride
-            for (int64_t j = 0; j < n; ++j) {
+            for (size_t j = 0; j < n; ++j) {
                 scalar_t tmp1 = alpha*x[j];
                 scalar_t tmp2 = zero;
-                for (int64_t i = 0; i < j; ++i) {
+                for (size_t i = 0; i < j; ++i) {
                     y[i] += tmp1 * A(i, j);
                     tmp2 += A(i, j) * x[i];
                 }
@@ -155,14 +155,14 @@ void symv(
         }
         else {
             // non-unit stride
-            int64_t jx = kx;
-            int64_t jy = ky;
-            for (int64_t j = 0; j < n; ++j) {
+            int_t jx = kx;
+            int_t jy = ky;
+            for (size_t j = 0; j < n; ++j) {
                 scalar_t tmp1 = alpha*x[jx];
                 scalar_t tmp2 = zero;
-                int64_t ix = kx;
-                int64_t iy = ky;
-                for (int64_t i = 0; i < j; ++i) {
+                int_t ix = kx;
+                int_t iy = ky;
+                for (size_t i = 0; i < j; ++i) {
                     y[iy] += tmp1 * A(i, j);
                     tmp2 += A(i, j) * x[ix];
                     ix += incx;
@@ -179,10 +179,10 @@ void symv(
         // form y += alpha * A * x
         if (incx == 1 && incy == 1) {
             // unit stride
-            for (int64_t j = 0; j < n; ++j) {
+            for (size_t j = 0; j < n; ++j) {
                 scalar_t tmp1 = alpha*x[j];
                 scalar_t tmp2 = zero;
-                for (int64_t i = j+1; i < n; ++i) {
+                for (size_t i = j+1; i < n; ++i) {
                     y[i] += tmp1 * A(i, j);
                     tmp2 += A(i, j) * x[i];
                 }
@@ -191,14 +191,14 @@ void symv(
         }
         else {
             // non-unit stride
-            int64_t jx = kx;
-            int64_t jy = ky;
-            for (int64_t j = 0; j < n; ++j) {
+            int_t jx = kx;
+            int_t jy = ky;
+            for (size_t j = 0; j < n; ++j) {
                 scalar_t tmp1 = alpha*x[jx];
                 scalar_t tmp2 = zero;
-                int64_t ix = jx;
-                int64_t iy = jy;
-                for (int64_t i = j+1; i < n; ++i) {
+                int_t ix = jx;
+                int_t iy = jy;
+                for (size_t i = j+1; i < n; ++i) {
                     ix += incx;
                     iy += incy;
                     y[iy] += tmp1 * A(i, j);

@@ -53,9 +53,9 @@ namespace blas {
 
 template< typename TX, typename TY >
 void rot(
-    int64_t n,
-    TX *x, int64_t incx,
-    TY *y, int64_t incy,
+    size_t n,
+    TX *x, int_t incx,
+    TY *y, int_t incy,
     blas::real_type<TX, TY>   c,
     blas::scalar_type<TX, TY> s )
 {
@@ -72,7 +72,7 @@ void rot(
 
     if (incx == 1 && incy == 1) {
         // unit stride
-        for (int64_t i = 0; i < n; ++i) {
+        for (size_t i = 0; i < n; ++i) {
             scalar_t stmp = c*x[i] + s*y[i];
             y[i] = c*y[i] - conj(s)*x[i];
             x[i] = stmp;
@@ -80,9 +80,9 @@ void rot(
     }
     else {
         // non-unit stride
-        int64_t ix = (incx > 0 ? 0 : (-n + 1)*incx);
-        int64_t iy = (incy > 0 ? 0 : (-n + 1)*incy);
-        for (int64_t i = 0; i < n; ++i) {
+        int_t ix = (incx > 0 ? 0 : (-n + 1)*incx);
+        int_t iy = (incy > 0 ? 0 : (-n + 1)*incy);
+        for (size_t i = 0; i < n; ++i) {
             scalar_t stmp = c*x[ix] + s*y[iy];
             y[iy] = c*y[iy] - conj(s)*x[ix];
             x[ix] = stmp;

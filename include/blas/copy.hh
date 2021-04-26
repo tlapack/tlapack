@@ -40,9 +40,9 @@ namespace blas {
 
 template< typename TX, typename TY >
 void copy(
-    int64_t n,
-    TX const *x, int64_t incx,
-    TY       *y, int64_t incy )
+    size_t n,
+    TX const *x, int_t incx,
+    TY       *y, int_t incy )
 {
     // check arguments
     blas_error_if( n < 0 );
@@ -51,15 +51,15 @@ void copy(
 
     if (incx == 1 && incy == 1) {
         // unit stride
-        for (int64_t i = 0; i < n; ++i) {
+        for (size_t i = 0; i < n; ++i) {
             y[i] = x[i];
         }
     }
     else {
         // non-unit stride
-        int64_t ix = (incx > 0 ? 0 : (-n + 1)*incx);
-        int64_t iy = (incy > 0 ? 0 : (-n + 1)*incy);
-        for (int64_t i = 0; i < n; ++i) {
+        int_t ix = (incx > 0 ? 0 : (-n + 1)*incx);
+        int_t iy = (incy > 0 ? 0 : (-n + 1)*incy);
+        for (size_t i = 0; i < n; ++i) {
             y[iy] = x[ix];
             ix += incx;
             iy += incy;

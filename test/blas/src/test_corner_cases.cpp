@@ -122,8 +122,8 @@ TEMPLATE_TEST_CASE( "iamax satisfies all corner cases", "[iamax][BLASlv1]", TEST
         CHECK_THROWS_AS( iamax( n, x, -1 ), Error );
     }
     SECTION ( "n <= 0" ) {
-        CHECK( iamax(-1, x, incx ) == -1 );
-        CHECK( iamax( 0, x, incx ) == -1 );
+        CHECK( iamax(-1, x, incx ) == INVALID_INDEX );
+        CHECK( iamax( 0, x, incx ) == INVALID_INDEX );
     }
 }
 

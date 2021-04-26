@@ -58,10 +58,10 @@ template< typename TA, typename TX >
 void syr(
     blas::Layout layout,
     blas::Uplo uplo,
-    int64_t n,
+    size_t n,
     blas::scalar_type<TA, TX> alpha,
-    TX const *x, int64_t incx,
-    TA       *A, int64_t lda )
+    TX const *x, int_t incx,
+    TA       *A, int_t lda )
 {
     typedef blas::scalar_type<TA, TX> scalar_t;
 
@@ -88,25 +88,25 @@ void syr(
         uplo = (uplo == Uplo::Lower ? Uplo::Upper : Uplo::Lower);
     }
 
-    int64_t kx = (incx > 0 ? 0 : (-n + 1)*incx);
+    int_t kx = (incx > 0 ? 0 : (-n + 1)*incx);
     if (uplo == Uplo::Upper) {
         if (incx == 1) {
             // unit stride
-            for (int64_t j = 0; j < n; ++j) {
+            for (size_t j = 0; j < n; ++j) {
                 // note: NOT skipping if x[j] is zero, for consistent NAN handling
                 scalar_t tmp = alpha * x[j];
-                for (int64_t i = 0; i <= j; ++i) {
+                for (size_t i = 0; i <= j; ++i) {
                     A(i, j) += x[i] * tmp;
                 }
             }
         }
         else {
             // non-unit stride
-            int64_t jx = kx;
-            for (int64_t j = 0; j < n; ++j) {
+            int_t jx = kx;
+            for (size_t j = 0; j < n; ++j) {
                 scalar_t tmp = alpha * x[jx];
-                int64_t ix = kx;
-                for (int64_t i = 0; i <= j; ++i) {
+                int_t ix = kx;
+                for (size_t i = 0; i <= j; ++i) {
                     A(i, j) += x[ix] * tmp;
                     ix += incx;
                 }
@@ -118,20 +118,20 @@ void syr(
         // lower triangle
         if (incx == 1) {
             // unit stride
-            for (int64_t j = 0; j < n; ++j) {
+            for (size_t j = 0; j < n; ++j) {
                 scalar_t tmp = alpha * x[j];
-                for (int64_t i = j; i < n; ++i) {
+                for (size_t i = j; i < n; ++i) {
                     A(i, j) += x[i] * tmp;
                 }
             }
         }
         else {
             // non-unit stride
-            int64_t jx = kx;
-            for (int64_t j = 0; j < n; ++j) {
+            int_t jx = kx;
+            for (size_t j = 0; j < n; ++j) {
                 scalar_t tmp = alpha * x[jx];
-                int64_t ix = jx;
-                for (int64_t i = j; i < n; ++i) {
+                int_t ix = jx;
+                for (size_t i = j; i < n; ++i) {
                     A(i, j) += x[ix] * tmp;
                     ix += incx;
                 }
