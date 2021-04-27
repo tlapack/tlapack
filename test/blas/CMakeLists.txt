@@ -31,10 +31,10 @@ endif()
 #
 find_package(BLAS)
 if (BLAS_FOUND)
-    message(STATUS "BLAS found at " ${BLAS_DIR})
+    message(STATUS "C++ BLAS found at " ${BLAS_DIR})
 else()
     include_directories( "../../include" )
-    message(STATUS "Using BLAS from ${CMAKE_SOURCE_DIR}/include")
+    message(STATUS "Using C++ BLAS from ${CMAKE_SOURCE_DIR}/include")
 endif()
 
 # # BLAS 'blas.hpp' header file in C++
@@ -72,6 +72,9 @@ file(GLOB test_sources
 add_executable(tester tests_main.cpp ${test_sources})
 target_include_directories(tester PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_link_libraries(tester PRIVATE Catch2::Catch2)
+if( USE_BLASPP_WRAPPERS )
+    target_link_libraries(tester PRIVATE blaspp blas)
+endif()
 
 # Run tests
 add_custom_target(run-tests

@@ -2,11 +2,14 @@
 #define __TLAPACK_CONSTANTS_HH__
 
 #include <limits>
+#include <type_traits>
 #include "types.hpp"
 
 namespace blas {
 
-const blas::size_t INVALID_INDEX = std::numeric_limits< blas::size_t >::max();
+const blas::size_t INVALID_INDEX = ( std::is_unsigned<blas::size_t>::value )
+    ? std::numeric_limits< blas::size_t >::max() // If unsigned, max value is an invalid index
+    : -1;                                        // If signed, -1 is the default invalid index
 
 // -----------------------------------------------------------------------------
 // Macros to compute scaling constants

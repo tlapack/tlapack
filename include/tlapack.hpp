@@ -1,21 +1,25 @@
 #ifndef __TLAPACK_HH__
 #define __TLAPACK_HH__
 
-// Definitions:
+// Definitions
+
 #include "defines.hpp"
 
-// BLAS:
+// BLAS
+
 #include "blas.hpp"
 
-// Netlib LAPACK:
+// Optimized LAPACK
 
-// #define OPTIMIZED_LAPACK "mkl"
-// #define OPTIMIZED_BLAS_HH "blas/" OPTIMIZED_BLAS "/mkl.hpp"
+#ifdef USE_LAPACKPP_WRAPPERS
 
-// #ifdef OPTIMIZED_BLAS
-//     #include OPTIMIZED_BLAS_HH
-// #endif
+    /// Use to silence compiler warning of unused variable.
+    #define blas_unused( var ) ((void)var)
 
-// // LAPACK template functions:
+    #include "lapack/wrappers.hh"
+
+#endif
+
+// Template LAPACK
 
 #endif // __TLAPACK_HH__

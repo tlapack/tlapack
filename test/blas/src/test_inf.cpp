@@ -22,7 +22,7 @@ TEMPLATE_TEST_CASE( "iamax returns the first inf when there is no NaN",
       CHECK( iamax( 3, x, 1 ) == 2 ); }
 }
 
-TEMPLATE_TEST_CASE( "iamax<complex> returns the first inf when there is no NaN",
+TEMPLATE_TEST_CASE( "complex iamax returns the first inf when there is no NaN",
                     "[iamax][BLASlv1][Inf]", TEST_CPLX_TYPES ) {
     using real_t = real_type<TestType>;
 

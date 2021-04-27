@@ -1,73 +1,118 @@
 #ifndef __TLAPACK_BLAS_HH__
 #define __TLAPACK_BLAS_HH__
 
-// // Definitions:
+// Definitions
+
 #include "defines.hpp"
-// #include "types.hpp"
 
-// // Optimized BLAS
-// #ifdef OPTIMIZED_BLAS
-//     #if OPTIMIZED_BLAS == MKLBLAS
-//         #include "blas/mkl/blas.hpp"
-//     #elif OPTIMIZED_BLAS == ONEMKLBLAS
-//         #include "blas/onemkl/blas.hpp"
-//     #elif OPTIMIZED_BLAS == OPENBLAS
-//         #include "blas/openblas/blas.hpp"
-//     #endif
-// #endif
+// Optimized BLAS
 
-// =============================================================================
-// Level 1 BLAS template implementations
+#if defined(USE_BLASPP_WRAPPERS) && !defined(USE_BLASPP_TEMPLATES)
 
-#include "blas/asum.hh"
-#include "blas/axpy.hh"
-#include "blas/copy.hh"
-#include "blas/dot.hh"
-#include "blas/dotu.hh"
-#include "blas/iamax.hh"
-#include "blas/nrm2.hh"
-#include "blas/rot.hh"
-#include "blas/rotg.hh"
-#include "blas/rotm.hh"
-#include "blas/rotmg.hh"
-#include "blas/scal.hh"
-#include "blas/swap.hh"
+    // #if OPTIMIZED_BLAS == MKLBLAS
+    //     #include "blas/mkl/blas.hpp"
+    // #elif OPTIMIZED_BLAS == ONEMKLBLAS
+    //     #include "blas/onemkl/blas.hpp"
+    // #elif OPTIMIZED_BLAS == OPENBLAS
+    //     #include "blas/openblas/blas.hpp"
+    // #endif
 
-// =============================================================================
-// Level 2 BLAS template implementations
+    #define BLAS_UTIL_HH // So as not to include utils from blaspp
+    #include "types.hpp"
+    #include "blas/wrappers.hh"
 
-#include "blas/gemv.hh"
-#include "blas/ger.hh"
-#include "blas/geru.hh"
-#include "blas/gbmv.hpp"
-#include "blas/hemv.hh"
-#include "blas/her.hh"
-#include "blas/her2.hh"
-#include "blas/symv.hh"
-#include "blas/syr.hh"
-#include "blas/syr2.hh"
-// #include "blas/spmv.hpp"
-// #include "blas/spr.hpp"
-// #include "blas/spr2.hpp"
-// #include "blas/sbmv.hpp"
-#include "blas/trmv.hh"
-#include "blas/trsv.hh"
-// #include "blas/tpmv.hpp"
-// #include "blas/tbmv.hpp"
-// #include "blas/tpsv.hpp"
-// #include "blas/tbsv.hpp"
+#endif
 
-// =============================================================================
-// Level 3 BLAS template implementations
+// Template BLAS
 
-#include "blas/gemm.hh"
-#include "blas/hemm.hh"
-#include "blas/herk.hh"
-#include "blas/her2k.hh"
-#include "blas/symm.hh"
-#include "blas/syrk.hh"
-#include "blas/syr2k.hh"
-#include "blas/trmm.hh"
-#include "blas/trsm.hh"
+#ifdef USE_BLASPP_TEMPLATES
+
+    namespace blas {
+        using size_t = int64_t;
+        using int_t  = int64_t;
+        const blas::size_t INVALID_INDEX = -1;
+
+        // -----------------------------------------------------------------------------
+        // is nan
+        template< typename T >
+        bool isnan( T x )
+        {
+            return x != x;
+        }
+
+        // -----------------------------------------------------------------------------
+        // is inf
+        template< typename T >
+        bool isinf( T x )
+        {
+            return std::isinf(x);
+        }
+
+        template< typename T >
+        bool isinf( std::complex<T> x )
+        {
+            return std::isinf( real(x) ) || std::isinf( imag(x) );
+        }
+    }
+
+    #include "blas.hh"
+
+#else
+
+    // =============================================================================
+    // Level 1 BLAS template implementations
+
+    #include "blas/asum.hpp"
+    #include "blas/axpy.hpp"
+    #include "blas/copy.hpp"
+    #include "blas/dot.hpp"
+    #include "blas/dotu.hpp"
+    #include "blas/iamax.hpp"
+    #include "blas/nrm2.hpp"
+    #include "blas/rot.hpp"
+    #include "blas/rotg.hpp"
+    #include "blas/rotm.hpp"
+    #include "blas/rotmg.hpp"
+    #include "blas/scal.hpp"
+    #include "blas/swap.hpp"
+
+    // =============================================================================
+    // Level 2 BLAS template implementations
+
+    #include "blas/gemv.hpp"
+    #include "blas/ger.hpp"
+    #include "blas/geru.hpp"
+    #include "blas/gbmv.hpp"
+    #include "blas/hemv.hpp"
+    #include "blas/her.hpp"
+    #include "blas/her2.hpp"
+    #include "blas/symv.hpp"
+    #include "blas/syr.hpp"
+    #include "blas/syr2.hpp"
+    // #include "blas/spmv.hpp"
+    // #include "blas/spr.hpp"
+    // #include "blas/spr2.hpp"
+    // #include "blas/sbmv.hpp"
+    #include "blas/trmv.hpp"
+    #include "blas/trsv.hpp"
+    // #include "blas/tpmv.hpp"
+    // #include "blas/tbmv.hpp"
+    // #include "blas/tpsv.hpp"
+    // #include "blas/tbsv.hpp"
+
+    // =============================================================================
+    // Level 3 BLAS template implementations
+
+    #include "blas/gemm.hpp"
+    #include "blas/hemm.hpp"
+    #include "blas/herk.hpp"
+    #include "blas/her2k.hpp"
+    #include "blas/symm.hpp"
+    #include "blas/syrk.hpp"
+    #include "blas/syr2k.hpp"
+    #include "blas/trmm.hpp"
+    #include "blas/trsm.hpp"
+
+#endif
 
 #endif // __BLAS_HH__
