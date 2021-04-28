@@ -6,11 +6,9 @@
 #ifndef BLAS_SYRK_HH
 #define BLAS_SYRK_HH
 
-#include "types.hpp"
+#include "blas/types.hpp"
 #include "exception.hpp"
-#include "utils.hpp"
-
-#include <limits>
+#include "blas/utils.hpp"
 
 namespace blas {
 

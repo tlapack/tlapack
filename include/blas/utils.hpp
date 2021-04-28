@@ -1,7 +1,7 @@
 #ifndef __TLAPACK_UTILS_HH__
 #define __TLAPACK_UTILS_HH__
 
-#include "types.hpp"
+#include "blas/types.hpp"
 
 namespace blas {
 

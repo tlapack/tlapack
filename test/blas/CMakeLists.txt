@@ -37,14 +37,14 @@ else()
     message(STATUS "Using C++ BLAS from ${CMAKE_SOURCE_DIR}/include")
 endif()
 
-# # BLAS 'blas.hpp' header file in C++
-# find_path(blas_inc NAMES "blas.hpp"
+# # BLAS 'tblas.hpp' header file in C++
+# find_path(blas_inc NAMES "tblas.hpp"
 #     HINTS ${CMAKE_SOURCE_DIR}/include)
 # if(blas_inc)
-#     message(STATUS "blas.hpp => " ${blas_inc})
+#     message(STATUS "tblas.hpp => " ${blas_inc})
 #     include_directories( ${blas_inc} )
 # else()
-#     message(STATUS "blas.hpp was NOT FOUND")
+#     message(STATUS "tblas.hpp was NOT FOUND")
 # endif(blas_inc)
 
 if (OPENMP_FOUND)

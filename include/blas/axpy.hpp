@@ -6,11 +6,9 @@
 #ifndef BLAS_AXPY_HH
 #define BLAS_AXPY_HH
 
-#include "types.hpp"
+#include "blas/types.hpp"
 #include "exception.hpp"
-#include "utils.hpp"
-
-#include <limits>
+#include "blas/utils.hpp"
 
 namespace blas {
 

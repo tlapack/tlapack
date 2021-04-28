@@ -6,12 +6,10 @@
 #ifndef BLAS_ROTG_HH
 #define BLAS_ROTG_HH
 
-#include "types.hpp"
+#include "blas/types.hpp"
 #include "exception.hpp"
-#include "utils.hpp"
-#include "constants.hpp"
-
-#include <limits>
+#include "blas/utils.hpp"
+#include "blas/constants.hpp"
 
 namespace blas {
 

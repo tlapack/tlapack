@@ -6,10 +6,10 @@
 #ifndef BLAS_IAMAX_HH
 #define BLAS_IAMAX_HH
 
-#include "types.hpp"
+#include "blas/types.hpp"
 #include "exception.hpp"
-#include "utils.hpp"
-#include "constants.hpp"
+#include "blas/utils.hpp"
+#include "blas/constants.hpp"
 
 namespace blas {
 

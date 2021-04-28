@@ -1,25 +1,26 @@
 #ifndef __TLAPACK_HH__
 #define __TLAPACK_HH__
 
-// Definitions
-
-#include "defines.hpp"
-
 // BLAS
 
-#include "blas.hpp"
+#include "tblas.hpp"
 
 // Optimized LAPACK
 
 #ifdef USE_LAPACKPP_WRAPPERS
 
-    /// Use to silence compiler warning of unused variable.
-    #define blas_unused( var ) ((void)var)
+    #ifndef LAPACK_UTIL_HH
+        #define LAPACK_UTIL_HH // So as not to include utils from lapack++
+    #endif
 
-    #include "lapack/wrappers.hh"
+    #include "lapack/config.h"
+    #include "lapack/types.hpp"
+    #include "lapack/wrappers.hh" // from lapack++
 
 #endif
 
 // Template LAPACK
+
+#include "lapack/lassq.hpp"
 
 #endif // __TLAPACK_HH__

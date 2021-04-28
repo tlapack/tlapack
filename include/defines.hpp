@@ -1,4 +1,0 @@
-#ifndef __TLAPACK_DEFINES_HH__
-#define __TLAPACK_DEFINES_HH__
-
-#endif // __TLAPACK_DEFINES_HH__

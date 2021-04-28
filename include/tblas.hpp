@@ -1,10 +1,6 @@
 #ifndef __TLAPACK_BLAS_HH__
 #define __TLAPACK_BLAS_HH__
 
-// Definitions
-
-#include "defines.hpp"
-
 // Optimized BLAS
 
 #if defined(USE_BLASPP_WRAPPERS) && !defined(USE_BLASPP_TEMPLATES)
@@ -17,9 +13,12 @@
     //     #include "blas/openblas/blas.hpp"
     // #endif
 
-    #define BLAS_UTIL_HH // So as not to include utils from blaspp
-    #include "types.hpp"
-    #include "blas/wrappers.hh"
+    #ifndef BLAS_UTIL_HH
+        #define BLAS_UTIL_HH // So as not to include utils from blas++
+    #endif
+    
+    #include "blas/types.hpp"
+    #include "blas/wrappers.hh" // from blas++
 
 #endif
 

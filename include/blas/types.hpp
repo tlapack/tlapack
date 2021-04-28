@@ -1,7 +1,6 @@
-#ifndef __TLAPACK_TYPES_HH__
-#define __TLAPACK_TYPES_HH__
+#ifndef __TLAPACK_BLAS_TYPES_HH__
+#define __TLAPACK_BLAS_TYPES_HH__
 
-#include <cstdint>
 #include <complex>
 
 namespace blas {
@@ -12,11 +11,11 @@ using size_t = int64_t;
 using int_t  = int64_t;
 
 // -----------------------------------------------------------------------------
-typedef enum { ColMajor = 'C', RowMajor = 'R' } Layout;
-typedef enum { NoTrans  = 'N', Trans    = 'T', ConjTrans = 'C' } Op;
-typedef enum { Upper    = 'U', Lower    = 'L', General   = 'G' } Uplo;
-typedef enum { NonUnit  = 'N', Unit     = 'U' } Diag;
-typedef enum { Left     = 'L', Right    = 'R' } Side;
+enum class Layout { ColMajor = 'C', RowMajor = 'R' };
+enum class Op     { NoTrans  = 'N', Trans    = 'T', ConjTrans = 'C' };
+enum class Uplo   { Upper    = 'U', Lower    = 'L', General   = 'G' };
+enum class Diag   { NonUnit  = 'N', Unit     = 'U' };
+enum class Side   { Left     = 'L', Right    = 'R' };
 
 // -----------------------------------------------------------------------------
 // common_type_t is defined in C++14; here's a C++11 definition
@@ -156,4 +155,4 @@ struct real_type_traits< T1, Types... >
 
 } // namespace blas
 
-#endif // __TLAPACK_TYPES_HH__
+#endif // __TLAPACK_BLAS_TYPES_HH__

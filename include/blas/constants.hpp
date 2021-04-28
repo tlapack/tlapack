@@ -1,9 +1,9 @@
-#ifndef __TLAPACK_CONSTANTS_HH__
-#define __TLAPACK_CONSTANTS_HH__
+#ifndef __TLAPACK_BLAS_CONSTANTS_HH__
+#define __TLAPACK_BLAS_CONSTANTS_HH__
 
-#include <limits>
 #include <type_traits>
-#include "types.hpp"
+#include <limits>
+#include "blas/types.hpp"
 
 namespace blas {
 
@@ -64,4 +64,4 @@ inline const real_t root_max()
 
 }
 
-#endif // __TLAPACK_CONSTANTS_HH__
+#endif // __TLAPACK_BLAS_CONSTANTS_HH__

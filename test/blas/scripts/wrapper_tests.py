@@ -50,7 +50,7 @@ with open("returnImmediately_corner_tests.csv") as f:
 # Print header of the test file:
 print("""\
 #include <catch2/catch.hpp>
-#include <blas.hpp>
+#include <tblas.hpp>
 #include "test_types.hpp"
 
 using namespace blas;""")

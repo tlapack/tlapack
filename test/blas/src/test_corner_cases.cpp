@@ -1,5 +1,5 @@
 #include <catch2/catch.hpp>
-#include <blas.hpp>
+#include <tblas.hpp>
 #include "test_types.hpp"
 
 using namespace blas;
