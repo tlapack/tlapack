@@ -6,10 +6,9 @@
 #ifndef BLAS_HEMV_HH
 #define BLAS_HEMV_HH
 
-#include "blas/types.hpp"
 #include "exception.hpp"
 #include "blas/utils.hpp"
-#include "blas/symv.hh"
+#include "blas/symv.hpp"
 
 namespace blas {
 

@@ -6,7 +6,6 @@
 #ifndef BLAS_SWAP_HH
 #define BLAS_SWAP_HH
 
-#include "blas/types.hpp"
 #include "exception.hpp"
 #include "blas/utils.hpp"
 

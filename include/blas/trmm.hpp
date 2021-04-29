@@ -6,7 +6,6 @@
 #ifndef BLAS_TRMM_HH
 #define BLAS_TRMM_HH
 
-#include "blas/types.hpp"
 #include "exception.hpp"
 #include "blas/utils.hpp"
 

@@ -6,7 +6,6 @@
 #ifndef BLAS_SCAL_HH
 #define BLAS_SCAL_HH
 
-#include "blas/types.hpp"
 #include "exception.hpp"
 #include "blas/utils.hpp"
 

@@ -6,7 +6,6 @@
 #ifndef BLAS_NRM2_HH
 #define BLAS_NRM2_HH
 
-#include "blas/types.hpp"
 #include "exception.hpp"
 #include "blas/utils.hpp"
 

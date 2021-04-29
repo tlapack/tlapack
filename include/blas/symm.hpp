@@ -6,7 +6,6 @@
 #ifndef BLAS_SYMM_HH
 #define BLAS_SYMM_HH
 
-#include "blas/types.hpp"
 #include "exception.hpp"
 #include "blas/utils.hpp"
 

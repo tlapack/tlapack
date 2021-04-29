@@ -6,7 +6,6 @@
 #ifndef BLAS_SYRK_HH
 #define BLAS_SYRK_HH
 
-#include "blas/types.hpp"
 #include "exception.hpp"
 #include "blas/utils.hpp"
 

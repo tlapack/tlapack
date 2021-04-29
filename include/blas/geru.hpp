@@ -6,10 +6,9 @@
 #ifndef BLAS_GERU_HH
 #define BLAS_GERU_HH
 
-#include "blas/types.hpp"
 #include "exception.hpp"
 #include "blas/utils.hpp"
-#include "blas/ger.hh"
+#include "blas/ger.hpp"
 
 namespace blas {
 

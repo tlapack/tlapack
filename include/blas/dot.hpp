@@ -6,7 +6,6 @@
 #ifndef BLAS_DOT_HH
 #define BLAS_DOT_HH
 
-#include "blas/types.hpp"
 #include "exception.hpp"
 #include "blas/utils.hpp"
 

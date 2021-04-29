@@ -6,7 +6,6 @@
 #ifndef BLAS_TRSM_HH
 #define BLAS_TRSM_HH
 
-#include "blas/types.hpp"
 #include "exception.hpp"
 #include "blas/utils.hpp"
 

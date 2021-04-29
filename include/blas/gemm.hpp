@@ -6,7 +6,6 @@
 #ifndef BLAS_GEMM_HH
 #define BLAS_GEMM_HH
 
-#include "blas/types.hpp"
 #include "exception.hpp"
 #include "blas/utils.hpp"
 

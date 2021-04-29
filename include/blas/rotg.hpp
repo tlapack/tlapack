@@ -6,7 +6,6 @@
 #ifndef BLAS_ROTG_HH
 #define BLAS_ROTG_HH
 
-#include "blas/types.hpp"
 #include "exception.hpp"
 #include "blas/utils.hpp"
 #include "blas/constants.hpp"

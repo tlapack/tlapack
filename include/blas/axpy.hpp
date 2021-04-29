@@ -6,7 +6,6 @@
 #ifndef BLAS_AXPY_HH
 #define BLAS_AXPY_HH
 
-#include "blas/types.hpp"
 #include "exception.hpp"
 #include "blas/utils.hpp"
 
