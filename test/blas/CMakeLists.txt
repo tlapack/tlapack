@@ -13,7 +13,9 @@ message(STATUS "TestBLAS version " ${PROJECT_VERSION})
 
 #-------------------------------------------------------------------------------
 # TODO: Define a `TBLASConfig.cmake` on the C++-based BLAS
-set( tblas_include_dir "../../include" )
+set( tblas_include_dir "${CMAKE_SOURCE_DIR}/include" )
+message( STATUS "tblas_include_dir = ${tblas_include_dir}" )
+message( STATUS "tlapack_defs = ${tlapack_defs}" )
 
 #-------------------------------------------------------------------------------
 # Search for Catch2
@@ -22,32 +24,29 @@ include(Catch)
 
 #-------------------------------------------------------------------------------
 # corner-cases: Generate C++ file for tests with corner cases
-add_custom_target(corner-cases
+add_custom_target( corner-cases
     COMMAND
         cd "${CMAKE_CURRENT_SOURCE_DIR}/scripts" && ./wrapper_tests.py
-        > "${CMAKE_CURRENT_SOURCE_DIR}/src/test_corner_cases.cpp"
-    )
+        > "${CMAKE_CURRENT_SOURCE_DIR}/src/test_corner_cases.cpp" )
 
 #-------------------------------------------------------------------------------
 # tester: Program for tests
 file( GLOB test_sources
     "${CMAKE_CURRENT_SOURCE_DIR}/src/test_*.cpp" )
-add_executable( tester
-    tests_main.cpp ${test_sources} )
+add_executable( tester tests_main.cpp ${test_sources} )
 
 target_compile_definitions( tester
-    PRIVATE
-        ${tlapack_defines} )
+    PRIVATE ${tlapack_defs} )
 
 target_include_directories( tester
     PRIVATE
         "${CMAKE_CURRENT_SOURCE_DIR}/include"
         ${tblas_include_dir} )
 
-target_link_libraries( tester
-    PRIVATE
-        Catch2::Catch2
-        blaspp )
+target_link_libraries( tester PRIVATE Catch2::Catch2 )
+if( USE_BLASPP_WRAPPERS )
+    target_link_libraries( tester PRIVATE blaspp )
+endif()
 
 #-------------------------------------------------------------------------------
 # Run tests

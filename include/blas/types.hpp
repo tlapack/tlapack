@@ -1,14 +1,18 @@
 #ifndef __TLAPACK_BLAS_TYPES_HH__
 #define __TLAPACK_BLAS_TYPES_HH__
 
+#include "defines.h"
 #include <complex>
+#include <cstdint> // Contains std::int64_t
 
 namespace blas {
 
 // -----------------------------------------------------------------------------
 // Integer types blas::size_t and blas::int_t
-using size_t = int64_t;
-using int_t  = int64_t;
+#ifdef BLAS_SIZE_INT64
+    using size_t = std::int64_t;
+    using int_t  = std::int64_t;
+#endif
 
 // -----------------------------------------------------------------------------
 enum class Layout { ColMajor = 'C', RowMajor = 'R' };

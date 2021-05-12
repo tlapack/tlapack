@@ -8,12 +8,12 @@ file(READ version.txt version_txt)
 # T-LAPACK project
 project(TLAPACK
     VERSION ${version_txt}
-    LANGUAGES CXX)
+    LANGUAGES CXX C Fortran)
 message(STATUS "T-LAPACK version " ${PROJECT_VERSION})
 
 #-------------------------------------------------------------------------------
 # Options
-option( USE_BLASPP_WRAPPERS   "Use BLAS++ wrappers"   ON  )
+option( USE_BLASPP_WRAPPERS   "Use BLAS++ wrappers"   OFF  )
 option( USE_BLASPP_TEMPLATES  "Use BLAS++ templates"  OFF )
 option( USE_LAPACKPP_WRAPPERS "Use LAPACK++ wrappers" ON  )
 
@@ -39,30 +39,40 @@ if( USE_LAPACKPP_WRAPPERS )
     endif()
 endif()
 
-set( tlapack_defines "" )
+set( tlapack_defs "" )
 
 #-------------------------------------------------------------------------------
 # Use BLAS++ wrappers
 if(USE_BLASPP_WRAPPERS)
-    list( APPEND tlapack_defines "-DUSE_BLASPP_WRAPPERS" )
+    list( APPEND tlapack_defs "-DUSE_BLASPP_WRAPPERS" )
 endif()
 
 #-------------------------------------------------------------------------------
 # Use BLAS++ templates
 if(USE_BLASPP_TEMPLATES)
-    list( APPEND tlapack_defines "-DUSE_BLASPP_TEMPLATES" )
+    list( APPEND tlapack_defs "-DUSE_BLASPP_TEMPLATES" )
 endif()
 
 #-------------------------------------------------------------------------------
 # Use LAPACK++ wrappers
 if(USE_LAPACKPP_WRAPPERS)
-    list( APPEND tlapack_defines "-DUSE_LAPACKPP_WRAPPERS" )
+    list( APPEND tlapack_defs "-DUSE_LAPACKPP_WRAPPERS" )
 endif()
 
 #-------------------------------------------------------------------------------
-# Include subdirectories
+# Docs
 add_subdirectory(docs)
+
+#-------------------------------------------------------------------------------
+# Config
 add_subdirectory(config)
+
+#-------------------------------------------------------------------------------
+# C wrappers
+add_subdirectory(src)
+
+#-------------------------------------------------------------------------------
+# Examples
 add_subdirectory(examples)
 
 #-------------------------------------------------------------------------------
