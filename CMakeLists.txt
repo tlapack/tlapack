@@ -1,4 +1,5 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.18)
+# VERSION 3.18: set_source_files_properties( PROPERTIES Fortran_PREPROCESS ON )
 
 #-------------------------------------------------------------------------------
 # Read project version
@@ -13,9 +14,10 @@ message(STATUS "T-LAPACK version " ${PROJECT_VERSION})
 
 #-------------------------------------------------------------------------------
 # Options
-option( USE_BLASPP_WRAPPERS   "Use BLAS++ wrappers"   OFF  )
+option( USE_BLASPP_WRAPPERS   "Use BLAS++ wrappers"   OFF )
 option( USE_BLASPP_TEMPLATES  "Use BLAS++ templates"  OFF )
 option( USE_LAPACKPP_WRAPPERS "Use LAPACK++ wrappers" ON  )
+option( BUILD_EXAMPLES        "Build examples"        ON  )
 
 #-------------------------------------------------------------------------------
 # Search for BLAS++ library if it is needed
@@ -68,12 +70,14 @@ add_subdirectory(docs)
 add_subdirectory(config)
 
 #-------------------------------------------------------------------------------
-# C wrappers
+# C and Fortran wrappers
 add_subdirectory(src)
 
 #-------------------------------------------------------------------------------
 # Examples
-add_subdirectory(examples)
+if( BUILD_EXAMPLES )
+    add_subdirectory(examples)
+endif()
 
 #-------------------------------------------------------------------------------
 # Include tests

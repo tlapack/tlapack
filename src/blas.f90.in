@@ -3,7 +3,7 @@ module blas
     private
     public :: saxpy
 
-    include "fortranWrappers_tblas.fi"
+    include "cblas.fi"
 
 contains
 
@@ -13,9 +13,9 @@ contains
         real    :: alpha
         real, target :: x(*), y(*)
 
-        call c_saxpy( int(n, c_int64_t), alpha, &
-            c_loc(x), int(incx, c_int64_t), &
-            c_loc(y), int(incy, c_int64_t) )
+        call cblas_saxpy( int(n, @BLAS_SIZE_T@), alpha, &
+            c_loc(x), int(incx, @BLAS_INT_T@), &
+            c_loc(y), int(incy, @BLAS_INT_T@) )
     end subroutine
 
 end module

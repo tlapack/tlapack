@@ -1,7 +1,7 @@
 program example_fortranWrapper_saxpy
     use, intrinsic :: iso_c_binding
 
-    include "fortranWrappers_tblas.fi"
+    include "cblas.fi"
 
     integer, parameter :: n = 10, incx = 1, incy = 1
     double precision, parameter :: alpha = 2.e0
@@ -27,7 +27,7 @@ program example_fortranWrapper_saxpy
     print *, "[IN] alpha = ", alpha
     
     ! Call daxpy
-    call c_daxpy( int(n, c_int64_t), alpha, &
+    call cblas_daxpy( int(n, c_int64_t), alpha, &
         c_loc(x), int(incx, c_int64_t), &
         c_loc(y), int(incy, c_int64_t) )
 

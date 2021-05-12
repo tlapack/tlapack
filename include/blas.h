@@ -2,12 +2,6 @@
 #define __WRAPPERBLAS_H__
 
 #include "defines.h"
-#include <stdint.h> // Contains std::int64_t
-
-#ifdef BLAS_SIZE_INT64
-    #define blas_size_t int64_t
-    #define blas_int_t  int64_t
-#endif
 
 // -----------------------------------------------------------------------------
 #include <complex.h>

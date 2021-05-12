@@ -17,3 +17,11 @@ PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib" )
 target_include_directories( cwrappers_tblas INTERFACE "${CMAKE_BINARY_DIR}/lib" )
+
+#-------------------------------------------------------------------------------
+# Library: Fortran wrappers for TBLAS
+
+set( BLAS_SIZE_T "c_int64_t" )
+set( BLAS_INT_T  "c_int64_t" )
+configure_file( cblas.fi.in ${PROJECT_SOURCE_DIR}/include/cblas.fi )
+configure_file( blas.f90.in ${PROJECT_SOURCE_DIR}/include/blas.f90 )

@@ -3,16 +3,13 @@
 
 #include "defines.h"
 #include <complex>
-#include <cstdint> // Contains std::int64_t
 
 namespace blas {
 
 // -----------------------------------------------------------------------------
 // Integer types blas::size_t and blas::int_t
-#ifdef BLAS_SIZE_INT64
-    using size_t = std::int64_t;
-    using int_t  = std::int64_t;
-#endif
+using size_t = blas_size_t;
+using int_t  = blas_int_t;
 
 // -----------------------------------------------------------------------------
 enum class Layout { ColMajor = 'C', RowMajor = 'R' };

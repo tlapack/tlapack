@@ -33,6 +33,10 @@ target_link_libraries( example_fortranModule_saxpy
 # add the example saxpy using the Fortran wrapper
 add_executable( example_fortranWrapper_daxpy
     example_fortranWrapper_daxpy.f90 )
+set_source_files_properties(
+    example_fortranWrapper_daxpy.f90
+    PROPERTIES Fortran_PREPROCESS ON
+)
 target_include_directories( example_fortranWrapper_daxpy
     PRIVATE "${PROJECT_SOURCE_DIR}/include" )
 target_link_libraries( example_fortranWrapper_daxpy
