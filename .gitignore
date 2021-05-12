@@ -1,5 +1,6 @@
-# Compiled Object files
+# Compiled Object and Module files
 *.o
+*.mod
 
 # Compiled Dynamic libraries
 *.so

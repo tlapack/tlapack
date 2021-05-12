@@ -26,8 +26,16 @@ target_link_libraries( example_cwrapper_gemm
 
 # add the example saxpy using the Fortran module
 add_executable( example_fortranModule_saxpy
-    example_fortranModule_saxpy.f90 "${PROJECT_SOURCE_DIR}/src/blas.f90" )
+    example_fortranModule_saxpy.f90 "${PROJECT_SOURCE_DIR}/include/blas.f90" )
 target_link_libraries( example_fortranModule_saxpy
+    PRIVATE cwrappers_tblas )
+
+# add the example saxpy using the Fortran wrapper
+add_executable( example_fortranWrapper_daxpy
+    example_fortranWrapper_daxpy.f90 )
+target_include_directories( example_fortranWrapper_daxpy
+    PRIVATE "${PROJECT_SOURCE_DIR}/include" )
+target_link_libraries( example_fortranWrapper_daxpy
     PRIVATE cwrappers_tblas )
 
 # add the example geqr

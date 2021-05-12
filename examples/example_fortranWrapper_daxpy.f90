@@ -1,10 +1,11 @@
-program example_fortranModule_saxpy
-use blas
-implicit none
+program example_fortranWrapper_saxpy
+    use, intrinsic :: iso_c_binding
+
+    include "fortranWrappers_tblas.fi"
 
     integer, parameter :: n = 10, incx = 1, incy = 1
-    real, parameter :: alpha = 2.e0
-    real :: x(n), y(n)
+    double precision, parameter :: alpha = 2.e0
+    double precision, target :: x(n), y(n)
 
     integer :: i
 
@@ -25,11 +26,13 @@ implicit none
     end do
     print *, "[IN] alpha = ", alpha
     
-    ! Call saxpy
-    call saxpy( n, alpha, x, incx, y, incy )
+    ! Call daxpy
+    call c_daxpy( int(n, c_int64_t), alpha, &
+        c_loc(x), int(incx, c_int64_t), &
+        c_loc(y), int(incy, c_int64_t) )
 
     ! Print result
-    print *, "saxpy: alpha*x + y = "
+    print *, "daxpy: alpha*x + y = "
     do i = 1, n
         print *, y(i)
     end do

@@ -3,7 +3,7 @@ module blas
     private
     public :: saxpy
 
-    include "fortranWrappers_tblas.f90"
+    include "fortranWrappers_tblas.fi"
 
 contains
 
