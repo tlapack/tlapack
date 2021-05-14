@@ -104,8 +104,8 @@ void syr2k(
     #define C(i_, j_) C[ (i_) + (j_)*ldc ]
 
     // constants
-    const scalar_t zero = 0;
-    const scalar_t one  = 1;
+    const scalar_t zero( 0.0 );
+    const scalar_t one( 1.0 );
 
     // check arguments
     blas_error_if( layout != Layout::ColMajor &&
@@ -117,19 +117,19 @@ void syr2k(
     blas_error_if( k < 0 );
 
     // check and interpret argument trans
-    if (trans == Op::ConjTrans) {
-        blas_error_if_msg(
-                (typeid(TA) != typeid(blas::real_type<TA>) ||
-                 typeid(TB) != typeid(blas::real_type<TB>)),
-                "trans == Op::ConjTrans && "
-                "(typeid(TA) != typeid(blas::real_type<TA>) || "
-                "typeid(TB) != typeid(blas::real_type<TB>))" );
-        trans = Op::Trans;
-    }
-    else {
+    // if (trans == Op::ConjTrans) {
+    //     blas_error_if_msg(
+    //             (typeid(TA) != typeid(blas::real_type<TA>) ||
+    //              typeid(TB) != typeid(blas::real_type<TB>)),
+    //             "trans == Op::ConjTrans && "
+    //             "(typeid(TA) != typeid(blas::real_type<TA>) || "
+    //             "typeid(TB) != typeid(blas::real_type<TB>))" );
+    //     trans = Op::Trans;
+    // }
+    // else {
         blas_error_if( trans != Op::NoTrans &&
                        trans != Op::Trans );
-    }
+    // }
 
     // adapt if row major
     if (layout == Layout::RowMajor) {
@@ -148,7 +148,7 @@ void syr2k(
     blas_error_if( ldc < n );
 
     // quick return
-    if (n == 0 || k == 0)
+    if (n == 0)
         return;
 
     // alpha == zero

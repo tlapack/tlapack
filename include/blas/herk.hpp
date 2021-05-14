@@ -93,8 +93,8 @@ void herk(
     #define C(i_, j_) C[ (i_) + (j_)*ldc ]
 
     // constants
-    const scalar_t szero = 0;
-    const real_t zero = 0;
+    const scalar_t szero( 0 );
+    const real_t zero( 0 );
     const real_t one  = 1;
 
     // check arguments
@@ -107,17 +107,17 @@ void herk(
     blas_error_if( k < 0 );
 
     // check and interpret argument trans
-    if (trans == Op::Trans) {
-        blas_error_if_msg(
-                typeid(TA) != typeid(blas::real_type<TA>),
-                "trans == Op::Trans && "
-                "typeid(TA) != typeid(blas::real_type<TA>)" );
-        trans = Op::ConjTrans;
-    }
-    else {
+    // if (trans == Op::Trans) {
+    //     blas_error_if_msg(
+    //             typeid(TA) != typeid(blas::real_type<TA>),
+    //             "trans == Op::Trans && "
+    //             "typeid(TA) != typeid(blas::real_type<TA>)" );
+    //     trans = Op::ConjTrans;
+    // }
+    // else {
         blas_error_if( trans != Op::NoTrans &&
                        trans != Op::ConjTrans );
-    }
+    // }
 
     // adapt if row major
     if (layout == Layout::RowMajor) {
@@ -136,7 +136,7 @@ void herk(
     blas_error_if( ldc < n );
 
     // quick return
-    if (n == 0 || k == 0)
+    if (n == 0)
         return;
 
     // alpha == zero

@@ -38,8 +38,7 @@ nrm2(
     typedef real_type<T> real_t;
 
     // check arguments
-    blas_error_if( n < 0 );      // standard BLAS returns, doesn't fail
-    blas_error_if( incx <= 0 );  // standard BLAS returns, doesn't fail
+    blas_error_if( incx <= 0 );
 
     // todo: scale to avoid overflow & underflow
     real_t result = 0;
@@ -57,7 +56,7 @@ nrm2(
             ix += incx;
         }
     }
-    return std::sqrt( result );
+    return sqrt( result );
 }
 
 }  // namespace blas

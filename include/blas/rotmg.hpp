@@ -100,22 +100,27 @@ void rotmg(
     T *d2,
     T *a,
     T  b,
-    T  param[5] )
+    T param[5] )
 {
+    using real_t = real_type<T>;
+
+    // check arguments
+    blas_error_if( *d1 <= 0 );
+
     // Constants
-    const T zero = 0;
-    const T one = 1;
-    const T gam = 4096;
-    const T gamsq = gam*gam;
-    const T rgamsq = one/gamsq;
+    const real_t zero( 0 );
+    const real_t one( 1 );
+    const real_t gam = 4096;
+    const real_t gamsq = gam*gam;
+    const real_t rgamsq = one/gamsq;
 
-    T& x1 = *a;
-    T& y1 = b;
+    real_t& x1 = *a;
+    real_t& y1 = b;
 
-    T h11 = zero;
-    T h12 = zero;
-    T h21 = zero;
-    T h22 = zero;
+    real_t h11 = zero;
+    real_t h12 = zero;
+    real_t h21 = zero;
+    real_t h22 = zero;
 
     if(*d1 < zero) {
         param[0] = -1;
@@ -124,21 +129,21 @@ void rotmg(
         x1 = zero;
     }
     else {
-        T p2 = (*d2)*y1;
+        real_t p2 = (*d2)*y1;
         if(p2 == zero) {
             param[0] = -2;
             return;
         }
 
-        T p1 = (*d1)*x1;
-        T q2 = p2*y1;
-        T q1 = p1*x1;
+        real_t p1 = (*d1)*x1;
+        real_t q2 = p2*y1;
+        real_t q1 = p1*x1;
 
         if( abs(q1) > abs(q2) ) {
             param[0] = zero;
             h21 = -y1/x1;
             h12 = p2/p1;
-            T u = one - h12*h21;
+            real_t u = one - h12*h21;
             if( u > zero ) {
                 *d1 /= u;
                 *d2 /= u;
@@ -155,8 +160,8 @@ void rotmg(
             param[0] = 1;
             h11 = p1/p2;
             h22 = x1/y1;
-            T u = one + h11*h22;
-            T stemp = *d2/u;
+            real_t u = one + h11*h22;
+            real_t stemp = *d2/u;
             *d2 = *d1/u;
             *d1 = stemp;
             x1 = y1*u;

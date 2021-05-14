@@ -25,35 +25,61 @@ include(Catch)
 #-------------------------------------------------------------------------------
 # corner-cases: Generate C++ file for tests with corner cases
 add_custom_target( corner-cases
-    COMMAND
-        cd "${CMAKE_CURRENT_SOURCE_DIR}/scripts" && ./wrapper_tests.py
-        > "${CMAKE_CURRENT_SOURCE_DIR}/src/test_corner_cases.cpp" )
+COMMAND
+    cd "${CMAKE_CURRENT_SOURCE_DIR}/scripts" && ./wrapper_tests.py
+    > "${CMAKE_CURRENT_SOURCE_DIR}/src/test_corner_cases.cpp" )
+
+#-------------------------------------------------------------------------------
+# Test sources
+file( GLOB test_sources
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/test_*.cpp" )
+
+# #-------------------------------------------------------------------------------
+# # Test library
+# add_library( testBLAS ${test_sources} )
+
+# target_compile_definitions( testBLAS PUBLIC ${tlapack_defs} )
+# target_include_directories( testBLAS
+#     PUBLIC "${PROJECT_SOURCE_DIR}/include" ${tblas_include_dir} )
+
+# if( USE_BLASPP_WRAPPERS )
+#     target_link_libraries( testBLAS PUBLIC blaspp )
+# endif()
+# target_link_libraries( testBLAS PUBLIC Catch2::Catch2 )
+
+# set_target_properties( testBLAS
+#     PROPERTIES
+#     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+#     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib" )
 
 #-------------------------------------------------------------------------------
 # tester: Program for tests
-file( GLOB test_sources
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/test_*.cpp" )
-add_executable( tester tests_main.cpp ${test_sources} )
 
+# # add_subdirectory( src )
+# add_executable( tester tests_main.cpp )
+# target_link_libraries( tester PRIVATE testBLAS )
+
+add_executable( tester tests_main.cpp ${test_sources} )
 target_compile_definitions( tester
     PRIVATE ${tlapack_defs} )
-
 target_include_directories( tester
-    PRIVATE
-        "${CMAKE_CURRENT_SOURCE_DIR}/include"
-        ${tblas_include_dir} )
-
+PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/include"
+    ${tblas_include_dir} )
 target_link_libraries( tester PRIVATE Catch2::Catch2 )
 if( USE_BLASPP_WRAPPERS )
     target_link_libraries( tester PRIVATE blaspp )
+endif()
+if( USE_GNU_MPFR )
+    target_include_directories(tester PRIVATE ${MPFR_INCLUDES} ${GMP_INCLUDES})
+    target_link_libraries( tester PRIVATE ${MPFR_LIBRARIES} ${GMP_LIBRARIES} )
 endif()
 
 #-------------------------------------------------------------------------------
 # Run tests
 add_custom_target(run-tests
     COMMAND ./tester
-    DEPENDS tester
-    )
+    DEPENDS tester)
 
 #-------------------------------------------------------------------------------
 # Add tests to CTest

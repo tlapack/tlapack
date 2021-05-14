@@ -18,6 +18,11 @@ option( USE_BLASPP_WRAPPERS   "Use BLAS++ wrappers"   OFF )
 option( USE_BLASPP_TEMPLATES  "Use BLAS++ templates"  OFF )
 option( USE_LAPACKPP_WRAPPERS "Use LAPACK++ wrappers" ON  )
 option( BUILD_EXAMPLES        "Build examples"        ON  )
+option( USE_GNU_MPFR          "Use GNU MPFR library"  OFF )
+
+#-------------------------------------------------------------------------------
+# Modules
+set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 #-------------------------------------------------------------------------------
 # Search for BLAS++ library if it is needed
@@ -41,6 +46,15 @@ if( USE_LAPACKPP_WRAPPERS )
     endif()
 endif()
 
+#-------------------------------------------------------------------------------
+# Search for MPFR library if it is needed
+if( USE_GNU_MPFR )
+    # find_package( GMP REQUIRED )
+    find_package( MPFR REQUIRED )
+endif()
+
+#-------------------------------------------------------------------------------
+# T-LAPACK compiler definitions
 set( tlapack_defs "" )
 
 #-------------------------------------------------------------------------------
@@ -60,6 +74,16 @@ endif()
 if(USE_LAPACKPP_WRAPPERS)
     list( APPEND tlapack_defs "-DUSE_LAPACKPP_WRAPPERS" )
 endif()
+
+#-------------------------------------------------------------------------------
+# Use GNU MPFR library
+if(USE_GNU_MPFR)
+    list( APPEND tlapack_defs "-DUSE_GNU_MPFR" )
+endif()
+
+#-------------------------------------------------------------------------------
+# Include directory for all targets
+include_directories( "${PROJECT_SOURCE_DIR}/include" )
 
 #-------------------------------------------------------------------------------
 # Docs

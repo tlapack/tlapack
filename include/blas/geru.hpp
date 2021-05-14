@@ -70,7 +70,7 @@ void geru(
     #define A(i_, j_) A[ (i_) + (j_)*lda ]
 
     // constants
-    const scalar_t zero = 0;
+    const scalar_t zero( 0.0 );
 
     // check arguments
     blas_error_if( layout != Layout::ColMajor &&

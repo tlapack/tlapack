@@ -37,8 +37,7 @@ void scal(
     T* x, int_t incx )
 {
     // check arguments
-    blas_error_if( n < 0 );      // standard BLAS returns, doesn't fail
-    blas_error_if( incx <= 0 );  // standard BLAS returns, doesn't fail
+    blas_error_if( incx <= 0 );
 
     if (incx == 1) {
         // unit stride

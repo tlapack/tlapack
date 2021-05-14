@@ -7,8 +7,8 @@ iamax
 nrm2
 rot, 1, 2, 4
 rotg
-rotm
-rotmg, 1, 2
+rotm, 1, 2
+rotmg
 scal, 1, 2
 swap, 1, 2
 gemv, 2, 5

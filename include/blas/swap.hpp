@@ -42,8 +42,7 @@ void swap(
     TY *y, int_t incy )
 {
     // check arguments
-    blas_error_if( n < 0 );      // standard BLAS returns, doesn't fail
-    blas_error_if( incx == 0 );  // standard BLAS doesn't detect inc[xy] == 0
+    blas_error_if( incx == 0 );
     blas_error_if( incy == 0 );
 
     if (incx == 1 && incy == 1) {

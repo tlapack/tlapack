@@ -122,8 +122,8 @@ void gemm(
     #define C(i_, j_) C[ (i_) + (j_)*ldc ]
 
     // constants
-    const scalar_t zero = 0;
-    const scalar_t one  = 1;
+    const scalar_t zero( 0.0 );
+    const scalar_t one( 1.0 );
 
     // check arguments
     blas_error_if( transA != Op::NoTrans &&
@@ -141,7 +141,7 @@ void gemm(
     blas_error_if( ldc < m );
 
     // quick return
-    if (m == 0 || n == 0 || k == 0)
+    if (m == 0 || n == 0)
         return;
 
     // alpha == zero

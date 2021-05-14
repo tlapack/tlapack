@@ -87,7 +87,7 @@ size_t iamax_GIGO(
     if (incx == 1) {
         // unit stride
         for (size_t i = 0; i < n; ++i) {
-            real_t a = std::abs(x[i]);
+            real_t a = abs1(x[i]);
             if ( a > smax ) {
                 smax = a;
                 index = i;
@@ -98,7 +98,7 @@ size_t iamax_GIGO(
         // non-unit stride
         int_t ix = 0;
         for (size_t i = 0; i < n; ++i) {
-            real_t a = std::abs(x[ix]);
+            real_t a = abs1(x[ix]);
             if ( a > smax ) {
                 smax = a;
                 index = i;
@@ -134,7 +134,7 @@ size_t iamax_SAFE(
                 break;
             }
             else { // still no Inf found yet
-                real_t a = std::abs(x[i]);
+                real_t a = abs1(x[i]);
                 if ( a > smax ) {
                     smax = a;
                     index = i;
@@ -164,7 +164,7 @@ size_t iamax_SAFE(
                 break;
             }
             else { // still no Inf found yet
-                real_t a = std::abs(x[ix]);
+                real_t a = abs1(x[ix]);
                 if ( a > smax ) {
                     smax = a;
                     index = i;

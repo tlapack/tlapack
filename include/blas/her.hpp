@@ -69,7 +69,7 @@ void her(
     #define A(i_, j_) A[ (i_) + (j_)*lda ]
 
     // constants
-    const real_t zero = 0;
+    const real_t zero( 0 );
 
     // check arguments
     blas_error_if( layout != Layout::ColMajor &&

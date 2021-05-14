@@ -1,6 +1,10 @@
 #ifndef __TLAPACK_BLAS_TYPES_HH__
 #define __TLAPACK_BLAS_TYPES_HH__
 
+#ifdef USE_GNU_MPFR
+    #include "mpreal.h"
+#endif
+
 #include "defines.h"
 #include <complex>
 

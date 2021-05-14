@@ -8,7 +8,6 @@
 
 #include "exception.hpp"
 #include "blas/utils.hpp"
-#include "blas/constants.hpp"
 
 namespace blas {
 
@@ -58,7 +57,7 @@ void rotg(
     // Constants
     const real_t oneReal = 1;
     const real_t zeroReal = 0;
-    const scalar_t zero = 0;
+    const scalar_t zero( 0.0 );
     const TX zeroTX = 0;
     const TY zeroTY = 0;
 

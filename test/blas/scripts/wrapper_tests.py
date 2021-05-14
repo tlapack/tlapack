@@ -12,13 +12,17 @@ def RepresentsInt(s):
     except ValueError:
         return False
 
+# Size of the arrays:
+sizeArr = 5
+sizeArray = str(sizeArr)
+
 # BLAS routines' definitions
 blas_routines = open("blas_routines.csv").read().splitlines()
 for i in range(len(blas_routines)):
     blas_routines[i] = list(filter(None, [x.strip() for x in blas_routines[i].split(',')]))
 
 # Functions that only accepts real types
-realOnly_funcs = ["rot", "rotm", "rotmg", "syr", "symv"]
+realOnly_funcs = ["rotm", "rotmg", "syr", "symv"]
 
 # General rules that shall throw an Exception
 throwException_corner_rules = {}
@@ -67,6 +71,7 @@ TEMPLATE_TEST_CASE( \"""" + f_name + """ satisfies all corner cases", "[""" + \
         f_name + """][BLASlv""" + str(blas_lv) + """]", """ + \
         ("TEST_TYPES" if f_name not in realOnly_funcs else "TEST_REAL_TYPES") + \
         """ ) {
+    using real_t = real_type<TestType>;
     
     // Default arguments:""",
     for j, arg in enumerate(ref_args):
@@ -87,8 +92,13 @@ TEMPLATE_TEST_CASE( \"""" + f_name + """ satisfies all corner cases", "[""" + \
             buffer += " = Diag::NonUnit;",
         elif "Side" in ref_types[j]:
             buffer += " = Side::Left;",
-        elif isArray:
-            buffer += " = {1, 1, 1, 1};",
+        elif isArray and "TestType" in ref_types[j]:
+            buffer += " = {",
+            for k in range(sizeArr-1):
+                buffer += "real_t(1), ",
+            buffer += "real_t(1)};",
+        elif "TestType" in ref_types[j]:
+            buffer += " = real_t(1);",
         else:
             buffer += " = 1;",
             
@@ -133,8 +143,9 @@ TEMPLATE_TEST_CASE( \"""" + f_name + """ satisfies all corner cases", "[""" + \
     for j, arg in enumerate(ref_args):
         if "*" in ref_types[j] and "const" not in ref_types[j]:
             refVarBuffer += """
-        """ + ref_types[j].replace("*", "") + "ref_"+arg + "[] = {"+arg+"[0], "+arg+"[1], "+arg+"[2], "+arg+"[3]};",
-            noChangeBuffer += "std::equal("+arg+", "+arg+"+4, ref_"+arg+")",
+        """ + ref_types[j].replace("*", "") + "ref_"+arg + "[" + sizeArray + """];
+        std::copy( """ + arg + ", " + arg+"+"+sizeArray + ", ref_"+arg + " );",
+            noChangeBuffer += "std::equal("+arg+", "+arg+"+"+sizeArray+", ref_"+arg+")",
             swapBuffer += """
         std::swap( """ + arg + ", ref_" + arg + " );",
     noChangeStr = "("+" && ".join(noChangeBuffer)+")"
@@ -169,18 +180,25 @@ TEMPLATE_TEST_CASE( \"""" + f_name + """ satisfies all corner cases", "[""" + \
         buffer += bufferRequireNoChanges
 
     # Specific tests Lv1:
-    if f_name == "dot" or f_name == "dotu":
+    if f_name == "rotmg":
+        buffer += """
+    SECTION ( "Throw if d1 == -1" ) {
+        real_t d1Minus1 = real_t(-1);
+        CHECK_THROWS_AS( rotmg( &d1Minus1, d2, a, b, param ), Error );
+    }""",
+        countCases += 1
+    elif f_name == "dot" or f_name == "dotu":
         buffer += """
     SECTION ( "n <= 0" ) {
-        CHECK( """+f_name+"""(-1, x, incx, y, incy ) == real_type<TestType>(0) );
-        CHECK( """+f_name+"""( 0, x, incx, y, incy ) == real_type<TestType>(0) );
+        CHECK( """+f_name+"""(-1, x, incx, y, incy ) == real_t(0) );
+        CHECK( """+f_name+"""( 0, x, incx, y, incy ) == real_t(0) );
     }""",
         countCases += 2
     elif f_name == "asum" or f_name == "nrm2":
         buffer += """
     SECTION ( "n <= 0" ) {
-        CHECK( """+f_name+"""(-1, x, incx ) == real_type<TestType>(0) );
-        CHECK( """+f_name+"""( 0, x, incx ) == real_type<TestType>(0) );
+        CHECK( """+f_name+"""(-1, x, incx ) == real_t(0) );
+        CHECK( """+f_name+"""( 0, x, incx ) == real_t(0) );
     }""",
         countCases += 2
     elif f_name == "iamax":
@@ -195,8 +213,8 @@ TEMPLATE_TEST_CASE( \"""" + f_name + """ satisfies all corner cases", "[""" + \
     elif f_name == "gemv":
         buffer += """
     SECTION( "y does not need to be set if beta = 0" ) {
-        y[0] = y[1] = NAN;
-        REQUIRE_NOTHROW( gemv( layout, trans, 2, 2, alpha, A, 2, x, incx, 0, y, incy ) );
+        y[0] = y[1] = real_t(NAN);
+        REQUIRE_NOTHROW( gemv( layout, trans, 2, 2, alpha, A, 2, x, incx, real_t(0), y, incy ) );
         CHECK( (y[0] == y[0] && y[1] == y[1]) ); // i.e., they are not NaN
         y[0] = y[1] = 1;
     }""",
@@ -204,15 +222,15 @@ TEMPLATE_TEST_CASE( \"""" + f_name + """ satisfies all corner cases", "[""" + \
     elif f_name == "hemv":
         buffer += """
     SECTION( "y does not need to be set if beta = 0" ) {
-        y[0] = y[1] = NAN;
-        REQUIRE_NOTHROW( hemv( layout, uplo, 2, alpha, A, 2, x, incx, 0, y, incy ) );
+        y[0] = y[1] = real_t(NAN);
+        REQUIRE_NOTHROW( hemv( layout, uplo, 2, alpha, A, 2, x, incx, real_t(0), y, incy ) );
         CHECK( (y[0] == y[0] && y[1] == y[1]) ); // i.e., they are not NaN
         y[0] = y[1] = 1;
     }
     if (is_complex<TestType>::value) {
     using complex_t = complex_type<TestType>;
     SECTION( "Imaginary part of the diagonal of A is not referenced" ) {
-        complex_t const _A[] = {{1, NAN}, 1, 1, {1, NAN}};
+        complex_t const _A[] = {{1, real_t(NAN)}, real_t(1), real_t(1), {1, real_t(NAN)}};
         REQUIRE_NOTHROW( hemv( layout, uplo, 2, alpha, _A, 2, (complex_t const *)x, incx, beta, (complex_t *)y, incy ) );
         CHECK( (y[0] == y[0] && y[1] == y[1]) ); // i.e., they are not NaN
         y[0] = y[1] = 1;
@@ -221,8 +239,8 @@ TEMPLATE_TEST_CASE( \"""" + f_name + """ satisfies all corner cases", "[""" + \
     elif f_name == "symv":
         buffer += """
     SECTION( "y does not need to be set if beta = 0" ) {
-        y[0] = y[1] = NAN;
-        REQUIRE_NOTHROW( symv( layout, uplo, 2, alpha, A, 2, x, incx, 0, y, incy ) );
+        y[0] = y[1] = real_t(NAN);
+        REQUIRE_NOTHROW( symv( layout, uplo, 2, alpha, A, 2, x, incx, real_t(0), y, incy ) );
         CHECK( (y[0] == y[0] && y[1] == y[1]) ); // i.e., they are not NaN
         y[0] = y[1] = 1;
     }""",
@@ -232,27 +250,27 @@ TEMPLATE_TEST_CASE( \"""" + f_name + """ satisfies all corner cases", "[""" + \
     if (is_complex<TestType>::value) {
     using complex_t = complex_type<TestType>;
     SECTION( "Imaginary part of the diagonal of A is zero" ) {
-        complex_t _A[] = {{1, NAN}, 1, 1, {1, NAN}};
+        complex_t _A[] = {{1, real_t(NAN)}, real_t(1), real_t(1), {1, real_t(NAN)}};
         REQUIRE_NOTHROW( her( layout, uplo, 2, alpha, (complex_t const *)x, incx, _A, 2 ) );
         CHECK( (_A[0] == _A[0] && _A[1] == _A[1] && _A[2] == _A[2] && _A[3] == _A[3]) ); // i.e., they are not NaN
-        CHECK( (std::imag(_A[0]) == TestType(0) && std::imag(_A[3]) == TestType(0)) );
+        CHECK( (std::imag(_A[0]) == real_t(0) && std::imag(_A[3]) == real_t(0)) );
     }}""",
-        countCases += 1
+        countCases += 2
     elif f_name == "her2":
         buffer += """
     if (is_complex<TestType>::value) {
     using complex_t = complex_type<TestType>;
     SECTION( "Imaginary part of the diagonal of A is zero" ) {
-        complex_t _A[] = {{1, NAN}, 1, 1, {1, NAN}};
+        complex_t _A[] = {{1, real_t(NAN)}, real_t(1), real_t(1), {1, real_t(NAN)}};
         REQUIRE_NOTHROW( her2( layout, uplo, 2, alpha, (complex_t const *)x, incx, y, incy, _A, 2 ) );
         CHECK( (_A[0] == _A[0] && _A[1] == _A[1] && _A[2] == _A[2] && _A[3] == _A[3]) ); // i.e., they are not NaN
-        CHECK( (std::imag(_A[0]) == TestType(0) && std::imag(_A[3]) == TestType(0)) );
+        CHECK( (std::imag(_A[0]) == real_t(0) && std::imag(_A[3]) == real_t(0)) );
     }}""",
-        countCases += 1
+        countCases += 2
     elif f_name == "trmv" or f_name == "trsv":
         buffer += """
     SECTION( "Diagonal of A is not referenced if diag = 'U'" ) {
-        TestType const _A[] = {NAN, 1, 1, NAN};
+        TestType const _A[] = {real_t(NAN), real_t(1), real_t(1), real_t(NAN)};
         REQUIRE_NOTHROW( """+f_name+"""( layout, uplo, trans, Diag('U'), 2, _A, 2, x, incx ) );
         CHECK( (x[0] == x[0] && x[1] == x[1]) ); // i.e., they are not NaN
         x[0] = x[1] = 1;
@@ -263,8 +281,8 @@ TEMPLATE_TEST_CASE( \"""" + f_name + """ satisfies all corner cases", "[""" + \
     elif f_name == "gemm":
         buffer += """
     SECTION( "C := beta C if M, N > 0 and K = 0" ) {
-        TestType const C11 = TestType(2)*C[0];
-        REQUIRE_NOTHROW( gemm( layout, transA, transB, m, n, 0, alpha, A, lda, B, ldb, real_type<TestType>(2), C, ldc ) );
+        TestType const C11 = real_t(2)*C[0];
+        REQUIRE_NOTHROW( gemm( layout, transA, transB, m, n, 0, alpha, A, lda, B, ldb, real_t(2), C, ldc ) );
         CHECK( C[0] == C11 );
         C[0] = C[1] = C[2] = C[3] = 1;
     }""",
@@ -272,8 +290,8 @@ TEMPLATE_TEST_CASE( \"""" + f_name + """ satisfies all corner cases", "[""" + \
     elif f_name == "syrk":
         buffer += """
     SECTION( "C := beta C if M, N > 0 and K = 0" ) {
-        TestType const C11 = TestType(2)*C[0];
-        REQUIRE_NOTHROW( """+f_name+"""( layout, uplo, trans, n, 0, alpha, A, lda, real_type<TestType>(2), C, ldc ) );
+        TestType const C11 = real_t(2)*C[0];
+        REQUIRE_NOTHROW( """+f_name+"""( layout, uplo, trans, n, 0, alpha, A, lda, real_t(2), C, ldc ) );
         CHECK( C[0] == C11 );
         C[0] = C[1] = C[2] = C[3] = 1;
     }""",
@@ -281,52 +299,53 @@ TEMPLATE_TEST_CASE( \"""" + f_name + """ satisfies all corner cases", "[""" + \
     elif f_name == "syr2k":
         buffer += """
     SECTION( "C := beta C if M, N > 0 and K = 0" ) {
-        TestType const C11 = TestType(2)*C[0];
-        REQUIRE_NOTHROW( """+f_name+"""( layout, uplo, trans, n, 0, alpha, A, lda, B, ldb, real_type<TestType>(2), C, ldc ) );
+        TestType const C11 = real_t(2)*C[0];
+        REQUIRE_NOTHROW( """+f_name+"""( layout, uplo, trans, n, 0, alpha, A, lda, B, ldb, real_t(2), C, ldc ) );
         CHECK( C[0] == C11 );
         C[0] = C[1] = C[2] = C[3] = 1;
     }""",
+        countCases += 1
     elif f_name == "herk":
         buffer += """
     SECTION( "C := beta C if M, N > 0 and K = 0" ) {
-        TestType const C11 = TestType(2)*C[0];
-        REQUIRE_NOTHROW( """+f_name+"""( layout, uplo, trans, n, 0, alpha, A, lda, real_type<TestType>(2), C, ldc ) );
+        TestType const C11 = real_t(2)*C[0];
+        REQUIRE_NOTHROW( """+f_name+"""( layout, uplo, trans, n, 0, alpha, A, lda, real_t(2), C, ldc ) );
         CHECK( C[0] == C11 );
         C[0] = C[1] = C[2] = C[3] = 1;
     }
     if (is_complex<TestType>::value) {
     using complex_t = complex_type<TestType>;
     SECTION( "Imaginary part of the diagonal of C is zero" ) {
-        complex_t _C[] = {{1, NAN}, 1, 1, {1, NAN}};
+        complex_t _C[] = {{1, real_t(NAN)}, real_t(1), real_t(1), {1, real_t(NAN)}};
         REQUIRE_NOTHROW( herk( layout, uplo, trans, 2, 2, alpha, A, 2, beta, _C, 2 ) );
-        CHECK( std::equal(_C, _C+4, _C) ); // i.e., they C does not have NaN
+        CHECK( (_C[0] == _C[0] && _C[1] == _C[1] && _C[2] == _C[2] && _C[3] == _C[3]) ); // i.e., they are not NaN
     }}""",
-        countCases += 1
+        countCases += 2
     elif f_name == "her2k":
         buffer += """
     SECTION( "C := beta C if M, N > 0 and K = 0" ) {
-        TestType const C11 = TestType(2)*C[0];
-        REQUIRE_NOTHROW( """+f_name+"""( layout, uplo, trans, n, 0, alpha, A, lda, B, ldb, real_type<TestType>(2), C, ldc ) );
+        TestType const C11 = real_t(2)*C[0];
+        REQUIRE_NOTHROW( """+f_name+"""( layout, uplo, trans, n, 0, alpha, A, lda, B, ldb, real_t(2), C, ldc ) );
         CHECK( C[0] == C11 );
         C[0] = C[1] = C[2] = C[3] = 1;
     }
     if (is_complex<TestType>::value) {
     using complex_t = complex_type<TestType>;
     SECTION( "Imaginary part of the diagonal of C is zero" ) {
-        complex_t _C[] = {{1, NAN}, 1, 1, {1, NAN}};
+        complex_t _C[] = {{1, real_t(NAN)}, real_t(1), real_t(1), {1, real_t(NAN)}};
         REQUIRE_NOTHROW( her2k( layout, uplo, trans, 2, 2, alpha, A, 2, B, 2, beta, _C, 2 ) );
-        CHECK( std::equal(_C, _C+4, _C) ); // i.e., they C does not have NaN
+        CHECK( (_C[0] == _C[0] && _C[1] == _C[1] && _C[2] == _C[2] && _C[3] == _C[3]) ); // i.e., they are not NaN
     }}""",
-        countCases += 1
+        countCases += 2
     elif f_name == "hemm":
         buffer += """
     if (is_complex<TestType>::value) {
     using complex_t = complex_type<TestType>;
     SECTION( "Imaginary part of the diagonal of A is not referenced" ) {
-        complex_t const _A[] = {{1, NAN}, 1, 1, {1, NAN}};
+        complex_t const _A[] = {{1, real_t(NAN)}, real_t(1), real_t(1), {1, real_t(NAN)}};
         REQUIRE_NOTHROW( hemm( layout, side, uplo, 2, 2, alpha, _A, 2, B, 2, beta, (complex_t*) C, 2 ) );
-        CHECK( std::equal(C, C+4, C) ); // i.e., they C does not have NaN
-        std::fill_n(C, 4, 1);
+        CHECK( (C[0] == C[0] && C[1] == C[1] && C[2] == C[2] && C[3] == C[3]) ); // i.e., they are not NaN
+        std::fill_n(C, """+sizeArray+""", 1);
     }}""",
         countCases += 1
 

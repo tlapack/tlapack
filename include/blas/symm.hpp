@@ -92,8 +92,8 @@ void symm(
     #define C(i_, j_) C[ (i_) + (j_)*ldc ]
 
     // constants
-    const scalar_t zero = 0;
-    const scalar_t one  = 1;
+    const scalar_t zero( 0.0 );
+    const scalar_t one( 1.0 );
 
     // check arguments
     blas_error_if( layout != Layout::ColMajor &&

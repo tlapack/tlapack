@@ -30,6 +30,13 @@
         using size_t = int64_t;
         using int_t  = int64_t;
         const blas::size_t INVALID_INDEX = -1;
+        
+        using std::abs;
+        using std::isinf;
+        #ifdef USE_GNU_MPFR
+            using mpfr::abs;
+            using mpfr::isinf;
+        #endif
 
         // -----------------------------------------------------------------------------
         // is nan
@@ -44,13 +51,13 @@
         template< typename T >
         bool isinf( T x )
         {
-            return std::isinf(x);
+            return isinf(x);
         }
 
         template< typename T >
         bool isinf( std::complex<T> x )
         {
-            return std::isinf( real(x) ) || std::isinf( imag(x) );
+            return isinf( real(x) ) || isinf( imag(x) );
         }
     }
 

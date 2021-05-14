@@ -59,11 +59,10 @@ void rot(
     typedef scalar_type<TX, TY> scalar_t;
 
     // check arguments
-    blas_error_if( n < 0 );      // standard BLAS returns, doesn't fail
     blas_error_if( incx == 0 );
     blas_error_if( incy == 0 );
 
-    scalar_t zero = 0;
+    scalar_t zero( 0 );
 
     // quick return
     if ( n == 0 || (c == 1 && s == zero) )

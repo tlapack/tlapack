@@ -38,8 +38,7 @@ asum(
     typedef real_type<T> real_t;
 
     // check arguments
-    blas_error_if( n < 0 );      // standard BLAS returns, doesn't fail
-    blas_error_if( incx <= 0 );  // standard BLAS returns, doesn't fail
+    blas_error_if( incx <= 0 );
 
     real_t result = 0;
     if (incx == 1) {

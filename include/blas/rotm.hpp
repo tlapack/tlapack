@@ -55,7 +55,6 @@ void rotm(
     typedef scalar_type<TX, TY> scalar_t;
 
     // check arguments
-    blas_error_if( n < 0 ); // standard BLAS returns, doesn't fail
     blas_error_if( incx == 0 );
     blas_error_if( incy == 0 );
 

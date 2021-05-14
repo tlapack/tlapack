@@ -8,7 +8,7 @@ nrm2, 4, 5
 rot
 rotg
 rotm
-rotmg, d1 = std::unique_ptr<TestType>(new TestType(-1)).get()
+rotmg
 scal, 4, 5
 swap
 gemv, 8, 9, 2, 1, 4, 6, 15, 24

@@ -45,11 +45,10 @@ scalar_type<TX, TY> dot(
     typedef scalar_type<TX, TY> scalar_t;
 
     // check arguments
-    blas_error_if( n < 0 );
     blas_error_if( incx == 0 );
     blas_error_if( incy == 0 );
 
-    scalar_t result = 0;
+    scalar_t result( 0.0 );
     if (incx == 1 && incy == 1) {
         // unit stride
         for (size_t i = 0; i < n; ++i) {

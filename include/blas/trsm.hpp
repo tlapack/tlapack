@@ -107,7 +107,7 @@ void trsm(
     #define B(i_, j_) B[ (i_) + (j_)*ldb ]
 
     // constants
-    const scalar_t zero = 0;
+    const scalar_t zero( 0.0 );
 
     // check arguments
     blas_error_if( layout != Layout::ColMajor &&
