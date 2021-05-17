@@ -11,7 +11,9 @@ TEMPLATE_TEST_CASE( "iamax returns the first inf when there is no NaN",
 
     // Constants:
     const real_t huge = std::numeric_limits<real_t>::max();
-    const real_t inf  = 2*huge;
+    const real_t inf = ( std::numeric_limits<real_t>::has_infinity )
+      ? std::numeric_limits<real_t>::infinity()
+      : real_t(1.0)/real_t(0.0);
     
     // Tests:
     { TestType const x[] = {-inf, inf, inf};
@@ -31,8 +33,10 @@ TEMPLATE_TEST_CASE( "complex iamax returns the first inf when there is no NaN",
         std::numeric_limits<real_t>::max(),
         std::numeric_limits<real_t>::max()
     );
-    const TestType rinf( 2*std::numeric_limits<real_t>::max(), 0 );
-    const TestType cinf( 0, 2*std::numeric_limits<real_t>::max() );
+    const real_t rinf = ( std::numeric_limits<real_t>::has_infinity )
+      ? std::numeric_limits<real_t>::infinity()
+      : real_t(1.0)/real_t(0.0);
+    const TestType cinf( rinf, rinf );
     
     // Tests:
     { TestType const x[] = {-rinf, cinf, rinf};

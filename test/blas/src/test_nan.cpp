@@ -14,7 +14,7 @@ TEST_CASE( "NANs work as expected", "[NaN]" ) {
     }
 
     SECTION( "INF is not NAN" ) {
-        const float inf  = 2*std::numeric_limits<float>::max();
+        const float inf = std::numeric_limits<float>::infinity();
         CHECK_FALSE( isnan(inf) );
         CHECK_FALSE( isnan(-inf) );
     }
@@ -32,7 +32,9 @@ TEMPLATE_TEST_CASE( "iamax returns the first NaN",
 
     // Constants:
     const real_t huge = std::numeric_limits<real_t>::max();
-    const real_t inf  = 2*huge;
+    const real_t inf = ( std::numeric_limits<real_t>::has_infinity )
+      ? std::numeric_limits<real_t>::infinity()
+      : real_t(1.0)/real_t(0.0);
     const real_t aNaN = NAN;
     
     // Tests:

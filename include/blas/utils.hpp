@@ -7,16 +7,21 @@
 namespace blas {
 
 // -----------------------------------------------------------------------------
+// Use routines from std C++
+using std::real;
+using std::imag;
 using std::abs; // Contains the 2-norm for the complex case
+using std::isinf;
+using std::isnan;
 
 // -----------------------------------------------------------------------------
 // Use MPFR interface
 #ifdef USE_GNU_MPFR
+    inline mpfr::mpreal real( const mpfr::mpreal& x ) { return x; }
+    inline mpfr::mpreal imag( const mpfr::mpreal& x ) { return 0; }
     using mpfr::abs;
     using mpfr::isinf;
     using mpfr::isnan;
-    inline mpfr::mpreal real( const mpfr::mpreal& x ) { return x; }
-    inline mpfr::mpreal imag( const mpfr::mpreal& x ) { return 0; }
 #endif
 
 /// Extend conj to real datatypes.
@@ -111,12 +116,6 @@ inline scalar_t make_scalar( blas::real_type<scalar_t> re,
 }
 
 // -----------------------------------------------------------------------------
-// Real and Imag functions
-
-using std::real;
-using std::imag;
-
-// -----------------------------------------------------------------------------
 // sqrt, needed because std C++11 template returns double
 // In the MPFR, the template returns mpfr::mpreal
 // Note that the template in std::complex return the desired std::complex<T>
@@ -142,21 +141,15 @@ inline T abs1( std::complex<T> x )
 }
 
 // -----------------------------------------------------------------------------
-// is nan
+// isnan for complex numbers
 template< typename T >
-inline bool isnan( T x )
+inline bool isnan( std::complex<T> x )
 {
-    return x != x;
+    return isnan( real(x) ) || isnan( imag(x) );
 }
 
 // -----------------------------------------------------------------------------
-// is inf
-template< typename T >
-inline bool isinf( T x )
-{
-    return isinf(x);
-}
-
+// isinf for complex numbers
 template< typename T >
 inline bool isinf( std::complex<T> x )
 {
