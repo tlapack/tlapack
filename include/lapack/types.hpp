@@ -1,7 +1,9 @@
 #ifndef __TLAPACK_TYPES_HH__
 #define __TLAPACK_TYPES_HH__
 
-#include "blas/types.hpp"
+#if defined(USE_BLASPP_WRAPPERS) && !defined(USE_BLASPP_TEMPLATES)
+    #include "blas/types.hpp"
+#endif
 
 namespace lapack {
 

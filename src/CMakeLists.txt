@@ -7,7 +7,7 @@
 add_library(cwrappers_tblas cwrappers_tblas.cpp)
 
 target_compile_definitions( cwrappers_tblas PUBLIC ${tlapack_defs} )
-if( USE_BLASPP_WRAPPERS )
+if( USE_BLASPP_WRAPPERS OR USE_BLASPP_TEMPLATES )
     target_link_libraries( cwrappers_tblas PUBLIC blaspp )
 endif()
 if( USE_GNU_MPFR )

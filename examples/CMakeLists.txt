@@ -5,7 +5,7 @@ target_include_directories(version PRIVATE "${PROJECT_BINARY_DIR}/config")
 # add the example gemm
 add_executable(example_gemm example_gemm.cpp)
 target_compile_definitions( example_gemm PRIVATE ${tlapack_defs} )
-if( USE_BLASPP_WRAPPERS )
+if( USE_BLASPP_WRAPPERS OR USE_BLASPP_TEMPLATES )
     target_link_libraries( example_gemm PRIVATE blaspp )
 endif()
 if( USE_GNU_MPFR )

@@ -26,38 +26,20 @@
 
 #ifdef USE_BLASPP_TEMPLATES
 
+    #include <cstdint> // Contains std::int64_t
+    #include <cmath> // Contains std::abs
+
     namespace blas {
-        using size_t = int64_t;
-        using int_t  = int64_t;
+        using size_t = std::int64_t;
+        using int_t  = std::int64_t;
         const blas::size_t INVALID_INDEX = -1;
-        
-        using std::abs;
-        using std::isinf;
-        #ifdef USE_GNU_MPFR
-            using mpfr::abs;
-            using mpfr::isinf;
-        #endif
 
         // -----------------------------------------------------------------------------
         // is nan
         template< typename T >
-        bool isnan( T x )
+        inline bool isnan( T x )
         {
             return x != x;
-        }
-
-        // -----------------------------------------------------------------------------
-        // is inf
-        template< typename T >
-        bool isinf( T x )
-        {
-            return isinf(x);
-        }
-
-        template< typename T >
-        bool isinf( std::complex<T> x )
-        {
-            return isinf( real(x) ) || isinf( imag(x) );
         }
     }
 
