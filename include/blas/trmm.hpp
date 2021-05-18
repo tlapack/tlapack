@@ -90,11 +90,11 @@ void trmm(
     blas::Uplo uplo,
     blas::Op trans,
     blas::Diag diag,
-    size_t m,
-    size_t n,
+    blas::size_t m,
+    blas::size_t n,
     blas::scalar_type<TA, TB> alpha,
-    TA const *A, int_t lda,
-    TB       *B, int_t ldb )
+    TA const *A, blas::size_t lda,
+    TB       *B, blas::size_t ldb )
 {    
     typedef blas::scalar_type<TA, TB> scalar_t;
 
@@ -128,7 +128,7 @@ void trmm(
             uplo = Uplo::Upper;
         else if (uplo == Uplo::Upper)
             uplo = Uplo::Lower;
-        size_t k = m;
+        blas::size_t k = m;
                 m = n;
                 n = k;
     }
@@ -167,7 +167,7 @@ void trmm(
             }
             else { // uplo == Uplo::Lower
                 for(size_t j = 0; j < n; ++j) {
-                    for(size_t k = m-1; k >= 0; --k) {
+                    for(size_t k = m-1; k > size_t(-1); --k) {
                         const scalar_t alphaBkj = alpha*B(k,j);
                         B(k,j) = (diag == Diag::NonUnit)
                                 ? A(k,k)*alphaBkj
@@ -181,7 +181,7 @@ void trmm(
         else if (trans == Op::Trans) {
             if (uplo == Uplo::Upper) {
                 for(size_t j = 0; j < n; ++j) {
-                    for(size_t i = m-1; i >= 0; --i) {
+                    for(size_t i = m-1; i > size_t(-1); --i) {
                         scalar_t sum = (diag == Diag::NonUnit)
                                     ? A(i,i)*B(i,j)
                                     : B(i,j);
@@ -207,7 +207,7 @@ void trmm(
         else { // trans == Op::ConjTrans
             if (uplo == Uplo::Upper) {
                 for(size_t j = 0; j < n; ++j) {
-                    for(size_t i = m-1; i >= 0; --i) {
+                    for(size_t i = m-1; i > size_t(-1); --i) {
                         scalar_t sum = (diag == Diag::NonUnit)
                                     ? conj(A(i,i))*B(i,j)
                                     : B(i,j);
@@ -234,7 +234,7 @@ void trmm(
     else { // side == Side::Right
         if (trans == Op::NoTrans) {
             if (uplo == Uplo::Upper) {
-                for(size_t j = n-1; j >= 0; --j) {
+                for(size_t j = n-1; j > size_t(-1); --j) {
 
                     scalar_t alphaAkj = (diag == Diag::NonUnit)
                                     ? alpha*A(j,j)
@@ -283,7 +283,7 @@ void trmm(
                 }
             }
             else { // uplo == Uplo::Lower
-                for(size_t k = n-1; k >= 0; --k) {
+                for(size_t k = n-1; k > size_t(-1); --k) {
                     for(size_t j = k+1; j < n; ++j) {
                         const scalar_t alphaAjk = alpha*A(j,k);
                         for(size_t i = 0; i < m; ++i)
@@ -315,7 +315,7 @@ void trmm(
                 }
             }
             else { // uplo == Uplo::Lower
-                for(size_t k = n-1; k >= 0; --k) {
+                for(size_t k = n-1; k > size_t(-1); --k) {
                     for(size_t j = k+1; j < n; ++j) {
                         const scalar_t alphaAjk = alpha*conj(A(j,k));
                         for(size_t i = 0; i < m; ++i)

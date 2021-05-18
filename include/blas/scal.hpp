@@ -32,9 +32,9 @@ namespace blas {
 
 template< typename T >
 void scal(
-    size_t n,
+    blas::size_t n,
     T alpha,
-    T* x, int_t incx )
+    T* x, blas::int_t incx )
 {
     // check arguments
     blas_error_if( incx <= 0 );

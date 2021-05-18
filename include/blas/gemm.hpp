@@ -90,12 +90,12 @@ void gemm(
     blas::Layout layout,
     blas::Op transA,
     blas::Op transB,
-    size_t m, size_t n, size_t k,
+   blas::size_t m, blas::size_t n, blas::size_t k,
     scalar_type<TA, TB, TC> alpha,
-    TA const *A, int_t lda,
-    TB const *B, int_t ldb,
+    TA const *A, blas::size_t lda,
+    TB const *B, blas::size_t ldb,
     scalar_type<TA, TB, TC> beta,
-    TC       *C, int_t ldc )
+    TC       *C, blas::size_t ldc )
 {
     // redirect if row major
     if (layout == Layout::RowMajor) {

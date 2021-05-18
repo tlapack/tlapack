@@ -85,12 +85,12 @@ void hemm(
     blas::Layout layout,
     blas::Side side,
     blas::Uplo uplo,
-    size_t m, size_t n,
+    blas::size_t m, blas::size_t n,
     scalar_type<TA, TB, TC> alpha,
-    TA const *A, int_t lda,
-    TB const *B, int_t ldb,
+    TA const *A, blas::size_t lda,
+    TB const *B, blas::size_t ldb,
     scalar_type<TA, TB, TC> beta,
-    TC       *C, int_t ldc )
+    TC       *C, blas::size_t ldc )
 {    
     typedef blas::scalar_type<TA, TB, TC> scalar_t;
 
@@ -122,7 +122,7 @@ void hemm(
             uplo = Uplo::Upper;
         else if (uplo == Uplo::Upper)
             uplo = Uplo::Lower;
-        size_t k = m;
+        blas::size_t k = m;
                 m = n;
                 n = k;
     }

@@ -65,11 +65,11 @@ template< typename TA, typename TX, typename TY >
 void her2(
     blas::Layout layout,
     blas::Uplo  uplo,
-    size_t n,
+    blas::size_t n,
     blas::scalar_type<TA, TX, TY> alpha,
-    TX const *x, int_t incx,
-    TY const *y, int_t incy,
-    TA *A, int_t lda )
+    TX const *x, blas::int_t incx,
+    TY const *y, blas::int_t incy,
+    TA *A, blas::size_t lda )
 {
     typedef blas::scalar_type<TA, TX, TY> scalar_t;
 
@@ -106,7 +106,7 @@ void her2(
                 // note: NOT skipping if x[j] or y[j] is zero, for consistent NAN handling
                 scalar_t tmp1 = alpha * conj( y[j] );
                 scalar_t tmp2 = conj( alpha * x[j] );
-                for (size_t i = 0; i <= j-1; ++i) {
+                for (size_t i = 0; i < j; ++i) {
                     A(i, j) += x[i]*tmp1 + y[i]*tmp2;
                 }
                 A(j, j) = real( A(j, j) ) + real( x[j]*tmp1 + y[j]*tmp2 );
@@ -121,7 +121,7 @@ void her2(
                 scalar_t tmp2 = conj( alpha * x[jx] );
                 int_t ix = kx;
                 int_t iy = ky;
-                for (size_t i = 0; i <= j-1; ++i) {
+                for (size_t i = 0; i < j; ++i) {
                     A(i, j) += x[ix]*tmp1 + y[iy]*tmp2;
                     ix += incx;
                     iy += incy;

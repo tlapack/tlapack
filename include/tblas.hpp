@@ -32,7 +32,7 @@
     namespace blas {
         using size_t = std::int64_t;
         using int_t  = std::int64_t;
-        const blas::size_t INVALID_INDEX = -1;
+        const blas::int64_t INVALID_INDEX = -1;
 
         // -----------------------------------------------------------------------------
         // is nan

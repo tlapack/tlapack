@@ -65,12 +65,12 @@ template< typename TA, typename TX, typename TY >
 void symv(
     blas::Layout layout,
     blas::Uplo uplo,
-    size_t n,
+    blas::size_t n,
     blas::scalar_type<TA, TX, TY> alpha,
-    TA const *A, int_t lda,
-    TX const *x, int_t incx,
+    TA const *A, blas::size_t lda,
+    TX const *x, blas::int_t incx,
     blas::scalar_type<TA, TX, TY> beta,
-    TY *y, int_t incy )
+    TY *y, blas::int_t incy )
 {
     typedef blas::scalar_type<TA, TX, TY> scalar_t;
 

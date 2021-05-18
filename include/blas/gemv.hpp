@@ -78,12 +78,12 @@ template< typename TA, typename TX, typename TY >
 void gemv(
     blas::Layout layout,
     blas::Op trans,
-    size_t m, size_t n,
+   blas::size_t m, blas::size_t n,
     blas::scalar_type<TA, TX, TY> alpha,
-    TA const *A, int_t lda,
-    TX const *x, int_t incx,
+    TA const *A, blas::size_t lda,
+    TX const *x, blas::int_t incx,
     blas::scalar_type<TA, TX, TY> beta,
-    TY *y, int_t incy )
+    TY *y, blas::int_t incy )
 {
     typedef blas::scalar_type<TA, TX, TY> scalar_t;
 
@@ -129,8 +129,8 @@ void gemv(
         }
     }
 
-    size_t lenx = (trans == Op::NoTrans ? n : m);
-    size_t leny = (trans == Op::NoTrans ? m : n);
+    blas::size_t lenx = (trans == Op::NoTrans ? n : m);
+    blas::size_t leny = (trans == Op::NoTrans ? m : n);
     int_t kx = (incx > 0 ? 0 : (-lenx + 1)*incx);
     int_t ky = (incy > 0 ? 0 : (-leny + 1)*incy);
 

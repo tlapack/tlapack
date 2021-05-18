@@ -9,20 +9,20 @@
 template <typename T>
 void run( blas::size_t m, blas::size_t n )
 {
-    blas::int_t lda = std::max<blas::int_t>(m,1);
+    blas::size_t lda = std::max<blas::int_t>(m,1);
     blas::size_t tsize = 100;
 
     std::vector<T> A( lda*n );  // m-by-n
     std::vector<T> t( tsize );
 
     for (blas::size_t j = 0; j < n; ++j)
-        for (blas::size_t i = 0; i < lda; ++i)
+        for (blas::size_t i = 0; i < m; ++i)
             A[j*lda+i] = static_cast<float>( rand() )
                         / static_cast<float>( RAND_MAX );
 
     lapack::geqr( m, n, A.data(), lda, t.data(), tsize );
 
-    for (blas::size_t i = 0; i < lda; ++i) {
+    for (blas::size_t i = 0; i < m; ++i) {
         printf( "\n");
         for (blas::size_t j = 0; j < n; ++j)
             printf( "%lf ", blas::real(A[j*lda+i]) );

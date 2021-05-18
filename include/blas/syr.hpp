@@ -55,10 +55,10 @@ template< typename TA, typename TX >
 void syr(
     blas::Layout layout,
     blas::Uplo uplo,
-    size_t n,
+    blas::size_t n,
     blas::scalar_type<TA, TX> alpha,
-    TX const *x, int_t incx,
-    TA       *A, int_t lda )
+    TX const *x, blas::int_t incx,
+    TA       *A, blas::size_t lda )
 {
     typedef blas::scalar_type<TA, TX> scalar_t;
 

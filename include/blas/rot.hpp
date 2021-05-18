@@ -50,9 +50,9 @@ namespace blas {
 
 template< typename TX, typename TY >
 void rot(
-    size_t n,
-    TX *x, int_t incx,
-    TY *y, int_t incy,
+    blas::size_t n,
+    TX *x, blas::int_t incx,
+    TY *y, blas::int_t incy,
     blas::real_type<TX, TY>   c,
     blas::scalar_type<TX, TY> s )
 {

@@ -4,6 +4,7 @@
 #  @author Weslley S. Pereira, University of Colorado Denver
 #  @date   March 30, 2021
 
+# ------------------------------------------------------------------------------
 # Test if s can be converted into an integer
 def RepresentsInt(s):
     try: 
@@ -12,10 +13,21 @@ def RepresentsInt(s):
     except ValueError:
         return False
 
-# Size of the arrays:
+# ------------------------------------------------------------------------------
+# Test if s can be converted into a Floating point number
+def RepresentsFloat(s):
+    try: 
+        float(s)
+        return True
+    except ValueError:
+        return False
+
+# ------------------------------------------------------------------------------
+# Size of the arrays in the tests:
 sizeArr = 5
 sizeArray = str(sizeArr)
 
+# ------------------------------------------------------------------------------
 # BLAS routines' definitions
 blas_routines = open("blas_routines.csv").read().splitlines()
 for i in range(len(blas_routines)):
@@ -23,7 +35,9 @@ for i in range(len(blas_routines)):
 
 # Functions that only accepts real types
 realOnly_funcs = ["rotm", "rotmg", "syr", "symv"]
+# ------------------------------------------------------------------------------
 
+# ------------------------------------------------------------------------------
 # General rules that shall throw an Exception
 throwException_corner_rules = {}
 with open("throwException_corner_rules.csv") as f:
@@ -37,6 +51,7 @@ with open("throwException_corner_tests.csv") as f:
         l = list(filter(None, [x.strip() for x in line.split(',')]))
         throwException_corner_tests[ l[0] ] = l[1:]
 
+# ------------------------------------------------------------------------------
 # Rules that result in invalid configurations which
 # shall not throw any Exception nor modify the arguments
 returnImmediately_corner_rules = {}
@@ -51,21 +66,26 @@ with open("returnImmediately_corner_tests.csv") as f:
         l = list(filter(None, [x.strip() for x in line.split(',')]))
         returnImmediately_corner_tests[ l[0] ] = l[1:]
 
+# ------------------------------------------------------------------------------
 # Print header of the test file:
 print("""\
+#include <type_traits>
 #include <catch2/catch.hpp>
 #include <tblas.hpp>
 #include "test_types.hpp"
 
 using namespace blas;""")
 
+# ------------------------------------------------------------------------------
 # Loop in the functions
-for i, line in enumerate(blas_routines):
+for idx, line in enumerate(blas_routines):
     f_name = line[0]
     blas_lv = int(line[1])
     ref_types = line[2::2]
     ref_args = line[3::2]
 
+    # --------------------------------------------------------------------------
+    # Print the parameters
     buffer = """\
 TEMPLATE_TEST_CASE( \"""" + f_name + """ satisfies all corner cases", "[""" + \
         f_name + """][BLASlv""" + str(blas_lv) + """]", """ + \
@@ -107,25 +127,35 @@ TEMPLATE_TEST_CASE( \"""" + f_name + """ satisfies all corner cases", "[""" + \
     // Corner cases:""",
     countCases = 0
 
-    # Tests that throws an Error Exception:
+    # --------------------------------------------------------------------------
+    # Tests that throw an Error Exception:
     throwExceptionBuffer = ()
     for k in throwException_corner_tests[f_name]:
-        if RepresentsInt(k):
-            configStr = throwException_corner_rules[int(k)][0]
-        else:
-            configStr = k
+        protect_sizet = False
         try:
+            if RepresentsInt(k):
+                configStr = throwException_corner_rules[int(k)][0]
+            else:
+                configStr = k
             attribs = [x.strip() for x in configStr.split(';')]
             args = ref_args.copy()
             for varAttrib in attribs:
                 param, value = [x.strip() for x in varAttrib.split('=', 1)]
                 for i, x in enumerate(args):
                     if x == param:
+                        if RepresentsFloat(value) and ("size_t" in ref_types[i]):
+                            if float(value) < 0:
+                                protect_sizet = True
                         args[i] = value
                         break
         except: # Invalid test
             continue
-        throwExceptionBuffer += """
+        if protect_sizet:
+            throwExceptionBuffer += """
+        if( std::is_signed<blas::size_t>::value )
+            CHECK_THROWS_AS( """ + f_name + "( " + ", ".join(args) + " ), Error );",
+        else:
+            throwExceptionBuffer += """
         CHECK_THROWS_AS( """ + f_name + "( " + ", ".join(args) + " ), Error );",
         countCases += 1
 
@@ -153,23 +183,35 @@ TEMPLATE_TEST_CASE( \"""" + f_name + """ satisfies all corner cases", "[""" + \
     swapStr = "".join(swapBuffer)
 
     for k in returnImmediately_corner_tests[f_name]:
-        if RepresentsInt(k):
-            configStr = returnImmediately_corner_rules[int(k)][0]
-        else:
-            configStr = k
+        protect_sizet = False
         try:
+            if RepresentsInt(k):
+                configStr = returnImmediately_corner_rules[int(k)][0]
+            else:
+                configStr = k
             attribs = [x.strip() for x in configStr.split(';')]
             args = ref_args.copy()
             for varAttrib in attribs:
                 param, value = [x.strip() for x in varAttrib.split('=', 1)]
                 for i, x in enumerate(args):
                     if x == param:
+                        if RepresentsFloat(value) and ("size_t" in ref_types[i]):
+                            if float(value) < 0:
+                                protect_sizet = True
                         args[i] = value
                         break
         except: # Invalid test
             continue
 
-        bufferRequireNoChanges += """
+        if protect_sizet:
+            bufferRequireNoChanges += """
+    if( std::is_signed<blas::size_t>::value ) {
+    SECTION( \"""" + configStr + """\" ) {""" + refVarStr + """
+        REQUIRE_NOTHROW( """ + f_name + "( " + ", ".join(args) + """ ) );
+        CHECK( """ + noChangeStr + """ );""" + swapStr + """
+    }}""",
+        else:
+            bufferRequireNoChanges += """
     SECTION( \"""" + configStr + """\" ) {""" + refVarStr + """
         REQUIRE_NOTHROW( """ + f_name + "( " + ", ".join(args) + """ ) );
         CHECK( """ + noChangeStr + """ );""" + swapStr + """
@@ -190,21 +232,24 @@ TEMPLATE_TEST_CASE( \"""" + f_name + """ satisfies all corner cases", "[""" + \
     elif f_name == "dot" or f_name == "dotu":
         buffer += """
     SECTION ( "n <= 0" ) {
-        CHECK( """+f_name+"""(-1, x, incx, y, incy ) == real_t(0) );
+        if( std::is_signed<blas::size_t>::value )
+            CHECK( """+f_name+"""(-1, x, incx, y, incy ) == real_t(0) );
         CHECK( """+f_name+"""( 0, x, incx, y, incy ) == real_t(0) );
     }""",
         countCases += 2
     elif f_name == "asum" or f_name == "nrm2":
         buffer += """
     SECTION ( "n <= 0" ) {
-        CHECK( """+f_name+"""(-1, x, incx ) == real_t(0) );
+        if( std::is_signed<blas::size_t>::value )
+            CHECK( """+f_name+"""(-1, x, incx ) == real_t(0) );
         CHECK( """+f_name+"""( 0, x, incx ) == real_t(0) );
     }""",
         countCases += 2
     elif f_name == "iamax":
         buffer += """
     SECTION ( "n <= 0" ) {
-        CHECK( iamax(-1, x, incx ) == INVALID_INDEX );
+        if( std::is_signed<blas::size_t>::value )
+            CHECK( iamax(-1, x, incx ) == INVALID_INDEX );
         CHECK( iamax( 0, x, incx ) == INVALID_INDEX );
     }""",
         countCases += 2

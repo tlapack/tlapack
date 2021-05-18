@@ -37,9 +37,9 @@ namespace blas {
 
 template< typename TX, typename TY >
 void copy(
-    size_t n,
-    TX const *x, int_t incx,
-    TY       *y, int_t incy )
+    blas::size_t n,
+    TX const *x, blas::int_t incx,
+    TY       *y, blas::int_t incy )
 {
     // check arguments
     blas_error_if( incx == 0 );

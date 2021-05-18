@@ -40,10 +40,10 @@ namespace blas {
 
 template< typename TX, typename TY >
 void axpy(
-    size_t n,
+    blas::size_t n,
     blas::scalar_type<TX, TY> alpha,
-    TX const *x, int_t incx,
-    TY       *y, int_t incy )
+    TX const *x, blas::int_t incx,
+    TY       *y, blas::int_t incy )
 {
     typedef blas::scalar_type<TX, TY> scalar_t;
 

@@ -32,8 +32,8 @@ namespace blas {
 template< typename T >
 real_type<T>
 nrm2(
-    size_t n,
-    T const * x, int_t incx )
+    blas::size_t n,
+    T const * x, blas::int_t incx )
 {
     typedef real_type<T> real_t;
 

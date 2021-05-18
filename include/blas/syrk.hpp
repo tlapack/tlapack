@@ -79,11 +79,11 @@ void syrk(
     blas::Layout layout,
     blas::Uplo uplo,
     blas::Op trans,
-    size_t n, size_t k,
+    blas::size_t n, blas::size_t k,
     scalar_type<TA, TC> alpha,
-    TA const *A, int_t lda,
+    TA const *A, blas::size_t lda,
     scalar_type<TA, TC> beta,
-    TC       *C, int_t ldc )
+    TC       *C, blas::size_t ldc )
 {
     typedef blas::scalar_type<TA, TC> scalar_t;
 

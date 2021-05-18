@@ -1,3 +1,4 @@
+#include <type_traits>
 #include <catch2/catch.hpp>
 #include <tblas.hpp>
 #include "test_types.hpp"
@@ -18,7 +19,8 @@ TEMPLATE_TEST_CASE( "asum satisfies all corner cases", "[asum][BLASlv1]", TEST_T
         CHECK_THROWS_AS( asum( n, x, -1 ), Error );
     }
     SECTION ( "n <= 0" ) {
-        CHECK( asum(-1, x, incx ) == real_t(0) );
+        if( std::is_signed<blas::size_t>::value )
+            CHECK( asum(-1, x, incx ) == real_t(0) );
         CHECK( asum( 0, x, incx ) == real_t(0) );
     }
 }
@@ -35,13 +37,14 @@ TEMPLATE_TEST_CASE( "axpy satisfies all corner cases", "[axpy][BLASlv1]", TEST_T
     blas::int_t incy = 1;
 
     // Corner cases:
+    if( std::is_signed<blas::size_t>::value ) {
     SECTION( "n = -1" ) {
         TestType ref_y[5];
         std::copy( y, y+5, ref_y );
         REQUIRE_NOTHROW( axpy( -1, alpha, x, incx, y, incy ) );
         CHECK( (std::equal(y, y+5, ref_y)) );
         std::swap( y, ref_y );
-    }
+    }}
     SECTION( "n = 0" ) {
         TestType ref_y[5];
         std::copy( y, y+5, ref_y );
@@ -69,13 +72,14 @@ TEMPLATE_TEST_CASE( "copy satisfies all corner cases", "[copy][BLASlv1]", TEST_T
     blas::int_t incy = 1;
 
     // Corner cases:
+    if( std::is_signed<blas::size_t>::value ) {
     SECTION( "n = -1" ) {
         TestType ref_y[5];
         std::copy( y, y+5, ref_y );
         REQUIRE_NOTHROW( copy( -1, x, incx, y, incy ) );
         CHECK( (std::equal(y, y+5, ref_y)) );
         std::swap( y, ref_y );
-    }
+    }}
     SECTION( "n = 0" ) {
         TestType ref_y[5];
         std::copy( y, y+5, ref_y );
@@ -97,7 +101,8 @@ TEMPLATE_TEST_CASE( "dot satisfies all corner cases", "[dot][BLASlv1]", TEST_TYP
 
     // Corner cases:
     SECTION ( "n <= 0" ) {
-        CHECK( dot(-1, x, incx, y, incy ) == real_t(0) );
+        if( std::is_signed<blas::size_t>::value )
+            CHECK( dot(-1, x, incx, y, incy ) == real_t(0) );
         CHECK( dot( 0, x, incx, y, incy ) == real_t(0) );
     }
 }
@@ -114,7 +119,8 @@ TEMPLATE_TEST_CASE( "dotu satisfies all corner cases", "[dotu][BLASlv1]", TEST_T
 
     // Corner cases:
     SECTION ( "n <= 0" ) {
-        CHECK( dotu(-1, x, incx, y, incy ) == real_t(0) );
+        if( std::is_signed<blas::size_t>::value )
+            CHECK( dotu(-1, x, incx, y, incy ) == real_t(0) );
         CHECK( dotu( 0, x, incx, y, incy ) == real_t(0) );
     }
 }
@@ -133,7 +139,8 @@ TEMPLATE_TEST_CASE( "iamax satisfies all corner cases", "[iamax][BLASlv1]", TEST
         CHECK_THROWS_AS( iamax( n, x, -1 ), Error );
     }
     SECTION ( "n <= 0" ) {
-        CHECK( iamax(-1, x, incx ) == INVALID_INDEX );
+        if( std::is_signed<blas::size_t>::value )
+            CHECK( iamax(-1, x, incx ) == INVALID_INDEX );
         CHECK( iamax( 0, x, incx ) == INVALID_INDEX );
     }
 }
@@ -152,7 +159,8 @@ TEMPLATE_TEST_CASE( "nrm2 satisfies all corner cases", "[nrm2][BLASlv1]", TEST_T
         CHECK_THROWS_AS( nrm2( n, x, -1 ), Error );
     }
     SECTION ( "n <= 0" ) {
-        CHECK( nrm2(-1, x, incx ) == real_t(0) );
+        if( std::is_signed<blas::size_t>::value )
+            CHECK( nrm2(-1, x, incx ) == real_t(0) );
         CHECK( nrm2( 0, x, incx ) == real_t(0) );
     }
 }
@@ -170,6 +178,7 @@ TEMPLATE_TEST_CASE( "rot satisfies all corner cases", "[rot][BLASlv1]", TEST_TYP
     TestType s = real_t(1);
 
     // Corner cases:
+    if( std::is_signed<blas::size_t>::value ) {
     SECTION( "n = -1" ) {
         TestType ref_x[5];
         std::copy( x, x+5, ref_x );
@@ -179,7 +188,7 @@ TEMPLATE_TEST_CASE( "rot satisfies all corner cases", "[rot][BLASlv1]", TEST_TYP
         CHECK( (std::equal(x, x+5, ref_x) && std::equal(y, y+5, ref_y)) );
         std::swap( x, ref_x );
         std::swap( y, ref_y );
-    }
+    }}
     SECTION( "n = 0" ) {
         TestType ref_x[5];
         std::copy( x, x+5, ref_x );
@@ -227,6 +236,7 @@ TEMPLATE_TEST_CASE( "rotm satisfies all corner cases", "[rotm][BLASlv1]", TEST_R
     TestType const param[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
 
     // Corner cases:
+    if( std::is_signed<blas::size_t>::value ) {
     SECTION( "n = -1" ) {
         TestType ref_x[5];
         std::copy( x, x+5, ref_x );
@@ -236,7 +246,7 @@ TEMPLATE_TEST_CASE( "rotm satisfies all corner cases", "[rotm][BLASlv1]", TEST_R
         CHECK( (std::equal(x, x+5, ref_x) && std::equal(y, y+5, ref_y)) );
         std::swap( x, ref_x );
         std::swap( y, ref_y );
-    }
+    }}
     SECTION( "n = 0" ) {
         TestType ref_x[5];
         std::copy( x, x+5, ref_x );
@@ -280,13 +290,14 @@ TEMPLATE_TEST_CASE( "scal satisfies all corner cases", "[scal][BLASlv1]", TEST_T
         CHECK_THROWS_AS( scal( n, alpha, x, 0 ), Error );
         CHECK_THROWS_AS( scal( n, alpha, x, -1 ), Error );
     }
+    if( std::is_signed<blas::size_t>::value ) {
     SECTION( "n = -1" ) {
         TestType ref_x[5];
         std::copy( x, x+5, ref_x );
         REQUIRE_NOTHROW( scal( -1, alpha, x, incx ) );
         CHECK( (std::equal(x, x+5, ref_x)) );
         std::swap( x, ref_x );
-    }
+    }}
     SECTION( "n = 0" ) {
         TestType ref_x[5];
         std::copy( x, x+5, ref_x );
@@ -307,6 +318,7 @@ TEMPLATE_TEST_CASE( "swap satisfies all corner cases", "[swap][BLASlv1]", TEST_T
     blas::int_t incy = 1;
 
     // Corner cases:
+    if( std::is_signed<blas::size_t>::value ) {
     SECTION( "n = -1" ) {
         TestType ref_x[5];
         std::copy( x, x+5, ref_x );
@@ -316,7 +328,7 @@ TEMPLATE_TEST_CASE( "swap satisfies all corner cases", "[swap][BLASlv1]", TEST_T
         CHECK( (std::equal(x, x+5, ref_x) && std::equal(y, y+5, ref_y)) );
         std::swap( x, ref_x );
         std::swap( y, ref_y );
-    }
+    }}
     SECTION( "n = 0" ) {
         TestType ref_x[5];
         std::copy( x, x+5, ref_x );
@@ -339,7 +351,7 @@ TEMPLATE_TEST_CASE( "gemv satisfies all corner cases", "[gemv][BLASlv2]", TEST_T
     blas::size_t n = 1;
     TestType alpha = real_t(1);
     TestType const A[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
-    blas::int_t lda = 1;
+    blas::size_t lda = 1;
     TestType const x[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
     blas::int_t incx = 1;
     TestType beta = real_t(1);
@@ -350,8 +362,10 @@ TEMPLATE_TEST_CASE( "gemv satisfies all corner cases", "[gemv][BLASlv2]", TEST_T
     SECTION( "Throw Error Tests" ) {
         CHECK_THROWS_AS( gemv( Layout(0), trans, m, n, alpha, A, lda, x, incx, beta, y, incy ), Error );
         CHECK_THROWS_AS( gemv( layout, Op(0), m, n, alpha, A, lda, x, incx, beta, y, incy ), Error );
-        CHECK_THROWS_AS( gemv( layout, trans, -1, n, alpha, A, lda, x, incx, beta, y, incy ), Error );
-        CHECK_THROWS_AS( gemv( layout, trans, m, -1, alpha, A, lda, x, incx, beta, y, incy ), Error );
+        if( std::is_signed<blas::size_t>::value )
+            CHECK_THROWS_AS( gemv( layout, trans, -1, n, alpha, A, lda, x, incx, beta, y, incy ), Error );
+        if( std::is_signed<blas::size_t>::value )
+            CHECK_THROWS_AS( gemv( layout, trans, m, -1, alpha, A, lda, x, incx, beta, y, incy ), Error );
         CHECK_THROWS_AS( gemv( layout, trans, m, n, alpha, A, lda, x, 0, beta, y, incy ), Error );
         CHECK_THROWS_AS( gemv( layout, trans, m, n, alpha, A, lda, x, incx, beta, y, 0 ), Error );
         CHECK_THROWS_AS( gemv( layout, trans, 2, n, alpha, A, 1, x, incx, beta, y, incy ), Error );
@@ -392,13 +406,15 @@ TEMPLATE_TEST_CASE( "ger satisfies all corner cases", "[ger][BLASlv2]", TEST_TYP
     TestType const y[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
     blas::int_t incy = 1;
     TestType A[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
-    blas::int_t lda = 1;
+    blas::size_t lda = 1;
 
     // Corner cases:
     SECTION( "Throw Error Tests" ) {
         CHECK_THROWS_AS( ger( Layout(0), m, n, alpha, x, incx, y, incy, A, lda ), Error );
-        CHECK_THROWS_AS( ger( layout, -1, n, alpha, x, incx, y, incy, A, lda ), Error );
-        CHECK_THROWS_AS( ger( layout, m, -1, alpha, x, incx, y, incy, A, lda ), Error );
+        if( std::is_signed<blas::size_t>::value )
+            CHECK_THROWS_AS( ger( layout, -1, n, alpha, x, incx, y, incy, A, lda ), Error );
+        if( std::is_signed<blas::size_t>::value )
+            CHECK_THROWS_AS( ger( layout, m, -1, alpha, x, incx, y, incy, A, lda ), Error );
         CHECK_THROWS_AS( ger( layout, m, n, alpha, x, 0, y, incy, A, lda ), Error );
         CHECK_THROWS_AS( ger( layout, m, n, alpha, x, incx, y, 0, A, lda ), Error );
         CHECK_THROWS_AS( ger( layout, 2, n, alpha, x, incx, y, incy, A, 1 ), Error );
@@ -433,13 +449,15 @@ TEMPLATE_TEST_CASE( "geru satisfies all corner cases", "[geru][BLASlv2]", TEST_T
     TestType const y[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
     blas::int_t incy = 1;
     TestType A[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
-    blas::int_t lda = 1;
+    blas::size_t lda = 1;
 
     // Corner cases:
     SECTION( "Throw Error Tests" ) {
         CHECK_THROWS_AS( geru( Layout(0), m, n, alpha, x, incx, y, incy, A, lda ), Error );
-        CHECK_THROWS_AS( geru( layout, -1, n, alpha, x, incx, y, incy, A, lda ), Error );
-        CHECK_THROWS_AS( geru( layout, m, -1, alpha, x, incx, y, incy, A, lda ), Error );
+        if( std::is_signed<blas::size_t>::value )
+            CHECK_THROWS_AS( geru( layout, -1, n, alpha, x, incx, y, incy, A, lda ), Error );
+        if( std::is_signed<blas::size_t>::value )
+            CHECK_THROWS_AS( geru( layout, m, -1, alpha, x, incx, y, incy, A, lda ), Error );
         CHECK_THROWS_AS( geru( layout, m, n, alpha, x, 0, y, incy, A, lda ), Error );
         CHECK_THROWS_AS( geru( layout, m, n, alpha, x, incx, y, 0, A, lda ), Error );
         CHECK_THROWS_AS( geru( layout, 2, n, alpha, x, incx, y, incy, A, 1 ), Error );
@@ -470,7 +488,7 @@ TEMPLATE_TEST_CASE( "hemv satisfies all corner cases", "[hemv][BLASlv2]", TEST_T
     blas::size_t n = 1;
     TestType alpha = real_t(1);
     TestType const A[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
-    blas::int_t lda = 1;
+    blas::size_t lda = 1;
     TestType const x[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
     blas::int_t incx = 1;
     TestType beta = real_t(1);
@@ -481,7 +499,8 @@ TEMPLATE_TEST_CASE( "hemv satisfies all corner cases", "[hemv][BLASlv2]", TEST_T
     SECTION( "Throw Error Tests" ) {
         CHECK_THROWS_AS( hemv( Layout(0), uplo, n, alpha, A, lda, x, incx, beta, y, incy ), Error );
         CHECK_THROWS_AS( hemv( layout, Uplo(0), n, alpha, A, lda, x, incx, beta, y, incy ), Error );
-        CHECK_THROWS_AS( hemv( layout, uplo, -1, alpha, A, lda, x, incx, beta, y, incy ), Error );
+        if( std::is_signed<blas::size_t>::value )
+            CHECK_THROWS_AS( hemv( layout, uplo, -1, alpha, A, lda, x, incx, beta, y, incy ), Error );
         CHECK_THROWS_AS( hemv( layout, uplo, n, alpha, A, lda, x, 0, beta, y, incy ), Error );
         CHECK_THROWS_AS( hemv( layout, uplo, n, alpha, A, lda, x, incx, beta, y, 0 ), Error );
         CHECK_THROWS_AS( hemv( layout, uplo, 2, alpha, A, 1, x, incx, beta, y, incy ), Error );
@@ -521,13 +540,14 @@ TEMPLATE_TEST_CASE( "her satisfies all corner cases", "[her][BLASlv2]", TEST_TYP
     TestType const x[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
     blas::int_t incx = 1;
     TestType A[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
-    blas::int_t lda = 1;
+    blas::size_t lda = 1;
 
     // Corner cases:
     SECTION( "Throw Error Tests" ) {
         CHECK_THROWS_AS( her( Layout(0), uplo, n, alpha, x, incx, A, lda ), Error );
         CHECK_THROWS_AS( her( layout, Uplo(0), n, alpha, x, incx, A, lda ), Error );
-        CHECK_THROWS_AS( her( layout, uplo, -1, alpha, x, incx, A, lda ), Error );
+        if( std::is_signed<blas::size_t>::value )
+            CHECK_THROWS_AS( her( layout, uplo, -1, alpha, x, incx, A, lda ), Error );
         CHECK_THROWS_AS( her( layout, uplo, n, alpha, x, 0, A, lda ), Error );
         CHECK_THROWS_AS( her( layout, uplo, 2, alpha, x, incx, A, 1 ), Error );
         CHECK_THROWS_AS( her( Layout::RowMajor, uplo, 2, alpha, x, incx, A, 1 ), Error );
@@ -569,13 +589,14 @@ TEMPLATE_TEST_CASE( "her2 satisfies all corner cases", "[her2][BLASlv2]", TEST_T
     TestType const y[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
     blas::int_t incy = 1;
     TestType A[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
-    blas::int_t lda = 1;
+    blas::size_t lda = 1;
 
     // Corner cases:
     SECTION( "Throw Error Tests" ) {
         CHECK_THROWS_AS( her2( Layout(0), uplo, n, alpha, x, incx, y, incy, A, lda ), Error );
         CHECK_THROWS_AS( her2( layout, Uplo(0), n, alpha, x, incx, y, incy, A, lda ), Error );
-        CHECK_THROWS_AS( her2( layout, uplo, -1, alpha, x, incx, y, incy, A, lda ), Error );
+        if( std::is_signed<blas::size_t>::value )
+            CHECK_THROWS_AS( her2( layout, uplo, -1, alpha, x, incx, y, incy, A, lda ), Error );
         CHECK_THROWS_AS( her2( layout, uplo, n, alpha, x, 0, y, incy, A, lda ), Error );
         CHECK_THROWS_AS( her2( layout, uplo, n, alpha, x, incx, y, 0, A, lda ), Error );
         CHECK_THROWS_AS( her2( layout, uplo, 2, alpha, x, incx, y, incy, A, 1 ), Error );
@@ -614,7 +635,7 @@ TEMPLATE_TEST_CASE( "symv satisfies all corner cases", "[symv][BLASlv2]", TEST_R
     blas::size_t n = 1;
     TestType alpha = real_t(1);
     TestType const A[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
-    blas::int_t lda = 1;
+    blas::size_t lda = 1;
     TestType const x[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
     blas::int_t incx = 1;
     TestType beta = real_t(1);
@@ -625,7 +646,8 @@ TEMPLATE_TEST_CASE( "symv satisfies all corner cases", "[symv][BLASlv2]", TEST_R
     SECTION( "Throw Error Tests" ) {
         CHECK_THROWS_AS( symv( Layout(0), uplo, n, alpha, A, lda, x, incx, beta, y, incy ), Error );
         CHECK_THROWS_AS( symv( layout, Uplo(0), n, alpha, A, lda, x, incx, beta, y, incy ), Error );
-        CHECK_THROWS_AS( symv( layout, uplo, -1, alpha, A, lda, x, incx, beta, y, incy ), Error );
+        if( std::is_signed<blas::size_t>::value )
+            CHECK_THROWS_AS( symv( layout, uplo, -1, alpha, A, lda, x, incx, beta, y, incy ), Error );
         CHECK_THROWS_AS( symv( layout, uplo, n, alpha, A, lda, x, 0, beta, y, incy ), Error );
         CHECK_THROWS_AS( symv( layout, uplo, n, alpha, A, lda, x, incx, beta, y, 0 ), Error );
         CHECK_THROWS_AS( symv( layout, uplo, 2, alpha, A, 1, x, incx, beta, y, incy ), Error );
@@ -657,13 +679,14 @@ TEMPLATE_TEST_CASE( "syr satisfies all corner cases", "[syr][BLASlv2]", TEST_REA
     TestType const x[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
     blas::int_t incx = 1;
     TestType A[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
-    blas::int_t lda = 1;
+    blas::size_t lda = 1;
 
     // Corner cases:
     SECTION( "Throw Error Tests" ) {
         CHECK_THROWS_AS( syr( Layout(0), uplo, n, alpha, x, incx, A, lda ), Error );
         CHECK_THROWS_AS( syr( layout, Uplo(0), n, alpha, x, incx, A, lda ), Error );
-        CHECK_THROWS_AS( syr( layout, uplo, -1, alpha, x, incx, A, lda ), Error );
+        if( std::is_signed<blas::size_t>::value )
+            CHECK_THROWS_AS( syr( layout, uplo, -1, alpha, x, incx, A, lda ), Error );
         CHECK_THROWS_AS( syr( layout, uplo, n, alpha, x, 0, A, lda ), Error );
         CHECK_THROWS_AS( syr( layout, uplo, 2, alpha, x, incx, A, 1 ), Error );
         CHECK_THROWS_AS( syr( Layout::RowMajor, uplo, 2, alpha, x, incx, A, 1 ), Error );
@@ -697,13 +720,14 @@ TEMPLATE_TEST_CASE( "syr2 satisfies all corner cases", "[syr2][BLASlv2]", TEST_T
     TestType const y[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
     blas::int_t incy = 1;
     TestType A[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
-    blas::int_t lda = 1;
+    blas::size_t lda = 1;
 
     // Corner cases:
     SECTION( "Throw Error Tests" ) {
         CHECK_THROWS_AS( syr2( Layout(0), uplo, n, alpha, x, incx, y, incy, A, lda ), Error );
         CHECK_THROWS_AS( syr2( layout, Uplo(0), n, alpha, x, incx, y, incy, A, lda ), Error );
-        CHECK_THROWS_AS( syr2( layout, uplo, -1, alpha, x, incx, y, incy, A, lda ), Error );
+        if( std::is_signed<blas::size_t>::value )
+            CHECK_THROWS_AS( syr2( layout, uplo, -1, alpha, x, incx, y, incy, A, lda ), Error );
         CHECK_THROWS_AS( syr2( layout, uplo, n, alpha, x, 0, y, incy, A, lda ), Error );
         CHECK_THROWS_AS( syr2( layout, uplo, n, alpha, x, incx, y, 0, A, lda ), Error );
         CHECK_THROWS_AS( syr2( layout, uplo, 2, alpha, x, incx, y, incy, A, 1 ), Error );
@@ -735,7 +759,7 @@ TEMPLATE_TEST_CASE( "trmv satisfies all corner cases", "[trmv][BLASlv2]", TEST_T
     Diag diag = Diag::NonUnit;
     blas::size_t n = 1;
     TestType const A[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
-    blas::int_t lda = 1;
+    blas::size_t lda = 1;
     TestType x[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
     blas::int_t incx = 1;
 
@@ -745,7 +769,8 @@ TEMPLATE_TEST_CASE( "trmv satisfies all corner cases", "[trmv][BLASlv2]", TEST_T
         CHECK_THROWS_AS( trmv( layout, Uplo(0), trans, diag, n, A, lda, x, incx ), Error );
         CHECK_THROWS_AS( trmv( layout, uplo, Op(0), diag, n, A, lda, x, incx ), Error );
         CHECK_THROWS_AS( trmv( layout, uplo, trans, Diag(0), n, A, lda, x, incx ), Error );
-        CHECK_THROWS_AS( trmv( layout, uplo, trans, diag, -1, A, lda, x, incx ), Error );
+        if( std::is_signed<blas::size_t>::value )
+            CHECK_THROWS_AS( trmv( layout, uplo, trans, diag, -1, A, lda, x, incx ), Error );
         CHECK_THROWS_AS( trmv( layout, uplo, trans, diag, n, A, lda, x, 0 ), Error );
         CHECK_THROWS_AS( trmv( layout, uplo, trans, diag, 2, A, 1, x, incx ), Error );
         CHECK_THROWS_AS( trmv( Layout::RowMajor, uplo, trans, diag, 2, A, 1, x, incx ), Error );
@@ -775,7 +800,7 @@ TEMPLATE_TEST_CASE( "trsv satisfies all corner cases", "[trsv][BLASlv2]", TEST_T
     Diag diag = Diag::NonUnit;
     blas::size_t n = 1;
     TestType const A[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
-    blas::int_t lda = 1;
+    blas::size_t lda = 1;
     TestType x[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
     blas::int_t incx = 1;
 
@@ -785,7 +810,8 @@ TEMPLATE_TEST_CASE( "trsv satisfies all corner cases", "[trsv][BLASlv2]", TEST_T
         CHECK_THROWS_AS( trsv( layout, Uplo(0), trans, diag, n, A, lda, x, incx ), Error );
         CHECK_THROWS_AS( trsv( layout, uplo, Op(0), diag, n, A, lda, x, incx ), Error );
         CHECK_THROWS_AS( trsv( layout, uplo, trans, Diag(0), n, A, lda, x, incx ), Error );
-        CHECK_THROWS_AS( trsv( layout, uplo, trans, diag, -1, A, lda, x, incx ), Error );
+        if( std::is_signed<blas::size_t>::value )
+            CHECK_THROWS_AS( trsv( layout, uplo, trans, diag, -1, A, lda, x, incx ), Error );
         CHECK_THROWS_AS( trsv( layout, uplo, trans, diag, n, A, lda, x, 0 ), Error );
         CHECK_THROWS_AS( trsv( layout, uplo, trans, diag, 2, A, 1, x, incx ), Error );
         CHECK_THROWS_AS( trsv( Layout::RowMajor, uplo, trans, diag, 2, A, 1, x, incx ), Error );
@@ -817,21 +843,24 @@ TEMPLATE_TEST_CASE( "gemm satisfies all corner cases", "[gemm][BLASlv3]", TEST_T
     blas::size_t k = 1;
     TestType alpha = real_t(1);
     TestType const A[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
-    blas::int_t lda = 1;
+    blas::size_t lda = 1;
     TestType const B[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
-    blas::int_t ldb = 1;
+    blas::size_t ldb = 1;
     TestType beta = real_t(1);
     TestType C[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
-    blas::int_t ldc = 1;
+    blas::size_t ldc = 1;
 
     // Corner cases:
     SECTION( "Throw Error Tests" ) {
         CHECK_THROWS_AS( gemm( Layout(0), transA, transB, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc ), Error );
         CHECK_THROWS_AS( gemm( layout, Op(0), transB, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc ), Error );
         CHECK_THROWS_AS( gemm( layout, transA, Op(0), m, n, k, alpha, A, lda, B, ldb, beta, C, ldc ), Error );
-        CHECK_THROWS_AS( gemm( layout, transA, transB, -1, n, k, alpha, A, lda, B, ldb, beta, C, ldc ), Error );
-        CHECK_THROWS_AS( gemm( layout, transA, transB, m, -1, k, alpha, A, lda, B, ldb, beta, C, ldc ), Error );
-        CHECK_THROWS_AS( gemm( layout, transA, transB, m, n, -1, alpha, A, lda, B, ldb, beta, C, ldc ), Error );
+        if( std::is_signed<blas::size_t>::value )
+            CHECK_THROWS_AS( gemm( layout, transA, transB, -1, n, k, alpha, A, lda, B, ldb, beta, C, ldc ), Error );
+        if( std::is_signed<blas::size_t>::value )
+            CHECK_THROWS_AS( gemm( layout, transA, transB, m, -1, k, alpha, A, lda, B, ldb, beta, C, ldc ), Error );
+        if( std::is_signed<blas::size_t>::value )
+            CHECK_THROWS_AS( gemm( layout, transA, transB, m, n, -1, alpha, A, lda, B, ldb, beta, C, ldc ), Error );
         CHECK_THROWS_AS( gemm( layout, transA, transB, 2, n, k, alpha, A, 1, B, ldb, beta, C, ldc ), Error );
         CHECK_THROWS_AS( gemm( layout, transA, transB, m, n, 2, alpha, A, lda, B, 1, beta, C, ldc ), Error );
         CHECK_THROWS_AS( gemm( layout, transA, transB, 2, n, k, alpha, A, lda, B, ldb, beta, C, 1 ), Error );
@@ -884,20 +913,22 @@ TEMPLATE_TEST_CASE( "hemm satisfies all corner cases", "[hemm][BLASlv3]", TEST_T
     blas::size_t n = 1;
     TestType alpha = real_t(1);
     TestType const A[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
-    blas::int_t lda = 1;
+    blas::size_t lda = 1;
     TestType const B[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
-    blas::int_t ldb = 1;
+    blas::size_t ldb = 1;
     TestType beta = real_t(1);
     TestType C[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
-    blas::int_t ldc = 1;
+    blas::size_t ldc = 1;
 
     // Corner cases:
     SECTION( "Throw Error Tests" ) {
         CHECK_THROWS_AS( hemm( Layout(0), side, uplo, m, n, alpha, A, lda, B, ldb, beta, C, ldc ), Error );
         CHECK_THROWS_AS( hemm( layout, Side(0), uplo, m, n, alpha, A, lda, B, ldb, beta, C, ldc ), Error );
         CHECK_THROWS_AS( hemm( layout, side, Uplo(0), m, n, alpha, A, lda, B, ldb, beta, C, ldc ), Error );
-        CHECK_THROWS_AS( hemm( layout, side, uplo, -1, n, alpha, A, lda, B, ldb, beta, C, ldc ), Error );
-        CHECK_THROWS_AS( hemm( layout, side, uplo, m, -1, alpha, A, lda, B, ldb, beta, C, ldc ), Error );
+        if( std::is_signed<blas::size_t>::value )
+            CHECK_THROWS_AS( hemm( layout, side, uplo, -1, n, alpha, A, lda, B, ldb, beta, C, ldc ), Error );
+        if( std::is_signed<blas::size_t>::value )
+            CHECK_THROWS_AS( hemm( layout, side, uplo, m, -1, alpha, A, lda, B, ldb, beta, C, ldc ), Error );
         CHECK_THROWS_AS( hemm( layout, side, uplo, 2, n, alpha, A, 1, B, ldb, beta, C, ldc ), Error );
         CHECK_THROWS_AS( hemm( layout, side, uplo, 2, n, alpha, A, lda, B, 1, beta, C, ldc ), Error );
         CHECK_THROWS_AS( hemm( layout, side, uplo, 2, n, alpha, A, lda, B, ldb, beta, C, 1 ), Error );
@@ -945,20 +976,22 @@ TEMPLATE_TEST_CASE( "her2k satisfies all corner cases", "[her2k][BLASlv3]", TEST
     blas::size_t k = 1;
     TestType alpha = real_t(1);
     TestType const A[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
-    blas::int_t lda = 1;
+    blas::size_t lda = 1;
     TestType const B[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
-    blas::int_t ldb = 1;
+    blas::size_t ldb = 1;
     real_type<TestType> beta = real_t(1);
     TestType C[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
-    blas::int_t ldc = 1;
+    blas::size_t ldc = 1;
 
     // Corner cases:
     SECTION( "Throw Error Tests" ) {
         CHECK_THROWS_AS( her2k( Layout(0), uplo, trans, n, k, alpha, A, lda, B, ldb, beta, C, ldc ), Error );
         CHECK_THROWS_AS( her2k( layout, Uplo(0), trans, n, k, alpha, A, lda, B, ldb, beta, C, ldc ), Error );
         CHECK_THROWS_AS( her2k( layout, uplo, Op(0), n, k, alpha, A, lda, B, ldb, beta, C, ldc ), Error );
-        CHECK_THROWS_AS( her2k( layout, uplo, trans, -1, k, alpha, A, lda, B, ldb, beta, C, ldc ), Error );
-        CHECK_THROWS_AS( her2k( layout, uplo, trans, n, -1, alpha, A, lda, B, ldb, beta, C, ldc ), Error );
+        if( std::is_signed<blas::size_t>::value )
+            CHECK_THROWS_AS( her2k( layout, uplo, trans, -1, k, alpha, A, lda, B, ldb, beta, C, ldc ), Error );
+        if( std::is_signed<blas::size_t>::value )
+            CHECK_THROWS_AS( her2k( layout, uplo, trans, n, -1, alpha, A, lda, B, ldb, beta, C, ldc ), Error );
         CHECK_THROWS_AS( her2k( layout, uplo, Op('T'), n, k, alpha, A, lda, B, ldb, beta, C, ldc ), Error );
         CHECK_THROWS_AS( her2k( layout, uplo, trans, 2, k, alpha, A, 1, B, ldb, beta, C, ldc ), Error );
         CHECK_THROWS_AS( her2k( layout, uplo, trans, 2, k, alpha, A, lda, B, 1, beta, C, ldc ), Error );
@@ -1012,18 +1045,20 @@ TEMPLATE_TEST_CASE( "herk satisfies all corner cases", "[herk][BLASlv3]", TEST_T
     blas::size_t k = 1;
     real_type<TestType> alpha = real_t(1);
     TestType const A[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
-    blas::int_t lda = 1;
+    blas::size_t lda = 1;
     real_type<TestType> beta = real_t(1);
     TestType C[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
-    blas::int_t ldc = 1;
+    blas::size_t ldc = 1;
 
     // Corner cases:
     SECTION( "Throw Error Tests" ) {
         CHECK_THROWS_AS( herk( Layout(0), uplo, trans, n, k, alpha, A, lda, beta, C, ldc ), Error );
         CHECK_THROWS_AS( herk( layout, Uplo(0), trans, n, k, alpha, A, lda, beta, C, ldc ), Error );
         CHECK_THROWS_AS( herk( layout, uplo, Op(0), n, k, alpha, A, lda, beta, C, ldc ), Error );
-        CHECK_THROWS_AS( herk( layout, uplo, trans, -1, k, alpha, A, lda, beta, C, ldc ), Error );
-        CHECK_THROWS_AS( herk( layout, uplo, trans, n, -1, alpha, A, lda, beta, C, ldc ), Error );
+        if( std::is_signed<blas::size_t>::value )
+            CHECK_THROWS_AS( herk( layout, uplo, trans, -1, k, alpha, A, lda, beta, C, ldc ), Error );
+        if( std::is_signed<blas::size_t>::value )
+            CHECK_THROWS_AS( herk( layout, uplo, trans, n, -1, alpha, A, lda, beta, C, ldc ), Error );
         CHECK_THROWS_AS( herk( layout, uplo, Op('T'), n, k, alpha, A, lda, beta, C, ldc ), Error );
         CHECK_THROWS_AS( herk( layout, uplo, trans, 2, k, alpha, A, 1, beta, C, ldc ), Error );
         CHECK_THROWS_AS( herk( layout, uplo, trans, 2, k, alpha, A, lda, beta, C, 1 ), Error );
@@ -1076,20 +1111,22 @@ TEMPLATE_TEST_CASE( "symm satisfies all corner cases", "[symm][BLASlv3]", TEST_T
     blas::size_t n = 1;
     TestType alpha = real_t(1);
     TestType const A[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
-    blas::int_t lda = 1;
+    blas::size_t lda = 1;
     TestType const B[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
-    blas::int_t ldb = 1;
+    blas::size_t ldb = 1;
     TestType beta = real_t(1);
     TestType C[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
-    blas::int_t ldc = 1;
+    blas::size_t ldc = 1;
 
     // Corner cases:
     SECTION( "Throw Error Tests" ) {
         CHECK_THROWS_AS( symm( Layout(0), side, uplo, m, n, alpha, A, lda, B, ldb, beta, C, ldc ), Error );
         CHECK_THROWS_AS( symm( layout, Side(0), uplo, m, n, alpha, A, lda, B, ldb, beta, C, ldc ), Error );
         CHECK_THROWS_AS( symm( layout, side, Uplo(0), m, n, alpha, A, lda, B, ldb, beta, C, ldc ), Error );
-        CHECK_THROWS_AS( symm( layout, side, uplo, -1, n, alpha, A, lda, B, ldb, beta, C, ldc ), Error );
-        CHECK_THROWS_AS( symm( layout, side, uplo, m, -1, alpha, A, lda, B, ldb, beta, C, ldc ), Error );
+        if( std::is_signed<blas::size_t>::value )
+            CHECK_THROWS_AS( symm( layout, side, uplo, -1, n, alpha, A, lda, B, ldb, beta, C, ldc ), Error );
+        if( std::is_signed<blas::size_t>::value )
+            CHECK_THROWS_AS( symm( layout, side, uplo, m, -1, alpha, A, lda, B, ldb, beta, C, ldc ), Error );
         CHECK_THROWS_AS( symm( layout, side, uplo, 2, n, alpha, A, 1, B, ldb, beta, C, ldc ), Error );
         CHECK_THROWS_AS( symm( layout, side, uplo, 2, n, alpha, A, lda, B, 1, beta, C, ldc ), Error );
         CHECK_THROWS_AS( symm( layout, side, uplo, 2, n, alpha, A, lda, B, ldb, beta, C, 1 ), Error );
@@ -1129,20 +1166,22 @@ TEMPLATE_TEST_CASE( "syr2k satisfies all corner cases", "[syr2k][BLASlv3]", TEST
     blas::size_t k = 1;
     TestType alpha = real_t(1);
     TestType const A[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
-    blas::int_t lda = 1;
+    blas::size_t lda = 1;
     TestType const B[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
-    blas::int_t ldb = 1;
+    blas::size_t ldb = 1;
     TestType beta = real_t(1);
     TestType C[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
-    blas::int_t ldc = 1;
+    blas::size_t ldc = 1;
 
     // Corner cases:
     SECTION( "Throw Error Tests" ) {
         CHECK_THROWS_AS( syr2k( Layout(0), uplo, trans, n, k, alpha, A, lda, B, ldb, beta, C, ldc ), Error );
         CHECK_THROWS_AS( syr2k( layout, Uplo(0), trans, n, k, alpha, A, lda, B, ldb, beta, C, ldc ), Error );
         CHECK_THROWS_AS( syr2k( layout, uplo, Op(0), n, k, alpha, A, lda, B, ldb, beta, C, ldc ), Error );
-        CHECK_THROWS_AS( syr2k( layout, uplo, trans, -1, k, alpha, A, lda, B, ldb, beta, C, ldc ), Error );
-        CHECK_THROWS_AS( syr2k( layout, uplo, trans, n, -1, alpha, A, lda, B, ldb, beta, C, ldc ), Error );
+        if( std::is_signed<blas::size_t>::value )
+            CHECK_THROWS_AS( syr2k( layout, uplo, trans, -1, k, alpha, A, lda, B, ldb, beta, C, ldc ), Error );
+        if( std::is_signed<blas::size_t>::value )
+            CHECK_THROWS_AS( syr2k( layout, uplo, trans, n, -1, alpha, A, lda, B, ldb, beta, C, ldc ), Error );
         CHECK_THROWS_AS( syr2k( layout, uplo, Op('C'), n, k, alpha, A, lda, B, ldb, beta, C, ldc ), Error );
         CHECK_THROWS_AS( syr2k( layout, uplo, trans, 2, k, alpha, A, 1, B, ldb, beta, C, ldc ), Error );
         CHECK_THROWS_AS( syr2k( layout, uplo, trans, 2, k, alpha, A, lda, B, 1, beta, C, ldc ), Error );
@@ -1189,18 +1228,20 @@ TEMPLATE_TEST_CASE( "syrk satisfies all corner cases", "[syrk][BLASlv3]", TEST_T
     blas::size_t k = 1;
     TestType alpha = real_t(1);
     TestType const A[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
-    blas::int_t lda = 1;
+    blas::size_t lda = 1;
     TestType beta = real_t(1);
     TestType C[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
-    blas::int_t ldc = 1;
+    blas::size_t ldc = 1;
 
     // Corner cases:
     SECTION( "Throw Error Tests" ) {
         CHECK_THROWS_AS( syrk( Layout(0), uplo, trans, n, k, alpha, A, lda, beta, C, ldc ), Error );
         CHECK_THROWS_AS( syrk( layout, Uplo(0), trans, n, k, alpha, A, lda, beta, C, ldc ), Error );
         CHECK_THROWS_AS( syrk( layout, uplo, Op(0), n, k, alpha, A, lda, beta, C, ldc ), Error );
-        CHECK_THROWS_AS( syrk( layout, uplo, trans, -1, k, alpha, A, lda, beta, C, ldc ), Error );
-        CHECK_THROWS_AS( syrk( layout, uplo, trans, n, -1, alpha, A, lda, beta, C, ldc ), Error );
+        if( std::is_signed<blas::size_t>::value )
+            CHECK_THROWS_AS( syrk( layout, uplo, trans, -1, k, alpha, A, lda, beta, C, ldc ), Error );
+        if( std::is_signed<blas::size_t>::value )
+            CHECK_THROWS_AS( syrk( layout, uplo, trans, n, -1, alpha, A, lda, beta, C, ldc ), Error );
         CHECK_THROWS_AS( syrk( layout, uplo, Op('C'), n, k, alpha, A, lda, beta, C, ldc ), Error );
         CHECK_THROWS_AS( syrk( layout, uplo, trans, 2, k, alpha, A, 1, beta, C, ldc ), Error );
         CHECK_THROWS_AS( syrk( layout, uplo, trans, 2, k, alpha, A, lda, beta, C, 1 ), Error );
@@ -1248,9 +1289,9 @@ TEMPLATE_TEST_CASE( "trmm satisfies all corner cases", "[trmm][BLASlv3]", TEST_T
     blas::size_t n = 1;
     TestType alpha = real_t(1);
     TestType const A[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
-    blas::int_t lda = 1;
+    blas::size_t lda = 1;
     TestType B[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
-    blas::int_t ldb = 1;
+    blas::size_t ldb = 1;
 
     // Corner cases:
     SECTION( "Throw Error Tests" ) {
@@ -1259,8 +1300,10 @@ TEMPLATE_TEST_CASE( "trmm satisfies all corner cases", "[trmm][BLASlv3]", TEST_T
         CHECK_THROWS_AS( trmm( layout, side, Uplo(0), trans, diag, m, n, alpha, A, lda, B, ldb ), Error );
         CHECK_THROWS_AS( trmm( layout, side, uplo, Op(0), diag, m, n, alpha, A, lda, B, ldb ), Error );
         CHECK_THROWS_AS( trmm( layout, side, uplo, trans, Diag(0), m, n, alpha, A, lda, B, ldb ), Error );
-        CHECK_THROWS_AS( trmm( layout, side, uplo, trans, diag, -1, n, alpha, A, lda, B, ldb ), Error );
-        CHECK_THROWS_AS( trmm( layout, side, uplo, trans, diag, m, -1, alpha, A, lda, B, ldb ), Error );
+        if( std::is_signed<blas::size_t>::value )
+            CHECK_THROWS_AS( trmm( layout, side, uplo, trans, diag, -1, n, alpha, A, lda, B, ldb ), Error );
+        if( std::is_signed<blas::size_t>::value )
+            CHECK_THROWS_AS( trmm( layout, side, uplo, trans, diag, m, -1, alpha, A, lda, B, ldb ), Error );
         CHECK_THROWS_AS( trmm( layout, side, uplo, trans, diag, 2, n, alpha, A, 1, B, ldb ), Error );
         CHECK_THROWS_AS( trmm( layout, side, uplo, trans, diag, 2, n, alpha, A, lda, B, 1 ), Error );
         CHECK_THROWS_AS( trmm( Layout::RowMajor, side, uplo, trans, diag, m, 2, alpha, A, 1, B, ldb ), Error );
@@ -1294,9 +1337,9 @@ TEMPLATE_TEST_CASE( "trsm satisfies all corner cases", "[trsm][BLASlv3]", TEST_T
     blas::size_t n = 1;
     TestType alpha = real_t(1);
     TestType const A[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
-    blas::int_t lda = 1;
+    blas::size_t lda = 1;
     TestType B[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
-    blas::int_t ldb = 1;
+    blas::size_t ldb = 1;
 
     // Corner cases:
     SECTION( "Throw Error Tests" ) {
@@ -1305,8 +1348,10 @@ TEMPLATE_TEST_CASE( "trsm satisfies all corner cases", "[trsm][BLASlv3]", TEST_T
         CHECK_THROWS_AS( trsm( layout, side, Uplo(0), trans, diag, m, n, alpha, A, lda, B, ldb ), Error );
         CHECK_THROWS_AS( trsm( layout, side, uplo, Op(0), diag, m, n, alpha, A, lda, B, ldb ), Error );
         CHECK_THROWS_AS( trsm( layout, side, uplo, trans, Diag(0), m, n, alpha, A, lda, B, ldb ), Error );
-        CHECK_THROWS_AS( trsm( layout, side, uplo, trans, diag, -1, n, alpha, A, lda, B, ldb ), Error );
-        CHECK_THROWS_AS( trsm( layout, side, uplo, trans, diag, m, -1, alpha, A, lda, B, ldb ), Error );
+        if( std::is_signed<blas::size_t>::value )
+            CHECK_THROWS_AS( trsm( layout, side, uplo, trans, diag, -1, n, alpha, A, lda, B, ldb ), Error );
+        if( std::is_signed<blas::size_t>::value )
+            CHECK_THROWS_AS( trsm( layout, side, uplo, trans, diag, m, -1, alpha, A, lda, B, ldb ), Error );
         CHECK_THROWS_AS( trsm( layout, side, uplo, trans, diag, 2, n, alpha, A, 1, B, ldb ), Error );
         CHECK_THROWS_AS( trsm( layout, side, uplo, trans, diag, 2, n, alpha, A, lda, B, 1 ), Error );
         CHECK_THROWS_AS( trsm( Layout::RowMajor, side, uplo, trans, diag, m, 2, alpha, A, 1, B, ldb ), Error );

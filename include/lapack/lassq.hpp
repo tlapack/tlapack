@@ -7,8 +7,8 @@ namespace lapack {
 
 template< typename TX >
 void lassq(
-    size_t n,
-    TX const* X, size_t incx,
+    blas::size_t n,
+    TX const* X, blas::int_t incx,
     real_type<TX> &scale,
     real_type<TX> &sumsq) {
 

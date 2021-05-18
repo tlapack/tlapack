@@ -58,10 +58,10 @@ template< typename TA, typename TX >
 void her(
     blas::Layout layout,
     blas::Uplo uplo,
-    size_t n,
+    blas::size_t n,
     blas::real_type<TA, TX> alpha,  // zher takes double alpha; use real
-    TX const *x, int_t incx,
-    TA       *A, int_t lda )
+    TX const *x, blas::int_t incx,
+    TA       *A, blas::size_t lda )
 {
     typedef blas::scalar_type<TA, TX> scalar_t;
     typedef blas::real_type<TA, TX> real_t;
@@ -96,7 +96,7 @@ void her(
             for (size_t j = 0; j < n; ++j) {
                 // note: NOT skipping if x[j] is zero, for consistent NAN handling
                 scalar_t tmp = alpha * conj( x[j] );
-                for (size_t i = 0; i <= j-1; ++i) {
+                for (size_t i = 0; i < j; ++i) {
                     A(i, j) += x[i] * tmp;
                 }
                 A(j, j) = real( A(j, j) ) + real( x[j] * tmp );
@@ -108,7 +108,7 @@ void her(
             for (size_t j = 0; j < n; ++j) {
                 scalar_t tmp = alpha * conj( x[jx] );
                 int_t ix = kx;
-                for (size_t i = 0; i <= j-1; ++i) {
+                for (size_t i = 0; i < j; ++i) {
                     A(i, j) += x[ix] * tmp;
                     ix += incx;
                 }

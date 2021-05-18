@@ -58,11 +58,11 @@ namespace blas {
 template< typename TA, typename TX, typename TY >
 void ger(
     blas::Layout layout,
-    size_t m, size_t n,
+   blas::size_t m, blas::size_t n,
     blas::scalar_type<TA, TX, TY> alpha,
-    TX const *x, int_t incx,
-    TY const *y, int_t incy,
-    TA *A, int_t lda )
+    TX const *x, blas::int_t incx,
+    TY const *y, blas::int_t incy,
+    TA *A, blas::size_t lda )
 {
     typedef blas::scalar_type<TA, TX, TY> scalar_t;
 

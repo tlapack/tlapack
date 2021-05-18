@@ -38,9 +38,9 @@ namespace blas {
 
 template< typename TX, typename TY >
 scalar_type<TX, TY> dotu(
-    size_t n,
-    TX const *x, int_t incx,
-    TY const *y, int_t incy )
+    blas::size_t n,
+    TX const *x, blas::int_t incx,
+    TY const *y, blas::int_t incy )
 {
     typedef scalar_type<TX, TY> scalar_t;
 

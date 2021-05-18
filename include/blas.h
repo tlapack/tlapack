@@ -1,19 +1,35 @@
-#ifndef __WRAPPERBLAS_H__
-#define __WRAPPERBLAS_H__
+#ifndef __BLAS_H__
+#define __BLAS_H__
 
+// -----------------------------------------------------------------------------
+// Contains the definitions of blas::size_t and blas::int_t
 #include "defines.h"
 
 // -----------------------------------------------------------------------------
+// Complex types
 #include <complex.h>
 typedef float  _Complex complexFloat;
 typedef double _Complex complexDouble;
+
 // -----------------------------------------------------------------------------
+// Other type definitions
 typedef enum Layout { ColMajor = 'C', RowMajor = 'R' } Layout;
 typedef enum Op     { NoTrans  = 'N', Trans    = 'T', ConjTrans = 'C' } Op;
 typedef enum Uplo   { Upper    = 'U', Lower    = 'L', General   = 'G' } Uplo;
 typedef enum Diag   { NonUnit  = 'N', Unit     = 'U' } Diag;
 typedef enum Side   { Left     = 'L', Right    = 'R' } Side;
-// -----------------------------------------------------------------------------
+
+// // -----------------------------------------------------------------------------
+// // Mangling
+// #if defined(ADD_cblas_PREFIX) && !defined(ADD_)
+//     #define BLAS_FUNCTION(fname) cblas_##fname
+// #elif !defined(ADD_cblas_PREFIX) && defined(ADD_)
+//     #define BLAS_FUNCTION(fname) fname##_
+// #elif defined(ADD_cblas_PREFIX) && defined(ADD_)
+//     #define BLAS_FUNCTION(fname) cblas_##fname##_
+// #else
+//     #define BLAS_FUNCTION(fname) fname
+// #endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -295,7 +311,7 @@ void sgemv(
     blas_size_t m,
     blas_size_t n,
     float alpha,
-    float const * A, blas_int_t lda,
+    float const * A, blas_size_t lda,
     float const * x, blas_int_t incx,
     float beta,
     float * y, blas_int_t incy );
@@ -306,7 +322,7 @@ void dgemv(
     blas_size_t m,
     blas_size_t n,
     double alpha,
-    double const * A, blas_int_t lda,
+    double const * A, blas_size_t lda,
     double const * x, blas_int_t incx,
     double beta,
     double * y, blas_int_t incy );
@@ -317,7 +333,7 @@ void cgemv(
     blas_size_t m,
     blas_size_t n,
     complexFloat alpha,
-    complexFloat const * A, blas_int_t lda,
+    complexFloat const * A, blas_size_t lda,
     complexFloat const * x, blas_int_t incx,
     complexFloat beta,
     complexFloat * y, blas_int_t incy );
@@ -328,7 +344,7 @@ void zgemv(
     blas_size_t m,
     blas_size_t n,
     complexDouble alpha,
-    complexDouble const * A, blas_int_t lda,
+    complexDouble const * A, blas_size_t lda,
     complexDouble const * x, blas_int_t incx,
     complexDouble beta,
     complexDouble * y, blas_int_t incy );
@@ -340,7 +356,7 @@ void sger(
     float alpha,
     float const * x, blas_int_t incx,
     float const * y, blas_int_t incy,
-    float * A, blas_int_t lda );
+    float * A, blas_size_t lda );
 
 void dger(
     Layout layout,
@@ -349,7 +365,7 @@ void dger(
     double alpha,
     double const * x, blas_int_t incx,
     double const * y, blas_int_t incy,
-    double * A, blas_int_t lda );
+    double * A, blas_size_t lda );
 
 void cger(
     Layout layout,
@@ -358,7 +374,7 @@ void cger(
     complexFloat alpha,
     complexFloat const * x, blas_int_t incx,
     complexFloat const * y, blas_int_t incy,
-    complexFloat * A, blas_int_t lda );
+    complexFloat * A, blas_size_t lda );
 
 void zger(
     Layout layout,
@@ -367,7 +383,7 @@ void zger(
     complexDouble alpha,
     complexDouble const * x, blas_int_t incx,
     complexDouble const * y, blas_int_t incy,
-    complexDouble * A, blas_int_t lda );
+    complexDouble * A, blas_size_t lda );
 
 void sgeru(
     Layout layout,
@@ -376,7 +392,7 @@ void sgeru(
     float alpha,
     float const * x, blas_int_t incx,
     float const * y, blas_int_t incy,
-    float * A, blas_int_t lda );
+    float * A, blas_size_t lda );
 
 void dgeru(
     Layout layout,
@@ -385,7 +401,7 @@ void dgeru(
     double alpha,
     double const * x, blas_int_t incx,
     double const * y, blas_int_t incy,
-    double * A, blas_int_t lda );
+    double * A, blas_size_t lda );
 
 void cgeru(
     Layout layout,
@@ -394,7 +410,7 @@ void cgeru(
     complexFloat alpha,
     complexFloat const * x, blas_int_t incx,
     complexFloat const * y, blas_int_t incy,
-    complexFloat * A, blas_int_t lda );
+    complexFloat * A, blas_size_t lda );
 
 void zgeru(
     Layout layout,
@@ -403,14 +419,14 @@ void zgeru(
     complexDouble alpha,
     complexDouble const * x, blas_int_t incx,
     complexDouble const * y, blas_int_t incy,
-    complexDouble * A, blas_int_t lda );
+    complexDouble * A, blas_size_t lda );
 
 void shemv(
     Layout layout,
     Uplo uplo,
     blas_size_t n,
     float alpha,
-    float const * A, blas_int_t lda,
+    float const * A, blas_size_t lda,
     float const * x, blas_int_t incx,
     float beta,
     float * y, blas_int_t incy );
@@ -420,7 +436,7 @@ void dhemv(
     Uplo uplo,
     blas_size_t n,
     double alpha,
-    double const * A, blas_int_t lda,
+    double const * A, blas_size_t lda,
     double const * x, blas_int_t incx,
     double beta,
     double * y, blas_int_t incy );
@@ -430,7 +446,7 @@ void chemv(
     Uplo uplo,
     blas_size_t n,
     complexFloat alpha,
-    complexFloat const * A, blas_int_t lda,
+    complexFloat const * A, blas_size_t lda,
     complexFloat const * x, blas_int_t incx,
     complexFloat beta,
     complexFloat * y, blas_int_t incy );
@@ -440,7 +456,7 @@ void zhemv(
     Uplo uplo,
     blas_size_t n,
     complexDouble alpha,
-    complexDouble const * A, blas_int_t lda,
+    complexDouble const * A, blas_size_t lda,
     complexDouble const * x, blas_int_t incx,
     complexDouble beta,
     complexDouble * y, blas_int_t incy );
@@ -451,7 +467,7 @@ void sher(
     blas_size_t n,
     float alpha,
     float const * x, blas_int_t incx,
-    float * A, blas_int_t lda );
+    float * A, blas_size_t lda );
 
 void dher(
     Layout layout,
@@ -459,7 +475,7 @@ void dher(
     blas_size_t n,
     double alpha,
     double const * x, blas_int_t incx,
-    double * A, blas_int_t lda );
+    double * A, blas_size_t lda );
 
 void cher(
     Layout layout,
@@ -467,7 +483,7 @@ void cher(
     blas_size_t n,
     float alpha,
     complexFloat const * x, blas_int_t incx,
-    complexFloat * A, blas_int_t lda );
+    complexFloat * A, blas_size_t lda );
 
 void zher(
     Layout layout,
@@ -475,7 +491,7 @@ void zher(
     blas_size_t n,
     double alpha,
     complexDouble const * x, blas_int_t incx,
-    complexDouble * A, blas_int_t lda );
+    complexDouble * A, blas_size_t lda );
 
 void sher2(
     Layout layout,
@@ -484,7 +500,7 @@ void sher2(
     float alpha,
     float const * x, blas_int_t incx,
     float const * y, blas_int_t incy,
-    float * A, blas_int_t lda );
+    float * A, blas_size_t lda );
 
 void dher2(
     Layout layout,
@@ -493,7 +509,7 @@ void dher2(
     double alpha,
     double const * x, blas_int_t incx,
     double const * y, blas_int_t incy,
-    double * A, blas_int_t lda );
+    double * A, blas_size_t lda );
 
 void cher2(
     Layout layout,
@@ -502,7 +518,7 @@ void cher2(
     complexFloat alpha,
     complexFloat const * x, blas_int_t incx,
     complexFloat const * y, blas_int_t incy,
-    complexFloat * A, blas_int_t lda );
+    complexFloat * A, blas_size_t lda );
 
 void zher2(
     Layout layout,
@@ -511,14 +527,14 @@ void zher2(
     complexDouble alpha,
     complexDouble const * x, blas_int_t incx,
     complexDouble const * y, blas_int_t incy,
-    complexDouble * A, blas_int_t lda );
+    complexDouble * A, blas_size_t lda );
 
 void ssymv(
     Layout layout,
     Uplo uplo,
     blas_size_t n,
     float alpha,
-    float const * A, blas_int_t lda,
+    float const * A, blas_size_t lda,
     float const * x, blas_int_t incx,
     float beta,
     float * y, blas_int_t incy );
@@ -528,7 +544,7 @@ void dsymv(
     Uplo uplo,
     blas_size_t n,
     double alpha,
-    double const * A, blas_int_t lda,
+    double const * A, blas_size_t lda,
     double const * x, blas_int_t incx,
     double beta,
     double * y, blas_int_t incy );
@@ -538,7 +554,7 @@ void csymv(
     Uplo uplo,
     blas_size_t n,
     complexFloat alpha,
-    complexFloat const * A, blas_int_t lda,
+    complexFloat const * A, blas_size_t lda,
     complexFloat const * x, blas_int_t incx,
     complexFloat beta,
     complexFloat * y, blas_int_t incy );
@@ -548,7 +564,7 @@ void zsymv(
     Uplo uplo,
     blas_size_t n,
     complexDouble alpha,
-    complexDouble const * A, blas_int_t lda,
+    complexDouble const * A, blas_size_t lda,
     complexDouble const * x, blas_int_t incx,
     complexDouble beta,
     complexDouble * y, blas_int_t incy );
@@ -559,7 +575,7 @@ void ssyr(
     blas_size_t n,
     float alpha,
     float const * x, blas_int_t incx,
-    float * A, blas_int_t lda );
+    float * A, blas_size_t lda );
 
 void dsyr(
     Layout layout,
@@ -567,7 +583,7 @@ void dsyr(
     blas_size_t n,
     double alpha,
     double const * x, blas_int_t incx,
-    double * A, blas_int_t lda );
+    double * A, blas_size_t lda );
 
 void ssyr2(
     Layout layout,
@@ -576,7 +592,7 @@ void ssyr2(
     float alpha,
     float const * x, blas_int_t incx,
     float const * y, blas_int_t incy,
-    float * A, blas_int_t lda );
+    float * A, blas_size_t lda );
 
 void dsyr2(
     Layout layout,
@@ -585,7 +601,7 @@ void dsyr2(
     double alpha,
     double const * x, blas_int_t incx,
     double const * y, blas_int_t incy,
-    double * A, blas_int_t lda );
+    double * A, blas_size_t lda );
 
 void csyr2(
     Layout layout,
@@ -594,7 +610,7 @@ void csyr2(
     complexFloat alpha,
     complexFloat const * x, blas_int_t incx,
     complexFloat const * y, blas_int_t incy,
-    complexFloat * A, blas_int_t lda );
+    complexFloat * A, blas_size_t lda );
 
 void zsyr2(
     Layout layout,
@@ -603,7 +619,7 @@ void zsyr2(
     complexDouble alpha,
     complexDouble const * x, blas_int_t incx,
     complexDouble const * y, blas_int_t incy,
-    complexDouble * A, blas_int_t lda );
+    complexDouble * A, blas_size_t lda );
 
 void strmv(
     Layout layout,
@@ -611,7 +627,7 @@ void strmv(
     Op trans,
     Diag diag,
     blas_size_t n,
-    float const * A, blas_int_t lda,
+    float const * A, blas_size_t lda,
     float * x, blas_int_t incx );
 
 void dtrmv(
@@ -620,7 +636,7 @@ void dtrmv(
     Op trans,
     Diag diag,
     blas_size_t n,
-    double const * A, blas_int_t lda,
+    double const * A, blas_size_t lda,
     double * x, blas_int_t incx );
 
 void ctrmv(
@@ -629,7 +645,7 @@ void ctrmv(
     Op trans,
     Diag diag,
     blas_size_t n,
-    complexFloat const * A, blas_int_t lda,
+    complexFloat const * A, blas_size_t lda,
     complexFloat * x, blas_int_t incx );
 
 void ztrmv(
@@ -638,7 +654,7 @@ void ztrmv(
     Op trans,
     Diag diag,
     blas_size_t n,
-    complexDouble const * A, blas_int_t lda,
+    complexDouble const * A, blas_size_t lda,
     complexDouble * x, blas_int_t incx );
 
 void strsv(
@@ -647,7 +663,7 @@ void strsv(
     Op trans,
     Diag diag,
     blas_size_t n,
-    float const * A, blas_int_t lda,
+    float const * A, blas_size_t lda,
     float * x, blas_int_t incx );
 
 void dtrsv(
@@ -656,7 +672,7 @@ void dtrsv(
     Op trans,
     Diag diag,
     blas_size_t n,
-    double const * A, blas_int_t lda,
+    double const * A, blas_size_t lda,
     double * x, blas_int_t incx );
 
 void ctrsv(
@@ -665,7 +681,7 @@ void ctrsv(
     Op trans,
     Diag diag,
     blas_size_t n,
-    complexFloat const * A, blas_int_t lda,
+    complexFloat const * A, blas_size_t lda,
     complexFloat * x, blas_int_t incx );
 
 void ztrsv(
@@ -674,7 +690,7 @@ void ztrsv(
     Op trans,
     Diag diag,
     blas_size_t n,
-    complexDouble const * A, blas_int_t lda,
+    complexDouble const * A, blas_size_t lda,
     complexDouble * x, blas_int_t incx );
 
 // =============================================================================
@@ -688,10 +704,10 @@ void sgemm(
     blas_size_t n,
     blas_size_t k,
     float alpha,
-    float const * A, blas_int_t lda,
-    float const * B, blas_int_t ldb,
+    float const * A, blas_size_t lda,
+    float const * B, blas_size_t ldb,
     float beta,
-    float * C, blas_int_t ldc );
+    float * C, blas_size_t ldc );
 
 void dgemm(
     Layout layout,
@@ -701,10 +717,10 @@ void dgemm(
     blas_size_t n,
     blas_size_t k,
     double alpha,
-    double const * A, blas_int_t lda,
-    double const * B, blas_int_t ldb,
+    double const * A, blas_size_t lda,
+    double const * B, blas_size_t ldb,
     double beta,
-    double * C, blas_int_t ldc );
+    double * C, blas_size_t ldc );
 
 void cgemm(
     Layout layout,
@@ -714,10 +730,10 @@ void cgemm(
     blas_size_t n,
     blas_size_t k,
     complexFloat alpha,
-    complexFloat const * A, blas_int_t lda,
-    complexFloat const * B, blas_int_t ldb,
+    complexFloat const * A, blas_size_t lda,
+    complexFloat const * B, blas_size_t ldb,
     complexFloat beta,
-    complexFloat * C, blas_int_t ldc );
+    complexFloat * C, blas_size_t ldc );
 
 void zgemm(
     Layout layout,
@@ -727,10 +743,10 @@ void zgemm(
     blas_size_t n,
     blas_size_t k,
     complexDouble alpha,
-    complexDouble const * A, blas_int_t lda,
-    complexDouble const * B, blas_int_t ldb,
+    complexDouble const * A, blas_size_t lda,
+    complexDouble const * B, blas_size_t ldb,
     complexDouble beta,
-    complexDouble * C, blas_int_t ldc );
+    complexDouble * C, blas_size_t ldc );
 
 void shemm(
     Layout layout,
@@ -739,10 +755,10 @@ void shemm(
     blas_size_t m,
     blas_size_t n,
     float alpha,
-    float const * A, blas_int_t lda,
-    float const * B, blas_int_t ldb,
+    float const * A, blas_size_t lda,
+    float const * B, blas_size_t ldb,
     float beta,
-    float * C, blas_int_t ldc );
+    float * C, blas_size_t ldc );
 
 void dhemm(
     Layout layout,
@@ -751,10 +767,10 @@ void dhemm(
     blas_size_t m,
     blas_size_t n,
     double alpha,
-    double const * A, blas_int_t lda,
-    double const * B, blas_int_t ldb,
+    double const * A, blas_size_t lda,
+    double const * B, blas_size_t ldb,
     double beta,
-    double * C, blas_int_t ldc );
+    double * C, blas_size_t ldc );
 
 void chemm(
     Layout layout,
@@ -763,10 +779,10 @@ void chemm(
     blas_size_t m,
     blas_size_t n,
     complexFloat alpha,
-    complexFloat const * A, blas_int_t lda,
-    complexFloat const * B, blas_int_t ldb,
+    complexFloat const * A, blas_size_t lda,
+    complexFloat const * B, blas_size_t ldb,
     complexFloat beta,
-    complexFloat * C, blas_int_t ldc );
+    complexFloat * C, blas_size_t ldc );
 
 void zhemm(
     Layout layout,
@@ -775,10 +791,10 @@ void zhemm(
     blas_size_t m,
     blas_size_t n,
     complexDouble alpha,
-    complexDouble const * A, blas_int_t lda,
-    complexDouble const * B, blas_int_t ldb,
+    complexDouble const * A, blas_size_t lda,
+    complexDouble const * B, blas_size_t ldb,
     complexDouble beta,
-    complexDouble * C, blas_int_t ldc );
+    complexDouble * C, blas_size_t ldc );
 
 void sher2k(
     Layout layout,
@@ -787,10 +803,10 @@ void sher2k(
     blas_size_t n,
     blas_size_t k,
     float alpha,
-    float const * A, blas_int_t lda,
-    float const * B, blas_int_t ldb,
+    float const * A, blas_size_t lda,
+    float const * B, blas_size_t ldb,
     float beta,
-    float * C, blas_int_t ldc );
+    float * C, blas_size_t ldc );
 
 void dher2k(
     Layout layout,
@@ -799,10 +815,10 @@ void dher2k(
     blas_size_t n,
     blas_size_t k,
     double alpha,
-    double const * A, blas_int_t lda,
-    double const * B, blas_int_t ldb,
+    double const * A, blas_size_t lda,
+    double const * B, blas_size_t ldb,
     double beta,
-    double * C, blas_int_t ldc );
+    double * C, blas_size_t ldc );
 
 void cher2k(
     Layout layout,
@@ -811,10 +827,10 @@ void cher2k(
     blas_size_t n,
     blas_size_t k,
     complexFloat alpha,
-    complexFloat const * A, blas_int_t lda,
-    complexFloat const * B, blas_int_t ldb,
+    complexFloat const * A, blas_size_t lda,
+    complexFloat const * B, blas_size_t ldb,
     float beta,
-    complexFloat * C, blas_int_t ldc );
+    complexFloat * C, blas_size_t ldc );
 
 void zher2k(
     Layout layout,
@@ -823,10 +839,10 @@ void zher2k(
     blas_size_t n,
     blas_size_t k,
     complexDouble alpha,
-    complexDouble const * A, blas_int_t lda,
-    complexDouble const * B, blas_int_t ldb,
+    complexDouble const * A, blas_size_t lda,
+    complexDouble const * B, blas_size_t ldb,
     double beta,
-    complexDouble * C, blas_int_t ldc );
+    complexDouble * C, blas_size_t ldc );
 
 void sherk(
     Layout layout,
@@ -835,9 +851,9 @@ void sherk(
     blas_size_t n,
     blas_size_t k,
     float alpha,
-    float const * A, blas_int_t lda,
+    float const * A, blas_size_t lda,
     float beta,
-    float * C, blas_int_t ldc );
+    float * C, blas_size_t ldc );
 
 void dherk(
     Layout layout,
@@ -846,9 +862,9 @@ void dherk(
     blas_size_t n,
     blas_size_t k,
     double alpha,
-    double const * A, blas_int_t lda,
+    double const * A, blas_size_t lda,
     double beta,
-    double * C, blas_int_t ldc );
+    double * C, blas_size_t ldc );
 
 void cherk(
     Layout layout,
@@ -857,9 +873,9 @@ void cherk(
     blas_size_t n,
     blas_size_t k,
     float alpha,
-    complexFloat const * A, blas_int_t lda,
+    complexFloat const * A, blas_size_t lda,
     float beta,
-    complexFloat * C, blas_int_t ldc );
+    complexFloat * C, blas_size_t ldc );
 
 void zherk(
     Layout layout,
@@ -868,9 +884,9 @@ void zherk(
     blas_size_t n,
     blas_size_t k,
     double alpha,
-    complexDouble const * A, blas_int_t lda,
+    complexDouble const * A, blas_size_t lda,
     double beta,
-    complexDouble * C, blas_int_t ldc );
+    complexDouble * C, blas_size_t ldc );
 
 void ssymm(
     Layout layout,
@@ -879,10 +895,10 @@ void ssymm(
     blas_size_t m,
     blas_size_t n,
     float alpha,
-    float const * A, blas_int_t lda,
-    float const * B, blas_int_t ldb,
+    float const * A, blas_size_t lda,
+    float const * B, blas_size_t ldb,
     float beta,
-    float * C, blas_int_t ldc );
+    float * C, blas_size_t ldc );
 
 void dsymm(
     Layout layout,
@@ -891,10 +907,10 @@ void dsymm(
     blas_size_t m,
     blas_size_t n,
     double alpha,
-    double const * A, blas_int_t lda,
-    double const * B, blas_int_t ldb,
+    double const * A, blas_size_t lda,
+    double const * B, blas_size_t ldb,
     double beta,
-    double * C, blas_int_t ldc );
+    double * C, blas_size_t ldc );
 
 void csymm(
     Layout layout,
@@ -903,10 +919,10 @@ void csymm(
     blas_size_t m,
     blas_size_t n,
     complexFloat alpha,
-    complexFloat const * A, blas_int_t lda,
-    complexFloat const * B, blas_int_t ldb,
+    complexFloat const * A, blas_size_t lda,
+    complexFloat const * B, blas_size_t ldb,
     complexFloat beta,
-    complexFloat * C, blas_int_t ldc );
+    complexFloat * C, blas_size_t ldc );
 
 void zsymm(
     Layout layout,
@@ -915,10 +931,10 @@ void zsymm(
     blas_size_t m,
     blas_size_t n,
     complexDouble alpha,
-    complexDouble const * A, blas_int_t lda,
-    complexDouble const * B, blas_int_t ldb,
+    complexDouble const * A, blas_size_t lda,
+    complexDouble const * B, blas_size_t ldb,
     complexDouble beta,
-    complexDouble * C, blas_int_t ldc );
+    complexDouble * C, blas_size_t ldc );
 
 void ssyr2k(
     Layout layout,
@@ -927,10 +943,10 @@ void ssyr2k(
     blas_size_t n,
     blas_size_t k,
     float alpha,
-    float const * A, blas_int_t lda,
-    float const * B, blas_int_t ldb,
+    float const * A, blas_size_t lda,
+    float const * B, blas_size_t ldb,
     float beta,
-    float * C, blas_int_t ldc );
+    float * C, blas_size_t ldc );
 
 void dsyr2k(
     Layout layout,
@@ -939,10 +955,10 @@ void dsyr2k(
     blas_size_t n,
     blas_size_t k,
     double alpha,
-    double const * A, blas_int_t lda,
-    double const * B, blas_int_t ldb,
+    double const * A, blas_size_t lda,
+    double const * B, blas_size_t ldb,
     double beta,
-    double * C, blas_int_t ldc );
+    double * C, blas_size_t ldc );
 
 void csyr2k(
     Layout layout,
@@ -951,10 +967,10 @@ void csyr2k(
     blas_size_t n,
     blas_size_t k,
     complexFloat alpha,
-    complexFloat const * A, blas_int_t lda,
-    complexFloat const * B, blas_int_t ldb,
+    complexFloat const * A, blas_size_t lda,
+    complexFloat const * B, blas_size_t ldb,
     complexFloat beta,
-    complexFloat * C, blas_int_t ldc );
+    complexFloat * C, blas_size_t ldc );
 
 void zsyr2k(
     Layout layout,
@@ -963,10 +979,10 @@ void zsyr2k(
     blas_size_t n,
     blas_size_t k,
     complexDouble alpha,
-    complexDouble const * A, blas_int_t lda,
-    complexDouble const * B, blas_int_t ldb,
+    complexDouble const * A, blas_size_t lda,
+    complexDouble const * B, blas_size_t ldb,
     complexDouble beta,
-    complexDouble * C, blas_int_t ldc );
+    complexDouble * C, blas_size_t ldc );
 
 void ssyrk(
     Layout layout,
@@ -975,9 +991,9 @@ void ssyrk(
     blas_size_t n,
     blas_size_t k,
     float alpha,
-    float const * A, blas_int_t lda,
+    float const * A, blas_size_t lda,
     float beta,
-    float * C, blas_int_t ldc );
+    float * C, blas_size_t ldc );
 
 void dsyrk(
     Layout layout,
@@ -986,9 +1002,9 @@ void dsyrk(
     blas_size_t n,
     blas_size_t k,
     double alpha,
-    double const * A, blas_int_t lda,
+    double const * A, blas_size_t lda,
     double beta,
-    double * C, blas_int_t ldc );
+    double * C, blas_size_t ldc );
 
 void csyrk(
     Layout layout,
@@ -997,9 +1013,9 @@ void csyrk(
     blas_size_t n,
     blas_size_t k,
     complexFloat alpha,
-    complexFloat const * A, blas_int_t lda,
+    complexFloat const * A, blas_size_t lda,
     complexFloat beta,
-    complexFloat * C, blas_int_t ldc );
+    complexFloat * C, blas_size_t ldc );
 
 void zsyrk(
     Layout layout,
@@ -1008,9 +1024,9 @@ void zsyrk(
     blas_size_t n,
     blas_size_t k,
     complexDouble alpha,
-    complexDouble const * A, blas_int_t lda,
+    complexDouble const * A, blas_size_t lda,
     complexDouble beta,
-    complexDouble * C, blas_int_t ldc );
+    complexDouble * C, blas_size_t ldc );
 
 void strmm(
     Layout layout,
@@ -1021,8 +1037,8 @@ void strmm(
     blas_size_t m,
     blas_size_t n,
     float alpha,
-    float const * A, blas_int_t lda,
-    float * B, blas_int_t ldb );
+    float const * A, blas_size_t lda,
+    float * B, blas_size_t ldb );
 
 void dtrmm(
     Layout layout,
@@ -1033,8 +1049,8 @@ void dtrmm(
     blas_size_t m,
     blas_size_t n,
     double alpha,
-    double const * A, blas_int_t lda,
-    double * B, blas_int_t ldb );
+    double const * A, blas_size_t lda,
+    double * B, blas_size_t ldb );
 
 void ctrmm(
     Layout layout,
@@ -1045,8 +1061,8 @@ void ctrmm(
     blas_size_t m,
     blas_size_t n,
     complexFloat alpha,
-    complexFloat const * A, blas_int_t lda,
-    complexFloat * B, blas_int_t ldb );
+    complexFloat const * A, blas_size_t lda,
+    complexFloat * B, blas_size_t ldb );
 
 void ztrmm(
     Layout layout,
@@ -1057,8 +1073,8 @@ void ztrmm(
     blas_size_t m,
     blas_size_t n,
     complexDouble alpha,
-    complexDouble const * A, blas_int_t lda,
-    complexDouble * B, blas_int_t ldb );
+    complexDouble const * A, blas_size_t lda,
+    complexDouble * B, blas_size_t ldb );
 
 void strsm(
     Layout layout,
@@ -1069,8 +1085,8 @@ void strsm(
     blas_size_t m,
     blas_size_t n,
     float alpha,
-    float const * A, blas_int_t lda,
-    float * B, blas_int_t ldb );
+    float const * A, blas_size_t lda,
+    float * B, blas_size_t ldb );
 
 void dtrsm(
     Layout layout,
@@ -1081,8 +1097,8 @@ void dtrsm(
     blas_size_t m,
     blas_size_t n,
     double alpha,
-    double const * A, blas_int_t lda,
-    double * B, blas_int_t ldb );
+    double const * A, blas_size_t lda,
+    double * B, blas_size_t ldb );
 
 void ctrsm(
     Layout layout,
@@ -1093,8 +1109,8 @@ void ctrsm(
     blas_size_t m,
     blas_size_t n,
     complexFloat alpha,
-    complexFloat const * A, blas_int_t lda,
-    complexFloat * B, blas_int_t ldb );
+    complexFloat const * A, blas_size_t lda,
+    complexFloat * B, blas_size_t ldb );
 
 void ztrsm(
     Layout layout,
@@ -1105,11 +1121,11 @@ void ztrsm(
     blas_size_t m,
     blas_size_t n,
     complexDouble alpha,
-    complexDouble const * A, blas_int_t lda,
-    complexDouble * B, blas_int_t ldb );
+    complexDouble const * A, blas_size_t lda,
+    complexDouble * B, blas_size_t ldb );
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // __WRAPPERBLAS_H__
+#endif // __BLAS_H__
