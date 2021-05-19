@@ -99,8 +99,8 @@ void rotm(
     }
     else {
         // non-unit stride
-        int_t ix = (incx > 0 ? 0 : (-n + 1)*incx);
-        int_t iy = (incy > 0 ? 0 : (-n + 1)*incy);
+        size_t ix = (incx > 0 ? 0 : (-n + 1)*incx);
+        size_t iy = (incy > 0 ? 0 : (-n + 1)*incy);
         if ( param[0] == -1 ) {
             const scalar_t& h11 = param[1];
             const scalar_t& h21 = param[2];

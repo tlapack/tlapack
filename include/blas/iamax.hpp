@@ -96,7 +96,7 @@ size_t iamax_GIGO(
     }
     else {
         // non-unit stride
-        int_t ix = 0;
+        size_t ix = (incx > 0 ? 0 : (-n + 1)*incx);
         for (size_t i = 0; i < n; ++i) {
             real_t a = abs1(x[ix]);
             if ( a > smax ) {
@@ -151,7 +151,7 @@ size_t iamax_SAFE(
     else {
         // non-unit stride
         blas::size_t i = 0;
-        int_t ix = 0;
+        size_t ix = (incx > 0 ? 0 : (-n + 1)*incx);
         for (; i < n; ++i) {
             if ( isnan(x[ix]) ) {
                 // return when first NaN found
@@ -221,7 +221,7 @@ size_t iamax_GIGO(
     }
     else {
         // non-unit stride
-        int_t ix = 0;
+        size_t ix = (incx > 0 ? 0 : (-n + 1)*incx);
         for (size_t i = 0; i < n; ++i) {
             if ( !scaledsmax ) { // no |Re(x_i)| + |Im(x_i)| = Inf  yet
                 real_t a = abs1(x[ix]);
@@ -306,7 +306,7 @@ size_t iamax_SAFE(
     else {
         // non-unit stride
         blas::size_t i = 0;
-        int_t ix = 0;
+        size_t ix = (incx > 0 ? 0 : (-n + 1)*incx);
         for (; i < n; ++i) {
             if ( isnan(x[ix]) ) {
                 // return when first NaN found

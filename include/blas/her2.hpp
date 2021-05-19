@@ -97,8 +97,8 @@ void her2(
         uplo = (uplo == Uplo::Lower ? Uplo::Upper : Uplo::Lower);
     }
 
-    int_t kx = (incx > 0 ? 0 : (-n + 1)*incx);
-    int_t ky = (incy > 0 ? 0 : (-n + 1)*incy);
+    size_t kx = (incx > 0 ? 0 : (-n + 1)*incx);
+    size_t ky = (incy > 0 ? 0 : (-n + 1)*incy);
     if (uplo == Uplo::Upper) {
         if (incx == 1 && incy == 1) {
             // unit stride
@@ -114,13 +114,13 @@ void her2(
         }
         else {
             // non-unit stride
-            int_t jx = kx;
-            int_t jy = ky;
+            size_t jx = kx;
+            size_t jy = ky;
             for (size_t j = 0; j < n; ++j) {
                 scalar_t tmp1 = alpha * conj( y[jy] );
                 scalar_t tmp2 = conj( alpha * x[jx] );
-                int_t ix = kx;
-                int_t iy = ky;
+                size_t ix = kx;
+                size_t iy = ky;
                 for (size_t i = 0; i < j; ++i) {
                     A(i, j) += x[ix]*tmp1 + y[iy]*tmp2;
                     ix += incx;
@@ -147,14 +147,14 @@ void her2(
         }
         else {
             // non-unit stride
-            int_t jx = kx;
-            int_t jy = ky;
+            size_t jx = kx;
+            size_t jy = ky;
             for (size_t j = 0; j < n; ++j) {
                 scalar_t tmp1 = alpha * conj( y[jy] );
                 scalar_t tmp2 = conj( alpha * x[jx] );
                 A(j, j) = real( A(j, j) ) + real( x[jx]*tmp1 + y[jy]*tmp2 );
-                int_t ix = jx;
-                int_t iy = jy;
+                size_t ix = jx;
+                size_t iy = jy;
                 for (size_t i = j+1; i < n; ++i) {
                     ix += incx;
                     iy += incy;

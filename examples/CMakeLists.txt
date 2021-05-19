@@ -22,9 +22,13 @@ add_executable( example_fortranModule_saxpy
     example_fortranModule_saxpy.f90 "${PROJECT_SOURCE_DIR}/include/blas.f90" )
 target_link_libraries( example_fortranModule_saxpy PRIVATE cwrappers_tblas )
 
+# # add the example daxpy using the Fortran interface
+# add_executable( example_fortranInterface_daxpy example_fortranInterface_daxpy.f90 )
+# target_link_libraries( example_fortranInterface_daxpy PRIVATE cwrappers_tblas )
+
 # add the example daxpy using the Fortran wrapper
-add_executable( example_fortranWrapper_daxpy example_fortranWrapper_daxpy.f90 )
-target_link_libraries( example_fortranWrapper_daxpy PRIVATE cwrappers_tblas )
+add_executable( example_fortranWrapper_saxpy example_fortranWrapper_saxpy.f90 )
+target_link_libraries( example_fortranWrapper_saxpy PRIVATE fortranwrappers_tblas )
 
 # add the example geqr
 add_executable(example_geqr example_geqr.cpp)

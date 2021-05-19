@@ -101,7 +101,7 @@ void ger(
         }
         else if (incx == 1) {
             // x unit stride, y non-unit stride
-            int_t jy = (incy > 0 ? 0 : (-n + 1)*incy);
+            size_t jy = (incy > 0 ? 0 : (-n + 1)*incy);
             for (size_t j = 0; j < n; ++j) {
                 scalar_t tmp = alpha * conj( y[jy] );
                 for (size_t i = 0; i < m; ++i) {
@@ -112,11 +112,11 @@ void ger(
         }
         else {
             // x and y non-unit stride
-            int_t kx = (incx > 0 ? 0 : (-m + 1)*incx);
-            int_t jy = (incy > 0 ? 0 : (-n + 1)*incy);
+            size_t kx = (incx > 0 ? 0 : (-m + 1)*incx);
+            size_t jy = (incy > 0 ? 0 : (-n + 1)*incy);
             for (size_t j = 0; j < n; ++j) {
                 scalar_t tmp = alpha * conj( y[jy] );
-                int_t ix = kx;
+                size_t ix = kx;
                 for (size_t i = 0; i < m; ++i) {
                     A(i, j) += x[ix] * tmp;
                     ix += incx;
@@ -139,7 +139,7 @@ void ger(
         }
         else if (incy == 1) {
             // x non-unit stride, y unit stride
-            int_t ix = (incx > 0 ? 0 : (-m + 1)*incx);
+            size_t ix = (incx > 0 ? 0 : (-m + 1)*incx);
             for (size_t i = 0; i < m; ++i) {
                 scalar_t tmp = alpha * x[ix];
                 for (size_t j = 0; j < n; ++j) {
@@ -150,11 +150,11 @@ void ger(
         }
         else {
             // x and y non-unit stride
-            int_t ky = (incy > 0 ? 0 : (-n + 1)*incy);
-            int_t ix = (incx > 0 ? 0 : (-m + 1)*incx);
+            size_t ky = (incy > 0 ? 0 : (-n + 1)*incy);
+            size_t ix = (incx > 0 ? 0 : (-m + 1)*incx);
             for (size_t i = 0; i < m; ++i) {
                 scalar_t tmp = alpha * x[ix];
-                int_t jy = ky;
+                size_t jy = ky;
                 for (size_t j = 0; j < n; ++j) {
                     A(j, i) += tmp * conj( y[jy] );
                     jy += incy;

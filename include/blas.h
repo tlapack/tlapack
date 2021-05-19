@@ -2,8 +2,23 @@
 #define __BLAS_H__
 
 // -----------------------------------------------------------------------------
-// Contains the definitions of blas::size_t and blas::int_t
 #include "defines.h"
+#include <stdint.h>
+#include <stddef.h>
+
+// -----------------------------------------------------------------------------
+// Integer types blas_size_t and blas_int_t
+#ifndef BLAS_SIZE_T
+    typedef size_t blas_size_t;
+#else
+    typedef BLAS_SIZE_T blas_size_t;
+#endif
+
+#ifndef BLAS_INT_T
+    typedef int64_t blas_int_t;
+#else
+    typedef BLAS_INT_T blas_int_t;
+#endif
 
 // -----------------------------------------------------------------------------
 // Complex types

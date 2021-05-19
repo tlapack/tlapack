@@ -97,8 +97,8 @@ void hemv(
     if (n == 0 || (alpha == zero && beta == one))
         return;
 
-    int_t kx = (incx > 0 ? 0 : (-n + 1)*incx);
-    int_t ky = (incy > 0 ? 0 : (-n + 1)*incy);
+    size_t kx = (incx > 0 ? 0 : (-n + 1)*incx);
+    size_t ky = (incy > 0 ? 0 : (-n + 1)*incy);
 
     // form y = beta*y
     if (beta != one) {
@@ -115,7 +115,7 @@ void hemv(
             }
         }
         else {
-            int_t iy = ky;
+            size_t iy = ky;
             if (beta == zero) {
                 for (size_t i = 0; i < n; ++i) {
                     y[iy] = zero;
@@ -151,13 +151,13 @@ void hemv(
             }
             else {
                 // non-unit stride
-                int_t jx = kx;
-                int_t jy = ky;
+                size_t jx = kx;
+                size_t jy = ky;
                 for (size_t j = 0; j < n; ++j) {
                     scalar_t tmp1 = alpha*x[jx];
                     scalar_t tmp2 = zero;
-                    int_t ix = kx;
-                    int_t iy = ky;
+                    size_t ix = kx;
+                    size_t iy = ky;
                     for (size_t i = 0; i < j; ++i) {
                         y[iy] += tmp1 * A(i, j);
                         tmp2 += conj( A(i, j) ) * x[ix];
@@ -185,13 +185,13 @@ void hemv(
                 }
             }
             else {
-                int_t jx = kx;
-                int_t jy = ky;
+                size_t jx = kx;
+                size_t jy = ky;
                 for (size_t j = 0; j < n; ++j) {
                     scalar_t tmp1 = alpha*x[jx];
                     scalar_t tmp2 = zero;
-                    int_t ix = jx;
-                    int_t iy = jy;
+                    size_t ix = jx;
+                    size_t iy = jy;
                     for (size_t i = j+1; i < n; ++i) {
                         ix += incx;
                         iy += incy;
@@ -223,13 +223,13 @@ void hemv(
             }
             else {
                 // non-unit stride
-                int_t jx = kx;
-                int_t jy = ky;
+                size_t jx = kx;
+                size_t jy = ky;
                 for (size_t j = 0; j < n; ++j) {
                     scalar_t tmp1 = alpha*x[jx];
                     scalar_t tmp2 = zero;
-                    int_t ix = kx;
-                    int_t iy = ky;
+                    size_t ix = kx;
+                    size_t iy = ky;
                     for (size_t i = 0; i < j; ++i) {
                         y[iy] += tmp1 * conj( A(i, j) );
                         tmp2 += A(i, j) * x[ix];
@@ -257,13 +257,13 @@ void hemv(
                 }
             }
             else {
-                int_t jx = kx;
-                int_t jy = ky;
+                size_t jx = kx;
+                size_t jy = ky;
                 for (size_t j = 0; j < n; ++j) {
                     scalar_t tmp1 = alpha*x[jx];
                     scalar_t tmp2 = zero;
-                    int_t ix = jx;
-                    int_t iy = jy;
+                    size_t ix = jx;
+                    size_t iy = jy;
                     for (size_t i = j+1; i < n; ++i) {
                         ix += incx;
                         iy += incy;

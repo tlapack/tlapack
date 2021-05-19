@@ -13,9 +13,9 @@ contains
         real    :: alpha
         real, target :: x(*), y(*)
 
-        call cblas_saxpy( int(n, @BLAS_SIZE_T@), alpha, &
-            c_loc(x), int(incx, @BLAS_INT_T@), &
-            c_loc(y), int(incy, @BLAS_INT_T@) )
+        call cblas_saxpy( int(n, @CBLAS_SIZE_T@), alpha, &
+            c_loc(x), int(incx, @CBLAS_INT_T@), &
+            c_loc(y), int(incy, @CBLAS_INT_T@) )
     end subroutine
 
 end module

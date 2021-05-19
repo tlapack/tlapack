@@ -108,7 +108,7 @@ void geru(
     }
     else if (incx == 1) {
         // x unit stride, y non-unit stride
-        int_t jy = (incy > 0 ? 0 : (-n + 1)*incy);
+        size_t jy = (incy > 0 ? 0 : (-n + 1)*incy);
         for (size_t j = 0; j < n; ++j) {
             scalar_t tmp = alpha * y[jy];
             for (size_t i = 0; i < m; ++i) {
@@ -119,11 +119,11 @@ void geru(
     }
     else {
         // x and y non-unit stride
-        int_t kx = (incx > 0 ? 0 : (-m + 1)*incx);
-        int_t jy = (incy > 0 ? 0 : (-n + 1)*incy);
+        size_t kx = (incx > 0 ? 0 : (-m + 1)*incx);
+        size_t jy = (incy > 0 ? 0 : (-n + 1)*incy);
         for (size_t j = 0; j < n; ++j) {
             scalar_t tmp = alpha * y[jy];
-            int_t ix = kx;
+            size_t ix = kx;
             for (size_t i = 0; i < m; ++i) {
                 A(i, j) += x[ix] * tmp;
                 ix += incx;

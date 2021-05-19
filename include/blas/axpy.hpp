@@ -63,8 +63,8 @@ void axpy(
     }
     else {
         // non-unit stride
-        int_t ix = (incx > 0 ? 0 : (-n + 1)*incx);
-        int_t iy = (incy > 0 ? 0 : (-n + 1)*incy);
+        size_t ix = (incx > 0 ? 0 : (-n + 1)*incx);
+        size_t iy = (incy > 0 ? 0 : (-n + 1)*incy);
         for (size_t i = 0; i < n; ++i) {
             y[iy] += alpha * x[ix];
             ix += incx;

@@ -75,11 +75,9 @@ if( USE_GNU_MPFR )
     target_link_libraries( tester PRIVATE ${MPFR_LIBRARIES} ${GMP_LIBRARIES} )
 endif()
 
-#-------------------------------------------------------------------------------
-# Run tests
-add_custom_target(run-tests
-    COMMAND ./tester
-    DEPENDS tester)
+set_target_properties( tester
+    PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}" )
 
 #-------------------------------------------------------------------------------
 # Add tests to CTest

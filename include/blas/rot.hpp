@@ -78,8 +78,8 @@ void rot(
     }
     else {
         // non-unit stride
-        int_t ix = (incx > 0 ? 0 : (-n + 1)*incx);
-        int_t iy = (incy > 0 ? 0 : (-n + 1)*incy);
+        size_t ix = (incx > 0 ? 0 : (-n + 1)*incx);
+        size_t iy = (incy > 0 ? 0 : (-n + 1)*incy);
         for (size_t i = 0; i < n; ++i) {
             scalar_t stmp = c*x[ix] + s*y[iy];
             y[iy] = c*y[iy] - conj(s)*x[ix];

@@ -1,6 +1,9 @@
 #ifndef __TLAPACK_BLAS_HH__
 #define __TLAPACK_BLAS_HH__
 
+// -----------------------------------------------------------------------------
+#include "defines.h"
+
 // Optimized BLAS
 
 #if defined(USE_BLASPP_WRAPPERS) && !defined(USE_BLASPP_TEMPLATES)

@@ -50,7 +50,7 @@ nrm2(
     }
     else {
         // non-unit stride
-        int_t ix = 0;
+        size_t ix = 0;
         for (size_t i = 0; i < n; ++i) {
             result += real(x[ix]) * real(x[ix]) + imag(x[ix]) * imag(x[ix]);
             ix += incx;

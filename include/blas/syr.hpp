@@ -85,7 +85,7 @@ void syr(
         uplo = (uplo == Uplo::Lower ? Uplo::Upper : Uplo::Lower);
     }
 
-    int_t kx = (incx > 0 ? 0 : (-n + 1)*incx);
+    size_t kx = (incx > 0 ? 0 : (-n + 1)*incx);
     if (uplo == Uplo::Upper) {
         if (incx == 1) {
             // unit stride
@@ -99,10 +99,10 @@ void syr(
         }
         else {
             // non-unit stride
-            int_t jx = kx;
+            size_t jx = kx;
             for (size_t j = 0; j < n; ++j) {
                 scalar_t tmp = alpha * x[jx];
-                int_t ix = kx;
+                size_t ix = kx;
                 for (size_t i = 0; i <= j; ++i) {
                     A(i, j) += x[ix] * tmp;
                     ix += incx;
@@ -124,10 +124,10 @@ void syr(
         }
         else {
             // non-unit stride
-            int_t jx = kx;
+            size_t jx = kx;
             for (size_t j = 0; j < n; ++j) {
                 scalar_t tmp = alpha * x[jx];
-                int_t ix = jx;
+                size_t ix = jx;
                 for (size_t i = j; i < n; ++i) {
                     A(i, j) += x[ix] * tmp;
                     ix += incx;

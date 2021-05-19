@@ -131,8 +131,8 @@ void gemv(
 
     blas::size_t lenx = (trans == Op::NoTrans ? n : m);
     blas::size_t leny = (trans == Op::NoTrans ? m : n);
-    int_t kx = (incx > 0 ? 0 : (-lenx + 1)*incx);
-    int_t ky = (incy > 0 ? 0 : (-leny + 1)*incy);
+    size_t kx = (incx > 0 ? 0 : (-lenx + 1)*incx);
+    size_t ky = (incy > 0 ? 0 : (-leny + 1)*incy);
 
     // ----------
     // form y = beta*y
@@ -150,7 +150,7 @@ void gemv(
             }
         }
         else {
-            int_t iy = ky;
+            size_t iy = ky;
             if (beta == zero) {
                 for (size_t i = 0; i < leny; ++i) {
                     y[iy] = zero;
@@ -171,7 +171,7 @@ void gemv(
     // ----------
     if (trans == Op::NoTrans && ! doconj) {
         // form y += alpha * A * x
-        int_t jx = kx;
+        size_t jx = kx;
         if (incy == 1) {
             for (size_t j = 0; j < n; ++j) {
                 scalar_t tmp = alpha*x[jx];
@@ -185,7 +185,7 @@ void gemv(
             for (size_t j = 0; j < n; ++j) {
                 scalar_t tmp = alpha*x[jx];
                 jx += incx;
-                int_t iy = ky;
+                size_t iy = ky;
                 for (size_t i = 0; i < m; ++i) {
                     y[iy] += tmp * A(i, j);
                     iy += incy;
@@ -196,7 +196,7 @@ void gemv(
     else if (trans == Op::NoTrans && doconj) {
         // form y += alpha * conj( A ) * x
         // this occurs for row-major A^H * x
-        int_t jx = kx;
+        size_t jx = kx;
         if (incy == 1) {
             for (size_t j = 0; j < n; ++j) {
                 scalar_t tmp = alpha*x[jx];
@@ -210,7 +210,7 @@ void gemv(
             for (size_t j = 0; j < n; ++j) {
                 scalar_t tmp = alpha*x[jx];
                 jx += incx;
-                int_t iy = ky;
+                size_t iy = ky;
                 for (size_t i = 0; i < m; ++i) {
                     y[iy] += tmp * conj(A(i, j));
                     iy += incy;
@@ -220,7 +220,7 @@ void gemv(
     }
     else if (trans == Op::Trans) {
         // form y += alpha * A^T * x
-        int_t jy = ky;
+        size_t jy = ky;
         if (incx == 1) {
             for (size_t j = 0; j < n; ++j) {
                 scalar_t tmp = zero;
@@ -234,7 +234,7 @@ void gemv(
         else {
             for (size_t j = 0; j < n; ++j) {
                 scalar_t tmp = zero;
-                int_t ix = kx;
+                size_t ix = kx;
                 for (size_t i = 0; i < m; ++i) {
                     tmp += A(i, j) * x[ix];
                     ix += incx;
@@ -246,7 +246,7 @@ void gemv(
     }
     else {
         // form y += alpha * A^H * x
-        int_t jy = ky;
+        size_t jy = ky;
         if (incx == 1) {
             for (size_t j = 0; j < n; ++j) {
                 scalar_t tmp = zero;
@@ -260,7 +260,7 @@ void gemv(
         else {
             for (size_t j = 0; j < n; ++j) {
                 scalar_t tmp = zero;
-                int_t ix = kx;
+                size_t ix = kx;
                 for (size_t i = 0; i < m; ++i) {
                     tmp += conj(A(i, j)) * x[ix];
                     ix += incx;

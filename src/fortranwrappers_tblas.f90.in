@@ -1,0 +1,15 @@
+subroutine saxpy ( n, alpha, x, incx, y, incy )
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    integer, parameter :: wp = kind(1.e0)
+    integer            :: n, incx, incy
+    real(wp)           :: alpha
+    real(wp), target   :: x(*), y(*)
+
+    include "cblas.fi"
+
+    call cblas_saxpy( int(n, @CBLAS_SIZE_T@), alpha, &
+        c_loc(x), int(incx, @CBLAS_INT_T@), &
+        c_loc(y), int(incy, @CBLAS_INT_T@) )
+end subroutine

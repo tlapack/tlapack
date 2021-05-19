@@ -1,4 +1,4 @@
-program example_fortranWrapper_saxpy
+program example_fortranInterface_daxpy
     use, intrinsic :: iso_c_binding
 
     include "cblas.fi"

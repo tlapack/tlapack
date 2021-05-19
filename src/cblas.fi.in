@@ -5,8 +5,8 @@ bind(C, name="saxpy")
     use, intrinsic :: iso_c_binding
     implicit none
 
-    integer(@BLAS_SIZE_T@), value :: n
-    integer(@BLAS_INT_T@), value :: incx, incy
+    integer(@CBLAS_SIZE_T@), value :: n
+    integer(@CBLAS_INT_T@), value :: incx, incy
     real(c_float), value :: alpha
     type(c_ptr), value :: x, y
 end subroutine
@@ -16,8 +16,8 @@ bind(C, name="daxpy")
     use, intrinsic :: iso_c_binding
     implicit none
 
-    integer(@BLAS_SIZE_T@), value :: n
-    integer(@BLAS_INT_T@), value :: incx, incy
+    integer(@CBLAS_SIZE_T@), value :: n
+    integer(@CBLAS_INT_T@), value :: incx, incy
     real(c_double), value :: alpha
     type(c_ptr), value :: x, y
 end subroutine

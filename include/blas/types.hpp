@@ -7,13 +7,23 @@
 
 #include "defines.h"
 #include <complex>
+#include <cstdint>
 
 namespace blas {
 
 // -----------------------------------------------------------------------------
 // Integer types blas::size_t and blas::int_t
-using size_t = blas_size_t;
-using int_t  = blas_int_t;
+#ifndef BLAS_SIZE_T
+    using size_t;
+#else
+    using size_t = u_int32_t;
+#endif
+
+#ifndef BLAS_INT_T
+    using int_t = int64_t;
+#else
+    using int_t = BLAS_INT_T;
+#endif
 
 // -----------------------------------------------------------------------------
 enum class Layout { ColMajor = 'C', RowMajor = 'R' };
