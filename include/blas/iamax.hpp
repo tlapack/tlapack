@@ -14,10 +14,10 @@ namespace blas {
 
 // =============================================================================
 /// @return In priority order:
-/// 1. INVALID_INDEX if $n \le 0$,
-/// 2. the index of the first `NAN` in $x$ if it exists and if `checkInput == true`,
-/// 3. the index of the first `Infinity` in $x$ if it exists,
-/// 4. the Index of infinity-norm of $x$, $|| x ||_{inf}$,
+/// 1. INVALID_INDEX if (a) $n \le 0$ or (b) $x_i=NAN$ for all $i$ and `checkNAN == false`,
+/// 2. the index of the first `NAN` in $x$ if it exists and if `checkNAN == true`,
+/// 3. the index of the first `Infinity` in $x$ if it is the case,
+/// 4. the Index of the infinity-norm of $x$, $|| x ||_{inf}$,
 ///     $\arg\max_{i=0}^{n-1} \left(|Re(x_i)| + |Im(x_i)|\right)$.
 ///
 /// Generic implementation for arbitrary data types.
@@ -31,8 +31,8 @@ namespace blas {
 /// @param[in] incx
 ///     Stride between elements of x. incx > 0.
 ///
-/// @param[in] checkInput
-///     If true, check for invalid values in the input.
+/// @param[in] checkNAN
+///     If true, check for Infs and NaNs in the input.
 ///
 /// @ingroup iamax
 
@@ -40,21 +40,26 @@ template< typename T >
 size_t iamax(
     blas::size_t n,
     T const *x, blas::int_t incx,
-    bool checkInput = true );
+    bool checkNAN = true );
 
-/// @ingroup iamax
-/// GIGO: Garbage In Garbage Out
+/// iamax_quietNAN does not check for Infs or NaNs in the input.
 ///
+///     In the complex case, it does check if the infinity-norm of $x$ is Inf.
+///     This is necessary to obtain the correct result.
+///
+/// @ingroup iamax
+
 template< typename T >
-size_t iamax_GIGO(
+size_t iamax_quietNAN(
     blas::size_t n,
     T const *x, blas::int_t incx );
 
-/// @ingroup iamax
-/// SAFE: Check for Infs and NaNs
+/// iamax_checkNAN checks for Infs and NaNs in the input
 ///
+/// @ingroup iamax
+
 template< typename T >
-size_t iamax_SAFE(
+size_t iamax_checkNAN(
     blas::size_t n,
     T const *x, blas::int_t incx );
 
@@ -65,17 +70,18 @@ template< typename T >
 size_t iamax(
     blas::size_t n,
     T const *x, blas::int_t incx,
-    bool checkInput ) {
+    bool checkNAN ) {
 
-    if ( checkInput ) {
-        blas_error_if( incx <= 0 );
-        return iamax_SAFE( n, x, incx );
-    } else
-        return iamax_GIGO( n, x, incx );
+    blas_error_if( incx <= 0 );
+
+    if ( checkNAN )
+        return iamax_checkNAN( n, x, incx );
+    else
+        return iamax_quietNAN( n, x, incx );
 }
 
 template< typename T >
-size_t iamax_GIGO(
+size_t iamax_quietNAN(
     blas::size_t n,
     T const *x, blas::int_t incx )
 {    
@@ -110,7 +116,7 @@ size_t iamax_GIGO(
 }
 
 template< typename T >
-size_t iamax_SAFE(
+size_t iamax_checkNAN(
     blas::size_t n,
     T const *x, blas::int_t incx )
 {    
@@ -184,7 +190,7 @@ size_t iamax_SAFE(
 }
 
 template< typename T >
-size_t iamax_GIGO(
+size_t iamax_quietNAN(
     blas::size_t n,
     std::complex<T> const *x, blas::int_t incx )
 {
@@ -249,7 +255,7 @@ size_t iamax_GIGO(
 }
 
 template< typename T >
-size_t iamax_SAFE(
+size_t iamax_checkNAN(
     blas::size_t n,
     std::complex<T> const *x, blas::int_t incx )
 {
