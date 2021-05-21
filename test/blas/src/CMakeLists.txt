@@ -11,7 +11,7 @@ target_compile_definitions( testBLAS PUBLIC ${tlapack_defs} )
 target_include_directories( testBLAS
     PUBLIC "${PROJECT_SOURCE_DIR}/include" ${tblas_include_dir} )
 
-if( USE_BLASPP_WRAPPERS OR USE_BLASPP_TEMPLATES )
+if( USE_BLASPP )
     target_link_libraries( testBLAS PUBLIC blaspp )
 endif()
 target_link_libraries( testBLAS PUBLIC Catch2::Catch2 )

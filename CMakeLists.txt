@@ -31,6 +31,7 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 #-------------------------------------------------------------------------------
 # Search for BLAS++ library if it is needed
 if( USE_BLASPP_WRAPPERS OR USE_BLASPP_TEMPLATES )
+  set(USE_BLASPP ON)
   find_package( blaspp )
   if(blaspp_FOUND)
     message( STATUS "  BLAS++ found in ${blaspp_DIR}" )
@@ -68,7 +69,7 @@ endif()
 #-------------------------------------------------------------------------------
 # Options for BLAS_SIZE_T
 
-if( USE_BLASPP_WRAPPERS OR USE_BLASPP_TEMPLATES OR USE_LAPACKPP_WRAPPERS )
+if( USE_BLASPP OR USE_LAPACKPP_WRAPPERS )
   set( BLAS_SIZE_T int64_t )
 else()
   set( BLAS_SIZE_T size_t CACHE STRING
@@ -110,7 +111,7 @@ set( blas_intt_list
   intptr_t
   ptrdiff_t )
   
-if( USE_BLASPP_WRAPPERS OR USE_BLASPP_TEMPLATES OR USE_LAPACKPP_WRAPPERS )
+if( USE_BLASPP OR USE_LAPACKPP_WRAPPERS )
   set( BLAS_INT_T int64_t )
 else()
   set( BLAS_INT_T int64_t CACHE STRING
