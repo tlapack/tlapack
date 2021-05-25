@@ -50,56 +50,40 @@ namespace internal {
 inline void throw_if( bool cond, const char* condstr, const char* func )
 {
     if (cond) {
+#ifndef BLAS_ERROR_ASSERT
         throw Error( condstr, func );
+#else
+        fprintf( stderr, "Error: %s, in function %s\n", condstr, func );
+        abort();
+#endif
     }
 }
-
-#if defined(_MSC_VER)
-    #define BLASPP_ATTR_FORMAT(I, F)
-#else
-    #define BLASPP_ATTR_FORMAT(I, F) __attribute__((format( printf, I, F )))
-#endif
 
 // -----------------------------------------------------------------------------
 // internal helper function; throws Error if cond is true
 // uses printf-style format for error message
 // called by blas_error_if_msg macro
-// condstr is ignored, but differentiates this from other version.
+// condstr is ignored, but differentiates this from the other version.
 inline void throw_if( bool cond, const char* condstr, const char* func, const char* format, ... )
-    BLASPP_ATTR_FORMAT(4, 5);
-
-inline void throw_if( bool cond, const char* condstr, const char* func, const char* format, ... )
+#ifndef _MSC_VER
+    __attribute__((format( printf, 4, 5 )))
+#endif
 {
     if (cond) {
         char buf[80];
         va_list va;
         va_start( va, format );
+
         vsnprintf( buf, sizeof(buf), format, va );
+
+#ifndef BLAS_ERROR_ASSERT
         throw Error( buf, func );
-    }
-}
-
-// -----------------------------------------------------------------------------
-// internal helper function; aborts if cond is true
-// uses printf-style format for error message
-// called by blas_error_if_msg macro
-inline void abort_if( bool cond, const char* func,  const char* format, ... )
-    BLASPP_ATTR_FORMAT(3, 4);
-
-inline void abort_if( bool cond, const char* func,  const char* format, ... )
-{
-    if (cond) {
-        char buf[80];
-        va_list va;
-        va_start( va, format );
-        vsnprintf( buf, sizeof(buf), format, va );
-
+#else
         fprintf( stderr, "Error: %s, in function %s\n", buf, func );
         abort();
+#endif
     }
 }
-
-#undef BLASPP_ATTR_FORMAT
 
 }  // namespace internal
 
@@ -115,28 +99,23 @@ inline void abort_if( bool cond, const char* func,  const char* format, ... )
     #define blas_error_if_msg( cond, ... ) \
         ((void)0)
 
-#elif defined(BLAS_ERROR_ASSERT)
-
-    // blaspp aborts on error
-    #define blas_error_if( cond ) \
-        blas::internal::abort_if( cond, __func__, "%s", #cond )
-
-    #define blas_error_if_msg( cond, ... ) \
-        blas::internal::abort_if( cond, __func__, __VA_ARGS__ )
-
 #else
 
-    // blaspp throws errors (default)
-    // internal macro to get string #cond; throws Error if cond is true
+    // blaspp throws errors (default) or aborts (if BLAS_ERROR_ASSERT is defined)
+    // internal macro to get string #cond; throws Error or aborts if cond is true
     // ex: blas_error_if( a < b );
+    // (See https://www.math.utah.edu/docs/info/cpp_1.html#SEC23 to understand the `do {...} while (0);`) 
     #define blas_error_if( cond ) \
-        blas::internal::throw_if( cond, #cond, __func__ )
+    do { if (cond) blas::internal::throw( cond, #cond, __func__ ); } \
+    while (0)
 
     // internal macro takes cond and printf-style format for error message.
-    // throws Error if cond is true.
+    // throws Error or aborts (when BLAS_ERROR_ASSERT is defined) if cond is true.
     // ex: blas_error_if_msg( a < b, "a %d < b %d", a, b );
+    // (See https://www.math.utah.edu/docs/info/cpp_1.html#SEC23 to understand the `do {...} while (0);`) 
     #define blas_error_if_msg( cond, ... ) \
-        blas::internal::throw_if( cond, #cond, __func__, __VA_ARGS__ )
+    do { if( cond ) blas::internal::throw( cond, #cond, __func__, __VA_ARGS__ ); } \
+    while (0)
 
 #endif
 
