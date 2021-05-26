@@ -1,3 +1,8 @@
+# Copyright (c) 2021, University of Colorado Denver. All rights reserved.
+# SPDX-License-Identifier: BSD-3-Clause
+# This program is free software: you can redistribute it and/or modify it under
+# the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
+
 cmake_minimum_required(VERSION 3.18)
 # VERSION 3.18: set_source_files_properties( PROPERTIES Fortran_PREPROCESS ON )
 

@@ -11,11 +11,16 @@
 #  MPFR_INCLUDES - the MPFR include directory
 #  MPFR_LIBRARIES - the MPFR library
 #  MPFR_VERSION - MPFR version
-
+#
 # Copyright (c) 2006, 2007 Montel Laurent, <montel@kde.org>
 # Copyright (c) 2008, 2009 Gael Guennebaud, <g.gael@free.fr>
 # Copyright (c) 2010 Jitse Niesen, <jitse@maths.leeds.ac.uk>
-# Redistribution and use is allowed according to the terms of the BSD license.
+#
+# Copyright (c) 2011, Intel Corporation. All rights reserved.
+# Copyright (c) 2021, University of Colorado Denver. All rights reserved.
+# SPDX-License-Identifier: BSD-3-Clause
+# This program is free software: you can redistribute it and/or modify it under
+# the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
 # Set MPFR_INCLUDES
 

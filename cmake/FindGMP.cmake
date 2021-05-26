@@ -1,5 +1,11 @@
 # Try to find the GNU Multiple Precision Arithmetic Library (GMP)
 # See http://gmplib.org/
+#
+# Copyright (c) 2011, Intel Corporation. All rights reserved.
+# Copyright (c) 2021, University of Colorado Denver. All rights reserved.
+# SPDX-License-Identifier: BSD-3-Clause
+# This program is free software: you can redistribute it and/or modify it under
+# the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
 if (GMP_INCLUDES AND GMP_LIBRARIES)
   set(GMP_FIND_QUIETLY TRUE)
