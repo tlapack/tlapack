@@ -20,7 +20,7 @@ set( tlapack_defs "" )
 # Options
 option( USE_BLASPP_WRAPPERS   "Use BLAS++ wrappers"   OFF )
 option( USE_BLASPP_TEMPLATES  "Use BLAS++ templates"  OFF )
-option( USE_LAPACKPP_WRAPPERS "Use LAPACK++ wrappers" ON  )
+option( USE_LAPACKPP_WRAPPERS "Use LAPACK++ wrappers" OFF )
 option( BUILD_EXAMPLES        "Build examples"        ON  )
 option( USE_GNU_MPFR          "Use GNU MPFR library"  OFF )
 

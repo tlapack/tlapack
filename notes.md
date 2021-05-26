@@ -67,16 +67,22 @@ Some of the templates were modified to acomodate changes in the T-LAPACK library
 
 ## TO-DO list:
 
-1. License: Which licence should we use? Both LAPACK and BLAS++ use the modified BSD license (SPDX-License-Identifier: BSD-3-Clause).
+- [x] License: Which licence should we use? Both LAPACK and BLAS++ use the modified BSD license (SPDX-License-Identifier: BSD-3-Clause).
+   - Using BSD-3.
 
-3. Change the header of the BLAS templates. It is currently using the information from BLAS++.
+- [ ] Change the header of the BLAS templates. It is currently using the information from BLAS++.
+   - Let they be like that.
 
-4. Write the remaining Fortran wrappers.
+- [ ] Write the remaining Fortran wrappers.
    - There is just a few methods as examples there.
 
-5. Implement the remaining BLAS templates.
+- [ ] Implement the remaining BLAS templates.
    - This includes adding the respective C and Fortran wrappers to the new methods.
 
-6. Choose which LAPACK templates we should implement.
+- [ ] Choose which LAPACK templates we should implement.
 
-7. Generate a library `testBLAS.a` with the tests. Currently not working like that. Open issue at https://github.com/catchorg/Catch2/issues/2234.
+- [ ] Generate a library `testBLAS.a` with the tests. Currently not working like that. Open issue at https://github.com/catchorg/Catch2/issues/2234.
+
+- [ ] Implement the install procedure in CMake
+
+- [ ] Add the error code in the message of Error
