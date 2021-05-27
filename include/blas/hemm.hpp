@@ -113,12 +113,12 @@ void hemm(
                    uplo != Uplo::General );
     blas_error_if( m < 0 );
     blas_error_if( n < 0 );
+    blas_error_if( lda < ((side == Side::Left) ? m : n) );
 
     // adapt if row major
     if (layout == Layout::RowMajor) {
 
         // check remaining arguments
-        blas_error_if( lda < ((side == Side::Left) ? n : m) );
         blas_error_if( ldb < n );
         blas_error_if( ldc < n );
 
@@ -129,13 +129,10 @@ void hemm(
             uplo = Uplo::Upper;
         else if (uplo == Uplo::Upper)
             uplo = Uplo::Lower;
-        blas::size_t k = m;
-                m = n;
-                n = k;
+        std::swap( m , n );
     }
     else {
         // check remaining arguments
-        blas_error_if( lda < ((side == Side::Left) ? m : n) );
         blas_error_if( ldb < m );
         blas_error_if( ldc < m );
     }

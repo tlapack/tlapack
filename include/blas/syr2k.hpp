@@ -134,6 +134,11 @@ void syr2k(
 
     // adapt if row major
     if (layout == Layout::RowMajor) {
+
+        // check lda and ldb
+        blas_error_if( lda < ((trans == Op::NoTrans) ? k : n) );
+        blas_error_if( ldb < ((trans == Op::NoTrans) ? k : n) );
+
         if (uplo == Uplo::Lower)
             uplo = Uplo::Upper;
         else if (uplo == Uplo::Upper)
@@ -142,10 +147,13 @@ void syr2k(
             ? Op::Trans
             : Op::NoTrans;
     }
+    else {
+        // check lda and ldb
+        blas_error_if( lda < ((trans == Op::NoTrans) ? n : k) );
+        blas_error_if( ldb < ((trans == Op::NoTrans) ? n : k) );
+    }
 
-    // check remaining arguments
-    blas_error_if( lda < ((trans == Op::NoTrans) ? n : k) );
-    blas_error_if( ldb < ((trans == Op::NoTrans) ? n : k) );
+    // check ldc
     blas_error_if( ldc < n );
 
     // quick return

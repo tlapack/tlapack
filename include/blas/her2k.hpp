@@ -135,6 +135,11 @@ void her2k(
 
     // adapt if row major
     if (layout == Layout::RowMajor) {
+
+        // check lda and ldb
+        blas_error_if( lda < ((trans == Op::NoTrans) ? k : n) );
+        blas_error_if( ldb < ((trans == Op::NoTrans) ? k : n) );
+        
         if (uplo == Uplo::Lower)
             uplo = Uplo::Upper;
         else if (uplo == Uplo::Upper)
@@ -144,10 +149,13 @@ void her2k(
             : Op::NoTrans;
         alpha = conj(alpha);
     }
+    else {
+        // check lda and ldb
+        blas_error_if( lda < ((trans == Op::NoTrans) ? n : k) );
+        blas_error_if( ldb < ((trans == Op::NoTrans) ? n : k) );
+    }
 
-    // check remaining arguments
-    blas_error_if( lda < ((trans == Op::NoTrans) ? n : k) );
-    blas_error_if( ldb < ((trans == Op::NoTrans) ? n : k) );
+    // check ldc
     blas_error_if( ldc < n );
 
     // quick return

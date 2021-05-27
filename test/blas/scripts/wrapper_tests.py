@@ -84,8 +84,13 @@ print("""\
 #include <tblas.hpp>
 #include "test_types.hpp"
 
-#define CHECK_BLAS_THROWS( expr, str ) \\
-    CHECK_THROWS_WITH( expr, Catch::Contains( str ) )
+#ifdef CHECK_BLAS_THROW_MESSAGE
+    #define CHECK_BLAS_THROWS( expr, str ) \\
+        CHECK_THROWS_WITH( expr, Catch::Contains( str ) )
+#else
+    #define CHECK_BLAS_THROWS( expr, str ) \\
+        CHECK_THROWS( expr )
+#endif
 
 using namespace blas;""")
 

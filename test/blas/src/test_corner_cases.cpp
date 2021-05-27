@@ -8,8 +8,13 @@
 #include <tblas.hpp>
 #include "test_types.hpp"
 
-#define CHECK_BLAS_THROWS( expr, str ) \
-    CHECK_THROWS_WITH( expr, Catch::Contains( str ) )
+#ifdef CHECK_BLAS_THROW_MESSAGE
+    #define CHECK_BLAS_THROWS( expr, str ) \
+        CHECK_THROWS_WITH( expr, Catch::Contains( str ) )
+#else
+    #define CHECK_BLAS_THROWS( expr, str ) \
+        CHECK_THROWS( expr )
+#endif
 
 using namespace blas;
 
@@ -872,6 +877,7 @@ TEMPLATE_TEST_CASE( "gemm satisfies all corner cases", "[gemm][BLASlv3]", TEST_T
         CHECK_BLAS_THROWS( gemm( layout, transA, transB, 2, n, k, alpha, A, 1, B, 2, beta, C, 2 ), "lda" );
         CHECK_BLAS_THROWS( gemm( layout, transA, transB, m, n, 2, alpha, A, 2, B, 1, beta, C, 2 ), "ldb" );
         CHECK_BLAS_THROWS( gemm( layout, transA, transB, 2, n, k, alpha, A, 2, B, 2, beta, C, 1 ), "ldc" );
+        CHECK_BLAS_THROWS( gemm( Layout::RowMajor, transA, transB, m, 2, k, alpha, A, 2, B, 1, beta, C, 2 ), "ldb" );
     }
     SECTION( "n = 0" ) {
         TestType ref_C[5];
@@ -939,7 +945,7 @@ TEMPLATE_TEST_CASE( "hemm satisfies all corner cases", "[hemm][BLASlv3]", TEST_T
         CHECK_BLAS_THROWS( hemm( layout, side, uplo, 2, n, alpha, A, 1, B, 2, beta, C, 2 ), "lda" );
         CHECK_BLAS_THROWS( hemm( layout, side, uplo, 2, n, alpha, A, 2, B, 1, beta, C, 2 ), "ldb" );
         CHECK_BLAS_THROWS( hemm( layout, side, uplo, 2, n, alpha, A, 2, B, 2, beta, C, 1 ), "ldc" );
-        CHECK_BLAS_THROWS( hemm( Layout::RowMajor, side, uplo, m, 2, alpha, A, 1, B, 2, beta, C, 2 ), "lda" );
+        CHECK_BLAS_THROWS( hemm( Layout::RowMajor, side, uplo, m, 2, alpha, A, 2, B, 1, beta, C, 2 ), "ldb" );
     }
     SECTION( "n = 0" ) {
         TestType ref_C[5];
@@ -1137,7 +1143,7 @@ TEMPLATE_TEST_CASE( "symm satisfies all corner cases", "[symm][BLASlv3]", TEST_T
         CHECK_BLAS_THROWS( symm( layout, side, uplo, 2, n, alpha, A, 1, B, 2, beta, C, 2 ), "lda" );
         CHECK_BLAS_THROWS( symm( layout, side, uplo, 2, n, alpha, A, 2, B, 1, beta, C, 2 ), "ldb" );
         CHECK_BLAS_THROWS( symm( layout, side, uplo, 2, n, alpha, A, 2, B, 2, beta, C, 1 ), "ldc" );
-        CHECK_BLAS_THROWS( symm( Layout::RowMajor, side, uplo, m, 2, alpha, A, 1, B, 2, beta, C, 2 ), "lda" );
+        CHECK_BLAS_THROWS( symm( Layout::RowMajor, side, uplo, m, 2, alpha, A, 2, B, 1, beta, C, 2 ), "ldb" );
     }
     SECTION( "n = 0" ) {
         TestType ref_C[5];
@@ -1313,7 +1319,7 @@ TEMPLATE_TEST_CASE( "trmm satisfies all corner cases", "[trmm][BLASlv3]", TEST_T
             CHECK_BLAS_THROWS( trmm( layout, side, uplo, trans, diag, m, -1, alpha, A, lda, B, ldb ), "n" );
         CHECK_BLAS_THROWS( trmm( layout, side, uplo, trans, diag, 2, n, alpha, A, 1, B, 2 ), "lda" );
         CHECK_BLAS_THROWS( trmm( layout, side, uplo, trans, diag, 2, n, alpha, A, 2, B, 1 ), "ldb" );
-        CHECK_BLAS_THROWS( trmm( Layout::RowMajor, side, uplo, trans, diag, m, 2, alpha, A, 1, B, 2 ), "lda" );
+        CHECK_BLAS_THROWS( trmm( Layout::RowMajor, side, uplo, trans, diag, m, 2, alpha, A, 2, B, 1 ), "ldb" );
     }
     SECTION( "n = 0" ) {
         TestType ref_B[5];
@@ -1361,7 +1367,7 @@ TEMPLATE_TEST_CASE( "trsm satisfies all corner cases", "[trsm][BLASlv3]", TEST_T
             CHECK_BLAS_THROWS( trsm( layout, side, uplo, trans, diag, m, -1, alpha, A, lda, B, ldb ), "n" );
         CHECK_BLAS_THROWS( trsm( layout, side, uplo, trans, diag, 2, n, alpha, A, 1, B, 2 ), "lda" );
         CHECK_BLAS_THROWS( trsm( layout, side, uplo, trans, diag, 2, n, alpha, A, 2, B, 1 ), "ldb" );
-        CHECK_BLAS_THROWS( trsm( Layout::RowMajor, side, uplo, trans, diag, m, 2, alpha, A, 1, B, 2 ), "lda" );
+        CHECK_BLAS_THROWS( trsm( Layout::RowMajor, side, uplo, trans, diag, m, 2, alpha, A, 2, B, 1 ), "ldb" );
     }
     SECTION( "n = 0" ) {
         TestType ref_B[5];

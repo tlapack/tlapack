@@ -23,3 +23,4 @@
 23, trans = Op('C'), trans
 24, layout = Layout::RowMajor; lda = 1; ldb = 2; ldc = 2; n = 2, lda
 25, layout = Layout::RowMajor; lda = 1; ldb = 2; ldc = 2; k = 2, lda
+26, layout = Layout::RowMajor; lda = 2; ldb = 1; ldc = 2; n = 2, ldb

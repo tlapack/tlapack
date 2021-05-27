@@ -119,6 +119,10 @@ void syrk(
 
     // adapt if row major
     if (layout == Layout::RowMajor) {
+
+        // check lda
+        blas_error_if( lda < ((trans == Op::NoTrans) ? k : n) );
+        
         if (uplo == Uplo::Lower)
             uplo = Uplo::Upper;
         else if (uplo == Uplo::Upper)
@@ -127,9 +131,12 @@ void syrk(
             ? Op::Trans
             : Op::NoTrans;
     }
+    else {
+        // check lda
+        blas_error_if( lda < ((trans == Op::NoTrans) ? n : k) );
+    }
 
-    // check remaining arguments
-    blas_error_if( lda < ((trans == Op::NoTrans) ? n : k) );
+    // check ldc
     blas_error_if( ldc < n );
 
     // quick return

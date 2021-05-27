@@ -124,12 +124,12 @@ void trsm(
                    diag != Diag::Unit );
     blas_error_if( m < 0 );
     blas_error_if( n < 0 );
+    blas_error_if( lda < ((side == Side::Left) ? m : n) );
 
     // adapt if row major
     if (layout == Layout::RowMajor) {
 
         // check remaining arguments
-        blas_error_if( lda < ((side == Side::Left) ? n : m) );
         blas_error_if( ldb < n );
 
         side = (side == Side::Left)
@@ -139,16 +139,12 @@ void trsm(
             uplo = Uplo::Upper;
         else if (uplo == Uplo::Upper)
             uplo = Uplo::Lower;
-        blas::size_t k = m;
-                m = n;
-                n = k;
+        std::swap( m , n );
     }
     else {
         // check remaining arguments
-        blas_error_if( lda < ((side == Side::Left) ? m : n) );
         blas_error_if( ldb < m );
     }
-
 
     // quick return
     if (m == 0 || n == 0)

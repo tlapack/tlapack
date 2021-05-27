@@ -91,51 +91,21 @@ void gemm(
     blas::Layout layout,
     blas::Op transA,
     blas::Op transB,
-   blas::size_t m, blas::size_t n, blas::size_t k,
+    blas::size_t m, blas::size_t n, blas::size_t k,
     scalar_type<TA, TB, TC> alpha,
     TA const *A, blas::size_t lda,
     TB const *B, blas::size_t ldb,
     scalar_type<TA, TB, TC> beta,
     TC       *C, blas::size_t ldc )
 {
-    // redirect if row major
-    if (layout == Layout::RowMajor) {
-
-        // check arguments
-        blas_error_if( transA != Op::NoTrans &&
-                    transA != Op::Trans &&
-                    transA != Op::ConjTrans );
-        blas_error_if( transB != Op::NoTrans &&
-                    transB != Op::Trans &&
-                    transB != Op::ConjTrans );
-        blas_error_if( m < 0 );
-        blas_error_if( n < 0 );
-        blas_error_if( k < 0 );
-
-        blas_error_if( lda < ((transA != Op::NoTrans) ? m : k) );
-        blas_error_if( ldb < ((transB != Op::NoTrans) ? k : n) );
-        blas_error_if( ldc < n );
-        
-        return gemm(
-             Layout::ColMajor,
-             transB,
-             transA,
-             n, m, k,
-             alpha,
-             B, ldb,
-             A, lda,
-             beta,
-             C, ldc);
-    } else {
-        // check layout
-        blas_error_if_msg( layout != Layout::ColMajor,
-            "layout != Layout::ColMajor && layout != Layout::RowMajor" );
-    }
-
     typedef blas::scalar_type<TA, TB, TC> scalar_t;
 
-    #define A(i_, j_) A[ (i_) + (j_)*lda ]
-    #define B(i_, j_) B[ (i_) + (j_)*ldb ]
+    // If layout == Layout::RowMajor we need to swap ptrA with ptrB
+    TA *ptrA = (TA *) A;
+    TB *ptrB = (TB *) B;
+
+    #define A(i_, j_) ptrA[ (i_) + (j_)*lda ]
+    #define B(i_, j_) ptrB[ (i_) + (j_)*ldb ]
     #define C(i_, j_) C[ (i_) + (j_)*ldc ]
 
     // constants
@@ -143,6 +113,8 @@ void gemm(
     const scalar_t one( 1.0 );
 
     // check arguments
+    blas_error_if( layout != Layout::ColMajor &&
+                   layout != Layout::RowMajor );
     blas_error_if( transA != Op::NoTrans &&
                    transA != Op::Trans &&
                    transA != Op::ConjTrans );
@@ -153,9 +125,25 @@ void gemm(
     blas_error_if( n < 0 );
     blas_error_if( k < 0 );
 
-    blas_error_if( lda < ((transA != Op::NoTrans) ? k : m) );
-    blas_error_if( ldb < ((transB != Op::NoTrans) ? n : k) );
-    blas_error_if( ldc < m );
+    // adapt if row major
+    if (layout == Layout::RowMajor) {
+
+        // check remaining arguments
+        blas_error_if( lda < ((transA != Op::NoTrans) ? m : k) );
+        blas_error_if( ldb < ((transB != Op::NoTrans) ? k : n) );
+        blas_error_if( ldc < n );
+
+        std::swap( transA , transB );
+        std::swap( m , n );
+        std::swap( ptrA , ptrB );
+        std::swap( lda , ldb );
+    }
+    else {
+        // check remaining arguments
+        blas_error_if( lda < ((transA != Op::NoTrans) ? k : m) );
+        blas_error_if( ldb < ((transB != Op::NoTrans) ? n : k) );
+        blas_error_if( ldc < m );
+    }
 
     // quick return
     if (m == 0 || n == 0)
