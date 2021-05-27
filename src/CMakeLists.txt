@@ -10,38 +10,13 @@
 #-------------------------------------------------------------------------------
 # Library: libblas
 add_library(blas cwrappers_tblas.cpp)
-
-target_compile_definitions( blas PUBLIC ${tlapack_defs} )
-if( USE_BLASPP )
-    target_link_libraries( blas PUBLIC blaspp )
-endif()
-if( USE_GNU_MPFR )
-    target_include_directories(blas PRIVATE ${MPFR_INCLUDES} ${GMP_INCLUDES})
-    target_link_libraries( blas PRIVATE ${MPFR_LIBRARIES} ${GMP_LIBRARIES} )
-endif()
-
-set_target_properties( blas
-PROPERTIES
-    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib" )
+target_link_libraries( blas PUBLIC tblas )
 
 #-------------------------------------------------------------------------------
 # Library: libcblas
 add_library(cblas cwrappers_tblas.cpp)
-
-target_compile_definitions( cblas PUBLIC ${tlapack_defs} "-DBUILD_CBLAS" )
-if( USE_BLASPP )
-    target_link_libraries( cblas PUBLIC blaspp )
-endif()
-if( USE_GNU_MPFR )
-    target_include_directories(cblas PRIVATE ${MPFR_INCLUDES} ${GMP_INCLUDES})
-    target_link_libraries( cblas PRIVATE ${MPFR_LIBRARIES} ${GMP_LIBRARIES} )
-endif()
-
-set_target_properties( cblas
-PROPERTIES
-    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib" )
+target_link_libraries( blas PUBLIC tblas )
+target_compile_definitions( cblas PRIVATE BUILD_CBLAS )
 
 #-------------------------------------------------------------------------------
 # Library: Fortran wrappers for TBLAS
@@ -91,7 +66,10 @@ configure_file( blas.f90.in ${PROJECT_SOURCE_DIR}/include/blas.f90 @ONLY )
 add_library(fortranwrappers_tblas fortranwrappers_tblas.f90)
 target_link_libraries( fortranwrappers_tblas PUBLIC blas )
 
-set_target_properties( fortranwrappers_tblas
+#-------------------------------------------------------------------------------
+# Common configurations
+
+set_target_properties( blas cblas fortranwrappers_tblas
 PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib" )

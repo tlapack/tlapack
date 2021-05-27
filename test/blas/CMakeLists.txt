@@ -17,10 +17,10 @@ project(TestBLAS
 message(STATUS "TestBLAS version " ${PROJECT_VERSION})
 
 #-------------------------------------------------------------------------------
-# TODO: Define a `TBLASConfig.cmake` on the C++-based BLAS
-set( tblas_include_dir "${CMAKE_SOURCE_DIR}/include" )
-message( STATUS "tblas_include_dir = ${tblas_include_dir}" )
-message( STATUS "tlapack_defs = ${tlapack_defs}" )
+# T-BLAS
+if( NOT TARGET tblas )
+  # TODO: Do something when target is not found
+endif()
 
 #-------------------------------------------------------------------------------
 # Search for Catch2
@@ -65,20 +65,8 @@ file( GLOB test_sources
 # target_link_libraries( tester PRIVATE testBLAS )
 
 add_executable( tester tests_main.cpp ${test_sources} )
-target_compile_definitions( tester
-    PRIVATE ${tlapack_defs} )
-target_include_directories( tester
-PRIVATE
-    "${CMAKE_CURRENT_SOURCE_DIR}/include"
-    ${tblas_include_dir} )
-target_link_libraries( tester PRIVATE Catch2::Catch2 )
-if( USE_BLASPP )
-    target_link_libraries( tester PRIVATE blaspp )
-endif()
-if( USE_GNU_MPFR )
-    target_include_directories(tester PRIVATE ${MPFR_INCLUDES} ${GMP_INCLUDES})
-    target_link_libraries( tester PRIVATE ${MPFR_LIBRARIES} ${GMP_LIBRARIES} )
-endif()
+target_include_directories( tester PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include" )
+target_link_libraries( tester PRIVATE Catch2::Catch2 tblas )
 
 set_target_properties( tester
     PROPERTIES

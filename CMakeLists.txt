@@ -18,8 +18,17 @@ project(TLAPACK
 message(STATUS "T-LAPACK version " ${PROJECT_VERSION})
 
 #-------------------------------------------------------------------------------
-# T-LAPACK template library definitions
-set( tlapack_defs "" )
+# T-LAPACK and T-BLAS template library
+
+add_library( tblas src/blas/exception.cpp )
+
+add_library( tlapack INTERFACE )
+target_link_libraries( tlapack INTERFACE tblas )
+
+set_target_properties( tlapack tblas
+PROPERTIES
+    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib" )
 
 #-------------------------------------------------------------------------------
 # Options
@@ -35,6 +44,7 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 #-------------------------------------------------------------------------------
 # Search for BLAS++ library if it is needed
+
 if( USE_BLASPP_WRAPPERS OR USE_BLASPP_TEMPLATES )
   set(USE_BLASPP ON)
   find_package( blaspp )
@@ -43,12 +53,15 @@ if( USE_BLASPP_WRAPPERS OR USE_BLASPP_TEMPLATES )
   else()
     message( FATAL_ERROR "  BLAS++ not found." )
   endif()
+  target_link_libraries( tblas PUBLIC blaspp )
 endif()
+
 if(USE_BLASPP_WRAPPERS)
-  list( APPEND tlapack_defs "-DUSE_BLASPP_WRAPPERS" )
+  target_compile_definitions( tblas PUBLIC USE_BLASPP_WRAPPERS )
 endif()
+
 if(USE_BLASPP_TEMPLATES)
-  list( APPEND tlapack_defs "-DUSE_BLASPP_TEMPLATES" )
+  target_compile_definitions( tblas PUBLIC USE_BLASPP_TEMPLATES )
 endif()
 
 #-------------------------------------------------------------------------------
@@ -60,7 +73,8 @@ if( USE_LAPACKPP_WRAPPERS )
   else()
     message( FATAL_ERROR "  LAPACK++ not found." )
   endif()
-  list( APPEND tlapack_defs "-DUSE_LAPACKPP_WRAPPERS" )
+  target_compile_definitions( tlapack INTERFACE USE_LAPACKPP_WRAPPERS )
+  target_link_libraries( tlapack INTERFACE lapackpp )
 endif()
 
 #-------------------------------------------------------------------------------
@@ -68,7 +82,9 @@ endif()
 if( USE_GNU_MPFR )
   # find_package( GMP REQUIRED )
   find_package( MPFR REQUIRED )
-  list( APPEND tlapack_defs "-DUSE_GNU_MPFR" )
+  target_compile_definitions( tblas PUBLIC USE_GNU_MPFR )
+  target_include_directories( tblas PUBLIC ${MPFR_INCLUDES} ${GMP_INCLUDES} )
+  target_link_libraries( tblas PUBLIC ${MPFR_LIBRARIES} ${GMP_LIBRARIES} )
 endif()
 
 #-------------------------------------------------------------------------------
@@ -89,7 +105,7 @@ else()
 endif()
 
 if( NOT BLAS_SIZE_T STREQUAL "" )
-  list( APPEND tlapack_defs "-DBLAS_SIZE_T=${BLAS_SIZE_T}" )
+  target_compile_definitions( tblas PUBLIC "BLAS_SIZE_T=${BLAS_SIZE_T}" )
 endif()
 
 #-------------------------------------------------------------------------------
@@ -125,7 +141,7 @@ else()
 endif()
 
 if( NOT BLAS_INT_T STREQUAL "" )
-  list( APPEND tlapack_defs "-DBLAS_INT_T=${BLAS_INT_T}" )
+  target_compile_definitions( tblas PUBLIC "BLAS_INT_T=${BLAS_INT_T}" )
 endif()
 
 #-------------------------------------------------------------------------------

@@ -28,7 +28,7 @@ public:
         msg_( msg )
     {}
 
-    /// Constructs BLAS error with message: "msg, in function func"
+    /// Constructs BLAS error with message: "msg, in function <func>"
     Error( const char* msg, const char* func ):
         std::exception(),
         msg_( std::string(msg) + ", in function " + func )
@@ -42,56 +42,55 @@ private:
     std::string msg_;
 };
 
+// -----------------------------------------------------------------------------
+// Main function to handle errors in T-BLAS
+// Default implementation: throw blas::Error( error_msg, func )
+void error( const char* error_msg, const char* func );
+
+// -----------------------------------------------------------------------------
+// Internal helpers
 namespace internal {
 
-// -----------------------------------------------------------------------------
-// internal helper function; throws Error if cond is true
-// called by blas_error_if macro
-inline void throw_if( bool cond, const char* condstr, const char* func )
-{
-    if (cond) {
-#ifndef BLAS_ERROR_ASSERT
-        throw Error( condstr, func );
-#else
-        fprintf( stderr, "Error: %s, in function %s\n", condstr, func );
-        abort();
-#endif
+    // -----------------------------------------------------------------------------
+    // internal helper function that calls blas::error if cond is true
+    // called by blas_error_if macro
+    inline void error_if( bool cond, const char* condstr, const char* func )
+    {
+        if (cond)
+            error( condstr, func );
     }
-}
 
-// -----------------------------------------------------------------------------
-// internal helper function; throws Error if cond is true
-// uses printf-style format for error message
-// called by blas_error_if_msg macro
-// condstr is ignored, but differentiates this from the other version.
-inline void throw_if( bool cond, const char* condstr, const char* func, const char* format, ... )
-#ifndef _MSC_VER
-    __attribute__((format( printf, 4, 5 )))
-#endif
-{
-    if (cond) {
-        char buf[80];
-        va_list va;
-        va_start( va, format );
+    // -----------------------------------------------------------------------------
+    // internal helper function that calls blas::error if cond is true
+    // uses printf-style format for error message
+    // called by blas_error_if_msg macro
+    // condstr is ignored, but differentiates this from the other version.
+    inline void error_if( bool cond, const char* condstr, const char* func,
+        const char* format, ... )
+    #ifndef _MSC_VER
+        __attribute__((format( printf, 4, 5 )));
+    #endif
+    
+    inline void error_if( bool cond, const char* condstr, const char* func,
+        const char* format, ... )
+    {
+        if (cond) {
+            char buf[80];
+            va_list va;
+            va_start( va, format );
+            vsnprintf( buf, sizeof(buf), format, va );
 
-        vsnprintf( buf, sizeof(buf), format, va );
-
-#ifndef BLAS_ERROR_ASSERT
-        throw Error( buf, func );
-#else
-        fprintf( stderr, "Error: %s, in function %s\n", buf, func );
-        abort();
-#endif
+            error( buf, func );
+        }
     }
-}
 
 }  // namespace internal
 
 // -----------------------------------------------------------------------------
-// internal macros to handle error checks
-#if defined(BLAS_ERROR_NDEBUG) || (defined(BLAS_ERROR_ASSERT) && defined(NDEBUG))
+// Macros to handle error checks
+#if defined(BLAS_ERROR_NDEBUG) || defined(NDEBUG)
 
-    // blaspp does no error checking;
+    // T-BLAS does no error checking;
     // lower level BLAS may still handle errors via xerbla
     #define blas_error_if( cond ) \
         ((void)0)
@@ -101,21 +100,15 @@ inline void throw_if( bool cond, const char* condstr, const char* func, const ch
 
 #else
 
-    // blaspp throws errors (default) or aborts (if BLAS_ERROR_ASSERT is defined)
-    // internal macro to get string #cond; throws Error or aborts if cond is true
+    // internal macro to get strings: #cond and __func__
     // ex: blas_error_if( a < b );
-    // (See https://www.math.utah.edu/docs/info/cpp_1.html#SEC23 to understand the `do {...} while (0);`) 
     #define blas_error_if( cond ) \
-    do { if (cond) blas::internal::throw( cond, #cond, __func__ ); } \
-    while (0)
+        blas::internal::error_if( cond, #cond, __func__ )
 
     // internal macro takes cond and printf-style format for error message.
-    // throws Error or aborts (when BLAS_ERROR_ASSERT is defined) if cond is true.
     // ex: blas_error_if_msg( a < b, "a %d < b %d", a, b );
-    // (See https://www.math.utah.edu/docs/info/cpp_1.html#SEC23 to understand the `do {...} while (0);`) 
     #define blas_error_if_msg( cond, ... ) \
-    do { if( cond ) blas::internal::throw( cond, #cond, __func__, __VA_ARGS__ ); } \
-    while (0)
+        blas::internal::error_if( cond, #cond, __func__, __VA_ARGS__ )
 
 #endif
 

@@ -9,14 +9,7 @@ target_include_directories(version PRIVATE "${PROJECT_BINARY_DIR}/config")
 
 # add the example gemm
 add_executable(example_gemm example_gemm.cpp)
-target_compile_definitions( example_gemm PRIVATE ${tlapack_defs} )
-if( USE_BLASPP )
-    target_link_libraries( example_gemm PRIVATE blaspp )
-endif()
-if( USE_GNU_MPFR )
-    target_include_directories(example_gemm PRIVATE ${MPFR_INCLUDES} ${GMP_INCLUDES})
-    target_link_libraries( example_gemm PRIVATE ${MPFR_LIBRARIES} ${GMP_LIBRARIES} )
-endif()
+target_link_libraries( example_gemm PRIVATE tblas )
 
 # add the example gemm using the C wrapper
 add_executable(example_cwrapper_gemm example_cwrapper_gemm.c)
@@ -37,11 +30,4 @@ target_link_libraries( example_fortranWrapper_saxpy PRIVATE fortranwrappers_tbla
 
 # add the example geqr
 add_executable(example_geqr example_geqr.cpp)
-target_compile_definitions( example_geqr PRIVATE ${tlapack_defs} )
-if( USE_LAPACKPP_WRAPPERS )
-    target_link_libraries( example_geqr PRIVATE lapackpp )
-endif()
-if( USE_GNU_MPFR )
-    target_include_directories(example_geqr PRIVATE ${MPFR_INCLUDES} ${GMP_INCLUDES})
-    target_link_libraries( example_geqr PRIVATE ${MPFR_LIBRARIES} ${GMP_LIBRARIES} )
-endif()
+target_link_libraries( example_geqr PRIVATE tlapack )

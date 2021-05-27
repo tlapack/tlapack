@@ -100,6 +100,22 @@ void gemm(
 {
     // redirect if row major
     if (layout == Layout::RowMajor) {
+
+        // check arguments
+        blas_error_if( transA != Op::NoTrans &&
+                    transA != Op::Trans &&
+                    transA != Op::ConjTrans );
+        blas_error_if( transB != Op::NoTrans &&
+                    transB != Op::Trans &&
+                    transB != Op::ConjTrans );
+        blas_error_if( m < 0 );
+        blas_error_if( n < 0 );
+        blas_error_if( k < 0 );
+
+        blas_error_if( lda < ((transA != Op::NoTrans) ? m : k) );
+        blas_error_if( ldb < ((transB != Op::NoTrans) ? k : n) );
+        blas_error_if( ldc < n );
+        
         return gemm(
              Layout::ColMajor,
              transB,

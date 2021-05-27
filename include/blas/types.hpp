@@ -20,9 +20,9 @@ namespace blas {
 // -----------------------------------------------------------------------------
 // Integer types blas::size_t and blas::int_t
 #ifndef BLAS_SIZE_T
-    using size_t;
+    using size_t = std::size_t;
 #else
-    using size_t = u_int32_t;
+    using size_t = BLAS_SIZE_T;
 #endif
 
 #ifndef BLAS_INT_T

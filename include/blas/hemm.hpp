@@ -116,6 +116,12 @@ void hemm(
 
     // adapt if row major
     if (layout == Layout::RowMajor) {
+
+        // check remaining arguments
+        blas_error_if( lda < ((side == Side::Left) ? n : m) );
+        blas_error_if( ldb < n );
+        blas_error_if( ldc < n );
+
         side = (side == Side::Left)
             ? Side::Right
             : Side::Left;
@@ -127,11 +133,12 @@ void hemm(
                 m = n;
                 n = k;
     }
-
-    // check remaining arguments
-    blas_error_if( lda < ((side == Side::Left) ? m : n) );
-    blas_error_if( ldb < m );
-    blas_error_if( ldc < m );
+    else {
+        // check remaining arguments
+        blas_error_if( lda < ((side == Side::Left) ? m : n) );
+        blas_error_if( ldb < m );
+        blas_error_if( ldc < m );
+    }
 
     // quick return
     if (m == 0 || n == 0)

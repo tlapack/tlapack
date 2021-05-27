@@ -84,6 +84,9 @@ print("""\
 #include <tblas.hpp>
 #include "test_types.hpp"
 
+#define CHECK_BLAS_THROWS( expr, str ) \\
+    CHECK_THROWS_WITH( expr, Catch::Contains( str ) )
+
 using namespace blas;""")
 
 # ------------------------------------------------------------------------------
@@ -147,6 +150,7 @@ TEMPLATE_TEST_CASE( \"""" + f_name + """ satisfies all corner cases", "[""" + \
                 configStr = throwException_corner_rules[int(k)][0]
             else:
                 configStr = k
+            throwStr = throwException_corner_rules[int(k)][1]
             attribs = [x.strip() for x in configStr.split(';')]
             args = ref_args.copy()
             for varAttrib in attribs:
@@ -163,10 +167,10 @@ TEMPLATE_TEST_CASE( \"""" + f_name + """ satisfies all corner cases", "[""" + \
         if protect_sizet:
             throwExceptionBuffer += """
         if( std::is_signed<blas::size_t>::value )
-            CHECK_THROWS_AS( """ + f_name + "( " + ", ".join(args) + " ), Error );",
+            CHECK_BLAS_THROWS( """ + f_name + "( " + ", ".join(args) + " ), \"" + throwStr + "\" );",
         else:
             throwExceptionBuffer += """
-        CHECK_THROWS_AS( """ + f_name + "( " + ", ".join(args) + " ), Error );",
+        CHECK_BLAS_THROWS( """ + f_name + "( " + ", ".join(args) + " ), \"" + throwStr + "\" );",
         countCases += 1
 
     if countCases > 0:
@@ -236,7 +240,7 @@ TEMPLATE_TEST_CASE( \"""" + f_name + """ satisfies all corner cases", "[""" + \
         buffer += """
     SECTION ( "Throw if d1 == -1" ) {
         real_t d1Minus1 = real_t(-1);
-        CHECK_THROWS_AS( rotmg( &d1Minus1, d2, a, b, param ), Error );
+        CHECK_BLAS_THROWS( rotmg( &d1Minus1, d2, a, b, param ), "d1" );
     }""",
         countCases += 1
     elif f_name == "dot" or f_name == "dotu":

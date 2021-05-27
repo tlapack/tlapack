@@ -122,6 +122,11 @@ void trmm(
 
     // adapt if row major
     if (layout == Layout::RowMajor) {
+
+        // check remaining arguments
+        blas_error_if( lda < ((side == Side::Left) ? n : m) );
+        blas_error_if( ldb < n );
+
         side = (side == Side::Left)
             ? Side::Right
             : Side::Left;
@@ -133,10 +138,11 @@ void trmm(
                 m = n;
                 n = k;
     }
-    
-    // check remaining arguments
-    blas_error_if( lda < ((side == Side::Left) ? m : n) );
-    blas_error_if( ldb < m );
+    else {
+        // check remaining arguments
+        blas_error_if( lda < ((side == Side::Left) ? m : n) );
+        blas_error_if( ldb < m );
+    }
 
     // quick return
     if (m == 0 || n == 0)
