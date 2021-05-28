@@ -7,29 +7,28 @@
 #ifndef BLAS_ASUM_HH
 #define BLAS_ASUM_HH
 
-#include "exception.hpp"
 #include "blas/utils.hpp"
 
 namespace blas {
 
-// =============================================================================
-/// @return 1-norm of vector,
-///     $|| Re(x) ||_1 + || Im(x) ||_1
-///         = \sum_{i=0}^{n-1} |Re(x_i)| + |Im(x_i)|$.
-///
-/// Generic implementation for arbitrary data types.
-///
-/// @param[in] n
-///     Number of elements in x. n >= 0.
-///
-/// @param[in] x
-///     The n-element vector x, in an array of length (n-1)*incx + 1.
-///
-/// @param[in] incx
-///     Stride between elements of x. incx > 0.
-///
-/// @ingroup asum
-
+/**
+ * @return 1-norm of vector,
+ *     $|| Re(x) ||_1 + || Im(x) ||_1
+ *         = \sum_{i=0}^{n-1} |Re(x_i)| + |Im(x_i)|$.
+ *
+ * Generic implementation for arbitrary data types.
+ *
+ * @param[in] n
+ *     Number of elements in x. n >= 0.
+ *
+ * @param[in] x
+ *     The n-element vector x, in an array of length (n-1)*incx + 1.
+ *
+ * @param[in] incx
+ *     Stride between elements of x. incx > 0.
+ *
+ * @ingroup asum
+ */
 template< typename T >
 real_type<T>
 asum(

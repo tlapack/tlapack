@@ -7,58 +7,59 @@
 #ifndef BLAS_IAMAX_HH
 #define BLAS_IAMAX_HH
 
-#include "exception.hpp"
 #include "blas/utils.hpp"
 #include "blas/constants.hpp"
 
 namespace blas {
 
-// =============================================================================
-/// @return In priority order:
-/// 1. INVALID_INDEX if (a) $n \le 0$ or (b) $x_i=NAN$ for all $i$ and `checkNAN == false`,
-/// 2. the index of the first `NAN` in $x$ if it exists and if `checkNAN == true`,
-/// 3. the index of the first `Infinity` in $x$ if it is the case,
-/// 4. the Index of the infinity-norm of $x$, $|| x ||_{inf}$,
-///     $\arg\max_{i=0}^{n-1} \left(|Re(x_i)| + |Im(x_i)|\right)$.
-///
-/// Generic implementation for arbitrary data types.
-///
-/// @param[in] n
-///     Number of elements in x.
-///
-/// @param[in] x
-///     The n-element vector x, in an array of length (n-1)*incx + 1.
-///
-/// @param[in] incx
-///     Stride between elements of x. incx > 0.
-///
-/// @param[in] checkNAN
-///     If true, check for Infs and NaNs in the input.
-///
-/// @ingroup iamax
-
+/**
+ * @return In priority order:
+ * 1. INVALID_INDEX if (a) $n \le 0$ or (b) $x_i=NAN$ for all $i$ and `checkNAN == false`,
+ * 2. the index of the first `NAN` in $x$ if it exists and if `checkNAN == true`,
+ * 3. the index of the first `Infinity` in $x$ if it is the case,
+ * 4. the Index of the infinity-norm of $x$, $|| x ||_{inf}$,
+ *     $\arg\max_{i=0}^{n-1} \left(|Re(x_i)| + |Im(x_i)|\right)$.
+ *
+ * Generic implementation for arbitrary data types.
+ *
+ * @param[in] n
+ *     Number of elements in x.
+ *
+ * @param[in] x
+ *     The n-element vector x, in an array of length (n-1)*incx + 1.
+ *
+ * @param[in] incx
+ *     Stride between elements of x. incx > 0.
+ *
+ * @param[in] checkNAN
+ *     If true, check for Infs and NaNs in the input.
+ *
+ * @ingroup iamax
+ */
 template< typename T >
 size_t iamax(
     blas::size_t n,
     T const *x, blas::int_t incx,
     bool checkNAN = true );
 
-/// iamax_quietNAN does not check for Infs or NaNs in the input.
-///
-///     In the complex case, it does check if the infinity-norm of $x$ is Inf.
-///     This is necessary to obtain the correct result.
-///
-/// @ingroup iamax
-
+/**
+ * iamax_quietNAN does not check for Infs or NaNs in the input.
+ *
+ *     In the complex case, it checks if the infinity-norm of $x$ is Inf.
+ *     This is necessary to obtain the correct result.
+ *
+ * @ingroup iamax
+ */
 template< typename T >
 size_t iamax_quietNAN(
     blas::size_t n,
     T const *x, blas::int_t incx );
 
-/// iamax_checkNAN checks for Infs and NaNs in the input
-///
-/// @ingroup iamax
-
+/**
+ * iamax_checkNAN checks for Infs and NaNs in the input
+ *
+ * @ingroup iamax
+ */
 template< typename T >
 size_t iamax_checkNAN(
     blas::size_t n,

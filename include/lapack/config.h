@@ -7,20 +7,12 @@
 #ifndef __TLAPACK_CONFIG_H__
 #define __TLAPACK_CONFIG_H__
 
-#if defined(BLAS_ILP64) && ! defined(LAPACK_ILP64)
-    #define LAPACK_ILP64
-#endif
-
-#ifndef lapack_int
-    #ifdef LAPACK_ILP64
-        #define lapack_int int64_t
-    #else
-        #define lapack_int int
-    #endif
-#endif
-
 #ifndef lapack_logical
-    #define lapack_logical lapack_int
+    #if defined(BLAS_ILP64) || defined(LAPACK_ILP64)
+        #define lapack_logical int64_t
+    #else
+        #define lapack_logical int
+    #endif
 #endif
 
 // =============================================================================

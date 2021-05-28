@@ -3,7 +3,7 @@
 // This program is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#include "blas/exception.hpp"
+#include "blas/utils.hpp"
 #include <stdio.h>
 #include <stdlib.h>
 

@@ -32,6 +32,7 @@ namespace blas {
 #endif
 
 // -----------------------------------------------------------------------------
+// Enumerations
 enum class Layout { ColMajor = 'C', RowMajor = 'R' };
 enum class Op     { NoTrans  = 'N', Trans    = 'T', ConjTrans = 'C' };
 enum class Uplo   { Upper    = 'U', Lower    = 'L', General   = 'G' };
@@ -58,7 +59,7 @@ struct is_complex:
     std::integral_constant<bool, false>
 {};
 
-// specialize for std::complex
+/// specialize for std::complex
 template <typename T>
 struct is_complex< std::complex<T> >:
     std::integral_constant<bool, true>
@@ -80,7 +81,7 @@ struct is_complex< std::complex<T> >:
 template< typename... Types >
 struct scalar_type_traits;
 
-// define scalar_type<> type alias
+/// define scalar_type<> type alias
 template< typename... Types >
 using scalar_type = typename scalar_type_traits< Types... >::type;
 
@@ -145,11 +146,11 @@ struct scalar_type_traits< T1, T2, Types... >
 template< typename... Types >
 struct real_type_traits;
 
-// define real_type<> type alias
+/// define real_type<> type alias
 template< typename... Types >
 using real_type = typename real_type_traits< Types... >::real_t;
 
-// define complex_type<> type alias
+/// define complex_type<> type alias
 template< typename... Types >
 using complex_type = std::complex< real_type< Types... > >;
 

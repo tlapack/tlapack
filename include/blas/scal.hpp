@@ -7,30 +7,29 @@
 #ifndef BLAS_SCAL_HH
 #define BLAS_SCAL_HH
 
-#include "exception.hpp"
 #include "blas/utils.hpp"
 
 namespace blas {
 
-// =============================================================================
-/// Scale vector by constant, $x = \alpha x$.
-///
-/// Generic implementation for arbitrary data types.
-///
-/// @param[in] n
-///     Number of elements in x. n >= 0.
-///
-/// @param[in] alpha
-///     Scalar alpha.
-///
-/// @param[in] x
-///     The n-element vector x, in an array of length (n-1)*incx + 1.
-///
-/// @param[in] incx
-///     Stride between elements of x. incx > 0.
-///
-/// @ingroup scal
-
+/**
+ * Scale vector by constant, $x = \alpha x$.
+ *
+ * Generic implementation for arbitrary data types.
+ *
+ * @param[in] n
+ *     Number of elements in x. n >= 0.
+ *
+ * @param[in] alpha
+ *     Scalar alpha.
+ *
+ * @param[in] x
+ *     The n-element vector x, in an array of length (n-1)*incx + 1.
+ *
+ * @param[in] incx
+ *     Stride between elements of x. incx > 0.
+ *
+ * @ingroup scal
+ */
 template< typename T >
 void scal(
     blas::size_t n,

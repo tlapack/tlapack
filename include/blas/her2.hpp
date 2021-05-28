@@ -7,61 +7,60 @@
 #ifndef BLAS_HER2_HH
 #define BLAS_HER2_HH
 
-#include "exception.hpp"
 #include "blas/utils.hpp"
 #include "blas/syr2.hpp"
 
 namespace blas {
 
-// =============================================================================
-/// Hermitian matrix rank-2 update:
-/// \[
-///     A = \alpha x y^H + \text{conj}(\alpha) y x^H + A,
-/// \]
-/// where alpha is a scalar, x and y are vectors,
-/// and A is an n-by-n Hermitian matrix.
-///
-/// Generic implementation for arbitrary data types.
-///
-/// @param[in] layout
-///     Matrix storage, Layout::ColMajor or Layout::RowMajor.
-///
-/// @param[in] uplo
-///     What part of the matrix A is referenced,
-///     the opposite triangle being assumed from symmetry.
-///     - Uplo::Lower: only the lower triangular part of A is referenced.
-///     - Uplo::Upper: only the upper triangular part of A is referenced.
-///
-/// @param[in] n
-///     Number of rows and columns of the matrix A. n >= 0.
-///
-/// @param[in] alpha
-///     Scalar alpha. If alpha is zero, A is not updated.
-///
-/// @param[in] x
-///     The n-element vector x, in an array of length (n-1)*abs(incx) + 1.
-///
-/// @param[in] incx
-///     Stride between elements of x. incx must not be zero.
-///     If incx < 0, uses elements of x in reverse order: x(n-1), ..., x(0).
-///
-/// @param[in] y
-///     The n-element vector y, in an array of length (n-1)*abs(incy) + 1.
-///
-/// @param[in] incy
-///     Stride between elements of y. incy must not be zero.
-///     If incy < 0, uses elements of y in reverse order: y(n-1), ..., y(0).
-///
-/// @param[in, out] A
-///     The n-by-n matrix A, stored in an lda-by-n array [RowMajor: n-by-lda].
-///     Imaginary parts of the diagonal elements need not be set,
-///     are assumed to be zero on entry, and are set to zero on exit.
-///
-/// @param[in] lda
-///     Leading dimension of A. lda >= max(1, n).
-///
-/// @ingroup her2
-
+/**
+ * Hermitian matrix rank-2 update:
+ * \[
+ *     A = \alpha x y^H + \text{conj}(\alpha) y x^H + A,
+ * \]
+ * where alpha is a scalar, x and y are vectors,
+ * and A is an n-by-n Hermitian matrix.
+ *
+ * Generic implementation for arbitrary data types.
+ *
+ * @param[in] layout
+ *     Matrix storage, Layout::ColMajor or Layout::RowMajor.
+ *
+ * @param[in] uplo
+ *     What part of the matrix A is referenced,
+ *     the opposite triangle being assumed from symmetry.
+ *     - Uplo::Lower: only the lower triangular part of A is referenced.
+ *     - Uplo::Upper: only the upper triangular part of A is referenced.
+ *
+ * @param[in] n
+ *     Number of rows and columns of the matrix A. n >= 0.
+ *
+ * @param[in] alpha
+ *     Scalar alpha. If alpha is zero, A is not updated.
+ *
+ * @param[in] x
+ *     The n-element vector x, in an array of length (n-1)*abs(incx) + 1.
+ *
+ * @param[in] incx
+ *     Stride between elements of x. incx must not be zero.
+ *     If incx < 0, uses elements of x in reverse order: x(n-1), ..., x(0).
+ *
+ * @param[in] y
+ *     The n-element vector y, in an array of length (n-1)*abs(incy) + 1.
+ *
+ * @param[in] incy
+ *     Stride between elements of y. incy must not be zero.
+ *     If incy < 0, uses elements of y in reverse order: y(n-1), ..., y(0).
+ *
+ * @param[in, out] A
+ *     The n-by-n matrix A, stored in an lda-by-n array [RowMajor: n-by-lda].
+ *     Imaginary parts of the diagonal elements need not be set,
+ *     are assumed to be zero on entry, and are set to zero on exit.
+ *
+ * @param[in] lda
+ *     Leading dimension of A. lda >= max(1, n).
+ *
+ * @ingroup her2
+ */
 template< typename TA, typename TX, typename TY >
 void her2(
     blas::Layout layout,

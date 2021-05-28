@@ -7,51 +7,50 @@
 #ifndef BLAS_SYR_HH
 #define BLAS_SYR_HH
 
-#include "exception.hpp"
 #include "blas/utils.hpp"
 
 namespace blas {
 
-// =============================================================================
-/// Symmetric matrix rank-1 update:
-/// \[
-///     A = \alpha x x^T + A,
-/// \]
-/// where alpha is a scalar, x is a vector,
-/// and A is an n-by-n symmetric matrix.
-///
-/// Generic implementation for arbitrary data types.
-///
-/// @param[in] layout
-///     Matrix storage, Layout::ColMajor or Layout::RowMajor.
-///
-/// @param[in] uplo
-///     What part of the matrix A is referenced,
-///     the opposite triangle being assumed from symmetry.
-///     - Uplo::Lower: only the lower triangular part of A is referenced.
-///     - Uplo::Upper: only the upper triangular part of A is referenced.
-///
-/// @param[in] n
-///     Number of rows and columns of the matrix A. n >= 0.
-///
-/// @param[in] alpha
-///     Scalar alpha. If alpha is zero, A is not updated.
-///
-/// @param[in] x
-///     The n-element vector x, in an array of length (n-1)*abs(incx) + 1.
-///
-/// @param[in] incx
-///     Stride between elements of x. incx must not be zero.
-///     If incx < 0, uses elements of x in reverse order: x(n-1), ..., x(0).
-///
-/// @param[in, out] A
-///     The n-by-n matrix A, stored in an lda-by-n array [RowMajor: n-by-lda].
-///
-/// @param[in] lda
-///     Leading dimension of A. lda >= max(1, n).
-///
-/// @ingroup syr
-
+/**
+ * Symmetric matrix rank-1 update:
+ * \[
+ *     A = \alpha x x^T + A,
+ * \]
+ * where alpha is a scalar, x is a vector,
+ * and A is an n-by-n symmetric matrix.
+ *
+ * Generic implementation for arbitrary data types.
+ *
+ * @param[in] layout
+ *     Matrix storage, Layout::ColMajor or Layout::RowMajor.
+ *
+ * @param[in] uplo
+ *     What part of the matrix A is referenced,
+ *     the opposite triangle being assumed from symmetry.
+ *     - Uplo::Lower: only the lower triangular part of A is referenced.
+ *     - Uplo::Upper: only the upper triangular part of A is referenced.
+ *
+ * @param[in] n
+ *     Number of rows and columns of the matrix A. n >= 0.
+ *
+ * @param[in] alpha
+ *     Scalar alpha. If alpha is zero, A is not updated.
+ *
+ * @param[in] x
+ *     The n-element vector x, in an array of length (n-1)*abs(incx) + 1.
+ *
+ * @param[in] incx
+ *     Stride between elements of x. incx must not be zero.
+ *     If incx < 0, uses elements of x in reverse order: x(n-1), ..., x(0).
+ *
+ * @param[in, out] A
+ *     The n-by-n matrix A, stored in an lda-by-n array [RowMajor: n-by-lda].
+ *
+ * @param[in] lda
+ *     Leading dimension of A. lda >= max(1, n).
+ *
+ * @ingroup syr
+ */
 template< typename TA, typename TX >
 void syr(
     blas::Layout layout,

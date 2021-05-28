@@ -24,8 +24,22 @@
 
 #endif
 
+// =============================================================================
 // Template LAPACK
 
+// Auxiliary routines
+// ------------------
+
 #include "lapack/lassq.hpp"
+#include "lapack/larf.hpp"
+#include "lapack/larfg.hpp"
+#include "lapack/lapy2.hpp"
+#include "lapack/lapy3.hpp"
+#include "lapack/ladiv.hpp"
+
+// QR factorization
+// ----------------
+
+#include "lapack/geqr2.hpp"
 
 #endif // __TLAPACK_HH__

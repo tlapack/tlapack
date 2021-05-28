@@ -7,74 +7,73 @@
 #ifndef BLAS_GEMV_HH
 #define BLAS_GEMV_HH
 
-#include "exception.hpp"
 #include "blas/utils.hpp"
 
 namespace blas {
 
-// =============================================================================
-/// General matrix-vector multiply:
-/// \[
-///     y = \alpha op(A) x + \beta y,
-/// \]
-/// where $op(A)$ is one of
-///     $op(A) = A$,
-///     $op(A) = A^T$, or
-///     $op(A) = A^H$,
-/// alpha and beta are scalars, x and y are vectors,
-/// and A is an m-by-n matrix.
-///
-/// Generic implementation for arbitrary data types.
-///
-/// @param[in] layout
-///     Matrix storage, Layout::ColMajor or Layout::RowMajor.
-///
-/// @param[in] trans
-///     The operation to be performed:
-///     - Op::NoTrans:   $y = \alpha A   x + \beta y$,
-///     - Op::Trans:     $y = \alpha A^T x + \beta y$,
-///     - Op::ConjTrans: $y = \alpha A^H x + \beta y$.
-///
-/// @param[in] m
-///     Number of rows of the matrix A. m >= 0.
-///
-/// @param[in] n
-///     Number of columns of the matrix A. n >= 0.
-///
-/// @param[in] alpha
-///     Scalar alpha. If alpha is zero, A and x are not accessed.
-///
-/// @param[in] A
-///     The m-by-n matrix A, stored in an lda-by-n array [RowMajor: m-by-lda].
-///
-/// @param[in] lda
-///     Leading dimension of A. lda >= max(1, m) [RowMajor: lda >= max(1, n)].
-///
-/// @param[in] x
-///     - If trans = NoTrans:
-///       the n-element vector x, in an array of length (n-1)*abs(incx) + 1.
-///     - Otherwise:
-///       the m-element vector x, in an array of length (m-1)*abs(incx) + 1.
-///
-/// @param[in] incx
-///     Stride between elements of x. incx must not be zero.
-///     If incx < 0, uses elements of x in reverse order: x(n-1), ..., x(0).
-///
-/// @param[in] beta
-///     Scalar beta. If beta is zero, y need not be set on input.
-///
-/// @param[in, out] y
-///     - If trans = NoTrans:
-///       the m-element vector y, in an array of length (m-1)*abs(incy) + 1.
-///     - Otherwise:
-///       the n-element vector y, in an array of length (n-1)*abs(incy) + 1.
-///
-/// @param[in] incy
-///     Stride between elements of y. incy must not be zero.
-///     If incy < 0, uses elements of y in reverse order: y(n-1), ..., y(0).
-///
-/// @ingroup gemv
-
+/**
+ * General matrix-vector multiply:
+ * \[
+ *     y = \alpha op(A) x + \beta y,
+ * \]
+ * where $op(A)$ is one of
+ *     $op(A) = A$,
+ *     $op(A) = A^T$, or
+ *     $op(A) = A^H$,
+ * alpha and beta are scalars, x and y are vectors,
+ * and A is an m-by-n matrix.
+ *
+ * Generic implementation for arbitrary data types.
+ *
+ * @param[in] layout
+ *     Matrix storage, Layout::ColMajor or Layout::RowMajor.
+ *
+ * @param[in] trans
+ *     The operation to be performed:
+ *     - Op::NoTrans:   $y = \alpha A   x + \beta y$,
+ *     - Op::Trans:     $y = \alpha A^T x + \beta y$,
+ *     - Op::ConjTrans: $y = \alpha A^H x + \beta y$.
+ *
+ * @param[in] m
+ *     Number of rows of the matrix A. m >= 0.
+ *
+ * @param[in] n
+ *     Number of columns of the matrix A. n >= 0.
+ *
+ * @param[in] alpha
+ *     Scalar alpha. If alpha is zero, A and x are not accessed.
+ *
+ * @param[in] A
+ *     The m-by-n matrix A, stored in an lda-by-n array [RowMajor: m-by-lda].
+ *
+ * @param[in] lda
+ *     Leading dimension of A. lda >= max(1, m) [RowMajor: lda >= max(1, n)].
+ *
+ * @param[in] x
+ *     - If trans = NoTrans:
+ *       the n-element vector x, in an array of length (n-1)*abs(incx) + 1.
+ *     - Otherwise:
+ *       the m-element vector x, in an array of length (m-1)*abs(incx) + 1.
+ *
+ * @param[in] incx
+ *     Stride between elements of x. incx must not be zero.
+ *     If incx < 0, uses elements of x in reverse order: x(n-1), ..., x(0).
+ *
+ * @param[in] beta
+ *     Scalar beta. If beta is zero, y need not be set on input.
+ *
+ * @param[in, out] y
+ *     - If trans = NoTrans:
+ *       the m-element vector y, in an array of length (m-1)*abs(incy) + 1.
+ *     - Otherwise:
+ *       the n-element vector y, in an array of length (n-1)*abs(incy) + 1.
+ *
+ * @param[in] incy
+ *     Stride between elements of y. incy must not be zero.
+ *     If incy < 0, uses elements of y in reverse order: y(n-1), ..., y(0).
+ *
+ * @ingroup gemv
+ */
 template< typename TA, typename TX, typename TY >
 void gemv(
     blas::Layout layout,

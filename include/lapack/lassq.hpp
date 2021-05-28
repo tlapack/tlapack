@@ -10,10 +10,19 @@
 
 namespace lapack {
 
+/**
+ * TODO: brief and detail
+ * 
+ * @param[in] n 
+ * @param[in] x 
+ * @param[in] incx 
+ * @param[in,out] scale 
+ * @param[in,out] sumsq 
+ */
 template< typename TX >
 void lassq(
     blas::size_t n,
-    TX const* X, blas::int_t incx,
+    TX const* x, blas::int_t incx,
     real_type<TX> &scale,
     real_type<TX> &sumsq) {
 

@@ -7,42 +7,41 @@
 #ifndef BLAS_ROTG_HH
 #define BLAS_ROTG_HH
 
-#include "exception.hpp"
 #include "blas/utils.hpp"
 
 namespace blas {
 
-// =============================================================================
-/// Construct plane rotation that eliminates b, such that:
-/// \[
-///       \begin{bmatrix} r     \\ 0      \end{bmatrix}
-///     = \begin{bmatrix} c & s \\ -s & c \end{bmatrix}
-///       \begin{bmatrix} a     \\ b      \end{bmatrix}.
-/// \]
-///
-/// @see rot to apply the rotation.
-///
-/// Generic implementation for arbitrary data types.
-///
-/// @param[in, out] a
-///     On entry, scalar a. On exit, set to r.
-///
-/// @param[in, out] b
-///     On entry, scalar b. On exit, set to s, 1/c, or 0.
-///
-/// @param[out] c
-///     Cosine of rotation; real.
-///
-/// @param[out] s
-///     Sine of rotation; complex.
-///
-/// __Further details__
-///
-/// Anderson E (2017) Algorithm 978: Safe scaling in the level 1 BLAS.
-/// ACM Trans Math Softw 44:. https://doi.org/10.1145/3061665
-///
-/// @ingroup rotg
-
+/**
+ * Construct plane rotation that eliminates b, such that:
+ * \[
+ *       \begin{bmatrix} r     \\ 0      \end{bmatrix}
+ *     = \begin{bmatrix} c & s \\ -s & c \end{bmatrix}
+ *       \begin{bmatrix} a     \\ b      \end{bmatrix}.
+ * \]
+ *
+ * @see rot to apply the rotation.
+ *
+ * Generic implementation for arbitrary data types.
+ *
+ * @param[in, out] a
+ *     On entry, scalar a. On exit, set to r.
+ *
+ * @param[in, out] b
+ *     On entry, scalar b. On exit, set to s, 1/c, or 0.
+ *
+ * @param[out] c
+ *     Cosine of rotation; real.
+ *
+ * @param[out] s
+ *     Sine of rotation; complex.
+ *
+ * __Further details__
+ *
+ * Anderson E (2017) Algorithm 978: Safe scaling in the level 1 BLAS.
+ * ACM Trans Math Softw 44:. https://doi.org/10.1145/3061665
+ *
+ * @ingroup rotg
+ */
 template< typename TX, typename TY >
 void rotg(
     TX *a,

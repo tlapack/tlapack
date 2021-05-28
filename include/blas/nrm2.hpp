@@ -7,29 +7,28 @@
 #ifndef BLAS_NRM2_HH
 #define BLAS_NRM2_HH
 
-#include "exception.hpp"
 #include "blas/utils.hpp"
 
 namespace blas {
 
-// =============================================================================
-/// @return 2-norm of vector,
-///     $|| x ||_2 = (\sum_{i=0}^{n-1} |x_i|^2)^{1/2}$.
-///
-/// Generic implementation for arbitrary data types.
-/// TODO: generic implementation does not currently scale to avoid over- or underflow.
-///
-/// @param[in] n
-///     Number of elements in x. n >= 0.
-///
-/// @param[in] x
-///     The n-element vector x, in an array of length (n-1)*incx + 1.
-///
-/// @param[in] incx
-///     Stride between elements of x. incx > 0.
-///
-/// @ingroup nrm2
-
+/**
+ * @return 2-norm of vector,
+ *     $|| x ||_2 = (\sum_{i=0}^{n-1} |x_i|^2)^{1/2}$.
+ *
+ * Generic implementation for arbitrary data types.
+ * TODO: generic implementation does not currently scale to avoid over- or underflow.
+ *
+ * @param[in] n
+ *     Number of elements in x. n >= 0.
+ *
+ * @param[in] x
+ *     The n-element vector x, in an array of length (n-1)*incx + 1.
+ *
+ * @param[in] incx
+ *     Stride between elements of x. incx > 0.
+ *
+ * @ingroup nrm2
+ */
 template< typename T >
 real_type<T>
 nrm2(

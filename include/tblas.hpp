@@ -13,14 +13,6 @@
 
 #if defined(USE_BLASPP_WRAPPERS) && !defined(USE_BLASPP_TEMPLATES)
 
-    // #if OPTIMIZED_BLAS == MKLBLAS
-    //     #include "blas/mkl/blas.hpp"
-    // #elif OPTIMIZED_BLAS == ONEMKLBLAS
-    //     #include "blas/onemkl/blas.hpp"
-    // #elif OPTIMIZED_BLAS == OPENBLAS
-    //     #include "blas/openblas/blas.hpp"
-    // #endif
-
     #ifndef BLAS_UTIL_HH
         #define BLAS_UTIL_HH // So as not to include utils from blas++
     #endif

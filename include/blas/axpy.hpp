@@ -7,38 +7,37 @@
 #ifndef BLAS_AXPY_HH
 #define BLAS_AXPY_HH
 
-#include "exception.hpp"
 #include "blas/utils.hpp"
 
 namespace blas {
 
-// =============================================================================
-/// Add scaled vector, $y = \alpha x + y$.
-///
-/// Generic implementation for arbitrary data types.
-///
-/// @param[in] n
-///     Number of elements in x and y. n >= 0.
-///
-/// @param[in] alpha
-///     Scalar alpha. If alpha is zero, y is not updated.
-///
-/// @param[in] x
-///     The n-element vector x, in an array of length (n-1)*abs(incx) + 1.
-///
-/// @param[in] incx
-///     Stride between elements of x. incx must not be zero.
-///     If incx < 0, uses elements of x in reverse order: x(n-1), ..., x(0).
-///
-/// @param[in, out] y
-///     The n-element vector y, in an array of length (n-1)*abs(incy) + 1.
-///
-/// @param[in] incy
-///     Stride between elements of y. incy must not be zero.
-///     If incy < 0, uses elements of y in reverse order: y(n-1), ..., y(0).
-///
-/// @ingroup axpy
-
+/**
+ * Add scaled vector, $y = \alpha x + y$.
+ *
+ * Generic implementation for arbitrary data types.
+ *
+ * @param[in] n
+ *     Number of elements in x and y. n >= 0.
+ *
+ * @param[in] alpha
+ *     Scalar alpha. If alpha is zero, y is not updated.
+ *
+ * @param[in] x
+ *     The n-element vector x, in an array of length (n-1)*abs(incx) + 1.
+ *
+ * @param[in] incx
+ *     Stride between elements of x. incx must not be zero.
+ *     If incx < 0, uses elements of x in reverse order: x(n-1), ..., x(0).
+ *
+ * @param[in, out] y
+ *     The n-element vector y, in an array of length (n-1)*abs(incy) + 1.
+ *
+ * @param[in] incy
+ *     Stride between elements of y. incy must not be zero.
+ *     If incy < 0, uses elements of y in reverse order: y(n-1), ..., y(0).
+ *
+ * @ingroup axpy
+ */
 template< typename TX, typename TY >
 void axpy(
     blas::size_t n,

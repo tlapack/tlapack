@@ -9,7 +9,13 @@
 #ifdef BUILD_CBLAS
 
     #include "cblas.h"
-    #define BLAS_FUNCTION(fname) cblas_##fname
+
+    // Mangling
+    #ifdef ADD_
+        #define BLAS_FUNCTION(fname) cblas_##fname##_
+    #else
+        #define BLAS_FUNCTION(fname) cblas_##fname
+    #endif
 
     typedef CBLAS_INDEX blas_size_t;
     typedef CBLAS_INDEX blas_int_t;
@@ -52,7 +58,13 @@
 #else
 
     #include "blas.h"
-    #define BLAS_FUNCTION(fname) fname
+
+    // Mangling
+    #ifdef ADD_
+        #define BLAS_FUNCTION(fname) fname##_
+    #else
+        #define BLAS_FUNCTION(fname) fname
+    #endif
 
     typedef BLAS_SIZE_T blas_size_t;
     typedef BLAS_INT_T  blas_int_t;

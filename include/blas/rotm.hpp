@@ -7,45 +7,44 @@
 #ifndef BLAS_ROTM_HH
 #define BLAS_ROTM_HH
 
-#include "exception.hpp"
 #include "blas/utils.hpp"
 
 namespace blas {
 
-// =============================================================================
-/// Apply modified (fast) plane rotation, H:
-/// \[
-///       \begin{bmatrix} x^T \\ y^T \end{bmatrix}
-///     = H
-///       \begin{bmatrix} x^T \\ y^T \end{bmatrix}.
-/// \]
-///
-/// @see rotmg to generate the rotation, and for fuller description.
-///
-/// Generic implementation for arbitrary data types.
-///
-/// @param[in] n
-///     Number of elements in x and y. n >= 0.
-///
-/// @param[in, out] x
-///     The n-element vector x, in an array of length (n-1)*abs(incx) + 1.
-///
-/// @param[in] incx
-///     Stride between elements of x. incx must not be zero.
-///     If incx < 0, uses elements of x in reverse order: x(n-1), ..., x(0).
-///
-/// @param[in, out] y
-///     The n-element vector y, in an array of length (n-1)*abs(incy) + 1.
-///
-/// @param[in] incy
-///     Stride between elements of y. incy must not be zero.
-///     If incy < 0, uses elements of y in reverse order: y(n-1), ..., y(0).
-///
-/// @param[in] param
-///     Array of length 5 giving parameters of modified plane rotation.
-///
-/// @ingroup rotm
-
+/**
+ * Apply modified (fast) plane rotation, H:
+ * \[
+ *       \begin{bmatrix} x^T \\ y^T \end{bmatrix}
+ *     = H
+ *       \begin{bmatrix} x^T \\ y^T \end{bmatrix}.
+ * \]
+ *
+ * @see rotmg to generate the rotation, and for fuller description.
+ *
+ * Generic implementation for arbitrary data types.
+ *
+ * @param[in] n
+ *     Number of elements in x and y. n >= 0.
+ *
+ * @param[in, out] x
+ *     The n-element vector x, in an array of length (n-1)*abs(incx) + 1.
+ *
+ * @param[in] incx
+ *     Stride between elements of x. incx must not be zero.
+ *     If incx < 0, uses elements of x in reverse order: x(n-1), ..., x(0).
+ *
+ * @param[in, out] y
+ *     The n-element vector y, in an array of length (n-1)*abs(incy) + 1.
+ *
+ * @param[in] incy
+ *     Stride between elements of y. incy must not be zero.
+ *     If incy < 0, uses elements of y in reverse order: y(n-1), ..., y(0).
+ *
+ * @param[in] param
+ *     Array of length 5 giving parameters of modified plane rotation.
+ *
+ * @ingroup rotm
+ */
 template< typename TX, typename TY >
 void rotm(
     blas::size_t n,
