@@ -99,7 +99,7 @@ void larfg(
     }
 }
 
-/** Generates a real elementary Householder reflection.
+/** Generates a complex elementary Householder reflection.
  *
  * The complex version of larfg generates a complex elementary Householder reflector H of order n, such that
  * 
@@ -115,7 +115,7 @@ void larfg(
  * where tau is a complex scalar and v is a complex (n-1)-element vector.
  * Note that H is not hermitian.
  * 
- * If the elements of x are all zero and alpha is real, then tau = 0 and 
+ * If the elements of x are all zero and alpha is complex, then tau = 0 and 
  * H is taken to be the identity matrix.
  * 
  * Otherwise  1 <= real(tau) <= 2 and abs(tau-1) <= 1.

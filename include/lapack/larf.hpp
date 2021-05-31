@@ -21,7 +21,7 @@ namespace lapack {
  *
  * The elementary reflector H can be applied on either the left or right, with
  * \[
- *        H = I - tau v v^H.
+ *        H = I - \tau v v^H.
  * \]
  * If tau = 0, then H is taken to be the unit matrix.
  * 
@@ -45,7 +45,7 @@ namespace lapack {
  *             or C * H if side='R'.
  * 
  * @param[in] ldC Column length of matrix C.  ldC >= m.
- * @param w Workspace vector of of the following length:
+ * @param work Workspace vector of of the following length:
  *
  *          n if side='L'
  *          m if side='R'.
@@ -59,7 +59,7 @@ inline void larf(
     TV const *v, blas::int_t incv,
     blas::scalar_type< TV, TC , TW > tau,
     TC *C, blas::int_t ldC,
-    TW *w )
+    TW *work )
 {
     typedef blas::real_type<TV, TC, TW> real_t;
 
@@ -68,12 +68,12 @@ inline void larf(
     const real_t zero(0.0);
 
     if ( side == Side::Left ) {
-        gemv(Layout::ColMajor, Op::ConjTrans, m, n, one, C, ldC, v, incv, zero, w, 1);
-        ger(m, n, -tau, v, incv, w, 1, C, ldC);
+        gemv(Layout::ColMajor, Op::ConjTrans, m, n, one, C, ldC, v, incv, zero, work, 1);
+        ger(m, n, -tau, v, incv, work, 1, C, ldC);
     }
     else if ( side == Side::Right ) {
-        gemv(Layout::ColMajor, Op::NoTrans, m, n, one, C, ldC, v, incv, zero, w, 1);
-        ger(m, n, -tau, w, 1, v, incv, C, ldC);
+        gemv(Layout::ColMajor, Op::NoTrans, m, n, one, C, ldC, v, incv, zero, work, 1);
+        ger(m, n, -tau, work, 1, v, incv, C, ldC);
     }
     else {
         blas_error( "side != Side::Left && side != Side::Right" );

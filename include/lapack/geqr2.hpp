@@ -19,7 +19,96 @@
 
 namespace lapack {
 
-/** Computes a QR factorization of a real matrix A.
+/** Computes a QR factorization of a matrix A.
+ * 
+ * @param work Vector of size n-1.
+ *     It is possible to use the subarray tau[1:n-1] as the work vector, i.e.,
+ *         geqr2( ..., tau, &(tau[1]) ).
+ * @see geqr2( blas::size_t, blas::size_t, TA*, blas::size_t, Ttau* )
+ * 
+ * @ingroup geqrf
+ */
+template< typename TA >
+void geqr2(
+    blas::size_t m, blas::size_t n,
+    TA* A, blas::size_t lda,
+    TA* tau,
+    TA* work )
+{
+    #define A(i_, j_) A[ (i_) + (j_)*lda ]
+
+    // constants
+    const TA one( 1.0 );
+
+    // check arguments
+    blas_error_if( m < 0 );
+    blas_error_if( n < 0 );
+    blas_error_if( lda < m );
+
+    // quick return
+    if (n <= 0) return;
+
+	const size_t k = std::min( m, n-1 );
+    for(size_t i = 0; i < k; ++i) {
+
+        larfg( m-i, A(i,i), &(A(i+1,i)), 1, tau[i] );
+
+        TA alpha = A(i,i);
+        A(i,i) = one;
+        larf( Side::Left, m-i, n-i-1, &(A(i,i)), 1, tau[i], A(i,i+1), lda, work+i );
+        A(i,i) = alpha;
+	}
+    if( n-1 < m )
+        larfg( m-n+1, A(n-1,n-1), &(A(n,n-1)), 1, tau[n-1] );
+
+    #undef A
+}
+
+/** Computes a QR factorization of a matrix A.
+ * 
+ * @param work Vector of size n-1.
+ * @see geqr2( blas::size_t, blas::size_t, TA*, blas::size_t, Ttau* )
+ * 
+ * @ingroup geqrf
+ */
+template< typename real_t >
+void geqr2(
+    blas::size_t m, blas::size_t n,
+    std::complex<real_t>* A, blas::size_t lda,
+    real_t* tau,
+    std::complex<real_t>* work )
+{
+    typedef std::complex<real_t> scalar_t;
+    #define A(i_, j_) A[ (i_) + (j_)*lda ]
+
+    // constants
+    const scalar_t one( 1.0 );
+
+    // check arguments
+    blas_error_if( m < 0 );
+    blas_error_if( n < 0 );
+    blas_error_if( lda < m );
+
+    // quick return
+    if (n <= 0) return;
+
+	const size_t k = std::min( m, n-1 );
+    for(size_t i = 0; i < k; ++i) {
+
+        larfg( m-i, A(i,i), &(A(i+1,i)), 1, tau[i] );
+
+        scalar_t alpha = A(i,i);
+        A(i,i) = one;
+        larf( Side::Left, m-i, n-i-1, &(A(i,i)), 1, tau[i], A(i,i+1), lda, work );
+        A(i,i) = alpha;
+	}
+    if( n-1 < m )
+        larfg( m-n+1, A(n-1,n-1), &(A(n,n-1)), 1, tau[n-1] );
+
+    #undef A
+}
+
+/** Computes a QR factorization of a matrix A.
  * 
  * The matrix Q is represented as a product of elementary reflectors
  * \[
@@ -38,52 +127,27 @@ namespace lapack {
  * 
  * @param[in] m The number of rows of the matrix A.
  * @param[in] n The number of columns of the matrix A.
- * @param[in,out] A Real m-by-n matrix.
+ * @param[in,out] A m-by-n matrix.
  *     On exit, the elements on and above the diagonal of the array
  *     contain the min(m,n)-by-n upper trapezoidal matrix R
  *     (R is upper triangular if m >= n); the elements below the diagonal,
  *     with the array tau, represent the unitary matrix Q as a
  *     product of elementary reflectors.
- * @param[in] lda
- * @param[in,out] tau Real vector of length min(m,n).
+ * @param[in] lda The leading dimension of A. lda >= max(1,m).
+ * @param[out] tau Real vector of length min(m,n).
  *     The scalar factors of the elementary reflectors.
  * 
  * @ingroup geqrf
  */
-template< typename TA >
-void geqr2(
+template< typename TA, typename Ttau >
+inline void geqr2(
     blas::size_t m, blas::size_t n,
     TA* A, blas::size_t lda,
-    real_type<TA>* tau )
+    Ttau* tau )
 {
-    #define A(i_, j_) A[ (i_) + (j_)*lda ]
-
-    // constants
-    const TA zero( 0.0 );
-    const TA one( 1.0 );
-
-    // check arguments
-    blas_error_if( m < 0 );
-    blas_error_if( n < 0 );
-    blas_error_if( lda < m );
-
-    // quick return
-    if (n == 0) return;
-
-	const size_t k = std::min( m, n-1 );
-    for(size_t i = 0; i < k; ++i) {
-
-        larfg( m-i, A(i,i), &(A(i+1,i)), 1, tau[i] );
-
-        TA alpha = A(i,i);
-        A(i,i) = one;
-        larf( Side::Left, m-i, n-i-1, &(A(i,i)), 1, tau[i], A(i,i+1), lda, &(tau[i+1]) );
-        A(i,i) = alpha;
-	}
-    if( n-1 < m )
-        larfg( m-n+1, A(n-1,n-1), &(A(n,n-1)), 1, tau[n-1] );
-
-    #undef A
+    TA* work = new TA[ (n > 0) ? n-1 : 0 ];
+    geqr2( m, n, A, lda, tau, work );
+    delete[] work;
 }
 
 } // lapack
