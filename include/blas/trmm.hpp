@@ -170,7 +170,7 @@ void trmm(
             }
             else { // uplo == Uplo::Lower
                 for(size_t j = 0; j < n; ++j) {
-                    for(size_t k = m-1; k > size_t(-1); --k) {
+                    for(size_t k = m-1; k != size_t(-1); --k) {
                         const scalar_t alphaBkj = alpha*B(k,j);
                         B(k,j) = (diag == Diag::NonUnit)
                                 ? A(k,k)*alphaBkj
@@ -184,7 +184,7 @@ void trmm(
         else if (trans == Op::Trans) {
             if (uplo == Uplo::Upper) {
                 for(size_t j = 0; j < n; ++j) {
-                    for(size_t i = m-1; i > size_t(-1); --i) {
+                    for(size_t i = m-1; i != size_t(-1); --i) {
                         scalar_t sum = (diag == Diag::NonUnit)
                                     ? A(i,i)*B(i,j)
                                     : B(i,j);
@@ -210,7 +210,7 @@ void trmm(
         else { // trans == Op::ConjTrans
             if (uplo == Uplo::Upper) {
                 for(size_t j = 0; j < n; ++j) {
-                    for(size_t i = m-1; i > size_t(-1); --i) {
+                    for(size_t i = m-1; i != size_t(-1); --i) {
                         scalar_t sum = (diag == Diag::NonUnit)
                                     ? conj(A(i,i))*B(i,j)
                                     : B(i,j);
@@ -237,7 +237,7 @@ void trmm(
     else { // side == Side::Right
         if (trans == Op::NoTrans) {
             if (uplo == Uplo::Upper) {
-                for(size_t j = n-1; j > size_t(-1); --j) {
+                for(size_t j = n-1; j != size_t(-1); --j) {
 
                     scalar_t alphaAkj = (diag == Diag::NonUnit)
                                     ? alpha*A(j,j)
@@ -286,7 +286,7 @@ void trmm(
                 }
             }
             else { // uplo == Uplo::Lower
-                for(size_t k = n-1; k > size_t(-1); --k) {
+                for(size_t k = n-1; k != size_t(-1); --k) {
                     for(size_t j = k+1; j < n; ++j) {
                         const scalar_t alphaAjk = alpha*A(j,k);
                         for(size_t i = 0; i < m; ++i)
@@ -318,7 +318,7 @@ void trmm(
                 }
             }
             else { // uplo == Uplo::Lower
-                for(size_t k = n-1; k > size_t(-1); --k) {
+                for(size_t k = n-1; k != size_t(-1); --k) {
                     for(size_t j = k+1; j < n; ++j) {
                         const scalar_t alphaAjk = alpha*conj(A(j,k));
                         for(size_t i = 0; i < m; ++i)

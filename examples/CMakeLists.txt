@@ -28,6 +28,6 @@ target_link_libraries( example_fortranModule_saxpy PRIVATE blas )
 add_executable( example_fortranWrapper_saxpy example_fortranWrapper_saxpy.f90 )
 target_link_libraries( example_fortranWrapper_saxpy PRIVATE fortranwrappers_tblas )
 
-# add the example geqr
-add_executable(example_geqr example_geqr.cpp)
-target_link_libraries( example_geqr PRIVATE tlapack )
+# add the example geqrf
+add_executable(example_geqr2 example_geqr2.cpp)
+target_link_libraries( example_geqr2 PRIVATE tlapack )

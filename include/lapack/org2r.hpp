@@ -12,9 +12,10 @@
 #ifndef __ORG2R_HH__
 #define __ORG2R_HH__
 
-#include "blas/utils.hpp"
+#include "lapack/utils.hpp"
 #include "lapack/types.hpp"
 #include "lapack/larf.hpp"
+#include "blas/scal.hpp"
 
 namespace lapack {
 
@@ -29,26 +30,27 @@ namespace lapack {
  * @ingroup geqrf
  */
 template<typename TA>
-void org2r(
+int org2r(
     blas::size_t m, blas::size_t n, blas::size_t k,
     TA* A, blas::size_t lda,
     const TA* tau,
     TA* work )
 {
     #define A(i_, j_) A[ (i_) + (j_)*lda ]
+    using blas::scal;
 
     // constants
     const TA zero( 0.0 );
     const TA one( 1.0 );
 
     // check arguments
-    blas_error_if( m < 0 );
-    blas_error_if( n < 0 || n > m );
-    blas_error_if( k < 0 || k > n );
-    blas_error_if( lda < m );
+    lapack_error_if( m < 0, -1 );
+    lapack_error_if( n < 0 || n > m, -2 );
+    lapack_error_if( k < 0 || k > n, -3 );
+    lapack_error_if( lda < m, -5 );
 
     // quick return
-    if (n <= 0) return;
+    if (n <= 0) return 0;
     
     // Initialise columns k:n-1 to columns of the unit matrix
     for (size_t j = k; j < n; ++j) {
@@ -57,12 +59,12 @@ void org2r(
         A(j,j) = one;
     }
 
-    for (size_t i = k-1; i > size_t(-1); --i) {
+    for (size_t i = k-1; i != size_t(-1); --i) {
 
         // Apply $H_{i+1}$ to $A( i:m-1, i:n-1 )$ from the left
         if ( i+1 < n ){
             A(i,i) = one;
-            larf( Side::Left, m-i, n-i-1, &(A(i,i)), 1, tau[i], A(i,i+1), lda, work+i );
+            larf( Side::Left, m-i, n-i-1, &(A(i,i)), 1, tau[i], &(A(i,i+1)), lda, work+i );
         }
         if ( i+1 < m )
             scal( m-i-1, -tau[i], &(A(i+1,i)), 1 );
@@ -74,6 +76,7 @@ void org2r(
     }
 
     #undef A
+    return 0;
 }
 
 /** Generates a m-by-n matrix Q with orthogonal columns.
@@ -84,7 +87,7 @@ void org2r(
  * @ingroup geqrf
  */
 template<typename TA>
-void org2r(
+int org2r(
     blas::size_t m, blas::size_t n, blas::size_t k,
     TA* A, blas::size_t lda,
     const real_type<TA>* tau,
@@ -97,13 +100,13 @@ void org2r(
     const TA one( 1.0 );
 
     // check arguments
-    blas_error_if( m < 0 );
-    blas_error_if( n < 0 || n > m );
-    blas_error_if( k < 0 || k > n );
-    blas_error_if( lda < m );
+    lapack_error_if( m < 0, -1 );
+    lapack_error_if( n < 0 || n > m, -2 );
+    lapack_error_if( k < 0 || k > n, -3 );
+    lapack_error_if( lda < m, -5 );
 
     // quick return
-    if (n <= 0) return;
+    if (n <= 0) return 0;
     
     // Initialise columns k:n-1 to columns of the unit matrix
     for (size_t j = k; j < n; ++j) {
@@ -112,12 +115,12 @@ void org2r(
         A(j,j) = one;
     }
 
-    for (size_t i = k-1; i > size_t(-1); --i) {
+    for (size_t i = k-1; i != size_t(-1); --i) {
 
         // Apply $H_{i+1}$ to $A( i:m-1, i:n-1 )$ from the left
         if ( i+1 < n ){
             A(i,i) = one;
-            larf( Side::Left, m-i, n-i-1, &(A(i,i)), 1, tau[i], A(i,i+1), lda, work );
+            larf( Side::Left, m-i, n-i-1, &(A(i,i)), 1, tau[i], &(A(i,i+1)), lda, work+i );
         }
         if ( i+1 < m )
             scal( m-i-1, -tau[i], &(A(i+1,i)), 1 );
@@ -129,12 +132,16 @@ void org2r(
     }
 
     #undef A
+    return 0;
 }
 
 /** Generates a m-by-n matrix Q with orthogonal columns.
  * \[
  *     Q  =  H_1 H_2 ... H_k
  * \]
+ * 
+ * @return  0 if success
+ * @return -i if the ith argument is invalid
  * 
  * @param[in] m The number of rows of the matrix A. m>=0
  * @param[in] n The number of columns of the matrix A. n>=0
@@ -151,14 +158,18 @@ void org2r(
  * @ingroup geqrf
  */
 template< typename TA, typename Ttau >
-inline void org2r(
+inline int org2r(
     blas::size_t m, blas::size_t n, blas::size_t k,
     TA* A, blas::size_t lda,
     const Ttau* tau )
 {
+    int info = 0;
     TA* work = new TA[ (n > 0) ? n-1 : 0 ];
-    org2r( m, n, k, A, lda, tau, work );
+    
+    info = org2r( m, n, k, A, lda, tau, work );
+
     delete[] work;
+    return info;
 }
 
 }

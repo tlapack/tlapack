@@ -14,7 +14,7 @@
 
 #include "lapack/types.hpp"
 
-#include "blas/utils.hpp"
+#include "lapack/utils.hpp"
 
 namespace lapack {
 

@@ -174,7 +174,7 @@ void symm(
         else {
             // uplo == Uplo::Lower
             for(size_t j = 0; j < n; ++j) {
-                for(size_t i = m-1; i > size_t(-1); --i) {
+                for(size_t i = m-1; i != size_t(-1); --i) {
 
                     scalar_t alphaTimesBij = alpha*B(i,j);
                     scalar_t sum = zero;

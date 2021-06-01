@@ -12,7 +12,7 @@
 #ifndef __GEQR2_HH__
 #define __GEQR2_HH__
 
-#include "blas/utils.hpp"
+#include "lapack/utils.hpp"
 #include "lapack/types.hpp"
 #include "lapack/larfg.hpp"
 #include "lapack/larf.hpp"
@@ -29,7 +29,7 @@ namespace lapack {
  * @ingroup geqrf
  */
 template< typename TA >
-void geqr2(
+int geqr2(
     blas::size_t m, blas::size_t n,
     TA* A, blas::size_t lda,
     TA* tau,
@@ -37,16 +37,19 @@ void geqr2(
 {
     #define A(i_, j_) A[ (i_) + (j_)*lda ]
 
+    // Local parameters
+    int info = 0;
+
     // constants
     const TA one( 1.0 );
 
     // check arguments
-    blas_error_if( m < 0 );
-    blas_error_if( n < 0 );
-    blas_error_if( lda < m );
+    lapack_error_if( m < 0, -1 );
+    lapack_error_if( n < 0, -2 );
+    lapack_error_if( lda < m, -4 );
 
     // quick return
-    if (n <= 0) return;
+    if (n <= 0) return 0;
 
 	const size_t k = std::min( m, n-1 );
     for(size_t i = 0; i < k; ++i) {
@@ -55,13 +58,17 @@ void geqr2(
 
         TA alpha = A(i,i);
         A(i,i) = one;
-        larf( Side::Left, m-i, n-i-1, &(A(i,i)), 1, tau[i], A(i,i+1), lda, work+i );
+
+        info = larf( Side::Left, m-i, n-i-1, &(A(i,i)), 1, tau[i], &(A(i,i+1)), lda, work+i );
+
         A(i,i) = alpha;
 	}
     if( n-1 < m )
         larfg( m-n+1, A(n-1,n-1), &(A(n,n-1)), 1, tau[n-1] );
 
     #undef A
+
+    return (info == 0) ? 0 : 1;
 }
 
 /** Computes a QR factorization of a matrix A.
@@ -72,7 +79,7 @@ void geqr2(
  * @ingroup geqrf
  */
 template< typename real_t >
-void geqr2(
+int geqr2(
     blas::size_t m, blas::size_t n,
     std::complex<real_t>* A, blas::size_t lda,
     real_t* tau,
@@ -85,12 +92,12 @@ void geqr2(
     const scalar_t one( 1.0 );
 
     // check arguments
-    blas_error_if( m < 0 );
-    blas_error_if( n < 0 );
-    blas_error_if( lda < m );
+    lapack_error_if( m < 0, -1 );
+    lapack_error_if( n < 0, -2 );
+    lapack_error_if( lda < m, -4 );
 
     // quick return
-    if (n <= 0) return;
+    if (n <= 0) return 0;
 
 	const size_t k = std::min( m, n-1 );
     for(size_t i = 0; i < k; ++i) {
@@ -99,13 +106,17 @@ void geqr2(
 
         scalar_t alpha = A(i,i);
         A(i,i) = one;
-        larf( Side::Left, m-i, n-i-1, &(A(i,i)), 1, tau[i], A(i,i+1), lda, work );
+
+        larf( Side::Left, m-i, n-i-1, &(A(i,i)), 1, tau[i], &(A(i,i+1)), lda, work+i );
+
         A(i,i) = alpha;
 	}
     if( n-1 < m )
         larfg( m-n+1, A(n-1,n-1), &(A(n,n-1)), 1, tau[n-1] );
 
     #undef A
+
+    return 0;
 }
 
 /** Computes a QR factorization of a matrix A.
@@ -125,6 +136,9 @@ void geqr2(
  * with v[i+1] through v[m-1] stored on exit below the diagonal
  * in the ith column of A, and tau in tau[i].
  * 
+ * @return  0 if success
+ * @return -i if the ith argument is invalid
+ * 
  * @param[in] m The number of rows of the matrix A.
  * @param[in] n The number of columns of the matrix A.
  * @param[in,out] A m-by-n matrix.
@@ -140,14 +154,18 @@ void geqr2(
  * @ingroup geqrf
  */
 template< typename TA, typename Ttau >
-inline void geqr2(
+inline int geqr2(
     blas::size_t m, blas::size_t n,
     TA* A, blas::size_t lda,
     Ttau* tau )
 {
+    int info = 0;
     TA* work = new TA[ (n > 0) ? n-1 : 0 ];
-    geqr2( m, n, A, lda, tau, work );
+
+    info = geqr2( m, n, A, lda, tau, work );
+
     delete[] work;
+    return info;
 }
 
 } // lapack

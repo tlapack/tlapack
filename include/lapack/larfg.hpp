@@ -17,7 +17,7 @@
 #include "lapack/lapy3.hpp"
 #include "lapack/ladiv.hpp"
 
-#include "blas/utils.hpp"
+#include "lapack/utils.hpp"
 #include "blas/nrm2.hpp"
 #include "blas/scal.hpp"
 

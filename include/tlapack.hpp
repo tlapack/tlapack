@@ -30,12 +30,14 @@
 // Auxiliary routines
 // ------------------
 
-#include "lapack/lassq.hpp"
 #include "lapack/larf.hpp"
 #include "lapack/larfg.hpp"
 #include "lapack/lapy2.hpp"
 #include "lapack/lapy3.hpp"
 #include "lapack/ladiv.hpp"
+#include "lapack/laset.hpp"
+#include "lapack/lacpy.hpp"
+#include "lapack/lange.hpp"
 
 // QR factorization
 // ----------------

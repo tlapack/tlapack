@@ -18,6 +18,12 @@
 namespace blas {
 
 // -----------------------------------------------------------------------------
+// MPFR types
+#ifdef USE_GNU_MPFR
+    using mpfr::mpreal;
+#endif
+
+// -----------------------------------------------------------------------------
 // Integer types blas::size_t and blas::int_t
 #ifndef BLAS_SIZE_T
     using size_t = std::size_t;

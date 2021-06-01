@@ -165,7 +165,7 @@ void trsm(
                 for(size_t j = 0; j < n; ++j) {
                     for(size_t i = 0; i < m; ++i)
                         B(i,j) *= alpha;
-                    for(size_t k = m-1; k > size_t(-1); --k) {
+                    for(size_t k = m-1; k != size_t(-1); --k) {
                         if (diag == Diag::NonUnit)
                             B(k,j) /= A(k,k);
                         for(size_t i = 0; i < k; ++i)
@@ -201,7 +201,7 @@ void trsm(
             }
             else { // uplo == Uplo::Lower
                 for(size_t j = 0; j < n; ++j) {
-                    for(size_t i = m-1; i > size_t(-1); --i) {
+                    for(size_t i = m-1; i != size_t(-1); --i) {
                         scalar_t sum = alpha*B(i,j);
                         for(size_t k = i+1; k < m; ++k)
                             sum -= A(k,i)*B(k,j);
@@ -227,7 +227,7 @@ void trsm(
             }
             else { // uplo == Uplo::Lower
                 for(size_t j = 0; j < n; ++j) {
-                    for(size_t i = m-1; i > size_t(-1); --i) {
+                    for(size_t i = m-1; i != size_t(-1); --i) {
                         scalar_t sum = alpha*B(i,j);
                         for(size_t k = i+1; k < m; ++k)
                             sum -= conj(A(k,i))*B(k,j);
@@ -256,7 +256,7 @@ void trsm(
                 }
             }
             else { // uplo == Uplo::Lower
-                for(size_t j = n-1; j > size_t(-1); --j) {
+                for(size_t j = n-1; j != size_t(-1); --j) {
                     for(size_t i = 0; i < m; ++i)
                         B(i,j) *= alpha;
                     for(size_t k = j+1; k < n; ++k) {
@@ -272,7 +272,7 @@ void trsm(
         }
         else if (trans == Op::Trans) {
             if (uplo == Uplo::Upper) {
-                for(size_t k = n-1; k > size_t(-1); --k) {
+                for(size_t k = n-1; k != size_t(-1); --k) {
                     if (diag == Diag::NonUnit) {
                         for(size_t i = 0; i < m; ++i)
                             B(i,k) /= A(k,k);
@@ -302,7 +302,7 @@ void trsm(
         }
         else { // trans == Op::ConjTrans
             if (uplo == Uplo::Upper) {
-                for(size_t k = n-1; k > size_t(-1); --k) {
+                for(size_t k = n-1; k != size_t(-1); --k) {
                     if (diag == Diag::NonUnit) {
                         for(size_t i = 0; i < m; ++i)
                             B(i,k) /= conj(A(k,k));

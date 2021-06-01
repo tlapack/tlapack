@@ -152,7 +152,7 @@ void trmv(
             // lower
             if (incx == 1) {
                 // unit stride
-                for (size_t j = n-1; j > size_t(-1); --j) {
+                for (size_t j = n-1; j != size_t(-1); --j) {
                     // note: NOT skipping if x[j] is zero ...
                     TX tmp = x[j];
                     for (size_t i = n-1; i >= j+1; --i) {
@@ -167,7 +167,7 @@ void trmv(
                 // non-unit stride
                 kx += (n - 1)*incx;
                 size_t jx = kx;
-                for (size_t j = n-1; j > size_t(-1); --j) {
+                for (size_t j = n-1; j != size_t(-1); --j) {
                     // note: NOT skipping if x[j] is zero ...
                     TX tmp = x[jx];
                     size_t ix = kx;
@@ -222,7 +222,7 @@ void trmv(
             // lower
             if (incx == 1) {
                 // unit stride
-                for (size_t j = n-1; j > size_t(-1); --j) {
+                for (size_t j = n-1; j != size_t(-1); --j) {
                     // note: NOT skipping if x[j] is zero ...
                     TX tmp = x[j];
                     for (size_t i = n-1; i >= j+1; --i) {
@@ -237,7 +237,7 @@ void trmv(
                 // non-unit stride
                 kx += (n - 1)*incx;
                 size_t jx = kx;
-                for (size_t j = n-1; j > size_t(-1); --j) {
+                for (size_t j = n-1; j != size_t(-1); --j) {
                     // note: NOT skipping if x[j] is zero ...
                     TX tmp = x[jx];
                     size_t ix = kx;
@@ -259,12 +259,12 @@ void trmv(
             // upper
             if (incx == 1) {
                 // unit stride
-                for (size_t j = n-1; j > size_t(-1); --j) {
+                for (size_t j = n-1; j != size_t(-1); --j) {
                     TX tmp = x[j];
                     if (nonunit) {
                         tmp *= A(j, j);
                     }
-                    for (size_t i = j - 1; i > size_t(-1); --i) {
+                    for (size_t i = j - 1; i != size_t(-1); --i) {
                         tmp += A(i, j) * x[i];
                     }
                     x[j] = tmp;
@@ -273,13 +273,13 @@ void trmv(
             else {
                 // non-unit stride
                 size_t jx = kx + (n - 1)*incx;
-                for (size_t j = n-1; j > size_t(-1); --j) {
+                for (size_t j = n-1; j != size_t(-1); --j) {
                     TX tmp = x[jx];
                     size_t ix = jx;
                     if (nonunit) {
                         tmp *= A(j, j);
                     }
-                    for (size_t i = j - 1; i > size_t(-1); --i) {
+                    for (size_t i = j - 1; i != size_t(-1); --i) {
                         ix -= incx;
                         tmp += A(i, j) * x[ix];
                     }
@@ -329,12 +329,12 @@ void trmv(
             // upper
             if (incx == 1) {
                 // unit stride
-                for (size_t j = n-1; j > size_t(-1); --j) {
+                for (size_t j = n-1; j != size_t(-1); --j) {
                     TX tmp = x[j];
                     if (nonunit) {
                         tmp *= conj( A(j, j) );
                     }
-                    for (size_t i = j - 1; i > size_t(-1); --i) {
+                    for (size_t i = j - 1; i != size_t(-1); --i) {
                         tmp += conj( A(i, j) ) * x[i];
                     }
                     x[j] = tmp;
@@ -343,13 +343,13 @@ void trmv(
             else {
                 // non-unit stride
                 size_t jx = kx + (n - 1)*incx;
-                for (size_t j = n-1; j > size_t(-1); --j) {
+                for (size_t j = n-1; j != size_t(-1); --j) {
                     TX tmp = x[jx];
                     size_t ix = jx;
                     if (nonunit) {
                         tmp *= conj( A(j, j) );
                     }
-                    for (size_t i = j - 1; i > size_t(-1); --i) {
+                    for (size_t i = j - 1; i != size_t(-1); --i) {
                         ix -= incx;
                         tmp += conj( A(i, j) ) * x[ix];
                     }

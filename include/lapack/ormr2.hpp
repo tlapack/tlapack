@@ -12,7 +12,7 @@
 #ifndef __ORMR2_HH__
 #define __ORMR2_HH__
 
-#include "blas/utils.hpp"
+#include "lapack/utils.hpp"
 #include "lapack/types.hpp"
 #include "lapack/larf.hpp"
 
@@ -26,7 +26,7 @@ namespace lapack {
  * @ingroup geqrf
  */
 template<typename TA, typename TC>
-void ormr2(
+int ormr2(
     Side side, Op trans,
     blas::size_t m, blas::size_t n, blas::size_t k,
     const TA* A, blas::size_t lda,
@@ -36,22 +36,22 @@ void ormr2(
 {
     // check arguments
 
-    blas_error_if( side != Side::Left &&
-                   side != Side::Right );
-    blas_error_if( trans != Op::NoTrans &&
-                   trans != Op::Trans &&
-                   trans != Op::ConjTrans );
-    blas_error_if( m < 0 );
-    blas_error_if( n < 0 );
+    lapack_error_if( side != Side::Left &&
+                     side != Side::Right, -1 );
+    lapack_error_if( trans != Op::NoTrans &&
+                     trans != Op::Trans &&
+                     trans != Op::ConjTrans, -2 );
+    lapack_error_if( m < 0, -3 );
+    lapack_error_if( n < 0, -4 );
 
     const size_t q = (side == Side::Left) ? m : n;
-    blas_error_if( k < 0 || k > q );
-    blas_error_if( lda < q );
-    blas_error_if( ldc < m );
+    lapack_error_if( k < 0 || k > q, -5 );
+    lapack_error_if( lda < q, -7 );
+    lapack_error_if( ldc < m, -10 );
 
     // quick return
     if ((m == 0) || (n == 0) || (k == 0))
-        return;
+        return 0;
 
     if( side == Side::Left ) {
         if( trans == Op::NoTrans ) {
@@ -59,7 +59,7 @@ void ormr2(
                 larf( Side::Left, m-k+i+1, n, A+i, lda, tau[i], C, ldc, work );
         }
         else {
-            for (size_t i = k-1; i > size_t(-1); --i)
+            for (size_t i = k-1; i != size_t(-1); --i)
                 larf( Side::Left, m-k+i+1, n, A+i, lda, tau[i], C, ldc, work );
         }
     }
@@ -69,13 +69,18 @@ void ormr2(
                 larf( Side::Right, m, n-k+i+1, A+i, lda, tau[i], C, ldc, work );
         }
         else {
-            for (size_t i = k-1; i > size_t(-1); --i)
+            for (size_t i = k-1; i != size_t(-1); --i)
                 larf( Side::Right, m, n-k+i+1, A+i, lda, tau[i], C, ldc, work );
         }
     }
+
+    return 0;
 }
 
 /** Applies orthogonal matrix Q to a matrix C.
+ * 
+ * @return  0 if success
+ * @return -i if the ith argument is invalid
  * 
  * @param[in] side Specifies which side Q is to be applied.
  *                 'L': apply Q or Q' from the Left;
@@ -105,7 +110,7 @@ void ormr2(
  * @ingroup geqrf
  */
 template<typename TA, typename TC>
-inline void ormr2(
+inline int ormr2(
     Side side, Op trans,
     blas::size_t m, blas::size_t n, blas::size_t k,
     const TA* A, blas::size_t lda,
@@ -114,13 +119,17 @@ inline void ormr2(
 {
     typedef blas::scalar_type<TA,TC> scalar_t;
 
+    int info = 0;
     scalar_t* work = new scalar_t[
         (side == Side::Left)
             ? ( (m >= 0) ? m : 0 )
             : ( (n >= 0) ? n : 0 )
     ];
-    ormr2( side, trans, m, n, k, A, lda, tau, C, ldc, work );
+
+    info = ormr2( side, trans, m, n, k, A, lda, tau, C, ldc, work );
+
     delete[] work;
+    return info;
 }
 
 }

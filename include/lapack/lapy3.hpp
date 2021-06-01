@@ -14,7 +14,7 @@
 
 #include "lapack/types.hpp"
 
-#include "blas/utils.hpp"
+#include "lapack/utils.hpp"
 
 namespace lapack {
 
@@ -30,7 +30,7 @@ namespace lapack {
  * @ingroup auxiliary
  */
 template< typename real_t >
-void lapy3(
+real_t lapy3(
     real_t x, real_t y , real_t z )
 {
     using blas::abs;
