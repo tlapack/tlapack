@@ -11,39 +11,61 @@ on:
     - 'docs/**'
 
 env:
-  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
-  BUILD_TYPE: Debug
   CATCH_INSTALL_DIR: ${{github.workspace}}/test/thirdparty
+  CXXFLAGS: "-Wall -pedantic"
 
 jobs:
 
-  build:
+  build-debug:
     # The CMake configure and build commands are platform agnostic and should work equally
     # well on Windows or Mac.  You can convert this to a matrix build if you need
     # cross-platform coverage.
     # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ macos-latest, windows-latest, ubuntu-latest ]
+        cmake-config: [ "", "-DUSE_GNU_MPFR=ON", "-DUSE_BLASPP_TEMPLATES=ON -DCMAKE_PREFIX_PATH=${{github.workspace}}/thirdparty" ]
+
+    env:
+      # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+      BUILD_TYPE: Debug
     
     steps:     
     
-    - uses: actions/checkout@v2
+    - name: Checkout T-LAPACK
+      uses: actions/checkout@v2
         
-    - name: checkout Catch2 v2.x
+    - name: Checkout Catch2 v2.x
       uses: actions/checkout@v2
       with:
         repository: catchorg/Catch2 # <-- clone https://github.com/catchorg/Catch2
         ref: v2.x
         path: ${{env.CATCH_INSTALL_DIR}}
-    - name: build and install Catch2
+
+    - name: Build and install Catch2
       working-directory: ${{env.CATCH_INSTALL_DIR}}
       run: |
-        cmake -Bbuild -H. -DBUILD_TESTING=OFF -DCMAKE_INSTALL_PREFIX=.
+        cmake -Bbuild -DBUILD_TESTING=OFF -DCMAKE_INSTALL_PREFIX=${{env.CATCH_INSTALL_DIR}}
         cmake --build build --target install
 
-    - name: Configure CMake
+    - name: Configure CMake on Linux
+      if: ${{ matrix.os == 'ubuntu-latest' }}
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-      run: cmake -Bbuild -H. -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+      run: cmake -Bbuild -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{ matrix.cmake-config }}
+
+    - name: Configure CMake on MacOS
+      if: ${{ matrix.os == 'macos-latest' }}
+      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
+      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+      run: cmake -Bbuild -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_CXX_COMPILER="gcc-11" -DCMAKE_Fortran_COMPILER="gfortran-11" ${{ matrix.cmake-config }}
+
+    - name: Configure CMake on Windows
+      if: ${{ matrix.os == 'windows-latest' }}
+      run: cmake -G "Unix Makefiles" -Bbuild -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{ matrix.cmake-config }}
 
     - name: Build
       # Build your program with the given configuration
@@ -53,5 +75,5 @@ jobs:
       working-directory: ${{github.workspace}}/build
       # Execute tests defined by the CMake configuration.  
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
-      # run: ctest -C ${{env.BUILD_TYPE}}
-      run: ./tester -r compact
+      run: ctest -C ${{env.BUILD_TYPE}} --output-on-failure
+      # run: ./tester -r compact
