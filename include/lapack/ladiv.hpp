@@ -1,13 +1,12 @@
-// Copyright (c) 2012-2021, University of Colorado Denver. All rights reserved.
-// SPDX-License-Identifier: BSD-3-Clause
-// This program is free software: you can redistribute it and/or modify it under
-// the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
-//
-// Created by
+/// @file ladiv.hpp
 /// @author Weslley S Pereira, University of Colorado Denver, USA
+/// Adapted from @see https://github.com/langou/latl/blob/master/include/ladiv.h
 //
-// Adapted from https://github.com/langou/latl/blob/master/include/ladiv.h
-/// @author Rodney James, University of Colorado Denver, USA
+// Copyright (c) 2012-2021, University of Colorado Denver. All rights reserved.
+//
+// This file is part of T-LAPACK.
+// T-LAPACK is free software: you can redistribute it and/or modify it under
+// the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
 #ifndef __LADIV_HH__
 #define __LADIV_HH__

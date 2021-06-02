@@ -1,10 +1,12 @@
-// Copyright (c) 2021, University of Colorado Denver. All rights reserved.
-// SPDX-License-Identifier: BSD-3-Clause
-// This program is free software: you can redistribute it and/or modify it under
-// the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
-//
-// Created by
+/// @file example_geqr2.cpp
 /// @author Weslley S Pereira, University of Colorado Denver, USA
+//
+/// @copyright
+// Copyright (c) 2021, University of Colorado Denver. All rights reserved.
+//
+// This file is part of T-LAPACK.
+// T-LAPACK is free software: you can redistribute it and/or modify it under
+// the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
 #include <tlapack.hpp>
 #include <tblas.hpp>
@@ -94,7 +96,8 @@ void run( lapack::size_t m, lapack::size_t n )
     work = new real_t[ n*n ];
         
         // work receives the identity n*n
-        lapack::laset<real_t>( lapack::Uplo::General, n, n, 0, 1, work, n );
+        lapack::laset<real_t>(
+            lapack::Layout::ColMajor, lapack::Uplo::General, n, n, 0.0, 1.0, work, n );
         // work receives Q'Q - I
         blas::syrk(
             lapack::Layout::ColMajor, lapack::Uplo::Upper,

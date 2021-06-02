@@ -1,16 +1,16 @@
-// Copyright (c) 2012-2021, University of Colorado Denver. All rights reserved.
-// SPDX-License-Identifier: BSD-3-Clause
-// This program is free software: you can redistribute it and/or modify it under
-// the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
-//
-// Created by
+/// @file lassq.hpp
 /// @author Weslley S Pereira, University of Colorado Denver, USA
-//
-// Reference:
+/// 
 /// Anderson E. (2017)
 /// Algorithm 978: Safe Scaling in the Level 1 BLAS
 /// ACM Trans Math Softw 44:1--28
 /// @see https://doi.org/10.1145/3061665
+//
+// Copyright (c) 2012-2021, University of Colorado Denver. All rights reserved.
+//
+// This file is part of T-LAPACK.
+// T-LAPACK is free software: you can redistribute it and/or modify it under
+// the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
 #ifndef __LASSQ_HH__
 #define __LASSQ_HH__

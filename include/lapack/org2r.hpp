@@ -1,13 +1,12 @@
-// Copyright (c) 2013-2021, University of Colorado Denver. All rights reserved.
-// SPDX-License-Identifier: BSD-3-Clause
-// This program is free software: you can redistribute it and/or modify it under
-// the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
-//
-// Created by
+/// @file org2r.hpp
 /// @author Weslley S Pereira, University of Colorado Denver, USA
+/// Adapted from @see https://github.com/langou/latl/blob/master/include/org2r.h
 //
-// Adapted from https://github.com/langou/latl/blob/master/include/org2r.h
-/// @author Philippe Theveny, University of Colorado Denver, USA
+// Copyright (c) 2013-2021, University of Colorado Denver. All rights reserved.
+//
+// This file is part of T-LAPACK.
+// T-LAPACK is free software: you can redistribute it and/or modify it under
+// the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
 #ifndef __ORG2R_HH__
 #define __ORG2R_HH__

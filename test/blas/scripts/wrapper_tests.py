@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 ## @brief Create and populate 'test_corner_cases.cpp'
 #
-#  @author Weslley S. Pereira, University of Colorado Denver
+#  @file   wrapper_tests.py
+#  @author Weslley S. Pereira, University of Colorado Denver, USA
 #  @date   March 30, 2021
 #
 # Copyright (c) 2021, University of Colorado Denver. All rights reserved.
-# SPDX-License-Identifier: BSD-3-Clause
-# This program is free software: you can redistribute it and/or modify it under
+#
+# This file is part of T-LAPACK.
+# T-LAPACK is free software: you can redistribute it and/or modify it under
 # the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
 # ------------------------------------------------------------------------------
@@ -75,8 +77,9 @@ with open("returnImmediately_corner_tests.csv") as f:
 # Print header of the test file:
 print("""\
 // Copyright (c) 2021, University of Colorado Denver. All rights reserved.
-// SPDX-License-Identifier: BSD-3-Clause
-// This program is free software: you can redistribute it and/or modify it under
+//
+// This file is part of T-LAPACK.
+// T-LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
 #include <type_traits>

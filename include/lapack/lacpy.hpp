@@ -1,13 +1,12 @@
-// Copyright (c) 2012-2021, University of Colorado Denver. All rights reserved.
-// SPDX-License-Identifier: BSD-3-Clause
-// This program is free software: you can redistribute it and/or modify it under
-// the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
-//
-// Created by
+/// @file lacpy.hpp
 /// @author Weslley S Pereira, University of Colorado Denver, USA
+/// Adapted from @see https://github.com/langou/latl/blob/master/include/lacpy.h
 //
-// Adapted from https://github.com/langou/latl/blob/master/include/lacpy.h
-/// @author Rodney James, University of Colorado Denver, USA
+// Copyright (c) 2012-2021, University of Colorado Denver. All rights reserved.
+//
+// This file is part of T-LAPACK.
+// T-LAPACK is free software: you can redistribute it and/or modify it under
+// the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
 #ifndef __LACPY_HH__
 #define __LACPY_HH__
@@ -43,13 +42,16 @@ void lacpy(
 
     if (uplo == Uplo::Upper) {
         // Set the strictly upper triangular or trapezoidal part of B
-        for (size_t j = 0; j < n; ++j)
-            for (size_t i = 0; i < std::min(m,j+1); ++i)
+        for (size_t j = 0; j < n; ++j) {
+            const size_t M = std::min(m,j+1);
+            for (size_t i = 0; i < M; ++i)
                 B(i,j) = A(i,j);
+        }
     }
     else if (uplo == Uplo::Lower) {
         // Set the strictly lower triangular or trapezoidal part of B
-        for (size_t j = 0; j < std::min(m,n); ++j)
+        const size_t N = std::min(m,n);
+        for (size_t j = 0; j < N; ++j)
             for (size_t i = j; i < m; ++i)
                 B(i,j) = A(i,j);
     }

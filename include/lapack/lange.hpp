@@ -1,13 +1,12 @@
-// Copyright (c) 2012-2021, University of Colorado Denver. All rights reserved.
-// SPDX-License-Identifier: BSD-3-Clause
-// This program is free software: you can redistribute it and/or modify it under
-// the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
-//
-// Created by
+/// @file lange.hpp
 /// @author Weslley S Pereira, University of Colorado Denver, USA
+/// Adapted from @see https://github.com/langou/latl/blob/master/include/lange.h
 //
-// Adapted from https://github.com/langou/latl/blob/master/include/lange.h
-/// @author Stephanie Patterson, University of Colorado Denver, USA
+// Copyright (c) 2012-2021, University of Colorado Denver. All rights reserved.
+//
+// This file is part of T-LAPACK.
+// T-LAPACK is free software: you can redistribute it and/or modify it under
+// the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
 #ifndef __LANGE_HH__
 #define __LANGE_HH__
@@ -124,6 +123,31 @@ TA lange(
 
     #undef A
     return norm;
+}
+
+/** Calculates the value of the one norm, Frobenius norm, infinity norm, or element of largest absolute value
+ * 
+ * @param[in] layout
+ *     Matrix storage, Layout::ColMajor or Layout::RowMajor.
+ * @see lange( Norm normType, blas::size_t m, blas::size_t n, const TA *A, blas::size_t lda )
+ * 
+ * @ingroup auxiliary
+**/
+template <typename TA>
+inline TA lange(
+    Layout layout,
+    Norm normType, blas::size_t m, blas::size_t n,
+    const TA *A, blas::size_t lda )
+{
+    if ( layout == Layout::RowMajor ) {
+        if( normType == Norm::One ) normType = Norm::Inf;
+        else if( normType == Norm::Inf ) normType = Norm::One;
+        // Transpose A
+        return lange( normType, n, m, A, lda );
+    }
+    else {
+        return laset( normType, m, n, A, lda );
+    }
 }
 
 } // lapack

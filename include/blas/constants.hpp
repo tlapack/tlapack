@@ -1,10 +1,11 @@
 // Copyright (c) 2021, University of Colorado Denver. All rights reserved.
-// SPDX-License-Identifier: BSD-3-Clause
-// This program is free software: you can redistribute it and/or modify it under
+//
+// This file is part of T-LAPACK.
+// T-LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_BLAS_CONSTANTS_HH__
-#define __TLAPACK_BLAS_CONSTANTS_HH__
+#ifndef __TBLAS_CONSTANTS_HH__
+#define __TBLAS_CONSTANTS_HH__
 
 #include <type_traits>
 #include <limits>
@@ -19,4 +20,4 @@ const blas::size_t INVALID_INDEX( -1 );
 
 }
 
-#endif // __TLAPACK_BLAS_CONSTANTS_HH__
+#endif // __TBLAS_CONSTANTS_HH__
