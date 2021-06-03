@@ -12,7 +12,6 @@ void blas::error( const char* error_msg, const char* func )
 {
 #ifdef BLAS_ERROR_ASSERT
     fprintf( stderr, "Error: %s, in function %s\n", error_msg, func );
-    abort();
 #else
     throw blas::Error( error_msg, func );
 #endif

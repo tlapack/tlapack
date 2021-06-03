@@ -21,7 +21,7 @@ message(STATUS "T-LAPACK version " ${PROJECT_VERSION})
 #-------------------------------------------------------------------------------
 # T-LAPACK and T-BLAS template library
 
-add_library( tblas src/blas/exception.cpp )
+add_library( tblas src/xerbla.cpp )
 
 add_library( tlapack INTERFACE )
 target_link_libraries( tlapack INTERFACE tblas )
