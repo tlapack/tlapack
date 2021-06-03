@@ -30,7 +30,7 @@ using std::pow;
 
 // -----------------------------------------------------------------------------
 // Use MPFR interface
-#ifdef USE_GNU_MPFR
+#ifdef USE_MPFR
     inline mpreal real( const mpreal& x ) { return x; }
     inline mpreal imag( const mpreal& x ) { return 0; }
     using mpfr::abs;
@@ -181,7 +181,7 @@ inline scalar_t make_scalar( blas::real_type<scalar_t> re,
 template< typename T >
 inline T sqrt( const T& x )
 {
-#ifdef USE_GNU_MPFR
+#ifdef USE_MPFR
     return T( mpfr::sqrt( x ) );
 #else
     return T( std::sqrt( x ) );
@@ -243,7 +243,7 @@ inline const real_t digits()
     return std::numeric_limits< real_t >::digits;
 }
 
-#ifdef USE_GNU_MPFR
+#ifdef USE_MPFR
     #ifdef MPREAL_HAVE_DYNAMIC_STD_NUMERIC_LIMITS
         /** Digits for the mpreal datatype
          * @ingroup utils

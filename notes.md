@@ -40,7 +40,7 @@
    - Tests for INF propagation
    - Tests for NAN propagation
 
-3. It already works with GNU MPFR.
+3. It already works with MPFR C++ (http://www.holoborodko.com/pavel/mpfr/).
 
 4. All tests for corner cases are generated with a Python script that reads CSV tables with test rules. So, it is easy to change the rule if we want to. We may generated sets with different rules that vigorated in BLAS since its first design.
 

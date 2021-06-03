@@ -87,12 +87,17 @@ print("""\
 #include <tblas.hpp>
 #include "test_types.hpp"
 
-#ifdef CHECK_BLAS_THROW_MESSAGE
+#if defined(BLAS_ERROR_NDEBUG) || defined(NDEBUG)
     #define CHECK_BLAS_THROWS( expr, str ) \\
-        CHECK_THROWS_WITH( expr, Catch::Contains( str ) )
+        ((void)0)
 #else
-    #define CHECK_BLAS_THROWS( expr, str ) \\
-        CHECK_THROWS( expr )
+    #ifdef CHECK_BLAS_THROW_MESSAGE
+        #define CHECK_BLAS_THROWS( expr, str ) \\
+            CHECK_THROWS_WITH( expr, Catch::Contains( str ) )
+    #else
+        #define CHECK_BLAS_THROWS( expr, str ) \\
+            CHECK_THROWS( expr )
+    #endif
 #endif
 
 using namespace blas;""")

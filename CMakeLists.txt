@@ -37,7 +37,7 @@ option( USE_BLASPP_WRAPPERS   "Use BLAS++ wrappers"   OFF )
 option( USE_BLASPP_TEMPLATES  "Use BLAS++ templates"  OFF )
 option( USE_LAPACKPP_WRAPPERS "Use LAPACK++ wrappers" OFF )
 option( BUILD_EXAMPLES        "Build examples"        ON  )
-option( USE_GNU_MPFR          "Use GNU MPFR library"  OFF )
+option( USE_MPFR              "Use MPFR C++ library (http://www.holoborodko.com/pavel/mpfr/)"  OFF )
 
 #-------------------------------------------------------------------------------
 # Modules
@@ -80,10 +80,10 @@ endif()
 
 #-------------------------------------------------------------------------------
 # Search for MPFR library if it is needed
-if( USE_GNU_MPFR )
-  # find_package( GMP REQUIRED )
+if( USE_MPFR )
+  find_package( GMP REQUIRED )
   find_package( MPFR REQUIRED )
-  target_compile_definitions( tblas PUBLIC USE_GNU_MPFR )
+  target_compile_definitions( tblas PUBLIC USE_MPFR )
   target_include_directories( tblas PUBLIC ${MPFR_INCLUDES} ${GMP_INCLUDES} )
   target_link_libraries( tblas PUBLIC ${MPFR_LIBRARIES} ${GMP_LIBRARIES} )
 endif()

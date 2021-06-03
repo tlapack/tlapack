@@ -8,8 +8,8 @@
 #ifndef __TBLAS_TYPES_HH__
 #define __TBLAS_TYPES_HH__
 
-#ifdef USE_GNU_MPFR
-    #include "mpreal.h"
+#ifdef USE_MPFR
+    #include <mpreal.h>
 #endif
 
 #include "defines.h"
@@ -20,7 +20,7 @@ namespace blas {
 
 // -----------------------------------------------------------------------------
 // MPFR types
-#ifdef USE_GNU_MPFR
+#ifdef USE_MPFR
     using mpfr::mpreal;
 #endif
 
