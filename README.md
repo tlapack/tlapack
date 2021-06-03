@@ -1,6 +1,9 @@
 # T-LAPACK
 C++ Template Linear Algebra PACKage
 
+[![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://github.com/weslleyspereira/tlapack/blob/master/LICENSE)
+[![GitHub Workflow Status](https://github.com/weslleyspereira/tlapack/actions/workflows/cmake.yml/badge.svg)](https://github.com/weslleyspereira/tlapack/actions/workflows/cmake.yml)
+
 ## About
 
 + Precision-neutral function template implementation
@@ -17,6 +20,7 @@ C++ Template Linear Algebra PACKage
 BSD 3-Clause License
 
 Copyright (c) 2012-2021, University of Colorado Denver. All rights reserved.
+
 Copyright (c) 2017-2021, University of Tennessee. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
