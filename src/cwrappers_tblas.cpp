@@ -301,7 +301,7 @@ complexFloat _cdotu(
     blas_size_t n,
     complexFloat const * x, blas_int_t incx,
     complexFloat const * y, blas_int_t incy ) {
-    tblas_complexDouble c = blas::dotu<tblas_complexFloat, tblas_complexFloat>(
+    tblas_complexFloat c = blas::dotu<tblas_complexFloat, tblas_complexFloat>(
         n,
         tblas_cteC(x), incx,
         tblas_cteC(y), incy );

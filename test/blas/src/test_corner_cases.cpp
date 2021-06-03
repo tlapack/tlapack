@@ -84,7 +84,6 @@ TEMPLATE_TEST_CASE( "copy satisfies all corner cases", "[copy][BLASlv1]", TEST_T
     using real_t = real_type<TestType>;
     
     // Default arguments:
-    blas::size_t n = 1;
     TestType const x[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
     blas::int_t incx = 1;
     TestType y[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
@@ -112,7 +111,6 @@ TEMPLATE_TEST_CASE( "dot satisfies all corner cases", "[dot][BLASlv1]", TEST_TYP
     using real_t = real_type<TestType>;
     
     // Default arguments:
-    blas::size_t n = 1;
     TestType const x[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
     blas::int_t incx = 1;
     TestType const y[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
@@ -130,7 +128,6 @@ TEMPLATE_TEST_CASE( "dotu satisfies all corner cases", "[dotu][BLASlv1]", TEST_T
     using real_t = real_type<TestType>;
     
     // Default arguments:
-    blas::size_t n = 1;
     TestType const x[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
     blas::int_t incx = 1;
     TestType const y[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
@@ -247,7 +244,6 @@ TEMPLATE_TEST_CASE( "rotm satisfies all corner cases", "[rotm][BLASlv1]", TEST_R
     using real_t = real_type<TestType>;
     
     // Default arguments:
-    blas::size_t n = 1;
     TestType x[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
     blas::int_t incx = 1;
     TestType y[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
@@ -282,7 +278,6 @@ TEMPLATE_TEST_CASE( "rotmg satisfies all corner cases", "[rotmg][BLASlv1]", TEST
     using real_t = real_type<TestType>;
     
     // Default arguments:
-    TestType d1[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
     TestType d2[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
     TestType a[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
     TestType b = real_t(1);
@@ -330,7 +325,6 @@ TEMPLATE_TEST_CASE( "swap satisfies all corner cases", "[swap][BLASlv1]", TEST_T
     using real_t = real_type<TestType>;
     
     // Default arguments:
-    blas::size_t n = 1;
     TestType x[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
     blas::int_t incx = 1;
     TestType y[] = {real_t(1), real_t(1), real_t(1), real_t(1), real_t(1)};
