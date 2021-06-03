@@ -21,9 +21,7 @@ namespace lapack {
 /** Computes a QR factorization of a matrix A.
  * 
  * @param work Vector of size n-1.
- *     It is possible to use the subarray tau[1:n-1] as the work vector, i.e.,
- *         geqr2( ..., tau, &(tau[1]) ).
- * @see geqr2( blas::size_t, blas::size_t, TA*, blas::size_t, Ttau* )
+ * @see geqr2( blas::size_t, blas::size_t, TA*, blas::size_t, TA* )
  * 
  * @ingroup geqrf
  */
@@ -70,10 +68,13 @@ int geqr2(
     return (info == 0) ? 0 : 1;
 }
 
-/** Computes a QR factorization of a matrix A.
+/** Computes a QR factorization of a complex matrix A.
  * 
- * @param work Vector of size n-1.
- * @see geqr2( blas::size_t, blas::size_t, TA*, blas::size_t, Ttau* )
+ * @tparam real_t floating-point type.
+ * Similar to @see geqr2( blas::size_t, blas::size_t, TA*, blas::size_t, TA*, TA* )
+ * but, here, A is complex and tau is real.
+ * 
+ * @note The imaginary part of tau is set to zero.
  * 
  * @ingroup geqrf
  */
@@ -141,25 +142,46 @@ int geqr2(
  * @param[in] m The number of rows of the matrix A.
  * @param[in] n The number of columns of the matrix A.
  * @param[in,out] A m-by-n matrix.
- *     On exit, the elements on and above the diagonal of the array
- *     contain the min(m,n)-by-n upper trapezoidal matrix R
- *     (R is upper triangular if m >= n); the elements below the diagonal,
- *     with the array tau, represent the unitary matrix Q as a
- *     product of elementary reflectors.
+ *      On exit, the elements on and above the diagonal of the array
+ *      contain the min(m,n)-by-n upper trapezoidal matrix R
+ *      (R is upper triangular if m >= n); the elements below the diagonal,
+ *      with the array tau, represent the unitary matrix Q as a
+ *      product of elementary reflectors.
  * @param[in] lda The leading dimension of A. lda >= max(1,m).
  * @param[out] tau Real vector of length min(m,n).
- *     The scalar factors of the elementary reflectors.
+ *      The scalar factors of the elementary reflectors.
+ *      The subarray tau[1:n-1] is used as workspace.
  * 
  * @ingroup geqrf
  */
-template< typename TA, typename Ttau >
+template< typename TA >
 inline int geqr2(
     blas::size_t m, blas::size_t n,
     TA* A, blas::size_t lda,
-    Ttau* tau )
+    TA* tau )
+{
+    return geqr2( m, n, A, lda, tau, tau+1 );
+}
+
+/** Computes a QR factorization of a complex matrix A.
+ * 
+ * @tparam real_t floating-point type.
+ * Similar to @see geqr2( blas::size_t, blas::size_t, TA*, blas::size_t, TA* )
+ * but, here, A is complex and tau is real.
+ * 
+ * @note The imaginary part of tau is set to zero.
+ * 
+ * @ingroup geqrf
+ */
+template< typename real_t >
+int geqr2(
+    blas::size_t m, blas::size_t n,
+    std::complex<real_t>* A, blas::size_t lda,
+    real_t* tau )
 {
     int info = 0;
-    TA* work = new TA[ (n > 0) ? n-1 : 0 ];
+    std::complex<real_t>* work
+        = new std::complex<real_t>[ (n > 0) ? n-1 : 0 ];
 
     info = geqr2( m, n, A, lda, tau, work );
 

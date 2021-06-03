@@ -31,37 +31,38 @@ namespace lapack {
  *
  * @param m Number of rows to be included in the norm. m >= 0
  * @param n Number of columns to be included in the norm. n >= 0
- * @param A Real matrix size m-by-n.
+ * @param A matrix size m-by-n.
  * @param ldA Column length of the matrix A.  ldA >= m
  * 
  * @ingroup auxiliary
 **/
 template <typename TA>
-TA lange(
+real_type<TA> lange(
     Norm normType, blas::size_t m, blas::size_t n,
     const TA *A, blas::size_t lda )
 {
+    typedef real_type<TA> real_t;
     #define A(i_, j_) A[ (i_) + (j_)*lda ]
     using blas::abs;
     using blas::isnan;
     using blas::sqrt;
 
     // constants
-    const TA zero(0.0);
+    const real_t zero(0.0);
 
     // quick return
     if (m == 0 || n == 0)
         return zero;
 
     // Norm value
-    TA norm(0.0);
+    real_t norm(0.0);
 
     if( normType == Norm::Max )
     {
         for (size_t j = 0; j < n; ++j) {
             for (size_t i = 0; i < m; ++i)
             {
-                TA temp = abs( A(i,j) );
+                real_t temp = abs( A(i,j) );
 
                 if (temp > norm)
                     norm = temp;
@@ -76,7 +77,7 @@ TA lange(
     {
         for (size_t j = 0; j < n; ++j)
         {
-            TA sum = zero;
+            real_t sum = zero;
             for (size_t i = 0; i < m; ++i)
                 sum += abs( A(i,j) );
 
@@ -90,7 +91,7 @@ TA lange(
     }
     else if ( normType == Norm::Inf )
     {
-        TA *work = new TA[m];
+        real_t *work = new real_t[m];
         for (size_t i = 0; i < m; ++i)
             work[i] = abs( A(i,0) );
         
@@ -100,7 +101,7 @@ TA lange(
 
         for (size_t i = 0; i < m; ++i)
         {
-            TA temp = work[i];
+            real_t temp = work[i];
 
             if (temp > norm)
                 norm = temp;
@@ -115,7 +116,7 @@ TA lange(
     }
     else if ( normType == Norm::Fro )
     {
-        TA scale(0.0), sum(1.0);
+        real_t scale(0.0), sum(1.0);
         for (size_t j = 0; j < n; ++j)
             lassq(m, &(A(0,j)), 1, scale, sum);
         norm = scale * sqrt(sum);
@@ -134,20 +135,22 @@ TA lange(
  * @ingroup auxiliary
 **/
 template <typename TA>
-inline TA lange(
+inline real_type<TA> lange(
     Layout layout,
     Norm normType, blas::size_t m, blas::size_t n,
     const TA *A, blas::size_t lda )
 {
     if ( layout == Layout::RowMajor ) {
+        
+        // Change norm if norm == Norm::One or norm == Norm::Inf
         if( normType == Norm::One ) normType = Norm::Inf;
         else if( normType == Norm::Inf ) normType = Norm::One;
+        
         // Transpose A
-        return lange( normType, n, m, A, lda );
+        std::swap(m,n);
     }
-    else {
-        return laset( normType, m, n, A, lda );
-    }
+
+    return lange( normType, m, n, A, lda );
 }
 
 } // lapack

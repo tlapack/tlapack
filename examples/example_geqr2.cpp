@@ -16,6 +16,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+//------------------------------------------------------------------------------
+/// Print matrix A in the standard output
 template <typename TA>
 inline void printMatrix(
     lapack::size_t m, lapack::size_t n,
@@ -32,28 +34,42 @@ inline void printMatrix(
 template <typename real_t>
 void run( lapack::size_t m, lapack::size_t n )
 {
+    // Turn it off if m or n are large
     bool verbose = true;
-    float perform_refL;
 
+    // Leading dimensions
     lapack::size_t lda = (m > 0) ? m : 1;
     lapack::size_t ldr = lda;
     lapack::size_t ldq = lda;
-    lapack::size_t tsize = n;
 
+    // Arrays
     real_t* A = new real_t[ lda*n ];  // m-by-n
     real_t* Q = new real_t[ ldq*n ];  // m-by-n
     real_t* R = new real_t[ ldr*n ];  // m-by-n
-    real_t* tau = new real_t[ tsize ];
+    real_t* tau = new real_t[ n ];
     real_t* work;
 
+    // Views
     #define A(i_, j_) A[ (i_) + (j_)*lda ]
     #define R(i_, j_) R[ (i_) + (j_)*ldr ]
     #define Q(i_, j_) Q[ (i_) + (j_)*ldq ]
 
+    // Initialize arrays with junk
+    for (lapack::size_t j = 0; j < n; ++j) {
+        for (lapack::size_t i = 0; i < lda; ++i) { // lda == ldq == ldr
+            A(i,j) = static_cast<float>( 0xDEADBEEF );
+            Q(i,j) = static_cast<float>( 0xCAFED00D );
+            R(i,j) = static_cast<float>( 0xFEE1DEAD );
+        }
+        tau[j] = static_cast<float>( 0xFFBADD11 );
+    }
+    
+    // Generate a random matrix in A
     for (lapack::size_t j = 0; j < n; ++j)
         for (lapack::size_t i = 0; i < m; ++i)
             A(i,j) = static_cast<float>( rand() )
                         / static_cast<float>( RAND_MAX );
+    // Frobenius norm of A
     real_t normA = lapack::lange(
         lapack::Norm::Fro,
         m, n, A, lda );
@@ -69,16 +85,16 @@ void run( lapack::size_t m, lapack::size_t n )
     // Record start time
     auto start_refL = std::chrono::high_resolution_clock::now();
     // QR factorization
-    blas_error_if( lapack::geqr2( m, n, Q, ldq, tau, tau+1 ) );
+    blas_error_if( lapack::geqr2( m, n, Q, ldq, tau ) );
     // Save the R part
-    lapack::lacpy( lapack::Uplo::Upper, m, n, Q, ldq, R, ldr );
+    lapack::lacpy( lapack::Uplo::Upper, n, n, Q, ldq, R, ldr );
     // Generates Q = H_1 H_2 ... H_n in the array A
     blas_error_if( lapack::org2r( m, n, n, Q, ldq, tau ) );
     // Record end time
     auto finish_refL = std::chrono::high_resolution_clock::now();
 
     auto elapsed_refL = std::chrono::duration_cast<std::chrono::nanoseconds>(finish_refL - start_refL);
-    perform_refL = ( 4.0e+00 * ((double) m) * ((double) n) * ((double) n) 
+    double perform_refL = ( 4.0e+00 * ((double) m) * ((double) n) * ((double) n) 
                     - 4.0e+00 / 3.0e+00 * ((double) n) * ((double) n) * ((double) n)
                 )  / (elapsed_refL.count() * 1.0e-9) / 1.0e+9 ;
 
@@ -92,17 +108,18 @@ void run( lapack::size_t m, lapack::size_t n )
     // 1) Q'Q - I
 
     work = new real_t[ n*n ];
+    for (lapack::size_t i = 0; i < n*n; ++i) work[i] = static_cast<float>( 0xABADBABE );
         
         // work receives the identity n*n
         lapack::laset<real_t>(
-            lapack::Layout::ColMajor, lapack::Uplo::General, n, n, 0.0, 1.0, work, n );
+            lapack::Layout::ColMajor, lapack::Uplo::Upper, n, n, 0.0, 1.0, work, n );
         // work receives Q'Q - I
         blas::syrk(
             lapack::Layout::ColMajor, lapack::Uplo::Upper,
             lapack::Op::Trans, n, m, 1.0, Q, ldq, -1.0, work, n );
 
         // Compute ||Q'Q - I||_2
-        real_t norm_orth_1 = lapack::lange( lapack::Norm::Fro, n, n, work, n );
+        real_t norm_orth_1 = lapack::lansy( lapack::Norm::Fro, lapack::Uplo::Upper, n, work, n );
 
         if (verbose) {
             printf( "\nQ'Q-I = " );
@@ -114,6 +131,7 @@ void run( lapack::size_t m, lapack::size_t n )
     // 2) Q'Q - I
 
     work = new real_t[ m*n ];
+    for (lapack::size_t i = 0; i < n*n; ++i) work[i] = static_cast<float>( 0xABADBABE );
 
         // Copy Q to work
         lapack::lacpy( lapack::Uplo::General, m, n, Q, ldq, work, m );
@@ -138,7 +156,7 @@ void run( lapack::size_t m, lapack::size_t n )
     printf("\n");
     printf("time = %f ms,   GFlop/sec = %f", elapsed_refL.count() * 1.0e-6, perform_refL);
     printf("\n");
-    printf("||QR - A||_2/||A||_2  = %5.1e,        ||Q'Q - I||_2  = %5.1e",
+    printf("||QR - A||_F/||A||_F  = %5.1e,        ||Q'Q - I||_F  = %5.1e",
         norm_repres_1, norm_orth_1);
 
     delete[] A;
