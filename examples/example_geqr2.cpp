@@ -41,7 +41,7 @@ void run( lapack::size_t m, lapack::size_t n )
     lapack::size_t tsize = n;
 
     real_t* A = new real_t[ lda*n ];  // m-by-n
-    real_t* Q = new real_t[ lda*n ];  // m-by-n
+    real_t* Q = new real_t[ ldq*n ];  // m-by-n
     real_t* R = new real_t[ ldr*n ];  // m-by-n
     real_t* tau = new real_t[ tsize ];
     real_t* work;
@@ -123,8 +123,8 @@ void run( lapack::size_t m, lapack::size_t n )
             blas::Uplo::Upper, blas::Op::NoTrans, blas::Diag::NonUnit,
             m, n, 1.0, R, ldr, work, m );
 
-        for(lapack::size_t i = 0; i < m; ++i)
-            for(lapack::size_t j = 0; j < n; ++j)
+        for(lapack::size_t j = 0; j < n; ++j)
+            for(lapack::size_t i = 0; i < m; ++i)
                 work[ i+j*m ] -= A(i,j);
 
         real_t norm_repres_1 = lapack::lange(

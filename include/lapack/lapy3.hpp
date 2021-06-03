@@ -1,5 +1,3 @@
-
-//
 /// @file lapy3.hpp
 /// @author Weslley S Pereira, University of Colorado Denver, USA
 /// Adapted from @see https://github.com/langou/latl/blob/master/include/lapy3.h
@@ -18,7 +16,7 @@
 
 namespace lapack {
 
-/** Finds $\sqrt{x^2+y^2+z^2}$, taking care not to cause unnecessary overflow.
+/** Finds $\sqrt{x^2+y^2+z^2}$, taking care not to cause unnecessary overflow or unnecessary underflow.
  * 
  * @return $\sqrt{x^2+y^2+z^2}$
  *
