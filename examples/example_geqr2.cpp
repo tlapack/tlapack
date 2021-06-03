@@ -12,10 +12,9 @@
 #include <tblas.hpp>
 
 #include <new>
+#include <chrono>  // for high_resolution_clock
 #include <stdio.h>
-#include <stdlib.h> 
-#include <time.h>
-#include <sys/time.h>
+#include <stdlib.h>
 
 template <typename TA>
 inline void printMatrix(
@@ -33,14 +32,13 @@ inline void printMatrix(
 template <typename real_t>
 void run( lapack::size_t m, lapack::size_t n )
 {
-    bool verbose = false;
-    double elapsed_refL, perform_refL;
-    struct timeval tp;
+    bool verbose = true;
+    float perform_refL;
 
     lapack::size_t lda = (m > 0) ? m : 1;
     lapack::size_t ldr = lda;
     lapack::size_t ldq = lda;
-    lapack::size_t tsize = std::min(m,n);
+    lapack::size_t tsize = n;
 
     real_t* A = new real_t[ lda*n ];  // m-by-n
     real_t* Q = new real_t[ lda*n ];  // m-by-n
@@ -68,21 +66,21 @@ void run( lapack::size_t m, lapack::size_t n )
     // Copy A to Q
     lapack::lacpy( lapack::Uplo::General, m, n, A, lda, Q, ldq );
 
-    gettimeofday(&tp, NULL);
-    elapsed_refL = -((double)tp.tv_sec+(1.e-6)*tp.tv_usec);
-
+    // Record start time
+    auto start_refL = std::chrono::high_resolution_clock::now();
     // QR factorization
     blas_error_if( lapack::geqr2( m, n, Q, ldq, tau, tau+1 ) );
     // Save the R part
     lapack::lacpy( lapack::Uplo::Upper, m, n, Q, ldq, R, ldr );
     // Generates Q = H_1 H_2 ... H_n in the array A
     blas_error_if( lapack::org2r( m, n, n, Q, ldq, tau ) );
+    // Record end time
+    auto finish_refL = std::chrono::high_resolution_clock::now();
 
-    gettimeofday(&tp, NULL);
-    elapsed_refL += ((double)tp.tv_sec+(1.e-6)*tp.tv_usec);
+    auto elapsed_refL = std::chrono::duration_cast<std::chrono::nanoseconds>(finish_refL - start_refL);
     perform_refL = ( 4.0e+00 * ((double) m) * ((double) n) * ((double) n) 
                     - 4.0e+00 / 3.0e+00 * ((double) n) * ((double) n) * ((double) n)
-                )  / elapsed_refL / 1.0e+9 ;
+                )  / (elapsed_refL.count() * 1.0e-9) / 1.0e+9 ;
 
     if (verbose) {
         printf( "\nQ = " );
@@ -138,7 +136,7 @@ void run( lapack::size_t m, lapack::size_t n )
     // *) Output
 
     printf("\n");
-    printf("time = %f,   GFlop/sec = %f", elapsed_refL, perform_refL);
+    printf("time = %f ms,   GFlop/sec = %f", elapsed_refL.count() * 1.0e-6, perform_refL);
     printf("\n");
     printf("||QR - A||_2/||A||_2  = %5.1e,        ||Q'Q - I||_2  = %5.1e",
         norm_repres_1, norm_orth_1);
@@ -156,9 +154,9 @@ void run( lapack::size_t m, lapack::size_t n )
 //------------------------------------------------------------------------------
 int main( int argc, char** argv )
 {
-    int m = 319;
-    int n = 157;
-    srand( (unsigned)time(NULL) );
+    int m = 7;
+    int n = 5;
+    srand( 3 );
     
     printf( "run< float  >( %d, %d )", m, n );
     run< float  >( m, n );
