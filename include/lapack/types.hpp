@@ -8,8 +8,12 @@
 #ifndef __TLAPACK_TYPES_HH__
 #define __TLAPACK_TYPES_HH__
 
-#if defined(USE_BLASPP_WRAPPERS) && !defined(USE_BLASPP_TEMPLATES)
+#ifndef USE_BLASPP_TEMPLATES
     #include "blas/types.hpp"
+#else
+    // Requires the following BLAS types:
+    // namespace blas { size_t; int_t; Layout; Op; Uplo; Diag; Side;
+    //     real_type; complex_type; scalar_type; }
 #endif
 
 namespace lapack {

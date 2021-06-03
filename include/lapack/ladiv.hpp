@@ -12,7 +12,6 @@
 #define __LADIV_HH__
 
 #include "lapack/types.hpp"
-
 #include "lapack/utils.hpp"
 
 namespace lapack {

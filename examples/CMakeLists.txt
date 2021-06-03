@@ -5,8 +5,8 @@
 # the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
 # add the example version
-add_executable(version version.cpp)
-target_include_directories(version PRIVATE "${PROJECT_BINARY_DIR}/config")
+add_executable(example_version version.cpp)
+target_include_directories(example_version PRIVATE "${PROJECT_BINARY_DIR}/config")
 
 # add the example gemm
 add_executable(example_gemm example_gemm.cpp)
@@ -32,3 +32,23 @@ target_link_libraries( example_fortranWrapper_saxpy PRIVATE fortranwrappers_tbla
 # add the example geqrf
 add_executable(example_geqr2 example_geqr2.cpp)
 target_link_libraries( example_geqr2 PRIVATE tlapack )
+
+add_custom_target( run-all-examples
+COMMAND
+    echo "- example_version --------------" &&
+    ${CMAKE_CURRENT_BINARY_DIR}/example_version${CMAKE_EXECUTABLE_SUFFIX}
+COMMAND
+    echo "- example_gemm -----------------" &&
+    ${CMAKE_CURRENT_BINARY_DIR}/example_gemm${CMAKE_EXECUTABLE_SUFFIX}
+COMMAND
+    echo "- example_cwrapper_gemm --------" &&
+    ${CMAKE_CURRENT_BINARY_DIR}/example_cwrapper_gemm${CMAKE_EXECUTABLE_SUFFIX}
+COMMAND
+    echo "- example_fortranModule_saxpy --" &&
+    ${CMAKE_CURRENT_BINARY_DIR}/example_fortranModule_saxpy${CMAKE_EXECUTABLE_SUFFIX}
+COMMAND
+    echo "- example_fortranWrapper_saxpy -" &&
+    ${CMAKE_CURRENT_BINARY_DIR}/example_fortranWrapper_saxpy${CMAKE_EXECUTABLE_SUFFIX}
+COMMAND
+    echo "- example_geqr2 ----------------" &&
+    ${CMAKE_CURRENT_BINARY_DIR}/example_geqr2${CMAKE_EXECUTABLE_SUFFIX} )

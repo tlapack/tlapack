@@ -14,7 +14,8 @@
 #include "lapack/utils.hpp"
 #include "lapack/types.hpp"
 #include "lapack/larf.hpp"
-#include "blas/scal.hpp"
+
+#include "tblas.hpp"
 
 namespace lapack {
 

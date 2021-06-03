@@ -14,7 +14,6 @@
 #define __LAPY3_HH__
 
 #include "lapack/types.hpp"
-
 #include "lapack/utils.hpp"
 
 namespace lapack {

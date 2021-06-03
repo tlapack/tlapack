@@ -7,7 +7,10 @@
 #ifndef __TLAPACK_UTILS_HH__
 #define __TLAPACK_UTILS_HH__
 
-#include "blas/utils.hpp"
+namespace blas {
+    // Forward declaration
+    void error( const char* error_msg, const char* func );
+}
 
 // -----------------------------------------------------------------------------
 // Macros to handle error checks

@@ -25,26 +25,101 @@
 
 // Template BLAS
 
-#ifdef USE_BLASPP_TEMPLATES
+#ifdef USE_BLASPP_TEMPLATES // If we use the templates from BLAS++
 
     #include <cstdint> // Contains std::int64_t
     #include <cmath> // Contains std::abs
+    #include <limits> // Contains std::numeric_limits
+    #include <complex> // Contains std::complex
 
     namespace blas {
+
         using size_t = std::int64_t;
         using int_t  = std::int64_t;
         const blas::size_t INVALID_INDEX = -1;
 
         // -----------------------------------------------------------------------------
-        // is nan
+        // Use routines from std C++
+        using std::abs; // Contains the 2-norm for the complex case
+        using std::isinf;
+        using std::isnan;
+        using std::ceil;
+        using std::floor;
+        using std::pow;
+        using std::sqrt;
+
+        // -----------------------------------------------------------------------------
+        /// isnan for complex numbers
         template< typename T >
-        inline bool isnan( T x )
+        inline bool isnan( const std::complex<T>& x )
         {
-            return x != x;
+            return isnan( real(x) ) || isnan( imag(x) );
+        }
+
+        /** Blue's min constant b for the sum of squares
+         * @see https://doi.org/10.1145/355769.355771
+         * @ingroup utils
+         */
+        template <typename real_t>
+        inline const real_t blue_min()
+        {
+            const real_t half( 0.5 );
+            const int fradix = std::numeric_limits<real_t>::radix;
+            const int expm   = std::numeric_limits<real_t>::min_exponent;
+
+            return pow( fradix, ceil( half*(expm-1) ) );
+        }
+
+        /** Blue's max constant B for the sum of squares
+         * @see https://doi.org/10.1145/355769.355771
+         * @ingroup utils
+         */
+        template <typename real_t>
+        inline const real_t blue_max()
+        {
+            const real_t half( 0.5 );
+            const int fradix = std::numeric_limits<real_t>::radix;
+            const int expM   = std::numeric_limits<real_t>::max_exponent;
+            const int t      = std::numeric_limits<real_t>::digits;
+
+            return pow( fradix, floor( half*( expM - t + 1 ) ) );
+        }
+
+        /** Blue's scaling constant for numbers smaller than b
+         * 
+         * @details Modification introduced in @see https://doi.org/10.1145/3061665
+         *          to scale denormalized numbers correctly.
+         * 
+         * @ingroup utils
+         */
+        template <typename real_t>
+        inline const real_t blue_scalingMin()
+        {
+            const real_t half( 0.5 );
+            const int fradix = std::numeric_limits<real_t>::radix;
+            const int expm   = std::numeric_limits<real_t>::min_exponent;
+            const int t      = std::numeric_limits<real_t>::digits;
+
+            return pow( fradix, -floor( half*(expm-t) ) );
+        }
+
+        /** Blue's scaling constant for numbers bigger than B
+         * @see https://doi.org/10.1145/355769.355771
+         * @ingroup utils
+         */
+        template <typename real_t>
+        inline const real_t blue_scalingMax()
+        {
+            const real_t half( 0.5 );
+            const int fradix = std::numeric_limits<real_t>::radix;
+            const int expM   = std::numeric_limits<real_t>::max_exponent;
+            const int t      = std::numeric_limits<real_t>::digits;
+
+            return pow( fradix, -ceil( half*( expM + t - 1 ) ) );
         }
     }
 
-    #include "blas.hh"
+    #include "blas.hh" // Include BLAS++
 
 #else
 

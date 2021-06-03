@@ -14,8 +14,7 @@
 #include "lapack/types.hpp"
 #include "lapack/utils.hpp"
 
-#include "blas/gemv.hpp"
-#include "blas/ger.hpp"
+#include "tblas.hpp"
 
 namespace lapack {
 

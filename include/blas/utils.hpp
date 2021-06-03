@@ -202,7 +202,7 @@ inline T abs1( std::complex<T> x )
 // -----------------------------------------------------------------------------
 /// isnan for complex numbers
 template< typename T >
-inline bool isnan( std::complex<T> x )
+inline bool isnan( const std::complex<T>& x )
 {
     return isnan( real(x) ) || isnan( imag(x) );
 }
