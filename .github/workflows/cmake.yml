@@ -19,9 +19,8 @@ on:
 env:
   Catch2_DIR: ${{github.workspace}}/test/thirdparty
   CFLAGS: "-Wall -pedantic"
-  CXXFLAGS: "--std=c++11 -Wall -pedantic"
-  FFLAGS: "-fimplicit-none -frecursive -fcheck=all"
-  LDFLAGS: "-lstdc++"
+  CXXFLAGS: "-Wall -pedantic"
+  FFLAGS: "-fimplicit-none -fcheck=all"
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Debug
 
@@ -45,19 +44,6 @@ jobs:
     
     - name: Checkout T-LAPACK
       uses: actions/checkout@v2
-        
-    - name: Checkout Catch2 v2.x
-      uses: actions/checkout@v2
-      with:
-        repository: catchorg/Catch2 # <-- clone https://github.com/catchorg/Catch2
-        ref: v2.x
-        path: ${{env.Catch2_DIR}}
-
-    - name: Build and install Catch2
-      working-directory: ${{env.Catch2_DIR}}
-      run: |
-        cmake -Bbuild -DBUILD_TESTING=OFF -DCMAKE_INSTALL_PREFIX=${{env.Catch2_DIR}}
-        cmake --build build --target install
 
     - name: Configure CMake on Linux
       if: ${{ matrix.os == 'ubuntu-latest' }}
@@ -67,8 +53,8 @@ jobs:
 
     - name: Configure CMake on MacOS
       if: ${{ matrix.os == 'macos-latest' }}
-      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
-      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+      env:
+        LDFLAGS: "-lstdc++"
       run: cmake -Bbuild -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_CXX_COMPILER="gcc-11" -DCMAKE_Fortran_COMPILER="gfortran-11"
 
     - name: Configure CMake on Windows
@@ -99,19 +85,6 @@ jobs:
 
     - name: Install MPFR C++
       run: sudo apt install libmpfrc++-dev
-        
-    - name: Checkout Catch2 v2.x
-      uses: actions/checkout@v2
-      with:
-        repository: catchorg/Catch2 # <-- clone https://github.com/catchorg/Catch2
-        ref: v2.x
-        path: ${{env.Catch2_DIR}}
-
-    - name: Build and install Catch2
-      working-directory: ${{env.Catch2_DIR}}
-      run: |
-        cmake -Bbuild -DBUILD_TESTING=OFF -DCMAKE_INSTALL_PREFIX=${{env.Catch2_DIR}}
-        cmake --build build --target install
 
     - name: Configure and build T-LAPACK
       run: |
@@ -120,7 +93,4 @@ jobs:
 
     - name: Test T-LAPACK
       working-directory: ${{github.workspace}}/build
-      # Execute tests defined by the CMake configuration.  
-      # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
       run: ctest -C ${{env.BUILD_TYPE}} --output-on-failure
-      # run: ./tester -r compact

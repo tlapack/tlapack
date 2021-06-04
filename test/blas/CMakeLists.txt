@@ -24,11 +24,6 @@ if( NOT TARGET tblas )
 endif()
 
 #-------------------------------------------------------------------------------
-# Search for Catch2
-find_package( Catch2 REQUIRED )
-include(Catch)
-
-#-------------------------------------------------------------------------------
 # corner-cases: Generate C++ file for tests with corner cases
 add_custom_target( corner-cases
 COMMAND
@@ -75,4 +70,5 @@ set_target_properties( tester
 
 #-------------------------------------------------------------------------------
 # Add tests to CTest
+include(Catch)
 catch_discover_tests(tester)
