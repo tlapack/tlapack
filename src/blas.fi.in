@@ -6,24 +6,24 @@
 
 interface
 
-subroutine cblas_saxpy( n, alpha, x, incx, y, incy ) &
+subroutine saxpy_( n, alpha, x, incx, y, incy ) &
 bind(C, name="saxpy")
     use, intrinsic :: iso_c_binding
     implicit none
 
-    integer(@CBLAS_SIZE_T@), value :: n
-    integer(@CBLAS_INT_T@), value :: incx, incy
+    integer(@FBLAS_SIZE_T@), value :: n
+    integer(@FBLAS_INT_T@), value :: incx, incy
     real(c_float), value :: alpha
     type(c_ptr), value :: x, y
 end subroutine
 
-subroutine cblas_daxpy( n, alpha, x, incx, y, incy ) &
+subroutine daxpy_( n, alpha, x, incx, y, incy ) &
 bind(C, name="daxpy")
     use, intrinsic :: iso_c_binding
     implicit none
 
-    integer(@CBLAS_SIZE_T@), value :: n
-    integer(@CBLAS_INT_T@), value :: incx, incy
+    integer(@FBLAS_SIZE_T@), value :: n
+    integer(@FBLAS_INT_T@), value :: incx, incy
     real(c_double), value :: alpha
     type(c_ptr), value :: x, y
 end subroutine

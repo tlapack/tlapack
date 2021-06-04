@@ -7,21 +7,36 @@
 module blas
     use, intrinsic :: iso_c_binding
     private
-    public :: saxpy
+    public :: saxpy, daxpy
 
-    include "cblas.fi"
+    include "blas.fi"
 
 contains
 
     subroutine saxpy ( n, alpha, x, incx, y, incy )
     implicit none
-        integer :: n, incx, incy
-        real    :: alpha
-        real, target :: x(*), y(*)
+        
+        integer(@FBLAS_INT_BYTES@), parameter :: wp = kind(1.e0)
+        integer(@FBLAS_INT_BYTES@)            :: n, incx, incy
+        real(wp)              :: alpha
+        real(wp), target      :: x(*), y(*)
 
-        call cblas_saxpy( int(n, @CBLAS_SIZE_T@), alpha, &
-            c_loc(x), int(incx, @CBLAS_INT_T@), &
-            c_loc(y), int(incy, @CBLAS_INT_T@) )
+        call saxpy_( int(n, @FBLAS_SIZE_T@), alpha, &
+            c_loc(x), int(incx, @FBLAS_INT_T@), &
+            c_loc(y), int(incy, @FBLAS_INT_T@) )
+    end subroutine
+
+    subroutine daxpy ( n, alpha, x, incx, y, incy )
+    implicit none
+        
+        integer(@FBLAS_INT_BYTES@), parameter :: wp = kind(1.d0)
+        integer(@FBLAS_INT_BYTES@)            :: n, incx, incy
+        real(wp)              :: alpha
+        real(wp), target      :: x(*), y(*)
+
+        call daxpy_( int(n, @FBLAS_SIZE_T@), alpha, &
+            c_loc(x), int(incx, @FBLAS_INT_T@), &
+            c_loc(y), int(incy, @FBLAS_INT_T@) )
     end subroutine
 
 end module

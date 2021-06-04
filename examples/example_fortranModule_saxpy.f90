@@ -8,11 +8,11 @@ program example_fortranModule_saxpy
 use blas
 implicit none
 
-    integer, parameter :: n = 10, incx = 1, incy = 1
+    integer(8), parameter :: n = 10, incx = 1, incy = 1
     real, parameter :: alpha = 2.e0
     real :: x(n), y(n)
 
-    integer :: i
+    integer(8) :: i
 
     ! Fill arrays
     do i = 1, n

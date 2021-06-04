@@ -24,6 +24,10 @@ env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Debug
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
 
   build-all-os:

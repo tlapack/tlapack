@@ -48,7 +48,7 @@ int geqr2(
     // quick return
     if (n <= 0) return 0;
 
-	const size_t k = std::min( m, n-1 );
+	const size_t k = std::min<size_t>( m, n-1 );
     for(size_t i = 0; i < k; ++i) {
 
         larfg( m-i, A(i,i), &(A(i+1,i)), 1, tau[i] );
@@ -99,7 +99,7 @@ int geqr2(
     // quick return
     if (n <= 0) return 0;
 
-	const size_t k = std::min( m, n-1 );
+	const size_t k = std::min<size_t>( m, n-1 );
     for(size_t i = 0; i < k; ++i) {
 
         larfg( m-i, A(i,i), &(A(i+1,i)), 1, tau[i] );

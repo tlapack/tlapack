@@ -7,13 +7,13 @@
 program example_fortranInterface_daxpy
     use, intrinsic :: iso_c_binding
 
-    include "cblas.fi"
+    include "blas.fi"
 
-    integer, parameter :: n = 10, incx = 1, incy = 1
+    integer(8), parameter :: n = 10, incx = 1, incy = 1
     double precision, parameter :: alpha = 2.e0
     double precision, target :: x(n), y(n)
 
-    integer :: i
+    integer(8) :: i
 
     ! Fill arrays
     do i = 1, n
@@ -33,7 +33,7 @@ program example_fortranInterface_daxpy
     print *, "[IN] alpha = ", alpha
     
     ! Call daxpy
-    call cblas_daxpy( int(n, c_int64_t), alpha, &
+    call daxpy_( int(n, c_int64_t), alpha, &
         c_loc(x), int(incx, c_int64_t), &
         c_loc(y), int(incy, c_int64_t) )
 

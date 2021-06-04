@@ -1,0 +1,19 @@
+/// @file getNumBytes.c
+/// @author Weslley S. Pereira, University of Colorado Denver USA
+/// Return the maximum number of bytes between @BLAS_SIZE_T@ and @BLAS_INT_T@.
+//
+// Copyright (c) 2021, University of Colorado Denver. All rights reserved.
+//
+// This file is part of T-LAPACK.
+// T-LAPACK is free software: you can redistribute it and/or modify it under
+// the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
+
+#include <stdint.h>
+#include <stddef.h>
+
+int main() {
+    return
+        sizeof( @BLAS_SIZE_T@ ) > sizeof( @BLAS_INT_T@ )
+            ? sizeof( @BLAS_SIZE_T@ )
+            : sizeof( @BLAS_INT_T@ );
+}

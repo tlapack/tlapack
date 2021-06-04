@@ -25,37 +25,54 @@ target_compile_definitions( cblas PRIVATE BUILD_CBLAS )
 # Integer types mapped to the ISO_FORTRAN_ENV module
 if( (${BLAS_SIZE_T} IN_LIST blas_intt_list) OR
     (${BLAS_SIZE_T} STREQUAL "size_t") )
-  string(REPLACE " " "_" CBLAS_SIZE_T_0 ${BLAS_SIZE_T})
-  set( CBLAS_SIZE_T "c_${CBLAS_SIZE_T_0}" CACHE STRING
+  string(REPLACE " " "_" FBLAS_SIZE_T_0 ${BLAS_SIZE_T})
+  set( FBLAS_SIZE_T "c_${FBLAS_SIZE_T_0}" CACHE STRING
   "Integer type for array sizes, array indexes, and matrix leading dimension"
   FORCE )
 else()
-  string(REGEX REPLACE "^u" "" CBLAS_SIZE_T_0 ${BLAS_SIZE_T})
-  if( ${CBLAS_SIZE_T_0} IN_LIST blas_intt_list )
-    string(REPLACE " " "_" CBLAS_SIZE_T_0 ${CBLAS_SIZE_T_0})
-    set( CBLAS_SIZE_T "c_${CBLAS_SIZE_T_0}" CACHE STRING
+  string(REGEX REPLACE "^u" "" FBLAS_SIZE_T_0 ${BLAS_SIZE_T})
+  if( ${FBLAS_SIZE_T_0} IN_LIST blas_intt_list )
+    string(REPLACE " " "_" FBLAS_SIZE_T_0 ${FBLAS_SIZE_T_0})
+    set( FBLAS_SIZE_T "c_${FBLAS_SIZE_T_0}" CACHE STRING
     "Integer type for array sizes, array indexes, and matrix leading dimension"
     FORCE )
   else()
-    set( CBLAS_SIZE_T "" CACHE STRING
+    set( FBLAS_SIZE_T "" CACHE STRING
     "Integer type for array sizes, array indexes, and matrix leading dimension" )
   endif()
 endif()
 
 # Integer types mapped to the ISO_FORTRAN_ENV module
 if( ${BLAS_INT_T} IN_LIST blas_intt_list )
-  string(REPLACE " " "_" CBLAS_INT_T_0 ${BLAS_INT_T})
-  set( CBLAS_INT_T "c_${CBLAS_INT_T_0}" CACHE STRING
+  string(REPLACE " " "_" FBLAS_INT_T_0 ${BLAS_INT_T})
+  set( FBLAS_INT_T "c_${FBLAS_INT_T_0}" CACHE STRING
   "Integer type from ISO_FORTRAN_ENV for all variables except array sizes and matrix leading dimension"
   FORCE )
 else()
-  set( CBLAS_INT_T "" CACHE STRING
+  set( FBLAS_INT_T "" CACHE STRING
   "Integer type from ISO_FORTRAN_ENV for all variables except array sizes and matrix leading dimension" )
+endif()
+
+# Decide if the value of FBLAS_INT_BYTES
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/utils/getNumBytes.c.in
+  ${CMAKE_CURRENT_SOURCE_DIR}/utils/getNumBytes.c @ONLY )
+execute_process (
+  COMMAND bash -c "${CMAKE_CXX_COMPILER} getNumBytes.c -o getNumBytes${CMAKE_EXECUTABLE_SUFFIX} && ./getNumBytes${CMAKE_EXECUTABLE_SUFFIX}"
+  WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/utils"
+  RESULT_VARIABLE FBLAS_INT_BYTES
+)
+
+if( (${FBLAS_INT_BYTES} GREATER_EQUAL 1) AND (${FBLAS_INT_BYTES} LESS_EQUAL 8) )
+  message( STATUS "Fortran wrappers use integers of ${FBLAS_INT_BYTES} bytes" )
+else()
+  set( FBLAS_INT_BYTES "8" )
+  message( STATUS "Fortran wrappers use integers of ${FBLAS_INT_BYTES} bytes" )
 endif()
 
 # Fortran interface. Used to call C-based BLAS directly from a Fortran program.
 # The Fortran code needs to import this interface and link with the library blas
-configure_file( cblas.fi.in ${PROJECT_SOURCE_DIR}/include/cblas.fi @ONLY )
+configure_file( blas.fi.in ${PROJECT_SOURCE_DIR}/include/blas.fi @ONLY )
 
 # Fortran library. This library can be linked directly to a Fortran code.
 configure_file( fortranwrappers_tblas.f90.in ${CMAKE_CURRENT_SOURCE_DIR}/fortranwrappers_tblas.f90 @ONLY )

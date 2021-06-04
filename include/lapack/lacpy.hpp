@@ -43,7 +43,7 @@ void lacpy(
     if (uplo == Uplo::Upper) {
         // Set the strictly upper triangular or trapezoidal part of B
         for (size_t j = 0; j < n; ++j) {
-            const size_t M = std::min(m,j+1);
+            const size_t M = std::min<size_t>( m, j+1 );
             for (size_t i = 0; i < M; ++i)
                 B(i,j) = A(i,j);
         }
