@@ -4,17 +4,19 @@ on:
   push:
     branches:
     - master
-    paths-ignore:
-    - 'docs/**'
-    - '**.md'
-    - '.gitattributes'
-    - '.gitignore'
+    paths:
+    - '.github/workflows/cmake.yml'
+    - '!docs/**'
+    - '!**.md'
+    - '!.gitattributes'
+    - '!.gitignore'
   pull_request:
-    paths-ignore:
-    - 'docs/**'
-    - '**.md'
-    - '.gitattributes'
-    - '.gitignore'
+    paths:
+    - '.github/workflows/cmake.yml'
+    - '!docs/**'
+    - '!**.md'
+    - '!.gitattributes'
+    - '!.gitignore'
 
 env:
   Catch2_DIR: ${{github.workspace}}/test/thirdparty
