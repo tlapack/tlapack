@@ -173,3 +173,22 @@ include(CTest)
 if( BUILD_TESTING )
   add_subdirectory(test)
 endif()
+
+#-------------------------------------------------------------------------------
+# Install
+
+# T-BLAS and T-LAPACK
+install(TARGETS tblas tlapack DESTINATION lib)
+
+# Headers
+install(
+  # copies contents, not directory itself
+  DIRECTORY "${PROJECT_SOURCE_DIR}/include/"
+  DESTINATION include
+  FILES_MATCHING
+    PATTERN "*.hpp"
+    PATTERN "*.h"
+    PATTERN "defines.h" EXCLUDE
+    PATTERN "*.fi"
+    PATTERN "*.f90"
+)

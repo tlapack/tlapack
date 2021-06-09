@@ -12,7 +12,7 @@ if( NOT Catch2_FOUND )
   if  ( EXISTS "${Catch2_DIR}/include/catch.hpp" )
 
     add_subdirectory( ${Catch2_DIR} ${CMAKE_CURRENT_BINARY_DIR}/Catch2 )
-    message( STATUS "  Using Catch2 from ${Catch2_DIR}" )
+    message( STATUS "Using Catch2 from ${Catch2_DIR}" )
 
     # Add folder with Catch.cmake to the CMAKE_MODULE_PATH
     set( CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${Catch2_DIR}/extras;${Catch2_DIR}/contrib" )
@@ -21,12 +21,15 @@ if( NOT Catch2_FOUND )
 
     set( Catch2_DIR $ENV{Catch2_DIR} )
     add_subdirectory( ${Catch2_DIR} ${CMAKE_CURRENT_BINARY_DIR}/Catch2 )
-    message( STATUS "  Using Catch2 from ${Catch2_DIR}" )
+    message( STATUS "Using Catch2 from ${Catch2_DIR}" )
 
     # Add folder with Catch.cmake to the CMAKE_MODULE_PATH
     set( CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${Catch2_DIR}/extras;${Catch2_DIR}/contrib" )
 
   elseif( ${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.14" )
+
+    message( STATUS "Catch2 not found. Trying to fetch from https://github.com/catchorg/Catch2.git. "
+                    "It may take a while." )
 
     include(FetchContent)
     FetchContent_Declare(
@@ -39,8 +42,15 @@ if( NOT Catch2_FOUND )
     # Add folder with Catch.cmake to the CMAKE_MODULE_PATH
     set( CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${Catch2_SOURCE_DIR}/extras;${Catch2_SOURCE_DIR}/contrib" )
 
+    # Test if the fetch was successful
+    if( EXISTS "${Catch2_SOURCE_DIR}/include/catch.hpp" )
+      message( STATUS "Using Catch2 from https://github.com/catchorg/Catch2.git." )
+    else()
+      message( FATAL_ERROR "Failed in fetching Catch2 from https://github.com/catchorg/Catch2.git." )
+    endif()
+
   else()
-    message( FATAL_ERROR "  Catch2 not found. Set \"Catch2_DIR\" to a directory containing either
+    message( FATAL_ERROR "Catch2 not found. Set \"Catch2_DIR\" to a directory containing either
     (1) \"include/catch.hpp\",
  or (2) one of the files: Catch2Config.cmake, catch2-config.cmake." )
   endif()
