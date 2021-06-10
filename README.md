@@ -74,15 +74,15 @@ Here are the T-LAPACK specific options and their default values
     
         Build the testing tree
         
-    C_WRAPPERS                       ON
+    C_WRAPPERS                       OFF
     
         Build and install C wrappers
         
-    Fortran_WRAPPERS                 ON
+    Fortran_WRAPPERS                 OFF
     
         Build and install Fortran wrappers
 
-    CBLAS_WRAPPERS                   ON
+    CBLAS_WRAPPERS                   OFF
     
         Build and install CBLAS wrappers to T-BLAS
     
