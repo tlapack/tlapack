@@ -98,6 +98,11 @@ void hemv(
     if (n == 0 || (alpha == zero && beta == one))
         return;
 
+    // for row major, swap lower <=> upper
+    if (layout == Layout::RowMajor) {
+        uplo = (uplo == Uplo::Lower ? Uplo::Upper : Uplo::Lower);
+    }
+
     size_t kx = (incx > 0 ? 0 : (-n + 1)*incx);
     size_t ky = (incy > 0 ? 0 : (-n + 1)*incy);
 
