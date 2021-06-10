@@ -59,11 +59,12 @@ void larfg(
     using blas::abs;
     using blas::nrm2;
     using blas::scal;
+    using blas::safe_min;
 
     // constants
     const real_t one(1.0);
     const real_t zero(0.0);
-    const real_t safemin  = blas::safe_min<real_t>();
+    const real_t safemin  = safe_min<real_t>();
     const real_t rsafemin = 1.0 / safemin;
 
     tau = zero;
@@ -137,11 +138,12 @@ void larfg(
     using blas::abs;
     using blas::nrm2;
     using blas::scal;
+    using blas::safe_min;
 
     // constants
     const std::complex<real_t> one(1.0);
     const real_t zero(0.0);
-    const real_t safemin  = blas::safe_min<real_t>();
+    const real_t safemin  = safe_min<real_t>();
     const real_t rsafemin = 1.0 / safemin;
 
     tau = std::complex<real_t>( 0, 0 );

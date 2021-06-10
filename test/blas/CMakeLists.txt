@@ -63,6 +63,11 @@ file( GLOB test_sources
 add_executable( tester tests_main.cpp ${test_sources} )
 target_include_directories( tester PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include" )
 target_link_libraries( tester PRIVATE Catch2::Catch2 tblas )
+if( TEST_MPFR )
+  target_compile_definitions( tester PRIVATE USE_MPFR )
+  target_include_directories( tester PRIVATE ${MPFR_INCLUDES} ${GMP_INCLUDES} )
+  target_link_libraries( tester PRIVATE ${MPFR_LIBRARIES} ${GMP_LIBRARIES} )
+endif()
 
 set_target_properties( tester
     PROPERTIES

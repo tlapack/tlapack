@@ -8,21 +8,11 @@
 #ifndef __TBLAS_TYPES_HH__
 #define __TBLAS_TYPES_HH__
 
-#ifdef USE_MPFR
-    #include <mpreal.h>
-#endif
-
 #include "defines.h"
 #include <complex>
 #include <cstdint>
 
 namespace blas {
-
-// -----------------------------------------------------------------------------
-// MPFR types
-#ifdef USE_MPFR
-    using mpfr::mpreal;
-#endif
 
 // -----------------------------------------------------------------------------
 // Integer types blas::size_t and blas::int_t

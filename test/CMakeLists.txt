@@ -5,6 +5,17 @@
 # the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
 #-------------------------------------------------------------------------------
+# Options
+option( TEST_MPFR "Use mpreal from MPFR C++ library (http://www.holoborodko.com/pavel/mpfr/) for testing"  OFF )
+
+#-------------------------------------------------------------------------------
+# Search for MPFR library if it is needed
+if( TEST_MPFR )
+  find_package( GMP REQUIRED )
+  find_package( MPFR REQUIRED )
+endif()
+
+#-------------------------------------------------------------------------------
 # Load Catch2
 find_package( Catch2 QUIET ) # Try to load Catch2 from the system
 if( NOT Catch2_FOUND )
@@ -48,6 +59,16 @@ if( NOT Catch2_FOUND )
     else()
       message( FATAL_ERROR "Failed in fetching Catch2 from https://github.com/catchorg/Catch2.git." )
     endif()
+
+    # Hide Catch2_DIR, CATCH_ and FETCHCONTENT_ options
+    mark_as_advanced( FORCE Catch2_DIR )
+    get_cmake_property(_variableNames VARIABLES)
+    foreach (_variableName ${_variableNames})
+      if( "${_variableName}" MATCHES "^CATCH_" OR
+          "${_variableName}" MATCHES "^FETCHCONTENT_" )
+        mark_as_advanced( FORCE ${_variableName} )
+      endif()
+    endforeach()
 
   else()
     message( FATAL_ERROR "Catch2 not found. Set \"Catch2_DIR\" to a directory containing either

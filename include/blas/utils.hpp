@@ -15,6 +15,10 @@
 #include <cstdarg>
 #include <cmath>
 
+#ifdef USE_MPFR
+    #include <mpreal.h>
+#endif
+
 namespace blas {
 
 // -----------------------------------------------------------------------------
@@ -31,8 +35,8 @@ using std::pow;
 // -----------------------------------------------------------------------------
 // Use MPFR interface
 #ifdef USE_MPFR
-    inline mpreal real( const mpreal& x ) { return x; }
-    inline mpreal imag( const mpreal& x ) { return 0; }
+    inline mpfr::mpreal real( const mpfr::mpreal& x ) { return x; }
+    inline mpfr::mpreal imag( const mpfr::mpreal& x ) { return 0; }
     using mpfr::abs;
     using mpfr::isinf;
     using mpfr::isnan;
@@ -40,39 +44,39 @@ using std::pow;
     using mpfr::floor;
 
     // pow
-    inline const mpreal pow(const mpreal& a, const unsigned int b, mp_rnd_t rnd_mode = mpreal::get_default_rnd())
+    inline const mpfr::mpreal pow(const mpfr::mpreal& a, const unsigned int b, mp_rnd_t rnd_mode = mpfr::mpreal::get_default_rnd())
     {
         return mpfr::pow( a, b, rnd_mode );
     }
-    inline const mpreal pow(const mpreal& a, const int b, mp_rnd_t rnd_mode = mpreal::get_default_rnd())
+    inline const mpfr::mpreal pow(const mpfr::mpreal& a, const int b, mp_rnd_t rnd_mode = mpfr::mpreal::get_default_rnd())
     {
         return mpfr::pow( a, b, rnd_mode );
     }
-    inline const mpreal pow(const mpreal& a, const long double b, mp_rnd_t rnd_mode = mpreal::get_default_rnd())
+    inline const mpfr::mpreal pow(const mpfr::mpreal& a, const long double b, mp_rnd_t rnd_mode = mpfr::mpreal::get_default_rnd())
     {
         return mpfr::pow( a, b, rnd_mode );
     }
-    inline const mpreal pow(const mpreal& a, const double b, mp_rnd_t rnd_mode = mpreal::get_default_rnd())
+    inline const mpfr::mpreal pow(const mpfr::mpreal& a, const double b, mp_rnd_t rnd_mode = mpfr::mpreal::get_default_rnd())
     {
         return mpfr::pow( a, b, rnd_mode );
     }
-    inline const mpreal pow(const unsigned int a, const mpreal& b, mp_rnd_t rnd_mode = mpreal::get_default_rnd())
+    inline const mpfr::mpreal pow(const unsigned int a, const mpfr::mpreal& b, mp_rnd_t rnd_mode = mpfr::mpreal::get_default_rnd())
     {
         return mpfr::pow( a, b, rnd_mode );
     }
-    inline const mpreal pow(const long int a, const mpreal& b, mp_rnd_t rnd_mode = mpreal::get_default_rnd())
+    inline const mpfr::mpreal pow(const long int a, const mpfr::mpreal& b, mp_rnd_t rnd_mode = mpfr::mpreal::get_default_rnd())
     {
         return mpfr::pow( a, b, rnd_mode );
     }
-    inline const mpreal pow(const int a, const mpreal& b, mp_rnd_t rnd_mode = mpreal::get_default_rnd())
+    inline const mpfr::mpreal pow(const int a, const mpfr::mpreal& b, mp_rnd_t rnd_mode = mpfr::mpreal::get_default_rnd())
     {
         return mpfr::pow( a, b, rnd_mode );
     }
-    inline const mpreal pow(const long double a, const mpreal& b, mp_rnd_t rnd_mode = mpreal::get_default_rnd())
+    inline const mpfr::mpreal pow(const long double a, const mpfr::mpreal& b, mp_rnd_t rnd_mode = mpfr::mpreal::get_default_rnd())
     {
         return mpfr::pow( a, b, rnd_mode );
     }
-    inline const mpreal pow(const double a, const mpreal& b, mp_rnd_t rnd_mode = mpreal::get_default_rnd())
+    inline const mpfr::mpreal pow(const double a, const mpfr::mpreal& b, mp_rnd_t rnd_mode = mpfr::mpreal::get_default_rnd())
     {
         return mpfr::pow( a, b, rnd_mode );
     }
@@ -107,12 +111,12 @@ inline real_t conj( const real_t& x )
 
 // one argument
 template< typename T >
-inline T max( T x ) { return x; }
+inline T max( const T& x ) { return x; }
 
 // two arguments
 template< typename T1, typename T2 >
 inline scalar_type< T1, T2 >
-    max( T1 x, T2 y )
+    max( const T1& x, const T2& y )
 {
     return (x >= y ? x : y);
 }
@@ -120,7 +124,7 @@ inline scalar_type< T1, T2 >
 // three or more arguments
 template< typename T1, typename... Types >
 inline scalar_type< T1, Types... >
-    max( T1 first, Types... args )
+    max( const T1& first, const Types&... args )
 {
     return max( first, max( args... ) );
 }
@@ -131,12 +135,12 @@ inline scalar_type< T1, Types... >
 
 // one argument
 template< typename T >
-inline T min( T x ) { return x; }
+inline T min( const T& x ) { return x; }
 
 // two arguments
 template< typename T1, typename T2 >
 inline scalar_type< T1, T2 >
-    min( T1 x, T2 y )
+    min( const T1& x, const T2& y )
 {
     return (x <= y ? x : y);
 }
@@ -144,7 +148,7 @@ inline scalar_type< T1, T2 >
 // three or more arguments
 template< typename T1, typename... Types >
 inline scalar_type< T1, Types... >
-    min( T1 first, Types... args )
+    min( const T1& first, const Types&... args )
 {
     return min( first, min( args... ) );
 }
@@ -156,14 +160,14 @@ inline scalar_type< T1, Types... >
 // For real scalar types.
 template <typename real_t>
 struct MakeScalarTraits {
-    static inline real_t make( real_t re, real_t im )
+    static inline real_t make( const real_t& re, const real_t& im )
         { return re; }
 };
 
 // For complex scalar types.
 template <typename real_t>
 struct MakeScalarTraits< std::complex<real_t> > {
-    static inline std::complex<real_t> make( real_t re, real_t im )
+    static inline std::complex<real_t> make( const real_t& re, const real_t& im )
         { return std::complex<real_t>( re, im ); }
 };
 
@@ -176,17 +180,16 @@ inline scalar_t make_scalar( blas::real_type<scalar_t> re,
 
 // -----------------------------------------------------------------------------
 /// sqrt, needed because std C++11 template returns double
-/// In the MPFR, the template returns mpreal
 /// Note that the template in std::complex return the desired std::complex<T>
 template< typename T >
 inline T sqrt( const T& x )
-{
+{ return std::sqrt( x ); }
+
 #ifdef USE_MPFR
-    return T( mpfr::sqrt( x ) );
-#else
-    return T( std::sqrt( x ) );
+    template<> 
+    inline mpfr::mpreal sqrt( const mpfr::mpreal& x )
+    { return mpfr::sqrt( x ); }
 #endif
-}
 
 // -----------------------------------------------------------------------------
 /// 1-norm absolute value, |Re(x)| + |Im(x)|
@@ -213,155 +216,6 @@ template< typename T >
 inline bool isinf( std::complex<T> x )
 {
     return isinf( real(x) ) || isinf( imag(x) );
-}
-
-// -----------------------------------------------------------------------------
-// Macros to compute scaling constants
-//
-// __Further details__
-//
-// Anderson E (2017) Algorithm 978: Safe scaling in the level 1 BLAS.
-// ACM Trans Math Softw 44:. https://doi.org/10.1145/3061665
-
-/// Unit in Last Place
-
-/** Unit in Last Place
- * @ingroup utils
- */
-template <typename real_t>
-inline const real_t ulp()
-{
-    return std::numeric_limits< real_t >::epsilon();
-}
-
-/** Digits
- * @ingroup utils
- */
-template <typename real_t>
-inline const real_t digits()
-{
-    return std::numeric_limits< real_t >::digits;
-}
-
-#ifdef USE_MPFR
-    #ifdef MPREAL_HAVE_DYNAMIC_STD_NUMERIC_LIMITS
-        /** Digits for the mpreal datatype
-         * @ingroup utils
-         */
-        template<> inline const mpreal digits() {
-            return std::numeric_limits< mpreal >::digits(); }
-    #endif
-#endif
-
-/** Safe Minimum such that 1/safe_min() is representable
- * @ingroup utils
- */
-template <typename real_t>
-inline const real_t safe_min()
-{
-    const real_t one( 1 );
-    const int fradix = std::numeric_limits<real_t>::radix;
-    const int expm = std::numeric_limits<real_t>::min_exponent;
-    const int expM = std::numeric_limits<real_t>::max_exponent;
-
-    return max( pow(fradix, expm-one), pow(fradix, one-expM) );
-}
-
-/** Safe Maximum such that 1/safe_max() is representable 
- *
- * safe_max() := 1/SAFMIN
- * 
- * @ingroup utils
- */
-template <typename real_t>
-inline const real_t safe_max()
-{
-    const real_t one( 1 );
-    const int fradix = std::numeric_limits<real_t>::radix;
-    const int expm = std::numeric_limits<real_t>::min_exponent;
-    const int expM = std::numeric_limits<real_t>::max_exponent;
-
-    return min( pow(fradix, one-expm), pow(fradix, expM-one) );
-}
-
-/** Safe Minimum such its square is representable
- * @ingroup utils
- */
-template <typename real_t>
-inline const real_t root_min()
-{
-    return sqrt( safe_min<real_t>() / ulp<real_t>() );
-}
-
-/** Safe Maximum such its square is representable
- * @ingroup utils
- */
-template <typename real_t>
-inline const real_t root_max()
-{
-    return sqrt( safe_max<real_t>() * ulp<real_t>() );
-}
-
-/** Blue's min constant b for the sum of squares
- * @see https://doi.org/10.1145/355769.355771
- * @ingroup utils
- */
-template <typename real_t>
-inline const real_t blue_min()
-{
-    const real_t half( 0.5 );
-    const int fradix = std::numeric_limits<real_t>::radix;
-    const int expm   = std::numeric_limits<real_t>::min_exponent;
-
-    return pow( fradix, ceil( half*(expm-1) ) );
-}
-
-/** Blue's max constant B for the sum of squares
- * @see https://doi.org/10.1145/355769.355771
- * @ingroup utils
- */
-template <typename real_t>
-inline const real_t blue_max()
-{
-    const real_t half( 0.5 );
-    const int fradix = std::numeric_limits<real_t>::radix;
-    const int expM   = std::numeric_limits<real_t>::max_exponent;
-    const int t      = digits<real_t>();
-
-    return pow( fradix, floor( half*( expM - t + 1 ) ) );
-}
-
-/** Blue's scaling constant for numbers smaller than b
- * 
- * @details Modification introduced in @see https://doi.org/10.1145/3061665
- *          to scale denormalized numbers correctly.
- * 
- * @ingroup utils
- */
-template <typename real_t>
-inline const real_t blue_scalingMin()
-{
-    const real_t half( 0.5 );
-    const int fradix = std::numeric_limits<real_t>::radix;
-    const int expm   = std::numeric_limits<real_t>::min_exponent;
-    const int t      = digits<real_t>();
-
-    return pow( fradix, -floor( half*(expm-t) ) );
-}
-
-/** Blue's scaling constant for numbers bigger than B
- * @see https://doi.org/10.1145/355769.355771
- * @ingroup utils
- */
-template <typename real_t>
-inline const real_t blue_scalingMax()
-{
-    const real_t half( 0.5 );
-    const int fradix = std::numeric_limits<real_t>::radix;
-    const int expM   = std::numeric_limits<real_t>::max_exponent;
-    const int t      = digits<real_t>();
-
-    return pow( fradix, -ceil( half*( expM + t - 1 ) ) );
 }
 
 // -----------------------------------------------------------------------------

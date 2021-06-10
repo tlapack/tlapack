@@ -10,7 +10,7 @@
 #include <complex>
 
 //-----------------------------------------------------------------------------
-#if defined(USE_MPFR) && !defined(USE_BLASPP_TEMPLATES)
+#ifdef USE_MPFR
 
     #include <mpreal.h>
     #define TEST_REAL_TYPES float, double, long double, mpfr::mpreal

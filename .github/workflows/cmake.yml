@@ -19,7 +19,6 @@ on:
     - '!.gitignore'
 
 env:
-  Catch2_DIR: ${{github.workspace}}/test/thirdparty
   CFLAGS: "-Wall -pedantic"
   CXXFLAGS: "-Wall -pedantic"
   FFLAGS: "-fimplicit-none -fcheck=all"
@@ -51,21 +50,32 @@ jobs:
     - name: Checkout T-LAPACK
       uses: actions/checkout@v2
 
-    - name: Configure CMake on Linux
-      if: ${{ matrix.os == 'ubuntu-latest' }}
+    - name: Configure CMake on all platforms
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-      run: cmake -Bbuild -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+      run: >
+        cmake -B build
+        -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+        -D CMAKE_INSTALL_PREFIX=${{github.workspace}}/tlapack_install
+        -D BUILD_EXAMPLES=ON
+        -D BUILD_TESTING=ON
+        -D C_WRAPPERS=ON
+        -D Fortran_WRAPPERS=ON
+        -D CBLAS_WRAPPERS=ON
 
-    - name: Configure CMake on MacOS
+    - name: Specific configurations for CMake on MacOS
       if: ${{ matrix.os == 'macos-latest' }}
       env:
         LDFLAGS: "-lstdc++"
-      run: cmake -Bbuild -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_CXX_COMPILER="gcc-11" -DCMAKE_Fortran_COMPILER="gfortran-11"
+      run: >
+        cmake -B build
+        -DCMAKE_CXX_COMPILER="gcc-11"
+        -DCMAKE_Fortran_COMPILER="gfortran-11"
 
-    - name: Configure CMake on Windows
+    - name: Specific configurations for CMake on Windows
       if: ${{ matrix.os == 'windows-latest' }}
-      run: cmake -G "Unix Makefiles" -Bbuild -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+      run: >
+        cmake -B build -G "Unix Makefiles"
 
     - name: Build
       # Build your program with the given configuration
@@ -82,6 +92,9 @@ jobs:
       run: ctest -C ${{env.BUILD_TYPE}} --output-on-failure
       # run: ./tester -r compact
 
+    - name: Install
+      run: cmake --build build --target install
+
   build-with-mpfr:
     runs-on: ubuntu-latest
     steps:     
@@ -92,11 +105,19 @@ jobs:
     - name: Install MPFR C++
       run: sudo apt install libmpfrc++-dev
 
-    - name: Configure and build T-LAPACK
-      run: |
-        cmake -Bbuild -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DUSE_MPFR=ON
-        cmake --build build --config ${{env.BUILD_TYPE}}
+    - name: Configure CMake
+      run: >
+        cmake -B build
+        -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} 
+        -D CMAKE_INSTALL_PREFIX=${{github.workspace}}/tlapack_install
+        -D USE_MPFR=ON
+
+    - name: Build T-LAPACK
+      run: cmake --build build --config ${{env.BUILD_TYPE}}
 
     - name: Test T-LAPACK
       working-directory: ${{github.workspace}}/build
       run: ctest -C ${{env.BUILD_TYPE}} --output-on-failure
+
+    - name: Install
+      run: cmake --build build --target install

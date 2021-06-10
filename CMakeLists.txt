@@ -4,8 +4,8 @@
 # T-LAPACK is free software: you can redistribute it and/or modify it under
 # the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-cmake_minimum_required(VERSION 3.18)
-# VERSION 3.18: set_source_files_properties( PROPERTIES Fortran_PREPROCESS ON )
+cmake_minimum_required(VERSION 3.3)
+# VERSION 3.3: IN_LIST for if() operator
 
 #-------------------------------------------------------------------------------
 # Read project version
@@ -19,7 +19,7 @@ project(TLAPACK
 message(STATUS "T-LAPACK version " ${PROJECT_VERSION})
 
 #-------------------------------------------------------------------------------
-# T-LAPACK and T-BLAS template library
+# T-LAPACK and T-BLAS template libraries
 
 add_library( tblas src/xerbla.cpp )
 
@@ -33,11 +33,50 @@ PROPERTIES
 
 #-------------------------------------------------------------------------------
 # Options
-option( USE_BLASPP_WRAPPERS   "Use BLAS++ wrappers"   OFF )
-option( USE_BLASPP_TEMPLATES  "Use BLAS++ templates"  OFF )
-option( USE_LAPACKPP_WRAPPERS "Use LAPACK++ wrappers" OFF )
-option( BUILD_EXAMPLES        "Build examples"        ON  )
-option( USE_MPFR              "Use MPFR C++ library (http://www.holoborodko.com/pavel/mpfr/)"  OFF )
+
+# BLAS++ and LAPACK++ interface
+option( USE_BLASPP_WRAPPERS   "Use BLAS++ wrappers to link with an optimized BLAS library"     OFF )
+option( USE_BLASPP_TEMPLATES  "Use BLAS++ templates instead of the ones inside `include/blas`" OFF )
+option( USE_LAPACKPP_WRAPPERS "Use LAPACK++ wrappers to link with an optimized LAPACK library" OFF )
+
+# Examples
+option( BUILD_EXAMPLES "Build examples" ON  )
+
+# Wrappers to T-BLAS and T-LAPACK
+option( C_WRAPPERS       "Build and install C wrappers"               OFF )
+option( CBLAS_WRAPPERS   "Build and install CBLAS wrappers to T-BLAS" OFF )
+option( Fortran_WRAPPERS "Build and install Fortran wrappers"         OFF )
+
+set( blas_intt_list 
+  int
+  short
+  long
+  "long long"
+  int8_t
+  int16_t
+  int32_t
+  int64_t
+  int_least8_t
+  int_least16_t
+  int_least32_t
+  int_least64_t
+  int_fast8_t
+  int_fast16_t
+  int_fast32_t
+  int_fast64_t
+  intmax_t
+  intptr_t
+  ptrdiff_t )
+
+set( BLAS_INT_T int64_t CACHE STRING
+  "Integer type for all variables except array sizes and matrix leading dimension" )
+set_property( CACHE BLAS_INT_T
+  PROPERTY STRINGS ${blas_intt_list} )
+
+set( BLAS_SIZE_T size_t CACHE STRING
+  "Integer type for array sizes, array indexes, and matrix leading dimension" )
+set_property( CACHE BLAS_SIZE_T
+  PROPERTY STRINGS ${blas_intt_list} size_t uint8_t uint16_t uint32_t uint64_t )
 
 #-------------------------------------------------------------------------------
 # Modules
@@ -79,30 +118,13 @@ if( USE_LAPACKPP_WRAPPERS )
 endif()
 
 #-------------------------------------------------------------------------------
-# Search for MPFR library if it is needed
-if( USE_MPFR )
-  find_package( GMP REQUIRED )
-  find_package( MPFR REQUIRED )
-  target_compile_definitions( tblas PUBLIC USE_MPFR )
-  target_include_directories( tblas PUBLIC ${MPFR_INCLUDES} ${GMP_INCLUDES} )
-  target_link_libraries( tblas PUBLIC ${MPFR_LIBRARIES} ${GMP_LIBRARIES} )
-endif()
-
-#-------------------------------------------------------------------------------
 # Options for BLAS_SIZE_T
 
 if( USE_BLASPP OR USE_LAPACKPP_WRAPPERS )
+  mark_as_advanced( FORCE BLAS_SIZE_T )
   set( BLAS_SIZE_T int64_t )
 else()
-  set( BLAS_SIZE_T size_t CACHE STRING
-    "Integer type for array sizes, array indexes, and matrix leading dimension" )
-  set_property( CACHE BLAS_SIZE_T
-    PROPERTY STRINGS
-    intmax_t size_t 
-    int8_t  uint8_t
-    int16_t uint16_t
-    int32_t uint32_t
-    int64_t uint64_t )
+  mark_as_advanced( CLEAR BLAS_SIZE_T )
 endif()
 
 if( NOT BLAS_SIZE_T STREQUAL "" )
@@ -111,34 +133,12 @@ endif()
 
 #-------------------------------------------------------------------------------
 # Options for BLAS_INT_T
-
-set( blas_intt_list 
-  int
-  short
-  long
-  "long long"
-  int8_t
-  int16_t
-  int32_t
-  int64_t
-  int_least8_t
-  int_least16_t
-  int_least32_t
-  int_least64_t
-  int_fast8_t
-  int_fast16_t
-  int_fast32_t
-  int_fast64_t
-  intmax_t
-  intptr_t
-  ptrdiff_t )
   
 if( USE_BLASPP OR USE_LAPACKPP_WRAPPERS )
+  mark_as_advanced( FORCE BLAS_INT_T )
   set( BLAS_INT_T int64_t )
 else()
-  set( BLAS_INT_T int64_t CACHE STRING
-    "Integer type for all variables except array sizes and matrix leading dimension" )
-  set_property( CACHE BLAS_INT_T PROPERTY STRINGS ${blas_intt_list} )
+  mark_as_advanced( CLEAR BLAS_INT_T )
 endif()
 
 if( NOT BLAS_INT_T STREQUAL "" )
@@ -177,18 +177,20 @@ endif()
 #-------------------------------------------------------------------------------
 # Install
 
-# T-BLAS and T-LAPACK
-install(TARGETS tblas tlapack DESTINATION lib)
-
-# Headers
+# T-LAPACK
+install(TARGETS tlapack DESTINATION lib)
 install(
-  # copies contents, not directory itself
+  FILES "${PROJECT_SOURCE_DIR}/include/tlapack.hpp"
+  DESTINATION include )
+install(
   DIRECTORY "${PROJECT_SOURCE_DIR}/include/"
   DESTINATION include
-  FILES_MATCHING
-    PATTERN "*.hpp"
-    PATTERN "*.h"
-    PATTERN "defines.h" EXCLUDE
-    PATTERN "*.fi"
-    PATTERN "*.f90"
-)
+  FILES_MATCHING PATTERN "lapack/*.hpp" )
+
+# T-BLAS
+install(TARGETS tblas DESTINATION lib)
+install(FILES "${PROJECT_SOURCE_DIR}/include/tblas.hpp" DESTINATION include)
+install(
+  DIRECTORY "${PROJECT_SOURCE_DIR}/include/"
+  DESTINATION include
+  FILES_MATCHING PATTERN "blas/*.hpp" )

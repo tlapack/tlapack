@@ -23,7 +23,7 @@ extern "C" {
     #define BLAS_SIZE_T size_t
 #endif
 #ifndef BLAS_INT_T
-    #define BLAS_SIZE_T int64_t
+    #define BLAS_INT_T int64_t
 #endif
 
 // -----------------------------------------------------------------------------
