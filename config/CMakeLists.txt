@@ -5,3 +5,4 @@
 # the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
 configure_file(version.h.in ${CMAKE_CURRENT_SOURCE_DIR}/version.h)
+add_executable(version version.cpp)

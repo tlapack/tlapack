@@ -4,10 +4,6 @@
 # <T>LAPACK is free software: you can redistribute it and/or modify it under
 # the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-# add the example version
-add_executable(example_version version.cpp)
-target_include_directories(example_version PRIVATE "${PROJECT_BINARY_DIR}/config")
-
 # add the example gemm
 add_executable(example_gemm example_gemm.cpp)
 target_link_libraries( example_gemm PRIVATE tblas )
@@ -40,9 +36,6 @@ add_executable(example_geqr2 example_geqr2.cpp)
 target_link_libraries( example_geqr2 PRIVATE tlapack )
 
 add_custom_target( run-all-examples
-COMMAND
-  echo "- example_version --------------" &&
-  ${CMAKE_CURRENT_BINARY_DIR}/example_version${CMAKE_EXECUTABLE_SUFFIX}
 COMMAND
   echo "- example_gemm -----------------" &&
   ${CMAKE_CURRENT_BINARY_DIR}/example_gemm${CMAKE_EXECUTABLE_SUFFIX}
