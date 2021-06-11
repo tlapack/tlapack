@@ -4,19 +4,23 @@ on:
   push:
     branches:
     - master
-    paths:
-    - '.github/workflows/cmake.yml'
-    - '!docs/**'
-    - '!**.md'
-    - '!.gitattributes'
-    - '!.gitignore'
+    paths-exclude:
+    - '.github/**'
+    - 'docs/**'
+    - '**.md'
+    - 'LICENSE'
+    - 'version.txt'
+    - '.gitattributes'
+    - '.gitignore'
   pull_request:
-    paths:
-    - '.github/workflows/cmake.yml'
-    - '!docs/**'
-    - '!**.md'
-    - '!.gitattributes'
-    - '!.gitignore'
+    paths-exclude:
+    - '.github/**'
+    - 'docs/**'
+    - '**.md'
+    - 'LICENSE'
+    - 'version.txt'
+    - '.gitattributes'
+    - '.gitignore'
 
 env:
   CFLAGS: "-Wall -pedantic"
