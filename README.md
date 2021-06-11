@@ -10,7 +10,7 @@ C++ Template Linear Algebra PACKage
 First things to know about \<T\>LAPACK:
 
 1. We write &nbsp; \<T\>LAPACK &nbsp; whenever it is possible. This includes all software documentation, discussions, and presentation.
-2. We spell it &nbsp; T-L-A-PACK &nbsp; .
+2. We say it &nbsp; T-L-A-PACK &nbsp; .
 3. We use &nbsp; `tlapack` &nbsp; for files, folders, and links, to make it easier to use.
 
 \<T\>LAPACK provides:
