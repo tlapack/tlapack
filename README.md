@@ -1,4 +1,4 @@
-# T-LAPACK
+# \<T>LAPACK
 C++ Template Linear Algebra PACKage
 
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://github.com/weslleyspereira/tlapack/blob/master/LICENSE)
@@ -13,16 +13,16 @@ C++ Template Linear Algebra PACKage
 
 ## Installation
 
-T-LAPACK is built and installed with [CMake](https://cmake.org/).
+\<T>LAPACK is built and installed with [CMake](https://cmake.org/).
 
 ### Getting CMake
 
 You can either download binaries for the [latest stable](https://cmake.org/download/#latest) or [previous](https://cmake.org/download/#previous) release of CMake,
 or build the [current development distribution](https://github.com/Kitware/CMake) from source. CMake is also available in the APT repository on Ubuntu 16.04 or higher.
 
-### Building and Installing T-LAPACK
+### Building and Installing \<T>LAPACK
 
-T-LAPACK can be build following the standard CMake recipe
+\<T>LAPACK can be build following the standard CMake recipe
 
 ```sh
 mkdir build
@@ -40,7 +40,7 @@ Some examples are
     CXXFLAGS            C++ compiler flags
     LDFLAGS             linker flags
 
-The Fortran and C wrappers to T-LAPACK also use, among others,
+The Fortran and C wrappers to \<T>LAPACK also use, among others,
 
     CC                  C compiler
     CFLAGS              C compiler flags
@@ -50,7 +50,7 @@ The Fortran and C wrappers to T-LAPACK also use, among others,
 * [This page](https://cmake.org/cmake/help/latest/manual/cmake-env-variables.7.html) lists the environment variables that have special meaning to CMake.
 
 It is also possible to pass variables to CMake during the configuration step using the `-D` flag.
-The following example builds T-LAPACK in debug mode inside the directory `build`
+The following example builds \<T>LAPACK in debug mode inside the directory `build`
 
 ```sh
 mkdir build
@@ -60,9 +60,9 @@ cmake --build build
 
 * [This page](https://cmake.org/cmake/help/latest/manual/cmake-variables.7.html) documents variables that are provided by CMake or have meaning to CMake when set by project code.
 
-### T-LAPACK options
+### \<T>LAPACK options
 
-Here are the T-LAPACK specific options and their default values
+Here are the \<T>LAPACK specific options and their default values
 
     # Option                         # Default
 
@@ -111,13 +111,13 @@ Here are the T-LAPACK specific options and their default values
     USE_BLASPP_WRAPPERS              OFF
 
         Use BLAS++ wrappers to link with an optimized BLAS library.
-        Branch compatible with T-LAPACK:
+        Branch compatible with \<T>LAPACK:
             https://bitbucket.org/weslleyspereira/blaspp/branch/tlapack
     
     USE_BLASPP_TEMPLATES             OFF
 
         Use BLAS++ templates instead of the ones inside `include/blas`.
-        Branch compatible with T-LAPACK:
+        Branch compatible with \<T>LAPACK:
             https://bitbucket.org/weslleyspereira/blaspp/branch/tlapack
     
     USE_LAPACKPP_WRAPPERS            OFF
@@ -132,7 +132,7 @@ Here are the T-LAPACK specific options and their default values
 
 ## Documentation
 
-+ Run `doxygen docs/Doxyfile` to generate the T-LAPACK documentation via Doxygen.
++ Run `doxygen docs/Doxyfile` to generate the \<T>LAPACK documentation via Doxygen.
 
 ## License
 

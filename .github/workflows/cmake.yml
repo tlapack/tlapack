@@ -47,7 +47,7 @@ jobs:
     
     steps:
     
-    - name: Checkout T-LAPACK
+    - name: Checkout <T>LAPACK
       uses: actions/checkout@v2
 
     - name: Specific configurations for CMake on MacOS
@@ -99,23 +99,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:     
     
-    - name: Checkout T-LAPACK
+    - name: Checkout <T>LAPACK
       uses: actions/checkout@v2
 
     - name: Install MPFR C++
       run: sudo apt install libmpfrc++-dev
 
-    - name: Configure CMake for T-LAPACK
+    - name: Configure CMake for <T>LAPACK
       run: >
         cmake -B build
         -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} 
         -D CMAKE_INSTALL_PREFIX=${{github.workspace}}/tlapack_install
         -D USE_MPFR=ON
 
-    - name: Build T-LAPACK
+    - name: Build <T>LAPACK
       run: cmake --build build --config ${{env.BUILD_TYPE}}
 
-    - name: Test T-LAPACK
+    - name: Test <T>LAPACK
       working-directory: ${{github.workspace}}/build
       run: ctest -C ${{env.BUILD_TYPE}} --output-on-failure
 
@@ -128,7 +128,7 @@ jobs:
       blaspp_DIR: ${{github.workspace}}/blaspp
     steps:
     
-    - name: Checkout T-LAPACK
+    - name: Checkout <T>LAPACK
       uses: actions/checkout@v2
 
     - name: Install OpenBLAS
@@ -145,7 +145,7 @@ jobs:
         cmake -Bbuild -DBLA_VENDOR=OpenBLAS -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.blaspp_DIR}}
         cmake --build build --target install
 
-    - name: Configure CMake for T-LAPACK
+    - name: Configure CMake for <T>LAPACK
       run: >
         cmake -B build
         -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
@@ -157,7 +157,7 @@ jobs:
         -D USE_BLASPP_WRAPPERS=ON
         -D blaspp_DIR=${{env.blaspp_DIR}}
 
-    - name: Build T-LAPACK
+    - name: Build <T>LAPACK
       run: cmake --build build --config ${{env.BUILD_TYPE}}
 
     # Mind that the job won't fail if only this step fails

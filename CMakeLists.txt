@@ -1,7 +1,7 @@
 # Copyright (c) 2021, University of Colorado Denver. All rights reserved.
 #
-# This file is part of T-LAPACK.
-# T-LAPACK is free software: you can redistribute it and/or modify it under
+# This file is part of <T>LAPACK.
+# <T>LAPACK is free software: you can redistribute it and/or modify it under
 # the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
 cmake_minimum_required(VERSION 3.3)
@@ -12,14 +12,14 @@ cmake_minimum_required(VERSION 3.3)
 file(READ version.txt version_txt)
 
 #-------------------------------------------------------------------------------
-# T-LAPACK project
+# <T>LAPACK project
 project(TLAPACK
   VERSION ${version_txt}
   LANGUAGES CXX C Fortran)
-message(STATUS "T-LAPACK version " ${PROJECT_VERSION})
+message(STATUS "<T>LAPACK version " ${PROJECT_VERSION})
 
 #-------------------------------------------------------------------------------
-# T-LAPACK and T-BLAS template libraries
+# <T>LAPACK and T-BLAS template libraries
 
 add_library( tblas src/xerbla.cpp )
 
@@ -42,7 +42,7 @@ option( USE_LAPACKPP_WRAPPERS "Use LAPACK++ wrappers to link with an optimized L
 # Examples
 option( BUILD_EXAMPLES "Build examples" ON  )
 
-# Wrappers to T-BLAS and T-LAPACK
+# Wrappers to T-BLAS and <T>LAPACK
 option( C_WRAPPERS       "Build and install C wrappers"               OFF )
 option( CBLAS_WRAPPERS   "Build and install CBLAS wrappers to T-BLAS" OFF )
 option( Fortran_WRAPPERS "Build and install Fortran wrappers"         OFF )
@@ -177,7 +177,7 @@ endif()
 #-------------------------------------------------------------------------------
 # Install
 
-# T-LAPACK
+# <T>LAPACK
 install(TARGETS tlapack DESTINATION lib)
 install(
   FILES "${PROJECT_SOURCE_DIR}/include/tlapack.hpp"
