@@ -7,6 +7,14 @@ C++ Template Linear Algebra PACKage
 
 ## About
 
+First things to know about \<T>LAPACK:
+
+1. We write &nbsp; \<T>LAPACK &nbsp; whenever it is possible. This includes all software documentation, discussions, and presentation.
+2. We spell it &nbsp; T-L-A-PACK &nbsp; .
+3. We use &nbsp; `tlapack` &nbsp; for files, folders, and links, to make it easier to use.
+
+\<T>LAPACK provides:
+
 + Precision-neutral function template implementation
 
 *Supported in part by [NSF ACI 2004850](http://www.nsf.gov/awardsearch/showAward?AWD_ID=2004850).*
