@@ -30,7 +30,8 @@ if( NOT Catch2_FOUND )
 
   elseif( EXISTS "$ENV{Catch2_DIR}/include/catch.hpp" )
 
-    set( Catch2_DIR $ENV{Catch2_DIR} )
+    get_property( docString CACHE Catch2_DIR PROPERTY HELPSTRING )
+    set( Catch2_DIR $ENV{Catch2_DIR} CACHE STRING "${docString}" FORCE )
     add_subdirectory( ${Catch2_DIR} ${CMAKE_CURRENT_BINARY_DIR}/Catch2 )
     message( STATUS "Using Catch2 from ${Catch2_DIR}" )
 

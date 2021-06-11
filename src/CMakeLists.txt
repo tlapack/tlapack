@@ -56,7 +56,7 @@ if( Fortran_WRAPPERS )
       "Integer type for array sizes, array indexes, and matrix leading dimension" )
     endif()
   endif()
-  mark_as_advanced( FORCE FBLAS_SIZE_T )
+  mark_as_advanced( FBLAS_SIZE_T )
 
   # Integer types mapped to the ISO_FORTRAN_ENV module
   if( ${BLAS_INT_T} IN_LIST blas_intt_list )
@@ -68,7 +68,7 @@ if( Fortran_WRAPPERS )
     set( FBLAS_INT_T "" CACHE STRING
     "Integer type from ISO_FORTRAN_ENV for all variables except array sizes and matrix leading dimension" )
   endif()
-  mark_as_advanced( FORCE FBLAS_INT_T )
+  mark_as_advanced( FBLAS_INT_T )
 
   # Choose the number of bytes for the integer type
   # TODO: Improve this part
