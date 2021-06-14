@@ -8,7 +8,6 @@
 #ifndef __TBLAS_TYPES_HH__
 #define __TBLAS_TYPES_HH__
 
-#include "defines.h"
 #include <complex>
 #include <cstdint>
 

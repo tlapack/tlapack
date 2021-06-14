@@ -31,10 +31,6 @@ if( Fortran_WRAPPERS )
   target_link_libraries( example_fortranWrapper_saxpy PRIVATE fortranwrappers_tblas )
 endif()
 
-# add the example geqrf
-add_executable(example_geqr2 example_geqr2.cpp)
-target_link_libraries( example_geqr2 PRIVATE tlapack )
-
 add_custom_target( run-all-examples
 COMMAND
   echo "- example_gemm -----------------" &&
@@ -47,7 +43,4 @@ COMMAND
   ${CMAKE_CURRENT_BINARY_DIR}/example_fortranModule_saxpy${CMAKE_EXECUTABLE_SUFFIX}
 COMMAND
   echo "- example_fortranWrapper_saxpy -" &&
-  ${CMAKE_CURRENT_BINARY_DIR}/example_fortranWrapper_saxpy${CMAKE_EXECUTABLE_SUFFIX}
-COMMAND
-  echo "- example_geqr2 ----------------" &&
-  ${CMAKE_CURRENT_BINARY_DIR}/example_geqr2${CMAKE_EXECUTABLE_SUFFIX} )
+  ${CMAKE_CURRENT_BINARY_DIR}/example_fortranWrapper_saxpy${CMAKE_EXECUTABLE_SUFFIX} )

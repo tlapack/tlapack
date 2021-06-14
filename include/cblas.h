@@ -8,7 +8,6 @@
 #define __CBLAS_H__
 
 // -----------------------------------------------------------------------------
-#include "defines.h"
 #include <stddef.h>
 #include <complex.h>
 

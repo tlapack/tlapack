@@ -8,7 +8,6 @@
 #define __BLAS_H__
 
 // -----------------------------------------------------------------------------
-#include "defines.h"
 #include <stdint.h>
 #include <stddef.h>
 #include <complex.h>
