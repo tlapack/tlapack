@@ -265,7 +265,7 @@ private:
 };
 
 // -----------------------------------------------------------------------------
-/// Main function to handle errors in T-BLAS
+/// Main function to handle errors in <T>BLAS
 /// Default implementation: throw blas::Error( error_msg, func )
 void error( const char* error_msg, const char* func );
 
@@ -312,7 +312,7 @@ namespace internal {
 // Macros to handle error checks
 #if defined(BLAS_ERROR_NDEBUG) || defined(NDEBUG)
 
-    // T-BLAS does no error checking;
+    // <T>BLAS does no error checking;
     // lower level BLAS may still handle errors via xerbla
     #define blas_error( msg ) \
         ((void)0)

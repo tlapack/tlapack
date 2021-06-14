@@ -19,17 +19,21 @@ project(TLAPACK
 message(STATUS "<T>LAPACK version " ${PROJECT_VERSION})
 
 #-------------------------------------------------------------------------------
-# <T>LAPACK and T-BLAS template libraries
+# <T>LAPACK and <T>BLAS template libraries
 
 add_library( tblas src/xerbla.cpp )
+target_include_directories( tblas
+  PUBLIC 
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include> )
 
 add_library( tlapack INTERFACE )
 target_link_libraries( tlapack INTERFACE tblas )
 
-set_target_properties( tlapack tblas
-PROPERTIES
-    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib" )
+set( installable_libs  tlapack tblas )
+set( installable_files
+  "${PROJECT_SOURCE_DIR}/include/tblas.hpp"
+  "${PROJECT_SOURCE_DIR}/include/tlapack.hpp" )
 
 #-------------------------------------------------------------------------------
 # Options
@@ -42,9 +46,9 @@ option( USE_LAPACKPP_WRAPPERS "Use LAPACK++ wrappers to link with an optimized L
 # Examples
 option( BUILD_EXAMPLES "Build examples" ON  )
 
-# Wrappers to T-BLAS and <T>LAPACK
+# Wrappers to <T>BLAS and <T>LAPACK
 option( C_WRAPPERS       "Build and install C wrappers"               OFF )
-option( CBLAS_WRAPPERS   "Build and install CBLAS wrappers to T-BLAS" OFF )
+option( CBLAS_WRAPPERS   "Build and install CBLAS wrappers to <T>BLAS" OFF )
 option( Fortran_WRAPPERS "Build and install Fortran wrappers"         OFF )
 
 set( blas_intt_list 
@@ -148,10 +152,6 @@ if( NOT BLAS_INT_T STREQUAL "" )
 endif()
 
 #-------------------------------------------------------------------------------
-# Include directory for all targets
-include_directories( "${PROJECT_SOURCE_DIR}/include" )
-
-#-------------------------------------------------------------------------------
 # Docs
 add_subdirectory(docs)
 
@@ -177,22 +177,60 @@ if( BUILD_TESTING )
 endif()
 
 #-------------------------------------------------------------------------------
+# Common configurations
+
+set_target_properties( ${installable_libs}
+PROPERTIES
+    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib" )
+
+#-------------------------------------------------------------------------------
 # Install
 
-# <T>LAPACK
-install(TARGETS tlapack DESTINATION lib)
 install(
-  FILES "${PROJECT_SOURCE_DIR}/include/tlapack.hpp"
+  TARGETS ${installable_libs}
+  DESTINATION lib
+  EXPORT tlapackTargets )
+install(
+  FILES ${installable_files}
   DESTINATION include )
+
+# <T>LAPACK templates 
 install(
   DIRECTORY "${PROJECT_SOURCE_DIR}/include/"
   DESTINATION include
   FILES_MATCHING PATTERN "lapack/*.hpp" )
+install( FILES "${PROJECT_SOURCE_DIR}/include/lapack/config.h" DESTINATION include/lapack )
 
-# T-BLAS
-install(TARGETS tblas DESTINATION lib)
-install(FILES "${PROJECT_SOURCE_DIR}/include/tblas.hpp" DESTINATION include)
+# <T>BLAS templates 
 install(
   DIRECTORY "${PROJECT_SOURCE_DIR}/include/"
   DESTINATION include
   FILES_MATCHING PATTERN "blas/*.hpp" )
+
+# Export targets
+install(EXPORT tlapackTargets
+  FILE tlapackTargets.cmake
+  DESTINATION lib/cmake )
+
+include(CMakePackageConfigHelpers)
+# generate the config file that includes the exports
+configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Config.cmake.in
+  "${CMAKE_CURRENT_BINARY_DIR}/tlapackConfig.cmake"
+  INSTALL_DESTINATION "lib/cmake/"
+  NO_SET_AND_CHECK_MACRO
+  NO_CHECK_REQUIRED_COMPONENTS_MACRO )
+# generate the version file for the config file
+write_basic_package_version_file(
+  "${CMAKE_CURRENT_BINARY_DIR}/tlapackConfigVersion.cmake"
+  VERSION "${TLAPACK_VERSION_MAJOR}.${TLAPACK_VERSION_MINOR}.${TLAPACK_VERSION_PATCH}"
+  COMPATIBILITY AnyNewerVersion )
+
+# Install the configuration file
+install(FILES
+  ${CMAKE_CURRENT_BINARY_DIR}/tlapackConfig.cmake
+  DESTINATION lib/cmake )
+
+# Export targets to the build directory
+export(EXPORT tlapackTargets
+  FILE "${CMAKE_CURRENT_BINARY_DIR}/tlapackTargets.cmake" )

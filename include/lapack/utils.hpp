@@ -16,7 +16,7 @@ namespace blas {
 // Macros to handle error checks
 #if defined(lapack_error_NDEBUG) || defined(NDEBUG)
 
-    // T-BLAS does no error checking;
+    // <T>BLAS does no error checking;
     // lower level BLAS may still handle errors via xerbla
     #define lapack_error( msg, code ) \
         ((void)0)

@@ -28,7 +28,7 @@
     typedef CBLAS_SIDE Side;
 
     // -----------------------------------------------------------------------------
-    // Convert CBLAS enum to T-BLAS enum
+    // Convert CBLAS enum to <T>BLAS enum
     inline blas::Layout toTBLASlayout( Layout layout ) {
         if( layout == CblasRowMajor )      return blas::Layout::RowMajor;
         else if( layout == CblasColMajor ) return blas::Layout::ColMajor;
@@ -71,7 +71,7 @@
     typedef BLAS_INT_T  blas_int_t;
 
     // -----------------------------------------------------------------------------
-    // Convert BLAS enum to T-BLAS enum
+    // Convert BLAS enum to <T>BLAS enum
     inline blas::Layout toTBLASlayout( Layout layout ) { return (blas::Layout) layout; }
     inline blas::Op toTBLASop( Op op )                 { return (blas::Op) op; }
     inline blas::Uplo toTBLASuplo( Uplo uplo )         { return (blas::Uplo) uplo; }
