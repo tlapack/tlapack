@@ -10,6 +10,7 @@
 // -----------------------------------------------------------------------------
 #include <stddef.h>
 #include <complex.h>
+#include "blas/defines.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -136,19 +137,19 @@ double _Complex cblas_zdotu(
     double _Complex const * x, CBLAS_INDEX incx,
     double _Complex const * y, CBLAS_INDEX incy );
 
-CBLAS_INDEX cblas_siamax(
+CBLAS_INDEX cblas_isamax(
     CBLAS_INDEX n,
     float const * x, CBLAS_INDEX incx );
 
-CBLAS_INDEX cblas_diamax(
+CBLAS_INDEX cblas_idamax(
     CBLAS_INDEX n,
     double const * x, CBLAS_INDEX incx );
 
-CBLAS_INDEX cblas_ciamax(
+CBLAS_INDEX cblas_icamax(
     CBLAS_INDEX n,
     float  _Complex const * x, CBLAS_INDEX incx );
 
-CBLAS_INDEX cblas_ziamax(
+CBLAS_INDEX cblas_izamax(
     CBLAS_INDEX n,
     double _Complex const * x, CBLAS_INDEX incx );
 

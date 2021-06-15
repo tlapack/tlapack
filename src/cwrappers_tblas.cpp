@@ -320,7 +320,7 @@ complexDouble _zdotu(
     return *reinterpret_cast<complexDouble*>(&z);
 }
 
-blas_size_t siamax(
+blas_size_t isamax(
     blas_size_t n,
     float const * x, blas_int_t incx ) {
     return blas::iamax<float>(
@@ -328,7 +328,7 @@ blas_size_t siamax(
         x, incx );
 }
 
-blas_size_t diamax(
+blas_size_t idamax(
     blas_size_t n,
     double const * x, blas_int_t incx ) {
     return blas::iamax<double>(
@@ -336,7 +336,7 @@ blas_size_t diamax(
         x, incx );
 }
 
-blas_size_t ciamax(
+blas_size_t icamax(
     blas_size_t n,
     complexFloat const * x, blas_int_t incx ) {
     return blas::iamax<tblas_complexFloat>(
@@ -344,7 +344,7 @@ blas_size_t ciamax(
         tblas_cteC(x), incx );
 }
 
-blas_size_t ziamax(
+blas_size_t izamax(
     blas_size_t n,
     complexDouble const * x, blas_int_t incx ) {
     return blas::iamax<tblas_complexDouble>(

@@ -109,3 +109,6 @@ if( Fortran_WRAPPERS )
     ${PROJECT_SOURCE_DIR}/include/blas.fi
     ${PROJECT_SOURCE_DIR}/include/blas.f90 )
 endif()
+
+set( installable_libs ${installable_libs} PARENT_SCOPE )
+set( installable_files ${installable_files} PARENT_SCOPE )

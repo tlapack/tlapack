@@ -25,6 +25,7 @@ add_library( tblas src/xerbla.cpp )
 target_include_directories( tblas
   PUBLIC 
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>
     $<INSTALL_INTERFACE:include> )
 
 add_library( tlapack INTERFACE )
@@ -34,6 +35,8 @@ set( installable_libs  tlapack tblas )
 set( installable_files
   "${PROJECT_SOURCE_DIR}/include/tblas.hpp"
   "${PROJECT_SOURCE_DIR}/include/tlapack.hpp" )
+
+set( TBLAS_DEFINES "" )
 
 #-------------------------------------------------------------------------------
 # Options
@@ -133,7 +136,7 @@ else()
 endif()
 
 if( NOT BLAS_SIZE_T STREQUAL "" )
-  target_compile_definitions( tblas PUBLIC "BLAS_SIZE_T=${BLAS_SIZE_T}" )
+  string( APPEND TBLAS_DEFINES "#define BLAS_SIZE_T ${BLAS_SIZE_T}\n" )
 endif()
 
 #-------------------------------------------------------------------------------
@@ -148,7 +151,7 @@ else()
 endif()
 
 if( NOT BLAS_INT_T STREQUAL "" )
-  target_compile_definitions( tblas PUBLIC "BLAS_INT_T=${BLAS_INT_T}" )
+  string( APPEND TBLAS_DEFINES "#define BLAS_INT_T ${BLAS_INT_T}\n" )
 endif()
 
 #-------------------------------------------------------------------------------
@@ -179,6 +182,10 @@ endif()
 #-------------------------------------------------------------------------------
 # Common configurations
 
+configure_file(
+  ${PROJECT_SOURCE_DIR}/include/blas/defines.h.in
+  ${CMAKE_BINARY_DIR}/include/blas/defines.h @ONLY )
+
 set_target_properties( ${installable_libs}
 PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
@@ -186,6 +193,9 @@ PROPERTIES
 
 #-------------------------------------------------------------------------------
 # Install
+
+message( STATUS "${installable_libs}" )
+message( STATUS "${installable_files}" )
 
 install(
   TARGETS ${installable_libs}
@@ -207,17 +217,18 @@ install(
   DIRECTORY "${PROJECT_SOURCE_DIR}/include/"
   DESTINATION include
   FILES_MATCHING PATTERN "blas/*.hpp" )
+install( FILES "${CMAKE_BINARY_DIR}/include/blas/defines.h" DESTINATION include/blas )
 
 # Export targets
 install(EXPORT tlapackTargets
   FILE tlapackTargets.cmake
-  DESTINATION lib/cmake )
+  DESTINATION lib/cmake/tlapack )
 
 include(CMakePackageConfigHelpers)
 # generate the config file that includes the exports
 configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Config.cmake.in
   "${CMAKE_CURRENT_BINARY_DIR}/tlapackConfig.cmake"
-  INSTALL_DESTINATION "lib/cmake/"
+  INSTALL_DESTINATION "lib/cmake/tlapack"
   NO_SET_AND_CHECK_MACRO
   NO_CHECK_REQUIRED_COMPONENTS_MACRO )
 # generate the version file for the config file
@@ -229,7 +240,7 @@ write_basic_package_version_file(
 # Install the configuration file
 install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/tlapackConfig.cmake
-  DESTINATION lib/cmake )
+  DESTINATION lib/cmake/tlapack )
 
 # Export targets to the build directory
 export(EXPORT tlapackTargets

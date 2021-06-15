@@ -6,7 +6,7 @@
 
 cmake_minimum_required(VERSION 3.1)
 
-project( Unblocked_QR CXX )
+project( geqr2 CXX )
 
 # Load T-LAPACK
 find_package( tlapack REQUIRED )
