@@ -15,7 +15,6 @@
 #include <chrono>   // for high_resolution_clock
 #include <iostream>
 #include <stdlib.h>
-#include <mpreal.h> // multiprecision type mpfr::mpreal
 
 //------------------------------------------------------------------------------
 /// Print matrix A in the standard output
