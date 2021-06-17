@@ -14,9 +14,9 @@ if( C_WRAPPERS OR Fortran_WRAPPERS )
   add_library(blas cwrappers_tblas.cpp)
   target_link_libraries( blas PUBLIC tblas )
 
-  set( wrappers_targets ${wrappers_targets} blas )
+  list( APPEND installable_libs blas )
   if( C_WRAPPERS )
-    set( wrappers_include ${wrappers_include}
+    list( APPEND installable_files
       ${PROJECT_SOURCE_DIR}/include/blas.h )
   endif()
 endif()
@@ -28,8 +28,8 @@ if( CBLAS_WRAPPERS )
   target_link_libraries( cblas PUBLIC tblas )
   target_compile_definitions( cblas PRIVATE BUILD_CBLAS )
 
-  set( wrappers_targets ${wrappers_targets} cblas )
-  set( wrappers_include ${wrappers_include}
+  list( APPEND installable_libs cblas )
+  list( APPEND installable_files
     ${PROJECT_SOURCE_DIR}/include/cblas.h )
 endif()
 
@@ -104,22 +104,11 @@ if( Fortran_WRAPPERS )
   add_library(fortranwrappers_tblas fortranwrappers_tblas.f90)
   target_link_libraries( fortranwrappers_tblas PUBLIC blas )
 
-  set( wrappers_targets ${wrappers_targets} fortranwrappers_tblas )
-  set( wrappers_include ${wrappers_include}
+  list( APPEND installable_libs fortranwrappers_tblas )
+  list( APPEND installable_files
     ${PROJECT_SOURCE_DIR}/include/blas.fi
     ${PROJECT_SOURCE_DIR}/include/blas.f90 )
 endif()
 
-#-------------------------------------------------------------------------------
-# Common configurations
-
-set_target_properties( ${wrappers_targets}
-PROPERTIES
-    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib" )
-
-#-------------------------------------------------------------------------------
-# Install
-
-install(TARGETS ${wrappers_targets} DESTINATION lib)
-install(FILES ${wrappers_include} DESTINATION include)
+set( installable_libs ${installable_libs} PARENT_SCOPE )
+set( installable_files ${installable_files} PARENT_SCOPE )

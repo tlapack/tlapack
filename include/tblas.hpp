@@ -7,9 +7,6 @@
 #ifndef __TBLAS_HH__
 #define __TBLAS_HH__
 
-// -----------------------------------------------------------------------------
-#include "defines.h"
-
 // Optimized BLAS
 
 #if defined(USE_BLASPP_WRAPPERS) && !defined(USE_BLASPP_TEMPLATES)

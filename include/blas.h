@@ -8,22 +8,13 @@
 #define __BLAS_H__
 
 // -----------------------------------------------------------------------------
-#include "defines.h"
 #include <stdint.h>
 #include <stddef.h>
 #include <complex.h>
+#include "blas/defines.h" // Defines Integer types BLAS_SIZE_T and BLAS_INT_T
 
 #ifdef __cplusplus
 extern "C" {
-#endif
-
-// -----------------------------------------------------------------------------
-// Integer types BLAS_SIZE_T and BLAS_INT_T
-#ifndef BLAS_SIZE_T
-    #define BLAS_SIZE_T size_t
-#endif
-#ifndef BLAS_INT_T
-    #define BLAS_INT_T int64_t
 #endif
 
 // -----------------------------------------------------------------------------
@@ -137,19 +128,19 @@ double _Complex zdotu(
     double _Complex const * x, BLAS_INT_T incx,
     double _Complex const * y, BLAS_INT_T incy );
 
-BLAS_SIZE_T siamax(
+BLAS_SIZE_T isamax(
     BLAS_SIZE_T n,
     float const * x, BLAS_INT_T incx );
 
-BLAS_SIZE_T diamax(
+BLAS_SIZE_T idamax(
     BLAS_SIZE_T n,
     double const * x, BLAS_INT_T incx );
 
-BLAS_SIZE_T ciamax(
+BLAS_SIZE_T icamax(
     BLAS_SIZE_T n,
     float  _Complex const * x, BLAS_INT_T incx );
 
-BLAS_SIZE_T ziamax(
+BLAS_SIZE_T izamax(
     BLAS_SIZE_T n,
     double _Complex const * x, BLAS_INT_T incx );
 

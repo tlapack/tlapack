@@ -18,7 +18,7 @@ project(TestBLAS
 message(STATUS "TestBLAS version " ${PROJECT_VERSION})
 
 #-------------------------------------------------------------------------------
-# T-BLAS
+# <T>BLAS
 if( NOT TARGET tblas )
   # TODO: Do something when target is not found
 endif()

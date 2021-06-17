@@ -92,7 +92,7 @@ Here are the \<T\>LAPACK specific options and their default values
 
     CBLAS_WRAPPERS                   OFF
     
-        Build and install CBLAS wrappers to T-BLAS
+        Build and install CBLAS wrappers to <T>BLAS
     
     BLAS_INT_T                       int64_t
     

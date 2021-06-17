@@ -30,7 +30,6 @@ using std::isinf;
 using std::isnan;
 using std::ceil;
 using std::floor;
-using std::pow;
 
 // -----------------------------------------------------------------------------
 // Use MPFR interface
@@ -42,44 +41,6 @@ using std::pow;
     using mpfr::isnan;
     using mpfr::ceil;
     using mpfr::floor;
-
-    // pow
-    inline const mpfr::mpreal pow(const mpfr::mpreal& a, const unsigned int b, mp_rnd_t rnd_mode = mpfr::mpreal::get_default_rnd())
-    {
-        return mpfr::pow( a, b, rnd_mode );
-    }
-    inline const mpfr::mpreal pow(const mpfr::mpreal& a, const int b, mp_rnd_t rnd_mode = mpfr::mpreal::get_default_rnd())
-    {
-        return mpfr::pow( a, b, rnd_mode );
-    }
-    inline const mpfr::mpreal pow(const mpfr::mpreal& a, const long double b, mp_rnd_t rnd_mode = mpfr::mpreal::get_default_rnd())
-    {
-        return mpfr::pow( a, b, rnd_mode );
-    }
-    inline const mpfr::mpreal pow(const mpfr::mpreal& a, const double b, mp_rnd_t rnd_mode = mpfr::mpreal::get_default_rnd())
-    {
-        return mpfr::pow( a, b, rnd_mode );
-    }
-    inline const mpfr::mpreal pow(const unsigned int a, const mpfr::mpreal& b, mp_rnd_t rnd_mode = mpfr::mpreal::get_default_rnd())
-    {
-        return mpfr::pow( a, b, rnd_mode );
-    }
-    inline const mpfr::mpreal pow(const long int a, const mpfr::mpreal& b, mp_rnd_t rnd_mode = mpfr::mpreal::get_default_rnd())
-    {
-        return mpfr::pow( a, b, rnd_mode );
-    }
-    inline const mpfr::mpreal pow(const int a, const mpfr::mpreal& b, mp_rnd_t rnd_mode = mpfr::mpreal::get_default_rnd())
-    {
-        return mpfr::pow( a, b, rnd_mode );
-    }
-    inline const mpfr::mpreal pow(const long double a, const mpfr::mpreal& b, mp_rnd_t rnd_mode = mpfr::mpreal::get_default_rnd())
-    {
-        return mpfr::pow( a, b, rnd_mode );
-    }
-    inline const mpfr::mpreal pow(const double a, const mpfr::mpreal& b, mp_rnd_t rnd_mode = mpfr::mpreal::get_default_rnd())
-    {
-        return mpfr::pow( a, b, rnd_mode );
-    }
 #endif
 
 /** Extend conj to real datatypes.
@@ -179,8 +140,8 @@ inline scalar_t make_scalar( blas::real_type<scalar_t> re,
 }
 
 // -----------------------------------------------------------------------------
-/// sqrt, needed because std C++11 template returns double
-/// Note that the template in std::complex return the desired std::complex<T>
+/// sqrt, needed because std C++11 template returns double.
+/// Note that the template in std::complex return the desired std::complex<T>.
 template< typename T >
 inline T sqrt( const T& x )
 { return std::sqrt( x ); }
@@ -189,6 +150,62 @@ inline T sqrt( const T& x )
     template<> 
     inline mpfr::mpreal sqrt( const mpfr::mpreal& x )
     { return mpfr::sqrt( x ); }
+#endif
+
+// -----------------------------------------------------------------------------
+/// pow, avoids promotion to double from std C++11.
+/// Note that the template in std::complex return the desired std::complex<T>.
+template< typename T >
+inline T pow( const T& base, const T& exp )
+{ return std::pow( base, exp ); }
+
+template< typename T >
+inline T pow( const int base, const T& exp )
+{ return std::pow( (double)base, exp ); }
+
+#ifdef USE_MPFR
+    template<>
+    inline mpfr::mpreal pow(const mpfr::mpreal& a, const mpfr::mpreal& b)
+    {
+        return mpfr::pow( a, b );
+    }
+    inline mpfr::mpreal pow(const mpfr::mpreal& a, const unsigned int b)
+    {
+        return mpfr::pow( a, b );
+    }
+    inline mpfr::mpreal pow(const mpfr::mpreal& a, const int b)
+    {
+        return mpfr::pow( a, b );
+    }
+    inline mpfr::mpreal pow(const mpfr::mpreal& a, const long double b)
+    {
+        return mpfr::pow( a, b );
+    }
+    inline mpfr::mpreal pow(const mpfr::mpreal& a, const double b)
+    {
+        return mpfr::pow( a, b );
+    }
+    inline mpfr::mpreal pow(const unsigned int a, const mpfr::mpreal& b)
+    {
+        return mpfr::pow( a, b );
+    }
+    inline mpfr::mpreal pow(const long int a, const mpfr::mpreal& b)
+    {
+        return mpfr::pow( a, b );
+    }
+    template<>
+    inline mpfr::mpreal pow(const int a, const mpfr::mpreal& b)
+    {
+        return mpfr::pow( a, b );
+    }
+    inline mpfr::mpreal pow(const long double a, const mpfr::mpreal& b)
+    {
+        return mpfr::pow( a, b );
+    }
+    inline mpfr::mpreal pow(const double a, const mpfr::mpreal& b)
+    {
+        return mpfr::pow( a, b );
+    }
 #endif
 
 // -----------------------------------------------------------------------------
@@ -248,7 +265,7 @@ private:
 };
 
 // -----------------------------------------------------------------------------
-/// Main function to handle errors in T-BLAS
+/// Main function to handle errors in <T>BLAS
 /// Default implementation: throw blas::Error( error_msg, func )
 void error( const char* error_msg, const char* func );
 
@@ -295,7 +312,7 @@ namespace internal {
 // Macros to handle error checks
 #if defined(BLAS_ERROR_NDEBUG) || defined(NDEBUG)
 
-    // T-BLAS does no error checking;
+    // <T>BLAS does no error checking;
     // lower level BLAS may still handle errors via xerbla
     #define blas_error( msg ) \
         ((void)0)

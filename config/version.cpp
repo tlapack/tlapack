@@ -5,7 +5,7 @@
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
 #include <iostream>
-#include "../config/version.h"
+#include "version.h"
 
 int main(int argc, char const *argv[])
 {

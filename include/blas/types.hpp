@@ -8,25 +8,16 @@
 #ifndef __TBLAS_TYPES_HH__
 #define __TBLAS_TYPES_HH__
 
-#include "defines.h"
 #include <complex>
 #include <cstdint>
+#include "blas/defines.h" // Defines Integer types BLAS_SIZE_T and BLAS_INT_T
 
 namespace blas {
 
 // -----------------------------------------------------------------------------
 // Integer types blas::size_t and blas::int_t
-#ifndef BLAS_SIZE_T
-    using size_t = std::size_t;
-#else
-    using size_t = BLAS_SIZE_T;
-#endif
-
-#ifndef BLAS_INT_T
-    using int_t = int64_t;
-#else
-    using int_t = BLAS_INT_T;
-#endif
+using size_t = BLAS_SIZE_T;
+using int_t  = BLAS_INT_T;
 
 // -----------------------------------------------------------------------------
 // Enumerations

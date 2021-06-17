@@ -1,0 +1,19 @@
+#ifndef __TBLAS_DEFINES_H__
+#define __TBLAS_DEFINES_H__
+
+// -----------------------------------------------------------------------------
+// Definitions depending on the build
+
+@TBLAS_DEFINES@
+// -----------------------------------------------------------------------------
+// Integer types BLAS_SIZE_T and BLAS_INT_T
+
+#ifndef BLAS_SIZE_T
+    #define BLAS_SIZE_T size_t
+#endif
+
+#ifndef BLAS_INT_T
+    #define BLAS_INT_T int64_t
+#endif
+
+#endif // __TBLAS_DEFINES_H__
