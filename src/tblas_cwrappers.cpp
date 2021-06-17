@@ -9,7 +9,7 @@
 
 #ifdef BUILD_CBLAS
 
-    #include "cblas.h"
+    #include "tlapack_cblas.h"
 
     // Mangling
     #ifdef ADD_
@@ -58,7 +58,7 @@
 
 #else
 
-    #include "blas.h"
+    #include "tblas.h"
 
     // Mangling
     #ifdef ADD_

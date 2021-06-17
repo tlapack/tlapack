@@ -9,7 +9,7 @@ module blas
     private
     public :: saxpy, daxpy
 
-    include "blas.fi"
+    include "tblas.fi"
 
 contains
 

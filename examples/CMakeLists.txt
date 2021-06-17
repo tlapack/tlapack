@@ -14,24 +14,24 @@ target_link_libraries( example_gemm PRIVATE tblas )
 # add the example gemm using the C wrapper
 if( C_WRAPPERS )
   add_executable(example_cwrapper_gemm example_cwrapper_gemm.c)
-  target_link_libraries( example_cwrapper_gemm PRIVATE blas )
+  target_link_libraries( example_cwrapper_gemm PRIVATE tblas_c )
 endif()
 
 # add the example saxpy using the Fortran module
 if( Fortran_WRAPPERS )
   add_executable( example_fortranModule_saxpy
-    example_fortranModule_saxpy.f90 "${PROJECT_SOURCE_DIR}/include/blas.f90" )
-  target_link_libraries( example_fortranModule_saxpy PRIVATE blas )
+    example_fortranModule_saxpy.f90 "${PROJECT_SOURCE_DIR}/include/tblas.f90" )
+  target_link_libraries( example_fortranModule_saxpy PRIVATE tblas_c )
 endif()
 
 # # add the example daxpy using the Fortran interface
 # add_executable( example_fortranInterface_daxpy example_fortranInterface_daxpy.f90 )
-# target_link_libraries( example_fortranInterface_daxpy PRIVATE blas )
+# target_link_libraries( example_fortranInterface_daxpy PRIVATE tblas_c )
 
 # add the example daxpy using the Fortran wrapper
 if( Fortran_WRAPPERS )
   add_executable( example_fortranWrapper_saxpy example_fortranWrapper_saxpy.f90 )
-  target_link_libraries( example_fortranWrapper_saxpy PRIVATE fortranwrappers_tblas )
+  target_link_libraries( example_fortranWrapper_saxpy PRIVATE tblas_fortran )
 endif()
 
 add_custom_target( run-all-examples

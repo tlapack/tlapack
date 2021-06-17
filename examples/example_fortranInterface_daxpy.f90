@@ -7,7 +7,7 @@
 program example_fortranInterface_daxpy
     use, intrinsic :: iso_c_binding
 
-    include "blas.fi"
+    include "tblas.fi"
 
     integer(8), parameter :: n = 10, incx = 1, incy = 1
     double precision, parameter :: alpha = 2.e0

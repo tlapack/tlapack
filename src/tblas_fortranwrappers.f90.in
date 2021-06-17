@@ -13,7 +13,7 @@ implicit none
     real(wp)              :: alpha
     real(wp), target      :: x(*), y(*)
 
-    include "blas.fi"
+    include "tblas.fi"
 
     call saxpy_( int(n, @FBLAS_SIZE_T@), alpha, &
         c_loc(x), int(incx, @FBLAS_INT_T@), &

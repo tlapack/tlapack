@@ -9,32 +9,32 @@
 # set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 #-------------------------------------------------------------------------------
-# Library: libblas
+# Library: libtblas_c
 if( C_WRAPPERS OR Fortran_WRAPPERS )
-  add_library(blas cwrappers_tblas.cpp)
-  target_link_libraries( blas PUBLIC tblas )
+  add_library( tblas_c tblas_cwrappers.cpp )
+  target_link_libraries( tblas_c PUBLIC tblas )
 
-  list( APPEND installable_libs blas )
+  list( APPEND installable_libs tblas_c )
   if( C_WRAPPERS )
     list( APPEND installable_files
-      ${PROJECT_SOURCE_DIR}/include/blas.h )
+      ${PROJECT_SOURCE_DIR}/include/tblas.h )
   endif()
 endif()
 
 #-------------------------------------------------------------------------------
-# Library: libcblas
+# Library: libtlapack_cblas
 if( CBLAS_WRAPPERS )
-  add_library(cblas cwrappers_tblas.cpp)
-  target_link_libraries( cblas PUBLIC tblas )
-  target_compile_definitions( cblas PRIVATE BUILD_CBLAS )
+  add_library( tlapack_cblas tblas_cwrappers.cpp )
+  target_link_libraries( tlapack_cblas PUBLIC tblas )
+  target_compile_definitions( tlapack_cblas PRIVATE BUILD_CBLAS )
 
-  list( APPEND installable_libs cblas )
+  list( APPEND installable_libs tlapack_cblas )
   list( APPEND installable_files
-    ${PROJECT_SOURCE_DIR}/include/cblas.h )
+    ${PROJECT_SOURCE_DIR}/include/tlapack_cblas.h )
 endif()
 
 #-------------------------------------------------------------------------------
-# Library: Fortran wrappers for TBLAS
+# Library: libtblas_fortran
 if( Fortran_WRAPPERS )
 
   # Integer types mapped to the ISO_FORTRAN_ENV module
@@ -92,22 +92,30 @@ if( Fortran_WRAPPERS )
 
   # Fortran interface. Used to call C-based BLAS directly from a Fortran program.
   # The Fortran code needs to import this interface and link with the library blas
-  configure_file( blas.fi.in ${PROJECT_SOURCE_DIR}/include/blas.fi @ONLY )
+  configure_file(
+    ${PROJECT_SOURCE_DIR}/include/tblas.fi.in
+    ${PROJECT_SOURCE_DIR}/include/tblas.fi @ONLY )
 
   # Fortran library. This library can be linked directly to a Fortran code.
-  configure_file( fortranwrappers_tblas.f90.in ${CMAKE_CURRENT_SOURCE_DIR}/fortranwrappers_tblas.f90 @ONLY )
+  configure_file(
+    tblas_fortranwrappers.f90.in
+    ${CMAKE_CURRENT_SOURCE_DIR}/tblas_fortranwrappers.f90 @ONLY )
 
   # Fortran module. Translates the C-based BLAS interface into Fortran 90.
   # The Fortran code needs to load this interface and link with the library blas
-  configure_file( blas.f90.in ${PROJECT_SOURCE_DIR}/include/blas.f90 @ONLY )
+  configure_file(
+    ${PROJECT_SOURCE_DIR}/include/tblas.f90.in
+    ${PROJECT_SOURCE_DIR}/include/tblas.f90 @ONLY )
 
-  add_library(fortranwrappers_tblas fortranwrappers_tblas.f90)
-  target_link_libraries( fortranwrappers_tblas PUBLIC blas )
+  add_library(tblas_fortran tblas_fortranwrappers.f90)
+  target_include_directories( tblas_fortran
+    PRIVATE ${PROJECT_SOURCE_DIR}/include )
+  target_link_libraries( tblas_fortran PUBLIC tblas_c )
 
-  list( APPEND installable_libs fortranwrappers_tblas )
+  list( APPEND installable_libs tblas_fortran )
   list( APPEND installable_files
-    ${PROJECT_SOURCE_DIR}/include/blas.fi
-    ${PROJECT_SOURCE_DIR}/include/blas.f90 )
+    ${PROJECT_SOURCE_DIR}/include/tblas.fi
+    ${PROJECT_SOURCE_DIR}/include/tblas.f90 )
 endif()
 
 set( installable_libs ${installable_libs} PARENT_SCOPE )
