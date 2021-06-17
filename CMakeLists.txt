@@ -194,9 +194,6 @@ PROPERTIES
 #-------------------------------------------------------------------------------
 # Install
 
-message( STATUS "${installable_libs}" )
-message( STATUS "${installable_files}" )
-
 install(
   TARGETS ${installable_libs}
   DESTINATION lib
@@ -207,17 +204,17 @@ install(
 
 # <T>LAPACK templates 
 install(
-  DIRECTORY "${PROJECT_SOURCE_DIR}/include/"
+  DIRECTORY ${PROJECT_SOURCE_DIR}/include
   DESTINATION include
   FILES_MATCHING PATTERN "lapack/*.hpp" )
-install( FILES "${PROJECT_SOURCE_DIR}/include/lapack/config.h" DESTINATION include/lapack )
+install( FILES ${PROJECT_SOURCE_DIR}/include/lapack/config.h DESTINATION include/lapack )
 
 # <T>BLAS templates 
 install(
-  DIRECTORY "${PROJECT_SOURCE_DIR}/include/"
+  DIRECTORY ${PROJECT_SOURCE_DIR}/include
   DESTINATION include
   FILES_MATCHING PATTERN "blas/*.hpp" )
-install( FILES "${CMAKE_BINARY_DIR}/include/blas/defines.h" DESTINATION include/blas )
+install( FILES ${CMAKE_BINARY_DIR}/include/blas/defines.h DESTINATION include/blas )
 
 # Export targets
 install(EXPORT tlapackTargets
@@ -226,22 +223,24 @@ install(EXPORT tlapackTargets
 
 include(CMakePackageConfigHelpers)
 # generate the config file that includes the exports
-configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Config.cmake.in
-  "${CMAKE_CURRENT_BINARY_DIR}/tlapackConfig.cmake"
-  INSTALL_DESTINATION "lib/cmake/tlapack"
-  NO_SET_AND_CHECK_MACRO
-  NO_CHECK_REQUIRED_COMPONENTS_MACRO )
+configure_package_config_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Config.cmake.in
+  tlapackConfig.cmake
+  INSTALL_DESTINATION lib/cmake/tlapack )
 # generate the version file for the config file
 write_basic_package_version_file(
-  "${CMAKE_CURRENT_BINARY_DIR}/tlapackConfigVersion.cmake"
-  VERSION "${TLAPACK_VERSION_MAJOR}.${TLAPACK_VERSION_MINOR}.${TLAPACK_VERSION_PATCH}"
+  tlapackConfigVersion.cmake
+  VERSION "${TLAPACK_VERSION}"
   COMPATIBILITY AnyNewerVersion )
 
 # Install the configuration file
-install(FILES
-  ${CMAKE_CURRENT_BINARY_DIR}/tlapackConfig.cmake
+install(
+  FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/tlapackConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/tlapackConfigVersion.cmake
   DESTINATION lib/cmake/tlapack )
 
 # Export targets to the build directory
-export(EXPORT tlapackTargets
-  FILE "${CMAKE_CURRENT_BINARY_DIR}/tlapackTargets.cmake" )
+export(
+  EXPORT tlapackTargets
+  FILE tlapackTargets.cmake )
