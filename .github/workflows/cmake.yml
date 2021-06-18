@@ -4,30 +4,36 @@ on:
   push:
     branches:
     - master
-    paths-exclude:
-    - '.github/**'
-    - 'docs/**'
-    - '**.md'
-    - 'LICENSE'
-    - 'version.txt'
-    - '.gitattributes'
-    - '.gitignore'
+    paths:
+    - .github/workflows/cmake.yml
+    - '**CMakeLists.txt'
+    - '**.cmake'
+    - 'examples'
+    - 'include'
+    - 'src'
+    - 'test'
+    - '!**version.txt'
+    - '!**README*'
+    - '!**Makefile'
+    - '!**md'
   pull_request:
-    paths-exclude:
-    - '.github/**'
-    - 'docs/**'
-    - '**.md'
-    - 'LICENSE'
-    - 'version.txt'
-    - '.gitattributes'
-    - '.gitignore'
+    paths:
+    - .github/workflows/cmake.yml
+    - '**CMakeLists.txt'
+    - '**.cmake'
+    - 'examples'
+    - 'include'
+    - 'src'
+    - 'test'
+    - '!**version.txt'
+    - '!**README*'
+    - '!**Makefile'
+    - '!**md'
 
 env:
   CFLAGS: "-Wall -pedantic"
   CXXFLAGS: "-Wall -pedantic"
   FFLAGS: "-fimplicit-none -fcheck=all"
-  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
-  BUILD_TYPE: Debug
 
 defaults:
   run:
@@ -43,6 +49,9 @@ jobs:
     # cross-platform coverage.
     # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
     runs-on: ${{ matrix.os }}
+    env:
+      # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+      BUILD_TYPE: Debug
 
     strategy:
       fail-fast: false
@@ -101,6 +110,8 @@ jobs:
 
   build-with-mpfr:
     runs-on: ubuntu-latest
+    env:
+      BUILD_TYPE: Release
     steps:     
     
     - name: Checkout <T>LAPACK
@@ -129,6 +140,7 @@ jobs:
   build-with-openblas:
     runs-on: ubuntu-latest
     env:
+      BUILD_TYPE: Release
       blaspp_DIR: ${{github.workspace}}/blaspp
     steps:
     
@@ -189,3 +201,31 @@ jobs:
         ./tester -# [#test_corner_cases] -r compact
       # echo "Total of:"
       # ./tester -# [#test_corner_cases] -l | tail -n 2
+
+  coverage:
+    runs-on: ubuntu-latest
+    env:
+      BUILD_TYPE: Coverage
+    steps:     
+    
+    - name: Checkout <T>LAPACK
+      uses: actions/checkout@v2
+
+    - name: Configure CMake for <T>LAPACK
+      run: >
+        cmake -B build
+        -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+        -D CMAKE_INSTALL_PREFIX=${{github.workspace}}/tlapack_install
+        -D BUILD_EXAMPLES=ON
+        -D BUILD_TESTING=ON
+        -D C_WRAPPERS=ON
+        -D Fortran_WRAPPERS=ON
+        -D CBLAS_WRAPPERS=ON
+        -D USE_MPFR=ON
+
+    - name: Build <T>LAPACK
+      run: cmake --build build --config ${{env.BUILD_TYPE}} --target coverage
+
+    - name: Coverage
+      working-directory: ${{github.workspace}}/build
+      run: bash <(curl -s https://codecov.io/bash) -X gcov
