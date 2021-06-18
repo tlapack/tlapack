@@ -54,6 +54,7 @@ option( C_WRAPPERS       "Build and install C wrappers"               OFF )
 option( CBLAS_WRAPPERS   "Build and install CBLAS wrappers to <T>BLAS" OFF )
 option( Fortran_WRAPPERS "Build and install Fortran wrappers"         OFF )
 
+# List of supported Integer types
 set( blas_intt_list 
   int
   short
@@ -75,11 +76,13 @@ set( blas_intt_list
   intptr_t
   ptrdiff_t )
 
+# Integer type
 set( BLAS_INT_T int64_t CACHE STRING
   "Integer type for all variables except array sizes and matrix leading dimension" )
 set_property( CACHE BLAS_INT_T
   PROPERTY STRINGS ${blas_intt_list} )
 
+# BLAS size_t type
 set( BLAS_SIZE_T size_t CACHE STRING
   "Integer type for array sizes, array indexes, and matrix leading dimension" )
 set_property( CACHE BLAS_SIZE_T
@@ -87,19 +90,34 @@ set_property( CACHE BLAS_SIZE_T
 
 #-------------------------------------------------------------------------------
 # Modules
-set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+set( CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake )
+
+#-------------------------------------------------------------------------------
+# Add Coverage BUILD TYPE
+
+include( SetUpConfigurations )
+get_property( is_multiConfig GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG )
+if( CMAKE_BUILD_TYPE STREQUAL "Coverage" OR is_multiConfig )
+  set( is_coverage_build ON )
+  get_property( docString CACHE BUILD_TESTING PROPERTY HELPSTRING )
+  set( BUILD_TESTING ON CACHE STRING "${docString}" FORCE )
+endif()
+
+#-------------------------------------------------------------------------------
+# Search for CodeCov library if it is needed
+if( is_coverage_build )
+  find_package( codecov REQUIRED )
+  target_link_libraries( tblas PRIVATE gcov )
+  add_coverage( tblas )
+  add_coverage( tlapack )
+endif()
 
 #-------------------------------------------------------------------------------
 # Search for BLAS++ library if it is needed
 
 if( USE_BLASPP_WRAPPERS OR USE_BLASPP_TEMPLATES )
   set(USE_BLASPP ON)
-  find_package( blaspp )
-  if(blaspp_FOUND)
-    message( STATUS "  BLAS++ found in ${blaspp_DIR}" )
-  else()
-    message( FATAL_ERROR "  BLAS++ not found." )
-  endif()
+  find_package( blaspp REQUIRED )
   target_link_libraries( tblas PUBLIC blaspp )
 endif()
 
@@ -114,12 +132,7 @@ endif()
 #-------------------------------------------------------------------------------
 # Search for LAPACK++ library if it is needed
 if( USE_LAPACKPP_WRAPPERS )
-  find_package( lapackpp )
-  if(lapackpp_FOUND)
-    message( STATUS "  LAPACK++ found in ${lapackpp_DIR}" )
-  else()
-    message( FATAL_ERROR "  LAPACK++ not found." )
-  endif()
+  find_package( lapackpp REQUIRED )
   target_compile_definitions( tlapack INTERFACE USE_LAPACKPP_WRAPPERS )
   target_link_libraries( tlapack INTERFACE lapackpp )
 endif()
@@ -176,6 +189,12 @@ endif()
 # Include tests
 include(CTest)
 if( BUILD_TESTING )
+  # # Configure code coverage suppression file
+  # configure_file(
+  #   ${PROJECT_SOURCE_DIR}/cmake/CTestCustom.cmake.in
+  #   ${CMAKE_BINARY_DIR}/CTestCustom.cmake
+  #   @ONLY
+  # )
   add_subdirectory(test)
 endif()
 
