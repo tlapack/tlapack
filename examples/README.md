@@ -5,6 +5,7 @@ We provide a few examples to show how to use \<T\>LAPACK. Each example has its o
 This is the list of examples and brief descriptions:
 
 - [geqr2](geqr2/README.md)
+  
   Compute the QR factorization of a matrix filled with random numbers.
 
 - [gemm](gemm/README.md)
