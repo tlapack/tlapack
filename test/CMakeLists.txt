@@ -13,6 +13,14 @@ option( TEST_MPFR "Use mpreal from MPFR C++ library (http://www.holoborodko.com/
 if( TEST_MPFR )
   find_package( GMP  4.2.1 REQUIRED )
   find_package( MPFR 2.3.1 REQUIRED )
+  find_path( MPREALPATH
+    NAMES mpreal.h
+    PATHS ${MPFR_INCLUDES} ${GMP_INCLUDES} )
+  if( MPREALPATH-NOTFOUND )
+    message( FATAL_ERROR "MPFR C++ (MPREAL) not found. Try installing mpreal.h from
+    (1) https://github.com/advanpix/mpreal,
+ or (2) http://www.holoborodko.com/pavel/mpfr." )
+  endif()
 endif()
 
 #-------------------------------------------------------------------------------
