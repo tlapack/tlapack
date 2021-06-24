@@ -1,7 +1,6 @@
 /// @file example_geqr2.cpp
 /// @author Weslley S Pereira, University of Colorado Denver, USA
 //
-/// @copyright
 // Copyright (c) 2021, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
@@ -56,7 +55,7 @@ void run( lapack::size_t m, lapack::size_t n )
 
     // Initialize arrays with junk
     for (lapack::size_t j = 0; j < n; ++j) {
-        for (lapack::size_t i = 0; i < lda; ++i) { // lda == ldq == ldr
+        for (lapack::size_t i = 0; i < m; ++i) {
             A(i,j) = static_cast<float>( 0xDEADBEEF );
             Q(i,j) = static_cast<float>( 0xCAFED00D );
             R(i,j) = static_cast<float>( 0xFEE1DEAD );
@@ -95,7 +94,7 @@ void run( lapack::size_t m, lapack::size_t n )
         // Save the R matrix
         lapack::lacpy( lapack::Uplo::Upper, n, n, Q, ldq, R, ldr );
 
-        // Generates Q = H_1 H_2 ... H_n in the array A
+        // Generates Q = H_1 H_2 ... H_n
         blas_error_if( lapack::org2r( m, n, n, Q, ldq, tau ) );
     
     // Record end time

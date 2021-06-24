@@ -7,9 +7,8 @@
 # add the example geqr2
 add_subdirectory( geqr2 )
 
-# add the example gemm
-add_executable(example_gemm example_gemm.cpp)
-target_link_libraries( example_gemm PRIVATE tblas )
+# add the example gemm (Use MPFR library if it is available)
+add_subdirectory( gemm )
 
 # add the example gemm using the C wrapper
 if( C_WRAPPERS )
@@ -37,7 +36,7 @@ endif()
 add_custom_target( run-all-examples
 COMMAND
   echo "- example_gemm -----------------" &&
-  ${CMAKE_CURRENT_BINARY_DIR}/example_gemm${CMAKE_EXECUTABLE_SUFFIX}
+  ${CMAKE_CURRENT_BINARY_DIR}/gemm/example_gemm${CMAKE_EXECUTABLE_SUFFIX}
 COMMAND
   echo "- example_geqr2 ----------------" &&
   ${CMAKE_CURRENT_BINARY_DIR}/geqr2/example_geqr2${CMAKE_EXECUTABLE_SUFFIX}
