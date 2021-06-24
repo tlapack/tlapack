@@ -11,8 +11,8 @@ option( TEST_MPFR "Use mpreal from MPFR C++ library (http://www.holoborodko.com/
 #-------------------------------------------------------------------------------
 # Search for MPFR library if it is needed
 if( TEST_MPFR )
-  find_package( GMP REQUIRED )
-  find_package( MPFR REQUIRED )
+  find_package( GMP  4.2.1 REQUIRED )
+  find_package( MPFR 2.3.1 REQUIRED )
 endif()
 
 #-------------------------------------------------------------------------------
