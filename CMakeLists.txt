@@ -15,7 +15,7 @@ file(READ version.txt version_txt)
 # <T>LAPACK project
 project(TLAPACK
   VERSION ${version_txt}
-  LANGUAGES CXX C Fortran)
+  LANGUAGES CXX)
 message(STATUS "<T>LAPACK version " ${PROJECT_VERSION})
 
 #-------------------------------------------------------------------------------
@@ -164,6 +164,14 @@ add_subdirectory(config)
 
 #-------------------------------------------------------------------------------
 # C and Fortran wrappers
+
+if( C_WRAPPERS OR CBLAS_WRAPPERS OR Fortran_WRAPPERS )
+  enable_language( C )
+endif()
+if( Fortran_WRAPPERS )
+  enable_language( Fortran )
+endif()
+
 add_subdirectory(src)
 
 #-------------------------------------------------------------------------------
@@ -204,16 +212,16 @@ install(
 
 # <T>LAPACK templates 
 install(
-  DIRECTORY ${PROJECT_SOURCE_DIR}/include
-  DESTINATION include
-  FILES_MATCHING PATTERN "lapack/*.hpp" )
+  DIRECTORY ${PROJECT_SOURCE_DIR}/include/lapack/
+  DESTINATION include/lapack
+  FILES_MATCHING PATTERN "*.hpp" )
 install( FILES ${PROJECT_SOURCE_DIR}/include/lapack/config.h DESTINATION include/lapack )
 
 # <T>BLAS templates 
 install(
-  DIRECTORY ${PROJECT_SOURCE_DIR}/include
-  DESTINATION include
-  FILES_MATCHING PATTERN "blas/*.hpp" )
+  DIRECTORY ${PROJECT_SOURCE_DIR}/include/blas/
+  DESTINATION include/blas
+  FILES_MATCHING PATTERN "*.hpp" )
 install( FILES ${CMAKE_BINARY_DIR}/include/blas/defines.h DESTINATION include/blas )
 
 # Export targets
