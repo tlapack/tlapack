@@ -1,7 +1,0 @@
-1, n = -1
-2, n = 0
-4, c = real_t(1); s = real_t(0)
-5, m = 0
-6, alpha = real_t(0)
-7, alpha = real_t(0); beta = real_t(1)
-8, k = 0; beta = real_t(1)

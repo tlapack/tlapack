@@ -114,7 +114,7 @@ jobs:
         cmake -B build
         -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} 
         -D CMAKE_INSTALL_PREFIX=${{github.workspace}}/tlapack_install
-        -D USE_MPFR=ON
+        -D TEST_MPFR=ON
 
     - name: Build <T>LAPACK
       run: cmake --build build --config ${{env.BUILD_TYPE}}

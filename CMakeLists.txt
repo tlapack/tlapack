@@ -87,7 +87,7 @@ set_property( CACHE BLAS_SIZE_T
 
 #-------------------------------------------------------------------------------
 # Modules
-set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 #-------------------------------------------------------------------------------
 # Search for BLAS++ library if it is needed

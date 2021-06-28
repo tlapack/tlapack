@@ -131,12 +131,10 @@ Here are the \<T\>LAPACK specific options and their default values
     USE_LAPACKPP_WRAPPERS            OFF
 
         Use LAPACK++ wrappers to link with an optimized LAPACK library.
-    
-    TEST_MPFR                        OFF
 
-        Use mpreal from MPFR C++ library
-        (http://www.holoborodko.com/pavel/mpfr/) for testing.
+## Testing
 
+\<T\>LAPACK is currently tested using [testBLAS](https://github.com/tlapack/testBLAS).
 
 ## Documentation
 
