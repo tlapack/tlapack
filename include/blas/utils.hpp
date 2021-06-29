@@ -225,27 +225,27 @@ inline T pow( const int base, const T& exp )
 
 // -----------------------------------------------------------------------------
 /// 1-norm absolute value, |Re(x)| + |Im(x)|
-template< typename T >
-inline T abs1( T x ) { return abs( x ); }
+template< typename real_t >
+inline real_t abs1( const real_t& x ) { return abs( x ); }
 
-template< typename T >
-inline T abs1( std::complex<T> x )
+template< typename real_t >
+inline real_t abs1( const std::complex<real_t>& x )
 {
     return abs( real(x) ) + abs( imag(x) );
 }
 
 // -----------------------------------------------------------------------------
 /// isnan for complex numbers
-template< typename T >
-inline bool isnan( const std::complex<T>& x )
+template< typename real_t >
+inline bool isnan( const std::complex<real_t>& x )
 {
     return isnan( real(x) ) || isnan( imag(x) );
 }
 
 // -----------------------------------------------------------------------------
 /// isinf for complex numbers
-template< typename T >
-inline bool isinf( std::complex<T> x )
+template< typename real_t >
+inline bool isinf( const std::complex<real_t>& x )
 {
     return isinf( real(x) ) || isinf( imag(x) );
 }
