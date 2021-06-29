@@ -87,117 +87,8 @@ template< typename T >
 size_t iamax_quietNAN(
     blas::size_t n,
     T const *x, blas::int_t incx )
-{    
-    typedef real_type<T> real_t;
-
-    blas::size_t index = INVALID_INDEX;
-    real_t smax = -1;
-
-    if (incx == 1) {
-        // unit stride
-        for (size_t i = 0; i < n; ++i) {
-            real_t a = abs1(x[i]);
-            if ( a > smax ) {
-                smax = a;
-                index = i;
-            }
-        }
-    }
-    else {
-        // non-unit stride
-        size_t ix = (incx > 0 ? 0 : (-n + 1)*incx);
-        for (size_t i = 0; i < n; ++i) {
-            real_t a = abs1(x[ix]);
-            if ( a > smax ) {
-                smax = a;
-                index = i;
-            }
-            ix += incx;
-        }
-    }
-    return index;
-}
-
-template< typename T >
-size_t iamax_checkNAN(
-    blas::size_t n,
-    T const *x, blas::int_t incx )
-{    
-    typedef real_type<T> real_t;
-
-    blas::size_t index = INVALID_INDEX;
-    real_t smax = -1;
-
-    if (incx == 1) {
-        // unit stride
-        blas::size_t i = 0;
-        for (; i < n; ++i) {
-            if ( isnan(x[i]) ) {
-                // return when first NaN found
-                return i;
-            }
-            else if ( isinf(x[i]) ) {
-                // record location of first Inf
-                index = i;
-                i++;
-                break;
-            }
-            else { // still no Inf found yet
-                real_t a = abs1(x[i]);
-                if ( a > smax ) {
-                    smax = a;
-                    index = i;
-                }
-            }
-        }
-        for (; i < n; ++i) { // keep looking for first NaN
-            if ( isnan(x[i]) ) {
-                // return when first NaN found
-                return i;
-            }
-        }
-    }
-    else {
-        // non-unit stride
-        blas::size_t i = 0;
-        size_t ix = (incx > 0 ? 0 : (-n + 1)*incx);
-        for (; i < n; ++i) {
-            if ( isnan(x[ix]) ) {
-                // return when first NaN found
-                return i;
-            }
-            else if ( isinf(x[ix]) ) {
-                // record location of first Inf
-                index = i;
-                i++; ix += incx;
-                break;
-            }
-            else { // still no Inf found yet
-                real_t a = abs1(x[ix]);
-                if ( a > smax ) {
-                    smax = a;
-                    index = i;
-                }
-            }
-            ix += incx;
-        }
-        for (; i < n; ++i) { // keep looking for first NaN
-            if ( isnan(x[ix]) ) {
-                // return when first NaN found
-                return i;
-            }
-            ix += incx;
-        }
-    }
-    return index;
-}
-
-template< typename T >
-size_t iamax_quietNAN(
-    blas::size_t n,
-    std::complex<T> const *x, blas::int_t incx )
 {
-    typedef T real_t;
+    typedef real_type<T> real_t;
 
     bool scaledsmax = false; // indicates whether |Re(x_i)| + |Im(x_i)| = Inf
     real_t smax = -1;
@@ -207,7 +98,14 @@ size_t iamax_quietNAN(
     if (incx == 1) {
         // unit stride
         for (size_t i = 0; i < n; ++i) {
-            if ( !scaledsmax ) { // no |Re(x_i)| + |Im(x_i)| = Inf  yet
+            if ( ! is_complex<T>::value ) {
+                real_t a = abs1(x[i]);
+                if ( a > smax ) {
+                    smax = a;
+                    index = i;
+                }
+            }
+            else if ( !scaledsmax ) { // no |Re(x_i)| + |Im(x_i)| = Inf  yet
                 real_t a = abs1(x[i]);
                 if ( isinf(a) ) {
                     scaledsmax = true;
@@ -232,7 +130,14 @@ size_t iamax_quietNAN(
         // non-unit stride
         size_t ix = (incx > 0 ? 0 : (-n + 1)*incx);
         for (size_t i = 0; i < n; ++i) {
-            if ( !scaledsmax ) { // no |Re(x_i)| + |Im(x_i)| = Inf  yet
+            if ( ! is_complex<T>::value ) {
+                real_t a = abs1(x[ix]);
+                if ( a > smax ) {
+                    smax = a;
+                    index = i;
+                }
+            }
+            else if ( !scaledsmax ) { // no |Re(x_i)| + |Im(x_i)| = Inf  yet
                 real_t a = abs1(x[ix]);
                 if ( isinf(a) ) {
                     scaledsmax = true;
@@ -260,9 +165,9 @@ size_t iamax_quietNAN(
 template< typename T >
 size_t iamax_checkNAN(
     blas::size_t n,
-    std::complex<T> const *x, blas::int_t incx )
+    T const *x, blas::int_t incx )
 {
-    typedef T real_t;
+    typedef real_type<T> real_t;
 
     bool scaledsmax = false; // indicates whether x_i finite but |Re(x_i)| + |Im(x_i)| = Inf
     real_t smax = -1;
@@ -284,7 +189,14 @@ size_t iamax_checkNAN(
                 break;
             }
             else { // still no Inf found yet
-                if ( !scaledsmax ) { // no |Re(x_i)| + |Im(x_i)| = Inf  yet
+                if ( ! is_complex<T>::value ) {
+                    real_t a = abs1(x[i]);
+                    if ( a > smax ) {
+                        smax = a;
+                        index = i;
+                    }
+                }
+                else if ( !scaledsmax ) { // no |Re(x_i)| + |Im(x_i)| = Inf  yet
                     real_t a = abs1(x[i]);
                     if ( isinf(a) ) {
                         scaledsmax = true;
@@ -328,7 +240,14 @@ size_t iamax_checkNAN(
                 break;
             }
             else { // still no Inf found yet
-                if ( !scaledsmax ) { // no |Re(x_i)| + |Im(x_i)| = Inf  yet
+                if ( ! is_complex<T>::value ) {
+                    real_t a = abs1(x[ix]);
+                    if ( a > smax ) {
+                        smax = a;
+                        index = i;
+                    }
+                }
+                else if ( !scaledsmax ) { // no |Re(x_i)| + |Im(x_i)| = Inf  yet
                     real_t a = abs1(x[ix]);
                     if ( isinf(a) ) {
                         scaledsmax = true;
