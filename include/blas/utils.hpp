@@ -140,6 +140,21 @@ inline scalar_t make_scalar( blas::real_type<scalar_t> re,
 }
 
 // -----------------------------------------------------------------------------
+/// Type-safe sgn function
+/// @see Source: https://stackoverflow.com/a/4609795/5253097
+///
+template <typename real_t>
+inline int sgn( const real_t& val ) {
+    return (real_t(0) < val) - (val < real_t(0));
+}
+
+#ifdef USE_MPFR
+    template<> 
+    inline int sgn( const mpfr::mpreal& x )
+    { return mpfr::sgn( x ); }
+#endif
+
+// -----------------------------------------------------------------------------
 /// sqrt, needed because std C++11 template returns double.
 /// Note that the template in std::complex return the desired std::complex<T>.
 template< typename T >

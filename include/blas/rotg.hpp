@@ -34,6 +34,98 @@ namespace blas {
  *     Cosine of rotation; real.
  *
  * @param[out] s
+ *     Sine of rotation; real.
+ *
+ * __Further details__
+ *
+ * Anderson E (2017) Algorithm 978: Safe scaling in the level 1 BLAS.
+ * ACM Trans Math Softw 44:. https://doi.org/10.1145/3061665
+ *
+ * @ingroup rotg
+ */
+template <typename TA, typename TB>
+void rotg(
+    TA *a,
+    TB *b,
+    blas::real_type<TA, TB> *c,
+    blas::real_type<TA, TB> *s )
+{
+    typedef real_type<TA, TB> real_t;
+
+    #define A (*a)
+    #define B (*b)
+    #define C (*c)
+    #define S (*s)
+
+    // Constants
+    const real_t one  = 1;
+    const real_t zero = 0;
+
+    // Scaling constants
+    const real_t safmin = safe_min<real_t>();
+    const real_t safmax = safe_max<real_t>();
+
+    // Norms
+    const real_t anorm = abs(A);
+    const real_t bnorm = abs(B);
+
+    // quick return
+    if ( bnorm == zero ) {
+        C = one;
+        S = zero;
+        B = TB( 0.0 );
+    }
+    else if ( anorm == zero ) {
+        C = zero;
+        S = one;
+        A = B;
+        B = TB( 1.0 );
+    }
+    else {
+        real_t scl = min( safmax, max(safmin, anorm, bnorm) );
+        real_t sigma = (anorm > bnorm)
+            ? sgn(A)
+            : sgn(B);
+        real_t r = sigma * scl * sqrt( (A/scl) * (A/scl) + (B/scl) * (B/scl) );
+        C = A / r;
+        S = B / r;
+        A = r;
+        if ( anorm > bnorm )
+            B = S;
+        else if ( C != zero )
+            B = one / C;
+        else
+            B = one;
+    }
+
+    #undef A
+    #undef B
+    #undef C
+    #undef S
+}
+
+/**
+ * Construct plane rotation that eliminates b, such that:
+ * \[
+ *       \begin{bmatrix} r     \\ 0      \end{bmatrix}
+ *     = \begin{bmatrix} c & s \\ -s & c \end{bmatrix}
+ *       \begin{bmatrix} a     \\ b      \end{bmatrix}.
+ * \]
+ *
+ * @see rot to apply the rotation.
+ *
+ * Generic implementation for arbitrary data types.
+ *
+ * @param[in, out] a
+ *     On entry, scalar a. On exit, set to r.
+ *
+ * @param[in, out] b
+ *     On entry, scalar b. On exit, set to s, 1/c, or 0.
+ *
+ * @param[out] c
+ *     Cosine of rotation; real.
+ *
+ * @param[out] s
  *     Sine of rotation; complex.
  *
  * __Further details__
@@ -43,24 +135,28 @@ namespace blas {
  *
  * @ingroup rotg
  */
-template< typename TX, typename TY >
+template <typename TA, typename TB>
 void rotg(
-    TX *a,
-    TY *b,
-    blas::real_type<TX, TY>   *c,
-    blas::scalar_type<TX, TY> *s )
+    TA *a,
+    TB *b,
+    blas::real_type<TA, TB>    *c,
+    blas::complex_type<TA, TB> *s )
 {
-    typedef real_type<TX, TY> real_t;
-    typedef scalar_type<TX, TY> scalar_t;
+    typedef real_type<TA, TB> real_t;
+    typedef complex_type<TA, TB> scalar_t;
 
     #define ABSSQ(t_) real(t_)*real(t_) + imag(t_)*imag(t_)
+    #define A (*a)
+    #define B (*b)
+    #define C (*c)
+    #define S (*s)
 
     // Constants
-    const real_t oneReal = 1;
-    const real_t zeroReal = 0;
-    const scalar_t zero( 0.0 );
-    const TX zeroTX = 0;
-    const TY zeroTY = 0;
+    const real_t r_one = 1;
+    const real_t r_zero = 0;
+    const scalar_t zero = 0;
+    const TA zero_ta = 0;
+    const TB zero_tb = 0;
 
     // Scaling constants
     const real_t safmin = safe_min<real_t>();
@@ -68,91 +164,90 @@ void rotg(
     const real_t rtmin = root_min<real_t>();
     const real_t rtmax = root_max<real_t>();
 
-    // Conventions
-    const TX& f = *a;
-    const TY& g = *b;
-    TX& r = *a;
-
     // quick return
-    if ( g == zeroTY ) {
-        *c = oneReal;
-        *s = zero;
+    if ( B == zero_tb ) {
+        C = r_one;
+        S = zero;
         return;
     }
 
-    if ( f == zeroTX ) {
-        *c = zeroReal;
-        real_t g1 = max( abs(real(g)), abs(imag(g)) );
-        if( g1 > rtmin && g1 < rtmax ) {
+    if ( A == zero_ta ) {
+        C = r_zero;
+        real_t g1 = max( abs(real(B)), abs(imag(B)) );
+        if ( g1 > rtmin && g1 < rtmax ) {
             // Use unscaled algorithm
-            real_t g2 = ABSSQ( g );
+            real_t g2 = ABSSQ( B );
             real_t d = sqrt( g2 );
-            *s = conj( g ) / d;
-            r = d;
+            S = conj( B ) / d;
+            A = d;
         }
         else {
             // Use scaled algorithm
             real_t u = min( safmax, max( safmin, g1 ) );
-            real_t uu = oneReal / u;
-            scalar_t gs = g*uu;
+            real_t uu = r_one / u;
+            scalar_t gs = B*uu;
             real_t g2 = ABSSQ( gs );
             real_t d = sqrt( g2 );
-            *s = conj( gs ) / d;
-            r = d*u;
+            S = conj( gs ) / d;
+            A = d*u;
         }
     }
     else {
-        real_t f1 = max( abs(real(f)), abs(imag(f)) );
-        real_t g1 = max( abs(real(g)), abs(imag(g)) );
-        if( f1 > rtmin && f1 < rtmax &&
+        real_t f1 = max( abs(real(A)), abs(imag(A)) );
+        real_t g1 = max( abs(real(B)), abs(imag(B)) );
+        if ( f1 > rtmin && f1 < rtmax &&
             g1 > rtmin && g1 < rtmax ) {
             // Use unscaled algorithm
-            real_t f2 = ABSSQ( f );
-            real_t g2 = ABSSQ( g );
+            real_t f2 = ABSSQ( A );
+            real_t g2 = ABSSQ( B );
             real_t h2 = f2 + g2;
             real_t d = ( f2 > rtmin && h2 < rtmax )
-                     ? sqrt( f2*h2 )
-                     : sqrt( f2 )*sqrt( h2 );
-            real_t p = oneReal / d;
-            *c = f2*p;
-            *s = conj( g )*( f*p );
-            r = f*( h2*p );
+                       ? sqrt( f2*h2 )
+                       : sqrt( f2 )*sqrt( h2 );
+            real_t p = r_one / d;
+            C  = f2*p;
+            S  = conj( B )*( A*p );
+            A *= h2*p ;
         }
         else {
             // Use scaled algorithm
             real_t u = min( safmax, max( safmin, f1, g1 ) );
-            real_t uu = oneReal / u;
-            scalar_t gs = g*uu;
+            real_t uu = r_one / u;
+            scalar_t gs = B*uu;
             real_t g2 = ABSSQ( gs );
             real_t f2, h2, w;
             scalar_t fs;
-            if( f1*uu < rtmin ) {
-                // f is not well-scaled when scaled by g1.
+            if ( f1*uu < rtmin ) {
+                // a is not well-scaled when scaled by g1.
                 real_t v = min( safmax, max( safmin, f1 ) );
-                real_t vv = oneReal / v;
+                real_t vv = r_one / v;
                 w = v * uu;
-                fs = f*vv;
+                fs = A*vv;
                 f2 = ABSSQ( fs );
                 h2 = f2*w*w + g2;
             }
             else {
-                // Otherwise use the same scaling for f and g.
-                w = oneReal;
-                fs = f*uu;
+                // Otherwise use the same scaling for a and b.
+                w = r_one;
+                fs = A*uu;
                 f2 = ABSSQ( fs );
                 h2 = f2 + g2;
             }
             real_t d = ( f2 > rtmin && h2 < rtmax )
-                     ? sqrt( f2*h2 )
-                     : sqrt( f2 )*sqrt( h2 );
-            real_t p = oneReal / d;
-            *c = ( f2*p )*w;
-            *s = conj( gs )*( fs*p );
-            r = ( fs*( h2*p ) )*u;
+                       ? sqrt( f2*h2 )
+                       : sqrt( f2 )*sqrt( h2 );
+            real_t p = r_one / d;
+            C = ( f2*p )*w;
+            S = conj( gs )*( fs*p );
+            A = ( fs*( h2*p ) )*u;
         }
     }
 
     #undef ABSSQ
+    #undef A
+    #undef B
+    #undef C
+    #undef S
 }
 
 }  // namespace blas
