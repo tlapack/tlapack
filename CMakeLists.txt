@@ -43,7 +43,6 @@ set( TBLAS_DEFINES "" )
 
 # BLAS++ and LAPACK++ interface
 option( USE_BLASPP_WRAPPERS   "Use BLAS++ wrappers to link with an optimized BLAS library"     OFF )
-option( USE_BLASPP_TEMPLATES  "Use BLAS++ templates instead of the ones inside `include/blas`" OFF )
 option( USE_LAPACKPP_WRAPPERS "Use LAPACK++ wrappers to link with an optimized LAPACK library" OFF )
 
 # Examples
@@ -92,23 +91,15 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 #-------------------------------------------------------------------------------
 # Search for BLAS++ library if it is needed
 
-if( USE_BLASPP_WRAPPERS OR USE_BLASPP_TEMPLATES )
-  set(USE_BLASPP ON)
+if( USE_BLASPP_WRAPPERS )
   find_package( blaspp )
   if(blaspp_FOUND)
     message( STATUS "  BLAS++ found in ${blaspp_DIR}" )
   else()
     message( FATAL_ERROR "  BLAS++ not found." )
   endif()
-  target_link_libraries( tblas PUBLIC blaspp )
-endif()
-
-if(USE_BLASPP_WRAPPERS)
   target_compile_definitions( tblas PUBLIC USE_BLASPP_WRAPPERS )
-endif()
-
-if(USE_BLASPP_TEMPLATES)
-  target_compile_definitions( tblas PUBLIC USE_BLASPP_TEMPLATES )
+  target_link_libraries( tblas PUBLIC blaspp )
 endif()
 
 #-------------------------------------------------------------------------------
@@ -127,7 +118,7 @@ endif()
 #-------------------------------------------------------------------------------
 # Options for BLAS_SIZE_T
 
-if( USE_BLASPP OR USE_LAPACKPP_WRAPPERS )
+if( USE_BLASPP_WRAPPERS OR USE_LAPACKPP_WRAPPERS )
   mark_as_advanced( FORCE BLAS_SIZE_T )
   get_property( docString CACHE BLAS_SIZE_T PROPERTY HELPSTRING )
   set( BLAS_SIZE_T int64_t CACHE STRING "${docString}" FORCE )
@@ -142,7 +133,7 @@ endif()
 #-------------------------------------------------------------------------------
 # Options for BLAS_INT_T
   
-if( USE_BLASPP OR USE_LAPACKPP_WRAPPERS )
+if( USE_BLASPP_WRAPPERS OR USE_LAPACKPP_WRAPPERS )
   mark_as_advanced( FORCE BLAS_INT_T )
   get_property( docString CACHE BLAS_INT_T PROPERTY HELPSTRING )
   set( BLAS_INT_T int64_t CACHE STRING "${docString}" FORCE )
@@ -222,7 +213,9 @@ install(
   DIRECTORY ${PROJECT_SOURCE_DIR}/include/blas/
   DESTINATION include/blas
   FILES_MATCHING PATTERN "*.hpp" )
-install( FILES ${CMAKE_BINARY_DIR}/include/blas/defines.h DESTINATION include/blas )
+install(
+  FILES ${CMAKE_BINARY_DIR}/include/blas/defines.h ${PROJECT_SOURCE_DIR}/include/blas/config.h
+  DESTINATION include/blas )
 
 # Export targets
 install(EXPORT tlapackTargets

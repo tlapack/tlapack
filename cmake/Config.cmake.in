@@ -2,8 +2,8 @@
 
 include( CMakeFindDependencyMacro )
 
-set( USE_BLASPP "@USE_BLASPP@" )
-if( USE_BLASPP )
+set( USE_BLASPP_WRAPPERS "@USE_BLASPP_WRAPPERS@" )
+if( USE_BLASPP_WRAPPERS )
     find_dependency( blaspp )
 endif()
 

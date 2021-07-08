@@ -11,18 +11,8 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <complex.h>
-#include "blas/defines.h"
 
-// -----------------------------------------------------------------------------
-// Integer types BLAS_SIZE_T and BLAS_INT_T
-
-#ifndef BLAS_SIZE_T
-    #define BLAS_SIZE_T size_t
-#endif
-
-#ifndef BLAS_INT_T
-    #define BLAS_INT_T int64_t
-#endif
+#include "blas/config.h"
 
 #ifdef __cplusplus
 extern "C" {
