@@ -15,9 +15,9 @@ namespace blas {
 
 /**
  * @return In priority order:
- * 1. INVALID_INDEX if (a) $n \le 0$ or (b) $x_i=NAN$ for all $i$ and `checkNAN == false`,
+ * 1. INVALID_INDEX if $n \le 0$,
  * 2. the index of the first `NAN` in $x$ if it exists and if `checkNAN == true`,
- * 3. the index of the first `Infinity` in $x$ if it is the case,
+ * 3. the index of the first `Infinity` in $x$ if it exists,
  * 4. the Index of the infinity-norm of $x$, $|| x ||_{inf}$,
  *     $\arg\max_{i=0}^{n-1} \left(|Re(x_i)| + |Im(x_i)|\right)$.
  *
@@ -159,7 +159,7 @@ size_t iamax_quietNAN(
             ix += incx;
         }
     }
-    return index;
+    return ( (index != INVALID_INDEX) || (n <= 0) ) ? index : 0;
 }
 
 template< typename T >
