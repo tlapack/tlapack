@@ -18,8 +18,9 @@
         #define BLAS_FUNCTION(fname) cblas_##fname
     #endif
 
-    typedef CBLAS_INDEX blas_size_t;
-    typedef CBLAS_INDEX blas_int_t;
+    typedef CBLAS_INT   blas_size_t;
+    typedef CBLAS_INT   blas_int_t;
+    typedef CBLAS_INDEX blas_iamax_t;
 
     typedef CBLAS_LAYOUT Layout;
     typedef CBLAS_TRANSPOSE Op;
@@ -69,6 +70,7 @@
 
     typedef BLAS_SIZE_T blas_size_t;
     typedef BLAS_INT_T  blas_int_t;
+    typedef BLAS_SIZE_T blas_iamax_t;
 
     // -----------------------------------------------------------------------------
     // Convert BLAS enum to <T>BLAS enum
@@ -320,34 +322,38 @@ complexDouble _zdotu(
     return *reinterpret_cast<complexDouble*>(&z);
 }
 
-blas_size_t isamax(
+#define _isamax BLAS_FUNCTION(isamax)
+blas_iamax_t _isamax(
     blas_size_t n,
     float const * x, blas_int_t incx ) {
-    return blas::iamax<float>(
+    return (blas_iamax_t) blas::iamax<float>(
         n,
         x, incx );
 }
 
-blas_size_t idamax(
+#define _idamax BLAS_FUNCTION(idamax)
+blas_iamax_t _idamax(
     blas_size_t n,
     double const * x, blas_int_t incx ) {
-    return blas::iamax<double>(
+    return (blas_iamax_t) blas::iamax<double>(
         n,
         x, incx );
 }
 
-blas_size_t icamax(
+#define _icamax BLAS_FUNCTION(icamax)
+blas_iamax_t _icamax(
     blas_size_t n,
     complexFloat const * x, blas_int_t incx ) {
-    return blas::iamax<tblas_complexFloat>(
+    return (blas_iamax_t) blas::iamax<tblas_complexFloat>(
         n,
         tblas_cteC(x), incx );
 }
 
-blas_size_t izamax(
+#define _izamax BLAS_FUNCTION(izamax)
+blas_iamax_t _izamax(
     blas_size_t n,
     complexDouble const * x, blas_int_t incx ) {
-    return blas::iamax<tblas_complexDouble>(
+    return (blas_iamax_t) blas::iamax<tblas_complexDouble>(
         n,
         tblas_cteZ(x), incx );
 }
