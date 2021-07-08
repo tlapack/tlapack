@@ -31,7 +31,7 @@ target_include_directories( tblas
 add_library( tlapack INTERFACE )
 target_link_libraries( tlapack INTERFACE tblas )
 
-set( installable_libs  tlapack tblas )
+set( installable_libs tblas ) # Mind that we don't install tlapack since it is an INTERFACE_LIBRARY
 set( installable_files
   "${PROJECT_SOURCE_DIR}/include/tblas.hpp"
   "${PROJECT_SOURCE_DIR}/include/tlapack.hpp" )
