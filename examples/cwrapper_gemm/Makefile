@@ -3,19 +3,19 @@
 #-------------------------------------------------------------------------------
 # Executables
 
-all: example_geqr2
+all: example_cwrapper_gemm
 
-example_geqr2: example_geqr2.o
-	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS)
+example_cwrapper_gemm: example_cwrapper_gemm.o
+	$(LD) $(CFLAGS) -o $@ $< $(LDFLAGS)
 
 #-------------------------------------------------------------------------------
 # Rules
 
 .PHONY: all
 
-.cpp.o:
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
+.c.o:
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 clean:
 	rm -f *.o
-	rm -f example_geqr2
+	rm -f example_cwrapper_gemm

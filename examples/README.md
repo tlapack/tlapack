@@ -12,3 +12,6 @@ This is the list of examples and brief descriptions:
 
   Compute _C - AB_ using matrices A, B and C.
 
+- [cwrapper_gemm](cwrapper_gemm/README.md)
+
+  Compute _C - AB_ using matrices A, B and C with a code written in C language.

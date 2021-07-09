@@ -18,4 +18,4 @@ example_gemm: example_gemm.o
 
 clean:
 	rm -f *.o
-	rm example_gemm
+	rm -f example_gemm

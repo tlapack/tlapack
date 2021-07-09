@@ -12,8 +12,7 @@ add_subdirectory( gemm )
 
 # add the example gemm using the C wrapper
 if( C_WRAPPERS )
-  add_executable(example_cwrapper_gemm example_cwrapper_gemm.c)
-  target_link_libraries( example_cwrapper_gemm PRIVATE tblas_c )
+  add_subdirectory( cwrapper_gemm )
 endif()
 
 # add the example saxpy using the Fortran module
@@ -42,7 +41,7 @@ COMMAND
   ${CMAKE_CURRENT_BINARY_DIR}/geqr2/example_geqr2${CMAKE_EXECUTABLE_SUFFIX}
 COMMAND
   echo "- example_cwrapper_gemm --------" &&
-  ${CMAKE_CURRENT_BINARY_DIR}/example_cwrapper_gemm${CMAKE_EXECUTABLE_SUFFIX}
+  ${CMAKE_CURRENT_BINARY_DIR}/cwrapper_gemm/example_cwrapper_gemm${CMAKE_EXECUTABLE_SUFFIX}
 COMMAND
   echo "- example_fortranModule_saxpy --" &&
   ${CMAKE_CURRENT_BINARY_DIR}/example_fortranModule_saxpy${CMAKE_EXECUTABLE_SUFFIX}
