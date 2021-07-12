@@ -50,4 +50,26 @@ bind(C, name="zaxpy")
     type(c_ptr), value :: x, y
 end subroutine
 
+real(c_float) function snrm2_( n, x, incx ) &
+bind(C, name="snrm2")
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    integer(@FBLAS_SIZE_T@), value :: n
+    integer(@FBLAS_INT_T@), value :: incx
+    type(c_ptr), value :: x
+end function
+
+subroutine ssymm_( &
+    layout, side, uplo, m, n, alpha, A, lda, B, ldb, beta, C, ldc ) &
+bind(C, name="ssymm")
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    character(c_char), value :: layout, side, uplo
+    integer(@FBLAS_SIZE_T@), value :: m, n, lda, ldb, ldc
+    real(c_float), value :: alpha, beta
+    type(c_ptr), value :: A, B, C
+end subroutine
+
 end interface

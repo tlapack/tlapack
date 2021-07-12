@@ -26,8 +26,7 @@ endif()
 
 # add the example daxpy using the Fortran wrapper
 if( Fortran_WRAPPERS )
-  add_executable( example_fortranWrapper_saxpy example_fortranWrapper_saxpy.f90 )
-  target_link_libraries( example_fortranWrapper_saxpy PRIVATE tblas_fortran )
+add_subdirectory( fortranWrapper_ssymm )
 endif()
 
 add_custom_target( run-all-examples
@@ -45,4 +44,4 @@ COMMAND
   ${CMAKE_CURRENT_BINARY_DIR}/fortranModule_caxpy/example_fortranModule_caxpy${CMAKE_EXECUTABLE_SUFFIX}
 COMMAND
   echo "- example_fortranWrapper_saxpy -" &&
-  ${CMAKE_CURRENT_BINARY_DIR}/example_fortranWrapper_saxpy${CMAKE_EXECUTABLE_SUFFIX} )
+  ${CMAKE_CURRENT_BINARY_DIR}/fortranWrapper_ssymm/example_fortranWrapper_ssymm${CMAKE_EXECUTABLE_SUFFIX} )

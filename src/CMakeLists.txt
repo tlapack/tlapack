@@ -86,7 +86,9 @@ if( Fortran_WRAPPERS )
   add_library( tblas_fortran
     tblas.f90
     blas/constants.f90
-    blas/axpy.f90 )
+    blas/axpy.f90
+    blas/symm.f90
+    blas/nrm2.f90 )
   target_include_directories( tblas_fortran
   PRIVATE
     ${CMAKE_SOURCE_DIR}/src

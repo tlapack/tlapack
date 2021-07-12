@@ -19,3 +19,7 @@ This is the list of examples and brief descriptions:
 - [fortranModule_caxpy](fortranModule_caxpy/README.md)
 
   Compute _c x + y_ using complex matrices x and y and a complex scalar c, with a code written in Fortran90.
+
+- [fortranWrapper_ssymm](fortranWrapper_ssymm/README.md)
+
+  Compute _C - AB_ using matrices A, B and C with a code written in Fortran90.
