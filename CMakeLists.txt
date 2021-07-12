@@ -32,10 +32,6 @@ add_library( tlapack INTERFACE )
 target_link_libraries( tlapack INTERFACE tblas )
 
 set( installable_libs  tlapack tblas )
-set( installable_files
-  "${PROJECT_SOURCE_DIR}/include/tblas.hpp"
-  "${PROJECT_SOURCE_DIR}/include/tlapack.hpp" )
-
 set( TBLAS_DEFINES "" )
 
 #-------------------------------------------------------------------------------
@@ -163,6 +159,7 @@ if( Fortran_WRAPPERS )
   enable_language( Fortran )
 endif()
 
+set( CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/include )
 add_subdirectory(src)
 
 #-------------------------------------------------------------------------------
@@ -198,7 +195,13 @@ install(
   DESTINATION lib
   EXPORT tlapackTargets )
 install(
-  FILES ${installable_files}
+  FILES ${installable_mods}
+  DESTINATION include )
+
+install(
+  FILES
+    "${PROJECT_SOURCE_DIR}/include/tblas.hpp"
+    "${PROJECT_SOURCE_DIR}/include/tlapack.hpp"
   DESTINATION include )
 
 # <T>LAPACK templates 

@@ -1,0 +1,16 @@
+! Copyright (c) 2021, University of Colorado Denver. All rights reserved.
+!
+! This file is part of <T>LAPACK.
+! <T>LAPACK is free software: you can redistribute it and/or modify it under
+! the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
+
+module constants
+    use, intrinsic :: iso_c_binding
+    public
+
+    integer, parameter :: sp = kind(1.e0)
+    integer, parameter :: dp = kind(1.d0)
+    integer, parameter :: blas_int  = @FBLAS_INT_T@
+    integer, parameter :: blas_size = @FBLAS_SIZE_T@
+
+end module

@@ -15,11 +15,9 @@ if( C_WRAPPERS )
   add_subdirectory( cwrapper_gemm )
 endif()
 
-# add the example saxpy using the Fortran module
+# add the example caxpy using the Fortran module
 if( Fortran_WRAPPERS )
-  add_executable( example_fortranModule_saxpy
-    example_fortranModule_saxpy.f90 "${PROJECT_SOURCE_DIR}/include/tblas.f90" )
-  target_link_libraries( example_fortranModule_saxpy PRIVATE tblas_c )
+  add_subdirectory( fortranModule_caxpy )
 endif()
 
 # # add the example daxpy using the Fortran interface
@@ -43,8 +41,8 @@ COMMAND
   echo "- example_cwrapper_gemm --------" &&
   ${CMAKE_CURRENT_BINARY_DIR}/cwrapper_gemm/example_cwrapper_gemm${CMAKE_EXECUTABLE_SUFFIX}
 COMMAND
-  echo "- example_fortranModule_saxpy --" &&
-  ${CMAKE_CURRENT_BINARY_DIR}/example_fortranModule_saxpy${CMAKE_EXECUTABLE_SUFFIX}
+  echo "- example_fortranModule_caxpy --" &&
+  ${CMAKE_CURRENT_BINARY_DIR}/fortranModule_caxpy/example_fortranModule_caxpy${CMAKE_EXECUTABLE_SUFFIX}
 COMMAND
   echo "- example_fortranWrapper_saxpy -" &&
   ${CMAKE_CURRENT_BINARY_DIR}/example_fortranWrapper_saxpy${CMAKE_EXECUTABLE_SUFFIX} )

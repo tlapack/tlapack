@@ -28,4 +28,26 @@ bind(C, name="daxpy")
     type(c_ptr), value :: x, y
 end subroutine
 
+subroutine caxpy_( n, alpha, x, incx, y, incy ) &
+bind(C, name="caxpy")
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    integer(@FBLAS_SIZE_T@), value :: n
+    integer(@FBLAS_INT_T@), value :: incx, incy
+    complex(c_float_complex), value :: alpha
+    type(c_ptr), value :: x, y
+end subroutine
+
+subroutine zaxpy_( n, alpha, x, incx, y, incy ) &
+bind(C, name="zaxpy")
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    integer(@FBLAS_SIZE_T@), value :: n
+    integer(@FBLAS_INT_T@), value :: incx, incy
+    complex(c_double_complex), value :: alpha
+    type(c_ptr), value :: x, y
+end subroutine
+
 end interface

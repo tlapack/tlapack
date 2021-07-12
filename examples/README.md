@@ -14,4 +14,8 @@ This is the list of examples and brief descriptions:
 
 - [cwrapper_gemm](cwrapper_gemm/README.md)
 
-  Compute _C - AB_ using matrices A, B and C with a code written in C language.
+  Compute _C - AB_ using matrices A, B and C with a code written in C.
+
+- [fortranModule_caxpy](fortranModule_caxpy/README.md)
+
+  Compute _c x + y_ using complex matrices x and y and a complex scalar c, with a code written in Fortran90.
