@@ -8,6 +8,8 @@
 #ifndef __TLAPACK_CONFIG_H__
 #define __TLAPACK_CONFIG_H__
 
+#include "blas/defines.h"
+
 #ifndef lapack_logical
     #if defined(BLAS_ILP64) || defined(LAPACK_ILP64)
         #define lapack_logical int64_t

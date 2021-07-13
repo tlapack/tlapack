@@ -10,7 +10,8 @@
 
 #include <complex>
 #include <cstdint>
-#include "blas/defines.h" // Defines Integer types BLAS_SIZE_T and BLAS_INT_T
+
+#include "blas/config.h"
 
 namespace blas {
 

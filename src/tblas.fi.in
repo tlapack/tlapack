@@ -1,0 +1,75 @@
+! Copyright (c) 2021, University of Colorado Denver. All rights reserved.
+!
+! This file is part of <T>LAPACK.
+! <T>LAPACK is free software: you can redistribute it and/or modify it under
+! the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
+
+interface
+
+subroutine saxpy_( n, alpha, x, incx, y, incy ) &
+bind(C, name="saxpy")
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    integer(@FBLAS_SIZE_T@), value :: n
+    integer(@FBLAS_INT_T@), value :: incx, incy
+    real(c_float), value :: alpha
+    type(c_ptr), value :: x, y
+end subroutine
+
+subroutine daxpy_( n, alpha, x, incx, y, incy ) &
+bind(C, name="daxpy")
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    integer(@FBLAS_SIZE_T@), value :: n
+    integer(@FBLAS_INT_T@), value :: incx, incy
+    real(c_double), value :: alpha
+    type(c_ptr), value :: x, y
+end subroutine
+
+subroutine caxpy_( n, alpha, x, incx, y, incy ) &
+bind(C, name="caxpy")
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    integer(@FBLAS_SIZE_T@), value :: n
+    integer(@FBLAS_INT_T@), value :: incx, incy
+    complex(c_float_complex), value :: alpha
+    type(c_ptr), value :: x, y
+end subroutine
+
+subroutine zaxpy_( n, alpha, x, incx, y, incy ) &
+bind(C, name="zaxpy")
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    integer(@FBLAS_SIZE_T@), value :: n
+    integer(@FBLAS_INT_T@), value :: incx, incy
+    complex(c_double_complex), value :: alpha
+    type(c_ptr), value :: x, y
+end subroutine
+
+real(c_float) function snrm2_( n, x, incx ) &
+bind(C, name="snrm2")
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    integer(@FBLAS_SIZE_T@), value :: n
+    integer(@FBLAS_INT_T@), value :: incx
+    type(c_ptr), value :: x
+end function
+
+subroutine ssymm_( &
+    layout, side, uplo, m, n, alpha, A, lda, B, ldb, beta, C, ldc ) &
+bind(C, name="ssymm")
+    use, intrinsic :: iso_c_binding
+    implicit none
+
+    character(c_char), value :: layout, side, uplo
+    integer(@FBLAS_SIZE_T@), value :: m, n, lda, ldb, ldc
+    real(c_float), value :: alpha, beta
+    type(c_ptr), value :: A, B, C
+end subroutine
+
+end interface

@@ -121,12 +121,6 @@ Here are the \<T\>LAPACK specific options and their default values
         Branch compatible with \<T>LAPACK:
             https://bitbucket.org/weslleyspereira/blaspp/branch/tlapack
     
-    USE_BLASPP_TEMPLATES             OFF
-
-        Use BLAS++ templates instead of the ones inside `include/blas`.
-        Branch compatible with \<T>LAPACK:
-            https://bitbucket.org/weslleyspereira/blaspp/branch/tlapack
-    
     USE_LAPACKPP_WRAPPERS            OFF
 
         Use LAPACK++ wrappers to link with an optimized LAPACK library.

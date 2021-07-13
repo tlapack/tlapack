@@ -8,7 +8,9 @@
 #ifndef __TBLAS_UTILS_HH__
 #define __TBLAS_UTILS_HH__
 
+#include "blas/defines.h"
 #include "blas/types.hpp"
+
 #include <limits>
 #include <exception>
 #include <string>
@@ -329,19 +331,12 @@ namespace internal {
 
     // <T>BLAS does no error checking;
     // lower level BLAS may still handle errors via xerbla
-    #define blas_error( msg ) \
-        ((void)0)
     #define blas_error_if( cond ) \
         ((void)0)
     #define blas_error_if_msg( cond, ... ) \
         ((void)0)
 
 #else
-
-    /// internal macro to the get string __func__
-    /// ex: blas_error( "a < b" );
-    #define blas_error( msg ) \
-        blas::error( msg, __func__ )
 
     /// internal macro to get strings: #cond and __func__
     /// ex: blas_error_if( a < b );

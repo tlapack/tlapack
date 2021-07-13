@@ -12,15 +12,12 @@ add_subdirectory( gemm )
 
 # add the example gemm using the C wrapper
 if( C_WRAPPERS )
-  add_executable(example_cwrapper_gemm example_cwrapper_gemm.c)
-  target_link_libraries( example_cwrapper_gemm PRIVATE tblas_c )
+  add_subdirectory( cwrapper_gemm )
 endif()
 
-# add the example saxpy using the Fortran module
+# add the example caxpy using the Fortran module
 if( Fortran_WRAPPERS )
-  add_executable( example_fortranModule_saxpy
-    example_fortranModule_saxpy.f90 "${PROJECT_SOURCE_DIR}/include/tblas.f90" )
-  target_link_libraries( example_fortranModule_saxpy PRIVATE tblas_c )
+  add_subdirectory( fortranModule_caxpy )
 endif()
 
 # # add the example daxpy using the Fortran interface
@@ -29,8 +26,7 @@ endif()
 
 # add the example daxpy using the Fortran wrapper
 if( Fortran_WRAPPERS )
-  add_executable( example_fortranWrapper_saxpy example_fortranWrapper_saxpy.f90 )
-  target_link_libraries( example_fortranWrapper_saxpy PRIVATE tblas_fortran )
+add_subdirectory( fortranWrapper_ssymm )
 endif()
 
 add_custom_target( run-all-examples
@@ -42,10 +38,10 @@ COMMAND
   ${CMAKE_CURRENT_BINARY_DIR}/geqr2/example_geqr2${CMAKE_EXECUTABLE_SUFFIX}
 COMMAND
   echo "- example_cwrapper_gemm --------" &&
-  ${CMAKE_CURRENT_BINARY_DIR}/example_cwrapper_gemm${CMAKE_EXECUTABLE_SUFFIX}
+  ${CMAKE_CURRENT_BINARY_DIR}/cwrapper_gemm/example_cwrapper_gemm${CMAKE_EXECUTABLE_SUFFIX}
 COMMAND
-  echo "- example_fortranModule_saxpy --" &&
-  ${CMAKE_CURRENT_BINARY_DIR}/example_fortranModule_saxpy${CMAKE_EXECUTABLE_SUFFIX}
+  echo "- example_fortranModule_caxpy --" &&
+  ${CMAKE_CURRENT_BINARY_DIR}/fortranModule_caxpy/example_fortranModule_caxpy${CMAKE_EXECUTABLE_SUFFIX}
 COMMAND
   echo "- example_fortranWrapper_saxpy -" &&
-  ${CMAKE_CURRENT_BINARY_DIR}/example_fortranWrapper_saxpy${CMAKE_EXECUTABLE_SUFFIX} )
+  ${CMAKE_CURRENT_BINARY_DIR}/fortranWrapper_ssymm/example_fortranWrapper_ssymm${CMAKE_EXECUTABLE_SUFFIX} )

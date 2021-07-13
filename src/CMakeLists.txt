@@ -16,8 +16,9 @@ if( C_WRAPPERS OR Fortran_WRAPPERS )
 
   list( APPEND installable_libs tblas_c )
   if( C_WRAPPERS )
-    list( APPEND installable_files
-      ${PROJECT_SOURCE_DIR}/include/tblas.h )
+    install(
+      FILES ${PROJECT_SOURCE_DIR}/include/tblas.h
+      DESTINATION include )
   endif()
 endif()
 
@@ -29,8 +30,9 @@ if( CBLAS_WRAPPERS )
   target_compile_definitions( tlapack_cblas PRIVATE BUILD_CBLAS )
 
   list( APPEND installable_libs tlapack_cblas )
-  list( APPEND installable_files
-    ${PROJECT_SOURCE_DIR}/include/tlapack_cblas.h )
+  install(
+    FILES ${PROJECT_SOURCE_DIR}/include/tlapack_cblas.h
+    DESTINATION include )
 endif()
 
 #-------------------------------------------------------------------------------
@@ -70,53 +72,44 @@ if( Fortran_WRAPPERS )
   endif()
   mark_as_advanced( FBLAS_INT_T )
 
-  # Choose the number of bytes for the integer type
-  # TODO: Improve this part
-  configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/utils/getNumBytes.c.in
-    ${CMAKE_CURRENT_SOURCE_DIR}/utils/getNumBytes.c @ONLY )
-  execute_process (
-    COMMAND bash -c "${CMAKE_CXX_COMPILER} getNumBytes.c -o getNumBytes${CMAKE_EXECUTABLE_SUFFIX} && ./getNumBytes${CMAKE_EXECUTABLE_SUFFIX}"
-    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/utils"
-    RESULT_VARIABLE FBLAS_INT_BYTES
-  )
-
-  # Truncate FBLAS_INT_BYTES to a value between 1 and 8
-  # TODO: Improve this part
-  if( (${FBLAS_INT_BYTES} GREATER_EQUAL 1) AND (${FBLAS_INT_BYTES} LESS_EQUAL 8) )
-    message( STATUS "Fortran wrappers use integers of ${FBLAS_INT_BYTES} bytes" )
-  else()
-    set( FBLAS_INT_BYTES "8" )
-    message( STATUS "Fortran wrappers use integers of ${FBLAS_INT_BYTES} bytes" )
-  endif()
-
   # Fortran interface. Used to call C-based BLAS directly from a Fortran program.
   # The Fortran code needs to import this interface and link with the library blas
   configure_file(
-    ${PROJECT_SOURCE_DIR}/include/tblas.fi.in
-    ${PROJECT_SOURCE_DIR}/include/tblas.fi @ONLY )
+    tblas.fi.in
+    ${CMAKE_CURRENT_SOURCE_DIR}/tblas.fi @ONLY )
 
-  # Fortran library. This library can be linked directly to a Fortran code.
-  configure_file(
-    tblas_fortranwrappers.f90.in
-    ${CMAKE_CURRENT_SOURCE_DIR}/tblas_fortranwrappers.f90 @ONLY )
+  # Constants module.
+  configure_file( 
+    blas/constants.f90.in 
+    ${CMAKE_CURRENT_SOURCE_DIR}/blas/constants.f90 @ONLY )
 
-  # Fortran module. Translates the C-based BLAS interface into Fortran 90.
-  # The Fortran code needs to load this interface and link with the library blas
-  configure_file(
-    ${PROJECT_SOURCE_DIR}/include/tblas.f90.in
-    ${PROJECT_SOURCE_DIR}/include/tblas.f90 @ONLY )
-
-  add_library(tblas_fortran tblas_fortranwrappers.f90)
+  add_library( tblas_fortran
+    tblas.f90
+    blas/constants.f90
+    blas/axpy.f90
+    blas/symm.f90
+    blas/nrm2.f90 )
   target_include_directories( tblas_fortran
-    PRIVATE ${PROJECT_SOURCE_DIR}/include )
+  PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+  INTERFACE 
+    $<BUILD_INTERFACE:${CMAKE_Fortran_MODULE_DIRECTORY}>
+    $<INSTALL_INTERFACE:lib> )
   target_link_libraries( tblas_fortran PUBLIC tblas_c )
 
   list( APPEND installable_libs tblas_fortran )
-  list( APPEND installable_files
-    ${PROJECT_SOURCE_DIR}/include/tblas.fi
-    ${PROJECT_SOURCE_DIR}/include/tblas.f90 )
+  list( APPEND installable_mods ${CMAKE_Fortran_MODULE_DIRECTORY}/tblas.mod )
+
+  install(
+    FILES
+      ${CMAKE_CURRENT_SOURCE_DIR}/tblas.fi
+      ${CMAKE_CURRENT_SOURCE_DIR}/tblas.f90
+    DESTINATION include )
+  install(
+    FILES
+      ${CMAKE_CURRENT_SOURCE_DIR}/blas/constants.f90
+    DESTINATION include/blas )
 endif()
 
 set( installable_libs ${installable_libs} PARENT_SCOPE )
-set( installable_files ${installable_files} PARENT_SCOPE )
+set( installable_mods ${installable_mods} PARENT_SCOPE )

@@ -3,19 +3,20 @@
 #-------------------------------------------------------------------------------
 # Executables
 
-all: example_geqr2
+all: example_fortranModule_caxpy
 
-example_geqr2: example_geqr2.o
-	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS)
+example_fortranModule_caxpy: example_fortranModule_caxpy.o
+	$(LD) $(FFLAGS) -o $@ $< $(LDFLAGS)
 
 #-------------------------------------------------------------------------------
 # Rules
 
 .PHONY: all
 
-.cpp.o:
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
+%.o: %.f90 $(tlapack_inc)/tblas.mod
+	$(FC) $(FFLAGS) -c -o $@ $<
 
 clean:
 	rm -f *.o
-	rm -f example_geqr2
+	rm -f example_fortranModule_caxpy
+	
