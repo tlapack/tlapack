@@ -26,6 +26,19 @@ namespace lapack {
  * \]
  * The value of  sumsq  is assumed to be non-negative.
  * 
+ * If (scale * sqrt( sumsq )) > tbig on entry then
+ *    we require:   scale >= sqrt( TINY*EPS ) / sbig   on entry,
+ * and if (scale * sqrt( sumsq )) < tsml on entry then
+ *    we require:   scale <= sqrt( HUGE ) / ssml       on entry,
+ * where
+ *    tbig -- upper threshold for values whose square is representable;
+ *    sbig -- scaling constant for big numbers; @see blas/constants.hpp
+ *    tsml -- lower threshold for values whose square is representable;
+ *    ssml -- scaling constant for small numbers; @see blas/constants.hpp
+ * and
+ *    TINY*EPS -- tiniest representable number;
+ *    HUGE     -- biggest representable number.
+ * 
  * @param[in] n The number of elements to be used from the vector x.
  * @param[in] x Array of dimension $(1+(n-1)*\abs(incx))$.
  * @param[in] incx. The increment between successive values of the vector x.
@@ -48,8 +61,9 @@ void lassq(
 {
     typedef real_type<TX> real_t;
     using blas::isnan;
-    using blas::abs;
     using blas::sqrt;
+
+    #define SQUARE(x) (x)*(x)
 
     // constants
     const real_t zero(0.0);
@@ -86,17 +100,13 @@ void lassq(
 
     for (size_t i = 0; i < n; ++i)
     {
-        // std::abs< std::complex > Does not overflow or underflow at
-        // intermediate stages of the computation.
-        // See https://en.cppreference.com/w/cpp/numeric/complex/abs
-        real_t ax = abs( x[ix] ); 
-        
+        real_t ax = blas::abs( x[ix] ); 
         if( ax > tbig )
-            abig += (ax*sbig) * (ax*sbig);
-        else if( ax < tsml )
-            asml += (ax*asml) * (ax*asml);
-        else
-            amed += ax * ax;
+            abig += SQUARE(ax*sbig);
+        else if( ax < tsml ) {
+            if( abig == zero ) asml += SQUARE(ax*asml);
+        } else
+            amed += SQUARE(ax);
         ix += incx;
     }
 
@@ -104,11 +114,11 @@ void lassq(
     if( sumsq > zero ) {
         real_t ax = scl * sqrt( sumsq );
         if( ax > tbig )
-            abig += (ax*sbig) * (ax*sbig);
-        else if( ax < tsml )
-            asml += (ax*asml) * (ax*asml);
-        else
-            amed += ax * ax;
+            abig += SQUARE(scl*sbig) * sumsq;
+        else if( ax < tsml ) {
+            if( abig == zero ) asml += SQUARE(scl*ssml) * sumsq;
+        } else
+            amed += SQUARE(scl) * sumsq;
         ix += incx;
     }
 
@@ -139,7 +149,7 @@ void lassq(
             }
 
             scl = one;
-            sumsq = (ymax*ymax) * ( one + (ymin/ymax)*(ymin/ymax) );
+            sumsq = SQUARE(ymax) * ( one + SQUARE(ymin/ymax) );
         }
         else {
             scl = one / ssml;
@@ -151,6 +161,8 @@ void lassq(
         scl = one;
         sumsq = amed;
     }
+
+    #undef SQUARE
 }
 
 } // lapack

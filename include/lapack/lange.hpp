@@ -43,7 +43,6 @@ real_type<TA> lange(
 {
     typedef real_type<TA> real_t;
     #define A(i_, j_) A[ (i_) + (j_)*lda ]
-    using blas::abs;
     using blas::isnan;
     using blas::sqrt;
 
@@ -62,7 +61,7 @@ real_type<TA> lange(
         for (size_t j = 0; j < n; ++j) {
             for (size_t i = 0; i < m; ++i)
             {
-                real_t temp = abs( A(i,j) );
+                real_t temp = blas::abs( A(i,j) );
 
                 if (temp > norm)
                     norm = temp;
@@ -79,7 +78,7 @@ real_type<TA> lange(
         {
             real_t sum = zero;
             for (size_t i = 0; i < m; ++i)
-                sum += abs( A(i,j) );
+                sum += blas::abs( A(i,j) );
 
             if (sum > norm)
                 norm = sum;
@@ -93,11 +92,11 @@ real_type<TA> lange(
     {
         real_t *work = new real_t[m];
         for (size_t i = 0; i < m; ++i)
-            work[i] = abs( A(i,0) );
+            work[i] = blas::abs( A(i,0) );
         
         for (size_t j = 1; j < n; ++j)
             for (size_t i = 0; i < m; ++i)
-                work[i] += abs( A(i,j) );
+                work[i] += blas::abs( A(i,j) );
 
         for (size_t i = 0; i < m; ++i)
         {

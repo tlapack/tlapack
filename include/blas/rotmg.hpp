@@ -140,7 +140,7 @@ void rotmg(
         real_t q2 = p2*y1;
         real_t q1 = p1*x1;
 
-        if( abs(q1) > abs(q2) ) {
+        if( blas::abs(q1) > blas::abs(q2) ) {
             param[0] = zero;
             h21 = -y1/x1;
             h12 = p2/p1;
@@ -196,7 +196,7 @@ void rotmg(
         }
 
         if(*d2 != zero) {
-            while( (abs(*d2) <= rgamsq) || (abs(*d2) >= gamsq) ) {
+            while( (blas::abs(*d2) <= rgamsq) || (blas::abs(*d2) >= gamsq) ) {
                 if(param[0] == 0) {
                     h11=one;
                     h22=one;
@@ -207,7 +207,7 @@ void rotmg(
                     h12=one;
                     param[0]=-1;
                 }
-                if(abs(*d2) <= rgamsq) {
+                if(blas::abs(*d2) <= rgamsq) {
                     *d2 *= gam*gam;
                     h21 /= gam;
                     h22 /= gam;

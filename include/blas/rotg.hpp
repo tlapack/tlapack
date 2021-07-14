@@ -66,8 +66,8 @@ void rotg(
     const real_t safmax = safe_max<real_t>();
 
     // Norms
-    const real_t anorm = abs(A);
-    const real_t bnorm = abs(B);
+    const real_t anorm = blas::abs(A);
+    const real_t bnorm = blas::abs(B);
 
     // quick return
     if ( bnorm == zero ) {
@@ -173,7 +173,7 @@ void rotg(
 
     if ( A == zero_ta ) {
         C = r_zero;
-        real_t g1 = max( abs(real(B)), abs(imag(B)) );
+        real_t g1 = max( blas::abs(real(B)), blas::abs(imag(B)) );
         if ( g1 > rtmin && g1 < rtmax ) {
             // Use unscaled algorithm
             real_t g2 = ABSSQ( B );
@@ -193,8 +193,8 @@ void rotg(
         }
     }
     else {
-        real_t f1 = max( abs(real(A)), abs(imag(A)) );
-        real_t g1 = max( abs(real(B)), abs(imag(B)) );
+        real_t f1 = max( blas::abs(real(A)), blas::abs(imag(A)) );
+        real_t g1 = max( blas::abs(real(B)), blas::abs(imag(B)) );
         if ( f1 > rtmin && f1 < rtmax &&
             g1 > rtmin && g1 < rtmax ) {
             // Use unscaled algorithm

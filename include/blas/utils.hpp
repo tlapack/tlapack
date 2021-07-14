@@ -27,7 +27,6 @@ namespace blas {
 // Use routines from std C++
 using std::real;
 using std::imag;
-using std::abs; // Contains the 2-norm for the complex case
 using std::isinf;
 using std::isnan;
 using std::ceil;
@@ -38,7 +37,6 @@ using std::floor;
 #ifdef USE_MPFR
     inline mpfr::mpreal real( const mpfr::mpreal& x ) { return x; }
     inline mpfr::mpreal imag( const mpfr::mpreal& x ) { return 0; }
-    using mpfr::abs;
     using mpfr::isinf;
     using mpfr::isnan;
     using mpfr::ceil;
@@ -226,17 +224,6 @@ inline T pow( const int base, const T& exp )
 #endif
 
 // -----------------------------------------------------------------------------
-/// 1-norm absolute value, |Re(x)| + |Im(x)|
-template< typename real_t >
-inline real_t abs1( const real_t& x ) { return abs( x ); }
-
-template< typename real_t >
-inline real_t abs1( const std::complex<real_t>& x )
-{
-    return abs( real(x) ) + abs( imag(x) );
-}
-
-// -----------------------------------------------------------------------------
 /// isnan for complex numbers
 template< typename real_t >
 inline bool isnan( const std::complex<real_t>& x )
@@ -250,6 +237,57 @@ template< typename real_t >
 inline bool isinf( const std::complex<real_t>& x )
 {
     return isinf( real(x) ) || isinf( imag(x) );
+}
+
+// -----------------------------------------------------------------------------
+/// 2-norm absolute value, sqrt( |Re(x)|^2 + |Im(x)|^2 )
+///
+/// Note that std::abs< std::complex > does not overflow or underflow at
+/// intermediate stages of the computation.
+/// @see https://en.cppreference.com/w/cpp/numeric/complex/abs
+/// but it may not propagate NaNs.
+///
+template< typename T >
+inline real_type<T> abs( const T& x, bool check = true ) {
+    if( is_complex<T>::value && check ) {
+        if( isnan(x) )
+            return std::numeric_limits< real_type<T> >::quiet_NaN();
+    }
+    return std::abs( x ); // Contains the 2-norm for the complex case
+}
+
+#ifdef USE_MPFR
+    /// Absolute value
+    template<>
+    inline mpfr::mpreal abs( const mpfr::mpreal& x, bool check ) {
+        return mpfr::abs( x );
+    }
+    
+    /// 2-norm absolute value, sqrt( |Re(x)|^2 + |Im(x)|^2 )
+    ///
+    /// Note that std::abs< mpfr::mpreal > may not propagate Infs.
+    ///
+    template<>
+    inline mpfr::mpreal abs( const std::complex<mpfr::mpreal>& x, bool check ) {
+        if( check ) {
+            if( isnan(x) )
+                return std::numeric_limits< mpfr::mpreal >::quiet_NaN();
+            else if( isinf(x) )
+                return std::numeric_limits< mpfr::mpreal >::infinity();
+        }
+        return std::abs( x );
+    }
+#endif
+
+// -----------------------------------------------------------------------------
+/// 1-norm absolute value, |Re(x)| + |Im(x)|
+template< typename real_t >
+inline real_t abs1( const real_t& x ) { return abs( x, false ); }
+
+template< typename real_t >
+inline real_t abs1( const std::complex<real_t>& x )
+{
+    return abs( real(x), false ) + abs( imag(x), false );
 }
 
 // -----------------------------------------------------------------------------

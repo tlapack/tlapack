@@ -44,7 +44,6 @@ real_type<TA> lansy(
 {
     typedef real_type<TA> real_t;
     #define A(i_, j_) A[ (i_) + (j_)*lda ]
-    using blas::abs;
     using blas::isnan;
     using blas::sqrt;
 
@@ -63,7 +62,7 @@ real_type<TA> lansy(
         for (size_t j = 0; j < n; ++j) {
             for (size_t i = 0; i <= j; ++i)
             {
-                real_t temp = abs( A(i,j) );
+                real_t temp = blas::abs( A(i,j) );
 
                 if (temp > norm)
                     norm = temp;
@@ -77,7 +76,7 @@ real_type<TA> lansy(
         for (size_t j = 0; j < n; ++j) {
             for (size_t i = j; i < n; ++i)
             {
-                real_t temp = abs( A(i,j) );
+                real_t temp = blas::abs( A(i,j) );
 
                 if (temp > norm)
                     norm = temp;
@@ -99,11 +98,11 @@ real_type<TA> lansy(
             {
                 real_t sum = zero;
                 for (size_t i = 0; i < j; ++i) {
-                    const real_t absa = abs( A(i,j) );
+                    const real_t absa = blas::abs( A(i,j) );
                     sum += absa;
                     work[i] += absa;
                 }
-                work[j] = sum + abs( A(j,j) );
+                work[j] = sum + blas::abs( A(j,j) );
             }
             for (size_t i = 0; i < n; ++i)
             {
@@ -121,9 +120,9 @@ real_type<TA> lansy(
         else {
             for (size_t j = 0; j < n; ++j)
             {
-                real_t sum = work[j] + abs( A(j,j) );
+                real_t sum = work[j] + blas::abs( A(j,j) );
                 for (size_t i = j+1; i < n; ++i) {
-                    const real_t absa = abs( A(i,j) );
+                    const real_t absa = blas::abs( A(i,j) );
                     sum += absa;
                     work[i] += absa;
                 }
