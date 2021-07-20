@@ -36,7 +36,7 @@ const blas::size_t INVALID_INDEX( -1 );
  * @ingroup utils
  */
 template <typename real_t>
-inline const real_t ulp()
+inline constexpr real_t ulp()
 {
     return std::numeric_limits< real_t >::epsilon();
 }
@@ -51,12 +51,23 @@ inline const real_t digits()
 }
 
 #ifdef USE_MPFR
+    namespace internal {
+        const mpfr::mpreal mpreal_digits = std::numeric_limits< mpfr::mpreal >::digits();
+    }
     #ifdef MPREAL_HAVE_DYNAMIC_STD_NUMERIC_LIMITS
         /** Digits for the mpfr::mpreal datatype
          * @ingroup utils
          */
         template<> inline const mpfr::mpreal digits() {
-            return std::numeric_limits< mpfr::mpreal >::digits(); }
+            return internal::mpreal_digits; 
+        }
+    #else
+        /** Digits for the mpfr::mpreal datatype
+         * @ingroup utils
+         */
+        template<> inline const mpfr::mpreal digits() {
+            return std::numeric_limits< mpfr::mpreal >::digits;
+        }
     #endif
 #endif
 
@@ -64,7 +75,7 @@ inline const real_t digits()
  * @ingroup utils
  */
 template <typename real_t>
-inline const real_t safe_min()
+inline constexpr real_t safe_min()
 {
     const real_t one( 1 );
     const int fradix = std::numeric_limits<real_t>::radix;
@@ -81,7 +92,7 @@ inline const real_t safe_min()
  * @ingroup utils
  */
 template <typename real_t>
-inline const real_t safe_max()
+inline constexpr real_t safe_max()
 {
     const real_t one( 1 );
     const int fradix = std::numeric_limits<real_t>::radix;
@@ -95,7 +106,7 @@ inline const real_t safe_max()
  * @ingroup utils
  */
 template <typename real_t>
-inline const real_t root_min()
+inline constexpr real_t root_min()
 {
     return sqrt( safe_min<real_t>() / ulp<real_t>() );
 }
@@ -104,7 +115,7 @@ inline const real_t root_min()
  * @ingroup utils
  */
 template <typename real_t>
-inline const real_t root_max()
+inline constexpr real_t root_max()
 {
     return sqrt( safe_max<real_t>() * ulp<real_t>() );
 }
@@ -114,7 +125,7 @@ inline const real_t root_max()
  * @ingroup utils
  */
 template <typename real_t>
-inline const real_t blue_min()
+inline constexpr real_t blue_min()
 {
     const real_t half( 0.5 );
     const int fradix = std::numeric_limits<real_t>::radix;
@@ -128,7 +139,7 @@ inline const real_t blue_min()
  * @ingroup utils
  */
 template <typename real_t>
-inline const real_t blue_max()
+inline constexpr real_t blue_max()
 {
     const real_t half( 0.5 );
     const int fradix = std::numeric_limits<real_t>::radix;
@@ -146,7 +157,7 @@ inline const real_t blue_max()
  * @ingroup utils
  */
 template <typename real_t>
-inline const real_t blue_scalingMin()
+inline constexpr real_t blue_scalingMin()
 {
     const real_t half( 0.5 );
     const int fradix = std::numeric_limits<real_t>::radix;
@@ -161,7 +172,7 @@ inline const real_t blue_scalingMin()
  * @ingroup utils
  */
 template <typename real_t>
-inline const real_t blue_scalingMax()
+inline constexpr real_t blue_scalingMax()
 {
     const real_t half( 0.5 );
     const int fradix = std::numeric_limits<real_t>::radix;

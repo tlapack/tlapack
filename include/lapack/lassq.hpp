@@ -104,7 +104,7 @@ void lassq(
         if( ax > tbig )
             abig += SQUARE(ax*sbig);
         else if( ax < tsml ) {
-            if( abig == zero ) asml += SQUARE(ax*asml);
+            if( abig == zero ) asml += SQUARE(ax*ssml);
         } else
             amed += SQUARE(ax);
         ix += incx;
