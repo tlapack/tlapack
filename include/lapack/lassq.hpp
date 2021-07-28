@@ -28,7 +28,7 @@ namespace lapack {
  * 
  * If (scale * sqrt( sumsq )) > tbig on entry then
  *    we require:   scale >= sqrt( TINY*EPS ) / sbig   on entry,
- * and if (scale * sqrt( sumsq )) < tsml on entry then
+ * and if 0 < (scale * sqrt( sumsq )) < tsml on entry then
  *    we require:   scale <= sqrt( HUGE ) / ssml       on entry,
  * where
  *    tbig -- upper threshold for values whose square is representable;

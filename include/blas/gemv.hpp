@@ -79,7 +79,7 @@ template< typename TA, typename TX, typename TY >
 void gemv(
     blas::Layout layout,
     blas::Op trans,
-   blas::size_t m, blas::size_t n,
+    blas::size_t m, blas::size_t n,
     blas::scalar_type<TA, TX, TY> alpha,
     TA const *A, blas::size_t lda,
     TX const *x, blas::int_t incx,
