@@ -103,7 +103,7 @@ void rotmg(
     T  b,
     T param[5] )
 {
-    using real_t = real_type<T>;
+    typedef real_type<T> real_t;
 
     // check arguments
     blas_error_if( *d1 <= 0 );

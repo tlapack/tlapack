@@ -38,7 +38,7 @@ namespace blas {
  * @ingroup iamax
  */
 template< typename T >
-size_t iamax(
+inline size_t iamax(
     blas::size_t n,
     T const *x, blas::int_t incx,
     bool checkNAN = true );
@@ -70,7 +70,7 @@ size_t iamax_checkNAN(
 // Implementation
 
 template< typename T >
-size_t iamax(
+inline size_t iamax(
     blas::size_t n,
     T const *x, blas::int_t incx,
     bool checkNAN ) {
