@@ -95,18 +95,20 @@ namespace blas {
  *
  * @ingroup rotmg
  */
-template< typename T >
+template< typename real_t >
 void rotmg(
-    T *d1,
-    T *d2,
-    T *a,
-    T  b,
-    T param[5] )
+    real_t *d1,
+    real_t *d2,
+    real_t *a,
+    real_t  b,
+    real_t param[5] )
 {
-    typedef real_type<T> real_t;
+    #define D1 (*d1)
+    #define D2 (*d2)
+    #define A  (*a)
 
     // check arguments
-    blas_error_if( *d1 <= 0 );
+    blas_error_if( D1 <= 0 );
 
     // Constants
     const real_t zero( 0 );
@@ -115,7 +117,7 @@ void rotmg(
     const real_t gamsq = gam*gam;
     const real_t rgamsq = one/gamsq;
 
-    real_t& x1 = *a;
+    real_t& x1 = A;
     real_t& y1 = b;
 
     real_t h11 = zero;
@@ -123,20 +125,20 @@ void rotmg(
     real_t h21 = zero;
     real_t h22 = zero;
 
-    if(*d1 < zero) {
+    if(D1 < zero) {
         param[0] = -1;
-        *d1 = zero;
-        *d2 = zero;
+        D1 = zero;
+        D2 = zero;
         x1 = zero;
     }
     else {
-        real_t p2 = (*d2)*y1;
+        real_t p2 = D2*y1;
         if(p2 == zero) {
             param[0] = -2;
             return;
         }
 
-        real_t p1 = (*d1)*x1;
+        real_t p1 = D1*x1;
         real_t q2 = p2*y1;
         real_t q1 = p1*x1;
 
@@ -146,15 +148,15 @@ void rotmg(
             h12 = p2/p1;
             real_t u = one - h12*h21;
             if( u > zero ) {
-                *d1 /= u;
-                *d2 /= u;
+                D1 /= u;
+                D2 /= u;
                 x1 *= u;
             }
         }
         else if(q2 < zero) {
             param[0] = -1;
-            *d1 = zero;
-            *d2 = zero;
+            D1 = zero;
+            D2 = zero;
             x1 = zero;
         }
         else {
@@ -162,14 +164,14 @@ void rotmg(
             h11 = p1/p2;
             h22 = x1/y1;
             real_t u = one + h11*h22;
-            real_t stemp = *d2/u;
-            *d2 = *d1/u;
-            *d1 = stemp;
+            real_t stemp = D2/u;
+            D2 = D1/u;
+            D1 = stemp;
             x1 = y1*u;
         }
 
-        if(*d1 != zero) {
-            while( (*d1 <= rgamsq) || (*d1 >= gamsq) ) {
+        if(D1 != zero) {
+            while( (D1 <= rgamsq) || (D1 >= gamsq) ) {
                 if(param[0] == 0) {
                     h11 = one;
                     h22 = one;
@@ -180,23 +182,23 @@ void rotmg(
                     h12 = one;
                     param[0] = -1;
                 }
-                if(*d1 <= rgamsq) {
-                    *d1 *= gam*gam;
-                    x1 /= gam;
+                if(D1 <= rgamsq) {
+                    D1  *= gam*gam;
+                    x1  /= gam;
                     h11 /= gam;
                     h12 /= gam;
                 }
                 else {
-                    *d1 /= gam*gam;
-                    x1 *= gam;
+                    D1 /= gam*gam;
+                    x1  *= gam;
                     h11 *= gam;
                     h12 *= gam;
                 }
             }
         }
 
-        if(*d2 != zero) {
-            while( (blas::abs(*d2) <= rgamsq) || (blas::abs(*d2) >= gamsq) ) {
+        if(D2 != zero) {
+            while( (blas::abs(D2) <= rgamsq) || (blas::abs(D2) >= gamsq) ) {
                 if(param[0] == 0) {
                     h11=one;
                     h22=one;
@@ -207,13 +209,13 @@ void rotmg(
                     h12=one;
                     param[0]=-1;
                 }
-                if(blas::abs(*d2) <= rgamsq) {
-                    *d2 *= gam*gam;
+                if(blas::abs(D2) <= rgamsq) {
+                    D2  *= gam*gam;
                     h21 /= gam;
                     h22 /= gam;
                 }
                 else {
-                    *d2 /= gam*gam;
+                    D2 /= gam*gam;
                     h21 *= gam;
                     h22 *= gam;
                 }
@@ -235,6 +237,10 @@ void rotmg(
         param[1] = h11;
         param[4] = h22;
     }
+
+    #undef D1
+    #undef D2
+    #undef A
 }
 
 }  // namespace blas

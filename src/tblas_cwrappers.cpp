@@ -490,7 +490,7 @@ void _srotg(
     float * b,
     float * c,
     float * s ) {
-    return blas::rotg<float, float>(
+    return blas::rotg<float>(
         a,
         b,
         c,
@@ -503,7 +503,7 @@ void _drotg(
     double * b,
     double * c,
     double * s ) {
-    return blas::rotg<double, double>(
+    return blas::rotg<double>(
         a,
         b,
         c,
@@ -516,7 +516,7 @@ void _crotg(
     complexFloat * b,
     float * c,
     complexFloat * s ) {
-    return blas::rotg<tblas_complexFloat, tblas_complexFloat>(
+    return blas::rotg<tblas_complexFloat>(
         tblas_C(a),
         tblas_C(b),
         c,
@@ -529,7 +529,7 @@ void _zrotg(
     complexDouble * b,
     double * c,
     complexDouble * s ) {
-    return blas::rotg<tblas_complexDouble, tblas_complexDouble>(
+    return blas::rotg<tblas_complexDouble>(
         tblas_Z(a),
         tblas_Z(b),
         c,

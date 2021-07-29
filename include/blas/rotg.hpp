@@ -43,15 +43,13 @@ namespace blas {
  *
  * @ingroup rotg
  */
-template <typename TA, typename TB>
+template <typename real_t>
 void rotg(
-    TA *a,
-    TB *b,
-    blas::real_type<TA, TB> *c,
-    blas::real_type<TA, TB> *s )
+    real_t *a,
+    real_t *b,
+    real_t *c,
+    real_t *s )
 {
-    typedef real_type<TA, TB> real_t;
-
     #define A (*a)
     #define B (*b)
     #define C (*c)
@@ -73,13 +71,13 @@ void rotg(
     if ( bnorm == zero ) {
         C = one;
         S = zero;
-        B = TB( 0.0 );
+        B = zero;
     }
     else if ( anorm == zero ) {
         C = zero;
         S = one;
         A = B;
-        B = TB( 1.0 );
+        B = one;
     }
     else {
         real_t scl = min( safmax, max(safmin, anorm, bnorm) );
@@ -135,15 +133,15 @@ void rotg(
  *
  * @ingroup rotg
  */
-template <typename TA, typename TB>
+template <typename T>
 void rotg(
-    TA *a,
-    TB *b,
-    blas::real_type<TA, TB>    *c,
-    blas::complex_type<TA, TB> *s )
+    blas::complex_type<T> *a,
+    blas::complex_type<T> *b,
+    blas::real_type<T>    *c,
+    blas::complex_type<T> *s )
 {
-    typedef real_type<TA, TB> real_t;
-    typedef complex_type<TA, TB> scalar_t;
+    typedef real_type<T> real_t;
+    typedef complex_type<T> scalar_t;
 
     #define ABSSQ(t_) real(t_)*real(t_) + imag(t_)*imag(t_)
     #define A (*a)
@@ -155,8 +153,6 @@ void rotg(
     const real_t r_one = 1;
     const real_t r_zero = 0;
     const scalar_t zero = 0;
-    const TA zero_ta = 0;
-    const TB zero_tb = 0;
 
     // Scaling constants
     const real_t safmin = safe_min<real_t>();
@@ -165,13 +161,13 @@ void rotg(
     const real_t rtmax = root_max<real_t>();
 
     // quick return
-    if ( B == zero_tb ) {
+    if ( B == zero ) {
         C = r_one;
         S = zero;
         return;
     }
 
-    if ( A == zero_ta ) {
+    if ( A == zero ) {
         C = r_zero;
         real_t g1 = max( blas::abs(real(B)), blas::abs(imag(B)) );
         if ( g1 > rtmin && g1 < rtmax ) {
