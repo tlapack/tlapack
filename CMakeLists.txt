@@ -91,6 +91,10 @@ if( USE_LAPACKPP_WRAPPERS )
 endif()
 
 #-------------------------------------------------------------------------------
+# Load mdspan
+FetchPackage( "mdspan" "https://github.com/kokkos/mdspan.git" "stable" )
+
+#-------------------------------------------------------------------------------
 # Docs
 add_subdirectory(docs)
 

@@ -88,7 +88,7 @@ void gemv(
 {
     typedef blas::scalar_type<TA, TX, TY> scalar_t;
 
-    #define A(i_, j_) A[ (i_) + (j_)*lda ]
+    auto _A = view_matrix<const TA>( A, m, n, lda );
 
     // constants
     const scalar_t zero( 0.0 );
@@ -178,7 +178,7 @@ void gemv(
                 scalar_t tmp = alpha*x[jx];
                 jx += incx;
                 for (idx_t i = 0; i < m; ++i) {
-                    y[i] += tmp * A(i, j);
+                    y[i] += tmp * _A(i, j);
                 }
             }
         }
@@ -188,7 +188,7 @@ void gemv(
                 jx += incx;
                 idx_t iy = ky;
                 for (idx_t i = 0; i < m; ++i) {
-                    y[iy] += tmp * A(i, j);
+                    y[iy] += tmp * _A(i, j);
                     iy += incy;
                 }
             }
@@ -203,7 +203,7 @@ void gemv(
                 scalar_t tmp = alpha*x[jx];
                 jx += incx;
                 for (idx_t i = 0; i < m; ++i) {
-                    y[i] += tmp * conj(A(i, j));
+                    y[i] += tmp * conj(_A(i, j));
                 }
             }
         }
@@ -213,7 +213,7 @@ void gemv(
                 jx += incx;
                 idx_t iy = ky;
                 for (idx_t i = 0; i < m; ++i) {
-                    y[iy] += tmp * conj(A(i, j));
+                    y[iy] += tmp * conj(_A(i, j));
                     iy += incy;
                 }
             }
@@ -226,7 +226,7 @@ void gemv(
             for (idx_t j = 0; j < n; ++j) {
                 scalar_t tmp = zero;
                 for (idx_t i = 0; i < m; ++i) {
-                    tmp += A(i, j) * x[i];
+                    tmp += _A(i, j) * x[i];
                 }
                 y[jy] += alpha*tmp;
                 jy += incy;
@@ -237,7 +237,7 @@ void gemv(
                 scalar_t tmp = zero;
                 idx_t ix = kx;
                 for (idx_t i = 0; i < m; ++i) {
-                    tmp += A(i, j) * x[ix];
+                    tmp += _A(i, j) * x[ix];
                     ix += incx;
                 }
                 y[jy] += alpha*tmp;
@@ -252,7 +252,7 @@ void gemv(
             for (idx_t j = 0; j < n; ++j) {
                 scalar_t tmp = zero;
                 for (idx_t i = 0; i < m; ++i) {
-                    tmp += conj(A(i, j)) * x[i];
+                    tmp += conj(_A(i, j)) * x[i];
                 }
                 y[jy] += alpha*tmp;
                 jy += incy;
@@ -263,7 +263,7 @@ void gemv(
                 scalar_t tmp = zero;
                 idx_t ix = kx;
                 for (idx_t i = 0; i < m; ++i) {
-                    tmp += conj(A(i, j)) * x[ix];
+                    tmp += conj(_A(i, j)) * x[ix];
                     ix += incx;
                 }
                 y[jy] += alpha*tmp;
@@ -271,8 +271,6 @@ void gemv(
             }
         }
     }
-
-    #undef A
 }
 
 }  // namespace blas

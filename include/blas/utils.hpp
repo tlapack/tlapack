@@ -8,6 +8,7 @@
 #ifndef __TBLAS_UTILS_HH__
 #define __TBLAS_UTILS_HH__
 
+#include "blas/defines.h"
 #include "blas/types.hpp"
 
 #include <limits>
@@ -19,6 +20,8 @@
 #ifdef USE_MPFR
     #include <mpreal.h>
 #endif
+
+#include <experimental/mdspan> // Use mdspan for multidimensional arrays
 
 namespace blas {
 
@@ -42,6 +45,12 @@ using std::floor;
     using mpfr::floor;
 #endif
 
+// -----------------------------------------------------------------------------
+// Use mdspan for multidimensional arrays
+using std::experimental::mdspan;
+using std::experimental::extents;
+using std::experimental::dynamic_extent;
+
 /** Extend conj to real datatypes.
  * 
  * @usage:
@@ -52,7 +61,7 @@ using std::floor;
  * @param[in] x Real number
  * @return x
  * 
- * @note C++11 returns complex<real_t> instead of real_t. @see std::conj
+ * @note C++11 to C++17 returns complex<real_t> instead of real_t. @see std::conj
  * 
  * @ingroup utils
  */
@@ -154,7 +163,8 @@ inline int sgn( const real_t& val ) {
 #endif
 
 // -----------------------------------------------------------------------------
-/// sqrt, needed because std C++11 template returns double.
+/// sqrt, needed because std C++ template returns double for any type different
+/// float anf long double.
 /// Note that the template in std::complex return the desired std::complex<T>.
 template< typename T >
 inline T sqrt( const T& x )
@@ -207,7 +217,7 @@ inline T exp( const T& x ) { return std::exp( x ); }
 #endif
 
 // -----------------------------------------------------------------------------
-/// pow, avoids promotion to double from std C++11.
+/// pow, avoids promotion to double from std C++.
 /// Note that the template in std::complex return the desired std::complex<T>.
 template< typename T >
 inline T pow( const T& base, const T& exp )
