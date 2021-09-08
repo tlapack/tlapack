@@ -103,9 +103,9 @@ void rotmg(
     real_t  b,
     real_t param[5] )
 {
-    #define D1 (*d1)
-    #define D2 (*d2)
-    #define A  (*a)
+    real_t& D1 = *d1;
+    real_t& D2 = *d2;
+    real_t&  A = *a;
 
     // check arguments
     blas_error_if( D1 <= 0 );
@@ -237,10 +237,6 @@ void rotmg(
         param[1] = h11;
         param[4] = h22;
     }
-
-    #undef D1
-    #undef D2
-    #undef A
 }
 
 }  // namespace blas

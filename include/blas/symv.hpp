@@ -75,8 +75,6 @@ void symv(
 {
     typedef blas::scalar_type<TA, TX, TY> scalar_t;
 
-    #define A(i_, j_) A[ (i_) + (j_)*lda ]
-
     // constants
     const scalar_t zero( 0.0 );
     const scalar_t one( 1.0 );
@@ -94,6 +92,9 @@ void symv(
     // quick return
     if (n == 0 || (alpha == zero && beta == one))
         return;
+        
+    // Matrix views
+    auto _A = view_matrix<const TA>( A, n, n, lda );
 
     // for row major, swap lower <=> upper
     if (layout == Layout::RowMajor) {
@@ -145,10 +146,10 @@ void symv(
                 scalar_t tmp1 = alpha*x[j];
                 scalar_t tmp2 = zero;
                 for (idx_t i = 0; i < j; ++i) {
-                    y[i] += tmp1 * A(i, j);
-                    tmp2 += A(i, j) * x[i];
+                    y[i] += tmp1 * _A(i,j);
+                    tmp2 += _A(i,j) * x[i];
                 }
-                y[j] += tmp1 * A(j, j) + alpha * tmp2;
+                y[j] += tmp1 * _A(j,j) + alpha * tmp2;
             }
         }
         else {
@@ -161,12 +162,12 @@ void symv(
                 idx_t ix = kx;
                 idx_t iy = ky;
                 for (idx_t i = 0; i < j; ++i) {
-                    y[iy] += tmp1 * A(i, j);
-                    tmp2 += A(i, j) * x[ix];
+                    y[iy] += tmp1 * _A(i,j);
+                    tmp2 += _A(i,j) * x[ix];
                     ix += incx;
                     iy += incy;
                 }
-                y[jy] += tmp1 * A(j, j) + alpha * tmp2;
+                y[jy] += tmp1 * _A(j,j) + alpha * tmp2;
                 jx += incx;
                 jy += incy;
             }
@@ -181,10 +182,10 @@ void symv(
                 scalar_t tmp1 = alpha*x[j];
                 scalar_t tmp2 = zero;
                 for (idx_t i = j+1; i < n; ++i) {
-                    y[i] += tmp1 * A(i, j);
-                    tmp2 += A(i, j) * x[i];
+                    y[i] += tmp1 * _A(i,j);
+                    tmp2 += _A(i,j) * x[i];
                 }
-                y[j] += tmp1 * A(j, j) + alpha * tmp2;
+                y[j] += tmp1 * _A(j,j) + alpha * tmp2;
             }
         }
         else {
@@ -199,17 +200,15 @@ void symv(
                 for (idx_t i = j+1; i < n; ++i) {
                     ix += incx;
                     iy += incy;
-                    y[iy] += tmp1 * A(i, j);
-                    tmp2 += A(i, j) * x[ix];
+                    y[iy] += tmp1 * _A(i,j);
+                    tmp2 += _A(i,j) * x[ix];
                 }
-                y[jy] += tmp1 * A(j, j) + alpha * tmp2;
+                y[jy] += tmp1 * _A(j,j) + alpha * tmp2;
                 jx += incx;
                 jy += incy;
             }
         }
     }
-
-    #undef A
 }
 
 }  // namespace blas

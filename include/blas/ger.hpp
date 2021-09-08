@@ -66,9 +66,7 @@ void ger(
     TA *A, blas::idx_t lda )
 {
     typedef blas::scalar_type<TA, TX, TY> scalar_t;
-
-    #define A(i_, j_) A[ (i_) + (j_)*lda ]
-
+    
     // constants
     const scalar_t zero( 0.0 );
 
@@ -88,6 +86,9 @@ void ger(
     // quick return
     if (m == 0 || n == 0 || alpha == zero)
         return;
+    
+    // Matrix views
+    auto _A = view_matrix<TA>( A, m, n, lda );
 
     if (layout == Layout::ColMajor) {
         if (incx == 1 && incy == 1) {
@@ -96,7 +97,7 @@ void ger(
                 // note: NOT skipping if y[j] is zero, for consistent NAN handling
                 scalar_t tmp = alpha * conj( y[j] );
                 for (idx_t i = 0; i < m; ++i) {
-                    A(i, j) += x[i] * tmp;
+                    _A(i,j) += x[i] * tmp;
                 }
             }
         }
@@ -106,7 +107,7 @@ void ger(
             for (idx_t j = 0; j < n; ++j) {
                 scalar_t tmp = alpha * conj( y[jy] );
                 for (idx_t i = 0; i < m; ++i) {
-                    A(i, j) += x[i] * tmp;
+                    _A(i,j) += x[i] * tmp;
                 }
                 jy += incy;
             }
@@ -119,7 +120,7 @@ void ger(
                 scalar_t tmp = alpha * conj( y[jy] );
                 idx_t ix = kx;
                 for (idx_t i = 0; i < m; ++i) {
-                    A(i, j) += x[ix] * tmp;
+                    _A(i,j) += x[ix] * tmp;
                     ix += incx;
                 }
                 jy += incy;
@@ -134,7 +135,7 @@ void ger(
                 // note: NOT skipping if x[i] is zero, for consistent NAN handling
                 scalar_t tmp = alpha * x[i];
                 for (idx_t j = 0; j < n; ++j) {
-                    A(j, i) += tmp * conj( y[j] );
+                    _A(j,i) += tmp * conj( y[j] );
                 }
             }
         }
@@ -144,7 +145,7 @@ void ger(
             for (idx_t i = 0; i < m; ++i) {
                 scalar_t tmp = alpha * x[ix];
                 for (idx_t j = 0; j < n; ++j) {
-                    A(j, i) += tmp * conj( y[j] );
+                    _A(j,i) += tmp * conj( y[j] );
                 }
                 ix += incx;
             }
@@ -157,15 +158,13 @@ void ger(
                 scalar_t tmp = alpha * x[ix];
                 idx_t jy = ky;
                 for (idx_t j = 0; j < n; ++j) {
-                    A(j, i) += tmp * conj( y[jy] );
+                    _A(j,i) += tmp * conj( y[jy] );
                     jy += incy;
                 }
                 ix += incx;
             }
         }
     }
-
-    #undef A
 }
 
 }  // namespace blas

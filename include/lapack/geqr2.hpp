@@ -32,7 +32,7 @@ int geqr2(
     TA* tau,
     TA* work )
 {
-    #define A(i_, j_) A[ (i_) + (j_)*lda ]
+    using blas::view_matrix;
 
     // Local parameters
     int info = 0;
@@ -48,22 +48,23 @@ int geqr2(
     // quick return
     if (n <= 0) return 0;
 
-	const idx_t k = std::min<idx_t>( m, n-1 );
+    // Matrix views
+    auto _A = view_matrix<TA>( A, m, n, lda );
+
+    const idx_t k = std::min<idx_t>( m, n-1 );
     for(idx_t i = 0; i < k; ++i) {
 
-        larfg( m-i, A(i,i), &(A(i+1,i)), 1, tau[i] );
+        larfg( m-i, _A(i,i), &(_A(i+1,i)), 1, tau[i] );
 
-        TA alpha = A(i,i);
-        A(i,i) = one;
+        TA alpha = _A(i,i);
+        _A(i,i) = one;
 
-        info = larf( Side::Left, m-i, n-i-1, &(A(i,i)), 1, tau[i], &(A(i,i+1)), lda, work+i );
+        info = larf( Side::Left, m-i, n-i-1, &(_A(i,i)), 1, tau[i], &(_A(i,i+1)), lda, work+i );
 
-        A(i,i) = alpha;
+        _A(i,i) = alpha;
 	}
     if( n-1 < m )
-        larfg( m-n+1, A(n-1,n-1), &(A(n,n-1)), 1, tau[n-1] );
-
-    #undef A
+        larfg( m-n+1, _A(n-1,n-1), &(_A(n,n-1)), 1, tau[n-1] );
 
     return (info == 0) ? 0 : 1;
 }
@@ -86,7 +87,7 @@ int geqr2(
     std::complex<real_t>* work )
 {
     typedef std::complex<real_t> scalar_t;
-    #define A(i_, j_) A[ (i_) + (j_)*lda ]
+    using blas::view_matrix;
 
     // constants
     const scalar_t one( 1.0 );
@@ -99,22 +100,23 @@ int geqr2(
     // quick return
     if (n <= 0) return 0;
 
+    // Matrix views
+    auto _A = view_matrix<real_t>( A, m, n, lda );
+
 	const idx_t k = std::min<idx_t>( m, n-1 );
     for(idx_t i = 0; i < k; ++i) {
 
-        larfg( m-i, A(i,i), &(A(i+1,i)), 1, tau[i] );
+        larfg( m-i, _A(i,i), &(_A(i+1,i)), 1, tau[i] );
 
-        scalar_t alpha = A(i,i);
-        A(i,i) = one;
+        scalar_t alpha = _A(i,i);
+        _A(i,i) = one;
 
-        larf( Side::Left, m-i, n-i-1, &(A(i,i)), 1, tau[i], &(A(i,i+1)), lda, work+i );
+        larf( Side::Left, m-i, n-i-1, &(_A(i,i)), 1, tau[i], &(_A(i,i+1)), lda, work+i );
 
-        A(i,i) = alpha;
+        _A(i,i) = alpha;
 	}
     if( n-1 < m )
-        larfg( m-n+1, A(n-1,n-1), &(A(n,n-1)), 1, tau[n-1] );
-
-    #undef A
+        larfg( m-n+1, _A(n-1,n-1), &(_A(n,n-1)), 1, tau[n-1] );
 
     return 0;
 }

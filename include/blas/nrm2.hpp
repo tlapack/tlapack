@@ -44,7 +44,6 @@ nrm2(
     T const * x, blas::int_t incx )
 {
     typedef real_type<T> real_t;
-    #define SQUARE(x) (x)*(x)
 
     // check arguments
     blas_error_if( incx <= 0 );
@@ -78,11 +77,11 @@ nrm2(
         {
             real_t ax = blas::abs( x[i] );
             if( ax > tbig )
-                abig += SQUARE(ax*sbig);
+                abig += (ax*sbig) * (ax*sbig);
             else if( ax < tsml ) {
-                if( abig == zero ) asml += SQUARE(ax*ssml);
+                if( abig == zero ) asml += (ax*ssml) * (ax*ssml);
             } else
-                amed += SQUARE(ax);
+                amed += ax * ax;
         }
     }
     else {
@@ -92,11 +91,11 @@ nrm2(
         {
             real_t ax = blas::abs( x[ix] ); 
             if( ax > tbig )
-                abig += SQUARE(ax*sbig);
+                abig += (ax*sbig) * (ax*sbig);
             else if( ax < tsml ) {
-                if( abig == zero ) asml += SQUARE(ax*ssml);
+                if( abig == zero ) asml += (ax*ssml) * (ax*ssml);
             } else
-                amed += SQUARE(ax);
+                amed += ax * ax;
             ix += incx;
         }
     }
@@ -128,7 +127,7 @@ nrm2(
             }
 
             scl = one;
-            sumsq = SQUARE(ymax) * ( one + SQUARE(ymin/ymax) );
+            sumsq = (ymax * ymax) * ( one + (ymin/ymax) * (ymin/ymax) );
         }
         else {
             scl = one / ssml;
@@ -140,8 +139,6 @@ nrm2(
         scl = one;
         sumsq = amed;
     }
-
-    #undef SQUARE
 
     return scl * sqrt( sumsq );
 }

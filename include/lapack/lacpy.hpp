@@ -34,18 +34,21 @@ namespace lapack {
 template< typename TA, typename TB >
 void lacpy(
     Uplo uplo, blas::idx_t m, blas::idx_t n,
-    TA* A, blas::idx_t lda,
+    const TA* A, blas::idx_t lda,
     TB* B, blas::idx_t ldb )
 {
-    #define A(i_, j_) A[ (i_) + (j_)*lda ]
-    #define B(i_, j_) B[ (i_) + (j_)*ldb ]
+    using blas::view_matrix;
+    
+    // Matrix views
+    auto _A = view_matrix<const TA>( A, m, n, lda );
+    auto _B = view_matrix<TB>( B, m, n, ldb );
 
     if (uplo == Uplo::Upper) {
         // Set the strictly upper triangular or trapezoidal part of B
         for (idx_t j = 0; j < n; ++j) {
             const idx_t M = std::min<idx_t>( m, j+1 );
             for (idx_t i = 0; i < M; ++i)
-                B(i,j) = A(i,j);
+                _B(i,j) = _A(i,j);
         }
     }
     else if (uplo == Uplo::Lower) {
@@ -53,17 +56,14 @@ void lacpy(
         const idx_t N = std::min(m,n);
         for (idx_t j = 0; j < N; ++j)
             for (idx_t i = j; i < m; ++i)
-                B(i,j) = A(i,j);
+                _B(i,j) = _A(i,j);
     }
     else {
         // Set the whole m-by-n matrix B
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = 0; i < m; ++i)
-                B(i,j) = A(i,j);
+                _B(i,j) = _A(i,j);
     }
-
-    #undef A
-    #undef B
 }
 
 /** Copies a real matrix from A to B where A is either a full, upper triangular or lower triangular matrix.

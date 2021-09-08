@@ -90,9 +90,6 @@ void herk(
     typedef blas::scalar_type<TA, TC> scalar_t;
     typedef blas::real_type<TA, TC> real_t;
 
-    #define A(i_, j_) A[ (i_) + (j_)*lda ]
-    #define C(i_, j_) C[ (i_) + (j_)*ldc ]
-
     // constants
     const scalar_t szero( 0 );
     const real_t zero( 0 );
@@ -146,6 +143,12 @@ void herk(
     // quick return
     if (n == 0)
         return;
+        
+    // Matrix views
+    auto _A = (trans == Op::NoTrans)
+            ? view_matrix<const TA>( A, n, k, lda )
+            : view_matrix<const TA>( A, k, n, lda );
+    auto _C = view_matrix<TC>( C, n, n, ldc );
 
     // alpha == zero
     if (alpha == zero) {
@@ -153,43 +156,43 @@ void herk(
             if (uplo != Uplo::Upper) {
                 for(idx_t j = 0; j < n; ++j) {
                     for(idx_t i = 0; i <= j; ++i)
-                        C(i,j) = szero;
+                        _C(i,j) = szero;
                 }
             }
             else if (uplo != Uplo::Lower) {
                 for(idx_t j = 0; j < n; ++j) {
                     for(idx_t i = j; i < n; ++i)
-                        C(i,j) = szero;
+                        _C(i,j) = szero;
                 }
             }
             else {
                 for(idx_t j = 0; j < n; ++j) {
                     for(idx_t i = 0; i < n; ++i)
-                        C(i,j) = szero;
+                        _C(i,j) = szero;
                 }
             }
         } else if (beta != one) {
             if (uplo != Uplo::Upper) {
                 for(idx_t j = 0; j < n; ++j) {
                     for(idx_t i = 0; i < j; ++i)
-                        C(i,j) *= beta;
-                    C(j,j) = beta * real( C(j,j) );
+                        _C(i,j) *= beta;
+                    _C(j,j) = beta * real( _C(j,j) );
                 }
             }
             else if (uplo != Uplo::Lower) {
                 for(idx_t j = 0; j < n; ++j) {
-                    C(j,j) = beta * real( C(j,j) );
+                    _C(j,j) = beta * real( _C(j,j) );
                     for(idx_t i = j+1; i < n; ++i)
-                        C(i,j) *= beta;
+                        _C(i,j) *= beta;
                 }
             }
             else {
                 for(idx_t j = 0; j < n; ++j) {
                     for(idx_t i = 0; i < j; ++i)
-                        C(i,j) *= beta;
-                    C(j,j) = beta * real( C(j,j) );
+                        _C(i,j) *= beta;
+                    _C(j,j) = beta * real( _C(j,j) );
                     for(idx_t i = j+1; i < n; ++i)
-                        C(i,j) *= beta;
+                        _C(i,j) *= beta;
                 }
             }
         }
@@ -203,33 +206,33 @@ void herk(
             for(idx_t j = 0; j < n; ++j) {
 
                 for(idx_t i = 0; i < j; ++i)
-                    C(i,j) *= beta;
-                C(j,j) = beta * real( C(j,j) );
+                    _C(i,j) *= beta;
+                _C(j,j) = beta * real( _C(j,j) );
 
                 for(idx_t l = 0; l < k; ++l) {
 
-                    scalar_t alphaConjAjl = alpha*conj( A(j,l) );
+                    scalar_t alphaConjAjl = alpha*conj( _A(j,l) );
 
                     for(idx_t i = 0; i < j; ++i)
-                        C(i,j) += A(i,l)*alphaConjAjl;
-                    C(j,j) += real( A(j,l) * alphaConjAjl );
+                        _C(i,j) += _A(i,l)*alphaConjAjl;
+                    _C(j,j) += real( _A(j,l) * alphaConjAjl );
                 }
             }
         }
         else { // uplo == Uplo::Lower
             for(idx_t j = 0; j < n; ++j) {
 
-                C(j,j) = beta * real( C(j,j) );
+                _C(j,j) = beta * real( _C(j,j) );
                 for(idx_t i = j+1; i < n; ++i)
-                    C(i,j) *= beta;
+                    _C(i,j) *= beta;
 
                 for(idx_t l = 0; l < k; ++l) {
 
-                    scalar_t alphaConjAjl = alpha*conj( A(j,l) );
+                    scalar_t alphaConjAjl = alpha*conj( _A(j,l) );
 
-                    C(j,j) += real( A(j,l) * alphaConjAjl );
+                    _C(j,j) += real( _A(j,l) * alphaConjAjl );
                     for(idx_t i = j+1; i < n; ++i) {
-                        C(i,j) += A(i,l) * alphaConjAjl;
+                        _C(i,j) += _A(i,l) * alphaConjAjl;
                     }
                 }
             }
@@ -242,14 +245,14 @@ void herk(
                 for(idx_t i = 0; i < j; ++i) {
                     scalar_t sum = szero;
                     for(idx_t l = 0; l < k; ++l)
-                        sum += conj( A(l,i) ) * A(l,j);
-                    C(i,j) = alpha*sum + beta*C(i,j);
+                        sum += conj( _A(l,i) ) * _A(l,j);
+                    _C(i,j) = alpha*sum + beta*_C(i,j);
                 }
                 real_t sum = zero;
                 for(idx_t l = 0; l < k; ++l)
-                    sum += real(A(l,j)) * real(A(l,j))
-                         + imag(A(l,j)) * imag(A(l,j));
-                C(j,j) = alpha*sum + beta*real( C(j,j) );
+                    sum += real(_A(l,j)) * real(_A(l,j))
+                         + imag(_A(l,j)) * imag(_A(l,j));
+                _C(j,j) = alpha*sum + beta*real( _C(j,j) );
             }
         }
         else {
@@ -258,14 +261,14 @@ void herk(
                 for(idx_t i = j+1; i < n; ++i) {
                     scalar_t sum = szero;
                     for(idx_t l = 0; l < k; ++l)
-                        sum += conj( A(l,i) ) * A(l,j);
-                    C(i,j) = alpha*sum + beta*C(i,j);
+                        sum += conj( _A(l,i) ) * _A(l,j);
+                    _C(i,j) = alpha*sum + beta*_C(i,j);
                 }
                 real_t sum = zero;
                 for(idx_t l = 0; l < k; ++l)
-                    sum += real(A(l,j)) * real(A(l,j))
-                         + imag(A(l,j)) * imag(A(l,j));
-                C(j,j) = alpha*sum + beta*real( C(j,j) );
+                    sum += real(_A(l,j)) * real(_A(l,j))
+                         + imag(_A(l,j)) * imag(_A(l,j));
+                _C(j,j) = alpha*sum + beta*real( _C(j,j) );
             }
         }
     }
@@ -273,12 +276,9 @@ void herk(
     if (uplo == Uplo::General) {
         for(idx_t j = 0; j < n; ++j) {
             for(idx_t i = j+1; i < n; ++i)
-                C(i,j) = conj( C(j,i) );
+                _C(i,j) = conj( _C(j,i) );
         }
     }
-
-    #undef A
-    #undef C
 }
 
 }  // namespace blas

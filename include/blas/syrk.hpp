@@ -88,9 +88,6 @@ void syrk(
 {
     typedef blas::scalar_type<TA, TC> scalar_t;
 
-    #define A(i_, j_) A[ (i_) + (j_)*lda ]
-    #define C(i_, j_) C[ (i_) + (j_)*ldc ]
-
     // constants
     const scalar_t zero( 0.0 );
     const scalar_t one( 1.0 );
@@ -143,25 +140,31 @@ void syrk(
     if (n == 0)
         return;
 
+    // Matrix views
+    auto _A = (trans == Op::NoTrans)
+            ? view_matrix<const TA>( A, n, k, lda )
+            : view_matrix<const TA>( A, k, n, lda );
+    auto _C = view_matrix<TC>( C, n, n, ldc );
+
     // alpha == zero
     if (alpha == zero) {
         if (beta == zero) {
             if (uplo != Uplo::Upper) {
                 for(idx_t j = 0; j < n; ++j) {
                     for(idx_t i = 0; i <= j; ++i)
-                        C(i,j) = zero;
+                        _C(i,j) = zero;
                 }
             }
             else if (uplo != Uplo::Lower) {
                 for(idx_t j = 0; j < n; ++j) {
                     for(idx_t i = j; i < n; ++i)
-                        C(i,j) = zero;
+                        _C(i,j) = zero;
                 }
             }
             else {
                 for(idx_t j = 0; j < n; ++j) {
                     for(idx_t i = 0; i < n; ++i)
-                        C(i,j) = zero;
+                        _C(i,j) = zero;
                 }
             }
         }
@@ -169,19 +172,19 @@ void syrk(
             if (uplo != Uplo::Upper) {
                 for(idx_t j = 0; j < n; ++j) {
                     for(idx_t i = 0; i <= j; ++i)
-                        C(i,j) *= beta;
+                        _C(i,j) *= beta;
                 }
             }
             else if (uplo != Uplo::Lower) {
                 for(idx_t j = 0; j < n; ++j) {
                     for(idx_t i = j; i < n; ++i)
-                        C(i,j) *= beta;
+                        _C(i,j) *= beta;
                 }
             }
             else {
                 for(idx_t j = 0; j < n; ++j) {
                     for(idx_t i = 0; i < n; ++i)
-                        C(i,j) *= beta;
+                        _C(i,j) *= beta;
                 }
             }
         }
@@ -195,12 +198,12 @@ void syrk(
             for(idx_t j = 0; j < n; ++j) {
 
                 for(idx_t i = 0; i <= j; ++i)
-                    C(i,j) *= beta;
+                    _C(i,j) *= beta;
 
                 for(idx_t l = 0; l < k; ++l) {
-                    scalar_t alphaAjl = alpha*A(j,l);
+                    scalar_t alphaAjl = alpha*_A(j,l);
                     for(idx_t i = 0; i <= j; ++i)
-                        C(i,j) += A(i,l)*alphaAjl;
+                        _C(i,j) += _A(i,l)*alphaAjl;
                 }
             }
         }
@@ -208,12 +211,12 @@ void syrk(
             for(idx_t j = 0; j < n; ++j) {
 
                 for(idx_t i = j; i < n; ++i)
-                    C(i,j) *= beta;
+                    _C(i,j) *= beta;
 
                 for(idx_t l = 0; l < k; ++l) {
-                    scalar_t alphaAjl = alpha*A(j,l);
+                    scalar_t alphaAjl = alpha*_A(j,l);
                     for(idx_t i = j; i < n; ++i)
-                        C(i,j) += A(i,l)*alphaAjl;
+                        _C(i,j) += _A(i,l)*alphaAjl;
                 }
             }
         }
@@ -225,8 +228,8 @@ void syrk(
                 for(idx_t i = 0; i <= j; ++i) {
                     scalar_t sum = zero;
                     for(idx_t l = 0; l < k; ++l)
-                        sum += A(l,i) * A(l,j);
-                    C(i,j) = alpha*sum + beta*C(i,j);
+                        sum += _A(l,i) * _A(l,j);
+                    _C(i,j) = alpha*sum + beta*_C(i,j);
                 }
             }
         }
@@ -235,9 +238,9 @@ void syrk(
                 for(idx_t i = j; i < n; ++i) {
                     scalar_t sum = zero;
                     for(idx_t l = 0; l < k; ++l) {
-                        sum +=  A(l,i) * A(l,j);
+                        sum +=  _A(l,i) * _A(l,j);
                     }
-                    C(i,j) = alpha*sum + beta*C(i,j);
+                    _C(i,j) = alpha*sum + beta*_C(i,j);
                 }
             }
         }
@@ -246,12 +249,9 @@ void syrk(
     if (uplo == Uplo::General) {
         for(idx_t j = 0; j < n; ++j) {
             for(idx_t i = j+1; i < n; ++i)
-                C(i,j) = C(j,i);
+                _C(i,j) = _C(j,i);
         }
     }
-
-    #undef A
-    #undef C
 }
 
 }  // namespace blas

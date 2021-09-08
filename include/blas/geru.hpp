@@ -60,16 +60,14 @@ namespace blas {
 template< typename TA, typename TX, typename TY >
 void geru(
     blas::Layout layout,
-   blas::idx_t m, blas::idx_t n,
+    blas::idx_t m, blas::idx_t n,
     blas::scalar_type<TA, TX, TY> alpha,
     TX const *x, blas::int_t incx,
     TY const *y, blas::int_t incy,
     TA *A, blas::idx_t lda )
 {
     typedef blas::scalar_type<TA, TX, TY> scalar_t;
-
-    #define A(i_, j_) A[ (i_) + (j_)*lda ]
-
+    
     // constants
     const scalar_t zero( 0.0 );
 
@@ -89,6 +87,9 @@ void geru(
     // quick return
     if (m == 0 || n == 0 || alpha == zero)
         return;
+    
+    // Matrix views
+    auto _A = view_matrix<TA>( A, m, n, lda );
 
     // for row-major, simply swap dimensions and x <=> y
     // this doesn't work in the complex gerc case because y gets conj
@@ -103,7 +104,7 @@ void geru(
             // note: NOT skipping if y[j] is zero, for consistent NAN handling
             scalar_t tmp = alpha * y[j];
             for (idx_t i = 0; i < m; ++i) {
-                A(i, j) += x[i] * tmp;
+                _A(i,j) += x[i] * tmp;
             }
         }
     }
@@ -113,7 +114,7 @@ void geru(
         for (idx_t j = 0; j < n; ++j) {
             scalar_t tmp = alpha * y[jy];
             for (idx_t i = 0; i < m; ++i) {
-                A(i, j) += x[i] * tmp;
+                _A(i,j) += x[i] * tmp;
             }
             jy += incy;
         }
@@ -126,14 +127,12 @@ void geru(
             scalar_t tmp = alpha * y[jy];
             idx_t ix = kx;
             for (idx_t i = 0; i < m; ++i) {
-                A(i, j) += x[ix] * tmp;
+                _A(i,j) += x[ix] * tmp;
                 ix += incx;
             }
             jy += incy;
         }
     }
-
-    #undef A
 }
 
 }  // namespace blas

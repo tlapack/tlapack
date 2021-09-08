@@ -42,9 +42,9 @@ real_type<TA> lange(
     const TA *A, blas::idx_t lda )
 {
     typedef real_type<TA> real_t;
-    #define A(i_, j_) A[ (i_) + (j_)*lda ]
     using blas::isnan;
     using blas::sqrt;
+    using blas::view_matrix;
 
     // constants
     const real_t zero(0.0);
@@ -52,6 +52,9 @@ real_type<TA> lange(
     // quick return
     if (m == 0 || n == 0)
         return zero;
+
+    // Matrix views
+    auto _A = view_matrix<const TA>( A, m, n, lda );
 
     // Norm value
     real_t norm(0.0);
@@ -61,7 +64,7 @@ real_type<TA> lange(
         for (idx_t j = 0; j < n; ++j) {
             for (idx_t i = 0; i < m; ++i)
             {
-                real_t temp = blas::abs( A(i,j) );
+                real_t temp = blas::abs( _A(i,j) );
 
                 if (temp > norm)
                     norm = temp;
@@ -78,7 +81,7 @@ real_type<TA> lange(
         {
             real_t sum = zero;
             for (idx_t i = 0; i < m; ++i)
-                sum += blas::abs( A(i,j) );
+                sum += blas::abs( _A(i,j) );
 
             if (sum > norm)
                 norm = sum;
@@ -92,11 +95,11 @@ real_type<TA> lange(
     {
         real_t *work = new real_t[m];
         for (idx_t i = 0; i < m; ++i)
-            work[i] = blas::abs( A(i,0) );
+            work[i] = blas::abs( _A(i,0) );
         
         for (idx_t j = 1; j < n; ++j)
             for (idx_t i = 0; i < m; ++i)
-                work[i] += blas::abs( A(i,j) );
+                work[i] += blas::abs( _A(i,j) );
 
         for (idx_t i = 0; i < m; ++i)
         {
@@ -117,11 +120,10 @@ real_type<TA> lange(
     {
         real_t scale(0.0), sum(1.0);
         for (idx_t j = 0; j < n; ++j)
-            lassq(m, &(A(0,j)), 1, scale, sum);
+            lassq(m, &(_A(0,j)), 1, scale, sum);
         norm = scale * sqrt(sum);
     }
 
-    #undef A
     return norm;
 }
 

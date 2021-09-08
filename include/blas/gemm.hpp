@@ -100,21 +100,30 @@ void gemm(
 {
     typedef blas::scalar_type<TA, TB, TC> scalar_t;
 
-    // If layout == Layout::RowMajor we need to swap ptrA with ptrB
-    TA *ptrA = (TA *) A;
-    TB *ptrB = (TB *) B;
-
-    #define A(i_, j_) ptrA[ (i_) + (j_)*lda ]
-    #define B(i_, j_) ptrB[ (i_) + (j_)*ldb ]
-    #define C(i_, j_) C[ (i_) + (j_)*ldc ]
+    // redirect if row major
+    if (layout == Layout::RowMajor) {
+        return gemm(
+            Layout::ColMajor,
+            transB,
+            transA,
+            n, m, k,
+            alpha,
+            B, ldb,
+            A, lda,
+            beta,
+            C, ldc );
+    }
+    else {
+        // check layout
+        blas_error_if_msg( layout != Layout::ColMajor,
+            "layout != Layout::ColMajor && layout != Layout::RowMajor" );
+    }
 
     // constants
     const scalar_t zero( 0.0 );
     const scalar_t one( 1.0 );
 
     // check arguments
-    blas_error_if( layout != Layout::ColMajor &&
-                   layout != Layout::RowMajor );
     blas_error_if( transA != Op::NoTrans &&
                    transA != Op::Trans &&
                    transA != Op::ConjTrans );
@@ -124,43 +133,35 @@ void gemm(
     blas_error_if( m < 0 );
     blas_error_if( n < 0 );
     blas_error_if( k < 0 );
-
-    // adapt if row major
-    if (layout == Layout::RowMajor) {
-
-        // check remaining arguments
-        blas_error_if( lda < ((transA != Op::NoTrans) ? m : k) );
-        blas_error_if( ldb < ((transB != Op::NoTrans) ? k : n) );
-        blas_error_if( ldc < n );
-
-        std::swap( transA , transB );
-        std::swap( m , n );
-        std::swap( ptrA , ptrB );
-        std::swap( lda , ldb );
-    }
-    else {
-        // check remaining arguments
-        blas_error_if( lda < ((transA != Op::NoTrans) ? k : m) );
-        blas_error_if( ldb < ((transB != Op::NoTrans) ? n : k) );
-        blas_error_if( ldc < m );
-    }
+    blas_error_if( lda < ((transA != Op::NoTrans) ? k : m) );
+    blas_error_if( ldb < ((transB != Op::NoTrans) ? n : k) );
+    blas_error_if( ldc < m );
 
     // quick return
     if (m == 0 || n == 0)
         return;
+
+    // Matrix views
+    auto _A = (transA == Op::NoTrans)
+            ? view_matrix<const TA>( A, m, k, lda )
+            : view_matrix<const TA>( A, k, m, lda );
+    auto _B = (transB == Op::NoTrans)
+            ? view_matrix<const TB>( B, k, n, ldb )
+            : view_matrix<const TB>( B, n, k, ldb );
+    auto _C = view_matrix<TC>( C, m, n, ldc );
 
     // alpha == zero
     if (alpha == zero) {
         if (beta == zero) {
             for(idx_t j = 0; j < n; ++j) {
                 for(idx_t i = 0; i < m; ++i)
-                    C(i,j) = zero;
+                    _C(i,j) = zero;
             }
         }
         else if (beta != one) {
             for(idx_t j = 0; j < n; ++j) {
                 for(idx_t i = 0; i < m; ++i)
-                    C(i,j) *= beta;
+                    _C(i,j) *= beta;
             }
         }
         return;
@@ -171,33 +172,33 @@ void gemm(
         if (transB == Op::NoTrans) {
             for(idx_t j = 0; j < n; ++j) {
                 for(idx_t i = 0; i < m; ++i)
-                    C(i,j) *= beta;
+                    _C(i,j) *= beta;
                 for(idx_t l = 0; l < k; ++l) {
-                    scalar_t alphaTimesblj = alpha*B(l,j);
+                    scalar_t alphaTimesblj = alpha*_B(l,j);
                     for(idx_t i = 0; i < m; ++i)
-                        C(i,j) += A(i,l)*alphaTimesblj;
+                        _C(i,j) += _A(i,l)*alphaTimesblj;
                 }
             }
         }
         else if (transB == Op::Trans) {
             for(idx_t j = 0; j < n; ++j) {
                 for(idx_t i = 0; i < m; ++i)
-                    C(i,j) *= beta;
+                    _C(i,j) *= beta;
                 for(idx_t l = 0; l < k; ++l) {
-                    scalar_t alphaTimesbjl = alpha*B(j,l);
+                    scalar_t alphaTimesbjl = alpha*_B(j,l);
                     for(idx_t i = 0; i < m; ++i)
-                        C(i,j) += A(i,l)*alphaTimesbjl;
+                        _C(i,j) += _A(i,l)*alphaTimesbjl;
                 }
             }
         }
         else { // transB == Op::ConjTrans
             for(idx_t j = 0; j < n; ++j) {
                 for(idx_t i = 0; i < m; ++i)
-                    C(i,j) *= beta;
+                    _C(i,j) *= beta;
                 for(idx_t l = 0; l < k; ++l) {
-                    scalar_t alphaTimesbjl = alpha*conj(B(j,l));
+                    scalar_t alphaTimesbjl = alpha*conj(_B(j,l));
                     for(idx_t i = 0; i < m; ++i)
-                        C(i,j) += A(i,l)*alphaTimesbjl;
+                        _C(i,j) += _A(i,l)*alphaTimesbjl;
                 }
             }
         }
@@ -208,8 +209,8 @@ void gemm(
                 for(idx_t i = 0; i < m; ++i) {
                     scalar_t sum = zero;
                     for(idx_t l = 0; l < k; ++l)
-                        sum += A(l,i)*B(l,j);
-                    C(i,j) = alpha*sum + beta*C(i,j);
+                        sum += _A(l,i)*_B(l,j);
+                    _C(i,j) = alpha*sum + beta*_C(i,j);
                 }
             }
         }
@@ -218,8 +219,8 @@ void gemm(
                 for(idx_t i = 0; i < m; ++i) {
                     scalar_t sum = zero;
                     for(idx_t l = 0; l < k; ++l)
-                        sum += A(l,i)*B(j,l);
-                    C(i,j) = alpha*sum + beta*C(i,j);
+                        sum += _A(l,i)*_B(j,l);
+                    _C(i,j) = alpha*sum + beta*_C(i,j);
                 }
             }
         }
@@ -228,8 +229,8 @@ void gemm(
                 for(idx_t i = 0; i < m; ++i) {
                     scalar_t sum = zero;
                     for(idx_t l = 0; l < k; ++l)
-                        sum += A(l,i)*conj(B(j,l));
-                    C(i,j) = alpha*sum + beta*C(i,j);
+                        sum += _A(l,i)*conj(_B(j,l));
+                    _C(i,j) = alpha*sum + beta*_C(i,j);
                 }
             }
         }
@@ -240,8 +241,8 @@ void gemm(
                 for(idx_t i = 0; i < m; ++i) {
                     scalar_t sum = zero;
                     for(idx_t l = 0; l < k; ++l)
-                        sum += conj(A(l,i))*B(l,j);
-                    C(i,j) = alpha*sum + beta*C(i,j);
+                        sum += conj(_A(l,i))*_B(l,j);
+                    _C(i,j) = alpha*sum + beta*_C(i,j);
                 }
             }
         }
@@ -250,8 +251,8 @@ void gemm(
                 for(idx_t i = 0; i < m; ++i) {
                     scalar_t sum = zero;
                     for(idx_t l = 0; l < k; ++l)
-                        sum += conj(A(l,i))*B(j,l);
-                    C(i,j) = alpha*sum + beta*C(i,j);
+                        sum += conj(_A(l,i))*_B(j,l);
+                    _C(i,j) = alpha*sum + beta*_C(i,j);
                 }
             }
         }
@@ -260,16 +261,12 @@ void gemm(
                 for(idx_t i = 0; i < m; ++i) {
                     scalar_t sum = zero;
                     for(idx_t l = 0; l < k; ++l)
-                        sum += A(l,i)*B(j,l); // little improvement here
-                    C(i,j) = alpha*conj(sum) + beta*C(i,j);
+                        sum += _A(l,i)*_B(j,l); // little improvement here
+                    _C(i,j) = alpha*conj(sum) + beta*_C(i,j);
                 }
             }
         }
     }
-
-    #undef A
-    #undef B
-    #undef C
 }
 
 }  // namespace blas

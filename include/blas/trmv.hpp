@@ -75,7 +75,6 @@ void trmv(
     TA const *A, blas::idx_t lda,
     TX       *x, blas::int_t incx )
 {
-    #define A(i_, j_) A[ (i_) + (j_)*lda ]
 
     // check arguments
     blas_error_if( layout != Layout::ColMajor &&
@@ -94,6 +93,9 @@ void trmv(
     // quick return
     if (n == 0)
         return;
+        
+    // Matrix views
+    auto _A = view_matrix<const TA>( A, n, n, lda );
 
     // for row major, swap lower <=> upper and
     // A => A^T; A^T => A; A^H => A & conj
@@ -124,10 +126,10 @@ void trmv(
                     // note: NOT skipping if x[j] is zero, for consistent NAN handling
                     TX tmp = x[j];
                     for (idx_t i = 0; i < j; ++i) {
-                        x[i] += tmp * A(i, j);
+                        x[i] += tmp * _A(i,j);
                     }
                     if (nonunit) {
-                        x[j] *= A(j, j);
+                        x[j] *= _A(j,j);
                     }
                 }
             }
@@ -139,11 +141,11 @@ void trmv(
                     TX tmp = x[jx];
                     idx_t ix = kx;
                     for (idx_t i = 0; i < j; ++i) {
-                        x[ix] += tmp * A(i, j);
+                        x[ix] += tmp * _A(i,j);
                         ix += incx;
                     }
                     if (nonunit) {
-                        x[jx] *= A(j, j);
+                        x[jx] *= _A(j,j);
                     }
                     jx += incx;
                 }
@@ -157,10 +159,10 @@ void trmv(
                     // note: NOT skipping if x[j] is zero ...
                     TX tmp = x[j];
                     for (idx_t i = n-1; i >= j+1; --i) {
-                        x[i] += tmp * A(i, j);
+                        x[i] += tmp * _A(i,j);
                     }
                     if (nonunit) {
-                        x[j] *= A(j, j);
+                        x[j] *= _A(j,j);
                     }
                 }
             }
@@ -173,11 +175,11 @@ void trmv(
                     TX tmp = x[jx];
                     idx_t ix = kx;
                     for (idx_t i = n-1; i >= j+1; --i) {
-                        x[ix] += tmp * A(i, j);
+                        x[ix] += tmp * _A(i,j);
                         ix -= incx;
                     }
                     if (nonunit) {
-                        x[jx] *= A(j, j);
+                        x[jx] *= _A(j,j);
                     }
                     jx -= incx;
                 }
@@ -194,10 +196,10 @@ void trmv(
                     // note: NOT skipping if x[j] is zero, for consistent NAN handling
                     TX tmp = x[j];
                     for (idx_t i = 0; i < j; ++i) {
-                        x[i] += tmp * conj( A(i, j) );
+                        x[i] += tmp * conj( _A(i,j) );
                     }
                     if (nonunit) {
-                        x[j] *= conj( A(j, j) );
+                        x[j] *= conj( _A(j,j) );
                     }
                 }
             }
@@ -209,11 +211,11 @@ void trmv(
                     TX tmp = x[jx];
                     idx_t ix = kx;
                     for (idx_t i = 0; i < j; ++i) {
-                        x[ix] += tmp * conj( A(i, j) );
+                        x[ix] += tmp * conj( _A(i,j) );
                         ix += incx;
                     }
                     if (nonunit) {
-                        x[jx] *= conj( A(j, j) );
+                        x[jx] *= conj( _A(j,j) );
                     }
                     jx += incx;
                 }
@@ -227,10 +229,10 @@ void trmv(
                     // note: NOT skipping if x[j] is zero ...
                     TX tmp = x[j];
                     for (idx_t i = n-1; i >= j+1; --i) {
-                        x[i] += tmp * conj( A(i, j) );
+                        x[i] += tmp * conj( _A(i,j) );
                     }
                     if (nonunit) {
-                        x[j] *= conj( A(j, j) );
+                        x[j] *= conj( _A(j,j) );
                     }
                 }
             }
@@ -243,11 +245,11 @@ void trmv(
                     TX tmp = x[jx];
                     idx_t ix = kx;
                     for (idx_t i = n-1; i >= j+1; --i) {
-                        x[ix] += tmp * conj( A(i, j) );
+                        x[ix] += tmp * conj( _A(i,j) );
                         ix -= incx;
                     }
                     if (nonunit) {
-                        x[jx] *= conj( A(j, j) );
+                        x[jx] *= conj( _A(j,j) );
                     }
                     jx -= incx;
                 }
@@ -263,10 +265,10 @@ void trmv(
                 for (idx_t j = n-1; j != idx_t(-1); --j) {
                     TX tmp = x[j];
                     if (nonunit) {
-                        tmp *= A(j, j);
+                        tmp *= _A(j,j);
                     }
                     for (idx_t i = j - 1; i != idx_t(-1); --i) {
-                        tmp += A(i, j) * x[i];
+                        tmp += _A(i,j) * x[i];
                     }
                     x[j] = tmp;
                 }
@@ -278,11 +280,11 @@ void trmv(
                     TX tmp = x[jx];
                     idx_t ix = jx;
                     if (nonunit) {
-                        tmp *= A(j, j);
+                        tmp *= _A(j,j);
                     }
                     for (idx_t i = j - 1; i != idx_t(-1); --i) {
                         ix -= incx;
-                        tmp += A(i, j) * x[ix];
+                        tmp += _A(i,j) * x[ix];
                     }
                     x[jx] = tmp;
                     jx -= incx;
@@ -296,10 +298,10 @@ void trmv(
                 for (idx_t j = 0; j < n; ++j) {
                     TX tmp = x[j];
                     if (nonunit) {
-                        tmp *= A(j, j);
+                        tmp *= _A(j,j);
                     }
                     for (idx_t i = j + 1; i < n; ++i) {
-                        tmp += A(i, j) * x[i];
+                        tmp += _A(i,j) * x[i];
                     }
                     x[j] = tmp;
                 }
@@ -311,11 +313,11 @@ void trmv(
                     TX tmp = x[jx];
                     idx_t ix = jx;
                     if (nonunit) {
-                        tmp *= A(j, j);
+                        tmp *= _A(j,j);
                     }
                     for (idx_t i = j + 1; i < n; ++i) {
                         ix += incx;
-                        tmp += A(i, j) * x[ix];
+                        tmp += _A(i,j) * x[ix];
                     }
                     x[jx] = tmp;
                     jx += incx;
@@ -333,10 +335,10 @@ void trmv(
                 for (idx_t j = n-1; j != idx_t(-1); --j) {
                     TX tmp = x[j];
                     if (nonunit) {
-                        tmp *= conj( A(j, j) );
+                        tmp *= conj( _A(j,j) );
                     }
                     for (idx_t i = j - 1; i != idx_t(-1); --i) {
-                        tmp += conj( A(i, j) ) * x[i];
+                        tmp += conj( _A(i,j) ) * x[i];
                     }
                     x[j] = tmp;
                 }
@@ -348,11 +350,11 @@ void trmv(
                     TX tmp = x[jx];
                     idx_t ix = jx;
                     if (nonunit) {
-                        tmp *= conj( A(j, j) );
+                        tmp *= conj( _A(j,j) );
                     }
                     for (idx_t i = j - 1; i != idx_t(-1); --i) {
                         ix -= incx;
-                        tmp += conj( A(i, j) ) * x[ix];
+                        tmp += conj( _A(i,j) ) * x[ix];
                     }
                     x[jx] = tmp;
                     jx -= incx;
@@ -366,10 +368,10 @@ void trmv(
                 for (idx_t j = 0; j < n; ++j) {
                     TX tmp = x[j];
                     if (nonunit) {
-                        tmp *= conj( A(j, j) );
+                        tmp *= conj( _A(j,j) );
                     }
                     for (idx_t i = j + 1; i < n; ++i) {
-                        tmp += conj( A(i, j) ) * x[i];
+                        tmp += conj( _A(i,j) ) * x[i];
                     }
                     x[j] = tmp;
                 }
@@ -381,11 +383,11 @@ void trmv(
                     TX tmp = x[jx];
                     idx_t ix = jx;
                     if (nonunit) {
-                        tmp *= conj( A(j, j) );
+                        tmp *= conj( _A(j,j) );
                     }
                     for (idx_t i = j + 1; i < n; ++i) {
                         ix += incx;
-                        tmp += conj( A(i, j) ) * x[ix];
+                        tmp += conj( _A(i,j) ) * x[ix];
                     }
                     x[jx] = tmp;
                     jx += incx;
@@ -393,8 +395,6 @@ void trmv(
             }
         }
     }
-
-    #undef A
 }
 
 }  // namespace blas

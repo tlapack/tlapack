@@ -87,9 +87,7 @@ void gemv(
     TY *y, blas::int_t incy )
 {
     typedef blas::scalar_type<TA, TX, TY> scalar_t;
-
-    auto _A = view_matrix<const TA>( A, m, n, lda );
-
+    
     // constants
     const scalar_t zero( 0.0 );
     const scalar_t one( 1.0 );
@@ -114,6 +112,9 @@ void gemv(
     // quick return
     if (m == 0 || n == 0 || (alpha == zero && beta == one))
         return;
+    
+    // Matrix views
+    auto _A = view_matrix<const TA>( A, m, n, lda );
 
     bool doconj = false;
     if (layout == Layout::RowMajor) {

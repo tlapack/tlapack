@@ -45,12 +45,6 @@ using std::floor;
     using mpfr::floor;
 #endif
 
-// -----------------------------------------------------------------------------
-// Use mdspan for multidimensional arrays
-using std::experimental::mdspan;
-using std::experimental::extents;
-using std::experimental::dynamic_extent;
-
 /** Extend conj to real datatypes.
  * 
  * @usage:
@@ -436,6 +430,102 @@ namespace internal {
         blas::internal::error_if( cond, #cond, __func__, __VA_ARGS__ )
 
 #endif
+
+// -----------------------------------------------------------------------------
+/// ColMajorLayout Column Major layout for mdspan.
+struct ColMajorLayout {
+    template <class Extents>
+    struct mapping {
+        static_assert(Extents::rank() == 2, "ColMajorLayout is a 2D layout");
+
+        // for convenience
+        using size_type = typename Extents::size_type;
+
+        // constructor
+        mapping(
+            const Extents& exts,    // matrix sizes
+            size_type ldim          // leading dimension
+        ) noexcept
+            : extents_(exts)
+            , ldim_(ldim)
+        {} // Mind that it does not check for invalid values here.
+
+        // Default constructors
+        mapping() noexcept = default;
+        mapping(const mapping&) noexcept = default;
+        mapping(mapping&&) noexcept = default;
+        mapping& operator=(mapping const&) noexcept = default;
+        mapping& operator=(mapping&&) noexcept = default;
+        ~mapping() noexcept = default;
+
+        //------------------------------------------------------------
+        // Required members
+
+        constexpr size_type
+        operator()(size_type row, size_type col) const noexcept {
+            return row + col * ldim_;
+        }
+
+        constexpr size_type
+        required_span_size() const noexcept {
+            return extents_.extent(1) * ldim_;
+        }
+
+        // Mapping is always unique
+        static constexpr bool is_always_unique() noexcept { return true; }
+        static constexpr bool is_unique() noexcept { return true; }
+
+        // Only contiguous if extents_.extent(0) == ldim_
+        static constexpr bool is_always_contiguous() noexcept { return false; }
+        constexpr bool is_contiguous() const noexcept { return (extents_.extent(0) == ldim_); }
+
+        // Only regularly strided if extents_.extent(0) == ldim_
+        static constexpr bool is_always_strided() noexcept { return false; }
+        constexpr bool is_strided() const noexcept { return (extents_.extent(0) == ldim_); }
+
+        private:
+            Extents extents_;
+            size_type ldim_; // leading dimension
+    };
+};
+
+// -----------------------------------------------------------------------------
+// Internal helpers
+namespace internal {
+
+    using dynamic_extents = std::experimental::extents<
+        std::experimental::dynamic_extent,
+        std::experimental::dynamic_extent
+    >;
+}
+
+// -----------------------------------------------------------------------------
+// Column major matrix layout with dynamic extents
+using MatrixLayout = typename ColMajorLayout::template mapping<internal::dynamic_extents>;
+
+// -----------------------------------------------------------------------------
+// Column major matrix view with dynamic extents
+template< typename T >
+using MatrixView = std::experimental::mdspan<
+    T,
+    internal::dynamic_extents,
+    ColMajorLayout
+>;
+
+// -----------------------------------------------------------------------------
+/** Returns a view object for a column major matrix
+ * 
+ * @param A                 serial data
+ * @param m                 number of rows
+ * @param n                 number of columns
+ * @param lda               leading dimension 
+ * 
+ * @return MatrixView<T>    view matrix object. Use the abstraction A(i,j) = i + j * lda
+ */
+template< typename T >
+inline MatrixView<T> view_matrix( T* A, blas::size_t m, blas::size_t n, blas::size_t lda ) {
+    return MatrixView<T>( A, MatrixLayout( internal::dynamic_extents(m,n), lda ) );
+}
 
 } // namespace blas
 

@@ -63,8 +63,6 @@ void lassq(
     using blas::isnan;
     using blas::sqrt;
 
-    #define SQUARE(x) (x)*(x)
-
     // constants
     const real_t zero(0.0);
     const real_t one(1.0);
@@ -102,11 +100,11 @@ void lassq(
     {
         real_t ax = blas::abs( x[ix] ); 
         if( ax > tbig )
-            abig += SQUARE(ax*sbig);
+            abig += (ax*sbig) * (ax*sbig);
         else if( ax < tsml ) {
-            if( abig == zero ) asml += SQUARE(ax*ssml);
+            if( abig == zero ) asml += (ax*ssml) * (ax*ssml);
         } else
-            amed += SQUARE(ax);
+            amed += ax * ax;
         ix += incx;
     }
 
@@ -114,11 +112,11 @@ void lassq(
     if( sumsq > zero ) {
         real_t ax = scl * sqrt( sumsq );
         if( ax > tbig )
-            abig += SQUARE(scl*sbig) * sumsq;
+            abig += ((scl*sbig) * (scl*sbig)) * sumsq;
         else if( ax < tsml ) {
-            if( abig == zero ) asml += SQUARE(scl*ssml) * sumsq;
+            if( abig == zero ) asml += ((scl*ssml) * (scl*ssml)) * sumsq;
         } else
-            amed += SQUARE(scl) * sumsq;
+            amed += (scl * scl) * sumsq;
         ix += incx;
     }
 
@@ -149,7 +147,7 @@ void lassq(
             }
 
             scl = one;
-            sumsq = SQUARE(ymax) * ( one + SQUARE(ymin/ymax) );
+            sumsq = (ymax * ymax) * ( one + (ymin/ymax) * (ymin/ymax) );
         }
         else {
             scl = one / ssml;
@@ -161,8 +159,6 @@ void lassq(
         scl = one;
         sumsq = amed;
     }
-
-    #undef SQUARE
 }
 
 } // lapack

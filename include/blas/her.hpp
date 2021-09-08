@@ -66,9 +66,7 @@ void her(
 {
     typedef blas::scalar_type<TA, TX> scalar_t;
     typedef blas::real_type<TA, TX> real_t;
-
-    #define A(i_, j_) A[ (i_) + (j_)*lda ]
-
+    
     // constants
     const real_t zero( 0 );
 
@@ -84,6 +82,9 @@ void her(
     // quick return
     if (n == 0 || alpha == zero)
         return;
+    
+    // Matrix views
+    auto _A = view_matrix<TA>( A, n, n, lda );
 
     // for row major, swap lower <=> upper
     if (layout == Layout::RowMajor) {
@@ -98,9 +99,9 @@ void her(
                 // note: NOT skipping if x[j] is zero, for consistent NAN handling
                 scalar_t tmp = alpha * conj( x[j] );
                 for (idx_t i = 0; i < j; ++i) {
-                    A(i, j) += x[i] * tmp;
+                    _A(i,j) += x[i] * tmp;
                 }
-                A(j, j) = real( A(j, j) ) + real( x[j] * tmp );
+                _A(j,j) = real( _A(j,j) ) + real( x[j] * tmp );
             }
         }
         else {
@@ -110,10 +111,10 @@ void her(
                 scalar_t tmp = alpha * conj( x[jx] );
                 idx_t ix = kx;
                 for (idx_t i = 0; i < j; ++i) {
-                    A(i, j) += x[ix] * tmp;
+                    _A(i,j) += x[ix] * tmp;
                     ix += incx;
                 }
-                A(j, j) = real( A(j, j) ) + real( x[jx] * tmp );
+                _A(j,j) = real( _A(j,j) ) + real( x[jx] * tmp );
                 jx += incx;
             }
         }
@@ -124,9 +125,9 @@ void her(
             // unit stride
             for (idx_t j = 0; j < n; ++j) {
                 scalar_t tmp = alpha * conj( x[j] );
-                A(j, j) = real( A(j, j) ) + real( tmp * x[j] );
+                _A(j,j) = real( _A(j,j) ) + real( tmp * x[j] );
                 for (idx_t i = j+1; i < n; ++i) {
-                    A(i, j) += x[i] * tmp;
+                    _A(i,j) += x[i] * tmp;
                 }
             }
         }
@@ -135,18 +136,16 @@ void her(
             idx_t jx = kx;
             for (idx_t j = 0; j < n; ++j) {
                 scalar_t tmp = alpha * conj( x[jx] );
-                A(j, j) = real( A(j, j) ) + real( tmp * x[jx] );
+                _A(j,j) = real( _A(j,j) ) + real( tmp * x[jx] );
                 idx_t ix = jx;
                 for (idx_t i = j+1; i < n; ++i) {
                     ix += incx;
-                    A(i, j) += x[ix] * tmp;
+                    _A(i,j) += x[ix] * tmp;
                 }
                 jx += incx;
             }
         }
     }
-
-    #undef A
 }
 
 }  // namespace blas

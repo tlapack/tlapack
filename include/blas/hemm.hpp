@@ -94,11 +94,7 @@ void hemm(
     TC       *C, blas::idx_t ldc )
 {    
     typedef blas::scalar_type<TA, TB, TC> scalar_t;
-
-    #define A(i_, j_) A[ (i_) + (j_)*lda ]
-    #define B(i_, j_) B[ (i_) + (j_)*ldb ]
-    #define C(i_, j_) C[ (i_) + (j_)*ldc ]
-
+            
     // constants
     const scalar_t zero( 0.0 );
     const scalar_t one( 1.0 );
@@ -140,19 +136,26 @@ void hemm(
     // quick return
     if (m == 0 || n == 0)
         return;
+    
+    // Matrix views
+    auto _A = (side == Side::Left)
+            ? view_matrix<const TA>( A, m, m, lda )
+            : view_matrix<const TA>( A, n, n, lda );
+    auto _B = view_matrix<const TB>( B, m, n, ldb );
+    auto _C = view_matrix<TC>( C, m, n, ldc );
 
     // alpha == zero
     if (alpha == zero) {
         if (beta == zero) {
             for(idx_t j = 0; j < n; ++j) {
                 for(idx_t i = 0; i < m; ++i)
-                    C(i,j) = zero;
+                    _C(i,j) = zero;
             }
         }
         else if (beta != one) {
             for(idx_t j = 0; j < n; ++j) {
                 for(idx_t i = 0; i < m; ++i)
-                    C(i,j) *= beta;
+                    _C(i,j) *= beta;
             }
         }
         return;
@@ -165,16 +168,16 @@ void hemm(
             for(idx_t j = 0; j < n; ++j) {
                 for(idx_t i = 0; i < m; ++i) {
 
-                    scalar_t alphaTimesBij = alpha*B(i,j);
+                    scalar_t alphaTimesBij = alpha*_B(i,j);
                     scalar_t sum = zero;
 
                     for(idx_t k = 0; k < i; ++k) {
-                        C(k,j) += A(k,i) * alphaTimesBij;
-                        sum += conj( A(k,i) ) * B(k,j);
+                        _C(k,j) += _A(k,i) * alphaTimesBij;
+                        sum += conj( _A(k,i) ) * _B(k,j);
                     }
-                    C(i,j) =
-                        beta * C(i,j)
-                        + real( A(i,i) ) * alphaTimesBij
+                    _C(i,j) =
+                        beta * _C(i,j)
+                        + real( _A(i,i) ) * alphaTimesBij
                         + alpha * sum;
                 }
             }
@@ -184,16 +187,16 @@ void hemm(
             for(idx_t j = 0; j < n; ++j) {
                 for(idx_t i = m-1; i >= 0; --i) {
 
-                    scalar_t alphaTimesBij = alpha*B(i,j);
+                    scalar_t alphaTimesBij = alpha*_B(i,j);
                     scalar_t sum = zero;
 
                     for(idx_t k = i+1; k < m; ++k) {
-                        C(k,j) += A(k,i) * alphaTimesBij;
-                        sum += conj( A(k,i) ) * B(k,j);
+                        _C(k,j) += _A(k,i) * alphaTimesBij;
+                        sum += conj( _A(k,i) ) * _B(k,j);
                     }
-                    C(i,j) =
-                        beta * C(i,j)
-                        + real( A(i,i) ) * alphaTimesBij
+                    _C(i,j) =
+                        beta * _C(i,j)
+                        + real( _A(i,i) ) * alphaTimesBij
                         + alpha * sum;
                 }
             }
@@ -204,21 +207,21 @@ void hemm(
             // uplo == Uplo::Upper or uplo == Uplo::General
             for(idx_t j = 0; j < n; ++j) {
 
-                scalar_t alphaTimesAkj = alpha * real( A(j,j) );
+                scalar_t alphaTimesAkj = alpha * real( _A(j,j) );
 
                 for(idx_t i = 0; i < m; ++i)
-                    C(i,j) = beta * C(i,j) + B(i,j) * alphaTimesAkj;
+                    _C(i,j) = beta * _C(i,j) + _B(i,j) * alphaTimesAkj;
 
                 for(idx_t k = 0; k < j; ++k) {
-                    alphaTimesAkj = alpha*A(k,j);
+                    alphaTimesAkj = alpha*_A(k,j);
                     for(idx_t i = 0; i < m; ++i)
-                        C(i,j) += B(i,k) * alphaTimesAkj;
+                        _C(i,j) += _B(i,k) * alphaTimesAkj;
                 }
 
                 for(idx_t k = j+1; k < n; ++k) {
-                    alphaTimesAkj = alpha * conj( A(j,k) );
+                    alphaTimesAkj = alpha * conj( _A(j,k) );
                     for(idx_t i = 0; i < m; ++i)
-                        C(i,j) += B(i,k) * alphaTimesAkj;
+                        _C(i,j) += _B(i,k) * alphaTimesAkj;
                 }
             }
         }
@@ -226,29 +229,25 @@ void hemm(
             // uplo == Uplo::Lower
             for(idx_t j = 0; j < n; ++j) {
 
-                scalar_t alphaTimesAkj = alpha * real( A(j,j) );
+                scalar_t alphaTimesAkj = alpha * real( _A(j,j) );
 
                 for(idx_t i = 0; i < m; ++i)
-                    C(i,j) = beta * C(i,j) + B(i,j) * alphaTimesAkj;
+                    _C(i,j) = beta * _C(i,j) + _B(i,j) * alphaTimesAkj;
 
                 for(idx_t k = 0; k < j; ++k) {
-                    alphaTimesAkj = alpha * conj( A(j,k) );
+                    alphaTimesAkj = alpha * conj( _A(j,k) );
                     for(idx_t i = 0; i < m; ++i)
-                        C(i,j) += B(i,k) * alphaTimesAkj;
+                        _C(i,j) += _B(i,k) * alphaTimesAkj;
                 }
 
                 for(idx_t k = j+1; k < n; ++k) {
-                    alphaTimesAkj = alpha*A(k,j);
+                    alphaTimesAkj = alpha*_A(k,j);
                     for(idx_t i = 0; i < m; ++i)
-                        C(i,j) += B(i,k) * alphaTimesAkj;
+                        _C(i,j) += _B(i,k) * alphaTimesAkj;
                 }
             }
         }
     }
-
-    #undef A
-    #undef B
-    #undef C
 }
 
 }  // namespace blas

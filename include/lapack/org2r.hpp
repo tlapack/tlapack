@@ -36,8 +36,8 @@ int org2r(
     const TA* tau,
     TA* work )
 {
-    #define A(i_, j_) A[ (i_) + (j_)*lda ]
     using blas::scal;
+    using blas::view_matrix;
 
     // constants
     const TA zero( 0.0 );
@@ -51,31 +51,33 @@ int org2r(
 
     // quick return
     if (n <= 0) return 0;
+
+    // Matrix views
+    auto _A = view_matrix<TA>( A, m, n, lda );
     
     // Initialise columns k:n-1 to columns of the unit matrix
     for (idx_t j = k; j < n; ++j) {
         for (idx_t l = 0; l < m; ++l)
-	        A(l,j) = zero;
-        A(j,j) = one;
+	        _A(l,j) = zero;
+        _A(j,j) = one;
     }
 
     for (idx_t i = k-1; i != idx_t(-1); --i) {
 
         // Apply $H_{i+1}$ to $A( i:m-1, i:n-1 )$ from the left
         if ( i+1 < n ){
-            A(i,i) = one;
-            larf( Side::Left, m-i, n-i-1, &(A(i,i)), 1, tau[i], &(A(i,i+1)), lda, work+i );
+            _A(i,i) = one;
+            larf( Side::Left, m-i, n-i-1, &(_A(i,i)), 1, tau[i], &(_A(i,i+1)), lda, work+i );
         }
         if ( i+1 < m )
-            scal( m-i-1, -tau[i], &(A(i+1,i)), 1 );
-        A(i,i) = one - tau[i];
+            scal( m-i-1, -tau[i], &(_A(i+1,i)), 1 );
+        _A(i,i) = one - tau[i];
 
         // Set A( 0:i-1, i ) to zero
         for (idx_t l = 0; l < i; l++)
-            A(l,i) = zero;
+            _A(l,i) = zero;
     }
 
-    #undef A
     return 0;
 }
 
@@ -93,8 +95,8 @@ int org2r(
     const real_type<TA>* tau,
     TA* work )
 {
-    #define A(i_, j_) A[ (i_) + (j_)*lda ]
-
+    using blas::view_matrix;
+    
     // constants
     const TA zero( 0.0 );
     const TA one( 1.0 );
@@ -107,31 +109,33 @@ int org2r(
 
     // quick return
     if (n <= 0) return 0;
+
+    // Matrix views
+    auto _A = view_matrix<TA>( A, m, n, lda );
     
     // Initialise columns k:n-1 to columns of the unit matrix
     for (idx_t j = k; j < n; ++j) {
         for (idx_t l = 0; l < m; ++l)
-	        A(l,j) = zero;
-        A(j,j) = one;
+	        _A(l,j) = zero;
+        _A(j,j) = one;
     }
 
     for (idx_t i = k-1; i != idx_t(-1); --i) {
 
         // Apply $H_{i+1}$ to $A( i:m-1, i:n-1 )$ from the left
         if ( i+1 < n ){
-            A(i,i) = one;
-            larf( Side::Left, m-i, n-i-1, &(A(i,i)), 1, tau[i], &(A(i,i+1)), lda, work+i );
+            _A(i,i) = one;
+            larf( Side::Left, m-i, n-i-1, &(_A(i,i)), 1, tau[i], &(_A(i,i+1)), lda, work+i );
         }
         if ( i+1 < m )
-            scal( m-i-1, -tau[i], &(A(i+1,i)), 1 );
-        A(i,i) = one - tau[i];
+            scal( m-i-1, -tau[i], &(_A(i+1,i)), 1 );
+        _A(i,i) = one - tau[i];
 
         // Set A( 0:i-1, i ) to zero
         for (idx_t l = 0; l < i; l++)
-            A(l,i) = zero;
+            _A(l,i) = zero;
     }
 
-    #undef A
     return 0;
 }
 

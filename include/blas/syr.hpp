@@ -63,8 +63,6 @@ void syr(
 {
     typedef blas::scalar_type<TA, TX> scalar_t;
 
-    #define A(i_, j_) A[ (i_) + (j_)*lda ]
-
     // constants
     const scalar_t zero( 0.0 );
 
@@ -80,6 +78,9 @@ void syr(
     // quick return
     if (n == 0 || alpha == zero)
         return;
+        
+    // Matrix views
+    auto _A = view_matrix<TA>( A, n, n, lda );
 
     // for row major, swap lower <=> upper
     if (layout == Layout::RowMajor) {
@@ -94,7 +95,7 @@ void syr(
                 // note: NOT skipping if x[j] is zero, for consistent NAN handling
                 scalar_t tmp = alpha * x[j];
                 for (idx_t i = 0; i <= j; ++i) {
-                    A(i, j) += x[i] * tmp;
+                    _A(i,j) += x[i] * tmp;
                 }
             }
         }
@@ -105,7 +106,7 @@ void syr(
                 scalar_t tmp = alpha * x[jx];
                 idx_t ix = kx;
                 for (idx_t i = 0; i <= j; ++i) {
-                    A(i, j) += x[ix] * tmp;
+                    _A(i,j) += x[ix] * tmp;
                     ix += incx;
                 }
                 jx += incx;
@@ -119,7 +120,7 @@ void syr(
             for (idx_t j = 0; j < n; ++j) {
                 scalar_t tmp = alpha * x[j];
                 for (idx_t i = j; i < n; ++i) {
-                    A(i, j) += x[i] * tmp;
+                    _A(i,j) += x[i] * tmp;
                 }
             }
         }
@@ -130,15 +131,13 @@ void syr(
                 scalar_t tmp = alpha * x[jx];
                 idx_t ix = jx;
                 for (idx_t i = j; i < n; ++i) {
-                    A(i, j) += x[ix] * tmp;
+                    _A(i,j) += x[ix] * tmp;
                     ix += incx;
                 }
                 jx += incx;
             }
         }
     }
-
-    #undef A
 }
 
 }  // namespace blas

@@ -77,9 +77,7 @@ void hemv(
     TY *y, blas::int_t incy )
 {
     typedef blas::scalar_type<TA, TX, TY> scalar_t;
-
-    #define A(i_, j_) A[ (i_) + (j_)*lda ]
-
+    
     // constants
     const scalar_t zero( 0.0 );
     const scalar_t one( 1.0 );
@@ -97,6 +95,9 @@ void hemv(
     // quick return
     if (n == 0 || (alpha == zero && beta == one))
         return;
+    
+    // Matrix views
+    auto _A = view_matrix<const TA>( A, n, n, lda );
 
     idx_t kx = (incx > 0 ? 0 : (-n + 1)*incx);
     idx_t ky = (incy > 0 ? 0 : (-n + 1)*incy);
@@ -144,10 +145,10 @@ void hemv(
                     scalar_t tmp1 = alpha*x[j];
                     scalar_t tmp2 = zero;
                     for (idx_t i = 0; i < j; ++i) {
-                        y[i] += tmp1 * A(i, j);
-                        tmp2 += conj( A(i, j) ) * x[i];
+                        y[i] += tmp1 * _A(i,j);
+                        tmp2 += conj( _A(i,j) ) * x[i];
                     }
-                    y[j] += tmp1 * real( A(j, j) ) + alpha * tmp2;
+                    y[j] += tmp1 * real( _A(j,j) ) + alpha * tmp2;
                 }
             }
             else {
@@ -160,12 +161,12 @@ void hemv(
                     idx_t ix = kx;
                     idx_t iy = ky;
                     for (idx_t i = 0; i < j; ++i) {
-                        y[iy] += tmp1 * A(i, j);
-                        tmp2 += conj( A(i, j) ) * x[ix];
+                        y[iy] += tmp1 * _A(i,j);
+                        tmp2 += conj( _A(i,j) ) * x[ix];
                         ix += incx;
                         iy += incy;
                     }
-                    y[jy] += tmp1 * real( A(j, j) ) + alpha * tmp2;
+                    y[jy] += tmp1 * real( _A(j,j) ) + alpha * tmp2;
                     jx += incx;
                     jy += incy;
                 }
@@ -179,10 +180,10 @@ void hemv(
                     scalar_t tmp1 = alpha*x[j];
                     scalar_t tmp2 = zero;
                     for (idx_t i = j+1; i < n; ++i) {
-                        y[i] += tmp1 * A(i, j);
-                        tmp2 += conj( A(i, j) ) * x[i];
+                        y[i] += tmp1 * _A(i,j);
+                        tmp2 += conj( _A(i,j) ) * x[i];
                     }
-                    y[j] += tmp1 * real( A(j, j) ) + alpha * tmp2;
+                    y[j] += tmp1 * real( _A(j,j) ) + alpha * tmp2;
                 }
             }
             else {
@@ -196,10 +197,10 @@ void hemv(
                     for (idx_t i = j+1; i < n; ++i) {
                         ix += incx;
                         iy += incy;
-                        y[iy] += tmp1 * A(i, j);
-                        tmp2 += conj( A(i, j) ) * x[ix];
+                        y[iy] += tmp1 * _A(i,j);
+                        tmp2 += conj( _A(i,j) ) * x[ix];
                     }
-                    y[jy] += tmp1 * real( A(j, j) ) + alpha * tmp2;
+                    y[jy] += tmp1 * real( _A(j,j) ) + alpha * tmp2;
                     jx += incx;
                     jy += incy;
                 }
@@ -216,10 +217,10 @@ void hemv(
                     scalar_t tmp1 = alpha*x[j];
                     scalar_t tmp2 = zero;
                     for (idx_t i = 0; i < j; ++i) {
-                        y[i] += tmp1 * conj( A(i, j) );
-                        tmp2 += A(i, j) * x[i];
+                        y[i] += tmp1 * conj( _A(i,j) );
+                        tmp2 += _A(i,j) * x[i];
                     }
-                    y[j] += tmp1 * real( A(j, j) ) + alpha * tmp2;
+                    y[j] += tmp1 * real( _A(j,j) ) + alpha * tmp2;
                 }
             }
             else {
@@ -232,12 +233,12 @@ void hemv(
                     idx_t ix = kx;
                     idx_t iy = ky;
                     for (idx_t i = 0; i < j; ++i) {
-                        y[iy] += tmp1 * conj( A(i, j) );
-                        tmp2 += A(i, j) * x[ix];
+                        y[iy] += tmp1 * conj( _A(i,j) );
+                        tmp2 += _A(i,j) * x[ix];
                         ix += incx;
                         iy += incy;
                     }
-                    y[jy] += tmp1 * real( A(j, j) ) + alpha * tmp2;
+                    y[jy] += tmp1 * real( _A(j,j) ) + alpha * tmp2;
                     jx += incx;
                     jy += incy;
                 }
@@ -251,10 +252,10 @@ void hemv(
                     scalar_t tmp1 = alpha*x[j];
                     scalar_t tmp2 = zero;
                     for (idx_t i = j+1; i < n; ++i) {
-                        y[i] += tmp1 * conj( A(i, j) );
-                        tmp2 += A(i, j) * x[i];
+                        y[i] += tmp1 * conj( _A(i,j) );
+                        tmp2 += _A(i,j) * x[i];
                     }
-                    y[j] += tmp1 * real( A(j, j) ) + alpha * tmp2;
+                    y[j] += tmp1 * real( _A(j,j) ) + alpha * tmp2;
                 }
             }
             else {
@@ -268,18 +269,16 @@ void hemv(
                     for (idx_t i = j+1; i < n; ++i) {
                         ix += incx;
                         iy += incy;
-                        y[iy] += tmp1 * conj( A(i, j) );
-                        tmp2 += A(i, j) * x[ix];
+                        y[iy] += tmp1 * conj( _A(i,j) );
+                        tmp2 += _A(i,j) * x[ix];
                     }
-                    y[jy] += tmp1 * real( A(j, j) ) + alpha * tmp2;
+                    y[jy] += tmp1 * real( _A(j,j) ) + alpha * tmp2;
                     jx += incx;
                     jy += incy;
                 }
             }
         }
     }
-
-    #undef A
 }
 
 }  // namespace blas

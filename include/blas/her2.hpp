@@ -74,8 +74,6 @@ void her2(
 {
     typedef blas::scalar_type<TA, TX, TY> scalar_t;
 
-    #define A(i_, j_) A[ (i_) + (j_)*lda ]
-
     // constants
     const scalar_t zero( 0.0 );
 
@@ -92,6 +90,9 @@ void her2(
     // quick return
     if (n == 0 || alpha == zero)
         return;
+        
+    // Matrix views
+    auto _A = view_matrix<TA>( A, n, n, lda );
 
     // for row major, swap lower <=> upper
     if (layout == Layout::RowMajor) {
@@ -108,9 +109,9 @@ void her2(
                 scalar_t tmp1 = alpha * conj( y[j] );
                 scalar_t tmp2 = conj( alpha * x[j] );
                 for (idx_t i = 0; i < j; ++i) {
-                    A(i, j) += x[i]*tmp1 + y[i]*tmp2;
+                    _A(i,j) += x[i]*tmp1 + y[i]*tmp2;
                 }
-                A(j, j) = real( A(j, j) ) + real( x[j]*tmp1 + y[j]*tmp2 );
+                _A(j,j) = real( _A(j,j) ) + real( x[j]*tmp1 + y[j]*tmp2 );
             }
         }
         else {
@@ -123,11 +124,11 @@ void her2(
                 idx_t ix = kx;
                 idx_t iy = ky;
                 for (idx_t i = 0; i < j; ++i) {
-                    A(i, j) += x[ix]*tmp1 + y[iy]*tmp2;
+                    _A(i,j) += x[ix]*tmp1 + y[iy]*tmp2;
                     ix += incx;
                     iy += incy;
                 }
-                A(j, j) = real( A(j, j) ) + real( x[jx]*tmp1 + y[jy]*tmp2 );
+                _A(j,j) = real( _A(j,j) ) + real( x[jx]*tmp1 + y[jy]*tmp2 );
                 jx += incx;
                 jy += incy;
             }
@@ -140,9 +141,9 @@ void her2(
             for (idx_t j = 0; j < n; ++j) {
                 scalar_t tmp1 = alpha * conj( y[j] );
                 scalar_t tmp2 = conj( alpha * x[j] );
-                A(j, j) = real( A(j, j) ) + real( x[j]*tmp1 + y[j]*tmp2 );
+                _A(j,j) = real( _A(j,j) ) + real( x[j]*tmp1 + y[j]*tmp2 );
                 for (idx_t i = j+1; i < n; ++i) {
-                    A(i, j) += x[i]*tmp1 + y[i]*tmp2;
+                    _A(i,j) += x[i]*tmp1 + y[i]*tmp2;
                 }
             }
         }
@@ -153,21 +154,19 @@ void her2(
             for (idx_t j = 0; j < n; ++j) {
                 scalar_t tmp1 = alpha * conj( y[jy] );
                 scalar_t tmp2 = conj( alpha * x[jx] );
-                A(j, j) = real( A(j, j) ) + real( x[jx]*tmp1 + y[jy]*tmp2 );
+                _A(j,j) = real( _A(j,j) ) + real( x[jx]*tmp1 + y[jy]*tmp2 );
                 idx_t ix = jx;
                 idx_t iy = jy;
                 for (idx_t i = j+1; i < n; ++i) {
                     ix += incx;
                     iy += incy;
-                    A(i, j) += x[ix]*tmp1 + y[iy]*tmp2;
+                    _A(i,j) += x[ix]*tmp1 + y[iy]*tmp2;
                 }
                 jx += incx;
                 jy += incy;
             }
         }
     }
-
-    #undef A
 }
 
 }  // namespace blas

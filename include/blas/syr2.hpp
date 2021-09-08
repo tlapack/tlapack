@@ -71,8 +71,6 @@ void syr2(
 {
     typedef blas::scalar_type<TA, TX, TY> scalar_t;
 
-    #define A(i_, j_) A[ (i_) + (j_)*lda ]
-
     // constants
     const scalar_t zero( 0.0 );
 
@@ -89,6 +87,9 @@ void syr2(
     // quick return
     if (n == 0 || alpha == zero)
         return;
+        
+    // Matrix views
+    auto _A = view_matrix<TA>( A, n, n, lda );
 
     // for row major, swap lower <=> upper
     if (layout == Layout::RowMajor) {
@@ -105,7 +106,7 @@ void syr2(
                 scalar_t tmp1 = alpha * y[j];
                 scalar_t tmp2 = alpha * x[j];
                 for (idx_t i = 0; i <= j; ++i) {
-                    A(i, j) += x[i]*tmp1 + y[i]*tmp2;
+                    _A(i,j) += x[i]*tmp1 + y[i]*tmp2;
                 }
             }
         }
@@ -119,7 +120,7 @@ void syr2(
                 idx_t ix = kx;
                 idx_t iy = ky;
                 for (idx_t i = 0; i <= j; ++i) {
-                    A(i, j) += x[ix]*tmp1 + y[iy]*tmp2;
+                    _A(i,j) += x[ix]*tmp1 + y[iy]*tmp2;
                     ix += incx;
                     iy += incy;
                 }
@@ -136,7 +137,7 @@ void syr2(
                 scalar_t tmp1 = alpha * y[j];
                 scalar_t tmp2 = alpha * x[j];
                 for (idx_t i = j; i < n; ++i) {
-                    A(i, j) += x[i]*tmp1 + y[i]*tmp2;
+                    _A(i,j) += x[i]*tmp1 + y[i]*tmp2;
                 }
             }
         }
@@ -150,7 +151,7 @@ void syr2(
                 idx_t ix = jx;
                 idx_t iy = jy;
                 for (idx_t i = j; i < n; ++i) {
-                    A(i, j) += x[ix]*tmp1 + y[iy]*tmp2;
+                    _A(i,j) += x[ix]*tmp1 + y[iy]*tmp2;
                     ix += incx;
                     iy += incy;
                 }
@@ -159,8 +160,6 @@ void syr2(
             }
         }
     }
-
-    #undef A
 }
 
 }  // namespace blas

@@ -43,15 +43,18 @@ real_type<TA> lansy(
     const TA *A, blas::idx_t lda )
 {
     typedef real_type<TA> real_t;
-    #define A(i_, j_) A[ (i_) + (j_)*lda ]
     using blas::isnan;
     using blas::sqrt;
+    using blas::view_matrix;
 
     // constants
     const real_t zero(0.0);
 
     // quick return
     if ( n == 0 ) return zero;
+
+    // Matrix views
+    auto _A = view_matrix<const TA>( A, n, n, lda );
 
     // Norm value
     real_t norm(0.0);
@@ -62,7 +65,7 @@ real_type<TA> lansy(
         for (idx_t j = 0; j < n; ++j) {
             for (idx_t i = 0; i <= j; ++i)
             {
-                real_t temp = blas::abs( A(i,j) );
+                real_t temp = blas::abs( _A(i,j) );
 
                 if (temp > norm)
                     norm = temp;
@@ -76,7 +79,7 @@ real_type<TA> lansy(
         for (idx_t j = 0; j < n; ++j) {
             for (idx_t i = j; i < n; ++i)
             {
-                real_t temp = blas::abs( A(i,j) );
+                real_t temp = blas::abs( _A(i,j) );
 
                 if (temp > norm)
                     norm = temp;
@@ -98,11 +101,11 @@ real_type<TA> lansy(
             {
                 real_t sum = zero;
                 for (idx_t i = 0; i < j; ++i) {
-                    const real_t absa = blas::abs( A(i,j) );
+                    const real_t absa = blas::abs( _A(i,j) );
                     sum += absa;
                     work[i] += absa;
                 }
-                work[j] = sum + blas::abs( A(j,j) );
+                work[j] = sum + blas::abs( _A(j,j) );
             }
             for (idx_t i = 0; i < n; ++i)
             {
@@ -120,9 +123,9 @@ real_type<TA> lansy(
         else {
             for (idx_t j = 0; j < n; ++j)
             {
-                real_t sum = work[j] + blas::abs( A(j,j) );
+                real_t sum = work[j] + blas::abs( _A(j,j) );
                 for (idx_t i = j+1; i < n; ++i) {
-                    const real_t absa = blas::abs( A(i,j) );
+                    const real_t absa = blas::abs( _A(i,j) );
                     sum += absa;
                     work[i] += absa;
                 }
@@ -146,11 +149,11 @@ real_type<TA> lansy(
         // Sum off-diagonals
         if( uplo == Uplo::Upper ) {
             for (idx_t j = 1; j < n; ++j)
-                lassq(j, &(A(0,j)), 1, scale, ssq);
+                lassq(j, &(_A(0,j)), 1, scale, ssq);
         }
         else {
             for (idx_t j = 0; j < n-1; ++j)
-                lassq(n-j-1, &(A(j+1,j)), 1, scale, ssq);
+                lassq(n-j-1, &(_A(j+1,j)), 1, scale, ssq);
         }
         ssq *= 2;
 
@@ -161,7 +164,6 @@ real_type<TA> lansy(
         norm = scale * sqrt(ssq);
     }
 
-    #undef A
     return norm;
 }
 

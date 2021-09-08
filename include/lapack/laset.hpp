@@ -37,7 +37,10 @@ void laset(
     TA alpha, TA beta,
     TA* A, blas::idx_t lda )
 {
-    #define A(i_, j_) A[ (i_) + (j_)*lda ]
+    using blas::view_matrix;
+    
+    // Matrix views
+    auto _A = view_matrix<TA>( A, m, n, lda );
 
     if (uplo == Uplo::Upper) {
         // Set the strictly upper triangular or trapezoidal part of
@@ -45,7 +48,7 @@ void laset(
         for (idx_t j = 1; j < n; ++j) {
             const idx_t M = std::min(m,j);
             for (idx_t i = 0; i < M; ++i)
-                A(i,j) = alpha;
+                _A(i,j) = alpha;
         }
     }
     else if (uplo == Uplo::Lower) {
@@ -54,22 +57,20 @@ void laset(
         const idx_t N = std::min(m,n);
         for (idx_t j = 0; j < N; ++j) {
             for (idx_t i = j+1; i < m; ++i)
-                A(i,j) = alpha;
+                _A(i,j) = alpha;
         }
     }
     else {
         // Set the leading m-by-n submatrix to alpha.
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = 0; i < m; ++i)
-                A(i,j) = alpha;
+                _A(i,j) = alpha;
     }
 
     // Set the first min(m,n) diagonal elements to beta.
     const idx_t N = std::min(m,n);
     for (idx_t i = 0; i < N; ++i)
-        A(i,i) = beta;
-
-    #undef A
+        _A(i,i) = beta;
 }
 
 /** Initializes a matrix to diagonal and off-diagonal values
