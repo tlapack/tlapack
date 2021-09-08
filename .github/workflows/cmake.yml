@@ -170,20 +170,36 @@ jobs:
       run: cmake --build build --config ${{env.BUILD_TYPE}}
 
     # Mind that the job won't fail if only this step fails
-    - name: Test INF propagation
+    - name: Test InfNaN propagation
       working-directory: ${{github.workspace}}/build
       continue-on-error: true
       run: |
         echo "Mind that the job won't fail if only this step fails."
-        ./tester -# [#test_inf] -r compact
+        ./tester -# [#test_infNaN] -r compact
 
     # Mind that the job won't fail if only this step fails
-    - name: Test NAN propagation
+    - name: Test InfNaN propagation on iamax
       working-directory: ${{github.workspace}}/build
       continue-on-error: true
       run: |
         echo "Mind that the job won't fail if only this step fails."
-        ./tester -# [#test_nan] -r compact
+        ./tester -# [#test_infNaN_iamax] -r compact
+
+    # Mind that the job won't fail if only this step fails
+    - name: Test InfNaN propagation on nrm2
+      working-directory: ${{github.workspace}}/build
+      continue-on-error: true
+      run: |
+        echo "Mind that the job won't fail if only this step fails."
+        ./tester -# [#test_infNaN_nrm2] -r compact
+
+    # Mind that the job won't fail if only this step fails
+    - name: Test InfNaN propagation on trsv and trsm
+      working-directory: ${{github.workspace}}/build
+      continue-on-error: true
+      run: |
+        echo "Mind that the job won't fail if only this step fails."
+        ./tester -# [#test_infNaN_trsv_trsm] -r compact
 
     # Mind that the job won't fail if only this step fails
     - name: Test Corner Cases
