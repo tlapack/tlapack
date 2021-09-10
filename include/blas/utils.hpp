@@ -167,6 +167,26 @@ inline T sqrt( const T& x )
 #endif
 
 // -----------------------------------------------------------------------------
+/// atan, needed because std C++ template returns double.
+template< typename T >
+inline T atan( const T& x ) { return std::atan( x ); }
+
+#ifdef USE_MPFR
+    template<> 
+    inline mpfr::mpreal atan( const mpfr::mpreal& x ) { return mpfr::atan( x ); }
+#endif
+
+// -----------------------------------------------------------------------------
+/// exp, needed because std C++ template returns double.
+template< typename T >
+inline T exp( const T& x ) { return std::exp( x ); }
+
+#ifdef USE_MPFR
+    template<> 
+    inline mpfr::mpreal exp( const mpfr::mpreal& x ) { return mpfr::exp( x ); }
+#endif
+
+// -----------------------------------------------------------------------------
 /// pow, avoids promotion to double from std C++11.
 /// Note that the template in std::complex return the desired std::complex<T>.
 template< typename T >
