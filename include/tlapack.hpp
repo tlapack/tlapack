@@ -41,6 +41,7 @@
 #include "lapack/lange.hpp"
 #include "lapack/lansy.hpp"
 #include "lapack/larnv.hpp"
+#include "lapack/lascl.hpp"
 
 // QR factorization
 // ----------------
