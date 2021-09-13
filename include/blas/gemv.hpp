@@ -79,9 +79,9 @@ template< typename TA, typename TX, typename TY >
 void gemv(
     blas::Layout layout,
     blas::Op trans,
-    blas::size_t m, blas::size_t n,
+    blas::idx_t m, blas::idx_t n,
     blas::scalar_type<TA, TX, TY> alpha,
-    TA const *A, blas::size_t lda,
+    TA const *A, blas::idx_t lda,
     TX const *x, blas::int_t incx,
     blas::scalar_type<TA, TX, TY> beta,
     TY *y, blas::int_t incy )
@@ -130,36 +130,36 @@ void gemv(
         }
     }
 
-    blas::size_t lenx = (trans == Op::NoTrans ? n : m);
-    blas::size_t leny = (trans == Op::NoTrans ? m : n);
-    size_t kx = (incx > 0 ? 0 : (-lenx + 1)*incx);
-    size_t ky = (incy > 0 ? 0 : (-leny + 1)*incy);
+    blas::idx_t lenx = (trans == Op::NoTrans ? n : m);
+    blas::idx_t leny = (trans == Op::NoTrans ? m : n);
+    idx_t kx = (incx > 0 ? 0 : (-lenx + 1)*incx);
+    idx_t ky = (incy > 0 ? 0 : (-leny + 1)*incy);
 
     // ----------
     // form y = beta*y
     if (beta != one) {
         if (incy == 1) {
             if (beta == zero) {
-                for (size_t i = 0; i < leny; ++i) {
+                for (idx_t i = 0; i < leny; ++i) {
                     y[i] = zero;
                 }
             }
             else {
-                for (size_t i = 0; i < leny; ++i) {
+                for (idx_t i = 0; i < leny; ++i) {
                     y[i] *= beta;
                 }
             }
         }
         else {
-            size_t iy = ky;
+            idx_t iy = ky;
             if (beta == zero) {
-                for (size_t i = 0; i < leny; ++i) {
+                for (idx_t i = 0; i < leny; ++i) {
                     y[iy] = zero;
                     iy += incy;
                 }
             }
             else {
-                for (size_t i = 0; i < leny; ++i) {
+                for (idx_t i = 0; i < leny; ++i) {
                     y[iy] *= beta;
                     iy += incy;
                 }
@@ -172,22 +172,22 @@ void gemv(
     // ----------
     if (trans == Op::NoTrans && ! doconj) {
         // form y += alpha * A * x
-        size_t jx = kx;
+        idx_t jx = kx;
         if (incy == 1) {
-            for (size_t j = 0; j < n; ++j) {
+            for (idx_t j = 0; j < n; ++j) {
                 scalar_t tmp = alpha*x[jx];
                 jx += incx;
-                for (size_t i = 0; i < m; ++i) {
+                for (idx_t i = 0; i < m; ++i) {
                     y[i] += tmp * A(i, j);
                 }
             }
         }
         else {
-            for (size_t j = 0; j < n; ++j) {
+            for (idx_t j = 0; j < n; ++j) {
                 scalar_t tmp = alpha*x[jx];
                 jx += incx;
-                size_t iy = ky;
-                for (size_t i = 0; i < m; ++i) {
+                idx_t iy = ky;
+                for (idx_t i = 0; i < m; ++i) {
                     y[iy] += tmp * A(i, j);
                     iy += incy;
                 }
@@ -197,22 +197,22 @@ void gemv(
     else if (trans == Op::NoTrans && doconj) {
         // form y += alpha * conj( A ) * x
         // this occurs for row-major A^H * x
-        size_t jx = kx;
+        idx_t jx = kx;
         if (incy == 1) {
-            for (size_t j = 0; j < n; ++j) {
+            for (idx_t j = 0; j < n; ++j) {
                 scalar_t tmp = alpha*x[jx];
                 jx += incx;
-                for (size_t i = 0; i < m; ++i) {
+                for (idx_t i = 0; i < m; ++i) {
                     y[i] += tmp * conj(A(i, j));
                 }
             }
         }
         else {
-            for (size_t j = 0; j < n; ++j) {
+            for (idx_t j = 0; j < n; ++j) {
                 scalar_t tmp = alpha*x[jx];
                 jx += incx;
-                size_t iy = ky;
-                for (size_t i = 0; i < m; ++i) {
+                idx_t iy = ky;
+                for (idx_t i = 0; i < m; ++i) {
                     y[iy] += tmp * conj(A(i, j));
                     iy += incy;
                 }
@@ -221,11 +221,11 @@ void gemv(
     }
     else if (trans == Op::Trans) {
         // form y += alpha * A^T * x
-        size_t jy = ky;
+        idx_t jy = ky;
         if (incx == 1) {
-            for (size_t j = 0; j < n; ++j) {
+            for (idx_t j = 0; j < n; ++j) {
                 scalar_t tmp = zero;
-                for (size_t i = 0; i < m; ++i) {
+                for (idx_t i = 0; i < m; ++i) {
                     tmp += A(i, j) * x[i];
                 }
                 y[jy] += alpha*tmp;
@@ -233,10 +233,10 @@ void gemv(
             }
         }
         else {
-            for (size_t j = 0; j < n; ++j) {
+            for (idx_t j = 0; j < n; ++j) {
                 scalar_t tmp = zero;
-                size_t ix = kx;
-                for (size_t i = 0; i < m; ++i) {
+                idx_t ix = kx;
+                for (idx_t i = 0; i < m; ++i) {
                     tmp += A(i, j) * x[ix];
                     ix += incx;
                 }
@@ -247,11 +247,11 @@ void gemv(
     }
     else {
         // form y += alpha * A^H * x
-        size_t jy = ky;
+        idx_t jy = ky;
         if (incx == 1) {
-            for (size_t j = 0; j < n; ++j) {
+            for (idx_t j = 0; j < n; ++j) {
                 scalar_t tmp = zero;
-                for (size_t i = 0; i < m; ++i) {
+                for (idx_t i = 0; i < m; ++i) {
                     tmp += conj(A(i, j)) * x[i];
                 }
                 y[jy] += alpha*tmp;
@@ -259,10 +259,10 @@ void gemv(
             }
         }
         else {
-            for (size_t j = 0; j < n; ++j) {
+            for (idx_t j = 0; j < n; ++j) {
                 scalar_t tmp = zero;
-                size_t ix = kx;
-                for (size_t i = 0; i < m; ++i) {
+                idx_t ix = kx;
+                for (idx_t i = 0; i < m; ++i) {
                     tmp += conj(A(i, j)) * x[ix];
                     ix += incx;
                 }

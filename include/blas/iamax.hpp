@@ -38,8 +38,8 @@ namespace blas {
  * @ingroup iamax
  */
 template< typename T >
-inline size_t iamax(
-    blas::size_t n,
+inline idx_t iamax(
+    blas::idx_t n,
     T const *x, blas::int_t incx,
     bool checkNAN = true );
 
@@ -52,8 +52,8 @@ inline size_t iamax(
  * @ingroup iamax
  */
 template< typename T >
-size_t iamax_quietNAN(
-    blas::size_t n,
+idx_t iamax_quietNAN(
+    blas::idx_t n,
     T const *x, blas::int_t incx );
 
 /**
@@ -62,16 +62,16 @@ size_t iamax_quietNAN(
  * @ingroup iamax
  */
 template< typename T >
-size_t iamax_checkNAN(
-    blas::size_t n,
+idx_t iamax_checkNAN(
+    blas::idx_t n,
     T const *x, blas::int_t incx );
 
 // =============================================================================
 // Implementation
 
 template< typename T >
-inline size_t iamax(
-    blas::size_t n,
+inline idx_t iamax(
+    blas::idx_t n,
     T const *x, blas::int_t incx,
     bool checkNAN ) {
 
@@ -84,20 +84,20 @@ inline size_t iamax(
 }
 
 template< typename T >
-size_t iamax_quietNAN(
-    blas::size_t n,
+idx_t iamax_quietNAN(
+    blas::idx_t n,
     T const *x, blas::int_t incx )
 {
     typedef real_type<T> real_t;
 
     bool scaledsmax = false; // indicates whether |Re(x_i)| + |Im(x_i)| = Inf
     real_t smax = -1;
-    blas::size_t index = INVALID_INDEX;
+    blas::idx_t index = INVALID_INDEX;
     const real_t oneFourth = 0.25;
 
     if (incx == 1) {
         // unit stride
-        for (size_t i = 0; i < n; ++i) {
+        for (idx_t i = 0; i < n; ++i) {
             if ( ! is_complex<T>::value ) {
                 real_t a = abs1(x[i]);
                 if ( a > smax ) {
@@ -128,8 +128,8 @@ size_t iamax_quietNAN(
     }
     else {
         // non-unit stride
-        size_t ix = (incx > 0 ? 0 : (-n + 1)*incx);
-        for (size_t i = 0; i < n; ++i) {
+        idx_t ix = (incx > 0 ? 0 : (-n + 1)*incx);
+        for (idx_t i = 0; i < n; ++i) {
             if ( ! is_complex<T>::value ) {
                 real_t a = abs1(x[ix]);
                 if ( a > smax ) {
@@ -163,8 +163,8 @@ size_t iamax_quietNAN(
 }
 
 template< typename T >
-size_t iamax_checkNAN(
-    blas::size_t n,
+idx_t iamax_checkNAN(
+    blas::idx_t n,
     T const *x, blas::int_t incx )
 {
     typedef real_type<T> real_t;
@@ -173,12 +173,12 @@ size_t iamax_checkNAN(
 
     bool scaledsmax = false; // indicates whether x_i finite but |Re(x_i)| + |Im(x_i)| = Inf
     real_t smax = -1;
-    blas::size_t index = INVALID_INDEX;
+    blas::idx_t index = INVALID_INDEX;
     const real_t oneFourth = 0.25;
 
     if (incx == 1) {
         // unit stride
-        blas::size_t i = 0;
+        blas::idx_t i = 0;
         for (; i < n; ++i) {
             if ( isnan(x[i]) ) {
                 // return when first NaN found
@@ -228,8 +228,8 @@ size_t iamax_checkNAN(
     }
     else {
         // non-unit stride
-        blas::size_t i = 0;
-        size_t ix = (incx > 0 ? 0 : (-n + 1)*incx);
+        blas::idx_t i = 0;
+        idx_t ix = (incx > 0 ? 0 : (-n + 1)*incx);
         for (; i < n; ++i) {
             if ( isnan(x[ix]) ) {
                 // return when first NaN found

@@ -25,14 +25,14 @@ namespace lapack {
  *     It is possible to use the subarray tau[1:n-1] as the work vector, i.e.,
  *         org2r( ..., tau, &(tau[1]) )
  *     and, in this case, the original vector tau is lost. 
- * @see org2r( blas::size_t, blas::size_t, blas::size_t, TA*, blas::size_t, const Ttau* )
+ * @see org2r( blas::idx_t, blas::idx_t, blas::idx_t, TA*, blas::idx_t, const Ttau* )
  * 
  * @ingroup geqrf
  */
 template<typename TA>
 int org2r(
-    blas::size_t m, blas::size_t n, blas::size_t k,
-    TA* A, blas::size_t lda,
+    blas::idx_t m, blas::idx_t n, blas::idx_t k,
+    TA* A, blas::idx_t lda,
     const TA* tau,
     TA* work )
 {
@@ -53,13 +53,13 @@ int org2r(
     if (n <= 0) return 0;
     
     // Initialise columns k:n-1 to columns of the unit matrix
-    for (size_t j = k; j < n; ++j) {
-        for (size_t l = 0; l < m; ++l)
+    for (idx_t j = k; j < n; ++j) {
+        for (idx_t l = 0; l < m; ++l)
 	        A(l,j) = zero;
         A(j,j) = one;
     }
 
-    for (size_t i = k-1; i != size_t(-1); --i) {
+    for (idx_t i = k-1; i != idx_t(-1); --i) {
 
         // Apply $H_{i+1}$ to $A( i:m-1, i:n-1 )$ from the left
         if ( i+1 < n ){
@@ -71,7 +71,7 @@ int org2r(
         A(i,i) = one - tau[i];
 
         // Set A( 0:i-1, i ) to zero
-        for (size_t l = 0; l < i; l++)
+        for (idx_t l = 0; l < i; l++)
             A(l,i) = zero;
     }
 
@@ -82,14 +82,14 @@ int org2r(
 /** Generates a m-by-n matrix Q with orthogonal columns.
  * 
  * @param work Vector of size n-1.
- * @see org2r( blas::size_t, blas::size_t, blas::size_t, TA*, blas::size_t, const Ttau* )
+ * @see org2r( blas::idx_t, blas::idx_t, blas::idx_t, TA*, blas::idx_t, const Ttau* )
  * 
  * @ingroup geqrf
  */
 template<typename TA>
 int org2r(
-    blas::size_t m, blas::size_t n, blas::size_t k,
-    TA* A, blas::size_t lda,
+    blas::idx_t m, blas::idx_t n, blas::idx_t k,
+    TA* A, blas::idx_t lda,
     const real_type<TA>* tau,
     TA* work )
 {
@@ -109,13 +109,13 @@ int org2r(
     if (n <= 0) return 0;
     
     // Initialise columns k:n-1 to columns of the unit matrix
-    for (size_t j = k; j < n; ++j) {
-        for (size_t l = 0; l < m; ++l)
+    for (idx_t j = k; j < n; ++j) {
+        for (idx_t l = 0; l < m; ++l)
 	        A(l,j) = zero;
         A(j,j) = one;
     }
 
-    for (size_t i = k-1; i != size_t(-1); --i) {
+    for (idx_t i = k-1; i != idx_t(-1); --i) {
 
         // Apply $H_{i+1}$ to $A( i:m-1, i:n-1 )$ from the left
         if ( i+1 < n ){
@@ -127,7 +127,7 @@ int org2r(
         A(i,i) = one - tau[i];
 
         // Set A( 0:i-1, i ) to zero
-        for (size_t l = 0; l < i; l++)
+        for (idx_t l = 0; l < i; l++)
             A(l,i) = zero;
     }
 
@@ -159,8 +159,8 @@ int org2r(
  */
 template< typename TA, typename Ttau >
 inline int org2r(
-    blas::size_t m, blas::size_t n, blas::size_t k,
-    TA* A, blas::size_t lda,
+    blas::idx_t m, blas::idx_t n, blas::idx_t k,
+    TA* A, blas::idx_t lda,
     const Ttau* tau )
 {
     int info = 0;

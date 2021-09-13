@@ -54,7 +54,7 @@ namespace lapack {
  */
 template< typename TX >
 void lassq(
-    blas::size_t n,
+    blas::idx_t n,
     TX const* x, blas::int_t incx,
     real_type<TX> &scl,
     real_type<TX> &sumsq)
@@ -96,9 +96,9 @@ void lassq(
     real_t asml = zero;
     real_t amed = zero;
     real_t abig = zero;
-    size_t ix = (incx > 0 ? 0 : (-n + 1)*incx);
+    idx_t ix = (incx > 0 ? 0 : (-n + 1)*incx);
 
-    for (size_t i = 0; i < n; ++i)
+    for (idx_t i = 0; i < n; ++i)
     {
         real_t ax = blas::abs( x[ix] ); 
         if( ax > tbig )

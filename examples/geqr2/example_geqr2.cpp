@@ -19,27 +19,27 @@
 /// Print matrix A in the standard output
 template <typename TA>
 inline void printMatrix(
-    lapack::size_t m, lapack::size_t n,
-    const TA *A, lapack::size_t lda )
+    lapack::idx_t m, lapack::idx_t n,
+    const TA *A, lapack::idx_t lda )
 {        
-    for (lapack::size_t i = 0; i < m; ++i) {
+    for (lapack::idx_t i = 0; i < m; ++i) {
         std::cout << std::endl;
-        for (lapack::size_t j = 0; j < n; ++j)
+        for (lapack::idx_t j = 0; j < n; ++j)
             std::cout << A[ i + j*lda ] << " ";
     }
 }
 
 //------------------------------------------------------------------------------
 template <typename real_t>
-void run( lapack::size_t m, lapack::size_t n )
+void run( lapack::idx_t m, lapack::idx_t n )
 {
     // Turn it off if m or n are large
     bool verbose = false;
 
     // Leading dimensions
-    lapack::size_t lda = (m > 0) ? m : 1;
-    lapack::size_t ldr = lda;
-    lapack::size_t ldq = lda;
+    lapack::idx_t lda = (m > 0) ? m : 1;
+    lapack::idx_t ldr = lda;
+    lapack::idx_t ldq = lda;
 
     // Arrays
     real_t* A = new real_t[ lda*n ];  // m-by-n
@@ -54,8 +54,8 @@ void run( lapack::size_t m, lapack::size_t n )
     #define Q(i_, j_) Q[ (i_) + (j_)*ldq ]
 
     // Initialize arrays with junk
-    for (lapack::size_t j = 0; j < n; ++j) {
-        for (lapack::size_t i = 0; i < m; ++i) {
+    for (lapack::idx_t j = 0; j < n; ++j) {
+        for (lapack::idx_t i = 0; i < m; ++i) {
             A(i,j) = static_cast<float>( 0xDEADBEEF );
             Q(i,j) = static_cast<float>( 0xCAFED00D );
             R(i,j) = static_cast<float>( 0xFEE1DEAD );
@@ -64,8 +64,8 @@ void run( lapack::size_t m, lapack::size_t n )
     }
     
     // Generate a random matrix in A
-    for (lapack::size_t j = 0; j < n; ++j)
-        for (lapack::size_t i = 0; i < m; ++i)
+    for (lapack::idx_t j = 0; j < n; ++j)
+        for (lapack::idx_t i = 0; i < m; ++i)
             A(i,j) = static_cast<float>( rand() )
                         / static_cast<float>( RAND_MAX );
 
@@ -119,7 +119,7 @@ void run( lapack::size_t m, lapack::size_t n )
     // 2) Compute ||Q'Q - I||_F
 
     work = new real_t[ n*n ];
-    for (lapack::size_t i = 0; i < n*n; ++i) work[i] = static_cast<float>( 0xABADBABE );
+    for (lapack::idx_t i = 0; i < n*n; ++i) work[i] = static_cast<float>( 0xABADBABE );
         
         // work receives the identity n*n
         lapack::laset<real_t>(
@@ -142,7 +142,7 @@ void run( lapack::size_t m, lapack::size_t n )
     // 3) Compute ||QR - A||_F / ||A||_F
 
     work = new real_t[ m*n ];
-    for (lapack::size_t i = 0; i < n*n; ++i) work[i] = static_cast<float>( 0xABADBABE );
+    for (lapack::idx_t i = 0; i < n*n; ++i) work[i] = static_cast<float>( 0xABADBABE );
 
         // Copy Q to work
         lapack::lacpy( lapack::Uplo::General, m, n, Q, ldq, work, m );
@@ -152,8 +152,8 @@ void run( lapack::size_t m, lapack::size_t n )
             blas::Uplo::Upper, blas::Op::NoTrans, blas::Diag::NonUnit,
             m, n, 1.0, R, ldr, work, m );
 
-        for(lapack::size_t j = 0; j < n; ++j)
-            for(lapack::size_t i = 0; i < m; ++i)
+        for(lapack::idx_t j = 0; j < n; ++j)
+            for(lapack::idx_t i = 0; i < m; ++i)
                 work[ i+j*m ] -= A(i,j);
 
         real_t norm_repres_1 = lapack::lange(

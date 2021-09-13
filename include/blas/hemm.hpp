@@ -86,12 +86,12 @@ void hemm(
     blas::Layout layout,
     blas::Side side,
     blas::Uplo uplo,
-    blas::size_t m, blas::size_t n,
+    blas::idx_t m, blas::idx_t n,
     scalar_type<TA, TB, TC> alpha,
-    TA const *A, blas::size_t lda,
-    TB const *B, blas::size_t ldb,
+    TA const *A, blas::idx_t lda,
+    TB const *B, blas::idx_t ldb,
     scalar_type<TA, TB, TC> beta,
-    TC       *C, blas::size_t ldc )
+    TC       *C, blas::idx_t ldc )
 {    
     typedef blas::scalar_type<TA, TB, TC> scalar_t;
 
@@ -144,14 +144,14 @@ void hemm(
     // alpha == zero
     if (alpha == zero) {
         if (beta == zero) {
-            for(size_t j = 0; j < n; ++j) {
-                for(size_t i = 0; i < m; ++i)
+            for(idx_t j = 0; j < n; ++j) {
+                for(idx_t i = 0; i < m; ++i)
                     C(i,j) = zero;
             }
         }
         else if (beta != one) {
-            for(size_t j = 0; j < n; ++j) {
-                for(size_t i = 0; i < m; ++i)
+            for(idx_t j = 0; j < n; ++j) {
+                for(idx_t i = 0; i < m; ++i)
                     C(i,j) *= beta;
             }
         }
@@ -162,13 +162,13 @@ void hemm(
     if (side == Side::Left) {
         if (uplo != Uplo::Lower) {
             // uplo == Uplo::Upper or uplo == Uplo::General
-            for(size_t j = 0; j < n; ++j) {
-                for(size_t i = 0; i < m; ++i) {
+            for(idx_t j = 0; j < n; ++j) {
+                for(idx_t i = 0; i < m; ++i) {
 
                     scalar_t alphaTimesBij = alpha*B(i,j);
                     scalar_t sum = zero;
 
-                    for(size_t k = 0; k < i; ++k) {
+                    for(idx_t k = 0; k < i; ++k) {
                         C(k,j) += A(k,i) * alphaTimesBij;
                         sum += conj( A(k,i) ) * B(k,j);
                     }
@@ -181,13 +181,13 @@ void hemm(
         }
         else {
             // uplo == Uplo::Lower
-            for(size_t j = 0; j < n; ++j) {
-                for(size_t i = m-1; i >= 0; --i) {
+            for(idx_t j = 0; j < n; ++j) {
+                for(idx_t i = m-1; i >= 0; --i) {
 
                     scalar_t alphaTimesBij = alpha*B(i,j);
                     scalar_t sum = zero;
 
-                    for(size_t k = i+1; k < m; ++k) {
+                    for(idx_t k = i+1; k < m; ++k) {
                         C(k,j) += A(k,i) * alphaTimesBij;
                         sum += conj( A(k,i) ) * B(k,j);
                     }
@@ -202,44 +202,44 @@ void hemm(
     else { // side == Side::Right
         if (uplo != Uplo::Lower) {
             // uplo == Uplo::Upper or uplo == Uplo::General
-            for(size_t j = 0; j < n; ++j) {
+            for(idx_t j = 0; j < n; ++j) {
 
                 scalar_t alphaTimesAkj = alpha * real( A(j,j) );
 
-                for(size_t i = 0; i < m; ++i)
+                for(idx_t i = 0; i < m; ++i)
                     C(i,j) = beta * C(i,j) + B(i,j) * alphaTimesAkj;
 
-                for(size_t k = 0; k < j; ++k) {
+                for(idx_t k = 0; k < j; ++k) {
                     alphaTimesAkj = alpha*A(k,j);
-                    for(size_t i = 0; i < m; ++i)
+                    for(idx_t i = 0; i < m; ++i)
                         C(i,j) += B(i,k) * alphaTimesAkj;
                 }
 
-                for(size_t k = j+1; k < n; ++k) {
+                for(idx_t k = j+1; k < n; ++k) {
                     alphaTimesAkj = alpha * conj( A(j,k) );
-                    for(size_t i = 0; i < m; ++i)
+                    for(idx_t i = 0; i < m; ++i)
                         C(i,j) += B(i,k) * alphaTimesAkj;
                 }
             }
         }
         else {
             // uplo == Uplo::Lower
-            for(size_t j = 0; j < n; ++j) {
+            for(idx_t j = 0; j < n; ++j) {
 
                 scalar_t alphaTimesAkj = alpha * real( A(j,j) );
 
-                for(size_t i = 0; i < m; ++i)
+                for(idx_t i = 0; i < m; ++i)
                     C(i,j) = beta * C(i,j) + B(i,j) * alphaTimesAkj;
 
-                for(size_t k = 0; k < j; ++k) {
+                for(idx_t k = 0; k < j; ++k) {
                     alphaTimesAkj = alpha * conj( A(j,k) );
-                    for(size_t i = 0; i < m; ++i)
+                    for(idx_t i = 0; i < m; ++i)
                         C(i,j) += B(i,k) * alphaTimesAkj;
                 }
 
-                for(size_t k = j+1; k < n; ++k) {
+                for(idx_t k = j+1; k < n; ++k) {
                     alphaTimesAkj = alpha*A(k,j);
-                    for(size_t i = 0; i < m; ++i)
+                    for(idx_t i = 0; i < m; ++i)
                         C(i,j) += B(i,k) * alphaTimesAkj;
                 }
             }

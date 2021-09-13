@@ -59,10 +59,10 @@ template< typename TA, typename TX >
 void her(
     blas::Layout layout,
     blas::Uplo uplo,
-    blas::size_t n,
+    blas::idx_t n,
     blas::real_type<TA, TX> alpha,  // zher takes double alpha; use real
     TX const *x, blas::int_t incx,
-    TA       *A, blas::size_t lda )
+    TA       *A, blas::idx_t lda )
 {
     typedef blas::scalar_type<TA, TX> scalar_t;
     typedef blas::real_type<TA, TX> real_t;
@@ -90,14 +90,14 @@ void her(
         uplo = (uplo == Uplo::Lower ? Uplo::Upper : Uplo::Lower);
     }
 
-    size_t kx = (incx > 0 ? 0 : (-n + 1)*incx);
+    idx_t kx = (incx > 0 ? 0 : (-n + 1)*incx);
     if (uplo == Uplo::Upper) {
         if (incx == 1) {
             // unit stride
-            for (size_t j = 0; j < n; ++j) {
+            for (idx_t j = 0; j < n; ++j) {
                 // note: NOT skipping if x[j] is zero, for consistent NAN handling
                 scalar_t tmp = alpha * conj( x[j] );
-                for (size_t i = 0; i < j; ++i) {
+                for (idx_t i = 0; i < j; ++i) {
                     A(i, j) += x[i] * tmp;
                 }
                 A(j, j) = real( A(j, j) ) + real( x[j] * tmp );
@@ -105,11 +105,11 @@ void her(
         }
         else {
             // non-unit stride
-            size_t jx = kx;
-            for (size_t j = 0; j < n; ++j) {
+            idx_t jx = kx;
+            for (idx_t j = 0; j < n; ++j) {
                 scalar_t tmp = alpha * conj( x[jx] );
-                size_t ix = kx;
-                for (size_t i = 0; i < j; ++i) {
+                idx_t ix = kx;
+                for (idx_t i = 0; i < j; ++i) {
                     A(i, j) += x[ix] * tmp;
                     ix += incx;
                 }
@@ -122,22 +122,22 @@ void her(
         // lower triangle
         if (incx == 1) {
             // unit stride
-            for (size_t j = 0; j < n; ++j) {
+            for (idx_t j = 0; j < n; ++j) {
                 scalar_t tmp = alpha * conj( x[j] );
                 A(j, j) = real( A(j, j) ) + real( tmp * x[j] );
-                for (size_t i = j+1; i < n; ++i) {
+                for (idx_t i = j+1; i < n; ++i) {
                     A(i, j) += x[i] * tmp;
                 }
             }
         }
         else {
             // non-unit stride
-            size_t jx = kx;
-            for (size_t j = 0; j < n; ++j) {
+            idx_t jx = kx;
+            for (idx_t j = 0; j < n; ++j) {
                 scalar_t tmp = alpha * conj( x[jx] );
                 A(j, j) = real( A(j, j) ) + real( tmp * x[jx] );
-                size_t ix = jx;
-                for (size_t i = j+1; i < n; ++i) {
+                idx_t ix = jx;
+                for (idx_t i = j+1; i < n; ++i) {
                     ix += incx;
                     A(i, j) += x[ix] * tmp;
                 }

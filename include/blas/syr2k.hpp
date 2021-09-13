@@ -91,12 +91,12 @@ void syr2k(
     blas::Layout layout,
     blas::Uplo uplo,
     blas::Op trans,
-    blas::size_t n, blas::size_t k,
+    blas::idx_t n, blas::idx_t k,
     scalar_type<TA, TB, TC> alpha,
-    TA const *A, blas::size_t lda,
-    TB const *B, blas::size_t ldb,
+    TA const *A, blas::idx_t lda,
+    TB const *B, blas::idx_t ldb,
     scalar_type<TA, TB, TC> beta,
-    TC       *C, blas::size_t ldc )
+    TC       *C, blas::idx_t ldc )
 {    
     typedef blas::scalar_type<TA, TB, TC> scalar_t;
 
@@ -164,40 +164,40 @@ void syr2k(
     if (alpha == zero) {
         if (beta == zero) {
             if (uplo != Uplo::Upper) {
-                for(size_t j = 0; j < n; ++j) {
-                    for(size_t i = 0; i <= j; ++i)
+                for(idx_t j = 0; j < n; ++j) {
+                    for(idx_t i = 0; i <= j; ++i)
                         C(i,j) = zero;
                 }
             }
             else if (uplo != Uplo::Lower) {
-                for(size_t j = 0; j < n; ++j) {
-                    for(size_t i = j; i < n; ++i)
+                for(idx_t j = 0; j < n; ++j) {
+                    for(idx_t i = j; i < n; ++i)
                         C(i,j) = zero;
                 }
             }
             else {
-                for(size_t j = 0; j < n; ++j) {
-                    for(size_t i = 0; i < n; ++i)
+                for(idx_t j = 0; j < n; ++j) {
+                    for(idx_t i = 0; i < n; ++i)
                         C(i,j) = zero;
                 }
             }
         }
         else if (beta != one) {
             if (uplo != Uplo::Upper) {
-                for(size_t j = 0; j < n; ++j) {
-                    for(size_t i = 0; i <= j; ++i)
+                for(idx_t j = 0; j < n; ++j) {
+                    for(idx_t i = 0; i <= j; ++i)
                         C(i,j) *= beta;
                 }
             }
             else if (uplo != Uplo::Lower) {
-                for(size_t j = 0; j < n; ++j) {
-                    for(size_t i = j; i < n; ++i)
+                for(idx_t j = 0; j < n; ++j) {
+                    for(idx_t i = j; i < n; ++i)
                         C(i,j) *= beta;
                 }
             }
             else {
-                for(size_t j = 0; j < n; ++j) {
-                    for(size_t i = 0; i < n; ++i)
+                for(idx_t j = 0; j < n; ++j) {
+                    for(idx_t i = 0; i < n; ++i)
                         C(i,j) *= beta;
                 }
             }
@@ -209,29 +209,29 @@ void syr2k(
     if (trans == Op::NoTrans) {
         if (uplo != Uplo::Lower) {
         // uplo == Uplo::Upper or uplo == Uplo::General
-            for(size_t j = 0; j < n; ++j) {
+            for(idx_t j = 0; j < n; ++j) {
 
-                for(size_t i = 0; i <= j; ++i)
+                for(idx_t i = 0; i <= j; ++i)
                     C(i,j) *= beta;
 
-                for(size_t l = 0; l < k; ++l) {
+                for(idx_t l = 0; l < k; ++l) {
                     scalar_t alphaBjl = alpha*B(j,l);
                     scalar_t alphaAjl = alpha*A(j,l);
-                    for(size_t i = 0; i <= j; ++i)
+                    for(idx_t i = 0; i <= j; ++i)
                         C(i,j) += A(i,l)*alphaBjl + B(i,l)*alphaAjl;
                 }
             }
         }
         else { // uplo == Uplo::Lower
-            for(size_t j = 0; j < n; ++j) {
+            for(idx_t j = 0; j < n; ++j) {
 
-                for(size_t i = j; i < n; ++i)
+                for(idx_t i = j; i < n; ++i)
                     C(i,j) *= beta;
 
-                for(size_t l = 0; l < k; ++l) {
+                for(idx_t l = 0; l < k; ++l) {
                     scalar_t alphaBjl = alpha*B(j,l);
                     scalar_t alphaAjl = alpha*A(j,l);
-                    for(size_t i = j; i < n; ++i)
+                    for(idx_t i = j; i < n; ++i)
                         C(i,j) += A(i,l)*alphaBjl + B(i,l)*alphaAjl;
                 }
             }
@@ -240,11 +240,11 @@ void syr2k(
     else { // trans == Op::Trans
         if (uplo != Uplo::Lower) {
         // uplo == Uplo::Upper or uplo == Uplo::General
-            for(size_t j = 0; j < n; ++j) {
-                for(size_t i = 0; i <= j; ++i) {
+            for(idx_t j = 0; j < n; ++j) {
+                for(idx_t i = 0; i <= j; ++i) {
                     scalar_t sum1 = zero;
                     scalar_t sum2 = zero;
-                    for(size_t l = 0; l < k; ++l) {
+                    for(idx_t l = 0; l < k; ++l) {
                         sum1 += A(l,i) * B(l,j);
                         sum2 += B(l,i) * A(l,j);
                     }
@@ -253,11 +253,11 @@ void syr2k(
             }
         }
         else { // uplo == Uplo::Lower
-            for(size_t j = 0; j < n; ++j) {
-                for(size_t i = j; i < n; ++i) {
+            for(idx_t j = 0; j < n; ++j) {
+                for(idx_t i = j; i < n; ++i) {
                     scalar_t sum1 = zero;
                     scalar_t sum2 = zero;
-                    for(size_t l = 0; l < k; ++l) {
+                    for(idx_t l = 0; l < k; ++l) {
                         sum1 +=  A(l,i) * B(l,j);
                         sum2 +=  B(l,i) * A(l,j);
                     }
@@ -268,8 +268,8 @@ void syr2k(
     }
 
     if (uplo == Uplo::General) {
-        for(size_t j = 0; j < n; ++j) {
-            for(size_t i = j+1; i < n; ++i)
+        for(idx_t j = 0; j < n; ++j) {
+            for(idx_t i = j+1; i < n; ++i)
                 C(i,j) = C(j,i);
         }
     }

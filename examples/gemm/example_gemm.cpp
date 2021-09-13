@@ -19,14 +19,14 @@
 
 //------------------------------------------------------------------------------
 template <typename T>
-void run( blas::size_t m, blas::size_t n, blas::size_t k )
+void run( blas::idx_t m, blas::idx_t n, blas::idx_t k )
 {
-    using blas::size_t;
+    using blas::idx_t;
     using blas::min;
 
-    size_t lda = (m > 0) ? m : 1;
-    size_t ldb = (k > 0) ? k : 1;
-    size_t ldc = (m > 0) ? m : 1;
+    idx_t lda = (m > 0) ? m : 1;
+    idx_t ldb = (k > 0) ? k : 1;
+    idx_t ldc = (m > 0) ? m : 1;
     std::vector<T> A( lda*k, T(0) );    // m-by-k
     std::vector<T> B( ldb*n, T(0) );    // k-by-n
     std::vector<T> C( ldc*n, T(0) );    // m-by-n
@@ -37,23 +37,23 @@ void run( blas::size_t m, blas::size_t n, blas::size_t k )
     #define C(i_, j_) C[ (i_) + (j_)*ldc ]
 
     // Initialize A with junk
-    for (size_t j = 0; j < k; ++j)
-        for (size_t i = 0; i < m; ++i)
+    for (idx_t j = 0; j < k; ++j)
+        for (idx_t i = 0; i < m; ++i)
             A(i,j) = static_cast<float>( 0xDEADBEEF );
     
     // Generate a random matrix in a submatrix of A
-    for (size_t j = 0; j < min(k,n); ++j)
-        for (size_t i = 0; i < m; ++i)
+    for (idx_t j = 0; j < min(k,n); ++j)
+        for (idx_t i = 0; i < m; ++i)
             A(i,j) = static_cast<float>( rand() )
                         / static_cast<float>( RAND_MAX );
 
     // Set C using A
-    for (size_t j = 0; j < min(k,n); ++j)
-        for (size_t i = 0; i < m; ++i)
+    for (idx_t j = 0; j < min(k,n); ++j)
+        for (idx_t i = 0; i < m; ++i)
             C(i,j) = A(i,j);
 
     // The diagonal of B is full of ones
-    for (size_t i = 0; i < min(k,n); ++i)
+    for (idx_t i = 0; i < min(k,n); ++i)
         B(i,i) = 1.0;
 
     // Record start time

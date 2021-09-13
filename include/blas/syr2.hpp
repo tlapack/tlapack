@@ -63,11 +63,11 @@ template< typename TA, typename TX, typename TY >
 void syr2(
     blas::Layout layout,
     blas::Uplo  uplo,
-    blas::size_t n,
+    blas::idx_t n,
     blas::scalar_type<TA, TX, TY> alpha,
     TX const *x, blas::int_t incx,
     TY const *y, blas::int_t incy,
-    TA *A, blas::size_t lda )
+    TA *A, blas::idx_t lda )
 {
     typedef blas::scalar_type<TA, TX, TY> scalar_t;
 
@@ -95,30 +95,30 @@ void syr2(
         uplo = (uplo == Uplo::Lower ? Uplo::Upper : Uplo::Lower);
     }
 
-    size_t kx = (incx > 0 ? 0 : (-n + 1)*incx);
-    size_t ky = (incy > 0 ? 0 : (-n + 1)*incy);
+    idx_t kx = (incx > 0 ? 0 : (-n + 1)*incx);
+    idx_t ky = (incy > 0 ? 0 : (-n + 1)*incy);
     if (uplo == Uplo::Upper) {
         if (incx == 1 && incy == 1) {
             // unit stride
-            for (size_t j = 0; j < n; ++j) {
+            for (idx_t j = 0; j < n; ++j) {
                 // note: NOT skipping if x[j] or y[j] is zero, for consistent NAN handling
                 scalar_t tmp1 = alpha * y[j];
                 scalar_t tmp2 = alpha * x[j];
-                for (size_t i = 0; i <= j; ++i) {
+                for (idx_t i = 0; i <= j; ++i) {
                     A(i, j) += x[i]*tmp1 + y[i]*tmp2;
                 }
             }
         }
         else {
             // non-unit stride
-            size_t jx = kx;
-            size_t jy = ky;
-            for (size_t j = 0; j < n; ++j) {
+            idx_t jx = kx;
+            idx_t jy = ky;
+            for (idx_t j = 0; j < n; ++j) {
                 scalar_t tmp1 = alpha * y[jy];
                 scalar_t tmp2 = alpha * x[jx];
-                size_t ix = kx;
-                size_t iy = ky;
-                for (size_t i = 0; i <= j; ++i) {
+                idx_t ix = kx;
+                idx_t iy = ky;
+                for (idx_t i = 0; i <= j; ++i) {
                     A(i, j) += x[ix]*tmp1 + y[iy]*tmp2;
                     ix += incx;
                     iy += incy;
@@ -132,24 +132,24 @@ void syr2(
         // lower triangle
         if (incx == 1 && incy == 1) {
             // unit stride
-            for (size_t j = 0; j < n; ++j) {
+            for (idx_t j = 0; j < n; ++j) {
                 scalar_t tmp1 = alpha * y[j];
                 scalar_t tmp2 = alpha * x[j];
-                for (size_t i = j; i < n; ++i) {
+                for (idx_t i = j; i < n; ++i) {
                     A(i, j) += x[i]*tmp1 + y[i]*tmp2;
                 }
             }
         }
         else {
             // non-unit stride
-            size_t jx = kx;
-            size_t jy = ky;
-            for (size_t j = 0; j < n; ++j) {
+            idx_t jx = kx;
+            idx_t jy = ky;
+            for (idx_t j = 0; j < n; ++j) {
                 scalar_t tmp1 = alpha * y[jy];
                 scalar_t tmp2 = alpha * x[jx];
-                size_t ix = jx;
-                size_t iy = jy;
-                for (size_t i = j; i < n; ++i) {
+                idx_t ix = jx;
+                idx_t iy = jy;
+                for (idx_t i = j; i < n; ++i) {
                     A(i, j) += x[ix]*tmp1 + y[iy]*tmp2;
                     ix += incx;
                     iy += incy;

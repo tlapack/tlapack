@@ -60,11 +60,11 @@ namespace blas {
 template< typename TA, typename TX, typename TY >
 void geru(
     blas::Layout layout,
-   blas::size_t m, blas::size_t n,
+   blas::idx_t m, blas::idx_t n,
     blas::scalar_type<TA, TX, TY> alpha,
     TX const *x, blas::int_t incx,
     TY const *y, blas::int_t incy,
-    TA *A, blas::size_t lda )
+    TA *A, blas::idx_t lda )
 {
     typedef blas::scalar_type<TA, TX, TY> scalar_t;
 
@@ -99,20 +99,20 @@ void geru(
 
     if (incx == 1 && incy == 1) {
         // unit stride
-        for (size_t j = 0; j < n; ++j) {
+        for (idx_t j = 0; j < n; ++j) {
             // note: NOT skipping if y[j] is zero, for consistent NAN handling
             scalar_t tmp = alpha * y[j];
-            for (size_t i = 0; i < m; ++i) {
+            for (idx_t i = 0; i < m; ++i) {
                 A(i, j) += x[i] * tmp;
             }
         }
     }
     else if (incx == 1) {
         // x unit stride, y non-unit stride
-        size_t jy = (incy > 0 ? 0 : (-n + 1)*incy);
-        for (size_t j = 0; j < n; ++j) {
+        idx_t jy = (incy > 0 ? 0 : (-n + 1)*incy);
+        for (idx_t j = 0; j < n; ++j) {
             scalar_t tmp = alpha * y[jy];
-            for (size_t i = 0; i < m; ++i) {
+            for (idx_t i = 0; i < m; ++i) {
                 A(i, j) += x[i] * tmp;
             }
             jy += incy;
@@ -120,12 +120,12 @@ void geru(
     }
     else {
         // x and y non-unit stride
-        size_t kx = (incx > 0 ? 0 : (-m + 1)*incx);
-        size_t jy = (incy > 0 ? 0 : (-n + 1)*incy);
-        for (size_t j = 0; j < n; ++j) {
+        idx_t kx = (incx > 0 ? 0 : (-m + 1)*incx);
+        idx_t jy = (incy > 0 ? 0 : (-n + 1)*incy);
+        for (idx_t j = 0; j < n; ++j) {
             scalar_t tmp = alpha * y[jy];
-            size_t ix = kx;
-            for (size_t i = 0; i < m; ++i) {
+            idx_t ix = kx;
+            for (idx_t i = 0; i < m; ++i) {
                 A(i, j) += x[ix] * tmp;
                 ix += incx;
             }

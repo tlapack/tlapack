@@ -21,14 +21,14 @@ namespace lapack {
 /** Computes a QR factorization of a matrix A.
  * 
  * @param work Vector of size n-1.
- * @see geqr2( blas::size_t, blas::size_t, TA*, blas::size_t, TA* )
+ * @see geqr2( blas::idx_t, blas::idx_t, TA*, blas::idx_t, TA* )
  * 
  * @ingroup geqrf
  */
 template< typename TA >
 int geqr2(
-    blas::size_t m, blas::size_t n,
-    TA* A, blas::size_t lda,
+    blas::idx_t m, blas::idx_t n,
+    TA* A, blas::idx_t lda,
     TA* tau,
     TA* work )
 {
@@ -48,8 +48,8 @@ int geqr2(
     // quick return
     if (n <= 0) return 0;
 
-	const size_t k = std::min<size_t>( m, n-1 );
-    for(size_t i = 0; i < k; ++i) {
+	const idx_t k = std::min<idx_t>( m, n-1 );
+    for(idx_t i = 0; i < k; ++i) {
 
         larfg( m-i, A(i,i), &(A(i+1,i)), 1, tau[i] );
 
@@ -71,7 +71,7 @@ int geqr2(
 /** Computes a QR factorization of a complex matrix A.
  * 
  * @tparam real_t floating-point type.
- * Similar to @see geqr2( blas::size_t, blas::size_t, TA*, blas::size_t, TA*, TA* )
+ * Similar to @see geqr2( blas::idx_t, blas::idx_t, TA*, blas::idx_t, TA*, TA* )
  * but, here, A is complex and tau is real.
  * 
  * @note The imaginary part of tau is set to zero.
@@ -80,8 +80,8 @@ int geqr2(
  */
 template< typename real_t >
 int geqr2(
-    blas::size_t m, blas::size_t n,
-    std::complex<real_t>* A, blas::size_t lda,
+    blas::idx_t m, blas::idx_t n,
+    std::complex<real_t>* A, blas::idx_t lda,
     real_t* tau,
     std::complex<real_t>* work )
 {
@@ -99,8 +99,8 @@ int geqr2(
     // quick return
     if (n <= 0) return 0;
 
-	const size_t k = std::min<size_t>( m, n-1 );
-    for(size_t i = 0; i < k; ++i) {
+	const idx_t k = std::min<idx_t>( m, n-1 );
+    for(idx_t i = 0; i < k; ++i) {
 
         larfg( m-i, A(i,i), &(A(i+1,i)), 1, tau[i] );
 
@@ -156,8 +156,8 @@ int geqr2(
  */
 template< typename TA >
 inline int geqr2(
-    blas::size_t m, blas::size_t n,
-    TA* A, blas::size_t lda,
+    blas::idx_t m, blas::idx_t n,
+    TA* A, blas::idx_t lda,
     TA* tau )
 {
     return geqr2( m, n, A, lda, tau, tau+1 );
@@ -166,7 +166,7 @@ inline int geqr2(
 /** Computes a QR factorization of a complex matrix A.
  * 
  * @tparam real_t floating-point type.
- * Similar to @see geqr2( blas::size_t, blas::size_t, TA*, blas::size_t, TA* )
+ * Similar to @see geqr2( blas::idx_t, blas::idx_t, TA*, blas::idx_t, TA* )
  * but, here, A is complex and tau is real.
  * 
  * @note The imaginary part of tau is set to zero.
@@ -175,8 +175,8 @@ inline int geqr2(
  */
 template< typename real_t >
 int geqr2(
-    blas::size_t m, blas::size_t n,
-    std::complex<real_t>* A, blas::size_t lda,
+    blas::idx_t m, blas::idx_t n,
+    std::complex<real_t>* A, blas::idx_t lda,
     real_t* tau )
 {
     int info = 0;

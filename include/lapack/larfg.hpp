@@ -51,7 +51,7 @@ namespace lapack {
  */
 template< typename T >
 void larfg(
-    blas::size_t n, T &alpha, T *x, blas::int_t incx, T &tau )
+    blas::idx_t n, T &alpha, T *x, blas::int_t incx, T &tau )
 {
     typedef blas::real_type<T> real_t;
 
@@ -78,9 +78,9 @@ void larfg(
         if ( xnorm > rzero || (imag(alpha) != rzero) )
         {
             real_t temp = ( ! is_complex<T>::value )
-                        ? abs( lapy2(alpha, xnorm) )
+                        ? abs( lapy2(real(alpha), xnorm) )
                         : abs( lapy3(real(alpha), imag(alpha), xnorm) );
-            real_t beta = (alpha < zero) ? temp : -temp;
+            real_t beta = (real(alpha) < rzero) ? temp : -temp;
             if (abs(beta) < safemin)
             {
                 while (abs(beta) < safemin)
@@ -92,9 +92,9 @@ void larfg(
                 }
                 xnorm = nrm2( n-1, x, incx );
                 temp = ( ! is_complex<T>::value )
-                     ? abs( lapy2(alpha, xnorm) )
+                     ? abs( lapy2(real(alpha), xnorm) )
                      : abs( lapy3(real(alpha), imag(alpha), xnorm) );
-                beta = (real(alpha) < zero) ? temp : -temp;
+                beta = (real(alpha) < rzero) ? temp : -temp;
             }
             tau = (beta - alpha) / beta;
             scal( n-1, one/(alpha-beta), x, incx );

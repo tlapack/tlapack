@@ -14,7 +14,7 @@ namespace lapack {
 
 // -----------------------------------------------------------------------------
 // Use the types from the namespace blas
-using blas::size_t;
+using blas::idx_t;
 using blas::int_t;
 using blas::Layout;
 using blas::Op;

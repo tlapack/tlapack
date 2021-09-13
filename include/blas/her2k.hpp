@@ -92,12 +92,12 @@ void her2k(
     blas::Layout layout,
     blas::Uplo uplo,
     blas::Op trans,
-    blas::size_t n, blas::size_t k,
+    blas::idx_t n, blas::idx_t k,
     scalar_type<TA, TB, TC> alpha,  // note: complex
-    TA const *A, blas::size_t lda,
-    TB const *B, blas::size_t ldb,
+    TA const *A, blas::idx_t lda,
+    TB const *B, blas::idx_t ldb,
     real_type<TA, TB, TC> beta,  // note: real
-    TC       *C, blas::size_t ldc )
+    TC       *C, blas::idx_t ldc )
 {
     typedef blas::scalar_type<TA, TB, TC> scalar_t;
 
@@ -166,44 +166,44 @@ void her2k(
     if (alpha == zero) {
         if (beta == zero) {
             if (uplo != Uplo::Upper) {
-                for(size_t j = 0; j < n; ++j) {
-                    for(size_t i = 0; i <= j; ++i)
+                for(idx_t j = 0; j < n; ++j) {
+                    for(idx_t i = 0; i <= j; ++i)
                         C(i,j) = zero;
                 }
             }
             else if (uplo != Uplo::Lower) {
-                for(size_t j = 0; j < n; ++j) {
-                    for(size_t i = j; i < n; ++i)
+                for(idx_t j = 0; j < n; ++j) {
+                    for(idx_t i = j; i < n; ++i)
                         C(i,j) = zero;
                 }
             }
             else {
-                for(size_t j = 0; j < n; ++j) {
-                    for(size_t i = 0; i < n; ++i)
+                for(idx_t j = 0; j < n; ++j) {
+                    for(idx_t i = 0; i < n; ++i)
                         C(i,j) = zero;
                 }
             }
         } else if (beta != one) {
             if (uplo != Uplo::Upper) {
-                for(size_t j = 0; j < n; ++j) {
-                    for(size_t i = 0; i < j; ++i)
+                for(idx_t j = 0; j < n; ++j) {
+                    for(idx_t i = 0; i < j; ++i)
                         C(i,j) *= beta;
                     C(j,j) = beta * real( C(j,j) );
                 }
             }
             else if (uplo != Uplo::Lower) {
-                for(size_t j = 0; j < n; ++j) {
+                for(idx_t j = 0; j < n; ++j) {
                     C(j,j) = beta * real( C(j,j) );
-                    for(size_t i = j+1; i < n; ++i)
+                    for(idx_t i = j+1; i < n; ++i)
                         C(i,j) *= beta;
                 }
             }
             else {
-                for(size_t j = 0; j < n; ++j) {
-                    for(size_t i = 0; i < j; ++i)
+                for(idx_t j = 0; j < n; ++j) {
+                    for(idx_t i = 0; i < j; ++i)
                         C(i,j) *= beta;
                     C(j,j) = beta * real( C(j,j) );
-                    for(size_t i = j+1; i < n; ++i)
+                    for(idx_t i = j+1; i < n; ++i)
                         C(i,j) *= beta;
                 }
             }
@@ -215,18 +215,18 @@ void her2k(
     if (trans == Op::NoTrans) {
         if (uplo != Uplo::Lower) {
         // uplo == Uplo::Upper or uplo == Uplo::General
-            for(size_t j = 0; j < n; ++j) {
+            for(idx_t j = 0; j < n; ++j) {
 
-                for(size_t i = 0; i < j; ++i)
+                for(idx_t i = 0; i < j; ++i)
                     C(i,j) *= beta;
                 C(j,j) = beta * real( C(j,j) );
 
-                for(size_t l = 0; l < k; ++l) {
+                for(idx_t l = 0; l < k; ++l) {
 
                     scalar_t alphaConjBjl = alpha*conj( B(j,l) );
                     scalar_t conjAlphaAjl = conj( alpha*A(j,l) );
 
-                    for(size_t i = 0; i < j; ++i) {
+                    for(idx_t i = 0; i < j; ++i) {
                         C(i,j) += A(i,l)*alphaConjBjl
                                 + B(i,l)*conjAlphaAjl;
                     }
@@ -235,19 +235,19 @@ void her2k(
             }
         }
         else { // uplo == Uplo::Lower
-            for(size_t j = 0; j < n; ++j) {
+            for(idx_t j = 0; j < n; ++j) {
 
                 C(j,j) = beta * real( C(j,j) );
-                for(size_t i = j+1; i < n; ++i)
+                for(idx_t i = j+1; i < n; ++i)
                     C(i,j) *= beta;
 
-                for(size_t l = 0; l < k; ++l) {
+                for(idx_t l = 0; l < k; ++l) {
 
                     scalar_t alphaConjBjl = alpha*conj( B(j,l) );
                     scalar_t conjAlphaAjl = conj( alpha*A(j,l) );
 
                     C(j,j) += 2 * real( A(j,l) * alphaConjBjl );
-                    for(size_t i = j+1; i < n; ++i) {
+                    for(idx_t i = j+1; i < n; ++i) {
                         C(i,j) += A(i,l) * alphaConjBjl
                                 + B(i,l) * conjAlphaAjl;
                     }
@@ -258,12 +258,12 @@ void her2k(
     else { // trans == Op::ConjTrans
         if (uplo != Uplo::Lower) {
         // uplo == Uplo::Upper or uplo == Uplo::General
-            for(size_t j = 0; j < n; ++j) {
-                for(size_t i = 0; i <= j; ++i) {
+            for(idx_t j = 0; j < n; ++j) {
+                for(idx_t i = 0; i <= j; ++i) {
 
                     scalar_t sum1 = zero;
                     scalar_t sum2 = zero;
-                    for(size_t l = 0; l < k; ++l) {
+                    for(idx_t l = 0; l < k; ++l) {
                         sum1 += conj( A(l,i) ) * B(l,j);
                         sum2 += conj( B(l,i) ) * A(l,j);
                     }
@@ -278,12 +278,12 @@ void her2k(
         }
         else {
             // uplo == Uplo::Lower
-            for(size_t j = 0; j < n; ++j) {
-                for(size_t i = j; i < n; ++i) {
+            for(idx_t j = 0; j < n; ++j) {
+                for(idx_t i = j; i < n; ++i) {
 
                     scalar_t sum1 = zero;
                     scalar_t sum2 = zero;
-                    for(size_t l = 0; l < k; ++l) {
+                    for(idx_t l = 0; l < k; ++l) {
                         sum1 += conj( A(l,i) ) * B(l,j);
                         sum2 += conj( B(l,i) ) * A(l,j);
                     }
@@ -299,8 +299,8 @@ void her2k(
     }
 
     if (uplo == Uplo::General) {
-        for(size_t j = 0; j < n; ++j) {
-            for(size_t i = j+1; i < n; ++i)
+        for(idx_t j = 0; j < n; ++j) {
+            for(idx_t i = j+1; i < n; ++i)
                 C(i,j) = conj( C(j,i) );
         }
     }

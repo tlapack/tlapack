@@ -56,10 +56,10 @@ template< typename TA, typename TX >
 void syr(
     blas::Layout layout,
     blas::Uplo uplo,
-    blas::size_t n,
+    blas::idx_t n,
     blas::scalar_type<TA, TX> alpha,
     TX const *x, blas::int_t incx,
-    TA       *A, blas::size_t lda )
+    TA       *A, blas::idx_t lda )
 {
     typedef blas::scalar_type<TA, TX> scalar_t;
 
@@ -86,25 +86,25 @@ void syr(
         uplo = (uplo == Uplo::Lower ? Uplo::Upper : Uplo::Lower);
     }
 
-    size_t kx = (incx > 0 ? 0 : (-n + 1)*incx);
+    idx_t kx = (incx > 0 ? 0 : (-n + 1)*incx);
     if (uplo == Uplo::Upper) {
         if (incx == 1) {
             // unit stride
-            for (size_t j = 0; j < n; ++j) {
+            for (idx_t j = 0; j < n; ++j) {
                 // note: NOT skipping if x[j] is zero, for consistent NAN handling
                 scalar_t tmp = alpha * x[j];
-                for (size_t i = 0; i <= j; ++i) {
+                for (idx_t i = 0; i <= j; ++i) {
                     A(i, j) += x[i] * tmp;
                 }
             }
         }
         else {
             // non-unit stride
-            size_t jx = kx;
-            for (size_t j = 0; j < n; ++j) {
+            idx_t jx = kx;
+            for (idx_t j = 0; j < n; ++j) {
                 scalar_t tmp = alpha * x[jx];
-                size_t ix = kx;
-                for (size_t i = 0; i <= j; ++i) {
+                idx_t ix = kx;
+                for (idx_t i = 0; i <= j; ++i) {
                     A(i, j) += x[ix] * tmp;
                     ix += incx;
                 }
@@ -116,20 +116,20 @@ void syr(
         // lower triangle
         if (incx == 1) {
             // unit stride
-            for (size_t j = 0; j < n; ++j) {
+            for (idx_t j = 0; j < n; ++j) {
                 scalar_t tmp = alpha * x[j];
-                for (size_t i = j; i < n; ++i) {
+                for (idx_t i = j; i < n; ++i) {
                     A(i, j) += x[i] * tmp;
                 }
             }
         }
         else {
             // non-unit stride
-            size_t jx = kx;
-            for (size_t j = 0; j < n; ++j) {
+            idx_t jx = kx;
+            for (idx_t j = 0; j < n; ++j) {
                 scalar_t tmp = alpha * x[jx];
-                size_t ix = jx;
-                for (size_t i = j; i < n; ++i) {
+                idx_t ix = jx;
+                for (idx_t i = j; i < n; ++i) {
                     A(i, j) += x[ix] * tmp;
                     ix += incx;
                 }

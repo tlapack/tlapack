@@ -16,8 +16,8 @@
 namespace blas {
 
 // -----------------------------------------------------------------------------
-// Integer types blas::size_t and blas::int_t
-using size_t = BLAS_SIZE_T;
+// Integer types blas::idx_t and blas::int_t
+using idx_t = BLAS_SIZE_T;
 using int_t  = BLAS_INT_T;
 
 // -----------------------------------------------------------------------------

@@ -40,7 +40,7 @@ namespace blas {
 template< typename T >
 real_type<T>
 nrm2(
-    blas::size_t n,
+    blas::idx_t n,
     T const * x, blas::int_t incx )
 {
     typedef real_type<T> real_t;
@@ -74,7 +74,7 @@ nrm2(
 
     if (incx == 1) {
         // unit stride
-        for (size_t i = 0; i < n; ++i)
+        for (idx_t i = 0; i < n; ++i)
         {
             real_t ax = blas::abs( x[i] );
             if( ax > tbig )
@@ -87,8 +87,8 @@ nrm2(
     }
     else {
         // non-unit stride
-        size_t ix = 0;
-        for (size_t i = 0; i < n; ++i)
+        idx_t ix = 0;
+        for (idx_t i = 0; i < n; ++i)
         {
             real_t ax = blas::abs( x[ix] ); 
             if( ax > tbig )

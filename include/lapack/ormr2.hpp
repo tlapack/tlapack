@@ -20,17 +20,17 @@ namespace lapack {
 /** Applies orthogonal matrix Q to a matrix C.
  * 
  * @param work Vector of size n (m if side == Side::Right).
- * @see ormr2( Side, Op, blas::size_t, blas::size_t, blas::size_t, const TA*, blas::size_t, const blas::real_type<TA,TC>*, TC*, blas::size_t )
+ * @see ormr2( Side, Op, blas::idx_t, blas::idx_t, blas::idx_t, const TA*, blas::idx_t, const blas::real_type<TA,TC>*, TC*, blas::idx_t )
  * 
  * @ingroup geqrf
  */
 template<typename TA, typename TC>
 int ormr2(
     Side side, Op trans,
-    blas::size_t m, blas::size_t n, blas::size_t k,
-    const TA* A, blas::size_t lda,
+    blas::idx_t m, blas::idx_t n, blas::idx_t k,
+    const TA* A, blas::idx_t lda,
     const blas::real_type<TA,TC>* tau,
-    TC* C, blas::size_t ldc,
+    TC* C, blas::idx_t ldc,
     blas::scalar_type<TA,TC>* work )
 {
     // check arguments
@@ -43,7 +43,7 @@ int ormr2(
     lapack_error_if( m < 0, -3 );
     lapack_error_if( n < 0, -4 );
 
-    const size_t q = (side == Side::Left) ? m : n;
+    const idx_t q = (side == Side::Left) ? m : n;
     lapack_error_if( k < 0 || k > q, -5 );
     lapack_error_if( lda < q, -7 );
     lapack_error_if( ldc < m, -10 );
@@ -54,21 +54,21 @@ int ormr2(
 
     if( side == Side::Left ) {
         if( trans == Op::NoTrans ) {
-            for (size_t i = 0; i < k; ++i)
+            for (idx_t i = 0; i < k; ++i)
                 larf( Side::Left, m-k+i+1, n, A+i, lda, tau[i], C, ldc, work );
         }
         else {
-            for (size_t i = k-1; i != size_t(-1); --i)
+            for (idx_t i = k-1; i != idx_t(-1); --i)
                 larf( Side::Left, m-k+i+1, n, A+i, lda, tau[i], C, ldc, work );
         }
     }
     else { // side == Side::Right
         if( trans == Op::NoTrans ) {
-            for (size_t i = 0; i < k; ++i)
+            for (idx_t i = 0; i < k; ++i)
                 larf( Side::Right, m, n-k+i+1, A+i, lda, tau[i], C, ldc, work );
         }
         else {
-            for (size_t i = k-1; i != size_t(-1); --i)
+            for (idx_t i = k-1; i != idx_t(-1); --i)
                 larf( Side::Right, m, n-k+i+1, A+i, lda, tau[i], C, ldc, work );
         }
     }
@@ -111,10 +111,10 @@ int ormr2(
 template<typename TA, typename TC>
 inline int ormr2(
     Side side, Op trans,
-    blas::size_t m, blas::size_t n, blas::size_t k,
-    const TA* A, blas::size_t lda,
+    blas::idx_t m, blas::idx_t n, blas::idx_t k,
+    const TA* A, blas::idx_t lda,
     const blas::real_type<TA,TC>* tau,
-    TC* C, blas::size_t ldc )
+    TC* C, blas::idx_t ldc )
 {
     typedef blas::scalar_type<TA,TC> scalar_t;
 

@@ -33,32 +33,32 @@ namespace lapack {
  */
 template< typename TA, typename TB >
 void lacpy(
-    Uplo uplo, blas::size_t m, blas::size_t n,
-    TA* A, blas::size_t lda,
-    TB* B, blas::size_t ldb )
+    Uplo uplo, blas::idx_t m, blas::idx_t n,
+    TA* A, blas::idx_t lda,
+    TB* B, blas::idx_t ldb )
 {
     #define A(i_, j_) A[ (i_) + (j_)*lda ]
     #define B(i_, j_) B[ (i_) + (j_)*ldb ]
 
     if (uplo == Uplo::Upper) {
         // Set the strictly upper triangular or trapezoidal part of B
-        for (size_t j = 0; j < n; ++j) {
-            const size_t M = std::min<size_t>( m, j+1 );
-            for (size_t i = 0; i < M; ++i)
+        for (idx_t j = 0; j < n; ++j) {
+            const idx_t M = std::min<idx_t>( m, j+1 );
+            for (idx_t i = 0; i < M; ++i)
                 B(i,j) = A(i,j);
         }
     }
     else if (uplo == Uplo::Lower) {
         // Set the strictly lower triangular or trapezoidal part of B
-        const size_t N = std::min(m,n);
-        for (size_t j = 0; j < N; ++j)
-            for (size_t i = j; i < m; ++i)
+        const idx_t N = std::min(m,n);
+        for (idx_t j = 0; j < N; ++j)
+            for (idx_t i = j; i < m; ++i)
                 B(i,j) = A(i,j);
     }
     else {
         // Set the whole m-by-n matrix B
-        for (size_t j = 0; j < n; ++j)
-            for (size_t i = 0; i < m; ++i)
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = 0; i < m; ++i)
                 B(i,j) = A(i,j);
     }
 

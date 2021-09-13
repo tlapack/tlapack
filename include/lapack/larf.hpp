@@ -62,10 +62,10 @@ namespace lapack {
 template< typename TV, typename TC, typename TW >
 inline int larf(
     Layout layout, Side side,
-    blas::size_t m, blas::size_t n,
+    blas::idx_t m, blas::idx_t n,
     TV const *v, blas::int_t incv,
     blas::scalar_type< TV, TC , TW > tau,
-    TC *C, blas::size_t ldC,
+    TC *C, blas::idx_t ldC,
     TW *work )
 {
     typedef blas::real_type<TV, TC, TW> real_t;
@@ -92,17 +92,17 @@ inline int larf(
 
 /** Applies an elementary reflector H to a m-by-n matrix C.
  * 
- * @see larf( Layout, Side side, blas::size_t m, blas::size_t n, TV const *v, blas::int_t incv, blas::scalar_type< TV, TC , TW > tau, TC *C, blas::size_t ldC, TW *work )
+ * @see larf( Layout, Side side, blas::idx_t m, blas::idx_t n, TV const *v, blas::int_t incv, blas::scalar_type< TV, TC , TW > tau, TC *C, blas::idx_t ldC, TW *work )
  * 
  * @ingroup auxiliary
  */
 template< typename TV, typename TC, typename TW >
 inline int larf(
     Side side,
-    blas::size_t m, blas::size_t n,
+    blas::idx_t m, blas::idx_t n,
     TV const *v, blas::int_t incv,
     blas::scalar_type< TV, TC , TW > tau,
-    TC *C, blas::size_t ldC,
+    TC *C, blas::idx_t ldC,
     TW *work )
 {
     return larf(

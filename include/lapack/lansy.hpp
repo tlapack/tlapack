@@ -39,8 +39,8 @@ namespace lapack {
 **/
 template <typename TA>
 real_type<TA> lansy(
-    Norm normType, Uplo uplo, blas::size_t n,
-    const TA *A, blas::size_t lda )
+    Norm normType, Uplo uplo, blas::idx_t n,
+    const TA *A, blas::idx_t lda )
 {
     typedef real_type<TA> real_t;
     #define A(i_, j_) A[ (i_) + (j_)*lda ]
@@ -59,8 +59,8 @@ real_type<TA> lansy(
     if( normType == Norm::Max )
     {
         if( uplo == Uplo::Upper )
-        for (size_t j = 0; j < n; ++j) {
-            for (size_t i = 0; i <= j; ++i)
+        for (idx_t j = 0; j < n; ++j) {
+            for (idx_t i = 0; i <= j; ++i)
             {
                 real_t temp = blas::abs( A(i,j) );
 
@@ -73,8 +73,8 @@ real_type<TA> lansy(
             }
         }
         else
-        for (size_t j = 0; j < n; ++j) {
-            for (size_t i = j; i < n; ++i)
+        for (idx_t j = 0; j < n; ++j) {
+            for (idx_t i = j; i < n; ++i)
             {
                 real_t temp = blas::abs( A(i,j) );
 
@@ -90,21 +90,21 @@ real_type<TA> lansy(
     else if ( normType == Norm::One ||normType == Norm::Inf )
     {
         real_t *work = new real_t[n];
-        for (size_t i = 0; i < n; ++i)
+        for (idx_t i = 0; i < n; ++i)
             work[i] = zero;
 
         if( uplo == Uplo::Upper ) {
-            for (size_t j = 0; j < n; ++j)
+            for (idx_t j = 0; j < n; ++j)
             {
                 real_t sum = zero;
-                for (size_t i = 0; i < j; ++i) {
+                for (idx_t i = 0; i < j; ++i) {
                     const real_t absa = blas::abs( A(i,j) );
                     sum += absa;
                     work[i] += absa;
                 }
                 work[j] = sum + blas::abs( A(j,j) );
             }
-            for (size_t i = 0; i < n; ++i)
+            for (idx_t i = 0; i < n; ++i)
             {
                 real_t sum = work[i];
                 if (sum > norm)
@@ -118,10 +118,10 @@ real_type<TA> lansy(
             }
         }
         else {
-            for (size_t j = 0; j < n; ++j)
+            for (idx_t j = 0; j < n; ++j)
             {
                 real_t sum = work[j] + blas::abs( A(j,j) );
-                for (size_t i = j+1; i < n; ++i) {
+                for (idx_t i = j+1; i < n; ++i) {
                     const real_t absa = blas::abs( A(i,j) );
                     sum += absa;
                     work[i] += absa;
@@ -145,11 +145,11 @@ real_type<TA> lansy(
         
         // Sum off-diagonals
         if( uplo == Uplo::Upper ) {
-            for (size_t j = 1; j < n; ++j)
+            for (idx_t j = 1; j < n; ++j)
                 lassq(j, &(A(0,j)), 1, scale, ssq);
         }
         else {
-            for (size_t j = 0; j < n-1; ++j)
+            for (idx_t j = 0; j < n-1; ++j)
                 lassq(n-j-1, &(A(j+1,j)), 1, scale, ssq);
         }
         ssq *= 2;
@@ -169,15 +169,15 @@ real_type<TA> lansy(
  * 
  * @param[in] layout
  *     Matrix storage, Layout::ColMajor or Layout::RowMajor.
- * @see lansy( Norm normType, Uplo, blas::size_t n, const TA *A, blas::size_t lda )
+ * @see lansy( Norm normType, Uplo, blas::idx_t n, const TA *A, blas::idx_t lda )
  * 
  * @ingroup auxiliary
 **/
 template <typename TA>
 inline real_type<TA> lansy(
     Layout layout, Uplo uplo,
-    Norm normType, blas::size_t n,
-    const TA *A, blas::size_t lda )
+    Norm normType, blas::idx_t n,
+    const TA *A, blas::idx_t lda )
 {
     if ( layout == Layout::RowMajor ) {
         // Transpose A

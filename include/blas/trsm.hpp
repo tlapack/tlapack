@@ -96,11 +96,11 @@ void trsm(
     blas::Uplo uplo,
     blas::Op trans,
     blas::Diag diag,
-    blas::size_t m,
-    blas::size_t n,
+    blas::idx_t m,
+    blas::idx_t n,
     blas::scalar_type<TA, TB> alpha,
-    TA const *A, blas::size_t lda,
-    TB       *B, blas::size_t ldb )
+    TA const *A, blas::idx_t lda,
+    TB       *B, blas::idx_t ldb )
 {    
     typedef blas::scalar_type<TA, TB> scalar_t;
 
@@ -152,8 +152,8 @@ void trsm(
 
     // alpha == zero
     if (alpha == zero) {
-        for(size_t j = 0; j < n; ++j) {
-            for(size_t i = 0; i < m; ++i)
+        for(idx_t j = 0; j < n; ++j) {
+            for(idx_t i = 0; i < m; ++i)
                 B(i,j) = zero;
         }
         return;
@@ -163,25 +163,25 @@ void trsm(
     if (side == Side::Left) {
         if (trans == Op::NoTrans) {
             if (uplo == Uplo::Upper) {
-                for(size_t j = 0; j < n; ++j) {
-                    for(size_t i = 0; i < m; ++i)
+                for(idx_t j = 0; j < n; ++j) {
+                    for(idx_t i = 0; i < m; ++i)
                         B(i,j) *= alpha;
-                    for(size_t k = m-1; k != size_t(-1); --k) {
+                    for(idx_t k = m-1; k != idx_t(-1); --k) {
                         if (diag == Diag::NonUnit)
                             B(k,j) /= A(k,k);
-                        for(size_t i = 0; i < k; ++i)
+                        for(idx_t i = 0; i < k; ++i)
                             B(i,j) -= A(i,k)*B(k,j);
                     }
                 }
             }
             else { // uplo == Uplo::Lower
-                for(size_t j = 0; j < n; ++j) {
-                    for(size_t i = 0; i < m; ++i)
+                for(idx_t j = 0; j < n; ++j) {
+                    for(idx_t i = 0; i < m; ++i)
                         B(i,j) *= alpha;
-                    for(size_t k = 0; k < m; ++k) {
+                    for(idx_t k = 0; k < m; ++k) {
                         if (diag == Diag::NonUnit)
                             B(k,j) /= A(k,k);
-                        for(size_t i = k+1; i < m; ++i)
+                        for(idx_t i = k+1; i < m; ++i)
                             B(i,j) -= A(i,k)*B(k,j);
                     }
                 }
@@ -189,10 +189,10 @@ void trsm(
         }
         else if (trans == Op::Trans) {
             if (uplo == Uplo::Upper) {
-                for(size_t j = 0; j < n; ++j) {
-                    for(size_t i = 0; i < m; ++i) {
+                for(idx_t j = 0; j < n; ++j) {
+                    for(idx_t i = 0; i < m; ++i) {
                         scalar_t sum = alpha*B(i,j);
-                        for(size_t k = 0; k < i; ++k)
+                        for(idx_t k = 0; k < i; ++k)
                             sum -= A(k,i)*B(k,j);
                         B(i,j) = (diag == Diag::NonUnit)
                             ? sum / A(i,i)
@@ -201,10 +201,10 @@ void trsm(
                 }
             }
             else { // uplo == Uplo::Lower
-                for(size_t j = 0; j < n; ++j) {
-                    for(size_t i = m-1; i != size_t(-1); --i) {
+                for(idx_t j = 0; j < n; ++j) {
+                    for(idx_t i = m-1; i != idx_t(-1); --i) {
                         scalar_t sum = alpha*B(i,j);
-                        for(size_t k = i+1; k < m; ++k)
+                        for(idx_t k = i+1; k < m; ++k)
                             sum -= A(k,i)*B(k,j);
                         B(i,j) = (diag == Diag::NonUnit)
                             ? sum / A(i,i)
@@ -215,10 +215,10 @@ void trsm(
         }
         else { // trans == Op::ConjTrans
             if (uplo == Uplo::Upper) {
-                for(size_t j = 0; j < n; ++j) {
-                    for(size_t i = 0; i < m; ++i) {
+                for(idx_t j = 0; j < n; ++j) {
+                    for(idx_t i = 0; i < m; ++i) {
                         scalar_t sum = alpha*B(i,j);
-                        for(size_t k = 0; k < i; ++k)
+                        for(idx_t k = 0; k < i; ++k)
                             sum -= conj(A(k,i))*B(k,j);
                         B(i,j) = (diag == Diag::NonUnit)
                             ? sum / conj(A(i,i))
@@ -227,10 +227,10 @@ void trsm(
                 }
             }
             else { // uplo == Uplo::Lower
-                for(size_t j = 0; j < n; ++j) {
-                    for(size_t i = m-1; i != size_t(-1); --i) {
+                for(idx_t j = 0; j < n; ++j) {
+                    for(idx_t i = m-1; i != idx_t(-1); --i) {
                         scalar_t sum = alpha*B(i,j);
-                        for(size_t k = i+1; k < m; ++k)
+                        for(idx_t k = i+1; k < m; ++k)
                             sum -= conj(A(k,i))*B(k,j);
                         B(i,j) = (diag == Diag::NonUnit)
                             ? sum / conj(A(i,i))
@@ -243,29 +243,29 @@ void trsm(
     else { // side == Side::Right
         if (trans == Op::NoTrans) {
             if (uplo == Uplo::Upper) {
-                for(size_t j = 0; j < n; ++j) {
-                    for(size_t i = 0; i < m; ++i)
+                for(idx_t j = 0; j < n; ++j) {
+                    for(idx_t i = 0; i < m; ++i)
                         B(i,j) *= alpha;
-                    for(size_t k = 0; k < j; ++k) {
-                        for(size_t i = 0; i < m; ++i)
+                    for(idx_t k = 0; k < j; ++k) {
+                        for(idx_t i = 0; i < m; ++i)
                             B(i,j) -= B(i,k)*A(k,j);
                     }
                     if (diag == Diag::NonUnit) {
-                        for(size_t i = 0; i < m; ++i)
+                        for(idx_t i = 0; i < m; ++i)
                             B(i,j) /= A(j,j);
                     }
                 }
             }
             else { // uplo == Uplo::Lower
-                for(size_t j = n-1; j != size_t(-1); --j) {
-                    for(size_t i = 0; i < m; ++i)
+                for(idx_t j = n-1; j != idx_t(-1); --j) {
+                    for(idx_t i = 0; i < m; ++i)
                         B(i,j) *= alpha;
-                    for(size_t k = j+1; k < n; ++k) {
-                        for(size_t i = 0; i < m; ++i)
+                    for(idx_t k = j+1; k < n; ++k) {
+                        for(idx_t i = 0; i < m; ++i)
                             B(i,j) -= B(i,k)*A(k,j);
                     }
                     if (diag == Diag::NonUnit) {
-                        for(size_t i = 0; i < m; ++i)
+                        for(idx_t i = 0; i < m; ++i)
                             B(i,j) /= A(j,j);
                     }
                 }
@@ -273,60 +273,60 @@ void trsm(
         }
         else if (trans == Op::Trans) {
             if (uplo == Uplo::Upper) {
-                for(size_t k = n-1; k != size_t(-1); --k) {
+                for(idx_t k = n-1; k != idx_t(-1); --k) {
                     if (diag == Diag::NonUnit) {
-                        for(size_t i = 0; i < m; ++i)
+                        for(idx_t i = 0; i < m; ++i)
                             B(i,k) /= A(k,k);
                     }
-                    for(size_t j = 0; j < k; ++j) {
-                        for(size_t i = 0; i < m; ++i)
+                    for(idx_t j = 0; j < k; ++j) {
+                        for(idx_t i = 0; i < m; ++i)
                             B(i,j) -= B(i,k)*A(j,k);
                     }
-                    for(size_t i = 0; i < m; ++i)
+                    for(idx_t i = 0; i < m; ++i)
                         B(i,k) *= alpha;
                 }
             }
             else { // uplo == Uplo::Lower
-                for(size_t k = 0; k < n; ++k) {
+                for(idx_t k = 0; k < n; ++k) {
                     if (diag == Diag::NonUnit) {
-                        for(size_t i = 0; i < m; ++i)
+                        for(idx_t i = 0; i < m; ++i)
                             B(i,k) /= A(k,k);
                     }
-                    for(size_t j = k+1; j < n; ++j) {
-                        for(size_t i = 0; i < m; ++i)
+                    for(idx_t j = k+1; j < n; ++j) {
+                        for(idx_t i = 0; i < m; ++i)
                             B(i,j) -= B(i,k)*A(j,k);
                     }
-                    for(size_t i = 0; i < m; ++i)
+                    for(idx_t i = 0; i < m; ++i)
                         B(i,k) *= alpha;
                 }
             }
         }
         else { // trans == Op::ConjTrans
             if (uplo == Uplo::Upper) {
-                for(size_t k = n-1; k != size_t(-1); --k) {
+                for(idx_t k = n-1; k != idx_t(-1); --k) {
                     if (diag == Diag::NonUnit) {
-                        for(size_t i = 0; i < m; ++i)
+                        for(idx_t i = 0; i < m; ++i)
                             B(i,k) /= conj(A(k,k));
                     }
-                    for(size_t j = 0; j < k; ++j) {
-                        for(size_t i = 0; i < m; ++i)
+                    for(idx_t j = 0; j < k; ++j) {
+                        for(idx_t i = 0; i < m; ++i)
                             B(i,j) -= B(i,k)*conj(A(j,k));
                     }
-                    for(size_t i = 0; i < m; ++i)
+                    for(idx_t i = 0; i < m; ++i)
                         B(i,k) *= alpha;
                 }
             }
             else { // uplo == Uplo::Lower
-                for(size_t k = 0; k < n; ++k) {
+                for(idx_t k = 0; k < n; ++k) {
                     if (diag == Diag::NonUnit) {
-                        for(size_t i = 0; i < m; ++i)
+                        for(idx_t i = 0; i < m; ++i)
                             B(i,k) /= conj(A(k,k));
                     }
-                    for(size_t j = k+1; j < n; ++j) {
-                        for(size_t i = 0; i < m; ++i)
+                    for(idx_t j = k+1; j < n; ++j) {
+                        for(idx_t i = 0; i < m; ++i)
                             B(i,j) -= B(i,k)*conj(A(j,k));
                     }
-                    for(size_t i = 0; i < m; ++i)
+                    for(idx_t i = 0; i < m; ++i)
                         B(i,k) *= alpha;
                 }
             }

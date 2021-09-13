@@ -33,7 +33,7 @@ namespace blas {
 template< typename T >
 real_type<T>
 asum(
-    blas::size_t n,
+    blas::idx_t n,
     T const *x, blas::int_t incx )
 {
     typedef real_type<T> real_t;
@@ -44,14 +44,14 @@ asum(
     real_t result = 0;
     if (incx == 1) {
         // unit stride
-        for (size_t i = 0; i < n; ++i) {
+        for (idx_t i = 0; i < n; ++i) {
             result += abs1( x[i] );
         }
     }
     else {
         // non-unit stride
-        size_t ix = 0;
-        for (size_t i = 0; i < n; ++i) {
+        idx_t ix = 0;
+        for (idx_t i = 0; i < n; ++i) {
             result += abs1( x[ix] );
             ix += incx;
         }

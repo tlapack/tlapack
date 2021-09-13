@@ -33,7 +33,7 @@ namespace blas {
  */
 template< typename T >
 void scal(
-    blas::size_t n,
+    blas::idx_t n,
     T alpha,
     T* x, blas::int_t incx )
 {
@@ -42,13 +42,13 @@ void scal(
 
     if (incx == 1) {
         // unit stride
-        for (size_t i = 0; i < n; ++i) {
+        for (idx_t i = 0; i < n; ++i) {
             x[i] *= alpha;
         }
     }
     else {
         // non-unit stride
-        for (size_t i = 0; i < n*incx; i += incx) {
+        for (idx_t i = 0; i < n*incx; i += incx) {
             x[i] *= alpha;
         }
     }

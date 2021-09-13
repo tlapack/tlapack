@@ -71,8 +71,8 @@ void trmv(
     blas::Uplo uplo,
     blas::Op trans,
     blas::Diag diag,
-    blas::size_t n,
-    TA const *A, blas::size_t lda,
+    blas::idx_t n,
+    TA const *A, blas::idx_t lda,
     TX       *x, blas::int_t incx )
 {
     #define A(i_, j_) A[ (i_) + (j_)*lda ]
@@ -112,7 +112,7 @@ void trmv(
     }
 
     bool nonunit = (diag == Diag::NonUnit);
-    size_t kx = (incx > 0 ? 0 : (-n + 1)*incx);
+    idx_t kx = (incx > 0 ? 0 : (-n + 1)*incx);
 
     if (trans == Op::NoTrans && ! doconj) {
         // Form x := A*x
@@ -120,10 +120,10 @@ void trmv(
             // upper
             if (incx == 1) {
                 // unit stride
-                for (size_t j = 0; j < n; ++j) {
+                for (idx_t j = 0; j < n; ++j) {
                     // note: NOT skipping if x[j] is zero, for consistent NAN handling
                     TX tmp = x[j];
-                    for (size_t i = 0; i < j; ++i) {
+                    for (idx_t i = 0; i < j; ++i) {
                         x[i] += tmp * A(i, j);
                     }
                     if (nonunit) {
@@ -133,12 +133,12 @@ void trmv(
             }
             else {
                 // non-unit stride
-                size_t jx = kx;
-                for (size_t j = 0; j < n; ++j) {
+                idx_t jx = kx;
+                for (idx_t j = 0; j < n; ++j) {
                     // note: NOT skipping if x[j] is zero ...
                     TX tmp = x[jx];
-                    size_t ix = kx;
-                    for (size_t i = 0; i < j; ++i) {
+                    idx_t ix = kx;
+                    for (idx_t i = 0; i < j; ++i) {
                         x[ix] += tmp * A(i, j);
                         ix += incx;
                     }
@@ -153,10 +153,10 @@ void trmv(
             // lower
             if (incx == 1) {
                 // unit stride
-                for (size_t j = n-1; j != size_t(-1); --j) {
+                for (idx_t j = n-1; j != idx_t(-1); --j) {
                     // note: NOT skipping if x[j] is zero ...
                     TX tmp = x[j];
-                    for (size_t i = n-1; i >= j+1; --i) {
+                    for (idx_t i = n-1; i >= j+1; --i) {
                         x[i] += tmp * A(i, j);
                     }
                     if (nonunit) {
@@ -167,12 +167,12 @@ void trmv(
             else {
                 // non-unit stride
                 kx += (n - 1)*incx;
-                size_t jx = kx;
-                for (size_t j = n-1; j != size_t(-1); --j) {
+                idx_t jx = kx;
+                for (idx_t j = n-1; j != idx_t(-1); --j) {
                     // note: NOT skipping if x[j] is zero ...
                     TX tmp = x[jx];
-                    size_t ix = kx;
-                    for (size_t i = n-1; i >= j+1; --i) {
+                    idx_t ix = kx;
+                    for (idx_t i = n-1; i >= j+1; --i) {
                         x[ix] += tmp * A(i, j);
                         ix -= incx;
                     }
@@ -190,10 +190,10 @@ void trmv(
             // upper
             if (incx == 1) {
                 // unit stride
-                for (size_t j = 0; j < n; ++j) {
+                for (idx_t j = 0; j < n; ++j) {
                     // note: NOT skipping if x[j] is zero, for consistent NAN handling
                     TX tmp = x[j];
-                    for (size_t i = 0; i < j; ++i) {
+                    for (idx_t i = 0; i < j; ++i) {
                         x[i] += tmp * conj( A(i, j) );
                     }
                     if (nonunit) {
@@ -203,12 +203,12 @@ void trmv(
             }
             else {
                 // non-unit stride
-                size_t jx = kx;
-                for (size_t j = 0; j < n; ++j) {
+                idx_t jx = kx;
+                for (idx_t j = 0; j < n; ++j) {
                     // note: NOT skipping if x[j] is zero ...
                     TX tmp = x[jx];
-                    size_t ix = kx;
-                    for (size_t i = 0; i < j; ++i) {
+                    idx_t ix = kx;
+                    for (idx_t i = 0; i < j; ++i) {
                         x[ix] += tmp * conj( A(i, j) );
                         ix += incx;
                     }
@@ -223,10 +223,10 @@ void trmv(
             // lower
             if (incx == 1) {
                 // unit stride
-                for (size_t j = n-1; j != size_t(-1); --j) {
+                for (idx_t j = n-1; j != idx_t(-1); --j) {
                     // note: NOT skipping if x[j] is zero ...
                     TX tmp = x[j];
-                    for (size_t i = n-1; i >= j+1; --i) {
+                    for (idx_t i = n-1; i >= j+1; --i) {
                         x[i] += tmp * conj( A(i, j) );
                     }
                     if (nonunit) {
@@ -237,12 +237,12 @@ void trmv(
             else {
                 // non-unit stride
                 kx += (n - 1)*incx;
-                size_t jx = kx;
-                for (size_t j = n-1; j != size_t(-1); --j) {
+                idx_t jx = kx;
+                for (idx_t j = n-1; j != idx_t(-1); --j) {
                     // note: NOT skipping if x[j] is zero ...
                     TX tmp = x[jx];
-                    size_t ix = kx;
-                    for (size_t i = n-1; i >= j+1; --i) {
+                    idx_t ix = kx;
+                    for (idx_t i = n-1; i >= j+1; --i) {
                         x[ix] += tmp * conj( A(i, j) );
                         ix -= incx;
                     }
@@ -260,12 +260,12 @@ void trmv(
             // upper
             if (incx == 1) {
                 // unit stride
-                for (size_t j = n-1; j != size_t(-1); --j) {
+                for (idx_t j = n-1; j != idx_t(-1); --j) {
                     TX tmp = x[j];
                     if (nonunit) {
                         tmp *= A(j, j);
                     }
-                    for (size_t i = j - 1; i != size_t(-1); --i) {
+                    for (idx_t i = j - 1; i != idx_t(-1); --i) {
                         tmp += A(i, j) * x[i];
                     }
                     x[j] = tmp;
@@ -273,14 +273,14 @@ void trmv(
             }
             else {
                 // non-unit stride
-                size_t jx = kx + (n - 1)*incx;
-                for (size_t j = n-1; j != size_t(-1); --j) {
+                idx_t jx = kx + (n - 1)*incx;
+                for (idx_t j = n-1; j != idx_t(-1); --j) {
                     TX tmp = x[jx];
-                    size_t ix = jx;
+                    idx_t ix = jx;
                     if (nonunit) {
                         tmp *= A(j, j);
                     }
-                    for (size_t i = j - 1; i != size_t(-1); --i) {
+                    for (idx_t i = j - 1; i != idx_t(-1); --i) {
                         ix -= incx;
                         tmp += A(i, j) * x[ix];
                     }
@@ -293,12 +293,12 @@ void trmv(
             // lower
             if (incx == 1) {
                 // unit stride
-                for (size_t j = 0; j < n; ++j) {
+                for (idx_t j = 0; j < n; ++j) {
                     TX tmp = x[j];
                     if (nonunit) {
                         tmp *= A(j, j);
                     }
-                    for (size_t i = j + 1; i < n; ++i) {
+                    for (idx_t i = j + 1; i < n; ++i) {
                         tmp += A(i, j) * x[i];
                     }
                     x[j] = tmp;
@@ -306,14 +306,14 @@ void trmv(
             }
             else {
                 // non-unit stride
-                size_t jx = kx;
-                for (size_t j = 0; j < n; ++j) {
+                idx_t jx = kx;
+                for (idx_t j = 0; j < n; ++j) {
                     TX tmp = x[jx];
-                    size_t ix = jx;
+                    idx_t ix = jx;
                     if (nonunit) {
                         tmp *= A(j, j);
                     }
-                    for (size_t i = j + 1; i < n; ++i) {
+                    for (idx_t i = j + 1; i < n; ++i) {
                         ix += incx;
                         tmp += A(i, j) * x[ix];
                     }
@@ -330,12 +330,12 @@ void trmv(
             // upper
             if (incx == 1) {
                 // unit stride
-                for (size_t j = n-1; j != size_t(-1); --j) {
+                for (idx_t j = n-1; j != idx_t(-1); --j) {
                     TX tmp = x[j];
                     if (nonunit) {
                         tmp *= conj( A(j, j) );
                     }
-                    for (size_t i = j - 1; i != size_t(-1); --i) {
+                    for (idx_t i = j - 1; i != idx_t(-1); --i) {
                         tmp += conj( A(i, j) ) * x[i];
                     }
                     x[j] = tmp;
@@ -343,14 +343,14 @@ void trmv(
             }
             else {
                 // non-unit stride
-                size_t jx = kx + (n - 1)*incx;
-                for (size_t j = n-1; j != size_t(-1); --j) {
+                idx_t jx = kx + (n - 1)*incx;
+                for (idx_t j = n-1; j != idx_t(-1); --j) {
                     TX tmp = x[jx];
-                    size_t ix = jx;
+                    idx_t ix = jx;
                     if (nonunit) {
                         tmp *= conj( A(j, j) );
                     }
-                    for (size_t i = j - 1; i != size_t(-1); --i) {
+                    for (idx_t i = j - 1; i != idx_t(-1); --i) {
                         ix -= incx;
                         tmp += conj( A(i, j) ) * x[ix];
                     }
@@ -363,12 +363,12 @@ void trmv(
             // lower
             if (incx == 1) {
                 // unit stride
-                for (size_t j = 0; j < n; ++j) {
+                for (idx_t j = 0; j < n; ++j) {
                     TX tmp = x[j];
                     if (nonunit) {
                         tmp *= conj( A(j, j) );
                     }
-                    for (size_t i = j + 1; i < n; ++i) {
+                    for (idx_t i = j + 1; i < n; ++i) {
                         tmp += conj( A(i, j) ) * x[i];
                     }
                     x[j] = tmp;
@@ -376,14 +376,14 @@ void trmv(
             }
             else {
                 // non-unit stride
-                size_t jx = kx;
-                for (size_t j = 0; j < n; ++j) {
+                idx_t jx = kx;
+                for (idx_t j = 0; j < n; ++j) {
                     TX tmp = x[jx];
-                    size_t ix = jx;
+                    idx_t ix = jx;
                     if (nonunit) {
                         tmp *= conj( A(j, j) );
                     }
-                    for (size_t i = j + 1; i < n; ++i) {
+                    for (idx_t i = j + 1; i < n; ++i) {
                         ix += incx;
                         tmp += conj( A(i, j) ) * x[ix];
                     }

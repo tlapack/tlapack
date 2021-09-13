@@ -33,40 +33,40 @@ namespace lapack {
  */
 template< typename TA >
 void laset(
-    Uplo uplo, blas::size_t m, blas::size_t n,
+    Uplo uplo, blas::idx_t m, blas::idx_t n,
     TA alpha, TA beta,
-    TA* A, blas::size_t lda )
+    TA* A, blas::idx_t lda )
 {
     #define A(i_, j_) A[ (i_) + (j_)*lda ]
 
     if (uplo == Uplo::Upper) {
         // Set the strictly upper triangular or trapezoidal part of
         // the array to alpha.
-        for (size_t j = 1; j < n; ++j) {
-            const size_t M = std::min(m,j);
-            for (size_t i = 0; i < M; ++i)
+        for (idx_t j = 1; j < n; ++j) {
+            const idx_t M = std::min(m,j);
+            for (idx_t i = 0; i < M; ++i)
                 A(i,j) = alpha;
         }
     }
     else if (uplo == Uplo::Lower) {
         // Set the strictly lower triangular or trapezoidal part of
         // the array to alpha.
-        const size_t N = std::min(m,n);
-        for (size_t j = 0; j < N; ++j) {
-            for (size_t i = j+1; i < m; ++i)
+        const idx_t N = std::min(m,n);
+        for (idx_t j = 0; j < N; ++j) {
+            for (idx_t i = j+1; i < m; ++i)
                 A(i,j) = alpha;
         }
     }
     else {
         // Set the leading m-by-n submatrix to alpha.
-        for (size_t j = 0; j < n; ++j)
-            for (size_t i = 0; i < m; ++i)
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = 0; i < m; ++i)
                 A(i,j) = alpha;
     }
 
     // Set the first min(m,n) diagonal elements to beta.
-    const size_t N = std::min(m,n);
-    for (size_t i = 0; i < N; ++i)
+    const idx_t N = std::min(m,n);
+    for (idx_t i = 0; i < N; ++i)
         A(i,i) = beta;
 
     #undef A
@@ -76,16 +76,16 @@ void laset(
  * 
  * @param[in] layout
  *     Matrix storage, Layout::ColMajor or Layout::RowMajor.
- * @see laset( Uplo uplo, blas::size_t m, blas::size_t n, TA alpha, TA beta, TA* A, blas::size_t lda )
+ * @see laset( Uplo uplo, blas::idx_t m, blas::idx_t n, TA alpha, TA beta, TA* A, blas::idx_t lda )
  * 
  * @ingroup auxiliary
  */
 template< typename TA >
 inline void laset(
     Layout layout, Uplo uplo,
-    blas::size_t m, blas::size_t n,
+    blas::idx_t m, blas::idx_t n,
     TA alpha, TA beta,
-    TA* A, blas::size_t lda )
+    TA* A, blas::idx_t lda )
 {
     if ( layout == Layout::RowMajor ) {
         if (uplo == Uplo::Upper) {

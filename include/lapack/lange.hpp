@@ -38,8 +38,8 @@ namespace lapack {
 **/
 template <typename TA>
 real_type<TA> lange(
-    Norm normType, blas::size_t m, blas::size_t n,
-    const TA *A, blas::size_t lda )
+    Norm normType, blas::idx_t m, blas::idx_t n,
+    const TA *A, blas::idx_t lda )
 {
     typedef real_type<TA> real_t;
     #define A(i_, j_) A[ (i_) + (j_)*lda ]
@@ -58,8 +58,8 @@ real_type<TA> lange(
 
     if( normType == Norm::Max )
     {
-        for (size_t j = 0; j < n; ++j) {
-            for (size_t i = 0; i < m; ++i)
+        for (idx_t j = 0; j < n; ++j) {
+            for (idx_t i = 0; i < m; ++i)
             {
                 real_t temp = blas::abs( A(i,j) );
 
@@ -74,10 +74,10 @@ real_type<TA> lange(
     }
     else if ( normType == Norm::One )
     {
-        for (size_t j = 0; j < n; ++j)
+        for (idx_t j = 0; j < n; ++j)
         {
             real_t sum = zero;
-            for (size_t i = 0; i < m; ++i)
+            for (idx_t i = 0; i < m; ++i)
                 sum += blas::abs( A(i,j) );
 
             if (sum > norm)
@@ -91,14 +91,14 @@ real_type<TA> lange(
     else if ( normType == Norm::Inf )
     {
         real_t *work = new real_t[m];
-        for (size_t i = 0; i < m; ++i)
+        for (idx_t i = 0; i < m; ++i)
             work[i] = blas::abs( A(i,0) );
         
-        for (size_t j = 1; j < n; ++j)
-            for (size_t i = 0; i < m; ++i)
+        for (idx_t j = 1; j < n; ++j)
+            for (idx_t i = 0; i < m; ++i)
                 work[i] += blas::abs( A(i,j) );
 
-        for (size_t i = 0; i < m; ++i)
+        for (idx_t i = 0; i < m; ++i)
         {
             real_t temp = work[i];
 
@@ -116,7 +116,7 @@ real_type<TA> lange(
     else if ( normType == Norm::Fro )
     {
         real_t scale(0.0), sum(1.0);
-        for (size_t j = 0; j < n; ++j)
+        for (idx_t j = 0; j < n; ++j)
             lassq(m, &(A(0,j)), 1, scale, sum);
         norm = scale * sqrt(sum);
     }
@@ -129,15 +129,15 @@ real_type<TA> lange(
  * 
  * @param[in] layout
  *     Matrix storage, Layout::ColMajor or Layout::RowMajor.
- * @see lange( Norm normType, blas::size_t m, blas::size_t n, const TA *A, blas::size_t lda )
+ * @see lange( Norm normType, blas::idx_t m, blas::idx_t n, const TA *A, blas::idx_t lda )
  * 
  * @ingroup auxiliary
 **/
 template <typename TA>
 inline real_type<TA> lange(
     Layout layout,
-    Norm normType, blas::size_t m, blas::size_t n,
-    const TA *A, blas::size_t lda )
+    Norm normType, blas::idx_t m, blas::idx_t n,
+    const TA *A, blas::idx_t lda )
 {
     if ( layout == Layout::RowMajor ) {
         

@@ -39,7 +39,7 @@ namespace blas {
  */
 template< typename TX, typename TY >
 scalar_type<TX, TY> dotu(
-    blas::size_t n,
+    blas::idx_t n,
     TX const *x, blas::int_t incx,
     TY const *y, blas::int_t incy )
 {
@@ -52,15 +52,15 @@ scalar_type<TX, TY> dotu(
     scalar_t result( 0.0 );
     if (incx == 1 && incy == 1) {
         // unit stride
-        for (size_t i = 0; i < n; ++i) {
+        for (idx_t i = 0; i < n; ++i) {
             result += x[i] * y[i];
         }
     }
     else {
         // non-unit stride
-        size_t ix = (incx > 0 ? 0 : (-n + 1)*incx);
-        size_t iy = (incy > 0 ? 0 : (-n + 1)*incy);
-        for (size_t i = 0; i < n; ++i) {
+        idx_t ix = (incx > 0 ? 0 : (-n + 1)*incx);
+        idx_t iy = (incy > 0 ? 0 : (-n + 1)*incy);
+        for (idx_t i = 0; i < n; ++i) {
             result += x[ix] * y[iy];
             ix += incx;
             iy += incy;
