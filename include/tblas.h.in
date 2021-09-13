@@ -13,7 +13,7 @@
 #include <complex.h>
 
 @TBLAS_DEFINES@
-;
+
 // -----------------------------------------------------------------------------
 // Integer types BLAS_SIZE_T and BLAS_INT_T
 

@@ -93,7 +93,7 @@ if( CBLAS_WRAPPERS )
 
   list( APPEND installable_libs tlapack_cblas )
   install(
-    FILES ${PROJECT_SOURCE_DIR}/include/tlapack_cblas.h
+    FILES ${PROJECT_BINARY_DIR}/include/tlapack_cblas.h
     DESTINATION include )
 endif()
 
