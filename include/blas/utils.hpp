@@ -8,7 +8,6 @@
 #ifndef __TBLAS_UTILS_HH__
 #define __TBLAS_UTILS_HH__
 
-#include "blas/defines.h"
 #include "blas/types.hpp"
 
 #include <limits>

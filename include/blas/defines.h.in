@@ -1,9 +1,0 @@
-#ifndef __TBLAS_DEFINES_H__
-#define __TBLAS_DEFINES_H__
-
-// -----------------------------------------------------------------------------
-// Definitions depending on the build
-
-@TBLAS_DEFINES@
-
-#endif // __TBLAS_DEFINES_H__

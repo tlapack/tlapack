@@ -5,10 +5,12 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_CONFIG_H__
-#define __TLAPACK_CONFIG_H__
+#ifndef __TLAPACK_CONFIG_WRAPPERS_H__
+#define __TLAPACK_CONFIG_WRAPPERS_H__
 
+#include <stdint.h>
 #include "blas/defines.h"
+#include "lapack/defines.h"
 
 #ifndef lapack_logical
     #if defined(BLAS_ILP64) || defined(LAPACK_ILP64)
@@ -35,4 +37,4 @@ typedef lapack_logical (*lapack_c_select2) ( std::complex<float> const* alpha, s
 typedef lapack_logical (*lapack_z_select1) ( std::complex<double> const* omega );
 typedef lapack_logical (*lapack_z_select2) ( std::complex<double> const* alpha, std::complex<double> const* beta );
 
-#endif // __TLAPACK_CONFIG_H__
+#endif // __TLAPACK_CONFIG_WRAPPERS_H__

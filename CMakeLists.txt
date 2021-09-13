@@ -18,6 +18,10 @@ project(TLAPACK
   LANGUAGES CXX)
 message(STATUS "<T>LAPACK version " ${PROJECT_VERSION})
 
+# # specify the C++ standard
+# set(CMAKE_CXX_STANDARD 14)
+# set(CMAKE_CXX_STANDARD_REQUIRED True)
+
 #-------------------------------------------------------------------------------
 # <T>LAPACK and <T>BLAS template libraries
 
@@ -32,7 +36,6 @@ add_library( tlapack INTERFACE )
 target_link_libraries( tlapack INTERFACE tblas )
 
 set( installable_libs tblas ) # Mind that we don't install tlapack since it is an INTERFACE_LIBRARY
-set( TBLAS_DEFINES "" )
 
 #-------------------------------------------------------------------------------
 # Options
@@ -40,6 +43,22 @@ set( TBLAS_DEFINES "" )
 # BLAS++ and LAPACK++ interface
 option( USE_BLASPP_WRAPPERS   "Use BLAS++ wrappers to link with an optimized BLAS library"     OFF )
 option( USE_LAPACKPP_WRAPPERS "Use LAPACK++ wrappers to link with an optimized LAPACK library" OFF )
+option( BUILD_BLASPP_TESTS    "Build BLAS++ tests. Not used if BUILD_TESTING is OFF"           OFF )
+option( BUILD_LAPACKPP_TESTS    "Build LAPACK++ tests. Not used if BUILD_TESTING is OFF"       OFF )
+
+set( blaspp_TEST_DIR "" CACHE STRING "Directory with the BLAS++ tests" )
+if( NOT BUILD_BLASPP_TESTS )
+  mark_as_advanced( FORCE blaspp_TEST_DIR )
+else()
+  mark_as_advanced( CLEAR blaspp_TEST_DIR )
+endif()
+
+set( lapackpp_TEST_DIR "" CACHE STRING "Directory with the LAPACK++ tests" )
+if( NOT BUILD_LAPACKPP_TESTS )
+  mark_as_advanced( FORCE lapackpp_TEST_DIR )
+else()
+  mark_as_advanced( CLEAR lapackpp_TEST_DIR )
+endif()
 
 # Examples
 option( BUILD_EXAMPLES "Build examples" ON  )
@@ -49,51 +68,14 @@ option( C_WRAPPERS       "Build and install C wrappers"               OFF )
 option( CBLAS_WRAPPERS   "Build and install CBLAS wrappers to <T>BLAS" OFF )
 option( Fortran_WRAPPERS "Build and install Fortran wrappers"         OFF )
 
-set( blas_intt_list 
-  int
-  short
-  long
-  "long long"
-  int8_t
-  int16_t
-  int32_t
-  int64_t
-  int_least8_t
-  int_least16_t
-  int_least32_t
-  int_least64_t
-  int_fast8_t
-  int_fast16_t
-  int_fast32_t
-  int_fast64_t
-  intmax_t
-  intptr_t
-  ptrdiff_t )
-
-set( BLAS_INT_T int64_t CACHE STRING
-  "Integer type for all variables except array sizes and matrix leading dimension" )
-set_property( CACHE BLAS_INT_T
-  PROPERTY STRINGS ${blas_intt_list} )
-
-set( BLAS_SIZE_T size_t CACHE STRING
-  "Integer type for array sizes, array indexes, and matrix leading dimension" )
-set_property( CACHE BLAS_SIZE_T
-  PROPERTY STRINGS ${blas_intt_list} size_t uint8_t uint16_t uint32_t uint64_t )
-
 #-------------------------------------------------------------------------------
 # Modules
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 #-------------------------------------------------------------------------------
 # Search for BLAS++ library if it is needed
-
 if( USE_BLASPP_WRAPPERS )
-  find_package( blaspp )
-  if(blaspp_FOUND)
-    message( STATUS "  BLAS++ found in ${blaspp_DIR}" )
-  else()
-    message( FATAL_ERROR "  BLAS++ not found." )
-  endif()
+  find_package( blaspp REQUIRED )
   target_compile_definitions( tblas PUBLIC USE_BLASPP_WRAPPERS )
   target_link_libraries( tblas PUBLIC blaspp )
 endif()
@@ -101,44 +83,9 @@ endif()
 #-------------------------------------------------------------------------------
 # Search for LAPACK++ library if it is needed
 if( USE_LAPACKPP_WRAPPERS )
-  find_package( lapackpp )
-  if(lapackpp_FOUND)
-    message( STATUS "  LAPACK++ found in ${lapackpp_DIR}" )
-  else()
-    message( FATAL_ERROR "  LAPACK++ not found." )
-  endif()
+  find_package( lapackpp REQUIRED )
   target_compile_definitions( tlapack INTERFACE USE_LAPACKPP_WRAPPERS )
   target_link_libraries( tlapack INTERFACE lapackpp )
-endif()
-
-#-------------------------------------------------------------------------------
-# Options for BLAS_SIZE_T
-
-if( USE_BLASPP_WRAPPERS OR USE_LAPACKPP_WRAPPERS )
-  mark_as_advanced( FORCE BLAS_SIZE_T )
-  get_property( docString CACHE BLAS_SIZE_T PROPERTY HELPSTRING )
-  set( BLAS_SIZE_T int64_t CACHE STRING "${docString}" FORCE )
-else()
-  mark_as_advanced( CLEAR BLAS_SIZE_T )
-endif()
-
-if( NOT BLAS_SIZE_T STREQUAL "" )
-  string( APPEND TBLAS_DEFINES "#define BLAS_SIZE_T ${BLAS_SIZE_T}\n" )
-endif()
-
-#-------------------------------------------------------------------------------
-# Options for BLAS_INT_T
-  
-if( USE_BLASPP_WRAPPERS OR USE_LAPACKPP_WRAPPERS )
-  mark_as_advanced( FORCE BLAS_INT_T )
-  get_property( docString CACHE BLAS_INT_T PROPERTY HELPSTRING )
-  set( BLAS_INT_T int64_t CACHE STRING "${docString}" FORCE )
-else()
-  mark_as_advanced( CLEAR BLAS_INT_T )
-endif()
-
-if( NOT BLAS_INT_T STREQUAL "" )
-  string( APPEND TBLAS_DEFINES "#define BLAS_INT_T ${BLAS_INT_T}\n" )
 endif()
 
 #-------------------------------------------------------------------------------
@@ -154,13 +101,12 @@ add_subdirectory(config)
 
 if( C_WRAPPERS OR CBLAS_WRAPPERS OR Fortran_WRAPPERS )
   enable_language( C )
+  if( Fortran_WRAPPERS )
+    set( CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/include )
+    enable_language( Fortran )
+  endif()
+  add_subdirectory(src)
 endif()
-if( Fortran_WRAPPERS )
-  enable_language( Fortran )
-endif()
-
-set( CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/include )
-add_subdirectory(src)
 
 #-------------------------------------------------------------------------------
 # Examples
@@ -177,10 +123,6 @@ endif()
 
 #-------------------------------------------------------------------------------
 # Common configurations
-
-configure_file(
-  ${PROJECT_SOURCE_DIR}/include/blas/defines.h.in
-  ${CMAKE_BINARY_DIR}/include/blas/defines.h @ONLY )
 
 set_target_properties( ${installable_libs}
 PROPERTIES
@@ -209,16 +151,14 @@ install(
   DIRECTORY ${PROJECT_SOURCE_DIR}/include/lapack/
   DESTINATION include/lapack
   FILES_MATCHING PATTERN "*.hpp" )
-install( FILES ${PROJECT_SOURCE_DIR}/include/lapack/config.h DESTINATION include/lapack )
+install( FILES ${PROJECT_SOURCE_DIR}/include/lapack/config_lapackppwrappers.h
+         DESTINATION include/lapack )
 
 # <T>BLAS templates 
 install(
   DIRECTORY ${PROJECT_SOURCE_DIR}/include/blas/
   DESTINATION include/blas
   FILES_MATCHING PATTERN "*.hpp" )
-install(
-  FILES ${CMAKE_BINARY_DIR}/include/blas/defines.h ${PROJECT_SOURCE_DIR}/include/blas/config.h
-  DESTINATION include/blas )
 
 # Export targets
 install(EXPORT tlapackTargets

@@ -10,17 +10,23 @@
 // -----------------------------------------------------------------------------
 #include <stddef.h>
 #include <complex.h>
-#include "blas/defines.h"
+
+@TLAPACK_CBLAS_DEFINES@
+;
+// -----------------------------------------------------------------------------
+// Integer types CBLAS_INDEX and CBLAS_INT
+
+#ifndef CBLAS_INDEX
+    #define CBLAS_INDEX size_t
+#endif
+
+#ifndef CBLAS_INT
+    #define CBLAS_INT int
+#endif
+// -----------------------------------------------------------------------------
 
 #ifdef __cplusplus
 extern "C" {
-#endif
-
-// -----------------------------------------------------------------------------
-// Integer types
-#define CBLAS_INDEX size_t /* this may vary between platforms */
-#ifndef CBLAS_INT
-    #define CBLAS_INT int
 #endif
 
 // -----------------------------------------------------------------------------

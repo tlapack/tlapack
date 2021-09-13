@@ -93,9 +93,19 @@ Here are the \<T\>LAPACK specific options and their default values
     
         Build and install CBLAS wrappers to <T>BLAS
     
+    USE_BLASPP_WRAPPERS              OFF
+
+        Use BLAS++ wrappers to link with an optimized BLAS library.
+        Branch compatible with \<T>LAPACK:
+            https://bitbucket.org/weslleyspereira/blaspp/branch/tlapack
+    
+    USE_LAPACKPP_WRAPPERS            OFF
+
+        Use LAPACK++ wrappers to link with an optimized LAPACK library.
+    
     BLAS_INT_T                       int64_t
     
-        Integer type for all integer variables except array sizes, array indexes, and matrix leading dimensions. It is the type
+        Type of all non size-related integers in libtblas_c, libtlapack_cblas, and libtblas_fortran. It is the type
         used for the array increments, e.g., incx and incy.
         Supported types:
             int, short, long, long long, int8_t, int16_t,
@@ -106,7 +116,7 @@ Here are the \<T\>LAPACK specific options and their default values
     
     BLAS_SIZE_T                      size_t
     
-        Integer type for array sizes, array indexes, and matrix leading dimensions.
+        Type of all size-relatedintegers in libtblas_c, libtlapack_cblas, and libtblas_fortran.
         Supported types:
             int, short, long, long long, int8_t, int16_t,
             int32_t, int64_t, int_least8_t, int_least16_t,
@@ -114,16 +124,6 @@ Here are the \<T\>LAPACK specific options and their default values
             int_fast16_t, int_fast32_t, int_fast64_t, 
             intmax_t, intptr_t, ptrdiff_t,
             size_t, uint8_t, uint16_t, uint32_t, uint64_t
-    
-    USE_BLASPP_WRAPPERS              OFF
-
-        Use BLAS++ wrappers to link with an optimized BLAS library.
-        Branch compatible with \<T>LAPACK:
-            https://bitbucket.org/weslleyspereira/blaspp/branch/tlapack
-    
-    USE_LAPACKPP_WRAPPERS            OFF
-
-        Use LAPACK++ wrappers to link with an optimized LAPACK library.
 
 ## Testing
 

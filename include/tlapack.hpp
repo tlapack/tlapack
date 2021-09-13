@@ -19,7 +19,7 @@
         #define LAPACK_UTIL_HH // So as not to include utils from lapack++
     #endif
 
-    #include "lapack/config.h"
+    #include "lapack/config_lapackppwrappers.h"
     #include "lapack/types.hpp"
     #include "lapack/wrappers.hh" // from lapack++
 

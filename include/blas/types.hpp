@@ -9,9 +9,26 @@
 #define __TBLAS_TYPES_HH__
 
 #include <complex>
-#include <cstdint>
+#include <cstdint> // Defines std::int64_t
+#include <cstddef> // Defines std::size_t
 
-#include "blas/config.h"
+// -----------------------------------------------------------------------------
+// Integer types BLAS_SIZE_T and BLAS_INT_T
+
+#if defined(USE_BLASPP_WRAPPERS) || defined(USE_LAPACKPP_WRAPPERS)
+    #ifndef BLAS_SIZE_T
+        #define BLAS_SIZE_T std::int64_t
+    #endif
+#else
+    #ifndef BLAS_SIZE_T
+        #define BLAS_SIZE_T std::size_t
+    #endif
+#endif
+
+#ifndef BLAS_INT_T
+    #define BLAS_INT_T std::int64_t
+#endif
+// -----------------------------------------------------------------------------
 
 namespace blas {
 

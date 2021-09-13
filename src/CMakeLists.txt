@@ -4,9 +4,52 @@
 # <T>LAPACK is free software: you can redistribute it and/or modify it under
 # the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-# # specify the C++ standard
-# set(CMAKE_CXX_STANDARD 11)
-# set(CMAKE_CXX_STANDARD_REQUIRED True)
+#-------------------------------------------------------------------------------
+# Options
+
+set( blas_intt_list 
+  int
+  short
+  long
+  "long long"
+  int8_t
+  int16_t
+  int32_t
+  int64_t
+  int_least8_t
+  int_least16_t
+  int_least32_t
+  int_least64_t
+  int_fast8_t
+  int_fast16_t
+  int_fast32_t
+  int_fast64_t
+  intmax_t
+  intptr_t
+  ptrdiff_t )
+
+set( BLAS_INT_T int64_t CACHE STRING
+  "Type of all non size-related integers in libtblas_c, libtlapack_cblas, and libtblas_fortran" )
+set_property( CACHE BLAS_INT_T
+  PROPERTY STRINGS ${blas_intt_list} )
+
+set( BLAS_SIZE_T size_t CACHE STRING
+  "Type of all size-relatedintegers in libtblas_c, libtlapack_cblas, and libtblas_fortran" )
+set_property( CACHE BLAS_SIZE_T
+  PROPERTY STRINGS ${blas_intt_list} size_t uint8_t uint16_t uint32_t uint64_t )
+
+#-------------------------------------------------------------------------------
+# Force options when using BLAS++ or LAPACK++ wrappers
+
+if( USE_BLASPP_WRAPPERS OR USE_LAPACKPP_WRAPPERS )
+  mark_as_advanced( FORCE BLAS_INT_T BLAS_SIZE_T )
+  get_property( docString CACHE BLAS_INT_T PROPERTY HELPSTRING )
+  set( BLAS_INT_T int64_t CACHE STRING "${docString}" FORCE )
+  get_property( docString CACHE BLAS_SIZE_T PROPERTY HELPSTRING )
+  set( BLAS_SIZE_T int64_t CACHE STRING "${docString}" FORCE )
+else()
+  mark_as_advanced( CLEAR BLAS_INT_T BLAS_SIZE_T )
+endif()
 
 #-------------------------------------------------------------------------------
 # Library: libtblas_c
@@ -14,10 +57,21 @@ if( C_WRAPPERS OR Fortran_WRAPPERS )
   add_library( tblas_c tblas_cwrappers.cpp )
   target_link_libraries( tblas_c PUBLIC tblas )
 
+  set( TBLAS_DEFINES "" )
+  if( NOT BLAS_SIZE_T STREQUAL "" )
+    string( APPEND TBLAS_DEFINES "#define BLAS_SIZE_T ${BLAS_SIZE_T}\n" )
+  endif()
+  if( NOT BLAS_INT_T STREQUAL "" )
+    string( APPEND TBLAS_DEFINES "#define BLAS_INT_T ${BLAS_INT_T}\n" )
+  endif()
+  configure_file(
+    ${PROJECT_SOURCE_DIR}/include/tblas.h.in
+    ${PROJECT_BINARY_DIR}/include/tblas.h @ONLY )
+
   list( APPEND installable_libs tblas_c )
   if( C_WRAPPERS )
     install(
-      FILES ${PROJECT_SOURCE_DIR}/include/tblas.h
+      FILES ${PROJECT_BINARY_DIR}/include/tblas.h
       DESTINATION include )
   endif()
 endif()
@@ -28,6 +82,14 @@ if( CBLAS_WRAPPERS )
   add_library( tlapack_cblas tblas_cwrappers.cpp )
   target_link_libraries( tlapack_cblas PUBLIC tblas )
   target_compile_definitions( tlapack_cblas PRIVATE BUILD_CBLAS )
+  
+  set( TLAPACK_CBLAS_DEFINES "" )
+  if( NOT BLAS_INT_T STREQUAL "" )
+    string( APPEND TLAPACK_CBLAS_DEFINES "#define CBLAS_INT ${BLAS_INT_T}\n" )
+  endif()
+  configure_file(
+    ${PROJECT_SOURCE_DIR}/include/tlapack_cblas.h.in
+    ${PROJECT_BINARY_DIR}/include/tlapack_cblas.h @ONLY )
 
   list( APPEND installable_libs tlapack_cblas )
   install(

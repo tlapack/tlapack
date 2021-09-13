@@ -4,12 +4,10 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#include <complex.h>
-#include "tblas.hpp"
-
 #ifdef BUILD_CBLAS
 
     #include "tlapack_cblas.h"
+    #include "tblas.hpp"
 
     // Mangling
     #ifdef ADD_
@@ -60,6 +58,7 @@
 #else
 
     #include "tblas.h"
+    #include "tblas.hpp"
 
     // Mangling
     #ifdef ADD_

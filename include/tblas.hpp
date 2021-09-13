@@ -7,8 +7,6 @@
 #ifndef __TBLAS_HH__
 #define __TBLAS_HH__
 
-#include "blas/defines.h"
-
 // Optimized BLAS
 
 #ifdef USE_BLASPP_WRAPPERS
