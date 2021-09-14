@@ -38,8 +38,8 @@ namespace lapack {
  */
 template< typename real_t >
 void larnv(
-    blas::size_t idist, blas::size_t iseed,
-    blas::size_t n, real_t* x )
+    blas::idx_t idist, blas::idx_t iseed,
+    blas::idx_t n, real_t* x )
 {
     // Initialize the generator
     std::random_device device;
@@ -49,19 +49,19 @@ void larnv(
     // uniform (0,1)
     if (idist == 1) {
         std::uniform_real_distribution<real_t> d1(0, 1);
-        for (size_t i = 0; i < n; ++i)
+        for (idx_t i = 0; i < n; ++i)
             x[i] = d1(generator);
     }
     // uniform (-1,1)
     else if (idist == 2) {
         std::uniform_real_distribution<real_t> d2(-1, 1);
-        for (size_t i = 0; i < n; ++i)
+        for (idx_t i = 0; i < n; ++i)
             x[i] = d2(generator);
     }
     // normal (0,1)
     else if (idist == 3) {
         std::normal_distribution<real_t> d3(0, 1);
-        for (size_t i = 0; i < n; ++i)
+        for (idx_t i = 0; i < n; ++i)
             x[i] = d3(generator);
     }
 }
@@ -90,8 +90,8 @@ void larnv(
  */
 template< typename T >
 void larnv(
-    blas::size_t idist, blas::size_t iseed,
-    blas::size_t n, blas::complex_type<T>* x )
+    blas::idx_t idist, blas::idx_t iseed,
+    blas::idx_t n, blas::complex_type<T>* x )
 {
     typedef real_type<T> real_t;
     typedef complex_type<T> complex_t;
@@ -112,27 +112,27 @@ void larnv(
 
     if (idist == 1) {
         std::uniform_real_distribution<real_t> d1(0, 1);
-        for (size_t i = 0; i < n; ++i)
+        for (idx_t i = 0; i < n; ++i)
             x[i] = complex_t(d1(generator), d1(generator));
     }
     else if (idist == 2) {
         std::uniform_real_distribution<real_t> d2(-1, 1);
-        for (size_t i = 0; i < n; ++i)
+        for (idx_t i = 0; i < n; ++i)
             x[i] = complex_t(d2(generator), d2(generator));
     }
     else if (idist == 3) {
         std::normal_distribution<real_t> d3(0, 1);
-        for (size_t i = 0; i < n; ++i)
+        for (idx_t i = 0; i < n; ++i)
             x[i] = complex_t(d3(generator), d3(generator));
     }
     else if (idist == 4) {
         std::uniform_real_distribution<real_t> d4(0, 1);
-        for (size_t i = 0; i < n; ++i)
+        for (idx_t i = 0; i < n; ++i)
             x[i] = sqrt(d4(generator)) * exp(complex_t(zero, twopi * d4(generator)));
     }
     else if (idist == 5) {
         std::uniform_real_distribution<real_t> d5(0, 1);
-        for (size_t i = 0; i < n; ++i)
+        for (idx_t i = 0; i < n; ++i)
             x[i] = exp(complex_t(zero, twopi * d5(generator)));
     }
 }

@@ -57,10 +57,10 @@ namespace lapack {
 template< typename T >
 int lascl(
     lapack::MatrixType matrixtype,
-    blas::size_t kl, blas::size_t ku,
+    blas::idx_t kl, blas::idx_t ku,
     const real_type<T>& b, const real_type<T>& a,
-    blas::size_t m, blas::size_t n,
-    T* A, blas::size_t lda )
+    blas::idx_t m, blas::idx_t n,
+    T* A, blas::idx_t lda )
 {
     typedef real_type<T> real_t;
     using blas::isnan;
@@ -69,7 +69,7 @@ int lascl(
     using blas::safe_min;
 
     // constants
-    const blas::size_t izero = 0;
+    const blas::idx_t izero = 0;
     const real_t zero = 0.0;
     const real_t one(1.0);
     const real_t small = safe_min<real_t>();
@@ -163,44 +163,44 @@ int lascl(
 
         if (matrixtype == MatrixType::General)
         {
-            for (blas::size_t j = 0; j < n; ++j)
-                for (blas::size_t i = 0; i < m; ++i)
+            for (blas::idx_t j = 0; j < n; ++j)
+                for (blas::idx_t i = 0; i < m; ++i)
                     _A(i,j) *= c;
         }
         else if (matrixtype == MatrixType::Lower)
         {
-            for (blas::size_t j = 0; j < n; ++j)
-                for (blas::size_t i = j; i < m; ++i)
+            for (blas::idx_t j = 0; j < n; ++j)
+                for (blas::idx_t i = j; i < m; ++i)
                     _A(i,j) *= c;
         }
         else if (matrixtype == MatrixType::Upper)
         {
-            for (blas::size_t j = 0; j < n; ++j)
-                for (blas::size_t i = 0; (i < m) && (i <= j); ++i)
+            for (blas::idx_t j = 0; j < n; ++j)
+                for (blas::idx_t i = 0; (i < m) && (i <= j); ++i)
                     _A(i,j) *= c;
         }
         else if (matrixtype == MatrixType::Hessenberg)
         {
-            for (blas::size_t j = 0; j < n; ++j)
-                for (blas::size_t i = 0; (i < m) && (i <= j + 1); ++i)
+            for (blas::idx_t j = 0; j < n; ++j)
+                for (blas::idx_t i = 0; (i < m) && (i <= j + 1); ++i)
                     _A(i,j) *= c;
         }
         else if (matrixtype == MatrixType::LowerBand)
         {
-            for (blas::size_t j = 0; j < n; ++j)
-                for (blas::size_t i = 0; (i <= kl) && (i < n - j); ++i)
+            for (blas::idx_t j = 0; j < n; ++j)
+                for (blas::idx_t i = 0; (i <= kl) && (i < n - j); ++i)
                     _A(i,j) *= c;
         }
         else if (matrixtype == MatrixType::UpperBand)
         {
-            for (blas::size_t j = 0; j < n; ++j)
-                for (blas::size_t i = max(ku - j, izero); i <= ku; ++i)
+            for (blas::idx_t j = 0; j < n; ++j)
+                for (blas::idx_t i = max(ku - j, izero); i <= ku; ++i)
                     _A(i,j) *= c;
         }
         else if (matrixtype == MatrixType::Band)
         {
-            for (blas::size_t j = 0; j < n; ++j)
-                for (blas::size_t i = max(kl + ku - j, kl); i <= min(2 * kl + ku, kl + ku + m - j); ++i)
+            for (blas::idx_t j = 0; j < n; ++j)
+                for (blas::idx_t i = max(kl + ku - j, kl); i <= min(2 * kl + ku, kl + ku + m - j); ++i)
                     _A(i,j) *= c;
         }
     }
