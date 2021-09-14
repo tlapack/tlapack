@@ -12,7 +12,7 @@
 #include <complex.h>
 
 @TLAPACK_CBLAS_DEFINES@
-;
+
 // -----------------------------------------------------------------------------
 // Integer types CBLAS_INDEX and CBLAS_INT
 
