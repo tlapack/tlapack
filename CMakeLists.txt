@@ -44,8 +44,9 @@ set( installable_libs tblas ) # Mind that we don't install tlapack since it is a
 option( USE_BLASPP_WRAPPERS   "Use BLAS++ wrappers to link with an optimized BLAS library"     OFF )
 option( USE_LAPACKPP_WRAPPERS "Use LAPACK++ wrappers to link with an optimized LAPACK library" OFF )
 option( BUILD_BLASPP_TESTS    "Build BLAS++ tests. Not used if BUILD_TESTING is OFF"           OFF )
-option( BUILD_LAPACKPP_TESTS    "Build LAPACK++ tests. Not used if BUILD_TESTING is OFF"       OFF )
+option( BUILD_LAPACKPP_TESTS  "Build LAPACK++ tests. Not used if BUILD_TESTING is OFF"         OFF )
 
+# TODO: Try to search this path automatically
 set( blaspp_TEST_DIR "" CACHE STRING "Directory with the BLAS++ tests" )
 if( NOT BUILD_BLASPP_TESTS )
   mark_as_advanced( FORCE blaspp_TEST_DIR )
@@ -53,6 +54,7 @@ else()
   mark_as_advanced( CLEAR blaspp_TEST_DIR )
 endif()
 
+# TODO: Try to search this path automatically
 set( lapackpp_TEST_DIR "" CACHE STRING "Directory with the LAPACK++ tests" )
 if( NOT BUILD_LAPACKPP_TESTS )
   mark_as_advanced( FORCE lapackpp_TEST_DIR )

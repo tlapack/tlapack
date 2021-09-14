@@ -135,8 +135,8 @@ void rotg(
  */
 template <typename T>
 void rotg(
-    blas::complex_type<T> *a,
-    blas::complex_type<T> *b,
+    T *a,
+    T *b,
     blas::real_type<T>    *c,
     blas::complex_type<T> *s )
 {

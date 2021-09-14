@@ -124,6 +124,16 @@ Here are the \<T\>LAPACK specific options and their default values
             int_fast16_t, int_fast32_t, int_fast64_t, 
             intmax_t, intptr_t, ptrdiff_t,
             size_t, uint8_t, uint16_t, uint32_t, uint64_t
+    
+    BUILD_BLASPP_TESTS               OFF
+
+        Build BLAS++ tests. Not used if BUILD_TESTING is OFF. If it is ON, you also need to inform blaspp_TEST_DIR,
+        which is the path for the test sources of BLAS++.
+    
+    BUILD_LAPACKPP_TESTS               OFF
+
+        Build LAPACK++ tests. Not used if BUILD_TESTING is OFF. If it is ON, you also need to inform lapackpp_TEST_DIR,
+        which is the path for the test sources of LAPACK++.
 
 ## Testing
 
