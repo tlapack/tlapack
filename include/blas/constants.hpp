@@ -30,15 +30,37 @@ const blas::idx_t INVALID_INDEX( -1 );
 // Anderson E (2017) Algorithm 978: Safe scaling in the level 1 BLAS.
 // ACM Trans Math Softw 44:. https://doi.org/10.1145/3061665
 
-/// Unit in Last Place
-
-/** Unit in Last Place
+/** Unit in the Last Place
+ * \[
+ *      b^{-(p-1)}
+ * \]
+ * where b is the machine base, and p is the number of digits in the mantissa.
+ * 
  * @ingroup utils
  */
 template <typename real_t>
 inline constexpr real_t ulp()
 {
     return std::numeric_limits< real_t >::epsilon();
+}
+
+/** Unit roundoff
+ * \[
+ *      b^{-(p-1)} * r
+ * \]
+ * where b is the machine base, p is the number of digits in the mantissa,
+ * and r is the largest possible rounding error in ULPs (units in the last place)
+ * as defined by ISO 10967, which can vary from 0.5 (rounding to the nearest digit)
+ * to 1.0 (rounding to zero or to infinity).
+ * 
+ * @see https://people.eecs.berkeley.edu/~demmel/cs267/lecture21/lecture21.html
+ * 
+ * @ingroup utils
+ */
+template <typename real_t>
+inline constexpr real_t uroundoff()
+{
+    return ulp<real_t>() * std::numeric_limits< real_t >::round_error();
 }
 
 /** Digits
