@@ -10,7 +10,9 @@
 #ifndef __UNMQR_HH__
 #define __UNMQR_HH__
 
+#include "lapack/utils.hpp"
 #include "lapack/types.hpp"
+#include "lapack/larft.hpp"
 
 namespace lapack {
 
@@ -57,6 +59,9 @@ int unmqr(
     if (m == 0 || n == 0 || k == 0)
         return 0;
 
+    #define _A(i_, j_) A[ (i_) + (j_)*lda ]
+    #define _C(i_, j_) C[ (i_) + (j_)*ldc ]
+
     // Preparing loop indexes
     idx_t i0, iN, step;
     if( (side == Side::Left && trans != Op::NoTrans) ||
@@ -80,20 +85,23 @@ int unmqr(
 
         // Form the triangular factor of the block reflector
         // $H = H(i) H(i+1) ... H(i+ib-1)$
-        lapack::clarft( Direction::Forward, StoreV::Columnwise,
-                        nQ-i, ib, &A[i,i], lda, tau[i], work[nw*nb] );
+        lapack::larft(  Direction::Forward, StoreV::Columnwise,
+                        nQ-i, ib, &_A(i,i), lda, &tau[i], &work[nw*nb], nb );
 
         // H or H**H is applied to C[0:m-1,0:n-1]
         if( side == Side::Left ) { mi = m-i; ic = i; }
         else                     { ni = n-i; jc = i; }
 
         // Apply H or H**H
-        lapack::clarfb( side, trans, Direction::Forward, StoreV::Columnwise,
-                        mi, ni, ib, &A[i,i], lda, work[nw*nb], nb+1,
-                        &C[ic,jc], ldc, work );
+        lapack::larfb(  side, trans, Direction::Forward, StoreV::Columnwise,
+                        mi, ni, ib, &_A(i,i), lda, &work[nw*nb], nb,
+                        &_C(ic,jc), ldc, work );
     }
 
     return 0;
+
+    #undef _A
+    #undef _C
 }
 
 /** Multiplies the general m-by-n matrix C by Q from `lapack::geqrf` using a blocked code as follows:
@@ -183,7 +191,7 @@ inline int unmqr(
                 ? ( (n >= 1) ? n : 1 )
                 : ( (m >= 1) ? m : 1 );
     scalar_t* work = new scalar_t[
-        nw*nb + nb*(nb+1)
+        nw*nb + nb*nb
     ];
     
     // main call

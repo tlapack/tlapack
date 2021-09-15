@@ -173,7 +173,7 @@ void bdsqr(
             real_t sn;
             real_t r;
 
-            for (idx_t i = 0; i < n - 1; i++)
+            for (idx_t i = 0; i < n - 1; ++i)
             {
                 lartg(d[i], e[i], cs, sn, r);
                 d[i] = r;
@@ -205,9 +205,9 @@ void bdsqr(
         real_t thresh;
         real_t sminl = zero;
         real_t smax = zero;
-        for (idx_t i = 0; i < n; i++)
+        for (idx_t i = 0; i < n; ++i)
             smax = max(smax, abs(d[i]));
-        for (idx_t i = 0; i < n - 1; i++)
+        for (idx_t i = 0; i < n - 1; ++i)
             smax = max(smax, abs(e[i]));
         if (tol >= zero)
         {
@@ -216,7 +216,7 @@ void bdsqr(
             if (sminoa != zero)
             {
                 real_t mu = sminoa;
-                for (idx_t i = 1; i < n; i++)
+                for (idx_t i = 1; i < n; ++i)
                 {
                     mu = abs(d[i]) * (mu / (mu + abs(e[i - 1])));
                     sminoa = min(sminoa, mu);
@@ -270,7 +270,7 @@ void bdsqr(
             {
                 // failed to converge
                 idx_t info = 0;
-                for (idx_t i = 0; i < n - 1; i++)
+                for (idx_t i = 0; i < n - 1; ++i)
                     if (e[i] != zero)
                         info++;
 
@@ -282,7 +282,7 @@ void bdsqr(
             if (tol < zero && abs(d[m - 1]) <= thresh)
                 d[m - 1] = zero;
             smax = abs(d[m - 1]);
-            for (idx_t i = 1; i < m; i++)
+            for (idx_t i = 1; i < m; ++i)
             {
                 ll = m - i;
                 abss = abs(d[ll - 1]);
@@ -355,7 +355,7 @@ void bdsqr(
                     bool split = false;
                     real_t mu = abs(d[ll - 1]);
                     sminl = mu;
-                    for (idx_t i = ll - 1; i < m - 1; i++)
+                    for (idx_t i = ll - 1; i < m - 1; ++i)
                     {
                         if (abs(e[i]) <= tol * mu)
                         {
@@ -446,7 +446,7 @@ void bdsqr(
                     // save cosines and sines for later vector updates
                     cs = one;
                     oldcs = one;
-                    for (idx_t i = ll - 1; i < m - 1; i++)
+                    for (idx_t i = ll - 1; i < m - 1; ++i)
                     {
                         lartg(d[i] * cs, e[i], cs, sn, r);
                         if (i > ll - 1)
@@ -531,7 +531,7 @@ void bdsqr(
                     else
                         f = (abs(d[ll - 1]) - shift) * (one + shift / d[ll - 1]);
                     g = e[ll - 1];
-                    for (idx_t i = ll - 1; i < m - 1; i++)
+                    for (idx_t i = ll - 1; i < m - 1; ++i)
                     {
                         lartg(f, g, cosr, sinr, r);
                         if (i > ll - 1)
@@ -631,7 +631,7 @@ void bdsqr(
     // all singular values converged
 
     // make singular values positive
-    for (idx_t i = 0; i < n; i++)
+    for (idx_t i = 0; i < n; ++i)
     {
         if (d[i] < zero)
         {
@@ -644,12 +644,12 @@ void bdsqr(
 
     // sort the singular values into decreasing order
     real_t smin;
-    for (idx_t i = 0; i < n - 1; i++)
+    for (idx_t i = 0; i < n - 1; ++i)
     {
         // scan for the smallest d[i]
         idx_t isub = 0;
         smin = d[0];
-        for (idx_t j = 1; j < n - i; j++)
+        for (idx_t j = 1; j < n - i; ++j)
         {
             if (d[j] <= smin)
             {

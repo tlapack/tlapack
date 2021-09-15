@@ -48,8 +48,8 @@ void scal(
     }
     else {
         // non-unit stride
-        for (idx_t i = 0; i < n*incx; i += incx) {
-            x[i] *= alpha;
+        for (idx_t i = 0; i < n; ++i) {
+            x[i*incx] *= alpha;
         }
     }
 }

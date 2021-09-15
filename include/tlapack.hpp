@@ -33,6 +33,7 @@
 
 #include "lapack/larf.hpp"
 #include "lapack/larfg.hpp"
+#include "lapack/larft.hpp"
 #include "lapack/lapy2.hpp"
 #include "lapack/lapy3.hpp"
 #include "lapack/ladiv.hpp"

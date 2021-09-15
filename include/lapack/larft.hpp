@@ -20,15 +20,15 @@ namespace lapack {
 /** Forms the triangular factor T of a real block reflector H of order n,
  * which is defined as a product of k elementary reflectors.
  *
- *               If direct = 'F', H = H_1 H_2 . . . H_k and T is upper triangular.
- *               If direct = 'B', H = H_k . . . H_2 H_1 and T is lower triangular.
+ *               If direct = Direction::Forward, H = H_1 H_2 . . . H_k and T is upper triangular.
+ *               If direct = Direction::Backward, H = H_k . . . H_2 H_1 and T is lower triangular.
  *
- *  If storeV = 'C', the vector which defines the elementary reflector
+ *  If storeV = StoreV::Columnwise, the vector which defines the elementary reflector
  *  H(i) is stored in the i-th column of the array V, and
  *
  *               H  =  I - V * T * V'
  *
- *  If storeV = 'R', the vector which defines the elementary reflector
+ *  If storeV = StoreV::Rowwise, the vector which defines the elementary reflector
  *  H(i) is stored in the i-th row of the array V, and
  *
  *               H  =  I - V' * T * V
@@ -37,7 +37,7 @@ namespace lapack {
  *  the H(i) is best illustrated by the following example with n = 5 and
  *  k = 3. The elements equal to 1 are not stored.
  *
- *               direct='F' & storeV='C'          direct='F' & storeV='R'
+ *               direct=Direction::Forward & storeV=StoreV::Columnwise          direct=Direction::Forward & storeV=StoreV::Rowwise
  *               -----------------------          -----------------------
  *               V = (  1       )                 V = (  1 v1 v1 v1 v1 )
  *                   ( v1  1    )                     (     1 v2 v2 v2 )
@@ -45,7 +45,7 @@ namespace lapack {
  *                   ( v1 v2 v3 )
  *                   ( v1 v2 v3 )
  *
- *               direct='B' & storeV='C'          direct='B' & storeV='R'
+ *               direct=Direction::Backward & storeV=StoreV::Columnwise          direct=Direction::Backward & storeV=StoreV::Rowwise
  *               -----------------------          -----------------------
  *               V = ( v1 v2 v3 )                 V = ( v1 v1  1       )
  *                   ( v1 v2 v3 )                     ( v2 v2 v2  1    )
@@ -55,16 +55,16 @@ namespace lapack {
  *
  * @return 0 if success.
  * @return -i if the ith argument is invalid.
- * @tparam real_t Floating point type.
+ * 
  * @param direct Specifies the direction in which the elementary reflectors are multiplied to form the block reflector.
  *
- *               'F' : forward
- *               'B' : backward
+ *               Direction::Forward
+ *               Direction::Backward
  *
  * @param storeV Specifies how the vectors which define the elementary reflectors are stored.
  *
- *               'C' : columnwise
- *               'R' : rowwise
+ *               StoreV::Columnwise
+ *               StoreV::Rowwise
  *
  * @param n The order of the block reflector H. n >= 0.
  * @param k The order of the triangular factor T, or the number of elementary reflectors. k >= 1.
@@ -80,22 +80,19 @@ namespace lapack {
  * 
  * @ingroup auxiliary
  */
-template <typename TV>
+template <typename real_t>
 int larft(
     Direction direct, StoreV storeV,
     idx_t n, idx_t k,
-    TV *V, idx_t ldV,
-    TV *tau, TV *T, idx_t ldT)
+    const real_t *V, idx_t ldV,
+    const real_t *tau, real_t *T, idx_t ldT)
 {
-    typedef blas::real_type<TV> real_t;
-    using std::conj;
-    using std::max;
-    using std::min;
-    using std::toupper;
+    using blas::max;
+    using blas::min;
 
     // constants
-    const TV one(1.0);
-    const TV zero(0.0);
+    const real_t one(1.0);
+    const real_t zero(0.0);
 
     // check arguments
     lapack_error_if( direct != Direction::Forward &&
@@ -107,200 +104,194 @@ int larft(
     lapack_error_if( ldV < ((storeV == StoreV::Columnwise) ? n : k), -6 );
     lapack_error_if( ldT < k, -9 );
 
+    // Quick return
     if (n == 0)
         return 0;
 
-    TV *V0 = V;
-    TV *T0 = T;
-    if (direct == 'F')
-    {
-        for (idx_t i = 0; i < k; i++)
-        {
-            if (tau[i] == zero)
-            {
-                for (int j = 0; j <= i; j++)
-                    T[j] = zero;
+    #define _V(i_, j_) V[ (i_) + (j_)*ldV ]
+    #define _T(i_, j_) T[ (i_) + (j_)*ldT ]
+
+    if (direct == Direction::Forward) {
+        for (idx_t i = 0; i < k; ++i) {
+            if (tau[i] == zero) {
+                // H(i)  =  I
+                for (int j = 0; j <= i; ++j)
+                    _T(j,i) = zero;
             }
-            else
-            {
-                if (storeV == 'C')
-                {
-                    TV *v = V0;
-                    for (idx_t j = 0; j < i; j++)
-                    {
-                        T[j] = -tau[i] * conj(v[i]);
-                        v += ldV;
-                    }
-                    GEMV<real_t>('C', n - i - 1, i, -tau[i], &V0[i + 1], ldV, &V[i + 1], 1, one, T, 1);
+            else {
+                // General case
+                if (storeV == StoreV::Columnwise) {
+                    for (idx_t j = 0; j < i; ++j)
+                        _T(j,i) = -tau[i] * _V(i,j);
+                    // T(0:i,i) := - tau(i) * V(i:j,0:i)**T * V(i:j,i)
+                    blas::gemv( 
+                        Layout::ColMajor, Op::Trans, 
+                        n-i-1, i, -tau[i], &_V(i+1,0), ldV,
+                        &_V(i+1,i), 1, one, &_T(0,i), 1);
                 }
-                else // storeV=='R'
-                {
-                    for (idx_t j = 0; j < i; j++)
-                        T[j] = -tau[i] * V[j];
-                    GEMM<real_t>('N', 'C', i, 1, n - i - 1, -tau[i], V + ldV, ldV, V + i + ldV, ldV, one, T, ldT);
+                else { // storeV==StoreV::Rowwise
+                    for (idx_t j = 0; j < i; ++j)
+                        _T(j,i) = -tau[i] * _V(j,i);
+                    // T(0:i,i) := - tau(i) * V(0:i,i:j) * V(i,i:j)**T
+                    blas::gemv(
+                        Layout::ColMajor, Op::NoTrans, 
+                        i, n-i-1, -tau[i], &_V(0,i+1), ldV, 
+                        &_V(i,i+1), ldV, one, &_T(0,i), 1);
                 }
-                TRMV<real_t>('U', 'N', 'N', i, T0, ldT, T, 1);
-                T[i] = tau[i];
+                // T(0:i,i) := T(0:i,0:i) * T(0:i,i)
+                blas::trmv( 
+                    Layout::ColMajor, Uplo::Upper, Op::NoTrans, Diag::NonUnit, 
+                    i, T, ldT, &_T(0,i), 1 );
+                _T(i,i) = tau[i];
             }
-            T += ldT;
-            V += ldV;
         }
     }
-    else // direct=='B'
-    {
-        T += (k - 1) * ldT;
-        V += (k - 1) * ldV;
-        T[k - 1] = tau[k - 1];
-        for (idx_t i = k - 2; i >= 0; --i)
-        {
-            T -= ldT;
-            V -= ldV;
-            if (tau[i] == zero)
-            {
-                for (idx_t j = i; j < k; j++)
-                    T[j] = zero;
+    else { // direct==Direction::Backward
+        _T(k-1,k-1) = tau[k-1];
+        for (idx_t i = k-2; i != idx_t(-1); --i) {
+            if (tau[i] == zero) {
+                for (idx_t j = i; j < k; ++j)
+                    _T(j,i) = zero;
             }
-            else
-            {
-                if (storeV == 'C')
-                {
-                    TV *v = V + ldV;
-                    for (idx_t j = i + 1; j < k; j++)
-                    {
-                        T[j] = -tau[i] * conj(v[n - k + i]);
-                        v += ldV;
-                    }
-                    GEMV<real_t>('C', n - k + i, k - i - 1, -tau[i], V + ldV, ldV, V, 1, one, T + i + 1, 1);
+            else {
+                if (storeV == StoreV::Columnwise) {
+                    for (idx_t j = i+1; j < k; ++j)
+                        _T(j,i) = -tau[i] * _V(n-k+i,j);
+                    blas::gemv(
+                        Layout::ColMajor, Op::Trans, 
+                        n-k+i, k-i-1, -tau[i], &_V(0,i+1), ldV,
+                        &_V(0,i), 1, one, &_T(i+1,i), 1);
                 }
-                else // storeV=='R'
-                {
-                    TV *v = V + (n - k) * ldV;
-                    for (idx_t j = i + 1; j < k; j++)
-                    {
-                        T[j] = -tau[i] * v[j];
-                    }
-                    GEMM<real_t>('N', 'C', k - i - 1, 1, n - k + i, -tau[i], V0 + i + 1, ldV, V0 + i, ldV, one, T + i + 1, ldT);
+                else { // storeV==StoreV::Rowwise
+                    for (idx_t j = i+1; j < k; ++j)
+                        _T(j,i) = -tau[i] * _V(j,n-k+i);
+                    blas::gemv(
+                        Layout::ColMajor, Op::NoTrans, 
+                        k-i-1, n-k+i, -tau[i], &_V(i+1,0), ldV,
+                        &_V(i,0), ldV, one, &_T(i+1,i), 1);
                 }
-                TRMV<real_t>('L', 'N', 'N', k - i - 1, T + i + 1 + ldT, ldT, T + i + 1, 1);
+                blas::trmv( 
+                    Layout::ColMajor, Uplo::Lower, Op::NoTrans, Diag::NonUnit, 
+                    k-i-1, &_T(i+1,i+1), ldT, &_T(i+1,i), 1);
             }
-            T[i] = tau[i];
+            _T(i,i) = tau[i];
         }
     }
     return 0;
+
+    #undef _V
+    #undef _T
 }
 
-/** Applies orthogonal matrix Q to a matrix C.
+/** Forms the triangular factor T of a complex block reflector H of order n,
  * 
- * @param work Vector of size n (m if side == Side::Right).
- * @see larft( Side, Op, blas::idx_t, blas::idx_t, blas::idx_t, const TA*, blas::idx_t, const blas::real_type<TA,TC>*, TC*, blas::idx_t )
+ * @see larft( Direction, StoreV, idx_t, idx_t, const real_t *, idx_t, const real_t *, real_t *, idx_t)
  * 
- * @ingroup geqrf
+ * @ingroup auxiliary
  */
-template<typename TA, typename TC>
+template <typename real_t>
 int larft(
-    Side side, Op trans,
-    blas::idx_t m, blas::idx_t n, blas::idx_t k,
-    const TA* A, blas::idx_t lda,
-    const blas::real_type<TA,TC>* tau,
-    TC* C, blas::idx_t ldc,
-    blas::scalar_type<TA,TC>* work )
+    Direction direct, StoreV storeV,
+    idx_t n, idx_t k,
+    const std::complex<real_t> *V, idx_t ldV,
+    const std::complex<real_t> *tau,
+    std::complex<real_t> *T, idx_t ldT)
 {
+    using blas::conj;
+    using blas::max;
+    using blas::min;
+
+    // constants
+    const std::complex<real_t> one(1.0);
+    const std::complex<real_t> zero(0.0);
+
     // check arguments
+    lapack_error_if( direct != Direction::Forward &&
+                     direct != Direction::Backward, -1 );
+    lapack_error_if( storeV != StoreV::Columnwise &&
+                     storeV != StoreV::Rowwise, -2 );
+    lapack_error_if( n < 0, -3 );
+    lapack_error_if( k < 1, -4 );
+    lapack_error_if( ldV < ((storeV == StoreV::Columnwise) ? n : k), -6 );
+    lapack_error_if( ldT < k, -9 );
 
-    lapack_error_if( side != Side::Left &&
-                     side != Side::Right, -1 );
-    lapack_error_if( trans != Op::NoTrans &&
-                     trans != Op::Trans &&
-                     trans != Op::ConjTrans, -2 );
-    lapack_error_if( m < 0, -3 );
-    lapack_error_if( n < 0, -4 );
-
-    const idx_t q = (side == Side::Left) ? m : n;
-    lapack_error_if( k < 0 || k > q, -5 );
-    lapack_error_if( lda < q, -7 );
-    lapack_error_if( ldc < m, -10 );
-
-    // quick return
-    if ((m == 0) || (n == 0) || (k == 0))
+    // Quick return
+    if (n == 0)
         return 0;
 
-    if( side == Side::Left ) {
-        if( trans == Op::NoTrans ) {
-            for (idx_t i = 0; i < k; ++i)
-                larf( Side::Left, m-k+i+1, n, A+i, lda, tau[i], C, ldc, work );
-        }
-        else {
-            for (idx_t i = k-1; i != idx_t(-1); --i)
-                larf( Side::Left, m-k+i+1, n, A+i, lda, tau[i], C, ldc, work );
-        }
-    }
-    else { // side == Side::Right
-        if( trans == Op::NoTrans ) {
-            for (idx_t i = 0; i < k; ++i)
-                larf( Side::Right, m, n-k+i+1, A+i, lda, tau[i], C, ldc, work );
-        }
-        else {
-            for (idx_t i = k-1; i != idx_t(-1); --i)
-                larf( Side::Right, m, n-k+i+1, A+i, lda, tau[i], C, ldc, work );
-        }
-    }
+    #define _V(i_, j_) V[ (i_) + (j_)*ldV ]
+    #define _T(i_, j_) T[ (i_) + (j_)*ldT ]
 
+    if (direct == Direction::Forward) {
+        for (idx_t i = 0; i < k; ++i) {
+            if (tau[i] == zero) {
+                // H(i)  =  I
+                for (int j = 0; j <= i; ++j)
+                    _T(j,i) = zero;
+            }
+            else {
+                // General case
+                if (storeV == StoreV::Columnwise) {
+                    for (idx_t j = 0; j < i; ++j)
+                        _T(j,i) = -tau[i] * conj(_V(i,j));
+                    // T(0:i,i) := - tau(i) * V(i:j,0:i)**H * V(i:j,i)
+                    blas::gemv( 
+                        Layout::ColMajor, Op::ConjTrans, 
+                        n-i-1, i, -tau[i], &_V(i+1,0), ldV,
+                        &_V(i+1,i), 1, one, &_T(0,i), 1);
+                }
+                else { // storeV==StoreV::Rowwise
+                    for (idx_t j = 0; j < i; ++j)
+                        _T(j,i) = -tau[i] * _V(j,i);
+                    // T(0:i,i) := - tau(i) * V(0:i,i:j) * V(i,i:j)**H
+                    blas::gemm(
+                        Layout::ColMajor, Op::NoTrans, Op::ConjTrans, 
+                        i, 1, n-i-1, -tau[i], &_V(0,i+1), ldV, 
+                        &_V(i,i+1), ldV, one, &_T(0,i), ldT);
+                }
+                // T(0:i,i) := T(0:i,0:i) * T(0:i,i)
+                blas::trmv( 
+                    Layout::ColMajor, Uplo::Upper, Op::NoTrans, Diag::NonUnit, 
+                    i, T, ldT, &_T(0,i), 1 );
+                _T(i,i) = tau[i];
+            }
+        }
+    }
+    else { // direct==Direction::Backward
+        _T(k-1,k-1) = tau[k-1];
+        for (idx_t i = k-2; i != idx_t(-1); --i) {
+            if (tau[i] == zero) {
+                for (idx_t j = i; j < k; ++j)
+                    _T(j,i) = zero;
+            }
+            else {
+                if (storeV == StoreV::Columnwise) {
+                    for (idx_t j = i+1; j < k; ++j)
+                        _T(j,i) = -tau[i] * conj(_V(n-k+i,j));
+                    blas::gemv(
+                        Layout::ColMajor, Op::ConjTrans, 
+                        n-k+i, k-i-1, -tau[i], &_V(0,i+1), ldV,
+                        &_V(0,i), 1, one, &_T(i+1,i), 1);
+                }
+                else { // storeV==StoreV::Rowwise
+                    for (idx_t j = i+1; j < k; ++j)
+                        _T(j,i) = -tau[i] * _V(j,n-k+i);
+                    blas::gemm(
+                        Layout::ColMajor, Op::NoTrans, Op::ConjTrans, 
+                        k-i-1, 1, n-k+i, -tau[i], &_V(i+1,0), ldV,
+                        &_V(i,0), ldV, one, &_T(i+1,i), ldT);
+                }
+                blas::trmv( 
+                    Layout::ColMajor, Uplo::Lower, Op::NoTrans, Diag::NonUnit, 
+                    k-i-1, &_T(i+1,i+1), ldT, &_T(i+1,i), 1);
+            }
+            _T(i,i) = tau[i];
+        }
+    }
     return 0;
-}
 
-/** Applies orthogonal matrix Q to a matrix C.
- * 
- * @return  0 if success
- * @return -i if the ith argument is invalid
- * 
- * @param[in] side Specifies which side Q is to be applied.
- *                 'L': apply Q or Q' from the Left;
- *                 'R': apply Q or Q' from the Right.
- * @param[in] trans Specifies whether Q or Q' is applied.
- *                 'N':  No transpose, apply Q;
- *                 'T':  Transpose, apply Q'.
- * @param[in] m The number of rows of the matrix C.
- * @param[in] n The number of columns of the matrix C.
- * @param[in] k The number of elementary reflectors whose product defines the matrix Q.
- *                 If side='L', m>=k>=0;
- *                 if side='R', n>=k>=0.
- * @param[in] A Matrix containing the elementary reflectors H.
- *                 If side='L', A is k-by-m;
- *                 if side='R', A is k-by-n.
- * @param[in] ldA The column length of the matrix A.  ldA>=k.
- * @param[in] tau Real vector of length k containing the scalar factors of the
- * elementary reflectors.
- * @param[in,out] C m-by-n matrix. 
- *     On exit, C is replaced by one of the following:
- *                 If side='L' & trans='N':  C <- Q * C
- *                 If side='L' & trans='T':  C <- Q'* C
- *                 If side='R' & trans='T':  C <- C * Q'
- *                 If side='R' & trans='N':  C <- C * Q
- * @param ldC The column length the matrix C. ldC>=m.
- * 
- * @ingroup geqrf
- */
-template<typename TA, typename TC>
-inline int larft(
-    Side side, Op trans,
-    blas::idx_t m, blas::idx_t n, blas::idx_t k,
-    const TA* A, blas::idx_t lda,
-    const blas::real_type<TA,TC>* tau,
-    TC* C, blas::idx_t ldc )
-{
-    typedef blas::scalar_type<TA,TC> scalar_t;
-
-    int info = 0;
-    scalar_t* work = new scalar_t[
-        (side == Side::Left)
-            ? ( (m >= 0) ? m : 0 )
-            : ( (n >= 0) ? n : 0 )
-    ];
-
-    info = larft( side, trans, m, n, k, A, lda, tau, C, ldc, work );
-
-    delete[] work;
-    return info;
+    #undef _V
+    #undef _T
 }
 
 }
