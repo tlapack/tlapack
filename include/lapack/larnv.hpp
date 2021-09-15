@@ -30,21 +30,24 @@ namespace lapack {
  *        2: uniform (-1,1)
  *        3: normal (0,1)
  * 
- * @param[in] iseed Seed for random number generator.
- * @param[in] n     Length of vector x.
- * @param[in] x     Pointer to real vector of length n.
+ * @param[in,out] iseed Integer array
+ *          On entry, the seed of the random number generator; the array
+ *          elements must be between 0 and 4095, and iseed[4] must be odd.
+ *          On exit, the seed is updated.
+ * @param[in] n Length of vector x.
+ * @param[out] x Pointer to real vector of length n.
  * 
  * @ingroup auxiliary
  */
 template< typename real_t >
 void larnv(
-    blas::idx_t idist, blas::idx_t iseed,
+    blas::idx_t idist, blas::idx_t* iseed,
     blas::idx_t n, real_t* x )
 {
     // Initialize the generator
     std::random_device device;
     std::mt19937 generator(device());
-    generator.seed(iseed);
+    generator.seed(iseed[0]); // TODO: fix me
 
     // uniform (0,1)
     if (idist == 1) {
@@ -64,6 +67,8 @@ void larnv(
         for (idx_t i = 0; i < n; ++i)
             x[i] = d3(generator);
     }
+
+    iseed[0]++; // TODO: fix me
 }
 
 /**
@@ -82,15 +87,18 @@ void larnv(
  *        4:  uniformly distributed on the disc abs(z) < 1
  *        5:  uniformly distributed on the circle abs(z) = 1
  * 
- * @param[in] iseed Seed for random number generator.
- * @param[in] n     Length of vector x.
- * @param[in] x     Pointer to real vector of length n.
+ * @param[in] iseed Integer array
+ *          On entry, the seed of the random number generator; the array
+ *          elements must be between 0 and 4095, and iseed[4] must be odd.
+ *          On exit, the seed is updated.
+ * @param[in] n Length of vector x.
+ * @param[out] x Pointer to real vector of length n.
  * 
  * @ingroup auxiliary
  */
 template< typename T >
 void larnv(
-    blas::idx_t idist, blas::idx_t iseed,
+    blas::idx_t idist, blas::idx_t* iseed,
     blas::idx_t n, blas::complex_type<T>* x )
 {
     typedef real_type<T> real_t;
@@ -108,7 +116,7 @@ void larnv(
     // Initialize the generator
     std::random_device device;
     std::mt19937 generator(device());
-    generator.seed(iseed);
+    generator.seed(iseed[0]); // TODO: fix me
 
     if (idist == 1) {
         std::uniform_real_distribution<real_t> d1(0, 1);
@@ -135,6 +143,8 @@ void larnv(
         for (idx_t i = 0; i < n; ++i)
             x[i] = exp(complex_t(zero, twopi * d5(generator)));
     }
+
+    iseed[0]++; // TODO: fix me
 }
 
 }

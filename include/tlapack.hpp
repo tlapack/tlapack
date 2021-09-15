@@ -48,6 +48,7 @@
 
 #include "lapack/geqr2.hpp"
 #include "lapack/org2r.hpp"
-#include "lapack/ormr2.hpp"
+#include "lapack/orm2r.hpp"
+#include "lapack/unmqr.hpp"
 
 #endif // __TLAPACK_HH__
