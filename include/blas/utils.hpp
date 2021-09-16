@@ -167,6 +167,26 @@ inline T sqrt( const T& x )
 #endif
 
 // -----------------------------------------------------------------------------
+/// sin, needed because std C++11 template returns double.
+template< typename T >
+inline T sin( const T& x ) { return std::sin( x ); }
+
+#ifdef USE_MPFR
+    template<> 
+    inline mpfr::mpreal sin( const mpfr::mpreal& x ) { return mpfr::sin( x ); }
+#endif
+
+// -----------------------------------------------------------------------------
+/// cos, needed because std C++11 template returns double.
+template< typename T >
+inline T cos( const T& x ) { return std::cos( x ); }
+
+#ifdef USE_MPFR
+    template<> 
+    inline mpfr::mpreal cos( const mpfr::mpreal& x ) { return mpfr::cos( x ); }
+#endif
+
+// -----------------------------------------------------------------------------
 /// atan, needed because std C++ template returns double.
 template< typename T >
 inline T atan( const T& x ) { return std::atan( x ); }

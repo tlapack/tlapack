@@ -9,7 +9,7 @@
 
 // Using defines.h from BLAS++ to enforce the integer types of <T>BLAS
 #define BLAS_SIZE_T std::int64_t
-#define BLAS_INT_T  std::size_t
+#define BLAS_INT_T  std::int64_t
 
 #define BLAS_ERROR_NDEBUG // Don't test corner cases
 

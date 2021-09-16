@@ -386,22 +386,22 @@ std::vector< testsweeper::routines_t > routines = {
     { "lacpy",              test_lacpy,     Section::aux },
     { "laset",              test_laset,     Section::aux },
 //     { "laswp",              test_laswp,     Section::aux },
-//     { "",                   nullptr,        Section::newline },
+    { "",                   nullptr,        Section::newline },
 
 //     // auxiliary: Householder
-//     { "larfg",              test_larfg,     Section::aux_householder },
+    { "larfg",              test_larfg,     Section::aux_householder },
 //     { "larfgp",             test_larfgp,    Section::aux_householder },
-//     { "larf",               test_larf,      Section::aux_householder },
+    { "larf",               test_larf,      Section::aux_householder },
 //     { "larfx",              test_larfx,     Section::aux_householder },
 //     { "larfy",              test_larfy,     Section::aux_householder },
-//     { "larfb",              test_larfb,     Section::aux_householder },
-//     { "larft",              test_larft,     Section::aux_householder },
-//     { "",                   nullptr,        Section::newline },
+    { "larfb",              test_larfb,     Section::aux_householder },
+    { "larft",              test_larft,     Section::aux_householder },
+    { "",                   nullptr,        Section::newline },
 
 //     // auxiliary: norms
-//     { "lange",              test_lange,     Section::aux_norm },
+    { "lange",              test_lange,     Section::aux_norm },
 //     { "lanhe",              test_lanhe,     Section::aux_norm },
-//     { "lansy",              test_lansy,     Section::aux_norm },
+    { "lansy",              test_lansy,     Section::aux_norm },
 //     { "lantr",              test_lantr,     Section::aux_norm },
 //     { "lanhs",              test_lanhs,     Section::aux_norm },
 //     { "",                   nullptr,        Section::newline },
@@ -426,17 +426,17 @@ std::vector< testsweeper::routines_t > routines = {
 //     { "lanst",              test_lanst,     Section::aux_norm },
 //     { "",                   nullptr,        Section::newline },
 
-//     // auxiliary: matrix generation
-//   //{ "lagge",              test_lagge,     Section::aux_gen },
-//   //{ "lagsy",              test_lagsy,     Section::aux_gen },
-//   //{ "laghe",              test_laghe,     Section::aux_gen },
-//   //{ "lagtr",              test_lagtr,     Section::aux_gen },
-//     { "",                   nullptr,        Section::newline },
+    // auxiliary: matrix generation
+  //{ "lagge",              test_lagge,     Section::aux_gen },
+  //{ "lagsy",              test_lagsy,     Section::aux_gen },
+  //{ "laghe",              test_laghe,     Section::aux_gen },
+  //{ "lagtr",              test_lagtr,     Section::aux_gen },
+    { "",                   nullptr,        Section::newline },
 
-//     // additional BLAS
-//     { "syr",                test_syr,       Section::blas2 },
-//     { "symv",               test_symv,      Section::blas2 },
-//     { "",                   nullptr,        Section::newline },
+    // // additional BLAS
+    // { "syr",                test_syr,       Section::blas2 },
+    // { "symv",               test_symv,      Section::blas2 },
+    // { "",                   nullptr,        Section::newline },
 };
 
 // -----------------------------------------------------------------------------

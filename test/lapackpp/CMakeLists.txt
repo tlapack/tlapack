@@ -5,6 +5,7 @@
 # the terms of the BSD 3-Clause license. See the accompanying LICENSE file
 
 find_package( blaspp REQUIRED )
+find_package( LAPACK REQUIRED )
 find_package( lapackpp REQUIRED )
 
 if( EXISTS "${lapackpp_TEST_DIR}/test.cc" )
@@ -93,7 +94,7 @@ if( EXISTS "${lapackpp_TEST_DIR}/test.cc" )
     # ${lapackpp_TEST_DIR}/test_hptrs.cc
     ${lapackpp_TEST_DIR}/test_lacpy.cc
     # ${lapackpp_TEST_DIR}/test_langb.cc
-    # ${lapackpp_TEST_DIR}/test_lange.cc
+    ${lapackpp_TEST_DIR}/test_lange.cc
     # ${lapackpp_TEST_DIR}/test_langt.cc
     # ${lapackpp_TEST_DIR}/test_lanhb.cc
     # ${lapackpp_TEST_DIR}/test_lanhe.cc
@@ -103,15 +104,15 @@ if( EXISTS "${lapackpp_TEST_DIR}/test.cc" )
     # ${lapackpp_TEST_DIR}/test_lanht.cc
     # ${lapackpp_TEST_DIR}/test_lansb.cc
     # ${lapackpp_TEST_DIR}/test_lansp.cc
-    # ${lapackpp_TEST_DIR}/test_lansy.cc
+    ${lapackpp_TEST_DIR}/test_lansy.cc
     # ${lapackpp_TEST_DIR}/test_lantb.cc
     # ${lapackpp_TEST_DIR}/test_lantp.cc
     # ${lapackpp_TEST_DIR}/test_lantr.cc
-    # ${lapackpp_TEST_DIR}/test_larf.cc
-    # ${lapackpp_TEST_DIR}/test_larfb.cc
-    # ${lapackpp_TEST_DIR}/test_larfg.cc
+    ${lapackpp_TEST_DIR}/test_larf.cc
+    ${lapackpp_TEST_DIR}/test_larfb.cc
+    ${lapackpp_TEST_DIR}/test_larfg.cc
     # ${lapackpp_TEST_DIR}/test_larfgp.cc
-    # ${lapackpp_TEST_DIR}/test_larft.cc
+    ${lapackpp_TEST_DIR}/test_larft.cc
     # ${lapackpp_TEST_DIR}/test_larfx.cc
     # ${lapackpp_TEST_DIR}/test_larfy.cc
     ${lapackpp_TEST_DIR}/test_laset.cc
@@ -187,9 +188,11 @@ if( EXISTS "${lapackpp_TEST_DIR}/test.cc" )
     lapackpp_tester
     testsweeper
     tlapack
+    tblas
   )
   target_link_libraries(
     lapackpp_tester
+    ${LAPACK_LIBRARIES}
     "-llapacke"          # TODO: Improve this link.
   )
 

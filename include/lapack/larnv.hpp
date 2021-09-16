@@ -14,65 +14,23 @@
 #include <random>
 #include "lapack/types.hpp"
 
+namespace blas {
+    namespace internal {
+
+        template< typename real_t >
+        void inline set_complex( real_t& x, const real_t& re, const real_t& im )
+        { blas::error( "You cannot set a complex variable to a real variable.", "[function unknown]" ); }
+        
+        template< typename real_t >
+        void inline set_complex( std::complex<real_t>& x, const real_t& re, const real_t& im )
+        { x = std::complex<real_t>(re,im); }
+    }
+}
+
 namespace lapack {
 
 /**
- * @brief Returns a vector of n random real numbers from a uniform or normal distribution.
- * 
- * This implementation uses the Mersenne Twister 19937 generator (class std::mt19937),
- * which is a Mersenne Twister pseudo-random generator of 32-bit numbers with a state size of 19937 bits.
- * 
- * Requires ISO C++ 2011 random number generators.
- * 
- * @param[in] idist Specifies the distribution:
- *
- *        1: uniform (0,1)
- *        2: uniform (-1,1)
- *        3: normal (0,1)
- * 
- * @param[in,out] iseed Integer array
- *          On entry, the seed of the random number generator; the array
- *          elements must be between 0 and 4095, and iseed[4] must be odd.
- *          On exit, the seed is updated.
- * @param[in] n Length of vector x.
- * @param[out] x Pointer to real vector of length n.
- * 
- * @ingroup auxiliary
- */
-template< typename real_t >
-void larnv(
-    blas::idx_t idist, blas::idx_t* iseed,
-    blas::idx_t n, real_t* x )
-{
-    // Initialize the generator
-    std::random_device device;
-    std::mt19937 generator(device());
-    generator.seed(iseed[0]); // TODO: fix me
-
-    // uniform (0,1)
-    if (idist == 1) {
-        std::uniform_real_distribution<real_t> d1(0, 1);
-        for (idx_t i = 0; i < n; ++i)
-            x[i] = d1(generator);
-    }
-    // uniform (-1,1)
-    else if (idist == 2) {
-        std::uniform_real_distribution<real_t> d2(-1, 1);
-        for (idx_t i = 0; i < n; ++i)
-            x[i] = d2(generator);
-    }
-    // normal (0,1)
-    else if (idist == 3) {
-        std::normal_distribution<real_t> d3(0, 1);
-        for (idx_t i = 0; i < n; ++i)
-            x[i] = d3(generator);
-    }
-
-    iseed[0]++; // TODO: fix me
-}
-
-/**
- * @brief Returns a vector of n random complex numbers from a uniform or normal distribution.
+ * @brief Returns a vector of n random numbers from a uniform or normal distribution.
  * 
  * This implementation uses the Mersenne Twister 19937 generator (class std::mt19937),
  * which is a Mersenne Twister pseudo-random generator of 32-bit numbers with a state size of 19937 bits.
@@ -99,16 +57,16 @@ void larnv(
 template< typename T >
 void larnv(
     blas::idx_t idist, blas::idx_t* iseed,
-    blas::idx_t n, blas::complex_type<T>* x )
+    blas::idx_t n, T* x )
 {
     typedef real_type<T> real_t;
-    typedef complex_type<T> complex_t;
     using blas::atan;
     using blas::sqrt;
-    using blas::exp;
+    using blas::cos;
+    using blas::sin;
+    using blas::internal::set_complex;
 
     // Constants
-    const real_t zero  = 0.0;
     const real_t one   = 1.0;
     const real_t eight = 8.0;
     const real_t twopi = eight * atan(one);
@@ -120,28 +78,48 @@ void larnv(
 
     if (idist == 1) {
         std::uniform_real_distribution<real_t> d1(0, 1);
-        for (idx_t i = 0; i < n; ++i)
-            x[i] = complex_t(d1(generator), d1(generator));
+        for (idx_t i = 0; i < n; ++i) {
+            if( blas::is_complex<T>::value )
+                set_complex(x[i], d1(generator), d1(generator));
+            else
+                x[i] = d1(generator);
+        }
     }
     else if (idist == 2) {
         std::uniform_real_distribution<real_t> d2(-1, 1);
-        for (idx_t i = 0; i < n; ++i)
-            x[i] = complex_t(d2(generator), d2(generator));
+        for (idx_t i = 0; i < n; ++i) {
+            if( blas::is_complex<T>::value )
+                set_complex(x[i], d2(generator), d2(generator));
+            else
+                x[i] = d2(generator);
+        }
     }
     else if (idist == 3) {
         std::normal_distribution<real_t> d3(0, 1);
-        for (idx_t i = 0; i < n; ++i)
-            x[i] = complex_t(d3(generator), d3(generator));
+        for (idx_t i = 0; i < n; ++i) {
+            if( blas::is_complex<T>::value )
+                set_complex(x[i], d3(generator), d3(generator));
+            else
+                x[i] = d3(generator);
+        }
     }
-    else if (idist == 4) {
-        std::uniform_real_distribution<real_t> d4(0, 1);
-        for (idx_t i = 0; i < n; ++i)
-            x[i] = sqrt(d4(generator)) * exp(complex_t(zero, twopi * d4(generator)));
-    }
-    else if (idist == 5) {
-        std::uniform_real_distribution<real_t> d5(0, 1);
-        for (idx_t i = 0; i < n; ++i)
-            x[i] = exp(complex_t(zero, twopi * d5(generator)));
+    else if ( blas::is_complex<T>::value ) {
+        if (idist == 4) {
+            std::uniform_real_distribution<real_t> d4(0, 1);
+            for (idx_t i = 0; i < n; ++i) {
+                const real_t r     = sqrt(d4(generator));
+                const real_t theta = twopi * d4(generator);
+                set_complex(x[i], r*cos(theta), r*sin(theta));
+            }
+        }
+        else if (idist == 5) {
+            std::uniform_real_distribution<real_t> d5(0, 1);
+            for (idx_t i = 0; i < n; ++i) {
+                const real_t r     = 1.0;
+                const real_t theta = twopi * d5(generator);
+                set_complex(x[i], r*cos(theta), r*sin(theta));
+            }
+        }
     }
 
     iseed[0]++; // TODO: fix me
