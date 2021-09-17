@@ -78,8 +78,8 @@ void larfg(
         if ( xnorm > rzero || (imag(alpha) != rzero) )
         {
             real_t temp = ( ! is_complex<T>::value )
-                        ? abs( lapy2(real(alpha), xnorm) )
-                        : abs( lapy3(real(alpha), imag(alpha), xnorm) );
+                        ? lapy2(real(alpha), xnorm)
+                        : lapy3(real(alpha), imag(alpha), xnorm);
             real_t beta = (real(alpha) < rzero) ? temp : -temp;
             if (abs(beta) < safemin)
             {
@@ -92,8 +92,8 @@ void larfg(
                 }
                 xnorm = nrm2( n-1, x, incx );
                 temp = ( ! is_complex<T>::value )
-                     ? abs( lapy2(real(alpha), xnorm) )
-                     : abs( lapy3(real(alpha), imag(alpha), xnorm) );
+                     ? lapy2(real(alpha), xnorm)
+                     : lapy3(real(alpha), imag(alpha), xnorm);
                 beta = (real(alpha) < rzero) ? temp : -temp;
             }
             tau = (beta - alpha) / beta;

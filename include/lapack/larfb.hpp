@@ -135,252 +135,349 @@ void larfb(
     if (storeV == StoreV::Columnwise) {
         if (direct == Direction::Forward) {
             if (side == Side::Left) {
-                lacpy(Uplo::General,k,n,C,ldC,W,k);
-                
+                // W is an k-by-n matrix
+                // V is an m-by-k matrix
+
+                TV const* V1 = V;
+                TV const* V2 = V+k;
+                TC* C1 = C;
+                TC* C2 = C+k;
+
+                // W := C1
+                lacpy(Uplo::General,k,n,C1,ldC,W,k);
+                // W := V1^H W
                 blas::trmm(
                     Layout::ColMajor, Side::Left,
                     Uplo::Lower, Op::ConjTrans, Diag::Unit,
-                    k, n, one, V, ldV, W, k);
+                    k, n, one, V1, ldV, W, k);
                 if( m > k )
+                    // W := W + V2^H C2
                     blas::gemm(
                         Layout::ColMajor, Op::ConjTrans, Op::NoTrans,
-                        k, n, m-k, one, V+k, ldV,
-                        C+k, ldC, one, W, k);
+                        k, n, m-k, one, V2, ldV,
+                        C2, ldC, one, W, k);
+                // W := op(T) W
                 blas::trmm(
                     Layout::ColMajor, Side::Left,
                     Uplo::Upper, trans, Diag::NonUnit,
                     k, n, one, T, ldT, W, k);
                 if( m > k )
+                    // C2 := C2 - V2 W
                     blas::gemm(
                         Layout::ColMajor, Op::NoTrans, Op::NoTrans,
-                        m-k, n, k, -one, V+k, ldV,
-                        W, k, one, C+k, ldC);
+                        m-k, n, k, -one, V2, ldV,
+                        W, k, one, C2, ldC);
+                // W := - V1 W
                 blas::trmm(
                     Layout::ColMajor, Side::Left,
                     Uplo::Lower, Op::NoTrans, Diag::Unit,
-                    k, n, -one, V, ldV, W, k);
-                
+                    k, n, -one, V1, ldV, W, k);
+
+                // C1 := C1 + W
                 for( idx_t j = 0; j < n; ++j )
                     for( idx_t i = 0; i < k; ++i )
-                        _C(i,j) -= conj( W[ i + j*k ] );
+                        C1[ i + j*ldC ] += W[ i + j*k ];
             }
             else { // side == Side::Right
-                lacpy(Uplo::General,m,k,C,ldC,W,m);
-                
+                // W is an m-by-k matrix
+                // V is an n-by-k matrix
+
+                TV const* V1 = V;
+                TV const* V2 = V+k;
+                TC* C1 = C;
+                TC* C2 = C+k*ldC;
+
+                // W := C1
+                lacpy(Uplo::General,m,k,C1,ldC,W,m);
+                // W := W V1
                 blas::trmm(
                     Layout::ColMajor, Side::Right,
                     Uplo::Lower, Op::NoTrans, Diag::Unit,
-                    m, k, one, V, ldV, W, m);
+                    m, k, one, V1, ldV, W, m);
                 if( n > k )
+                    // W := W + C2 V2
                     blas::gemm(
                         Layout::ColMajor, Op::NoTrans, Op::NoTrans,
-                        m , k, n-k, one,
-                        C+k*ldC, ldC, V+k, ldV, one, W, m);
+                        m, k, n-k, one,
+                        C2, ldC, V2, ldV, one, W, m);
+                // W := W op(T)
                 blas::trmm(
                     Layout::ColMajor, Side::Right,
                     Uplo::Upper, trans, Diag::NonUnit,
                     m, k, one, T, ldT, W, m);
                 if( n > k )
+                    // C2 := C2 - W V2^H
                     blas::gemm(
                         Layout::ColMajor, Op::NoTrans, Op::ConjTrans,
-                        m-k, n, k, -one, V+k, ldV,
-                        W, m, one, C+k, ldC);
+                        m, n-k, k, -one, W, m,
+                        V2, ldV, one, C2, ldC);
+                // W := - W V1^H
                 blas::trmm(
                     Layout::ColMajor, Side::Right,
                     Uplo::Lower, Op::ConjTrans, Diag::Unit,
-                    n, k, -one, V, ldV, W, m);
+                    m, k, -one, V1, ldV, W, m);
                 
+                // C1 := C1 + W
                 for( idx_t j = 0; j < k; ++j )
-                    for( idx_t i = 0; i < n; ++i )
-                        _C(i,j) -= conj( W[ i + j*m ] );
+                    for( idx_t i = 0; i < m; ++i )
+                        C1[ i + j*ldC ] += W[ i + j*m ];
             }
         }
         else { // direct == Direction::Backward
             if (side == Side::Left) {
-                lacpy(Uplo::General,k,n,C+m-k,ldC,W,k);
-                
+                // W is an k-by-n matrix
+                // V is an m-by-k matrix
+
+                TV const* V1 = V;
+                TV const* V2 = V+m-k;
+                TC* C1 = C;
+                TC* C2 = C+m-k;
+
+                // W := C2
+                lacpy(Uplo::General,k,n,C2,ldC,W,k);
+                // W := V2^H W
                 blas::trmm(
                     Layout::ColMajor, Side::Left,
-                    Uplo::Lower, Op::ConjTrans, Diag::Unit,
-                    k, n, one, V+m-k, ldV, W, k);
+                    Uplo::Upper, Op::ConjTrans, Diag::Unit,
+                    k, n, one, V2, ldV, W, k);
                 if( m > k )
+                    // W := W + V1^H C1
                     blas::gemm(
                         Layout::ColMajor, Op::ConjTrans, Op::NoTrans,
-                        k, n, m-k, one, V, ldV,
-                        C, ldC, one, W, k);
+                        k, n, m-k, one, V1, ldV,
+                        C1, ldC, one, W, k);
+                // W := op(T) W
                 blas::trmm(
                     Layout::ColMajor, Side::Left,
-                    Uplo::Upper, trans, Diag::NonUnit,
+                    Uplo::Lower, trans, Diag::NonUnit,
                     k, n, one, T, ldT, W, k);
                 if( m > k )
+                    // C1 := C1 - V1 W
                     blas::gemm(
                         Layout::ColMajor, Op::NoTrans, Op::NoTrans,
-                        m-k, n, k, -one, V, ldV,
-                        W, k, one, C, ldC);
+                        m-k, n, k, -one, V1, ldV,
+                        W, k, one, C1, ldC);
+                // W := - V2 W
                 blas::trmm(
                     Layout::ColMajor, Side::Left,
-                    Uplo::Lower, Op::NoTrans, Diag::Unit,
-                    k, n, -one, V+m-k, ldV, W, k);
-                
+                    Uplo::Upper, Op::NoTrans, Diag::Unit,
+                    k, n, -one, V2, ldV, W, k);
+
+                // C2 := C2 + W
                 for( idx_t j = 0; j < n; ++j )
                     for( idx_t i = 0; i < k; ++i )
-                        _C(i+m-k,j) -= conj( W[ i + j*k ] );
+                        C2[ i + j*ldC ] += W[ i + j*k ];
             }
             else { // side == Side::Right
+                // W is an m-by-k matrix
+                // V is an n-by-k matrix
+
+                // W := C(0:m,n-k:n)
                 lacpy(Uplo::General,m,k,C+(n-k)*ldC,ldC,W,m);
-                
+                // W := W V(n-k:n,0:k)
                 blas::trmm(
                     Layout::ColMajor, Side::Right,
-                    Uplo::Lower, Op::NoTrans, Diag::Unit,
+                    Uplo::Upper, Op::NoTrans, Diag::Unit,
                     m, k, one, V+n-k, ldV, W, m);
                 if( n > k )
+                    // W := W + C(0:m,0:n-k) V(0:n-k,0:k)
                     blas::gemm(
                         Layout::ColMajor, Op::NoTrans, Op::NoTrans,
-                        m , k, n-k, one,
+                        m, k, n-k, one,
                         C, ldC, V, ldV, one, W, m);
+                // W := W op(T)
                 blas::trmm(
                     Layout::ColMajor, Side::Right,
-                    Uplo::Upper, trans, Diag::NonUnit,
+                    Uplo::Lower, trans, Diag::NonUnit,
                     m, k, one, T, ldT, W, m);
                 if( n > k )
+                    // C(0:m,0:n-k) := C(0:m,0:n-k) - W V(0:n-k,0:k)^H
                     blas::gemm(
                         Layout::ColMajor, Op::NoTrans, Op::ConjTrans,
-                        m-k, n, k, -one, V, ldV,
-                        W, m, one, C+k, ldC);
+                        m, n-k, k, -one, W, m,
+                        V, ldV, one, C, ldC);
+                // W := - W V(n-k:n,0:k)^H
                 blas::trmm(
                     Layout::ColMajor, Side::Right,
-                    Uplo::Lower, Op::ConjTrans, Diag::Unit,
-                    n, k, -one, V+n-k, ldV, W, m);
+                    Uplo::Upper, Op::ConjTrans, Diag::Unit,
+                    m, k, -one, V+n-k, ldV, W, m);
                 
+                // C(0:m,n-k:n) := W
                 for( idx_t j = 0; j < k; ++j )
-                    for( idx_t i = 0; i < n; ++i )
-                        _C(i,j+(n-k)) -= conj( W[ i + j*m ] );
+                    for( idx_t i = 0; i < m; ++i )
+                        _C(i,j+n-k) += W[ i + j*m ];
             }
         }
     }
     else { // storeV == StoreV::Rowwise
         if (direct == Direction::Forward) {
             if (side == Side::Left) {
-                lacpy(Uplo::General,k,n,C,ldC,W,k);
-                
+                // W is an k-by-n matrix
+                // V is an k-by-m matrix
+
+                TV const* V1 = V;
+                TV const* V2 = V+k*ldV;
+                TC* C1 = C;
+                TC* C2 = C+k;
+
+                // W := C1
+                lacpy(Uplo::General,k,n,C1,ldC,W,k);
+                // W := V1 W
                 blas::trmm(
                     Layout::ColMajor, Side::Left,
                     Uplo::Upper, Op::NoTrans, Diag::Unit,
-                    k, n, one, V, ldV, W, k);
+                    k, n, one, V1, ldV, W, k);
                 if( m > k )
+                    // W := W + V2 C2
                     blas::gemm(
                         Layout::ColMajor, Op::NoTrans, Op::NoTrans,
-                        k, n, m-k, one, V+k*ldV, ldV,
-                        C+k, ldC, one, W, k);
+                        k, n, m-k, one, V2, ldV,
+                        C2, ldC, one, W, k);
+                // W := op(T) W
                 blas::trmm(
                     Layout::ColMajor, Side::Left,
                     Uplo::Upper, trans, Diag::NonUnit,
                     k, n, one, T, ldT, W, k);
                 if( m > k )
+                    // C2 := C2 - V2^H W
                     blas::gemm(
                         Layout::ColMajor, Op::ConjTrans, Op::NoTrans,
-                        m-k, n, k, -one, V+k*ldV, ldV,
-                        W, k, one, C+k, ldC);
+                        m-k, n, k, -one, V2, ldV,
+                        W, k, one, C2, ldC);
+                // W := - V1^H W
                 blas::trmm(
                     Layout::ColMajor, Side::Left,
                     Uplo::Upper, Op::ConjTrans, Diag::Unit,
-                    k, n, -one, V, ldV, W, k);
-                
+                    k, n, -one, V1, ldV, W, k);
+
+                // C1 := C1 - W
                 for( idx_t j = 0; j < n; ++j )
                     for( idx_t i = 0; i < k; ++i )
-                        _C(i,j) -= conj( W[ i + j*k ] );
+                        C1[ i + j*ldC ] += W[ i + j*k ];
             }
             else { // side == Side::Right
+                // W is an m-by-k matrix
+                // V is an k-by-n matrix
+
+                // W := C(0:m,0:k)
                 lacpy(Uplo::General,m,k,C,ldC,W,m);
-                
+                // W := W V(0:k,0:k)^H
                 blas::trmm(
                     Layout::ColMajor, Side::Right,
                     Uplo::Upper, Op::ConjTrans, Diag::Unit,
                     m, k, one, V, ldV, W, m);
                 if( n > k )
+                    // W := W + C(0:m,k:n) V(0:k,k:n)^H
                     blas::gemm(
                         Layout::ColMajor, Op::NoTrans, Op::ConjTrans,
-                        m , k, n-k, one,
+                        m, k, n-k, one,
                         C+k*ldC, ldC, V+k*ldV, ldV, one, W, m);
+                // W := W op(T)
                 blas::trmm(
                     Layout::ColMajor, Side::Right,
                     Uplo::Upper, trans, Diag::NonUnit,
                     m, k, one, T, ldT, W, m);
                 if( n > k )
+                    // C(0:m,k:n) := C(0:m,k:n) - W V(0:k,k:n)
                     blas::gemm(
                         Layout::ColMajor, Op::NoTrans, Op::NoTrans,
                         m, n-k, k, -one, W, m,
                         V+k*ldV, ldV, one, C+k*ldC, ldC);
+                // W := - W V(0:k,0:k)
                 blas::trmm(
                     Layout::ColMajor, Side::Right,
                     Uplo::Upper, Op::NoTrans, Diag::Unit,
                     m, k, -one, V, ldV, W, m);
                 
+                // C(0:m,0:k) := W
                 for( idx_t j = 0; j < k; ++j )
                     for( idx_t i = 0; i < m; ++i )
-                        _C(i,j) -= conj( W[ i + j*m ] );
+                        _C(i,j) += W[ i + j*m ];
             }
         }
         else { // direct == Direction::Backward
             if (side == Side::Left) {
-                lacpy(Uplo::General,k,n,C+m-k,ldC,W,k);
-                
+                // W is an k-by-n matrix
+                // V is an k-by-m matrix
+
+                TV const* V1 = V;
+                TV const* V2 = V+(m-k)*ldV;
+                TC* C1 = C;
+                TC* C2 = C+m-k;
+
+                // W := C2
+                lacpy(Uplo::General,k,n,C2,ldC,W,k);
+                // W := V2 W
                 blas::trmm(
                     Layout::ColMajor, Side::Left,
                     Uplo::Lower, Op::NoTrans, Diag::Unit,
-                    k, n, one, V+(m-k)*ldV, ldV, W, k);
+                    k, n, one, V2, ldV, W, k);
                 if( m > k )
+                    // W := W + V1 C1
                     blas::gemm(
                         Layout::ColMajor, Op::NoTrans, Op::NoTrans,
-                        k, n, m-k, one, V, ldV,
-                        C, ldC, one, W, k);
+                        k, n, m-k, one, V1, ldV,
+                        C1, ldC, one, W, k);
+                // W := op(T) W
                 blas::trmm(
                     Layout::ColMajor, Side::Left,
                     Uplo::Lower, trans, Diag::NonUnit,
                     k, n, one, T, ldT, W, k);
                 if( m > k )
+                    // C1 := C1 - V1^H W
                     blas::gemm(
-                        Layout::ColMajor, Op::NoTrans, Op::NoTrans,
-                        m-k, n, k, -one, V, ldV,
-                        W, k, one, C, ldC);
+                        Layout::ColMajor, Op::ConjTrans, Op::NoTrans,
+                        m-k, n, k, -one, V1, ldV,
+                        W, k, one, C1, ldC);
+                // W := - V2^H W
                 blas::trmm(
                     Layout::ColMajor, Side::Left,
-                    Uplo::Lower, Op::NoTrans, Diag::Unit,
-                    k, n, -one, V+(m-k)*ldV, ldV, W, k);
-                
+                    Uplo::Lower, Op::ConjTrans, Diag::Unit,
+                    k, n, -one, V2, ldV, W, k);
+
+                // C2 := C2 + W
                 for( idx_t j = 0; j < n; ++j )
                     for( idx_t i = 0; i < k; ++i )
-                        _C(i+m-k,j) -= conj( W[ i + j*k ] );
+                        C2[ i + j*ldC ] += W[ i + j*k ];
             }
             else { // side == Side::Right
+                // W is an m-by-k matrix
+                // V is an k-by-n matrix
+
+                // W := C(0:m,n-k:n)
                 lacpy(Uplo::General,m,k,C+(n-k)*ldC,ldC,W,m);
-                
+                // W := W V(0:k,n-k:n)^H
                 blas::trmm(
                     Layout::ColMajor, Side::Right,
                     Uplo::Lower, Op::ConjTrans, Diag::Unit,
                     m, k, one, V+(n-k)*ldV, ldV, W, m);
                 if( n > k )
+                    // W := W + C(0:m,0:n-k) V(0:k,0:n-k)^H
                     blas::gemm(
                         Layout::ColMajor, Op::NoTrans, Op::ConjTrans,
-                        m , k, n-k, one,
+                        m, k, n-k, one,
                         C, ldC, V, ldV, one, W, m);
+                // W := W op(T)
                 blas::trmm(
                     Layout::ColMajor, Side::Right,
                     Uplo::Lower, trans, Diag::NonUnit,
                     m, k, one, T, ldT, W, m);
                 if( n > k )
+                    // C(0:m,0:n-k) := C(0:m,0:n-k) - W V(0:k,0:n-k)
                     blas::gemm(
                         Layout::ColMajor, Op::NoTrans, Op::NoTrans,
                         m, n-k, k, -one, W, m,
                         V, ldV, one, C, ldC);
+                // W := - W V(0:k,n-k:n)
                 blas::trmm(
                     Layout::ColMajor, Side::Right,
                     Uplo::Lower, Op::NoTrans, Diag::Unit,
                     m, k, -one, V+(n-k)*ldV, ldV, W, m);
                 
+                // C(0:m,n-k:n) := W
                 for( idx_t j = 0; j < k; ++j )
-                    for( idx_t i = 0; i < n; ++i )
-                        _C(i,j+(n-k)) -= conj( W[ i + j*m ] );
+                    for( idx_t i = 0; i < m; ++i )
+                        _C(i,j+n-k) += W[ i + j*m ];
             }
         }
     }
@@ -399,7 +496,7 @@ inline void larfb(
     TC* C, idx_t ldC )
 {
     typedef blas::scalar_type<TV, TC> scalar_t;
-    scalar_t *work = new scalar_t[ k*m ];
+    scalar_t *work = new scalar_t[ (side == Side::Left) ? k*n : k*m ];
 
     larfb(  side, trans, direct, storeV,
             m, n, k, V, ldV, T, ldT, C, ldC, work );
