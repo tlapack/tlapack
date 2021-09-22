@@ -534,10 +534,10 @@ Params::Params():
     ortho_V    ( "V ortho.\nerror",       9, 2, ParamType::Output, testsweeper::no_data_flag,   0,   0, "V orthogonality error" ),
     error_sigma( "Sigma\nerror",          9, 2, ParamType::Output, testsweeper::no_data_flag,   0,   0, "Sigma error" ),
 
-    time      ( "LAPACK++\ntime (s)",    10, 4, ParamType::Output, testsweeper::no_data_flag,   0,   0, "time to solution" ),
-    gflops    ( "LAPACK++\nGflop/s",     11, 4, ParamType::Output, testsweeper::no_data_flag,   0,   0, "Gflop/s rate" ),
-    gbytes    ( "LAPACK++\nGbyte/s",     11, 4, ParamType::Output, testsweeper::no_data_flag,   0,   0, "Gbyte/s rate" ),
-    iters     ( "LAPACK++\niters",        6,    ParamType::Output,                     0,   0,   0, "iterations to solution" ),
+    time      ( "<T>LAPACK\ntime (s)",    10, 4, ParamType::Output, testsweeper::no_data_flag,   0,   0, "time to solution" ),
+    gflops    ( "<T>LAPACK\nGflop/s",     11, 4, ParamType::Output, testsweeper::no_data_flag,   0,   0, "Gflop/s rate" ),
+    gbytes    ( "<T>LAPACK\nGbyte/s",     11, 4, ParamType::Output, testsweeper::no_data_flag,   0,   0, "Gbyte/s rate" ),
+    iters     ( "<T>LAPACK\niters",        6,    ParamType::Output,                     0,   0,   0, "iterations to solution" ),
 
     ref_time  ( "Ref.\ntime (s)",        10, 4, ParamType::Output, testsweeper::no_data_flag,   0,   0, "reference time to solution" ),
     ref_gflops( "Ref.\nGflop/s",         11, 4, ParamType::Output, testsweeper::no_data_flag,   0,   0, "reference Gflop/s rate" ),

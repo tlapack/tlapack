@@ -148,10 +148,10 @@ Params::Params():
     // ----- output parameters
     // min, max are ignored
     //          name,                w, p, type,              default,               min, max, help
-    error     ( "BLAS++\nerror",    11, 4, ParamType::Output, testsweeper::no_data_flag,   0,   0, "numerical error" ),
-    time      ( "BLAS++\ntime (s)", 11, 4, ParamType::Output, testsweeper::no_data_flag,   0,   0, "time to solution" ),
-    gflops    ( "BLAS++\nGflop/s",  11, 4, ParamType::Output, testsweeper::no_data_flag,   0,   0, "Gflop/s rate" ),
-    gbytes    ( "BLAS++\nGbyte/s",  11, 4, ParamType::Output, testsweeper::no_data_flag,   0,   0, "Gbyte/s rate" ),
+    error     ( "<T>BLAS\nerror",    11, 4, ParamType::Output, testsweeper::no_data_flag,   0,   0, "numerical error" ),
+    time      ( "<T>BLAS\ntime (s)", 11, 4, ParamType::Output, testsweeper::no_data_flag,   0,   0, "time to solution" ),
+    gflops    ( "<T>BLAS\nGflop/s",  11, 4, ParamType::Output, testsweeper::no_data_flag,   0,   0, "Gflop/s rate" ),
+    gbytes    ( "<T>BLAS\nGbyte/s",  11, 4, ParamType::Output, testsweeper::no_data_flag,   0,   0, "Gbyte/s rate" ),
 
     ref_time  ( "Ref.\ntime (s)",   11, 4, ParamType::Output, testsweeper::no_data_flag,   0,   0, "reference time to solution" ),
     ref_gflops( "Ref.\nGflop/s",    11, 4, ParamType::Output, testsweeper::no_data_flag,   0,   0, "reference Gflop/s rate" ),
