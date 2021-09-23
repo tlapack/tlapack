@@ -17,7 +17,7 @@
 
 namespace lapack {
 
-/** Applies a block reflector $H$ or its transpose $H^H$ to a
+/** Applies a block reflector $H$ or its conjugate transpose $H^H$ to a
  * m-by-n matrix C, from either the left or the right.
  *
  * @param[in] side
@@ -26,6 +26,7 @@ namespace lapack {
  *
  * @param[in] trans
  *     - lapack::Op::NoTrans:   apply $H  $ (No transpose)
+ *     - lapack::Op::Trans:     apply $H^T$ (Transpose, only allowed if the type of H is Real)
  *     - lapack::Op::ConjTrans: apply $H^H$ (Conjugate transpose)
  *
  * @param[in] direction
@@ -126,6 +127,10 @@ void larfb(
 
     // constants
     const real_t one(1.0);
+
+    // check arguments
+    if( blas::is_complex<TV>::value )
+        blas_error_if( trans == Op::Trans );
 
     // Quick return
     if (m <= 0 || n <= 0) return;
