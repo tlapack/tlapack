@@ -45,10 +45,8 @@ namespace lapack {
  *        4:  uniformly distributed on the disc abs(z) < 1
  *        5:  uniformly distributed on the circle abs(z) = 1
  * 
- * @param[in] iseed Integer array
- *          On entry, the seed of the random number generator; the array
- *          elements must be between 0 and 4095, and iseed[4] must be odd.
- *          On exit, the seed is updated.
+ * @param[in,out] iseed Seed for the random number generator.
+ *      The seed is updated inside the routine ( Currently: seed_out := seed_in + 1 )
  * @param[in] n Length of vector x.
  * @param[out] x Pointer to real vector of length n.
  * 
@@ -74,7 +72,7 @@ void larnv(
     // Initialize the generator
     std::random_device device;
     std::mt19937 generator(device());
-    generator.seed(iseed[0]); // TODO: fix me
+    generator.seed(*iseed);
 
     if (idist == 1) {
         std::uniform_real_distribution<real_t> d1(0, 1);
@@ -122,7 +120,7 @@ void larnv(
         }
     }
 
-    iseed[0]++; // TODO: fix me
+    *iseed = *iseed + 1;
 }
 
 }

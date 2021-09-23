@@ -85,6 +85,11 @@ namespace lapack {
  * @param[in] ldc
  *     The leading dimension of the array C. ldc >= max(1,m).
  *
+ * @param[in] W
+ *     Workspace array with length
+ *          k*n if side == Side::Left.
+ *          k*m if side == Side::Right.
+ *
  * @par Further Details
  *
  * The shape of the matrix V and the storage of the vectors which define
@@ -113,7 +118,7 @@ namespace lapack {
  * @ingroup auxiliary
  */
 template <typename TV, typename TC>
-void larfb(
+int larfb(
     Side side, Op trans,
     Direction direct, StoreV storeV,
     idx_t m, idx_t n, idx_t k,
@@ -130,10 +135,10 @@ void larfb(
 
     // check arguments
     if( blas::is_complex<TV>::value )
-        blas_error_if( trans == Op::Trans );
+        lapack_error_if( trans == Op::Trans, -2 );
 
     // Quick return
-    if (m <= 0 || n <= 0) return;
+    if (m <= 0 || n <= 0) return 0;
 
     #define _C(i_, j_) C[ (i_) + (j_)*ldC ]
 
@@ -488,11 +493,13 @@ void larfb(
     }
 
     #undef _C
+
+    return 0;
 }
 
 
 template <typename TV, typename TC>
-inline void larfb(
+inline int larfb(
     Side side, Op trans,
     Direction direct, StoreV storeV,
     idx_t m, idx_t n, idx_t k,
@@ -503,10 +510,11 @@ inline void larfb(
     typedef blas::scalar_type<TV, TC> scalar_t;
     scalar_t *work = new scalar_t[ (side == Side::Left) ? k*n : k*m ];
 
-    larfb(  side, trans, direct, storeV,
+    int info = larfb(  side, trans, direct, storeV,
             m, n, k, V, ldV, T, ldT, C, ldC, work );
 
     delete[] work;
+    return info;
 }
 
 }

@@ -61,14 +61,15 @@ void larfg(
     using blas::nrm2;
     using blas::scal;
     using blas::safe_min;
+    using blas::uroundoff;
     using blas::is_complex;
 
     // constants
     const T one(1.0);
     const T zero(0.0);
     const real_t rzero(0.0);
-    const real_t safemin  = safe_min<real_t>();
-    const real_t rsafemin = 1.0 / safemin;
+    const real_t safemin  = safe_min<real_t>() / uroundoff<real_t>();
+    const real_t rsafemin = real_t(1.0) / safemin;
 
     tau = zero;
     if (n > 0)
@@ -83,7 +84,7 @@ void larfg(
             real_t beta = (real(alpha) < rzero) ? temp : -temp;
             if (abs(beta) < safemin)
             {
-                while (abs(beta) < safemin)
+                while( abs(beta) < safemin )
                 {
                     knt++;
                     scal( n-1, rsafemin, x, incx );
@@ -112,7 +113,7 @@ void larfg(
  * @ingroup auxiliary
  */
 template< typename T >
-void larfg(
+void inline larfg(
     blas::idx_t n, T *alpha, T *x, blas::int_t incx, T *tau )
 {
     larfg(n, *alpha, x, incx, *tau);

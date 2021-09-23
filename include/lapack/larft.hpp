@@ -17,7 +17,7 @@
 
 namespace lapack {
 
-/** Forms the triangular factor T of a real block reflector H of order n,
+/** Forms the triangular factor T of a block reflector H of order n,
  * which is defined as a product of k elementary reflectors.
  *
  *               If direct = Direction::Forward, H = H_1 H_2 . . . H_k and T is upper triangular.
@@ -80,130 +80,21 @@ namespace lapack {
  * 
  * @ingroup auxiliary
  */
-template <typename real_t>
+template <typename scalar_t>
 int larft(
     Direction direct, StoreV storeV,
     idx_t n, idx_t k,
-    const real_t *V, idx_t ldV,
-    const real_t *tau, real_t *T, idx_t ldT)
-{
-    using blas::max;
-    using blas::min;
-
-    // constants
-    const real_t one(1.0);
-    const real_t zero(0.0);
-
-    // check arguments
-    lapack_error_if( direct != Direction::Forward &&
-                     direct != Direction::Backward, -1 );
-    lapack_error_if( storeV != StoreV::Columnwise &&
-                     storeV != StoreV::Rowwise, -2 );
-    lapack_error_if( n < 0, -3 );
-    lapack_error_if( k < 1, -4 );
-    lapack_error_if( ldV < ((storeV == StoreV::Columnwise) ? n : k), -6 );
-    lapack_error_if( ldT < k, -9 );
-
-    // Quick return
-    if (n == 0)
-        return 0;
-
-    #define _V(i_, j_) V[ (i_) + (j_)*ldV ]
-    #define _T(i_, j_) T[ (i_) + (j_)*ldT ]
-
-    if (direct == Direction::Forward) {
-        for (idx_t i = 0; i < k; ++i) {
-            if (tau[i] == zero) {
-                // H(i)  =  I
-                for (int j = 0; j <= i; ++j)
-                    _T(j,i) = zero;
-            }
-            else {
-                // General case
-                if (storeV == StoreV::Columnwise) {
-                    for (idx_t j = 0; j < i; ++j)
-                        _T(j,i) = -tau[i] * _V(i,j);
-                    // T(0:i,i) := - tau(i) * V(i:j,0:i)**T * V(i:j,i)
-                    blas::gemv( 
-                        Layout::ColMajor, Op::Trans, 
-                        n-i-1, i, -tau[i], &_V(i+1,0), ldV,
-                        &_V(i+1,i), 1, one, &_T(0,i), 1);
-                }
-                else { // storeV==StoreV::Rowwise
-                    for (idx_t j = 0; j < i; ++j)
-                        _T(j,i) = -tau[i] * _V(j,i);
-                    // T(0:i,i) := - tau(i) * V(0:i,i:j) * V(i,i:j)**T
-                    blas::gemv(
-                        Layout::ColMajor, Op::NoTrans, 
-                        i, n-i-1, -tau[i], &_V(0,i+1), ldV, 
-                        &_V(i,i+1), ldV, one, &_T(0,i), 1);
-                }
-                // T(0:i,i) := T(0:i,0:i) * T(0:i,i)
-                blas::trmv( 
-                    Layout::ColMajor, Uplo::Upper, Op::NoTrans, Diag::NonUnit, 
-                    i, T, ldT, &_T(0,i), 1 );
-                _T(i,i) = tau[i];
-            }
-        }
-    }
-    else { // direct==Direction::Backward
-        _T(k-1,k-1) = tau[k-1];
-        for (idx_t i = k-2; i != idx_t(-1); --i) {
-            if (tau[i] == zero) {
-                for (idx_t j = i; j < k; ++j)
-                    _T(j,i) = zero;
-            }
-            else {
-                if (storeV == StoreV::Columnwise) {
-                    for (idx_t j = i+1; j < k; ++j)
-                        _T(j,i) = -tau[i] * _V(n-k+i,j);
-                    blas::gemv(
-                        Layout::ColMajor, Op::Trans, 
-                        n-k+i, k-i-1, -tau[i], &_V(0,i+1), ldV,
-                        &_V(0,i), 1, one, &_T(i+1,i), 1);
-                }
-                else { // storeV==StoreV::Rowwise
-                    for (idx_t j = i+1; j < k; ++j)
-                        _T(j,i) = -tau[i] * _V(j,n-k+i);
-                    blas::gemv(
-                        Layout::ColMajor, Op::NoTrans, 
-                        k-i-1, n-k+i, -tau[i], &_V(i+1,0), ldV,
-                        &_V(i,0), ldV, one, &_T(i+1,i), 1);
-                }
-                blas::trmv( 
-                    Layout::ColMajor, Uplo::Lower, Op::NoTrans, Diag::NonUnit, 
-                    k-i-1, &_T(i+1,i+1), ldT, &_T(i+1,i), 1);
-            }
-            _T(i,i) = tau[i];
-        }
-    }
-    return 0;
-
-    #undef _V
-    #undef _T
-}
-
-/** Forms the triangular factor T of a complex block reflector H of order n,
- * 
- * @see larft( Direction, StoreV, idx_t, idx_t, const real_t *, idx_t, const real_t *, real_t *, idx_t)
- * 
- * @ingroup auxiliary
- */
-template <typename real_t>
-int larft(
-    Direction direct, StoreV storeV,
-    idx_t n, idx_t k,
-    const std::complex<real_t> *V, idx_t ldV,
-    const std::complex<real_t> *tau,
-    std::complex<real_t> *T, idx_t ldT)
+    const scalar_t *V, idx_t ldV,
+    const scalar_t *tau,
+    scalar_t *T, idx_t ldT)
 {
     using blas::conj;
     using blas::max;
     using blas::min;
 
     // constants
-    const std::complex<real_t> one(1.0);
-    const std::complex<real_t> zero(0.0);
+    const scalar_t one(1.0);
+    const scalar_t zero(0.0);
 
     // check arguments
     lapack_error_if( direct != Direction::Forward &&
@@ -244,10 +135,17 @@ int larft(
                     for (idx_t j = 0; j < i; ++j)
                         _T(j,i) = -tau[i] * _V(j,i);
                     // T(0:i,i) := - tau(i) * V(0:i,i:j) * V(i,i:j)**H
-                    blas::gemm(
-                        Layout::ColMajor, Op::NoTrans, Op::ConjTrans, 
-                        i, 1, n-i-1, -tau[i], &_V(0,i+1), ldV, 
-                        &_V(i,i+1), ldV, one, &_T(0,i), ldT);
+                    if( blas::is_complex<scalar_t>::value ) {
+                        blas::gemm(
+                            Layout::ColMajor, Op::NoTrans, Op::ConjTrans, 
+                            i, 1, n-i-1, -tau[i], &_V(0,i+1), ldV, 
+                            &_V(i,i+1), ldV, one, &_T(0,i), ldT);
+                    } else {
+                        blas::gemv(
+                            Layout::ColMajor, Op::NoTrans,
+                            i, n-i-1, -tau[i], &_V(0,i+1), ldV, 
+                            &_V(i,i+1), ldV, one, &_T(0,i), 1);
+                    }
                 }
                 // T(0:i,i) := T(0:i,0:i) * T(0:i,i)
                 blas::trmv( 
@@ -276,10 +174,17 @@ int larft(
                 else { // storeV==StoreV::Rowwise
                     for (idx_t j = i+1; j < k; ++j)
                         _T(j,i) = -tau[i] * _V(j,n-k+i);
-                    blas::gemm(
-                        Layout::ColMajor, Op::NoTrans, Op::ConjTrans, 
-                        k-i-1, 1, n-k+i, -tau[i], &_V(i+1,0), ldV,
-                        &_V(i,0), ldV, one, &_T(i+1,i), ldT);
+                    if( blas::is_complex<scalar_t>::value ) {
+                        blas::gemm(
+                            Layout::ColMajor, Op::NoTrans, Op::ConjTrans, 
+                            k-i-1, 1, n-k+i, -tau[i], &_V(i+1,0), ldV,
+                            &_V(i,0), ldV, one, &_T(i+1,i), ldT);
+                    } else {
+                        blas::gemv(
+                            Layout::ColMajor, Op::NoTrans, 
+                            k-i-1, n-k+i, -tau[i], &_V(i+1,0), ldV,
+                            &_V(i,0), ldV, one, &_T(i+1,i), 1);
+                    }
                 }
                 blas::trmv( 
                     Layout::ColMajor, Uplo::Lower, Op::NoTrans, Diag::NonUnit, 

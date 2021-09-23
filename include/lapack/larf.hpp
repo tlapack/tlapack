@@ -52,7 +52,7 @@ namespace lapack {
  *             or C * H if side='R'.
  * 
  * @param[in] ldC Column length of matrix C.  ldC >= m.
- * @param work Workspace vector of of the following length:
+ * @param work Workspace vector of the following length:
  *
  *          n if side='L'
  *          m if side='R'.
@@ -109,6 +109,12 @@ inline int larf(
         Layout::ColMajor, side, m, n, v, incv, tau, C, ldC, work );
 }
 
+/** Applies an elementary reflector H to a m-by-n matrix C.
+ * 
+ * @see larf( Layout, Side side, blas::idx_t m, blas::idx_t n, TV const *v, blas::int_t incv, blas::scalar_type< TV, TC , TW > tau, TC *C, blas::idx_t ldC, TW *work )
+ * 
+ * @ingroup auxiliary
+ */
 template< typename TV, typename TC >
 inline int larf(
     Side side,
@@ -119,11 +125,14 @@ inline int larf(
 {
     typedef blas::scalar_type<TV, TC> scalar_t;
     scalar_t *work = new scalar_t[ ( side == Side::Left ) ? n : m ];
+    int info;
 
-    return larf(
+    info = larf(
         Layout::ColMajor, side, m, n, v, incv, tau, C, ldC, work );
         
     delete[] work;
+
+    return info;
 }
 
 } // lapack

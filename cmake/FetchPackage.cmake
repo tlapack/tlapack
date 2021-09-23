@@ -1,3 +1,14 @@
+# FetchPackage tries to load ${pkg} using:
+# 1. The usual CMake find_package
+# 2. Via the environment variable ${pkg}_DIR
+# 3. An online Git repository via the CMake FetchContent module
+#
+# Copyright (c) 2021, University of Colorado Denver. All rights reserved.
+#
+# This file is part of <T>LAPACK.
+# <T>LAPACK is free software: you can redistribute it and/or modify it under
+# the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
+
 macro( FetchPackage pkg pkgURL gitTag )
 
   find_package( ${pkg} QUIET ) # Try to load ${pkg} from the system

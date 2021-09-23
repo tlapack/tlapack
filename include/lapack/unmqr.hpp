@@ -18,7 +18,7 @@ namespace lapack {
 
 /** Multiplies the general m-by-n matrix C by Q from `lapack::geqrf` using a blocked code.
  * 
- * @param work Vector of size n (m if side == Side::Right).
+ * @param work Vector of size n*nb + nb*nb (m*nb + nb*nb if side == Side::Right).
  * @see unmqr( Side, Op, blas::idx_t, blas::idx_t, blas::idx_t, const TA*, blas::idx_t, const blas::real_type<TA,TC>*, TC*, blas::idx_t )
  * 
  * @ingroup geqrf
@@ -187,7 +187,7 @@ inline int unmqr(
     const int nb = 32;      // number of blocks
     
     // Allocate work
-    idx_t nw = (side == Side::Left)
+    const idx_t nw = (side == Side::Left)
                 ? ( (n >= 1) ? n : 1 )
                 : ( (m >= 1) ? m : 1 );
     scalar_t* work = new scalar_t[
