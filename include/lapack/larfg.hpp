@@ -61,14 +61,15 @@ void larfg(
     using blas::nrm2;
     using blas::scal;
     using blas::safe_min;
+    using blas::uroundoff;
     using blas::is_complex;
 
     // constants
     const T one(1.0);
     const T zero(0.0);
     const real_t rzero(0.0);
-    const real_t safemin  = safe_min<real_t>();
-    const real_t rsafemin = 1.0 / safemin;
+    const real_t safemin  = safe_min<real_t>() / uroundoff<real_t>();
+    const real_t rsafemin = real_t(1.0) / safemin;
 
     tau = zero;
     if (n > 0)
@@ -78,12 +79,12 @@ void larfg(
         if ( xnorm > rzero || (imag(alpha) != rzero) )
         {
             real_t temp = ( ! is_complex<T>::value )
-                        ? abs( lapy2(real(alpha), xnorm) )
-                        : abs( lapy3(real(alpha), imag(alpha), xnorm) );
+                        ? lapy2(real(alpha), xnorm)
+                        : lapy3(real(alpha), imag(alpha), xnorm);
             real_t beta = (real(alpha) < rzero) ? temp : -temp;
             if (abs(beta) < safemin)
             {
-                while (abs(beta) < safemin)
+                while( abs(beta) < safemin )
                 {
                     knt++;
                     scal( n-1, rsafemin, x, incx );
@@ -92,8 +93,8 @@ void larfg(
                 }
                 xnorm = nrm2( n-1, x, incx );
                 temp = ( ! is_complex<T>::value )
-                     ? abs( lapy2(real(alpha), xnorm) )
-                     : abs( lapy3(real(alpha), imag(alpha), xnorm) );
+                     ? lapy2(real(alpha), xnorm)
+                     : lapy3(real(alpha), imag(alpha), xnorm);
                 beta = (real(alpha) < rzero) ? temp : -temp;
             }
             tau = (beta - alpha) / beta;
@@ -103,6 +104,19 @@ void larfg(
             alpha = beta;
         }
     }
+}
+
+/** Generates a elementary Householder reflection.
+ * 
+ * @see larfg( blas::idx_t, T &, T *, blas::int_t, T & )
+ * 
+ * @ingroup auxiliary
+ */
+template< typename T >
+void inline larfg(
+    blas::idx_t n, T *alpha, T *x, blas::int_t incx, T *tau )
+{
+    larfg(n, *alpha, x, incx, *tau);
 }
 
 }

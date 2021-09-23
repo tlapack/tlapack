@@ -66,6 +66,33 @@ void lacpy(
     #undef B
 }
 
+/** Copies a real matrix from A to B where A is either a full, upper triangular or lower triangular matrix.
+ *
+ * @param[in] matrixtype :
+ *
+ *        'U': A is assumed to be upper triangular; elements below the diagonal are not referenced.
+ *        'L': A is assumed to be lower triangular; elements above the diagonal are not referenced.
+ *        otherwise, A is assumed to be a full matrix.
+ * 
+ * @see lacpy( Uplo, blas::idx_t, blas::idx_t, TA*, blas::idx_t, TB* B, blas::idx_t )
+ * 
+ * @ingroup auxiliary
+ */
+template< typename TA, typename TB >
+void inline lacpy(
+    MatrixType matrixtype, blas::idx_t m, blas::idx_t n,
+    TA* A, blas::idx_t lda,
+    TB* B, blas::idx_t ldb )
+{
+    if (matrixtype == MatrixType::Upper) {
+        lacpy(Uplo::Upper, m, n, A, lda, B, ldb);
+    } else if (matrixtype == MatrixType::Lower) {
+        lacpy(Uplo::Lower, m, n, A, lda, B, ldb);
+    } else {
+        lacpy(Uplo::General, m, n, A, lda, B, ldb);
+    }
+}
+
 }
 
 #endif // __LACPY_HH__

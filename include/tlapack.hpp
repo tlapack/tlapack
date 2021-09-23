@@ -33,6 +33,8 @@
 
 #include "lapack/larf.hpp"
 #include "lapack/larfg.hpp"
+#include "lapack/larft.hpp"
+#include "lapack/larfb.hpp"
 #include "lapack/lapy2.hpp"
 #include "lapack/lapy3.hpp"
 #include "lapack/ladiv.hpp"
@@ -40,12 +42,15 @@
 #include "lapack/lacpy.hpp"
 #include "lapack/lange.hpp"
 #include "lapack/lansy.hpp"
+#include "lapack/larnv.hpp"
+#include "lapack/lascl.hpp"
 
 // QR factorization
 // ----------------
 
 #include "lapack/geqr2.hpp"
 #include "lapack/org2r.hpp"
-#include "lapack/ormr2.hpp"
+#include "lapack/orm2r.hpp"
+#include "lapack/unmqr.hpp"
 
 #endif // __TLAPACK_HH__

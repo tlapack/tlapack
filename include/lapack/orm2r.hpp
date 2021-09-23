@@ -1,4 +1,4 @@
-/// @file ormr2.hpp
+/// @file orm2r.hpp
 /// @author Weslley S Pereira, University of Colorado Denver, USA
 /// Adapted from @see https://github.com/langou/latl/blob/master/include/ormr2.h
 //
@@ -8,8 +8,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __ORMR2_HH__
-#define __ORMR2_HH__
+#ifndef __ORM2R_HH__
+#define __ORM2R_HH__
 
 #include "lapack/utils.hpp"
 #include "lapack/types.hpp"
@@ -20,12 +20,12 @@ namespace lapack {
 /** Applies orthogonal matrix Q to a matrix C.
  * 
  * @param work Vector of size n (m if side == Side::Right).
- * @see ormr2( Side, Op, blas::idx_t, blas::idx_t, blas::idx_t, const TA*, blas::idx_t, const blas::real_type<TA,TC>*, TC*, blas::idx_t )
+ * @see orm2r( Side, Op, blas::idx_t, blas::idx_t, blas::idx_t, const TA*, blas::idx_t, const blas::real_type<TA,TC>*, TC*, blas::idx_t )
  * 
  * @ingroup geqrf
  */
 template<typename TA, typename TC>
-int ormr2(
+int orm2r(
     Side side, Op trans,
     blas::idx_t m, blas::idx_t n, blas::idx_t k,
     const TA* A, blas::idx_t lda,
@@ -109,7 +109,7 @@ int ormr2(
  * @ingroup geqrf
  */
 template<typename TA, typename TC>
-inline int ormr2(
+inline int orm2r(
     Side side, Op trans,
     blas::idx_t m, blas::idx_t n, blas::idx_t k,
     const TA* A, blas::idx_t lda,
@@ -125,7 +125,7 @@ inline int ormr2(
             : ( (n >= 0) ? n : 0 )
     ];
 
-    info = ormr2( side, trans, m, n, k, A, lda, tau, C, ldc, work );
+    info = orm2r( side, trans, m, n, k, A, lda, tau, C, ldc, work );
 
     delete[] work;
     return info;
@@ -133,4 +133,4 @@ inline int ormr2(
 
 }
 
-#endif // __ORMR2_HH__
+#endif // __ORM2R_HH__

@@ -106,6 +106,33 @@ inline void laset(
     }
 }
 
+/** Initializes a matrix to diagonal and off-diagonal values
+ * 
+ * @param[in] matrixtype :
+ *
+ *        'U': A is assumed to be upper triangular; elements below the diagonal are not referenced.
+ *        'L': A is assumed to be lower triangular; elements above the diagonal are not referenced.
+ *        otherwise, A is assumed to be a full matrix.
+ *
+ * @see laset( Uplo, blas::idx_t, blas::idx_t, TA, TA, TA*, blas::idx_t )
+ * 
+ * @ingroup auxiliary
+ */
+template< typename TA >
+void inline laset(
+    MatrixType matrixtype, blas::idx_t m, blas::idx_t n,
+    TA alpha, TA beta,
+    TA* A, blas::idx_t lda )
+{
+    if (matrixtype == MatrixType::Upper) {
+        laset(Uplo::Upper, m, n, alpha, beta, A, lda);
+    } else if (matrixtype == MatrixType::Lower) {
+        laset(Uplo::Lower, m, n, alpha, beta, A, lda);
+    } else {
+        laset(Uplo::General, m, n, alpha, beta, A, lda);
+    }
+}
+
 }
 
 #endif // __LASET_HH__

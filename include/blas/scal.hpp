@@ -31,11 +31,11 @@ namespace blas {
  *
  * @ingroup scal
  */
-template< typename T >
+template< typename TA, typename TX >
 void scal(
     blas::idx_t n,
-    T alpha,
-    T* x, blas::int_t incx )
+    const TA& alpha,
+    TX* x, blas::int_t incx )
 {
     // check arguments
     blas_error_if( incx <= 0 );
@@ -48,8 +48,8 @@ void scal(
     }
     else {
         // non-unit stride
-        for (idx_t i = 0; i < n*incx; i += incx) {
-            x[i] *= alpha;
+        for (idx_t i = 0; i < n; ++i) {
+            x[i*incx] *= alpha;
         }
     }
 }
