@@ -92,7 +92,9 @@ endif()
 
 #-------------------------------------------------------------------------------
 # Load mdspan
+include( "${TLAPACK_SOURCE_DIR}/cmake/FetchPackage.cmake" )
 FetchPackage( "mdspan" "https://github.com/kokkos/mdspan.git" "stable" )
+target_link_libraries( tblas PUBLIC std::mdspan )
 
 #-------------------------------------------------------------------------------
 # Docs

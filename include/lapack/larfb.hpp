@@ -140,14 +140,13 @@ int larfb(
     // Quick return
     if (m <= 0 || n <= 0) return 0;
 
-    #define _C(i_, j_) C[ (i_) + (j_)*ldC ]
-
     if (storeV == StoreV::Columnwise) {
         if (direct == Direction::Forward) {
             if (side == Side::Left) {
                 // W is an k-by-n matrix
                 // V is an m-by-k matrix
 
+                // Matrix views
                 TV const* V1 = V;
                 TV const* V2 = V+k;
                 TC* C1 = C;
@@ -192,6 +191,7 @@ int larfb(
                 // W is an m-by-k matrix
                 // V is an n-by-k matrix
 
+                // Matrix views
                 TV const* V1 = V;
                 TV const* V2 = V+k;
                 TC* C1 = C;
@@ -238,6 +238,7 @@ int larfb(
                 // W is an k-by-n matrix
                 // V is an m-by-k matrix
 
+                // Matrix views
                 TV const* V1 = V;
                 TV const* V2 = V+m-k;
                 TC* C1 = C;
@@ -282,19 +283,25 @@ int larfb(
                 // W is an m-by-k matrix
                 // V is an n-by-k matrix
 
+                // Matrix views
+                TV const* V1 = V;
+                TV const* V2 = V+n-k;
+                TC* C1 = C;
+                TC* C2 = C+(n-k)*ldC;
+
                 // W := C(0:m,n-k:n)
-                lacpy(Uplo::General,m,k,C+(n-k)*ldC,ldC,W,m);
+                lacpy(Uplo::General,m,k,C2,ldC,W,m);
                 // W := W V(n-k:n,0:k)
                 blas::trmm(
                     Layout::ColMajor, Side::Right,
                     Uplo::Upper, Op::NoTrans, Diag::Unit,
-                    m, k, one, V+n-k, ldV, W, m);
+                    m, k, one, V2, ldV, W, m);
                 if( n > k )
                     // W := W + C(0:m,0:n-k) V(0:n-k,0:k)
                     blas::gemm(
                         Layout::ColMajor, Op::NoTrans, Op::NoTrans,
                         m, k, n-k, one,
-                        C, ldC, V, ldV, one, W, m);
+                        C1, ldC, V1, ldV, one, W, m);
                 // W := W op(T)
                 blas::trmm(
                     Layout::ColMajor, Side::Right,
@@ -305,17 +312,17 @@ int larfb(
                     blas::gemm(
                         Layout::ColMajor, Op::NoTrans, Op::ConjTrans,
                         m, n-k, k, -one, W, m,
-                        V, ldV, one, C, ldC);
+                        V1, ldV, one, C1, ldC);
                 // W := - W V(n-k:n,0:k)^H
                 blas::trmm(
                     Layout::ColMajor, Side::Right,
                     Uplo::Upper, Op::ConjTrans, Diag::Unit,
-                    m, k, -one, V+n-k, ldV, W, m);
+                    m, k, -one, V2, ldV, W, m);
                 
                 // C(0:m,n-k:n) := W
                 for( idx_t j = 0; j < k; ++j )
                     for( idx_t i = 0; i < m; ++i )
-                        _C(i,j+n-k) += W[ i + j*m ];
+                        C2[ i + j*ldC ] += W[ i + j*m ];
             }
         }
     }
@@ -325,6 +332,7 @@ int larfb(
                 // W is an k-by-n matrix
                 // V is an k-by-m matrix
 
+                // Matrix views
                 TV const* V1 = V;
                 TV const* V2 = V+k*ldV;
                 TC* C1 = C;
@@ -369,19 +377,25 @@ int larfb(
                 // W is an m-by-k matrix
                 // V is an k-by-n matrix
 
+                // Matrix views
+                TV const* V1 = V;
+                TV const* V2 = V+k*ldV;
+                TC* C1 = C;
+                TC* C2 = C+k*ldC;
+
                 // W := C(0:m,0:k)
-                lacpy(Uplo::General,m,k,C,ldC,W,m);
+                lacpy(Uplo::General,m,k,C1,ldC,W,m);
                 // W := W V(0:k,0:k)^H
                 blas::trmm(
                     Layout::ColMajor, Side::Right,
                     Uplo::Upper, Op::ConjTrans, Diag::Unit,
-                    m, k, one, V, ldV, W, m);
+                    m, k, one, V1, ldV, W, m);
                 if( n > k )
                     // W := W + C(0:m,k:n) V(0:k,k:n)^H
                     blas::gemm(
                         Layout::ColMajor, Op::NoTrans, Op::ConjTrans,
                         m, k, n-k, one,
-                        C+k*ldC, ldC, V+k*ldV, ldV, one, W, m);
+                        C2, ldC, V2, ldV, one, W, m);
                 // W := W op(T)
                 blas::trmm(
                     Layout::ColMajor, Side::Right,
@@ -392,17 +406,17 @@ int larfb(
                     blas::gemm(
                         Layout::ColMajor, Op::NoTrans, Op::NoTrans,
                         m, n-k, k, -one, W, m,
-                        V+k*ldV, ldV, one, C+k*ldC, ldC);
+                        V2, ldV, one, C2, ldC);
                 // W := - W V(0:k,0:k)
                 blas::trmm(
                     Layout::ColMajor, Side::Right,
                     Uplo::Upper, Op::NoTrans, Diag::Unit,
-                    m, k, -one, V, ldV, W, m);
+                    m, k, -one, V1, ldV, W, m);
                 
                 // C(0:m,0:k) := W
                 for( idx_t j = 0; j < k; ++j )
                     for( idx_t i = 0; i < m; ++i )
-                        _C(i,j) += W[ i + j*m ];
+                        C1[ i + j*ldC ] += W[ i + j*m ];
             }
         }
         else { // direct == Direction::Backward
@@ -410,6 +424,7 @@ int larfb(
                 // W is an k-by-n matrix
                 // V is an k-by-m matrix
 
+                // Matrix views
                 TV const* V1 = V;
                 TV const* V2 = V+(m-k)*ldV;
                 TC* C1 = C;
@@ -454,19 +469,25 @@ int larfb(
                 // W is an m-by-k matrix
                 // V is an k-by-n matrix
 
+                // Matrix views
+                TV const* V1 = V;
+                TV const* V2 = V+(n-k)*ldV;
+                TC* C1 = C;
+                TC* C2 = C+(n-k)*ldC;
+
                 // W := C(0:m,n-k:n)
-                lacpy(Uplo::General,m,k,C+(n-k)*ldC,ldC,W,m);
+                lacpy(Uplo::General,m,k,C2,ldC,W,m);
                 // W := W V(0:k,n-k:n)^H
                 blas::trmm(
                     Layout::ColMajor, Side::Right,
                     Uplo::Lower, Op::ConjTrans, Diag::Unit,
-                    m, k, one, V+(n-k)*ldV, ldV, W, m);
+                    m, k, one, V2, ldV, W, m);
                 if( n > k )
                     // W := W + C(0:m,0:n-k) V(0:k,0:n-k)^H
                     blas::gemm(
                         Layout::ColMajor, Op::NoTrans, Op::ConjTrans,
                         m, k, n-k, one,
-                        C, ldC, V, ldV, one, W, m);
+                        C1, ldC, V1, ldV, one, W, m);
                 // W := W op(T)
                 blas::trmm(
                     Layout::ColMajor, Side::Right,
@@ -477,22 +498,20 @@ int larfb(
                     blas::gemm(
                         Layout::ColMajor, Op::NoTrans, Op::NoTrans,
                         m, n-k, k, -one, W, m,
-                        V, ldV, one, C, ldC);
+                        V1, ldV, one, C1, ldC);
                 // W := - W V(0:k,n-k:n)
                 blas::trmm(
                     Layout::ColMajor, Side::Right,
                     Uplo::Lower, Op::NoTrans, Diag::Unit,
-                    m, k, -one, V+(n-k)*ldV, ldV, W, m);
+                    m, k, -one, V2, ldV, W, m);
                 
                 // C(0:m,n-k:n) := W
                 for( idx_t j = 0; j < k; ++j )
                     for( idx_t i = 0; i < m; ++i )
-                        _C(i,j+n-k) += W[ i + j*m ];
+                        C2[ i + j*ldC ] += W[ i + j*m ];
             }
         }
     }
-
-    #undef _C
 
     return 0;
 }

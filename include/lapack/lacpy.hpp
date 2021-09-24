@@ -81,7 +81,7 @@ void lacpy(
 template< typename TA, typename TB >
 void inline lacpy(
     MatrixType matrixtype, blas::idx_t m, blas::idx_t n,
-    TA* A, blas::idx_t lda,
+    const TA* A, blas::idx_t lda,
     TB* B, blas::idx_t ldb )
 {
     if (matrixtype == MatrixType::Upper) {

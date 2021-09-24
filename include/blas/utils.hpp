@@ -8,7 +8,6 @@
 #ifndef __TBLAS_UTILS_HH__
 #define __TBLAS_UTILS_HH__
 
-#include "blas/defines.h"
 #include "blas/types.hpp"
 
 #include <limits>
@@ -523,7 +522,7 @@ using MatrixView = std::experimental::mdspan<
  * @return MatrixView<T>    view matrix object. Use the abstraction A(i,j) = i + j * lda
  */
 template< typename T >
-inline MatrixView<T> view_matrix( T* A, blas::size_t m, blas::size_t n, blas::size_t lda ) {
+inline MatrixView<T> view_matrix( T* A, blas::idx_t m, blas::idx_t n, blas::idx_t lda ) {
     return MatrixView<T>( A, MatrixLayout( internal::dynamic_extents(m,n), lda ) );
 }
 

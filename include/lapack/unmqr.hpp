@@ -34,6 +34,7 @@ int unmqr(
 {
     using blas::max;
     using blas::min;
+    using blas::view_matrix;
 
     // Constants
     const int nb = 32;      // number of blocks
@@ -59,8 +60,11 @@ int unmqr(
     if (m == 0 || n == 0 || k == 0)
         return 0;
 
-    #define _A(i_, j_) A[ (i_) + (j_)*lda ]
-    #define _C(i_, j_) C[ (i_) + (j_)*ldc ]
+    // Matrix views
+    auto _A = (side == Side::Left)
+            ? view_matrix<const TA>( A, m, k, lda )
+            : view_matrix<const TA>( A, n, k, lda );
+    auto _C = view_matrix<TC>( C, m, n, ldc );
 
     // Preparing loop indexes
     idx_t i0, iN, step;
@@ -99,9 +103,6 @@ int unmqr(
     }
 
     return 0;
-
-    #undef _A
-    #undef _C
 }
 
 /** Multiplies the general m-by-n matrix C by Q from `lapack::geqrf` using a blocked code as follows:

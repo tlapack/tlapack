@@ -67,6 +67,7 @@ int lascl(
     using blas::max;
     using blas::min;
     using blas::safe_min;
+    using blas::view_matrix;
 
     // constants
     const blas::idx_t izero = 0;
@@ -120,7 +121,8 @@ int lascl(
     lapack_error_if( (matrixtype == MatrixType::UpperBand) && (lda < ku + 1), -9);
     lapack_error_if( (matrixtype == MatrixType::Band) && (lda < 2 * kl + ku + 1), -9);
 
-    #define _A(_i,_j) A[ _i + _j * lda ]
+    // Matrix views
+    auto _A = view_matrix<T>( A, m, n, lda );
 
     bool done = 0;
     while (!done)
@@ -205,8 +207,6 @@ int lascl(
         }
     }
     return 0;
-
-    #undef _A
 }
 
 }
