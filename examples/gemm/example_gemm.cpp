@@ -23,7 +23,12 @@ void run( blas::idx_t m, blas::idx_t n, blas::idx_t k )
 {
     using blas::idx_t;
     using blas::min;
-
+    using blas::view_matrix;
+    using blas::MatrixView;
+    using RowMajorMatrixLayout =
+        typename blas::RowMajorLayout::template mapping<blas::internal::dynamic_extents>;
+    
+    // Column Major data
     idx_t lda = (m > 0) ? m : 1;
     idx_t ldb = (k > 0) ? k : 1;
     idx_t ldc = (m > 0) ? m : 1;
@@ -31,56 +36,160 @@ void run( blas::idx_t m, blas::idx_t n, blas::idx_t k )
     std::vector<T> B( ldb*n, T(0) );    // k-by-n
     std::vector<T> C( ldc*n, T(0) );    // m-by-n
 
-    // Views
-    #define A(i_, j_) A[ (i_) + (j_)*lda ]
-    #define B(i_, j_) B[ (i_) + (j_)*ldb ]
-    #define C(i_, j_) C[ (i_) + (j_)*ldc ]
+    // Row Major data
+    idx_t ldar = (k > 0) ? k : 1;
+    idx_t ldbr = (n > 0) ? n : 1;
+    idx_t ldcr = (n > 0) ? n : 1;
+    std::vector<T> Ar( m*ldar, T(0) );   // m-by-k
+    std::vector<T> Br( k*ldbr, T(0) );   // k-by-n
+    std::vector<T> Cr( m*ldcr, T(0) );   // m-by-n
 
-    // Initialize A with junk
+    // Column Major Matrix views
+    auto _A = view_matrix<T>( &A[0], m, k, lda );
+    auto _B = view_matrix<T>( &B[0], k, n, ldb );
+    auto _C = view_matrix<T>( &C[0], m, n, ldc );
+
+    // Row Major Matrix views
+    auto _Ar = MatrixView<T,blas::RowMajorLayout>(
+        &Ar[0], RowMajorMatrixLayout( blas::internal::dynamic_extents(m, k), ldar )
+    );
+    auto _Br = MatrixView<T,blas::RowMajorLayout>(
+        &Br[0], RowMajorMatrixLayout( blas::internal::dynamic_extents(k, n), ldbr )
+    );
+    auto _Cr = MatrixView<T,blas::RowMajorLayout>(
+        &Cr[0], RowMajorMatrixLayout( blas::internal::dynamic_extents(m, n), ldcr )
+    );
+
+    // Number of runs to measure the minimum execution time
+    int Nruns = 10;
+    std::chrono::nanoseconds bestTime;
+
+    // Initialize A and Ar with junk
     for (idx_t j = 0; j < k; ++j)
-        for (idx_t i = 0; i < m; ++i)
-            A(i,j) = static_cast<float>( 0xDEADBEEF );
+        for (idx_t i = 0; i < m; ++i) {
+            _A(i,j)  = T( static_cast<float>( 0xDEADBEEF ) );
+            _Ar(i,j) = _A(i,j);
+        }
     
     // Generate a random matrix in a submatrix of A
     for (idx_t j = 0; j < min(k,n); ++j)
-        for (idx_t i = 0; i < m; ++i)
-            A(i,j) = static_cast<float>( rand() )
+        for (idx_t i = 0; i < m; ++i) {
+            _A(i,j) = static_cast<float>( rand() )
                         / static_cast<float>( RAND_MAX );
-
-    // Set C using A
-    for (idx_t j = 0; j < min(k,n); ++j)
-        for (idx_t i = 0; i < m; ++i)
-            C(i,j) = A(i,j);
+            _Ar(i,j) = _A(i,j);
+        }
+                        
 
     // The diagonal of B is full of ones
-    for (idx_t i = 0; i < min(k,n); ++i)
-        B(i,i) = 1.0;
+    for (idx_t i = 0; i < min(k,n); ++i) {
+        _B(i,i) = 1.0;
+        _Br(i,i) = _B(i,i);
+    }
 
-    // Record start time
-    auto start = std::chrono::high_resolution_clock::now();
+    // 1) Using classical LAPACK interface:
 
-        // C = -1.0*A*B + 1.0*C
-        blas::gemm( blas::Layout::ColMajor,
-                    blas::Op::NoTrans,
-                    blas::Op::NoTrans,
-                    m, n, k,
-                    T(-1.0), &A[0], lda,
-                             &B[0], ldb,
-                    T( 1.0), &C[0], ldc );
-    
-    // Record end time
-    auto end = std::chrono::high_resolution_clock::now();
+    bestTime = std::chrono::nanoseconds::max();
+    for( int run = 0; run < Nruns; ++run ) {
 
-    // Compute elapsed time in nanoseconds
-    auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
+        // Set C using A
+        for (idx_t j = 0; j < min(k,n); ++j)
+            for (idx_t i = 0; i < m; ++i)
+                _C(i,j) = _A(i,j);
+
+        // Record start time
+        auto start = std::chrono::high_resolution_clock::now();
+
+            // C = -1.0*A*B + 1.0*C
+            blas::gemm( blas::Layout::ColMajor,
+                        blas::Op::NoTrans,
+                        blas::Op::NoTrans,
+                        m, n, k,
+                        T(-1.0), &A[0], lda,
+                                 &B[0], ldb,
+                        T( 1.0), &C[0], ldc );
+        
+        // Record end time
+        auto end = std::chrono::high_resolution_clock::now();
+
+        // Compute elapsed time in nanoseconds
+        auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
+
+        // Update best time
+        if( elapsed < bestTime ) bestTime = elapsed;
+    }
 
     // Output
-    std::cout << "||C-AB||_F = " << blas::nrm2( n, &C[0], 1 ) << std::endl
-              << "time = " << elapsed.count() * 1.0e-6 << " ms" << std::endl;
+    std::cout << "Using classical LAPACK interface:" << std::endl
+              << "||C-AB||_F = " << blas::nrm2( n, &C[0], 1 ) << std::endl
+              << "time = " << bestTime.count() * 1.0e-6 << " ms" << std::endl;
 
-    #undef A
-    #undef B
-    #undef C
+    // Using mdspan interface:
+
+    bestTime = std::chrono::nanoseconds::max();
+    for( int run = 0; run < Nruns; ++run ) {
+
+        // Set C using A
+        for (idx_t j = 0; j < min(k,n); ++j)
+            for (idx_t i = 0; i < m; ++i)
+                _C(i,j) = _A(i,j);
+
+        // Record start time
+        auto start = std::chrono::high_resolution_clock::now();
+
+            // C = -1.0*A*B + 1.0*C
+            blas::gemm( blas::Op::NoTrans,
+                        blas::Op::NoTrans,
+                        T(-1.0), _A, _B,
+                        T( 1.0), _C );
+        
+        // Record end time
+        auto end = std::chrono::high_resolution_clock::now();
+
+        // Compute elapsed time in nanoseconds
+        auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
+
+        // Update best time
+        if( elapsed < bestTime ) bestTime = elapsed;
+    }
+
+    // Output
+    std::cout << "Using mdspan interface:" << std::endl
+              << "||C-AB||_F = " << blas::nrm2( n, &C[0], 1 ) << std::endl
+              << "time = " << bestTime.count() * 1.0e-6 << " ms" << std::endl;
+
+    // Using mdspan interface with row major layout:
+
+    bestTime = std::chrono::nanoseconds::max();
+    for( int run = 0; run < Nruns; ++run ) {
+
+        // Set C using A
+        for (idx_t j = 0; j < min(k,n); ++j)
+            for (idx_t i = 0; i < m; ++i)
+                _Cr(i,j) = _Ar(i,j);
+
+        // Record start time
+        auto start = std::chrono::high_resolution_clock::now();
+
+            // C = -1.0*A*B + 1.0*C
+            blas::gemm( blas::Op::NoTrans,
+                        blas::Op::NoTrans,
+                        T(-1.0), _Ar, _Br,
+                        T( 1.0), _Cr );
+        
+        // Record end time
+        auto end = std::chrono::high_resolution_clock::now();
+
+        // Compute elapsed time in nanoseconds
+        auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
+
+        // Update best time
+        if( elapsed < bestTime ) bestTime = elapsed;
+    }
+
+    // Output
+    std::cout << "Using mdspan interface with row major layout:" << std::endl
+              << "||C-AB||_F = " << blas::nrm2( n, &Cr[0], 1 ) << std::endl
+              << "time = " << bestTime.count() * 1.0e-6 << " ms" << std::endl;
 }
 
 //------------------------------------------------------------------------------

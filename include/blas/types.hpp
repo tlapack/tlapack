@@ -12,6 +12,8 @@
 #include <cstdint> // Defines std::int64_t
 #include <cstddef> // Defines std::size_t
 
+#include "blas/mdspan.hpp"
+
 // -----------------------------------------------------------------------------
 // Integer types BLAS_SIZE_T and BLAS_INT_T
 
@@ -35,7 +37,7 @@ namespace blas {
 // -----------------------------------------------------------------------------
 // Integer types blas::idx_t and blas::int_t
 using idx_t = BLAS_SIZE_T;
-using int_t  = BLAS_INT_T;
+using int_t = BLAS_INT_T;
 
 // -----------------------------------------------------------------------------
 // Enumerations
