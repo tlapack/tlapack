@@ -142,9 +142,13 @@ void gemm(
         return;
 
     // Matrix views
-    #define _A(_i,_j) A[ _i + _j*lda ]
-    #define _B(_i,_j) B[ _i + _j*ldb ]
-    #define _C(_i,_j) C[ _i + _j*ldc ]
+    auto _A = (transA == Op::NoTrans)
+            ? view_matrix<const TA>( A, m, k, lda )
+            : view_matrix<const TA>( A, k, m, lda );
+    auto _B = (transB == Op::NoTrans)
+            ? view_matrix<const TB>( B, k, n, ldb )
+            : view_matrix<const TB>( B, n, k, ldb );
+    auto _C = view_matrix<TC>( C, m, n, ldc );
 
     // alpha == zero
     if (alpha == zero) {
@@ -263,10 +267,6 @@ void gemm(
             }
         }
     }
-
-    #undef _A
-    #undef _B
-    #undef _C
 }
 
 template< typename TA, typename TB, typename TC, typename L >
