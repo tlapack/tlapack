@@ -10,6 +10,9 @@ add_subdirectory( geqr2 )
 # add the example gemm (Use MPFR library if it is available)
 add_subdirectory( gemm )
 
+# add the example mdspan
+add_subdirectory( mdspan )
+
 # add the example gemm using the C wrapper
 if( C_WRAPPERS )
   add_subdirectory( cwrapper_gemm )
@@ -36,6 +39,9 @@ COMMAND
 COMMAND
   echo "- example_geqr2 ----------------" &&
   ${CMAKE_CURRENT_BINARY_DIR}/geqr2/example_geqr2${CMAKE_EXECUTABLE_SUFFIX}
+COMMAND
+  echo "- example_mdspan ---------------" &&
+  ${CMAKE_CURRENT_BINARY_DIR}/mdspan/example_mdspan${CMAKE_EXECUTABLE_SUFFIX}
 COMMAND
   echo "- example_cwrapper_gemm --------" &&
   ${CMAKE_CURRENT_BINARY_DIR}/cwrapper_gemm/example_cwrapper_gemm${CMAKE_EXECUTABLE_SUFFIX}

@@ -269,15 +269,15 @@ void gemm(
     }
 }
 
-template< typename TA, typename TB, typename TC, typename L >
+template< typename TA, typename TB, typename TC, typename L1, typename L2, typename L3 >
 void gemm(
     Op transA,
     Op transB,
     scalar_type<TA, TB, TC> alpha,
-    MatrixView< TA, L > const _A,
-    MatrixView< TB, L > const _B,
+    Matrix< TA, L1 > const _A,
+    Matrix< TB, L2 > const _B,
     scalar_type<TA, TB, TC> beta,
-    MatrixView< TC, L > _C )
+    Matrix< TC, L3 > _C )
 {
     typedef blas::scalar_type<TA, TB, TC> scalar_t;
 

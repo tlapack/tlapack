@@ -23,3 +23,7 @@ This is the list of examples and brief descriptions:
 - [fortranWrapper_ssymm](fortranWrapper_ssymm/README.md)
 
   Compute _C - AB_ using matrices A, B and C with a code written in Fortran90.
+
+- [mdspan](mdspan/README.md)
+
+  Combine different matrix layouts from mdspan to compute _C - A B_ using matrices A, B and C.

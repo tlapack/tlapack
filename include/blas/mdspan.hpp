@@ -270,25 +270,24 @@ struct TiledLayout {
 };
 
 // -----------------------------------------------------------------------------
-// Internal helpers
-namespace internal {
-
-    using dynamic_extents = std::experimental::extents<
-        std::experimental::dynamic_extent,
-        std::experimental::dynamic_extent
-    >;
-}
+// Dynamic matrix sizes
+using matrix_extents = std::experimental::extents<
+    std::experimental::dynamic_extent,
+    std::experimental::dynamic_extent
+>;
 
 // -----------------------------------------------------------------------------
-// Column major matrix layout with dynamic extents
-using MatrixLayout = typename ColMajorLayout::template mapping<internal::dynamic_extents>;
+// Matrix layouts with dynamic extents
+using ColMajorMatrixLayout = typename ColMajorLayout::template mapping<matrix_extents>;
+using RowMajorMatrixLayout = typename RowMajorLayout::template mapping<matrix_extents>;
+using TiledMatrixLayout    = typename    TiledLayout::template mapping<matrix_extents>;
 
 // -----------------------------------------------------------------------------
 // Column major matrix view with dynamic extents
 template< typename T, typename Layout = ColMajorLayout >
-using MatrixView = mdspan<
+using Matrix = mdspan<
     T,
-    internal::dynamic_extents,
+    matrix_extents,
     Layout
 >;
 

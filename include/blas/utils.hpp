@@ -436,11 +436,11 @@ namespace internal {
  * @param n                 number of columns
  * @param lda               leading dimension 
  * 
- * @return MatrixView<T>    view matrix object. Use the abstraction A(i,j) = i + j * lda
+ * @return Matrix<T>        matrix object using the abstraction A(i,j) = i + j * lda
  */
 template< typename T >
-inline MatrixView<T> view_matrix( T* A, blas::idx_t m, blas::idx_t n, blas::idx_t lda ) {
-    return MatrixView<T>( A, MatrixLayout( internal::dynamic_extents(m,n), lda ) );
+inline Matrix<T> view_matrix( T* A, blas::idx_t m, blas::idx_t n, blas::idx_t lda ) {
+    return Matrix<T>( A, ColMajorMatrixLayout( matrix_extents(m,n), lda ) );
 }
 
 } // namespace blas

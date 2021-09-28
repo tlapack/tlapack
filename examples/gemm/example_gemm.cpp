@@ -24,9 +24,8 @@ void run( blas::idx_t m, blas::idx_t n, blas::idx_t k )
     using blas::idx_t;
     using blas::min;
     using blas::view_matrix;
-    using blas::MatrixView;
-    using RowMajorMatrixLayout =
-        typename blas::RowMajorLayout::template mapping<blas::internal::dynamic_extents>;
+    using blas::Matrix;
+    using blas::RowMajorMatrixLayout;
     
     // Column Major data
     idx_t lda = (m > 0) ? m : 1;
@@ -50,14 +49,14 @@ void run( blas::idx_t m, blas::idx_t n, blas::idx_t k )
     auto _C = view_matrix<T>( &C[0], m, n, ldc );
 
     // Row Major Matrix views
-    auto _Ar = MatrixView<T,blas::RowMajorLayout>(
-        &Ar[0], RowMajorMatrixLayout( blas::internal::dynamic_extents(m, k), ldar )
+    auto _Ar = Matrix<T,blas::RowMajorLayout>(
+        &Ar[0], RowMajorMatrixLayout( blas::matrix_extents(m, k), ldar )
     );
-    auto _Br = MatrixView<T,blas::RowMajorLayout>(
-        &Br[0], RowMajorMatrixLayout( blas::internal::dynamic_extents(k, n), ldbr )
+    auto _Br = Matrix<T,blas::RowMajorLayout>(
+        &Br[0], RowMajorMatrixLayout( blas::matrix_extents(k, n), ldbr )
     );
-    auto _Cr = MatrixView<T,blas::RowMajorLayout>(
-        &Cr[0], RowMajorMatrixLayout( blas::internal::dynamic_extents(m, n), ldcr )
+    auto _Cr = Matrix<T,blas::RowMajorLayout>(
+        &Cr[0], RowMajorMatrixLayout( blas::matrix_extents(m, n), ldcr )
     );
 
     // Number of runs to measure the minimum execution time
