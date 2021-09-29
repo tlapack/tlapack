@@ -25,7 +25,7 @@ void run( blas::idx_t m, blas::idx_t n, blas::idx_t k )
     using blas::min;
     using blas::view_matrix;
     using blas::Matrix;
-    using blas::RowMajorMatrixLayout;
+    using blas::RowMajorMapping;
     
     // Column Major data
     idx_t lda = (m > 0) ? m : 1;
@@ -50,13 +50,13 @@ void run( blas::idx_t m, blas::idx_t n, blas::idx_t k )
 
     // Row Major Matrix views
     auto _Ar = Matrix<T,blas::RowMajorLayout>(
-        &Ar[0], RowMajorMatrixLayout( blas::matrix_extents(m, k), ldar )
+        &Ar[0], RowMajorMapping( blas::matrix_extents(m, k), ldar )
     );
     auto _Br = Matrix<T,blas::RowMajorLayout>(
-        &Br[0], RowMajorMatrixLayout( blas::matrix_extents(k, n), ldbr )
+        &Br[0], RowMajorMapping( blas::matrix_extents(k, n), ldbr )
     );
     auto _Cr = Matrix<T,blas::RowMajorLayout>(
-        &Cr[0], RowMajorMatrixLayout( blas::matrix_extents(m, n), ldcr )
+        &Cr[0], RowMajorMapping( blas::matrix_extents(m, n), ldcr )
     );
 
     // Number of runs to measure the minimum execution time

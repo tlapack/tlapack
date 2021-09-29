@@ -33,11 +33,11 @@ int main( int argc, char** argv )
     auto Ak = view_matrix( &A(0,0), n, k, n );
     // Tiled Matrix B with the last k*n elements of A_
     auto B  = Matrix<T,TiledLayout>(
-        &A(n-k,0), TiledMatrixLayout( matrix_extents(k, n), row_tile, col_tile )
+        &A(n-k,0), TiledMapping( matrix_extents(k, n), row_tile, col_tile )
     );
     // Row Major Matrix C
     auto C  = Matrix<T,RowMajorLayout>(
-        &C_[0], RowMajorMatrixLayout( matrix_extents(n, n), n )
+        &C_[0], RowMajorMapping( matrix_extents(n, n), n )
     );
 
     // Init random seed

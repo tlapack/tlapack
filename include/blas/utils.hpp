@@ -440,7 +440,7 @@ namespace internal {
  */
 template< typename T >
 inline Matrix<T> view_matrix( T* A, blas::idx_t m, blas::idx_t n, blas::idx_t lda ) {
-    return Matrix<T>( A, ColMajorMatrixLayout( matrix_extents(m,n), lda ) );
+    return Matrix<T>( A, ColMajorMapping( matrix_extents(m,n), lda ) );
 }
 
 } // namespace blas

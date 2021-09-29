@@ -277,10 +277,10 @@ using matrix_extents = std::experimental::extents<
 >;
 
 // -----------------------------------------------------------------------------
-// Matrix layouts with dynamic extents
-using ColMajorMatrixLayout = typename ColMajorLayout::template mapping<matrix_extents>;
-using RowMajorMatrixLayout = typename RowMajorLayout::template mapping<matrix_extents>;
-using TiledMatrixLayout    = typename    TiledLayout::template mapping<matrix_extents>;
+// Matrix mappings with dynamic extents
+using ColMajorMapping = typename ColMajorLayout::template mapping<matrix_extents>;
+using RowMajorMapping = typename RowMajorLayout::template mapping<matrix_extents>;
+using TiledMapping    = typename    TiledLayout::template mapping<matrix_extents>;
 
 // -----------------------------------------------------------------------------
 // Column major matrix view with dynamic extents
