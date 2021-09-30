@@ -12,7 +12,6 @@
 
 #include "lapack/types.hpp"
 #include "lapack/utils.hpp"
-#include "lapack/potrf.hpp"
 #include "tblas.hpp"
 
 namespace lapack {
@@ -34,7 +33,7 @@ namespace lapack {
  *     \end{bmatrix}
  * \]
  * where $A_{11}$ is n1-by-n1 and $A_{22}$ is n2-by-n2,
- * with n1 = n/2 and n2 = n-n1.
+ * with n1 = n/2 and n2 = n-n1, where n is the order of the matrix A.
  * The subroutine calls itself to factor $A_{11},$
  * updates and scales $A_{21}$ or $A_{12},$
  * updates $A_{22},$
@@ -44,54 +43,44 @@ namespace lapack {
  *     - lapack::Uplo::Upper: Upper triangle of A is stored;
  *     - lapack::Uplo::Lower: Lower triangle of A is stored.
  *
- * @param[in] n
- *     The order of the matrix A. n >= 0.
- *
  * @param[in,out] A
- *     The n-by-n matrix A, stored in an lda-by-n array.
  *     On entry, the Hermitian matrix A.
- *     - If uplo = Upper, the leading
- *     n-by-n upper triangular part of A contains the upper
- *     triangular part of the matrix A, and the strictly lower
+ *     - If uplo = Upper, the strictly lower
  *     triangular part of A is not referenced.
  *
- *     - If uplo = Lower, the
- *     leading n-by-n lower triangular part of A contains the lower
- *     triangular part of the matrix A, and the strictly upper
+ *     - If uplo = Lower, the strictly upper
  *     triangular part of A is not referenced.
  *
  *     - On successful exit, the factor U or L from the Cholesky
  *     factorization $A = U^H U$ or $A = L L^H.$
  *
- * @param[in] lda
- *     The leading dimension of the array A. lda >= max(1,n).
- *
  * @return = 0: successful exit
  * @return > 0: if return value = i, the leading minor of order i is not
- *     positive definite, and the factorization could not be
- *     completed.
+ *     positive definite, and the factorization could not be completed.
  *
  * @ingroup posv_computational
  */
 template< typename T >
-int potrf2( Uplo uplo, Matrix< T > const A )
+int potrf2( Uplo uplo, blas::Matrix< T >& A )
 {
     typedef blas::real_type<T> real_t;
     using blas::trsm;
     using blas::syrk;
     using blas::sqrt;
-    using blas::ColMajorMapping;
-    using blas::matrix_extents;
+    using blas::real;
+
+    using blas::submatrix;
+    using size_type = typename blas::Matrix< T >::size_type;
+    using pair = std::pair<size_type,size_type>;
 
     // Constants
-    const real_t    rone( 1.0 );
     const T         one( 1.0 );
     const real_t    zero( 0.0 );
+    const auto& n = A.extent(0);
 
     // Check arguments
     lapack_error_if( uplo != Uplo::Upper && uplo != Uplo::Lower, -1 );
-    lapack_error_if( n < 0, -2 );
-    lapack_error_if( lda < n, -4 );
+    lapack_error_if( A.extent(0) != A.extent(1), -2 );
 
     // Quick return
     if (n == 0)
@@ -107,24 +96,24 @@ int potrf2( Uplo uplo, Matrix< T > const A )
         else
             return 1;
     }
+
     // Recursive code
     {
-        const idx_t n1 = n/2;
-        const idx_t n2 = n-n1;
+        const auto n1 = n/2;
 
         // Define A11 and A22
-        auto A11 = submatrix( A, std::pair(0,n1), std::pair(0,n1) );
-        auto A22 = submatrix( A, std::pair(n1,n), std::pair(n1,n) );
+        auto A11 = submatrix( A, pair(0,n1), pair(0,n1) );
+        auto A22 = submatrix( A, pair(n1,n), pair(n1,n) );
         
         // Factor A11
-        int info = potrf( uplo, A11 );
+        int info = potrf2( uplo, A11 );
         if( info != 0 )
             return info;
 
         if( uplo == Uplo::Upper ) {
 
             // Update and scale A12
-            auto A12 = submatrix( A, std::pair(0,n1), std::pair(n1,n) );
+            auto A12 = submatrix( A, pair(0,n1), pair(n1,n) );
             trsm(
                 Side::Left, Uplo::Upper,
                 Op::ConjTrans, Diag::NonUnit,
@@ -137,21 +126,25 @@ int potrf2( Uplo uplo, Matrix< T > const A )
         }
         else {
 
-            // Update and scale A12
-            auto A12 = submatrix( A, std::pair(n1,n), std::pair(0,n1) );
+            // Update and scale A21
+            auto A21 = submatrix( A, pair(n1,n), pair(0,n1) );
             trsm(
                 Side::Right, Uplo::Lower,
                 Op::ConjTrans, Diag::NonUnit,
-                one, A11, A12 );
+                one, A11, A21 );
 
             // Update A22
             herk(
                 uplo, Op::NoTrans,
-                -one, A12, one, A22 );
+                -one, A21, one, A22 );
         }
         
         // Factor A22
-        return potrf( uplo, A22 );
+        info = potrf2( uplo, A22 );
+        if( info == 0 )
+            return 0;
+        else
+            return info + n1;
     }
 }
 

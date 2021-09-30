@@ -17,36 +17,42 @@ int main( int argc, char** argv )
 {
     using T = float;
     using namespace blas;
+    using size_type = typename blas::Matrix< T >::size_type;
+    using pair = std::pair<size_type,size_type>;
     
     // constants
-    const int n = 100, k = 35, row_tile = 5, col_tile = 10;
+    const size_t n = 10, k = 4, row_tile = 2, col_tile = 5;
+    const size_t lda = 11, ldc = 12;
+    T one( 1.0 );
+    T zero( 0.0 );
     
     // raw data arrays
-    T A_[ n*n ] = {};
-    T C_[ n*n ] = {};
+    T A_[ lda*n ] = {};
+    T C_[ n*ldc ] = {};
 
     /// Using dynamic extents: 
 
     // Column Major Matrix A
-    auto A  = view_matrix( &A_[0], n, n, n );
+    auto A  = colmajor_matrix( A_, n, n, lda );
     // Column Major Matrix Ak with the first k columns of A
-    auto Ak = view_matrix( &A(0,0), n, k, n );
+    auto Ak = submatrix( A, pair(0,n), pair(0,k) );
     // Tiled Matrix B with the last k*n elements of A_
     auto B  = Matrix<T,TiledLayout>(
-        &A(n-k,0), TiledMapping( matrix_extents(k, n), row_tile, col_tile )
+        &A(n*(lda-k),0), TiledMapping( matrix_extents(k, n), row_tile, col_tile )
     );
     // Row Major Matrix C
-    auto C  = Matrix<T,RowMajorLayout>(
-        &C_[0], RowMajorMapping( matrix_extents(n, n), n )
-    );
+    auto C  = rowmajor_matrix( C_, n, n, ldc );
 
     // Init random seed
     srand( 4539 );
 
-    // Initialize A with junk
-    for (idx_t j = 0; j < n; ++j)
-        for (idx_t i = 0; i < n; ++i)
-            A(i,j) = T( static_cast<float>( 0xDEADBEEF ) );
+    // Initialize A_ and C_ with junk
+    for (idx_t j = 0; j < n; ++j) {
+        for (idx_t i = 0; i < lda; ++i)
+            A_[i+j*lda] = T( static_cast<float>( 0xDEADBEEF ) );
+        for (idx_t i = 0; i < ldc; ++i)
+            C_[i+j*ldc] = T( static_cast<float>( 0xDEFECA7E ) );
+    }
     
     // Generate a random matrix in Ak
     for (idx_t j = 0; j < k; ++j)
@@ -71,13 +77,84 @@ int main( int argc, char** argv )
         for (idx_t i = 0; i < n; ++i)
             C(i,j) = Ak(i,j);
 
+    // gemm:
+
     // C = Ak*B + C
     gemm( Op::NoTrans, Op::NoTrans, T(-1.0), Ak, B, T(1.0), C );
 
     std::cout.precision(5);
     std::cout << std::scientific << std::showpos;
     std::cout << "|| C - Ak B ||_F = " 
-              << lapack::lange( lapack::Norm::Fro, n, n, &C(0,0), n ) 
+              << lapack::lange( Layout::RowMajor, lapack::Norm::Fro, n, n, &C(0,0), ldc ) 
+              << std::endl;
+
+    // potrf2:
+
+    // Initialize A_ with junk one more time
+    for (idx_t j = 0; j < n; ++j)
+        for (idx_t i = 0; i < lda; ++i)
+            A_[i+j*lda] = T( static_cast<float>( 0xDEADBEEF ) );
+
+    // Column Major Matrices U and Asym as submatrices of A
+    auto U    = submatrix( A, pair(0,k), pair(0,k) );
+    auto Asym = submatrix( A, pair(0,k), pair(k,2*k) );
+    
+    // Fill Asym with random entries
+    for (idx_t j = 0; j < k; ++j) {
+        for (idx_t i = 0; i < k; ++i)
+            Asym(i,j) = static_cast<float>( rand() )
+                      / static_cast<float>( RAND_MAX );
+    }
+    
+    // Turns Asym into a symmetric positive definite matrix
+    for (idx_t j = 0; j < k; ++j) {
+        for (idx_t i = 0; i < j; ++i) {
+            Asym(i,j) = T(0.5) * ( Asym(i,j) + Asym(j,i) );
+            Asym(j,i) = Asym(i,j);
+        }
+        Asym(j,j) += T( 1.0 );
+    }
+    
+    // Copy the upper part of Asym to U
+    for (idx_t j = 0; j < k; ++j) {
+        for (idx_t i = 0; i <= j; ++i)
+            U(i,j) = Asym(i,j);
+    }
+
+    // Compute the Cholesky decomposition of U
+    int info = lapack::potrf2( Uplo::Upper, U );
+
+    std::cout << "Cholesky ended with info " << info
+              << std::endl;
+
+    // Compute U^H U
+    auto R  = submatrix( A, pair(k,2*k), pair(0,k) );
+    for (idx_t j = 0; j < k; ++j)
+        for (idx_t i = 0; i < k; ++i)
+            R(i,j) = Asym(i,j);
+    trsm(
+        Side::Left, Uplo::Upper,
+        Op::ConjTrans, Diag::NonUnit,
+        one, U, R );
+    trsm(
+        Side::Left, Uplo::Upper,
+        Op::NoTrans, Diag::NonUnit,
+        one, U, R );
+
+    // Solve U^H U x = A; error = ||x-Id||_F
+    T error = zero;
+    for (idx_t j = 0; j < k; ++j) {
+        for (idx_t i = 0; i < j; ++i)
+            error += R(i,j)*R(i,j);
+        error += (R(j,j)-1)*(R(j,j)-1);
+        for (idx_t i = j+1; i < k; ++i)
+            error += R(i,j)*R(i,j);
+    }
+    error = sqrt(error);
+
+    std::cout.precision(5);
+    std::cout << std::scientific << std::showpos;
+    std::cout << "U^H U x = A: ||x-Id||_F = " << error
               << std::endl;
 
     return 0;

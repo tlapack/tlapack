@@ -139,10 +139,10 @@ void hemm(
     
     // Matrix views
     auto _A = (side == Side::Left)
-            ? view_matrix<const TA>( A, m, m, lda )
-            : view_matrix<const TA>( A, n, n, lda );
-    auto _B = view_matrix<const TB>( B, m, n, ldb );
-    auto _C = view_matrix<TC>( C, m, n, ldc );
+            ? colmajor_matrix<const TA>( A, m, m, lda )
+            : colmajor_matrix<const TA>( A, n, n, lda );
+    auto _B = colmajor_matrix<const TB>( B, m, n, ldb );
+    auto _C = colmajor_matrix<TC>( C, m, n, ldc );
 
     // alpha == zero
     if (alpha == zero) {

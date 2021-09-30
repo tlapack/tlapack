@@ -91,7 +91,7 @@ int larft(
     using blas::conj;
     using blas::max;
     using blas::min;
-    using blas::view_matrix;
+    using blas::colmajor_matrix;
 
     // constants
     const scalar_t one(1.0);
@@ -113,9 +113,9 @@ int larft(
 
     // Matrix views
     auto _V = (storeV == StoreV::Columnwise)
-            ? view_matrix<const scalar_t>( V, n, k, ldV )
-            : view_matrix<const scalar_t>( V, k, n, ldV );
-    auto _T = view_matrix<scalar_t>( T, k, k, ldT );
+            ? colmajor_matrix<const scalar_t>( V, n, k, ldV )
+            : colmajor_matrix<const scalar_t>( V, k, n, ldV );
+    auto _T = colmajor_matrix<scalar_t>( T, k, k, ldT );
 
     if (direct == Direction::Forward) {
         for (idx_t i = 0; i < k; ++i) {

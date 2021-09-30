@@ -23,9 +23,8 @@ void run( blas::idx_t m, blas::idx_t n, blas::idx_t k )
 {
     using blas::idx_t;
     using blas::min;
-    using blas::view_matrix;
-    using blas::Matrix;
-    using blas::RowMajorMapping;
+    using blas::colmajor_matrix;
+    using blas::rowmajor_matrix;
     
     // Column Major data
     idx_t lda = (m > 0) ? m : 1;
@@ -44,20 +43,14 @@ void run( blas::idx_t m, blas::idx_t n, blas::idx_t k )
     std::vector<T> Cr( m*ldcr, T(0) );   // m-by-n
 
     // Column Major Matrix views
-    auto _A = view_matrix<T>( &A[0], m, k, lda );
-    auto _B = view_matrix<T>( &B[0], k, n, ldb );
-    auto _C = view_matrix<T>( &C[0], m, n, ldc );
+    auto _A = colmajor_matrix<T>( &A[0], m, k, lda );
+    auto _B = colmajor_matrix<T>( &B[0], k, n, ldb );
+    auto _C = colmajor_matrix<T>( &C[0], m, n, ldc );
 
     // Row Major Matrix views
-    auto _Ar = Matrix<T,blas::RowMajorLayout>(
-        &Ar[0], RowMajorMapping( blas::matrix_extents(m, k), ldar )
-    );
-    auto _Br = Matrix<T,blas::RowMajorLayout>(
-        &Br[0], RowMajorMapping( blas::matrix_extents(k, n), ldbr )
-    );
-    auto _Cr = Matrix<T,blas::RowMajorLayout>(
-        &Cr[0], RowMajorMapping( blas::matrix_extents(m, n), ldcr )
-    );
+    auto _Ar = rowmajor_matrix<T>( &Ar[0], m, k, ldar );
+    auto _Br = rowmajor_matrix<T>( &Br[0], k, n, ldbr );
+    auto _Cr = rowmajor_matrix<T>( &Cr[0], m, n, ldcr );
 
     // Number of runs to measure the minimum execution time
     int Nruns = 10;

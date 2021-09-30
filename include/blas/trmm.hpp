@@ -144,9 +144,9 @@ void trmm(
 
     // Matrix views
     auto _A = (side == Side::Left)
-            ? view_matrix<const TA>( A, m, m, lda )
-            : view_matrix<const TA>( A, n, n, lda );
-    auto _B = view_matrix<TB>( B, m, n, ldb );
+            ? colmajor_matrix<const TA>( A, m, m, lda )
+            : colmajor_matrix<const TA>( A, n, n, lda );
+    auto _B = colmajor_matrix<TB>( B, m, n, ldb );
 
     // alpha == zero
     if (alpha == zero) {

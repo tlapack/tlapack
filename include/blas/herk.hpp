@@ -83,9 +83,9 @@ void herk(
     blas::Op trans,
     blas::idx_t n, blas::idx_t k,
     real_type<TA, TC> alpha,  // note: real
-    TA const *A, blas::idx_t lda,
+    TA const *A_, blas::idx_t lda,
     real_type<TA, TC> beta,  // note: real
-    TC       *C, blas::idx_t ldc )
+    TC       *C_, blas::idx_t ldc )
 {
     typedef blas::scalar_type<TA, TC> scalar_t;
     typedef blas::real_type<TA, TC> real_t;
@@ -145,10 +145,10 @@ void herk(
         return;
         
     // Matrix views
-    auto _A = (trans == Op::NoTrans)
-            ? view_matrix<const TA>( A, n, k, lda )
-            : view_matrix<const TA>( A, k, n, lda );
-    auto _C = view_matrix<TC>( C, n, n, ldc );
+    auto A = (trans == Op::NoTrans)
+            ? colmajor_matrix<const TA>( A_, n, k, lda )
+            : colmajor_matrix<const TA>( A_, k, n, lda );
+    auto C = colmajor_matrix<TC>( C_, n, n, ldc );
 
     // alpha == zero
     if (alpha == zero) {
@@ -156,43 +156,43 @@ void herk(
             if (uplo != Uplo::Upper) {
                 for(idx_t j = 0; j < n; ++j) {
                     for(idx_t i = 0; i <= j; ++i)
-                        _C(i,j) = szero;
+                        C(i,j) = szero;
                 }
             }
             else if (uplo != Uplo::Lower) {
                 for(idx_t j = 0; j < n; ++j) {
                     for(idx_t i = j; i < n; ++i)
-                        _C(i,j) = szero;
+                        C(i,j) = szero;
                 }
             }
             else {
                 for(idx_t j = 0; j < n; ++j) {
                     for(idx_t i = 0; i < n; ++i)
-                        _C(i,j) = szero;
+                        C(i,j) = szero;
                 }
             }
         } else if (beta != one) {
             if (uplo != Uplo::Upper) {
                 for(idx_t j = 0; j < n; ++j) {
                     for(idx_t i = 0; i < j; ++i)
-                        _C(i,j) *= beta;
-                    _C(j,j) = beta * real( _C(j,j) );
+                        C(i,j) *= beta;
+                    C(j,j) = beta * real( C(j,j) );
                 }
             }
             else if (uplo != Uplo::Lower) {
                 for(idx_t j = 0; j < n; ++j) {
-                    _C(j,j) = beta * real( _C(j,j) );
+                    C(j,j) = beta * real( C(j,j) );
                     for(idx_t i = j+1; i < n; ++i)
-                        _C(i,j) *= beta;
+                        C(i,j) *= beta;
                 }
             }
             else {
                 for(idx_t j = 0; j < n; ++j) {
                     for(idx_t i = 0; i < j; ++i)
-                        _C(i,j) *= beta;
-                    _C(j,j) = beta * real( _C(j,j) );
+                        C(i,j) *= beta;
+                    C(j,j) = beta * real( C(j,j) );
                     for(idx_t i = j+1; i < n; ++i)
-                        _C(i,j) *= beta;
+                        C(i,j) *= beta;
                 }
             }
         }
@@ -206,33 +206,33 @@ void herk(
             for(idx_t j = 0; j < n; ++j) {
 
                 for(idx_t i = 0; i < j; ++i)
-                    _C(i,j) *= beta;
-                _C(j,j) = beta * real( _C(j,j) );
+                    C(i,j) *= beta;
+                C(j,j) = beta * real( C(j,j) );
 
                 for(idx_t l = 0; l < k; ++l) {
 
-                    scalar_t alphaConjAjl = alpha*conj( _A(j,l) );
+                    scalar_t alphaConjAjl = alpha*conj( A(j,l) );
 
                     for(idx_t i = 0; i < j; ++i)
-                        _C(i,j) += _A(i,l)*alphaConjAjl;
-                    _C(j,j) += real( _A(j,l) * alphaConjAjl );
+                        C(i,j) += A(i,l)*alphaConjAjl;
+                    C(j,j) += real( A(j,l) * alphaConjAjl );
                 }
             }
         }
         else { // uplo == Uplo::Lower
             for(idx_t j = 0; j < n; ++j) {
 
-                _C(j,j) = beta * real( _C(j,j) );
+                C(j,j) = beta * real( C(j,j) );
                 for(idx_t i = j+1; i < n; ++i)
-                    _C(i,j) *= beta;
+                    C(i,j) *= beta;
 
                 for(idx_t l = 0; l < k; ++l) {
 
-                    scalar_t alphaConjAjl = alpha*conj( _A(j,l) );
+                    scalar_t alphaConjAjl = alpha*conj( A(j,l) );
 
-                    _C(j,j) += real( _A(j,l) * alphaConjAjl );
+                    C(j,j) += real( A(j,l) * alphaConjAjl );
                     for(idx_t i = j+1; i < n; ++i) {
-                        _C(i,j) += _A(i,l) * alphaConjAjl;
+                        C(i,j) += A(i,l) * alphaConjAjl;
                     }
                 }
             }
@@ -245,14 +245,14 @@ void herk(
                 for(idx_t i = 0; i < j; ++i) {
                     scalar_t sum = szero;
                     for(idx_t l = 0; l < k; ++l)
-                        sum += conj( _A(l,i) ) * _A(l,j);
-                    _C(i,j) = alpha*sum + beta*_C(i,j);
+                        sum += conj( A(l,i) ) * A(l,j);
+                    C(i,j) = alpha*sum + beta*C(i,j);
                 }
                 real_t sum = zero;
                 for(idx_t l = 0; l < k; ++l)
-                    sum += real(_A(l,j)) * real(_A(l,j))
-                         + imag(_A(l,j)) * imag(_A(l,j));
-                _C(j,j) = alpha*sum + beta*real( _C(j,j) );
+                    sum += real(A(l,j)) * real(A(l,j))
+                         + imag(A(l,j)) * imag(A(l,j));
+                C(j,j) = alpha*sum + beta*real( C(j,j) );
             }
         }
         else {
@@ -261,14 +261,14 @@ void herk(
                 for(idx_t i = j+1; i < n; ++i) {
                     scalar_t sum = szero;
                     for(idx_t l = 0; l < k; ++l)
-                        sum += conj( _A(l,i) ) * _A(l,j);
-                    _C(i,j) = alpha*sum + beta*_C(i,j);
+                        sum += conj( A(l,i) ) * A(l,j);
+                    C(i,j) = alpha*sum + beta*C(i,j);
                 }
                 real_t sum = zero;
                 for(idx_t l = 0; l < k; ++l)
-                    sum += real(_A(l,j)) * real(_A(l,j))
-                         + imag(_A(l,j)) * imag(_A(l,j));
-                _C(j,j) = alpha*sum + beta*real( _C(j,j) );
+                    sum += real(A(l,j)) * real(A(l,j))
+                         + imag(A(l,j)) * imag(A(l,j));
+                C(j,j) = alpha*sum + beta*real( C(j,j) );
             }
         }
     }
@@ -276,7 +276,225 @@ void herk(
     if (uplo == Uplo::General) {
         for(idx_t j = 0; j < n; ++j) {
             for(idx_t i = j+1; i < n; ++i)
-                _C(i,j) = conj( _C(j,i) );
+                C(i,j) = conj( C(j,i) );
+        }
+    }
+}
+
+/**
+ * Hermitian rank-k update:
+ * \[
+ *     C = \alpha A A^H + \beta C,
+ * \]
+ * or
+ * \[
+ *     C = \alpha A^H A + \beta C,
+ * \]
+ * where alpha and beta are real scalars, C is an n-by-n Hermitian matrix,
+ * and A is an n-by-k or k-by-n matrix.
+ *
+ * Generic implementation for arbitrary data types.
+ *
+ * @param[in] uplo
+ *     What part of the matrix C is referenced,
+ *     the opposite triangle being assumed from symmetry:
+ *     - Uplo::Lower: only the lower triangular part of C is referenced.
+ *     - Uplo::Upper: only the upper triangular part of C is referenced.
+ *
+ * @param[in] trans
+ *     The operation to be performed:
+ *     - Op::NoTrans:   $C = \alpha A A^H + \beta C$.
+ *     - Op::ConjTrans: $C = \alpha A^H A + \beta C$.
+ *     - In the real    case, Op::Trans is interpreted as Op::ConjTrans.
+ *       In the complex case, Op::Trans is illegal (see @ref syrk instead).
+ *
+ * @param[in] alpha
+ *     Scalar alpha. If alpha is zero, A is not accessed.
+ *
+ * @param[in] A
+ *     - If trans = NoTrans: the n-by-k matrix A.
+ *     - Otherwise: the k-by-n matrix A.
+ *
+ * @param[in] beta
+ *     Scalar beta. If beta is zero, C need not be set on input.
+ *
+ * @param[in] C
+ *     The n-by-n Hermitian matrix C.
+ *
+ * @ingroup herk
+ */
+template< typename TA, typename TC, typename LA, typename LC >
+void herk(
+    blas::Uplo uplo,
+    blas::Op trans,
+    real_type<TA, TC> alpha,  // note: real
+    const Matrix<TA,LA>& A,
+    real_type<TA, TC> beta,  // note: real
+    Matrix<TC,LC>&       C )
+{
+    typedef blas::scalar_type<TA, TC> scalar_t;
+    typedef blas::real_type<TA, TC> real_t;
+
+    // constants
+    const scalar_t szero( 0 );
+    const real_t zero( 0 );
+    const real_t one  = 1;
+    const auto& n = C.extent(0);
+    const auto& k = (trans == Op::NoTrans) ? A.extent(1) : A.extent(0);
+
+    // check arguments
+    blas_error_if( uplo != Uplo::Lower &&
+                   uplo != Uplo::Upper &&
+                   uplo != Uplo::General );
+
+    // check and interpret argument trans
+    // if (trans == Op::Trans) {
+    //     blas_error_if_msg(
+    //             typeid(TA) != typeid(blas::real_type<TA>),
+    //             "trans == Op::Trans && "
+    //             "typeid(TA) != typeid(blas::real_type<TA>)" );
+    //     trans = Op::ConjTrans;
+    // }
+    // else {
+        blas_error_if( trans != Op::NoTrans &&
+                       trans != Op::ConjTrans );
+    // }
+    
+    blas_error_if(
+        C.extent(0) != ((trans == Op::NoTrans) ? A.extent(0) : A.extent(1)) );
+    blas_error_if( C.extent(0) != C.extent(1) );
+
+    // quick return
+    if (n == 0)
+        return;
+
+    // alpha == zero
+    if (alpha == zero) {
+        if (beta == zero) {
+            if (uplo != Uplo::Upper) {
+                for(idx_t j = 0; j < n; ++j) {
+                    for(idx_t i = 0; i <= j; ++i)
+                        C(i,j) = szero;
+                }
+            }
+            else if (uplo != Uplo::Lower) {
+                for(idx_t j = 0; j < n; ++j) {
+                    for(idx_t i = j; i < n; ++i)
+                        C(i,j) = szero;
+                }
+            }
+            else {
+                for(idx_t j = 0; j < n; ++j) {
+                    for(idx_t i = 0; i < n; ++i)
+                        C(i,j) = szero;
+                }
+            }
+        } else if (beta != one) {
+            if (uplo != Uplo::Upper) {
+                for(idx_t j = 0; j < n; ++j) {
+                    for(idx_t i = 0; i < j; ++i)
+                        C(i,j) *= beta;
+                    C(j,j) = beta * real( C(j,j) );
+                }
+            }
+            else if (uplo != Uplo::Lower) {
+                for(idx_t j = 0; j < n; ++j) {
+                    C(j,j) = beta * real( C(j,j) );
+                    for(idx_t i = j+1; i < n; ++i)
+                        C(i,j) *= beta;
+                }
+            }
+            else {
+                for(idx_t j = 0; j < n; ++j) {
+                    for(idx_t i = 0; i < j; ++i)
+                        C(i,j) *= beta;
+                    C(j,j) = beta * real( C(j,j) );
+                    for(idx_t i = j+1; i < n; ++i)
+                        C(i,j) *= beta;
+                }
+            }
+        }
+        return;
+    }
+
+    // alpha != zero
+    if (trans == Op::NoTrans) {
+        if (uplo != Uplo::Lower) {
+        // uplo == Uplo::Upper or uplo == Uplo::General
+            for(idx_t j = 0; j < n; ++j) {
+
+                for(idx_t i = 0; i < j; ++i)
+                    C(i,j) *= beta;
+                C(j,j) = beta * real( C(j,j) );
+
+                for(idx_t l = 0; l < k; ++l) {
+
+                    scalar_t alphaConjAjl = alpha*conj( A(j,l) );
+
+                    for(idx_t i = 0; i < j; ++i)
+                        C(i,j) += A(i,l)*alphaConjAjl;
+                    C(j,j) += real( A(j,l) * alphaConjAjl );
+                }
+            }
+        }
+        else { // uplo == Uplo::Lower
+            for(idx_t j = 0; j < n; ++j) {
+
+                C(j,j) = beta * real( C(j,j) );
+                for(idx_t i = j+1; i < n; ++i)
+                    C(i,j) *= beta;
+
+                for(idx_t l = 0; l < k; ++l) {
+
+                    scalar_t alphaConjAjl = alpha*conj( A(j,l) );
+
+                    C(j,j) += real( A(j,l) * alphaConjAjl );
+                    for(idx_t i = j+1; i < n; ++i) {
+                        C(i,j) += A(i,l) * alphaConjAjl;
+                    }
+                }
+            }
+        }
+    }
+    else { // trans == Op::ConjTrans
+        if (uplo != Uplo::Lower) {
+        // uplo == Uplo::Upper or uplo == Uplo::General
+            for(idx_t j = 0; j < n; ++j) {
+                for(idx_t i = 0; i < j; ++i) {
+                    scalar_t sum = szero;
+                    for(idx_t l = 0; l < k; ++l)
+                        sum += conj( A(l,i) ) * A(l,j);
+                    C(i,j) = alpha*sum + beta*C(i,j);
+                }
+                real_t sum = zero;
+                for(idx_t l = 0; l < k; ++l)
+                    sum += real(A(l,j)) * real(A(l,j))
+                         + imag(A(l,j)) * imag(A(l,j));
+                C(j,j) = alpha*sum + beta*real( C(j,j) );
+            }
+        }
+        else {
+            // uplo == Uplo::Lower
+            for(idx_t j = 0; j < n; ++j) {
+                for(idx_t i = j+1; i < n; ++i) {
+                    scalar_t sum = szero;
+                    for(idx_t l = 0; l < k; ++l)
+                        sum += conj( A(l,i) ) * A(l,j);
+                    C(i,j) = alpha*sum + beta*C(i,j);
+                }
+                real_t sum = zero;
+                for(idx_t l = 0; l < k; ++l)
+                    sum += real(A(l,j)) * real(A(l,j))
+                         + imag(A(l,j)) * imag(A(l,j));
+                C(j,j) = alpha*sum + beta*real( C(j,j) );
+            }
+        }
+    }
+
+    if (uplo == Uplo::General) {
+        for(idx_t j = 0; j < n; ++j) {
+            for(idx_t i = j+1; i < n; ++i)
+                C(i,j) = conj( C(j,i) );
         }
     }
 }

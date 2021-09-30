@@ -37,10 +37,10 @@ void laset(
     TA alpha, TA beta,
     TA* A, blas::idx_t lda )
 {
-    using blas::view_matrix;
+    using blas::colmajor_matrix;
     
     // Matrix views
-    auto _A = view_matrix<TA>( A, m, n, lda );
+    auto _A = colmajor_matrix<TA>( A, m, n, lda );
 
     if (uplo == Uplo::Upper) {
         // Set the strictly upper triangular or trapezoidal part of

@@ -67,7 +67,7 @@ int lascl(
     using blas::max;
     using blas::min;
     using blas::safe_min;
-    using blas::view_matrix;
+    using blas::colmajor_matrix;
 
     // constants
     const blas::idx_t izero = 0;
@@ -122,7 +122,7 @@ int lascl(
     lapack_error_if( (matrixtype == MatrixType::Band) && (lda < 2 * kl + ku + 1), -9);
 
     // Matrix views
-    auto _A = view_matrix<T>( A, m, n, lda );
+    auto _A = colmajor_matrix<T>( A, m, n, lda );
 
     bool done = 0;
     while (!done)

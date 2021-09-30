@@ -97,7 +97,7 @@ void hemv(
         return;
     
     // Matrix views
-    auto _A = view_matrix<const TA>( A, n, n, lda );
+    auto _A = colmajor_matrix<const TA>( A, n, n, lda );
 
     idx_t kx = (incx > 0 ? 0 : (-n + 1)*incx);
     idx_t ky = (incy > 0 ? 0 : (-n + 1)*incy);

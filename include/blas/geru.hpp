@@ -89,7 +89,7 @@ void geru(
         return;
     
     // Matrix views
-    auto _A = view_matrix<TA>( A, m, n, lda );
+    auto _A = colmajor_matrix<TA>( A, m, n, lda );
 
     // for row-major, simply swap dimensions and x <=> y
     // this doesn't work in the complex gerc case because y gets conj

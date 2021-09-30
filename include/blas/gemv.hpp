@@ -114,7 +114,7 @@ void gemv(
         return;
     
     // Matrix views
-    auto _A = view_matrix<const TA>( A, m, n, lda );
+    auto _A = colmajor_matrix<const TA>( A, m, n, lda );
 
     bool doconj = false;
     if (layout == Layout::RowMajor) {

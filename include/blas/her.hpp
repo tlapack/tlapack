@@ -84,7 +84,7 @@ void her(
         return;
     
     // Matrix views
-    auto _A = view_matrix<TA>( A, n, n, lda );
+    auto _A = colmajor_matrix<TA>( A, n, n, lda );
 
     // for row major, swap lower <=> upper
     if (layout == Layout::RowMajor) {

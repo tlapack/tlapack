@@ -142,9 +142,9 @@ void syrk(
 
     // Matrix views
     auto _A = (trans == Op::NoTrans)
-            ? view_matrix<const TA>( A, n, k, lda )
-            : view_matrix<const TA>( A, k, n, lda );
-    auto _C = view_matrix<TC>( C, n, n, ldc );
+            ? colmajor_matrix<const TA>( A, n, k, lda )
+            : colmajor_matrix<const TA>( A, k, n, lda );
+    auto _C = colmajor_matrix<TC>( C, n, n, ldc );
 
     // alpha == zero
     if (alpha == zero) {

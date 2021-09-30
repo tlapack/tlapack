@@ -37,11 +37,11 @@ void lacpy(
     const TA* A, blas::idx_t lda,
     TB* B, blas::idx_t ldb )
 {
-    using blas::view_matrix;
+    using blas::colmajor_matrix;
     
     // Matrix views
-    auto _A = view_matrix<const TA>( A, m, n, lda );
-    auto _B = view_matrix<TB>( B, m, n, ldb );
+    auto _A = colmajor_matrix<const TA>( A, m, n, lda );
+    auto _B = colmajor_matrix<TB>( B, m, n, ldb );
 
     if (uplo == Uplo::Upper) {
         // Set the strictly upper triangular or trapezoidal part of B

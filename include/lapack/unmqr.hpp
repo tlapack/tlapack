@@ -34,7 +34,7 @@ int unmqr(
 {
     using blas::max;
     using blas::min;
-    using blas::view_matrix;
+    using blas::colmajor_matrix;
 
     // Constants
     const int nb = 32;      // number of blocks
@@ -62,9 +62,9 @@ int unmqr(
 
     // Matrix views
     auto _A = (side == Side::Left)
-            ? view_matrix<const TA>( A, m, k, lda )
-            : view_matrix<const TA>( A, n, k, lda );
-    auto _C = view_matrix<TC>( C, m, n, ldc );
+            ? colmajor_matrix<const TA>( A, m, k, lda )
+            : colmajor_matrix<const TA>( A, n, k, lda );
+    auto _C = colmajor_matrix<TC>( C, m, n, ldc );
 
     // Preparing loop indexes
     idx_t i0, iN, step;

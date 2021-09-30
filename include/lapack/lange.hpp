@@ -44,7 +44,7 @@ real_type<TA> lange(
     typedef real_type<TA> real_t;
     using blas::isnan;
     using blas::sqrt;
-    using blas::view_matrix;
+    using blas::colmajor_matrix;
 
     // constants
     const real_t zero(0.0);
@@ -54,7 +54,7 @@ real_type<TA> lange(
         return zero;
 
     // Matrix views
-    auto _A = view_matrix<const TA>( A, m, n, lda );
+    auto _A = colmajor_matrix<const TA>( A, m, n, lda );
 
     // Norm value
     real_t norm(0.0);

@@ -37,7 +37,7 @@ int org2r(
     TA* work )
 {
     using blas::scal;
-    using blas::view_matrix;
+    using blas::colmajor_matrix;
 
     // constants
     const TA zero( 0.0 );
@@ -53,7 +53,7 @@ int org2r(
     if (n <= 0) return 0;
 
     // Matrix views
-    auto _A = view_matrix<TA>( A, m, n, lda );
+    auto _A = colmajor_matrix<TA>( A, m, n, lda );
     
     // Initialise columns k:n-1 to columns of the unit matrix
     for (idx_t j = k; j < n; ++j) {
@@ -95,7 +95,7 @@ int org2r(
     const real_type<TA>* tau,
     TA* work )
 {
-    using blas::view_matrix;
+    using blas::colmajor_matrix;
     
     // constants
     const TA zero( 0.0 );
@@ -111,7 +111,7 @@ int org2r(
     if (n <= 0) return 0;
 
     // Matrix views
-    auto _A = view_matrix<TA>( A, m, n, lda );
+    auto _A = colmajor_matrix<TA>( A, m, n, lda );
     
     // Initialise columns k:n-1 to columns of the unit matrix
     for (idx_t j = k; j < n; ++j) {

@@ -32,7 +32,7 @@ int geqr2(
     TA* tau,
     TA* work )
 {
-    using blas::view_matrix;
+    using blas::colmajor_matrix;
 
     // Local parameters
     int info = 0;
@@ -49,7 +49,7 @@ int geqr2(
     if (n <= 0) return 0;
 
     // Matrix views
-    auto _A = view_matrix<TA>( A, m, n, lda );
+    auto _A = colmajor_matrix<TA>( A, m, n, lda );
 
     const idx_t k = std::min<idx_t>( m, n-1 );
     for(idx_t i = 0; i < k; ++i) {
@@ -87,7 +87,7 @@ int geqr2(
     std::complex<real_t>* work )
 {
     typedef std::complex<real_t> scalar_t;
-    using blas::view_matrix;
+    using blas::colmajor_matrix;
 
     // constants
     const scalar_t one( 1.0 );
@@ -101,7 +101,7 @@ int geqr2(
     if (n <= 0) return 0;
 
     // Matrix views
-    auto _A = view_matrix<real_t>( A, m, n, lda );
+    auto _A = colmajor_matrix<real_t>( A, m, n, lda );
 
 	const idx_t k = std::min<idx_t>( m, n-1 );
     for(idx_t i = 0; i < k; ++i) {

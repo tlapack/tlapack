@@ -95,7 +95,7 @@ void trmv(
         return;
         
     // Matrix views
-    auto _A = view_matrix<const TA>( A, n, n, lda );
+    auto _A = colmajor_matrix<const TA>( A, n, n, lda );
 
     // for row major, swap lower <=> upper and
     // A => A^T; A^T => A; A^H => A & conj

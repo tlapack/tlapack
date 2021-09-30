@@ -88,7 +88,7 @@ void ger(
         return;
     
     // Matrix views
-    auto _A = view_matrix<TA>( A, m, n, lda );
+    auto _A = colmajor_matrix<TA>( A, m, n, lda );
 
     if (layout == Layout::ColMajor) {
         if (incx == 1 && incy == 1) {

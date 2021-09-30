@@ -143,12 +143,12 @@ void gemm(
 
     // Matrix views
     auto _A = (transA == Op::NoTrans)
-            ? view_matrix<const TA>( A, m, k, lda )
-            : view_matrix<const TA>( A, k, m, lda );
+            ? colmajor_matrix<const TA>( A, m, k, lda )
+            : colmajor_matrix<const TA>( A, k, m, lda );
     auto _B = (transB == Op::NoTrans)
-            ? view_matrix<const TB>( B, k, n, ldb )
-            : view_matrix<const TB>( B, n, k, ldb );
-    auto _C = view_matrix<TC>( C, m, n, ldc );
+            ? colmajor_matrix<const TB>( B, k, n, ldb )
+            : colmajor_matrix<const TB>( B, n, k, ldb );
+    auto _C = colmajor_matrix<TC>( C, m, n, ldc );
 
     // alpha == zero
     if (alpha == zero) {
@@ -274,10 +274,10 @@ void gemm(
     Op transA,
     Op transB,
     scalar_type<TA, TB, TC> alpha,
-    Matrix< TA, L1 > const _A,
-    Matrix< TB, L2 > const _B,
+    const Matrix< TA, L1 >& _A,
+    const Matrix< TB, L2 >& _B,
     scalar_type<TA, TB, TC> beta,
-    Matrix< TC, L3 > _C )
+    Matrix< TC, L3 >& _C )
 {
     typedef blas::scalar_type<TA, TB, TC> scalar_t;
 

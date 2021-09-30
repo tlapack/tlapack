@@ -1,14 +1,9 @@
-# Example: gemm
+# Example: mdspan
 
-In this example, we combine different matrix layouts from mdspan to compute _C - A_k B_ using matrices A, A_k, B and C.
+In this example, we combine different matrix layouts from mdspan on [blas::gemm](../../include/blas/gemm.hpp) and [lapack::potrf2](../../include/lapack/potrf2.hpp). 
 
-- _k <= n/2_
-- A is a column-major n-by-n matrix. Its _k_ first are filled with random numbers, and the remaining entries receive `(float) 0xDEADBEEF`. The _k_ last columns are filled with _0_'s or _1_'s. See B above.
-- A_k is a column-major n-by-k matrix. It represents the first k columns of A.
-- B is a tiled k-by-n identity matrix. It shares data with the last _k_ columns of A.
-- C is a m-by-n matrix. Its _k_ first columns are equal to the first columns of A, and the other positions are zero.
-
-The code uses the routine [blas::gemm](../../include/blas/gemm.hpp), so that the expected output is _C = 0_. In the final step of the algorithm, we use [lapack::lange](../../include/lapack/lange.hpp) to compute the Frobenius norm of C. The norm must be identically null.
+- Also use the mdspan interfaces of [blas::trsm](../../include/blas/trsm.hpp) and [lapack::lange](../../include/lapack/lange.hpp).
+- Use the `submatrix` operation from [blas/utils.hpp](../../include/blas/utils.hpp)
 
 ## Build
 

@@ -52,5 +52,6 @@
 #include "lapack/org2r.hpp"
 #include "lapack/orm2r.hpp"
 #include "lapack/unmqr.hpp"
+#include "lapack/potrf2.hpp"
 
 #endif // __TLAPACK_HH__

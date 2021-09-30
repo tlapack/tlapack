@@ -11,134 +11,6 @@
 
 namespace blas {
 
-using std::experimental::mdspan;
-
-// -----------------------------------------------------------------------------
-/// ColMajorLayout Column Major layout for mdspan.
-struct ColMajorLayout {
-    template <class Extents>
-    struct mapping {
-        static_assert(Extents::rank() == 2, "ColMajorLayout is a 2D layout");
-
-        // for convenience
-        using size_type = typename Extents::size_type;
-
-        // constructor
-        mapping(
-            const Extents& exts,    // matrix sizes
-            size_type ldim          // leading dimension
-        ) noexcept
-            : extents_(exts)
-            , ldim_(ldim)
-        {} // Mind that it does not check for invalid values here.
-
-        // Default constructors
-        mapping() noexcept = default;
-        mapping(const mapping&) noexcept = default;
-        mapping(mapping&&) noexcept = default;
-        mapping& operator=(mapping const&) noexcept = default;
-        mapping& operator=(mapping&&) noexcept = default;
-        ~mapping() noexcept = default;
-
-        //------------------------------------------------------------
-        // Required members
-
-        constexpr size_type
-        operator()(size_type row, size_type col) const noexcept {
-            return row + col * ldim_;
-        }
-
-        constexpr size_type
-        required_span_size() const noexcept {
-            return extents_.extent(1) * ldim_;
-        }
-
-        // Mapping is always unique
-        static constexpr bool is_always_unique() noexcept { return true; }
-        constexpr bool is_unique() const noexcept { return true; }
-
-        // Only contiguous if extents_.extent(0) == ldim_
-        static constexpr bool is_always_contiguous() noexcept { return false; }
-        constexpr bool is_contiguous() const noexcept { return (extents_.extent(0) == ldim_); }
-
-        // Mapping is always strided: strides: (1,ldim_)
-        static constexpr bool is_always_strided() noexcept { return true; }
-        constexpr bool is_strided() const noexcept { return true; }
-
-        inline constexpr Extents
-        extents() const noexcept {
-            return extents_;
-        };
-
-        private:
-            Extents extents_;
-            size_type ldim_; // leading dimension
-    };
-};
-
-// -----------------------------------------------------------------------------
-/// RowMajorLayout Row Major layout for mdspan.
-struct RowMajorLayout {
-    template <class Extents>
-    struct mapping {
-        static_assert(Extents::rank() == 2, "RowMajorLayout is a 2D layout");
-
-        // for convenience
-        using size_type = typename Extents::size_type;
-
-        // constructor
-        mapping(
-            const Extents& exts,    // matrix sizes
-            size_type ldim          // leading dimension
-        ) noexcept
-            : extents_(exts)
-            , ldim_(ldim)
-        {} // Mind that it does not check for invalid values here.
-
-        // Default constructors
-        mapping() noexcept = default;
-        mapping(const mapping&) noexcept = default;
-        mapping(mapping&&) noexcept = default;
-        mapping& operator=(mapping const&) noexcept = default;
-        mapping& operator=(mapping&&) noexcept = default;
-        ~mapping() noexcept = default;
-
-        //------------------------------------------------------------
-        // Required members
-
-        constexpr size_type
-        operator()(size_type row, size_type col) const noexcept {
-            return row * ldim_ + col;
-        }
-
-        constexpr size_type
-        required_span_size() const noexcept {
-            return extents_.extent(0) * ldim_;
-        }
-
-        // Mapping is always unique
-        static constexpr bool is_always_unique() noexcept { return true; }
-        constexpr bool is_unique() const noexcept { return true; }
-
-        // Only contiguous if extents_.extent(1) == ldim_
-        static constexpr bool is_always_contiguous() noexcept { return false; }
-        constexpr bool is_contiguous() const noexcept { return (extents_.extent(1) == ldim_); }
-
-        // Mapping is always strided: strides: (ldim_,1)
-        static constexpr bool is_always_strided() noexcept { return true; }
-        constexpr bool is_strided() const noexcept { return true; }
-
-        inline constexpr Extents
-        extents() const noexcept {
-            return extents_;
-        };
-
-        private:
-            Extents extents_;
-            size_type ldim_; // leading dimension
-    };
-};
-
 // -----------------------------------------------------------------------------
 /** TiledLayout Tiled layout for mdspan.
  * 
@@ -278,14 +150,13 @@ using matrix_extents = std::experimental::extents<
 
 // -----------------------------------------------------------------------------
 // Matrix mappings with dynamic extents
-using ColMajorMapping = typename ColMajorLayout::template mapping<matrix_extents>;
-using RowMajorMapping = typename RowMajorLayout::template mapping<matrix_extents>;
-using TiledMapping    = typename    TiledLayout::template mapping<matrix_extents>;
+using StridedMapping  = typename std::experimental::layout_stride::template mapping<matrix_extents>;
+using TiledMapping    = typename                    TiledLayout  ::template mapping<matrix_extents>;
 
 // -----------------------------------------------------------------------------
 // Column major matrix view with dynamic extents
-template< typename T, typename Layout = ColMajorLayout >
-using Matrix = mdspan<
+template< typename T, typename Layout = std::experimental::layout_stride >
+using Matrix = std::experimental::mdspan<
     T,
     matrix_extents,
     Layout

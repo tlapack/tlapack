@@ -94,7 +94,7 @@ void symv(
         return;
         
     // Matrix views
-    auto _A = view_matrix<const TA>( A, n, n, lda );
+    auto _A = colmajor_matrix<const TA>( A, n, n, lda );
 
     // for row major, swap lower <=> upper
     if (layout == Layout::RowMajor) {
