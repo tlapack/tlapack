@@ -32,7 +32,7 @@ int geqr2(
     TA* tau,
     TA* work )
 {
-    using blas::colmajor_matrix;
+    using blas::internal::colmajor_matrix;
 
     // Local parameters
     int info = 0;
@@ -87,7 +87,7 @@ int geqr2(
     std::complex<real_t>* work )
 {
     typedef std::complex<real_t> scalar_t;
-    using blas::colmajor_matrix;
+    using blas::internal::colmajor_matrix;
 
     // constants
     const scalar_t one( 1.0 );

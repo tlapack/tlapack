@@ -66,6 +66,7 @@ void ger(
     TA *A, blas::idx_t lda )
 {
     typedef blas::scalar_type<TA, TX, TY> scalar_t;
+    using blas::internal::colmajor_matrix;
     
     // constants
     const scalar_t zero( 0.0 );
@@ -77,18 +78,16 @@ void ger(
     blas_error_if( n < 0 );
     blas_error_if( incx == 0 );
     blas_error_if( incy == 0 );
-
-    if (layout == Layout::ColMajor)
-        blas_error_if( lda < m );
-    else
-        blas_error_if( lda < n );
+    blas_error_if( lda < ((layout == Layout::ColMajor) ? m : n) );
 
     // quick return
     if (m == 0 || n == 0 || alpha == zero)
         return;
     
     // Matrix views
-    auto _A = colmajor_matrix<TA>( A, m, n, lda );
+    auto _A = (layout == Layout::ColMajor)
+            ? colmajor_matrix<TA>( A, m, n, lda )
+            : colmajor_matrix<TA>( A, n, m, lda );
 
     if (layout == Layout::ColMajor) {
         if (incx == 1 && incy == 1) {

@@ -17,11 +17,6 @@
 
 namespace blas {
 
-/// INVALID_INDEX = ( std::is_unsigned< blas::idx_t >::value )
-///               ? std::numeric_limits< blas::idx_t >::max()
-///               : -1;                                       
-const blas::idx_t INVALID_INDEX( -1 );
-
 // -----------------------------------------------------------------------------
 // Macros to compute scaling constants
 //

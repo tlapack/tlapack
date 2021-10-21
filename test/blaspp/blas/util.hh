@@ -42,8 +42,8 @@ namespace blas {
             case Op::NoTrans:   return "notrans";
             case Op::Trans:     return "trans";
             case Op::ConjTrans: return "conj";
+            default:            return "";
         }
-        return "";
     }
 
     inline const char* uplo2str( Uplo uplo )

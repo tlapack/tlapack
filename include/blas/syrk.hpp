@@ -87,6 +87,7 @@ void syrk(
     TC       *C, blas::idx_t ldc )
 {
     typedef blas::scalar_type<TA, TC> scalar_t;
+    using blas::internal::colmajor_matrix;
 
     // constants
     const scalar_t zero( 0.0 );
@@ -98,28 +99,29 @@ void syrk(
     blas_error_if( uplo != Uplo::Lower &&
                    uplo != Uplo::Upper &&
                    uplo != Uplo::General );
+    blas_error_if( trans != Op::NoTrans &&
+                   trans != Op::Trans &&
+                   trans != Op::ConjTrans );
+    blas_error_if( is_complex<TA>::value && trans == Op::ConjTrans );
     blas_error_if( n < 0 );
     blas_error_if( k < 0 );
+    blas_error_if( lda < (
+        (layout == Layout::RowMajor)
+            ? ((trans == Op::NoTrans) ? k : n)
+            : ((trans == Op::NoTrans) ? n : k)
+        )
+    );
+    blas_error_if( ldc < n );
 
-    // check and interpret argument trans
-    // if (trans == Op::ConjTrans) {
-    //     blas_error_if_msg(
-    //             typeid(TA) != typeid(blas::real_type<TA>),
-    //             "trans == Op::ConjTrans && "
-    //             "typeid(TA) != typeid(blas::real_type<TA>)" );
-    //     trans = Op::Trans;
-    // }
-    // else {
-        blas_error_if( trans != Op::NoTrans &&
-                       trans != Op::Trans );
-    // }
+    // quick return
+    if (n == 0)
+        return;
+
+    // This algorithm only works with Op::NoTrans or Op::Trans
+    if(trans == Op::ConjTrans) trans = Op::Trans;
 
     // adapt if row major
-    if (layout == Layout::RowMajor) {
-
-        // check lda
-        blas_error_if( lda < ((trans == Op::NoTrans) ? k : n) );
-        
+    if (layout == Layout::RowMajor) {       
         if (uplo == Uplo::Lower)
             uplo = Uplo::Upper;
         else if (uplo == Uplo::Upper)
@@ -128,22 +130,11 @@ void syrk(
             ? Op::Trans
             : Op::NoTrans;
     }
-    else {
-        // check lda
-        blas_error_if( lda < ((trans == Op::NoTrans) ? n : k) );
-    }
-
-    // check ldc
-    blas_error_if( ldc < n );
-
-    // quick return
-    if (n == 0)
-        return;
 
     // Matrix views
-    auto _A = (trans == Op::NoTrans)
-            ? colmajor_matrix<const TA>( A, n, k, lda )
-            : colmajor_matrix<const TA>( A, k, n, lda );
+    const auto _A = (trans == Op::NoTrans)
+                  ? colmajor_matrix<TA>( (TA*)A, n, k, lda )
+                  : colmajor_matrix<TA>( (TA*)A, k, n, lda );
     auto _C = colmajor_matrix<TC>( C, n, n, ldc );
 
     // alpha == zero

@@ -14,6 +14,7 @@ namespace lapack {
 
 // -----------------------------------------------------------------------------
 // Use the types from the namespace blas
+
 using blas::idx_t;
 using blas::int_t;
 using blas::Layout;
@@ -24,6 +25,148 @@ using blas::Side;
 using blas::real_type;
 using blas::complex_type;
 using blas::scalar_type;
+using blas::is_complex;
+using blas::type_t;
+using blas::size_type;
+
+// -----------------------------------------------------------------------------
+// enable_if_t is defined in C++14; here's a C++11 definition
+#if __cplusplus >= 201402L
+    using std::enable_if_t;
+#else
+    template< bool B, class T = void >
+    using enable_if_t = typename enable_if<B,T>::type;
+#endif
+
+// -----------------------------------------------------------------------------
+// is_same_v is defined in C++17; here's a C++11 definition
+#if __cplusplus >= 201703L
+    using std::is_same_v;
+#else
+    template< class T, class U >
+    constexpr bool is_same_v = std::is_same<T, U>::value;
+#endif
+
+// -----------------------------------------------------------------------------
+// is_convertible_v is defined in C++17; here's a C++11 definition
+#if __cplusplus >= 201703L
+    using std::is_convertible_v;
+#else
+    template< class From, class To >
+    constexpr bool is_convertible_v = std::is_convertible<From, To>::value;
+#endif
+
+// -----------------------------------------------------------------------------
+// Unit Diagonal
+
+struct nonUnit_diagonal_t {
+    constexpr operator blas::Diag() const { return blas::Diag::NonUnit; }
+};
+struct unit_diagonal_t {
+    constexpr operator blas::Diag() const { return blas::Diag::Unit; }
+};
+
+// constants
+constexpr nonUnit_diagonal_t nonUnit_diagonal = { };
+constexpr unit_diagonal_t unit_diagonal = { };
+
+// -----------------------------------------------------------------------------
+// Operations over data
+
+struct noTranspose_t {
+    constexpr operator blas::Op() const { return blas::Op::NoTrans; }
+};
+struct transpose_t {
+    constexpr operator blas::Op() const { return blas::Op::Trans; }
+};
+struct conjTranspose_t {
+    constexpr operator blas::Op() const { return blas::Op::ConjTrans; }
+};
+
+// Constants
+constexpr noTranspose_t noTranspose = { };
+constexpr transpose_t transpose = { };
+constexpr conjTranspose_t conjTranspose = { };
+
+// -----------------------------------------------------------------------------
+// Matrix structure types
+
+// Full matrix type
+struct general_matrix_t {
+    constexpr operator blas::Uplo() const { return blas::Uplo::General; }
+};
+
+// Upper triangle type
+struct upper_triangle_t {
+    constexpr operator blas::Uplo() const { return blas::Uplo::Upper; }
+};
+
+// Lower triangle type
+struct lower_triangle_t {
+    constexpr operator blas::Uplo() const { return blas::Uplo::Lower; }
+};
+
+// Hessenberg matrix type
+struct hessenberg_matrix_t { };
+
+// Band matrix type
+template< std::size_t kl, std::size_t ku >
+struct band_matrix_t {
+    static constexpr std::size_t lower_bandwidth = kl;
+    static constexpr std::size_t upper_bandwidth = ku;
+};
+
+// Symmetric lower band matrix type
+template< std::size_t k >
+struct symmetric_lowerband_t {
+    static constexpr std::size_t bandwidth = k;
+};
+
+// Symmetric upper band matrix type
+template< std::size_t k >
+struct symmetric_upperband_t {
+    static constexpr std::size_t bandwidth = k;
+};
+
+// Constants
+constexpr general_matrix_t general_matrix = { };
+constexpr upper_triangle_t upper_triangle = { };
+constexpr lower_triangle_t lower_triangle = { };
+constexpr hessenberg_matrix_t hessenberg_matrix = { };
+
+// -----------------------------------------------------------------------------
+// Norm types
+
+struct max_norm_t { };
+struct one_norm_t { };
+struct inf_norm_t { };
+struct frob_norm_t { };
+
+// Constants
+constexpr max_norm_t max_norm = { };
+constexpr one_norm_t one_norm = { };
+constexpr inf_norm_t inf_norm = { };
+constexpr frob_norm_t frob_norm = { };
+
+// -----------------------------------------------------------------------------
+// Directions
+
+struct forward_t { };
+struct backward_t { };
+
+// Constants
+constexpr forward_t forward { };
+constexpr backward_t backward { };
+
+// -----------------------------------------------------------------------------
+// Storage types
+
+struct columnwise_storage_t { };
+struct rowwise_storage_t { };
+
+// Constants
+constexpr columnwise_storage_t columnwise_storage { };
+constexpr rowwise_storage_t rowwise_storage { };
 
 // -----------------------------------------------------------------------------
 enum class Sides {

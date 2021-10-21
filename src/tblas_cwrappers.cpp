@@ -7,7 +7,7 @@
 #ifdef BUILD_CBLAS
 
     #include "tlapack_cblas.h"
-    #include "tblas.hpp"
+    #include "slate_api/blas.hpp"
 
     // Mangling
     #ifdef ADD_
@@ -58,7 +58,7 @@
 #else
 
     #include "tblas.h"
-    #include "tblas.hpp"
+    #include "slate_api/blas.hpp"
 
     // Mangling
     #ifdef ADD_
@@ -92,7 +92,7 @@ typedef std::complex<double> tblas_complexDouble;
 #define tblas_cteC(z) reinterpret_cast<const tblas_complexFloat*>( z )
 #define tblas_cteZ(z) reinterpret_cast<const tblas_complexDouble*>( z )
 #define tblas_C(z) reinterpret_cast<tblas_complexFloat*>( z )
-#define tblas_Z(z) reinterpret_cast<tblas_complexDouble*>(  z )
+#define tblas_Z(z) reinterpret_cast<tblas_complexDouble*>( z )
 // -----------------------------------------------------------------------------
 
 extern "C" {

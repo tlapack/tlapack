@@ -7,160 +7,163 @@
 #ifndef __TBLAS_MDSPAN_HH__
 #define __TBLAS_MDSPAN_HH__
 
-#include <experimental/mdspan> // Use mdspan for multidimensional arrays
+#include <cassert>              // For the assert macro
+#include <experimental/mdspan>  // Use mdspan for multidimensional arrays
 
 namespace blas {
 
+using std::experimental::mdspan;
+
 // -----------------------------------------------------------------------------
-/** TiledLayout Tiled layout for mdspan.
- * 
- * Column Major inter and intra tile organization 
- * 
- * For example, a serial array
- * 
- *   X = ... a b c d e f ... x y * * * * ...
- * 
- * using a tiled layout with
- *  number of rows    = 8
- *  number of columns = 7
- *  row_tile_size = 2
- *  col_tile_size = 3
- * would be represented as follows:
- *  __________________ _ _ 
- * |       |       |       !
- * |   1   |   5   |   9   !
- * |_______|_______|__ _ _ !
- * |       | a c e |       !
- * |   2   | b d f |   10  !
- * |_______|_______|__ _ _ !
- * |       |       | x * * !
- * |   3   |   7   | y * * !
- * |_______|_______|__ _ _ !
- * |       |       |       !
- * |   4   |   8   |   11  !
- * |_______|_______|__ _ _ !
- * 
- * where * represents data out of range.
- * 
- */
-struct TiledLayout {
-    template <class Extents>
-    struct mapping {
-        static_assert(Extents::rank() == 2, "TiledLayout is a 2D layout");
+// Data traits for mdspan
 
-        // for convenience
-        using size_type = typename Extents::size_type;
-
-        // constructor
-        mapping(
-            const Extents& exts,    // matrix sizes
-            size_type row_tile,
-            size_type col_tile
-        ) noexcept
-            : extents_(exts)
-            , row_tile_size_(row_tile)
-            , col_tile_size_(col_tile)
-        {} // Mind that it does not check for invalid values here.
-
-        // Default constructors
-        mapping() noexcept = default;
-        mapping(const mapping&) noexcept = default;
-        mapping(mapping&&) noexcept = default;
-        mapping& operator=(mapping const&) noexcept = default;
-        mapping& operator=(mapping&&) noexcept = default;
-        ~mapping() noexcept = default;
-
-        //------------------------------------------------------------
-        // Helper members (not part of the layout concept)
-
-        constexpr size_type
-        n_row_tiles() const noexcept {
-            return extents_.extent(0) / row_tile_size_ + size_type((extents_.extent(0) % row_tile_size_) != 0);
-        }
-
-        constexpr size_type
-        n_column_tiles() const noexcept {
-            return extents_.extent(1) / col_tile_size_ + size_type((extents_.extent(1) % col_tile_size_) != 0);
-        }
-
-        constexpr size_type
-        tile_size() const noexcept {
-            return row_tile_size_ * col_tile_size_;
-        }
-
-        size_type
-        tile_offset(size_type row, size_type col) const noexcept {
-            auto col_tile = col / col_tile_size_;
-            auto row_tile = row / row_tile_size_;
-            return (col_tile * n_row_tiles() + row_tile) * tile_size();
-        }
-
-        size_type
-        offset_in_tile(size_type row, size_type col) const noexcept {
-            auto t_row = row % row_tile_size_;
-            auto t_col = col % col_tile_size_;
-            return t_row + t_col * row_tile_size_;
-        }
-
-        //------------------------------------------------------------
-        // Required members
-
-        constexpr size_type
-        operator()(size_type row, size_type col) const noexcept {
-            return tile_offset(row, col) + offset_in_tile(row, col);
-        }
-
-        constexpr size_type
-        required_span_size() const noexcept {
-            return n_row_tiles() * n_column_tiles() * tile_size();
-        }
-
-        // Mapping is always unique
-        static constexpr bool is_always_unique() noexcept { return true; }
-        constexpr bool is_unique() const noexcept { return true; }
-
-        // Only contiguous if extents fit exactly into tile sizes...
-        static constexpr bool is_always_contiguous() noexcept { return false; }
-        constexpr bool is_contiguous() const noexcept { 
-            return (extents_.extent(0) % row_tile_size_ == 0) && (extents_.extent(1) % col_tile_size_ == 0);
-        }
-
-        // There is not always a regular stride between elements in a given dimension
-        static constexpr bool is_always_strided() noexcept { return false; }
-        constexpr bool is_strided() const noexcept { return false; }
-
-        inline constexpr Extents
-        extents() const noexcept {
-            return extents_;
-        };
-
-        private:
-            Extents extents_;
-            size_type row_tile_size_; // row tile
-            size_type col_tile_size_; // column tile
-    };
+// Data type
+template< class ET, class Exts, class LP, class AP >
+struct type_trait< mdspan<ET,Exts,LP,AP> > {
+    using type = ET;
+};
+// Size type
+template< class ET, class Exts, class LP, class AP >
+struct sizet_trait< mdspan<ET,Exts,LP,AP> > {
+    using type = typename mdspan<ET,Exts,LP,AP>::size_type;
 };
 
-// -----------------------------------------------------------------------------
-// Dynamic matrix sizes
-using matrix_extents = std::experimental::extents<
-    std::experimental::dynamic_extent,
-    std::experimental::dynamic_extent
->;
+// Size
+template< class ET, class Exts, class LP, class AP >
+inline constexpr auto
+size( const mdspan<ET,Exts,LP,AP>& x ) {
+    return x.size();
+}
+// Number of rows
+template< class ET, class Exts, class LP, class AP >
+inline constexpr auto
+nrows( const mdspan<ET,Exts,LP,AP>& x ) {
+    return x.extent(0);
+}
+// Number of columns
+template< class ET, class Exts, class LP, class AP >
+inline constexpr auto
+ncols( const mdspan<ET,Exts,LP,AP>& x ) {
+    return x.extent(1);
+}
+
+// Submatrix
+template< class ET, class Exts, class LP, class AP,
+          class SliceSpecRow, class SliceSpecCol >
+constexpr auto submatrix(
+    const mdspan<ET,Exts,LP,AP>& A,
+    SliceSpecRow rows,
+    SliceSpecCol cols ) noexcept {
+    return std::experimental::submdspan( A, rows, cols );
+}
+
+namespace internal{
+
+using std::experimental::dextents;
+using std::experimental::layout_stride;
+
+// // -----------------------------------------------------------------------------
+// /// layout_colmajor Column Major layout for mdspan
+// struct layout_colmajor {
+//     template <class Extents>
+//     struct mapping {
+//         static_assert(Extents::rank() == 2, "layout_colmajor is a 2D layout");
+
+//         // for convenience
+//         using idx_t = typename Extents::size_type;
+
+//         // constructor
+//         mapping( const Extents& exts, idx_t ldim ) noexcept
+//         : extents_(exts), ldim_(ldim) {}
+
+//         // Default constructors
+//         mapping() noexcept = default;
+//         mapping(const mapping&) noexcept = default;
+//         mapping(mapping&&) noexcept = default;
+//         mapping& operator=(mapping const&) noexcept = default;
+//         mapping& operator=(mapping&&) noexcept = default;
+//         ~mapping() noexcept = default;
+
+//         //------------------------------------------------------------
+//         // Required members
+
+//         constexpr idx_t
+//         operator()(idx_t row, idx_t col) const noexcept {
+//             return row + col * ldim_;
+//         }
+
+//         constexpr idx_t
+//         required_span_size() const noexcept {
+//             return extents_.extent(1) * ldim_;
+//         }
+
+//         // Mapping is always unique
+//         static constexpr bool is_always_unique() noexcept { return true; }
+//         constexpr bool is_unique() const noexcept { return true; }
+
+//         // Only contiguous if extents_.extent(0) == ldim_
+//         static constexpr bool is_always_contiguous() noexcept { return false; }
+//         constexpr bool is_contiguous() const noexcept { return (extents_.extent(0) == ldim_); }
+
+//         // Mapping is always strided: strides: (1,ldim_)
+//         static constexpr bool is_always_strided() noexcept { return true; }
+//         constexpr bool is_strided() const noexcept { return true; }
+
+//         // Get the extents
+//         inline constexpr Extents extents() const noexcept { return extents_; };
+
+//         // Get the leading dimension
+//         inline constexpr idx_t ldim() const noexcept { return ldim_; };
+
+//         private:
+//             Extents extents_;
+//             idx_t ldim_; // leading dimension
+//     };
+// };
 
 // -----------------------------------------------------------------------------
-// Matrix mappings with dynamic extents
-using StridedMapping  = typename std::experimental::layout_stride::template mapping<matrix_extents>;
-using TiledMapping    = typename                    TiledLayout  ::template mapping<matrix_extents>;
+/** Returns a Matrix object representing a column major matrix
+ * 
+ * @param A                 serial data
+ * @param m                 number of rows
+ * @param n                 number of columns
+ * @param lda               leading dimension 
+ * 
+ * @return mdspan< T, dextents<2>, layout_stride > 
+ *      matrix object using the abstraction A(i,j) = i + j * lda
+ */
+template< typename T >
+inline auto colmajor_matrix(
+    T* A, 
+    dextents<2>::size_type m, 
+    dextents<2>::size_type n, 
+    dextents<2>::size_type lda )
+{
+    using extents = dextents<2>;
+    using strides = dextents<2>;
+    using mapping = typename layout_stride::template mapping<extents>;
 
-// -----------------------------------------------------------------------------
-// Column major matrix view with dynamic extents
-template< typename T, typename Layout = std::experimental::layout_stride >
-using Matrix = std::experimental::mdspan<
-    T,
-    matrix_extents,
-    Layout
->;
+    return mdspan< T, extents, layout_stride > (
+        A, mapping( extents(m,n), strides(1,lda) )
+    );
+}
+
+template< typename T >
+inline auto vector(
+    T* x,
+    dextents<1>::size_type n,
+    dextents<1>::size_type ldim )
+{
+    using extents = dextents<1>;
+    using strides = dextents<1>;
+    using mapping = typename layout_stride::template mapping<extents>;
+
+    return mdspan< T, extents, layout_stride > (
+        x, mapping( extents(n), strides(ldim) )
+    );
+}
+
+} // namespace internal
 
 } // namespace blas
 

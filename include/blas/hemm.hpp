@@ -94,6 +94,7 @@ void hemm(
     TC       *C, blas::idx_t ldc )
 {    
     typedef blas::scalar_type<TA, TB, TC> scalar_t;
+    using blas::internal::colmajor_matrix;
             
     // constants
     const scalar_t zero( 0.0 );
@@ -110,14 +111,15 @@ void hemm(
     blas_error_if( m < 0 );
     blas_error_if( n < 0 );
     blas_error_if( lda < ((side == Side::Left) ? m : n) );
+    blas_error_if( ldb < ((layout == Layout::RowMajor) ? n : m) );
+    blas_error_if( ldc < ((layout == Layout::RowMajor) ? n : m) );
+
+    // quick return
+    if (m == 0 || n == 0)
+        return;
 
     // adapt if row major
     if (layout == Layout::RowMajor) {
-
-        // check remaining arguments
-        blas_error_if( ldb < n );
-        blas_error_if( ldc < n );
-
         side = (side == Side::Left)
             ? Side::Right
             : Side::Left;
@@ -127,21 +129,12 @@ void hemm(
             uplo = Uplo::Lower;
         std::swap( m , n );
     }
-    else {
-        // check remaining arguments
-        blas_error_if( ldb < m );
-        blas_error_if( ldc < m );
-    }
-
-    // quick return
-    if (m == 0 || n == 0)
-        return;
     
     // Matrix views
-    auto _A = (side == Side::Left)
-            ? colmajor_matrix<const TA>( A, m, m, lda )
-            : colmajor_matrix<const TA>( A, n, n, lda );
-    auto _B = colmajor_matrix<const TB>( B, m, n, ldb );
+    const auto _A = (side == Side::Left)
+                  ? colmajor_matrix<TA>( (TA*)A, m, m, lda )
+                  : colmajor_matrix<TA>( (TA*)A, n, n, lda );
+    const auto _B = colmajor_matrix<TB>( (TB*)B, m, n, ldb );
     auto _C = colmajor_matrix<TC>( C, m, n, ldc );
 
     // alpha == zero

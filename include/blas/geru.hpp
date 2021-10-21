@@ -67,22 +67,23 @@ void geru(
     TA *A, blas::idx_t lda )
 {
     typedef blas::scalar_type<TA, TX, TY> scalar_t;
+    using blas::internal::colmajor_matrix;
+
+    // for row-major, simply swap dimensions and x <=> y
+    // this doesn't work in the complex gerc case because y gets conj
+    if (layout == Layout::RowMajor)
+        return geru( Layout::ColMajor, n, m, alpha, y, incy, x, incx, A, lda );
     
     // constants
     const scalar_t zero( 0.0 );
 
     // check arguments
-    blas_error_if( layout != Layout::ColMajor &&
-                   layout != Layout::RowMajor );
+    blas_error_if( layout != Layout::ColMajor );
     blas_error_if( m < 0 );
     blas_error_if( n < 0 );
     blas_error_if( incx == 0 );
     blas_error_if( incy == 0 );
-
-    if (layout == Layout::ColMajor)
-        blas_error_if( lda < m );
-    else
-        blas_error_if( lda < n );
+    blas_error_if( lda < ((layout == Layout::ColMajor) ? m : n) );
 
     // quick return
     if (m == 0 || n == 0 || alpha == zero)
@@ -90,13 +91,6 @@ void geru(
     
     // Matrix views
     auto _A = colmajor_matrix<TA>( A, m, n, lda );
-
-    // for row-major, simply swap dimensions and x <=> y
-    // this doesn't work in the complex gerc case because y gets conj
-    if (layout == Layout::RowMajor) {
-        geru( Layout::ColMajor, n, m, alpha, y, incy, x, incx, A, lda );
-        return;
-    }
 
     if (incx == 1 && incy == 1) {
         // unit stride

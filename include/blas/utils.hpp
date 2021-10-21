@@ -9,6 +9,7 @@
 #define __TBLAS_UTILS_HH__
 
 #include "blas/types.hpp"
+#include "blas/mdspan.hpp" // Defines mdspan, dextents, and layout_colmajor
 
 #include <limits>
 #include <exception>
@@ -427,63 +428,6 @@ namespace internal {
         blas::internal::error_if( cond, #cond, __func__, __VA_ARGS__ )
 
 #endif
-
-// -----------------------------------------------------------------------------
-/** Returns a Matrix object representing a column major matrix
- * 
- * @param A                 serial data
- * @param m                 number of rows
- * @param n                 number of columns
- * @param lda               leading dimension 
- * 
- * @return Matrix<T>        matrix object using the abstraction A(i,j) = i + j * lda
- */
-template< typename T >
-inline Matrix<T> colmajor_matrix( T* A, blas::idx_t m, blas::idx_t n, blas::idx_t lda ) {
-    return Matrix<T>( A, StridedMapping( matrix_extents(m,n), matrix_extents(1,lda) ) );
-}
-
-// -----------------------------------------------------------------------------
-/** Returns a Matrix object representing a row major matrix
- * 
- * @param A                 serial data
- * @param m                 number of rows
- * @param n                 number of columns
- * @param lda               leading dimension 
- * 
- * @return Matrix<T>        matrix object using the abstraction A(i,j) = i * lda + j
- */
-template< typename T >
-inline Matrix<T> rowmajor_matrix( T* A, blas::idx_t m, blas::idx_t n, blas::idx_t lda ) {
-    return Matrix<T>( A, StridedMapping( matrix_extents(m,n), matrix_extents(lda,1) ) );
-}
-
-// -----------------------------------------------------------------------------
-/** Returns a submatrix from the input matrix
- * 
- * The submatrix uses the same data from the matrix A.
- * 
- * It uses the function `std::experimental::submdspan` from https://github.com/kokkos/mdspan
- * Currently, it only allows for contiguous ranges
- * 
- * @param[in] A             Matrix
- * @param[in] rows          Rows used from A.
- *      It accepts values that can be converted to
- *          - a size_t integer: reprents the index of the row to be used.
- *          - a std::pair(a,b): uses rows from a to b-1
- *          - a std::experimental::full_extent: uses all rows
- * @param[in] cols          Columns used from A.
- *      It accepts values that can be converted to
- *          - a size_t integer: reprents the index of the column to be used.
- *          - a std::pair(a,b): uses columns from a to b-1
- *          - a std::experimental::full_extent: uses all columns
- * 
- * @return Matrix<T>        submatrix
- */
-template< typename T, typename SliceSpecRow, typename SliceSpecCol >
-inline auto submatrix( const Matrix<T>& A, SliceSpecRow rows, SliceSpecCol cols ) noexcept {
-    return std::experimental::submdspan( A, rows, cols );
-}
 
 } // namespace blas
 

@@ -79,6 +79,8 @@ void trsv(
     TA const *A, blas::idx_t lda,
     TX       *x, blas::int_t incx )
 {
+    using blas::internal::colmajor_matrix;
+
     // check arguments
     blas_error_if( layout != Layout::ColMajor &&
                    layout != Layout::RowMajor );
@@ -98,7 +100,7 @@ void trsv(
         return;
         
     // Matrix views
-    auto _A = colmajor_matrix<const TA>( A, n, n, lda );
+    const auto _A = colmajor_matrix<TA>( (TA*)A, n, n, lda );
 
     // for row major, swap lower <=> upper and
     // A => A^T; A^T => A; A^H => A & conj

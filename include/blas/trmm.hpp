@@ -98,6 +98,7 @@ void trmm(
     TB       *B, blas::idx_t ldb )
 {    
     typedef blas::scalar_type<TA, TB> scalar_t;
+    using blas::internal::colmajor_matrix;
 
     // constants
     const scalar_t zero( 0.0 );
@@ -117,13 +118,14 @@ void trmm(
     blas_error_if( m < 0 );
     blas_error_if( n < 0 );
     blas_error_if( lda < ((side == Side::Left) ? m : n) );
+    blas_error_if( ldb < ((layout == Layout::RowMajor) ? n : m) );
+
+    // quick return
+    if (m == 0 || n == 0)
+        return;
 
     // adapt if row major
     if (layout == Layout::RowMajor) {
-
-        // check remaining arguments
-        blas_error_if( ldb < n );
-
         side = (side == Side::Left)
             ? Side::Right
             : Side::Left;
@@ -133,19 +135,11 @@ void trmm(
             uplo = Uplo::Lower;
         std::swap( m , n );
     }
-    else {
-        // check remaining arguments
-        blas_error_if( ldb < m );
-    }
-
-    // quick return
-    if (m == 0 || n == 0)
-        return;
 
     // Matrix views
-    auto _A = (side == Side::Left)
-            ? colmajor_matrix<const TA>( A, m, m, lda )
-            : colmajor_matrix<const TA>( A, n, n, lda );
+    const auto _A = (side == Side::Left)
+                  ? colmajor_matrix<TA>( (TA*)A, m, m, lda )
+                  : colmajor_matrix<TA>( (TA*)A, n, n, lda );
     auto _B = colmajor_matrix<TB>( B, m, n, ldb );
 
     // alpha == zero

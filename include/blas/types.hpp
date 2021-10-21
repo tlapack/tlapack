@@ -12,8 +12,6 @@
 #include <cstdint> // Defines std::int64_t
 #include <cstddef> // Defines std::size_t
 
-#include "blas/mdspan.hpp"
-
 // -----------------------------------------------------------------------------
 // Integer types BLAS_SIZE_T and BLAS_INT_T
 
@@ -42,7 +40,7 @@ using int_t = BLAS_INT_T;
 // -----------------------------------------------------------------------------
 // Enumerations
 enum class Layout { ColMajor = 'C', RowMajor = 'R' };
-enum class Op     { NoTrans  = 'N', Trans    = 'T', ConjTrans = 'C' };
+enum class Op     { NoTrans  = 'N', Trans    = 'T', ConjTrans = 'C', Conj };
 enum class Uplo   { Upper    = 'U', Lower    = 'L', General   = 'G' };
 enum class Diag   { NonUnit  = 'N', Unit     = 'U' };
 enum class Side   { Left     = 'L', Right    = 'R' };
@@ -55,7 +53,6 @@ enum class Side   { Left     = 'L', Right    = 'R' };
 #else
     template< typename... Ts >
     using common_type_t = typename std::common_type< Ts... >::type;
-
     template< typename... Ts >
     using decay_t = typename std::decay< Ts... >::type;
 #endif
@@ -182,6 +179,18 @@ struct real_type_traits< T1, Types... >
 {
     using real_t = scalar_type< real_type<T1>, real_type< Types... > >;
 };
+
+// -----------------------------------------------------------------------------
+// Data traits
+
+// Data type
+template< class T > struct type_trait {};
+template< class T >
+using type_t = typename type_trait< T >::type;
+// Size type
+template< class T > struct sizet_trait {};
+template< class T >
+using size_type = typename sizet_trait< T >::type;
 
 } // namespace blas
 

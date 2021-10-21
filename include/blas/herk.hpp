@@ -89,11 +89,12 @@ void herk(
 {
     typedef blas::scalar_type<TA, TC> scalar_t;
     typedef blas::real_type<TA, TC> real_t;
+    using blas::internal::colmajor_matrix;
 
     // constants
     const scalar_t szero( 0 );
     const real_t zero( 0 );
-    const real_t one  = 1;
+    const real_t one( 1 );
 
     // check arguments
     blas_error_if( layout != Layout::ColMajor &&
@@ -101,28 +102,29 @@ void herk(
     blas_error_if( uplo != Uplo::Lower &&
                    uplo != Uplo::Upper &&
                    uplo != Uplo::General );
+    blas_error_if( trans != Op::NoTrans &&
+                   trans != Op::Trans &&
+                   trans != Op::ConjTrans );
+    blas_error_if( is_complex<TA>::value && trans == Op::Trans );
     blas_error_if( n < 0 );
     blas_error_if( k < 0 );
+    blas_error_if( lda < (
+        (layout == Layout::RowMajor)
+            ? ((trans == Op::NoTrans) ? k : n)
+            : ((trans == Op::NoTrans) ? n : k)
+        )
+    );
+    blas_error_if( ldc < n );
 
-    // check and interpret argument trans
-    // if (trans == Op::Trans) {
-    //     blas_error_if_msg(
-    //             typeid(TA) != typeid(blas::real_type<TA>),
-    //             "trans == Op::Trans && "
-    //             "typeid(TA) != typeid(blas::real_type<TA>)" );
-    //     trans = Op::ConjTrans;
-    // }
-    // else {
-        blas_error_if( trans != Op::NoTrans &&
-                       trans != Op::ConjTrans );
-    // }
+    // quick return
+    if (n == 0)
+        return;
+
+    // This algorithm only works with Op::NoTrans or Op::ConjTrans
+    if(trans == Op::ConjTrans) trans = Op::Trans;
 
     // adapt if row major
     if (layout == Layout::RowMajor) {
-
-        // check lda
-        blas_error_if( lda < ((trans == Op::NoTrans) ? k : n) );
-        
         if (uplo == Uplo::Lower)
             uplo = Uplo::Upper;
         else if (uplo == Uplo::Upper)
@@ -132,241 +134,12 @@ void herk(
             : Op::NoTrans;
         alpha = conj(alpha);
     }
-    else {
-        // check lda
-        blas_error_if( lda < ((trans == Op::NoTrans) ? n : k) );
-    }
-
-    // check ldc
-    blas_error_if( ldc < n );
-
-    // quick return
-    if (n == 0)
-        return;
         
     // Matrix views
-    auto A = (trans == Op::NoTrans)
-            ? colmajor_matrix<const TA>( A_, n, k, lda )
-            : colmajor_matrix<const TA>( A_, k, n, lda );
+    const auto A = (trans == Op::NoTrans)
+                 ? colmajor_matrix<TA>( (TA*)A_, n, k, lda )
+                 : colmajor_matrix<TA>( (TA*)A_, k, n, lda );
     auto C = colmajor_matrix<TC>( C_, n, n, ldc );
-
-    // alpha == zero
-    if (alpha == zero) {
-        if (beta == zero) {
-            if (uplo != Uplo::Upper) {
-                for(idx_t j = 0; j < n; ++j) {
-                    for(idx_t i = 0; i <= j; ++i)
-                        C(i,j) = szero;
-                }
-            }
-            else if (uplo != Uplo::Lower) {
-                for(idx_t j = 0; j < n; ++j) {
-                    for(idx_t i = j; i < n; ++i)
-                        C(i,j) = szero;
-                }
-            }
-            else {
-                for(idx_t j = 0; j < n; ++j) {
-                    for(idx_t i = 0; i < n; ++i)
-                        C(i,j) = szero;
-                }
-            }
-        } else if (beta != one) {
-            if (uplo != Uplo::Upper) {
-                for(idx_t j = 0; j < n; ++j) {
-                    for(idx_t i = 0; i < j; ++i)
-                        C(i,j) *= beta;
-                    C(j,j) = beta * real( C(j,j) );
-                }
-            }
-            else if (uplo != Uplo::Lower) {
-                for(idx_t j = 0; j < n; ++j) {
-                    C(j,j) = beta * real( C(j,j) );
-                    for(idx_t i = j+1; i < n; ++i)
-                        C(i,j) *= beta;
-                }
-            }
-            else {
-                for(idx_t j = 0; j < n; ++j) {
-                    for(idx_t i = 0; i < j; ++i)
-                        C(i,j) *= beta;
-                    C(j,j) = beta * real( C(j,j) );
-                    for(idx_t i = j+1; i < n; ++i)
-                        C(i,j) *= beta;
-                }
-            }
-        }
-        return;
-    }
-
-    // alpha != zero
-    if (trans == Op::NoTrans) {
-        if (uplo != Uplo::Lower) {
-        // uplo == Uplo::Upper or uplo == Uplo::General
-            for(idx_t j = 0; j < n; ++j) {
-
-                for(idx_t i = 0; i < j; ++i)
-                    C(i,j) *= beta;
-                C(j,j) = beta * real( C(j,j) );
-
-                for(idx_t l = 0; l < k; ++l) {
-
-                    scalar_t alphaConjAjl = alpha*conj( A(j,l) );
-
-                    for(idx_t i = 0; i < j; ++i)
-                        C(i,j) += A(i,l)*alphaConjAjl;
-                    C(j,j) += real( A(j,l) * alphaConjAjl );
-                }
-            }
-        }
-        else { // uplo == Uplo::Lower
-            for(idx_t j = 0; j < n; ++j) {
-
-                C(j,j) = beta * real( C(j,j) );
-                for(idx_t i = j+1; i < n; ++i)
-                    C(i,j) *= beta;
-
-                for(idx_t l = 0; l < k; ++l) {
-
-                    scalar_t alphaConjAjl = alpha*conj( A(j,l) );
-
-                    C(j,j) += real( A(j,l) * alphaConjAjl );
-                    for(idx_t i = j+1; i < n; ++i) {
-                        C(i,j) += A(i,l) * alphaConjAjl;
-                    }
-                }
-            }
-        }
-    }
-    else { // trans == Op::ConjTrans
-        if (uplo != Uplo::Lower) {
-        // uplo == Uplo::Upper or uplo == Uplo::General
-            for(idx_t j = 0; j < n; ++j) {
-                for(idx_t i = 0; i < j; ++i) {
-                    scalar_t sum = szero;
-                    for(idx_t l = 0; l < k; ++l)
-                        sum += conj( A(l,i) ) * A(l,j);
-                    C(i,j) = alpha*sum + beta*C(i,j);
-                }
-                real_t sum = zero;
-                for(idx_t l = 0; l < k; ++l)
-                    sum += real(A(l,j)) * real(A(l,j))
-                         + imag(A(l,j)) * imag(A(l,j));
-                C(j,j) = alpha*sum + beta*real( C(j,j) );
-            }
-        }
-        else {
-            // uplo == Uplo::Lower
-            for(idx_t j = 0; j < n; ++j) {
-                for(idx_t i = j+1; i < n; ++i) {
-                    scalar_t sum = szero;
-                    for(idx_t l = 0; l < k; ++l)
-                        sum += conj( A(l,i) ) * A(l,j);
-                    C(i,j) = alpha*sum + beta*C(i,j);
-                }
-                real_t sum = zero;
-                for(idx_t l = 0; l < k; ++l)
-                    sum += real(A(l,j)) * real(A(l,j))
-                         + imag(A(l,j)) * imag(A(l,j));
-                C(j,j) = alpha*sum + beta*real( C(j,j) );
-            }
-        }
-    }
-
-    if (uplo == Uplo::General) {
-        for(idx_t j = 0; j < n; ++j) {
-            for(idx_t i = j+1; i < n; ++i)
-                C(i,j) = conj( C(j,i) );
-        }
-    }
-}
-
-/**
- * Hermitian rank-k update:
- * \[
- *     C = \alpha A A^H + \beta C,
- * \]
- * or
- * \[
- *     C = \alpha A^H A + \beta C,
- * \]
- * where alpha and beta are real scalars, C is an n-by-n Hermitian matrix,
- * and A is an n-by-k or k-by-n matrix.
- *
- * Generic implementation for arbitrary data types.
- *
- * @param[in] uplo
- *     What part of the matrix C is referenced,
- *     the opposite triangle being assumed from symmetry:
- *     - Uplo::Lower: only the lower triangular part of C is referenced.
- *     - Uplo::Upper: only the upper triangular part of C is referenced.
- *
- * @param[in] trans
- *     The operation to be performed:
- *     - Op::NoTrans:   $C = \alpha A A^H + \beta C$.
- *     - Op::ConjTrans: $C = \alpha A^H A + \beta C$.
- *     - In the real    case, Op::Trans is interpreted as Op::ConjTrans.
- *       In the complex case, Op::Trans is illegal (see @ref syrk instead).
- *
- * @param[in] alpha
- *     Scalar alpha. If alpha is zero, A is not accessed.
- *
- * @param[in] A
- *     - If trans = NoTrans: the n-by-k matrix A.
- *     - Otherwise: the k-by-n matrix A.
- *
- * @param[in] beta
- *     Scalar beta. If beta is zero, C need not be set on input.
- *
- * @param[in] C
- *     The n-by-n Hermitian matrix C.
- *
- * @ingroup herk
- */
-template< typename TA, typename TC, typename LA, typename LC >
-void herk(
-    blas::Uplo uplo,
-    blas::Op trans,
-    real_type<TA, TC> alpha,  // note: real
-    const Matrix<TA,LA>& A,
-    real_type<TA, TC> beta,  // note: real
-    Matrix<TC,LC>&       C )
-{
-    typedef blas::scalar_type<TA, TC> scalar_t;
-    typedef blas::real_type<TA, TC> real_t;
-
-    // constants
-    const scalar_t szero( 0 );
-    const real_t zero( 0 );
-    const real_t one  = 1;
-    const auto& n = C.extent(0);
-    const auto& k = (trans == Op::NoTrans) ? A.extent(1) : A.extent(0);
-
-    // check arguments
-    blas_error_if( uplo != Uplo::Lower &&
-                   uplo != Uplo::Upper &&
-                   uplo != Uplo::General );
-
-    // check and interpret argument trans
-    // if (trans == Op::Trans) {
-    //     blas_error_if_msg(
-    //             typeid(TA) != typeid(blas::real_type<TA>),
-    //             "trans == Op::Trans && "
-    //             "typeid(TA) != typeid(blas::real_type<TA>)" );
-    //     trans = Op::ConjTrans;
-    // }
-    // else {
-        blas_error_if( trans != Op::NoTrans &&
-                       trans != Op::ConjTrans );
-    // }
-    
-    blas_error_if(
-        C.extent(0) != ((trans == Op::NoTrans) ? A.extent(0) : A.extent(1)) );
-    blas_error_if( C.extent(0) != C.extent(1) );
-
-    // quick return
-    if (n == 0)
-        return;
 
     // alpha == zero
     if (alpha == zero) {

@@ -73,6 +73,7 @@ void her2(
     TA *A, blas::idx_t lda )
 {
     typedef blas::scalar_type<TA, TX, TY> scalar_t;
+    using blas::internal::colmajor_matrix;
 
     // constants
     const scalar_t zero( 0.0 );
@@ -90,14 +91,14 @@ void her2(
     // quick return
     if (n == 0 || alpha == zero)
         return;
-        
-    // Matrix views
-    auto _A = colmajor_matrix<TA>( A, n, n, lda );
 
     // for row major, swap lower <=> upper
     if (layout == Layout::RowMajor) {
         uplo = (uplo == Uplo::Lower ? Uplo::Upper : Uplo::Lower);
     }
+        
+    // Matrix views
+    auto _A = colmajor_matrix<TA>( A, n, n, lda );
 
     idx_t kx = (incx > 0 ? 0 : (-n + 1)*incx);
     idx_t ky = (incy > 0 ? 0 : (-n + 1)*incy);

@@ -92,7 +92,7 @@ idx_t iamax_quietNAN(
 
     bool scaledsmax = false; // indicates whether |Re(x_i)| + |Im(x_i)| = Inf
     real_t smax = -1;
-    blas::idx_t index = INVALID_INDEX;
+    blas::idx_t index = -1;
     const real_t oneFourth = 0.25;
 
     if (incx == 1) {
@@ -159,7 +159,7 @@ idx_t iamax_quietNAN(
             ix += incx;
         }
     }
-    return (index != INVALID_INDEX) ? index : 0;
+    return (index != idx_t(-1)) ? index : 0;
 }
 
 template< typename T >
@@ -173,7 +173,7 @@ idx_t iamax_checkNAN(
 
     bool scaledsmax = false; // indicates whether x_i finite but |Re(x_i)| + |Im(x_i)| = Inf
     real_t smax = -1;
-    blas::idx_t index = INVALID_INDEX;
+    blas::idx_t index = -1;
     const real_t oneFourth = 0.25;
 
     if (incx == 1) {

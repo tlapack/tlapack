@@ -77,6 +77,7 @@ void hemv(
     TY *y, blas::int_t incy )
 {
     typedef blas::scalar_type<TA, TX, TY> scalar_t;
+    using blas::internal::colmajor_matrix;
     
     // constants
     const scalar_t zero( 0.0 );
@@ -97,7 +98,7 @@ void hemv(
         return;
     
     // Matrix views
-    auto _A = colmajor_matrix<const TA>( A, n, n, lda );
+    const auto _A = colmajor_matrix<TA>( (TA*)A, n, n, lda );
 
     idx_t kx = (incx > 0 ? 0 : (-n + 1)*incx);
     idx_t ky = (incy > 0 ? 0 : (-n + 1)*incy);

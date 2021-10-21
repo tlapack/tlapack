@@ -71,8 +71,8 @@ void run( lapack::idx_t m, lapack::idx_t n )
 
     // Frobenius norm of A
     real_t normA = lapack::lange(
-        lapack::Norm::Fro,
-        m, n, A, lda );
+        lapack::frob_norm, 
+        blas::internal::colmajor_matrix<real_t>( A, m, n, lda ) );
 
     // Print A
     if (verbose) {
@@ -157,8 +157,9 @@ void run( lapack::idx_t m, lapack::idx_t n )
                 work[ i+j*m ] -= A(i,j);
 
         real_t norm_repres_1 = lapack::lange(
-            lapack::Norm::Fro,
-            m, n, work, m ) / normA;
+            lapack::frob_norm, 
+            blas::internal::colmajor_matrix<real_t>( work, m, n, m )
+        ) / normA;
 
     delete[] work;
     
