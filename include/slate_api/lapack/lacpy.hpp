@@ -8,10 +8,9 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __LACPY_HH__
-#define __LACPY_HH__
+#ifndef __SLATE_LACPY_HH__
+#define __SLATE_LACPY_HH__
 
-#include "lapack/types.hpp"
 #include "lapack/lacpy.hpp"
 
 namespace lapack {
@@ -45,4 +44,4 @@ void inline lacpy(
 
 }
 
-#endif // __LACPY_HH__
+#endif // __SLATE_LACPY_HH__

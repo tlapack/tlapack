@@ -14,7 +14,12 @@ macro( FetchPackage pkg pkgURL gitTag )
   find_package( ${pkg} QUIET ) # Try to load ${pkg} from the system
   if( NOT ${pkg}_FOUND )
 
-    if( EXISTS "$ENV{${pkg}_DIR}" )
+    if( EXISTS "${pkg}_DIR" )
+
+      add_subdirectory( ${${pkg}_DIR} ${CMAKE_CURRENT_BINARY_DIR}/${pkg} )
+      message( STATUS "Using ${pkg} from ${${pkg}_DIR}" )
+
+    elseif( EXISTS "$ENV{${pkg}_DIR}" )
 
       get_property( docString CACHE ${pkg}_DIR PROPERTY HELPSTRING )
       set( ${pkg}_DIR $ENV{${pkg}_DIR} CACHE STRING "${docString}" FORCE )

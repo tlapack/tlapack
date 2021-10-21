@@ -139,10 +139,10 @@ void gemm(
         return;
 
     // Matrix views
-    auto _A = (transA == Op::NoTrans)
+    const auto _A = (transA == Op::NoTrans)
             ? colmajor_matrix<TA>( (TA*)A, m, k, lda )
             : colmajor_matrix<TA>( (TA*)A, k, m, lda );
-    auto _B = (transB == Op::NoTrans)
+    const auto _B = (transB == Op::NoTrans)
             ? colmajor_matrix<TB>( (TB*)B, k, n, ldb )
             : colmajor_matrix<TB>( (TB*)B, n, k, ldb );
     auto _C = colmajor_matrix<TC>( C, m, n, ldc );

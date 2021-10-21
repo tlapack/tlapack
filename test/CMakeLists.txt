@@ -6,9 +6,9 @@
 
 include( "${TLAPACK_SOURCE_DIR}/cmake/FetchPackage.cmake" )
 
-#-------------------------------------------------------------------------------
-# Load testBLAS
-FetchPackage( "testBLAS" "https://github.com/tlapack/testBLAS.git" "master" )
+# #-------------------------------------------------------------------------------
+# # Load testBLAS
+# FetchPackage( "testBLAS" "https://github.com/tlapack/testBLAS.git" "master" )
 
 #-------------------------------------------------------------------------------
 # Build BLAS++ tests

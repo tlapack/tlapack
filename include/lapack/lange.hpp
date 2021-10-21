@@ -131,53 +131,6 @@ lange( norm_t normType, const matrix_t& A )
     return norm;
 }
 
-template <typename TA>
-inline real_type<TA> lange(
-    Norm normType, blas::idx_t m, blas::idx_t n,
-    const TA *_A, blas::idx_t lda )
-{
-    using blas::internal::colmajor_matrix;
-    const auto A = colmajor_matrix<TA>( (TA*)_A, m, n, lda );
-
-    if( normType == Norm::Max )
-        return lange( max_norm, A );
-    else if ( normType == Norm::One )
-        return lange( one_norm, A );
-    else if ( normType == Norm::Inf )
-        return lange( inf_norm, A );
-    else if ( normType == Norm::Fro )
-        return lange( frob_norm, A );
-    else
-        return real_type<TA>( 0.0 );
-}
-
-// /** Calculates the value of the one norm, Frobenius norm, infinity norm, or element of largest absolute value
-//  * 
-//  * @param[in] layout
-//  *     Matrix storage, Layout::ColMajor or Layout::RowMajor.
-//  * @see lange( Norm normType, blas::idx_t m, blas::idx_t n, const TA *A, blas::idx_t lda )
-//  * 
-//  * @ingroup auxiliary
-// **/
-// template <typename TA>
-// inline real_type<TA> lange(
-//     Layout layout,
-//     Norm normType, blas::idx_t m, blas::idx_t n,
-//     const TA *A, blas::idx_t lda )
-// {
-//     if ( layout == Layout::RowMajor ) {
-        
-//         // Change norm if norm == Norm::One or norm == Norm::Inf
-//         if( normType == Norm::One ) normType = Norm::Inf;
-//         else if( normType == Norm::Inf ) normType = Norm::One;
-        
-//         // Transpose A
-//         std::swap(m,n);
-//     }
-
-//     return lange( normType, m, n, A, lda );
-// }
-
 } // lapack
 
 #endif // __LANGE_HH__

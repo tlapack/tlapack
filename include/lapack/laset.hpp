@@ -73,67 +73,6 @@ void laset(
         _A(i,i) = beta;
 }
 
-/** Initializes a matrix to diagonal and off-diagonal values
- * 
- * @param[in] layout
- *     Matrix storage, Layout::ColMajor or Layout::RowMajor.
- * @see laset( Uplo uplo, blas::idx_t m, blas::idx_t n, TA alpha, TA beta, TA* A, blas::idx_t lda )
- * 
- * @ingroup auxiliary
- */
-template< typename TA >
-inline void laset(
-    Layout layout, Uplo uplo,
-    blas::idx_t m, blas::idx_t n,
-    TA alpha, TA beta,
-    TA* A, blas::idx_t lda )
-{
-    if ( layout == Layout::RowMajor ) {
-        if (uplo == Uplo::Upper) {
-            // Set the Lower part instead of Upper
-            uplo = Uplo::Lower;
-        }
-        else if (uplo == Uplo::Lower) {
-            // Set the Upper part instead of Lower
-            uplo = Uplo::Upper;
-        }
-        // Transpose A
-        return laset(
-	        uplo, n, m, alpha, beta, A, lda );
-    }
-    else {
-        return laset(
-	        uplo, m, n, alpha, beta, A, lda );
-    }
-}
-
-/** Initializes a matrix to diagonal and off-diagonal values
- * 
- * @param[in] matrixtype :
- *
- *        'U': A is assumed to be upper triangular; elements below the diagonal are not referenced.
- *        'L': A is assumed to be lower triangular; elements above the diagonal are not referenced.
- *        otherwise, A is assumed to be a full matrix.
- *
- * @see laset( Uplo, blas::idx_t, blas::idx_t, TA, TA, TA*, blas::idx_t )
- * 
- * @ingroup auxiliary
- */
-template< typename TA >
-void inline laset(
-    MatrixType matrixtype, blas::idx_t m, blas::idx_t n,
-    TA alpha, TA beta,
-    TA* A, blas::idx_t lda )
-{
-    if (matrixtype == MatrixType::Upper) {
-        laset(Uplo::Upper, m, n, alpha, beta, A, lda);
-    } else if (matrixtype == MatrixType::Lower) {
-        laset(Uplo::Lower, m, n, alpha, beta, A, lda);
-    } else {
-        laset(Uplo::General, m, n, alpha, beta, A, lda);
-    }
-}
-
 }
 
 #endif // __LASET_HH__

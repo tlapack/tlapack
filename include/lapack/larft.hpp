@@ -80,52 +80,6 @@ namespace lapack {
  * 
  * @ingroup auxiliary
  */
-template <typename scalar_t>
-int larft(
-    Direction direction, StoreV storeV,
-    idx_t n, idx_t k,
-    const scalar_t *V, idx_t ldV,
-    const scalar_t *tau,
-    scalar_t *T, idx_t ldT)
-{
-    using blas::internal::colmajor_matrix;
-    using blas::internal::vector;
-
-    // check arguments
-    lapack_error_if( direction != Direction::Forward &&
-                     direction != Direction::Backward, -1 );
-    lapack_error_if( storeV != StoreV::Columnwise &&
-                     storeV != StoreV::Rowwise, -2 );
-    lapack_error_if( n < 0, -3 );
-    lapack_error_if( k < 1, -4 );
-    lapack_error_if( ldV < ((storeV == StoreV::Columnwise) ? n : k), -6 );
-    lapack_error_if( ldT < k, -9 );
-
-    // Quick return
-    if (n == 0 || k == 0)
-        return 0;
-
-    // Matrix views
-    auto _V = (storeV == StoreV::Columnwise)
-            ? colmajor_matrix<scalar_t>( (scalar_t*)V, n, k, ldV )
-            : colmajor_matrix<scalar_t>( (scalar_t*)V, k, n, ldV );
-    auto _tau = vector<scalar_t>( (scalar_t*)tau, k, 1 );
-    auto _T = colmajor_matrix<scalar_t>( T, k, k, ldT );
-
-    if(direction == Direction::Forward) {
-        if(storeV == StoreV::Columnwise)
-            return larft( forward, columnwise_storage, _V, _tau, _T);
-        else
-            return larft( forward, rowwise_storage, _V, _tau, _T);
-    }
-    else {
-        if(storeV == StoreV::Columnwise)
-            return larft( backward, columnwise_storage, _V, _tau, _T);
-        else
-            return larft( backward, rowwise_storage, _V, _tau, _T);
-    }
-}
-
 template< 
     class direction_t, class storage_t,
     class matrixV_t, class vector_t, class matrixT_t,

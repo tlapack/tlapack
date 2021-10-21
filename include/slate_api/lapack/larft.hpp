@@ -8,12 +8,10 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __LARFT_HH__
-#define __LARFT_HH__
+#ifndef __SLATE_LARFT_HH__
+#define __SLATE_LARFT_HH__
 
-#include "lapack/utils.hpp"
-#include "lapack/types.hpp"
-#include "tblas.hpp"
+#include "lapack/larft.hpp"
 
 namespace lapack {
 
@@ -126,160 +124,6 @@ int larft(
     }
 }
 
-template< 
-    class direction_t, class storage_t,
-    class matrixV_t, class vector_t, class matrixT_t,
-    enable_if_t<(
-    /* Requires: */
-    (
-        is_same_v< direction_t, forward_t > || 
-        is_same_v< direction_t, backward_t > 
-    ) && (
-        is_same_v< storage_t, columnwise_storage_t > || 
-        is_same_v< storage_t, rowwise_storage_t >
-    )
-    ), int > = 0
->
-int larft(
-    direction_t direction, storage_t storeMode,
-    const matrixV_t& V, const vector_t& tau, matrixT_t& T)
-{
-    // data traits
-    using scalar_t  = type_t< matrixT_t >;
-    using tau_t     = type_t< vector_t >;
-    using idx_t     = size_type< matrixV_t >;
-
-    // using
-    using blas::conj;
-    using blas::max;
-    using blas::min;
-    using blas::gemm;
-    using blas::gemv;
-    using blas::trmv;
-    using pair = std::pair<idx_t,idx_t>;
-
-    // constants
-    const scalar_t one(1);
-    const scalar_t zero(0);
-    const tau_t    tzero(0);
-    const auto n    = (is_same_v< storage_t, columnwise_storage_t >)
-                    ? nrows( V )
-                    : ncols( V );
-    const auto k    = (is_same_v< storage_t, columnwise_storage_t >)
-                    ? ncols( V )
-                    : nrows( V );
-
-    // check arguments
-    lapack_error_if( size( tau ) != k, -4 );
-    lapack_error_if( nrows( T ) != k ||
-                     ncols( T ) != k, -5 );
-
-    // Quick return
-    if (n == 0 || k == 0)
-        return 0;
-
-    if (is_same_v< direction_t, forward_t >) {
-        T(0,0) = tau(0);
-        for (idx_t i = 1; i < k; ++i) {
-            auto Ti = submatrix( T, pair(0,i), i );
-            if (tau(i) == tzero) {
-                // H(i)  =  I
-                for (idx_t j = 0; j <= i; ++j)
-                    T(j,i) = zero;
-            }
-            else {
-                // General case
-                if (is_same_v< storage_t, columnwise_storage_t >) {
-                    for (idx_t j = 0; j < i; ++j)
-                        T(j,i) = -tau(i) * conj(V(i,j));
-                    // T(0:i,i) := - tau(i) V(i+1:n,0:i)^H V(i+1:n,i)
-                    gemv( conjTranspose,
-                        -tau(i),
-                        submatrix( V, pair(i+1,n), pair(0,i) ),
-                        submatrix( V, pair(i+1,n), i ),
-                        one, Ti
-                    );
-                }
-                else {
-                    for (idx_t j = 0; j < i; ++j)
-                        T(j,i) = -tau(i) * V(j,i);
-                    // T(0:i,i) := - tau(i) V(0:i,i:n) V(i,i+1:n)^H
-                    if( is_complex<scalar_t>::value ) {
-                        auto matrixTi = submatrix( T, pair(0,i), pair(i,i+1) );
-                        gemm( noTranspose, conjTranspose,
-                            -tau(i),
-                            submatrix( V, pair(0,i), pair(i+1,n) ),
-                            submatrix( V, pair(i,i+1), pair(i+1,n) ),
-                            one, matrixTi
-                        );
-                    } else {
-                        gemv( noTranspose,
-                            -tau(i),
-                            submatrix( V, pair(0,i), pair(i+1,n) ),
-                            submatrix( V, i, pair(i+1,n) ),
-                            one, Ti
-                        );
-                    }
-                }
-                // T(0:i,i) := T(0:i,0:i) * T(0:i,i)
-                trmv( upper_triangle, noTranspose, nonUnit_diagonal,
-                    submatrix( T, pair(0,i), pair(0,i) ), Ti 
-                );
-                T(i,i) = tau(i);
-            }
-        }
-    }
-    else { // direct==Direction::Backward
-        T(k-1,k-1) = tau(k-1);
-        for (idx_t i = k-2; i != idx_t(-1); --i) {
-            auto Ti = submatrix( T, pair(i+1,k), i );
-            if (tau(i) == tzero) {
-                for (idx_t j = i; j < k; ++j)
-                    T(j,i) = zero;
-            }
-            else {
-                if (is_same_v< storage_t, columnwise_storage_t >) {
-                    for (idx_t j = i+1; j < k; ++j)
-                        T(j,i) = -tau(i) * conj(V(n-k+i,j));
-                    // T(i+1:k,i) := - tau(i) V(0:n-k+i,i+1:k)^H V(0:n-k+i,i)
-                    gemv( conjTranspose,
-                        -tau(i),
-                        submatrix( V, pair(0,n-k+i), pair(i+1,k) ),
-                        submatrix( V, pair(0,n-k+i), i ),
-                        one, Ti
-                    );
-                }
-                else {
-                    for (idx_t j = i+1; j < k; ++j)
-                        T(j,i) = -tau(i) * V(j,n-k+i);
-                    // T(i+1:k,i) := - tau(i) V(i+1:k,0:n-k+i) V(i,0:n-k+i)^H
-                    if( blas::is_complex<scalar_t>::value ) {
-                        auto matrixTi = submatrix( T, pair(i+1,k), pair(i,i+1) );
-                        gemm( noTranspose, conjTranspose,
-                            -tau(i),
-                            submatrix( V, pair(i+1,k), pair(0,n-k+i) ),
-                            submatrix( V, pair(i,i+1), pair(0,n-k+i) ),
-                            one, matrixTi
-                        );
-                    } else {
-                        gemv( noTranspose,
-                            -tau(i),
-                            submatrix( V, pair(i+1,k), pair(0,n-k+i) ),
-                            submatrix( V, i, pair(0,n-k+i) ),
-                            one, Ti
-                        );
-                    }
-                }
-                trmv( lower_triangle, noTranspose, nonUnit_diagonal,
-                    submatrix( T, pair(i+1,k), pair(i+1,k) ), Ti 
-                );
-                T(i,i) = tau(i);
-            }
-        }
-    }
-    return 0;
 }
 
-}
-
-#endif // __LARFT_HH__
+#endif // __SLATE_LARFT_HH__

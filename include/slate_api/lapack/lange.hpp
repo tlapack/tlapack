@@ -8,11 +8,10 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __LANGE_HH__
-#define __LANGE_HH__
+#ifndef __SLATE_LANGE_HH__
+#define __SLATE_LANGE_HH__
 
-#include "lapack/types.hpp"
-#include "lapack/lassq.hpp"
+#include "lapack/lange.hpp"
 
 namespace lapack {
 
@@ -58,4 +57,4 @@ inline real_type<TA> lange(
 
 } // lapack
 
-#endif // __LANGE_HH__
+#endif // __SLATE_LANGE_HH__

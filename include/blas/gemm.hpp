@@ -72,7 +72,6 @@ void gemm(
 
     // constants
     const TC zero( 0 );
-    const beta_t one( 1 );
     const idx_t m = nrows(C);
     const idx_t n = ncols(C);
     const idx_t k = (transA == Op::NoTrans) ? ncols(A) : nrows(A);
@@ -103,7 +102,7 @@ void gemm(
                     C(i,j) = zero;
             }
         }
-        else if (beta != one) {
+        else if (beta != beta_t(1)) {
             for(idx_t j = 0; j < n; ++j) {
                 for(idx_t i = 0; i < m; ++i)
                     C(i,j) *= beta;

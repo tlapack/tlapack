@@ -9,6 +9,8 @@
 
 #include <tlapack.hpp>
 #include <tblas.hpp>
+#include <slate_api/lapack.hpp>
+#include <slate_api/blas.hpp>
 
 #include <new>
 #include <chrono>   // for high_resolution_clock
@@ -122,8 +124,7 @@ void run( lapack::idx_t m, lapack::idx_t n )
     for (lapack::idx_t i = 0; i < n*n; ++i) work[i] = static_cast<float>( 0xABADBABE );
         
         // work receives the identity n*n
-        lapack::laset<real_t>(
-            lapack::Layout::ColMajor, lapack::Uplo::Upper, n, n, 0.0, 1.0, work, n );
+        lapack::laset<real_t>( lapack::Uplo::Upper, n, n, 0.0, 1.0, work, n );
         // work receives Q'Q - I
         blas::syrk(
             lapack::Layout::ColMajor, lapack::Uplo::Upper,

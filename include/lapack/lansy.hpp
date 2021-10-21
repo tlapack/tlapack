@@ -167,29 +167,6 @@ real_type<TA> lansy(
     return norm;
 }
 
-/** Calculates the value of the one norm, Frobenius norm, infinity norm, or element of largest absolute value of a symmetric matrix.
- * 
- * @param[in] layout
- *     Matrix storage, Layout::ColMajor or Layout::RowMajor.
- * @see lansy( Norm normType, Uplo, blas::idx_t n, const TA *A, blas::idx_t lda )
- * 
- * @ingroup auxiliary
-**/
-template <typename TA>
-inline real_type<TA> lansy(
-    Layout layout, Uplo uplo,
-    Norm normType, blas::idx_t n,
-    const TA *A, blas::idx_t lda )
-{
-    if ( layout == Layout::RowMajor ) {
-        // Transpose A
-        if( uplo == Uplo::Lower ) uplo = Uplo::Upper;
-        else if( uplo == Uplo::Upper ) uplo = Uplo::Lower;
-    }
-
-    return lansy( normType, uplo, n, A, lda );
-}
-
 } // lapack
 
 #endif // __LANSY_HH__

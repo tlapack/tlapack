@@ -106,19 +106,6 @@ void larfg(
     }
 }
 
-/** Generates a elementary Householder reflection.
- * 
- * @see larfg( blas::idx_t, T &, T *, blas::int_t, T & )
- * 
- * @ingroup auxiliary
- */
-template< typename T >
-void inline larfg(
-    blas::idx_t n, T *alpha, T *x, blas::int_t incx, T *tau )
-{
-    larfg(n, *alpha, x, incx, *tau);
-}
-
 }
 
 #endif // __LARFG_HH__

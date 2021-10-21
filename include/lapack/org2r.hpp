@@ -139,43 +139,6 @@ int org2r(
     return 0;
 }
 
-/** Generates a m-by-n matrix Q with orthogonal columns.
- * \[
- *     Q  =  H_1 H_2 ... H_k
- * \]
- * 
- * @return  0 if success
- * @return -i if the ith argument is invalid
- * 
- * @param[in] m The number of rows of the matrix A. m>=0
- * @param[in] n The number of columns of the matrix A. n>=0
- * @param[in] k The number of elementary reflectors whose product defines the matrix Q. n>=k>=0
- * @param[in,out] A m-by-n matrix.
- *      On entry, the i-th column must contains the vector which defines the
- *      elementary reflector $H_i$, for $i=0,1,...,k-1$, as returned by GEQRF in the
- *      first k columns of its array argument A.
- *      On exit, the m-by-n matrix $Q  =  H_1 H_2 ... H_k$.
- * @param[in] lda The leading dimension of A. lda >= max(1,m).
- * @param[in] tau Real vector of length min(m,n).      
- *      The scalar factors of the elementary reflectors.
- * 
- * @ingroup geqrf
- */
-template< typename TA, typename Ttau >
-inline int org2r(
-    blas::idx_t m, blas::idx_t n, blas::idx_t k,
-    TA* A, blas::idx_t lda,
-    const Ttau* tau )
-{
-    int info = 0;
-    TA* work = new TA[ (n > 0) ? n-1 : 0 ];
-    
-    info = org2r( m, n, k, A, lda, tau, work );
-
-    delete[] work;
-    return info;
-}
-
 }
 
 #endif // __ORG2R_HH__

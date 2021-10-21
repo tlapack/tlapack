@@ -518,26 +518,6 @@ int larfb(
     return 0;
 }
 
-
-template <typename TV, typename TC>
-inline int larfb(
-    Side side, Op trans,
-    Direction direct, StoreV storeV,
-    idx_t m, idx_t n, idx_t k,
-    TV const* V, idx_t ldV,
-    TV const* T, idx_t ldT,
-    TC* C, idx_t ldC )
-{
-    typedef blas::scalar_type<TV, TC> scalar_t;
-    scalar_t *work = new scalar_t[ (side == Side::Left) ? k*n : k*m ];
-
-    int info = larfb(  side, trans, direct, storeV,
-            m, n, k, V, ldV, T, ldT, C, ldC, work );
-
-    delete[] work;
-    return info;
-}
-
 }
 
 #endif // __LARFB_HH__

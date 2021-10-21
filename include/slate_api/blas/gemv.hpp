@@ -121,8 +121,8 @@ void gemv(
     }
 
     // Initialize indexes
-    blas::idx_t lenx = (trans == Op::NoTrans ? n : m);
-    blas::idx_t leny = (trans == Op::NoTrans ? m : n);
+    blas::idx_t lenx = ((trans == Op::NoTrans || trans == Op::Conj) ? n : m);
+    blas::idx_t leny = ((trans == Op::NoTrans || trans == Op::Conj) ? m : n);
     
     // Matrix views
     const auto _A = colmajor_matrix<TA>( (TA*)A, m, n, lda );
