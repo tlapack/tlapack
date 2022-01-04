@@ -44,16 +44,16 @@ void run( lapack::idx_t m, lapack::idx_t n )
     lapack::idx_t ldq = lda;
 
     // Arrays
-    real_t* A = new real_t[ lda*n ];  // m-by-n
-    real_t* Q = new real_t[ ldq*n ];  // m-by-n
-    real_t* R = new real_t[ ldr*n ];  // m-by-n
+    real_t* _A = new real_t[ lda*n ];  // m-by-n
+    real_t* _Q = new real_t[ ldq*n ];  // m-by-n
+    real_t* _R = new real_t[ ldr*n ];  // m-by-n
     real_t* tau = new real_t[ n ];
     real_t* work;
 
     // Views
-    #define A(i_, j_) A[ (i_) + (j_)*lda ]
-    #define R(i_, j_) R[ (i_) + (j_)*ldr ]
-    #define Q(i_, j_) Q[ (i_) + (j_)*ldq ]
+    auto A = blas::internal::colmajor_matrix<real_t>( _A, m, n, lda );
+    auto R = blas::internal::colmajor_matrix<real_t>( _R, m, n, ldr );
+    auto Q = blas::internal::colmajor_matrix<real_t>( _Q, m, n, ldq );
 
     // Initialize arrays with junk
     for (lapack::idx_t j = 0; j < n; ++j) {
@@ -72,18 +72,16 @@ void run( lapack::idx_t m, lapack::idx_t n )
                         / static_cast<float>( RAND_MAX );
 
     // Frobenius norm of A
-    real_t normA = lapack::lange(
-        lapack::frob_norm, 
-        blas::internal::colmajor_matrix<real_t>( A, m, n, lda ) );
+    real_t normA = lapack::lange( lapack::frob_norm, A );
 
     // Print A
     if (verbose) {
         std::cout << std::endl << "A = ";
-        printMatrix(m,n,A,lda);
+        printMatrix(m,n,_A,lda);
     }
 
     // Copy A to Q
-    lapack::lacpy( lapack::Uplo::General, m, n, A, lda, Q, ldq );
+    lapack::lacpy( lapack::Uplo::General, m, n, _A, lda, _Q, ldq );
 
     // 1) Compute A = QR (Stored in the matrix Q)
 
@@ -91,13 +89,13 @@ void run( lapack::idx_t m, lapack::idx_t n )
     auto startQR = std::chrono::high_resolution_clock::now();
     
         // QR factorization
-        blas_error_if( lapack::geqr2( m, n, Q, ldq, tau ) );
+        blas_error_if( lapack::geqr2( m, n, _Q, ldq, tau ) );
 
         // Save the R matrix
-        lapack::lacpy( lapack::Uplo::Upper, n, n, Q, ldq, R, ldr );
+        lapack::lacpy( lapack::Uplo::Upper, n, n, _Q, ldq, _R, ldr );
 
         // Generates Q = H_1 H_2 ... H_n
-        blas_error_if( lapack::org2r( m, n, n, Q, ldq, tau ) );
+        blas_error_if( lapack::org2r( m, n, n, _Q, ldq, tau ) );
     
     // Record end time
     auto endQR = std::chrono::high_resolution_clock::now();
@@ -113,9 +111,9 @@ void run( lapack::idx_t m, lapack::idx_t n )
     // Print Q and R
     if (verbose) {
         std::cout << std::endl << "Q = ";
-        printMatrix(m,n,Q,ldq);
+        printMatrix(m,n,_Q,ldq);
         std::cout << std::endl << "R = ";
-        printMatrix(m,n,R,ldr);
+        printMatrix(m,n,_R,ldr);
     }
 
     // 2) Compute ||Q'Q - I||_F
@@ -128,7 +126,7 @@ void run( lapack::idx_t m, lapack::idx_t n )
         // work receives Q'Q - I
         blas::syrk(
             lapack::Layout::ColMajor, lapack::Uplo::Upper,
-            lapack::Op::Trans, n, m, 1.0, Q, ldq, -1.0, work, n );
+            lapack::Op::Trans, n, m, 1.0, _Q, ldq, -1.0, work, n );
 
         // Compute ||Q'Q - I||_F
         real_t norm_orth_1 = lapack::lansy( lapack::Norm::Fro, lapack::Uplo::Upper, n, work, n );
@@ -146,12 +144,12 @@ void run( lapack::idx_t m, lapack::idx_t n )
     for (lapack::idx_t i = 0; i < n*n; ++i) work[i] = static_cast<float>( 0xABADBABE );
 
         // Copy Q to work
-        lapack::lacpy( lapack::Uplo::General, m, n, Q, ldq, work, m );
+        lapack::lacpy( lapack::Uplo::General, m, n, _Q, ldq, work, m );
 
         blas::trmm(
             blas::Layout::ColMajor, blas::Side::Right,
             blas::Uplo::Upper, blas::Op::NoTrans, blas::Diag::NonUnit,
-            m, n, 1.0, R, ldr, work, m );
+            m, n, 1.0, _R, ldr, work, m );
 
         for(lapack::idx_t j = 0; j < n; ++j)
             for(lapack::idx_t i = 0; i < m; ++i)
@@ -174,14 +172,10 @@ void run( lapack::idx_t m, lapack::idx_t n )
             << ",        ||Q'Q - I||_F  = " << norm_orth_1;
     std::cout << std::endl;
 
-    delete[] A;
-    delete[] R;
-    delete[] Q;
+    delete[] _A;
+    delete[] _R;
+    delete[] _Q;
     delete[] tau;
-
-    #undef A
-    #undef R
-    #undef Q
 }
 
 //------------------------------------------------------------------------------

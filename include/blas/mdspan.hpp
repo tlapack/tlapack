@@ -61,6 +61,7 @@ namespace internal{
 
 using std::experimental::dextents;
 using std::experimental::layout_stride;
+using std::array;
 
 // // -----------------------------------------------------------------------------
 // /// layout_colmajor Column Major layout for mdspan
@@ -139,12 +140,14 @@ inline auto colmajor_matrix(
     dextents<2>::size_type n, 
     dextents<2>::size_type lda )
 {
-    using extents = dextents<2>;
-    using strides = dextents<2>;
-    using mapping = typename layout_stride::template mapping<extents>;
+    using extents_t = dextents<2>;
+    using strides_t = array<extents_t::size_type, 2>;
+    using mapping = typename layout_stride::template mapping< extents_t >;
 
-    return mdspan< T, extents, layout_stride > (
-        A, mapping( extents(m,n), strides(1,lda) )
+    const strides_t strides = {1,lda};
+
+    return mdspan< T, extents_t, layout_stride > (
+        A, mapping( extents_t(m,n), strides )
     );
 }
 
@@ -154,12 +157,14 @@ inline auto vector(
     dextents<1>::size_type n,
     dextents<1>::size_type ldim )
 {
-    using extents = dextents<1>;
-    using strides = dextents<1>;
-    using mapping = typename layout_stride::template mapping<extents>;
+    using extents_t = dextents<1>;
+    using strides_t = array<extents_t::size_type, 1>;
+    using mapping = typename layout_stride::template mapping< extents_t >;
 
-    return mdspan< T, extents, layout_stride > (
-        x, mapping( extents(n), strides(ldim) )
+    const strides_t strides = {ldim};
+
+    return mdspan< T, extents_t, layout_stride > (
+        x, mapping( extents_t(n), strides )
     );
 }
 
