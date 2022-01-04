@@ -11,9 +11,6 @@
 #ifndef __LAPY2_HH__
 #define __LAPY2_HH__
 
-#include "lapack/types.hpp"
-#include "lapack/utils.hpp"
-
 namespace lapack {
 
 /** Finds $\sqrt{x^2+y^2}$, taking care not to cause unnecessary overflow.

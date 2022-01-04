@@ -17,6 +17,7 @@
 #define BLAS_NRM2_HH
 
 #include "blas/utils.hpp"
+#include "blas/constants.hpp"
 
 namespace blas {
 
