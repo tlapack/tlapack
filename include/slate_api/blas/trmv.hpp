@@ -91,7 +91,7 @@ void trmv(
                    diag != Diag::Unit );
     blas_error_if( n < 0 );
     blas_error_if( lda < n );
-    blas_error_if( incx <= 0 );
+    blas_error_if( incx == 0 );
 
     // quick return
     if (n == 0)
@@ -108,7 +108,7 @@ void trmv(
         
     // Matrix views
     const auto _A = colmajor_matrix<TA>( (TA*)A, n, n, lda );
-    auto _x = vector<TX>( x, n, incx );
+    auto _x = vector<TX>( &x[(incx > 0 ? 0 : (-n + 1)*incx)], n, incx );
 
     trmv( uplo, trans, diag, _A, _x );
 }

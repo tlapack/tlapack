@@ -104,8 +104,8 @@ void gemv(
     blas_error_if( m < 0 );
     blas_error_if( n < 0 );
     blas_error_if( lda < ((layout == Layout::ColMajor) ? m : n) );
-    blas_error_if( incx <= 0 );
-    blas_error_if( incy <= 0 );
+    blas_error_if( incx == 0 );
+    blas_error_if( incy == 0 );
 
     // quick return
     if (m == 0 || n == 0 || (alpha == zero && beta == one))
@@ -126,8 +126,12 @@ void gemv(
     
     // Matrix views
     const auto _A = colmajor_matrix<TA>( (TA*)A, m, n, lda );
-    const auto _x = vector<TX>( (TX*)x, lenx, incx );
-    auto _y = vector<TY>( y, leny, incy );
+    const auto _x = vector<TX>(
+        (TX*) &x[(incx > 0 ? 0 : (-lenx + 1)*incx)],
+        lenx, incx );
+    auto _y = vector<TY>(
+        &y[(incy > 0 ? 0 : (-leny + 1)*incy)],
+        leny, incy );
 
     gemv( trans, alpha, _A, _x, beta, _y );
 }

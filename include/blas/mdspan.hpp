@@ -133,15 +133,15 @@ using std::array;
  * @return mdspan< T, dextents<2>, layout_stride > 
  *      matrix object using the abstraction A(i,j) = i + j * lda
  */
-template< typename T >
+template< typename T, typename integral_type >
 inline auto colmajor_matrix(
     T* A, 
     dextents<2>::size_type m, 
     dextents<2>::size_type n, 
-    dextents<2>::size_type lda )
+    integral_type lda )
 {
     using extents_t = dextents<2>;
-    using strides_t = array<extents_t::size_type, 2>;
+    using strides_t = array<integral_type, 2>;
     using mapping = typename layout_stride::template mapping< extents_t >;
 
     const strides_t strides = {1,lda};
@@ -151,14 +151,14 @@ inline auto colmajor_matrix(
     );
 }
 
-template< typename T >
+template< typename T, typename integral_type >
 inline auto vector(
     T* x,
     dextents<1>::size_type n,
-    dextents<1>::size_type ldim )
+    integral_type ldim )
 {
     using extents_t = dextents<1>;
-    using strides_t = array<extents_t::size_type, 1>;
+    using strides_t = array<integral_type, 1>;
     using mapping = typename layout_stride::template mapping< extents_t >;
 
     const strides_t strides = {ldim};
