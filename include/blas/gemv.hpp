@@ -44,17 +44,12 @@ namespace blas {
  */
 template<
     class matrixA_t,
-    class vectorX_t, 
-    class vectorY_t, 
-    class alpha_t, 
-    class beta_t >
+    class vectorX_t, class vectorY_t, 
+    class alpha_t, class beta_t >
 void gemv(
     Op trans,
-    const alpha_t alpha,
-    const matrixA_t& A,
-    const vectorX_t& x,
-    const beta_t& beta,
-    vectorY_t& y )
+    const alpha_t alpha, const matrixA_t& A, const vectorX_t& x,
+    const beta_t& beta, vectorY_t& y )
 {
     // data traits
     using TA    = type_t< matrixA_t >;

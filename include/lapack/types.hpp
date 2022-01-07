@@ -57,7 +57,7 @@ using blas::size_type;
 #endif
 
 // -----------------------------------------------------------------------------
-// Unit Diagonal
+// Diagonal matrices
 
 struct nonUnit_diagonal_t {
     constexpr operator blas::Diag() const { return blas::Diag::NonUnit; }
@@ -169,6 +169,19 @@ constexpr columnwise_storage_t columnwise_storage { };
 constexpr rowwise_storage_t rowwise_storage { };
 
 // -----------------------------------------------------------------------------
+// Sides
+
+struct left_side_t {
+    constexpr operator blas::Side() const { return blas::Side::Left; }
+};
+struct right_side_t {
+    constexpr operator blas::Side() const { return blas::Side::Right; }
+};
+
+// Constants
+constexpr left_side_t left_side { };
+constexpr right_side_t right_side { };
+
 enum class Sides {
     Left  = 'L',  L = 'L',
     Right = 'R',  R = 'R',

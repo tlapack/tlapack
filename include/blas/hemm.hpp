@@ -81,6 +81,126 @@ namespace blas {
  *
  * @ingroup hemm
  */
+template<
+    class matrixA_t, class matrixB_t, class matrixC_t, 
+    class alpha_t, class beta_t >
+void hemm(
+    blas::Side side,
+    blas::Uplo uplo,
+    const alpha_t alpha, const matrixA_t& A, const matrixB_t& B,
+    const beta_t& beta, matrixC_t& C )
+{
+    // data traits
+    using TA    = type_t< matrixA_t >;
+    using TB    = type_t< matrixB_t >;
+    using idx_t = size_type< matrixC_t >;
+
+    // using
+    using scalar_t = scalar_type<alpha_t,TA,TB>;
+            
+    // constants
+    const scalar_t zero( 0.0 );
+    const idx_t m = nrows(C);
+    const idx_t n = ncols(C);
+
+    // check arguments
+    blas_error_if( side != Side::Left &&
+                   side != Side::Right );
+    blas_error_if( uplo != Uplo::Lower &&
+                   uplo != Uplo::Upper &&
+                   uplo != Uplo::General );
+    blas_error_if( nrows(A) != ncols(A) );
+    blas_error_if( nrows(A) != (side == Side::Left) ? m : n );
+    blas_error_if( nrows(B) != m || ncols(B) != n );
+
+    if (side == Side::Left) {
+        if (uplo != Uplo::Lower) {
+            // uplo == Uplo::Upper or uplo == Uplo::General
+            for(idx_t j = 0; j < n; ++j) {
+                for(idx_t i = 0; i < m; ++i) {
+
+                    scalar_t alphaTimesBij = alpha*B(i,j);
+                    scalar_t sum = zero;
+
+                    for(idx_t k = 0; k < i; ++k) {
+                        C(k,j) += A(k,i) * alphaTimesBij;
+                        sum += conj( A(k,i) ) * B(k,j);
+                    }
+                    C(i,j) =
+                        beta * C(i,j)
+                        + real( A(i,i) ) * alphaTimesBij
+                        + alpha * sum;
+                }
+            }
+        }
+        else {
+            // uplo == Uplo::Lower
+            for(idx_t j = 0; j < n; ++j) {
+                for(idx_t i = m-1; i != idx_t(-1); --i) {
+
+                    scalar_t alphaTimesBij = alpha*B(i,j);
+                    scalar_t sum = zero;
+
+                    for(idx_t k = i+1; k < m; ++k) {
+                        C(k,j) += A(k,i) * alphaTimesBij;
+                        sum += conj( A(k,i) ) * B(k,j);
+                    }
+                    C(i,j) =
+                        beta * C(i,j)
+                        + real( A(i,i) ) * alphaTimesBij
+                        + alpha * sum;
+                }
+            }
+        }
+    }
+    else { // side == Side::Right
+        if (uplo != Uplo::Lower) {
+            // uplo == Uplo::Upper or uplo == Uplo::General
+            for(idx_t j = 0; j < n; ++j) {
+
+                scalar_t alphaTimesAkj = alpha * real( A(j,j) );
+
+                for(idx_t i = 0; i < m; ++i)
+                    C(i,j) = beta * C(i,j) + B(i,j) * alphaTimesAkj;
+
+                for(idx_t k = 0; k < j; ++k) {
+                    alphaTimesAkj = alpha*A(k,j);
+                    for(idx_t i = 0; i < m; ++i)
+                        C(i,j) += B(i,k) * alphaTimesAkj;
+                }
+
+                for(idx_t k = j+1; k < n; ++k) {
+                    alphaTimesAkj = alpha * conj( A(j,k) );
+                    for(idx_t i = 0; i < m; ++i)
+                        C(i,j) += B(i,k) * alphaTimesAkj;
+                }
+            }
+        }
+        else {
+            // uplo == Uplo::Lower
+            for(idx_t j = 0; j < n; ++j) {
+
+                scalar_t alphaTimesAkj = alpha * real( A(j,j) );
+
+                for(idx_t i = 0; i < m; ++i)
+                    C(i,j) = beta * C(i,j) + B(i,j) * alphaTimesAkj;
+
+                for(idx_t k = 0; k < j; ++k) {
+                    alphaTimesAkj = alpha * conj( A(j,k) );
+                    for(idx_t i = 0; i < m; ++i)
+                        C(i,j) += B(i,k) * alphaTimesAkj;
+                }
+
+                for(idx_t k = j+1; k < n; ++k) {
+                    alphaTimesAkj = alpha*A(k,j);
+                    for(idx_t i = 0; i < m; ++i)
+                        C(i,j) += B(i,k) * alphaTimesAkj;
+                }
+            }
+        }
+    }
+}
+
 template< typename TA, typename TB, typename TC >
 void hemm(
     blas::Layout layout,
@@ -135,7 +255,7 @@ void hemm(
                   ? colmajor_matrix<TA>( (TA*)A, m, m, lda )
                   : colmajor_matrix<TA>( (TA*)A, n, n, lda );
     const auto _B = colmajor_matrix<TB>( (TB*)B, m, n, ldb );
-    auto _C = colmajor_matrix<TC>( C, m, n, ldc );
+          auto _C = colmajor_matrix<TC>( C, m, n, ldc );
 
     // alpha == zero
     if (alpha == zero) {
@@ -154,93 +274,7 @@ void hemm(
         return;
     }
 
-    // alpha != zero
-    if (side == Side::Left) {
-        if (uplo != Uplo::Lower) {
-            // uplo == Uplo::Upper or uplo == Uplo::General
-            for(idx_t j = 0; j < n; ++j) {
-                for(idx_t i = 0; i < m; ++i) {
-
-                    scalar_t alphaTimesBij = alpha*_B(i,j);
-                    scalar_t sum = zero;
-
-                    for(idx_t k = 0; k < i; ++k) {
-                        _C(k,j) += _A(k,i) * alphaTimesBij;
-                        sum += conj( _A(k,i) ) * _B(k,j);
-                    }
-                    _C(i,j) =
-                        beta * _C(i,j)
-                        + real( _A(i,i) ) * alphaTimesBij
-                        + alpha * sum;
-                }
-            }
-        }
-        else {
-            // uplo == Uplo::Lower
-            for(idx_t j = 0; j < n; ++j) {
-                for(idx_t i = m-1; i >= 0; --i) {
-
-                    scalar_t alphaTimesBij = alpha*_B(i,j);
-                    scalar_t sum = zero;
-
-                    for(idx_t k = i+1; k < m; ++k) {
-                        _C(k,j) += _A(k,i) * alphaTimesBij;
-                        sum += conj( _A(k,i) ) * _B(k,j);
-                    }
-                    _C(i,j) =
-                        beta * _C(i,j)
-                        + real( _A(i,i) ) * alphaTimesBij
-                        + alpha * sum;
-                }
-            }
-        }
-    }
-    else { // side == Side::Right
-        if (uplo != Uplo::Lower) {
-            // uplo == Uplo::Upper or uplo == Uplo::General
-            for(idx_t j = 0; j < n; ++j) {
-
-                scalar_t alphaTimesAkj = alpha * real( _A(j,j) );
-
-                for(idx_t i = 0; i < m; ++i)
-                    _C(i,j) = beta * _C(i,j) + _B(i,j) * alphaTimesAkj;
-
-                for(idx_t k = 0; k < j; ++k) {
-                    alphaTimesAkj = alpha*_A(k,j);
-                    for(idx_t i = 0; i < m; ++i)
-                        _C(i,j) += _B(i,k) * alphaTimesAkj;
-                }
-
-                for(idx_t k = j+1; k < n; ++k) {
-                    alphaTimesAkj = alpha * conj( _A(j,k) );
-                    for(idx_t i = 0; i < m; ++i)
-                        _C(i,j) += _B(i,k) * alphaTimesAkj;
-                }
-            }
-        }
-        else {
-            // uplo == Uplo::Lower
-            for(idx_t j = 0; j < n; ++j) {
-
-                scalar_t alphaTimesAkj = alpha * real( _A(j,j) );
-
-                for(idx_t i = 0; i < m; ++i)
-                    _C(i,j) = beta * _C(i,j) + _B(i,j) * alphaTimesAkj;
-
-                for(idx_t k = 0; k < j; ++k) {
-                    alphaTimesAkj = alpha * conj( _A(j,k) );
-                    for(idx_t i = 0; i < m; ++i)
-                        _C(i,j) += _B(i,k) * alphaTimesAkj;
-                }
-
-                for(idx_t k = j+1; k < n; ++k) {
-                    alphaTimesAkj = alpha*_A(k,j);
-                    for(idx_t i = 0; i < m; ++i)
-                        _C(i,j) += _B(i,k) * alphaTimesAkj;
-                }
-            }
-        }
-    }
+    hemm( side, uplo, alpha, _A, _B, beta, _C );
 }
 
 }  // namespace blas

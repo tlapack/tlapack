@@ -45,10 +45,28 @@ inline int org2r(
     TA* A, blas::idx_t lda,
     const Ttau* tau )
 {
+    using blas::internal::colmajor_matrix;
+    using blas::internal::vector;
+
+    // check arguments
+    lapack_error_if( m < 0, -1 );
+    lapack_error_if( n < 0 || n > m, -2 );
+    lapack_error_if( k < 0 || k > n, -3 );
+    lapack_error_if( lda < m, -5 );
+
+    // quick return
+    if (n <= 0) return 0;
+
+    // Local parameters
     int info = 0;
     TA* work = new TA[ (n > 0) ? n-1 : 0 ];
+
+    // Matrix views
+    auto _A    = colmajor_matrix<TA>( A, m, n, lda );
+    auto _tau  = vector<Ttau>( (Ttau*)tau, std::min<blas::idx_t>( m, n ), 1 );
+    auto _work = vector<TA>  ( work, n-1, 1 );
     
-    info = org2r( m, n, k, A, lda, tau, work );
+    info = org2r( k, _A, _tau, _work );
 
     delete[] work;
     return info;

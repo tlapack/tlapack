@@ -36,32 +36,42 @@ namespace blas {
  *
  * @ingroup copy
  */
+template< class vectorX_t, class vectorY_t >
+void copy( const vectorX_t& x, vectorY_t& y )
+{
+    using idx_t = size_type< vectorY_t >;
+
+    // constants
+    const idx_t n = size(y);
+
+    // check arguments
+    blas_error_if( size(x) < n );
+
+    for (idx_t i = 0; i < n; ++i)
+        y(i) = x(i);
+}
+
 template< typename TX, typename TY >
 void copy(
     blas::idx_t n,
     TX const *x, blas::int_t incx,
     TY       *y, blas::int_t incy )
 {
+    using internal::vector;
+    
     // check arguments
     blas_error_if( incx == 0 );
     blas_error_if( incy == 0 );
 
-    if (incx == 1 && incy == 1) {
-        // unit stride
-        for (idx_t i = 0; i < n; ++i) {
-            y[i] = x[i];
-        }
-    }
-    else {
-        // non-unit stride
-        idx_t ix = (incx > 0 ? 0 : (-n + 1)*incx);
-        idx_t iy = (incy > 0 ? 0 : (-n + 1)*incy);
-        for (idx_t i = 0; i < n; ++i) {
-            y[iy] = x[ix];
-            ix += incx;
-            iy += incy;
-        }
-    }
+    // Views
+    const auto _x = vector<TX>(
+        (TX*) &x[(incx > 0 ? 0 : (-n + 1)*incx)],
+        n, incx );
+    auto _y = vector<TY>(
+        &y[(incy > 0 ? 0 : (-n + 1)*incy)],
+        n, incy );
+
+    copy( _x, _y );
 }
 
 }  // namespace blas

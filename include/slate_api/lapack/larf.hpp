@@ -17,28 +17,49 @@ namespace lapack {
 
 /** Applies an elementary reflector H to a m-by-n matrix C.
  * 
- * @see larf( Layout, Side side, blas::idx_t m, blas::idx_t n, TV const *v, blas::int_t incv, blas::scalar_type< TV, TC , TW > tau, TC *C, blas::idx_t ldC, TW *work )
+ * @see larf( Side side, blas::idx_t m, blas::idx_t n, TV const *v, blas::int_t incv, blas::scalar_type< TV, TC , TW > tau, TC *C, blas::idx_t ldC, TW *work )
  * 
  * @ingroup auxiliary
  */
 template< typename TV, typename TC >
-inline int larf(
+inline void larf(
     Side side,
     blas::idx_t m, blas::idx_t n,
     TV const *v, blas::int_t incv,
     blas::scalar_type< TV, TC > tau,
     TC *C, blas::idx_t ldC )
 {
-    typedef blas::scalar_type<TV, TC> scalar_t;
-    scalar_t *work = new scalar_t[ ( side == Side::Left ) ? n : m ];
-    int info;
+    typedef scalar_type<TV, TC> scalar_t;
+    using blas::internal::colmajor_matrix;
+    using blas::internal::vector;
 
-    info = larf(
-        Layout::ColMajor, side, m, n, v, incv, tau, C, ldC, work );
+    // check arguments
+    blas_error_if( side != Side::Left &&
+                   side != Side::Right );
+    blas_error_if( m < 0 );
+    blas_error_if( n < 0 );
+    blas_error_if( incv == 0 );
+    blas_error_if( ldC < m );
+
+    scalar_t *work = new scalar_t[ ( side == Side::Left ) ? n : m ];
+
+    // Initialize indexes
+    idx_t lenv  = (( side == Side::Left ) ? m : n);
+    idx_t lwork = (( side == Side::Left ) ? n : m);
+    
+    // Matrix views
+    auto _C = colmajor_matrix<TC>( C, m, n, ldC );
+    const auto _v = vector<TV>(
+        (TV*) &v[(incv > 0 ? 0 : (-lenv + 1)*incv)],
+        lenv, incv );
+    auto _work = vector<scalar_t>( work, lwork, 1 );
+
+    if( side == Side::Left )
+        larf( left_side, _v, tau, _C, _work);
+    else
+        larf( right_side, _v, tau, _C, _work);
         
     delete[] work;
-
-    return info;
 }
 
 } // lapack

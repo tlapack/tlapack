@@ -68,7 +68,7 @@ void gemm(
     using idx_t = size_type< matrixA_t >;
 
     // using
-    using scalar_t = scalar_type<TA,TB>;
+    using scalar_t = scalar_type<alpha_t,TA,TB>;
 
     // constants
     const TC zero( 0 );

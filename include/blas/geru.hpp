@@ -57,6 +57,29 @@ namespace blas {
  *
  * @ingroup geru
  */
+template<
+    class matrixA_t,
+    class vectorX_t, class vectorY_t,
+    class alpha_t >
+void geru(
+    const alpha_t& alpha,
+    const vectorX_t& x, const vectorY_t& y,
+    matrixA_t& A )
+{
+    // data traits
+    using idx_t = size_type< matrixA_t >;
+
+    // constants
+    const idx_t m = nrows(A);
+    const idx_t n = ncols(A);
+
+    for (idx_t j = 0; j < n; ++j) {
+        auto tmp = alpha * y(j);
+        for (idx_t i = 0; i < m; ++i)
+            A(i,j) += x(i) * tmp;
+    }
+}
+
 template< typename TA, typename TX, typename TY >
 void geru(
     blas::Layout layout,
@@ -68,11 +91,7 @@ void geru(
 {
     typedef blas::scalar_type<TA, TX, TY> scalar_t;
     using blas::internal::colmajor_matrix;
-
-    // for row-major, simply swap dimensions and x <=> y
-    // this doesn't work in the complex gerc case because y gets conj
-    if (layout == Layout::RowMajor)
-        return geru( Layout::ColMajor, n, m, alpha, y, incy, x, incx, A, lda );
+    using blas::internal::vector;
     
     // constants
     const scalar_t zero( 0.0 );
@@ -88,44 +107,32 @@ void geru(
     // quick return
     if (m == 0 || n == 0 || alpha == zero)
         return;
-    
-    // Matrix views
-    auto _A = colmajor_matrix<TA>( A, m, n, lda );
 
-    if (incx == 1 && incy == 1) {
-        // unit stride
-        for (idx_t j = 0; j < n; ++j) {
-            // note: NOT skipping if y[j] is zero, for consistent NAN handling
-            scalar_t tmp = alpha * y[j];
-            for (idx_t i = 0; i < m; ++i) {
-                _A(i,j) += x[i] * tmp;
-            }
-        }
-    }
-    else if (incx == 1) {
-        // x unit stride, y non-unit stride
-        idx_t jy = (incy > 0 ? 0 : (-n + 1)*incy);
-        for (idx_t j = 0; j < n; ++j) {
-            scalar_t tmp = alpha * y[jy];
-            for (idx_t i = 0; i < m; ++i) {
-                _A(i,j) += x[i] * tmp;
-            }
-            jy += incy;
-        }
+    if( layout == Layout::ColMajor ) {
+    
+        // Matrix views
+        auto _A = colmajor_matrix<TA>( A, m, n, lda );
+        const auto _x = vector<TX>(
+            (TX*) &x[(incx > 0 ? 0 : (-m + 1)*incx)],
+            m, incx );
+        const auto _y = vector<TY>(
+            (TY*) &y[(incy > 0 ? 0 : (-n + 1)*incy)],
+            n, incy );
+
+        geru( alpha, _x, _y, _A );
     }
     else {
-        // x and y non-unit stride
-        idx_t kx = (incx > 0 ? 0 : (-m + 1)*incx);
-        idx_t jy = (incy > 0 ? 0 : (-n + 1)*incy);
-        for (idx_t j = 0; j < n; ++j) {
-            scalar_t tmp = alpha * y[jy];
-            idx_t ix = kx;
-            for (idx_t i = 0; i < m; ++i) {
-                _A(i,j) += x[ix] * tmp;
-                ix += incx;
-            }
-            jy += incy;
-        }
+        
+        // Matrix views
+        auto _A = colmajor_matrix<TA>( A, n, m, lda );
+        auto _x = vector<TX>(
+            (TX*) &x[(incx > 0 ? 0 : (-m + 1)*incx)],
+            m, incx );
+        auto _y = vector<TY>(
+            (TY*) &y[(incy > 0 ? 0 : (-n + 1)*incy)],
+            n, incy );
+
+        geru( alpha, _y, _x, _A );
     }
 }
 

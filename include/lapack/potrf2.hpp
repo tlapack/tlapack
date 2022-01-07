@@ -82,10 +82,10 @@ int potrf2( uplo_t uplo, matrix_t& A )
     // Constants
     const T one( 1.0 );
     const real_t rzero( 0.0 );
-    const auto& n = A.extent(0);
+    const auto& n = nrows(A);
 
     // Check arguments
-    lapack_error_if( A.extent(0) != A.extent(1), -2 );
+    lapack_error_if( nrows(A) != ncols(A), -2 );
 
     // Quick return
     if (n == 0)

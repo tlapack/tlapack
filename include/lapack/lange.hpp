@@ -53,8 +53,8 @@ lange( norm_t normType, const matrix_t& A )
 
     // constants
     const real_t rzero(0.0);
-    const auto& m = A.extent(0);
-    const auto& n = A.extent(1);
+    const auto& m = nrows(A);
+    const auto& n = ncols(A);
 
     // quick return
     if (m == 0 || n == 0)

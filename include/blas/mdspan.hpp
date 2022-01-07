@@ -57,6 +57,15 @@ constexpr auto submatrix(
     return std::experimental::submdspan( A, rows, cols );
 }
 
+// Subvector
+template< class ET, class Exts, class LP, class AP,
+          class SliceSpec >
+constexpr auto subvector(
+    const mdspan<ET,Exts,LP,AP>& v,
+    SliceSpec rows ) noexcept {
+    return std::experimental::submdspan( v, rows );
+}
+
 namespace internal{
 
 using std::experimental::dextents;
@@ -134,17 +143,16 @@ using std::array;
  *      matrix object using the abstraction A(i,j) = i + j * lda
  */
 template< typename T, typename integral_type >
-inline auto colmajor_matrix(
+constexpr inline auto colmajor_matrix(
     T* A, 
     dextents<2>::size_type m, 
     dextents<2>::size_type n, 
     integral_type lda )
 {
     using extents_t = dextents<2>;
-    using strides_t = array<integral_type, 2>;
     using mapping = typename layout_stride::template mapping< extents_t >;
 
-    const strides_t strides = {1,lda};
+    const array<integral_type, 2> strides = {1,lda};
 
     return mdspan< T, extents_t, layout_stride > (
         A, mapping( extents_t(m,n), strides )
@@ -152,19 +160,36 @@ inline auto colmajor_matrix(
 }
 
 template< typename T, typename integral_type >
-inline auto vector(
+constexpr inline auto vector(
     T* x,
     dextents<1>::size_type n,
     integral_type ldim )
 {
     using extents_t = dextents<1>;
-    using strides_t = array<integral_type, 1>;
     using mapping = typename layout_stride::template mapping< extents_t >;
 
-    const strides_t strides = {ldim};
+    const array<integral_type, 1> strides = {ldim};
 
     return mdspan< T, extents_t, layout_stride > (
         x, mapping( extents_t(n), strides )
+    );
+}
+
+// Transpose
+template< class ET, class Exts, class AP >
+constexpr auto transpose(
+    const mdspan<ET,Exts,layout_stride,AP>& A ) noexcept
+{    
+    using mapping = typename layout_stride::template mapping< Exts >;
+    
+    const auto m  = A.extent(0);
+    const auto n  = A.extent(1);
+    const auto s0 = A.stride(0);
+    const auto s1 = A.stride(1);
+    const array<typename Exts::size_type, 2> strides = {s1,s0};
+
+    return mdspan<ET,Exts,layout_stride,AP>(
+        A.data(), mapping( Exts(n,m), strides )
     );
 }
 

@@ -29,111 +29,55 @@ namespace lapack {
  * 
  * @ingroup geqrf
  */
-template<typename TA>
+template< class matrix_t, class vector_t, class work_t >
 int org2r(
-    blas::idx_t m, blas::idx_t n, blas::idx_t k,
-    TA* A, blas::idx_t lda,
-    const TA* tau,
-    TA* work )
+    typename matrix_t::size_type k, matrix_t& A, vector_t &tau, work_t &work )
 {
     using blas::scal;
-    using blas::internal::colmajor_matrix;
-
+    using T     = typename matrix_t::element_type;
+    using idx_t = typename matrix_t::size_type;
+    using pair  = std::pair<idx_t,idx_t>;
+    
     // constants
-    const TA zero( 0.0 );
-    const TA one( 1.0 );
+    const T zero( 0.0 );
+    const T one ( 1.0 );
+    const auto m = nrows(A);
+    const auto n = ncols(A);
 
     // check arguments
-    lapack_error_if( m < 0, -1 );
-    lapack_error_if( n < 0 || n > m, -2 );
-    lapack_error_if( k < 0 || k > n, -3 );
-    lapack_error_if( lda < m, -5 );
+    lapack_error_if( size(tau)  < std::min<idx_t>( m, n ), -2 );
+    lapack_error_if( size(work) < n-1, -3 );
 
     // quick return
     if (n <= 0) return 0;
-
-    // Matrix views
-    auto _A = colmajor_matrix<TA>( A, m, n, lda );
     
     // Initialise columns k:n-1 to columns of the unit matrix
     for (idx_t j = k; j < n; ++j) {
         for (idx_t l = 0; l < m; ++l)
-	        _A(l,j) = zero;
-        _A(j,j) = one;
+	        A(l,j) = zero;
+        A(j,j) = one;
     }
 
     for (idx_t i = k-1; i != idx_t(-1); --i) {
 
         // Apply $H_{i+1}$ to $A( i:m-1, i:n-1 )$ from the left
         if ( i+1 < n ){
-            _A(i,i) = one;
-            larf( Side::Left, m-i, n-i-1, &(_A(i,i)), 1, tau[i], &(_A(i,i+1)), lda, work+i );
+            A(i,i) = one;
+
+            // Define v and C
+            auto v = submatrix( A, pair(i,m), i );
+            auto C = submatrix( A, pair(i,m), pair(i+1,n) );
+            auto w = subvector( work, pair(i,n-1) );
+
+            larf( left_side, v, tau(i), C, w );
         }
         if ( i+1 < m )
-            scal( m-i-1, -tau[i], &(_A(i+1,i)), 1 );
-        _A(i,i) = one - tau[i];
+            scal( m-i-1, -tau(i), &A(i+1,i), 1 );
+        A(i,i) = one - tau(i);
 
         // Set A( 0:i-1, i ) to zero
         for (idx_t l = 0; l < i; l++)
-            _A(l,i) = zero;
-    }
-
-    return 0;
-}
-
-/** Generates a m-by-n matrix Q with orthogonal columns.
- * 
- * @param work Vector of size n-1.
- * @see org2r( blas::idx_t, blas::idx_t, blas::idx_t, TA*, blas::idx_t, const Ttau* )
- * 
- * @ingroup geqrf
- */
-template<typename TA>
-int org2r(
-    blas::idx_t m, blas::idx_t n, blas::idx_t k,
-    TA* A, blas::idx_t lda,
-    const real_type<TA>* tau,
-    TA* work )
-{
-    using blas::internal::colmajor_matrix;
-    
-    // constants
-    const TA zero( 0.0 );
-    const TA one( 1.0 );
-
-    // check arguments
-    lapack_error_if( m < 0, -1 );
-    lapack_error_if( n < 0 || n > m, -2 );
-    lapack_error_if( k < 0 || k > n, -3 );
-    lapack_error_if( lda < m, -5 );
-
-    // quick return
-    if (n <= 0) return 0;
-
-    // Matrix views
-    auto _A = colmajor_matrix<TA>( A, m, n, lda );
-    
-    // Initialise columns k:n-1 to columns of the unit matrix
-    for (idx_t j = k; j < n; ++j) {
-        for (idx_t l = 0; l < m; ++l)
-	        _A(l,j) = zero;
-        _A(j,j) = one;
-    }
-
-    for (idx_t i = k-1; i != idx_t(-1); --i) {
-
-        // Apply $H_{i+1}$ to $A( i:m-1, i:n-1 )$ from the left
-        if ( i+1 < n ){
-            _A(i,i) = one;
-            larf( Side::Left, m-i, n-i-1, &(_A(i,i)), 1, tau[i], &(_A(i,i+1)), lda, work+i );
-        }
-        if ( i+1 < m )
-            scal( m-i-1, -tau[i], &(_A(i+1,i)), 1 );
-        _A(i,i) = one - tau[i];
-
-        // Set A( 0:i-1, i ) to zero
-        for (idx_t l = 0; l < i; l++)
-            _A(l,i) = zero;
+            A(l,i) = zero;
     }
 
     return 0;
