@@ -62,6 +62,49 @@ namespace blas {
  *
  * @ingroup her2
  */
+template<
+    class matrixA_t,
+    class vectorX_t, class vectorY_t,
+    class alpha_t >
+void her2(
+    blas::Uplo  uplo,
+    const alpha_t& alpha,
+    const vectorX_t& x, const vectorY_t& y,
+    const matrixA_t& A )
+{
+    // data traits
+    using idx_t = size_type< matrixA_t >;
+
+    // constants
+    const idx_t n = size(x);
+
+    // check arguments
+    blas_error_if( uplo != Uplo::Lower &&
+                   uplo != Uplo::Upper );
+    blas_error_if( size(y)  != n );
+    blas_error_if( nrows(A) != ncols(A) ||
+                   nrows(A) != n );
+
+    if (uplo == Uplo::Upper) {
+        for (idx_t j = 0; j < n; ++j) {
+            auto tmp1 = alpha * conj( y(j) );
+            auto tmp2 = conj( alpha * x(j) );
+            for (idx_t i = 0; i < j; ++i)
+                A(i,j) += x(i)*tmp1 + y(i)*tmp2;
+            A(j,j) = real( A(j,j) ) + real( x(j)*tmp1 + y(j)*tmp2 );
+        }
+    }
+    else {
+        for (idx_t j = 0; j < n; ++j) {
+            auto tmp1 = alpha * conj( y(j) );
+            auto tmp2 = conj( alpha * x(j) );
+            A(j,j) = real( A(j,j) ) + real( x(j)*tmp1 + y(j)*tmp2 );
+            for (idx_t i = j+1; i < n; ++i)
+                A(i,j) += x(i)*tmp1 + y(i)*tmp2;
+        }
+    }
+}
+
 template< typename TA, typename TX, typename TY >
 void her2(
     blas::Layout layout,
@@ -74,6 +117,7 @@ void her2(
 {
     typedef blas::scalar_type<TA, TX, TY> scalar_t;
     using blas::internal::colmajor_matrix;
+    using blas::internal::vector;
 
     // constants
     const scalar_t zero( 0.0 );
@@ -96,78 +140,17 @@ void her2(
     if (layout == Layout::RowMajor) {
         uplo = (uplo == Uplo::Lower ? Uplo::Upper : Uplo::Lower);
     }
-        
+    
     // Matrix views
     auto _A = colmajor_matrix<TA>( A, n, n, lda );
+    const auto _x = vector<TX>(
+        (TX*) &x[(incx > 0 ? 0 : (-n + 1)*incx)],
+        n, incx );
+    const auto _y = vector<TY>(
+        (TY*) &y[(incy > 0 ? 0 : (-n + 1)*incy)],
+        n, incy );
 
-    idx_t kx = (incx > 0 ? 0 : (-n + 1)*incx);
-    idx_t ky = (incy > 0 ? 0 : (-n + 1)*incy);
-    if (uplo == Uplo::Upper) {
-        if (incx == 1 && incy == 1) {
-            // unit stride
-            for (idx_t j = 0; j < n; ++j) {
-                // note: NOT skipping if x[j] or y[j] is zero, for consistent NAN handling
-                scalar_t tmp1 = alpha * conj( y[j] );
-                scalar_t tmp2 = conj( alpha * x[j] );
-                for (idx_t i = 0; i < j; ++i) {
-                    _A(i,j) += x[i]*tmp1 + y[i]*tmp2;
-                }
-                _A(j,j) = real( _A(j,j) ) + real( x[j]*tmp1 + y[j]*tmp2 );
-            }
-        }
-        else {
-            // non-unit stride
-            idx_t jx = kx;
-            idx_t jy = ky;
-            for (idx_t j = 0; j < n; ++j) {
-                scalar_t tmp1 = alpha * conj( y[jy] );
-                scalar_t tmp2 = conj( alpha * x[jx] );
-                idx_t ix = kx;
-                idx_t iy = ky;
-                for (idx_t i = 0; i < j; ++i) {
-                    _A(i,j) += x[ix]*tmp1 + y[iy]*tmp2;
-                    ix += incx;
-                    iy += incy;
-                }
-                _A(j,j) = real( _A(j,j) ) + real( x[jx]*tmp1 + y[jy]*tmp2 );
-                jx += incx;
-                jy += incy;
-            }
-        }
-    }
-    else {
-        // lower triangle
-        if (incx == 1 && incy == 1) {
-            // unit stride
-            for (idx_t j = 0; j < n; ++j) {
-                scalar_t tmp1 = alpha * conj( y[j] );
-                scalar_t tmp2 = conj( alpha * x[j] );
-                _A(j,j) = real( _A(j,j) ) + real( x[j]*tmp1 + y[j]*tmp2 );
-                for (idx_t i = j+1; i < n; ++i) {
-                    _A(i,j) += x[i]*tmp1 + y[i]*tmp2;
-                }
-            }
-        }
-        else {
-            // non-unit stride
-            idx_t jx = kx;
-            idx_t jy = ky;
-            for (idx_t j = 0; j < n; ++j) {
-                scalar_t tmp1 = alpha * conj( y[jy] );
-                scalar_t tmp2 = conj( alpha * x[jx] );
-                _A(j,j) = real( _A(j,j) ) + real( x[jx]*tmp1 + y[jy]*tmp2 );
-                idx_t ix = jx;
-                idx_t iy = jy;
-                for (idx_t i = j+1; i < n; ++i) {
-                    ix += incx;
-                    iy += incy;
-                    _A(i,j) += x[ix]*tmp1 + y[iy]*tmp2;
-                }
-                jx += incx;
-                jy += incy;
-            }
-        }
-    }
+    her2( uplo, alpha, _x, _y, _A );
 }
 
 }  // namespace blas

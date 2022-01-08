@@ -55,6 +55,48 @@ namespace blas {
  *
  * @ingroup her
  */
+template< class matrixA_t, class vectorX_t, class alpha_t,
+    enable_if_t<(
+    /* Requires: */
+        ! is_complex<alpha_t>::value
+    ), int > = 0
+>
+void her(
+    blas::Uplo uplo,
+    const alpha_t& alpha,  // zher takes double alpha; use real
+    const vectorX_t& x,
+    matrixA_t& A )
+{
+    // data traits
+    using idx_t = size_type< matrixA_t >;
+
+    // constants
+    const idx_t n = size(x);
+
+    // check arguments
+    blas_error_if( uplo != Uplo::Lower &&
+                   uplo != Uplo::Upper );
+    blas_error_if( nrows(A) != ncols(A) ||
+                   nrows(A) != n );
+
+    if (uplo == Uplo::Upper) {
+        for (idx_t j = 0; j < n; ++j) {
+            auto tmp = alpha * conj( x(j) );
+            for (idx_t i = 0; i < j; ++i)
+                A(i,j) += x(i) * tmp;
+            A(j,j) = real( A(j,j) ) + real( x(j) * tmp );
+        }
+    }
+    else {
+        for (idx_t j = 0; j < n; ++j) {
+            auto tmp = alpha * conj( x(j) );
+            A(j,j) = real( A(j,j) ) + real( tmp * x(j) );
+            for (idx_t i = j+1; i < n; ++i)
+                A(i,j) += x(i) * tmp;
+        }
+    }
+}
+
 template< typename TA, typename TX >
 void her(
     blas::Layout layout,
@@ -64,9 +106,9 @@ void her(
     TX const *x, blas::int_t incx,
     TA       *A, blas::idx_t lda )
 {
-    typedef blas::scalar_type<TA, TX> scalar_t;
     typedef blas::real_type<TA, TX> real_t;
     using blas::internal::colmajor_matrix;
+    using blas::internal::vector;
     
     // constants
     const real_t zero( 0 );
@@ -91,62 +133,11 @@ void her(
     
     // Matrix views
     auto _A = colmajor_matrix<TA>( A, n, n, lda );
+    const auto _x = vector<TX>(
+        (TX*) &x[(incx > 0 ? 0 : (-n + 1)*incx)],
+        n, incx );
 
-    idx_t kx = (incx > 0 ? 0 : (-n + 1)*incx);
-    if (uplo == Uplo::Upper) {
-        if (incx == 1) {
-            // unit stride
-            for (idx_t j = 0; j < n; ++j) {
-                // note: NOT skipping if x[j] is zero, for consistent NAN handling
-                scalar_t tmp = alpha * conj( x[j] );
-                for (idx_t i = 0; i < j; ++i) {
-                    _A(i,j) += x[i] * tmp;
-                }
-                _A(j,j) = real( _A(j,j) ) + real( x[j] * tmp );
-            }
-        }
-        else {
-            // non-unit stride
-            idx_t jx = kx;
-            for (idx_t j = 0; j < n; ++j) {
-                scalar_t tmp = alpha * conj( x[jx] );
-                idx_t ix = kx;
-                for (idx_t i = 0; i < j; ++i) {
-                    _A(i,j) += x[ix] * tmp;
-                    ix += incx;
-                }
-                _A(j,j) = real( _A(j,j) ) + real( x[jx] * tmp );
-                jx += incx;
-            }
-        }
-    }
-    else {
-        // lower triangle
-        if (incx == 1) {
-            // unit stride
-            for (idx_t j = 0; j < n; ++j) {
-                scalar_t tmp = alpha * conj( x[j] );
-                _A(j,j) = real( _A(j,j) ) + real( tmp * x[j] );
-                for (idx_t i = j+1; i < n; ++i) {
-                    _A(i,j) += x[i] * tmp;
-                }
-            }
-        }
-        else {
-            // non-unit stride
-            idx_t jx = kx;
-            for (idx_t j = 0; j < n; ++j) {
-                scalar_t tmp = alpha * conj( x[jx] );
-                _A(j,j) = real( _A(j,j) ) + real( tmp * x[jx] );
-                idx_t ix = jx;
-                for (idx_t i = j+1; i < n; ++i) {
-                    ix += incx;
-                    _A(i,j) += x[ix] * tmp;
-                }
-                jx += incx;
-            }
-        }
-    }
+    her( uplo, alpha, _x, _A );
 }
 
 }  // namespace blas

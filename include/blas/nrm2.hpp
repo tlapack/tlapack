@@ -37,16 +37,15 @@ namespace blas {
  *
  * @ingroup nrm2
  */
-template< typename T >
-real_type<T>
-nrm2(
-    blas::idx_t n,
-    T const * x, blas::int_t incx )
+template< class vector_t >
+real_type< typename vector_t::element_type >
+nrm2( const vector_t& x )
 {
-    typedef real_type<T> real_t;
+    using real_t = real_type< typename vector_t::element_type >;
+    using idx_t  = size_type< vector_t >;
 
-    // check arguments
-    blas_error_if( incx <= 0 );
+    // constants
+    const idx_t n = size(x);
 
     // constants
     const real_t zero(0.0);
@@ -71,33 +70,15 @@ nrm2(
     real_t amed = zero;
     real_t abig = zero;
 
-    if (incx == 1) {
-        // unit stride
-        for (idx_t i = 0; i < n; ++i)
-        {
-            real_t ax = blas::abs( x[i] );
-            if( ax > tbig )
-                abig += (ax*sbig) * (ax*sbig);
-            else if( ax < tsml ) {
-                if( abig == zero ) asml += (ax*ssml) * (ax*ssml);
-            } else
-                amed += ax * ax;
-        }
-    }
-    else {
-        // non-unit stride
-        idx_t ix = 0;
-        for (idx_t i = 0; i < n; ++i)
-        {
-            real_t ax = blas::abs( x[ix] ); 
-            if( ax > tbig )
-                abig += (ax*sbig) * (ax*sbig);
-            else if( ax < tsml ) {
-                if( abig == zero ) asml += (ax*ssml) * (ax*ssml);
-            } else
-                amed += ax * ax;
-            ix += incx;
-        }
+    for (idx_t i = 0; i < n; ++i)
+    {
+        real_t ax = blas::abs( x(i) );
+        if( ax > tbig )
+            abig += (ax*sbig) * (ax*sbig);
+        else if( ax < tsml ) {
+            if( abig == zero ) asml += (ax*ssml) * (ax*ssml);
+        } else
+            amed += ax * ax;
     }
 
     // Combine abig and amed or amed and asml if
@@ -141,6 +122,21 @@ nrm2(
     }
 
     return scl * sqrt( sumsq );
+}
+
+template< typename T >
+real_type<T>
+nrm2(
+    blas::idx_t n,
+    T const * x, blas::int_t incx )
+{
+    using internal::vector;
+
+    // check arguments
+    blas_error_if( incx <= 0 );
+
+    const auto _x = vector<T>( (T*) x, n, incx );
+    return nrm2( _x );
 }
 
 }  // namespace blas

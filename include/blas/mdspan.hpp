@@ -48,12 +48,36 @@ ncols( const mdspan<ET,Exts,LP,AP>& x ) {
 }
 
 // Submatrix
-template< class ET, class Exts, class LP, class AP,
-          class SliceSpecRow, class SliceSpecCol >
+template< 
+    class ET, class Exts, class LP, class AP,
+    class SliceSpecRow, class SliceSpecCol,
+    enable_if_t<(
+    /* Requires: */
+        !is_convertible_v< SliceSpecRow, size_t > &&
+        !is_convertible_v< SliceSpecCol, size_t >
+    ), int > = 0
+>
 constexpr auto submatrix(
     const mdspan<ET,Exts,LP,AP>& A,
-    SliceSpecRow rows,
-    SliceSpecCol cols ) noexcept {
+    const SliceSpecRow& rows,
+    const SliceSpecCol& cols ) noexcept {
+    return std::experimental::submdspan( A, rows, cols );
+}
+
+// Extract vector from matrix
+template<
+    class ET, class Exts, class LP, class AP,
+    class SliceSpecRow, class SliceSpecCol,
+    enable_if_t<(
+    /* Requires: */
+        is_convertible_v< SliceSpecRow, size_t > ||
+        is_convertible_v< SliceSpecCol, size_t >
+    ), int > = 0
+>
+constexpr auto extractVector(
+    const mdspan<ET,Exts,LP,AP>& A,
+    const SliceSpecRow& rows,
+    const SliceSpecCol& cols ) noexcept {
     return std::experimental::submdspan( A, rows, cols );
 }
 
@@ -62,11 +86,11 @@ template< class ET, class Exts, class LP, class AP,
           class SliceSpec >
 constexpr auto subvector(
     const mdspan<ET,Exts,LP,AP>& v,
-    SliceSpec rows ) noexcept {
+    const SliceSpec& rows ) noexcept {
     return std::experimental::submdspan( v, rows );
 }
 
-namespace internal{
+namespace internal {
 
 using std::experimental::dextents;
 using std::experimental::layout_stride;

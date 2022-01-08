@@ -135,7 +135,7 @@ int larft(
     if (is_same_v< direction_t, forward_t >) {
         T(0,0) = tau(0);
         for (idx_t i = 1; i < k; ++i) {
-            auto Ti = submatrix( T, pair(0,i), i );
+            auto Ti = extractVector( T, pair(0,i), i );
             if (tau(i) == tzero) {
                 // H(i)  =  I
                 for (idx_t j = 0; j <= i; ++j)
@@ -150,7 +150,7 @@ int larft(
                     gemv( conjTranspose,
                         -tau(i),
                         submatrix( V, pair(i+1,n), pair(0,i) ),
-                        submatrix( V, pair(i+1,n), i ),
+                        extractVector( V, pair(i+1,n), i ),
                         one, Ti
                     );
                 }
@@ -170,7 +170,7 @@ int larft(
                         gemv( noTranspose,
                             -tau(i),
                             submatrix( V, pair(0,i), pair(i+1,n) ),
-                            submatrix( V, i, pair(i+1,n) ),
+                            extractVector( V, i, pair(i+1,n) ),
                             one, Ti
                         );
                     }
@@ -186,7 +186,7 @@ int larft(
     else { // direct==Direction::Backward
         T(k-1,k-1) = tau(k-1);
         for (idx_t i = k-2; i != idx_t(-1); --i) {
-            auto Ti = submatrix( T, pair(i+1,k), i );
+            auto Ti = extractVector( T, pair(i+1,k), i );
             if (tau(i) == tzero) {
                 for (idx_t j = i; j < k; ++j)
                     T(j,i) = zero;
@@ -199,7 +199,7 @@ int larft(
                     gemv( conjTranspose,
                         -tau(i),
                         submatrix( V, pair(0,n-k+i), pair(i+1,k) ),
-                        submatrix( V, pair(0,n-k+i), i ),
+                        extractVector( V, pair(0,n-k+i), i ),
                         one, Ti
                     );
                 }
@@ -219,7 +219,7 @@ int larft(
                         gemv( noTranspose,
                             -tau(i),
                             submatrix( V, pair(i+1,k), pair(0,n-k+i) ),
-                            submatrix( V, i, pair(0,n-k+i) ),
+                            extractVector( V, i, pair(0,n-k+i) ),
                             one, Ti
                         );
                     }

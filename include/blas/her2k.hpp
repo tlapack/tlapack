@@ -87,6 +87,137 @@ namespace blas {
  *
  * @ingroup her2k
  */
+template<
+    class matrixA_t, class matrixB_t, class matrixC_t, 
+    class alpha_t, class beta_t,
+    enable_if_t<(
+    /* Requires: */
+        ! is_complex<beta_t>::value
+    ), int > = 0
+>
+void her2k(
+    blas::Uplo uplo,
+    blas::Op trans,
+    const alpha_t& alpha, const matrixA_t& A, const matrixB_t& B,
+    const beta_t& beta, matrixC_t& C )
+{
+    // data traits
+    using TA    = type_t< matrixA_t >;
+    using TB    = type_t< matrixB_t >;
+    using idx_t = size_type< matrixC_t >;
+
+    // using
+    using scalar_t = scalar_type<TA,TB>;
+
+    // constants
+    const idx_t n = (trans == Op::NoTrans) ? nrows(A) : ncols(A);
+    const idx_t k = (trans == Op::NoTrans) ? ncols(A) : nrows(A);
+
+    // check arguments
+    blas_error_if( uplo != Uplo::Lower &&
+                   uplo != Uplo::Upper &&
+                   uplo != Uplo::General );
+    blas_error_if( trans != Op::NoTrans &&
+                   trans != Op::ConjTrans );
+    blas_error_if( nrows(B) != nrows(A) ||
+                   ncols(B) != ncols(A) );
+    blas_error_if( nrows(C) == ncols(C) &&
+                   nrows(C) == n );
+
+    if (trans == Op::NoTrans) {
+        if (uplo != Uplo::Lower) {
+        // uplo == Uplo::Upper or uplo == Uplo::General
+            for(idx_t j = 0; j < n; ++j) {
+
+                for(idx_t i = 0; i < j; ++i)
+                    C(i,j) *= beta;
+                C(j,j) = beta * real( C(j,j) );
+
+                for(idx_t l = 0; l < k; ++l) {
+
+                    auto alphaConjBjl = alpha*conj( B(j,l) );
+                    auto conjAlphaAjl = conj( alpha*A(j,l) );
+
+                    for(idx_t i = 0; i < j; ++i) {
+                        C(i,j) += A(i,l)*alphaConjBjl
+                                + B(i,l)*conjAlphaAjl;
+                    }
+                    C(j,j) += 2 * real( A(j,l) * alphaConjBjl );
+                }
+            }
+        }
+        else { // uplo == Uplo::Lower
+            for(idx_t j = 0; j < n; ++j) {
+
+                C(j,j) = beta * real( C(j,j) );
+                for(idx_t i = j+1; i < n; ++i)
+                    C(i,j) *= beta;
+
+                for(idx_t l = 0; l < k; ++l) {
+
+                    auto alphaConjBjl = alpha*conj( B(j,l) );
+                    auto conjAlphaAjl = conj( alpha*A(j,l) );
+
+                    C(j,j) += 2 * real( A(j,l) * alphaConjBjl );
+                    for(idx_t i = j+1; i < n; ++i) {
+                        C(i,j) += A(i,l) * alphaConjBjl
+                                + B(i,l) * conjAlphaAjl;
+                    }
+                }
+            }
+        }
+    }
+    else { // trans == Op::ConjTrans
+        if (uplo != Uplo::Lower) {
+        // uplo == Uplo::Upper or uplo == Uplo::General
+            for(idx_t j = 0; j < n; ++j) {
+                for(idx_t i = 0; i <= j; ++i) {
+
+                    scalar_t sum1 = 0;
+                    scalar_t sum2 = 0;
+                    for(idx_t l = 0; l < k; ++l) {
+                        sum1 += conj( A(l,i) ) * B(l,j);
+                        sum2 += conj( B(l,i) ) * A(l,j);
+                    }
+
+                    C(i,j) = (i < j)
+                        ? alpha*sum1 + conj(alpha)*sum2 + beta*C(i,j)
+                        : real( alpha*sum1 + conj(alpha)*sum2 )
+                            + beta*real( C(i,j) );
+                }
+
+            }
+        }
+        else {
+            // uplo == Uplo::Lower
+            for(idx_t j = 0; j < n; ++j) {
+                for(idx_t i = j; i < n; ++i) {
+
+                    scalar_t sum1 = 0;
+                    scalar_t sum2 = 0;
+                    for(idx_t l = 0; l < k; ++l) {
+                        sum1 += conj( A(l,i) ) * B(l,j);
+                        sum2 += conj( B(l,i) ) * A(l,j);
+                    }
+
+                    C(i,j) = (i > j)
+                        ? alpha*sum1 + conj(alpha)*sum2 + beta*C(i,j)
+                        : real( alpha*sum1 + conj(alpha)*sum2 )
+                            + beta*real( C(i,j) );
+                }
+
+            }
+        }
+    }
+
+    if (uplo == Uplo::General) {
+        for(idx_t j = 0; j < n; ++j) {
+            for(idx_t i = j+1; i < n; ++i)
+                C(i,j) = conj( C(j,i) );
+        }
+    }
+}
+
 template< typename TA, typename TB, typename TC >
 void her2k(
     blas::Layout layout,
@@ -101,6 +232,7 @@ void her2k(
 {
     typedef blas::scalar_type<TA, TB, TC> scalar_t;
     using blas::internal::colmajor_matrix;
+    using blas::internal::vector;
 
     // constants
     const scalar_t zero( 0.0 );
@@ -206,99 +338,7 @@ void her2k(
         return;
     }
 
-    // alpha != zero
-    if (trans == Op::NoTrans) {
-        if (uplo != Uplo::Lower) {
-        // uplo == Uplo::Upper or uplo == Uplo::General
-            for(idx_t j = 0; j < n; ++j) {
-
-                for(idx_t i = 0; i < j; ++i)
-                    _C(i,j) *= beta;
-                _C(j,j) = beta * real( _C(j,j) );
-
-                for(idx_t l = 0; l < k; ++l) {
-
-                    scalar_t alphaConjBjl = alpha*conj( _B(j,l) );
-                    scalar_t conjAlphaAjl = conj( alpha*_A(j,l) );
-
-                    for(idx_t i = 0; i < j; ++i) {
-                        _C(i,j) += _A(i,l)*alphaConjBjl
-                                + _B(i,l)*conjAlphaAjl;
-                    }
-                    _C(j,j) += 2 * real( _A(j,l) * alphaConjBjl );
-                }
-            }
-        }
-        else { // uplo == Uplo::Lower
-            for(idx_t j = 0; j < n; ++j) {
-
-                _C(j,j) = beta * real( _C(j,j) );
-                for(idx_t i = j+1; i < n; ++i)
-                    _C(i,j) *= beta;
-
-                for(idx_t l = 0; l < k; ++l) {
-
-                    scalar_t alphaConjBjl = alpha*conj( _B(j,l) );
-                    scalar_t conjAlphaAjl = conj( alpha*_A(j,l) );
-
-                    _C(j,j) += 2 * real( _A(j,l) * alphaConjBjl );
-                    for(idx_t i = j+1; i < n; ++i) {
-                        _C(i,j) += _A(i,l) * alphaConjBjl
-                                + _B(i,l) * conjAlphaAjl;
-                    }
-                }
-            }
-        }
-    }
-    else { // trans == Op::ConjTrans
-        if (uplo != Uplo::Lower) {
-        // uplo == Uplo::Upper or uplo == Uplo::General
-            for(idx_t j = 0; j < n; ++j) {
-                for(idx_t i = 0; i <= j; ++i) {
-
-                    scalar_t sum1 = zero;
-                    scalar_t sum2 = zero;
-                    for(idx_t l = 0; l < k; ++l) {
-                        sum1 += conj( _A(l,i) ) * _B(l,j);
-                        sum2 += conj( _B(l,i) ) * _A(l,j);
-                    }
-
-                    _C(i,j) = (i < j)
-                        ? alpha*sum1 + conj(alpha)*sum2 + beta*_C(i,j)
-                        : real( alpha*sum1 + conj(alpha)*sum2 )
-                            + beta*real( _C(i,j) );
-                }
-
-            }
-        }
-        else {
-            // uplo == Uplo::Lower
-            for(idx_t j = 0; j < n; ++j) {
-                for(idx_t i = j; i < n; ++i) {
-
-                    scalar_t sum1 = zero;
-                    scalar_t sum2 = zero;
-                    for(idx_t l = 0; l < k; ++l) {
-                        sum1 += conj( _A(l,i) ) * _B(l,j);
-                        sum2 += conj( _B(l,i) ) * _A(l,j);
-                    }
-
-                    _C(i,j) = (i > j)
-                        ? alpha*sum1 + conj(alpha)*sum2 + beta*_C(i,j)
-                        : real( alpha*sum1 + conj(alpha)*sum2 )
-                            + beta*real( _C(i,j) );
-                }
-
-            }
-        }
-    }
-
-    if (uplo == Uplo::General) {
-        for(idx_t j = 0; j < n; ++j) {
-            for(idx_t i = j+1; i < n; ++i)
-                _C(i,j) = conj( _C(j,i) );
-        }
-    }
+    her2k( uplo, trans, alpha, _A, _B, beta, _C );
 }
 
 }  // namespace blas

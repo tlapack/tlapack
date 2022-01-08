@@ -50,7 +50,7 @@ void axpy(
     const idx_t n = size(y);
 
     // check arguments
-    blas_error_if( size(x) < n );
+    blas_error_if( size(x) != n );
 
     for (idx_t i = 0; i < n; ++i)
         y(i) += alpha * x(i);

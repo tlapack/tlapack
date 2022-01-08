@@ -18,6 +18,7 @@ namespace lapack {
     using blas::ncols;
     using blas::submatrix;
     using blas::subvector;
+    using blas::extractVector;
 }
 
 // -----------------------------------------------------------------------------

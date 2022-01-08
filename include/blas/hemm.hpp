@@ -87,7 +87,7 @@ template<
 void hemm(
     blas::Side side,
     blas::Uplo uplo,
-    const alpha_t alpha, const matrixA_t& A, const matrixB_t& B,
+    const alpha_t& alpha, const matrixA_t& A, const matrixB_t& B,
     const beta_t& beta, matrixC_t& C )
 {
     // data traits

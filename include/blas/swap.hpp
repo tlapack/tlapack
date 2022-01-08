@@ -36,32 +36,51 @@ namespace blas {
  *
  * @ingroup swap
  */
+template< class vectorX_t, class vectorY_t >
+void swap( const vectorX_t& x, vectorY_t& y )
+{
+    using idx_t = size_type< vectorY_t >;
+
+    // constants
+    const idx_t n = size(x);
+
+    // check arguments
+    blas_error_if( size(y) != n );
+
+    if( is_same_v< vectorX_t, vectorY_t > ) {
+        for (idx_t i = 0; i < n; ++i)
+            std::swap( x(i), y(i) );
+    }
+    else {
+        for (idx_t i = 0; i < n; ++i) {
+            const auto aux = x(i);
+            x(i) = y(i);
+            y(i) = aux;
+        }
+    }
+}
+
 template< typename TX, typename TY >
 void swap(
     blas::idx_t n,
     TX *x, blas::int_t incx,
     TY *y, blas::int_t incy )
 {
+    using internal::vector;
+
     // check arguments
     blas_error_if( incx == 0 );
     blas_error_if( incy == 0 );
 
-    if (incx == 1 && incy == 1) {
-        // unit stride
-        for (idx_t i = 0; i < n; ++i) {
-            std::swap( x[i], y[i] );
-        }
-    }
-    else {
-        // non-unit stride
-        idx_t ix = (incx > 0 ? 0 : (-n + 1)*incx);
-        idx_t iy = (incy > 0 ? 0 : (-n + 1)*incy);
-        for (idx_t i = 0; i < n; ++i) {
-            std::swap( x[ix], y[iy] );
-            ix += incx;
-            iy += incy;
-        }
-    }
+    // Views
+    auto _x = vector<TX>(
+        &x[(incx > 0 ? 0 : (-n + 1)*incx)],
+        n, incx );
+    auto _y = vector<TY>(
+        &y[(incy > 0 ? 0 : (-n + 1)*incy)],
+        n, incy );
+        
+    swap( _x, _y );
 }
 
 }  // namespace blas

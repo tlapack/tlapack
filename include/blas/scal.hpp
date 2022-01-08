@@ -31,27 +31,31 @@ namespace blas {
  *
  * @ingroup scal
  */
+template< class vector_t, class alpha_t >
+void scal( const alpha_t& alpha, vector_t const& x )
+{
+    using idx_t = size_type< vector_t >;
+
+    // constants
+    const idx_t n = size(x);
+
+    for (idx_t i = 0; i < n; ++i)
+        x(i) *= alpha;
+}
+
 template< typename TA, typename TX >
 void scal(
     blas::idx_t n,
     const TA& alpha,
     TX* x, blas::int_t incx )
 {
+    using internal::vector;
+
     // check arguments
     blas_error_if( incx <= 0 );
 
-    if (incx == 1) {
-        // unit stride
-        for (idx_t i = 0; i < n; ++i) {
-            x[i] *= alpha;
-        }
-    }
-    else {
-        // non-unit stride
-        for (idx_t i = 0; i < n; ++i) {
-            x[i*incx] *= alpha;
-        }
-    }
+    const auto _x = vector<TX>( (TX*) x, n, incx );
+    return scal( alpha, _x );
 }
 
 }  // namespace blas

@@ -55,7 +55,7 @@ inline int geqr2(
     // Local parameters
     int info = 0;
     work_t* work;
-    if( is_same_v< TA, Ttau > && n-1 < m ) {
+    if( !is_same_v< TA, Ttau > || n-1 >= m ) {
         work = new work_t[ (n > 0) ? n-1 : 0 ];
     } else {
         work = tau + 1;
@@ -68,7 +68,7 @@ inline int geqr2(
     
     info = geqr2( _A, _tau, _work );
 
-    if( is_same_v< TA, Ttau > && n-1 < m )
+    if( !is_same_v< TA, Ttau > || n-1 >= m )
         delete[] work;
         
     return info;
