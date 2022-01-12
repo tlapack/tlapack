@@ -75,6 +75,93 @@ namespace blas {
  *
  * @ingroup syrk
  */
+template<
+    class matrixA_t, class matrixC_t, 
+    class alpha_t, class beta_t
+>
+void syrk(
+    blas::Uplo uplo,
+    blas::Op trans,
+    const alpha_t& alpha, const matrixA_t& A,
+    const beta_t& beta, matrixC_t& C )
+{
+    // data traits
+    using TA    = type_t< matrixA_t >;
+    using idx_t = size_type< matrixC_t >;
+
+    // constants
+    const idx_t n = (trans == Op::NoTrans) ? nrows(A) : ncols(A);
+    const idx_t k = (trans == Op::NoTrans) ? ncols(A) : nrows(A);
+
+    // check arguments
+    blas_error_if( uplo != Uplo::Lower &&
+                   uplo != Uplo::Upper &&
+                   uplo != Uplo::General );
+    blas_error_if( trans != Op::NoTrans &&
+                   trans != Op::ConjTrans );
+    blas_error_if( nrows(C) == ncols(C) &&
+                   nrows(C) == n );
+
+    if (trans == Op::NoTrans) {
+        if (uplo != Uplo::Lower) {
+        // uplo == Uplo::Upper or uplo == Uplo::General
+            for(idx_t j = 0; j < n; ++j) {
+
+                for(idx_t i = 0; i <= j; ++i)
+                    C(i,j) *= beta;
+
+                for(idx_t l = 0; l < k; ++l) {
+                    auto alphaAjl = alpha*A(j,l);
+                    for(idx_t i = 0; i <= j; ++i)
+                        C(i,j) += A(i,l)*alphaAjl;
+                }
+            }
+        }
+        else { // uplo == Uplo::Lower
+            for(idx_t j = 0; j < n; ++j) {
+
+                for(idx_t i = j; i < n; ++i)
+                    C(i,j) *= beta;
+
+                for(idx_t l = 0; l < k; ++l) {
+                    auto alphaAjl = alpha*A(j,l);
+                    for(idx_t i = j; i < n; ++i)
+                        C(i,j) += A(i,l)*alphaAjl;
+                }
+            }
+        }
+    }
+    else { // trans == Op::Trans
+        if (uplo != Uplo::Lower) {
+        // uplo == Uplo::Upper or uplo == Uplo::General
+            for(idx_t j = 0; j < n; ++j) {
+                for(idx_t i = 0; i <= j; ++i) {
+                    TA sum = 0;
+                    for(idx_t l = 0; l < k; ++l)
+                        sum += A(l,i) * A(l,j);
+                    C(i,j) = alpha*sum + beta*C(i,j);
+                }
+            }
+        }
+        else { // uplo == Uplo::Lower
+            for(idx_t j = 0; j < n; ++j) {
+                for(idx_t i = j; i < n; ++i) {
+                    TA sum = 0;
+                    for(idx_t l = 0; l < k; ++l)
+                        sum +=  A(l,i) * A(l,j);
+                    C(i,j) = alpha*sum + beta*C(i,j);
+                }
+            }
+        }
+    }
+
+    if (uplo == Uplo::General) {
+        for(idx_t j = 0; j < n; ++j) {
+            for(idx_t i = j+1; i < n; ++i)
+                C(i,j) = C(j,i);
+        }
+    }
+}
 template< typename TA, typename TC >
 void syrk(
     blas::Layout layout,
@@ -90,8 +177,8 @@ void syrk(
     using blas::internal::colmajor_matrix;
 
     // constants
-    const scalar_t zero( 0.0 );
-    const scalar_t one( 1.0 );
+    const scalar_t zero( 0 );
+    const scalar_t one( 1 );
 
     // check arguments
     blas_error_if( layout != Layout::ColMajor &&
@@ -181,68 +268,8 @@ void syrk(
         }
         return;
     }
-
-    // alpha != zero
-    if (trans == Op::NoTrans) {
-        if (uplo != Uplo::Lower) {
-        // uplo == Uplo::Upper or uplo == Uplo::General
-            for(idx_t j = 0; j < n; ++j) {
-
-                for(idx_t i = 0; i <= j; ++i)
-                    _C(i,j) *= beta;
-
-                for(idx_t l = 0; l < k; ++l) {
-                    scalar_t alphaAjl = alpha*_A(j,l);
-                    for(idx_t i = 0; i <= j; ++i)
-                        _C(i,j) += _A(i,l)*alphaAjl;
-                }
-            }
-        }
-        else { // uplo == Uplo::Lower
-            for(idx_t j = 0; j < n; ++j) {
-
-                for(idx_t i = j; i < n; ++i)
-                    _C(i,j) *= beta;
-
-                for(idx_t l = 0; l < k; ++l) {
-                    scalar_t alphaAjl = alpha*_A(j,l);
-                    for(idx_t i = j; i < n; ++i)
-                        _C(i,j) += _A(i,l)*alphaAjl;
-                }
-            }
-        }
-    }
-    else { // trans == Op::Trans
-        if (uplo != Uplo::Lower) {
-        // uplo == Uplo::Upper or uplo == Uplo::General
-            for(idx_t j = 0; j < n; ++j) {
-                for(idx_t i = 0; i <= j; ++i) {
-                    scalar_t sum = zero;
-                    for(idx_t l = 0; l < k; ++l)
-                        sum += _A(l,i) * _A(l,j);
-                    _C(i,j) = alpha*sum + beta*_C(i,j);
-                }
-            }
-        }
-        else { // uplo == Uplo::Lower
-            for(idx_t j = 0; j < n; ++j) {
-                for(idx_t i = j; i < n; ++i) {
-                    scalar_t sum = zero;
-                    for(idx_t l = 0; l < k; ++l) {
-                        sum +=  _A(l,i) * _A(l,j);
-                    }
-                    _C(i,j) = alpha*sum + beta*_C(i,j);
-                }
-            }
-        }
-    }
-
-    if (uplo == Uplo::General) {
-        for(idx_t j = 0; j < n; ++j) {
-            for(idx_t i = j+1; i < n; ++i)
-                _C(i,j) = _C(j,i);
-        }
-    }
+    
+    syrk( uplo, trans, alpha, _A, beta, _C );
 }
 
 }  // namespace blas

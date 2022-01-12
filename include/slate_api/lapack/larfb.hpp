@@ -110,8 +110,9 @@ namespace lapack {
  * 
  * @ingroup auxiliary
  */
+
 template <typename TV, typename TC>
-inline int larfb(
+int larfb(
     Side side, Op trans,
     Direction direct, StoreV storeV,
     idx_t m, idx_t n, idx_t k,
@@ -119,13 +120,188 @@ inline int larfb(
     TV const* T, idx_t ldT,
     TC* C, idx_t ldC )
 {
-    typedef blas::scalar_type<TV, TC> scalar_t;
-    scalar_t *work = new scalar_t[ (side == Side::Left) ? k*n : k*m ];
+    typedef scalar_type<TV, TC> scalar_t;
+    using blas::internal::colmajor_matrix;
 
-    int info = larfb(  side, trans, direct, storeV,
-            m, n, k, V, ldV, T, ldT, C, ldC, work );
+    // check arguments
+    if( is_complex<TV>::value )
+        lapack_error_if( trans == Op::Trans, -2 );
 
-    delete[] work;
+    // Quick return
+    if (m <= 0 || n <= 0) return 0;
+
+    // local variables
+    scalar_t *W = new scalar_t[ (side == Side::Left) ? k*n : m*k ];
+
+    // Views
+    const auto _V = (storeV == StoreV::Columnwise)
+                  ? colmajor_matrix<TV>( (TV*) V, (side == Side::Left) ? m : n, k, ldV )
+                  : colmajor_matrix<TV>( (TV*) V, k, (side == Side::Left) ? m : n, ldV );
+    const auto _T = colmajor_matrix<TV>( (TV*) T, k, k, ldT );
+    auto _C = colmajor_matrix<TC>( C, m, n, ldC );
+    auto _W = (side == Side::Left)
+               ? colmajor_matrix<scalar_t>( W, k, n )
+               : colmajor_matrix<scalar_t>( W, m, k );
+
+    int info = 0;
+    if (storeV == StoreV::Columnwise) {
+        if (direct == Direction::Forward) {
+            if (side == Side::Left) {
+                if (trans == Op::NoTrans) {
+                    info = larfb(
+                        left_side, noTranspose,
+                        forward, columnwise_storage,
+                        _V, _T, _C, _W );
+                } else if (trans == Op::Trans) {
+                    info = larfb(
+                        left_side, transpose,
+                        forward, columnwise_storage,
+                        _V, _T, _C, _W );
+                } else { // (trans == Op::ConjTrans)
+                    info = larfb(
+                        left_side, conjTranspose,
+                        forward, columnwise_storage,
+                        _V, _T, _C, _W );
+                }
+            }
+            else { // side == Side::Right
+                if (trans == Op::NoTrans) {
+                    info = larfb(
+                        right_side, noTranspose,
+                        forward, columnwise_storage,
+                        _V, _T, _C, _W );
+                } else if (trans == Op::Trans) {
+                    info = larfb(
+                        right_side, transpose,
+                        forward, columnwise_storage,
+                        _V, _T, _C, _W );
+                } else { // (trans == Op::ConjTrans)
+                    info = larfb(
+                        right_side, conjTranspose,
+                        forward, columnwise_storage,
+                        _V, _T, _C, _W );
+                }
+            }
+        }
+        else { // direct == Direction::Backward
+            if (side == Side::Left) {
+                if (trans == Op::NoTrans) {
+                    info = larfb(
+                        left_side, noTranspose,
+                        backward, columnwise_storage,
+                        _V, _T, _C, _W );
+                } else if (trans == Op::Trans) {
+                    info = larfb(
+                        left_side, transpose,
+                        backward, columnwise_storage,
+                        _V, _T, _C, _W );
+                } else { // (trans == Op::ConjTrans)
+                    info = larfb(
+                        left_side, conjTranspose,
+                        backward, columnwise_storage,
+                        _V, _T, _C, _W );
+                }
+            }
+            else { // side == Side::Right
+                if (trans == Op::NoTrans) {
+                    info = larfb(
+                        right_side, noTranspose,
+                        backward, columnwise_storage,
+                        _V, _T, _C, _W );
+                } else if (trans == Op::Trans) {
+                    info = larfb(
+                        right_side, transpose,
+                        backward, columnwise_storage,
+                        _V, _T, _C, _W );
+                } else { // (trans == Op::ConjTrans)
+                    info = larfb(
+                        right_side, conjTranspose,
+                        backward, columnwise_storage,
+                        _V, _T, _C, _W );
+                }
+            }
+        }
+    }
+    else { // storeV == StoreV::Rowwise
+        if (direct == Direction::Forward) {
+            if (side == Side::Left) {
+                if (trans == Op::NoTrans) {
+                    info = larfb(
+                        left_side, noTranspose,
+                        forward, rowwise_storage,
+                        _V, _T, _C, _W );
+                } else if (trans == Op::Trans) {
+                    info = larfb(
+                        left_side, transpose,
+                        forward, rowwise_storage,
+                        _V, _T, _C, _W );
+                } else { // (trans == Op::ConjTrans)
+                    info = larfb(
+                        left_side, conjTranspose,
+                        forward, rowwise_storage,
+                        _V, _T, _C, _W );
+                }
+            }
+            else { // side == Side::Right
+                if (trans == Op::NoTrans) {
+                    info = larfb(
+                        right_side, noTranspose,
+                        forward, rowwise_storage,
+                        _V, _T, _C, _W );
+                } else if (trans == Op::Trans) {
+                    info = larfb(
+                        right_side, transpose,
+                        forward, rowwise_storage,
+                        _V, _T, _C, _W );
+                } else { // (trans == Op::ConjTrans)
+                    info = larfb(
+                        right_side, conjTranspose,
+                        forward, rowwise_storage,
+                        _V, _T, _C, _W );
+                }
+            }
+        }
+        else { // direct == Direction::Backward
+            if (side == Side::Left) {
+                if (trans == Op::NoTrans) {
+                    info = larfb(
+                        left_side, noTranspose,
+                        backward, rowwise_storage,
+                        _V, _T, _C, _W );
+                } else if (trans == Op::Trans) {
+                    info = larfb(
+                        left_side, transpose,
+                        backward, rowwise_storage,
+                        _V, _T, _C, _W );
+                } else { // (trans == Op::ConjTrans)
+                    info = larfb(
+                        left_side, conjTranspose,
+                        backward, rowwise_storage,
+                        _V, _T, _C, _W );
+                }
+            }
+            else { // side == Side::Right
+                if (trans == Op::NoTrans) {
+                    info = larfb(
+                        right_side, noTranspose,
+                        backward, rowwise_storage,
+                        _V, _T, _C, _W );
+                } else if (trans == Op::Trans) {
+                    info = larfb(
+                        right_side, transpose,
+                        backward, rowwise_storage,
+                        _V, _T, _C, _W );
+                } else { // (trans == Op::ConjTrans)
+                    info = larfb(
+                        right_side, conjTranspose,
+                        backward, rowwise_storage,
+                        _V, _T, _C, _W );
+                }
+            }
+        }
+    }
+
+    delete[] W;
     return info;
 }
 

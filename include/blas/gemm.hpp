@@ -64,14 +64,12 @@ void gemm(
     // data traits
     using TA    = type_t< matrixA_t >;
     using TB    = type_t< matrixB_t >;
-    using TC    = type_t< matrixC_t >;
     using idx_t = size_type< matrixA_t >;
 
     // using
     using scalar_t = scalar_type<alpha_t,TA,TB>;
 
     // constants
-    const TC zero( 0 );
     const idx_t m = nrows(C);
     const idx_t n = ncols(C);
     const idx_t k = (transA == Op::NoTrans) ? ncols(A) : nrows(A);
@@ -90,28 +88,6 @@ void gemm(
     blas_error_if(
         ((transB == Op::NoTrans) ? nrows(B) : ncols(B)) != k );
 
-    // quick return
-    if (m == 0 || n == 0)
-        return;
-
-    // alpha == zero
-    if (alpha == alpha_t(0)) {
-        if (beta == beta_t(0)) {
-            for(idx_t j = 0; j < n; ++j) {
-                for(idx_t i = 0; i < m; ++i)
-                    C(i,j) = zero;
-            }
-        }
-        else if (beta != beta_t(1)) {
-            for(idx_t j = 0; j < n; ++j) {
-                for(idx_t i = 0; i < m; ++i)
-                    C(i,j) *= beta;
-            }
-        }
-        return;
-    }
-
-    // alpha != zero
     if (transA == Op::NoTrans) {
         if (transB == Op::NoTrans) {
             for(idx_t j = 0; j < n; ++j) {

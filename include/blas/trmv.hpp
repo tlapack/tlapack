@@ -59,7 +59,12 @@ void trmv(
     vectorX_t& x )
 {
     // data traits
+    using TA    = type_t< matrixA_t >;
+    using TX    = type_t< vectorX_t >;
     using idx_t = size_type< matrixA_t >;
+
+    // using
+    using scalar_t = scalar_type<TA,TX>;
 
     // constants
     const auto n = nrows(A);
@@ -74,11 +79,8 @@ void trmv(
                    trans != Op::Conj );
     blas_error_if( diag != Diag::NonUnit &&
                    diag != Diag::Unit );
+    blas_error_if( nrows(A) != ncols(A) );
     blas_error_if( size(x) != n );
-
-    // quick return
-    if (n == 0)
-        return;
 
     if (trans == Op::NoTrans) {
         // Form x := A*x
@@ -86,7 +88,7 @@ void trmv(
             // upper
             for (idx_t j = 0; j < n; ++j) {
                 // note: NOT skipping if x(j) is zero, for consistent NAN handling
-                auto tmp = x(j);
+                scalar_t tmp = x(j);
                 for (idx_t i = 0; i < j; ++i)
                     x(i) += tmp * A(i,j);
                 if (nonunit)
@@ -97,7 +99,7 @@ void trmv(
             // lower
             for (idx_t j = n-1; j != idx_t(-1); --j) {
                 // note: NOT skipping if x(j) is zero ...
-                auto tmp = x(j);
+                scalar_t tmp = x(j);
                 for (idx_t i = n-1; i >= j+1; --i)
                     x(i) += tmp * A(i,j);
                 if (nonunit)
@@ -111,7 +113,7 @@ void trmv(
             // upper
             for (idx_t j = 0; j < n; ++j) {
                 // note: NOT skipping if x(j) is zero, for consistent NAN handling
-                auto tmp = x(j);
+                scalar_t tmp = x(j);
                 for (idx_t i = 0; i < j; ++i)
                     x(i) += tmp * conj( A(i,j) );
                 if (nonunit)
@@ -122,7 +124,7 @@ void trmv(
             // lower
             for (idx_t j = n-1; j != idx_t(-1); --j) {
                 // note: NOT skipping if x(j) is zero ...
-                auto tmp = x(j);
+                scalar_t tmp = x(j);
                 for (idx_t i = n-1; i >= j+1; --i)
                     x(i) += tmp * conj( A(i,j) );
                 if (nonunit)
@@ -135,7 +137,7 @@ void trmv(
         if (uplo == Uplo::Upper) {
             // upper
             for (idx_t j = n-1; j != idx_t(-1); --j) {
-                auto tmp = x(j);
+                scalar_t tmp = x(j);
                 if (nonunit)
                     tmp *= A(j,j);
                 for (idx_t i = j - 1; i != idx_t(-1); --i)
@@ -146,7 +148,7 @@ void trmv(
         else {
             // lower
             for (idx_t j = 0; j < n; ++j) {
-                auto tmp = x(j);
+                scalar_t tmp = x(j);
                 if (nonunit)
                     tmp *= A(j,j);
                 for (idx_t i = j + 1; i < n; ++i)
@@ -161,7 +163,7 @@ void trmv(
         if (uplo == Uplo::Upper) {
             // upper
             for (idx_t j = n-1; j != idx_t(-1); --j) {
-                auto tmp = x(j);
+                scalar_t tmp = x(j);
                 if (nonunit)
                     tmp *= conj( A(j,j) );
                 for (idx_t i = j - 1; i != idx_t(-1); --i)
@@ -172,7 +174,7 @@ void trmv(
         else {
             // lower
             for (idx_t j = 0; j < n; ++j) {
-                auto tmp = x(j);
+                scalar_t tmp = x(j);
                 if (nonunit)
                     tmp *= conj( A(j,j) );
                 for (idx_t i = j + 1; i < n; ++i)

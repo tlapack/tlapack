@@ -41,8 +41,8 @@ template< class vectorX_t, class vectorY_t >
 auto dotu( const vectorX_t& x, const vectorY_t& y )
 {
     using T = scalar_type<
-        typename vectorX_t::element_type,
-        typename vectorY_t::element_type
+        type_t< vectorX_t >,
+        type_t< vectorY_t >
     >;
     using idx_t = size_type< vectorX_t >;
 

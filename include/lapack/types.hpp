@@ -31,6 +31,7 @@ using blas::size_type;
 using blas::enable_if_t;
 using blas::is_convertible_v;
 using blas::is_same_v;
+using blas::zero_t;
 
 // -----------------------------------------------------------------------------
 // Diagonal matrices

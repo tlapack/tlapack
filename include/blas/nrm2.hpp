@@ -38,18 +38,18 @@ namespace blas {
  * @ingroup nrm2
  */
 template< class vector_t >
-real_type< typename vector_t::element_type >
+real_type< type_t<vector_t> >
 nrm2( const vector_t& x )
 {
-    using real_t = real_type< typename vector_t::element_type >;
+    using real_t = real_type< type_t<vector_t> >;
     using idx_t  = size_type< vector_t >;
 
     // constants
     const idx_t n = size(x);
 
     // constants
-    const real_t zero(0.0);
-    const real_t one(1.0);
+    const real_t zero( 0 );
+    const real_t one( 1 );
     const real_t tsml = blas::blue_min<real_t>();
     const real_t tbig = blas::blue_max<real_t>();
     const real_t ssml = blas::blue_scalingMin<real_t>();
@@ -58,6 +58,9 @@ nrm2( const vector_t& x )
     // scaled sum of squares
     real_t scl = one;
     real_t sumsq = zero;
+
+    // quick return
+    if( n <= 0 ) return zero;
 
     // Compute the sum of squares in 3 accumulators:
     //    abig -- sums of squares scaled down to avoid overflow

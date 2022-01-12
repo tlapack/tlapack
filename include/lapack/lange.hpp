@@ -36,25 +36,26 @@ namespace lapack {
  * 
  * @ingroup auxiliary
 **/
-template< typename norm_t, typename matrix_t,
+template< typename norm_t, typename matrix_t, class work_t,
     enable_if_t<
         ( is_same_v<norm_t,max_norm_t> || 
           is_same_v<norm_t,one_norm_t> || 
           is_same_v<norm_t,inf_norm_t> || 
           is_same_v<norm_t,frob_norm_t> ), bool > = true
 >
-real_type< typename matrix_t::element_type >
-lange( norm_t normType, const matrix_t& A )
+real_type< type_t< matrix_t > >
+lange( norm_t normType, const matrix_t& A, work_t& work )
 {
-    using real_t    = real_type< typename matrix_t::element_type >;
-    using idx_t     = typename matrix_t::size_type;
+    using T      = type_t< matrix_t >;
+    using real_t = real_type< T >;
+    using idx_t  = size_type< matrix_t >;
     using blas::isnan;
     using blas::sqrt;
 
     // constants
     const real_t rzero(0.0);
-    const auto& m = nrows(A);
-    const auto& n = ncols(A);
+    const auto m = nrows(A);
+    const auto n = ncols(A);
 
     // quick return
     if (m == 0 || n == 0)
@@ -97,28 +98,25 @@ lange( norm_t normType, const matrix_t& A )
     }
     else if ( is_same_v<norm_t,inf_norm_t> )
     {
-        real_t *work = new real_t[m];
         for (idx_t i = 0; i < m; ++i)
-            work[i] = blas::abs( A(i,0) );
+            work(i) = blas::abs( A(i,0) );
         
         for (idx_t j = 1; j < n; ++j)
             for (idx_t i = 0; i < m; ++i)
-                work[i] += blas::abs( A(i,j) );
+                work(i) += blas::abs( A(i,j) );
 
         for (idx_t i = 0; i < m; ++i)
         {
-            real_t temp = work[i];
+            real_t temp = work(i);
 
             if (temp > norm)
                 norm = temp;
             else {
                 if (isnan(temp)) {
-                    delete[] work;
                     return temp;
                 }
             }
         }
-        delete[] work;
     }
     else if ( is_same_v<norm_t,frob_norm_t> )
     {
@@ -129,6 +127,19 @@ lange( norm_t normType, const matrix_t& A )
     }
 
     return norm;
+}
+
+template< typename norm_t, typename matrix_t,
+    enable_if_t<
+        ( is_same_v<norm_t,max_norm_t> || 
+          is_same_v<norm_t,one_norm_t> ||
+          is_same_v<norm_t,frob_norm_t> ), bool > = true
+>
+inline
+real_type< type_t< matrix_t > >
+lange( norm_t normType, const matrix_t& A )
+{
+    return lange( normType, A, blas::empty_v );
 }
 
 } // lapack

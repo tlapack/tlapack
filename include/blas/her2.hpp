@@ -9,7 +9,6 @@
 #define BLAS_HER2_HH
 
 #include "blas/utils.hpp"
-#include "blas/syr2.hpp"
 
 namespace blas {
 

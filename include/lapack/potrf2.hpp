@@ -69,10 +69,10 @@ template< class uplo_t, class matrix_t,
 >
 int potrf2( uplo_t uplo, matrix_t& A )
 {
-    using T         = typename matrix_t::element_type;
-    using real_t    = blas::real_type<T>;
-    using idx_t     = typename matrix_t::size_type;
-    using pair      = std::pair<idx_t,idx_t>;
+    using T      = type_t< matrix_t >;
+    using real_t = blas::real_type<T>;
+    using idx_t  = size_type< matrix_t >;
+    using pair   = std::pair<idx_t,idx_t>;
     
     using blas::trsm;
     using blas::syrk;

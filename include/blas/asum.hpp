@@ -31,12 +31,12 @@ namespace blas {
  * @ingroup asum
  */
 template< class vector_t >
-real_type< typename vector_t::element_type >
+real_type< type_t< vector_t > >
 asum( vector_t const& x )
 {
-    using T     = typename vector_t::element_type;
-    using idx_t = size_type< vector_t >;
-    typedef real_type<T> real_t;
+    using T      = type_t< vector_t >;
+    using idx_t  = size_type< vector_t >;
+    using real_t = real_type< T >;
 
     // constants
     const idx_t n = size(x);

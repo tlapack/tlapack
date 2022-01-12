@@ -31,11 +31,11 @@ namespace lapack {
  */
 template< class matrix_t, class vector_t, class work_t >
 int org2r(
-    typename matrix_t::size_type k, matrix_t& A, vector_t &tau, work_t &work )
+    size_type< matrix_t > k, matrix_t& A, vector_t &tau, work_t &work )
 {
     using blas::scal;
-    using T     = typename matrix_t::element_type;
-    using idx_t = typename matrix_t::size_type;
+    using T      = type_t< matrix_t >;
+    using idx_t  = size_type< matrix_t >;
     using pair  = std::pair<idx_t,idx_t>;
     
     // constants
@@ -65,7 +65,7 @@ int org2r(
             A(i,i) = one;
 
             // Define v and C
-            auto v = extractVector( A, pair(i,m), i );
+            auto v = col( A, i, pair(i,m) );
             auto C = submatrix( A, pair(i,m), pair(i+1,n) );
             auto w = subvector( work, pair(i,n-1) );
 

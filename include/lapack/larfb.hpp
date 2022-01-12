@@ -11,11 +11,10 @@
 #ifndef __LARFB_HH__
 #define __LARFB_HH__
 
+#include "lapack/utils.hpp"
 #include "lapack/types.hpp"
 #include "lapack/lacpy.hpp"
-
 #include "tblas.hpp"
-#include "slate_api/blas.hpp"
 
 namespace lapack {
 
@@ -119,398 +118,407 @@ namespace lapack {
  * 
  * @ingroup auxiliary
  */
-template <typename TV, typename TC>
+template<
+    class matrixV_t, class matrixT_t, class matrixC_t, class matrixW_t,
+    class side_t, class trans_t, class direction_t, class storage_t,
+    enable_if_t<(
+    /* Requires: */
+    (
+        is_same_v< side_t, left_side_t > || 
+        is_same_v< side_t, right_side_t > 
+    ) && (
+        is_same_v< trans_t, noTranspose_t > || 
+        is_same_v< trans_t, conjTranspose_t > ||
+        is_same_v< trans_t, transpose_t >
+    ) && (
+        is_same_v< direction_t, forward_t > || 
+        is_same_v< direction_t, backward_t > 
+    ) && (
+        is_same_v< storage_t, columnwise_storage_t > || 
+        is_same_v< storage_t, rowwise_storage_t >
+    )
+    ), int > = 0
+>
 int larfb(
-    Side side, Op trans,
-    Direction direct, StoreV storeV,
-    idx_t m, idx_t n, idx_t k,
-    TV const* V, idx_t ldV,
-    TV const* T, idx_t ldT,
-    TC* C, idx_t ldC,
-    blas::scalar_type<TV, TC> *W )
+    side_t side, trans_t trans,
+    direction_t direction, storage_t storeMode,
+    const matrixV_t& V, const matrixT_t& T,
+    matrixC_t& C, matrixW_t& W )
 {
-    typedef blas::real_type<TV, TC> real_t;
-    using blas::conj;
+    using idx_t = size_type< matrixV_t >;
+    using pair  = std::pair<idx_t,idx_t>;
+    using blas::trmm;
+    using blas::gemm;
+    using blas::full_extent;
 
     // constants
-    const real_t one(1.0);
+    const type_t< matrixW_t > one( 1 );
+
+    // constants
+    const idx_t m = nrows(C);
+    const idx_t n = ncols(C);
+    const idx_t k = nrows(T);
 
     // check arguments
-    if( blas::is_complex<TV>::value )
-        lapack_error_if( trans == Op::Trans, -2 );
+    if( is_complex< type_t< matrixV_t > >::value )
+        lapack_error_if( (is_same_v< trans_t, transpose_t >), -2 );
 
     // Quick return
     if (m <= 0 || n <= 0) return 0;
 
-    if (storeV == StoreV::Columnwise) {
-        if (direct == Direction::Forward) {
-            if (side == Side::Left) {
+    if( is_same_v< storage_t, columnwise_storage_t > ){
+        if( is_same_v< direction_t, forward_t > ){
+            if( is_same_v< side_t, left_side_t > ){
                 // W is an k-by-n matrix
                 // V is an m-by-k matrix
 
                 // Matrix views
-                TV const* V1 = V;
-                TV const* V2 = V+k;
-                TC* C1 = C;
-                TC* C2 = C+k;
+                const auto V1 = submatrix( V, pair(0,k), full_extent );
+                const auto V2 = submatrix( V, pair(k,m), full_extent );
+                auto C1 = submatrix( C, pair(0,k), full_extent );
+                auto C2 = submatrix( C, pair(k,m), full_extent );
 
                 // W := C1
-                lacpy(Uplo::General,k,n,C1,ldC,W,k);
+                lacpy( general_matrix, C1, W );
                 // W := V1^H W
-                blas::trmm(
-                    Layout::ColMajor, Side::Left,
-                    Uplo::Lower, Op::ConjTrans, Diag::Unit,
-                    k, n, one, V1, ldV, W, k);
+                trmm(
+                    side, Uplo::Lower,
+                    Op::ConjTrans, Diag::Unit,
+                    one, V1, W );
                 if( m > k )
                     // W := W + V2^H C2
-                    blas::gemm(
-                        Layout::ColMajor, Op::ConjTrans, Op::NoTrans,
-                        k, n, m-k, one, V2, ldV,
-                        C2, ldC, one, W, k);
+                    gemm(
+                        Op::ConjTrans, Op::NoTrans,
+                        one, V2, C2, one, W );
                 // W := op(T) W
-                blas::trmm(
-                    Layout::ColMajor, Side::Left,
-                    Uplo::Upper, trans, Diag::NonUnit,
-                    k, n, one, T, ldT, W, k);
+                trmm(
+                    side, Uplo::Upper,
+                    trans, Diag::NonUnit,
+                    one, T, W );
                 if( m > k )
                     // C2 := C2 - V2 W
-                    blas::gemm(
-                        Layout::ColMajor, Op::NoTrans, Op::NoTrans,
-                        m-k, n, k, -one, V2, ldV,
-                        W, k, one, C2, ldC);
+                    gemm(
+                        Op::NoTrans, Op::NoTrans,
+                        -one, V2, W, one, C2 );
                 // W := - V1 W
-                blas::trmm(
-                    Layout::ColMajor, Side::Left,
-                    Uplo::Lower, Op::NoTrans, Diag::Unit,
-                    k, n, -one, V1, ldV, W, k);
+                trmm(
+                    side, Uplo::Lower,
+                    Op::NoTrans, Diag::Unit,
+                    -one, V1, W );
 
                 // C1 := C1 + W
                 for( idx_t j = 0; j < n; ++j )
                     for( idx_t i = 0; i < k; ++i )
-                        C1[ i + j*ldC ] += W[ i + j*k ];
+                        C1(i,j) += W(i,j);
             }
             else { // side == Side::Right
                 // W is an m-by-k matrix
                 // V is an n-by-k matrix
 
                 // Matrix views
-                TV const* V1 = V;
-                TV const* V2 = V+k;
-                TC* C1 = C;
-                TC* C2 = C+k*ldC;
+                const auto V1 = submatrix( V, pair(0,k), full_extent );
+                const auto V2 = submatrix( V, pair(k,n), full_extent );
+                auto C1 = submatrix( C, full_extent, pair(0,k) );
+                auto C2 = submatrix( C, full_extent, pair(k,n) );
 
                 // W := C1
-                lacpy(Uplo::General,m,k,C1,ldC,W,m);
+                lacpy( general_matrix, C1, W );
                 // W := W V1
-                blas::trmm(
-                    Layout::ColMajor, Side::Right,
-                    Uplo::Lower, Op::NoTrans, Diag::Unit,
-                    m, k, one, V1, ldV, W, m);
+                trmm(
+                    side, Uplo::Lower,
+                    Op::NoTrans, Diag::Unit,
+                    one, V1, W );
                 if( n > k )
                     // W := W + C2 V2
-                    blas::gemm(
-                        Layout::ColMajor, Op::NoTrans, Op::NoTrans,
-                        m, k, n-k, one,
-                        C2, ldC, V2, ldV, one, W, m);
+                    gemm(
+                        Op::NoTrans, Op::NoTrans,
+                        one, C2, V2, one, W );
                 // W := W op(T)
-                blas::trmm(
-                    Layout::ColMajor, Side::Right,
-                    Uplo::Upper, trans, Diag::NonUnit,
-                    m, k, one, T, ldT, W, m);
+                trmm(
+                    Side::Right, Uplo::Upper,
+                    trans, Diag::NonUnit,
+                    one, T, W );
                 if( n > k )
                     // C2 := C2 - W V2^H
-                    blas::gemm(
-                        Layout::ColMajor, Op::NoTrans, Op::ConjTrans,
-                        m, n-k, k, -one, W, m,
-                        V2, ldV, one, C2, ldC);
+                    gemm(
+                        Op::NoTrans, Op::ConjTrans,
+                        -one, W, V2, one, C2 );
                 // W := - W V1^H
-                blas::trmm(
-                    Layout::ColMajor, Side::Right,
-                    Uplo::Lower, Op::ConjTrans, Diag::Unit,
-                    m, k, -one, V1, ldV, W, m);
+                trmm(
+                    side, Uplo::Lower,
+                    Op::ConjTrans, Diag::Unit,
+                    -one, V1, W );
                 
                 // C1 := C1 + W
                 for( idx_t j = 0; j < k; ++j )
                     for( idx_t i = 0; i < m; ++i )
-                        C1[ i + j*ldC ] += W[ i + j*m ];
+                        C1(i,j) += W(i,j);
             }
         }
         else { // direct == Direction::Backward
-            if (side == Side::Left) {
+            if( is_same_v< side_t, left_side_t > ){
                 // W is an k-by-n matrix
                 // V is an m-by-k matrix
 
                 // Matrix views
-                TV const* V1 = V;
-                TV const* V2 = V+m-k;
-                TC* C1 = C;
-                TC* C2 = C+m-k;
+                const auto V1 = submatrix( V, pair(0,m-k), full_extent );
+                const auto V2 = submatrix( V, pair(m-k,m), full_extent );
+                auto C1 = submatrix( C, pair(0,m-k), full_extent );
+                auto C2 = submatrix( C, pair(m-k,m), full_extent );
 
                 // W := C2
-                lacpy(Uplo::General,k,n,C2,ldC,W,k);
+                lacpy( general_matrix, C2, W );
                 // W := V2^H W
-                blas::trmm(
-                    Layout::ColMajor, Side::Left,
-                    Uplo::Upper, Op::ConjTrans, Diag::Unit,
-                    k, n, one, V2, ldV, W, k);
+                trmm(
+                    side, Uplo::Upper,
+                    Op::ConjTrans, Diag::Unit,
+                    one, V2, W );
                 if( m > k )
                     // W := W + V1^H C1
-                    blas::gemm(
-                        Layout::ColMajor, Op::ConjTrans, Op::NoTrans,
-                        k, n, m-k, one, V1, ldV,
-                        C1, ldC, one, W, k);
+                    gemm(
+                        Op::ConjTrans, Op::NoTrans,
+                        one, V1, C1, one, W );
                 // W := op(T) W
-                blas::trmm(
-                    Layout::ColMajor, Side::Left,
-                    Uplo::Lower, trans, Diag::NonUnit,
-                    k, n, one, T, ldT, W, k);
+                trmm(
+                    side, Uplo::Lower,
+                    trans, Diag::NonUnit,
+                    one, T, W );
                 if( m > k )
                     // C1 := C1 - V1 W
-                    blas::gemm(
-                        Layout::ColMajor, Op::NoTrans, Op::NoTrans,
-                        m-k, n, k, -one, V1, ldV,
-                        W, k, one, C1, ldC);
+                    gemm(
+                        Op::NoTrans, Op::NoTrans,
+                        -one, V1, W, one, C1 );
                 // W := - V2 W
-                blas::trmm(
-                    Layout::ColMajor, Side::Left,
-                    Uplo::Upper, Op::NoTrans, Diag::Unit,
-                    k, n, -one, V2, ldV, W, k);
+                trmm(
+                    side, Uplo::Upper,
+                    Op::NoTrans, Diag::Unit,
+                    -one, V2, W );
 
                 // C2 := C2 + W
                 for( idx_t j = 0; j < n; ++j )
                     for( idx_t i = 0; i < k; ++i )
-                        C2[ i + j*ldC ] += W[ i + j*k ];
+                        C2(i,j) += W(i,j);
             }
             else { // side == Side::Right
                 // W is an m-by-k matrix
                 // V is an n-by-k matrix
 
                 // Matrix views
-                TV const* V1 = V;
-                TV const* V2 = V+n-k;
-                TC* C1 = C;
-                TC* C2 = C+(n-k)*ldC;
+                const auto V1 = submatrix( V, pair(0,n-k), full_extent );
+                const auto V2 = submatrix( V, pair(n-k,n), full_extent );
+                auto C1 = submatrix( C, full_extent, pair(0,n-k) );
+                auto C2 = submatrix( C, full_extent, pair(n-k,n) );
 
-                // W := C(0:m,n-k:n)
-                lacpy(Uplo::General,m,k,C2,ldC,W,m);
-                // W := W V(n-k:n,0:k)
-                blas::trmm(
-                    Layout::ColMajor, Side::Right,
-                    Uplo::Upper, Op::NoTrans, Diag::Unit,
-                    m, k, one, V2, ldV, W, m);
+                // W := C2
+                lacpy( general_matrix, C2, W );
+                // W := W V2
+                trmm(
+                    side, Uplo::Upper,
+                    Op::NoTrans, Diag::Unit,
+                    one, V2, W );
                 if( n > k )
-                    // W := W + C(0:m,0:n-k) V(0:n-k,0:k)
-                    blas::gemm(
-                        Layout::ColMajor, Op::NoTrans, Op::NoTrans,
-                        m, k, n-k, one,
-                        C1, ldC, V1, ldV, one, W, m);
+                    // W := W + C1 V1
+                    gemm(
+                        Op::NoTrans, Op::NoTrans,
+                        one, C1, V1, one, W );
                 // W := W op(T)
-                blas::trmm(
-                    Layout::ColMajor, Side::Right,
-                    Uplo::Lower, trans, Diag::NonUnit,
-                    m, k, one, T, ldT, W, m);
+                trmm(
+                    side, Uplo::Lower,
+                    trans, Diag::NonUnit,
+                    one, T, W );
                 if( n > k )
-                    // C(0:m,0:n-k) := C(0:m,0:n-k) - W V(0:n-k,0:k)^H
-                    blas::gemm(
-                        Layout::ColMajor, Op::NoTrans, Op::ConjTrans,
-                        m, n-k, k, -one, W, m,
-                        V1, ldV, one, C1, ldC);
-                // W := - W V(n-k:n,0:k)^H
-                blas::trmm(
-                    Layout::ColMajor, Side::Right,
-                    Uplo::Upper, Op::ConjTrans, Diag::Unit,
-                    m, k, -one, V2, ldV, W, m);
+                    // C1 := C1 - W V1^H
+                    gemm(
+                        Op::NoTrans, Op::ConjTrans,
+                        -one, W, V1, one, C1 );
+                // W := - W V2^H
+                trmm(
+                    side, Uplo::Upper,
+                    Op::ConjTrans, Diag::Unit,
+                    -one, V2, W );
                 
-                // C(0:m,n-k:n) := W
+                // C2 := C2 + W
                 for( idx_t j = 0; j < k; ++j )
                     for( idx_t i = 0; i < m; ++i )
-                        C2[ i + j*ldC ] += W[ i + j*m ];
+                        C2(i,j) += W(i,j);
             }
         }
     }
     else { // storeV == StoreV::Rowwise
-        if (direct == Direction::Forward) {
-            if (side == Side::Left) {
+        if( is_same_v< direction_t, forward_t > ){
+            if( is_same_v< side_t, left_side_t > ){
                 // W is an k-by-n matrix
                 // V is an k-by-m matrix
 
                 // Matrix views
-                TV const* V1 = V;
-                TV const* V2 = V+k*ldV;
-                TC* C1 = C;
-                TC* C2 = C+k;
+                const auto V1 = submatrix( V, full_extent, pair(0,k) );
+                const auto V2 = submatrix( V, full_extent, pair(k,m) );
+                auto C1 = submatrix( C, pair(0,k), full_extent );
+                auto C2 = submatrix( C, pair(k,m), full_extent );
 
                 // W := C1
-                lacpy(Uplo::General,k,n,C1,ldC,W,k);
+                lacpy( general_matrix, C1, W );
                 // W := V1 W
-                blas::trmm(
-                    Layout::ColMajor, Side::Left,
-                    Uplo::Upper, Op::NoTrans, Diag::Unit,
-                    k, n, one, V1, ldV, W, k);
+                trmm(
+                    side, Uplo::Upper,
+                    Op::NoTrans, Diag::Unit,
+                    one, V1, W );
                 if( m > k )
                     // W := W + V2 C2
-                    blas::gemm(
-                        Layout::ColMajor, Op::NoTrans, Op::NoTrans,
-                        k, n, m-k, one, V2, ldV,
-                        C2, ldC, one, W, k);
+                    gemm(
+                        Op::NoTrans, Op::NoTrans,
+                        one, V2, C2, one, W );
                 // W := op(T) W
-                blas::trmm(
-                    Layout::ColMajor, Side::Left,
-                    Uplo::Upper, trans, Diag::NonUnit,
-                    k, n, one, T, ldT, W, k);
+                trmm(
+                    side, Uplo::Upper,
+                    trans, Diag::NonUnit,
+                    one, T, W );
                 if( m > k )
                     // C2 := C2 - V2^H W
-                    blas::gemm(
-                        Layout::ColMajor, Op::ConjTrans, Op::NoTrans,
-                        m-k, n, k, -one, V2, ldV,
-                        W, k, one, C2, ldC);
+                    gemm(
+                        Op::ConjTrans, Op::NoTrans,
+                        -one, V2, W, one, C2 );
                 // W := - V1^H W
-                blas::trmm(
-                    Layout::ColMajor, Side::Left,
-                    Uplo::Upper, Op::ConjTrans, Diag::Unit,
-                    k, n, -one, V1, ldV, W, k);
+                trmm(
+                    side, Uplo::Upper,
+                    Op::ConjTrans, Diag::Unit,
+                    -one, V1, W );
 
                 // C1 := C1 - W
                 for( idx_t j = 0; j < n; ++j )
                     for( idx_t i = 0; i < k; ++i )
-                        C1[ i + j*ldC ] += W[ i + j*k ];
+                        C1(i,j) += W(i,j);
             }
             else { // side == Side::Right
                 // W is an m-by-k matrix
                 // V is an k-by-n matrix
 
                 // Matrix views
-                TV const* V1 = V;
-                TV const* V2 = V+k*ldV;
-                TC* C1 = C;
-                TC* C2 = C+k*ldC;
+                const auto V1 = submatrix( V, full_extent, pair(0,k) );
+                const auto V2 = submatrix( V, full_extent, pair(k,n) );
+                auto C1 = submatrix( C, full_extent, pair(0,k) );
+                auto C2 = submatrix( C, full_extent, pair(k,n) );
 
-                // W := C(0:m,0:k)
-                lacpy(Uplo::General,m,k,C1,ldC,W,m);
-                // W := W V(0:k,0:k)^H
-                blas::trmm(
-                    Layout::ColMajor, Side::Right,
-                    Uplo::Upper, Op::ConjTrans, Diag::Unit,
-                    m, k, one, V1, ldV, W, m);
+                // W := C1
+                lacpy( general_matrix, C1, W );
+                // W := W V1^H
+                trmm(
+                    side, Uplo::Upper,
+                    Op::ConjTrans, Diag::Unit,
+                    one, V1, W );
                 if( n > k )
-                    // W := W + C(0:m,k:n) V(0:k,k:n)^H
-                    blas::gemm(
-                        Layout::ColMajor, Op::NoTrans, Op::ConjTrans,
-                        m, k, n-k, one,
-                        C2, ldC, V2, ldV, one, W, m);
+                    // W := W + C2 V2^H
+                    gemm(
+                        Op::NoTrans, Op::ConjTrans,
+                        one, C2, V2, one, W );
                 // W := W op(T)
-                blas::trmm(
-                    Layout::ColMajor, Side::Right,
-                    Uplo::Upper, trans, Diag::NonUnit,
-                    m, k, one, T, ldT, W, m);
+                trmm(
+                    side, Uplo::Upper,
+                    trans, Diag::NonUnit,
+                    one, T, W );
                 if( n > k )
-                    // C(0:m,k:n) := C(0:m,k:n) - W V(0:k,k:n)
-                    blas::gemm(
-                        Layout::ColMajor, Op::NoTrans, Op::NoTrans,
-                        m, n-k, k, -one, W, m,
-                        V2, ldV, one, C2, ldC);
-                // W := - W V(0:k,0:k)
-                blas::trmm(
-                    Layout::ColMajor, Side::Right,
-                    Uplo::Upper, Op::NoTrans, Diag::Unit,
-                    m, k, -one, V1, ldV, W, m);
+                    // C2 := C2 - W V2
+                    gemm(
+                        Op::NoTrans, Op::NoTrans,
+                        -one, W, V2, one, C2 );
+                // W := - W V1
+                trmm(
+                    side, Uplo::Upper,
+                    Op::NoTrans, Diag::Unit,
+                    -one, V1, W );
                 
-                // C(0:m,0:k) := W
+                // C1 := C1 + W
                 for( idx_t j = 0; j < k; ++j )
                     for( idx_t i = 0; i < m; ++i )
-                        C1[ i + j*ldC ] += W[ i + j*m ];
+                        C1(i,j) += W(i,j);
             }
         }
         else { // direct == Direction::Backward
-            if (side == Side::Left) {
+            if( is_same_v< side_t, left_side_t > ){
                 // W is an k-by-n matrix
                 // V is an k-by-m matrix
 
                 // Matrix views
-                TV const* V1 = V;
-                TV const* V2 = V+(m-k)*ldV;
-                TC* C1 = C;
-                TC* C2 = C+m-k;
+                const auto V1 = submatrix( V, full_extent, pair(0,m-k) );
+                const auto V2 = submatrix( V, full_extent, pair(m-k,m) );
+                auto C1 = submatrix( C, pair(0,m-k), full_extent );
+                auto C2 = submatrix( C, pair(m-k,m), full_extent );
 
                 // W := C2
-                lacpy(Uplo::General,k,n,C2,ldC,W,k);
+                lacpy( general_matrix, C2, W );
                 // W := V2 W
-                blas::trmm(
-                    Layout::ColMajor, Side::Left,
-                    Uplo::Lower, Op::NoTrans, Diag::Unit,
-                    k, n, one, V2, ldV, W, k);
+                trmm(
+                    side, Uplo::Lower,
+                    Op::NoTrans, Diag::Unit,
+                    one, V2, W );
                 if( m > k )
                     // W := W + V1 C1
-                    blas::gemm(
-                        Layout::ColMajor, Op::NoTrans, Op::NoTrans,
-                        k, n, m-k, one, V1, ldV,
-                        C1, ldC, one, W, k);
+                    gemm(
+                        Op::NoTrans, Op::NoTrans,
+                        one, V1, C1, one, W );
                 // W := op(T) W
-                blas::trmm(
-                    Layout::ColMajor, Side::Left,
-                    Uplo::Lower, trans, Diag::NonUnit,
-                    k, n, one, T, ldT, W, k);
+                trmm(
+                    side, Uplo::Lower,
+                    trans, Diag::NonUnit,
+                    one, T, W );
                 if( m > k )
                     // C1 := C1 - V1^H W
-                    blas::gemm(
-                        Layout::ColMajor, Op::ConjTrans, Op::NoTrans,
-                        m-k, n, k, -one, V1, ldV,
-                        W, k, one, C1, ldC);
+                    gemm(
+                        Op::ConjTrans, Op::NoTrans,
+                        -one, V1, W, one, C1 );
                 // W := - V2^H W
-                blas::trmm(
-                    Layout::ColMajor, Side::Left,
-                    Uplo::Lower, Op::ConjTrans, Diag::Unit,
-                    k, n, -one, V2, ldV, W, k);
+                trmm(
+                    side, Uplo::Lower,
+                    Op::ConjTrans, Diag::Unit,
+                    -one, V2, W );
 
                 // C2 := C2 + W
                 for( idx_t j = 0; j < n; ++j )
                     for( idx_t i = 0; i < k; ++i )
-                        C2[ i + j*ldC ] += W[ i + j*k ];
+                        C2(i,j) += W(i,j);
             }
             else { // side == Side::Right
                 // W is an m-by-k matrix
                 // V is an k-by-n matrix
 
                 // Matrix views
-                TV const* V1 = V;
-                TV const* V2 = V+(n-k)*ldV;
-                TC* C1 = C;
-                TC* C2 = C+(n-k)*ldC;
+                const auto V1 = submatrix( V, full_extent, pair(0,n-k) );
+                const auto V2 = submatrix( V, full_extent, pair(n-k,n) );
+                auto C1 = submatrix( C, full_extent, pair(0,n-k) );
+                auto C2 = submatrix( C, full_extent, pair(n-k,n) );
 
-                // W := C(0:m,n-k:n)
-                lacpy(Uplo::General,m,k,C2,ldC,W,m);
-                // W := W V(0:k,n-k:n)^H
-                blas::trmm(
-                    Layout::ColMajor, Side::Right,
-                    Uplo::Lower, Op::ConjTrans, Diag::Unit,
-                    m, k, one, V2, ldV, W, m);
+                // W := C2
+                lacpy( general_matrix, C2, W );
+                // W := W V2^H
+                trmm(
+                    side, Uplo::Lower,
+                    Op::ConjTrans, Diag::Unit,
+                    one, V2, W );
                 if( n > k )
-                    // W := W + C(0:m,0:n-k) V(0:k,0:n-k)^H
-                    blas::gemm(
-                        Layout::ColMajor, Op::NoTrans, Op::ConjTrans,
-                        m, k, n-k, one,
-                        C1, ldC, V1, ldV, one, W, m);
+                    // W := W + C1 V1^H
+                    gemm(
+                        Op::NoTrans, Op::ConjTrans,
+                        one, C1, V1, one, W );
                 // W := W op(T)
-                blas::trmm(
-                    Layout::ColMajor, Side::Right,
-                    Uplo::Lower, trans, Diag::NonUnit,
-                    m, k, one, T, ldT, W, m);
+                trmm(
+                    side, Uplo::Lower,
+                    trans, Diag::NonUnit,
+                    one, T, W );
                 if( n > k )
-                    // C(0:m,0:n-k) := C(0:m,0:n-k) - W V(0:k,0:n-k)
-                    blas::gemm(
-                        Layout::ColMajor, Op::NoTrans, Op::NoTrans,
-                        m, n-k, k, -one, W, m,
-                        V1, ldV, one, C1, ldC);
-                // W := - W V(0:k,n-k:n)
-                blas::trmm(
-                    Layout::ColMajor, Side::Right,
-                    Uplo::Lower, Op::NoTrans, Diag::Unit,
-                    m, k, -one, V2, ldV, W, m);
+                    // C1 := C1 - W V1
+                    gemm(
+                        Op::NoTrans, Op::NoTrans,
+                        -one, W, V1, one, C1 );
+                // W := - W V2
+                trmm(
+                    side, Uplo::Lower,
+                    Op::NoTrans, Diag::Unit,
+                    -one, V2, W );
                 
-                // C(0:m,n-k:n) := W
+                // C2 := C2 + W
                 for( idx_t j = 0; j < k; ++j )
                     for( idx_t i = 0; i < m; ++i )
-                        C2[ i + j*ldC ] += W[ i + j*m ];
+                        C2(i,j) += W(i,j);
             }
         }
     }

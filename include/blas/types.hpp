@@ -46,6 +46,12 @@ enum class Diag   { NonUnit  = 'N', Unit     = 'U' };
 enum class Side   { Left     = 'L', Right    = 'R' };
 
 // -----------------------------------------------------------------------------
+// Strong numeric expressions
+
+struct zero_t { };
+constexpr zero_t zero = { };
+
+// -----------------------------------------------------------------------------
 // common_type_t is defined in C++14; here's a C++11 definition
 #if __cplusplus >= 201402L
     using std::common_type_t;

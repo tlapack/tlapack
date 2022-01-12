@@ -9,7 +9,6 @@
 #define BLAS_HEMM_HH
 
 #include "blas/utils.hpp"
-#include "blas/symm.hpp"
 
 namespace blas {
 
@@ -99,7 +98,6 @@ void hemm(
     using scalar_t = scalar_type<alpha_t,TA,TB>;
             
     // constants
-    const scalar_t zero( 0.0 );
     const idx_t m = nrows(C);
     const idx_t n = ncols(C);
 
@@ -119,8 +117,8 @@ void hemm(
             for(idx_t j = 0; j < n; ++j) {
                 for(idx_t i = 0; i < m; ++i) {
 
-                    scalar_t alphaTimesBij = alpha*B(i,j);
-                    scalar_t sum = zero;
+                    auto alphaTimesBij = alpha*B(i,j);
+                    scalar_t sum( 0.0 );
 
                     for(idx_t k = 0; k < i; ++k) {
                         C(k,j) += A(k,i) * alphaTimesBij;
@@ -138,8 +136,8 @@ void hemm(
             for(idx_t j = 0; j < n; ++j) {
                 for(idx_t i = m-1; i != idx_t(-1); --i) {
 
-                    scalar_t alphaTimesBij = alpha*B(i,j);
-                    scalar_t sum = zero;
+                    auto alphaTimesBij = alpha*B(i,j);
+                    scalar_t sum( 0.0 );
 
                     for(idx_t k = i+1; k < m; ++k) {
                         C(k,j) += A(k,i) * alphaTimesBij;
@@ -158,7 +156,7 @@ void hemm(
             // uplo == Uplo::Upper or uplo == Uplo::General
             for(idx_t j = 0; j < n; ++j) {
 
-                scalar_t alphaTimesAkj = alpha * real( A(j,j) );
+                auto alphaTimesAkj = alpha * real( A(j,j) );
 
                 for(idx_t i = 0; i < m; ++i)
                     C(i,j) = beta * C(i,j) + B(i,j) * alphaTimesAkj;
@@ -180,7 +178,7 @@ void hemm(
             // uplo == Uplo::Lower
             for(idx_t j = 0; j < n; ++j) {
 
-                scalar_t alphaTimesAkj = alpha * real( A(j,j) );
+                auto alphaTimesAkj = alpha * real( A(j,j) );
 
                 for(idx_t i = 0; i < m; ++i)
                     C(i,j) = beta * C(i,j) + B(i,j) * alphaTimesAkj;

@@ -13,6 +13,7 @@
 #include "lapack/utils.hpp"
 #include "lapack/types.hpp"
 #include "lapack/larft.hpp"
+#include "lapack/larfb.hpp"
 
 namespace lapack {
 
@@ -23,53 +24,50 @@ namespace lapack {
  * 
  * @ingroup geqrf
  */
-template< typename TA, typename TC >
+template<
+    class matrixA_t, class matrixC_t,
+    class tau_t, class matrixW_t,
+    class side_t, class trans_t,
+    enable_if_t<(
+    /* Requires: */
+    (
+        is_same_v< side_t, left_side_t > || 
+        is_same_v< side_t, right_side_t > 
+    ) && (
+        is_same_v< trans_t, noTranspose_t > || 
+        is_same_v< trans_t, conjTranspose_t > ||
+        is_same_v< trans_t, transpose_t >
+    )
+    ), int > = 0
+>
 int unmqr(
-    Side side, Op trans,
-    blas::idx_t m, blas::idx_t n, blas::idx_t k,
-    TA const* A, blas::idx_t lda,
-    TA const* tau,
-    TC* C, blas::idx_t ldc,
-    blas::scalar_type<TA,TC>* work )
+    side_t side, trans_t trans,
+    const matrixA_t& A, const tau_t& tau,
+    matrixC_t& C, matrixW_t& W )
 {
+    using idx_t = size_type< matrixC_t >;
+    using pair  = std::pair<idx_t,idx_t>;
     using blas::max;
     using blas::min;
-    using blas::internal::colmajor_matrix;
+    using blas::full_extent;
 
     // Constants
-    const int nb = 32;      // number of blocks
-
-    // Choose side 
-    idx_t nQ, nw;
-    if( side == Side::Left ){ nQ = m; nw = max( 1, n ); }
-    else                    { nQ = n; nw = max( 1, m ); }
-
-    // check arguments
-    lapack_error_if( side != Side::Left &&
-                     side != Side::Right, -1 );
-    lapack_error_if( trans != Op::NoTrans &&
-                     trans != Op::Trans &&
-                     trans != Op::ConjTrans, -2 );
-    lapack_error_if( m < 0, -3 );
-    lapack_error_if( n < 0, -4 );
-    lapack_error_if( k < 0 || k > nQ, -5 );
-    lapack_error_if( lda < nQ, -7 );
-    lapack_error_if( ldc < m, -10 );
-
-    // Quick return
-    if (m == 0 || n == 0 || k == 0)
-        return 0;
-
-    // Matrix views
-    auto _A = (side == Side::Left)
-            ? colmajor_matrix<TA>( (TA*)A, m, k, lda )
-            : colmajor_matrix<TA>( (TA*)A, n, k, lda );
-    auto _C = colmajor_matrix<TC>( C, m, n, ldc );
+    const idx_t nb = 32; // number of blocks
+    const idx_t m = nrows(C);
+    const idx_t n = ncols(C);
+    const idx_t k = size(tau);
+    const idx_t nA = nrows(A);
+    const idx_t nw = ( is_same_v< side_t, left_side_t > ) ? max(1,n) : max(1,m);
 
     // Preparing loop indexes
     idx_t i0, iN, step;
-    if( (side == Side::Left && trans != Op::NoTrans) ||
-        (side != Side::Left && trans == Op::NoTrans) ) {
+    if(
+        ( is_same_v< side_t, left_side_t > &&
+        ! is_same_v< trans_t, noTranspose_t > )
+    ||
+        ( is_same_v< side_t, right_side_t > &&
+          is_same_v< trans_t, noTranspose_t > )
+    ){
         i0 = 0;
         iN = k-1+nb;
         step = nb;
@@ -79,27 +77,30 @@ int unmqr(
         iN = -nb;
         step = -nb;
     }
-    idx_t mi, ic, ni, jc;
-    if( side == Side::Left ) { ni = n-1; jc = 0; }
-    else                     { mi = m-1; ic = 0; }
     
     // Main loop
     for (idx_t i = i0; i != iN; i += step) {
+        
         idx_t ib = min( nb, k-i );
+        const auto V = submatrix( A, pair(i,nA), pair(i,i+ib) );
+        const auto taui = subvector( tau, pair(i,i+ib) );
+        auto T = submatrix( W, pair(nw,nw+ib), pair(nw,nw+ib) );
 
         // Form the triangular factor of the block reflector
         // $H = H(i) H(i+1) ... H(i+ib-1)$
-        lapack::larft(  Direction::Forward, StoreV::Columnwise,
-                        nQ-i, ib, &_A(i,i), lda, &tau[i], &work[nw*nb], nb );
+        lapack::larft( forward, columnwise_storage, V, taui, T );
 
-        // H or H**H is applied to C[0:m-1,0:n-1]
-        if( side == Side::Left ) { mi = m-i; ic = i; }
-        else                     { ni = n-i; jc = i; }
+        // H or H**H is applied to either C[i:m,0:n] or C[0:m,i:n]
+        auto Ci = ( is_same_v< side_t, left_side_t > )
+           ? submatrix( C, pair(i,m), pair(0,n) )
+           : submatrix( C, pair(0,m), pair(i,n) );
 
         // Apply H or H**H
-        lapack::larfb(  side, trans, Direction::Forward, StoreV::Columnwise,
-                        mi, ni, ib, &_A(i,i), lda, &work[nw*nb], nb,
-                        &_C(ic,jc), ldc, work );
+        auto W0 = submatrix( W, pair(0,ib), pair(0,nw) );
+        lapack::larfb(
+            side, trans, forward, columnwise_storage,
+            V, T, Ci, W0
+        );
     }
 
     return 0;

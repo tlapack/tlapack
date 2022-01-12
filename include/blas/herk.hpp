@@ -9,7 +9,6 @@
 #define BLAS_HERK_HH
 
 #include "blas/utils.hpp"
-#include "blas/syrk.hpp"
 
 namespace blas {
 
@@ -233,7 +232,7 @@ void herk(
         return;
 
     // This algorithm only works with Op::NoTrans or Op::ConjTrans
-    if(trans == Op::ConjTrans) trans = Op::Trans;
+    if(trans == Op::Trans) trans = Op::ConjTrans;
 
     // adapt if row major
     if (layout == Layout::RowMajor) {

@@ -80,7 +80,7 @@ void swap(
         &y[(incy > 0 ? 0 : (-n + 1)*incy)],
         n, incy );
         
-    swap( _x, _y );
+    blas::swap( _x, _y );
 }
 
 }  // namespace blas

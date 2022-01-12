@@ -48,7 +48,7 @@ namespace lapack {
  *      The scalar factors of the elementary reflectors.
  *      If
  *          n-1 < m and
- *          matrix_t::element_type == vector_t::element_type
+ *          type_t<matrix_t> == type_t<vector_t>
  *      then one may use tau[1:n] as the workspace.
  * 
  * @param work Vector of size n-1.
@@ -58,12 +58,12 @@ namespace lapack {
 template< class matrix_t, class vector_t, class work_t >
 int geqr2( matrix_t& A, vector_t &tau, work_t &work )
 {
-    using T     = typename matrix_t::element_type;
-    using idx_t = typename matrix_t::size_type;
+    using TA    = type_t< matrix_t >;
+    using idx_t = size_type< matrix_t >;
     using pair  = std::pair<idx_t,idx_t>;
 
     // constants
-    const T one( 1.0 );
+    const TA one( 1 );
     const auto m = nrows(A);
     const auto n = ncols(A);
     const auto k = std::min<idx_t>( m, n-1 );
@@ -77,22 +77,31 @@ int geqr2( matrix_t& A, vector_t &tau, work_t &work )
 
     for(idx_t i = 0; i < k; ++i) {
 
-        larfg( m-i, A(i,i), &A(i+1,i), 1, tau(i) );
+        // Define x := A[i+1:m,i]
+        auto x = col( A, i, pair(i+1,m) );
 
-        const T alpha = A(i,i);
+        // Generate the (i+1)-th elementary Household reflection on x
+        larfg( A(i,i), x, tau(i) );
+
+        const auto alpha = A(i,i);
         A(i,i) = one;
 
-        // Define v and C
-        auto v = extractVector( A, pair(i,m), i );
-        auto C = submatrix( A, pair(i,m), pair(i+1,n) );
-        auto w = subvector( work, pair(i,n-1) );
+        // Define v := A[i:m,i] and C := A[i:m,i+1:n], and w := work[i:n-1]
+        const auto v = col( A, i, pair(i,m) );
+              auto C = submatrix( A, pair(i,m), pair(i+1,n) );
+              auto w = subvector( work, pair(i,n-1) );
 
+        // C := I - tau_i v v^H
         larf( left_side, v, tau(i), C, w );
 
         A(i,i) = alpha;
 	}
-    if( n-1 < m )
-        larfg( m-n+1, A(n-1,n-1), &A(n,n-1), 1, tau(n-1) );
+    if( n-1 < m ) {
+        // Define x := A[n:m,n-1]
+        auto x = col( A, n-1, pair(n,m) );
+        // Generate the n-th elementary Household reflection on x
+        larfg( A(n-1,n-1), x, tau(n-1) );
+    }
 
     return 0;
 }

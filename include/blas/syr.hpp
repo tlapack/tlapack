@@ -52,6 +52,41 @@ namespace blas {
  *
  * @ingroup syr
  */
+template< class matrixA_t, class vectorX_t, class alpha_t >
+void syr(
+    blas::Uplo uplo,
+    const alpha_t& alpha,
+    const vectorX_t& x,
+    matrixA_t& A )
+{
+    // data traits
+    using idx_t = size_type< matrixA_t >;
+
+    // constants
+    const idx_t n = size(x);
+
+    // check arguments
+    blas_error_if( uplo != Uplo::Lower &&
+                   uplo != Uplo::Upper );
+    blas_error_if( nrows(A) != ncols(A) ||
+                   nrows(A) != n );
+
+    if (uplo == Uplo::Upper) {
+        for (idx_t j = 0; j < n; ++j) {
+            auto tmp = alpha * x(j);
+            for (idx_t i = 0; i <= j; ++i)
+                A(i,j) += x(i) * tmp;
+        }
+    }
+    else {
+        for (idx_t j = 0; j < n; ++j) {
+            auto tmp = alpha * x(j);
+            for (idx_t i = j; i < n; ++i)
+                A(i,j) += x(i) * tmp;
+        }
+    }
+}
+
 template< typename TA, typename TX >
 void syr(
     blas::Layout layout,
@@ -63,6 +98,7 @@ void syr(
 {
     typedef blas::scalar_type<TA, TX> scalar_t;
     using blas::internal::colmajor_matrix;
+    using blas::internal::vector;
 
     // constants
     const scalar_t zero( 0.0 );
@@ -87,58 +123,12 @@ void syr(
         
     // Matrix views
     auto _A = colmajor_matrix<TA>( A, n, n, lda );
+    const auto _x = vector<TX>(
+        (TX*) &x[(incx > 0 ? 0 : (-n + 1)*incx)],
+        n, incx );
 
-    idx_t kx = (incx > 0 ? 0 : (-n + 1)*incx);
-    if (uplo == Uplo::Upper) {
-        if (incx == 1) {
-            // unit stride
-            for (idx_t j = 0; j < n; ++j) {
-                // note: NOT skipping if x[j] is zero, for consistent NAN handling
-                scalar_t tmp = alpha * x[j];
-                for (idx_t i = 0; i <= j; ++i) {
-                    _A(i,j) += x[i] * tmp;
-                }
-            }
-        }
-        else {
-            // non-unit stride
-            idx_t jx = kx;
-            for (idx_t j = 0; j < n; ++j) {
-                scalar_t tmp = alpha * x[jx];
-                idx_t ix = kx;
-                for (idx_t i = 0; i <= j; ++i) {
-                    _A(i,j) += x[ix] * tmp;
-                    ix += incx;
-                }
-                jx += incx;
-            }
-        }
-    }
-    else {
-        // lower triangle
-        if (incx == 1) {
-            // unit stride
-            for (idx_t j = 0; j < n; ++j) {
-                scalar_t tmp = alpha * x[j];
-                for (idx_t i = j; i < n; ++i) {
-                    _A(i,j) += x[i] * tmp;
-                }
-            }
-        }
-        else {
-            // non-unit stride
-            idx_t jx = kx;
-            for (idx_t j = 0; j < n; ++j) {
-                scalar_t tmp = alpha * x[jx];
-                idx_t ix = jx;
-                for (idx_t i = j; i < n; ++i) {
-                    _A(i,j) += x[ix] * tmp;
-                    ix += incx;
-                }
-                jx += incx;
-            }
-        }
-    }
+    syr( uplo, alpha, _x, _A );
+
 }
 
 }  // namespace blas

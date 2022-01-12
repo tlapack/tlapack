@@ -332,6 +332,11 @@ inline real_t abs1( const std::complex<real_t>& x )
 }
 
 // -----------------------------------------------------------------------------
+/// Empty vector
+constexpr auto empty_v
+    = mdspan< float, std::experimental::extents<0> >( (float*) nullptr );
+
+// -----------------------------------------------------------------------------
 /// Exception class for BLAS errors.
 class Error: public std::exception {
 public:

@@ -73,7 +73,7 @@ inline void larf(
     using blas::ger;
 
     // data traits
-    using T = typename matrix_t::element_type;
+    using T = type_t<matrix_t>;
 
     // constants
     const T one(1.0);

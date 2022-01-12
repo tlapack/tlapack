@@ -92,6 +92,8 @@ inline int unmqr(
     TC* C, blas::idx_t ldc )
 {
     typedef blas::scalar_type<TA,TC> scalar_t;
+    using blas::internal::colmajor_matrix;
+    using blas::internal::vector;
 
     // Constants
     const int nb = 32;      // number of blocks
@@ -103,9 +105,46 @@ inline int unmqr(
     scalar_t* work = new scalar_t[
         nw*nb + nb*nb
     ];
+
+    // Matrix views
+    const auto _A = (side == Side::Left)
+            ? colmajor_matrix<TA>( (TA*)A, m, k, lda )
+            : colmajor_matrix<TA>( (TA*)A, n, k, lda );
+    const auto _tau = vector<TA>( (TA*)tau, k, 1 );
+    auto _C = colmajor_matrix<TC>( C, m, n, ldc );
+    auto _W = colmajor_matrix<scalar_t>( work, nb, nw+nb );
     
-    // main call
-    int info = unmqr( side, trans, m, n, k, A, lda, tau, C, ldc, work );
+    int info = 0;
+    if (side == Side::Left) {
+        if (trans == Op::NoTrans) {
+            info = unmqr(
+                left_side, noTranspose,
+                _A, _tau, _C, _W );
+        } else if (trans == Op::Trans) {
+            info = unmqr(
+                left_side, transpose,
+                _A, _tau, _C, _W );
+        } else { // (trans == Op::ConjTrans)
+            info = unmqr(
+                left_side, conjTranspose,
+                _A, _tau, _C, _W );
+        }
+    }
+    else { // side == Side::Right
+        if (trans == Op::NoTrans) {
+            info = unmqr(
+                right_side, noTranspose,
+                _A, _tau, _C, _W );
+        } else if (trans == Op::Trans) {
+            info = unmqr(
+                right_side, transpose,
+                _A, _tau, _C, _W );
+        } else { // (trans == Op::ConjTrans)
+            info = unmqr(
+                right_side, conjTranspose,
+                _A, _tau, _C, _W );
+        }
+    }
 
     delete[] work;
     return info;

@@ -106,9 +106,6 @@ void her2k(
     using TB    = type_t< matrixB_t >;
     using idx_t = size_type< matrixC_t >;
 
-    // using
-    using scalar_t = scalar_type<TA,TB>;
-
     // constants
     const idx_t n = (trans == Op::NoTrans) ? nrows(A) : ncols(A);
     const idx_t k = (trans == Op::NoTrans) ? ncols(A) : nrows(A);
@@ -168,6 +165,8 @@ void her2k(
         }
     }
     else { // trans == Op::ConjTrans
+        using scalar_t = scalar_type<TA,TB>;
+        
         if (uplo != Uplo::Lower) {
         // uplo == Uplo::Upper or uplo == Uplo::General
             for(idx_t j = 0; j < n; ++j) {
@@ -231,10 +230,12 @@ void her2k(
     TC       *C, blas::idx_t ldc )
 {
     typedef blas::scalar_type<TA, TB, TC> scalar_t;
+    typedef blas::real_type<TA, TB, TC> real_t;
     using blas::internal::colmajor_matrix;
     using blas::internal::vector;
 
     // constants
+    const real_t rzero( 0.0 );
     const scalar_t zero( 0.0 );
     const scalar_t one( 1.0 );
 
@@ -268,6 +269,9 @@ void her2k(
     if (n == 0)
         return;
 
+    // This algorithm only works with Op::NoTrans or Op::ConjTrans
+    if(trans == Op::Trans) trans = Op::ConjTrans;
+
     // adapt if row major
     if (layout == Layout::RowMajor) {
         if (uplo == Uplo::Lower)
@@ -291,7 +295,7 @@ void her2k(
 
     // alpha == zero
     if (alpha == zero) {
-        if (beta == zero) {
+        if (beta == rzero) {
             if (uplo != Uplo::Upper) {
                 for(idx_t j = 0; j < n; ++j) {
                     for(idx_t i = 0; i <= j; ++i)

@@ -31,6 +31,46 @@ namespace lapack {
  * 
  * @ingroup auxiliary
  */
+template< class uplo_t, class matrixA_t, class matrixB_t,
+    enable_if_t<(
+    /* Requires: */
+        is_same_v< uplo_t, upper_triangle_t > || 
+        is_same_v< uplo_t, lower_triangle_t > || 
+        is_same_v< uplo_t, general_matrix_t >
+    ), int > = 0
+>
+void lacpy( uplo_t uplo, const matrixA_t& A, matrixB_t& B )
+{
+    // data traits
+    using idx_t = size_type< matrixA_t >;
+
+    // constants
+    const auto m = nrows(A);
+    const auto n = ncols(A);
+
+    if( is_same_v< uplo_t, upper_triangle_t > ) {
+        // Set the strictly upper triangular or trapezoidal part of B
+        for (idx_t j = 0; j < n; ++j) {
+            const auto M = std::min( m, j+1 );
+            for (idx_t i = 0; i < M; ++i)
+                B(i,j) = A(i,j);
+        }
+    }
+    else if( is_same_v< uplo_t, lower_triangle_t > ) {
+        // Set the strictly lower triangular or trapezoidal part of B
+        const auto N = std::min(m,n);
+        for (idx_t j = 0; j < N; ++j)
+            for (idx_t i = j; i < m; ++i)
+                B(i,j) = A(i,j);
+    }
+    else {
+        // Set the whole m-by-n matrix B
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = 0; i < m; ++i)
+                B(i,j) = A(i,j);
+    }
+}
+
 template< typename TA, typename TB >
 void lacpy(
     Uplo uplo, blas::idx_t m, blas::idx_t n,
@@ -43,27 +83,12 @@ void lacpy(
     const auto _A = colmajor_matrix<TA>( (TA*)A, m, n, lda );
     auto _B = colmajor_matrix<TB>( B, m, n, ldb );
 
-    if (uplo == Uplo::Upper) {
-        // Set the strictly upper triangular or trapezoidal part of B
-        for (idx_t j = 0; j < n; ++j) {
-            const idx_t M = std::min<idx_t>( m, j+1 );
-            for (idx_t i = 0; i < M; ++i)
-                _B(i,j) = _A(i,j);
-        }
-    }
-    else if (uplo == Uplo::Lower) {
-        // Set the strictly lower triangular or trapezoidal part of B
-        const idx_t N = std::min(m,n);
-        for (idx_t j = 0; j < N; ++j)
-            for (idx_t i = j; i < m; ++i)
-                _B(i,j) = _A(i,j);
-    }
-    else {
-        // Set the whole m-by-n matrix B
-        for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = 0; i < m; ++i)
-                _B(i,j) = _A(i,j);
-    }
+    if (uplo == Uplo::Upper)
+        lacpy( upper_triangle, _A, _B );
+    else if (uplo == Uplo::Lower) 
+        lacpy( lower_triangle, _A, _B );
+    else
+        lacpy( general_matrix, _A, _B );
 }
 
 }
