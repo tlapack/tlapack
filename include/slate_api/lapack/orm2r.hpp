@@ -56,15 +56,51 @@ inline int orm2r(
     TC* C, blas::idx_t ldc )
 {
     typedef blas::scalar_type<TA,TC> scalar_t;
+    using blas::internal::colmajor_matrix;
+    using blas::internal::vector;
+
+    // check arguments
+    lapack_error_if( side != Side::Left &&
+                     side != Side::Right, -1 );
+    lapack_error_if( trans != Op::NoTrans &&
+                     trans != Op::Trans &&
+                     trans != Op::ConjTrans, -2 );
+    lapack_error_if( m < 0, -3 );
+    lapack_error_if( n < 0, -4 );
+    const idx_t q = (side == Side::Left) ? m : n;
+    lapack_error_if( k < 0 || k > q, -5 );
+    lapack_error_if( lda < q, -7 );
+    lapack_error_if( ldc < m, -10 );
+
+    // quick return
+    if ((m == 0) || (n == 0) || (k == 0))
+        return 0;
 
     int info = 0;
-    scalar_t* work = new scalar_t[
-        (side == Side::Left)
-            ? ( (m >= 0) ? m : 0 )
-            : ( (n >= 0) ? n : 0 )
-    ];
+    scalar_t* work = new scalar_t[ (q > 0) ? q : 0 ];
 
-    info = orm2r( side, trans, m, n, k, A, lda, tau, C, ldc, work );
+    // Matrix views
+    const auto _A = colmajor_matrix<TA>( (TA*)A, q, k, lda );
+    const auto _tau = vector<TA>( (TA*)tau, k );
+    auto _C = colmajor_matrix<TC>( C, m, n, ldc );
+    auto _work = vector<TC>( work, q );
+
+    if( side == Side::Left ) {
+        if( trans == Op::NoTrans )
+            info = orm2r( left_side, noTranspose, -A, _tau, _C, _work );
+        else if( trans == Op::Trans )
+            info = orm2r( left_side, transpose, -A, _tau, _C, _work );
+        else
+            info = orm2r( left_side, conjTranspose, -A, _tau, _C, _work );
+    }
+    else { // side == Side::Right
+        if( trans == Op::NoTrans )
+            info = orm2r( right_side, noTranspose, -A, _tau, _C, _work );
+        else if( trans == Op::Trans )
+            info = orm2r( right_side, transpose, -A, _tau, _C, _work );
+        else
+            info = orm2r( right_side, conjTranspose, -A, _tau, _C, _work );
+    }
 
     delete[] work;
     return info;

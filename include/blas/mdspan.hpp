@@ -257,7 +257,7 @@ constexpr inline auto colmajor_matrix(
     dextents<2>::size_type m, 
     dextents<2>::size_type n )
 {
-    return colmajor_matrix( A, m, n, m );
+    return colmajor_matrix<T>( A, m, n, m );
 }
 
 template< typename T, typename integral_type >
@@ -274,6 +274,13 @@ constexpr inline auto vector(
     return mdspan< T, extents_t, layout_stride > (
         x, mapping( extents_t(n), strides )
     );
+}
+template< typename T >
+constexpr inline auto vector(
+    T* x,
+    dextents<1>::size_type n )
+{
+    return vector<T>( x, n, 1 );
 }
 
 // Transpose

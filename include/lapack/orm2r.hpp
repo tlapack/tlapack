@@ -24,53 +24,63 @@ namespace lapack {
  * 
  * @ingroup geqrf
  */
-template<typename TA, typename TC>
+template<
+    class matrixA_t, class matrixC_t, class tau_t, class work_t,
+    class side_t, class trans_t,
+    enable_if_t<(
+    /* Requires: */
+    (
+        is_same_v< side_t, left_side_t > || 
+        is_same_v< side_t, right_side_t > 
+    ) && (
+        is_same_v< trans_t, noTranspose_t > || 
+        is_same_v< trans_t, conjTranspose_t > ||
+        is_same_v< trans_t, transpose_t >
+    )
+    ), int > = 0
+>
 int orm2r(
-    Side side, Op trans,
-    blas::idx_t m, blas::idx_t n, blas::idx_t k,
-    const TA* A, blas::idx_t lda,
-    const blas::real_type<TA,TC>* tau,
-    TC* C, blas::idx_t ldc,
-    blas::scalar_type<TA,TC>* work )
+    side_t side, trans_t trans,
+    const matrixA_t& A,
+    const tau_t& tau,
+    matrixC_t& C,
+    work_t& work )
 {
-    // check arguments
+    using idx_t = size_type< matrixA_t >;
+    using T     = type_t< matrixA_t >;
+    using blas::full_extent;
 
-    lapack_error_if( side != Side::Left &&
-                     side != Side::Right, -1 );
-    lapack_error_if( trans != Op::NoTrans &&
-                     trans != Op::Trans &&
-                     trans != Op::ConjTrans, -2 );
-    lapack_error_if( m < 0, -3 );
-    lapack_error_if( n < 0, -4 );
-
-    const idx_t q = (side == Side::Left) ? m : n;
-    lapack_error_if( k < 0 || k > q, -5 );
-    lapack_error_if( lda < q, -7 );
-    lapack_error_if( ldc < m, -10 );
+    // constants
+    const T one( 1 );
+    const idx_t m = nrows(C);
+    const idx_t n = ncols(C);
+    const idx_t k = size(tau);
+    constexpr bool leftSide = is_same_v< side_t, left_side_t >;
+    constexpr bool positiveInc = (
+        ( leftSide && !is_same_v< trans_t, noTranspose_t > ) ||
+        ( !leftSide && is_same_v< trans_t, noTranspose_t > )
+    );
+    constexpr idx_t i0 = (positiveInc) ? 0 : k-1;
+    constexpr idx_t iN = (positiveInc) ? k :  -1;
+    constexpr idx_t inc = (positiveInc) ? 1 : -1;
 
     // quick return
     if ((m == 0) || (n == 0) || (k == 0))
         return 0;
 
-    if( side == Side::Left ) {
-        if( trans == Op::NoTrans ) {
-            for (idx_t i = 0; i < k; ++i)
-                larf( Side::Left, m-k+i+1, n, A+i, lda, tau[i], C, ldc, work );
-        }
-        else {
-            for (idx_t i = k-1; i != idx_t(-1); --i)
-                larf( Side::Left, m-k+i+1, n, A+i, lda, tau[i], C, ldc, work );
-        }
-    }
-    else { // side == Side::Right
-        if( trans == Op::NoTrans ) {
-            for (idx_t i = 0; i < k; ++i)
-                larf( Side::Right, m, n-k+i+1, A+i, lda, tau[i], C, ldc, work );
-        }
-        else {
-            for (idx_t i = k-1; i != idx_t(-1); --i)
-                larf( Side::Right, m, n-k+i+1, A+i, lda, tau[i], C, ldc, work );
-        }
+    for (idx_t i = i0; i != iN; i += inc) {
+        
+        const auto& v = (leftSide)
+                      ? col( A, i, pair(i,m) )
+                      : col( A, i, pair(i,n) );
+        auto& Ci = (leftSide)
+                 ? submatrix( C, pair(i,m), full_extent )
+                 : submatrix( C, full_extent, pair(i,n) );
+        
+        const auto Aii = A(i,i);
+        A(i,i) = one;
+        larf( side, v, tau(i), Ci, work );
+        A(i,i) = Aii;
     }
 
     return 0;

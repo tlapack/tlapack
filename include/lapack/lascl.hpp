@@ -12,8 +12,18 @@
 #define __LASCL_HH__
 
 #include "lapack/types.hpp"
+#include "lapack/utils.hpp"
 
 namespace lapack {
+
+template< class, template <std::size_t ...> class >
+struct is_instance : public std::false_type {};
+
+template< std::size_t ... idxs, template <std::size_t ...> class U >
+struct is_instance< U<idxs...>, U > : public std::true_type {};
+
+template< class V, template <std::size_t ...> class U >
+constexpr bool is_instance_v = is_instance< V, U >::value;
 
 /** @brief  Multiplies a matrix A by the real scalar a/b.
  *
@@ -54,158 +64,243 @@ namespace lapack {
  * 
  * @ingroup auxiliary
  */
-template< typename T >
+template< class matrix_t, class a_type, class b_type, class sparse_t,
+    enable_if_t<((
+    /* Requires: */
+        is_same_v< sparse_t, general_matrix_t > || 
+        is_same_v< sparse_t, lower_triangle_t > || 
+        is_same_v< sparse_t, upper_triangle_t > || 
+        is_same_v< sparse_t, hessenberg_matrix_t > || 
+        is_instance_v< sparse_t, symmetric_lowerband_t > || 
+        is_instance_v< sparse_t, symmetric_upperband_t > || 
+        is_instance_v< sparse_t, band_matrix_t >
+    ) && 
+        !is_complex< a_type >::value &&
+        !is_complex< b_type >::value
+    ), int > = 0
+>
 int lascl(
-    lapack::MatrixType matrixtype,
-    blas::idx_t kl, blas::idx_t ku,
-    const real_type<T>& b, const real_type<T>& a,
-    blas::idx_t m, blas::idx_t n,
-    T* A, blas::idx_t lda )
+    sparse_t matrixtype,
+    const b_type& b, const a_type& a,
+    const matrix_t& A )
 {
-    typedef real_type<T> real_t;
+    // data traits
+    using idx_t  = size_type< matrix_t >;
+    using real_t = real_type< a_type, b_type >;
+    
+    // using
     using blas::isnan;
-    using blas::max;
-    using blas::min;
+    using blas::abs;
     using blas::safe_min;
-    using blas::internal::colmajor_matrix;
+    using blas::safe_max;
 
     // constants
-    const blas::idx_t izero = 0;
+    const auto m = nrows(A);
+    const auto n = ncols(A);
+
+    // constants
+    const idx_t izero = 0;
     const real_t zero = 0.0;
     const real_t one(1.0);
     const real_t small = safe_min<real_t>();
-    const real_t big = one / small;
+    const real_t big   = safe_max<real_t>();
+    
+    // check arguments
+    if( is_instance_v< sparse_t, symmetric_lowerband_t > ||
+        is_instance_v< sparse_t, symmetric_upperband_t > )
+    {
+        lapack_error_if((sparse_t::bandwidth + 1 > m && m > 0) ||
+                        (sparse_t::bandwidth + 1 > n && n > 0), -1 );
+    }
+    else if( is_instance_v< sparse_t, band_matrix_t > )
+    {
+        lapack_error_if((sparse_t::lower_bandwidth + 1 > m && m > 0) ||
+                        (sparse_t::upper_bandwidth + 1 > n && n > 0), -1 );
+    }
+    lapack_error_if( (b == b_type(0)) || isnan(b), -2 );
+    lapack_error_if( isnan(a), -3 );
+    if( is_instance_v< sparse_t, symmetric_lowerband_t > ||
+        is_instance_v< sparse_t, symmetric_upperband_t > )
+    {
+        lapack_error_if( m != n, -4 );
+    }
+
+    // quick return
+    if( m <= 0 || n <= 0 )
+        return 0;
+
+    bool done = false;
+    while (!done)
+    {
+        real_t c;
+        a_type a1;
+        b_type b1 = b * small;
+        if (b1 == b) {
+            // b is not finite:
+            //  c is a correctly signed zero if a is finite,
+            //  c is NaN otherwise.
+            c = a / b;
+            done = true;
+        }
+        else { // b is finite
+            a1 = a / big;
+            if (a1 == a) {
+                // a is either 0 or an infinity number:
+                //  in both cases, c = a serves as the correct multiplication factor.
+                c = a;
+                done = true;
+            }
+            else if ( (abs(b1) > abs(a)) && (a != a_type(0)) ) {
+                // a is a non-zero finite number and abs(a/b) < small:
+                //  Set c = small as the multiplication factor,
+                //  Multiply b by the small factor.
+                c = small;
+                done = false;
+                b = b1;
+            }
+            else if (abs(a1) > abs(b)) {
+                // abs(a/b) > big:
+                //  Set c = big as the multiplication factor,
+                //  Divide a by the big factor.
+                c = big;
+                done = false;
+                a = a1;
+            }
+            else {
+                // small <= abs(a/b) <= big:
+                //  Set c = a/b as the multiplication factor.
+                c = a / b;
+                done = true;
+            }
+        }
+
+        if ( is_same_v< sparse_t, general_matrix_t > )
+        {
+            for (idx_t j = 0; j < n; ++j)
+                for (idx_t i = 0; i < m; ++i)
+                    A(i,j) *= c;
+        }
+        else if ( is_same_v< sparse_t, lower_triangle_t > )
+        {
+            for (idx_t j = 0; j < n; ++j)
+                for (idx_t i = j; i < m; ++i)
+                    A(i,j) *= c;
+        }
+        else if ( is_same_v< sparse_t, general_matrix_t > )
+        {
+            for (idx_t j = 0; j < n; ++j)
+                for (idx_t i = 0; (i < m) && (i <= j); ++i)
+                    A(i,j) *= c;
+        }
+        else if ( is_same_v< sparse_t, hessenberg_matrix_t > )
+        {
+            for (idx_t j = 0; j < n; ++j)
+                for (idx_t i = 0; (i < m) && (i <= j + 1); ++i)
+                    A(i,j) *= c;
+        }
+        else if ( is_instance_v< sparse_t, symmetric_lowerband_t > )
+        {
+            const idx_t k = sparse_t::bandwidth;
+            for (idx_t j = 0; j < n; ++j)
+                for (idx_t i = 0; (i <= k) && (i < n - j); ++i)
+                    A(i,j) *= c;
+        }
+        else if ( is_instance_v< sparse_t, symmetric_upperband_t > )
+        {
+            const idx_t k = sparse_t::bandwidth;
+            for (idx_t j = 0; j < n; ++j)
+                for (idx_t i = max(k - j, izero); i <= k; ++i)
+                    A(i,j) *= c;
+        }
+        else if ( is_instance_v< sparse_t, band_matrix_t > )
+        {
+            const idx_t kl = sparse_t::lower_bandwidth;
+            const idx_t ku = sparse_t::upper_bandwidth;
+            for (idx_t j = 0; j < n; ++j)
+                for (idx_t i = max(kl + ku - j, kl); i <= min(2 * kl + ku, kl + ku + m - j); ++i)
+                    A(i,j) *= c;
+        }
+    }
+
+    return 0;
+}
+
+template< typename T >
+int lascl(
+    lapack::MatrixType matrixtype,
+    idx_t kl, idx_t ku,
+    const real_type<T>& b, const real_type<T>& a,
+    idx_t m, idx_t n,
+    T* A, idx_t lda )
+{
+    using blas::internal::colmajor_matrix;
     
     // check arguments
     lapack_error_if(
         (matrixtype != MatrixType::General) && 
         (matrixtype != MatrixType::Lower) && 
         (matrixtype != MatrixType::Upper) && 
-        (matrixtype != MatrixType::Hessenberg) && 
-        (matrixtype != MatrixType::LowerBand) && 
-        (matrixtype != MatrixType::UpperBand) && 
-        (matrixtype != MatrixType::Band), -1 );
-    lapack_error_if( (
-            (matrixtype == MatrixType::LowerBand) ||
-            (matrixtype == MatrixType::UpperBand) || 
-            (matrixtype == MatrixType::Band)
-        ) && (
-            (kl < 0) ||
-            (kl > max(m-1, izero))
-        ), -2 );
-    lapack_error_if( (
-            (matrixtype == MatrixType::LowerBand) ||
-            (matrixtype == MatrixType::UpperBand) || 
-            (matrixtype == MatrixType::Band)
-        ) && (
-            (ku < 0) ||
-            (ku > max(n-1, izero))
-        ), -3 );
-    lapack_error_if( (
-            (matrixtype == MatrixType::LowerBand) ||
-            (matrixtype == MatrixType::UpperBand)
-        ) && ( kl != ku ), -3 );
-    lapack_error_if( (b == zero) || isnan(b), -4 );
-    lapack_error_if( isnan(a), -5 );
+        (matrixtype != MatrixType::Hessenberg), -1 );
+    // lapack_error_if( (
+    //         (matrixtype == MatrixType::LowerBand) ||
+    //         (matrixtype == MatrixType::UpperBand) || 
+    //         (matrixtype == MatrixType::Band)
+    //     ) && (
+    //         (kl < 0) ||
+    //         (kl > max(m-1, izero))
+    //     ), -2 );
+    // lapack_error_if( (
+    //         (matrixtype == MatrixType::LowerBand) ||
+    //         (matrixtype == MatrixType::UpperBand) || 
+    //         (matrixtype == MatrixType::Band)
+    //     ) && (
+    //         (ku < 0) ||
+    //         (ku > max(n-1, izero))
+    //     ), -3 );
+    // lapack_error_if( (
+    //         (matrixtype == MatrixType::LowerBand) ||
+    //         (matrixtype == MatrixType::UpperBand)
+    //     ) && ( kl != ku ), -3 );
     lapack_error_if( m < 0, -6 );
-    lapack_error_if(
-        (n < 0) ||
-        ((matrixtype == MatrixType::LowerBand) && (n != m)) || 
-        ((matrixtype == MatrixType::UpperBand) && (n != m)), -7 );
     lapack_error_if( (lda < m) && (
         (matrixtype == MatrixType::General) || 
         (matrixtype == MatrixType::Lower) ||
         (matrixtype == MatrixType::Upper) ||
         (matrixtype == MatrixType::Hessenberg) ), -9 );
-    lapack_error_if( (matrixtype == MatrixType::LowerBand) && (lda < kl + 1), -9);
-    lapack_error_if( (matrixtype == MatrixType::UpperBand) && (lda < ku + 1), -9);
-    lapack_error_if( (matrixtype == MatrixType::Band) && (lda < 2 * kl + ku + 1), -9);
+    // lapack_error_if( (matrixtype == MatrixType::LowerBand) && (lda < kl + 1), -9);
+    // lapack_error_if( (matrixtype == MatrixType::UpperBand) && (lda < ku + 1), -9);
+    // lapack_error_if( (matrixtype == MatrixType::Band) && (lda < 2 * kl + ku + 1), -9);
 
     // Matrix views
     auto _A = colmajor_matrix<T>( A, m, n, lda );
 
-    bool done = 0;
-    while (!done)
-    {
-        real_t a1, c;
-        real_t b1 = b * small;
-        if (b1 == b)
-        {
-            c = a / b;
-            done = 1;
-            a1 = a;
-        }
-        else
-        {
-            a1 = a / big;
-            if (a1 == a)
-            {
-                c = a;
-                done = 1;
-                b = one;
-            }
-            else if ((abs(b1) > abs(a)) && (a != zero))
-            {
-                c = small;
-                done = 0;
-                b = b1;
-            }
-            else if (abs(a1) > abs(b))
-            {
-                c = big;
-                done = 0;
-                a = a1;
-            }
-            else
-            {
-                c = a / b;
-                done = 1;
-            }
-        }
+    if (matrixtype == MatrixType::General)
+        return lascl( general_matrix, b, a, _A );
+    else if (matrixtype == MatrixType::Lower)
+        return lascl( lower_triangle, b, a, _A );
+    else if (matrixtype == MatrixType::Upper)
+        return lascl( upper_triangle, b, a, _A );
+    else if (matrixtype == MatrixType::Hessenberg)
+        return lascl( hessenberg_matrix, b, a, _A );
+    // else if (matrixtype == MatrixType::LowerBand)
+    // {
+    //     for (idx_t j = 0; j < n; ++j)
+    //         for (idx_t i = 0; (i <= kl) && (i < n - j); ++i)
+    //             _A(i,j) *= c;
+    // }
+    // else if (matrixtype == MatrixType::UpperBand)
+    // {
+    //     for (idx_t j = 0; j < n; ++j)
+    //         for (idx_t i = max(ku - j, izero); i <= ku; ++i)
+    //             _A(i,j) *= c;
+    // }
+    // else if (matrixtype == MatrixType::Band)
+    // {
+    //     for (idx_t j = 0; j < n; ++j)
+    //         for (idx_t i = max(kl + ku - j, kl); i <= min(2 * kl + ku, kl + ku + m - j); ++i)
+    //             _A(i,j) *= c;
+    // }
 
-        if (matrixtype == MatrixType::General)
-        {
-            for (blas::idx_t j = 0; j < n; ++j)
-                for (blas::idx_t i = 0; i < m; ++i)
-                    _A(i,j) *= c;
-        }
-        else if (matrixtype == MatrixType::Lower)
-        {
-            for (blas::idx_t j = 0; j < n; ++j)
-                for (blas::idx_t i = j; i < m; ++i)
-                    _A(i,j) *= c;
-        }
-        else if (matrixtype == MatrixType::Upper)
-        {
-            for (blas::idx_t j = 0; j < n; ++j)
-                for (blas::idx_t i = 0; (i < m) && (i <= j); ++i)
-                    _A(i,j) *= c;
-        }
-        else if (matrixtype == MatrixType::Hessenberg)
-        {
-            for (blas::idx_t j = 0; j < n; ++j)
-                for (blas::idx_t i = 0; (i < m) && (i <= j + 1); ++i)
-                    _A(i,j) *= c;
-        }
-        // else if (matrixtype == MatrixType::LowerBand)
-        // {
-        //     for (blas::idx_t j = 0; j < n; ++j)
-        //         for (blas::idx_t i = 0; (i <= kl) && (i < n - j); ++i)
-        //             _A(i,j) *= c;
-        // }
-        // else if (matrixtype == MatrixType::UpperBand)
-        // {
-        //     for (blas::idx_t j = 0; j < n; ++j)
-        //         for (blas::idx_t i = max(ku - j, izero); i <= ku; ++i)
-        //             _A(i,j) *= c;
-        // }
-        // else if (matrixtype == MatrixType::Band)
-        // {
-        //     for (blas::idx_t j = 0; j < n; ++j)
-        //         for (blas::idx_t i = max(kl + ku - j, kl); i <= min(2 * kl + ku, kl + ku + m - j); ++i)
-        //             _A(i,j) *= c;
-        // }
-    }
     return 0;
 }
 

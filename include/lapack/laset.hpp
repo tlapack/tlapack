@@ -31,6 +31,59 @@ namespace lapack {
  * 
  * @ingroup auxiliary
  */
+template<
+    class uplo_t, class matrix_t,
+    class alpha_t, class beta_t,
+    enable_if_t<(
+    /* Requires: */
+        is_same_v< uplo_t, upper_triangle_t > || 
+        is_same_v< uplo_t, lower_triangle_t > || 
+        is_same_v< uplo_t, general_matrix_t >
+    ), int > = 0
+>
+void laset(
+    uplo_t uplo,
+    const alpha_t& alpha, const beta_t& beta,
+    const matrix_t& A )
+{
+    using idx_t  = size_type< matrix_t >;
+    using std::min;
+
+    // constants
+    const auto m = nrows(A);
+    const auto n = ncols(A);
+
+    if (is_same_v< uplo_t, upper_triangle_t >) {
+        // Set the strictly upper triangular or trapezoidal part of
+        // the array to alpha.
+        for (idx_t j = 1; j < n; ++j) {
+            const idx_t M = min(m,j);
+            for (idx_t i = 0; i < M; ++i)
+                A(i,j) = alpha;
+        }
+    }
+    else if (is_same_v< uplo_t, lower_triangle_t >) {
+        // Set the strictly lower triangular or trapezoidal part of
+        // the array to alpha.
+        const idx_t N = min(m,n);
+        for (idx_t j = 0; j < N; ++j) {
+            for (idx_t i = j+1; i < m; ++i)
+                A(i,j) = alpha;
+        }
+    }
+    else {
+        // Set all elements in A to alpha.
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = 0; i < m; ++i)
+                A(i,j) = alpha;
+    }
+
+    // Set the first min(m,n) diagonal elements to beta.
+    const idx_t N = min(m,n);
+    for (idx_t i = 0; i < N; ++i)
+        A(i,i) = beta;
+}
+
 template< typename TA >
 void laset(
     Uplo uplo, blas::idx_t m, blas::idx_t n,
@@ -38,39 +91,17 @@ void laset(
     TA* A, blas::idx_t lda )
 {
     using blas::internal::colmajor_matrix;
+
+    // quick return
+    if( m <= 0 || n <= 0 )
+        return;
     
     // Matrix views
     auto _A = colmajor_matrix<TA>( A, m, n, lda );
 
-    if (uplo == Uplo::Upper) {
-        // Set the strictly upper triangular or trapezoidal part of
-        // the array to alpha.
-        for (idx_t j = 1; j < n; ++j) {
-            const idx_t M = std::min(m,j);
-            for (idx_t i = 0; i < M; ++i)
-                _A(i,j) = alpha;
-        }
-    }
-    else if (uplo == Uplo::Lower) {
-        // Set the strictly lower triangular or trapezoidal part of
-        // the array to alpha.
-        const idx_t N = std::min(m,n);
-        for (idx_t j = 0; j < N; ++j) {
-            for (idx_t i = j+1; i < m; ++i)
-                _A(i,j) = alpha;
-        }
-    }
-    else {
-        // Set the leading m-by-n submatrix to alpha.
-        for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = 0; i < m; ++i)
-                _A(i,j) = alpha;
-    }
-
-    // Set the first min(m,n) diagonal elements to beta.
-    const idx_t N = std::min(m,n);
-    for (idx_t i = 0; i < N; ++i)
-        _A(i,i) = beta;
+    if (uplo == Uplo::Upper) laset( upper_triangle, alpha, beta, _A );
+    else if (uplo == Uplo::Lower) laset( lower_triangle, alpha, beta, _A );
+    else laset( general_matrix, alpha, beta, _A );
 }
 
 }
