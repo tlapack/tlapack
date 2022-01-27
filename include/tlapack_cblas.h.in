@@ -7,6 +7,10 @@
 #ifndef __CBLAS_H__
 #define __CBLAS_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // -----------------------------------------------------------------------------
 #include <stddef.h>
 #include <complex.h>
@@ -22,11 +26,6 @@
 
 #ifndef CBLAS_INT
     #define CBLAS_INT int
-#endif
-// -----------------------------------------------------------------------------
-
-#ifdef __cplusplus
-extern "C" {
 #endif
 
 // -----------------------------------------------------------------------------
