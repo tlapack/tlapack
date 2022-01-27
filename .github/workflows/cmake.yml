@@ -52,9 +52,6 @@ jobs:
     - name: Checkout <T>LAPACK
       uses: actions/checkout@v2
 
-    - name: Install Eigen
-      run: sudo apt install libeigen3-dev
-
     - name: Specific configurations for CMake on MacOS
       if: ${{ matrix.os == 'macos-latest' }}
       env:
@@ -112,9 +109,6 @@ jobs:
     - name: Install MPFR C++
       run: sudo apt install libmpfrc++-dev
 
-    - name: Install Eigen
-      run: sudo apt install libeigen3-dev
-
     - name: Configure CMake for <T>LAPACK
       run: >
         cmake -B build
@@ -144,9 +138,6 @@ jobs:
     
     - name: Checkout <T>LAPACK
       uses: actions/checkout@v2
-
-    - name: Install Eigen
-      run: sudo apt install libeigen3-dev
 
     - name: Install OpenBLAS
       run: sudo apt install libopenblas-dev

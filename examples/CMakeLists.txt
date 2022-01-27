@@ -7,8 +7,8 @@
 # add the example geqr2
 add_subdirectory( geqr2 )
 
-# add the example eigenMatrix
-add_subdirectory( eigenMatrix )
+# # add the example eigenMatrix
+# add_subdirectory( eigenMatrix )
 
 # add the example gemm (Use MPFR library if it is available)
 add_subdirectory( gemm )
@@ -45,9 +45,9 @@ COMMAND
 COMMAND
   echo "- example_mdspan ---------------" &&
   ${CMAKE_CURRENT_BINARY_DIR}/mdspan/example_mdspan${CMAKE_EXECUTABLE_SUFFIX}
-COMMAND
-  echo "- example_eigenMatrix ---------------" &&
-  ${CMAKE_CURRENT_BINARY_DIR}/eigenMatrix/example_eigenMatrix${CMAKE_EXECUTABLE_SUFFIX}
+# COMMAND
+#   echo "- example_eigenMatrix ---------------" &&
+#   ${CMAKE_CURRENT_BINARY_DIR}/eigenMatrix/example_eigenMatrix${CMAKE_EXECUTABLE_SUFFIX}
 COMMAND
   echo "- example_cwrapper_gemm --------" &&
   ${CMAKE_CURRENT_BINARY_DIR}/cwrapper_gemm/example_cwrapper_gemm${CMAKE_EXECUTABLE_SUFFIX}
