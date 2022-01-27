@@ -156,17 +156,11 @@ install(
 
 # <T>LAPACK templates 
 install(
-  DIRECTORY ${PROJECT_SOURCE_DIR}/include/lapack/
-  DESTINATION include/lapack
+  DIRECTORY ${PROJECT_SOURCE_DIR}/include/
+  DESTINATION include
   FILES_MATCHING PATTERN "*.hpp" )
-install( FILES ${PROJECT_SOURCE_DIR}/include/lapack/config_lapackppwrappers.h
-         DESTINATION include/lapack )
-
-# <T>BLAS templates 
-install(
-  DIRECTORY ${PROJECT_SOURCE_DIR}/include/blas/
-  DESTINATION include/blas
-  FILES_MATCHING PATTERN "*.hpp" )
+install( FILES ${PROJECT_SOURCE_DIR}/include/slate_api/lapack/config_lapackppwrappers.h
+          DESTINATION include/slate_api/lapack )
 
 # Export targets
 install(EXPORT tlapackTargets
