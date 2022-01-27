@@ -22,7 +22,7 @@ on:
 
 env:
   CFLAGS: "-Wall -pedantic"
-  CXXFLAGS: "-Wall -pedantic"
+  CXXFLAGS: "-std=c++14 -Wall -pedantic"
   FFLAGS: "-fimplicit-none -fcheck=all"
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
@@ -80,7 +80,6 @@ jobs:
         -D C_WRAPPERS=ON
         -D Fortran_WRAPPERS=ON
         -D CBLAS_WRAPPERS=ON
-        -D MDSPAN_CXX_STANDARD=14
 
     - name: Build
       # Build your program with the given configuration
@@ -117,7 +116,6 @@ jobs:
         -D CMAKE_INSTALL_PREFIX=${{github.workspace}}/tlapack_install
         -D BUILD_SHARED_LIBS=ON
         -D TEST_MPFR=ON
-        -D MDSPAN_CXX_STANDARD=14
 
     - name: Build <T>LAPACK
       run: cmake --build build --config ${{env.BUILD_TYPE}}
@@ -167,7 +165,6 @@ jobs:
         -D CBLAS_WRAPPERS=ON
         -D USE_BLASPP_WRAPPERS=ON
         -D blaspp_DIR=${{env.blaspp_DIR}}
-        -D MDSPAN_CXX_STANDARD=14
 
     - name: Build <T>LAPACK
       run: cmake --build build --config ${{env.BUILD_TYPE}}

@@ -7,10 +7,6 @@
 #ifndef __BLAS_H__
 #define __BLAS_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 // -----------------------------------------------------------------------------
 #include <stdint.h>
 #include <stddef.h>
@@ -27,6 +23,11 @@ extern "C" {
 
 #ifndef BLAS_INT_T
     #define BLAS_INT_T int64_t
+#endif
+// -----------------------------------------------------------------------------
+
+#ifdef __cplusplus
+extern "C" {
 #endif
 
 // -----------------------------------------------------------------------------
