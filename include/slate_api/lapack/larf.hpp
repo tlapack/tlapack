@@ -12,6 +12,7 @@
 #define __SLATE_LARF_HH__
 
 #include "lapack/larf.hpp"
+#include <memory>
 
 namespace lapack {
 
@@ -41,7 +42,10 @@ inline void larf(
     blas_error_if( incv == 0 );
     blas_error_if( ldC < m );
 
-    scalar_t *work = new scalar_t[ ( side == Side::Left ) ? n : m ];
+    // scalar_t *work = new scalar_t[ ( side == Side::Left ) ? n : m ];
+    std::unique_ptr<scalar_t[]> work(new scalar_t[
+        ( side == Side::Left ) ? n : m
+    ]);
 
     // Initialize indexes
     idx_t lenv  = (( side == Side::Left ) ? m : n);
@@ -52,14 +56,14 @@ inline void larf(
     const auto _v = vector<TV>(
         (TV*) &v[(incv > 0 ? 0 : (-lenv + 1)*incv)],
         lenv, incv );
-    auto _work = vector<scalar_t>( work, lwork, 1 );
+    auto _work = vector<scalar_t>( &work[0], lwork, 1 );
 
     if( side == Side::Left )
         larf( left_side, _v, tau, _C, _work);
     else
         larf( right_side, _v, tau, _C, _work);
         
-    delete[] work;
+    // delete[] work;
 }
 
 } // lapack

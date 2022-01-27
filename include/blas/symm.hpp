@@ -102,7 +102,7 @@ void symm(
                    uplo != Uplo::Upper &&
                    uplo != Uplo::General );
     blas_error_if( nrows(A) != ncols(A) );
-    blas_error_if( nrows(A) != (side == Side::Left) ? m : n );
+    blas_error_if( nrows(A) != ((side == Side::Left) ? m : n) );
     blas_error_if( nrows(B) != m || ncols(B) != n );
 
     if (side == Side::Left) {

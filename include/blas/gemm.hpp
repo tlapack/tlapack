@@ -55,7 +55,7 @@ template<
 void gemm(
     Op transA,
     Op transB,
-    const alpha_t alpha,
+    const alpha_t& alpha,
     const matrixA_t& A,
     const matrixB_t& B,
     const beta_t& beta,
@@ -67,7 +67,7 @@ void gemm(
     using idx_t = size_type< matrixA_t >;
 
     // using
-    using scalar_t = scalar_type<alpha_t,TA,TB>;
+    using scalar_t = scalar_type<TA,TB>;
 
     // constants
     const idx_t m = nrows(C);
@@ -94,7 +94,7 @@ void gemm(
                 for(idx_t i = 0; i < m; ++i)
                     C(i,j) *= beta;
                 for(idx_t l = 0; l < k; ++l) {
-                    scalar_t alphaTimesblj = alpha*B(l,j);
+                    const auto alphaTimesblj = alpha*B(l,j);
                     for(idx_t i = 0; i < m; ++i)
                         C(i,j) += A(i,l)*alphaTimesblj;
                 }
@@ -105,7 +105,7 @@ void gemm(
                 for(idx_t i = 0; i < m; ++i)
                     C(i,j) *= beta;
                 for(idx_t l = 0; l < k; ++l) {
-                    scalar_t alphaTimesbjl = alpha*B(j,l);
+                    const auto alphaTimesbjl = alpha*B(j,l);
                     for(idx_t i = 0; i < m; ++i)
                         C(i,j) += A(i,l)*alphaTimesbjl;
                 }
@@ -116,7 +116,7 @@ void gemm(
                 for(idx_t i = 0; i < m; ++i)
                     C(i,j) *= beta;
                 for(idx_t l = 0; l < k; ++l) {
-                    scalar_t alphaTimesbjl = alpha*conj(B(j,l));
+                    const auto alphaTimesbjl = alpha*conj(B(j,l));
                     for(idx_t i = 0; i < m; ++i)
                         C(i,j) += A(i,l)*alphaTimesbjl;
                 }

@@ -87,22 +87,24 @@ struct lower_triangle_t {
 struct hessenberg_matrix_t { };
 
 // Band matrix type
-template< std::size_t kl, std::size_t ku >
 struct band_matrix_t {
-    static constexpr std::size_t lower_bandwidth = kl;
-    static constexpr std::size_t upper_bandwidth = ku;
+    std::size_t lower_bandwidth, upper_bandwidth;
+
+    constexpr band_matrix_t(std::size_t kl, std::size_t ku)
+    : lower_bandwidth(kl), upper_bandwidth(ku)
+    {}
 };
 
 // Symmetric lower band matrix type
-template< std::size_t k >
 struct symmetric_lowerband_t {
-    static constexpr std::size_t bandwidth = k;
+    std::size_t bandwidth;
+    constexpr symmetric_lowerband_t(std::size_t k) : bandwidth(k) {}
 };
 
 // Symmetric upper band matrix type
-template< std::size_t k >
 struct symmetric_upperband_t {
-    static constexpr std::size_t bandwidth = k;
+    std::size_t bandwidth;
+    constexpr symmetric_upperband_t(std::size_t k) : bandwidth(k) {}
 };
 
 // Constants

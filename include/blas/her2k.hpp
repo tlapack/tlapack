@@ -118,8 +118,8 @@ void her2k(
                    trans != Op::ConjTrans );
     blas_error_if( nrows(B) != nrows(A) ||
                    ncols(B) != ncols(A) );
-    blas_error_if( nrows(C) == ncols(C) &&
-                   nrows(C) == n );
+    blas_error_if( nrows(C) != ncols(C) ||
+                   nrows(C) != n );
 
     if (trans == Op::NoTrans) {
         if (uplo != Uplo::Lower) {

@@ -98,9 +98,9 @@ void syrk(
                    uplo != Uplo::Upper &&
                    uplo != Uplo::General );
     blas_error_if( trans != Op::NoTrans &&
-                   trans != Op::ConjTrans );
-    blas_error_if( nrows(C) == ncols(C) &&
-                   nrows(C) == n );
+                   trans != Op::Trans );
+    blas_error_if( nrows(C) != ncols(C) ||
+                   nrows(C) != n );
 
     if (trans == Op::NoTrans) {
         if (uplo != Uplo::Lower) {

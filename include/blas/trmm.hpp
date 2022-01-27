@@ -117,7 +117,7 @@ void trmm(
     blas_error_if( diag != Diag::NonUnit &&
                    diag != Diag::Unit );
     blas_error_if( nrows(A) != ncols(A) );
-    blas_error_if( nrows(A) != (side == Side::Left) ? m : n );
+    blas_error_if( nrows(A) != ((side == Side::Left) ? m : n) );
     
     if (side == Side::Left) {
         if (trans == Op::NoTrans) {

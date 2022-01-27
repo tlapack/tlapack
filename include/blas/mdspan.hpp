@@ -17,6 +17,10 @@ using std::experimental::extents;
 using std::experimental::full_extent_t;
 constexpr auto full_extent = full_extent_t{ };
 
+#define isSlice(SliceSpec) \
+(   is_convertible_v< SliceSpec, full_extent_t > || \
+    is_convertible_v< SliceSpec, std::tuple<size_t, size_t> > )
+
 // -----------------------------------------------------------------------------
 // Data traits for mdspan
 
@@ -51,19 +55,11 @@ ncols( const mdspan<ET,Exts,LP,AP>& x ) {
 }
 
 // Submatrix
-template< 
-    class ET, class Exts, class LP, class AP,
+template< class ET, class Exts, class LP, class AP,
     class SliceSpecRow, class SliceSpecCol,
-    enable_if_t<
-    /* Requires: */
-    (   is_convertible_v< SliceSpecRow, full_extent_t > ||
-        is_convertible_v< SliceSpecRow, std::tuple<size_t, size_t> >
-    ) && (
-        is_convertible_v< SliceSpecCol, full_extent_t > ||
-        is_convertible_v< SliceSpecCol, std::tuple<size_t, size_t> >
-    ), int > = 0
+    enable_if_t< isSlice(SliceSpecRow) && isSlice(SliceSpecCol), int > = 0
 >
-constexpr auto submatrix(
+inline constexpr auto submatrix(
     const mdspan<ET,Exts,LP,AP>& A,
     const SliceSpecRow& rows,
     const SliceSpecCol& cols ) noexcept
@@ -74,17 +70,12 @@ constexpr auto submatrix(
 // Extract row from matrix
 template<
     class ET, class Exts, class LP, class AP,
-    class SliceSpecCol,
-    enable_if_t<
-    /* Requires: */
-    (   is_convertible_v< SliceSpecCol, full_extent_t > ||
-        is_convertible_v< SliceSpecCol, std::tuple<size_t, size_t> >
-    ), int > = 0
+    class SliceSpec, enable_if_t< isSlice(SliceSpec), int > = 0
 >
-constexpr auto row(
+inline constexpr auto row(
     const mdspan<ET,Exts,LP,AP>& A,
     size_t rowIdx,
-    const SliceSpecCol& cols = full_extent ) noexcept
+    const SliceSpec& cols = full_extent ) noexcept
 {
     return std::experimental::submdspan( A, rowIdx, cols );
 }
@@ -92,31 +83,22 @@ constexpr auto row(
 // Extract column from matrix
 template<
     class ET, class Exts, class LP, class AP,
-    class SliceSpecRow,
-    enable_if_t<
-    /* Requires: */
-    (   is_convertible_v< SliceSpecRow, full_extent_t > ||
-        is_convertible_v< SliceSpecRow, std::tuple<size_t, size_t> >
-    ), int > = 0
+    class SliceSpec, enable_if_t< isSlice(SliceSpec), int > = 0
 >
-constexpr auto col(
+inline constexpr auto col(
     const mdspan<ET,Exts,LP,AP>& A,
     size_t colIdx,
-    const SliceSpecRow& rows = full_extent ) noexcept
+    const SliceSpec& rows = full_extent ) noexcept
 {
     return std::experimental::submdspan( A, rows, colIdx );
 }
 
 // Subvector
 template< class ET, class Exts, class LP, class AP,
-          class SliceSpec,
-    enable_if_t<
-    /* Requires: */
-        is_convertible_v< SliceSpec, std::tuple<size_t, size_t> >
-    , int > = 0
+    class SliceSpec, enable_if_t< isSlice(SliceSpec), int > = 0
 >
-constexpr auto subvector(
-    const mdspan<ET,Exts,LP,AP>& v,
+inline constexpr auto subvector(
+    mdspan<ET,Exts,LP,AP>& v,
     const SliceSpec& rows ) noexcept
 {
     return std::experimental::submdspan( v, rows );
@@ -129,7 +111,7 @@ template< class ET, class Exts, class LP, class AP,
         LP::template mapping<Exts>::is_always_strided()
     , bool > = true
 >
-constexpr auto diag(
+inline constexpr auto diag(
     const mdspan<ET, Exts, LP, AP>& A,
     int diagIdx = 0 ) noexcept
 {
@@ -139,23 +121,18 @@ constexpr auto diag(
     using std::experimental::dextents;
     using std::experimental::layout_stride;
     using extents_t = dextents<1>;
-    using pointer = typename AP::pointer;
     using mapping = typename layout_stride::template mapping< extents_t >;
 
     // constants
     const auto n = min( A.extent(0), A.extent(1) );
     const auto s = A.stride(0) + A.stride(1);
     const array<typename extents_t::size_type, 1> stride = {s};
-
-    // first position
-    pointer p;
-    if ( diagIdx >= 0 )
-        p = A.data() + A.mapping()(diagIdx,0);
-    else
-        p = A.data() + A.mapping()(0,diagIdx);
-
+    
     return mdspan< ET, extents_t, layout_stride, AP > (
-        p, mapping( extents_t( n - abs(diagIdx) ), stride )
+        (diagIdx >= 0)
+            ? A.data() + A.mapping()(diagIdx,0)
+            : A.data() + A.mapping()(0,-diagIdx),
+        mapping( extents_t( n - abs(diagIdx) ), stride )
     );
 }
 
@@ -236,7 +213,7 @@ using std::array;
  *      matrix object using the abstraction A(i,j) = i + j * lda
  */
 template< typename T, typename integral_type >
-constexpr inline auto colmajor_matrix(
+inline constexpr auto colmajor_matrix(
     T* A, 
     dextents<2>::size_type m, 
     dextents<2>::size_type n, 
@@ -252,7 +229,7 @@ constexpr inline auto colmajor_matrix(
     );
 }
 template< typename T >
-constexpr inline auto colmajor_matrix(
+inline constexpr auto colmajor_matrix(
     T* A, 
     dextents<2>::size_type m, 
     dextents<2>::size_type n )
@@ -261,7 +238,7 @@ constexpr inline auto colmajor_matrix(
 }
 
 template< typename T, typename integral_type >
-constexpr inline auto vector(
+inline constexpr auto vector(
     T* x,
     dextents<1>::size_type n,
     integral_type ldim )
@@ -276,7 +253,7 @@ constexpr inline auto vector(
     );
 }
 template< typename T >
-constexpr inline auto vector(
+inline constexpr auto vector(
     T* x,
     dextents<1>::size_type n )
 {
@@ -285,7 +262,7 @@ constexpr inline auto vector(
 
 // Transpose
 template< class ET, class Exts, class AP >
-constexpr auto transpose(
+inline constexpr auto transpose(
     const mdspan<ET,Exts,layout_stride,AP>& A ) noexcept
 {    
     using mapping = typename layout_stride::template mapping< Exts >;
@@ -302,6 +279,8 @@ constexpr auto transpose(
 }
 
 } // namespace internal
+
+#undef isSlice
 
 } // namespace blas
 

@@ -16,15 +16,6 @@
 
 namespace lapack {
 
-template< class, template <std::size_t ...> class >
-struct is_instance : public std::false_type {};
-
-template< std::size_t ... idxs, template <std::size_t ...> class U >
-struct is_instance< U<idxs...>, U > : public std::true_type {};
-
-template< class V, template <std::size_t ...> class U >
-constexpr bool is_instance_v = is_instance< V, U >::value;
-
 /** @brief  Multiplies a matrix A by the real scalar a/b.
  *
  * Multiplication of a matrix A by scalar a/b is done without over/underflow as long as the final
@@ -71,9 +62,9 @@ template< class matrix_t, class a_type, class b_type, class sparse_t,
         is_same_v< sparse_t, lower_triangle_t > || 
         is_same_v< sparse_t, upper_triangle_t > || 
         is_same_v< sparse_t, hessenberg_matrix_t > || 
-        is_instance_v< sparse_t, symmetric_lowerband_t > || 
-        is_instance_v< sparse_t, symmetric_upperband_t > || 
-        is_instance_v< sparse_t, band_matrix_t >
+        is_same_v< sparse_t, symmetric_lowerband_t > || 
+        is_same_v< sparse_t, symmetric_upperband_t > || 
+        is_same_v< sparse_t, band_matrix_t >
     ) && 
         !is_complex< a_type >::value &&
         !is_complex< b_type >::value
@@ -106,21 +97,21 @@ int lascl(
     const real_t big   = safe_max<real_t>();
     
     // check arguments
-    if( is_instance_v< sparse_t, symmetric_lowerband_t > ||
-        is_instance_v< sparse_t, symmetric_upperband_t > )
+    if( is_same_v< sparse_t, symmetric_lowerband_t > ||
+        is_same_v< sparse_t, symmetric_upperband_t > )
     {
-        lapack_error_if((sparse_t::bandwidth + 1 > m && m > 0) ||
-                        (sparse_t::bandwidth + 1 > n && n > 0), -1 );
+        lapack_error_if((matrixtype.bandwidth + 1 > m && m > 0) ||
+                        (matrixtype.bandwidth + 1 > n && n > 0), -1 );
     }
-    else if( is_instance_v< sparse_t, band_matrix_t > )
+    else if( is_same_v< sparse_t, band_matrix_t > )
     {
-        lapack_error_if((sparse_t::lower_bandwidth + 1 > m && m > 0) ||
-                        (sparse_t::upper_bandwidth + 1 > n && n > 0), -1 );
+        lapack_error_if((matrixtype.lower_bandwidth + 1 > m && m > 0) ||
+                        (matrixtype.upper_bandwidth + 1 > n && n > 0), -1 );
     }
     lapack_error_if( (b == b_type(0)) || isnan(b), -2 );
     lapack_error_if( isnan(a), -3 );
-    if( is_instance_v< sparse_t, symmetric_lowerband_t > ||
-        is_instance_v< sparse_t, symmetric_upperband_t > )
+    if( is_same_v< sparse_t, symmetric_lowerband_t > ||
+        is_same_v< sparse_t, symmetric_upperband_t > )
     {
         lapack_error_if( m != n, -4 );
     }
@@ -198,24 +189,24 @@ int lascl(
                 for (idx_t i = 0; (i < m) && (i <= j + 1); ++i)
                     A(i,j) *= c;
         }
-        else if ( is_instance_v< sparse_t, symmetric_lowerband_t > )
+        else if ( is_same_v< sparse_t, symmetric_lowerband_t > )
         {
-            const idx_t k = sparse_t::bandwidth;
+            const idx_t k = matrixtype.bandwidth;
             for (idx_t j = 0; j < n; ++j)
                 for (idx_t i = 0; (i <= k) && (i < n - j); ++i)
                     A(i,j) *= c;
         }
-        else if ( is_instance_v< sparse_t, symmetric_upperband_t > )
+        else if ( is_same_v< sparse_t, symmetric_upperband_t > )
         {
-            const idx_t k = sparse_t::bandwidth;
+            const idx_t k = matrixtype.bandwidth;
             for (idx_t j = 0; j < n; ++j)
                 for (idx_t i = max(k - j, izero); i <= k; ++i)
                     A(i,j) *= c;
         }
-        else if ( is_instance_v< sparse_t, band_matrix_t > )
+        else if ( is_same_v< sparse_t, band_matrix_t > )
         {
-            const idx_t kl = sparse_t::lower_bandwidth;
-            const idx_t ku = sparse_t::upper_bandwidth;
+            const idx_t kl = matrixtype.lower_bandwidth;
+            const idx_t ku = matrixtype.upper_bandwidth;
             for (idx_t j = 0; j < n; ++j)
                 for (idx_t i = max(kl + ku - j, kl); i <= min(2 * kl + ku, kl + ku + m - j); ++i)
                     A(i,j) *= c;
@@ -234,6 +225,7 @@ int lascl(
     T* A, idx_t lda )
 {
     using blas::internal::colmajor_matrix;
+    using std::max;
     
     // check arguments
     lapack_error_if(
@@ -241,35 +233,35 @@ int lascl(
         (matrixtype != MatrixType::Lower) && 
         (matrixtype != MatrixType::Upper) && 
         (matrixtype != MatrixType::Hessenberg), -1 );
-    // lapack_error_if( (
-    //         (matrixtype == MatrixType::LowerBand) ||
-    //         (matrixtype == MatrixType::UpperBand) || 
-    //         (matrixtype == MatrixType::Band)
-    //     ) && (
-    //         (kl < 0) ||
-    //         (kl > max(m-1, izero))
-    //     ), -2 );
-    // lapack_error_if( (
-    //         (matrixtype == MatrixType::LowerBand) ||
-    //         (matrixtype == MatrixType::UpperBand) || 
-    //         (matrixtype == MatrixType::Band)
-    //     ) && (
-    //         (ku < 0) ||
-    //         (ku > max(n-1, izero))
-    //     ), -3 );
-    // lapack_error_if( (
-    //         (matrixtype == MatrixType::LowerBand) ||
-    //         (matrixtype == MatrixType::UpperBand)
-    //     ) && ( kl != ku ), -3 );
+    lapack_error_if( (
+            (matrixtype == MatrixType::LowerBand) ||
+            (matrixtype == MatrixType::UpperBand) || 
+            (matrixtype == MatrixType::Band)
+        ) && (
+            (kl < 0) ||
+            (kl > max(m-1, idx_t(0)))
+        ), -2 );
+    lapack_error_if( (
+            (matrixtype == MatrixType::LowerBand) ||
+            (matrixtype == MatrixType::UpperBand) || 
+            (matrixtype == MatrixType::Band)
+        ) && (
+            (ku < 0) ||
+            (ku > max(n-1, idx_t(0)))
+        ), -3 );
+    lapack_error_if( (
+            (matrixtype == MatrixType::LowerBand) ||
+            (matrixtype == MatrixType::UpperBand)
+        ) && ( kl != ku ), -3 );
     lapack_error_if( m < 0, -6 );
     lapack_error_if( (lda < m) && (
         (matrixtype == MatrixType::General) || 
         (matrixtype == MatrixType::Lower) ||
         (matrixtype == MatrixType::Upper) ||
         (matrixtype == MatrixType::Hessenberg) ), -9 );
-    // lapack_error_if( (matrixtype == MatrixType::LowerBand) && (lda < kl + 1), -9);
-    // lapack_error_if( (matrixtype == MatrixType::UpperBand) && (lda < ku + 1), -9);
-    // lapack_error_if( (matrixtype == MatrixType::Band) && (lda < 2 * kl + ku + 1), -9);
+    lapack_error_if( (matrixtype == MatrixType::LowerBand) && (lda < kl + 1), -9);
+    lapack_error_if( (matrixtype == MatrixType::UpperBand) && (lda < ku + 1), -9);
+    lapack_error_if( (matrixtype == MatrixType::Band) && (lda < 2 * kl + ku + 1), -9);
 
     // Matrix views
     auto _A = colmajor_matrix<T>( A, m, n, lda );
@@ -282,24 +274,12 @@ int lascl(
         return lascl( upper_triangle, b, a, _A );
     else if (matrixtype == MatrixType::Hessenberg)
         return lascl( hessenberg_matrix, b, a, _A );
-    // else if (matrixtype == MatrixType::LowerBand)
-    // {
-    //     for (idx_t j = 0; j < n; ++j)
-    //         for (idx_t i = 0; (i <= kl) && (i < n - j); ++i)
-    //             _A(i,j) *= c;
-    // }
-    // else if (matrixtype == MatrixType::UpperBand)
-    // {
-    //     for (idx_t j = 0; j < n; ++j)
-    //         for (idx_t i = max(ku - j, izero); i <= ku; ++i)
-    //             _A(i,j) *= c;
-    // }
-    // else if (matrixtype == MatrixType::Band)
-    // {
-    //     for (idx_t j = 0; j < n; ++j)
-    //         for (idx_t i = max(kl + ku - j, kl); i <= min(2 * kl + ku, kl + ku + m - j); ++i)
-    //             _A(i,j) *= c;
-    // }
+    else if (matrixtype == MatrixType::LowerBand)
+        return lascl( symmetric_lowerband_t{kl}, b, a, _A );
+    else if (matrixtype == MatrixType::UpperBand)
+        return lascl( symmetric_upperband_t{ku}, b, a, _A );
+    else if (matrixtype == MatrixType::Band)
+        return lascl( band_matrix_t{kl,ku}, b, a, _A );
 
     return 0;
 }

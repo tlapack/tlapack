@@ -104,8 +104,8 @@ void herk(
                    uplo != Uplo::General );
     blas_error_if( trans != Op::NoTrans &&
                    trans != Op::ConjTrans );
-    blas_error_if( nrows(C) == ncols(C) &&
-                   nrows(C) == n );
+    blas_error_if( nrows(C) != ncols(C) ||
+                   nrows(C) != n );
 
     if (trans == Op::NoTrans) {
         if (uplo != Uplo::Lower) {

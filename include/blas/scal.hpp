@@ -32,7 +32,7 @@ namespace blas {
  * @ingroup scal
  */
 template< class vector_t, class alpha_t >
-void scal( const alpha_t& alpha, vector_t const& x )
+void scal( const alpha_t& alpha, vector_t& x )
 {
     using idx_t = size_type< vector_t >;
 
@@ -54,7 +54,7 @@ void scal(
     // check arguments
     blas_error_if( incx <= 0 );
 
-    const auto _x = vector<TX>( (TX*) x, n, incx );
+    auto _x = vector<TX>( x, n, incx );
     return scal( alpha, _x );
 }
 

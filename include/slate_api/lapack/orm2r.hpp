@@ -87,19 +87,19 @@ inline int orm2r(
 
     if( side == Side::Left ) {
         if( trans == Op::NoTrans )
-            info = orm2r( left_side, noTranspose, -A, _tau, _C, _work );
+            info = orm2r( left_side, noTranspose, A, _tau, _C, _work );
         else if( trans == Op::Trans )
-            info = orm2r( left_side, transpose, -A, _tau, _C, _work );
+            info = orm2r( left_side, transpose, A, _tau, _C, _work );
         else
-            info = orm2r( left_side, conjTranspose, -A, _tau, _C, _work );
+            info = orm2r( left_side, conjTranspose, A, _tau, _C, _work );
     }
     else { // side == Side::Right
         if( trans == Op::NoTrans )
-            info = orm2r( right_side, noTranspose, -A, _tau, _C, _work );
+            info = orm2r( right_side, noTranspose, A, _tau, _C, _work );
         else if( trans == Op::Trans )
-            info = orm2r( right_side, transpose, -A, _tau, _C, _work );
+            info = orm2r( right_side, transpose, A, _tau, _C, _work );
         else
-            info = orm2r( right_side, conjTranspose, -A, _tau, _C, _work );
+            info = orm2r( right_side, conjTranspose, A, _tau, _C, _work );
     }
 
     delete[] work;
