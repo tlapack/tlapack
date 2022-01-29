@@ -43,21 +43,6 @@ void scal( const alpha_t& alpha, vector_t& x )
         x(i) *= alpha;
 }
 
-template< typename TA, typename TX >
-void scal(
-    blas::idx_t n,
-    const TA& alpha,
-    TX* x, blas::int_t incx )
-{
-    using internal::vector;
-
-    // check arguments
-    blas_error_if( incx <= 0 );
-
-    auto _x = vector<TX>( x, n, incx );
-    return scal( alpha, _x );
-}
-
 }  // namespace blas
 
 #endif        //  #ifndef BLAS_SCAL_HH

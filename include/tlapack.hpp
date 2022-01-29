@@ -30,6 +30,7 @@
 #include "lapack/lansy.hpp"
 #include "lapack/larnv.hpp"
 #include "lapack/lascl.hpp"
+#include "lapack/lassq.hpp"
 
 // QR factorization
 // ----------------

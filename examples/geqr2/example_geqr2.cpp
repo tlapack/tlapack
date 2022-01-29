@@ -7,8 +7,6 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#include <tlapack.hpp>
-#include <tblas.hpp>
 #include <slate_api/lapack.hpp>
 #include <slate_api/blas.hpp>
 

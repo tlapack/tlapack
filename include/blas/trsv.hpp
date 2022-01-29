@@ -220,53 +220,6 @@ void trsv(
     }
 }
 
-template< typename TA, typename TX >
-void trsv(
-    blas::Layout layout,
-    blas::Uplo uplo,
-    blas::Op trans,
-    blas::Diag diag,
-    blas::idx_t n,
-    TA const *A, blas::idx_t lda,
-    TX       *x, blas::int_t incx )
-{
-    using blas::internal::colmajor_matrix;
-    using blas::internal::vector;
-
-    // check arguments
-    blas_error_if( layout != Layout::ColMajor &&
-                   layout != Layout::RowMajor );
-    blas_error_if( uplo != Uplo::Lower &&
-                   uplo != Uplo::Upper );
-    blas_error_if( trans != Op::NoTrans &&
-                   trans != Op::Trans &&
-                   trans != Op::ConjTrans );
-    blas_error_if( diag != Diag::NonUnit &&
-                   diag != Diag::Unit );
-    blas_error_if( n < 0 );
-    blas_error_if( lda < n );
-    blas_error_if( incx == 0 );
-
-    // quick return
-    if (n == 0)
-        return;
-
-    // for row major, swap lower <=> upper and
-    // A => A^T; A^T => A; A^H => A & conj
-    if (layout == Layout::RowMajor) {
-        uplo = (uplo == Uplo::Lower ? Uplo::Upper : Uplo::Lower);
-        trans = (trans == Op::NoTrans)
-              ? Op::Trans
-              : ((trans == Op::Trans) ? Op::NoTrans : Op::Conj);
-    }
-        
-    // Matrix views
-    const auto _A = colmajor_matrix<TA>( (TA*)A, n, n, lda );
-    auto _x = vector<TX>( &x[(incx > 0 ? 0 : (-n + 1)*incx)], n, incx );
-
-    trsv( uplo, trans, diag, _A, _x );
-}
-
 }  // namespace blas
 
 #endif        //  #ifndef BLAS_TRSV_HH

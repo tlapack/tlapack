@@ -7,6 +7,34 @@
 #ifndef __SLATE_BLAS_HH__
 #define __SLATE_BLAS_HH__
 
+#include <cstdint> // Defines std::int64_t
+#include <cstddef> // Defines std::size_t
+#include "slate_api/blas/mdspan.hpp"  // Loads mdspan utilities for the wrappers
+#include "plugins/tlapack_mdspan.hpp" // Loads mdspan plugin
+
+// -----------------------------------------------------------------------------
+// Integer types BLAS_SIZE_T and BLAS_INT_T
+
+#if defined(USE_BLASPP_WRAPPERS) || defined(USE_LAPACKPP_WRAPPERS)
+    #ifndef BLAS_SIZE_T
+        #define BLAS_SIZE_T std::int64_t
+    #endif
+#else
+    #ifndef BLAS_SIZE_T
+        #define BLAS_SIZE_T std::size_t
+    #endif
+#endif
+
+#ifndef BLAS_INT_T
+    #define BLAS_INT_T std::int64_t
+#endif
+// -----------------------------------------------------------------------------
+
+namespace blas {
+    using idx_t = BLAS_SIZE_T;
+    using int_t = BLAS_INT_T;
+}
+
 // Optimized BLAS
 
 #ifdef USE_BLASPP_WRAPPERS
@@ -25,38 +53,38 @@
 // =============================================================================
 // Level 1 BLAS template implementations
 
-#include "blas/asum.hpp"
-#include "blas/axpy.hpp"
-#include "blas/copy.hpp"
-#include "blas/dot.hpp"
-#include "blas/dotu.hpp"
-#include "blas/iamax.hpp"
-#include "blas/nrm2.hpp"
-#include "blas/rot.hpp"
-#include "blas/rotg.hpp"
-#include "blas/rotm.hpp"
-#include "blas/rotmg.hpp"
-#include "blas/scal.hpp"
-#include "blas/swap.hpp"
+#include "slate_api/blas/asum.hpp"
+#include "slate_api/blas/axpy.hpp"
+#include "slate_api/blas/copy.hpp"
+#include "slate_api/blas/dot.hpp"
+#include "slate_api/blas/dotu.hpp"
+#include "slate_api/blas/iamax.hpp"
+#include "slate_api/blas/nrm2.hpp"
+#include "slate_api/blas/rot.hpp"
+#include "slate_api/blas/rotg.hpp"
+#include "slate_api/blas/rotm.hpp"
+#include "slate_api/blas/rotmg.hpp"
+#include "slate_api/blas/scal.hpp"
+#include "slate_api/blas/swap.hpp"
 
 // =============================================================================
 // Level 2 BLAS template implementations
 
 #include "slate_api/blas/gemv.hpp"
-#include "blas/ger.hpp"
-#include "blas/geru.hpp"
-#include "blas/hemv.hpp"
-#include "blas/her.hpp"
-#include "blas/her2.hpp"
-#include "blas/symv.hpp"
-#include "blas/syr.hpp"
-#include "blas/syr2.hpp"
+#include "slate_api/blas/ger.hpp"
+#include "slate_api/blas/geru.hpp"
+#include "slate_api/blas/hemv.hpp"
+#include "slate_api/blas/her.hpp"
+#include "slate_api/blas/her2.hpp"
+#include "slate_api/blas/symv.hpp"
+#include "slate_api/blas/syr.hpp"
+#include "slate_api/blas/syr2.hpp"
 // #include "blas/spmv.hpp"
 // #include "blas/spr.hpp"
 // #include "blas/spr2.hpp"
 // #include "blas/sbmv.hpp"
 #include "slate_api/blas/trmv.hpp"
-#include "blas/trsv.hpp"
+#include "slate_api/blas/trsv.hpp"
 // #include "blas/tpmv.hpp"
 // #include "blas/tbmv.hpp"
 // #include "blas/tpsv.hpp"
@@ -66,13 +94,13 @@
 // Level 3 BLAS template implementations
 
 #include "slate_api/blas/gemm.hpp"
-#include "blas/hemm.hpp"
-#include "blas/herk.hpp"
-#include "blas/her2k.hpp"
-#include "blas/symm.hpp"
-#include "blas/syrk.hpp"
-#include "blas/syr2k.hpp"
-#include "blas/trmm.hpp"
-#include "blas/trsm.hpp"
+#include "slate_api/blas/hemm.hpp"
+#include "slate_api/blas/herk.hpp"
+#include "slate_api/blas/her2k.hpp"
+#include "slate_api/blas/symm.hpp"
+#include "slate_api/blas/syrk.hpp"
+#include "slate_api/blas/syr2k.hpp"
+#include "slate_api/blas/trmm.hpp"
+#include "slate_api/blas/trsm.hpp"
 
 #endif // __SLATE_BLAS_HH__

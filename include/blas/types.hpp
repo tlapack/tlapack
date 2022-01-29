@@ -9,33 +9,8 @@
 #define __TBLAS_TYPES_HH__
 
 #include <complex>
-#include <cstdint> // Defines std::int64_t
-#include <cstddef> // Defines std::size_t
-
-// -----------------------------------------------------------------------------
-// Integer types BLAS_SIZE_T and BLAS_INT_T
-
-#if defined(USE_BLASPP_WRAPPERS) || defined(USE_LAPACKPP_WRAPPERS)
-    #ifndef BLAS_SIZE_T
-        #define BLAS_SIZE_T std::int64_t
-    #endif
-#else
-    #ifndef BLAS_SIZE_T
-        #define BLAS_SIZE_T std::size_t
-    #endif
-#endif
-
-#ifndef BLAS_INT_T
-    #define BLAS_INT_T std::int64_t
-#endif
-// -----------------------------------------------------------------------------
 
 namespace blas {
-
-// -----------------------------------------------------------------------------
-// Integer types blas::idx_t and blas::int_t
-using idx_t = BLAS_SIZE_T;
-using int_t = BLAS_INT_T;
 
 // -----------------------------------------------------------------------------
 // Enumerations
@@ -44,6 +19,16 @@ enum class Op     { NoTrans  = 'N', Trans    = 'T', ConjTrans = 'C', Conj };
 enum class Uplo   { Upper    = 'U', Lower    = 'L', General   = 'G' };
 enum class Diag   { NonUnit  = 'N', Unit     = 'U' };
 enum class Side   { Left     = 'L', Right    = 'R' };
+
+// -----------------------------------------------------------------------------
+// Check for Infs and NaNs types
+
+struct nocheck_t { };
+struct checkInfNaN_t { };
+
+// constants
+constexpr nocheck_t nocheck = { };
+constexpr checkInfNaN_t checkInfNaN = { };
 
 // -----------------------------------------------------------------------------
 // Strong numeric expressions
@@ -70,15 +55,6 @@ constexpr zero_t zero = { };
 #else
     template< bool B, class T = void >
     using enable_if_t = typename enable_if<B,T>::type;
-#endif
-
-// -----------------------------------------------------------------------------
-// is_convertible_v is defined in C++17; here's a C++11 definition
-#if __cplusplus >= 201703L
-    using std::is_convertible_v;
-#else
-    template< class From, class To >
-    constexpr bool is_convertible_v = std::is_convertible<From, To>::value;
 #endif
 
 // -----------------------------------------------------------------------------
@@ -216,14 +192,19 @@ struct real_type_traits< T1, Types... >
 // -----------------------------------------------------------------------------
 // Data traits
 
-// Data type
-template< class T > struct type_trait {};
-template< class T >
-using type_t = typename type_trait< T >::type;
-// Size type
-template< class T > struct sizet_trait {};
-template< class T >
-using size_type = typename sizet_trait< T >::type;
+#ifndef TBLAS_ARRAY_TRAITS
+#define TBLAS_ARRAY_TRAITS
+
+    // Data type
+    template< class T > struct type_trait {};
+    template< class T >
+    using type_t = typename type_trait< T >::type;
+    // Size type
+    template< class T > struct sizet_trait {};
+    template< class T >
+    using size_type = typename sizet_trait< T >::type;
+
+#endif // TBLAS_ARRAY_TRAITS
 
 } // namespace blas
 

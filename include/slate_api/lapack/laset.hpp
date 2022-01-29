@@ -15,6 +15,26 @@
 
 namespace lapack {
 
+template< typename TA >
+void laset(
+    Uplo uplo, blas::idx_t m, blas::idx_t n,
+    TA alpha, TA beta,
+    TA* A, blas::idx_t lda )
+{
+    using blas::internal::colmajor_matrix;
+
+    // quick return
+    if( m <= 0 || n <= 0 )
+        return;
+    
+    // Matrix views
+    auto _A = colmajor_matrix<TA>( A, m, n, lda );
+
+    if (uplo == Uplo::Upper) laset( upper_triangle, alpha, beta, _A );
+    else if (uplo == Uplo::Lower) laset( lower_triangle, alpha, beta, _A );
+    else laset( general_matrix, alpha, beta, _A );
+}
+
 /** Initializes a matrix to diagonal and off-diagonal values
  * 
  * @param[in] matrixtype :

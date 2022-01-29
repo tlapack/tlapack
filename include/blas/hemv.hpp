@@ -132,68 +132,6 @@ void hemv(
     }
 }
 
-template< typename TA, typename TX, typename TY >
-void hemv(
-    blas::Layout layout,
-    blas::Uplo uplo,
-    blas::idx_t n,
-    blas::scalar_type<TA, TX, TY> alpha,
-    TA const *A, blas::idx_t lda,
-    TX const *x, blas::int_t incx,
-    blas::scalar_type<TA, TX, TY> beta,
-    TY *y, blas::int_t incy )
-{
-    typedef blas::scalar_type<TA, TX, TY> scalar_t;
-    using blas::internal::colmajor_matrix;
-    using blas::internal::vector;
-    using blas::internal::transpose;
-    
-    // constants
-    const scalar_t zero( 0.0 );
-    const scalar_t one( 1.0 );
-
-    // check arguments
-    blas_error_if( layout != Layout::ColMajor &&
-                   layout != Layout::RowMajor );
-    blas_error_if( uplo != Uplo::Lower &&
-                   uplo != Uplo::Upper );
-    blas_error_if( n < 0 );
-    blas_error_if( lda < n );
-    blas_error_if( incx == 0 );
-    blas_error_if( incy == 0 );
-
-    // quick return
-    if (n == 0 || (alpha == zero && beta == one))
-        return;
-
-    // Views
-    auto _A = colmajor_matrix<TA>( (TA*)A, n, n, lda );
-    if(layout == Layout::RowMajor) _A = transpose(_A);
-    const auto _x = vector<TX>(
-        (TX*) &x[(incx > 0 ? 0 : (-n + 1)*incx)],
-        n, incx );
-    auto _y = vector<TY>(
-        &y[(incy > 0 ? 0 : (-n + 1)*incy)],
-        n, incy );
-
-    if (alpha == zero){
-        // form y = beta*y
-        if (beta != one) {
-            if (beta == zero) {
-                for (idx_t i = 0; i < n; ++i)
-                    _y(i) = zero;
-            }
-            else {
-                for (idx_t i = 0; i < n; ++i)
-                    _y(i) *= beta;
-            }
-        }
-        return;
-    }
-    
-    hemv( uplo, alpha, _A, _x, beta, _y );
-}
-
 }  // namespace blas
 
 #endif        //  #ifndef BLAS_HEMV_HH

@@ -51,11 +51,7 @@ namespace blas {
  */
 template<
     class vectorX_t, class vectorY_t,
-    class c_type, class s_type,
-    enable_if_t<(
-    /* Requires: */
-        ! is_complex<c_type>::value
-    ), int > = 0
+    class c_type, class s_type
 >
 void rot(
     vectorX_t& x, vectorY_t& y,
@@ -74,36 +70,6 @@ void rot(
         y(i) = c*y(i) - conj(s)*x(i);
         x(i) = stmp;
     }
-}
-
-template< typename TX, typename TY >
-void rot(
-    blas::idx_t n,
-    TX *x, blas::int_t incx,
-    TY *y, blas::int_t incy,
-    blas::real_type<TX, TY>   c,
-    blas::scalar_type<TX, TY> s )
-{
-    typedef scalar_type<TX, TY> scalar_t;
-    using internal::vector;
-
-    // check arguments
-    blas_error_if( incx == 0 );
-    blas_error_if( incy == 0 );
-
-    // quick return
-    if ( n == 0 || (c == 1 && s == scalar_t(0)) )
-        return;
-
-    // Views
-    auto _x = vector<TX>(
-        &x[(incx > 0 ? 0 : (-n + 1)*incx)],
-        n, incx );
-    auto _y = vector<TY>(
-        &y[(incy > 0 ? 0 : (-n + 1)*incy)],
-        n, incy );
-
-    rot( _x, _y, c, s );
 }
 
 }  // namespace blas

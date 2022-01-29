@@ -45,16 +45,9 @@ namespace blas {
  */
 template <typename real_t>
 void rotg(
-    real_t *a,
-    real_t *b,
-    real_t *c,
-    real_t *s )
+    real_t& a, real_t& b,
+    real_t& c, real_t& s )
 {
-    real_t& A = *a;
-    real_t& B = *b;
-    real_t& C = *c;
-    real_t& S = *s;
-
     // Constants
     const real_t one  = 1;
     const real_t zero = 0;
@@ -64,36 +57,36 @@ void rotg(
     const real_t safmax = safe_max<real_t>();
 
     // Norms
-    const real_t anorm = blas::abs(A);
-    const real_t bnorm = blas::abs(B);
+    const real_t anorm = blas::abs(a);
+    const real_t bnorm = blas::abs(b);
 
     // quick return
     if ( bnorm == zero ) {
-        C = one;
-        S = zero;
-        B = zero;
+        c = one;
+        s = zero;
+        b = zero;
     }
     else if ( anorm == zero ) {
-        C = zero;
-        S = one;
-        A = B;
-        B = one;
+        c = zero;
+        s = one;
+        a = b;
+        b = one;
     }
     else {
         real_t scl = min( safmax, max(safmin, anorm, bnorm) );
         real_t sigma = (anorm > bnorm)
-            ? sgn(A)
-            : sgn(B);
-        real_t r = sigma * scl * sqrt( (A/scl) * (A/scl) + (B/scl) * (B/scl) );
-        C = A / r;
-        S = B / r;
-        A = r;
+            ? sgn(a)
+            : sgn(b);
+        real_t r = sigma * scl * sqrt( (a/scl) * (a/scl) + (b/scl) * (b/scl) );
+        c = a / r;
+        s = b / r;
+        a = r;
         if ( anorm > bnorm )
-            B = S;
-        else if ( C != zero )
-            B = one / C;
+            b = s;
+        else if ( c != zero )
+            b = one / c;
         else
-            B = one;
+            b = one;
     }
 }
 
@@ -130,18 +123,12 @@ void rotg(
  */
 template <typename T>
 void rotg(
-    T *a,
-    T *b,
-    blas::real_type<T>    *c,
-    blas::complex_type<T> *s )
+    T& a, T& b,
+    real_type<T>& c,
+    complex_type<T>& s )
 {
     typedef real_type<T> real_t;
     typedef complex_type<T> scalar_t;
-
-    scalar_t& A = *a;
-    scalar_t& B = *b;
-    real_t&   C = *c;
-    scalar_t& S = *s;
 
     // Constants
     const real_t r_one = 1;
@@ -151,59 +138,59 @@ void rotg(
     // Scaling constants
     const real_t safmin = safe_min<real_t>();
     const real_t safmax = safe_max<real_t>();
-    const real_t rtmin = root_min<real_t>();
-    const real_t rtmax = root_max<real_t>();
+    const real_t rtmin  = root_min<real_t>();
+    const real_t rtmax  = root_max<real_t>();
 
     // quick return
-    if ( B == zero ) {
-        C = r_one;
-        S = zero;
+    if ( b == zero ) {
+        c = r_one;
+        s = zero;
         return;
     }
 
-    if ( A == zero ) {
-        C = r_zero;
-        real_t g1 = max( blas::abs(real(B)), blas::abs(imag(B)) );
+    if ( a == zero ) {
+        c = r_zero;
+        real_t g1 = max( blas::abs(real(b)), blas::abs(imag(b)) );
         if ( g1 > rtmin && g1 < rtmax ) {
             // Use unscaled algorithm
-            real_t g2 = real(B)*real(B) + imag(B)*imag(B);
+            real_t g2 = real(b)*real(b) + imag(b)*imag(b);
             real_t d = sqrt( g2 );
-            S = conj( B ) / d;
-            A = d;
+            s = conj( b ) / d;
+            a = d;
         }
         else {
             // Use scaled algorithm
             real_t u = min( safmax, max( safmin, g1 ) );
             real_t uu = r_one / u;
-            scalar_t gs = B*uu;
+            scalar_t gs = b*uu;
             real_t g2 = real(gs)*real(gs) + imag(gs)*imag(gs);
             real_t d = sqrt( g2 );
-            S = conj( gs ) / d;
-            A = d*u;
+            s = conj( gs ) / d;
+            a = d*u;
         }
     }
     else {
-        real_t f1 = max( blas::abs(real(A)), blas::abs(imag(A)) );
-        real_t g1 = max( blas::abs(real(B)), blas::abs(imag(B)) );
+        real_t f1 = max( blas::abs(real(a)), blas::abs(imag(a)) );
+        real_t g1 = max( blas::abs(real(b)), blas::abs(imag(b)) );
         if ( f1 > rtmin && f1 < rtmax &&
             g1 > rtmin && g1 < rtmax ) {
             // Use unscaled algorithm
-            real_t f2 = real(A)*real(A) + imag(A)*imag(A);
-            real_t g2 = real(B)*real(B) + imag(B)*imag(B);
+            real_t f2 = real(a)*real(a) + imag(a)*imag(a);
+            real_t g2 = real(b)*real(b) + imag(b)*imag(b);
             real_t h2 = f2 + g2;
             real_t d = ( f2 > rtmin && h2 < rtmax )
                        ? sqrt( f2*h2 )
                        : sqrt( f2 )*sqrt( h2 );
             real_t p = r_one / d;
-            C  = f2*p;
-            S  = conj( B )*( A*p );
-            A *= h2*p ;
+            c  = f2*p;
+            s  = conj( b )*( a*p );
+            a *= h2*p ;
         }
         else {
             // Use scaled algorithm
             real_t u = min( safmax, max( safmin, f1, g1 ) );
             real_t uu = r_one / u;
-            scalar_t gs = B*uu;
+            scalar_t gs = b*uu;
             real_t g2 = real(gs)*real(gs) + imag(gs)*imag(gs);
             real_t f2, h2, w;
             scalar_t fs;
@@ -212,14 +199,14 @@ void rotg(
                 real_t v = min( safmax, max( safmin, f1 ) );
                 real_t vv = r_one / v;
                 w = v * uu;
-                fs = A*vv;
+                fs = a*vv;
                 f2 = real(fs)*real(fs) + imag(fs)*imag(fs);
                 h2 = f2*w*w + g2;
             }
             else {
                 // Otherwise use the same scaling for a and b.
                 w = r_one;
-                fs = A*uu;
+                fs = a*uu;
                 f2 = real(fs)*real(fs) + imag(fs)*imag(fs);
                 h2 = f2 + g2;
             }
@@ -227,9 +214,9 @@ void rotg(
                        ? sqrt( f2*h2 )
                        : sqrt( f2 )*sqrt( h2 );
             real_t p = r_one / d;
-            C = ( f2*p )*w;
-            S = conj( gs )*( fs*p );
-            A = ( fs*( h2*p ) )*u;
+            c = ( f2*p )*w;
+            s = conj( gs )*( fs*p );
+            a = ( fs*( h2*p ) )*u;
         }
     }
 }

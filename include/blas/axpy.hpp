@@ -56,35 +56,6 @@ void axpy(
         y(i) += alpha * x(i);
 }
 
-template< typename TX, typename TY >
-void axpy(
-    blas::idx_t n,
-    blas::scalar_type<TX, TY> alpha,
-    TX const *x, blas::int_t incx,
-    TY       *y, blas::int_t incy )
-{
-    typedef blas::scalar_type<TX, TY> scalar_t;
-    using internal::vector;
-
-    // check arguments
-    blas_error_if( incx == 0 );
-    blas_error_if( incy == 0 );
-
-    // quick return
-    if (alpha == scalar_t(0))
-        return;
-
-    // Views
-    const auto _x = vector<TX>(
-        (TX*) &x[(incx > 0 ? 0 : (-n + 1)*incx)],
-        n, incx );
-    auto _y = vector<TY>(
-        &y[(incy > 0 ? 0 : (-n + 1)*incy)],
-        n, incy );
-
-    axpy( alpha, _x, _y );
-}
-
 }  // namespace blas
 
 #endif        //  #ifndef BLAS_AXPY_HH

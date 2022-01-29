@@ -7,7 +7,7 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#include <tlapack.hpp>
+// #include <tlapack.hpp>
 
 #include <vector>
 #include <iostream>
@@ -21,8 +21,8 @@ int main( int argc, char** argv )
     // using pair = std::pair<size_type,size_type>;
     
     // // constants
-    // const size_t n = 100, k = 40, row_tile = 2, col_tile = 5;
-    // const size_t lda = 110, ldc = 120;
+    // const std::size_t n = 100, k = 40, row_tile = 2, col_tile = 5;
+    // const std::size_t lda = 110, ldc = 120;
     // T one( 1.0 );
     
     // // raw data arrays

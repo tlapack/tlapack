@@ -97,49 +97,6 @@ void her(
     }
 }
 
-template< typename TA, typename TX >
-void her(
-    blas::Layout layout,
-    blas::Uplo uplo,
-    blas::idx_t n,
-    blas::real_type<TA, TX> alpha,  // zher takes double alpha; use real
-    TX const *x, blas::int_t incx,
-    TA       *A, blas::idx_t lda )
-{
-    typedef blas::real_type<TA, TX> real_t;
-    using blas::internal::colmajor_matrix;
-    using blas::internal::vector;
-    
-    // constants
-    const real_t zero( 0 );
-
-    // check arguments
-    blas_error_if( layout != Layout::ColMajor &&
-                   layout != Layout::RowMajor );
-    blas_error_if( uplo != Uplo::Lower &&
-                   uplo != Uplo::Upper );
-    blas_error_if( n < 0 );
-    blas_error_if( incx == 0 );
-    blas_error_if( lda < n );
-
-    // quick return
-    if (n == 0 || alpha == zero)
-        return;
-
-    // for row major, swap lower <=> upper
-    if (layout == Layout::RowMajor) {
-        uplo = (uplo == Uplo::Lower ? Uplo::Upper : Uplo::Lower);
-    }
-    
-    // Matrix views
-    auto _A = colmajor_matrix<TA>( A, n, n, lda );
-    const auto _x = vector<TX>(
-        (TX*) &x[(incx > 0 ? 0 : (-n + 1)*incx)],
-        n, incx );
-
-    her( uplo, alpha, _x, _A );
-}
-
 }  // namespace blas
 
 #endif        //  #ifndef BLAS_HER_HH

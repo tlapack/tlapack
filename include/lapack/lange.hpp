@@ -54,8 +54,8 @@ lange( norm_t normType, const matrix_t& A, work_t& work )
 
     // constants
     const real_t rzero(0.0);
-    const auto m = nrows(A);
-    const auto n = ncols(A);
+    const idx_t m = nrows(A);
+    const idx_t n = ncols(A);
 
     // quick return
     if (m == 0 || n == 0)
@@ -122,7 +122,7 @@ lange( norm_t normType, const matrix_t& A, work_t& work )
     {
         real_t scale(0.0), sum(1.0);
         for (idx_t j = 0; j < n; ++j)
-            lassq(m, &(A(0,j)), 1, scale, sum);
+            lassq( col(A,j), scale, sum );
         norm = scale * sqrt(sum);
     }
 
@@ -135,11 +135,68 @@ template< typename norm_t, typename matrix_t,
           is_same_v<norm_t,one_norm_t> ||
           is_same_v<norm_t,frob_norm_t> ), bool > = true
 >
-inline
 real_type< type_t< matrix_t > >
 lange( norm_t normType, const matrix_t& A )
 {
-    return lange( normType, A, blas::empty_v );
+    using T      = type_t< matrix_t >;
+    using real_t = real_type< T >;
+    using idx_t  = size_type< matrix_t >;
+    using blas::isnan;
+    using blas::sqrt;
+
+    // constants
+    const real_t rzero(0.0);
+    const idx_t m = nrows(A);
+    const idx_t n = ncols(A);
+
+    // quick return
+    if (m == 0 || n == 0)
+        return rzero;
+
+    // Norm value
+    real_t norm = rzero;
+
+    if( is_same_v<norm_t,max_norm_t> )
+    {
+        for (idx_t j = 0; j < n; ++j) {
+            for (idx_t i = 0; i < m; ++i)
+            {
+                real_t temp = blas::abs( A(i,j) );
+
+                if (temp > norm)
+                    norm = temp;
+                else {
+                    if ( isnan(temp) ) 
+                        return temp;
+                }
+            }
+        }
+    }
+    else if ( is_same_v<norm_t,one_norm_t> )
+    {
+        for (idx_t j = 0; j < n; ++j)
+        {
+            real_t sum = rzero;
+            for (idx_t i = 0; i < m; ++i)
+                sum += blas::abs( A(i,j) );
+
+            if (sum > norm)
+                norm = sum;
+            else {
+                if ( isnan(sum) ) 
+                    return sum;
+            }
+        }
+    }
+    else if ( is_same_v<norm_t,frob_norm_t> )
+    {
+        real_t scale(0.0), sum(1.0);
+        for (idx_t j = 0; j < n; ++j)
+            lassq( col(A,j), scale, sum );
+        norm = scale * sqrt(sum);
+    }
+
+    return norm;
 }
 
 } // lapack

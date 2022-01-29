@@ -12,17 +12,6 @@ namespace blas {
     void error( const char* error_msg, const char* func );
 }
 
-namespace lapack {
-    using blas::size;
-    using blas::nrows;
-    using blas::ncols;
-    using blas::submatrix;
-    using blas::subvector;
-    using blas::row;
-    using blas::col;
-    using blas::diag;
-}
-
 // -----------------------------------------------------------------------------
 // Macros to handle error checks
 #if defined(LAPACK_ERROR_NDEBUG) || defined(NDEBUG)

@@ -11,6 +11,11 @@
 #define BLAS_SIZE_T std::int64_t
 #define BLAS_INT_T  std::int64_t
 
+// Do not test corner cases since <T>LAPACK does not match
+// BLAS++ in this matter
+#undef assert_throw
+#define assert_throw( expr, exception_type ) ((void)0)
+
 #define BLAS_ERROR_NDEBUG // Don't test corner cases
 
 #endif        //  #ifndef BLAS_DEFINES_H

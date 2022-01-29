@@ -80,62 +80,6 @@ void geru(
     }
 }
 
-template< typename TA, typename TX, typename TY >
-void geru(
-    blas::Layout layout,
-    blas::idx_t m, blas::idx_t n,
-    blas::scalar_type<TA, TX, TY> alpha,
-    TX const *x, blas::int_t incx,
-    TY const *y, blas::int_t incy,
-    TA *A, blas::idx_t lda )
-{
-    typedef blas::scalar_type<TA, TX, TY> scalar_t;
-    using blas::internal::colmajor_matrix;
-    using blas::internal::vector;
-    
-    // constants
-    const scalar_t zero( 0.0 );
-
-    // check arguments
-    blas_error_if( layout != Layout::ColMajor );
-    blas_error_if( m < 0 );
-    blas_error_if( n < 0 );
-    blas_error_if( incx == 0 );
-    blas_error_if( incy == 0 );
-    blas_error_if( lda < ((layout == Layout::ColMajor) ? m : n) );
-
-    // quick return
-    if (m == 0 || n == 0 || alpha == zero)
-        return;
-
-    if( layout == Layout::ColMajor ) {
-    
-        // Matrix views
-        auto _A = colmajor_matrix<TA>( A, m, n, lda );
-        const auto _x = vector<TX>(
-            (TX*) &x[(incx > 0 ? 0 : (-m + 1)*incx)],
-            m, incx );
-        const auto _y = vector<TY>(
-            (TY*) &y[(incy > 0 ? 0 : (-n + 1)*incy)],
-            n, incy );
-
-        geru( alpha, _x, _y, _A );
-    }
-    else {
-        
-        // Matrix views
-        auto _A = colmajor_matrix<TA>( A, n, m, lda );
-        auto _x = vector<TX>(
-            (TX*) &x[(incx > 0 ? 0 : (-m + 1)*incx)],
-            m, incx );
-        auto _y = vector<TY>(
-            (TY*) &y[(incy > 0 ? 0 : (-n + 1)*incy)],
-            n, incy );
-
-        geru( alpha, _y, _x, _A );
-    }
-}
-
 }  // namespace blas
 
 #endif        //  #ifndef BLAS_GER_HH

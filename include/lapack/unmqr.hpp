@@ -47,9 +47,8 @@ int unmqr(
 {
     using idx_t = size_type< matrixC_t >;
     using pair  = std::pair<idx_t,idx_t>;
-    using blas::max;
-    using blas::min;
-    using blas::full_extent;
+    using std::max;
+    using std::min;
 
     // Constants
     const idx_t nb = 32; // number of blocks
@@ -57,7 +56,7 @@ int unmqr(
     const idx_t n = ncols(C);
     const idx_t k = size(tau);
     const idx_t nA = nrows(A);
-    const idx_t nw = ( is_same_v< side_t, left_side_t > ) ? max(1,n) : max(1,m);
+    const idx_t nw = ( is_same_v< side_t, left_side_t > ) ? max<idx_t>(1,n) : max<idx_t>(1,m);
 
     // Preparing loop indexes
     idx_t i0, iN, step;

@@ -7,7 +7,7 @@
 #ifndef __TLAPACK_MDSPAN_HH__
 #define __TLAPACK_MDSPAN_HH__
 
-#include <experimental/mdspan> // Use mdspan for multidimensional arrays
+#include <plugin/tlapack_mdspan> // Use mdspan for multidimensional arrays
 
 namespace lapack {
 

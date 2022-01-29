@@ -96,147 +96,126 @@ namespace blas {
  * @ingroup rotmg
  */
 template< typename real_t >
-void rotmg(
-    real_t *d1,
-    real_t *d2,
-    real_t *a,
-    real_t  b,
-    real_t param[5] )
+int rotmg(
+    real_t& d1, real_t& d2,
+    real_t& a, const real_t& b,
+    real_t H[4] )
 {
-    real_t& D1 = *d1;
-    real_t& D2 = *d2;
-    real_t&  A = *a;
-
     // check arguments
-    blas_error_if( D1 <= 0 );
+    blas_error_if( d1 <= 0 );
 
     // Constants
     const real_t zero( 0 );
     const real_t one( 1 );
-    const real_t gam = 4096;
-    const real_t gamsq = gam*gam;
-    const real_t rgamsq = one/gamsq;
+    const real_t gam( 4096 );
+    const auto gamsq  = gam*gam;
+    const auto rgamsq = one/gamsq;
 
-    real_t& x1 = A;
-    real_t& y1 = b;
+    int flag;
+    H[0] = zero;
+    H[1] = zero;
+    H[2] = zero;
+    H[3] = zero;
 
-    real_t h11 = zero;
-    real_t h12 = zero;
-    real_t h21 = zero;
-    real_t h22 = zero;
-
-    if(D1 < zero) {
-        param[0] = -1;
-        D1 = zero;
-        D2 = zero;
-        x1 = zero;
+    if(d1 < zero) {
+        flag = -1;
+        d1 = zero;
+        d2 = zero;
+        a = zero;
     }
     else {
-        real_t p2 = D2*y1;
+        auto p2 = d2*b;
         if(p2 == zero) {
-            param[0] = -2;
-            return;
-        }
-
-        real_t p1 = D1*x1;
-        real_t q2 = p2*y1;
-        real_t q1 = p1*x1;
-
-        if( blas::abs(q1) > blas::abs(q2) ) {
-            param[0] = zero;
-            h21 = -y1/x1;
-            h12 = p2/p1;
-            real_t u = one - h12*h21;
-            if( u > zero ) {
-                D1 /= u;
-                D2 /= u;
-                x1 *= u;
-            }
-        }
-        else if(q2 < zero) {
-            param[0] = -1;
-            D1 = zero;
-            D2 = zero;
-            x1 = zero;
+            flag = -2;
         }
         else {
-            param[0] = 1;
-            h11 = p1/p2;
-            h22 = x1/y1;
-            real_t u = one + h11*h22;
-            real_t stemp = D2/u;
-            D2 = D1/u;
-            D1 = stemp;
-            x1 = y1*u;
-        }
+            auto p1 = d1*a;
+            auto q2 = p2*b;
+            auto q1 = p1*a;
 
-        if(D1 != zero) {
-            while( (D1 <= rgamsq) || (D1 >= gamsq) ) {
-                if(param[0] == 0) {
-                    h11 = one;
-                    h22 = one;
-                    param[0] = -1;
+            if( blas::abs(q1) > blas::abs(q2) ) {
+                flag = zero;
+                H[1] = -b/a;
+                H[2] = p2/p1;
+                auto u = one - H[2]*H[1];
+                if( u > zero ) {
+                    d1 /= u;
+                    d2 /= u;
+                    a *= u;
                 }
-                else {
-                    h21 = -one;
-                    h12 = one;
-                    param[0] = -1;
+            }
+            else if(q2 < zero) {
+                flag = -1;
+                d1 = zero;
+                d2 = zero;
+                a = zero;
+            }
+            else {
+                flag = 1;
+                H[0] = p1/p2;
+                H[3] = a/b;
+                auto u = one + H[0]*H[3];
+                auto stemp = d2/u;
+                d2 = d1/u;
+                d1 = stemp;
+                a = b*u;
+            }
+
+            if(d1 != zero) {
+                while( (d1 <= rgamsq) || (d1 >= gamsq) ) {
+                    if(flag == 0) {
+                        H[0] = one;
+                        H[3] = one;
+                        flag = -1;
+                    }
+                    else {
+                        H[1] = -one;
+                        H[2] = one;
+                        flag = -1;
+                    }
+                    if(d1 <= rgamsq) {
+                        d1  *= gam*gam;
+                        a  /= gam;
+                        H[0] /= gam;
+                        H[2] /= gam;
+                    }
+                    else {
+                        d1 /= gam*gam;
+                        a  *= gam;
+                        H[0] *= gam;
+                        H[2] *= gam;
+                    }
                 }
-                if(D1 <= rgamsq) {
-                    D1  *= gam*gam;
-                    x1  /= gam;
-                    h11 /= gam;
-                    h12 /= gam;
-                }
-                else {
-                    D1 /= gam*gam;
-                    x1  *= gam;
-                    h11 *= gam;
-                    h12 *= gam;
+            }
+
+            if(d2 != zero) {
+                while( (blas::abs(d2) <= rgamsq) || (blas::abs(d2) >= gamsq) ) {
+                    if(flag == 0) {
+                        H[0]=one;
+                        H[3]=one;
+                        flag=-1;
+                    }
+                    else {
+                        H[1]=-one;
+                        H[2]=one;
+                        flag=-1;
+                    }
+                    if(blas::abs(d2) <= rgamsq) {
+                        d2  *= gam*gam;
+                        H[1] /= gam;
+                        H[3] /= gam;
+                    }
+                    else {
+                        d2 /= gam*gam;
+                        H[1] *= gam;
+                        H[3] *= gam;
+                    }
                 }
             }
         }
-
-        if(D2 != zero) {
-            while( (blas::abs(D2) <= rgamsq) || (blas::abs(D2) >= gamsq) ) {
-                if(param[0] == 0) {
-                    h11=one;
-                    h22=one;
-                    param[0]=-1;
-                }
-                else {
-                    h21=-one;
-                    h12=one;
-                    param[0]=-1;
-                }
-                if(blas::abs(D2) <= rgamsq) {
-                    D2  *= gam*gam;
-                    h21 /= gam;
-                    h22 /= gam;
-                }
-                else {
-                    D2 /= gam*gam;
-                    h21 *= gam;
-                    h22 *= gam;
-                }
-            }
-        }
     }
 
-    if(param[0] < 0) {
-        param[1] = h11;
-        param[2] = h21;
-        param[3] = h12;
-        param[4] = h22;
-    }
-    else if(param[0] == 0) {
-        param[2] = h21;
-        param[3] = h12;
-    }
-    else {
-        param[1] = h11;
-        param[4] = h22;
-    }
+    return flag;
 }
 
 }  // namespace blas

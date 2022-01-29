@@ -65,7 +65,7 @@ int org2r(
             A(i,i) = one;
 
             // Define v and C
-            auto v = col( A, i, pair(i,m) );
+            auto v = subvector( col( A, i ), pair(i,m) );
             auto C = submatrix( A, pair(i,m), pair(i+1,n) );
             auto w = subvector( work, pair(i,n-1) );
 

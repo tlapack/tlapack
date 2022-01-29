@@ -3,9 +3,9 @@
 #-------------------------------------------------------------------------------
 # Executables
 
-all: example_genQR
+all: example_eigenMatrix
 
-example_genQR: example_genQR.o
+example_eigenMatrix: example_eigenMatrix.o
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS)
 
 #-------------------------------------------------------------------------------
@@ -18,4 +18,4 @@ example_genQR: example_genQR.o
 
 clean:
 	rm -f *.o
-	rm -f example_genQR
+	rm -f example_eigenMatrix

@@ -60,29 +60,6 @@ void swap( const vectorX_t& x, vectorY_t& y )
     }
 }
 
-template< typename TX, typename TY >
-void swap(
-    blas::idx_t n,
-    TX *x, blas::int_t incx,
-    TY *y, blas::int_t incy )
-{
-    using internal::vector;
-
-    // check arguments
-    blas_error_if( incx == 0 );
-    blas_error_if( incy == 0 );
-
-    // Views
-    auto _x = vector<TX>(
-        &x[(incx > 0 ? 0 : (-n + 1)*incx)],
-        n, incx );
-    auto _y = vector<TY>(
-        &y[(incy > 0 ? 0 : (-n + 1)*incy)],
-        n, incy );
-        
-    blas::swap( _x, _y );
-}
-
 }  // namespace blas
 
 #endif        //  #ifndef BLAS_SWAP_HH

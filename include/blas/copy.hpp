@@ -51,29 +51,6 @@ void copy( const vectorX_t& x, vectorY_t& y )
         y(i) = x(i);
 }
 
-template< typename TX, typename TY >
-void copy(
-    blas::idx_t n,
-    TX const *x, blas::int_t incx,
-    TY       *y, blas::int_t incy )
-{
-    using internal::vector;
-    
-    // check arguments
-    blas_error_if( incx == 0 );
-    blas_error_if( incy == 0 );
-
-    // Views
-    const auto _x = vector<TX>(
-        (TX*) &x[(incx > 0 ? 0 : (-n + 1)*incx)],
-        n, incx );
-    auto _y = vector<TY>(
-        &y[(incy > 0 ? 0 : (-n + 1)*incy)],
-        n, incy );
-
-    copy( _x, _y );
-}
-
 }  // namespace blas
 
 #endif        //  #ifndef BLAS_COPY_HH

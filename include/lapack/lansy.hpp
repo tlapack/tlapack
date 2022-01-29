@@ -162,11 +162,11 @@ lansy( norm_t normType, uplo_t uplo, const matrix_t& A )
         // Sum off-diagonals
         if( is_same_v<uplo_t,upper_triangle_t> ) {
             for (idx_t j = 1; j < n; ++j)
-                lassq( col(A,j,pair(0,j)), scale, ssq );
+                lassq( subvector( col(A,j), pair(0,j) ), scale, ssq );
         }
         else {
             for (idx_t j = 0; j < n-1; ++j)
-                lassq( col(A,j,pair(j+1,n)), scale, ssq );
+                lassq( subvector( col(A,j), pair(j+1,n) ), scale, ssq );
         }
         ssq *= 2;
 
@@ -178,39 +178,6 @@ lansy( norm_t normType, uplo_t uplo, const matrix_t& A )
     }
 
     return norm;
-}
-
-template <typename TA>
-real_type<TA> lansy(
-    Norm normType, Uplo uplo, blas::idx_t n,
-    const TA *A, blas::idx_t lda )
-{
-    typedef real_type<TA> real_t;
-    using blas::internal::colmajor_matrix;
-
-    // constants
-    const real_t zero( 0 );
-
-    // quick return
-    if ( n == 0 ) return zero;
-
-    // Matrix views
-    const auto _A = colmajor_matrix<TA>( (TA*)A, n, n, lda );
-
-    if( normType == Norm::Max ) {
-        if( uplo == Uplo::Upper )   return lansy( max_norm, upper_triangle, _A );
-        else                        return lansy( max_norm, lower_triangle, _A );
-    }
-    else if ( normType == Norm::One ||normType == Norm::Inf ) {
-        if( uplo == Uplo::Upper )   return lansy( one_norm, upper_triangle, _A );
-        else                        return lansy( one_norm, lower_triangle, _A );
-    }
-    else if ( normType == Norm::Fro ) {
-        if( uplo == Uplo::Upper )   return lansy( frob_norm, upper_triangle, _A );
-        else                        return lansy( frob_norm, lower_triangle, _A );
-    }
-
-    return zero;
 }
 
 } // lapack

@@ -109,20 +109,6 @@ void larfg( alpha_t& alpha, vectorX_t& x, tau_t& tau )
     }
 }
 
-template< typename T >
-void larfg(
-    blas::idx_t n, T &alpha, T *x, blas::int_t incx, T &tau )
-{
-    using blas::internal::vector;
-
-    // Views
-    auto _x = vector<T>(
-        &x[(incx > 0 ? 0 : (-n + 2)*incx)],
-        n-1, incx );
-    
-    larfg( alpha, _x, tau );
-}
-
 }
 
 #endif // __LARFG_HH__

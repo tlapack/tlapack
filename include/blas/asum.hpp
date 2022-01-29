@@ -48,22 +48,6 @@ asum( vector_t const& x )
     return result;
 }
 
-template< typename T >
-inline
-real_type<T>
-asum(
-    blas::idx_t n,
-    T const *x, blas::int_t incx )
-{
-    using internal::vector;
-
-    // check arguments
-    blas_error_if( incx <= 0 );
-
-    const auto _x = vector<T>( (T*) x, n, incx );
-    return asum( _x );
-}
-
 }  // namespace blas
 
 #endif        //  #ifndef BLAS_ASUM_HH

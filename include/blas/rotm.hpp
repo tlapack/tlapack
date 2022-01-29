@@ -46,99 +46,42 @@ namespace blas {
  *
  * @ingroup rotm
  */
-template< typename TX, typename TY >
+template<
+    int flag,
+    class vectorX_t, class vectorY_t, class real_t,
+    enable_if_t<((-2 <= flag) && (flag <= 1)), int > = 0
+>
 void rotm(
-    blas::idx_t n,
-    TX *x, blas::int_t incx,
-    TY *y, blas::int_t incy,
-    blas::scalar_type<TX, TY> const param[5] )
+    vectorX_t& x, vectorY_t& y,
+    const real_t H[4] )
 {
-    typedef scalar_type<TX, TY> scalar_t;
+    using idx_t = size_type< vectorY_t >;
+
+    // constants
+    const idx_t n = size(x);
 
     // check arguments
-    blas_error_if( incx == 0 );
-    blas_error_if( incy == 0 );
+    blas_error_if( size(y) != n );
 
-    // quick return
-    if ( n == 0 || param[0] == -2 )
-        return;
-
-    if (incx == 1 && incy == 1) {
-        // unit stride
-        if ( param[0] == -1 ) {
-            const scalar_t& h11 = param[1];
-            const scalar_t& h21 = param[2];
-            const scalar_t& h12 = param[3];
-            const scalar_t& h22 = param[4];
-            for (idx_t i = 0; i < n; ++i) {
-                scalar_t stmp = h11*x[i] + h12*y[i];
-                y[i] = h22*y[i] + h21*x[i];
-                x[i] = stmp;
-            }
-        }
-        else if ( param[0] == 1 ) {
-            const scalar_t& h11 = param[1];
-            const scalar_t& h22 = param[4];
-            for (idx_t i = 0; i < n; ++i) {
-                scalar_t stmp = h11*x[i] + y[i];
-                y[i] = h22*y[i] - x[i];
-                x[i] = stmp;
-            }
-        }
-        else if ( param[0] == 0 ) {
-            const scalar_t& h21 = param[2];
-            const scalar_t& h12 = param[3];
-            for (idx_t i = 0; i < n; ++i) {
-                scalar_t stmp = x[i] + h12*y[i];
-                y[i] = y[i] + h21*x[i];
-                x[i] = stmp;
-            }
-        }
-        else {
-            throw Error("Invalid param[1] in blas::rotm");
+    if ( flag == -1 ) {
+        for (idx_t i = 0; i < n; ++i) {
+            auto stmp = H[0]*x[i] + H[2]*y[i];
+            y[i] = H[3]*y[i] + H[1]*x[i];
+            x[i] = stmp;
         }
     }
-    else {
-        // non-unit stride
-        idx_t ix = (incx > 0 ? 0 : (-n + 1)*incx);
-        idx_t iy = (incy > 0 ? 0 : (-n + 1)*incy);
-        if ( param[0] == -1 ) {
-            const scalar_t& h11 = param[1];
-            const scalar_t& h21 = param[2];
-            const scalar_t& h12 = param[3];
-            const scalar_t& h22 = param[4];
-            for (idx_t i = 0; i < n; ++i) {
-                scalar_t stmp = h11*x[ix] + h12*y[iy];
-                y[iy] = h22*y[iy] + h21*x[ix];
-                x[ix] = stmp;
-                ix += incx;
-                iy += incy;
-            }
+    else if ( flag == 0 ) {
+        for (idx_t i = 0; i < n; ++i) {
+            auto stmp = x[i] + H[2]*y[i];
+            y[i] = y[i] + H[1]*x[i];
+            x[i] = stmp;
         }
-        else if ( param[0] == 1 ) {
-            const scalar_t& h11 = param[1];
-            const scalar_t& h22 = param[4];
-            for (idx_t i = 0; i < n; ++i) {
-                scalar_t stmp = h11*x[ix] + y[iy];
-                y[iy] = h22*y[iy] - x[ix];
-                x[ix] = stmp;
-                ix += incx;
-                iy += incy;
-            }
-        }
-        else if ( param[0] == 0 ) {
-            const scalar_t& h21 = param[2];
-            const scalar_t& h12 = param[3];
-            for (idx_t i = 0; i < n; ++i) {
-                scalar_t stmp = x[ix] + h12*y[iy];
-                y[iy] = y[iy] + h21*x[ix];
-                x[ix] = stmp;
-                ix += incx;
-                iy += incy;
-            }
-        }
-        else {
-            throw Error("Invalid param[1] in blas::rotm");
+    }
+    else if ( flag == 1 ) {
+        for (idx_t i = 0; i < n; ++i) {
+            auto stmp = H[0]*x[i] + y[i];
+            y[i] = H[3]*y[i] - x[i];
+            x[i] = stmp;
         }
     }
 }
