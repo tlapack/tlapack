@@ -8,6 +8,7 @@
 #define __TLAPACK_MDSPAN_HH__
 
 #include <experimental/mdspan>
+#include <type_traits>
 
 namespace blas {
 

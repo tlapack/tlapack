@@ -10,7 +10,7 @@
 
 #include "blas.hh"
 #include "lapack/utils.hpp"
-#include "lapack/types.hpp"
+#include "slate_api/lapack/types.hpp"
 
 namespace lapack {
 

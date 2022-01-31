@@ -8,29 +8,11 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __LARNV_HH__
-#define __LARNV_HH__
+#ifndef __SLATE_LARNV_HH__
+#define __SLATE_LARNV_HH__
 
-#include <random>
-#include "lapack/types.hpp"
-
-namespace blas {
-    namespace internal {
-
-        template< typename real_t >
-        void inline set_complex( real_t& x, real_t&& re, real_t&& im )
-        { blas::error( "You cannot set a complex variable to a real variable.", "[function unknown]" ); }
-        
-        template< typename real_t >
-        void inline set_complex( std::complex<real_t>& x, real_t&& re, real_t&& im )
-        {
-            x = std::complex<real_t>(
-                std::forward< real_t >(re),
-                std::forward< real_t >(im)
-            );
-        }
-    }
-}
+#include "slate_api/lapack/types.hpp"
+#include "lapack/larnv.hpp"
 
 namespace lapack {
 
@@ -57,13 +39,12 @@ namespace lapack {
  * 
  * @ingroup auxiliary
  */
-template< int idist, class vector_t, class Sseq >
-void larnv( Sseq& iseed, vector_t& x )
+template< typename T >
+inline void larnv(
+    idx_t idist, idx_t* iseed,
+    idx_t n, T* x )
 {
-    using idx_t  = size_type< vector_t >;
-    using T      = type_t< vector_t >;
-    using real_t = real_type< T >;
-
+    typedef real_type<T> real_t;
     using blas::atan;
     using blas::sqrt;
     using blas::cos;
@@ -71,41 +52,40 @@ void larnv( Sseq& iseed, vector_t& x )
     using blas::internal::set_complex;
 
     // Constants
-    const idx_t n      = size(x);
     const real_t one   = 1.0;
     const real_t eight = 8.0;
     const real_t twopi = eight * atan(one);
 
-    // Initialize the Mersenne Twister generator
+    // Initialize the generator
     std::random_device device;
     std::mt19937 generator(device());
-    generator.seed(iseed);
+    generator.seed(*iseed);
 
     if (idist == 1) {
         std::uniform_real_distribution<real_t> d1(0, 1);
         for (idx_t i = 0; i < n; ++i) {
             if( blas::is_complex<T>::value )
-                set_complex(x(i), d1(generator), d1(generator));
+                set_complex(x[i], d1(generator), d1(generator));
             else
-                x(i) = d1(generator);
+                x[i] = d1(generator);
         }
     }
     else if (idist == 2) {
         std::uniform_real_distribution<real_t> d2(-1, 1);
         for (idx_t i = 0; i < n; ++i) {
             if( blas::is_complex<T>::value )
-                set_complex(x(i), d2(generator), d2(generator));
+                set_complex(x[i], d2(generator), d2(generator));
             else
-                x(i) = d2(generator);
+                x[i] = d2(generator);
         }
     }
     else if (idist == 3) {
         std::normal_distribution<real_t> d3(0, 1);
         for (idx_t i = 0; i < n; ++i) {
             if( blas::is_complex<T>::value )
-                set_complex(x(i), d3(generator), d3(generator));
+                set_complex(x[i], d3(generator), d3(generator));
             else
-                x(i) = d3(generator);
+                x[i] = d3(generator);
         }
     }
     else if ( blas::is_complex<T>::value ) {
@@ -114,22 +94,21 @@ void larnv( Sseq& iseed, vector_t& x )
             for (idx_t i = 0; i < n; ++i) {
                 real_t r     = sqrt(d4(generator));
                 real_t theta = twopi * d4(generator);
-                set_complex(x(i), r*cos(theta), r*sin(theta));
+                set_complex(x[i], r*cos(theta), r*sin(theta));
             }
         }
         else if (idist == 5) {
             std::uniform_real_distribution<real_t> d5(0, 1);
             for (idx_t i = 0; i < n; ++i) {
                 real_t theta = twopi * d5(generator);
-                set_complex(x(i), cos(theta), sin(theta));
+                set_complex(x[i], cos(theta), sin(theta));
             }
         }
     }
 
-    // Update the seed
-    iseed = iseed + 1;
+    *iseed = *iseed + 1;
 }
 
 }
 
-#endif // __LARNV_HH__
+#endif // __SLATE_LARNV_HH__
