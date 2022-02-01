@@ -13,6 +13,7 @@
 #include <plugins/tlapack_eigen.hpp>
 #include <tlapack.hpp>
 
+#include <Eigen/Dense>
 #include <Eigen/Householder>
 
 int main( int argc, char** argv )
@@ -39,7 +40,7 @@ int main( int argc, char** argv )
 
     std::cout << "A = " << std::endl << A << std::endl << std::endl;
 
-    // LAPACK
+    // <T>LAPACK
     std::cout << "--- <T>LAPACK: ---" << std::endl << std::endl;
 
     Eigen::Matrix<float, k, 1> tau;

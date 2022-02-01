@@ -8,28 +8,19 @@
 #ifndef __TLAPACK_EIGEN_HH__
 #define __TLAPACK_EIGEN_HH__
 
-#include <Eigen/Dense>
+#include <Eigen/Core>
 #include <type_traits>
 
 namespace blas{
 
-    // -----------------------------------------------------------------------------
-    // enable_if_t is defined in C++14; here's a C++11 definition
-    #if __cplusplus >= 201402L
-        using std::enable_if_t;
-    #else
-        template< bool B, class T = void >
-        using enable_if_t = typename enable_if<B,T>::type;
-    #endif
-
-    // -----------------------------------------------------------------------------
-    // is_EigenBlock
+    // // -----------------------------------------------------------------------------
+    // // is_EigenBlock
     
-    template< class >
-    struct is_EigenBlock : public std::false_type {};
+    // template< class >
+    // struct is_EigenBlock : public std::false_type {};
 
-    template< typename T, int R, int C, bool P >
-    struct is_EigenBlock< Eigen::Block<T,R,C,P> > : public std::true_type {};
+    // template< typename T, int R, int C, bool P >
+    // struct is_EigenBlock< Eigen::Block<T,R,C,P> > : public std::true_type {};
 
     // -----------------------------------------------------------------------------
     // Data traits for Eigen
