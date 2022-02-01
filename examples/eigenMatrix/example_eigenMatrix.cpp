@@ -13,6 +13,8 @@
 #include <plugins/tlapack_eigen.hpp>
 #include <tlapack.hpp>
 
+#include <Eigen/Householder>
+
 int main( int argc, char** argv )
 {
     using std::size_t;
@@ -30,26 +32,62 @@ int main( int argc, char** argv )
         {10, 11, 12},
         {13, 14, 15}
     };
+    Eigen::Matrix<float, m, n> Q = A;
+
     Eigen::Matrix<float, n, n> R = Eigen::Matrix<float, n, n>::Zero();
-    Eigen::Matrix<float, k, 1> tau;
-    Eigen::Matrix<float, n-1, 1> work;
     Eigen::Matrix<float, m, n> QtimesR = Eigen::Matrix<float, m, n>::Zero();
 
-    std::cout << A << std::endl;
+    std::cout << "A = " << std::endl << A << std::endl << std::endl;
 
-    lapack::geqr2( A, tau, work );
+    // LAPACK
+    std::cout << "--- <T>LAPACK: ---" << std::endl << std::endl;
+
+    Eigen::Matrix<float, k, 1> tau;
+    Eigen::Matrix<float, n-1, 1> work;
+    Eigen::Matrix<float, n, n> orthQ = Eigen::Matrix<float, n, n>::Identity();
+
+    lapack::geqr2( Q, tau, work );
     lapack::lacpy(  lapack::upper_triangle, 
-                    submatrix(A,pair(0,k),pair(0,k)), 
+                    submatrix(Q,pair(0,k),pair(0,k)), 
                     R );
-    lapack::org2r( k, A, tau, work );
+    lapack::org2r( k, Q, tau, work );
 
-    std::cout << A << std::endl;
-    std::cout << R << std::endl;
+    std::cout << "Q = " << std::endl << Q << std::endl;
+    std::cout << std::endl;
+
+    std::cout << "R = " << std::endl << R << std::endl;
+    std::cout << std::endl;
 
     blas::gemm( blas::Op::NoTrans, blas::Op::NoTrans,
-        1.0, A, R, 0.0, QtimesR);
+        1.0, Q, R, 0.0, QtimesR);
+    std::cout << "Q*R = " << std::endl << QtimesR << std::endl;
+    std::cout << std::endl;
 
-    std::cout << QtimesR << std::endl;
+    blas::syrk( blas::Uplo::Upper, blas::Op::Trans, 1.0, Q, -1.0, orthQ);
+    std::cout << "\\|Q^t Q\\|_F = " << std::endl << lapack::lansy( lapack::frob_norm, lapack::upper_triangle, orthQ ) << std::endl;
+    std::cout << std::endl;
+
+    // Eigen
+    std::cout << "--- Eigen: ---" << std::endl << std::endl;
+
+    Eigen::HouseholderQR<decltype(A)> qrEigen( A );
+
+    Q = qrEigen.householderQ() * Eigen::MatrixXf::Identity(5,3);
+    R = qrEigen.matrixQR().block(0,0,n,n).triangularView<Eigen::Upper>();
+
+    std::cout << "Q = " << std::endl << Q << std::endl;
+    std::cout << std::endl;
+
+    std::cout << "R = " << std::endl << R << std::endl;
+    std::cout << std::endl;
+
+    QtimesR = Q * R;
+    std::cout << "Q*R = " << std::endl << QtimesR << std::endl;
+    std::cout << std::endl;
+
+    orthQ = Q.transpose() * Q - Eigen::MatrixXf::Identity(n,n);
+    std::cout << "\\|Q^t Q\\|_F = " << std::endl << orthQ.norm() << std::endl;
+    std::cout << std::endl;
 
     return 0;
 }

@@ -62,6 +62,10 @@ namespace blas{
     struct type_trait< Eigen::VectorBlock<T> > {
         using type = typename T::Scalar;
     };
+    template<class T, int idx>
+    struct type_trait< Eigen::Diagonal<T,idx> > {
+        using type = typename T::Scalar;
+    };
 
     // Size type
     template<typename Scalar_, int Rows_, int Cols_, int Options_, int MaxRows_, int MaxCols_>
@@ -74,6 +78,10 @@ namespace blas{
     };
     template<class T>
     struct sizet_trait< Eigen::VectorBlock<T> > {
+        using type = Eigen::Index;
+    };
+    template<class T, int idx>
+    struct sizet_trait< Eigen::Diagonal<T,idx> > {
         using type = Eigen::Index;
     };
 
@@ -223,12 +231,12 @@ namespace blas{
 
     // Diagonal
     template<class T>
-    inline constexpr auto diag( const Eigen::DenseBase<T>& A, int diagIdx = 0 ) noexcept
+    inline constexpr auto diag( const Eigen::MatrixBase<T>& A, int diagIdx = 0 ) noexcept
     {
         return A.diagonal( diagIdx );
     }
     template<class T>
-    inline constexpr auto diag( Eigen::DenseBase<T>& A, int diagIdx = 0 ) noexcept
+    inline constexpr auto diag( Eigen::MatrixBase<T>& A, int diagIdx = 0 ) noexcept
     {
         return A.diagonal( diagIdx );
     }

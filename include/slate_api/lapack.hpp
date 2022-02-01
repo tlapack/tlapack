@@ -14,12 +14,13 @@
         #define LAPACK_UTIL_HH // So as not to include utils from lapack++
     #endif
     #include "slate_api/lapack/config_lapackppwrappers.h"
+    #include "slate_api/lapack/types.hpp"
     #include "lapack/wrappers.hh" // from lapack++
 #endif
 
+#include "slate_api/lapack/types.hpp"
 #include "slate_api/blas/mdspan.hpp"  // Loads mdspan utilities for the wrappers
 #include "plugins/tlapack_mdspan.hpp" // Loads mdspan plugin
-#include "slate_api/lapack/types.hpp"
 
 // =============================================================================
 // Template LAPACK

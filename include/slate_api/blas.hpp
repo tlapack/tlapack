@@ -7,6 +7,10 @@
 #ifndef __SLATE_BLAS_HH__
 #define __SLATE_BLAS_HH__
 
+#include "slate_api/blas/mdspan.hpp"  // Loads mdspan utilities for the wrappers
+#include "plugins/tlapack_mdspan.hpp" // Loads mdspan plugin
+#include "slate_api/blas/types.hpp"
+
 // Optimized BLAS
 
 #ifdef USE_BLASPP_WRAPPERS
@@ -15,10 +19,6 @@
     #endif
     #include "blas/wrappers.hh" // from BLAS++
 #endif
-
-#include "slate_api/blas/mdspan.hpp"  // Loads mdspan utilities for the wrappers
-#include "plugins/tlapack_mdspan.hpp" // Loads mdspan plugin
-#include "slate_api/blas/types.hpp"
 
 // Template BLAS
 
