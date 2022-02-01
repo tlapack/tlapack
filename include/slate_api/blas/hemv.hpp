@@ -114,11 +114,11 @@ void hemv(
         if (beta != one) {
             if (beta == zero) {
                 for (idx_t i = 0; i < n; ++i)
-                    _y(i) = zero;
+                    _y[i] = zero;
             }
             else {
                 for (idx_t i = 0; i < n; ++i)
-                    _y(i) *= beta;
+                    _y[i] *= beta;
             }
         }
         return;

@@ -69,13 +69,13 @@ int org2r(
             auto C = submatrix( A, pair(i,m), pair(i+1,n) );
             auto w = subvector( work, pair(i,n-1) );
 
-            larf( left_side, std::move(v), tau(i), C, w );
+            larf( left_side, std::move(v), tau[i], C, w );
         }
         if ( i+1 < m ) {
             auto v = subvector( col( A, i ), pair(i+1,m) );
-            scal( -tau(i), v );
+            scal( -tau[i], v );
         }
-        A(i,i) = one - tau(i);
+        A(i,i) = one - tau[i];
 
         // Set A( 0:i-1, i ) to zero
         for (idx_t l = 0; l < i; l++)

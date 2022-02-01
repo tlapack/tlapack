@@ -48,7 +48,7 @@ void copy( const vectorX_t& x, vectorY_t& y )
     blas_error_if( size(x) < n );
 
     for (idx_t i = 0; i < n; ++i)
-        y(i) = x(i);
+        y[i] = x[i];
 }
 
 }  // namespace blas

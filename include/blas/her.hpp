@@ -81,18 +81,18 @@ void her(
 
     if (uplo == Uplo::Upper) {
         for (idx_t j = 0; j < n; ++j) {
-            auto tmp = alpha * conj( x(j) );
+            auto tmp = alpha * conj( x[j] );
             for (idx_t i = 0; i < j; ++i)
-                A(i,j) += x(i) * tmp;
-            A(j,j) = real( A(j,j) ) + real( x(j) * tmp );
+                A(i,j) += x[i] * tmp;
+            A(j,j) = real( A(j,j) ) + real( x[j] * tmp );
         }
     }
     else {
         for (idx_t j = 0; j < n; ++j) {
-            auto tmp = alpha * conj( x(j) );
-            A(j,j) = real( A(j,j) ) + real( tmp * x(j) );
+            auto tmp = alpha * conj( x[j] );
+            A(j,j) = real( A(j,j) ) + real( tmp * x[j] );
             for (idx_t i = j+1; i < n; ++i)
-                A(i,j) += x(i) * tmp;
+                A(i,j) += x[i] * tmp;
         }
     }
 }

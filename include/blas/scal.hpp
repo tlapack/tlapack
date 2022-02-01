@@ -40,7 +40,7 @@ void scal( const alpha_t& alpha, vector_t& x )
     const idx_t n = size(x);
 
     for (idx_t i = 0; i < n; ++i)
-        x(i) *= alpha;
+        x[i] *= alpha;
 }
 
 }  // namespace blas

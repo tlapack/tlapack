@@ -87,11 +87,11 @@ void gemv(
     if (beta != beta_t(1)) {
         if (beta == beta_t(0)) {
             for (idx_t i = 0; i < leny; ++i)
-                y(i) = zero;
+                y[i] = zero;
         }
         else {
             for (idx_t i = 0; i < leny; ++i)
-                y(i) *= beta;
+                y[i] *= beta;
         }
     }
     if (alpha == alpha_t(0))
@@ -101,18 +101,18 @@ void gemv(
     if (trans == Op::NoTrans ) {
         // form y += alpha * A * x
         for (idx_t j = 0; j < n; ++j) {
-            auto tmp = alpha*x(j);
+            auto tmp = alpha*x[j];
             for (idx_t i = 0; i < m; ++i) {
-                y(i) += tmp * A(i, j);
+                y[i] += tmp * A(i, j);
             }
         }
     }
     else if (trans == Op::Conj) {
         // form y += alpha * conj( A ) * x
         for (idx_t j = 0; j < n; ++j) {
-            auto tmp = alpha*x(j);
+            auto tmp = alpha*x[j];
             for (idx_t i = 0; i < m; ++i) {
-                y(i) += tmp * conj(A(i, j));
+                y[i] += tmp * conj(A(i, j));
             }
         }
     }
@@ -121,9 +121,9 @@ void gemv(
         for (idx_t j = 0; j < n; ++j) {
             scalar_type<TA,TX> tmp( 0 );
             for (idx_t i = 0; i < m; ++i) {
-                tmp += A(i, j) * x(i);
+                tmp += A(i, j) * x[i];
             }
-            y(j) += alpha*tmp;
+            y[j] += alpha*tmp;
         }
     }
     else {
@@ -131,9 +131,9 @@ void gemv(
         for (idx_t j = 0; j < n; ++j) {
             scalar_type<TA,TX> tmp( 0 );
             for (idx_t i = 0; i < m; ++i) {
-                tmp += conj(A(i, j)) * x(i);
+                tmp += conj(A(i, j)) * x[i];
             }
-            y(j) += alpha*tmp;
+            y[j] += alpha*tmp;
         }
     }
 }

@@ -85,27 +85,27 @@ void larnv( Sseq& iseed, vector_t& x )
         std::uniform_real_distribution<real_t> d1(0, 1);
         for (idx_t i = 0; i < n; ++i) {
             if( blas::is_complex<T>::value )
-                set_complex(x(i), d1(generator), d1(generator));
+                set_complex(x[i], d1(generator), d1(generator));
             else
-                x(i) = d1(generator);
+                x[i] = d1(generator);
         }
     }
     else if (idist == 2) {
         std::uniform_real_distribution<real_t> d2(-1, 1);
         for (idx_t i = 0; i < n; ++i) {
             if( blas::is_complex<T>::value )
-                set_complex(x(i), d2(generator), d2(generator));
+                set_complex(x[i], d2(generator), d2(generator));
             else
-                x(i) = d2(generator);
+                x[i] = d2(generator);
         }
     }
     else if (idist == 3) {
         std::normal_distribution<real_t> d3(0, 1);
         for (idx_t i = 0; i < n; ++i) {
             if( blas::is_complex<T>::value )
-                set_complex(x(i), d3(generator), d3(generator));
+                set_complex(x[i], d3(generator), d3(generator));
             else
-                x(i) = d3(generator);
+                x[i] = d3(generator);
         }
     }
     else if ( blas::is_complex<T>::value ) {
@@ -114,14 +114,14 @@ void larnv( Sseq& iseed, vector_t& x )
             for (idx_t i = 0; i < n; ++i) {
                 real_t r     = sqrt(d4(generator));
                 real_t theta = twopi * d4(generator);
-                set_complex(x(i), r*cos(theta), r*sin(theta));
+                set_complex(x[i], r*cos(theta), r*sin(theta));
             }
         }
         else if (idist == 5) {
             std::uniform_real_distribution<real_t> d5(0, 1);
             for (idx_t i = 0; i < n; ++i) {
                 real_t theta = twopi * d5(generator);
-                set_complex(x(i), cos(theta), sin(theta));
+                set_complex(x[i], cos(theta), sin(theta));
             }
         }
     }

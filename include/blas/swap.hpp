@@ -49,13 +49,13 @@ void swap( const vectorX_t& x, vectorY_t& y )
 
     if( is_same_v< vectorX_t, vectorY_t > ) {
         for (idx_t i = 0; i < n; ++i)
-            std::swap( x(i), y(i) );
+            std::swap( x[i], y[i] );
     }
     else {
         for (idx_t i = 0; i < n; ++i) {
-            const auto aux = x(i);
-            x(i) = y(i);
-            y(i) = aux;
+            const auto aux = x[i];
+            x[i] = y[i];
+            y[i] = aux;
         }
     }
 }

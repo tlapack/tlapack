@@ -73,16 +73,16 @@ void syr(
 
     if (uplo == Uplo::Upper) {
         for (idx_t j = 0; j < n; ++j) {
-            auto tmp = alpha * x(j);
+            auto tmp = alpha * x[j];
             for (idx_t i = 0; i <= j; ++i)
-                A(i,j) += x(i) * tmp;
+                A(i,j) += x[i] * tmp;
         }
     }
     else {
         for (idx_t j = 0; j < n; ++j) {
-            auto tmp = alpha * x(j);
+            auto tmp = alpha * x[j];
             for (idx_t i = j; i < n; ++i)
-                A(i,j) += x(i) * tmp;
+                A(i,j) += x[i] * tmp;
         }
     }
 }

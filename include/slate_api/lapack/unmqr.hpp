@@ -69,7 +69,7 @@ namespace lapack {
  *
  * @param[in] tau
  *     The vector tau of length k.
- *     tau(i) must contain the scalar factor of the elementary
+ *     tau[i] must contain the scalar factor of the elementary
  *     reflector H(i), as returned by `lapack::geqrf`.
  *
  * @param[in,out] C

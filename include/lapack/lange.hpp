@@ -99,15 +99,15 @@ lange( norm_t normType, const matrix_t& A, work_t& work )
     else if ( is_same_v<norm_t,inf_norm_t> )
     {
         for (idx_t i = 0; i < m; ++i)
-            work(i) = blas::abs( A(i,0) );
+            work[i] = blas::abs( A(i,0) );
         
         for (idx_t j = 1; j < n; ++j)
             for (idx_t i = 0; i < m; ++i)
-                work(i) += blas::abs( A(i,j) );
+                work[i] += blas::abs( A(i,j) );
 
         for (idx_t i = 0; i < m; ++i)
         {
-            real_t temp = work(i);
+            real_t temp = work[i];
 
             if (temp > norm)
                 norm = temp;

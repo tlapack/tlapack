@@ -43,7 +43,7 @@ asum( vector_t const& x )
 
     real_t result = 0;
     for (idx_t i = 0; i < n; ++i)
-        result += abs1( x(i) );
+        result += abs1( x[i] );
 
     return result;
 }

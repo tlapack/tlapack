@@ -96,11 +96,11 @@ void hemv(
     if (beta != beta_t(1)) {
         if (beta == beta_t(0)) {
             for (idx_t i = 0; i < n; ++i)
-                y(i) = beta_t(0);
+                y[i] = beta_t(0);
         }
         else {
             for (idx_t i = 0; i < n; ++i)
-                y(i) *= beta;
+                y[i] *= beta;
         }
     }
 
@@ -108,26 +108,26 @@ void hemv(
         // A is stored in upper triangle
         // form y += alpha * A * x
         for (idx_t j = 0; j < n; ++j) {
-            auto tmp1 = alpha*x(j);
+            auto tmp1 = alpha*x[j];
             auto tmp2 = scalar_t(0);
             for (idx_t i = 0; i < j; ++i) {
-                y(i) += tmp1 * A(i,j);
-                tmp2 += conj( A(i,j) ) * x(i);
+                y[i] += tmp1 * A(i,j);
+                tmp2 += conj( A(i,j) ) * x[i];
             }
-            y(j) += tmp1 * real( A(j,j) ) + alpha * tmp2;
+            y[j] += tmp1 * real( A(j,j) ) + alpha * tmp2;
         }
     }
     else if (uplo == Uplo::Lower) {
         // A is stored in lower triangle
         // form y += alpha * A * x
         for (idx_t j = 0; j < n; ++j) {
-            auto tmp1 = alpha*x(j);
+            auto tmp1 = alpha*x[j];
             auto tmp2 = scalar_t(0);
             for (idx_t i = j+1; i < n; ++i) {
-                y(i) += tmp1 * A(i,j);
-                tmp2 += conj( A(i,j) ) * x(i);
+                y[i] += tmp1 * A(i,j);
+                tmp2 += conj( A(i,j) ) * x[i];
             }
-            y(j) += tmp1 * real( A(j,j) ) + alpha * tmp2;
+            y[j] += tmp1 * real( A(j,j) ) + alpha * tmp2;
         }
     }
 }

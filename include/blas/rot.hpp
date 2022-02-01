@@ -66,9 +66,9 @@ void rot(
     blas_error_if( size(y) != n );
 
     for (idx_t i = 0; i < n; ++i) {
-        auto stmp = c*x(i) + s*y(i);
-        y(i) = c*y(i) - conj(s)*x(i);
-        x(i) = stmp;
+        auto stmp = c*x[i] + s*y[i];
+        y[i] = c*y[i] - conj(s)*x[i];
+        x[i] = stmp;
     }
 }
 

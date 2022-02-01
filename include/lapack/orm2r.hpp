@@ -78,7 +78,7 @@ int orm2r(
         
         const auto Aii = A(i,i);
         A(i,i) = one;
-        larf( side, v, tau(i), Ci, work );
+        larf( side, v, tau[i], Ci, work );
         A(i,i) = Aii;
     }
 

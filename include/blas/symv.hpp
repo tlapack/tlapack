@@ -93,11 +93,11 @@ void symv(
     if (beta != beta_t(1)) {
         if (beta == beta_t(0)) {
             for (idx_t i = 0; i < n; ++i)
-                y(i) = beta_t(0);
+                y[i] = beta_t(0);
         }
         else {
             for (idx_t i = 0; i < n; ++i)
-                y(i) *= beta;
+                y[i] *= beta;
         }
     }
 
@@ -106,26 +106,26 @@ void symv(
         // form y += alpha * A * x
             // unit stride
         for (idx_t j = 0; j < n; ++j) {
-            auto tmp1 = alpha*x(j);
+            auto tmp1 = alpha*x[j];
             auto tmp2 = scalar_t(0);
             for (idx_t i = 0; i < j; ++i) {
-                y(i) += tmp1 * A(i,j);
-                tmp2 += A(i,j) * x(i);
+                y[i] += tmp1 * A(i,j);
+                tmp2 += A(i,j) * x[i];
             }
-            y(j) += tmp1 * A(j,j) + alpha * tmp2;
+            y[j] += tmp1 * A(j,j) + alpha * tmp2;
         }
     }
     else {
         // A is stored in lower triangle
         // form y += alpha * A * x
         for (idx_t j = 0; j < n; ++j) {
-            scalar_t tmp1 = alpha*x(j);
+            scalar_t tmp1 = alpha*x[j];
             auto tmp2 = scalar_t(0);
             for (idx_t i = j+1; i < n; ++i) {
-                y(i) += tmp1 * A(i,j);
-                tmp2 += A(i,j) * x(i);
+                y[i] += tmp1 * A(i,j);
+                tmp2 += A(i,j) * x[i];
             }
-            y(j) += tmp1 * A(j,j) + alpha * tmp2;
+            y[j] += tmp1 * A(j,j) + alpha * tmp2;
         }
     }
 }

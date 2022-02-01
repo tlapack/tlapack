@@ -54,11 +54,11 @@ iamax( check_t c, const vector_t& x )
     idx_t index = -1;
     idx_t i = 0;
     for (; i < n; ++i) {
-        if ( check && isnan(x(i)) ) {
+        if ( check && isnan(x[i]) ) {
             // return when first NaN found
             return i;
         }
-        else if ( check && isinf(x(i)) ) {
+        else if ( check && isinf(x[i]) ) {
             // record location of first Inf
             index = i;
             i++;
@@ -66,17 +66,17 @@ iamax( check_t c, const vector_t& x )
         }
         else { // still no Inf found yet
             if ( ! is_complex<T>::value ) {
-                real_t a = abs1(x(i));
+                real_t a = abs1(x[i]);
                 if ( a > smax ) {
                     smax = a;
                     index = i;
                 }
             }
             else if ( !scaledsmax ) { // no |Re(x_i)| + |Im(x_i)| = Inf  yet
-                real_t a = abs1(x(i));
+                real_t a = abs1(x[i]);
                 if ( isinf(a) ) {
                     scaledsmax = true;
-                    smax = abs1( oneFourth*x(i) );
+                    smax = abs1( oneFourth*x[i] );
                     index = i;
                 }
                 else if ( a > smax ) {
@@ -85,7 +85,7 @@ iamax( check_t c, const vector_t& x )
                 }
             }
             else { // scaledsmax = true
-                real_t a = abs1( oneFourth*x(i) );
+                real_t a = abs1( oneFourth*x[i] );
                 if ( a > smax ) {
                     smax = a;
                     index = i;
@@ -95,7 +95,7 @@ iamax( check_t c, const vector_t& x )
     }
     if ( check ) {
         for (; i < n; ++i) { // keep looking for first NaN
-            if ( isnan(x(i)) ) {
+            if ( isnan(x[i]) ) {
                 // return when first NaN found
                 return i;
             }

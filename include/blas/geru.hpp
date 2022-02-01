@@ -74,9 +74,9 @@ void geru(
     const idx_t n = ncols(A);
 
     for (idx_t j = 0; j < n; ++j) {
-        auto tmp = alpha * y(j);
+        auto tmp = alpha * y[j];
         for (idx_t i = 0; i < m; ++i)
-            A(i,j) += x(i) * tmp;
+            A(i,j) += x[i] * tmp;
     }
 }
 

@@ -110,13 +110,13 @@ void ger(
             (TY*) &y[(incy > 0 ? 0 : (-n + 1)*incy)],
             n, incy );
 
-        for (idx_t i = 0; i < m; ++i) _x(i) = conj( _x(i) );
-        for (idx_t i = 0; i < n; ++i) _y(i) = conj( _y(i) );
+        for (idx_t i = 0; i < m; ++i) _x[i] = conj( _x[i] );
+        for (idx_t i = 0; i < n; ++i) _y[i] = conj( _y[i] );
 
         ger( alpha, _y, _x, _A );
 
-        for (idx_t i = 0; i < m; ++i) _x(i) = conj( _x(i) );
-        for (idx_t i = 0; i < n; ++i) _y(i) = conj( _y(i) );
+        for (idx_t i = 0; i < m; ++i) _x[i] = conj( _x[i] );
+        for (idx_t i = 0; i < n; ++i) _y[i] = conj( _y[i] );
     }
 }
 

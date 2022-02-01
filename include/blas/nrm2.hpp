@@ -75,7 +75,7 @@ nrm2( const vector_t& x )
 
     for (idx_t i = 0; i < n; ++i)
     {
-        real_t ax = blas::abs( x(i) );
+        real_t ax = blas::abs( x[i] );
         if( ax > tbig )
             abig += (ax*sbig) * (ax*sbig);
         else if( ax < tsml ) {

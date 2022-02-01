@@ -106,26 +106,26 @@ void trsv(
         if (uplo == Uplo::Upper) {
             // upper
                 for (idx_t j = n - 1; j != idx_t(-1); --j) {
-                    // note: NOT skipping if x(j) is zero, for consistent NAN handling
+                    // note: NOT skipping if x[j] is zero, for consistent NAN handling
                     if (nonunit) {
-                        x(j) /= A(j,j);
+                        x[j] /= A(j,j);
                     }
-                    scalar_t tmp = x(j);
+                    scalar_t tmp = x[j];
                     for (idx_t i = j - 1; i != idx_t(-1); --i) {
-                        x(i) -= tmp * A(i,j);
+                        x[i] -= tmp * A(i,j);
                     }
                 }
         }
         else {
             // lower
                 for (idx_t j = 0; j < n; ++j) {
-                    // note: NOT skipping if x(j) is zero ...
+                    // note: NOT skipping if x[j] is zero ...
                     if (nonunit) {
-                        x(j) /= A(j,j);
+                        x[j] /= A(j,j);
                     }
-                    scalar_t tmp = x(j);
+                    scalar_t tmp = x[j];
                     for (idx_t i = j + 1; i < n; ++i) {
-                        x(i) -= tmp * A(i,j);
+                        x[i] -= tmp * A(i,j);
                     }
                 }
         }
@@ -135,26 +135,26 @@ void trsv(
         if (uplo == Uplo::Upper) {
             // upper
                 for (idx_t j = n - 1; j != idx_t(-1); --j) {
-                    // note: NOT skipping if x(j) is zero, for consistent NAN handling
+                    // note: NOT skipping if x[j] is zero, for consistent NAN handling
                     if (nonunit) {
-                        x(j) /= conj( A(j,j) );
+                        x[j] /= conj( A(j,j) );
                     }
-                    scalar_t tmp = x(j);
+                    scalar_t tmp = x[j];
                     for (idx_t i = j - 1; i != idx_t(-1); --i) {
-                        x(i) -= tmp * conj( A(i,j) );
+                        x[i] -= tmp * conj( A(i,j) );
                     }
                 }
         }
         else {
             // lower
                 for (idx_t j = 0; j < n; ++j) {
-                    // note: NOT skipping if x(j) is zero ...
+                    // note: NOT skipping if x[j] is zero ...
                     if (nonunit) {
-                        x(j) /= conj( A(j,j) );
+                        x[j] /= conj( A(j,j) );
                     }
-                    scalar_t tmp = x(j);
+                    scalar_t tmp = x[j];
                     for (idx_t i = j + 1; i < n; ++i) {
-                        x(i) -= tmp * conj( A(i,j) );
+                        x[i] -= tmp * conj( A(i,j) );
                     }
                 }
         }
@@ -164,27 +164,27 @@ void trsv(
         if (uplo == Uplo::Upper) {
             // upper
                 for (idx_t j = 0; j < n; ++j) {
-                    scalar_t tmp = x(j);
+                    scalar_t tmp = x[j];
                     for (idx_t i = 0; i < j; ++i) {
-                        tmp -= A(i,j) * x(i);
+                        tmp -= A(i,j) * x[i];
                     }
                     if (nonunit) {
                         tmp /= A(j,j);
                     }
-                    x(j) = tmp;
+                    x[j] = tmp;
                 }
         }
         else {
             // lower
                 for (idx_t j = n - 1; j != idx_t(-1); --j) {
-                    scalar_t tmp = x(j);
+                    scalar_t tmp = x[j];
                     for (idx_t i = j + 1; i < n; ++i) {
-                        tmp -= A(i,j) * x(i);
+                        tmp -= A(i,j) * x[i];
                     }
                     if (nonunit) {
                         tmp /= A(j,j);
                     }
-                    x(j) = tmp;
+                    x[j] = tmp;
                 }
         }
     }
@@ -194,27 +194,27 @@ void trsv(
         if (uplo == Uplo::Upper) {
             // upper
                 for (idx_t j = 0; j < n; ++j) {
-                    scalar_t tmp = x(j);
+                    scalar_t tmp = x[j];
                     for (idx_t i = 0; i < j; ++i) {
-                        tmp -= conj( A(i,j) ) * x(i);
+                        tmp -= conj( A(i,j) ) * x[i];
                     }
                     if (nonunit) {
                         tmp /= conj( A(j,j) );
                     }
-                    x(j) = tmp;
+                    x[j] = tmp;
                 }
         }
         else {
             // lower
                 for (idx_t j = n - 1; j != idx_t(-1); --j) {
-                    scalar_t tmp = x(j);
+                    scalar_t tmp = x[j];
                     for (idx_t i = j + 1; i < n; ++i) {
-                        tmp -= conj( A(i,j) ) * x(i);
+                        tmp -= conj( A(i,j) ) * x[i];
                     }
                     if (nonunit) {
                         tmp /= conj( A(j,j) );
                     }
-                    x(j) = tmp;
+                    x[j] = tmp;
                 }
         }
     }

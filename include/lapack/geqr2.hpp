@@ -81,7 +81,7 @@ int geqr2( matrix_t& A, vector_t &tau, work_t &work )
         auto x = subvector( col( A, i ), pair(i+1,m) );
 
         // Generate the (i+1)-th elementary Household reflection on x
-        larfg( A(i,i), x, tau(i) );
+        larfg( A(i,i), x, tau[i] );
 
         const auto alpha = A(i,i);
         A(i,i) = one;
@@ -92,7 +92,7 @@ int geqr2( matrix_t& A, vector_t &tau, work_t &work )
               auto w = subvector( work, pair(i,n-1) );
 
         // C := I - tau_i v v^H
-        larf( left_side, v, tau(i), C, w );
+        larf( left_side, v, tau[i], C, w );
 
         A(i,i) = alpha;
 	}

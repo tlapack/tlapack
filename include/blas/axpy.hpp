@@ -53,7 +53,7 @@ void axpy(
     blas_error_if( size(x) != n );
 
     for (idx_t i = 0; i < n; ++i)
-        y(i) += alpha * x(i);
+        y[i] += alpha * x[i];
 }
 
 }  // namespace blas

@@ -54,7 +54,7 @@ auto dot( const vectorX_t& x, const vectorY_t& y )
 
     T result( 0.0 );
     for (idx_t i = 0; i < n; ++i)
-        result += conj(x(i)) * y(i);
+        result += conj(x[i]) * y[i];
 
     return result;
 }
