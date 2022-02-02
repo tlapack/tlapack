@@ -3,9 +3,9 @@
 #-------------------------------------------------------------------------------
 # Executables
 
-all: example_eigenMatrix
+all: example_eigen
 
-example_eigenMatrix: example_eigenMatrix.o
+example_eigen: example_eigen.o
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS)
 
 #-------------------------------------------------------------------------------
@@ -18,4 +18,4 @@ example_eigenMatrix: example_eigenMatrix.o
 
 clean:
 	rm -f *.o
-	rm -f example_eigenMatrix
+	rm -f example_eigen

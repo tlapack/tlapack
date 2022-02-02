@@ -6,7 +6,7 @@
 
 cmake_minimum_required(VERSION 3.1)
 
-project( eigenMatrix CXX )
+project( eigen CXX )
 
 # Load <T>LAPACK
 if( NOT TARGET tlapack )
@@ -15,6 +15,6 @@ endif()
 
 find_package( Eigen3 REQUIRED )
 
-# add the example eigenMatrix
-add_executable( example_eigenMatrix example_eigenMatrix.cpp )
-target_link_libraries( example_eigenMatrix PRIVATE tlapack Eigen3::Eigen )
+# add the example eigen
+add_executable( example_eigen example_eigen.cpp )
+target_link_libraries( example_eigen PRIVATE tlapack Eigen3::Eigen )
