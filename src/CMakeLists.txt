@@ -161,6 +161,7 @@ if( Fortran_WRAPPERS )
 
   list( APPEND installable_libs tblas_fortran )
   list( APPEND installable_mods ${CMAKE_Fortran_MODULE_DIRECTORY}/tblas.mod )
+  list( APPEND installable_mods ${CMAKE_Fortran_MODULE_DIRECTORY}/constants.mod )
 
   install(
     FILES
@@ -170,7 +171,7 @@ if( Fortran_WRAPPERS )
   install(
     FILES
       ${CMAKE_CURRENT_SOURCE_DIR}/blas/constants.f90
-    DESTINATION include/blas )
+    DESTINATION include )
 endif()
 
 set( installable_libs ${installable_libs} PARENT_SCOPE )

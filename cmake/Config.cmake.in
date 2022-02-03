@@ -12,4 +12,6 @@ if( USE_LAPACKPP_WRAPPERS )
     find_dependency( lapackpp )
 endif()
 
+find_dependency( mdspan )
+
 include( "${CMAKE_CURRENT_LIST_DIR}/tlapackTargets.cmake" )

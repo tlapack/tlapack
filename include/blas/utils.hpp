@@ -362,7 +362,9 @@ private:
 // -----------------------------------------------------------------------------
 /// Main function to handle errors in <T>BLAS
 /// Default implementation: throw blas::Error( error_msg, func )
-void error( const char* error_msg, const char* func );
+inline void error( const char* error_msg, const char* func ) {
+    throw blas::Error( error_msg, func );
+}
 
 // -----------------------------------------------------------------------------
 // Internal helpers

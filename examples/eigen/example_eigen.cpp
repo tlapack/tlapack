@@ -7,9 +7,9 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#define NDEBUG 1
-
 #include <iostream>
+
+// Must be loaded in the following order
 #include <plugins/tlapack_eigen.hpp>
 #include <tlapack.hpp>
 
@@ -20,38 +20,45 @@ int main( int argc, char** argv )
 {
     using std::size_t;
     using pair = std::pair<size_t,size_t>;
-    using blas::submatrix;
+    using namespace blas;
+    using namespace lapack;
+    using Eigen::Matrix;
 
+    // Constants
     const size_t m = 5;
     const size_t n = 3;
-    const size_t k = (m <= n) ? m : n;
 
-    Eigen::Matrix<float, m, n> A {
+    // Input data
+    Matrix<float, m, n> A {
         { 1,  2,  3},
         { 4,  5,  6},
         { 7,  8,  9},
         {10, 11, 12},
         {13, 14, 15}
     };
-    Eigen::Matrix<float, m, n> Q = A;
 
-    Eigen::Matrix<float, n, n> R = Eigen::Matrix<float, n, n>::Zero();
-    Eigen::Matrix<float, m, n> QtimesR = Eigen::Matrix<float, m, n>::Zero();
+    // Matrices
+    Matrix<float, m, n> Q = A;
+    Matrix<float, n, n> R = Matrix<float, n, n>::Zero();
+    Matrix<float, m, n> QtimesR = Matrix<float, m, n>::Zero();
 
     std::cout << "A = " << std::endl << A << std::endl << std::endl;
 
-    // <T>LAPACK
+    // <T>LAPACK -----------------------------------------------
+    
     std::cout << "--- <T>LAPACK: ---" << std::endl << std::endl;
 
-    Eigen::Matrix<float, k, 1> tau;
-    Eigen::Matrix<float, n-1, 1> work;
-    Eigen::Matrix<float, n, n> orthQ = Eigen::Matrix<float, n, n>::Identity();
+    // Allocates memory
+    Matrix<float, n, 1> tau;
+    Matrix<float, n-1, 1> work;
+    Matrix<float, n, n> orthQ;
 
-    lapack::geqr2( Q, tau, work );
-    lapack::lacpy(  lapack::upper_triangle, 
-                    submatrix(Q,pair(0,k),pair(0,k)), 
-                    R );
-    lapack::org2r( k, Q, tau, work );
+    // Compute QR decomposision in place
+    geqr2( Q, tau, work );
+    // Copy the upper triangle to R
+    lacpy( upper_triangle, submatrix(Q,pair(0,n),pair(0,n)), R );
+    // Generate Q
+    org2r( n, Q, tau, work );
 
     std::cout << "Q = " << std::endl << Q << std::endl;
     std::cout << std::endl;
@@ -59,21 +66,29 @@ int main( int argc, char** argv )
     std::cout << "R = " << std::endl << R << std::endl;
     std::cout << std::endl;
 
-    blas::gemm( blas::Op::NoTrans, blas::Op::NoTrans,
-        1.0, Q, R, 0.0, QtimesR);
-    std::cout << "Q*R = " << std::endl << QtimesR << std::endl;
+    // Checking A = Q R
+    lacpy( general_matrix, Q, QtimesR );
+    trmm( Side::Right, Uplo::Upper, Op::NoTrans, Diag::NonUnit, 1.0, R, QtimesR );
+    std::cout << "QR = " << std::endl << QtimesR << std::endl;
+    QtimesR -= A;
+    std::cout << "\\|QR - A\\|_F/\\|A\\|_F = " << std::endl << lange( frob_norm, QtimesR ) / lange( frob_norm, A ) << std::endl;
     std::cout << std::endl;
 
-    blas::syrk( blas::Uplo::Upper, blas::Op::Trans, 1.0, Q, -1.0, orthQ);
-    std::cout << "\\|Q^t Q\\|_F = " << std::endl << lapack::lansy( lapack::frob_norm, lapack::upper_triangle, orthQ ) << std::endl;
+    // Checking orthogonality of Q
+    orthQ = Matrix<float, n, n>::Identity();
+    syrk( Uplo::Upper, Op::Trans, 1.0, Q, -1.0, orthQ );
+    std::cout << "\\|Q^t Q - I\\|_F = " << std::endl << lansy( frob_norm, upper_triangle, orthQ ) << std::endl;
     std::cout << std::endl;
 
-    // Eigen
+    // Eigen -----------------------------------------------
+
     std::cout << "--- Eigen: ---" << std::endl << std::endl;
 
+    // Compute QR decomposision in place, possibly allocating memory dynamically
     Eigen::HouseholderQR<decltype(A)> qrEigen( A );
-
-    Q = qrEigen.householderQ() * Eigen::MatrixXf::Identity(5,3);
+    // Generate Q
+    Q = qrEigen.householderQ() * Matrix<float, m, n>::Identity();
+    // Copy the upper triangle to R
     R = qrEigen.matrixQR().block(0,0,n,n).triangularView<Eigen::Upper>();
 
     std::cout << "Q = " << std::endl << Q << std::endl;
@@ -82,12 +97,15 @@ int main( int argc, char** argv )
     std::cout << "R = " << std::endl << R << std::endl;
     std::cout << std::endl;
 
+    // Checking A = Q R
     QtimesR = Q * R;
-    std::cout << "Q*R = " << std::endl << QtimesR << std::endl;
+    std::cout << "QR = " << std::endl << QtimesR << std::endl;
+    std::cout << "\\|QR - A\\|_F/\\|A\\|_F = " << (QtimesR-A).norm() / A.norm() << std::endl;
     std::cout << std::endl;
 
-    orthQ = Q.transpose() * Q - Eigen::MatrixXf::Identity(n,n);
-    std::cout << "\\|Q^t Q\\|_F = " << std::endl << orthQ.norm() << std::endl;
+    // Checking orthogonality of Q
+    orthQ = Q.transpose() * Q - Matrix<float, n, n>::Identity();
+    std::cout << "\\|Q^t Q - I\\|_F = " << std::endl << orthQ.norm() << std::endl;
     std::cout << std::endl;
 
     return 0;

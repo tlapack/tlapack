@@ -25,17 +25,15 @@ message(STATUS "<T>LAPACK version " ${PROJECT_VERSION})
 #-------------------------------------------------------------------------------
 # <T>LAPACK and <T>BLAS template libraries
 
-add_library( tblas src/xerbla.cpp )
+add_library( tblas INTERFACE )
 target_include_directories( tblas
-  PUBLIC 
+  INTERFACE 
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
     $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>
     $<INSTALL_INTERFACE:include> )
 
 add_library( tlapack INTERFACE )
 target_link_libraries( tlapack INTERFACE tblas )
-
-set( installable_libs tblas ) # Mind that we don't install tlapack since it is an INTERFACE_LIBRARY
 
 #-------------------------------------------------------------------------------
 # Options
@@ -78,8 +76,8 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 # Search for BLAS++ library if it is needed
 if( USE_BLASPP_WRAPPERS )
   find_package( blaspp REQUIRED )
-  target_compile_definitions( tblas PUBLIC USE_BLASPP_WRAPPERS )
-  target_link_libraries( tblas PUBLIC blaspp )
+  target_compile_definitions( tblas INTERFACE USE_BLASPP_WRAPPERS )
+  target_link_libraries( tblas INTERFACE blaspp )
 endif()
 
 #-------------------------------------------------------------------------------
@@ -94,7 +92,7 @@ endif()
 # Load mdspan
 include( "${TLAPACK_SOURCE_DIR}/cmake/FetchPackage.cmake" )
 FetchPackage( "mdspan" "https://github.com/kokkos/mdspan.git" "stable" )
-target_link_libraries( tblas PUBLIC std::mdspan )
+target_link_libraries( tblas INTERFACE std::mdspan )
 
 #-------------------------------------------------------------------------------
 # Docs
@@ -140,20 +138,6 @@ PROPERTIES
 #-------------------------------------------------------------------------------
 # Install
 
-install(
-  TARGETS ${installable_libs}
-  DESTINATION lib
-  EXPORT tlapackTargets )
-install(
-  FILES ${installable_mods}
-  DESTINATION include )
-
-install(
-  FILES
-    "${PROJECT_SOURCE_DIR}/include/tblas.hpp"
-    "${PROJECT_SOURCE_DIR}/include/tlapack.hpp"
-  DESTINATION include )
-
 # <T>LAPACK templates 
 install(
   DIRECTORY ${PROJECT_SOURCE_DIR}/include/
@@ -162,11 +146,25 @@ install(
 install( FILES ${PROJECT_SOURCE_DIR}/include/slate_api/lapack/config_lapackppwrappers.h
           DESTINATION include/slate_api/lapack )
 
+# Modules
+install(
+  FILES ${installable_mods}
+  DESTINATION include )
+
+# Libraries
+list( APPEND installable_libs tblas tlapack )
+install(
+  TARGETS ${installable_libs}
+  EXPORT tlapackTargets
+  DESTINATION lib
+  INCLUDES DESTINATION include )
+
 # Export targets
 install(EXPORT tlapackTargets
   FILE tlapackTargets.cmake
   DESTINATION lib/cmake/tlapack )
 
+# Configure installation
 include(CMakePackageConfigHelpers)
 # generate the config file that includes the exports
 configure_package_config_file(
