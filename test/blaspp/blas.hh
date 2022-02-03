@@ -8,7 +8,7 @@
 #define BLAS_HH
 
 #include "blas/defines.h"
-#include "slate_api/blas.hpp"
 #include "blas/util.hh"
+#include "slate_api/blas.hpp"
 
 #endif // BLAS_HH

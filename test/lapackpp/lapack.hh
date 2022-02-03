@@ -8,7 +8,7 @@
 #define LAPACK_HH
 
 #include "lapack/defines.h"
-#include "slate_api/lapack.hpp"
 #include "lapack/util.hh"
+#include "slate_api/lapack.hpp"
 
 #endif // LAPACK_HH

@@ -76,4 +76,8 @@ if( EXISTS "${blaspp_TEST_DIR}/test.cc" )
          ${CMAKE_CURRENT_BINARY_DIR}/run_blaspp_tester.py
   )
 
+  enable_testing()
+  add_test( NAME blaspp_test
+    COMMAND ${CMAKE_CURRENT_BINARY_DIR}/run_blaspp_tester.py --quick )
+
 endif()

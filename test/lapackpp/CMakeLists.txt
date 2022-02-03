@@ -210,4 +210,8 @@ if( EXISTS "${lapackpp_TEST_DIR}/test.cc" )
          ${CMAKE_CURRENT_BINARY_DIR}/run_lapackpp_tester.py
   )
 
+  enable_testing()
+  add_test( NAME lapackpp_test
+    COMMAND ${CMAKE_CURRENT_BINARY_DIR}/run_lapackpp_tester.py --quick )
+
 endif()
