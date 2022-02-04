@@ -21,7 +21,7 @@
 #include "blas/nrm2.hpp"
 #include "blas/rot.hpp"
 #include "blas/rotg.hpp"
-// #include "blas/rotm.hpp"
+#include "blas/rotm.hpp"
 #include "blas/rotmg.hpp"
 #include "blas/scal.hpp"
 #include "blas/swap.hpp"
