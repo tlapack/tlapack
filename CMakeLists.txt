@@ -18,9 +18,10 @@ project(TLAPACK
   LANGUAGES CXX)
 message(STATUS "<T>LAPACK version " ${PROJECT_VERSION})
 
-# # specify the C++ standard
+# specify the C++14 standard
 # set(CMAKE_CXX_STANDARD 14)
 # set(CMAKE_CXX_STANDARD_REQUIRED True)
+set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14" )
 
 #-------------------------------------------------------------------------------
 # <T>LAPACK and <T>BLAS template libraries
