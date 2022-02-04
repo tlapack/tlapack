@@ -43,6 +43,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
       blaspp_DIR: ${{github.workspace}}/blaspp
+      lapackpp_DIR: ${{github.workspace}}/lapackpp
 
     strategy:
       fail-fast: false
@@ -54,25 +55,40 @@ jobs:
     - name: Checkout <T>LAPACK
       uses: actions/checkout@v2
 
-    - name: Checkout BLAS++
+    - name: Install LAPACKE on Ubuntu
       if: ${{ matrix.os == 'ubuntu-latest' }}
-      run: git clone https://bitbucket.org/weslleyspereira/blaspp ${{env.blaspp_DIR}}
+      run: sudo apt install liblapacke-dev
 
-    - name: Build and install BLAS++
+    - name: Checkout BLAS++ and LAPACK++
+      if: ${{ matrix.os == 'ubuntu-latest' }}
+      run: |
+        git clone https://bitbucket.org/weslleyspereira/blaspp ${{env.blaspp_DIR}}
+        git clone https://bitbucket.org/weslleyspereira/lapackpp ${{env.lapackpp_DIR}}
+
+    - name: Configure BLAS++
       if: ${{ matrix.os == 'ubuntu-latest' }}
       working-directory: ${{env.blaspp_DIR}}
       run: |
         git checkout tlapack
-        cmake -B build -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.blaspp_DIR}}
-        cmake --build build --target install
+        cmake -B build
 
+    - name: Configure LAPACK++
+      if: ${{ matrix.os == 'ubuntu-latest' }}
+      working-directory: ${{env.lapackpp_DIR}}
+      run: |
+        git checkout tlapack
+        cmake -B build -D blaspp_DIR=${{env.blaspp_DIR}}/build
+        
     - name: Specific configurations for CMake on Ubuntu
       if: ${{ matrix.os == 'ubuntu-latest' }}
       run: >
         cmake -B build
         -D BUILD_BLASPP_TESTS=ON
-        -D blaspp_DIR=${{env.blaspp_DIR}}
+        -D blaspp_DIR=${{env.blaspp_DIR}}/build
         -D blaspp_TEST_DIR=${{env.blaspp_DIR}}/test
+        -D BUILD_LAPACKPP_TESTS=ON
+        -D lapackpp_DIR=${{env.lapackpp_DIR}}/build
+        -D lapackpp_TEST_DIR=${{env.lapackpp_DIR}}/test
 
     - name: Specific configurations for CMake on MacOS
       if: ${{ matrix.os == 'macos-latest' }}

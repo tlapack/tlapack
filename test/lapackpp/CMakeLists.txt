@@ -110,7 +110,7 @@ if( EXISTS "${lapackpp_TEST_DIR}/test.cc" )
     # ${lapackpp_TEST_DIR}/test_lantr.cc
     ${lapackpp_TEST_DIR}/test_larf.cc
     ${lapackpp_TEST_DIR}/test_larfb.cc
-    ${lapackpp_TEST_DIR}/test_larfg.cc
+    # ${lapackpp_TEST_DIR}/test_larfg.cc  # Disabled because the forward errors don't make much sense in this case 
     # ${lapackpp_TEST_DIR}/test_larfgp.cc
     ${lapackpp_TEST_DIR}/test_larft.cc
     # ${lapackpp_TEST_DIR}/test_larfx.cc

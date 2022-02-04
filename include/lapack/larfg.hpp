@@ -87,7 +87,7 @@ void larfg( alpha_t& alpha, vectorX_t& x, tau_t& tau )
             real_t beta = (real(alpha) < rzero) ? temp : -temp;
             if (abs(beta) < safemin)
             {
-                while( abs(beta) < safemin )
+                while( (abs(beta) < safemin) && (knt < 20) )
                 {
                     knt++;
                     scal( rsafemin, x );
