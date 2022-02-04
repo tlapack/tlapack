@@ -40,9 +40,7 @@ namespace lapack {
 template< class norm_t, class uplo_t, class matrix_t,
     enable_if_t<
     /* Requires: */
-    (   is_same_v<norm_t,max_norm_t> || 
-        is_same_v<norm_t,one_norm_t> || 
-        is_same_v<norm_t,inf_norm_t> || 
+    (   is_same_v<norm_t,max_norm_t> ||
         is_same_v<norm_t,frob_norm_t>
     ) && (
         is_same_v< uplo_t, upper_triangle_t > || 
@@ -101,60 +99,7 @@ lansy( norm_t normType, uplo_t uplo, const matrix_t& A )
             }
         }
     }
-    else if (
-        is_same_v<norm_t,one_norm_t> || 
-        is_same_v<norm_t,inf_norm_t> )
-    {
-        real_t *work = new real_t[n];
-        for (idx_t i = 0; i < n; ++i)
-            work[i] = zero;
-
-        if( is_same_v<uplo_t,upper_triangle_t> ) {
-            for (idx_t j = 0; j < n; ++j)
-            {
-                real_t sum = zero;
-                for (idx_t i = 0; i < j; ++i) {
-                    const real_t absa = blas::abs( A(i,j) );
-                    sum += absa;
-                    work[i] += absa;
-                }
-                work[j] = sum + blas::abs( A(j,j) );
-            }
-            for (idx_t i = 0; i < n; ++i)
-            {
-                real_t sum = work[i];
-                if (sum > norm)
-                    norm = sum;
-                else {
-                    if ( isnan(sum) ) {
-                        delete[] work;
-                        return sum;
-                    }
-                }
-            }
-        }
-        else {
-            for (idx_t j = 0; j < n; ++j)
-            {
-                real_t sum = work[j] + blas::abs( A(j,j) );
-                for (idx_t i = j+1; i < n; ++i) {
-                    const real_t absa = blas::abs( A(i,j) );
-                    sum += absa;
-                    work[i] += absa;
-                }
-                if (sum > norm)
-                    norm = sum;
-                else {
-                    if ( isnan(sum) ) {
-                        delete[] work;
-                        return sum;
-                    }
-                }
-            }
-        }
-        delete[] work;
-    }
-    else if ( is_same_v<norm_t,frob_norm_t> )
+    else
     {
         // Scaled ssq
         real_t scale(0), ssq(1);
@@ -175,6 +120,85 @@ lansy( norm_t normType, uplo_t uplo, const matrix_t& A )
 
         // Compute the scaled square root
         norm = scale * sqrt(ssq);
+    }
+
+    return norm;
+}
+
+template< class norm_t, class uplo_t, class matrix_t, class work_t,
+    enable_if_t<
+    /* Requires: */
+    (   is_same_v<norm_t,max_norm_t> || 
+        is_same_v<norm_t,one_norm_t> || 
+        is_same_v<norm_t,inf_norm_t> || 
+        is_same_v<norm_t,frob_norm_t>
+    ) && (
+        is_same_v< uplo_t, upper_triangle_t > || 
+        is_same_v< uplo_t, lower_triangle_t >
+    ), bool > = true
+>
+real_type< type_t<matrix_t> >
+lansy( norm_t normType, uplo_t uplo, const matrix_t& A, work_t& work )
+{
+    using real_t = real_type< type_t<matrix_t> >;
+    using idx_t  = size_type< matrix_t >;
+    using blas::isnan;
+
+    // quick redirect
+    if      ( is_same_v<norm_t,max_norm_t>  ) return lansy( max_norm,  uplo, A );
+    else if ( is_same_v<norm_t,frob_norm_t> ) return lansy( frob_norm, uplo, A );
+
+    // constants
+    const real_t zero(0.0);
+    const idx_t n = nrows(A);
+
+    // quick return
+    if ( n <= 0 ) return zero;
+
+    // Norm value
+    real_t norm(0.0);
+
+    for (idx_t i = 0; i < n; ++i)
+        work[i] = type_t<work_t>(0);
+
+    if( is_same_v<uplo_t,upper_triangle_t> ) {
+        for (idx_t j = 0; j < n; ++j)
+        {
+            real_t sum = zero;
+            for (idx_t i = 0; i < j; ++i) {
+                const real_t absa = blas::abs( A(i,j) );
+                sum += absa;
+                work[i] += absa;
+            }
+            work[j] = sum + blas::abs( A(j,j) );
+        }
+        for (idx_t i = 0; i < n; ++i)
+        {
+            real_t sum = work[i];
+            if (sum > norm)
+                norm = sum;
+            else {
+                if ( isnan(sum) )
+                    return sum;
+            }
+        }
+    }
+    else {
+        for (idx_t j = 0; j < n; ++j)
+        {
+            real_t sum = work[j] + blas::abs( A(j,j) );
+            for (idx_t i = j+1; i < n; ++i) {
+                const real_t absa = blas::abs( A(i,j) );
+                sum += absa;
+                work[i] += absa;
+            }
+            if (sum > norm)
+                norm = sum;
+            else {
+                if ( isnan(sum) )
+                    return sum;
+            }
+        }
     }
 
     return norm;
