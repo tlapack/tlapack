@@ -44,14 +44,14 @@ template<
 void laset(
     uplo_t uplo,
     const alpha_t& alpha, const beta_t& beta,
-    const matrix_t& A )
+    matrix_t& A )
 {
     using idx_t  = size_type< matrix_t >;
     using std::min;
 
     // constants
-    const auto m = nrows(A);
-    const auto n = ncols(A);
+    const idx_t m = nrows(A);
+    const idx_t n = ncols(A);
 
     if (is_same_v< uplo_t, upper_triangle_t >) {
         // Set the strictly upper triangular or trapezoidal part of

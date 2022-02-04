@@ -48,6 +48,7 @@ int orm2r(
 {
     using idx_t = size_type< matrixA_t >;
     using T     = type_t< matrixA_t >;
+    using pair  = std::pair<idx_t,idx_t>;
 
     // constants
     const T one( 1 );
@@ -70,11 +71,11 @@ int orm2r(
     for (idx_t i = i0; i != iN; i += inc) {
         
         const auto& v = (leftSide)
-                      ? subvector( col( A, i ), pair(i,m) )
-                      : subvector( col( A, i ), pair(i,n) );
+                      ? subvector( col( A, i ), pair{i,m} )
+                      : subvector( col( A, i ), pair{i,n} );
         auto& Ci = (leftSide)
-                 ? rows( C, pair(i,m) )
-                 : cols( C, pair(i,n) );
+                 ? rows( C, pair{i,m} )
+                 : cols( C, pair{i,n} );
         
         const auto Aii = A(i,i);
         A(i,i) = one;

@@ -50,7 +50,7 @@ int main( int argc, char** argv )
     // Column Major Matrix A
     auto A  = colmajor_matrix( A_, n, n, lda );
     // Column Major Matrix Ak with the first k columns of A
-    auto Ak = submatrix( A, pair(0,n), pair(0,k) );
+    auto Ak = submatrix( A, pair{0,n}, pair{0,k} );
     // Tiled Matrix B with the last k*n elements of A_
     auto B  = mdspan< T, dextents<2>, TiledLayout >(
         &A(n*(lda-k),0), TiledMapping( dextents<2>(k, n), row_tile, col_tile )
@@ -113,8 +113,8 @@ int main( int argc, char** argv )
             A_[i+j*lda] = T( static_cast<float>( 0xDEADBEEF ) );
 
     // Column Major Matrices U and Asym as submatrices of A
-    auto U    = submatrix( A, pair(0,k), pair(0,k) );
-    auto Asym = submatrix( A, pair(0,k), pair(k,2*k) );
+    auto U    = submatrix( A, pair{0,k}, pair{0,k} );
+    auto Asym = submatrix( A, pair{0,k}, pair{k,2*k} );
     
     // Fill Asym with random entries
     for (idx_t j = 0; j < k; ++j) {
@@ -145,7 +145,7 @@ int main( int argc, char** argv )
               << std::endl;
 
     // Solve U^H U R = A
-    auto R  = submatrix( A, pair(k,2*k), pair(0,k) );
+    auto R  = submatrix( A, pair{k,2*k}, pair{0,k} );
     for (idx_t j = 0; j < k; ++j)
         for (idx_t i = 0; i < k; ++i)
             R(i,j) = Asym(i,j);

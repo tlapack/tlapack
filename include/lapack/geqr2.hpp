@@ -64,9 +64,9 @@ int geqr2( matrix_t& A, vector_t &tau, work_t &work )
 
     // constants
     const TA one( 1 );
-    const auto m = nrows(A);
-    const auto n = ncols(A);
-    const auto k = std::min<idx_t>( m, n-1 );
+    const idx_t m = nrows(A);
+    const idx_t n = ncols(A);
+    const idx_t k = std::min<idx_t>( m, n-1 );
 
     // check arguments
     lapack_error_if( size(tau)  < std::min<idx_t>( m, n ), -2 );
@@ -78,7 +78,7 @@ int geqr2( matrix_t& A, vector_t &tau, work_t &work )
     for(idx_t i = 0; i < k; ++i) {
 
         // Define x := A[i+1:m,i]
-        auto x = subvector( col( A, i ), pair(i+1,m) );
+        auto x = subvector( col( A, i ), pair{i+1,m} );
 
         // Generate the (i+1)-th elementary Household reflection on x
         larfg( A(i,i), x, tau[i] );
@@ -87,9 +87,9 @@ int geqr2( matrix_t& A, vector_t &tau, work_t &work )
         A(i,i) = one;
 
         // Define v := A[i:m,i] and C := A[i:m,i+1:n], and w := work[i:n-1]
-        const auto v = subvector( col( A, i ), pair(i,m) );
-              auto C = submatrix( A, pair(i,m), pair(i+1,n) );
-              auto w = subvector( work, pair(i,n-1) );
+        const auto v = subvector( col( A, i ), pair{i,m} );
+              auto C = submatrix( A, pair{i,m}, pair{i+1,n} );
+              auto w = subvector( work, pair{i,n-1} );
 
         // C := I - tau_i v v^H
         larf( left_side, v, tau[i], C, w );
@@ -98,9 +98,9 @@ int geqr2( matrix_t& A, vector_t &tau, work_t &work )
 	}
     if( n-1 < m ) {
         // Define x := A[n:m,n-1]
-        auto x = subvector( col( A, n-1 ), pair(n,m) );
+        auto x = subvector( col( A, n-1 ), pair{n,m} );
         // Generate the n-th elementary Household reflection on x
-        larfg( A(n-1,n-1), x, tau(n-1) );
+        larfg( A(n-1,n-1), x, tau[n-1] );
     }
 
     return 0;

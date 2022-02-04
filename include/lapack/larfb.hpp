@@ -172,10 +172,10 @@ int larfb(
                 // V is an m-by-k matrix
 
                 // Matrix views
-                const auto V1 = rows( V, pair(0,k) );
-                const auto V2 = rows( V, pair(k,m) );
-                auto C1 = rows( C, pair(0,k) );
-                auto C2 = rows( C, pair(k,m) );
+                const auto V1 = rows( V, pair{0,k} );
+                const auto V2 = rows( V, pair{k,m} );
+                auto C1 = rows( C, pair{0,k} );
+                auto C2 = rows( C, pair{k,m} );
 
                 // W := C1
                 lacpy( general_matrix, C1, W );
@@ -215,10 +215,10 @@ int larfb(
                 // V is an n-by-k matrix
 
                 // Matrix views
-                const auto V1 = rows( V, pair(0,k) );
-                const auto V2 = rows( V, pair(k,n) );
-                auto C1 = cols( C, pair(0,k) );
-                auto C2 = cols( C, pair(k,n) );
+                const auto V1 = rows( V, pair{0,k} );
+                const auto V2 = rows( V, pair{k,n} );
+                auto C1 = cols( C, pair{0,k} );
+                auto C2 = cols( C, pair{k,n} );
 
                 // W := C1
                 lacpy( general_matrix, C1, W );
@@ -260,10 +260,10 @@ int larfb(
                 // V is an m-by-k matrix
 
                 // Matrix views
-                const auto V1 = rows( V, pair(0,m-k) );
-                const auto V2 = rows( V, pair(m-k,m) );
-                auto C1 = rows( C, pair(0,m-k) );
-                auto C2 = rows( C, pair(m-k,m) );
+                const auto V1 = rows( V, pair{0,m-k} );
+                const auto V2 = rows( V, pair{m-k,m} );
+                auto C1 = rows( C, pair{0,m-k} );
+                auto C2 = rows( C, pair{m-k,m} );
 
                 // W := C2
                 lacpy( general_matrix, C2, W );
@@ -303,10 +303,10 @@ int larfb(
                 // V is an n-by-k matrix
 
                 // Matrix views
-                const auto V1 = rows( V, pair(0,n-k) );
-                const auto V2 = rows( V, pair(n-k,n) );
-                auto C1 = cols( C, pair(0,n-k) );
-                auto C2 = cols( C, pair(n-k,n) );
+                const auto V1 = rows( V, pair{0,n-k} );
+                const auto V2 = rows( V, pair{n-k,n} );
+                auto C1 = cols( C, pair{0,n-k} );
+                auto C2 = cols( C, pair{n-k,n} );
 
                 // W := C2
                 lacpy( general_matrix, C2, W );
@@ -350,10 +350,10 @@ int larfb(
                 // V is an k-by-m matrix
 
                 // Matrix views
-                const auto V1 = cols( V, pair(0,k) );
-                const auto V2 = cols( V, pair(k,m) );
-                auto C1 = rows( C, pair(0,k) );
-                auto C2 = rows( C, pair(k,m) );
+                const auto V1 = cols( V, pair{0,k} );
+                const auto V2 = cols( V, pair{k,m} );
+                auto C1 = rows( C, pair{0,k} );
+                auto C2 = rows( C, pair{k,m} );
 
                 // W := C1
                 lacpy( general_matrix, C1, W );
@@ -393,10 +393,10 @@ int larfb(
                 // V is an k-by-n matrix
 
                 // Matrix views
-                const auto V1 = cols( V, pair(0,k) );
-                const auto V2 = cols( V, pair(k,n) );
-                auto C1 = cols( C, pair(0,k) );
-                auto C2 = cols( C, pair(k,n) );
+                const auto V1 = cols( V, pair{0,k} );
+                const auto V2 = cols( V, pair{k,n} );
+                auto C1 = cols( C, pair{0,k} );
+                auto C2 = cols( C, pair{k,n} );
 
                 // W := C1
                 lacpy( general_matrix, C1, W );
@@ -438,10 +438,10 @@ int larfb(
                 // V is an k-by-m matrix
 
                 // Matrix views
-                const auto V1 = cols( V, pair(0,m-k) );
-                const auto V2 = cols( V, pair(m-k,m) );
-                auto C1 = rows( C, pair(0,m-k) );
-                auto C2 = rows( C, pair(m-k,m) );
+                const auto V1 = cols( V, pair{0,m-k} );
+                const auto V2 = cols( V, pair{m-k,m} );
+                auto C1 = rows( C, pair{0,m-k} );
+                auto C2 = rows( C, pair{m-k,m} );
 
                 // W := C2
                 lacpy( general_matrix, C2, W );
@@ -481,10 +481,10 @@ int larfb(
                 // V is an k-by-n matrix
 
                 // Matrix views
-                const auto V1 = cols( V, pair(0,n-k) );
-                const auto V2 = cols( V, pair(n-k,n) );
-                auto C1 = cols( C, pair(0,n-k) );
-                auto C2 = cols( C, pair(n-k,n) );
+                const auto V1 = cols( V, pair{0,n-k} );
+                const auto V2 = cols( V, pair{n-k,n} );
+                auto C1 = cols( C, pair{0,n-k} );
+                auto C2 = cols( C, pair{n-k,n} );
 
                 // W := C2
                 lacpy( general_matrix, C2, W );

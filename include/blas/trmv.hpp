@@ -67,7 +67,7 @@ void trmv(
     using scalar_t = scalar_type<TA,TX>;
 
     // constants
-    const auto n = nrows(A);
+    const idx_t n = nrows(A);
     const bool nonunit = (diag == Diag::NonUnit);
 
     // check arguments

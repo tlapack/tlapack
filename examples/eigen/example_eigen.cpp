@@ -56,7 +56,7 @@ int main( int argc, char** argv )
     // Compute QR decomposision in place
     geqr2( Q, tau, work );
     // Copy the upper triangle to R
-    lacpy( upper_triangle, submatrix(Q,pair(0,n),pair(0,n)), R );
+    lacpy( upper_triangle, submatrix(Q,pair{0,n},pair{0,n}), R );
     // Generate Q
     org2r( n, Q, tau, work );
 

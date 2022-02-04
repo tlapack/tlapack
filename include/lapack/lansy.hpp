@@ -60,7 +60,7 @@ lansy( norm_t normType, uplo_t uplo, const matrix_t& A )
 
     // constants
     const real_t zero(0.0);
-    const auto n = nrows(A);
+    const idx_t n = nrows(A);
 
     // quick return
     if ( n <= 0 ) return zero;
@@ -162,11 +162,11 @@ lansy( norm_t normType, uplo_t uplo, const matrix_t& A )
         // Sum off-diagonals
         if( is_same_v<uplo_t,upper_triangle_t> ) {
             for (idx_t j = 1; j < n; ++j)
-                lassq( subvector( col(A,j), pair(0,j) ), scale, ssq );
+                lassq( subvector( col(A,j), pair{0,j} ), scale, ssq );
         }
         else {
             for (idx_t j = 0; j < n-1; ++j)
-                lassq( subvector( col(A,j), pair(j+1,n) ), scale, ssq );
+                lassq( subvector( col(A,j), pair{j+1,n} ), scale, ssq );
         }
         ssq *= 2;
 

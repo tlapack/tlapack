@@ -7,94 +7,103 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#include <slate_api/lapack.hpp>
-#include <slate_api/blas.hpp>
+#include <plugins/tlapack_mdspan.hpp>
+#include <plugins/tlapack_stdvector.hpp>
+#include <slate_api/blas/mdspan.hpp>
+#include <tlapack.hpp>
 
-#include <new>
+#include <memory>
+#include <vector>
 #include <chrono>   // for high_resolution_clock
 #include <iostream>
-#include <stdlib.h>
 
 //------------------------------------------------------------------------------
 /// Print matrix A in the standard output
-template <typename TA>
-inline void printMatrix(
-    lapack::idx_t m, lapack::idx_t n,
-    const TA *A, lapack::idx_t lda )
-{        
-    for (lapack::idx_t i = 0; i < m; ++i) {
+template <typename matrix_t>
+inline void printMatrix( const matrix_t& A )
+{
+    using idx_t = blas::size_type< matrix_t >;
+    const idx_t m = blas::nrows(A);
+    const idx_t n = blas::ncols(A);
+
+    for (idx_t i = 0; i < m; ++i) {
         std::cout << std::endl;
-        for (lapack::idx_t j = 0; j < n; ++j)
-            std::cout << A[ i + j*lda ] << " ";
+        for (idx_t j = 0; j < n; ++j)
+            std::cout << A(i,j) << " ";
     }
 }
 
 //------------------------------------------------------------------------------
 template <typename real_t>
-void run( lapack::idx_t m, lapack::idx_t n )
+void run( size_t m, size_t n )
 {
+    using std::size_t;
+    using blas::internal::colmajor_matrix;
+
     // Turn it off if m or n are large
     bool verbose = false;
 
     // Leading dimensions
-    lapack::idx_t lda = (m > 0) ? m : 1;
-    lapack::idx_t ldr = lda;
-    lapack::idx_t ldq = lda;
+    size_t lda = (m > 0) ? m : 1;
+    size_t ldr = (n > 0) ? n : 1;
+    size_t ldq = lda;
 
     // Arrays
-    real_t* _A = new real_t[ lda*n ];  // m-by-n
-    real_t* _Q = new real_t[ ldq*n ];  // m-by-n
-    real_t* _R = new real_t[ ldr*n ];  // m-by-n
-    real_t* tau = new real_t[ n ];
-    real_t* work;
+    std::unique_ptr<real_t[]> _A(new real_t[ lda*n ]); // m-by-n
+    std::unique_ptr<real_t[]> _R(new real_t[ ldr*n ]); // n-by-n
+    std::unique_ptr<real_t[]> _Q(new real_t[ ldq*n ]); // m-by-n
+    std::vector<real_t> tau ( n );
 
-    // Views
-    auto A = blas::internal::colmajor_matrix<real_t>( _A, m, n, lda );
-    auto R = blas::internal::colmajor_matrix<real_t>( _R, m, n, ldr );
-    auto Q = blas::internal::colmajor_matrix<real_t>( _Q, m, n, ldq );
+    // Matrix views
+    auto A = colmajor_matrix<real_t>( &_A[0], m, n, lda );
+    auto R = colmajor_matrix<real_t>( &_R[0], n, n, ldr );
+    auto Q = colmajor_matrix<real_t>( &_Q[0], m, n, ldq );
 
     // Initialize arrays with junk
-    for (lapack::idx_t j = 0; j < n; ++j) {
-        for (lapack::idx_t i = 0; i < m; ++i) {
+    for (size_t j = 0; j < n; ++j) {
+        for (size_t i = 0; i < m; ++i) {
             A(i,j) = static_cast<float>( 0xDEADBEEF );
             Q(i,j) = static_cast<float>( 0xCAFED00D );
+        }
+        for (size_t i = 0; i < n; ++i) {
             R(i,j) = static_cast<float>( 0xFEE1DEAD );
         }
         tau[j] = static_cast<float>( 0xFFBADD11 );
     }
     
     // Generate a random matrix in A
-    for (lapack::idx_t j = 0; j < n; ++j)
-        for (lapack::idx_t i = 0; i < m; ++i)
+    for (size_t j = 0; j < n; ++j)
+        for (size_t i = 0; i < m; ++i)
             A(i,j) = static_cast<float>( rand() )
                         / static_cast<float>( RAND_MAX );
 
     // Frobenius norm of A
-    real_t normA = lapack::lange( lapack::frob_norm, A );
+    auto normA = lapack::lange( lapack::frob_norm, A );
 
     // Print A
     if (verbose) {
         std::cout << std::endl << "A = ";
-        printMatrix(m,n,_A,lda);
+        printMatrix( A );
     }
 
     // Copy A to Q
-    lapack::lacpy( lapack::Uplo::General, m, n, _A, lda, _Q, ldq );
+    lapack::lacpy( lapack::general_matrix, A, Q );
 
     // 1) Compute A = QR (Stored in the matrix Q)
 
     // Record start time
-    auto startQR = std::chrono::high_resolution_clock::now();
+    auto startQR = std::chrono::high_resolution_clock::now(); {
+        std::vector<real_t> work( n-1 );
     
         // QR factorization
-        blas_error_if( lapack::geqr2( m, n, _Q, ldq, tau ) );
+        blas_error_if( lapack::geqr2( Q, tau, work ) );
 
         // Save the R matrix
-        lapack::lacpy( lapack::Uplo::Upper, n, n, _Q, ldq, _R, ldr );
+        lapack::lacpy( lapack::upper_triangle, Q, R );
 
         // Generates Q = H_1 H_2 ... H_n
-        blas_error_if( lapack::org2r( m, n, n, _Q, ldq, tau ) );
-    
+        blas_error_if( lapack::org2r( n, Q, tau, work ) );
+    }
     // Record end time
     auto endQR = std::chrono::high_resolution_clock::now();
 
@@ -109,56 +118,57 @@ void run( lapack::idx_t m, lapack::idx_t n )
     // Print Q and R
     if (verbose) {
         std::cout << std::endl << "Q = ";
-        printMatrix(m,n,_Q,ldq);
+        printMatrix( Q );
         std::cout << std::endl << "R = ";
-        printMatrix(m,n,_R,ldr);
+        printMatrix( R );
     }
+
+    real_t norm_orth_1, norm_repres_1;
 
     // 2) Compute ||Q'Q - I||_F
 
-    work = new real_t[ n*n ];
-    for (lapack::idx_t i = 0; i < n*n; ++i) work[i] = static_cast<float>( 0xABADBABE );
+    {
+        std::unique_ptr<real_t[]> _work(new real_t[ n*n ]);
+        auto work = colmajor_matrix<real_t>( &_work[0], n, n );
+        for (size_t j = 0; j < n; ++j)
+            for (size_t i = 0; i < n; ++i)
+                work(i,j) = static_cast<float>( 0xABADBABE );
         
         // work receives the identity n*n
-        lapack::laset<real_t>( lapack::Uplo::Upper, n, n, 0.0, 1.0, work, n );
+        lapack::laset( lapack::upper_triangle, 0.0, 1.0, work );
         // work receives Q'Q - I
-        blas::syrk(
-            lapack::Layout::ColMajor, lapack::Uplo::Upper,
-            lapack::Op::Trans, n, m, 1.0, _Q, ldq, -1.0, work, n );
+        blas::syrk( blas::Uplo::Upper, blas::Op::Trans, 1.0, Q, -1.0, work );
 
         // Compute ||Q'Q - I||_F
-        real_t norm_orth_1 = lapack::lansy( lapack::Norm::Fro, lapack::Uplo::Upper, n, work, n );
+        norm_orth_1 = lapack::lansy( lapack::frob_norm, lapack::upper_triangle, work );
 
         if (verbose) {
             std::cout << std::endl << "Q'Q-I = ";
-            printMatrix(n,n,work,n);
+            printMatrix( work );
         }
 
-    delete[] work;
+    }
 
     // 3) Compute ||QR - A||_F / ||A||_F
 
-    work = new real_t[ m*n ];
-    for (lapack::idx_t i = 0; i < n*n; ++i) work[i] = static_cast<float>( 0xABADBABE );
+    {
+        std::unique_ptr<real_t[]> _work(new real_t[ m*n ]);
+        auto work = colmajor_matrix<real_t>( &_work[0], m, n );
+        for (size_t j = 0; j < n; ++j)
+            for (size_t i = 0; i < m; ++i)
+                work(i,j) = static_cast<float>( 0xABADBABE );
 
         // Copy Q to work
-        lapack::lacpy( lapack::Uplo::General, m, n, _Q, ldq, work, m );
+        lapack::lacpy( lapack::general_matrix, Q, work );
 
-        blas::trmm(
-            blas::Layout::ColMajor, blas::Side::Right,
-            blas::Uplo::Upper, blas::Op::NoTrans, blas::Diag::NonUnit,
-            m, n, 1.0, _R, ldr, work, m );
+        blas::trmm( blas::Side::Right, blas::Uplo::Upper, blas::Op::NoTrans, blas::Diag::NonUnit, 1.0, R, work );
 
-        for(lapack::idx_t j = 0; j < n; ++j)
-            for(lapack::idx_t i = 0; i < m; ++i)
-                work[ i+j*m ] -= A(i,j);
+        for(size_t j = 0; j < n; ++j)
+            for(size_t i = 0; i < m; ++i)
+                work(i,j) -= A(i,j);
 
-        real_t norm_repres_1 = lapack::lange(
-            lapack::frob_norm, 
-            blas::internal::colmajor_matrix<real_t>( work, m, n, m )
-        ) / normA;
-
-    delete[] work;
+        norm_repres_1 = lapack::lange( lapack::frob_norm, work ) / normA;
+    }
     
     // *) Output
  
@@ -169,11 +179,6 @@ void run( lapack::idx_t m, lapack::idx_t n )
     std::cout << "||QR - A||_F/||A||_F  = " << norm_repres_1
             << ",        ||Q'Q - I||_F  = " << norm_orth_1;
     std::cout << std::endl;
-
-    delete[] _A;
-    delete[] _R;
-    delete[] _Q;
-    delete[] tau;
 }
 
 //------------------------------------------------------------------------------

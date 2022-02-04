@@ -45,8 +45,8 @@ void lacpy( uplo_t uplo, const matrixA_t& A, matrixB_t& B )
     using idx_t = size_type< matrixA_t >;
 
     // constants
-    const auto m = nrows(A);
-    const auto n = ncols(A);
+    const idx_t m = nrows(A);
+    const idx_t n = ncols(A);
 
     if( is_same_v< uplo_t, upper_triangle_t > ) {
         // Set the strictly upper triangular or trapezoidal part of B

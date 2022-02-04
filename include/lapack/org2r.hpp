@@ -41,8 +41,8 @@ int org2r(
     // constants
     const T zero( 0.0 );
     const T one ( 1.0 );
-    const auto m = nrows(A);
-    const auto n = ncols(A);
+    const idx_t m = nrows(A);
+    const idx_t n = ncols(A);
 
     // check arguments
     lapack_error_if( size(tau)  < std::min<idx_t>( m, n ), -2 );
@@ -65,14 +65,14 @@ int org2r(
             A(i,i) = one;
 
             // Define v and C
-            auto v = subvector( col( A, i ), pair(i,m) );
-            auto C = submatrix( A, pair(i,m), pair(i+1,n) );
-            auto w = subvector( work, pair(i,n-1) );
+            auto v = subvector( col( A, i ), pair{i,m} );
+            auto C = submatrix( A, pair{i,m}, pair{i+1,n} );
+            auto w = subvector( work, pair{i,n-1} );
 
             larf( left_side, std::move(v), tau[i], C, w );
         }
         if ( i+1 < m ) {
-            auto v = subvector( col( A, i ), pair(i+1,m) );
+            auto v = subvector( col( A, i ), pair{i+1,m} );
             scal( -tau[i], v );
         }
         A(i,i) = one - tau[i];

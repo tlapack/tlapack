@@ -81,9 +81,9 @@ int unmqr(
     for (idx_t i = i0; i != iN; i += step) {
         
         idx_t ib = min( nb, k-i );
-        const auto V = submatrix( A, pair(i,nA), pair(i,i+ib) );
-        const auto taui = subvector( tau, pair(i,i+ib) );
-        auto T = submatrix( W, pair(nw,nw+ib), pair(nw,nw+ib) );
+        const auto V = submatrix( A, pair{i,nA}, pair{i,i+ib} );
+        const auto taui = subvector( tau, pair{i,i+ib} );
+        auto T = submatrix( W, pair{nw,nw+ib}, pair{nw,nw+ib} );
 
         // Form the triangular factor of the block reflector
         // $H = H(i) H(i+1) ... H(i+ib-1)$
@@ -91,11 +91,11 @@ int unmqr(
 
         // H or H**H is applied to either C[i:m,0:n] or C[0:m,i:n]
         auto Ci = ( is_same_v< side_t, left_side_t > )
-           ? submatrix( C, pair(i,m), pair(0,n) )
-           : submatrix( C, pair(0,m), pair(i,n) );
+           ? submatrix( C, pair{i,m}, pair{0,n} )
+           : submatrix( C, pair{0,m}, pair{i,n} );
 
         // Apply H or H**H
-        auto W0 = submatrix( W, pair(0,ib), pair(0,nw) );
+        auto W0 = submatrix( W, pair{0,ib}, pair{0,nw} );
         lapack::larfb(
             side, trans, forward, columnwise_storage,
             V, T, Ci, W0

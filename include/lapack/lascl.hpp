@@ -86,8 +86,8 @@ int lascl(
     using blas::safe_max;
 
     // constants
-    const auto m = nrows(A);
-    const auto n = ncols(A);
+    const idx_t m = nrows(A);
+    const idx_t n = ncols(A);
 
     // constants
     const idx_t izero = 0;

@@ -116,10 +116,10 @@ int larft(
     const scalar_t one(1);
     const scalar_t zero(0);
     const tau_t    tzero(0);
-    const auto n    = (is_same_v< storage_t, columnwise_storage_t >)
+    const idx_t n    = (is_same_v< storage_t, columnwise_storage_t >)
                     ? nrows( V )
                     : ncols( V );
-    const auto k    = (is_same_v< storage_t, columnwise_storage_t >)
+    const idx_t k    = (is_same_v< storage_t, columnwise_storage_t >)
                     ? ncols( V )
                     : nrows( V );
 
@@ -133,9 +133,9 @@ int larft(
         return 0;
 
     if (is_same_v< direction_t, forward_t >) {
-        T(0,0) = tau(0);
+        T(0,0) = tau[0];
         for (idx_t i = 1; i < k; ++i) {
-            auto Ti = subvector( col( T, i ), pair(0,i) );
+            auto Ti = subvector( col( T, i ), pair{0,i} );
             if (tau[i] == tzero) {
                 // H(i)  =  I
                 for (idx_t j = 0; j <= i; ++j)
@@ -149,8 +149,8 @@ int larft(
                     // T(0:i,i) := - tau[i] V(i+1:n,0:i)^H V(i+1:n,i)
                     gemv( conjTranspose,
                         -tau[i],
-                        submatrix( V, pair(i+1,n), pair(0,i) ),
-                        subvector( col( V, i ), pair(i+1,n) ),
+                        submatrix( V, pair{i+1,n}, pair{0,i} ),
+                        subvector( col( V, i ), pair{i+1,n} ),
                         one, Ti
                     );
                 }
@@ -159,34 +159,34 @@ int larft(
                         T(j,i) = -tau[i] * V(j,i);
                     // T(0:i,i) := - tau[i] V(0:i,i:n) V(i,i+1:n)^H
                     if( is_complex<scalar_t>::value ) {
-                        auto matrixTi = submatrix( T, pair(0,i), pair(i,i+1) );
+                        auto matrixTi = submatrix( T, pair{0,i}, pair{i,i+1} );
                         gemm( noTranspose, conjTranspose,
                             -tau[i],
-                            submatrix( V, pair(0,i), pair(i+1,n) ),
-                            submatrix( V, pair(i,i+1), pair(i+1,n) ),
+                            submatrix( V, pair{0,i}, pair{i+1,n} ),
+                            submatrix( V, pair{i,i+1}, pair{i+1,n} ),
                             one, matrixTi
                         );
                     } else {
                         gemv( noTranspose,
                             -tau[i],
-                            submatrix( V, pair(0,i), pair(i+1,n) ),
-                            subvector( row( V, i ), pair(i+1,n) ),
+                            submatrix( V, pair{0,i}, pair{i+1,n} ),
+                            subvector( row( V, i ), pair{i+1,n} ),
                             one, Ti
                         );
                     }
                 }
                 // T(0:i,i) := T(0:i,0:i) * T(0:i,i)
                 trmv( upper_triangle, noTranspose, nonUnit_diagonal,
-                    submatrix( T, pair(0,i), pair(0,i) ), Ti 
+                    submatrix( T, pair{0,i}, pair{0,i} ), Ti 
                 );
                 T(i,i) = tau[i];
             }
         }
     }
     else { // direct==Direction::Backward
-        T(k-1,k-1) = tau(k-1);
+        T(k-1,k-1) = tau[k-1];
         for (idx_t i = k-2; i != idx_t(-1); --i) {
-            auto Ti = subvector( col( T, i ), pair(i+1,k) );
+            auto Ti = subvector( col( T, i ), pair{i+1,k} );
             if (tau[i] == tzero) {
                 for (idx_t j = i; j < k; ++j)
                     T(j,i) = zero;
@@ -198,8 +198,8 @@ int larft(
                     // T(i+1:k,i) := - tau[i] V(0:n-k+i,i+1:k)^H V(0:n-k+i,i)
                     gemv( conjTranspose,
                         -tau[i],
-                        submatrix( V, pair(0,n-k+i), pair(i+1,k) ),
-                        subvector( col( V, i ), pair(0,n-k+i) ),
+                        submatrix( V, pair{0,n-k+i}, pair{i+1,k} ),
+                        subvector( col( V, i ), pair{0,n-k+i} ),
                         one, Ti
                     );
                 }
@@ -208,24 +208,24 @@ int larft(
                         T(j,i) = -tau[i] * V(j,n-k+i);
                     // T(i+1:k,i) := - tau[i] V(i+1:k,0:n-k+i) V(i,0:n-k+i)^H
                     if( blas::is_complex<scalar_t>::value ) {
-                        auto matrixTi = submatrix( T, pair(i+1,k), pair(i,i+1) );
+                        auto matrixTi = submatrix( T, pair{i+1,k}, pair{i,i+1} );
                         gemm( noTranspose, conjTranspose,
                             -tau[i],
-                            submatrix( V, pair(i+1,k), pair(0,n-k+i) ),
-                            submatrix( V, pair(i,i+1), pair(0,n-k+i) ),
+                            submatrix( V, pair{i+1,k}, pair{0,n-k+i} ),
+                            submatrix( V, pair{i,i+1}, pair{0,n-k+i} ),
                             one, matrixTi
                         );
                     } else {
                         gemv( noTranspose,
                             -tau[i],
-                            submatrix( V, pair(i+1,k), pair(0,n-k+i) ),
-                            subvector( row( V, i ), pair(0,n-k+i) ),
+                            submatrix( V, pair{i+1,k}, pair{0,n-k+i} ),
+                            subvector( row( V, i ), pair{0,n-k+i} ),
                             one, Ti
                         );
                     }
                 }
                 trmv( lower_triangle, noTranspose, nonUnit_diagonal,
-                    submatrix( T, pair(i+1,k), pair(i+1,k) ), Ti 
+                    submatrix( T, pair{i+1,k}, pair{i+1,k} ), Ti 
                 );
                 T(i,i) = tau[i];
             }
