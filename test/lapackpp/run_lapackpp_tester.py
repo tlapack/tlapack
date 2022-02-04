@@ -650,7 +650,7 @@ if (opts.aux):
 # auxilary - householder
 if (opts.aux_house):
     cmds += [
-    [ 'larfg', dtype         + n   + incx_pos ],
+    # [ 'larfg', dtype         + n   + incx_pos ],
     # [ 'larfgp', dtype        + n   + incx_pos ],
     [ 'larf',  gen + dtype + align + mn  + incx + side ],
     # [ 'larfx', gen + dtype + align + mn  + side ],

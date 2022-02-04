@@ -36,27 +36,35 @@ namespace lapack {
  * 
  * @ingroup auxiliary
 **/
-template <typename TA>
-real_type<TA> lange(
-    Norm normType, blas::idx_t m, blas::idx_t n,
-    const TA *A, blas::idx_t lda )
+template< typename norm_t, typename matrix_t, class work_t,
+    enable_if_t<
+        ( is_same_v<norm_t,max_norm_t> || 
+          is_same_v<norm_t,one_norm_t> || 
+          is_same_v<norm_t,inf_norm_t> || 
+          is_same_v<norm_t,frob_norm_t> ), bool > = true
+>
+real_type< type_t< matrix_t > >
+lange( norm_t normType, const matrix_t& A, work_t& work )
 {
-    typedef real_type<TA> real_t;
-    #define A(i_, j_) A[ (i_) + (j_)*lda ]
+    using T      = type_t< matrix_t >;
+    using real_t = real_type< T >;
+    using idx_t  = size_type< matrix_t >;
     using blas::isnan;
     using blas::sqrt;
 
     // constants
-    const real_t zero(0.0);
+    const real_t rzero(0.0);
+    const idx_t m = nrows(A);
+    const idx_t n = ncols(A);
 
     // quick return
     if (m == 0 || n == 0)
-        return zero;
+        return rzero;
 
     // Norm value
-    real_t norm(0.0);
+    real_t norm = rzero;
 
-    if( normType == Norm::Max )
+    if( is_same_v<norm_t,max_norm_t> )
     {
         for (idx_t j = 0; j < n; ++j) {
             for (idx_t i = 0; i < m; ++i)
@@ -72,11 +80,11 @@ real_type<TA> lange(
             }
         }
     }
-    else if ( normType == Norm::One )
+    else if ( is_same_v<norm_t,one_norm_t> )
     {
         for (idx_t j = 0; j < n; ++j)
         {
-            real_t sum = zero;
+            real_t sum = rzero;
             for (idx_t i = 0; i < m; ++i)
                 sum += blas::abs( A(i,j) );
 
@@ -88,9 +96,8 @@ real_type<TA> lange(
             }
         }
     }
-    else if ( normType == Norm::Inf )
+    else if ( is_same_v<norm_t,inf_norm_t> )
     {
-        real_t *work = new real_t[m];
         for (idx_t i = 0; i < m; ++i)
             work[i] = blas::abs( A(i,0) );
         
@@ -106,50 +113,90 @@ real_type<TA> lange(
                 norm = temp;
             else {
                 if (isnan(temp)) {
-                    delete[] work;
                     return temp;
                 }
             }
         }
-        delete[] work;
     }
-    else if ( normType == Norm::Fro )
+    else if ( is_same_v<norm_t,frob_norm_t> )
     {
         real_t scale(0.0), sum(1.0);
         for (idx_t j = 0; j < n; ++j)
-            lassq(m, &(A(0,j)), 1, scale, sum);
+            lassq( col(A,j), scale, sum );
         norm = scale * sqrt(sum);
     }
 
-    #undef A
     return norm;
 }
 
-/** Calculates the value of the one norm, Frobenius norm, infinity norm, or element of largest absolute value
- * 
- * @param[in] layout
- *     Matrix storage, Layout::ColMajor or Layout::RowMajor.
- * @see lange( Norm normType, blas::idx_t m, blas::idx_t n, const TA *A, blas::idx_t lda )
- * 
- * @ingroup auxiliary
-**/
-template <typename TA>
-inline real_type<TA> lange(
-    Layout layout,
-    Norm normType, blas::idx_t m, blas::idx_t n,
-    const TA *A, blas::idx_t lda )
+template< typename norm_t, typename matrix_t,
+    enable_if_t<
+        ( is_same_v<norm_t,max_norm_t> || 
+          is_same_v<norm_t,one_norm_t> ||
+          is_same_v<norm_t,frob_norm_t> ), bool > = true
+>
+real_type< type_t< matrix_t > >
+lange( norm_t normType, const matrix_t& A )
 {
-    if ( layout == Layout::RowMajor ) {
-        
-        // Change norm if norm == Norm::One or norm == Norm::Inf
-        if( normType == Norm::One ) normType = Norm::Inf;
-        else if( normType == Norm::Inf ) normType = Norm::One;
-        
-        // Transpose A
-        std::swap(m,n);
+    using T      = type_t< matrix_t >;
+    using real_t = real_type< T >;
+    using idx_t  = size_type< matrix_t >;
+    using blas::isnan;
+    using blas::sqrt;
+
+    // constants
+    const real_t rzero(0.0);
+    const idx_t m = nrows(A);
+    const idx_t n = ncols(A);
+
+    // quick return
+    if (m == 0 || n == 0)
+        return rzero;
+
+    // Norm value
+    real_t norm = rzero;
+
+    if( is_same_v<norm_t,max_norm_t> )
+    {
+        for (idx_t j = 0; j < n; ++j) {
+            for (idx_t i = 0; i < m; ++i)
+            {
+                real_t temp = blas::abs( A(i,j) );
+
+                if (temp > norm)
+                    norm = temp;
+                else {
+                    if ( isnan(temp) ) 
+                        return temp;
+                }
+            }
+        }
+    }
+    else if ( is_same_v<norm_t,one_norm_t> )
+    {
+        for (idx_t j = 0; j < n; ++j)
+        {
+            real_t sum = rzero;
+            for (idx_t i = 0; i < m; ++i)
+                sum += blas::abs( A(i,j) );
+
+            if (sum > norm)
+                norm = sum;
+            else {
+                if ( isnan(sum) ) 
+                    return sum;
+            }
+        }
+    }
+    else if ( is_same_v<norm_t,frob_norm_t> )
+    {
+        real_t scale(0.0), sum(1.0);
+        for (idx_t j = 0; j < n; ++j)
+            lassq( col(A,j), scale, sum );
+        norm = scale * sqrt(sum);
     }
 
-    return lange( normType, m, n, A, lda );
+    return norm;
 }
 
 } // lapack

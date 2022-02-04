@@ -18,12 +18,17 @@ namespace blas {
     namespace internal {
 
         template< typename real_t >
-        void inline set_complex( real_t& x, const real_t& re, const real_t& im )
+        void inline set_complex( real_t& x, real_t&& re, real_t&& im )
         { blas::error( "You cannot set a complex variable to a real variable.", "[function unknown]" ); }
         
         template< typename real_t >
-        void inline set_complex( std::complex<real_t>& x, const real_t& re, const real_t& im )
-        { x = std::complex<real_t>(re,im); }
+        void inline set_complex( std::complex<real_t>& x, real_t&& re, real_t&& im )
+        {
+            x = std::complex<real_t>(
+                std::forward< real_t >(re),
+                std::forward< real_t >(im)
+            );
+        }
     }
 }
 
@@ -52,12 +57,13 @@ namespace lapack {
  * 
  * @ingroup auxiliary
  */
-template< typename T >
-void larnv(
-    blas::idx_t idist, blas::idx_t* iseed,
-    blas::idx_t n, T* x )
+template< int idist, class vector_t, class Sseq >
+void larnv( Sseq& iseed, vector_t& x )
 {
-    typedef real_type<T> real_t;
+    using idx_t  = size_type< vector_t >;
+    using T      = type_t< vector_t >;
+    using real_t = real_type< T >;
+
     using blas::atan;
     using blas::sqrt;
     using blas::cos;
@@ -65,14 +71,15 @@ void larnv(
     using blas::internal::set_complex;
 
     // Constants
+    const idx_t n      = size(x);
     const real_t one   = 1.0;
     const real_t eight = 8.0;
     const real_t twopi = eight * atan(one);
 
-    // Initialize the generator
+    // Initialize the Mersenne Twister generator
     std::random_device device;
     std::mt19937 generator(device());
-    generator.seed(*iseed);
+    generator.seed(iseed);
 
     if (idist == 1) {
         std::uniform_real_distribution<real_t> d1(0, 1);
@@ -105,22 +112,22 @@ void larnv(
         if (idist == 4) {
             std::uniform_real_distribution<real_t> d4(0, 1);
             for (idx_t i = 0; i < n; ++i) {
-                const real_t r     = sqrt(d4(generator));
-                const real_t theta = twopi * d4(generator);
+                real_t r     = sqrt(d4(generator));
+                real_t theta = twopi * d4(generator);
                 set_complex(x[i], r*cos(theta), r*sin(theta));
             }
         }
         else if (idist == 5) {
             std::uniform_real_distribution<real_t> d5(0, 1);
             for (idx_t i = 0; i < n; ++i) {
-                const real_t r     = 1.0;
-                const real_t theta = twopi * d5(generator);
-                set_complex(x[i], r*cos(theta), r*sin(theta));
+                real_t theta = twopi * d5(generator);
+                set_complex(x[i], cos(theta), sin(theta));
             }
         }
     }
 
-    *iseed = *iseed + 1;
+    // Update the seed
+    iseed = iseed + 1;
 }
 
 }

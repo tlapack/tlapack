@@ -57,83 +57,27 @@ namespace blas {
  *
  * @ingroup geru
  */
-template< typename TA, typename TX, typename TY >
+template<
+    class matrixA_t,
+    class vectorX_t, class vectorY_t,
+    class alpha_t >
 void geru(
-    blas::Layout layout,
-   blas::idx_t m, blas::idx_t n,
-    blas::scalar_type<TA, TX, TY> alpha,
-    TX const *x, blas::int_t incx,
-    TY const *y, blas::int_t incy,
-    TA *A, blas::idx_t lda )
+    const alpha_t& alpha,
+    const vectorX_t& x, const vectorY_t& y,
+    matrixA_t& A )
 {
-    typedef blas::scalar_type<TA, TX, TY> scalar_t;
-
-    #define A(i_, j_) A[ (i_) + (j_)*lda ]
+    // data traits
+    using idx_t = size_type< matrixA_t >;
 
     // constants
-    const scalar_t zero( 0.0 );
+    const idx_t m = nrows(A);
+    const idx_t n = ncols(A);
 
-    // check arguments
-    blas_error_if( layout != Layout::ColMajor &&
-                   layout != Layout::RowMajor );
-    blas_error_if( m < 0 );
-    blas_error_if( n < 0 );
-    blas_error_if( incx == 0 );
-    blas_error_if( incy == 0 );
-
-    if (layout == Layout::ColMajor)
-        blas_error_if( lda < m );
-    else
-        blas_error_if( lda < n );
-
-    // quick return
-    if (m == 0 || n == 0 || alpha == zero)
-        return;
-
-    // for row-major, simply swap dimensions and x <=> y
-    // this doesn't work in the complex gerc case because y gets conj
-    if (layout == Layout::RowMajor) {
-        geru( Layout::ColMajor, n, m, alpha, y, incy, x, incx, A, lda );
-        return;
+    for (idx_t j = 0; j < n; ++j) {
+        auto tmp = alpha * y[j];
+        for (idx_t i = 0; i < m; ++i)
+            A(i,j) += x[i] * tmp;
     }
-
-    if (incx == 1 && incy == 1) {
-        // unit stride
-        for (idx_t j = 0; j < n; ++j) {
-            // note: NOT skipping if y[j] is zero, for consistent NAN handling
-            scalar_t tmp = alpha * y[j];
-            for (idx_t i = 0; i < m; ++i) {
-                A(i, j) += x[i] * tmp;
-            }
-        }
-    }
-    else if (incx == 1) {
-        // x unit stride, y non-unit stride
-        idx_t jy = (incy > 0 ? 0 : (-n + 1)*incy);
-        for (idx_t j = 0; j < n; ++j) {
-            scalar_t tmp = alpha * y[jy];
-            for (idx_t i = 0; i < m; ++i) {
-                A(i, j) += x[i] * tmp;
-            }
-            jy += incy;
-        }
-    }
-    else {
-        // x and y non-unit stride
-        idx_t kx = (incx > 0 ? 0 : (-m + 1)*incx);
-        idx_t jy = (incy > 0 ? 0 : (-n + 1)*incy);
-        for (idx_t j = 0; j < n; ++j) {
-            scalar_t tmp = alpha * y[jy];
-            idx_t ix = kx;
-            for (idx_t i = 0; i < m; ++i) {
-                A(i, j) += x[ix] * tmp;
-                ix += incx;
-            }
-            jy += incy;
-        }
-    }
-
-    #undef A
 }
 
 }  // namespace blas

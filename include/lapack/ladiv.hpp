@@ -32,9 +32,15 @@ namespace lapack {
  * 
  * @ingroup auxiliary
  */
-template< typename real_t >
+template< typename real_t,
+    enable_if_t<(
+    /* Requires: */
+        ! is_complex<real_t>::value
+    ), int > = 0
+>
 void ladiv(
-    real_t a, real_t b, real_t c, real_t d,
+    const real_t& a, const real_t& b,
+    const real_t& c, const real_t& d,
     real_t &p, real_t &q )
 {
     using blas::abs;
@@ -66,7 +72,8 @@ void ladiv(
  */
 template< typename real_t >
 inline std::complex<real_t> ladiv(
-    std::complex<real_t> x, std::complex<real_t> y )
+    const std::complex<real_t>& x,
+    const std::complex<real_t>& y )
 {
     using blas::real;
     using blas::imag;

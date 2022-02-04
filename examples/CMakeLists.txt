@@ -10,6 +10,15 @@ add_subdirectory( geqr2 )
 # add the example gemm (Use MPFR library if it is available)
 add_subdirectory( gemm )
 
+find_package( Eigen3 )
+if( Eigen3_FOUND )
+  # add the example eigen
+  add_subdirectory( eigen )
+endif()
+
+# add the example mdspan
+add_subdirectory( mdspan )
+
 # add the example gemm using the C wrapper
 if( C_WRAPPERS )
   add_subdirectory( cwrapper_gemm )
@@ -19,10 +28,6 @@ endif()
 if( Fortran_WRAPPERS )
   add_subdirectory( fortranModule_caxpy )
 endif()
-
-# # add the example daxpy using the Fortran interface
-# add_executable( example_fortranInterface_daxpy example_fortranInterface_daxpy.f90 )
-# target_link_libraries( example_fortranInterface_daxpy PRIVATE tblas_c )
 
 # add the example daxpy using the Fortran wrapper
 if( Fortran_WRAPPERS )
@@ -36,6 +41,9 @@ COMMAND
 COMMAND
   echo "- example_geqr2 ----------------" &&
   ${CMAKE_CURRENT_BINARY_DIR}/geqr2/example_geqr2${CMAKE_EXECUTABLE_SUFFIX}
+COMMAND
+  echo "- example_mdspan ---------------" &&
+  ${CMAKE_CURRENT_BINARY_DIR}/mdspan/example_mdspan${CMAKE_EXECUTABLE_SUFFIX}
 COMMAND
   echo "- example_cwrapper_gemm --------" &&
   ${CMAKE_CURRENT_BINARY_DIR}/cwrapper_gemm/example_cwrapper_gemm${CMAKE_EXECUTABLE_SUFFIX}

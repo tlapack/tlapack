@@ -75,120 +75,33 @@ namespace blas {
  *
  * @ingroup syrk
  */
-template< typename TA, typename TC >
+template<
+    class matrixA_t, class matrixC_t, 
+    class alpha_t, class beta_t
+>
 void syrk(
-    blas::Layout layout,
     blas::Uplo uplo,
     blas::Op trans,
-    blas::idx_t n, blas::idx_t k,
-    scalar_type<TA, TC> alpha,
-    TA const *A, blas::idx_t lda,
-    scalar_type<TA, TC> beta,
-    TC       *C, blas::idx_t ldc )
+    const alpha_t& alpha, const matrixA_t& A,
+    const beta_t& beta, matrixC_t& C )
 {
-    typedef blas::scalar_type<TA, TC> scalar_t;
-
-    #define A(i_, j_) A[ (i_) + (j_)*lda ]
-    #define C(i_, j_) C[ (i_) + (j_)*ldc ]
+    // data traits
+    using TA    = type_t< matrixA_t >;
+    using idx_t = size_type< matrixC_t >;
 
     // constants
-    const scalar_t zero( 0.0 );
-    const scalar_t one( 1.0 );
+    const idx_t n = (trans == Op::NoTrans) ? nrows(A) : ncols(A);
+    const idx_t k = (trans == Op::NoTrans) ? ncols(A) : nrows(A);
 
     // check arguments
-    blas_error_if( layout != Layout::ColMajor &&
-                   layout != Layout::RowMajor );
     blas_error_if( uplo != Uplo::Lower &&
                    uplo != Uplo::Upper &&
                    uplo != Uplo::General );
-    blas_error_if( n < 0 );
-    blas_error_if( k < 0 );
+    blas_error_if( trans != Op::NoTrans &&
+                   trans != Op::Trans );
+    blas_error_if( nrows(C) != ncols(C) ||
+                   nrows(C) != n );
 
-    // check and interpret argument trans
-    // if (trans == Op::ConjTrans) {
-    //     blas_error_if_msg(
-    //             typeid(TA) != typeid(blas::real_type<TA>),
-    //             "trans == Op::ConjTrans && "
-    //             "typeid(TA) != typeid(blas::real_type<TA>)" );
-    //     trans = Op::Trans;
-    // }
-    // else {
-        blas_error_if( trans != Op::NoTrans &&
-                       trans != Op::Trans );
-    // }
-
-    // adapt if row major
-    if (layout == Layout::RowMajor) {
-
-        // check lda
-        blas_error_if( lda < ((trans == Op::NoTrans) ? k : n) );
-        
-        if (uplo == Uplo::Lower)
-            uplo = Uplo::Upper;
-        else if (uplo == Uplo::Upper)
-            uplo = Uplo::Lower;
-        trans = (trans == Op::NoTrans)
-            ? Op::Trans
-            : Op::NoTrans;
-    }
-    else {
-        // check lda
-        blas_error_if( lda < ((trans == Op::NoTrans) ? n : k) );
-    }
-
-    // check ldc
-    blas_error_if( ldc < n );
-
-    // quick return
-    if (n == 0)
-        return;
-
-    // alpha == zero
-    if (alpha == zero) {
-        if (beta == zero) {
-            if (uplo != Uplo::Upper) {
-                for(idx_t j = 0; j < n; ++j) {
-                    for(idx_t i = 0; i <= j; ++i)
-                        C(i,j) = zero;
-                }
-            }
-            else if (uplo != Uplo::Lower) {
-                for(idx_t j = 0; j < n; ++j) {
-                    for(idx_t i = j; i < n; ++i)
-                        C(i,j) = zero;
-                }
-            }
-            else {
-                for(idx_t j = 0; j < n; ++j) {
-                    for(idx_t i = 0; i < n; ++i)
-                        C(i,j) = zero;
-                }
-            }
-        }
-        else if (beta != one) {
-            if (uplo != Uplo::Upper) {
-                for(idx_t j = 0; j < n; ++j) {
-                    for(idx_t i = 0; i <= j; ++i)
-                        C(i,j) *= beta;
-                }
-            }
-            else if (uplo != Uplo::Lower) {
-                for(idx_t j = 0; j < n; ++j) {
-                    for(idx_t i = j; i < n; ++i)
-                        C(i,j) *= beta;
-                }
-            }
-            else {
-                for(idx_t j = 0; j < n; ++j) {
-                    for(idx_t i = 0; i < n; ++i)
-                        C(i,j) *= beta;
-                }
-            }
-        }
-        return;
-    }
-
-    // alpha != zero
     if (trans == Op::NoTrans) {
         if (uplo != Uplo::Lower) {
         // uplo == Uplo::Upper or uplo == Uplo::General
@@ -198,7 +111,7 @@ void syrk(
                     C(i,j) *= beta;
 
                 for(idx_t l = 0; l < k; ++l) {
-                    scalar_t alphaAjl = alpha*A(j,l);
+                    auto alphaAjl = alpha*A(j,l);
                     for(idx_t i = 0; i <= j; ++i)
                         C(i,j) += A(i,l)*alphaAjl;
                 }
@@ -211,7 +124,7 @@ void syrk(
                     C(i,j) *= beta;
 
                 for(idx_t l = 0; l < k; ++l) {
-                    scalar_t alphaAjl = alpha*A(j,l);
+                    auto alphaAjl = alpha*A(j,l);
                     for(idx_t i = j; i < n; ++i)
                         C(i,j) += A(i,l)*alphaAjl;
                 }
@@ -223,7 +136,7 @@ void syrk(
         // uplo == Uplo::Upper or uplo == Uplo::General
             for(idx_t j = 0; j < n; ++j) {
                 for(idx_t i = 0; i <= j; ++i) {
-                    scalar_t sum = zero;
+                    TA sum = 0;
                     for(idx_t l = 0; l < k; ++l)
                         sum += A(l,i) * A(l,j);
                     C(i,j) = alpha*sum + beta*C(i,j);
@@ -233,10 +146,9 @@ void syrk(
         else { // uplo == Uplo::Lower
             for(idx_t j = 0; j < n; ++j) {
                 for(idx_t i = j; i < n; ++i) {
-                    scalar_t sum = zero;
-                    for(idx_t l = 0; l < k; ++l) {
+                    TA sum = 0;
+                    for(idx_t l = 0; l < k; ++l)
                         sum +=  A(l,i) * A(l,j);
-                    }
                     C(i,j) = alpha*sum + beta*C(i,j);
                 }
             }
@@ -249,9 +161,6 @@ void syrk(
                 C(i,j) = C(j,i);
         }
     }
-
-    #undef A
-    #undef C
 }
 
 }  // namespace blas

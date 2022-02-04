@@ -17,24 +17,29 @@ namespace lapack {
  * 
  * @return $\sqrt{x^2+y^2}$
  *
- * @tparam real_t Floating-point type.
  * @param[in] x scalar value x
  * @param[in] y scalar value y
  * 
  * @ingroup auxiliary
  */
-template< typename real_t >
-real_t lapy2(
-    real_t x, real_t y )
+template< class TX, class TY,
+    enable_if_t<(
+    /* Requires: */
+        ! is_complex<TX>::value &&
+        ! is_complex<TY>::value
+    ), int > = 0 >
+real_type<TX,TY> lapy2( const TX& x, const TY& y )
 {
+    // using
+    using real_t = real_type<TX,TY>;
     using blas::abs;
     using blas::sqrt;
 
     // constants
-    const real_t one(1.0);
-    const real_t zero(0.0);
-    const real_t xabs = abs(x);
-    const real_t yabs = abs(y);
+    const real_t one( 1 );
+    const real_t zero( 0 );
+    const auto xabs = abs(x);
+    const auto yabs = abs(y);
 
     real_t w, z;
     if( xabs > yabs ) {

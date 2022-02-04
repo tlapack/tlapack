@@ -153,14 +153,15 @@ if( Fortran_WRAPPERS )
     blas/nrm2.f90 )
   target_include_directories( tblas_fortran
   PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-  INTERFACE 
+    ${CMAKE_CURRENT_SOURCE_DIR}
+  PUBLIC
     $<BUILD_INTERFACE:${CMAKE_Fortran_MODULE_DIRECTORY}>
-    $<INSTALL_INTERFACE:lib> )
+    $<INSTALL_INTERFACE:include> )
   target_link_libraries( tblas_fortran PUBLIC tblas_c )
 
   list( APPEND installable_libs tblas_fortran )
   list( APPEND installable_mods ${CMAKE_Fortran_MODULE_DIRECTORY}/tblas.mod )
+  list( APPEND installable_mods ${CMAKE_Fortran_MODULE_DIRECTORY}/constants.mod )
 
   install(
     FILES
@@ -170,7 +171,7 @@ if( Fortran_WRAPPERS )
   install(
     FILES
       ${CMAKE_CURRENT_SOURCE_DIR}/blas/constants.f90
-    DESTINATION include/blas )
+    DESTINATION include )
 endif()
 
 set( installable_libs ${installable_libs} PARENT_SCOPE )

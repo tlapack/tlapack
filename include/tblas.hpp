@@ -7,19 +7,6 @@
 #ifndef __TBLAS_HH__
 #define __TBLAS_HH__
 
-// Optimized BLAS
-
-#ifdef USE_BLASPP_WRAPPERS
-    
-    #include "blas/types.hpp"
-
-    #ifndef BLAS_UTIL_HH
-        #define BLAS_UTIL_HH // So as not to include utils from BLAS++
-    #endif
-    #include "blas/wrappers.hh" // from BLAS++
-
-#endif
-
 // Template BLAS
 
 // =============================================================================
@@ -45,7 +32,6 @@
 #include "blas/gemv.hpp"
 #include "blas/ger.hpp"
 #include "blas/geru.hpp"
-#include "blas/gbmv.hpp"
 #include "blas/hemv.hpp"
 #include "blas/her.hpp"
 #include "blas/her2.hpp"

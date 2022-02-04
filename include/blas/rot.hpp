@@ -49,45 +49,26 @@ namespace blas {
  *
  * @ingroup rot
  */
-template< typename TX, typename TY >
+template<
+    class vectorX_t, class vectorY_t,
+    class c_type, class s_type
+>
 void rot(
-    blas::idx_t n,
-    TX *x, blas::int_t incx,
-    TY *y, blas::int_t incy,
-    blas::real_type<TX, TY>   c,
-    blas::scalar_type<TX, TY> s )
+    vectorX_t& x, vectorY_t& y,
+    const c_type& c, const s_type& s )
 {
-    typedef scalar_type<TX, TY> scalar_t;
+    using idx_t = size_type< vectorY_t >;
+
+    // constants
+    const idx_t n = size(x);
 
     // check arguments
-    blas_error_if( incx == 0 );
-    blas_error_if( incy == 0 );
+    blas_error_if( size(y) != n );
 
-    scalar_t zero( 0 );
-
-    // quick return
-    if ( n == 0 || (c == 1 && s == zero) )
-        return;
-
-    if (incx == 1 && incy == 1) {
-        // unit stride
-        for (idx_t i = 0; i < n; ++i) {
-            scalar_t stmp = c*x[i] + s*y[i];
-            y[i] = c*y[i] - conj(s)*x[i];
-            x[i] = stmp;
-        }
-    }
-    else {
-        // non-unit stride
-        idx_t ix = (incx > 0 ? 0 : (-n + 1)*incx);
-        idx_t iy = (incy > 0 ? 0 : (-n + 1)*incy);
-        for (idx_t i = 0; i < n; ++i) {
-            scalar_t stmp = c*x[ix] + s*y[iy];
-            y[iy] = c*y[iy] - conj(s)*x[ix];
-            x[ix] = stmp;
-            ix += incx;
-            iy += incy;
-        }
+    for (idx_t i = 0; i < n; ++i) {
+        auto stmp = c*x[i] + s*y[i];
+        y[i] = c*y[i] - conj(s)*x[i];
+        x[i] = stmp;
     }
 }
 

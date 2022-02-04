@@ -31,106 +31,57 @@ namespace lapack {
  * 
  * @ingroup auxiliary
  */
-template< typename TA >
+template<
+    class uplo_t, class matrix_t,
+    class alpha_t, class beta_t,
+    enable_if_t<(
+    /* Requires: */
+        is_same_v< uplo_t, upper_triangle_t > || 
+        is_same_v< uplo_t, lower_triangle_t > || 
+        is_same_v< uplo_t, general_matrix_t >
+    ), int > = 0
+>
 void laset(
-    Uplo uplo, blas::idx_t m, blas::idx_t n,
-    TA alpha, TA beta,
-    TA* A, blas::idx_t lda )
+    uplo_t uplo,
+    const alpha_t& alpha, const beta_t& beta,
+    const matrix_t& A )
 {
-    #define A(i_, j_) A[ (i_) + (j_)*lda ]
+    using idx_t  = size_type< matrix_t >;
+    using std::min;
 
-    if (uplo == Uplo::Upper) {
+    // constants
+    const auto m = nrows(A);
+    const auto n = ncols(A);
+
+    if (is_same_v< uplo_t, upper_triangle_t >) {
         // Set the strictly upper triangular or trapezoidal part of
         // the array to alpha.
         for (idx_t j = 1; j < n; ++j) {
-            const idx_t M = std::min(m,j);
+            const idx_t M = min(m,j);
             for (idx_t i = 0; i < M; ++i)
                 A(i,j) = alpha;
         }
     }
-    else if (uplo == Uplo::Lower) {
+    else if (is_same_v< uplo_t, lower_triangle_t >) {
         // Set the strictly lower triangular or trapezoidal part of
         // the array to alpha.
-        const idx_t N = std::min(m,n);
+        const idx_t N = min(m,n);
         for (idx_t j = 0; j < N; ++j) {
             for (idx_t i = j+1; i < m; ++i)
                 A(i,j) = alpha;
         }
     }
     else {
-        // Set the leading m-by-n submatrix to alpha.
+        // Set all elements in A to alpha.
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = 0; i < m; ++i)
                 A(i,j) = alpha;
     }
 
     // Set the first min(m,n) diagonal elements to beta.
-    const idx_t N = std::min(m,n);
+    const idx_t N = min(m,n);
     for (idx_t i = 0; i < N; ++i)
         A(i,i) = beta;
-
-    #undef A
-}
-
-/** Initializes a matrix to diagonal and off-diagonal values
- * 
- * @param[in] layout
- *     Matrix storage, Layout::ColMajor or Layout::RowMajor.
- * @see laset( Uplo uplo, blas::idx_t m, blas::idx_t n, TA alpha, TA beta, TA* A, blas::idx_t lda )
- * 
- * @ingroup auxiliary
- */
-template< typename TA >
-inline void laset(
-    Layout layout, Uplo uplo,
-    blas::idx_t m, blas::idx_t n,
-    TA alpha, TA beta,
-    TA* A, blas::idx_t lda )
-{
-    if ( layout == Layout::RowMajor ) {
-        if (uplo == Uplo::Upper) {
-            // Set the Lower part instead of Upper
-            uplo = Uplo::Lower;
-        }
-        else if (uplo == Uplo::Lower) {
-            // Set the Upper part instead of Lower
-            uplo = Uplo::Upper;
-        }
-        // Transpose A
-        return laset(
-	        uplo, n, m, alpha, beta, A, lda );
-    }
-    else {
-        return laset(
-	        uplo, m, n, alpha, beta, A, lda );
-    }
-}
-
-/** Initializes a matrix to diagonal and off-diagonal values
- * 
- * @param[in] matrixtype :
- *
- *        'U': A is assumed to be upper triangular; elements below the diagonal are not referenced.
- *        'L': A is assumed to be lower triangular; elements above the diagonal are not referenced.
- *        otherwise, A is assumed to be a full matrix.
- *
- * @see laset( Uplo, blas::idx_t, blas::idx_t, TA, TA, TA*, blas::idx_t )
- * 
- * @ingroup auxiliary
- */
-template< typename TA >
-void inline laset(
-    MatrixType matrixtype, blas::idx_t m, blas::idx_t n,
-    TA alpha, TA beta,
-    TA* A, blas::idx_t lda )
-{
-    if (matrixtype == MatrixType::Upper) {
-        laset(Uplo::Upper, m, n, alpha, beta, A, lda);
-    } else if (matrixtype == MatrixType::Lower) {
-        laset(Uplo::Lower, m, n, alpha, beta, A, lda);
-    } else {
-        laset(Uplo::General, m, n, alpha, beta, A, lda);
-    }
 }
 
 }

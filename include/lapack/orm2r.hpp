@@ -24,111 +24,65 @@ namespace lapack {
  * 
  * @ingroup geqrf
  */
-template<typename TA, typename TC>
+template<
+    class matrixA_t, class matrixC_t, class tau_t, class work_t,
+    class side_t, class trans_t,
+    enable_if_t<(
+    /* Requires: */
+    (
+        is_same_v< side_t, left_side_t > || 
+        is_same_v< side_t, right_side_t > 
+    ) && (
+        is_same_v< trans_t, noTranspose_t > || 
+        is_same_v< trans_t, conjTranspose_t > ||
+        is_same_v< trans_t, transpose_t >
+    )
+    ), int > = 0
+>
 int orm2r(
-    Side side, Op trans,
-    blas::idx_t m, blas::idx_t n, blas::idx_t k,
-    const TA* A, blas::idx_t lda,
-    const blas::real_type<TA,TC>* tau,
-    TC* C, blas::idx_t ldc,
-    blas::scalar_type<TA,TC>* work )
+    side_t side, trans_t trans,
+    const matrixA_t& A,
+    const tau_t& tau,
+    matrixC_t& C,
+    work_t& work )
 {
-    // check arguments
+    using idx_t = size_type< matrixA_t >;
+    using T     = type_t< matrixA_t >;
 
-    lapack_error_if( side != Side::Left &&
-                     side != Side::Right, -1 );
-    lapack_error_if( trans != Op::NoTrans &&
-                     trans != Op::Trans &&
-                     trans != Op::ConjTrans, -2 );
-    lapack_error_if( m < 0, -3 );
-    lapack_error_if( n < 0, -4 );
-
-    const idx_t q = (side == Side::Left) ? m : n;
-    lapack_error_if( k < 0 || k > q, -5 );
-    lapack_error_if( lda < q, -7 );
-    lapack_error_if( ldc < m, -10 );
+    // constants
+    const T one( 1 );
+    const idx_t m = nrows(C);
+    const idx_t n = ncols(C);
+    const idx_t k = size(tau);
+    constexpr bool leftSide = is_same_v< side_t, left_side_t >;
+    constexpr bool positiveInc = (
+        ( leftSide && !is_same_v< trans_t, noTranspose_t > ) ||
+        ( !leftSide && is_same_v< trans_t, noTranspose_t > )
+    );
+    constexpr idx_t i0 = (positiveInc) ? 0 : k-1;
+    constexpr idx_t iN = (positiveInc) ? k :  -1;
+    constexpr idx_t inc = (positiveInc) ? 1 : -1;
 
     // quick return
     if ((m == 0) || (n == 0) || (k == 0))
         return 0;
 
-    if( side == Side::Left ) {
-        if( trans == Op::NoTrans ) {
-            for (idx_t i = 0; i < k; ++i)
-                larf( Side::Left, m-k+i+1, n, A+i, lda, tau[i], C, ldc, work );
-        }
-        else {
-            for (idx_t i = k-1; i != idx_t(-1); --i)
-                larf( Side::Left, m-k+i+1, n, A+i, lda, tau[i], C, ldc, work );
-        }
-    }
-    else { // side == Side::Right
-        if( trans == Op::NoTrans ) {
-            for (idx_t i = 0; i < k; ++i)
-                larf( Side::Right, m, n-k+i+1, A+i, lda, tau[i], C, ldc, work );
-        }
-        else {
-            for (idx_t i = k-1; i != idx_t(-1); --i)
-                larf( Side::Right, m, n-k+i+1, A+i, lda, tau[i], C, ldc, work );
-        }
+    for (idx_t i = i0; i != iN; i += inc) {
+        
+        const auto& v = (leftSide)
+                      ? subvector( col( A, i ), pair(i,m) )
+                      : subvector( col( A, i ), pair(i,n) );
+        auto& Ci = (leftSide)
+                 ? rows( C, pair(i,m) )
+                 : cols( C, pair(i,n) );
+        
+        const auto Aii = A(i,i);
+        A(i,i) = one;
+        larf( side, v, tau[i], Ci, work );
+        A(i,i) = Aii;
     }
 
     return 0;
-}
-
-/** Applies orthogonal matrix Q to a matrix C.
- * 
- * @return  0 if success
- * @return -i if the ith argument is invalid
- * 
- * @param[in] side Specifies which side Q is to be applied.
- *                 'L': apply Q or Q' from the Left;
- *                 'R': apply Q or Q' from the Right.
- * @param[in] trans Specifies whether Q or Q' is applied.
- *                 'N':  No transpose, apply Q;
- *                 'T':  Transpose, apply Q'.
- * @param[in] m The number of rows of the matrix C.
- * @param[in] n The number of columns of the matrix C.
- * @param[in] k The number of elementary reflectors whose product defines the matrix Q.
- *                 If side='L', m>=k>=0;
- *                 if side='R', n>=k>=0.
- * @param[in] A Matrix containing the elementary reflectors H.
- *                 If side='L', A is k-by-m;
- *                 if side='R', A is k-by-n.
- * @param[in] ldA The column length of the matrix A.  ldA>=k.
- * @param[in] tau Real vector of length k containing the scalar factors of the
- * elementary reflectors.
- * @param[in,out] C m-by-n matrix. 
- *     On exit, C is replaced by one of the following:
- *                 If side='L' & trans='N':  C <- Q * C
- *                 If side='L' & trans='T':  C <- Q'* C
- *                 If side='R' & trans='T':  C <- C * Q'
- *                 If side='R' & trans='N':  C <- C * Q
- * @param ldC The column length the matrix C. ldC>=m.
- * 
- * @ingroup geqrf
- */
-template<typename TA, typename TC>
-inline int orm2r(
-    Side side, Op trans,
-    blas::idx_t m, blas::idx_t n, blas::idx_t k,
-    const TA* A, blas::idx_t lda,
-    const blas::real_type<TA,TC>* tau,
-    TC* C, blas::idx_t ldc )
-{
-    typedef blas::scalar_type<TA,TC> scalar_t;
-
-    int info = 0;
-    scalar_t* work = new scalar_t[
-        (side == Side::Left)
-            ? ( (m >= 0) ? m : 0 )
-            : ( (n >= 0) ? n : 0 )
-    ];
-
-    info = orm2r( side, trans, m, n, k, A, lda, tau, C, ldc, work );
-
-    delete[] work;
-    return info;
 }
 
 }

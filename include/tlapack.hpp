@@ -11,20 +11,6 @@
 
 #include "tblas.hpp"
 
-// Optimized LAPACK
-
-#ifdef USE_LAPACKPP_WRAPPERS
-
-    #ifndef LAPACK_UTIL_HH
-        #define LAPACK_UTIL_HH // So as not to include utils from lapack++
-    #endif
-
-    #include "lapack/config_lapackppwrappers.h"
-    #include "lapack/types.hpp"
-    #include "lapack/wrappers.hh" // from lapack++
-
-#endif
-
 // =============================================================================
 // Template LAPACK
 
@@ -44,6 +30,7 @@
 #include "lapack/lansy.hpp"
 #include "lapack/larnv.hpp"
 #include "lapack/lascl.hpp"
+#include "lapack/lassq.hpp"
 
 // QR factorization
 // ----------------
@@ -52,5 +39,6 @@
 #include "lapack/org2r.hpp"
 #include "lapack/orm2r.hpp"
 #include "lapack/unmqr.hpp"
+#include "lapack/potrf2.hpp"
 
 #endif // __TLAPACK_HH__

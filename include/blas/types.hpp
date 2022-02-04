@@ -9,41 +9,32 @@
 #define __TBLAS_TYPES_HH__
 
 #include <complex>
-#include <cstdint> // Defines std::int64_t
-#include <cstddef> // Defines std::size_t
-
-// -----------------------------------------------------------------------------
-// Integer types BLAS_SIZE_T and BLAS_INT_T
-
-#if defined(USE_BLASPP_WRAPPERS) || defined(USE_LAPACKPP_WRAPPERS)
-    #ifndef BLAS_SIZE_T
-        #define BLAS_SIZE_T std::int64_t
-    #endif
-#else
-    #ifndef BLAS_SIZE_T
-        #define BLAS_SIZE_T std::size_t
-    #endif
-#endif
-
-#ifndef BLAS_INT_T
-    #define BLAS_INT_T std::int64_t
-#endif
-// -----------------------------------------------------------------------------
 
 namespace blas {
 
 // -----------------------------------------------------------------------------
-// Integer types blas::idx_t and blas::int_t
-using idx_t = BLAS_SIZE_T;
-using int_t  = BLAS_INT_T;
-
-// -----------------------------------------------------------------------------
 // Enumerations
 enum class Layout { ColMajor = 'C', RowMajor = 'R' };
-enum class Op     { NoTrans  = 'N', Trans    = 'T', ConjTrans = 'C' };
+enum class Op     { NoTrans  = 'N', Trans    = 'T', ConjTrans = 'C', Conj };
 enum class Uplo   { Upper    = 'U', Lower    = 'L', General   = 'G' };
 enum class Diag   { NonUnit  = 'N', Unit     = 'U' };
 enum class Side   { Left     = 'L', Right    = 'R' };
+
+// -----------------------------------------------------------------------------
+// Check for Infs and NaNs types
+
+struct nocheck_t { };
+struct checkInfNaN_t { };
+
+// constants
+constexpr nocheck_t nocheck = { };
+constexpr checkInfNaN_t checkInfNaN = { };
+
+// -----------------------------------------------------------------------------
+// Strong numeric expressions
+
+struct zero_t { };
+constexpr zero_t zero = { };
 
 // -----------------------------------------------------------------------------
 // common_type_t is defined in C++14; here's a C++11 definition
@@ -53,9 +44,26 @@ enum class Side   { Left     = 'L', Right    = 'R' };
 #else
     template< typename... Ts >
     using common_type_t = typename std::common_type< Ts... >::type;
-
     template< typename... Ts >
     using decay_t = typename std::decay< Ts... >::type;
+#endif
+
+// -----------------------------------------------------------------------------
+// enable_if_t is defined in C++14; here's a C++11 definition
+#if __cplusplus >= 201402L
+    using std::enable_if_t;
+#else
+    template< bool B, class T = void >
+    using enable_if_t = typename enable_if<B,T>::type;
+#endif
+
+// -----------------------------------------------------------------------------
+// is_same_v is defined in C++17; here's a C++11 definition
+#if __cplusplus >= 201703L
+    using std::is_same_v;
+#else
+    template< class T, class U >
+    constexpr bool is_same_v = std::is_same<T, U>::value;
 #endif
 
 //------------------------------------------------------------------------------
@@ -180,6 +188,23 @@ struct real_type_traits< T1, Types... >
 {
     using real_t = scalar_type< real_type<T1>, real_type< Types... > >;
 };
+
+// -----------------------------------------------------------------------------
+// Data traits
+
+#ifndef TBLAS_ARRAY_TRAITS
+#define TBLAS_ARRAY_TRAITS
+
+    // Data type
+    template< class T > struct type_trait {};
+    template< class T >
+    using type_t = typename type_trait< T >::type;
+    // Size type
+    template< class T > struct sizet_trait {};
+    template< class T >
+    using size_type = typename sizet_trait< T >::type;
+
+#endif // TBLAS_ARRAY_TRAITS
 
 } // namespace blas
 

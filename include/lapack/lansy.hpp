@@ -37,63 +37,79 @@ namespace lapack {
  * 
  * @ingroup auxiliary
 **/
-template <typename TA>
-real_type<TA> lansy(
-    Norm normType, Uplo uplo, blas::idx_t n,
-    const TA *A, blas::idx_t lda )
+template< class norm_t, class uplo_t, class matrix_t,
+    enable_if_t<
+    /* Requires: */
+    (   is_same_v<norm_t,max_norm_t> || 
+        is_same_v<norm_t,one_norm_t> || 
+        is_same_v<norm_t,inf_norm_t> || 
+        is_same_v<norm_t,frob_norm_t>
+    ) && (
+        is_same_v< uplo_t, upper_triangle_t > || 
+        is_same_v< uplo_t, lower_triangle_t >
+    ), bool > = true
+>
+real_type< type_t<matrix_t> >
+lansy( norm_t normType, uplo_t uplo, const matrix_t& A )
 {
-    typedef real_type<TA> real_t;
-    #define A(i_, j_) A[ (i_) + (j_)*lda ]
+    using real_t = real_type< type_t<matrix_t> >;
+    using idx_t  = size_type< matrix_t >;
+    using pair   = std::pair<idx_t,idx_t>;
     using blas::isnan;
     using blas::sqrt;
 
     // constants
     const real_t zero(0.0);
+    const auto n = nrows(A);
 
     // quick return
-    if ( n == 0 ) return zero;
+    if ( n <= 0 ) return zero;
 
     // Norm value
     real_t norm(0.0);
 
-    if( normType == Norm::Max )
+    if( is_same_v<norm_t,max_norm_t> )
     {
-        if( uplo == Uplo::Upper )
-        for (idx_t j = 0; j < n; ++j) {
-            for (idx_t i = 0; i <= j; ++i)
-            {
-                real_t temp = blas::abs( A(i,j) );
+        if( is_same_v<uplo_t,upper_triangle_t> ) {
+            for (idx_t j = 0; j < n; ++j) {
+                for (idx_t i = 0; i <= j; ++i)
+                {
+                    real_t temp = blas::abs( A(i,j) );
 
-                if (temp > norm)
-                    norm = temp;
-                else {
-                    if ( isnan(temp) ) 
-                        return temp;
+                    if (temp > norm)
+                        norm = temp;
+                    else {
+                        if ( isnan(temp) ) 
+                            return temp;
+                    }
                 }
             }
         }
-        else
-        for (idx_t j = 0; j < n; ++j) {
-            for (idx_t i = j; i < n; ++i)
-            {
-                real_t temp = blas::abs( A(i,j) );
+        else {
+            for (idx_t j = 0; j < n; ++j) {
+                for (idx_t i = j; i < n; ++i)
+                {
+                    real_t temp = blas::abs( A(i,j) );
 
-                if (temp > norm)
-                    norm = temp;
-                else {
-                    if ( isnan(temp) ) 
-                        return temp;
+                    if (temp > norm)
+                        norm = temp;
+                    else {
+                        if ( isnan(temp) ) 
+                            return temp;
+                    }
                 }
             }
         }
     }
-    else if ( normType == Norm::One ||normType == Norm::Inf )
+    else if (
+        is_same_v<norm_t,one_norm_t> || 
+        is_same_v<norm_t,inf_norm_t> )
     {
         real_t *work = new real_t[n];
         for (idx_t i = 0; i < n; ++i)
             work[i] = zero;
 
-        if( uplo == Uplo::Upper ) {
+        if( is_same_v<uplo_t,upper_triangle_t> ) {
             for (idx_t j = 0; j < n; ++j)
             {
                 real_t sum = zero;
@@ -138,54 +154,30 @@ real_type<TA> lansy(
         }
         delete[] work;
     }
-    else if ( normType == Norm::Fro )
+    else if ( is_same_v<norm_t,frob_norm_t> )
     {
         // Scaled ssq
-        real_t scale(0.0), ssq(1.0);
+        real_t scale(0), ssq(1);
         
         // Sum off-diagonals
-        if( uplo == Uplo::Upper ) {
+        if( is_same_v<uplo_t,upper_triangle_t> ) {
             for (idx_t j = 1; j < n; ++j)
-                lassq(j, &(A(0,j)), 1, scale, ssq);
+                lassq( subvector( col(A,j), pair(0,j) ), scale, ssq );
         }
         else {
             for (idx_t j = 0; j < n-1; ++j)
-                lassq(n-j-1, &(A(j+1,j)), 1, scale, ssq);
+                lassq( subvector( col(A,j), pair(j+1,n) ), scale, ssq );
         }
         ssq *= 2;
 
         // Sum diagonal
-        lassq(n, A, lda+1, scale, ssq);
+        lassq( diag(A,0), scale, ssq );
 
         // Compute the scaled square root
         norm = scale * sqrt(ssq);
     }
 
-    #undef A
     return norm;
-}
-
-/** Calculates the value of the one norm, Frobenius norm, infinity norm, or element of largest absolute value of a symmetric matrix.
- * 
- * @param[in] layout
- *     Matrix storage, Layout::ColMajor or Layout::RowMajor.
- * @see lansy( Norm normType, Uplo, blas::idx_t n, const TA *A, blas::idx_t lda )
- * 
- * @ingroup auxiliary
-**/
-template <typename TA>
-inline real_type<TA> lansy(
-    Layout layout, Uplo uplo,
-    Norm normType, blas::idx_t n,
-    const TA *A, blas::idx_t lda )
-{
-    if ( layout == Layout::RowMajor ) {
-        // Transpose A
-        if( uplo == Uplo::Lower ) uplo = Uplo::Upper;
-        else if( uplo == Uplo::Upper ) uplo = Uplo::Lower;
-    }
-
-    return lansy( normType, uplo, n, A, lda );
 }
 
 } // lapack

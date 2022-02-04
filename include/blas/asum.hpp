@@ -30,32 +30,21 @@ namespace blas {
  *
  * @ingroup asum
  */
-template< typename T >
-real_type<T>
-asum(
-    blas::idx_t n,
-    T const *x, blas::int_t incx )
+template< class vector_t >
+real_type< type_t< vector_t > >
+asum( vector_t const& x )
 {
-    typedef real_type<T> real_t;
+    using T      = type_t< vector_t >;
+    using idx_t  = size_type< vector_t >;
+    using real_t = real_type< T >;
 
-    // check arguments
-    blas_error_if( incx <= 0 );
+    // constants
+    const idx_t n = size(x);
 
     real_t result = 0;
-    if (incx == 1) {
-        // unit stride
-        for (idx_t i = 0; i < n; ++i) {
-            result += abs1( x[i] );
-        }
-    }
-    else {
-        // non-unit stride
-        idx_t ix = 0;
-        for (idx_t i = 0; i < n; ++i) {
-            result += abs1( x[ix] );
-            ix += incx;
-        }
-    }
+    for (idx_t i = 0; i < n; ++i)
+        result += abs1( x[i] );
+
     return result;
 }
 

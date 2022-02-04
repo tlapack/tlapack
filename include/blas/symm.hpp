@@ -74,92 +74,45 @@ namespace blas {
  *
  * @ingroup symm
  */
-template< typename TA, typename TB, typename TC >
+template<
+    class matrixA_t, class matrixB_t, class matrixC_t, 
+    class alpha_t, class beta_t >
 void symm(
-    blas::Layout layout,
     blas::Side side,
     blas::Uplo uplo,
-    blas::idx_t m, blas::idx_t n,
-    scalar_type<TA, TB, TC> alpha,
-    TA const *A, blas::idx_t lda,
-    TB const *B, blas::idx_t ldb,
-    scalar_type<TA, TB, TC> beta,
-    TC       *C, blas::idx_t ldc )
+    const alpha_t& alpha, const matrixA_t& A, const matrixB_t& B,
+    const beta_t& beta, matrixC_t& C )
 {
-    typedef blas::scalar_type<TA, TB, TC> scalar_t;
+    // data traits
+    using TA    = type_t< matrixA_t >;
+    using TB    = type_t< matrixB_t >;
+    using idx_t = size_type< matrixC_t >;
 
-    #define A(i_, j_) A[ (i_) + (j_)*lda ]
-    #define B(i_, j_) B[ (i_) + (j_)*ldb ]
-    #define C(i_, j_) C[ (i_) + (j_)*ldc ]
-
+    // using
+    using scalar_t = scalar_type<alpha_t,TA,TB>;
+            
     // constants
-    const scalar_t zero( 0.0 );
-    const scalar_t one( 1.0 );
+    const idx_t m = nrows(C);
+    const idx_t n = ncols(C);
 
     // check arguments
-    blas_error_if( layout != Layout::ColMajor &&
-                   layout != Layout::RowMajor );
     blas_error_if( side != Side::Left &&
                    side != Side::Right );
     blas_error_if( uplo != Uplo::Lower &&
                    uplo != Uplo::Upper &&
                    uplo != Uplo::General );
-    blas_error_if( m < 0 );
-    blas_error_if( n < 0 );
-    blas_error_if( lda < ((side == Side::Left) ? m : n) );
+    blas_error_if( nrows(A) != ncols(A) );
+    blas_error_if( nrows(A) != ((side == Side::Left) ? m : n) );
+    blas_error_if( nrows(B) != m || ncols(B) != n );
 
-    // adapt if row major
-    if (layout == Layout::RowMajor) {
-    
-        // check remaining arguments
-        blas_error_if( ldb < n );
-        blas_error_if( ldc < n );
-
-        side = (side == Side::Left)
-            ? Side::Right
-            : Side::Left;
-        if (uplo == Uplo::Lower)
-            uplo = Uplo::Upper;
-        else if (uplo == Uplo::Upper)
-            uplo = Uplo::Lower;
-        std::swap( m , n );
-    }
-    else {
-        // check remaining arguments
-        blas_error_if( ldb < m );
-        blas_error_if( ldc < m );
-    }
-
-    // quick return
-    if (m == 0 || n == 0)
-        return;
-
-    // alpha == zero
-    if (alpha == zero) {
-        if (beta == zero) {
-            for(idx_t j = 0; j < n; ++j) {
-                for(idx_t i = 0; i < m; ++i)
-                    C(i,j) = zero;
-            }
-        }
-        else if (beta != one) {
-            for(idx_t j = 0; j < n; ++j) {
-                for(idx_t i = 0; i < m; ++i)
-                    C(i,j) *= beta;
-            }
-        }
-        return;
-    }
-
-    // alpha != zero
     if (side == Side::Left) {
         if (uplo != Uplo::Lower) {
             // uplo == Uplo::Upper or uplo == Uplo::General
             for(idx_t j = 0; j < n; ++j) {
                 for(idx_t i = 0; i < m; ++i) {
 
-                    scalar_t alphaTimesBij = alpha*B(i,j);
-                    scalar_t sum = zero;
+                    auto alphaTimesBij = alpha*B(i,j);
+                    scalar_t sum( 0.0 );
 
                     for(idx_t k = 0; k < i; ++k) {
                         C(k,j) += A(k,i) * alphaTimesBij;
@@ -177,8 +130,8 @@ void symm(
             for(idx_t j = 0; j < n; ++j) {
                 for(idx_t i = m-1; i != idx_t(-1); --i) {
 
-                    scalar_t alphaTimesBij = alpha*B(i,j);
-                    scalar_t sum = zero;
+                    auto alphaTimesBij = alpha*B(i,j);
+                    scalar_t sum( 0.0 );
 
                     for(idx_t k = i+1; k < m; ++k) {
                         C(k,j) += A(k,i) * alphaTimesBij;
@@ -197,7 +150,7 @@ void symm(
             // uplo == Uplo::Upper or uplo == Uplo::General
             for(idx_t j = 0; j < n; ++j) {
 
-                scalar_t alphaTimesAkj = alpha * A(j,j);
+                auto alphaTimesAkj = alpha * A(j,j);
 
                 for(idx_t i = 0; i < m; ++i)
                     C(i,j) = beta * C(i,j) + B(i,j) * alphaTimesAkj;
@@ -219,7 +172,7 @@ void symm(
             // uplo == Uplo::Lower
             for(idx_t j = 0; j < n; ++j) {
 
-                scalar_t alphaTimesAkj = alpha * A(j,j);
+                auto alphaTimesAkj = alpha * A(j,j);
 
                 for(idx_t i = 0; i < m; ++i)
                     C(i,j) = beta * C(i,j) + B(i,j) * alphaTimesAkj;
@@ -238,10 +191,6 @@ void symm(
             }
         }
     }
-
-    #undef A
-    #undef B
-    #undef C
 }
 
 }  // namespace blas

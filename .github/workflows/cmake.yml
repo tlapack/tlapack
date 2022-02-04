@@ -25,7 +25,7 @@ env:
   CXXFLAGS: "-Wall -pedantic"
   FFLAGS: "-fimplicit-none -fcheck=all"
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
-  BUILD_TYPE: Debug
+  BUILD_TYPE: Release
 
 defaults:
   run:
@@ -41,6 +41,9 @@ jobs:
     # cross-platform coverage.
     # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
     runs-on: ${{ matrix.os }}
+    env:
+      blaspp_DIR: ${{github.workspace}}/blaspp
+      lapackpp_DIR: ${{github.workspace}}/lapackpp
 
     strategy:
       fail-fast: false
@@ -51,6 +54,41 @@ jobs:
     
     - name: Checkout <T>LAPACK
       uses: actions/checkout@v2
+
+    - name: Install LAPACKE on Ubuntu
+      if: ${{ matrix.os == 'ubuntu-latest' }}
+      run: sudo apt install liblapacke-dev
+
+    - name: Checkout BLAS++ and LAPACK++
+      if: ${{ matrix.os == 'ubuntu-latest' }}
+      run: |
+        git clone https://bitbucket.org/weslleyspereira/blaspp ${{env.blaspp_DIR}}
+        git clone https://bitbucket.org/weslleyspereira/lapackpp ${{env.lapackpp_DIR}}
+
+    - name: Configure BLAS++
+      if: ${{ matrix.os == 'ubuntu-latest' }}
+      working-directory: ${{env.blaspp_DIR}}
+      run: |
+        git checkout tlapack
+        cmake -B build
+
+    - name: Configure LAPACK++
+      if: ${{ matrix.os == 'ubuntu-latest' }}
+      working-directory: ${{env.lapackpp_DIR}}
+      run: |
+        git checkout tlapack
+        cmake -B build -D blaspp_DIR=${{env.blaspp_DIR}}/build
+        
+    - name: Specific configurations for CMake on Ubuntu
+      if: ${{ matrix.os == 'ubuntu-latest' }}
+      run: >
+        cmake -B build
+        -D BUILD_BLASPP_TESTS=ON
+        -D blaspp_DIR=${{env.blaspp_DIR}}/build
+        -D blaspp_TEST_DIR=${{env.blaspp_DIR}}/test
+        -D BUILD_LAPACKPP_TESTS=ON
+        -D lapackpp_DIR=${{env.lapackpp_DIR}}/build
+        -D lapackpp_TEST_DIR=${{env.lapackpp_DIR}}/test
 
     - name: Specific configurations for CMake on MacOS
       if: ${{ matrix.os == 'macos-latest' }}
@@ -65,6 +103,7 @@ jobs:
       if: ${{ matrix.os == 'windows-latest' }}
       run: >
         cmake -B build -G "Unix Makefiles"
+        -D CMAKE_EXE_LINKER_FLAGS="-Wl,--allow-multiple-definition"
 
     - name: Configure CMake on all platforms
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
@@ -73,6 +112,7 @@ jobs:
         cmake -B build
         -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
         -D CMAKE_INSTALL_PREFIX=${{github.workspace}}/tlapack_install
+        -D BUILD_SHARED_LIBS=ON
         -D BUILD_EXAMPLES=ON
         -D BUILD_TESTING=ON
         -D C_WRAPPERS=ON
@@ -88,7 +128,7 @@ jobs:
       continue-on-error: true
       run: cmake --build build --target run-all-examples
 
-    - name: Test
+    - name: Run tests
       working-directory: ${{github.workspace}}/build
       # Execute tests defined by the CMake configuration.  
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
@@ -112,6 +152,7 @@ jobs:
         cmake -B build
         -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} 
         -D CMAKE_INSTALL_PREFIX=${{github.workspace}}/tlapack_install
+        -D BUILD_SHARED_LIBS=ON
         -D TEST_MPFR=ON
 
     - name: Build <T>LAPACK
@@ -147,46 +188,73 @@ jobs:
       run: |
         git checkout tlapack
         mkdir build
-        cmake -Bbuild -DBLA_VENDOR=OpenBLAS -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.blaspp_DIR}}
+        cmake -B build -DBLA_VENDOR=OpenBLAS -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.blaspp_DIR}}
         cmake --build build --target install
 
     - name: Configure CMake for <T>LAPACK
       run: >
         cmake -B build
         -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+        -D BUILD_SHARED_LIBS=ON
         -D BUILD_EXAMPLES=ON
         -D BUILD_TESTING=ON
         -D C_WRAPPERS=ON
         -D Fortran_WRAPPERS=ON
         -D CBLAS_WRAPPERS=ON
         -D USE_BLASPP_WRAPPERS=ON
+        -D BUILD_BLASPP_TESTS=ON
         -D blaspp_DIR=${{env.blaspp_DIR}}
+        -D blaspp_TEST_DIR=${{env.blaspp_DIR}}/test
 
     - name: Build <T>LAPACK
       run: cmake --build build --config ${{env.BUILD_TYPE}}
 
     # Mind that the job won't fail if only this step fails
-    - name: Test INF propagation
+    - name: Run BLASPP tester
       working-directory: ${{github.workspace}}/build
       continue-on-error: true
       run: |
         echo "Mind that the job won't fail if only this step fails."
-        ./tester -# [#test_inf] -r compact
+        ctest -C ${{env.BUILD_TYPE}} --output-on-failure
 
-    # Mind that the job won't fail if only this step fails
-    - name: Test NAN propagation
-      working-directory: ${{github.workspace}}/build
-      continue-on-error: true
-      run: |
-        echo "Mind that the job won't fail if only this step fails."
-        ./tester -# [#test_nan] -r compact
+    # # Mind that the job won't fail if only this step fails
+    # - name: Test InfNaN propagation
+    #   working-directory: ${{github.workspace}}/build
+    #   continue-on-error: true
+    #   run: |
+    #     echo "Mind that the job won't fail if only this step fails."
+    #     ./tester -# [#test_infNaN] -r compact
 
-    # Mind that the job won't fail if only this step fails
-    - name: Test Corner Cases
-      working-directory: ${{github.workspace}}/build
-      continue-on-error: true
-      run: |
-        echo "Mind that the job won't fail if only this step fails."
-        ./tester -# [#test_corner_cases] -r compact
-      # echo "Total of:"
-      # ./tester -# [#test_corner_cases] -l | tail -n 2
+    # # Mind that the job won't fail if only this step fails
+    # - name: Test InfNaN propagation on iamax
+    #   working-directory: ${{github.workspace}}/build
+    #   continue-on-error: true
+    #   run: |
+    #     echo "Mind that the job won't fail if only this step fails."
+    #     ./tester -# [#test_infNaN_iamax] -r compact
+
+    # # Mind that the job won't fail if only this step fails
+    # - name: Test InfNaN propagation on nrm2
+    #   working-directory: ${{github.workspace}}/build
+    #   continue-on-error: true
+    #   run: |
+    #     echo "Mind that the job won't fail if only this step fails."
+    #     ./tester -# [#test_infNaN_nrm2] -r compact
+
+    # # Mind that the job won't fail if only this step fails
+    # - name: Test InfNaN propagation on trsv and trsm
+    #   working-directory: ${{github.workspace}}/build
+    #   continue-on-error: true
+    #   run: |
+    #     echo "Mind that the job won't fail if only this step fails."
+    #     ./tester -# [#test_infNaN_trsv_trsm] -r compact
+
+    # # Mind that the job won't fail if only this step fails
+    # - name: Test Corner Cases
+    #   working-directory: ${{github.workspace}}/build
+    #   continue-on-error: true
+    #   run: |
+    #     echo "Mind that the job won't fail if only this step fails."
+    #     ./tester -# [#test_corner_cases] -r compact
+    #   # echo "Total of:"
+    #   # ./tester -# [#test_corner_cases] -l | tail -n 2

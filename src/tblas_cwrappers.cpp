@@ -7,7 +7,7 @@
 #ifdef BUILD_CBLAS
 
     #include "tlapack_cblas.h"
-    #include "tblas.hpp"
+    #include "slate_api/blas.hpp"
 
     // Mangling
     #ifdef ADD_
@@ -58,7 +58,7 @@
 #else
 
     #include "tblas.h"
-    #include "tblas.hpp"
+    #include "slate_api/blas.hpp"
 
     // Mangling
     #ifdef ADD_
@@ -92,7 +92,7 @@ typedef std::complex<double> tblas_complexDouble;
 #define tblas_cteC(z) reinterpret_cast<const tblas_complexFloat*>( z )
 #define tblas_cteZ(z) reinterpret_cast<const tblas_complexDouble*>( z )
 #define tblas_C(z) reinterpret_cast<tblas_complexFloat*>( z )
-#define tblas_Z(z) reinterpret_cast<tblas_complexDouble*>(  z )
+#define tblas_Z(z) reinterpret_cast<tblas_complexDouble*>( z )
 // -----------------------------------------------------------------------------
 
 extern "C" {
@@ -490,10 +490,10 @@ void _srotg(
     float * c,
     float * s ) {
     return blas::rotg<float>(
-        a,
-        b,
-        c,
-        s );
+        *a,
+        *b,
+        *c,
+        *s );
 }
 
 #define _drotg BLAS_FUNCTION(drotg)
@@ -503,10 +503,10 @@ void _drotg(
     double * c,
     double * s ) {
     return blas::rotg<double>(
-        a,
-        b,
-        c,
-        s );
+        *a,
+        *b,
+        *c,
+        *s );
 }
 
 #define _crotg BLAS_FUNCTION(crotg)
@@ -516,10 +516,10 @@ void _crotg(
     float * c,
     complexFloat * s ) {
     return blas::rotg<tblas_complexFloat>(
-        tblas_C(a),
-        tblas_C(b),
-        c,
-        tblas_C(s) );
+        *tblas_C(a),
+        *tblas_C(b),
+        *c,
+        *tblas_C(s) );
 }
 
 #define _zrotg BLAS_FUNCTION(zrotg)
@@ -529,10 +529,10 @@ void _zrotg(
     double * c,
     complexDouble * s ) {
     return blas::rotg<tblas_complexDouble>(
-        tblas_Z(a),
-        tblas_Z(b),
-        c,
-        tblas_Z(s) );
+        *tblas_Z(a),
+        *tblas_Z(b),
+        *c,
+        *tblas_Z(s) );
 }
 
 #define _srotm BLAS_FUNCTION(srotm)

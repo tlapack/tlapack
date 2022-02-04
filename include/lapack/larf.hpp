@@ -15,6 +15,7 @@
 #include "lapack/utils.hpp"
 
 #include "tblas.hpp"
+#include "slate_api/blas.hpp"
 
 namespace lapack {
 
@@ -25,9 +26,6 @@ namespace lapack {
  *        H = I - \tau v v^H.
  * \]
  * If tau = 0, then H is taken to be the unit matrix.
- * 
- * @returns  0 if success.
- * @returns -1 if side is unknown.
  * 
  * @param[in] layout
  *     Matrix storage, Layout::ColMajor or Layout::RowMajor.
@@ -59,80 +57,36 @@ namespace lapack {
  * 
  * @ingroup auxiliary
  */
-template< typename TV, typename TC, typename TW >
-inline int larf(
-    Layout layout, Side side,
-    blas::idx_t m, blas::idx_t n,
-    TV const *v, blas::int_t incv,
-    blas::scalar_type< TV, TC , TW > tau,
-    TC *C, blas::idx_t ldC,
-    TW *work )
+template< class side_t, class vector_t, class tau_t, class matrix_t, class work_t,
+    enable_if_t<(
+    /* Requires: */
+        is_same_v< side_t, left_side_t > || 
+        is_same_v< side_t, right_side_t >
+    ), int > = 0
+>
+inline void larf(
+    side_t side,
+    vector_t const& v, tau_t& tau,
+    matrix_t& C, work_t& work )
 {
-    typedef blas::real_type<TV, TC, TW> real_t;
     using blas::gemm;
     using blas::ger;
 
+    // data traits
+    using T = type_t<matrix_t>;
+
     // constants
-    const real_t one(1.0);
-    const real_t zero(0.0);
+    const T one(1.0);
+    const T zero(0.0);
 
-    if ( side == Side::Left ) {
-        gemv(layout, Op::ConjTrans, m, n, one, C, ldC, v, incv, zero, work, 1);
-        ger(layout, m, n, -tau, v, incv, work, 1, C, ldC);
+    if( is_same_v<side_t,left_side_t> ) {
+        gemv(Op::ConjTrans, one, C, v, zero, work);
+        ger(-tau, v, work, C);
     }
-    else if ( side == Side::Right ) {
-        gemv(layout, Op::NoTrans, m, n, one, C, ldC, v, incv, zero, work, 1);
-        ger(layout, m, n, -tau, work, 1, v, incv, C, ldC);
+    else {
+        gemv(Op::NoTrans, one, C, v, zero, work);
+        ger(-tau, work, v, C);
     }
-    else
-        lapack_error( "side != Side::Left && side != Side::Right", -1 );
-
-    return 0;
-}
-
-/** Applies an elementary reflector H to a m-by-n matrix C.
- * 
- * @see larf( Layout, Side side, blas::idx_t m, blas::idx_t n, TV const *v, blas::int_t incv, blas::scalar_type< TV, TC , TW > tau, TC *C, blas::idx_t ldC, TW *work )
- * 
- * @ingroup auxiliary
- */
-template< typename TV, typename TC, typename TW >
-inline int larf(
-    Side side,
-    blas::idx_t m, blas::idx_t n,
-    TV const *v, blas::int_t incv,
-    blas::scalar_type< TV, TC , TW > tau,
-    TC *C, blas::idx_t ldC,
-    TW *work )
-{
-    return larf(
-        Layout::ColMajor, side, m, n, v, incv, tau, C, ldC, work );
-}
-
-/** Applies an elementary reflector H to a m-by-n matrix C.
- * 
- * @see larf( Layout, Side side, blas::idx_t m, blas::idx_t n, TV const *v, blas::int_t incv, blas::scalar_type< TV, TC , TW > tau, TC *C, blas::idx_t ldC, TW *work )
- * 
- * @ingroup auxiliary
- */
-template< typename TV, typename TC >
-inline int larf(
-    Side side,
-    blas::idx_t m, blas::idx_t n,
-    TV const *v, blas::int_t incv,
-    blas::scalar_type< TV, TC > tau,
-    TC *C, blas::idx_t ldC )
-{
-    typedef blas::scalar_type<TV, TC> scalar_t;
-    scalar_t *work = new scalar_t[ ( side == Side::Left ) ? n : m ];
-    int info;
-
-    info = larf(
-        Layout::ColMajor, side, m, n, v, incv, tau, C, ldC, work );
-        
-    delete[] work;
-
-    return info;
 }
 
 } // lapack

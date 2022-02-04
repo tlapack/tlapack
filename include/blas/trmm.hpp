@@ -84,30 +84,29 @@ namespace blas {
  *
  * @ingroup trmm
  */
-template< typename TA, typename TB >
+template< class matrixA_t, class matrixB_t, class alpha_t >
 void trmm(
-    blas::Layout layout,
     blas::Side side,
     blas::Uplo uplo,
     blas::Op trans,
     blas::Diag diag,
-    blas::idx_t m,
-    blas::idx_t n,
-    blas::scalar_type<TA, TB> alpha,
-    TA const *A, blas::idx_t lda,
-    TB       *B, blas::idx_t ldb )
+    const alpha_t alpha,
+    const matrixA_t& A,
+    matrixB_t& B )
 {    
-    typedef blas::scalar_type<TA, TB> scalar_t;
+    // data traits
+    using TA    = type_t< matrixA_t >;
+    using TB    = type_t< matrixB_t >;
+    using idx_t = size_type< matrixA_t >;
 
-    #define A(i_, j_) A[ (i_) + (j_)*lda ]
-    #define B(i_, j_) B[ (i_) + (j_)*ldb ]
+    // using
+    using scalar_t = scalar_type<alpha_t,TA,TB>;
 
     // constants
-    const scalar_t zero( 0.0 );
+    const idx_t m = nrows(B);
+    const idx_t n = ncols(B);
 
     // check arguments
-    blas_error_if( layout != Layout::ColMajor &&
-                   layout != Layout::RowMajor );
     blas_error_if( side != Side::Left &&
                    side != Side::Right );
     blas_error_if( uplo != Uplo::Lower &&
@@ -117,50 +116,15 @@ void trmm(
                    trans != Op::ConjTrans );
     blas_error_if( diag != Diag::NonUnit &&
                    diag != Diag::Unit );
-    blas_error_if( m < 0 );
-    blas_error_if( n < 0 );
-    blas_error_if( lda < ((side == Side::Left) ? m : n) );
-
-    // adapt if row major
-    if (layout == Layout::RowMajor) {
-
-        // check remaining arguments
-        blas_error_if( ldb < n );
-
-        side = (side == Side::Left)
-            ? Side::Right
-            : Side::Left;
-        if (uplo == Uplo::Lower)
-            uplo = Uplo::Upper;
-        else if (uplo == Uplo::Upper)
-            uplo = Uplo::Lower;
-        std::swap( m , n );
-    }
-    else {
-        // check remaining arguments
-        blas_error_if( ldb < m );
-    }
-
-    // quick return
-    if (m == 0 || n == 0)
-        return;
-
-    // alpha == zero
-    if (alpha == zero) {
-        for(idx_t j = 0; j < n; ++j) {
-            for(idx_t i = 0; i < m; ++i)
-                B(i,j) = zero;
-        }
-        return;
-    }
-
-    // alpha != zero
+    blas_error_if( nrows(A) != ncols(A) );
+    blas_error_if( nrows(A) != ((side == Side::Left) ? m : n) );
+    
     if (side == Side::Left) {
         if (trans == Op::NoTrans) {
             if (uplo == Uplo::Upper) {
                 for(idx_t j = 0; j < n; ++j) {
                     for(idx_t k = 0; k < m; ++k) {
-                        const scalar_t alphaBkj = alpha*B(k,j);
+                        const auto alphaBkj = alpha*B(k,j);
                         for(idx_t i = 0; i < k; ++i)
                             B(i,j) += A(i,k)*alphaBkj;
                         B(k,j) = (diag == Diag::NonUnit)
@@ -172,7 +136,7 @@ void trmm(
             else { // uplo == Uplo::Lower
                 for(idx_t j = 0; j < n; ++j) {
                     for(idx_t k = m-1; k != idx_t(-1); --k) {
-                        const scalar_t alphaBkj = alpha*B(k,j);
+                        const auto alphaBkj = alpha*B(k,j);
                         B(k,j) = (diag == Diag::NonUnit)
                                 ? A(k,k)*alphaBkj
                                 : alphaBkj;
@@ -274,7 +238,7 @@ void trmm(
             if (uplo == Uplo::Upper) {
                 for(idx_t k = 0; k < n; ++k) {
                     for(idx_t j = 0; j < k; ++j) {
-                        const scalar_t alphaAjk = alpha*A(j,k);
+                        const auto alphaAjk = alpha*A(j,k);
                         for(idx_t i = 0; i < m; ++i)
                             B(i,j) += B(i,k)*alphaAjk;
                     }
@@ -289,7 +253,7 @@ void trmm(
             else { // uplo == Uplo::Lower
                 for(idx_t k = n-1; k != idx_t(-1); --k) {
                     for(idx_t j = k+1; j < n; ++j) {
-                        const scalar_t alphaAjk = alpha*A(j,k);
+                        const auto alphaAjk = alpha*A(j,k);
                         for(idx_t i = 0; i < m; ++i)
                             B(i,j) += B(i,k)*alphaAjk;
                     }
@@ -306,7 +270,7 @@ void trmm(
             if (uplo == Uplo::Upper) {
                 for(idx_t k = 0; k < n; ++k) {
                     for(idx_t j = 0; j < k; ++j) {
-                        const scalar_t alphaAjk = alpha*conj(A(j,k));
+                        const auto alphaAjk = alpha*conj(A(j,k));
                         for(idx_t i = 0; i < m; ++i)
                             B(i,j) += B(i,k)*alphaAjk;
                     }
@@ -321,7 +285,7 @@ void trmm(
             else { // uplo == Uplo::Lower
                 for(idx_t k = n-1; k != idx_t(-1); --k) {
                     for(idx_t j = k+1; j < n; ++j) {
-                        const scalar_t alphaAjk = alpha*conj(A(j,k));
+                        const auto alphaAjk = alpha*conj(A(j,k));
                         for(idx_t i = 0; i < m; ++i)
                             B(i,j) += B(i,k)*alphaAjk;
                     }
@@ -335,9 +299,6 @@ void trmm(
             }
         }
     }
-
-    #undef A
-    #undef B
 }
 
 }  // namespace blas

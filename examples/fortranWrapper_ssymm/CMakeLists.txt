@@ -11,8 +11,6 @@ project( fortranWrapper_ssymm C CXX Fortran )
 # Load <T>LAPACK
 if( NOT TARGET tblas_fortran )
   find_package( tlapack REQUIRED )
-elseif( NOT EXISTS tlapack_DIR )
-  set( tlapack_DIR ${CMAKE_SOURCE_DIR} )
 endif()
 
 # add the example fortranModule_saxpy

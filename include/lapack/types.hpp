@@ -14,174 +14,149 @@ namespace lapack {
 
 // -----------------------------------------------------------------------------
 // Use the types from the namespace blas
-using blas::idx_t;
-using blas::int_t;
+
+using blas::real_type;
+using blas::complex_type;
+using blas::scalar_type;
+using blas::is_complex;
+using blas::size_type;
+using blas::type_t;
+using blas::enable_if_t;
+using blas::is_same_v;
+using blas::zero_t;
 using blas::Layout;
 using blas::Op;
 using blas::Uplo;
 using blas::Diag;
 using blas::Side;
-using blas::real_type;
-using blas::complex_type;
-using blas::scalar_type;
 
 // -----------------------------------------------------------------------------
-enum class Sides {
-    Left  = 'L',  L = 'L',
-    Right = 'R',  R = 'R',
-    Both  = 'B',  B = 'B'
+// Diagonal matrices
+
+struct nonUnit_diagonal_t {
+    constexpr operator blas::Diag() const { return blas::Diag::NonUnit; }
 };
+struct unit_diagonal_t {
+    constexpr operator blas::Diag() const { return blas::Diag::Unit; }
+};
+
+// constants
+constexpr nonUnit_diagonal_t nonUnit_diagonal = { };
+constexpr unit_diagonal_t unit_diagonal = { };
 
 // -----------------------------------------------------------------------------
-enum class Norm {
-    One = '1',  // or 'O'
-    Two = '2',
-    Inf = 'I',
-    Fro = 'F',  // or 'E'
-    Max = 'M',
+// Operations over data
+
+struct noTranspose_t {
+    constexpr operator blas::Op() const { return blas::Op::NoTrans; }
 };
+struct transpose_t {
+    constexpr operator blas::Op() const { return blas::Op::Trans; }
+};
+struct conjTranspose_t {
+    constexpr operator blas::Op() const { return blas::Op::ConjTrans; }
+};
+
+// Constants
+constexpr noTranspose_t noTranspose = { };
+constexpr transpose_t transpose = { };
+constexpr conjTranspose_t conjTranspose = { };
 
 // -----------------------------------------------------------------------------
-// Job for computing eigenvectors and singular vectors
-// # needs custom map
-enum class Job {
-    NoVec        = 'N',
-    Vec          = 'V',  // geev, syev, ...
-    UpdateVec    = 'U',  // gghrd#, hbtrd, hgeqz#, hseqr#, ... (many compq or compz)
+// Matrix structure types
 
-    AllVec       = 'A',  // gesvd, gesdd, gejsv#
-    SomeVec      = 'S',  // gesvd, gesdd, gejsv#, gesvj#
-    OverwriteVec = 'O',  // gesvd, gesdd
-
-    CompactVec   = 'P',  // bdsdc
-    SomeVecTol   = 'C',  // gesvj
-    VecJacobi    = 'J',  // gejsv
-    Workspace    = 'W',  // gejsv
+// Full matrix type
+struct general_matrix_t {
+    constexpr operator blas::Uplo() const { return blas::Uplo::General; }
 };
+
+// Upper triangle type
+struct upper_triangle_t {
+    constexpr operator blas::Uplo() const { return blas::Uplo::Upper; }
+};
+
+// Lower triangle type
+struct lower_triangle_t {
+    constexpr operator blas::Uplo() const { return blas::Uplo::Lower; }
+};
+
+// Hessenberg matrix type
+struct hessenberg_matrix_t { };
+
+// Band matrix type
+struct band_matrix_t {
+    std::size_t lower_bandwidth, upper_bandwidth;
+
+    constexpr band_matrix_t(std::size_t kl, std::size_t ku)
+    : lower_bandwidth(kl), upper_bandwidth(ku)
+    {}
+};
+
+// Symmetric lower band matrix type
+struct symmetric_lowerband_t {
+    std::size_t bandwidth;
+    constexpr symmetric_lowerband_t(std::size_t k) : bandwidth(k) {}
+};
+
+// Symmetric upper band matrix type
+struct symmetric_upperband_t {
+    std::size_t bandwidth;
+    constexpr symmetric_upperband_t(std::size_t k) : bandwidth(k) {}
+};
+
+// Constants
+constexpr general_matrix_t general_matrix = { };
+constexpr upper_triangle_t upper_triangle = { };
+constexpr lower_triangle_t lower_triangle = { };
+constexpr hessenberg_matrix_t hessenberg_matrix = { };
 
 // -----------------------------------------------------------------------------
-// hseqr
-enum class JobSchur {
-    Eigenvalues  = 'E',
-    Schur        = 'S',
-};
+// Norm types
+
+struct max_norm_t { };
+struct one_norm_t { };
+struct inf_norm_t { };
+struct frob_norm_t { };
+
+// Constants
+constexpr max_norm_t max_norm = { };
+constexpr one_norm_t one_norm = { };
+constexpr inf_norm_t inf_norm = { };
+constexpr frob_norm_t frob_norm = { };
 
 // -----------------------------------------------------------------------------
-// gees
-// todo: generic yes/no
-enum class Sort {
-    NotSorted   = 'N',
-    Sorted      = 'S',
-};
+// Directions
+
+struct forward_t { };
+struct backward_t { };
+
+// Constants
+constexpr forward_t forward { };
+constexpr backward_t backward { };
 
 // -----------------------------------------------------------------------------
-// syevx
-enum class Range {
-    All         = 'A',
-    Value       = 'V',
-    Index       = 'I',
-};
+// Storage types
+
+struct columnwise_storage_t { };
+struct rowwise_storage_t { };
+
+// Constants
+constexpr columnwise_storage_t columnwise_storage { };
+constexpr rowwise_storage_t rowwise_storage { };
 
 // -----------------------------------------------------------------------------
-enum class Vect {
-    Q           = 'Q',  // orgbr, ormbr
-    P           = 'P',  // orgbr, ormbr
-    None        = 'N',  // orgbr, ormbr, gbbrd
-    Both        = 'B',  // orgbr, ormbr, gbbrd
+// Sides
+
+struct left_side_t {
+    constexpr operator blas::Side() const { return blas::Side::Left; }
+};
+struct right_side_t {
+    constexpr operator blas::Side() const { return blas::Side::Right; }
 };
 
-// -----------------------------------------------------------------------------
-// larfb
-enum class Direction {
-    Forward     = 'F',
-    Backward    = 'B',
-};
-
-// -----------------------------------------------------------------------------
-// larfb
-enum class StoreV {
-    Columnwise  = 'C',
-    Rowwise     = 'R',
-};
-
-// -----------------------------------------------------------------------------
-// lascl
-enum class MatrixType {
-    General     = 'G',
-    Lower       = 'L',
-    Upper       = 'U',
-    Hessenberg  = 'H',
-    LowerBand   = 'B',
-    UpperBand   = 'Q',
-    Band        = 'Z',
-};
-
-// -----------------------------------------------------------------------------
-// trevc
-enum class HowMany {
-    All           = 'A',
-    Backtransform = 'B',
-    Select        = 'S',
-};
-
-// -----------------------------------------------------------------------------
-// *svx, *rfsx
-enum class Equed {
-    None        = 'N',
-    Row         = 'R',
-    Col         = 'C',
-    Both        = 'B',
-    Yes         = 'Y',  // porfsx
-};
-
-// -----------------------------------------------------------------------------
-// *svx
-// todo: what's good name for this?
-enum class Factored {
-    Factored    = 'F',
-    NotFactored = 'N',
-    Equilibrate = 'E',
-};
-
-// -----------------------------------------------------------------------------
-// geesx, trsen
-enum class Sense {
-    None        = 'N',
-    Eigenvalues = 'E',
-    Subspace    = 'V',
-    Both        = 'B',
-};
-
-// -----------------------------------------------------------------------------
-// disna
-enum class JobCond {
-    EigenVec         = 'E',
-    LeftSingularVec  = 'L',
-    RightSingularVec = 'R',
-};
-
-// -----------------------------------------------------------------------------
-// {ge,gg}{bak,bal}
-enum class Balance {
-    None        = 'N',
-    Permute     = 'P',
-    Scale       = 'S',
-    Both        = 'B',
-};
-
-// -----------------------------------------------------------------------------
-// stebz, larrd, stein docs
-enum class Order {
-    Block       = 'B',
-    Entire      = 'E',
-};
-
-// -----------------------------------------------------------------------------
-// check_ortho (LAPACK testing zunt01)
-enum class RowCol {
-    Col = 'C',
-    Row = 'R',
-};
+// Constants
+constexpr left_side_t left_side { };
+constexpr right_side_t right_side { };
 
 } // namespace lapack
 

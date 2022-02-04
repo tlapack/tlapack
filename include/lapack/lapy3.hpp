@@ -27,20 +27,28 @@ namespace lapack {
  * 
  * @ingroup auxiliary
  */
-template< typename real_t >
-real_t lapy3(
-    real_t x, real_t y , real_t z )
+template< class TX, class TY, class TZ,
+    enable_if_t<(
+    /* Requires: */
+        ! is_complex<TX>::value &&
+        ! is_complex<TY>::value &&
+        ! is_complex<TZ>::value
+    ), int > = 0 >
+real_type<TX,TY,TZ> lapy3(
+    const TX& x, const TY& y, const TZ& z )
 {
+    // using
+    using real_t = real_type<TX,TY,TZ>;
     using blas::abs;
     using blas::sqrt;
     using blas::max;
 
     // constants
-    const real_t zero(0.0);
-    const real_t xabs = abs(x);
-    const real_t yabs = abs(y);
-    const real_t zabs = abs(z);
-    const real_t w = max( xabs, yabs, zabs );
+    const real_t zero( 0 );
+    const auto xabs = abs(x);
+    const auto yabs = abs(y);
+    const auto zabs = abs(z);
+    const auto w = max( xabs, yabs, zabs );
 
     return ( w == zero )
         // W can be zero for max(0,nan,0)

@@ -37,35 +37,25 @@ namespace blas {
  *
  * @ingroup dot
  */
-template< typename TX, typename TY >
-scalar_type<TX, TY> dot(
-    blas::idx_t n,
-    TX const *x, blas::int_t incx,
-    TY const *y, blas::int_t incy )
+template< class vectorX_t, class vectorY_t >
+auto dot( const vectorX_t& x, const vectorY_t& y )
 {
-    typedef scalar_type<TX, TY> scalar_t;
+    using T = scalar_type<
+        type_t< vectorX_t >,
+        type_t< vectorY_t >
+    >;
+    using idx_t = size_type< vectorX_t >;
+
+    // constants
+    const idx_t n = size(x);
 
     // check arguments
-    blas_error_if( incx == 0 );
-    blas_error_if( incy == 0 );
+    blas_error_if( size(y) < n );
 
-    scalar_t result( 0.0 );
-    if (incx == 1 && incy == 1) {
-        // unit stride
-        for (idx_t i = 0; i < n; ++i) {
-            result += conj(x[i]) * y[i];
-        }
-    }
-    else {
-        // non-unit stride
-        idx_t ix = (incx > 0 ? 0 : (-n + 1)*incx);
-        idx_t iy = (incy > 0 ? 0 : (-n + 1)*incy);
-        for (idx_t i = 0; i < n; ++i) {
-            result += conj(x[ix]) * y[iy];
-            ix += incx;
-            iy += incy;
-        }
-    }
+    T result( 0.0 );
+    for (idx_t i = 0; i < n; ++i)
+        result += conj(x[i]) * y[i];
+
     return result;
 }
 

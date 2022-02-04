@@ -110,7 +110,7 @@ if( EXISTS "${lapackpp_TEST_DIR}/test.cc" )
     # ${lapackpp_TEST_DIR}/test_lantr.cc
     ${lapackpp_TEST_DIR}/test_larf.cc
     ${lapackpp_TEST_DIR}/test_larfb.cc
-    ${lapackpp_TEST_DIR}/test_larfg.cc
+    # ${lapackpp_TEST_DIR}/test_larfg.cc  # Disabled because the forward errors don't make much sense in this case 
     # ${lapackpp_TEST_DIR}/test_larfgp.cc
     ${lapackpp_TEST_DIR}/test_larft.cc
     # ${lapackpp_TEST_DIR}/test_larfx.cc
@@ -209,5 +209,9 @@ if( EXISTS "${lapackpp_TEST_DIR}/test.cc" )
       cp ${CMAKE_CURRENT_SOURCE_DIR}/run_lapackpp_tester.py
          ${CMAKE_CURRENT_BINARY_DIR}/run_lapackpp_tester.py
   )
+
+  enable_testing()
+  add_test( NAME lapackpp_test
+    COMMAND ${CMAKE_CURRENT_BINARY_DIR}/run_lapackpp_tester.py --quick )
 
 endif()

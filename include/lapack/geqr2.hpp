@@ -20,107 +20,6 @@ namespace lapack {
 
 /** Computes a QR factorization of a matrix A.
  * 
- * @param work Vector of size n-1.
- * @see geqr2( blas::idx_t, blas::idx_t, TA*, blas::idx_t, TA* )
- * 
- * @ingroup geqrf
- */
-template< typename TA >
-int geqr2(
-    blas::idx_t m, blas::idx_t n,
-    TA* A, blas::idx_t lda,
-    TA* tau,
-    TA* work )
-{
-    #define A(i_, j_) A[ (i_) + (j_)*lda ]
-
-    // Local parameters
-    int info = 0;
-
-    // constants
-    const TA one( 1.0 );
-
-    // check arguments
-    lapack_error_if( m < 0, -1 );
-    lapack_error_if( n < 0, -2 );
-    lapack_error_if( lda < m, -4 );
-
-    // quick return
-    if (n <= 0) return 0;
-
-	const idx_t k = std::min<idx_t>( m, n-1 );
-    for(idx_t i = 0; i < k; ++i) {
-
-        larfg( m-i, A(i,i), &(A(i+1,i)), 1, tau[i] );
-
-        TA alpha = A(i,i);
-        A(i,i) = one;
-
-        info = larf( Side::Left, m-i, n-i-1, &(A(i,i)), 1, tau[i], &(A(i,i+1)), lda, work+i );
-
-        A(i,i) = alpha;
-	}
-    if( n-1 < m )
-        larfg( m-n+1, A(n-1,n-1), &(A(n,n-1)), 1, tau[n-1] );
-
-    #undef A
-
-    return (info == 0) ? 0 : 1;
-}
-
-/** Computes a QR factorization of a complex matrix A.
- * 
- * @tparam real_t floating-point type.
- * Similar to @see geqr2( blas::idx_t, blas::idx_t, TA*, blas::idx_t, TA*, TA* )
- * but, here, A is complex and tau is real.
- * 
- * @note The imaginary part of tau is set to zero.
- * 
- * @ingroup geqrf
- */
-template< typename real_t >
-int geqr2(
-    blas::idx_t m, blas::idx_t n,
-    std::complex<real_t>* A, blas::idx_t lda,
-    real_t* tau,
-    std::complex<real_t>* work )
-{
-    typedef std::complex<real_t> scalar_t;
-    #define A(i_, j_) A[ (i_) + (j_)*lda ]
-
-    // constants
-    const scalar_t one( 1.0 );
-
-    // check arguments
-    lapack_error_if( m < 0, -1 );
-    lapack_error_if( n < 0, -2 );
-    lapack_error_if( lda < m, -4 );
-
-    // quick return
-    if (n <= 0) return 0;
-
-	const idx_t k = std::min<idx_t>( m, n-1 );
-    for(idx_t i = 0; i < k; ++i) {
-
-        larfg( m-i, A(i,i), &(A(i+1,i)), 1, tau[i] );
-
-        scalar_t alpha = A(i,i);
-        A(i,i) = one;
-
-        larf( Side::Left, m-i, n-i-1, &(A(i,i)), 1, tau[i], &(A(i,i+1)), lda, work+i );
-
-        A(i,i) = alpha;
-	}
-    if( n-1 < m )
-        larfg( m-n+1, A(n-1,n-1), &(A(n,n-1)), 1, tau[n-1] );
-
-    #undef A
-
-    return 0;
-}
-
-/** Computes a QR factorization of a matrix A.
- * 
  * The matrix Q is represented as a product of elementary reflectors
  * \[
  *          Q = H_1 H_2 ... H_k,
@@ -139,54 +38,72 @@ int geqr2(
  * @return  0 if success
  * @return -i if the ith argument is invalid
  * 
- * @param[in] m The number of rows of the matrix A.
- * @param[in] n The number of columns of the matrix A.
  * @param[in,out] A m-by-n matrix.
  *      On exit, the elements on and above the diagonal of the array
  *      contain the min(m,n)-by-n upper trapezoidal matrix R
  *      (R is upper triangular if m >= n); the elements below the diagonal,
  *      with the array tau, represent the unitary matrix Q as a
  *      product of elementary reflectors.
- * @param[in] lda The leading dimension of A. lda >= max(1,m).
  * @param[out] tau Real vector of length min(m,n).
  *      The scalar factors of the elementary reflectors.
- *      The subarray tau[1:n-1] is used as workspace.
+ *      If
+ *          n-1 < m and
+ *          type_t<matrix_t> == type_t<vector_t>
+ *      then one may use tau[1:n] as the workspace.
+ * 
+ * @param work Vector of size n-1.
  * 
  * @ingroup geqrf
  */
-template< typename TA >
-inline int geqr2(
-    blas::idx_t m, blas::idx_t n,
-    TA* A, blas::idx_t lda,
-    TA* tau )
+template< class matrix_t, class vector_t, class work_t >
+int geqr2( matrix_t& A, vector_t &tau, work_t &work )
 {
-    return geqr2( m, n, A, lda, tau, tau+1 );
-}
+    using TA    = type_t< matrix_t >;
+    using idx_t = size_type< matrix_t >;
+    using pair  = std::pair<idx_t,idx_t>;
 
-/** Computes a QR factorization of a complex matrix A.
- * 
- * @tparam real_t floating-point type.
- * Similar to @see geqr2( blas::idx_t, blas::idx_t, TA*, blas::idx_t, TA* )
- * but, here, A is complex and tau is real.
- * 
- * @note The imaginary part of tau is set to zero.
- * 
- * @ingroup geqrf
- */
-template< typename real_t >
-int geqr2(
-    blas::idx_t m, blas::idx_t n,
-    std::complex<real_t>* A, blas::idx_t lda,
-    real_t* tau )
-{
-    int info = 0;
-    std::complex<real_t>* work
-        = new std::complex<real_t>[ (n > 0) ? n-1 : 0 ];
+    // constants
+    const TA one( 1 );
+    const auto m = nrows(A);
+    const auto n = ncols(A);
+    const auto k = std::min<idx_t>( m, n-1 );
 
-    info = geqr2( m, n, A, lda, tau, work );
+    // check arguments
+    lapack_error_if( size(tau)  < std::min<idx_t>( m, n ), -2 );
+    lapack_error_if( size(work) < n-1, -3 );
 
-    delete[] work;
-    return info;
+    // quick return
+    if (n <= 0) return 0;
+
+    for(idx_t i = 0; i < k; ++i) {
+
+        // Define x := A[i+1:m,i]
+        auto x = subvector( col( A, i ), pair(i+1,m) );
+
+        // Generate the (i+1)-th elementary Household reflection on x
+        larfg( A(i,i), x, tau[i] );
+
+        const auto alpha = A(i,i);
+        A(i,i) = one;
+
+        // Define v := A[i:m,i] and C := A[i:m,i+1:n], and w := work[i:n-1]
+        const auto v = subvector( col( A, i ), pair(i,m) );
+              auto C = submatrix( A, pair(i,m), pair(i+1,n) );
+              auto w = subvector( work, pair(i,n-1) );
+
+        // C := I - tau_i v v^H
+        larf( left_side, v, tau[i], C, w );
+
+        A(i,i) = alpha;
+	}
+    if( n-1 < m ) {
+        // Define x := A[n:m,n-1]
+        auto x = subvector( col( A, n-1 ), pair(n,m) );
+        // Generate the n-th elementary Household reflection on x
+        larfg( A(n-1,n-1), x, tau(n-1) );
+    }
+
+    return 0;
 }
 
 } // lapack

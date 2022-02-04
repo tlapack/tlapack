@@ -52,22 +52,23 @@ namespace lapack {
  * 
  * @ingroup
  */
-template< typename TX >
+template< class vector_t >
 void lassq(
-    blas::idx_t n,
-    TX const* x, blas::int_t incx,
-    real_type<TX> &scl,
-    real_type<TX> &sumsq)
+    const vector_t& x,
+    real_type< type_t<vector_t> > &scl,
+    real_type< type_t<vector_t> > &sumsq)
 {
-    typedef real_type<TX> real_t;
+    using real_t = real_type< type_t<vector_t> >;
+    using idx_t  = size_type< vector_t >;
     using blas::isnan;
     using blas::sqrt;
 
-    #define SQUARE(x) (x)*(x)
+    // constants
+    const idx_t n = size(x);
 
     // constants
-    const real_t zero(0.0);
-    const real_t one(1.0);
+    const real_t zero( 0 );
+    const real_t one( 1 );
     const real_t tsml = blas::blue_min<real_t>();
     const real_t tbig = blas::blue_max<real_t>();
     const real_t ssml = blas::blue_scalingMin<real_t>();
@@ -96,30 +97,27 @@ void lassq(
     real_t asml = zero;
     real_t amed = zero;
     real_t abig = zero;
-    idx_t ix = (incx > 0 ? 0 : (-n + 1)*incx);
 
     for (idx_t i = 0; i < n; ++i)
     {
-        real_t ax = blas::abs( x[ix] ); 
+        real_t ax = blas::abs( x[i] );
         if( ax > tbig )
-            abig += SQUARE(ax*sbig);
+            abig += (ax*sbig) * (ax*sbig);
         else if( ax < tsml ) {
-            if( abig == zero ) asml += SQUARE(ax*ssml);
+            if( abig == zero ) asml += (ax*ssml) * (ax*ssml);
         } else
-            amed += SQUARE(ax);
-        ix += incx;
+            amed += ax * ax;
     }
 
     // Put the existing sum of squares into one of the accumulators
     if( sumsq > zero ) {
         real_t ax = scl * sqrt( sumsq );
         if( ax > tbig )
-            abig += SQUARE(scl*sbig) * sumsq;
+            abig += ((scl*sbig) * (scl*sbig)) * sumsq;
         else if( ax < tsml ) {
-            if( abig == zero ) asml += SQUARE(scl*ssml) * sumsq;
+            if( abig == zero ) asml += ((scl*ssml) * (scl*ssml)) * sumsq;
         } else
-            amed += SQUARE(scl) * sumsq;
-        ix += incx;
+            amed += (scl * scl) * sumsq;
     }
 
     // Combine abig and amed or amed and asml if
@@ -149,7 +147,7 @@ void lassq(
             }
 
             scl = one;
-            sumsq = SQUARE(ymax) * ( one + SQUARE(ymin/ymax) );
+            sumsq = (ymax * ymax) * ( one + (ymin/ymax) * (ymin/ymax) );
         }
         else {
             scl = one / ssml;
@@ -161,8 +159,6 @@ void lassq(
         scl = one;
         sumsq = amed;
     }
-
-    #undef SQUARE
 }
 
 } // lapack

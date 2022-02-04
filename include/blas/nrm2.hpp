@@ -38,21 +38,19 @@ namespace blas {
  *
  * @ingroup nrm2
  */
-template< typename T >
-real_type<T>
-nrm2(
-    blas::idx_t n,
-    T const * x, blas::int_t incx )
+template< class vector_t >
+real_type< type_t<vector_t> >
+nrm2( const vector_t& x )
 {
-    typedef real_type<T> real_t;
-    #define SQUARE(x) (x)*(x)
-
-    // check arguments
-    blas_error_if( incx <= 0 );
+    using real_t = real_type< type_t<vector_t> >;
+    using idx_t  = size_type< vector_t >;
 
     // constants
-    const real_t zero(0.0);
-    const real_t one(1.0);
+    const idx_t n = size(x);
+
+    // constants
+    const real_t zero( 0 );
+    const real_t one( 1 );
     const real_t tsml = blas::blue_min<real_t>();
     const real_t tbig = blas::blue_max<real_t>();
     const real_t ssml = blas::blue_scalingMin<real_t>();
@@ -61,6 +59,9 @@ nrm2(
     // scaled sum of squares
     real_t scl = one;
     real_t sumsq = zero;
+
+    // quick return
+    if( n <= 0 ) return zero;
 
     // Compute the sum of squares in 3 accumulators:
     //    abig -- sums of squares scaled down to avoid overflow
@@ -73,33 +74,15 @@ nrm2(
     real_t amed = zero;
     real_t abig = zero;
 
-    if (incx == 1) {
-        // unit stride
-        for (idx_t i = 0; i < n; ++i)
-        {
-            real_t ax = blas::abs( x[i] );
-            if( ax > tbig )
-                abig += SQUARE(ax*sbig);
-            else if( ax < tsml ) {
-                if( abig == zero ) asml += SQUARE(ax*ssml);
-            } else
-                amed += SQUARE(ax);
-        }
-    }
-    else {
-        // non-unit stride
-        idx_t ix = 0;
-        for (idx_t i = 0; i < n; ++i)
-        {
-            real_t ax = blas::abs( x[ix] ); 
-            if( ax > tbig )
-                abig += SQUARE(ax*sbig);
-            else if( ax < tsml ) {
-                if( abig == zero ) asml += SQUARE(ax*ssml);
-            } else
-                amed += SQUARE(ax);
-            ix += incx;
-        }
+    for (idx_t i = 0; i < n; ++i)
+    {
+        real_t ax = blas::abs( x[i] );
+        if( ax > tbig )
+            abig += (ax*sbig) * (ax*sbig);
+        else if( ax < tsml ) {
+            if( abig == zero ) asml += (ax*ssml) * (ax*ssml);
+        } else
+            amed += ax * ax;
     }
 
     // Combine abig and amed or amed and asml if
@@ -129,7 +112,7 @@ nrm2(
             }
 
             scl = one;
-            sumsq = SQUARE(ymax) * ( one + SQUARE(ymin/ymax) );
+            sumsq = (ymax * ymax) * ( one + (ymin/ymax) * (ymin/ymax) );
         }
         else {
             scl = one / ssml;
@@ -141,8 +124,6 @@ nrm2(
         scl = one;
         sumsq = amed;
     }
-
-    #undef SQUARE
 
     return scl * sqrt( sumsq );
 }

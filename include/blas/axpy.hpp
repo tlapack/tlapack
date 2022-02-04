@@ -39,39 +39,21 @@ namespace blas {
  *
  * @ingroup axpy
  */
-template< typename TX, typename TY >
+template< class vectorX_t, class vectorY_t, class alpha_t >
 void axpy(
-    blas::idx_t n,
-    blas::scalar_type<TX, TY> alpha,
-    TX const *x, blas::int_t incx,
-    TY       *y, blas::int_t incy )
+    const alpha_t& alpha,
+    const vectorX_t& x, vectorY_t& y )
 {
-    typedef blas::scalar_type<TX, TY> scalar_t;
+    using idx_t = size_type< vectorY_t >;
+
+    // constants
+    const idx_t n = size(y);
 
     // check arguments
-    blas_error_if( incx == 0 );
-    blas_error_if( incy == 0 );
+    blas_error_if( size(x) != n );
 
-    // quick return
-    if (alpha == scalar_t(0))
-        return;
-
-    if (incx == 1 && incy == 1) {
-        // unit stride
-        for (idx_t i = 0; i < n; ++i) {
-            y[i] += alpha*x[i];
-        }
-    }
-    else {
-        // non-unit stride
-        idx_t ix = (incx > 0 ? 0 : (-n + 1)*incx);
-        idx_t iy = (incy > 0 ? 0 : (-n + 1)*incy);
-        for (idx_t i = 0; i < n; ++i) {
-            y[iy] += alpha * x[ix];
-            ix += incx;
-            iy += incy;
-        }
-    }
+    for (idx_t i = 0; i < n; ++i)
+        y[i] += alpha * x[i];
 }
 
 }  // namespace blas

@@ -80,123 +80,158 @@ namespace lapack {
  * 
  * @ingroup auxiliary
  */
-template <typename scalar_t>
+template< 
+    class direction_t, class storage_t,
+    class matrixV_t, class vector_t, class matrixT_t,
+    enable_if_t<(
+    /* Requires: */
+    (
+        is_same_v< direction_t, forward_t > || 
+        is_same_v< direction_t, backward_t > 
+    ) && (
+        is_same_v< storage_t, columnwise_storage_t > || 
+        is_same_v< storage_t, rowwise_storage_t >
+    )
+    ), int > = 0
+>
 int larft(
-    Direction direct, StoreV storeV,
-    idx_t n, idx_t k,
-    const scalar_t *V, idx_t ldV,
-    const scalar_t *tau,
-    scalar_t *T, idx_t ldT)
+    direction_t direction, storage_t storeMode,
+    const matrixV_t& V, const vector_t& tau, matrixT_t& T)
 {
+    // data traits
+    using scalar_t  = type_t< matrixT_t >;
+    using tau_t     = type_t< vector_t >;
+    using idx_t     = size_type< matrixV_t >;
+
+    // using
     using blas::conj;
     using blas::max;
     using blas::min;
+    using blas::gemm;
+    using blas::gemv;
+    using blas::trmv;
+    using pair = std::pair<idx_t,idx_t>;
 
     // constants
-    const scalar_t one(1.0);
-    const scalar_t zero(0.0);
+    const scalar_t one(1);
+    const scalar_t zero(0);
+    const tau_t    tzero(0);
+    const auto n    = (is_same_v< storage_t, columnwise_storage_t >)
+                    ? nrows( V )
+                    : ncols( V );
+    const auto k    = (is_same_v< storage_t, columnwise_storage_t >)
+                    ? ncols( V )
+                    : nrows( V );
 
     // check arguments
-    lapack_error_if( direct != Direction::Forward &&
-                     direct != Direction::Backward, -1 );
-    lapack_error_if( storeV != StoreV::Columnwise &&
-                     storeV != StoreV::Rowwise, -2 );
-    lapack_error_if( n < 0, -3 );
-    lapack_error_if( k < 1, -4 );
-    lapack_error_if( ldV < ((storeV == StoreV::Columnwise) ? n : k), -6 );
-    lapack_error_if( ldT < k, -9 );
+    lapack_error_if( size( tau ) != k, -4 );
+    lapack_error_if( nrows( T ) != k ||
+                     ncols( T ) != k, -5 );
 
     // Quick return
-    if (n == 0)
+    if (n == 0 || k == 0)
         return 0;
 
-    #define _V(i_, j_) V[ (i_) + (j_)*ldV ]
-    #define _T(i_, j_) T[ (i_) + (j_)*ldT ]
-
-    if (direct == Direction::Forward) {
-        for (idx_t i = 0; i < k; ++i) {
-            if (tau[i] == zero) {
+    if (is_same_v< direction_t, forward_t >) {
+        T(0,0) = tau(0);
+        for (idx_t i = 1; i < k; ++i) {
+            auto Ti = subvector( col( T, i ), pair(0,i) );
+            if (tau[i] == tzero) {
                 // H(i)  =  I
-                for (int j = 0; j <= i; ++j)
-                    _T(j,i) = zero;
+                for (idx_t j = 0; j <= i; ++j)
+                    T(j,i) = zero;
             }
             else {
                 // General case
-                if (storeV == StoreV::Columnwise) {
+                if (is_same_v< storage_t, columnwise_storage_t >) {
                     for (idx_t j = 0; j < i; ++j)
-                        _T(j,i) = -tau[i] * conj(_V(i,j));
-                    // T(0:i,i) := - tau(i) * V(i:j,0:i)**H * V(i:j,i)
-                    blas::gemv( 
-                        Layout::ColMajor, Op::ConjTrans, 
-                        n-i-1, i, -tau[i], &_V(i+1,0), ldV,
-                        &_V(i+1,i), 1, one, &_T(0,i), 1);
+                        T(j,i) = -tau[i] * conj(V(i,j));
+                    // T(0:i,i) := - tau[i] V(i+1:n,0:i)^H V(i+1:n,i)
+                    gemv( conjTranspose,
+                        -tau[i],
+                        submatrix( V, pair(i+1,n), pair(0,i) ),
+                        subvector( col( V, i ), pair(i+1,n) ),
+                        one, Ti
+                    );
                 }
-                else { // storeV==StoreV::Rowwise
+                else {
                     for (idx_t j = 0; j < i; ++j)
-                        _T(j,i) = -tau[i] * _V(j,i);
-                    // T(0:i,i) := - tau(i) * V(0:i,i:j) * V(i,i:j)**H
-                    if( blas::is_complex<scalar_t>::value ) {
-                        blas::gemm(
-                            Layout::ColMajor, Op::NoTrans, Op::ConjTrans, 
-                            i, 1, n-i-1, -tau[i], &_V(0,i+1), ldV, 
-                            &_V(i,i+1), ldV, one, &_T(0,i), ldT);
+                        T(j,i) = -tau[i] * V(j,i);
+                    // T(0:i,i) := - tau[i] V(0:i,i:n) V(i,i+1:n)^H
+                    if( is_complex<scalar_t>::value ) {
+                        auto matrixTi = submatrix( T, pair(0,i), pair(i,i+1) );
+                        gemm( noTranspose, conjTranspose,
+                            -tau[i],
+                            submatrix( V, pair(0,i), pair(i+1,n) ),
+                            submatrix( V, pair(i,i+1), pair(i+1,n) ),
+                            one, matrixTi
+                        );
                     } else {
-                        blas::gemv(
-                            Layout::ColMajor, Op::NoTrans,
-                            i, n-i-1, -tau[i], &_V(0,i+1), ldV, 
-                            &_V(i,i+1), ldV, one, &_T(0,i), 1);
+                        gemv( noTranspose,
+                            -tau[i],
+                            submatrix( V, pair(0,i), pair(i+1,n) ),
+                            subvector( row( V, i ), pair(i+1,n) ),
+                            one, Ti
+                        );
                     }
                 }
                 // T(0:i,i) := T(0:i,0:i) * T(0:i,i)
-                blas::trmv( 
-                    Layout::ColMajor, Uplo::Upper, Op::NoTrans, Diag::NonUnit, 
-                    i, T, ldT, &_T(0,i), 1 );
-                _T(i,i) = tau[i];
+                trmv( upper_triangle, noTranspose, nonUnit_diagonal,
+                    submatrix( T, pair(0,i), pair(0,i) ), Ti 
+                );
+                T(i,i) = tau[i];
             }
         }
     }
     else { // direct==Direction::Backward
-        _T(k-1,k-1) = tau[k-1];
+        T(k-1,k-1) = tau(k-1);
         for (idx_t i = k-2; i != idx_t(-1); --i) {
-            if (tau[i] == zero) {
+            auto Ti = subvector( col( T, i ), pair(i+1,k) );
+            if (tau[i] == tzero) {
                 for (idx_t j = i; j < k; ++j)
-                    _T(j,i) = zero;
+                    T(j,i) = zero;
             }
             else {
-                if (storeV == StoreV::Columnwise) {
+                if (is_same_v< storage_t, columnwise_storage_t >) {
                     for (idx_t j = i+1; j < k; ++j)
-                        _T(j,i) = -tau[i] * conj(_V(n-k+i,j));
-                    blas::gemv(
-                        Layout::ColMajor, Op::ConjTrans, 
-                        n-k+i, k-i-1, -tau[i], &_V(0,i+1), ldV,
-                        &_V(0,i), 1, one, &_T(i+1,i), 1);
+                        T(j,i) = -tau[i] * conj(V(n-k+i,j));
+                    // T(i+1:k,i) := - tau[i] V(0:n-k+i,i+1:k)^H V(0:n-k+i,i)
+                    gemv( conjTranspose,
+                        -tau[i],
+                        submatrix( V, pair(0,n-k+i), pair(i+1,k) ),
+                        subvector( col( V, i ), pair(0,n-k+i) ),
+                        one, Ti
+                    );
                 }
-                else { // storeV==StoreV::Rowwise
+                else {
                     for (idx_t j = i+1; j < k; ++j)
-                        _T(j,i) = -tau[i] * _V(j,n-k+i);
+                        T(j,i) = -tau[i] * V(j,n-k+i);
+                    // T(i+1:k,i) := - tau[i] V(i+1:k,0:n-k+i) V(i,0:n-k+i)^H
                     if( blas::is_complex<scalar_t>::value ) {
-                        blas::gemm(
-                            Layout::ColMajor, Op::NoTrans, Op::ConjTrans, 
-                            k-i-1, 1, n-k+i, -tau[i], &_V(i+1,0), ldV,
-                            &_V(i,0), ldV, one, &_T(i+1,i), ldT);
+                        auto matrixTi = submatrix( T, pair(i+1,k), pair(i,i+1) );
+                        gemm( noTranspose, conjTranspose,
+                            -tau[i],
+                            submatrix( V, pair(i+1,k), pair(0,n-k+i) ),
+                            submatrix( V, pair(i,i+1), pair(0,n-k+i) ),
+                            one, matrixTi
+                        );
                     } else {
-                        blas::gemv(
-                            Layout::ColMajor, Op::NoTrans, 
-                            k-i-1, n-k+i, -tau[i], &_V(i+1,0), ldV,
-                            &_V(i,0), ldV, one, &_T(i+1,i), 1);
+                        gemv( noTranspose,
+                            -tau[i],
+                            submatrix( V, pair(i+1,k), pair(0,n-k+i) ),
+                            subvector( row( V, i ), pair(0,n-k+i) ),
+                            one, Ti
+                        );
                     }
                 }
-                blas::trmv( 
-                    Layout::ColMajor, Uplo::Lower, Op::NoTrans, Diag::NonUnit, 
-                    k-i-1, &_T(i+1,i+1), ldT, &_T(i+1,i), 1);
+                trmv( lower_triangle, noTranspose, nonUnit_diagonal,
+                    submatrix( T, pair(i+1,k), pair(i+1,k) ), Ti 
+                );
+                T(i,i) = tau[i];
             }
-            _T(i,i) = tau[i];
         }
     }
     return 0;
-
-    #undef _V
-    #undef _T
 }
 
 }

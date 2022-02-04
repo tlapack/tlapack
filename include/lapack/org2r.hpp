@@ -29,25 +29,24 @@ namespace lapack {
  * 
  * @ingroup geqrf
  */
-template<typename TA>
+template< class matrix_t, class vector_t, class work_t >
 int org2r(
-    blas::idx_t m, blas::idx_t n, blas::idx_t k,
-    TA* A, blas::idx_t lda,
-    const TA* tau,
-    TA* work )
+    size_type< matrix_t > k, matrix_t& A, vector_t &tau, work_t &work )
 {
-    #define A(i_, j_) A[ (i_) + (j_)*lda ]
     using blas::scal;
-
+    using T      = type_t< matrix_t >;
+    using idx_t  = size_type< matrix_t >;
+    using pair  = std::pair<idx_t,idx_t>;
+    
     // constants
-    const TA zero( 0.0 );
-    const TA one( 1.0 );
+    const T zero( 0.0 );
+    const T one ( 1.0 );
+    const auto m = nrows(A);
+    const auto n = ncols(A);
 
     // check arguments
-    lapack_error_if( m < 0, -1 );
-    lapack_error_if( n < 0 || n > m, -2 );
-    lapack_error_if( k < 0 || k > n, -3 );
-    lapack_error_if( lda < m, -5 );
+    lapack_error_if( size(tau)  < std::min<idx_t>( m, n ), -2 );
+    lapack_error_if( size(work) < n-1, -3 );
 
     // quick return
     if (n <= 0) return 0;
@@ -64,10 +63,18 @@ int org2r(
         // Apply $H_{i+1}$ to $A( i:m-1, i:n-1 )$ from the left
         if ( i+1 < n ){
             A(i,i) = one;
-            larf( Side::Left, m-i, n-i-1, &(A(i,i)), 1, tau[i], &(A(i,i+1)), lda, work+i );
+
+            // Define v and C
+            auto v = subvector( col( A, i ), pair(i,m) );
+            auto C = submatrix( A, pair(i,m), pair(i+1,n) );
+            auto w = subvector( work, pair(i,n-1) );
+
+            larf( left_side, std::move(v), tau[i], C, w );
         }
-        if ( i+1 < m )
-            scal( m-i-1, -tau[i], &(A(i+1,i)), 1 );
+        if ( i+1 < m ) {
+            auto v = subvector( col( A, i ), pair(i+1,m) );
+            scal( -tau[i], v );
+        }
         A(i,i) = one - tau[i];
 
         // Set A( 0:i-1, i ) to zero
@@ -75,101 +82,7 @@ int org2r(
             A(l,i) = zero;
     }
 
-    #undef A
     return 0;
-}
-
-/** Generates a m-by-n matrix Q with orthogonal columns.
- * 
- * @param work Vector of size n-1.
- * @see org2r( blas::idx_t, blas::idx_t, blas::idx_t, TA*, blas::idx_t, const Ttau* )
- * 
- * @ingroup geqrf
- */
-template<typename TA>
-int org2r(
-    blas::idx_t m, blas::idx_t n, blas::idx_t k,
-    TA* A, blas::idx_t lda,
-    const real_type<TA>* tau,
-    TA* work )
-{
-    #define A(i_, j_) A[ (i_) + (j_)*lda ]
-
-    // constants
-    const TA zero( 0.0 );
-    const TA one( 1.0 );
-
-    // check arguments
-    lapack_error_if( m < 0, -1 );
-    lapack_error_if( n < 0 || n > m, -2 );
-    lapack_error_if( k < 0 || k > n, -3 );
-    lapack_error_if( lda < m, -5 );
-
-    // quick return
-    if (n <= 0) return 0;
-    
-    // Initialise columns k:n-1 to columns of the unit matrix
-    for (idx_t j = k; j < n; ++j) {
-        for (idx_t l = 0; l < m; ++l)
-	        A(l,j) = zero;
-        A(j,j) = one;
-    }
-
-    for (idx_t i = k-1; i != idx_t(-1); --i) {
-
-        // Apply $H_{i+1}$ to $A( i:m-1, i:n-1 )$ from the left
-        if ( i+1 < n ){
-            A(i,i) = one;
-            larf( Side::Left, m-i, n-i-1, &(A(i,i)), 1, tau[i], &(A(i,i+1)), lda, work+i );
-        }
-        if ( i+1 < m )
-            scal( m-i-1, -tau[i], &(A(i+1,i)), 1 );
-        A(i,i) = one - tau[i];
-
-        // Set A( 0:i-1, i ) to zero
-        for (idx_t l = 0; l < i; l++)
-            A(l,i) = zero;
-    }
-
-    #undef A
-    return 0;
-}
-
-/** Generates a m-by-n matrix Q with orthogonal columns.
- * \[
- *     Q  =  H_1 H_2 ... H_k
- * \]
- * 
- * @return  0 if success
- * @return -i if the ith argument is invalid
- * 
- * @param[in] m The number of rows of the matrix A. m>=0
- * @param[in] n The number of columns of the matrix A. n>=0
- * @param[in] k The number of elementary reflectors whose product defines the matrix Q. n>=k>=0
- * @param[in,out] A m-by-n matrix.
- *      On entry, the i-th column must contains the vector which defines the
- *      elementary reflector $H_i$, for $i=0,1,...,k-1$, as returned by GEQRF in the
- *      first k columns of its array argument A.
- *      On exit, the m-by-n matrix $Q  =  H_1 H_2 ... H_k$.
- * @param[in] lda The leading dimension of A. lda >= max(1,m).
- * @param[in] tau Real vector of length min(m,n).      
- *      The scalar factors of the elementary reflectors.
- * 
- * @ingroup geqrf
- */
-template< typename TA, typename Ttau >
-inline int org2r(
-    blas::idx_t m, blas::idx_t n, blas::idx_t k,
-    TA* A, blas::idx_t lda,
-    const Ttau* tau )
-{
-    int info = 0;
-    TA* work = new TA[ (n > 0) ? n-1 : 0 ];
-    
-    info = org2r( m, n, k, A, lda, tau, work );
-
-    delete[] work;
-    return info;
 }
 
 }

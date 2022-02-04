@@ -62,154 +62,72 @@ namespace blas {
  *
  * @ingroup symv
  */
-template< typename TA, typename TX, typename TY >
+template<
+    class matrixA_t,
+    class vectorX_t, class vectorY_t, 
+    class alpha_t, class beta_t >
 void symv(
-    blas::Layout layout,
-    blas::Uplo uplo,
-    blas::idx_t n,
-    blas::scalar_type<TA, TX, TY> alpha,
-    TA const *A, blas::idx_t lda,
-    TX const *x, blas::int_t incx,
-    blas::scalar_type<TA, TX, TY> beta,
-    TY *y, blas::int_t incy )
+    Uplo uplo,
+    const alpha_t alpha, const matrixA_t& A, const vectorX_t& x,
+    const beta_t& beta, vectorY_t& y )
 {
-    typedef blas::scalar_type<TA, TX, TY> scalar_t;
+    // data traits
+    using TA    = type_t< matrixA_t >;
+    using TX    = type_t< vectorX_t >;
+    using idx_t = size_type< matrixA_t >;
 
-    #define A(i_, j_) A[ (i_) + (j_)*lda ]
+    // using
+    using scalar_t = scalar_type<alpha_t,TA,TX>;
 
     // constants
-    const scalar_t zero( 0.0 );
-    const scalar_t one( 1.0 );
+    const idx_t n = nrows(A);
 
     // check arguments
-    blas_error_if( layout != Layout::ColMajor &&
-                   layout != Layout::RowMajor );
     blas_error_if( uplo != Uplo::Lower &&
                    uplo != Uplo::Upper );
-    blas_error_if( n < 0 );
-    blas_error_if( lda < n );
-    blas_error_if( incx == 0 );
-    blas_error_if( incy == 0 );
-
-    // quick return
-    if (n == 0 || (alpha == zero && beta == one))
-        return;
-
-    // for row major, swap lower <=> upper
-    if (layout == Layout::RowMajor) {
-        uplo = (uplo == Uplo::Lower ? Uplo::Upper : Uplo::Lower);
-    }
-
-    idx_t kx = (incx > 0 ? 0 : (-n + 1)*incx);
-    idx_t ky = (incy > 0 ? 0 : (-n + 1)*incy);
+    blas_error_if( ncols(A) == n );
+    blas_error_if( size(x)  == n );
+    blas_error_if( size(y)  == n );
 
     // form y = beta*y
-    if (beta != one) {
-        if (incy == 1) {
-            if (beta == zero) {
-                for (idx_t i = 0; i < n; ++i) {
-                    y[i] = zero;
-                }
-            }
-            else {
-                for (idx_t i = 0; i < n; ++i) {
-                    y[i] *= beta;
-                }
-            }
+    if (beta != beta_t(1)) {
+        if (beta == beta_t(0)) {
+            for (idx_t i = 0; i < n; ++i)
+                y[i] = beta_t(0);
         }
         else {
-            idx_t iy = ky;
-            if (beta == zero) {
-                for (idx_t i = 0; i < n; ++i) {
-                    y[iy] = zero;
-                    iy += incy;
-                }
-            }
-            else {
-                for (idx_t i = 0; i < n; ++i) {
-                    y[iy] *= beta;
-                    iy += incy;
-                }
-            }
+            for (idx_t i = 0; i < n; ++i)
+                y[i] *= beta;
         }
     }
-    if (alpha == zero)
-        return;
 
     if (uplo == Uplo::Upper) {
         // A is stored in upper triangle
         // form y += alpha * A * x
-        if (incx == 1 && incy == 1) {
             // unit stride
-            for (idx_t j = 0; j < n; ++j) {
-                scalar_t tmp1 = alpha*x[j];
-                scalar_t tmp2 = zero;
-                for (idx_t i = 0; i < j; ++i) {
-                    y[i] += tmp1 * A(i, j);
-                    tmp2 += A(i, j) * x[i];
-                }
-                y[j] += tmp1 * A(j, j) + alpha * tmp2;
+        for (idx_t j = 0; j < n; ++j) {
+            auto tmp1 = alpha*x[j];
+            auto tmp2 = scalar_t(0);
+            for (idx_t i = 0; i < j; ++i) {
+                y[i] += tmp1 * A(i,j);
+                tmp2 += A(i,j) * x[i];
             }
-        }
-        else {
-            // non-unit stride
-            idx_t jx = kx;
-            idx_t jy = ky;
-            for (idx_t j = 0; j < n; ++j) {
-                scalar_t tmp1 = alpha*x[jx];
-                scalar_t tmp2 = zero;
-                idx_t ix = kx;
-                idx_t iy = ky;
-                for (idx_t i = 0; i < j; ++i) {
-                    y[iy] += tmp1 * A(i, j);
-                    tmp2 += A(i, j) * x[ix];
-                    ix += incx;
-                    iy += incy;
-                }
-                y[jy] += tmp1 * A(j, j) + alpha * tmp2;
-                jx += incx;
-                jy += incy;
-            }
+            y[j] += tmp1 * A(j,j) + alpha * tmp2;
         }
     }
     else {
         // A is stored in lower triangle
         // form y += alpha * A * x
-        if (incx == 1 && incy == 1) {
-            // unit stride
-            for (idx_t j = 0; j < n; ++j) {
-                scalar_t tmp1 = alpha*x[j];
-                scalar_t tmp2 = zero;
-                for (idx_t i = j+1; i < n; ++i) {
-                    y[i] += tmp1 * A(i, j);
-                    tmp2 += A(i, j) * x[i];
-                }
-                y[j] += tmp1 * A(j, j) + alpha * tmp2;
+        for (idx_t j = 0; j < n; ++j) {
+            scalar_t tmp1 = alpha*x[j];
+            auto tmp2 = scalar_t(0);
+            for (idx_t i = j+1; i < n; ++i) {
+                y[i] += tmp1 * A(i,j);
+                tmp2 += A(i,j) * x[i];
             }
-        }
-        else {
-            // non-unit stride
-            idx_t jx = kx;
-            idx_t jy = ky;
-            for (idx_t j = 0; j < n; ++j) {
-                scalar_t tmp1 = alpha*x[jx];
-                scalar_t tmp2 = zero;
-                idx_t ix = jx;
-                idx_t iy = jy;
-                for (idx_t i = j+1; i < n; ++i) {
-                    ix += incx;
-                    iy += incy;
-                    y[iy] += tmp1 * A(i, j);
-                    tmp2 += A(i, j) * x[ix];
-                }
-                y[jy] += tmp1 * A(j, j) + alpha * tmp2;
-                jx += incx;
-                jy += incy;
-            }
+            y[j] += tmp1 * A(j,j) + alpha * tmp2;
         }
     }
-
-    #undef A
 }
 
 }  // namespace blas

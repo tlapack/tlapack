@@ -89,30 +89,24 @@ namespace blas {
  *
  * @ingroup trsm
  */
-template< typename TA, typename TB >
+template< class matrixA_t, class matrixB_t, class alpha_t >
 void trsm(
-    blas::Layout layout,
     blas::Side side,
     blas::Uplo uplo,
     blas::Op trans,
     blas::Diag diag,
-    blas::idx_t m,
-    blas::idx_t n,
-    blas::scalar_type<TA, TB> alpha,
-    TA const *A, blas::idx_t lda,
-    TB       *B, blas::idx_t ldb )
+    const alpha_t alpha,
+    const matrixA_t& A,
+    matrixB_t& B )
 {    
-    typedef blas::scalar_type<TA, TB> scalar_t;
-
-    #define A(i_, j_) A[ (i_) + (j_)*lda ]
-    #define B(i_, j_) B[ (i_) + (j_)*ldb ]
+    // data traits
+    using idx_t = size_type< matrixA_t >;
 
     // constants
-    const scalar_t zero( 0.0 );
+    const idx_t m = nrows(B);
+    const idx_t n = ncols(B);
 
     // check arguments
-    blas_error_if( layout != Layout::ColMajor &&
-                   layout != Layout::RowMajor );
     blas_error_if( side != Side::Left &&
                    side != Side::Right );
     blas_error_if( uplo != Uplo::Lower &&
@@ -122,44 +116,9 @@ void trsm(
                    trans != Op::ConjTrans );
     blas_error_if( diag != Diag::NonUnit &&
                    diag != Diag::Unit );
-    blas_error_if( m < 0 );
-    blas_error_if( n < 0 );
-    blas_error_if( lda < ((side == Side::Left) ? m : n) );
+    blas_error_if( nrows(A) != ncols(A) );
+    blas_error_if( nrows(A) != ((side == Side::Left) ? m : n) );
 
-    // adapt if row major
-    if (layout == Layout::RowMajor) {
-
-        // check remaining arguments
-        blas_error_if( ldb < n );
-
-        side = (side == Side::Left)
-            ? Side::Right
-            : Side::Left;
-        if (uplo == Uplo::Lower)
-            uplo = Uplo::Upper;
-        else if (uplo == Uplo::Upper)
-            uplo = Uplo::Lower;
-        std::swap( m , n );
-    }
-    else {
-        // check remaining arguments
-        blas_error_if( ldb < m );
-    }
-
-    // quick return
-    if (m == 0 || n == 0)
-        return;
-
-    // alpha == zero
-    if (alpha == zero) {
-        for(idx_t j = 0; j < n; ++j) {
-            for(idx_t i = 0; i < m; ++i)
-                B(i,j) = zero;
-        }
-        return;
-    }
-
-    // alpha != zero
     if (side == Side::Left) {
         if (trans == Op::NoTrans) {
             if (uplo == Uplo::Upper) {
@@ -191,7 +150,7 @@ void trsm(
             if (uplo == Uplo::Upper) {
                 for(idx_t j = 0; j < n; ++j) {
                     for(idx_t i = 0; i < m; ++i) {
-                        scalar_t sum = alpha*B(i,j);
+                        auto sum = alpha*B(i,j);
                         for(idx_t k = 0; k < i; ++k)
                             sum -= A(k,i)*B(k,j);
                         B(i,j) = (diag == Diag::NonUnit)
@@ -203,7 +162,7 @@ void trsm(
             else { // uplo == Uplo::Lower
                 for(idx_t j = 0; j < n; ++j) {
                     for(idx_t i = m-1; i != idx_t(-1); --i) {
-                        scalar_t sum = alpha*B(i,j);
+                        auto sum = alpha*B(i,j);
                         for(idx_t k = i+1; k < m; ++k)
                             sum -= A(k,i)*B(k,j);
                         B(i,j) = (diag == Diag::NonUnit)
@@ -217,7 +176,7 @@ void trsm(
             if (uplo == Uplo::Upper) {
                 for(idx_t j = 0; j < n; ++j) {
                     for(idx_t i = 0; i < m; ++i) {
-                        scalar_t sum = alpha*B(i,j);
+                        auto sum = alpha*B(i,j);
                         for(idx_t k = 0; k < i; ++k)
                             sum -= conj(A(k,i))*B(k,j);
                         B(i,j) = (diag == Diag::NonUnit)
@@ -229,7 +188,7 @@ void trsm(
             else { // uplo == Uplo::Lower
                 for(idx_t j = 0; j < n; ++j) {
                     for(idx_t i = m-1; i != idx_t(-1); --i) {
-                        scalar_t sum = alpha*B(i,j);
+                        auto sum = alpha*B(i,j);
                         for(idx_t k = i+1; k < m; ++k)
                             sum -= conj(A(k,i))*B(k,j);
                         B(i,j) = (diag == Diag::NonUnit)
@@ -332,9 +291,6 @@ void trsm(
             }
         }
     }
-
-    #undef A
-    #undef B
 }
 
 }  // namespace blas

@@ -384,12 +384,13 @@ std::vector< testsweeper::routines_t > routines = {
     // -----
     // auxiliary
     { "lacpy",              test_lacpy,     Section::aux },
+//     { "laed4",              test_laed4,     Section::aux },
     { "laset",              test_laset,     Section::aux },
 //     { "laswp",              test_laswp,     Section::aux },
     { "",                   nullptr,        Section::newline },
 
 //     // auxiliary: Householder
-    { "larfg",              test_larfg,     Section::aux_householder },
+//     { "larfg",              test_larfg,     Section::aux_householder },
 //     { "larfgp",             test_larfgp,    Section::aux_householder },
     { "larf",               test_larf,      Section::aux_householder },
 //     { "larfx",              test_larfx,     Section::aux_householder },
@@ -495,6 +496,7 @@ Params::Params():
 
     //          name,      w, p, type,            def,   min,     max, help
     dim       ( "dim",     6,    ParamType::List,          0, 1000000, "m by n by k dimensions" ),
+    i         ( "i",       6,    ParamType::List,   1,     0, 1000000, "i index (e.g., laed4)" ),
     l         ( "l",       6,    ParamType::List, 100,     0, 1000000, "l dimension (e.g., tpqrt)" ),
     ka        ( "ka",      6,    ParamType::List, 100,     0, 1000000, "bandwidth of A" ),
     kb        ( "kb",      6,    ParamType::List, 100,     0, 1000000, "bandwidth of B" ),

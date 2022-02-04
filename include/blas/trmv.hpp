@@ -21,13 +21,11 @@ namespace blas {
  *     $op(A) = A$,
  *     $op(A) = A^T$, or
  *     $op(A) = A^H$,
+ *     $op(A) = conj(A)$,
  * x is a vector,
  * and A is an n-by-n, unit or non-unit, upper or lower triangular matrix.
  *
  * Generic implementation for arbitrary data types.
- *
- * @param[in] layout
- *     Matrix storage, Layout::ColMajor or Layout::RowMajor.
  *
  * @param[in] uplo
  *     What part of the matrix A is referenced,
@@ -47,210 +45,90 @@ namespace blas {
  *                      The diagonal elements of A are not referenced.
  *     - Diag::NonUnit: A is not assumed to be unit triangular.
  *
- * @param[in] n
- *     Number of rows and columns of the matrix A. n >= 0.
- *
- * @param[in] A
- *     The n-by-n matrix A, stored in an lda-by-n array [RowMajor: n-by-lda].
- *
- * @param[in] lda
- *     Leading dimension of A. lda >= max(1, n).
- *
- * @param[in, out] x
- *     The n-element vector x, in an array of length (n-1)*abs(incx) + 1.
- *
- * @param[in] incx
- *     Stride between elements of x. incx must not be zero.
- *     If incx < 0, uses elements of x in reverse order: x(n-1), ..., x(0).
+ * @param[in] A matrix.
+ * @param[in,out] x vector.
  *
  * @ingroup trmv
  */
-template< typename TA, typename TX >
+template< class matrixA_t, class vectorX_t >
 void trmv(
-    blas::Layout layout,
-    blas::Uplo uplo,
-    blas::Op trans,
-    blas::Diag diag,
-    blas::idx_t n,
-    TA const *A, blas::idx_t lda,
-    TX       *x, blas::int_t incx )
+    Uplo uplo,
+    Op trans,
+    Diag diag,
+    const matrixA_t& A,
+    vectorX_t& x )
 {
-    #define A(i_, j_) A[ (i_) + (j_)*lda ]
+    // data traits
+    using TA    = type_t< matrixA_t >;
+    using TX    = type_t< vectorX_t >;
+    using idx_t = size_type< matrixA_t >;
+
+    // using
+    using scalar_t = scalar_type<TA,TX>;
+
+    // constants
+    const auto n = nrows(A);
+    const bool nonunit = (diag == Diag::NonUnit);
 
     // check arguments
-    blas_error_if( layout != Layout::ColMajor &&
-                   layout != Layout::RowMajor );
     blas_error_if( uplo != Uplo::Lower &&
                    uplo != Uplo::Upper );
     blas_error_if( trans != Op::NoTrans &&
                    trans != Op::Trans &&
-                   trans != Op::ConjTrans );
+                   trans != Op::ConjTrans &&
+                   trans != Op::Conj );
     blas_error_if( diag != Diag::NonUnit &&
                    diag != Diag::Unit );
-    blas_error_if( n < 0 );
-    blas_error_if( lda < n );
-    blas_error_if( incx == 0 );
+    blas_error_if( nrows(A) != ncols(A) );
+    blas_error_if( size(x) != n );
 
-    // quick return
-    if (n == 0)
-        return;
-
-    // for row major, swap lower <=> upper and
-    // A => A^T; A^T => A; A^H => A & conj
-    bool doconj = false;
-    if (layout == Layout::RowMajor) {
-        uplo = (uplo == Uplo::Lower ? Uplo::Upper : Uplo::Lower);
-        if (trans == Op::NoTrans) {
-            trans = Op::Trans;
-        }
-        else {
-            if (trans == Op::ConjTrans) {
-                doconj = true;
-            }
-            trans = Op::NoTrans;
-        }
-    }
-
-    bool nonunit = (diag == Diag::NonUnit);
-    idx_t kx = (incx > 0 ? 0 : (-n + 1)*incx);
-
-    if (trans == Op::NoTrans && ! doconj) {
+    if (trans == Op::NoTrans) {
         // Form x := A*x
         if (uplo == Uplo::Upper) {
             // upper
-            if (incx == 1) {
-                // unit stride
-                for (idx_t j = 0; j < n; ++j) {
-                    // note: NOT skipping if x[j] is zero, for consistent NAN handling
-                    TX tmp = x[j];
-                    for (idx_t i = 0; i < j; ++i) {
-                        x[i] += tmp * A(i, j);
-                    }
-                    if (nonunit) {
-                        x[j] *= A(j, j);
-                    }
-                }
-            }
-            else {
-                // non-unit stride
-                idx_t jx = kx;
-                for (idx_t j = 0; j < n; ++j) {
-                    // note: NOT skipping if x[j] is zero ...
-                    TX tmp = x[jx];
-                    idx_t ix = kx;
-                    for (idx_t i = 0; i < j; ++i) {
-                        x[ix] += tmp * A(i, j);
-                        ix += incx;
-                    }
-                    if (nonunit) {
-                        x[jx] *= A(j, j);
-                    }
-                    jx += incx;
-                }
+            for (idx_t j = 0; j < n; ++j) {
+                // note: NOT skipping if x[j] is zero, for consistent NAN handling
+                scalar_t tmp = x[j];
+                for (idx_t i = 0; i < j; ++i)
+                    x[i] += tmp * A(i,j);
+                if (nonunit)
+                    x[j] *= A(j,j);
             }
         }
         else {
             // lower
-            if (incx == 1) {
-                // unit stride
-                for (idx_t j = n-1; j != idx_t(-1); --j) {
-                    // note: NOT skipping if x[j] is zero ...
-                    TX tmp = x[j];
-                    for (idx_t i = n-1; i >= j+1; --i) {
-                        x[i] += tmp * A(i, j);
-                    }
-                    if (nonunit) {
-                        x[j] *= A(j, j);
-                    }
-                }
-            }
-            else {
-                // non-unit stride
-                kx += (n - 1)*incx;
-                idx_t jx = kx;
-                for (idx_t j = n-1; j != idx_t(-1); --j) {
-                    // note: NOT skipping if x[j] is zero ...
-                    TX tmp = x[jx];
-                    idx_t ix = kx;
-                    for (idx_t i = n-1; i >= j+1; --i) {
-                        x[ix] += tmp * A(i, j);
-                        ix -= incx;
-                    }
-                    if (nonunit) {
-                        x[jx] *= A(j, j);
-                    }
-                    jx -= incx;
-                }
+            for (idx_t j = n-1; j != idx_t(-1); --j) {
+                // note: NOT skipping if x[j] is zero ...
+                scalar_t tmp = x[j];
+                for (idx_t i = n-1; i >= j+1; --i)
+                    x[i] += tmp * A(i,j);
+                if (nonunit)
+                    x[j] *= A(j,j);
             }
         }
     }
-    else if (trans == Op::NoTrans && doconj) {
+    else if (trans == Op::Conj) {
         // Form x := A*x
         if (uplo == Uplo::Upper) {
             // upper
-            if (incx == 1) {
-                // unit stride
-                for (idx_t j = 0; j < n; ++j) {
-                    // note: NOT skipping if x[j] is zero, for consistent NAN handling
-                    TX tmp = x[j];
-                    for (idx_t i = 0; i < j; ++i) {
-                        x[i] += tmp * conj( A(i, j) );
-                    }
-                    if (nonunit) {
-                        x[j] *= conj( A(j, j) );
-                    }
-                }
-            }
-            else {
-                // non-unit stride
-                idx_t jx = kx;
-                for (idx_t j = 0; j < n; ++j) {
-                    // note: NOT skipping if x[j] is zero ...
-                    TX tmp = x[jx];
-                    idx_t ix = kx;
-                    for (idx_t i = 0; i < j; ++i) {
-                        x[ix] += tmp * conj( A(i, j) );
-                        ix += incx;
-                    }
-                    if (nonunit) {
-                        x[jx] *= conj( A(j, j) );
-                    }
-                    jx += incx;
-                }
+            for (idx_t j = 0; j < n; ++j) {
+                // note: NOT skipping if x[j] is zero, for consistent NAN handling
+                scalar_t tmp = x[j];
+                for (idx_t i = 0; i < j; ++i)
+                    x[i] += tmp * conj( A(i,j) );
+                if (nonunit)
+                    x[j] *= conj( A(j,j) );
             }
         }
         else {
             // lower
-            if (incx == 1) {
-                // unit stride
-                for (idx_t j = n-1; j != idx_t(-1); --j) {
-                    // note: NOT skipping if x[j] is zero ...
-                    TX tmp = x[j];
-                    for (idx_t i = n-1; i >= j+1; --i) {
-                        x[i] += tmp * conj( A(i, j) );
-                    }
-                    if (nonunit) {
-                        x[j] *= conj( A(j, j) );
-                    }
-                }
-            }
-            else {
-                // non-unit stride
-                kx += (n - 1)*incx;
-                idx_t jx = kx;
-                for (idx_t j = n-1; j != idx_t(-1); --j) {
-                    // note: NOT skipping if x[j] is zero ...
-                    TX tmp = x[jx];
-                    idx_t ix = kx;
-                    for (idx_t i = n-1; i >= j+1; --i) {
-                        x[ix] += tmp * conj( A(i, j) );
-                        ix -= incx;
-                    }
-                    if (nonunit) {
-                        x[jx] *= conj( A(j, j) );
-                    }
-                    jx -= incx;
-                }
+            for (idx_t j = n-1; j != idx_t(-1); --j) {
+                // note: NOT skipping if x[j] is zero ...
+                scalar_t tmp = x[j];
+                for (idx_t i = n-1; i >= j+1; --i)
+                    x[i] += tmp * conj( A(i,j) );
+                if (nonunit)
+                    x[j] *= conj( A(j,j) );
             }
         }
     }
@@ -258,68 +136,24 @@ void trmv(
         // Form  x := A^T * x
         if (uplo == Uplo::Upper) {
             // upper
-            if (incx == 1) {
-                // unit stride
-                for (idx_t j = n-1; j != idx_t(-1); --j) {
-                    TX tmp = x[j];
-                    if (nonunit) {
-                        tmp *= A(j, j);
-                    }
-                    for (idx_t i = j - 1; i != idx_t(-1); --i) {
-                        tmp += A(i, j) * x[i];
-                    }
-                    x[j] = tmp;
-                }
-            }
-            else {
-                // non-unit stride
-                idx_t jx = kx + (n - 1)*incx;
-                for (idx_t j = n-1; j != idx_t(-1); --j) {
-                    TX tmp = x[jx];
-                    idx_t ix = jx;
-                    if (nonunit) {
-                        tmp *= A(j, j);
-                    }
-                    for (idx_t i = j - 1; i != idx_t(-1); --i) {
-                        ix -= incx;
-                        tmp += A(i, j) * x[ix];
-                    }
-                    x[jx] = tmp;
-                    jx -= incx;
-                }
+            for (idx_t j = n-1; j != idx_t(-1); --j) {
+                scalar_t tmp = x[j];
+                if (nonunit)
+                    tmp *= A(j,j);
+                for (idx_t i = j - 1; i != idx_t(-1); --i)
+                    tmp += A(i,j) * x[i];
+                x[j] = tmp;
             }
         }
         else {
             // lower
-            if (incx == 1) {
-                // unit stride
-                for (idx_t j = 0; j < n; ++j) {
-                    TX tmp = x[j];
-                    if (nonunit) {
-                        tmp *= A(j, j);
-                    }
-                    for (idx_t i = j + 1; i < n; ++i) {
-                        tmp += A(i, j) * x[i];
-                    }
-                    x[j] = tmp;
-                }
-            }
-            else {
-                // non-unit stride
-                idx_t jx = kx;
-                for (idx_t j = 0; j < n; ++j) {
-                    TX tmp = x[jx];
-                    idx_t ix = jx;
-                    if (nonunit) {
-                        tmp *= A(j, j);
-                    }
-                    for (idx_t i = j + 1; i < n; ++i) {
-                        ix += incx;
-                        tmp += A(i, j) * x[ix];
-                    }
-                    x[jx] = tmp;
-                    jx += incx;
-                }
+            for (idx_t j = 0; j < n; ++j) {
+                scalar_t tmp = x[j];
+                if (nonunit)
+                    tmp *= A(j,j);
+                for (idx_t i = j + 1; i < n; ++i)
+                    tmp += A(i,j) * x[i];
+                x[j] = tmp;
             }
         }
     }
@@ -328,73 +162,27 @@ void trmv(
         // same code as above A^T * x case, except add conj()
         if (uplo == Uplo::Upper) {
             // upper
-            if (incx == 1) {
-                // unit stride
-                for (idx_t j = n-1; j != idx_t(-1); --j) {
-                    TX tmp = x[j];
-                    if (nonunit) {
-                        tmp *= conj( A(j, j) );
-                    }
-                    for (idx_t i = j - 1; i != idx_t(-1); --i) {
-                        tmp += conj( A(i, j) ) * x[i];
-                    }
-                    x[j] = tmp;
-                }
-            }
-            else {
-                // non-unit stride
-                idx_t jx = kx + (n - 1)*incx;
-                for (idx_t j = n-1; j != idx_t(-1); --j) {
-                    TX tmp = x[jx];
-                    idx_t ix = jx;
-                    if (nonunit) {
-                        tmp *= conj( A(j, j) );
-                    }
-                    for (idx_t i = j - 1; i != idx_t(-1); --i) {
-                        ix -= incx;
-                        tmp += conj( A(i, j) ) * x[ix];
-                    }
-                    x[jx] = tmp;
-                    jx -= incx;
-                }
+            for (idx_t j = n-1; j != idx_t(-1); --j) {
+                scalar_t tmp = x[j];
+                if (nonunit)
+                    tmp *= conj( A(j,j) );
+                for (idx_t i = j - 1; i != idx_t(-1); --i)
+                    tmp += conj( A(i,j) ) * x[i];
+                x[j] = tmp;
             }
         }
         else {
             // lower
-            if (incx == 1) {
-                // unit stride
-                for (idx_t j = 0; j < n; ++j) {
-                    TX tmp = x[j];
-                    if (nonunit) {
-                        tmp *= conj( A(j, j) );
-                    }
-                    for (idx_t i = j + 1; i < n; ++i) {
-                        tmp += conj( A(i, j) ) * x[i];
-                    }
-                    x[j] = tmp;
-                }
-            }
-            else {
-                // non-unit stride
-                idx_t jx = kx;
-                for (idx_t j = 0; j < n; ++j) {
-                    TX tmp = x[jx];
-                    idx_t ix = jx;
-                    if (nonunit) {
-                        tmp *= conj( A(j, j) );
-                    }
-                    for (idx_t i = j + 1; i < n; ++i) {
-                        ix += incx;
-                        tmp += conj( A(i, j) ) * x[ix];
-                    }
-                    x[jx] = tmp;
-                    jx += incx;
-                }
+            for (idx_t j = 0; j < n; ++j) {
+                scalar_t tmp = x[j];
+                if (nonunit)
+                    tmp *= conj( A(j,j) );
+                for (idx_t i = j + 1; i < n; ++i)
+                    tmp += conj( A(i,j) ) * x[i];
+                x[j] = tmp;
             }
         }
     }
-
-    #undef A
 }
 
 }  // namespace blas

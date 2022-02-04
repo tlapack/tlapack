@@ -31,26 +31,34 @@ namespace lapack {
  * 
  * @ingroup auxiliary
  */
-template< typename TA, typename TB >
-void lacpy(
-    Uplo uplo, blas::idx_t m, blas::idx_t n,
-    TA* A, blas::idx_t lda,
-    TB* B, blas::idx_t ldb )
+template< class uplo_t, class matrixA_t, class matrixB_t,
+    enable_if_t<(
+    /* Requires: */
+        is_same_v< uplo_t, upper_triangle_t > || 
+        is_same_v< uplo_t, lower_triangle_t > || 
+        is_same_v< uplo_t, general_matrix_t >
+    ), int > = 0
+>
+void lacpy( uplo_t uplo, const matrixA_t& A, matrixB_t& B )
 {
-    #define A(i_, j_) A[ (i_) + (j_)*lda ]
-    #define B(i_, j_) B[ (i_) + (j_)*ldb ]
+    // data traits
+    using idx_t = size_type< matrixA_t >;
 
-    if (uplo == Uplo::Upper) {
+    // constants
+    const auto m = nrows(A);
+    const auto n = ncols(A);
+
+    if( is_same_v< uplo_t, upper_triangle_t > ) {
         // Set the strictly upper triangular or trapezoidal part of B
         for (idx_t j = 0; j < n; ++j) {
-            const idx_t M = std::min<idx_t>( m, j+1 );
+            const auto M = std::min( m, j+1 );
             for (idx_t i = 0; i < M; ++i)
                 B(i,j) = A(i,j);
         }
     }
-    else if (uplo == Uplo::Lower) {
+    else if( is_same_v< uplo_t, lower_triangle_t > ) {
         // Set the strictly lower triangular or trapezoidal part of B
-        const idx_t N = std::min(m,n);
+        const auto N = std::min(m,n);
         for (idx_t j = 0; j < N; ++j)
             for (idx_t i = j; i < m; ++i)
                 B(i,j) = A(i,j);
@@ -60,36 +68,6 @@ void lacpy(
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = 0; i < m; ++i)
                 B(i,j) = A(i,j);
-    }
-
-    #undef A
-    #undef B
-}
-
-/** Copies a real matrix from A to B where A is either a full, upper triangular or lower triangular matrix.
- *
- * @param[in] matrixtype :
- *
- *        'U': A is assumed to be upper triangular; elements below the diagonal are not referenced.
- *        'L': A is assumed to be lower triangular; elements above the diagonal are not referenced.
- *        otherwise, A is assumed to be a full matrix.
- * 
- * @see lacpy( Uplo, blas::idx_t, blas::idx_t, TA*, blas::idx_t, TB* B, blas::idx_t )
- * 
- * @ingroup auxiliary
- */
-template< typename TA, typename TB >
-void inline lacpy(
-    MatrixType matrixtype, blas::idx_t m, blas::idx_t n,
-    TA* A, blas::idx_t lda,
-    TB* B, blas::idx_t ldb )
-{
-    if (matrixtype == MatrixType::Upper) {
-        lacpy(Uplo::Upper, m, n, A, lda, B, ldb);
-    } else if (matrixtype == MatrixType::Lower) {
-        lacpy(Uplo::Lower, m, n, A, lda, B, ldb);
-    } else {
-        lacpy(Uplo::General, m, n, A, lda, B, ldb);
     }
 }
 

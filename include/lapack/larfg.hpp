@@ -49,12 +49,15 @@ namespace lapack {
  * 
  * @ingroup auxiliary
  */
-template< typename T >
-void larfg(
-    blas::idx_t n, T &alpha, T *x, blas::int_t incx, T &tau )
+template< class vectorX_t, class alpha_t, class tau_t >
+void larfg( alpha_t& alpha, vectorX_t& x, tau_t& tau )
 {
-    typedef blas::real_type<T> real_t;
+    // data traits
+    using TX    = type_t< vectorX_t >;
+    using idx_t = size_type< vectorX_t >;
 
+    // using
+    using real_t = real_type< alpha_t, TX >;
     using blas::real;
     using blas::imag;
     using blas::abs;
@@ -65,58 +68,45 @@ void larfg(
     using blas::is_complex;
 
     // constants
-    const T one(1.0);
-    const T zero(0.0);
-    const real_t rzero(0.0);
+    const idx_t n = size(x) + 1;
+    const real_t one( 1 );
+    const real_t rzero( 0 );
     const real_t safemin  = safe_min<real_t>() / uroundoff<real_t>();
-    const real_t rsafemin = real_t(1.0) / safemin;
+    const real_t rsafemin = one / safemin;
 
-    tau = zero;
+    tau = tau_t( 0 );
     if (n > 0)
     {
-        int_t knt = 0;
-        real_t xnorm = nrm2( n-1, x, incx );
+        idx_t knt = 0;
+        real_t xnorm = nrm2( x );
         if ( xnorm > rzero || (imag(alpha) != rzero) )
         {
-            real_t temp = ( ! is_complex<T>::value )
+            real_t temp = ( ! is_complex<alpha_t>::value )
                         ? lapy2(real(alpha), xnorm)
                         : lapy3(real(alpha), imag(alpha), xnorm);
             real_t beta = (real(alpha) < rzero) ? temp : -temp;
             if (abs(beta) < safemin)
             {
-                while( abs(beta) < safemin )
+                while( (abs(beta) < safemin) && (knt < 20) )
                 {
                     knt++;
-                    scal( n-1, rsafemin, x, incx );
+                    scal( rsafemin, x );
                     beta *= rsafemin;
                     alpha *= rsafemin;
                 }
-                xnorm = nrm2( n-1, x, incx );
-                temp = ( ! is_complex<T>::value )
+                xnorm = nrm2( x );
+                temp = ( ! is_complex<alpha_t>::value )
                      ? lapy2(real(alpha), xnorm)
                      : lapy3(real(alpha), imag(alpha), xnorm);
                 beta = (real(alpha) < rzero) ? temp : -temp;
             }
             tau = (beta - alpha) / beta;
-            scal( n-1, one/(alpha-beta), x, incx );
-            for (int_t j = 0; j < knt; ++j)
+            scal( one/(alpha-beta), x );
+            for (idx_t j = 0; j < knt; ++j)
                 beta *= safemin;
             alpha = beta;
         }
     }
-}
-
-/** Generates a elementary Householder reflection.
- * 
- * @see larfg( blas::idx_t, T &, T *, blas::int_t, T & )
- * 
- * @ingroup auxiliary
- */
-template< typename T >
-void inline larfg(
-    blas::idx_t n, T *alpha, T *x, blas::int_t incx, T *tau )
-{
-    larfg(n, *alpha, x, incx, *tau);
 }
 
 }
