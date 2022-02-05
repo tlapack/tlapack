@@ -10,6 +10,7 @@
 #ifndef __SLATE_UNMQR_HH__
 #define __SLATE_UNMQR_HH__
 
+#include <memory>
 #include "lapack/unmqr.hpp"
 
 namespace lapack {
@@ -96,58 +97,59 @@ inline int unmqr(
     using blas::internal::vector;
 
     // Constants
-    const int nb = 32;      // number of blocks
-    
-    // Allocate work
+    const idx_t nb = 32; // number of blocks (TODO: Improve me!)
     const idx_t nw = (side == Side::Left)
                 ? ( (n >= 1) ? n : 1 )
                 : ( (m >= 1) ? m : 1 );
-    scalar_t* work = new scalar_t[
-        nw*nb + nb*nb
-    ];
-
+    
+    // Allocate work
+    std::unique_ptr<scalar_t[]> _work( new scalar_t[ nb * (nw + nb) ] );
+                
     // Matrix views
     const auto _A = (side == Side::Left)
             ? colmajor_matrix<TA>( (TA*)A, m, k, lda )
             : colmajor_matrix<TA>( (TA*)A, n, k, lda );
     const auto _tau = vector<TA>( (TA*)tau, k, 1 );
     auto _C = colmajor_matrix<TC>( C, m, n, ldc );
-    auto _W = colmajor_matrix<scalar_t>( work, nb, nw+nb );
+    auto _W = colmajor_matrix<scalar_t>( &_work[0], nb, nw+nb );
+
+    // Options
+    struct {
+        idx_t nb = nb;
+        decltype(_W)* work;
+    } opts;
+    opts.work = &_W;
     
-    int info = 0;
     if (side == Side::Left) {
         if (trans == Op::NoTrans) {
-            info = unmqr(
+            return unmqr(
                 left_side, noTranspose,
-                _A, _tau, _C, _W );
+                _A, _tau, _C, opts );
         } else if (trans == Op::Trans) {
-            info = unmqr(
+            return unmqr(
                 left_side, transpose,
-                _A, _tau, _C, _W );
+                _A, _tau, _C, opts );
         } else { // (trans == Op::ConjTrans)
-            info = unmqr(
+            return unmqr(
                 left_side, conjTranspose,
-                _A, _tau, _C, _W );
+                _A, _tau, _C, opts );
         }
     }
     else { // side == Side::Right
         if (trans == Op::NoTrans) {
-            info = unmqr(
+            return unmqr(
                 right_side, noTranspose,
-                _A, _tau, _C, _W );
+                _A, _tau, _C, opts );
         } else if (trans == Op::Trans) {
-            info = unmqr(
+            return unmqr(
                 right_side, transpose,
-                _A, _tau, _C, _W );
+                _A, _tau, _C, opts );
         } else { // (trans == Op::ConjTrans)
-            info = unmqr(
+            return unmqr(
                 right_side, conjTranspose,
-                _A, _tau, _C, _W );
+                _A, _tau, _C, opts );
         }
     }
-
-    delete[] work;
-    return info;
 }
 
 }

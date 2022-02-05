@@ -26,8 +26,8 @@ namespace lapack {
  */
 template<
     class matrixA_t, class matrixC_t,
-    class tau_t, class matrixW_t,
-    class side_t, class trans_t,
+    class tau_t, class side_t, class trans_t,
+    class opts_t,
     enable_if_t<(
     /* Requires: */
     (
@@ -43,7 +43,7 @@ template<
 int unmqr(
     side_t side, trans_t trans,
     const matrixA_t& A, const tau_t& tau,
-    matrixC_t& C, matrixW_t& W )
+    matrixC_t& C, const opts_t& opts )
 {
     using idx_t = size_type< matrixC_t >;
     using pair  = std::pair<idx_t,idx_t>;
@@ -51,12 +51,15 @@ int unmqr(
     using std::min;
 
     // Constants
-    const idx_t nb = 32; // number of blocks
+    const idx_t nb = opts.nb; // number of blocks
     const idx_t m = nrows(C);
     const idx_t n = ncols(C);
     const idx_t k = size(tau);
     const idx_t nA = nrows(A);
     const idx_t nw = ( is_same_v< side_t, left_side_t > ) ? max<idx_t>(1,n) : max<idx_t>(1,m);
+
+    // workspace
+    auto& W = *(opts.work); // (nb)-by-(nw+nb) matrix
 
     // Preparing loop indexes
     idx_t i0, iN, step;
@@ -80,7 +83,7 @@ int unmqr(
     // Main loop
     for (idx_t i = i0; i != iN; i += step) {
         
-        idx_t ib = min( nb, k-i );
+        idx_t ib = min<idx_t>( nb, k-i );
         const auto V = submatrix( A, pair{i,nA}, pair{i,i+ib} );
         const auto taui = subvector( tau, pair{i,i+ib} );
         auto T = submatrix( W, pair{nw,nw+ib}, pair{nw,nw+ib} );
