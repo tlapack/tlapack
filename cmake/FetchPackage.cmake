@@ -3,7 +3,7 @@
 # 2. Via the environment variable ${pkg}_DIR
 # 3. An online Git repository via the CMake FetchContent module
 #
-# Copyright (c) 2021, University of Colorado Denver. All rights reserved.
+# Copyright (c) 2021-2022, University of Colorado Denver. All rights reserved.
 #
 # This file is part of <T>LAPACK.
 # <T>LAPACK is free software: you can redistribute it and/or modify it under
