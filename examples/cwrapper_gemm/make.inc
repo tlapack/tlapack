@@ -4,6 +4,6 @@ tlapack_inc = /usr/local/include
 tlapack_lib = /usr/local/lib
 
 CXXFLAGS = -I$(tlapack_inc) -Wall -pedantic
-LDFLAGS  = -L$(tlapack_lib) -ltblas_c -ltblas
+LDFLAGS  = -L$(tlapack_lib) -ltblas_c
 
 LD = g++

@@ -29,3 +29,9 @@ build*
 
 # Visual Studio Code files
 .vscode
+
+# Temporary files
+*.swp
+
+# Other
+notes/*
