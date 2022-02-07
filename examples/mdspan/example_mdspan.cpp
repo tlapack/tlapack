@@ -165,7 +165,7 @@ int main( int argc, char** argv )
 
     std::cout.precision(5);
     std::cout << std::scientific << std::showpos;
-    std::cout << "U^H U R = A   =>   ||R-Id||_F / ||Id||_F = " << error / sqrt(k)
+    std::cout << "U^H U R = A   =>   ||R-Id||_F / ||Id||_F = " << error / std::sqrt(k)
               << std::endl;
 
     return 0;
