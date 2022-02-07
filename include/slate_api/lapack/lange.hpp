@@ -45,7 +45,7 @@ inline real_type<TA> lange(
     using blas::internal::vector;
 
     // constants
-    real_t rzero(0);
+    const real_t rzero(0);
 
     // quick return
     if (m == 0 || n == 0)
@@ -60,7 +60,7 @@ inline real_type<TA> lange(
         return lange( one_norm, A );
     else if ( normType == Norm::Inf ){
         real_t *work = new real_t[m];
-        auto _work = vector<real_t>( work, m, 1 );
+        auto _work = vector<real_t>( work, m );
         auto aux = lange( inf_norm, A, _work );
         delete[] work;
         return aux;

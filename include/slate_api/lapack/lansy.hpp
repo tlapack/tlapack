@@ -10,6 +10,8 @@
 #ifndef __SLATE_LANSY_HH__
 #define __SLATE_LANSY_HH__
 
+#include <memory>
+
 #include "lapack/types.hpp"
 #include "lapack/lansy.hpp"
 
@@ -43,6 +45,7 @@ real_type<TA> lansy(
 {
     typedef real_type<TA> real_t;
     using blas::internal::colmajor_matrix;
+    using blas::internal::vector;
 
     // constants
     const real_t zero( 0 );
@@ -58,8 +61,10 @@ real_type<TA> lansy(
         else                        return lansy( max_norm, lower_triangle, _A );
     }
     else if ( normType == Norm::One ||normType == Norm::Inf ) {
-        if( uplo == Uplo::Upper )   return lansy( one_norm, upper_triangle, _A );
-        else                        return lansy( one_norm, lower_triangle, _A );
+        std::unique_ptr<real_t[]> work( new real_t[n] );
+        auto _work = vector<real_t>( &work[0], n );
+        if( uplo == Uplo::Upper )   return lansy( one_norm, upper_triangle, _A, _work );
+        else                        return lansy( one_norm, lower_triangle, _A, _work );
     }
     else if ( normType == Norm::Fro ) {
         if( uplo == Uplo::Upper )   return lansy( frob_norm, upper_triangle, _A );
