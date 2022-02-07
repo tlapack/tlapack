@@ -13,7 +13,7 @@ example_fortranWrapper_ssymm: example_fortranWrapper_ssymm.o
 
 .PHONY: all
 
-%.o: %.f90 constants.mod
+%.o: %.f90 $(tlapack_inc)/constants.mod
 	$(FC) $(FFLAGS) -c -o $@ $<
 
 clean:
