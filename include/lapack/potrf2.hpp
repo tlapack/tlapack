@@ -80,9 +80,9 @@ int potrf2( uplo_t uplo, matrix_t& A )
     using blas::real;
 
     // Constants
-    const T one( 1.0 );
+    const real_t one( 1.0 );
     const real_t rzero( 0.0 );
-    const auto& n = nrows(A);
+    const idx_t n = nrows(A);
 
     // Check arguments
     lapack_error_if( nrows(A) != ncols(A), -2 );
@@ -123,18 +123,11 @@ int potrf2( uplo_t uplo, matrix_t& A )
                 Side::Left, Uplo::Upper,
                 Op::ConjTrans, Diag::NonUnit,
                 one, A11, A12 );
-            // trsm(
-            //     Layout::ColMajor, Side::Left, Uplo::Upper,
-            //     Op::ConjTrans, Diag::NonUnit,
-            //     n1, n-n1, one, &A11(0,0), A11.stride(1), &A12(0,0), A12.stride(1) );
 
             // Update A22
             herk(
                 uplo, Op::ConjTrans,
                 -one, A12, one, A22 );
-            // herk(
-            //     Layout::ColMajor, uplo, Op::ConjTrans, n-n1, n1,
-            //     -one, &A12(0,0), A12.stride(1), one, &A22(0,0), A22.stride(1) );
         }
         else {
 

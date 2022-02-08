@@ -365,12 +365,12 @@ cmds = []
 #     [ 'gtrfs', gen + dtype + align + n + trans ],
 #     ]
 
-# # Cholesky
-# if (opts.chol):
-#     cmds += [
+# Cholesky
+if (opts.chol):
+    cmds += [
 #     [ 'posv',  gen + dtype + align + n + uplo ],
-#     [ 'potrf', gen + dtype + align + n + uplo ],
-#     [ 'potrs', gen + dtype + align + n + uplo ],
+    [ 'potrf', gen + dtype + align + n + uplo ],
+    [ 'potrs', gen + dtype + align + n + uplo ],
 #     [ 'potri', gen + dtype + align + n + uplo ],
 #     [ 'pocon', gen + dtype + align + n + uplo ],
 #     [ 'porfs', gen + dtype + align + n + uplo ],
@@ -399,7 +399,7 @@ cmds = []
 #     [ 'pttrs', gen + dtype + align + n + uplo ],
 #     [ 'ptcon', gen + dtype         + n ],
 #     [ 'ptrfs', gen + dtype + align + n + uplo ],
-#     ]
+    ]
 
 # # symmetric indefinite, Bunch-Kaufman
 # if (opts.sysv):
@@ -664,7 +664,7 @@ if (opts.aux_norm):
     cmds += [
     [ 'lange', gen + dtype + align + mn + norm ],
     # todo: lanhe is failing
-    #[ 'lanhe', gen + dtype + align + n  + norm + uplo ],
+    [ 'lanhe', gen + dtype + align + n  + norm + uplo ],
     [ 'lansy', gen + dtype + align + n  + norm + uplo ],
     # [ 'lantr', gen + dtype + align + mn + norm + uplo + diag ],
     # [ 'lanhs', gen + dtype + align + n  + norm ],
@@ -686,12 +686,12 @@ if (opts.aux_norm):
     # [ 'lanst', gen + dtype + n + norm ],
     ]
 
-# # additional blas
-# if (opts.blas):
-#     cmds += [
-#     [ 'syr',   gen + dtype + align + n + uplo ],
-#     [ 'symv',  gen + dtype + layout + align + uplo + n + incx + incy ],
-#     ]
+# additional blas
+if (opts.blas):
+    cmds += [
+    # [ 'syr',   gen + dtype + align + n + uplo ],
+    [ 'symv',  gen + dtype + layout + align + uplo + n + incx + incy ],
+    ]
 
 # ------------------------------------------------------------------------------
 # when output is redirected to file instead of TTY console,

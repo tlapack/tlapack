@@ -27,6 +27,7 @@
 #include "lapack/laset.hpp"
 #include "lapack/lacpy.hpp"
 #include "lapack/lange.hpp"
+#include "lapack/lanhe.hpp"
 #include "lapack/lansy.hpp"
 #include "lapack/larnv.hpp"
 #include "lapack/lascl.hpp"
@@ -40,5 +41,7 @@
 #include "lapack/orm2r.hpp"
 #include "lapack/unmqr.hpp"
 #include "lapack/potrf2.hpp"
+#include "lapack/potrf.hpp"
+#include "lapack/potrs.hpp"
 
 #endif // __TLAPACK_HH__
