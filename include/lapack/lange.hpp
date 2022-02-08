@@ -40,7 +40,8 @@ template< typename norm_t, typename matrix_t,
     enable_if_t<
         ( is_same_v<norm_t,max_norm_t> || 
           is_same_v<norm_t,one_norm_t> ||
-          is_same_v<norm_t,frob_norm_t> ), bool > = true
+          is_same_v<norm_t,frob_norm_t> || 
+          is_same_v<norm_t,inf_norm_t>  ), bool > = true
 >
 real_type< type_t< matrix_t > >
 lange( norm_t normType, const matrix_t& A )
@@ -76,6 +77,22 @@ lange( norm_t normType, const matrix_t& A )
                     if ( isnan(temp) ) 
                         return temp;
                 }
+            }
+        }
+    }
+    else if ( is_same_v<norm_t,inf_norm_t> )
+    {
+        for (idx_t i = 0; i < m; ++i)
+        {
+            real_t sum = rzero;
+            for (idx_t j = 0; j < n; ++j)
+                sum += blas::abs( A(i,j) );
+
+            if (sum > norm)
+                norm = sum;
+            else {
+                if ( isnan(sum) ) 
+                    return sum;
             }
         }
     }
@@ -120,45 +137,51 @@ lange( norm_t normType, const matrix_t& A, work_t& work )
     using real_t = real_type< T >;
     using idx_t  = size_type< matrix_t >;
     using blas::isnan;
-    using blas::sqrt;
 
-    // quick redirect
+    // redirect for max-norm, one-norm and Frobenius norm
     if      ( is_same_v<norm_t,max_norm_t>  ) return lange( max_norm,  A );
     else if ( is_same_v<norm_t,one_norm_t>  ) return lange( one_norm,  A );
     else if ( is_same_v<norm_t,frob_norm_t> ) return lange( frob_norm, A );
+    else if ( is_same_v<norm_t,inf_norm_t> ) {
 
-    // constants
-    const real_t rzero(0.0);
-    const idx_t m = nrows(A);
-    const idx_t n = ncols(A);
+        // the code below uses a workspace and is meant for column-major layout
+        // so as to do one pass on the data in a contiguous way when computing
+	// the infinite norm
+ 
+        // constants
+        const real_t rzero(0.0);
+        const idx_t m = nrows(A);
+        const idx_t n = ncols(A);
 
-    // quick return
-    if (m == 0 || n == 0)
-        return rzero;
+        // quick return
+        if (m == 0 || n == 0)
+            return rzero;
 
-    // Norm value
-    real_t norm = rzero;
+        // Norm value
+        real_t norm = rzero;
 
-    for (idx_t i = 0; i < m; ++i)
-        work[i] = blas::abs( A(i,0) );
-    
-    for (idx_t j = 1; j < n; ++j)
         for (idx_t i = 0; i < m; ++i)
-            work[i] += blas::abs( A(i,j) );
+            work[i] = blas::abs( A(i,0) );
+    
+        for (idx_t j = 1; j < n; ++j)
+            for (idx_t i = 0; i < m; ++i)
+                work[i] += blas::abs( A(i,j) );
 
-    for (idx_t i = 0; i < m; ++i)
-    {
-        real_t temp = work[i];
+        for (idx_t i = 0; i < m; ++i)
+        {
+            real_t temp = work[i];
 
-        if (temp > norm)
-            norm = temp;
-        else {
-            if (isnan(temp))
-                return temp;
+            if (temp > norm)
+                norm = temp;
+            else {
+                if (isnan(temp))
+                    return temp;
+            }
         }
-    }
 
-    return norm;
+        return norm;
+
+    }
 }
 
 } // lapack
