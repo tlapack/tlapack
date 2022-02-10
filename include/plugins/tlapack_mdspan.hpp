@@ -158,20 +158,16 @@ namespace blas {
         using extents_t = std::experimental::dextents<1>;
         using mapping   = typename layout_stride::template mapping< extents_t >;
         using size_type = typename extents_t::size_type;
-
-        // constants
-        const size_type n = min( A.extent(0), A.extent(1) );
-        const size_type s = A.stride(0) + A.stride(1);
         
         // mdspan components
         auto ptr = A.accessor().offset( A.data(),
             (diagIdx >= 0)
-                ? A.mapping()(diagIdx,0)
-                : A.mapping()(0,-diagIdx)
+                ? A.mapping()(0,diagIdx)
+                : A.mapping()(-diagIdx,0)
         );
         auto map = mapping(
-            extents_t( n - abs(diagIdx) ),
-            array<size_type, 1>{ s }
+            extents_t( min( A.extent(0), A.extent(1) ) - abs(diagIdx) ),
+            array<size_type, 1>{ A.stride(0) + A.stride(1) }
         );
         auto acc_pol = typename AP::offset_policy(A.accessor());
 

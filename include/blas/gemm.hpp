@@ -10,6 +10,61 @@
 
 #include "blas/utils.hpp"
 
+#define TLAPACK_USE_BLAS
+
+namespace blas {
+
+    /// alias has_blas_type for array and constant types
+    template<class...> struct has_blas_type : public std::false_type { };
+
+    /// alias template for has_blas_type
+    template<class... arrays_t>
+    constexpr bool has_blas_type_v = has_blas_type< arrays_t... >::value;
+
+    /// True BLAS types
+    template<> struct has_blas_type<float> { using type = float; static constexpr bool value = true; };
+    template<> struct has_blas_type<double> { using type = double; static constexpr bool value = true; };
+    template<> struct has_blas_type<std::complex<float>> { using type = std::complex<float>; static constexpr bool value = true; };
+    template<> struct has_blas_type<std::complex<double>> { using type = std::complex<double>; static constexpr bool value = true; };
+
+    /// alias has_blas_type for arrays
+    template<class array_t>
+    struct has_blas_type<array_t> {
+        using type = type_t<array_t>;
+        static constexpr bool value = has_blas_type_v<type>;
+    };
+
+    /// alias has_blas_type for multiple arrays
+    template<class array1_t, class array2_t, class... arrays_t>
+    struct has_blas_type< array1_t, array2_t, arrays_t... > {
+        using type = type_t<array1_t>;
+        static constexpr bool value = 
+            has_blas_type_v<array1_t> &&
+            is_same_v< type, typename has_blas_type<array2_t,arrays_t...>::type >;
+    };
+
+    template<class array_t, class... arrays_t>
+    using enable_if_has_blas_type_t = enable_if_t<(
+    /* Requires: */
+        has_blas_type_v< array_t, arrays_t... >
+    ), int >;
+
+    template<class array_t, class... arrays_t>
+    using enable_if_hasnt_blas_type_t = enable_if_t<(
+    /* Requires: */
+        ! has_blas_type_v< array_t, arrays_t... >
+    ), int >;
+}
+
+#ifndef TLAPACK_USE_BLAS
+    // <T>LAPACK templates enabled for all data types
+    #define _ENABLE_IF_HASNT_BLAS_TYPE(...) int
+#else
+    // <T>LAPACK templates enabled for all data types other than the ones in BLAS
+    #define _ENABLE_IF_HAS_BLAS_TYPE(...) enable_if_has_blas_type_t< __VA_ARGS__ >
+    #define _ENABLE_IF_HASNT_BLAS_TYPE(...) enable_if_hasnt_blas_type_t< __VA_ARGS__ >
+#endif
+
 namespace blas {
 
 /**
@@ -51,7 +106,9 @@ template<
     class matrixB_t, 
     class matrixC_t, 
     class alpha_t, 
-    class beta_t >
+    class beta_t,
+    _ENABLE_IF_HASNT_BLAS_TYPE(matrixA_t, matrixB_t, matrixC_t, alpha_t, beta_t) = 0
+>
 void gemm(
     Op transA,
     Op transB,
@@ -188,6 +245,50 @@ void gemm(
         }
     }
 }
+
+#ifdef TLAPACK_USE_BLAS
+
+// Wrapper for BLAS types
+
+template<
+    class matrixA_t,
+    class matrixB_t, 
+    class matrixC_t, 
+    class alpha_t, 
+    class beta_t,
+    _ENABLE_IF_HAS_BLAS_TYPE(matrixA_t, matrixB_t, matrixC_t, alpha_t, beta_t) = 0
+>
+inline
+void gemm(
+    Op transA,
+    Op transB,
+    const alpha_t& alpha,
+    const matrixA_t& A,
+    const matrixB_t& B,
+    const beta_t& beta,
+    matrixC_t& C )
+{
+    // Legacy objects
+    auto _A = legacy_matrix(A);
+    auto _B = legacy_matrix(B);
+    auto _C = legacy_matrix(C);
+
+    // Constants to forward
+    auto&& m = _C.m;
+    auto&& n = _C.n;
+    auto&& k = (transA == Op::NoTrans) ? _A.n : _A.m;
+
+    gemm(
+        _A.layout, transA, transB, 
+        m, n, k,
+        alpha,
+        _A.ptr, _A.ldim,
+        _B.ptr, _B.ldim,
+        beta,
+        _C.ptr, _C.ldim );
+}
+
+#endif // TLAPACK_USE_BLAS
 
 }  // namespace blas
 
