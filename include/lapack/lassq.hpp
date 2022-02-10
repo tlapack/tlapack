@@ -52,7 +52,7 @@ namespace lapack {
  * 
  * @ingroup
  */
-template< class norm_func, class vector_t >
+template< class abs_t, class vector_t >
 void lassq(
     const vector_t& x,
     real_type< type_t<vector_t> > &scl,
@@ -100,7 +100,7 @@ void lassq(
 
     for (idx_t i = 0; i < n; ++i)
     {
-        real_t ax = norm_func::abs( x[i] );
+        real_t ax = abs_t::abs( x[i] );
         if( ax > tbig )
             abig += (ax*sbig) * (ax*sbig);
         else if( ax < tsml ) {

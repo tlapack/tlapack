@@ -125,9 +125,7 @@ int potrf2( uplo_t uplo, matrix_t& A )
                 one, A11, A12 );
 
             // Update A22
-            herk(
-                uplo, Op::ConjTrans,
-                -one, A12, one, A22 );
+            herk( uplo, Op::ConjTrans, -one, A12, one, A22 );
         }
         else {
 
@@ -139,9 +137,7 @@ int potrf2( uplo_t uplo, matrix_t& A )
                 one, A11, A21 );
 
             // Update A22
-            herk(
-                uplo, Op::NoTrans,
-                -one, A21, one, A22 );
+            herk( uplo, Op::NoTrans, -one, A21, one, A22 );
         }
         
         // Factor A22
