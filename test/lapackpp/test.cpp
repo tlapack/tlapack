@@ -109,25 +109,25 @@ std::vector< testsweeper::routines_t > routines = {
 //     { "gbequ",              test_gbequ,     Section::gesv },
 //     { "",                   nullptr,        Section::newline },
 
-//     // -----
-//     // Cholesky
+    // -----
+    // Cholesky
 //     { "posv",               test_posv,      Section::posv },
 //     { "ppsv",               test_ppsv,      Section::posv },
 //     { "pbsv",               test_pbsv,      Section::posv },
 //     { "ptsv",               test_ptsv,      Section::posv },
 //     { "",                   nullptr,        Section::newline },
 
-//     { "potrf",              test_potrf,     Section::posv },
+    { "potrf",              test_potrf,     Section::posv },
 //     { "pptrf",              test_pptrf,     Section::posv },
 //     { "pbtrf",              test_pbtrf,     Section::posv },
 //     { "pttrf",              test_pttrf,     Section::posv },
-//     { "",                   nullptr,        Section::newline },
+    { "",                   nullptr,        Section::newline },
 
-//     { "potrs",              test_potrs,     Section::posv },
+    { "potrs",              test_potrs,     Section::posv },
 //     { "pptrs",              test_pptrs,     Section::posv },
 //     { "pbtrs",              test_pbtrs,     Section::posv },
 //     { "pttrs",              test_pttrs,     Section::posv },
-//     { "",                   nullptr,        Section::newline },
+    { "",                   nullptr,        Section::newline },
 
 //     { "potri",              test_potri,     Section::posv },    // lawn 41 test
 //     { "pptri",              test_pptri,     Section::posv },
@@ -401,11 +401,11 @@ std::vector< testsweeper::routines_t > routines = {
 
 //     // auxiliary: norms
     { "lange",              test_lange,     Section::aux_norm },
-//     { "lanhe",              test_lanhe,     Section::aux_norm },
+    { "lanhe",              test_lanhe,     Section::aux_norm },
     { "lansy",              test_lansy,     Section::aux_norm },
 //     { "lantr",              test_lantr,     Section::aux_norm },
 //     { "lanhs",              test_lanhs,     Section::aux_norm },
-//     { "",                   nullptr,        Section::newline },
+    { "",                   nullptr,        Section::newline },
 
 //     // auxiliary: norms - packed
 //     { "",                   nullptr,        Section::aux_norm },
@@ -434,10 +434,10 @@ std::vector< testsweeper::routines_t > routines = {
   //{ "lagtr",              test_lagtr,     Section::aux_gen },
     { "",                   nullptr,        Section::newline },
 
-    // // additional BLAS
+    // additional BLAS
     // { "syr",                test_syr,       Section::blas2 },
-    // { "symv",               test_symv,      Section::blas2 },
-    // { "",                   nullptr,        Section::newline },
+    { "symv",               test_symv,      Section::blas2 },
+    { "",                   nullptr,        Section::newline },
 };
 
 // -----------------------------------------------------------------------------

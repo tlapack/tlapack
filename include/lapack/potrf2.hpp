@@ -80,19 +80,19 @@ int potrf2( uplo_t uplo, matrix_t& A )
     using blas::real;
 
     // Constants
-    const T one( 1.0 );
+    const real_t one( 1.0 );
     const real_t rzero( 0.0 );
-    const auto& n = nrows(A);
+    const idx_t n = nrows(A);
 
     // Check arguments
     lapack_error_if( nrows(A) != ncols(A), -2 );
 
     // Quick return
-    if (n == 0)
+    if (n <= 0)
         return 0;
 
     // Stop recursion
-    if (n == 1) {
+    else if (n == 1) {
         const real_t a00 = real( A(0,0) );
         if( a00 > rzero ) {
             A(0,0) = sqrt( a00 );
@@ -103,7 +103,7 @@ int potrf2( uplo_t uplo, matrix_t& A )
     }
 
     // Recursive code
-    {
+    else {
         const idx_t n1 = n/2;
 
         // Define A11 and A22
@@ -123,18 +123,9 @@ int potrf2( uplo_t uplo, matrix_t& A )
                 Side::Left, Uplo::Upper,
                 Op::ConjTrans, Diag::NonUnit,
                 one, A11, A12 );
-            // trsm(
-            //     Layout::ColMajor, Side::Left, Uplo::Upper,
-            //     Op::ConjTrans, Diag::NonUnit,
-            //     n1, n-n1, one, &A11(0,0), A11.stride(1), &A12(0,0), A12.stride(1) );
 
             // Update A22
-            herk(
-                uplo, Op::ConjTrans,
-                -one, A12, one, A22 );
-            // herk(
-            //     Layout::ColMajor, uplo, Op::ConjTrans, n-n1, n1,
-            //     -one, &A12(0,0), A12.stride(1), one, &A22(0,0), A22.stride(1) );
+            herk( uplo, Op::ConjTrans, -one, A12, one, A22 );
         }
         else {
 
@@ -146,9 +137,7 @@ int potrf2( uplo_t uplo, matrix_t& A )
                 one, A11, A21 );
 
             // Update A22
-            herk(
-                uplo, Op::NoTrans,
-                -one, A21, one, A22 );
+            herk( uplo, Op::NoTrans, -one, A21, one, A22 );
         }
         
         // Factor A22

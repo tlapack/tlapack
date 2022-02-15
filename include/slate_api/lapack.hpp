@@ -38,6 +38,7 @@
 #include "slate_api/lapack/laset.hpp"
 #include "slate_api/lapack/lacpy.hpp"
 #include "slate_api/lapack/lange.hpp"
+#include "slate_api/lapack/lanhe.hpp"
 #include "slate_api/lapack/lansy.hpp"
 #include "slate_api/lapack/larnv.hpp"
 #include "slate_api/lapack/lascl.hpp"
@@ -50,6 +51,7 @@
 #include "slate_api/lapack/org2r.hpp"
 #include "slate_api/lapack/orm2r.hpp"
 #include "slate_api/lapack/unmqr.hpp"
-// #include "lapack/potrf2.hpp"
+#include "slate_api/lapack/potrf.hpp"
+#include "slate_api/lapack/potrs.hpp"
 
 #endif // __SLATE_BLAS_HH__

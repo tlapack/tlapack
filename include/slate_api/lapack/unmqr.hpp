@@ -1,4 +1,4 @@
-/// @file unmqr.hpp Multiplies the general m-by-n matrix C by Q from `lapack::geqrf`
+/// @file unmqr.hpp Multiplies the general m-by-n matrix C by Q from lapack::geqrf()
 /// @author Weslley S Pereira, University of Colorado Denver, USA
 //
 // Copyright (c) 2021-2022, University of Colorado Denver. All rights reserved.
@@ -10,29 +10,12 @@
 #ifndef __SLATE_UNMQR_HH__
 #define __SLATE_UNMQR_HH__
 
+#include <memory>
 #include "lapack/unmqr.hpp"
 
 namespace lapack {
 
-/** Multiplies the general m-by-n matrix C by Q from `lapack::geqrf` using a blocked code as follows:
- *
- * - side = Left,  trans = NoTrans:   $Q C$
- * - side = Right, trans = NoTrans:   $C Q$
- * - side = Left,  trans = ConjTrans: $Q^H C$
- * - side = Right, trans = ConjTrans: $C Q^H$
- *
- * where Q is a unitary matrix defined as the product of k
- * elementary reflectors, as returned by `lapack::geqrf`:
- * \[
- *     Q = H(1) H(2) \dots H(k).
- * \]
- *
- * Q is of order m if side = Left and of order n if side = Right.
- *
- * For real matrices, this is an alias for `lapack::ormqr`.
- * 
- * @return  0 if success
- * @return -i if the ith argument is invalid
+/** Multiplies the general m-by-n matrix C by Q from lapack::geqrf() using a blocked code as follows:
  *
  * @param[in] side
  *     - lapack::Side::Left:  apply $Q$ or $Q^H$ from the Left;
@@ -60,7 +43,7 @@ namespace lapack {
  *     \n
  *     The i-th column must contain the vector which defines the
  *     elementary reflector H(i), for i = 1, 2, ..., k, as returned by
- *     `lapack::geqrf` in the first k columns of its array argument A.
+ *     lapack::geqrf() in the first k columns of its array argument A.
  *
  * @param[in] lda
  *     The leading dimension of the array A.
@@ -70,7 +53,7 @@ namespace lapack {
  * @param[in] tau
  *     The vector tau of length k.
  *     tau[i] must contain the scalar factor of the elementary
- *     reflector H(i), as returned by `lapack::geqrf`.
+ *     reflector H(i), as returned by lapack::geqrf().
  *
  * @param[in,out] C
  *     The m-by-n matrix C, stored in an ldc-by-n array.
@@ -80,6 +63,11 @@ namespace lapack {
  *
  * @param[in] ldc
  *     The leading dimension of the array C. ldc >= max(1,m).
+ * 
+ * @see unmqr(
+    side_t side, trans_t trans,
+    const matrixA_t& A, const tau_t& tau,
+    matrixC_t& C, opts_t&& opts )
  *
  * @ingroup geqrf
  */
@@ -96,58 +84,58 @@ inline int unmqr(
     using blas::internal::vector;
 
     // Constants
-    const int nb = 32;      // number of blocks
-    
-    // Allocate work
+    const idx_t nb = 32; // number of blocks (TODO: Improve me!)
     const idx_t nw = (side == Side::Left)
                 ? ( (n >= 1) ? n : 1 )
                 : ( (m >= 1) ? m : 1 );
-    scalar_t* work = new scalar_t[
-        nw*nb + nb*nb
-    ];
-
+    
+    // Allocate work
+    std::unique_ptr<scalar_t[]> _work( new scalar_t[ nb * (nw + nb) ] );
+                
     // Matrix views
     const auto _A = (side == Side::Left)
             ? colmajor_matrix<TA>( (TA*)A, m, k, lda )
             : colmajor_matrix<TA>( (TA*)A, n, k, lda );
     const auto _tau = vector<TA>( (TA*)tau, k, 1 );
     auto _C = colmajor_matrix<TC>( C, m, n, ldc );
-    auto _W = colmajor_matrix<scalar_t>( work, nb, nw+nb );
+    auto _W = colmajor_matrix<scalar_t>( &_work[0], nb, nw+nb );
+
+    // Options
+    struct {
+        idx_t nb;
+        decltype(_W)* workPtr;
+    } opts = { nb, &_W };
     
-    int info = 0;
     if (side == Side::Left) {
         if (trans == Op::NoTrans) {
-            info = unmqr(
+            return unmqr(
                 left_side, noTranspose,
-                _A, _tau, _C, _W );
+                _A, _tau, _C, std::move(opts) );
         } else if (trans == Op::Trans) {
-            info = unmqr(
+            return unmqr(
                 left_side, transpose,
-                _A, _tau, _C, _W );
+                _A, _tau, _C, std::move(opts) );
         } else { // (trans == Op::ConjTrans)
-            info = unmqr(
+            return unmqr(
                 left_side, conjTranspose,
-                _A, _tau, _C, _W );
+                _A, _tau, _C, std::move(opts) );
         }
     }
     else { // side == Side::Right
         if (trans == Op::NoTrans) {
-            info = unmqr(
+            return unmqr(
                 right_side, noTranspose,
-                _A, _tau, _C, _W );
+                _A, _tau, _C, std::move(opts) );
         } else if (trans == Op::Trans) {
-            info = unmqr(
+            return unmqr(
                 right_side, transpose,
-                _A, _tau, _C, _W );
+                _A, _tau, _C, std::move(opts) );
         } else { // (trans == Op::ConjTrans)
-            info = unmqr(
+            return unmqr(
                 right_side, conjTranspose,
-                _A, _tau, _C, _W );
+                _A, _tau, _C, std::move(opts) );
         }
     }
-
-    delete[] work;
-    return info;
 }
 
 }

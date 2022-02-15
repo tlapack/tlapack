@@ -97,7 +97,7 @@ if( EXISTS "${lapackpp_TEST_DIR}/test.cc" )
     ${lapackpp_TEST_DIR}/test_lange.cc
     # ${lapackpp_TEST_DIR}/test_langt.cc
     # ${lapackpp_TEST_DIR}/test_lanhb.cc
-    # ${lapackpp_TEST_DIR}/test_lanhe.cc
+    ${lapackpp_TEST_DIR}/test_lanhe.cc
     # ${lapackpp_TEST_DIR}/test_lanhp.cc
     # ${lapackpp_TEST_DIR}/test_lanhs.cc
     # ${lapackpp_TEST_DIR}/test_lanst.cc
@@ -127,9 +127,9 @@ if( EXISTS "${lapackpp_TEST_DIR}/test.cc" )
     # ${lapackpp_TEST_DIR}/test_poequ.cc
     # ${lapackpp_TEST_DIR}/test_porfs.cc
     # ${lapackpp_TEST_DIR}/test_posv.cc
-    # ${lapackpp_TEST_DIR}/test_potrf.cc
+    ${lapackpp_TEST_DIR}/test_potrf.cc
     # ${lapackpp_TEST_DIR}/test_potri.cc
-    # ${lapackpp_TEST_DIR}/test_potrs.cc
+    ${lapackpp_TEST_DIR}/test_potrs.cc
     # ${lapackpp_TEST_DIR}/test_ppcon.cc
     # ${lapackpp_TEST_DIR}/test_ppequ.cc
     # ${lapackpp_TEST_DIR}/test_pprfs.cc
@@ -180,7 +180,7 @@ if( EXISTS "${lapackpp_TEST_DIR}/test.cc" )
     # ${lapackpp_TEST_DIR}/test_tpqrt.cc
     # ${lapackpp_TEST_DIR}/test_tpqrt2.cc
     # ${lapackpp_TEST_DIR}/test_tprfb.cc
-    # ${lapackpp_TEST_DIR}/test_symv.cc
+    ${lapackpp_TEST_DIR}/test_symv.cc
     # ${lapackpp_TEST_DIR}/test_larfy.cc
   )
 

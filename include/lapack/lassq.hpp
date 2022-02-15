@@ -22,7 +22,7 @@ namespace lapack {
 
 /** Updates a sum of squares represented in scaled form.
  * \[
- *      scl_{[OUT]}^2 sumsq_{[OUT]} = \sum_{i = 0}^n x_i^2 + scl_{[IN]}^2 sumsq_{[IN]},
+ *      scl_{[OUT]}^2 sumsq_{[OUT]} = \sum_{i = 0}^n |x_i|^2 + scl_{[IN]}^2 sumsq_{[IN]},
  * \]
  * The value of  sumsq  is assumed to be non-negative.
  * 
@@ -52,7 +52,7 @@ namespace lapack {
  * 
  * @ingroup
  */
-template< class vector_t >
+template< class abs_t, class vector_t >
 void lassq(
     const vector_t& x,
     real_type< type_t<vector_t> > &scl,
@@ -100,7 +100,7 @@ void lassq(
 
     for (idx_t i = 0; i < n; ++i)
     {
-        real_t ax = blas::abs( x[i] );
+        real_t ax = abs_t::abs( x[i] );
         if( ax > tbig )
             abig += (ax*sbig) * (ax*sbig);
         else if( ax < tsml ) {
@@ -159,6 +159,25 @@ void lassq(
         scl = one;
         sumsq = amed;
     }
+}
+
+template< class vector_t >
+inline
+void lassq(
+    const vector_t& x,
+    real_type< type_t<vector_t> > &scl,
+    real_type< type_t<vector_t> > &sumsq)
+{
+    using T      = type_t<vector_t>;
+    using real_t = real_type< T >;
+    
+    struct absValue {
+        static inline real_t abs( const T& x ) {
+            return blas::abs( x );
+        }
+    };
+    
+    return lassq< absValue >( x, scl, sumsq );
 }
 
 } // lapack
