@@ -15,24 +15,6 @@ namespace blas {
     using std::experimental::mdspan;
 
     // -----------------------------------------------------------------------------
-    // enable_if_t is defined in C++14; here's a C++11 definition
-    #if __cplusplus >= 201402L
-        using std::enable_if_t;
-    #else
-        template< bool B, class T = void >
-        using enable_if_t = typename enable_if<B,T>::type;
-    #endif
-
-    // -----------------------------------------------------------------------------
-    // is_convertible_v is defined in C++17; here's a C++11 definition
-    #if __cplusplus >= 201703L
-        using std::is_convertible_v;
-    #else
-        template< class From, class To >
-        constexpr bool is_convertible_v = std::is_convertible<From, To>::value;
-    #endif
-
-    // -----------------------------------------------------------------------------
     // Data traits for mdspan
 
     #ifndef TBLAS_ARRAY_TRAITS
@@ -85,12 +67,12 @@ namespace blas {
     // -----------------------------------------------------------------------------
     // blas functions to access mdspan block operations
 
-    #define isSlice(SliceSpec) is_convertible_v< SliceSpec, std::tuple<std::size_t, std::size_t> >
+    #define isSlice(SliceSpec) std::is_convertible< SliceSpec, std::tuple<std::size_t, std::size_t> >::value
 
     // Submatrix
     template< class ET, class Exts, class LP, class AP,
         class SliceSpecRow, class SliceSpecCol,
-        enable_if_t< isSlice(SliceSpecRow) && isSlice(SliceSpecCol), int > = 0
+        std::enable_if_t< isSlice(SliceSpecRow) && isSlice(SliceSpecCol), int > = 0
     >
     inline constexpr auto submatrix(
         const mdspan<ET,Exts,LP,AP>& A, SliceSpecRow&& rows, SliceSpecCol&& cols ) noexcept
@@ -100,7 +82,7 @@ namespace blas {
 
     // Rows
     template< class ET, class Exts, class LP, class AP, class SliceSpec,
-        enable_if_t< isSlice(SliceSpec), int > = 0
+        std::enable_if_t< isSlice(SliceSpec), int > = 0
     >
     inline constexpr auto rows( const mdspan<ET,Exts,LP,AP>& A, SliceSpec&& rows ) noexcept
     {
@@ -116,7 +98,7 @@ namespace blas {
 
     // Columns
     template< class ET, class Exts, class LP, class AP, class SliceSpec,
-        enable_if_t< isSlice(SliceSpec), int > = 0
+        std::enable_if_t< isSlice(SliceSpec), int > = 0
     >
     inline constexpr auto cols( const mdspan<ET,Exts,LP,AP>& A, SliceSpec&& cols ) noexcept
     {
@@ -132,7 +114,7 @@ namespace blas {
 
     // Subvector
     template< class ET, class Exts, class LP, class AP, class SliceSpec,
-        enable_if_t< isSlice(SliceSpec), int > = 0
+        std::enable_if_t< isSlice(SliceSpec), int > = 0
     >
     inline constexpr auto subvector( const mdspan<ET,Exts,LP,AP>& v, SliceSpec&& rows ) noexcept
     {
@@ -141,7 +123,7 @@ namespace blas {
 
     // Extract a diagonal from a matrix
     template< class ET, class Exts, class LP, class AP,
-        enable_if_t<
+        std::enable_if_t<
         /* Requires: */
             LP::template mapping<Exts>::is_always_strided()
         , bool > = true
@@ -184,8 +166,9 @@ namespace blas {
 namespace lapack {
     
     using blas::mdspan;
-    using blas::type_trait;
-    using blas::sizet_trait;
+    
+    using blas::type_t;
+    using blas::size_type;
 
     using blas::size;
     using blas::nrows;

@@ -88,11 +88,11 @@ int potrf2( uplo_t uplo, matrix_t& A )
     lapack_error_if( nrows(A) != ncols(A), -2 );
 
     // Quick return
-    if (n == 0)
+    if (n <= 0)
         return 0;
 
     // Stop recursion
-    if (n == 1) {
+    else if (n == 1) {
         const real_t a00 = real( A(0,0) );
         if( a00 > rzero ) {
             A(0,0) = sqrt( a00 );
@@ -103,7 +103,7 @@ int potrf2( uplo_t uplo, matrix_t& A )
     }
 
     // Recursive code
-    {
+    else {
         const idx_t n1 = n/2;
 
         // Define A11 and A22

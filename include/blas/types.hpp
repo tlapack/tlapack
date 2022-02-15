@@ -9,6 +9,7 @@
 #define __TBLAS_TYPES_HH__
 
 #include <complex>
+#include <type_traits>
 
 namespace blas {
 
@@ -46,24 +47,6 @@ constexpr zero_t zero = { };
     using common_type_t = typename std::common_type< Ts... >::type;
     template< typename... Ts >
     using decay_t = typename std::decay< Ts... >::type;
-#endif
-
-// -----------------------------------------------------------------------------
-// enable_if_t is defined in C++14; here's a C++11 definition
-#if __cplusplus >= 201402L
-    using std::enable_if_t;
-#else
-    template< bool B, class T = void >
-    using enable_if_t = typename enable_if<B,T>::type;
-#endif
-
-// -----------------------------------------------------------------------------
-// is_same_v is defined in C++17; here's a C++11 definition
-#if __cplusplus >= 201703L
-    using std::is_same_v;
-#else
-    template< class T, class U >
-    constexpr bool is_same_v = std::is_same<T, U>::value;
 #endif
 
 //------------------------------------------------------------------------------

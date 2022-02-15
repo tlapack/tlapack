@@ -23,6 +23,24 @@
 namespace blas {
 
 // -----------------------------------------------------------------------------
+// enable_if_t is defined in C++14; here's a C++11 definition
+#if __cplusplus >= 201402L
+    using std::enable_if_t;
+#else
+    template< bool B, class T = void >
+    using enable_if_t = typename enable_if<B,T>::type;
+#endif
+
+// -----------------------------------------------------------------------------
+// is_same_v is defined in C++17; here's a C++11 definition
+#if __cplusplus >= 201703L
+    using std::is_same_v;
+#else
+    template< class T, class U >
+    constexpr bool is_same_v = std::is_same<T, U>::value;
+#endif
+
+// -----------------------------------------------------------------------------
 // Use routines from std C++
 using std::real;
 using std::imag;

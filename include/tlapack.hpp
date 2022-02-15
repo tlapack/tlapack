@@ -40,6 +40,10 @@
 #include "lapack/org2r.hpp"
 #include "lapack/orm2r.hpp"
 #include "lapack/unmqr.hpp"
+
+// Solution of positive definite systems
+// ----------------
+
 #include "lapack/potrf2.hpp"
 #include "lapack/potrf.hpp"
 #include "lapack/potrs.hpp"

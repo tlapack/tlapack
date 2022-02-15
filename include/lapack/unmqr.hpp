@@ -1,4 +1,4 @@
-/// @file unmqr.hpp Multiplies the general m-by-n matrix C by Q from `lapack::geqrf`
+/// @file unmqr.hpp Multiplies the general m-by-n matrix C by Q from lapack::geqrf()
 /// @author Weslley S Pereira, University of Colorado Denver, USA
 //
 // Copyright (c) 2021-2022, University of Colorado Denver. All rights reserved.
@@ -17,10 +17,75 @@
 
 namespace lapack {
 
-/** Multiplies the general m-by-n matrix C by Q from `lapack::geqrf` using a blocked code.
+/** Multiplies the general m-by-n matrix C by Q from lapack::geqrf() using a blocked code.
+ *
+ * - side = Left,  trans = NoTrans:   $Q C$
+ * - side = Right, trans = NoTrans:   $C Q$
+ * - side = Left,  trans = ConjTrans: $Q^H C$
+ * - side = Right, trans = ConjTrans: $C Q^H$
+ *
+ * where Q is a unitary matrix defined as the product of k
+ * elementary reflectors, as returned by lapack::geqrf():
+ * \[
+ *     Q = H(0) H(1) \dots H(k).
+ * \]
+ *
+ * Q is of order m if side = Left and of order n if side = Right.
+ *
+ * For real matrices, this is an alias for `lapack::ormqr`.
  * 
- * @param work Vector of size n*nb + nb*nb (m*nb + nb*nb if side == Side::Right).
- * @see unmqr( Side, Op, blas::idx_t, blas::idx_t, blas::idx_t, const TA*, blas::idx_t, const blas::real_type<TA,TC>*, TC*, blas::idx_t )
+ * @tparam matrixA_t    A \<T\>LAPACK abstract matrix.
+ * @tparam matrixC_t    A \<T\>LAPACK abstract matrix.
+ * @tparam tau_t        A \<T\>LAPACK abstract vector.
+ * @tparam side_t       Either left_side_t or right_side_t.
+ * @tparam trans_t      Either noTranspose_t, transpose_t or conjTranspose_t.
+ * @tparam opts_t
+ * \code{.cpp}
+ *      struct opts_t {
+ *          idx_t nb; // Block size
+ *          matrix_t* workPtr; // Workspace pointer
+ *          // ...
+ *      };
+ * \endcode
+ *      If opts_t::nb does not exist, nb assumes a default value.
+ *
+ * @param[in] side
+ *     - Side::Left:  apply $Q$ or $Q^H$ from the Left;
+ *     - Side::Right: apply $Q$ or $Q^H$ from the Right.
+ *
+ * @param[in] trans
+ *     - Op::NoTrans:   No transpose, apply $Q$;
+ *     - Op::ConjTrans: Conjugate transpose, apply $Q^H$.
+ *
+ * @param[in] A
+ *     - If side = Left,  the m-by-k matrix A;
+ *     - if side = Right, the n-by-k matrix A.
+ *     \n
+ *     The i-th column must contain the vector which defines the
+ *     elementary reflector H(i), for i = 0, 1, ..., k-1, as returned by
+ *     geqrf() in the first k columns of its array argument A.
+ *
+ * @param[in] tau
+ *     The vector tau of length k.
+ *     tau[i] must contain the scalar factor of the elementary
+ *     reflector H(i), as returned by geqrf().
+ *
+ * @param[in,out] C
+ *     The m-by-n matrix C, stored in an ldc-by-n array.
+ *     On entry, the m-by-n matrix C.
+ *     On exit, C is overwritten by
+ *     $Q C$ or $Q^H C$ or $C Q^H$ or $C Q$.
+ *
+ * @param[in,out] opts Options.
+ *      - opts.nb Block size.
+ *      If opts.nb does not exist or opts.nb <= 0, nb assumes a default value.
+ *      
+ *      - opts.workPtr Workspace pointer.
+ *          - Pointer to a matrix of size (nb)-by-(n+nb) if side == Side::Left.
+ *          - Pointer to a matrix of size (nb)-by-(m+nb) if side == Side::Right.
+ * 
+ * @return  0 if success
+ * @return -i if the ith argument is invalid
  * 
  * @ingroup geqrf
  */
@@ -37,13 +102,15 @@ template<
         is_same_v< trans_t, noTranspose_t > || 
         is_same_v< trans_t, conjTranspose_t > ||
         is_same_v< trans_t, transpose_t >
-    )
+    ) &&
+        /// TODO: Remove this requirement when get_work() is fully functional
+        has_work_v< opts_t >
     ), int > = 0
 >
 int unmqr(
     side_t side, trans_t trans,
     const matrixA_t& A, const tau_t& tau,
-    matrixC_t& C, const opts_t& opts )
+    matrixC_t& C, opts_t&& opts )
 {
     using idx_t = size_type< matrixC_t >;
     using pair  = std::pair<idx_t,idx_t>;
@@ -51,15 +118,15 @@ int unmqr(
     using std::min;
 
     // Constants
-    const idx_t nb = opts.nb; // number of blocks
     const idx_t m = nrows(C);
     const idx_t n = ncols(C);
     const idx_t k = size(tau);
     const idx_t nA = nrows(A);
     const idx_t nw = ( is_same_v< side_t, left_side_t > ) ? max<idx_t>(1,n) : max<idx_t>(1,m);
-
-    // workspace
-    auto& W = *(opts.work); // (nb)-by-(nw+nb) matrix
+    
+    // Options
+    const idx_t nb = get_nb(opts); // Block size
+    auto W = get_work(opts); // (nb)-by-(nw+nb) matrix
 
     // Preparing loop indexes
     idx_t i0, iN, step;
@@ -90,7 +157,7 @@ int unmqr(
 
         // Form the triangular factor of the block reflector
         // $H = H(i) H(i+1) ... H(i+ib-1)$
-        lapack::larft( forward, columnwise_storage, V, taui, T );
+        larft( forward, columnwise_storage, V, taui, T );
 
         // H or H**H is applied to either C[i:m,0:n] or C[0:m,i:n]
         auto Ci = ( is_same_v< side_t, left_side_t > )
@@ -99,7 +166,7 @@ int unmqr(
 
         // Apply H or H**H
         auto W0 = submatrix( W, pair{0,ib}, pair{0,nw} );
-        lapack::larfb(
+        larfb(
             side, trans, forward, columnwise_storage,
             V, T, Ci, W0
         );
