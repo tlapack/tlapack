@@ -17,7 +17,7 @@ namespace lapack {
 /** Computes the Cholesky factorization of a Hermitian
  * positive definite matrix A using a blocked algorithm.
  * 
- * @see potrf( uplo_t uplo, matrix_t& A, const opts_t& opts )
+ * @see potrf( uplo_t uplo, matrix_t& A, opts_t&& opts )
  * 
  * @ingroup posv_computational
  */

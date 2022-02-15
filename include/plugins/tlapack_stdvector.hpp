@@ -67,8 +67,8 @@ namespace blas {
 
 namespace lapack {
     
-    using blas::type_trait;
-    using blas::sizet_trait;
+    using blas::type_t;
+    using blas::size_type;
 
     using blas::size;
 
