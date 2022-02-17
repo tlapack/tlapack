@@ -21,8 +21,8 @@ on:
     - '.gitignore'
 
 env:
-  CFLAGS: "-Wall -pedantic"
-  CXXFLAGS: "-Wall -pedantic"
+  CFLAGS: "-Wall -pedantic -Wno-unused-variable -Wno-unused-function"
+  CXXFLAGS: "-Wall -pedantic -Wno-unused-variable -Wno-unused-function"
   FFLAGS: "-fimplicit-none -fcheck=all"
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
@@ -44,6 +44,7 @@ jobs:
     env:
       blaspp_DIR: ${{github.workspace}}/blaspp
       lapackpp_DIR: ${{github.workspace}}/lapackpp
+      mdspan_DIR: ${{github.workspace}}/mdspan
 
     strategy:
       fail-fast: false
@@ -78,6 +79,22 @@ jobs:
       run: |
         git checkout tlapack
         cmake -B build -D blaspp_DIR=${{env.blaspp_DIR}}/build
+
+    - name: Checkout mdspan on Ubuntu
+      if: ${{ matrix.os == 'ubuntu-latest' }}
+      run: |
+        git clone https://github.com/kokkos/mdspan.git ${{env.mdspan_DIR}}
+
+    - name: Install Eigen on Ubuntu
+      if: ${{ matrix.os == 'ubuntu-latest' }}
+      run: sudo apt install libeigen3-dev
+
+    - name: Build and install mdspan on Ubuntu
+      if: ${{ matrix.os == 'ubuntu-latest' }}
+      working-directory: ${{env.mdspan_DIR}}
+      run: |
+        cmake -B build -DCMAKE_INSTALL_PREFIX=${{env.mdspan_DIR}}
+        cmake --build build --target install
         
     - name: Specific configurations for CMake on Ubuntu
       if: ${{ matrix.os == 'ubuntu-latest' }}
@@ -127,6 +144,15 @@ jobs:
       # Mind that the job won't fail with only this step fails
       continue-on-error: true
       run: cmake --build build --target run-all-examples
+
+    - name: Run additional examples for Eigen and mdspan on Ubuntu
+      if: ${{ matrix.os == 'ubuntu-latest' }}
+      working-directory: build/examples
+      # Mind that the job won't fail with only this step fails
+      continue-on-error: true
+      run: |
+        ./mdspan/example_mdspan
+        ./eigen/example_eigen
 
     - name: Run tests
       working-directory: ${{github.workspace}}/build
