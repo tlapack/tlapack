@@ -8,8 +8,11 @@
 #define __TLAPACK_STDVECTOR_HH__
 
 #include <vector>
-#include <experimental/mdspan>
-#include <plugins/tlapack_mdspan.hpp>
+#ifndef TLAPACK_USE_MDSPAN
+    #include "legacy_api/legacyArray.hpp"
+#else
+    #include <experimental/mdspan>
+#endif
 
 namespace blas {
 
@@ -58,9 +61,13 @@ namespace blas {
     template< class T, class Allocator, class SliceSpec >
     inline constexpr auto subvector( const std::vector<T,Allocator>& v, SliceSpec&& rows )
     {
-        return std::experimental::mdspan< T, std::experimental::dextents<1> >(
-            (T*) &v[ rows.first ], (std::size_t) (rows.second - rows.first)
-        );
+        #ifndef TLAPACK_USE_MDSPAN
+            return legacyVector<T>( rows.second - rows.first, (T*) &v[ rows.first ] );
+        #else
+            return std::experimental::mdspan< T, std::experimental::dextents<1> >(
+                (T*) &v[ rows.first ], (std::size_t) (rows.second - rows.first)
+            );
+        #endif
     }
 
 } // namespace blas

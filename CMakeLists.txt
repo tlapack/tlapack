@@ -18,11 +18,6 @@ project(TLAPACK
   LANGUAGES CXX)
 message(STATUS "<T>LAPACK version " ${PROJECT_VERSION})
 
-# specify the C++14 standard
-# set(CMAKE_CXX_STANDARD 14)
-# set(CMAKE_CXX_STANDARD_REQUIRED True)
-set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14" )
-
 #-------------------------------------------------------------------------------
 # <T>LAPACK and <T>BLAS template libraries
 
@@ -69,6 +64,9 @@ option( C_WRAPPERS       "Build and install C wrappers"               OFF )
 option( CBLAS_WRAPPERS   "Build and install CBLAS wrappers to <T>BLAS" OFF )
 option( Fortran_WRAPPERS "Build and install Fortran wrappers"         OFF )
 
+option( TLAPACK_USE_MDSPAN "Use mdspan for the legacy wrappers" OFF )
+mark_as_advanced( FORCE TLAPACK_USE_MDSPAN )
+
 #-------------------------------------------------------------------------------
 # Modules
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
@@ -90,10 +88,19 @@ if( USE_LAPACKPP_WRAPPERS )
 endif()
 
 #-------------------------------------------------------------------------------
-# Load mdspan
-include( "${TLAPACK_SOURCE_DIR}/cmake/FetchPackage.cmake" )
-FetchPackage( "mdspan" "https://github.com/kokkos/mdspan.git" "stable" )
-target_link_libraries( tblas INTERFACE std::mdspan )
+# Load mdspan if needed
+if( TLAPACK_USE_MDSPAN )
+  include( "${TLAPACK_SOURCE_DIR}/cmake/FetchPackage.cmake" )
+  FetchPackage( "mdspan" "https://github.com/kokkos/mdspan.git" "stable" )
+  if( mdspan_FOUND )
+    # enforce the C++14 standard
+    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14" )
+    target_compile_definitions( tblas INTERFACE TLAPACK_USE_MDSPAN )
+    target_link_libraries( tblas INTERFACE std::mdspan )
+  else()
+    message( STATUS "Legacy wrappers will use legacy arrays instead of mdspan" )
+  endif()
+endif()
 
 #-------------------------------------------------------------------------------
 # Docs

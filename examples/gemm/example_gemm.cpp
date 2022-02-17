@@ -75,7 +75,7 @@ void run( blas::idx_t m, blas::idx_t n, blas::idx_t k )
         Br(i,i) = B(i,i);
     }
 
-    // 1) Using classical LAPACK interface:
+    // 1) Using legacy LAPACK interface:
 
     bestTime = std::chrono::nanoseconds::max();
     for( int run = 0; run < Nruns; ++run ) {
@@ -105,11 +105,11 @@ void run( blas::idx_t m, blas::idx_t n, blas::idx_t k )
     }
 
     // Output
-    std::cout << "Using classical LAPACK interface:" << std::endl
+    std::cout << "Using legacy LAPACK interface:" << std::endl
               << "||C-AB||_F = " << blas::nrm2( n, &_C[0], 1 ) << std::endl
               << "time = " << bestTime.count() * 1.0e-6 << " ms" << std::endl;
 
-    // Using mdspan interface:
+    // Using abstract interface:
 
     bestTime = std::chrono::nanoseconds::max();
     for( int run = 0; run < Nruns; ++run ) {
@@ -139,11 +139,11 @@ void run( blas::idx_t m, blas::idx_t n, blas::idx_t k )
     }
 
     // Output
-    std::cout << "Using mdspan interface:" << std::endl
+    std::cout << "Using abstract interface:" << std::endl
               << "||C-AB||_F = " << blas::nrm2( n, &_C[0], 1 ) << std::endl
               << "time = " << bestTime.count() * 1.0e-6 << " ms" << std::endl;
 
-    // Using mdspan interface with row major layout:
+    // Using abstract interface with row major layout:
 
     bestTime = std::chrono::nanoseconds::max();
     for( int run = 0; run < Nruns; ++run ) {
@@ -173,7 +173,7 @@ void run( blas::idx_t m, blas::idx_t n, blas::idx_t k )
     }
 
     // Output
-    std::cout << "Using mdspan interface with row major layout:" << std::endl
+    std::cout << "Using abstract interface with row major layout:" << std::endl
               << "||C-AB||_F = " << blas::nrm2( n, &C_[0], 1 ) << std::endl
               << "time = " << bestTime.count() * 1.0e-6 << " ms" << std::endl;
 }
