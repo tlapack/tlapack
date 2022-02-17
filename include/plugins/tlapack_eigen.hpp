@@ -221,18 +221,18 @@ namespace blas{
     }
 
     // Diagonal
-    template<class T>
-    inline constexpr auto diag( const Eigen::MatrixBase<T>& A, int diagIdx = 0 ) noexcept
+    template<class T, class int_t>
+    inline constexpr auto diag( const Eigen::MatrixBase<T>& A, int_t diagIdx = 0 ) noexcept
     {
         return A.diagonal( diagIdx );
     }
-    template<class T>
-    inline constexpr auto diag( Eigen::MatrixBase<T>& A, int diagIdx = 0 ) noexcept
+    template<class T, class int_t>
+    inline constexpr auto diag( Eigen::MatrixBase<T>& A, int_t diagIdx = 0 ) noexcept
     {
         return A.diagonal( diagIdx );
     }
-    template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel, typename SliceSpec>
-    inline constexpr auto diag( Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>&& A, int diagIdx = 0 ) noexcept
+    template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel, typename SliceSpec, class int_t>
+    inline constexpr auto diag( Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>&& A, int_t diagIdx = 0 ) noexcept
     {
         return A.diagonal( diagIdx );
     }

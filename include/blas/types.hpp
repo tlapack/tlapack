@@ -34,8 +34,15 @@ constexpr checkInfNaN_t checkInfNaN = { };
 // -----------------------------------------------------------------------------
 // Strong numeric expressions
 
-struct zero_t { };
+struct zero_t {
+    constexpr operator int()   const{ return 0; }
+};
 constexpr zero_t zero = { };
+
+struct one_t {
+    constexpr operator int()   const{ return 1; }
+};
+constexpr one_t one = { };
 
 // -----------------------------------------------------------------------------
 // common_type_t is defined in C++14; here's a C++11 definition

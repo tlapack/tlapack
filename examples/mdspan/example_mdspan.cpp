@@ -13,7 +13,7 @@
 #include <iostream>
 
 #include <plugins/tlapack_mdspan.hpp>
-#include <slate_api/blas/mdspan.hpp>
+// #include <legacy_api/blas/mdspan.hpp>
 #include <tlapack.hpp>
 
 #include "tiledLayout.h"

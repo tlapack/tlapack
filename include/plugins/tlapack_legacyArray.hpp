@@ -4,107 +4,12 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_LEGACY_ARRAY_HH__
-#define __TLAPACK_LEGACY_ARRAY_HH__
+#ifndef __TLAPACK_LEGACYARRAY_HH__
+#define __TLAPACK_LEGACYARRAY_HH__
 
-// -----------------------------------------------------------------------------
-// Integer types BLAS_SIZE_T and BLAS_INT_T
-
-#include <cstdint> // Defines std::int64_t
-#include <cstddef> // Defines std::size_t
-
-#ifndef BLAS_SIZE_T
-    #define BLAS_SIZE_T std::size_t
-#endif
-
-#ifndef BLAS_INT_T
-    #define BLAS_INT_T std::int64_t
-#endif
-// -----------------------------------------------------------------------------
+#include "legacy_api/legacyArray.hpp"
 
 namespace blas {
-
-    /// legacyMatrix
-    template< typename T, Layout layout = Layout::ColMajor >
-    struct legacyMatrix {
-        using idx_t = BLAS_SIZE_T;
-        idx_t m, n, ldim;
-        T* ptr;
-        
-        template< enable_if< layout == Layout::ColMajor ,int>=0 >
-        inline constexpr T&
-        operator()( idx_t i, idx_t j ) const noexcept { return ptr[ i + j*ldim ]; }
-        
-        template< enable_if< layout == Layout::RowMajor ,int>=0 >
-        inline constexpr T&
-        operator()( idx_t i, idx_t j ) const noexcept { return ptr[ i*ldim + j ]; }
-        
-        inline constexpr legacyMatrix( idx_t m, idx_t n, T* ptr, idx_t ldim )
-        : m(m), n(n), ptr(ptr), ldim(ldim)
-        {
-            blas_error_if( m < 0 );
-            blas_error_if( n < 0 );
-            blas_error_if( ldim < ((layout == Layout::ColMajor) ? m : n) );
-        }
-    };
-
-    // template< typename T >
-    // struct legacyMatrix {
-    //     idx_t m, n, ldim;
-    //     T* ptr;
-        
-    //     inline constexpr T&
-    //     operator()( idx_t i, idx_t j ) const noexcept { return ptr[ i + j*ldim ]; }
-        
-    //     inline constexpr legacyMatrix( idx_t m, idx_t n, T* ptr, idx_t ldim )
-    //     : m(m), n(n), ptr(ptr), ldim(ldim)
-    //     {
-    //         blas_error_if( m < 0 );
-    //         blas_error_if( n < 0 );
-    //         blas_error_if( ldim < m );
-    //     }
-    // };
-
-    // /// legacyRowMajorMatrix
-    // template< typename T >
-    // struct legacyRowMajorMatrix {
-    //     idx_t m, n, ldim;
-    //     T* ptr;
-        
-    //     inline constexpr T&
-    //     operator()( idx_t i, idx_t j ) const noexcept { return ptr[ i*ldim + j ]; }
-        
-    //     inline constexpr legacyRowMajorMatrix( idx_t m, idx_t n, T* ptr, idx_t ldim )
-    //     : m(m), n(n), ptr(ptr), ldim(ldim)
-    //     {
-    //         blas_error_if( m < 0 );
-    //         blas_error_if( n < 0 );
-    //         blas_error_if( ldim < n );
-    //     }
-    // };
-
-    /// legacyVector: assumes increment is always positive
-    template< typename T, Direction direction = Direction::Forward >
-    struct legacyVector {
-        using idx_t = BLAS_SIZE_T;
-        idx_t n, inc;
-        T* ptr;
-        
-        template< enable_if< direction == Direction::Forward ,int>=0 >
-        inline constexpr T&
-        operator[]( idx_t i ) const noexcept { return ptr[ i*inc ]; }
-        
-        template< enable_if< direction == Direction::Backward ,int>=0 >
-        inline constexpr T&
-        operator[]( idx_t i ) const noexcept { return ptr[ ((n-1)-i)*inc ]; }
-        
-        inline constexpr legacyVector( idx_t n, T* ptr, idx_t inc )
-        : n(n), ptr(ptr), inc(inc)
-        {
-            blas_error_if( n < 0 );
-            blas_error_if( inc <= 0 );
-        }
-    };
 
     // -----------------------------------------------------------------------------
     // Data traits
@@ -129,14 +34,14 @@ namespace blas {
     struct type_trait< legacyMatrix<T,layout> > { using type = T; };
     // Size type
     template< typename T, Layout layout >
-    struct sizet_trait< legacyMatrix<T,layout> > { using type = typename legacyMatrix<T,layout>::idx_t; };
+    struct sizet_trait< legacyMatrix<T,layout> > { using type = typename legacyMatrix<T>::idx_t; };
 
     // Data type
-    template< typename T >
-    struct type_trait< legacyVector<T> > { using type = T; };
+    template< typename T, typename int_t, Direction direction >
+    struct type_trait< legacyVector<T,int_t,direction> > { using type = T; };
     // Size type
-    template< typename T >
-    struct sizet_trait< legacyVector<T> > { using type = typename legacyVector<T>::idx_t; };
+    template< typename T, typename int_t, Direction direction >
+    struct sizet_trait< legacyVector<T,int_t,direction> > { using type = typename legacyVector<T>::idx_t; };
 
     // -----------------------------------------------------------------------------
     // Data description
@@ -149,7 +54,7 @@ namespace blas {
     // Number of rows
     template< typename T, Layout layout >
     inline constexpr auto
-    nrows( const legacyMatrix<T,layout>& A ){ return A.m }
+    nrows( const legacyMatrix<T,layout>& A ){ return A.m; }
 
     // Number of columns
     template< typename T, Layout layout >
@@ -157,9 +62,9 @@ namespace blas {
     ncols( const legacyMatrix<T,layout>& A ){ return A.n; }
 
     // Size
-    template< typename T >
+    template< typename T, typename int_t, Direction direction >
     inline constexpr auto
-    size( const legacyVector<T>& x ){ return x.n; }
+    size( const legacyVector<T,int_t,direction>& x ){ return x.n; }
 
     // -----------------------------------------------------------------------------
     // Data blocks
@@ -168,7 +73,7 @@ namespace blas {
     template< typename T, Layout layout, class SliceSpecRow, class SliceSpecCol >
     inline constexpr auto
     submatrix( const legacyMatrix<T,layout>& A, SliceSpecRow&& rows, SliceSpecCol&& cols ) noexcept {
-        return legacyMatrix(
+        return legacyMatrix<T,layout>(
             rows.second-rows.first, cols.second-cols.first,
             &A(rows.first,cols.first), A.ldim
         );
@@ -178,46 +83,70 @@ namespace blas {
     template< typename T, Layout layout, class SliceSpec >
     inline constexpr auto
     rows( const legacyMatrix<T,layout>& A, SliceSpec&& rows ) noexcept {
-        return legacyMatrix( rows.second-rows.first, A.n, &A(rows.first,0), A.ldim );
+        return legacyMatrix<T,layout>(
+            rows.second-rows.first, A.n,
+            &A(rows.first,0), A.ldim
+        );
     }
     
     // Row
-    template< typename T, Layout layout >
+    template< typename T >
     inline constexpr auto
-    row( const legacyMatrix<T,layout>& A, typename legacyMatrix<T,layout>::idx_t rowIdx ) noexcept {
-        return legacyVector( A.n, &A(rowIdx,0), (layout == Layout::ColMajor) ? (int_t)A.ldim : 1 );
+    row( const legacyMatrix<T>& A, typename legacyMatrix<T>::idx_t rowIdx ) noexcept {
+        using idx_t = typename legacyMatrix<T>::idx_t;
+        return legacyVector<T,idx_t>( A.n, &A(rowIdx,0), A.ldim );
+    }
+    
+    // Row
+    template< typename T >
+    inline constexpr auto
+    row( const legacyMatrix<T,Layout::RowMajor>& A, typename legacyMatrix<T>::idx_t rowIdx ) noexcept {
+        return legacyVector<T>( A.n, &A(rowIdx,0) );
     }
     
     // Columns
     template< typename T, Layout layout, class SliceSpec >
     inline constexpr auto
-    cols( const legacyMatrix<T,layout>& A, SliceSpec&& rows ) noexcept {
-        return legacyMatrix( A.m, cols.second-cols.first, &A(0,cols.first), A.ldim );
+    cols( const legacyMatrix<T,layout>& A, SliceSpec&& cols ) noexcept {
+        return legacyMatrix<T,layout>(
+            A.m, cols.second-cols.first,
+            &A(0,cols.first), A.ldim
+        );
     }
     
     // Column
-    template< typename T, Layout layout >
+    template< typename T >
     inline constexpr auto
-    col( const legacyMatrix<T,layout>& A, typename legacyMatrix<T,layout>::idx_t colIdx ) noexcept {
-        return legacyVector( A.m, &A(0,colIdx), (layout == Layout::ColMajor) ? 1 : (int_t)A.ldim );
+    col( const legacyMatrix<T>& A, typename legacyMatrix<T>::idx_t colIdx ) noexcept {
+        return legacyVector<T>( A.m, &A(0,colIdx) );
+    }
+    
+    // Column
+    template< typename T >
+    inline constexpr auto
+    col( const legacyMatrix<T,Layout::RowMajor>& A, typename legacyMatrix<T>::idx_t colIdx ) noexcept {
+        using idx_t = typename legacyMatrix<T>::idx_t;
+        return legacyVector<T,idx_t>( A.m, &A(0,colIdx), A.ldim );
     }
 
     // Diagonal
-    template< typename T, Layout layout >
+    template< typename T, Layout layout, class int_t >
     inline constexpr auto
-    diag( const legacyMatrix<T,layout>& A, int diagIdx = 0 ) noexcept {
+    diag( const legacyMatrix<T,layout>& A, int_t diagIdx = 0 ) noexcept {
+        
         using idx_t = typename legacyMatrix<T,layout>::idx_t;
-        using int_t = typename legacyVector<T>::int_t;
+        
         T* ptr  = (diagIdx >= 0) ? &A(0,diagIdx) : &A(-diagIdx,0);
         idx_t n = std::min(A.m,A.n) - (idx_t)( (diagIdx >= 0) ? diagIdx : -diagIdx );
-        return legacyVector( std::move(n), std::move(ptr), (int_t)A.ldim + 1 );
+        
+        return legacyVector<T,idx_t>( n, ptr, A.ldim + 1 );
     }
 
     // Subvector
-    template< typename T, class SliceSpec >
+    template< typename T, typename int_t, Direction direction, class SliceSpec >
     inline constexpr auto
-    subvector( const legacyVector<T>& v, SliceSpec&& rows ) noexcept {
-        return legacyVector( rows.second-rows.first, &v[rows.first], v.inc );
+    subvector( const legacyVector<T,int_t,direction>& v, SliceSpec&& rows ) noexcept {
+        return legacyVector<T,int_t,direction>( rows.second-rows.first, &v[rows.first], v.inc );
     }
 } // namespace blas
 
@@ -241,4 +170,4 @@ namespace lapack {
 
 } // namespace lapack
 
-#endif // __TLAPACK_LEGACY_ARRAY_HH__
+#endif // __TLAPACK_LEGACYARRAY_HH__

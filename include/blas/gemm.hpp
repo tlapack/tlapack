@@ -12,6 +12,12 @@
 
 #define TLAPACK_USE_BLAS
 
+#define TLAPACK_OPT_TYPE( T ) \
+    template<> struct has_blas_type< T > { \
+        using type = T; \
+        static constexpr bool value = true; \
+    }
+
 namespace blas {
 
     /// alias has_blas_type for array and constant types
@@ -21,18 +27,11 @@ namespace blas {
     template<class... arrays_t>
     constexpr bool has_blas_type_v = has_blas_type< arrays_t... >::value;
 
-    /// True BLAS types
-    template<> struct has_blas_type<float> { using type = float; static constexpr bool value = true; };
-    template<> struct has_blas_type<double> { using type = double; static constexpr bool value = true; };
-    template<> struct has_blas_type<std::complex<float>> { using type = std::complex<float>; static constexpr bool value = true; };
-    template<> struct has_blas_type<std::complex<double>> { using type = std::complex<double>; static constexpr bool value = true; };
-
-    /// alias has_blas_type for arrays
-    template<class array_t>
-    struct has_blas_type<array_t> {
-        using type = type_t<array_t>;
-        static constexpr bool value = has_blas_type_v<type>;
-    };
+    /// Optimized types
+    TLAPACK_OPT_TYPE(float);
+    TLAPACK_OPT_TYPE(double);
+    TLAPACK_OPT_TYPE(std::complex<float>);
+    TLAPACK_OPT_TYPE(std::complex<double>);
 
     /// alias has_blas_type for multiple arrays
     template<class array1_t, class array2_t, class... arrays_t>

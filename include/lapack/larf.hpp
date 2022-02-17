@@ -15,7 +15,6 @@
 #include "lapack/utils.hpp"
 
 #include "tblas.hpp"
-#include "slate_api/blas.hpp"
 
 namespace lapack {
 

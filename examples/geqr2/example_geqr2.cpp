@@ -7,9 +7,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#include <plugins/tlapack_mdspan.hpp>
+#include "legacy_api/blas/utils.hpp"
 #include <plugins/tlapack_stdvector.hpp>
-#include <slate_api/blas/mdspan.hpp>
 #include <tlapack.hpp>
 
 #include <memory>

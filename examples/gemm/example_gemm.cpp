@@ -7,7 +7,7 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#include <slate_api/blas.hpp>
+#include <legacy_api/blas.hpp>
 
 #include <vector>
 #include <iostream>
@@ -24,7 +24,7 @@ void run( blas::idx_t m, blas::idx_t n, blas::idx_t k )
     using blas::idx_t;
     using blas::min;
     using blas::internal::colmajor_matrix;
-    using std::experimental::layout_right;
+    using blas::internal::rowmajor_matrix;
     
     // Column Major data
     idx_t lda = (m > 0) ? m : 1;
@@ -45,8 +45,6 @@ void run( blas::idx_t m, blas::idx_t n, blas::idx_t k )
     std::vector<T> C_( m*n, T(0) );   // m-by-n
 
     // Row Major Matrix views
-    using extents_t = blas::internal::dextents<2>;
-    using rowmajor_matrix = blas::mdspan< T, extents_t, layout_right>;
     auto Ar = rowmajor_matrix( &A_[0], m, k );
     auto Br = rowmajor_matrix( &B_[0], k, n );
     auto Cr = rowmajor_matrix( &C_[0], m, n );

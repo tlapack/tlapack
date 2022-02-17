@@ -144,8 +144,8 @@ install(
   DIRECTORY ${PROJECT_SOURCE_DIR}/include/
   DESTINATION include
   FILES_MATCHING PATTERN "*.hpp" )
-install( FILES ${PROJECT_SOURCE_DIR}/include/slate_api/lapack/config_lapackppwrappers.h
-          DESTINATION include/slate_api/lapack )
+install( FILES ${PROJECT_SOURCE_DIR}/include/legacy_api/lapack/config_lapackppwrappers.h
+          DESTINATION include/legacy_api/lapack )
 
 # Modules
 install(

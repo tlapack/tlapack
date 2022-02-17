@@ -10,6 +10,8 @@
 #include <experimental/mdspan>
 #include <type_traits>
 
+#include "legacy_api/legacyArray.hpp"
+
 namespace blas {
 
     using std::experimental::mdspan;
@@ -69,7 +71,27 @@ namespace blas {
 
     #define isSlice(SliceSpec) std::is_convertible< SliceSpec, std::tuple<std::size_t, std::size_t> >::value
 
-    // Submatrix
+    /** Returns a submatrix from the input matrix
+     * 
+     * The submatrix uses the same data from the matrix A.
+     * 
+     * It uses the function `std::experimental::submdspan` from https://github.com/kokkos/mdspan
+     * Currently, it only allows for contiguous ranges
+     * 
+     * @param[in] A             Matrix
+     * @param[in] rows          Rows used from A.
+     *      mdspan accepts values that can be converted to
+     *          - a size_t integer: reprents the index of the row to be used.
+     *          - a std::pair(a,b): uses rows from a to b-1
+     *          - a std::experimental::full_extent: uses all rows
+     * @param[in] cols          Columns used from A.
+     *      mdspan accepts values that can be converted to
+     *          - a size_t integer: reprents the index of the column to be used.
+     *          - a std::pair(a,b): uses columns from a to b-1
+     *          - a std::experimental::full_extent: uses all columns
+     * 
+     * @return mdspan<> submatrix
+     */
     template< class ET, class Exts, class LP, class AP,
         class SliceSpecRow, class SliceSpecCol,
         std::enable_if_t< isSlice(SliceSpecRow) && isSlice(SliceSpecCol), int > = 0
@@ -122,7 +144,7 @@ namespace blas {
     }
 
     // Extract a diagonal from a matrix
-    template< class ET, class Exts, class LP, class AP,
+    template< class ET, class Exts, class LP, class AP, class int_t,
         std::enable_if_t<
         /* Requires: */
             LP::template mapping<Exts>::is_always_strided()
@@ -130,7 +152,7 @@ namespace blas {
     >
     inline constexpr auto diag(
         const mdspan<ET,Exts,LP,AP>& A,
-        int diagIdx = 0 )
+        int_t diagIdx = 0 )
     {
         using std::abs;
         using std::min;
@@ -148,7 +170,7 @@ namespace blas {
                 : A.mapping()(-diagIdx,0)
         );
         auto map = mapping(
-            extents_t( min( A.extent(0), A.extent(1) ) - abs(diagIdx) ),
+            extents_t( min( A.extent(0), A.extent(1) ) - (size_type)( (diagIdx >= 0) ? diagIdx : -diagIdx ) ),
             array<size_type, 1>{ A.stride(0) + A.stride(1) }
         );
         auto acc_pol = typename AP::offset_policy(A.accessor());
@@ -160,6 +182,41 @@ namespace blas {
     }
 
     #undef isSlice
+
+    // -----------------------------------------------------------------------------
+    // Convert to legacy array
+
+    // /// alias has_blas_type for arrays
+    // template< class ET, class Exts, class LP, class AP,
+    //     std::enable_if_t<
+    //     /* Requires: */
+    //         has_blas_type_v<ET> &&
+    //         Exts::rank() <= 2 &&
+    //         LP::template mapping<Exts>::is_always_strided()
+    //     , bool > = true
+    // >
+    // struct has_blas_type< mdspan<ET,Exts,LP,AP> > {
+    //     using type = ET;
+    //     static constexpr bool value =
+    //         has_blas_type_v<type> && ;
+    // };
+
+    template< class ET, class Exts, class LP, class AP,
+        std::enable_if_t<
+        /* Requires: */
+            LP::template mapping<Exts>::is_always_strided() &&
+            Exts::rank() == 2
+        , bool > = true
+    >
+    inline constexpr auto
+    legacy_matrix( const mdspan<ET,Exts,LP,AP>& A ) {
+        if( A.stride(0) == 1 )
+            return legacyMatrix<ET,Layout::ColMajor>( A.extent(0), A.extent(1), A.data(), A.stride(1) );
+        else if( A.stride(1) == 1 )
+            return legacyMatrix<ET,Layout::RowMajor>( A.extent(0), A.extent(1), A.data(), A.stride(0) );
+        else
+            return legacyMatrix<ET>( 0, 0, nullptr, 0 );
+    }
 
 } // namespace blas
 

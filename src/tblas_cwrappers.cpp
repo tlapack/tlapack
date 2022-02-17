@@ -7,7 +7,7 @@
 #ifdef BUILD_CBLAS
 
     #include "tlapack_cblas.h"
-    #include "slate_api/blas.hpp"
+    #include "legacy_api/blas.hpp"
 
     // Mangling
     #ifdef ADD_
@@ -58,7 +58,7 @@
 #else
 
     #include "tblas.h"
-    #include "slate_api/blas.hpp"
+    #include "legacy_api/blas.hpp"
 
     // Mangling
     #ifdef ADD_

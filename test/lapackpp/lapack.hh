@@ -9,6 +9,6 @@
 
 #include "lapack/defines.h"
 #include "lapack/util.hh"
-#include "slate_api/lapack.hpp"
+#include "legacy_api/lapack.hpp"
 
 #endif // LAPACK_HH
