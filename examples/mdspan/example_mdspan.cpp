@@ -13,7 +13,6 @@
 #include <iostream>
 
 #include <plugins/tlapack_mdspan.hpp>
-// #include <legacy_api/blas/mdspan.hpp>
 #include <tlapack.hpp>
 
 #include "tiledLayout.h"
@@ -24,8 +23,9 @@ int main( int argc, char** argv )
     using T = float;
 
     using namespace blas;
-    using blas::internal::colmajor_matrix;
 
+    using std::experimental::mdspan;
+    using std::experimental::submdspan;
     using std::experimental::layout_stride;
     using std::experimental::dextents;
     
@@ -34,7 +34,6 @@ int main( int argc, char** argv )
 
     using TiledMapping  = typename TiledLayout::template mapping<dextents<2>>;
     using strideMapping = typename layout_stride::template mapping<dextents<2>>;
-
     
     // constants
     const idx_t n = 100, k = 40, row_tile = 2, col_tile = 5;
@@ -48,9 +47,11 @@ int main( int argc, char** argv )
     /// Using dynamic extents: 
 
     // Column Major Matrix A
-    auto A  = colmajor_matrix( A_, n, n, lda );
+    auto A  = mdspan< T, dextents<2>, layout_stride >(
+        A_, strideMapping( dextents<2>(n, n), std::array<idx_t,2>{1,lda} )
+    );
     // Column Major Matrix Ak with the first k columns of A
-    auto Ak = submatrix( A, pair{0,n}, pair{0,k} );
+    auto Ak = submdspan( A, pair{0,n}, pair{0,k} );
     // Tiled Matrix B with the last k*n elements of A_
     auto B  = mdspan< T, dextents<2>, TiledLayout >(
         &A(n*(lda-k),0), TiledMapping( dextents<2>(k, n), row_tile, col_tile )
@@ -113,8 +114,8 @@ int main( int argc, char** argv )
             A_[i+j*lda] = T( static_cast<float>( 0xDEADBEEF ) );
 
     // Column Major Matrices U and Asym as submatrices of A
-    auto U    = submatrix( A, pair{0,k}, pair{0,k} );
-    auto Asym = submatrix( A, pair{0,k}, pair{k,2*k} );
+    auto U    = submdspan( A, pair{0,k}, pair{0,k} );
+    auto Asym = submdspan( A, pair{0,k}, pair{k,2*k} );
     
     // Fill Asym with random entries
     for (idx_t j = 0; j < k; ++j) {
@@ -145,7 +146,7 @@ int main( int argc, char** argv )
               << std::endl;
 
     // Solve U^H U R = A
-    auto R  = submatrix( A, pair{k,2*k}, pair{0,k} );
+    auto R  = submdspan( A, pair{k,2*k}, pair{0,k} );
     for (idx_t j = 0; j < k; ++j)
         for (idx_t i = 0; i < k; ++i)
             R(i,j) = Asym(i,j);

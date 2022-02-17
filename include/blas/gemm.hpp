@@ -33,6 +33,13 @@ namespace blas {
     TLAPACK_OPT_TYPE(std::complex<float>);
     TLAPACK_OPT_TYPE(std::complex<double>);
 
+    // /// alias has_blas_type for arrays
+    // template<class array_t>
+    // struct has_blas_type<array_t> {
+    //     using type = type_t<array_t>;
+    //     static constexpr bool value = has_blas_type_v<type>;
+    // };
+
     /// alias has_blas_type for multiple arrays
     template<class array1_t, class array2_t, class... arrays_t>
     struct has_blas_type< array1_t, array2_t, arrays_t... > {

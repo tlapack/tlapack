@@ -7,9 +7,7 @@
 #ifndef __TBLAS_LEGACY_UTILS_HH__
 #define __TBLAS_LEGACY_UTILS_HH__
 
-#define TLAPACK_USE_LEGACYARRAY
-
-#ifdef TLAPACK_USE_LEGACYARRAY
+#ifndef TLAPACK_USE_MDSPAN
 
     #include "legacy_api/blas/legacyArray.hpp"
     #include "plugins/tlapack_legacyArray.hpp" // Loads LegacyArray plugin
