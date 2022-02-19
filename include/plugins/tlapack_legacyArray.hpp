@@ -7,27 +7,15 @@
 #ifndef __TLAPACK_LEGACYARRAY_HH__
 #define __TLAPACK_LEGACYARRAY_HH__
 
+#include <utility>
+
 #include "legacy_api/legacyArray.hpp"
+#include "blas/arrayTraits.hpp"
 
 namespace blas {
 
     // -----------------------------------------------------------------------------
     // Data traits
-
-    #ifndef TBLAS_ARRAY_TRAITS
-        #define TBLAS_ARRAY_TRAITS
-
-        // Data type
-        template< class T > struct type_trait {};
-        template< class T >
-        using type_t = typename type_trait< T >::type;
-        
-        // Size type
-        template< class T > struct sizet_trait {};
-        template< class T >
-        using size_type = typename sizet_trait< T >::type;
-
-    #endif // TBLAS_ARRAY_TRAITS
 
     // Data type
     template< typename T, Layout layout >
@@ -36,12 +24,28 @@ namespace blas {
     template< typename T, Layout layout >
     struct sizet_trait< legacyMatrix<T,layout> > { using type = typename legacyMatrix<T>::idx_t; };
 
+    /// Specialization of has_blas_type for arrays.
+    template< typename T, Layout L >
+    struct allow_optblas< legacyMatrix<T,L> > {
+        using type = T;
+        static constexpr Layout layout = L;
+        static constexpr bool value = allow_optblas_v<type>;
+    };
+
     // Data type
     template< typename T, typename int_t, Direction direction >
     struct type_trait< legacyVector<T,int_t,direction> > { using type = T; };
     // Size type
     template< typename T, typename int_t, Direction direction >
     struct sizet_trait< legacyVector<T,int_t,direction> > { using type = typename legacyVector<T>::idx_t; };
+
+    /// Specialization of has_blas_type for arrays.
+    template< typename T, typename int_t, Direction direction >
+    struct allow_optblas< legacyVector<T,int_t,direction> > {
+        using type = T;
+        static constexpr Layout layout = Layout::StridedVector;
+        static constexpr bool value = allow_optblas_v<type>;
+    };
 
     // -----------------------------------------------------------------------------
     // Data description
@@ -148,12 +152,29 @@ namespace blas {
     subvector( const legacyVector<T,int_t,direction>& v, SliceSpec&& rows ) noexcept {
         return legacyVector<T,int_t,direction>( rows.second-rows.first, &v[rows.first], v.inc );
     }
+
+    // -----------------------------------------------------------------------------
+    // Cast to Legacy arrays
+
+    template< typename T, Layout layout >
+    inline constexpr auto
+    legacy_matrix( legacyMatrix<T,layout>& A ) noexcept { return A; }
+
+    template< typename T, Layout layout >
+    inline constexpr auto
+    legacy_matrix( const legacyMatrix<T,layout>& A ) noexcept { return A; }
+
+    template< typename T, typename int_t, Direction direction >
+    inline constexpr auto
+    legacy_vector( legacyVector<T,int_t,direction>& v ) noexcept { return v; }
+
+    template< typename T, typename int_t, Direction direction >
+    inline constexpr auto
+    legacy_vector( const legacyVector<T,int_t,direction>& v ) noexcept { return v; }
+
 } // namespace blas
 
 namespace lapack {
-    
-    using blas::type_t;
-    using blas::size_type;
 
     using blas::size;
     using blas::nrows;

@@ -87,7 +87,8 @@ namespace blas {
  *
  * @ingroup gemm
  */
-template< typename TA, typename TB, typename TC >
+template< typename TA, typename TB, typename TC,
+    disable_if_allow_optblas_t<TA, TB, TC> = 0 >
 void gemm(
     blas::Layout layout,
     blas::Op transA,

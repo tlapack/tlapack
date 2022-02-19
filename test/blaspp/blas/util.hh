@@ -32,6 +32,7 @@ namespace blas {
         switch (layout) {
             case Layout::ColMajor: return "col";
             case Layout::RowMajor: return "row";
+            default:               return "";
         }
         return "";
     }

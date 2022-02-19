@@ -89,10 +89,12 @@ void run( blas::idx_t m, blas::idx_t n, blas::idx_t k )
         auto start = std::chrono::high_resolution_clock::now();
 
             // C = -1.0*A*B + 1.0*C
-            blas::gemm( blas::Op::NoTrans,
+            blas::gemm( blas::Layout::ColMajor,
                         blas::Op::NoTrans,
-                        T(-1.0), A, B,
-                        T( 1.0), C );
+                        blas::Op::NoTrans,
+                        m, n, k,
+                        T(-1.0), &_A[0], lda, &_B[0], ldb, 
+                        T( 1.0), &_C[0], ldc );
         
         // Record end time
         auto end = std::chrono::high_resolution_clock::now();

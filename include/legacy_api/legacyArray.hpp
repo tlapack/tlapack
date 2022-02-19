@@ -92,4 +92,9 @@ namespace blas {
 
 } // namespace blas
 
+namespace lapack {
+    using blas::legacyMatrix;
+    using blas::legacyVector;
+}
+
 #endif // __TLAPACK_LEGACY_ARRAY_HH__

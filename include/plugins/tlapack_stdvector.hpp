@@ -8,6 +8,8 @@
 #define __TLAPACK_STDVECTOR_HH__
 
 #include <vector>
+#include "blas/arrayTraits.hpp"
+
 #ifndef TLAPACK_USE_MDSPAN
     #include "legacy_api/legacyArray.hpp"
 #else
@@ -18,20 +20,6 @@ namespace blas {
 
     // -----------------------------------------------------------------------------
     // Data traits for std::vector
-
-    #ifndef TBLAS_ARRAY_TRAITS
-        #define TBLAS_ARRAY_TRAITS
-
-        // Data type
-        template< class T > struct type_trait {};
-        template< class T >
-        using type_t = typename type_trait< T >::type;
-        // Size type
-        template< class T > struct sizet_trait {};
-        template< class T >
-        using size_type = typename sizet_trait< T >::type;
-
-    #endif // TBLAS_ARRAY_TRAITS
 
     // Data type
     template< class T, class Allocator >
@@ -73,9 +61,6 @@ namespace blas {
 } // namespace blas
 
 namespace lapack {
-    
-    using blas::type_t;
-    using blas::size_type;
 
     using blas::size;
 

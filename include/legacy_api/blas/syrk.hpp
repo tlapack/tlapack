@@ -85,7 +85,8 @@ void syrk(
     scalar_type<TA, TC> alpha,
     TA const *A, blas::idx_t lda,
     scalar_type<TA, TC> beta,
-    TC       *C, blas::idx_t ldc )
+    TC       *C, blas::idx_t ldc,
+    disable_if_allow_optblas_t<TA,TC> = 0 )
 {
     typedef blas::scalar_type<TA, TC> scalar_t;
     using blas::internal::colmajor_matrix;

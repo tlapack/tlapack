@@ -82,7 +82,8 @@ template<
     /* Requires: */
         !is_complex<alpha_t>::value &&
         !is_complex<beta_t> ::value
-    ), int > = 0
+    ), int > = 0,
+    disable_if_allow_optblas_t<matrixA_t, matrixC_t, alpha_t, beta_t> = 0
 >
 void herk(
     blas::Uplo uplo,
@@ -186,6 +187,39 @@ void herk(
                 C(i,j) = conj( C(j,i) );
         }
     }
+}
+
+template<
+    class matrixA_t, class matrixC_t, 
+    class alpha_t, class beta_t,
+    enable_if_t<(
+    /* Requires: */
+        !is_complex<alpha_t>::value &&
+        !is_complex<beta_t> ::value
+    ), int > = 0,
+    enable_if_allow_optblas_t<matrixA_t, matrixC_t, alpha_t, beta_t> = 0
+>
+void herk(
+    blas::Uplo uplo,
+    blas::Op trans,
+    const alpha_t& alpha, const matrixA_t& A,
+    const beta_t& beta, matrixC_t& C )
+{
+    // Legacy objects
+    auto _A = legacy_matrix(A);
+    auto _C = legacy_matrix(C);
+
+    // Constants to forward
+    const auto& n = _C.n;
+    const auto& k = (trans == Op::NoTrans) ? _A.n : _A.m;
+
+    herk(
+        _A.layout, uplo, trans, 
+        n, k,
+        alpha,
+        _A.ptr, _A.ldim,
+        beta,
+        _C.ptr, _C.ldim );
 }
 
 }  // namespace blas

@@ -16,6 +16,15 @@
 #undef assert_throw
 #define assert_throw( expr, exception_type ) ((void)0)
 
+// Disable optimized BLAS types
+#undef TLAPACK_USE_OPTSINGLE
+#undef TLAPACK_USE_OPTDOUBLE
+#undef TLAPACK_USE_OPTCOMPLEX
+#undef TLAPACK_USE_OPTDOUBLECOMPLEX
+
+// Disable BLAS wrappers
+#undef USE_BLASPP_WRAPPERS
+
 #define BLAS_ERROR_NDEBUG // Don't test corner cases
 
 #endif        //  #ifndef BLAS_DEFINES_H

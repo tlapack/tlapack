@@ -7,6 +7,16 @@
 #ifndef __TBLAS_HH__
 #define __TBLAS_HH__
 
+// Optimized BLAS
+
+#ifdef USE_BLASPP_WRAPPERS
+    #ifndef BLAS_UTIL_HH
+        #define BLAS_UTIL_HH // So as not to include utils from BLAS++
+    #endif
+    #include "legacy_api/blas/types.hpp"
+    #include "blas/wrappers.hh" // from BLAS++
+#endif
+
 // Template BLAS
 
 // =============================================================================

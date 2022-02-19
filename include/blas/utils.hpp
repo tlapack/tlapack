@@ -13,6 +13,7 @@
 
 #include <limits>
 #include <cmath>
+#include <utility>
 
 #ifdef USE_MPFR
     #include <mpreal.h>
@@ -100,9 +101,9 @@ inline scalar_type< T1, T2 >
 // three or more arguments
 template< typename T1, typename... Types >
 inline scalar_type< T1, Types... >
-    max( const T1& first, const Types&... args )
+    max( const T1& first, Types&&... args )
 {
-    return max( first, max( args... ) );
+    return max( first, max( std::forward<Types>(args)... ) );
 }
 
 // -----------------------------------------------------------------------------
@@ -124,9 +125,9 @@ inline scalar_type< T1, T2 >
 // three or more arguments
 template< typename T1, typename... Types >
 inline scalar_type< T1, Types... >
-    min( const T1& first, const Types&... args )
+    min( const T1& first, Types&&... args )
 {
-    return min( first, min( args... ) );
+    return min( first, min( std::forward<Types>(args)... ) );
 }
 
 // -----------------------------------------------------------------------------
@@ -345,6 +346,64 @@ inline real_t abs1( const std::complex<real_t>& x )
 {
     return abs( real(x), false ) + abs( imag(x), false );
 }
+
+// -----------------------------------------------------------------------------
+/// Optimized BLAS
+
+/// Specify the rules for allow_optblas for multiple data structures.
+template< class T1, class T2, class... Ts >
+struct allow_optblas< T1, T2, Ts... > {
+    
+    using type = allow_optblas_t<T1>;
+    
+    static constexpr Layout layout =
+        (   allow_optblas_l<T1> == Layout::Scalar || 
+            allow_optblas_l<T1> == Layout::StridedVector )
+                ? allow_optblas_l<T2, Ts...>
+                : allow_optblas_l<T1>;
+    
+    static constexpr bool value = 
+        allow_optblas_v<T1> &&
+        allow_optblas_v<T2, Ts...> &&
+        is_same_v< real_type<type>, real_type<allow_optblas_t<T2>> > &&
+        (   allow_optblas_l<T1> == Layout::Scalar || 
+            allow_optblas_l<T1> == Layout::StridedVector ||
+            allow_optblas_l<T2, Ts...> == Layout::Scalar ||
+            allow_optblas_l<T2, Ts...> == Layout::StridedVector ||
+            layout == allow_optblas_l<T2, Ts...> );
+};
+
+template<class T1, class... Ts>
+using enable_if_allow_optblas_t = enable_if_t<(
+    allow_optblas_v< T1, Ts... >
+), int >;
+
+template<class T1, class... Ts>
+using disable_if_allow_optblas_t = enable_if_t<(
+    ! allow_optblas_v< T1, Ts... >
+), int >;
+
+#define TLAPACK_OPT_TYPE( T ) \
+    template<> struct allow_optblas< T > { \
+        using type = T; \
+        static constexpr Layout layout = Layout::Scalar; \
+        static constexpr bool value = true; \
+    }
+
+    /// Optimized types
+    #ifdef TLAPACK_USE_OPTSINGLE
+        TLAPACK_OPT_TYPE(float);
+    #endif
+    #ifdef TLAPACK_USE_OPTDOUBLE
+        TLAPACK_OPT_TYPE(double);
+    #endif
+    #ifdef TLAPACK_USE_OPTCOMPLEX
+        TLAPACK_OPT_TYPE(std::complex<float>);
+    #endif
+    #ifdef TLAPACK_USE_OPTDOUBLECOMPLEX
+        TLAPACK_OPT_TYPE(std::complex<double>);
+    #endif
+#undef TLAPACK_OPT_TYPE
 
 } // namespace blas
 

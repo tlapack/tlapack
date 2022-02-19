@@ -69,8 +69,8 @@ int geqr2( matrix_t& A, vector_t &tau, work_t &work )
     const idx_t k = std::min<idx_t>( m, n-1 );
 
     // check arguments
-    lapack_error_if( size(tau)  < std::min<idx_t>( m, n ), -2 );
-    lapack_error_if( size(work) < n-1, -3 );
+    lapack_error_if( (idx_t) size(tau)  < std::min<idx_t>( m, n ), -2 );
+    lapack_error_if( (idx_t) size(work) < n-1, -3 );
 
     // quick return
     if (n <= 0) return 0;

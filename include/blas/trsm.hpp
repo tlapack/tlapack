@@ -89,7 +89,9 @@ namespace blas {
  *
  * @ingroup trsm
  */
-template< class matrixA_t, class matrixB_t, class alpha_t >
+template< class matrixA_t, class matrixB_t, class alpha_t,
+    disable_if_allow_optblas_t<matrixA_t, matrixB_t, alpha_t> = 0
+>
 void trsm(
     blas::Side side,
     blas::Uplo uplo,
@@ -291,6 +293,30 @@ void trsm(
             }
         }
     }
+}
+
+template< class matrixA_t, class matrixB_t, class alpha_t,
+    enable_if_allow_optblas_t<matrixA_t, matrixB_t, alpha_t> = 0
+>
+void trsm(
+    blas::Side side,
+    blas::Uplo uplo,
+    blas::Op trans,
+    blas::Diag diag,
+    const alpha_t alpha,
+    const matrixA_t& A,
+    matrixB_t& B )
+{
+    // Legacy objects
+    auto _A = legacy_matrix(A);
+    auto _B = legacy_matrix(B);
+
+    trsm(
+        _A.layout, side, uplo, trans, diag,
+        _B.m, _B.n,
+        alpha,
+        _A.ptr, _A.ldim,
+        _B.ptr, _B.ldim );
 }
 
 }  // namespace blas

@@ -85,7 +85,8 @@ void herk(
     real_type<TA, TC> alpha,  // note: real
     TA const *A_, blas::idx_t lda,
     real_type<TA, TC> beta,  // note: real
-    TC       *C_, blas::idx_t ldc )
+    TC       *C_, blas::idx_t ldc,
+    disable_if_allow_optblas_t<TA,TC> = 0 )
 {
     typedef blas::real_type<TA, TC> real_t;
     using blas::internal::colmajor_matrix;

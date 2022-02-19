@@ -10,6 +10,7 @@
 
 #include <Eigen/Core>
 #include <type_traits>
+#include "blas/arrayTraits.hpp"
 
 namespace blas{
 
@@ -24,21 +25,6 @@ namespace blas{
 
     // -----------------------------------------------------------------------------
     // Data traits for Eigen
-
-    #ifndef TBLAS_ARRAY_TRAITS
-        #define TBLAS_ARRAY_TRAITS
-
-        // Data type
-        template< class T > struct type_trait {};
-        template< class T >
-        using type_t = typename type_trait< T >::type;
-
-        // Size type
-        template< class T > struct sizet_trait {};
-        template< class T >
-        using size_type = typename sizet_trait< T >::type;
-
-    #endif // TBLAS_ARRAY_TRAITS
 
     // Data type
     template<typename Scalar_, int Rows_, int Cols_, int Options_, int MaxRows_, int MaxCols_>
@@ -240,9 +226,6 @@ namespace blas{
 } // namespace blas
 
 namespace lapack {
-    
-    using blas::type_t;
-    using blas::size_type;
 
     using blas::size;
     using blas::nrows;

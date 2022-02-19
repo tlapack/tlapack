@@ -284,3 +284,52 @@ jobs:
     #     ./tester -# [#test_corner_cases] -r compact
     #   # echo "Total of:"
     #   # ./tester -# [#test_corner_cases] -l | tail -n 2
+
+  build-test-performance:
+    # Use GNU compilers
+  
+    runs-on: ubuntu-latest
+    env:
+      blaspp_DIR: ${{github.workspace}}/blaspp
+
+    strategy:
+      fail-fast: false
+    
+    steps:
+    
+    - name: Checkout <T>LAPACK
+      uses: actions/checkout@v2
+
+    - name: Checkout BLAS++
+      run: |
+        git clone https://bitbucket.org/weslleyspereira/blaspp ${{env.blaspp_DIR}}
+
+    - name: Build and install BLAS++
+      working-directory: ${{env.blaspp_DIR}}
+      run: |
+        git checkout tlapack
+        cmake -B build -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.blaspp_DIR}}
+        cmake --build build --target install
+
+    - name: Configure CMake
+      run: >
+        cmake -B build
+        -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+        -D CMAKE_INSTALL_PREFIX=${{github.workspace}}/tlapack_install
+        -D BUILD_SHARED_LIBS=ON
+        -D BUILD_EXAMPLES=OFF
+        -D TLAPACK_USE_OPTBLAS=ON
+
+    - name: Build and Install
+      # Build your program with the given configuration
+      run: cmake --build build --config ${{env.BUILD_TYPE}}  --target install
+
+    - name: Install LAPACKE on Ubuntu
+      run: sudo apt install liblapacke-dev
+
+    - name: Build and run example comparing performance
+      working-directory: ${{github.workspace}}/examples/potrf
+      run: |
+        cmake -B build -D CMAKE_PREFIX_PATH=${{github.workspace}}/tlapack_install
+        cmake --build build --target all
+        ./build/example_potrf
