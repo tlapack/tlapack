@@ -15,34 +15,46 @@
 #include <plugins/tlapack_legacyArray.hpp>
 #include <tlapack.hpp>
 
-// LAPACKE
-extern "C" {
-    #include <lapacke.h>
-}
+#ifndef USE_MKL
+    // LAPACKE
+    extern "C" {
+        #include <lapacke.h>
+    }
+    typedef float _Complex complex;
+    typedef double _Complex dComplex;
+#else
+    // MKL LAPACKE
+    extern "C" {
+        #include <mkl_lapacke.h>
+    }
+    typedef _MKL_Complex8 complex;
+    typedef _MKL_Complex16 dComplex;
+#endif
+
 template<typename T>
 inline constexpr
-lapack_int LAPACKE_xpotrf( int matrix_layout, char uplo, lapack_int n, T* a, lapack_int lda ) {
+lapack_int LAPACKE_xpotrf2( int matrix_layout, char uplo, lapack_int n, T* a, lapack_int lda ) {
     return 1;
 }
 template<>
 inline
-lapack_int LAPACKE_xpotrf<float>( int matrix_layout, char uplo, lapack_int n, float* a, lapack_int lda ) {
-    return LAPACKE_spotrf( matrix_layout, uplo, n, a, lda );
+lapack_int LAPACKE_xpotrf2<float>( int matrix_layout, char uplo, lapack_int n, float* a, lapack_int lda ) {
+    return LAPACKE_spotrf2( matrix_layout, uplo, n, a, lda );
 }
 template<>
 inline
-lapack_int LAPACKE_xpotrf<double>( int matrix_layout, char uplo, lapack_int n, double* a, lapack_int lda ) {
-    return LAPACKE_dpotrf( matrix_layout, uplo, n, a, lda );
+lapack_int LAPACKE_xpotrf2<double>( int matrix_layout, char uplo, lapack_int n, double* a, lapack_int lda ) {
+    return LAPACKE_dpotrf2( matrix_layout, uplo, n, a, lda );
 }
 template<>
 inline
-lapack_int LAPACKE_xpotrf<std::complex<float>>( int matrix_layout, char uplo, lapack_int n, std::complex<float>* a, lapack_int lda ) {
-    return LAPACKE_cpotrf( matrix_layout, uplo, n, reinterpret_cast<float _Complex*>(a), lda );
+lapack_int LAPACKE_xpotrf2<std::complex<float>>( int matrix_layout, char uplo, lapack_int n, std::complex<float>* a, lapack_int lda ) {
+    return LAPACKE_cpotrf2( matrix_layout, uplo, n, reinterpret_cast<complex*>(a), lda );
 }
 template<>
 inline
-lapack_int LAPACKE_xpotrf<std::complex<double>>( int matrix_layout, char uplo, lapack_int n, std::complex<double>* a, lapack_int lda ) {
-    return LAPACKE_zpotrf( matrix_layout, uplo, n, reinterpret_cast<double _Complex*>(a), lda );
+lapack_int LAPACKE_xpotrf2<std::complex<double>>( int matrix_layout, char uplo, lapack_int n, std::complex<double>* a, lapack_int lda ) {
+    return LAPACKE_zpotrf2( matrix_layout, uplo, n, reinterpret_cast<dComplex*>(a), lda );
 }
 
 using idx_t = BLAS_SIZE_T;
@@ -57,6 +69,9 @@ void run( idx_t n )
     // Matrix A
     std::vector<T> _A( n*n );
     legacyMatrix<T> A( n, n, &_A[0], n );
+
+    // Flops
+    const real_t nFlops = real_t(n*n*n) / 3;
     
     // Fill A with random entries
     for (idx_t j = 0; j < n; ++j) {
@@ -89,8 +104,7 @@ void run( idx_t n )
         // Record start time
         auto start = std::chrono::high_resolution_clock::now();
 
-            struct { idx_t nb = 64; } opts;
-            int info = potrf( upper_triangle, U, opts );
+            int info = potrf2( upper_triangle, U );
         
         // Record end time
         auto end = std::chrono::high_resolution_clock::now();
@@ -116,7 +130,8 @@ void run( idx_t n )
         // Output
         std::cout << "Using <T>LAPACK:" << std::endl
                 << "U^H U R = A   =>   ||R-Id||_F / ||Id||_F = " << error << std::endl
-                << "time = " << elapsed.count() * 1.0e-6 << " ms" << std::endl;
+                << "time = " << elapsed.count() * 1.0e-9 << " s" << std::endl;
+        // std::cout << nFlops / elapsed.count() << " ";
     }
 
     // 2) Using LAPACKE:
@@ -135,7 +150,7 @@ void run( idx_t n )
         // Record start time
         auto start = std::chrono::high_resolution_clock::now();
 
-            lapack_int info = LAPACKE_xpotrf<T>( LAPACK_COL_MAJOR, 'U', n, &U[0], n );
+            lapack_int info = LAPACKE_xpotrf2<T>( LAPACK_COL_MAJOR, 'U', n, &U[0], n );
         
         // Record end time
         auto end = std::chrono::high_resolution_clock::now();
@@ -161,7 +176,8 @@ void run( idx_t n )
         // Output
         std::cout << "Using LAPACKE:" << std::endl
                 << "U^H U R = A   =>   ||R-Id||_F / ||Id||_F = " << error << std::endl
-                << "time = " << elapsed.count() * 1.0e-6 << " ms" << std::endl;
+                << "time = " << elapsed.count() * 1.0e-9 << " s" << std::endl;
+        // std::cout << nFlops / elapsed.count() << " ";
     }
 }
 
@@ -193,6 +209,8 @@ int main( int argc, char** argv )
     std::cout << "run< complex<double> >( " << n << " )" << std::endl;
     run< std::complex<double> >( n );
     std::cout << "-----------------------" << std::endl;
+
+    // std::cout << std::endl;
 
     return 0;
 }

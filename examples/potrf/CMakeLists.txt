@@ -8,7 +8,14 @@ cmake_minimum_required(VERSION 3.1)
 
 project( potrf CXX )
 
-find_package( LAPACK REQUIRED )
+# Add the CMake directory for custom CMake modules
+set(CMAKE_MODULE_PATH "cmake" ${CMAKE_MODULE_PATH})
+
+if(LAPACK_DIR)
+    find_package(LAPACK HINTS ${LAPACK_DIR})
+else()
+    find_package(LAPACK)
+endif()
 
 # Load <T>LAPACK
 if( NOT TARGET tlapack )
@@ -18,4 +25,17 @@ endif()
 # add the example potrf
 add_executable( example_potrf example_potrf.cpp )
 target_link_libraries( example_potrf PRIVATE tlapack )
-target_link_libraries( example_potrf PRIVATE "-llapacke" ${LAPACK_LIBRARIES} )
+
+# Load LAPACKE if not using MKL
+if( NOT USE_MKL )
+  if(LAPACKE_DIR)
+      find_package(LAPACKE HINTS ${LAPACKE_DIR})
+  else()
+      find_package(LAPACKE)
+  endif()
+  message( STATUS "LAPACKE: ${LAPACKE_LIBRARIES}" )
+  target_link_libraries( example_potrf PRIVATE ${LAPACKE_LIBRARIES} )
+else()
+  target_compile_definitions( example_potrf PRIVATE "USE_MKL" )
+  target_link_libraries( example_potrf PRIVATE ${LAPACK_LIBRARIES} )
+endif()
