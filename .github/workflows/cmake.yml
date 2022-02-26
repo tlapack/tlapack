@@ -214,7 +214,7 @@ jobs:
       run: |
         git checkout tlapack
         mkdir build
-        cmake -B build -DBLA_VENDOR=OpenBLAS -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.blaspp_DIR}}
+        cmake -B build -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBLA_VENDOR=OpenBLAS -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.blaspp_DIR}}
         cmake --build build --target install
 
     - name: Configure CMake for <T>LAPACK
@@ -308,7 +308,7 @@ jobs:
       working-directory: ${{env.blaspp_DIR}}
       run: |
         git checkout tlapack
-        cmake -B build -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.blaspp_DIR}}
+        cmake -B build -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.blaspp_DIR}}
         cmake --build build --target install
 
     - name: Configure CMake
@@ -330,6 +330,6 @@ jobs:
     - name: Build and run example comparing performance
       working-directory: ${{github.workspace}}/examples/potrf
       run: |
-        cmake -B build -D CMAKE_PREFIX_PATH=${{github.workspace}}/tlapack_install
+        cmake -B build -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -D CMAKE_PREFIX_PATH=${{github.workspace}}/tlapack_install
         cmake --build build --target all
         ./build/example_potrf
