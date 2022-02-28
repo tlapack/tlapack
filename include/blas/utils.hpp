@@ -101,9 +101,9 @@ inline scalar_type< T1, T2 >
 // three or more arguments
 template< typename T1, typename... Types >
 inline scalar_type< T1, Types... >
-    max( const T1& first, Types&&... args )
+    max( const T1& first, const Types&... args )
 {
-    return max( first, max( std::forward<Types>(args)... ) );
+    return max( first, max( args... ) );
 }
 
 // -----------------------------------------------------------------------------
@@ -125,9 +125,9 @@ inline scalar_type< T1, T2 >
 // three or more arguments
 template< typename T1, typename... Types >
 inline scalar_type< T1, Types... >
-    min( const T1& first, Types&&... args )
+    min( const T1& first, const Types&... args )
 {
-    return min( first, min( std::forward<Types>(args)... ) );
+    return min( first, min( args... ) );
 }
 
 // -----------------------------------------------------------------------------
