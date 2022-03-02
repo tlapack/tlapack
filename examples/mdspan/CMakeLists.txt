@@ -13,6 +13,8 @@ if( NOT TARGET tlapack )
   find_package( tlapack REQUIRED )
 endif()
 
+find_package( mdspan REQUIRED )
+
 # add the example gemm
 add_executable( example_mdspan example_mdspan.cpp )
-target_link_libraries( example_mdspan PRIVATE tlapack )
+target_link_libraries( example_mdspan PRIVATE tlapack std::mdspan )

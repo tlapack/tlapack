@@ -8,27 +8,18 @@
 #define __TLAPACK_STDVECTOR_HH__
 
 #include <vector>
-#include <experimental/mdspan>
-#include <plugins/tlapack_mdspan.hpp>
+#include "blas/arrayTraits.hpp"
+
+#ifndef TLAPACK_USE_MDSPAN
+    #include "legacy_api/legacyArray.hpp"
+#else
+    #include <experimental/mdspan>
+#endif
 
 namespace blas {
 
     // -----------------------------------------------------------------------------
     // Data traits for std::vector
-
-    #ifndef TBLAS_ARRAY_TRAITS
-        #define TBLAS_ARRAY_TRAITS
-
-        // Data type
-        template< class T > struct type_trait {};
-        template< class T >
-        using type_t = typename type_trait< T >::type;
-        // Size type
-        template< class T > struct sizet_trait {};
-        template< class T >
-        using size_type = typename sizet_trait< T >::type;
-
-    #endif // TBLAS_ARRAY_TRAITS
 
     // Data type
     template< class T, class Allocator >
@@ -58,17 +49,18 @@ namespace blas {
     template< class T, class Allocator, class SliceSpec >
     inline constexpr auto subvector( const std::vector<T,Allocator>& v, SliceSpec&& rows )
     {
-        return std::experimental::mdspan< T, std::experimental::dextents<1> >(
-            (T*) &v[ rows.first ], (std::size_t) (rows.second - rows.first)
-        );
+        #ifndef TLAPACK_USE_MDSPAN
+            return legacyVector<T>( rows.second - rows.first, (T*) &v[ rows.first ] );
+        #else
+            return std::experimental::mdspan< T, std::experimental::dextents<1> >(
+                (T*) &v[ rows.first ], (std::size_t) (rows.second - rows.first)
+            );
+        #endif
     }
 
 } // namespace blas
 
 namespace lapack {
-    
-    using blas::type_t;
-    using blas::size_type;
 
     using blas::size;
 

@@ -77,7 +77,8 @@ namespace blas {
  */
 template<
     class matrixA_t, class matrixC_t, 
-    class alpha_t, class beta_t
+    class alpha_t, class beta_t,
+    disable_if_allow_optblas_t<matrixA_t, matrixC_t, alpha_t, beta_t> = 0
 >
 void syrk(
     blas::Uplo uplo,
@@ -161,6 +162,34 @@ void syrk(
                 C(i,j) = C(j,i);
         }
     }
+}
+
+template<
+    class matrixA_t, class matrixC_t, 
+    class alpha_t, class beta_t,
+    enable_if_allow_optblas_t<matrixA_t, matrixC_t, alpha_t, beta_t> = 0
+>
+void syrk(
+    blas::Uplo uplo,
+    blas::Op trans,
+    alpha_t alpha, const matrixA_t& A,
+    beta_t beta, matrixC_t& C )
+{
+    // Legacy objects
+    auto _A = legacy_matrix(A);
+    auto _C = legacy_matrix(C);
+
+    // Constants to forward
+    const auto& n = _C.n;
+    const auto& k = (trans == Op::NoTrans) ? _A.n : _A.m;
+
+    syrk(
+        _A.layout, uplo, trans, 
+        n, k,
+        alpha,
+        _A.ptr, _A.ldim,
+        beta,
+        _C.ptr, _C.ldim );
 }
 
 }  // namespace blas

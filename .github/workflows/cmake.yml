@@ -21,8 +21,8 @@ on:
     - '.gitignore'
 
 env:
-  CFLAGS: "-Wall -pedantic"
-  CXXFLAGS: "-Wall -pedantic"
+  CFLAGS: "-Wall -pedantic -Wno-unused-variable -Wno-unused-function"
+  CXXFLAGS: "-Wall -pedantic -Wno-unused-variable -Wno-unused-function"
   FFLAGS: "-fimplicit-none -fcheck=all"
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
@@ -44,6 +44,7 @@ jobs:
     env:
       blaspp_DIR: ${{github.workspace}}/blaspp
       lapackpp_DIR: ${{github.workspace}}/lapackpp
+      mdspan_DIR: ${{github.workspace}}/mdspan
 
     strategy:
       fail-fast: false
@@ -78,6 +79,22 @@ jobs:
       run: |
         git checkout tlapack
         cmake -B build -D blaspp_DIR=${{env.blaspp_DIR}}/build
+
+    - name: Checkout mdspan on Ubuntu
+      if: ${{ matrix.os == 'ubuntu-latest' }}
+      run: |
+        git clone https://github.com/kokkos/mdspan.git ${{env.mdspan_DIR}}
+
+    - name: Install Eigen on Ubuntu
+      if: ${{ matrix.os == 'ubuntu-latest' }}
+      run: sudo apt install libeigen3-dev
+
+    - name: Build and install mdspan on Ubuntu
+      if: ${{ matrix.os == 'ubuntu-latest' }}
+      working-directory: ${{env.mdspan_DIR}}
+      run: |
+        cmake -B build -DCMAKE_INSTALL_PREFIX=${{env.mdspan_DIR}}
+        cmake --build build --target install
         
     - name: Specific configurations for CMake on Ubuntu
       if: ${{ matrix.os == 'ubuntu-latest' }}
@@ -127,6 +144,15 @@ jobs:
       # Mind that the job won't fail with only this step fails
       continue-on-error: true
       run: cmake --build build --target run-all-examples
+
+    - name: Run additional examples for Eigen and mdspan on Ubuntu
+      if: ${{ matrix.os == 'ubuntu-latest' }}
+      working-directory: build/examples
+      # Mind that the job won't fail with only this step fails
+      continue-on-error: true
+      run: |
+        ./mdspan/example_mdspan
+        ./eigen/example_eigen
 
     - name: Run tests
       working-directory: ${{github.workspace}}/build
@@ -188,7 +214,7 @@ jobs:
       run: |
         git checkout tlapack
         mkdir build
-        cmake -B build -DBLA_VENDOR=OpenBLAS -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.blaspp_DIR}}
+        cmake -B build -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBLA_VENDOR=OpenBLAS -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.blaspp_DIR}}
         cmake --build build --target install
 
     - name: Configure CMake for <T>LAPACK
@@ -258,3 +284,52 @@ jobs:
     #     ./tester -# [#test_corner_cases] -r compact
     #   # echo "Total of:"
     #   # ./tester -# [#test_corner_cases] -l | tail -n 2
+
+  build-test-performance:
+    # Use GNU compilers
+  
+    runs-on: ubuntu-latest
+    env:
+      blaspp_DIR: ${{github.workspace}}/blaspp
+
+    strategy:
+      fail-fast: false
+    
+    steps:
+    
+    - name: Checkout <T>LAPACK
+      uses: actions/checkout@v2
+
+    - name: Checkout BLAS++
+      run: |
+        git clone https://bitbucket.org/weslleyspereira/blaspp ${{env.blaspp_DIR}}
+
+    - name: Build and install BLAS++
+      working-directory: ${{env.blaspp_DIR}}
+      run: |
+        git checkout tlapack
+        cmake -B build -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.blaspp_DIR}}
+        cmake --build build --target install
+
+    - name: Configure CMake
+      run: >
+        cmake -B build
+        -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+        -D CMAKE_INSTALL_PREFIX=${{github.workspace}}/tlapack_install
+        -D BUILD_SHARED_LIBS=ON
+        -D BUILD_EXAMPLES=OFF
+        -D TLAPACK_USE_OPTBLAS=ON
+
+    - name: Build and Install
+      # Build your program with the given configuration
+      run: cmake --build build --config ${{env.BUILD_TYPE}}  --target install
+
+    - name: Install LAPACKE on Ubuntu
+      run: sudo apt install liblapacke-dev
+
+    - name: Build and run example comparing performance
+      working-directory: ${{github.workspace}}/examples/potrf
+      run: |
+        cmake -B build -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -D CMAKE_PREFIX_PATH=${{github.workspace}}/tlapack_install
+        cmake --build build --target all
+        ./build/example_potrf

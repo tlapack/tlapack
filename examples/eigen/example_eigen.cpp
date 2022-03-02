@@ -29,13 +29,12 @@ int main( int argc, char** argv )
     const size_t n = 3;
 
     // Input data
-    Matrix<float, m, n> A {
-        { 1,  2,  3},
-        { 4,  5,  6},
-        { 7,  8,  9},
-        {10, 11, 12},
-        {13, 14, 15}
-    };
+    Matrix<float, m, n> A;
+    A << 1,  2,  3,
+         4,  5,  6,
+         7,  8,  9,
+        10, 11, 12,
+        13, 14, 15;
 
     // Matrices
     Matrix<float, m, n> Q = A;

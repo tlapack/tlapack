@@ -25,6 +25,12 @@ namespace blas {
  * $op(A)$ an m-by-k matrix, $op(B)$ a k-by-n matrix, and C an m-by-n matrix.
  *
  * Generic implementation for arbitrary data types.
+ * 
+ * @tparam matrixA_t    <T>LAPACK abstract matrix
+ * @tparam matrixB_t    <T>LAPACK abstract matrix
+ * @tparam matrixC_t    <T>LAPACK abstract matrix
+ * @tparam alpha_t      Scalar type
+ * @tparam beta_t       Scalar type
  *
  * @param[in] transA
  *     The operation $op(A)$ to be used:
@@ -39,10 +45,10 @@ namespace blas {
  *     - Op::ConjTrans: $op(B) = B^H$.
  *
  * @param[in] alpha scalar.
- * @param[in] A matrix.
- * @param[in] B matrix.
+ * @param[in] A $op(A)$ is an m-by-k matrix.
+ * @param[in] B $op(B)$ is an k-by-n matrix.
  * @param[in] beta scalar.
- * @param[in,out] C matrix.
+ * @param[in,out] C $C$ is an m-by-n matrix.
  * 
  * @ingroup gemm
  */
@@ -51,7 +57,9 @@ template<
     class matrixB_t, 
     class matrixC_t, 
     class alpha_t, 
-    class beta_t >
+    class beta_t,
+    disable_if_allow_optblas_t<matrixA_t, matrixB_t, matrixC_t, alpha_t, beta_t> = 0
+>
 void gemm(
     Op transA,
     Op transB,
@@ -187,6 +195,60 @@ void gemm(
             }
         }
     }
+}
+
+/**
+ * General matrix-matrix multiply.
+ * 
+ * Wrapper to optimized BLAS.
+ * 
+ * @see gemm(
+    Op transA,
+    Op transB,
+    const alpha_t& alpha,
+    const matrixA_t& A,
+    const matrixB_t& B,
+    const beta_t& beta,
+    matrixC_t& C )
+ * 
+ * @ingroup gemm
+ */
+template<
+    class matrixA_t,
+    class matrixB_t, 
+    class matrixC_t, 
+    class alpha_t, 
+    class beta_t,
+    enable_if_allow_optblas_t<matrixA_t, matrixB_t, matrixC_t, alpha_t, beta_t> = 0
+>
+inline
+void gemm(
+    Op transA,
+    Op transB,
+    alpha_t alpha,
+    const matrixA_t& A,
+    const matrixB_t& B,
+    beta_t beta,
+    matrixC_t& C )
+{
+    // Legacy objects
+    auto _A = legacy_matrix(A);
+    auto _B = legacy_matrix(B);
+    auto _C = legacy_matrix(C);
+
+    // Constants to forward
+    const auto& m = _C.m;
+    const auto& n = _C.n;
+    const auto& k = (transA == Op::NoTrans) ? _A.n : _A.m;
+
+    gemm(
+        _A.layout, transA, transB, 
+        m, n, k,
+        alpha,
+        _A.ptr, _A.ldim,
+        _B.ptr, _B.ldim,
+        beta,
+        _C.ptr, _C.ldim );
 }
 
 }  // namespace blas

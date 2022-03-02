@@ -10,12 +10,12 @@
 
 #include <complex>
 #include <type_traits>
+#include "blas/arrayTraits.hpp"
 
 namespace blas {
 
 // -----------------------------------------------------------------------------
 // Enumerations
-enum class Layout { ColMajor = 'C', RowMajor = 'R' };
 enum class Op     { NoTrans  = 'N', Trans    = 'T', ConjTrans = 'C', Conj };
 enum class Uplo   { Upper    = 'U', Lower    = 'L', General   = 'G' };
 enum class Diag   { NonUnit  = 'N', Unit     = 'U' };
@@ -34,8 +34,15 @@ constexpr checkInfNaN_t checkInfNaN = { };
 // -----------------------------------------------------------------------------
 // Strong numeric expressions
 
-struct zero_t { };
+struct zero_t {
+    constexpr operator int()   const{ return 0; }
+};
 constexpr zero_t zero = { };
+
+struct one_t {
+    constexpr operator int()   const{ return 1; }
+};
+constexpr one_t one = { };
 
 // -----------------------------------------------------------------------------
 // common_type_t is defined in C++14; here's a C++11 definition
@@ -171,23 +178,6 @@ struct real_type_traits< T1, Types... >
 {
     using real_t = scalar_type< real_type<T1>, real_type< Types... > >;
 };
-
-// -----------------------------------------------------------------------------
-// Data traits
-
-#ifndef TBLAS_ARRAY_TRAITS
-#define TBLAS_ARRAY_TRAITS
-
-    // Data type
-    template< class T > struct type_trait {};
-    template< class T >
-    using type_t = typename type_trait< T >::type;
-    // Size type
-    template< class T > struct sizet_trait {};
-    template< class T >
-    using size_type = typename sizet_trait< T >::type;
-
-#endif // TBLAS_ARRAY_TRAITS
 
 } // namespace blas
 

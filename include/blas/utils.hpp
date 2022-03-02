@@ -9,12 +9,11 @@
 #define __TBLAS_UTILS_HH__
 
 #include "blas/types.hpp"
+#include "blas/exceptionHandling.hpp"
 
 #include <limits>
-#include <exception>
-#include <string>
-#include <cstdarg>
 #include <cmath>
+#include <utility>
 
 #ifdef USE_MPFR
     #include <mpreal.h>
@@ -349,104 +348,62 @@ inline real_t abs1( const std::complex<real_t>& x )
 }
 
 // -----------------------------------------------------------------------------
-/// Exception class for BLAS errors.
-class Error: public std::exception {
-public:
-    /// Constructs BLAS error
-    Error():
-        std::exception()
-    {}
+/// Optimized BLAS
 
-    /// Constructs BLAS error with message
-    Error( std::string const& msg ):
-        std::exception(),
-        msg_( msg )
-    {}
-
-    /// Constructs BLAS error with message: "msg, in function <func>"
-    Error( const char* msg, const char* func ):
-        std::exception(),
-        msg_( std::string(msg) + ", in function " + func )
-    {}
-
-    /// Returns BLAS error message
-    virtual const char* what() const noexcept override
-        { return msg_.c_str(); }
-
-private:
-    std::string msg_;
+/// Specify the rules for allow_optblas for multiple data structures.
+template< class T1, class T2, class... Ts >
+struct allow_optblas< T1, T2, Ts... > {
+    
+    using type = allow_optblas_t<T1>;
+    
+    static constexpr Layout layout =
+        (   allow_optblas_l<T1> == Layout::Scalar || 
+            allow_optblas_l<T1> == Layout::StridedVector )
+                ? allow_optblas_l<T2, Ts...>
+                : allow_optblas_l<T1>;
+    
+    static constexpr bool value = 
+        allow_optblas_v<T1> &&
+        allow_optblas_v<T2, Ts...> &&
+        is_same_v< real_type<type>, real_type<allow_optblas_t<T2>> > &&
+        (   allow_optblas_l<T1> == Layout::Scalar || 
+            allow_optblas_l<T1> == Layout::StridedVector ||
+            allow_optblas_l<T2, Ts...> == Layout::Scalar ||
+            allow_optblas_l<T2, Ts...> == Layout::StridedVector ||
+            layout == allow_optblas_l<T2, Ts...> );
 };
 
-// -----------------------------------------------------------------------------
-/// Main function to handle errors in <T>BLAS
-/// Default implementation: throw blas::Error( error_msg, func )
-inline void error( const char* error_msg, const char* func ) {
-    throw blas::Error( error_msg, func );
-}
+template<class T1, class... Ts>
+using enable_if_allow_optblas_t = enable_if_t<(
+    allow_optblas_v< T1, Ts... >
+), int >;
 
-// -----------------------------------------------------------------------------
-// Internal helpers
-namespace internal {
+template<class T1, class... Ts>
+using disable_if_allow_optblas_t = enable_if_t<(
+    ! allow_optblas_v< T1, Ts... >
+), int >;
 
-    // -------------------------------------------------------------------------
-    /// internal helper function that calls blas::error if cond is true
-    /// called by blas_error_if macro
-    inline void error_if( bool cond, const char* condstr, const char* func )
-    {
-        if (cond)
-            error( condstr, func );
+#define TLAPACK_OPT_TYPE( T ) \
+    template<> struct allow_optblas< T > { \
+        using type = T; \
+        static constexpr Layout layout = Layout::Scalar; \
+        static constexpr bool value = true; \
     }
 
-    // -------------------------------------------------------------------------
-    /// internal helper function that calls blas::error if cond is true
-    /// uses printf-style format for error message
-    /// called by blas_error_if_msg macro
-    /// condstr is ignored, but differentiates this from the other version.
-    inline void error_if( bool cond, const char* condstr, const char* func,
-        const char* format, ... )
-    #ifndef _MSC_VER
-        __attribute__((format( printf, 4, 5 )));
+    /// Optimized types
+    #ifdef TLAPACK_USE_OPTSINGLE
+        TLAPACK_OPT_TYPE(float);
     #endif
-    
-    inline void error_if( bool cond, const char* condstr, const char* func,
-        const char* format, ... )
-    {
-        if (cond) {
-            char buf[80];
-            va_list va;
-            va_start( va, format );
-            vsnprintf( buf, sizeof(buf), format, va );
-
-            error( buf, func );
-        }
-    }
-
-}  // namespace internal
-
-// -----------------------------------------------------------------------------
-// Macros to handle error checks
-#if defined(BLAS_ERROR_NDEBUG) || defined(NDEBUG)
-
-    // <T>BLAS does no error checking;
-    // lower level BLAS may still handle errors via xerbla
-    #define blas_error_if( cond ) \
-        ((void)0)
-    #define blas_error_if_msg( cond, ... ) \
-        ((void)0)
-
-#else
-
-    /// internal macro to get strings: #cond and __func__
-    /// ex: blas_error_if( a < b );
-    #define blas_error_if( cond ) \
-        blas::internal::error_if( cond, #cond, __func__ )
-
-    /// internal macro takes cond and printf-style format for error message.
-    /// ex: blas_error_if_msg( a < b, "a %d < b %d", a, b );
-    #define blas_error_if_msg( cond, ... ) \
-        blas::internal::error_if( cond, #cond, __func__, __VA_ARGS__ )
-
-#endif
+    #ifdef TLAPACK_USE_OPTDOUBLE
+        TLAPACK_OPT_TYPE(double);
+    #endif
+    #ifdef TLAPACK_USE_OPTCOMPLEX
+        TLAPACK_OPT_TYPE(std::complex<float>);
+    #endif
+    #ifdef TLAPACK_USE_OPTDOUBLECOMPLEX
+        TLAPACK_OPT_TYPE(std::complex<double>);
+    #endif
+#undef TLAPACK_OPT_TYPE
 
 } // namespace blas
 

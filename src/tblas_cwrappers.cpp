@@ -7,7 +7,7 @@
 #ifdef BUILD_CBLAS
 
     #include "tlapack_cblas.h"
-    #include "slate_api/blas.hpp"
+    #include "legacy_api/blas.hpp"
 
     // Mangling
     #ifdef ADD_
@@ -58,7 +58,7 @@
 #else
 
     #include "tblas.h"
-    #include "slate_api/blas.hpp"
+    #include "legacy_api/blas.hpp"
 
     // Mangling
     #ifdef ADD_
@@ -1510,7 +1510,7 @@ void _sgemm(
     float const * B, blas_idx_t ldb,
     float beta,
     float * C, blas_idx_t ldc ) {
-    return blas::gemm<float, float, float>(
+    return blas::gemm(
         toTBLASlayout( layout ),
         (blas::Op) transA,
         (blas::Op) transB,
@@ -1537,7 +1537,7 @@ void _dgemm(
     double const * B, blas_idx_t ldb,
     double beta,
     double * C, blas_idx_t ldc ) {
-    return blas::gemm<double, double, double>(
+    return blas::gemm(
         toTBLASlayout( layout ),
         (blas::Op) transA,
         (blas::Op) transB,
@@ -1564,7 +1564,7 @@ void _cgemm(
     complexFloat const * B, blas_idx_t ldb,
     complexFloat beta,
     complexFloat * C, blas_idx_t ldc ) {
-    return blas::gemm<tblas_complexFloat, tblas_complexFloat, tblas_complexFloat>(
+    return blas::gemm(
         toTBLASlayout( layout ),
         (blas::Op) transA,
         (blas::Op) transB,
@@ -1591,7 +1591,7 @@ void _zgemm(
     complexDouble const * B, blas_idx_t ldb,
     complexDouble beta,
     complexDouble * C, blas_idx_t ldc ) {
-    return blas::gemm<tblas_complexDouble, tblas_complexDouble, tblas_complexDouble>(
+    return blas::gemm(
         toTBLASlayout( layout ),
         (blas::Op) transA,
         (blas::Op) transB,
@@ -1816,7 +1816,7 @@ void _sherk(
     float const * A, blas_idx_t lda,
     float beta,
     float * C, blas_idx_t ldc ) {
-    return blas::herk<float, float>(
+    return blas::herk(
         toTBLASlayout( layout ),
         toTBLASuplo( uplo ),
         toTBLASop( trans ),
@@ -1839,7 +1839,7 @@ void _dherk(
     double const * A, blas_idx_t lda,
     double beta,
     double * C, blas_idx_t ldc ) {
-    return blas::herk<double, double>(
+    return blas::herk(
         toTBLASlayout( layout ),
         toTBLASuplo( uplo ),
         toTBLASop( trans ),
@@ -1862,7 +1862,7 @@ void _cherk(
     complexFloat const * A, blas_idx_t lda,
     float beta,
     complexFloat * C, blas_idx_t ldc ) {
-    return blas::herk<tblas_complexFloat, tblas_complexFloat>(
+    return blas::herk(
         toTBLASlayout( layout ),
         toTBLASuplo( uplo ),
         toTBLASop( trans ),
@@ -1885,7 +1885,7 @@ void _zherk(
     complexDouble const * A, blas_idx_t lda,
     double beta,
     complexDouble * C, blas_idx_t ldc ) {
-    return blas::herk<tblas_complexDouble, tblas_complexDouble>(
+    return blas::herk(
         toTBLASlayout( layout ),
         toTBLASuplo( uplo ),
         toTBLASop( trans ),
@@ -2108,7 +2108,7 @@ void _ssyrk(
     float const * A, blas_idx_t lda,
     float beta,
     float * C, blas_idx_t ldc ) {
-    return blas::syrk<float, float>(
+    return blas::syrk(
         toTBLASlayout( layout ),
         toTBLASuplo( uplo ),
         toTBLASop( trans ),
@@ -2131,7 +2131,7 @@ void _dsyrk(
     double const * A, blas_idx_t lda,
     double beta,
     double * C, blas_idx_t ldc ) {
-    return blas::syrk<double, double>(
+    return blas::syrk(
         toTBLASlayout( layout ),
         toTBLASuplo( uplo ),
         toTBLASop( trans ),
@@ -2154,7 +2154,7 @@ void _csyrk(
     complexFloat const * A, blas_idx_t lda,
     complexFloat beta,
     complexFloat * C, blas_idx_t ldc ) {
-    return blas::syrk<tblas_complexFloat, tblas_complexFloat>(
+    return blas::syrk(
         toTBLASlayout( layout ),
         toTBLASuplo( uplo ),
         toTBLASop( trans ),
@@ -2177,7 +2177,7 @@ void _zsyrk(
     complexDouble const * A, blas_idx_t lda,
     complexDouble beta,
     complexDouble * C, blas_idx_t ldc ) {
-    return blas::syrk<tblas_complexDouble, tblas_complexDouble>(
+    return blas::syrk(
         toTBLASlayout( layout ),
         toTBLASuplo( uplo ),
         toTBLASop( trans ),
@@ -2301,7 +2301,7 @@ void _strsm(
     float alpha,
     float const * A, blas_idx_t lda,
     float * B, blas_idx_t ldb ) {
-    return blas::trsm<float, float>(
+    return blas::trsm(
         toTBLASlayout( layout ),
         toTBLASside( side ),
         toTBLASuplo( uplo ),
@@ -2326,7 +2326,7 @@ void _dtrsm(
     double alpha,
     double const * A, blas_idx_t lda,
     double * B, blas_idx_t ldb ) {
-    return blas::trsm<double, double>(
+    return blas::trsm(
         toTBLASlayout( layout ),
         toTBLASside( side ),
         toTBLASuplo( uplo ),
@@ -2351,7 +2351,7 @@ void _ctrsm(
     complexFloat alpha,
     complexFloat const * A, blas_idx_t lda,
     complexFloat * B, blas_idx_t ldb ) {
-    return blas::trsm<tblas_complexFloat, tblas_complexFloat>(
+    return blas::trsm(
         toTBLASlayout( layout ),
         toTBLASside( side ),
         toTBLASuplo( uplo ),
@@ -2376,7 +2376,7 @@ void _ztrsm(
     complexDouble alpha,
     complexDouble const * A, blas_idx_t lda,
     complexDouble * B, blas_idx_t ldb ) {
-    return blas::trsm<tblas_complexDouble, tblas_complexDouble>(
+    return blas::trsm(
         toTBLASlayout( layout ),
         toTBLASside( side ),
         toTBLASuplo( uplo ),

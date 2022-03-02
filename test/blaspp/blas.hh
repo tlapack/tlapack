@@ -9,6 +9,6 @@
 
 #include "blas/defines.h"
 #include "blas/util.hh"
-#include "slate_api/blas.hpp"
+#include "legacy_api/blas.hpp"
 
 #endif // BLAS_HH

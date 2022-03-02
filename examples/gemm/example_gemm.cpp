@@ -7,7 +7,7 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#include <slate_api/blas.hpp>
+#include <legacy_api/blas.hpp>
 
 #include <vector>
 #include <iostream>
@@ -24,7 +24,7 @@ void run( blas::idx_t m, blas::idx_t n, blas::idx_t k )
     using blas::idx_t;
     using blas::min;
     using blas::internal::colmajor_matrix;
-    using std::experimental::layout_right;
+    using blas::internal::rowmajor_matrix;
     
     // Column Major data
     idx_t lda = (m > 0) ? m : 1;
@@ -45,8 +45,6 @@ void run( blas::idx_t m, blas::idx_t n, blas::idx_t k )
     std::vector<T> C_( m*n, T(0) );   // m-by-n
 
     // Row Major Matrix views
-    using extents_t = blas::internal::dextents<2>;
-    using rowmajor_matrix = blas::mdspan< T, extents_t, layout_right>;
     auto Ar = rowmajor_matrix( &A_[0], m, k );
     auto Br = rowmajor_matrix( &B_[0], k, n );
     auto Cr = rowmajor_matrix( &C_[0], m, n );
@@ -77,7 +75,43 @@ void run( blas::idx_t m, blas::idx_t n, blas::idx_t k )
         Br(i,i) = B(i,i);
     }
 
-    // 1) Using classical LAPACK interface:
+    // 1) Using legacy LAPACK interface:
+
+    bestTime = std::chrono::nanoseconds::max();
+    for( int run = 0; run < Nruns; ++run ) {
+
+        // Set C using A
+        for (idx_t j = 0; j < min(k,n); ++j)
+            for (idx_t i = 0; i < m; ++i)
+                C(i,j) = A(i,j);
+
+        // Record start time
+        auto start = std::chrono::high_resolution_clock::now();
+
+            // C = -1.0*A*B + 1.0*C
+            blas::gemm( blas::Layout::ColMajor,
+                        blas::Op::NoTrans,
+                        blas::Op::NoTrans,
+                        m, n, k,
+                        T(-1.0), &_A[0], lda, &_B[0], ldb, 
+                        T( 1.0), &_C[0], ldc );
+        
+        // Record end time
+        auto end = std::chrono::high_resolution_clock::now();
+
+        // Compute elapsed time in nanoseconds
+        auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
+
+        // Update best time
+        if( elapsed < bestTime ) bestTime = elapsed;
+    }
+
+    // Output
+    std::cout << "Using legacy LAPACK interface:" << std::endl
+              << "||C-AB||_F = " << blas::nrm2( n, &_C[0], 1 ) << std::endl
+              << "time = " << bestTime.count() * 1.0e-6 << " ms" << std::endl;
+
+    // Using abstract interface:
 
     bestTime = std::chrono::nanoseconds::max();
     for( int run = 0; run < Nruns; ++run ) {
@@ -107,45 +141,11 @@ void run( blas::idx_t m, blas::idx_t n, blas::idx_t k )
     }
 
     // Output
-    std::cout << "Using classical LAPACK interface:" << std::endl
+    std::cout << "Using abstract interface:" << std::endl
               << "||C-AB||_F = " << blas::nrm2( n, &_C[0], 1 ) << std::endl
               << "time = " << bestTime.count() * 1.0e-6 << " ms" << std::endl;
 
-    // Using mdspan interface:
-
-    bestTime = std::chrono::nanoseconds::max();
-    for( int run = 0; run < Nruns; ++run ) {
-
-        // Set C using A
-        for (idx_t j = 0; j < min(k,n); ++j)
-            for (idx_t i = 0; i < m; ++i)
-                C(i,j) = A(i,j);
-
-        // Record start time
-        auto start = std::chrono::high_resolution_clock::now();
-
-            // C = -1.0*A*B + 1.0*C
-            blas::gemm( blas::Op::NoTrans,
-                        blas::Op::NoTrans,
-                        T(-1.0), A, B,
-                        T( 1.0), C );
-        
-        // Record end time
-        auto end = std::chrono::high_resolution_clock::now();
-
-        // Compute elapsed time in nanoseconds
-        auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
-
-        // Update best time
-        if( elapsed < bestTime ) bestTime = elapsed;
-    }
-
-    // Output
-    std::cout << "Using mdspan interface:" << std::endl
-              << "||C-AB||_F = " << blas::nrm2( n, &_C[0], 1 ) << std::endl
-              << "time = " << bestTime.count() * 1.0e-6 << " ms" << std::endl;
-
-    // Using mdspan interface with row major layout:
+    // Using abstract interface with row major layout:
 
     bestTime = std::chrono::nanoseconds::max();
     for( int run = 0; run < Nruns; ++run ) {
@@ -175,7 +175,7 @@ void run( blas::idx_t m, blas::idx_t n, blas::idx_t k )
     }
 
     // Output
-    std::cout << "Using mdspan interface with row major layout:" << std::endl
+    std::cout << "Using abstract interface with row major layout:" << std::endl
               << "||C-AB||_F = " << blas::nrm2( n, &C_[0], 1 ) << std::endl
               << "time = " << bestTime.count() * 1.0e-6 << " ms" << std::endl;
 }
