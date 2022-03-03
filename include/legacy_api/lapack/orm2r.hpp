@@ -47,9 +47,9 @@ namespace lapack {
  * 
  * @ingroup geqrf
  */
-template<typename TA, typename TC>
+template< class side_t, class trans_t, typename TA, typename TC>
 inline int orm2r(
-    Side side, Op trans,
+    side_t side, trans_t trans,
     blas::idx_t m, blas::idx_t n, blas::idx_t k,
     const TA* A, blas::idx_t lda,
     const blas::real_type<TA,TC>* tau,

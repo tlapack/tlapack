@@ -111,10 +111,11 @@ namespace lapack {
  * @ingroup auxiliary
  */
 
-template <typename TV, typename TC>
+template <class side_t, class trans_t, class direction_t, class storeV_t,
+    typename TV, typename TC>
 int larfb(
-    Side side, Op trans,
-    Direction direct, StoreV storeV,
+    side_t side, trans_t trans,
+    direction_t direct, storeV_t storeV,
     idx_t m, idx_t n, idx_t k,
     TV const* V, idx_t ldV,
     TV const* T, idx_t ldT,

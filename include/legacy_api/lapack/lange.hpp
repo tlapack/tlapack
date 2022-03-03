@@ -35,9 +35,9 @@ namespace lapack {
  * 
  * @ingroup auxiliary
 **/
-template <typename TA>
+template <class norm_t, typename TA>
 inline real_type<TA> lange(
-    Norm normType, blas::idx_t m, blas::idx_t n,
+    norm_t normType, blas::idx_t m, blas::idx_t n,
     const TA *_A, blas::idx_t lda )
 {
     using real_t = real_type<TA>;

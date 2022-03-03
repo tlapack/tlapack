@@ -21,7 +21,6 @@ using blas::scalar_type;
 using blas::is_complex;
 using blas::zero_t;
 
-using blas::Layout;
 using blas::Op;
 using blas::Uplo;
 using blas::Diag;
@@ -29,15 +28,16 @@ using blas::Side;
 
 using blas::type_t;
 using blas::size_type;
+using blas::layout_type;
 
 // -----------------------------------------------------------------------------
 // Diagonal matrices
 
 struct nonUnit_diagonal_t {
-    constexpr operator blas::Diag() const { return blas::Diag::NonUnit; }
+    constexpr operator Diag() const { return Diag::NonUnit; }
 };
 struct unit_diagonal_t {
-    constexpr operator blas::Diag() const { return blas::Diag::Unit; }
+    constexpr operator Diag() const { return Diag::Unit; }
 };
 
 // constants
@@ -48,13 +48,13 @@ constexpr unit_diagonal_t unit_diagonal = { };
 // Operations over data
 
 struct noTranspose_t {
-    constexpr operator blas::Op() const { return blas::Op::NoTrans; }
+    constexpr operator Op() const { return Op::NoTrans; }
 };
 struct transpose_t {
-    constexpr operator blas::Op() const { return blas::Op::Trans; }
+    constexpr operator Op() const { return Op::Trans; }
 };
 struct conjTranspose_t {
-    constexpr operator blas::Op() const { return blas::Op::ConjTrans; }
+    constexpr operator Op() const { return Op::ConjTrans; }
 };
 
 // Constants
@@ -67,17 +67,17 @@ constexpr conjTranspose_t conjTranspose = { };
 
 // Full matrix type
 struct general_matrix_t {
-    constexpr operator blas::Uplo() const { return blas::Uplo::General; }
+    constexpr operator Uplo() const { return Uplo::General; }
 };
 
 // Upper triangle type
 struct upper_triangle_t {
-    constexpr operator blas::Uplo() const { return blas::Uplo::Upper; }
+    constexpr operator Uplo() const { return Uplo::Upper; }
 };
 
 // Lower triangle type
 struct lower_triangle_t {
-    constexpr operator blas::Uplo() const { return blas::Uplo::Lower; }
+    constexpr operator Uplo() const { return Uplo::Lower; }
 };
 
 // Hessenberg matrix type
@@ -113,10 +113,26 @@ constexpr hessenberg_matrix_t hessenberg_matrix = { };
 // -----------------------------------------------------------------------------
 // Norm types
 
-struct max_norm_t { };
-struct one_norm_t { };
-struct inf_norm_t { };
-struct frob_norm_t { };
+enum class Norm {
+    One = '1',  // or 'O'
+    Two = '2',
+    Inf = 'I',
+    Fro = 'F',  // or 'E'
+    Max = 'M',
+};
+
+struct max_norm_t {
+    constexpr operator Norm() const { return Norm::Max; }
+};
+struct one_norm_t {
+    constexpr operator Norm() const { return Norm::One; }
+};
+struct inf_norm_t {
+    constexpr operator Norm() const { return Norm::Inf; }
+};
+struct frob_norm_t {
+    constexpr operator Norm() const { return Norm::Fro; }
+};
 
 // Constants
 constexpr max_norm_t max_norm = { };
@@ -127,8 +143,17 @@ constexpr frob_norm_t frob_norm = { };
 // -----------------------------------------------------------------------------
 // Directions
 
-struct forward_t { };
-struct backward_t { };
+enum class Direction {
+    Forward     = 'F',
+    Backward    = 'B',
+};
+
+struct forward_t {
+    constexpr operator Direction() const { return Direction::Forward; }
+};
+struct backward_t {
+    constexpr operator Direction() const { return Direction::Backward; }
+};
 
 // Constants
 constexpr forward_t forward { };
@@ -137,8 +162,17 @@ constexpr backward_t backward { };
 // -----------------------------------------------------------------------------
 // Storage types
 
-struct columnwise_storage_t { };
-struct rowwise_storage_t { };
+enum class StoreV {
+    Columnwise  = 'C',
+    Rowwise     = 'R',
+};
+
+struct columnwise_storage_t {
+    constexpr operator StoreV() const { return StoreV::Columnwise; }
+};
+struct rowwise_storage_t {
+    constexpr operator StoreV() const { return StoreV::Rowwise; }
+};
 
 // Constants
 constexpr columnwise_storage_t columnwise_storage { };
@@ -148,10 +182,10 @@ constexpr rowwise_storage_t rowwise_storage { };
 // Sides
 
 struct left_side_t {
-    constexpr operator blas::Side() const { return blas::Side::Left; }
+    constexpr operator Side() const { return Side::Left; }
 };
 struct right_side_t {
-    constexpr operator blas::Side() const { return blas::Side::Right; }
+    constexpr operator Side() const { return Side::Right; }
 };
 
 // Constants

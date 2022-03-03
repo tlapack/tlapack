@@ -21,8 +21,8 @@ namespace lapack {
  * 
  * @ingroup posv_computational
  */
-template< typename T >
-inline int potrf( Uplo uplo, idx_t n, T* A, idx_t lda )
+template< class uplo_t, typename T >
+inline int potrf( uplo_t uplo, idx_t n, T* A, idx_t lda )
 {
     using blas::internal::colmajor_matrix;
 

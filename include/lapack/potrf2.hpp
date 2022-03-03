@@ -60,13 +60,7 @@ namespace lapack {
  *
  * @ingroup posv_computational
  */
-template< class uplo_t, class matrix_t,
-    enable_if_t<(
-    /* Requires: */
-        is_same_v< uplo_t, upper_triangle_t > || 
-        is_same_v< uplo_t, lower_triangle_t >
-    ), int > = 0
->
+template< class uplo_t, class matrix_t >
 int potrf2( uplo_t uplo, matrix_t& A )
 {
     using T      = type_t< matrix_t >;
@@ -115,7 +109,7 @@ int potrf2( uplo_t uplo, matrix_t& A )
         if( info != 0 )
             return info;
 
-        if( is_same_v< uplo_t, upper_triangle_t > ) {
+        if( uplo == Uplo::Upper ) {
 
             // Update and scale A12
             auto A12 = submatrix( A, pair{0,n1}, pair{n1,n} );

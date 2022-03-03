@@ -20,9 +20,9 @@ namespace lapack {
  * 
  * @ingroup posv_computational
  */
-template< typename T >
+template< class uplo_t, typename T >
 inline int potrs(
-    Uplo uplo, idx_t n, idx_t nrhs,
+    uplo_t uplo, idx_t n, idx_t nrhs,
     const T* A, idx_t lda,
     T* B, idx_t ldb )
 {

@@ -26,19 +26,7 @@ namespace lapack {
  */
 template<
     class matrixA_t, class matrixC_t, class tau_t, class work_t,
-    class side_t, class trans_t,
-    enable_if_t<(
-    /* Requires: */
-    (
-        is_same_v< side_t, left_side_t > || 
-        is_same_v< side_t, right_side_t > 
-    ) && (
-        is_same_v< trans_t, noTranspose_t > || 
-        is_same_v< trans_t, conjTranspose_t > ||
-        is_same_v< trans_t, transpose_t >
-    )
-    ), int > = 0
->
+    class side_t, class trans_t >
 int orm2r(
     side_t side, trans_t trans,
     const matrixA_t& A,
@@ -55,10 +43,10 @@ int orm2r(
     const idx_t m = nrows(C);
     const idx_t n = ncols(C);
     const idx_t k = size(tau);
-    constexpr bool leftSide = is_same_v< side_t, left_side_t >;
+    constexpr bool leftSide = side == Side::Left;
     constexpr bool positiveInc = (
-        ( leftSide && !is_same_v< trans_t, noTranspose_t > ) ||
-        ( !leftSide && is_same_v< trans_t, noTranspose_t > )
+        ( leftSide && !(trans == Op::Trans) ) ||
+        ( !leftSide && (trans == Op::Trans) )
     );
     constexpr idx_t i0 = (positiveInc) ? 0 : k-1;
     constexpr idx_t iN = (positiveInc) ? k :  -1;

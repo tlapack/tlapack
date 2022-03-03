@@ -23,15 +23,6 @@ enum class Sides {
 };
 
 // -----------------------------------------------------------------------------
-enum class Norm {
-    One = '1',  // or 'O'
-    Two = '2',
-    Inf = 'I',
-    Fro = 'F',  // or 'E'
-    Max = 'M',
-};
-
-// -----------------------------------------------------------------------------
 // Job for computing eigenvectors and singular vectors
 // # needs custom map
 enum class Job {
@@ -81,20 +72,6 @@ enum class Vect {
 };
 
 // -----------------------------------------------------------------------------
-// larfb
-enum class Direction {
-    Forward     = 'F',
-    Backward    = 'B',
-};
-
-// -----------------------------------------------------------------------------
-// larfb
-enum class StoreV {
-    Columnwise  = 'C',
-    Rowwise     = 'R',
-};
-
-// -----------------------------------------------------------------------------
 // lascl
 enum class MatrixType {
     General     = 'G',
@@ -105,6 +82,62 @@ enum class MatrixType {
     UpperBand   = 'Q',
     Band        = 'Z',
 };
+// class MatrixType {
+// public:
+
+//     /// Values are accessed like MatrixType::General and MatrixType::Band
+//     enum Value : char {
+//         General     = 'G',
+//         Lower       = 'L',
+//         Upper       = 'U',
+//         Hessenberg  = 'H',
+//         LowerBand   = 'B',
+//         UpperBand   = 'Q',
+//         Band        = 'Z'
+//     };
+
+//     // Constructors
+//     MatrixType() = default;
+//     constexpr MatrixType(Value v) : _value(v) { }
+//     constexpr MatrixType(char c) : _value(Value(c)) { }
+
+//     // Operators
+//     inline constexpr operator Value() const { return _value; }
+//     explicit  operator bool() = delete; ///< Prevents if( MatrixType )
+
+//     /** Converts MatrixType to Uplo
+//      * 
+//      * This is useful because MatrixType and Uplo share semantics
+//      * 
+//      * @return Equivalent Uplo object if possible.
+//      *      If there is no equivalent Uplo object, returns the invalid Uplo(' ')
+//      */
+//     inline constexpr operator Uplo() const {
+//         if (_value == General)  return Uplo::General;
+//         if (_value == Lower)    return Uplo::Lower;
+//         if (_value == Upper)    return Uplo::Upper;
+//         else                    return Uplo(' ');
+//     }
+
+//     // /// Compares MatrixType with Uplo
+//     // inline bool operator==( Uplo uplo ) const {
+//     //     if (_value == General)  return (uplo == Uplo::General);
+//     //     if (_value == Lower)    return (uplo == Uplo::Lower);
+//     //     if (_value == Upper)    return (uplo == Uplo::Upper);
+//     //     else                    return false;
+//     // }
+
+//     // /// Compares MatrixType with Uplo
+//     // inline bool operator!=( Uplo uplo ) const {
+//     //     if (_value == General)  return (uplo != Uplo::General);
+//     //     if (_value == Lower)    return (uplo != Uplo::Lower);
+//     //     if (_value == Upper)    return (uplo != Uplo::Upper);
+//     //     else                    return true;
+//     // }
+
+// private:
+//     Value _value;
+// };
 
 // -----------------------------------------------------------------------------
 // trevc

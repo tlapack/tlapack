@@ -22,9 +22,9 @@ namespace lapack {
  * 
  * @ingroup auxiliary
  */
-template< typename TV, typename TC >
+template< class side_t, typename TV, typename TC >
 inline void larf(
-    Side side,
+    side_t side,
     blas::idx_t m, blas::idx_t n,
     TV const *v, blas::int_t incv,
     blas::scalar_type< TV, TC > tau,

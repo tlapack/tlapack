@@ -55,23 +55,14 @@ namespace lapack {
  * 
  * @ingroup auxiliary
  */
-template< class matrix_t, class a_type, class b_type, class sparse_t,
-    enable_if_t<((
+template< class uplo_t, class matrix_t, class a_type, class b_type,
+    enable_if_t<(
     /* Requires: */
-        is_same_v< sparse_t, general_matrix_t > || 
-        is_same_v< sparse_t, lower_triangle_t > || 
-        is_same_v< sparse_t, upper_triangle_t > || 
-        is_same_v< sparse_t, hessenberg_matrix_t > || 
-        is_same_v< sparse_t, symmetric_lowerband_t > || 
-        is_same_v< sparse_t, symmetric_upperband_t > || 
-        is_same_v< sparse_t, band_matrix_t >
-    ) && 
         !is_complex< a_type >::value &&
         !is_complex< b_type >::value
-    ), int > = 0
->
+    ), int > = 0 >
 int lascl(
-    sparse_t matrixtype,
+    uplo_t uplo,
     const b_type& b, const a_type& a,
     const matrix_t& A )
 {
@@ -97,23 +88,134 @@ int lascl(
     const real_t big   = safe_max<real_t>();
     
     // check arguments
-    if( is_same_v< sparse_t, symmetric_lowerband_t > ||
-        is_same_v< sparse_t, symmetric_upperband_t > )
-    {
-        lapack_error_if((matrixtype.bandwidth + 1 > m && m > 0) ||
-                        (matrixtype.bandwidth + 1 > n && n > 0), -1 );
-    }
-    else if( is_same_v< sparse_t, band_matrix_t > )
-    {
-        lapack_error_if((matrixtype.lower_bandwidth + 1 > m && m > 0) ||
-                        (matrixtype.upper_bandwidth + 1 > n && n > 0), -1 );
-    }
     lapack_error_if( (b == b_type(0)) || isnan(b), -2 );
     lapack_error_if( isnan(a), -3 );
-    if( is_same_v< sparse_t, symmetric_lowerband_t > ||
-        is_same_v< sparse_t, symmetric_upperband_t > )
+
+    // quick return
+    if( m <= 0 || n <= 0 )
+        return 0;
+
+    bool done = false;
+    while (!done)
     {
-        lapack_error_if( m != n, -4 );
+        real_t c;
+        a_type a1;
+        b_type b1 = b * small;
+        if (b1 == b) {
+            // b is not finite:
+            //  c is a correctly signed zero if a is finite,
+            //  c is NaN otherwise.
+            c = a / b;
+            done = true;
+        }
+        else { // b is finite
+            a1 = a / big;
+            if (a1 == a) {
+                // a is either 0 or an infinity number:
+                //  in both cases, c = a serves as the correct multiplication factor.
+                c = a;
+                done = true;
+            }
+            else if ( (abs(b1) > abs(a)) && (a != a_type(0)) ) {
+                // a is a non-zero finite number and abs(a/b) < small:
+                //  Set c = small as the multiplication factor,
+                //  Multiply b by the small factor.
+                c = small;
+                done = false;
+                b = b1;
+            }
+            else if (abs(a1) > abs(b)) {
+                // abs(a/b) > big:
+                //  Set c = big as the multiplication factor,
+                //  Divide a by the big factor.
+                c = big;
+                done = false;
+                a = a1;
+            }
+            else {
+                // small <= abs(a/b) <= big:
+                //  Set c = a/b as the multiplication factor.
+                c = a / b;
+                done = true;
+            }
+        }
+
+        if ( uplo == Uplo::Lower )
+        {
+            for (idx_t j = 0; j < n; ++j)
+                for (idx_t i = j; i < m; ++i)
+                    A(i,j) *= c;
+        }
+        else if ( uplo == Uplo::Upper )
+        {
+            for (idx_t j = 0; j < n; ++j)
+                for (idx_t i = 0; (i < m) && (i <= j); ++i)
+                    A(i,j) *= c;
+        }
+        // else if ( uplo == Uplo::Hessenberg )
+        // {
+        //     for (idx_t j = 0; j < n; ++j)
+        //         for (idx_t i = 0; (i < m) && (i <= j + 1); ++i)
+        //             A(i,j) *= c;
+        // }
+        else // if ( uplo == Uplo::General )
+        {
+            for (idx_t j = 0; j < n; ++j)
+                for (idx_t i = 0; i < m; ++i)
+                    A(i,j) *= c;
+        }
+    }
+
+    return 0;
+}
+
+template< class matrix_t, class a_type, class b_type,
+    enable_if_t<(
+    /* Requires: */
+        !is_complex< a_type >::value &&
+        !is_complex< b_type >::value
+    ) && (
+        is_same_v< layout_type< matrix_t >, band_matrix_t > ||
+        is_same_v< layout_type< matrix_t >, symmetric_lowerband_t > ||
+        is_same_v< layout_type< matrix_t >, symmetric_upperband_t >
+    ), int > = 0
+>
+int lascl( const b_type& b, const a_type& a, const matrix_t& A )
+{
+    // data traits
+    using idx_t  = size_type< matrix_t >;
+    using real_t = real_type< a_type, b_type >;
+    using layout_t = layout_type< matrix_t >;
+    
+    // using
+    using blas::isnan;
+    using blas::abs;
+    using blas::safe_min;
+    using blas::safe_max;
+
+    // constants
+    const idx_t m = nrows(A);
+    const idx_t n = ncols(A);
+    const idx_t kl = lowerband(A);
+    const idx_t ku = upperband(A);
+
+    // constants
+    const idx_t izero = 0;
+    const real_t zero = 0.0;
+    const real_t one(1.0);
+    const real_t small = safe_min<real_t>();
+    const real_t big   = safe_max<real_t>();
+    
+    // check arguments
+    lapack_error_if( (b == b_type(0)) || isnan(b), -1 );
+    lapack_error_if( isnan(a), -2 );
+    lapack_error_if((kl + 1 > m && m > 0) ||
+                    (ku + 1 > n && n > 0), -3 );
+    if( is_same_v< layout_t, symmetric_lowerband_t > ||
+        is_same_v< layout_t, symmetric_upperband_t > )
+    {
+        lapack_error_if( kl != ku, -3 );
+        lapack_error_if( m != n, -3 );
     }
 
     // quick return
@@ -165,48 +267,24 @@ int lascl(
             }
         }
 
-        if ( is_same_v< sparse_t, general_matrix_t > )
+        if ( is_same_v< layout_t, symmetric_lowerband_t > )
         {
-            for (idx_t j = 0; j < n; ++j)
-                for (idx_t i = 0; i < m; ++i)
-                    A(i,j) *= c;
-        }
-        else if ( is_same_v< sparse_t, lower_triangle_t > )
-        {
-            for (idx_t j = 0; j < n; ++j)
-                for (idx_t i = j; i < m; ++i)
-                    A(i,j) *= c;
-        }
-        else if ( is_same_v< sparse_t, general_matrix_t > )
-        {
-            for (idx_t j = 0; j < n; ++j)
-                for (idx_t i = 0; (i < m) && (i <= j); ++i)
-                    A(i,j) *= c;
-        }
-        else if ( is_same_v< sparse_t, hessenberg_matrix_t > )
-        {
-            for (idx_t j = 0; j < n; ++j)
-                for (idx_t i = 0; (i < m) && (i <= j + 1); ++i)
-                    A(i,j) *= c;
-        }
-        else if ( is_same_v< sparse_t, symmetric_lowerband_t > )
-        {
-            const idx_t k = matrixtype.bandwidth;
+            const auto& k = kl;
             for (idx_t j = 0; j < n; ++j)
                 for (idx_t i = 0; (i <= k) && (i < n - j); ++i)
                     A(i,j) *= c;
         }
-        else if ( is_same_v< sparse_t, symmetric_upperband_t > )
+        else if ( is_same_v< layout_t, symmetric_upperband_t > )
         {
-            const idx_t k = matrixtype.bandwidth;
+            const auto& k = kl;
             for (idx_t j = 0; j < n; ++j)
                 for (idx_t i = max(k - j, izero); i <= k; ++i)
                     A(i,j) *= c;
         }
-        else if ( is_same_v< sparse_t, band_matrix_t > )
+        else if ( is_same_v< layout_t, band_matrix_t > )
         {
-            const idx_t kl = matrixtype.lower_bandwidth;
-            const idx_t ku = matrixtype.upper_bandwidth;
+            const idx_t kl = kl;
+            const idx_t ku = ku;
             for (idx_t j = 0; j < n; ++j)
                 for (idx_t i = max(kl + ku - j, kl); i <= min(2 * kl + ku, kl + ku + m - j); ++i)
                     A(i,j) *= c;
@@ -214,6 +292,23 @@ int lascl(
     }
 
     return 0;
+}
+
+template< class matrix_t, class a_type, class b_type,
+    enable_if_t<(
+    /* Requires: */
+        !is_complex< a_type >::value &&
+        !is_complex< b_type >::value
+    ) && (
+        !is_same_v< layout_type< matrix_t >, band_matrix_t > &&
+        !is_same_v< layout_type< matrix_t >, symmetric_lowerband_t > &&
+        !is_same_v< layout_type< matrix_t >, symmetric_upperband_t >
+    ), int > = 0
+>
+inline
+int lascl( const b_type& b, const a_type& a, const matrix_t& A )
+{
+    return lascl( general_matrix, b, a, A );
 }
 
 }

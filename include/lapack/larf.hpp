@@ -56,13 +56,7 @@ namespace lapack {
  * 
  * @ingroup auxiliary
  */
-template< class side_t, class vector_t, class tau_t, class matrix_t, class work_t,
-    enable_if_t<(
-    /* Requires: */
-        is_same_v< side_t, left_side_t > || 
-        is_same_v< side_t, right_side_t >
-    ), int > = 0
->
+template< class side_t, class vector_t, class tau_t, class matrix_t, class work_t >
 inline void larf(
     side_t side,
     vector_t const& v, tau_t& tau,
@@ -78,7 +72,7 @@ inline void larf(
     const T one(1.0);
     const T zero(0.0);
 
-    if( is_same_v<side_t,left_side_t> ) {
+    if( side == Side::Left ) {
         gemv(Op::ConjTrans, one, C, v, zero, work);
         ger(-tau, v, work, C);
     }

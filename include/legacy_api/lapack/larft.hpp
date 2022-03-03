@@ -78,9 +78,9 @@ namespace lapack {
  * 
  * @ingroup auxiliary
  */
-template <typename scalar_t>
+template <class direction_t, class storeV_t, typename scalar_t>
 int larft(
-    Direction direction, StoreV storeV,
+    direction_t direction, storeV_t storeV,
     idx_t n, idx_t k,
     const scalar_t *V, idx_t ldV,
     const scalar_t *tau,

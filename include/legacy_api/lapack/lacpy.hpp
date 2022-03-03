@@ -15,9 +15,9 @@
 
 namespace lapack {
 
-template< typename TA, typename TB >
+template< class uplo_t, typename TA, typename TB >
 void lacpy(
-    Uplo uplo, blas::idx_t m, blas::idx_t n,
+    uplo_t uplo, blas::idx_t m, blas::idx_t n,
     const TA* A, blas::idx_t lda,
     TB* B, blas::idx_t ldb )
 {

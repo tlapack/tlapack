@@ -38,9 +38,9 @@ namespace lapack {
  * 
  * @ingroup auxiliary
 **/
-template <typename TA>
+template <class norm_t, typename TA>
 real_type<TA> lanhe(
-    Norm normType, Uplo uplo, blas::idx_t n,
+    norm_t normType, Uplo uplo, blas::idx_t n,
     const TA *A, blas::idx_t lda )
 {
     typedef real_type<TA> real_t;

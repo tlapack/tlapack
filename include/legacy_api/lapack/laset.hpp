@@ -15,9 +15,9 @@
 
 namespace lapack {
 
-template< typename TA >
+template< class uplo_t, typename TA >
 void laset(
-    Uplo uplo, blas::idx_t m, blas::idx_t n,
+    uplo_t uplo, blas::idx_t m, blas::idx_t n,
     TA alpha, TA beta,
     TA* A, blas::idx_t lda )
 {
