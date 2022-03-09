@@ -20,30 +20,24 @@ namespace blas {
     template< class T > struct sizet_trait {};
     template< class T >
     using size_type = typename sizet_trait< T >::type;
-
-    /// Runtime layouts
-    enum class Layout {
-        ColMajor = 'C',
-        RowMajor = 'R', 
-        Scalar = 0, 
-        StridedVector = 1
+    
+    /// Layout type
+    template< class T > struct layout_trait {
+        using type = void;
     };
+    template< class T >
+    using layout_type = typename layout_trait< T >::type;
 
     /// Verifies if the set of data structures allow optimization using optBLAS.
     template<class...>
     struct allow_optblas {
         using type = bool; ///< Floating datatype.
-        static constexpr Layout layout = Layout::Scalar; ///< Layout type.
         static constexpr bool value = false; ///< True if it allows optBLAS.
     };
 
     /// Alias for allow_optblas<>::type.
     template<class... Ts>
     using allow_optblas_t = typename allow_optblas< Ts... >::type;
-
-    /// Alias for allow_optblas<>::layout.
-    template<class... Ts>
-    constexpr Layout allow_optblas_l = allow_optblas< Ts... >::layout;
 
     /// Alias for allow_optblas<>::value.
     template<class... Ts>

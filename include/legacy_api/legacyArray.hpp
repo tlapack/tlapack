@@ -13,6 +13,7 @@
 namespace blas {
 
     /// Runtime direction
+    /// TODO: Compatibilize this with Direction from lapack/types
     enum class Direction { Forward = 'F', Backward = 'B' };
 
     // /// Compile time forward direction
@@ -84,6 +85,43 @@ namespace blas {
         {
             blas_error_if( n < 0 );
             blas_error_if( inc == 0 );
+        }
+    };
+
+    /** Legacy banded matrix.
+     * 
+     * Mind that the access A(i,j) is valid if, and only if,
+     *  max(0,j-ku) <= i <= min(m,j+kl)
+     * This class does not perform such a check,
+     * otherwise it would lack in performance.
+     * 
+     * @tparam T Floating-point type
+     */
+    template< typename T >
+    struct legacyBandedMatrix {
+        using idx_t = BLAS_SIZE_T;  ///< Index type
+        idx_t m, n, kl, ku;         ///< Sizes
+        T* ptr;                     ///< Pointer to array in memory
+        
+        /** Access A(i,j) = ptr[ (ku+(i-j)) + j*(ku+kl+1) ]
+         * 
+         * Mind that this access is valid if, and only if,
+         *  max(0,j-ku) <= i <= min(m,j+kl)
+         * This operator does not perform such a check,
+         * otherwise it would lack in performance.
+         * 
+         */
+        inline constexpr T&
+        operator()( idx_t i, idx_t j ) const {
+            ptr[ (ku+i) + j*(ku+kl) ];
+        }
+        
+        inline constexpr legacyBandedMatrix( idx_t m, idx_t n, idx_t kl, idx_t ku, T* ptr )
+        : m(m), n(n), kl(kl), ku(ku), ptr(ptr)
+        {
+            blas_error_if( m < 0 );
+            blas_error_if( n < 0 );
+            blas_error_if( (kl + 1 > m && m > 0) || (ku + 1 > n && n > 0) );
         }
     };
 

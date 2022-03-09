@@ -350,27 +350,30 @@ inline real_t abs1( const std::complex<real_t>& x )
 // -----------------------------------------------------------------------------
 /// Optimized BLAS
 
+template< class T1, class T2, class... Ts >
+constexpr bool has_compatible_layout = 
+    has_compatible_layout<T1, T2> &&
+    has_compatible_layout<T1, Ts...> &&
+    has_compatible_layout<T2, Ts...>;
+
+template< class T1, class T2 >
+constexpr bool has_compatible_layout<T1,T2> = ( 
+    is_same_v< layout_type<T1>, void > ||
+    is_same_v< layout_type<T2>, void > ||
+    is_same_v< layout_type<T1>, layout_type<T2> >
+);
+
 /// Specify the rules for allow_optblas for multiple data structures.
 template< class T1, class T2, class... Ts >
 struct allow_optblas< T1, T2, Ts... > {
     
     using type = allow_optblas_t<T1>;
     
-    static constexpr Layout layout =
-        (   allow_optblas_l<T1> == Layout::Scalar || 
-            allow_optblas_l<T1> == Layout::StridedVector )
-                ? allow_optblas_l<T2, Ts...>
-                : allow_optblas_l<T1>;
-    
     static constexpr bool value = 
         allow_optblas_v<T1> &&
         allow_optblas_v<T2, Ts...> &&
         is_same_v< real_type<type>, real_type<allow_optblas_t<T2>> > &&
-        (   allow_optblas_l<T1> == Layout::Scalar || 
-            allow_optblas_l<T1> == Layout::StridedVector ||
-            allow_optblas_l<T2, Ts...> == Layout::Scalar ||
-            allow_optblas_l<T2, Ts...> == Layout::StridedVector ||
-            layout == allow_optblas_l<T2, Ts...> );
+        has_compatible_layout< T1, T2, Ts... >;
 };
 
 template<class T1, class... Ts>
@@ -386,7 +389,6 @@ using disable_if_allow_optblas_t = enable_if_t<(
 #define TLAPACK_OPT_TYPE( T ) \
     template<> struct allow_optblas< T > { \
         using type = T; \
-        static constexpr Layout layout = Layout::Scalar; \
         static constexpr bool value = true; \
     }
 
