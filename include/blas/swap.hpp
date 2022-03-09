@@ -37,7 +37,7 @@ namespace blas {
  * @ingroup swap
  */
 template< class vectorX_t, class vectorY_t >
-void swap( const vectorX_t& x, vectorY_t& y )
+void swap( vectorX_t& x, vectorY_t& y )
 {
     using idx_t = size_type< vectorY_t >;
 
@@ -47,16 +47,10 @@ void swap( const vectorX_t& x, vectorY_t& y )
     // check arguments
     blas_error_if( size(y) != n );
 
-    if( is_same_v< vectorX_t, vectorY_t > ) {
-        for (idx_t i = 0; i < n; ++i)
-            std::swap( x[i], y[i] );
-    }
-    else {
-        for (idx_t i = 0; i < n; ++i) {
-            const auto aux = x[i];
-            x[i] = y[i];
-            y[i] = aux;
-        }
+    for (idx_t i = 0; i < n; ++i) {
+        const auto aux = x[i];
+        x[i] = y[i];
+        y[i] = aux;
     }
 }
 
