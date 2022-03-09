@@ -23,16 +23,12 @@ namespace blas {
     // Size type
     template< typename T, Layout layout >
     struct sizet_trait< legacyMatrix<T,layout> > { using type = typename legacyMatrix<T>::idx_t; };
-    // Layout type
-    template< typename T >
-    struct layout_trait< legacyMatrix<T> > { using type = ColMajor_t; };
-    template< typename T >
-    struct layout_trait< legacyMatrix<T,Layout::RowMajor> > { using type = RowMajor_t; };
 
     /// Specialization of has_blas_type for arrays.
     template< typename T, Layout L >
     struct allow_optblas< legacyMatrix<T,L> > {
         using type = T;
+        static constexpr Layout layout = L;
         static constexpr bool value = allow_optblas_v<type>;
     };
 
@@ -42,11 +38,12 @@ namespace blas {
     // Size type
     template< typename T, typename int_t, Direction direction >
     struct sizet_trait< legacyVector<T,int_t,direction> > { using type = typename legacyVector<T>::idx_t; };
-    
+
     /// Specialization of has_blas_type for arrays.
     template< typename T, typename int_t, Direction direction >
     struct allow_optblas< legacyVector<T,int_t,direction> > {
         using type = T;
+        static constexpr Layout layout = Layout::StridedVector;
         static constexpr bool value = allow_optblas_v<type>;
     };
 

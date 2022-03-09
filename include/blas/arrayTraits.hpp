@@ -11,15 +11,6 @@
 
 namespace blas {
 
-    /// Layouts
-    enum class Layout { ColMajor = 'C', RowMajor = 'R' };
-    struct ColMajor_t {
-        constexpr operator Layout() const { return Layout::ColMajor; }
-    };
-    struct RowMajor_t {
-        constexpr operator Layout() const { return Layout::RowMajor; }
-    };
-
     /// Data type
     template< class T > struct type_trait {};
     template< class T >
@@ -29,24 +20,30 @@ namespace blas {
     template< class T > struct sizet_trait {};
     template< class T >
     using size_type = typename sizet_trait< T >::type;
-    
-    /// Layout type
-    template< class T > struct layout_trait {
-        using type = void;
+
+    /// Runtime layouts
+    enum class Layout {
+        ColMajor = 'C',
+        RowMajor = 'R', 
+        Scalar = 0, 
+        StridedVector = 1
     };
-    template< class T >
-    using layout_type = typename layout_trait< T >::type;
 
     /// Verifies if the set of data structures allow optimization using optBLAS.
     template<class...>
     struct allow_optblas {
         using type = bool; ///< Floating datatype.
+        static constexpr Layout layout = Layout::Scalar; ///< Layout type.
         static constexpr bool value = false; ///< True if it allows optBLAS.
     };
 
     /// Alias for allow_optblas<>::type.
     template<class... Ts>
     using allow_optblas_t = typename allow_optblas< Ts... >::type;
+
+    /// Alias for allow_optblas<>::layout.
+    template<class... Ts>
+    constexpr Layout allow_optblas_l = allow_optblas< Ts... >::layout;
 
     /// Alias for allow_optblas<>::value.
     template<class... Ts>

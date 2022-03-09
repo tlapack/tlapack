@@ -21,6 +21,7 @@ using blas::scalar_type;
 using blas::is_complex;
 using blas::zero_t;
 
+using blas::Layout;
 using blas::Op;
 using blas::Uplo;
 using blas::Diag;
@@ -28,7 +29,6 @@ using blas::Side;
 
 using blas::type_t;
 using blas::size_type;
-using blas::layout_type;
 
 // -----------------------------------------------------------------------------
 // Diagonal matrices

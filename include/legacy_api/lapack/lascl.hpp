@@ -54,9 +54,9 @@ namespace lapack {
  * 
  * @ingroup auxiliary
  */
-template< class matrixType_t, typename T >
+template< typename T >
 int lascl(
-    matrixType_t matrixtype,
+    lapack::MatrixType matrixtype,
     idx_t kl, idx_t ku,
     const real_type<T>& b, const real_type<T>& a,
     idx_t m, idx_t n,
