@@ -9,6 +9,7 @@
 
 #include <utility>
 #include <type_traits>
+#include "blas/arrayTraits.hpp"
 
 namespace blas {
     // Forward declaration
@@ -135,6 +136,62 @@ inline constexpr auto get_work( opts_t&& opts ) {
         /// TODO: Return matrix.
         return *(opts.workPtr);
     }
+}
+
+// -----------------------------------------------------------------------------
+// is_base_of_v is defined in C++17; here's a C++11 definition
+#if __cplusplus >= 201703L
+    using std::is_base_of_v;
+#else
+    template< class Base, class Derived >
+    constexpr bool is_base_of_v = std::is_base_of<Base,Derived>::value;
+#endif
+
+template< class access_t, class accessPolicy_t >
+inline constexpr
+bool access_granted( access_t a, accessPolicy_t p )
+{
+    return is_base_of_v< accessPolicy_t, access_t >;
+}
+
+template< class access_t >
+inline constexpr
+bool access_granted( access_t a, MatrixAccessPolicy p )
+{
+    return (
+        (p == MatrixAccessPolicy::Full) ||
+        (p == MatrixAccessPolicy::UpperHessenberg && (
+            (a == p) || (a == upperTriangle) || (a == strictUpper) || (a == MatrixType::UpperBand)
+        )) ||
+        (p == MatrixAccessPolicy::LowerHessenberg && (
+            (a == p) || (a == lowerTriangle) || (a == strictLower) || (a == MatrixType::LowerBand)
+        )) ||
+        (p == MatrixAccessPolicy::UpperTriangle && (
+            (a == p) || (a == strictUpper) || (a == MatrixType::UpperBand)
+        )) ||
+        (p == MatrixAccessPolicy::LowerTriangle && (
+            (a == p) || (a == strictLower) || (a == MatrixType::LowerBand)
+        )) ||
+        (p == MatrixAccessPolicy::StrictUpper && 
+            (a == p)
+        ) ||
+        (p == MatrixAccessPolicy::StrictLower && 
+            (a == p)
+        )
+    );
+}
+
+inline constexpr
+bool access_granted( band_t a, band_t p )
+{
+    return  (p.lower_bandwidth >= a.lower_bandwidth) &&
+            (p.upper_bandwidth >= a.upper_bandwidth);
+}
+
+template< class access_t, class accessPolicy_t >
+inline constexpr
+bool access_denied( access_t a, accessPolicy_t p ) {
+    return ! access_granted( a, p );
 }
 
 } // namespace lapack

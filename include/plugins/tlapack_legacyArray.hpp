@@ -73,6 +73,13 @@ namespace blas {
     inline constexpr auto
     ncols( const legacyMatrix<T,layout>& A ){ return A.n; }
 
+    // Access policy
+    template< typename T, Layout layout >
+    inline constexpr auto
+    access_policy( const legacyMatrix<T,layout>& A ) {
+        return lapack::full;
+    }
+
     // Size
     template< typename T, typename int_t, Direction direction >
     inline constexpr auto
@@ -97,6 +104,15 @@ namespace blas {
     template< typename T >
     inline constexpr auto
     upperband( const legacyBandedMatrix<T>& A ){ return A.ku; }
+
+    // Access policy
+    template< typename T >
+    inline constexpr auto
+    access_policy( const legacyBandedMatrix<T>& A ) {
+        return lapack::band_t {
+            (std::size_t) A.kl, (std::size_t) A.ku
+        };
+    }
 
     // -----------------------------------------------------------------------------
     // Data blocks

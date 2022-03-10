@@ -18,7 +18,6 @@ namespace blas {
 // Enumerations
 enum class Layout { ColMajor = 'C', RowMajor = 'R' };
 enum class Op     { NoTrans  = 'N', Trans    = 'T', ConjTrans = 'C', Conj };
-enum class Uplo   { Upper    = 'U', Lower    = 'L', General   = 'G' };
 enum class Diag   { NonUnit  = 'N', Unit     = 'U' };
 enum class Side   { Left     = 'L', Right    = 'R' };
 

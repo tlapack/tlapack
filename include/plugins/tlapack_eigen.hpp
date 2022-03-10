@@ -83,6 +83,12 @@ namespace blas{
     ncols( const Eigen::EigenBase<T>& x ) {
         return x.cols();
     }
+    // Access policy
+    template<class T, int Level>
+    inline constexpr auto
+    access_policy( const Eigen::DenseCoeffsBase<T,Level>& x ) {
+        return lapack::full;
+    }
 
     // -----------------------------------------------------------------------------
     // blas functions to access Eigen block operations

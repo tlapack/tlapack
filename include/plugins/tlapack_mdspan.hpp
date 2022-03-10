@@ -53,6 +53,14 @@ namespace blas {
         return x.extent(1);
     }
 
+    // Access policy
+    template< class ET, class Exts, class LP, class AP >
+    inline constexpr auto
+    access_policy( const mdspan<ET,Exts,LP,AP>& x ) {
+        /// TODO: Maybe we should get the access type from the layout here?
+        return lapack::full;
+    }
+
     // -----------------------------------------------------------------------------
     // blas functions to access mdspan block operations
 

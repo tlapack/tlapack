@@ -54,15 +54,16 @@ namespace lapack {
  * 
  * @ingroup auxiliary
  */
-template< typename T >
+template< class matrixType_t, typename T >
 int lascl(
-    lapack::MatrixType matrixtype,
+    matrixType_t matrixtype,
     idx_t kl, idx_t ku,
     const real_type<T>& b, const real_type<T>& a,
     idx_t m, idx_t n,
     T* A, idx_t lda )
 {
     using blas::internal::colmajor_matrix;
+    using blas::internal::banded_matrix;
     using std::max;
     
     // check arguments
@@ -70,7 +71,10 @@ int lascl(
         (matrixtype != MatrixType::General) && 
         (matrixtype != MatrixType::Lower) && 
         (matrixtype != MatrixType::Upper) && 
-        (matrixtype != MatrixType::Hessenberg), -1 );
+        (matrixtype != MatrixType::Hessenberg) && 
+        (matrixtype != MatrixType::LowerBand) && 
+        (matrixtype != MatrixType::UpperBand) && 
+        (matrixtype != MatrixType::Band), -1 );
     lapack_error_if( (
             (matrixtype == MatrixType::LowerBand) ||
             (matrixtype == MatrixType::UpperBand) || 
@@ -101,25 +105,25 @@ int lascl(
     lapack_error_if( (matrixtype == MatrixType::UpperBand) && (lda < ku + 1), -9);
     lapack_error_if( (matrixtype == MatrixType::Band) && (lda < 2 * kl + ku + 1), -9);
 
-    // Matrix views
-    auto _A = colmajor_matrix<T>( A, m, n, lda );
-
-    if (matrixtype == MatrixType::General)
-        return lascl( general_matrix, b, a, _A );
-    else if (matrixtype == MatrixType::Lower)
-        return lascl( lower_triangle, b, a, _A );
-    else if (matrixtype == MatrixType::Upper)
-        return lascl( upper_triangle, b, a, _A );
-    else if (matrixtype == MatrixType::Hessenberg)
-        return lascl( hessenberg_matrix, b, a, _A );
-    else if (matrixtype == MatrixType::LowerBand)
-        return lascl( symmetric_lowerband_t{kl}, b, a, _A );
+    if (matrixtype == MatrixType::LowerBand)
+    {
+        auto _A = banded_matrix<T>( A, m, n, kl, 0 );
+        return lascl( matrixtype, b, a, _A );
+    }
     else if (matrixtype == MatrixType::UpperBand)
-        return lascl( symmetric_upperband_t{ku}, b, a, _A );
+    {
+        auto _A = banded_matrix<T>( A, m, n, 0, ku );
+        return lascl( matrixtype, b, a, _A );
+    }
     else if (matrixtype == MatrixType::Band)
-        return lascl( band_matrix_t{kl,ku}, b, a, _A );
-
-    return 0;
+    {
+        auto _A = banded_matrix<T>( A, m, n, kl, ku );
+        return lascl( matrixtype, b, a, _A );
+    }
+    else {
+        auto _A = colmajor_matrix<T>( A, m, n, lda );
+        return lascl( matrixtype, b, a, _A );
+    }
 }
 
 }
