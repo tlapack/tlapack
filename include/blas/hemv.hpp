@@ -88,9 +88,9 @@ void hemv(
     // check arguments
     blas_error_if( uplo != Uplo::Lower &&
                    uplo != Uplo::Upper );
-    blas_error_if( ncols(A) == n );
-    blas_error_if( size(x)  == n );
-    blas_error_if( size(y)  == n );
+    blas_error_if( ncols(A) != n );
+    blas_error_if( size(x)  != n );
+    blas_error_if( size(y)  != n );
 
     // form y = beta*y
     if (beta != beta_t(1)) {
