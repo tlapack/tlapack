@@ -153,8 +153,8 @@ void syr2k(
         // uplo == Uplo::Upper or uplo == Uplo::General
             for(idx_t j = 0; j < n; ++j) {
                 for(idx_t i = 0; i <= j; ++i) {
-                    scalar_t sum1 = 0;
-                    scalar_t sum2 = 0;
+                    scalar_t sum1( 0 );
+                    scalar_t sum2( 0 );
                     for(idx_t l = 0; l < k; ++l) {
                         sum1 += A(l,i) * B(l,j);
                         sum2 += B(l,i) * A(l,j);
@@ -166,8 +166,8 @@ void syr2k(
         else { // uplo == Uplo::Lower
             for(idx_t j = 0; j < n; ++j) {
                 for(idx_t i = j; i < n; ++i) {
-                    scalar_t sum1 = 0;
-                    scalar_t sum2 = 0;
+                    scalar_t sum1( 0 );
+                    scalar_t sum2( 0 );
                     for(idx_t l = 0; l < k; ++l) {
                         sum1 +=  A(l,i) * B(l,j);
                         sum2 +=  B(l,i) * A(l,j);
