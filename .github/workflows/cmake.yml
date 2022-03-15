@@ -56,6 +56,9 @@ jobs:
     - name: Checkout <T>LAPACK
       uses: actions/checkout@v2
 
+    - name: Install ninja-build tool
+      uses: seanmiddleditch/gha-setup-ninja@v3
+
     - name: Install LAPACKE on Ubuntu
       if: ${{ matrix.os == 'ubuntu-latest' }}
       run: sudo apt install liblapacke-dev
@@ -93,13 +96,13 @@ jobs:
       if: ${{ matrix.os == 'ubuntu-latest' }}
       working-directory: ${{env.mdspan_DIR}}
       run: |
-        cmake -B build -DCMAKE_INSTALL_PREFIX=${{env.mdspan_DIR}}
+        cmake -B build -G Ninja -DCMAKE_INSTALL_PREFIX=${{env.mdspan_DIR}}
         cmake --build build --target install
         
     - name: Specific configurations for CMake on Ubuntu
       if: ${{ matrix.os == 'ubuntu-latest' }}
       run: >
-        cmake -B build
+        cmake -B build -G Ninja
         -D BUILD_BLASPP_TESTS=ON
         -D blaspp_DIR=${{env.blaspp_DIR}}/build
         -D blaspp_TEST_DIR=${{env.blaspp_DIR}}/test
@@ -112,14 +115,14 @@ jobs:
       env:
         LDFLAGS: "-lstdc++"
       run: >
-        cmake -B build
+        cmake -B build -G Ninja
         -DCMAKE_CXX_COMPILER="gcc-11"
         -DCMAKE_Fortran_COMPILER="gfortran-11"
 
     - name: Specific configurations for CMake on Windows
       if: ${{ matrix.os == 'windows-latest' }}
       run: >
-        cmake -B build -G "Unix Makefiles"
+        cmake -B build -G Ninja
         -D CMAKE_EXE_LINKER_FLAGS="-Wl,--allow-multiple-definition"
 
     - name: Configure CMake on all platforms
@@ -170,12 +173,15 @@ jobs:
     - name: Checkout <T>LAPACK
       uses: actions/checkout@v2
 
+    - name: Install ninja-build tool
+      uses: seanmiddleditch/gha-setup-ninja@v3
+
     - name: Install MPFR C++
       run: sudo apt install libmpfrc++-dev
 
     - name: Configure CMake for <T>LAPACK
       run: >
-        cmake -B build
+        cmake -B build -G Ninja
         -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} 
         -D CMAKE_INSTALL_PREFIX=${{github.workspace}}/tlapack_install
         -D BUILD_SHARED_LIBS=ON
@@ -203,6 +209,9 @@ jobs:
     - name: Checkout <T>LAPACK
       uses: actions/checkout@v2
 
+    - name: Install ninja-build tool
+      uses: seanmiddleditch/gha-setup-ninja@v3
+
     - name: Install OpenBLAS
       run: sudo apt install libopenblas-dev
 
@@ -214,12 +223,12 @@ jobs:
       run: |
         git checkout tlapack
         mkdir build
-        cmake -B build -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBLA_VENDOR=OpenBLAS -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.blaspp_DIR}}
+        cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBLA_VENDOR=OpenBLAS -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.blaspp_DIR}}
         cmake --build build --target install
 
     - name: Configure CMake for <T>LAPACK
       run: >
-        cmake -B build
+        cmake -B build -G Ninja
         -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
         -D BUILD_SHARED_LIBS=ON
         -D BUILD_EXAMPLES=ON
@@ -300,6 +309,9 @@ jobs:
     - name: Checkout <T>LAPACK
       uses: actions/checkout@v2
 
+    - name: Install ninja-build tool
+      uses: seanmiddleditch/gha-setup-ninja@v3
+
     - name: Checkout BLAS++
       run: |
         git clone https://bitbucket.org/weslleyspereira/blaspp ${{env.blaspp_DIR}}
@@ -308,12 +320,12 @@ jobs:
       working-directory: ${{env.blaspp_DIR}}
       run: |
         git checkout tlapack
-        cmake -B build -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.blaspp_DIR}}
+        cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.blaspp_DIR}}
         cmake --build build --target install
 
     - name: Configure CMake
       run: >
-        cmake -B build
+        cmake -B build -G Ninja
         -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
         -D CMAKE_INSTALL_PREFIX=${{github.workspace}}/tlapack_install
         -D BUILD_SHARED_LIBS=ON
@@ -331,6 +343,6 @@ jobs:
     - name: Build and run example comparing performance
       working-directory: ${{github.workspace}}/examples/potrf
       run: |
-        cmake -B build -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -D CMAKE_PREFIX_PATH=${{github.workspace}}/tlapack_install
+        cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -D CMAKE_PREFIX_PATH=${{github.workspace}}/tlapack_install
         cmake --build build --target all
         ./build/example_potrf
