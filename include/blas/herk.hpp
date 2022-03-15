@@ -151,7 +151,7 @@ void herk(
         // uplo == Uplo::Upper or uplo == Uplo::General
             for(idx_t j = 0; j < n; ++j) {
                 for(idx_t i = 0; i < j; ++i) {
-                    TA sum = 0;
+                    TA sum( 0 );
                     for(idx_t l = 0; l < k; ++l)
                         sum += conj( A(l,i) ) * A(l,j);
                     C(i,j) = alpha*sum + beta*C(i,j);
@@ -167,7 +167,7 @@ void herk(
             // uplo == Uplo::Lower
             for(idx_t j = 0; j < n; ++j) {
                 for(idx_t i = j+1; i < n; ++i) {
-                    TA sum = 0;
+                    TA sum( 0 );
                     for(idx_t l = 0; l < k; ++l)
                         sum += conj( A(l,i) ) * A(l,j);
                     C(i,j) = alpha*sum + beta*C(i,j);
