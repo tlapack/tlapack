@@ -91,8 +91,7 @@ namespace blas {
  * @ingroup trsm
  */
 template< typename TA, typename TB,
-    disable_if_allow_optblas_t<TA,TB> = 0
->
+    disable_if_allow_optblas_t<TA,TB> = 0 >
 void trsm(
     blas::Layout layout,
     blas::Side side,

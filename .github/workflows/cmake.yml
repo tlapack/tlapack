@@ -243,47 +243,47 @@ jobs:
         echo "Mind that the job won't fail if only this step fails."
         ctest -C ${{env.BUILD_TYPE}} --output-on-failure
 
-    # # Mind that the job won't fail if only this step fails
-    # - name: Test InfNaN propagation
-    #   working-directory: ${{github.workspace}}/build
-    #   continue-on-error: true
-    #   run: |
-    #     echo "Mind that the job won't fail if only this step fails."
-    #     ./tester -# [#test_infNaN] -r compact
+    # Mind that the job won't fail if only this step fails
+    - name: Test InfNaN propagation
+      working-directory: ${{github.workspace}}/build
+      continue-on-error: true
+      run: |
+        echo "Mind that the job won't fail if only this step fails."
+        ./tester -# [#test_infNaN] -r compact
 
-    # # Mind that the job won't fail if only this step fails
-    # - name: Test InfNaN propagation on iamax
-    #   working-directory: ${{github.workspace}}/build
-    #   continue-on-error: true
-    #   run: |
-    #     echo "Mind that the job won't fail if only this step fails."
-    #     ./tester -# [#test_infNaN_iamax] -r compact
+    # Mind that the job won't fail if only this step fails
+    - name: Test InfNaN propagation on iamax
+      working-directory: ${{github.workspace}}/build
+      continue-on-error: true
+      run: |
+        echo "Mind that the job won't fail if only this step fails."
+        ./tester -# [#test_infNaN_iamax] -r compact
 
-    # # Mind that the job won't fail if only this step fails
-    # - name: Test InfNaN propagation on nrm2
-    #   working-directory: ${{github.workspace}}/build
-    #   continue-on-error: true
-    #   run: |
-    #     echo "Mind that the job won't fail if only this step fails."
-    #     ./tester -# [#test_infNaN_nrm2] -r compact
+    # Mind that the job won't fail if only this step fails
+    - name: Test InfNaN propagation on nrm2
+      working-directory: ${{github.workspace}}/build
+      continue-on-error: true
+      run: |
+        echo "Mind that the job won't fail if only this step fails."
+        ./tester -# [#test_infNaN_nrm2] -r compact
 
-    # # Mind that the job won't fail if only this step fails
-    # - name: Test InfNaN propagation on trsv and trsm
-    #   working-directory: ${{github.workspace}}/build
-    #   continue-on-error: true
-    #   run: |
-    #     echo "Mind that the job won't fail if only this step fails."
-    #     ./tester -# [#test_infNaN_trsv_trsm] -r compact
+    # Mind that the job won't fail if only this step fails
+    - name: Test InfNaN propagation on trsv and trsm
+      working-directory: ${{github.workspace}}/build
+      continue-on-error: true
+      run: |
+        echo "Mind that the job won't fail if only this step fails."
+        ./tester -# [#test_infNaN_trsv_trsm] -r compact
 
-    # # Mind that the job won't fail if only this step fails
-    # - name: Test Corner Cases
-    #   working-directory: ${{github.workspace}}/build
-    #   continue-on-error: true
-    #   run: |
-    #     echo "Mind that the job won't fail if only this step fails."
-    #     ./tester -# [#test_corner_cases] -r compact
-    #   # echo "Total of:"
-    #   # ./tester -# [#test_corner_cases] -l | tail -n 2
+    # Mind that the job won't fail if only this step fails
+    - name: Test Corner Cases
+      working-directory: ${{github.workspace}}/build
+      continue-on-error: true
+      run: |
+        echo "Mind that the job won't fail if only this step fails."
+        ./tester -# [#test_corner_cases] -r compact
+      # echo "Total of:"
+      # ./tester -# [#test_corner_cases] -l | tail -n 2
 
   build-test-performance:
     # Use GNU compilers
@@ -318,6 +318,7 @@ jobs:
         -D CMAKE_INSTALL_PREFIX=${{github.workspace}}/tlapack_install
         -D BUILD_SHARED_LIBS=ON
         -D BUILD_EXAMPLES=OFF
+        -D BUILD_TESTING=OFF
         -D TLAPACK_USE_OPTBLAS=ON
 
     - name: Build and Install
