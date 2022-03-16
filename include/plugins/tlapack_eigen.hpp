@@ -236,6 +236,7 @@ namespace lapack {
     using blas::size;
     using blas::nrows;
     using blas::ncols;
+    using blas::access_policy;
 
     using blas::submatrix;
     using blas::rows;

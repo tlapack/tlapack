@@ -219,12 +219,11 @@ namespace blas {
 } // namespace blas
 
 namespace lapack {
-    
-    using blas::mdspan;
 
     using blas::size;
     using blas::nrows;
     using blas::ncols;
+    using blas::access_policy;
 
     using blas::submatrix;
     using blas::rows;
