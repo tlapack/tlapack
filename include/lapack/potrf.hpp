@@ -26,7 +26,7 @@ namespace lapack {
  *      $A = L L^H,$ if uplo = Lower,
  * where U is an upper triangular matrix and L is lower triangular.
  * 
- * @tparam uplo_t   Either upper_triangle_t or lower_triangle_t.
+ * @tparam uplo_t   Either upperTriangle_t or lowerTriangle_t.
  * @tparam matrix_t A \<T\>LAPACK abstract matrix.
  * @tparam opts_t
  * \code{.cpp}
@@ -38,15 +38,15 @@ namespace lapack {
  *      If opts_t::nb does not exist, nb assumes a default value.
  *
  * @param[in] uplo
- *      - lapack::upper_triangle_t: Upper triangle of A is stored;
- *      - lapack::lower_triangle_t: Lower triangle of A is stored.
+ *      - lapack::upperTriangle_t: Upper triangle of A is stored;
+ *      - lapack::lowerTriangle_t: Lower triangle of A is stored.
  *
  * @param[in,out] A
  *      On entry, the Hermitian matrix A.
- *      - If uplo = upper_triangle_t, the strictly lower
+ *      - If uplo = upperTriangle_t, the strictly lower
  *      triangular part of A is not referenced.
  *
- *      - If uplo = lower_triangle_t, the strictly upper
+ *      - If uplo = lowerTriangle_t, the strictly upper
  *      triangular part of A is not referenced.
  *
  *      - On successful exit, the factor U or L from the Cholesky

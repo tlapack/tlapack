@@ -168,7 +168,7 @@ int larft(
                     }
                 }
                 // T(0:i,i) := T(0:i,0:i) * T(0:i,i)
-                trmv( upper_triangle, noTranspose, nonUnit_diagonal,
+                trmv( upperTriangle, noTranspose, nonUnit_diagonal,
                     submatrix( T, pair{0,i}, pair{0,i} ), Ti 
                 );
                 T(i,i) = tau[i];
@@ -216,7 +216,7 @@ int larft(
                         );
                     }
                 }
-                trmv( lower_triangle, noTranspose, nonUnit_diagonal,
+                trmv( lowerTriangle, noTranspose, nonUnit_diagonal,
                     submatrix( T, pair{i+1,k}, pair{i+1,k} ), Ti 
                 );
                 T(i,i) = tau[i];

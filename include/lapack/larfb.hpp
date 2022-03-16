@@ -170,7 +170,7 @@ int larfb(
                 auto C2 = rows( C, pair{k,m} );
 
                 // W := C1
-                lacpy( general_matrix, C1, W );
+                lacpy( dense, C1, W );
                 // W := V1^H W
                 trmm(
                     side, Uplo::Lower,
@@ -213,7 +213,7 @@ int larfb(
                 auto C2 = cols( C, pair{k,n} );
 
                 // W := C1
-                lacpy( general_matrix, C1, W );
+                lacpy( dense, C1, W );
                 // W := W V1
                 trmm(
                     side, Uplo::Lower,
@@ -258,7 +258,7 @@ int larfb(
                 auto C2 = rows( C, pair{m-k,m} );
 
                 // W := C2
-                lacpy( general_matrix, C2, W );
+                lacpy( dense, C2, W );
                 // W := V2^H W
                 trmm(
                     side, Uplo::Upper,
@@ -301,7 +301,7 @@ int larfb(
                 auto C2 = cols( C, pair{n-k,n} );
 
                 // W := C2
-                lacpy( general_matrix, C2, W );
+                lacpy( dense, C2, W );
                 // W := W V2
                 trmm(
                     side, Uplo::Upper,
@@ -348,7 +348,7 @@ int larfb(
                 auto C2 = rows( C, pair{k,m} );
 
                 // W := C1
-                lacpy( general_matrix, C1, W );
+                lacpy( dense, C1, W );
                 // W := V1 W
                 trmm(
                     side, Uplo::Upper,
@@ -391,7 +391,7 @@ int larfb(
                 auto C2 = cols( C, pair{k,n} );
 
                 // W := C1
-                lacpy( general_matrix, C1, W );
+                lacpy( dense, C1, W );
                 // W := W V1^H
                 trmm(
                     side, Uplo::Upper,
@@ -436,7 +436,7 @@ int larfb(
                 auto C2 = rows( C, pair{m-k,m} );
 
                 // W := C2
-                lacpy( general_matrix, C2, W );
+                lacpy( dense, C2, W );
                 // W := V2 W
                 trmm(
                     side, Uplo::Lower,
@@ -479,7 +479,7 @@ int larfb(
                 auto C2 = cols( C, pair{n-k,n} );
 
                 // W := C2
-                lacpy( general_matrix, C2, W );
+                lacpy( dense, C2, W );
                 // W := W V2^H
                 trmm(
                     side, Uplo::Lower,

@@ -55,7 +55,7 @@ int main( int argc, char** argv )
     // Compute QR decomposision in place
     geqr2( Q, tau, work );
     // Copy the upper triangle to R
-    lacpy( upper_triangle, submatrix(Q,pair{0,n},pair{0,n}), R );
+    lacpy( upperTriangle, submatrix(Q,pair{0,n},pair{0,n}), R );
     // Generate Q
     org2r( n, Q, tau, work );
 
@@ -66,7 +66,7 @@ int main( int argc, char** argv )
     std::cout << std::endl;
 
     // Checking A = Q R
-    lacpy( general_matrix, Q, QtimesR );
+    lacpy( dense, Q, QtimesR );
     trmm( Side::Right, Uplo::Upper, Op::NoTrans, Diag::NonUnit, 1.0, R, QtimesR );
     std::cout << "QR = " << std::endl << QtimesR << std::endl;
     QtimesR -= A;
@@ -76,7 +76,7 @@ int main( int argc, char** argv )
     // Checking orthogonality of Q
     orthQ = Matrix<float, n, n>::Identity();
     syrk( Uplo::Upper, Op::Trans, 1.0, Q, -1.0, orthQ );
-    std::cout << "\\|Q^t Q - I\\|_F = " << std::endl << lansy( frob_norm, upper_triangle, orthQ ) << std::endl;
+    std::cout << "\\|Q^t Q - I\\|_F = " << std::endl << lansy( frob_norm, upperTriangle, orthQ ) << std::endl;
     std::cout << std::endl;
 
     // Eigen -----------------------------------------------

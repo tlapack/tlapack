@@ -86,7 +86,7 @@ void run( size_t m, size_t n )
     }
 
     // Copy A to Q
-    lapack::lacpy( lapack::general_matrix, A, Q );
+    lapack::lacpy( lapack::dense, A, Q );
 
     // 1) Compute A = QR (Stored in the matrix Q)
 
@@ -98,7 +98,7 @@ void run( size_t m, size_t n )
         blas_error_if( lapack::geqr2( Q, tau, work ) );
 
         // Save the R matrix
-        lapack::lacpy( lapack::upper_triangle, Q, R );
+        lapack::lacpy( lapack::upperTriangle, Q, R );
 
         // Generates Q = H_1 H_2 ... H_n
         blas_error_if( lapack::org2r( n, Q, tau, work ) );
@@ -134,12 +134,12 @@ void run( size_t m, size_t n )
                 work(i,j) = static_cast<float>( 0xABADBABE );
         
         // work receives the identity n*n
-        lapack::laset( lapack::upper_triangle, 0.0, 1.0, work );
+        lapack::laset( lapack::upperTriangle, 0.0, 1.0, work );
         // work receives Q'Q - I
         blas::syrk( blas::Uplo::Upper, blas::Op::Trans, 1.0, Q, -1.0, work );
 
         // Compute ||Q'Q - I||_F
-        norm_orth_1 = lapack::lansy( lapack::frob_norm, lapack::upper_triangle, work );
+        norm_orth_1 = lapack::lansy( lapack::frob_norm, lapack::upperTriangle, work );
 
         if (verbose) {
             std::cout << std::endl << "Q'Q-I = ";
@@ -158,7 +158,7 @@ void run( size_t m, size_t n )
                 work(i,j) = static_cast<float>( 0xABADBABE );
 
         // Copy Q to work
-        lapack::lacpy( lapack::general_matrix, Q, work );
+        lapack::lacpy( lapack::dense, Q, work );
 
         blas::trmm( blas::Side::Right, blas::Uplo::Upper, blas::Op::NoTrans, blas::Diag::NonUnit, 1.0, R, work );
 
