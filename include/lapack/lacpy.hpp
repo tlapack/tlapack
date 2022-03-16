@@ -41,6 +41,11 @@ void lacpy( uplo_t uplo, const matrixA_t& A, matrixB_t& B )
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
 
+    // check arguments
+    blas_error_if(  uplo != Uplo::Lower &&
+                    uplo != Uplo::Upper &&
+                    uplo != Uplo::General );
+
     if( uplo == Uplo::Upper ) {
         // Set the strictly upper triangular or trapezoidal part of B
         for (idx_t j = 0; j < n; ++j) {

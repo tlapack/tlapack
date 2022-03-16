@@ -23,6 +23,11 @@ void laset(
 {
     using blas::internal::colmajor_matrix;
 
+    // check arguments
+    blas_error_if(  uplo != Uplo::Lower &&
+                    uplo != Uplo::Upper &&
+                    uplo != Uplo::General );
+
     // quick return
     if( m <= 0 || n <= 0 )
         return;
@@ -30,9 +35,7 @@ void laset(
     // Matrix views
     auto _A = colmajor_matrix<TA>( A, m, n, lda );
 
-    if (uplo == Uplo::Upper) laset( upper_triangle, alpha, beta, _A );
-    else if (uplo == Uplo::Lower) laset( lower_triangle, alpha, beta, _A );
-    else laset( general_matrix, alpha, beta, _A );
+    return laset( uplo, alpha, beta, _A );
 }
 
 /** Initializes a matrix to diagonal and off-diagonal values

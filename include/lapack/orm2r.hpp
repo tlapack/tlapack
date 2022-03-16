@@ -43,10 +43,18 @@ int orm2r(
     const idx_t m = nrows(C);
     const idx_t n = ncols(C);
     const idx_t k = size(tau);
-    constexpr bool leftSide = side == Side::Left;
+
+    // check arguments
+    lapack_error_if( side != Side::Left &&
+                     side != Side::Right, -1 );
+    lapack_error_if( trans != Op::NoTrans &&
+                     trans != Op::Trans &&
+                     trans != Op::ConjTrans, -2 );
+
+    // const expressions
     constexpr bool positiveInc = (
-        ( leftSide && !(trans == Op::Trans) ) ||
-        ( !leftSide && (trans == Op::Trans) )
+        ( (side == Side::Left) && !(trans == Op::Trans) ) ||
+        ( !(side == Side::Left) && (trans == Op::Trans) )
     );
     constexpr idx_t i0 = (positiveInc) ? 0 : k-1;
     constexpr idx_t iN = (positiveInc) ? k :  -1;
@@ -58,10 +66,10 @@ int orm2r(
 
     for (idx_t i = i0; i != iN; i += inc) {
         
-        const auto& v = (leftSide)
+        const auto& v = (side == Side::Left)
                       ? subvector( col( A, i ), pair{i,m} )
                       : subvector( col( A, i ), pair{i,n} );
-        auto& Ci = (leftSide)
+        auto& Ci = (side == Side::Left)
                  ? rows( C, pair{i,m} )
                  : cols( C, pair{i,n} );
         

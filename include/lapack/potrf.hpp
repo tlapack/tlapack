@@ -82,8 +82,10 @@ int potrf( uplo_t uplo, matrix_t& A, opts_t&& opts )
     // Options
     const idx_t nb = get_nb(opts);
 
-    // Check arguments
-    lapack_error_if( nrows(A) != ncols(A), -2 );
+    // check arguments
+    lapack_error_if(    uplo != Uplo::Lower &&
+                        uplo != Uplo::Upper, -1 );
+    lapack_error_if(    nrows(A) != ncols(A), -2 );
 
     // Quick return
     if (n <= 0)

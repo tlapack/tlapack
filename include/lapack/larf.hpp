@@ -72,6 +72,10 @@ inline void larf(
     const T one(1.0);
     const T zero(0.0);
 
+    // check arguments
+    blas_error_if( side != Side::Left &&
+                   side != Side::Right );
+
     if( side == Side::Left ) {
         gemv(Op::ConjTrans, one, C, v, zero, work);
         ger(-tau, v, work, C);

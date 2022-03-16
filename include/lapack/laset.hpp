@@ -47,6 +47,11 @@ void laset(
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
 
+    // check arguments
+    blas_error_if(  uplo != Uplo::Lower &&
+                    uplo != Uplo::Upper &&
+                    uplo != Uplo::General );
+
     if (uplo == Uplo::Upper) {
         // Set the strictly upper triangular or trapezoidal part of
         // the array to alpha.

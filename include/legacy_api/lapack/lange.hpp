@@ -47,6 +47,12 @@ inline real_type<TA> lange(
     // constants
     const real_t rzero(0);
 
+    // check arguments
+    blas_error_if(  normType != Norm::Fro &&
+                    normType != Norm::Inf &&
+                    normType != Norm::Max &&
+                    normType != Norm::One );
+
     // quick return
     if (m == 0 || n == 0)
         return rzero;
@@ -54,20 +60,7 @@ inline real_type<TA> lange(
     // Views
     const auto A = colmajor_matrix<TA>( (TA*)_A, m, n, lda );
 
-    if( normType == Norm::Max )
-        return lange( max_norm, A );
-    else if ( normType == Norm::One )
-        return lange( one_norm, A );
-    else if ( normType == Norm::Inf ){
-        real_t *work = new real_t[m];
-        auto _work = vector<real_t>( work, m );
-        auto aux = lange( inf_norm, A, _work );
-        delete[] work;
-        return aux;
-    } else if ( normType == Norm::Fro )
-        return lange( frob_norm, A );
-    else
-        return rzero;
+    return lange( normType, A );
 }
 
 } // lapack

@@ -51,6 +51,12 @@ lange( norm_t normType, const matrix_t& A )
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
 
+    // check arguments
+    blas_error_if(  normType != Norm::Fro &&
+                    normType != Norm::Inf &&
+                    normType != Norm::Max &&
+                    normType != Norm::One );
+
     // quick return
     if (m == 0 || n == 0)
         return rzero;

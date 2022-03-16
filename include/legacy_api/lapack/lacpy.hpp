@@ -22,17 +22,17 @@ void lacpy(
     TB* B, blas::idx_t ldb )
 {
     using blas::internal::colmajor_matrix;
+
+    // check arguments
+    blas_error_if(  uplo != Uplo::Lower &&
+                    uplo != Uplo::Upper &&
+                    uplo != Uplo::General );
     
     // Matrix views
     const auto _A = colmajor_matrix<TA>( (TA*)A, m, n, lda );
     auto _B = colmajor_matrix<TB>( B, m, n, ldb );
 
-    if (uplo == Uplo::Upper)
-        lacpy( upper_triangle, _A, _B );
-    else if (uplo == Uplo::Lower) 
-        lacpy( lower_triangle, _A, _B );
-    else
-        lacpy( general_matrix, _A, _B );
+    lacpy( uplo, _A, _B );
 }
 
 /** Copies a real matrix from A to B where A is either a full, upper triangular or lower triangular matrix.

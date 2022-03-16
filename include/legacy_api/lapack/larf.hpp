@@ -58,10 +58,7 @@ inline void larf(
         lenv, incv );
     auto _work = vector<scalar_t>( &work[0], lwork, 1 );
 
-    if( side == Side::Left )
-        larf( left_side, _v, tau, _C, _work);
-    else
-        larf( right_side, _v, tau, _C, _work);
+    larf( side, _v, tau, _C, _work);
         
     // delete[] work;
 }

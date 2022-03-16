@@ -26,16 +26,17 @@ inline int potrf( uplo_t uplo, idx_t n, T* A, idx_t lda )
 {
     using blas::internal::colmajor_matrix;
 
+    // check arguments
+    lapack_error_if(    uplo != Uplo::Lower &&
+                        uplo != Uplo::Upper, -1 );
+
     // Matrix views
     auto _A = colmajor_matrix<T>( A, n, n, lda );
 
     // Options
     struct { idx_t nb = 32; } opts;
 
-    if( uplo == Uplo::Upper )
-        return potrf( upper_triangle, _A, opts );
-    else
-        return potrf( lower_triangle, _A, opts );
+    return potrf( uplo, _A, opts );
 }
 
 } // lapack

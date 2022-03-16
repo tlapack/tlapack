@@ -76,7 +76,6 @@ inline int orm2r(
     if ((m == 0) || (n == 0) || (k == 0))
         return 0;
 
-    int info = 0;
     scalar_t* work = new scalar_t[ (q > 0) ? q : 0 ];
 
     // Matrix views
@@ -85,22 +84,7 @@ inline int orm2r(
     auto _C = colmajor_matrix<TC>( C, m, n, ldc );
     auto _work = vector<TC>( work, q );
 
-    if( side == Side::Left ) {
-        if( trans == Op::NoTrans )
-            info = orm2r( left_side, noTranspose, A, _tau, _C, _work );
-        else if( trans == Op::Trans )
-            info = orm2r( left_side, transpose, A, _tau, _C, _work );
-        else
-            info = orm2r( left_side, conjTranspose, A, _tau, _C, _work );
-    }
-    else { // side == Side::Right
-        if( trans == Op::NoTrans )
-            info = orm2r( right_side, noTranspose, A, _tau, _C, _work );
-        else if( trans == Op::Trans )
-            info = orm2r( right_side, transpose, A, _tau, _C, _work );
-        else
-            info = orm2r( right_side, conjTranspose, A, _tau, _C, _work );
-    }
+    int info = orm2r( side, trans, A, _tau, _C, _work );
 
     delete[] work;
     return info;

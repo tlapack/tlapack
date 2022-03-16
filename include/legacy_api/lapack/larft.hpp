@@ -110,18 +110,7 @@ int larft(
     auto _tau = vector<scalar_t>( (scalar_t*)tau, k, 1 );
     auto _T = colmajor_matrix<scalar_t>( T, k, k, ldT );
 
-    if(direction == Direction::Forward) {
-        if(storeV == StoreV::Columnwise)
-            return larft( forward, columnwise_storage, _V, _tau, _T);
-        else
-            return larft( forward, rowwise_storage, _V, _tau, _T);
-    }
-    else {
-        if(storeV == StoreV::Columnwise)
-            return larft( backward, columnwise_storage, _V, _tau, _T);
-        else
-            return larft( backward, rowwise_storage, _V, _tau, _T);
-    }
+    return larft( direction, storeV, _V, _tau, _T);
 }
 
 }

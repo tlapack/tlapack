@@ -118,6 +118,13 @@ int unmqr(
     const idx_t nb = get_nb(opts); // Block size
     auto W = get_work(opts); // (nb)-by-(nw+nb) matrix
 
+    // check arguments
+    lapack_error_if( side != Side::Left &&
+                     side != Side::Right, -1 );
+    lapack_error_if( trans != Op::NoTrans &&
+                     trans != Op::Trans &&
+                     trans != Op::ConjTrans, -2 );
+
     // Preparing loop indexes
     idx_t i0, iN, step;
     if(

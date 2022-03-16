@@ -28,14 +28,15 @@ inline int potrs(
 {
     using blas::internal::colmajor_matrix;
 
+    // Check arguments
+    lapack_error_if(    uplo != Uplo::Lower &&
+                        uplo != Uplo::Upper, -1 );
+
     // Matrix views
     const auto _A = colmajor_matrix<T>( (T*) A, n, n, lda );
           auto _B = colmajor_matrix<T>( B, n, nrhs, ldb );
 
-    if( uplo == Uplo::Upper )
-        return potrs( upper_triangle, _A, _B );
-    else
-        return potrs( lower_triangle, _A, _B );
+    return potrs( uplo, _A, _B );
 }
 
 } // lapack

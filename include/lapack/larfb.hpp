@@ -141,8 +141,18 @@ int larfb(
     const idx_t k = nrows(T);
 
     // check arguments
-    if( is_complex< type_t< matrixV_t > >::value )
-        lapack_error_if( trans == Op::Trans, -2 );
+    lapack_error_if(    side != Side::Left &&
+                        side != Side::Right, -1 );
+    lapack_error_if(    trans != Op::NoTrans &&
+                        trans != Op::ConjTrans &&
+                        (
+                            (trans != Op::Trans) ||
+                            is_complex< type_t< matrixV_t > >::value
+                        ), -2 );
+    lapack_error_if(    direction != Direction::Backward &&
+                        direction != Direction::Forward, -3 );
+    lapack_error_if(    storeMode != StoreV::Columnwise &&
+                        storeMode != StoreV::Columnwise, -4 );
 
     // Quick return
     if (m <= 0 || n <= 0) return 0;

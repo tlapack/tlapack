@@ -125,8 +125,18 @@ int larfb(
     using blas::internal::colmajor_matrix;
 
     // check arguments
-    if( is_complex<TV>::value )
-        lapack_error_if( trans == Op::Trans, -2 );
+    lapack_error_if(    side != Side::Left &&
+                        side != Side::Right, -1 );
+    lapack_error_if(    trans != Op::NoTrans &&
+                        trans != Op::ConjTrans &&
+                        (
+                            (trans != Op::Trans) ||
+                            is_complex< TV >::value
+                        ), -2 );
+    lapack_error_if(    direct != Direction::Backward &&
+                        direct != Direction::Forward, -3 );
+    lapack_error_if(    storeV != StoreV::Columnwise &&
+                        storeV != StoreV::Columnwise, -4 );
 
     // Quick return
     if (m <= 0 || n <= 0) return 0;
@@ -144,163 +154,7 @@ int larfb(
                ? colmajor_matrix<scalar_t>( W, k, n )
                : colmajor_matrix<scalar_t>( W, m, k );
 
-    int info = 0;
-    if (storeV == StoreV::Columnwise) {
-        if (direct == Direction::Forward) {
-            if (side == Side::Left) {
-                if (trans == Op::NoTrans) {
-                    info = larfb(
-                        left_side, noTranspose,
-                        forward, columnwise_storage,
-                        _V, _T, _C, _W );
-                } else if (trans == Op::Trans) {
-                    info = larfb(
-                        left_side, transpose,
-                        forward, columnwise_storage,
-                        _V, _T, _C, _W );
-                } else { // (trans == Op::ConjTrans)
-                    info = larfb(
-                        left_side, conjTranspose,
-                        forward, columnwise_storage,
-                        _V, _T, _C, _W );
-                }
-            }
-            else { // side == Side::Right
-                if (trans == Op::NoTrans) {
-                    info = larfb(
-                        right_side, noTranspose,
-                        forward, columnwise_storage,
-                        _V, _T, _C, _W );
-                } else if (trans == Op::Trans) {
-                    info = larfb(
-                        right_side, transpose,
-                        forward, columnwise_storage,
-                        _V, _T, _C, _W );
-                } else { // (trans == Op::ConjTrans)
-                    info = larfb(
-                        right_side, conjTranspose,
-                        forward, columnwise_storage,
-                        _V, _T, _C, _W );
-                }
-            }
-        }
-        else { // direct == Direction::Backward
-            if (side == Side::Left) {
-                if (trans == Op::NoTrans) {
-                    info = larfb(
-                        left_side, noTranspose,
-                        backward, columnwise_storage,
-                        _V, _T, _C, _W );
-                } else if (trans == Op::Trans) {
-                    info = larfb(
-                        left_side, transpose,
-                        backward, columnwise_storage,
-                        _V, _T, _C, _W );
-                } else { // (trans == Op::ConjTrans)
-                    info = larfb(
-                        left_side, conjTranspose,
-                        backward, columnwise_storage,
-                        _V, _T, _C, _W );
-                }
-            }
-            else { // side == Side::Right
-                if (trans == Op::NoTrans) {
-                    info = larfb(
-                        right_side, noTranspose,
-                        backward, columnwise_storage,
-                        _V, _T, _C, _W );
-                } else if (trans == Op::Trans) {
-                    info = larfb(
-                        right_side, transpose,
-                        backward, columnwise_storage,
-                        _V, _T, _C, _W );
-                } else { // (trans == Op::ConjTrans)
-                    info = larfb(
-                        right_side, conjTranspose,
-                        backward, columnwise_storage,
-                        _V, _T, _C, _W );
-                }
-            }
-        }
-    }
-    else { // storeV == StoreV::Rowwise
-        if (direct == Direction::Forward) {
-            if (side == Side::Left) {
-                if (trans == Op::NoTrans) {
-                    info = larfb(
-                        left_side, noTranspose,
-                        forward, rowwise_storage,
-                        _V, _T, _C, _W );
-                } else if (trans == Op::Trans) {
-                    info = larfb(
-                        left_side, transpose,
-                        forward, rowwise_storage,
-                        _V, _T, _C, _W );
-                } else { // (trans == Op::ConjTrans)
-                    info = larfb(
-                        left_side, conjTranspose,
-                        forward, rowwise_storage,
-                        _V, _T, _C, _W );
-                }
-            }
-            else { // side == Side::Right
-                if (trans == Op::NoTrans) {
-                    info = larfb(
-                        right_side, noTranspose,
-                        forward, rowwise_storage,
-                        _V, _T, _C, _W );
-                } else if (trans == Op::Trans) {
-                    info = larfb(
-                        right_side, transpose,
-                        forward, rowwise_storage,
-                        _V, _T, _C, _W );
-                } else { // (trans == Op::ConjTrans)
-                    info = larfb(
-                        right_side, conjTranspose,
-                        forward, rowwise_storage,
-                        _V, _T, _C, _W );
-                }
-            }
-        }
-        else { // direct == Direction::Backward
-            if (side == Side::Left) {
-                if (trans == Op::NoTrans) {
-                    info = larfb(
-                        left_side, noTranspose,
-                        backward, rowwise_storage,
-                        _V, _T, _C, _W );
-                } else if (trans == Op::Trans) {
-                    info = larfb(
-                        left_side, transpose,
-                        backward, rowwise_storage,
-                        _V, _T, _C, _W );
-                } else { // (trans == Op::ConjTrans)
-                    info = larfb(
-                        left_side, conjTranspose,
-                        backward, rowwise_storage,
-                        _V, _T, _C, _W );
-                }
-            }
-            else { // side == Side::Right
-                if (trans == Op::NoTrans) {
-                    info = larfb(
-                        right_side, noTranspose,
-                        backward, rowwise_storage,
-                        _V, _T, _C, _W );
-                } else if (trans == Op::Trans) {
-                    info = larfb(
-                        right_side, transpose,
-                        backward, rowwise_storage,
-                        _V, _T, _C, _W );
-                } else { // (trans == Op::ConjTrans)
-                    info = larfb(
-                        right_side, conjTranspose,
-                        backward, rowwise_storage,
-                        _V, _T, _C, _W );
-                }
-            }
-        }
-    }
+    int info = larfb( side, trans, direct, storeV, _V, _T, _C, _W );
 
     delete[] W;
     return info;
