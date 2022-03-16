@@ -245,12 +245,13 @@ jobs:
       run: cmake --build build --config ${{env.BUILD_TYPE}}
 
     # Mind that the job won't fail if only this step fails
-    - name: Run BLASPP tester
+    - name: Run BLASPP and LAPACKPP testers
       working-directory: ${{github.workspace}}/build
       continue-on-error: true
       run: |
         echo "Mind that the job won't fail if only this step fails."
-        ctest -C ${{env.BUILD_TYPE}} --output-on-failure
+        ctest -C ${{env.BUILD_TYPE}} --output-on-failure -R blaspp_test
+        ctest -C ${{env.BUILD_TYPE}} --output-on-failure -R lapackpp_test
 
     # Mind that the job won't fail if only this step fails
     - name: Test InfNaN propagation
