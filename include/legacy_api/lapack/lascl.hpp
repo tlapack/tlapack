@@ -108,21 +108,37 @@ int lascl(
     if (matrixtype == MatrixType::LowerBand)
     {
         auto _A = banded_matrix<T>( A, m, n, kl, 0 );
-        return lascl( matrixtype, b, a, _A );
+        return lascl( access_policy(_A), b, a, _A );
     }
     else if (matrixtype == MatrixType::UpperBand)
     {
         auto _A = banded_matrix<T>( A, m, n, 0, ku );
-        return lascl( matrixtype, b, a, _A );
+        return lascl( access_policy(_A), b, a, _A );
     }
     else if (matrixtype == MatrixType::Band)
     {
         auto _A = banded_matrix<T>( A, m, n, kl, ku );
-        return lascl( matrixtype, b, a, _A );
+        return lascl( access_policy(_A), b, a, _A );
     }
     else {
         auto _A = colmajor_matrix<T>( A, m, n, lda );
-        return lascl( matrixtype, b, a, _A );
+        
+        if (matrixtype == MatrixType::General)
+        {
+            return lascl( MatrixAccessPolicy::Dense, b, a, _A );
+        }
+        else if (matrixtype == MatrixType::Lower)
+        {
+            return lascl( MatrixAccessPolicy::LowerTriangle, b, a, _A );
+        }
+        else if (matrixtype == MatrixType::Upper)
+        {
+            return lascl( MatrixAccessPolicy::UpperTriangle, b, a, _A );
+        }
+        else // if (matrixtype == MatrixType::Hessenberg)
+        {
+            return lascl( MatrixAccessPolicy::UpperHessenberg, b, a, _A );
+        }
     }
 }
 

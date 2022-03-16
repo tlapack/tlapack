@@ -159,25 +159,22 @@ inline constexpr
 bool access_granted( access_t a, MatrixAccessPolicy p )
 {
     return (
-        (p == MatrixAccessPolicy::Full) ||
+        (a == p) ||
+        (p == MatrixAccessPolicy::Dense) ||
         (p == MatrixAccessPolicy::UpperHessenberg && (
-            (a == p) || (a == upperTriangle) || (a == strictUpper) || (a == MatrixType::UpperBand)
+            (a == MatrixAccessPolicy::UpperTriangle) || 
+            (a == MatrixAccessPolicy::StrictUpper)
         )) ||
         (p == MatrixAccessPolicy::LowerHessenberg && (
-            (a == p) || (a == lowerTriangle) || (a == strictLower) || (a == MatrixType::LowerBand)
+            (a == MatrixAccessPolicy::LowerTriangle) || 
+            (a == MatrixAccessPolicy::StrictUpper)
         )) ||
         (p == MatrixAccessPolicy::UpperTriangle && (
-            (a == p) || (a == strictUpper) || (a == MatrixType::UpperBand)
+            (a == MatrixAccessPolicy::StrictUpper)
         )) ||
         (p == MatrixAccessPolicy::LowerTriangle && (
-            (a == p) || (a == strictLower) || (a == MatrixType::LowerBand)
-        )) ||
-        (p == MatrixAccessPolicy::StrictUpper && 
-            (a == p)
-        ) ||
-        (p == MatrixAccessPolicy::StrictLower && 
-            (a == p)
-        )
+            (a == MatrixAccessPolicy::StrictUpper)
+        ))
     );
 }
 
@@ -186,6 +183,18 @@ bool access_granted( band_t a, band_t p )
 {
     return  (p.lower_bandwidth >= a.lower_bandwidth) &&
             (p.upper_bandwidth >= a.upper_bandwidth);
+}
+
+inline constexpr
+bool access_granted( band_t a, MatrixAccessPolicy p )
+{
+    return (
+        (p == MatrixAccessPolicy::Dense) ||
+        (p == MatrixAccessPolicy::UpperHessenberg && a.lower_bandwidth <= 1) ||
+        (p == MatrixAccessPolicy::LowerHessenberg && a.upper_bandwidth <= 1) ||
+        (p == MatrixAccessPolicy::UpperTriangle && a.lower_bandwidth == 0) ||
+        (p == MatrixAccessPolicy::LowerTriangle && a.upper_bandwidth == 0)
+    );
 }
 
 template< class access_t, class accessPolicy_t >

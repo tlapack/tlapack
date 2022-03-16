@@ -87,7 +87,7 @@ namespace blas{
     template<class T, int Level>
     inline constexpr auto
     access_policy( const Eigen::DenseCoeffsBase<T,Level>& x ) {
-        return lapack::full;
+        return lapack::dense;
     }
 
     // -----------------------------------------------------------------------------

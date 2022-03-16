@@ -16,42 +16,37 @@
 
 namespace lapack {
 
-/** @brief  Multiplies a matrix A by the real scalar a/b.
+/**
+ * @brief Multiplies a matrix A by the real scalar a/b.
  *
- * Multiplication of a matrix A by scalar a/b is done without over/underflow as long as the final
- * result $a A/b$ does not over/underflow. The parameter type specifies that
- * A may be full, upper triangular, lower triangular, upper Hessenberg, or banded.
+ * Multiplication of a matrix A by scalar a/b is done without over/underflow as
+ * long as the final result $a A/b$ does not over/underflow.
  * 
- * @return 0 if success.
- * @return -i if the ith argument is invalid.
+ * @tparam access_t Type of access inside the algorithm.
+ *      Either MatrixAccessPolicy or any type that implements
+ *          operator MatrixAccessPolicy().
+ * @tparam matrix_t Matrix type.
+ * @tparam a_type Type of the coefficient a.
+ *      a_type cannot be a complex type.
+ * @tparam b_type Type of the coefficient b.
+ *      b_type cannot be a complex type.
  * 
- * @param[in] type Specifies the type of matrix A.
- *
- *        MatrixType::General: 
- *          A is a full matrix.
- *        MatrixType::Lower:
- *          A is a lower triangular matrix.
- *        MatrixType::Upper:
- *          A is an upper triangular matrix.
- *        MatrixType::Hessenberg:
- *          A is an upper Hessenberg matrix.
- *        MatrixType::LowerBand:
- *          A is a symmetric band matrix with lower bandwidth kl and upper bandwidth ku
- *          and with the only the lower half stored.
- *        MatrixType::UpperBand: 
- *          A is a symmetric band matrix with lower bandwidth kl and upper bandwidth ku
- *          and with the only the upper half stored.
- *        MatrixType::Band:
- *          A is a band matrix with lower bandwidth kl and upper bandwidth ku.
+ * @param[in] accessType Determines the entries of A that are scaled by a/b.
+ *      The following access types are allowed:
+ *          MatrixAccessPolicy::Dense,
+ *          MatrixAccessPolicy::UpperHessenberg,
+ *          MatrixAccessPolicy::LowerHessenberg,
+ *          MatrixAccessPolicy::UpperTriangle,
+ *          MatrixAccessPolicy::LowerTriangle,
+ *          MatrixAccessPolicy::StrictUpper,
+ *          MatrixAccessPolicy::StrictLower.
  * 
- * @param[in] kl The lower bandwidth of A, used only for banded matrix types B, Q and Z.
- * @param[in] ku The upper bandwidth of A, used only for banded matrix types B, Q and Z.
  * @param[in] b The denominator of the scalar a/b.
  * @param[in] a The numerator of the scalar a/b.
- * @param[in] m The number of rows of the matrix A. m>=0
- * @param[in] n The number of columns of the matrix A. n>=0
- * @param[in,out] A Pointer to the matrix A [in/out].
- * @param[in] lda The column length of the matrix A.
+ * @param[in,out] A Matrix to be scaled by a/b.
+ * 
+ * @return  0 if success.
+ * @return -i if the ith argument is invalid.
  * 
  * @ingroup auxiliary
  */
@@ -62,7 +57,7 @@ template< class access_t, class matrix_t, class a_type, class b_type,
         !is_complex< b_type >::value
     ), int > = 0 >
 int lascl(
-    access_t access,
+    access_t accessType,
     const b_type& b, const a_type& a,
     const matrix_t& A )
 {
@@ -89,7 +84,15 @@ int lascl(
     const real_t big   = safe_max<real_t>();
     
     // check arguments
-    lapack_error_if( access_denied( access, accessPolicy ), -1 );
+    lapack_error_if(
+        (accessType != MatrixAccessPolicy::Dense) && 
+        (accessType != MatrixAccessPolicy::UpperHessenberg) && 
+        (accessType != MatrixAccessPolicy::LowerHessenberg) && 
+        (accessType != MatrixAccessPolicy::UpperTriangle) && 
+        (accessType != MatrixAccessPolicy::LowerTriangle) && 
+        (accessType != MatrixAccessPolicy::StrictUpper) && 
+        (accessType != MatrixAccessPolicy::StrictLower), -1 );
+    lapack_error_if( access_denied( accessType, accessPolicy ), -1 );
     lapack_error_if( (b == b_type(0)) || isnan(b), -2 );
     lapack_error_if( isnan(a), -3 );
 
@@ -142,28 +145,46 @@ int lascl(
             }
         }
 
-        if ( access == MatrixType::General )
+        if ( accessType == MatrixAccessPolicy::UpperHessenberg )
         {
             for (idx_t j = 0; j < n; ++j)
-                for (idx_t i = 0; i < m; ++i)
+                for (idx_t i = 0; i < ((j < m) ? j+2 : m); ++i)
                     A(i,j) *= c;
         }
-        if ( access == MatrixType::Lower )
+        else if ( accessType == MatrixAccessPolicy::UpperTriangle )
+        {
+            for (idx_t j = 0; j < n; ++j)
+                for (idx_t i = 0; i < ((j < m) ? j+1 : m); ++i)
+                    A(i,j) *= c;
+        }
+        else if ( accessType == MatrixAccessPolicy::StrictUpper )
+        {
+            for (idx_t j = 0; j < n; ++j)
+                for (idx_t i = 0; i < ((j < m) ? j : m); ++i)
+                    A(i,j) *= c;
+        }
+        else if ( accessType == MatrixAccessPolicy::LowerHessenberg )
+        {
+            for (idx_t j = 0; j < n; ++j)
+                for (idx_t i = ((j > 1) ? j-1 : 0); i < m; ++i)
+                    A(i,j) *= c;
+        }
+        else if ( accessType == MatrixAccessPolicy::LowerTriangle )
         {
             for (idx_t j = 0; j < n; ++j)
                 for (idx_t i = j; i < m; ++i)
                     A(i,j) *= c;
         }
-        else if ( access == MatrixType::Upper )
+        else if ( accessType == MatrixAccessPolicy::StrictLower )
         {
             for (idx_t j = 0; j < n; ++j)
-                for (idx_t i = 0; (i < m) && (i <= j); ++i)
+                for (idx_t i = j+1; i < m; ++i)
                     A(i,j) *= c;
         }
-        else if ( access == MatrixType::Hessenberg )
+        else // if ( accessType == MatrixAccessPolicy::Dense )
         {
             for (idx_t j = 0; j < n; ++j)
-                for (idx_t i = 0; (i < m) && (i <= j + 1); ++i)
+                for (idx_t i = 0; i < m; ++i)
                     A(i,j) *= c;
         }
     }
@@ -171,6 +192,20 @@ int lascl(
     return 0;
 }
 
+/**
+ * @brief Multiplies a matrix A by the real scalar a/b.
+ * 
+ * Specific implementation for band access types.
+ * 
+ * @param[in] accessType Determines the entries of A that are scaled by a/b.
+ * 
+ * @see lascl(
+    access_t accessType,
+    const b_type& b, const a_type& a,
+    const matrix_t& A )
+ * 
+ * @ingroup auxiliary
+ */
 template< class matrix_t, class a_type, class b_type,
     enable_if_t<(
     /* Requires: */
@@ -178,7 +213,7 @@ template< class matrix_t, class a_type, class b_type,
         !is_complex< b_type >::value
     ), int > = 0 >
 int lascl(
-    band_t access,
+    band_t accessType,
     const b_type& b, const a_type& a,
     const matrix_t& A )
 {
@@ -196,8 +231,8 @@ int lascl(
     // constants
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
-    const idx_t kl = access.lower_bandwidth;
-    const idx_t ku = access.upper_bandwidth;
+    const idx_t kl = accessType.lower_bandwidth;
+    const idx_t ku = accessType.upper_bandwidth;
 
     // constants
     const idx_t izero = 0;
@@ -207,7 +242,8 @@ int lascl(
     const real_t big   = safe_max<real_t>();
     
     // check arguments
-    lapack_error_if( access_denied( access, accessPolicy ), -1 );
+    lapack_error_if( (kl < 0) || (kl >= m) || (ku < 0) || (ku >= n), -1 );
+    lapack_error_if( access_denied( accessType, accessPolicy ), -1 );
     lapack_error_if( (b == b_type(0)) || isnan(b), -2 );
     lapack_error_if( isnan(a), -3 );
 
@@ -260,24 +296,9 @@ int lascl(
             }
         }
 
-        if ( access == MatrixType::LowerBand )
-        {
-            for (idx_t j = 0; j < n; ++j)
-                for (idx_t i = j; i < min(m,j+kl); ++i)
-                    A(i,j) *= c;
-        }
-        else if ( access == MatrixType::UpperBand )
-        {
-            for (idx_t j = 0; j < n; ++j)
-                for (idx_t i = ((j >= ku) ? (j-ku) : 0); i <= j; ++i)
-                    A(i,j) *= c;
-        }
-        else
-        {
-            for (idx_t j = 0; j < n; ++j)
-                for (idx_t i = ((j >= ku) ? (j-ku) : 0); i < min(m,j+kl); ++i)
-                    A(i,j) *= c;
-        }
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = ((j >= ku) ? (j-ku) : 0); i < min(m,j+kl+1); ++i)
+                A(i,j) *= c;
     }
 
     return 0;

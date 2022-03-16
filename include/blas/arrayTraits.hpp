@@ -17,23 +17,19 @@ namespace lapack {
 
     using blas::Uplo;
 
-    // -----------------------------------------------------------------------------
-    // lascl
-    enum class MatrixType {
-        General     = 'G',
-        Lower       = 'L',
-        Upper       = 'U',
-        Hessenberg  = 'H',
-        LowerBand   = 'B',
-        UpperBand   = 'Q',
-        Band        = 'Z',
-    };
-
-    // -----------------------------------------------------------------------------
-    // Matrix access policies:
-
+    /**
+     * @brief Matrix access policies
+     * 
+     * They are used:
+     * 
+     * (1) on the data structure for a matrix, to state the
+     * what pairs (i,j) return a valid position A(i,j).
+     * 
+     * (2) on the algorithm, to determine the kind of access
+     * required by the algorithm.
+     */
     enum class MatrixAccessPolicy {
-        Full,
+        Dense,
         UpperHessenberg,
         LowerHessenberg,
         UpperTriangle,
@@ -42,63 +38,135 @@ namespace lapack {
         StrictLower,        // No access to the main diagonal
     };
 
-    struct full_t {
+    /**
+     * @brief Dense access
+     * 
+     * x x x x x
+     * x x x x x
+     * x x x x x
+     * x x x x x
+     */
+    struct dense_t {
         constexpr operator Uplo() const { return Uplo::General; }
-        constexpr operator MatrixType() const { return MatrixType::General; }
-        constexpr operator MatrixAccessPolicy() const { return MatrixAccessPolicy::Full; }
+        constexpr operator MatrixAccessPolicy() const { return MatrixAccessPolicy::Dense; }
     };
 
-    struct upperHessenberg_t : public full_t {
-        constexpr operator MatrixType() const { return MatrixType::Hessenberg; }
+    /**
+     * @brief Upper Hessenberg access
+     * 
+     * x x x x x
+     * x x x x x
+     * 0 x x x x
+     * 0 0 x x x
+     */
+    struct upperHessenberg_t : public dense_t {
         constexpr operator MatrixAccessPolicy() const { return MatrixAccessPolicy::UpperHessenberg; }
     };
-    struct lowerHessenberg_t : public full_t {
+
+    /**
+     * @brief Lower Hessenberg access
+     * 
+     * x x 0 0 0
+     * x x x 0 0
+     * x x x x 0
+     * x x x x x
+     */
+    struct lowerHessenberg_t : public dense_t {
         constexpr operator MatrixAccessPolicy() const { return MatrixAccessPolicy::LowerHessenberg; }
     };
 
+    /**
+     * @brief Upper Triangle access
+     * 
+     * x x x x x
+     * 0 x x x x
+     * 0 0 x x x
+     * 0 0 0 x x
+     */
     struct upperTriangle_t : public upperHessenberg_t {
         constexpr operator Uplo() const { return Uplo::Upper; }
-        constexpr operator MatrixType() const { return MatrixType::Upper; }
         constexpr operator MatrixAccessPolicy() const { return MatrixAccessPolicy::UpperTriangle; }
     };
+
+    /**
+     * @brief Lower Triangle access
+     * 
+     * x 0 0 0 0
+     * x x 0 0 0
+     * x x x 0 0
+     * x x x x 0
+     */
     struct lowerTriangle_t : public lowerHessenberg_t {
         constexpr operator Uplo() const { return Uplo::Lower; }
-        constexpr operator MatrixType() const { return MatrixType::Lower; }
         constexpr operator MatrixAccessPolicy() const { return MatrixAccessPolicy::LowerTriangle; }
     };
 
+    /**
+     * @brief Strict Upper Triangle access
+     * 
+     * 0 x x x x
+     * 0 0 x x x
+     * 0 0 0 x x
+     * 0 0 0 0 x
+     */
     struct strictUpper_t : public upperTriangle_t {
         constexpr operator MatrixAccessPolicy() const { return MatrixAccessPolicy::StrictUpper; }
     };
+
+    /**
+     * @brief Strict Lower Triangle access
+     * 
+     * 0 0 0 0 0
+     * x 0 0 0 0
+     * x x 0 0 0
+     * x x x 0 0
+     */
     struct strictLower_t : public lowerTriangle_t {
         constexpr operator MatrixAccessPolicy() const { return MatrixAccessPolicy::StrictLower; }
     };
 
-    struct band_t : full_t {
+    /**
+     * @brief Band access
+     * 
+     * x x x 0 0
+     * x x x x 0
+     * 0 x x x x
+     * 0 0 x x x
+     */
+    struct band_t : dense_t {
         std::size_t lower_bandwidth, upper_bandwidth;
 
         constexpr band_t(std::size_t kl, std::size_t ku)
         : lower_bandwidth(kl), upper_bandwidth(ku)
         {}
-        
-        constexpr operator MatrixType() const { return MatrixType::Band; }
     };
 
+    /**
+     * @brief Upper Band access
+     * 
+     * x x x 0 0
+     * 0 x x x 0
+     * 0 0 x x x
+     * 0 0 0 x x
+     */
     struct upperBand_t : public band_t, public upperTriangle_t {
-        
         constexpr upperBand_t(std::size_t k) : band_t(0,k) {}
-
-        constexpr operator MatrixType() const { return MatrixType::UpperBand; }
     };
+
+    /**
+     * @brief Lower Band access
+     * 
+     * x 0 0 0 0
+     * x x 0 0 0
+     * 0 x x 0 0
+     * 0 0 x x 0
+     */
     struct lowerBand_t : public band_t, public lowerTriangle_t {
-        
         constexpr lowerBand_t(std::size_t k) : band_t(k,0) {}
-
-        constexpr operator MatrixType() const { return MatrixType::LowerBand; }
     };
 
-    // constants
-    constexpr full_t full = { };
+    // constant expressions
+    constexpr dense_t dense = { };
     constexpr upperHessenberg_t upperHessenberg = { };
     constexpr lowerHessenberg_t lowerHessenberg = { };
     constexpr upperTriangle_t upperTriangle = { };

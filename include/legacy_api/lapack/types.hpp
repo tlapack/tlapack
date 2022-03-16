@@ -84,6 +84,18 @@ enum class MatrixType {
 };
 
 // -----------------------------------------------------------------------------
+// lascl
+enum class MatrixType {
+    General     = 'G',
+    Lower       = 'L',
+    Upper       = 'U',
+    Hessenberg  = 'H',
+    LowerBand   = 'B',
+    UpperBand   = 'Q',
+    Band        = 'Z',
+};
+
+// -----------------------------------------------------------------------------
 // trevc
 enum class HowMany {
     All           = 'A',

@@ -77,7 +77,7 @@ namespace blas {
     template< typename T, Layout layout >
     inline constexpr auto
     access_policy( const legacyMatrix<T,layout>& A ) {
-        return lapack::full;
+        return lapack::dense;
     }
 
     // Size

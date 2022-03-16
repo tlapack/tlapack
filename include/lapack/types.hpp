@@ -64,7 +64,7 @@ constexpr conjTranspose_t conjTranspose = { };
 // -----------------------------------------------------------------------------
 // Matrix structure types
 
-// Full matrix type
+// Dense matrix type
 struct general_matrix_t {
     constexpr operator Uplo() const { return Uplo::General; }
 };
@@ -81,27 +81,6 @@ struct lower_triangle_t {
 
 // Hessenberg matrix type
 struct hessenberg_matrix_t { };
-
-// Band matrix type
-struct band_matrix_t {
-    std::size_t lower_bandwidth, upper_bandwidth;
-
-    constexpr band_matrix_t(std::size_t kl, std::size_t ku)
-    : lower_bandwidth(kl), upper_bandwidth(ku)
-    {}
-};
-
-// Symmetric lower band matrix type
-struct symmetric_lowerband_t {
-    std::size_t bandwidth;
-    constexpr symmetric_lowerband_t(std::size_t k) : bandwidth(k) {}
-};
-
-// Symmetric upper band matrix type
-struct symmetric_upperband_t {
-    std::size_t bandwidth;
-    constexpr symmetric_upperband_t(std::size_t k) : bandwidth(k) {}
-};
 
 // Constants
 constexpr general_matrix_t general_matrix = { };
