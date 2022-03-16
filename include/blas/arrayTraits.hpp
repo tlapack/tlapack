@@ -29,13 +29,13 @@ namespace lapack {
      * required by the algorithm.
      */
     enum class MatrixAccessPolicy {
-        Dense,
-        UpperHessenberg,
-        LowerHessenberg,
-        UpperTriangle,
-        LowerTriangle,
-        StrictUpper,        // No access to the main diagonal
-        StrictLower,        // No access to the main diagonal
+        Dense = 'G',
+        UpperHessenberg = 'H',
+        LowerHessenberg = 'h',
+        UpperTriangle = 'U',
+        LowerTriangle = 'L',
+        StrictUpper = 'S',      // No access to the main diagonal
+        StrictLower = 's',      // No access to the main diagonal
     };
 
     /**
