@@ -58,7 +58,7 @@ namespace blas {
     inline constexpr auto
     access_policy( const mdspan<ET,Exts,LP,AP>& x ) {
         /// TODO: Maybe we should get the access type from the layout here?
-        return lapack::full;
+        return lapack::dense;
     }
 
     // -----------------------------------------------------------------------------
