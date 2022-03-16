@@ -132,15 +132,21 @@ lange( norm_t normType, const matrix_t& A, work_t& work )
     using idx_t  = size_type< matrix_t >;
     using blas::isnan;
 
+    // check arguments
+    blas_error_if(  normType != Norm::Fro &&
+                    normType != Norm::Inf &&
+                    normType != Norm::Max &&
+                    normType != Norm::One );
+
     // redirect for max-norm, one-norm and Frobenius norm
     if      ( normType == Norm::Max  ) return lange( max_norm,  A );
     else if ( normType == Norm::One  ) return lange( one_norm,  A );
-    else if ( normType == Norm::Fro ) return lange( frob_norm, A );
-    else if ( normType == Norm::Inf ) {
+    else if ( normType == Norm::Fro  ) return lange( frob_norm, A );
+    else if ( normType == Norm::Inf  ) {
 
         // the code below uses a workspace and is meant for column-major layout
         // so as to do one pass on the data in a contiguous way when computing
-	// the infinite norm
+	    // the infinite norm
  
         // constants
         const real_t rzero(0.0);

@@ -51,6 +51,14 @@ lansy( norm_t normType, uplo_t uplo, const matrix_t& A )
     const real_t zero(0.0);
     const idx_t n = nrows(A);
 
+    // check arguments
+    blas_error_if(  normType != Norm::Fro &&
+                    normType != Norm::Inf &&
+                    normType != Norm::Max &&
+                    normType != Norm::One );
+    blas_error_if(  uplo != Uplo::Lower &&
+                    uplo != Uplo::Upper );
+
     // quick return
     if ( n <= 0 ) return zero;
 
@@ -90,6 +98,45 @@ lansy( norm_t normType, uplo_t uplo, const matrix_t& A )
             }
         }
     }
+    else if( normType == Norm::One || normType == Norm::Inf )
+    {
+        if( uplo == Uplo::Upper ) {
+            for (idx_t j = 0; j < n; ++j) {
+                real_t temp = 0;
+
+                for (idx_t i = 0; i <= j; ++i)
+                    temp += blas::abs( A(i,j) );
+
+                for (idx_t i = j+1; i < n; ++i)
+                    temp += blas::abs( A(j,i) );
+                
+                if (temp > norm)
+                    norm = temp;
+                else {
+                    if ( isnan(temp) ) 
+                        return temp;
+                }
+            }
+        }
+        else {
+            for (idx_t j = 0; j < n; ++j) {
+                real_t temp = 0;
+
+                for (idx_t i = 0; i <= j; ++i)
+                    temp += blas::abs( A(j,i) );
+
+                for (idx_t i = j+1; i < n; ++i)
+                    temp += blas::abs( A(i,j) );
+                
+                if (temp > norm)
+                    norm = temp;
+                else {
+                    if ( isnan(temp) ) 
+                        return temp;
+                }
+            }
+        }
+    }
     else
     {
         // Scaled ssq
@@ -124,9 +171,21 @@ lansy( norm_t normType, uplo_t uplo, const matrix_t& A, work_t& work )
     using idx_t  = size_type< matrix_t >;
     using blas::isnan;
 
-    // quick redirect
+    // check arguments
+    blas_error_if(  normType != Norm::Fro &&
+                    normType != Norm::Inf &&
+                    normType != Norm::Max &&
+                    normType != Norm::One );
+    blas_error_if(  uplo != Uplo::Lower &&
+                    uplo != Uplo::Upper );
+
+    // quick redirect for max-norm and Frobenius norm
     if      ( normType == Norm::Max  ) return lansy( max_norm,  uplo, A );
-    else if ( normType == Norm::Fro ) return lansy( frob_norm, uplo, A );
+    else if ( normType == Norm::Fro  ) return lansy( frob_norm, uplo, A );
+
+    // the code below uses a workspace and is meant for column-major layout
+    // so as to do one pass on the data in a contiguous way when computing
+    // the infinite norm
 
     // constants
     const real_t zero(0.0);

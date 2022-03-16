@@ -1,6 +1,6 @@
 /// @file lanhe.hpp
 /// @author Weslley S Pereira, University of Colorado Denver, USA
-/// Adapted from @see https://github.com/langou/latl/blob/master/include/lansy.h
+/// Adapted from @see https://github.com/langou/latl/blob/master/include/lanhe.h
 //
 // Copyright (c) 2012-2022, University of Colorado Denver. All rights reserved.
 //
@@ -52,6 +52,14 @@ lanhe( norm_t normType, uplo_t uplo, const matrix_t& A )
     // constants
     const real_t zero(0.0);
     const idx_t n = nrows(A);
+
+    // check arguments
+    blas_error_if(  normType != Norm::Fro &&
+                    normType != Norm::Inf &&
+                    normType != Norm::Max &&
+                    normType != Norm::One );
+    blas_error_if(  uplo != Uplo::Lower &&
+                    uplo != Uplo::Upper );
 
     // quick return
     if ( n <= 0 ) return zero;
@@ -112,6 +120,49 @@ lanhe( norm_t normType, uplo_t uplo, const matrix_t& A )
             }
         }
     }
+    else if( normType == Norm::One || normType == Norm::Inf )
+    {
+        if( uplo == Uplo::Upper ) {
+            for (idx_t j = 0; j < n; ++j) {
+                real_t temp = 0;
+
+                for (idx_t i = 0; i < j; ++i)
+                    temp += blas::abs( A(i,j) );
+                
+                temp += blas::abs( real(A(j,j)) );
+
+                for (idx_t i = j+1; i < n; ++i)
+                    temp += blas::abs( A(j,i) );
+                
+                if (temp > norm)
+                    norm = temp;
+                else {
+                    if ( isnan(temp) ) 
+                        return temp;
+                }
+            }
+        }
+        else {
+            for (idx_t j = 0; j < n; ++j) {
+                real_t temp = 0;
+
+                for (idx_t i = 0; i < j; ++i)
+                    temp += blas::abs( A(j,i) );
+                
+                temp += blas::abs( real(A(j,j)) );
+
+                for (idx_t i = j+1; i < n; ++i)
+                    temp += blas::abs( A(i,j) );
+                
+                if (temp > norm)
+                    norm = temp;
+                else {
+                    if ( isnan(temp) ) 
+                        return temp;
+                }
+            }
+        }
+    }
     else
     {
         // Scaled ssq
@@ -152,9 +203,21 @@ lanhe( norm_t normType, uplo_t uplo, const matrix_t& A, work_t& work )
     using blas::isnan;
     using blas::real;
 
-    // quick redirect
-    if      ( normType == Norm::Max  ) return lansy( max_norm,  uplo, A );
-    else if ( normType == Norm::Fro ) return lansy( frob_norm, uplo, A );
+    // check arguments
+    blas_error_if(  normType != Norm::Fro &&
+                    normType != Norm::Inf &&
+                    normType != Norm::Max &&
+                    normType != Norm::One );
+    blas_error_if(  uplo != Uplo::Lower &&
+                    uplo != Uplo::Upper );
+
+    // quick redirect for max-norm and Frobenius norm
+    if      ( normType == Norm::Max  ) return lanhe( max_norm,  uplo, A );
+    else if ( normType == Norm::Fro  ) return lanhe( frob_norm, uplo, A );
+
+    // the code below uses a workspace and is meant for column-major layout
+    // so as to do one pass on the data in a contiguous way when computing
+    // the infinite norm
 
     // constants
     const real_t zero(0.0);

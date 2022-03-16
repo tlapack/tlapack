@@ -40,12 +40,7 @@ inline real_type<TA> lange(
     norm_t normType, blas::idx_t m, blas::idx_t n,
     const TA *_A, blas::idx_t lda )
 {
-    using real_t = real_type<TA>;
     using blas::internal::colmajor_matrix;
-    using blas::internal::vector;
-
-    // constants
-    const real_t rzero(0);
 
     // check arguments
     blas_error_if(  normType != Norm::Fro &&
@@ -55,10 +50,10 @@ inline real_type<TA> lange(
 
     // quick return
     if (m == 0 || n == 0)
-        return rzero;
+        return 0;
 
     // Views
-    const auto A = colmajor_matrix<TA>( (TA*)_A, m, n, lda );
+    auto A = colmajor_matrix<TA>( (TA*)_A, m, n, lda );
 
     return lange( normType, A );
 }
