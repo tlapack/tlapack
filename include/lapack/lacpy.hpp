@@ -31,14 +31,7 @@ namespace lapack {
  * 
  * @ingroup auxiliary
  */
-template< class uplo_t, class matrixA_t, class matrixB_t,
-    enable_if_t<(
-    /* Requires: */
-        is_same_v< uplo_t, upper_triangle_t > || 
-        is_same_v< uplo_t, lower_triangle_t > || 
-        is_same_v< uplo_t, general_matrix_t >
-    ), int > = 0
->
+template< class uplo_t, class matrixA_t, class matrixB_t >
 void lacpy( uplo_t uplo, const matrixA_t& A, matrixB_t& B )
 {
     // data traits
@@ -48,7 +41,12 @@ void lacpy( uplo_t uplo, const matrixA_t& A, matrixB_t& B )
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
 
-    if( is_same_v< uplo_t, upper_triangle_t > ) {
+    // check arguments
+    blas_error_if(  uplo != Uplo::Lower &&
+                    uplo != Uplo::Upper &&
+                    uplo != Uplo::General );
+
+    if( uplo == Uplo::Upper ) {
         // Set the strictly upper triangular or trapezoidal part of B
         for (idx_t j = 0; j < n; ++j) {
             const auto M = std::min( m, j+1 );
@@ -56,7 +54,7 @@ void lacpy( uplo_t uplo, const matrixA_t& A, matrixB_t& B )
                 B(i,j) = A(i,j);
         }
     }
-    else if( is_same_v< uplo_t, lower_triangle_t > ) {
+    else if( uplo == Uplo::Lower ) {
         // Set the strictly lower triangular or trapezoidal part of B
         const auto N = std::min(m,n);
         for (idx_t j = 0; j < N; ++j)

@@ -15,24 +15,24 @@
 
 namespace lapack {
 
-template< typename TA, typename TB >
+template< class uplo_t, typename TA, typename TB >
 void lacpy(
-    Uplo uplo, blas::idx_t m, blas::idx_t n,
+    uplo_t uplo, blas::idx_t m, blas::idx_t n,
     const TA* A, blas::idx_t lda,
     TB* B, blas::idx_t ldb )
 {
     using blas::internal::colmajor_matrix;
+
+    // check arguments
+    blas_error_if(  uplo != Uplo::Lower &&
+                    uplo != Uplo::Upper &&
+                    uplo != Uplo::General );
     
     // Matrix views
     const auto _A = colmajor_matrix<TA>( (TA*)A, m, n, lda );
     auto _B = colmajor_matrix<TB>( B, m, n, ldb );
 
-    if (uplo == Uplo::Upper)
-        lacpy( upper_triangle, _A, _B );
-    else if (uplo == Uplo::Lower) 
-        lacpy( lower_triangle, _A, _B );
-    else
-        lacpy( general_matrix, _A, _B );
+    lacpy( uplo, _A, _B );
 }
 
 /** Copies a real matrix from A to B where A is either a full, upper triangular or lower triangular matrix.

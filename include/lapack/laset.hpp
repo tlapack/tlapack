@@ -33,13 +33,7 @@ namespace lapack {
  */
 template<
     class uplo_t, class matrix_t,
-    class alpha_t, class beta_t,
-    enable_if_t<(
-    /* Requires: */
-        is_same_v< uplo_t, upper_triangle_t > || 
-        is_same_v< uplo_t, lower_triangle_t > || 
-        is_same_v< uplo_t, general_matrix_t >
-    ), int > = 0
+    class alpha_t, class beta_t
 >
 void laset(
     uplo_t uplo,
@@ -53,7 +47,12 @@ void laset(
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
 
-    if (is_same_v< uplo_t, upper_triangle_t >) {
+    // check arguments
+    blas_error_if(  uplo != Uplo::Lower &&
+                    uplo != Uplo::Upper &&
+                    uplo != Uplo::General );
+
+    if (uplo == Uplo::Upper) {
         // Set the strictly upper triangular or trapezoidal part of
         // the array to alpha.
         for (idx_t j = 1; j < n; ++j) {
@@ -62,7 +61,7 @@ void laset(
                 A(i,j) = alpha;
         }
     }
-    else if (is_same_v< uplo_t, lower_triangle_t >) {
+    else if (uplo == Uplo::Lower) {
         // Set the strictly lower triangular or trapezoidal part of
         // the array to alpha.
         const idx_t N = min(m,n);

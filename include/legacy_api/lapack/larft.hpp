@@ -78,9 +78,9 @@ namespace lapack {
  * 
  * @ingroup auxiliary
  */
-template <typename scalar_t>
+template <class direction_t, class storeV_t, typename scalar_t>
 int larft(
-    Direction direction, StoreV storeV,
+    direction_t direction, storeV_t storeV,
     idx_t n, idx_t k,
     const scalar_t *V, idx_t ldV,
     const scalar_t *tau,
@@ -110,18 +110,7 @@ int larft(
     auto _tau = vector<scalar_t>( (scalar_t*)tau, k, 1 );
     auto _T = colmajor_matrix<scalar_t>( T, k, k, ldT );
 
-    if(direction == Direction::Forward) {
-        if(storeV == StoreV::Columnwise)
-            return larft( forward, columnwise_storage, _V, _tau, _T);
-        else
-            return larft( forward, rowwise_storage, _V, _tau, _T);
-    }
-    else {
-        if(storeV == StoreV::Columnwise)
-            return larft( backward, columnwise_storage, _V, _tau, _T);
-        else
-            return larft( backward, rowwise_storage, _V, _tau, _T);
-    }
+    return larft( direction, storeV, _V, _tau, _T);
 }
 
 }

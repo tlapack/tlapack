@@ -38,40 +38,26 @@ namespace lapack {
  * 
  * @ingroup auxiliary
 **/
-template <typename TA>
+template <class norm_t, typename TA>
 real_type<TA> lanhe(
-    Norm normType, Uplo uplo, blas::idx_t n,
+    norm_t normType, Uplo uplo, blas::idx_t n,
     const TA *A, blas::idx_t lda )
 {
-    typedef real_type<TA> real_t;
     using blas::internal::colmajor_matrix;
-    using blas::internal::vector;
 
-    // constants
-    const real_t zero( 0 );
+    // check arguments
+    blas_error_if(  normType != Norm::Fro &&
+                    normType != Norm::Inf &&
+                    normType != Norm::Max &&
+                    normType != Norm::One );
 
     // quick return
-    if ( n == 0 ) return zero;
+    if ( n == 0 ) return 0;
 
     // Matrix views
-    const auto _A = colmajor_matrix<TA>( (TA*)A, n, n, lda );
+    auto _A = colmajor_matrix<TA>( (TA*)A, n, n, lda );
 
-    if( normType == Norm::Max ) {
-        if( uplo == Uplo::Upper )   return lanhe( max_norm, upper_triangle, _A );
-        else                        return lanhe( max_norm, lower_triangle, _A );
-    }
-    else if ( normType == Norm::One ||normType == Norm::Inf ) {
-        std::unique_ptr<real_t[]> work( new real_t[n] );
-        auto _work = vector<real_t>( &work[0], n );
-        if( uplo == Uplo::Upper )   return lanhe( one_norm, upper_triangle, _A, _work );
-        else                        return lanhe( one_norm, lower_triangle, _A, _work );
-    }
-    else if ( normType == Norm::Fro ) {
-        if( uplo == Uplo::Upper )   return lanhe( frob_norm, upper_triangle, _A );
-        else                        return lanhe( frob_norm, lower_triangle, _A );
-    }
-
-    return zero;
+    return lanhe( normType, uplo, _A );
 }
 
 } // lapack

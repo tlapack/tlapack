@@ -36,13 +36,7 @@ namespace lapack {
  *
  * @ingroup posv_computational
  */
-template< class uplo_t, class matrixA_t, class matrixB_t,
-    enable_if_t<(
-    /* Requires: */
-        is_same_v< uplo_t, upper_triangle_t > || 
-        is_same_v< uplo_t, lower_triangle_t >
-    ), int > = 0
->
+template< class uplo_t, class matrixA_t, class matrixB_t >
 int potrs( uplo_t uplo, const matrixA_t& A, matrixB_t& B )
 {
     using T = type_t< matrixB_t >;
@@ -52,10 +46,12 @@ int potrs( uplo_t uplo, const matrixA_t& A, matrixB_t& B )
     const T one( 1.0 );
 
     // Check arguments
-    lapack_error_if( nrows(A) != ncols(A), -2 );
-    lapack_error_if( nrows(B) != ncols(A), -3 );
+    lapack_error_if(    uplo != Uplo::Lower &&
+                        uplo != Uplo::Upper, -1 );
+    lapack_error_if(    nrows(A) != ncols(A), -2 );
+    lapack_error_if(    nrows(B) != ncols(A), -3 );
 
-    if( is_same_v< uplo_t, upper_triangle_t > ) {
+    if( uplo == Uplo::Upper ) {
         // Solve A*X = B where A = U**H *U.
         trsm( left_side, uplo, conjTranspose, nonUnit_diagonal, one, A, B );
         trsm( left_side, uplo, noTranspose,   nonUnit_diagonal, one, A, B );

@@ -120,25 +120,7 @@ namespace lapack {
  */
 template<
     class matrixV_t, class matrixT_t, class matrixC_t, class matrixW_t,
-    class side_t, class trans_t, class direction_t, class storage_t,
-    enable_if_t<(
-    /* Requires: */
-    (
-        is_same_v< side_t, left_side_t > || 
-        is_same_v< side_t, right_side_t > 
-    ) && (
-        is_same_v< trans_t, noTranspose_t > || 
-        is_same_v< trans_t, conjTranspose_t > ||
-        is_same_v< trans_t, transpose_t >
-    ) && (
-        is_same_v< direction_t, forward_t > || 
-        is_same_v< direction_t, backward_t > 
-    ) && (
-        is_same_v< storage_t, columnwise_storage_t > || 
-        is_same_v< storage_t, rowwise_storage_t >
-    )
-    ), int > = 0
->
+    class side_t, class trans_t, class direction_t, class storage_t >
 int larfb(
     side_t side, trans_t trans,
     direction_t direction, storage_t storeMode,
@@ -159,15 +141,25 @@ int larfb(
     const idx_t k = nrows(T);
 
     // check arguments
-    if( is_complex< type_t< matrixV_t > >::value )
-        lapack_error_if( (is_same_v< trans_t, transpose_t >), -2 );
+    lapack_error_if(    side != Side::Left &&
+                        side != Side::Right, -1 );
+    lapack_error_if(    trans != Op::NoTrans &&
+                        trans != Op::ConjTrans &&
+                        (
+                            (trans != Op::Trans) ||
+                            is_complex< type_t< matrixV_t > >::value
+                        ), -2 );
+    lapack_error_if(    direction != Direction::Backward &&
+                        direction != Direction::Forward, -3 );
+    lapack_error_if(    storeMode != StoreV::Columnwise &&
+                        storeMode != StoreV::Columnwise, -4 );
 
     // Quick return
     if (m <= 0 || n <= 0) return 0;
 
-    if( is_same_v< storage_t, columnwise_storage_t > ){
-        if( is_same_v< direction_t, forward_t > ){
-            if( is_same_v< side_t, left_side_t > ){
+    if( storeMode == StoreV::Columnwise ){
+        if( direction == Direction::Forward ){
+            if( side == Side::Left ){
                 // W is an k-by-n matrix
                 // V is an m-by-k matrix
 
@@ -255,7 +247,7 @@ int larfb(
             }
         }
         else { // direct == Direction::Backward
-            if( is_same_v< side_t, left_side_t > ){
+            if( side == Side::Left ){
                 // W is an k-by-n matrix
                 // V is an m-by-k matrix
 
@@ -344,8 +336,8 @@ int larfb(
         }
     }
     else { // storeV == StoreV::Rowwise
-        if( is_same_v< direction_t, forward_t > ){
-            if( is_same_v< side_t, left_side_t > ){
+        if( direction == Direction::Forward ){
+            if( side == Side::Left ){
                 // W is an k-by-n matrix
                 // V is an k-by-m matrix
 
@@ -433,7 +425,7 @@ int larfb(
             }
         }
         else { // direct == Direction::Backward
-            if( is_same_v< side_t, left_side_t > ){
+            if( side == Side::Left ){
                 // W is an k-by-n matrix
                 // V is an k-by-m matrix
 

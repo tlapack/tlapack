@@ -23,15 +23,6 @@ enum class Sides {
 };
 
 // -----------------------------------------------------------------------------
-enum class Norm {
-    One = '1',  // or 'O'
-    Two = '2',
-    Inf = 'I',
-    Fro = 'F',  // or 'E'
-    Max = 'M',
-};
-
-// -----------------------------------------------------------------------------
 // Job for computing eigenvectors and singular vectors
 // # needs custom map
 enum class Job {
@@ -78,20 +69,6 @@ enum class Vect {
     P           = 'P',  // orgbr, ormbr
     None        = 'N',  // orgbr, ormbr, gbbrd
     Both        = 'B',  // orgbr, ormbr, gbbrd
-};
-
-// -----------------------------------------------------------------------------
-// larfb
-enum class Direction {
-    Forward     = 'F',
-    Backward    = 'B',
-};
-
-// -----------------------------------------------------------------------------
-// larfb
-enum class StoreV {
-    Columnwise  = 'C',
-    Rowwise     = 'R',
 };
 
 // -----------------------------------------------------------------------------

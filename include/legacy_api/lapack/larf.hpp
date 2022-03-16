@@ -22,9 +22,9 @@ namespace lapack {
  * 
  * @ingroup auxiliary
  */
-template< typename TV, typename TC >
+template< class side_t, typename TV, typename TC >
 inline void larf(
-    Side side,
+    side_t side,
     blas::idx_t m, blas::idx_t n,
     TV const *v, blas::int_t incv,
     blas::scalar_type< TV, TC > tau,
@@ -58,10 +58,7 @@ inline void larf(
         lenv, incv );
     auto _work = vector<scalar_t>( &work[0], lwork, 1 );
 
-    if( side == Side::Left )
-        larf( left_side, _v, tau, _C, _work);
-    else
-        larf( right_side, _v, tau, _C, _work);
+    larf( side, _v, tau, _C, _work);
         
     // delete[] work;
 }

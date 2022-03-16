@@ -37,16 +37,7 @@ namespace lapack {
  * 
  * @ingroup auxiliary
 **/
-template< class norm_t, class uplo_t, class matrix_t,
-    enable_if_t<
-    /* Requires: */
-    (   is_same_v<norm_t,max_norm_t> ||
-        is_same_v<norm_t,frob_norm_t>
-    ) && (
-        is_same_v< uplo_t, upper_triangle_t > || 
-        is_same_v< uplo_t, lower_triangle_t >
-    ), bool > = true
->
+template< class norm_t, class uplo_t, class matrix_t >
 real_type< type_t<matrix_t> >
 lansy( norm_t normType, uplo_t uplo, const matrix_t& A )
 {
@@ -60,15 +51,23 @@ lansy( norm_t normType, uplo_t uplo, const matrix_t& A )
     const real_t zero(0.0);
     const idx_t n = nrows(A);
 
+    // check arguments
+    blas_error_if(  normType != Norm::Fro &&
+                    normType != Norm::Inf &&
+                    normType != Norm::Max &&
+                    normType != Norm::One );
+    blas_error_if(  uplo != Uplo::Lower &&
+                    uplo != Uplo::Upper );
+
     // quick return
     if ( n <= 0 ) return zero;
 
     // Norm value
     real_t norm(0.0);
 
-    if( is_same_v<norm_t,max_norm_t> )
+    if( normType == Norm::Max )
     {
-        if( is_same_v<uplo_t,upper_triangle_t> ) {
+        if( uplo == Uplo::Upper ) {
             for (idx_t j = 0; j < n; ++j) {
                 for (idx_t i = 0; i <= j; ++i)
                 {
@@ -99,13 +98,52 @@ lansy( norm_t normType, uplo_t uplo, const matrix_t& A )
             }
         }
     }
+    else if( normType == Norm::One || normType == Norm::Inf )
+    {
+        if( uplo == Uplo::Upper ) {
+            for (idx_t j = 0; j < n; ++j) {
+                real_t temp = 0;
+
+                for (idx_t i = 0; i <= j; ++i)
+                    temp += blas::abs( A(i,j) );
+
+                for (idx_t i = j+1; i < n; ++i)
+                    temp += blas::abs( A(j,i) );
+                
+                if (temp > norm)
+                    norm = temp;
+                else {
+                    if ( isnan(temp) ) 
+                        return temp;
+                }
+            }
+        }
+        else {
+            for (idx_t j = 0; j < n; ++j) {
+                real_t temp = 0;
+
+                for (idx_t i = 0; i <= j; ++i)
+                    temp += blas::abs( A(j,i) );
+
+                for (idx_t i = j+1; i < n; ++i)
+                    temp += blas::abs( A(i,j) );
+                
+                if (temp > norm)
+                    norm = temp;
+                else {
+                    if ( isnan(temp) ) 
+                        return temp;
+                }
+            }
+        }
+    }
     else
     {
         // Scaled ssq
         real_t scale(0), ssq(1);
         
         // Sum off-diagonals
-        if( is_same_v<uplo_t,upper_triangle_t> ) {
+        if( uplo == Uplo::Upper ) {
             for (idx_t j = 1; j < n; ++j)
                 lassq( subvector( col(A,j), pair{0,j} ), scale, ssq );
         }
@@ -125,18 +163,7 @@ lansy( norm_t normType, uplo_t uplo, const matrix_t& A )
     return norm;
 }
 
-template< class norm_t, class uplo_t, class matrix_t, class work_t,
-    enable_if_t<
-    /* Requires: */
-    (   is_same_v<norm_t,max_norm_t> || 
-        is_same_v<norm_t,one_norm_t> || 
-        is_same_v<norm_t,inf_norm_t> || 
-        is_same_v<norm_t,frob_norm_t>
-    ) && (
-        is_same_v< uplo_t, upper_triangle_t > || 
-        is_same_v< uplo_t, lower_triangle_t >
-    ), bool > = true
->
+template< class norm_t, class uplo_t, class matrix_t, class work_t >
 real_type< type_t<matrix_t> >
 lansy( norm_t normType, uplo_t uplo, const matrix_t& A, work_t& work )
 {
@@ -144,9 +171,21 @@ lansy( norm_t normType, uplo_t uplo, const matrix_t& A, work_t& work )
     using idx_t  = size_type< matrix_t >;
     using blas::isnan;
 
-    // quick redirect
-    if      ( is_same_v<norm_t,max_norm_t>  ) return lansy( max_norm,  uplo, A );
-    else if ( is_same_v<norm_t,frob_norm_t> ) return lansy( frob_norm, uplo, A );
+    // check arguments
+    blas_error_if(  normType != Norm::Fro &&
+                    normType != Norm::Inf &&
+                    normType != Norm::Max &&
+                    normType != Norm::One );
+    blas_error_if(  uplo != Uplo::Lower &&
+                    uplo != Uplo::Upper );
+
+    // quick redirect for max-norm and Frobenius norm
+    if      ( normType == Norm::Max  ) return lansy( max_norm,  uplo, A );
+    else if ( normType == Norm::Fro  ) return lansy( frob_norm, uplo, A );
+
+    // the code below uses a workspace and is meant for column-major layout
+    // so as to do one pass on the data in a contiguous way when computing
+    // the infinite norm
 
     // constants
     const real_t zero(0.0);
@@ -161,7 +200,7 @@ lansy( norm_t normType, uplo_t uplo, const matrix_t& A, work_t& work )
     for (idx_t i = 0; i < n; ++i)
         work[i] = type_t<work_t>(0);
 
-    if( is_same_v<uplo_t,upper_triangle_t> ) {
+    if( uplo == Uplo::Upper ) {
         for (idx_t j = 0; j < n; ++j)
         {
             real_t sum = zero;

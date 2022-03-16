@@ -93,19 +93,9 @@ template<
     class matrixA_t, class matrixC_t,
     class tau_t, class side_t, class trans_t,
     class opts_t,
-    enable_if_t<(
-    /* Requires: */
-    (
-        is_same_v< side_t, left_side_t > || 
-        is_same_v< side_t, right_side_t > 
-    ) && (
-        is_same_v< trans_t, noTranspose_t > || 
-        is_same_v< trans_t, conjTranspose_t > ||
-        is_same_v< trans_t, transpose_t >
-    ) &&
-        /// TODO: Remove this requirement when get_work() is fully functional
+    enable_if_t< /// TODO: Remove this requirement when get_work() is fully functional
         has_work_v< opts_t >
-    ), int > = 0
+    , int > = 0
 >
 int unmqr(
     side_t side, trans_t trans,
@@ -122,20 +112,27 @@ int unmqr(
     const idx_t n = ncols(C);
     const idx_t k = size(tau);
     const idx_t nA = nrows(A);
-    const idx_t nw = ( is_same_v< side_t, left_side_t > ) ? max<idx_t>(1,n) : max<idx_t>(1,m);
+    const idx_t nw = ( side == Side::Left ) ? max<idx_t>(1,n) : max<idx_t>(1,m);
     
     // Options
     const idx_t nb = get_nb(opts); // Block size
     auto W = get_work(opts); // (nb)-by-(nw+nb) matrix
 
+    // check arguments
+    lapack_error_if( side != Side::Left &&
+                     side != Side::Right, -1 );
+    lapack_error_if( trans != Op::NoTrans &&
+                     trans != Op::Trans &&
+                     trans != Op::ConjTrans, -2 );
+
     // Preparing loop indexes
     idx_t i0, iN, step;
     if(
-        ( is_same_v< side_t, left_side_t > &&
-        ! is_same_v< trans_t, noTranspose_t > )
+        ( (side == Side::Left) &&
+          !(trans == Op::Trans) )
     ||
-        ( is_same_v< side_t, right_side_t > &&
-          is_same_v< trans_t, noTranspose_t > )
+        ( (side == Side::Right) &&
+          (trans == Op::Trans) )
     ){
         i0 = 0;
         iN = k-1+nb;
@@ -160,7 +157,7 @@ int unmqr(
         larft( forward, columnwise_storage, V, taui, T );
 
         // H or H**H is applied to either C[i:m,0:n] or C[0:m,i:n]
-        auto Ci = ( is_same_v< side_t, left_side_t > )
+        auto Ci = ( side == Side::Left )
            ? submatrix( C, pair{i,m}, pair{0,n} )
            : submatrix( C, pair{0,m}, pair{i,n} );
 

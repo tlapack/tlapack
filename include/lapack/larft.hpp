@@ -82,18 +82,7 @@ namespace lapack {
  */
 template< 
     class direction_t, class storage_t,
-    class matrixV_t, class vector_t, class matrixT_t,
-    enable_if_t<(
-    /* Requires: */
-    (
-        is_same_v< direction_t, forward_t > || 
-        is_same_v< direction_t, backward_t > 
-    ) && (
-        is_same_v< storage_t, columnwise_storage_t > || 
-        is_same_v< storage_t, rowwise_storage_t >
-    )
-    ), int > = 0
->
+    class matrixV_t, class vector_t, class matrixT_t >
 int larft(
     direction_t direction, storage_t storeMode,
     const matrixV_t& V, const vector_t& tau, matrixT_t& T)
@@ -116,23 +105,26 @@ int larft(
     const scalar_t one(1);
     const scalar_t zero(0);
     const tau_t    tzero(0);
-    const idx_t n    = (is_same_v< storage_t, columnwise_storage_t >)
+    const idx_t n    = (storeMode == StoreV::Columnwise)
                     ? nrows( V )
                     : ncols( V );
-    const idx_t k    = (is_same_v< storage_t, columnwise_storage_t >)
+    const idx_t k    = (storeMode == StoreV::Columnwise)
                     ? ncols( V )
                     : nrows( V );
 
     // check arguments
-    lapack_error_if( size( tau ) != k, -4 );
-    lapack_error_if( nrows( T ) != k ||
-                     ncols( T ) != k, -5 );
+    lapack_error_if(    direction != Direction::Backward &&
+                        direction != Direction::Forward, -1 );
+    lapack_error_if(    storeMode != StoreV::Columnwise &&
+                        storeMode != StoreV::Columnwise, -2 );
+    lapack_error_if(    size( tau ) != k, -4 );
+    lapack_error_if(    nrows( T ) != k || ncols( T ) != k, -5 );
 
     // Quick return
     if (n == 0 || k == 0)
         return 0;
 
-    if (is_same_v< direction_t, forward_t >) {
+    if (direction == Direction::Forward) {
         T(0,0) = tau[0];
         for (idx_t i = 1; i < k; ++i) {
             auto Ti = subvector( col( T, i ), pair{0,i} );
@@ -143,7 +135,7 @@ int larft(
             }
             else {
                 // General case
-                if (is_same_v< storage_t, columnwise_storage_t >) {
+                if (storeMode == StoreV::Columnwise) {
                     for (idx_t j = 0; j < i; ++j)
                         T(j,i) = -tau[i] * conj(V(i,j));
                     // T(0:i,i) := - tau[i] V(i+1:n,0:i)^H V(i+1:n,i)
@@ -192,7 +184,7 @@ int larft(
                     T(j,i) = zero;
             }
             else {
-                if (is_same_v< storage_t, columnwise_storage_t >) {
+                if (storeMode == StoreV::Columnwise) {
                     for (idx_t j = i+1; j < k; ++j)
                         T(j,i) = -tau[i] * conj(V(n-k+i,j));
                     // T(i+1:k,i) := - tau[i] V(0:n-k+i,i+1:k)^H V(0:n-k+i,i)

@@ -12,9 +12,6 @@
 
 namespace blas {
 
-    // -----------------------------------------------------------------------------
-    // Directions
-
     /// Runtime direction
     enum class Direction { Forward = 'F', Backward = 'B' };
 

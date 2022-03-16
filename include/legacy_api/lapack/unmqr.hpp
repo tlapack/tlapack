@@ -71,9 +71,9 @@ namespace lapack {
  *
  * @ingroup geqrf
  */
-template< typename TA, typename TC >
+template< class side_t, class trans_t, typename TA, typename TC >
 inline int unmqr(
-    Side side, Op trans,
+    side_t side, trans_t trans,
     blas::idx_t m, blas::idx_t n, blas::idx_t k,
     TA const* A, blas::idx_t lda,
     TA const* tau,
@@ -84,10 +84,18 @@ inline int unmqr(
     using blas::internal::vector;
 
     // Constants
-    const idx_t nb = 32; // number of blocks (TODO: Improve me!)
+    const idx_t nb = 32; // number of blocks
+                         /// TODO: Improve me!
     const idx_t nw = (side == Side::Left)
                 ? ( (n >= 1) ? n : 1 )
                 : ( (m >= 1) ? m : 1 );
+
+    // check arguments
+    lapack_error_if( side != Side::Left &&
+                     side != Side::Right, -1 );
+    lapack_error_if( trans != Op::NoTrans &&
+                     trans != Op::Trans &&
+                     trans != Op::ConjTrans, -2 );
     
     // Allocate work
     std::unique_ptr<scalar_t[]> _work( new scalar_t[ nb * (nw + nb) ] );
@@ -106,36 +114,7 @@ inline int unmqr(
         decltype(_W)* workPtr;
     } opts = { nb, &_W };
     
-    if (side == Side::Left) {
-        if (trans == Op::NoTrans) {
-            return unmqr(
-                left_side, noTranspose,
-                _A, _tau, _C, std::move(opts) );
-        } else if (trans == Op::Trans) {
-            return unmqr(
-                left_side, transpose,
-                _A, _tau, _C, std::move(opts) );
-        } else { // (trans == Op::ConjTrans)
-            return unmqr(
-                left_side, conjTranspose,
-                _A, _tau, _C, std::move(opts) );
-        }
-    }
-    else { // side == Side::Right
-        if (trans == Op::NoTrans) {
-            return unmqr(
-                right_side, noTranspose,
-                _A, _tau, _C, std::move(opts) );
-        } else if (trans == Op::Trans) {
-            return unmqr(
-                right_side, transpose,
-                _A, _tau, _C, std::move(opts) );
-        } else { // (trans == Op::ConjTrans)
-            return unmqr(
-                right_side, conjTranspose,
-                _A, _tau, _C, std::move(opts) );
-        }
-    }
+    return unmqr( side, trans, _A, _tau, _C, std::move(opts) );
 }
 
 }

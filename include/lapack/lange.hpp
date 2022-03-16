@@ -36,13 +36,7 @@ namespace lapack {
  * 
  * @ingroup auxiliary
 **/
-template< typename norm_t, typename matrix_t,
-    enable_if_t<
-        ( is_same_v<norm_t,max_norm_t> || 
-          is_same_v<norm_t,one_norm_t> ||
-          is_same_v<norm_t,frob_norm_t> || 
-          is_same_v<norm_t,inf_norm_t>  ), bool > = true
->
+template< typename norm_t, typename matrix_t >
 real_type< type_t< matrix_t > >
 lange( norm_t normType, const matrix_t& A )
 {
@@ -57,6 +51,12 @@ lange( norm_t normType, const matrix_t& A )
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
 
+    // check arguments
+    blas_error_if(  normType != Norm::Fro &&
+                    normType != Norm::Inf &&
+                    normType != Norm::Max &&
+                    normType != Norm::One );
+
     // quick return
     if (m == 0 || n == 0)
         return rzero;
@@ -64,7 +64,7 @@ lange( norm_t normType, const matrix_t& A )
     // Norm value
     real_t norm = rzero;
 
-    if( is_same_v<norm_t,max_norm_t> )
+    if( normType == Norm::Max )
     {
         for (idx_t j = 0; j < n; ++j) {
             for (idx_t i = 0; i < m; ++i)
@@ -80,7 +80,7 @@ lange( norm_t normType, const matrix_t& A )
             }
         }
     }
-    else if ( is_same_v<norm_t,inf_norm_t> )
+    else if ( normType == Norm::Inf )
     {
         for (idx_t i = 0; i < m; ++i)
         {
@@ -96,7 +96,7 @@ lange( norm_t normType, const matrix_t& A )
             }
         }
     }
-    else if ( is_same_v<norm_t,one_norm_t> )
+    else if ( normType == Norm::One )
     {
         for (idx_t j = 0; j < n; ++j)
         {
@@ -123,13 +123,7 @@ lange( norm_t normType, const matrix_t& A )
     return norm;
 }
 
-template< typename norm_t, typename matrix_t, class work_t,
-    enable_if_t<
-        ( is_same_v<norm_t,max_norm_t> || 
-          is_same_v<norm_t,one_norm_t> || 
-          is_same_v<norm_t,inf_norm_t> || 
-          is_same_v<norm_t,frob_norm_t> ), bool > = true
->
+template< typename norm_t, typename matrix_t, class work_t >
 real_type< type_t< matrix_t > >
 lange( norm_t normType, const matrix_t& A, work_t& work )
 {
@@ -138,15 +132,21 @@ lange( norm_t normType, const matrix_t& A, work_t& work )
     using idx_t  = size_type< matrix_t >;
     using blas::isnan;
 
+    // check arguments
+    blas_error_if(  normType != Norm::Fro &&
+                    normType != Norm::Inf &&
+                    normType != Norm::Max &&
+                    normType != Norm::One );
+
     // redirect for max-norm, one-norm and Frobenius norm
-    if      ( is_same_v<norm_t,max_norm_t>  ) return lange( max_norm,  A );
-    else if ( is_same_v<norm_t,one_norm_t>  ) return lange( one_norm,  A );
-    else if ( is_same_v<norm_t,frob_norm_t> ) return lange( frob_norm, A );
-    else if ( is_same_v<norm_t,inf_norm_t> ) {
+    if      ( normType == Norm::Max  ) return lange( max_norm,  A );
+    else if ( normType == Norm::One  ) return lange( one_norm,  A );
+    else if ( normType == Norm::Fro  ) return lange( frob_norm, A );
+    else if ( normType == Norm::Inf  ) {
 
         // the code below uses a workspace and is meant for column-major layout
         // so as to do one pass on the data in a contiguous way when computing
-	// the infinite norm
+	    // the infinite norm
  
         // constants
         const real_t rzero(0.0);
