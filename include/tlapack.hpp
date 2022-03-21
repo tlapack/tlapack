@@ -48,4 +48,9 @@
 #include "lapack/potrf.hpp"
 #include "lapack/potrs.hpp"
 
+// Nonsymmetric standard eigenvalue routines
+// ----------------
+
+#include "lapack/gehd2.hpp"
+
 #endif // __TLAPACK_HH__
