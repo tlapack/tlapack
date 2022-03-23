@@ -241,6 +241,6 @@
     @defgroup group_test Test routines
     @{
         @defgroup generate_matrix Test matrix generation
-        @defgroup util Utilities
+        @defgroup utils Utilities
     @}
 */
