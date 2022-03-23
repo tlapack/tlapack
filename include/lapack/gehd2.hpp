@@ -1,5 +1,6 @@
 /// @file gehd2.hpp
 /// @author Thijs Steel, KU Leuven, Belgium
+/// Adapted from @see https://github.com/Reference-LAPACK/lapack/tree/master/SRC/dgehd2.f
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -7,6 +8,8 @@
 
 #ifndef __GEHD2_HH__
 #define __GEHD2_HH__
+
+#include <iostream>
 
 #include "lapack/utils.hpp"
 #include "lapack/types.hpp"
@@ -73,10 +76,10 @@ int gehd2( size_type< matrix_t > ilo, size_type< matrix_t > ihi, matrix_t& A, ve
     // quick return
     if (n <= 0) return 0;
 
-    for(idx_t i = ilo; i < ihi-1; ++i) {
+    for(idx_t i = ilo; i <= ihi-1; ++i) {
 
         // Define x := A[min(i+2,ihi):ihi,i]
-        auto x = subvector( col( A, i ), pair{std::min<idx_t>(i+2,ihi),ihi} );
+        auto x = subvector( col( A, i ), pair{std::min<idx_t>(i+2,ihi+1),ihi+1} );
 
         // Generate the (i+1)-th elementary Householder reflection on x
         larfg( A(i+1,i), x, tau[i] );
@@ -84,15 +87,17 @@ int gehd2( size_type< matrix_t > ilo, size_type< matrix_t > ihi, matrix_t& A, ve
         const auto alpha = A(i+1,i);
         A(i+1,i) = one;
 
-        // Select v := A[i+1:ihi-1,i]
-        const auto v = subvector( col( A, i ), pair{i+1,ihi-1} );
-        // Apply Householder reflection from the right to A[0:ihi-1,i+1:ihi-1]
-        auto C = submatrix( A, pair{0,ihi-1}, pair{i+1,ihi-1} );
-        larf( right_side, v, tau[i], C, work );
+        // Select v := A[i+1:ihi,i]
+        const auto v = subvector( col( A, i ), pair{i+1,ihi+1} );
+        // Apply Householder reflection from the right to A[0:ihi,i+1:ihi]
+        auto w = subvector( work, pair{0,ihi+1} );
+        auto C = submatrix( A, pair{0,ihi+1}, pair{i+1,ihi+1} );
+        larf( right_side, v, tau[i], C, w );
 
-        // Apply Householder reflection from the left to A[i+1:ihi-1,i+1:n-1]
-        C = submatrix( A, pair{i+1,ihi-1}, pair{i+1,n-1} );
-        larf( left_side, v, tau[i], C, work );
+        // Apply Householder reflection from the left to A[i+1:ihi,i+1:n-1]
+        w = subvector( work, pair{i+1,n} );
+        C = submatrix( A, pair{i+1,ihi+1}, pair{i+1,n} );
+        larf( left_side, v, tau[i], C, w );
 
         A(i+1,i) = alpha;
 	}

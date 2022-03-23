@@ -52,5 +52,6 @@
 // ----------------
 
 #include "lapack/gehd2.hpp"
+#include "lapack/orghr.hpp"
 
 #endif // __TLAPACK_HH__
