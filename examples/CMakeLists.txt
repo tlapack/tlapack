@@ -7,6 +7,9 @@
 # add the example geqr2
 add_subdirectory( geqr2 )
 
+# add the example gehd2
+add_subdirectory( gehd2 )
+
 # add the example gemm (Use MPFR library if it is available)
 add_subdirectory( gemm )
 
