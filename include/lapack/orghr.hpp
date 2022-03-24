@@ -22,8 +22,8 @@ namespace lapack {
  * @param[in] ihi integer
  *      ilo and ihi must have the same values as in the
  *      previous call to gehrd. Q is equal to the unit
- *      matrix except in the submatrix Q(ilo+1:ihi-1,ilo+1:ihi).
- *      0 <= ilo <= ihi <= max(1,n-1).
+ *      matrix except in the submatrix Q(ilo+1:ihi,ilo+1:ihi).
+ *      0 <= ilo <= ihi <= max(1,n).
  * @param work Vector of size n-1.
  * 
  * @ingroup gehrd
@@ -59,15 +59,15 @@ int orghr(
 
     // This is currently optimised for column matrices, it may be interesting
     // to also write these loops for row matrices
-    for(idx_t j2 = ihi+1; j2 > ilo; --j2) {
+    for(idx_t j2 = ihi; j2 > ilo; --j2) {
         idx_t j = j2 - 1;
         for(idx_t i = 0; i < j; ++i) {
             A(i,j) = zero;
         }
-        for(idx_t i = j+1; i <= ihi; ++i) {
+        for(idx_t i = j+1; i < ihi; ++i) {
             A(i,j) = A(i,j-1);
         }
-        for(idx_t i = ihi+1; i < n; ++i ) {
+        for(idx_t i = ihi; i < n; ++i ) {
             A(i,j) = zero;
         }
     }
@@ -77,7 +77,7 @@ int orghr(
         }
         A(j,j) = one;
     }
-    for(idx_t j = ihi+1; j<n; ++j ) {
+    for(idx_t j = ihi; j<n; ++j ) {
         for(idx_t i = 0; i<n; ++i ) {
             A(i,j) = zero;
         }
@@ -86,9 +86,9 @@ int orghr(
 
     // Now that the vectors are shifted, we can call orgqr to generate the matrix
     // orgqr is not yet implemented, so we call org2r instead
-    const idx_t nh = ihi-ilo;
-    auto A_s = submatrix( A, pair{ilo+1,ihi+1}, pair{ilo+1,ihi+1} );
-    auto tau_s = subvector( tau, pair{ilo,ihi} );
+    const idx_t nh = ihi-1-ilo;
+    auto A_s = submatrix( A, pair{ilo+1,ihi}, pair{ilo+1,ihi} );
+    auto tau_s = subvector( tau, pair{ilo,ihi-1} );
     org2r( nh, A_s, tau_s, work );
 
     return 0;

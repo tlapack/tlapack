@@ -95,15 +95,15 @@ void run( size_t n )
         std::vector<real_t> work( n-1 );
     
         // Hessenberg factorization
-        blas_error_if( lapack::gehd2( 0, n-1, Q, tau, work ) );
+        blas_error_if( lapack::gehd2( 0, n, Q, tau, work ) );
 
         // Save the H matrix
         for (size_t j = 0; j < n; ++j)
-            for (size_t i = 0; i <= std::min(n-1,j+1); ++i)
+            for (size_t i = 0; i < std::min(n,j+2); ++i)
                 H(i,j) = Q(i,j);
 
         // Generate Q = H_1 H_2 ... H_n
-        blas_error_if( lapack::orghr( 0, n-1, Q, tau, work ) );
+        blas_error_if( lapack::orghr( 0, n, Q, tau, work ) );
     }
     // Record end time
     auto endQHQ = std::chrono::high_resolution_clock::now();

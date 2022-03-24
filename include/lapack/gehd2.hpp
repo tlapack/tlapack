@@ -41,9 +41,9 @@ namespace lapack {
  * @param[in] ilo integer
  * @param[in] ihi integer
  *      It is assumed that A is already upper Hessenberg in columns
- *      0:ilo-1 and rows ihi:n-1 and is already upper triangular
- *      columns ihi:n-1 and rows 0:ilo-1.
- *      0 <= ilo <= ihi <= max(1,n-1).
+ *      0:ilo and rows ihi:n and is already upper triangular in
+ *      columns ihi+1:n and rows 0:ilo.
+ *      0 <= ilo <= ihi <= max(1,n).
  * @param[in,out] A n-by-n matrix.
  *      On entry, the n by n general matrix to be reduced.
  *      On exit, the upper triangle and the first subdiagonal of A
@@ -76,10 +76,10 @@ int gehd2( size_type< matrix_t > ilo, size_type< matrix_t > ihi, matrix_t& A, ve
     // quick return
     if (n <= 0) return 0;
 
-    for(idx_t i = ilo; i <= ihi-1; ++i) {
+    for(idx_t i = ilo; i <= ihi-2; ++i) {
 
         // Define x := A[min(i+2,ihi):ihi,i]
-        auto x = subvector( col( A, i ), pair{std::min<idx_t>(i+2,ihi+1),ihi+1} );
+        auto x = subvector( col( A, i ), pair{std::min<idx_t>(i+2,ihi),ihi} );
 
         // Generate the (i+1)-th elementary Householder reflection on x
         larfg( A(i+1,i), x, tau[i] );
@@ -88,15 +88,15 @@ int gehd2( size_type< matrix_t > ilo, size_type< matrix_t > ihi, matrix_t& A, ve
         A(i+1,i) = one;
 
         // Select v := A[i+1:ihi,i]
-        const auto v = subvector( col( A, i ), pair{i+1,ihi+1} );
+        const auto v = subvector( col( A, i ), pair{i+1,ihi} );
         // Apply Householder reflection from the right to A[0:ihi,i+1:ihi]
-        auto w = subvector( work, pair{0,ihi+1} );
-        auto C = submatrix( A, pair{0,ihi+1}, pair{i+1,ihi+1} );
+        auto w = subvector( work, pair{0,ihi} );
+        auto C = submatrix( A, pair{0,ihi}, pair{i+1,ihi} );
         larf( right_side, v, tau[i], C, w );
 
         // Apply Householder reflection from the left to A[i+1:ihi,i+1:n-1]
         w = subvector( work, pair{i+1,n} );
-        C = submatrix( A, pair{i+1,ihi+1}, pair{i+1,n} );
+        C = submatrix( A, pair{i+1,ihi}, pair{i+1,n} );
         larf( left_side, v, tau[i], C, w );
 
         A(i+1,i) = alpha;
