@@ -141,30 +141,6 @@ namespace lapack {
         {}
     };
 
-    /**
-     * @brief Upper Band access
-     * 
-     * x x x 0 0
-     * 0 x x x 0
-     * 0 0 x x x
-     * 0 0 0 x x
-     */
-    struct upperBand_t : public band_t, public upperTriangle_t {
-        constexpr upperBand_t(std::size_t k) : band_t(0,k) {}
-    };
-
-    /**
-     * @brief Lower Band access
-     * 
-     * x 0 0 0 0
-     * x x 0 0 0
-     * 0 x x 0 0
-     * 0 0 x x 0
-     */
-    struct lowerBand_t : public band_t, public lowerTriangle_t {
-        constexpr lowerBand_t(std::size_t k) : band_t(k,0) {}
-    };
-
     // constant expressions
     constexpr dense_t dense = { };
     constexpr upperHessenberg_t upperHessenberg = { };

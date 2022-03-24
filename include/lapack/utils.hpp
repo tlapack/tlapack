@@ -178,29 +178,31 @@ bool access_granted( access_t a, accessPolicy_t p )
     );
 }
 
+template< class accessPolicy_t >
+inline constexpr
+bool access_granted( band_t a, accessPolicy_t p )
+{
+    return (
+        ((MatrixAccessPolicy) p == MatrixAccessPolicy::Dense) ||
+        ((MatrixAccessPolicy) p == MatrixAccessPolicy::UpperHessenberg && a.lower_bandwidth <= 1) ||
+        ((MatrixAccessPolicy) p == MatrixAccessPolicy::LowerHessenberg && a.upper_bandwidth <= 1) ||
+        ((MatrixAccessPolicy) p == MatrixAccessPolicy::UpperTriangle && a.lower_bandwidth == 0) ||
+        ((MatrixAccessPolicy) p == MatrixAccessPolicy::LowerTriangle && a.upper_bandwidth == 0)
+    );
+}
+
+template< class access_t >
+inline constexpr
+bool access_granted( access_t a, band_t p )
+{
+    return false;
+}
+
 inline constexpr
 bool access_granted( band_t a, band_t p )
 {
     return  (p.lower_bandwidth >= a.lower_bandwidth) &&
             (p.upper_bandwidth >= a.upper_bandwidth);
-}
-
-inline constexpr
-bool access_granted( band_t a, MatrixAccessPolicy p )
-{
-    return (
-        (p == MatrixAccessPolicy::Dense) ||
-        (p == MatrixAccessPolicy::UpperHessenberg && a.lower_bandwidth <= 1) ||
-        (p == MatrixAccessPolicy::LowerHessenberg && a.upper_bandwidth <= 1) ||
-        (p == MatrixAccessPolicy::UpperTriangle && a.lower_bandwidth == 0) ||
-        (p == MatrixAccessPolicy::LowerTriangle && a.upper_bandwidth == 0)
-    );
-}
-
-inline constexpr
-bool access_granted( MatrixAccessPolicy a, band_t p )
-{
-    return false;
 }
 
 template< class access_t, class accessPolicy_t >
