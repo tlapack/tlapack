@@ -83,10 +83,16 @@ namespace blas{
     ncols( const Eigen::EigenBase<T>& x ) {
         return x.cols();
     }
-    // Access policy
+    // Read policy
     template<class T, int Level>
     inline constexpr auto
-    access_policy( const Eigen::DenseCoeffsBase<T,Level>& x ) {
+    read_policy( const Eigen::DenseCoeffsBase<T,Level>& x ) {
+        return lapack::dense;
+    }
+    // Write policy
+    template<class T, int Level>
+    inline constexpr auto
+    write_policy( const Eigen::DenseCoeffsBase<T,Level>& x ) {
         return lapack::dense;
     }
 
@@ -236,7 +242,8 @@ namespace lapack {
     using blas::size;
     using blas::nrows;
     using blas::ncols;
-    using blas::access_policy;
+    using blas::read_policy;
+    using blas::write_policy;
 
     using blas::submatrix;
     using blas::rows;

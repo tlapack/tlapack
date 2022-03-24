@@ -136,7 +136,7 @@ int larfb(
     lapack_error_if(    direct != Direction::Backward &&
                         direct != Direction::Forward, -3 );
     lapack_error_if(    storeV != StoreV::Columnwise &&
-                        storeV != StoreV::Columnwise, -4 );
+                        storeV != StoreV::Rowwise, -4 );
 
     // Quick return
     if (m <= 0 || n <= 0) return 0;

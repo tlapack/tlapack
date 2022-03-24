@@ -64,7 +64,6 @@ int lascl(
     // data traits
     using idx_t  = size_type< matrix_t >;
     using real_t = real_type< a_type, b_type >;
-    constexpr auto accessPolicy = access_policy( A );
     
     // using
     using blas::isnan;
@@ -92,7 +91,7 @@ int lascl(
         (accessType != MatrixAccessPolicy::LowerTriangle) && 
         (accessType != MatrixAccessPolicy::StrictUpper) && 
         (accessType != MatrixAccessPolicy::StrictLower), -1 );
-    lapack_error_if( access_denied( accessType, accessPolicy ), -1 );
+    lapack_error_if( access_denied( accessType, write_policy(A) ), -1 );
     lapack_error_if( (b == b_type(0)) || isnan(b), -2 );
     lapack_error_if( isnan(a), -3 );
 
@@ -220,7 +219,6 @@ int lascl(
     // data traits
     using idx_t  = size_type< matrix_t >;
     using real_t = real_type< a_type, b_type >;
-    constexpr auto accessPolicy = access_policy( A );
     
     // using
     using blas::isnan;
@@ -243,7 +241,7 @@ int lascl(
     
     // check arguments
     lapack_error_if( (kl < 0) || (kl >= m) || (ku < 0) || (ku >= n), -1 );
-    lapack_error_if( access_denied( accessType, accessPolicy ), -1 );
+    lapack_error_if( access_denied( accessType, write_policy(A) ), -1 );
     lapack_error_if( (b == b_type(0)) || isnan(b), -2 );
     lapack_error_if( isnan(a), -3 );
 

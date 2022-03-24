@@ -151,29 +151,29 @@ template< class access_t, class accessPolicy_t >
 inline constexpr
 bool access_granted( access_t a, accessPolicy_t p )
 {
-    return is_base_of_v< accessPolicy_t, access_t >;
-}
-
-template< class access_t >
-inline constexpr
-bool access_granted( access_t a, MatrixAccessPolicy p )
-{
     return (
-        (a == p) ||
-        (p == MatrixAccessPolicy::Dense) ||
-        (p == MatrixAccessPolicy::UpperHessenberg && (
-            (a == MatrixAccessPolicy::UpperTriangle) || 
-            (a == MatrixAccessPolicy::StrictUpper)
+        
+        is_base_of_v< accessPolicy_t, access_t > ||
+
+        ((MatrixAccessPolicy) p ==(MatrixAccessPolicy) a) ||
+        ((MatrixAccessPolicy) p == MatrixAccessPolicy::Dense) ||
+        ((MatrixAccessPolicy) p == MatrixAccessPolicy::UpperHessenberg &&
+        (
+            ((MatrixAccessPolicy) a == MatrixAccessPolicy::UpperTriangle) || 
+            ((MatrixAccessPolicy) a == MatrixAccessPolicy::StrictUpper)
         )) ||
-        (p == MatrixAccessPolicy::LowerHessenberg && (
-            (a == MatrixAccessPolicy::LowerTriangle) || 
-            (a == MatrixAccessPolicy::StrictUpper)
+        ((MatrixAccessPolicy) p == MatrixAccessPolicy::LowerHessenberg &&
+        (
+            ((MatrixAccessPolicy) a == MatrixAccessPolicy::LowerTriangle) || 
+            ((MatrixAccessPolicy) a == MatrixAccessPolicy::StrictUpper)
         )) ||
-        (p == MatrixAccessPolicy::UpperTriangle && (
-            (a == MatrixAccessPolicy::StrictUpper)
+        ((MatrixAccessPolicy) p == MatrixAccessPolicy::UpperTriangle &&
+        (
+            ((MatrixAccessPolicy) a == MatrixAccessPolicy::StrictUpper)
         )) ||
-        (p == MatrixAccessPolicy::LowerTriangle && (
-            (a == MatrixAccessPolicy::StrictUpper)
+        ((MatrixAccessPolicy) p == MatrixAccessPolicy::LowerTriangle &&
+        (
+            ((MatrixAccessPolicy) a == MatrixAccessPolicy::StrictUpper)
         ))
     );
 }
@@ -195,6 +195,12 @@ bool access_granted( band_t a, MatrixAccessPolicy p )
         (p == MatrixAccessPolicy::UpperTriangle && a.lower_bandwidth == 0) ||
         (p == MatrixAccessPolicy::LowerTriangle && a.upper_bandwidth == 0)
     );
+}
+
+inline constexpr
+bool access_granted( MatrixAccessPolicy a, band_t p )
+{
+    return false;
 }
 
 template< class access_t, class accessPolicy_t >

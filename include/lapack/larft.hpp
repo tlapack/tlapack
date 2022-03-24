@@ -116,7 +116,7 @@ int larft(
     lapack_error_if(    direction != Direction::Backward &&
                         direction != Direction::Forward, -1 );
     lapack_error_if(    storeMode != StoreV::Columnwise &&
-                        storeMode != StoreV::Columnwise, -2 );
+                        storeMode != StoreV::Rowwise, -2 );
     lapack_error_if(    size( tau ) != k, -4 );
     lapack_error_if(    nrows( T ) != k || ncols( T ) != k, -5 );
 

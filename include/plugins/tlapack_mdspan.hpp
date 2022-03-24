@@ -53,10 +53,18 @@ namespace blas {
         return x.extent(1);
     }
 
-    // Access policy
+    // Read policy
     template< class ET, class Exts, class LP, class AP >
     inline constexpr auto
-    access_policy( const mdspan<ET,Exts,LP,AP>& x ) {
+    read_policy( const mdspan<ET,Exts,LP,AP>& x ) {
+        /// TODO: Maybe we should get the access type from the layout here?
+        return lapack::dense;
+    }
+
+    // Write policy
+    template< class ET, class Exts, class LP, class AP >
+    inline constexpr auto
+    write_policy( const mdspan<ET,Exts,LP,AP>& x ) {
         /// TODO: Maybe we should get the access type from the layout here?
         return lapack::dense;
     }
@@ -223,7 +231,8 @@ namespace lapack {
     using blas::size;
     using blas::nrows;
     using blas::ncols;
-    using blas::access_policy;
+    using blas::read_policy;
+    using blas::write_policy;
 
     using blas::submatrix;
     using blas::rows;
