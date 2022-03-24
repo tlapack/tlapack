@@ -141,7 +141,9 @@ namespace blas {
         using idx_t = typename legacyMatrix<T,layout>::idx_t;
         
         T* ptr  = (diagIdx >= 0) ? &A(0,diagIdx) : &A(-diagIdx,0);
-        idx_t n = std::min(A.m,A.n) - (idx_t)( (diagIdx >= 0) ? diagIdx : -diagIdx );
+        idx_t n = (diagIdx >= 0)
+                    ? std::min( A.m+diagIdx, A.n ) - (idx_t) diagIdx
+                    : std::min( A.m, A.n-diagIdx ) + (idx_t) diagIdx;
         
         return legacyVector<T,idx_t>( n, ptr, A.ldim + 1 );
     }

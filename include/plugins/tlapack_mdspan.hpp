@@ -157,7 +157,10 @@ namespace blas {
                 : A.mapping()(-diagIdx,0)
         );
         auto map = mapping(
-            extents_t( min( A.extent(0), A.extent(1) ) - (size_type)( (diagIdx >= 0) ? diagIdx : -diagIdx ) ),
+            extents_t( (diagIdx >= 0)
+                ? min( A.extent(0)+diagIdx, A.extent(1) ) - (size_type) diagIdx
+                : min( A.extent(0), A.extent(1)-diagIdx ) + (size_type) diagIdx
+            ),
             array<size_type, 1>{ A.stride(0) + A.stride(1) }
         );
         auto acc_pol = typename AP::offset_policy(A.accessor());
