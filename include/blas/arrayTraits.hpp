@@ -41,10 +41,10 @@ namespace lapack {
     /**
      * @brief Dense access
      * 
-     * x x x x x
-     * x x x x x
-     * x x x x x
-     * x x x x x
+     *      x x x x x
+     *      x x x x x
+     *      x x x x x
+     *      x x x x x
      */
     struct dense_t {
         constexpr operator Uplo() const { return Uplo::General; }
@@ -54,10 +54,10 @@ namespace lapack {
     /**
      * @brief Upper Hessenberg access
      * 
-     * x x x x x
-     * x x x x x
-     * 0 x x x x
-     * 0 0 x x x
+     *      x x x x x
+     *      x x x x x
+     *      0 x x x x
+     *      0 0 x x x
      */
     struct upperHessenberg_t : public dense_t {
         constexpr operator MatrixAccessPolicy() const { return MatrixAccessPolicy::UpperHessenberg; }
@@ -66,10 +66,10 @@ namespace lapack {
     /**
      * @brief Lower Hessenberg access
      * 
-     * x x 0 0 0
-     * x x x 0 0
-     * x x x x 0
-     * x x x x x
+     *      x x 0 0 0
+     *      x x x 0 0
+     *      x x x x 0
+     *      x x x x x
      */
     struct lowerHessenberg_t : public dense_t {
         constexpr operator MatrixAccessPolicy() const { return MatrixAccessPolicy::LowerHessenberg; }
@@ -78,10 +78,10 @@ namespace lapack {
     /**
      * @brief Upper Triangle access
      * 
-     * x x x x x
-     * 0 x x x x
-     * 0 0 x x x
-     * 0 0 0 x x
+     *      x x x x x
+     *      0 x x x x
+     *      0 0 x x x
+     *      0 0 0 x x
      */
     struct upperTriangle_t : public upperHessenberg_t {
         constexpr operator Uplo() const { return Uplo::Upper; }
@@ -91,10 +91,10 @@ namespace lapack {
     /**
      * @brief Lower Triangle access
      * 
-     * x 0 0 0 0
-     * x x 0 0 0
-     * x x x 0 0
-     * x x x x 0
+     *      x 0 0 0 0
+     *      x x 0 0 0
+     *      x x x 0 0
+     *      x x x x 0
      */
     struct lowerTriangle_t : public lowerHessenberg_t {
         constexpr operator Uplo() const { return Uplo::Lower; }
@@ -104,10 +104,10 @@ namespace lapack {
     /**
      * @brief Strict Upper Triangle access
      * 
-     * 0 x x x x
-     * 0 0 x x x
-     * 0 0 0 x x
-     * 0 0 0 0 x
+     *      0 x x x x
+     *      0 0 x x x
+     *      0 0 0 x x
+     *      0 0 0 0 x
      */
     struct strictUpper_t : public upperTriangle_t {
         constexpr operator MatrixAccessPolicy() const { return MatrixAccessPolicy::StrictUpper; }
@@ -116,10 +116,10 @@ namespace lapack {
     /**
      * @brief Strict Lower Triangle access
      * 
-     * 0 0 0 0 0
-     * x 0 0 0 0
-     * x x 0 0 0
-     * x x x 0 0
+     *      0 0 0 0 0
+     *      x 0 0 0 0
+     *      x x 0 0 0
+     *      x x x 0 0
      */
     struct strictLower_t : public lowerTriangle_t {
         constexpr operator MatrixAccessPolicy() const { return MatrixAccessPolicy::StrictLower; }
@@ -128,10 +128,10 @@ namespace lapack {
     /**
      * @brief Band access
      * 
-     * x x x 0 0
-     * x x x x 0
-     * 0 x x x x
-     * 0 0 x x x
+     *      x x x 0 0
+     *      x x x x 0
+     *      0 x x x x
+     *      0 0 x x x
      */
     struct band_t : dense_t {
         std::size_t lower_bandwidth, upper_bandwidth;

@@ -56,15 +56,15 @@ namespace blas {
      * 
      * @tparam matrix_t Matrix type.
      * @tparam access_t Access type. One of the following:
-     *      - MatrixAccessPolicy
-     *      - dense_t
-     *      - upperHessenberg_t
-     *      - lowerHessenberg_t
-     *      - upperTriangle_t
-     *      - lowerTriangle_t
-     *      - strictUpper_t
-     *      - strictLower_t
-     *      - band_t
+     *      MatrixAccessPolicy
+     *      dense_t,
+     *      upperHessenberg_t,
+     *      lowerHessenberg_t,
+     *      upperTriangle_t,
+     *      lowerTriangle_t,
+     *      strictUpper_t,
+     *      strictLower_t,
+     *      band_t.
      * 
      * @param A Matrix.
      * 
@@ -82,15 +82,15 @@ namespace blas {
      * 
      * @tparam matrix_t Matrix type.
      * @tparam access_t Access type. One of the following:
-     *      - MatrixAccessPolicy
-     *      - dense_t
-     *      - upperHessenberg_t
-     *      - lowerHessenberg_t
-     *      - upperTriangle_t
-     *      - lowerTriangle_t
-     *      - strictUpper_t
-     *      - strictLower_t
-     *      - band_t
+     *      MatrixAccessPolicy
+     *      dense_t,
+     *      upperHessenberg_t,
+     *      lowerHessenberg_t,
+     *      upperTriangle_t,
+     *      lowerTriangle_t,
+     *      strictUpper_t,
+     *      strictLower_t,
+     *      band_t.
      * 
      * @param A Matrix.
      * 
