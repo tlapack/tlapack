@@ -147,6 +147,36 @@ inline constexpr auto get_work( opts_t&& opts ) {
     constexpr bool is_base_of_v = std::is_base_of<Base,Derived>::value;
 #endif
 
+/**
+ * @brief Check if a given access type is compatible with the access policy.
+ * 
+ * Examples of outputs:
+ * 
+ *      access_granted( MatrixAccessPolicy::UpperTriangle,
+ *                      MatrixAccessPolicy::Dense )             returns true.
+ *      access_granted( MatrixAccessPolicy::Dense,
+ *                      MatrixAccessPolicy::LowerHessenberg )   returns false.
+ *      access_granted( Uplo::Upper,
+ *                      MatrixAccessPolicy::UpperHessenberg )   returns true.
+ *      access_granted( Uplo::Upper,
+ *                      Uplo::Lower )                           returns false.
+ *      access_granted( upperTriangle,
+ *                      Uplo::Lower )                           returns false.
+ *      access_granted( strictUpper,
+ *                      Uplo::Upper )                           returns true.
+ * 
+ * @tparam access_t         Access type.
+ *      Either MatrixAccessPolicy, Uplo, or any type that implements
+ *          operator MatrixAccessPolicy().
+ * @tparam accessPolicy_t   Access policy.
+ *      Either MatrixAccessPolicy, Uplo, or any type that implements
+ *          operator MatrixAccessPolicy().
+ * 
+ * @param a Access type.
+ * @param p Access policy.
+ * 
+ * @ingroup utils
+ */
 template< class access_t, class accessPolicy_t >
 inline constexpr
 bool access_granted( access_t a, accessPolicy_t p )
@@ -178,6 +208,15 @@ bool access_granted( access_t a, accessPolicy_t p )
     );
 }
 
+/**
+ * @brief Check if a given access type is compatible with the access policy.
+ * 
+ * Specific implementation for band_t.
+ * 
+ * @see bool access_granted( access_t a, accessPolicy_t p )
+ * 
+ * @ingroup utils
+ */
 template< class accessPolicy_t >
 inline constexpr
 bool access_granted( band_t a, accessPolicy_t p )
@@ -191,6 +230,15 @@ bool access_granted( band_t a, accessPolicy_t p )
     );
 }
 
+/**
+ * @brief Check if a given access type is compatible with the access policy.
+ * 
+ * Specific implementation for band_t.
+ * 
+ * @see bool access_granted( access_t a, accessPolicy_t p )
+ * 
+ * @ingroup utils
+ */
 template< class access_t >
 inline constexpr
 bool access_granted( access_t a, band_t p )
@@ -198,6 +246,15 @@ bool access_granted( access_t a, band_t p )
     return false;
 }
 
+/**
+ * @brief Check if a given access type is compatible with the access policy.
+ * 
+ * Specific implementation for band_t.
+ * 
+ * @see bool access_granted( access_t a, accessPolicy_t p )
+ * 
+ * @ingroup utils
+ */
 inline constexpr
 bool access_granted( band_t a, band_t p )
 {
@@ -205,6 +262,13 @@ bool access_granted( band_t a, band_t p )
             (p.upper_bandwidth >= a.upper_bandwidth);
 }
 
+/**
+ * @return ! access_granted( a, p ).
+ * 
+ * @see bool access_granted( access_t a, accessPolicy_t p )
+ * 
+ * @ingroup utils
+ */
 template< class access_t, class accessPolicy_t >
 inline constexpr
 bool access_denied( access_t a, accessPolicy_t p ) {
