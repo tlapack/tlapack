@@ -154,6 +154,25 @@ int larfb(
     lapack_error_if(    storeMode != StoreV::Columnwise &&
                         storeMode != StoreV::Rowwise, -4 );
 
+    if( direction == Direction::Forward )
+    {
+        if( storeMode == StoreV::Columnwise )
+            lapack_error_if( access_denied( strictLower, read_policy(V) ), -5 );
+        else
+            lapack_error_if( access_denied( strictUpper, read_policy(V) ), -5 );
+
+        lapack_error_if( access_denied( Uplo::Upper, read_policy(T) ), -6 );
+    }
+    else
+    {
+        lapack_error_if( access_denied( dense, read_policy(V) ), -5 );
+
+        lapack_error_if( access_denied( Uplo::Lower, read_policy(T) ), -6 );
+    }
+
+    lapack_error_if(    access_denied( dense, write_policy(C) ), -7 );
+    lapack_error_if(    access_denied( dense, write_policy(W) ), -8 );
+
     // Quick return
     if (m <= 0 || n <= 0) return 0;
 

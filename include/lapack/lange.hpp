@@ -56,6 +56,7 @@ lange( norm_t normType, const matrix_t& A )
                     normType != Norm::Inf &&
                     normType != Norm::Max &&
                     normType != Norm::One );
+    blas_error_if(  access_denied( dense, read_policy(A) ) );
 
     // quick return
     if (m == 0 || n == 0)
@@ -137,6 +138,7 @@ lange( norm_t normType, const matrix_t& A, work_t& work )
                     normType != Norm::Inf &&
                     normType != Norm::Max &&
                     normType != Norm::One );
+    blas_error_if(  access_denied( dense, read_policy(A) ) );
 
     // redirect for max-norm, one-norm and Frobenius norm
     if      ( normType == Norm::Max  ) return lange( max_norm,  A );

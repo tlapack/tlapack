@@ -69,6 +69,7 @@ int geqr2( matrix_t& A, vector_t &tau, work_t &work )
     const idx_t k = std::min<idx_t>( m, n-1 );
 
     // check arguments
+    lapack_error_if( access_denied( dense, write_policy(A) ), -1 );
     lapack_error_if( (idx_t) size(tau)  < std::min<idx_t>( m, n ), -2 );
     lapack_error_if( (idx_t) size(work) < n-1, -3 );
 

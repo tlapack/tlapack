@@ -51,6 +51,7 @@ void laset(
     blas_error_if(  uplo != Uplo::Lower &&
                     uplo != Uplo::Upper &&
                     uplo != Uplo::General );
+    blas_error_if(  access_denied( uplo, write_policy(A) ) );
 
     if (uplo == Uplo::Upper) {
         // Set the strictly upper triangular or trapezoidal part of

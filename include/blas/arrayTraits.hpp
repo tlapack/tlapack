@@ -10,12 +10,8 @@
 #include <type_traits>
 
 namespace blas {
+
     enum class Uplo   { Upper    = 'U', Lower    = 'L', General   = 'G' };
-}
-
-namespace lapack {
-
-    using blas::Uplo;
 
     /**
      * @brief Matrix access policies
@@ -167,9 +163,6 @@ namespace lapack {
     constexpr lowerTriangle_t lowerTriangle = { };
     constexpr strictUpper_t strictUpper = { };
     constexpr strictLower_t strictLower = { };
-}
-
-namespace blas {
 
     /// Data type
     template< class T > struct type_trait {};
@@ -206,10 +199,30 @@ namespace blas {
 
 namespace lapack {
 
+    using blas::Uplo;
+    using blas::MatrixAccessPolicy;
+
+    using blas::dense_t;
+    using blas::upperHessenberg_t;
+    using blas::lowerHessenberg_t;
+    using blas::upperTriangle_t;
+    using blas::lowerTriangle_t;
+    using blas::strictUpper_t;
+    using blas::strictLower_t;
+    using blas::band_t;
+
+    // constant expressions
+    using blas::dense;
+    using blas::upperHessenberg;
+    using blas::lowerHessenberg;
+    using blas::upperTriangle;
+    using blas::lowerTriangle;
+    using blas::strictUpper;
+    using blas::strictLower;
+
     using blas::type_t;
     using blas::size_type;
     using blas::layout_type;
-
 }
 
 #endif // __TBLAS_ARRAY_TRAITS__

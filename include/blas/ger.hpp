@@ -52,6 +52,8 @@ void ger(
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
 
+    blas_error_if( access_denied( dense, write_policy(A) ) );
+
     for (idx_t j = 0; j < n; ++j) {
         auto tmp = alpha * conj( y[j] );
         for (idx_t i = 0; i < m; ++i)

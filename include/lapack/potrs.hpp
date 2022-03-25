@@ -48,6 +48,7 @@ int potrs( uplo_t uplo, const matrixA_t& A, matrixB_t& B )
     // Check arguments
     lapack_error_if(    uplo != Uplo::Lower &&
                         uplo != Uplo::Upper, -1 );
+    lapack_error_if(    access_denied( uplo, write_policy(A) ), -1 );
     lapack_error_if(    nrows(A) != ncols(A), -2 );
     lapack_error_if(    nrows(B) != ncols(A), -3 );
 

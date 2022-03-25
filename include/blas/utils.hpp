@@ -304,6 +304,145 @@ using disable_if_allow_optblas_t = enable_if_t<(
     #endif
 #undef TLAPACK_OPT_TYPE
 
+
+
+// -----------------------------------------------------------------------------
+// is_base_of_v is defined in C++17; here's a C++11 definition
+#if __cplusplus >= 201703L
+    using std::is_base_of_v;
+#else
+    template< class Base, class Derived >
+    constexpr bool is_base_of_v = std::is_base_of<Base,Derived>::value;
+#endif
+
+/**
+ * @brief Check if a given access type is compatible with the access policy.
+ * 
+ * Examples of outputs:
+ * 
+ *      access_granted( MatrixAccessPolicy::UpperTriangle,
+ *                      MatrixAccessPolicy::Dense )             returns true.
+ *      access_granted( MatrixAccessPolicy::Dense,
+ *                      MatrixAccessPolicy::LowerHessenberg )   returns false.
+ *      access_granted( Uplo::Upper,
+ *                      MatrixAccessPolicy::UpperHessenberg )   returns true.
+ *      access_granted( Uplo::Upper,
+ *                      Uplo::Lower )                           returns false.
+ *      access_granted( upperTriangle,
+ *                      Uplo::Lower )                           returns false.
+ *      access_granted( strictUpper,
+ *                      Uplo::Upper )                           returns true.
+ * 
+ * @tparam access_t         Access type.
+ *      Either MatrixAccessPolicy, Uplo, or any type that implements
+ *          operator MatrixAccessPolicy().
+ * @tparam accessPolicy_t   Access policy.
+ *      Either MatrixAccessPolicy, Uplo, or any type that implements
+ *          operator MatrixAccessPolicy().
+ * 
+ * @param a Access type.
+ * @param p Access policy.
+ * 
+ * @ingroup utils
+ */
+template< class access_t, class accessPolicy_t >
+inline constexpr
+bool access_granted( access_t a, accessPolicy_t p )
+{
+    return (
+        
+        is_base_of_v< accessPolicy_t, access_t > ||
+
+        ((MatrixAccessPolicy) p ==(MatrixAccessPolicy) a) ||
+        ((MatrixAccessPolicy) p == MatrixAccessPolicy::Dense) ||
+        ((MatrixAccessPolicy) p == MatrixAccessPolicy::UpperHessenberg &&
+        (
+            ((MatrixAccessPolicy) a == MatrixAccessPolicy::UpperTriangle) || 
+            ((MatrixAccessPolicy) a == MatrixAccessPolicy::StrictUpper)
+        )) ||
+        ((MatrixAccessPolicy) p == MatrixAccessPolicy::LowerHessenberg &&
+        (
+            ((MatrixAccessPolicy) a == MatrixAccessPolicy::LowerTriangle) || 
+            ((MatrixAccessPolicy) a == MatrixAccessPolicy::StrictUpper)
+        )) ||
+        ((MatrixAccessPolicy) p == MatrixAccessPolicy::UpperTriangle &&
+        (
+            ((MatrixAccessPolicy) a == MatrixAccessPolicy::StrictUpper)
+        )) ||
+        ((MatrixAccessPolicy) p == MatrixAccessPolicy::LowerTriangle &&
+        (
+            ((MatrixAccessPolicy) a == MatrixAccessPolicy::StrictUpper)
+        ))
+    );
+}
+
+/**
+ * @brief Check if a given access type is compatible with the access policy.
+ * 
+ * Specific implementation for band_t.
+ * 
+ * @see bool access_granted( access_t a, accessPolicy_t p )
+ * 
+ * @ingroup utils
+ */
+template< class accessPolicy_t >
+inline constexpr
+bool access_granted( band_t a, accessPolicy_t p )
+{
+    return (
+        ((MatrixAccessPolicy) p == MatrixAccessPolicy::Dense) ||
+        ((MatrixAccessPolicy) p == MatrixAccessPolicy::UpperHessenberg && a.lower_bandwidth <= 1) ||
+        ((MatrixAccessPolicy) p == MatrixAccessPolicy::LowerHessenberg && a.upper_bandwidth <= 1) ||
+        ((MatrixAccessPolicy) p == MatrixAccessPolicy::UpperTriangle && a.lower_bandwidth == 0) ||
+        ((MatrixAccessPolicy) p == MatrixAccessPolicy::LowerTriangle && a.upper_bandwidth == 0)
+    );
+}
+
+/**
+ * @brief Check if a given access type is compatible with the access policy.
+ * 
+ * Specific implementation for band_t.
+ * 
+ * @see bool access_granted( access_t a, accessPolicy_t p )
+ * 
+ * @ingroup utils
+ */
+template< class access_t >
+inline constexpr
+bool access_granted( access_t a, band_t p )
+{
+    return false;
+}
+
+/**
+ * @brief Check if a given access type is compatible with the access policy.
+ * 
+ * Specific implementation for band_t.
+ * 
+ * @see bool access_granted( access_t a, accessPolicy_t p )
+ * 
+ * @ingroup utils
+ */
+inline constexpr
+bool access_granted( band_t a, band_t p )
+{
+    return  (p.lower_bandwidth >= a.lower_bandwidth) &&
+            (p.upper_bandwidth >= a.upper_bandwidth);
+}
+
+/**
+ * @return ! access_granted( a, p ).
+ * 
+ * @see bool access_granted( access_t a, accessPolicy_t p )
+ * 
+ * @ingroup utils
+ */
+template< class access_t, class accessPolicy_t >
+inline constexpr
+bool access_denied( access_t a, accessPolicy_t p ) {
+    return ! access_granted( a, p );
+}
+
 } // namespace blas
 
 #endif // __TBLAS_UTILS_HH__

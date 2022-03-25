@@ -96,6 +96,10 @@ void gemm(
     blas_error_if(
         ((transB == Op::NoTrans) ? nrows(B) : ncols(B)) != k );
 
+    blas_error_if( access_denied( dense, read_policy(A) ) );
+    blas_error_if( access_denied( dense, read_policy(B) ) );
+    blas_error_if( access_denied( dense, write_policy(C) ) );
+
     if (transA == Op::NoTrans) {
         if (transB == Op::NoTrans) {
             for(idx_t j = 0; j < n; ++j) {

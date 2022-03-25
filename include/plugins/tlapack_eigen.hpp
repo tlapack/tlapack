@@ -84,15 +84,15 @@ namespace blas{
         return x.cols();
     }
     // Read policy
-    template<class T, int Level>
+    template<class T>
     inline constexpr auto
-    read_policy( const Eigen::DenseCoeffsBase<T,Level>& x ) {
+    read_policy( const Eigen::DenseBase<T>& x ) {
         return lapack::dense;
     }
     // Write policy
-    template<class T, int Level>
+    template<class T>
     inline constexpr auto
-    write_policy( const Eigen::DenseCoeffsBase<T,Level>& x ) {
+    write_policy( const Eigen::DenseBase<T>& x ) {
         return lapack::dense;
     }
 
