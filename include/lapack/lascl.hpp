@@ -76,9 +76,6 @@ int lascl(
     const idx_t n = ncols(A);
 
     // constants
-    const idx_t izero = 0;
-    const real_t zero = 0.0;
-    const real_t one(1.0);
     const real_t small = safe_min<real_t>();
     const real_t big   = safe_max<real_t>();
     
@@ -100,46 +97,45 @@ int lascl(
         return 0;
 
     bool done = false;
+    real_t _a = a, _b = b;
     while (!done)
     {
-        real_t c;
-        a_type a1;
-        b_type b1 = b * small;
-        if (b1 == b) {
+        real_t c, a1, b1 = b * small;
+        if (b1 == _b) {
             // b is not finite:
             //  c is a correctly signed zero if a is finite,
             //  c is NaN otherwise.
-            c = a / b;
+            c = _a / _b;
             done = true;
         }
         else { // b is finite
-            a1 = a / big;
-            if (a1 == a) {
+            a1 = _a / big;
+            if (a1 == _a) {
                 // a is either 0 or an infinity number:
                 //  in both cases, c = a serves as the correct multiplication factor.
-                c = a;
+                c = _a;
                 done = true;
             }
-            else if ( (abs(b1) > abs(a)) && (a != a_type(0)) ) {
+            else if ( (abs(b1) > abs(_a)) && (_a != real_t(0)) ) {
                 // a is a non-zero finite number and abs(a/b) < small:
                 //  Set c = small as the multiplication factor,
                 //  Multiply b by the small factor.
                 c = small;
                 done = false;
-                b = b1;
+                _b = b1;
             }
-            else if (abs(a1) > abs(b)) {
+            else if (abs(a1) > abs(_b)) {
                 // abs(a/b) > big:
                 //  Set c = big as the multiplication factor,
                 //  Divide a by the big factor.
                 c = big;
                 done = false;
-                a = a1;
+                _a = a1;
             }
             else {
                 // small <= abs(a/b) <= big:
                 //  Set c = a/b as the multiplication factor.
-                c = a / b;
+                c = _a / _b;
                 done = true;
             }
         }
@@ -225,6 +221,7 @@ int lascl(
     using blas::abs;
     using blas::safe_min;
     using blas::safe_max;
+    using std::min;
 
     // constants
     const idx_t m = nrows(A);
@@ -233,9 +230,6 @@ int lascl(
     const idx_t ku = accessType.upper_bandwidth;
 
     // constants
-    const idx_t izero = 0;
-    const real_t zero = 0.0;
-    const real_t one(1.0);
     const real_t small = safe_min<real_t>();
     const real_t big   = safe_max<real_t>();
     
@@ -250,46 +244,45 @@ int lascl(
         return 0;
 
     bool done = false;
+    real_t _a = a, _b = b;
     while (!done)
     {
-        real_t c;
-        a_type a1;
-        b_type b1 = b * small;
-        if (b1 == b) {
+        real_t c, a1, b1 = b * small;
+        if (b1 == _b) {
             // b is not finite:
             //  c is a correctly signed zero if a is finite,
             //  c is NaN otherwise.
-            c = a / b;
+            c = _a / _b;
             done = true;
         }
         else { // b is finite
-            a1 = a / big;
-            if (a1 == a) {
+            a1 = _a / big;
+            if (a1 == _a) {
                 // a is either 0 or an infinity number:
                 //  in both cases, c = a serves as the correct multiplication factor.
-                c = a;
+                c = _a;
                 done = true;
             }
-            else if ( (abs(b1) > abs(a)) && (a != a_type(0)) ) {
+            else if ( (abs(b1) > abs(_a)) && (_a != real_t(0)) ) {
                 // a is a non-zero finite number and abs(a/b) < small:
                 //  Set c = small as the multiplication factor,
                 //  Multiply b by the small factor.
                 c = small;
                 done = false;
-                b = b1;
+                _b = b1;
             }
-            else if (abs(a1) > abs(b)) {
+            else if (abs(a1) > abs(_b)) {
                 // abs(a/b) > big:
                 //  Set c = big as the multiplication factor,
                 //  Divide a by the big factor.
                 c = big;
                 done = false;
-                a = a1;
+                _a = a1;
             }
             else {
                 // small <= abs(a/b) <= big:
                 //  Set c = a/b as the multiplication factor.
-                c = a / b;
+                c = _a / _b;
                 done = true;
             }
         }

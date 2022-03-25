@@ -113,7 +113,7 @@ namespace blas {
          */
         inline constexpr T&
         operator()( idx_t i, idx_t j ) const {
-            ptr[ (ku+i) + j*(ku+kl) ];
+            return ptr[ (ku+i) + j*(ku+kl) ];
         }
         
         inline constexpr legacyBandedMatrix( idx_t m, idx_t n, idx_t kl, idx_t ku, T* ptr )
@@ -130,6 +130,7 @@ namespace blas {
 namespace lapack {
     using blas::legacyMatrix;
     using blas::legacyVector;
+    using blas::legacyBandedMatrix;
 }
 
 #endif // __TLAPACK_LEGACY_ARRAY_HH__

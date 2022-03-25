@@ -47,16 +47,23 @@ using std::isinf;
 using std::isnan;
 using std::ceil;
 using std::floor;
+using std::sqrt;
+using std::sin;
+using std::cos;
+using std::atan;
+using std::exp;
+using std::pow;
 
 // -----------------------------------------------------------------------------
 // Use MPFR interface
 #ifdef USE_MPFR
     inline mpfr::mpreal real( const mpfr::mpreal& x ) { return x; }
     inline mpfr::mpreal imag( const mpfr::mpreal& x ) { return 0; }
-    using mpfr::isinf;
-    using mpfr::isnan;
-    using mpfr::ceil;
-    using mpfr::floor;
+
+    // Argument-dependent lookup (ADL) will include the remaining functions,
+    // e.g., mpfr::sin, mpfr::cos.
+    // Including them here may cause ambiguous call of overloaded function.
+    // See: https://en.cppreference.com/w/cpp/language/adl
 #endif
 
 /** Extend conj to real datatypes.
@@ -168,116 +175,6 @@ inline int sgn( const real_t& val ) {
     template<> 
     inline int sgn( const mpfr::mpreal& x )
     { return mpfr::sgn( x ); }
-#endif
-
-// -----------------------------------------------------------------------------
-/// sqrt, needed because std C++ template returns double for any type different
-/// float anf long double.
-/// Note that the template in std::complex return the desired std::complex<T>.
-template< typename T >
-inline T sqrt( const T& x )
-{ return std::sqrt( x ); }
-
-#ifdef USE_MPFR
-    template<> 
-    inline mpfr::mpreal sqrt( const mpfr::mpreal& x )
-    { return mpfr::sqrt( x ); }
-#endif
-
-// -----------------------------------------------------------------------------
-/// sin, needed because std C++11 template returns double.
-template< typename T >
-inline T sin( const T& x ) { return std::sin( x ); }
-
-#ifdef USE_MPFR
-    template<> 
-    inline mpfr::mpreal sin( const mpfr::mpreal& x ) { return mpfr::sin( x ); }
-#endif
-
-// -----------------------------------------------------------------------------
-/// cos, needed because std C++11 template returns double.
-template< typename T >
-inline T cos( const T& x ) { return std::cos( x ); }
-
-#ifdef USE_MPFR
-    template<> 
-    inline mpfr::mpreal cos( const mpfr::mpreal& x ) { return mpfr::cos( x ); }
-#endif
-
-// -----------------------------------------------------------------------------
-/// atan, needed because std C++ template returns double.
-template< typename T >
-inline T atan( const T& x ) { return std::atan( x ); }
-
-#ifdef USE_MPFR
-    template<> 
-    inline mpfr::mpreal atan( const mpfr::mpreal& x ) { return mpfr::atan( x ); }
-#endif
-
-// -----------------------------------------------------------------------------
-/// exp, needed because std C++ template returns double.
-template< typename T >
-inline T exp( const T& x ) { return std::exp( x ); }
-
-#ifdef USE_MPFR
-    template<> 
-    inline mpfr::mpreal exp( const mpfr::mpreal& x ) { return mpfr::exp( x ); }
-#endif
-
-// -----------------------------------------------------------------------------
-/// pow, avoids promotion to double from std C++.
-/// Note that the template in std::complex return the desired std::complex<T>.
-template< typename T >
-inline T pow( const T& base, const T& exp )
-{ return std::pow( base, exp ); }
-
-template< typename T >
-inline T pow( const int base, const T& exp )
-{ return std::pow( (double)base, exp ); }
-
-#ifdef USE_MPFR
-    template<>
-    inline mpfr::mpreal pow(const mpfr::mpreal& a, const mpfr::mpreal& b)
-    {
-        return mpfr::pow( a, b );
-    }
-    inline mpfr::mpreal pow(const mpfr::mpreal& a, const unsigned int b)
-    {
-        return mpfr::pow( a, b );
-    }
-    inline mpfr::mpreal pow(const mpfr::mpreal& a, const int b)
-    {
-        return mpfr::pow( a, b );
-    }
-    inline mpfr::mpreal pow(const mpfr::mpreal& a, const long double b)
-    {
-        return mpfr::pow( a, b );
-    }
-    inline mpfr::mpreal pow(const mpfr::mpreal& a, const double b)
-    {
-        return mpfr::pow( a, b );
-    }
-    inline mpfr::mpreal pow(const unsigned int a, const mpfr::mpreal& b)
-    {
-        return mpfr::pow( a, b );
-    }
-    inline mpfr::mpreal pow(const long int a, const mpfr::mpreal& b)
-    {
-        return mpfr::pow( a, b );
-    }
-    template<>
-    inline mpfr::mpreal pow(const int a, const mpfr::mpreal& b)
-    {
-        return mpfr::pow( a, b );
-    }
-    inline mpfr::mpreal pow(const long double a, const mpfr::mpreal& b)
-    {
-        return mpfr::pow( a, b );
-    }
-    inline mpfr::mpreal pow(const double a, const mpfr::mpreal& b)
-    {
-        return mpfr::pow( a, b );
-    }
 #endif
 
 // -----------------------------------------------------------------------------
