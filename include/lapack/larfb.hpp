@@ -152,7 +152,26 @@ int larfb(
     lapack_error_if(    direction != Direction::Backward &&
                         direction != Direction::Forward, -3 );
     lapack_error_if(    storeMode != StoreV::Columnwise &&
-                        storeMode != StoreV::Columnwise, -4 );
+                        storeMode != StoreV::Rowwise, -4 );
+
+    if( direction == Direction::Forward )
+    {
+        if( storeMode == StoreV::Columnwise )
+            lapack_error_if( access_denied( strictLower, read_policy(V) ), -5 );
+        else
+            lapack_error_if( access_denied( strictUpper, read_policy(V) ), -5 );
+
+        lapack_error_if( access_denied( Uplo::Upper, read_policy(T) ), -6 );
+    }
+    else
+    {
+        lapack_error_if( access_denied( dense, read_policy(V) ), -5 );
+
+        lapack_error_if( access_denied( Uplo::Lower, read_policy(T) ), -6 );
+    }
+
+    lapack_error_if(    access_denied( dense, write_policy(C) ), -7 );
+    lapack_error_if(    access_denied( dense, write_policy(W) ), -8 );
 
     // Quick return
     if (m <= 0 || n <= 0) return 0;
@@ -170,7 +189,7 @@ int larfb(
                 auto C2 = rows( C, pair{k,m} );
 
                 // W := C1
-                lacpy( general_matrix, C1, W );
+                lacpy( dense, C1, W );
                 // W := V1^H W
                 trmm(
                     side, Uplo::Lower,
@@ -213,7 +232,7 @@ int larfb(
                 auto C2 = cols( C, pair{k,n} );
 
                 // W := C1
-                lacpy( general_matrix, C1, W );
+                lacpy( dense, C1, W );
                 // W := W V1
                 trmm(
                     side, Uplo::Lower,
@@ -258,7 +277,7 @@ int larfb(
                 auto C2 = rows( C, pair{m-k,m} );
 
                 // W := C2
-                lacpy( general_matrix, C2, W );
+                lacpy( dense, C2, W );
                 // W := V2^H W
                 trmm(
                     side, Uplo::Upper,
@@ -301,7 +320,7 @@ int larfb(
                 auto C2 = cols( C, pair{n-k,n} );
 
                 // W := C2
-                lacpy( general_matrix, C2, W );
+                lacpy( dense, C2, W );
                 // W := W V2
                 trmm(
                     side, Uplo::Upper,
@@ -348,7 +367,7 @@ int larfb(
                 auto C2 = rows( C, pair{k,m} );
 
                 // W := C1
-                lacpy( general_matrix, C1, W );
+                lacpy( dense, C1, W );
                 // W := V1 W
                 trmm(
                     side, Uplo::Upper,
@@ -391,7 +410,7 @@ int larfb(
                 auto C2 = cols( C, pair{k,n} );
 
                 // W := C1
-                lacpy( general_matrix, C1, W );
+                lacpy( dense, C1, W );
                 // W := W V1^H
                 trmm(
                     side, Uplo::Upper,
@@ -436,7 +455,7 @@ int larfb(
                 auto C2 = rows( C, pair{m-k,m} );
 
                 // W := C2
-                lacpy( general_matrix, C2, W );
+                lacpy( dense, C2, W );
                 // W := V2 W
                 trmm(
                     side, Uplo::Lower,
@@ -479,7 +498,7 @@ int larfb(
                 auto C2 = cols( C, pair{n-k,n} );
 
                 // W := C2
-                lacpy( general_matrix, C2, W );
+                lacpy( dense, C2, W );
                 // W := W V2^H
                 trmm(
                     side, Uplo::Lower,

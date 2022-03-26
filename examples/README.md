@@ -12,6 +12,10 @@ This is the list of examples and brief descriptions:
 
   Compute _C - AB_ using matrices A, B and C.
 
+- [access_types](access_types/README.md)
+
+  Scale matrices using different access types.
+
 - [cwrapper_gemm](cwrapper_gemm/README.md)
 
   Compute _C - AB_ using matrices A, B and C with a code written in C.

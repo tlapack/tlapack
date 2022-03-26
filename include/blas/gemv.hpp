@@ -78,6 +78,8 @@ void gemv(
                 ? lenx
                 : leny ) );
 
+    blas_error_if( access_denied( dense, read_policy(A) ) );
+
     // quick return
     if (m == 0 || n == 0 || (alpha == alpha_t(0) && beta == beta_t(1)))
         return;

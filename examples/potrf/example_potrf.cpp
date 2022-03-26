@@ -104,7 +104,7 @@ void run( idx_t n )
         // Record start time
         auto start = std::chrono::high_resolution_clock::now();
 
-            int info = potrf2( upper_triangle, U );
+            int info = potrf2( upperTriangle, U );
         
         // Record end time
         auto end = std::chrono::high_resolution_clock::now();
@@ -119,8 +119,8 @@ void run( idx_t n )
         // Solve U^H U R = A
         std::vector<T> _R( n*n );
         legacyMatrix<T> R( n, n, &_R[0], n );
-        lacpy( general_matrix, A, R );
-        potrs( upper_triangle, U, R );
+        lacpy( dense, A, R );
+        potrs( upperTriangle, U, R );
 
         // error = ||R-Id||_F / ||Id||_F
         for (idx_t i = 0; i < n; ++i)
@@ -165,8 +165,8 @@ void run( idx_t n )
         // Solve U^H U R = A
         std::vector<T> _R( n*n );
         legacyMatrix<T> R( n, n, &_R[0], n );
-        lacpy( general_matrix, A, R );
-        potrs( upper_triangle, legacyMatrix<T>( n, n, &U[0], n ), R );
+        lacpy( dense, A, R );
+        potrs( upperTriangle, legacyMatrix<T>( n, n, &U[0], n ), R );
 
         // error = ||R-Id||_F / ||Id||_F
         for (idx_t i = 0; i < n; ++i)

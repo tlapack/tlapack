@@ -83,6 +83,18 @@ namespace blas{
     ncols( const Eigen::EigenBase<T>& x ) {
         return x.cols();
     }
+    // Read policy
+    template<class T>
+    inline constexpr auto
+    read_policy( const Eigen::DenseBase<T>& x ) {
+        return lapack::dense;
+    }
+    // Write policy
+    template<class T>
+    inline constexpr auto
+    write_policy( const Eigen::DenseBase<T>& x ) {
+        return lapack::dense;
+    }
 
     // -----------------------------------------------------------------------------
     // blas functions to access Eigen block operations
@@ -230,6 +242,8 @@ namespace lapack {
     using blas::size;
     using blas::nrows;
     using blas::ncols;
+    using blas::read_policy;
+    using blas::write_policy;
 
     using blas::submatrix;
     using blas::rows;

@@ -23,12 +23,16 @@ namespace blas {
     // Size type
     template< typename T, Layout layout >
     struct sizet_trait< legacyMatrix<T,layout> > { using type = typename legacyMatrix<T>::idx_t; };
+    // Layout type
+    template< typename T >
+    struct layout_trait< legacyMatrix<T> > { using type = ColMajor_t; };
+    template< typename T >
+    struct layout_trait< legacyMatrix<T,Layout::RowMajor> > { using type = RowMajor_t; };
 
     /// Specialization of has_blas_type for arrays.
     template< typename T, Layout L >
     struct allow_optblas< legacyMatrix<T,L> > {
         using type = T;
-        static constexpr Layout layout = L;
         static constexpr bool value = allow_optblas_v<type>;
     };
 
@@ -38,22 +42,26 @@ namespace blas {
     // Size type
     template< typename T, typename int_t, Direction direction >
     struct sizet_trait< legacyVector<T,int_t,direction> > { using type = typename legacyVector<T>::idx_t; };
-
+    
     /// Specialization of has_blas_type for arrays.
     template< typename T, typename int_t, Direction direction >
     struct allow_optblas< legacyVector<T,int_t,direction> > {
         using type = T;
-        static constexpr Layout layout = Layout::StridedVector;
         static constexpr bool value = allow_optblas_v<type>;
     };
 
+    // Data type
+    template< typename T >
+    struct type_trait< legacyBandedMatrix<T> > { using type = T; };
+    // Size type
+    template< typename T >
+    struct sizet_trait< legacyBandedMatrix<T> > { using type = typename legacyBandedMatrix<T>::idx_t; };
+    // Layout type
+    template< typename T >
+    struct layout_trait< legacyBandedMatrix<T> > { using type = Banded_t; };
+
     // -----------------------------------------------------------------------------
     // Data description
-
-    // Size
-    template< typename T, Layout layout >
-    inline constexpr auto
-    size( const legacyMatrix<T,layout>& A ){ return A.m*A.n; }
 
     // Number of rows
     template< typename T, Layout layout >
@@ -65,10 +73,62 @@ namespace blas {
     inline constexpr auto
     ncols( const legacyMatrix<T,layout>& A ){ return A.n; }
 
+    // Read policy
+    template< typename T, Layout layout >
+    inline constexpr auto
+    read_policy( const legacyMatrix<T,layout>& A ) {
+        return lapack::dense;
+    }
+
+    // Write policy
+    template< typename T, Layout layout >
+    inline constexpr auto
+    write_policy( const legacyMatrix<T,layout>& A ) {
+        return lapack::dense;
+    }
+
     // Size
     template< typename T, typename int_t, Direction direction >
     inline constexpr auto
     size( const legacyVector<T,int_t,direction>& x ){ return x.n; }
+
+    // Number of rows
+    template< typename T >
+    inline constexpr auto
+    nrows( const legacyBandedMatrix<T>& A ){ return A.m; }
+
+    // Number of columns
+    template< typename T >
+    inline constexpr auto
+    ncols( const legacyBandedMatrix<T>& A ){ return A.n; }
+
+    // Lowerband
+    template< typename T >
+    inline constexpr auto
+    lowerband( const legacyBandedMatrix<T>& A ){ return A.kl; }
+
+    // Upperband
+    template< typename T >
+    inline constexpr auto
+    upperband( const legacyBandedMatrix<T>& A ){ return A.ku; }
+
+    // Read policy
+    template< typename T >
+    inline constexpr auto
+    read_policy( const legacyBandedMatrix<T>& A ) {
+        return lapack::band_t {
+            (std::size_t) A.kl, (std::size_t) A.ku
+        };
+    }
+
+    // Access policy
+    template< typename T >
+    inline constexpr auto
+    write_policy( const legacyBandedMatrix<T>& A ) {
+        return lapack::band_t {
+            (std::size_t) A.kl, (std::size_t) A.ku
+        };
+    }
 
     // -----------------------------------------------------------------------------
     // Data blocks
@@ -181,6 +241,8 @@ namespace lapack {
     using blas::size;
     using blas::nrows;
     using blas::ncols;
+    using blas::read_policy;
+    using blas::write_policy;
 
     using blas::submatrix;
     using blas::rows;

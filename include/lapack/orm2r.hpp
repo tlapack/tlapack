@@ -29,7 +29,7 @@ template<
     class side_t, class trans_t >
 int orm2r(
     side_t side, trans_t trans,
-    const matrixA_t& A,
+    matrixA_t& A,
     const tau_t& tau,
     matrixC_t& C,
     work_t& work )
@@ -50,6 +50,8 @@ int orm2r(
     lapack_error_if( trans != Op::NoTrans &&
                      trans != Op::Trans &&
                      trans != Op::ConjTrans, -2 );
+    lapack_error_if( access_denied( lowerTriangle, read_policy(A)  ), -3 );
+    lapack_error_if( access_denied( band_t(0,0),   write_policy(A) ), -3 );
 
     // const expressions
     constexpr bool positiveInc = (

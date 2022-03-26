@@ -45,8 +45,9 @@ int org2r(
     const idx_t n = ncols(A);
 
     // check arguments
-    lapack_error_if( (idx_t) size(tau)  < std::min<idx_t>( m, n ), -2 );
-    lapack_error_if( (idx_t) size(work) < n-1, -3 );
+    lapack_error_if( access_denied( dense, write_policy(A) ), -2 );
+    lapack_error_if( (idx_t) size(tau)  < std::min<idx_t>( m, n ), -3 );
+    lapack_error_if( (idx_t) size(work) < n-1, -4 );
 
     // quick return
     if (n <= 0) return 0;

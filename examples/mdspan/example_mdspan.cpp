@@ -140,7 +140,7 @@ int main( int argc, char** argv )
     }
 
     // Compute the Cholesky decomposition of U
-    int info = lapack::potrf2( lapack::upper_triangle, U );
+    int info = lapack::potrf2( lapack::upperTriangle, U );
 
     std::cout << "Cholesky ended with info " << info
               << std::endl;

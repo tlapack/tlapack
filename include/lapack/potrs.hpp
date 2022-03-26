@@ -25,8 +25,8 @@ namespace lapack {
  * where U is an upper triangular matrix and L is lower triangular.
  *
  * @param[in] uplo
- *     - lapack::upper_triangle_t: Upper triangle of A is stored;
- *     - lapack::lower_triangle_t: Lower triangle of A is stored.
+ *     - lapack::upperTriangle_t: Upper triangle of A is stored;
+ *     - lapack::lowerTriangle_t: Lower triangle of A is stored.
  *
  * @param[in,out] A
  *     The factor U or L from the Cholesky
@@ -48,6 +48,7 @@ int potrs( uplo_t uplo, const matrixA_t& A, matrixB_t& B )
     // Check arguments
     lapack_error_if(    uplo != Uplo::Lower &&
                         uplo != Uplo::Upper, -1 );
+    lapack_error_if(    access_denied( uplo, write_policy(A) ), -1 );
     lapack_error_if(    nrows(A) != ncols(A), -2 );
     lapack_error_if(    nrows(B) != ncols(A), -3 );
 

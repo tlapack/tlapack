@@ -125,6 +125,9 @@ int unmqr(
                      trans != Op::Trans &&
                      trans != Op::ConjTrans, -2 );
 
+    lapack_error_if( access_denied( strictLower, read_policy(A) ), -3 );
+    lapack_error_if( access_denied( dense, write_policy(C) ), -5 );
+
     // Preparing loop indexes
     idx_t i0, iN, step;
     if(

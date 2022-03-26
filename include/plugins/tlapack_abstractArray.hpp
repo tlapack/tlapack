@@ -49,6 +49,57 @@ namespace blas {
     inline constexpr idx_t
     ncols( const matrix_t& A );
 
+    /**
+     * @brief Read policy.
+     * 
+     * Defines the pairs (i,j) where A(i,j) returns a valid value.
+     * 
+     * @tparam matrix_t Matrix type.
+     * @tparam access_t Access type. One of the following:
+     *      MatrixAccessPolicy
+     *      dense_t,
+     *      upperHessenberg_t,
+     *      lowerHessenberg_t,
+     *      upperTriangle_t,
+     *      lowerTriangle_t,
+     *      strictUpper_t,
+     *      strictLower_t,
+     *      band_t.
+     * 
+     * @param A Matrix.
+     * 
+     * @ingroup utils
+     */
+    template< class access_t, class matrix_t >
+    inline constexpr access_t
+    read_policy( const matrix_t& A );
+
+    /**
+     * @brief Write policy.
+     * 
+     * Defines the pairs (i,j) where A(i,j) returns a valid reference for
+     * reading and writing.
+     * 
+     * @tparam matrix_t Matrix type.
+     * @tparam access_t Access type. One of the following:
+     *      MatrixAccessPolicy
+     *      dense_t,
+     *      upperHessenberg_t,
+     *      lowerHessenberg_t,
+     *      upperTriangle_t,
+     *      lowerTriangle_t,
+     *      strictUpper_t,
+     *      strictLower_t,
+     *      band_t.
+     * 
+     * @param A Matrix.
+     * 
+     * @ingroup utils
+     */
+    template< class access_t, class matrix_t >
+    inline constexpr access_t
+    write_policy( const matrix_t& A );
+
     // -------------------------------------------------------------------------
     // Data descriptors for vectors in <T>LAPACK
 
@@ -216,9 +267,14 @@ namespace blas {
 
 namespace lapack {
 
-    using blas::size;
+    // Data descriptors for matrices in <T>LAPACK
     using blas::nrows;
     using blas::ncols;
+    using blas::read_policy;
+    using blas::write_policy;
+
+    // Data descriptors for vectors in <T>LAPACK
+    using blas::size;
 
     // Block operations with matrices in <T>LAPACK
     using blas::submatrix;

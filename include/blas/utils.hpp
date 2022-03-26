@@ -47,16 +47,23 @@ using std::isinf;
 using std::isnan;
 using std::ceil;
 using std::floor;
+using std::sqrt;
+using std::sin;
+using std::cos;
+using std::atan;
+using std::exp;
+using std::pow;
 
 // -----------------------------------------------------------------------------
 // Use MPFR interface
 #ifdef USE_MPFR
     inline mpfr::mpreal real( const mpfr::mpreal& x ) { return x; }
     inline mpfr::mpreal imag( const mpfr::mpreal& x ) { return 0; }
-    using mpfr::isinf;
-    using mpfr::isnan;
-    using mpfr::ceil;
-    using mpfr::floor;
+
+    // Argument-dependent lookup (ADL) will include the remaining functions,
+    // e.g., mpfr::sin, mpfr::cos.
+    // Including them here may cause ambiguous call of overloaded function.
+    // See: https://en.cppreference.com/w/cpp/language/adl
 #endif
 
 /** Extend conj to real datatypes.
@@ -171,116 +178,6 @@ inline int sgn( const real_t& val ) {
 #endif
 
 // -----------------------------------------------------------------------------
-/// sqrt, needed because std C++ template returns double for any type different
-/// float anf long double.
-/// Note that the template in std::complex return the desired std::complex<T>.
-template< typename T >
-inline T sqrt( const T& x )
-{ return std::sqrt( x ); }
-
-#ifdef USE_MPFR
-    template<> 
-    inline mpfr::mpreal sqrt( const mpfr::mpreal& x )
-    { return mpfr::sqrt( x ); }
-#endif
-
-// -----------------------------------------------------------------------------
-/// sin, needed because std C++11 template returns double.
-template< typename T >
-inline T sin( const T& x ) { return std::sin( x ); }
-
-#ifdef USE_MPFR
-    template<> 
-    inline mpfr::mpreal sin( const mpfr::mpreal& x ) { return mpfr::sin( x ); }
-#endif
-
-// -----------------------------------------------------------------------------
-/// cos, needed because std C++11 template returns double.
-template< typename T >
-inline T cos( const T& x ) { return std::cos( x ); }
-
-#ifdef USE_MPFR
-    template<> 
-    inline mpfr::mpreal cos( const mpfr::mpreal& x ) { return mpfr::cos( x ); }
-#endif
-
-// -----------------------------------------------------------------------------
-/// atan, needed because std C++ template returns double.
-template< typename T >
-inline T atan( const T& x ) { return std::atan( x ); }
-
-#ifdef USE_MPFR
-    template<> 
-    inline mpfr::mpreal atan( const mpfr::mpreal& x ) { return mpfr::atan( x ); }
-#endif
-
-// -----------------------------------------------------------------------------
-/// exp, needed because std C++ template returns double.
-template< typename T >
-inline T exp( const T& x ) { return std::exp( x ); }
-
-#ifdef USE_MPFR
-    template<> 
-    inline mpfr::mpreal exp( const mpfr::mpreal& x ) { return mpfr::exp( x ); }
-#endif
-
-// -----------------------------------------------------------------------------
-/// pow, avoids promotion to double from std C++.
-/// Note that the template in std::complex return the desired std::complex<T>.
-template< typename T >
-inline T pow( const T& base, const T& exp )
-{ return std::pow( base, exp ); }
-
-template< typename T >
-inline T pow( const int base, const T& exp )
-{ return std::pow( (double)base, exp ); }
-
-#ifdef USE_MPFR
-    template<>
-    inline mpfr::mpreal pow(const mpfr::mpreal& a, const mpfr::mpreal& b)
-    {
-        return mpfr::pow( a, b );
-    }
-    inline mpfr::mpreal pow(const mpfr::mpreal& a, const unsigned int b)
-    {
-        return mpfr::pow( a, b );
-    }
-    inline mpfr::mpreal pow(const mpfr::mpreal& a, const int b)
-    {
-        return mpfr::pow( a, b );
-    }
-    inline mpfr::mpreal pow(const mpfr::mpreal& a, const long double b)
-    {
-        return mpfr::pow( a, b );
-    }
-    inline mpfr::mpreal pow(const mpfr::mpreal& a, const double b)
-    {
-        return mpfr::pow( a, b );
-    }
-    inline mpfr::mpreal pow(const unsigned int a, const mpfr::mpreal& b)
-    {
-        return mpfr::pow( a, b );
-    }
-    inline mpfr::mpreal pow(const long int a, const mpfr::mpreal& b)
-    {
-        return mpfr::pow( a, b );
-    }
-    template<>
-    inline mpfr::mpreal pow(const int a, const mpfr::mpreal& b)
-    {
-        return mpfr::pow( a, b );
-    }
-    inline mpfr::mpreal pow(const long double a, const mpfr::mpreal& b)
-    {
-        return mpfr::pow( a, b );
-    }
-    inline mpfr::mpreal pow(const double a, const mpfr::mpreal& b)
-    {
-        return mpfr::pow( a, b );
-    }
-#endif
-
-// -----------------------------------------------------------------------------
 /// isnan for complex numbers
 template< typename real_t >
 inline bool isnan( const std::complex<real_t>& x )
@@ -350,27 +247,30 @@ inline real_t abs1( const std::complex<real_t>& x )
 // -----------------------------------------------------------------------------
 /// Optimized BLAS
 
+template< class T1, class T2, class... Ts >
+constexpr bool has_compatible_layout = 
+    has_compatible_layout<T1, T2> &&
+    has_compatible_layout<T1, Ts...> &&
+    has_compatible_layout<T2, Ts...>;
+
+template< class T1, class T2 >
+constexpr bool has_compatible_layout<T1,T2> = ( 
+    is_same_v< layout_type<T1>, void > ||
+    is_same_v< layout_type<T2>, void > ||
+    is_same_v< layout_type<T1>, layout_type<T2> >
+);
+
 /// Specify the rules for allow_optblas for multiple data structures.
 template< class T1, class T2, class... Ts >
 struct allow_optblas< T1, T2, Ts... > {
     
     using type = allow_optblas_t<T1>;
     
-    static constexpr Layout layout =
-        (   allow_optblas_l<T1> == Layout::Scalar || 
-            allow_optblas_l<T1> == Layout::StridedVector )
-                ? allow_optblas_l<T2, Ts...>
-                : allow_optblas_l<T1>;
-    
     static constexpr bool value = 
         allow_optblas_v<T1> &&
         allow_optblas_v<T2, Ts...> &&
         is_same_v< real_type<type>, real_type<allow_optblas_t<T2>> > &&
-        (   allow_optblas_l<T1> == Layout::Scalar || 
-            allow_optblas_l<T1> == Layout::StridedVector ||
-            allow_optblas_l<T2, Ts...> == Layout::Scalar ||
-            allow_optblas_l<T2, Ts...> == Layout::StridedVector ||
-            layout == allow_optblas_l<T2, Ts...> );
+        has_compatible_layout< T1, T2, Ts... >;
 };
 
 template<class T1, class... Ts>
@@ -386,7 +286,6 @@ using disable_if_allow_optblas_t = enable_if_t<(
 #define TLAPACK_OPT_TYPE( T ) \
     template<> struct allow_optblas< T > { \
         using type = T; \
-        static constexpr Layout layout = Layout::Scalar; \
         static constexpr bool value = true; \
     }
 
@@ -404,6 +303,145 @@ using disable_if_allow_optblas_t = enable_if_t<(
         TLAPACK_OPT_TYPE(std::complex<double>);
     #endif
 #undef TLAPACK_OPT_TYPE
+
+
+
+// -----------------------------------------------------------------------------
+// is_base_of_v is defined in C++17; here's a C++11 definition
+#if __cplusplus >= 201703L
+    using std::is_base_of_v;
+#else
+    template< class Base, class Derived >
+    constexpr bool is_base_of_v = std::is_base_of<Base,Derived>::value;
+#endif
+
+/**
+ * @brief Check if a given access type is compatible with the access policy.
+ * 
+ * Examples of outputs:
+ * 
+ *      access_granted( MatrixAccessPolicy::UpperTriangle,
+ *                      MatrixAccessPolicy::Dense )             returns true.
+ *      access_granted( MatrixAccessPolicy::Dense,
+ *                      MatrixAccessPolicy::LowerHessenberg )   returns false.
+ *      access_granted( Uplo::Upper,
+ *                      MatrixAccessPolicy::UpperHessenberg )   returns true.
+ *      access_granted( Uplo::Upper,
+ *                      Uplo::Lower )                           returns false.
+ *      access_granted( upperTriangle,
+ *                      Uplo::Lower )                           returns false.
+ *      access_granted( strictUpper,
+ *                      Uplo::Upper )                           returns true.
+ * 
+ * @tparam access_t         Access type.
+ *      Either MatrixAccessPolicy, Uplo, or any type that implements
+ *          operator MatrixAccessPolicy().
+ * @tparam accessPolicy_t   Access policy.
+ *      Either MatrixAccessPolicy, Uplo, or any type that implements
+ *          operator MatrixAccessPolicy().
+ * 
+ * @param a Access type.
+ * @param p Access policy.
+ * 
+ * @ingroup utils
+ */
+template< class access_t, class accessPolicy_t >
+inline constexpr
+bool access_granted( access_t a, accessPolicy_t p )
+{
+    return (
+        
+        is_base_of_v< accessPolicy_t, access_t > ||
+
+        ((MatrixAccessPolicy) p ==(MatrixAccessPolicy) a) ||
+        ((MatrixAccessPolicy) p == MatrixAccessPolicy::Dense) ||
+        ((MatrixAccessPolicy) p == MatrixAccessPolicy::UpperHessenberg &&
+        (
+            ((MatrixAccessPolicy) a == MatrixAccessPolicy::UpperTriangle) || 
+            ((MatrixAccessPolicy) a == MatrixAccessPolicy::StrictUpper)
+        )) ||
+        ((MatrixAccessPolicy) p == MatrixAccessPolicy::LowerHessenberg &&
+        (
+            ((MatrixAccessPolicy) a == MatrixAccessPolicy::LowerTriangle) || 
+            ((MatrixAccessPolicy) a == MatrixAccessPolicy::StrictUpper)
+        )) ||
+        ((MatrixAccessPolicy) p == MatrixAccessPolicy::UpperTriangle &&
+        (
+            ((MatrixAccessPolicy) a == MatrixAccessPolicy::StrictUpper)
+        )) ||
+        ((MatrixAccessPolicy) p == MatrixAccessPolicy::LowerTriangle &&
+        (
+            ((MatrixAccessPolicy) a == MatrixAccessPolicy::StrictUpper)
+        ))
+    );
+}
+
+/**
+ * @brief Check if a given access type is compatible with the access policy.
+ * 
+ * Specific implementation for band_t.
+ * 
+ * @see bool access_granted( access_t a, accessPolicy_t p )
+ * 
+ * @ingroup utils
+ */
+template< class accessPolicy_t >
+inline constexpr
+bool access_granted( band_t a, accessPolicy_t p )
+{
+    return (
+        ((MatrixAccessPolicy) p == MatrixAccessPolicy::Dense) ||
+        ((MatrixAccessPolicy) p == MatrixAccessPolicy::UpperHessenberg && a.lower_bandwidth <= 1) ||
+        ((MatrixAccessPolicy) p == MatrixAccessPolicy::LowerHessenberg && a.upper_bandwidth <= 1) ||
+        ((MatrixAccessPolicy) p == MatrixAccessPolicy::UpperTriangle && a.lower_bandwidth == 0) ||
+        ((MatrixAccessPolicy) p == MatrixAccessPolicy::LowerTriangle && a.upper_bandwidth == 0)
+    );
+}
+
+/**
+ * @brief Check if a given access type is compatible with the access policy.
+ * 
+ * Specific implementation for band_t.
+ * 
+ * @see bool access_granted( access_t a, accessPolicy_t p )
+ * 
+ * @ingroup utils
+ */
+template< class access_t >
+inline constexpr
+bool access_granted( access_t a, band_t p )
+{
+    return false;
+}
+
+/**
+ * @brief Check if a given access type is compatible with the access policy.
+ * 
+ * Specific implementation for band_t.
+ * 
+ * @see bool access_granted( access_t a, accessPolicy_t p )
+ * 
+ * @ingroup utils
+ */
+inline constexpr
+bool access_granted( band_t a, band_t p )
+{
+    return  (p.lower_bandwidth >= a.lower_bandwidth) &&
+            (p.upper_bandwidth >= a.upper_bandwidth);
+}
+
+/**
+ * @return ! access_granted( a, p ).
+ * 
+ * @see bool access_granted( access_t a, accessPolicy_t p )
+ * 
+ * @ingroup utils
+ */
+template< class access_t, class accessPolicy_t >
+inline constexpr
+bool access_denied( access_t a, accessPolicy_t p ) {
+    return ! access_granted( a, p );
+}
 
 } // namespace blas
 

@@ -75,6 +75,7 @@ inline void larf(
     // check arguments
     blas_error_if( side != Side::Left &&
                    side != Side::Right );
+    blas_error_if(  access_denied( dense, write_policy(C) ) );
 
     if( side == Side::Left ) {
         gemv(Op::ConjTrans, one, C, v, zero, work);

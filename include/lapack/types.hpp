@@ -21,14 +21,13 @@ using blas::scalar_type;
 using blas::is_complex;
 using blas::zero_t;
 
-using blas::Layout;
 using blas::Op;
-using blas::Uplo;
 using blas::Diag;
 using blas::Side;
 
-using blas::type_t;
-using blas::size_type;
+using blas::ColMajor_t;
+using blas::RowMajor_t;
+using blas::Banded_t;
 
 // -----------------------------------------------------------------------------
 // Diagonal matrices
@@ -63,52 +62,18 @@ constexpr transpose_t transpose = { };
 constexpr conjTranspose_t conjTranspose = { };
 
 // -----------------------------------------------------------------------------
-// Matrix structure types
+// Sides
 
-// Full matrix type
-struct general_matrix_t {
-    constexpr operator Uplo() const { return Uplo::General; }
+struct left_side_t {
+    constexpr operator Side() const { return Side::Left; }
 };
-
-// Upper triangle type
-struct upper_triangle_t {
-    constexpr operator Uplo() const { return Uplo::Upper; }
-};
-
-// Lower triangle type
-struct lower_triangle_t {
-    constexpr operator Uplo() const { return Uplo::Lower; }
-};
-
-// Hessenberg matrix type
-struct hessenberg_matrix_t { };
-
-// Band matrix type
-struct band_matrix_t {
-    std::size_t lower_bandwidth, upper_bandwidth;
-
-    constexpr band_matrix_t(std::size_t kl, std::size_t ku)
-    : lower_bandwidth(kl), upper_bandwidth(ku)
-    {}
-};
-
-// Symmetric lower band matrix type
-struct symmetric_lowerband_t {
-    std::size_t bandwidth;
-    constexpr symmetric_lowerband_t(std::size_t k) : bandwidth(k) {}
-};
-
-// Symmetric upper band matrix type
-struct symmetric_upperband_t {
-    std::size_t bandwidth;
-    constexpr symmetric_upperband_t(std::size_t k) : bandwidth(k) {}
+struct right_side_t {
+    constexpr operator Side() const { return Side::Right; }
 };
 
 // Constants
-constexpr general_matrix_t general_matrix = { };
-constexpr upper_triangle_t upper_triangle = { };
-constexpr lower_triangle_t lower_triangle = { };
-constexpr hessenberg_matrix_t hessenberg_matrix = { };
+constexpr left_side_t left_side { };
+constexpr right_side_t right_side { };
 
 // -----------------------------------------------------------------------------
 // Norm types
@@ -177,20 +142,6 @@ struct rowwise_storage_t {
 // Constants
 constexpr columnwise_storage_t columnwise_storage { };
 constexpr rowwise_storage_t rowwise_storage { };
-
-// -----------------------------------------------------------------------------
-// Sides
-
-struct left_side_t {
-    constexpr operator Side() const { return Side::Left; }
-};
-struct right_side_t {
-    constexpr operator Side() const { return Side::Right; }
-};
-
-// Constants
-constexpr left_side_t left_side { };
-constexpr right_side_t right_side { };
 
 } // namespace lapack
 
