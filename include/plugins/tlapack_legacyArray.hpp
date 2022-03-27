@@ -8,6 +8,7 @@
 #define __TLAPACK_LEGACYARRAY_HH__
 
 #include <utility>
+#include <type_traits>
 
 #include "legacy_api/legacyArray.hpp"
 #include "blas/arrayTraits.hpp"
@@ -132,15 +133,36 @@ namespace blas {
 
     // -----------------------------------------------------------------------------
     // Data blocks
+
+    #define isSlice(SliceSpec) !std::is_convertible< SliceSpec, typename legacyMatrix<T>::idx_t >::value
     
-    // Submatrix
-    template< typename T, Layout layout, class SliceSpecRow, class SliceSpecCol >
+    // Slice
+    template< typename T, Layout layout, class SliceSpecRow, class SliceSpecCol,
+        typename std::enable_if< isSlice(SliceSpecRow) && isSlice(SliceSpecCol), int >::type = 0
+    >
     inline constexpr auto
-    submatrix( const legacyMatrix<T,layout>& A, SliceSpecRow&& rows, SliceSpecCol&& cols ) noexcept {
+    slice( const legacyMatrix<T,layout>& A, SliceSpecRow&& rows, SliceSpecCol&& cols ) noexcept {
         return legacyMatrix<T,layout>(
             rows.second-rows.first, cols.second-cols.first,
             &A(rows.first,cols.first), A.ldim
         );
+    }
+
+    #undef isSlice
+    
+    // Slice
+    template< typename T, Layout layout, class SliceSpecCol >
+    inline constexpr auto
+    slice( const legacyMatrix<T,layout>& A, typename legacyMatrix<T>::idx_t rowIdx, SliceSpecCol&& cols ) noexcept {
+        using idx_t = typename legacyMatrix<T>::idx_t;
+        return legacyVector<T,idx_t>( cols.second-cols.first, &A(rowIdx,cols.first), A.ldim );
+    }
+    
+    // Slice
+    template< typename T, Layout layout, class SliceSpecRow >
+    inline constexpr auto
+    slice( const legacyMatrix<T,layout>& A, SliceSpecRow&& rows, typename legacyMatrix<T>::idx_t colIdx = 0 ) noexcept {
+        return legacyVector<T>( rows.second-rows.first, &A(rows.first,colIdx) );
     }
     
     // Rows
@@ -208,10 +230,10 @@ namespace blas {
         return legacyVector<T,idx_t>( n, ptr, A.ldim + 1 );
     }
 
-    // Subvector
+    // slice
     template< typename T, typename int_t, Direction direction, class SliceSpec >
     inline constexpr auto
-    subvector( const legacyVector<T,int_t,direction>& v, SliceSpec&& rows ) noexcept {
+    slice( const legacyVector<T,int_t,direction>& v, SliceSpec&& rows ) noexcept {
         return legacyVector<T,int_t,direction>( rows.second-rows.first, &v[rows.first], v.inc );
     }
 
@@ -244,14 +266,12 @@ namespace lapack {
     using blas::read_policy;
     using blas::write_policy;
 
-    using blas::submatrix;
+    using blas::slice;
     using blas::rows;
     using blas::row;
     using blas::cols;
     using blas::col;
     using blas::diag;
-
-    using blas::subvector;
 
 } // namespace lapack
 

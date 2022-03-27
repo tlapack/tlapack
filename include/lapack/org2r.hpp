@@ -66,14 +66,14 @@ int org2r(
             A(i,i) = one;
 
             // Define v and C
-            auto v = subvector( col( A, i ), pair{i,m} );
-            auto C = submatrix( A, pair{i,m}, pair{i+1,n} );
-            auto w = subvector( work, pair{i,n-1} );
+            auto v = slice( A, pair{i,m}, i );
+            auto C = slice( A, pair{i,m}, pair{i+1,n} );
+            auto w = slice( work, pair{i,n-1} );
 
             larf( left_side, std::move(v), tau[i], C, w );
         }
         if ( i+1 < m ) {
-            auto v = subvector( col( A, i ), pair{i+1,m} );
+            auto v = slice( A, pair{i+1,m}, i );
             scal( -tau[i], v );
         }
         A(i,i) = one - tau[i];

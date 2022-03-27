@@ -45,9 +45,9 @@ namespace blas {
     // -----------------------------------------------------------------------------
     // blas functions to access std::vector block operations
 
-    // Subvector
+    // slice
     template< class T, class Allocator, class SliceSpec >
-    inline constexpr auto subvector( const std::vector<T,Allocator>& v, SliceSpec&& rows )
+    inline constexpr auto slice( const std::vector<T,Allocator>& v, SliceSpec&& rows )
     {
         #ifndef TLAPACK_USE_MDSPAN
             return legacyVector<T>( rows.second - rows.first, (T*) &v[ rows.first ] );
@@ -64,7 +64,7 @@ namespace lapack {
 
     using blas::size;
 
-    using blas::subvector;
+    using blas::slice;
 
 } // namespace lapack
 
