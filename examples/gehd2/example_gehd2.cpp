@@ -76,6 +76,10 @@ void run( size_t n )
             A(i,j) = static_cast<float>( rand() )
                         / static_cast<float>( RAND_MAX );
 
+    // for (size_t j = 0; j < n; ++j)
+    //     for (size_t i = j+2; i < n; ++i)
+    //         A(i,j) = 0.0;
+
     // Frobenius norm of A
     auto normA = lapack::lange( lapack::frob_norm, A );
 
@@ -104,6 +108,15 @@ void run( size_t n )
 
         // Generate Q = H_1 H_2 ... H_n
         blas_error_if( lapack::orghr( 0, n, Q, tau, work ) );
+
+        // Remove junk from lower half of H
+        for (size_t j = 0; j < n; ++j)
+            for (size_t i = j+2; i < n; ++i)
+                H(i,j) = 0.0;
+
+        // Shur factorization
+        std::vector<real_t> w( n );
+        blas_error_if( lapack::lahqr( true, true, 0, n, H, w, Q ) );
     }
     // Record end time
     auto endQHQ = std::chrono::high_resolution_clock::now();
@@ -153,11 +166,6 @@ void run( size_t n )
         for (size_t j = 0; j < n; ++j)
             for (size_t i = 0; i < n; ++i)
                 work(i,j) = static_cast<float>( 0xABADBABC );
-
-        // Remove junk from lower half of H
-        for (size_t j = 0; j < n; ++j)
-            for (size_t i = j+2; i < n; ++i)
-                H(i,j) = 0.0;
 
         blas::gemm( blas::Op::NoTrans, blas::Op::NoTrans, 1.0, Q, H, 0.0, work );
         blas::gemm( blas::Op::NoTrans, blas::Op::Trans, 1.0, work, Q, 0.0, H );
