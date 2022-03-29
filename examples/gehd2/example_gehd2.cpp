@@ -115,7 +115,7 @@ void run( size_t n )
                 H(i,j) = 0.0;
 
         // Shur factorization
-        std::vector<real_t> w( n );
+        std::vector<std::complex<real_t>> w( n );
         blas_error_if( lapack::lahqr( true, true, 0, n, H, w, Q ) );
     }
     // Record end time
@@ -173,6 +173,11 @@ void run( size_t n )
         for(size_t j = 0; j < n; ++j)
             for(size_t i = 0; i < n; ++i)
                 H(i,j) -= A(i,j);
+
+        if (verbose) {
+            std::cout << std::endl << "QHQ'-A = ";
+            printMatrix( H );
+        }
 
         norm_repres_1 = lapack::lange( lapack::frob_norm, H ) / normA;
 

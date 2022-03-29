@@ -1,6 +1,5 @@
 /// @file lahqr_eig22.hpp
 /// @author Thijs Steel, KU Leuven, Belgium
-/// Adapted from @see https://github.com/Reference-LAPACK/lapack/tree/master/SRC/dlaqr1.f
 //
 // Copyright (c) 2013-2022, University of Colorado Denver. All rights reserved.
 //
@@ -19,42 +18,60 @@
 namespace lapack
 {
 
-   template <
-       typename T,
-       typename real_t = real_type<T>
-   >
-   void lahqr_eig22(T a11, T a12, T a21, T a22, std::complex<real_t>& s1, std::complex<real_t>& s2)
-   {
+    /** Computes the eigenvalues of a 2x2 matrix A
+     *
+     * @param[in] a00
+     *      Element (0,0) of A.
+     * @param[in] a01
+     *      Element (0,1) of A.
+     * @param[in] a10
+     *      Element (1,0) of A.
+     * @param[in] a11
+     *      Element (1,1) of A.
+     * @param[out] s1
+     * @param[out] s2
+     *      s1 and s2 are the eigenvalues of A
+     *
+     * @ingroup geev
+     */
+    template <
+        typename T,
+        typename real_t = real_type<T>>
+    void lahqr_eig22(T a00, T a01, T a10, T a11, std::complex<real_t> &s1, std::complex<real_t> &s2)
+    {
 
-      // Using
-      using blas::abs1;
+        // Using
+        using blas::abs1;
+        using blas::real;
 
-      // Constants
-      const real_t rzero(0);
-      const real_t two(2);
-      const T zero(0);
+        // Constants
+        const real_t rzero(0);
+        const real_t two(2);
+        const T zero(0);
 
-      auto s = abs1( a11 ) + abs1( a12 ) + abs1( a21 ) + abs1( a22 );
-      if( s == rzero ) {
-         s1 = zero;
-         s2 = zero;
-         return;
-      }
+        auto s = abs1(a00) + abs1(a01) + abs1(a10) + abs1(a11);
+        if (s == rzero)
+        {
+            s1 = zero;
+            s2 = zero;
+            return;
+        }
 
-      // TODO: check this calculation
-      a11 = a11/s;
-      a12 = a12/s;
-      a21 = a21/s;
-      a22 = a22/s;
-      auto tr = (a11+a22);
-      std::complex<real_t> det = (a11-a22)*(a11-a22) + 4.0*a12*a21;
-      auto rtdisc = sqrt(det);
-      // This root formula is known to be unstable due to cancellation,
-      // it might make more sense to change it
-      s1 = s*(tr + rtdisc)/two;
-      s2 = s*(tr - rtdisc)/two;
+        a00 = a00 / s;
+        a01 = a01 / s;
+        a10 = a10 / s;
+        a11 = a11 / s;
+        auto tr = (a00 + a11) / two;
+        std::complex<real_t> det = (a00 - tr) * (a00 - tr) + a01 * a10;
+        auto rtdisc = sqrt(det);
 
-   }
+        // The old Fortran code used the following formula:
+        // s1 = s*(tr + rtdisc);
+        // s2 = s*(tr - rtdisc);
+        // This should be a little more accurate
+        s1 = (real(tr) >= rzero) ? s * (tr + rtdisc) : s * (tr - rtdisc);
+        s2 = (a00 * a11 + a01 * a10) / s1;
+    }
 
 } // lapack
 

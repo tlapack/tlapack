@@ -19,6 +19,26 @@
 namespace lapack
 {
 
+   /** Given a 2-by-2 or 3-by-3 matrix H, lahqr_shiftcolumn
+    *  calculates a multiple of the product:
+    *  (H - s1*I)*(H - s2*I)*e1
+    *
+    *  This is used to introduce shifts in the QR algorithm
+    *
+    * @return  0 if success
+    * @return -i if the ith argument is invalid
+    *
+    * @param[in] H 2x2 or 3x3 matrix.
+    *      The matrix H as in the formula above.
+    * @param[out] v vector of size 2 or 3
+    *      On exit, a multiple of the product
+    * @param[in] s1
+    *      The scalar s1 as in the formula above
+    * @param[in] s2
+    *      The scalar s2 as in the formula above
+    *
+    * @ingroup geev
+    */
    template <
        class matrix_t,
        class vector_t,
@@ -30,9 +50,9 @@ namespace lapack
    {
 
       // Using
+      using blas::abs;
       using blas::imag;
       using blas::real;
-      using blas::abs;
 
       // Constants
       idx_t n = ncols(H);
@@ -53,9 +73,9 @@ namespace lapack
          }
          else
          {
-            auto h21s = H(1, 0) / s;
-            v[0] = h21s * H(0, 1) + (H(0, 0) - real(s1)) * ((H(0, 0) - real(s2)) / s) - imag(s1) * (imag(s2) / s);
-            v[1] = h21s * (H(0, 0) + H(1, 1) - real(s1) - real(s2));
+            auto h10s = H(1, 0) / s;
+            v[0] = h10s * H(0, 1) + (H(0, 0) - real(s1)) * ((H(0, 0) - real(s2)) / s) - imag(s1) * (imag(s2) / s);
+            v[1] = h10s * (H(0, 0) + H(1, 1) - real(s1) - real(s2));
          }
       }
       else
@@ -69,16 +89,36 @@ namespace lapack
          }
          else
          {
-            auto h21s = H(1, 0) / s;
-            auto h31s = H(2, 0) / s;
-            v[0] = (H(0, 0) - real(s1)) * ((H(0, 0) - real(s2)) / s) - imag(s1) * (imag(s2) / s) + H(0, 1) * h21s + H(0, 2) * h31s;
-            v[1] = h21s * (H(0, 0) + H(1, 1) - real(s1) - real(s2)) + H(1, 2) * h31s;
-            v[2] = h31s * (H(0, 0) + H(2, 2) - real(s1) - real(s2)) + h21s * H(2, 1);
+            auto h10s = H(1, 0) / s;
+            auto h20s = H(2, 0) / s;
+            v[0] = (H(0, 0) - real(s1)) * ((H(0, 0) - real(s2)) / s) - imag(s1) * (imag(s2) / s) + H(0, 1) * h10s + H(0, 2) * h20s;
+            v[1] = h10s * (H(0, 0) + H(1, 1) - real(s1) - real(s2)) + H(1, 2) * h20s;
+            v[2] = h20s * (H(0, 0) + H(2, 2) - real(s1) - real(s2)) + h10s * H(2, 1);
          }
       }
       return 0;
    }
 
+   /** Given a 2-by-2 or 3-by-3 matrix H, lahqr_shiftcolumn
+    *  calculates a multiple of the product:
+    *  (H - s1*I)*(H - s2*I)*e1
+    *
+    *  This is used to introduce shifts in the QR algorithm
+    *
+    * @return  0 if success
+    * @return -i if the ith argument is invalid
+    *
+    * @param[in] H 2x2 or 3x3 matrix.
+    *      The matrix H as in the formula above.
+    * @param[out] v vector of size 2 or 3
+    *      On exit, a multiple of the product
+    * @param[in] s1
+    *      The scalar s1 as in the formula above
+    * @param[in] s2
+    *      The scalar s2 as in the formula above
+    *
+    * @ingroup geev
+    */
    template <
        class matrix_t,
        class vector_t,
@@ -101,7 +141,6 @@ namespace lapack
       lapack_error_if(n != nrows(H), -1);
       lapack_error_if((idx_t)size(v) != n, -2);
 
-      //TODO: fix index 1 -> 0
       if (n == 2)
       {
          auto s = abs1(H(0, 0) - s2) + abs1(H(1, 0));
@@ -112,9 +151,9 @@ namespace lapack
          }
          else
          {
-            auto h21s = H(1, 0) / s;
-            v[0] = h21s * H(0, 1) + (H(0, 0) - s1) * ((H(0, 0) - s2) / s);
-            v[1] = h21s * (H(0, 0) + H(1, 1) - s1 - s2);
+            auto h10s = H(1, 0) / s;
+            v[0] = h10s * H(0, 1) + (H(0, 0) - s1) * ((H(0, 0) - s2) / s);
+            v[1] = h10s * (H(0, 0) + H(1, 1) - s1 - s2);
          }
       }
       else
@@ -128,11 +167,11 @@ namespace lapack
          }
          else
          {
-            auto h21s = H(1, 0) / s;
-            auto h31s = H(2, 0) / s;
-            v[0] = (H(0, 0) - s1) * ((H(0, 0) - s2) / s) + H(0, 1) * h21s + H(0, 2) * h31s;
-            v[1] = h21s * (H(0, 0) + H(1, 1) - s1 - s2) + H(1, 2) * h31s;
-            v[2] = h31s * (H(0, 0) + H(2, 2) - s1 - s2) + h21s * H(2, 1);
+            auto h10s = H(1, 0) / s;
+            auto h20s = H(2, 0) / s;
+            v[0] = (H(0, 0) - s1) * ((H(0, 0) - s2) / s) + H(0, 1) * h10s + H(0, 2) * h20s;
+            v[1] = h10s * (H(0, 0) + H(1, 1) - s1 - s2) + H(1, 2) * h20s;
+            v[2] = h20s * (H(0, 0) + H(2, 2) - s1 - s2) + h10s * H(2, 1);
          }
       }
       return 0;
