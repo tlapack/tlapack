@@ -228,7 +228,8 @@ namespace lapack
                     {
                         if (want_t)
                         {
-                            if( istart+2 < istop_m){
+                            if (istart + 2 < istop_m)
+                            {
                                 auto x = subvector(row(A, istart), pair{istart + 2, istop_m});
                                 auto y = subvector(row(A, istart + 1), pair{istart + 2, istop_m});
                                 blas::rot(x, y, cs, sn);
@@ -291,16 +292,20 @@ namespace lapack
             // TODO: Check if this vector leads to allocations
             std::vector<TA> v(3);
             auto istart2 = istart;
-            for (idx_t i = istop - 3; i > istart; --i)
+            if (istart + 3 < istop)
             {
-                auto H = submatrix(A, pair{i, i + 3}, pair{i, i + 3});
-                auto x = subvector(v, pair{0, 3});
-                lahqr_shiftcolumn(H, x, s1, s2);
-                auto temp1 = abs1(A(i, i - 1)) * (abs1(v[1]) + abs1(v[2]));
-                auto temp2 = abs1(v[0]) * (abs1(A(i - 1, i - 1)) + abs1(A(i, i)) + abs1(A(i + 1, i + 1)));
-                if( temp1 <= eps*temp2){
-                    istart2 = i;
-                    break;
+                for (idx_t i = istop - 3; i > istart; --i)
+                {
+                    auto H = submatrix(A, pair{i, i + 3}, pair{i, i + 3});
+                    auto x = subvector(v, pair{0, 3});
+                    lahqr_shiftcolumn(H, x, s1, s2);
+                    auto temp1 = abs1(A(i, i - 1)) * (abs1(v[1]) + abs1(v[2]));
+                    auto temp2 = abs1(v[0]) * (abs1(A(i - 1, i - 1)) + abs1(A(i, i)) + abs1(A(i + 1, i + 1)));
+                    if (temp1 <= eps * temp2)
+                    {
+                        istart2 = i;
+                        break;
+                    }
                 }
             }
 
@@ -318,7 +323,7 @@ namespace lapack
                     larfg(v[0], x, t1);
                     if (i > istart)
                     {
-                        A(i, i - 1) = A(i, i - 1) * (one - t1);
+                        A(i, i - 1) = A(i, i - 1) * (one - conj(t1));
                     }
                 }
                 else
@@ -339,6 +344,7 @@ namespace lapack
                 // We write this out instead of using larf because a direct loop is more
                 // efficient for small reflectors.
 
+                t1 = conj(t1);
                 auto v2 = v[1];
                 auto t2 = t1 * v2;
                 TA sum;

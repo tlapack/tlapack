@@ -33,14 +33,15 @@ inline void printMatrix( const matrix_t& A )
 }
 
 //------------------------------------------------------------------------------
-template <typename real_t>
+template <typename T>
 void run( size_t n )
 {
+    using real_t = lapack::real_type<T>;
     using std::size_t;
     using blas::internal::colmajor_matrix;
 
     // Turn it off if m or n are large
-    bool verbose = false;
+    bool verbose = true;
 
     // Leading dimensions
     size_t lda = (n > 0) ? n : 1;
@@ -48,15 +49,15 @@ void run( size_t n )
     size_t ldq = lda;
 
     // Arrays
-    std::unique_ptr<real_t[]> _A(new real_t[ lda*n ]); // m-by-n
-    std::unique_ptr<real_t[]> _H(new real_t[ ldh*n ]); // n-by-n
-    std::unique_ptr<real_t[]> _Q(new real_t[ ldq*n ]); // m-by-n
-    std::vector<real_t> tau ( n );
+    std::unique_ptr<T[]> _A(new T[ lda*n ]); // m-by-n
+    std::unique_ptr<T[]> _H(new T[ ldh*n ]); // n-by-n
+    std::unique_ptr<T[]> _Q(new T[ ldq*n ]); // m-by-n
+    std::vector<T> tau ( n );
 
     // Matrix views
-    auto A = colmajor_matrix<real_t>( &_A[0], n, n, lda );
-    auto H = colmajor_matrix<real_t>( &_H[0], n, n, ldh );
-    auto Q = colmajor_matrix<real_t>( &_Q[0], n, n, ldq );
+    auto A = colmajor_matrix<T>( &_A[0], n, n, lda );
+    auto H = colmajor_matrix<T>( &_H[0], n, n, ldh );
+    auto Q = colmajor_matrix<T>( &_Q[0], n, n, ldq );
 
     // Initialize arrays with junk
     for (size_t j = 0; j < n; ++j) {
@@ -96,7 +97,7 @@ void run( size_t n )
 
     // Record start time
     auto startQHQ = std::chrono::high_resolution_clock::now(); {
-        std::vector<real_t> work( n );
+        std::vector<T> work( n );
     
         // Hessenberg factorization
         blas_error_if( lapack::gehd2( 0, n, Q, tau, work ) );
@@ -132,21 +133,22 @@ void run( size_t n )
         printMatrix( H );
     }
 
-    real_t norm_orth_1, norm_repres_1;
+    T norm_orth_1, norm_repres_1;
 
     // 2) Compute ||Q'Q - I||_F
 
     {
-        std::unique_ptr<real_t[]> _work(new real_t[ n*n ]);
-        auto work = colmajor_matrix<real_t>( &_work[0], n, n );
+        std::unique_ptr<T[]> _work(new T[ n*n ]);
+        auto work = colmajor_matrix<T>( &_work[0], n, n );
         for (size_t j = 0; j < n; ++j)
             for (size_t i = 0; i < n; ++i)
                 work(i,j) = static_cast<float>( 0xABADBABE );
         
         // work receives the identity n*n
-        lapack::laset( lapack::upper_triangle, 0.0, 1.0, work );
+        lapack::laset( blas::Uplo::General, (T) 0.0,(T) 1.0, work );
         // work receives Q'Q - I
-        blas::syrk( blas::Uplo::Upper, blas::Op::Trans, 1.0, Q, -1.0, work );
+        // blas::syrk( blas::Uplo::Upper, blas::Op::ConjTrans, (T) 1.0, Q, (T) -1.0, work );
+        blas::gemm( blas::Op::ConjTrans, blas::Op::NoTrans, (T) 1.0, Q, Q, (T) -1.0, work );
 
         // Compute ||Q'Q - I||_F
         norm_orth_1 = lapack::lansy( lapack::frob_norm, lapack::upper_triangle, work );
@@ -158,30 +160,55 @@ void run( size_t n )
 
     }
 
-    // 3) Compute ||QHQ* - A||_F / ||A||_F
+    // 3) Compute ||H - Q'AQ||_F / ||A||_F
 
     {
-        std::unique_ptr<real_t[]> _work(new real_t[ n*n ]);
-        auto work = colmajor_matrix<real_t>( &_work[0], n, n );
+        std::unique_ptr<T[]> _work(new T[ n*n ]);
+        auto work = colmajor_matrix<T>( &_work[0], n, n );
         for (size_t j = 0; j < n; ++j)
             for (size_t i = 0; i < n; ++i)
                 work(i,j) = static_cast<float>( 0xABADBABC );
 
-        blas::gemm( blas::Op::NoTrans, blas::Op::NoTrans, 1.0, Q, H, 0.0, work );
-        blas::gemm( blas::Op::NoTrans, blas::Op::Trans, 1.0, work, Q, 0.0, H );
+        blas::gemm( blas::Op::ConjTrans, blas::Op::NoTrans,(T) 1.0, Q, A,(T) 0.0, work );
+        blas::gemm( blas::Op::NoTrans, blas::Op::NoTrans,(T) 1.0, work, Q,(T) 0.0, A );
 
         for(size_t j = 0; j < n; ++j)
             for(size_t i = 0; i < n; ++i)
-                H(i,j) -= A(i,j);
+                A(i,j) -= H(i,j);
 
         if (verbose) {
-            std::cout << std::endl << "QHQ'-A = ";
-            printMatrix( H );
+            std::cout << std::endl << "H-Q'AQ = ";
+            printMatrix( A );
         }
 
-        norm_repres_1 = lapack::lange( lapack::frob_norm, H ) / normA;
+        norm_repres_1 = lapack::lange( lapack::frob_norm, A ) / normA;
 
     }
+
+    // 3) Compute ||QHQ* - A||_F / ||A||_F
+
+    // {
+    //     std::unique_ptr<T[]> _work(new T[ n*n ]);
+    //     auto work = colmajor_matrix<T>( &_work[0], n, n );
+    //     for (size_t j = 0; j < n; ++j)
+    //         for (size_t i = 0; i < n; ++i)
+    //             work(i,j) = static_cast<float>( 0xABADBABC );
+
+    //     blas::gemm( blas::Op::NoTrans, blas::Op::NoTrans,(T) 1.0, Q, H,(T) 0.0, work );
+    //     blas::gemm( blas::Op::NoTrans, blas::Op::ConjTrans,(T) 1.0, work, Q,(T) 0.0, H );
+
+    //     for(size_t j = 0; j < n; ++j)
+    //         for(size_t i = 0; i < n; ++i)
+    //             H(i,j) -= A(i,j);
+
+    //     if (verbose) {
+    //         std::cout << std::endl << "QHQ'-A = ";
+    //         printMatrix( H );
+    //     }
+
+    //     norm_repres_1 = lapack::lange( lapack::frob_norm, H ) / normA;
+
+    // }
     
     // *) Output
  
@@ -206,17 +233,21 @@ int main( int argc, char** argv )
     std::cout.precision(5);
     std::cout << std::scientific << std::showpos;
     
-    printf( "run< float  >( %d )", n );
-    run< float  >( n );
+    printf( "run< float >( %d )", n );
+    run< float >( n );
     printf( "-----------------------\n" );
     
-    printf( "run< double >( %d )", n );
-    run< double >( n );
+    printf( "run< std::complex<float>  >( %d )", n );
+    run< std::complex<float>  >( n );
     printf( "-----------------------\n" );
     
-    printf( "run< long double >( %d )", n );
-    run< long double >( n );
-    printf( "-----------------------\n" );
+    // printf( "run< double >( %d )", n );
+    // run< double >( n );
+    // printf( "-----------------------\n" );
+    
+    // printf( "run< long double >( %d )", n );
+    // run< long double >( n );
+    // printf( "-----------------------\n" );
 
     return 0;
 }

@@ -63,6 +63,7 @@ int gehd2( size_type< matrix_t > ilo, size_type< matrix_t > ihi, matrix_t& A, ve
     using TA    = type_t< matrix_t >;
     using idx_t = size_type< matrix_t >;
     using pair  = std::pair<idx_t,idx_t>;
+    using blas::conj;
 
     // constants
     const TA one( 1 );
@@ -97,7 +98,8 @@ int gehd2( size_type< matrix_t > ilo, size_type< matrix_t > ihi, matrix_t& A, ve
         // Apply Householder reflection from the left to A[i+1:ihi,i+1:n-1]
         w = subvector( work, pair{i+1,n} );
         C = submatrix( A, pair{i+1,ihi}, pair{i+1,n} );
-        larf( left_side, v, tau[i], C, w );
+        auto tauconj = conj(tau[i]);
+        larf( left_side, v, tauconj, C, w );
 
         A(i+1,i) = alpha;
 	}
