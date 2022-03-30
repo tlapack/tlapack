@@ -53,7 +53,7 @@ namespace lapack {
  *      reflectors. See Further Details.
  * @param[out] tau Real vector of length n-1.
  *      The scalar factors of the elementary reflectors.
- * @param work Vector of size n-1.
+ * @param work Vector of size n.
  * 
  * @ingroup gehrd
  */
@@ -69,17 +69,17 @@ int gehd2( size_type< matrix_t > ilo, size_type< matrix_t > ihi, matrix_t& A, ve
     const idx_t n = ncols(A);
 
     // check arguments
-    lapack_error_if( ncols(A) != nrows(A), -1 );
-    lapack_error_if( (idx_t) size(tau)  < n, -2 );
-    lapack_error_if( (idx_t) size(work) < n-1, -3 );
+    lapack_error_if( ncols(A) != nrows(A), -3 );
+    lapack_error_if( (idx_t) size(tau)  < n-1, -4 );
+    lapack_error_if( (idx_t) size(work) < n, -5 );
 
     // quick return
     if (n <= 0) return 0;
 
-    for(idx_t i = ilo; i <= ihi-2; ++i) {
+    for(idx_t i = ilo; i < ihi-1; ++i) {
 
-        // Define x := A[min(i+2,ihi):ihi,i]
-        auto x = subvector( col( A, i ), pair{std::min<idx_t>(i+2,ihi),ihi} );
+        // Define x := A[min(i+2,ihi-1):ihi,i]
+        auto x = subvector( col( A, i ), (i < ihi-2) ? pair{i+2,ihi} : pair{0,0});
 
         // Generate the (i+1)-th elementary Householder reflection on x
         larfg( A(i+1,i), x, tau[i] );

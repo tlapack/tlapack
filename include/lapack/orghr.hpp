@@ -59,8 +59,7 @@ int orghr(
 
     // This is currently optimised for column matrices, it may be interesting
     // to also write these loops for row matrices
-    for(idx_t j2 = ihi; j2 > ilo; --j2) {
-        idx_t j = j2 - 1;
+    for(idx_t j = ihi-1; j > ilo; --j) {
         for(idx_t i = 0; i < j; ++i) {
             A(i,j) = zero;
         }

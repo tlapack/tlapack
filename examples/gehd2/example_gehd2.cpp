@@ -96,7 +96,7 @@ void run( size_t n )
 
     // Record start time
     auto startQHQ = std::chrono::high_resolution_clock::now(); {
-        std::vector<real_t> work( n-1 );
+        std::vector<real_t> work( n );
     
         // Hessenberg factorization
         blas_error_if( lapack::gehd2( 0, n, Q, tau, work ) );

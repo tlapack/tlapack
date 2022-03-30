@@ -228,9 +228,11 @@ namespace lapack
                     {
                         if (want_t)
                         {
-                            auto x = subvector(row(A, istart), pair{istart + 2, istop_m});
-                            auto y = subvector(row(A, istart + 1), pair{istart + 2, istop_m});
-                            blas::rot(x, y, cs, sn);
+                            if( istart+2 < istop_m){
+                                auto x = subvector(row(A, istart), pair{istart + 2, istop_m});
+                                auto y = subvector(row(A, istart + 1), pair{istart + 2, istop_m});
+                                blas::rot(x, y, cs, sn);
+                            }
                             auto x2 = subvector(col(A, istart), pair{istart_m, istart});
                             auto y2 = subvector(col(A, istart + 1), pair{istart_m, istart});
                             blas::rot(x2, y2, cs, sn);
