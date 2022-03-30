@@ -189,6 +189,35 @@ namespace blas {
 
     #undef isSlice
 
+    // interpretAsMatrix
+    template< class ET, class Exts, class LP, class AP,
+        std::enable_if_t< Exts::rank() == 1 , int > = 0
+    >
+    inline constexpr
+    auto
+    interpretAsMatrix( const mdspan<ET,Exts,LP,AP>& v ) noexcept
+    {
+        using extents_t = std::experimental::extents<std::experimental::dynamic_extent,1>;
+        using mapping_t = typename LP::template mapping<extents_t>;
+
+        return std::experimental::mdspan<ET,extents_t,LP,AP>(
+            v.data(),
+            mapping_t( extents_t(v.size()) ),
+            v.accessor()
+        );
+    }
+
+    // interpretAsMatrix
+    template< class ET, class Exts, class LP, class AP,
+        std::enable_if_t< Exts::rank() == 2, int > = 0
+    >
+    inline constexpr
+    const auto&
+    interpretAsMatrix( const mdspan<ET,Exts,LP,AP>& A ) noexcept
+    {
+        return A;
+    }
+
     // -----------------------------------------------------------------------------
     // Convert to legacy array
 
@@ -241,6 +270,7 @@ namespace lapack {
     using blas::col;
     using blas::subvector;
     using blas::diag;
+    using blas::interpretAsMatrix;
 
 } // namespace lapack
 

@@ -36,15 +36,17 @@ namespace lapack {
  * 
  * @ingroup auxiliary
 **/
-template< typename norm_t, typename matrix_t >
-real_type< type_t< matrix_t > >
-lange( norm_t normType, const matrix_t& A )
+template< typename norm_t, typename array_t >
+auto
+lange( norm_t normType, const array_t& a )
 {
-    using T      = type_t< matrix_t >;
+    using T      = type_t< array_t >;
     using real_t = real_type< T >;
-    using idx_t  = size_type< matrix_t >;
+    using idx_t  = size_type< array_t >;
     using blas::isnan;
     using blas::sqrt;
+
+    const auto& A = interpretAsMatrix( a );
 
     // constants
     const real_t rzero(0.0);
