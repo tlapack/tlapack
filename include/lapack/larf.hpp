@@ -62,7 +62,7 @@ inline void larf(
     vector_t const& v, tau_t& tau,
     matrix_t& C, work_t& work )
 {
-    using blas::gemm;
+    using blas::gemv;
     using blas::ger;
 
     // data traits
