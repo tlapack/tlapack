@@ -81,7 +81,7 @@ int geqr2( matrix_t& A, vector_t &tau, work_t &work )
         // Define x := A[i+1:m,i]
         auto x = subvector( col( A, i ), pair{i+1,m} );
 
-        // Generate the (i+1)-th elementary Household reflection on x
+        // Generate the (i+1)-th elementary Householder reflection on x
         larfg( A(i,i), x, tau[i] );
 
         const auto alpha = A(i,i);
@@ -100,7 +100,7 @@ int geqr2( matrix_t& A, vector_t &tau, work_t &work )
     if( n-1 < m ) {
         // Define x := A[n:m,n-1]
         auto x = subvector( col( A, n-1 ), pair{n,m} );
-        // Generate the n-th elementary Household reflection on x
+        // Generate the n-th elementary Householder reflection on x
         larfg( A(n-1,n-1), x, tau[n-1] );
     }
 
