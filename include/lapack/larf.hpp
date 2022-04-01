@@ -18,6 +18,43 @@
 
 namespace lapack {
 
+
+
+template<typename vector_t>
+class vector_that_starts_with_one {
+    using T = type_t<vector_t>;
+    using idx_t = size_type<vector_t>;
+
+    public:
+    vector_that_starts_with_one( vector_t const& v ): v_(v){}
+
+    T operator[](idx_t i) const {
+        if( i == 0){
+            return T(1);
+        }
+        return v_[i];
+    }
+
+    vector_t const& v_;
+};
+
+
+template< typename vector_t >
+inline constexpr auto
+size( const vector_that_starts_with_one<vector_t>& v){ return size(v.v_); }
+
+template< typename vector_t, class SliceSpec >
+inline constexpr auto
+subvector( const vector_that_starts_with_one<vector_t>& v, SliceSpec&& rows ) noexcept {
+    if(rows.first == 0)
+        return vector_that_starts_with_one<vector_t>(subvector(v.v_,rows));
+    else
+        return subvector(v.v_,rows);
+}
+
+template< typename vector_t >
+struct type_trait< vector_that_starts_with_one<vector_t> > { using type = type_t<vector_t>; };
+
 /** Applies an elementary reflector H to a m-by-n matrix C.
  *
  * The elementary reflector H can be applied on either the left or right, with
@@ -77,13 +114,15 @@ inline void larf(
                    side != Side::Right );
     blas_error_if(  access_denied( dense, write_policy(C) ) );
 
+    vector_that_starts_with_one<vector_t> v2(v);
+
     if( side == Side::Left ) {
-        gemv(Op::ConjTrans, one, C, v, zero, work);
-        ger(-tau, v, work, C);
+        gemv(Op::ConjTrans, one, C, v2, zero, work);
+        ger(-tau, v2, work, C);
     }
     else {
-        gemv(Op::NoTrans, one, C, v, zero, work);
-        ger(-tau, work, v, C);
+        gemv(Op::NoTrans, one, C, v2, zero, work);
+        ger(-tau, work, v2, C);
     }
 }
 
