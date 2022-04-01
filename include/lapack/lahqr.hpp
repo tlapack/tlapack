@@ -30,6 +30,15 @@ namespace lapack
      *  factorization of an upper Hessenberg matrix, using the double-shift
      *  implicit QR algorithm.
      *
+     *  The Schur factorization is returned in standard form. For complex matrices
+     *  this means that the matrix T is upper-triangular. The diagonal entries
+     *  of T are also its eigenvalues. For real matrices, this means that the
+     *  matrix T is block-triangular, with real eigenvalues appearing as 1x1 blocks
+     *  on the diagonal and imaginary eigenvalues appearing as 2x2 blocks on the diagonal.
+     *  All 2x2 blocks are normalized so that the diagonal entries are equal to the real part
+     *  of the eigenvalue.
+     *
+     *
      * @return  0 if success
      * @return -i if the ith argument is invalid
      * @return  i if the QR algorithm failed to compute all the eigenvalues
@@ -50,7 +59,7 @@ namespace lapack
      *      On entry, the matrix A.
      *      On exit, if info=0 and want_t=true, the Schur factor T.
      *      T is quasi-triangular in rows and columns ilo:ihi, with
-     *      the diagonal (block) entries in standard form.
+     *      the diagonal (block) entries in standard form (see above).
      * @param[out] w  size n vector.
      *      On exit, if info=0, w(ilo:ihi) contains the eigenvalues
      *      of A(ilo:ihi,ilo:ihi). The eigenvalues appear in the same
@@ -81,7 +90,6 @@ namespace lapack
         using lapack::lahqr_shiftcolumn;
 
         // constants
-        const real_t rone(1);
         const real_t rzero(0);
         const TA one(1);
         const TA zero(0);
@@ -289,7 +297,6 @@ namespace lapack
             // If it has split, we can introduce any shift at the top of the new subblock.
             // Now that we know the specific shift, we can also check whether we can introduce that shift
             // somewhere else in the subblock.
-            // TODO: Check if this vector leads to allocations
             std::vector<TA> v(3);
             auto istart2 = istart;
             if (istart + 3 < istop)

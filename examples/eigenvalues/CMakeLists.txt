@@ -6,7 +6,7 @@
 
 cmake_minimum_required(VERSION 3.1)
 
-project( gehd2 CXX )
+project( eigenvalues CXX )
 
 # Load <T>LAPACK
 if( NOT TARGET tlapack )
@@ -14,5 +14,5 @@ if( NOT TARGET tlapack )
 endif()
 
 # add the example geqr2
-add_executable( example_gehd2 example_gehd2.cpp )
-target_link_libraries( example_gehd2 PRIVATE tlapack )
+add_executable( example_eigenvalues example_eigenvalues.cpp )
+target_link_libraries( example_eigenvalues PRIVATE tlapack )
