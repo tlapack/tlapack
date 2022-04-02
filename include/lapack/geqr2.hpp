@@ -78,30 +78,24 @@ int geqr2( matrix_t& A, vector_t &tau, work_t &work )
 
     for(idx_t i = 0; i < k; ++i) {
 
-        // Define x := A[i+1:m,i]
-        auto x = subvector( col( A, i ), pair{i+1,m} );
+        // Define v := A[i:m,i]
+        auto v = subvector( col( A, i ), pair{i,m} );
 
         // Generate the (i+1)-th elementary Householder reflection on x
-        larfg( A(i,i), x, tau[i] );
-
-        const auto alpha = A(i,i);
-        A(i,i) = one;
+        larfg( v, tau[i] );
 
         // Define v := A[i:m,i] and C := A[i:m,i+1:n], and w := work[i:n-1]
-        const auto v = subvector( col( A, i ), pair{i,m} );
-              auto C = submatrix( A, pair{i,m}, pair{i+1,n} );
-              auto w = subvector( work, pair{i,n-1} );
+        auto C = submatrix( A, pair{i,m}, pair{i+1,n} );
+        auto w = subvector( work, pair{i,n-1} );
 
         // C := I - tau_i v v^H
         larf( left_side, v, tau[i], C, w );
-
-        A(i,i) = alpha;
 	}
     if( n-1 < m ) {
-        // Define x := A[n:m,n-1]
-        auto x = subvector( col( A, n-1 ), pair{n,m} );
+        // Define v := A[n-1:m,n-1]
+        auto v = subvector( col( A, n-1 ), pair{n-1,m} );
         // Generate the n-th elementary Householder reflection on x
-        larfg( A(n-1,n-1), x, tau[n-1] );
+        larfg( v, tau[n-1] );
     }
 
     return 0;
