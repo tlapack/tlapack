@@ -7,6 +7,8 @@
 #ifndef __TLAPACK_LEGACY_ARRAY_HH__
 #define __TLAPACK_LEGACY_ARRAY_HH__
 
+#include <assert.h>
+
 #include "legacy_api/blas/types.hpp"
 #include "blas/exceptionHandling.hpp"
 
@@ -47,6 +49,10 @@ namespace blas {
         
         inline constexpr T&
         operator()( idx_t i, idx_t j ) const noexcept {
+            assert( i >= 0);
+            assert( i < m);
+            assert( j >= 0);
+            assert( j < n);
             return (layout == Layout::ColMajor)
                 ? ptr[ i + j*ldim ]
                 : ptr[ i*ldim + j ];
@@ -75,6 +81,8 @@ namespace blas {
         
         inline constexpr T&
         operator[]( idx_t i ) const noexcept {
+            assert( i >= 0);
+            assert( i < n);
             return (direction == Direction::Forward)
                 ? *(ptr + (i*inc))
                 : *(ptr + ((n-1)-i)*inc);
@@ -113,6 +121,12 @@ namespace blas {
          */
         inline constexpr T&
         operator()( idx_t i, idx_t j ) const {
+            assert( i >= 0);
+            assert( i < m);
+            assert( j >= 0);
+            assert( j < n);
+            assert( j <= i + ku);
+            assert( i <= j + kl);
             return ptr[ (ku+i) + j*(ku+kl) ];
         }
         
