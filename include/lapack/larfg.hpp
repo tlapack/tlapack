@@ -49,12 +49,12 @@ namespace lapack {
  * 
  * @ingroup auxiliary
  */
-template< class vectorX_t, class alpha_t, class tau_t >
-void larfg( alpha_t& alpha, vectorX_t& x, tau_t& tau )
+template< class vector_t, class alpha_t, class tau_t >
+void larfg( alpha_t& alpha, vector_t& x, tau_t& tau )
 {
     // data traits
-    using TX    = type_t< vectorX_t >;
-    using idx_t = size_type< vectorX_t >;
+    using TX    = type_t< vector_t >;
+    using idx_t = size_type< vector_t >;
 
     // using
     using real_t = real_type< alpha_t, TX >;

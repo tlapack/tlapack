@@ -15,17 +15,14 @@ namespace blas {
 /**
  * General matrix-vector multiply:
  * \[
- *     y = \alpha op(A) x + \beta y,
+ *     y := \alpha op(A) x + \beta y,
  * \]
  * where $op(A)$ is one of
  *     $op(A) = A$,
  *     $op(A) = A^T$,
  *     $op(A) = A^H$, or
  *     $op(A) = conj(A)$,
- * alpha and beta are scalars, x and y are vectors,
- * and A is an m-by-n matrix.
- *
- * Generic implementation for arbitrary data types.
+ * alpha and beta are scalars, x and y are vectors, and A is a matrix.
  *
  * @param[in] trans
  *     The operation to be performed:
@@ -34,11 +31,11 @@ namespace blas {
  *     - Op::ConjTrans: $y = \alpha A^H x + \beta y$,
  *     - Op::Conj:  $y = \alpha conj(A) x + \beta y$.
  *
- * @param[in] alpha scalar.
- * @param[in] A matrix.
- * @param[in] x vector.
- * @param[in] beta scalar.
- * @param[in,out] y vector.
+ * @param[in] alpha Scalar.
+ * @param[in] A $op(A)$ is an m-by-n matrix.
+ * @param[in] x A n-element vector.
+ * @param[in] beta Scalar.
+ * @param[in,out] y A m-element vector.
  * 
  * @ingroup gemv
  */
@@ -54,29 +51,23 @@ void gemv(
     // data traits
     using TA    = type_t< matrixA_t >;
     using TX    = type_t< vectorX_t >;
-    using TY    = type_t< vectorY_t >;
     using idx_t = size_type< matrixA_t >;
 
     // constants
-    const TY zero( 0 );
-    const idx_t m = nrows(A);
-    const idx_t n = ncols(A);
-    const idx_t lenx = size(x);
-    const idx_t leny = size(y);
+    const idx_t m = (trans == Op::NoTrans || trans == Op::Conj)
+                    ? nrows(A)
+                    : ncols(A);
+    const idx_t n = (trans == Op::NoTrans || trans == Op::Conj)
+                    ? ncols(A)
+                    : nrows(A);
 
     // check arguments
     blas_error_if( trans != Op::NoTrans &&
                    trans != Op::Trans &&
                    trans != Op::ConjTrans &&
                    trans != Op::Conj );
-    blas_error_if(
-        m != ( (trans == Op::NoTrans || trans == Op::Conj)
-                ? leny
-                : lenx ) );
-    blas_error_if(
-        n != ( (trans == Op::NoTrans || trans == Op::Conj)
-                ? lenx
-                : leny ) );
+    blas_error_if( size(x) != n );
+    blas_error_if( size(y) != m );
 
     blas_error_if( access_denied( dense, read_policy(A) ) );
 
@@ -85,14 +76,14 @@ void gemv(
         return;
 
     // ----------
-    // form y = beta*y
+    // form y := beta*y
     if (beta != beta_t(1)) {
         if (beta == beta_t(0)) {
-            for (idx_t i = 0; i < leny; ++i)
-                y[i] = zero;
+            for (idx_t i = 0; i < m; ++i)
+                y[i] = 0;
         }
         else {
-            for (idx_t i = 0; i < leny; ++i)
+            for (idx_t i = 0; i < m; ++i)
                 y[i] *= beta;
         }
     }
@@ -120,22 +111,22 @@ void gemv(
     }
     else if (trans == Op::Trans) {
         // form y += alpha * A^T * x
-        for (idx_t j = 0; j < n; ++j) {
+        for (idx_t i = 0; i < m; ++i) {
             scalar_type<TA,TX> tmp( 0 );
-            for (idx_t i = 0; i < m; ++i) {
-                tmp += A(i, j) * x[i];
+            for (idx_t j = 0; j < n; ++j) {
+                tmp += A(j, i) * x[j];
             }
-            y[j] += alpha*tmp;
+            y[i] += alpha*tmp;
         }
     }
     else {
         // form y += alpha * A^H * x
-        for (idx_t j = 0; j < n; ++j) {
+        for (idx_t i = 0; i < m; ++i) {
             scalar_type<TA,TX> tmp( 0 );
-            for (idx_t i = 0; i < m; ++i) {
-                tmp += conj(A(i, j)) * x[i];
+            for (idx_t j = 0; j < n; ++j) {
+                tmp += conj(A(j, i)) * x[j];
             }
-            y[j] += alpha*tmp;
+            y[i] += alpha*tmp;
         }
     }
 }

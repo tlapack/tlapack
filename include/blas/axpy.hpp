@@ -13,29 +13,11 @@
 namespace blas {
 
 /**
- * Add scaled vector, $y = \alpha x + y$.
+ * Add scaled vector, $y := \alpha x + y$.
  *
- * Generic implementation for arbitrary data types.
- *
- * @param[in] n
- *     Number of elements in x and y. n >= 0.
- *
- * @param[in] alpha
- *     Scalar alpha. If alpha is zero, y is not updated.
- *
- * @param[in] x
- *     The n-element vector x, in an array of length (n-1)*abs(incx) + 1.
- *
- * @param[in] incx
- *     Stride between elements of x. incx must not be zero.
- *     If incx < 0, uses elements of x in reverse order: x(n-1), ..., x(0).
- *
- * @param[in, out] y
- *     The n-element vector y, in an array of length (n-1)*abs(incy) + 1.
- *
- * @param[in] incy
- *     Stride between elements of y. incy must not be zero.
- *     If incy < 0, uses elements of y in reverse order: y(n-1), ..., y(0).
+ * @param[in] alpha Scalar.
+ * @param[in] x     A n-element vector.
+ * @param[in,out] y A vector with at least n elements.
  *
  * @ingroup axpy
  */
@@ -44,13 +26,13 @@ void axpy(
     const alpha_t& alpha,
     const vectorX_t& x, vectorY_t& y )
 {
-    using idx_t = size_type< vectorY_t >;
+    using idx_t = size_type< vectorX_t >;
 
     // constants
-    const idx_t n = size(y);
+    const idx_t n = size(x);
 
     // check arguments
-    blas_error_if( size(x) != n );
+    blas_error_if( size(y) < n );
 
     for (idx_t i = 0; i < n; ++i)
         y[i] += alpha * x[i];

@@ -793,7 +793,6 @@ WARN_LOGFILE           = docs/errors.txt
 INPUT = \
     include \
     src \
-    examples \
     docs/groups.dox \
     README.md
 

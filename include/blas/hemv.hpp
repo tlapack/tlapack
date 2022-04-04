@@ -9,22 +9,16 @@
 #define BLAS_HEMV_HH
 
 #include "blas/utils.hpp"
-#include "blas/symv.hpp"
 
 namespace blas {
 
 /**
  * Hermitian matrix-vector multiply:
  * \[
- *     y = \alpha A x + \beta y,
+ *     y := \alpha A x + \beta y,
  * \]
  * where alpha and beta are scalars, x and y are vectors,
  * and A is an n-by-n Hermitian matrix.
- *
- * Generic implementation for arbitrary data types.
- *
- * @param[in] layout
- *     Matrix storage, Layout::ColMajor or Layout::RowMajor.
  *
  * @param[in] uplo
  *     What part of the matrix A is referenced,
@@ -32,36 +26,13 @@ namespace blas {
  *     - Uplo::Lower: only the lower triangular part of A is referenced.
  *     - Uplo::Upper: only the upper triangular part of A is referenced.
  *
- * @param[in] n
- *     Number of rows and columns of the matrix A. n >= 0.
- *
- * @param[in] alpha
- *     Scalar alpha. If alpha is zero, A and x are not accessed.
- *
- * @param[in] A
- *     The n-by-n matrix A, stored in an lda-by-n array [RowMajor: n-by-lda].
+ * @param[in] alpha Scalar.
+ * @param[in] A A n-by-n Hermitian matrix.
  *     Imaginary parts of the diagonal elements need not be set,
- *     and are assumed to be zero.
- *
- * @param[in] lda
- *     Leading dimension of A. lda >= max(1, n).
- *
- * @param[in] x
- *     The n-element vector x, in an array of length (n-1)*abs(incx) + 1.
- *
- * @param[in] incx
- *     Stride between elements of x. incx must not be zero.
- *     If incx < 0, uses elements of x in reverse order: x(n-1), ..., x(0).
- *
- * @param[in] beta
- *     Scalar beta. If beta is zero, y need not be set on input.
- *
- * @param[in, out] y
- *     The n-element vector y, in an array of length (n-1)*abs(incy) + 1.
- *
- * @param[in] incy
- *     Stride between elements of y. incy must not be zero.
- *     If incy < 0, uses elements of y in reverse order: y(n-1), ..., y(0).
+ *     are assumed to be zero on entry, and are set to zero on exit.
+ * @param[in] x A n-element vector.
+ * @param[in] beta Scalar.
+ * @param[in,out] y A n-element vector.
  *
  * @ingroup hemv
  */
@@ -80,7 +51,7 @@ void hemv(
     using idx_t = size_type< matrixA_t >;
 
     // using
-    using scalar_t = scalar_type<alpha_t,TA,TX>;
+    using scalar_t = scalar_type<TA,TX>;
 
     // constants
     const idx_t n = nrows(A);
@@ -98,7 +69,7 @@ void hemv(
     if (beta != beta_t(1)) {
         if (beta == beta_t(0)) {
             for (idx_t i = 0; i < n; ++i)
-                y[i] = beta_t(0);
+                y[i] = 0;
         }
         else {
             for (idx_t i = 0; i < n; ++i)
@@ -119,7 +90,7 @@ void hemv(
             y[j] += tmp1 * real( A(j,j) ) + alpha * tmp2;
         }
     }
-    else if (uplo == Uplo::Lower) {
+    else {
         // A is stored in lower triangle
         // form y += alpha * A * x
         for (idx_t j = 0; j < n; ++j) {

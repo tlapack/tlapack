@@ -50,7 +50,7 @@ namespace lapack {
  * @param[in] scl
  * @param[in] sumsq
  * 
- * @ingroup
+ * @ingroup auxiliary
  */
 template< class abs_t, class vector_t >
 void lassq(

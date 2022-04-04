@@ -15,24 +15,15 @@ namespace blas {
 /**
  * General matrix rank-1 update:
  * \[
- *     A = \alpha x y^H + A,
+ *     A := \alpha x y^H + A,
  * \]
  * where alpha is a scalar, x and y are vectors,
  * and A is an m-by-n matrix.
- *
- * Generic implementation for arbitrary data types.
- *
- * @param[in] alpha
- *     Scalar alpha. If alpha is zero, A is not updated.
- *
- * @param[in] x
- *     The m-element vector x, in an array of length (m-1)*abs(incx) + 1.
- *
- * @param[in] y
- *     The n-element vector y, in an array of length (n-1)*abs(incy) + 1.
- *
- * @param[in, out] A
- *     The m-by-n matrix A, stored in an lda-by-n array [RowMajor: m-by-lda].
+ * 
+ * @param[in] alpha Scalar.
+ * @param[in] x A m-element vector.
+ * @param[in] y A n-element vector.
+ * @param[in] A A m-by-n matrix.
  *
  * @ingroup ger
  */
@@ -52,6 +43,9 @@ void ger(
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
 
+    // check arguments
+    blas_error_if( size(x) != m );
+    blas_error_if( size(y) != n );
     blas_error_if( access_denied( dense, write_policy(A) ) );
 
     for (idx_t j = 0; j < n; ++j) {

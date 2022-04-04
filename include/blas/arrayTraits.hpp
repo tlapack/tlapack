@@ -164,35 +164,66 @@ namespace blas {
     constexpr strictUpper_t strictUpper = { };
     constexpr strictLower_t strictLower = { };
 
-    /// Data type
-    template< class T > struct type_trait {};
-    template< class T >
-    using type_t = typename type_trait< T >::type;
-    
-    /// Size type
-    template< class T > struct sizet_trait {};
-    template< class T >
-    using size_type = typename sizet_trait< T >::type;
-    
-    /// Layout type
-    template< class T > struct layout_trait {
-        using type = void;
+    /**
+     * @brief Data type trait. Type of the entries of the array class.
+     * 
+     * The data type is defined on @c type_trait<array_t>::type.
+     * 
+     * @tparam array_t Array class.
+     */
+    template< class array_t > struct type_trait {
+        // using type = ... ;
     };
+    
+    /**
+     * @brief Size type trait. Index type used in the array class.
+     * 
+     * The size type is defined on @c sizet_trait<array_t>::type.
+     * 
+     * @tparam array_t Array class.
+     */
+    template< class array_t > struct sizet_trait {
+        // using type = ... ;
+    };
+    
+    /**
+     * @brief Layout type trait. Layout type used in the array class.
+     * 
+     * @tparam array_t Array class.
+     */
+    template< class array_t > struct layout_trait {
+        using type = void; ///< Defines the layout type.
+                           ///< Value void means "Layout not informed".
+    };
+
+    /**
+     * @brief Trait to determine if a given list of data allows optimization
+     * using a optimized BLAS library.
+     */
+    template<class...>
+    struct allow_optblas {
+        using type = bool; ///< Common data type.
+        static constexpr bool value = false; ///< True if the list of types
+                                             ///< allows optimized BLAS library.
+    };
+
+    /// Alias for @c type_trait<>::type.
+    template< class array_t >
+    using type_t = typename type_trait< array_t >::type;
+
+    /// Alias for @c sizet_trait<>::type.
+    template< class array_t >
+    using size_type = typename sizet_trait< array_t >::type;
+
+    /// Alias for @c layout_trait<>::type.
     template< class T >
     using layout_type = typename layout_trait< T >::type;
 
-    /// Verifies if the set of data structures allow optimization using optBLAS.
-    template<class...>
-    struct allow_optblas {
-        using type = bool; ///< Floating datatype.
-        static constexpr bool value = false; ///< True if it allows optBLAS.
-    };
-
-    /// Alias for allow_optblas<>::type.
+    /// Alias for @c allow_optblas<>::type.
     template<class... Ts>
     using allow_optblas_t = typename allow_optblas< Ts... >::type;
 
-    /// Alias for allow_optblas<>::value.
+    /// Alias for @c allow_optblas<>::value.
     template<class... Ts>
     constexpr bool allow_optblas_v = allow_optblas< Ts... >::value;
 }
