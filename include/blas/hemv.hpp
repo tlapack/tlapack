@@ -92,6 +92,8 @@ void hemv(
     blas_error_if( size(x)  != n );
     blas_error_if( size(y)  != n );
 
+    blas_error_if( access_denied( uplo, read_policy(A) ) );
+
     // form y = beta*y
     if (beta != beta_t(1)) {
         if (beta == beta_t(0)) {

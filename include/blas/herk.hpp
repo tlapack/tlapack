@@ -108,6 +108,9 @@ void herk(
     blas_error_if( nrows(C) != ncols(C) ||
                    nrows(C) != n );
 
+    blas_error_if( access_denied( dense, read_policy(A) ) );
+    blas_error_if( access_denied( uplo, write_policy(C) ) );
+
     if (trans == Op::NoTrans) {
         if (uplo != Uplo::Lower) {
         // uplo == Uplo::Upper or uplo == Uplo::General

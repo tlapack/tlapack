@@ -111,6 +111,10 @@ void hemm(
     blas_error_if( nrows(A) != ((side == Side::Left) ? m : n) );
     blas_error_if( nrows(B) != m || ncols(B) != n );
 
+    blas_error_if( access_denied( uplo,  read_policy(A) ) );
+    blas_error_if( access_denied( dense, read_policy(B) ) );
+    blas_error_if( access_denied( dense, write_policy(C) ) );
+
     if (side == Side::Left) {
         if (uplo != Uplo::Lower) {
             // uplo == Uplo::Upper or uplo == Uplo::General

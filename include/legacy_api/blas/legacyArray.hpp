@@ -51,6 +51,17 @@ namespace internal {
         return legacyMatrix<T,Layout::RowMajor>{ m, n, A, n };
     }
 
+    template< typename T >
+    inline constexpr auto banded_matrix(
+        T* A, 
+        BLAS_SIZE_T m, 
+        BLAS_SIZE_T n, 
+        BLAS_SIZE_T kl, 
+        BLAS_SIZE_T ku ) noexcept
+    {
+        return legacyBandedMatrix<T>{ m, n, kl, ku, A };
+    }
+
     template< typename T, typename int_t >
     inline constexpr auto vector( T* x, BLAS_SIZE_T n, int_t inc ) noexcept
     {

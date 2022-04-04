@@ -105,20 +105,35 @@ int larft(
     const scalar_t one(1);
     const scalar_t zero(0);
     const tau_t    tzero(0);
-    const idx_t n    = (storeMode == StoreV::Columnwise)
-                    ? nrows( V )
-                    : ncols( V );
-    const idx_t k    = (storeMode == StoreV::Columnwise)
-                    ? ncols( V )
-                    : nrows( V );
+    const idx_t n = (storeMode == StoreV::Columnwise) ? nrows( V ) : ncols( V );
+    const idx_t k = size( tau );
 
     // check arguments
     lapack_error_if(    direction != Direction::Backward &&
                         direction != Direction::Forward, -1 );
     lapack_error_if(    storeMode != StoreV::Columnwise &&
-                        storeMode != StoreV::Columnwise, -2 );
-    lapack_error_if(    size( tau ) != k, -4 );
-    lapack_error_if(    nrows( T ) != k || ncols( T ) != k, -5 );
+                        storeMode != StoreV::Rowwise, -2 );
+
+    if( direction == Direction::Forward )
+    {
+        if( storeMode == StoreV::Columnwise )
+            lapack_error_if( access_denied( strictLower, read_policy(V) ), -3 );
+        else
+            lapack_error_if( access_denied( strictUpper, read_policy(V) ), -3 );
+    }
+    else
+    {
+        lapack_error_if( access_denied( dense, read_policy(V) ), -3 );
+    }
+    lapack_error_if( k > ( (storeMode == StoreV::Columnwise)
+                            ? ncols( V )
+                            : nrows( V ) ), -3 );
+
+    if( direction == Direction::Forward )
+        lapack_error_if( access_denied( Uplo::Upper, read_policy(T) ), -5 );
+    else
+        lapack_error_if( access_denied( Uplo::Lower, read_policy(T) ), -5 );
+    lapack_error_if(    nrows( T ) < k || ncols( T ) < k, -5 );
 
     // Quick return
     if (n == 0 || k == 0)
@@ -168,7 +183,7 @@ int larft(
                     }
                 }
                 // T(0:i,i) := T(0:i,0:i) * T(0:i,i)
-                trmv( upper_triangle, noTranspose, nonUnit_diagonal,
+                trmv( upperTriangle, noTranspose, nonUnit_diagonal,
                     submatrix( T, pair{0,i}, pair{0,i} ), Ti 
                 );
                 T(i,i) = tau[i];
@@ -216,7 +231,7 @@ int larft(
                         );
                     }
                 }
-                trmv( lower_triangle, noTranspose, nonUnit_diagonal,
+                trmv( lowerTriangle, noTranspose, nonUnit_diagonal,
                     submatrix( T, pair{i+1,k}, pair{i+1,k} ), Ti 
                 );
                 T(i,i) = tau[i];

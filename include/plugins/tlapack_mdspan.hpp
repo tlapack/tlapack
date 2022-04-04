@@ -53,6 +53,22 @@ namespace blas {
         return x.extent(1);
     }
 
+    // Read policy
+    template< class ET, class Exts, class LP, class AP >
+    inline constexpr auto
+    read_policy( const mdspan<ET,Exts,LP,AP>& x ) {
+        /// TODO: Maybe we should get the access type from the layout here?
+        return lapack::dense;
+    }
+
+    // Write policy
+    template< class ET, class Exts, class LP, class AP >
+    inline constexpr auto
+    write_policy( const mdspan<ET,Exts,LP,AP>& x ) {
+        /// TODO: Maybe we should get the access type from the layout here?
+        return lapack::dense;
+    }
+
     // -----------------------------------------------------------------------------
     // blas functions to access mdspan block operations
 
@@ -157,7 +173,10 @@ namespace blas {
                 : A.mapping()(-diagIdx,0)
         );
         auto map = mapping(
-            extents_t( min( A.extent(0), A.extent(1) ) - (size_type)( (diagIdx >= 0) ? diagIdx : -diagIdx ) ),
+            extents_t( (diagIdx >= 0)
+                ? min( A.extent(0)+diagIdx, A.extent(1) ) - (size_type) diagIdx
+                : min( A.extent(0), A.extent(1)-diagIdx ) + (size_type) diagIdx
+            ),
             array<size_type, 1>{ A.stride(0) + A.stride(1) }
         );
         auto acc_pol = typename AP::offset_policy(A.accessor());
@@ -208,12 +227,12 @@ namespace blas {
 } // namespace blas
 
 namespace lapack {
-    
-    using blas::mdspan;
 
     using blas::size;
     using blas::nrows;
     using blas::ncols;
+    using blas::read_policy;
+    using blas::write_policy;
 
     using blas::submatrix;
     using blas::rows;

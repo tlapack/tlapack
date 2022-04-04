@@ -60,6 +60,7 @@ lanhe( norm_t normType, uplo_t uplo, const matrix_t& A )
                     normType != Norm::One );
     blas_error_if(  uplo != Uplo::Lower &&
                     uplo != Uplo::Upper );
+    blas_error_if(  access_denied( uplo, read_policy(A) ) );
 
     // quick return
     if ( n <= 0 ) return zero;
@@ -210,6 +211,7 @@ lanhe( norm_t normType, uplo_t uplo, const matrix_t& A, work_t& work )
                     normType != Norm::One );
     blas_error_if(  uplo != Uplo::Lower &&
                     uplo != Uplo::Upper );
+    blas_error_if(  access_denied( uplo, read_policy(A) ) );
 
     // quick redirect for max-norm and Frobenius norm
     if      ( normType == Norm::Max  ) return lanhe( max_norm,  uplo, A );

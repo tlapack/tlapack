@@ -13,6 +13,9 @@ add_subdirectory( eigenvalues )
 # add the example gemm (Use MPFR library if it is available)
 add_subdirectory( gemm )
 
+# add the example access_types
+add_subdirectory( access_types )
+
 find_package( Eigen3 QUIET )
 if( Eigen3_FOUND )
   # add the example eigen
@@ -47,6 +50,9 @@ COMMAND
 COMMAND
   echo "- example_geqr2 ----------------" &&
   ${CMAKE_CURRENT_BINARY_DIR}/geqr2/example_geqr2${CMAKE_EXECUTABLE_SUFFIX}
+COMMAND
+  echo "- example_accessTypes ----------------" &&
+  ${CMAKE_CURRENT_BINARY_DIR}/access_types/example_accessTypes${CMAKE_EXECUTABLE_SUFFIX}
 COMMAND
   echo "- example_cwrapper_gemm --------" &&
   ${CMAKE_CURRENT_BINARY_DIR}/cwrapper_gemm/example_cwrapper_gemm${CMAKE_EXECUTABLE_SUFFIX}

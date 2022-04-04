@@ -40,15 +40,15 @@ namespace lapack {
  * and calls itself to factor $A_{22}.$
  *
  * @param[in] uplo
- *     - lapack::upper_triangle_t: Upper triangle of A is stored;
- *     - lapack::lower_triangle_t: Lower triangle of A is stored.
+ *     - lapack::upperTriangle_t: Upper triangle of A is stored;
+ *     - lapack::lowerTriangle_t: Lower triangle of A is stored.
  *
  * @param[in,out] A
  *     On entry, the Hermitian matrix A.
- *     - If uplo = upper_triangle_t, the strictly lower
+ *     - If uplo = upperTriangle_t, the strictly lower
  *     triangular part of A is not referenced.
  *
- *     - If uplo = lower_triangle_t, the strictly upper
+ *     - If uplo = lowerTriangle_t, the strictly upper
  *     triangular part of A is not referenced.
  *
  *     - On successful exit, the factor U or L from the Cholesky
@@ -81,6 +81,7 @@ int potrf2( uplo_t uplo, matrix_t& A )
     // check arguments
     lapack_error_if(    uplo != Uplo::Lower &&
                         uplo != Uplo::Upper, -1 );
+    lapack_error_if(    access_denied( uplo, write_policy(A) ), -1 );
     lapack_error_if(    nrows(A) != ncols(A), -2 );
 
     // Quick return

@@ -62,7 +62,7 @@ inline void larf(
     vector_t const& v, tau_t& tau,
     matrix_t& C, work_t& work )
 {
-    using blas::gemm;
+    using blas::gemv;
     using blas::ger;
 
     // data traits
@@ -75,6 +75,7 @@ inline void larf(
     // check arguments
     blas_error_if( side != Side::Left &&
                    side != Side::Right );
+    blas_error_if(  access_denied( dense, write_policy(C) ) );
 
     if( side == Side::Left ) {
         gemv(Op::ConjTrans, one, C, v, zero, work);

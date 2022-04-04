@@ -9,6 +9,7 @@
 
 #include <utility>
 #include <type_traits>
+#include "blas/arrayTraits.hpp"
 
 namespace blas {
     // Forward declaration
@@ -136,6 +137,9 @@ inline constexpr auto get_work( opts_t&& opts ) {
         return *(opts.workPtr);
     }
 }
+
+using blas::access_granted;
+using blas::access_denied;
 
 } // namespace lapack
 

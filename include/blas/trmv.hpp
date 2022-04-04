@@ -82,6 +82,8 @@ void trmv(
     blas_error_if( nrows(A) != ncols(A) );
     blas_error_if( size(x) != n );
 
+    blas_error_if( access_denied( uplo, read_policy(A) ) );
+
     if (trans == Op::NoTrans) {
         // Form x := A*x
         if (uplo == Uplo::Upper) {

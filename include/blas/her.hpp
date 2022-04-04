@@ -79,6 +79,8 @@ void her(
     blas_error_if( nrows(A) != ncols(A) ||
                    nrows(A) != n );
 
+    blas_error_if( access_denied( uplo, write_policy(A) ) );
+
     if (uplo == Uplo::Upper) {
         for (idx_t j = 0; j < n; ++j) {
             auto tmp = alpha * conj( x[j] );

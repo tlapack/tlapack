@@ -121,6 +121,9 @@ void trsm(
     blas_error_if( nrows(A) != ncols(A) );
     blas_error_if( nrows(A) != ((side == Side::Left) ? m : n) );
 
+    blas_error_if( access_denied( uplo, read_policy(A) ) );
+    blas_error_if( access_denied( dense, write_policy(B) ) );
+
     if (side == Side::Left) {
         if (trans == Op::NoTrans) {
             if (uplo == Uplo::Upper) {

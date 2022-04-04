@@ -51,7 +51,7 @@ template< class side_t, class trans_t, typename TA, typename TC>
 inline int orm2r(
     side_t side, trans_t trans,
     blas::idx_t m, blas::idx_t n, blas::idx_t k,
-    const TA* A, blas::idx_t lda,
+    TA* A, blas::idx_t lda,
     const blas::real_type<TA,TC>* tau,
     TC* C, blas::idx_t ldc )
 {
