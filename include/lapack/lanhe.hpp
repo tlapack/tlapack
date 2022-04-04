@@ -172,11 +172,11 @@ lanhe( norm_t normType, uplo_t uplo, const matrix_t& A )
         // Sum off-diagonals
         if( uplo == Uplo::Upper ) {
             for (idx_t j = 1; j < n; ++j)
-                lassq( subvector( col(A,j), pair{0,j} ), scale, ssq );
+                lassq( slice(A, pair{0,j}, j ), scale, ssq );
         }
         else {
             for (idx_t j = 0; j < n-1; ++j)
-                lassq( subvector( col(A,j), pair{j+1,n} ), scale, ssq );
+                lassq( slice(A, pair{j+1,n}, j ), scale, ssq );
         }
         ssq *= 2;
 
