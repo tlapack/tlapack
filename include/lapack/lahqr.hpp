@@ -222,40 +222,37 @@ namespace lapack
                     istart = ilo;
                     continue;
                 }
-                if (istart + 2 == istop)
+                if (!is_complex<TA>::value && istart + 2 == istop)
                 {
                     // 2x2 block, normalize the block
                     TA cs;
                     TA sn;
-                    int temp = lahqr_schur22(A(istart, istart), A(istart, istart + 1),
-                                             A(istart + 1, istart), A(istart + 1, istart + 1),
-                                             w[istart], w[istart + 1], cs, sn);
-                    // Check if the schur factorization worked, if it didn't, just continue with
-                    // more iterations.
-                    if (temp == 0)
+                    // We don't check the error flag here because it should never fail for real values.
+                    lahqr_schur22(A(istart, istart), A(istart, istart + 1),
+                                  A(istart + 1, istart), A(istart + 1, istart + 1),
+                                  w[istart], w[istart + 1], cs, sn);
+                    // Apply the rotations from the normalization to the rest of the matrix.
+                    if (want_t)
                     {
-                        if (want_t)
+                        if (istart + 2 < istop_m)
                         {
-                            if (istart + 2 < istop_m)
-                            {
-                                auto x = subvector(row(A, istart), pair{istart + 2, istop_m});
-                                auto y = subvector(row(A, istart + 1), pair{istart + 2, istop_m});
-                                blas::rot(x, y, cs, sn);
-                            }
-                            auto x2 = subvector(col(A, istart), pair{istart_m, istart});
-                            auto y2 = subvector(col(A, istart + 1), pair{istart_m, istart});
-                            blas::rot(x2, y2, cs, sn);
-                        }
-                        if (want_z)
-                        {
-                            auto x = col(Z, istart);
-                            auto y = col(Z, istart + 1);
+                            auto x = subvector(row(A, istart), pair{istart + 2, istop_m});
+                            auto y = subvector(row(A, istart + 1), pair{istart + 2, istop_m});
                             blas::rot(x, y, cs, sn);
                         }
-                        istop = istart;
-                        istart = ilo;
-                        continue;
+                        auto x2 = subvector(col(A, istart), pair{istart_m, istart});
+                        auto y2 = subvector(col(A, istart + 1), pair{istart_m, istart});
+                        blas::rot(x2, y2, cs, sn);
                     }
+                    if (want_z)
+                    {
+                        auto x = col(Z, istart);
+                        auto y = col(Z, istart + 1);
+                        blas::rot(x, y, cs, sn);
+                    }
+                    istop = istart;
+                    istart = ilo;
+                    continue;
                 }
             }
 
