@@ -92,7 +92,7 @@ void run(size_t n)
     }
 
     // Copy A to Q
-    lapack::lacpy(lapack::general_matrix, A, Q);
+    lapack::lacpy(lapack::Uplo::General, A, Q);
 
     // 1) Compute A = QHQ* (Stored in the matrix Q)
 
@@ -156,7 +156,7 @@ void run(size_t n)
         blas::gemm(blas::Op::ConjTrans, blas::Op::NoTrans, (T)1.0, Q, Q, (T)-1.0, work);
 
         // Compute ||Q'Q - I||_F
-        norm_orth_1 = lapack::lansy(lapack::frob_norm, lapack::upper_triangle, work);
+        norm_orth_1 = lapack::lansy(lapack::frob_norm, lapack::Uplo::Upper, work);
 
         if (verbose)
         {
