@@ -9,6 +9,7 @@
 
 #include <utility>
 #include <type_traits>
+#include <assert.h>
 
 #include "legacy_api/legacyArray.hpp"
 #include "blas/arrayTraits.hpp"
@@ -142,6 +143,10 @@ namespace blas {
     >
     inline constexpr auto
     slice( const legacyMatrix<T,layout>& A, SliceSpecRow&& rows, SliceSpecCol&& cols ) noexcept {
+        assert( rows.first >= 0 and rows.first < nrows(A));
+        assert( rows.second >= 0 and rows.second <= nrows(A));
+        assert( cols.first >= 0 and cols.first < ncols(A));
+        assert( cols.second >= 0 and cols.second <= ncols(A));
         return legacyMatrix<T,layout>(
             rows.second-rows.first, cols.second-cols.first,
             &A(rows.first,cols.first), A.ldim
@@ -169,6 +174,8 @@ namespace blas {
     template< typename T, Layout layout, class SliceSpec >
     inline constexpr auto
     rows( const legacyMatrix<T,layout>& A, SliceSpec&& rows ) noexcept {
+        assert( rows.first >= 0 and rows.first < nrows(A));
+        assert( rows.second >= 0 and rows.second <= nrows(A));
         return legacyMatrix<T,layout>(
             rows.second-rows.first, A.n,
             &A(rows.first,0), A.ldim
@@ -179,6 +186,7 @@ namespace blas {
     template< typename T >
     inline constexpr auto
     row( const legacyMatrix<T>& A, typename legacyMatrix<T>::idx_t rowIdx ) noexcept {
+        assert( rowIdx >= 0 and rowIdx < nrows(A));
         using idx_t = typename legacyMatrix<T>::idx_t;
         return legacyVector<T,idx_t>( A.n, &A(rowIdx,0), A.ldim );
     }
@@ -187,6 +195,7 @@ namespace blas {
     template< typename T >
     inline constexpr auto
     row( const legacyMatrix<T,Layout::RowMajor>& A, typename legacyMatrix<T>::idx_t rowIdx ) noexcept {
+        assert( rowIdx >= 0 and rowIdx < nrows(A));
         return legacyVector<T>( A.n, &A(rowIdx,0) );
     }
     
@@ -194,6 +203,8 @@ namespace blas {
     template< typename T, Layout layout, class SliceSpec >
     inline constexpr auto
     cols( const legacyMatrix<T,layout>& A, SliceSpec&& cols ) noexcept {
+        assert( cols.first >= 0 and cols.first < ncols(A));
+        assert( cols.second >= 0 and cols.second <= ncols(A));
         return legacyMatrix<T,layout>(
             A.m, cols.second-cols.first,
             &A(0,cols.first), A.ldim
@@ -204,6 +215,7 @@ namespace blas {
     template< typename T >
     inline constexpr auto
     col( const legacyMatrix<T>& A, typename legacyMatrix<T>::idx_t colIdx ) noexcept {
+        assert( colIdx >= 0 and colIdx < ncols(A));
         return legacyVector<T>( A.m, &A(0,colIdx) );
     }
     
@@ -211,6 +223,7 @@ namespace blas {
     template< typename T >
     inline constexpr auto
     col( const legacyMatrix<T,Layout::RowMajor>& A, typename legacyMatrix<T>::idx_t colIdx ) noexcept {
+        assert( colIdx >= 0 and colIdx < ncols(A));
         using idx_t = typename legacyMatrix<T>::idx_t;
         return legacyVector<T,idx_t>( A.m, &A(0,colIdx), A.ldim );
     }
@@ -234,6 +247,8 @@ namespace blas {
     template< typename T, typename int_t, Direction direction, class SliceSpec >
     inline constexpr auto
     slice( const legacyVector<T,int_t,direction>& v, SliceSpec&& rows ) noexcept {
+        assert( rows.first >= 0 and rows.first < size(v));
+        assert( rows.second >= 0 and rows.second <= size(v));
         return legacyVector<T,int_t,direction>( rows.second-rows.first, &v[rows.first], v.inc );
     }
 
