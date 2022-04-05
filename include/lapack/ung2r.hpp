@@ -19,19 +19,33 @@
 
 namespace lapack {
 
-/** Generates a m-by-n matrix Q with orthogonal columns.
+/**
+ * @brief Generates a matrix Q with orthogonal columns.
+ * \[
+ *     Q  =  H_1 H_2 ... H_k
+ * \]
  * 
- * @param work Vector of size n-1.
- *     It is possible to use the subarray tau[1:n-1] as the work vector, i.e.,
- *         ung2r( ..., tau, &(tau[1]) )
- *     and, in this case, the original vector tau is lost. 
- * @see ung2r( blas::idx_t, blas::idx_t, blas::idx_t, TA*, blas::idx_t, const Ttau* )
+ * @param[in] k
+ *      The number of elementary reflectors whose product defines the matrix Q.
+ *      Note that: `n >= k >= 0`.
+ * 
+ * @param[in,out] A m-by-n matrix.
+ *      On entry, the i-th column must contains the vector which defines the
+ *      elementary reflector $H_i$, for $i=0,1,...,k-1$, as returned by geqrf.
+ *      On exit, the m-by-n matrix $Q$.
+
+ * @param[in] tau Real vector of length min(m,n).
+ *      The scalar factors of the elementary reflectors.
+ * 
+ * @param work Vector of at least size n-1.
+ * 
+ * @return int 
  * 
  * @ingroup geqrf
  */
 template< class matrix_t, class vector_t, class work_t >
 int ung2r(
-    size_type< matrix_t > k, matrix_t& A, vector_t &tau, work_t &work )
+    size_type< matrix_t > k, matrix_t& A, const vector_t &tau, work_t &work )
 {
     using blas::scal;
     using T      = type_t< matrix_t >;
@@ -45,6 +59,7 @@ int ung2r(
     const idx_t n = ncols(A);
 
     // check arguments
+    lapack_error_if( k < 0 || k > n, -1 );
     lapack_error_if( access_denied( dense, write_policy(A) ), -2 );
     lapack_error_if( (idx_t) size(tau)  < std::min<idx_t>( m, n ), -3 );
     lapack_error_if( (idx_t) size(work) < n-1, -4 );

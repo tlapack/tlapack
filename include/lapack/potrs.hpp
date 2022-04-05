@@ -18,21 +18,37 @@
 namespace lapack {
 
 /** Apply the Cholesky factorization to solve a linear system.
- *
- * The factorization has the form
- *     $A = U^H U,$ if uplo = Upper, or
- *     $A = L L^H,$ if uplo = Lower,
+ * \[
+ *      A X = B,
+ * \]
+ * where
+ *      $A = U^H U,$ if uplo = Upper, or
+ *      $A = L L^H,$ if uplo = Lower,
  * where U is an upper triangular matrix and L is lower triangular.
+ * 
+ * @tparam uplo_t
+ *      Access type: Upper or Lower.
+ *      Either Uplo or any class that implements `operator Uplo()`.
  *
  * @param[in] uplo
- *     - lapack::upperTriangle_t: Upper triangle of A is stored;
- *     - lapack::lowerTriangle_t: Lower triangle of A is stored.
+ *      - Uplo::Upper: Upper triangle of A contains the matrix U;
+ *      - Uplo::Lower: Lower triangle of A contains the matrix L.
+ *      The other triangular part of A is not referenced.
  *
- * @param[in,out] A
- *     The factor U or L from the Cholesky
- *     factorization $A = U^H U$ or $A = L L^H.$
+ * @param[in] A
+ *      The factor U or L from the Cholesky factorization of A.
+ *      
+ *      - If uplo = Uplo::Upper, the strictly lower
+ *      triangular part of A is not referenced.
  *
- * @return = 0: successful exit
+ *      - If uplo = Uplo::Lower, the strictly upper
+ *      triangular part of A is not referenced.
+ *
+ * @param[in,out] B
+ *      On entry, the matrix B.
+ *      On exit,  the matrix X.
+ * 
+ * @return = 0: successful exit.
  *
  * @ingroup posv_computational
  */
