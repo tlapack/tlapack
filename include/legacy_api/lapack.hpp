@@ -47,8 +47,8 @@
 // ----------------
 
 #include "legacy_api/lapack/geqr2.hpp"
-#include "legacy_api/lapack/org2r.hpp"
-#include "legacy_api/lapack/orm2r.hpp"
+#include "legacy_api/lapack/ung2r.hpp"
+#include "legacy_api/lapack/unm2r.hpp"
 #include "legacy_api/lapack/unmqr.hpp"
 #include "legacy_api/lapack/potrf.hpp"
 #include "legacy_api/lapack/potrs.hpp"

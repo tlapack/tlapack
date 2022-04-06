@@ -1,6 +1,6 @@
-/// @file org2r.hpp
+/// @file ung2r.hpp
 /// @author Weslley S Pereira, University of Colorado Denver, USA
-/// Adapted from @see https://github.com/langou/latl/blob/master/include/org2r.h
+/// Adapted from @see https://github.com/langou/latl/blob/master/include/ung2r.h
 //
 // Copyright (c) 2013-2022, University of Colorado Denver. All rights reserved.
 //
@@ -8,10 +8,10 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_LEGACY_ORG2R_HH__
-#define __TLAPACK_LEGACY_ORG2R_HH__
+#ifndef __TLAPACK_LEGACY_UNG2R_HH__
+#define __TLAPACK_LEGACY_UNG2R_HH__
 
-#include "lapack/org2r.hpp"
+#include "lapack/ung2r.hpp"
 
 #include "tblas.hpp"
 
@@ -40,7 +40,7 @@ namespace lapack {
  * @ingroup geqrf
  */
 template< typename TA, typename Ttau >
-inline int org2r(
+inline int ung2r(
     blas::idx_t m, blas::idx_t n, blas::idx_t k,
     TA* A, blas::idx_t lda,
     const Ttau* tau )
@@ -66,7 +66,7 @@ inline int org2r(
     auto _tau  = vector<Ttau>( (Ttau*)tau, std::min<blas::idx_t>( m, n ), 1 );
     auto _work = vector<TA>  ( work, n-1, 1 );
     
-    info = org2r( k, _A, _tau, _work );
+    info = ung2r( k, _A, _tau, _work );
 
     delete[] work;
     return info;
@@ -74,4 +74,4 @@ inline int org2r(
 
 }
 
-#endif // __TLAPACK_LEGACY_ORG2R_HH__
+#endif // __TLAPACK_LEGACY_UNG2R_HH__

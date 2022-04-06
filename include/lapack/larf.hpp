@@ -59,7 +59,7 @@ namespace lapack {
 template< class side_t, class vector_t, class tau_t, class matrix_t, class work_t >
 inline void larf(
     side_t side,
-    vector_t const& v, tau_t& tau,
+    vector_t const& v, const tau_t& tau,
     matrix_t& C, work_t& work )
 {
     using blas::gemv;
