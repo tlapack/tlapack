@@ -104,8 +104,8 @@ int potrf2( uplo_t uplo, matrix_t& A )
         const idx_t n1 = n/2;
 
         // Define A11 and A22
-        auto A11 = submatrix( A, pair{0,n1}, pair{0,n1} );
-        auto A22 = submatrix( A, pair{n1,n}, pair{n1,n} );
+        auto A11 = slice( A, pair{0,n1}, pair{0,n1} );
+        auto A22 = slice( A, pair{n1,n}, pair{n1,n} );
         
         // Factor A11
         int info = potrf2( uplo, A11 );
@@ -115,7 +115,7 @@ int potrf2( uplo_t uplo, matrix_t& A )
         if( uplo == Uplo::Upper ) {
 
             // Update and scale A12
-            auto A12 = submatrix( A, pair{0,n1}, pair{n1,n} );
+            auto A12 = slice( A, pair{0,n1}, pair{n1,n} );
             trsm(
                 Side::Left, Uplo::Upper,
                 Op::ConjTrans, Diag::NonUnit,
@@ -127,7 +127,7 @@ int potrf2( uplo_t uplo, matrix_t& A )
         else {
 
             // Update and scale A21
-            auto A21 = submatrix( A, pair{n1,n}, pair{0,n1} );
+            auto A21 = slice( A, pair{n1,n}, pair{0,n1} );
             trsm(
                 Side::Right, Uplo::Lower,
                 Op::ConjTrans, Diag::NonUnit,

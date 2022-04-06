@@ -69,8 +69,8 @@ int orm2r(
     for (idx_t i = i0; i != iN; i += inc) {
         
         const auto& v = (side == Side::Left)
-                      ? subvector( col( A, i ), pair{i,m} )
-                      : subvector( col( A, i ), pair{i,n} );
+                      ? slice( A, pair{i,m}, i )
+                      : slice( A, pair{i,n}, i );
         auto& Ci = (side == Side::Left)
                  ? rows( C, pair{i,m} )
                  : cols( C, pair{i,n} );

@@ -99,29 +99,83 @@ namespace blas{
     // -----------------------------------------------------------------------------
     // blas functions to access Eigen block operations
 
-    // Submatrix
-    template<class T, typename SliceSpecRow, typename SliceSpecCol>
-    inline constexpr auto submatrix(
+    #define isSlice(SliceSpec) !std::is_convertible< SliceSpec, Eigen::Index >::value
+
+    // Slice
+    template<class T, typename SliceSpecRow, typename SliceSpecCol,
+        typename std::enable_if< isSlice(SliceSpecRow) && isSlice(SliceSpecCol), int >::type = 0
+    >
+    inline constexpr auto slice(
         const Eigen::DenseBase<T>& A, SliceSpecRow&& rows, SliceSpecCol&& cols ) noexcept
     {
         return A.block( rows.first, cols.first,
                         rows.second-rows.first, cols.second-cols.first );
     }
-    template<class T, typename SliceSpecRow, typename SliceSpecCol>
-    inline constexpr auto submatrix(
+    template<class T, typename SliceSpecRow, typename SliceSpecCol,
+        typename std::enable_if< isSlice(SliceSpecRow) && isSlice(SliceSpecCol), int >::type = 0
+    >
+    inline constexpr auto slice(
         Eigen::DenseBase<T>& A, SliceSpecRow&& rows, SliceSpecCol&& cols ) noexcept
     {
         return A.block( rows.first, cols.first,
                         rows.second-rows.first, cols.second-cols.first );
     }
     template< typename XprType, int BlockRows, int BlockCols, bool InnerPanel,
-              typename SliceSpecRow, typename SliceSpecCol >
-    inline constexpr auto submatrix(
+              typename SliceSpecRow, typename SliceSpecCol,
+        typename std::enable_if< isSlice(SliceSpecRow) && isSlice(SliceSpecCol), int >::type = 0
+    >
+    inline constexpr auto slice(
         Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>&& A,
         SliceSpecRow&& rows, SliceSpecCol&& cols ) noexcept
     {
         return A.block( rows.first, cols.first,
                         rows.second-rows.first, cols.second-cols.first );
+    }
+
+    #undef isSlice
+
+    // Slice
+    template<class T, typename SliceSpecCol>
+    inline constexpr auto slice(
+        const Eigen::DenseBase<T>& A, Eigen::Index rowIdx, SliceSpecCol&& cols ) noexcept
+    {
+        return A.row( rowIdx ).segment( cols.first, cols.second-cols.first );
+    }
+    template<class T, typename SliceSpecCol>
+    inline constexpr auto slice(
+        Eigen::DenseBase<T>& A, Eigen::Index rowIdx, SliceSpecCol&& cols ) noexcept
+    {
+        return A.row( rowIdx ).segment( cols.first, cols.second-cols.first );
+    }
+    template< typename XprType, int BlockRows, int BlockCols, bool InnerPanel,
+              typename SliceSpecCol >
+    inline constexpr auto slice(
+        Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>&& A,
+        Eigen::Index rowIdx, SliceSpecCol&& cols ) noexcept
+    {
+        return A.row( rowIdx ).segment( cols.first, cols.second-cols.first );
+    }
+
+    // Slice
+    template<class T, typename SliceSpecRow>
+    inline constexpr auto slice(
+        const Eigen::DenseBase<T>& A, SliceSpecRow&& rows, Eigen::Index colIdx = 0 ) noexcept
+    {
+        return A.col( colIdx ).segment( rows.first, rows.second-rows.first );
+    }
+    template<class T, typename SliceSpecRow>
+    inline constexpr auto slice(
+        Eigen::DenseBase<T>& A, SliceSpecRow&& rows, Eigen::Index colIdx = 0 ) noexcept
+    {
+        return A.col( colIdx ).segment( rows.first, rows.second-rows.first );
+    }
+    template< typename XprType, int BlockRows, int BlockCols, bool InnerPanel,
+              typename SliceSpecRow >
+    inline constexpr auto slice(
+        Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>&& A,
+        SliceSpecRow&& rows, Eigen::Index colIdx = 0 ) noexcept
+    {
+        return A.col( colIdx ).segment( rows.first, rows.second-rows.first );
     }
 
     // Rows
@@ -201,23 +255,6 @@ namespace blas{
         return A.col( colIdx );
     }
 
-    // Subvector
-    template<class T, typename SliceSpec>
-    inline constexpr auto subvector( const Eigen::DenseBase<T>& v, SliceSpec&& rows ) noexcept
-    {
-        return v.segment( rows.first, rows.second-rows.first );
-    }
-    template<class T, typename SliceSpec>
-    inline constexpr auto subvector( Eigen::DenseBase<T>& v, SliceSpec&& rows ) noexcept
-    {
-        return v.segment( rows.first, rows.second-rows.first );
-    }
-    template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel, typename SliceSpec>
-    inline constexpr auto subvector( Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>&& v, SliceSpec&& rows ) noexcept
-    {
-        return v.segment( rows.first, rows.second-rows.first );
-    }
-
     // Diagonal
     template<class T, class int_t>
     inline constexpr auto diag( const Eigen::MatrixBase<T>& A, int_t diagIdx = 0 ) noexcept
@@ -245,12 +282,11 @@ namespace lapack {
     using blas::read_policy;
     using blas::write_policy;
 
-    using blas::submatrix;
+    using blas::slice;
     using blas::rows;
     using blas::row;
     using blas::cols;
     using blas::col;
-    using blas::subvector;
     using blas::diag;
 
 } // namespace lapack
