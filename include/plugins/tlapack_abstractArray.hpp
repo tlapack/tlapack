@@ -121,9 +121,9 @@ namespace blas {
     // Block operations with matrices in <T>LAPACK
 
     /**
-     * @brief Extracts a submatrix from a given matrix.
+     * @brief Extracts a slice from a given matrix.
      * 
-     * Note that a submatrix is also a matrix.
+     * @returns a matrix.
      * 
      * @tparam matrix_t Matrix type.
      * @tparam pair_t   Pair of integers.
@@ -141,12 +141,60 @@ namespace blas {
      */
     template< class matrix_t, class pair_t >
     inline constexpr auto
-    submatrix( const matrix_t& A, pair_t&& rows, pair_t&& cols );
+    slice( const matrix_t& A, pair_t&& rows, pair_t&& cols );
+
+    /**
+     * @brief Extracts a slice from a given matrix.
+     * 
+     * @returns a vector.
+     * 
+     * @tparam matrix_t Matrix type.
+     * @tparam idx_t    Index type.
+     * @tparam pair_t   Pair of integers.
+     *      Stored in pair::first and pair::second.
+     * 
+     * @param A         Matrix.
+     * @param rowIdx    Row index.
+     * @param cols  Pair (j,l).
+     *      j   is the index of the first column, and
+     *      l-1 is the index of the last column.
+     * 
+     * @ingroup utils
+     */
+    template< class matrix_t, class idx_t, class pair_t >
+    inline constexpr auto
+    slice( const matrix_t& A, idx_t rowIdx, pair_t&& cols );
+
+    /**
+     * @brief Extracts a slice from a given matrix.
+     * 
+     * @returns a vector.
+     * 
+     * Default column value is zero. This is useful to obtain vectors from a 
+     * given array since `slice( work, {0,n} )` returns a vector of size `n` no
+     * matter if `work` is a matrix or a vector.
+     * 
+     * @tparam matrix_t Matrix type.
+     * @tparam pair_t   Pair of integers.
+     *      Stored in pair::first and pair::second.
+     * @tparam idx_t    Index type.
+     * 
+     * @param A         Matrix.
+     * @param rows      Pair (i,k).
+     *      i   is the index of the first row, and
+     *      k-1 is the index of the last row.
+     * @param colIdx    Column index. Default value is zero.
+     * 
+     * @ingroup utils
+     */
+    template< class matrix_t, class pair_t, class idx_t >
+    inline constexpr auto
+    slice( const matrix_t& A, pair_t&& rows, idx_t colIdx = 0 );
     
     /**
      * @brief Extracts a set of rows from a given matrix.
      * 
-     * @note A set of rows is also a matrix.
+     * @returns a matrix.
      * 
      * @tparam matrix_t Matrix type.
      * @tparam pair_t   Pair of integers.
@@ -166,7 +214,7 @@ namespace blas {
     /**
      * @brief Extracts a set of columns from a given matrix.
      * 
-     * @note A set of columns is also a matrix.
+     * @returns a matrix.
      * 
      * @tparam matrix_t Matrix type.
      * @tparam pair_t   Pair of integers.
@@ -186,7 +234,7 @@ namespace blas {
     /**
      * @brief Extracts a row from a given matrix.
      * 
-     * @note A row is treated as a vector.
+     * @returns a vector.
      * 
      * @tparam matrix_t Matrix type.
      * @tparam idx_t    Index type.
@@ -203,7 +251,7 @@ namespace blas {
     /**
      * @brief Extracts a column from a given matrix.
      * 
-     * @note A column is treated as a vector.
+     * @returns a vector.
      * 
      * @tparam matrix_t Matrix type.
      * @tparam idx_t    Index type.
@@ -218,9 +266,9 @@ namespace blas {
     col( const matrix_t& A, idx_t colIdx );
 
     /**
-     * @brief Extracts a diagonal from a given matrix. 
+     * @brief Extracts a diagonal from a given matrix.
      * 
-     * @note A diagonal is treated as a vector.
+     * @returns a vector.
      * 
      * @tparam matrix_t Matrix type.
      * @tparam idx_t    Index type.
@@ -267,9 +315,9 @@ namespace blas {
     // Block operations with vectors in <T>LAPACK
 
     /**
-     * @brief Extracts a subvector from a vector.
+     * @brief Extracts a slice from a vector.
      * 
-     * @note A subvector is also a vector.
+     * @returns a vector.
      * 
      * @tparam vector_t Vector type.
      * @tparam pair_t   Pair of integers.
@@ -284,7 +332,7 @@ namespace blas {
      */
     template< class vector_t, class pair_t >
     inline constexpr auto
-    subvector( const vector_t& v, pair_t&& rows );
+    slice( const vector_t& v, pair_t&& rows );
 
 } // namespace blas
 
@@ -299,16 +347,13 @@ namespace lapack {
     // Data descriptors for vectors in <T>LAPACK
     using blas::size;
 
-    // Block operations with matrices in <T>LAPACK
-    using blas::submatrix;
+    // Block operations in <T>LAPACK
+    using blas::slice;
     using blas::rows;
     using blas::cols;
     using blas::row;
     using blas::col;
     using blas::diag;
-
-    // Block operations with vectors in <T>LAPACK
-    using blas::subvector;
 
 } // namespace lapack
 
