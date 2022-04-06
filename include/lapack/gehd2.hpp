@@ -80,7 +80,7 @@ int gehd2( size_type< matrix_t > ilo, size_type< matrix_t > ihi, matrix_t& A, ve
     for(idx_t i = ilo; i < ihi-1; ++i) {
 
         // Define x := A[min(i+2,ihi-1):ihi,i]
-        auto x = subvector( col( A, i ), (i < ihi-2) ? pair{i+2,ihi} : pair{0,0});
+        auto x = slice( A, (i < ihi-2) ? pair{i+2,ihi} : pair{0,0}, i);
 
         // Generate the (i+1)-th elementary Householder reflection on x
         larfg( A(i+1,i), x, tau[i] );
@@ -89,15 +89,15 @@ int gehd2( size_type< matrix_t > ilo, size_type< matrix_t > ihi, matrix_t& A, ve
         A(i+1,i) = one;
 
         // Select v := A[i+1:ihi,i]
-        const auto v = subvector( col( A, i ), pair{i+1,ihi} );
+        const auto v = slice( A, pair{i+1,ihi}, i );
         // Apply Householder reflection from the right to A[0:ihi,i+1:ihi]
-        auto w = subvector( work, pair{0,ihi} );
-        auto C = submatrix( A, pair{0,ihi}, pair{i+1,ihi} );
+        auto w = slice( work, pair{0,ihi} );
+        auto C = slice( A, pair{0,ihi}, pair{i+1,ihi} );
         larf( right_side, v, tau[i], C, w );
 
         // Apply Householder reflection from the left to A[i+1:ihi,i+1:n-1]
-        w = subvector( work, pair{i+1,n} );
-        C = submatrix( A, pair{i+1,ihi}, pair{i+1,n} );
+        w = slice( work, pair{i+1,n} );
+        C = slice( A, pair{i+1,ihi}, pair{i+1,n} );
         auto tauconj = conj(tau[i]);
         larf( left_side, v, tauconj, C, w );
 

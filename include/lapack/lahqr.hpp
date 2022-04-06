@@ -236,12 +236,12 @@ namespace lapack
                     {
                         if (istart + 2 < istop_m)
                         {
-                            auto x = subvector(row(A, istart), pair{istart + 2, istop_m});
-                            auto y = subvector(row(A, istart + 1), pair{istart + 2, istop_m});
+                            auto x = slice(A, istart, pair{istart + 2, istop_m});
+                            auto y = slice(A, istart + 1, pair{istart + 2, istop_m});
                             blas::rot(x, y, cs, sn);
                         }
-                        auto x2 = subvector(col(A, istart), pair{istart_m, istart});
-                        auto y2 = subvector(col(A, istart + 1), pair{istart_m, istart});
+                        auto x2 = slice(A, pair{istart_m, istart},istart);
+                        auto y2 = slice(A, pair{istart_m, istart},istart + 1);
                         blas::rot(x2, y2, cs, sn);
                     }
                     if (want_z)
@@ -300,8 +300,8 @@ namespace lapack
             {
                 for (idx_t i = istop - 3; i > istart; --i)
                 {
-                    auto H = submatrix(A, pair{i, i + 3}, pair{i, i + 3});
-                    auto x = subvector(v, pair{0, 3});
+                    auto H = slice(A, pair{i, i + 3}, pair{i, i + 3});
+                    auto x = slice(v, pair{0, 3});
                     lahqr_shiftcolumn(H, x, s1, s2);
                     auto temp1 = abs1(A(i, i - 1)) * (abs1(v[1]) + abs1(v[2]));
                     auto temp2 = abs1(v[0]) * (abs1(A(i - 1, i - 1)) + abs1(A(i, i)) + abs1(A(i + 1, i + 1)));
@@ -320,10 +320,10 @@ namespace lapack
                 auto nr = std::min<idx_t>(3, istop - i);
                 if (i == istart2)
                 {
-                    auto H = submatrix(A, pair{i, i + nr}, pair{i, i + nr});
-                    auto x = subvector(v, pair{0, nr});
+                    auto H = slice(A, pair{i, i + nr}, pair{i, i + nr});
+                    auto x = slice(v, pair{0, nr});
                     lahqr_shiftcolumn(H, x, s1, s2);
-                    x = subvector(v, pair{1, nr});
+                    x = slice(v, pair{1, nr});
                     larfg(v[0], x, t1);
                     if (i > istart)
                     {
@@ -336,7 +336,7 @@ namespace lapack
                     v[1] = A(i + 1, i - 1);
                     if (nr == 3)
                         v[2] = A(i + 2, i - 1);
-                    auto x = subvector(v, pair{1, nr});
+                    auto x = slice(v, pair{1, nr});
                     larfg(v[0], x, t1);
                     A(i, i - 1) = v[0];
                     A(i + 1, i - 1) = zero;

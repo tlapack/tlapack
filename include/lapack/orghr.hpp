@@ -86,8 +86,8 @@ int orghr(
     // Now that the vectors are shifted, we can call orgqr to generate the matrix
     // orgqr is not yet implemented, so we call org2r instead
     const idx_t nh = ihi-1-ilo;
-    auto A_s = submatrix( A, pair{ilo+1,ihi}, pair{ilo+1,ihi} );
-    auto tau_s = subvector( tau, pair{ilo,ihi-1} );
+    auto A_s = slice( A, pair{ilo+1,ihi}, pair{ilo+1,ihi} );
+    auto tau_s = slice( tau, pair{ilo,ihi-1} );
     org2r( nh, A_s, tau_s, work );
 
     return 0;
