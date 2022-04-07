@@ -100,12 +100,12 @@ inline void larf(
     // which is better for thread safety.
 
     if( side == Side::Left ) {
-        auto w = subvector(work,pair{0,n});
+        auto w = slice(work,pair{0,n});
         copy( row(C, 0), w );
         for (idx_t i = 0; i < n; ++i )
             w[i] = conj(w[i]);
         if(m > 1){
-            auto x = subvector(v,pair{1,m});
+            auto x = slice(v,pair{1,m});
             gemv(Op::ConjTrans, one, rows(C, pair{1,m}), x, one, w);
         }
         for (idx_t j = 0; j < n; ++j) {
@@ -116,10 +116,10 @@ inline void larf(
         }
     }
     else {
-        auto w = subvector(work,pair{0,m});
+        auto w = slice(work,pair{0,m});
         copy( col(C, 0), w );
         if(n > 1){
-            auto x = subvector(v,pair{1,n});
+            auto x = slice(v,pair{1,n});
             gemv(Op::NoTrans, one, cols(C, pair{1,n}), x, one, w);
         }
         for (idx_t j = 0; j < n; ++j) {

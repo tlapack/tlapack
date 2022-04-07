@@ -142,7 +142,7 @@ void larfg( vector_t& v, tau_t& tau )
     using pair  = std::pair<idx_t,idx_t>;
 
     const idx_t n = size(v);
-    auto x = subvector( v, n > 1 ? pair{1,n} : pair{0,0} );
+    auto x = slice( v, n > 1 ? pair{1,n} : pair{0,0} );
     larfg( v[0], x, tau );
 }
 
