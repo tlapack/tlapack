@@ -116,7 +116,7 @@ int potrf( uplo_t uplo, matrix_t& A, opts_t&& opts )
                 if( info != 0 )
                     return info + j;
 
-                if( j+jb <= n ){
+                if( j+jb < n ){
 
                     // Define B and C
                     auto B = slice( A, pair{0,j}, pair{j+jb,n} );
@@ -143,7 +143,7 @@ int potrf( uplo_t uplo, matrix_t& A, opts_t&& opts )
                 if( info != 0 )
                     return info + j;
 
-                if( j+jb <= n ){
+                if( j+jb < n ){
 
                     // Define B and C
                     auto B = slice( A, pair{j+jb,n}, pair{0,j} );
