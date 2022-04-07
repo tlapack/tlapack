@@ -74,35 +74,25 @@ namespace blas {
 
     #define isSlice(SliceSpec) std::is_convertible< SliceSpec, std::tuple<std::size_t, std::size_t> >::value
 
-    /** Returns a submatrix from the input matrix
-     * 
-     * The submatrix uses the same data from the matrix A.
-     * 
-     * It uses the function `std::experimental::submdspan` from https://github.com/kokkos/mdspan
-     * Currently, it only allows for contiguous ranges
-     * 
-     * @param[in] A             Matrix
-     * @param[in] rows          Rows used from A.
-     *      mdspan accepts values that can be converted to
-     *          - a size_t integer: reprents the index of the row to be used.
-     *          - a std::pair(a,b): uses rows from a to b-1
-     *          - a std::experimental::full_extent: uses all rows
-     * @param[in] cols          Columns used from A.
-     *      mdspan accepts values that can be converted to
-     *          - a size_t integer: reprents the index of the column to be used.
-     *          - a std::pair(a,b): uses columns from a to b-1
-     *          - a std::experimental::full_extent: uses all columns
-     * 
-     * @return mdspan<> submatrix
-     */
+    // Slice
     template< class ET, class Exts, class LP, class AP,
         class SliceSpecRow, class SliceSpecCol,
-        std::enable_if_t< isSlice(SliceSpecRow) && isSlice(SliceSpecCol), int > = 0
+        std::enable_if_t< isSlice(SliceSpecRow) || isSlice(SliceSpecCol), int > = 0
     >
-    inline constexpr auto submatrix(
+    inline constexpr auto slice(
         const mdspan<ET,Exts,LP,AP>& A, SliceSpecRow&& rows, SliceSpecCol&& cols ) noexcept
     {
         return std::experimental::submdspan( A, std::forward<SliceSpecRow>(rows), std::forward<SliceSpecCol>(cols) );
+    }
+
+    // Slice
+    template< class ET, class Exts, class LP, class AP,
+        class SliceSpec,
+        std::enable_if_t< isSlice(SliceSpec) && (Exts::rank() == 2), int > = 0
+    >
+    inline constexpr auto slice( const mdspan<ET,Exts,LP,AP>& A, SliceSpec&& rows ) noexcept
+    {
+        return std::experimental::submdspan( A, std::forward<SliceSpec>(rows), 0 );
     }
 
     // Rows
@@ -137,11 +127,11 @@ namespace blas {
         return std::experimental::submdspan( A, std::experimental::full_extent, colIdx );
     }
 
-    // Subvector
+    // Slice
     template< class ET, class Exts, class LP, class AP, class SliceSpec,
-        std::enable_if_t< isSlice(SliceSpec), int > = 0
+        std::enable_if_t< isSlice(SliceSpec) && (Exts::rank() == 1), int > = 0
     >
-    inline constexpr auto subvector( const mdspan<ET,Exts,LP,AP>& v, SliceSpec&& rows ) noexcept
+    inline constexpr auto slice( const mdspan<ET,Exts,LP,AP>& v, SliceSpec&& rows ) noexcept
     {
         return std::experimental::submdspan( v, std::forward<SliceSpec>(rows) );
     }
@@ -234,12 +224,11 @@ namespace lapack {
     using blas::read_policy;
     using blas::write_policy;
 
-    using blas::submatrix;
+    using blas::slice;
     using blas::rows;
     using blas::row;
     using blas::cols;
     using blas::col;
-    using blas::subvector;
     using blas::diag;
 
 } // namespace lapack

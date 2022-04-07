@@ -1,6 +1,6 @@
-/// @file org2r.hpp
+/// @file ung2r.hpp
 /// @author Weslley S Pereira, University of Colorado Denver, USA
-/// Adapted from @see https://github.com/langou/latl/blob/master/include/org2r.h
+/// Adapted from @see https://github.com/langou/latl/blob/master/include/ung2r.h
 //
 // Copyright (c) 2013-2022, University of Colorado Denver. All rights reserved.
 //
@@ -8,8 +8,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __ORG2R_HH__
-#define __ORG2R_HH__
+#ifndef __UNG2R_HH__
+#define __UNG2R_HH__
 
 #include "lapack/utils.hpp"
 #include "lapack/types.hpp"
@@ -23,14 +23,14 @@ namespace lapack {
  * 
  * @param work Vector of size n-1.
  *     It is possible to use the subarray tau[1:n-1] as the work vector, i.e.,
- *         org2r( ..., tau, &(tau[1]) )
+ *         ung2r( ..., tau, &(tau[1]) )
  *     and, in this case, the original vector tau is lost. 
- * @see org2r( blas::idx_t, blas::idx_t, blas::idx_t, TA*, blas::idx_t, const Ttau* )
+ * @see ung2r( blas::idx_t, blas::idx_t, blas::idx_t, TA*, blas::idx_t, const Ttau* )
  * 
  * @ingroup geqrf
  */
 template< class matrix_t, class vector_t, class work_t >
-int org2r(
+int ung2r(
     size_type< matrix_t > k, matrix_t& A, vector_t &tau, work_t &work )
 {
     using blas::scal;
@@ -66,14 +66,14 @@ int org2r(
             A(i,i) = one;
 
             // Define v and C
-            auto v = subvector( col( A, i ), pair{i,m} );
-            auto C = submatrix( A, pair{i,m}, pair{i+1,n} );
-            auto w = subvector( work, pair{i,n-1} );
+            auto v = slice( A, pair{i,m}, i );
+            auto C = slice( A, pair{i,m}, pair{i+1,n} );
+            auto w = slice( work, pair{i,n-1} );
 
             larf( left_side, std::move(v), tau[i], C, w );
         }
         if ( i+1 < m ) {
-            auto v = subvector( col( A, i ), pair{i+1,m} );
+            auto v = slice( A, pair{i+1,m}, i );
             scal( -tau[i], v );
         }
         A(i,i) = one - tau[i];
@@ -88,4 +88,4 @@ int org2r(
 
 }
 
-#endif // __ORG2R_HH__
+#endif // __UNG2R_HH__

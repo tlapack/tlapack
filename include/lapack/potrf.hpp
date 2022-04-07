@@ -104,8 +104,8 @@ int potrf( uplo_t uplo, matrix_t& A, opts_t&& opts )
                 idx_t jb = min( nb, n-j );
 
                 // Define AJJ and A1J
-                auto AJJ = submatrix( A, pair{j,j+jb}, pair{j,j+jb} );
-                auto A1J = submatrix( A, pair{0,j}, pair{j,j+jb} );
+                auto AJJ = slice( A, pair{j,j+jb}, pair{j,j+jb} );
+                auto A1J = slice( A, pair{0,j}, pair{j,j+jb} );
 
                 herk( uplo, conjTranspose, -one, A1J, one, AJJ );
                 
@@ -116,8 +116,8 @@ int potrf( uplo_t uplo, matrix_t& A, opts_t&& opts )
                 if( j+jb <= n ){
 
                     // Define B and C
-                    auto B = submatrix( A, pair{0,j}, pair{j+jb,n} );
-                    auto C = submatrix( A, pair{j,j+jb}, pair{j+jb,n} );
+                    auto B = slice( A, pair{0,j}, pair{j+jb,n} );
+                    auto C = slice( A, pair{j,j+jb}, pair{j+jb,n} );
                 
                     // Compute the current block row
                     gemm( conjTranspose, noTranspose, -one, A1J, B, one, C );
@@ -131,8 +131,8 @@ int potrf( uplo_t uplo, matrix_t& A, opts_t&& opts )
                 idx_t jb = min( nb, n-j );
 
                 // Define AJJ and AJ1
-                auto AJJ = submatrix( A, pair{j,j+jb}, pair{j,j+jb} );
-                auto AJ1 = submatrix( A, pair{j,j+jb}, pair{0,j} );
+                auto AJJ = slice( A, pair{j,j+jb}, pair{j,j+jb} );
+                auto AJ1 = slice( A, pair{j,j+jb}, pair{0,j} );
 
                 herk( uplo, noTranspose, -one, AJ1, one, AJJ );
                 
@@ -143,8 +143,8 @@ int potrf( uplo_t uplo, matrix_t& A, opts_t&& opts )
                 if( j+jb <= n ){
 
                     // Define B and C
-                    auto B = submatrix( A, pair{j+jb,n}, pair{0,j} );
-                    auto C = submatrix( A, pair{j+jb,n}, pair{j,j+jb} );
+                    auto B = slice( A, pair{j+jb,n}, pair{0,j} );
+                    auto C = slice( A, pair{j+jb,n}, pair{j,j+jb} );
                 
                     // Compute the current block row
                     gemm( noTranspose, conjTranspose, -one, B, AJ1, one, C );

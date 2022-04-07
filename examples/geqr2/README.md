@@ -4,7 +4,7 @@ In this example, we compute the QR factorization of a matrix filled with random 
 
 - A is a m-by-n matrix filled with random numbers.
 
-The code uses the routine [lapack::geqr2](../../include/lapack/geqr2.hpp) to perform the complete factorization in place, and [lapack::org2r](../../include/lapack/org2r.hpp) to generate the m-by-n matrix Q. We store R in a n-by-n upper triangular matrix.
+The code uses the routine [lapack::geqr2](../../include/lapack/geqr2.hpp) to perform the complete factorization in place, and [lapack::ung2r](../../include/lapack/ung2r.hpp) to generate the m-by-n matrix Q. We store R in a n-by-n upper triangular matrix.
 
 To examine the accuracy of the method, we measure
 <img src="https://latex.codecogs.com/gif.latex?\|Q^tQ&space;-&space;I\|_F" />
