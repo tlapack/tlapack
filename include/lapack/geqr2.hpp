@@ -58,12 +58,10 @@ namespace lapack {
 template< class matrix_t, class vector_t, class work_t >
 int geqr2( matrix_t& A, vector_t &tau, work_t &work )
 {
-    using TA    = type_t< matrix_t >;
     using idx_t = size_type< matrix_t >;
     using pair  = std::pair<idx_t,idx_t>;
 
     // constants
-    const TA one( 1 );
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
     const idx_t k = std::min<idx_t>( m, n-1 );

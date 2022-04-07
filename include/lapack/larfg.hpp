@@ -114,28 +114,14 @@ void larfg( alpha_t& alpha, vector_t& x, tau_t& tau )
 }
 
 /** Generates a elementary Householder reflection.
- *
- * larfg generates a elementary Householder reflection H of order n, such that
  * 
- *        H * ( alpha ) = ( beta ),   H' * H = I.
- *            (   x   )   (   0  )
+ * @see larfg( alpha_t& alpha, vector_t& x, tau_t& tau )
  * 
- * where alpha and beta are scalars, with beta real, and x is an (n-1)-element vector.
- * H is represented in the form
+ * @param[in,out] v Vector of length n.
+ *      On entry, the vector (alpha, x).
+ *      On exit, it is overwritten with the vector (beta,v).
  * 
- *        H = I - tau * ( 1 ) * ( 1 v' ) 
- *                      ( v )
- * 
- * where tau is a scalar and v is a (n-1)-element vector.
- * Note that H is symmetric but not hermitian.
- * 
- * If the elements of x are all zero and alpha is real, then tau = 0
- * and H is taken to be the identity matrix.
- * 
- * Otherwise  1 <= real(tau) <= 2 and abs(tau-1) <= 1.
- * 
- * @param[in,out] v Array of length n.  On entry, the vector (alpha, x).  On exit, it is overwritten with the vector (beta, v).
- * @param[out] tau On exit, the value tau.
+ * @param[out] tau The value tau.
  * 
  * @ingroup auxiliary
  */

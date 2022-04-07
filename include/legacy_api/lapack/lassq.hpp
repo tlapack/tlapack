@@ -39,7 +39,7 @@ namespace lapack {
  *    HUGE     -- biggest representable number.
  * 
  * @param[in] n The number of elements to be used from the vector x.
- * @param[in] x Array of dimension $(1+(n-1)*\abs(incx))$.
+ * @param[in] x Array of dimension $(1+(n-1)*|incx|)$.
  * @param[in] incx. The increment between successive values of the vector x.
  *          If incx > 0, X(i*incx) = x_i for 0 <= i < n
  *          If incx < 0, X((n-i-1)*(-incx)) = x_i for 0 <= i < n

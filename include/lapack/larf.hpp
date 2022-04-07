@@ -65,7 +65,6 @@ inline void larf(
 
     // constants
     const T one(1.0);
-    const T zero(0.0);
     const idx_t m = nrows(C);
     const idx_t n = ncols(C);
 
