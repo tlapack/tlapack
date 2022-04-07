@@ -100,7 +100,7 @@ int larfb(
     side_t side, trans_t trans,
     direction_t direction, storage_t storeMode,
     const matrixV_t& V, const matrixT_t& T,
-    matrixC_t& C, matrixW_t& W )
+    matrixC_t& C, matrixW_t& work )
 {
     using idx_t = size_type< matrixV_t >;
     using pair  = std::pair<idx_t,idx_t>;
@@ -146,7 +146,7 @@ int larfb(
     }
 
     lapack_error_if(    access_denied( dense, write_policy(C) ), -7 );
-    lapack_error_if(    access_denied( dense, write_policy(W) ), -8 );
+    lapack_error_if(    access_denied( dense, write_policy(work) ), -8 );
 
     // Quick return
     if (m <= 0 || n <= 0) return 0;
@@ -162,6 +162,7 @@ int larfb(
                 const auto V2 = rows( V, pair{k,m} );
                 auto C1 = rows( C, pair{0,k} );
                 auto C2 = rows( C, pair{k,m} );
+                auto W  = slice( work, pair{0,k}, pair{0,n} );
 
                 // W := C1
                 lacpy( dense, C1, W );
@@ -205,6 +206,7 @@ int larfb(
                 const auto V2 = rows( V, pair{k,n} );
                 auto C1 = cols( C, pair{0,k} );
                 auto C2 = cols( C, pair{k,n} );
+                auto W  = slice( work, pair{0,m}, pair{0,k} );
 
                 // W := C1
                 lacpy( dense, C1, W );
@@ -250,6 +252,7 @@ int larfb(
                 const auto V2 = rows( V, pair{m-k,m} );
                 auto C1 = rows( C, pair{0,m-k} );
                 auto C2 = rows( C, pair{m-k,m} );
+                auto W  = slice( work, pair{0,k}, pair{0,n} );
 
                 // W := C2
                 lacpy( dense, C2, W );
@@ -293,6 +296,7 @@ int larfb(
                 const auto V2 = rows( V, pair{n-k,n} );
                 auto C1 = cols( C, pair{0,n-k} );
                 auto C2 = cols( C, pair{n-k,n} );
+                auto W  = slice( work, pair{0,m}, pair{0,k} );
 
                 // W := C2
                 lacpy( dense, C2, W );
@@ -340,6 +344,7 @@ int larfb(
                 const auto V2 = cols( V, pair{k,m} );
                 auto C1 = rows( C, pair{0,k} );
                 auto C2 = rows( C, pair{k,m} );
+                auto W  = slice( work, pair{0,k}, pair{0,n} );
 
                 // W := C1
                 lacpy( dense, C1, W );
@@ -383,6 +388,7 @@ int larfb(
                 const auto V2 = cols( V, pair{k,n} );
                 auto C1 = cols( C, pair{0,k} );
                 auto C2 = cols( C, pair{k,n} );
+                auto W  = slice( work, pair{0,m}, pair{0,k} );
 
                 // W := C1
                 lacpy( dense, C1, W );
@@ -428,6 +434,7 @@ int larfb(
                 const auto V2 = cols( V, pair{m-k,m} );
                 auto C1 = rows( C, pair{0,m-k} );
                 auto C2 = rows( C, pair{m-k,m} );
+                auto W  = slice( work, pair{0,k}, pair{0,n} );
 
                 // W := C2
                 lacpy( dense, C2, W );
@@ -471,6 +478,7 @@ int larfb(
                 const auto V2 = cols( V, pair{n-k,n} );
                 auto C1 = cols( C, pair{0,n-k} );
                 auto C2 = cols( C, pair{n-k,n} );
+                auto W  = slice( work, pair{0,m}, pair{0,k} );
 
                 // W := C2
                 lacpy( dense, C2, W );
