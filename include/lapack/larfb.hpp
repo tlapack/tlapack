@@ -149,7 +149,7 @@ int larfb(
     lapack_error_if(    access_denied( dense, write_policy(work) ), -8 );
 
     // Quick return
-    if (m <= 0 || n <= 0) return 0;
+    if (m <= 0 || n <= 0 || k <= 0) return 0;
 
     if( storeMode == StoreV::Columnwise ){
         if( direction == Direction::Forward ){
@@ -159,9 +159,9 @@ int larfb(
 
                 // Matrix views
                 const auto V1 = rows( V, pair{0,k} );
-                const auto V2 = rows( V, pair{k,m} );
+                const auto V2 = rows( V, ( m > k ) ? pair{k,m} : pair{0,0} );
                 auto C1 = rows( C, pair{0,k} );
-                auto C2 = rows( C, pair{k,m} );
+                auto C2 = rows( C, ( m > k ) ? pair{k,m} : pair{0,0} );
                 auto W  = slice( work, pair{0,k}, pair{0,n} );
 
                 // W := C1
@@ -203,9 +203,9 @@ int larfb(
 
                 // Matrix views
                 const auto V1 = rows( V, pair{0,k} );
-                const auto V2 = rows( V, pair{k,n} );
+                const auto V2 = rows( V, ( n > k ) ? pair{k,n} : pair{0,0} );
                 auto C1 = cols( C, pair{0,k} );
-                auto C2 = cols( C, pair{k,n} );
+                auto C2 = cols( C, ( n > k ) ? pair{k,n} : pair{0,0} );
                 auto W  = slice( work, pair{0,m}, pair{0,k} );
 
                 // W := C1
@@ -341,9 +341,9 @@ int larfb(
 
                 // Matrix views
                 const auto V1 = cols( V, pair{0,k} );
-                const auto V2 = cols( V, pair{k,m} );
+                const auto V2 = cols( V, ( m > k ) ? pair{k,m} : pair{0,0} );
                 auto C1 = rows( C, pair{0,k} );
-                auto C2 = rows( C, pair{k,m} );
+                auto C2 = rows( C, ( m > k ) ? pair{k,m} : pair{0,0} );
                 auto W  = slice( work, pair{0,k}, pair{0,n} );
 
                 // W := C1
@@ -385,9 +385,9 @@ int larfb(
 
                 // Matrix views
                 const auto V1 = cols( V, pair{0,k} );
-                const auto V2 = cols( V, pair{k,n} );
+                const auto V2 = cols( V, ( n > k ) ? pair{k,n} : pair{0,0} );
                 auto C1 = cols( C, pair{0,k} );
-                auto C2 = cols( C, pair{k,n} );
+                auto C2 = cols( C, ( n > k ) ? pair{k,n} : pair{0,0} );
                 auto W  = slice( work, pair{0,m}, pair{0,k} );
 
                 // W := C1

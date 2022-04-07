@@ -137,103 +137,126 @@ int larft(
     if (n == 0 || k == 0)
         return 0;
 
-    if (direction == Direction::Forward) {
+    if (direction == Direction::Forward)
+    {
+        // First iteration:
         T(0,0) = tau[0];
+
+        // Remaining iterations:
         for (idx_t i = 1; i < k; ++i) {
-            auto Ti = slice( T, pair{0,i}, i );
+
+            // Column vector t := T(0:i,i)
+            auto t = slice( T, pair{0,i}, i );
+
             if (tau[i] == tzero) {
-                // H(i)  =  I
-                for (idx_t j = 0; j <= i; ++j)
-                    T(j,i) = zero;
+                // H(i) =  I
+                for (idx_t j = 0; j < i; ++j)
+                    t[j] = zero;
             }
+
             else {
                 // General case
                 if (storeMode == StoreV::Columnwise) {
+
+                    // t := - tau[i] conj( V(i,0:i) )
                     for (idx_t j = 0; j < i; ++j)
-                        T(j,i) = -tau[i] * conj(V(i,j));
-                    // T(0:i,i) := - tau[i] V(i+1:n,0:i)^H V(i+1:n,i)
-                    gemv( conjTranspose,
-                        -tau[i],
-                        slice( V, pair{i+1,n}, pair{0,i} ),
-                        slice( V, pair{i+1,n}, i ),
-                        one, Ti
-                    );
+                        t[j] = -tau[i] * conj(V(i,j));
+                    
+                    // t := t - tau[i] V(i+1:n,0:i)^H V(i+1:n,i)
+                    if( i+1 < n ) {
+                        gemv( conjTranspose,
+                            -tau[i],
+                            slice( V, pair{i+1,n}, pair{0,i} ),
+                            slice( V, pair{i+1,n}, i ),
+                            one, t
+                        );
+                    }
                 }
                 else {
+
+                    // t := - tau[i] V(0:i,i)
                     for (idx_t j = 0; j < i; ++j)
-                        T(j,i) = -tau[i] * V(j,i);
-                    // T(0:i,i) := - tau[i] V(0:i,i:n) V(i,i+1:n)^H
-                    if( is_complex<scalar_t>::value ) {
-                        auto matrixTi = slice( T, pair{0,i}, pair{i,i+1} );
+                        t[j] = -tau[i] * V(j,i);
+                    
+                    // t := t - tau[i] V(0:i,i:n) V(i,i+1:n)^H
+                    if( i+1 < n ) {
+                        auto Ti = slice( T, pair{0,i}, pair{i,i+1} );
                         gemm( noTranspose, conjTranspose,
                             -tau[i],
                             slice( V, pair{0,i}, pair{i+1,n} ),
                             slice( V, pair{i,i+1}, pair{i+1,n} ),
-                            one, matrixTi
-                        );
-                    } else {
-                        gemv( noTranspose,
-                            -tau[i],
-                            slice( V, pair{0,i}, pair{i+1,n} ),
-                            slice( V,         i, pair{i+1,n} ),
                             one, Ti
                         );
                     }
                 }
-                // T(0:i,i) := T(0:i,0:i) * T(0:i,i)
+
+                // t := T(0:i,0:i) * t
                 trmv( upperTriangle, noTranspose, nonUnit_diagonal,
-                    slice( T, pair{0,i}, pair{0,i} ), Ti 
+                    slice( T, pair{0,i}, pair{0,i} ), t 
                 );
-                T(i,i) = tau[i];
             }
+
+            // Update diagonal
+            T(i,i) = tau[i];
         }
     }
-    else { // direct==Direction::Backward
+    else // direct==Direction::Backward
+    {
+        // First iteration:
         T(k-1,k-1) = tau[k-1];
+
+        // Remaining iterations:
         for (idx_t i = k-2; i != idx_t(-1); --i) {
-            auto Ti = slice( T, pair{i+1,k}, i );
+
+            // Column vector t := T(0:i,i)
+            auto t = slice( T, pair{i+1,k}, i );
+
             if (tau[i] == tzero) {
-                for (idx_t j = i; j < k; ++j)
-                    T(j,i) = zero;
+                // H(i) =  I
+                for (idx_t j = 0; j < k-i-1; ++j)
+                    t[j] = zero;
             }
+
             else {
+                // General case
                 if (storeMode == StoreV::Columnwise) {
-                    for (idx_t j = i+1; j < k; ++j)
-                        T(j,i) = -tau[i] * conj(V(n-k+i,j));
-                    // T(i+1:k,i) := - tau[i] V(0:n-k+i,i+1:k)^H V(0:n-k+i,i)
+
+                    // t := - tau[i] conj(V(n-k+i,i+1:k))
+                    for (idx_t j = 0; j < k-i-1; ++j)
+                        t[j] = -tau[i] * conj(V(n-k+i,j+i+1));
+
+                    // t := t - tau[i] V(0:n-k+i,i+1:k)^H V(0:n-k+i,i)
                     gemv( conjTranspose,
                         -tau[i],
                         slice( V, pair{0,n-k+i}, pair{i+1,k} ),
                         slice( V, pair{0,n-k+i}, i ),
-                        one, Ti
+                        one, t
                     );
                 }
                 else {
-                    for (idx_t j = i+1; j < k; ++j)
-                        T(j,i) = -tau[i] * V(j,n-k+i);
-                    // T(i+1:k,i) := - tau[i] V(i+1:k,0:n-k+i) V(i,0:n-k+i)^H
-                    if( blas::is_complex<scalar_t>::value ) {
-                        auto matrixTi = slice( T, pair{i+1,k}, pair{i,i+1} );
-                        gemm( noTranspose, conjTranspose,
-                            -tau[i],
-                            slice( V, pair{i+1,k}, pair{0,n-k+i} ),
-                            slice( V, pair{i,i+1}, pair{0,n-k+i} ),
-                            one, matrixTi
-                        );
-                    } else {
-                        gemv( noTranspose,
-                            -tau[i],
-                            slice( V, pair{i+1,k}, pair{0,n-k+i} ),
-                            slice( V,           i, pair{0,n-k+i} ),
-                            one, Ti
-                        );
-                    }
+
+                    // t := - tau[i] V(i+1:k,n-k+i)
+                    for (idx_t j = 0; j < k-i-1; ++j)
+                        t[j] = -tau[i] * V(j+i+1,n-k+i);
+
+                    // t := t - tau[i] V(i+1:k,0:n-k+i) V(i,0:n-k+i)^H
+                    auto Ti = slice( T, pair{i+1,k}, pair{i,i+1} );
+                    gemm( noTranspose, conjTranspose,
+                        -tau[i],
+                        slice( V, pair{i+1,k}, pair{0,n-k+i} ),
+                        slice( V, pair{i,i+1}, pair{0,n-k+i} ),
+                        one, Ti
+                    );
                 }
+
+                // t := T(i+1:k,i+1:k) * t
                 trmv( lowerTriangle, noTranspose, nonUnit_diagonal,
-                    slice( T, pair{i+1,k}, pair{i+1,k} ), Ti 
+                    slice( T, pair{i+1,k}, pair{i+1,k} ), t 
                 );
-                T(i,i) = tau[i];
             }
+
+            // Update diagonal
+            T(i,i) = tau[i];
         }
     }
     return 0;
