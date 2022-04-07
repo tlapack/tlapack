@@ -52,7 +52,7 @@
 // ----------------
 
 #include "lapack/gehd2.hpp"
-#include "lapack/orghr.hpp"
+#include "lapack/unghr.hpp"
 #include "lapack/lahqr.hpp"
 #include "lapack/lahqr_shiftcolumn.hpp"
 #include "lapack/lahqr_eig22.hpp"

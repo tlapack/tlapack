@@ -1,4 +1,4 @@
-/// @file orghr.hpp
+/// @file unghr.hpp
 /// @author Thijs Steel, KU Leuven, Belgium
 /// Adapted from @see https://github.com/Reference-LAPACK/lapack/tree/master/SRC/dorghr.f
 //
@@ -6,13 +6,13 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __ORGHR_HH__
-#define __ORGHR_HH__
+#ifndef __UNGHR_HH__
+#define __UNGHR_HH__
 
 #include "lapack/utils.hpp"
 #include "lapack/types.hpp"
 #include "lapack/larf.hpp"
-#include "lapack/org2r.hpp"
+#include "lapack/ung2r.hpp"
 
 namespace lapack {
 
@@ -30,7 +30,7 @@ namespace lapack {
  */
 template<
     class matrix_t, class vector_t, class work_t >
-int orghr(
+int unghr(
     size_type< matrix_t > ilo,
     size_type< matrix_t > ihi,
     matrix_t& A,
@@ -88,11 +88,11 @@ int orghr(
     const idx_t nh = ihi-1-ilo;
     auto A_s = slice( A, pair{ilo+1,ihi}, pair{ilo+1,ihi} );
     auto tau_s = slice( tau, pair{ilo,ihi-1} );
-    org2r( nh, A_s, tau_s, work );
+    ung2r( nh, A_s, tau_s, work );
 
     return 0;
 }
 
 }
 
-#endif // __ORGHR_HH__
+#endif // __UNGHR_HH__

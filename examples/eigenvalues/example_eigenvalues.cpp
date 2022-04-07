@@ -110,7 +110,7 @@ void run(size_t n)
                 H(i, j) = Q(i, j);
 
         // Generate Q = H_1 H_2 ... H_n
-        blas_error_if(lapack::orghr(0, n, Q, tau, work));
+        blas_error_if(lapack::unghr(0, n, Q, tau, work));
 
         // Remove junk from lower half of H
         for (size_t j = 0; j < n; ++j)

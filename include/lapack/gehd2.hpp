@@ -70,6 +70,7 @@ int gehd2( size_type< matrix_t > ilo, size_type< matrix_t > ihi, matrix_t& A, ve
     const idx_t n = ncols(A);
 
     // check arguments
+    lapack_error_if( access_denied( dense, write_policy(A) ), -3 );
     lapack_error_if( ncols(A) != nrows(A), -3 );
     lapack_error_if( (idx_t) size(tau)  < n-1, -4 );
     lapack_error_if( (idx_t) size(work) < n, -5 );
@@ -79,17 +80,12 @@ int gehd2( size_type< matrix_t > ilo, size_type< matrix_t > ihi, matrix_t& A, ve
 
     for(idx_t i = ilo; i < ihi-1; ++i) {
 
-        // Define x := A[min(i+2,ihi-1):ihi,i]
-        auto x = slice( A, (i < ihi-2) ? pair{i+2,ihi} : pair{0,0}, i);
+        // Define x := A[i+1:ihi,i]
+        auto v = slice(A, pair{i+1,ihi}, i);
 
         // Generate the (i+1)-th elementary Householder reflection on x
-        larfg( A(i+1,i), x, tau[i] );
+        larfg( v, tau[i] );
 
-        const auto alpha = A(i+1,i);
-        A(i+1,i) = one;
-
-        // Select v := A[i+1:ihi,i]
-        const auto v = slice( A, pair{i+1,ihi}, i );
         // Apply Householder reflection from the right to A[0:ihi,i+1:ihi]
         auto w = slice( work, pair{0,ihi} );
         auto C = slice( A, pair{0,ihi}, pair{i+1,ihi} );
@@ -100,8 +96,6 @@ int gehd2( size_type< matrix_t > ilo, size_type< matrix_t > ihi, matrix_t& A, ve
         C = slice( A, pair{i+1,ihi}, pair{i+1,n} );
         auto tauconj = conj(tau[i]);
         larf( left_side, v, tauconj, C, w );
-
-        A(i+1,i) = alpha;
 	}
 
     return 0;
