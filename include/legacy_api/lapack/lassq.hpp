@@ -49,7 +49,7 @@ namespace lapack {
  * @param[in] scl
  * @param[in] sumsq
  * 
- * @ingroup
+ * @ingroup auxiliary
  */
 template< typename TX >
 void lassq(

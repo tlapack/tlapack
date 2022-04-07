@@ -15,19 +15,14 @@ namespace blas {
 /**
  * Symmetric rank-k update:
  * \[
- *     C = \alpha A B^T + \alpha B A^T + \beta C,
+ *     C := \alpha A B^T + \alpha B A^T + \beta C,
  * \]
  * or
  * \[
- *     C = \alpha A^T B + \alpha B^T A + \beta C,
+ *     C := \alpha A^T B + \alpha B^T A + \beta C,
  * \]
  * where alpha and beta are scalars, C is an n-by-n symmetric matrix,
  * and A and B are n-by-k or k-by-n matrices.
- *
- * Generic implementation for arbitrary data types.
- *
- * @param[in] layout
- *     Matrix storage, Layout::ColMajor or Layout::RowMajor.
  *
  * @param[in] uplo
  *     What part of the matrix C is referenced,
@@ -39,50 +34,16 @@ namespace blas {
  *     The operation to be performed:
  *     - Op::NoTrans: $C = \alpha A B^T + \alpha B A^T + \beta C$.
  *     - Op::Trans:   $C = \alpha A^T B + \alpha B^T A + \beta C$.
- *     - In the real    case, Op::ConjTrans is interpreted as Op::Trans.
- *       In the complex case, Op::ConjTrans is illegal (see @ref her2k instead).
  *
- * @param[in] n
- *     Number of rows and columns of the matrix C. n >= 0.
- *
- * @param[in] k
- *     - If trans = NoTrans: number of columns of the matrix A. k >= 0.
- *     - Otherwise:          number of rows    of the matrix A. k >= 0.
- *
- * @param[in] alpha
- *     Scalar alpha. If alpha is zero, A and B are not accessed.
- *
- * @param[in] A
- *     - If trans = NoTrans:
- *       the n-by-k matrix A, stored in an lda-by-k array [RowMajor: n-by-lda].
- *     - Otherwise:
- *       the k-by-n matrix A, stored in an lda-by-n array [RowMajor: k-by-lda].
- *
- * @param[in] lda
- *     Leading dimension of A.
- *     - If trans = NoTrans: lda >= max(1, n) [RowMajor: lda >= max(1, k)],
- *     - Otherwise:          lda >= max(1, k) [RowMajor: lda >= max(1, n)].
- *
- * @param[in] B
- *     - If trans = NoTrans:
- *       the n-by-k matrix B, stored in an ldb-by-k array [RowMajor: n-by-ldb].
- *     - Otherwise:
- *       the k-by-n matrix B, stored in an ldb-by-n array [RowMajor: k-by-ldb].
- *
- * @param[in] ldb
- *     Leading dimension of B.
- *     - If trans = NoTrans: ldb >= max(1, n) [RowMajor: ldb >= max(1, k)],
- *     - Otherwise:          ldb >= max(1, k) [RowMajor: ldb >= max(1, n)].
- *
- * @param[in] beta
- *     Scalar beta. If beta is zero, C need not be set on input.
- *
- * @param[in] C
- *     The n-by-n symmetric matrix C,
- *     stored in an lda-by-n array [RowMajor: n-by-lda].
- *
- * @param[in] ldc
- *     Leading dimension of C. ldc >= max(1, n).
+ * @param[in] alpha Scalar.
+ * @param[in] A A n-by-k matrix.
+ *     - If trans = NoTrans: a n-by-k matrix.
+ *     - Otherwise:          a k-by-n matrix.
+ * @param[in] B A n-by-k matrix.
+ *     - If trans = NoTrans: a n-by-k matrix.
+ *     - Otherwise:          a k-by-n matrix.
+ * @param[in] beta Scalar.
+ * @param[in,out] C A n-by-n symmetric matrix.
  *
  * @ingroup syr2k
  */
@@ -94,11 +55,11 @@ void syr2k(
     blas::Op trans,
     const alpha_t& alpha, const matrixA_t& A, const matrixB_t& B,
     const beta_t& beta, matrixC_t& C )
-{    
+{
     // data traits
     using TA    = type_t< matrixA_t >;
     using TB    = type_t< matrixB_t >;
-    using idx_t = size_type< matrixC_t >;
+    using idx_t = size_type< matrixA_t >;
 
     // constants
     const idx_t n = (trans == Op::NoTrans) ? nrows(A) : ncols(A);
@@ -112,8 +73,8 @@ void syr2k(
                    trans != Op::Trans );
     blas_error_if( nrows(B) != nrows(A) ||
                    ncols(B) != ncols(A) );
-    blas_error_if( nrows(C) != ncols(C) ||
-                   nrows(C) != n );
+    blas_error_if( nrows(C) != ncols(C) );
+    blas_error_if( nrows(C) != n );
 
     blas_error_if( access_denied( dense, read_policy(A) ) );
     blas_error_if( access_denied( dense, read_policy(B) ) );
@@ -157,6 +118,7 @@ void syr2k(
         // uplo == Uplo::Upper or uplo == Uplo::General
             for(idx_t j = 0; j < n; ++j) {
                 for(idx_t i = 0; i <= j; ++i) {
+
                     scalar_t sum1( 0 );
                     scalar_t sum2( 0 );
                     for(idx_t l = 0; l < k; ++l) {
@@ -170,6 +132,7 @@ void syr2k(
         else { // uplo == Uplo::Lower
             for(idx_t j = 0; j < n; ++j) {
                 for(idx_t i = j; i < n; ++i) {
+
                     scalar_t sum1( 0 );
                     scalar_t sum2( 0 );
                     for(idx_t l = 0; l < k; ++l) {
@@ -192,4 +155,4 @@ void syr2k(
 
 }  // namespace blas
 
-#endif        //  #ifndef BLAS_SYMM_HH
+#endif        //  #ifndef BLAS_SYR2K_HH

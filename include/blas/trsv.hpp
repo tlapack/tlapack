@@ -26,12 +26,6 @@ namespace blas {
  *
  * No test for singularity or near-singularity is included in this
  * routine. Such tests must be performed before calling this routine.
- * @see LAPACK's latrs for a more numerically robust implementation.
- *
- * Generic implementation for arbitrary data types.
- *
- * @param[in] layout
- *     Matrix storage, Layout::ColMajor or Layout::RowMajor.
  *
  * @param[in] uplo
  *     What part of the matrix A is referenced,
@@ -51,21 +45,10 @@ namespace blas {
  *                      The diagonal elements of A are not referenced.
  *     - Diag::NonUnit: A is not assumed to be unit triangular.
  *
- * @param[in] n
- *     Number of rows and columns of the matrix A. n >= 0.
- *
- * @param[in] A
- *     The n-by-n matrix A, stored in an lda-by-n array [RowMajor: n-by-lda].
- *
- * @param[in] lda
- *     Leading dimension of A. lda >= max(1, n).
- *
- * @param[in, out] x
- *     The n-element vector x, in an array of length (n-1)*abs(incx) + 1.
- *
- * @param[in] incx
- *     Stride between elements of x. incx must not be zero.
- *     If incx < 0, uses elements of x in reverse order: x(n-1), ..., x(0).
+ * @param[in] A     A n-by-n matrix.
+ * @param[in,out] x
+ *      On entry, the n-element vector b.
+ *      On exit,  the n-element vector x.
  *
  * @ingroup trsv
  */
@@ -81,9 +64,6 @@ void trsv(
     using TA    = type_t< matrixA_t >;
     using TX    = type_t< vectorX_t >;
     using idx_t = size_type< matrixA_t >;
-
-    // using
-    using scalar_t = scalar_type<TA,TX>;
 
     // constants
     const idx_t n = nrows(A);
@@ -107,117 +87,123 @@ void trsv(
         // Form x := A^{-1} * x
         if (uplo == Uplo::Upper) {
             // upper
-                for (idx_t j = n - 1; j != idx_t(-1); --j) {
-                    // note: NOT skipping if x[j] is zero, for consistent NAN handling
-                    if (nonunit) {
-                        x[j] /= A(j,j);
-                    }
-                    scalar_t tmp = x[j];
-                    for (idx_t i = j - 1; i != idx_t(-1); --i) {
-                        x[i] -= tmp * A(i,j);
-                    }
+            for (idx_t j = n - 1; j != idx_t(-1); --j) {
+                // note: NOT skipping if x[j] is zero, for consistent NAN handling
+                if (nonunit) {
+                    x[j] /= A(j,j);
                 }
+                auto tmp = x[j];
+                for (idx_t i = j - 1; i != idx_t(-1); --i) {
+                    x[i] -= tmp * A(i,j);
+                }
+            }
         }
         else {
             // lower
-                for (idx_t j = 0; j < n; ++j) {
-                    // note: NOT skipping if x[j] is zero ...
-                    if (nonunit) {
-                        x[j] /= A(j,j);
-                    }
-                    scalar_t tmp = x[j];
-                    for (idx_t i = j + 1; i < n; ++i) {
-                        x[i] -= tmp * A(i,j);
-                    }
+            for (idx_t j = 0; j < n; ++j) {
+                // note: NOT skipping if x[j] is zero ...
+                if (nonunit) {
+                    x[j] /= A(j,j);
                 }
+                auto tmp = x[j];
+                for (idx_t i = j + 1; i < n; ++i) {
+                    x[i] -= tmp * A(i,j);
+                }
+            }
         }
     }
     else if (trans == Op::Conj) {
         // Form x := A^{-1} * x
         if (uplo == Uplo::Upper) {
             // upper
-                for (idx_t j = n - 1; j != idx_t(-1); --j) {
-                    // note: NOT skipping if x[j] is zero, for consistent NAN handling
-                    if (nonunit) {
-                        x[j] /= conj( A(j,j) );
-                    }
-                    scalar_t tmp = x[j];
-                    for (idx_t i = j - 1; i != idx_t(-1); --i) {
-                        x[i] -= tmp * conj( A(i,j) );
-                    }
+            for (idx_t j = n - 1; j != idx_t(-1); --j) {
+                // note: NOT skipping if x[j] is zero, for consistent NAN handling
+                if (nonunit) {
+                    x[j] /= conj( A(j,j) );
                 }
+                auto tmp = x[j];
+                for (idx_t i = j - 1; i != idx_t(-1); --i) {
+                    x[i] -= tmp * conj( A(i,j) );
+                }
+            }
         }
         else {
             // lower
-                for (idx_t j = 0; j < n; ++j) {
-                    // note: NOT skipping if x[j] is zero ...
-                    if (nonunit) {
-                        x[j] /= conj( A(j,j) );
-                    }
-                    scalar_t tmp = x[j];
-                    for (idx_t i = j + 1; i < n; ++i) {
-                        x[i] -= tmp * conj( A(i,j) );
-                    }
+            for (idx_t j = 0; j < n; ++j) {
+                // note: NOT skipping if x[j] is zero ...
+                if (nonunit) {
+                    x[j] /= conj( A(j,j) );
                 }
+                auto tmp = x[j];
+                for (idx_t i = j + 1; i < n; ++i) {
+                    x[i] -= tmp * conj( A(i,j) );
+                }
+            }
         }
     }
     else if (trans == Op::Trans) {
         // Form  x := A^{-T} * x
+        
+        using scalar_t = scalar_type<TA,TX>;
+        
         if (uplo == Uplo::Upper) {
             // upper
-                for (idx_t j = 0; j < n; ++j) {
-                    scalar_t tmp = x[j];
-                    for (idx_t i = 0; i < j; ++i) {
-                        tmp -= A(i,j) * x[i];
-                    }
-                    if (nonunit) {
-                        tmp /= A(j,j);
-                    }
-                    x[j] = tmp;
+            for (idx_t j = 0; j < n; ++j) {
+                scalar_t tmp = x[j];
+                for (idx_t i = 0; i < j; ++i) {
+                    tmp -= A(i,j) * x[i];
                 }
+                if (nonunit) {
+                    tmp /= A(j,j);
+                }
+                x[j] = tmp;
+            }
         }
         else {
             // lower
-                for (idx_t j = n - 1; j != idx_t(-1); --j) {
-                    scalar_t tmp = x[j];
-                    for (idx_t i = j + 1; i < n; ++i) {
-                        tmp -= A(i,j) * x[i];
-                    }
-                    if (nonunit) {
-                        tmp /= A(j,j);
-                    }
-                    x[j] = tmp;
+            for (idx_t j = n - 1; j != idx_t(-1); --j) {
+                scalar_t tmp = x[j];
+                for (idx_t i = j + 1; i < n; ++i) {
+                    tmp -= A(i,j) * x[i];
                 }
+                if (nonunit) {
+                    tmp /= A(j,j);
+                }
+                x[j] = tmp;
+            }
         }
     }
     else {
         // Form x := A^{-H} * x
         // same code as above A^{-T} * x case, except add conj()
+        
+        using scalar_t = scalar_type<TA,TX>;
+        
         if (uplo == Uplo::Upper) {
             // upper
-                for (idx_t j = 0; j < n; ++j) {
-                    scalar_t tmp = x[j];
-                    for (idx_t i = 0; i < j; ++i) {
-                        tmp -= conj( A(i,j) ) * x[i];
-                    }
-                    if (nonunit) {
-                        tmp /= conj( A(j,j) );
-                    }
-                    x[j] = tmp;
+            for (idx_t j = 0; j < n; ++j) {
+                scalar_t tmp = x[j];
+                for (idx_t i = 0; i < j; ++i) {
+                    tmp -= conj( A(i,j) ) * x[i];
                 }
+                if (nonunit) {
+                    tmp /= conj( A(j,j) );
+                }
+                x[j] = tmp;
+            }
         }
         else {
             // lower
-                for (idx_t j = n - 1; j != idx_t(-1); --j) {
-                    scalar_t tmp = x[j];
-                    for (idx_t i = j + 1; i < n; ++i) {
-                        tmp -= conj( A(i,j) ) * x[i];
-                    }
-                    if (nonunit) {
-                        tmp /= conj( A(j,j) );
-                    }
-                    x[j] = tmp;
+            for (idx_t j = n - 1; j != idx_t(-1); --j) {
+                scalar_t tmp = x[j];
+                for (idx_t i = j + 1; i < n; ++i) {
+                    tmp -= conj( A(i,j) ) * x[i];
                 }
+                if (nonunit) {
+                    tmp /= conj( A(j,j) );
+                }
+                x[j] = tmp;
+            }
         }
     }
 }

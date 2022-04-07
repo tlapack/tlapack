@@ -15,47 +15,21 @@ namespace blas {
 /**
  * Symmetric matrix rank-2 update:
  * \[
- *     A = \alpha x y^T + \alpha y x^T + A,
+ *     A := \alpha x y^T + \alpha y x^T + A,
  * \]
  * where alpha is a scalar, x and y are vectors,
  * and A is an n-by-n symmetric matrix.
- *
- * Generic implementation for arbitrary data types.
- *
- * @param[in] layout
- *     Matrix storage, Layout::ColMajor or Layout::RowMajor.
  *
  * @param[in] uplo
  *     What part of the matrix A is referenced,
  *     the opposite triangle being assumed from symmetry.
  *     - Uplo::Lower: only the lower triangular part of A is referenced.
  *     - Uplo::Upper: only the upper triangular part of A is referenced.
- *
- * @param[in] n
- *     Number of rows and columns of the matrix A. n >= 0.
- *
- * @param[in] alpha
- *     Scalar alpha. If alpha is zero, A is not updated.
- *
- * @param[in] x
- *     The n-element vector x, in an array of length (n-1)*abs(incx) + 1.
- *
- * @param[in] incx
- *     Stride between elements of x. incx must not be zero.
- *     If incx < 0, uses elements of x in reverse order: x(n-1), ..., x(0).
- *
- * @param[in] y
- *     The n-element vector y, in an array of length (n-1)*abs(incy) + 1.
- *
- * @param[in] incy
- *     Stride between elements of y. incy must not be zero.
- *     If incy < 0, uses elements of y in reverse order: y(n-1), ..., y(0).
- *
- * @param[in, out] A
- *     The n-by-n matrix A, stored in an lda-by-n array [RowMajor: n-by-lda].
- *
- * @param[in] lda
- *     Leading dimension of A. lda >= max(1, n).
+ * 
+ * @param[in] alpha Scalar.
+ * @param[in] x A n-element vector.
+ * @param[in] y A n-element vector.
+ * @param[in,out] A A n-by-n symmetric matrix.
  *
  * @ingroup syr2
  */
@@ -67,30 +41,30 @@ void syr2(
     blas::Uplo  uplo,
     const alpha_t& alpha,
     const vectorX_t& x, const vectorY_t& y,
-    const matrixA_t& A )
+    matrixA_t& A )
 {
     // data traits
     using idx_t = size_type< matrixA_t >;
 
     // constants
-    const idx_t n = size(x);
+    const idx_t n = nrows(A);
 
     // check arguments
     blas_error_if( uplo != Uplo::Lower &&
                    uplo != Uplo::Upper );
+    blas_error_if( size(x)  != n );
     blas_error_if( size(y)  != n );
-    blas_error_if( nrows(A) != ncols(A) ||
-                   nrows(A) != n );
+    blas_error_if( ncols(A) != n );
 
     blas_error_if( access_denied( uplo, write_policy(A) ) );
 
     if (uplo == Uplo::Upper) {
-            for (idx_t j = 0; j < n; ++j) {
-                auto tmp1 = alpha * y[j];
-                auto tmp2 = alpha * x[j];
-                for (idx_t i = 0; i <= j; ++i)
-                    A(i,j) += x[i]*tmp1 + y[i]*tmp2;
-            }
+        for (idx_t j = 0; j < n; ++j) {
+            auto tmp1 = alpha * y[j];
+            auto tmp2 = alpha * x[j];
+            for (idx_t i = 0; i <= j; ++i)
+                A(i,j) += x[i]*tmp1 + y[i]*tmp2;
+        }
     }
     else {
         for (idx_t j = 0; j < n; ++j) {

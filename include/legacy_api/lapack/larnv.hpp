@@ -44,69 +44,14 @@ inline void larnv(
     idx_t idist, idx_t* iseed,
     idx_t n, T* x )
 {
-    typedef real_type<T> real_t;
-    using blas::atan;
-    using blas::sqrt;
-    using blas::cos;
-    using blas::sin;
-    using blas::internal::set_complex;
+    using blas::internal::vector;
+    auto _x = vector( x, n );
 
-    // Constants
-    const real_t one   = 1.0;
-    const real_t eight = 8.0;
-    const real_t twopi = eight * atan(one);
-
-    // Initialize the generator
-    std::random_device device;
-    std::mt19937 generator(device());
-    generator.seed(*iseed);
-
-    if (idist == 1) {
-        std::uniform_real_distribution<real_t> d1(0, 1);
-        for (idx_t i = 0; i < n; ++i) {
-            if( blas::is_complex<T>::value )
-                set_complex(x[i], d1(generator), d1(generator));
-            else
-                x[i] = d1(generator);
-        }
-    }
-    else if (idist == 2) {
-        std::uniform_real_distribution<real_t> d2(-1, 1);
-        for (idx_t i = 0; i < n; ++i) {
-            if( blas::is_complex<T>::value )
-                set_complex(x[i], d2(generator), d2(generator));
-            else
-                x[i] = d2(generator);
-        }
-    }
-    else if (idist == 3) {
-        std::normal_distribution<real_t> d3(0, 1);
-        for (idx_t i = 0; i < n; ++i) {
-            if( blas::is_complex<T>::value )
-                set_complex(x[i], d3(generator), d3(generator));
-            else
-                x[i] = d3(generator);
-        }
-    }
-    else if ( blas::is_complex<T>::value ) {
-        if (idist == 4) {
-            std::uniform_real_distribution<real_t> d4(0, 1);
-            for (idx_t i = 0; i < n; ++i) {
-                real_t r     = sqrt(d4(generator));
-                real_t theta = twopi * d4(generator);
-                set_complex(x[i], r*cos(theta), r*sin(theta));
-            }
-        }
-        else if (idist == 5) {
-            std::uniform_real_distribution<real_t> d5(0, 1);
-            for (idx_t i = 0; i < n; ++i) {
-                real_t theta = twopi * d5(generator);
-                set_complex(x[i], cos(theta), sin(theta));
-            }
-        }
-    }
-
-    *iseed = *iseed + 1;
+    if (idist == 1) return larnv<1>( *iseed, _x );
+    else if (idist == 2) return larnv<2>( *iseed, _x );
+    else if (idist == 3) return larnv<3>( *iseed, _x );
+    else if (idist == 4) return larnv<4>( *iseed, _x );
+    else if (idist == 5) return larnv<5>( *iseed, _x );
 }
 
 }

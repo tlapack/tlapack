@@ -20,63 +20,61 @@ namespace lapack {
 /** Forms the triangular factor T of a block reflector H of order n,
  * which is defined as a product of k elementary reflectors.
  *
- *               If direct = Direction::Forward, H = H_1 H_2 . . . H_k and T is upper triangular.
- *               If direct = Direction::Backward, H = H_k . . . H_2 H_1 and T is lower triangular.
+ * If direction = Direction::Forward,  H = H_1 H_2 ... H_k and T is upper triangular.
+ * If direction = Direction::Backward, H = H_k ... H_2 H_1 and T is lower triangular.
  *
- *  If storeV = StoreV::Columnwise, the vector which defines the elementary reflector
- *  H(i) is stored in the i-th column of the array V, and
+ * If storeMode = StoreV::Columnwise, the vector which defines the elementary
+ * reflector H(i) is stored in the i-th column of the array V, and
  *
  *               H  =  I - V * T * V'
  *
- *  If storeV = StoreV::Rowwise, the vector which defines the elementary reflector
- *  H(i) is stored in the i-th row of the array V, and
+ * The shape of the matrix V and the storage of the vectors which define
+ * the H(i) is best illustrated by the following example with n = 5 and
+ * k = 3. The elements equal to 1 are not stored. The rest of the
+ * array is not used.
  *
- *               H  =  I - V' * T * V
+ *     direction = Forward and          direction = Forward and
+ *     storeMode = Columnwise:             storeMode = Rowwise:
  *
- *  The shape of the matrix V and the storage of the vectors which define
- *  the H(i) is best illustrated by the following example with n = 5 and
- *  k = 3. The elements equal to 1 are not stored.
+ *     V = (  1       )                 V = (  1 v1 v1 v1 v1 )
+ *         ( v1  1    )                     (     1 v2 v2 v2 )
+ *         ( v1 v2  1 )                     (        1 v3 v3 )
+ *         ( v1 v2 v3 )
+ *         ( v1 v2 v3 )
  *
- *               direct=Direction::Forward & storeV=StoreV::Columnwise          direct=Direction::Forward & storeV=StoreV::Rowwise
- *               -----------------------          -----------------------
- *               V = (  1       )                 V = (  1 v1 v1 v1 v1 )
- *                   ( v1  1    )                     (     1 v2 v2 v2 )
- *                   ( v1 v2  1 )                     (        1 v3 v3 )
- *                   ( v1 v2 v3 )
- *                   ( v1 v2 v3 )
+ *     direction = Backward and         direction = Backward and
+ *     storeMode = Columnwise:             storeMode = Rowwise:
  *
- *               direct=Direction::Backward & storeV=StoreV::Columnwise          direct=Direction::Backward & storeV=StoreV::Rowwise
- *               -----------------------          -----------------------
- *               V = ( v1 v2 v3 )                 V = ( v1 v1  1       )
- *                   ( v1 v2 v3 )                     ( v2 v2 v2  1    )
- *                   (  1 v2 v3 )                     ( v3 v3 v3 v3  1 )
- *                   (     1 v3 )
- *                   (        1 )
- *
- * @return 0 if success.
- * @return -i if the ith argument is invalid.
+ *     V = ( v1 v2 v3 )                 V = ( v1 v1  1       )
+ *         ( v1 v2 v3 )                     ( v2 v2 v2  1    )
+ *         (  1 v2 v3 )                     ( v3 v3 v3 v3  1 )
+ *         (     1 v3 )
+ *         (        1 )
  * 
- * @param direct Specifies the direction in which the elementary reflectors are multiplied to form the block reflector.
+ * @tparam direction_t Either Direction or any class that implements `operator Direction()`.
+ * @tparam storage_t Either StoreV or any class that implements `operator StoreV()`.
+ * 
+ * @param[in] direction
+ *     Indicates how H is formed from a product of elementary reflectors.
+ *     - Direction::Forward:  $H = H(1) H(2) ... H(k)$.
+ *     - Direction::Backward: $H = H(k) ... H(2) H(1)$.
  *
- *               Direction::Forward
- *               Direction::Backward
+ * @param[in] storeMode
+ *     Indicates how the vectors which define the elementary reflectors are stored:
+ *     - StoreV::Columnwise.
+ *     - StoreV::Rowwise.
+ * 
+ * @param[in] V
+ *     - If storeMode = StoreV::Columnwise: n-by-k matrix V.
+ *     - If storeMode = StoreV::Rowwise:    k-by-n matrix V.
  *
- * @param storeV Specifies how the vectors which define the elementary reflectors are stored.
- *
- *               StoreV::Columnwise
- *               StoreV::Rowwise
- *
- * @param n The order of the block reflector H. n >= 0.
- * @param k The order of the triangular factor T, or the number of elementary reflectors. k >= 1.
- * @param[in] V Real matrix containing the vectors defining the elementary reflector H.
- * If stored columnwise, V is n-by-k.  If stored rowwise, V is k-by-n.
- * @param ldV Column length of the matrix V.  If stored columnwise, ldV >= n.
- * If stored rowwise, ldV >= k.
- * @param[in] tau Real vector of length k containing the scalar factors of the elementary reflectors H.
- * @param[out] T Real matrix of size k-by-k containing the triangular factor of the block reflector.
- * If the direction of the elementary reflectors is forward, T is upper triangular;
- * if the direction of the elementary reflectors is backward, T is lower triangular.
- * @param ldT Column length of the matrix T.  ldT >= k.
+ * @param[in] tau Vector of length k containing the scalar factors
+ *      of the elementary reflectors H.
+ * 
+ * @param[out] T Matrix of size k-by-k containing the triangular factors
+ *      of the block reflector.
+ *     - Direction::Forward:  T is upper triangular.
+ *     - Direction::Backward: T is lower triangular.
  * 
  * @ingroup auxiliary
  */

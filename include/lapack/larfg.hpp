@@ -40,21 +40,25 @@ namespace lapack {
  * and H is taken to be the identity matrix.
  * 
  * Otherwise  1 <= real(tau) <= 2 and abs(tau-1) <= 1.
- *
- * @param[in] n The order of the elementary Householder reflection.
- * @param[in,out] alpha On entry, the value alpha.  On exit, it is overwritten with the value beta.
- * @param[in,out] x Array of length 1+(n-2)*abs(incx).  On entry, the vector x.  On exit, it is overwritten with the vector v.
- * @param[in] incx  The increment between elements of x; incx > 0.
- * @param[out] tau On exit, the value tau.
+ * 
+ * @param[in,out] alpha
+ *      On entry, the value alpha.
+ *      On exit, it is overwritten with the value beta.
+ * 
+ * @param[in,out] x Vector of length n-1.
+ *      On entry, the vector x.
+ *      On exit, it is overwritten with the vector v.
+ * 
+ * @param[out] tau The value tau.
  * 
  * @ingroup auxiliary
  */
-template< class vectorX_t, class alpha_t, class tau_t >
-void larfg( alpha_t& alpha, vectorX_t& x, tau_t& tau )
+template< class vector_t, class alpha_t, class tau_t >
+void larfg( alpha_t& alpha, vector_t& x, tau_t& tau )
 {
     // data traits
-    using TX    = type_t< vectorX_t >;
-    using idx_t = size_type< vectorX_t >;
+    using TX    = type_t< vector_t >;
+    using idx_t = size_type< vector_t >;
 
     // using
     using real_t = real_type< alpha_t, TX >;

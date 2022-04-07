@@ -15,19 +15,14 @@ namespace blas {
 /**
  * Symmetric matrix-matrix multiply:
  * \[
- *     C = \alpha A B + \beta C,
+ *     C := \alpha A B + \beta C,
  * \]
  * or
  * \[
- *     C = \alpha B A + \beta C,
+ *     C := \alpha B A + \beta C,
  * \]
  * where alpha and beta are scalars, A is an m-by-m or n-by-n symmetric matrix,
  * and B and C are m-by-n matrices.
- *
- * Generic implementation for arbitrary data types.
- *
- * @param[in] layout
- *     Matrix storage, Layout::ColMajor or Layout::RowMajor.
  *
  * @param[in] side
  *     The side the matrix A appears on:
@@ -39,38 +34,13 @@ namespace blas {
  *     - Uplo::Lower: only the lower triangular part of A is referenced.
  *     - Uplo::Upper: only the upper triangular part of A is referenced.
  *
- * @param[in] m
- *     Number of rows of the matrices B and C.
- *
- * @param[in] n
- *     Number of columns of the matrices B and C.
- *
- * @param[in] alpha
- *     Scalar alpha. If alpha is zero, A and B are not accessed.
- *
+ * @param[in] alpha Scalar.
  * @param[in] A
- *     - If side = Left:  The m-by-m matrix A, stored in an lda-by-m array.
- *     - If side = Right: The n-by-n matrix A, stored in an lda-by-n array.
- *
- * @param[in] lda
- *     Leading dimension of A.
- *     - If side = Left:  lda >= max(1, m).
- *     - If side = Right: lda >= max(1, n).
- *
- * @param[in] B
- *     The m-by-n matrix B, stored in an ldb-by-n array.
- *
- * @param[in] ldb
- *     Leading dimension of B. ldb >= max(1, n).
- *
- * @param[in] beta
- *     Scalar beta. If beta is zero, C need not be set on input.
- *
- * @param[in] C
- *     The m-by-n matrix C, stored in an lda-by-n array.
- *
- * @param[in] ldc
- *     Leading dimension of C. ldc >= max(1, n).
+ *     - If side = Left:  A m-by-m symmetric matrix.
+ *     - If side = Right: A n-by-n symmetric matrix.
+ * @param[in] B A m-by-n matrix.
+ * @param[in] beta Scalar.
+ * @param[in,out] C A m-by-n matrix.
  *
  * @ingroup symm
  */
@@ -89,11 +59,11 @@ void symm(
     using idx_t = size_type< matrixC_t >;
 
     // using
-    using scalar_t = scalar_type<alpha_t,TA,TB>;
+    using scalar_t = scalar_type<TA,TB>;
             
     // constants
-    const idx_t m = nrows(C);
-    const idx_t n = ncols(C);
+    const idx_t m = nrows(B);
+    const idx_t n = ncols(B);
 
     // check arguments
     blas_error_if( side != Side::Left &&
@@ -103,7 +73,8 @@ void symm(
                    uplo != Uplo::General );
     blas_error_if( nrows(A) != ncols(A) );
     blas_error_if( nrows(A) != ((side == Side::Left) ? m : n) );
-    blas_error_if( nrows(B) != m || ncols(B) != n );
+    blas_error_if( nrows(C) != m );
+    blas_error_if( ncols(C) != n );
 
     blas_error_if( access_denied( uplo,  read_policy(A) ) );
     blas_error_if( access_denied( dense, read_policy(B) ) );

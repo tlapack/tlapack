@@ -16,33 +16,48 @@ namespace blas {
  * Apply modified (fast) plane rotation, H:
  * \[
  *       \begin{bmatrix} x^T \\ y^T \end{bmatrix}
- *     = H
+ *     := H
  *       \begin{bmatrix} x^T \\ y^T \end{bmatrix}.
  * \]
  *
  * @see rotmg to generate the rotation, and for fuller description.
+ * 
+ * @tparam flag Defines the format of H.
+ * - For flag = -1,
+ *     \[
+ *         H = \begin{bmatrix}
+ *             h_{11}  &  h_{12}
+ *         \\  h_{21}  &  h_{22}
+ *         \end{bmatrix}
+ *     \]
+ * - For flag = 0,
+ *     \[
+ *         H = \begin{bmatrix}
+ *             1       &  h_{12}
+ *         \\  h_{21}  &  1
+ *         \end{bmatrix}
+ *     \]
+ * - For flag = 1,
+ *     \[
+ *         H = \begin{bmatrix}
+ *             h_{11}  &  1
+ *         \\  -1      &  h_{22}
+ *         \end{bmatrix}
+ *     \]
+ * - For flag = -2,
+ *     \[
+ *         H = \begin{bmatrix}
+ *             1  &  0
+ *         \\  0  &  1
+ *         \end{bmatrix}
+ *     \]
  *
- * Generic implementation for arbitrary data types.
- *
- * @param[in] n
- *     Number of elements in x and y. n >= 0.
- *
- * @param[in, out] x
- *     The n-element vector x, in an array of length (n-1)*abs(incx) + 1.
- *
- * @param[in] incx
- *     Stride between elements of x. incx must not be zero.
- *     If incx < 0, uses elements of x in reverse order: x(n-1), ..., x(0).
- *
- * @param[in, out] y
- *     The n-element vector y, in an array of length (n-1)*abs(incy) + 1.
- *
- * @param[in] incy
- *     Stride between elements of y. incy must not be zero.
- *     If incy < 0, uses elements of y in reverse order: y(n-1), ..., y(0).
- *
- * @param[in] param
- *     Array of length 5 giving parameters of modified plane rotation.
+ * @param[in,out] x A n-element vector.
+ * @param[in,out] y A n-element vector.
+ * @param[in]     h 4-element array with the modified plane rotation.
+ * \[
+ *      h = { h_{11}, h_{21}, h_{12}, h_{22} }.
+ * \]
  *
  * @ingroup rotm
  */
@@ -51,11 +66,9 @@ template<
     class vectorX_t, class vectorY_t, class real_t,
     enable_if_t<((-2 <= flag) && (flag <= 1)), int > = 0
 >
-void rotm(
-    vectorX_t& x, vectorY_t& y,
-    const real_t H[4] )
+void rotm( vectorX_t& x, vectorY_t& y, const real_t h[4] )
 {
-    using idx_t = size_type< vectorY_t >;
+    using idx_t = size_type< vectorX_t >;
 
     // constants
     const idx_t n = size(x);
@@ -65,22 +78,22 @@ void rotm(
 
     if ( flag == -1 ) {
         for (idx_t i = 0; i < n; ++i) {
-            auto stmp = H[0]*x[i] + H[2]*y[i];
-            y[i] = H[3]*y[i] + H[1]*x[i];
+            auto stmp = h[0]*x[i] + h[2]*y[i];
+            y[i] = h[3]*y[i] + h[1]*x[i];
             x[i] = stmp;
         }
     }
     else if ( flag == 0 ) {
         for (idx_t i = 0; i < n; ++i) {
-            auto stmp = x[i] + H[2]*y[i];
-            y[i] = y[i] + H[1]*x[i];
+            auto stmp = x[i] + h[2]*y[i];
+            y[i] = y[i] + h[1]*x[i];
             x[i] = stmp;
         }
     }
     else if ( flag == 1 ) {
         for (idx_t i = 0; i < n; ++i) {
-            auto stmp = H[0]*x[i] + y[i];
-            y[i] = H[3]*y[i] - x[i];
+            auto stmp = h[0]*x[i] + y[i];
+            y[i] = h[3]*y[i] - x[i];
             x[i] = stmp;
         }
     }

@@ -15,21 +15,23 @@
 
 namespace lapack {
 
-/** Initializes a matrix to diagonal and off-diagonal values
+/**
+ * @brief Initializes a matrix to diagonal and off-diagonal values.
+ * 
+ * @tparam uplo_t
+ *      Either Uplo or any class that implements `operator Uplo()`.
+ * 
+ * @param[in] uplo
+ *      - Uplo::Upper: Upper triangle of A is referenced;
+ *      - Uplo::Lower: Lower triangle of A is referenced;
+ *      - Uplo::General: All entries of A are referenced.
  *
- * @param[in] uplo Specifies whether the matrix A is upper or lower triangular:
- *
- *        'U': A is assumed to be upper triangular; elements below the diagonal are not referenced.
- *        'L': A is assumed to be lower triangular; elements above the diagonal are not referenced.
- *        otherwise, A is assumed to be a full matrix.
- * @param[in] m The number of rows of the matrix A.
- * @param[in] n The number of columns of the matrix A.
  * @param[in] alpha Value to assign to the off-diagonal elements of A.
  * @param[in] beta Value to assign to the diagonal elements of A.
- * @param[out] A Pointer to matrix A.
- * @param[in] lda Column length of the matrix A.
  * 
- * @ingroup auxiliary
+ * @param[out] A m-by-n matrix.
+ * 
+ * @ingroup auxiliary 
  */
 template<
     class uplo_t, class matrix_t,
