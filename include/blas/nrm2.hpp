@@ -23,24 +23,14 @@ namespace blas {
 
 /**
  * @return 2-norm of vector,
- *     $|| x ||_2 = (\sum_{i=0}^{n-1} |x_i|^2)^{1/2}$.
+ *     $|| x ||_2 := (\sum_{i=0}^{n-1} |x_i|^2)^{1/2}$.
  *
- * Generic implementation for arbitrary data types.
- *
- * @param[in] n
- *     Number of elements in x. n >= 0.
- *
- * @param[in] x
- *     The n-element vector x, in an array of length (n-1)*incx + 1.
- *
- * @param[in] incx
- *     Stride between elements of x. incx > 0.
+ * @param[in] x A n-element vector.
  *
  * @ingroup nrm2
  */
 template< class vector_t >
-real_type< type_t<vector_t> >
-nrm2( const vector_t& x )
+auto nrm2( const vector_t& x )
 {
     using real_t = real_type< type_t<vector_t> >;
     using idx_t  = size_type< vector_t >;

@@ -16,40 +16,35 @@
 
 namespace lapack {
 
-/** Calculates the value of the one norm, Frobenius norm, infinity norm, or element of largest absolute value
- *
- * @return Calculated norm value for the specified type.
+/** Calculates the norm of a matrix.
  * 
- * @param normType Type should be specified as follows:
- *
- *     Norm::Max = maximum absolute value over all elements in A.
- *         Note: this is not a consistent matrix norm.
- *     Norm::One = one norm of the matrix A, the maximum value of the sums of each column.
- *     Norm::Inf = the infinity norm of the matrix A, the maximum value of the sum of each row.
- *     Norm::Fro = the Frobenius norm of the matrix A.
- *         This the square root of the sum of the squares of each element in A.
- *
- * @param m Number of rows to be included in the norm. m >= 0
- * @param n Number of columns to be included in the norm. n >= 0
- * @param A matrix size m-by-n.
- * @param ldA Column length of the matrix A.  ldA >= m
+ * @tparam norm_t Either Norm or any class that implements `operator Norm()`.
+ * 
+ * @param[in] normType
+ *      - Norm::Max: Maximum absolute value over all elements of the matrix.
+ *          Note: this is not a consistent matrix norm.
+ *      - Norm::One: 1-norm, the maximum value of the absolute sum of each column.
+ *      - Norm::Inf: Inf-norm, the maximum value of the absolute sum of each row.
+ *      - Norm::Fro: Frobenius norm of the matrix.
+ *          Square root of the sum of the square of each entry in the matrix.
+ * 
+ * @param[in] A m-by-n matrix.
  * 
  * @ingroup auxiliary
-**/
-template< typename norm_t, typename array_t >
+ */
+template< typename norm_t, typename matrix_t >
 auto
-lange( norm_t normType, const array_t& a )
+lange( norm_t normType, const matrix_t& a )
 {
-    using T      = type_t< array_t >;
+    using T      = type_t< matrix_t >;
     using real_t = real_type< T >;
-    using idx_t  = size_type< array_t >;
+    using idx_t  = size_type< matrix_t >;
     using blas::isnan;
     using blas::sqrt;
 
     const auto& A = interpretAsMatrix( a );
 
     // constants
-    const real_t rzero(0.0);
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
 
@@ -62,10 +57,10 @@ lange( norm_t normType, const array_t& a )
 
     // quick return
     if (m == 0 || n == 0)
-        return rzero;
+        return real_t( 0 );
 
     // Norm value
-    real_t norm = rzero;
+    real_t norm( 0 );
 
     if( normType == Norm::Max )
     {
@@ -87,7 +82,7 @@ lange( norm_t normType, const array_t& a )
     {
         for (idx_t i = 0; i < m; ++i)
         {
-            real_t sum = rzero;
+            real_t sum( 0 );
             for (idx_t j = 0; j < n; ++j)
                 sum += blas::abs( A(i,j) );
 
@@ -103,7 +98,7 @@ lange( norm_t normType, const array_t& a )
     {
         for (idx_t j = 0; j < n; ++j)
         {
-            real_t sum = rzero;
+            real_t sum( 0 );
             for (idx_t i = 0; i < m; ++i)
                 sum += blas::abs( A(i,j) );
 
@@ -117,7 +112,7 @@ lange( norm_t normType, const array_t& a )
     }
     else
     {
-        real_t scale(0.0), sum(1.0);
+        real_t scale(0), sum(1);
         for (idx_t j = 0; j < n; ++j)
             lassq( col(A,j), scale, sum );
         norm = scale * sqrt(sum);
@@ -126,6 +121,16 @@ lange( norm_t normType, const array_t& a )
     return norm;
 }
 
+/** Calculates the norm of a matrix.
+ * 
+ * Code optimzed for the infinity norm on column-major layouts using a workspace
+ * of size at least m, where m is the number of rows of A.
+ * @see lange( norm_t normType, const matrix_t& A ).
+ * 
+ * @param work Vector of size at least m.
+ * 
+ * @ingroup auxiliary
+ */
 template< typename norm_t, typename matrix_t, class work_t >
 real_type< type_t< matrix_t > >
 lange( norm_t normType, const matrix_t& A, work_t& work )
@@ -134,6 +139,10 @@ lange( norm_t normType, const matrix_t& A, work_t& work )
     using real_t = real_type< T >;
     using idx_t  = size_type< matrix_t >;
     using blas::isnan;
+        
+    // constants
+    const idx_t m = nrows(A);
+    const idx_t n = ncols(A);
 
     // check arguments
     blas_error_if(  normType != Norm::Fro &&
@@ -141,6 +150,10 @@ lange( norm_t normType, const matrix_t& A, work_t& work )
                     normType != Norm::Max &&
                     normType != Norm::One );
     blas_error_if(  access_denied( dense, read_policy(A) ) );
+
+    // quick return
+    if (m == 0 || n == 0)
+        return real_t( 0 );
 
     // redirect for max-norm, one-norm and Frobenius norm
     if      ( normType == Norm::Max  ) return lange( max_norm,  A );
@@ -150,19 +163,10 @@ lange( norm_t normType, const matrix_t& A, work_t& work )
 
         // the code below uses a workspace and is meant for column-major layout
         // so as to do one pass on the data in a contiguous way when computing
-	    // the infinite norm
- 
-        // constants
-        const real_t rzero(0.0);
-        const idx_t m = nrows(A);
-        const idx_t n = ncols(A);
-
-        // quick return
-        if (m == 0 || n == 0)
-            return rzero;
+	    // the infinite norm.
 
         // Norm value
-        real_t norm = rzero;
+        real_t norm( 0 );
 
         for (idx_t i = 0; i < m; ++i)
             work[i] = blas::abs( A(i,0) );
@@ -184,7 +188,6 @@ lange( norm_t normType, const matrix_t& A, work_t& work )
         }
 
         return norm;
-
     }
 }
 

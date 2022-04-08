@@ -15,7 +15,7 @@ namespace blas {
 /**
  * General matrix-matrix multiply:
  * \[
- *     C = \alpha op(A) \times op(B) + \beta C,
+ *     C := \alpha op(A) \times op(B) + \beta C,
  * \]
  * where $op(X)$ is one of
  *     $op(X) = X$,
@@ -23,14 +23,6 @@ namespace blas {
  *     $op(X) = X^H$,
  * alpha and beta are scalars, and A, B, and C are matrices, with
  * $op(A)$ an m-by-k matrix, $op(B)$ a k-by-n matrix, and C an m-by-n matrix.
- *
- * Generic implementation for arbitrary data types.
- * 
- * @tparam matrixA_t    <T>LAPACK abstract matrix
- * @tparam matrixB_t    <T>LAPACK abstract matrix
- * @tparam matrixC_t    <T>LAPACK abstract matrix
- * @tparam alpha_t      Scalar type
- * @tparam beta_t       Scalar type
  *
  * @param[in] transA
  *     The operation $op(A)$ to be used:
@@ -44,11 +36,11 @@ namespace blas {
  *     - Op::Trans:     $op(B) = B^T$.
  *     - Op::ConjTrans: $op(B) = B^H$.
  *
- * @param[in] alpha scalar.
+ * @param[in] alpha Scalar.
  * @param[in] A $op(A)$ is an m-by-k matrix.
  * @param[in] B $op(B)$ is an k-by-n matrix.
- * @param[in] beta scalar.
- * @param[in,out] C $C$ is an m-by-n matrix.
+ * @param[in] beta Scalar.
+ * @param[in,out] C A m-by-n matrix.
  * 
  * @ingroup gemm
  */
@@ -78,8 +70,8 @@ void gemm(
     using scalar_t = scalar_type<TA,TB>;
 
     // constants
-    const idx_t m = nrows(C);
-    const idx_t n = ncols(C);
+    const idx_t m = (transA == Op::NoTrans) ? nrows(A) : ncols(A);
+    const idx_t n = (transB == Op::NoTrans) ? ncols(B) : nrows(B);
     const idx_t k = (transA == Op::NoTrans) ? ncols(A) : nrows(A);
 
     // check arguments
@@ -89,12 +81,9 @@ void gemm(
     blas_error_if( transB != Op::NoTrans &&
                    transB != Op::Trans &&
                    transB != Op::ConjTrans );
-    blas_error_if(
-        m != ((transA == Op::NoTrans) ? nrows(A) : ncols(A)) );
-    blas_error_if(
-        n != ((transB == Op::NoTrans) ? ncols(B) : nrows(B)) );
-    blas_error_if(
-        ((transB == Op::NoTrans) ? nrows(B) : ncols(B)) != k );
+    blas_error_if( nrows(C) != m );
+    blas_error_if( ncols(C) != n );
+    blas_error_if( ((transB == Op::NoTrans) ? nrows(B) : ncols(B)) != k );
 
     blas_error_if( access_denied( dense, read_policy(A) ) );
     blas_error_if( access_denied( dense, read_policy(B) ) );

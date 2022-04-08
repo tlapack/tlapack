@@ -1,4 +1,4 @@
-/// @file orm2r.hpp
+/// @file unm2r.hpp
 /// @author Weslley S Pereira, University of Colorado Denver, USA
 /// Adapted from @see https://github.com/langou/latl/blob/master/include/ormr2.h
 //
@@ -8,14 +8,14 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_LEGACY_ORM2R_HH__
-#define __TLAPACK_LEGACY_ORM2R_HH__
+#ifndef __TLAPACK_LEGACY_UNM2R_HH__
+#define __TLAPACK_LEGACY_UNM2R_HH__
 
-#include "lapack/orm2r.hpp"
+#include "lapack/unm2r.hpp"
 
 namespace lapack {
 
-/** Applies orthogonal matrix Q to a matrix C.
+/** Applies unitary matrix Q to a matrix C.
  * 
  * @return  0 if success
  * @return -i if the ith argument is invalid
@@ -48,7 +48,7 @@ namespace lapack {
  * @ingroup geqrf
  */
 template< class side_t, class trans_t, typename TA, typename TC>
-inline int orm2r(
+inline int unm2r(
     side_t side, trans_t trans,
     blas::idx_t m, blas::idx_t n, blas::idx_t k,
     TA* A, blas::idx_t lda,
@@ -84,7 +84,7 @@ inline int orm2r(
     auto _C = colmajor_matrix<TC>( C, m, n, ldc );
     auto _work = vector<TC>( work, q );
 
-    int info = orm2r( side, trans, A, _tau, _C, _work );
+    int info = unm2r( side, trans, A, _tau, _C, _work );
 
     delete[] work;
     return info;
@@ -92,4 +92,4 @@ inline int orm2r(
 
 }
 
-#endif // __TLAPACK_LEGACY_ORM2R_HH__
+#endif // __TLAPACK_LEGACY_UNM2R_HH__

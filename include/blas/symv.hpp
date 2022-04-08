@@ -15,15 +15,10 @@ namespace blas {
 /**
  * Symmetric matrix-vector multiply:
  * \[
- *     y = \alpha A x + \beta y,
+ *     y := \alpha A x + \beta y,
  * \]
  * where alpha and beta are scalars, x and y are vectors,
  * and A is an n-by-n symmetric matrix.
- *
- * Generic implementation for arbitrary data types.
- *
- * @param[in] layout
- *     Matrix storage, Layout::ColMajor or Layout::RowMajor.
  *
  * @param[in] uplo
  *     What part of the matrix A is referenced,
@@ -31,34 +26,11 @@ namespace blas {
  *     - Uplo::Lower: only the lower triangular part of A is referenced.
  *     - Uplo::Upper: only the upper triangular part of A is referenced.
  *
- * @param[in] n
- *     Number of rows and columns of the matrix A. n >= 0.
- *
- * @param[in] alpha
- *     Scalar alpha. If alpha is zero, A and x are not accessed.
- *
- * @param[in] A
- *     The n-by-n matrix A, stored in an lda-by-n array [RowMajor: n-by-lda].
- *
- * @param[in] lda
- *     Leading dimension of A. lda >= max(1, n).
- *
- * @param[in] x
- *     The n-element vector x, in an array of length (n-1)*abs(incx) + 1.
- *
- * @param[in] incx
- *     Stride between elements of x. incx must not be zero.
- *     If incx < 0, uses elements of x in reverse order: x(n-1), ..., x(0).
- *
- * @param[in] beta
- *     Scalar beta. If beta is zero, y need not be set on input.
- *
- * @param[in, out] y
- *     The n-element vector y, in an array of length (n-1)*abs(incy) + 1.
- *
- * @param[in] incy
- *     Stride between elements of y. incy must not be zero.
- *     If incy < 0, uses elements of y in reverse order: y(n-1), ..., y(0).
+ * @param[in] alpha Scalar.
+ * @param[in] A A n-by-n symmetric matrix.
+ * @param[in] x A n-element vector.
+ * @param[in] beta Scalar.
+ * @param[in,out] y A n-element vector.
  *
  * @ingroup symv
  */
@@ -77,7 +49,7 @@ void symv(
     using idx_t = size_type< matrixA_t >;
 
     // using
-    using scalar_t = scalar_type<alpha_t,TA,TX>;
+    using scalar_t = scalar_type<TA,TX>;
 
     // constants
     const idx_t n = nrows(A);
@@ -89,13 +61,13 @@ void symv(
     blas_error_if( size(x)  != n );
     blas_error_if( size(y)  != n );
 
-    blas_error_if( access_denied( uplo,  read_policy(A) ) );
+    blas_error_if( access_denied( uplo, read_policy(A) ) );
 
     // form y = beta*y
     if (beta != beta_t(1)) {
         if (beta == beta_t(0)) {
             for (idx_t i = 0; i < n; ++i)
-                y[i] = beta_t(0);
+                y[i] = 0;
         }
         else {
             for (idx_t i = 0; i < n; ++i)
@@ -106,7 +78,6 @@ void symv(
     if (uplo == Uplo::Upper) {
         // A is stored in upper triangle
         // form y += alpha * A * x
-            // unit stride
         for (idx_t j = 0; j < n; ++j) {
             auto tmp1 = alpha*x[j];
             auto tmp2 = scalar_t(0);
@@ -121,7 +92,7 @@ void symv(
         // A is stored in lower triangle
         // form y += alpha * A * x
         for (idx_t j = 0; j < n; ++j) {
-            scalar_t tmp1 = alpha*x[j];
+            auto tmp1 = alpha*x[j];
             auto tmp2 = scalar_t(0);
             for (idx_t i = j+1; i < n; ++i) {
                 y[i] += tmp1 * A(i,j);

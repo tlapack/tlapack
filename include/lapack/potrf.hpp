@@ -26,8 +26,10 @@ namespace lapack {
  *      $A = L L^H,$ if uplo = Lower,
  * where U is an upper triangular matrix and L is lower triangular.
  * 
- * @tparam uplo_t   Either upperTriangle_t or lowerTriangle_t.
- * @tparam matrix_t A \<T\>LAPACK abstract matrix.
+ * @tparam uplo_t
+ *      Access type: Upper or Lower.
+ *      Either Uplo or any class that implements `operator Uplo()`.
+ * 
  * @tparam opts_t
  * \code{.cpp}
  *      struct opts_t {
@@ -38,25 +40,26 @@ namespace lapack {
  *      If opts_t::nb does not exist, nb assumes a default value.
  *
  * @param[in] uplo
- *      - lapack::upperTriangle_t: Upper triangle of A is stored;
- *      - lapack::lowerTriangle_t: Lower triangle of A is stored.
+ *      - Uplo::Upper: Upper triangle of A is referenced;
+ *      - Uplo::Lower: Lower triangle of A is referenced.
  *
  * @param[in,out] A
  *      On entry, the Hermitian matrix A.
- *      - If uplo = upperTriangle_t, the strictly lower
+ *      
+ *      - If uplo = Uplo::Upper, the strictly lower
  *      triangular part of A is not referenced.
  *
- *      - If uplo = lowerTriangle_t, the strictly upper
+ *      - If uplo = Uplo::Lower, the strictly upper
  *      triangular part of A is not referenced.
  *
  *      - On successful exit, the factor U or L from the Cholesky
  *      factorization $A = U^H U$ or $A = L L^H.$
  *
- * @param[in,out] opts Options.
+ * @param[in] opts Options.
  *      - opts.nb Block size.
  *      If opts.nb does not exist or opts.nb <= 0, nb assumes a default value.
  *
- * @return = 0: successful exit
+ * @return = 0: successful exit.
  * @return > 0: if return value = i, the leading minor of order i is not
  *      positive definite, and the factorization could not be completed.
  *
@@ -113,7 +116,7 @@ int potrf( uplo_t uplo, matrix_t& A, opts_t&& opts )
                 if( info != 0 )
                     return info + j;
 
-                if( j+jb <= n ){
+                if( j+jb < n ){
 
                     // Define B and C
                     auto B = slice( A, pair{0,j}, pair{j+jb,n} );
@@ -140,7 +143,7 @@ int potrf( uplo_t uplo, matrix_t& A, opts_t&& opts )
                 if( info != 0 )
                     return info + j;
 
-                if( j+jb <= n ){
+                if( j+jb < n ){
 
                     // Define B and C
                     auto B = slice( A, pair{j+jb,n}, pair{0,j} );

@@ -38,21 +38,26 @@ namespace lapack {
  * updates and scales $A_{21}$ or $A_{12},$
  * updates $A_{22},$
  * and calls itself to factor $A_{22}.$
+ * 
+ * @tparam uplo_t
+ *      Access type: Upper or Lower.
+ *      Either Uplo or any class that implements `operator Uplo()`.
  *
  * @param[in] uplo
- *     - lapack::upperTriangle_t: Upper triangle of A is stored;
- *     - lapack::lowerTriangle_t: Lower triangle of A is stored.
+ *      - Uplo::Upper: Upper triangle of A is referenced;
+ *      - Uplo::Lower: Lower triangle of A is referenced.
  *
  * @param[in,out] A
- *     On entry, the Hermitian matrix A.
- *     - If uplo = upperTriangle_t, the strictly lower
- *     triangular part of A is not referenced.
+ *      On entry, the Hermitian matrix A.
+ *      
+ *      - If uplo = Uplo::Upper, the strictly lower
+ *      triangular part of A is not referenced.
  *
- *     - If uplo = lowerTriangle_t, the strictly upper
- *     triangular part of A is not referenced.
+ *      - If uplo = Uplo::Lower, the strictly upper
+ *      triangular part of A is not referenced.
  *
- *     - On successful exit, the factor U or L from the Cholesky
- *     factorization $A = U^H U$ or $A = L L^H.$
+ *      - On successful exit, the factor U or L from the Cholesky
+ *      factorization $A = U^H U$ or $A = L L^H.$
  *
  * @return = 0: successful exit
  * @return > 0: if return value = i, the leading minor of order i is not
