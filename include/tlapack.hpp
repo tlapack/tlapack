@@ -52,6 +52,8 @@
 // ----------------
 
 #include "lapack/gehd2.hpp"
+#include "lapack/gehrd.hpp"
+#include "lapack/lahr2.hpp"
 #include "lapack/unghr.hpp"
 #include "lapack/lahqr.hpp"
 #include "lapack/lahqr_shiftcolumn.hpp"

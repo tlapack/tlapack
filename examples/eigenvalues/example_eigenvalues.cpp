@@ -102,7 +102,12 @@ void run(size_t n)
         std::vector<T> work(n);
 
         // Hessenberg factorization
-        blas_error_if(lapack::gehd2(0, n, Q, tau, work));
+        struct {
+            size_t nb;
+        } opts = { 3 };
+        blas_error_if(lapack::gehrd(0, n, Q, tau, opts));
+        // blas_error_if(lapack::gehd2(0, n, Q, tau, work));
+
 
         // Save the H matrix
         for (size_t j = 0; j < n; ++j)
