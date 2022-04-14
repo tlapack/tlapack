@@ -60,6 +60,8 @@ namespace lapack
         using blas::gemv;
         using blas::scal;
         using blas::trmv;
+        using blas::trmm;
+        using blas::gemm;
 
         // constants
         const TA one(1);
@@ -85,36 +87,38 @@ namespace lapack
                 // (Application of the reflectors from the right)
                 //
                 auto Y2 = slice(Y, pair{k + 1, n}, pair{0, i});
-                auto Vti = slice(A, k + i - 1, pair{0, i});
+                auto Vti = slice(A, k + i, pair{0, i});
                 auto b = slice(A, pair{k + 1, n}, i);
                 gemv(Op::NoTrans, -one, Y2, Vti, one, b);
                 //
                 // Apply I - V * T**T * V**T to this column (call it b) from the
                 // left, using the last column of T as workspace
                 //
-                // Let  V = ( V1 )   and   b = ( b1 )   (first I-1 rows)
+                // Let  V = ( V1 )   and   b = ( b1 )   (first i rows)
                 //          ( V2 )             ( b2 )
                 //
                 // where V1 is unit lower triangular
+                // 
+                auto b1 = slice(b, pair{0, i});
+                auto b2 = slice(b, pair{i, size(b)});
+                auto V = slice(A, pair{k + 1, n}, pair{0,i});
+                auto V1 = slice(V, pair{0, i}, pair{0, i});
+                auto V2 = slice(V, pair{i, nrows(V)}, pair{0, i});
                 //
                 // w := V1**T * b1
                 //
-                auto b1 = slice(A, pair{k + 1, k + 1 + i}, i);
-                auto V1 = slice(A, pair{k + 1, k + 1 + i}, pair{0, i});
                 auto w = slice(T, pair{0, i}, nb - 1);
                 copy(b1, w);
-                trmv(Uplo::Lower, Op::Trans, Diag::Unit, V1, w);
+                trmv(Uplo::Lower, Op::ConjTrans, Diag::Unit, V1, w);
                 //
                 // w := w + V2**T * b2
                 //
-                auto b2 = slice(A, pair{k + 1 + i, n}, i);
-                auto V2 = slice(A, pair{k + 1 + i, n}, pair{0, i});
                 gemv(Op::Trans, one, V2, b2, one, w);
                 //
                 // w := T**T * w
                 //
                 auto T2 = slice(T, pair{0, i}, pair{0, i});
-                trmv(Uplo::Upper, Op::Trans, Diag::NonUnit, T2, w);
+                trmv(Uplo::Upper, Op::ConjTrans, Diag::NonUnit, T2, w);
                 //
                 // b2 := b2 - V2*w
                 //
@@ -155,6 +159,23 @@ namespace lapack
             trmv(Uplo::Upper, Op::NoTrans, Diag::NonUnit, T2, t);
             T(i, i) = tau[i];
         }
+        A( k+nb, nb-1 ) = ei;
+        // 
+        // Compute Y(0:k+1,0:nb)
+        //
+        auto A4 = slice( A, pair{0,k+1}, pair{1,nb+1} );
+        auto Y3 = slice( Y, pair{0,k+1}, pair{0,nb});
+        lacpy( Uplo::General, A4, Y3);
+        auto V1 = slice( A, pair{k+1,k+nb+1}, pair{0,nb} );
+        auto Y1 = slice( Y, pair{0,k+1}, pair{0,nb} );
+        trmm( Side::Right, Uplo::Lower, Op::NoTrans, Diag::Unit, one, V1, Y1 );
+        if( k + nb + 1 < n ){
+            A4 = slice( A, pair{0,k+1}, pair{nb+1,n-k} );
+            auto V2 = slice( A, pair{k+nb+1,n}, pair{0,nb} );
+            auto Y2 = slice(Y, pair{k + 1, n}, pair{0, nb});
+            gemm( Op::NoTrans, Op::NoTrans,  one, A4, V2, one, Y1);
+        }
+        trmm( Side::Right, Uplo::Upper, Op::NoTrans, Diag::NonUnit, one, T, Y1 );
 
         return 0;
     }

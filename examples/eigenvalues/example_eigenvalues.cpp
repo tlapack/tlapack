@@ -16,6 +16,13 @@
 #include <chrono> // for high_resolution_clock
 #include <iostream>
 
+template <typename matrix_t>
+int visualiseMatrix(const matrix_t &A)
+{
+    return 5;
+}
+
+
 //------------------------------------------------------------------------------
 /// Print matrix A in the standard output
 template <typename matrix_t>
@@ -173,6 +180,9 @@ void run(size_t n)
 
     // 3) Compute ||QHQ* - A||_F / ||A||_F
 
+    std::unique_ptr<T[]> _H_copy(new T[n * n]);
+    auto H_copy = colmajor_matrix<T>(&_H_copy[0], n, n);
+    lapack::lacpy(lapack::Uplo::General,H, H_copy);
     {
         std::unique_ptr<T[]> _work(new T[n * n]);
         auto work = colmajor_matrix<T>(&_work[0], n, n);
@@ -197,6 +207,31 @@ void run(size_t n)
         norm_repres_1 = lapack::lange(lapack::frob_norm, H) / normA;
     }
 
+    // 4) Compute Q*AQ (usefull for debugging)
+
+    if(verbose){
+        std::unique_ptr<T[]> _work(new T[n * n]);
+        auto work = colmajor_matrix<T>(&_work[0], n, n);
+        for (size_t j = 0; j < n; ++j)
+            for (size_t i = 0; i < n; ++i)
+                work(i, j) = static_cast<float>(0xABADBABC);
+
+        blas::gemm(blas::Op::ConjTrans, blas::Op::NoTrans, (T)1.0, Q, A, (T)0.0, work);
+        blas::gemm(blas::Op::NoTrans, blas::Op::NoTrans, (T)1.0, work, Q, (T)0.0, A);
+
+        std::cout << std::endl
+                    << "Q'AQ = ";
+        printMatrix(A);
+
+        for (size_t j = 0; j < n; ++j)
+            for (size_t i = 0; i < n; ++i)
+                A(i, j) -= H_copy(i, j);
+
+        std::cout << std::endl
+                    << "Q'AQ - H = ";
+        printMatrix(A);
+    }
+
     std::cout << std::endl;
     std::cout << "time = " << elapsedQHQ.count() * 1.0e-6 << " ms";
     std::cout << std::endl;
@@ -211,7 +246,7 @@ int main(int argc, char **argv)
     int n;
 
     // Default arguments
-    n = (argc < 2) ? 5 : atoi(argv[1]);
+    n = (argc < 2) ? 7 : atoi(argv[1]);
 
     srand(3); // Init random seed
 

@@ -15,9 +15,25 @@
 #include "lapack/lahr2.hpp"
 
 #include <memory>
+#include <iostream>
 
 namespace lapack
 {
+
+    template <typename matrix_t>
+    inline void printMatrix(const matrix_t &A)
+    {
+        using idx_t = blas::size_type<matrix_t>;
+        const idx_t m = blas::nrows(A);
+        const idx_t n = blas::ncols(A);
+
+        for (idx_t i = 0; i < m; ++i)
+        {
+            std::cout << std::endl;
+            for (idx_t j = 0; j < n; ++j)
+                std::cout << A(i, j) << " ";
+        }
+    }
 
     /** Reduces a general square matrix to upper Hessenberg form
      *
@@ -71,13 +87,22 @@ namespace lapack
         using TA = type_t<matrix_t>;
         using idx_t = size_type<matrix_t>;
         using pair = std::pair<idx_t, idx_t>;
+        using blas::axpy;
         using blas::conj;
-        using blas::internal::colmajor_matrix;
         using blas::gemm;
+        using blas::trmm;
+        using blas::internal::colmajor_matrix;
 
         // constants
         const TA one(1);
         const idx_t n = ncols(A);
+        const idx_t nbmin = 2;
+
+        // Temporary constants, these should be configured from opts later
+        // Blocksize
+        const idx_t nb = 2;
+        // Size of the last block that will be handled with unblocked code
+        const idx_t nx_switch = 2;
 
         // check arguments
         lapack_error_if((ilo < 0) or (ilo >= n), -1);
@@ -90,32 +115,54 @@ namespace lapack
         if (n <= 0)
             return 0;
 
-        idx_t nb = 3;
+        idx_t nx = std::max( nb, nx_switch );
 
-        // Allocate the workspace matrices
+        // Allocate the workspace matrices (These should be gotten from opts later)
         std::unique_ptr<TA[]> _Y(new TA[nb * n]);
         std::unique_ptr<TA[]> _T(new TA[nb * nb]);
         auto Y = colmajor_matrix<TA>(&_Y[0], n, nb, n);
         auto T = colmajor_matrix<TA>(&_T[0], nb, nb, nb);
 
-        for (idx_t i = ilo; i < ihi; i = i + nb)
+        idx_t i = ilo;
+        for (; i < ihi-1-nx; i = i + nb)
         {
             auto nb2 = std::min(nb, ihi - i - 1);
 
+            auto V = slice(A, pair{i + 1, ihi}, pair{i, i + nb2});
             auto A2 = slice(A, pair{0, ihi}, pair{i, ihi});
             auto tau2 = slice(tau, pair{i, ihi});
-            auto T2 = slice(T, pair{0, nb2}, pair{0, nb2});
-            auto Y2 = slice(Y, pair{0, n}, pair{0, nb2});
-            lahr2(i, nb2, A2, tau2, T2, Y2);
-            auto V1 = slice(A, pair{i, i+nb2}, pair{i, i+nb2});
-            auto V2 = slice(A, pair{i+nb2, ihi}, pair{i, i+nb2});
+            auto T_s = slice(T, pair{0, nb2}, pair{0, nb2});
+            auto Y_s = slice(Y, pair{0, n}, pair{0, nb2});
+            lahr2(i, nb2, A2, tau2, T_s, Y_s);
+            if( i + nb2 < ihi ){
+                // Note, this V2 contains the last row of the triangular part
+                auto V2 = slice(V, pair{nb2-1, ihi-i-1}, pair{0, nb2});
 
-            auto ei = A(i + nb2, i + nb2 - 1);
-            A(i + nb2, i + nb2 - 1) = one;
+                // Apply the block reflector H to A(0:ihi,i+nb:ihi) from the right, computing
+                // A := A - Y * V**T. The multiplication requires V(nb2-1,nb2-1) to be set to 1.
+                auto ei = V(nb2-1, nb2-1);
+                V(nb2-1, nb2-1) = one;
+                auto A3 = slice(A, pair{0, ihi}, pair{i + nb2, ihi});
+                gemm(Op::NoTrans, Op::ConjTrans, -one, Y_s, V2, one, A3);
+                V(nb2-1, nb2-1) = ei;
+            }
+            // Apply the block reflector H to A(0:i+1,i+1:i+ib) from the right
+            auto V1 = slice(A, pair{i + 1, i + nb2 + 1}, pair{i, i + nb2});
+            trmm(Side::Right, Uplo::Lower, Op::ConjTrans, Diag::Unit, one, V1, Y_s);
+            for (idx_t j = 0; j < nb2 - 1; ++j)
+            {
+                auto A4 = slice(A, pair{0, i+1}, i + j + 1);
+                axpy(-one, slice(Y, pair{0, i+1}, j), A4);
+            }
 
-            gemm( Op::NoTrans, Op::Trans, -one, Y2 )
-            A(i + nb2, i + nb2 - 1) = ei;
+            // Apply the block reflector H to A(i+1:ihi,i+nb:n) from the left
+            auto A5 = slice(A, pair{i + 1, ihi}, pair{i + nb2, n});
+            auto Y_left = colmajor_matrix<TA>(&_Y[0], nb2, n - i - nb2, nb2);
+            larfb(Side::Left, Op::ConjTrans, Direction::Forward, StoreV::Columnwise, V, T_s, A5, Y_left);
         }
+
+        auto workspace_vector = col( Y, 0 );
+        gehd2( i, ihi, A, tau, workspace_vector );
 
         return 0;
     }
