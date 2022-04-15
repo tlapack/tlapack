@@ -25,7 +25,7 @@ namespace lapack
     template <typename idx_t, typename T>
     struct gehrd_opts_t {
         // Blocksize used in the blocked reduction
-        idx_t nb = 2;
+        idx_t nb = 64;
         // If only nx_switch columns are left, the algorithm will use unblocked code
         idx_t nx_switch = 2;
         // Workspace pointer, if no workspace is provided, one will be allocated internally
@@ -146,7 +146,7 @@ namespace lapack
         auto T = colmajor_matrix<TA>(&_T[0], nb, nb, nb);
 
         idx_t i = ilo;
-        for (; i < ihi-1-nx; i = i + nb)
+        for (; i+nx < ihi-1; i = i + nb)
         {
             auto nb2 = std::min(nb, ihi - i - 1);
 
