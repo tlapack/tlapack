@@ -16,13 +16,6 @@
 #include <chrono> // for high_resolution_clock
 #include <iostream>
 
-template <typename matrix_t>
-int visualiseMatrix(const matrix_t &A)
-{
-    return 5;
-}
-
-
 //------------------------------------------------------------------------------
 /// Print matrix A in the standard output
 template <typename matrix_t>
