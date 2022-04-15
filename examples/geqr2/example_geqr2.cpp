@@ -95,13 +95,13 @@ void run( size_t m, size_t n )
         std::vector<real_t> work( n-1 );
     
         // QR factorization
-        blas_error_if( lapack::geqr2( Q, tau, work ) );
+        lapack::geqr2( Q, tau, work );
 
         // Save the R matrix
         lapack::lacpy( lapack::upperTriangle, Q, R );
 
         // Generates Q = H_1 H_2 ... H_n
-        blas_error_if( lapack::ung2r( n, Q, tau, work ) );
+        lapack::ung2r( n, Q, tau, work );
     }
     // Record end time
     auto endQR = std::chrono::high_resolution_clock::now();
