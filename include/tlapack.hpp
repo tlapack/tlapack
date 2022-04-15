@@ -48,4 +48,14 @@
 #include "lapack/potrf.hpp"
 #include "lapack/potrs.hpp"
 
+// Nonsymmetric standard eigenvalue routines
+// ----------------
+
+#include "lapack/gehd2.hpp"
+#include "lapack/unghr.hpp"
+#include "lapack/lahqr.hpp"
+#include "lapack/lahqr_shiftcolumn.hpp"
+#include "lapack/lahqr_eig22.hpp"
+#include "lapack/lahqr_schur22.hpp"
+
 #endif // __TLAPACK_HH__
