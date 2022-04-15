@@ -41,7 +41,7 @@ namespace lapack
      * @return idx_t The size of the required workspace
      */
     template <class matrix_t, class vector_t, typename idx_t = size_type<matrix_t>, typename TA = type_t<matrix_t>>
-    idx_t get_work_gehrd(size_type<matrix_t> ilo, size_type<matrix_t> ihi, matrix_t &A, vector_t &tau, const gehrd_opts_t<idx_t, TA> &opts)
+    idx_t get_work_gehrd(size_type<matrix_t> ilo, size_type<matrix_t> ihi, matrix_t &A, vector_t &tau, const gehrd_opts_t<idx_t, TA> &opts = {})
     {
         const idx_t n = ncols(A);
         idx_t nb = opts.nb;
@@ -91,7 +91,7 @@ namespace lapack
      * @ingroup gehrd
      */
     template <class matrix_t, class vector_t, typename idx_t = size_type<matrix_t>, typename TA = type_t<matrix_t>>
-    int gehrd(size_type<matrix_t> ilo, size_type<matrix_t> ihi, matrix_t &A, vector_t &tau, gehrd_opts_t<idx_t, TA> &opts)
+    int gehrd(size_type<matrix_t> ilo, size_type<matrix_t> ihi, matrix_t &A, vector_t &tau, const gehrd_opts_t<idx_t, TA> &opts = {})
     {
         using pair = std::pair<idx_t, idx_t>;
         using blas::axpy;
