@@ -107,10 +107,12 @@ void run(size_t n)
     auto startQHQ = std::chrono::high_resolution_clock::now();
     {
         std::vector<T> work(n);
+        int err;
 
         // Hessenberg factorization
-        blas_error_if(lapack::gehrd(0, n, Q, tau));
+        err = lapack::gehrd(0, n, Q, tau);
         // blas_error_if(lapack::gehd2(0, n, Q, tau, work));
+        blas_error_if(err);
 
 
         // Save the H matrix
@@ -119,7 +121,8 @@ void run(size_t n)
                 H(i, j) = Q(i, j);
 
         // Generate Q = H_1 H_2 ... H_n
-        blas_error_if(lapack::unghr(0, n, Q, tau, work));
+        err = lapack::unghr(0, n, Q, tau, work);
+        blas_error_if(err);
 
         // Remove junk from lower half of H
         for (size_t j = 0; j < n; ++j)
@@ -128,7 +131,8 @@ void run(size_t n)
 
         // Shur factorization
         std::vector<std::complex<real_t>> w(n);
-        blas_error_if(lapack::lahqr(true, true, 0, n, H, w, Q));
+        err = lapack::lahqr(true, true, 0, n, H, w, Q);
+        blas_error_if(err);
     }
     // Record end time
     auto endQHQ = std::chrono::high_resolution_clock::now();
