@@ -109,9 +109,7 @@ void run(size_t n)
         std::vector<T> work(n);
 
         // Hessenberg factorization
-        struct {
-            size_t nb;
-        } opts = { 3 };
+        lapack::gehrd_opts_t<size_t, T> opts = {};
         blas_error_if(lapack::gehrd(0, n, Q, tau, opts));
         // blas_error_if(lapack::gehd2(0, n, Q, tau, work));
 

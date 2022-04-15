@@ -15,25 +15,39 @@
 #include "lapack/lahr2.hpp"
 
 #include <memory>
-#include <iostream>
 
 namespace lapack
 {
 
-    template <typename matrix_t>
-    inline void printMatrix(const matrix_t &A)
-    {
-        using idx_t = blas::size_type<matrix_t>;
-        const idx_t m = blas::nrows(A);
-        const idx_t n = blas::ncols(A);
+    /**
+     * Options struct for gehrd
+     */
+    template <typename idx_t, typename T>
+    struct gehrd_opts_t {
+        // Blocksize used in the blocked reduction
+        idx_t nb = 2;
+        // If only nx_switch columns are left, the algorithm will use unblocked code
+        idx_t nx_switch = 2;
+        // Workspace pointer, if no workspace is provided, one will be allocated internally
+        T* _work=nullptr;
+        // Workspace size
+        idx_t lwork;
+    };
 
-        for (idx_t i = 0; i < m; ++i)
-        {
-            std::cout << std::endl;
-            for (idx_t j = 0; j < n; ++j)
-                std::cout << A(i, j) << " ";
-        }
-    }
+    /**
+     * Returns the required workspace for gehrd.
+     * The arguments are the same as for gehrd itself.
+     * 
+     * @return idx_t The size of the required workspace
+     */
+    template <class matrix_t, class vector_t, typename idx_t = size_type<matrix_t>, typename TA = type_t<matrix_t>>
+    idx_t get_work_gehrd(size_type<matrix_t> ilo, size_type<matrix_t> ihi, matrix_t &A, vector_t &tau, const gehrd_opts_t<idx_t, TA> &opts)
+    {
+        const idx_t n = ncols(A);
+        idx_t nb = opts.nb;
+
+        return (n+nb)*nb;
+    };
 
     /** Reduces a general square matrix to upper Hessenberg form
      *
@@ -71,21 +85,14 @@ namespace lapack
      * @param[out] tau Real vector of length n-1.
      *      The scalar factors of the elementary reflectors.
      *
-     * @param[in,out] opts Options.
-     *      - opts.nb Block size.
-     *      If opts.nb does not exist or opts.nb <= 0, nb assumes a default value.
-     *
-     *      - opts.workPtr Workspace pointer.
-     *          - Pointer to a matrix of size (nb)-by-(n+nb) if side == Side::Left.
-     *          - Pointer to a matrix of size (nb)-by-(m+nb) if side == Side::Right.
+     * @param[in,out] opts Struct containing the options
+     *      See gehrd_opts_t for more details
      *
      * @ingroup gehrd
      */
-    template <class matrix_t, class vector_t, class opts_t>
-    int gehrd(size_type<matrix_t> ilo, size_type<matrix_t> ihi, matrix_t &A, vector_t &tau, opts_t &&opts = nullptr)
+    template <class matrix_t, class vector_t, typename idx_t = size_type<matrix_t>, typename TA = type_t<matrix_t>>
+    int gehrd(size_type<matrix_t> ilo, size_type<matrix_t> ihi, matrix_t &A, vector_t &tau, gehrd_opts_t<idx_t, TA> &opts)
     {
-        using TA = type_t<matrix_t>;
-        using idx_t = size_type<matrix_t>;
         using pair = std::pair<idx_t, idx_t>;
         using blas::axpy;
         using blas::conj;
@@ -98,11 +105,11 @@ namespace lapack
         const idx_t n = ncols(A);
         const idx_t nbmin = 2;
 
-        // Temporary constants, these should be configured from opts later
         // Blocksize
-        const idx_t nb = 2;
-        // Size of the last block that will be handled with unblocked code
-        const idx_t nx_switch = 2;
+        idx_t nb = opts.nb;
+        // Size of the last block which be handled with unblocked code
+        idx_t nx_switch = opts.nx_switch;
+        idx_t nx = std::max( nb, nx_switch );
 
         // check arguments
         lapack_error_if((ilo < 0) or (ilo >= n), -1);
@@ -115,9 +122,24 @@ namespace lapack
         if (n <= 0)
             return 0;
 
-        idx_t nx = std::max( nb, nx_switch );
+        // Get the workspace
+        TA* _work;
+        idx_t lwork;
+        idx_t required_workspace = get_work_gehrd(ilo, ihi, A, tau, opts);
+        // Store whether or not a workspace was locally allocated
+        bool locally_allocated = false;
+        if( opts._work and required_workspace <= opts.lwork ){
+            // Provided workspace is large enough, use it
+            _work = opts._work;
+            lwork = opts.lwork;
+        } else {
+            // No workspace provided or not large enough, allocate it
+            locally_allocated = true;
+            lwork = required_workspace;
+            _work = new TA[lwork];
+        }
 
-        // Allocate the workspace matrices (These should be gotten from opts later)
+
         std::unique_ptr<TA[]> _Y(new TA[nb * n]);
         std::unique_ptr<TA[]> _T(new TA[nb * nb]);
         auto Y = colmajor_matrix<TA>(&_Y[0], n, nb, n);
@@ -164,24 +186,9 @@ namespace lapack
         auto workspace_vector = col( Y, 0 );
         gehd2( i, ihi, A, tau, workspace_vector );
 
+        if(locally_allocated)
+            delete _work;
         return 0;
-    }
-
-    /**
-     * @return *(opts.workPtr) if workPtr is a member of opts_t.
-     */
-    template <class opts_t, enable_if_t<has_workPtr_v<opts_t>, int> = 0>
-    inline constexpr auto construct_workspace(opts_t &&opts)
-    {
-        if (opts.workPtr)
-            return *(opts.workPtr);
-        else
-        {
-            /// TODO: Allocate space.
-            /// TODO: Create matrix.
-            /// TODO: Return matrix.
-            return *(opts.workPtr);
-        }
     }
 
 } // lapack
