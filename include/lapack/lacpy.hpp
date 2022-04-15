@@ -15,19 +15,19 @@
 
 namespace lapack {
 
-/** Copies a real matrix from A to B where A is either a full, upper triangular or lower triangular matrix.
- *
- * @param[in] uplo Specifies whether the matrix A is upper or lower triangular:
- *
- *        'U': A is assumed to be upper triangular; elements below the diagonal are not referenced.
- *        'L': A is assumed to be lower triangular; elements above the diagonal are not referenced.
- *        otherwise, A is assumed to be a full matrix.
- * @param[in] m The number of rows of the matrix A.
- * @param[in] n The number of columns of the matrix A.
- * @param[out] A Pointer to matrix A.
- * @param[in] lda Column length of the matrix A.
- * @param[out] B Pointer to matrix B.
- * @param[in] ldb Column length of the matrix B.
+/**
+ * @brief Copies a matrix from A to B.
+ * 
+ * @tparam uplo_t Either Uplo or any class that implements `operator Uplo()`.
+ * 
+ * @param[in] uplo
+ *      - Uplo::Upper:   Upper triangle of A and B are referenced;
+ *      - Uplo::Lower:   Lower triangle of A and B are referenced;
+ *      - Uplo::General: All entries of A are referenced; the first m rows of B
+ *                          and first n columns of B are referenced.
+ * 
+ * @param A m-by-n matrix.
+ * @param B matrix with at least m rows and at least n columns.
  * 
  * @ingroup auxiliary
  */

@@ -9,22 +9,18 @@
 #define BLAS_HER_HH
 
 #include "blas/utils.hpp"
-#include "blas/syr.hpp"
 
 namespace blas {
 
 /**
  * Hermitian matrix rank-1 update:
  * \[
- *     A = \alpha x x^H + A,
+ *     A := \alpha x x^H + A,
  * \]
- * where alpha is a scalar, x is a vector,
+ * where alpha is a real scalar, x is a vector,
  * and A is an n-by-n Hermitian matrix.
- *
- * Generic implementation for arbitrary data types.
- *
- * @param[in] layout
- *     Matrix storage, Layout::ColMajor or Layout::RowMajor.
+ * 
+ * Mind that if alpha is complex, the output matrix is no longer Hermitian.
  *
  * @param[in] uplo
  *     What part of the matrix A is referenced,
@@ -32,26 +28,11 @@ namespace blas {
  *     - Uplo::Lower: only the lower triangular part of A is referenced.
  *     - Uplo::Upper: only the upper triangular part of A is referenced.
  *
- * @param[in] n
- *     Number of rows and columns of the matrix A. n >= 0.
- *
- * @param[in] alpha
- *     Scalar alpha. If alpha is zero, A is not updated.
- *
- * @param[in] x
- *     The n-element vector x, in an array of length (n-1)*abs(incx) + 1.
- *
- * @param[in] incx
- *     Stride between elements of x. incx must not be zero.
- *     If incx < 0, uses elements of x in reverse order: x(n-1), ..., x(0).
- *
- * @param[in, out] A
- *     The n-by-n matrix A, stored in an lda-by-n array [RowMajor: n-by-lda].
+ * @param[in] alpha Real scalar.
+ * @param[in] x A n-element vector.
+ * @param[in,out] A A n-by-n Hermitian matrix.
  *     Imaginary parts of the diagonal elements need not be set,
  *     are assumed to be zero on entry, and are set to zero on exit.
- *
- * @param[in] lda
- *     Leading dimension of A. lda >= max(1, n).
  *
  * @ingroup her
  */
@@ -63,7 +44,7 @@ template< class matrixA_t, class vectorX_t, class alpha_t,
 >
 void her(
     blas::Uplo uplo,
-    const alpha_t& alpha,  // zher takes double alpha; use real
+    const alpha_t& alpha,
     const vectorX_t& x,
     matrixA_t& A )
 {
@@ -71,13 +52,13 @@ void her(
     using idx_t = size_type< matrixA_t >;
 
     // constants
-    const idx_t n = size(x);
+    const idx_t n = nrows(A);
 
     // check arguments
     blas_error_if( uplo != Uplo::Lower &&
                    uplo != Uplo::Upper );
-    blas_error_if( nrows(A) != ncols(A) ||
-                   nrows(A) != n );
+    blas_error_if( size(x)  != n );
+    blas_error_if( ncols(A) != n );
 
     blas_error_if( access_denied( uplo, write_policy(A) ) );
 

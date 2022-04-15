@@ -225,7 +225,7 @@ namespace lapack
                 if (!is_complex<TA>::value && istart + 2 == istop)
                 {
                     // 2x2 block, normalize the block
-                    TA cs;
+                    real_t cs;
                     TA sn;
                     // We don't check the error flag here because it should never fail for real values.
                     lahqr_schur22(A(istart, istart), A(istart, istart + 1),

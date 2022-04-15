@@ -17,28 +17,30 @@
 
 namespace lapack {
 
-/** Multiplies the general m-by-n matrix C by Q from lapack::geqrf() using a blocked code.
+/** Applies orthogonal matrix op(Q) to a matrix C using a blocked code.
  *
- * - side = Left,  trans = NoTrans:   $Q C$
- * - side = Right, trans = NoTrans:   $C Q$
- * - side = Left,  trans = ConjTrans: $Q^H C$
- * - side = Right, trans = ConjTrans: $C Q^H$
+ * - side = Side::Left  & trans = Op::NoTrans:    $C := Q C$;
+ * - side = Side::Right & trans = Op::NoTrans:    $C := C Q$;
+ * - side = Side::Left  & trans = Op::ConjTrans:  $C := C Q^H$;
+ * - side = Side::Right & trans = Op::ConjTrans:  $C := Q^H C$.
  *
- * where Q is a unitary matrix defined as the product of k
- * elementary reflectors, as returned by lapack::geqrf():
+ * The matrix Q is represented as a product of elementary reflectors
  * \[
- *     Q = H(0) H(1) \dots H(k).
+ *          Q = H_1 H_2 ... H_k,
  * \]
- *
- * Q is of order m if side = Left and of order n if side = Right.
- *
- * For real matrices, this is an alias for `lapack::ormqr`.
+ * where k = min(m,n). Each H_i has the form
+ * \[
+ *          H_i = I - tau * v * v',
+ * \]
+ * where tau is a scalar, and v is a vector with
+ * \[
+ *          v[0] = v[1] = ... = v[i-1] = 0; v[i] = 1,
+ * \]
+ * with v[i+1] through v[m-1] stored on exit below the diagonal
+ * in the ith column of A, and tau in tau[i].
  * 
- * @tparam matrixA_t    A \<T\>LAPACK abstract matrix.
- * @tparam matrixC_t    A \<T\>LAPACK abstract matrix.
- * @tparam tau_t        A \<T\>LAPACK abstract vector.
- * @tparam side_t       Either left_side_t or right_side_t.
- * @tparam trans_t      Either noTranspose_t, transpose_t or conjTranspose_t.
+ * @tparam side_t Either Side or any class that implements `operator Side()`.
+ * @tparam trans_t Either Op or any class that implements `operator Op()`. 
  * @tparam opts_t
  * \code{.cpp}
  *      struct opts_t {
@@ -49,43 +51,37 @@ namespace lapack {
  * \endcode
  *      If opts_t::nb does not exist, nb assumes a default value.
  *
- * @param[in] side
- *     - Side::Left:  apply $Q$ or $Q^H$ from the Left;
- *     - Side::Right: apply $Q$ or $Q^H$ from the Right.
- *
- * @param[in] trans
- *     - Op::NoTrans:   No transpose, apply $Q$;
- *     - Op::ConjTrans: Conjugate transpose, apply $Q^H$.
- *
+ * @param[in] side Specifies which side op(Q) is to be applied.
+ *      - Side::Left:  C := op(Q) C;
+ *      - Side::Right: C := C op(Q).
+ * 
+ * @param[in] trans The operation $op(Q)$ to be used:
+ *      - Op::NoTrans:      $op(Q) = Q$;
+ *      - Op::ConjTrans:    $op(Q) = Q^H$.
+ *      Op::Trans is a valid value if the data type of A is real. In this case,
+ *      the algorithm treats Op::Trans as Op::ConjTrans.
+ * 
  * @param[in] A
- *     - If side = Left,  the m-by-k matrix A;
- *     - if side = Right, the n-by-k matrix A.
- *     \n
- *     The i-th column must contain the vector which defines the
- *     elementary reflector H(i), for i = 0, 1, ..., k-1, as returned by
- *     geqrf() in the first k columns of its array argument A.
+ *      - side = Side::Left:    m-by-k matrix;
+ *      - side = Side::Right:   n-by-k matrix.
+ * 
+ * @param[in] tau Vector of length k
+ *      Contains the scalar factors of the elementary reflectors.
+ * 
+ * @param[in,out] C m-by-n matrix. 
+ *      On exit, C is replaced by one of the following:
+ *      - side = Side::Left  & trans = Op::NoTrans:    $C := Q C$;
+ *      - side = Side::Right & trans = Op::NoTrans:    $C := C Q$;
+ *      - side = Side::Left  & trans = Op::ConjTrans:  $C := C Q^H$;
+ *      - side = Side::Right & trans = Op::ConjTrans:  $C := Q^H C$.
  *
- * @param[in] tau
- *     The vector tau of length k.
- *     tau[i] must contain the scalar factor of the elementary
- *     reflector H(i), as returned by geqrf().
- *
- * @param[in,out] C
- *     The m-by-n matrix C, stored in an ldc-by-n array.
- *     On entry, the m-by-n matrix C.
- *     On exit, C is overwritten by
- *     $Q C$ or $Q^H C$ or $C Q^H$ or $C Q$.
- *
- * @param[in,out] opts Options.
- *      - opts.nb Block size.
+ * @param opts Options.
+ *      - opts.nb [input] Block size.
  *      If opts.nb does not exist or opts.nb <= 0, nb assumes a default value.
  *      
  *      - opts.workPtr Workspace pointer.
- *          - Pointer to a matrix of size (nb)-by-(n+nb) if side == Side::Left.
- *          - Pointer to a matrix of size (nb)-by-(m+nb) if side == Side::Right.
- * 
- * @return  0 if success
- * @return -i if the ith argument is invalid
+ *          - Pointer to a matrix of size (nb)-by-(n+nb) if side = Side::Left.
+ *          - Pointer to a matrix of size (nb)-by-(m+nb) if side = Side::Right.
  * 
  * @ingroup geqrf
  */
@@ -99,8 +95,10 @@ template<
 >
 int unmqr(
     side_t side, trans_t trans,
-    const matrixA_t& A, const tau_t& tau,
-    matrixC_t& C, opts_t&& opts )
+    const matrixA_t& A,
+    const tau_t& tau,
+    matrixC_t& C,
+    opts_t&& opts )
 {
     using idx_t = size_type< matrixC_t >;
     using pair  = std::pair<idx_t,idx_t>;
@@ -111,8 +109,8 @@ int unmqr(
     const idx_t m = nrows(C);
     const idx_t n = ncols(C);
     const idx_t k = size(tau);
-    const idx_t nA = nrows(A);
-    const idx_t nw = ( side == Side::Left ) ? max<idx_t>(1,n) : max<idx_t>(1,m);
+    const idx_t nA = (side == Side::Left) ? m : n;
+    const idx_t nw = (side == Side::Left) ? max<idx_t>(1,n) : max<idx_t>(1,m);
     
     // Options
     const idx_t nb = get_nb(opts); // Block size
@@ -124,31 +122,26 @@ int unmqr(
     lapack_error_if( trans != Op::NoTrans &&
                      trans != Op::Trans &&
                      trans != Op::ConjTrans, -2 );
-
+    lapack_error_if( trans == Op::Trans && is_complex<matrixA_t>::value, -2 );
+    
     lapack_error_if( access_denied( strictLower, read_policy(A) ), -3 );
     lapack_error_if( access_denied( dense, write_policy(C) ), -5 );
 
+    // quick return
+    if ((m == 0) || (n == 0) || (k == 0))
+        return 0;
+
     // Preparing loop indexes
-    idx_t i0, iN, step;
-    if(
-        ( (side == Side::Left) &&
-          !(trans == Op::Trans) )
-    ||
-        ( (side == Side::Right) &&
-          (trans == Op::Trans) )
-    ){
-        i0 = 0;
-        iN = k-1+nb;
-        step = nb;
-    }
-    else {
-        i0 = ( (k-1) / nb ) * nb;
-        iN = -nb;
-        step = -nb;
-    }
+    const bool positiveInc = (
+        ( (side == Side::Left) &&  (trans == Op::NoTrans) ) ||
+        (!(side == Side::Left) && !(trans == Op::NoTrans) )
+    );
+    const idx_t i0 = (positiveInc) ? 0      : ( (k-1) / nb ) * nb;
+    const idx_t iN = (positiveInc) ? k-1+nb : -nb;
+    const idx_t inc = (positiveInc) ? nb    : -nb;
     
     // Main loop
-    for (idx_t i = i0; i != iN; i += step) {
+    for (idx_t i = i0; i != iN; i += inc) {
         
         idx_t ib = min<idx_t>( nb, k-i );
         const auto V = slice( A, pair{i,nA}, pair{i,i+ib} );

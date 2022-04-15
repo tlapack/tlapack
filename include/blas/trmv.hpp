@@ -15,7 +15,7 @@ namespace blas {
 /**
  * Triangular matrix-vector multiply:
  * \[
- *     x = op(A) x,
+ *     x := op(A) x,
  * \]
  * where $op(A)$ is one of
  *     $op(A) = A$,
@@ -24,8 +24,6 @@ namespace blas {
  *     $op(A) = conj(A)$,
  * x is a vector,
  * and A is an n-by-n, unit or non-unit, upper or lower triangular matrix.
- *
- * Generic implementation for arbitrary data types.
  *
  * @param[in] uplo
  *     What part of the matrix A is referenced,
@@ -45,8 +43,8 @@ namespace blas {
  *                      The diagonal elements of A are not referenced.
  *     - Diag::NonUnit: A is not assumed to be unit triangular.
  *
- * @param[in] A matrix.
- * @param[in,out] x vector.
+ * @param[in] A     A n-by-n matrix.
+ * @param[in,out] x A n-element vector.
  *
  * @ingroup trmv
  */
@@ -62,9 +60,6 @@ void trmv(
     using TA    = type_t< matrixA_t >;
     using TX    = type_t< vectorX_t >;
     using idx_t = size_type< matrixA_t >;
-
-    // using
-    using scalar_t = scalar_type<TA,TX>;
 
     // constants
     const idx_t n = nrows(A);
@@ -90,7 +85,7 @@ void trmv(
             // upper
             for (idx_t j = 0; j < n; ++j) {
                 // note: NOT skipping if x[j] is zero, for consistent NAN handling
-                scalar_t tmp = x[j];
+                auto tmp = x[j];
                 for (idx_t i = 0; i < j; ++i)
                     x[i] += tmp * A(i,j);
                 if (nonunit)
@@ -101,7 +96,7 @@ void trmv(
             // lower
             for (idx_t j = n-1; j != idx_t(-1); --j) {
                 // note: NOT skipping if x[j] is zero ...
-                scalar_t tmp = x[j];
+                auto tmp = x[j];
                 for (idx_t i = n-1; i >= j+1; --i)
                     x[i] += tmp * A(i,j);
                 if (nonunit)
@@ -115,7 +110,7 @@ void trmv(
             // upper
             for (idx_t j = 0; j < n; ++j) {
                 // note: NOT skipping if x[j] is zero, for consistent NAN handling
-                scalar_t tmp = x[j];
+                auto tmp = x[j];
                 for (idx_t i = 0; i < j; ++i)
                     x[i] += tmp * conj( A(i,j) );
                 if (nonunit)
@@ -126,7 +121,7 @@ void trmv(
             // lower
             for (idx_t j = n-1; j != idx_t(-1); --j) {
                 // note: NOT skipping if x[j] is zero ...
-                scalar_t tmp = x[j];
+                auto tmp = x[j];
                 for (idx_t i = n-1; i >= j+1; --i)
                     x[i] += tmp * conj( A(i,j) );
                 if (nonunit)
@@ -136,6 +131,9 @@ void trmv(
     }
     else if (trans == Op::Trans) {
         // Form  x := A^T * x
+        
+        using scalar_t = scalar_type<TA,TX>;
+
         if (uplo == Uplo::Upper) {
             // upper
             for (idx_t j = n-1; j != idx_t(-1); --j) {
@@ -162,6 +160,9 @@ void trmv(
     else {
         // Form x := A^H * x
         // same code as above A^T * x case, except add conj()
+        
+        using scalar_t = scalar_type<TA,TX>;
+        
         if (uplo == Uplo::Upper) {
             // upper
             for (idx_t j = n-1; j != idx_t(-1); --j) {

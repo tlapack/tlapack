@@ -68,7 +68,8 @@ using std::pow;
 
 /** Extend conj to real datatypes.
  * 
- * @usage:
+ * Usage:
+ * 
  *     using blas::conj;
  *     scalar_t x = ...
  *     scalar_t y = conj( x );

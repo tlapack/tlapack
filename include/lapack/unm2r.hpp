@@ -19,8 +19,54 @@ namespace lapack {
 
 /** Applies unitary matrix Q to a matrix C.
  * 
- * @param work Vector of size n (m if side == Side::Right).
- * @see unm2r( Side, Op, blas::idx_t, blas::idx_t, blas::idx_t, const TA*, blas::idx_t, const blas::real_type<TA,TC>*, TC*, blas::idx_t )
+ * - side = Side::Left  & trans = Op::NoTrans:    $C := Q C$;
+ * - side = Side::Right & trans = Op::NoTrans:    $C := C Q$;
+ * - side = Side::Left  & trans = Op::ConjTrans:  $C := C Q^H$;
+ * - side = Side::Right & trans = Op::ConjTrans:  $C := Q^H C$.
+ *
+ * The matrix Q is represented as a product of elementary reflectors
+ * \[
+ *          Q = H_1 H_2 ... H_k,
+ * \]
+ * where k = min(m,n). Each H_i has the form
+ * \[
+ *          H_i = I - tau * v * v',
+ * \]
+ * where tau is a scalar, and v is a vector with
+ * \[
+ *          v[0] = v[1] = ... = v[i-1] = 0; v[i] = 1,
+ * \]
+ * with v[i+1] through v[m-1] stored on exit below the diagonal
+ * in the ith column of A, and tau in tau[i].
+ * 
+ * @tparam side_t Either Side or any class that implements `operator Side()`.
+ * @tparam trans_t Either Op or any class that implements `operator Op()`. 
+ * 
+ * @param[in] side Specifies which side op(Q) is to be applied.
+ *      - Side::Left:  C := op(Q) C;
+ *      - Side::Right: C := C op(Q).
+ * 
+ * @param[in] trans The operation $op(Q)$ to be used:
+ *      - Op::NoTrans:      $op(Q) = Q$;
+ *      - Op::ConjTrans:    $op(Q) = Q^H$.
+ *      Op::Trans is a valid value if the data type of A is real. In this case,
+ *      the algorithm treats Op::Trans as Op::ConjTrans.
+ * 
+ * @param[in] A
+ *      - side = Side::Left:    m-by-k matrix;
+ *      - side = Side::Right:   n-by-k matrix.
+ * 
+ * @param[in] tau Vector of length k
+ *      Contains the scalar factors of the elementary reflectors.
+ * 
+ * @param[in,out] C m-by-n matrix. 
+ *      On exit, C is replaced by one of the following:
+ *      - side = Side::Left  & trans = Op::NoTrans:    $C := Q C$;
+ *      - side = Side::Right & trans = Op::NoTrans:    $C := C Q$;
+ *      - side = Side::Left  & trans = Op::ConjTrans:  $C := C Q^H$;
+ *      - side = Side::Right & trans = Op::ConjTrans:  $C := Q^H C$.
+ * 
+ * @param work Vector of size n, if side = Side::Left, or m, if side = Side::Right.
  * 
  * @ingroup geqrf
  */
@@ -43,6 +89,7 @@ int unm2r(
     const idx_t m = nrows(C);
     const idx_t n = ncols(C);
     const idx_t k = size(tau);
+    const idx_t nA = (side == Side::Left) ? m : n;
 
     // check arguments
     lapack_error_if( side != Side::Left &&
@@ -50,28 +97,29 @@ int unm2r(
     lapack_error_if( trans != Op::NoTrans &&
                      trans != Op::Trans &&
                      trans != Op::ConjTrans, -2 );
+    lapack_error_if( trans == Op::Trans && is_complex<matrixA_t>::value, -2 );
     lapack_error_if( access_denied( lowerTriangle, read_policy(A)  ), -3 );
     lapack_error_if( access_denied( band_t(0,0),   write_policy(A) ), -3 );
-
-    // const expressions
-    constexpr bool positiveInc = (
-        ( (side == Side::Left) &&  (trans == Op::NoTrans) ) ||
-        (!(side == Side::Left) && !(trans == Op::NoTrans) )
-    );
-    constexpr idx_t i0 = (positiveInc) ? 0 : k-1;
-    constexpr idx_t iN = (positiveInc) ? k :  -1;
-    constexpr idx_t inc = (positiveInc) ? 1 : -1;
+    lapack_error_if( access_denied( dense, write_policy(C) ), -5 );
 
     // quick return
     if ((m == 0) || (n == 0) || (k == 0))
         return 0;
 
+    // const expressions
+    const bool positiveInc = (
+        ( (side == Side::Left) &&  (trans == Op::NoTrans) ) ||
+        (!(side == Side::Left) && !(trans == Op::NoTrans) )
+    );
+    const idx_t i0 = (positiveInc) ? 0 : k-1;
+    const idx_t iN = (positiveInc) ? k :  -1;
+    const idx_t inc = (positiveInc) ? 1 : -1;
+
+    // Main loop
     for (idx_t i = i0; i != iN; i += inc) {
         
-        const auto& v = (side == Side::Left)
-                      ? slice( A, pair{i,m}, i )
-                      : slice( A, pair{i,n}, i );
-        auto& Ci = (side == Side::Left)
+        auto v = slice( A, pair{i,nA}, i );
+        auto Ci = (side == Side::Left)
                  ? rows( C, pair{i,m} )
                  : cols( C, pair{i,n} );
         

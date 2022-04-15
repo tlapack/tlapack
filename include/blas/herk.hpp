@@ -15,19 +15,17 @@ namespace blas {
 /**
  * Hermitian rank-k update:
  * \[
- *     C = \alpha A A^H + \beta C,
+ *     C := \alpha A A^H + \beta C,
  * \]
  * or
  * \[
- *     C = \alpha A^H A + \beta C,
+ *     C := \alpha A^H A + \beta C,
  * \]
  * where alpha and beta are real scalars, C is an n-by-n Hermitian matrix,
  * and A is an n-by-k or k-by-n matrix.
  *
- * Generic implementation for arbitrary data types.
- *
- * @param[in] layout
- *     Matrix storage, Layout::ColMajor or Layout::RowMajor.
+ * Mind that if alpha or beta are complex,
+ * the output matrix C may no longer Hermitian.
  *
  * @param[in] uplo
  *     What part of the matrix C is referenced,
@@ -39,39 +37,15 @@ namespace blas {
  *     The operation to be performed:
  *     - Op::NoTrans:   $C = \alpha A A^H + \beta C$.
  *     - Op::ConjTrans: $C = \alpha A^H A + \beta C$.
- *     - In the real    case, Op::Trans is interpreted as Op::ConjTrans.
- *       In the complex case, Op::Trans is illegal (see @ref syrk instead).
  *
- * @param[in] n
- *     Number of rows and columns of the matrix C. n >= 0.
- *
- * @param[in] k
- *     - If trans = NoTrans: number of columns of the matrix A. k >= 0.
- *     - Otherwise:          number of rows    of the matrix A. k >= 0.
- *
- * @param[in] alpha
- *     Scalar alpha. If alpha is zero, A is not accessed.
- *
- * @param[in] A
- *     - If trans = NoTrans:
- *     the n-by-k matrix A, stored in an lda-by-k array [RowMajor: n-by-lda].
- *     - Otherwise:
- *     the k-by-n matrix A, stored in an lda-by-n array [RowMajor: k-by-lda].
- *
- * @param[in] lda
- *     Leading dimension of A.
- *     If trans = NoTrans: lda >= max(1, n) [RowMajor: lda >= max(1, k)],
- *     If Otherwise:       lda >= max(1, k) [RowMajor: lda >= max(1, n)].
- *
- * @param[in] beta
- *     Scalar beta. If beta is zero, C need not be set on input.
- *
- * @param[in] C
- *     The n-by-n Hermitian matrix C,
- *     stored in an lda-by-n array [RowMajor: n-by-lda].
- *
- * @param[in] ldc
- *     Leading dimension of C. ldc >= max(1, n).
+ * @param[in] alpha Real scalar.
+ * @param[in] A A n-by-k matrix.
+ *     - If trans = NoTrans: a n-by-k matrix.
+ *     - Otherwise:          a k-by-n matrix.
+ * @param[in] beta Real scalar.
+ * @param[in,out] C A n-by-n Hermitian matrix.
+ *     Imaginary parts of the diagonal elements need not be set,
+ *     are assumed to be zero on entry, and are set to zero on exit.
  *
  * @ingroup herk
  */
@@ -93,7 +67,7 @@ void herk(
 {
     // data traits
     using TA    = type_t< matrixA_t >;
-    using idx_t = size_type< matrixC_t >;
+    using idx_t = size_type< matrixA_t >;
 
     // constants
     const idx_t n = (trans == Op::NoTrans) ? nrows(A) : ncols(A);
@@ -105,8 +79,8 @@ void herk(
                    uplo != Uplo::General );
     blas_error_if( trans != Op::NoTrans &&
                    trans != Op::ConjTrans );
-    blas_error_if( nrows(C) != ncols(C) ||
-                   nrows(C) != n );
+    blas_error_if( nrows(C) != ncols(C) );
+    blas_error_if( nrows(C) != n );
 
     blas_error_if( access_denied( dense, read_policy(A) ) );
     blas_error_if( access_denied( uplo, write_policy(C) ) );
@@ -142,9 +116,8 @@ void herk(
                     auto alphaConjAjl = alpha*conj( A(j,l) );
 
                     C(j,j) += real( A(j,l) * alphaConjAjl );
-                    for(idx_t i = j+1; i < n; ++i) {
+                    for(idx_t i = j+1; i < n; ++i)
                         C(i,j) += A(i,l) * alphaConjAjl;
-                    }
                 }
             }
         }
@@ -166,8 +139,7 @@ void herk(
                 C(j,j) = alpha*sum + beta*real( C(j,j) );
             }
         }
-        else {
-            // uplo == Uplo::Lower
+        else { // uplo == Uplo::Lower
             for(idx_t j = 0; j < n; ++j) {
                 for(idx_t i = j+1; i < n; ++i) {
                     TA sum( 0 );
@@ -205,8 +177,8 @@ template<
 void herk(
     blas::Uplo uplo,
     blas::Op trans,
-    const alpha_t& alpha, const matrixA_t& A,
-    const beta_t& beta, matrixC_t& C )
+    const alpha_t alpha, const matrixA_t& A,
+    const beta_t beta, matrixC_t& C )
 {
     // Legacy objects
     auto _A = legacy_matrix(A);

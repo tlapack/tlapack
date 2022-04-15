@@ -22,7 +22,7 @@ namespace lapack {
 
 /** Updates a sum of squares represented in scaled form.
  * \[
- *      scl_{[OUT]}^2 sumsq_{[OUT]} = \sum_{i = 0}^n |x_i|^2 + scl_{[IN]}^2 sumsq_{[IN]},
+ *      scl smsq := \sum_{i = 0}^n |x_i|^2 + scale^2 sumsq,
  * \]
  * The value of  sumsq  is assumed to be non-negative.
  * 
@@ -39,23 +39,32 @@ namespace lapack {
  *    TINY*EPS -- tiniest representable number;
  *    HUGE     -- biggest representable number.
  * 
- * @param[in] n The number of elements to be used from the vector x.
- * @param[in] x Array of dimension $(1+(n-1)*\abs(incx))$.
- * @param[in] incx. The increment between successive values of the vector x.
- *          If incx > 0, X(i*incx) = x_i for 0 <= i < n
- *          If incx < 0, X((n-i-1)*(-incx)) = x_i for 0 <= i < n
- *          If incx = 0, x isn't a vector so there is no need to call
- *          this subroutine.  If you call it anyway, it will count x_0
- *          in the vector norm n times.
- * @param[in] scl
- * @param[in] sumsq
+ * @tparam abs_t 
+ * \code{.cpp}
+ *      struct abs_t {
+ *          static inline auto abs( const T& x ){ ... };
+ *      };
+ * \endcode
+ *      where T is the type_t< vector_t >.
  * 
- * @ingroup
+ * @param[in] x Vector of size n.
+ * 
+ * @param[in,out] scale Real scalar.
+ *      On entry, the value `scale` in the equation above.
+ *      On exit, `scale` is overwritten with `scl`, the scaling factor
+ *      for the sum of squares.
+ * 
+ * @param[in,out] sumsq Real scalar.
+ *      On entry, the value `sumsq` in the equation above.
+ *      On exit, `sumsq` is overwritten with `smsq`, the basic sum of
+ *      squares from which  scl  has been factored out.
+ * 
+ * @ingroup auxiliary
  */
 template< class abs_t, class vector_t >
 void lassq(
     const vector_t& x,
-    real_type< type_t<vector_t> > &scl,
+    real_type< type_t<vector_t> > &scale,
     real_type< type_t<vector_t> > &sumsq)
 {
     using real_t = real_type< type_t<vector_t> >;
@@ -75,11 +84,11 @@ void lassq(
     const real_t sbig = blas::blue_scalingMax<real_t>();
 
     // quick return
-    if( isnan(scl) || isnan(sumsq) ) return;
+    if( isnan(scale) || isnan(sumsq) ) return;
 
-    if( sumsq == zero ) scl = one;
-    if( scl == zero ) {
-        scl = one;
+    if( sumsq == zero ) scale = one;
+    if( scale == zero ) {
+        scale = one;
         sumsq = zero;
     }
 
@@ -111,13 +120,13 @@ void lassq(
 
     // Put the existing sum of squares into one of the accumulators
     if( sumsq > zero ) {
-        real_t ax = scl * sqrt( sumsq );
+        real_t ax = scale * sqrt( sumsq );
         if( ax > tbig )
-            abig += ((scl*sbig) * (scl*sbig)) * sumsq;
+            abig += ((scale*sbig) * (scale*sbig)) * sumsq;
         else if( ax < tsml ) {
-            if( abig == zero ) asml += ((scl*ssml) * (scl*ssml)) * sumsq;
+            if( abig == zero ) asml += ((scale*ssml) * (scale*ssml)) * sumsq;
         } else
-            amed += (scl * scl) * sumsq;
+            amed += (scale * scale) * sumsq;
     }
 
     // Combine abig and amed or amed and asml if
@@ -127,7 +136,7 @@ void lassq(
         // Combine abig and amed if abig > 0
         if( amed > zero || isnan(amed) )
             abig += (amed*sbig)*sbig;
-        scl = one / sbig;
+        scale = one / sbig;
         sumsq = abig;
     }
     else if( asml > zero ) {
@@ -146,26 +155,47 @@ void lassq(
                 ymax = amed;
             }
 
-            scl = one;
+            scale = one;
             sumsq = (ymax * ymax) * ( one + (ymin/ymax) * (ymin/ymax) );
         }
         else {
-            scl = one / ssml;
+            scale = one / ssml;
             sumsq = asml;
         }
     }
     else {
         // Otherwise all values are mid-range or zero
-        scl = one;
+        scale = one;
         sumsq = amed;
     }
 }
 
+/** Updates a sum of squares represented in scaled form.
+ * \[
+ *      scl smsq := \sum_{i = 0}^n |x_i|^2 + scale^2 sumsq.
+ * \]
+ * @see lassq(
+    const vector_t& x,
+    real_type< type_t<vector_t> > &scale,
+    real_type< type_t<vector_t> > &sumsq).
+ *
+ * Specific implementation using  
+ * \code{.cpp}
+ *      struct abs_t {
+ *          static inline auto abs( const T& x ){
+ *              return blas::abs( x );
+ *          };
+ *      };
+ * \endcode
+ *      where T is the type_t< vector_t >.
+ * 
+ * @ingroup auxiliary
+ */
 template< class vector_t >
 inline
 void lassq(
     const vector_t& x,
-    real_type< type_t<vector_t> > &scl,
+    real_type< type_t<vector_t> > &scale,
     real_type< type_t<vector_t> > &sumsq)
 {
     using T      = type_t<vector_t>;
@@ -177,7 +207,7 @@ void lassq(
         }
     };
     
-    return lassq< absValue >( x, scl, sumsq );
+    return lassq< absValue >( x, scale, sumsq );
 }
 
 } // lapack

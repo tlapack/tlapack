@@ -212,7 +212,7 @@ namespace lapack
     template <
         typename T,
         enable_if_t<is_complex<T>::value, bool> = true>
-    int lahqr_schur22(T &a, T &b, T &c, T &d, T &s1, T &s2, T &cs, T &sn)
+    int lahqr_schur22(T &a, T &b, T &c, T &d, T &s1, T &s2, real_type<T> &cs, T &sn)
     {
         return -1;
     }
