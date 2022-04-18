@@ -288,6 +288,29 @@ namespace blas {
     inline constexpr auto
     diag( const matrix_t& A, idx_t diagIdx = 0 );
 
+    /**
+     * @brief Interpret a given vector as a 1-column matrix.
+     * 
+     * @tparam vector_t Vector type.
+     * 
+     * @param v Vector of size n.
+     * 
+     * @return Matrix of size n-by-1.
+     */
+    template< class vector_t >
+    inline constexpr
+    auto
+    interpretAsMatrix( const vector_t& v );
+
+    /// @returns The input because it is already a matrix.
+    template< class matrix_t >
+    inline constexpr
+    const auto&
+    interpretAsMatrix( const matrix_t& A )
+    {
+        return A;
+    }
+
     // -------------------------------------------------------------------------
     // Block operations with vectors in <T>LAPACK
 

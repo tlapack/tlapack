@@ -58,13 +58,27 @@ namespace blas {
         #endif
     }
 
+    // interpretAsMatrix
+    template< class T, class Allocator >
+    inline constexpr
+    auto
+    interpretAsMatrix( const std::vector<T,Allocator>& v ) noexcept
+    {
+        #ifndef TLAPACK_USE_MDSPAN
+            return legacyMatrix< T >( v.size(), 1, &v[0], v.size() );
+        #else
+            using extents_t = std::experimental::extents<std::experimental::dynamic_extent,1>;
+            return std::experimental::mdspan< T, extents_t >( &v[0], extents_t(v.size()) );
+        #endif
+    }
+
 } // namespace blas
 
 namespace lapack {
 
     using blas::size;
-
     using blas::slice;
+    using blas::interpretAsMatrix;
 
 } // namespace lapack
 

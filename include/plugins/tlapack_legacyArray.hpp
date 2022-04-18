@@ -252,6 +252,27 @@ namespace blas {
         return legacyVector<T,int_t,direction>( rows.second-rows.first, &v[rows.first], v.inc );
     }
 
+    // interpretAsMatrix
+    template< typename T, Layout layout >
+    inline constexpr
+    const auto&
+    interpretAsMatrix( const legacyMatrix<T,layout>& A ) noexcept
+    {
+        return A;
+    }
+
+    // interpretAsMatrix
+    template< typename T, typename int_t, Direction direction >
+    inline constexpr
+    auto
+    interpretAsMatrix( const legacyVector<T,int_t,direction>& v )
+    {
+        if( v.inc == 1 )
+            return legacyMatrix< T >( v.n, 1, v.ptr, v.n );
+        else
+            throw Error("Invalid conversion from legacyVector to legacyMatrix");
+    }
+
     // -----------------------------------------------------------------------------
     // Cast to Legacy arrays
 
@@ -288,6 +309,8 @@ namespace lapack {
     using blas::col;
     using blas::diag;
 
+    using blas::interpretAsMatrix;
+  
 } // namespace lapack
 
 #endif // __TLAPACK_LEGACYARRAY_HH__

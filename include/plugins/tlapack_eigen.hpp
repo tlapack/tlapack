@@ -266,10 +266,34 @@ namespace blas{
     {
         return A.diagonal( diagIdx );
     }
-    template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel, typename SliceSpec, class int_t>
+    template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel, class int_t>
     inline constexpr auto diag( Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>&& A, int_t diagIdx = 0 ) noexcept
     {
         return A.diagonal( diagIdx );
+    }
+
+    // interpretAsMatrix
+    template<class T>
+    inline constexpr
+    const Eigen::MatrixBase<T>&
+    interpretAsMatrix( const Eigen::MatrixBase<T>& A ) noexcept
+    {
+        return A;
+    }
+    
+    template<class T>
+    inline constexpr
+    Eigen::MatrixBase<T>&
+    interpretAsMatrix( Eigen::MatrixBase<T>& A ) noexcept {
+        return A;
+    }
+    
+    template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel>
+    inline constexpr
+    auto&&
+    interpretAsMatrix( Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>&& A ) noexcept
+    {
+        return std::forward(A);
     }
 
 } // namespace blas
@@ -288,6 +312,8 @@ namespace lapack {
     using blas::cols;
     using blas::col;
     using blas::diag;
+
+    using blas::interpretAsMatrix;
 
 } // namespace lapack
 

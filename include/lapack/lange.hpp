@@ -34,13 +34,15 @@ namespace lapack {
  */
 template< typename norm_t, typename matrix_t >
 auto
-lange( norm_t normType, const matrix_t& A )
+lange( norm_t normType, const matrix_t& a )
 {
     using T      = type_t< matrix_t >;
     using real_t = real_type< T >;
     using idx_t  = size_type< matrix_t >;
     using blas::isnan;
     using blas::sqrt;
+
+    const auto& A = interpretAsMatrix( a );
 
     // constants
     const idx_t m = nrows(A);
