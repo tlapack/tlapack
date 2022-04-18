@@ -65,12 +65,8 @@ namespace lapack
         std::complex<real_t> det = (a00 - tr) * (a00 - tr) + a01 * a10;
         auto rtdisc = sqrt(det);
 
-        // The old Fortran code used the following formula:
-        // s1 = s*(tr + rtdisc);
-        // s2 = s*(tr - rtdisc);
-        // This should be a little more accurate
-        s1 = (real(tr) >= rzero) ? s * (tr + rtdisc) : s * (tr - rtdisc);
-        s2 = (a00 * a11 + a01 * a10) / s1;
+        s1 = s*(tr + rtdisc);
+        s2 = s*(tr - rtdisc);
     }
 
 } // lapack
