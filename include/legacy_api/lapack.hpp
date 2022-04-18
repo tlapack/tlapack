@@ -42,6 +42,7 @@
 #include "legacy_api/lapack/larnv.hpp"
 #include "legacy_api/lapack/lascl.hpp"
 #include "legacy_api/lapack/lassq.hpp"
+#include "legacy_api/lapack/lacgv.hpp"
 
 // QR factorization
 // ----------------
