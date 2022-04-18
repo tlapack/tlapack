@@ -1,4 +1,4 @@
-/// @file lanhe.hpp
+/// @file lanhe.hpp Returns the norm of a Hermitian matrix.
 /// @author Weslley S Pereira, University of Colorado Denver, USA
 /// Adapted from @see https://github.com/langou/latl/blob/master/include/lanhe.h
 //
@@ -48,6 +48,7 @@ lanhe( norm_t normType, uplo_t uplo, const matrix_t& A )
     using blas::isnan;
     using blas::sqrt;
     using blas::real;
+    using blas::safe_max;
 
     // constants
     const idx_t n = nrows(A);
@@ -177,7 +178,12 @@ lanhe( norm_t normType, uplo_t uplo, const matrix_t& A )
             for (idx_t j = 0; j < n-1; ++j)
                 lassq( slice(A, pair{j+1,n}, j ), scale, ssq );
         }
-        ssq *= 2;
+        
+        // Multiplies the sum by 2
+        if( ssq < safe_max<real_t>() )
+            ssq *= 2;
+        else
+            scale *= sqrt(2);
 
         // Sum the real part in the diagonal
         struct absReValue {
