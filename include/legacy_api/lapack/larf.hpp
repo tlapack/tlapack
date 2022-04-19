@@ -53,14 +53,12 @@ inline void larf(
     
     // Matrix views
     auto _C = colmajor_matrix<TC>( C, m, n, ldC );
-    const auto _v = vector<TV>(
-        (TV*) &v[(incv > 0 ? 0 : (-lenv + 1)*incv)],
-        lenv, incv );
-    auto _work = vector<scalar_t>( &work[0], lwork, 1 );
+    auto _work = vector( &work[0], lwork );
 
-    larf( side, _v, tau, _C, _work);
-        
-    // delete[] work;
+    tlapack_expr_with_vector(
+        _v, TV, lenv, v, incv,
+        return larf( side, _v, tau, _C, _work)
+    );
 }
 
 } // lapack

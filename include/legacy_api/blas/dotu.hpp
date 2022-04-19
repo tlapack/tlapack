@@ -44,21 +44,14 @@ scalar_type<TX, TY> dotu(
     TX const *x, blas::int_t incx,
     TY const *y, blas::int_t incy )
 {
-    using internal::vector;
-
-    // check arguments
     blas_error_if( incx == 0 );
     blas_error_if( incy == 0 );
-
-    // Views
-    const auto _x = vector<TX>(
-        (TX*) &x[(incx > 0 ? 0 : (-n + 1)*incx)],
-        n, incx );
-    const auto _y = vector<TY>(
-        (TY*) &y[(incy > 0 ? 0 : (-n + 1)*incy)],
-        n, incy );
-
-    return dotu( _x, _y );
+    
+    tlapack_expr_with_2vectors(
+        _x, TX, n, x, incx,
+        _y, TY, n, y, incy,
+        return dotu( _x, _y )
+    );
 }
 
 }  // namespace blas

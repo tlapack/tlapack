@@ -77,7 +77,7 @@ namespace blas {
  *     - If side = left:  lda >= max(1, m).
  *     - If side = right: lda >= max(1, n).
  *
- * @param[in, out] B
+ * @param[in,out] B
  *     The m-by-n matrix B, stored in an ldb-by-n array [RowMajor: m-by-ldb].
  *
  * @param[in] ldb
@@ -97,12 +97,8 @@ void trmm(
     blas::scalar_type<TA, TB> alpha,
     TA const *A, blas::idx_t lda,
     TB       *B, blas::idx_t ldb )
-{    
-    typedef blas::scalar_type<TA, TB> scalar_t;
+{
     using blas::internal::colmajor_matrix;
-
-    // constants
-    const scalar_t zero( 0.0 );
 
     // check arguments
     blas_error_if( layout != Layout::ColMajor &&
@@ -143,16 +139,6 @@ void trmm(
                   : colmajor_matrix<TA>( (TA*)A, n, n, lda );
     auto _B = colmajor_matrix<TB>( B, m, n, ldb );
 
-    // alpha == zero
-    if (alpha == zero) {
-        for(idx_t j = 0; j < n; ++j) {
-            for(idx_t i = 0; i < m; ++i)
-                _B(i,j) = TB(0);
-        }
-        return;
-    }
-
-    // alpha != zero
     trmm( side, uplo, trans, diag, alpha, _A, _B );
 }
 

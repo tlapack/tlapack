@@ -45,7 +45,7 @@ namespace blas {
  *     Stride between elements of x. incx must not be zero.
  *     If incx < 0, uses elements of x in reverse order: x(n-1), ..., x(0).
  *
- * @param[in, out] A
+ * @param[in,out] A
  *     The n-by-n matrix A, stored in an lda-by-n array [RowMajor: n-by-lda].
  *
  * @param[in] lda
@@ -62,12 +62,7 @@ void syr(
     TX const *x, blas::int_t incx,
     TA       *A, blas::idx_t lda )
 {
-    typedef blas::scalar_type<TA, TX> scalar_t;
     using blas::internal::colmajor_matrix;
-    using blas::internal::vector;
-
-    // constants
-    const scalar_t zero( 0.0 );
 
     // check arguments
     blas_error_if( layout != Layout::ColMajor &&
@@ -79,22 +74,18 @@ void syr(
     blas_error_if( lda < n );
 
     // quick return
-    if (n == 0 || alpha == zero)
+    if (n == 0)
         return;
 
     // for row major, swap lower <=> upper
     if (layout == Layout::RowMajor) {
         uplo = (uplo == Uplo::Lower ? Uplo::Upper : Uplo::Lower);
     }
-        
+    
     // Matrix views
     auto _A = colmajor_matrix<TA>( A, n, n, lda );
-    const auto _x = vector<TX>(
-        (TX*) &x[(incx > 0 ? 0 : (-n + 1)*incx)],
-        n, incx );
 
-    syr( uplo, alpha, _x, _A );
-
+    tlapack_expr_with_vector( _x, TX, n, x, incx, syr( uplo, alpha, _x, _A ) );
 }
 
 }  // namespace blas

@@ -58,28 +58,12 @@ void lassq(
     real_type<TX> &scl,
     real_type<TX> &sumsq)
 {
-    using real_t = real_type<TX>;
-    using blas::internal::vector;
     using blas::isnan;
 
-    // constants
-    const real_t zero( 0 );
-    const real_t one( 1 );
-
     // quick return
-    if( isnan(scl) || isnan(sumsq) ) return;
+    if( isnan(scl) || isnan(sumsq) || n <= 0 ) return;
 
-    if( sumsq == zero ) scl = one;
-    if( scl == zero ) {
-        scl = one;
-        sumsq = zero;
-    }
-
-    // quick return
-    if( n <= 0 ) return;
-
-    const auto _x = vector<TX>( (TX*) x, n, incx );
-    lassq( _x, scl, sumsq );
+    tlapack_expr_with_vector( _x, TX, n, x, incx, return lassq( _x, scl, sumsq ) );
 }
 
 } // lapack

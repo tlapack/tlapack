@@ -84,17 +84,11 @@ void herk(
     blas::Op trans,
     blas::idx_t n, blas::idx_t k,
     real_type<TA, TC> alpha,  // note: real
-    TA const *A_, blas::idx_t lda,
+    TA const *A, blas::idx_t lda,
     real_type<TA, TC> beta,  // note: real
-    TC       *C_, blas::idx_t ldc )
+    TC       *C, blas::idx_t ldc )
 {
-    typedef blas::real_type<TA, TC> real_t;
     using blas::internal::colmajor_matrix;
-
-    // constants
-    const TC szero( 0 );
-    const real_t zero( 0 );
-    const real_t one( 1 );
 
     // check arguments
     blas_error_if( layout != Layout::ColMajor &&
@@ -134,63 +128,14 @@ void herk(
             : Op::NoTrans;
         alpha = conj(alpha);
     }
-        
+
     // Matrix views
-    const auto A = (trans == Op::NoTrans)
-                 ? colmajor_matrix<TA>( (TA*)A_, n, k, lda )
-                 : colmajor_matrix<TA>( (TA*)A_, k, n, lda );
-    auto C = colmajor_matrix<TC>( C_, n, n, ldc );
+    const auto _A = (trans == Op::NoTrans)
+                 ? colmajor_matrix<TA>( (TA*)A, n, k, lda )
+                 : colmajor_matrix<TA>( (TA*)A, k, n, lda );
+    auto _C = colmajor_matrix<TC>( C, n, n, ldc );
 
-    // alpha == zero
-    if (alpha == zero) {
-        if (beta == zero) {
-            if (uplo != Uplo::Upper) {
-                for(idx_t j = 0; j < n; ++j) {
-                    for(idx_t i = 0; i <= j; ++i)
-                        C(i,j) = szero;
-                }
-            }
-            else if (uplo != Uplo::Lower) {
-                for(idx_t j = 0; j < n; ++j) {
-                    for(idx_t i = j; i < n; ++i)
-                        C(i,j) = szero;
-                }
-            }
-            else {
-                for(idx_t j = 0; j < n; ++j) {
-                    for(idx_t i = 0; i < n; ++i)
-                        C(i,j) = szero;
-                }
-            }
-        } else if (beta != one) {
-            if (uplo != Uplo::Upper) {
-                for(idx_t j = 0; j < n; ++j) {
-                    for(idx_t i = 0; i < j; ++i)
-                        C(i,j) *= beta;
-                    C(j,j) = beta * real( C(j,j) );
-                }
-            }
-            else if (uplo != Uplo::Lower) {
-                for(idx_t j = 0; j < n; ++j) {
-                    C(j,j) = beta * real( C(j,j) );
-                    for(idx_t i = j+1; i < n; ++i)
-                        C(i,j) *= beta;
-                }
-            }
-            else {
-                for(idx_t j = 0; j < n; ++j) {
-                    for(idx_t i = 0; i < j; ++i)
-                        C(i,j) *= beta;
-                    C(j,j) = beta * real( C(j,j) );
-                    for(idx_t i = j+1; i < n; ++i)
-                        C(i,j) *= beta;
-                }
-            }
-        }
-        return;
-    }
-
-    herk( uplo, trans, alpha, A, beta, C );
+    herk( uplo, trans, alpha, _A, beta, _C );
 }
 
 }  // namespace blas

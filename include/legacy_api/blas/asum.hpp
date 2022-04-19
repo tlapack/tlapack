@@ -14,11 +14,11 @@
 namespace blas {
 
 /**
+ * Wrapper to asum( vector_t const& x ).
+ * 
  * @return 1-norm of vector,
  *     $|| Re(x) ||_1 + || Im(x) ||_1
  *         = \sum_{i=0}^{n-1} |Re(x_i)| + |Im(x_i)|$.
- *
- * Generic implementation for arbitrary data types.
  *
  * @param[in] n
  *     Number of elements in x. n >= 0.
@@ -33,13 +33,14 @@ namespace blas {
  */
 template< typename T >
 inline
-real_type<T>
-asum(
-    blas::idx_t n,
-    T const *x, blas::int_t incx )
+auto asum( idx_t n, T const *x, int_t incx )
 {
     blas_error_if( incx <= 0 );
-    tlapack_expr_with_vector( _x, T, n, x, incx, return asum( _x ) );
+    
+    tlapack_expr_with_vector_positiveInc(
+        _x, T, n, x, incx,
+        return asum( _x )
+    );
 }
 
 }  // namespace blas

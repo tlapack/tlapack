@@ -28,14 +28,14 @@ namespace blas {
  * @param[in] n
  *     Number of elements in x and y. n >= 0.
  *
- * @param[in, out] x
+ * @param[in,out] x
  *     The n-element vector x, in an array of length (n-1)*abs(incx) + 1.
  *
  * @param[in] incx
  *     Stride between elements of x. incx must not be zero.
  *     If incx < 0, uses elements of x in reverse order: x(n-1), ..., x(0).
  *
- * @param[in, out] y
+ * @param[in,out] y
  *     The n-element vector y, in an array of length (n-1)*abs(incy) + 1.
  *
  * @param[in] incy
@@ -58,26 +58,15 @@ void rot(
     const blas::real_type<TX, TY>&   c,
     const blas::scalar_type<TX, TY>& s )
 {
-    typedef scalar_type<TX, TY> scalar_t;
-    using internal::vector;
-
     // check arguments
     blas_error_if( incx == 0 );
     blas_error_if( incy == 0 );
 
-    // quick return
-    if ( n == 0 || (c == 1 && s == scalar_t(0)) )
-        return;
-
-    // Views
-    auto _x = vector<TX>(
-        &x[(incx > 0 ? 0 : (-n + 1)*incx)],
-        n, incx );
-    auto _y = vector<TY>(
-        &y[(incy > 0 ? 0 : (-n + 1)*incy)],
-        n, incy );
-
-    rot( _x, _y, c, s );
+    tlapack_expr_with_2vectors(
+        _x, TX, n, x, incx,
+        _y, TY, n, y, incy,
+        return rot( _x, _y, c, s )
+    );
 }
 
 }  // namespace blas

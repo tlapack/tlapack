@@ -49,7 +49,7 @@ namespace blas {
  *     Stride between elements of y. incy must not be zero.
  *     If incy < 0, uses elements of y in reverse order: y(n-1), ..., y(0).
  *
- * @param[in, out] A
+ * @param[in,out] A
  *     The m-by-n matrix A, stored in an lda-by-n array [RowMajor: m-by-lda].
  *
  * @param[in] lda
@@ -66,12 +66,7 @@ void geru(
     TY const *y, blas::int_t incy,
     TA *A, blas::idx_t lda )
 {
-    typedef blas::scalar_type<TA, TX, TY> scalar_t;
     using blas::internal::colmajor_matrix;
-    using blas::internal::vector;
-    
-    // constants
-    const scalar_t zero( 0.0 );
 
     // check arguments
     blas_error_if( layout != Layout::ColMajor );
@@ -82,35 +77,32 @@ void geru(
     blas_error_if( lda < ((layout == Layout::ColMajor) ? m : n) );
 
     // quick return
-    if (m == 0 || n == 0 || alpha == zero)
+    if (m == 0 || n == 0)
         return;
 
-    if( layout == Layout::ColMajor ) {
-    
+    if( layout == Layout::ColMajor )
+    {
         // Matrix views
         auto _A = colmajor_matrix<TA>( A, m, n, lda );
-        const auto _x = vector<TX>(
-            (TX*) &x[(incx > 0 ? 0 : (-m + 1)*incx)],
-            m, incx );
-        const auto _y = vector<TY>(
-            (TY*) &y[(incy > 0 ? 0 : (-n + 1)*incy)],
-            n, incy );
 
-        geru( alpha, _x, _y, _A );
+        tlapack_expr_with_2vectors(
+            _x, TX, m, x, incx,
+            _y, TY, n, y, incy,
+            return geru( alpha, _x, _y, _A )
+        );
     }
-    else {
-        
+    else
+    {
         // Matrix views
         auto _A = colmajor_matrix<TA>( A, n, m, lda );
-        auto _x = vector<TX>(
-            (TX*) &x[(incx > 0 ? 0 : (-m + 1)*incx)],
-            m, incx );
-        auto _y = vector<TY>(
-            (TY*) &y[(incy > 0 ? 0 : (-n + 1)*incy)],
-            n, incy );
 
-        geru( alpha, _y, _x, _A );
+        tlapack_expr_with_2vectors(
+            _y, TY, n, y, incy,
+            _x, TX, m, x, incx,
+            return geru( alpha, _y, _x, _A )
+        );
     }
+
 }
 
 }  // namespace blas

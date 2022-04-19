@@ -104,7 +104,7 @@ inline int unmqr(
     const auto _A = (side == Side::Left)
             ? colmajor_matrix<TA>( (TA*)A, m, k, lda )
             : colmajor_matrix<TA>( (TA*)A, n, k, lda );
-    const auto _tau = vector<TA>( (TA*)tau, k, 1 );
+    const auto _tau = vector( (TA*)tau, k );
     auto _C = colmajor_matrix<TC>( C, m, n, ldc );
     auto _W = colmajor_matrix<scalar_t>( &_work[0], nb, nw+nb );
 

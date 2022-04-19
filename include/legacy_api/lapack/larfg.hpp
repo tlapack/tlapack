@@ -18,15 +18,8 @@ namespace lapack {
 template< typename T >
 void larfg(
     blas::idx_t n, T &alpha, T *x, blas::int_t incx, T &tau )
-{
-    using blas::internal::vector;
-
-    // Views
-    auto _x = vector<T>(
-        &x[(incx > 0 ? 0 : (-n + 2)*incx)],
-        n-1, incx );
-    
-    larfg( alpha, _x, tau );
+{    
+    tlapack_expr_with_vector( _x, T, n-1, x, incx, return larfg( alpha, _x, tau ) );
 }
 
 /** Generates a elementary Householder reflection.

@@ -64,7 +64,7 @@ namespace blas {
  * @param[in] beta
  *     Scalar beta. If beta is zero, y need not be set on input.
  *
- * @param[in, out] y
+ * @param[in,out] y
  *     - If trans = NoTrans:
  *       the m-element vector y, in an array of length (m-1)*abs(incy) + 1.
  *     - Otherwise:
@@ -87,12 +87,7 @@ void gemv(
     blas::scalar_type<TA, TX, TY> beta,
     TY *y, blas::int_t incy )
 {
-    typedef blas::scalar_type<TA, TX, TY> scalar_t;
     using blas::internal::colmajor_matrix;
-    
-    // constants
-    const scalar_t zero( 0.0 );
-    const scalar_t one( 1.0 );
 
     // check arguments
     blas_error_if( layout != Layout::ColMajor &&
@@ -107,7 +102,7 @@ void gemv(
     blas_error_if( incy == 0 );
 
     // quick return
-    if (m == 0 || n == 0 || (alpha == zero && beta == one))
+    if (m == 0 || n == 0)
         return;
 
     // Transpose if Row Major
@@ -129,7 +124,7 @@ void gemv(
     tlapack_expr_with_2vectors(
         _x, TX, lenx, x, incx,
         _y, TY, leny, y, incy,
-        gemv( trans, alpha, _A, _x, beta, _y )
+        return gemv( trans, alpha, _A, _x, beta, _y )
     );
 }
 
