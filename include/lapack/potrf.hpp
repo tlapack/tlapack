@@ -17,6 +17,27 @@
 
 namespace tlapack {
 
+/// Default ptions for potrf
+template< typename idx_t >
+struct potrf_opts_t : public exception_t
+{
+    idx_t nb = 32; ///< Block size
+};
+
+/** Info value is:
+     * 
+     * - -nArgs <= -i < 0 : If the i-th entry is invalid, and the first (i-1) entries are valid.
+     * -         0        : If no error was found.
+     * -    0 < i <= k    : If an error was signaled inside the current routine. See the documentation of each routine.
+     * -    k+i <= nOut   : If the i-th output argument has inf or nans, and the first (i-1) don't.
+     * -      nOut+i      : If the i-th internal call reported an error, and the first (i-1) didn't.
+     * 
+     * where:
+     * - nArgs  : Number of arguments excluding opts.
+     * - k      : Parameter defined by each routine.
+     * - nOut   : Number of output arguments.
+     */
+
 /** Computes the Cholesky factorization of a Hermitian
  * positive definite matrix A using a blocked algorithm.
  *
@@ -30,13 +51,8 @@ namespace tlapack {
  *      Either Uplo or any class that implements `operator Uplo()`.
  * 
  * @tparam opts_t
- * \code{.cpp}
- *      struct opts_t {
- *          size_type< matrix_t > nb; // Block size
- *          // ...
- *      };
- * \endcode
- *      If opts_t::nb does not exist, nb assumes a default value.
+ *      Either potrf_opts_t or
+ *      any struct that contains all potrf_opts_t members.
  *
  * @param[in] uplo
  *      - Uplo::Upper: Upper triangle of A is referenced;
@@ -54,12 +70,9 @@ namespace tlapack {
  *      - On successful exit, the factor U or L from the Cholesky
  *      factorization $A = U^H U$ or $A = L L^H.$
  *
- * @param[in] opts Options.
- *      - opts.nb Block size.
- *      If opts.nb does not exist or opts.nb <= 0, nb assumes a default value.
+ * @param[in] opts Options. @see potrf_opts_t.
  *
- * @return = 0: successful exit.
- * @return > 0: if return value = i, the leading minor of order i is not
+ * @return i, 0 < i <= n, if the leading minor of order i is not
  *      positive definite, and the factorization could not be completed.
  *
  * @ingroup posv_computational
@@ -77,22 +90,21 @@ int potrf( uplo_t uplo, matrix_t& A, opts_t&& opts )
     // Constants
     const real_t one( 1.0 );
     const idx_t n  = nrows(A);
-
-    // Options
-    const idx_t nb = get_nb(opts);
+    const idx_t nb = opts.nb;
 
     // check arguments
-    lapack_error_if(    uplo != Uplo::Lower &&
-                        uplo != Uplo::Upper, -1 );
-    lapack_error_if(    access_denied( uplo, write_policy(A) ), -1 );
-    lapack_error_if(    nrows(A) != ncols(A), -2 );
+    tlapack_assert_param( uplo == Uplo::Lower || uplo == Uplo::Upper, -1 );
+    tlapack_assert_access( access_granted( uplo, write_policy(A) ), -2 );
+    tlapack_assert_size( nrows(A) == ncols(A), -2 );
+    // tlapack_assert_inf( isinf(A), n+1 );
+    // tlapack_assert_nan( isnan(A), n+1 );
 
     // Quick return
     if (n <= 0)
         return 0;
 
     // Unblocked code
-    else if ( nb <= 1 && nb >= n)
+    else if ( nb <= 1 || nb >= n )
         return potrf2( uplo, A );
     
     // Blocked code
@@ -153,6 +165,18 @@ int potrf( uplo_t uplo, matrix_t& A, opts_t&& opts )
         }
         return 0;
     }
+}
+
+/** Computes the Cholesky factorization of a Hermitian
+ * positive definite matrix A using a blocked algorithm.
+ *
+ * @see potrf( uplo_t uplo, matrix_t& A, opts_t&& opts ) 
+ */
+template< class uplo_t, class matrix_t >
+int potrf( uplo_t uplo, matrix_t& A )
+{    
+    using idx_t = size_type< matrix_t >;
+    return potrf( uplo, A, potrf_opts_t<idx_t>{} );
 }
 
 } // lapack

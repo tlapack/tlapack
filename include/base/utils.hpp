@@ -11,6 +11,7 @@
 #include <cmath>
 #include <utility>
 #include <type_traits>
+#include <cassert>
 
 #include "base/types.hpp"
 #include "base/arrayTraits.hpp"
@@ -20,11 +21,18 @@
 // Macros to handle error checks
 #if defined(TLAPACK_ERROR_NDEBUG) || defined(NDEBUG)
 
-    // <T>BLAS does no error checking;
-    // lower level BLAS may still handle errors via xerbla
+    // <T>LAPACK does no error checking;
+    // lower level LAPACK may still handle errors via xerbla
     #define lapack_error( msg, code ) \
         ((void)0)
     #define lapack_error_if( cond, code ) \
+        ((void)0)
+
+    #define tlapack_assert_param( msg, code ) \
+        ((void)0)
+    #define tlapack_assert_access( msg, code ) \
+        ((void)0)
+    #define tlapack_assert_size( msg, code ) \
         ((void)0)
 
 #else
@@ -46,6 +54,19 @@
             return code; \
         } \
     } while(false)
+
+    #define tlapack_assert_param( cond, code ) \
+        (( opts.paramCheck ) \
+            ? assert(((void)code, cond)) \
+            : (void)0 )
+    #define tlapack_assert_access( cond, code ) \
+        (( opts.accessCheck ) \
+            ? assert(((void)code, cond)) \
+            : (void)0 )
+    #define tlapack_assert_size( cond, code ) \
+        (( opts.sizeCheck ) \
+            ? assert(((void)code, cond)) \
+            : (void)0 )
 
 #endif
 
@@ -522,6 +543,33 @@ inline constexpr auto get_work( opts_t&& opts ) {
         return *(opts.workPtr);
     }
 }
+
+// -----------------------------------------------------------------------------
+// Options:
+
+// /// Workspace
+// template< typename idx_t, typename T >
+// struct workspace_t {
+//     T* work = nullptr; ///< Workspace pointer
+//     idx_t lwork = 0;   ///< Workspace size
+// };
+
+/// Descriptor for Exception Handling
+struct exception_t {
+    
+    bool paramCheck  = true; ///< Check validity of parameters, e.g., Uplo, Op, Side.
+    bool sizeCheck   = true; ///< Check if arrays' sizes are compatible.
+    // bool infCheck    = true; ///< Search for infs in the input.
+    // bool nanCheck    = true; ///< Search for nans in the input.
+    bool accessCheck = true; ///< Verifies if the access policy of the matrix is compatible with the algorithm.
+    
+    // /** Search for infs and nans in the input and ouput of internal calls.
+    //  * 
+    //  * - 0 : No internal check.
+    //  * - k : Internal check on k levels in the call tree.
+    //  */
+    // std::size_t infnanInternalCheck = std::numeric_limits<std::size_t>::max();
+};
 
 } // namespace tlapack
 
