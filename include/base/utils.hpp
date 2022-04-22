@@ -23,51 +23,42 @@
 
     // <T>LAPACK does no error checking;
     // lower level LAPACK may still handle errors via xerbla
-    #define lapack_error( msg, code ) \
-        ((void)0)
-    #define lapack_error_if( cond, code ) \
-        ((void)0)
 
-    #define tlapack_assert_param( msg, code ) \
+    #define lapack_error_if( cond, info ) \
         ((void)0)
-    #define tlapack_assert_access( msg, code ) \
-        ((void)0)
-    #define tlapack_assert_size( msg, code ) \
+    #define tlapack_assert( _name, cond, info ) \
         ((void)0)
 
 #else
 
-    /// internal macro to the get string __func__
-    /// ex: lapack_error( "a < b", -2 );
-    /// @returns code
-    #define lapack_error( msg, code ) do { \
-        tlapack::error( msg, __func__ ); \
-        return code; \
-    } while(false)
-
-    /// internal macro to get strings: #cond and __func__
     /// ex: lapack_error_if( a < b, -6 );
-    /// @returns code if a < b
-    #define lapack_error_if( cond, code ) do { \
-        if( cond ) { \
-            tlapack::error( #cond, __func__ ); \
-            return code; \
-        } \
+    #define lapack_error_if( cond, info ) \
+        assert(((void)info, !(cond)))
+
+    #define tlapack_assert( _name, cond, info ) \
+        (( opts._name ## Check ) \
+            ? assert(((void)info, cond)) \
+            : (void)0 )
+
+#endif
+
+#define tlapack_assert_param( cond, info ) tlapack_assert( param, cond, info )
+#define tlapack_assert_access( cond, info ) tlapack_assert( access, cond, info )
+#define tlapack_assert_size( cond, info ) tlapack_assert( size, cond, info )
+
+namespace tlapack {
+    template< class detailedInfo_t >
+    void report( int info, detailedInfo_t detailedInfo ) { }
+}
+
+#ifndef LAPACK_ERROR_NDEBUG
+    #define tlapack_report( info, detailedInfo ) do { \
+        lapack::report( info, detailedInfo ); \
+        return info; \
     } while(false)
-
-    #define tlapack_assert_param( cond, code ) \
-        (( opts.paramCheck ) \
-            ? assert(((void)code, cond)) \
-            : (void)0 )
-    #define tlapack_assert_access( cond, code ) \
-        (( opts.accessCheck ) \
-            ? assert(((void)code, cond)) \
-            : (void)0 )
-    #define tlapack_assert_size( cond, code ) \
-        (( opts.sizeCheck ) \
-            ? assert(((void)code, cond)) \
-            : (void)0 )
-
+#else
+    #define tlapack_report( info, detailedInfo ) \
+        return info
 #endif
 
 namespace tlapack {
@@ -556,12 +547,30 @@ inline constexpr auto get_work( opts_t&& opts ) {
 
 /// Descriptor for Exception Handling
 struct exception_t {
+
+    bool paramCheck = ///< Check validity of parameters, e.g., Uplo, Op, Side.
+    #ifdef TLAPACK_CHECK_PARAM
+        true;
+    #else
+        false;
+    #endif
+
+    bool sizeCheck = ///< Check if arrays' sizes are compatible.
+    #ifdef TLAPACK_CHECK_SIZES
+        true;
+    #else
+        false;
+    #endif
+
+    bool accessCheck = ///< Verifies if the access policy of the matrix is compatible with the algorithm.
+    #ifdef TLAPACK_CHECK_ACCESS
+        true;
+    #else
+        false;
+    #endif
     
-    bool paramCheck  = true; ///< Check validity of parameters, e.g., Uplo, Op, Side.
-    bool sizeCheck   = true; ///< Check if arrays' sizes are compatible.
     // bool infCheck    = true; ///< Search for infs in the input.
     // bool nanCheck    = true; ///< Search for nans in the input.
-    bool accessCheck = true; ///< Verifies if the access policy of the matrix is compatible with the algorithm.
     
     // /** Search for infs and nans in the input and ouput of internal calls.
     //  * 

@@ -68,6 +68,20 @@ option( Fortran_WRAPPERS "Build and install Fortran wrappers"         OFF )
 option( TLAPACK_USE_MDSPAN "Use mdspan for the legacy wrappers" OFF )
 mark_as_advanced( FORCE TLAPACK_USE_MDSPAN )
 
+# Enable disable error checks
+option( TLAPACK_CHECK_PARAM   "<T>LAPACK routines check if the input parameters are valid" ON )
+option( TLAPACK_CHECK_SIZES   "<T>LAPACK routines check if the sizes of the arrays match" ON )
+option( TLAPACK_CHECK_ACCESS  "<T>LAPACK routines check if the access policies of matrices and methods match" ON )
+if( TLAPACK_CHECK_PARAM )
+  target_compile_definitions( tblas INTERFACE TLAPACK_CHECK_PARAM )
+endif()
+if( TLAPACK_CHECK_SIZES )
+  target_compile_definitions( tblas INTERFACE TLAPACK_CHECK_SIZES )
+endif()
+if( TLAPACK_CHECK_ACCESS )
+  target_compile_definitions( tblas INTERFACE TLAPACK_CHECK_ACCESS )
+endif()
+
 #-------------------------------------------------------------------------------
 # Modules
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")

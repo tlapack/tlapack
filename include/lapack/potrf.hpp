@@ -72,6 +72,7 @@ struct potrf_opts_t : public exception_t
  *
  * @param[in] opts Options. @see potrf_opts_t.
  *
+ * @return = 0: successful exit.
  * @return i, 0 < i <= n, if the leading minor of order i is not
  *      positive definite, and the factorization could not be completed.
  *
@@ -122,7 +123,9 @@ int potrf( uplo_t uplo, matrix_t& A, opts_t&& opts )
                 
                 int info = potrf2( uplo, AJJ );
                 if( info != 0 )
-                    return info + j;
+                    tlapack_report( info + j,
+                        "The leading minor of the reported order is not positive definite,"
+                        " and the factorization could not be completed." );
 
                 if( j+jb < n ){
 
@@ -149,7 +152,9 @@ int potrf( uplo_t uplo, matrix_t& A, opts_t&& opts )
                 
                 int info = potrf2( uplo, AJJ );
                 if( info != 0 )
-                    return info + j;
+                    tlapack_report( info + j,
+                        "The leading minor of the reported order is not positive definite,"
+                        " and the factorization could not be completed." );
 
                 if( j+jb < n ){
 
