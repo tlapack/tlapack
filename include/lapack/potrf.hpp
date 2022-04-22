@@ -24,20 +24,6 @@ struct potrf_opts_t : public exception_t
     idx_t nb = 32; ///< Block size
 };
 
-/** Info value is:
-     * 
-     * - -nArgs <= -i < 0 : If the i-th entry is invalid, and the first (i-1) entries are valid.
-     * -         0        : If no error was found.
-     * -    0 < i <= k    : If an error was signaled inside the current routine. See the documentation of each routine.
-     * -    k+i <= nOut   : If the i-th output argument has inf or nans, and the first (i-1) don't.
-     * -      nOut+i      : If the i-th internal call reported an error, and the first (i-1) didn't.
-     * 
-     * where:
-     * - nArgs  : Number of arguments excluding opts.
-     * - k      : Parameter defined by each routine.
-     * - nOut   : Number of output arguments.
-     */
-
 /** Computes the Cholesky factorization of a Hermitian
  * positive definite matrix A using a blocked algorithm.
  *
@@ -59,7 +45,7 @@ struct potrf_opts_t : public exception_t
  *      - Uplo::Lower: Lower triangle of A is referenced.
  *
  * @param[in,out] A
- *      On entry, the Hermitian matrix A.
+ *      On entry, the Hermitian matrix A of size n-by-n.
  *      
  *      - If uplo = Uplo::Upper, the strictly lower
  *      triangular part of A is not referenced.
@@ -75,6 +61,7 @@ struct potrf_opts_t : public exception_t
  * @return = 0: successful exit.
  * @return i, 0 < i <= n, if the leading minor of order i is not
  *      positive definite, and the factorization could not be completed.
+ * @return n+1, if the factorization has some nans or infs.
  *
  * @ingroup posv_computational
  */
@@ -94,11 +81,9 @@ int potrf( uplo_t uplo, matrix_t& A, opts_t&& opts )
     const idx_t nb = opts.nb;
 
     // check arguments
-    tlapack_assert_param( uplo == Uplo::Lower || uplo == Uplo::Upper, -1 );
-    tlapack_assert_access( access_granted( uplo, write_policy(A) ), -2 );
-    tlapack_assert_size( nrows(A) == ncols(A), -2 );
-    // tlapack_assert_inf( isinf(A), n+1 );
-    // tlapack_assert_nan( isnan(A), n+1 );
+    tlapack_assert( opts.paramCheck,  uplo == Uplo::Lower || uplo == Uplo::Upper, -1 );
+    tlapack_assert( opts.accessCheck, access_granted( uplo, write_policy(A) ),    -2 );
+    tlapack_assert( opts.sizeCheck,   nrows(A) == ncols(A),                       -2 );
 
     // Quick return
     if (n <= 0)
@@ -122,10 +107,12 @@ int potrf( uplo_t uplo, matrix_t& A, opts_t&& opts )
                 herk( uplo, conjTranspose, -one, A1J, one, AJJ );
                 
                 int info = potrf2( uplo, AJJ );
-                if( info != 0 )
+                if( info != 0 ) {
                     tlapack_report( info + j,
                         "The leading minor of the reported order is not positive definite,"
                         " and the factorization could not be completed." );
+                    return info + j;
+                }
 
                 if( j+jb < n ){
 
@@ -151,10 +138,12 @@ int potrf( uplo_t uplo, matrix_t& A, opts_t&& opts )
                 herk( uplo, noTranspose, -one, AJ1, one, AJJ );
                 
                 int info = potrf2( uplo, AJJ );
-                if( info != 0 )
+                if( info != 0 ) {
                     tlapack_report( info + j,
                         "The leading minor of the reported order is not positive definite,"
                         " and the factorization could not be completed." );
+                    return info + j;
+                }
 
                 if( j+jb < n ){
 
@@ -168,6 +157,13 @@ int potrf( uplo_t uplo, matrix_t& A, opts_t&& opts )
                 }
             }
         }
+
+        // Report infs and nans on the output
+        tlapack_report_nans_in_matrix( opts.nanCheck,
+            uplo, A, n+1, "The factorization has some nans." );
+        tlapack_report_infs_in_matrix( opts.infCheck,
+            uplo, A, n+1, "The factorization has some infs." );
+        
         return 0;
     }
 }

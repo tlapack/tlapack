@@ -26,7 +26,7 @@
 
     #define lapack_error_if( cond, info ) \
         ((void)0)
-    #define tlapack_assert( _name, cond, info ) \
+    #define tlapack_assert( check, cond, info ) \
         ((void)0)
 
 #else
@@ -35,30 +35,274 @@
     #define lapack_error_if( cond, info ) \
         assert(((void)info, !(cond)))
 
-    #define tlapack_assert( _name, cond, info ) \
-        (( opts._name ## Check ) \
+    #define tlapack_assert( check, cond, info ) \
+        (( check ) \
             ? assert(((void)info, cond)) \
-            : (void)0 )
+            : (void)0)
 
 #endif
 
-#define tlapack_assert_param( cond, info ) tlapack_assert( param, cond, info )
-#define tlapack_assert_access( cond, info ) tlapack_assert( access, cond, info )
-#define tlapack_assert_size( cond, info ) tlapack_assert( size, cond, info )
+// #ifdef TLAPACK_CHECK_PARAM
+//     #define tlapack_assert_param( cond, info ) tlapack_assert( param, cond, info )
+// #else
+//     #define tlapack_assert_param( cond, info ) ((void)0)
+// #endif
+
+// #ifdef TLAPACK_CHECK_ACCESS
+//     #define tlapack_assert_access( cond, info ) tlapack_assert( access, cond, info )
+// #else
+//     #define tlapack_assert_access( cond, info ) ((void)0)
+// #endif
+
+// #ifdef TLAPACK_CHECK_SIZES
+//     #define tlapack_assert_size( cond, info ) tlapack_assert( size, cond, info )
+// #else
+//     #define tlapack_assert_size( cond, info ) ((void)0)
+// #endif
 
 namespace tlapack {
     template< class detailedInfo_t >
-    void report( int info, detailedInfo_t detailedInfo ) { }
+    void report( int info, const detailedInfo_t& detailedInfo ) { }
+
+    template< class access_t, class matrix_t >
+    bool hasinf( access_t accessType, const matrix_t& A ) {
+
+        using idx_t  = size_type< matrix_t >;
+
+        // constants
+        const idx_t m = nrows(A);
+        const idx_t n = ncols(A);
+
+        if ( (MatrixAccessPolicy) accessType == MatrixAccessPolicy::UpperHessenberg )
+        {
+            for (idx_t j = 0; j < n; ++j)
+                for (idx_t i = 0; i < ((j < m) ? j+2 : m); ++i)
+                    if( isinf( A(i,j) ) )
+                        return true;
+            return false;
+        }
+        else if ( (MatrixAccessPolicy) accessType == MatrixAccessPolicy::UpperTriangle )
+        {
+            for (idx_t j = 0; j < n; ++j)
+                for (idx_t i = 0; i < ((j < m) ? j+1 : m); ++i)
+                    if( isinf( A(i,j) ) )
+                        return true;
+            return false;
+        }
+        else if ( (MatrixAccessPolicy) accessType == MatrixAccessPolicy::StrictUpper )
+        {
+            for (idx_t j = 0; j < n; ++j)
+                for (idx_t i = 0; i < ((j < m) ? j : m); ++i)
+                    if( isinf( A(i,j) ) )
+                        return true;
+            return false;
+        }
+        else if ( (MatrixAccessPolicy) accessType == MatrixAccessPolicy::LowerHessenberg )
+        {
+            for (idx_t j = 0; j < n; ++j)
+                for (idx_t i = ((j > 1) ? j-1 : 0); i < m; ++i)
+                    if( isinf( A(i,j) ) )
+                        return true;
+            return false;
+        }
+        else if ( (MatrixAccessPolicy) accessType == MatrixAccessPolicy::LowerTriangle )
+        {
+            for (idx_t j = 0; j < n; ++j)
+                for (idx_t i = j; i < m; ++i)
+                    if( isinf( A(i,j) ) )
+                        return true;
+            return false;
+        }
+        else if ( (MatrixAccessPolicy) accessType == MatrixAccessPolicy::StrictLower )
+        {
+            for (idx_t j = 0; j < n; ++j)
+                for (idx_t i = j+1; i < m; ++i)
+                    if( isinf( A(i,j) ) )
+                        return true;
+            return false;
+        }
+        else // if ( (MatrixAccessPolicy) accessType == MatrixAccessPolicy::Dense )
+        {
+            for (idx_t j = 0; j < n; ++j)
+                for (idx_t i = 0; i < m; ++i)
+                    if( isinf( A(i,j) ) )
+                        return true;
+            return false;
+        }
+    }
+
+    template< class matrix_t >
+    bool hasinf( band_t accessType, const matrix_t& A ) {
+
+        using idx_t  = size_type< matrix_t >;
+
+        // constants
+        const idx_t m = nrows(A);
+        const idx_t n = ncols(A);
+        const idx_t kl = accessType.lower_bandwidth;
+        const idx_t ku = accessType.upper_bandwidth;
+
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = ((j >= ku) ? (j-ku) : 0); i < min(m,j+kl+1); ++i)
+                if( isinf( A(i,j) ) )
+                    return true;
+        return false;
+    }
+
+    template< class vector_t >
+    bool hasinf( const vector_t& x ) {
+
+        using idx_t  = size_type< vector_t >;
+
+        // constants
+        const idx_t n = size(x);
+
+        for (idx_t i = 0; i < n; ++i)
+            if( isinf( x[i] ) )
+                return true;
+        return false;
+    }
+
+    template< class access_t, class matrix_t >
+    bool hasnan( access_t accessType, const matrix_t& A ) {
+
+        using idx_t  = size_type< matrix_t >;
+
+        // constants
+        const idx_t m = nrows(A);
+        const idx_t n = ncols(A);
+
+        if ( (MatrixAccessPolicy) accessType == MatrixAccessPolicy::UpperHessenberg )
+        {
+            for (idx_t j = 0; j < n; ++j)
+                for (idx_t i = 0; i < ((j < m) ? j+2 : m); ++i)
+                    if( isnan( A(i,j) ) )
+                        return true;
+            return false;
+        }
+        else if ( (MatrixAccessPolicy) accessType == MatrixAccessPolicy::UpperTriangle )
+        {
+            for (idx_t j = 0; j < n; ++j)
+                for (idx_t i = 0; i < ((j < m) ? j+1 : m); ++i)
+                    if( isnan( A(i,j) ) )
+                        return true;
+            return false;
+        }
+        else if ( (MatrixAccessPolicy) accessType == MatrixAccessPolicy::StrictUpper )
+        {
+            for (idx_t j = 0; j < n; ++j)
+                for (idx_t i = 0; i < ((j < m) ? j : m); ++i)
+                    if( isnan( A(i,j) ) )
+                        return true;
+            return false;
+        }
+        else if ( (MatrixAccessPolicy) accessType == MatrixAccessPolicy::LowerHessenberg )
+        {
+            for (idx_t j = 0; j < n; ++j)
+                for (idx_t i = ((j > 1) ? j-1 : 0); i < m; ++i)
+                    if( isnan( A(i,j) ) )
+                        return true;
+            return false;
+        }
+        else if ( (MatrixAccessPolicy) accessType == MatrixAccessPolicy::LowerTriangle )
+        {
+            for (idx_t j = 0; j < n; ++j)
+                for (idx_t i = j; i < m; ++i)
+                    if( isnan( A(i,j) ) )
+                        return true;
+            return false;
+        }
+        else if ( (MatrixAccessPolicy) accessType == MatrixAccessPolicy::StrictLower )
+        {
+            for (idx_t j = 0; j < n; ++j)
+                for (idx_t i = j+1; i < m; ++i)
+                    if( isnan( A(i,j) ) )
+                        return true;
+            return false;
+        }
+        else // if ( (MatrixAccessPolicy) accessType == MatrixAccessPolicy::Dense )
+        {
+            for (idx_t j = 0; j < n; ++j)
+                for (idx_t i = 0; i < m; ++i)
+                    if( isnan( A(i,j) ) )
+                        return true;
+            return false;
+        }
+    }
+
+    template< class matrix_t >
+    bool hasnan( band_t accessType, const matrix_t& A ) {
+
+        using idx_t  = size_type< matrix_t >;
+
+        // constants
+        const idx_t m = nrows(A);
+        const idx_t n = ncols(A);
+        const idx_t kl = accessType.lower_bandwidth;
+        const idx_t ku = accessType.upper_bandwidth;
+
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = ((j >= ku) ? (j-ku) : 0); i < min(m,j+kl+1); ++i)
+                if( isnan( A(i,j) ) )
+                    return true;
+        return false;
+    }
+
+    template< class vector_t >
+    bool hasnan( const vector_t& x ) {
+
+        using idx_t  = size_type< vector_t >;
+
+        // constants
+        const idx_t n = size(x);
+
+        for (idx_t i = 0; i < n; ++i)
+            if( isnan( x[i] ) )
+                return true;
+        return false;
+    }
 }
 
-#ifndef LAPACK_ERROR_NDEBUG
-    #define tlapack_report( info, detailedInfo ) do { \
-        lapack::report( info, detailedInfo ); \
-        return info; \
-    } while(false)
+#if defined(LAPACK_ERROR_NDEBUG)
+    #define tlapack_report( info, detailedInfo ) \
+        ((void)0)
 #else
     #define tlapack_report( info, detailedInfo ) \
-        return info
+        tlapack::report( info, detailedInfo )
+#endif
+
+#ifdef TLAPACK_CHECK_INFS
+    #define tlapack_report_infs_in_matrix( check, accessType, A, info, detailedInfo ) do { \
+        if( check && hasinf(accessType, A) ) \
+            tlapack_report( info, detailedInfo ); \
+    } while(false)
+
+    #define tlapack_report_infs_in_vector( check, x, info, detailedInfo ) do { \
+        if( check && hasinf(x) ) \
+            tlapack_report( info, detailedInfo ); \
+    } while(false)
+#else
+    #define tlapack_report_infs_in_matrix( check, accessType, A, info, detailedInfo ) \
+        ((void)0)
+    #define tlapack_report_infs_in_vector( check, x, info, detailedInfo ) \
+        ((void)0)
+#endif
+
+#ifdef TLAPACK_CHECK_NANS
+    #define tlapack_report_nans_in_matrix( check, accessType, A, info, detailedInfo ) do { \
+        if( check && hasnan(accessType, A) ) \
+            tlapack_report( info, detailedInfo ); \
+    } while(false)
+
+    #define tlapack_report_nans_in_vector( check, x, info, detailedInfo ) do { \
+        if( check && hasnan(x) ) \
+            tlapack_report( info, detailedInfo ); \
+    } while(false)
+#else
+    #define tlapack_report_nans_in_matrix( check, accessType, A, info, detailedInfo ) \
+        ((void)0)
+    #define tlapack_report_nans_in_vector( check, x, info, detailedInfo ) \
+        ((void)0)
 #endif
 
 namespace tlapack {
@@ -569,8 +813,19 @@ struct exception_t {
         false;
     #endif
     
-    // bool infCheck    = true; ///< Search for infs in the input.
-    // bool nanCheck    = true; ///< Search for nans in the input.
+    bool infCheck = ///< Search for infs in the input.
+    #ifdef TLAPACK_CHECK_INFS
+        true;
+    #else
+        false;
+    #endif
+
+    bool nanCheck = ///< Search for nans in the input.
+    #ifdef TLAPACK_CHECK_NANS
+        true;
+    #else
+        false;
+    #endif
     
     // /** Search for infs and nans in the input and ouput of internal calls.
     //  * 
