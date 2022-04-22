@@ -45,7 +45,8 @@ TEST_CASE("Multishift sweep", "[eigenvalues]")
     const T zero(0);
     const T one(1);
     const idx_t n = 10;
-    const idx_t n_shifts = 2;
+    const idx_t n_shifts = 4;
+    const real_t eps = uroundoff<real_t>();
 
     const bool verbose = true;
 
@@ -83,7 +84,7 @@ TEST_CASE("Multishift sweep", "[eigenvalues]")
         printMatrix(A);
     }
 
-    auto normA = lapack::lange(lapack::frob_norm, A);
+    auto normA = lange(lapack::frob_norm, A);
 
     multishift_QR_sweep(true, true, 0, n, A, s, Q);
 
@@ -110,13 +111,15 @@ TEST_CASE("Multishift sweep", "[eigenvalues]")
                 work(i, j) = static_cast<float>(0xABADBABE);
 
         // work receives the identity n*n
-        lapack::laset(blas::Uplo::General, (T)0.0, (T)1.0, work);
+        laset(Uplo::General, (T)0.0, (T)1.0, work);
         // work receives Q'Q - I
         // blas::syrk( blas::Uplo::Upper, blas::Op::ConjTrans, (T) 1.0, Q, (T) -1.0, work );
-        blas::gemm(blas::Op::ConjTrans, blas::Op::NoTrans, (T)1.0, Q, Q, (T)-1.0, work);
+        gemm(Op::ConjTrans, Op::NoTrans, (T)1.0, Q, Q, (T)-1.0, work);
 
         // Compute ||Q'Q - I||_F
-        norm_orth_1 = lapack::lansy(lapack::frob_norm, lapack::Uplo::Upper, work);
+        norm_orth_1 = lansy(frob_norm, Uplo::Upper, work);
+
+        CHECK( norm_orth_1 <=  1.0e2*eps);
 
         if (verbose)
         {
@@ -150,6 +153,11 @@ TEST_CASE("Multishift sweep", "[eigenvalues]")
         std::cout << std::endl
                   << "Q'A_copyQ - A = ";
         printMatrix(A_copy);
+
+        // Compute ||Q'Q - I||_F
+        norm_repres_1 = lange(frob_norm, A_copy);
+
+        // CHECK( norm_repres_1 <=  1.0e2*eps);
     }
 
     if(verbose) std::cout << std::endl;

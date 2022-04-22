@@ -66,6 +66,8 @@
 #include "lapack/lahqr_schur22.hpp"
 #include "lapack/schur_swap.hpp"
 #include "lapack/schur_move.hpp"
+#include "lapack/move_bulge.hpp"
 #include "lapack/multishift_QR_sweep.hpp"
+#include "lapack/multishift_QR_sweep_rowoptimized.hpp"
 
 #endif // __TLAPACK_HH__
