@@ -11,6 +11,7 @@
 #include <cmath>
 #include <utility>
 #include <type_traits>
+#include <stdexcept>
 #include <cassert>
 
 #include "base/types.hpp"
@@ -26,39 +27,41 @@
 
     #define lapack_error_if( cond, info ) \
         ((void)0)
-    #define tlapack_assert( check, cond, info ) \
+    #define tlapack_check( check, cond, info ) \
         ((void)0)
 
 #else
 
     /// ex: lapack_error_if( a < b, -6 );
-    #define lapack_error_if( cond, info ) \
-        assert(((void)info, !(cond)))
+    #define lapack_error_if( cond, info ) do { \
+        if( static_cast<bool>(cond) ) \
+            throw std::domain_error( "[" #info "] " #cond ); \
+    } while(false)
 
-    #define tlapack_assert( check, cond, info ) \
-        (( check ) \
-            ? assert(((void)info, cond)) \
-            : (void)0)
+    #define tlapack_check( check, cond, info ) do { \
+        if( static_cast<bool>(check) && !static_cast<bool>(cond) ) \
+            throw std::domain_error( "[" #info "] " #cond ); \
+    } while(false)
 
 #endif
 
-// #ifdef TLAPACK_CHECK_PARAM
-//     #define tlapack_assert_param( cond, info ) tlapack_assert( param, cond, info )
-// #else
-//     #define tlapack_assert_param( cond, info ) ((void)0)
-// #endif
+#ifdef TLAPACK_CHECK_PARAM
+    #define tlapack_check_param( cond, info ) tlapack_check( opts.paramCheck, cond, info )
+#else
+    #define tlapack_check_param( cond, info ) ((void)0)
+#endif
 
-// #ifdef TLAPACK_CHECK_ACCESS
-//     #define tlapack_assert_access( cond, info ) tlapack_assert( access, cond, info )
-// #else
-//     #define tlapack_assert_access( cond, info ) ((void)0)
-// #endif
+#ifdef TLAPACK_CHECK_ACCESS
+    #define tlapack_check_access( cond, info ) tlapack_check( opts.accessCheck, cond, info )
+#else
+    #define tlapack_check_access( cond, info ) ((void)0)
+#endif
 
-// #ifdef TLAPACK_CHECK_SIZES
-//     #define tlapack_assert_size( cond, info ) tlapack_assert( size, cond, info )
-// #else
-//     #define tlapack_assert_size( cond, info ) ((void)0)
-// #endif
+#ifdef TLAPACK_CHECK_SIZES
+    #define tlapack_check_sizes( cond, info ) tlapack_check( opts.sizeCheck, cond, info )
+#else
+    #define tlapack_check_sizes( cond, info ) ((void)0)
+#endif
 
 namespace tlapack {
     template< class detailedInfo_t >

@@ -7,7 +7,7 @@
 #ifndef __TLAPACK_LEGACY_ARRAY_HH__
 #define __TLAPACK_LEGACY_ARRAY_HH__
 
-#include <assert.h>
+#include <cassert>
 
 #include "legacy_api/base/types.hpp"
 #include "base/exceptionHandling.hpp"

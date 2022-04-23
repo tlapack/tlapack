@@ -81,9 +81,9 @@ int potrf( uplo_t uplo, matrix_t& A, opts_t&& opts )
     const idx_t nb = opts.nb;
 
     // check arguments
-    tlapack_assert( opts.paramCheck,  uplo == Uplo::Lower || uplo == Uplo::Upper, -1 );
-    tlapack_assert( opts.accessCheck, access_granted( uplo, write_policy(A) ),    -2 );
-    tlapack_assert( opts.sizeCheck,   nrows(A) == ncols(A),                       -2 );
+    tlapack_check_param(  uplo == Uplo::Lower || uplo == Uplo::Upper, -1 );
+    tlapack_check_access( access_granted( uplo, write_policy(A) ),    -2 );
+    tlapack_check_sizes(  nrows(A) == ncols(A),                       -2 );
 
     // Quick return
     if (n <= 0)
