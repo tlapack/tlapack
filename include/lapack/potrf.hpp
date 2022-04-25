@@ -17,9 +17,9 @@
 
 namespace tlapack {
 
-/// Default ptions for potrf
+/// Default options for potrf
 template< typename idx_t >
-struct potrf_opts_t : public exception_t
+struct potrf_opts_t
 {
     idx_t nb = 32; ///< Block size
 };
@@ -36,9 +36,8 @@ struct potrf_opts_t : public exception_t
  *      Access type: Upper or Lower.
  *      Either Uplo or any class that implements `operator Uplo()`.
  * 
- * @tparam opts_t
- *      Either potrf_opts_t or
- *      any struct that contains all potrf_opts_t members.
+ * @tparam opts_t Struct with the members:
+ *      opts_t::nb.
  *
  * @param[in] uplo
  *      - Uplo::Upper: Upper triangle of A is referenced;
@@ -56,17 +55,22 @@ struct potrf_opts_t : public exception_t
  *      - On successful exit, the factor U or L from the Cholesky
  *      factorization $A = U^H U$ or $A = L L^H.$
  *
- * @param[in] opts Options. @see potrf_opts_t.
+ * @param[in] opts Options. Default options are defined in @see potrf_opts_t.
  *
- * @return = 0: successful exit.
+ * @param[in] ec Exception handling configuration at runtime.
+ *      Default options are defined in exceptionCheck_t.
+ *      This routine uses:
+ *          ec.nan;
+ *          ec.inf
+ *
+ * @return 0: successful exit.
  * @return i, 0 < i <= n, if the leading minor of order i is not
  *      positive definite, and the factorization could not be completed.
- * @return n+1, if the factorization has some nans or infs.
  *
  * @ingroup posv_computational
  */
 template< class uplo_t, class matrix_t, class opts_t >
-int potrf( uplo_t uplo, matrix_t& A, opts_t&& opts )
+int potrf( uplo_t uplo, matrix_t& A, opts_t&& opts, const exceptionCheck_t& ec = {} )
 {
     using T      = type_t< matrix_t >;
     using real_t = real_type< T >;
@@ -81,9 +85,9 @@ int potrf( uplo_t uplo, matrix_t& A, opts_t&& opts )
     const idx_t nb = opts.nb;
 
     // check arguments
-    tlapack_check_param(  uplo == Uplo::Lower || uplo == Uplo::Upper, -1 );
-    tlapack_check_access( access_granted( uplo, write_policy(A) ),    -2 );
-    tlapack_check_sizes(  nrows(A) == ncols(A),                       -2 );
+    tlapack_check( uplo == Uplo::Lower || uplo == Uplo::Upper, -1 );
+    tlapack_check( access_granted( uplo, write_policy(A) ),    -2 );
+    tlapack_check( nrows(A) == ncols(A),                       -2 );
 
     // Quick return
     if (n <= 0)
@@ -108,7 +112,7 @@ int potrf( uplo_t uplo, matrix_t& A, opts_t&& opts )
                 
                 int info = potrf2( uplo, AJJ );
                 if( info != 0 ) {
-                    tlapack_report( info + j,
+                    tlapack_error( info + j,
                         "The leading minor of the reported order is not positive definite,"
                         " and the factorization could not be completed." );
                     return info + j;
@@ -139,7 +143,7 @@ int potrf( uplo_t uplo, matrix_t& A, opts_t&& opts )
                 
                 int info = potrf2( uplo, AJJ );
                 if( info != 0 ) {
-                    tlapack_report( info + j,
+                    tlapack_error( info + j,
                         "The leading minor of the reported order is not positive definite,"
                         " and the factorization could not be completed." );
                     return info + j;
@@ -159,9 +163,9 @@ int potrf( uplo_t uplo, matrix_t& A, opts_t&& opts )
         }
 
         // Report infs and nans on the output
-        tlapack_report_nans_in_matrix( opts.nanCheck,
+        tlapack_warn_nans_in_matrix( ec.nan,
             uplo, A, n+1, "The factorization has some nans." );
-        tlapack_report_infs_in_matrix( opts.infCheck,
+        tlapack_warn_infs_in_matrix( ec.inf,
             uplo, A, n+1, "The factorization has some infs." );
         
         return 0;
@@ -170,14 +174,17 @@ int potrf( uplo_t uplo, matrix_t& A, opts_t&& opts )
 
 /** Computes the Cholesky factorization of a Hermitian
  * positive definite matrix A using a blocked algorithm.
+ * 
+ * Version with default options defined in @see potrf_opts_t.
  *
  * @see potrf( uplo_t uplo, matrix_t& A, opts_t&& opts ) 
  */
 template< class uplo_t, class matrix_t >
-int potrf( uplo_t uplo, matrix_t& A )
+inline
+int potrf( uplo_t uplo, matrix_t& A, const exceptionCheck_t& ec = {} )
 {    
     using idx_t = size_type< matrix_t >;
-    return potrf( uplo, A, potrf_opts_t<idx_t>{} );
+    return potrf( uplo, A, potrf_opts_t<idx_t>{}, ec );
 }
 
 } // lapack

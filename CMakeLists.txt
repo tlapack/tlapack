@@ -34,6 +34,9 @@ target_link_libraries( tlapack INTERFACE tblas )
 #-------------------------------------------------------------------------------
 # Options
 
+# Includes CMAKE_DEPENDENT_OPTION
+include(CMakeDependentOption)
+
 # BLAS++ and LAPACK++ interface
 option( USE_BLASPP_WRAPPERS   "Use BLAS++ wrappers to link with an optimized BLAS library"     OFF )
 option( USE_LAPACKPP_WRAPPERS "Use LAPACK++ wrappers to link with an optimized LAPACK library" OFF )
@@ -69,25 +72,51 @@ option( TLAPACK_USE_MDSPAN "Use mdspan for the legacy wrappers" OFF )
 mark_as_advanced( FORCE TLAPACK_USE_MDSPAN )
 
 # Enable disable error checks
-option( TLAPACK_CHECK_PARAM   "<T>LAPACK routines check if the input parameters are valid" ON )
-option( TLAPACK_CHECK_SIZES   "<T>LAPACK routines check if the sizes of the arrays match" ON )
-option( TLAPACK_CHECK_ACCESS  "<T>LAPACK routines check if the access policies of matrices and methods match" ON )
-option( TLAPACK_CHECK_NANS    "<T>LAPACK routines check for NaNs as specified in their documentation" OFF )
-option( TLAPACK_CHECK_INFS    "<T>LAPACK routines check for Infs as specified in their documentation" OFF )
-if( TLAPACK_CHECK_PARAM )
-  target_compile_definitions( tblas INTERFACE TLAPACK_CHECK_PARAM )
-endif()
-if( TLAPACK_CHECK_SIZES )
-  target_compile_definitions( tblas INTERFACE TLAPACK_CHECK_SIZES )
-endif()
-if( TLAPACK_CHECK_ACCESS )
-  target_compile_definitions( tblas INTERFACE TLAPACK_CHECK_ACCESS )
-endif()
-if( TLAPACK_CHECK_NANS )
-  target_compile_definitions( tblas INTERFACE TLAPACK_CHECK_NANS )
-endif()
-if( TLAPACK_CHECK_INFS )
-  target_compile_definitions( tblas INTERFACE TLAPACK_CHECK_INFS )
+option( TLAPACK_NDEBUG "Disable all error checks from <T>LAPACK" OFF )
+CMAKE_DEPENDENT_OPTION(
+  TLAPACK_CHECK_INPUT "<T>LAPACK routines check if the input parameters are illegal" ON
+  "NOT TLAPACK_NDEBUG" OFF
+)
+CMAKE_DEPENDENT_OPTION(
+  TLAPACK_ENABLE_NANCHECK "Enable NaN checks for the <T>LAPACK routines" OFF
+  "NOT TLAPACK_NDEBUG" OFF
+)
+CMAKE_DEPENDENT_OPTION(
+  TLAPACK_DEFAULT_NANCHECK "By default, <T>LAPACK routines check for NaNs as specified in their documentation" ON
+  "NOT TLAPACK_NDEBUG; TLAPACK_ENABLE_NANCHECK" OFF
+)
+CMAKE_DEPENDENT_OPTION(
+  TLAPACK_ENABLE_INFCHECK "Enable Inf checks for the <T>LAPACK routines" OFF
+  "NOT TLAPACK_NDEBUG" OFF
+)
+CMAKE_DEPENDENT_OPTION(
+  TLAPACK_DEFAULT_INFCHECK "By default, <T>LAPACK routines check for Infs as specified in their documentation" ON
+  "NOT TLAPACK_NDEBUG; TLAPACK_ENABLE_INFCHECK" OFF
+)
+
+# Configure compiler flags for Error Checking
+if( TLAPACK_NDEBUG )
+  target_compile_definitions( tblas INTERFACE TLAPACK_NDEBUG )
+else()
+  if( TLAPACK_CHECK_INPUT )
+    target_compile_definitions( tblas INTERFACE TLAPACK_CHECK_INPUT )
+  endif()
+  if( TLAPACK_ENABLE_NANCHECK )
+    target_compile_definitions( tblas INTERFACE TLAPACK_ENABLE_NANCHECK )
+    if( TLAPACK_DEFAULT_NANCHECK )
+      target_compile_definitions( tblas INTERFACE TLAPACK_DEFAULT_NANCHECK=1 )
+    else()
+      target_compile_definitions( tblas INTERFACE TLAPACK_DEFAULT_NANCHECK=0 )
+    endif()
+  endif()
+  if( TLAPACK_ENABLE_INFCHECK )
+    target_compile_definitions( tblas INTERFACE TLAPACK_ENABLE_INFCHECK )
+    if( TLAPACK_DEFAULT_INFCHECK )
+      target_compile_definitions( tblas INTERFACE TLAPACK_DEFAULT_INFCHECK=1 )
+    else()
+      target_compile_definitions( tblas INTERFACE TLAPACK_DEFAULT_INFCHECK=0 )
+    endif()
+  endif()
 endif()
 
 #-------------------------------------------------------------------------------

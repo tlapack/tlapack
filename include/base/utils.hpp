@@ -1,3 +1,4 @@
+// Copyright (c) 2017-2021, University of Tennessee. All rights reserved.
 // Copyright (c) 2021-2022, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
@@ -12,6 +13,7 @@
 #include <utility>
 #include <type_traits>
 #include <stdexcept>
+#include <iostream>
 #include <cassert>
 
 #include "base/types.hpp"
@@ -20,53 +22,96 @@
 
 // -----------------------------------------------------------------------------
 // Macros to handle error checks
-#if defined(TLAPACK_ERROR_NDEBUG) || defined(NDEBUG)
 
-    // <T>LAPACK does no error checking;
-    // lower level LAPACK may still handle errors via xerbla
+#if defined(TLAPACK_CHECK_INPUT) && !defined(TLAPACK_NDEBUG)
+
+    /// ex: lapack_error_if( 2 < 1, -6 );
+    #define lapack_error_if( cond, info ) do { \
+        if( static_cast<bool>(cond) ) \
+            throw std::domain_error( std::string("[") + std::to_string(info) + "] " + #cond ); \
+    } while(false)
+
+    /// ex: lapack_check( 1 < 2, -6 );
+    #define tlapack_check( cond, info ) do { \
+        if( !static_cast<bool>(cond) ) \
+            throw std::domain_error( std::string("[") + std::to_string(info) + "] " + #cond ); \
+    } while(false)
+
+#else // !defined(TLAPACK_CHECK_INPUT) || defined(TLAPACK_NDEBUG)
+
+    // <T>LAPACK does not check input parameters
 
     #define lapack_error_if( cond, info ) \
         ((void)0)
-    #define tlapack_check( check, cond, info ) \
+    #define tlapack_check( cond, info ) \
         ((void)0)
 
-#else
-
-    /// ex: lapack_error_if( a < b, -6 );
-    #define lapack_error_if( cond, info ) do { \
-        if( static_cast<bool>(cond) ) \
-            throw std::domain_error( "[" #info "] " #cond ); \
-    } while(false)
-
-    #define tlapack_check( check, cond, info ) do { \
-        if( static_cast<bool>(check) && !static_cast<bool>(cond) ) \
-            throw std::domain_error( "[" #info "] " #cond ); \
-    } while(false)
-
 #endif
 
-#ifdef TLAPACK_CHECK_PARAM
-    #define tlapack_check_param( cond, info ) tlapack_check( opts.paramCheck, cond, info )
-#else
-    #define tlapack_check_param( cond, info ) ((void)0)
-#endif
-
-#ifdef TLAPACK_CHECK_ACCESS
-    #define tlapack_check_access( cond, info ) tlapack_check( opts.accessCheck, cond, info )
-#else
-    #define tlapack_check_access( cond, info ) ((void)0)
-#endif
-
-#ifdef TLAPACK_CHECK_SIZES
-    #define tlapack_check_sizes( cond, info ) tlapack_check( opts.sizeCheck, cond, info )
-#else
-    #define tlapack_check_sizes( cond, info ) ((void)0)
-#endif
-
-namespace tlapack {
+namespace lapack {
+    
+    /**
+     * @brief Error handler
+     * 
+     * @param[in] info Code of the error.
+     * @param[in] detailedInfo Object with information about the error.
+     */
     template< class detailedInfo_t >
-    void report( int info, const detailedInfo_t& detailedInfo ) { }
+    void error( int info, const detailedInfo_t& detailedInfo ) { }
+    
+    /**
+     * @brief Error handler
+     * 
+     * Implementation for detailedInfo of type std::string.
+     */
+    template<>
+    inline
+    void error( int info, const std::string& detailedInfo ) {
+        throw std::runtime_error( std::string("[") + std::to_string(info) + "] " + detailedInfo );
+    }
 
+    /**
+     * @brief Warning handler
+     * 
+     * @param[in] info Code of the warning.
+     * @param[in] detailedInfo Object with information about the warning.
+     */
+    template< class detailedInfo_t >
+    void warning( int info, const detailedInfo_t& detailedInfo ) { }
+    
+    /**
+     * @brief Warning handler
+     * 
+     * Implementation for detailedInfo of type std::string.
+     */
+    template<>
+    inline
+    void warning( int info, const std::string& detailedInfo ) {
+        std::cerr << "[" << info << "] " << detailedInfo << std::endl;
+    }
+
+    /**
+     * Returns true if and only if A has an infinite entry.
+     * 
+     * @tparam access_t Type of access inside the algorithm.
+     *      Either MatrixAccessPolicy or any type that implements
+     *          operator MatrixAccessPolicy().
+     * 
+     * @param[in] accessType Determines the entries of A that will be checked.
+     *      The following access types are allowed:
+     *          MatrixAccessPolicy::Dense,
+     *          MatrixAccessPolicy::UpperHessenberg,
+     *          MatrixAccessPolicy::LowerHessenberg,
+     *          MatrixAccessPolicy::UpperTriangle,
+     *          MatrixAccessPolicy::LowerTriangle,
+     *          MatrixAccessPolicy::StrictUpper,
+     *          MatrixAccessPolicy::StrictLower.
+     * 
+     * @param[in] A matrix.
+     * 
+     * @return true if A has an infinite entry.
+     * @return false if A has no infinite entry.
+     */
     template< class access_t, class matrix_t >
     bool hasinf( access_t accessType, const matrix_t& A ) {
 
@@ -134,6 +179,12 @@ namespace tlapack {
         }
     }
 
+    /**
+     * Returns true if and only if A has an infinite entry.
+     * 
+     * Specific implementation for band access types.
+     * @see hasinf( access_t accessType, const matrix_t& A ).
+     */
     template< class matrix_t >
     bool hasinf( band_t accessType, const matrix_t& A ) {
 
@@ -152,6 +203,14 @@ namespace tlapack {
         return false;
     }
 
+    /**
+     * Returns true if and only if x has an infinite entry.
+     * 
+     * @param[in] x vector.
+     * 
+     * @return true if x has an infinite entry.
+     * @return false if x has no infinite entry.
+     */
     template< class vector_t >
     bool hasinf( const vector_t& x ) {
 
@@ -166,6 +225,28 @@ namespace tlapack {
         return false;
     }
 
+    /**
+     * Returns true if and only if A has an NaN entry.
+     * 
+     * @tparam access_t Type of access inside the algorithm.
+     *      Either MatrixAccessPolicy or any type that implements
+     *          operator MatrixAccessPolicy().
+     * 
+     * @param[in] accessType Determines the entries of A that will be checked.
+     *      The following access types are allowed:
+     *          MatrixAccessPolicy::Dense,
+     *          MatrixAccessPolicy::UpperHessenberg,
+     *          MatrixAccessPolicy::LowerHessenberg,
+     *          MatrixAccessPolicy::UpperTriangle,
+     *          MatrixAccessPolicy::LowerTriangle,
+     *          MatrixAccessPolicy::StrictUpper,
+     *          MatrixAccessPolicy::StrictLower.
+     * 
+     * @param[in] A matrix.
+     * 
+     * @return true if A has an NaN entry.
+     * @return false if A has no NaN entry.
+     */
     template< class access_t, class matrix_t >
     bool hasnan( access_t accessType, const matrix_t& A ) {
 
@@ -233,6 +314,12 @@ namespace tlapack {
         }
     }
 
+    /**
+     * Returns true if and only if A has an NaN entry.
+     * 
+     * Specific implementation for band access types.
+     * @see hasnan( access_t accessType, const matrix_t& A ).
+     */
     template< class matrix_t >
     bool hasnan( band_t accessType, const matrix_t& A ) {
 
@@ -251,6 +338,14 @@ namespace tlapack {
         return false;
     }
 
+    /**
+     * Returns true if and only if x has an NaN entry.
+     * 
+     * @param[in] x vector.
+     * 
+     * @return true if x has an NaN entry.
+     * @return false if x has no NaN entry.
+     */
     template< class vector_t >
     bool hasnan( const vector_t& x ) {
 
@@ -266,45 +361,49 @@ namespace tlapack {
     }
 }
 
-#if defined(LAPACK_ERROR_NDEBUG)
-    #define tlapack_report( info, detailedInfo ) \
-        ((void)0)
+#ifndef TLAPACK_NDEBUG
+    #define tlapack_error( info, detailedInfo ) \
+        lapack::error( info, detailedInfo )
+    #define tlapack_warning( info, detailedInfo ) \
+        lapack::warning( info, detailedInfo )
 #else
-    #define tlapack_report( info, detailedInfo ) \
-        tlapack::report( info, detailedInfo )
-#endif
-
-#ifdef TLAPACK_CHECK_INFS
-    #define tlapack_report_infs_in_matrix( check, accessType, A, info, detailedInfo ) do { \
-        if( check && hasinf(accessType, A) ) \
-            tlapack_report( info, detailedInfo ); \
-    } while(false)
-
-    #define tlapack_report_infs_in_vector( check, x, info, detailedInfo ) do { \
-        if( check && hasinf(x) ) \
-            tlapack_report( info, detailedInfo ); \
-    } while(false)
-#else
-    #define tlapack_report_infs_in_matrix( check, accessType, A, info, detailedInfo ) \
+    #define tlapack_error( info, detailedInfo ) \
         ((void)0)
-    #define tlapack_report_infs_in_vector( check, x, info, detailedInfo ) \
+    #define tlapack_warning( info, detailedInfo ) \
         ((void)0)
 #endif
 
-#ifdef TLAPACK_CHECK_NANS
-    #define tlapack_report_nans_in_matrix( check, accessType, A, info, detailedInfo ) do { \
-        if( check && hasnan(accessType, A) ) \
-            tlapack_report( info, detailedInfo ); \
+#if defined(TLAPACK_ENABLE_INFCHECK) && !defined(TLAPACK_NDEBUG)
+    #define tlapack_warn_infs_in_matrix( check, accessType, A, info, detailedInfo ) do { \
+        if( static_cast<bool>(check) && hasinf(accessType, A) ) \
+            tlapack_warning( info, detailedInfo ); \
     } while(false)
 
-    #define tlapack_report_nans_in_vector( check, x, info, detailedInfo ) do { \
-        if( check && hasnan(x) ) \
-            tlapack_report( info, detailedInfo ); \
+    #define tlapack_warn_infs_in_vector( check, x, info, detailedInfo ) do { \
+        if( static_cast<bool>(check) && hasinf(x) ) \
+            tlapack_warning( info, detailedInfo ); \
     } while(false)
-#else
-    #define tlapack_report_nans_in_matrix( check, accessType, A, info, detailedInfo ) \
+#else // !defined(TLAPACK_ENABLE_INFCHECK) || defined(TLAPACK_NDEBUG)
+    #define tlapack_warn_infs_in_matrix( check, accessType, A, info, detailedInfo ) \
         ((void)0)
-    #define tlapack_report_nans_in_vector( check, x, info, detailedInfo ) \
+    #define tlapack_warn_infs_in_vector( check, x, info, detailedInfo ) \
+        ((void)0)
+#endif
+
+#if defined(TLAPACK_ENABLE_NANCHECK) && !defined(TLAPACK_NDEBUG)
+    #define tlapack_warn_nans_in_matrix( check, accessType, A, info, detailedInfo ) do { \
+        if( static_cast<bool>(check) && hasnan(accessType, A) ) \
+            tlapack_warning( info, detailedInfo ); \
+    } while(false)
+
+    #define tlapack_warn_nans_in_vector( check, x, info, detailedInfo ) do { \
+        if( static_cast<bool>(check) && hasnan(x) ) \
+            tlapack_warning( info, detailedInfo ); \
+    } while(false)
+#else // !defined(TLAPACK_ENABLE_NANCHECK) || defined(TLAPACK_NDEBUG)
+    #define tlapack_warn_nans_in_matrix( check, accessType, A, info, detailedInfo ) \
+        ((void)0)
+    #define tlapack_warn_nans_in_vector( check, x, info, detailedInfo ) \
         ((void)0)
 #endif
 
@@ -792,43 +891,19 @@ inline constexpr auto get_work( opts_t&& opts ) {
 //     idx_t lwork = 0;   ///< Workspace size
 // };
 
+#ifndef TLAPACK_DEFAULT_INFCHECK
+    #define TLAPACK_DEFAULT_INFCHECK 0
+#endif
+
+#ifndef TLAPACK_DEFAULT_NANCHECK
+    #define TLAPACK_DEFAULT_NANCHECK 0
+#endif
+
 /// Descriptor for Exception Handling
-struct exception_t {
-
-    bool paramCheck = ///< Check validity of parameters, e.g., Uplo, Op, Side.
-    #ifdef TLAPACK_CHECK_PARAM
-        true;
-    #else
-        false;
-    #endif
-
-    bool sizeCheck = ///< Check if arrays' sizes are compatible.
-    #ifdef TLAPACK_CHECK_SIZES
-        true;
-    #else
-        false;
-    #endif
-
-    bool accessCheck = ///< Verifies if the access policy of the matrix is compatible with the algorithm.
-    #ifdef TLAPACK_CHECK_ACCESS
-        true;
-    #else
-        false;
-    #endif
+struct exceptionCheck_t {
     
-    bool infCheck = ///< Search for infs in the input.
-    #ifdef TLAPACK_CHECK_INFS
-        true;
-    #else
-        false;
-    #endif
-
-    bool nanCheck = ///< Search for nans in the input.
-    #ifdef TLAPACK_CHECK_NANS
-        true;
-    #else
-        false;
-    #endif
+    bool inf = TLAPACK_DEFAULT_INFCHECK; ///< Default behavior of inf check in the routines of <T>LAPACK.
+    bool nan = TLAPACK_DEFAULT_NANCHECK; ///< Default behavior of nan check in the routines of <T>LAPACK.
     
     // /** Search for infs and nans in the input and ouput of internal calls.
     //  * 
