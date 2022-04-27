@@ -60,6 +60,7 @@
 #include "lapack/gehrd.hpp"
 #include "lapack/lahr2.hpp"
 #include "lapack/unghr.hpp"
+#include "lapack/unmhr.hpp"
 #include "lapack/lahqr.hpp"
 #include "lapack/lahqr_shiftcolumn.hpp"
 #include "lapack/lahqr_eig22.hpp"
