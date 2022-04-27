@@ -44,10 +44,11 @@ namespace lapack
      */
     template <
         typename matrix_t,
-        typename idx_t = size_type<matrix_t>>
+        typename idx_t = size_type<matrix_t>,
+        typename T = type_t<matrix_t>,
+        enable_if_t<!is_complex<T>::value, bool> = true>
     int schur_swap(bool want_q, matrix_t &A, matrix_t &Q, const idx_t &j0, const idx_t &n1, const idx_t &n2)
     {
-        using T = type_t<matrix_t>;
         using blas::rot;
         using blas::rotg;
         using pair = std::pair<idx_t, idx_t>;
@@ -431,6 +432,89 @@ namespace lapack
                 auto row2 = col(Q, j1_2);
                 rot(row1, row2, cs, sn);
             }
+        }
+
+        return 0;
+    }
+
+    /** schur_swap, swaps 2 eigenvalues of A.
+     * 
+     * @param[in]     want_q bool
+     *                Whether or not to apply the transformations to Q
+     * @param[in,out] A n-by-n matrix.
+     *                Must be in Schur form
+     * @param[in,out] Q n-by-n matrix.
+     *                Orthogonal matrix, not referenced if want_q is false
+     * @param[in]     j0 integer
+     *                Index of first eigenvalue block
+     * @param[in]     n1 integer
+     *                Size of first eigenvalue block
+     * @param[in]     n2 integer
+     *                Size of second eigenvalue block
+     *
+     * @ingroup auxiliary
+     */
+    template <
+        typename matrix_t,
+        typename idx_t = size_type<matrix_t>,
+        typename T = type_t<matrix_t>,
+        enable_if_t<is_complex<T>::value, bool> = true>
+    int schur_swap(bool want_q, matrix_t &A, matrix_t &Q, const idx_t &j0, const idx_t &n1, const idx_t &n2)
+    {
+        using blas::rot;
+        using blas::rotg;
+        using pair = std::pair<idx_t, idx_t>;
+        using blas::conj;
+        using real_t = real_type<T>;
+
+        const idx_t n = ncols(A);
+
+        assert(nrows(A) == n);
+        assert(nrows(Q) == n);
+        assert(ncols(Q) == n);
+        assert(0 <= j0 and j0 < n);
+        assert(n1 == 1);
+        assert(n2 == 1);
+
+        const idx_t j1 = j0 + 1;
+        const idx_t j2 = j0 + 2;
+
+        //
+        // In the complex case, there can only be 1x1 blocks to swap
+        //
+        auto t00 = A(j0, j0);
+        auto t11 = A(j1, j1);
+        //
+        // Determine the transformation to perform the interchange
+        //
+        real_t cs;
+        T sn;
+        auto temp = A(j0, j1);
+        auto temp2 = t11 - t00;
+        rotg(temp, temp2, cs, sn);
+
+        A(j1, j1) = t00;
+        A(j0, j0) = t11;
+
+        // Apply transformation from the left
+        if (j2 < n)
+        {
+            auto row1 = slice(A, j0, pair{j2, n});
+            auto row2 = slice(A, j1, pair{j2, n});
+            rot(row1, row2, cs, sn);
+        }
+        // Apply transformation from the right
+        if (j0 > 0)
+        {
+            auto col1 = slice(A, pair{0, j0}, j0);
+            auto col2 = slice(A, pair{0, j0}, j1);
+            rot(col1, col2, cs, conj(sn));
+        }
+        if (want_q)
+        {
+            auto row1 = col(Q, j0);
+            auto row2 = col(Q, j1);
+            rot(row1, row2, cs, conj(sn));
         }
 
         return 0;
