@@ -70,5 +70,6 @@
 #include "lapack/move_bulge.hpp"
 #include "lapack/multishift_QR_sweep.hpp"
 #include "lapack/multishift_QR_sweep_rowoptimized.hpp"
+#include "lapack/agressive_early_deflation.hpp"
 
 #endif // __TLAPACK_HH__
