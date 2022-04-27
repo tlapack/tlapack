@@ -43,7 +43,7 @@ TEST_CASE("forward move of 1x1 block gives correct results", "[utils]")
     const T zero(0);
     const T one(1);
     idx_t ifst = 1;
-    idx_t ilst = 6;
+    idx_t ilst = 10;
     const idx_t n = 10;
     const real_t eps = uroundoff<real_t>();
 
