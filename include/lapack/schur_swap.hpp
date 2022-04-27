@@ -20,12 +20,15 @@
 
 #include "lapack/utils.hpp"
 #include "lapack/types.hpp"
-#include "legacy_api/blas/utils.hpp"
 
 namespace lapack
 {
 
     /** schur_swap, swaps 2 eigenvalues of A.
+     *
+     * @return  0 if success
+     * @return  1 the swap failed, this usually means the eigenvalues
+     *            of the blocks are too close.
      * 
      * @param[in]     want_q bool
      *                Whether or not to apply the transformations to Q
@@ -62,13 +65,33 @@ namespace lapack
         assert(nrows(A) == n);
         assert(nrows(Q) == n);
         assert(ncols(Q) == n);
-        assert(0 <= j0 and j0 < n);
+        assert(0 <= j0);
+        assert(j0 + n1 + n2 < n);
         assert(n1 == 1 or n1 == 2);
         assert(n2 == 1 or n2 == 2);
 
         const idx_t j1 = j0 + 1;
         const idx_t j2 = j0 + 2;
         const idx_t j3 = j0 + 3;
+
+        // Check if the 2x2 eigenvalue blocks consist of 2 1x1 blocks
+        // If so, treat them separately
+        if (n1 == 2)
+            if (A(j1, j0) == zero)
+            {
+                // only 2x2 swaps can fail, so we don't need to check for error
+                schur_swap(want_q, A, Q, j1, (idx_t)1, n2);
+                schur_swap(want_q, A, Q, j0, (idx_t)1, n2);
+                return 0;
+            }
+        if (n2 == 2)
+            if (A(j0 + n1 + 1, j0 + n1) == zero)
+            {
+                // only 2x2 swaps can fail, so we don't need to check for error
+                schur_swap(want_q, A, Q, j0, n1, (idx_t)1);
+                schur_swap(want_q, A, Q, j1, n1, (idx_t)1);
+                return 0;
+            }
 
         if (n1 == 1 and n2 == 1)
         {
@@ -415,8 +438,8 @@ namespace lapack
             lahqr_schur22(A(j0_2, j0_2), A(j0_2, j1_2), A(j1_2, j0_2), A(j1_2, j1_2), s1, s2, cs, sn); // Apply transformation from the left
             if (j2 < n)
             {
-                auto row1 = slice(A, j0_2, pair{j0_2+2, n});
-                auto row2 = slice(A, j1_2, pair{j0_2+2, n});
+                auto row1 = slice(A, j0_2, pair{j0_2 + 2, n});
+                auto row2 = slice(A, j1_2, pair{j0_2 + 2, n});
                 rot(row1, row2, cs, sn);
             }
             // Apply transformation from the right
@@ -438,7 +461,7 @@ namespace lapack
     }
 
     /** schur_swap, swaps 2 eigenvalues of A.
-     * 
+     *
      * @param[in]     want_q bool
      *                Whether or not to apply the transformations to Q
      * @param[in,out] A n-by-n matrix.

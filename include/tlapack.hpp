@@ -63,5 +63,6 @@
 #include "lapack/lahqr_eig22.hpp"
 #include "lapack/lahqr_schur22.hpp"
 #include "lapack/schur_swap.hpp"
+#include "lapack/schur_move.hpp"
 
 #endif // __TLAPACK_HH__
