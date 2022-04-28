@@ -22,13 +22,42 @@
 
 namespace lapack
 {
-
+    /** multishift_QR_sweep performs a single small-bulge multi-shift QR sweep.
+     *
+     * @param[in] want_t bool.
+     *      If true, the full Schur factor T will be computed.
+     *
+     * @param[in] want_z bool.
+     *      If true, the Schur vectors Z will be computed.
+     *
+     * @param[in] ilo    integer.
+     *      Either ilo=0 or A(ilo,ilo-1) = 0.
+     *
+     * @param[in] ihi    integer.
+     *      ilo and ihi determine an isolated block in A.
+     *
+     * @param[in,out] A  n by n matrix.
+     *      Hessenberg matrix on which AED will be performed
+     *
+     * @param[in] s  complex vector.
+     *      Vector containing the shifts to be used during the sweep
+     *
+     * @param[in,out] Z  n by n matrix.
+     *      On entry, the previously calculated Schur factors
+     *      On exit, the orthogonal updates applied to A accumulated
+     *      into Z.
+     *
+     * @param[out] V    3 by size(s)/2 matrix.
+     *      Workspace matrix
+     *
+     * @ingroup geev
+     */
     template <
         class matrix_t,
         class vector_t,
         enable_if_t<is_complex<type_t<vector_t>>::value, bool> = true,
         enable_if_t<!is_same_v<layout_type<matrix_t>, RowMajor_t>, bool> = true>
-    void multishift_QR_sweep(bool want_t, bool want_z, size_type<matrix_t> ilo, size_type<matrix_t> ihi, matrix_t &A, vector_t &s, matrix_t &Z)
+    void multishift_QR_sweep(bool want_t, bool want_z, size_type<matrix_t> ilo, size_type<matrix_t> ihi, matrix_t &A, vector_t &s, matrix_t &Z, matrix_t &V)
     {
 
         using T = type_t<matrix_t>;
@@ -45,30 +74,39 @@ namespace lapack
         const real_t rzero(0);
         const T one(1);
         const T zero(0);
-        const real_t eps = uroundoff<real_t>();
         const idx_t n = ncols(A);
+        const real_t eps = uroundoff<real_t>();
+        const real_t small_num = blas::safe_min<real_t>() * ((T)n / eps);
 
-        idx_t n_shifts = size(s);
+        // Assertions
+        assert(n >= 12);
+        assert(nrows(A) == n);
+        assert(ncols(Z) == n);
+        assert(nrows(Z) == n);
+        assert(nrows(V) == 3);
+        assert(ncols(V) >= size(s) / 2);
+
+        const idx_t n_block_max = (n - 3) / 3;
+        const idx_t n_shifts_max = std::max<idx_t>(2, 3 * (n_block_max / 4));
+
+        idx_t n_shifts = std::min(size(s), n_shifts_max);
+        if (n_shifts % 2 == 1)
+            n_shifts = n_shifts - 1;
         idx_t n_bulges = n_shifts / 2;
 
-        const idx_t n_block_desired = n_shifts + n_shifts;
+        const idx_t n_block_desired = std::min(2 * n_shifts, n_block_max);
 
         // Define workspace matrices
-        std::unique_ptr<T[]> _V(new T[n_bulges * 3]);
-        // V stores the delayed reflectors
-        auto V = colmajor_matrix<T>(&_V[0], 3, n_bulges);
+        // We use the lower triangular part of A as workspace
 
-        std::unique_ptr<T[]> _U(new T[n_block_desired * n_block_desired]);
-        // U stores the accumulated reflectors
-        auto U = colmajor_matrix<T>(&_U[0], n_block_desired, n_block_desired);
+        // U stores the orthogonal transformations
+        auto U = slice(A, pair{n - n_block_desired, n}, pair{0, n_block_desired});
 
-        std::unique_ptr<T[]> _WH(new T[n_block_desired * n]);
-        // WH is a workspace array used for the horizontal multiplications
-        auto WH = colmajor_matrix<T>(&_WH[0], n_block_desired, n);
+        // Workspace for horizontal multiplications
+        auto WH = slice(A, pair{n - n_block_desired, n}, pair{n_block_desired, n - n_block_desired - 3});
 
-        // WH is a workspace array used for the vertical multiplications
-        // This can reuse the WH space in memory, because we will never use it at the same time
-        auto WV = colmajor_matrix<T>(&_WH[0], n, n_block_desired);
+        // Workspace for vertical multiplications
+        auto WV = slice(A, pair{n_block_desired + 3, n - n_block_desired}, pair{0, n_block_desired});
 
         // i_pos_block points to the start of the block of bulges
         idx_t i_pos_block;
@@ -127,7 +165,41 @@ namespace lapack
                     A(i_pos + 1, i_pos) = A(i_pos + 1, i_pos) - sum * conj(v[0]) * v[1];
                     A(i_pos + 2, i_pos) = A(i_pos + 2, i_pos) - sum * conj(v[0]) * v[2];
 
-
+                    // Test for deflation.
+                    if (i_pos > ilo)
+                    {
+                        if (A(i_pos, i_pos - 1) != zero)
+                        {
+                            auto tst1 = abs1(A(i_pos - 1, i_pos - 1)) + abs1(A(i_pos, i_pos));
+                            if (tst1 == zero)
+                            {
+                                if (i_pos > ilo + 1)
+                                    tst1 += abs1(A(i_pos - 1, i_pos - 2));
+                                if (i_pos > ilo + 2)
+                                    tst1 += abs1(A(i_pos - 1, i_pos - 3));
+                                if (i_pos > ilo + 3)
+                                    tst1 += abs1(A(i_pos - 1, i_pos - 4));
+                                if (i_pos < ihi - 1)
+                                    tst1 += abs1(A(i_pos + 1, i_pos));
+                                if (i_pos < ihi - 2)
+                                    tst1 += abs1(A(i_pos + 2, i_pos));
+                                if (i_pos < ihi - 3)
+                                    tst1 += abs1(A(i_pos + 3, i_pos));
+                            }
+                            if (abs1(A(i_pos, i_pos - 1)) < std::max(small_num, eps * tst1))
+                            {
+                                auto ab = std::max(abs1(A(i_pos, i_pos - 1)), abs1(A(i_pos - 1, i_pos)));
+                                auto ba = std::min(abs1(A(i_pos, i_pos - 1)), abs1(A(i_pos - 1, i_pos)));
+                                auto aa = std::max(abs1(A(i_pos, i_pos)), abs1(A(i_pos, i_pos) - A(i_pos - 1, i_pos - 1)));
+                                auto bb = std::min(abs1(A(i_pos, i_pos)), abs1(A(i_pos, i_pos) - A(i_pos - 1, i_pos - 1)));
+                                auto s = aa + ab;
+                                if (ba * (ab / s) <= std::max(small_num, eps * (bb * (aa / s))))
+                                {
+                                    A(i_pos, i_pos - 1) = zero;
+                                }
+                            }
+                        }
+                    }
                 }
 
                 // The following code performs the delayed update from the left
@@ -152,7 +224,8 @@ namespace lapack
                 {
                     idx_t i_pos = i_pos_last - 2 * i_bulge;
                     auto v = col(V, i_bulge);
-                    for( idx_t j=i_pos+1; j < istop_m; ++j ){
+                    for (idx_t j = i_pos + 1; j < istop_m; ++j)
+                    {
                         auto sum = A(i_pos, j) + conj(v[1]) * A(i_pos + 1, j) + conj(v[2]) * A(i_pos + 2, j);
                         A(i_pos, j) = A(i_pos, j) - sum * conj(v[0]);
                         A(i_pos + 1, j) = A(i_pos + 1, j) - sum * conj(v[0]) * v[1];
@@ -188,26 +261,44 @@ namespace lapack
             // Horizontal multiply
             if (ilo + n_shifts + 1 < istop_m)
             {
-                auto A_slice = slice(A, pair{ilo, ilo + n_block}, pair{ilo + n_block, istop_m});
-                auto WH_slice = slice(WH, pair{0, nrows(A_slice)}, pair{0, ncols(A_slice)});
-                gemm(Op::ConjTrans, Op::NoTrans, one, U2, A_slice, zero, WH_slice);
-                lacpy(Uplo::General, WH_slice, A_slice);
+                idx_t i = ilo + n_block;
+                while (i < istop_m)
+                {
+                    idx_t iblock = std::min(istop_m - i, ncols(WH));
+                    auto A_slice = slice(A, pair{ilo, ilo + n_block}, pair{i, i + iblock});
+                    auto WH_slice = slice(WH, pair{0, nrows(A_slice)}, pair{0, ncols(A_slice)});
+                    gemm(Op::ConjTrans, Op::NoTrans, one, U2, A_slice, zero, WH_slice);
+                    lacpy(Uplo::General, WH_slice, A_slice);
+                    i = i + iblock;
+                }
             }
             // Vertical multiply
             if (istart_m < ilo)
             {
-                auto A_slice = slice(A, pair{istart_m, ilo}, pair{ilo, ilo + n_block});
-                auto WV_slice = slice(WV, pair{0, nrows(A_slice)}, pair{0, ncols(A_slice)});
-                gemm(Op::NoTrans, Op::NoTrans, one, A_slice, U2, zero, WV_slice);
-                lacpy(Uplo::General, WV_slice, A_slice);
+                idx_t i = istart_m;
+                while (i < ilo)
+                {
+                    idx_t iblock = std::min(ilo - i, nrows(WV));
+                    auto A_slice = slice(A, pair{i, i + iblock}, pair{ilo, ilo + n_block});
+                    auto WV_slice = slice(WV, pair{0, nrows(A_slice)}, pair{0, ncols(A_slice)});
+                    gemm(Op::NoTrans, Op::NoTrans, one, A_slice, U2, zero, WV_slice);
+                    lacpy(Uplo::General, WV_slice, A_slice);
+                    i = i + iblock;
+                }
             }
             // Update Z (also a vertical multiplication)
             if (want_z)
             {
-                auto Z_slice = slice(Z, pair{0, n}, pair{ilo, ilo + n_block});
-                auto WV_slice = slice(WV, pair{0, nrows(Z_slice)}, pair{0, ncols(Z_slice)});
-                gemm(Op::NoTrans, Op::NoTrans, one, Z_slice, U2, zero, WV_slice);
-                lacpy(Uplo::General, WV_slice, Z_slice);
+                idx_t i = 0;
+                while (i < n)
+                {
+                    idx_t iblock = std::min(n - i, nrows(WV));
+                    auto Z_slice = slice(Z, pair{i, i + iblock}, pair{ilo, ilo + n_block});
+                    auto WV_slice = slice(WV, pair{0, nrows(Z_slice)}, pair{0, ncols(Z_slice)});
+                    gemm(Op::NoTrans, Op::NoTrans, one, Z_slice, U2, zero, WV_slice);
+                    lacpy(Uplo::General, WV_slice, Z_slice);
+                    i = i + iblock;
+                }
             }
 
             i_pos_block = n_block - n_shifts;
@@ -258,6 +349,42 @@ namespace lapack
                     A(i_pos, i_pos) = A(i_pos, i_pos) - sum * conj(v[0]);
                     A(i_pos + 1, i_pos) = A(i_pos + 1, i_pos) - sum * conj(v[0]) * v[1];
                     A(i_pos + 2, i_pos) = A(i_pos + 2, i_pos) - sum * conj(v[0]) * v[2];
+
+                    // Test for deflation.
+                    if (i_pos > ilo)
+                    {
+                        if (A(i_pos, i_pos - 1) != zero)
+                        {
+                            auto tst1 = abs1(A(i_pos - 1, i_pos - 1)) + abs1(A(i_pos, i_pos));
+                            if (tst1 == zero)
+                            {
+                                if (i_pos > ilo + 1)
+                                    tst1 += abs1(A(i_pos - 1, i_pos - 2));
+                                if (i_pos > ilo + 2)
+                                    tst1 += abs1(A(i_pos - 1, i_pos - 3));
+                                if (i_pos > ilo + 3)
+                                    tst1 += abs1(A(i_pos - 1, i_pos - 4));
+                                if (i_pos < ihi - 1)
+                                    tst1 += abs1(A(i_pos + 1, i_pos));
+                                if (i_pos < ihi - 2)
+                                    tst1 += abs1(A(i_pos + 2, i_pos));
+                                if (i_pos < ihi - 3)
+                                    tst1 += abs1(A(i_pos + 3, i_pos));
+                            }
+                            if (abs1(A(i_pos, i_pos - 1)) < std::max(small_num, eps * tst1))
+                            {
+                                auto ab = std::max(abs1(A(i_pos, i_pos - 1)), abs1(A(i_pos - 1, i_pos)));
+                                auto ba = std::min(abs1(A(i_pos, i_pos - 1)), abs1(A(i_pos - 1, i_pos)));
+                                auto aa = std::max(abs1(A(i_pos, i_pos)), abs1(A(i_pos, i_pos) - A(i_pos - 1, i_pos - 1)));
+                                auto bb = std::min(abs1(A(i_pos, i_pos)), abs1(A(i_pos, i_pos) - A(i_pos - 1, i_pos - 1)));
+                                auto s = aa + ab;
+                                if (ba * (ab / s) <= std::max(small_num, eps * (bb * (aa / s))))
+                                {
+                                    A(i_pos, i_pos - 1) = zero;
+                                }
+                            }
+                        }
+                    }
                 }
 
                 // The following code performs the delayed update from the left
@@ -282,7 +409,8 @@ namespace lapack
                 {
                     idx_t i_pos = i_pos_last - 2 * i_bulge;
                     auto v = col(V, i_bulge);
-                    for( idx_t j=i_pos+1; j < istop_m; ++j ){
+                    for (idx_t j = i_pos + 1; j < istop_m; ++j)
+                    {
                         auto sum = A(i_pos, j) + conj(v[1]) * A(i_pos + 1, j) + conj(v[2]) * A(i_pos + 2, j);
                         A(i_pos, j) = A(i_pos, j) - sum * conj(v[0]);
                         A(i_pos + 1, j) = A(i_pos + 1, j) - sum * conj(v[0]) * v[1];
@@ -318,26 +446,44 @@ namespace lapack
             // Horizontal multiply
             if (i_pos_block + n_block < istop_m)
             {
-                auto A_slice = slice(A, pair{i_pos_block, i_pos_block + n_block}, pair{i_pos_block + n_block, istop_m});
-                auto WH_slice = slice(WH, pair{0, nrows(A_slice)}, pair{0, ncols(A_slice)});
-                gemm(Op::ConjTrans, Op::NoTrans, one, U2, A_slice, zero, WH_slice);
-                lacpy(Uplo::General, WH_slice, A_slice);
+                idx_t i = i_pos_block + n_block;
+                while (i < istop_m)
+                {
+                    idx_t iblock = std::min(istop_m - i, ncols(WH));
+                    auto A_slice = slice(A, pair{i_pos_block, i_pos_block + n_block}, pair{i, i + iblock});
+                    auto WH_slice = slice(WH, pair{0, nrows(A_slice)}, pair{0, ncols(A_slice)});
+                    gemm(Op::ConjTrans, Op::NoTrans, one, U2, A_slice, zero, WH_slice);
+                    lacpy(Uplo::General, WH_slice, A_slice);
+                    i = i + iblock;
+                }
             }
             // Vertical multiply
             if (istart_m < i_pos_block)
             {
-                auto A_slice = slice(A, pair{istart_m, i_pos_block}, pair{i_pos_block, i_pos_block + n_block});
-                auto WV_slice = slice(WV, pair{0, nrows(A_slice)}, pair{0, ncols(A_slice)});
-                gemm(Op::NoTrans, Op::NoTrans, one, A_slice, U2, zero, WV_slice);
-                lacpy(Uplo::General, WV_slice, A_slice);
+                idx_t i = istart_m;
+                while (i < i_pos_block)
+                {
+                    idx_t iblock = std::min(i_pos_block - i, nrows(WV));
+                    auto A_slice = slice(A, pair{i, i + iblock}, pair{i_pos_block, i_pos_block + n_block});
+                    auto WV_slice = slice(WV, pair{0, nrows(A_slice)}, pair{0, ncols(A_slice)});
+                    gemm(Op::NoTrans, Op::NoTrans, one, A_slice, U2, zero, WV_slice);
+                    lacpy(Uplo::General, WV_slice, A_slice);
+                    i = i + iblock;
+                }
             }
             // Update Z (also a vertical multiplication)
             if (want_z)
             {
-                auto Z_slice = slice(Z, pair{0, n}, pair{i_pos_block, i_pos_block + n_block});
-                auto WV_slice = slice(WV, pair{0, nrows(Z_slice)}, pair{0, ncols(Z_slice)});
-                gemm(Op::NoTrans, Op::NoTrans, one, Z_slice, U2, zero, WV_slice);
-                lacpy(Uplo::General, WV_slice, Z_slice);
+                idx_t i = 0;
+                while (i < n)
+                {
+                    idx_t iblock = std::min(n - i, nrows(WV));
+                    auto Z_slice = slice(Z, pair{i, i + iblock}, pair{i_pos_block, i_pos_block + n_block});
+                    auto WV_slice = slice(WV, pair{0, nrows(Z_slice)}, pair{0, ncols(Z_slice)});
+                    gemm(Op::NoTrans, Op::NoTrans, one, Z_slice, U2, zero, WV_slice);
+                    lacpy(Uplo::General, WV_slice, Z_slice);
+                    i = i + iblock;
+                }
             }
 
             i_pos_block = i_pos_block + n_pos;
@@ -426,6 +572,42 @@ namespace lapack
                         A(i_pos, i_pos) = A(i_pos, i_pos) - sum * conj(v[0]);
                         A(i_pos + 1, i_pos) = A(i_pos + 1, i_pos) - sum * conj(v[0]) * v[1];
                         A(i_pos + 2, i_pos) = A(i_pos + 2, i_pos) - sum * conj(v[0]) * v[2];
+
+                        // Test for deflation.
+                        if (i_pos > ilo)
+                        {
+                            if (A(i_pos, i_pos - 1) != zero)
+                            {
+                                auto tst1 = abs1(A(i_pos - 1, i_pos - 1)) + abs1(A(i_pos, i_pos));
+                                if (tst1 == zero)
+                                {
+                                    if (i_pos > ilo + 1)
+                                        tst1 += abs1(A(i_pos - 1, i_pos - 2));
+                                    if (i_pos > ilo + 2)
+                                        tst1 += abs1(A(i_pos - 1, i_pos - 3));
+                                    if (i_pos > ilo + 3)
+                                        tst1 += abs1(A(i_pos - 1, i_pos - 4));
+                                    if (i_pos < ihi - 1)
+                                        tst1 += abs1(A(i_pos + 1, i_pos));
+                                    if (i_pos < ihi - 2)
+                                        tst1 += abs1(A(i_pos + 2, i_pos));
+                                    if (i_pos < ihi - 3)
+                                        tst1 += abs1(A(i_pos + 3, i_pos));
+                                }
+                                if (abs1(A(i_pos, i_pos - 1)) < std::max(small_num, eps * tst1))
+                                {
+                                    auto ab = std::max(abs1(A(i_pos, i_pos - 1)), abs1(A(i_pos - 1, i_pos)));
+                                    auto ba = std::min(abs1(A(i_pos, i_pos - 1)), abs1(A(i_pos - 1, i_pos)));
+                                    auto aa = std::max(abs1(A(i_pos, i_pos)), abs1(A(i_pos, i_pos) - A(i_pos - 1, i_pos - 1)));
+                                    auto bb = std::min(abs1(A(i_pos, i_pos)), abs1(A(i_pos, i_pos) - A(i_pos - 1, i_pos - 1)));
+                                    auto s = aa + ab;
+                                    if (ba * (ab / s) <= std::max(small_num, eps * (bb * (aa / s))))
+                                    {
+                                        A(i_pos, i_pos - 1) = zero;
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -492,26 +674,44 @@ namespace lapack
             // Horizontal multiply
             if (ihi < istop_m)
             {
-                auto A_slice = slice(A, pair{i_pos_block, ihi}, pair{ihi, istop_m});
-                auto WH_slice = slice(WH, pair{0, nrows(A_slice)}, pair{0, ncols(A_slice)});
-                gemm(Op::ConjTrans, Op::NoTrans, one, U2, A_slice, zero, WH_slice);
-                lacpy(Uplo::General, WH_slice, A_slice);
+                idx_t i = ihi;
+                while (i < istop_m)
+                {
+                    idx_t iblock = std::min(istop_m - i, ncols(WH));
+                    auto A_slice = slice(A, pair{i_pos_block, ihi}, pair{i, i + iblock});
+                    auto WH_slice = slice(WH, pair{0, nrows(A_slice)}, pair{0, ncols(A_slice)});
+                    gemm(Op::ConjTrans, Op::NoTrans, one, U2, A_slice, zero, WH_slice);
+                    lacpy(Uplo::General, WH_slice, A_slice);
+                    i = i + iblock;
+                }
             }
             // Vertical multiply
             if (istart_m < i_pos_block)
             {
-                auto A_slice = slice(A, pair{istart_m, i_pos_block}, pair{i_pos_block, ihi});
-                auto WV_slice = slice(WV, pair{0, nrows(A_slice)}, pair{0, ncols(A_slice)});
-                gemm(Op::NoTrans, Op::NoTrans, one, A_slice, U2, zero, WV_slice);
-                lacpy(Uplo::General, WV_slice, A_slice);
+                idx_t i = istart_m;
+                while (i < i_pos_block)
+                {
+                    idx_t iblock = std::min(i_pos_block - i, nrows(WV));
+                    auto A_slice = slice(A, pair{i, i + iblock}, pair{i_pos_block, ihi});
+                    auto WV_slice = slice(WV, pair{0, nrows(A_slice)}, pair{0, ncols(A_slice)});
+                    gemm(Op::NoTrans, Op::NoTrans, one, A_slice, U2, zero, WV_slice);
+                    lacpy(Uplo::General, WV_slice, A_slice);
+                    i = i + iblock;
+                }
             }
             // Update Z (also a vertical multiplication)
             if (want_z)
             {
-                auto Z_slice = slice(Z, pair{0, n}, pair{i_pos_block, ihi});
-                auto WV_slice = slice(WV, pair{0, nrows(Z_slice)}, pair{0, ncols(Z_slice)});
-                gemm(Op::NoTrans, Op::NoTrans, one, Z_slice, U2, zero, WV_slice);
-                lacpy(Uplo::General, WV_slice, Z_slice);
+                idx_t i = 0;
+                while (i < n)
+                {
+                    idx_t iblock = std::min(n - i, nrows(WV));
+                    auto Z_slice = slice(Z, pair{i, i + iblock}, pair{i_pos_block, ihi});
+                    auto WV_slice = slice(WV, pair{0, nrows(Z_slice)}, pair{0, ncols(Z_slice)});
+                    gemm(Op::NoTrans, Op::NoTrans, one, Z_slice, U2, zero, WV_slice);
+                    lacpy(Uplo::General, WV_slice, Z_slice);
+                    i = i + iblock;
+                }
             }
         }
     }

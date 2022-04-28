@@ -46,7 +46,7 @@ TEST_CASE("Multishift sweep", "[eigenvalues]")
 
     const T zero(0);
     const T one(1);
-    const idx_t n = 10;
+    const idx_t n = 15;
     const idx_t n_shifts = 4;
     const real_t eps = uroundoff<real_t>();
 
@@ -60,6 +60,9 @@ TEST_CASE("Multishift sweep", "[eigenvalues]")
 
     std::unique_ptr<T[]> _Q(new T[n * n]);
     auto Q = colmajor_matrix<T>(&_Q[0], n, n);
+
+    std::unique_ptr<T[]> _V(new T[3 * (n_shifts/2)]);
+    auto V = colmajor_matrix<T>(&_V[0], 3, (n_shifts/2));
 
     auto s = std::vector<complex_t>(n_shifts);
     for (int i = 0; i < n_shifts; ++i)
@@ -87,7 +90,12 @@ TEST_CASE("Multishift sweep", "[eigenvalues]")
 
     auto normA = lange(lapack::frob_norm, A);
 
-    multishift_QR_sweep(true, true, 0, n, A, s, Q);
+    multishift_QR_sweep(true, true, 0, n, A, s, Q, V);
+
+    // Clean the lower triangular part that was used a workspace
+    for (size_t j = 0; j < n; ++j)
+        for (size_t i = j + 2; i < n; ++i)
+            A(i, j) = zero;
 
     // Print Q and A
     if (verbose)
@@ -132,7 +140,6 @@ TEST_CASE("Multishift sweep", "[eigenvalues]")
 
     // 3) Compute Q*A_copyQ
 
-    if (verbose)
     {
         std::unique_ptr<T[]> _work(new T[n * n]);
         auto work = colmajor_matrix<T>(&_work[0], n, n);
@@ -143,17 +150,23 @@ TEST_CASE("Multishift sweep", "[eigenvalues]")
         blas::gemm(blas::Op::ConjTrans, blas::Op::NoTrans, (T)1.0, Q, A_copy, (T)0.0, work);
         blas::gemm(blas::Op::NoTrans, blas::Op::NoTrans, (T)1.0, work, Q, (T)0.0, A_copy);
 
-        std::cout << std::endl
-                  << "Q'A_copyQ = ";
-        printMatrix(A_copy);
+        if (verbose)
+        {
+            std::cout << std::endl
+                      << "Q'A_copyQ = ";
+            printMatrix(A_copy);
+        }
 
         for (size_t j = 0; j < n; ++j)
             for (size_t i = 0; i < n; ++i)
                 A_copy(i, j) -= A(i, j);
 
-        std::cout << std::endl
-                  << "Q'A_copyQ - A = ";
-        printMatrix(A_copy);
+        if (verbose)
+        {
+            std::cout << std::endl
+                      << "Q'A_copyQ - A = ";
+            printMatrix(A_copy);
+        }
 
         // Compute ||Q'Q - I||_F
         norm_repres_1 = lange(frob_norm, A_copy);
@@ -219,11 +232,10 @@ TEST_CASE("AED", "[eigenvalues]")
 
     agressive_early_deflation(true, true, (idx_t)0, n, window_size, A, s, Q, ns, nd);
 
+    // Clean the lower triangular part that was used a workspace
     for (size_t j = 0; j < n; ++j)
         for (size_t i = j + 2; i < n; ++i)
             A(i, j) = zero;
-
-    // Clean the lower triangular part that was used a workspace
 
     // Print Q and A
     if (verbose)
