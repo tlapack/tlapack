@@ -180,12 +180,10 @@ lanhe( norm_t normType, uplo_t uplo, const matrix_t& A )
         ssq *= 2;
 
         // Sum the real part in the diagonal
-        struct absReValue {
-            static inline real_t abs( const T& x ) {
-                return blas::abs( real(x) );
-            }
-        };
-        lassq< absReValue >( diag(A,0), scale, ssq );
+        lassq( diag(A,0), scale, ssq,
+            // Lambda function to get the absolute value of the real part :
+            []( const T& x ) { return blas::abs( real(x) ); }
+        );
 
         // Compute the scaled square root
         norm = scale * sqrt(ssq);

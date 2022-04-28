@@ -39,14 +39,6 @@ namespace lapack {
  *    TINY*EPS -- tiniest representable number;
  *    HUGE     -- biggest representable number.
  * 
- * @tparam abs_t 
- * \code{.cpp}
- *      struct abs_t {
- *          static inline auto abs( const T& x ){ ... };
- *      };
- * \endcode
- *      where T is the type_t< vector_t >.
- * 
  * @param[in] x Vector of size n.
  * 
  * @param[in,out] scale Real scalar.
@@ -59,15 +51,21 @@ namespace lapack {
  *      On exit, `sumsq` is overwritten with `smsq`, the basic sum of
  *      squares from which  scl  has been factored out.
  * 
+ * @param[in] absF Lambda function that computes the absolute value.
+ * \code{.cpp}
+ *      absF = []( const T& x ) -> real_type<T> { ... };
+ * \endcode
+ * 
  * @ingroup auxiliary
  */
-template< class abs_t, class vector_t >
+template< class abs_f, class vector_t, class T = type_t<vector_t> >
 void lassq(
     const vector_t& x,
-    real_type< type_t<vector_t> > &scale,
-    real_type< type_t<vector_t> > &sumsq)
+    real_type<T> &scale,
+    real_type<T> &sumsq,
+    abs_f absF )
 {
-    using real_t = real_type< type_t<vector_t> >;
+    using real_t = real_type<T>;
     using idx_t  = size_type< vector_t >;
     using blas::isnan;
     using blas::sqrt;
@@ -109,7 +107,7 @@ void lassq(
 
     for (idx_t i = 0; i < n; ++i)
     {
-        real_t ax = abs_t::abs( x[i] );
+        real_t ax = absF( x[i] );
         if( ax > tbig )
             abig += (ax*sbig) * (ax*sbig);
         else if( ax < tsml ) {
@@ -176,38 +174,29 @@ void lassq(
  * \]
  * @see lassq(
     const vector_t& x,
-    real_type< type_t<vector_t> > &scale,
-    real_type< type_t<vector_t> > &sumsq).
+    real_type<T> &scale,
+    real_type<T> &sumsq,
+    abs_f absF ).
  *
  * Specific implementation using  
  * \code{.cpp}
- *      struct abs_t {
- *          static inline auto abs( const T& x ){
- *              return blas::abs( x );
- *          };
- *      };
+ *      absF = []( const T& x ) { return blas::abs( x ); }
  * \endcode
- *      where T is the type_t< vector_t >.
+ * where T is the type_t< vector_t >.
  * 
  * @ingroup auxiliary
  */
-template< class vector_t >
+template< class vector_t, class T = type_t<vector_t> >
 inline
 void lassq(
     const vector_t& x,
-    real_type< type_t<vector_t> > &scale,
-    real_type< type_t<vector_t> > &sumsq)
-{
-    using T      = type_t<vector_t>;
-    using real_t = real_type< T >;
-    
-    struct absValue {
-        static inline real_t abs( const T& x ) {
-            return blas::abs( x );
-        }
-    };
-    
-    return lassq< absValue >( x, scale, sumsq );
+    real_type<T> &scale,
+    real_type<T> &sumsq)
+{    
+    return lassq( x, scale, sumsq,
+        // Lambda function that returns the absolute value using blas::abs :
+        []( const T& x ) { return blas::abs( x ); }
+    );
 }
 
 } // lapack
