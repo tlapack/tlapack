@@ -48,6 +48,11 @@
 #include "lapack/potrf.hpp"
 #include "lapack/potrs.hpp"
 
+// Sylver equation routines
+// ----------------
+
+#include "lapack/lasy2.hpp"
+
 // Nonsymmetric standard eigenvalue routines
 // ----------------
 
@@ -59,5 +64,7 @@
 #include "lapack/lahqr_shiftcolumn.hpp"
 #include "lapack/lahqr_eig22.hpp"
 #include "lapack/lahqr_schur22.hpp"
+#include "lapack/schur_swap.hpp"
+#include "lapack/schur_move.hpp"
 
 #endif // __TLAPACK_HH__
