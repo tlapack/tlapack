@@ -100,9 +100,13 @@ void run(size_t n)
     auto startQHQ = std::chrono::high_resolution_clock::now();
     {
         std::vector<T> work(n);
+        int err;
 
         // Hessenberg factorization
-        blas_error_if(lapack::gehd2(0, n, Q, tau, work));
+        err = lapack::gehrd(0, n, Q, tau);
+        // blas_error_if(lapack::gehd2(0, n, Q, tau, work));
+        blas_error_if(err);
+
 
         // Save the H matrix
         for (size_t j = 0; j < n; ++j)
@@ -110,7 +114,8 @@ void run(size_t n)
                 H(i, j) = Q(i, j);
 
         // Generate Q = H_1 H_2 ... H_n
-        blas_error_if(lapack::unghr(0, n, Q, tau, work));
+        err = lapack::unghr(0, n, Q, tau, work);
+        blas_error_if(err);
 
         // Remove junk from lower half of H
         for (size_t j = 0; j < n; ++j)
@@ -119,7 +124,8 @@ void run(size_t n)
 
         // Shur factorization
         std::vector<std::complex<real_t>> w(n);
-        blas_error_if(lapack::lahqr(true, true, 0, n, H, w, Q));
+        err = lapack::lahqr(true, true, 0, n, H, w, Q);
+        blas_error_if(err);
     }
     // Record end time
     auto endQHQ = std::chrono::high_resolution_clock::now();
@@ -168,6 +174,9 @@ void run(size_t n)
 
     // 3) Compute ||QHQ* - A||_F / ||A||_F
 
+    std::unique_ptr<T[]> _H_copy(new T[n * n]);
+    auto H_copy = colmajor_matrix<T>(&_H_copy[0], n, n);
+    lapack::lacpy(lapack::Uplo::General,H, H_copy);
     {
         std::unique_ptr<T[]> _work(new T[n * n]);
         auto work = colmajor_matrix<T>(&_work[0], n, n);
@@ -192,6 +201,31 @@ void run(size_t n)
         norm_repres_1 = lapack::lange(lapack::frob_norm, H) / normA;
     }
 
+    // 4) Compute Q*AQ (usefull for debugging)
+
+    if(verbose){
+        std::unique_ptr<T[]> _work(new T[n * n]);
+        auto work = colmajor_matrix<T>(&_work[0], n, n);
+        for (size_t j = 0; j < n; ++j)
+            for (size_t i = 0; i < n; ++i)
+                work(i, j) = static_cast<float>(0xABADBABC);
+
+        blas::gemm(blas::Op::ConjTrans, blas::Op::NoTrans, (T)1.0, Q, A, (T)0.0, work);
+        blas::gemm(blas::Op::NoTrans, blas::Op::NoTrans, (T)1.0, work, Q, (T)0.0, A);
+
+        std::cout << std::endl
+                    << "Q'AQ = ";
+        printMatrix(A);
+
+        for (size_t j = 0; j < n; ++j)
+            for (size_t i = 0; i < n; ++i)
+                A(i, j) -= H_copy(i, j);
+
+        std::cout << std::endl
+                    << "Q'AQ - H = ";
+        printMatrix(A);
+    }
+
     std::cout << std::endl;
     std::cout << "time = " << elapsedQHQ.count() * 1.0e-6 << " ms";
     std::cout << std::endl;
@@ -206,7 +240,7 @@ int main(int argc, char **argv)
     int n;
 
     // Default arguments
-    n = (argc < 2) ? 5 : atoi(argv[1]);
+    n = (argc < 2) ? 7 : atoi(argv[1]);
 
     srand(3); // Init random seed
 

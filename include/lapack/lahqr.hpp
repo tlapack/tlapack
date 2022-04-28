@@ -217,6 +217,7 @@ namespace lapack
                 if (istart + 1 == istop)
                 {
                     // 1x1 block
+                    k_defl = 0;
                     w[istart] = A(istart, istart);
                     istop = istart;
                     istart = ilo;
@@ -250,6 +251,7 @@ namespace lapack
                         auto y = col(Z, istart + 1);
                         blas::rot(x, y, cs, sn);
                     }
+                    k_defl = 0;
                     istop = istart;
                     istart = ilo;
                     continue;

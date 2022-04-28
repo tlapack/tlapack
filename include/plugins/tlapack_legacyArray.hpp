@@ -145,8 +145,10 @@ namespace blas {
     slice( const legacyMatrix<T,layout>& A, SliceSpecRow&& rows, SliceSpecCol&& cols ) noexcept {
         assert( rows.first >= 0 and rows.first < nrows(A));
         assert( rows.second >= 0 and rows.second <= nrows(A));
+        assert( rows.first <= rows.second );
         assert( cols.first >= 0 and cols.first < ncols(A));
         assert( cols.second >= 0 and cols.second <= ncols(A));
+        assert( cols.first <= cols.second );
         return legacyMatrix<T,layout>(
             rows.second-rows.first, cols.second-cols.first,
             &A(rows.first,cols.first), A.ldim
@@ -159,6 +161,10 @@ namespace blas {
     template< typename T, Layout layout, class SliceSpecCol >
     inline constexpr auto
     slice( const legacyMatrix<T,layout>& A, typename legacyMatrix<T>::idx_t rowIdx, SliceSpecCol&& cols ) noexcept {
+        assert( cols.first >= 0 and cols.first < ncols(A));
+        assert( cols.second >= 0 and cols.second <= ncols(A));
+        assert( cols.first <= cols.second );
+        assert( rowIdx >= 0 and rowIdx < nrows(A));
         using idx_t = typename legacyMatrix<T>::idx_t;
         return legacyVector<T,idx_t>( cols.second-cols.first, &A(rowIdx,cols.first), A.ldim );
     }
@@ -167,6 +173,10 @@ namespace blas {
     template< typename T, Layout layout, class SliceSpecRow >
     inline constexpr auto
     slice( const legacyMatrix<T,layout>& A, SliceSpecRow&& rows, typename legacyMatrix<T>::idx_t colIdx = 0 ) noexcept {
+        assert( rows.first >= 0 and rows.first < nrows(A));
+        assert( rows.second >= 0 and rows.second <= nrows(A));
+        assert( rows.first <= rows.second );
+        assert( colIdx >= 0 and colIdx < ncols(A));
         return legacyVector<T>( rows.second-rows.first, &A(rows.first,colIdx) );
     }
     
@@ -176,6 +186,7 @@ namespace blas {
     rows( const legacyMatrix<T,layout>& A, SliceSpec&& rows ) noexcept {
         assert( rows.first >= 0 and rows.first < nrows(A));
         assert( rows.second >= 0 and rows.second <= nrows(A));
+        assert( rows.first <= rows.second );
         return legacyMatrix<T,layout>(
             rows.second-rows.first, A.n,
             &A(rows.first,0), A.ldim
