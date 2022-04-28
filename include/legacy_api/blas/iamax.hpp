@@ -41,13 +41,11 @@ inline idx_t
 iamax(
     idx_t n, T const *x, blas::int_t incx )
 {
-    using internal::vector;
-
-    // check arguments
     blas_error_if( incx <= 0 );
-
-    const auto _x = vector<T>( (T*) x, n, incx );
-    return iamax( _x );
+    tlapack_expr_with_vector_positiveInc(
+        _x, T, n, x, incx,
+        return iamax( _x )
+    );
 }
 
 }  // namespace blas

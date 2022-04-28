@@ -28,7 +28,7 @@ namespace blas {
  *     Stride between elements of x. incx must not be zero.
  *     If incx < 0, uses elements of x in reverse order: x(n-1), ..., x(0).
  *
- * @param[in, out] y
+ * @param[in,out] y
  *     The n-element vector y, in an array of length (n-1)*abs(incy) + 1.
  *
  * @param[in] incy
@@ -43,21 +43,15 @@ void swap(
     TX *x, blas::int_t incx,
     TY *y, blas::int_t incy )
 {
-    using internal::vector;
-
     // check arguments
     blas_error_if( incx == 0 );
     blas_error_if( incy == 0 );
 
-    // Views
-    auto _x = vector<TX>(
-        &x[(incx > 0 ? 0 : (-n + 1)*incx)],
-        n, incx );
-    auto _y = vector<TY>(
-        &y[(incy > 0 ? 0 : (-n + 1)*incy)],
-        n, incy );
-        
-    blas::swap( _x, _y );
+    tlapack_expr_with_2vectors(
+        _x, TX, n, x, incx,
+        _y, TY, n, y, incy,
+        return blas::swap( _x, _y );
+    );
 }
 
 }  // namespace blas

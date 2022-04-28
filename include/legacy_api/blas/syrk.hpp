@@ -88,12 +88,7 @@ void syrk(
     scalar_type<TA, TC> beta,
     TC       *C, blas::idx_t ldc )
 {
-    typedef blas::scalar_type<TA, TC> scalar_t;
     using blas::internal::colmajor_matrix;
-
-    // constants
-    const scalar_t zero( 0 );
-    const scalar_t one( 1 );
 
     // check arguments
     blas_error_if( layout != Layout::ColMajor &&
@@ -139,51 +134,6 @@ void syrk(
                   : colmajor_matrix<TA>( (TA*)A, k, n, lda );
     auto _C = colmajor_matrix<TC>( C, n, n, ldc );
 
-    // alpha == zero
-    if (alpha == zero) {
-        if (beta == zero) {
-            if (uplo != Uplo::Upper) {
-                for(idx_t j = 0; j < n; ++j) {
-                    for(idx_t i = 0; i <= j; ++i)
-                        _C(i,j) = zero;
-                }
-            }
-            else if (uplo != Uplo::Lower) {
-                for(idx_t j = 0; j < n; ++j) {
-                    for(idx_t i = j; i < n; ++i)
-                        _C(i,j) = zero;
-                }
-            }
-            else {
-                for(idx_t j = 0; j < n; ++j) {
-                    for(idx_t i = 0; i < n; ++i)
-                        _C(i,j) = zero;
-                }
-            }
-        }
-        else if (beta != one) {
-            if (uplo != Uplo::Upper) {
-                for(idx_t j = 0; j < n; ++j) {
-                    for(idx_t i = 0; i <= j; ++i)
-                        _C(i,j) *= beta;
-                }
-            }
-            else if (uplo != Uplo::Lower) {
-                for(idx_t j = 0; j < n; ++j) {
-                    for(idx_t i = j; i < n; ++i)
-                        _C(i,j) *= beta;
-                }
-            }
-            else {
-                for(idx_t j = 0; j < n; ++j) {
-                    for(idx_t i = 0; i < n; ++i)
-                        _C(i,j) *= beta;
-                }
-            }
-        }
-        return;
-    }
-    
     syrk( uplo, trans, alpha, _A, beta, _C );
 }
 

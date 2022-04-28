@@ -13,8 +13,8 @@
     #include "plugins/tlapack_legacyArray.hpp" // Loads LegacyArray plugin
 
     #define tlapack_expr_with_2vectors( x, TX, n, X, incx, ... ) do { \
-        using internal::vector; \
-        using internal::backward_vector; \
+        using blas::internal::vector; \
+        using blas::internal::backward_vector; \
         if( incx == 1 ) { \
             auto x = vector( (TX*) X, n ); \
             tlapack_expr_with_vector( __VA_ARGS__ ); \
@@ -34,8 +34,8 @@
     } while(false)
 
     #define tlapack_expr_with_vector( x, TX, n, X, incx, expr ) do { \
-        using internal::vector; \
-        using internal::backward_vector; \
+        using blas::internal::vector; \
+        using blas::internal::backward_vector; \
         if( incx == 1 ) { \
             auto x = vector( (TX*) X, n ); \
             expr; \
@@ -55,7 +55,7 @@
     } while(false)
 
     #define tlapack_expr_with_vector_positiveInc( x, TX, n, X, incx, expr ) do { \
-        using internal::vector; \
+        using blas::internal::vector; \
         if( incx == 1 ) { \
             auto x = vector( (TX*) X, n ); \
             expr; \
@@ -71,7 +71,7 @@
     #include "plugins/tlapack_mdspan.hpp" // Loads mdspan plugin
 
     #define tlapack_expr_with_2vectors( x, TX, n, X, incx, ... ) do { \
-        using internal::vector; \
+        using blas::internal::vector; \
         if( incx == 1 ) { \
             auto x = vector( (TX*) X, n ); \
             tlapack_expr_with_vector( __VA_ARGS__ ); \
@@ -87,7 +87,7 @@
     } while(false)
 
     #define tlapack_expr_with_vector( x, TX, n, X, incx, expr ) do { \
-        using internal::vector; \
+        using blas::internal::vector; \
         if( incx == 1 ) { \
             auto x = vector( (TX*) X, n ); \
             expr; \
@@ -103,7 +103,7 @@
     } while(false)
 
     #define tlapack_expr_with_vector_positiveInc( x, TX, n, X, incx, expr ) do { \
-        using internal::vector; \
+        using blas::internal::vector; \
         if( incx == 1 ) { \
             auto x = vector( (TX*) X, n ); \
             expr; \

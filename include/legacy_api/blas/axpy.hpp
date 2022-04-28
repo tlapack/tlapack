@@ -15,8 +15,10 @@ namespace blas {
 
 /**
  * Add scaled vector, $y = \alpha x + y$.
- *
- * Generic implementation for arbitrary data types.
+ * 
+ * Wrapper to axpy(
+    const alpha_t& alpha,
+    const vectorX_t& x, vectorY_t& y ).
  *
  * @param[in] n
  *     Number of elements in x and y. n >= 0.
@@ -31,7 +33,7 @@ namespace blas {
  *     Stride between elements of x. incx must not be zero.
  *     If incx < 0, uses elements of x in reverse order: x(n-1), ..., x(0).
  *
- * @param[in, out] y
+ * @param[in,out] y
  *     The n-element vector y, in an array of length (n-1)*abs(incy) + 1.
  *
  * @param[in] incy
@@ -47,20 +49,13 @@ void axpy(
     TX const *x, blas::int_t incx,
     TY       *y, blas::int_t incy )
 {
-    typedef blas::scalar_type<TX, TY> scalar_t;
-
-    // check arguments
     blas_error_if( incx == 0 );
     blas_error_if( incy == 0 );
-
-    // quick return
-    if (alpha == scalar_t(0))
-        return;
-
+    
     tlapack_expr_with_2vectors(
         _x, TX, n, x, incx,
         _y, TY, n, y, incy,
-        axpy( alpha, _x, _y )
+        return axpy( alpha, _x, _y )
     );
 }
 

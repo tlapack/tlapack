@@ -148,7 +148,7 @@ void gemm(
             : colmajor_matrix<TB>( (TB*)B, n, k, ldb );
     auto _C = colmajor_matrix<TC>( C, m, n, ldc );
 
-    gemm( transA, transB, alpha, _A, _B, beta, _C );
+    return gemm( transA, transB, alpha, _A, _B, beta, _C );
 }
 
 }  // namespace blas

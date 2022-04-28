@@ -38,13 +38,11 @@ void scal(
     const TA& alpha,
     TX* x, blas::int_t incx )
 {
-    using internal::vector;
-
-    // check arguments
     blas_error_if( incx <= 0 );
-
-    auto _x = vector<TX>( x, n, incx );
-    return scal( alpha, _x );
+    tlapack_expr_with_vector_positiveInc(
+        _x, TX, n, x, incx,
+        return scal( alpha, _x )
+    );
 }
 
 }  // namespace blas

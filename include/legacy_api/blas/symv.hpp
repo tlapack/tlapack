@@ -54,7 +54,7 @@ namespace blas {
  * @param[in] beta
  *     Scalar beta. If beta is zero, y need not be set on input.
  *
- * @param[in, out] y
+ * @param[in,out] y
  *     The n-element vector y, in an array of length (n-1)*abs(incy) + 1.
  *
  * @param[in] incy
@@ -74,13 +74,7 @@ void symv(
     blas::scalar_type<TA, TX, TY> beta,
     TY *y, blas::int_t incy )
 {
-    typedef blas::scalar_type<TA, TX, TY> scalar_t;
     using blas::internal::colmajor_matrix;
-    using blas::internal::vector;
-
-    // constants
-    const scalar_t zero( 0.0 );
-    const scalar_t one( 1.0 );
 
     // check arguments
     blas_error_if( layout != Layout::ColMajor &&
@@ -93,7 +87,7 @@ void symv(
     blas_error_if( incy == 0 );
 
     // quick return
-    if (n == 0 || (alpha == zero && beta == one))
+    if (n == 0)
         return;
 
     // for row major, swap lower <=> upper
@@ -103,29 +97,12 @@ void symv(
 
     // Views
     const auto _A = colmajor_matrix<TA>( (TA*)A, n, n, lda );
-    const auto _x = vector<TX>(
-        (TX*) &x[(incx > 0 ? 0 : (-n + 1)*incx)],
-        n, incx );
-    auto _y = vector<TY>(
-        &y[(incy > 0 ? 0 : (-n + 1)*incy)],
-        n, incy );
 
-    if (alpha == zero) {
-        // form y = beta*y
-        if (beta != one) {
-            if (beta == zero) {
-                for (idx_t i = 0; i < n; ++i)
-                    _y[i] = zero;
-            }
-            else {
-                for (idx_t i = 0; i < n; ++i)
-                    _y[i] *= beta;
-            }
-        }
-        return;
-    }
-
-    symv( uplo, alpha, _A, _x, beta, _y );
+    tlapack_expr_with_2vectors(
+        _x, TX, n, x, incx,
+        _y, TY, n, y, incy,
+        return symv( uplo, alpha, _A, _x, beta, _y )
+    );
 }
 
 }  // namespace blas

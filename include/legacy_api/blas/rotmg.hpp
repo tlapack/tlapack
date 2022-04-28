@@ -71,13 +71,13 @@ namespace blas {
  *
  * Generic implementation for arbitrary data types.
  *
- * @param[in, out] d1
+ * @param[in,out] d1
  *     sqrt(d1) is scaling factor for vector x.
  *
- * @param[in, out] d2
+ * @param[in,out] d2
  *     sqrt(d2) is scaling factor for vector y.
  *
- * @param[in, out] a
+ * @param[in,out] a
  *     On entry, scalar a. On exit, set to z.
  *
  * @param[in] b

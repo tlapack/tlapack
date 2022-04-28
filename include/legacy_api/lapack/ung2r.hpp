@@ -63,8 +63,8 @@ inline int ung2r(
 
     // Matrix views
     auto _A    = colmajor_matrix<TA>( A, m, n, lda );
-    auto _tau  = vector<Ttau>( (Ttau*)tau, std::min<blas::idx_t>( m, n ), 1 );
-    auto _work = vector<TA>  ( work, n-1, 1 );
+    auto _tau  = vector( (Ttau*)tau, std::min<blas::idx_t>( m, n ) );
+    auto _work = vector( work, n-1 );
     
     info = ung2r( k, _A, _tau, _work );
 

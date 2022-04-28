@@ -98,14 +98,8 @@ void syr2k(
     TB const *B, blas::idx_t ldb,
     scalar_type<TA, TB, TC> beta,
     TC       *C, blas::idx_t ldc )
-{    
-    typedef blas::scalar_type<TA, TB, TC> scalar_t;
+{
     using blas::internal::colmajor_matrix;
-    using blas::internal::vector;
-
-    // constants
-    const scalar_t zero( 0.0 );
-    const scalar_t one( 1.0 );
 
     // check arguments
     blas_error_if( layout != Layout::ColMajor &&
@@ -159,51 +153,6 @@ void syr2k(
                   ? colmajor_matrix<TB>( (TB*)B, n, k, ldb )
                   : colmajor_matrix<TB>( (TB*)B, k, n, ldb );
     auto _C = colmajor_matrix<TC>( C, n, n, ldc );
-
-    // alpha == zero
-    if (alpha == zero) {
-        if (beta == zero) {
-            if (uplo != Uplo::Upper) {
-                for(idx_t j = 0; j < n; ++j) {
-                    for(idx_t i = 0; i <= j; ++i)
-                        _C(i,j) = zero;
-                }
-            }
-            else if (uplo != Uplo::Lower) {
-                for(idx_t j = 0; j < n; ++j) {
-                    for(idx_t i = j; i < n; ++i)
-                        _C(i,j) = zero;
-                }
-            }
-            else {
-                for(idx_t j = 0; j < n; ++j) {
-                    for(idx_t i = 0; i < n; ++i)
-                        _C(i,j) = zero;
-                }
-            }
-        }
-        else if (beta != one) {
-            if (uplo != Uplo::Upper) {
-                for(idx_t j = 0; j < n; ++j) {
-                    for(idx_t i = 0; i <= j; ++i)
-                        _C(i,j) *= beta;
-                }
-            }
-            else if (uplo != Uplo::Lower) {
-                for(idx_t j = 0; j < n; ++j) {
-                    for(idx_t i = j; i < n; ++i)
-                        _C(i,j) *= beta;
-                }
-            }
-            else {
-                for(idx_t j = 0; j < n; ++j) {
-                    for(idx_t i = 0; i < n; ++i)
-                        _C(i,j) *= beta;
-                }
-            }
-        }
-        return;
-    }
 
     syr2k( uplo, trans, alpha, _A, _B, beta, _C );
 }

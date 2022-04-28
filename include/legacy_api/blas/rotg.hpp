@@ -25,10 +25,10 @@ namespace blas {
  *
  * Generic implementation for arbitrary data types.
  *
- * @param[in, out] a
+ * @param[in,out] a
  *     On entry, scalar a. On exit, set to r.
  *
- * @param[in, out] b
+ * @param[in,out] b
  *     On entry, scalar b. On exit, set to s, 1/c, or 0.
  *
  * @param[out] c
@@ -62,10 +62,10 @@ rotg (
  *
  * Generic implementation for arbitrary data types.
  *
- * @param[in, out] a
+ * @param[in,out] a
  *     On entry, scalar a. On exit, set to r.
  *
- * @param[in, out] b
+ * @param[in,out] b
  *     On entry, scalar b. On exit, set to s, 1/c, or 0.
  *
  * @param[out] c
@@ -86,7 +86,10 @@ inline void
 rotg (
     T* a, T* b,
     real_type<T>* c,
-    complex_type<T>* s ) { return rotg(*a,*b,*c,*s); }
+    complex_type<T>* s )
+{
+    return rotg(*a,*b,*c,*s);
+}
 
 }  // namespace blas
 

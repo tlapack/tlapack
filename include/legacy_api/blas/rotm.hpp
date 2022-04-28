@@ -28,14 +28,14 @@ namespace blas {
  * @param[in] n
  *     Number of elements in x and y. n >= 0.
  *
- * @param[in, out] x
+ * @param[in,out] x
  *     The n-element vector x, in an array of length (n-1)*abs(incx) + 1.
  *
  * @param[in] incx
  *     Stride between elements of x. incx must not be zero.
  *     If incx < 0, uses elements of x in reverse order: x(n-1), ..., x(0).
  *
- * @param[in, out] y
+ * @param[in,out] y
  *     The n-element vector y, in an array of length (n-1)*abs(incy) + 1.
  *
  * @param[in] incy
@@ -48,41 +48,30 @@ namespace blas {
  * @ingroup rotm
  */
 template< typename TX, typename TY >
+inline
 void rotm(
     blas::idx_t n,
     TX *x, blas::int_t incx,
     TY *y, blas::int_t incy,
     blas::scalar_type<TX, TY> const param[5] )
 {
-    using internal::vector;
-
     // constants
     const int flag = (int) param[0];
+    auto h = &param[1];
 
     // check arguments
     blas_error_if( incx == 0 );
     blas_error_if( incy == 0 );
-
-    // quick return
-    if ( n == 0 || flag == -2 )
-        return;
-
-    // Views
-    auto _x = vector<TX>(
-        &x[(incx > 0 ? 0 : (-n + 1)*incx)],
-        n, incx );
-    auto _y = vector<TY>(
-        &y[(incy > 0 ? 0 : (-n + 1)*incy)],
-        n, incy );
-
-    switch (flag) {
-    case -2: return rotm<-2>(_x,_y,&param[1]);
-    case -1: return rotm<-1>(_x,_y,&param[1]);
-    case  0: return rotm< 0>(_x,_y,&param[1]);
-    case  1: return rotm< 1>(_x,_y,&param[1]);
-    default:
-        throw Error("Invalid flag in blas::rotm");
-    }
+    blas_error_if( flag < -2 && flag > 1 );
+    
+    tlapack_expr_with_2vectors(
+        _x, TX, n, x, incx,
+        _y, TY, n, y, incy,
+        if      ( flag == -2 ) return rotm<-2>(_x,_y,h);
+        else if ( flag == -1 ) return rotm<-1>(_x,_y,h);
+        else if ( flag ==  0 ) return rotm< 0>(_x,_y,h);
+        else                   return rotm< 1>(_x,_y,h);
+    );
 }
 
 }  // namespace blas

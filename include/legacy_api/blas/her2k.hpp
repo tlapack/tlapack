@@ -99,15 +99,7 @@ void her2k(
     real_type<TA, TB, TC> beta,  // note: real
     TC       *C, blas::idx_t ldc )
 {
-    typedef blas::scalar_type<TA, TB, TC> scalar_t;
-    typedef blas::real_type<TA, TB, TC> real_t;
     using blas::internal::colmajor_matrix;
-    using blas::internal::vector;
-
-    // constants
-    const real_t rzero( 0.0 );
-    const scalar_t zero( 0.0 );
-    const scalar_t one( 1.0 );
 
     // check arguments
     blas_error_if( layout != Layout::ColMajor &&
@@ -162,55 +154,6 @@ void her2k(
                   ? colmajor_matrix<TB>( (TB*)B, n, k, ldb )
                   : colmajor_matrix<TB>( (TB*)B, k, n, ldb );
     auto _C = colmajor_matrix<TC>( C, n, n, ldc );
-
-    // alpha == zero
-    if (alpha == zero) {
-        if (beta == rzero) {
-            if (uplo != Uplo::Upper) {
-                for(idx_t j = 0; j < n; ++j) {
-                    for(idx_t i = 0; i <= j; ++i)
-                        _C(i,j) = zero;
-                }
-            }
-            else if (uplo != Uplo::Lower) {
-                for(idx_t j = 0; j < n; ++j) {
-                    for(idx_t i = j; i < n; ++i)
-                        _C(i,j) = zero;
-                }
-            }
-            else {
-                for(idx_t j = 0; j < n; ++j) {
-                    for(idx_t i = 0; i < n; ++i)
-                        _C(i,j) = zero;
-                }
-            }
-        } else if (beta != one) {
-            if (uplo != Uplo::Upper) {
-                for(idx_t j = 0; j < n; ++j) {
-                    for(idx_t i = 0; i < j; ++i)
-                        _C(i,j) *= beta;
-                    _C(j,j) = beta * real( _C(j,j) );
-                }
-            }
-            else if (uplo != Uplo::Lower) {
-                for(idx_t j = 0; j < n; ++j) {
-                    _C(j,j) = beta * real( _C(j,j) );
-                    for(idx_t i = j+1; i < n; ++i)
-                        _C(i,j) *= beta;
-                }
-            }
-            else {
-                for(idx_t j = 0; j < n; ++j) {
-                    for(idx_t i = 0; i < j; ++i)
-                        _C(i,j) *= beta;
-                    _C(j,j) = beta * real( _C(j,j) );
-                    for(idx_t i = j+1; i < n; ++i)
-                        _C(i,j) *= beta;
-                }
-            }
-        }
-        return;
-    }
 
     her2k( uplo, trans, alpha, _A, _B, beta, _C );
 }

@@ -80,9 +80,9 @@ inline int unm2r(
 
     // Matrix views
     const auto _A = colmajor_matrix<TA>( (TA*)A, q, k, lda );
-    const auto _tau = vector<TA>( (TA*)tau, k );
+    const auto _tau = vector( (TA*)tau, k );
     auto _C = colmajor_matrix<TC>( C, m, n, ldc );
-    auto _work = vector<TC>( work, q );
+    auto _work = vector( work, q );
 
     int info = unm2r( side, trans, A, _tau, _C, _work );
 

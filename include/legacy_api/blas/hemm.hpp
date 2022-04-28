@@ -93,12 +93,7 @@ void hemm(
     scalar_type<TA, TB, TC> beta,
     TC       *C, blas::idx_t ldc )
 {    
-    typedef blas::scalar_type<TA, TB, TC> scalar_t;
     using blas::internal::colmajor_matrix;
-            
-    // constants
-    const scalar_t zero( 0.0 );
-    const scalar_t one( 1.0 );
 
     // check arguments
     blas_error_if( layout != Layout::ColMajor &&
@@ -135,24 +130,7 @@ void hemm(
                   ? colmajor_matrix<TA>( (TA*)A, m, m, lda )
                   : colmajor_matrix<TA>( (TA*)A, n, n, lda );
     const auto _B = colmajor_matrix<TB>( (TB*)B, m, n, ldb );
-          auto _C = colmajor_matrix<TC>( C, m, n, ldc );
-
-    // alpha == zero
-    if (alpha == zero) {
-        if (beta == zero) {
-            for(idx_t j = 0; j < n; ++j) {
-                for(idx_t i = 0; i < m; ++i)
-                    _C(i,j) = zero;
-            }
-        }
-        else if (beta != one) {
-            for(idx_t j = 0; j < n; ++j) {
-                for(idx_t i = 0; i < m; ++i)
-                    _C(i,j) *= beta;
-            }
-        }
-        return;
-    }
+    auto _C = colmajor_matrix<TC>( C, m, n, ldc );
 
     hemm( side, uplo, alpha, _A, _B, beta, _C );
 }

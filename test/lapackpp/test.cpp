@@ -674,7 +674,7 @@ int main( int argc, char** argv )
 
     int status = 0;
     try {
-        printf( "Running tests from https://bitbucket.org/icl/lapackpp/src/master/test\n" );
+        printf( "Running tests from https://bitbucket.org/weslleyspereira/lapackpp/src/tlapack/test \n" );
 
         // print input so running `test [input] > out.txt` documents input
         printf( "input: %s", argv[0] );

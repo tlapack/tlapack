@@ -15,8 +15,8 @@ namespace blas {
 
 /**
  * Copy vector, $y = x$.
- *
- * Generic implementation for arbitrary data types.
+ * 
+ * Wrapper to copy( const vectorX_t& x, vectorY_t& y ).
  *
  * @param[in] n
  *     Number of elements in x and y. n >= 0.
@@ -42,22 +42,15 @@ void copy(
     blas::idx_t n,
     TX const *x, blas::int_t incx,
     TY       *y, blas::int_t incy )
-{
-    using internal::vector;
-    
-    // check arguments
+{    
     blas_error_if( incx == 0 );
     blas_error_if( incy == 0 );
-
-    // Views
-    const auto _x = vector<TX>(
-        (TX*) &x[(incx > 0 ? 0 : (-n + 1)*incx)],
-        n, incx );
-    auto _y = vector<TY>(
-        &y[(incy > 0 ? 0 : (-n + 1)*incy)],
-        n, incy );
-
-    copy( _x, _y );
+    
+    tlapack_expr_with_2vectors(
+        _x, TX, n, x, incx,
+        _y, TY, n, y, incy,
+        return copy( _x, _y )
+    );
 }
 
 }  // namespace blas

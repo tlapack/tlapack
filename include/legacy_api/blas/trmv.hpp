@@ -57,7 +57,7 @@ namespace blas {
  * @param[in] lda
  *     Leading dimension of A. lda >= max(1, n).
  *
- * @param[in, out] x
+ * @param[in,out] x
  *     The n-element vector x, in an array of length (n-1)*abs(incx) + 1.
  *
  * @param[in] incx
@@ -77,7 +77,6 @@ void trmv(
     TX       *x, blas::int_t incx )
 {
     using blas::internal::colmajor_matrix;
-    using blas::internal::vector;
 
     // check arguments
     blas_error_if( layout != Layout::ColMajor &&
@@ -108,9 +107,8 @@ void trmv(
         
     // Matrix views
     const auto _A = colmajor_matrix<TA>( (TA*)A, n, n, lda );
-    auto _x = vector<TX>( &x[(incx > 0 ? 0 : (-n + 1)*incx)], n, incx );
 
-    trmv( uplo, trans, diag, _A, _x );
+    tlapack_expr_with_vector( _x, TX, n, x, incx, return trmv( uplo, trans, diag, _A, _x ) );
 }
 
 }  // namespace blas
