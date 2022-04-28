@@ -7,7 +7,6 @@
 // testBLAS is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-
 #include <plugins/tlapack_stdvector.hpp>
 
 #include <catch2/catch.hpp>
@@ -121,7 +120,7 @@ TEST_CASE("Multishift sweep", "[eigenvalues]")
         // Compute ||Q'Q - I||_F
         norm_orth_1 = lansy(frob_norm, Uplo::Upper, work);
 
-        CHECK(norm_orth_1 <= 1.0e2 * eps);
+        CHECK(norm_orth_1 <= 1.0e2 * n * eps);
 
         if (verbose)
         {
@@ -159,7 +158,7 @@ TEST_CASE("Multishift sweep", "[eigenvalues]")
         // Compute ||Q'Q - I||_F
         norm_repres_1 = lange(frob_norm, A_copy);
 
-        CHECK( norm_repres_1 <=  1.0e2*eps);
+        CHECK(norm_repres_1 <= 1.0e2 * n * eps);
     }
 
     if (verbose)
@@ -178,11 +177,11 @@ TEST_CASE("AED", "[eigenvalues]")
 
     const T zero(0);
     const T one(1);
-    const idx_t n = 10;
-    const idx_t window_size = 8;
+    const idx_t n = 12;
+    const idx_t window_size = 4;
     const real_t eps = uroundoff<real_t>();
 
-    const bool verbose = false;
+    const bool verbose = true;
 
     std::unique_ptr<T[]> _A(new T[n * n]);
     auto A = colmajor_matrix<T>(&_A[0], n, n);
@@ -216,7 +215,15 @@ TEST_CASE("AED", "[eigenvalues]")
 
     auto normA = lange(lapack::frob_norm, A);
 
-    agressive_early_deflation(true, true, (idx_t)0, n, window_size, A, s, Q);
+    idx_t ns, nd;
+
+    agressive_early_deflation(true, true, (idx_t)0, n, window_size, A, s, Q, ns, nd);
+
+    for (size_t j = 0; j < n; ++j)
+        for (size_t i = j + 2; i < n; ++i)
+            A(i, j) = zero;
+
+    // Clean the lower triangular part that was used a workspace
 
     // Print Q and A
     if (verbose)
@@ -249,7 +256,7 @@ TEST_CASE("AED", "[eigenvalues]")
         // Compute ||Q'Q - I||_F
         norm_orth_1 = lansy(frob_norm, Uplo::Upper, work);
 
-        CHECK(norm_orth_1 <= 1.0e2 * eps);
+        CHECK(norm_orth_1 <= 1.0e2 * n * eps);
 
         if (verbose)
         {
@@ -261,7 +268,6 @@ TEST_CASE("AED", "[eigenvalues]")
 
     // 3) Compute Q*A_copyQ
 
-    if (verbose)
     {
         std::unique_ptr<T[]> _work(new T[n * n]);
         auto work = colmajor_matrix<T>(&_work[0], n, n);
@@ -272,22 +278,28 @@ TEST_CASE("AED", "[eigenvalues]")
         blas::gemm(blas::Op::ConjTrans, blas::Op::NoTrans, (T)1.0, Q, A_copy, (T)0.0, work);
         blas::gemm(blas::Op::NoTrans, blas::Op::NoTrans, (T)1.0, work, Q, (T)0.0, A_copy);
 
-        std::cout << std::endl
-                  << "Q'A_copyQ = ";
-        printMatrix(A_copy);
+        if (verbose)
+        {
+            std::cout << std::endl
+                      << "Q'A_copyQ = ";
+            printMatrix(A_copy);
+        }
 
         for (size_t j = 0; j < n; ++j)
             for (size_t i = 0; i < n; ++i)
                 A_copy(i, j) -= A(i, j);
 
-        std::cout << std::endl
-                  << "Q'A_copyQ - A = ";
-        printMatrix(A_copy);
+        if (verbose)
+        {
+            std::cout << std::endl
+                      << "Q'A_copyQ - A = ";
+            printMatrix(A_copy);
+        }
 
         // Compute ||Q'Q - I||_F
         norm_repres_1 = lange(frob_norm, A_copy);
 
-        CHECK( norm_repres_1 <=  1.0e2*eps);
+        CHECK(norm_repres_1 <= 1.0e2 * n * eps);
     }
 
     if (verbose)
