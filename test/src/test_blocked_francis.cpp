@@ -34,6 +34,148 @@ inline void printMatrix(const matrix_t &A)
     }
 }
 
+TEST_CASE("Multishift QR", "[eigenvalues]")
+{
+
+    typedef float T;
+    typedef std::size_t idx_t;
+    typedef real_type<T> real_t;
+    typedef std::complex<real_t> complex_t;
+
+    using internal::colmajor_matrix;
+
+    const T zero(0);
+    const T one(1);
+    const idx_t n = 12;
+    const real_t eps = uroundoff<real_t>();
+
+    const bool verbose = true;
+
+    std::unique_ptr<T[]> _A(new T[n * n]);
+    auto A = colmajor_matrix<T>(&_A[0], n, n);
+
+    std::unique_ptr<T[]> _A_copy(new T[n * n]);
+    auto A_copy = colmajor_matrix<T>(&_A_copy[0], n, n);
+
+    std::unique_ptr<T[]> _Q(new T[n * n]);
+    auto Q = colmajor_matrix<T>(&_Q[0], n, n);
+
+    auto s = std::vector<complex_t>(n);
+
+    // Generate a random upper Hessenberg matrix in A
+    for (idx_t j = 0; j < n; ++j)
+        for (idx_t i = 0; i < std::min(n, j + 2); ++i)
+            A(i, j) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+
+    for (size_t j = 0; j < n; ++j)
+        for (size_t i = j + 2; i < n; ++i)
+            A(i, j) = zero;
+
+    lacpy(Uplo::General, A, A_copy);
+    laset(Uplo::General, zero, one, Q);
+
+    // Print original A
+    if (verbose)
+    {
+        printMatrix(A);
+    }
+
+    auto normA = lange(lapack::frob_norm, A);
+
+    multishift_qr(true, true, 0, n, A, s, Q);
+
+    // Clean the lower triangular part that was used a workspace
+    for (size_t j = 0; j < n; ++j)
+        for (size_t i = j + 2; i < n; ++i)
+            A(i, j) = zero;
+
+    // Print Q and A
+    if (verbose)
+    {
+        std::cout << std::endl
+                  << "Q = ";
+        printMatrix(Q);
+        std::cout << std::endl
+                  << "A = ";
+        printMatrix(A);
+    }
+
+    real_t norm_orth_1, norm_repres_1;
+
+    // 2) Compute ||Q'Q - I||_F
+
+    {
+        std::unique_ptr<T[]> _work(new T[n * n]);
+        auto work = colmajor_matrix<T>(&_work[0], n, n);
+        for (size_t j = 0; j < n; ++j)
+            for (size_t i = 0; i < n; ++i)
+                work(i, j) = static_cast<float>(0xABADBABE);
+
+        // work receives the identity n*n
+        laset(Uplo::General, (T)0.0, (T)1.0, work);
+        // work receives Q'Q - I
+        // blas::syrk( blas::Uplo::Upper, blas::Op::ConjTrans, (T) 1.0, Q, (T) -1.0, work );
+        gemm(Op::ConjTrans, Op::NoTrans, (T)1.0, Q, Q, (T)-1.0, work);
+
+        // Compute ||Q'Q - I||_F
+        norm_orth_1 = lansy(frob_norm, Uplo::Upper, work);
+
+        CHECK(norm_orth_1 <= 1.0e2 * n * eps);
+
+        if (verbose)
+        {
+            std::cout << std::endl
+                      << "Q'Q-I = ";
+            printMatrix(work);
+        }
+    }
+
+    // 3) Compute Q*A_copyQ
+
+    {
+        std::unique_ptr<T[]> _work(new T[n * n]);
+        auto work = colmajor_matrix<T>(&_work[0], n, n);
+        for (size_t j = 0; j < n; ++j)
+            for (size_t i = 0; i < n; ++i)
+                work(i, j) = static_cast<float>(0xABADBABC);
+
+        blas::gemm(blas::Op::ConjTrans, blas::Op::NoTrans, (T)1.0, Q, A_copy, (T)0.0, work);
+        blas::gemm(blas::Op::NoTrans, blas::Op::NoTrans, (T)1.0, work, Q, (T)0.0, A_copy);
+
+
+
+        for (size_t j = 0; j < n; ++j)
+            for (size_t i = j + 2; i < n; ++i)
+                A_copy(i, j) = zero;
+
+        if (verbose)
+        {
+            std::cout << std::endl
+                      << "Q'A_copyQ = ";
+            printMatrix(A_copy);
+        }
+
+        for (size_t j = 0; j < n; ++j)
+            for (size_t i = 0; i < n; ++i)
+                A_copy(i, j) -= A(i, j);
+
+        if (verbose)
+        {
+            std::cout << std::endl
+                      << "Q'A_copyQ - A = ";
+            printMatrix(A_copy);
+        }
+
+        // Compute ||Q'Q - I||_F
+        norm_repres_1 = lange(frob_norm, A_copy);
+
+        // CHECK(norm_repres_1 <= 1.0e2 * n * eps);
+    }
+
+    if (verbose)
+        std::cout << std::endl;
+}
+
 TEST_CASE("Multishift sweep", "[eigenvalues]")
 {
 
@@ -48,6 +190,8 @@ TEST_CASE("Multishift sweep", "[eigenvalues]")
     const T one(1);
     const idx_t n = 15;
     const idx_t n_shifts = 4;
+    const idx_t ilo = 1;
+    const idx_t ihi = n-1;
     const real_t eps = uroundoff<real_t>();
 
     const bool verbose = true;
@@ -79,6 +223,14 @@ TEST_CASE("Multishift sweep", "[eigenvalues]")
         for (size_t i = j + 2; i < n; ++i)
             A(i, j) = zero;
 
+    // Make A consistent with ilo and ihi
+    for (size_t j = 0; j < ilo; ++j)
+        for (size_t i = j + 1; i < n; ++i)
+            A(i, j) = zero;
+    for (size_t i = ihi; i < n; ++i)
+        for (size_t j = 0; j < i; ++j)
+            A(i, j) = zero;
+
     lacpy(Uplo::General, A, A_copy);
     laset(Uplo::General, zero, one, Q);
 
@@ -90,7 +242,7 @@ TEST_CASE("Multishift sweep", "[eigenvalues]")
 
     auto normA = lange(lapack::frob_norm, A);
 
-    multishift_QR_sweep(true, true, 0, n, A, s, Q, V);
+    multishift_QR_sweep(true, true, ilo, ihi, A, s, Q, V);
 
     // Clean the lower triangular part that was used a workspace
     for (size_t j = 0; j < n; ++j)

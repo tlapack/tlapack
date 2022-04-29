@@ -79,7 +79,7 @@ namespace lapack
         class vector_t,
         typename idx_t = size_type<matrix_t>,
         enable_if_t<is_complex<type_t<vector_t>>::value, bool> = true>
-    void agressive_early_deflation(bool want_t, bool want_z, idx_t ilo, idx_t ihi, idx_t nw, matrix_t &A, vector_t &s, matrix_t &Z, idx_t ns, idx_t nd)
+    void agressive_early_deflation(bool want_t, bool want_z, idx_t ilo, idx_t ihi, idx_t nw, matrix_t &A, vector_t &s, matrix_t &Z, idx_t& ns, idx_t& nd)
     {
 
         using T = type_t<matrix_t>;
@@ -164,7 +164,7 @@ namespace lapack
         // by checking the bottom spike element. If it is not deflatable,
         // we move the block up. This moves other blocks down to check.
         ns = jw;
-        idx_t ilst = infqr + 1;
+        idx_t ilst = infqr;
         while (ilst < ns)
         {
             bool bulge = false;
@@ -199,6 +199,7 @@ namespace lapack
                 auto foo = abs(TW(ns - 1, ns - 1)) + sqrt(abs(TW(ns - 1, ns - 2))) * sqrt(abs(TW(ns - 2, ns - 1)));
                 if (foo == zero)
                     foo = abs(s_spike);
+                auto foo2 = max(abs(s_spike * V(0, ns - 1)), abs(s_spike * V(0, ns - 2)));
                 if (max(abs(s_spike * V(0, ns - 1)), abs(s_spike * V(0, ns - 2))) <= max<real_t>(small_num, eps * foo))
                 {
                     // Eigenvalue pair is deflatable

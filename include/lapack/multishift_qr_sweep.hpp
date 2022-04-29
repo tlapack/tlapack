@@ -301,7 +301,7 @@ namespace lapack
                 }
             }
 
-            i_pos_block = n_block - n_shifts;
+            i_pos_block = ilo + n_block - n_shifts;
         }
 
         //
