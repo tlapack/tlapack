@@ -8,13 +8,12 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __LAPY3_HH__
-#define __LAPY3_HH__
+#ifndef __TLAPACK_LAPY3_HH__
+#define __TLAPACK_LAPY3_HH__
 
-#include "lapack/types.hpp"
-#include "lapack/utils.hpp"
+#include "base/utils.hpp"
 
-namespace lapack {
+namespace tlapack {
 
 /** Finds $\sqrt{x^2+y^2+z^2}$, taking care not to cause unnecessary overflow or unnecessary underflow.
  * 
@@ -39,9 +38,6 @@ real_type<TX,TY,TZ> lapy3(
 {
     // using
     using real_t = real_type<TX,TY,TZ>;
-    using blas::abs;
-    using blas::sqrt;
-    using blas::max;
 
     // constants
     const real_t zero( 0 );

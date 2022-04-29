@@ -5,12 +5,12 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef BLAS_SCAL_HH
-#define BLAS_SCAL_HH
+#ifndef __TLAPACK_BLAS_SCAL_HH__
+#define __TLAPACK_BLAS_SCAL_HH__
 
-#include "blas/utils.hpp"
+#include "base/utils.hpp"
 
-namespace blas {
+namespace tlapack {
 
 /**
  * Scale vector by constant, $x := \alpha x$.
@@ -32,6 +32,6 @@ void scal( const alpha_t& alpha, vector_t& x )
         x[i] *= alpha;
 }
 
-}  // namespace blas
+}  // namespace tlapack
 
-#endif        //  #ifndef BLAS_SCAL_HH
+#endif        //  #ifndef __TLAPACK_BLAS_SCAL_HH__

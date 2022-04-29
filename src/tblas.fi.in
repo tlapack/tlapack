@@ -11,8 +11,8 @@ bind(C, name="saxpy")
     use, intrinsic :: iso_c_binding
     implicit none
 
-    integer(@FBLAS_SIZE_T@), value :: n
-    integer(@FBLAS_INT_T@), value :: incx, incy
+    integer(@FTLAPACK_SIZE_T@), value :: n
+    integer(@FTLAPACK_INT_T@), value :: incx, incy
     real(c_float), value :: alpha
     type(c_ptr), value :: x, y
 end subroutine
@@ -22,8 +22,8 @@ bind(C, name="daxpy")
     use, intrinsic :: iso_c_binding
     implicit none
 
-    integer(@FBLAS_SIZE_T@), value :: n
-    integer(@FBLAS_INT_T@), value :: incx, incy
+    integer(@FTLAPACK_SIZE_T@), value :: n
+    integer(@FTLAPACK_INT_T@), value :: incx, incy
     real(c_double), value :: alpha
     type(c_ptr), value :: x, y
 end subroutine
@@ -33,8 +33,8 @@ bind(C, name="caxpy")
     use, intrinsic :: iso_c_binding
     implicit none
 
-    integer(@FBLAS_SIZE_T@), value :: n
-    integer(@FBLAS_INT_T@), value :: incx, incy
+    integer(@FTLAPACK_SIZE_T@), value :: n
+    integer(@FTLAPACK_INT_T@), value :: incx, incy
     complex(c_float_complex), value :: alpha
     type(c_ptr), value :: x, y
 end subroutine
@@ -44,8 +44,8 @@ bind(C, name="zaxpy")
     use, intrinsic :: iso_c_binding
     implicit none
 
-    integer(@FBLAS_SIZE_T@), value :: n
-    integer(@FBLAS_INT_T@), value :: incx, incy
+    integer(@FTLAPACK_SIZE_T@), value :: n
+    integer(@FTLAPACK_INT_T@), value :: incx, incy
     complex(c_double_complex), value :: alpha
     type(c_ptr), value :: x, y
 end subroutine
@@ -55,8 +55,8 @@ bind(C, name="snrm2")
     use, intrinsic :: iso_c_binding
     implicit none
 
-    integer(@FBLAS_SIZE_T@), value :: n
-    integer(@FBLAS_INT_T@), value :: incx
+    integer(@FTLAPACK_SIZE_T@), value :: n
+    integer(@FTLAPACK_INT_T@), value :: incx
     type(c_ptr), value :: x
 end function
 
@@ -67,7 +67,7 @@ bind(C, name="ssymm")
     implicit none
 
     character(c_char), value :: layout, side, uplo
-    integer(@FBLAS_SIZE_T@), value :: m, n, lda, ldb, ldc
+    integer(@FTLAPACK_SIZE_T@), value :: m, n, lda, ldb, ldc
     real(c_float), value :: alpha, beta
     type(c_ptr), value :: A, B, C
 end subroutine

@@ -12,16 +12,15 @@
 #include <iostream>
 #include <iomanip>
 
-using namespace blas;
-using namespace lapack;
+using namespace tlapack;
 
 // This should really be moved to test utils or something
 template <typename matrix_t>
 inline void printMatrix(const matrix_t &A)
 {
-    using idx_t = blas::size_type<matrix_t>;
-    const idx_t m = blas::nrows(A);
-    const idx_t n = blas::ncols(A);
+    using idx_t = size_type<matrix_t>;
+    const idx_t m = nrows(A);
+    const idx_t n = ncols(A);
 
     for (idx_t i = 0; i < m; ++i)
     {
@@ -85,7 +84,7 @@ TEST_CASE("forward move of 1x1 block gives correct results", "[utils]")
         // work receives the identity n*n
         laset(Uplo::General, (T)0.0, (T)1.0, work);
         // work receives Q'Q - I
-        // blas::syrk( blas::Uplo::Upper, blas::Op::ConjTrans, (T) 1.0, Q, (T) -1.0, work );
+        // syrk( Uplo::Upper, Op::ConjTrans, (T) 1.0, Q, (T) -1.0, work );
         gemm(Op::ConjTrans, Op::NoTrans, (T)1.0, Q, Q, (T)-1.0, work);
 
         // Compute ||Q'Q - I||_F
@@ -189,7 +188,7 @@ TEST_CASE("forward move of 2x2 block gives correct results", "[utils]")
         // work receives the identity n*n
         laset(Uplo::General, (T)0.0, (T)1.0, work);
         // work receives Q'Q - I
-        // blas::syrk( blas::Uplo::Upper, blas::Op::ConjTrans, (T) 1.0, Q, (T) -1.0, work );
+        // syrk( Uplo::Upper, Op::ConjTrans, (T) 1.0, Q, (T) -1.0, work );
         gemm(Op::ConjTrans, Op::NoTrans, (T)1.0, Q, Q, (T)-1.0, work);
 
         // Compute ||Q'Q - I||_F
@@ -291,7 +290,7 @@ TEST_CASE("backward move of 1x1 block gives correct results", "[utils]")
         // work receives the identity n*n
         laset(Uplo::General, (T)0.0, (T)1.0, work);
         // work receives Q'Q - I
-        // blas::syrk( blas::Uplo::Upper, blas::Op::ConjTrans, (T) 1.0, Q, (T) -1.0, work );
+        // syrk( Uplo::Upper, Op::ConjTrans, (T) 1.0, Q, (T) -1.0, work );
         gemm(Op::ConjTrans, Op::NoTrans, (T)1.0, Q, Q, (T)-1.0, work);
 
         // Compute ||Q'Q - I||_F
@@ -394,7 +393,7 @@ TEST_CASE("backward move of 2x2 block gives correct results", "[utils]")
         // work receives the identity n*n
         laset(Uplo::General, (T)0.0, (T)1.0, work);
         // work receives Q'Q - I
-        // blas::syrk( blas::Uplo::Upper, blas::Op::ConjTrans, (T) 1.0, Q, (T) -1.0, work );
+        // syrk( Uplo::Upper, Op::ConjTrans, (T) 1.0, Q, (T) -1.0, work );
         gemm(Op::ConjTrans, Op::NoTrans, (T)1.0, Q, Q, (T)-1.0, work);
 
         // Compute ||Q'Q - I||_F

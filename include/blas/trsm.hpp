@@ -5,12 +5,12 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef BLAS_TRSM_HH
-#define BLAS_TRSM_HH
+#ifndef __TLAPACK_BLAS_TRSM_HH__
+#define __TLAPACK_BLAS_TRSM_HH__
 
-#include "blas/utils.hpp"
+#include "base/utils.hpp"
 
-namespace blas {
+namespace tlapack {
 
 /**
  * Solve the triangular matrix-vector equation
@@ -64,13 +64,18 @@ namespace blas {
  * @ingroup trsm
  */
 template< class matrixA_t, class matrixB_t, class alpha_t,
-    disable_if_allow_optblas_t<matrixA_t, matrixB_t, alpha_t> = 0
+    class T  = alpha_t,
+    disable_if_allow_optblas_t<
+        pair< matrixA_t, T >,
+        pair< matrixB_t, T >,
+        pair< alpha_t,   T >
+    > = 0
 >
 void trsm(
-    blas::Side side,
-    blas::Uplo uplo,
-    blas::Op trans,
-    blas::Diag diag,
+    Side side,
+    Uplo uplo,
+    Op trans,
+    Diag diag,
     const alpha_t alpha,
     const matrixA_t& A,
     matrixB_t& B )
@@ -83,20 +88,20 @@ void trsm(
     const idx_t n = ncols(B);
 
     // check arguments
-    blas_error_if( side != Side::Left &&
+    tblas_error_if( side != Side::Left &&
                    side != Side::Right );
-    blas_error_if( uplo != Uplo::Lower &&
+    tblas_error_if( uplo != Uplo::Lower &&
                    uplo != Uplo::Upper );
-    blas_error_if( trans != Op::NoTrans &&
+    tblas_error_if( trans != Op::NoTrans &&
                    trans != Op::Trans &&
                    trans != Op::ConjTrans );
-    blas_error_if( diag != Diag::NonUnit &&
+    tblas_error_if( diag != Diag::NonUnit &&
                    diag != Diag::Unit );
-    blas_error_if( nrows(A) != ncols(A) );
-    blas_error_if( nrows(A) != ((side == Side::Left) ? m : n) );
+    tblas_error_if( nrows(A) != ncols(A) );
+    tblas_error_if( nrows(A) != ((side == Side::Left) ? m : n) );
 
-    blas_error_if( access_denied( uplo, read_policy(A) ) );
-    blas_error_if( access_denied( dense, write_policy(B) ) );
+    tblas_error_if( access_denied( uplo, read_policy(A) ) );
+    tblas_error_if( access_denied( dense, write_policy(B) ) );
 
     if (side == Side::Left) {
         if (trans == Op::NoTrans) {
@@ -272,30 +277,6 @@ void trsm(
     }
 }
 
-template< class matrixA_t, class matrixB_t, class alpha_t,
-    enable_if_allow_optblas_t<matrixA_t, matrixB_t, alpha_t> = 0
->
-void trsm(
-    blas::Side side,
-    blas::Uplo uplo,
-    blas::Op trans,
-    blas::Diag diag,
-    const alpha_t alpha,
-    const matrixA_t& A,
-    matrixB_t& B )
-{
-    // Legacy objects
-    auto _A = legacy_matrix(A);
-    auto _B = legacy_matrix(B);
+}  // namespace tlapack
 
-    trsm(
-        _A.layout, side, uplo, trans, diag,
-        _B.m, _B.n,
-        alpha,
-        _A.ptr, _A.ldim,
-        _B.ptr, _B.ldim );
-}
-
-}  // namespace blas
-
-#endif        //  #ifndef BLAS_TRSM_HH
+#endif        //  #ifndef __TLAPACK_BLAS_TRSM_HH__

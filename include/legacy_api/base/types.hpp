@@ -7,13 +7,33 @@
 #ifndef __TLAPACK_LEGACY_TYPES_HH__
 #define __TLAPACK_LEGACY_TYPES_HH__
 
-#include "legacy_api/blas/types.hpp"
-#include "lapack/types.hpp"
+#include "base/types.hpp"
 
-namespace lapack {
+// -----------------------------------------------------------------------------
+// Integer types TLAPACK_SIZE_T and TLAPACK_INT_T
 
-using blas::idx_t;
-using blas::int_t;
+#include <cstdint> // Defines std::int64_t
+#include <cstddef> // Defines std::size_t
+
+#if defined(USE_BLASPP_WRAPPERS) || defined(USE_LAPACKPP_WRAPPERS)
+    #ifndef TLAPACK_SIZE_T
+        #define TLAPACK_SIZE_T std::int64_t
+    #endif
+#else
+    #ifndef TLAPACK_SIZE_T
+        #define TLAPACK_SIZE_T std::size_t
+    #endif
+#endif
+
+#ifndef TLAPACK_INT_T
+    #define TLAPACK_INT_T std::int64_t
+#endif
+// -----------------------------------------------------------------------------
+
+namespace tlapack {
+    
+using idx_t = TLAPACK_SIZE_T;
+using int_t = TLAPACK_INT_T;
 
 // -----------------------------------------------------------------------------
 enum class Sides {
@@ -150,6 +170,6 @@ enum class RowCol {
     Row = 'R',
 };
 
-} // namespace lapack
+} // namespace tlapack
 
 #endif // __TLAPACK_LEGACY_TYPES_HH__

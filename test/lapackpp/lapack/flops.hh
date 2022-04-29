@@ -13,6 +13,8 @@
 #include <complex>
 
 namespace lapack {
+    
+    using namespace tlapack;
 
 //==============================================================================
 // Generic formulas come from LAWN 41

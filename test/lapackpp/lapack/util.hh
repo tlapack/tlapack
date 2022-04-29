@@ -9,12 +9,12 @@
 #define LAPACK_UTIL_HH
 
 #include "blas.hh"
-#include "lapack/utils.hpp"
-#include "legacy_api/lapack/types.hpp"
+#include "base/utils.hpp"
+#include "legacy_api/base/types.hpp"
 
 namespace lapack {
-
-    using blas::Error;
+    
+    using namespace tlapack;
 
     inline char sides2char( Sides sides )
     {
@@ -572,5 +572,13 @@ namespace lapack {
     }
 
 }
+
+using lapack::matrixtype2char;
+using lapack::norm2char;
+using blas::uplo2char;
+using blas::op2char;
+using blas::side2char;
+using lapack::direction2char;
+using lapack::storev2char;
 
 #endif  // LAPACK_UTIL_HH

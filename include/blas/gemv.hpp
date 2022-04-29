@@ -5,12 +5,12 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef BLAS_GEMV_HH
-#define BLAS_GEMV_HH
+#ifndef __TLAPACK_BLAS_GEMV_HH__
+#define __TLAPACK_BLAS_GEMV_HH__
 
-#include "blas/utils.hpp"
+#include "base/utils.hpp"
 
-namespace blas {
+namespace tlapack {
 
 /**
  * General matrix-vector multiply:
@@ -62,14 +62,14 @@ void gemv(
                     : nrows(A);
 
     // check arguments
-    blas_error_if( trans != Op::NoTrans &&
+    tblas_error_if( trans != Op::NoTrans &&
                    trans != Op::Trans &&
                    trans != Op::ConjTrans &&
                    trans != Op::Conj );
-    blas_error_if( size(x) != n );
-    blas_error_if( size(y) != m );
+    tblas_error_if( size(x) != n );
+    tblas_error_if( size(y) != m );
 
-    blas_error_if( access_denied( dense, read_policy(A) ) );
+    tblas_error_if( access_denied( dense, read_policy(A) ) );
 
     // quick return
     if (m == 0 || n == 0 || (alpha == alpha_t(0) && beta == beta_t(1)))
@@ -131,6 +131,6 @@ void gemv(
     }
 }
 
-}  // namespace blas
+}  // namespace tlapack
 
-#endif        //  #ifndef BLAS_GEMV_HH
+#endif        //  #ifndef __TLAPACK_BLAS_GEMV_HH__

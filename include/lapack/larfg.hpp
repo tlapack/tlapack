@@ -8,17 +8,17 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __LARFG_HH__
-#define __LARFG_HH__
+#ifndef __TLAPACK_LARFG_HH__
+#define __TLAPACK_LARFG_HH__
 
-#include "lapack/types.hpp"
+#include "base/types.hpp"
 #include "lapack/lapy2.hpp"
 #include "lapack/lapy3.hpp"
-#include "lapack/utils.hpp"
+#include "base/utils.hpp"
 
 #include "tblas.hpp"
 
-namespace lapack {
+namespace tlapack {
 
 /** Generates a elementary Householder reflection.
  *
@@ -62,14 +62,6 @@ void larfg( alpha_t& alpha, vector_t& x, tau_t& tau )
 
     // using
     using real_t = real_type< alpha_t, TX >;
-    using blas::real;
-    using blas::imag;
-    using blas::abs;
-    using blas::nrm2;
-    using blas::scal;
-    using blas::safe_min;
-    using blas::uroundoff;
-    using blas::is_complex;
 
     // constants
     const idx_t n = size(x) + 1;
@@ -129,7 +121,7 @@ template< class vector_t, class tau_t >
 void larfg( vector_t& v, tau_t& tau )
 {
     using idx_t = size_type< vector_t >;
-    using pair  = std::pair<idx_t,idx_t>;
+    using pair  = pair<idx_t,idx_t>;
 
     const idx_t n = size(v);
     auto x = slice( v, n > 1 ? pair{1,n} : pair{0,0} );

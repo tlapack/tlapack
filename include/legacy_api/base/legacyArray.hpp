@@ -4,21 +4,21 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TBLAS_LEGACYARRAY_HH__
-#define __TBLAS_LEGACYARRAY_HH__
+#ifndef __TLAPACK_LEGACY_LEGACYARRAY_HH__
+#define __TLAPACK_LEGACY_LEGACYARRAY_HH__
 
 #include "legacy_api/legacyArray.hpp"
 
-namespace blas {
+namespace tlapack {
 
 namespace internal {
 
     template< typename T >
     inline constexpr auto colmajor_matrix(
         T* A, 
-        BLAS_SIZE_T m, 
-        BLAS_SIZE_T n, 
-        BLAS_SIZE_T lda ) noexcept
+        TLAPACK_SIZE_T m, 
+        TLAPACK_SIZE_T n, 
+        TLAPACK_SIZE_T lda ) noexcept
     {
         return legacyMatrix<T,Layout::ColMajor>{ m, n, A, lda };
     }
@@ -26,8 +26,8 @@ namespace internal {
     template< typename T >
     inline constexpr auto colmajor_matrix(
         T* A, 
-        BLAS_SIZE_T m, 
-        BLAS_SIZE_T n ) noexcept
+        TLAPACK_SIZE_T m, 
+        TLAPACK_SIZE_T n ) noexcept
     {
         return legacyMatrix<T,Layout::ColMajor>{ m, n, A, m };
     }
@@ -35,9 +35,9 @@ namespace internal {
     template< typename T >
     inline constexpr auto rowmajor_matrix(
         T* A, 
-        BLAS_SIZE_T m, 
-        BLAS_SIZE_T n, 
-        BLAS_SIZE_T lda ) noexcept
+        TLAPACK_SIZE_T m, 
+        TLAPACK_SIZE_T n, 
+        TLAPACK_SIZE_T lda ) noexcept
     {
         return legacyMatrix<T,Layout::RowMajor>{ m, n, A, lda };
     }
@@ -45,8 +45,8 @@ namespace internal {
     template< typename T >
     inline constexpr auto rowmajor_matrix(
         T* A, 
-        BLAS_SIZE_T m, 
-        BLAS_SIZE_T n ) noexcept
+        TLAPACK_SIZE_T m, 
+        TLAPACK_SIZE_T n ) noexcept
     {
         return legacyMatrix<T,Layout::RowMajor>{ m, n, A, n };
     }
@@ -54,34 +54,34 @@ namespace internal {
     template< typename T >
     inline constexpr auto banded_matrix(
         T* A, 
-        BLAS_SIZE_T m, 
-        BLAS_SIZE_T n, 
-        BLAS_SIZE_T kl, 
-        BLAS_SIZE_T ku ) noexcept
+        TLAPACK_SIZE_T m, 
+        TLAPACK_SIZE_T n, 
+        TLAPACK_SIZE_T kl, 
+        TLAPACK_SIZE_T ku ) noexcept
     {
         return legacyBandedMatrix<T>{ m, n, kl, ku, A };
     }
 
     template< typename T, typename int_t >
-    inline constexpr auto vector( T* x, BLAS_SIZE_T n, int_t inc ) noexcept
+    inline constexpr auto vector( T* x, TLAPACK_SIZE_T n, int_t inc ) noexcept
     {
         return legacyVector<T,int_t>{ n, x, inc };
     }
 
     template< typename T >
-    inline constexpr auto vector( T* x, BLAS_SIZE_T n ) noexcept
+    inline constexpr auto vector( T* x, TLAPACK_SIZE_T n ) noexcept
     {
         return legacyVector<T>{ n, x, one };
     }
 
     template< typename T, typename int_t >
-    inline constexpr auto backward_vector( T* x, BLAS_SIZE_T n, int_t inc ) noexcept
+    inline constexpr auto backward_vector( T* x, TLAPACK_SIZE_T n, int_t inc ) noexcept
     {
         return legacyVector<T,int_t,Direction::Backward>{ n, x, inc };
     }
 
     template< typename T >
-    inline constexpr auto backward_vector( T* x, BLAS_SIZE_T n ) noexcept
+    inline constexpr auto backward_vector( T* x, TLAPACK_SIZE_T n ) noexcept
     {
         return legacyVector<T,one_t,Direction::Backward>{ n, x, one };
     }
@@ -89,8 +89,8 @@ namespace internal {
     // template< typename T >
     // inline constexpr auto backward_vector(
     //     T* x,
-    //     BLAS_SIZE_T n,
-    //     BLAS_INT_T  inc ) noexcept
+    //     TLAPACK_SIZE_T n,
+    //     TLAPACK_INT_T  inc ) noexcept
     // {
     //     return legacyVector<T,Direction::Backward>{ n, x, inc };
     // }
@@ -98,7 +98,7 @@ namespace internal {
     // template< typename T >
     // inline constexpr auto backward_vector(
     //     T* x,
-    //     BLAS_SIZE_T n ) noexcept
+    //     TLAPACK_SIZE_T n ) noexcept
     // {
     //     return legacyVector<T,Direction::Backward>{ n, x, 1 };
     // }
@@ -121,6 +121,6 @@ namespace internal {
 
 } // namespace internal
 
-} // namespace blas
+} // namespace tlapack
 
-#endif // __TBLAS_LEGACYARRAY_HH__
+#endif // __TLAPACK_LEGACY_LEGACYARRAY_HH__

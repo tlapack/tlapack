@@ -13,7 +13,7 @@
 
 #include "lapack/unm2r.hpp"
 
-namespace lapack {
+namespace tlapack {
 
 /** Applies unitary matrix Q to a matrix C.
  * 
@@ -50,14 +50,14 @@ namespace lapack {
 template< class side_t, class trans_t, typename TA, typename TC>
 inline int unm2r(
     side_t side, trans_t trans,
-    blas::idx_t m, blas::idx_t n, blas::idx_t k,
-    TA* A, blas::idx_t lda,
-    const blas::real_type<TA,TC>* tau,
-    TC* C, blas::idx_t ldc )
+    idx_t m, idx_t n, idx_t k,
+    TA* A, idx_t lda,
+    const real_type<TA,TC>* tau,
+    TC* C, idx_t ldc )
 {
-    typedef blas::scalar_type<TA,TC> scalar_t;
-    using blas::internal::colmajor_matrix;
-    using blas::internal::vector;
+    typedef scalar_type<TA,TC> scalar_t;
+    using internal::colmajor_matrix;
+    using internal::vector;
 
     // check arguments
     lapack_error_if( side != Side::Left &&

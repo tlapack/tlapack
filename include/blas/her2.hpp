@@ -5,12 +5,12 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef BLAS_HER2_HH
-#define BLAS_HER2_HH
+#ifndef __TLAPACK_BLAS_HER2_HH__
+#define __TLAPACK_BLAS_HER2_HH__
 
-#include "blas/utils.hpp"
+#include "base/utils.hpp"
 
-namespace blas {
+namespace tlapack {
 
 /**
  * Hermitian matrix rank-2 update:
@@ -40,7 +40,7 @@ template<
     class vectorX_t, class vectorY_t,
     class alpha_t >
 void her2(
-    blas::Uplo  uplo,
+    Uplo  uplo,
     const alpha_t& alpha,
     const vectorX_t& x, const vectorY_t& y,
     matrixA_t& A )
@@ -52,13 +52,13 @@ void her2(
     const idx_t n = nrows(A);
 
     // check arguments
-    blas_error_if( uplo != Uplo::Lower &&
+    tblas_error_if( uplo != Uplo::Lower &&
                    uplo != Uplo::Upper );
-    blas_error_if( size(x)  != n );
-    blas_error_if( size(y)  != n );
-    blas_error_if( ncols(A) != n );
+    tblas_error_if( size(x)  != n );
+    tblas_error_if( size(y)  != n );
+    tblas_error_if( ncols(A) != n );
 
-    blas_error_if( access_denied( uplo, write_policy(A) ) );
+    tblas_error_if( access_denied( uplo, write_policy(A) ) );
 
     if (uplo == Uplo::Upper) {
         for (idx_t j = 0; j < n; ++j) {
@@ -80,6 +80,6 @@ void her2(
     }
 }
 
-}  // namespace blas
+}  // namespace tlapack
 
-#endif        //  #ifndef BLAS_HER2_HH
+#endif        //  #ifndef __TLAPACK_BLAS_HER2_HH__

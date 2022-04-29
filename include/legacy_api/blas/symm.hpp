@@ -5,13 +5,14 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef TBLAS_LEGACY_SYMM_HH
-#define TBLAS_LEGACY_SYMM_HH
+#ifndef __TLAPACK_LEGACY_SYMM_HH__
+#define __TLAPACK_LEGACY_SYMM_HH__
 
-#include "blas/utils.hpp"
+#include "legacy_api/base/utils.hpp"
+#include "legacy_api/base/types.hpp"
 #include "blas/symm.hpp"
 
-namespace blas {
+namespace tlapack {
 
 /**
  * Symmetric matrix-matrix multiply:
@@ -77,31 +78,31 @@ namespace blas {
  */
 template< typename TA, typename TB, typename TC >
 void symm(
-    blas::Layout layout,
-    blas::Side side,
-    blas::Uplo uplo,
-    blas::idx_t m, blas::idx_t n,
+    Layout layout,
+    Side side,
+    Uplo uplo,
+    idx_t m, idx_t n,
     scalar_type<TA, TB, TC> alpha,
-    TA const *A, blas::idx_t lda,
-    TB const *B, blas::idx_t ldb,
+    TA const *A, idx_t lda,
+    TB const *B, idx_t ldb,
     scalar_type<TA, TB, TC> beta,
-    TC       *C, blas::idx_t ldc )
+    TC       *C, idx_t ldc )
 {    
-    using blas::internal::colmajor_matrix;
+    using internal::colmajor_matrix;
 
     // check arguments
-    blas_error_if( layout != Layout::ColMajor &&
+    tblas_error_if( layout != Layout::ColMajor &&
                    layout != Layout::RowMajor );
-    blas_error_if( side != Side::Left &&
+    tblas_error_if( side != Side::Left &&
                    side != Side::Right );
-    blas_error_if( uplo != Uplo::Lower &&
+    tblas_error_if( uplo != Uplo::Lower &&
                    uplo != Uplo::Upper &&
                    uplo != Uplo::General );
-    blas_error_if( m < 0 );
-    blas_error_if( n < 0 );
-    blas_error_if( lda < ((side == Side::Left) ? m : n) );
-    blas_error_if( ldb < ((layout == Layout::RowMajor) ? n : m) );
-    blas_error_if( ldc < ((layout == Layout::RowMajor) ? n : m) );
+    tblas_error_if( m < 0 );
+    tblas_error_if( n < 0 );
+    tblas_error_if( lda < ((side == Side::Left) ? m : n) );
+    tblas_error_if( ldb < ((layout == Layout::RowMajor) ? n : m) );
+    tblas_error_if( ldc < ((layout == Layout::RowMajor) ? n : m) );
 
     // quick return
     if (m == 0 || n == 0)
@@ -129,6 +130,6 @@ void symm(
     symm( side, uplo, alpha, _A, _B, beta, _C );
 }
 
-}  // namespace blas
+}  // namespace tlapack
 
-#endif        //  #ifndef TBLAS_LEGACY_SYMM_HH
+#endif        //  #ifndef __TLAPACK_LEGACY_SYMM_HH__

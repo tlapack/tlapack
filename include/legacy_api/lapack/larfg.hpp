@@ -13,24 +13,24 @@
 
 #include "lapack/larfg.hpp"
 
-namespace lapack {
+namespace tlapack {
 
 template< typename T >
 void larfg(
-    blas::idx_t n, T &alpha, T *x, blas::int_t incx, T &tau )
+    idx_t n, T &alpha, T *x, int_t incx, T &tau )
 {    
     tlapack_expr_with_vector( _x, T, n-1, x, incx, return larfg( alpha, _x, tau ) );
 }
 
 /** Generates a elementary Householder reflection.
  * 
- * @see larfg( blas::idx_t, T &, T *, blas::int_t, T & )
+ * @see larfg( idx_t, T &, T *, int_t, T & )
  * 
  * @ingroup auxiliary
  */
 template< typename T >
 void inline larfg(
-    blas::idx_t n, T *alpha, T *x, blas::int_t incx, T *tau )
+    idx_t n, T *alpha, T *x, int_t incx, T *tau )
 {
     larfg(n, *alpha, x, incx, *tau);
 }

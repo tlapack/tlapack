@@ -20,12 +20,12 @@
 int main( int argc, char** argv ) {
 
     // Constants
-    const BLAS_SIZE_T m = ( argc < 2 ) ? 100 : atoi( argv[1] );
-    const BLAS_SIZE_T n = ( argc < 3 ) ? 200 : atoi( argv[2] );
-    const BLAS_SIZE_T k = ( argc < 4 ) ?  50 : atoi( argv[3] );
-    const BLAS_SIZE_T lda = (m > 0) ? m : 1;
-    const BLAS_SIZE_T ldb = (k > 0) ? k : 1;
-    const BLAS_SIZE_T ldc = (m > 0) ? m : 1;
+    const TLAPACK_SIZE_T m = ( argc < 2 ) ? 100 : atoi( argv[1] );
+    const TLAPACK_SIZE_T n = ( argc < 3 ) ? 200 : atoi( argv[2] );
+    const TLAPACK_SIZE_T k = ( argc < 4 ) ?  50 : atoi( argv[3] );
+    const TLAPACK_SIZE_T lda = (m > 0) ? m : 1;
+    const TLAPACK_SIZE_T ldb = (k > 0) ? k : 1;
+    const TLAPACK_SIZE_T ldc = (m > 0) ? m : 1;
     
     // Arrays
     double *A, *B, *C;
@@ -48,22 +48,22 @@ int main( int argc, char** argv ) {
     srand( 3 );
 
     // Initialize A with junk
-    for (BLAS_SIZE_T j = 0; j < k; ++j)
-        for (BLAS_SIZE_T i = 0; i < m; ++i)
+    for (TLAPACK_SIZE_T j = 0; j < k; ++j)
+        for (TLAPACK_SIZE_T i = 0; i < m; ++i)
             A(i,j) = (float) 0xDEADBEEF;
     
     // Generate a random matrix in a submatrix of A
-    for (BLAS_SIZE_T j = 0; j < min(k,n); ++j)
-        for (BLAS_SIZE_T i = 0; i < m; ++i)
+    for (TLAPACK_SIZE_T j = 0; j < min(k,n); ++j)
+        for (TLAPACK_SIZE_T i = 0; i < m; ++i)
             A(i,j) = ( (float) rand() ) / RAND_MAX;
 
     // Set C using A
-    for (BLAS_SIZE_T j = 0; j < min(k,n); ++j)
-        for (BLAS_SIZE_T i = 0; i < m; ++i)
+    for (TLAPACK_SIZE_T j = 0; j < min(k,n); ++j)
+        for (TLAPACK_SIZE_T i = 0; i < m; ++i)
             C(i,j) = A(i,j);
 
     // Set the main diagonal of B with ones
-    for (BLAS_SIZE_T i = 0; i < min(k,n); ++i)
+    for (TLAPACK_SIZE_T i = 0; i < min(k,n); ++i)
         B(i,i) = 1.0;
 
     // Record start time

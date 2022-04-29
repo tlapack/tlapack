@@ -10,10 +10,10 @@
 #ifndef __TLAPACK_LEGACY_LASCL_HH__
 #define __TLAPACK_LEGACY_LASCL_HH__
 
-#include "lapack/types.hpp"
+#include "base/types.hpp"
 #include "lapack/lascl.hpp"
 
-namespace lapack {
+namespace tlapack {
 
 /** @brief  Multiplies a matrix A by the real scalar a/b.
  *
@@ -62,8 +62,8 @@ int lascl(
     idx_t m, idx_t n,
     T* A, idx_t lda )
 {
-    using blas::internal::colmajor_matrix;
-    using blas::internal::banded_matrix;
+    using internal::colmajor_matrix;
+    using internal::banded_matrix;
     using std::max;
     
     // check arguments

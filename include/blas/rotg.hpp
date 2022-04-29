@@ -5,12 +5,12 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef BLAS_ROTG_HH
-#define BLAS_ROTG_HH
+#ifndef __TLAPACK_BLAS_ROTG_HH__
+#define __TLAPACK_BLAS_ROTG_HH__
 
-#include "blas/utils.hpp"
+#include "base/utils.hpp"
 
-namespace blas {
+namespace tlapack {
 
 /**
  * Construct plane rotation that eliminates b, such that:
@@ -43,8 +43,8 @@ void rotg(
     const real_t safmax = safe_max<real_t>();
 
     // Norms
-    const real_t anorm = blas::abs(a);
-    const real_t bnorm = blas::abs(b);
+    const real_t anorm = tlapack::abs(a);
+    const real_t bnorm = tlapack::abs(b);
 
     // quick return
     if ( bnorm == zero ) {
@@ -127,7 +127,7 @@ void rotg(
 
     if ( a == zero ) {
         c = r_zero;
-        real_t g1 = max( blas::abs(real(b)), blas::abs(imag(b)) );
+        real_t g1 = max( tlapack::abs(real(b)), tlapack::abs(imag(b)) );
         if ( g1 > rtmin && g1 < rtmax ) {
             // Use unscaled algorithm
             real_t g2 = real(b)*real(b) + imag(b)*imag(b);
@@ -147,8 +147,8 @@ void rotg(
         }
     }
     else {
-        real_t f1 = max( blas::abs(real(a)), blas::abs(imag(a)) );
-        real_t g1 = max( blas::abs(real(b)), blas::abs(imag(b)) );
+        real_t f1 = max( tlapack::abs(real(a)), tlapack::abs(imag(a)) );
+        real_t g1 = max( tlapack::abs(real(b)), tlapack::abs(imag(b)) );
         if ( f1 > rtmin && f1 < rtmax &&
             g1 > rtmin && g1 < rtmax ) {
             // Use unscaled algorithm
@@ -198,6 +198,6 @@ void rotg(
     }
 }
 
-}  // namespace blas
+}  // namespace tlapack
 
-#endif        //  #ifndef BLAS_ROTG_HH
+#endif        //  #ifndef __TLAPACK_BLAS_ROTG_HH__

@@ -5,12 +5,12 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef BLAS_SWAP_HH
-#define BLAS_SWAP_HH
+#ifndef __TLAPACK_BLAS_SWAP_HH__
+#define __TLAPACK_BLAS_SWAP_HH__
 
-#include "blas/utils.hpp"
+#include "base/utils.hpp"
 
-namespace blas {
+namespace tlapack {
 
 /**
  * Swap vectors, $x <=> y$.
@@ -29,7 +29,7 @@ void swap( vectorX_t& x, vectorY_t& y )
     const idx_t n = size(x);
 
     // check arguments
-    blas_error_if( size(y) != n );
+    tblas_error_if( size(y) != n );
 
     for (idx_t i = 0; i < n; ++i) {
         const auto aux = x[i];
@@ -38,6 +38,6 @@ void swap( vectorX_t& x, vectorY_t& y )
     }
 }
 
-}  // namespace blas
+}  // namespace tlapack
 
-#endif        //  #ifndef BLAS_SWAP_HH
+#endif        //  #ifndef __TLAPACK_BLAS_SWAP_HH__

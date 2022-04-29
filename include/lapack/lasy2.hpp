@@ -8,18 +8,18 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __LASY2_HH__
-#define __LASY2_HH__
+#ifndef __TLAPACK_LASY2_HH__
+#define __TLAPACK_LASY2_HH__
 
 #include <complex>
 #include <memory>
 #include <assert.h>
 
-#include "lapack/utils.hpp"
-#include "lapack/types.hpp"
-#include "legacy_api/blas/utils.hpp"
+#include "base/utils.hpp"
+#include "base/types.hpp"
+#include "legacy_api/base/utils.hpp"
 
-namespace lapack
+namespace tlapack
 {
 
     /** lasy2 solves the Sylvester matrix equation where the matrices are of order 1 or 2.
@@ -40,15 +40,13 @@ namespace lapack
     int lasy2(Op trans_l, Op trans_r, int isign, const matrix_t &TL, const matrix_t &TR, const matrix_t &B, T &scale, matrix_t &X, T &xnorm)
     {
 
-        using blas::swap;
         using std::max;
-        using blas::internal::colmajor_matrix;
-        using blas::legacyVector;
-
+        using internal::colmajor_matrix;
+        
         const idx_t n1 = ncols(TL);
         const idx_t n2 = ncols(TR);
-        const T eps = blas::uroundoff<T>();
-        const T small_num = blas::safe_min<T>() / eps;
+        const T eps = uroundoff<T>();
+        const T small_num = safe_min<T>() / eps;
 
         const T zero(0);
         const T one(1);
@@ -166,7 +164,7 @@ namespace lapack
                 {
                     auto row1 = row(T16, ipsv);
                     auto row2 = row(T16, i);
-                    swap(row1, row2);
+                    tlapack::swap(row1, row2);
                     auto temp = btmp[i];
                     btmp[i] = btmp[ipsv];
                     btmp[ipsv] = temp;
@@ -175,7 +173,7 @@ namespace lapack
                 {
                     auto col1 = col(T16, jpsv);
                     auto col2 = col(T16, i);
-                    swap(col1, col2);
+                    tlapack::swap(col1, col2);
                 }
                 jpiv[i] = jpsv;
                 if (abs(T16(i, i)) < smin)

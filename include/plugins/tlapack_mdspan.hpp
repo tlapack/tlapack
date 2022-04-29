@@ -10,10 +10,10 @@
 #include <experimental/mdspan>
 #include <type_traits>
 
-#include "blas/arrayTraits.hpp"
+#include "base/arrayTraits.hpp"
 #include "legacy_api/legacyArray.hpp"
 
-namespace blas {
+namespace tlapack {
 
     using std::experimental::mdspan;
 
@@ -58,7 +58,7 @@ namespace blas {
     inline constexpr auto
     read_policy( const mdspan<ET,Exts,LP,AP>& x ) {
         /// TODO: Maybe we should get the access type from the layout here?
-        return lapack::dense;
+        return dense;
     }
 
     // Write policy
@@ -66,7 +66,7 @@ namespace blas {
     inline constexpr auto
     write_policy( const mdspan<ET,Exts,LP,AP>& x ) {
         /// TODO: Maybe we should get the access type from the layout here?
-        return lapack::dense;
+        return dense;
     }
 
     // -----------------------------------------------------------------------------
@@ -214,23 +214,6 @@ namespace blas {
             return legacyMatrix<ET>( 0, 0, nullptr, 0 );
     }
 
-} // namespace blas
-
-namespace lapack {
-
-    using blas::size;
-    using blas::nrows;
-    using blas::ncols;
-    using blas::read_policy;
-    using blas::write_policy;
-
-    using blas::slice;
-    using blas::rows;
-    using blas::row;
-    using blas::cols;
-    using blas::col;
-    using blas::diag;
-
-} // namespace lapack
+} // namespace tlapack
 
 #endif // __TLAPACK_MDSPAN_HH__

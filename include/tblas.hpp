@@ -4,17 +4,13 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TBLAS_HH__
-#define __TBLAS_HH__
+#ifndef __TLAPACK_TBLAS_HH__
+#define __TLAPACK_TBLAS_HH__
 
 // Optimized BLAS
 
 #ifdef USE_BLASPP_WRAPPERS
-    #ifndef BLAS_UTIL_HH
-        #define BLAS_UTIL_HH // So as not to include utils from BLAS++
-    #endif
-    #include "legacy_api/blas/types.hpp"
-    #include "blas/wrappers.hh" // from BLAS++
+    #include "legacy_api/blas/wrappers.hpp"
 #endif
 
 // Template BLAS
@@ -72,4 +68,4 @@
 #include "blas/trmm.hpp"
 #include "blas/trsm.hpp"
 
-#endif // __BLAS_HH__
+#endif // __TLAPACK_TBLAS_HH__

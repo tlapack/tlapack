@@ -13,18 +13,18 @@
 
 #include "lapack/laset.hpp"
 
-namespace lapack {
+namespace tlapack {
 
 template< class uplo_t, typename TA >
 void laset(
-    uplo_t uplo, blas::idx_t m, blas::idx_t n,
+    uplo_t uplo, idx_t m, idx_t n,
     TA alpha, TA beta,
-    TA* A, blas::idx_t lda )
+    TA* A, idx_t lda )
 {
-    using blas::internal::colmajor_matrix;
+    using internal::colmajor_matrix;
 
     // check arguments
-    blas_error_if(  uplo != Uplo::Lower &&
+    tblas_error_if(  uplo != Uplo::Lower &&
                     uplo != Uplo::Upper &&
                     uplo != Uplo::General );
 
@@ -46,15 +46,15 @@ void laset(
  *        'L': A is assumed to be lower triangular; elements above the diagonal are not referenced.
  *        otherwise, A is assumed to be a full matrix.
  *
- * @see laset( Uplo, blas::idx_t, blas::idx_t, TA, TA, TA*, blas::idx_t )
+ * @see laset( Uplo, idx_t, idx_t, TA, TA, TA*, idx_t )
  * 
  * @ingroup auxiliary
  */
 template< typename TA >
 void inline laset(
-    MatrixType matrixtype, blas::idx_t m, blas::idx_t n,
+    MatrixType matrixtype, idx_t m, idx_t n,
     TA alpha, TA beta,
-    TA* A, blas::idx_t lda )
+    TA* A, idx_t lda )
 {
     if (matrixtype == MatrixType::Upper) {
         laset(Uplo::Upper, m, n, alpha, beta, A, lda);

@@ -7,16 +7,15 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __POTRF_HH__
-#define __POTRF_HH__
+#ifndef __TLAPACK_POTRF_HH__
+#define __TLAPACK_POTRF_HH__
 
-#include "lapack/types.hpp"
-#include "lapack/utils.hpp"
+#include "base/utils.hpp"
 
 #include "lapack/potrf2.hpp"
 #include "tblas.hpp"
 
-namespace lapack {
+namespace tlapack {
 
 /** Computes the Cholesky factorization of a Hermitian
  * positive definite matrix A using a blocked algorithm.
@@ -71,11 +70,8 @@ int potrf( uplo_t uplo, matrix_t& A, opts_t&& opts )
     using T      = type_t< matrix_t >;
     using real_t = real_type< T >;
     using idx_t  = size_type< matrix_t >;
-    using pair   = std::pair<idx_t,idx_t>;
+    using pair   = pair<idx_t,idx_t>;
     
-    using blas::gemm;
-    using blas::trsm;
-    using blas::herk;
     using std::min;
 
     // Constants

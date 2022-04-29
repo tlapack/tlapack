@@ -28,31 +28,31 @@
 
     // -----------------------------------------------------------------------------
     // Convert CBLAS enum to <T>BLAS enum
-    inline blas::Layout toTBLASlayout( Layout layout ) {
-        if( layout == CblasRowMajor )      return blas::Layout::RowMajor;
-        else if( layout == CblasColMajor ) return blas::Layout::ColMajor;
-        else                               return blas::Layout(0);
+    inline tlapack::Layout toTLAPACKlayout( Layout layout ) {
+        if( layout == CblasRowMajor )      return tlapack::Layout::RowMajor;
+        else if( layout == CblasColMajor ) return tlapack::Layout::ColMajor;
+        else                               return tlapack::Layout(0);
     }
-    inline blas::Op toTBLASop( Op trans ) {
-        if( trans == CblasNoTrans )        return blas::Op::NoTrans;
-        else if( trans == CblasTrans )     return blas::Op::Trans;
-        else if( trans == CblasConjTrans ) return blas::Op::ConjTrans;
-        else                            return blas::Op(0);
+    inline tlapack::Op toTLAPACKop( Op trans ) {
+        if( trans == CblasNoTrans )        return tlapack::Op::NoTrans;
+        else if( trans == CblasTrans )     return tlapack::Op::Trans;
+        else if( trans == CblasConjTrans ) return tlapack::Op::ConjTrans;
+        else                            return tlapack::Op(0);
     }
-    inline blas::Uplo toTBLASuplo( Uplo uplo ) {
-        if( uplo == CblasUpper )      return blas::Uplo::Upper;
-        else if( uplo == CblasLower ) return blas::Uplo::Lower;
-        else                          return blas::Uplo(0);
+    inline tlapack::Uplo toTLAPACKuplo( Uplo uplo ) {
+        if( uplo == CblasUpper )      return tlapack::Uplo::Upper;
+        else if( uplo == CblasLower ) return tlapack::Uplo::Lower;
+        else                          return tlapack::Uplo(0);
     }
-    inline blas::Diag toTBLASdiag( Diag diag ) {
-        if( diag == CblasNonUnit )   return blas::Diag::NonUnit;
-        else if( diag == CblasUnit ) return blas::Diag::Unit;
-        else                         return blas::Diag(0);
+    inline tlapack::Diag toTLAPACKdiag( Diag diag ) {
+        if( diag == CblasNonUnit )   return tlapack::Diag::NonUnit;
+        else if( diag == CblasUnit ) return tlapack::Diag::Unit;
+        else                         return tlapack::Diag(0);
     }
-    inline blas::Side toTBLASside( Side side ) {
-        if( side == CblasLeft )       return blas::Side::Left;
-        else if( side == CblasRight ) return blas::Side::Right;
-        else                          return blas::Side(0);
+    inline tlapack::Side toTLAPACKside( Side side ) {
+        if( side == CblasLeft )       return tlapack::Side::Left;
+        else if( side == CblasRight ) return tlapack::Side::Right;
+        else                          return tlapack::Side(0);
     }
 
 #else
@@ -67,17 +67,17 @@
         #define BLAS_FUNCTION(fname) fname
     #endif
 
-    typedef BLAS_SIZE_T blas_idx_t;
-    typedef BLAS_INT_T  blas_int_t;
-    typedef BLAS_SIZE_T blas_iamax_t;
+    typedef TLAPACK_SIZE_T blas_idx_t;
+    typedef TLAPACK_INT_T  blas_int_t;
+    typedef TLAPACK_SIZE_T blas_iamax_t;
 
     // -----------------------------------------------------------------------------
     // Convert BLAS enum to <T>BLAS enum
-    inline blas::Layout toTBLASlayout( Layout layout ) { return (blas::Layout) layout; }
-    inline blas::Op toTBLASop( Op op )                 { return (blas::Op) op; }
-    inline blas::Uplo toTBLASuplo( Uplo uplo )         { return (blas::Uplo) uplo; }
-    inline blas::Diag toTBLASdiag( Diag diag )         { return (blas::Diag) diag; }
-    inline blas::Side toTBLASside( Side side )         { return (blas::Side) side; }
+    inline tlapack::Layout toTLAPACKlayout( Layout layout ) { return (tlapack::Layout) layout; }
+    inline tlapack::Op toTLAPACKop( Op op )                 { return (tlapack::Op) op; }
+    inline tlapack::Uplo toTLAPACKuplo( Uplo uplo )         { return (tlapack::Uplo) uplo; }
+    inline tlapack::Diag toTLAPACKdiag( Diag diag )         { return (tlapack::Diag) diag; }
+    inline tlapack::Side toTLAPACKside( Side side )         { return (tlapack::Side) side; }
 
 #endif
 
@@ -101,7 +101,7 @@ extern "C" {
 float _sasum(
     blas_idx_t n,
     float const * x, blas_int_t incx ) {
-    return blas::asum<float>(
+    return tlapack::asum<float>(
         n,
         x, incx );
 }
@@ -110,7 +110,7 @@ float _sasum(
 double _dasum(
     blas_idx_t n,
     double const * x, blas_int_t incx ) {
-    return blas::asum<double>(
+    return tlapack::asum<double>(
         n,
         x, incx );
 }
@@ -119,7 +119,7 @@ double _dasum(
 float _casum(
     blas_idx_t n,
     complexFloat const * x, blas_int_t incx ) {
-    return blas::asum<tblas_complexFloat>(
+    return tlapack::asum<tblas_complexFloat>(
         n,
         tblas_cteC(x), incx );
 }
@@ -128,7 +128,7 @@ float _casum(
 double _zasum(
     blas_idx_t n,
     complexDouble const * x, blas_int_t incx ) {
-    return blas::asum<tblas_complexDouble>(
+    return tlapack::asum<tblas_complexDouble>(
         n,
         tblas_cteZ(x), incx );
 }
@@ -139,7 +139,7 @@ void _saxpy(
     float alpha,
     float const * x, blas_int_t incx,
     float * y, blas_int_t incy ) {
-    return blas::axpy<float, float>(
+    return tlapack::axpy<float, float>(
         n,
         alpha,
         x, incx,
@@ -152,7 +152,7 @@ void _daxpy(
     double alpha,
     double const * x, blas_int_t incx,
     double * y, blas_int_t incy ) {
-    return blas::axpy<double, double>(
+    return tlapack::axpy<double, double>(
         n,
         alpha,
         x, incx,
@@ -165,7 +165,7 @@ void _caxpy(
     complexFloat alpha,
     complexFloat const * x, blas_int_t incx,
     complexFloat * y, blas_int_t incy ) {
-    return blas::axpy<tblas_complexFloat, tblas_complexFloat>(
+    return tlapack::axpy<tblas_complexFloat, tblas_complexFloat>(
         n,
         *tblas_C(&alpha),
         tblas_cteC(x), incx,
@@ -178,7 +178,7 @@ void _zaxpy(
     complexDouble alpha,
     complexDouble const * x, blas_int_t incx,
     complexDouble * y, blas_int_t incy ) {
-    return blas::axpy<tblas_complexDouble, tblas_complexDouble>(
+    return tlapack::axpy<tblas_complexDouble, tblas_complexDouble>(
         n,
         *tblas_Z(&alpha),
         tblas_cteZ(x), incx,
@@ -190,7 +190,7 @@ void _scopy(
     blas_idx_t n,
     float const * x, blas_int_t incx,
     float * y, blas_int_t incy ) {
-    return blas::copy<float, float>(
+    return tlapack::copy<float, float>(
         n,
         x, incx,
         y, incy );
@@ -201,7 +201,7 @@ void _dcopy(
     blas_idx_t n,
     double const * x, blas_int_t incx,
     double * y, blas_int_t incy ) {
-    return blas::copy<double, double>(
+    return tlapack::copy<double, double>(
         n,
         x, incx,
         y, incy );
@@ -212,7 +212,7 @@ void _ccopy(
     blas_idx_t n,
     complexFloat const * x, blas_int_t incx,
     complexFloat * y, blas_int_t incy ) {
-    return blas::copy<tblas_complexFloat, tblas_complexFloat>(
+    return tlapack::copy<tblas_complexFloat, tblas_complexFloat>(
         n,
         tblas_cteC(x), incx,
         tblas_C(y), incy );
@@ -223,7 +223,7 @@ void _zcopy(
     blas_idx_t n,
     complexDouble const * x, blas_int_t incx,
     complexDouble * y, blas_int_t incy ) {
-    return blas::copy<tblas_complexDouble, tblas_complexDouble>(
+    return tlapack::copy<tblas_complexDouble, tblas_complexDouble>(
         n,
         tblas_cteZ(x), incx,
         tblas_Z(y), incy );
@@ -234,7 +234,7 @@ float _sdot(
     blas_idx_t n,
     float const * x, blas_int_t incx,
     float const * y, blas_int_t incy ) {
-    return blas::dot<float, float>(
+    return tlapack::dot<float, float>(
         n,
         x, incx,
         y, incy );
@@ -245,7 +245,7 @@ double _ddot(
     blas_idx_t n,
     double const * x, blas_int_t incx,
     double const * y, blas_int_t incy ) {
-    return blas::dot<double, double>(
+    return tlapack::dot<double, double>(
         n,
         x, incx,
         y, incy );
@@ -256,7 +256,7 @@ complexFloat _cdot(
     blas_idx_t n,
     complexFloat const * x, blas_int_t incx,
     complexFloat const * y, blas_int_t incy ) {
-    tblas_complexFloat c = blas::dot<tblas_complexFloat, tblas_complexFloat>(
+    tblas_complexFloat c = tlapack::dot<tblas_complexFloat, tblas_complexFloat>(
         n,
         tblas_cteC(x), incx,
         tblas_cteC(y), incy );
@@ -268,7 +268,7 @@ complexDouble _zdot(
     blas_idx_t n,
     complexDouble const * x, blas_int_t incx,
     complexDouble const * y, blas_int_t incy ) {
-    tblas_complexDouble z = blas::dot<tblas_complexDouble, tblas_complexDouble>(
+    tblas_complexDouble z = tlapack::dot<tblas_complexDouble, tblas_complexDouble>(
         n,
         tblas_cteZ(x), incx,
         tblas_cteZ(y), incy );
@@ -280,7 +280,7 @@ float _sdotu(
     blas_idx_t n,
     float const * x, blas_int_t incx,
     float const * y, blas_int_t incy ) {
-    return blas::dotu<float, float>(
+    return tlapack::dotu<float, float>(
         n,
         x, incx,
         y, incy );
@@ -291,7 +291,7 @@ double _ddotu(
     blas_idx_t n,
     double const * x, blas_int_t incx,
     double const * y, blas_int_t incy ) {
-    return blas::dotu<double, double>(
+    return tlapack::dotu<double, double>(
         n,
         x, incx,
         y, incy );
@@ -302,7 +302,7 @@ complexFloat _cdotu(
     blas_idx_t n,
     complexFloat const * x, blas_int_t incx,
     complexFloat const * y, blas_int_t incy ) {
-    tblas_complexFloat c = blas::dotu<tblas_complexFloat, tblas_complexFloat>(
+    tblas_complexFloat c = tlapack::dotu<tblas_complexFloat, tblas_complexFloat>(
         n,
         tblas_cteC(x), incx,
         tblas_cteC(y), incy );
@@ -314,7 +314,7 @@ complexDouble _zdotu(
     blas_idx_t n,
     complexDouble const * x, blas_int_t incx,
     complexDouble const * y, blas_int_t incy ) {
-    tblas_complexDouble z = blas::dotu<tblas_complexDouble, tblas_complexDouble>(
+    tblas_complexDouble z = tlapack::dotu<tblas_complexDouble, tblas_complexDouble>(
         n,
         tblas_cteZ(x), incx,
         tblas_cteZ(y), incy );
@@ -325,7 +325,7 @@ complexDouble _zdotu(
 blas_iamax_t _isamax(
     blas_idx_t n,
     float const * x, blas_int_t incx ) {
-    return (blas_iamax_t) blas::iamax<float>(
+    return (blas_iamax_t) tlapack::iamax<float>(
         n,
         x, incx );
 }
@@ -334,7 +334,7 @@ blas_iamax_t _isamax(
 blas_iamax_t _idamax(
     blas_idx_t n,
     double const * x, blas_int_t incx ) {
-    return (blas_iamax_t) blas::iamax<double>(
+    return (blas_iamax_t) tlapack::iamax<double>(
         n,
         x, incx );
 }
@@ -343,7 +343,7 @@ blas_iamax_t _idamax(
 blas_iamax_t _icamax(
     blas_idx_t n,
     complexFloat const * x, blas_int_t incx ) {
-    return (blas_iamax_t) blas::iamax<tblas_complexFloat>(
+    return (blas_iamax_t) tlapack::iamax<tblas_complexFloat>(
         n,
         tblas_cteC(x), incx );
 }
@@ -352,7 +352,7 @@ blas_iamax_t _icamax(
 blas_iamax_t _izamax(
     blas_idx_t n,
     complexDouble const * x, blas_int_t incx ) {
-    return (blas_iamax_t) blas::iamax<tblas_complexDouble>(
+    return (blas_iamax_t) tlapack::iamax<tblas_complexDouble>(
         n,
         tblas_cteZ(x), incx );
 }
@@ -361,7 +361,7 @@ blas_iamax_t _izamax(
 float _snrm2(
     blas_idx_t n,
     float const * x, blas_int_t incx ) {
-    return blas::nrm2<float>(
+    return tlapack::nrm2<float>(
         n,
         x, incx );
 }
@@ -370,7 +370,7 @@ float _snrm2(
 double _dnrm2(
     blas_idx_t n,
     double const * x, blas_int_t incx ) {
-    return blas::nrm2<double>(
+    return tlapack::nrm2<double>(
         n,
         x, incx );
 }
@@ -379,7 +379,7 @@ double _dnrm2(
 float _cnrm2(
     blas_idx_t n,
     complexFloat const * x, blas_int_t incx ) {
-    return blas::nrm2<tblas_complexFloat>(
+    return tlapack::nrm2<tblas_complexFloat>(
         n,
         tblas_cteC(x), incx );
 }
@@ -388,7 +388,7 @@ float _cnrm2(
 double _znrm2(
     blas_idx_t n,
     complexDouble const * x, blas_int_t incx ) {
-    return blas::nrm2<tblas_complexDouble>(
+    return tlapack::nrm2<tblas_complexDouble>(
         n,
         tblas_cteZ(x), incx );
 }
@@ -400,7 +400,7 @@ void _srot(
     float * y, blas_int_t incy,
     float c,
     float s ) {
-    return blas::rot<float, float>(
+    return tlapack::rot<float, float>(
         n,
         x, incx,
         y, incy,
@@ -415,7 +415,7 @@ void _drot(
     double * y, blas_int_t incy,
     double c,
     double s ) {
-    return blas::rot<double, double>(
+    return tlapack::rot<double, double>(
         n,
         x, incx,
         y, incy,
@@ -430,7 +430,7 @@ void _csrot(
     complexFloat * y, blas_int_t incy,
     float c,
     float s ) {
-    return blas::rot(
+    return tlapack::rot(
         n,
         tblas_C(x), incx,
         tblas_C(y), incy,
@@ -445,7 +445,7 @@ void _zdrot(
     complexDouble * y, blas_int_t incy,
     double c,
     double s ) {
-    return blas::rot(
+    return tlapack::rot(
         n,
         tblas_Z(x), incx,
         tblas_Z(y), incy,
@@ -460,7 +460,7 @@ void _crot(
     complexFloat * y, blas_int_t incy,
     float c,
     complexFloat s ) {
-    return blas::rot<tblas_complexFloat, tblas_complexFloat>(
+    return tlapack::rot<tblas_complexFloat, tblas_complexFloat>(
         n,
         tblas_C(x), incx,
         tblas_C(y), incy,
@@ -475,7 +475,7 @@ void _zrot(
     complexDouble * y, blas_int_t incy,
     double c,
     complexDouble s ) {
-    return blas::rot<tblas_complexDouble, tblas_complexDouble>(
+    return tlapack::rot<tblas_complexDouble, tblas_complexDouble>(
         n,
         tblas_Z(x), incx,
         tblas_Z(y), incy,
@@ -489,7 +489,7 @@ void _srotg(
     float * b,
     float * c,
     float * s ) {
-    return blas::rotg<float>(
+    return tlapack::rotg<float>(
         *a,
         *b,
         *c,
@@ -502,7 +502,7 @@ void _drotg(
     double * b,
     double * c,
     double * s ) {
-    return blas::rotg<double>(
+    return tlapack::rotg<double>(
         *a,
         *b,
         *c,
@@ -515,7 +515,7 @@ void _crotg(
     complexFloat * b,
     float * c,
     complexFloat * s ) {
-    return blas::rotg<tblas_complexFloat>(
+    return tlapack::rotg<tblas_complexFloat>(
         *tblas_C(a),
         *tblas_C(b),
         *c,
@@ -528,7 +528,7 @@ void _zrotg(
     complexDouble * b,
     double * c,
     complexDouble * s ) {
-    return blas::rotg<tblas_complexDouble>(
+    return tlapack::rotg<tblas_complexDouble>(
         *tblas_Z(a),
         *tblas_Z(b),
         *c,
@@ -541,7 +541,7 @@ void _srotm(
     float * x, blas_int_t incx,
     float * y, blas_int_t incy,
     float const * param ) {
-    return blas::rotm<float, float>(
+    return tlapack::rotm<float, float>(
         n,
         x, incx,
         y, incy,
@@ -554,7 +554,7 @@ void _drotm(
     double * x, blas_int_t incx,
     double * y, blas_int_t incy,
     double const * param ) {
-    return blas::rotm<double, double>(
+    return tlapack::rotm<double, double>(
         n,
         x, incx,
         y, incy,
@@ -568,7 +568,7 @@ void _srotmg(
     float * a,
     float b,
     float * param ) {
-    return blas::rotmg<float>(
+    return tlapack::rotmg<float>(
         d1,
         d2,
         a,
@@ -583,7 +583,7 @@ void _drotmg(
     double * a,
     double b,
     double * param ) {
-    return blas::rotmg<double>(
+    return tlapack::rotmg<double>(
         d1,
         d2,
         a,
@@ -596,7 +596,7 @@ void _sscal(
     blas_idx_t n,
     float alpha,
     float * x, blas_int_t incx ) {
-    return blas::scal<float>(
+    return tlapack::scal<float>(
         n,
         alpha,
         x, incx );
@@ -607,7 +607,7 @@ void _dscal(
     blas_idx_t n,
     double alpha,
     double * x, blas_int_t incx ) {
-    return blas::scal<double>(
+    return tlapack::scal<double>(
         n,
         alpha,
         x, incx );
@@ -618,7 +618,7 @@ void _cscal(
     blas_idx_t n,
     complexFloat alpha,
     complexFloat * x, blas_int_t incx ) {
-    return blas::scal<tblas_complexFloat>(
+    return tlapack::scal<tblas_complexFloat>(
         n,
         *tblas_C(&alpha),
         tblas_C(x), incx );
@@ -629,7 +629,7 @@ void _zscal(
     blas_idx_t n,
     complexDouble alpha,
     complexDouble * x, blas_int_t incx ) {
-    return blas::scal<tblas_complexDouble>(
+    return tlapack::scal<tblas_complexDouble>(
         n,
         *tblas_Z(&alpha),
         tblas_Z(x), incx );
@@ -640,7 +640,7 @@ void _sswap(
     blas_idx_t n,
     float * x, blas_int_t incx,
     float * y, blas_int_t incy ) {
-    return blas::swap<float, float>(
+    return tlapack::swap<float, float>(
         n,
         x, incx,
         y, incy );
@@ -651,7 +651,7 @@ void _dswap(
     blas_idx_t n,
     double * x, blas_int_t incx,
     double * y, blas_int_t incy ) {
-    return blas::swap<double, double>(
+    return tlapack::swap<double, double>(
         n,
         x, incx,
         y, incy );
@@ -662,7 +662,7 @@ void _cswap(
     blas_idx_t n,
     complexFloat * x, blas_int_t incx,
     complexFloat * y, blas_int_t incy ) {
-    return blas::swap<tblas_complexFloat, tblas_complexFloat>(
+    return tlapack::swap<tblas_complexFloat, tblas_complexFloat>(
         n,
         tblas_C(x), incx,
         tblas_C(y), incy );
@@ -673,7 +673,7 @@ void _zswap(
     blas_idx_t n,
     complexDouble * x, blas_int_t incx,
     complexDouble * y, blas_int_t incy ) {
-    return blas::swap<tblas_complexDouble, tblas_complexDouble>(
+    return tlapack::swap<tblas_complexDouble, tblas_complexDouble>(
         n,
         tblas_Z(x), incx,
         tblas_Z(y), incy );
@@ -690,9 +690,9 @@ void _sgemv(
     float const * x, blas_int_t incx,
     float beta,
     float * y, blas_int_t incy ) {
-    return blas::gemv<float, float, float>(
-        toTBLASlayout( layout ),
-        toTBLASop( trans ),
+    return tlapack::gemv<float, float, float>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKop( trans ),
         m,
         n,
         alpha,
@@ -713,9 +713,9 @@ void _dgemv(
     double const * x, blas_int_t incx,
     double beta,
     double * y, blas_int_t incy ) {
-    return blas::gemv<double, double, double>(
-        toTBLASlayout( layout ),
-        toTBLASop( trans ),
+    return tlapack::gemv<double, double, double>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKop( trans ),
         m,
         n,
         alpha,
@@ -736,9 +736,9 @@ void _cgemv(
     complexFloat const * x, blas_int_t incx,
     complexFloat beta,
     complexFloat * y, blas_int_t incy ) {
-    return blas::gemv<tblas_complexFloat, tblas_complexFloat, tblas_complexFloat>(
-        toTBLASlayout( layout ),
-        toTBLASop( trans ),
+    return tlapack::gemv<tblas_complexFloat, tblas_complexFloat, tblas_complexFloat>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKop( trans ),
         m,
         n,
         *tblas_C(&alpha),
@@ -759,9 +759,9 @@ void _zgemv(
     complexDouble const * x, blas_int_t incx,
     complexDouble beta,
     complexDouble * y, blas_int_t incy ) {
-    return blas::gemv<tblas_complexDouble, tblas_complexDouble, tblas_complexDouble>(
-        toTBLASlayout( layout ),
-        toTBLASop( trans ),
+    return tlapack::gemv<tblas_complexDouble, tblas_complexDouble, tblas_complexDouble>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKop( trans ),
         m,
         n,
         *tblas_Z(&alpha),
@@ -780,8 +780,8 @@ void _sger(
     float const * x, blas_int_t incx,
     float const * y, blas_int_t incy,
     float * A, blas_idx_t lda ) {
-    return blas::ger<float, float, float>(
-        toTBLASlayout( layout ),
+    return tlapack::ger<float, float, float>(
+        toTLAPACKlayout( layout ),
         m,
         n,
         alpha,
@@ -799,8 +799,8 @@ void _dger(
     double const * x, blas_int_t incx,
     double const * y, blas_int_t incy,
     double * A, blas_idx_t lda ) {
-    return blas::ger<double, double, double>(
-        toTBLASlayout( layout ),
+    return tlapack::ger<double, double, double>(
+        toTLAPACKlayout( layout ),
         m,
         n,
         alpha,
@@ -818,8 +818,8 @@ void _cger(
     complexFloat const * x, blas_int_t incx,
     complexFloat const * y, blas_int_t incy,
     complexFloat * A, blas_idx_t lda ) {
-    return blas::ger<tblas_complexFloat, tblas_complexFloat, tblas_complexFloat>(
-        toTBLASlayout( layout ),
+    return tlapack::ger<tblas_complexFloat, tblas_complexFloat, tblas_complexFloat>(
+        toTLAPACKlayout( layout ),
         m,
         n,
         *tblas_C(&alpha),
@@ -837,8 +837,8 @@ void _zger(
     complexDouble const * x, blas_int_t incx,
     complexDouble const * y, blas_int_t incy,
     complexDouble * A, blas_idx_t lda ) {
-    return blas::ger<tblas_complexDouble, tblas_complexDouble, tblas_complexDouble>(
-        toTBLASlayout( layout ),
+    return tlapack::ger<tblas_complexDouble, tblas_complexDouble, tblas_complexDouble>(
+        toTLAPACKlayout( layout ),
         m,
         n,
         *tblas_Z(&alpha),
@@ -856,8 +856,8 @@ void _sgeru(
     float const * x, blas_int_t incx,
     float const * y, blas_int_t incy,
     float * A, blas_idx_t lda ) {
-    return blas::geru<float, float, float>(
-        toTBLASlayout( layout ),
+    return tlapack::geru<float, float, float>(
+        toTLAPACKlayout( layout ),
         m,
         n,
         alpha,
@@ -875,8 +875,8 @@ void _dgeru(
     double const * x, blas_int_t incx,
     double const * y, blas_int_t incy,
     double * A, blas_idx_t lda ) {
-    return blas::geru<double, double, double>(
-        toTBLASlayout( layout ),
+    return tlapack::geru<double, double, double>(
+        toTLAPACKlayout( layout ),
         m,
         n,
         alpha,
@@ -894,8 +894,8 @@ void _cgeru(
     complexFloat const * x, blas_int_t incx,
     complexFloat const * y, blas_int_t incy,
     complexFloat * A, blas_idx_t lda ) {
-    return blas::geru<tblas_complexFloat, tblas_complexFloat, tblas_complexFloat>(
-        toTBLASlayout( layout ),
+    return tlapack::geru<tblas_complexFloat, tblas_complexFloat, tblas_complexFloat>(
+        toTLAPACKlayout( layout ),
         m,
         n,
         *tblas_C(&alpha),
@@ -913,8 +913,8 @@ void _zgeru(
     complexDouble const * x, blas_int_t incx,
     complexDouble const * y, blas_int_t incy,
     complexDouble * A, blas_idx_t lda ) {
-    return blas::geru<tblas_complexDouble, tblas_complexDouble, tblas_complexDouble>(
-        toTBLASlayout( layout ),
+    return tlapack::geru<tblas_complexDouble, tblas_complexDouble, tblas_complexDouble>(
+        toTLAPACKlayout( layout ),
         m,
         n,
         *tblas_Z(&alpha),
@@ -933,9 +933,9 @@ void _shemv(
     float const * x, blas_int_t incx,
     float beta,
     float * y, blas_int_t incy ) {
-    return blas::hemv<float, float, float>(
-        toTBLASlayout( layout ),
-        toTBLASuplo( uplo ),
+    return tlapack::hemv<float, float, float>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKuplo( uplo ),
         n,
         alpha,
         A, lda,
@@ -954,9 +954,9 @@ void _dhemv(
     double const * x, blas_int_t incx,
     double beta,
     double * y, blas_int_t incy ) {
-    return blas::hemv<double, double, double>(
-        toTBLASlayout( layout ),
-        toTBLASuplo( uplo ),
+    return tlapack::hemv<double, double, double>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKuplo( uplo ),
         n,
         alpha,
         A, lda,
@@ -975,9 +975,9 @@ void _chemv(
     complexFloat const * x, blas_int_t incx,
     complexFloat beta,
     complexFloat * y, blas_int_t incy ) {
-    return blas::hemv<tblas_complexFloat, tblas_complexFloat, tblas_complexFloat>(
-        toTBLASlayout( layout ),
-        toTBLASuplo( uplo ),
+    return tlapack::hemv<tblas_complexFloat, tblas_complexFloat, tblas_complexFloat>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKuplo( uplo ),
         n,
         *tblas_C(&alpha),
         tblas_cteC(A), lda,
@@ -996,9 +996,9 @@ void _zhemv(
     complexDouble const * x, blas_int_t incx,
     complexDouble beta,
     complexDouble * y, blas_int_t incy ) {
-    return blas::hemv<tblas_complexDouble, tblas_complexDouble, tblas_complexDouble>(
-        toTBLASlayout( layout ),
-        toTBLASuplo( uplo ),
+    return tlapack::hemv<tblas_complexDouble, tblas_complexDouble, tblas_complexDouble>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKuplo( uplo ),
         n,
         *tblas_Z(&alpha),
         tblas_cteZ(A), lda,
@@ -1015,9 +1015,9 @@ void _sher(
     float alpha,
     float const * x, blas_int_t incx,
     float * A, blas_idx_t lda ) {
-    return blas::her<float, float>(
-        toTBLASlayout( layout ),
-        toTBLASuplo( uplo ),
+    return tlapack::her<float, float>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKuplo( uplo ),
         n,
         alpha,
         x, incx,
@@ -1032,9 +1032,9 @@ void _dher(
     double alpha,
     double const * x, blas_int_t incx,
     double * A, blas_idx_t lda ) {
-    return blas::her<double, double>(
-        toTBLASlayout( layout ),
-        toTBLASuplo( uplo ),
+    return tlapack::her<double, double>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKuplo( uplo ),
         n,
         alpha,
         x, incx,
@@ -1049,9 +1049,9 @@ void _cher(
     float alpha,
     complexFloat const * x, blas_int_t incx,
     complexFloat * A, blas_idx_t lda ) {
-    return blas::her<tblas_complexFloat, tblas_complexFloat>(
-        toTBLASlayout( layout ),
-        toTBLASuplo( uplo ),
+    return tlapack::her<tblas_complexFloat, tblas_complexFloat>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKuplo( uplo ),
         n,
         alpha,
         tblas_cteC(x), incx,
@@ -1066,9 +1066,9 @@ void _zher(
     double alpha,
     complexDouble const * x, blas_int_t incx,
     complexDouble * A, blas_idx_t lda ) {
-    return blas::her<tblas_complexDouble, tblas_complexDouble>(
-        toTBLASlayout( layout ),
-        toTBLASuplo( uplo ),
+    return tlapack::her<tblas_complexDouble, tblas_complexDouble>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKuplo( uplo ),
         n,
         alpha,
         tblas_cteZ(x), incx,
@@ -1084,9 +1084,9 @@ void _sher2(
     float const * x, blas_int_t incx,
     float const * y, blas_int_t incy,
     float * A, blas_idx_t lda ) {
-    return blas::her2<float, float, float>(
-        toTBLASlayout( layout ),
-        toTBLASuplo( uplo ),
+    return tlapack::her2<float, float, float>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKuplo( uplo ),
         n,
         alpha,
         x, incx,
@@ -1103,9 +1103,9 @@ void _dher2(
     double const * x, blas_int_t incx,
     double const * y, blas_int_t incy,
     double * A, blas_idx_t lda ) {
-    return blas::her2<double, double, double>(
-        toTBLASlayout( layout ),
-        toTBLASuplo( uplo ),
+    return tlapack::her2<double, double, double>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKuplo( uplo ),
         n,
         alpha,
         x, incx,
@@ -1122,9 +1122,9 @@ void _cher2(
     complexFloat const * x, blas_int_t incx,
     complexFloat const * y, blas_int_t incy,
     complexFloat * A, blas_idx_t lda ) {
-    return blas::her2<tblas_complexFloat, tblas_complexFloat, tblas_complexFloat>(
-        toTBLASlayout( layout ),
-        toTBLASuplo( uplo ),
+    return tlapack::her2<tblas_complexFloat, tblas_complexFloat, tblas_complexFloat>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKuplo( uplo ),
         n,
         *tblas_C(&alpha),
         tblas_cteC(x), incx,
@@ -1141,9 +1141,9 @@ void _zher2(
     complexDouble const * x, blas_int_t incx,
     complexDouble const * y, blas_int_t incy,
     complexDouble * A, blas_idx_t lda ) {
-    return blas::her2<tblas_complexDouble, tblas_complexDouble, tblas_complexDouble>(
-        toTBLASlayout( layout ),
-        toTBLASuplo( uplo ),
+    return tlapack::her2<tblas_complexDouble, tblas_complexDouble, tblas_complexDouble>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKuplo( uplo ),
         n,
         *tblas_Z(&alpha),
         tblas_cteZ(x), incx,
@@ -1161,9 +1161,9 @@ void _ssymv(
     float const * x, blas_int_t incx,
     float beta,
     float * y, blas_int_t incy ) {
-    return blas::symv<float, float, float>(
-        toTBLASlayout( layout ),
-        toTBLASuplo( uplo ),
+    return tlapack::symv<float, float, float>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKuplo( uplo ),
         n,
         alpha,
         A, lda,
@@ -1182,9 +1182,9 @@ void _dsymv(
     double const * x, blas_int_t incx,
     double beta,
     double * y, blas_int_t incy ) {
-    return blas::symv<double, double, double>(
-        toTBLASlayout( layout ),
-        toTBLASuplo( uplo ),
+    return tlapack::symv<double, double, double>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKuplo( uplo ),
         n,
         alpha,
         A, lda,
@@ -1203,9 +1203,9 @@ void _csymv(
     complexFloat const * x, blas_int_t incx,
     complexFloat beta,
     complexFloat * y, blas_int_t incy ) {
-    return blas::symv<tblas_complexFloat, tblas_complexFloat, tblas_complexFloat>(
-        toTBLASlayout( layout ),
-        toTBLASuplo( uplo ),
+    return tlapack::symv<tblas_complexFloat, tblas_complexFloat, tblas_complexFloat>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKuplo( uplo ),
         n,
         *tblas_C(&alpha),
         tblas_cteC(A), lda,
@@ -1224,9 +1224,9 @@ void _zsymv(
     complexDouble const * x, blas_int_t incx,
     complexDouble beta,
     complexDouble * y, blas_int_t incy ) {
-    return blas::symv<tblas_complexDouble, tblas_complexDouble, tblas_complexDouble>(
-        toTBLASlayout( layout ),
-        toTBLASuplo( uplo ),
+    return tlapack::symv<tblas_complexDouble, tblas_complexDouble, tblas_complexDouble>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKuplo( uplo ),
         n,
         *tblas_Z(&alpha),
         tblas_cteZ(A), lda,
@@ -1243,9 +1243,9 @@ void _ssyr(
     float alpha,
     float const * x, blas_int_t incx,
     float * A, blas_idx_t lda ) {
-    return blas::syr<float, float>(
-        toTBLASlayout( layout ),
-        toTBLASuplo( uplo ),
+    return tlapack::syr<float, float>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKuplo( uplo ),
         n,
         alpha,
         x, incx,
@@ -1260,9 +1260,9 @@ void _dsyr(
     double alpha,
     double const * x, blas_int_t incx,
     double * A, blas_idx_t lda ) {
-    return blas::syr<double, double>(
-        toTBLASlayout( layout ),
-        toTBLASuplo( uplo ),
+    return tlapack::syr<double, double>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKuplo( uplo ),
         n,
         alpha,
         x, incx,
@@ -1278,9 +1278,9 @@ void _ssyr2(
     float const * x, blas_int_t incx,
     float const * y, blas_int_t incy,
     float * A, blas_idx_t lda ) {
-    return blas::syr2<float, float, float>(
-        toTBLASlayout( layout ),
-        toTBLASuplo( uplo ),
+    return tlapack::syr2<float, float, float>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKuplo( uplo ),
         n,
         alpha,
         x, incx,
@@ -1297,9 +1297,9 @@ void _dsyr2(
     double const * x, blas_int_t incx,
     double const * y, blas_int_t incy,
     double * A, blas_idx_t lda ) {
-    return blas::syr2<double, double, double>(
-        toTBLASlayout( layout ),
-        toTBLASuplo( uplo ),
+    return tlapack::syr2<double, double, double>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKuplo( uplo ),
         n,
         alpha,
         x, incx,
@@ -1316,9 +1316,9 @@ void _csyr2(
     complexFloat const * x, blas_int_t incx,
     complexFloat const * y, blas_int_t incy,
     complexFloat * A, blas_idx_t lda ) {
-    return blas::syr2<tblas_complexFloat, tblas_complexFloat, tblas_complexFloat>(
-        toTBLASlayout( layout ),
-        toTBLASuplo( uplo ),
+    return tlapack::syr2<tblas_complexFloat, tblas_complexFloat, tblas_complexFloat>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKuplo( uplo ),
         n,
         *tblas_C(&alpha),
         tblas_cteC(x), incx,
@@ -1335,9 +1335,9 @@ void _zsyr2(
     complexDouble const * x, blas_int_t incx,
     complexDouble const * y, blas_int_t incy,
     complexDouble * A, blas_idx_t lda ) {
-    return blas::syr2<tblas_complexDouble, tblas_complexDouble, tblas_complexDouble>(
-        toTBLASlayout( layout ),
-        toTBLASuplo( uplo ),
+    return tlapack::syr2<tblas_complexDouble, tblas_complexDouble, tblas_complexDouble>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKuplo( uplo ),
         n,
         *tblas_Z(&alpha),
         tblas_cteZ(x), incx,
@@ -1354,11 +1354,11 @@ void _strmv(
     blas_idx_t n,
     float const * A, blas_idx_t lda,
     float * x, blas_int_t incx ) {
-    return blas::trmv<float, float>(
-        toTBLASlayout( layout ),
-        toTBLASuplo( uplo ),
-        toTBLASop( trans ),
-        toTBLASdiag( diag ),
+    return tlapack::trmv<float, float>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKuplo( uplo ),
+        toTLAPACKop( trans ),
+        toTLAPACKdiag( diag ),
         n,
         A, lda,
         x, incx );
@@ -1373,11 +1373,11 @@ void _dtrmv(
     blas_idx_t n,
     double const * A, blas_idx_t lda,
     double * x, blas_int_t incx ) {
-    return blas::trmv<double, double>(
-        toTBLASlayout( layout ),
-        toTBLASuplo( uplo ),
-        toTBLASop( trans ),
-        toTBLASdiag( diag ),
+    return tlapack::trmv<double, double>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKuplo( uplo ),
+        toTLAPACKop( trans ),
+        toTLAPACKdiag( diag ),
         n,
         A, lda,
         x, incx );
@@ -1392,11 +1392,11 @@ void _ctrmv(
     blas_idx_t n,
     complexFloat const * A, blas_idx_t lda,
     complexFloat * x, blas_int_t incx ) {
-    return blas::trmv<tblas_complexFloat, tblas_complexFloat>(
-        toTBLASlayout( layout ),
-        toTBLASuplo( uplo ),
-        toTBLASop( trans ),
-        toTBLASdiag( diag ),
+    return tlapack::trmv<tblas_complexFloat, tblas_complexFloat>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKuplo( uplo ),
+        toTLAPACKop( trans ),
+        toTLAPACKdiag( diag ),
         n,
         tblas_cteC(A), lda,
         tblas_C(x), incx );
@@ -1411,11 +1411,11 @@ void _ztrmv(
     blas_idx_t n,
     complexDouble const * A, blas_idx_t lda,
     complexDouble * x, blas_int_t incx ) {
-    return blas::trmv<tblas_complexDouble, tblas_complexDouble>(
-        toTBLASlayout( layout ),
-        toTBLASuplo( uplo ),
-        toTBLASop( trans ),
-        toTBLASdiag( diag ),
+    return tlapack::trmv<tblas_complexDouble, tblas_complexDouble>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKuplo( uplo ),
+        toTLAPACKop( trans ),
+        toTLAPACKdiag( diag ),
         n,
         tblas_cteZ(A), lda,
         tblas_Z(x), incx );
@@ -1430,11 +1430,11 @@ void _strsv(
     blas_idx_t n,
     float const * A, blas_idx_t lda,
     float * x, blas_int_t incx ) {
-    return blas::trsv<float, float>(
-        toTBLASlayout( layout ),
-        toTBLASuplo( uplo ),
-        toTBLASop( trans ),
-        toTBLASdiag( diag ),
+    return tlapack::trsv<float, float>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKuplo( uplo ),
+        toTLAPACKop( trans ),
+        toTLAPACKdiag( diag ),
         n,
         A, lda,
         x, incx );
@@ -1449,11 +1449,11 @@ void _dtrsv(
     blas_idx_t n,
     double const * A, blas_idx_t lda,
     double * x, blas_int_t incx ) {
-    return blas::trsv<double, double>(
-        toTBLASlayout( layout ),
-        toTBLASuplo( uplo ),
-        toTBLASop( trans ),
-        toTBLASdiag( diag ),
+    return tlapack::trsv<double, double>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKuplo( uplo ),
+        toTLAPACKop( trans ),
+        toTLAPACKdiag( diag ),
         n,
         A, lda,
         x, incx );
@@ -1468,11 +1468,11 @@ void _ctrsv(
     blas_idx_t n,
     complexFloat const * A, blas_idx_t lda,
     complexFloat * x, blas_int_t incx ) {
-    return blas::trsv<tblas_complexFloat, tblas_complexFloat>(
-        toTBLASlayout( layout ),
-        toTBLASuplo( uplo ),
-        toTBLASop( trans ),
-        toTBLASdiag( diag ),
+    return tlapack::trsv<tblas_complexFloat, tblas_complexFloat>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKuplo( uplo ),
+        toTLAPACKop( trans ),
+        toTLAPACKdiag( diag ),
         n,
         tblas_cteC(A), lda,
         tblas_C(x), incx );
@@ -1487,11 +1487,11 @@ void _ztrsv(
     blas_idx_t n,
     complexDouble const * A, blas_idx_t lda,
     complexDouble * x, blas_int_t incx ) {
-    return blas::trsv<tblas_complexDouble, tblas_complexDouble>(
-        toTBLASlayout( layout ),
-        toTBLASuplo( uplo ),
-        toTBLASop( trans ),
-        toTBLASdiag( diag ),
+    return tlapack::trsv<tblas_complexDouble, tblas_complexDouble>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKuplo( uplo ),
+        toTLAPACKop( trans ),
+        toTLAPACKdiag( diag ),
         n,
         tblas_cteZ(A), lda,
         tblas_Z(x), incx );
@@ -1510,10 +1510,10 @@ void _sgemm(
     float const * B, blas_idx_t ldb,
     float beta,
     float * C, blas_idx_t ldc ) {
-    return blas::gemm(
-        toTBLASlayout( layout ),
-        (blas::Op) transA,
-        (blas::Op) transB,
+    return tlapack::gemm(
+        toTLAPACKlayout( layout ),
+        (tlapack::Op) transA,
+        (tlapack::Op) transB,
         m,
         n,
         k,
@@ -1537,10 +1537,10 @@ void _dgemm(
     double const * B, blas_idx_t ldb,
     double beta,
     double * C, blas_idx_t ldc ) {
-    return blas::gemm(
-        toTBLASlayout( layout ),
-        (blas::Op) transA,
-        (blas::Op) transB,
+    return tlapack::gemm(
+        toTLAPACKlayout( layout ),
+        (tlapack::Op) transA,
+        (tlapack::Op) transB,
         m,
         n,
         k,
@@ -1564,10 +1564,10 @@ void _cgemm(
     complexFloat const * B, blas_idx_t ldb,
     complexFloat beta,
     complexFloat * C, blas_idx_t ldc ) {
-    return blas::gemm(
-        toTBLASlayout( layout ),
-        (blas::Op) transA,
-        (blas::Op) transB,
+    return tlapack::gemm(
+        toTLAPACKlayout( layout ),
+        (tlapack::Op) transA,
+        (tlapack::Op) transB,
         m,
         n,
         k,
@@ -1591,10 +1591,10 @@ void _zgemm(
     complexDouble const * B, blas_idx_t ldb,
     complexDouble beta,
     complexDouble * C, blas_idx_t ldc ) {
-    return blas::gemm(
-        toTBLASlayout( layout ),
-        (blas::Op) transA,
-        (blas::Op) transB,
+    return tlapack::gemm(
+        toTLAPACKlayout( layout ),
+        (tlapack::Op) transA,
+        (tlapack::Op) transB,
         m,
         n,
         k,
@@ -1617,10 +1617,10 @@ void _shemm(
     float const * B, blas_idx_t ldb,
     float beta,
     float * C, blas_idx_t ldc ) {
-    return blas::hemm<float, float, float>(
-        toTBLASlayout( layout ),
-        toTBLASside( side ),
-        toTBLASuplo( uplo ),
+    return tlapack::hemm<float, float, float>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKside( side ),
+        toTLAPACKuplo( uplo ),
         m,
         n,
         alpha,
@@ -1642,10 +1642,10 @@ void _dhemm(
     double const * B, blas_idx_t ldb,
     double beta,
     double * C, blas_idx_t ldc ) {
-    return blas::hemm<double, double, double>(
-        toTBLASlayout( layout ),
-        toTBLASside( side ),
-        toTBLASuplo( uplo ),
+    return tlapack::hemm<double, double, double>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKside( side ),
+        toTLAPACKuplo( uplo ),
         m,
         n,
         alpha,
@@ -1667,10 +1667,10 @@ void _chemm(
     complexFloat const * B, blas_idx_t ldb,
     complexFloat beta,
     complexFloat * C, blas_idx_t ldc ) {
-    return blas::hemm<tblas_complexFloat, tblas_complexFloat, tblas_complexFloat>(
-        toTBLASlayout( layout ),
-        toTBLASside( side ),
-        toTBLASuplo( uplo ),
+    return tlapack::hemm<tblas_complexFloat, tblas_complexFloat, tblas_complexFloat>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKside( side ),
+        toTLAPACKuplo( uplo ),
         m,
         n,
         *tblas_C(&alpha),
@@ -1692,10 +1692,10 @@ void _zhemm(
     complexDouble const * B, blas_idx_t ldb,
     complexDouble beta,
     complexDouble * C, blas_idx_t ldc ) {
-    return blas::hemm<tblas_complexDouble, tblas_complexDouble, tblas_complexDouble>(
-        toTBLASlayout( layout ),
-        toTBLASside( side ),
-        toTBLASuplo( uplo ),
+    return tlapack::hemm<tblas_complexDouble, tblas_complexDouble, tblas_complexDouble>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKside( side ),
+        toTLAPACKuplo( uplo ),
         m,
         n,
         *tblas_Z(&alpha),
@@ -1717,10 +1717,10 @@ void _sher2k(
     float const * B, blas_idx_t ldb,
     float beta,
     float * C, blas_idx_t ldc ) {
-    return blas::her2k<float, float, float>(
-        toTBLASlayout( layout ),
-        toTBLASuplo( uplo ),
-        toTBLASop( trans ),
+    return tlapack::her2k<float, float, float>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKuplo( uplo ),
+        toTLAPACKop( trans ),
         n,
         k,
         alpha,
@@ -1742,10 +1742,10 @@ void _dher2k(
     double const * B, blas_idx_t ldb,
     double beta,
     double * C, blas_idx_t ldc ) {
-    return blas::her2k<double, double, double>(
-        toTBLASlayout( layout ),
-        toTBLASuplo( uplo ),
-        toTBLASop( trans ),
+    return tlapack::her2k<double, double, double>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKuplo( uplo ),
+        toTLAPACKop( trans ),
         n,
         k,
         alpha,
@@ -1767,10 +1767,10 @@ void _cher2k(
     complexFloat const * B, blas_idx_t ldb,
     float beta,
     complexFloat * C, blas_idx_t ldc ) {
-    return blas::her2k<tblas_complexFloat, tblas_complexFloat, tblas_complexFloat>(
-        toTBLASlayout( layout ),
-        toTBLASuplo( uplo ),
-        toTBLASop( trans ),
+    return tlapack::her2k<tblas_complexFloat, tblas_complexFloat, tblas_complexFloat>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKuplo( uplo ),
+        toTLAPACKop( trans ),
         n,
         k,
         *tblas_C(&alpha),
@@ -1792,10 +1792,10 @@ void _zher2k(
     complexDouble const * B, blas_idx_t ldb,
     double beta,
     complexDouble * C, blas_idx_t ldc ) {
-    return blas::her2k<tblas_complexDouble, tblas_complexDouble, tblas_complexDouble>(
-        toTBLASlayout( layout ),
-        toTBLASuplo( uplo ),
-        toTBLASop( trans ),
+    return tlapack::her2k<tblas_complexDouble, tblas_complexDouble, tblas_complexDouble>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKuplo( uplo ),
+        toTLAPACKop( trans ),
         n,
         k,
         *tblas_Z(&alpha),
@@ -1816,10 +1816,10 @@ void _sherk(
     float const * A, blas_idx_t lda,
     float beta,
     float * C, blas_idx_t ldc ) {
-    return blas::herk(
-        toTBLASlayout( layout ),
-        toTBLASuplo( uplo ),
-        toTBLASop( trans ),
+    return tlapack::herk(
+        toTLAPACKlayout( layout ),
+        toTLAPACKuplo( uplo ),
+        toTLAPACKop( trans ),
         n,
         k,
         alpha,
@@ -1839,10 +1839,10 @@ void _dherk(
     double const * A, blas_idx_t lda,
     double beta,
     double * C, blas_idx_t ldc ) {
-    return blas::herk(
-        toTBLASlayout( layout ),
-        toTBLASuplo( uplo ),
-        toTBLASop( trans ),
+    return tlapack::herk(
+        toTLAPACKlayout( layout ),
+        toTLAPACKuplo( uplo ),
+        toTLAPACKop( trans ),
         n,
         k,
         alpha,
@@ -1862,10 +1862,10 @@ void _cherk(
     complexFloat const * A, blas_idx_t lda,
     float beta,
     complexFloat * C, blas_idx_t ldc ) {
-    return blas::herk(
-        toTBLASlayout( layout ),
-        toTBLASuplo( uplo ),
-        toTBLASop( trans ),
+    return tlapack::herk(
+        toTLAPACKlayout( layout ),
+        toTLAPACKuplo( uplo ),
+        toTLAPACKop( trans ),
         n,
         k,
         alpha,
@@ -1885,10 +1885,10 @@ void _zherk(
     complexDouble const * A, blas_idx_t lda,
     double beta,
     complexDouble * C, blas_idx_t ldc ) {
-    return blas::herk(
-        toTBLASlayout( layout ),
-        toTBLASuplo( uplo ),
-        toTBLASop( trans ),
+    return tlapack::herk(
+        toTLAPACKlayout( layout ),
+        toTLAPACKuplo( uplo ),
+        toTLAPACKop( trans ),
         n,
         k,
         alpha,
@@ -1909,10 +1909,10 @@ void _ssymm(
     float const * B, blas_idx_t ldb,
     float beta,
     float * C, blas_idx_t ldc ) {
-    return blas::symm<float, float, float>(
-        toTBLASlayout( layout ),
-        toTBLASside( side ),
-        toTBLASuplo( uplo ),
+    return tlapack::symm<float, float, float>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKside( side ),
+        toTLAPACKuplo( uplo ),
         m,
         n,
         alpha,
@@ -1934,10 +1934,10 @@ void _dsymm(
     double const * B, blas_idx_t ldb,
     double beta,
     double * C, blas_idx_t ldc ) {
-    return blas::symm<double, double, double>(
-        toTBLASlayout( layout ),
-        toTBLASside( side ),
-        toTBLASuplo( uplo ),
+    return tlapack::symm<double, double, double>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKside( side ),
+        toTLAPACKuplo( uplo ),
         m,
         n,
         alpha,
@@ -1959,10 +1959,10 @@ void _csymm(
     complexFloat const * B, blas_idx_t ldb,
     complexFloat beta,
     complexFloat * C, blas_idx_t ldc ) {
-    return blas::symm<tblas_complexFloat, tblas_complexFloat, tblas_complexFloat>(
-        toTBLASlayout( layout ),
-        toTBLASside( side ),
-        toTBLASuplo( uplo ),
+    return tlapack::symm<tblas_complexFloat, tblas_complexFloat, tblas_complexFloat>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKside( side ),
+        toTLAPACKuplo( uplo ),
         m,
         n,
         *tblas_C(&alpha),
@@ -1984,10 +1984,10 @@ void _zsymm(
     complexDouble const * B, blas_idx_t ldb,
     complexDouble beta,
     complexDouble * C, blas_idx_t ldc ) {
-    return blas::symm<tblas_complexDouble, tblas_complexDouble, tblas_complexDouble>(
-        toTBLASlayout( layout ),
-        toTBLASside( side ),
-        toTBLASuplo( uplo ),
+    return tlapack::symm<tblas_complexDouble, tblas_complexDouble, tblas_complexDouble>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKside( side ),
+        toTLAPACKuplo( uplo ),
         m,
         n,
         *tblas_Z(&alpha),
@@ -2009,10 +2009,10 @@ void _ssyr2k(
     float const * B, blas_idx_t ldb,
     float beta,
     float * C, blas_idx_t ldc ) {
-    return blas::syr2k<float, float, float>(
-        toTBLASlayout( layout ),
-        toTBLASuplo( uplo ),
-        toTBLASop( trans ),
+    return tlapack::syr2k<float, float, float>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKuplo( uplo ),
+        toTLAPACKop( trans ),
         n,
         k,
         alpha,
@@ -2034,10 +2034,10 @@ void _dsyr2k(
     double const * B, blas_idx_t ldb,
     double beta,
     double * C, blas_idx_t ldc ) {
-    return blas::syr2k<double, double, double>(
-        toTBLASlayout( layout ),
-        toTBLASuplo( uplo ),
-        toTBLASop( trans ),
+    return tlapack::syr2k<double, double, double>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKuplo( uplo ),
+        toTLAPACKop( trans ),
         n,
         k,
         alpha,
@@ -2059,10 +2059,10 @@ void _csyr2k(
     complexFloat const * B, blas_idx_t ldb,
     complexFloat beta,
     complexFloat * C, blas_idx_t ldc ) {
-    return blas::syr2k<tblas_complexFloat, tblas_complexFloat, tblas_complexFloat>(
-        toTBLASlayout( layout ),
-        toTBLASuplo( uplo ),
-        toTBLASop( trans ),
+    return tlapack::syr2k<tblas_complexFloat, tblas_complexFloat, tblas_complexFloat>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKuplo( uplo ),
+        toTLAPACKop( trans ),
         n,
         k,
         *tblas_C(&alpha),
@@ -2084,10 +2084,10 @@ void _zsyr2k(
     complexDouble const * B, blas_idx_t ldb,
     complexDouble beta,
     complexDouble * C, blas_idx_t ldc ) {
-    return blas::syr2k<tblas_complexDouble, tblas_complexDouble, tblas_complexDouble>(
-        toTBLASlayout( layout ),
-        toTBLASuplo( uplo ),
-        toTBLASop( trans ),
+    return tlapack::syr2k<tblas_complexDouble, tblas_complexDouble, tblas_complexDouble>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKuplo( uplo ),
+        toTLAPACKop( trans ),
         n,
         k,
         *tblas_Z(&alpha),
@@ -2108,10 +2108,10 @@ void _ssyrk(
     float const * A, blas_idx_t lda,
     float beta,
     float * C, blas_idx_t ldc ) {
-    return blas::syrk(
-        toTBLASlayout( layout ),
-        toTBLASuplo( uplo ),
-        toTBLASop( trans ),
+    return tlapack::syrk(
+        toTLAPACKlayout( layout ),
+        toTLAPACKuplo( uplo ),
+        toTLAPACKop( trans ),
         n,
         k,
         alpha,
@@ -2131,10 +2131,10 @@ void _dsyrk(
     double const * A, blas_idx_t lda,
     double beta,
     double * C, blas_idx_t ldc ) {
-    return blas::syrk(
-        toTBLASlayout( layout ),
-        toTBLASuplo( uplo ),
-        toTBLASop( trans ),
+    return tlapack::syrk(
+        toTLAPACKlayout( layout ),
+        toTLAPACKuplo( uplo ),
+        toTLAPACKop( trans ),
         n,
         k,
         alpha,
@@ -2154,10 +2154,10 @@ void _csyrk(
     complexFloat const * A, blas_idx_t lda,
     complexFloat beta,
     complexFloat * C, blas_idx_t ldc ) {
-    return blas::syrk(
-        toTBLASlayout( layout ),
-        toTBLASuplo( uplo ),
-        toTBLASop( trans ),
+    return tlapack::syrk(
+        toTLAPACKlayout( layout ),
+        toTLAPACKuplo( uplo ),
+        toTLAPACKop( trans ),
         n,
         k,
         *tblas_C(&alpha),
@@ -2177,10 +2177,10 @@ void _zsyrk(
     complexDouble const * A, blas_idx_t lda,
     complexDouble beta,
     complexDouble * C, blas_idx_t ldc ) {
-    return blas::syrk(
-        toTBLASlayout( layout ),
-        toTBLASuplo( uplo ),
-        toTBLASop( trans ),
+    return tlapack::syrk(
+        toTLAPACKlayout( layout ),
+        toTLAPACKuplo( uplo ),
+        toTLAPACKop( trans ),
         n,
         k,
         *tblas_Z(&alpha),
@@ -2201,12 +2201,12 @@ void _strmm(
     float alpha,
     float const * A, blas_idx_t lda,
     float * B, blas_idx_t ldb ) {
-    return blas::trmm<float, float>(
-        toTBLASlayout( layout ),
-        toTBLASside( side ),
-        toTBLASuplo( uplo ),
-        toTBLASop( trans ),
-        toTBLASdiag( diag ),
+    return tlapack::trmm<float, float>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKside( side ),
+        toTLAPACKuplo( uplo ),
+        toTLAPACKop( trans ),
+        toTLAPACKdiag( diag ),
         m,
         n,
         alpha,
@@ -2226,12 +2226,12 @@ void _dtrmm(
     double alpha,
     double const * A, blas_idx_t lda,
     double * B, blas_idx_t ldb ) {
-    return blas::trmm<double, double>(
-        toTBLASlayout( layout ),
-        toTBLASside( side ),
-        toTBLASuplo( uplo ),
-        toTBLASop( trans ),
-        toTBLASdiag( diag ),
+    return tlapack::trmm<double, double>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKside( side ),
+        toTLAPACKuplo( uplo ),
+        toTLAPACKop( trans ),
+        toTLAPACKdiag( diag ),
         m,
         n,
         alpha,
@@ -2251,12 +2251,12 @@ void _ctrmm(
     complexFloat alpha,
     complexFloat const * A, blas_idx_t lda,
     complexFloat * B, blas_idx_t ldb ) {
-    return blas::trmm<tblas_complexFloat, tblas_complexFloat>(
-        toTBLASlayout( layout ),
-        toTBLASside( side ),
-        toTBLASuplo( uplo ),
-        toTBLASop( trans ),
-        toTBLASdiag( diag ),
+    return tlapack::trmm<tblas_complexFloat, tblas_complexFloat>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKside( side ),
+        toTLAPACKuplo( uplo ),
+        toTLAPACKop( trans ),
+        toTLAPACKdiag( diag ),
         m,
         n,
         *tblas_C(&alpha),
@@ -2276,12 +2276,12 @@ void _ztrmm(
     complexDouble alpha,
     complexDouble const * A, blas_idx_t lda,
     complexDouble * B, blas_idx_t ldb ) {
-    return blas::trmm<tblas_complexDouble, tblas_complexDouble>(
-        toTBLASlayout( layout ),
-        toTBLASside( side ),
-        toTBLASuplo( uplo ),
-        toTBLASop( trans ),
-        toTBLASdiag( diag ),
+    return tlapack::trmm<tblas_complexDouble, tblas_complexDouble>(
+        toTLAPACKlayout( layout ),
+        toTLAPACKside( side ),
+        toTLAPACKuplo( uplo ),
+        toTLAPACKop( trans ),
+        toTLAPACKdiag( diag ),
         m,
         n,
         *tblas_Z(&alpha),
@@ -2301,12 +2301,12 @@ void _strsm(
     float alpha,
     float const * A, blas_idx_t lda,
     float * B, blas_idx_t ldb ) {
-    return blas::trsm(
-        toTBLASlayout( layout ),
-        toTBLASside( side ),
-        toTBLASuplo( uplo ),
-        toTBLASop( trans ),
-        toTBLASdiag( diag ),
+    return tlapack::trsm(
+        toTLAPACKlayout( layout ),
+        toTLAPACKside( side ),
+        toTLAPACKuplo( uplo ),
+        toTLAPACKop( trans ),
+        toTLAPACKdiag( diag ),
         m,
         n,
         alpha,
@@ -2326,12 +2326,12 @@ void _dtrsm(
     double alpha,
     double const * A, blas_idx_t lda,
     double * B, blas_idx_t ldb ) {
-    return blas::trsm(
-        toTBLASlayout( layout ),
-        toTBLASside( side ),
-        toTBLASuplo( uplo ),
-        toTBLASop( trans ),
-        toTBLASdiag( diag ),
+    return tlapack::trsm(
+        toTLAPACKlayout( layout ),
+        toTLAPACKside( side ),
+        toTLAPACKuplo( uplo ),
+        toTLAPACKop( trans ),
+        toTLAPACKdiag( diag ),
         m,
         n,
         alpha,
@@ -2351,12 +2351,12 @@ void _ctrsm(
     complexFloat alpha,
     complexFloat const * A, blas_idx_t lda,
     complexFloat * B, blas_idx_t ldb ) {
-    return blas::trsm(
-        toTBLASlayout( layout ),
-        toTBLASside( side ),
-        toTBLASuplo( uplo ),
-        toTBLASop( trans ),
-        toTBLASdiag( diag ),
+    return tlapack::trsm(
+        toTLAPACKlayout( layout ),
+        toTLAPACKside( side ),
+        toTLAPACKuplo( uplo ),
+        toTLAPACKop( trans ),
+        toTLAPACKdiag( diag ),
         m,
         n,
         *tblas_C(&alpha),
@@ -2376,12 +2376,12 @@ void _ztrsm(
     complexDouble alpha,
     complexDouble const * A, blas_idx_t lda,
     complexDouble * B, blas_idx_t ldb ) {
-    return blas::trsm(
-        toTBLASlayout( layout ),
-        toTBLASside( side ),
-        toTBLASuplo( uplo ),
-        toTBLASop( trans ),
-        toTBLASdiag( diag ),
+    return tlapack::trsm(
+        toTLAPACKlayout( layout ),
+        toTLAPACKside( side ),
+        toTLAPACKuplo( uplo ),
+        toTLAPACKop( trans ),
+        toTLAPACKdiag( diag ),
         m,
         n,
         *tblas_Z(&alpha),

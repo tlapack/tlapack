@@ -9,27 +9,15 @@
 
 #include <assert.h>
 
-#include "legacy_api/blas/types.hpp"
-#include "blas/exceptionHandling.hpp"
+#include "legacy_api/base/types.hpp"
+#include "base/exceptionHandling.hpp"
 
-namespace blas {
-
-    /// Runtime direction
-    /// TODO: Compatibilize this with Direction from lapack/types
-    enum class Direction { Forward = 'F', Backward = 'B' };
-
-    // /// Compile time forward direction
-    // struct forward_t {
-    //     constexpr operator Direction() const { return Direction::Forward; }
-    // };
-    // /// Compile time backward direction
-    // struct backward_t {
-    //     constexpr operator Direction() const { return Direction::Backward; }
-    // };
-
-    // // Constant expressions
-    // constexpr forward_t forward { };
-    // constexpr backward_t backward { };
+namespace tlapack {
+    
+    struct one_t {
+        constexpr operator int()   const{ return 1; }
+    };
+    constexpr one_t one = { };
 
     /** Legacy matrix.
      * 
@@ -40,7 +28,7 @@ namespace blas {
      */
     template< typename T, Layout L = Layout::ColMajor >
     struct legacyMatrix {
-        using idx_t = BLAS_SIZE_T;  ///< Index type
+        using idx_t = TLAPACK_SIZE_T;  ///< Index type
         idx_t m, n;                 ///< Sizes
         T* ptr;                     ///< Pointer to array in memory
         idx_t ldim;                 ///< Leading dimension
@@ -61,9 +49,9 @@ namespace blas {
         inline constexpr legacyMatrix( idx_t m, idx_t n, T* ptr, idx_t ldim )
         : m(m), n(n), ptr(ptr), ldim(ldim)
         {
-            blas_error_if( m < 0 );
-            blas_error_if( n < 0 );
-            blas_error_if( ldim < ((layout == Layout::ColMajor) ? m : n) );
+            tblas_error_if( m < 0 );
+            tblas_error_if( n < 0 );
+            tblas_error_if( ldim < ((layout == Layout::ColMajor) ? m : n) );
         }
     };
 
@@ -74,7 +62,7 @@ namespace blas {
      */
     template< typename T, typename int_t = one_t, Direction direction = Direction::Forward >
     struct legacyVector {
-        using idx_t = BLAS_SIZE_T;  ///< Index type
+        using idx_t = TLAPACK_SIZE_T;  ///< Index type
         idx_t n;                    ///< Size
         T* ptr;                     ///< Pointer to array in memory
         int_t inc;                  ///< Memory increment
@@ -91,8 +79,8 @@ namespace blas {
         inline constexpr legacyVector( idx_t n, T* ptr, int_t inc = one )
         : n(n), ptr(ptr), inc(inc)
         {
-            blas_error_if( n < 0 );
-            blas_error_if( inc == 0 );
+            tblas_error_if( n < 0 );
+            tblas_error_if( inc == 0 );
         }
     };
 
@@ -107,7 +95,7 @@ namespace blas {
      */
     template< typename T >
     struct legacyBandedMatrix {
-        using idx_t = BLAS_SIZE_T;  ///< Index type
+        using idx_t = TLAPACK_SIZE_T;  ///< Index type
         idx_t m, n, kl, ku;         ///< Sizes
         T* ptr;                     ///< Pointer to array in memory
         
@@ -133,18 +121,12 @@ namespace blas {
         inline constexpr legacyBandedMatrix( idx_t m, idx_t n, idx_t kl, idx_t ku, T* ptr )
         : m(m), n(n), kl(kl), ku(ku), ptr(ptr)
         {
-            blas_error_if( m < 0 );
-            blas_error_if( n < 0 );
-            blas_error_if( (kl + 1 > m && m > 0) || (ku + 1 > n && n > 0) );
+            tblas_error_if( m < 0 );
+            tblas_error_if( n < 0 );
+            tblas_error_if( (kl + 1 > m && m > 0) || (ku + 1 > n && n > 0) );
         }
     };
 
-} // namespace blas
-
-namespace lapack {
-    using blas::legacyMatrix;
-    using blas::legacyVector;
-    using blas::legacyBandedMatrix;
-}
+} // namespace tlapack
 
 #endif // __TLAPACK_LEGACY_ARRAY_HH__

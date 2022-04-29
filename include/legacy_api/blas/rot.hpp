@@ -5,13 +5,14 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef TBLAS_LEGACY_ROT_HH
-#define TBLAS_LEGACY_ROT_HH
+#ifndef __TLAPACK_LEGACY_ROT_HH__
+#define __TLAPACK_LEGACY_ROT_HH__
 
-#include "blas/utils.hpp"
+#include "legacy_api/base/utils.hpp"
+#include "legacy_api/base/types.hpp"
 #include "blas/rot.hpp"
 
-namespace blas {
+namespace tlapack {
 
 /**
  * Apply plane rotation:
@@ -52,15 +53,15 @@ namespace blas {
  */
 template< typename TX, typename TY >
 void rot(
-    blas::idx_t n,
-    TX *x, blas::int_t incx,
-    TY *y, blas::int_t incy,
-    const blas::real_type<TX, TY>&   c,
-    const blas::scalar_type<TX, TY>& s )
+    idx_t n,
+    TX *x, int_t incx,
+    TY *y, int_t incy,
+    const real_type<TX, TY>&   c,
+    const scalar_type<TX, TY>& s )
 {
     // check arguments
-    blas_error_if( incx == 0 );
-    blas_error_if( incy == 0 );
+    tblas_error_if( incx == 0 );
+    tblas_error_if( incy == 0 );
 
     tlapack_expr_with_2vectors(
         _x, TX, n, x, incx,
@@ -69,6 +70,6 @@ void rot(
     );
 }
 
-}  // namespace blas
+}  // namespace tlapack
 
-#endif        //  #ifndef TBLAS_LEGACY_ROT_HH
+#endif        //  #ifndef __TLAPACK_LEGACY_ROT_HH__

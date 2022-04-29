@@ -5,13 +5,14 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef TBLAS_LEGACY_HER2K_HH
-#define TBLAS_LEGACY_HER2K_HH
+#ifndef __TLAPACK_LEGACY_HER2K_HH__
+#define __TLAPACK_LEGACY_HER2K_HH__
 
-#include "blas/utils.hpp"
+#include "legacy_api/base/utils.hpp"
+#include "legacy_api/base/types.hpp"
 #include "blas/her2k.hpp"
 
-namespace blas {
+namespace tlapack {
 
 /**
  * Hermitian rank-k update:
@@ -89,43 +90,43 @@ namespace blas {
  */
 template< typename TA, typename TB, typename TC >
 void her2k(
-    blas::Layout layout,
-    blas::Uplo uplo,
-    blas::Op trans,
-    blas::idx_t n, blas::idx_t k,
+    Layout layout,
+    Uplo uplo,
+    Op trans,
+    idx_t n, idx_t k,
     scalar_type<TA, TB, TC> alpha,  // note: complex
-    TA const *A, blas::idx_t lda,
-    TB const *B, blas::idx_t ldb,
+    TA const *A, idx_t lda,
+    TB const *B, idx_t ldb,
     real_type<TA, TB, TC> beta,  // note: real
-    TC       *C, blas::idx_t ldc )
+    TC       *C, idx_t ldc )
 {
-    using blas::internal::colmajor_matrix;
+    using internal::colmajor_matrix;
 
     // check arguments
-    blas_error_if( layout != Layout::ColMajor &&
+    tblas_error_if( layout != Layout::ColMajor &&
                    layout != Layout::RowMajor );
-    blas_error_if( uplo != Uplo::Lower &&
+    tblas_error_if( uplo != Uplo::Lower &&
                    uplo != Uplo::Upper &&
                    uplo != Uplo::General );
-    blas_error_if( trans != Op::NoTrans &&
+    tblas_error_if( trans != Op::NoTrans &&
                    trans != Op::Trans &&
                    trans != Op::ConjTrans );
-    blas_error_if( is_complex<TA>::value && trans == Op::Trans );
-    blas_error_if( n < 0 );
-    blas_error_if( k < 0 );
-    blas_error_if( lda < (
+    tblas_error_if( is_complex<TA>::value && trans == Op::Trans );
+    tblas_error_if( n < 0 );
+    tblas_error_if( k < 0 );
+    tblas_error_if( lda < (
         (layout == Layout::RowMajor)
             ? ((trans == Op::NoTrans) ? k : n)
             : ((trans == Op::NoTrans) ? n : k)
         )
     );
-    blas_error_if( ldb < (
+    tblas_error_if( ldb < (
         (layout == Layout::RowMajor)
             ? ((trans == Op::NoTrans) ? k : n)
             : ((trans == Op::NoTrans) ? n : k)
         )
     );
-    blas_error_if( ldc < n );
+    tblas_error_if( ldc < n );
 
     // quick return
     if (n == 0)
@@ -158,6 +159,6 @@ void her2k(
     her2k( uplo, trans, alpha, _A, _B, beta, _C );
 }
 
-}  // namespace blas
+}  // namespace tlapack
 
-#endif        //  #ifndef TBLAS_LEGACY_HER2K_HH
+#endif        //  #ifndef __TLAPACK_LEGACY_HER2K_HH__

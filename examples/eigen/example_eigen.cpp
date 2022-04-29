@@ -20,8 +20,7 @@ int main( int argc, char** argv )
 {
     using std::size_t;
     using pair = std::pair<size_t,size_t>;
-    using namespace blas;
-    using namespace lapack;
+    using namespace tlapack;
     using Eigen::Matrix;
 
     // Constants

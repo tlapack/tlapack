@@ -13,7 +13,7 @@
 
 #include "lapack/geqr2.hpp"
 
-namespace lapack {
+namespace tlapack {
 
 /** Computes a QR factorization of a matrix A.
  * 
@@ -36,12 +36,12 @@ namespace lapack {
  */
 template< typename TA, typename Ttau >
 inline int geqr2(
-    blas::idx_t m, blas::idx_t n,
-    TA*   A, blas::idx_t lda,
+    idx_t m, idx_t n,
+    TA*   A, idx_t lda,
     Ttau* tau )
 {
-    using blas::internal::colmajor_matrix;
-    using blas::internal::vector;
+    using internal::colmajor_matrix;
+    using internal::vector;
     using work_t = scalar_type<TA,Ttau>;
 
     // check arguments

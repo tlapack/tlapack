@@ -7,20 +7,6 @@
 #ifndef __TLAPACK_LEGACY_HH__
 #define __TLAPACK_LEGACY_HH__
 
-// Optimized LAPACK
-
-#ifdef USE_LAPACKPP_WRAPPERS
-    #ifndef LAPACK_UTIL_HH
-        #define LAPACK_UTIL_HH // So as not to include utils from lapack++
-    #endif
-    #include "legacy_api/lapack/config_lapackppwrappers.h"
-    #include "legacy_api/lapack/types.hpp"
-    #include "lapack/wrappers.hh" // from lapack++
-#endif
-
-#include "legacy_api/lapack/types.hpp"
-#include "legacy_api/lapack/utils.hpp"
-
 // =============================================================================
 // Template LAPACK
 

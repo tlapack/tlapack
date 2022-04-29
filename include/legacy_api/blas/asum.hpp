@@ -5,13 +5,14 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef TBLAS_LEGACY_ASUM_HH
-#define TBLAS_LEGACY_ASUM_HH
+#ifndef __TLAPACK_LEGACY_ASUM_HH__
+#define __TLAPACK_LEGACY_ASUM_HH__
 
-#include "blas/utils.hpp"
+#include "legacy_api/base/utils.hpp"
+#include "legacy_api/base/types.hpp"
 #include "blas/asum.hpp"
 
-namespace blas {
+namespace tlapack {
 
 /**
  * Wrapper to asum( vector_t const& x ).
@@ -35,7 +36,7 @@ template< typename T >
 inline
 auto asum( idx_t n, T const *x, int_t incx )
 {
-    blas_error_if( incx <= 0 );
+    tblas_error_if( incx <= 0 );
     
     tlapack_expr_with_vector_positiveInc(
         _x, T, n, x, incx,
@@ -43,6 +44,6 @@ auto asum( idx_t n, T const *x, int_t incx )
     );
 }
 
-}  // namespace blas
+}  // namespace tlapack
 
-#endif        //  #ifndef TBLAS_LEGACY_ASUM_HH
+#endif        //  #ifndef __TLAPACK_LEGACY_ASUM_HH__

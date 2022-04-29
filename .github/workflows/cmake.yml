@@ -332,7 +332,7 @@ jobs:
         -D BUILD_SHARED_LIBS=ON
         -D BUILD_EXAMPLES=OFF
         -D BUILD_TESTING=OFF
-        -D TLAPACK_USE_OPTBLAS=ON
+        -D USE_BLASPP_WRAPPERS=ON
 
     - name: Build and Install
       # Build your program with the given configuration

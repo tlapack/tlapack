@@ -7,14 +7,13 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __POTRF2_HH__
-#define __POTRF2_HH__
+#ifndef __TLAPACK_POTRF2_HH__
+#define __TLAPACK_POTRF2_HH__
 
-#include "lapack/types.hpp"
-#include "lapack/utils.hpp"
+#include "base/utils.hpp"
 #include "tblas.hpp"
 
-namespace lapack {
+namespace tlapack {
 
 /** Computes the Cholesky factorization of a Hermitian
  * positive definite matrix A using the recursive algorithm.
@@ -69,14 +68,10 @@ template< class uplo_t, class matrix_t >
 int potrf2( uplo_t uplo, matrix_t& A )
 {
     using T      = type_t< matrix_t >;
-    using real_t = blas::real_type<T>;
+    using real_t = real_type<T>;
     using idx_t  = size_type< matrix_t >;
-    using pair   = std::pair<idx_t,idx_t>;
+    using pair   = pair<idx_t,idx_t>;
     
-    using blas::trsm;
-    using blas::syrk;
-    using blas::sqrt;
-    using blas::real;
 
     // Constants
     const real_t one( 1.0 );

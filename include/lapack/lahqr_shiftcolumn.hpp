@@ -8,15 +8,15 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __LAHQR_SHIFTCOLUMN_HH__
-#define __LAHQR_SHIFTCOLUMN_HH__
+#ifndef __TLAPACK_LAHQR_SHIFTCOLUMN_HH__
+#define __TLAPACK_LAHQR_SHIFTCOLUMN_HH__
 
 #include <complex>
 
-#include "lapack/utils.hpp"
-#include "lapack/types.hpp"
+#include "base/utils.hpp"
+#include "base/types.hpp"
 
-namespace lapack
+namespace tlapack
 {
 
    /** Given a 2-by-2 or 3-by-3 matrix H, lahqr_shiftcolumn
@@ -50,10 +50,7 @@ namespace lapack
    {
 
       // Using
-      using blas::abs;
-      using blas::imag;
-      using blas::real;
-
+      
       // Constants
       idx_t n = ncols(H);
       const real_t zero(0);
@@ -129,8 +126,7 @@ namespace lapack
    int lahqr_shiftcolumn(matrix_t &H, vector_t &v, std::complex<real_t> s1, std::complex<real_t> s2)
    {
 
-      using blas::abs1;
-
+  
       // Constants
       idx_t n = ncols(H);
       const real_t rzero(0);

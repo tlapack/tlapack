@@ -8,12 +8,12 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __LACPY_HH__
-#define __LACPY_HH__
+#ifndef __TLAPACK_LACPY_HH__
+#define __TLAPACK_LACPY_HH__
 
-#include "lapack/types.hpp"
+#include "base/types.hpp"
 
-namespace lapack {
+namespace tlapack {
 
 /**
  * @brief Copies a matrix from A to B.
@@ -42,11 +42,11 @@ void lacpy( uplo_t uplo, const matrixA_t& A, matrixB_t& B )
     const idx_t n = ncols(A);
 
     // check arguments
-    blas_error_if(  uplo != Uplo::Lower &&
+    tblas_error_if(  uplo != Uplo::Lower &&
                     uplo != Uplo::Upper &&
                     uplo != Uplo::General );
-    blas_error_if(  access_denied( uplo, read_policy(A) ) );
-    blas_error_if(  access_denied( uplo, write_policy(B) ) );
+    tblas_error_if(  access_denied( uplo, read_policy(A) ) );
+    tblas_error_if(  access_denied( uplo, write_policy(B) ) );
 
     if( uplo == Uplo::Upper ) {
         // Set the strictly upper triangular or trapezoidal part of B

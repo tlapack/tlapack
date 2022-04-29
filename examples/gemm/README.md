@@ -6,7 +6,7 @@ In this example, we compute _C - AB_ using matrices A, B and C.
 - B is a k-by-n identity matrix.
 - C is a m-by-n matrix. Its _min(n,k)_ first columns are equal to the first columns in matrix 'A'.
 
-The code uses the routine [blas::gemm](../../include/blas/gemm.hpp), so that the expected output is _C = 0_. In the final step of the algorithm, we use [blas::nrm2](../../include/blas/nrm2.hpp) to compute the Frobenius norm of C. The norm must be identically null.
+The code uses the routine [tlapack::gemm](../../include/blas/gemm.hpp), so that the expected output is _C = 0_. In the final step of the algorithm, we use [tlapack::nrm2](../../include/blas/nrm2.hpp) to compute the Frobenius norm of C. The norm must be identically null.
 
 ## Build
 

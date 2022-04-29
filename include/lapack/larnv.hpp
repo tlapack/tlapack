@@ -8,13 +8,13 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __LARNV_HH__
-#define __LARNV_HH__
+#ifndef __TLAPACK_LARNV_HH__
+#define __TLAPACK_LARNV_HH__
 
 #include <random>
-#include "lapack/types.hpp"
+#include "base/types.hpp"
 
-namespace lapack {
+namespace tlapack {
 
 /** Returns a vector of n random numbers from a uniform or normal distribution.
  * 
@@ -45,11 +45,6 @@ void larnv( Sseq& iseed, vector_t& x )
     using T      = type_t< vector_t >;
     using real_t = real_type< T >;
 
-    using blas::atan;
-    using blas::sqrt;
-    using blas::cos;
-    using blas::sin;
-    using blas::make_scalar;
 
     // Constants
     const idx_t n      = size(x);
@@ -65,7 +60,7 @@ void larnv( Sseq& iseed, vector_t& x )
     if (idist == 1) {
         std::uniform_real_distribution<real_t> d1(0, 1);
         for (idx_t i = 0; i < n; ++i) {
-            if( blas::is_complex<T>::value )
+            if( is_complex<T>::value )
                 x[i] = make_scalar<T>( d1(generator), d1(generator) );
             else
                 x[i] = d1(generator);
@@ -74,7 +69,7 @@ void larnv( Sseq& iseed, vector_t& x )
     else if (idist == 2) {
         std::uniform_real_distribution<real_t> d2(-1, 1);
         for (idx_t i = 0; i < n; ++i) {
-            if( blas::is_complex<T>::value )
+            if( is_complex<T>::value )
                 x[i] = make_scalar<T>( d2(generator), d2(generator) );
             else
                 x[i] = d2(generator);
@@ -83,13 +78,13 @@ void larnv( Sseq& iseed, vector_t& x )
     else if (idist == 3) {
         std::normal_distribution<real_t> d3(0, 1);
         for (idx_t i = 0; i < n; ++i) {
-            if( blas::is_complex<T>::value )
+            if( is_complex<T>::value )
                 x[i] = make_scalar<T>( d3(generator), d3(generator) );
             else
                 x[i] = d3(generator);
         }
     }
-    else if ( blas::is_complex<T>::value ) {
+    else if ( is_complex<T>::value ) {
         if (idist == 4) {
             std::uniform_real_distribution<real_t> d4(0, 1);
             for (idx_t i = 0; i < n; ++i) {

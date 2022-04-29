@@ -5,13 +5,14 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef TBLAS_LEGACY_ROTG_HH
-#define TBLAS_LEGACY_ROTG_HH
+#ifndef __TLAPACK_LEGACY_ROTG_HH__
+#define __TLAPACK_LEGACY_ROTG_HH__
 
-#include "blas/utils.hpp"
+#include "legacy_api/base/utils.hpp"
+#include "legacy_api/base/types.hpp"
 #include "blas/rotg.hpp"
 
-namespace blas {
+namespace tlapack {
 
 /**
  * Construct plane rotation that eliminates b, such that:
@@ -91,6 +92,6 @@ rotg (
     return rotg(*a,*b,*c,*s);
 }
 
-}  // namespace blas
+}  // namespace tlapack
 
-#endif        //  #ifndef TBLAS_LEGACY_ROTG_HH
+#endif        //  #ifndef __TLAPACK_LEGACY_ROTG_HH__

@@ -4,14 +4,24 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TBLAS_ARRAY_TRAITS__
-#define __TBLAS_ARRAY_TRAITS__
+#ifndef __TLAPACK_ARRAY_TRAITS__
+#define __TLAPACK_ARRAY_TRAITS__
 
 #include <type_traits>
+#include "base/types.hpp"
 
-namespace blas {
+namespace tlapack {
+    
+    /**
+     * @brief Layout trait. Layout type used in the array class.
+     * 
+     * @tparam array_t Array class.
+     */
+    template< class array_t >
+    constexpr Layout layout = Layout::Unspecified;
 
-    enum class Uplo   { Upper    = 'U', Lower    = 'L', General   = 'G' };
+    // -----------------------------------------------------------------------------
+    // Access policies
 
     /**
      * @brief Matrix access policies
@@ -172,7 +182,7 @@ namespace blas {
      * @tparam array_t Array class.
      */
     template< class array_t > struct type_trait {
-        // using type = ... ;
+        using type = void;
     };
     
     /**
@@ -183,17 +193,7 @@ namespace blas {
      * @tparam array_t Array class.
      */
     template< class array_t > struct sizet_trait {
-        // using type = ... ;
-    };
-    
-    /**
-     * @brief Layout type trait. Layout type used in the array class.
-     * 
-     * @tparam array_t Array class.
-     */
-    template< class array_t > struct layout_trait {
-        using type = void; ///< Defines the layout type.
-                           ///< Value void means "Layout not informed".
+        using type = void;
     };
 
     /**
@@ -202,7 +202,6 @@ namespace blas {
      */
     template<class...>
     struct allow_optblas {
-        using type = bool; ///< Common data type.
         static constexpr bool value = false; ///< True if the list of types
                                              ///< allows optimized BLAS library.
     };
@@ -215,45 +214,9 @@ namespace blas {
     template< class array_t >
     using size_type = typename sizet_trait< array_t >::type;
 
-    /// Alias for @c layout_trait<>::type.
-    template< class T >
-    using layout_type = typename layout_trait< T >::type;
-
-    /// Alias for @c allow_optblas<>::type.
-    template<class... Ts>
-    using allow_optblas_t = typename allow_optblas< Ts... >::type;
-
     /// Alias for @c allow_optblas<>::value.
     template<class... Ts>
     constexpr bool allow_optblas_v = allow_optblas< Ts... >::value;
 }
 
-namespace lapack {
-
-    using blas::Uplo;
-    using blas::MatrixAccessPolicy;
-
-    using blas::dense_t;
-    using blas::upperHessenberg_t;
-    using blas::lowerHessenberg_t;
-    using blas::upperTriangle_t;
-    using blas::lowerTriangle_t;
-    using blas::strictUpper_t;
-    using blas::strictLower_t;
-    using blas::band_t;
-
-    // constant expressions
-    using blas::dense;
-    using blas::upperHessenberg;
-    using blas::lowerHessenberg;
-    using blas::upperTriangle;
-    using blas::lowerTriangle;
-    using blas::strictUpper;
-    using blas::strictLower;
-
-    using blas::type_t;
-    using blas::size_type;
-    using blas::layout_type;
-}
-
-#endif // __TBLAS_ARRAY_TRAITS__
+#endif // __TLAPACK_ARRAY_TRAITS__

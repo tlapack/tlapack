@@ -6,17 +6,18 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __GEHRD_HH__
-#define __GEHRD_HH__
+#ifndef __TLAPACK_GEHRD_HH__
+#define __TLAPACK_GEHRD_HH__
 
-#include "legacy_api/blas/utils.hpp"
-#include "lapack/utils.hpp"
-#include "lapack/types.hpp"
+#include "legacy_api/base/utils.hpp"
+#include "legacy_api/base/types.hpp"
+#include "base/utils.hpp"
+#include "base/types.hpp"
 #include "lapack/lahr2.hpp"
 
 #include <memory>
 
-namespace lapack
+namespace tlapack
 {
 
     /**
@@ -47,7 +48,7 @@ namespace lapack
         idx_t nb = opts.nb;
 
         return (n+nb)*nb;
-    };
+    }
 
     /** Reduces a general square matrix to upper Hessenberg form
      *
@@ -93,12 +94,8 @@ namespace lapack
     template <class matrix_t, class vector_t, typename idx_t = size_type<matrix_t>, typename TA = type_t<matrix_t>>
     int gehrd(size_type<matrix_t> ilo, size_type<matrix_t> ihi, matrix_t &A, vector_t &tau, const gehrd_opts_t<idx_t, TA> &opts = {})
     {
-        using pair = std::pair<idx_t, idx_t>;
-        using blas::axpy;
-        using blas::conj;
-        using blas::gemm;
-        using blas::trmm;
-        using blas::internal::colmajor_matrix;
+        using pair = pair<idx_t, idx_t>;
+        using internal::colmajor_matrix;
 
         // constants
         const TA one(1);

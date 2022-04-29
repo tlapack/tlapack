@@ -8,12 +8,12 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __LASET_HH__
-#define __LASET_HH__
+#ifndef __TLAPACK_LASET_HH__
+#define __TLAPACK_LASET_HH__
 
-#include "lapack/types.hpp"
+#include "base/types.hpp"
 
-namespace lapack {
+namespace tlapack {
 
 /**
  * @brief Initializes a matrix to diagonal and off-diagonal values.
@@ -50,10 +50,10 @@ void laset(
     const idx_t n = ncols(A);
 
     // check arguments
-    blas_error_if(  uplo != Uplo::Lower &&
+    tblas_error_if(  uplo != Uplo::Lower &&
                     uplo != Uplo::Upper &&
                     uplo != Uplo::General );
-    blas_error_if(  access_denied( uplo, write_policy(A) ) );
+    tblas_error_if(  access_denied( uplo, write_policy(A) ) );
 
     if (uplo == Uplo::Upper) {
         // Set the strictly upper triangular or trapezoidal part of

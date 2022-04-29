@@ -6,17 +6,17 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __GEHD2_HH__
-#define __GEHD2_HH__
+#ifndef __TLAPACK_GEHD2_HH__
+#define __TLAPACK_GEHD2_HH__
 
 #include <iostream>
 
-#include "lapack/utils.hpp"
-#include "lapack/types.hpp"
+#include "base/utils.hpp"
+#include "base/types.hpp"
 #include "lapack/larfg.hpp"
 #include "lapack/larf.hpp"
 
-namespace lapack {
+namespace tlapack {
 
 /** Reduces a general square matrix to upper Hessenberg form
  * 
@@ -62,8 +62,7 @@ int gehd2( size_type< matrix_t > ilo, size_type< matrix_t > ihi, matrix_t& A, ve
 {
     using TA    = type_t< matrix_t >;
     using idx_t = size_type< matrix_t >;
-    using pair  = std::pair<idx_t,idx_t>;
-    using blas::conj;
+    using pair  = pair<idx_t,idx_t>;
 
     // constants
     const TA one( 1 );

@@ -8,13 +8,12 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __LADIV_HH__
-#define __LADIV_HH__
+#ifndef __TLAPACK_LADIV_HH__
+#define __TLAPACK_LADIV_HH__
 
-#include "lapack/types.hpp"
-#include "lapack/utils.hpp"
+#include "base/utils.hpp"
 
-namespace lapack {
+namespace tlapack {
 
 /** Performs complex division in real arithmetic.
  * 
@@ -43,7 +42,6 @@ void ladiv(
     const real_t& c, const real_t& d,
     real_t &p, real_t &q )
 {
-    using blas::abs;
 
     real_t e, f;
     if (abs(d) < abs(c)) {
@@ -75,8 +73,6 @@ inline std::complex<real_t> ladiv(
     const std::complex<real_t>& x,
     const std::complex<real_t>& y )
 {
-    using blas::real;
-    using blas::imag;
 
     real_t zr, zi;
     ladiv( real(x), imag(x), real(y), imag(y), zr, zi );

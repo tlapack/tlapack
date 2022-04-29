@@ -8,13 +8,12 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __LASCL_HH__
-#define __LASCL_HH__
+#ifndef __TLAPACK_LASCL_HH__
+#define __TLAPACK_LASCL_HH__
 
-#include "lapack/types.hpp"
-#include "lapack/utils.hpp"
+#include "base/utils.hpp"
 
-namespace lapack {
+namespace tlapack {
 
 /**
  * @brief Multiplies a matrix A by the real scalar a/b.
@@ -66,10 +65,6 @@ int lascl(
     using real_t = real_type< a_type, b_type >;
     
     // using
-    using blas::isnan;
-    using blas::abs;
-    using blas::safe_min;
-    using blas::safe_max;
 
     // constants
     const idx_t m = nrows(A);
@@ -217,10 +212,6 @@ int lascl(
     using real_t = real_type< a_type, b_type >;
     
     // using
-    using blas::isnan;
-    using blas::abs;
-    using blas::safe_min;
-    using blas::safe_max;
     using std::min;
 
     // constants

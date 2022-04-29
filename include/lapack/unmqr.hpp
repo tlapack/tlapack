@@ -1,4 +1,4 @@
-/// @file unmqr.hpp Multiplies the general m-by-n matrix C by Q from lapack::geqrf()
+/// @file unmqr.hpp Multiplies the general m-by-n matrix C by Q from tlapack::geqrf()
 /// @author Weslley S Pereira, University of Colorado Denver, USA
 //
 // Copyright (c) 2021-2022, University of Colorado Denver. All rights reserved.
@@ -7,15 +7,15 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __UNMQR_HH__
-#define __UNMQR_HH__
+#ifndef __TLAPACK_UNMQR_HH__
+#define __TLAPACK_UNMQR_HH__
 
-#include "lapack/utils.hpp"
-#include "lapack/types.hpp"
+#include "base/utils.hpp"
+#include "base/types.hpp"
 #include "lapack/larft.hpp"
 #include "lapack/larfb.hpp"
 
-namespace lapack {
+namespace tlapack {
 
 /** Applies orthogonal matrix op(Q) to a matrix C using a blocked code.
  *
@@ -101,7 +101,7 @@ int unmqr(
     opts_t&& opts )
 {
     using idx_t = size_type< matrixC_t >;
-    using pair  = std::pair<idx_t,idx_t>;
+    using pair  = pair<idx_t,idx_t>;
     using std::max;
     using std::min;
 

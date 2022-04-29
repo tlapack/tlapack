@@ -11,10 +11,10 @@
 #ifndef __TLAPACK_LEGACY_LARNV_HH__
 #define __TLAPACK_LEGACY_LARNV_HH__
 
-#include "legacy_api/lapack/types.hpp"
+#include "legacy_api/base/types.hpp"
 #include "lapack/larnv.hpp"
 
-namespace lapack {
+namespace tlapack {
 
 /**
  * @brief Returns a vector of n random numbers from a uniform or normal distribution.
@@ -44,7 +44,7 @@ inline void larnv(
     idx_t idist, idx_t* iseed,
     idx_t n, T* x )
 {
-    using blas::internal::vector;
+    using internal::vector;
     auto _x = vector( x, n );
 
     if (idist == 1) return larnv<1>( *iseed, _x );

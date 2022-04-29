@@ -10,12 +10,17 @@
 
 #include <assert.h>
 
-#include "blas/utils.hpp"
+#include "base/utils.hpp"
 
 /// Use to silence compiler warning of unused variable.
 #define blas_unused( var ) ((void)var)
 
+#define blas_error_if( cond ) tblas_error_if( cond )
+#define blas_error_if_msg( cond, ... ) tblas_error_if_msg( cond, ... )
+
 namespace blas {
+
+    using namespace tlapack;
 
     // -----------------------------------------------------------------------------
     // Convert enum to LAPACK-style char.
@@ -113,5 +118,7 @@ namespace blas {
     }
 
 }
+
+using blas::uplo2str;
 
 #endif

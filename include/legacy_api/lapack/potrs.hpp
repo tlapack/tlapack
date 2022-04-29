@@ -12,7 +12,7 @@
 
 #include "lapack/potrs.hpp"
 
-namespace lapack {
+namespace tlapack {
 
 /** Apply the Cholesky factorization to solve a linear system.
  * 
@@ -26,7 +26,7 @@ inline int potrs(
     const T* A, idx_t lda,
     T* B, idx_t ldb )
 {
-    using blas::internal::colmajor_matrix;
+    using internal::colmajor_matrix;
 
     // Check arguments
     lapack_error_if(    uplo != Uplo::Lower &&

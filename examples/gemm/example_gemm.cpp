@@ -14,17 +14,17 @@
 #include <chrono>   // for high_resolution_clock
 
 #ifdef USE_MPFR
-    #include <mpreal.h>
+    #include <plugins/tlapack_mpreal.hpp>
 #endif
 
 //------------------------------------------------------------------------------
 template <typename T>
-void run( blas::idx_t m, blas::idx_t n, blas::idx_t k )
+void run( tlapack::idx_t m, tlapack::idx_t n, tlapack::idx_t k )
 {
-    using blas::idx_t;
-    using blas::min;
-    using blas::internal::colmajor_matrix;
-    using blas::internal::rowmajor_matrix;
+    using tlapack::idx_t;
+    using tlapack::min;
+    using tlapack::internal::colmajor_matrix;
+    using tlapack::internal::rowmajor_matrix;
     
     // Column Major data
     idx_t lda = (m > 0) ? m : 1;
@@ -89,9 +89,9 @@ void run( blas::idx_t m, blas::idx_t n, blas::idx_t k )
         auto start = std::chrono::high_resolution_clock::now();
 
             // C = -1.0*A*B + 1.0*C
-            blas::gemm( blas::Layout::ColMajor,
-                        blas::Op::NoTrans,
-                        blas::Op::NoTrans,
+            tlapack::gemm( tlapack::Layout::ColMajor,
+                        tlapack::Op::NoTrans,
+                        tlapack::Op::NoTrans,
                         m, n, k,
                         T(-1.0), &_A[0], lda, &_B[0], ldb, 
                         T( 1.0), &_C[0], ldc );
@@ -108,7 +108,7 @@ void run( blas::idx_t m, blas::idx_t n, blas::idx_t k )
 
     // Output
     std::cout << "Using legacy LAPACK interface:" << std::endl
-              << "||C-AB||_F = " << blas::nrm2( n, &_C[0], 1 ) << std::endl
+              << "||C-AB||_F = " << tlapack::nrm2( n, &_C[0], 1 ) << std::endl
               << "time = " << bestTime.count() * 1.0e-6 << " ms" << std::endl;
 
     // Using abstract interface:
@@ -125,8 +125,8 @@ void run( blas::idx_t m, blas::idx_t n, blas::idx_t k )
         auto start = std::chrono::high_resolution_clock::now();
 
             // C = -1.0*A*B + 1.0*C
-            blas::gemm( blas::Op::NoTrans,
-                        blas::Op::NoTrans,
+            tlapack::gemm( tlapack::Op::NoTrans,
+                        tlapack::Op::NoTrans,
                         T(-1.0), A, B,
                         T( 1.0), C );
         
@@ -142,7 +142,7 @@ void run( blas::idx_t m, blas::idx_t n, blas::idx_t k )
 
     // Output
     std::cout << "Using abstract interface:" << std::endl
-              << "||C-AB||_F = " << blas::nrm2( n, &_C[0], 1 ) << std::endl
+              << "||C-AB||_F = " << tlapack::nrm2( n, &_C[0], 1 ) << std::endl
               << "time = " << bestTime.count() * 1.0e-6 << " ms" << std::endl;
 
     // Using abstract interface with row major layout:
@@ -159,8 +159,8 @@ void run( blas::idx_t m, blas::idx_t n, blas::idx_t k )
         auto start = std::chrono::high_resolution_clock::now();
 
             // C = -1.0*A*B + 1.0*C
-            blas::gemm( blas::Op::NoTrans,
-                        blas::Op::NoTrans,
+            tlapack::gemm( tlapack::Op::NoTrans,
+                        tlapack::Op::NoTrans,
                         T(-1.0), Ar, Br,
                         T( 1.0), Cr );
         
@@ -176,7 +176,7 @@ void run( blas::idx_t m, blas::idx_t n, blas::idx_t k )
 
     // Output
     std::cout << "Using abstract interface with row major layout:" << std::endl
-              << "||C-AB||_F = " << blas::nrm2( n, &C_[0], 1 ) << std::endl
+              << "||C-AB||_F = " << tlapack::nrm2( n, &C_[0], 1 ) << std::endl
               << "time = " << bestTime.count() * 1.0e-6 << " ms" << std::endl;
 }
 

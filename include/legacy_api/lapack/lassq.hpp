@@ -17,7 +17,7 @@
 
 #include "lapack/lassq.hpp"
 
-namespace lapack {
+namespace tlapack {
 
 /** Updates a sum of squares represented in scaled form.
  * \[
@@ -31,9 +31,9 @@ namespace lapack {
  *    we require:   scale <= sqrt( HUGE ) / ssml       on entry,
  * where
  *    tbig -- upper threshold for values whose square is representable;
- *    sbig -- scaling constant for big numbers; @see blas/constants.hpp
+ *    sbig -- scaling constant for big numbers; @see base/constants.hpp
  *    tsml -- lower threshold for values whose square is representable;
- *    ssml -- scaling constant for small numbers; @see blas/constants.hpp
+ *    ssml -- scaling constant for small numbers; @see base/constants.hpp
  * and
  *    TINY*EPS -- tiniest representable number;
  *    HUGE     -- biggest representable number.
@@ -53,13 +53,11 @@ namespace lapack {
  */
 template< typename TX >
 void lassq(
-    blas::idx_t n,
-    TX const* x, blas::int_t incx,
+    idx_t n,
+    TX const* x, int_t incx,
     real_type<TX> &scl,
     real_type<TX> &sumsq)
 {
-    using blas::isnan;
-
     // quick return
     if( isnan(scl) || isnan(sumsq) || n <= 0 ) return;
 

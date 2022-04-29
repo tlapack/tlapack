@@ -5,13 +5,14 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef TBLAS_LEGACY_SYR2_HH
-#define TBLAS_LEGACY_SYR2_HH
+#ifndef __TLAPACK_LEGACY_SYR2_HH__
+#define __TLAPACK_LEGACY_SYR2_HH__
 
-#include "blas/utils.hpp"
+#include "legacy_api/base/utils.hpp"
+#include "legacy_api/base/types.hpp"
 #include "blas/syr2.hpp"
 
-namespace blas {
+namespace tlapack {
 
 /**
  * Symmetric matrix rank-2 update:
@@ -62,25 +63,25 @@ namespace blas {
  */
 template< typename TA, typename TX, typename TY >
 void syr2(
-    blas::Layout layout,
-    blas::Uplo  uplo,
-    blas::idx_t n,
-    blas::scalar_type<TA, TX, TY> alpha,
-    TX const *x, blas::int_t incx,
-    TY const *y, blas::int_t incy,
-    TA *A, blas::idx_t lda )
+    Layout layout,
+    Uplo  uplo,
+    idx_t n,
+    scalar_type<TA, TX, TY> alpha,
+    TX const *x, int_t incx,
+    TY const *y, int_t incy,
+    TA *A, idx_t lda )
 {
-    using blas::internal::colmajor_matrix;
+    using internal::colmajor_matrix;
 
     // check arguments
-    blas_error_if( layout != Layout::ColMajor &&
+    tblas_error_if( layout != Layout::ColMajor &&
                    layout != Layout::RowMajor );
-    blas_error_if( uplo != Uplo::Lower &&
+    tblas_error_if( uplo != Uplo::Lower &&
                    uplo != Uplo::Upper );
-    blas_error_if( n < 0 );
-    blas_error_if( incx == 0 );
-    blas_error_if( incy == 0 );
-    blas_error_if( lda < n );
+    tblas_error_if( n < 0 );
+    tblas_error_if( incx == 0 );
+    tblas_error_if( incy == 0 );
+    tblas_error_if( lda < n );
 
     // quick return
     if (n == 0)
@@ -101,6 +102,6 @@ void syr2(
     );
 }
 
-}  // namespace blas
+}  // namespace tlapack
 
-#endif        //  #ifndef TBLAS_LEGACY_SYR2_HH
+#endif        //  #ifndef __TLAPACK_LEGACY_SYR2_HH__

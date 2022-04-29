@@ -6,16 +6,16 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __LAHR2_HH__
-#define __LAHR2_HH__
+#ifndef __TLAPACK_LAHR2_HH__
+#define __TLAPACK_LAHR2_HH__
 
-#include "lapack/utils.hpp"
-#include "lapack/types.hpp"
+#include "base/utils.hpp"
+#include "base/types.hpp"
 #include "lapack/larfg.hpp"
 #include "lapack/larf.hpp"
 #include "blas/gemv.hpp"
 
-namespace lapack
+namespace tlapack
 {
 
     /** Reduces a general square matrix to upper Hessenberg form
@@ -53,16 +53,9 @@ namespace lapack
     {
         using TA = type_t<matrix_t>;
         using idx_t = size_type<matrix_t>;
-        using pair = std::pair<idx_t, idx_t>;
+        using pair = pair<idx_t, idx_t>;
 
-        using blas::axpy;
-        using blas::copy;
-        using blas::gemv;
-        using blas::scal;
-        using blas::trmv;
-        using blas::trmm;
-        using blas::gemm;
-
+                            
         // constants
         const TA one(1);
         const TA zero(0);

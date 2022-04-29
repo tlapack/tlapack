@@ -8,8 +8,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __SCHUR_SWAP_HH__
-#define __SCHUR_SWAP_HH__
+#ifndef __TLAPACK_SCHUR_SWAP_HH__
+#define __TLAPACK_SCHUR_SWAP_HH__
 
 #include <complex>
 #include <cmath>
@@ -18,10 +18,10 @@
 #include <iostream>
 #include <iomanip>
 
-#include "lapack/utils.hpp"
-#include "lapack/types.hpp"
+#include "base/utils.hpp"
+#include "base/types.hpp"
 
-namespace lapack
+namespace tlapack
 {
 
     /** schur_swap, swaps 2 eigenvalues of A.
@@ -52,9 +52,7 @@ namespace lapack
         enable_if_t<!is_complex<T>::value, bool> = true>
     int schur_swap(bool want_q, matrix_t &A, matrix_t &Q, const idx_t &j0, const idx_t &n1, const idx_t &n2)
     {
-        using blas::rot;
-        using blas::rotg;
-        using pair = std::pair<idx_t, idx_t>;
+                using pair = pair<idx_t, idx_t>;
         using std::max;
 
         const idx_t n = ncols(A);
@@ -139,7 +137,7 @@ namespace lapack
             //
 
             std::unique_ptr<T[]> _B(new T[6]);
-            auto B = blas::internal::colmajor_matrix<T>(&_B[0], 3, 2);
+            auto B = internal::colmajor_matrix<T>(&_B[0], 3, 2);
             B(0, 0) = A(j0, j1);
             B(1, 0) = A(j1, j1) - A(j0, j0);
             B(2, 0) = A(j2, j1);
@@ -213,7 +211,7 @@ namespace lapack
             //
 
             std::unique_ptr<T[]> _B(new T[6]);
-            auto B = blas::internal::colmajor_matrix<T>(&_B[0], 3, 2);
+            auto B = internal::colmajor_matrix<T>(&_B[0], 3, 2);
             B(0, 0) = A(j1, j2);
             B(1, 0) = A(j1, j1) - A(j2, j2);
             B(2, 0) = A(j1, j0);
@@ -282,18 +280,18 @@ namespace lapack
         if (n1 == 2 and n2 == 2)
         {
             std::unique_ptr<T[]> _D(new T[4 * 4]);
-            auto D = blas::internal::colmajor_matrix<T>(&_D[0], 4, 4);
+            auto D = internal::colmajor_matrix<T>(&_D[0], 4, 4);
 
             auto AD_slice = slice(A, pair{j0, j0 + 4}, pair{j0, j0 + 4});
             lacpy(Uplo::General, AD_slice, D);
             auto dnorm = lange(Norm::Max, D);
 
-            const T eps = blas::uroundoff<T>();
-            const T small_num = blas::safe_min<T>() / eps;
+            const T eps = uroundoff<T>();
+            const T small_num = safe_min<T>() / eps;
             T thresh = max(ten * eps * dnorm, small_num);
 
             std::unique_ptr<T[]> _V(new T[4 * 2]);
-            auto V = blas::internal::colmajor_matrix<T>(&_V[0], 4, 2);
+            auto V = internal::colmajor_matrix<T>(&_V[0], 4, 2);
             auto X = slice(V, pair{0, 2}, pair{0, 2});
             auto TL = slice(D, pair{0, 2}, pair{0, 2});
             auto TR = slice(D, pair{2, 4}, pair{2, 4});
@@ -484,11 +482,8 @@ namespace lapack
         enable_if_t<is_complex<T>::value, bool> = true>
     int schur_swap(bool want_q, matrix_t &A, matrix_t &Q, const idx_t &j0, const idx_t &n1, const idx_t &n2)
     {
-        using blas::rot;
-        using blas::rotg;
-        using pair = std::pair<idx_t, idx_t>;
-        using blas::conj;
-        using real_t = real_type<T>;
+                using pair = pair<idx_t, idx_t>;
+            using real_t = real_type<T>;
 
         const idx_t n = ncols(A);
 

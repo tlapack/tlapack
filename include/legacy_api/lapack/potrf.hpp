@@ -12,7 +12,7 @@
 
 #include "lapack/potrf.hpp"
 
-namespace lapack {
+namespace tlapack {
 
 /** Computes the Cholesky factorization of a Hermitian
  * positive definite matrix A using a blocked algorithm.
@@ -24,7 +24,7 @@ namespace lapack {
 template< class uplo_t, typename T >
 inline int potrf( uplo_t uplo, idx_t n, T* A, idx_t lda )
 {
-    using blas::internal::colmajor_matrix;
+    using internal::colmajor_matrix;
 
     // check arguments
     lapack_error_if(    uplo != Uplo::Lower &&

@@ -8,15 +8,15 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __LARFB_HH__
-#define __LARFB_HH__
+#ifndef __TLAPACK_LARFB_HH__
+#define __TLAPACK_LARFB_HH__
 
-#include "lapack/utils.hpp"
-#include "lapack/types.hpp"
+#include "base/utils.hpp"
+#include "base/types.hpp"
 #include "lapack/lacpy.hpp"
 #include "tblas.hpp"
 
-namespace lapack {
+namespace tlapack {
 
 /** Applies a block reflector $H$ or its conjugate transpose $H^H$ to a
  * m-by-n matrix C, from either the left or the right.
@@ -103,9 +103,7 @@ int larfb(
     matrixC_t& C, matrixW_t& work )
 {
     using idx_t = size_type< matrixV_t >;
-    using pair  = std::pair<idx_t,idx_t>;
-    using blas::trmm;
-    using blas::gemm;
+    using pair  = pair<idx_t,idx_t>;
 
     // constants
     const type_t< matrixW_t > one( 1 );

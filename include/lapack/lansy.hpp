@@ -8,13 +8,13 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __LANSY_HH__
-#define __LANSY_HH__
+#ifndef __TLAPACK_LANSY_HH__
+#define __TLAPACK_LANSY_HH__
 
-#include "lapack/types.hpp"
+#include "base/types.hpp"
 #include "lapack/lassq.hpp"
 
-namespace lapack {
+namespace tlapack {
 
 /** Calculates the norm of a symmetric matrix.
  * 
@@ -43,21 +43,19 @@ lansy( norm_t normType, uplo_t uplo, const matrix_t& A )
 {
     using real_t = real_type< type_t<matrix_t> >;
     using idx_t  = size_type< matrix_t >;
-    using pair   = std::pair<idx_t,idx_t>;
-    using blas::isnan;
-    using blas::sqrt;
+    using pair   = pair<idx_t,idx_t>;
 
     // constants
     const idx_t n = nrows(A);
 
     // check arguments
-    blas_error_if(  normType != Norm::Fro &&
+    tblas_error_if(  normType != Norm::Fro &&
                     normType != Norm::Inf &&
                     normType != Norm::Max &&
                     normType != Norm::One );
-    blas_error_if(  uplo != Uplo::Lower &&
+    tblas_error_if(  uplo != Uplo::Lower &&
                     uplo != Uplo::Upper );
-    blas_error_if(  access_denied( uplo, read_policy(A) ) );
+    tblas_error_if(  access_denied( uplo, read_policy(A) ) );
 
     // quick return
     if ( n <= 0 ) return real_t( 0 );
@@ -71,7 +69,7 @@ lansy( norm_t normType, uplo_t uplo, const matrix_t& A )
             for (idx_t j = 0; j < n; ++j) {
                 for (idx_t i = 0; i <= j; ++i)
                 {
-                    real_t temp = blas::abs( A(i,j) );
+                    real_t temp = tlapack::abs( A(i,j) );
 
                     if (temp > norm)
                         norm = temp;
@@ -86,7 +84,7 @@ lansy( norm_t normType, uplo_t uplo, const matrix_t& A )
             for (idx_t j = 0; j < n; ++j) {
                 for (idx_t i = j; i < n; ++i)
                 {
-                    real_t temp = blas::abs( A(i,j) );
+                    real_t temp = tlapack::abs( A(i,j) );
 
                     if (temp > norm)
                         norm = temp;
@@ -105,10 +103,10 @@ lansy( norm_t normType, uplo_t uplo, const matrix_t& A )
                 real_t temp = 0;
 
                 for (idx_t i = 0; i <= j; ++i)
-                    temp += blas::abs( A(i,j) );
+                    temp += tlapack::abs( A(i,j) );
 
                 for (idx_t i = j+1; i < n; ++i)
-                    temp += blas::abs( A(j,i) );
+                    temp += tlapack::abs( A(j,i) );
                 
                 if (temp > norm)
                     norm = temp;
@@ -123,10 +121,10 @@ lansy( norm_t normType, uplo_t uplo, const matrix_t& A )
                 real_t temp = 0;
 
                 for (idx_t i = 0; i <= j; ++i)
-                    temp += blas::abs( A(j,i) );
+                    temp += tlapack::abs( A(j,i) );
 
                 for (idx_t i = j+1; i < n; ++i)
-                    temp += blas::abs( A(i,j) );
+                    temp += tlapack::abs( A(i,j) );
                 
                 if (temp > norm)
                     norm = temp;
@@ -179,16 +177,15 @@ lansy( norm_t normType, uplo_t uplo, const matrix_t& A, work_t& work )
 {
     using real_t = real_type< type_t<matrix_t> >;
     using idx_t  = size_type< matrix_t >;
-    using blas::isnan;
 
     // check arguments
-    blas_error_if(  normType != Norm::Fro &&
+    tblas_error_if(  normType != Norm::Fro &&
                     normType != Norm::Inf &&
                     normType != Norm::Max &&
                     normType != Norm::One );
-    blas_error_if(  uplo != Uplo::Lower &&
+    tblas_error_if(  uplo != Uplo::Lower &&
                     uplo != Uplo::Upper );
-    blas_error_if(  access_denied( uplo, read_policy(A) ) );
+    tblas_error_if(  access_denied( uplo, read_policy(A) ) );
 
     // quick redirect for max-norm and Frobenius norm
     if      ( normType == Norm::Max  ) return lansy( max_norm,  uplo, A );
@@ -215,11 +212,11 @@ lansy( norm_t normType, uplo_t uplo, const matrix_t& A, work_t& work )
         {
             real_t sum( 0 );
             for (idx_t i = 0; i < j; ++i) {
-                const real_t absa = blas::abs( A(i,j) );
+                const real_t absa = tlapack::abs( A(i,j) );
                 sum += absa;
                 work[i] += absa;
             }
-            work[j] = sum + blas::abs( A(j,j) );
+            work[j] = sum + tlapack::abs( A(j,j) );
         }
         for (idx_t i = 0; i < n; ++i)
         {
@@ -235,9 +232,9 @@ lansy( norm_t normType, uplo_t uplo, const matrix_t& A, work_t& work )
     else {
         for (idx_t j = 0; j < n; ++j)
         {
-            real_t sum = work[j] + blas::abs( A(j,j) );
+            real_t sum = work[j] + tlapack::abs( A(j,j) );
             for (idx_t i = j+1; i < n; ++i) {
-                const real_t absa = blas::abs( A(i,j) );
+                const real_t absa = tlapack::abs( A(i,j) );
                 sum += absa;
                 work[i] += absa;
             }

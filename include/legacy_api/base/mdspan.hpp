@@ -4,12 +4,12 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TBLAS_MDSPAN_HH__
-#define __TBLAS_MDSPAN_HH__
+#ifndef __TLAPACK_LEGACY_MDSPAN_HH__
+#define __TLAPACK_LEGACY_MDSPAN_HH__
 
 #include <experimental/mdspan> // Use mdspan for multidimensional arrays
 
-namespace blas {
+namespace tlapack {
 
 using std::experimental::mdspan;
 
@@ -197,6 +197,6 @@ namespace internal {
 
 } // namespace internal
 
-} // namespace blas
+} // namespace tlapack
 
-#endif // __TBLAS_MDSPAN_HH__
+#endif // __TLAPACK_LEGACY_MDSPAN_HH__

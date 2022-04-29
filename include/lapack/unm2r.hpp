@@ -8,14 +8,14 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __UNM2R_HH__
-#define __UNM2R_HH__
+#ifndef __TLAPACK_UNM2R_HH__
+#define __TLAPACK_UNM2R_HH__
 
-#include "lapack/utils.hpp"
-#include "lapack/types.hpp"
+#include "base/utils.hpp"
+#include "base/types.hpp"
 #include "lapack/larf.hpp"
 
-namespace lapack {
+namespace tlapack {
 
 /** Applies unitary matrix Q to a matrix C.
  * 
@@ -82,7 +82,7 @@ int unm2r(
 {
     using idx_t = size_type< matrixA_t >;
     using T     = type_t< matrixA_t >;
-    using pair  = std::pair<idx_t,idx_t>;
+    using pair  = pair<idx_t,idx_t>;
 
     // constants
     const T one( 1 );
