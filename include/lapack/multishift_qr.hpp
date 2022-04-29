@@ -26,22 +26,6 @@
 namespace lapack
 {
 
-    // This should really be moved to test utils or something
-    template <typename matrix_t>
-    inline void printMatrix2(const matrix_t &A)
-    {
-        using idx_t = blas::size_type<matrix_t>;
-        const idx_t m = blas::nrows(A);
-        const idx_t n = blas::ncols(A);
-
-        for (idx_t i = 0; i < m; ++i)
-        {
-            std::cout << std::endl;
-            for (idx_t j = 0; j < n; ++j)
-                std::cout << std::setw(16) << A(i, j) << " ";
-        }
-    }
-
     /**
      * Options struct for multishift_qr
      */
@@ -257,9 +241,6 @@ namespace lapack
             }
 
 
-            std::cout<<std::endl<<"A "<<iter<<" "<<istart<<" "<<istop;
-            printMatrix2( A );
-            std::cout<<std::endl;
 
             // Agressive early deflation
             idx_t ls, ld;
@@ -275,7 +256,7 @@ namespace lapack
             // reason to expect that many eigenvalues will deflate without it.
             // Here, the QR sweep is skipped if many eigenvalues have just been
             // deflated or if the remaining active block is small.
-            if( 100*ld > nwr*nibble or (ihi - ilo) <= nwr ){
+            if( 100*ld > nwr*nibble or (istop - istart) <= nwr ){
                 continue;
             }
 

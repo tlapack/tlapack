@@ -155,7 +155,10 @@ namespace lapack
         // window (note the use of infqr later in the code).
         auto A_window = slice(A, pair{kwtop, ihi}, pair{kwtop, ihi});
         auto s_window = slice(s, pair{kwtop, ihi});
-        lacpy(Uplo::General, A_window, TW);
+        laset(Uplo::Lower, zero, zero, TW);
+        for (idx_t j = 0; j < jw; ++j)
+            for (idx_t i = 0; i < std::min(j + 2, jw); ++i)
+                TW(i, j) = A_window(i,j) ;
         laset(Uplo::General, zero, one, V);
         int infqr = lahqr(true, true, 0, jw, TW, s_window, V);
 
@@ -308,7 +311,7 @@ namespace lapack
         // Reduce A back to Hessenberg form (if neccesary)
         if (s_spike != zero)
         {
-
+   
             // Reflect spike back
             {
                 T tau;
