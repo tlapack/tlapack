@@ -80,27 +80,27 @@ namespace lapack
 
         // Add the header (matrix index)
         stream << "\"header\":{\"values\":[";
-        for (idx_t i = 0; i < m; ++i)
+        for (idx_t j = 0; j < n; ++j)
         {
-            stream << i;
-            if (i + 1 < m)
+            stream << j;
+            if (j + 1 < n)
                 stream << ", ";
         }
         stream << "]},";
 
         // Add the matrix values
         stream << "\"cells\":{\"values\":[";
-        for (idx_t i = 0; i < m; ++i)
+        for (idx_t j = 0; j < n; ++j)
         {
             stream << "[";
-            for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = 0; i < m; ++i)
             {
-                stream << std::setprecision(3) << A(i, j);
-                if (j + 1 < n)
+                stream << "\"" << std::setprecision(3) << A(i, j) << "\"";
+                if (i + 1 < m)
                     stream << ", ";
             }
             stream << "]";
-            if (i + 1 < m)
+            if (j + 1 < n)
                 stream << ", ";
         }
 
