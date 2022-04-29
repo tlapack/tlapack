@@ -124,7 +124,7 @@ namespace lapack
             auto U2 = slice(U, pair{0, n_block}, pair{0, n_block});
             laset(Uplo::General, zero, one, U2);
 
-            for (idx_t i_pos_last = ilo; i_pos_last < n_block - 2; ++i_pos_last)
+            for (idx_t i_pos_last = ilo; i_pos_last < ilo + n_block - 2; ++i_pos_last)
             {
                 // The number of bulges that are in the pencil
                 idx_t n_active_bulges = std::min(n_bulges, ((i_pos_last - ilo) / 2) + 1);
