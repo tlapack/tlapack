@@ -188,64 +188,6 @@ namespace lapack
         return visualize_matrix(A);
     }
 
-    /**
-     * @brief Stores a matrix in a given file
-     *        The stored format is:
-     *        m
-     *        n
-     *        the entries in row major order, separated by newlines
-     *
-     * @param A m by n matrix
-     * @param filename filename where the csv will be stored
-     */
-    template <typename matrix_t>
-    void store_matrix(const matrix_t &A, std::string filename)
-    {
-        using idx_t = blas::size_type<matrix_t>;
-        const idx_t m = blas::nrows(A);
-        const idx_t n = blas::ncols(A);
-
-        std::ofstream myfile;
-        myfile.open(filename);
-        myfile << m << std::endl;
-        myfile << n << std::endl;
-
-        for (idx_t i = 0; i < m; ++i)
-        {
-            for (idx_t j = 0; j < n; ++j)
-            {
-                myfile << std::setprecision(16) << A(i, j) << std::endl;
-            }
-        }
-
-        myfile.close();
-    }
-
-    //
-    // GDB doesn't handle templates well, so we explicitly define some versions of the functions
-    // for common template arguments
-    //
-    void store_matrix_r(const blas::legacyMatrix<float, blas::Layout::ColMajor> &A)
-    {
-        std::string filename = "savedmatrix.csv";
-        store_matrix(A, filename);
-    }
-    void store_matrix_d(const blas::legacyMatrix<double, blas::Layout::ColMajor> &A)
-    {
-        std::string filename = "savedmatrix.csv";
-        store_matrix(A, filename);
-    }
-    void store_matrix_c(const blas::legacyMatrix<std::complex<float>, blas::Layout::ColMajor> &A)
-    {
-        std::string filename = "savedmatrix.csv";
-        store_matrix(A, filename);
-    }
-    void store_matrix_z(const blas::legacyMatrix<std::complex<double>, blas::Layout::ColMajor> &A)
-    {
-        std::string filename = "savedmatrix.csv";
-        store_matrix(A, filename);
-    }
-
 }
 
 #endif // __TLAPACK_DEBUG_UTILS_HH
