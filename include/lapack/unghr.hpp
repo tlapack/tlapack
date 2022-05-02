@@ -46,6 +46,7 @@ int unghr(
     const T one ( 1.0 );
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
+    const idx_t nh = ihi > ilo +1 ? ihi-1-ilo : 0;
 
     // check arguments
     lapack_error_if( (idx_t) size(tau)  < std::min<idx_t>( m, n ), -2 );
@@ -84,10 +85,11 @@ int unghr(
 
     // Now that the vectors are shifted, we can call orgqr to generate the matrix
     // orgqr is not yet implemented, so we call org2r instead
-    const idx_t nh = ihi-1-ilo;
-    auto A_s = slice( A, pair{ilo+1,ihi}, pair{ilo+1,ihi} );
-    auto tau_s = slice( tau, pair{ilo,ihi-1} );
-    ung2r( nh, A_s, tau_s, work );
+    if( nh > 0 ){
+        auto A_s = slice( A, pair{ilo+1,ihi}, pair{ilo+1,ihi} );
+        auto tau_s = slice( tau, pair{ilo,ihi-1} );
+        ung2r( nh, A_s, tau_s, work );
+    }
 
     return 0;
 }
