@@ -139,7 +139,8 @@ namespace tlapack
         const TA zero(0);
         const real_t eps = uroundoff<real_t>();
         const real_t small_num = safe_min<real_t>() / uroundoff<real_t>();
-        const idx_t non_convergence_limit = 10;
+        const idx_t non_convergence_limit_window = 5;
+        const idx_t non_convergence_limit_shift = 6;
         const real_t dat1 = 3.0 / 4.0;
         const real_t dat2 = -0.4375;
 
@@ -151,6 +152,7 @@ namespace tlapack
 
         // Recommended deflation window size
         const idx_t nwr = opts.nshift_recommender(n, nh);
+        const idx_t nw_max = (n - 3) / 3;
 
         const idx_t nibble = opts.nibble;
 
@@ -169,23 +171,26 @@ namespace tlapack
             w[ilo] = A(ilo, ilo);
 
         // Get the workspace
-        TA* _work;
+        TA *_work;
         idx_t lwork;
         // idx_t required_workspace = get_work_multishift_qr(want_t, want_z, ilo, ihi, A, w, Z, opts);
-        idx_t required_workspace = 3 * (nsr/2);
+        idx_t required_workspace = 3 * (nsr / 2);
         // Store whether or not a workspace was locally allocated
         bool locally_allocated = false;
-        if( opts._work and required_workspace <= opts.lwork ){
+        if (opts._work and required_workspace <= opts.lwork)
+        {
             // Provided workspace is large enough, use it
             _work = opts._work;
             lwork = opts.lwork;
-        } else {
+        }
+        else
+        {
             // No workspace provided or not large enough, allocate it
             locally_allocated = true;
             lwork = required_workspace;
             _work = new TA[lwork];
         }
-        auto V = internal::colmajor_matrix<TA>(&_work[0], 3, nsr/2);
+        auto V = internal::colmajor_matrix<TA>(&_work[0], 3, nsr / 2);
 
         // itmax is the total number of QR iterations allowed.
         // For most matrices, 3 shifts per eigenvalue is enough, so
@@ -202,13 +207,16 @@ namespace tlapack
 
         int info = 0;
 
+        // nw is the deflation window size
+        idx_t nw;
+
         for (idx_t iter = 0; iter <= itmax; ++iter)
         {
 
             if (iter == itmax)
             {
                 // The QR algorithm failed to converge, return with error.
-                info = 1;
+                info = istop;
                 break;
             }
 
@@ -232,49 +240,101 @@ namespace tlapack
                     break;
                 }
             }
-
-
-
+            //
             // Agressive early deflation
+            //
+            idx_t nh = istop - istart;
+            idx_t nwupbd = std::min(nh, nw_max);
+            if (k_defl < non_convergence_limit_window)
+            {
+                nw = std::min(nwupbd, nwr);
+            }
+            else
+            {
+                // There have been no deflations in many iterations
+                // Try to vary the deflation window size.
+                nw = std::min(nwupbd, 2 * nw);
+            }
+
             idx_t ls, ld;
             agressive_early_deflation(want_t, want_z, istart, istop, nwr, A, w, Z, ls, ld);
 
             istop = istop - ld;
 
-            if( ld > 0)
+            if (ld > 0)
                 k_defl = 0;
-
 
             // Skip an expensive QR sweep if there is a (partly heuristic)
             // reason to expect that many eigenvalues will deflate without it.
             // Here, the QR sweep is skipped if many eigenvalues have just been
             // deflated or if the remaining active block is small.
-            if( 100*ld > nwr*nibble or (istop - istart) <= nwr ){
+            if (100 * ld > nwr * nibble or (istop - istart) <= nwr)
+            {
                 continue;
             }
 
             k_defl = k_defl + 1;
-            idx_t ns = std::min( ls, nsr );
+            idx_t ns = std::min(ls, nsr);
 
-            if( k_defl % non_convergence_limit == 0 ){
+            if (k_defl % non_convergence_limit_shift == 0)
+            {
                 ns = nsr;
-                for( idx_t i = istop - ns; i < istop-1; i = i + 2 ){
-                    real_t ss = abs1( A( i,i-1 ) ) + abs1( A( i-1,i-2 ) );
-                    TA aa = 0.65*ss + A(i,i);
+                for (idx_t i = istop - ns; i < istop - 1; i = i + 2)
+                {
+                    real_t ss = abs1(A(i, i - 1)) + abs1(A(i - 1, i - 2));
+                    TA aa = dat1 * ss + A(i, i);
                     TA bb = ss;
-                    TA cc = 0.1302*ss;
+                    TA cc = dat2 * ss;
                     TA dd = aa;
-                    lahqr_eig22( aa, bb, cc, dd, w[i], w[i+1] );
+                    lahqr_eig22(aa, bb, cc, dd, w[i], w[i + 1]);
                 }
             }
-            idx_t i_shifts = istop - ns;
-            auto shifts = slice( w, pair{ i_shifts, istop } );
 
-            multishift_QR_sweep( want_t, want_z, istart, istop, A, shifts, Z, V);
+            idx_t i_shifts = istop - ls;
 
+            // Sort the shifts (helps a little)
+            // Bubble sort keeps complex conjugate pairs together
+            bool sorted = false;
+            idx_t k = istop;
+            while (!sorted && k > i_shifts)
+            {
+                sorted = true;
+                for (idx_t i = i_shifts; i < k - 1; ++i)
+                {
+                    if (abs1(w[i]) > abs1(w[i + 1]))
+                    {
+                        sorted = false;
+                        auto tmp = w[i];
+                        w[i] = w[i + 1];
+                        w[i + 1] = tmp;
+                    }
+                }
+                --k;
+            }
+
+            // If there are only two shifts and both are real
+            // then use only one (helps avoid interference)
+            if (!is_complex<TA>::value)
+            {
+                if (ns == 2)
+                {
+                    if (imag(w[i_shifts]) == zero)
+                    {
+                        if (abs(real(w[i_shifts]) - A(istop, istop)) < abs(real(w[i_shifts + 1]) - A(istop, istop)))
+                            w[i_shifts+1] = w[i_shifts];
+                        else
+                            w[i_shifts] = w[i_shifts+1];
+                    }
+                }
+            }
+
+            i_shifts = istop - ns;
+            auto shifts = slice(w, pair{i_shifts, istop});
+
+            multishift_QR_sweep(want_t, want_z, istart, istop, A, shifts, Z, V);
         }
 
-        if(locally_allocated)
+        if (locally_allocated)
             delete _work;
         return info;
     }

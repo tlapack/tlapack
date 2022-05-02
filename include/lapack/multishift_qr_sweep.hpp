@@ -84,12 +84,12 @@ namespace tlapack
         const idx_t n_block_max = (n - 3) / 3;
         const idx_t n_shifts_max = std::max<idx_t>(2, 3 * (n_block_max / 4));
 
-        idx_t n_shifts = std::min(size(s), n_shifts_max);
+        idx_t n_shifts = std::min<idx_t>(size(s), n_shifts_max);
         if (n_shifts % 2 == 1)
             n_shifts = n_shifts - 1;
         idx_t n_bulges = n_shifts / 2;
 
-        const idx_t n_block_desired = std::min(2 * n_shifts, n_block_max);
+        const idx_t n_block_desired = std::min<idx_t>(2 * n_shifts, n_block_max);
 
         // Define workspace matrices
         // We use the lower triangular part of A as workspace

@@ -365,7 +365,7 @@ namespace tlapack
             idx_t i = ihi;
             while (i < istop_m)
             {
-                idx_t iblock = std::min(istop_m - i, ncols(WH));
+                idx_t iblock = std::min<idx_t>(istop_m - i, ncols(WH));
                 auto A_slice = slice(A, pair{kwtop, ihi}, pair{i, i + iblock});
                 auto WH_slice = slice(WH, pair{0, nrows(A_slice)}, pair{0, ncols(A_slice)});
                 gemm(Op::ConjTrans, Op::NoTrans, one, V, A_slice, zero, WH_slice);

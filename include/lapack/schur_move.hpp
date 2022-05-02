@@ -58,7 +58,6 @@ namespace tlapack
         typename T = type_t<matrix_t>>
     int schur_move(bool want_q, matrix_t &A, matrix_t &Q, idx_t &ifst, idx_t &ilst)
     {
-        using pair = pair<idx_t, idx_t>;
 
         const idx_t n = ncols(A);
         const T zero(0);

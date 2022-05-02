@@ -165,7 +165,6 @@ namespace tlapack
         if( k + nb + 1 < n ){
             A4 = slice( A, pair{0,k+1}, pair{nb+1,n-k} );
             auto V2 = slice( A, pair{k+nb+1,n}, pair{0,nb} );
-            auto Y2 = slice(Y, pair{k + 1, n}, pair{0, nb});
             gemm( Op::NoTrans, Op::NoTrans,  one, A4, V2, one, Y1);
         }
         trmm( Side::Right, Uplo::Upper, Op::NoTrans, Diag::NonUnit, one, T, Y1 );
