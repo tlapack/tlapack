@@ -379,7 +379,7 @@ namespace tlapack
             idx_t i = istart_m;
             while (i < kwtop)
             {
-                idx_t iblock = std::min(kwtop - i, nrows(WV));
+                idx_t iblock = std::min<idx_t>(kwtop - i, nrows(WV));
                 auto A_slice = slice(A, pair{i, i + iblock}, pair{kwtop, ihi});
                 auto WV_slice = slice(WV, pair{0, nrows(A_slice)}, pair{0, ncols(A_slice)});
                 gemm(Op::NoTrans, Op::NoTrans, one, A_slice, V, zero, WV_slice);
@@ -393,7 +393,7 @@ namespace tlapack
             idx_t i = 0;
             while (i < n)
             {
-                idx_t iblock = std::min(n - i, nrows(WV));
+                idx_t iblock = std::min<idx_t>(n - i, nrows(WV));
                 auto Z_slice = slice(Z, pair{i, i + iblock}, pair{kwtop, ihi});
                 auto WV_slice = slice(WV, pair{0, nrows(Z_slice)}, pair{0, ncols(Z_slice)});
                 gemm(Op::NoTrans, Op::NoTrans, one, Z_slice, V, zero, WV_slice);

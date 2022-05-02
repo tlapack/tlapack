@@ -259,7 +259,7 @@ namespace tlapack
                 idx_t i = ilo + n_block;
                 while (i < istop_m)
                 {
-                    idx_t iblock = std::min(istop_m - i, ncols(WH));
+                    idx_t iblock = std::min<idx_t>(istop_m - i, ncols(WH));
                     auto A_slice = slice(A, pair{ilo, ilo + n_block}, pair{i, i + iblock});
                     auto WH_slice = slice(WH, pair{0, nrows(A_slice)}, pair{0, ncols(A_slice)});
                     gemm(Op::ConjTrans, Op::NoTrans, one, U2, A_slice, zero, WH_slice);
@@ -273,7 +273,7 @@ namespace tlapack
                 idx_t i = istart_m;
                 while (i < ilo)
                 {
-                    idx_t iblock = std::min(ilo - i, nrows(WV));
+                    idx_t iblock = std::min<idx_t>(ilo - i, nrows(WV));
                     auto A_slice = slice(A, pair{i, i + iblock}, pair{ilo, ilo + n_block});
                     auto WV_slice = slice(WV, pair{0, nrows(A_slice)}, pair{0, ncols(A_slice)});
                     gemm(Op::NoTrans, Op::NoTrans, one, A_slice, U2, zero, WV_slice);
@@ -287,7 +287,7 @@ namespace tlapack
                 idx_t i = 0;
                 while (i < n)
                 {
-                    idx_t iblock = std::min(n - i, nrows(WV));
+                    idx_t iblock = std::min<idx_t>(n - i, nrows(WV));
                     auto Z_slice = slice(Z, pair{i, i + iblock}, pair{ilo, ilo + n_block});
                     auto WV_slice = slice(WV, pair{0, nrows(Z_slice)}, pair{0, ncols(Z_slice)});
                     gemm(Op::NoTrans, Op::NoTrans, one, Z_slice, U2, zero, WV_slice);
@@ -306,7 +306,7 @@ namespace tlapack
         {
 
             // Number of positions each bulge will be moved down
-            idx_t n_pos = std::min(n_block_desired - n_shifts, ihi - n_shifts - 1 - i_pos_block);
+            idx_t n_pos = std::min<idx_t>(n_block_desired - n_shifts, ihi - n_shifts - 1 - i_pos_block);
             // Actual blocksize
             idx_t n_block = n_shifts + n_pos;
 
@@ -444,7 +444,7 @@ namespace tlapack
                 idx_t i = i_pos_block + n_block;
                 while (i < istop_m)
                 {
-                    idx_t iblock = std::min(istop_m - i, ncols(WH));
+                    idx_t iblock = std::min<idx_t>(istop_m - i, ncols(WH));
                     auto A_slice = slice(A, pair{i_pos_block, i_pos_block + n_block}, pair{i, i + iblock});
                     auto WH_slice = slice(WH, pair{0, nrows(A_slice)}, pair{0, ncols(A_slice)});
                     gemm(Op::ConjTrans, Op::NoTrans, one, U2, A_slice, zero, WH_slice);
@@ -458,7 +458,7 @@ namespace tlapack
                 idx_t i = istart_m;
                 while (i < i_pos_block)
                 {
-                    idx_t iblock = std::min(i_pos_block - i, nrows(WV));
+                    idx_t iblock = std::min<idx_t>(i_pos_block - i, nrows(WV));
                     auto A_slice = slice(A, pair{i, i + iblock}, pair{i_pos_block, i_pos_block + n_block});
                     auto WV_slice = slice(WV, pair{0, nrows(A_slice)}, pair{0, ncols(A_slice)});
                     gemm(Op::NoTrans, Op::NoTrans, one, A_slice, U2, zero, WV_slice);
@@ -472,7 +472,7 @@ namespace tlapack
                 idx_t i = 0;
                 while (i < n)
                 {
-                    idx_t iblock = std::min(n - i, nrows(WV));
+                    idx_t iblock = std::min<idx_t>(n - i, nrows(WV));
                     auto Z_slice = slice(Z, pair{i, i + iblock}, pair{i_pos_block, i_pos_block + n_block});
                     auto WV_slice = slice(WV, pair{0, nrows(Z_slice)}, pair{0, ncols(Z_slice)});
                     gemm(Op::NoTrans, Op::NoTrans, one, Z_slice, U2, zero, WV_slice);
@@ -672,7 +672,7 @@ namespace tlapack
                 idx_t i = ihi;
                 while (i < istop_m)
                 {
-                    idx_t iblock = std::min(istop_m - i, ncols(WH));
+                    idx_t iblock = std::min<idx_t>(istop_m - i, ncols(WH));
                     auto A_slice = slice(A, pair{i_pos_block, ihi}, pair{i, i + iblock});
                     auto WH_slice = slice(WH, pair{0, nrows(A_slice)}, pair{0, ncols(A_slice)});
                     gemm(Op::ConjTrans, Op::NoTrans, one, U2, A_slice, zero, WH_slice);
@@ -686,7 +686,7 @@ namespace tlapack
                 idx_t i = istart_m;
                 while (i < i_pos_block)
                 {
-                    idx_t iblock = std::min(i_pos_block - i, nrows(WV));
+                    idx_t iblock = std::min<idx_t>(i_pos_block - i, nrows(WV));
                     auto A_slice = slice(A, pair{i, i + iblock}, pair{i_pos_block, ihi});
                     auto WV_slice = slice(WV, pair{0, nrows(A_slice)}, pair{0, ncols(A_slice)});
                     gemm(Op::NoTrans, Op::NoTrans, one, A_slice, U2, zero, WV_slice);
@@ -700,7 +700,7 @@ namespace tlapack
                 idx_t i = 0;
                 while (i < n)
                 {
-                    idx_t iblock = std::min(n - i, nrows(WV));
+                    idx_t iblock = std::min<idx_t>(n - i, nrows(WV));
                     auto Z_slice = slice(Z, pair{i, i + iblock}, pair{i_pos_block, ihi});
                     auto WV_slice = slice(WV, pair{0, nrows(Z_slice)}, pair{0, ncols(Z_slice)});
                     gemm(Op::NoTrans, Op::NoTrans, one, Z_slice, U2, zero, WV_slice);
