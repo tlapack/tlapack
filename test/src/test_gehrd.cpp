@@ -89,10 +89,14 @@ TEMPLATE_TEST_CASE("Hessenberg reduction is backward stable", "[eigenvalues]", f
     std::unique_ptr<T[]> _A(new T[n * n]);
     std::unique_ptr<T[]> _H(new T[n * n]);
     std::unique_ptr<T[]> _Q(new T[n * n]);
+    std::unique_ptr<T[]> _res(new T[n * n]);
+    std::unique_ptr<T[]> _work(new T[n * n]);
 
     auto A = colmajor_matrix<T>(&_A[0], n, n);
     auto H = colmajor_matrix<T>(&_H[0], n, n);
     auto Q = colmajor_matrix<T>(&_Q[0], n, n);
+    auto res = colmajor_matrix<T>(&_res[0], n, n);
+    auto work = colmajor_matrix<T>(&_work[0], n, n);
     std::vector<T> tau(n);
     std::vector<T> workv(n);
 
@@ -109,39 +113,48 @@ TEMPLATE_TEST_CASE("Hessenberg reduction is backward stable", "[eigenvalues]", f
             A(i, j) = (T)0.0;
     tlapack::lacpy(Uplo::General, A, H);
 
-    int use_gehd2_or_gehrd = GENERATE(0, 1);
-    if (use_gehd2_or_gehrd == 0)
+    DYNAMIC_SECTION( "GEHD2 with n = " << n << " ilo = " << ilo << " ihi = " << ihi )
     {
         tlapack::gehd2(ilo, ihi, H, tau, workv);
+
+        // Generate orthogonal matrix Q
+        tlapack::lacpy(Uplo::General, H, Q);
+        tlapack::unghr(ilo, ihi, Q, tau, workv);
+
+        // Remove junk from lower half of H
+        for (size_t j = 0; j < n; ++j)
+            for (size_t i = j + 2; i < n; ++i)
+                H(i, j) = 0.0;
+
+        // Calculate residuals
+        auto orth_res_norm = check_orthogonality(Q, res);
+        CHECK(orth_res_norm <= tol);
+
+        auto simil_res_norm = check_similarity_transform(A, Q, H, res, work);
+        CHECK(simil_res_norm <= tol);
     }
-    else
+    DYNAMIC_SECTION( "GEHRD with n = " << n << " ilo = " << ilo << " ihi = " << ihi )
     {
         gehrd_opts_t<idx_t, T> opts = {.nb = 2, .nx_switch = 2};
         idx_t required_workspace = get_work_gehrd(ilo, ihi, A, tau, opts);
-        std::unique_ptr<T[]> _work(new T[required_workspace]);
-        opts._work = &_work[0];
+        std::unique_ptr<T[]> _work2(new T[required_workspace]);
+        opts._work = &_work2[0];
         opts.lwork = required_workspace;
         tlapack::gehrd(ilo, ihi, H, tau, opts);
+
+        // Generate orthogonal matrix Q
+        tlapack::lacpy(Uplo::General, H, Q);
+        tlapack::unghr(ilo, ihi, Q, tau, workv);
+
+        // Remove junk from lower half of H
+        for (size_t j = 0; j < n; ++j)
+            for (size_t i = j + 2; i < n; ++i)
+                H(i, j) = 0.0;
+
+        auto orth_res_norm = check_orthogonality(Q, res);
+        CHECK(orth_res_norm <= tol);
+
+        auto simil_res_norm = check_similarity_transform(A, Q, H, res, work);
+        CHECK(simil_res_norm <= tol);
     }
-
-    // Generate orthogonal matrix Q
-    tlapack::lacpy(Uplo::General, H, Q);
-    tlapack::unghr(ilo, ihi, Q, tau, workv);
-
-    // Remove junk from lower half of H
-    for (size_t j = 0; j < n; ++j)
-        for (size_t i = j + 2; i < n; ++i)
-            H(i, j) = 0.0;
-
-    // Calculate residuals
-    std::unique_ptr<T[]> _res(new T[n * n]);
-    std::unique_ptr<T[]> _work(new T[n * n]);
-    auto res = colmajor_matrix<T>(&_res[0], n, n);
-    auto work = colmajor_matrix<T>(&_work[0], n, n);
-
-    auto orth_res_norm = check_orthogonality(Q, res);
-    CHECK(orth_res_norm <= tol);
-
-    auto simil_res_norm = check_similarity_transform(A, Q, H, res, work);
-    CHECK(simil_res_norm <= tol);
 }
