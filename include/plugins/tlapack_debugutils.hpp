@@ -15,9 +15,9 @@
 #include <fstream>
 
 #include "legacy_api/legacyArray.hpp"
-#include "blas/types.hpp"
+#include "base/types.hpp"
 
-namespace lapack
+namespace tlapack
 {
 
     /**
@@ -28,9 +28,9 @@ namespace lapack
     template <typename matrix_t>
     void print_matrix(const matrix_t &A)
     {
-        using idx_t = blas::size_type<matrix_t>;
-        const idx_t m = blas::nrows(A);
-        const idx_t n = blas::ncols(A);
+        using idx_t = size_type<matrix_t>;
+        const idx_t m = nrows(A);
+        const idx_t n = ncols(A);
 
         for (idx_t i = 0; i < m; ++i)
         {
@@ -44,19 +44,19 @@ namespace lapack
     // GDB doesn't handle templates well, so we explicitly define some versions of the functions
     // for common template arguments
     //
-    void print_matrix_r(const blas::legacyMatrix<float, blas::Layout::ColMajor> &A)
+    void print_matrix_r(const legacyMatrix<float, Layout::ColMajor> &A)
     {
         print_matrix(A);
     }
-    void print_matrix_d(const blas::legacyMatrix<double, blas::Layout::ColMajor> &A)
+    void print_matrix_d(const legacyMatrix<double, Layout::ColMajor> &A)
     {
         print_matrix(A);
     }
-    void print_matrix_c(const blas::legacyMatrix<std::complex<float>, blas::Layout::ColMajor> &A)
+    void print_matrix_c(const legacyMatrix<std::complex<float>, Layout::ColMajor> &A)
     {
         print_matrix(A);
     }
-    void print_matrix_z(const blas::legacyMatrix<std::complex<double>, blas::Layout::ColMajor> &A)
+    void print_matrix_z(const legacyMatrix<std::complex<double>, Layout::ColMajor> &A)
     {
         print_matrix(A);
     }
@@ -72,9 +72,9 @@ namespace lapack
     template <typename matrix_t>
     std::string visualize_matrix_text(const matrix_t &A)
     {
-        using idx_t = blas::size_type<matrix_t>;
-        const idx_t m = blas::nrows(A);
-        const idx_t n = blas::ncols(A);
+        using idx_t = size_type<matrix_t>;
+        const idx_t m = nrows(A);
+        const idx_t n = ncols(A);
 
         std::stringstream stream;
         stream << "{ \"kind\":{ \"text\": true },\"text\": \"";
@@ -108,9 +108,9 @@ namespace lapack
     template <typename matrix_t>
     std::string visualize_matrix_table(const matrix_t &A)
     {
-        using idx_t = blas::size_type<matrix_t>;
-        const idx_t m = blas::nrows(A);
-        const idx_t n = blas::ncols(A);
+        using idx_t = size_type<matrix_t>;
+        const idx_t m = nrows(A);
+        const idx_t n = ncols(A);
 
         std::stringstream stream;
         stream << "{ \"kind\":{ \"plotly\": true },\"data\":[{";
@@ -158,8 +158,8 @@ namespace lapack
     template <typename matrix_t>
     std::string visualize_matrix(const matrix_t &A)
     {
-        using idx_t = blas::size_type<matrix_t>;
-        const idx_t n = std::max(blas::ncols(A), blas::nrows(A));
+        using idx_t = size_type<matrix_t>;
+        const idx_t n = std::max(ncols(A), nrows(A));
 
         if (n > 15)
             return visualize_matrix_text(A);
@@ -171,19 +171,19 @@ namespace lapack
     // GDB doesn't handle templates well, so we explicitly define some versions of the functions
     // for common template arguments
     //
-    std::string visualize_matrix_r(const blas::legacyMatrix<float, blas::Layout::ColMajor> &A)
+    std::string visualize_matrix_r(const legacyMatrix<float, Layout::ColMajor> &A)
     {
         return visualize_matrix(A);
     }
-    std::string visualize_matrix_d(const blas::legacyMatrix<double, blas::Layout::ColMajor> &A)
+    std::string visualize_matrix_d(const legacyMatrix<double, Layout::ColMajor> &A)
     {
         return visualize_matrix(A);
     }
-    std::string visualize_matrix_c(const blas::legacyMatrix<std::complex<float>, blas::Layout::ColMajor> &A)
+    std::string visualize_matrix_c(const legacyMatrix<std::complex<float>, Layout::ColMajor> &A)
     {
         return visualize_matrix(A);
     }
-    std::string visualize_matrix_z(const blas::legacyMatrix<std::complex<double>, blas::Layout::ColMajor> &A)
+    std::string visualize_matrix_z(const legacyMatrix<std::complex<double>, Layout::ColMajor> &A)
     {
         return visualize_matrix(A);
     }

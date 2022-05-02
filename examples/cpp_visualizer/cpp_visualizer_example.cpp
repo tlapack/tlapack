@@ -20,7 +20,7 @@ int main(int argc, char **argv)
 {
     typedef float T;
 
-    using blas::internal::colmajor_matrix;
+    using tlapack::internal::colmajor_matrix;
 
     const int n = 10;
     const T one(1);
@@ -29,7 +29,7 @@ int main(int argc, char **argv)
     std::unique_ptr<T[]> _A(new T[n * n]);
     auto A = colmajor_matrix<T>(&_A[0], n, n, n);
 
-    lapack::laset( lapack::Uplo::General, zero, one, A );
+    tlapack::laset( tlapack::Uplo::General, zero, one, A );
 
     std::cout<<"This example is meant to be used with the debugger"<<std::endl<<std::endl;
     std::cout<<"GDB should be able to execute the function `lapack::print_matrix_r(A)`"<<std::endl;
