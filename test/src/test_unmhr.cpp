@@ -12,16 +12,15 @@
 #include <iostream>
 #include <iomanip>
 
-using namespace blas;
-using namespace lapack;
+using namespace tlapack;
 
 // This should really be moved to test utils or something
 template <typename matrix_t>
 inline void printMatrix(const matrix_t &A)
 {
-    using idx_t = blas::size_type<matrix_t>;
-    const idx_t m = blas::nrows(A);
-    const idx_t n = blas::ncols(A);
+    using idx_t = size_type<matrix_t>;
+    const idx_t m = nrows(A);
+    const idx_t n = ncols(A);
 
     for (idx_t i = 0; i < m; ++i)
     {

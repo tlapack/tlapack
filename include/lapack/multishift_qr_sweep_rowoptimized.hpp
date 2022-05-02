@@ -13,9 +13,9 @@
 #include <memory>
 #include <complex>
 
-#include "legacy_api/blas/utils.hpp"
-#include "lapack/utils.hpp"
-#include "lapack/types.hpp"
+#include "legacy_api/base/utils.hpp"
+#include "base/utils.hpp"
+#include "base/types.hpp"
 #include "lapack/larfg.hpp"
 #include "lapack/lahqr_shiftcolumn.hpp"
 #include "lapack/move_bulge.hpp"
@@ -26,28 +26,23 @@
 // 
 
 
-namespace lapack
+namespace tlapack
 {
 
     template <
         class matrix_t,
         class vector_t,
-        enable_if_t<is_complex<type_t<vector_t>>::value, bool> = true,
-        enable_if_t<is_same_v< layout_type<matrix_t>, RowMajor_t >, bool> = true>
-    void multishift_QR_sweep(bool want_t, bool want_z, size_type<matrix_t> ilo, size_type<matrix_t> ihi, matrix_t &A, vector_t &s, matrix_t &Z)
+        enable_if_t<is_complex<type_t<vector_t>>::value, bool> = true>
+    void multishift_QR_sweep_rowoptimized(bool want_t, bool want_z, size_type<matrix_t> ilo, size_type<matrix_t> ihi, matrix_t &A, vector_t &s, matrix_t &Z)
     {
 
         using T = type_t<matrix_t>;
         using real_t = real_type<T>;
         using idx_t = size_type<matrix_t>;
         using pair = std::pair<idx_t, idx_t>;
-        using blas::abs;
-        using blas::abs1;
-        using blas::conj;
-        using blas::uroundoff;
 
         // We should really be using rowmajor matrix for this routine, as it is optimized for row major matrices
-        using blas::internal::colmajor_matrix;
+        using internal::colmajor_matrix;
 
         const real_t rzero(0);
         const T one(1);

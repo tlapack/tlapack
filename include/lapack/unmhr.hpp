@@ -9,12 +9,12 @@
 #ifndef __UNMHR_HH__
 #define __UNMHR_HH__
 
-#include "lapack/utils.hpp"
-#include "lapack/types.hpp"
+#include "base/utils.hpp"
+#include "base/types.hpp"
 #include "lapack/larf.hpp"
 #include "lapack/ung2r.hpp"
 
-namespace lapack
+namespace tlapack
 {
 
     /** Applies unitary matrix Q to a matrix C.
@@ -52,7 +52,6 @@ namespace lapack
         matrix_t &C,
         work_t &work)
     {
-        using blas::scal;
         using T = type_t<matrix_t>;
         using idx_t = size_type<matrix_t>;
         using pair = std::pair<idx_t, idx_t>;

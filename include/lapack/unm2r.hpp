@@ -82,6 +82,7 @@ int unm2r(
 {
     using idx_t = size_type< matrixA_t >;
     using T     = type_t< matrixA_t >;
+    using pair = std::pair<idx_t, idx_t>;
 
     // constants
     const T one( 1 );

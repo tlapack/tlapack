@@ -12,8 +12,8 @@
 
 #include <complex>
 
-#include "lapack/utils.hpp"
-#include "lapack/types.hpp"
+#include "base/utils.hpp"
+#include "base/types.hpp"
 #include "lapack/larfg.hpp"
 #include "lapack/larf.hpp"
 #include "lapack/lahqr.hpp"
@@ -21,7 +21,7 @@
 #include "lapack/gehd2.hpp"
 #include "lapack/unghr.hpp"
 
-namespace lapack
+namespace tlapack
 {
 
     /** agressive_early_deflation accepts as input an upper Hessenberg matrix
@@ -85,14 +85,10 @@ namespace lapack
         using T = type_t<matrix_t>;
         using real_t = real_type<T>;
         using pair = std::pair<idx_t, idx_t>;
-        using blas::abs;
-        using blas::abs1;
-        using blas::conj;
-        using blas::uroundoff;
         using std::max;
         using std::min;
 
-        using blas::internal::colmajor_matrix;
+        using internal::colmajor_matrix;
 
         // Constants
         const real_t rzero(0);
@@ -103,7 +99,7 @@ namespace lapack
         // We have a maximum window size
         const idx_t nw_max = (n - 3) / 3;
         const real_t eps = uroundoff<real_t>();
-        const real_t small_num = blas::safe_min<real_t>() * ((T)n / blas::uroundoff<real_t>());
+        const real_t small_num = safe_min<real_t>() * ((T)n / uroundoff<real_t>());
         // Size of the deflation window
         const idx_t jw = min(min(nw, ihi - ilo), nw_max);
         // First row index in the deflation window

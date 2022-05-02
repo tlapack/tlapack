@@ -15,16 +15,15 @@
 #include <iostream>
 #include <iomanip>
 
-using namespace blas;
-using namespace lapack;
+using namespace tlapack;
 
 // This should really be moved to test utils or something
 template <typename matrix_t>
 inline void printMatrix(const matrix_t &A)
 {
-    using idx_t = blas::size_type<matrix_t>;
-    const idx_t m = blas::nrows(A);
-    const idx_t n = blas::ncols(A);
+    using idx_t = size_type<matrix_t>;
+    const idx_t m = nrows(A);
+    const idx_t n = ncols(A);
 
     for (idx_t i = 0; i < m; ++i)
     {
@@ -80,7 +79,7 @@ TEST_CASE("Multishift QR", "[eigenvalues]")
         printMatrix(A);
     }
 
-    auto normA = lange(lapack::frob_norm, A);
+    auto normA = lange(frob_norm, A);
 
     multishift_qr(true, true, 0, n, A, s, Q);
 
@@ -139,8 +138,8 @@ TEST_CASE("Multishift QR", "[eigenvalues]")
             for (size_t i = 0; i < n; ++i)
                 work(i, j) = static_cast<float>(0xABADBABC);
 
-        blas::gemm(blas::Op::ConjTrans, blas::Op::NoTrans, (T)1.0, Q, A_copy, (T)0.0, work);
-        blas::gemm(blas::Op::NoTrans, blas::Op::NoTrans, (T)1.0, work, Q, (T)0.0, A_copy);
+        gemm(Op::ConjTrans, Op::NoTrans, (T)1.0, Q, A_copy, (T)0.0, work);
+        gemm(Op::NoTrans, Op::NoTrans, (T)1.0, work, Q, (T)0.0, A_copy);
 
 
 
@@ -240,7 +239,7 @@ TEST_CASE("Multishift sweep", "[eigenvalues]")
         printMatrix(A);
     }
 
-    auto normA = lange(lapack::frob_norm, A);
+    auto normA = lange(frob_norm, A);
 
     multishift_QR_sweep(true, true, ilo, ihi, A, s, Q, V);
 
@@ -299,8 +298,8 @@ TEST_CASE("Multishift sweep", "[eigenvalues]")
             for (size_t i = 0; i < n; ++i)
                 work(i, j) = static_cast<float>(0xABADBABC);
 
-        blas::gemm(blas::Op::ConjTrans, blas::Op::NoTrans, (T)1.0, Q, A_copy, (T)0.0, work);
-        blas::gemm(blas::Op::NoTrans, blas::Op::NoTrans, (T)1.0, work, Q, (T)0.0, A_copy);
+        gemm(Op::ConjTrans, Op::NoTrans, (T)1.0, Q, A_copy, (T)0.0, work);
+        gemm(Op::NoTrans, Op::NoTrans, (T)1.0, work, Q, (T)0.0, A_copy);
 
         if (verbose)
         {
@@ -378,7 +377,7 @@ TEST_CASE("AED", "[eigenvalues]")
         printMatrix(A);
     }
 
-    auto normA = lange(lapack::frob_norm, A);
+    auto normA = lange(tlapack::frob_norm, A);
 
     idx_t ns, nd;
 
@@ -439,8 +438,8 @@ TEST_CASE("AED", "[eigenvalues]")
             for (size_t i = 0; i < n; ++i)
                 work(i, j) = static_cast<float>(0xABADBABC);
 
-        blas::gemm(blas::Op::ConjTrans, blas::Op::NoTrans, (T)1.0, Q, A_copy, (T)0.0, work);
-        blas::gemm(blas::Op::NoTrans, blas::Op::NoTrans, (T)1.0, work, Q, (T)0.0, A_copy);
+        gemm(Op::ConjTrans, Op::NoTrans, (T)1.0, Q, A_copy, (T)0.0, work);
+        gemm(Op::NoTrans, Op::NoTrans, (T)1.0, work, Q, (T)0.0, A_copy);
 
         if (verbose)
         {

@@ -13,14 +13,14 @@
 #include <memory>
 #include <complex>
 
-#include "legacy_api/blas/utils.hpp"
-#include "lapack/utils.hpp"
-#include "lapack/types.hpp"
+#include "legacy_api/base/utils.hpp"
+#include "base/utils.hpp"
+#include "base/types.hpp"
 #include "lapack/larfg.hpp"
 #include "lapack/lahqr_shiftcolumn.hpp"
 #include "lapack/move_bulge.hpp"
 
-namespace lapack
+namespace tlapack
 {
     /** multishift_QR_sweep performs a single small-bulge multi-shift QR sweep.
      *
@@ -55,8 +55,7 @@ namespace lapack
     template <
         class matrix_t,
         class vector_t,
-        enable_if_t<is_complex<type_t<vector_t>>::value, bool> = true,
-        enable_if_t<!is_same_v<layout_type<matrix_t>, RowMajor_t>, bool> = true>
+        enable_if_t<is_complex<type_t<vector_t>>::value, bool> = true>
     void multishift_QR_sweep(bool want_t, bool want_z, size_type<matrix_t> ilo, size_type<matrix_t> ihi, matrix_t &A, vector_t &s, matrix_t &Z, matrix_t &V)
     {
 
@@ -64,19 +63,15 @@ namespace lapack
         using real_t = real_type<T>;
         using idx_t = size_type<matrix_t>;
         using pair = std::pair<idx_t, idx_t>;
-        using blas::abs;
-        using blas::abs1;
-        using blas::conj;
-        using blas::uroundoff;
 
-        using blas::internal::colmajor_matrix;
+        using internal::colmajor_matrix;
 
         const real_t rzero(0);
         const T one(1);
         const T zero(0);
         const idx_t n = ncols(A);
         const real_t eps = uroundoff<real_t>();
-        const real_t small_num = blas::safe_min<real_t>() * ((T)n / eps);
+        const real_t small_num = safe_min<real_t>() * ((T)n / eps);
 
         // Assertions
         assert(n >= 12);

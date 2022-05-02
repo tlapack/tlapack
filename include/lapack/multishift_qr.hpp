@@ -17,20 +17,20 @@
 #include <iostream>
 #include <iomanip>
 
-#include "legacy_api/blas/utils.hpp"
-#include "lapack/utils.hpp"
-#include "lapack/types.hpp"
+#include "legacy_api/base/utils.hpp"
+#include "base/utils.hpp"
+#include "base/types.hpp"
 #include "lapack/multishift_qr_sweep.hpp"
 #include "lapack/agressive_early_deflation.hpp"
 
-namespace lapack
+namespace tlapack
 {
 
     /**
      * Options struct for multishift_qr
      */
     template <typename idx_t, typename T>
-    struct gehrd_opts_t
+    struct francis_opts_t
     {
 
         // Function that returns the number of shifts to use
@@ -126,26 +126,19 @@ namespace lapack
         class matrix_t,
         class vector_t,
         enable_if_t<is_complex<type_t<vector_t>>::value, bool> = true>
-    int multishift_qr(bool want_t, bool want_z, size_type<matrix_t> ilo, size_type<matrix_t> ihi, matrix_t &A, vector_t &w, matrix_t &Z, const gehrd_opts_t<size_type<matrix_t>, type_t<matrix_t>> &opts = {})
+    int multishift_qr(bool want_t, bool want_z, size_type<matrix_t> ilo, size_type<matrix_t> ihi, matrix_t &A, vector_t &w, matrix_t &Z, const francis_opts_t<size_type<matrix_t>, type_t<matrix_t>> &opts = {})
     {
         using TA = type_t<matrix_t>;
         using real_t = real_type<TA>;
         using idx_t = size_type<matrix_t>;
         using pair = std::pair<idx_t, idx_t>;
-        using blas::abs;
-        using blas::abs1;
-        using blas::conj;
-        using blas::imag;
-        using blas::uroundoff;
-        using lapack::lahqr_eig22;
-        using lapack::lahqr_shiftcolumn;
 
         // constants
         const real_t rzero(0);
         const TA one(1);
         const TA zero(0);
         const real_t eps = uroundoff<real_t>();
-        const real_t small_num = blas::safe_min<real_t>() / blas::uroundoff<real_t>();
+        const real_t small_num = safe_min<real_t>() / uroundoff<real_t>();
         const idx_t non_convergence_limit = 10;
         const real_t dat1 = 3.0 / 4.0;
         const real_t dat2 = -0.4375;
@@ -192,7 +185,7 @@ namespace lapack
             lwork = required_workspace;
             _work = new TA[lwork];
         }
-        auto V = blas::internal::colmajor_matrix<TA>(&_work[0], 3, nsr/2);
+        auto V = internal::colmajor_matrix<TA>(&_work[0], 3, nsr/2);
 
         // itmax is the total number of QR iterations allowed.
         // For most matrices, 3 shifts per eigenvalue is enough, so

@@ -14,13 +14,13 @@
 #include <memory>
 #include <complex>
 
-#include "legacy_api/blas/utils.hpp"
-#include "lapack/utils.hpp"
-#include "lapack/types.hpp"
+#include "legacy_api/base/utils.hpp"
+#include "base/utils.hpp"
+#include "base/types.hpp"
 #include "lapack/larfg.hpp"
 #include "lapack/lahqr_shiftcolumn.hpp"
 
-namespace lapack
+namespace tlapack
 {
 
     /** Given a 4-by-3 matrix H and small order reflector v,
@@ -49,9 +49,6 @@ namespace lapack
 
         using idx_t = size_type<matrix_t>;
         using pair = std::pair<idx_t, idx_t>;
-        using blas::abs1;
-        using blas::conj;
-        using blas::uroundoff;
         const T zero(0);
         const real_t eps = uroundoff<real_t>();
 
