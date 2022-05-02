@@ -10,6 +10,9 @@ add_subdirectory( geqr2 )
 # add the eigenvalues example
 add_subdirectory( eigenvalues )
 
+# add the debug example
+add_subdirectory( cpp_visualizer )
+
 # add the example gemm (Use MPFR library if it is available)
 add_subdirectory( gemm )
 
