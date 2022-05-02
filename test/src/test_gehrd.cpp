@@ -11,59 +11,11 @@
 #include <plugins/tlapack_stdvector.hpp>
 #include <plugins/tlapack_debugutils.hpp>
 #include <tlapack.hpp>
+#include <testutils.hpp>
 #include <iostream>
 #include <iomanip>
 
 using namespace tlapack;
-
-/** Calculates res = Q'*Q - I and the frobenius norm of res
- *
- * @return frobenius norm of res
- *
- * @param[in] Q n by n (almost) orthogonal matrix
- * @param[out] res n by n matrix as defined above
- *
- * @ingroup auxiliary
- */
-template <class matrix_t>
-real_type<type_t<matrix_t>> check_orthogonality(matrix_t &Q, matrix_t &res)
-{
-    using T = type_t<matrix_t>;
-
-    // res = I
-    tlapack::laset(tlapack::Uplo::General, (T)0.0, (T)1.0, res);
-    // res = Q'Q - I
-    tlapack::gemm(tlapack::Op::ConjTrans, tlapack::Op::NoTrans, (T)1.0, Q, Q, (T)-1.0, res);
-
-    // Compute ||res||_F
-    return tlapack::lansy(tlapack::frob_norm, tlapack::Uplo::Upper, res);
-}
-
-/** Calculates res = Q'*A*Q - H and the frobenius norm of res relative to the norm of A
- *
- * @return frobenius norm of res
- *
- * @param[in] A n by n matrix
- * @param[in] Q n by n matrix
- * @param[in] H n by n matrix
- * @param[out] res n by n matrix as defined above
- * @param[out] work n by n workspace matrix
- *
- * @ingroup auxiliary
- */
-template <class matrix_t>
-real_type<type_t<matrix_t>> check_similarity_transform(matrix_t &A, matrix_t &Q, matrix_t &H, matrix_t &res, matrix_t &work)
-{
-    using T = type_t<matrix_t>;
-
-    // res = Q'*A*Q - H
-    tlapack::lacpy(Uplo::General, H, res);
-    tlapack::gemm(tlapack::Op::ConjTrans, tlapack::Op::NoTrans, (T)1.0, Q, A, (T)0.0, work);
-    tlapack::gemm(tlapack::Op::NoTrans, tlapack::Op::NoTrans, (T)1.0, work, Q, (T)-1.0, res);
-
-    // Compute ||res||_F/||A||_F
-    return tlapack::lange(tlapack::frob_norm, res) / tlapack::lange(tlapack::frob_norm, A);
-}
 
 TEMPLATE_TEST_CASE("Hessenberg reduction is backward stable", "[eigenvalues]", float, double, std::complex<float>, std::complex<double>)
 {
