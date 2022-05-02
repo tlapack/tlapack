@@ -8,16 +8,16 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __UNG2R_HH__
-#define __UNG2R_HH__
+#ifndef __TLAPACK_UNG2R_HH__
+#define __TLAPACK_UNG2R_HH__
 
-#include "lapack/utils.hpp"
-#include "lapack/types.hpp"
+#include "base/utils.hpp"
+#include "base/types.hpp"
 #include "lapack/larf.hpp"
 
 #include "tblas.hpp"
 
-namespace lapack {
+namespace tlapack {
 
 /**
  * @brief Generates a matrix Q with orthogonal columns.
@@ -47,10 +47,9 @@ template< class matrix_t, class vector_t, class work_t >
 int ung2r(
     size_type< matrix_t > k, matrix_t& A, const vector_t &tau, work_t &work )
 {
-    using blas::scal;
     using T      = type_t< matrix_t >;
     using idx_t  = size_type< matrix_t >;
-    using pair  = std::pair<idx_t,idx_t>;
+    using pair  = pair<idx_t,idx_t>;
     
     // constants
     const T zero( 0.0 );

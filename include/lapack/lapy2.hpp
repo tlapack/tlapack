@@ -8,10 +8,10 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __LAPY2_HH__
-#define __LAPY2_HH__
+#ifndef __TLAPACK_LAPY2_HH__
+#define __TLAPACK_LAPY2_HH__
 
-namespace lapack {
+namespace tlapack {
 
 /** Finds $\sqrt{x^2+y^2}$, taking care not to cause unnecessary overflow.
  * 
@@ -32,8 +32,6 @@ real_type<TX,TY> lapy2( const TX& x, const TY& y )
 {
     // using
     using real_t = real_type<TX,TY>;
-    using blas::abs;
-    using blas::sqrt;
 
     // constants
     const real_t one( 1 );

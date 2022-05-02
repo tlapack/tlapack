@@ -7,7 +7,7 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#undef BLAS_ERROR_NDEBUG
+#undef TLAPACK_ERROR_NDEBUG
 #undef NDEBUG
 
 #include <plugins/tlapack_legacyArray.hpp>
@@ -16,7 +16,7 @@
 #include <vector>
 #include <iostream>
 
-using namespace lapack;
+using namespace tlapack;
 
 //------------------------------------------------------------------------------
 /// Print matrix A in the standard output
@@ -63,7 +63,7 @@ int main( int argc, char** argv )
         data1[i] = i+1;
 
     // Matrix 1
-    legacyMatrix<int,blas::Layout::RowMajor> A1( m, n, &data1[0], n );
+    legacyMatrix<int,Layout::RowMajor> A1( m, n, &data1[0], n );
     printMatrix(A1);
     std::cout << std::endl;
 
@@ -73,7 +73,7 @@ int main( int argc, char** argv )
         data2[i] = data1[i];
 
     // Matrix 2
-    legacyMatrix<int,blas::Layout::RowMajor> A2( m, n, &data2[0], n );
+    legacyMatrix<int,Layout::RowMajor> A2( m, n, &data2[0], n );
 
     // Scale all matrix by 3
     lascl( dense, 1.0, 3.0, A1 );
@@ -108,7 +108,7 @@ int main( int argc, char** argv )
         printBandedMatrix(A3);
         std::cout << std::endl;
     }
-    catch( blas::Error& e ) {
+    catch( Error& e ) {
         std::cout << std::endl;
         std::cout << "Generates access error as predicted" << std::endl;
         std::cerr << e.what() << std::endl;
@@ -119,7 +119,7 @@ int main( int argc, char** argv )
         printBandedMatrix(A3);
         std::cout << std::endl;
     }
-    catch( blas::Error& e ) {
+    catch( Error& e ) {
         std::cout << std::endl;
         std::cout << "Generates access error as predicted" << std::endl;
         std::cerr << e.what() << std::endl;

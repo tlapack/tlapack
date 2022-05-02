@@ -4,14 +4,14 @@ In this example, we compute the QR factorization of a matrix filled with random 
 
 - A is a m-by-n matrix filled with random numbers.
 
-The code uses the routine [lapack::geqr2](../../include/lapack/geqr2.hpp) to perform the complete factorization in place, and [lapack::ung2r](../../include/lapack/ung2r.hpp) to generate the m-by-n matrix Q. We store R in a n-by-n upper triangular matrix.
+The code uses the routine [tlapack::geqr2](../../include/lapack/geqr2.hpp) to perform the complete factorization in place, and [tlapack::ung2r](../../include/lapack/ung2r.hpp) to generate the m-by-n matrix Q. We store R in a n-by-n upper triangular matrix.
 
 To examine the accuracy of the method, we measure
 <img src="https://latex.codecogs.com/gif.latex?\|Q^tQ&space;-&space;I\|_F" />
 and
 <img src="https://latex.codecogs.com/gif.latex?\|QR&space;-&space;A\|_F/\|A\|_F" />,
 where F denotes the Frobenius norm.
-so that the expected output is C = 0. In the final step of the algorithm, we use [blas::nrm2](../../include/blas/nrm2.hpp) to compute the Frobenius norm of C. The norm must be identically null. Set the `verbose` to `true` if you want to see the contents of each matrix in the standard output.
+so that the expected output is C = 0. In the final step of the algorithm, we use [tlapack::nrm2](../../include/blas/nrm2.hpp) to compute the Frobenius norm of C. The norm must be identically null. Set the `verbose` to `true` if you want to see the contents of each matrix in the standard output.
 
 ## Build
 

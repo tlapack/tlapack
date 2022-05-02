@@ -5,12 +5,12 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef BLAS_TRSV_HH
-#define BLAS_TRSV_HH
+#ifndef __TLAPACK_BLAS_TRSV_HH__
+#define __TLAPACK_BLAS_TRSV_HH__
 
-#include "blas/utils.hpp"
+#include "base/utils.hpp"
 
-namespace blas {
+namespace tlapack {
 
 /**
  * Solve the triangular matrix-vector equation
@@ -70,18 +70,18 @@ void trsv(
     const bool nonunit = (diag == Diag::NonUnit);
 
     // check arguments
-    blas_error_if( uplo != Uplo::Lower &&
+    tblas_error_if( uplo != Uplo::Lower &&
                    uplo != Uplo::Upper );
-    blas_error_if( trans != Op::NoTrans &&
+    tblas_error_if( trans != Op::NoTrans &&
                    trans != Op::Trans &&
                    trans != Op::ConjTrans &&
                    trans != Op::Conj );
-    blas_error_if( diag != Diag::NonUnit &&
+    tblas_error_if( diag != Diag::NonUnit &&
                    diag != Diag::Unit );
-    blas_error_if( nrows(A) != ncols(A) );
-    blas_error_if( size(x) != n );
+    tblas_error_if( nrows(A) != ncols(A) );
+    tblas_error_if( size(x) != n );
 
-    blas_error_if( access_denied( uplo, read_policy(A) ) );
+    tblas_error_if( access_denied( uplo, read_policy(A) ) );
 
     if (trans == Op::NoTrans) {
         // Form x := A^{-1} * x
@@ -208,6 +208,6 @@ void trsv(
     }
 }
 
-}  // namespace blas
+}  // namespace tlapack
 
-#endif        //  #ifndef BLAS_TRSV_HH
+#endif        //  #ifndef __TLAPACK_BLAS_TRSV_HH__

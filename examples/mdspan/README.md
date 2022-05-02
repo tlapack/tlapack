@@ -1,9 +1,9 @@
 # Example: mdspan
 
-In this example, we combine different matrix layouts from mdspan on [blas::gemm](../../include/blas/gemm.hpp) and [lapack::potrf2](../../include/lapack/potrf2.hpp). 
+In this example, we combine different matrix layouts from mdspan on [tlapack::gemm](../../include/blas/gemm.hpp) and [tlapack::potrf2](../../include/lapack/potrf2.hpp). 
 
-- Also use the mdspan interfaces of [blas::trsm](../../include/blas/trsm.hpp) and [lapack::lange](../../include/lapack/lange.hpp).
-- Use the `submatrix` operation from [blas/utils.hpp](../../include/blas/utils.hpp)
+- Also use the mdspan interfaces of [tlapack::trsm](../../include/blas/trsm.hpp) and [tlapack::lange](../../include/lapack/lange.hpp).
+- Use the `submatrix` operation from [base/utils.hpp](../../include/base/utils.hpp)
 
 ## Build
 

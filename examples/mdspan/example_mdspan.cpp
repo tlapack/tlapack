@@ -22,7 +22,7 @@ int main( int argc, char** argv )
 {
     using T = float;
 
-    using namespace blas;
+    using namespace tlapack;
 
     using std::experimental::mdspan;
     using std::experimental::submdspan;
@@ -103,7 +103,7 @@ int main( int argc, char** argv )
     std::cout.precision(5);
     std::cout << std::scientific << std::showpos;
     std::cout << "|| C - Ak B ||_F = " 
-              << lapack::lange( lapack::frob_norm, C )
+              << tlapack::lange( tlapack::frob_norm, C )
               << std::endl;
 
     // potrf2:
@@ -140,7 +140,7 @@ int main( int argc, char** argv )
     }
 
     // Compute the Cholesky decomposition of U
-    int info = lapack::potrf2( lapack::upperTriangle, U );
+    int info = tlapack::potrf2( tlapack::upperTriangle, U );
 
     std::cout << "Cholesky ended with info " << info
               << std::endl;
@@ -162,7 +162,7 @@ int main( int argc, char** argv )
     // error = ||R-Id||_F
     for (idx_t i = 0; i < k; ++i)
         R(i,i) -= one;
-    T error = lapack::lange( lapack::frob_norm, R );
+    T error = tlapack::lange( tlapack::frob_norm, R );
 
     std::cout.precision(5);
     std::cout << std::scientific << std::showpos;

@@ -5,12 +5,12 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef BLAS_SYMM_HH
-#define BLAS_SYMM_HH
+#ifndef __TLAPACK_BLAS_SYMM_HH__
+#define __TLAPACK_BLAS_SYMM_HH__
 
-#include "blas/utils.hpp"
+#include "base/utils.hpp"
 
-namespace blas {
+namespace tlapack {
 
 /**
  * Symmetric matrix-matrix multiply:
@@ -48,8 +48,8 @@ template<
     class matrixA_t, class matrixB_t, class matrixC_t, 
     class alpha_t, class beta_t >
 void symm(
-    blas::Side side,
-    blas::Uplo uplo,
+    Side side,
+    Uplo uplo,
     const alpha_t& alpha, const matrixA_t& A, const matrixB_t& B,
     const beta_t& beta, matrixC_t& C )
 {
@@ -66,19 +66,19 @@ void symm(
     const idx_t n = ncols(B);
 
     // check arguments
-    blas_error_if( side != Side::Left &&
+    tblas_error_if( side != Side::Left &&
                    side != Side::Right );
-    blas_error_if( uplo != Uplo::Lower &&
+    tblas_error_if( uplo != Uplo::Lower &&
                    uplo != Uplo::Upper &&
                    uplo != Uplo::General );
-    blas_error_if( nrows(A) != ncols(A) );
-    blas_error_if( nrows(A) != ((side == Side::Left) ? m : n) );
-    blas_error_if( nrows(C) != m );
-    blas_error_if( ncols(C) != n );
+    tblas_error_if( nrows(A) != ncols(A) );
+    tblas_error_if( nrows(A) != ((side == Side::Left) ? m : n) );
+    tblas_error_if( nrows(C) != m );
+    tblas_error_if( ncols(C) != n );
 
-    blas_error_if( access_denied( uplo,  read_policy(A) ) );
-    blas_error_if( access_denied( dense, read_policy(B) ) );
-    blas_error_if( access_denied( dense, write_policy(C) ) );
+    tblas_error_if( access_denied( uplo,  read_policy(A) ) );
+    tblas_error_if( access_denied( dense, read_policy(B) ) );
+    tblas_error_if( access_denied( dense, write_policy(C) ) );
 
     if (side == Side::Left) {
         if (uplo != Uplo::Lower) {
@@ -168,6 +168,6 @@ void symm(
     }
 }
 
-}  // namespace blas
+}  // namespace tlapack
 
-#endif        //  #ifndef BLAS_SYMM_HH
+#endif        //  #ifndef __TLAPACK_BLAS_SYMM_HH__

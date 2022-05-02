@@ -5,12 +5,12 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef BLAS_GEMM_HH
-#define BLAS_GEMM_HH
+#ifndef __TLAPACK_BLAS_GEMM_HH__
+#define __TLAPACK_BLAS_GEMM_HH__
 
-#include "blas/utils.hpp"
+#include "base/utils.hpp"
 
-namespace blas {
+namespace tlapack {
 
 /**
  * General matrix-matrix multiply:
@@ -46,11 +46,18 @@ namespace blas {
  */
 template<
     class matrixA_t,
-    class matrixB_t, 
-    class matrixC_t, 
-    class alpha_t, 
+    class matrixB_t,
+    class matrixC_t,
+    class alpha_t,
     class beta_t,
-    disable_if_allow_optblas_t<matrixA_t, matrixB_t, matrixC_t, alpha_t, beta_t> = 0
+    class T  = alpha_t,
+    disable_if_allow_optblas_t<
+        pair< matrixA_t, T >,
+        pair< matrixB_t, T >,
+        pair< matrixC_t, T >,
+        pair< alpha_t,   T >,
+        pair< beta_t,    T >
+    > = 0
 >
 void gemm(
     Op transA,
@@ -75,19 +82,19 @@ void gemm(
     const idx_t k = (transA == Op::NoTrans) ? ncols(A) : nrows(A);
 
     // check arguments
-    blas_error_if( transA != Op::NoTrans &&
+    tblas_error_if( transA != Op::NoTrans &&
                    transA != Op::Trans &&
                    transA != Op::ConjTrans );
-    blas_error_if( transB != Op::NoTrans &&
+    tblas_error_if( transB != Op::NoTrans &&
                    transB != Op::Trans &&
                    transB != Op::ConjTrans );
-    blas_error_if( nrows(C) != m );
-    blas_error_if( ncols(C) != n );
-    blas_error_if( ((transB == Op::NoTrans) ? nrows(B) : ncols(B)) != k );
+    tblas_error_if( nrows(C) != m );
+    tblas_error_if( ncols(C) != n );
+    tblas_error_if( ((transB == Op::NoTrans) ? nrows(B) : ncols(B)) != k );
 
-    blas_error_if( access_denied( dense, read_policy(A) ) );
-    blas_error_if( access_denied( dense, read_policy(B) ) );
-    blas_error_if( access_denied( dense, write_policy(C) ) );
+    tblas_error_if( access_denied( dense, read_policy(A) ) );
+    tblas_error_if( access_denied( dense, read_policy(B) ) );
+    tblas_error_if( access_denied( dense, write_policy(C) ) );
 
     if (transA == Op::NoTrans) {
         if (transB == Op::NoTrans) {
@@ -190,60 +197,6 @@ void gemm(
     }
 }
 
-/**
- * General matrix-matrix multiply.
- * 
- * Wrapper to optimized BLAS.
- * 
- * @see gemm(
-    Op transA,
-    Op transB,
-    const alpha_t& alpha,
-    const matrixA_t& A,
-    const matrixB_t& B,
-    const beta_t& beta,
-    matrixC_t& C )
- * 
- * @ingroup gemm
- */
-template<
-    class matrixA_t,
-    class matrixB_t, 
-    class matrixC_t, 
-    class alpha_t, 
-    class beta_t,
-    enable_if_allow_optblas_t<matrixA_t, matrixB_t, matrixC_t, alpha_t, beta_t> = 0
->
-inline
-void gemm(
-    Op transA,
-    Op transB,
-    alpha_t alpha,
-    const matrixA_t& A,
-    const matrixB_t& B,
-    beta_t beta,
-    matrixC_t& C )
-{
-    // Legacy objects
-    auto _A = legacy_matrix(A);
-    auto _B = legacy_matrix(B);
-    auto _C = legacy_matrix(C);
+}  // namespace tlapack
 
-    // Constants to forward
-    const auto& m = _C.m;
-    const auto& n = _C.n;
-    const auto& k = (transA == Op::NoTrans) ? _A.n : _A.m;
-
-    gemm(
-        _A.layout, transA, transB, 
-        m, n, k,
-        alpha,
-        _A.ptr, _A.ldim,
-        _B.ptr, _B.ldim,
-        beta,
-        _C.ptr, _C.ldim );
-}
-
-}  // namespace blas
-
-#endif        //  #ifndef BLAS_GEMM_HH
+#endif        //  #ifndef __TLAPACK_BLAS_GEMM_HH__

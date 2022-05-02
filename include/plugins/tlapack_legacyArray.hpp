@@ -12,9 +12,9 @@
 #include <assert.h>
 
 #include "legacy_api/legacyArray.hpp"
-#include "blas/arrayTraits.hpp"
+#include "base/arrayTraits.hpp"
 
-namespace blas {
+namespace tlapack {
 
     // -----------------------------------------------------------------------------
     // Data traits
@@ -25,17 +25,14 @@ namespace blas {
     // Size type
     template< typename T, Layout layout >
     struct sizet_trait< legacyMatrix<T,layout> > { using type = typename legacyMatrix<T>::idx_t; };
-    // Layout type
-    template< typename T >
-    struct layout_trait< legacyMatrix<T> > { using type = ColMajor_t; };
-    template< typename T >
-    struct layout_trait< legacyMatrix<T,Layout::RowMajor> > { using type = RowMajor_t; };
-
+    // Layout
+    template< typename T, Layout L >
+    constexpr Layout layout< legacyMatrix<T,L> > = L;
+    
     /// Specialization of has_blas_type for arrays.
     template< typename T, Layout L >
     struct allow_optblas< legacyMatrix<T,L> > {
-        using type = T;
-        static constexpr bool value = allow_optblas_v<type>;
+        static constexpr bool value = allow_optblas_v<T>;
     };
 
     // Data type
@@ -58,9 +55,9 @@ namespace blas {
     // Size type
     template< typename T >
     struct sizet_trait< legacyBandedMatrix<T> > { using type = typename legacyBandedMatrix<T>::idx_t; };
-    // Layout type
+    // Layout
     template< typename T >
-    struct layout_trait< legacyBandedMatrix<T> > { using type = Banded_t; };
+    constexpr Layout layout< legacyBandedMatrix<T> > = Layout::BandStorage;
 
     // -----------------------------------------------------------------------------
     // Data description
@@ -79,14 +76,14 @@ namespace blas {
     template< typename T, Layout layout >
     inline constexpr auto
     read_policy( const legacyMatrix<T,layout>& A ) {
-        return lapack::dense;
+        return dense;
     }
 
     // Write policy
     template< typename T, Layout layout >
     inline constexpr auto
     write_policy( const legacyMatrix<T,layout>& A ) {
-        return lapack::dense;
+        return dense;
     }
 
     // Size
@@ -118,7 +115,7 @@ namespace blas {
     template< typename T >
     inline constexpr auto
     read_policy( const legacyBandedMatrix<T>& A ) {
-        return lapack::band_t {
+        return band_t {
             (std::size_t) A.kl, (std::size_t) A.ku
         };
     }
@@ -127,7 +124,7 @@ namespace blas {
     template< typename T >
     inline constexpr auto
     write_policy( const legacyBandedMatrix<T>& A ) {
-        return lapack::band_t {
+        return band_t {
             (std::size_t) A.kl, (std::size_t) A.ku
         };
     }
@@ -282,23 +279,6 @@ namespace blas {
     inline constexpr auto
     legacy_vector( const legacyVector<T,int_t,direction>& v ) noexcept { return v; }
 
-} // namespace blas
-
-namespace lapack {
-
-    using blas::size;
-    using blas::nrows;
-    using blas::ncols;
-    using blas::read_policy;
-    using blas::write_policy;
-
-    using blas::slice;
-    using blas::rows;
-    using blas::row;
-    using blas::cols;
-    using blas::col;
-    using blas::diag;
-
-} // namespace lapack
+} // namespace tlapack
 
 #endif // __TLAPACK_LEGACYARRAY_HH__

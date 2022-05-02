@@ -15,7 +15,7 @@
 
 #include "tblas.hpp"
 
-namespace lapack {
+namespace tlapack {
 
 /** Generates a m-by-n matrix Q with orthogonal columns.
  * \[
@@ -41,12 +41,12 @@ namespace lapack {
  */
 template< typename TA, typename Ttau >
 inline int ung2r(
-    blas::idx_t m, blas::idx_t n, blas::idx_t k,
-    TA* A, blas::idx_t lda,
+    idx_t m, idx_t n, idx_t k,
+    TA* A, idx_t lda,
     const Ttau* tau )
 {
-    using blas::internal::colmajor_matrix;
-    using blas::internal::vector;
+    using internal::colmajor_matrix;
+    using internal::vector;
 
     // check arguments
     lapack_error_if( m < 0, -1 );
@@ -63,7 +63,7 @@ inline int ung2r(
 
     // Matrix views
     auto _A    = colmajor_matrix<TA>( A, m, n, lda );
-    auto _tau  = vector( (Ttau*)tau, std::min<blas::idx_t>( m, n ) );
+    auto _tau  = vector( (Ttau*)tau, std::min<idx_t>( m, n ) );
     auto _work = vector( work, n-1 );
     
     info = ung2r( k, _A, _tau, _work );

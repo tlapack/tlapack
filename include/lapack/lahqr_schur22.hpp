@@ -8,16 +8,16 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __LAHQR_SCHUR22_HH__
-#define __LAHQR_SCHUR22_HH__
+#ifndef __TLAPACK_LAHQR_SCHUR22_HH__
+#define __TLAPACK_LAHQR_SCHUR22_HH__
 
 #include <complex>
 #include <cmath>
 
-#include "lapack/utils.hpp"
-#include "lapack/types.hpp"
+#include "base/utils.hpp"
+#include "base/types.hpp"
 
-namespace lapack
+namespace tlapack
 {
 
     /** Computes the Schur factorization of a 2x2 matrix A
@@ -56,8 +56,7 @@ namespace lapack
     int lahqr_schur22(T &a, T &b, T &c, T &d, std::complex<T> &s1, std::complex<T> &s2, T &cs, T &sn)
     {
 
-        using blas::abs;
-        using std::log;
+            using std::log;
         using std::max;
         using std::min;
         using std::pow;
@@ -69,8 +68,8 @@ namespace lapack
         const T two(2);
         const T multpl(4);
 
-        const T eps = blas::uroundoff<T>();
-        const T safmin = blas::safe_min<T>();
+        const T eps = uroundoff<T>();
+        const T safmin = safe_min<T>();
         const T safmn2 = pow(two, (int)(log(safmin / eps) / log(two)) / two);
         const T safmx2 = one / safmn2;
 

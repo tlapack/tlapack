@@ -13,18 +13,18 @@
 
 #include "lapack/lacpy.hpp"
 
-namespace lapack {
+namespace tlapack {
 
 template< class uplo_t, typename TA, typename TB >
 void lacpy(
-    uplo_t uplo, blas::idx_t m, blas::idx_t n,
-    const TA* A, blas::idx_t lda,
-    TB* B, blas::idx_t ldb )
+    uplo_t uplo, idx_t m, idx_t n,
+    const TA* A, idx_t lda,
+    TB* B, idx_t ldb )
 {
-    using blas::internal::colmajor_matrix;
+    using internal::colmajor_matrix;
 
     // check arguments
-    blas_error_if(  uplo != Uplo::Lower &&
+    tblas_error_if(  uplo != Uplo::Lower &&
                     uplo != Uplo::Upper &&
                     uplo != Uplo::General );
     
@@ -43,15 +43,15 @@ void lacpy(
  *        'L': A is assumed to be lower triangular; elements above the diagonal are not referenced.
  *        otherwise, A is assumed to be a full matrix.
  * 
- * @see lacpy( Uplo, blas::idx_t, blas::idx_t, TA*, blas::idx_t, TB* B, blas::idx_t )
+ * @see lacpy( Uplo, idx_t, idx_t, TA*, idx_t, TB* B, idx_t )
  * 
  * @ingroup auxiliary
  */
 template< typename TA, typename TB >
 void inline lacpy(
-    MatrixType matrixtype, blas::idx_t m, blas::idx_t n,
-    const TA* A, blas::idx_t lda,
-    TB* B, blas::idx_t ldb )
+    MatrixType matrixtype, idx_t m, idx_t n,
+    const TA* A, idx_t lda,
+    TB* B, idx_t ldb )
 {
     if (matrixtype == MatrixType::Upper) {
         lacpy(Uplo::Upper, m, n, A, lda, B, ldb);

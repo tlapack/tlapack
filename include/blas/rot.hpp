@@ -5,12 +5,12 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef BLAS_ROT_HH
-#define BLAS_ROT_HH
+#ifndef __TLAPACK_BLAS_ROT_HH__
+#define __TLAPACK_BLAS_ROT_HH__
 
-#include "blas/utils.hpp"
+#include "base/utils.hpp"
 
-namespace blas {
+namespace tlapack {
 
 /**
  * Apply plane rotation:
@@ -43,7 +43,7 @@ void rot(
     const idx_t n = size(x);
 
     // check arguments
-    blas_error_if( size(y) != n );
+    tblas_error_if( size(y) != n );
 
     // quick return
     if ( n == 0 || (c == 1 && s == s_type(0)) )
@@ -56,6 +56,6 @@ void rot(
     }
 }
 
-}  // namespace blas
+}  // namespace tlapack
 
-#endif        //  #ifndef BLAS_ROT_HH
+#endif        //  #ifndef __TLAPACK_BLAS_ROT_HH__

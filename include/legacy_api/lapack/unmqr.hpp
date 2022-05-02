@@ -1,4 +1,4 @@
-/// @file unmqr.hpp Multiplies the general m-by-n matrix C by Q from lapack::geqrf()
+/// @file unmqr.hpp Multiplies the general m-by-n matrix C by Q from geqrf()
 /// @author Weslley S Pereira, University of Colorado Denver, USA
 //
 // Copyright (c) 2021-2022, University of Colorado Denver. All rights reserved.
@@ -13,17 +13,17 @@
 #include <memory>
 #include "lapack/unmqr.hpp"
 
-namespace lapack {
+namespace tlapack {
 
-/** Multiplies the general m-by-n matrix C by Q from lapack::geqrf() using a blocked code as follows:
+/** Multiplies the general m-by-n matrix C by Q from geqrf() using a blocked code as follows:
  *
  * @param[in] side
- *     - lapack::Side::Left:  apply $Q$ or $Q^H$ from the Left;
- *     - lapack::Side::Right: apply $Q$ or $Q^H$ from the Right.
+ *     - Side::Left:  apply $Q$ or $Q^H$ from the Left;
+ *     - Side::Right: apply $Q$ or $Q^H$ from the Right.
  *
  * @param[in] trans
- *     - lapack::Op::NoTrans:   No transpose, apply $Q$;
- *     - lapack::Op::ConjTrans: Conjugate transpose, apply $Q^H$.
+ *     - Op::NoTrans:   No transpose, apply $Q$;
+ *     - Op::ConjTrans: Conjugate transpose, apply $Q^H$.
  *
  * @param[in] m
  *     The number of rows of the matrix C. m >= 0.
@@ -43,7 +43,7 @@ namespace lapack {
  *     \n
  *     The i-th column must contain the vector which defines the
  *     elementary reflector H(i), for i = 1, 2, ..., k, as returned by
- *     lapack::geqrf() in the first k columns of its array argument A.
+ *     geqrf() in the first k columns of its array argument A.
  *
  * @param[in] lda
  *     The leading dimension of the array A.
@@ -53,7 +53,7 @@ namespace lapack {
  * @param[in] tau
  *     The vector tau of length k.
  *     tau[i] must contain the scalar factor of the elementary
- *     reflector H(i), as returned by lapack::geqrf().
+ *     reflector H(i), as returned by geqrf().
  *
  * @param[in,out] C
  *     The m-by-n matrix C, stored in an ldc-by-n array.
@@ -74,14 +74,14 @@ namespace lapack {
 template< class side_t, class trans_t, typename TA, typename TC >
 inline int unmqr(
     side_t side, trans_t trans,
-    blas::idx_t m, blas::idx_t n, blas::idx_t k,
-    TA const* A, blas::idx_t lda,
+    idx_t m, idx_t n, idx_t k,
+    TA const* A, idx_t lda,
     TA const* tau,
-    TC* C, blas::idx_t ldc )
+    TC* C, idx_t ldc )
 {
-    typedef blas::scalar_type<TA,TC> scalar_t;
-    using blas::internal::colmajor_matrix;
-    using blas::internal::vector;
+    typedef scalar_type<TA,TC> scalar_t;
+    using internal::colmajor_matrix;
+    using internal::vector;
 
     // Constants
     const idx_t nb = 32; // number of blocks

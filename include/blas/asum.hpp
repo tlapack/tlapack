@@ -5,12 +5,12 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef BLAS_ASUM_HH
-#define BLAS_ASUM_HH
+#ifndef __TLAPACK_BLAS_ASUM_HH__
+#define __TLAPACK_BLAS_ASUM_HH__
 
-#include "blas/utils.hpp"
+#include "base/utils.hpp"
 
-namespace blas {
+namespace tlapack {
 
 /**
  * @return 1-norm of vector,
@@ -38,6 +38,6 @@ auto asum( vector_t const& x )
     return result;
 }
 
-}  // namespace blas
+}  // namespace tlapack
 
-#endif        //  #ifndef BLAS_ASUM_HH
+#endif        //  #ifndef __TLAPACK_BLAS_ASUM_HH__

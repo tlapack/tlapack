@@ -13,7 +13,7 @@
 
 #include "lapack/larft.hpp"
 
-namespace lapack {
+namespace tlapack {
 
 /** Forms the triangular factor T of a block reflector H of order n,
  * which is defined as a product of k elementary reflectors.
@@ -86,8 +86,8 @@ int larft(
     const scalar_t *tau,
     scalar_t *T, idx_t ldT)
 {
-    using blas::internal::colmajor_matrix;
-    using blas::internal::vector;
+    using internal::colmajor_matrix;
+    using internal::vector;
 
     // check arguments
     lapack_error_if( direction != Direction::Forward &&

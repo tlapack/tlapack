@@ -11,4 +11,8 @@
 #include "lapack/util.hh"
 #include "legacy_api/lapack.hpp"
 
+namespace lapack {
+    using namespace tlapack;
+}
+
 #endif // LAPACK_HH

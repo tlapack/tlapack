@@ -8,13 +8,13 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __LANGE_HH__
-#define __LANGE_HH__
+#ifndef __TLAPACK_LANGE_HH__
+#define __TLAPACK_LANGE_HH__
 
-#include "lapack/types.hpp"
+#include "base/types.hpp"
 #include "lapack/lassq.hpp"
 
-namespace lapack {
+namespace tlapack {
 
 /** Calculates the norm of a matrix.
  * 
@@ -39,19 +39,17 @@ lange( norm_t normType, const matrix_t& A )
     using T      = type_t< matrix_t >;
     using real_t = real_type< T >;
     using idx_t  = size_type< matrix_t >;
-    using blas::isnan;
-    using blas::sqrt;
 
     // constants
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
 
     // check arguments
-    blas_error_if(  normType != Norm::Fro &&
+    tblas_error_if(  normType != Norm::Fro &&
                     normType != Norm::Inf &&
                     normType != Norm::Max &&
                     normType != Norm::One );
-    blas_error_if(  access_denied( dense, read_policy(A) ) );
+    tblas_error_if(  access_denied( dense, read_policy(A) ) );
 
     // quick return
     if (m == 0 || n == 0)
@@ -65,7 +63,7 @@ lange( norm_t normType, const matrix_t& A )
         for (idx_t j = 0; j < n; ++j) {
             for (idx_t i = 0; i < m; ++i)
             {
-                real_t temp = blas::abs( A(i,j) );
+                real_t temp = tlapack::abs( A(i,j) );
 
                 if (temp > norm)
                     norm = temp;
@@ -82,7 +80,7 @@ lange( norm_t normType, const matrix_t& A )
         {
             real_t sum( 0 );
             for (idx_t j = 0; j < n; ++j)
-                sum += blas::abs( A(i,j) );
+                sum += tlapack::abs( A(i,j) );
 
             if (sum > norm)
                 norm = sum;
@@ -98,7 +96,7 @@ lange( norm_t normType, const matrix_t& A )
         {
             real_t sum( 0 );
             for (idx_t i = 0; i < m; ++i)
-                sum += blas::abs( A(i,j) );
+                sum += tlapack::abs( A(i,j) );
 
             if (sum > norm)
                 norm = sum;
@@ -136,18 +134,17 @@ lange( norm_t normType, const matrix_t& A, work_t& work )
     using T      = type_t< matrix_t >;
     using real_t = real_type< T >;
     using idx_t  = size_type< matrix_t >;
-    using blas::isnan;
         
     // constants
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
 
     // check arguments
-    blas_error_if(  normType != Norm::Fro &&
+    tblas_error_if(  normType != Norm::Fro &&
                     normType != Norm::Inf &&
                     normType != Norm::Max &&
                     normType != Norm::One );
-    blas_error_if(  access_denied( dense, read_policy(A) ) );
+    tblas_error_if(  access_denied( dense, read_policy(A) ) );
 
     // quick return
     if (m == 0 || n == 0)
@@ -167,11 +164,11 @@ lange( norm_t normType, const matrix_t& A, work_t& work )
         real_t norm( 0 );
 
         for (idx_t i = 0; i < m; ++i)
-            work[i] = blas::abs( A(i,0) );
+            work[i] = tlapack::abs( A(i,0) );
     
         for (idx_t j = 1; j < n; ++j)
             for (idx_t i = 0; i < m; ++i)
-                work[i] += blas::abs( A(i,j) );
+                work[i] += tlapack::abs( A(i,j) );
 
         for (idx_t i = 0; i < m; ++i)
         {

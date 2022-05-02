@@ -8,15 +8,15 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __GEQR2_HH__
-#define __GEQR2_HH__
+#ifndef __TLAPACK_GEQR2_HH__
+#define __TLAPACK_GEQR2_HH__
 
-#include "lapack/utils.hpp"
-#include "lapack/types.hpp"
+#include "base/utils.hpp"
+#include "base/types.hpp"
 #include "lapack/larfg.hpp"
 #include "lapack/larf.hpp"
 
-namespace lapack {
+namespace tlapack {
 
 /** Computes a QR factorization of a matrix A.
  * 
@@ -59,7 +59,7 @@ template< class matrix_t, class vector_t, class work_t >
 int geqr2( matrix_t& A, vector_t &tau, work_t &work )
 {
     using idx_t = size_type< matrix_t >;
-    using pair  = std::pair<idx_t,idx_t>;
+    using pair  = pair<idx_t,idx_t>;
 
     // constants
     const idx_t m = nrows(A);

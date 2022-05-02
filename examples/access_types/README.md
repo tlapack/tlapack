@@ -1,6 +1,6 @@
 # Example: access types
 
-In this example, we scale matrices using [lapack::lascl](../../include/lapack/lascl.hpp) using different access types.
+In this example, we scale matrices using [tlapack::lascl](../../include/lapack/lascl.hpp) using different access types.
 
 - A is a 4-by-5 matrix filled with numbers from 1 to 20.
 

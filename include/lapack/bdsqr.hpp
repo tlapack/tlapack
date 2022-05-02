@@ -8,12 +8,12 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __BDSQR_HH__
-#define __BDSQR_HH__
+#ifndef __TLAPACK_BDSQR_HH__
+#define __TLAPACK_BDSQR_HH__
 
-#include "lapack/types.hpp"
+#include "base/types.hpp"
 
-namespace lapack {
+namespace tlapack {
 
 /** @brief Computes singular values and, optionally, the singular vectors
  * from the singular value decomposition (SVD) of a real n-by-n bidiagonal
@@ -101,22 +101,17 @@ namespace lapack {
  */
 template< typename TB, typename TC >
 void bdsqr(
-    blas::Uplo uplo,
-    blas::idx_t n, blas::idx_t ncVT, blas::idx_t nrU, blas::idx_t ncC,
+    Uplo uplo,
+    idx_t n, idx_t ncVT, idx_t nrU, idx_t ncC,
     TB *d, TB *e,
-    TB *VT, blas::idx_t ldVT,
-    TB *U, blas::idx_t ldU,
-    TC *C, blas::idx_t ldC,
-    blas::real_type<TB,TC> *work )
+    TB *VT, idx_t ldVT,
+    TB *U, idx_t ldU,
+    TC *C, idx_t ldC,
+    real_type<TB,TC> *work )
 {
-    typedef blas::real_type<TB,TC> real_t;
-    typedef blas::scalar_type<TB,TC> scalar_t;
+    typedef real_type<TB,TC> real_t;
+    typedef scalar_type<TB,TC> scalar_t;
 
-    using blas::abs;
-    using blas::max;
-    using blas::min;
-    using blas::pow;
-    using blas::sqrt;
 
     // Constants
     const real_t zero(0.0);
@@ -162,8 +157,8 @@ void bdsqr(
         const idx_t nm1 = n - 1;
         const idx_t nm12 = nm1 + nm1;
         const idx_t nm13 = nm12 + nm1;
-        const X eps = blas::uroundoff<X>();
-        const X unfl = blas::safe_min<X>();
+        const X eps = uroundoff<X>();
+        const X unfl = safe_min<X>();
 
         if( uplo == Uplo::Lower )
         {

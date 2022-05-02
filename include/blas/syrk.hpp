@@ -5,12 +5,12 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef BLAS_SYRK_HH
-#define BLAS_SYRK_HH
+#ifndef __TLAPACK_BLAS_SYRK_HH__
+#define __TLAPACK_BLAS_SYRK_HH__
 
-#include "blas/utils.hpp"
+#include "base/utils.hpp"
 
-namespace blas {
+namespace tlapack {
 
 /**
  * Symmetric rank-k update:
@@ -47,11 +47,17 @@ namespace blas {
 template<
     class matrixA_t, class matrixC_t, 
     class alpha_t, class beta_t,
-    disable_if_allow_optblas_t<matrixA_t, matrixC_t, alpha_t, beta_t> = 0
+    class T  = alpha_t,
+    disable_if_allow_optblas_t<
+        pair< matrixA_t, T >,
+        pair< matrixC_t, T >,
+        pair< alpha_t,   T >,
+        pair< beta_t,    T >
+    > = 0
 >
 void syrk(
-    blas::Uplo uplo,
-    blas::Op trans,
+    Uplo uplo,
+    Op trans,
     const alpha_t& alpha, const matrixA_t& A,
     const beta_t& beta, matrixC_t& C )
 {
@@ -64,16 +70,16 @@ void syrk(
     const idx_t k = (trans == Op::NoTrans) ? ncols(A) : nrows(A);
 
     // check arguments
-    blas_error_if( uplo != Uplo::Lower &&
+    tblas_error_if( uplo != Uplo::Lower &&
                    uplo != Uplo::Upper &&
                    uplo != Uplo::General );
-    blas_error_if( trans != Op::NoTrans &&
+    tblas_error_if( trans != Op::NoTrans &&
                    trans != Op::Trans );
-    blas_error_if( nrows(C) != ncols(C) );
-    blas_error_if( nrows(C) != n );
+    tblas_error_if( nrows(C) != ncols(C) );
+    tblas_error_if( nrows(C) != n );
 
-    blas_error_if( access_denied( dense, read_policy(A) ) );
-    blas_error_if( access_denied( uplo, write_policy(C) ) );
+    tblas_error_if( access_denied( dense, read_policy(A) ) );
+    tblas_error_if( access_denied( uplo, write_policy(C) ) );
 
     if (trans == Op::NoTrans) {
         if (uplo != Uplo::Lower) {
@@ -136,34 +142,6 @@ void syrk(
     }
 }
 
-template<
-    class matrixA_t, class matrixC_t, 
-    class alpha_t, class beta_t,
-    enable_if_allow_optblas_t<matrixA_t, matrixC_t, alpha_t, beta_t> = 0
->
-void syrk(
-    blas::Uplo uplo,
-    blas::Op trans,
-    const alpha_t alpha, const matrixA_t& A,
-    const beta_t beta, matrixC_t& C )
-{
-    // Legacy objects
-    auto _A = legacy_matrix(A);
-    auto _C = legacy_matrix(C);
+}  // namespace tlapack
 
-    // Constants to forward
-    const auto& n = _C.n;
-    const auto& k = (trans == Op::NoTrans) ? _A.n : _A.m;
-
-    syrk(
-        _A.layout, uplo, trans, 
-        n, k,
-        alpha,
-        _A.ptr, _A.ldim,
-        beta,
-        _C.ptr, _C.ldim );
-}
-
-}  // namespace blas
-
-#endif        //  #ifndef BLAS_SYRK_HH
+#endif        //  #ifndef __TLAPACK_BLAS_SYRK_HH__

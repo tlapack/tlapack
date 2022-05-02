@@ -20,12 +20,16 @@ find_package( Eigen3 QUIET )
 if( Eigen3_FOUND )
   # add the example eigen
   add_subdirectory( eigen )
+else()
+  mark_as_advanced( FORCE Eigen3_DIR )
 endif()
 
 find_package( mdspan QUIET )
 if( mdspan_FOUND )
   # add the example mdspan
   add_subdirectory( mdspan )
+else()
+  mark_as_advanced( FORCE mdspan_DIR )
 endif()
 
 # add the example gemm using the C wrapper

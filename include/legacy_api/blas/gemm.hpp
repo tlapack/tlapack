@@ -5,13 +5,14 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef TBLAS_LEGACY_GEMM_HH
-#define TBLAS_LEGACY_GEMM_HH
+#ifndef __TLAPACK_LEGACY_GEMM_HH__
+#define __TLAPACK_LEGACY_GEMM_HH__
 
-#include "blas/utils.hpp"
+#include "legacy_api/base/utils.hpp"
+#include "legacy_api/base/types.hpp"
 #include "blas/gemm.hpp"
 
-namespace blas {
+namespace tlapack {
 
 /**
  * General matrix-matrix multiply:
@@ -87,20 +88,19 @@ namespace blas {
  *
  * @ingroup gemm
  */
-template< typename TA, typename TB, typename TC,
-    disable_if_allow_optblas_t<TA, TB, TC> = 0 >
+template< typename TA, typename TB, typename TC >
 void gemm(
-    blas::Layout layout,
-    blas::Op transA,
-    blas::Op transB,
-    blas::idx_t m, blas::idx_t n, blas::idx_t k,
+    Layout layout,
+    Op transA,
+    Op transB,
+    idx_t m, idx_t n, idx_t k,
     scalar_type<TA, TB, TC> alpha,
-    TA const *A, blas::idx_t lda,
-    TB const *B, blas::idx_t ldb,
+    TA const *A, idx_t lda,
+    TB const *B, idx_t ldb,
     scalar_type<TA, TB, TC> beta,
-    TC       *C, blas::idx_t ldc )
+    TC       *C, idx_t ldc )
 {
-    using blas::internal::colmajor_matrix;
+    using internal::colmajor_matrix;
 
     // redirect if row major
     if (layout == Layout::RowMajor) {
@@ -117,23 +117,23 @@ void gemm(
     }
     else {
         // check layout
-        blas_error_if_msg( layout != Layout::ColMajor,
+        tblas_error_if_msg( layout != Layout::ColMajor,
             "layout != Layout::ColMajor && layout != Layout::RowMajor" );
     }
 
     // check arguments
-    blas_error_if( transA != Op::NoTrans &&
+    tblas_error_if( transA != Op::NoTrans &&
                    transA != Op::Trans &&
                    transA != Op::ConjTrans );
-    blas_error_if( transB != Op::NoTrans &&
+    tblas_error_if( transB != Op::NoTrans &&
                    transB != Op::Trans &&
                    transB != Op::ConjTrans );
-    blas_error_if( m < 0 );
-    blas_error_if( n < 0 );
-    blas_error_if( k < 0 );
-    blas_error_if( lda < ((transA != Op::NoTrans) ? k : m) );
-    blas_error_if( ldb < ((transB != Op::NoTrans) ? n : k) );
-    blas_error_if( ldc < m );
+    tblas_error_if( m < 0 );
+    tblas_error_if( n < 0 );
+    tblas_error_if( k < 0 );
+    tblas_error_if( lda < ((transA != Op::NoTrans) ? k : m) );
+    tblas_error_if( ldb < ((transB != Op::NoTrans) ? n : k) );
+    tblas_error_if( ldc < m );
 
     // quick return
     if (m == 0 || n == 0)
@@ -151,6 +151,6 @@ void gemm(
     return gemm( transA, transB, alpha, _A, _B, beta, _C );
 }
 
-}  // namespace blas
+}  // namespace tlapack
 
-#endif        //  #ifndef TBLAS_LEGACY_GEMM_HH
+#endif        //  #ifndef __TLAPACK_LEGACY_GEMM_HH__

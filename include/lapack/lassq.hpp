@@ -12,13 +12,12 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __LASSQ_HH__
-#define __LASSQ_HH__
+#ifndef __TLAPACK_LASSQ_HH__
+#define __TLAPACK_LASSQ_HH__
 
-#include "lapack/types.hpp"
-#include "lapack/utils.hpp"
+#include "base/utils.hpp"
 
-namespace lapack {
+namespace tlapack {
 
 /** Updates a sum of squares represented in scaled form.
  * \[
@@ -32,9 +31,9 @@ namespace lapack {
  *    we require:   scale <= sqrt( HUGE ) / ssml       on entry,
  * where
  *    tbig -- upper threshold for values whose square is representable;
- *    sbig -- scaling constant for big numbers; @see blas/constants.hpp
+ *    sbig -- scaling constant for big numbers; @see base/constants.hpp
  *    tsml -- lower threshold for values whose square is representable;
- *    ssml -- scaling constant for small numbers; @see blas/constants.hpp
+ *    ssml -- scaling constant for small numbers; @see base/constants.hpp
  * and
  *    TINY*EPS -- tiniest representable number;
  *    HUGE     -- biggest representable number.
@@ -67,8 +66,6 @@ void lassq(
 {
     using real_t = real_type<T>;
     using idx_t  = size_type< vector_t >;
-    using blas::isnan;
-    using blas::sqrt;
 
     // constants
     const idx_t n = size(x);
@@ -76,10 +73,10 @@ void lassq(
     // constants
     const real_t zero( 0 );
     const real_t one( 1 );
-    const real_t tsml = blas::blue_min<real_t>();
-    const real_t tbig = blas::blue_max<real_t>();
-    const real_t ssml = blas::blue_scalingMin<real_t>();
-    const real_t sbig = blas::blue_scalingMax<real_t>();
+    const real_t tsml = blue_min<real_t>();
+    const real_t tbig = blue_max<real_t>();
+    const real_t ssml = blue_scalingMin<real_t>();
+    const real_t sbig = blue_scalingMax<real_t>();
 
     // quick return
     if( isnan(scale) || isnan(sumsq) ) return;
@@ -180,7 +177,7 @@ void lassq(
  *
  * Specific implementation using  
  * \code{.cpp}
- *      absF = []( const T& x ) { return blas::abs( x ); }
+ *      absF = []( const T& x ) { return tlapack::abs( x ); }
  * \endcode
  * where T is the type_t< vector_t >.
  * 
@@ -194,8 +191,8 @@ void lassq(
     real_type<T> &sumsq)
 {    
     return lassq( x, scale, sumsq,
-        // Lambda function that returns the absolute value using blas::abs :
-        []( const T& x ) { return blas::abs( x ); }
+        // Lambda function that returns the absolute value using tlapack::abs :
+        []( const T& x ) { return tlapack::abs( x ); }
     );
 }
 

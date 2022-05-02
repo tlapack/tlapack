@@ -5,12 +5,12 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef BLAS_HEMV_HH
-#define BLAS_HEMV_HH
+#ifndef __TLAPACK_BLAS_HEMV_HH__
+#define __TLAPACK_BLAS_HEMV_HH__
 
-#include "blas/utils.hpp"
+#include "base/utils.hpp"
 
-namespace blas {
+namespace tlapack {
 
 /**
  * Hermitian matrix-vector multiply:
@@ -57,13 +57,13 @@ void hemv(
     const idx_t n = nrows(A);
 
     // check arguments
-    blas_error_if( uplo != Uplo::Lower &&
+    tblas_error_if( uplo != Uplo::Lower &&
                    uplo != Uplo::Upper );
-    blas_error_if( ncols(A) != n );
-    blas_error_if( size(x)  != n );
-    blas_error_if( size(y)  != n );
+    tblas_error_if( ncols(A) != n );
+    tblas_error_if( size(x)  != n );
+    tblas_error_if( size(y)  != n );
 
-    blas_error_if( access_denied( uplo, read_policy(A) ) );
+    tblas_error_if( access_denied( uplo, read_policy(A) ) );
 
     // form y = beta*y
     if (beta != beta_t(1)) {
@@ -105,6 +105,6 @@ void hemv(
     }
 }
 
-}  // namespace blas
+}  // namespace tlapack
 
-#endif        //  #ifndef BLAS_HEMV_HH
+#endif        //  #ifndef __TLAPACK_BLAS_HEMV_HH__

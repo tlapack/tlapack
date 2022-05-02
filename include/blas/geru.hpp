@@ -5,13 +5,13 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef BLAS_GERU_HH
-#define BLAS_GERU_HH
+#ifndef __TLAPACK_BLAS_GERU_HH__
+#define __TLAPACK_BLAS_GERU_HH__
 
-#include "blas/utils.hpp"
+#include "base/utils.hpp"
 #include "blas/ger.hpp"
 
-namespace blas {
+namespace tlapack {
 
 /**
  * General matrix rank-1 update:
@@ -45,9 +45,9 @@ void geru(
     const idx_t n = ncols(A);
 
     // check arguments
-    blas_error_if( size(x) != m );
-    blas_error_if( size(y) != n );
-    blas_error_if( access_denied( dense, write_policy(A) ) );
+    tblas_error_if( size(x) != m );
+    tblas_error_if( size(y) != n );
+    tblas_error_if( access_denied( dense, write_policy(A) ) );
 
     for (idx_t j = 0; j < n; ++j) {
         auto tmp = alpha * y[j];
@@ -56,6 +56,6 @@ void geru(
     }
 }
 
-}  // namespace blas
+}  // namespace tlapack
 
-#endif        //  #ifndef BLAS_GER_HH
+#endif        //  #ifndef __TLAPACK_BLAS_GER_HH__

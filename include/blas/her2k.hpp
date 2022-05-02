@@ -5,12 +5,12 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef BLAS_HER2K_HH
-#define BLAS_HER2K_HH
+#ifndef __TLAPACK_BLAS_HER2K_HH__
+#define __TLAPACK_BLAS_HER2K_HH__
 
-#include "blas/utils.hpp"
+#include "base/utils.hpp"
 
-namespace blas {
+namespace tlapack {
 
 /**
  * Hermitian rank-k update:
@@ -60,8 +60,8 @@ template<
     ), int > = 0
 >
 void her2k(
-    blas::Uplo uplo,
-    blas::Op trans,
+    Uplo uplo,
+    Op trans,
     const alpha_t& alpha, const matrixA_t& A, const matrixB_t& B,
     const beta_t& beta, matrixC_t& C )
 {
@@ -75,19 +75,19 @@ void her2k(
     const idx_t k = (trans == Op::NoTrans) ? ncols(A) : nrows(A);
 
     // check arguments
-    blas_error_if( uplo != Uplo::Lower &&
+    tblas_error_if( uplo != Uplo::Lower &&
                    uplo != Uplo::Upper &&
                    uplo != Uplo::General );
-    blas_error_if( trans != Op::NoTrans &&
+    tblas_error_if( trans != Op::NoTrans &&
                    trans != Op::ConjTrans );
-    blas_error_if( nrows(B) != nrows(A) ||
+    tblas_error_if( nrows(B) != nrows(A) ||
                    ncols(B) != ncols(A) );
-    blas_error_if( nrows(C) != ncols(C) );
-    blas_error_if( nrows(C) != n );
+    tblas_error_if( nrows(C) != ncols(C) );
+    tblas_error_if( nrows(C) != n );
 
-    blas_error_if( access_denied( dense, read_policy(A) ) );
-    blas_error_if( access_denied( dense, read_policy(B) ) );
-    blas_error_if( access_denied( uplo, write_policy(C) ) );
+    tblas_error_if( access_denied( dense, read_policy(A) ) );
+    tblas_error_if( access_denied( dense, read_policy(B) ) );
+    tblas_error_if( access_denied( uplo, write_policy(C) ) );
 
     if (trans == Op::NoTrans) {
         if (uplo != Uplo::Lower) {
@@ -178,6 +178,6 @@ void her2k(
     }
 }
 
-}  // namespace blas
+}  // namespace tlapack
 
-#endif        //  #ifndef BLAS_HER2K_HH
+#endif        //  #ifndef __TLAPACK_BLAS_HER2K_HH__

@@ -13,7 +13,7 @@
 
 #include "lapack/lange.hpp"
 
-namespace lapack {
+namespace tlapack {
 
 /** Calculates the value of the one norm, Frobenius norm, infinity norm, or element of largest absolute value
  *
@@ -37,13 +37,13 @@ namespace lapack {
 **/
 template <class norm_t, typename TA>
 inline real_type<TA> lange(
-    norm_t normType, blas::idx_t m, blas::idx_t n,
-    const TA *_A, blas::idx_t lda )
+    norm_t normType, idx_t m, idx_t n,
+    const TA *_A, idx_t lda )
 {
-    using blas::internal::colmajor_matrix;
+    using internal::colmajor_matrix;
 
     // check arguments
-    blas_error_if(  normType != Norm::Fro &&
+    tblas_error_if(  normType != Norm::Fro &&
                     normType != Norm::Inf &&
                     normType != Norm::Max &&
                     normType != Norm::One );

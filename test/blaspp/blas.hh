@@ -11,4 +11,8 @@
 #include "blas/util.hh"
 #include "legacy_api/blas.hpp"
 
+namespace blas {
+    using namespace tlapack;
+}
+
 #endif // BLAS_HH

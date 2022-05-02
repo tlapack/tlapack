@@ -10,8 +10,7 @@
 #include <catch2/catch.hpp>
 #include <tlapack.hpp>
 
-using namespace blas;
-using namespace lapack;
+using namespace tlapack;
 
 TEST_CASE( "MatrixAccessPolicy can be cast to Uplo", "[utils]" ) {
     Uplo uplo;

@@ -7,7 +7,7 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#include "legacy_api/blas/utils.hpp"
+#include "legacy_api/base/utils.hpp"
 #include <plugins/tlapack_stdvector.hpp>
 #include <tlapack.hpp>
 
@@ -21,9 +21,9 @@
 template <typename matrix_t>
 inline void printMatrix(const matrix_t &A)
 {
-    using idx_t = blas::size_type<matrix_t>;
-    const idx_t m = blas::nrows(A);
-    const idx_t n = blas::ncols(A);
+    using idx_t = tlapack::size_type<matrix_t>;
+    const idx_t m = tlapack::nrows(A);
+    const idx_t n = tlapack::ncols(A);
 
     for (idx_t i = 0; i < m; ++i)
     {
@@ -37,8 +37,8 @@ inline void printMatrix(const matrix_t &A)
 template <typename T>
 void run(size_t n)
 {
-    using real_t = lapack::real_type<T>;
-    using blas::internal::colmajor_matrix;
+    using real_t = tlapack::real_type<T>;
+    using tlapack::internal::colmajor_matrix;
     using std::size_t;
 
     // Turn it off if m or n are large
@@ -81,7 +81,7 @@ void run(size_t n)
             A(i, j) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
 
     // Frobenius norm of A
-    auto normA = lapack::lange(lapack::frob_norm, A);
+    auto normA = tlapack::lange(tlapack::frob_norm, A);
 
     // Print A
     if (verbose)
@@ -92,7 +92,7 @@ void run(size_t n)
     }
 
     // Copy A to Q
-    lapack::lacpy(lapack::Uplo::General, A, Q);
+    tlapack::lacpy(tlapack::Uplo::General, A, Q);
 
     // 1) Compute A = QHQ* (Stored in the matrix Q)
 
@@ -103,9 +103,9 @@ void run(size_t n)
         int err;
 
         // Hessenberg factorization
-        err = lapack::gehrd(0, n, Q, tau);
-        // blas_error_if(lapack::gehd2(0, n, Q, tau, work));
-        blas_error_if(err);
+        err = tlapack::gehrd(0, n, Q, tau);
+        // tblas_error_if(tlapack::gehd2(0, n, Q, tau, work));
+        tblas_error_if(err);
 
 
         // Save the H matrix
@@ -114,8 +114,8 @@ void run(size_t n)
                 H(i, j) = Q(i, j);
 
         // Generate Q = H_1 H_2 ... H_n
-        err = lapack::unghr(0, n, Q, tau, work);
-        blas_error_if(err);
+        err = tlapack::unghr(0, n, Q, tau, work);
+        tblas_error_if(err);
 
         // Remove junk from lower half of H
         for (size_t j = 0; j < n; ++j)
@@ -124,8 +124,8 @@ void run(size_t n)
 
         // Shur factorization
         std::vector<std::complex<real_t>> w(n);
-        err = lapack::lahqr(true, true, 0, n, H, w, Q);
-        blas_error_if(err);
+        err = tlapack::lahqr(true, true, 0, n, H, w, Q);
+        tblas_error_if(err);
     }
     // Record end time
     auto endQHQ = std::chrono::high_resolution_clock::now();
@@ -156,13 +156,13 @@ void run(size_t n)
                 work(i, j) = static_cast<float>(0xABADBABE);
 
         // work receives the identity n*n
-        lapack::laset(blas::Uplo::General, (T)0.0, (T)1.0, work);
+        tlapack::laset(tlapack::Uplo::General, (T)0.0, (T)1.0, work);
         // work receives Q'Q - I
-        // blas::syrk( blas::Uplo::Upper, blas::Op::ConjTrans, (T) 1.0, Q, (T) -1.0, work );
-        blas::gemm(blas::Op::ConjTrans, blas::Op::NoTrans, (T)1.0, Q, Q, (T)-1.0, work);
+        // tlapack::syrk( tlapack::Uplo::Upper, tlapack::Op::ConjTrans, (T) 1.0, Q, (T) -1.0, work );
+        tlapack::gemm(tlapack::Op::ConjTrans, tlapack::Op::NoTrans, (T)1.0, Q, Q, (T)-1.0, work);
 
         // Compute ||Q'Q - I||_F
-        norm_orth_1 = lapack::lansy(lapack::frob_norm, lapack::Uplo::Upper, work);
+        norm_orth_1 = tlapack::lansy(tlapack::frob_norm, tlapack::Uplo::Upper, work);
 
         if (verbose)
         {
@@ -176,7 +176,7 @@ void run(size_t n)
 
     std::unique_ptr<T[]> _H_copy(new T[n * n]);
     auto H_copy = colmajor_matrix<T>(&_H_copy[0], n, n);
-    lapack::lacpy(lapack::Uplo::General,H, H_copy);
+    tlapack::lacpy(tlapack::Uplo::General,H, H_copy);
     {
         std::unique_ptr<T[]> _work(new T[n * n]);
         auto work = colmajor_matrix<T>(&_work[0], n, n);
@@ -184,8 +184,8 @@ void run(size_t n)
             for (size_t i = 0; i < n; ++i)
                 work(i, j) = static_cast<float>(0xABADBABC);
 
-        blas::gemm(blas::Op::NoTrans, blas::Op::NoTrans, (T)1.0, Q, H, (T)0.0, work);
-        blas::gemm(blas::Op::NoTrans, blas::Op::ConjTrans, (T)1.0, work, Q, (T)0.0, H);
+        tlapack::gemm(tlapack::Op::NoTrans, tlapack::Op::NoTrans, (T)1.0, Q, H, (T)0.0, work);
+        tlapack::gemm(tlapack::Op::NoTrans, tlapack::Op::ConjTrans, (T)1.0, work, Q, (T)0.0, H);
 
         for (size_t j = 0; j < n; ++j)
             for (size_t i = 0; i < n; ++i)
@@ -198,7 +198,7 @@ void run(size_t n)
             printMatrix(H);
         }
 
-        norm_repres_1 = lapack::lange(lapack::frob_norm, H) / normA;
+        norm_repres_1 = tlapack::lange(tlapack::frob_norm, H) / normA;
     }
 
     // 4) Compute Q*AQ (usefull for debugging)
@@ -210,8 +210,8 @@ void run(size_t n)
             for (size_t i = 0; i < n; ++i)
                 work(i, j) = static_cast<float>(0xABADBABC);
 
-        blas::gemm(blas::Op::ConjTrans, blas::Op::NoTrans, (T)1.0, Q, A, (T)0.0, work);
-        blas::gemm(blas::Op::NoTrans, blas::Op::NoTrans, (T)1.0, work, Q, (T)0.0, A);
+        tlapack::gemm(tlapack::Op::ConjTrans, tlapack::Op::NoTrans, (T)1.0, Q, A, (T)0.0, work);
+        tlapack::gemm(tlapack::Op::NoTrans, tlapack::Op::NoTrans, (T)1.0, work, Q, (T)0.0, A);
 
         std::cout << std::endl
                     << "Q'AQ = ";

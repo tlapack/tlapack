@@ -8,14 +8,14 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __LARFT_HH__
-#define __LARFT_HH__
+#ifndef __TLAPACK_LARFT_HH__
+#define __TLAPACK_LARFT_HH__
 
-#include "lapack/utils.hpp"
-#include "lapack/types.hpp"
+#include "base/utils.hpp"
+#include "base/types.hpp"
 #include "tblas.hpp"
 
-namespace lapack {
+namespace tlapack {
 
 /** Forms the triangular factor T of a block reflector H of order n,
  * which is defined as a product of k elementary reflectors.
@@ -91,13 +91,7 @@ int larft(
     using idx_t     = size_type< matrixV_t >;
 
     // using
-    using blas::conj;
-    using blas::max;
-    using blas::min;
-    using blas::gemm;
-    using blas::gemv;
-    using blas::trmv;
-    using pair = std::pair<idx_t,idx_t>;
+    using pair = pair<idx_t,idx_t>;
 
     // constants
     const scalar_t one(1);

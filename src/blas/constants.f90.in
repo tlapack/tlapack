@@ -10,7 +10,7 @@ module constants
 
     integer, parameter :: sp = kind(1.e0)
     integer, parameter :: dp = kind(1.d0)
-    integer, parameter :: blas_int  = @FBLAS_INT_T@
-    integer, parameter :: blas_size = @FBLAS_SIZE_T@
+    integer, parameter :: blas_int  = @FTLAPACK_INT_T@
+    integer, parameter :: blas_size = @FTLAPACK_SIZE_T@
 
 end module

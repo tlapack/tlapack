@@ -7,15 +7,15 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __LAHQR_EIG22_HH__
-#define __LAHQR_EIG22_HH__
+#ifndef __TLAPACK_LAHQR_EIG22_HH__
+#define __TLAPACK_LAHQR_EIG22_HH__
 
 #include <complex>
 
-#include "lapack/utils.hpp"
-#include "lapack/types.hpp"
+#include "base/utils.hpp"
+#include "base/types.hpp"
 
-namespace lapack
+namespace tlapack
 {
 
     /** Computes the eigenvalues of a 2x2 matrix A
@@ -41,9 +41,7 @@ namespace lapack
     {
 
         // Using
-        using blas::abs1;
-        using blas::real;
-
+        
         // Constants
         const real_t rzero(0);
         const real_t two(2);

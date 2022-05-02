@@ -5,13 +5,14 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef TBLAS_LEGACY_TRSV_HH
-#define TBLAS_LEGACY_TRSV_HH
+#ifndef __TLAPACK_LEGACY_TRSV_HH__
+#define __TLAPACK_LEGACY_TRSV_HH__
 
-#include "blas/utils.hpp"
+#include "legacy_api/base/utils.hpp"
+#include "legacy_api/base/types.hpp"
 #include "blas/trsv.hpp"
 
-namespace blas {
+namespace tlapack {
 
 /**
  * Solve the triangular matrix-vector equation
@@ -72,29 +73,29 @@ namespace blas {
  */
 template< typename TA, typename TX >
 void trsv(
-    blas::Layout layout,
-    blas::Uplo uplo,
-    blas::Op trans,
-    blas::Diag diag,
-    blas::idx_t n,
-    TA const *A, blas::idx_t lda,
-    TX       *x, blas::int_t incx )
+    Layout layout,
+    Uplo uplo,
+    Op trans,
+    Diag diag,
+    idx_t n,
+    TA const *A, idx_t lda,
+    TX       *x, int_t incx )
 {
-    using blas::internal::colmajor_matrix;
+    using internal::colmajor_matrix;
 
     // check arguments
-    blas_error_if( layout != Layout::ColMajor &&
+    tblas_error_if( layout != Layout::ColMajor &&
                    layout != Layout::RowMajor );
-    blas_error_if( uplo != Uplo::Lower &&
+    tblas_error_if( uplo != Uplo::Lower &&
                    uplo != Uplo::Upper );
-    blas_error_if( trans != Op::NoTrans &&
+    tblas_error_if( trans != Op::NoTrans &&
                    trans != Op::Trans &&
                    trans != Op::ConjTrans );
-    blas_error_if( diag != Diag::NonUnit &&
+    tblas_error_if( diag != Diag::NonUnit &&
                    diag != Diag::Unit );
-    blas_error_if( n < 0 );
-    blas_error_if( lda < n );
-    blas_error_if( incx == 0 );
+    tblas_error_if( n < 0 );
+    tblas_error_if( lda < n );
+    tblas_error_if( incx == 0 );
 
     // quick return
     if (n == 0)
@@ -115,6 +116,6 @@ void trsv(
     tlapack_expr_with_vector( _x, TX, n, x, incx, return trsv( uplo, trans, diag, _A, _x ) );
 }
 
-}  // namespace blas
+}  // namespace tlapack
 
-#endif        //  #ifndef TBLAS_LEGACY_TRSV_HH
+#endif        //  #ifndef __TLAPACK_LEGACY_TRSV_HH__

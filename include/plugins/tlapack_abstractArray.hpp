@@ -14,9 +14,9 @@
 #ifndef __TLAPACK_ABSTRACT_ARRAY_HH__
 #define __TLAPACK_ABSTRACT_ARRAY_HH__
 
-#include "blas/arrayTraits.hpp"
+#include "base/arrayTraits.hpp"
 
-namespace blas {
+namespace tlapack {
 
     // -------------------------------------------------------------------------
     // Data descriptors for matrices in <T>LAPACK
@@ -311,27 +311,6 @@ namespace blas {
     inline constexpr auto
     slice( const vector_t& v, pair_t&& rows );
 
-} // namespace blas
-
-namespace lapack {
-
-    // Data descriptors for matrices in <T>LAPACK
-    using blas::nrows;
-    using blas::ncols;
-    using blas::read_policy;
-    using blas::write_policy;
-
-    // Data descriptors for vectors in <T>LAPACK
-    using blas::size;
-
-    // Block operations in <T>LAPACK
-    using blas::slice;
-    using blas::rows;
-    using blas::cols;
-    using blas::row;
-    using blas::col;
-    using blas::diag;
-
-} // namespace lapack
+} // namespace tlapack
 
 #endif // __TLAPACK_ABSTRACT_ARRAY_HH__

@@ -13,13 +13,13 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef BLAS_NRM2_HH
-#define BLAS_NRM2_HH
+#ifndef __TLAPACK_BLAS_NRM2_HH__
+#define __TLAPACK_BLAS_NRM2_HH__
 
-#include "blas/utils.hpp"
-#include "blas/constants.hpp"
+#include "base/utils.hpp"
+#include "base/constants.hpp"
 
-namespace blas {
+namespace tlapack {
 
 /**
  * @return 2-norm of vector,
@@ -41,10 +41,10 @@ auto nrm2( const vector_t& x )
     // constants
     const real_t zero( 0 );
     const real_t one( 1 );
-    const real_t tsml = blas::blue_min<real_t>();
-    const real_t tbig = blas::blue_max<real_t>();
-    const real_t ssml = blas::blue_scalingMin<real_t>();
-    const real_t sbig = blas::blue_scalingMax<real_t>();
+    const real_t tsml = blue_min<real_t>();
+    const real_t tbig = blue_max<real_t>();
+    const real_t ssml = blue_scalingMin<real_t>();
+    const real_t sbig = blue_scalingMax<real_t>();
 
     // scaled sum of squares
     real_t scl = one;
@@ -66,7 +66,7 @@ auto nrm2( const vector_t& x )
 
     for (idx_t i = 0; i < n; ++i)
     {
-        real_t ax = blas::abs( x[i] );
+        real_t ax = tlapack::abs( x[i] );
         if( ax > tbig )
             abig += (ax*sbig) * (ax*sbig);
         else if( ax < tsml ) {
@@ -118,6 +118,6 @@ auto nrm2( const vector_t& x )
     return scl * sqrt( sumsq );
 }
 
-}  // namespace blas
+}  // namespace tlapack
 
-#endif        // #ifndef BLAS_NRM2_HH
+#endif        // #ifndef __TLAPACK_BLAS_NRM2_HH__

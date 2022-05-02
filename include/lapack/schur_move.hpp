@@ -8,8 +8,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __SCHUR_MOVE_HH__
-#define __SCHUR_MOVE_HH__
+#ifndef __TLAPACK_SCHUR_MOVE_HH__
+#define __TLAPACK_SCHUR_MOVE_HH__
 
 #include <complex>
 #include <cmath>
@@ -18,11 +18,11 @@
 #include <iostream>
 #include <iomanip>
 
-#include "lapack/utils.hpp"
-#include "lapack/types.hpp"
+#include "base/utils.hpp"
+#include "base/types.hpp"
 #include "lapack/schur_move.hpp"
 
-namespace lapack
+namespace tlapack
 {
 
     /** schur_move reorders the Schur factorization of a matrix
@@ -58,7 +58,7 @@ namespace lapack
         typename T = type_t<matrix_t>>
     int schur_move(bool want_q, matrix_t &A, matrix_t &Q, idx_t &ifst, idx_t &ilst)
     {
-        using pair = std::pair<idx_t, idx_t>;
+        using pair = pair<idx_t, idx_t>;
 
         const idx_t n = ncols(A);
         const T zero(0);

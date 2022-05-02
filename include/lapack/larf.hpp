@@ -8,15 +8,14 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __LARF_HH__
-#define __LARF_HH__
+#ifndef __TLAPACK_LARF_HH__
+#define __TLAPACK_LARF_HH__
 
-#include "lapack/types.hpp"
-#include "lapack/utils.hpp"
+#include "base/utils.hpp"
 
 #include "tblas.hpp"
 
-namespace lapack {
+namespace tlapack {
 
 /** Applies an elementary reflector H to a m-by-n matrix C.
  *
@@ -53,15 +52,11 @@ inline void larf(
     vector_t const& v, const tau_t& tau,
     matrix_t& C, work_t& work )
 {
-    using blas::gemv;
-    using blas::ger;
-    using blas::copy;
-    using blas::conj;
 
     // data traits
     using T = type_t<matrix_t>;
     using idx_t = size_type< matrix_t >;
-    using pair = std::pair<size_t,size_t>;
+    using pair = pair<size_t,size_t>;
 
     // constants
     const T one(1.0);
@@ -69,9 +64,9 @@ inline void larf(
     const idx_t n = ncols(C);
 
     // check arguments
-    blas_error_if( side != Side::Left &&
+    tblas_error_if( side != Side::Left &&
                    side != Side::Right );
-    blas_error_if(  access_denied( dense, write_policy(C) ) );
+    tblas_error_if(  access_denied( dense, write_policy(C) ) );
 
     // The following code was changed from:
     //

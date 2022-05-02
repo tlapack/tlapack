@@ -14,33 +14,33 @@
 #include "lapack/larf.hpp"
 #include <memory>
 
-namespace lapack {
+namespace tlapack {
 
 /** Applies an elementary reflector H to a m-by-n matrix C.
  * 
- * @see larf( Side side, blas::idx_t m, blas::idx_t n, TV const *v, blas::int_t incv, blas::scalar_type< TV, TC , TW > tau, TC *C, blas::idx_t ldC, TW *work )
+ * @see larf( Side side, idx_t m, idx_t n, TV const *v, int_t incv, scalar_type< TV, TC , TW > tau, TC *C, idx_t ldC, TW *work )
  * 
  * @ingroup auxiliary
  */
 template< class side_t, typename TV, typename TC >
 inline void larf(
     side_t side,
-    blas::idx_t m, blas::idx_t n,
-    TV const *v, blas::int_t incv,
-    blas::scalar_type< TV, TC > tau,
-    TC *C, blas::idx_t ldC )
+    idx_t m, idx_t n,
+    TV const *v, int_t incv,
+    scalar_type< TV, TC > tau,
+    TC *C, idx_t ldC )
 {
     typedef scalar_type<TV, TC> scalar_t;
-    using blas::internal::colmajor_matrix;
-    using blas::internal::vector;
+    using internal::colmajor_matrix;
+    using internal::vector;
 
     // check arguments
-    blas_error_if( side != Side::Left &&
+    tblas_error_if( side != Side::Left &&
                    side != Side::Right );
-    blas_error_if( m < 0 );
-    blas_error_if( n < 0 );
-    blas_error_if( incv == 0 );
-    blas_error_if( ldC < m );
+    tblas_error_if( m < 0 );
+    tblas_error_if( n < 0 );
+    tblas_error_if( incv == 0 );
+    tblas_error_if( ldC < m );
 
     // scalar_t *work = new scalar_t[ ( side == Side::Left ) ? n : m ];
     std::unique_ptr<scalar_t[]> work(new scalar_t[

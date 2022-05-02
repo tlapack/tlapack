@@ -4,18 +4,14 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TBLAS_CONSTANTS_HH__
-#define __TBLAS_CONSTANTS_HH__
+#ifndef __TLAPACK_CONSTANTS_HH__
+#define __TLAPACK_CONSTANTS_HH__
 
 #include <type_traits>
 #include <limits>
-#include "blas/utils.hpp"
+#include "base/utils.hpp"
 
-#ifdef USE_MPFR
-    #include <mpreal.h>
-#endif
-
-namespace blas {
+namespace tlapack {
 
 // -----------------------------------------------------------------------------
 // Macros to compute scaling constants
@@ -66,27 +62,6 @@ inline const real_t digits()
 {
     return std::numeric_limits< real_t >::digits;
 }
-
-#ifdef USE_MPFR
-    namespace internal {
-        const mpfr::mpreal mpreal_digits = std::numeric_limits< mpfr::mpreal >::digits();
-    }
-    #ifdef MPREAL_HAVE_DYNAMIC_STD_NUMERIC_LIMITS
-        /** Digits for the mpfr::mpreal datatype
-         * @ingroup utils
-         */
-        template<> inline const mpfr::mpreal digits() {
-            return internal::mpreal_digits; 
-        }
-    #else
-        /** Digits for the mpfr::mpreal datatype
-         * @ingroup utils
-         */
-        template<> inline const mpfr::mpreal digits() {
-            return std::numeric_limits< mpfr::mpreal >::digits;
-        }
-    #endif
-#endif
 
 /** Safe Minimum such that 1/safe_min() is representable
  * @ingroup utils
@@ -199,6 +174,6 @@ inline constexpr real_t blue_scalingMax()
     return pow( fradix, -ceil( half*( expM + t - 1 ) ) );
 }
 
-} // namespace blas
+} // namespace tlapack
 
-#endif // __TBLAS_CONSTANTS_HH__
+#endif // __TLAPACK_CONSTANTS_HH__

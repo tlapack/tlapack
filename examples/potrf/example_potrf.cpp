@@ -57,13 +57,13 @@ lapack_int LAPACKE_xpotrf2<std::complex<double>>( int matrix_layout, char uplo, 
     return LAPACKE_zpotrf2( matrix_layout, uplo, n, reinterpret_cast<dComplex*>(a), lda );
 }
 
-using idx_t = BLAS_SIZE_T;
+using idx_t = TLAPACK_SIZE_T;
 
 //------------------------------------------------------------------------------
 template <typename T>
 void run( idx_t n )
 {
-    using namespace lapack;
+    using namespace tlapack;
     using real_t = real_type<T>;
 
     // Matrix A
@@ -94,7 +94,7 @@ void run( idx_t n )
 
         // Put garbage on _U
         for (idx_t j = 0; j < n*n; ++j)
-            _U[j] = blas::make_scalar<real_t>( static_cast<float>( 0xDEADBEEF ), static_cast<float>( 0xDEADBEEF ) );
+            _U[j] = make_scalar<real_t>( static_cast<float>( 0xDEADBEEF ), static_cast<float>( 0xDEADBEEF ) );
 
         // _U receives the upper part of A
         for (idx_t j = 0; j < n; ++j)
@@ -140,7 +140,7 @@ void run( idx_t n )
 
         // Put garbage on U
         for (idx_t j = 0; j < n*n; ++j)
-            U[j] = blas::make_scalar<real_t>( static_cast<float>( 0xDEADBEEF ), static_cast<float>( 0xDEADBEEF ) );
+            U[j] = make_scalar<real_t>( static_cast<float>( 0xDEADBEEF ), static_cast<float>( 0xDEADBEEF ) );
 
         // U receives the upper part of A
         for (idx_t j = 0; j < n; ++j)

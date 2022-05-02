@@ -8,22 +8,22 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __LAHQR_HH__
-#define __LAHQR_HH__
+#ifndef __TLAPACK_LAHQR_HH__
+#define __TLAPACK_LAHQR_HH__
 
 #include <complex>
 #include <iostream>
 #include <vector>
 
-#include "lapack/utils.hpp"
-#include "lapack/types.hpp"
+#include "base/utils.hpp"
+#include "base/types.hpp"
 #include "lapack/larfg.hpp"
 #include "lapack/larf.hpp"
 #include "lapack/lahqr_eig22.hpp"
 #include "lapack/lahqr_shiftcolumn.hpp"
 #include "lapack/lahqr_schur22.hpp"
 
-namespace lapack
+namespace tlapack
 {
 
     /** lahqr computes the eigenvalues and optionally the Schur
@@ -80,21 +80,14 @@ namespace lapack
         using TA = type_t<matrix_t>;
         using real_t = real_type<TA>;
         using idx_t = size_type<matrix_t>;
-        using pair = std::pair<idx_t, idx_t>;
-        using blas::abs;
-        using blas::abs1;
-        using blas::conj;
-        using blas::imag;
-        using blas::uroundoff;
-        using lapack::lahqr_eig22;
-        using lapack::lahqr_shiftcolumn;
-
+        using pair = pair<idx_t, idx_t>;
+                    
         // constants
         const real_t rzero(0);
         const TA one(1);
         const TA zero(0);
         const real_t eps = uroundoff<real_t>();
-        const real_t small_num = blas::safe_min<real_t>() / blas::uroundoff<real_t>();
+        const real_t small_num = safe_min<real_t>() / uroundoff<real_t>();
         const idx_t non_convergence_limit = 10;
         const real_t dat1 = 3.0 / 4.0;
         const real_t dat2 = -0.4375;
@@ -239,17 +232,17 @@ namespace lapack
                         {
                             auto x = slice(A, istart, pair{istart + 2, istop_m});
                             auto y = slice(A, istart + 1, pair{istart + 2, istop_m});
-                            blas::rot(x, y, cs, sn);
+                            rot(x, y, cs, sn);
                         }
                         auto x2 = slice(A, pair{istart_m, istart},istart);
                         auto y2 = slice(A, pair{istart_m, istart},istart + 1);
-                        blas::rot(x2, y2, cs, sn);
+                        rot(x2, y2, cs, sn);
                     }
                     if (want_z)
                     {
                         auto x = col(Z, istart);
                         auto y = col(Z, istart + 1);
-                        blas::rot(x, y, cs, sn);
+                        rot(x, y, cs, sn);
                     }
                     k_defl = 0;
                     istop = istart;

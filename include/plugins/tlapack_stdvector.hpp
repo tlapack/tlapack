@@ -8,7 +8,7 @@
 #define __TLAPACK_STDVECTOR_HH__
 
 #include <vector>
-#include "blas/arrayTraits.hpp"
+#include "base/arrayTraits.hpp"
 
 #ifndef TLAPACK_USE_MDSPAN
     #include "legacy_api/legacyArray.hpp"
@@ -16,7 +16,7 @@
     #include <experimental/mdspan>
 #endif
 
-namespace blas {
+namespace tlapack {
 
     // -----------------------------------------------------------------------------
     // Data traits for std::vector
@@ -58,14 +58,6 @@ namespace blas {
         #endif
     }
 
-} // namespace blas
-
-namespace lapack {
-
-    using blas::size;
-
-    using blas::slice;
-
-} // namespace lapack
+} // namespace tlapack
 
 #endif // __TLAPACK_STDVECTOR_HH__

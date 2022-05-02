@@ -13,31 +13,31 @@
 
 #include "lapack/larfb.hpp"
 
-namespace lapack {
+namespace tlapack {
 
 /** Applies a block reflector $H$ or its conjugate transpose $H^H$ to a
  * m-by-n matrix C, from either the left or the right.
  *
  * @param[in] side
- *     - lapack::Side::Left:  apply $H$ or $H^H$ from the Left
- *     - lapack::Side::Right: apply $H$ or $H^H$ from the Right
+ *     - Side::Left:  apply $H$ or $H^H$ from the Left
+ *     - Side::Right: apply $H$ or $H^H$ from the Right
  *
  * @param[in] trans
- *     - lapack::Op::NoTrans:   apply $H  $ (No transpose)
- *     - lapack::Op::Trans:     apply $H^T$ (Transpose, only allowed if the type of H is Real)
- *     - lapack::Op::ConjTrans: apply $H^H$ (Conjugate transpose)
+ *     - Op::NoTrans:   apply $H  $ (No transpose)
+ *     - Op::Trans:     apply $H^T$ (Transpose, only allowed if the type of H is Real)
+ *     - Op::ConjTrans: apply $H^H$ (Conjugate transpose)
  *
  * @param[in] direction
  *     Indicates how H is formed from a product of elementary
  *     reflectors
- *     - lapack::Direction::Forward:  $H = H(1) H(2) \dots H(k)$
- *     - lapack::Direction::Backward: $H = H(k) \dots H(2) H(1)$
+ *     - Direction::Forward:  $H = H(1) H(2) \dots H(k)$
+ *     - Direction::Backward: $H = H(k) \dots H(2) H(1)$
  *
  * @param[in] storev
  *     Indicates how the vectors which define the elementary
  *     reflectors are stored:
- *     - lapack::StoreV::Columnwise
- *     - lapack::StoreV::Rowwise
+ *     - StoreV::Columnwise
+ *     - StoreV::Rowwise
  *
  * @param[in] m
  *     The number of rows of the matrix C.
@@ -122,7 +122,7 @@ int larfb(
     TC* C, idx_t ldC )
 {
     typedef scalar_type<TV, TC> scalar_t;
-    using blas::internal::colmajor_matrix;
+    using internal::colmajor_matrix;
 
     // check arguments
     lapack_error_if(    side != Side::Left &&

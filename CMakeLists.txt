@@ -68,52 +68,9 @@ option( Fortran_WRAPPERS "Build and install Fortran wrappers"         OFF )
 option( TLAPACK_USE_MDSPAN "Use mdspan for the legacy wrappers" OFF )
 mark_as_advanced( FORCE TLAPACK_USE_MDSPAN )
 
-# <T>LAPACK abstract interface uses optimized BLAS
-set( TLAPACK_USE_OPTSINGLE OFF CACHE STRING "<T>LAPACK abstract interfaces use optimized BLAS for float" )
-set( TLAPACK_USE_OPTDOUBLE OFF CACHE STRING "<T>LAPACK abstract interfaces use optimized BLAS for double" )
-set( TLAPACK_USE_OPTCOMPLEX OFF CACHE STRING "<T>LAPACK abstract interfaces use optimized BLAS for std::complex<float>" )
-set( TLAPACK_USE_OPTDOUBLECOMPLEX OFF CACHE STRING "<T>LAPACK abstract interfaces use optimized BLAS for std::complex<double>" )
-option( TLAPACK_USE_OPTBLAS "<T>LAPACK abstract interfaces use optimized BLAS for all data types" OFF )
-
-# Force use of all optimizations when TLAPACK_USE_OPTBLAS is ON
-if( TLAPACK_USE_OPTBLAS )
-  mark_as_advanced( FORCE TLAPACK_USE_OPTSINGLE TLAPACK_USE_OPTDOUBLE TLAPACK_USE_OPTCOMPLEX TLAPACK_USE_OPTDOUBLECOMPLEX )
-  get_property( docString CACHE TLAPACK_USE_OPTSINGLE PROPERTY HELPSTRING )
-  set( TLAPACK_USE_OPTSINGLE ON CACHE STRING "${docString}" FORCE )
-  get_property( docString CACHE TLAPACK_USE_OPTDOUBLE PROPERTY HELPSTRING )
-  set( TLAPACK_USE_OPTDOUBLE ON CACHE STRING "${docString}" FORCE )
-  get_property( docString CACHE TLAPACK_USE_OPTCOMPLEX PROPERTY HELPSTRING )
-  set( TLAPACK_USE_OPTCOMPLEX ON CACHE STRING "${docString}" FORCE )
-  get_property( docString CACHE TLAPACK_USE_OPTDOUBLECOMPLEX PROPERTY HELPSTRING )
-  set( TLAPACK_USE_OPTDOUBLECOMPLEX ON CACHE STRING "${docString}" FORCE )
-else()
-  mark_as_advanced( CLEAR TLAPACK_USE_OPTSINGLE TLAPACK_USE_OPTDOUBLE TLAPACK_USE_OPTCOMPLEX TLAPACK_USE_OPTDOUBLECOMPLEX )
-endif()
-
 #-------------------------------------------------------------------------------
 # Modules
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
-
-#-------------------------------------------------------------------------------
-# Activate optimized BLAS
-if( TLAPACK_USE_OPTSINGLE OR
-    TLAPACK_USE_OPTDOUBLE OR
-    TLAPACK_USE_OPTCOMPLEX OR
-    TLAPACK_USE_OPTDOUBLECOMPLEX )
-  set( USE_BLASPP_WRAPPERS ON )
-  if( TLAPACK_USE_OPTSINGLE )
-    target_compile_definitions( tblas INTERFACE TLAPACK_USE_OPTSINGLE )
-  endif()
-  if( TLAPACK_USE_OPTDOUBLE )
-    target_compile_definitions( tblas INTERFACE TLAPACK_USE_OPTDOUBLE )
-  endif()
-  if( TLAPACK_USE_OPTCOMPLEX )
-    target_compile_definitions( tblas INTERFACE TLAPACK_USE_OPTCOMPLEX )
-  endif()
-  if( TLAPACK_USE_OPTDOUBLECOMPLEX )
-    target_compile_definitions( tblas INTERFACE TLAPACK_USE_OPTDOUBLECOMPLEX )
-  endif()
-endif()
 
 #-------------------------------------------------------------------------------
 # Search for BLAS++ library if it is needed
@@ -195,8 +152,6 @@ install(
   DIRECTORY ${PROJECT_SOURCE_DIR}/include/
   DESTINATION include
   FILES_MATCHING PATTERN "*.hpp" )
-install( FILES ${PROJECT_SOURCE_DIR}/include/legacy_api/lapack/config_lapackppwrappers.h
-          DESTINATION include/legacy_api/lapack )
 
 # Modules
 install(

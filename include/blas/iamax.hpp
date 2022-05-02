@@ -5,13 +5,23 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef BLAS_IAMAX_HH
-#define BLAS_IAMAX_HH
+#ifndef __TLAPACK_BLAS_IAMAX_HH__
+#define __TLAPACK_BLAS_IAMAX_HH__
 
-#include "blas/utils.hpp"
-#include "blas/constants.hpp"
+#include "base/utils.hpp"
+#include "base/constants.hpp"
 
-namespace blas {
+namespace tlapack {
+
+// -----------------------------------------------------------------------------
+// Check for Infs and NaNs types
+
+struct nocheck_t { };
+struct checkInfNaN_t { };
+
+// constants
+constexpr nocheck_t nocheck = { };
+constexpr checkInfNaN_t checkInfNaN = { };
 
 /**
  * @brief Return $\arg\max_{i=0}^{n-1} \left(|Re(x_i)| + |Im(x_i)|\right)$
@@ -116,6 +126,6 @@ template< class vector_t >
 inline auto
 iamax( const vector_t& x ) { return iamax( checkInfNaN, x ); }
 
-}  // namespace blas
+}  // namespace tlapack
 
-#endif        //  #ifndef BLAS_IAMAX_HH
+#endif        //  #ifndef __TLAPACK_BLAS_IAMAX_HH__

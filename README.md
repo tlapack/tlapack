@@ -103,7 +103,7 @@ Here are the \<T\>LAPACK specific options and their default values
 
         Use LAPACK++ wrappers to link with an optimized LAPACK library.
     
-    BLAS_INT_T                       int64_t
+    TLAPACK_INT_T                       int64_t
     
         Type of all non size-related integers in libtblas_c, libtlapack_cblas, and libtblas_fortran. It is the type
         used for the array increments, e.g., incx and incy.
@@ -114,7 +114,7 @@ Here are the \<T\>LAPACK specific options and their default values
             int_fast16_t, int_fast32_t, int_fast64_t, 
             intmax_t, intptr_t, ptrdiff_t
     
-    BLAS_SIZE_T                      size_t
+    TLAPACK_SIZE_T                      size_t
     
         Type of all size-relatedintegers in libtblas_c, libtlapack_cblas, and libtblas_fortran.
         Supported types:

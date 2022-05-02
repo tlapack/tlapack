@@ -1,25 +1,69 @@
-// Copyright (c) 2017-2021, University of Tennessee. All rights reserved.
 // Copyright (c) 2021-2022, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TBLAS_UTILS_HH__
-#define __TBLAS_UTILS_HH__
-
-#include "blas/types.hpp"
-#include "blas/exceptionHandling.hpp"
+#ifndef __TLAPACK_UTILS_HH__
+#define __TLAPACK_UTILS_HH__
 
 #include <limits>
 #include <cmath>
 #include <utility>
+#include <type_traits>
 
-#ifdef USE_MPFR
-    #include <mpreal.h>
+#include "base/types.hpp"
+#include "base/arrayTraits.hpp"
+#include "base/exceptionHandling.hpp"
+
+// -----------------------------------------------------------------------------
+// Macros to handle error checks
+#if defined(TLAPACK_ERROR_NDEBUG) || defined(NDEBUG)
+
+    // <T>BLAS does no error checking;
+    // lower level BLAS may still handle errors via xerbla
+    #define lapack_error( msg, code ) \
+        ((void)0)
+    #define lapack_error_if( cond, code ) \
+        ((void)0)
+
+#else
+
+    /// internal macro to the get string __func__
+    /// ex: lapack_error( "a < b", -2 );
+    /// @returns code
+    #define lapack_error( msg, code ) do { \
+        tlapack::error( msg, __func__ ); \
+        return code; \
+    } while(false)
+
+    /// internal macro to get strings: #cond and __func__
+    /// ex: lapack_error_if( a < b, -6 );
+    /// @returns code if a < b
+    #define lapack_error_if( cond, code ) do { \
+        if( cond ) { \
+            tlapack::error( #cond, __func__ ); \
+            return code; \
+        } \
+    } while(false)
+
 #endif
 
-namespace blas {
+namespace tlapack {
+
+// -----------------------------------------------------------------------------
+// Use routines from std C++
+using std::isinf;
+using std::isnan;
+using std::ceil;
+using std::floor;
+using std::sqrt;
+using std::sin;
+using std::cos;
+using std::atan;
+using std::exp;
+using std::pow;
+using std::pair;
 
 // -----------------------------------------------------------------------------
 // enable_if_t is defined in C++14; here's a C++11 definition
@@ -39,38 +83,32 @@ namespace blas {
     constexpr bool is_same_v = std::is_same<T, U>::value;
 #endif
 
-// -----------------------------------------------------------------------------
-// Use routines from std C++
-using std::real;
-using std::imag;
-using std::isinf;
-using std::isnan;
-using std::ceil;
-using std::floor;
-using std::sqrt;
-using std::sin;
-using std::cos;
-using std::atan;
-using std::exp;
-using std::pow;
+//------------------------------------------------------------------------------
+/// True if T is std::complex<T2> for some type T2.
+template <typename T>
+struct is_complex:
+    std::integral_constant<bool, false>
+{};
 
-// -----------------------------------------------------------------------------
-// Use MPFR interface
-#ifdef USE_MPFR
-    inline mpfr::mpreal real( const mpfr::mpreal& x ) { return x; }
-    inline mpfr::mpreal imag( const mpfr::mpreal& x ) { return 0; }
+/// specialize for std::complex
+template <typename T>
+struct is_complex< std::complex<T> >:
+    std::integral_constant<bool, true>
+{};
 
-    // Argument-dependent lookup (ADL) will include the remaining functions,
-    // e.g., mpfr::sin, mpfr::cos.
-    // Including them here may cause ambiguous call of overloaded function.
-    // See: https://en.cppreference.com/w/cpp/language/adl
-#endif
+template <typename T, enable_if_t<!is_complex<T>::value,int> = 0>
+inline constexpr
+real_type<T> real( const T& x ) { return x; }
+
+template <typename T, enable_if_t<!is_complex<T>::value,int> = 0>
+inline constexpr
+real_type<T> imag( const T& x ) { return 0; }
 
 /** Extend conj to real datatypes.
  * 
  * Usage:
  * 
- *     using blas::conj;
+ *     using tlapack::conj;
  *     scalar_t x = ...
  *     scalar_t y = conj( x );
  * 
@@ -84,9 +122,9 @@ using std::pow;
 template< typename real_t >
 inline real_t conj( const real_t& x )
 {
-    // This prohibits complex types; it can't be called as y = blas::conj( x ).
+    // This prohibits complex types; it can't be called as y = tlapack::conj( x ).
     static_assert( ! is_complex<real_t>::value,
-                    "Usage: using blas::conj; y = conj(x); NOT: y = blas::conj(x);" );
+                    "Usage: using tlapack::conj; y = conj(x); NOT: y = tlapack::conj(x);" );
     return x;
 }
 
@@ -157,8 +195,8 @@ struct MakeScalarTraits< std::complex<real_t> > {
 };
 
 template <typename scalar_t>
-inline scalar_t make_scalar( blas::real_type<scalar_t> re,
-                             blas::real_type<scalar_t> im=0 )
+inline scalar_t make_scalar( real_type<scalar_t> re,
+                             real_type<scalar_t> im=0 )
 {
     return MakeScalarTraits<scalar_t>::make( re, im );
 }
@@ -171,12 +209,6 @@ template <typename real_t>
 inline int sgn( const real_t& val ) {
     return (real_t(0) < val) - (val < real_t(0));
 }
-
-#ifdef USE_MPFR
-    template<> 
-    inline int sgn( const mpfr::mpreal& x )
-    { return mpfr::sgn( x ); }
-#endif
 
 // -----------------------------------------------------------------------------
 /// isnan for complex numbers
@@ -203,75 +235,55 @@ inline bool isinf( const std::complex<real_t>& x )
 /// but it may not propagate NaNs.
 ///
 template< typename T >
-inline real_type<T> abs( const T& x, bool check = true ) {
-    if( is_complex<T>::value && check ) {
+inline auto abs( const T& x ) {
+    if( is_complex<T>::value ) {
         if( isnan(x) )
             return std::numeric_limits< real_type<T> >::quiet_NaN();
     }
     return std::abs( x ); // Contains the 2-norm for the complex case
 }
 
-#ifdef USE_MPFR
-    /// Absolute value
-    template<>
-    inline mpfr::mpreal abs( const mpfr::mpreal& x, bool check ) {
-        return mpfr::abs( x );
-    }
-    
-    /// 2-norm absolute value, sqrt( |Re(x)|^2 + |Im(x)|^2 )
-    ///
-    /// Note that std::abs< mpfr::mpreal > may not propagate Infs.
-    ///
-    template<>
-    inline mpfr::mpreal abs( const std::complex<mpfr::mpreal>& x, bool check ) {
-        if( check ) {
-            if( isnan(x) )
-                return std::numeric_limits< mpfr::mpreal >::quiet_NaN();
-            else if( isinf(x) )
-                return std::numeric_limits< mpfr::mpreal >::infinity();
-        }
-        return std::abs( x );
-    }
-#endif
-
 // -----------------------------------------------------------------------------
 /// 1-norm absolute value, |Re(x)| + |Im(x)|
 template< typename real_t >
-inline real_t abs1( const real_t& x ) { return abs( x, false ); }
+inline real_t abs1( const real_t& x ) { return abs( x ); }
 
 template< typename real_t >
 inline real_t abs1( const std::complex<real_t>& x )
 {
-    return abs( real(x), false ) + abs( imag(x), false );
+    return abs( real(x) ) + abs( imag(x) );
 }
 
 // -----------------------------------------------------------------------------
 /// Optimized BLAS
 
-template< class T1, class T2, class... Ts >
+template< class P1, class P2, class... Ps >
 constexpr bool has_compatible_layout = 
-    has_compatible_layout<T1, T2> &&
-    has_compatible_layout<T1, Ts...> &&
-    has_compatible_layout<T2, Ts...>;
+    has_compatible_layout<P1, P2> &&
+    has_compatible_layout<P1, Ps...> &&
+    has_compatible_layout<P2, Ps...>;
 
-template< class T1, class T2 >
-constexpr bool has_compatible_layout<T1,T2> = ( 
-    is_same_v< layout_type<T1>, void > ||
-    is_same_v< layout_type<T2>, void > ||
-    is_same_v< layout_type<T1>, layout_type<T2> >
+template< class C1, class T1, class C2, class T2 >
+constexpr bool has_compatible_layout< pair<C1,T1>, pair<C2,T2> > = (
+    ( layout<C1> == Layout::Unspecified ) ||
+    ( layout<C2> == Layout::Unspecified ) ||
+    ( layout<C1> == layout<C2> )
 );
 
-/// Specify the rules for allow_optblas for multiple data structures.
-template< class T1, class T2, class... Ts >
-struct allow_optblas< T1, T2, Ts... > {
-    
-    using type = allow_optblas_t<T1>;
-    
+template< class C, class T >
+struct allow_optblas< pair<C,T> > {
     static constexpr bool value = 
-        allow_optblas_v<T1> &&
-        allow_optblas_v<T2, Ts...> &&
-        is_same_v< real_type<type>, real_type<allow_optblas_t<T2>> > &&
-        has_compatible_layout< T1, T2, Ts... >;
+        allow_optblas_v<C> &&
+        allow_optblas_v<T> &&
+        is_same_v< type_t<C>, T >;
+};
+
+template< class P1, class P2, class... Ps >
+struct allow_optblas< P1, P2, Ps... > {
+    static constexpr bool value = 
+        allow_optblas_v< P1 > &&
+        allow_optblas_v< P2, Ps... > &&
+        has_compatible_layout< P1, P2, Ps... >;
 };
 
 template<class T1, class... Ts>
@@ -291,21 +303,13 @@ using disable_if_allow_optblas_t = enable_if_t<(
     }
 
     /// Optimized types
-    #ifdef TLAPACK_USE_OPTSINGLE
+    #ifdef USE_BLASPP_WRAPPERS
         TLAPACK_OPT_TYPE(float);
-    #endif
-    #ifdef TLAPACK_USE_OPTDOUBLE
         TLAPACK_OPT_TYPE(double);
-    #endif
-    #ifdef TLAPACK_USE_OPTCOMPLEX
         TLAPACK_OPT_TYPE(std::complex<float>);
-    #endif
-    #ifdef TLAPACK_USE_OPTDOUBLECOMPLEX
         TLAPACK_OPT_TYPE(std::complex<double>);
     #endif
 #undef TLAPACK_OPT_TYPE
-
-
 
 // -----------------------------------------------------------------------------
 // is_base_of_v is defined in C++17; here's a C++11 definition
@@ -444,6 +448,75 @@ bool access_denied( access_t a, accessPolicy_t p ) {
     return ! access_granted( a, p );
 }
 
-} // namespace blas
+/** Defines structures that check if opts_t has an attribute called member.
+ * 
+ * has_member<opts_t> is a true type if the struct opts_t has an attribute called member.
+ * has_member_v<opts_t> is true if the struct opts_t has a member called member.
+ * 
+ * @param member Attribute to be checked
+ * 
+ * @see https://stackoverflow.com/questions/1005476/how-to-detect-whether-there-is-a-specific-member-variable-in-class
+ */
+#define TLAPACK_MEMBER_CHECKER(member) \
+    template< class opts_t, typename = int > \
+    struct has_ ## member : std::false_type { }; \
+    \
+    template< class opts_t > \
+    struct has_ ## member< opts_t, \
+        enable_if_t< \
+            !is_same_v< \
+                decltype(std::declval<opts_t>().member), \
+                void > \
+        , int > \
+    > : std::true_type { }; \
+    \
+    template< class opts_t > \
+    constexpr bool has_ ## member ## _v = has_ ## member<opts_t>::value;
 
-#endif // __TBLAS_UTILS_HH__
+// Activate checkers:
+TLAPACK_MEMBER_CHECKER(nb)
+TLAPACK_MEMBER_CHECKER(workPtr)
+
+/** has_work_v<opts_t> is true if the struct opts_t has a member called workPtr.
+ */
+template< class opts_t > constexpr bool has_work_v = has_workPtr_v<opts_t>;
+
+/**
+ * @return a default value if nb is not a member of opts_t.
+ */
+template< class opts_t, enable_if_t< !has_nb_v<opts_t>, int > = 0 >
+inline constexpr auto get_nb( opts_t&& opts ) {
+    /// TODO: Put default values somewhere else
+    return 32;
+}
+
+/**
+ * @return opts.nb if nb is a member of opts_t and opts.nb > 0.
+ * @return a default value otherwise.
+ */
+template< class opts_t, enable_if_t<  has_nb_v<opts_t>, int > = 0 >
+inline constexpr auto get_nb( opts_t&& opts )
+-> std::remove_reference_t<decltype(opts.nb)> {
+    return ( opts.nb > 0 ) 
+        ? opts.nb
+        : get_nb( 0 ); // get default nb
+}
+
+/**
+ * @return *(opts.workPtr) if workPtr is a member of opts_t.
+ */
+template< class opts_t, enable_if_t<  has_workPtr_v<opts_t>, int > = 0 >
+inline constexpr auto get_work( opts_t&& opts ) {
+    if ( opts.workPtr )
+        return *(opts.workPtr);
+    else {    
+        /// TODO: Allocate space.
+        /// TODO: Create matrix.
+        /// TODO: Return matrix.
+        return *(opts.workPtr);
+    }
+}
+
+} // namespace tlapack
+
+#endif // __TLAPACK_UTILS_HH__

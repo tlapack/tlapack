@@ -5,12 +5,12 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef BLAS_ROTMG_HH
-#define BLAS_ROTMG_HH
+#ifndef __TLAPACK_BLAS_ROTMG_HH__
+#define __TLAPACK_BLAS_ROTMG_HH__
 
-#include "blas/utils.hpp"
+#include "base/utils.hpp"
 
-namespace blas {
+namespace tlapack {
 
 /**
  * Construct modified (fast) plane rotation, H, that eliminates b, such that
@@ -93,7 +93,7 @@ int rotmg(
     real_t h[4] )
 {
     // check arguments
-    blas_error_if( d1 <= 0 );
+    tblas_error_if( d1 <= 0 );
 
     // Constants
     const real_t zero( 0 );
@@ -124,7 +124,7 @@ int rotmg(
             auto q2 = p2*b;
             auto q1 = p1*a;
 
-            if( blas::abs(q1) > blas::abs(q2) ) {
+            if( tlapack::abs(q1) > tlapack::abs(q2) ) {
                 flag = zero;
                 h[1] = -b/a;
                 h[2] = p2/p1;
@@ -180,7 +180,7 @@ int rotmg(
             }
 
             if(d2 != zero) {
-                while( (blas::abs(d2) <= rgamsq) || (blas::abs(d2) >= gamsq) ) {
+                while( (tlapack::abs(d2) <= rgamsq) || (tlapack::abs(d2) >= gamsq) ) {
                     if(flag == 0) {
                         h[0]=one;
                         h[3]=one;
@@ -191,7 +191,7 @@ int rotmg(
                         h[2]=one;
                         flag=-1;
                     }
-                    if(blas::abs(d2) <= rgamsq) {
+                    if(tlapack::abs(d2) <= rgamsq) {
                         d2  *= gam*gam;
                         h[1] /= gam;
                         h[3] /= gam;
@@ -209,6 +209,6 @@ int rotmg(
     return flag;
 }
 
-}  // namespace blas
+}  // namespace tlapack
 
-#endif        //  #ifndef BLAS_ROTMG_HH
+#endif        //  #ifndef __TLAPACK_BLAS_ROTMG_HH__

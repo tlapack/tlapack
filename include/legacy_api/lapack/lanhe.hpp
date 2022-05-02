@@ -12,10 +12,10 @@
 
 #include <memory>
 
-#include "lapack/types.hpp"
+#include "base/types.hpp"
 #include "lapack/lanhe.hpp"
 
-namespace lapack {
+namespace tlapack {
 
 /** Calculates the value of the one norm, Frobenius norm, infinity norm, or element of largest absolute value of a symmetric matrix
  *
@@ -40,13 +40,13 @@ namespace lapack {
 **/
 template <class norm_t, typename TA>
 real_type<TA> lanhe(
-    norm_t normType, Uplo uplo, blas::idx_t n,
-    const TA *A, blas::idx_t lda )
+    norm_t normType, Uplo uplo, idx_t n,
+    const TA *A, idx_t lda )
 {
-    using blas::internal::colmajor_matrix;
+    using internal::colmajor_matrix;
 
     // check arguments
-    blas_error_if(  normType != Norm::Fro &&
+    tblas_error_if(  normType != Norm::Fro &&
                     normType != Norm::Inf &&
                     normType != Norm::Max &&
                     normType != Norm::One );

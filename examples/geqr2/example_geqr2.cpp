@@ -7,7 +7,7 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#include "legacy_api/blas/utils.hpp"
+#include "legacy_api/base/utils.hpp"
 #include <plugins/tlapack_stdvector.hpp>
 #include <tlapack.hpp>
 
@@ -21,9 +21,9 @@
 template <typename matrix_t>
 inline void printMatrix( const matrix_t& A )
 {
-    using idx_t = blas::size_type< matrix_t >;
-    const idx_t m = blas::nrows(A);
-    const idx_t n = blas::ncols(A);
+    using idx_t = tlapack::size_type< matrix_t >;
+    const idx_t m = tlapack::nrows(A);
+    const idx_t n = tlapack::ncols(A);
 
     for (idx_t i = 0; i < m; ++i) {
         std::cout << std::endl;
@@ -37,7 +37,7 @@ template <typename real_t>
 void run( size_t m, size_t n )
 {
     using std::size_t;
-    using blas::internal::colmajor_matrix;
+    using tlapack::internal::colmajor_matrix;
 
     // Turn it off if m or n are large
     bool verbose = false;
@@ -77,7 +77,7 @@ void run( size_t m, size_t n )
                         / static_cast<float>( RAND_MAX );
 
     // Frobenius norm of A
-    auto normA = lapack::lange( lapack::frob_norm, A );
+    auto normA = tlapack::lange( tlapack::frob_norm, A );
 
     // Print A
     if (verbose) {
@@ -86,7 +86,7 @@ void run( size_t m, size_t n )
     }
 
     // Copy A to Q
-    lapack::lacpy( lapack::dense, A, Q );
+    tlapack::lacpy( tlapack::dense, A, Q );
 
     // 1) Compute A = QR (Stored in the matrix Q)
 
@@ -95,13 +95,13 @@ void run( size_t m, size_t n )
         std::vector<real_t> work( n-1 );
     
         // QR factorization
-        lapack::geqr2( Q, tau, work );
+        tlapack::geqr2( Q, tau, work );
 
         // Save the R matrix
-        lapack::lacpy( lapack::upperTriangle, Q, R );
+        tlapack::lacpy( tlapack::upperTriangle, Q, R );
 
         // Generates Q = H_1 H_2 ... H_n
-        lapack::ung2r( n, Q, tau, work );
+        tlapack::ung2r( n, Q, tau, work );
     }
     // Record end time
     auto endQR = std::chrono::high_resolution_clock::now();
@@ -134,12 +134,12 @@ void run( size_t m, size_t n )
                 work(i,j) = static_cast<float>( 0xABADBABE );
         
         // work receives the identity n*n
-        lapack::laset( lapack::upperTriangle, 0.0, 1.0, work );
+        tlapack::laset( tlapack::upperTriangle, 0.0, 1.0, work );
         // work receives Q'Q - I
-        blas::syrk( blas::Uplo::Upper, blas::Op::Trans, 1.0, Q, -1.0, work );
+        tlapack::syrk( tlapack::Uplo::Upper, tlapack::Op::Trans, 1.0, Q, -1.0, work );
 
         // Compute ||Q'Q - I||_F
-        norm_orth_1 = lapack::lansy( lapack::frob_norm, lapack::upperTriangle, work );
+        norm_orth_1 = tlapack::lansy( tlapack::frob_norm, tlapack::upperTriangle, work );
 
         if (verbose) {
             std::cout << std::endl << "Q'Q-I = ";
@@ -158,15 +158,15 @@ void run( size_t m, size_t n )
                 work(i,j) = static_cast<float>( 0xABADBABE );
 
         // Copy Q to work
-        lapack::lacpy( lapack::dense, Q, work );
+        tlapack::lacpy( tlapack::dense, Q, work );
 
-        blas::trmm( blas::Side::Right, blas::Uplo::Upper, blas::Op::NoTrans, blas::Diag::NonUnit, 1.0, R, work );
+        tlapack::trmm( tlapack::Side::Right, tlapack::Uplo::Upper, tlapack::Op::NoTrans, tlapack::Diag::NonUnit, 1.0, R, work );
 
         for(size_t j = 0; j < n; ++j)
             for(size_t i = 0; i < m; ++i)
                 work(i,j) -= A(i,j);
 
-        norm_repres_1 = lapack::lange( lapack::frob_norm, work ) / normA;
+        norm_repres_1 = tlapack::lange( tlapack::frob_norm, work ) / normA;
     }
     
     // *) Output

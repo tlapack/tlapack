@@ -7,15 +7,14 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __POTRS_HH__
-#define __POTRS_HH__
+#ifndef __TLAPACK_POTRS_HH__
+#define __TLAPACK_POTRS_HH__
 
-#include "lapack/types.hpp"
-#include "lapack/utils.hpp"
+#include "base/utils.hpp"
 
 #include "tblas.hpp"
 
-namespace lapack {
+namespace tlapack {
 
 /** Apply the Cholesky factorization to solve a linear system.
  * \[
@@ -56,7 +55,6 @@ template< class uplo_t, class matrixA_t, class matrixB_t >
 int potrs( uplo_t uplo, const matrixA_t& A, matrixB_t& B )
 {
     using T = type_t< matrixB_t >;
-    using blas::trsm;
 
     // Constants
     const T one( 1.0 );

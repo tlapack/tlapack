@@ -10,9 +10,9 @@
 
 #include <Eigen/Core>
 #include <type_traits>
-#include "blas/arrayTraits.hpp"
+#include "base/arrayTraits.hpp"
 
-namespace blas{
+namespace tlapack{
 
     // // -----------------------------------------------------------------------------
     // // is_EigenBlock
@@ -87,13 +87,13 @@ namespace blas{
     template<class T>
     inline constexpr auto
     read_policy( const Eigen::DenseBase<T>& x ) {
-        return lapack::dense;
+        return dense;
     }
     // Write policy
     template<class T>
     inline constexpr auto
     write_policy( const Eigen::DenseBase<T>& x ) {
-        return lapack::dense;
+        return dense;
     }
 
     // -----------------------------------------------------------------------------
@@ -272,23 +272,6 @@ namespace blas{
         return A.diagonal( diagIdx );
     }
 
-} // namespace blas
-
-namespace lapack {
-
-    using blas::size;
-    using blas::nrows;
-    using blas::ncols;
-    using blas::read_policy;
-    using blas::write_policy;
-
-    using blas::slice;
-    using blas::rows;
-    using blas::row;
-    using blas::cols;
-    using blas::col;
-    using blas::diag;
-
-} // namespace lapack
+} // namespace tlapack
 
 #endif // __TLAPACK_EIGEN_HH__
