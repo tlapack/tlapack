@@ -41,7 +41,7 @@ namespace tlapack
      * @return frobenius norm of res
      *
      * @param[in] A n by n matrix
-     * @param[in] Q n by n matrix
+     * @param[in] Q n by n unitary matrix
      * @param[in] H n by n matrix
      * @param[out] res n by n matrix as defined above
      * @param[out] work n by n workspace matrix
@@ -59,7 +59,7 @@ namespace tlapack
         tlapack::gemm(tlapack::Op::NoTrans, tlapack::Op::NoTrans, (T)1.0, work, Q, (T)-1.0, res);
 
         // Compute ||res||_F/||A||_F
-        return tlapack::lange(tlapack::frob_norm, res) / tlapack::lange(tlapack::frob_norm, A);
+        return tlapack::lange(tlapack::frob_norm, res);
     }
 
 }

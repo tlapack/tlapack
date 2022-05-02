@@ -89,6 +89,7 @@ TEMPLATE_TEST_CASE("Hessenberg reduction is backward stable", "[eigenvalues]", f
         for (size_t j = 0; j < i; ++j)
             A(i, j) = (T)0.0;
     tlapack::lacpy(Uplo::General, A, H);
+    auto normA = tlapack::lange(tlapack::frob_norm, A);
 
     DYNAMIC_SECTION("GEHD2 with"
                     << " matrix = " << matrix_type << " n = " << n << " ilo = " << ilo << " ihi = " << ihi)
@@ -109,7 +110,7 @@ TEMPLATE_TEST_CASE("Hessenberg reduction is backward stable", "[eigenvalues]", f
         CHECK(orth_res_norm <= tol);
 
         auto simil_res_norm = check_similarity_transform(A, Q, H, res, work);
-        CHECK(simil_res_norm <= tol);
+        CHECK(simil_res_norm <= tol*normA);
     }
     idx_t nb = GENERATE(2, 3);
     DYNAMIC_SECTION("GEHRD with"
@@ -135,6 +136,6 @@ TEMPLATE_TEST_CASE("Hessenberg reduction is backward stable", "[eigenvalues]", f
         CHECK(orth_res_norm <= tol);
 
         auto simil_res_norm = check_similarity_transform(A, Q, H, res, work);
-        CHECK(simil_res_norm <= tol);
+        CHECK(simil_res_norm <= tol*normA);
     }
 }
