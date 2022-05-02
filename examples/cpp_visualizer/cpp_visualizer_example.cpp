@@ -1,4 +1,4 @@
-/// @file example_gehd2.cpp
+/// @file cpp_visualizer_example.cpp
 /// @author Thijs Steel, KU Leuven, Belgium
 //
 // Copyright (c) 2021-2022, University of Colorado Denver. All rights reserved.
@@ -32,11 +32,11 @@ int main(int argc, char **argv)
     tlapack::laset( tlapack::Uplo::General, zero, one, A );
 
     std::cout<<"This example is meant to be used with the debugger"<<std::endl<<std::endl;
-    std::cout<<"GDB should be able to execute the function `lapack::print_matrix_r(A)`"<<std::endl;
+    std::cout<<"GDB should be able to execute the function `tlapack::print_matrix_r(A)`"<<std::endl;
     std::cout<<"Which will output the matrix A to stdout"<<std::endl<<std::endl;
-    std::cout<<"You can also evaluate the expression `lapack::visualize_matrix_r(A)`"<<std::endl;
+    std::cout<<"You can also evaluate the expression `tlapack::visualize_matrix_r(A)`"<<std::endl;
     std::cout<<"in the tool vscode-debug-visualizer"<<std::endl<<std::endl;
-    std::cout<<"This may require the GDB options -enable-pretty-printing and set print elements 0"<<std::endl;
+    std::cout<<"This may require the GDB options `-enable-pretty-printing`, `set print elements 0` and `set print repeats 0`"<<std::endl;
 
     for( int i = 0; i < n; ++i )
         A(i,i) = i;
