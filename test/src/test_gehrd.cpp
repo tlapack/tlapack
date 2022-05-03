@@ -17,12 +17,13 @@
 
 using namespace tlapack;
 
-TEMPLATE_TEST_CASE("Hessenberg reduction is backward stable", "[eigenvalues]", float, double, std::complex<float>, std::complex<double>)
+TEMPLATE_LIST_TEST_CASE("Hessenberg reduction is backward stable", "[eigenvalues]", types_to_test)
 {
     srand(1);
 
-    using T = TestType;
-    using idx_t = std::size_t;
+    using matrix_t = TestType;
+    using T = type_t<matrix_t>;
+    using idx_t = size_type<matrix_t>;
     using real_t = real_type<T>;
     using tlapack::internal::colmajor_matrix;
     using pair = pair<idx_t, idx_t>;
@@ -57,11 +58,12 @@ TEMPLATE_TEST_CASE("Hessenberg reduction is backward stable", "[eigenvalues]", f
     std::unique_ptr<T[]> _res(new T[n * n]);
     std::unique_ptr<T[]> _work(new T[n * n]);
 
-    auto A = colmajor_matrix<T>(&_A[0], n, n);
-    auto H = colmajor_matrix<T>(&_H[0], n, n);
-    auto Q = colmajor_matrix<T>(&_Q[0], n, n);
-    auto res = colmajor_matrix<T>(&_res[0], n, n);
-    auto work = colmajor_matrix<T>(&_work[0], n, n);
+    // This only works for legacy matrix, we really work on that construct_matrix function
+    auto A = legacyMatrix<T,layout<matrix_t>>(n, n, &_A[0], n);
+    auto H = legacyMatrix<T,layout<matrix_t>>(n, n, &_H[0], n);
+    auto Q = legacyMatrix<T,layout<matrix_t>>(n, n, &_Q[0], n);
+    auto res = legacyMatrix<T,layout<matrix_t>>(n, n, &_res[0], n);
+    auto work = legacyMatrix<T,layout<matrix_t>>(n, n, &_work[0], n);
     std::vector<T> tau(n);
     std::vector<T> workv(n);
 

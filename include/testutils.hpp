@@ -7,12 +7,23 @@
 // testBLAS is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
+#include <legacy_api/legacyArray.hpp>
 #include <tlapack.hpp>
-#include <plugins/tlapack_debugutils.hpp>
-
 
 namespace tlapack
 {
+
+    using types_to_test = std::tuple<
+        legacyMatrix<float, Layout::ColMajor>,
+        legacyMatrix<double, Layout::ColMajor>,
+        legacyMatrix<std::complex<float>, Layout::ColMajor>,
+        legacyMatrix<std::complex<double>, Layout::ColMajor>,
+        legacyMatrix<float, Layout::RowMajor>,
+        legacyMatrix<double, Layout::RowMajor>,
+        legacyMatrix<std::complex<float>, Layout::RowMajor>,
+        legacyMatrix<std::complex<double>, Layout::RowMajor>
+    >;
+
     /** Calculates res = Q'*Q - I and the frobenius norm of res
      *
      * @return frobenius norm of res
@@ -28,12 +39,12 @@ namespace tlapack
         using T = type_t<matrix_t>;
 
         // res = I
-        tlapack::laset(tlapack::Uplo::Upper, (T)0.0, (T)1.0, res);
+        laset(Uplo::Upper, (T)0.0, (T)1.0, res);
         // res = Q'Q - I
-        tlapack::herk( tlapack::Uplo::Upper, tlapack::Op::ConjTrans, (real_type<T>)1.0, Q, (real_type<T>)-1.0, res );
+        herk(Uplo::Upper, Op::ConjTrans, (real_type<T>)1.0, Q, (real_type<T>)-1.0, res);
 
         // Compute ||res||_F
-        return tlapack::lanhe(tlapack::frob_norm, tlapack::Uplo::Upper, res);
+        return lanhe(frob_norm, Uplo::Upper, res);
     }
 
     /** Calculates res = Q'*A*Q - H and the frobenius norm of res relative to the norm of A
@@ -54,12 +65,12 @@ namespace tlapack
         using T = type_t<matrix_t>;
 
         // res = Q'*A*Q - H
-        tlapack::lacpy(Uplo::General, H, res);
-        tlapack::gemm(tlapack::Op::ConjTrans, tlapack::Op::NoTrans, (T)1.0, Q, A, (T)0.0, work);
-        tlapack::gemm(tlapack::Op::NoTrans, tlapack::Op::NoTrans, (T)1.0, work, Q, (T)-1.0, res);
+        lacpy(Uplo::General, H, res);
+        gemm(Op::ConjTrans, Op::NoTrans, (T)1.0, Q, A, (T)0.0, work);
+        gemm(Op::NoTrans, Op::NoTrans, (T)1.0, work, Q, (T)-1.0, res);
 
         // Compute ||res||_F/||A||_F
-        return tlapack::lange(tlapack::frob_norm, res);
+        return lange(frob_norm, res);
     }
 
 }
