@@ -44,19 +44,19 @@ namespace tlapack
     // GDB doesn't handle templates well, so we explicitly define some versions of the functions
     // for common template arguments
     //
-    void print_matrix_r(const legacyMatrix<float, Layout::ColMajor> &A)
+    inline void print_matrix_r(const legacyMatrix<float, Layout::ColMajor> &A)
     {
         print_matrix(A);
     }
-    void print_matrix_d(const legacyMatrix<double, Layout::ColMajor> &A)
+    inline void print_matrix_d(const legacyMatrix<double, Layout::ColMajor> &A)
     {
         print_matrix(A);
     }
-    void print_matrix_c(const legacyMatrix<std::complex<float>, Layout::ColMajor> &A)
+    inline void print_matrix_c(const legacyMatrix<std::complex<float>, Layout::ColMajor> &A)
     {
         print_matrix(A);
     }
-    void print_matrix_z(const legacyMatrix<std::complex<double>, Layout::ColMajor> &A)
+    inline void print_matrix_z(const legacyMatrix<std::complex<double>, Layout::ColMajor> &A)
     {
         print_matrix(A);
     }
@@ -171,19 +171,19 @@ namespace tlapack
     // GDB doesn't handle templates well, so we explicitly define some versions of the functions
     // for common template arguments
     //
-    std::string visualize_matrix_r(const legacyMatrix<float, Layout::ColMajor> &A)
+    inline std::string visualize_matrix_r(const legacyMatrix<float, Layout::ColMajor> &A)
     {
         return visualize_matrix(A);
     }
-    std::string visualize_matrix_d(const legacyMatrix<double, Layout::ColMajor> &A)
+    inline std::string visualize_matrix_d(const legacyMatrix<double, Layout::ColMajor> &A)
     {
         return visualize_matrix(A);
     }
-    std::string visualize_matrix_c(const legacyMatrix<std::complex<float>, Layout::ColMajor> &A)
+    inline std::string visualize_matrix_c(const legacyMatrix<std::complex<float>, Layout::ColMajor> &A)
     {
         return visualize_matrix(A);
     }
-    std::string visualize_matrix_z(const legacyMatrix<std::complex<double>, Layout::ColMajor> &A)
+    inline std::string visualize_matrix_z(const legacyMatrix<std::complex<double>, Layout::ColMajor> &A)
     {
         return visualize_matrix(A);
     }
