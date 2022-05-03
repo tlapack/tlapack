@@ -57,25 +57,25 @@ namespace tlapack
         return lanhe(frob_norm, Uplo::Upper, res);
     }
 
-    /** Calculates res = Q'*A*Q - H and the frobenius norm of res relative to the norm of A
+    /** Calculates res = Q'*A*Q - B and the frobenius norm of res relative to the norm of A
      *
      * @return frobenius norm of res
      *
      * @param[in] A n by n matrix
      * @param[in] Q n by n unitary matrix
-     * @param[in] H n by n matrix
+     * @param[in] B n by n matrix
      * @param[out] res n by n matrix as defined above
      * @param[out] work n by n workspace matrix
      *
      * @ingroup auxiliary
      */
     template <class matrix_t>
-    real_type<type_t<matrix_t>> check_similarity_transform(matrix_t &A, matrix_t &Q, matrix_t &H, matrix_t &res, matrix_t &work)
+    real_type<type_t<matrix_t>> check_similarity_transform(matrix_t &A, matrix_t &Q, matrix_t &B, matrix_t &res, matrix_t &work)
     {
         using T = type_t<matrix_t>;
 
-        // res = Q'*A*Q - H
-        lacpy(Uplo::General, H, res);
+        // res = Q'*A*Q - B
+        lacpy(Uplo::General, B, res);
         gemm(Op::ConjTrans, Op::NoTrans, (T)1.0, Q, A, (T)0.0, work);
         gemm(Op::NoTrans, Op::NoTrans, (T)1.0, work, Q, (T)-1.0, res);
 
