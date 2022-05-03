@@ -13,6 +13,17 @@
 namespace tlapack
 {
 
+    using real_types_to_test = std::tuple<
+        legacyMatrix<float, Layout::ColMajor>,
+        legacyMatrix<double, Layout::ColMajor>,
+        legacyMatrix<float, Layout::RowMajor>,
+        legacyMatrix<double, Layout::RowMajor>>;
+
+    using complex_types_to_test = std::tuple<
+        legacyMatrix<std::complex<float>, Layout::ColMajor>,
+        legacyMatrix<std::complex<double>, Layout::ColMajor>,
+        legacyMatrix<std::complex<float>, Layout::RowMajor>,
+        legacyMatrix<std::complex<double>, Layout::RowMajor>>;
     using types_to_test = std::tuple<
         legacyMatrix<float, Layout::ColMajor>,
         legacyMatrix<double, Layout::ColMajor>,
@@ -21,8 +32,7 @@ namespace tlapack
         legacyMatrix<float, Layout::RowMajor>,
         legacyMatrix<double, Layout::RowMajor>,
         legacyMatrix<std::complex<float>, Layout::RowMajor>,
-        legacyMatrix<std::complex<double>, Layout::RowMajor>
-    >;
+        legacyMatrix<std::complex<double>, Layout::RowMajor>>;
 
     /** Calculates res = Q'*Q - I and the frobenius norm of res
      *
