@@ -74,14 +74,14 @@ void syr2(
     using internal::colmajor_matrix;
 
     // check arguments
-    tblas_error_if( layout != Layout::ColMajor &&
+    tlapack_error_if( layout != Layout::ColMajor &&
                    layout != Layout::RowMajor );
-    tblas_error_if( uplo != Uplo::Lower &&
+    tlapack_error_if( uplo != Uplo::Lower &&
                    uplo != Uplo::Upper );
-    tblas_error_if( n < 0 );
-    tblas_error_if( incx == 0 );
-    tblas_error_if( incy == 0 );
-    tblas_error_if( lda < n );
+    tlapack_error_if( n < 0 );
+    tlapack_error_if( incx == 0 );
+    tlapack_error_if( incy == 0 );
+    tlapack_error_if( lda < n );
 
     // quick return
     if (n == 0)

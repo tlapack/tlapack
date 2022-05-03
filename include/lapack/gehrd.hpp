@@ -109,11 +109,11 @@ namespace tlapack
         idx_t nx = std::max( nb, nx_switch );
 
         // check arguments
-        lapack_error_if((ilo < 0) or (ilo >= n), -1);
-        lapack_error_if((ihi < 0) or (ihi > n), -2);
-        lapack_error_if(access_denied(dense, write_policy(A)), -3);
-        lapack_error_if(ncols(A) != nrows(A), -3);
-        lapack_error_if((idx_t)size(tau) < n - 1, -4);
+        tlapack_error_if((ilo < 0) or (ilo >= n), -1);
+        tlapack_error_if((ihi < 0) or (ihi > n), -2);
+        tlapack_error_if(access_denied(dense, write_policy(A)), -3);
+        tlapack_error_if(ncols(A) != nrows(A), -3);
+        tlapack_error_if((idx_t)size(tau) < n - 1, -4);
 
         // quick return
         if (n <= 0)

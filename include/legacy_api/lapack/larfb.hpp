@@ -125,17 +125,17 @@ int larfb(
     using internal::colmajor_matrix;
 
     // check arguments
-    lapack_error_if(    side != Side::Left &&
+    tlapack_error_if(    side != Side::Left &&
                         side != Side::Right, -1 );
-    lapack_error_if(    trans != Op::NoTrans &&
+    tlapack_error_if(    trans != Op::NoTrans &&
                         trans != Op::ConjTrans &&
                         (
                             (trans != Op::Trans) ||
                             is_complex< TV >::value
                         ), -2 );
-    lapack_error_if(    direct != Direction::Backward &&
+    tlapack_error_if(    direct != Direction::Backward &&
                         direct != Direction::Forward, -3 );
-    lapack_error_if(    storeV != StoreV::Columnwise &&
+    tlapack_error_if(    storeV != StoreV::Columnwise &&
                         storeV != StoreV::Rowwise, -4 );
 
     // Quick return

@@ -104,8 +104,8 @@ void run(size_t n)
 
         // Hessenberg factorization
         err = tlapack::gehrd(0, n, Q, tau);
-        // tblas_error_if(tlapack::gehd2(0, n, Q, tau, work));
-        tblas_error_if(err);
+        // tlapack_error_if(tlapack::gehd2(0, n, Q, tau, work));
+        tlapack_error_if(err);
 
 
         // Save the H matrix
@@ -115,7 +115,7 @@ void run(size_t n)
 
         // Generate Q = H_1 H_2 ... H_n
         err = tlapack::unghr(0, n, Q, tau, work);
-        tblas_error_if(err);
+        tlapack_error_if(err);
 
         // Remove junk from lower half of H
         for (size_t j = 0; j < n; ++j)
@@ -125,7 +125,7 @@ void run(size_t n)
         // Shur factorization
         std::vector<std::complex<real_t>> w(n);
         err = tlapack::lahqr(true, true, 0, n, H, w, Q);
-        tblas_error_if(err);
+        tlapack_error_if(err);
     }
     // Record end time
     auto endQHQ = std::chrono::high_resolution_clock::now();

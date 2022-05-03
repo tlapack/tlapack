@@ -60,17 +60,17 @@ inline int unm2r(
     using internal::vector;
 
     // check arguments
-    lapack_error_if( side != Side::Left &&
+    tlapack_error_if( side != Side::Left &&
                      side != Side::Right, -1 );
-    lapack_error_if( trans != Op::NoTrans &&
+    tlapack_error_if( trans != Op::NoTrans &&
                      trans != Op::Trans &&
                      trans != Op::ConjTrans, -2 );
-    lapack_error_if( m < 0, -3 );
-    lapack_error_if( n < 0, -4 );
+    tlapack_error_if( m < 0, -3 );
+    tlapack_error_if( n < 0, -4 );
     const idx_t q = (side == Side::Left) ? m : n;
-    lapack_error_if( k < 0 || k > q, -5 );
-    lapack_error_if( lda < q, -7 );
-    lapack_error_if( ldc < m, -10 );
+    tlapack_error_if( k < 0 || k > q, -5 );
+    tlapack_error_if( lda < q, -7 );
+    tlapack_error_if( ldc < m, -10 );
 
     // quick return
     if ((m == 0) || (n == 0) || (k == 0))

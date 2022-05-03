@@ -71,18 +71,18 @@ void trmv(
     const bool nonunit = (diag == Diag::NonUnit);
 
     // check arguments
-    tblas_error_if( uplo != Uplo::Lower &&
+    tlapack_error_if( uplo != Uplo::Lower &&
                    uplo != Uplo::Upper );
-    tblas_error_if( trans != Op::NoTrans &&
+    tlapack_error_if( trans != Op::NoTrans &&
                    trans != Op::Trans &&
                    trans != Op::ConjTrans &&
                    trans != Op::Conj );
-    tblas_error_if( diag != Diag::NonUnit &&
+    tlapack_error_if( diag != Diag::NonUnit &&
                    diag != Diag::Unit );
-    tblas_error_if( nrows(A) != ncols(A) );
-    tblas_error_if( size(x) != n );
+    tlapack_error_if( nrows(A) != ncols(A) );
+    tlapack_error_if( size(x) != n );
 
-    tblas_error_if( access_denied( uplo, read_policy(A) ) );
+    tlapack_error_if( access_denied( uplo, read_policy(A) ) );
 
     if (trans == Op::NoTrans) {
         // Form x := A*x

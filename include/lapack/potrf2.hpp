@@ -79,10 +79,10 @@ int potrf2( uplo_t uplo, matrix_t& A )
     const idx_t n = nrows(A);
 
     // check arguments
-    lapack_error_if(    uplo != Uplo::Lower &&
+    tlapack_error_if(    uplo != Uplo::Lower &&
                         uplo != Uplo::Upper, -1 );
-    lapack_error_if(    access_denied( uplo, write_policy(A) ), -1 );
-    lapack_error_if(    nrows(A) != ncols(A), -2 );
+    tlapack_error_if(    access_denied( uplo, write_policy(A) ), -1 );
+    tlapack_error_if(    nrows(A) != ncols(A), -2 );
 
     // Quick return
     if (n <= 0)

@@ -49,9 +49,9 @@ namespace tlapack {
         inline constexpr legacyMatrix( idx_t m, idx_t n, T* ptr, idx_t ldim )
         : m(m), n(n), ptr(ptr), ldim(ldim)
         {
-            tblas_error_if( m < 0 );
-            tblas_error_if( n < 0 );
-            tblas_error_if( ldim < ((layout == Layout::ColMajor) ? m : n) );
+            tlapack_error_if( m < 0 );
+            tlapack_error_if( n < 0 );
+            tlapack_error_if( ldim < ((layout == Layout::ColMajor) ? m : n) );
         }
     };
 
@@ -81,8 +81,8 @@ namespace tlapack {
         inline constexpr legacyVector( idx_t n, T* ptr, int_t inc = one )
         : n(n), ptr(ptr), inc(inc)
         {
-            tblas_error_if( n < 0 );
-            tblas_error_if( inc == 0 );
+            tlapack_error_if( n < 0 );
+            tlapack_error_if( inc == 0 );
         }
     };
 
@@ -123,9 +123,9 @@ namespace tlapack {
         inline constexpr legacyBandedMatrix( idx_t m, idx_t n, idx_t kl, idx_t ku, T* ptr )
         : m(m), n(n), kl(kl), ku(ku), ptr(ptr)
         {
-            tblas_error_if( m < 0 );
-            tblas_error_if( n < 0 );
-            tblas_error_if( (kl + 1 > m && m > 0) || (ku + 1 > n && n > 0) );
+            tlapack_error_if( m < 0 );
+            tlapack_error_if( n < 0 );
+            tlapack_error_if( (kl + 1 > m && m > 0) || (ku + 1 > n && n > 0) );
         }
     };
 

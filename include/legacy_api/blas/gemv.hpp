@@ -91,16 +91,16 @@ void gemv(
     using internal::colmajor_matrix;
 
     // check arguments
-    tblas_error_if( layout != Layout::ColMajor &&
+    tlapack_error_if( layout != Layout::ColMajor &&
                    layout != Layout::RowMajor );
-    tblas_error_if( trans != Op::NoTrans &&
+    tlapack_error_if( trans != Op::NoTrans &&
                    trans != Op::Trans &&
                    trans != Op::ConjTrans );
-    tblas_error_if( m < 0 );
-    tblas_error_if( n < 0 );
-    tblas_error_if( lda < ((layout == Layout::ColMajor) ? m : n) );
-    tblas_error_if( incx == 0 );
-    tblas_error_if( incy == 0 );
+    tlapack_error_if( m < 0 );
+    tlapack_error_if( n < 0 );
+    tlapack_error_if( lda < ((layout == Layout::ColMajor) ? m : n) );
+    tlapack_error_if( incx == 0 );
+    tlapack_error_if( incy == 0 );
 
     // quick return
     if (m == 0 || n == 0)

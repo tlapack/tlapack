@@ -39,7 +39,7 @@ void scal(
     const TA& alpha,
     TX* x, int_t incx )
 {
-    tblas_error_if( incx <= 0 );
+    tlapack_error_if( incx <= 0 );
 
     // quick return
     if( n <= 0 ) return;

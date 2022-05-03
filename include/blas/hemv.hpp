@@ -64,13 +64,13 @@ void hemv(
     const idx_t n = nrows(A);
 
     // check arguments
-    tblas_error_if( uplo != Uplo::Lower &&
+    tlapack_error_if( uplo != Uplo::Lower &&
                    uplo != Uplo::Upper );
-    tblas_error_if( ncols(A) != n );
-    tblas_error_if( size(x)  != n );
-    tblas_error_if( size(y)  != n );
+    tlapack_error_if( ncols(A) != n );
+    tlapack_error_if( size(x)  != n );
+    tlapack_error_if( size(y)  != n );
 
-    tblas_error_if( access_denied( uplo, read_policy(A) ) );
+    tlapack_error_if( access_denied( uplo, read_policy(A) ) );
 
     // form y = beta*y
     if (beta != beta_t(1)) {

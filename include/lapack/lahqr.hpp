@@ -96,11 +96,11 @@ namespace tlapack
         const idx_t nh = ihi - ilo;
 
         // check arguments
-        lapack_error_if(n != nrows(A), -5);
-        lapack_error_if((idx_t)size(w) != n, -6);
+        tlapack_error_if(n != nrows(A), -5);
+        tlapack_error_if((idx_t)size(w) != n, -6);
         if (want_z)
         {
-            lapack_error_if((n != ncols(Z)) or (n != nrows(Z)), -7);
+            tlapack_error_if((n != ncols(Z)) or (n != nrows(Z)), -7);
         }
 
         // quick return

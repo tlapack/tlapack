@@ -27,7 +27,7 @@ inline int potrf( uplo_t uplo, idx_t n, T* A, idx_t lda )
     using internal::colmajor_matrix;
 
     // check arguments
-    lapack_error_if(    uplo != Uplo::Lower &&
+    tlapack_error_if(    uplo != Uplo::Lower &&
                         uplo != Uplo::Upper, -1 );
 
     // Matrix views

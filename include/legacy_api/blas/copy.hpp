@@ -44,8 +44,8 @@ void copy(
     TX const *x, int_t incx,
     TY       *y, int_t incy )
 {    
-    tblas_error_if( incx == 0 );
-    tblas_error_if( incy == 0 );
+    tlapack_error_if( incx == 0 );
+    tlapack_error_if( incy == 0 );
 
     // quick return
     if( n <= 0 ) return;

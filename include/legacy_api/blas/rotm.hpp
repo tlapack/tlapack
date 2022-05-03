@@ -60,9 +60,9 @@ void rotm(
     auto h = &param[1];
 
     // check arguments
-    tblas_error_if( incx == 0 );
-    tblas_error_if( incy == 0 );
-    tblas_error_if( flag < -2 && flag > 1 );
+    tlapack_error_if( incx == 0 );
+    tlapack_error_if( incy == 0 );
+    tlapack_error_if( flag < -2 && flag > 1 );
 
     // quick return
     if( n <= 0 ) return;

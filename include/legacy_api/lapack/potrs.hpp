@@ -29,7 +29,7 @@ inline int potrs(
     using internal::colmajor_matrix;
 
     // Check arguments
-    lapack_error_if(    uplo != Uplo::Lower &&
+    tlapack_error_if(    uplo != Uplo::Lower &&
                         uplo != Uplo::Upper, -1 );
 
     // Matrix views

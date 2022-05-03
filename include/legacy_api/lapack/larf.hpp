@@ -35,12 +35,12 @@ inline void larf(
     using internal::vector;
 
     // check arguments
-    tblas_error_if( side != Side::Left &&
+    tlapack_error_if( side != Side::Left &&
                    side != Side::Right );
-    tblas_error_if( m < 0 );
-    tblas_error_if( n < 0 );
-    tblas_error_if( incv == 0 );
-    tblas_error_if( ldC < m );
+    tlapack_error_if( m < 0 );
+    tlapack_error_if( n < 0 );
+    tlapack_error_if( incv == 0 );
+    tlapack_error_if( ldC < m );
 
     // scalar_t *work = new scalar_t[ ( side == Side::Left ) ? n : m ];
     std::unique_ptr<scalar_t[]> work(new scalar_t[

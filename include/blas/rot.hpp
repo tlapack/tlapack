@@ -51,7 +51,7 @@ void rot(
     const idx_t n = size(x);
 
     // check arguments
-    tblas_error_if( size(y) != n );
+    tlapack_error_if( size(y) != n );
 
     // quick return
     if ( n == 0 || (c == 1 && s == s_type(0)) )

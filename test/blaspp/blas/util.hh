@@ -15,12 +15,38 @@
 /// Use to silence compiler warning of unused variable.
 #define blas_unused( var ) ((void)var)
 
-#define blas_error_if( cond ) tblas_error_if( cond )
-#define blas_error_if_msg( cond, ... ) tblas_error_if_msg( cond, ... )
+#define blas_error_if( cond ) tlapack_error_if( cond )
 
 namespace blas {
 
     using namespace tlapack;
+
+    class Error: public std::exception {
+    public:
+        /// Constructs BLAS error
+        Error():
+            std::exception()
+        {}
+
+        /// Constructs BLAS error with message
+        Error( std::string const& msg ):
+            std::exception(),
+            msg_( msg )
+        {}
+
+        /// Constructs BLAS error with message: "msg, in function func"
+        Error( const char* msg, const char* func ):
+            std::exception(),
+            msg_( std::string(msg) + ", in function " + func )
+        {}
+
+        /// Returns BLAS error message
+        virtual const char* what() const noexcept override
+            { return msg_.c_str(); }
+
+    private:
+        std::string msg_;
+    };
 
     // -----------------------------------------------------------------------------
     // Convert enum to LAPACK-style char.

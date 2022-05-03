@@ -85,9 +85,9 @@ int potrf( uplo_t uplo, matrix_t& A, opts_t&& opts, const exceptionCheck_t& ec =
     const idx_t nb = opts.nb;
 
     // check arguments
-    tlapack_check( uplo == Uplo::Lower || uplo == Uplo::Upper, -1 );
-    tlapack_check( access_granted( uplo, write_policy(A) ),    -2 );
-    tlapack_check( nrows(A) == ncols(A),                       -2 );
+    tlapack_check( uplo == Uplo::Lower || uplo == Uplo::Upper );
+    tlapack_check( access_granted( uplo, write_policy(A) ) );
+    tlapack_check( nrows(A) == ncols(A) );
 
     // Quick return
     if (n <= 0)

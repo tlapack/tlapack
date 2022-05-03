@@ -64,9 +64,9 @@ inline void larf(
     const idx_t n = ncols(C);
 
     // check arguments
-    tblas_error_if( side != Side::Left &&
+    tlapack_error_if( side != Side::Left &&
                    side != Side::Right );
-    tblas_error_if(  access_denied( dense, write_policy(C) ) );
+    tlapack_error_if(  access_denied( dense, write_policy(C) ) );
 
     // The following code was changed from:
     //

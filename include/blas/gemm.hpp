@@ -82,19 +82,19 @@ void gemm(
     const idx_t k = (transA == Op::NoTrans) ? ncols(A) : nrows(A);
 
     // check arguments
-    tblas_error_if( transA != Op::NoTrans &&
+    tlapack_error_if( transA != Op::NoTrans &&
                    transA != Op::Trans &&
                    transA != Op::ConjTrans );
-    tblas_error_if( transB != Op::NoTrans &&
+    tlapack_error_if( transB != Op::NoTrans &&
                    transB != Op::Trans &&
                    transB != Op::ConjTrans );
-    tblas_error_if( nrows(C) != m );
-    tblas_error_if( ncols(C) != n );
-    tblas_error_if( ((transB == Op::NoTrans) ? nrows(B) : ncols(B)) != k );
+    tlapack_error_if( nrows(C) != m );
+    tlapack_error_if( ncols(C) != n );
+    tlapack_error_if( ((transB == Op::NoTrans) ? nrows(B) : ncols(B)) != k );
 
-    tblas_error_if( access_denied( dense, read_policy(A) ) );
-    tblas_error_if( access_denied( dense, read_policy(B) ) );
-    tblas_error_if( access_denied( dense, write_policy(C) ) );
+    tlapack_error_if( access_denied( dense, read_policy(A) ) );
+    tlapack_error_if( access_denied( dense, read_policy(B) ) );
+    tlapack_error_if( access_denied( dense, write_policy(C) ) );
 
     if (transA == Op::NoTrans) {
         if (transB == Op::NoTrans) {

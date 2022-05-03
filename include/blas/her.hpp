@@ -60,12 +60,12 @@ void her(
     const idx_t n = nrows(A);
 
     // check arguments
-    tblas_error_if( uplo != Uplo::Lower &&
+    tlapack_error_if( uplo != Uplo::Lower &&
                    uplo != Uplo::Upper );
-    tblas_error_if( size(x)  != n );
-    tblas_error_if( ncols(A) != n );
+    tlapack_error_if( size(x)  != n );
+    tlapack_error_if( ncols(A) != n );
 
-    tblas_error_if( access_denied( uplo, write_policy(A) ) );
+    tlapack_error_if( access_denied( uplo, write_policy(A) ) );
 
     if (uplo == Uplo::Upper) {
         for (idx_t j = 0; j < n; ++j) {

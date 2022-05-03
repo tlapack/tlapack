@@ -42,11 +42,11 @@ void lacpy( uplo_t uplo, const matrixA_t& A, matrixB_t& B )
     const idx_t n = ncols(A);
 
     // check arguments
-    tblas_error_if(  uplo != Uplo::Lower &&
+    tlapack_error_if(  uplo != Uplo::Lower &&
                     uplo != Uplo::Upper &&
                     uplo != Uplo::General );
-    tblas_error_if(  access_denied( uplo, read_policy(A) ) );
-    tblas_error_if(  access_denied( uplo, write_policy(B) ) );
+    tlapack_error_if(  access_denied( uplo, read_policy(A) ) );
+    tlapack_error_if(  access_denied( uplo, write_policy(B) ) );
 
     if( uplo == Uplo::Upper ) {
         // Set the strictly upper triangular or trapezoidal part of B

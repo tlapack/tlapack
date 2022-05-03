@@ -49,8 +49,8 @@ int unghr(
     const idx_t nh = ihi > ilo +1 ? ihi-1-ilo : 0;
 
     // check arguments
-    lapack_error_if( (idx_t) size(tau)  < std::min<idx_t>( m, n ), -2 );
-    lapack_error_if( (idx_t) size(work) < n-1, -3 );
+    tlapack_error_if( (idx_t) size(tau)  < std::min<idx_t>( m, n ), -2 );
+    tlapack_error_if( (idx_t) size(work) < n-1, -3 );
 
 
     // Shift the vectors which define the elementary reflectors one

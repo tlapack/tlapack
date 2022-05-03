@@ -50,13 +50,13 @@ lanhe( norm_t normType, uplo_t uplo, const matrix_t& A )
     const idx_t n = nrows(A);
 
     // check arguments
-    tblas_error_if(  normType != Norm::Fro &&
+    tlapack_error_if(  normType != Norm::Fro &&
                     normType != Norm::Inf &&
                     normType != Norm::Max &&
                     normType != Norm::One );
-    tblas_error_if(  uplo != Uplo::Lower &&
+    tlapack_error_if(  uplo != Uplo::Lower &&
                     uplo != Uplo::Upper );
-    tblas_error_if(  access_denied( uplo, read_policy(A) ) );
+    tlapack_error_if(  access_denied( uplo, read_policy(A) ) );
 
     // quick return
     if ( n <= 0 ) return real_t( 0 );
@@ -207,13 +207,13 @@ lanhe( norm_t normType, uplo_t uplo, const matrix_t& A, work_t& work )
     using idx_t  = size_type< matrix_t >;
 
     // check arguments
-    tblas_error_if(  normType != Norm::Fro &&
+    tlapack_error_if(  normType != Norm::Fro &&
                     normType != Norm::Inf &&
                     normType != Norm::Max &&
                     normType != Norm::One );
-    tblas_error_if(  uplo != Uplo::Lower &&
+    tlapack_error_if(  uplo != Uplo::Lower &&
                     uplo != Uplo::Upper );
-    tblas_error_if(  access_denied( uplo, read_policy(A) ) );
+    tlapack_error_if(  access_denied( uplo, read_policy(A) ) );
 
     // quick redirect for max-norm and Frobenius norm
     if      ( normType == Norm::Max  ) return lanhe( max_norm,  uplo, A );

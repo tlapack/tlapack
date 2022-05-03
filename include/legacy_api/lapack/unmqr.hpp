@@ -91,9 +91,9 @@ inline int unmqr(
                 : ( (m >= 1) ? m : 1 );
 
     // check arguments
-    lapack_error_if( side != Side::Left &&
+    tlapack_error_if( side != Side::Left &&
                      side != Side::Right, -1 );
-    lapack_error_if( trans != Op::NoTrans &&
+    tlapack_error_if( trans != Op::NoTrans &&
                      trans != Op::Trans &&
                      trans != Op::ConjTrans, -2 );
     

@@ -67,7 +67,7 @@ int lascl(
     using std::max;
     
     // check arguments
-    lapack_error_if(
+    tlapack_error_if(
         (matrixtype != MatrixType::General) && 
         (matrixtype != MatrixType::Lower) && 
         (matrixtype != MatrixType::Upper) && 
@@ -75,7 +75,7 @@ int lascl(
         (matrixtype != MatrixType::LowerBand) && 
         (matrixtype != MatrixType::UpperBand) && 
         (matrixtype != MatrixType::Band), -1 );
-    lapack_error_if( (
+    tlapack_error_if( (
             (matrixtype == MatrixType::LowerBand) ||
             (matrixtype == MatrixType::UpperBand) || 
             (matrixtype == MatrixType::Band)
@@ -83,7 +83,7 @@ int lascl(
             (kl < 0) ||
             (kl > max(m-1, idx_t(0)))
         ), -2 );
-    lapack_error_if( (
+    tlapack_error_if( (
             (matrixtype == MatrixType::LowerBand) ||
             (matrixtype == MatrixType::UpperBand) || 
             (matrixtype == MatrixType::Band)
@@ -91,19 +91,19 @@ int lascl(
             (ku < 0) ||
             (ku > max(n-1, idx_t(0)))
         ), -3 );
-    lapack_error_if( (
+    tlapack_error_if( (
             (matrixtype == MatrixType::LowerBand) ||
             (matrixtype == MatrixType::UpperBand)
         ) && ( kl != ku ), -3 );
-    lapack_error_if( m < 0, -6 );
-    lapack_error_if( (lda < m) && (
+    tlapack_error_if( m < 0, -6 );
+    tlapack_error_if( (lda < m) && (
         (matrixtype == MatrixType::General) || 
         (matrixtype == MatrixType::Lower) ||
         (matrixtype == MatrixType::Upper) ||
         (matrixtype == MatrixType::Hessenberg) ), -9 );
-    lapack_error_if( (matrixtype == MatrixType::LowerBand) && (lda < kl + 1), -9);
-    lapack_error_if( (matrixtype == MatrixType::UpperBand) && (lda < ku + 1), -9);
-    lapack_error_if( (matrixtype == MatrixType::Band) && (lda < 2 * kl + ku + 1), -9);
+    tlapack_error_if( (matrixtype == MatrixType::LowerBand) && (lda < kl + 1), -9);
+    tlapack_error_if( (matrixtype == MatrixType::UpperBand) && (lda < ku + 1), -9);
+    tlapack_error_if( (matrixtype == MatrixType::Band) && (lda < 2 * kl + ku + 1), -9);
 
     if (matrixtype == MatrixType::LowerBand)
     {

@@ -84,18 +84,18 @@ void trsv(
     using internal::colmajor_matrix;
 
     // check arguments
-    tblas_error_if( layout != Layout::ColMajor &&
+    tlapack_error_if( layout != Layout::ColMajor &&
                    layout != Layout::RowMajor );
-    tblas_error_if( uplo != Uplo::Lower &&
+    tlapack_error_if( uplo != Uplo::Lower &&
                    uplo != Uplo::Upper );
-    tblas_error_if( trans != Op::NoTrans &&
+    tlapack_error_if( trans != Op::NoTrans &&
                    trans != Op::Trans &&
                    trans != Op::ConjTrans );
-    tblas_error_if( diag != Diag::NonUnit &&
+    tlapack_error_if( diag != Diag::NonUnit &&
                    diag != Diag::Unit );
-    tblas_error_if( n < 0 );
-    tblas_error_if( lda < n );
-    tblas_error_if( incx == 0 );
+    tlapack_error_if( n < 0 );
+    tlapack_error_if( lda < n );
+    tlapack_error_if( incx == 0 );
 
     // quick return
     if (n == 0)

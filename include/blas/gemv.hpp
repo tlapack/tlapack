@@ -69,14 +69,14 @@ void gemv(
                     : nrows(A);
 
     // check arguments
-    tblas_error_if( trans != Op::NoTrans &&
+    tlapack_error_if( trans != Op::NoTrans &&
                    trans != Op::Trans &&
                    trans != Op::ConjTrans &&
                    trans != Op::Conj );
-    tblas_error_if( size(x) != n );
-    tblas_error_if( size(y) != m );
+    tlapack_error_if( size(x) != n );
+    tlapack_error_if( size(y) != m );
 
-    tblas_error_if( access_denied( dense, read_policy(A) ) );
+    tlapack_error_if( access_denied( dense, read_policy(A) ) );
 
     // quick return
     if (m == 0 || n == 0 || (alpha == alpha_t(0) && beta == beta_t(1)))

@@ -12,400 +12,10 @@
 #include <cmath>
 #include <utility>
 #include <type_traits>
-#include <stdexcept>
-#include <iostream>
-#include <cassert>
 
 #include "base/types.hpp"
 #include "base/arrayTraits.hpp"
 #include "base/exceptionHandling.hpp"
-
-// -----------------------------------------------------------------------------
-// Macros to handle error checks
-
-#if defined(TLAPACK_CHECK_INPUT) && !defined(TLAPACK_NDEBUG)
-
-    /// ex: lapack_error_if( 2 < 1, -6 );
-    #define lapack_error_if( cond, info ) do { \
-        if( static_cast<bool>(cond) ) \
-            throw std::domain_error( std::string("[") + std::to_string(info) + "] " + #cond ); \
-    } while(false)
-
-    /// ex: lapack_check( 1 < 2, -6 );
-    #define tlapack_check( cond, info ) do { \
-        if( !static_cast<bool>(cond) ) \
-            throw std::domain_error( std::string("[") + std::to_string(info) + "] " + #cond ); \
-    } while(false)
-
-#else // !defined(TLAPACK_CHECK_INPUT) || defined(TLAPACK_NDEBUG)
-
-    // <T>LAPACK does not check input parameters
-
-    #define lapack_error_if( cond, info ) \
-        ((void)0)
-    #define tlapack_check( cond, info ) \
-        ((void)0)
-
-#endif
-
-namespace lapack {
-    
-    /**
-     * @brief Error handler
-     * 
-     * @param[in] info Code of the error.
-     * @param[in] detailedInfo Object with information about the error.
-     */
-    template< class detailedInfo_t >
-    void error( int info, const detailedInfo_t& detailedInfo ) { }
-    
-    /**
-     * @brief Error handler
-     * 
-     * Implementation for detailedInfo of type std::string.
-     */
-    template<>
-    inline
-    void error( int info, const std::string& detailedInfo ) {
-        throw std::runtime_error( std::string("[") + std::to_string(info) + "] " + detailedInfo );
-    }
-
-    /**
-     * @brief Warning handler
-     * 
-     * @param[in] info Code of the warning.
-     * @param[in] detailedInfo Object with information about the warning.
-     */
-    template< class detailedInfo_t >
-    void warning( int info, const detailedInfo_t& detailedInfo ) { }
-    
-    /**
-     * @brief Warning handler
-     * 
-     * Implementation for detailedInfo of type std::string.
-     */
-    template<>
-    inline
-    void warning( int info, const std::string& detailedInfo ) {
-        std::cerr << "[" << info << "] " << detailedInfo << std::endl;
-    }
-
-    /**
-     * Returns true if and only if A has an infinite entry.
-     * 
-     * @tparam access_t Type of access inside the algorithm.
-     *      Either MatrixAccessPolicy or any type that implements
-     *          operator MatrixAccessPolicy().
-     * 
-     * @param[in] accessType Determines the entries of A that will be checked.
-     *      The following access types are allowed:
-     *          MatrixAccessPolicy::Dense,
-     *          MatrixAccessPolicy::UpperHessenberg,
-     *          MatrixAccessPolicy::LowerHessenberg,
-     *          MatrixAccessPolicy::UpperTriangle,
-     *          MatrixAccessPolicy::LowerTriangle,
-     *          MatrixAccessPolicy::StrictUpper,
-     *          MatrixAccessPolicy::StrictLower.
-     * 
-     * @param[in] A matrix.
-     * 
-     * @return true if A has an infinite entry.
-     * @return false if A has no infinite entry.
-     */
-    template< class access_t, class matrix_t >
-    bool hasinf( access_t accessType, const matrix_t& A ) {
-
-        using idx_t  = size_type< matrix_t >;
-
-        // constants
-        const idx_t m = nrows(A);
-        const idx_t n = ncols(A);
-
-        if ( (MatrixAccessPolicy) accessType == MatrixAccessPolicy::UpperHessenberg )
-        {
-            for (idx_t j = 0; j < n; ++j)
-                for (idx_t i = 0; i < ((j < m) ? j+2 : m); ++i)
-                    if( isinf( A(i,j) ) )
-                        return true;
-            return false;
-        }
-        else if ( (MatrixAccessPolicy) accessType == MatrixAccessPolicy::UpperTriangle )
-        {
-            for (idx_t j = 0; j < n; ++j)
-                for (idx_t i = 0; i < ((j < m) ? j+1 : m); ++i)
-                    if( isinf( A(i,j) ) )
-                        return true;
-            return false;
-        }
-        else if ( (MatrixAccessPolicy) accessType == MatrixAccessPolicy::StrictUpper )
-        {
-            for (idx_t j = 0; j < n; ++j)
-                for (idx_t i = 0; i < ((j < m) ? j : m); ++i)
-                    if( isinf( A(i,j) ) )
-                        return true;
-            return false;
-        }
-        else if ( (MatrixAccessPolicy) accessType == MatrixAccessPolicy::LowerHessenberg )
-        {
-            for (idx_t j = 0; j < n; ++j)
-                for (idx_t i = ((j > 1) ? j-1 : 0); i < m; ++i)
-                    if( isinf( A(i,j) ) )
-                        return true;
-            return false;
-        }
-        else if ( (MatrixAccessPolicy) accessType == MatrixAccessPolicy::LowerTriangle )
-        {
-            for (idx_t j = 0; j < n; ++j)
-                for (idx_t i = j; i < m; ++i)
-                    if( isinf( A(i,j) ) )
-                        return true;
-            return false;
-        }
-        else if ( (MatrixAccessPolicy) accessType == MatrixAccessPolicy::StrictLower )
-        {
-            for (idx_t j = 0; j < n; ++j)
-                for (idx_t i = j+1; i < m; ++i)
-                    if( isinf( A(i,j) ) )
-                        return true;
-            return false;
-        }
-        else // if ( (MatrixAccessPolicy) accessType == MatrixAccessPolicy::Dense )
-        {
-            for (idx_t j = 0; j < n; ++j)
-                for (idx_t i = 0; i < m; ++i)
-                    if( isinf( A(i,j) ) )
-                        return true;
-            return false;
-        }
-    }
-
-    /**
-     * Returns true if and only if A has an infinite entry.
-     * 
-     * Specific implementation for band access types.
-     * @see hasinf( access_t accessType, const matrix_t& A ).
-     */
-    template< class matrix_t >
-    bool hasinf( band_t accessType, const matrix_t& A ) {
-
-        using idx_t  = size_type< matrix_t >;
-
-        // constants
-        const idx_t m = nrows(A);
-        const idx_t n = ncols(A);
-        const idx_t kl = accessType.lower_bandwidth;
-        const idx_t ku = accessType.upper_bandwidth;
-
-        for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = ((j >= ku) ? (j-ku) : 0); i < min(m,j+kl+1); ++i)
-                if( isinf( A(i,j) ) )
-                    return true;
-        return false;
-    }
-
-    /**
-     * Returns true if and only if x has an infinite entry.
-     * 
-     * @param[in] x vector.
-     * 
-     * @return true if x has an infinite entry.
-     * @return false if x has no infinite entry.
-     */
-    template< class vector_t >
-    bool hasinf( const vector_t& x ) {
-
-        using idx_t  = size_type< vector_t >;
-
-        // constants
-        const idx_t n = size(x);
-
-        for (idx_t i = 0; i < n; ++i)
-            if( isinf( x[i] ) )
-                return true;
-        return false;
-    }
-
-    /**
-     * Returns true if and only if A has an NaN entry.
-     * 
-     * @tparam access_t Type of access inside the algorithm.
-     *      Either MatrixAccessPolicy or any type that implements
-     *          operator MatrixAccessPolicy().
-     * 
-     * @param[in] accessType Determines the entries of A that will be checked.
-     *      The following access types are allowed:
-     *          MatrixAccessPolicy::Dense,
-     *          MatrixAccessPolicy::UpperHessenberg,
-     *          MatrixAccessPolicy::LowerHessenberg,
-     *          MatrixAccessPolicy::UpperTriangle,
-     *          MatrixAccessPolicy::LowerTriangle,
-     *          MatrixAccessPolicy::StrictUpper,
-     *          MatrixAccessPolicy::StrictLower.
-     * 
-     * @param[in] A matrix.
-     * 
-     * @return true if A has an NaN entry.
-     * @return false if A has no NaN entry.
-     */
-    template< class access_t, class matrix_t >
-    bool hasnan( access_t accessType, const matrix_t& A ) {
-
-        using idx_t  = size_type< matrix_t >;
-
-        // constants
-        const idx_t m = nrows(A);
-        const idx_t n = ncols(A);
-
-        if ( (MatrixAccessPolicy) accessType == MatrixAccessPolicy::UpperHessenberg )
-        {
-            for (idx_t j = 0; j < n; ++j)
-                for (idx_t i = 0; i < ((j < m) ? j+2 : m); ++i)
-                    if( isnan( A(i,j) ) )
-                        return true;
-            return false;
-        }
-        else if ( (MatrixAccessPolicy) accessType == MatrixAccessPolicy::UpperTriangle )
-        {
-            for (idx_t j = 0; j < n; ++j)
-                for (idx_t i = 0; i < ((j < m) ? j+1 : m); ++i)
-                    if( isnan( A(i,j) ) )
-                        return true;
-            return false;
-        }
-        else if ( (MatrixAccessPolicy) accessType == MatrixAccessPolicy::StrictUpper )
-        {
-            for (idx_t j = 0; j < n; ++j)
-                for (idx_t i = 0; i < ((j < m) ? j : m); ++i)
-                    if( isnan( A(i,j) ) )
-                        return true;
-            return false;
-        }
-        else if ( (MatrixAccessPolicy) accessType == MatrixAccessPolicy::LowerHessenberg )
-        {
-            for (idx_t j = 0; j < n; ++j)
-                for (idx_t i = ((j > 1) ? j-1 : 0); i < m; ++i)
-                    if( isnan( A(i,j) ) )
-                        return true;
-            return false;
-        }
-        else if ( (MatrixAccessPolicy) accessType == MatrixAccessPolicy::LowerTriangle )
-        {
-            for (idx_t j = 0; j < n; ++j)
-                for (idx_t i = j; i < m; ++i)
-                    if( isnan( A(i,j) ) )
-                        return true;
-            return false;
-        }
-        else if ( (MatrixAccessPolicy) accessType == MatrixAccessPolicy::StrictLower )
-        {
-            for (idx_t j = 0; j < n; ++j)
-                for (idx_t i = j+1; i < m; ++i)
-                    if( isnan( A(i,j) ) )
-                        return true;
-            return false;
-        }
-        else // if ( (MatrixAccessPolicy) accessType == MatrixAccessPolicy::Dense )
-        {
-            for (idx_t j = 0; j < n; ++j)
-                for (idx_t i = 0; i < m; ++i)
-                    if( isnan( A(i,j) ) )
-                        return true;
-            return false;
-        }
-    }
-
-    /**
-     * Returns true if and only if A has an NaN entry.
-     * 
-     * Specific implementation for band access types.
-     * @see hasnan( access_t accessType, const matrix_t& A ).
-     */
-    template< class matrix_t >
-    bool hasnan( band_t accessType, const matrix_t& A ) {
-
-        using idx_t  = size_type< matrix_t >;
-
-        // constants
-        const idx_t m = nrows(A);
-        const idx_t n = ncols(A);
-        const idx_t kl = accessType.lower_bandwidth;
-        const idx_t ku = accessType.upper_bandwidth;
-
-        for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = ((j >= ku) ? (j-ku) : 0); i < min(m,j+kl+1); ++i)
-                if( isnan( A(i,j) ) )
-                    return true;
-        return false;
-    }
-
-    /**
-     * Returns true if and only if x has an NaN entry.
-     * 
-     * @param[in] x vector.
-     * 
-     * @return true if x has an NaN entry.
-     * @return false if x has no NaN entry.
-     */
-    template< class vector_t >
-    bool hasnan( const vector_t& x ) {
-
-        using idx_t  = size_type< vector_t >;
-
-        // constants
-        const idx_t n = size(x);
-
-        for (idx_t i = 0; i < n; ++i)
-            if( isnan( x[i] ) )
-                return true;
-        return false;
-    }
-}
-
-#ifndef TLAPACK_NDEBUG
-    #define tlapack_error( info, detailedInfo ) \
-        lapack::error( info, detailedInfo )
-    #define tlapack_warning( info, detailedInfo ) \
-        lapack::warning( info, detailedInfo )
-#else
-    #define tlapack_error( info, detailedInfo ) \
-        ((void)0)
-    #define tlapack_warning( info, detailedInfo ) \
-        ((void)0)
-#endif
-
-#if defined(TLAPACK_ENABLE_INFCHECK) && !defined(TLAPACK_NDEBUG)
-    #define tlapack_warn_infs_in_matrix( check, accessType, A, info, detailedInfo ) do { \
-        if( static_cast<bool>(check) && hasinf(accessType, A) ) \
-            tlapack_warning( info, detailedInfo ); \
-    } while(false)
-
-    #define tlapack_warn_infs_in_vector( check, x, info, detailedInfo ) do { \
-        if( static_cast<bool>(check) && hasinf(x) ) \
-            tlapack_warning( info, detailedInfo ); \
-    } while(false)
-#else // !defined(TLAPACK_ENABLE_INFCHECK) || defined(TLAPACK_NDEBUG)
-    #define tlapack_warn_infs_in_matrix( check, accessType, A, info, detailedInfo ) \
-        ((void)0)
-    #define tlapack_warn_infs_in_vector( check, x, info, detailedInfo ) \
-        ((void)0)
-#endif
-
-#if defined(TLAPACK_ENABLE_NANCHECK) && !defined(TLAPACK_NDEBUG)
-    #define tlapack_warn_nans_in_matrix( check, accessType, A, info, detailedInfo ) do { \
-        if( static_cast<bool>(check) && hasnan(accessType, A) ) \
-            tlapack_warning( info, detailedInfo ); \
-    } while(false)
-
-    #define tlapack_warn_nans_in_vector( check, x, info, detailedInfo ) do { \
-        if( static_cast<bool>(check) && hasnan(x) ) \
-            tlapack_warning( info, detailedInfo ); \
-    } while(false)
-#else // !defined(TLAPACK_ENABLE_NANCHECK) || defined(TLAPACK_NDEBUG)
-    #define tlapack_warn_nans_in_matrix( check, accessType, A, info, detailedInfo ) \
-        ((void)0)
-    #define tlapack_warn_nans_in_vector( check, x, info, detailedInfo ) \
-        ((void)0)
-#endif
 
 namespace tlapack {
 
@@ -569,6 +179,149 @@ inline int sgn( const real_t& val ) {
 }
 
 // -----------------------------------------------------------------------------
+/// isinf for complex numbers
+template< typename real_t >
+inline bool isinf( const std::complex<real_t>& x )
+{
+    return isinf( real(x) ) || isinf( imag(x) );
+}
+
+/**
+ * Returns true if and only if A has an infinite entry.
+ * 
+ * @tparam access_t Type of access inside the algorithm.
+ *      Either MatrixAccessPolicy or any type that implements
+ *          operator MatrixAccessPolicy().
+ * 
+ * @param[in] accessType Determines the entries of A that will be checked.
+ *      The following access types are allowed:
+ *          MatrixAccessPolicy::Dense,
+ *          MatrixAccessPolicy::UpperHessenberg,
+ *          MatrixAccessPolicy::LowerHessenberg,
+ *          MatrixAccessPolicy::UpperTriangle,
+ *          MatrixAccessPolicy::LowerTriangle,
+ *          MatrixAccessPolicy::StrictUpper,
+ *          MatrixAccessPolicy::StrictLower.
+ * 
+ * @param[in] A matrix.
+ * 
+ * @return true if A has an infinite entry.
+ * @return false if A has no infinite entry.
+ */
+template< class access_t, class matrix_t >
+bool hasinf( access_t accessType, const matrix_t& A ) {
+
+    using idx_t  = size_type< matrix_t >;
+
+    // constants
+    const idx_t m = nrows(A);
+    const idx_t n = ncols(A);
+
+    if ( (MatrixAccessPolicy) accessType == MatrixAccessPolicy::UpperHessenberg )
+    {
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = 0; i < ((j < m) ? j+2 : m); ++i)
+                if( isinf( A(i,j) ) )
+                    return true;
+        return false;
+    }
+    else if ( (MatrixAccessPolicy) accessType == MatrixAccessPolicy::UpperTriangle )
+    {
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = 0; i < ((j < m) ? j+1 : m); ++i)
+                if( isinf( A(i,j) ) )
+                    return true;
+        return false;
+    }
+    else if ( (MatrixAccessPolicy) accessType == MatrixAccessPolicy::StrictUpper )
+    {
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = 0; i < ((j < m) ? j : m); ++i)
+                if( isinf( A(i,j) ) )
+                    return true;
+        return false;
+    }
+    else if ( (MatrixAccessPolicy) accessType == MatrixAccessPolicy::LowerHessenberg )
+    {
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = ((j > 1) ? j-1 : 0); i < m; ++i)
+                if( isinf( A(i,j) ) )
+                    return true;
+        return false;
+    }
+    else if ( (MatrixAccessPolicy) accessType == MatrixAccessPolicy::LowerTriangle )
+    {
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = j; i < m; ++i)
+                if( isinf( A(i,j) ) )
+                    return true;
+        return false;
+    }
+    else if ( (MatrixAccessPolicy) accessType == MatrixAccessPolicy::StrictLower )
+    {
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = j+1; i < m; ++i)
+                if( isinf( A(i,j) ) )
+                    return true;
+        return false;
+    }
+    else // if ( (MatrixAccessPolicy) accessType == MatrixAccessPolicy::Dense )
+    {
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = 0; i < m; ++i)
+                if( isinf( A(i,j) ) )
+                    return true;
+        return false;
+    }
+}
+
+/**
+ * Returns true if and only if A has an infinite entry.
+ * 
+ * Specific implementation for band access types.
+ * @see hasinf( access_t accessType, const matrix_t& A ).
+ */
+template< class matrix_t >
+bool hasinf( band_t accessType, const matrix_t& A ) {
+
+    using idx_t  = size_type< matrix_t >;
+
+    // constants
+    const idx_t m = nrows(A);
+    const idx_t n = ncols(A);
+    const idx_t kl = accessType.lower_bandwidth;
+    const idx_t ku = accessType.upper_bandwidth;
+
+    for (idx_t j = 0; j < n; ++j)
+        for (idx_t i = ((j >= ku) ? (j-ku) : 0); i < min(m,j+kl+1); ++i)
+            if( isinf( A(i,j) ) )
+                return true;
+    return false;
+}
+
+/**
+ * Returns true if and only if x has an infinite entry.
+ * 
+ * @param[in] x vector.
+ * 
+ * @return true if x has an infinite entry.
+ * @return false if x has no infinite entry.
+ */
+template< class vector_t >
+bool hasinf( const vector_t& x ) {
+
+    using idx_t  = size_type< vector_t >;
+
+    // constants
+    const idx_t n = size(x);
+
+    for (idx_t i = 0; i < n; ++i)
+        if( isinf( x[i] ) )
+            return true;
+    return false;
+}
+
+// -----------------------------------------------------------------------------
 /// isnan for complex numbers
 template< typename real_t >
 inline bool isnan( const std::complex<real_t>& x )
@@ -576,12 +329,139 @@ inline bool isnan( const std::complex<real_t>& x )
     return isnan( real(x) ) || isnan( imag(x) );
 }
 
-// -----------------------------------------------------------------------------
-/// isinf for complex numbers
-template< typename real_t >
-inline bool isinf( const std::complex<real_t>& x )
-{
-    return isinf( real(x) ) || isinf( imag(x) );
+/**
+ * Returns true if and only if A has an NaN entry.
+ * 
+ * @tparam access_t Type of access inside the algorithm.
+ *      Either MatrixAccessPolicy or any type that implements
+ *          operator MatrixAccessPolicy().
+ * 
+ * @param[in] accessType Determines the entries of A that will be checked.
+ *      The following access types are allowed:
+ *          MatrixAccessPolicy::Dense,
+ *          MatrixAccessPolicy::UpperHessenberg,
+ *          MatrixAccessPolicy::LowerHessenberg,
+ *          MatrixAccessPolicy::UpperTriangle,
+ *          MatrixAccessPolicy::LowerTriangle,
+ *          MatrixAccessPolicy::StrictUpper,
+ *          MatrixAccessPolicy::StrictLower.
+ * 
+ * @param[in] A matrix.
+ * 
+ * @return true if A has an NaN entry.
+ * @return false if A has no NaN entry.
+ */
+template< class access_t, class matrix_t >
+bool hasnan( access_t accessType, const matrix_t& A ) {
+
+    using idx_t  = size_type< matrix_t >;
+
+    // constants
+    const idx_t m = nrows(A);
+    const idx_t n = ncols(A);
+
+    if ( (MatrixAccessPolicy) accessType == MatrixAccessPolicy::UpperHessenberg )
+    {
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = 0; i < ((j < m) ? j+2 : m); ++i)
+                if( isnan( A(i,j) ) )
+                    return true;
+        return false;
+    }
+    else if ( (MatrixAccessPolicy) accessType == MatrixAccessPolicy::UpperTriangle )
+    {
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = 0; i < ((j < m) ? j+1 : m); ++i)
+                if( isnan( A(i,j) ) )
+                    return true;
+        return false;
+    }
+    else if ( (MatrixAccessPolicy) accessType == MatrixAccessPolicy::StrictUpper )
+    {
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = 0; i < ((j < m) ? j : m); ++i)
+                if( isnan( A(i,j) ) )
+                    return true;
+        return false;
+    }
+    else if ( (MatrixAccessPolicy) accessType == MatrixAccessPolicy::LowerHessenberg )
+    {
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = ((j > 1) ? j-1 : 0); i < m; ++i)
+                if( isnan( A(i,j) ) )
+                    return true;
+        return false;
+    }
+    else if ( (MatrixAccessPolicy) accessType == MatrixAccessPolicy::LowerTriangle )
+    {
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = j; i < m; ++i)
+                if( isnan( A(i,j) ) )
+                    return true;
+        return false;
+    }
+    else if ( (MatrixAccessPolicy) accessType == MatrixAccessPolicy::StrictLower )
+    {
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = j+1; i < m; ++i)
+                if( isnan( A(i,j) ) )
+                    return true;
+        return false;
+    }
+    else // if ( (MatrixAccessPolicy) accessType == MatrixAccessPolicy::Dense )
+    {
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = 0; i < m; ++i)
+                if( isnan( A(i,j) ) )
+                    return true;
+        return false;
+    }
+}
+
+/**
+ * Returns true if and only if A has an NaN entry.
+ * 
+ * Specific implementation for band access types.
+ * @see hasnan( access_t accessType, const matrix_t& A ).
+ */
+template< class matrix_t >
+bool hasnan( band_t accessType, const matrix_t& A ) {
+
+    using idx_t  = size_type< matrix_t >;
+
+    // constants
+    const idx_t m = nrows(A);
+    const idx_t n = ncols(A);
+    const idx_t kl = accessType.lower_bandwidth;
+    const idx_t ku = accessType.upper_bandwidth;
+
+    for (idx_t j = 0; j < n; ++j)
+        for (idx_t i = ((j >= ku) ? (j-ku) : 0); i < min(m,j+kl+1); ++i)
+            if( isnan( A(i,j) ) )
+                return true;
+    return false;
+}
+
+/**
+ * Returns true if and only if x has an NaN entry.
+ * 
+ * @param[in] x vector.
+ * 
+ * @return true if x has an NaN entry.
+ * @return false if x has no NaN entry.
+ */
+template< class vector_t >
+bool hasnan( const vector_t& x ) {
+
+    using idx_t  = size_type< vector_t >;
+
+    // constants
+    const idx_t n = size(x);
+
+    for (idx_t i = 0; i < n; ++i)
+        if( isnan( x[i] ) )
+            return true;
+    return false;
 }
 
 // -----------------------------------------------------------------------------
@@ -890,28 +770,6 @@ inline constexpr auto get_work( opts_t&& opts ) {
 //     T* work = nullptr; ///< Workspace pointer
 //     idx_t lwork = 0;   ///< Workspace size
 // };
-
-#ifndef TLAPACK_DEFAULT_INFCHECK
-    #define TLAPACK_DEFAULT_INFCHECK 0
-#endif
-
-#ifndef TLAPACK_DEFAULT_NANCHECK
-    #define TLAPACK_DEFAULT_NANCHECK 0
-#endif
-
-/// Descriptor for Exception Handling
-struct exceptionCheck_t {
-    
-    bool inf = TLAPACK_DEFAULT_INFCHECK; ///< Default behavior of inf check in the routines of <T>LAPACK.
-    bool nan = TLAPACK_DEFAULT_NANCHECK; ///< Default behavior of nan check in the routines of <T>LAPACK.
-    
-    // /** Search for infs and nans in the input and ouput of internal calls.
-    //  * 
-    //  * - 0 : No internal check.
-    //  * - k : Internal check on k levels in the call tree.
-    //  */
-    // std::size_t infnanInternalCheck = std::numeric_limits<std::size_t>::max();
-};
 
 } // namespace tlapack
 

@@ -24,7 +24,7 @@ void lacpy(
     using internal::colmajor_matrix;
 
     // check arguments
-    tblas_error_if(  uplo != Uplo::Lower &&
+    tlapack_error_if(  uplo != Uplo::Lower &&
                     uplo != Uplo::Upper &&
                     uplo != Uplo::General );
     

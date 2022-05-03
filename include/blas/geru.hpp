@@ -51,9 +51,9 @@ void geru(
     const idx_t n = ncols(A);
 
     // check arguments
-    tblas_error_if( size(x) != m );
-    tblas_error_if( size(y) != n );
-    tblas_error_if( access_denied( dense, write_policy(A) ) );
+    tlapack_error_if( size(x) != m );
+    tlapack_error_if( size(y) != n );
+    tlapack_error_if( access_denied( dense, write_policy(A) ) );
 
     for (idx_t j = 0; j < n; ++j) {
         auto tmp = alpha * y[j];

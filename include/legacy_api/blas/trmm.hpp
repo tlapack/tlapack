@@ -102,21 +102,21 @@ void trmm(
     using internal::colmajor_matrix;
 
     // check arguments
-    tblas_error_if( layout != Layout::ColMajor &&
+    tlapack_error_if( layout != Layout::ColMajor &&
                    layout != Layout::RowMajor );
-    tblas_error_if( side != Side::Left &&
+    tlapack_error_if( side != Side::Left &&
                    side != Side::Right );
-    tblas_error_if( uplo != Uplo::Lower &&
+    tlapack_error_if( uplo != Uplo::Lower &&
                    uplo != Uplo::Upper );
-    tblas_error_if( trans != Op::NoTrans &&
+    tlapack_error_if( trans != Op::NoTrans &&
                    trans != Op::Trans &&
                    trans != Op::ConjTrans );
-    tblas_error_if( diag != Diag::NonUnit &&
+    tlapack_error_if( diag != Diag::NonUnit &&
                    diag != Diag::Unit );
-    tblas_error_if( m < 0 );
-    tblas_error_if( n < 0 );
-    tblas_error_if( lda < ((side == Side::Left) ? m : n) );
-    tblas_error_if( ldb < ((layout == Layout::RowMajor) ? n : m) );
+    tlapack_error_if( m < 0 );
+    tlapack_error_if( n < 0 );
+    tlapack_error_if( lda < ((side == Side::Left) ? m : n) );
+    tlapack_error_if( ldb < ((layout == Layout::RowMajor) ? n : m) );
 
     // quick return
     if (m == 0 || n == 0)
