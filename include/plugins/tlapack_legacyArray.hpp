@@ -163,7 +163,7 @@ namespace tlapack {
         assert( cols.first <= cols.second );
         assert( rowIdx >= 0 and rowIdx < nrows(A));
         using idx_t = typename legacyMatrix<T>::idx_t;
-        return legacyVector<T,idx_t>( cols.second-cols.first, &A(rowIdx,cols.first), A.ldim );
+        return legacyVector<T,idx_t>( cols.second-cols.first, &A(rowIdx,cols.first), layout == Layout::ColMajor ? A.ldim : 1 );
     }
     
     // Slice
@@ -174,7 +174,8 @@ namespace tlapack {
         assert( rows.second >= 0 and rows.second <= nrows(A));
         assert( rows.first <= rows.second );
         assert( colIdx >= 0 and colIdx < ncols(A));
-        return legacyVector<T>( rows.second-rows.first, &A(rows.first,colIdx) );
+        using idx_t = typename legacyMatrix<T>::idx_t;
+        return legacyVector<T,idx_t>( rows.second-rows.first, &A(rows.first,colIdx), layout == Layout::RowMajor ? A.ldim : 1 );
     }
     
     // Rows
