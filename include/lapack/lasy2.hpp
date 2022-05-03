@@ -52,7 +52,7 @@ namespace tlapack
         const T one(1);
         const T eight(8);
 
-        assert(isign == -1 or isign == 1);
+        tlapack_check(isign == -1 or isign == 1);
 
         // Quick return
         if (n1 == 0 or n2 == 0)

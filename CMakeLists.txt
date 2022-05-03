@@ -40,8 +40,16 @@ include(CMakeDependentOption)
 # BLAS++ and LAPACK++ interface
 option( USE_BLASPP_WRAPPERS   "Use BLAS++ wrappers to link with an optimized BLAS library"     OFF )
 option( USE_LAPACKPP_WRAPPERS "Use LAPACK++ wrappers to link with an optimized LAPACK library" OFF )
-option( BUILD_BLASPP_TESTS    "Build BLAS++ tests. Not used if BUILD_TESTING is OFF"           OFF )
-option( BUILD_LAPACKPP_TESTS  "Build LAPACK++ tests. Not used if BUILD_TESTING is OFF"         OFF )
+
+cmake_dependent_option( BUILD_BLASPP_TESTS   "Build BLAS++ tests. Please inform blaspp_TEST_DIR if BUILD_BLASPP_TESTS=ON"
+  OFF "BUILD_TESTING" # Default value when condition is true
+  OFF # Value when condition is false 
+)
+
+cmake_dependent_option( BUILD_LAPACKPP_TESTS "Build LAPACK++ tests. Please inform lapackpp_TEST_DIR if BUILD_LAPACKPP_TESTS=ON"
+  OFF "BUILD_TESTING" # Default value when condition is true
+  OFF # Value when condition is false
+)
 
 # TODO: Try to search this path automatically
 set( blaspp_TEST_DIR "" CACHE STRING "Directory with the BLAS++ tests" )
@@ -73,25 +81,35 @@ mark_as_advanced( FORCE TLAPACK_USE_MDSPAN )
 
 # Enable disable error checks
 option( TLAPACK_NDEBUG "Disable all error checks from <T>LAPACK" OFF )
-CMAKE_DEPENDENT_OPTION(
-  TLAPACK_CHECK_INPUT "<T>LAPACK routines check if the input parameters are illegal" ON
-  "NOT TLAPACK_NDEBUG" OFF
+
+cmake_dependent_option(
+  TLAPACK_CHECK_INPUT "<T>LAPACK routines check if the input parameters are illegal"
+  ON "NOT TLAPACK_NDEBUG" # Default value when condition is true
+  OFF # Value when condition is false
 )
-CMAKE_DEPENDENT_OPTION(
-  TLAPACK_ENABLE_NANCHECK "Enable NaN checks for the <T>LAPACK routines" OFF
-  "NOT TLAPACK_NDEBUG" OFF
+
+cmake_dependent_option(
+  TLAPACK_ENABLE_NANCHECK "Enable NaN checks for the <T>LAPACK routines"
+  OFF "NOT TLAPACK_NDEBUG" # Default value when condition is true
+  OFF # Value when condition is false
 )
-CMAKE_DEPENDENT_OPTION(
-  TLAPACK_DEFAULT_NANCHECK "By default, <T>LAPACK routines check for NaNs as specified in their documentation" ON
-  "NOT TLAPACK_NDEBUG; TLAPACK_ENABLE_NANCHECK" OFF
+
+cmake_dependent_option(
+  TLAPACK_DEFAULT_NANCHECK "By default, <T>LAPACK routines check for NaNs as specified in their documentation"
+  ON "NOT TLAPACK_NDEBUG; TLAPACK_ENABLE_NANCHECK" # Default value when condition is true
+  OFF # Value when condition is false
 )
-CMAKE_DEPENDENT_OPTION(
-  TLAPACK_ENABLE_INFCHECK "Enable Inf checks for the <T>LAPACK routines" OFF
-  "NOT TLAPACK_NDEBUG" OFF
+
+cmake_dependent_option(
+  TLAPACK_ENABLE_INFCHECK "Enable Inf checks for the <T>LAPACK routines"
+  OFF "NOT TLAPACK_NDEBUG" # Default value when condition is true
+  OFF # Value when condition is false
 )
-CMAKE_DEPENDENT_OPTION(
-  TLAPACK_DEFAULT_INFCHECK "By default, <T>LAPACK routines check for Infs as specified in their documentation" ON
-  "NOT TLAPACK_NDEBUG; TLAPACK_ENABLE_INFCHECK" OFF
+
+cmake_dependent_option(
+  TLAPACK_DEFAULT_INFCHECK "By default, <T>LAPACK routines check for Infs as specified in their documentation"
+  ON "NOT TLAPACK_NDEBUG; TLAPACK_ENABLE_INFCHECK" # Default value when condition is true
+  OFF # Value when condition is false
 )
 
 # Configure compiler flags for Error Checking
