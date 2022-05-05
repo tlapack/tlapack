@@ -14,7 +14,7 @@
 
 using namespace tlapack;
 
-TEMPLATE_LIST_TEST_CASE("forward move of 1x1 block gives correct results", "[utils]", types_to_test)
+TEMPLATE_LIST_TEST_CASE("move of eigenvalue block gives correct results", "[utils]", types_to_test)
 {
     srand(1);
 
@@ -29,8 +29,8 @@ TEMPLATE_LIST_TEST_CASE("forward move of 1x1 block gives correct results", "[uti
     idx_t n = 10;
 
     idx_t n1, n2, ifst, ilst;
-    ifst = GENERATE(0, 1, 6, 9);
-    ilst = GENERATE(0, 1, 6, 9);
+    ifst = GENERATE(0, 2, 6, 9);
+    ilst = GENERATE(0, 2, 6, 9);
 
     if (is_complex<T>::value)
     {
@@ -42,6 +42,12 @@ TEMPLATE_LIST_TEST_CASE("forward move of 1x1 block gives correct results", "[uti
         n1 = GENERATE(1, 2);
         n2 = GENERATE(1, 2);
     }
+
+    // ifst and ilst point to the same block, n1 must be equal to n2 for
+    // the test to make sense.
+    if (ifst == ilst and n1 != n2)
+        n2 = n1;
+
     const real_t eps = uroundoff<real_t>();
     const real_t tol = 1.0e2 * n * eps;
 
@@ -79,7 +85,7 @@ TEMPLATE_LIST_TEST_CASE("forward move of 1x1 block gives correct results", "[uti
 
     if( !is_complex<T>::value ){
         // Put a 2x2 block in the middle
-        A(4, 3) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+        A(5, 4) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
     }
 
     lacpy(Uplo::General, A, A_copy);
