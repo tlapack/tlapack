@@ -11,8 +11,7 @@
 #include <plugins/tlapack_stdvector.hpp>
 #include <tlapack.hpp>
 #include <testutils.hpp>
-#include <iostream>
-#include <iomanip>
+#include <testdefinitions.hpp>
 
 using namespace tlapack;
 
@@ -54,7 +53,7 @@ void check_hess_reduction(size_type<matrix_t> ilo, size_type<matrix_t> ihi, matr
     CHECK(simil_res_norm <= tol * normA);
 }
 
-TEMPLATE_LIST_TEST_CASE("Hessenberg reduction is backward stable", "[eigenvalues]", types_to_test)
+TEMPLATE_LIST_TEST_CASE("Hessenberg reduction is backward stable", "[eigenvalues][hessenberg]", types_to_test)
 {
     srand(1);
 

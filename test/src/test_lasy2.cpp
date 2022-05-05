@@ -11,13 +11,11 @@
 #include <plugins/tlapack_stdvector.hpp>
 #include <tlapack.hpp>
 #include <testutils.hpp>
-
-#include <iostream>
-#include <iomanip>
+#include <testdefinitions.hpp>
 
 using namespace tlapack;
 
-TEMPLATE_LIST_TEST_CASE("sylvester solver gives correct result", "[utils]", real_types_to_test)
+TEMPLATE_LIST_TEST_CASE("sylvester solver gives correct result", "[sylvester]", real_types_to_test)
 {
     srand(1);
 

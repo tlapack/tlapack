@@ -11,10 +11,11 @@
 #include <plugins/tlapack_stdvector.hpp>
 #include <tlapack.hpp>
 #include <testutils.hpp>
+#include <testdefinitions.hpp>
 
 using namespace tlapack;
 
-TEMPLATE_LIST_TEST_CASE("move of eigenvalue block gives correct results", "[utils]", types_to_test)
+TEMPLATE_LIST_TEST_CASE("move of eigenvalue block gives correct results", "[eigenvalues]", types_to_test)
 {
     srand(1);
 

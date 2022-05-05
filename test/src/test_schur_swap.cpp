@@ -12,10 +12,11 @@
 #include <plugins/tlapack_debugutils.hpp>
 #include <tlapack.hpp>
 #include <testutils.hpp>
+#include <testdefinitions.hpp>
 
 using namespace tlapack;
 
-TEMPLATE_LIST_TEST_CASE("schur swap gives correct result", "[utils]", types_to_test)
+TEMPLATE_LIST_TEST_CASE("schur swap gives correct result", "[eigenvalues]", types_to_test)
 {    
     srand(1);
 
