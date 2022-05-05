@@ -10,8 +10,23 @@
 #include <legacy_api/legacyArray.hpp>
 #include <tlapack.hpp>
 
+#include <complex>
 namespace tlapack
 {
+
+
+    template< typename T, enable_if_t<!is_complex<T>::value, bool> = true>
+    T rand_helper(){
+        return static_cast<T>(rand()) / static_cast<T>(RAND_MAX);
+    }
+    
+    template< typename T, enable_if_t<is_complex<T>::value, bool> = true>
+    T rand_helper(){
+        using real_t = real_type<T>;
+        real_t r1 = static_cast<real_t>(rand()) / static_cast<real_t>(RAND_MAX);
+        real_t r2 = static_cast<real_t>(rand()) / static_cast<real_t>(RAND_MAX);
+        return std::complex<real_t>(r1,r2);
+    }
 
     /** Calculates res = Q'*Q - I and the frobenius norm of res
      *

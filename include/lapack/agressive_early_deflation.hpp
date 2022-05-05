@@ -99,7 +99,7 @@ namespace tlapack
         // We have a maximum window size
         const idx_t nw_max = (n - 3) / 3;
         const real_t eps = uroundoff<real_t>();
-        const real_t small_num = safe_min<real_t>() * ((T)n / uroundoff<real_t>());
+        const real_t small_num = safe_min<real_t>() * ((real_t)n / uroundoff<real_t>());
         // Size of the deflation window
         const idx_t jw = min(min(nw, ihi - ilo), nw_max);
         // First row index in the deflation window
@@ -319,7 +319,7 @@ namespace tlapack
                 larfg(v, tau);
                 auto work2 = slice(WV, pair{0, jw}, 1);
                 auto TW_slice = slice(TW, pair{0, ns}, pair{0, jw});
-                larf(Side::Left, v, tau, TW_slice, work2);
+                larf(Side::Left, v, conj(tau), TW_slice, work2);
                 TW_slice = slice(TW, pair{0, jw}, pair{0, ns});
                 larf(Side::Right, v, tau, TW_slice, work2);
                 auto V_slice = slice(V, pair{0, jw}, pair{0, ns});

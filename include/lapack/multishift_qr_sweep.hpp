@@ -56,7 +56,7 @@ namespace tlapack
         class matrix_t,
         class vector_t,
         enable_if_t<is_complex<type_t<vector_t>>::value, bool> = true>
-    void multishift_QR_sweep(bool want_t, bool want_z, size_type<matrix_t> ilo, size_type<matrix_t> ihi, matrix_t &A, vector_t &s, matrix_t &Z, matrix_t &V)
+    void multishift_QR_sweep(bool want_t, bool want_z, size_type<matrix_t> ilo, size_type<matrix_t> ihi, matrix_t &A, vector_t &s, matrix_t &Z, matrix_t &V, bool debugflag)
     {
 
         using T = type_t<matrix_t>;
@@ -71,7 +71,7 @@ namespace tlapack
         const T zero(0);
         const idx_t n = ncols(A);
         const real_t eps = uroundoff<real_t>();
-        const real_t small_num = safe_min<real_t>() * ((T)n / eps);
+        const real_t small_num = safe_min<real_t>() * ((real_t)n / eps);
 
         // Assertions
         assert(n >= 12);
@@ -302,7 +302,7 @@ namespace tlapack
         //
         // The following code block moves the bulges down untill they are low enough to be removed
         //
-        while (i_pos_block < ihi - n_block_desired)
+        while (i_pos_block + n_block_desired < ihi)
         {
 
             // Number of positions each bulge will be moved down

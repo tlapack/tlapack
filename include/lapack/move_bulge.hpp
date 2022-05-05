@@ -87,7 +87,7 @@ namespace tlapack
             larfg(vt, tau);
             vt[0] = tau;
 
-            refsum = conj(v[0]) * H(1, 0) + conj(v[1]) * H(2, 0);
+            refsum = conj(vt[0]) * H(1, 0) + conj(vt[1]) * H(2, 0);
             if (abs1(H(2, 0) - refsum * vt[1]) + abs1(refsum * vt[2]) > eps * (abs1(H(0, 0)) + abs1(H(1, 1)) + abs1(H(2, 2))))
             {
                 // Starting a new bulge here would create non-negligible fill. Use the old one.

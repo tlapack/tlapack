@@ -147,6 +147,11 @@ namespace tlapack
         const idx_t n = ncols(A);
         const idx_t nh = ihi - ilo;
 
+        // This routine uses the space below the subdiagonal as workspace
+        // For small matrices, this is not enough
+        // if n < nmin, the matrix will be passed to lahqr
+        const idx_t nmin = 15;
+
         // Recommended number of shifts
         const idx_t nsr = opts.nshift_recommender(n, nh);
 
@@ -170,6 +175,11 @@ namespace tlapack
         if (nh == 1)
             w[ilo] = A(ilo, ilo);
 
+        // Tiny matrices must use lahqr
+        if( n < nmin ){
+            return lahqr( want_t, want_z, ilo, ihi, A, w, Z );
+        }
+
         // Get the workspace
         TA *_work;
         idx_t lwork;
@@ -190,7 +200,7 @@ namespace tlapack
             lwork = required_workspace;
             _work = new TA[lwork];
         }
-        auto V = internal::colmajor_matrix<TA>(&_work[0], 3, nsr / 2);
+        auto V = legacyMatrix<TA, layout<matrix_t>>(3, nsr / 2, &_work[0], layout<matrix_t> == Layout :: ColMajor ? 3 : nsr / 2);
 
         // itmax is the total number of QR iterations allowed.
         // For most matrices, 3 shifts per eigenvalue is enough, so
@@ -320,7 +330,7 @@ namespace tlapack
                 {
                     if (imag(w[i_shifts]) == zero)
                     {
-                        if (abs(real(w[i_shifts]) - A(istop, istop)) < abs(real(w[i_shifts + 1]) - A(istop, istop)))
+                        if (abs(real(w[i_shifts]) - A(istop-1, istop-1)) < abs(real(w[i_shifts + 1]) - A(istop-1, istop-1)))
                             w[i_shifts+1] = w[i_shifts];
                         else
                             w[i_shifts] = w[i_shifts+1];
@@ -331,7 +341,9 @@ namespace tlapack
             i_shifts = istop - ns;
             auto shifts = slice(w, pair{i_shifts, istop});
 
-            multishift_QR_sweep(want_t, want_z, istart, istop, A, shifts, Z, V);
+            multishift_QR_sweep(want_t, want_z, istart, istop, A, shifts, Z, V, iter == 38);
+
+            // if( iter == 38) return 0;
         }
 
         if (locally_allocated)

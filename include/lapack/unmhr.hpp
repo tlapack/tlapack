@@ -67,11 +67,7 @@ namespace tlapack
         auto tau_s = slice(tau, pair{ilo, ihi - 1});
         auto C_s = (side == Side::Left) ? slice(C, pair{ilo + 1, ihi}, pair{0, ncols(C)}) : slice(C, pair{0, nrows(C)}, pair{ilo + 1, ihi});
 
-        // There seems to be something wrong, this line makes the tests work
-        // Is it something wrong with this routine or perhaps with unm2r?
-        auto trans2 = trans == Op::NoTrans ? Op::ConjTrans : Op::NoTrans;
-
-        unm2r(side, trans2, A_s, tau_s, C_s, work);
+        unm2r(side, trans, A_s, tau_s, C_s, work);
 
         return 0;
     }

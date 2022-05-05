@@ -1,4 +1,4 @@
-/// @file test_utils.cpp
+/// @file test_blocked_francis.cpp
 /// @brief Test utils from <T>LAPACK.
 //
 // Copyright (c) 2022, University of Colorado Denver. All rights reserved.
@@ -7,464 +7,110 @@
 // testBLAS is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#include <plugins/tlapack_stdvector.hpp>
-
 #include <catch2/catch.hpp>
+#include <plugins/tlapack_stdvector.hpp>
 #include <tlapack.hpp>
-
-#include <iostream>
-#include <iomanip>
+#include <testutils.hpp>
+#include <testdefinitions.hpp>
 
 using namespace tlapack;
 
-// This should really be moved to test utils or something
-template <typename matrix_t>
-inline void printMatrix(const matrix_t &A)
+TEMPLATE_LIST_TEST_CASE("Multishift QR", "[eigenvalues]", types_to_test)
 {
+    srand(1);
+
+    using matrix_t = TestType;
+    using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
-    const idx_t m = nrows(A);
-    const idx_t n = ncols(A);
-
-    for (idx_t i = 0; i < m; ++i)
-    {
-        std::cout << std::endl;
-        for (idx_t j = 0; j < n; ++j)
-            std::cout << std::setw(16) << A(i, j) << " ";
-    }
-}
-
-TEST_CASE("Multishift QR", "[eigenvalues]")
-{
-
-    typedef float T;
-    typedef std::size_t idx_t;
-    typedef real_type<T> real_t;
-    typedef std::complex<real_t> complex_t;
-
-    using internal::colmajor_matrix;
+    using real_t = real_type<T>;
+    using complex_t = std::complex<real_t>;
 
     const T zero(0);
     const T one(1);
-    const idx_t n = 12;
-    const real_t eps = uroundoff<real_t>();
 
-    const bool verbose = true;
+    auto matrix_type = GENERATE("Random");
 
+    idx_t n, ilo, ihi;
+    if (matrix_type == "Random")
+    {
+        // Generate n
+        n = GENERATE(15, 20, 30);
+        ilo = 0;
+        ihi = n;
+    }
+
+    // Define the matrices and vectors
     std::unique_ptr<T[]> _A(new T[n * n]);
-    auto A = colmajor_matrix<T>(&_A[0], n, n);
-
-    std::unique_ptr<T[]> _A_copy(new T[n * n]);
-    auto A_copy = colmajor_matrix<T>(&_A_copy[0], n, n);
-
+    std::unique_ptr<T[]> _H(new T[n * n]);
     std::unique_ptr<T[]> _Q(new T[n * n]);
-    auto Q = colmajor_matrix<T>(&_Q[0], n, n);
 
-    auto s = std::vector<complex_t>(n);
+    // This only works for legacy matrix, we really work on that construct_matrix function
+    auto A = legacyMatrix<T, layout<matrix_t>>(n, n, &_A[0], n);
+    auto H = legacyMatrix<T, layout<matrix_t>>(n, n, &_H[0], n);
+    auto Q = legacyMatrix<T, layout<matrix_t>>(n, n, &_Q[0], n);
 
-    // Generate a random upper Hessenberg matrix in A
-    for (idx_t j = 0; j < n; ++j)
-        for (idx_t i = 0; i < std::min(n, j + 2); ++i)
-            A(i, j) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
-
-    for (size_t j = 0; j < n; ++j)
-        for (size_t i = j + 2; i < n; ++i)
-            A(i, j) = zero;
-
-    lacpy(Uplo::General, A, A_copy);
-    laset(Uplo::General, zero, one, Q);
-
-    // Print original A
-    if (verbose)
+    if (matrix_type == "Random")
     {
-        printMatrix(A);
-    }
-
-    auto normA = lange(frob_norm, A);
-
-    multishift_qr(true, true, 0, n, A, s, Q);
-
-    // Clean the lower triangular part that was used a workspace
-    for (size_t j = 0; j < n; ++j)
-        for (size_t i = j + 2; i < n; ++i)
-            A(i, j) = zero;
-
-    // Print Q and A
-    if (verbose)
-    {
-        std::cout << std::endl
-                  << "Q = ";
-        printMatrix(Q);
-        std::cout << std::endl
-                  << "A = ";
-        printMatrix(A);
-    }
-
-    real_t norm_orth_1, norm_repres_1;
-
-    // 2) Compute ||Q'Q - I||_F
-
-    {
-        std::unique_ptr<T[]> _work(new T[n * n]);
-        auto work = colmajor_matrix<T>(&_work[0], n, n);
-        for (size_t j = 0; j < n; ++j)
-            for (size_t i = 0; i < n; ++i)
-                work(i, j) = static_cast<float>(0xABADBABE);
-
-        // work receives the identity n*n
-        laset(Uplo::General, (T)0.0, (T)1.0, work);
-        // work receives Q'Q - I
-        // blas::syrk( blas::Uplo::Upper, blas::Op::ConjTrans, (T) 1.0, Q, (T) -1.0, work );
-        gemm(Op::ConjTrans, Op::NoTrans, (T)1.0, Q, Q, (T)-1.0, work);
-
-        // Compute ||Q'Q - I||_F
-        norm_orth_1 = lansy(frob_norm, Uplo::Upper, work);
-
-        CHECK(norm_orth_1 <= 1.0e2 * n * eps);
-
-        if (verbose)
-        {
-            std::cout << std::endl
-                      << "Q'Q-I = ";
-            printMatrix(work);
-        }
-    }
-
-    // 3) Compute Q*A_copyQ
-
-    {
-        std::unique_ptr<T[]> _work(new T[n * n]);
-        auto work = colmajor_matrix<T>(&_work[0], n, n);
-        for (size_t j = 0; j < n; ++j)
-            for (size_t i = 0; i < n; ++i)
-                work(i, j) = static_cast<float>(0xABADBABC);
-
-        gemm(Op::ConjTrans, Op::NoTrans, (T)1.0, Q, A_copy, (T)0.0, work);
-        gemm(Op::NoTrans, Op::NoTrans, (T)1.0, work, Q, (T)0.0, A_copy);
-
-
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = 0; i < std::min(n, j + 2); ++i)
+                A(i, j) = rand_helper<T>();
 
         for (size_t j = 0; j < n; ++j)
             for (size_t i = j + 2; i < n; ++i)
-                A_copy(i, j) = zero;
-
-        if (verbose)
-        {
-            std::cout << std::endl
-                      << "Q'A_copyQ = ";
-            printMatrix(A_copy);
-        }
-
-        for (size_t j = 0; j < n; ++j)
-            for (size_t i = 0; i < n; ++i)
-                A_copy(i, j) -= A(i, j);
-
-        if (verbose)
-        {
-            std::cout << std::endl
-                      << "Q'A_copyQ - A = ";
-            printMatrix(A_copy);
-        }
-
-        // Compute ||Q'Q - I||_F
-        norm_repres_1 = lange(frob_norm, A_copy);
-
-        // CHECK(norm_repres_1 <= 1.0e2 * n * eps);
+                A(i, j) = zero;
     }
 
-    if (verbose)
-        std::cout << std::endl;
-}
-
-TEST_CASE("Multishift sweep", "[eigenvalues]")
-{
-
-    typedef float T;
-    typedef std::size_t idx_t;
-    typedef real_type<T> real_t;
-    typedef std::complex<real_t> complex_t;
-
-    using internal::colmajor_matrix;
-
-    const T zero(0);
-    const T one(1);
-    const idx_t n = 15;
-    const idx_t n_shifts = 4;
-    const idx_t ilo = 1;
-    const idx_t ihi = n-1;
-    const real_t eps = uroundoff<real_t>();
-
-    const bool verbose = true;
-
-    std::unique_ptr<T[]> _A(new T[n * n]);
-    auto A = colmajor_matrix<T>(&_A[0], n, n);
-
-    std::unique_ptr<T[]> _A_copy(new T[n * n]);
-    auto A_copy = colmajor_matrix<T>(&_A_copy[0], n, n);
-
-    std::unique_ptr<T[]> _Q(new T[n * n]);
-    auto Q = colmajor_matrix<T>(&_Q[0], n, n);
-
-    std::unique_ptr<T[]> _V(new T[3 * (n_shifts/2)]);
-    auto V = colmajor_matrix<T>(&_V[0], 3, (n_shifts/2));
-
-    auto s = std::vector<complex_t>(n_shifts);
-    for (int i = 0; i < n_shifts; ++i)
-    {
-        s[i] = complex_t(i + 1, 0.);
-    }
-
-    // Generate a random upper Hessenberg matrix in A
-    for (idx_t j = 0; j < n; ++j)
-        for (idx_t i = 0; i < std::min(n, j + 2); ++i)
-            A(i, j) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
-
-    for (size_t j = 0; j < n; ++j)
-        for (size_t i = j + 2; i < n; ++i)
-            A(i, j) = zero;
-
-    // Make A consistent with ilo and ihi
+    // Make sure ilo and ihi correspond to the actual matrix
     for (size_t j = 0; j < ilo; ++j)
         for (size_t i = j + 1; i < n; ++i)
-            A(i, j) = zero;
+            A(i, j) = (T)0.0;
     for (size_t i = ihi; i < n; ++i)
         for (size_t j = 0; j < i; ++j)
-            A(i, j) = zero;
+            A(i, j) = (T)0.0;
 
-    lacpy(Uplo::General, A, A_copy);
+    tlapack::lacpy(Uplo::General, A, H);
+    auto s = std::vector<complex_t>(n);
     laset(Uplo::General, zero, one, Q);
 
-    // Print original A
-    if (verbose)
+    idx_t ns = GENERATE(2, 4);
+    idx_t nw = GENERATE(2, 4);
+
+    DYNAMIC_SECTION("Multishift QR with"
+                    << " matrix = " << matrix_type << " n = " << n << " ilo = " << ilo << " ihi = " << ihi)
     {
-        printMatrix(A);
-    }
 
-    auto normA = lange(frob_norm, A);
+        francis_opts_t<idx_t, T> opts = {
+            .nshift_recommender = [ns](idx_t n, idx_t nh) -> idx_t
+            {
+                return ns;
+            },
+            .deflation_window_recommender = [nw](idx_t n, idx_t nh) -> idx_t
+            {
+                return nw;
+            }};
 
-    multishift_QR_sweep(true, true, ilo, ihi, A, s, Q, V);
+        multishift_qr(true, true, ilo, ihi, H, s, Q, opts);
 
-    // Clean the lower triangular part that was used a workspace
-    for (size_t j = 0; j < n; ++j)
-        for (size_t i = j + 2; i < n; ++i)
-            A(i, j) = zero;
+        // Clean the lower triangular part that was used a workspace
+        for (size_t j = 0; j < n; ++j)
+            for (size_t i = j + 2; i < n; ++i)
+                H(i, j) = zero;
 
-    // Print Q and A
-    if (verbose)
-    {
-        std::cout << std::endl
-                  << "Q = ";
-        printMatrix(Q);
-        std::cout << std::endl
-                  << "A = ";
-        printMatrix(A);
-    }
+        const real_type<T> eps = uroundoff<real_type<T>>();
+        const real_type<T> tol = n * 1.0e2 * eps;
 
-    real_t norm_orth_1, norm_repres_1;
-
-    // 2) Compute ||Q'Q - I||_F
-
-    {
+        std::unique_ptr<T[]> _res(new T[n * n]);
         std::unique_ptr<T[]> _work(new T[n * n]);
-        auto work = colmajor_matrix<T>(&_work[0], n, n);
-        for (size_t j = 0; j < n; ++j)
-            for (size_t i = 0; i < n; ++i)
-                work(i, j) = static_cast<float>(0xABADBABE);
 
-        // work receives the identity n*n
-        laset(Uplo::General, (T)0.0, (T)1.0, work);
-        // work receives Q'Q - I
-        // blas::syrk( blas::Uplo::Upper, blas::Op::ConjTrans, (T) 1.0, Q, (T) -1.0, work );
-        gemm(Op::ConjTrans, Op::NoTrans, (T)1.0, Q, Q, (T)-1.0, work);
+        auto res = legacyMatrix<T, layout<matrix_t>>(n, n, &_res[0], n);
+        auto work = legacyMatrix<T, layout<matrix_t>>(n, n, &_work[0], n);
 
-        // Compute ||Q'Q - I||_F
-        norm_orth_1 = lansy(frob_norm, Uplo::Upper, work);
+        // Calculate residuals
+        auto orth_res_norm = check_orthogonality(Q, res);
+        CHECK(orth_res_norm <= tol);
 
-        CHECK(norm_orth_1 <= 1.0e2 * n * eps);
-
-        if (verbose)
-        {
-            std::cout << std::endl
-                      << "Q'Q-I = ";
-            printMatrix(work);
-        }
+        auto normA = tlapack::lange(tlapack::frob_norm, A);
+        auto simil_res_norm = check_similarity_transform(A, Q, H, res, work);
+        CHECK(simil_res_norm <= tol * normA);
     }
-
-    // 3) Compute Q*A_copyQ
-
-    {
-        std::unique_ptr<T[]> _work(new T[n * n]);
-        auto work = colmajor_matrix<T>(&_work[0], n, n);
-        for (size_t j = 0; j < n; ++j)
-            for (size_t i = 0; i < n; ++i)
-                work(i, j) = static_cast<float>(0xABADBABC);
-
-        gemm(Op::ConjTrans, Op::NoTrans, (T)1.0, Q, A_copy, (T)0.0, work);
-        gemm(Op::NoTrans, Op::NoTrans, (T)1.0, work, Q, (T)0.0, A_copy);
-
-        if (verbose)
-        {
-            std::cout << std::endl
-                      << "Q'A_copyQ = ";
-            printMatrix(A_copy);
-        }
-
-        for (size_t j = 0; j < n; ++j)
-            for (size_t i = 0; i < n; ++i)
-                A_copy(i, j) -= A(i, j);
-
-        if (verbose)
-        {
-            std::cout << std::endl
-                      << "Q'A_copyQ - A = ";
-            printMatrix(A_copy);
-        }
-
-        // Compute ||Q'Q - I||_F
-        norm_repres_1 = lange(frob_norm, A_copy);
-
-        CHECK(norm_repres_1 <= 1.0e2 * n * eps);
-    }
-
-    if (verbose)
-        std::cout << std::endl;
-}
-
-TEST_CASE("AED", "[eigenvalues]")
-{
-
-    typedef float T;
-    typedef std::size_t idx_t;
-    typedef real_type<T> real_t;
-    typedef std::complex<real_t> complex_t;
-
-    using internal::colmajor_matrix;
-
-    const T zero(0);
-    const T one(1);
-    const idx_t n = 12;
-    const idx_t window_size = 4;
-    const real_t eps = uroundoff<real_t>();
-
-    const bool verbose = true;
-
-    std::unique_ptr<T[]> _A(new T[n * n]);
-    auto A = colmajor_matrix<T>(&_A[0], n, n);
-
-    std::unique_ptr<T[]> _A_copy(new T[n * n]);
-    auto A_copy = colmajor_matrix<T>(&_A_copy[0], n, n);
-
-    std::unique_ptr<T[]> _Q(new T[n * n]);
-    auto Q = colmajor_matrix<T>(&_Q[0], n, n);
-
-    std::unique_ptr<complex_t[]> _s(new complex_t[n]);
-    auto s = legacyVector<complex_t>(n, &_s[0]);
-
-    // Generate a random upper Hessenberg matrix in A
-    for (idx_t j = 0; j < n; ++j)
-        for (idx_t i = 0; i < std::min(n, j + 2); ++i)
-            A(i, j) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
-
-    for (size_t j = 0; j < n; ++j)
-        for (size_t i = j + 2; i < n; ++i)
-            A(i, j) = zero;
-
-    lacpy(Uplo::General, A, A_copy);
-    laset(Uplo::General, zero, one, Q);
-
-    // Print original A
-    if (verbose)
-    {
-        printMatrix(A);
-    }
-
-    auto normA = lange(tlapack::frob_norm, A);
-
-    idx_t ns, nd;
-
-    agressive_early_deflation(true, true, (idx_t)0, n, window_size, A, s, Q, ns, nd);
-
-    // Clean the lower triangular part that was used a workspace
-    for (size_t j = 0; j < n; ++j)
-        for (size_t i = j + 2; i < n; ++i)
-            A(i, j) = zero;
-
-    // Print Q and A
-    if (verbose)
-    {
-        std::cout << std::endl
-                  << "Q = ";
-        printMatrix(Q);
-        std::cout << std::endl
-                  << "A = ";
-        printMatrix(A);
-    }
-
-    real_t norm_orth_1, norm_repres_1;
-
-    // 2) Compute ||Q'Q - I||_F
-
-    {
-        std::unique_ptr<T[]> _work(new T[n * n]);
-        auto work = colmajor_matrix<T>(&_work[0], n, n);
-        for (size_t j = 0; j < n; ++j)
-            for (size_t i = 0; i < n; ++i)
-                work(i, j) = static_cast<float>(0xABADBABE);
-
-        // work receives the identity n*n
-        laset(Uplo::General, (T)0.0, (T)1.0, work);
-        // work receives Q'Q - I
-        // blas::syrk( blas::Uplo::Upper, blas::Op::ConjTrans, (T) 1.0, Q, (T) -1.0, work );
-        gemm(Op::ConjTrans, Op::NoTrans, (T)1.0, Q, Q, (T)-1.0, work);
-
-        // Compute ||Q'Q - I||_F
-        norm_orth_1 = lansy(frob_norm, Uplo::Upper, work);
-
-        CHECK(norm_orth_1 <= 1.0e2 * n * eps);
-
-        if (verbose)
-        {
-            std::cout << std::endl
-                      << "Q'Q-I = ";
-            printMatrix(work);
-        }
-    }
-
-    // 3) Compute Q*A_copyQ
-
-    {
-        std::unique_ptr<T[]> _work(new T[n * n]);
-        auto work = colmajor_matrix<T>(&_work[0], n, n);
-        for (size_t j = 0; j < n; ++j)
-            for (size_t i = 0; i < n; ++i)
-                work(i, j) = static_cast<float>(0xABADBABC);
-
-        gemm(Op::ConjTrans, Op::NoTrans, (T)1.0, Q, A_copy, (T)0.0, work);
-        gemm(Op::NoTrans, Op::NoTrans, (T)1.0, work, Q, (T)0.0, A_copy);
-
-        if (verbose)
-        {
-            std::cout << std::endl
-                      << "Q'A_copyQ = ";
-            printMatrix(A_copy);
-        }
-
-        for (size_t j = 0; j < n; ++j)
-            for (size_t i = 0; i < n; ++i)
-                A_copy(i, j) -= A(i, j);
-
-        if (verbose)
-        {
-            std::cout << std::endl
-                      << "Q'A_copyQ - A = ";
-            printMatrix(A_copy);
-        }
-
-        // Compute ||Q'Q - I||_F
-        norm_repres_1 = lange(frob_norm, A_copy);
-
-        CHECK(norm_repres_1 <= 1.0e2 * n * eps);
-    }
-
-    if (verbose)
-        std::cout << std::endl;
 }
