@@ -57,16 +57,16 @@ TEMPLATE_LIST_TEST_CASE("schur swap gives correct result", "[eigenvalues]", type
     // Generate random matrix in Schur form
     for (idx_t j = 0; j < n; ++j)
         for (idx_t i = 0; i < n; ++i)
-            A(i, j) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+            A(i, j) = rand_helper<T>();
 
     for (idx_t j = 0; j < n; ++j)
         for (idx_t i = j + 1; i < n; ++i)
             A(i, j) = zero;
 
     if( n1 == 2)
-        A( j + 1, j ) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+        A( j + 1, j ) = rand_helper<T>();
     if (n2 == 2)
-        A(j + n1 + 1, j + n1) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+        A(j + n1 + 1, j + n1) = rand_helper<T>();
 
     lacpy(Uplo::General, A, A_copy);
     laset(Uplo::General, zero, one, Q);

@@ -47,15 +47,15 @@ TEMPLATE_LIST_TEST_CASE("sylvester solver gives correct result", "[sylvester]", 
 
     for (idx_t i = 0; i < n1; ++i)
         for (idx_t j = 0; j < n1; ++j)
-            TL(i, j) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+            TL(i, j) = rand_helper<T>();
 
     for (idx_t i = 0; i < n2; ++i)
         for (idx_t j = 0; j < n2; ++j)
-            TR(i, j) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+            TR(i, j) = rand_helper<T>();
 
     for (idx_t i = 0; i < n1; ++i)
         for (idx_t j = 0; j < n2; ++j)
-            X_exact(i, j) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+            X_exact(i, j) = rand_helper<T>();
 
     Op trans_l = Op::NoTrans;
     Op trans_r = Op::NoTrans;
