@@ -16,6 +16,7 @@
 
 #include "legacy_api/legacyArray.hpp"
 #include "base/types.hpp"
+#include "base/utils.hpp"
 
 namespace tlapack
 {
@@ -92,19 +93,21 @@ namespace tlapack
         const idx_t m = nrows(A);
         const idx_t n = ncols(A);
 
+        const int width = is_complex<type_t<matrix_t>>::value ? 25 : 10;
+
         std::stringstream stream;
         stream << "{ \"kind\":{ \"text\": true },\"text\": \"";
 
         // Col indices
         for (idx_t j = 0; j < n; ++j)
-            stream << std::setw(10) << j << " ";
+            stream << std::setw(width) << j << " ";
         stream << "\\n";
 
         // Add the matrix values
         for (idx_t i = 0; i < m; ++i)
         {
             for (idx_t j = 0; j < n; ++j)
-                stream << std::setw(10) << std::setprecision(3) << A(i, j) << " ";
+                stream << std::setw(width) << std::setprecision(3) << A(i, j) << " ";
             stream << "\\n";
         }
 
@@ -177,7 +180,7 @@ namespace tlapack
         using idx_t = size_type<matrix_t>;
         const idx_t n = std::max(ncols(A), nrows(A));
 
-        if (n > 15)
+        if (n > 7)
             return visualize_matrix_text(A);
         else
             return visualize_matrix_table(A);
