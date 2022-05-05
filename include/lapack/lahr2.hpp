@@ -82,7 +82,11 @@ namespace tlapack
                 auto Y2 = slice(Y, pair{k + 1, n}, pair{0, i});
                 auto Vti = slice(A, k + i, pair{0, i});
                 auto b = slice(A, pair{k + 1, n}, i);
+                for( idx_t j = 0; j < i; ++j )
+                    Vti[j] = conj(Vti[j]);
                 gemv(Op::NoTrans, -one, Y2, Vti, one, b);
+                for( idx_t j = 0; j < i; ++j )
+                    Vti[j] = conj(Vti[j]);
                 //
                 // Apply I - V * T**T * V**T to this column (call it b) from the
                 // left, using the last column of T as workspace
@@ -106,7 +110,7 @@ namespace tlapack
                 //
                 // w := w + V2**T * b2
                 //
-                gemv(Op::Trans, one, V2, b2, one, w);
+                gemv(Op::ConjTrans, one, V2, b2, one, w);
                 //
                 // w := T**T * w
                 //
