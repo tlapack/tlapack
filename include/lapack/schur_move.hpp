@@ -87,15 +87,28 @@ namespace tlapack
                 if (A(ilst, ilst - 1) != zero)
                     ilst = ilst - 1;
 
+        // Size of the final block, can be either 1, 2
+        idx_t nbl = 1;
+        if (!is_complex<T>::value)
+            if (ilst < n - 1)
+                if (A(ilst + 1, ilst) != zero)
+                    nbl = 2;
+
         idx_t here = ifst;
         if (ifst < ilst)
         {
+            if( nbf == 2 and nbl == 1 )
+                ilst = ilst - 1;
+            if( nbf == 1 and nbl == 2 )
+                ilst = ilst + 1;
+
+
             while (here != ilst)
             {
                 // Size of the next eigenvalue block
                 idx_t nbnext = 1;
                 if (!is_complex<T>::value)
-                    if (here + nbf + 1 < n - 1)
+                    if (here + nbf + 1 < n)
                         if (A(here + nbf + 1, here + nbf) != zero)
                             nbnext = 2;
 
