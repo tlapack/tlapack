@@ -64,7 +64,7 @@ namespace tlapack
         assert(nrows(Q) == n);
         assert(ncols(Q) == n);
         assert(0 <= j0);
-        assert(j0 + n1 + n2 - 1 < n);
+        assert(j0 + n1 + n2 <= n);
         assert(n1 == 1 or n1 == 2);
         assert(n2 == 1 or n2 == 2);
 

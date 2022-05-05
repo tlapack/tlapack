@@ -1,4 +1,4 @@
-/// @file debug_utils.hpp
+/// @file tlapack_debugutils.hpp
 /// @author Thijs Steel, KU Leuven, Belgium
 //
 // This file is part of <T>LAPACK.
@@ -57,6 +57,22 @@ namespace tlapack
         print_matrix(A);
     }
     void print_matrix_z(const legacyMatrix<std::complex<double>, Layout::ColMajor> &A)
+    {
+        print_matrix(A);
+    }
+    void print_rowmajormatrix_r(const legacyMatrix<float, Layout::RowMajor> &A)
+    {
+        print_matrix(A);
+    }
+    void print_rowmajormatrix_d(const legacyMatrix<double, Layout::RowMajor> &A)
+    {
+        print_matrix(A);
+    }
+    void print_rowmajormatrix_c(const legacyMatrix<std::complex<float>, Layout::RowMajor> &A)
+    {
+        print_matrix(A);
+    }
+    void print_rowmajormatrix_z(const legacyMatrix<std::complex<double>, Layout::RowMajor> &A)
     {
         print_matrix(A);
     }
@@ -184,6 +200,22 @@ namespace tlapack
         return visualize_matrix(A);
     }
     std::string visualize_matrix_z(const legacyMatrix<std::complex<double>, Layout::ColMajor> &A)
+    {
+        return visualize_matrix(A);
+    }
+    std::string visualize_rowmajormatrix_r(const legacyMatrix<float, Layout::RowMajor> &A)
+    {
+        return visualize_matrix(A);
+    }
+    std::string visualize_rowmajormatrix_d(const legacyMatrix<double, Layout::RowMajor> &A)
+    {
+        return visualize_matrix(A);
+    }
+    std::string visualize_rowmajormatrix_c(const legacyMatrix<std::complex<float>, Layout::RowMajor> &A)
+    {
+        return visualize_matrix(A);
+    }
+    std::string visualize_rowmajormatrix_z(const legacyMatrix<std::complex<double>, Layout::RowMajor> &A)
     {
         return visualize_matrix(A);
     }

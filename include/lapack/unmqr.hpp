@@ -133,8 +133,8 @@ int unmqr(
 
     // Preparing loop indexes
     const bool positiveInc = (
-        ( (side == Side::Left) &&  (trans == Op::NoTrans) ) ||
-        (!(side == Side::Left) && !(trans == Op::NoTrans) )
+        ( (side == Side::Left) && !(trans == Op::NoTrans) ) ||
+        (!(side == Side::Left) &&  (trans == Op::NoTrans) )
     );
     const idx_t i0 = (positiveInc) ? 0      : ( (k-1) / nb ) * nb;
     const idx_t iN = (positiveInc) ? k-1+nb : -nb;

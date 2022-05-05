@@ -8,54 +8,59 @@
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
 #include <catch2/catch.hpp>
+#include <plugins/tlapack_stdvector.hpp>
 #include <tlapack.hpp>
-#include <iostream>
-#include <iomanip>
+#include <testutils.hpp>
+#include <testdefinitions.hpp>
 
 using namespace tlapack;
 
-// This should really be moved to test utils or something
-template <typename matrix_t>
-inline void printMatrix(const matrix_t &A)
+TEMPLATE_LIST_TEST_CASE("move of eigenvalue block gives correct results", "[eigenvalues]", types_to_test)
 {
+    srand(1);
+
+    using matrix_t = TestType;
+    using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
-    const idx_t m = nrows(A);
-    const idx_t n = ncols(A);
-
-    for (idx_t i = 0; i < m; ++i)
-    {
-        std::cout << std::endl;
-        for (idx_t j = 0; j < n; ++j)
-            std::cout << std::setw(16) << A(i, j) << " ";
-    }
-}
-
-TEST_CASE("forward move of 1x1 block gives correct results", "[utils]")
-{
-
-    typedef float T;
-    typedef std::size_t idx_t;
     typedef real_type<T> real_t;
     typedef std::complex<real_t> complex_t;
 
-    using internal::colmajor_matrix;
-
     const T zero(0);
     const T one(1);
-    idx_t ifst = 1;
-    idx_t ilst = 10;
-    const idx_t n = 10;
+    idx_t n = 10;
+
+    idx_t n1, n2, ifst, ilst;
+    ifst = GENERATE(0, 2, 6, 9);
+    ilst = GENERATE(0, 2, 6, 9);
+
+    if (is_complex<T>::value)
+    {
+        n1 = 1;
+        n2 = 1;
+    }
+    else
+    {
+        n1 = GENERATE(1, 2);
+        n2 = GENERATE(1, 2);
+    }
+
+    // ifst and ilst point to the same block, n1 must be equal to n2 for
+    // the test to make sense.
+    if (ifst == ilst and n1 != n2)
+        n2 = n1;
+
     const real_t eps = uroundoff<real_t>();
+    const real_t tol = 1.0e2 * n * eps;
 
     std::unique_ptr<T[]> _A(new T[n * n]);
-    auto A = colmajor_matrix<T>(&_A[0], n, n);
-
     std::unique_ptr<T[]> _Q(new T[n * n]);
-    auto Q = colmajor_matrix<T>(&_Q[0], n, n);
-
     std::unique_ptr<T[]> _A_copy(new T[n * n]);
-    auto A_copy = colmajor_matrix<T>(&_A_copy[0], n, n);
 
+    auto A = legacyMatrix<T, layout<matrix_t>>(n, n, &_A[0], n);
+    auto Q = legacyMatrix<T, layout<matrix_t>>(n, n, &_Q[0], n);
+    auto A_copy = legacyMatrix<T, layout<matrix_t>>(n, n, &_A_copy[0], n);
+
+    // Generate random matrix in Schur form
     for (idx_t j = 0; j < n; ++j)
         for (idx_t i = 0; i < n; ++i)
             A(i, j) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
@@ -64,379 +69,44 @@ TEST_CASE("forward move of 1x1 block gives correct results", "[utils]")
         for (idx_t i = j + 1; i < n; ++i)
             A(i, j) = zero;
 
-    A(4, 3) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+    if (n1 == 2)
+    {
+        if (ifst < n - 1)
+            A(ifst + 1, ifst) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+        else
+            A(ifst, ifst - 1) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+    }
+    if (n2 == 2)
+    {
+        if (ilst < n - 1)
+            A(ilst + 1, ilst) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+        else
+            A(ilst, ilst - 1) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+    }
+
+    if( !is_complex<T>::value ){
+        // Put a 2x2 block in the middle
+        A(5, 4) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+    }
 
     lacpy(Uplo::General, A, A_copy);
     laset(Uplo::General, zero, one, Q);
 
-    schur_move(true, A, Q, ifst, ilst);
-
-    T norm_orth_1, norm_repres_1;
-    const bool verbose = false;
-    // 2) Compute ||Q'Q - I||_F
+    DYNAMIC_SECTION("ifst = " << ifst << " n1 = " << n1 << " ilst = " << ilst << " n2 =" << n2)
     {
+        schur_move(true, A, Q, ifst, ilst);
+        // Calculate residuals
+
+        std::unique_ptr<T[]> _res(new T[n * n]);
         std::unique_ptr<T[]> _work(new T[n * n]);
-        auto work = colmajor_matrix<T>(&_work[0], n, n);
-        for (size_t j = 0; j < n; ++j)
-            for (size_t i = 0; i < n; ++i)
-                work(i, j) = static_cast<float>(0xABADBABE);
 
-        // work receives the identity n*n
-        laset(Uplo::General, (T)0.0, (T)1.0, work);
-        // work receives Q'Q - I
-        // syrk( Uplo::Upper, Op::ConjTrans, (T) 1.0, Q, (T) -1.0, work );
-        gemm(Op::ConjTrans, Op::NoTrans, (T)1.0, Q, Q, (T)-1.0, work);
-
-        // Compute ||Q'Q - I||_F
-        norm_orth_1 = lansy(frob_norm, Uplo::Upper, work);
-
-        CHECK(norm_orth_1 <= 1.0e2 * eps);
-
-        if (verbose)
-        {
-            std::cout << std::endl
-                      << "Q'Q-I = ";
-            printMatrix(work);
-        }
-    }
-
-    // 3) Compute Q*A_copyQ
-
-    if (verbose)
-    {
-        std::unique_ptr<T[]> _work(new T[n * n]);
-        auto work = colmajor_matrix<T>(&_work[0], n, n);
-        for (size_t j = 0; j < n; ++j)
-            for (size_t i = 0; i < n; ++i)
-                work(i, j) = static_cast<float>(0xABADBABC);
-
-        gemm(Op::ConjTrans, Op::NoTrans, (T)1.0, Q, A_copy, (T)0.0, work);
-        gemm(Op::NoTrans, Op::NoTrans, (T)1.0, work, Q, (T)0.0, A_copy);
-
-        std::cout << std::endl
-                  << "Q'A_copyQ = ";
-        printMatrix(A_copy);
-
-        for (size_t j = 0; j < n; ++j)
-            for (size_t i = 0; i < n; ++i)
-                A_copy(i, j) -= A(i, j);
-
-        std::cout << std::endl
-                  << "Q'A_copyQ - A = ";
-        printMatrix(A_copy);
-
-        // Compute ||Q'Q - I||_F
-        norm_repres_1 = lange(frob_norm, A_copy);
-
-        CHECK(norm_repres_1 <= 1.0e2 * eps);
-    }
-}
-
-TEST_CASE("forward move of 2x2 block gives correct results", "[utils]")
-{
-
-    typedef float T;
-    typedef std::size_t idx_t;
-    typedef real_type<T> real_t;
-    typedef std::complex<real_t> complex_t;
-
-    using internal::colmajor_matrix;
-
-    const T zero(0);
-    const T one(1);
-    idx_t ifst = 1;
-    idx_t ilst = 6;
-    const idx_t n = 10;
-    const real_t eps = uroundoff<real_t>();
-
-    std::unique_ptr<T[]> _A(new T[n * n]);
-    auto A = colmajor_matrix<T>(&_A[0], n, n);
-
-    std::unique_ptr<T[]> _Q(new T[n * n]);
-    auto Q = colmajor_matrix<T>(&_Q[0], n, n);
-
-    std::unique_ptr<T[]> _A_copy(new T[n * n]);
-    auto A_copy = colmajor_matrix<T>(&_A_copy[0], n, n);
-
-    for (idx_t j = 0; j < n; ++j)
-        for (idx_t i = 0; i < n; ++i)
-            A(i, j) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
-
-    for (idx_t j = 0; j < n; ++j)
-        for (idx_t i = j + 1; i < n; ++i)
-            A(i, j) = zero;
-
-    A(2, 1) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
-
-    A(4, 3) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
-
-    lacpy(Uplo::General, A, A_copy);
-    laset(Uplo::General, zero, one, Q);
-
-    schur_move(true, A, Q, ifst, ilst);
-
-    T norm_orth_1, norm_repres_1;
-    const bool verbose = false;
-    // 2) Compute ||Q'Q - I||_F
-    {
-        std::unique_ptr<T[]> _work(new T[n * n]);
-        auto work = colmajor_matrix<T>(&_work[0], n, n);
-        for (size_t j = 0; j < n; ++j)
-            for (size_t i = 0; i < n; ++i)
-                work(i, j) = static_cast<float>(0xABADBABE);
-
-        // work receives the identity n*n
-        laset(Uplo::General, (T)0.0, (T)1.0, work);
-        // work receives Q'Q - I
-        // syrk( Uplo::Upper, Op::ConjTrans, (T) 1.0, Q, (T) -1.0, work );
-        gemm(Op::ConjTrans, Op::NoTrans, (T)1.0, Q, Q, (T)-1.0, work);
-
-        // Compute ||Q'Q - I||_F
-        norm_orth_1 = lansy(frob_norm, Uplo::Upper, work);
-
-        CHECK(norm_orth_1 <= 1.0e2 * eps);
-
-        if (verbose)
-        {
-            std::cout << std::endl
-                      << "Q'Q-I = ";
-            printMatrix(work);
-        }
-    }
-
-    // 3) Compute Q*A_copyQ
-
-    if (verbose)
-    {
-        std::unique_ptr<T[]> _work(new T[n * n]);
-        auto work = colmajor_matrix<T>(&_work[0], n, n);
-        for (size_t j = 0; j < n; ++j)
-            for (size_t i = 0; i < n; ++i)
-                work(i, j) = static_cast<float>(0xABADBABC);
-
-        gemm(Op::ConjTrans, Op::NoTrans, (T)1.0, Q, A_copy, (T)0.0, work);
-        gemm(Op::NoTrans, Op::NoTrans, (T)1.0, work, Q, (T)0.0, A_copy);
-
-        std::cout << std::endl
-                  << "Q'A_copyQ = ";
-        printMatrix(A_copy);
-
-        for (size_t j = 0; j < n; ++j)
-            for (size_t i = 0; i < n; ++i)
-                A_copy(i, j) -= A(i, j);
-
-        std::cout << std::endl
-                  << "Q'A_copyQ - A = ";
-        printMatrix(A_copy);
-
-        // Compute ||Q'Q - I||_F
-        norm_repres_1 = lange(frob_norm, A_copy);
-
-        CHECK(norm_repres_1 <= 1.0e2 * eps);
-    }
-}
-
-TEST_CASE("backward move of 1x1 block gives correct results", "[utils]")
-{
-
-    typedef float T;
-    typedef std::size_t idx_t;
-    typedef real_type<T> real_t;
-    typedef std::complex<real_t> complex_t;
-
-    using internal::colmajor_matrix;
-
-    const T zero(0);
-    const T one(1);
-    idx_t ifst = 6;
-    idx_t ilst = 0;
-    const idx_t n = 10;
-    const real_t eps = uroundoff<real_t>();
-
-    std::unique_ptr<T[]> _A(new T[n * n]);
-    auto A = colmajor_matrix<T>(&_A[0], n, n);
-
-    std::unique_ptr<T[]> _Q(new T[n * n]);
-    auto Q = colmajor_matrix<T>(&_Q[0], n, n);
-
-    std::unique_ptr<T[]> _A_copy(new T[n * n]);
-    auto A_copy = colmajor_matrix<T>(&_A_copy[0], n, n);
-
-    for (idx_t j = 0; j < n; ++j)
-        for (idx_t i = 0; i < n; ++i)
-            A(i, j) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
-
-    for (idx_t j = 0; j < n; ++j)
-        for (idx_t i = j + 1; i < n; ++i)
-            A(i, j) = zero;
-
-    A(4, 3) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
-
-    lacpy(Uplo::General, A, A_copy);
-    laset(Uplo::General, zero, one, Q);
-
-    schur_move(true, A, Q, ifst, ilst);
-
-    T norm_orth_1, norm_repres_1;
-    const bool verbose = false;
-    // 2) Compute ||Q'Q - I||_F
-    {
-        std::unique_ptr<T[]> _work(new T[n * n]);
-        auto work = colmajor_matrix<T>(&_work[0], n, n);
-        for (size_t j = 0; j < n; ++j)
-            for (size_t i = 0; i < n; ++i)
-                work(i, j) = static_cast<float>(0xABADBABE);
-
-        // work receives the identity n*n
-        laset(Uplo::General, (T)0.0, (T)1.0, work);
-        // work receives Q'Q - I
-        // syrk( Uplo::Upper, Op::ConjTrans, (T) 1.0, Q, (T) -1.0, work );
-        gemm(Op::ConjTrans, Op::NoTrans, (T)1.0, Q, Q, (T)-1.0, work);
-
-        // Compute ||Q'Q - I||_F
-        norm_orth_1 = lansy(frob_norm, Uplo::Upper, work);
-
-        CHECK(norm_orth_1 <= 1.0e2 * eps);
-
-        if (verbose)
-        {
-            std::cout << std::endl
-                      << "Q'Q-I = ";
-            printMatrix(work);
-        }
-    }
-
-    // 3) Compute Q*A_copyQ
-
-    if (verbose)
-    {
-        std::unique_ptr<T[]> _work(new T[n * n]);
-        auto work = colmajor_matrix<T>(&_work[0], n, n);
-        for (size_t j = 0; j < n; ++j)
-            for (size_t i = 0; i < n; ++i)
-                work(i, j) = static_cast<float>(0xABADBABC);
-
-        gemm(Op::ConjTrans, Op::NoTrans, (T)1.0, Q, A_copy, (T)0.0, work);
-        gemm(Op::NoTrans, Op::NoTrans, (T)1.0, work, Q, (T)0.0, A_copy);
-
-        std::cout << std::endl
-                  << "Q'A_copyQ = ";
-        printMatrix(A_copy);
-
-        for (size_t j = 0; j < n; ++j)
-            for (size_t i = 0; i < n; ++i)
-                A_copy(i, j) -= A(i, j);
-
-        std::cout << std::endl
-                  << "Q'A_copyQ - A = ";
-        printMatrix(A_copy);
-
-        // Compute ||Q'Q - I||_F
-        norm_repres_1 = lange(frob_norm, A_copy);
-
-        CHECK(norm_repres_1 <= 1.0e2 * eps);
-    }
-}
-
-TEST_CASE("backward move of 2x2 block gives correct results", "[utils]")
-{
-
-    typedef float T;
-    typedef std::size_t idx_t;
-    typedef real_type<T> real_t;
-    typedef std::complex<real_t> complex_t;
-
-    using internal::colmajor_matrix;
-
-    const T zero(0);
-    const T one(1);
-    idx_t ifst = 6;
-    idx_t ilst = 0;
-    const idx_t n = 10;
-    const real_t eps = uroundoff<real_t>();
-
-    std::unique_ptr<T[]> _A(new T[n * n]);
-    auto A = colmajor_matrix<T>(&_A[0], n, n);
-
-    std::unique_ptr<T[]> _Q(new T[n * n]);
-    auto Q = colmajor_matrix<T>(&_Q[0], n, n);
-
-    std::unique_ptr<T[]> _A_copy(new T[n * n]);
-    auto A_copy = colmajor_matrix<T>(&_A_copy[0], n, n);
-
-    for (idx_t j = 0; j < n; ++j)
-        for (idx_t i = 0; i < n; ++i)
-            A(i, j) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
-
-    for (idx_t j = 0; j < n; ++j)
-        for (idx_t i = j + 1; i < n; ++i)
-            A(i, j) = zero;
-
-    A(4, 3) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
-    A(7, 6) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
-
-    lacpy(Uplo::General, A, A_copy);
-    laset(Uplo::General, zero, one, Q);
-
-    schur_move(true, A, Q, ifst, ilst);
-
-    T norm_orth_1, norm_repres_1;
-    const bool verbose = false;
-    // 2) Compute ||Q'Q - I||_F
-    {
-        std::unique_ptr<T[]> _work(new T[n * n]);
-        auto work = colmajor_matrix<T>(&_work[0], n, n);
-        for (size_t j = 0; j < n; ++j)
-            for (size_t i = 0; i < n; ++i)
-                work(i, j) = static_cast<float>(0xABADBABE);
-
-        // work receives the identity n*n
-        laset(Uplo::General, (T)0.0, (T)1.0, work);
-        // work receives Q'Q - I
-        // syrk( Uplo::Upper, Op::ConjTrans, (T) 1.0, Q, (T) -1.0, work );
-        gemm(Op::ConjTrans, Op::NoTrans, (T)1.0, Q, Q, (T)-1.0, work);
-
-        // Compute ||Q'Q - I||_F
-        norm_orth_1 = lansy(frob_norm, Uplo::Upper, work);
-
-        CHECK(norm_orth_1 <= 1.0e2 * eps);
-
-        if (verbose)
-        {
-            std::cout << std::endl
-                      << "Q'Q-I = ";
-            printMatrix(work);
-        }
-    }
-
-    // 3) Compute Q*A_copyQ
-
-    if (verbose)
-    {
-        std::unique_ptr<T[]> _work(new T[n * n]);
-        auto work = colmajor_matrix<T>(&_work[0], n, n);
-        for (size_t j = 0; j < n; ++j)
-            for (size_t i = 0; i < n; ++i)
-                work(i, j) = static_cast<float>(0xABADBABC);
-
-        gemm(Op::ConjTrans, Op::NoTrans, (T)1.0, Q, A_copy, (T)0.0, work);
-        gemm(Op::NoTrans, Op::NoTrans, (T)1.0, work, Q, (T)0.0, A_copy);
-
-        std::cout << std::endl
-                  << "Q'A_copyQ = ";
-        printMatrix(A_copy);
-
-        for (size_t j = 0; j < n; ++j)
-            for (size_t i = 0; i < n; ++i)
-                A_copy(i, j) -= A(i, j);
-
-        std::cout << std::endl
-                  << "Q'A_copyQ - A = ";
-        printMatrix(A_copy);
-
-        // Compute ||Q'Q - I||_F
-        norm_repres_1 = lange(frob_norm, A_copy);
-
-        CHECK(norm_repres_1 <= 1.0e2 * eps);
+        auto res = legacyMatrix<T, layout<matrix_t>>(n, n, &_res[0], n);
+        auto work = legacyMatrix<T, layout<matrix_t>>(n, n, &_work[0], n);
+        auto orth_res_norm = check_orthogonality(Q, res);
+        CHECK(orth_res_norm <= tol);
+
+        auto normA = tlapack::lange(tlapack::frob_norm, A);
+        auto simil_res_norm = check_similarity_transform(A_copy, Q, A, res, work);
+        CHECK(simil_res_norm <= tol * normA);
     }
 }
