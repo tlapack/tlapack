@@ -35,24 +35,24 @@ namespace tlapack
      *
      * @param[in] want_t bool.
      *      If true, the full Schur factor T will be computed.
-     * 
+     *
      * @param[in] want_z bool.
      *      If true, the Schur vectors Z will be computed.
-     * 
+     *
      * @param[in] ilo    integer.
      *      Either ilo=0 or A(ilo,ilo-1) = 0.
-     * 
+     *
      * @param[in] ihi    integer.
      *      ilo and ihi determine an isolated block in A.
-     * 
+     *
      * @param[in,out] A  n by n matrix.
      *       Hessenberg matrix on which AED will be performed
-     * 
+     *
      * @param[in] nw    integer.
      *      Desired window size to perform agressive early deflation on.
      *      If the matrix is not large enough to provide the scratch space
      *      or if the isolated block is small, a smaller value may be used.
-     * 
+     *
      * @param[out] s  size n vector.
      *      On exit, the entries s[ihi-nd-ns:ihi-nd] contain the unconverged
      *      eigenvalues that can be used a shifts. The entries s[ihi-nd:ihi]
@@ -60,15 +60,15 @@ namespace tlapack
      *      s[ihi-nw:ihi] are not changed. The converged shifts are stored
      *      in the same positions as their correspinding diagonal elements
      *      in A.
-     * 
+     *
      * @param[in,out] Z  n by n matrix.
      *      On entry, the previously calculated Schur factors
      *      On exit, the orthogonal updates applied to A accumulated
      *      into Z.
-     * 
+     *
      * @param[out] ns    integer.
      *      Number of eigenvalues available as shifts in s.
-     * 
+     *
      * @param[out] nd    integer.
      *      Number of converged eigenvalues available as shifts in s.
      *
@@ -79,7 +79,7 @@ namespace tlapack
         class vector_t,
         typename idx_t = size_type<matrix_t>,
         enable_if_t<is_complex<type_t<vector_t>>::value, bool> = true>
-    void agressive_early_deflation(bool want_t, bool want_z, idx_t ilo, idx_t ihi, idx_t nw, matrix_t &A, vector_t &s, matrix_t &Z, idx_t& ns, idx_t& nd)
+    void agressive_early_deflation(bool want_t, bool want_z, idx_t ilo, idx_t ihi, idx_t nw, matrix_t &A, vector_t &s, matrix_t &Z, idx_t &ns, idx_t &nd)
     {
 
         using T = type_t<matrix_t>;
@@ -152,7 +152,7 @@ namespace tlapack
         laset(Uplo::Lower, zero, zero, TW);
         for (idx_t j = 0; j < jw; ++j)
             for (idx_t i = 0; i < std::min(j + 2, jw); ++i)
-                TW(i, j) = A_window(i,j) ;
+                TW(i, j) = A_window(i, j);
         laset(Uplo::General, zero, one, V);
         int infqr = lahqr(true, true, 0, jw, TW, s_window, V);
 
@@ -216,71 +216,78 @@ namespace tlapack
         if (ns == 0)
             s_spike = zero;
 
+
+        if (ns == jw)
+        {
+            // Agressive early deflation didn't deflate any eigenvalues
+            // We don't need to apply the update to the rest of the matrix
+            nd = jw - ns;
+            ns = ns - infqr;
+            return;
+        }
+
         // sorting diagonal blocks of T improves accuracy for graded matrices.
         // Bubble sort deals well with exchange failures.
-        if (ns < jw)
+        bool sorted = false;
+        while (!sorted)
         {
-            bool sorted = false;
-            while (!sorted)
+            sorted = true;
+
+            // Window to be checked (other eigenvalue are sorted)
+            idx_t ilst = jw;
+
+            // Index of the first block
+            idx_t i1 = ns;
+
+            while (i1 + 1 < ilst)
             {
-                sorted = true;
 
-                // Window to be checked (other eigenvalue are sorted)
-                idx_t ilst = jw;
+                // Size of the first block
+                idx_t n1 = 1;
+                if (!is_complex<T>::value)
+                    if (TW(i1 + 1, i1) != zero)
+                        n1 = 2;
 
-                // Index of the first block
-                idx_t i1 = ns;
-
-                while (i1 + 1 < ilst)
+                // Check if there is a next block
+                if (i1 + n1 == jw)
                 {
+                    ilst = ilst - n1;
+                    break;
+                }
 
-                    // Size of the first block
-                    idx_t n1 = 1;
-                    if (!is_complex<T>::value)
-                        if (TW(i1 + 1, i1) != zero)
-                            n1 = 2;
+                // Index of the second block
+                idx_t i2 = i1 + n1;
 
-                    // Check if there is a next block
-                    if (i1 + n1 == jw)
-                    {
-                        ilst = ilst - n1;
-                        break;
-                    }
+                // Size of the second block
+                idx_t n2 = 1;
+                if (!is_complex<T>::value)
+                    if (i2 + 1 < jw)
+                        if (TW(i2 + 1, i2) != zero)
+                            n2 = 2;
 
-                    // Index of the second block
-                    idx_t i2 = i1 + n1;
+                real_t ev1, ev2;
+                if (n1 == 1)
+                    ev1 = abs1(TW(i1, i1));
+                else
+                    ev1 = abs(TW(i1, i1)) + sqrt(abs(TW(i1 + 1, i1))) * sqrt(abs(TW(i1, i1 + 1)));
+                if (n2 == 1)
+                    ev2 = abs1(TW(i2, i2));
+                else
+                    ev2 = abs(TW(i2, i2)) + sqrt(abs(TW(i2 + 1, i2))) * sqrt(abs(TW(i2, i2 + 1)));
 
-                    // Size of the second block
-                    idx_t n2 = 1;
-                    if (!is_complex<T>::value)
-                        if (i2 + 1 < jw)
-                            if (TW(i2 + 1, i2) != zero)
-                                n2 = 2;
-
-                    real_t ev1, ev2;
-                    if (n1 == 1)
-                        ev1 = abs1(TW(i1, i1));
+                if (ev1 > ev2)
+                {
+                    i1 = i2;
+                }
+                else
+                {
+                    sorted = false;
+                    int ierr = schur_swap(true, TW, V, i1, n1, n2);
+                    if (ierr == 0)
+                        i1 = i1 + n2;
                     else
-                        ev1 = abs(TW(i1, i1)) + sqrt(abs(TW(i1 + 1, i1))) * sqrt(abs(TW(i1, i1 + 1)));
-                    if (n2 == 1)
-                        ev2 = abs1(TW(i2, i2));
-                    else
-                        ev2 = abs(TW(i2, i2)) + sqrt(abs(TW(i2 + 1, i2))) * sqrt(abs(TW(i2, i2 + 1)));
-
-                    if (ev1 > ev2)
-                    {
                         i1 = i2;
-                    }
-                    else
-                    {
-                        sorted = false;
-                        int ierr = schur_swap(true, TW, V, i1, n1, n2);
-                        if (ierr == 0)
-                            i1 = i1 + n2;
-                        else
-                            i1 = i2;
-                        ilst = i1;
-                    }
+                    ilst = i1;
                 }
             }
         }
@@ -305,7 +312,7 @@ namespace tlapack
         // Reduce A back to Hessenberg form (if neccesary)
         if (s_spike != zero)
         {
-   
+
             // Reflect spike back
             {
                 T tau;
@@ -342,6 +349,7 @@ namespace tlapack
 
         // Store number of deflated eigenvalues
         nd = jw - ns;
+        ns = ns - infqr;
 
         //
         // Update rest of the matrix using matrix matrix multiplication
