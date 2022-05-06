@@ -56,7 +56,7 @@ namespace tlapack
         class matrix_t,
         class vector_t,
         enable_if_t<is_complex<type_t<vector_t>>::value, bool> = true>
-    void multishift_QR_sweep(bool want_t, bool want_z, size_type<matrix_t> ilo, size_type<matrix_t> ihi, matrix_t &A, vector_t &s, matrix_t &Z, matrix_t &V, bool debugflag)
+    void multishift_QR_sweep(bool want_t, bool want_z, size_type<matrix_t> ilo, size_type<matrix_t> ihi, matrix_t &A, vector_t &s, matrix_t &Z, matrix_t &V)
     {
 
         using T = type_t<matrix_t>;
@@ -139,7 +139,7 @@ namespace tlapack
                     else
                     {
                         // Chase bulge down
-                        auto H = slice(A, pair{i_pos - 1, i_pos + 3}, pair{i_pos - 1, i_pos + 2});
+                        auto H = slice(A, pair{i_pos - 1, i_pos + 3}, pair{i_pos - 1, i_pos + 3});
                         move_bulge(H, v, s[2 * i_bulge], s[2 * i_bulge + 1]);
                     }
 
@@ -325,7 +325,7 @@ namespace tlapack
                 {
                     idx_t i_pos = i_pos_last - 2 * i_bulge;
                     auto v = col(V, i_bulge);
-                    auto H = slice(A, pair{i_pos - 1, i_pos + 3}, pair{i_pos - 1, i_pos + 2});
+                    auto H = slice(A, pair{i_pos - 1, i_pos + 3}, pair{i_pos - 1, i_pos + 3});
                     move_bulge(H, v, s[2 * i_bulge], s[2 * i_bulge + 1]);
 
                     // Apply the reflector we just calculated from the right
@@ -544,7 +544,7 @@ namespace tlapack
                     else
                     {
                         auto v = col(V, i_bulge);
-                        auto H = slice(A, pair{i_pos - 1, i_pos + 3}, pair{i_pos - 1, i_pos + 2});
+                        auto H = slice(A, pair{i_pos - 1, i_pos + 3}, pair{i_pos - 1, i_pos + 3});
                         move_bulge(H, v, s[2 * i_bulge], s[2 * i_bulge + 1]);
 
                         auto t1 = conj(v[0]);

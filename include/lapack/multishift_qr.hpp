@@ -156,7 +156,7 @@ namespace tlapack
         const idx_t nsr = opts.nshift_recommender(n, nh);
 
         // Recommended deflation window size
-        const idx_t nwr = opts.nshift_recommender(n, nh);
+        const idx_t nwr = opts.deflation_window_recommender(n, nh);
         const idx_t nw_max = (n - 3) / 3;
 
         const idx_t nibble = opts.nibble;
@@ -278,7 +278,7 @@ namespace tlapack
             // reason to expect that many eigenvalues will deflate without it.
             // Here, the QR sweep is skipped if many eigenvalues have just been
             // deflated or if the remaining active block is small.
-            if (100 * ld > nwr * nibble or (istop - istart) <= nwr)
+            if (100 * ld > nwr * nibble or (istop - istart) <= nw_max)
             {
                 continue;
             }
@@ -341,9 +341,7 @@ namespace tlapack
             i_shifts = istop - ns;
             auto shifts = slice(w, pair{i_shifts, istop});
 
-            multishift_QR_sweep(want_t, want_z, istart, istop, A, shifts, Z, V, iter == 38);
-
-            // if( iter == 38) return 0;
+            multishift_QR_sweep(want_t, want_z, istart, istop, A, shifts, Z, V);
         }
 
         if (locally_allocated)

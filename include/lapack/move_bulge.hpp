@@ -82,7 +82,7 @@ namespace tlapack
             // 2-small-subdiagonals trick
             std::unique_ptr<T[]> _vt(new T[3]);
             auto vt = legacyVector<T>(3, &_vt[0]);
-            auto H2 = slice(H, pair{1, 4}, pair{0, 3});
+            auto H2 = slice(H, pair{1, 4}, pair{1, 4});
             lahqr_shiftcolumn(H2, vt, s1, s2);
             larfg(vt, tau);
             vt[0] = tau;

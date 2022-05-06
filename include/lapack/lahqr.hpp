@@ -81,7 +81,7 @@ namespace tlapack
         using real_t = real_type<TA>;
         using idx_t = size_type<matrix_t>;
         using pair = pair<idx_t, idx_t>;
-                    
+
         // constants
         const real_t rzero(0);
         const TA one(1);
@@ -234,8 +234,8 @@ namespace tlapack
                             auto y = slice(A, istart + 1, pair{istart + 2, istop_m});
                             rot(x, y, cs, sn);
                         }
-                        auto x2 = slice(A, pair{istart_m, istart},istart);
-                        auto y2 = slice(A, pair{istart_m, istart},istart + 1);
+                        auto x2 = slice(A, pair{istart_m, istart}, istart);
+                        auto y2 = slice(A, pair{istart_m, istart}, istart + 1);
                         rot(x2, y2, cs, sn);
                     }
                     if (want_z)
@@ -290,17 +290,19 @@ namespace tlapack
             // Now that we know the specific shift, we can also check whether we can introduce that shift
             // somewhere else in the subblock.
             std::vector<TA> v(3);
+            TA t1;
             auto istart2 = istart;
             if (istart + 3 < istop)
             {
                 for (idx_t i = istop - 3; i > istart; --i)
                 {
                     auto H = slice(A, pair{i, i + 3}, pair{i, i + 3});
-                    auto x = slice(v, pair{0, 3});
-                    lahqr_shiftcolumn(H, x, s1, s2);
-                    auto temp1 = abs1(A(i, i - 1)) * (abs1(v[1]) + abs1(v[2]));
-                    auto temp2 = abs1(v[0]) * (abs1(A(i - 1, i - 1)) + abs1(A(i, i)) + abs1(A(i + 1, i + 1)));
-                    if (temp1 <= eps * temp2)
+                    lahqr_shiftcolumn(H, v, s1, s2);
+                    larfg(v, t1);
+                    v[0] = t1;
+                    auto refsum = conj(v[0]) * A(i,i-1) + conj(v[1]) * A(i+1,i-1);
+                    if (abs1(A(i+1,i-1) - refsum * v[1]) + abs1(refsum * v[2]) <=
+                        eps * (abs1(A(i,i-1)) + abs1(A(i,i+1)) + abs1(A(i+1,i+2))))
                     {
                         istart2 = i;
                         break;
@@ -308,7 +310,6 @@ namespace tlapack
                 }
             }
 
-            TA t1;
             // Apply QR step
             for (idx_t i = istart2; i < istop - 1; ++i)
             {
