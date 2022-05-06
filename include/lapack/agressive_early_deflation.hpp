@@ -88,8 +88,6 @@ namespace tlapack
         using std::max;
         using std::min;
 
-        using internal::colmajor_matrix;
-
         // Constants
         const real_t rzero(0);
         const T one(1);

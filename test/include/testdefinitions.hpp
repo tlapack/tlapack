@@ -7,6 +7,9 @@
 // testBLAS is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
+#ifndef __TESTDEFINITIONS_HH__
+#define __TESTDEFINITIONS_HH__
+
 #include <legacy_api/legacyArray.hpp>
 #include <tlapack.hpp>
 
@@ -47,3 +50,5 @@ namespace tlapack
         legacyMatrix<std::complex<double>, Layout::RowMajor>>;
 
 }
+
+#endif // __TESTDEFINITIONS_HH__

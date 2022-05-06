@@ -64,8 +64,6 @@ namespace tlapack
         using idx_t = size_type<matrix_t>;
         using pair = std::pair<idx_t, idx_t>;
 
-        using internal::colmajor_matrix;
-
         const real_t rzero(0);
         const T one(1);
         const T zero(0);
@@ -82,7 +80,7 @@ namespace tlapack
         assert(ncols(V) >= size(s) / 2);
 
         const idx_t n_block_max = (n - 3) / 3;
-        const idx_t n_shifts_max = std::max<idx_t>(2, 3 * (n_block_max / 4));
+        const idx_t n_shifts_max = std::min(ihi - ilo - 1, std::max<idx_t>(2, 3 * (n_block_max / 4)));
 
         idx_t n_shifts = std::min<idx_t>(size(s), n_shifts_max);
         if (n_shifts % 2 == 1)
@@ -113,7 +111,7 @@ namespace tlapack
             // Near-the-diagonal bulge introduction
             // The calculations are initially limited to the window: A(ilo:ilo+n_block,ilo:ilo+n_block)
             // The rest is updated later via level 3 BLAS
-            idx_t n_block = n_block_desired;
+            idx_t n_block = std::min(n_block_desired, ihi - ilo);
             idx_t istart_m = ilo;
             idx_t istop_m = ilo + n_block;
             auto U2 = slice(U, pair{0, n_block}, pair{0, n_block});
@@ -304,7 +302,6 @@ namespace tlapack
         //
         while (i_pos_block + n_block_desired < ihi)
         {
-
             // Number of positions each bulge will be moved down
             idx_t n_pos = std::min<idx_t>(n_block_desired - n_shifts, ihi - n_shifts - 1 - i_pos_block);
             // Actual blocksize

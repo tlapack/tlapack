@@ -14,8 +14,6 @@
 #include <complex>
 #include <vector>
 #include <functional>
-#include <iostream>
-#include <iomanip>
 
 #include "legacy_api/base/utils.hpp"
 #include "base/utils.hpp"
@@ -176,15 +174,16 @@ namespace tlapack
             w[ilo] = A(ilo, ilo);
 
         // Tiny matrices must use lahqr
-        if( n < nmin ){
-            return lahqr( want_t, want_z, ilo, ihi, A, w, Z );
+        if (n < nmin)
+        {
+            return lahqr(want_t, want_z, ilo, ihi, A, w, Z);
         }
 
         // Get the workspace
         TA *_work;
         idx_t lwork;
         // idx_t required_workspace = get_work_multishift_qr(want_t, want_z, ilo, ihi, A, w, Z, opts);
-        idx_t required_workspace = 3 * (nsr / 2);
+        idx_t required_workspace = 3 * (nsr);
         // Store whether or not a workspace was locally allocated
         bool locally_allocated = false;
         if (opts._work and required_workspace <= opts.lwork)
@@ -200,7 +199,7 @@ namespace tlapack
             lwork = required_workspace;
             _work = new TA[lwork];
         }
-        auto V = legacyMatrix<TA, layout<matrix_t>>(3, nsr / 2, &_work[0], layout<matrix_t> == Layout :: ColMajor ? 3 : nsr / 2);
+        auto V = legacyMatrix<TA, layout<matrix_t>>(3, nsr, &_work[0], layout<matrix_t> == Layout ::ColMajor ? 3 : nsr);
 
         // itmax is the total number of QR iterations allowed.
         // For most matrices, 3 shifts per eigenvalue is enough, so
@@ -265,9 +264,17 @@ namespace tlapack
                 // Try to vary the deflation window size.
                 nw = std::min(nwupbd, 2 * nw);
             }
+            if (nw < nw_max)
+            {
+                if (nw + 1 >= nh)
+                    nw = nh;
+                idx_t kwtop = ihi - nw;
+                if (abs1(A(kwtop, kwtop - 1)) > abs1(A(kwtop - 1, kwtop - 2)))
+                    nw = nw + 1;
+            }
 
             idx_t ls, ld;
-            agressive_early_deflation(want_t, want_z, istart, istop, nwr, A, w, Z, ls, ld);
+            agressive_early_deflation(want_t, want_z, istart, istop, nw, A, w, Z, ls, ld);
 
             istop = istop - ld;
 
@@ -278,13 +285,13 @@ namespace tlapack
             // reason to expect that many eigenvalues will deflate without it.
             // Here, the QR sweep is skipped if many eigenvalues have just been
             // deflated or if the remaining active block is small.
-            if (100 * ld > nwr * nibble or (istop - istart) <= nw_max)
+            if (ld > 0 and (100 * ld > nwr * nibble or (istop - istart) <= nw_max))
             {
                 continue;
             }
 
             k_defl = k_defl + 1;
-            idx_t ns = std::min(ls, nsr);
+            idx_t ns = std::min(nh - 1, std::min(ls, nsr));
 
             if (k_defl % non_convergence_limit_shift == 0)
             {
@@ -330,10 +337,10 @@ namespace tlapack
                 {
                     if (imag(w[i_shifts]) == zero)
                     {
-                        if (abs(real(w[i_shifts]) - A(istop-1, istop-1)) < abs(real(w[i_shifts + 1]) - A(istop-1, istop-1)))
-                            w[i_shifts+1] = w[i_shifts];
+                        if (abs(real(w[i_shifts]) - A(istop - 1, istop - 1)) < abs(real(w[i_shifts + 1]) - A(istop - 1, istop - 1)))
+                            w[i_shifts + 1] = w[i_shifts];
                         else
-                            w[i_shifts] = w[i_shifts+1];
+                            w[i_shifts] = w[i_shifts + 1];
                     }
                 }
             }

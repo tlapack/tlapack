@@ -7,6 +7,9 @@
 // testBLAS is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
+#ifndef __TESTUTILS_HH__
+#define __TESTUTILS_HH__
+
 #include <legacy_api/legacyArray.hpp>
 #include <tlapack.hpp>
 
@@ -78,3 +81,5 @@ namespace tlapack
     }
 
 }
+
+#endif // __TESTUTILS_HH__
