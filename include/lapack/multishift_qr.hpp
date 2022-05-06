@@ -264,6 +264,10 @@ namespace tlapack
                 // Try to vary the deflation window size.
                 nw = std::min(nwupbd, 2 * nw);
             }
+            if( nh <= 4 ){
+                // n >= nmin, so there is always enough space for a 4x4 window
+                nw = nh;
+            }
             if (nw < nw_max)
             {
                 if (nw + 1 >= nh)

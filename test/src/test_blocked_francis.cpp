@@ -17,7 +17,6 @@ using namespace tlapack;
 
 TEMPLATE_LIST_TEST_CASE("Multishift QR", "[eigenvalues][multishift_qr]", types_to_test)
 {
-    srand(1);
 
     using matrix_t = TestType;
     using T = type_t<matrix_t>;
@@ -31,8 +30,11 @@ TEMPLATE_LIST_TEST_CASE("Multishift QR", "[eigenvalues][multishift_qr]", types_t
     auto matrix_type = GENERATE("Near overflow", "Random");
 
     idx_t n, ilo, ihi;
+    int seed = 0;
     if (matrix_type == "Random")
     {
+        seed = GENERATE( 2,3,4,5,6 );
+        srand(seed);
         // Generate n
         n = GENERATE(15, 20, 30);
         ilo = 0;
@@ -95,7 +97,7 @@ TEMPLATE_LIST_TEST_CASE("Multishift QR", "[eigenvalues][multishift_qr]", types_t
     idx_t nw = GENERATE(4, 2);
 
     DYNAMIC_SECTION("Multishift QR with"
-                    << " matrix = " << matrix_type << " n = " << n << " ilo = " << ilo << " ihi = " << ihi << " ns = " << ns << " nw = " << nw)
+                    << " matrix = " << matrix_type << " n = " << n << " ilo = " << ilo << " ihi = " << ihi << " ns = " << ns << " nw = " << nw << " seed = " << seed)
     {
 
         francis_opts_t<idx_t, T> opts = {
@@ -116,7 +118,7 @@ TEMPLATE_LIST_TEST_CASE("Multishift QR", "[eigenvalues][multishift_qr]", types_t
                 H(i, j) = zero;
 
         const real_type<T> eps = uroundoff<real_type<T>>();
-        const real_type<T> tol = n * 1.0e3 * eps;
+        const real_type<T> tol = n * 1.0e2 * eps;
 
         std::unique_ptr<T[]> _res(new T[n * n]);
         std::unique_ptr<T[]> _work(new T[n * n]);

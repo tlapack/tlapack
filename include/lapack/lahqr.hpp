@@ -276,9 +276,9 @@ namespace tlapack
             std::complex<real_t> s1;
             std::complex<real_t> s2;
             lahqr_eig22(a00, a01, a10, a11, s1, s2);
-            if (imag(s1) == rzero and imag(s2) == rzero)
+            if (imag(s1) == rzero and imag(s2) == rzero or is_complex<TA>::value)
             {
-                // The eigenvalues are both real, keep only the one closest to A(istop-1, istop-1)
+                // The eigenvalues are not complex conjugate, keep only the one closest to A(istop-1, istop-1)
                 if (abs1(s1 - A(istop - 1, istop - 1)) <= abs1(s2 - A(istop - 1, istop - 1)))
                     s2 = s1;
                 else
