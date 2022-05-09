@@ -120,6 +120,7 @@ namespace tlapack
 
         // res = Q'*A*Q - B
         lacpy(Uplo::General, B, res);
+        laset( Uplo::General, (T)0.0, (T)0.0, work );
         gemm(Op::ConjTrans, Op::NoTrans, (T)1.0, Q, A, (T)0.0, work);
         gemm(Op::NoTrans, Op::NoTrans, (T)1.0, work, Q, (T)-1.0, res);
 
