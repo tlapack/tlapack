@@ -100,7 +100,6 @@ namespace tlapack
         // constants
         const TA one(1);
         const idx_t n = ncols(A);
-        const idx_t nbmin = 2;
 
         // Blocksize
         idx_t nb = opts.nb;

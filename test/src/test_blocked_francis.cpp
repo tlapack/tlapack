@@ -29,13 +29,13 @@ TEMPLATE_LIST_TEST_CASE("Multishift QR", "[eigenvalues][multishift_qr]", types_t
     const T zero(0);
     const T one(1);
 
-    auto matrix_type = GENERATE("Near overflow", "Random");
+    auto matrix_type = GENERATE(as<std::string>{}, "Near overflow", "Random");
 
     idx_t n, ilo, ihi;
     int seed = 0;
     if (matrix_type == "Random")
     {
-        seed = GENERATE( 2, 3, 4, 5, 6, 7, 8, 9, 10 );
+        seed = GENERATE(2, 3, 4, 5, 6, 7, 8, 9, 10);
         gen.seed(seed);
         // Generate n
         n = GENERATE(15, 20, 30);
@@ -44,7 +44,7 @@ TEMPLATE_LIST_TEST_CASE("Multishift QR", "[eigenvalues][multishift_qr]", types_t
     }
     if (matrix_type == "Near overflow")
     {
-        n = 15;
+        n = 30;
         ilo = 0;
         ihi = n;
     }
@@ -101,19 +101,19 @@ TEMPLATE_LIST_TEST_CASE("Multishift QR", "[eigenvalues][multishift_qr]", types_t
                     << " matrix = " << matrix_type << " n = " << n << " ilo = " << ilo << " ihi = " << ihi << " ns = " << ns << " nw = " << nw << " seed = " << seed)
     {
 
-        francis_opts_t<idx_t, T> opts = {
-            .nshift_recommender = [ns](idx_t n, idx_t nh) -> idx_t
-            {
-                return ns;
-            },
-            .deflation_window_recommender = [nw](idx_t n, idx_t nh) -> idx_t
-            {
-                return nw;
-            }};
+        francis_opts_t<idx_t, T> opts;
+        opts.nshift_recommender = [ns](idx_t n, idx_t nh) -> idx_t
+        {
+            return ns;
+        };
+        opts.deflation_window_recommender = [nw](idx_t n, idx_t nh) -> idx_t
+        {
+            return nw;
+        };
 
         int ierr = multishift_qr(true, true, ilo, ihi, H, s, Q, opts);
 
-        CHECK( ierr == 0);
+        CHECK(ierr == 0);
 
         // Clean the lower triangular part that was used a workspace
         for (size_t j = 0; j < n; ++j)
@@ -152,15 +152,13 @@ TEMPLATE_LIST_TEST_CASE("lahqr", "[eigenvalues]", types_to_test)
     const T zero(0);
     const T one(1);
 
-    // auto matrix_type = GENERATE("Near overflow", "Random");
-    auto matrix_type = "Random";
+    auto matrix_type = GENERATE(as<std::string>{}, "Near overflow", "Random");
 
     idx_t n, ilo, ihi;
     if (matrix_type == "Random")
     {
         // Generate n
-        // n = GENERATE(0,1,2,5,10,15);
-        n = 10;
+        n = GENERATE(0, 1, 2, 5, 10, 15);
         ilo = 0;
         ihi = n;
     }
@@ -170,7 +168,6 @@ TEMPLATE_LIST_TEST_CASE("lahqr", "[eigenvalues]", types_to_test)
         ilo = 0;
         ihi = n;
     }
-
 
     // Define the matrices and vectors
     std::unique_ptr<T[]> _A(new T[n * n]);

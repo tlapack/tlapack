@@ -64,7 +64,6 @@ namespace tlapack
         using idx_t = size_type<matrix_t>;
         using pair = std::pair<idx_t, idx_t>;
 
-        const real_t rzero(0);
         const T one(1);
         const T zero(0);
         const idx_t n = ncols(A);

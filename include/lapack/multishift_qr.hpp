@@ -132,11 +132,7 @@ namespace tlapack
         using pair = std::pair<idx_t, idx_t>;
 
         // constants
-        const real_t rzero(0);
-        const TA one(1);
         const TA zero(0);
-        const real_t eps = uroundoff<real_t>();
-        const real_t small_num = safe_min<real_t>() / uroundoff<real_t>();
         const idx_t non_convergence_limit_window = 5;
         const idx_t non_convergence_limit_shift = 6;
         const real_t dat1 = 3.0 / 4.0;

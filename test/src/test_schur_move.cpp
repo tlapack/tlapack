@@ -23,7 +23,6 @@ TEMPLATE_LIST_TEST_CASE("move of eigenvalue block gives correct results", "[eige
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
     typedef real_type<T> real_t;
-    typedef std::complex<real_t> complex_t;
 
     const T zero(0);
     const T one(1);

@@ -62,7 +62,7 @@ TEMPLATE_LIST_TEST_CASE("Hessenberg reduction is backward stable", "[eigenvalues
     using idx_t = size_type<matrix_t>;
     using real_t = real_type<T>;
 
-    auto matrix_type = GENERATE("Random", "Near overflow");
+    auto matrix_type = GENERATE(as<std::string>{}, "Random", "Near overflow");
 
     rand_generator gen;
     idx_t n, ilo, ihi;
@@ -116,7 +116,6 @@ TEMPLATE_LIST_TEST_CASE("Hessenberg reduction is backward stable", "[eigenvalues
         for (size_t j = 0; j < i; ++j)
             A(i, j) = (T)0.0;
     tlapack::lacpy(Uplo::General, A, H);
-    auto normA = tlapack::lange(tlapack::frob_norm, A);
 
     DYNAMIC_SECTION("GEHD2 with"
                     << " matrix = " << matrix_type << " n = " << n << " ilo = " << ilo << " ihi = " << ihi)
@@ -130,7 +129,9 @@ TEMPLATE_LIST_TEST_CASE("Hessenberg reduction is backward stable", "[eigenvalues
     DYNAMIC_SECTION("GEHRD with"
                     << " matrix = " << matrix_type << " n = " << n << " ilo = " << ilo << " ihi = " << ihi << " nb = " << nb)
     {
-        gehrd_opts_t<idx_t, T> opts = {.nb = nb, .nx_switch = 2};
+        gehrd_opts_t<idx_t, T> opts;
+        opts.nb = nb;
+        opts.nx_switch = 2;
         idx_t required_workspace = get_work_gehrd(ilo, ihi, A, tau, opts);
         std::unique_ptr<T[]> _work2(new T[required_workspace]);
         opts._work = &_work2[0];

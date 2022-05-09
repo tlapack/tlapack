@@ -89,7 +89,6 @@ namespace tlapack
         using std::min;
 
         // Constants
-        const real_t rzero(0);
         const T one(1);
         const T zero(0);
         const idx_t n = ncols(A);
@@ -196,7 +195,6 @@ namespace tlapack
                 auto foo = abs(TW(ns - 1, ns - 1)) + sqrt(abs(TW(ns - 1, ns - 2))) * sqrt(abs(TW(ns - 2, ns - 1)));
                 if (foo == zero)
                     foo = abs(s_spike);
-                auto foo2 = max(abs(s_spike * V(0, ns - 1)), abs(s_spike * V(0, ns - 2)));
                 if (max(abs(s_spike * V(0, ns - 1)), abs(s_spike * V(0, ns - 2))) <= max<real_t>(small_num, eps * foo))
                 {
                     // Eigenvalue pair is deflatable

@@ -61,7 +61,6 @@ namespace tlapack
 
         const idx_t n = ncols(A);
         const T zero(0);
-        const T one(1);
 
         // Quick return
         if (n == 0)

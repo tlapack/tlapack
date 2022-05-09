@@ -52,17 +52,9 @@ namespace tlapack
         matrix_t &C,
         work_t &work)
     {
-        using T = type_t<matrix_t>;
         using idx_t = size_type<matrix_t>;
         using pair = std::pair<idx_t, idx_t>;
 
-        // constants
-        const T zero(0.0);
-        const T one(1.0);
-        const idx_t m = nrows(A);
-        const idx_t n = ncols(A);
-
-        const idx_t nh = ihi - 1 - ilo;
         auto A_s = slice(A, pair{ilo + 1, ihi}, pair{ilo, ihi-1});
         auto tau_s = slice(tau, pair{ilo, ihi - 1});
         auto C_s = (side == Side::Left) ? slice(C, pair{ilo + 1, ihi}, pair{0, ncols(C)}) : slice(C, pair{0, nrows(C)}, pair{ilo + 1, ihi});

@@ -25,7 +25,7 @@ TEMPLATE_LIST_TEST_CASE("Result of unmhr matches result from unghr", "[eigenvalu
     using real_t = real_type<T>;
     using pair = std::pair<idx_t, idx_t>;
 
-    auto matrix_type = GENERATE("Random");
+    auto matrix_type = GENERATE(as<std::string>{}, "Random");
     Side side = GENERATE(Side::Left, Side::Right);
     Op op = GENERATE(Op::NoTrans, Op::ConjTrans);
 
