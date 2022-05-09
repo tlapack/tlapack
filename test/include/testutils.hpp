@@ -49,13 +49,13 @@ namespace tlapack
     };
 
     template <typename T, enable_if_t<!is_complex<T>::value, bool> = true>
-    T rand_helper(rand_generator gen)
+    T rand_helper(rand_generator& gen)
     {
         return static_cast<T>(gen()) / static_cast<T>(gen.max());
     }
 
     template <typename T, enable_if_t<is_complex<T>::value, bool> = true>
-    T rand_helper(rand_generator gen)
+    T rand_helper(rand_generator& gen)
     {
         using real_t = real_type<T>;
         real_t r1 = static_cast<real_t>(gen()) / static_cast<real_t>(gen.max());
