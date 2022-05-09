@@ -352,7 +352,7 @@ namespace tlapack
         }
 
         if (locally_allocated)
-            delete _work;
+            delete [] _work;
         return info;
     }
 
