@@ -70,7 +70,7 @@ struct potrf_opts_t
  * @ingroup posv_computational
  */
 template< class uplo_t, class matrix_t, class opts_t >
-int potrf( uplo_t uplo, matrix_t& A, opts_t&& opts, const exceptionCheck_t& ec = {} )
+int potrf( uplo_t uplo, matrix_t& A, opts_t&& opts, const ErrorCheck& ec = {} )
 {
     using T      = type_t< matrix_t >;
     using real_t = real_type< T >;
@@ -181,7 +181,7 @@ int potrf( uplo_t uplo, matrix_t& A, opts_t&& opts, const exceptionCheck_t& ec =
  */
 template< class uplo_t, class matrix_t >
 inline
-int potrf( uplo_t uplo, matrix_t& A, const exceptionCheck_t& ec = {} )
+int potrf( uplo_t uplo, matrix_t& A, const ErrorCheck& ec = {} )
 {    
     using idx_t = size_type< matrix_t >;
     return potrf( uplo, A, potrf_opts_t<idx_t>{}, ec );

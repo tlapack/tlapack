@@ -70,7 +70,7 @@ namespace tlapack {
     }
 
     /// Descriptor for Exception Handling
-    struct exceptionCheck_t {
+    struct ErrorCheck {
         
         bool inf = TLAPACK_DEFAULT_INFCHECK; ///< Default behavior of inf check in the routines of <T>LAPACK.
         bool nan = TLAPACK_DEFAULT_NANCHECK; ///< Default behavior of nan check in the routines of <T>LAPACK.
