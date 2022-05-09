@@ -24,6 +24,8 @@ TEMPLATE_LIST_TEST_CASE("Multishift QR", "[eigenvalues][multishift_qr]", types_t
     using real_t = real_type<T>;
     using complex_t = std::complex<real_t>;
 
+    rand_generator gen;
+
     const T zero(0);
     const T one(1);
 
@@ -33,8 +35,8 @@ TEMPLATE_LIST_TEST_CASE("Multishift QR", "[eigenvalues][multishift_qr]", types_t
     int seed = 0;
     if (matrix_type == "Random")
     {
-        seed = GENERATE( 2,3,4,5,6 );
-        srand(seed);
+        seed = GENERATE( 2, 3, 4, 5, 6, 7, 8, 9, 10 );
+        gen.seed(seed);
         // Generate n
         n = GENERATE(15, 20, 30);
         ilo = 0;
@@ -46,7 +48,6 @@ TEMPLATE_LIST_TEST_CASE("Multishift QR", "[eigenvalues][multishift_qr]", types_t
         ilo = 0;
         ihi = n;
     }
-
 
     // Define the matrices and vectors
     std::unique_ptr<T[]> _A(new T[n * n]);
@@ -62,7 +63,7 @@ TEMPLATE_LIST_TEST_CASE("Multishift QR", "[eigenvalues][multishift_qr]", types_t
     {
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = 0; i < std::min(n, j + 2); ++i)
-                A(i, j) = rand_helper<T>();
+                A(i, j) = rand_helper<T>(gen);
 
         for (size_t j = 0; j < n; ++j)
             for (size_t i = j + 2; i < n; ++i)
@@ -89,7 +90,7 @@ TEMPLATE_LIST_TEST_CASE("Multishift QR", "[eigenvalues][multishift_qr]", types_t
         for (size_t j = 0; j < i; ++j)
             A(i, j) = (T)0.0;
 
-    tlapack::lacpy(Uplo::General, A, H);
+    lacpy(Uplo::General, A, H);
     auto s = std::vector<complex_t>(n);
     laset(Uplo::General, zero, one, Q);
 
@@ -110,7 +111,9 @@ TEMPLATE_LIST_TEST_CASE("Multishift QR", "[eigenvalues][multishift_qr]", types_t
                 return nw;
             }};
 
-        multishift_qr(true, true, ilo, ihi, H, s, Q, opts);
+        int ierr = multishift_qr(true, true, ilo, ihi, H, s, Q, opts);
+
+        CHECK( ierr == 0);
 
         // Clean the lower triangular part that was used a workspace
         for (size_t j = 0; j < n; ++j)
