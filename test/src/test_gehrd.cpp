@@ -16,7 +16,7 @@
 using namespace tlapack;
 
 template <typename matrix_t, typename vector_t>
-void check_hess_reduction(size_type<matrix_t> ilo, size_type<matrix_t> ihi, matrix_t H, vector_t tau, matrix_t A )
+void check_hess_reduction(size_type<matrix_t> ilo, size_type<matrix_t> ihi, matrix_t H, vector_t tau, matrix_t A)
 {
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
@@ -40,8 +40,8 @@ void check_hess_reduction(size_type<matrix_t> ilo, size_type<matrix_t> ihi, matr
     tlapack::unghr(ilo, ihi, Q, tau, workv);
 
     // Remove junk from lower half of H
-    for (size_t j = 0; j < n; ++j)
-        for (size_t i = j + 2; i < n; ++i)
+    for (idx_t j = 0; j < n; ++j)
+        for (idx_t i = j + 2; i < n; ++i)
             H(i, j) = 0.0;
 
     // Calculate residuals
@@ -95,25 +95,25 @@ TEMPLATE_LIST_TEST_CASE("Hessenberg reduction is backward stable", "[eigenvalues
     if (matrix_type == "Random")
     {
         // Generate a random matrix in A
-        for (size_t j = 0; j < n; ++j)
-            for (size_t i = 0; i < n; ++i)
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = 0; i < n; ++i)
                 A(i, j) = rand_helper<T>(gen);
     }
     if (matrix_type == "Near overflow")
     {
         const real_t large_num = safe_max<real_t>() * uroundoff<real_t>();
 
-        for (size_t j = 0; j < n; ++j)
-            for (size_t i = 0; i < n; ++i)
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = 0; i < n; ++i)
                 A(i, j) = large_num;
     }
 
     // Make sure ilo and ihi correspond to the actual matrix
-    for (size_t j = 0; j < ilo; ++j)
-        for (size_t i = j + 1; i < n; ++i)
+    for (idx_t j = 0; j < ilo; ++j)
+        for (idx_t i = j + 1; i < n; ++i)
             A(i, j) = (T)0.0;
-    for (size_t i = ihi; i < n; ++i)
-        for (size_t j = 0; j < i; ++j)
+    for (idx_t i = ihi; i < n; ++i)
+        for (idx_t j = 0; j < i; ++j)
             A(i, j) = (T)0.0;
     tlapack::lacpy(Uplo::General, A, H);
 
@@ -123,7 +123,7 @@ TEMPLATE_LIST_TEST_CASE("Hessenberg reduction is backward stable", "[eigenvalues
         std::vector<T> workv(n);
         tlapack::gehd2(ilo, ihi, H, tau, workv);
 
-        check_hess_reduction( ilo, ihi, H, tau, A);
+        check_hess_reduction(ilo, ihi, H, tau, A);
     }
     idx_t nb = GENERATE(2, 3);
     DYNAMIC_SECTION("GEHRD with"
@@ -138,6 +138,6 @@ TEMPLATE_LIST_TEST_CASE("Hessenberg reduction is backward stable", "[eigenvalues
         opts.lwork = required_workspace;
         tlapack::gehrd(ilo, ihi, H, tau, opts);
 
-        check_hess_reduction( ilo, ihi, H, tau, A);
+        check_hess_reduction(ilo, ihi, H, tau, A);
     }
 }

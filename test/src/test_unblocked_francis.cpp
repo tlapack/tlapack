@@ -61,8 +61,8 @@ TEMPLATE_LIST_TEST_CASE("lahqr", "[eigenvalues][doubleshift_qr]", types_to_test)
             for (idx_t i = 0; i < std::min(n, j + 2); ++i)
                 A(i, j) = rand_helper<T>();
 
-        for (size_t j = 0; j < n; ++j)
-            for (size_t i = j + 2; i < n; ++i)
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = j + 2; i < n; ++i)
                 A(i, j) = zero;
     }
     if (matrix_type == "Near overflow")
@@ -73,17 +73,17 @@ TEMPLATE_LIST_TEST_CASE("lahqr", "[eigenvalues][doubleshift_qr]", types_to_test)
             for (idx_t i = 0; i < std::min(n, j + 2); ++i)
                 A(i, j) = large_num;
 
-        for (size_t j = 0; j < n; ++j)
-            for (size_t i = j + 2; i < n; ++i)
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = j + 2; i < n; ++i)
                 A(i, j) = zero;
     }
 
     // Make sure ilo and ihi correspond to the actual matrix
-    for (size_t j = 0; j < ilo; ++j)
-        for (size_t i = j + 1; i < n; ++i)
+    for (idx_t j = 0; j < ilo; ++j)
+        for (idx_t i = j + 1; i < n; ++i)
             A(i, j) = (T)0.0;
-    for (size_t i = ihi; i < n; ++i)
-        for (size_t j = 0; j < i; ++j)
+    for (idx_t i = ihi; i < n; ++i)
+        for (idx_t j = 0; j < i; ++j)
             A(i, j) = (T)0.0;
 
     tlapack::lacpy(Uplo::General, A, H);

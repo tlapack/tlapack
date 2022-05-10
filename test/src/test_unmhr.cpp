@@ -54,23 +54,23 @@ TEMPLATE_LIST_TEST_CASE("Result of unmhr matches result from unghr", "[eigenvalu
     if (matrix_type == "Random")
     {
         // Generate a random matrix in H
-        for (size_t j = 0; j < n; ++j)
-            for (size_t i = 0; i < n; ++i)
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = 0; i < n; ++i)
                 H(i, j) = rand_helper<T>();
 
         // Generate a random matrix in C
-        for (size_t j = 0; j < n; ++j)
-            for (size_t i = 0; i < m; ++i)
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = 0; i < m; ++i)
                 C(i, j) = rand_helper<T>();
     }
     lacpy(Uplo::General, C, C_copy);
 
     // Make sure ilo and ihi correspond to the actual matrix
-    for (size_t j = 0; j < ilo; ++j)
-        for (size_t i = j + 1; i < n; ++i)
+    for (idx_t j = 0; j < ilo; ++j)
+        for (idx_t i = j + 1; i < n; ++i)
             H(i, j) = zero;
-    for (size_t i = ihi; i < n; ++i)
-        for (size_t j = 0; j < i; ++j)
+    for (idx_t i = ihi; i < n; ++i)
+        for (idx_t j = 0; j < i; ++j)
             H(i, j) = zero;
 
     // Hessenberg reduction of H
@@ -95,11 +95,11 @@ TEMPLATE_LIST_TEST_CASE("Result of unmhr matches result from unghr", "[eigenvalu
             auto C_copy_s = slice(C_copy, pair{ilo + 1, ihi}, pair{0, ncols(C)});
             auto C_s = slice(C, pair{ilo + 1, ihi}, pair{0, ncols(C)});
             gemm(op, Op::NoTrans, one, Q, C_copy_s, -one, C_s);
-            for (size_t i = 0; i < ilo+1; ++i)
-                for (size_t j = 0; j < ncols(C); ++j)
+            for (idx_t i = 0; i < ilo+1; ++i)
+                for (idx_t j = 0; j < ncols(C); ++j)
                     C(i, j) =  C(i,j) - C_copy(i,j);
-            for (size_t i = ihi; i < nrows(C); ++i)
-                for (size_t j = 0; j < ncols(C); ++j)
+            for (idx_t i = ihi; i < nrows(C); ++i)
+                for (idx_t j = 0; j < ncols(C); ++j)
                     C(i, j) =  C(i,j) - C_copy(i,j);
         }
         else
@@ -107,11 +107,11 @@ TEMPLATE_LIST_TEST_CASE("Result of unmhr matches result from unghr", "[eigenvalu
             auto C_copy_s = slice(C_copy, pair{0, nrows(C)}, pair{ilo + 1, ihi});
             auto C_s = slice(C, pair{0, nrows(C)}, pair{ilo + 1, ihi});
             gemm(Op::NoTrans, op, one, C_copy_s, Q, -one, C_s);
-            for (size_t j = 0; j < ilo+1; ++j)
-                for (size_t i = 0; i < nrows(C); ++i)
+            for (idx_t j = 0; j < ilo+1; ++j)
+                for (idx_t i = 0; i < nrows(C); ++i)
                     C(i, j) =  C(i,j) - C_copy(i,j);
-            for (size_t j = ihi; j < ncols(C); ++j)
-                for (size_t i = 0; i < nrows(C); ++i)
+            for (idx_t j = ihi; j < ncols(C); ++j)
+                for (idx_t i = 0; i < nrows(C); ++i)
                     C(i, j) =  C(i,j) - C_copy(i,j);
         }
 

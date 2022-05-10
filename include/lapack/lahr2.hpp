@@ -65,7 +65,7 @@ namespace tlapack
         if (n <= 1)
             return 0;
 
-        TA ei;
+        TA ei = zero;
         for (idx_t i = 0; i < nb; ++i)
         {
             if (i > 0)
