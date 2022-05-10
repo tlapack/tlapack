@@ -7,6 +7,12 @@
 #ifndef __TLAPACK_BLAS_HH__
 #define __TLAPACK_BLAS_HH__
 
+// Optimized BLAS
+
+#ifdef USE_BLASPP_WRAPPERS
+    #include "legacy_api/blas/wrappers.hpp"
+#endif
+
 // Template BLAS
 
 // =============================================================================
