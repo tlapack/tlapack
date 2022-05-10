@@ -99,39 +99,52 @@ void run(size_t n)
     // Record start time
     auto startQHQ = std::chrono::high_resolution_clock::now();
     {
-        std::vector<T> work(n);
-        int err;
-
         // Hessenberg factorization
-        err = tlapack::gehrd(0, n, Q, tau);
+        int err = tlapack::gehrd(0, n, Q, tau);
         // tblas_error_if(tlapack::gehd2(0, n, Q, tau, work));
-        tblas_error_if(err);
-
-
-        // Save the H matrix
-        for (size_t j = 0; j < n; ++j)
-            for (size_t i = 0; i < std::min(n, j + 2); ++i)
-                H(i, j) = Q(i, j);
-
-        // Generate Q = H_1 H_2 ... H_n
-        err = tlapack::unghr(0, n, Q, tau, work);
-        tblas_error_if(err);
-
-        // Remove junk from lower half of H
-        for (size_t j = 0; j < n; ++j)
-            for (size_t i = j + 2; i < n; ++i)
-                H(i, j) = 0.0;
-
-        // Shur factorization
-        std::vector<std::complex<real_t>> w(n);
-        err = tlapack::lahqr(true, true, 0, n, H, w, Q);
         tblas_error_if(err);
     }
     // Record end time
     auto endQHQ = std::chrono::high_resolution_clock::now();
 
+
+    // Save the H matrix
+    for (size_t j = 0; j < n; ++j)
+        for (size_t i = 0; i < std::min(n, j + 2); ++i)
+            H(i, j) = Q(i, j);
+
+    // Record start time
+    auto startQ = std::chrono::high_resolution_clock::now();
+    {
+        // Generate Q = H_1 H_2 ... H_n
+        std::vector<T> work(n);
+        int err = tlapack::unghr(0, n, Q, tau, work);
+        tblas_error_if(err);
+    }
+    // Record end time
+    auto endQ = std::chrono::high_resolution_clock::now();
+
+
+    // Remove junk from lower half of H
+    for (size_t j = 0; j < n; ++j)
+        for (size_t i = j + 2; i < n; ++i)
+            H(i, j) = 0.0;
+
+    // Record start time
+    auto startSchur = std::chrono::high_resolution_clock::now();
+    {
+        // Shur factorization
+        std::vector<std::complex<real_t>> w(n);
+        int err = tlapack::multishift_qr(true, true, 0, n, H, w, Q);
+        tblas_error_if(err);
+    }
+    // Record end time
+    auto endSchur = std::chrono::high_resolution_clock::now();
+
     // Compute elapsed time in nanoseconds
     auto elapsedQHQ = std::chrono::duration_cast<std::chrono::nanoseconds>(endQHQ - startQHQ);
+    auto elapsedQ = std::chrono::duration_cast<std::chrono::nanoseconds>(endQ - startQ);
+    auto elapsedSchur = std::chrono::duration_cast<std::chrono::nanoseconds>(endSchur - startSchur);
 
     // Print Q and H
     if (verbose)
@@ -227,8 +240,9 @@ void run(size_t n)
     }
 
     std::cout << std::endl;
-    std::cout << "time = " << elapsedQHQ.count() * 1.0e-6 << " ms";
-    std::cout << std::endl;
+    std::cout << "Hessenberg time = " << std::fixed << elapsedQHQ.count() * 1.0e-9 << " s" << std::endl;
+    std::cout << "Q forming time = " << std::fixed << elapsedQ.count() * 1.0e-9 << " s" << std::endl;
+    std::cout << "QR time = " << std::fixed << elapsedSchur.count() * 1.0e-9 << " s" << std::endl;
     std::cout << "||QHQ* - A||_F/||A||_F  = " << norm_repres_1
               << ",        ||Q'Q - I||_F  = " << norm_orth_1;
     std::cout << std::endl;
@@ -240,7 +254,7 @@ int main(int argc, char **argv)
     int n;
 
     // Default arguments
-    n = (argc < 2) ? 7 : atoi(argv[1]);
+    n = (argc < 2) ? 10 : atoi(argv[1]);
 
     srand(3); // Init random seed
 
@@ -255,19 +269,19 @@ int main(int argc, char **argv)
     run<std::complex<float>>(n);
     printf("-----------------------\n");
 
-    printf("run< float >( %d )", n);
+    printf("run< double >( %d )", n);
     run<double>(n);
     printf("-----------------------\n");
 
-    printf("run< std::complex<float>  >( %d )", n);
+    printf("run< std::complex<double>  >( %d )", n);
     run<std::complex<double>>(n);
     printf("-----------------------\n");
 
-    printf("run< float >( %d )", n);
+    printf("run< long double >( %d )", n);
     run<long double>(n);
     printf("-----------------------\n");
 
-    printf("run< std::complex<float>  >( %d )", n);
+    printf("run< std::complex<long double>  >( %d )", n);
     run<std::complex<long double>>(n);
     printf("-----------------------\n");
 
