@@ -106,7 +106,7 @@ namespace tlapack
         assert(nrows(A) == n);
         assert(ncols(Z) == n);
         assert(nrows(Z) == n);
-        assert(size(s) == n);
+        assert((idx_t) size(s) == n);
 
         // s is the value just outside the window. It determines the spike
         // together with the orthogonal schur factors.
@@ -227,17 +227,19 @@ namespace tlapack
         // sorting diagonal blocks of T improves accuracy for graded matrices.
         // Bubble sort deals well with exchange failures.
         bool sorted = false;
+        // Window to be checked (other eigenvalue are sorted)
+        idx_t sorting_window_size = jw;
         while (!sorted)
         {
             sorted = true;
 
-            // Window to be checked (other eigenvalue are sorted)
-            idx_t ilst = jw;
+            // Index of last eigenvalue that was swapped
+            idx_t ilst = 0;
 
             // Index of the first block
             idx_t i1 = ns;
 
-            while (i1 + 1 < ilst)
+            while (i1 + 1 < sorting_window_size)
             {
 
                 // Size of the first block
@@ -288,6 +290,7 @@ namespace tlapack
                     ilst = i1;
                 }
             }
+            sorting_window_size = ilst;
         }
 
         // Recalculate the eigenvalues
