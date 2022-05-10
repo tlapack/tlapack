@@ -141,6 +141,11 @@ void run(size_t n)
     // Record end time
     auto endSchur = std::chrono::high_resolution_clock::now();
 
+    // Remove junk from lower half of H
+    for (size_t j = 0; j < n; ++j)
+        for (size_t i = j + 2; i < n; ++i)
+            H(i, j) = 0.0;
+
     // Compute elapsed time in nanoseconds
     auto elapsedQHQ = std::chrono::duration_cast<std::chrono::nanoseconds>(endQHQ - startQHQ);
     auto elapsedQ = std::chrono::duration_cast<std::chrono::nanoseconds>(endQ - startQ);
@@ -240,9 +245,9 @@ void run(size_t n)
     }
 
     std::cout << std::endl;
-    std::cout << "Hessenberg time = " << std::fixed << elapsedQHQ.count() * 1.0e-9 << " s" << std::endl;
-    std::cout << "Q forming time = " << std::fixed << elapsedQ.count() * 1.0e-9 << " s" << std::endl;
-    std::cout << "QR time = " << std::fixed << elapsedSchur.count() * 1.0e-9 << " s" << std::endl;
+    std::cout << "Hessenberg time = " << elapsedQHQ.count() * 1.0e-9 << " s" << std::endl;
+    std::cout << "Q forming time = "<< elapsedQ.count() * 1.0e-9 << " s" << std::endl;
+    std::cout << "QR time = " << elapsedSchur.count() * 1.0e-9 << " s" << std::endl;
     std::cout << "||QHQ* - A||_F/||A||_F  = " << norm_repres_1
               << ",        ||Q'Q - I||_F  = " << norm_orth_1;
     std::cout << std::endl;
@@ -254,7 +259,7 @@ int main(int argc, char **argv)
     int n;
 
     // Default arguments
-    n = (argc < 2) ? 10 : atoi(argv[1]);
+    n = (argc < 2) ? 100 : atoi(argv[1]);
 
     srand(3); // Init random seed
 
