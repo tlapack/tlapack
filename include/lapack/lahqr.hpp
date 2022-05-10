@@ -136,6 +136,8 @@ namespace tlapack
 
             if (istart + 1 >= istop)
             {
+                if( istart + 1 == istop )
+                    w[istart] = A(istart,istart);
                 // All eigenvalues have been found, exit and return 0.
                 break;
             }

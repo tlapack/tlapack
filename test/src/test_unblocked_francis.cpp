@@ -1,5 +1,5 @@
-/// @file test_blocked_francis.cpp
-/// @brief Test multishift QR algorithm.
+/// @file test_unblocked_francis.cpp
+/// @brief Test double shift QR algorithm.
 //
 // Copyright (c) 2022, University of Colorado Denver. All rights reserved.
 //
@@ -15,8 +15,9 @@
 
 using namespace tlapack;
 
-TEMPLATE_LIST_TEST_CASE("Multishift QR", "[eigenvalues][multishift_qr]", types_to_test)
+TEMPLATE_LIST_TEST_CASE("lahqr", "[eigenvalues][doubleshift_qr]", types_to_test)
 {
+    srand(1);
 
     using matrix_t = TestType;
     using T = type_t<matrix_t>;
@@ -24,27 +25,22 @@ TEMPLATE_LIST_TEST_CASE("Multishift QR", "[eigenvalues][multishift_qr]", types_t
     using real_t = real_type<T>;
     using complex_t = std::complex<real_t>;
 
-    rand_generator gen;
-
     const T zero(0);
     const T one(1);
 
     auto matrix_type = GENERATE(as<std::string>{}, "Near overflow", "Random");
 
     idx_t n, ilo, ihi;
-    int seed = 0;
     if (matrix_type == "Random")
     {
-        seed = GENERATE(2, 3, 4, 5, 6, 7, 8, 9, 10);
-        gen.seed(seed);
         // Generate n
-        n = GENERATE(15, 20, 30);
+        n = GENERATE(0, 1, 2, 5, 10, 15);
         ilo = 0;
         ihi = n;
     }
     if (matrix_type == "Near overflow")
     {
-        n = 30;
+        n = GENERATE(4, 10);
         ilo = 0;
         ihi = n;
     }
@@ -63,7 +59,7 @@ TEMPLATE_LIST_TEST_CASE("Multishift QR", "[eigenvalues][multishift_qr]", types_t
     {
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = 0; i < std::min(n, j + 2); ++i)
-                A(i, j) = rand_helper<T>(gen);
+                A(i, j) = rand_helper<T>();
 
         for (size_t j = 0; j < n; ++j)
             for (size_t i = j + 2; i < n; ++i)
@@ -90,35 +86,16 @@ TEMPLATE_LIST_TEST_CASE("Multishift QR", "[eigenvalues][multishift_qr]", types_t
         for (size_t j = 0; j < i; ++j)
             A(i, j) = (T)0.0;
 
-    lacpy(Uplo::General, A, H);
+    tlapack::lacpy(Uplo::General, A, H);
     auto s = std::vector<complex_t>(n);
     laset(Uplo::General, zero, one, Q);
 
-    idx_t ns = GENERATE(4, 2);
-    idx_t nw = GENERATE(4, 2);
-
-    DYNAMIC_SECTION("Multishift QR with"
-                    << " matrix = " << matrix_type << " n = " << n << " ilo = " << ilo << " ihi = " << ihi << " ns = " << ns << " nw = " << nw << " seed = " << seed)
+    DYNAMIC_SECTION("Double shift QR with"
+                    << " matrix = " << matrix_type << " n = " << n << " ilo = " << ilo << " ihi = " << ihi)
     {
+        int ierr = lahqr(true, true, ilo, ihi, H, s, Q);
 
-        francis_opts_t<idx_t, T> opts;
-        opts.nshift_recommender = [ns](idx_t n, idx_t nh) -> idx_t
-        {
-            return ns;
-        };
-        opts.deflation_window_recommender = [nw](idx_t n, idx_t nh) -> idx_t
-        {
-            return nw;
-        };
-
-        int ierr = multishift_qr(true, true, ilo, ihi, H, s, Q, opts);
-
-        CHECK(ierr == 0);
-
-        // Clean the lower triangular part that was used a workspace
-        for (size_t j = 0; j < n; ++j)
-            for (size_t i = j + 2; i < n; ++i)
-                H(i, j) = zero;
+        CHECK( ierr == 0 );
 
         const real_type<T> eps = uroundoff<real_type<T>>();
         const real_type<T> tol = n * 1.0e2 * eps;

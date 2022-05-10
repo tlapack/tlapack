@@ -227,6 +227,8 @@ namespace tlapack
 
             if (ilo + 1 >= istop)
             {
+                if( ilo + 1 == istop )
+                    w[ilo] = A(ilo,ilo);
                 // All eigenvalues have been found, exit and return 0.
                 break;
             }
