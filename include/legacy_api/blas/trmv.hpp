@@ -80,18 +80,18 @@ void trmv(
     using internal::colmajor_matrix;
 
     // check arguments
-    tlapack_error_if( layout != Layout::ColMajor &&
+    tlapack_check_false( layout != Layout::ColMajor &&
                    layout != Layout::RowMajor );
-    tlapack_error_if( uplo != Uplo::Lower &&
+    tlapack_check_false( uplo != Uplo::Lower &&
                    uplo != Uplo::Upper );
-    tlapack_error_if( trans != Op::NoTrans &&
+    tlapack_check_false( trans != Op::NoTrans &&
                    trans != Op::Trans &&
                    trans != Op::ConjTrans );
-    tlapack_error_if( diag != Diag::NonUnit &&
+    tlapack_check_false( diag != Diag::NonUnit &&
                    diag != Diag::Unit );
-    tlapack_error_if( n < 0 );
-    tlapack_error_if( lda < n );
-    tlapack_error_if( incx == 0 );
+    tlapack_check_false( n < 0 );
+    tlapack_check_false( lda < n );
+    tlapack_check_false( incx == 0 );
 
     // quick return
     if (n == 0)

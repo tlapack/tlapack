@@ -125,13 +125,13 @@ void bdsqr(
     // check arguments
     ( uplo != Uplo::Upper &&
                      uplo != Uplo::Lower, -1 );
-    tlapack_error_if( n < 0, -2 );
-    tlapack_error_if( ncVT < 0, -3 );
-    tlapack_error_if( nrU < 0, -4 );
-    tlapack_error_if( ncC < 0, -5 );
-    tlapack_error_if( ldVT < n, -9 );
-    tlapack_error_if( ldU < nrU, -11 );
-    tlapack_error_if( ldC < n, -13 );
+    tlapack_check_false( n < 0, -2 );
+    tlapack_check_false( ncVT < 0, -3 );
+    tlapack_check_false( nrU < 0, -4 );
+    tlapack_check_false( ncC < 0, -5 );
+    tlapack_check_false( ldVT < n, -9 );
+    tlapack_check_false( ldU < nrU, -11 );
+    tlapack_check_false( ldC < n, -13 );
 
     // Quick return
     if (n == 0) return 0;

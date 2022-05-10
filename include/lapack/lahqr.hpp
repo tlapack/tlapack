@@ -96,11 +96,11 @@ namespace tlapack
         const idx_t nh = ihi - ilo;
 
         // check arguments
-        tlapack_error_if(n != nrows(A), -5);
-        tlapack_error_if((idx_t)size(w) != n, -6);
+        tlapack_check_false(n != nrows(A), -5);
+        tlapack_check_false((idx_t)size(w) != n, -6);
         if (want_z)
         {
-            tlapack_error_if((n != ncols(Z)) or (n != nrows(Z)), -7);
+            tlapack_check_false((n != ncols(Z)) or (n != nrows(Z)), -7);
         }
 
         // quick return
@@ -131,6 +131,11 @@ namespace tlapack
             if (iter == itmax)
             {
                 // The QR algorithm failed to converge, return with error.
+                tlapack_error( istop,
+                    "The QR algorithm failed to compute all the eigenvalues"
+                    " in a total of 30 iterations per eigenvalue. Elements"
+                    " i:ihi of w contain those eigenvalues which have been"
+                    " successfully computed." );
                 return istop;
             }
 

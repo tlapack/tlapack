@@ -58,13 +58,13 @@ void her2(
     const idx_t n = nrows(A);
 
     // check arguments
-    tlapack_error_if( uplo != Uplo::Lower &&
+    tlapack_check_false( uplo != Uplo::Lower &&
                    uplo != Uplo::Upper );
-    tlapack_error_if( size(x)  != n );
-    tlapack_error_if( size(y)  != n );
-    tlapack_error_if( ncols(A) != n );
+    tlapack_check_false( size(x)  != n );
+    tlapack_check_false( size(y)  != n );
+    tlapack_check_false( ncols(A) != n );
 
-    tlapack_error_if( access_denied( uplo, write_policy(A) ) );
+    tlapack_check_false( access_denied( uplo, write_policy(A) ) );
 
     if (uplo == Uplo::Upper) {
         for (idx_t j = 0; j < n; ++j) {

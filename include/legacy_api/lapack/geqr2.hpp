@@ -45,9 +45,9 @@ inline int geqr2(
     using work_t = scalar_type<TA,Ttau>;
 
     // check arguments
-    tlapack_error_if( m < 0, -1 );
-    tlapack_error_if( n < 0, -2 );
-    tlapack_error_if( lda < m, -4 );
+    tlapack_check_false( m < 0, -1 );
+    tlapack_check_false( n < 0, -2 );
+    tlapack_check_false( lda < m, -4 );
 
     // quick return
     if (n <= 0) return 0;

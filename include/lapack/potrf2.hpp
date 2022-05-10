@@ -58,6 +58,13 @@ namespace tlapack {
  *      - On successful exit, the factor U or L from the Cholesky
  *      factorization $A = U^H U$ or $A = L L^H.$
  *
+ * @param[in] ec Exception handling configuration at runtime.
+ *      Default options are defined in ErrorCheck.
+ *      This routine uses:
+ *          ec.nan;
+ *          ec.inf;
+ *          ec.root
+ *
  * @return = 0: successful exit
  * @return > 0: if return value = i, the leading minor of order i is not
  *     positive definite, and the factorization could not be completed.
@@ -65,24 +72,24 @@ namespace tlapack {
  * @ingroup posv_computational
  */
 template< class uplo_t, class matrix_t >
-int potrf2( uplo_t uplo, matrix_t& A )
+int potrf2( uplo_t uplo, matrix_t& A, const ErrorCheck& ec = {} )
 {
     using T      = type_t< matrix_t >;
     using real_t = real_type<T>;
     using idx_t  = size_type< matrix_t >;
     using pair   = pair<idx_t,idx_t>;
-    
 
     // Constants
     const real_t one( 1.0 );
     const real_t rzero( 0.0 );
     const idx_t n = nrows(A);
+    const ErrorCheck ec_leaf = ec.leaf();
 
     // check arguments
-    tlapack_error_if(    uplo != Uplo::Lower &&
-                        uplo != Uplo::Upper, -1 );
-    tlapack_error_if(    access_denied( uplo, write_policy(A) ), -1 );
-    tlapack_error_if(    nrows(A) != ncols(A), -2 );
+    tlapack_check_false(    uplo != Uplo::Lower &&
+                            uplo != Uplo::Upper, -1 );
+    tlapack_check_false(    access_denied( uplo, write_policy(A) ), -1 );
+    tlapack_check_false(    nrows(A) != ncols(A), -2 );
 
     // Quick return
     if (n <= 0)
@@ -95,8 +102,12 @@ int potrf2( uplo_t uplo, matrix_t& A )
             A(0,0) = sqrt( a00 );
             return 0;
         }
-        else
+        else {
+            tlapack_error_if( ec.root, 1,
+                "The leading minor of order 1 is not positive definite,"
+                " and the factorization could not be completed." );
             return 1;
+        }
     }
 
     // Recursive code
@@ -108,9 +119,13 @@ int potrf2( uplo_t uplo, matrix_t& A )
         auto A22 = slice( A, pair{n1,n}, pair{n1,n} );
         
         // Factor A11
-        int info = potrf2( uplo, A11 );
-        if( info != 0 )
+        int info = potrf2( uplo, A11, ec_leaf );
+        if( info != 0 ) {
+            tlapack_error_if( ec.root, info,
+                "The leading minor of the reported order is not positive definite,"
+                " and the factorization could not be completed." );
             return info;
+        }
 
         if( uplo == Uplo::Upper ) {
 
@@ -138,11 +153,15 @@ int potrf2( uplo_t uplo, matrix_t& A )
         }
         
         // Factor A22
-        info = potrf2( uplo, A22 );
+        info = potrf2( uplo, A22, ec_leaf );
         if( info == 0 )
             return 0;
-        else
+        else {
+            tlapack_error_if( ec.root, info + n1,
+                "The leading minor of the reported order is not positive definite,"
+                " and the factorization could not be completed." );
             return info + n1;
+        }
     }
 }
 

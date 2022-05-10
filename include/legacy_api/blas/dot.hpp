@@ -45,8 +45,8 @@ scalar_type<TX,TY> dot(
     TX const *x, int_t incx,
     TY const *y, int_t incy )
 {
-    tlapack_error_if( incx == 0 );
-    tlapack_error_if( incy == 0 );
+    tlapack_check_false( incx == 0 );
+    tlapack_check_false( incy == 0 );
 
     // quick return
     if( n <= 0 ) return scalar_type<TX,TY>(0);

@@ -39,7 +39,7 @@ auto dotu( const vectorX_t& x, const vectorY_t& y )
     const idx_t n = size(x);
 
     // check arguments
-    tlapack_error_if( size(y) != n );
+    tlapack_check_false( size(y) != n );
 
     T result( 0.0 );
     for (idx_t i = 0; i < n; ++i)

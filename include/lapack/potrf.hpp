@@ -58,7 +58,7 @@ struct potrf_opts_t
  * @param[in] opts Options. Default options are defined in @see potrf_opts_t.
  *
  * @param[in] ec Exception handling configuration at runtime.
- *      Default options are defined in exceptionCheck_t.
+ *      Default options are defined in ErrorCheck.
  *      This routine uses:
  *          ec.nan;
  *          ec.inf
@@ -83,6 +83,7 @@ int potrf( uplo_t uplo, matrix_t& A, opts_t&& opts, const ErrorCheck& ec = {} )
     const real_t one( 1.0 );
     const idx_t n  = nrows(A);
     const idx_t nb = opts.nb;
+    const ErrorCheck ec_leaf = ec.leaf();
 
     // check arguments
     tlapack_check( uplo == Uplo::Lower || uplo == Uplo::Upper );
@@ -110,7 +111,7 @@ int potrf( uplo_t uplo, matrix_t& A, opts_t&& opts, const ErrorCheck& ec = {} )
 
                 herk( uplo, conjTranspose, -one, A1J, one, AJJ );
                 
-                int info = potrf2( uplo, AJJ );
+                int info = potrf2( uplo, AJJ, ec_leaf );
                 if( info != 0 ) {
                     tlapack_error( info + j,
                         "The leading minor of the reported order is not positive definite,"
@@ -141,7 +142,7 @@ int potrf( uplo_t uplo, matrix_t& A, opts_t&& opts, const ErrorCheck& ec = {} )
 
                 herk( uplo, noTranspose, -one, AJ1, one, AJJ );
                 
-                int info = potrf2( uplo, AJJ );
+                int info = potrf2( uplo, AJJ, ec_leaf );
                 if( info != 0 ) {
                     tlapack_error( info + j,
                         "The leading minor of the reported order is not positive definite,"

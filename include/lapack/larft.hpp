@@ -101,31 +101,31 @@ int larft(
     const idx_t k = size( tau );
 
     // check arguments
-    tlapack_error_if(    direction != Direction::Backward &&
+    tlapack_check_false(    direction != Direction::Backward &&
                         direction != Direction::Forward, -1 );
-    tlapack_error_if(    storeMode != StoreV::Columnwise &&
+    tlapack_check_false(    storeMode != StoreV::Columnwise &&
                         storeMode != StoreV::Rowwise, -2 );
 
     if( direction == Direction::Forward )
     {
         if( storeMode == StoreV::Columnwise )
-            tlapack_error_if( access_denied( strictLower, read_policy(V) ), -3 );
+            tlapack_check_false( access_denied( strictLower, read_policy(V) ), -3 );
         else
-            tlapack_error_if( access_denied( strictUpper, read_policy(V) ), -3 );
+            tlapack_check_false( access_denied( strictUpper, read_policy(V) ), -3 );
     }
     else
     {
-        tlapack_error_if( access_denied( dense, read_policy(V) ), -3 );
+        tlapack_check_false( access_denied( dense, read_policy(V) ), -3 );
     }
-    tlapack_error_if( k > ( (storeMode == StoreV::Columnwise)
+    tlapack_check_false( k > ( (storeMode == StoreV::Columnwise)
                             ? ncols( V )
                             : nrows( V ) ), -3 );
 
     if( direction == Direction::Forward )
-        tlapack_error_if( access_denied( Uplo::Upper, read_policy(T) ), -5 );
+        tlapack_check_false( access_denied( Uplo::Upper, read_policy(T) ), -5 );
     else
-        tlapack_error_if( access_denied( Uplo::Lower, read_policy(T) ), -5 );
-    tlapack_error_if(    nrows( T ) < k || ncols( T ) < k, -5 );
+        tlapack_check_false( access_denied( Uplo::Lower, read_policy(T) ), -5 );
+    tlapack_check_false(    nrows( T ) < k || ncols( T ) < k, -5 );
 
     // Quick return
     if (n == 0 || k == 0)

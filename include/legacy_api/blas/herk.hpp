@@ -91,24 +91,24 @@ void herk(
     using internal::colmajor_matrix;
 
     // check arguments
-    tlapack_error_if( layout != Layout::ColMajor &&
+    tlapack_check_false( layout != Layout::ColMajor &&
                    layout != Layout::RowMajor );
-    tlapack_error_if( uplo != Uplo::Lower &&
+    tlapack_check_false( uplo != Uplo::Lower &&
                    uplo != Uplo::Upper &&
                    uplo != Uplo::General );
-    tlapack_error_if( trans != Op::NoTrans &&
+    tlapack_check_false( trans != Op::NoTrans &&
                    trans != Op::Trans &&
                    trans != Op::ConjTrans );
-    tlapack_error_if( is_complex<TA>::value && trans == Op::Trans );
-    tlapack_error_if( n < 0 );
-    tlapack_error_if( k < 0 );
-    tlapack_error_if( lda < (
+    tlapack_check_false( is_complex<TA>::value && trans == Op::Trans );
+    tlapack_check_false( n < 0 );
+    tlapack_check_false( k < 0 );
+    tlapack_check_false( lda < (
         (layout == Layout::RowMajor)
             ? ((trans == Op::NoTrans) ? k : n)
             : ((trans == Op::NoTrans) ? n : k)
         )
     );
-    tlapack_error_if( ldc < n );
+    tlapack_check_false( ldc < n );
 
     // quick return
     if (n == 0)

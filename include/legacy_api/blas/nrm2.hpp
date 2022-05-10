@@ -42,7 +42,7 @@ namespace tlapack {
 template< typename T >
 real_type<T> nrm2( idx_t n, T const * x, int_t incx )
 {
-    tlapack_error_if( incx <= 0 );
+    tlapack_check_false( incx <= 0 );
 
     // quick return
     if( n <= 0 ) return 0;

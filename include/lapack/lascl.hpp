@@ -75,7 +75,7 @@ int lascl(
     const real_t big   = safe_max<real_t>();
     
     // check arguments
-    tlapack_error_if(
+    tlapack_check_false(
         (accessType != MatrixAccessPolicy::Dense) && 
         (accessType != MatrixAccessPolicy::UpperHessenberg) && 
         (accessType != MatrixAccessPolicy::LowerHessenberg) && 
@@ -83,9 +83,9 @@ int lascl(
         (accessType != MatrixAccessPolicy::LowerTriangle) && 
         (accessType != MatrixAccessPolicy::StrictUpper) && 
         (accessType != MatrixAccessPolicy::StrictLower), -1 );
-    tlapack_error_if( access_denied( accessType, write_policy(A) ), -1 );
-    tlapack_error_if( (b == b_type(0)) || isnan(b), -2 );
-    tlapack_error_if( isnan(a), -3 );
+    tlapack_check_false( access_denied( accessType, write_policy(A) ), -1 );
+    tlapack_check_false( (b == b_type(0)) || isnan(b), -2 );
+    tlapack_check_false( isnan(a), -3 );
 
     // quick return
     if( m <= 0 || n <= 0 )
@@ -225,10 +225,10 @@ int lascl(
     const real_t big   = safe_max<real_t>();
     
     // check arguments
-    tlapack_error_if( (kl < 0) || (kl >= m) || (ku < 0) || (ku >= n), -1 );
-    tlapack_error_if( access_denied( accessType, write_policy(A) ), -1 );
-    tlapack_error_if( (b == b_type(0)) || isnan(b), -2 );
-    tlapack_error_if( isnan(a), -3 );
+    tlapack_check_false( (kl < 0) || (kl >= m) || (ku < 0) || (ku >= n), -1 );
+    tlapack_check_false( access_denied( accessType, write_policy(A) ), -1 );
+    tlapack_check_false( (b == b_type(0)) || isnan(b), -2 );
+    tlapack_check_false( isnan(a), -3 );
 
     // quick return
     if( m <= 0 || n <= 0 )

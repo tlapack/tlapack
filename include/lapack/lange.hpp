@@ -45,11 +45,11 @@ lange( norm_t normType, const matrix_t& A )
     const idx_t n = ncols(A);
 
     // check arguments
-    tlapack_error_if(  normType != Norm::Fro &&
+    tlapack_check_false(  normType != Norm::Fro &&
                     normType != Norm::Inf &&
                     normType != Norm::Max &&
                     normType != Norm::One );
-    tlapack_error_if(  access_denied( dense, read_policy(A) ) );
+    tlapack_check_false(  access_denied( dense, read_policy(A) ) );
 
     // quick return
     if (m == 0 || n == 0)
@@ -140,11 +140,11 @@ lange( norm_t normType, const matrix_t& A, work_t& work )
     const idx_t n = ncols(A);
 
     // check arguments
-    tlapack_error_if(  normType != Norm::Fro &&
+    tlapack_check_false(  normType != Norm::Fro &&
                     normType != Norm::Inf &&
                     normType != Norm::Max &&
                     normType != Norm::One );
-    tlapack_error_if(  access_denied( dense, read_policy(A) ) );
+    tlapack_check_false(  access_denied( dense, read_policy(A) ) );
 
     // quick return
     if (m == 0 || n == 0)

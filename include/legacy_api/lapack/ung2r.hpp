@@ -49,10 +49,10 @@ inline int ung2r(
     using internal::vector;
 
     // check arguments
-    tlapack_error_if( m < 0, -1 );
-    tlapack_error_if( n < 0 || n > m, -2 );
-    tlapack_error_if( k < 0 || k > n, -3 );
-    tlapack_error_if( lda < m, -5 );
+    tlapack_check_false( m < 0, -1 );
+    tlapack_check_false( n < 0 || n > m, -2 );
+    tlapack_check_false( k < 0 || k > n, -3 );
+    tlapack_check_false( lda < m, -5 );
 
     // quick return
     if (n <= 0) return 0;

@@ -97,18 +97,18 @@ void hemm(
     using internal::colmajor_matrix;
 
     // check arguments
-    tlapack_error_if( layout != Layout::ColMajor &&
+    tlapack_check_false( layout != Layout::ColMajor &&
                    layout != Layout::RowMajor );
-    tlapack_error_if( side != Side::Left &&
+    tlapack_check_false( side != Side::Left &&
                    side != Side::Right );
-    tlapack_error_if( uplo != Uplo::Lower &&
+    tlapack_check_false( uplo != Uplo::Lower &&
                    uplo != Uplo::Upper &&
                    uplo != Uplo::General );
-    tlapack_error_if( m < 0 );
-    tlapack_error_if( n < 0 );
-    tlapack_error_if( lda < ((side == Side::Left) ? m : n) );
-    tlapack_error_if( ldb < ((layout == Layout::RowMajor) ? n : m) );
-    tlapack_error_if( ldc < ((layout == Layout::RowMajor) ? n : m) );
+    tlapack_check_false( m < 0 );
+    tlapack_check_false( n < 0 );
+    tlapack_check_false( lda < ((side == Side::Left) ? m : n) );
+    tlapack_check_false( ldb < ((layout == Layout::RowMajor) ? n : m) );
+    tlapack_check_false( ldc < ((layout == Layout::RowMajor) ? n : m) );
 
     // quick return
     if (m == 0 || n == 0)

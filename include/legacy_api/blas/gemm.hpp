@@ -117,20 +117,20 @@ void gemm(
     }
 
     // check arguments
-    tlapack_error_if( layout != Layout::ColMajor &&
+    tlapack_check_false( layout != Layout::ColMajor &&
                       layout != Layout::RowMajor );
-    tlapack_error_if( transA != Op::NoTrans &&
+    tlapack_check_false( transA != Op::NoTrans &&
                    transA != Op::Trans &&
                    transA != Op::ConjTrans );
-    tlapack_error_if( transB != Op::NoTrans &&
+    tlapack_check_false( transB != Op::NoTrans &&
                    transB != Op::Trans &&
                    transB != Op::ConjTrans );
-    tlapack_error_if( m < 0 );
-    tlapack_error_if( n < 0 );
-    tlapack_error_if( k < 0 );
-    tlapack_error_if( lda < ((transA != Op::NoTrans) ? k : m) );
-    tlapack_error_if( ldb < ((transB != Op::NoTrans) ? n : k) );
-    tlapack_error_if( ldc < m );
+    tlapack_check_false( m < 0 );
+    tlapack_check_false( n < 0 );
+    tlapack_check_false( k < 0 );
+    tlapack_check_false( lda < ((transA != Op::NoTrans) ? k : m) );
+    tlapack_check_false( ldb < ((transB != Op::NoTrans) ? n : k) );
+    tlapack_check_false( ldc < m );
 
     // quick return
     if (m == 0 || n == 0)

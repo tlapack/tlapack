@@ -75,19 +75,19 @@ void symm(
     const idx_t n = ncols(B);
 
     // check arguments
-    tlapack_error_if( side != Side::Left &&
+    tlapack_check_false( side != Side::Left &&
                    side != Side::Right );
-    tlapack_error_if( uplo != Uplo::Lower &&
+    tlapack_check_false( uplo != Uplo::Lower &&
                    uplo != Uplo::Upper &&
                    uplo != Uplo::General );
-    tlapack_error_if( nrows(A) != ncols(A) );
-    tlapack_error_if( nrows(A) != ((side == Side::Left) ? m : n) );
-    tlapack_error_if( nrows(C) != m );
-    tlapack_error_if( ncols(C) != n );
+    tlapack_check_false( nrows(A) != ncols(A) );
+    tlapack_check_false( nrows(A) != ((side == Side::Left) ? m : n) );
+    tlapack_check_false( nrows(C) != m );
+    tlapack_check_false( ncols(C) != n );
 
-    tlapack_error_if( access_denied( uplo,  read_policy(A) ) );
-    tlapack_error_if( access_denied( dense, read_policy(B) ) );
-    tlapack_error_if( access_denied( dense, write_policy(C) ) );
+    tlapack_check_false( access_denied( uplo,  read_policy(A) ) );
+    tlapack_check_false( access_denied( dense, read_policy(B) ) );
+    tlapack_check_false( access_denied( dense, write_policy(C) ) );
 
     if (side == Side::Left) {
         if (uplo != Uplo::Lower) {

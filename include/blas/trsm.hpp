@@ -88,20 +88,20 @@ void trsm(
     const idx_t n = ncols(B);
 
     // check arguments
-    tlapack_error_if( side != Side::Left &&
+    tlapack_check_false( side != Side::Left &&
                    side != Side::Right );
-    tlapack_error_if( uplo != Uplo::Lower &&
+    tlapack_check_false( uplo != Uplo::Lower &&
                    uplo != Uplo::Upper );
-    tlapack_error_if( trans != Op::NoTrans &&
+    tlapack_check_false( trans != Op::NoTrans &&
                    trans != Op::Trans &&
                    trans != Op::ConjTrans );
-    tlapack_error_if( diag != Diag::NonUnit &&
+    tlapack_check_false( diag != Diag::NonUnit &&
                    diag != Diag::Unit );
-    tlapack_error_if( nrows(A) != ncols(A) );
-    tlapack_error_if( nrows(A) != ((side == Side::Left) ? m : n) );
+    tlapack_check_false( nrows(A) != ncols(A) );
+    tlapack_check_false( nrows(A) != ((side == Side::Left) ? m : n) );
 
-    tlapack_error_if( access_denied( uplo, read_policy(A) ) );
-    tlapack_error_if( access_denied( dense, write_policy(B) ) );
+    tlapack_check_false( access_denied( uplo, read_policy(A) ) );
+    tlapack_check_false( access_denied( dense, write_policy(B) ) );
 
     if (side == Side::Left) {
         if (trans == Op::NoTrans) {

@@ -90,14 +90,14 @@ int larft(
     using internal::vector;
 
     // check arguments
-    tlapack_error_if( direction != Direction::Forward &&
+    tlapack_check_false( direction != Direction::Forward &&
                      direction != Direction::Backward, -1 );
-    tlapack_error_if( storeV != StoreV::Columnwise &&
+    tlapack_check_false( storeV != StoreV::Columnwise &&
                      storeV != StoreV::Rowwise, -2 );
-    tlapack_error_if( n < 0, -3 );
-    tlapack_error_if( k < 1, -4 );
-    tlapack_error_if( ldV < ((storeV == StoreV::Columnwise) ? n : k), -6 );
-    tlapack_error_if( ldT < k, -9 );
+    tlapack_check_false( n < 0, -3 );
+    tlapack_check_false( k < 1, -4 );
+    tlapack_check_false( ldV < ((storeV == StoreV::Columnwise) ? n : k), -6 );
+    tlapack_check_false( ldT < k, -9 );
 
     // Quick return
     if (n == 0 || k == 0)

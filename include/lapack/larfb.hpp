@@ -114,37 +114,37 @@ int larfb(
     const idx_t k = nrows(T);
 
     // check arguments
-    tlapack_error_if(    side != Side::Left &&
+    tlapack_check_false(    side != Side::Left &&
                         side != Side::Right, -1 );
-    tlapack_error_if(    trans != Op::NoTrans &&
+    tlapack_check_false(    trans != Op::NoTrans &&
                         trans != Op::ConjTrans &&
                         (
                             (trans != Op::Trans) ||
                             is_complex< type_t< matrixV_t > >::value
                         ), -2 );
-    tlapack_error_if(    direction != Direction::Backward &&
+    tlapack_check_false(    direction != Direction::Backward &&
                         direction != Direction::Forward, -3 );
-    tlapack_error_if(    storeMode != StoreV::Columnwise &&
+    tlapack_check_false(    storeMode != StoreV::Columnwise &&
                         storeMode != StoreV::Rowwise, -4 );
 
     if( direction == Direction::Forward )
     {
         if( storeMode == StoreV::Columnwise )
-            tlapack_error_if( access_denied( strictLower, read_policy(V) ), -5 );
+            tlapack_check_false( access_denied( strictLower, read_policy(V) ), -5 );
         else
-            tlapack_error_if( access_denied( strictUpper, read_policy(V) ), -5 );
+            tlapack_check_false( access_denied( strictUpper, read_policy(V) ), -5 );
 
-        tlapack_error_if( access_denied( Uplo::Upper, read_policy(T) ), -6 );
+        tlapack_check_false( access_denied( Uplo::Upper, read_policy(T) ), -6 );
     }
     else
     {
-        tlapack_error_if( access_denied( dense, read_policy(V) ), -5 );
+        tlapack_check_false( access_denied( dense, read_policy(V) ), -5 );
 
-        tlapack_error_if( access_denied( Uplo::Lower, read_policy(T) ), -6 );
+        tlapack_check_false( access_denied( Uplo::Lower, read_policy(T) ), -6 );
     }
 
-    tlapack_error_if(    access_denied( dense, write_policy(C) ), -7 );
-    tlapack_error_if(    access_denied( dense, write_policy(work) ), -8 );
+    tlapack_check_false(    access_denied( dense, write_policy(C) ), -7 );
+    tlapack_check_false(    access_denied( dense, write_policy(work) ), -8 );
 
     // Quick return
     if (m <= 0 || n <= 0 || k <= 0) return 0;

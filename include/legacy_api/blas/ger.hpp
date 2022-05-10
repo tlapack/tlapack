@@ -71,13 +71,13 @@ void ger(
     using internal::rowmajor_matrix;
 
     // check arguments
-    tlapack_error_if( layout != Layout::ColMajor &&
+    tlapack_check_false( layout != Layout::ColMajor &&
                    layout != Layout::RowMajor );
-    tlapack_error_if( m < 0 );
-    tlapack_error_if( n < 0 );
-    tlapack_error_if( incx == 0 );
-    tlapack_error_if( incy == 0 );
-    tlapack_error_if( lda < ((layout == Layout::ColMajor) ? m : n) );
+    tlapack_check_false( m < 0 );
+    tlapack_check_false( n < 0 );
+    tlapack_check_false( incx == 0 );
+    tlapack_check_false( incy == 0 );
+    tlapack_check_false( lda < ((layout == Layout::ColMajor) ? m : n) );
 
     // quick return
     if (m == 0 || n == 0)

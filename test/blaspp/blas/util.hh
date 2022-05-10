@@ -15,7 +15,7 @@
 /// Use to silence compiler warning of unused variable.
 #define blas_unused( var ) ((void)var)
 
-#define blas_error_if( cond ) tlapack_error_if( cond )
+#define blas_error_if( cond ) tlapack_check_false( cond )
 
 namespace blas {
 

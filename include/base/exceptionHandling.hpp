@@ -28,52 +28,13 @@ namespace tlapack {
             return std::string("[") + std::to_string(info) + "] " + detailedInfo;
         }
     }
-    
-    /**
-     * @brief Error handler
-     * 
-     * @param[in] info Code of the error.
-     * @param[in] detailedInfo Object with information about the error.
-     */
-    template< class detailedInfo_t >
-    void error( int info, const detailedInfo_t& detailedInfo ) { }
-    
-    /**
-     * @brief Error handler
-     * 
-     * Implementation for detailedInfo of type std::string.
-     */
-    template<>
-    inline
-    void error( int info, const std::string& detailedInfo ) {
-        throw std::runtime_error( internal::error_msg(info, detailedInfo) );
-    }
-
-    /**
-     * @brief Warning handler
-     * 
-     * @param[in] info Code of the warning.
-     * @param[in] detailedInfo Object with information about the warning.
-     */
-    template< class detailedInfo_t >
-    void warning( int info, const detailedInfo_t& detailedInfo ) { }
-    
-    /**
-     * @brief Warning handler
-     * 
-     * Implementation for detailedInfo of type std::string.
-     */
-    template<>
-    inline
-    void warning( int info, const std::string& detailedInfo ) {
-        std::cerr << internal::error_msg(info, detailedInfo) << std::endl;
-    }
 
     /// Descriptor for Exception Handling
     struct ErrorCheck {
         
-        bool inf = TLAPACK_DEFAULT_INFCHECK; ///< Default behavior of inf check in the routines of <T>LAPACK.
-        bool nan = TLAPACK_DEFAULT_NANCHECK; ///< Default behavior of nan check in the routines of <T>LAPACK.
+        bool inf  = TLAPACK_DEFAULT_INFCHECK; ///< Default behavior of inf check in the routines of <T>LAPACK.
+        bool nan  = TLAPACK_DEFAULT_NANCHECK; ///< Default behavior of nan check in the routines of <T>LAPACK.
+        bool root = true; ///< Used to enable / disable some checks on recursive calls.
         
         // /** Search for infs and nans in the input and ouput of internal calls.
         //  * 
@@ -81,6 +42,12 @@ namespace tlapack {
         //  * - k : Internal check on k levels in the call tree.
         //  */
         // std::size_t infnanInternalCheck = std::numeric_limits<std::size_t>::max();
+
+        inline ErrorCheck leaf() const {
+            ErrorCheck ec = *this;
+            ec.root = false;
+            return ec;
+        }
     };
 
 }
@@ -90,15 +57,15 @@ namespace tlapack {
 
 #if defined(TLAPACK_CHECK_INPUT) && !defined(TLAPACK_NDEBUG)
 
-    /// ex: tlapack_error_if( 2 < 1, -6 );
-    #define tlapack_error_if( cond, ... ) do { \
-        if( static_cast<bool>(cond) ) \
-            throw std::domain_error( #cond ); \
-    } while(false)
-
     /// ex: lapack_check( 1 < 2, -6 );
     #define tlapack_check( cond ) do { \
         if( !static_cast<bool>(cond) ) \
+            throw std::domain_error( #cond ); \
+    } while(false)
+
+    /// ex: tlapack_check_false( 2 < 1, -6 );
+    #define tlapack_check_false( cond, ... ) do { \
+        if( static_cast<bool>(cond) ) \
             throw std::domain_error( #cond ); \
     } while(false)
 
@@ -106,7 +73,7 @@ namespace tlapack {
 
     // <T>LAPACK does not check input parameters
 
-    #define tlapack_error_if( cond, ... ) \
+    #define tlapack_check_false( cond, ... ) \
         ((void)0)
     #define tlapack_check( cond ) \
         ((void)0)
@@ -117,14 +84,44 @@ namespace tlapack {
 // Macros to handle internal errors and warnings
 
 #ifndef TLAPACK_NDEBUG
+
+    /**
+     * @brief Error handler
+     * 
+     * @param[in] info Code of the error.
+     * @param[in] detailedInfo String with information about the error.
+     */
     #define tlapack_error( info, detailedInfo ) \
-        tlapack::error( info, detailedInfo )
+        throw std::runtime_error( \
+            tlapack::internal::error_msg(info, detailedInfo) )
+
+    /**
+     * @brief Error handler with conditional
+     * 
+     * @param[in] check If true, throw an exception.
+     * @param[in] info Code of the error.
+     * @param[in] detailedInfo String with information about the error.
+     */
+    #define tlapack_error_if( check, info, detailedInfo ) do { \
+        if( static_cast<bool>(check) ) \
+            tlapack_error( info, detailedInfo ); \
+    } while(false)
+
+    /**
+     * @brief Warning handler
+     * 
+     * @param[in] info Code of the warning.
+     * @param[in] detailedInfo String with information about the warning.
+     */
     #define tlapack_warning( info, detailedInfo ) \
-        tlapack::warning( info, detailedInfo )
+        std::cerr \
+            << tlapack::internal::error_msg(info, detailedInfo) \
+            << std::endl;
+
 #else
-    #define tlapack_error( info, detailedInfo ) \
+    #define tlapack_error( check, info, detailedInfo ) \
         ((void)0)
-    #define tlapack_warning( info, detailedInfo ) \
+    #define tlapack_warning( check, info, detailedInfo ) \
         ((void)0)
 #endif
 
