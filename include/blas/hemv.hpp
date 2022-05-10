@@ -42,7 +42,7 @@ template<
     class alpha_t, class beta_t >
 void hemv(
     Uplo uplo,
-    const alpha_t alpha, const matrixA_t& A, const vectorX_t& x,
+    const alpha_t& alpha, const matrixA_t& A, const vectorX_t& x,
     const beta_t& beta, vectorY_t& y )
 {
     // data traits

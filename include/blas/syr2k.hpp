@@ -49,7 +49,16 @@ namespace tlapack {
  */
 template<
     class matrixA_t, class matrixB_t, class matrixC_t, 
-    class alpha_t, class beta_t >
+    class alpha_t, class beta_t,
+    class T  = alpha_t,
+    disable_if_allow_optblas_t<
+        pair< matrixA_t, T >,
+        pair< matrixB_t, T >,
+        pair< matrixC_t, T >,
+        pair< alpha_t,   T >,
+        pair< beta_t,    T >
+    > = 0
+>
 void syr2k(
     Uplo uplo,
     Op trans,
