@@ -129,7 +129,8 @@ TEMPLATE_LIST_TEST_CASE("Hessenberg reduction is backward stable", "[eigenvalues
     DYNAMIC_SECTION("GEHRD with"
                     << " matrix = " << matrix_type << " n = " << n << " ilo = " << ilo << " ihi = " << ihi << " nb = " << nb)
     {
-        gehrd_opts_t<idx_t, T> opts = {.nb = nb, .nx_switch = 2};
+        gehrd_opts_t<idx_t, T> opts;
+        opts.nb = nb; opts.nx_switch = 2;
         idx_t required_workspace = get_work_gehrd(ilo, ihi, A, tau, opts);
         std::unique_ptr<T[]> _work2(new T[required_workspace]);
         opts._work = &_work2[0];

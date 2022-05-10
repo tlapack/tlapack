@@ -76,7 +76,7 @@ void trsm(
     Uplo uplo,
     Op trans,
     Diag diag,
-    const alpha_t alpha,
+    const alpha_t& alpha,
     const matrixA_t& A,
     matrixB_t& B )
 {    

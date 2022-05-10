@@ -57,7 +57,15 @@ template<
     enable_if_t<(
     /* Requires: */
         ! is_complex<beta_t>::value
-    ), int > = 0
+    ), int > = 0,
+    class T  = type_t<matrixA_t>,
+    disable_if_allow_optblas_t<
+        pair< matrixA_t, T >,
+        pair< matrixB_t, T >,
+        pair< matrixC_t, T >,
+        pair< alpha_t,   T >,
+        pair< beta_t,    real_type<T> >
+    > = 0
 >
 void her2k(
     Uplo uplo,
