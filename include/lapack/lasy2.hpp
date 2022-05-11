@@ -146,6 +146,8 @@ namespace tlapack
             idx_t ipsv, jpsv;
             for (idx_t i = 0; i < 3; ++i)
             {
+                ipsv = i;
+                jpsv = i;
                 // Do pivoting to get largest pivot element
                 auto xmax = zero;
                 for (idx_t ip = i; ip < 4; ++ip)

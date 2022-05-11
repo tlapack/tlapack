@@ -31,7 +31,9 @@ TEMPLATE_LIST_TEST_CASE("Multishift QR", "[eigenvalues][multishift_qr]", types_t
 
     auto matrix_type = GENERATE(as<std::string>{}, "Large Random", "Near overflow", "Random");
 
-    idx_t n, ilo, ihi;
+    idx_t n = 0;
+    idx_t ilo = 0;
+    idx_t ihi = 0;
     int seed = 0;
     if (matrix_type == "Random")
     {

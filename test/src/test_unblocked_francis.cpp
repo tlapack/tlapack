@@ -28,9 +28,11 @@ TEMPLATE_LIST_TEST_CASE("lahqr", "[eigenvalues][doubleshift_qr]", types_to_test)
     const T zero(0);
     const T one(1);
 
-    auto matrix_type = GENERATE(as<std::string>{}, "Near overflow", "Random");
+    auto matrix_type = GENERATE(as<std::string>{}, "Random", "Near overflow");
 
-    idx_t n, ilo, ihi;
+    idx_t n = 0;
+    idx_t ilo = 0;
+    idx_t ihi = 0;
     if (matrix_type == "Random")
     {
         // Generate n
@@ -95,7 +97,7 @@ TEMPLATE_LIST_TEST_CASE("lahqr", "[eigenvalues][doubleshift_qr]", types_to_test)
     {
         int ierr = lahqr(true, true, ilo, ihi, H, s, Q);
 
-        CHECK( ierr == 0 );
+        REQUIRE( ierr == 0 );
 
         const real_type<T> eps = uroundoff<real_type<T>>();
         const real_type<T> tol = n * 1.0e2 * eps;

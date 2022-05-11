@@ -65,7 +65,9 @@ TEMPLATE_LIST_TEST_CASE("Hessenberg reduction is backward stable", "[eigenvalues
     auto matrix_type = GENERATE(as<std::string>{}, "Random", "Near overflow");
 
     rand_generator gen;
-    idx_t n, ilo, ihi;
+    idx_t n = 0;
+    idx_t ilo = 0;
+    idx_t ihi = 0;
     if (matrix_type == "Random")
     {
         // Generate n
