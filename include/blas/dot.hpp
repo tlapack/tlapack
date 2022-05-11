@@ -21,7 +21,12 @@ namespace tlapack {
  *
  * @ingroup dot
  */
-template< class vectorX_t, class vectorY_t >
+template< class vectorX_t, class vectorY_t,
+    disable_if_allow_optblas_t<
+        pair< vectorX_t, type_t< vectorX_t > >,
+        pair< vectorY_t, type_t< vectorX_t > >
+    > = 0
+>
 auto dot( const vectorX_t& x, const vectorY_t& y )
 {
     using T = scalar_type<

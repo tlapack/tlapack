@@ -40,7 +40,12 @@ template< class matrixA_t, class vectorX_t, class alpha_t,
     enable_if_t<(
     /* Requires: */
         ! is_complex<alpha_t>::value
-    ), int > = 0
+    ), int > = 0,
+    disable_if_allow_optblas_t<
+        pair< alpha_t, real_type<type_t<matrixA_t>> >,
+        pair< matrixA_t, type_t<matrixA_t> >,
+        pair< vectorX_t, type_t<matrixA_t> >
+    > = 0
 >
 void her(
     Uplo uplo,

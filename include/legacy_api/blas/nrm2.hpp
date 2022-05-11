@@ -40,12 +40,13 @@ namespace tlapack {
  * @ingroup nrm2
  */
 template< typename T >
-real_type<T>
-nrm2(
-    idx_t n,
-    T const * x, int_t incx )
+real_type<T> nrm2( idx_t n, T const * x, int_t incx )
 {
     tblas_error_if( incx <= 0 );
+
+    // quick return
+    if( n <= 0 ) return 0;
+
     tlapack_expr_with_vector_positiveInc(
         _x, T, n, x, incx,
         return nrm2( _x )

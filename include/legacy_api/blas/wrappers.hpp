@@ -13,6 +13,691 @@
 
 namespace tlapack {
 
+// =============================================================================
+// Level 1 BLAS wrappers
+
+template< class vector_t,
+    enable_if_allow_optblas_t< vector_t > = 0
+>
+inline
+auto asum( vector_t const& x )
+{
+    auto _x = legacy_vector(x);
+    return ::blas::asum( _x.n, _x.ptr, _x.inc );
+}
+
+template< class vectorX_t, class vectorY_t, class alpha_t,
+    enable_if_allow_optblas_t<
+        pair< vectorX_t, alpha_t >,
+        pair< vectorY_t, alpha_t >
+    > = 0
+>
+inline
+void axpy(
+    const alpha_t alpha,
+    const vectorX_t& x, vectorY_t& y )
+{
+    using idx_t = size_type< vectorX_t >;
+
+    // Legacy objects
+    auto _x = legacy_vector(x);
+    auto _y = legacy_vector(y);
+
+    // Constants to forward
+    const idx_t& n = _x.n;
+    const idx_t incx = (_x.direction == Direction::Forward) ? _x.inc : -_x.inc;
+    const idx_t incy = (_y.direction == Direction::Forward) ? _y.inc : -_y.inc;
+
+    return ::blas::axpy( n, alpha, _x.ptr, incx, _y.ptr, incy );
+}
+
+template< class vectorX_t, class vectorY_t,
+    enable_if_allow_optblas_t<
+        pair< vectorX_t, type_t< vectorX_t > >,
+        pair< vectorY_t, type_t< vectorX_t > >
+    > = 0
+>
+inline
+void copy( const vectorX_t& x, vectorY_t& y )
+{
+    using idx_t = size_type< vectorX_t >;
+
+    // Legacy objects
+    auto _x = legacy_vector(x);
+    auto _y = legacy_vector(y);
+
+    // Constants to forward
+    const idx_t& n = _x.n;
+    const idx_t incx = (_x.direction == Direction::Forward) ? _x.inc : -_x.inc;
+    const idx_t incy = (_y.direction == Direction::Forward) ? _y.inc : -_y.inc;
+
+    return ::blas::copy( n, _x.ptr, incx, _y.ptr, incy );
+}
+
+template< class vectorX_t, class vectorY_t,
+    enable_if_allow_optblas_t<
+        pair< vectorX_t, type_t< vectorX_t > >,
+        pair< vectorY_t, type_t< vectorX_t > >
+    > = 0
+>
+inline
+auto dot( const vectorX_t& x, const vectorY_t& y )
+{
+    using idx_t = size_type< vectorX_t >;
+
+    // Legacy objects
+    auto _x = legacy_vector(x);
+    auto _y = legacy_vector(y);
+
+    // Constants to forward
+    const idx_t& n = _x.n;
+    const idx_t incx = (_x.direction == Direction::Forward) ? _x.inc : -_x.inc;
+    const idx_t incy = (_y.direction == Direction::Forward) ? _y.inc : -_y.inc;
+
+    return ::blas::dot( n, _x.ptr, incx, _y.ptr, incy );
+}
+
+template< class vectorX_t, class vectorY_t,
+    enable_if_allow_optblas_t<
+        pair< vectorX_t, type_t< vectorX_t > >,
+        pair< vectorY_t, type_t< vectorX_t > >
+    > = 0
+>
+inline
+auto dotu( const vectorX_t& x, const vectorY_t& y )
+{
+    using idx_t = size_type< vectorX_t >;
+
+    // Legacy objects
+    auto _x = legacy_vector(x);
+    auto _y = legacy_vector(y);
+
+    // Constants to forward
+    const idx_t& n = _x.n;
+    const idx_t incx = (_x.direction == Direction::Forward) ? _x.inc : -_x.inc;
+    const idx_t incy = (_y.direction == Direction::Forward) ? _y.inc : -_y.inc;
+
+    return ::blas::dotu( n, _x.ptr, incx, _y.ptr, incy );
+}
+
+template< class vector_t,
+    enable_if_allow_optblas_t< vector_t > = 0
+>
+inline
+auto iamax( vector_t const& x )
+{
+    auto _x = legacy_vector(x);
+    return ::blas::iamax( _x.n, _x.ptr, _x.inc );
+}
+
+template< class vector_t,
+    enable_if_allow_optblas_t< vector_t > = 0
+>
+inline
+auto nrm2( vector_t const& x )
+{
+    auto _x = legacy_vector(x);
+    return ::blas::nrm2( _x.n, _x.ptr, _x.inc );
+}
+
+template<
+    class vectorX_t, class vectorY_t,
+    class c_type, class s_type,
+    class T = vectorX_t,
+    class real_t = real_type< T >,
+    enable_if_allow_optblas_t<
+        pair< vectorX_t, T >,
+        pair< vectorY_t, T >,
+        pair< c_type, real_t >,
+        pair< s_type, real_t >
+    > = 0
+>
+inline
+void rot(
+    vectorX_t& x, vectorY_t& y,
+    const c_type c, const s_type s )
+{
+    using idx_t = size_type< vectorX_t >;
+
+    // Legacy objects
+    auto _x = legacy_vector(x);
+    auto _y = legacy_vector(y);
+
+    // Constants to forward
+    const idx_t& n = _x.n;
+    const idx_t incx = (_x.direction == Direction::Forward) ? _x.inc : -_x.inc;
+    const idx_t incy = (_y.direction == Direction::Forward) ? _y.inc : -_y.inc;
+
+    return ::blas::rot( n, _x.ptr, incx, _y.ptr, incy, c, s );
+}
+
+template <typename T,
+    enable_if_allow_optblas_t< T > = 0
+>
+inline
+void rotg( T& a, const T& b, real_type<T>& c, T& s )
+{
+    return ::blas::rotg( &a, (T*) &b, &c, &s );
+}
+
+template<
+    int flag,
+    class vectorX_t, class vectorY_t, class real_t,
+    enable_if_t<((-2 <= flag) && (flag <= 1)), int > = 0,
+    enable_if_allow_optblas_t<
+        pair< real_t, real_type<real_t> >,
+        pair< vectorX_t, real_t >,
+        pair< vectorY_t, real_t >
+    > = 0
+>
+inline
+void rotm( vectorX_t& x, vectorY_t& y, const real_t h[4] )
+{
+    using idx_t = size_type< vectorX_t >;
+
+    // Legacy objects
+    auto _x = legacy_vector(x);
+    auto _y = legacy_vector(y);
+
+    // Constants to forward
+    const idx_t& n = _x.n;
+    const idx_t incx = (_x.direction == Direction::Forward) ? _x.inc : -_x.inc;
+    const idx_t incy = (_y.direction == Direction::Forward) ? _y.inc : -_y.inc;
+    const real_t _h[] = { (real_t) flag, h[0], h[1], h[2], h[3] };
+
+    return ::blas::rotm( n, _x.ptr, incx, _y.ptr, incy, _h );
+}
+
+template< typename real_t,
+    enable_if_allow_optblas_t<
+        pair< real_t, real_type<real_t> >
+    > = 0
+>
+inline
+int rotmg(
+    real_t& d1, real_t& d2,
+    real_t& a, const real_t b,
+    real_t h[4] )
+{
+    real_t param[5];
+    ::blas::rotmg( &d1, &d2, &a, b, param );
+    
+    h[0] = param[1];
+    h[1] = param[2];
+    h[2] = param[3];
+    h[3] = param[4];
+    
+    return param[0];
+}
+
+template< class vector_t, class alpha_t,
+    enable_if_allow_optblas_t<
+        pair< vector_t, alpha_t >
+    > = 0
+>
+inline
+void scal( const alpha_t alpha, vector_t& x )
+{
+    auto _x = legacy_vector(x);
+    return ::blas::scal( _x.n, alpha, _x.ptr, _x.inc );
+}
+
+template< class vectorX_t, class vectorY_t,
+    enable_if_allow_optblas_t<
+        pair< vectorX_t, type_t< vectorX_t > >,
+        pair< vectorY_t, type_t< vectorX_t > >
+    > = 0
+>
+inline
+void swap( vectorX_t& x, vectorY_t& y )
+{
+    using idx_t = size_type< vectorX_t >;
+
+    // Legacy objects
+    auto _x = legacy_vector(x);
+    auto _y = legacy_vector(y);
+
+    // Constants to forward
+    const idx_t& n = _x.n;
+    const idx_t incx = (_x.direction == Direction::Forward) ? _x.inc : -_x.inc;
+    const idx_t incy = (_y.direction == Direction::Forward) ? _y.inc : -_y.inc;
+
+    return ::blas::swap( n, _x.ptr, incx, _y.ptr, incy );
+}
+
+// =============================================================================
+// Level 2 BLAS wrappers
+
+/**
+ * General matrix-vector multiply.
+ * 
+ * Wrapper to optimized BLAS.
+ * 
+ * @see gemv(
+    Op trans,
+    const alpha_t& alpha, const matrixA_t& A, const vectorX_t& x,
+    const beta_t& beta, vectorY_t& y )
+ * 
+ * @ingroup gemv
+ */
+template<
+    class matrixA_t,
+    class vectorX_t, class vectorY_t, 
+    class alpha_t, class beta_t,
+    enable_if_allow_optblas_t<
+        pair< matrixA_t, alpha_t >,
+        pair< vectorX_t, alpha_t >,
+        pair< vectorY_t, alpha_t >,
+        pair< beta_t,    alpha_t >
+    > = 0
+>
+inline
+void gemv(
+    Op trans,
+    const alpha_t alpha, const matrixA_t& A, const vectorX_t& x,
+    const beta_t beta, vectorY_t& y )
+{
+    using idx_t = size_type< matrixA_t >;
+
+    // Legacy objects
+    auto _A = legacy_matrix(A);
+    auto _x = legacy_vector(x);
+    auto _y = legacy_vector(y);
+
+    // Constants to forward
+    const idx_t& m = _A.m;
+    const idx_t& n = _A.n;
+    const idx_t incx = (_x.direction == Direction::Forward) ? _x.inc : -_x.inc;
+    const idx_t incy = (_y.direction == Direction::Forward) ? _y.inc : -_y.inc;
+
+    return ::blas::gemv(
+        (::blas::Layout) _A.layout,
+        (::blas::Op) trans,
+        m, n,
+        alpha,
+        _A.ptr, _A.ldim,
+        _x.ptr, incx,
+        beta,
+        _y.ptr, incy );
+}
+
+template<
+    class matrixA_t,
+    class vectorX_t, class vectorY_t,
+    class alpha_t,
+    enable_if_allow_optblas_t<
+        pair< matrixA_t, alpha_t >,
+        pair< vectorX_t, alpha_t >,
+        pair< vectorY_t, alpha_t >
+    > = 0
+>
+inline
+void ger(
+    const alpha_t& alpha,
+    const vectorX_t& x, const vectorY_t& y,
+    matrixA_t& A )
+{
+    using idx_t = size_type< matrixA_t >;
+
+    // Legacy objects
+    auto _A = legacy_matrix(A);
+    auto _x = legacy_vector(x);
+    auto _y = legacy_vector(y);
+
+    // Constants to forward
+    const idx_t& m = _A.m;
+    const idx_t& n = _A.n;
+    const idx_t incx = (_x.direction == Direction::Forward) ? _x.inc : -_x.inc;
+    const idx_t incy = (_y.direction == Direction::Forward) ? _y.inc : -_y.inc;
+
+    return ::blas::ger(
+        (::blas::Layout) _A.layout,
+        m, n,
+        alpha,
+        _x.ptr, incx,
+        _y.ptr, incy,
+        _A.ptr, _A.ldim );
+}
+
+template<
+    class matrixA_t,
+    class vectorX_t, class vectorY_t,
+    class alpha_t,
+    enable_if_allow_optblas_t<
+        pair< matrixA_t, alpha_t >,
+        pair< vectorX_t, alpha_t >,
+        pair< vectorY_t, alpha_t >
+    > = 0
+>
+inline
+void geru(
+    const alpha_t& alpha,
+    const vectorX_t& x, const vectorY_t& y,
+    matrixA_t& A )
+{
+    using idx_t = size_type< matrixA_t >;
+
+    // Legacy objects
+    auto _A = legacy_matrix(A);
+    auto _x = legacy_vector(x);
+    auto _y = legacy_vector(y);
+
+    // Constants to forward
+    const idx_t& m = _A.m;
+    const idx_t& n = _A.n;
+    const idx_t incx = (_x.direction == Direction::Forward) ? _x.inc : -_x.inc;
+    const idx_t incy = (_y.direction == Direction::Forward) ? _y.inc : -_y.inc;
+
+    return ::blas::geru(
+        (::blas::Layout) _A.layout,
+        m, n,
+        alpha,
+        _x.ptr, incx,
+        _y.ptr, incy,
+        _A.ptr, _A.ldim );
+}
+
+template<
+    class matrixA_t,
+    class vectorX_t, class vectorY_t, 
+    class alpha_t, class beta_t,
+    enable_if_allow_optblas_t<
+        pair< matrixA_t, alpha_t >,
+        pair< vectorX_t, alpha_t >,
+        pair< vectorY_t, alpha_t >,
+        pair< beta_t,    alpha_t >
+    > = 0
+>
+inline
+void hemv(
+    Uplo uplo,
+    const alpha_t& alpha, const matrixA_t& A, const vectorX_t& x,
+    const beta_t& beta, vectorY_t& y )
+{
+    using idx_t = size_type< matrixA_t >;
+
+    // Legacy objects
+    auto _A = legacy_matrix(A);
+    auto _x = legacy_vector(x);
+    auto _y = legacy_vector(y);
+
+    // Constants to forward
+    const idx_t& n = _A.n;
+    const idx_t incx = (_x.direction == Direction::Forward) ? _x.inc : -_x.inc;
+    const idx_t incy = (_y.direction == Direction::Forward) ? _y.inc : -_y.inc;
+
+    return ::blas::hemv(
+        (::blas::Layout) _A.layout,
+        (::blas::Uplo) uplo,
+        n,
+        alpha,
+        _A.ptr, _A.ldim,
+        _x.ptr, incx,
+        beta,
+        _y.ptr, incy );
+}
+
+template<
+    class matrixA_t,
+    class vectorX_t,
+    class alpha_t,
+    enable_if_allow_optblas_t<
+        pair< alpha_t, real_type<type_t<matrixA_t>> >,
+        pair< matrixA_t, type_t<matrixA_t> >,
+        pair< vectorX_t, type_t<matrixA_t> >
+    > = 0
+>
+inline
+void her(
+    Uplo  uplo,
+    const alpha_t& alpha,
+    const vectorX_t& x,
+    matrixA_t& A )
+{
+    using idx_t = size_type< matrixA_t >;
+
+    // Legacy objects
+    auto _A = legacy_matrix(A);
+    auto _x = legacy_vector(x);
+
+    // Constants to forward
+    const idx_t& n = _A.n;
+    const idx_t incx = (_x.direction == Direction::Forward) ? _x.inc : -_x.inc;
+    
+    return ::blas::her(
+        (::blas::Layout) _A.layout,
+        (::blas::Uplo) uplo,
+        n,
+        alpha,
+        _x.ptr, incx,
+        _A.ptr, _A.ldim );
+}
+
+template<
+    class matrixA_t,
+    class vectorX_t, class vectorY_t,
+    class alpha_t,
+    enable_if_allow_optblas_t<
+        pair< matrixA_t, alpha_t >,
+        pair< vectorX_t, alpha_t >,
+        pair< vectorY_t, alpha_t >
+    > = 0
+>
+inline
+void her2(
+    Uplo  uplo,
+    const alpha_t& alpha,
+    const vectorX_t& x, const vectorY_t& y,
+    matrixA_t& A )
+{
+    using idx_t = size_type< matrixA_t >;
+
+    // Legacy objects
+    auto _A = legacy_matrix(A);
+    auto _x = legacy_vector(x);
+    auto _y = legacy_vector(y);
+
+    // Constants to forward
+    const idx_t& n = _A.n;
+    const idx_t incx = (_x.direction == Direction::Forward) ? _x.inc : -_x.inc;
+    const idx_t incy = (_y.direction == Direction::Forward) ? _y.inc : -_y.inc;
+
+    return ::blas::her2(
+        (::blas::Layout) _A.layout,
+        (::blas::Uplo) uplo,
+        n,
+        alpha,
+        _x.ptr, incx,
+        _y.ptr, incy,
+        _A.ptr, _A.ldim );
+}
+
+template<
+    class matrixA_t,
+    class vectorX_t, class vectorY_t, 
+    class alpha_t, class beta_t,
+    enable_if_allow_optblas_t<
+        pair< alpha_t, real_type<alpha_t> >,
+        pair< matrixA_t, alpha_t >,
+        pair< vectorX_t, alpha_t >,
+        pair< vectorY_t, alpha_t >,
+        pair< beta_t,    alpha_t >
+    > = 0
+>
+inline
+void symv(
+    Uplo uplo,
+    const alpha_t& alpha, const matrixA_t& A, const vectorX_t& x,
+    const beta_t& beta, vectorY_t& y )
+{
+    using idx_t = size_type< matrixA_t >;
+
+    // Legacy objects
+    auto _A = legacy_matrix(A);
+    auto _x = legacy_vector(x);
+    auto _y = legacy_vector(y);
+
+    // Constants to forward
+    const idx_t& n = _A.n;
+    const idx_t incx = (_x.direction == Direction::Forward) ? _x.inc : -_x.inc;
+    const idx_t incy = (_y.direction == Direction::Forward) ? _y.inc : -_y.inc;
+
+    return ::blas::symv(
+        (::blas::Layout) _A.layout,
+        (::blas::Uplo) uplo,
+        n,
+        alpha,
+        _A.ptr, _A.ldim,
+        _x.ptr, incx,
+        beta,
+        _y.ptr, incy );
+}
+
+template<
+    class matrixA_t,
+    class vectorX_t,
+    class alpha_t,
+    enable_if_allow_optblas_t<
+        pair< matrixA_t, alpha_t >,
+        pair< vectorX_t, alpha_t >
+    > = 0
+>
+inline
+void syr(
+    Uplo  uplo,
+    const alpha_t& alpha,
+    const vectorX_t& x,
+    matrixA_t& A )
+{
+    using idx_t = size_type< matrixA_t >;
+
+    // Legacy objects
+    auto _A = legacy_matrix(A);
+    auto _x = legacy_vector(x);
+
+    // Constants to forward
+    const idx_t& n = _A.n;
+    const idx_t incx = (_x.direction == Direction::Forward) ? _x.inc : -_x.inc;
+    
+    return ::blas::syr(
+        (::blas::Layout) _A.layout,
+        (::blas::Uplo) uplo,
+        n,
+        alpha,
+        _x.ptr, incx,
+        _A.ptr, _A.ldim );
+}
+
+template<
+    class matrixA_t,
+    class vectorX_t, class vectorY_t,
+    class alpha_t,
+    enable_if_allow_optblas_t<
+        pair< matrixA_t, alpha_t >,
+        pair< vectorX_t, alpha_t >,
+        pair< vectorY_t, alpha_t >
+    > = 0
+>
+inline
+void syr2(
+    Uplo  uplo,
+    const alpha_t& alpha,
+    const vectorX_t& x, const vectorY_t& y,
+    matrixA_t& A )
+{
+    using idx_t = size_type< matrixA_t >;
+
+    // Legacy objects
+    auto _A = legacy_matrix(A);
+    auto _x = legacy_vector(x);
+    auto _y = legacy_vector(y);
+
+    // Constants to forward
+    const idx_t& n = _A.n;
+    const idx_t incx = (_x.direction == Direction::Forward) ? _x.inc : -_x.inc;
+    const idx_t incy = (_y.direction == Direction::Forward) ? _y.inc : -_y.inc;
+
+    return ::blas::syr2(
+        (::blas::Layout) _A.layout,
+        (::blas::Uplo) uplo,
+        n,
+        alpha,
+        _x.ptr, incx,
+        _y.ptr, incy,
+        _A.ptr, _A.ldim );
+}
+
+template< class matrixA_t, class vectorX_t,
+    enable_if_allow_optblas_t<
+        pair< matrixA_t, type_t< matrixA_t > >,
+        pair< vectorX_t, type_t< matrixA_t > >
+    > = 0
+>
+inline
+void trmv(
+    Uplo uplo,
+    Op trans,
+    Diag diag,
+    const matrixA_t& A,
+    vectorX_t& x )
+{
+    using idx_t = size_type< matrixA_t >;
+
+    // Legacy objects
+    auto _A = legacy_matrix(A);
+    auto _x = legacy_vector(x);
+
+    // Constants to forward
+    const idx_t& n = _A.n;
+    const idx_t incx = (_x.direction == Direction::Forward) ? _x.inc : -_x.inc;
+    
+    return ::blas::trmv(
+        (::blas::Layout) _A.layout,
+        (::blas::Uplo) uplo,
+        (::blas::Op) trans,
+        (::blas::Diag) diag,
+        n,
+        _A.ptr, _A.ldim,
+        _x.ptr, incx );
+}
+
+template< class matrixA_t, class vectorX_t,
+    enable_if_allow_optblas_t<
+        pair< matrixA_t, type_t< matrixA_t > >,
+        pair< vectorX_t, type_t< matrixA_t > >
+    > = 0
+>
+inline
+void trsv(
+    Uplo uplo,
+    Op trans,
+    Diag diag,
+    const matrixA_t& A,
+    vectorX_t& x )
+{
+    using idx_t = size_type< matrixA_t >;
+
+    // Legacy objects
+    auto _A = legacy_matrix(A);
+    auto _x = legacy_vector(x);
+
+    // Constants to forward
+    const idx_t& n = _A.n;
+    const idx_t incx = (_x.direction == Direction::Forward) ? _x.inc : -_x.inc;
+    
+    return ::blas::trsv(
+        (::blas::Layout) _A.layout,
+        (::blas::Uplo) uplo,
+        (::blas::Op) trans,
+        (::blas::Diag) diag,
+        n,
+        _A.ptr, _A.ldim,
+        _x.ptr, incx );
+}
+
+// =============================================================================
+// Level 3 BLAS wrappers
+
 /**
  * General matrix-matrix multiply.
  * 
@@ -64,7 +749,7 @@ void gemm(
     const auto& n = _C.n;
     const auto& k = (transA == Op::NoTrans) ? _A.n : _A.m;
 
-    ::blas::gemm(
+    return ::blas::gemm(
         (::blas::Layout) _A.layout,
         (::blas::Op) transA, (::blas::Op) transB, 
         m, n, k,
@@ -119,7 +804,7 @@ void hemm(
     const auto& m = _C.m;
     const auto& n = _C.n;
 
-    ::blas::hemm(
+    return ::blas::hemm(
         (::blas::Layout) _A.layout,
         (::blas::Side) side, (::blas::Uplo) uplo, 
         m, n,
@@ -169,7 +854,7 @@ void herk(
     const auto& n = _C.n;
     const auto& k = (trans == Op::NoTrans) ? _A.n : _A.m;
 
-    ::blas::herk(
+    return ::blas::herk(
         (::blas::Layout) _A.layout,
         (::blas::Uplo) uplo,
         (::blas::Op) trans, 
@@ -225,7 +910,7 @@ void her2k(
     const auto& n = _C.n;
     const auto& k = (trans == Op::NoTrans) ? _A.n : _A.m;
 
-    ::blas::her2k(
+    return ::blas::her2k(
         (::blas::Layout) _A.layout,
         (::blas::Uplo) uplo,
         (::blas::Op) trans, 
@@ -281,7 +966,7 @@ void symm(
     const auto& m = _C.m;
     const auto& n = _C.n;
 
-    ::blas::symm(
+    return ::blas::symm(
         (::blas::Layout) _A.layout,
         (::blas::Side) side, (::blas::Uplo) uplo, 
         m, n,
@@ -331,7 +1016,7 @@ void syrk(
     const auto& n = _C.n;
     const auto& k = (trans == Op::NoTrans) ? _A.n : _A.m;
 
-    ::blas::syrk(
+    return ::blas::syrk(
         (::blas::Layout) _A.layout,
         (::blas::Uplo) uplo,
         (::blas::Op) trans, 
@@ -383,7 +1068,7 @@ void syr2k(
     const auto& n = _C.n;
     const auto& k = (trans == Op::NoTrans) ? _A.n : _A.m;
 
-    ::blas::syr2k(
+    return ::blas::syr2k(
         (::blas::Layout) _A.layout,
         (::blas::Uplo) uplo,
         (::blas::Op) trans, 
@@ -437,7 +1122,7 @@ void trmm(
     const auto& m = _B.m;
     const auto& n = _B.n;
 
-    ::blas::trmm(
+    return ::blas::trmm(
         (::blas::Layout) _A.layout,
         (::blas::Side) side,
         (::blas::Uplo) uplo,
@@ -475,7 +1160,7 @@ void trsm(
     const auto& m = _B.m;
     const auto& n = _B.n;
 
-    ::blas::trsm(
+    return ::blas::trsm(
         (::blas::Layout) _A.layout,
         (::blas::Side) side,
         (::blas::Uplo) uplo,

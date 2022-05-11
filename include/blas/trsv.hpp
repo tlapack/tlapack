@@ -52,7 +52,12 @@ namespace tlapack {
  *
  * @ingroup trsv
  */
-template< class matrixA_t, class vectorX_t >
+template< class matrixA_t, class vectorX_t,
+    disable_if_allow_optblas_t<
+        pair< matrixA_t, type_t< matrixA_t > >,
+        pair< vectorX_t, type_t< matrixA_t > >
+    > = 0
+>
 void trsv(
     Uplo uplo,
     Op trans,

@@ -40,6 +40,10 @@ void scal(
     TX* x, int_t incx )
 {
     tblas_error_if( incx <= 0 );
+
+    // quick return
+    if( n <= 0 ) return;
+    
     tlapack_expr_with_vector_positiveInc(
         _x, TX, n, x, incx,
         return scal( alpha, _x )

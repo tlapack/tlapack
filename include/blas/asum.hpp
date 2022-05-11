@@ -21,7 +21,9 @@ namespace tlapack {
  *
  * @ingroup asum
  */
-template< class vector_t >
+template< class vector_t,
+    disable_if_allow_optblas_t< vector_t > = 0
+>
 auto asum( vector_t const& x )
 {
     using T      = type_t< vector_t >;

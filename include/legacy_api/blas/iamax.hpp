@@ -38,11 +38,13 @@ namespace tlapack {
  * @ingroup iamax
  */
 template< typename T >
-inline idx_t
-iamax(
-    idx_t n, T const *x, int_t incx )
+idx_t iamax( idx_t n, T const *x, int_t incx )
 {
     tblas_error_if( incx <= 0 );
+
+    // quick return
+    if( n <= 0 ) return 0;
+
     tlapack_expr_with_vector_positiveInc(
         _x, T, n, x, incx,
         return iamax( _x )
