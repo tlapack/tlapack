@@ -263,12 +263,16 @@ constexpr bool has_compatible_layout =
     has_compatible_layout<P1, Ps...> &&
     has_compatible_layout<P2, Ps...>;
 
-template< class C1, class T1, class C2, class T2 >
-constexpr bool has_compatible_layout< pair<C1,T1>, pair<C2,T2> > = (
+template< class C1, class C2 >
+constexpr bool has_compatible_layout< C1, C2 > = (
     ( layout<C1> == Layout::Unspecified ) ||
     ( layout<C2> == Layout::Unspecified ) ||
     ( layout<C1> == layout<C2> )
 );
+
+template< class C1, class T1, class C2, class T2 >
+constexpr bool has_compatible_layout< pair<C1,T1>, pair<C2,T2> > =
+    has_compatible_layout< C1, C2 >;
 
 template< class C, class T >
 struct allow_optblas< pair<C,T> > {
@@ -298,8 +302,10 @@ using disable_if_allow_optblas_t = enable_if_t<(
 
 #define TLAPACK_OPT_TYPE( T ) \
     template<> struct allow_optblas< T > { \
-        using type = T; \
         static constexpr bool value = true; \
+    }; \
+    template<> struct type_trait< T > { \
+        using type = T; \
     }
 
     /// Optimized types

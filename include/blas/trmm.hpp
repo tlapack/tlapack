@@ -59,13 +59,20 @@ namespace tlapack {
  *
  * @ingroup trmm
  */
-template< class matrixA_t, class matrixB_t, class alpha_t >
+template< class matrixA_t, class matrixB_t, class alpha_t,
+    class T  = alpha_t,
+    disable_if_allow_optblas_t<
+        pair< matrixA_t, T >,
+        pair< matrixB_t, T >,
+        pair< alpha_t,   T >
+    > = 0
+>
 void trmm(
     Side side,
     Uplo uplo,
     Op trans,
     Diag diag,
-    const alpha_t alpha,
+    const alpha_t& alpha,
     const matrixA_t& A,
     matrixB_t& B )
 {    
