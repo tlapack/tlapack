@@ -86,7 +86,11 @@ namespace tlapack {
  *
  * @ingroup rotmg
  */
-template< typename real_t >
+template< typename real_t,
+    disable_if_allow_optblas_t<
+        pair< real_t, real_type<real_t> >
+    > = 0
+>
 int rotmg(
     real_t& d1, real_t& d2,
     real_t& a, const real_t& b,

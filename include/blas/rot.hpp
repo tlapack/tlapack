@@ -31,7 +31,15 @@ namespace tlapack {
  */
 template<
     class vectorX_t, class vectorY_t,
-    class c_type, class s_type
+    class c_type, class s_type,
+    class T = vectorX_t,
+    class real_t = real_type< T >,
+    disable_if_allow_optblas_t<
+        pair< vectorX_t, T >,
+        pair< vectorY_t, T >,
+        pair< c_type, real_t >,
+        pair< s_type, real_t >
+    > = 0
 >
 void rot(
     vectorX_t& x, vectorY_t& y,

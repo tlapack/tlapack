@@ -20,7 +20,12 @@ namespace tlapack {
  *
  * @ingroup copy
  */
-template< class vectorX_t, class vectorY_t >
+template< class vectorX_t, class vectorY_t,
+    disable_if_allow_optblas_t<
+        pair< vectorX_t, type_t< vectorX_t > >,
+        pair< vectorY_t, type_t< vectorX_t > >
+    > = 0
+>
 void copy( const vectorX_t& x, vectorY_t& y )
 {
     using idx_t = size_type< vectorX_t >;

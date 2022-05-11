@@ -257,11 +257,11 @@ inline real_t abs1( const std::complex<real_t>& x )
 // -----------------------------------------------------------------------------
 /// Optimized BLAS
 
-template< class P1, class P2, class... Ps >
+template< class C1, class C2, class... Cs >
 constexpr bool has_compatible_layout = 
-    has_compatible_layout<P1, P2> &&
-    has_compatible_layout<P1, Ps...> &&
-    has_compatible_layout<P2, Ps...>;
+    has_compatible_layout<C1, C2> &&
+    has_compatible_layout<C1, Cs...> &&
+    has_compatible_layout<C2, Cs...>;
 
 template< class C1, class C2 >
 constexpr bool has_compatible_layout< C1, C2 > = (
@@ -282,12 +282,12 @@ struct allow_optblas< pair<C,T> > {
         is_same_v< type_t<C>, T >;
 };
 
-template< class P1, class P2, class... Ps >
-struct allow_optblas< P1, P2, Ps... > {
+template< class C1, class C2, class... Cs >
+struct allow_optblas< C1, C2, Cs... > {
     static constexpr bool value = 
-        allow_optblas_v< P1 > &&
-        allow_optblas_v< P2, Ps... > &&
-        has_compatible_layout< P1, P2, Ps... >;
+        allow_optblas_v< C1 > &&
+        allow_optblas_v< C2, Cs... > &&
+        has_compatible_layout< C1, C2, Cs... >;
 };
 
 template<class T1, class... Ts>

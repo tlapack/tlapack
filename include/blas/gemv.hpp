@@ -42,7 +42,14 @@ namespace tlapack {
 template<
     class matrixA_t,
     class vectorX_t, class vectorY_t, 
-    class alpha_t, class beta_t >
+    class alpha_t, class beta_t,
+    disable_if_allow_optblas_t<
+        pair< matrixA_t, alpha_t >,
+        pair< vectorX_t, alpha_t >,
+        pair< vectorY_t, alpha_t >,
+        pair< beta_t,    alpha_t >
+    > = 0
+>
 void gemv(
     Op trans,
     const alpha_t& alpha, const matrixA_t& A, const vectorX_t& x,

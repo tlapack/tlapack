@@ -64,7 +64,12 @@ namespace tlapack {
 template<
     int flag,
     class vectorX_t, class vectorY_t, class real_t,
-    enable_if_t<((-2 <= flag) && (flag <= 1)), int > = 0
+    enable_if_t<((-2 <= flag) && (flag <= 1)), int > = 0,
+    disable_if_allow_optblas_t<
+        pair< real_t, real_type<real_t> >,
+        pair< vectorX_t, real_t >,
+        pair< vectorY_t, real_t >
+    > = 0
 >
 void rotm( vectorX_t& x, vectorY_t& y, const real_t h[4] )
 {

@@ -49,7 +49,6 @@ namespace tlapack {
  * @ingroup rotm
  */
 template< typename TX, typename TY >
-inline
 void rotm(
     idx_t n,
     TX *x, int_t incx,
@@ -64,6 +63,9 @@ void rotm(
     tblas_error_if( incx == 0 );
     tblas_error_if( incy == 0 );
     tblas_error_if( flag < -2 && flag > 1 );
+
+    // quick return
+    if( n <= 0 ) return;
     
     tlapack_expr_with_2vectors(
         _x, TX, n, x, incx,

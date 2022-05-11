@@ -47,6 +47,9 @@ scalar_type<TX, TY> dotu(
 {
     tblas_error_if( incx == 0 );
     tblas_error_if( incy == 0 );
+
+    // quick return
+    if( n <= 0 ) return scalar_type<TX,TY>(0);
     
     tlapack_expr_with_2vectors(
         _x, TX, n, x, incx,

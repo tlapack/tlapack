@@ -57,15 +57,17 @@ namespace tlapack {
 
     /** Legacy vector.
      * 
-     * @tparam T         Floating-point type
-     * @tparam direction Either Direction::Forward or Direction::Backward
+     * @tparam T Floating-point type
+     * @tparam D Either Direction::Forward or Direction::Backward
      */
-    template< typename T, typename int_t = one_t, Direction direction = Direction::Forward >
+    template< typename T, typename int_t = one_t, Direction D = Direction::Forward >
     struct legacyVector {
         using idx_t = TLAPACK_SIZE_T;  ///< Index type
         idx_t n;                    ///< Size
         T* ptr;                     ///< Pointer to array in memory
         int_t inc;                  ///< Memory increment
+
+        static constexpr Direction direction = D;
         
         inline constexpr T&
         operator[]( idx_t i ) const noexcept {

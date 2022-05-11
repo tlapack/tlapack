@@ -46,6 +46,9 @@ void copy(
 {    
     tblas_error_if( incx == 0 );
     tblas_error_if( incy == 0 );
+
+    // quick return
+    if( n <= 0 ) return;
     
     tlapack_expr_with_2vectors(
         _x, TX, n, x, incx,

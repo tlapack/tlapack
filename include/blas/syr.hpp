@@ -32,7 +32,12 @@ namespace tlapack {
  *
  * @ingroup syr
  */
-template< class matrixA_t, class vectorX_t, class alpha_t >
+template< class matrixA_t, class vectorX_t, class alpha_t,
+    disable_if_allow_optblas_t<
+        pair< matrixA_t, alpha_t >,
+        pair< vectorX_t, alpha_t >
+    > = 0
+>
 void syr(
     Uplo uplo,
     const alpha_t& alpha,

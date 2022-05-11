@@ -36,7 +36,13 @@ namespace tlapack {
 template<
     class matrixA_t,
     class vectorX_t, class vectorY_t,
-    class alpha_t >
+    class alpha_t,
+    disable_if_allow_optblas_t<
+        pair< matrixA_t, alpha_t >,
+        pair< vectorX_t, alpha_t >,
+        pair< vectorY_t, alpha_t >
+    > = 0
+>
 void syr2(
     Uplo  uplo,
     const alpha_t& alpha,

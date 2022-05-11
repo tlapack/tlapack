@@ -29,7 +29,11 @@ namespace tlapack {
  *
  * @ingroup rotg
  */
-template <typename real_t>
+template <typename real_t,
+    disable_if_allow_optblas_t<
+        pair< real_t, real_type<real_t> >
+    > = 0
+>
 void rotg(
     real_t& a, real_t& b,
     real_t& c, real_t& s )
@@ -98,7 +102,9 @@ void rotg(
  *
  * @ingroup rotg
  */
-template <typename T>
+template <typename T,
+    disable_if_allow_optblas_t< T > = 0
+>
 void rotg(
     T& a, const T& b,
     real_type<T>& c,

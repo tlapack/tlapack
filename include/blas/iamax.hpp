@@ -122,7 +122,9 @@ iamax( check_t c, const vector_t& x )
  * 
  * @ingroup iamax
  */
-template< class vector_t >
+template< class vector_t,
+    disable_if_allow_optblas_t< vector_t > = 0
+>
 inline auto
 iamax( const vector_t& x ) { return iamax( checkInfNaN, x ); }
 
