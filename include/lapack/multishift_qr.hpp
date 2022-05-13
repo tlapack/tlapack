@@ -14,6 +14,7 @@
 #include <complex>
 #include <vector>
 #include <functional>
+#include <iostream>
 
 #include "legacy_api/base/utils.hpp"
 #include "base/utils.hpp"
@@ -23,6 +24,14 @@
 
 namespace tlapack
 {
+    extern "C"
+    {
+        void fortran_slaqr2(const bool& wantt, const bool& wantz, const int& n, const int& ilo, const int& ihi,
+                            const int& nw, float* H, const int& ldh, float* Z, const int& ldz, int& ns, int& nd, float* sr, float* si);
+
+        void fortran_slaqr5(const bool& wantt, const bool& wantz, const int& n, const int& ilo, const int& ihi,
+                            const int& nshifts, float* sr, float* si, float* H, const int& ldh, float* Z, const int& ldz);
+    }
 
     /**
      * Options struct for multishift_qr
@@ -215,6 +224,10 @@ namespace tlapack
         // nw is the deflation window size
         idx_t nw;
 
+        int naed = 0;
+        int nsweep = 0;
+        int n_shifts_total = 0;
+
         for (idx_t iter = 0; iter <= itmax; ++iter)
         {
 
@@ -275,8 +288,19 @@ namespace tlapack
                     nw = nw + 1;
             }
 
+            // std::cout<<"iter "<<iter<<" "<<istop<<std::endl;
+            // std::cout<<"nw   "<<nw<<std::endl;
             idx_t ls, ld;
-            agressive_early_deflation(want_t, want_z, istart, istop, nw, A, w, Z, ls, ld);
+            naed = naed + 1;
+            // agressive_early_deflation(want_t, want_z, istart, istop, nw, A, w, Z, ls, ld);
+            int ls2, ld2;
+            std::vector<real_t> sr(n);
+            std::vector<real_t> si(n);
+            fortran_slaqr2( want_t, want_z, n, istart+1, istop, nw, A.ptr, n, Z.ptr, n, ls2, ld2, sr.data(), si.data() );
+            for( idx_t i = istop - nw; i < istop ; ++i )
+                w[i] = std::complex<real_t>( sr[i], si[i] );
+            ls = ls2;
+            ld = ld2;
 
             istop = istop - ld;
 
@@ -313,23 +337,23 @@ namespace tlapack
 
             // Sort the shifts (helps a little)
             // Bubble sort keeps complex conjugate pairs together
-            bool sorted = false;
-            idx_t k = istop;
-            while (!sorted && k > i_shifts)
-            {
-                sorted = true;
-                for (idx_t i = i_shifts; i < k - 1; ++i)
-                {
-                    if (abs1(w[i]) > abs1(w[i + 1]))
-                    {
-                        sorted = false;
-                        auto tmp = w[i];
-                        w[i] = w[i + 1];
-                        w[i + 1] = tmp;
-                    }
-                }
-                --k;
-            }
+            // bool sorted = false;
+            // idx_t k = istop;
+            // while (!sorted && k > i_shifts)
+            // {
+            //     sorted = true;
+            //     for (idx_t i = i_shifts; i < k - 1; ++i)
+            //     {
+            //         if (abs1(w[i]) < abs1(w[i + 1]))
+            //         {
+            //             sorted = false;
+            //             auto tmp = w[i];
+            //             w[i] = w[i + 1];
+            //             w[i + 1] = tmp;
+            //         }
+            //     }
+            //     --k;
+            // }
 
             // If there are only two shifts and both are real
             // then use only one (helps avoid interference)
@@ -347,11 +371,26 @@ namespace tlapack
                 }
             }
 
+
+            if (ns % 2 == 1)
+                ns = ns - 1;
             i_shifts = istop - ns;
             auto shifts = slice(w, pair{i_shifts, istop});
 
-            multishift_QR_sweep(want_t, want_z, istart, istop, A, shifts, Z, V);
+            nsweep = nsweep + 1;
+            n_shifts_total = n_shifts_total + size(shifts);
+            // multishift_QR_sweep(want_t, want_z, istart, istop, A, shifts, Z, V);
+            for( idx_t i = 0; i < n ; ++i ){
+                sr[i] = real(shifts[i]);
+                si[i] = imag(shifts[i]);
+            }
+            fortran_slaqr5( want_t, want_z, n, istart+1, istop, (int) size(shifts), sr.data(), si.data(), A.ptr, n, Z.ptr, n );
         }
+
+        std::cout<<std::endl;
+        std::cout<<"AED calls"<<naed<<std::endl;
+        std::cout<<"sweep calls"<<nsweep<<std::endl;
+        std::cout<<"shifts used"<<n_shifts_total<<std::endl;
 
         if (locally_allocated)
             delete [] _work;

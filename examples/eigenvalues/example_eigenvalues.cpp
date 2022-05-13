@@ -33,10 +33,19 @@ inline void printMatrix(const matrix_t &A)
     }
 }
 
+extern "C"
+{
+   void fortran_slaqr0(const bool& wantt, const bool& wantz, const int& n, const int& ilo, const int& ihi, float* H, const int& ldh, float* wr, float* wi, float* Z, const int& ldz, int& info);
+   void fortran_sgehrd(const int& n, const int& ilo, const int& ihi, float* H, const int& ldh, float* tau, int& info);
+   void fortran_sorghr(const int& n, const int& ilo, const int& ihi, float* H, const int& ldh, float* tau, int& info);
+}
+
 //------------------------------------------------------------------------------
 template <typename T>
-void run(size_t n)
+void run(size_t n, bool use_fortran)
 {
+    srand(1); // Init random seed
+
     using real_t = tlapack::real_type<T>;
     using tlapack::internal::colmajor_matrix;
     using std::size_t;
@@ -99,8 +108,11 @@ void run(size_t n)
     // Record start time
     auto startQHQ = std::chrono::high_resolution_clock::now();
     {
+        int err;
         // Hessenberg factorization
-        int err = tlapack::gehrd(0, n, Q, tau);
+        // int err = tlapack::gehrd(0, n, Q, tau);
+        T* _tau = tau.data();
+        fortran_sgehrd( n, 1, n, Q.ptr, n, _tau, err );
         // tblas_error_if(tlapack::gehd2(0, n, Q, tau, work));
         tblas_error_if(err);
     }
@@ -116,9 +128,12 @@ void run(size_t n)
     // Record start time
     auto startQ = std::chrono::high_resolution_clock::now();
     {
+        int err;
         // Generate Q = H_1 H_2 ... H_n
-        std::vector<T> work(n);
-        int err = tlapack::unghr(0, n, Q, tau, work);
+        // std::vector<T> work(n);
+        // int err = tlapack::unghr(0, n, Q, tau, work);
+        T* _tau = tau.data();
+        fortran_sorghr( n, 1, n, Q.ptr, n, _tau, err );
         tblas_error_if(err);
     }
     // Record end time
@@ -134,8 +149,17 @@ void run(size_t n)
     auto startSchur = std::chrono::high_resolution_clock::now();
     {
         // Shur factorization
-        std::vector<std::complex<real_t>> w(n);
-        int err = tlapack::multishift_qr(true, true, 0, n, H, w, Q);
+        int err;
+        if(use_fortran){
+            std::unique_ptr<T[]> _wr(new T[n]);
+            std::unique_ptr<T[]> _wi(new T[n]);
+            fortran_slaqr0( true, true, n, 1, n, H.ptr, n, &_wr[0], &_wi[0], Q.ptr, n, err );
+        }
+        else{
+            std::vector<std::complex<real_t>> w(n);
+            err = tlapack::multishift_qr(true, true, 0, n, H, w, Q);
+            // err = tlapack::lahqr(true, true, 0, n, H, w, Q);
+        }
         tblas_error_if(err);
     }
     // Record end time
@@ -260,35 +284,42 @@ int main(int argc, char **argv)
 
     // Default arguments
     n = (argc < 2) ? 100 : atoi(argv[1]);
-
-    srand(3); // Init random seed
+    int use_lapack = (argc < 3) ? -1 : atoi(argv[2]);
 
     std::cout.precision(5);
     std::cout << std::scientific << std::showpos;
 
-    printf("run< float >( %d )", n);
-    run<float>(n);
-    printf("-----------------------\n");
+    if( use_lapack == -1 or use_lapack == 0 ){
+        printf("run< float >( %d, false )", n);
+        run<float>(n, false);
+        printf("-----------------------\n");
+    }
 
-    printf("run< std::complex<float>  >( %d )", n);
-    run<std::complex<float>>(n);
-    printf("-----------------------\n");
+    if( use_lapack == -1 or use_lapack == 1 ){
+        printf("run< float >( %d, true )", n);
+        run<float>(n, true);
+        printf("-----------------------\n");
+    }
 
-    printf("run< double >( %d )", n);
-    run<double>(n);
-    printf("-----------------------\n");
+    // printf("run< std::complex<float>  >( %d )", n);
+    // run<std::complex<float>>(n);
+    // printf("-----------------------\n");
 
-    printf("run< std::complex<double>  >( %d )", n);
-    run<std::complex<double>>(n);
-    printf("-----------------------\n");
+    // printf("run< double >( %d )", n);
+    // run<double>(n);
+    // printf("-----------------------\n");
 
-    printf("run< long double >( %d )", n);
-    run<long double>(n);
-    printf("-----------------------\n");
+    // printf("run< std::complex<double>  >( %d )", n);
+    // run<std::complex<double>>(n);
+    // printf("-----------------------\n");
 
-    printf("run< std::complex<long double>  >( %d )", n);
-    run<std::complex<long double>>(n);
-    printf("-----------------------\n");
+    // printf("run< long double >( %d )", n);
+    // run<long double>(n);
+    // printf("-----------------------\n");
+
+    // printf("run< std::complex<long double>  >( %d )", n);
+    // run<std::complex<long double>>(n);
+    // printf("-----------------------\n");
 
     return 0;
 }
