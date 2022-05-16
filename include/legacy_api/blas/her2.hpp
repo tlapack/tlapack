@@ -95,12 +95,12 @@ void her2(
     }
     
     // Matrix views
-    auto _A = colmajor_matrix<TA>( A, n, n, lda );
+    auto A_ = colmajor_matrix<TA>( A, n, n, lda );
 
     tlapack_expr_with_2vectors(
         _x, TX, n, x, incx,
         _y, TY, n, y, incy,
-        return her2( uplo, alpha, _x, _y, _A )
+        return her2( uplo, alpha, _x, _y, A_ )
     );
 }
 

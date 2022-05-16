@@ -33,9 +33,9 @@ void laset(
         return;
     
     // Matrix views
-    auto _A = colmajor_matrix<TA>( A, m, n, lda );
+    auto A_ = colmajor_matrix<TA>( A, m, n, lda );
 
-    return laset( uplo, alpha, beta, _A );
+    return laset( uplo, alpha, beta, A_ );
 }
 
 /** Initializes a matrix to diagonal and off-diagonal values

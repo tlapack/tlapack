@@ -86,23 +86,23 @@ void ger(
     if( layout == Layout::ColMajor )
     {
         // Matrix views
-        auto _A = colmajor_matrix<TA>( A, m, n, lda );
+        auto A_ = colmajor_matrix<TA>( A, m, n, lda );
 
         tlapack_expr_with_2vectors(
             _x, TX, m, x, incx,
             _y, TY, n, y, incy,
-            return ger( alpha, _x, _y, _A )
+            return ger( alpha, _x, _y, A_ )
         );
     }
     else
     {
         // Matrix views
-        auto _A = rowmajor_matrix<TA>( A, m, n, lda );
+        auto A_ = rowmajor_matrix<TA>( A, m, n, lda );
 
         tlapack_expr_with_2vectors(
             _x, TX, m, x, incx,
             _y, TY, n, y, incy,
-            return ger( alpha, _x, _y, _A )
+            return ger( alpha, _x, _y, A_ )
         );
     }
 }

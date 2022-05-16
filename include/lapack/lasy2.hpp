@@ -91,8 +91,8 @@ namespace tlapack
             auto btmp = legacyVector<T>(4, &_btmp[0]);
             std::unique_ptr<T[]> _tmp(new T[4]);
             auto tmp = legacyVector<T>(4, &_tmp[0]);
-            std::unique_ptr<T[]> _T16(new T[16]);
-            auto T16 = colmajor_matrix<T>(&_T16[0], 4, 4);
+            std::unique_ptr<T[]> T16_(new T[16]);
+            auto T16 = colmajor_matrix<T>(&T16_[0], 4, 4);
             std::unique_ptr<idx_t[]> _jpiv(new idx_t[4]);
             auto jpiv = legacyVector<idx_t>(4, &_jpiv[0]);
 

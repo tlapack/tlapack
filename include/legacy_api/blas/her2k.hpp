@@ -148,15 +148,15 @@ void her2k(
     }
 
     // Matrix views
-    const auto _A = (trans == Op::NoTrans)
+    const auto A_ = (trans == Op::NoTrans)
                   ? colmajor_matrix<TA>( (TA*)A, n, k, lda )
                   : colmajor_matrix<TA>( (TA*)A, k, n, lda );
-    const auto _B = (trans == Op::NoTrans)
+    const auto B_ = (trans == Op::NoTrans)
                   ? colmajor_matrix<TB>( (TB*)B, n, k, ldb )
                   : colmajor_matrix<TB>( (TB*)B, k, n, ldb );
-    auto _C = colmajor_matrix<TC>( C, n, n, ldc );
+    auto C_ = colmajor_matrix<TC>( C, n, n, ldc );
 
-    her2k( uplo, trans, alpha, _A, _B, beta, _C );
+    her2k( uplo, trans, alpha, A_, B_, beta, C_ );
 }
 
 }  // namespace tlapack

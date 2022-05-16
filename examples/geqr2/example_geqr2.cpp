@@ -48,15 +48,15 @@ void run( size_t m, size_t n )
     size_t ldq = lda;
 
     // Arrays
-    std::unique_ptr<real_t[]> _A(new real_t[ lda*n ]); // m-by-n
-    std::unique_ptr<real_t[]> _R(new real_t[ ldr*n ]); // n-by-n
-    std::unique_ptr<real_t[]> _Q(new real_t[ ldq*n ]); // m-by-n
+    std::unique_ptr<real_t[]> A_(new real_t[ lda*n ]); // m-by-n
+    std::unique_ptr<real_t[]> R_(new real_t[ ldr*n ]); // n-by-n
+    std::unique_ptr<real_t[]> Q_(new real_t[ ldq*n ]); // m-by-n
     std::vector<real_t> tau ( n );
 
     // Matrix views
-    auto A = colmajor_matrix<real_t>( &_A[0], m, n, lda );
-    auto R = colmajor_matrix<real_t>( &_R[0], n, n, ldr );
-    auto Q = colmajor_matrix<real_t>( &_Q[0], m, n, ldq );
+    auto A = colmajor_matrix<real_t>( &A_[0], m, n, lda );
+    auto R = colmajor_matrix<real_t>( &R_[0], n, n, ldr );
+    auto Q = colmajor_matrix<real_t>( &Q_[0], m, n, ldq );
 
     // Initialize arrays with junk
     for (size_t j = 0; j < n; ++j) {

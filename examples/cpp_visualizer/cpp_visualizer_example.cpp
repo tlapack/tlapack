@@ -26,8 +26,8 @@ int main(int argc, char **argv)
     const T one(1);
     const T zero(0);
 
-    std::unique_ptr<T[]> _A(new T[n * n]);
-    auto A = colmajor_matrix<T>(&_A[0], n, n, n);
+    std::unique_ptr<T[]> A_(new T[n * n]);
+    auto A = colmajor_matrix<T>(&A_[0], n, n, n);
 
     tlapack::laset( tlapack::Uplo::General, zero, one, A );
 

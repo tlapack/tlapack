@@ -130,12 +130,12 @@ void herk(
     }
 
     // Matrix views
-    const auto _A = (trans == Op::NoTrans)
+    const auto A_ = (trans == Op::NoTrans)
                  ? colmajor_matrix<TA>( (TA*)A, n, k, lda )
                  : colmajor_matrix<TA>( (TA*)A, k, n, lda );
-    auto _C = colmajor_matrix<TC>( C, n, n, ldc );
+    auto C_ = colmajor_matrix<TC>( C, n, n, ldc );
 
-    herk( uplo, trans, alpha, _A, beta, _C );
+    herk( uplo, trans, alpha, A_, beta, C_ );
 }
 
 }  // namespace tlapack

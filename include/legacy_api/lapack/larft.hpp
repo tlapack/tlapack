@@ -104,13 +104,13 @@ int larft(
         return 0;
 
     // Matrix views
-    auto _V = (storeV == StoreV::Columnwise)
+    auto V_ = (storeV == StoreV::Columnwise)
             ? colmajor_matrix<scalar_t>( (scalar_t*)V, n, k, ldV )
             : colmajor_matrix<scalar_t>( (scalar_t*)V, k, n, ldV );
     auto _tau = vector( (scalar_t*)tau, k );
-    auto _T = colmajor_matrix<scalar_t>( T, k, k, ldT );
+    auto T_ = colmajor_matrix<scalar_t>( T, k, k, ldT );
 
-    return larft( direction, storeV, _V, _tau, _T);
+    return larft( direction, storeV, V_, _tau, T_);
 }
 
 }

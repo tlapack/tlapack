@@ -107,9 +107,9 @@ void trmv(
     }
         
     // Matrix views
-    const auto _A = colmajor_matrix<TA>( (TA*)A, n, n, lda );
+    const auto A_ = colmajor_matrix<TA>( (TA*)A, n, n, lda );
 
-    tlapack_expr_with_vector( _x, TX, n, x, incx, return trmv( uplo, trans, diag, _A, _x ) );
+    tlapack_expr_with_vector( _x, TX, n, x, incx, return trmv( uplo, trans, diag, A_, _x ) );
 }
 
 }  // namespace tlapack

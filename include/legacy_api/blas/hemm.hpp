@@ -127,13 +127,13 @@ void hemm(
     }
     
     // Matrix views
-    const auto _A = (side == Side::Left)
+    const auto A_ = (side == Side::Left)
                   ? colmajor_matrix<TA>( (TA*)A, m, m, lda )
                   : colmajor_matrix<TA>( (TA*)A, n, n, lda );
-    const auto _B = colmajor_matrix<TB>( (TB*)B, m, n, ldb );
-    auto _C = colmajor_matrix<TC>( C, m, n, ldc );
+    const auto B_ = colmajor_matrix<TB>( (TB*)B, m, n, ldb );
+    auto C_ = colmajor_matrix<TC>( C, m, n, ldc );
 
-    hemm( side, uplo, alpha, _A, _B, beta, _C );
+    hemm( side, uplo, alpha, A_, B_, beta, C_ );
 }
 
 }  // namespace tlapack

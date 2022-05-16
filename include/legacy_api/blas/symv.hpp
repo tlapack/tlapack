@@ -97,12 +97,12 @@ void symv(
     }
 
     // Views
-    const auto _A = colmajor_matrix<TA>( (TA*)A, n, n, lda );
+    const auto A_ = colmajor_matrix<TA>( (TA*)A, n, n, lda );
 
     tlapack_expr_with_2vectors(
         _x, TX, n, x, incx,
         _y, TY, n, y, incy,
-        return symv( uplo, alpha, _A, _x, beta, _y )
+        return symv( uplo, alpha, A_, _x, beta, _y )
     );
 }
 

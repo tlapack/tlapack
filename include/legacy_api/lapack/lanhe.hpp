@@ -55,9 +55,9 @@ real_type<TA> lanhe(
     if ( n == 0 ) return 0;
 
     // Matrix views
-    auto _A = colmajor_matrix<TA>( (TA*)A, n, n, lda );
+    auto A_ = colmajor_matrix<TA>( (TA*)A, n, n, lda );
 
-    return lanhe( normType, uplo, _A );
+    return lanhe( normType, uplo, A_ );
 }
 
 } // lapack

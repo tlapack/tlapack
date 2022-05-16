@@ -31,12 +31,12 @@ inline int potrf( uplo_t uplo, idx_t n, T* A, idx_t lda )
                         uplo != Uplo::Upper, -1 );
 
     // Matrix views
-    auto _A = colmajor_matrix<T>( A, n, n, lda );
+    auto A_ = colmajor_matrix<T>( A, n, n, lda );
 
     // Options
     struct { idx_t nb = 32; } opts;
 
-    return potrf( uplo, _A, opts );
+    return potrf( uplo, A_, opts );
 }
 
 } // lapack

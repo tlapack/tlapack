@@ -38,7 +38,7 @@ namespace tlapack {
 template <class norm_t, typename TA>
 inline real_type<TA> lange(
     norm_t normType, idx_t m, idx_t n,
-    const TA *_A, idx_t lda )
+    const TA *A_, idx_t lda )
 {
     using internal::colmajor_matrix;
 
@@ -53,7 +53,7 @@ inline real_type<TA> lange(
         return 0;
 
     // Views
-    auto A = colmajor_matrix<TA>( (TA*)_A, m, n, lda );
+    auto A = colmajor_matrix<TA>( (TA*)A_, m, n, lda );
 
     return lange( normType, A );
 }

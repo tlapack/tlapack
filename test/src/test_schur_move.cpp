@@ -52,13 +52,13 @@ TEMPLATE_LIST_TEST_CASE("move of eigenvalue block gives correct results", "[eige
     const real_t eps = uroundoff<real_t>();
     const real_t tol = 1.0e2 * n * eps;
 
-    std::unique_ptr<T[]> _A(new T[n * n]);
-    std::unique_ptr<T[]> _Q(new T[n * n]);
-    std::unique_ptr<T[]> _A_copy(new T[n * n]);
+    std::unique_ptr<T[]> A_(new T[n * n]);
+    std::unique_ptr<T[]> Q_(new T[n * n]);
+    std::unique_ptr<T[]> A_copy_(new T[n * n]);
 
-    auto A = legacyMatrix<T, layout<matrix_t>>(n, n, &_A[0], n);
-    auto Q = legacyMatrix<T, layout<matrix_t>>(n, n, &_Q[0], n);
-    auto A_copy = legacyMatrix<T, layout<matrix_t>>(n, n, &_A_copy[0], n);
+    auto A = legacyMatrix<T, layout<matrix_t>>(n, n, &A_[0], n);
+    auto Q = legacyMatrix<T, layout<matrix_t>>(n, n, &Q_[0], n);
+    auto A_copy = legacyMatrix<T, layout<matrix_t>>(n, n, &A_copy_[0], n);
 
     // Generate random matrix in Schur form
     for (idx_t j = 0; j < n; ++j)
