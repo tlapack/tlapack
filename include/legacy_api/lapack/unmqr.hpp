@@ -101,20 +101,20 @@ inline int unmqr(
     std::unique_ptr<scalar_t[]> _work( new scalar_t[ nb * (nw + nb) ] );
                 
     // Matrix views
-    const auto _A = (side == Side::Left)
+    const auto A_ = (side == Side::Left)
             ? colmajor_matrix<TA>( (TA*)A, m, k, lda )
             : colmajor_matrix<TA>( (TA*)A, n, k, lda );
     const auto _tau = vector( (TA*)tau, k );
-    auto _C = colmajor_matrix<TC>( C, m, n, ldc );
-    auto _W = colmajor_matrix<scalar_t>( &_work[0], nb, nw+nb );
+    auto C_ = colmajor_matrix<TC>( C, m, n, ldc );
+    auto W_ = colmajor_matrix<scalar_t>( &_work[0], nb, nw+nb );
 
     // Options
     struct {
         idx_t nb;
-        decltype(_W)* workPtr;
-    } opts = { nb, &_W };
+        decltype(W_)* workPtr;
+    } opts = { nb, &W_ };
     
-    return unmqr( side, trans, _A, _tau, _C, std::move(opts) );
+    return unmqr( side, trans, A_, _tau, C_, std::move(opts) );
 }
 
 }

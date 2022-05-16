@@ -79,12 +79,12 @@ inline int unm2r(
     scalar_t* work = new scalar_t[ (q > 0) ? q : 0 ];
 
     // Matrix views
-    const auto _A = colmajor_matrix<TA>( (TA*)A, q, k, lda );
+    const auto A_ = colmajor_matrix<TA>( (TA*)A, q, k, lda );
     const auto _tau = vector( (TA*)tau, k );
-    auto _C = colmajor_matrix<TC>( C, m, n, ldc );
+    auto C_ = colmajor_matrix<TC>( C, m, n, ldc );
     auto _work = vector( work, q );
 
-    int info = unm2r( side, trans, A, _tau, _C, _work );
+    int info = unm2r( side, trans, A, _tau, C_, _work );
 
     delete[] work;
     return info;

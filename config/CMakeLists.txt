@@ -6,3 +6,4 @@
 
 configure_file(version.h.in ${CMAKE_CURRENT_SOURCE_DIR}/version.h)
 add_executable(version version.cpp)
+target_include_directories(version PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})

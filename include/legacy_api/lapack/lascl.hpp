@@ -107,37 +107,37 @@ int lascl(
 
     if (matrixtype == MatrixType::LowerBand)
     {
-        auto _A = banded_matrix<T>( A, m, n, kl, 0 );
-        return lascl( write_policy(_A), b, a, _A );
+        auto A_ = banded_matrix<T>( A, m, n, kl, 0 );
+        return lascl( write_policy(A_), b, a, A_ );
     }
     else if (matrixtype == MatrixType::UpperBand)
     {
-        auto _A = banded_matrix<T>( A, m, n, 0, ku );
-        return lascl( write_policy(_A), b, a, _A );
+        auto A_ = banded_matrix<T>( A, m, n, 0, ku );
+        return lascl( write_policy(A_), b, a, A_ );
     }
     else if (matrixtype == MatrixType::Band)
     {
-        auto _A = banded_matrix<T>( A, m, n, kl, ku );
-        return lascl( write_policy(_A), b, a, _A );
+        auto A_ = banded_matrix<T>( A, m, n, kl, ku );
+        return lascl( write_policy(A_), b, a, A_ );
     }
     else {
-        auto _A = colmajor_matrix<T>( A, m, n, lda );
+        auto A_ = colmajor_matrix<T>( A, m, n, lda );
         
         if (matrixtype == MatrixType::General)
         {
-            return lascl( MatrixAccessPolicy::Dense, b, a, _A );
+            return lascl( MatrixAccessPolicy::Dense, b, a, A_ );
         }
         else if (matrixtype == MatrixType::Lower)
         {
-            return lascl( MatrixAccessPolicy::LowerTriangle, b, a, _A );
+            return lascl( MatrixAccessPolicy::LowerTriangle, b, a, A_ );
         }
         else if (matrixtype == MatrixType::Upper)
         {
-            return lascl( MatrixAccessPolicy::UpperTriangle, b, a, _A );
+            return lascl( MatrixAccessPolicy::UpperTriangle, b, a, A_ );
         }
         else // if (matrixtype == MatrixType::Hessenberg)
         {
-            return lascl( MatrixAccessPolicy::UpperHessenberg, b, a, _A );
+            return lascl( MatrixAccessPolicy::UpperHessenberg, b, a, A_ );
         }
     }
 }

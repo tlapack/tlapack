@@ -52,12 +52,12 @@ inline void larf(
     idx_t lwork = (( side == Side::Left ) ? n : m);
     
     // Matrix views
-    auto _C = colmajor_matrix<TC>( C, m, n, ldC );
+    auto C_ = colmajor_matrix<TC>( C, m, n, ldC );
     auto _work = vector( &work[0], lwork );
 
     tlapack_expr_with_vector(
         _v, TV, lenv, v, incv,
-        return larf( side, _v, tau, _C, _work)
+        return larf( side, _v, tau, C_, _work)
     );
 }
 

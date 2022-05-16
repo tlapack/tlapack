@@ -135,12 +135,12 @@ void trmm(
     }
 
     // Matrix views
-    const auto _A = (side == Side::Left)
+    const auto A_ = (side == Side::Left)
                   ? colmajor_matrix<TA>( (TA*)A, m, m, lda )
                   : colmajor_matrix<TA>( (TA*)A, n, n, lda );
-    auto _B = colmajor_matrix<TB>( B, m, n, ldb );
+    auto B_ = colmajor_matrix<TB>( B, m, n, ldb );
 
-    trmm( side, uplo, trans, diag, alpha, _A, _B );
+    trmm( side, uplo, trans, diag, alpha, A_, B_ );
 }
 
 }  // namespace tlapack

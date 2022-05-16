@@ -62,11 +62,11 @@ inline int geqr2(
     }
 
     // Matrix views
-    auto _A    = colmajor_matrix( A, m, n, lda );
+    auto A_    = colmajor_matrix( A, m, n, lda );
     auto _tau  = vector         ( tau, std::min( m, n ) );
     auto _work = vector         ( work, n-1 );
     
-    info = geqr2( _A, _tau, _work );
+    info = geqr2( A_, _tau, _work );
 
     if( !is_same_v< TA, Ttau > || n-1 >= m )
         delete[] work;

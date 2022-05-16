@@ -145,16 +145,16 @@ int larfb(
     scalar_t *W = new scalar_t[ (side == Side::Left) ? k*n : m*k ];
 
     // Views
-    const auto _V = (storeV == StoreV::Columnwise)
+    const auto V_ = (storeV == StoreV::Columnwise)
                   ? colmajor_matrix<TV>( (TV*) V, (side == Side::Left) ? m : n, k, ldV )
                   : colmajor_matrix<TV>( (TV*) V, k, (side == Side::Left) ? m : n, ldV );
-    const auto _T = colmajor_matrix<TV>( (TV*) T, k, k, ldT );
-    auto _C = colmajor_matrix<TC>( C, m, n, ldC );
-    auto _W = (side == Side::Left)
+    const auto T_ = colmajor_matrix<TV>( (TV*) T, k, k, ldT );
+    auto C_ = colmajor_matrix<TC>( C, m, n, ldC );
+    auto W_ = (side == Side::Left)
                ? colmajor_matrix<scalar_t>( W, k, n )
                : colmajor_matrix<scalar_t>( W, m, k );
 
-    int info = larfb( side, trans, direct, storeV, _V, _T, _C, _W );
+    int info = larfb( side, trans, direct, storeV, V_, T_, C_, W_ );
 
     delete[] W;
     return info;

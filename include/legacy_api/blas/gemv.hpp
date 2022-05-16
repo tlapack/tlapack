@@ -120,12 +120,12 @@ void gemv(
     idx_t leny = ((trans == Op::NoTrans || trans == Op::Conj) ? m : n);
     
     // Matrix views
-    const auto _A = colmajor_matrix<TA>( (TA*)A, m, n, lda );
+    const auto A_ = colmajor_matrix<TA>( (TA*)A, m, n, lda );
 
     tlapack_expr_with_2vectors(
         _x, TX, lenx, x, incx,
         _y, TY, leny, y, incy,
-        return gemv( trans, alpha, _A, _x, beta, _y )
+        return gemv( trans, alpha, A_, _x, beta, _y )
     );
 }
 

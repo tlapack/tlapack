@@ -86,9 +86,9 @@ void her(
     }
     
     // Matrix views
-    auto _A = colmajor_matrix<TA>( A, n, n, lda );
+    auto A_ = colmajor_matrix<TA>( A, n, n, lda );
 
-    tlapack_expr_with_vector( _x, TX, n, x, incx, her( uplo, alpha, _x, _A ) );
+    tlapack_expr_with_vector( _x, TX, n, x, incx, her( uplo, alpha, _x, A_ ) );
 }
 
 }  // namespace tlapack

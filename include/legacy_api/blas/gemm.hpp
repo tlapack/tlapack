@@ -140,15 +140,15 @@ void gemm(
         return;
 
     // Matrix views
-    const auto _A = (transA == Op::NoTrans)
+    const auto A_ = (transA == Op::NoTrans)
             ? colmajor_matrix<TA>( (TA*)A, m, k, lda )
             : colmajor_matrix<TA>( (TA*)A, k, m, lda );
-    const auto _B = (transB == Op::NoTrans)
+    const auto B_ = (transB == Op::NoTrans)
             ? colmajor_matrix<TB>( (TB*)B, k, n, ldb )
             : colmajor_matrix<TB>( (TB*)B, n, k, ldb );
-    auto _C = colmajor_matrix<TC>( C, m, n, ldc );
+    auto C_ = colmajor_matrix<TC>( C, m, n, ldc );
 
-    return gemm( transA, transB, alpha, _A, _B, beta, _C );
+    return gemm( transA, transB, alpha, A_, B_, beta, C_ );
 }
 
 }  // namespace tlapack
