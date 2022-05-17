@@ -40,29 +40,31 @@ subroutine fortran_slaqr0(wantt, wantz, n, ilo, ihi, H, ldh, wr, wi,&
     use, intrinsic :: iso_fortran_env
     implicit none
     integer(c_int)::n,ilo, ihi, ldh, ldz, nw, ns, nd
-    real(c_float),dimension(*):: H, sr, si, Z
+    real(c_float) :: H(ldh, *), sr(*), si(*), Z(ldz,*)
     logical(c_bool) :: wantt, wantz
     external slaqr0
 
     real :: dummywork(1)
-    real, allocatable ::work(:),V(:,:), T(:,:), WV(:,:)
-    integer :: lwork
+    real, allocatable ::work(:)
+    integer :: lwork, kv, kt, nho, kwv, nve
 
-    allocate( V(nw, nw) )
-    allocate( T(nw, nw) )
-    allocate( WV( n, nw ) )
+    KV = N - NW + 1
+    KT = NW + 1
+    NHO = ( N-NW-1 ) - KT + 1
+    KWV = NW + 2
+    NVE = ( N-NW ) - KWV + 1
  
 
 
     call slaqr2( wantt, wantz, n, ilo, ihi, nw, H, ldh, 1, n, Z, ldz, ns, nd, sr, si,&
-                 V, nw, nw, T, nw, n, WV, n,  dummywork, -1 )
+                 H( KV, 1 ), LDH, NHO, H( KV, KT ), LDH, NVE, H( KWV, 1 ), LDH,&
+                 dummywork, -1 )
     lwork = int( dummywork(1) )
     allocate( work(lwork) )
     call slaqr2( wantt, wantz, n, ilo, ihi, nw, H, ldh, 1, n, Z, ldz, ns, nd, sr, si,&
-                 V, nw, nw, T, nw, n, WV, n, work, lwork )
+                 H( KV, 1 ), LDH, NHO, H( KV, KT ), LDH, NVE, H( KWV, 1 ), LDH,&
+                 work, lwork )
     deallocate(work)
-
-    deallocate( V, T, WV )
 
  end subroutine
 
@@ -71,25 +73,28 @@ subroutine fortran_slaqr0(wantt, wantz, n, ilo, ihi, H, ldh, wr, wi,&
     use,intrinsic:: iso_c_binding, only: c_float, c_int, c_bool
     use, intrinsic :: iso_fortran_env
     implicit none
-    integer(c_int)::n,ilo, ihi, ldh, ldz, nshifts, iblock
-    real(c_float),dimension(*):: H, sr, si, Z
+    integer(c_int)::n,ilo, ihi, ldh, ldz, nshifts,&
+         KDU, KU, KWH, NHO, KWV, NVE
+    real(c_float) :: H(ldh, *), sr(*), si(*), Z(ldz,*)
     logical(c_bool) :: wantt, wantz
     external slaqr0
 
-    real, allocatable ::V(:,:), U(:,:), WV(:,:), WH(:,:)
+    real, allocatable ::V(:,:)
 
-    iblock = 3*nshifts
+    KDU = 2*nshifts
+    KU = N - KDU + 1
+    KWH = KDU + 1
+    NHO = ( N-KDU+1-4 ) - ( KDU+1 ) + 1
+    KWV = KDU + 4
+    NVE = N - KDU - KWV + 1
 
     allocate( V(3, nshifts) )
-    allocate( U(iblock, iblock) )
-    allocate( WV( n, iblock ) )
-    allocate( WH( iblock, n ) )
 
     call slaqr5( wantt, wantz, 1, n, ilo, ihi, nshifts, sr, si,&
                  H, ldh, 1, n, Z, ldz,&
-                 V, 3, U, iblock, n, WV, n, n, WH, iblock )
+                 V, 3, H( KU, 1 ), LDH, NVE, H( KWV, 1 ), LDH, NHO, H( KU, KWH ), LDH )
 
-    deallocate( V, U, WV, WH )
+    deallocate( V )
 
  end subroutine
 
@@ -132,6 +137,18 @@ subroutine fortran_slaqr0(wantt, wantz, n, ilo, ihi, H, ldh, wr, wi,&
     allocate( work(lwork) )
     call sorghr( n, ilo, ihi, H, ldh, tau, work, lwork, info )
     deallocate(work)
+
+ end subroutine
+
+ subroutine fortran_slanv2(a, b, c, d, rt1r, rt1i, rt2r, rt2i,&
+    cs, sn) bind(c,name='fortran_slanv2')
+    use,intrinsic:: iso_c_binding, only: c_float
+    use, intrinsic :: iso_fortran_env
+    implicit none
+    real(c_float):: a, b, c, d, rt1r, rt1i, rt2r, rt2i, cs, sn
+    external slanv2
+
+    call slanv2( a, b, c, d, rt1r, rt1i, rt2r, rt2i, cs, sn )
 
  end subroutine
  

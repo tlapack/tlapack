@@ -419,6 +419,8 @@
 *
 *     ==== Deflation detection loop ====
 *
+      write(*,*) "Starting deflation detection loop", kwtop, jw
+
       NS = JW
       ILST = INFQR + 1
    20 CONTINUE
@@ -438,6 +440,8 @@
             FOO = ABS( T( NS, NS ) )
             IF( FOO.EQ.ZERO )
      $         FOO = ABS( S )
+            write(*,*) "real eigenvalue", ABS( S*V( 1, NS ) ), ULP*FOO,
+     $        T( NS, NS )
             IF( ABS( S*V( 1, NS ) ).LE.MAX( SMLNUM, ULP*FOO ) ) THEN
 *
 *              ==== Deflatable ====
@@ -461,6 +465,8 @@
      $            SQRT( ABS( T( NS-1, NS ) ) )
             IF( FOO.EQ.ZERO )
      $         FOO = ABS( S )
+   !          write(*,*) "complex eigenvalue", MAX( ABS( S*V( 1, NS ) ),
+   !   &       ABS( S*V( 1, NS-1 ) ) ), ULP*FOO
             IF( MAX( ABS( S*V( 1, NS ) ), ABS( S*V( 1, NS-1 ) ) ).LE.
      $          MAX( SMLNUM, ULP*FOO ) ) THEN
 *

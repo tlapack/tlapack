@@ -24,6 +24,11 @@
 namespace tlapack
 {
 
+    extern "C"
+    {
+        void fortran_slahqr(const bool& wantt, const bool& wantz, const int& n, const int& ilo, const int& ihi, float* H, const int& ldh, float* wr, float* wi, float* Z, const int& ldz, int& info);
+    }
+
     /** agressive_early_deflation accepts as input an upper Hessenberg matrix
      *  H and performs an orthogonal similarity transformation
      *  designed to detect and deflate fully converged eigenvalues from
@@ -153,7 +158,11 @@ namespace tlapack
             for (idx_t i = 0; i < std::min(j + 2, jw); ++i)
                 TW(i, j) = A_window(i, j);
         laset(Uplo::General, zero, one, V);
-        int infqr = lahqr(true, true, 0, jw, TW, s_window, V);
+        // int infqr = lahqr(true, true, 0, jw, TW, s_window, V);
+        int infqr;
+        std::vector<real_t> sr(jw);
+        std::vector<real_t> si(jw);
+        fortran_slahqr( true, true, jw, 1, jw, TW.ptr, TW.ldim, sr.data(), si.data(), V.ptr, V.ldim, infqr );
 
         // Deflation detection loop
         // one eigenvalue block at a time, we will check if it is deflatable
@@ -226,72 +235,72 @@ namespace tlapack
 
         // sorting diagonal blocks of T improves accuracy for graded matrices.
         // Bubble sort deals well with exchange failures.
-        bool sorted = false;
-        // Window to be checked (other eigenvalue are sorted)
-        idx_t sorting_window_size = jw;
-        while (!sorted)
-        {
-            sorted = true;
+        // bool sorted = false;
+        // // Window to be checked (other eigenvalue are sorted)
+        // idx_t sorting_window_size = jw;
+        // while (!sorted)
+        // {
+        //     sorted = true;
 
-            // Index of last eigenvalue that was swapped
-            idx_t ilst = 0;
+        //     // Index of last eigenvalue that was swapped
+        //     idx_t ilst = 0;
 
-            // Index of the first block
-            idx_t i1 = ns;
+        //     // Index of the first block
+        //     idx_t i1 = ns;
 
-            while (i1 + 1 < sorting_window_size)
-            {
+        //     while (i1 + 1 < sorting_window_size)
+        //     {
 
-                // Size of the first block
-                idx_t n1 = 1;
-                if (!is_complex<T>::value)
-                    if (TW(i1 + 1, i1) != zero)
-                        n1 = 2;
+        //         // Size of the first block
+        //         idx_t n1 = 1;
+        //         if (!is_complex<T>::value)
+        //             if (TW(i1 + 1, i1) != zero)
+        //                 n1 = 2;
 
-                // Check if there is a next block
-                if (i1 + n1 == jw)
-                {
-                    ilst = ilst - n1;
-                    break;
-                }
+        //         // Check if there is a next block
+        //         if (i1 + n1 == jw)
+        //         {
+        //             ilst = ilst - n1;
+        //             break;
+        //         }
 
-                // Index of the second block
-                idx_t i2 = i1 + n1;
+        //         // Index of the second block
+        //         idx_t i2 = i1 + n1;
 
-                // Size of the second block
-                idx_t n2 = 1;
-                if (!is_complex<T>::value)
-                    if (i2 + 1 < jw)
-                        if (TW(i2 + 1, i2) != zero)
-                            n2 = 2;
+        //         // Size of the second block
+        //         idx_t n2 = 1;
+        //         if (!is_complex<T>::value)
+        //             if (i2 + 1 < jw)
+        //                 if (TW(i2 + 1, i2) != zero)
+        //                     n2 = 2;
 
-                real_t ev1, ev2;
-                if (n1 == 1)
-                    ev1 = abs1(TW(i1, i1));
-                else
-                    ev1 = abs(TW(i1, i1)) + sqrt(abs(TW(i1 + 1, i1))) * sqrt(abs(TW(i1, i1 + 1)));
-                if (n2 == 1)
-                    ev2 = abs1(TW(i2, i2));
-                else
-                    ev2 = abs(TW(i2, i2)) + sqrt(abs(TW(i2 + 1, i2))) * sqrt(abs(TW(i2, i2 + 1)));
+        //         real_t ev1, ev2;
+        //         if (n1 == 1)
+        //             ev1 = abs1(TW(i1, i1));
+        //         else
+        //             ev1 = abs(TW(i1, i1)) + sqrt(abs(TW(i1 + 1, i1))) * sqrt(abs(TW(i1, i1 + 1)));
+        //         if (n2 == 1)
+        //             ev2 = abs1(TW(i2, i2));
+        //         else
+        //             ev2 = abs(TW(i2, i2)) + sqrt(abs(TW(i2 + 1, i2))) * sqrt(abs(TW(i2, i2 + 1)));
 
-                if (ev1 > ev2)
-                {
-                    i1 = i2;
-                }
-                else
-                {
-                    sorted = false;
-                    int ierr = schur_swap(true, TW, V, i1, n1, n2);
-                    if (ierr == 0)
-                        i1 = i1 + n2;
-                    else
-                        i1 = i2;
-                    ilst = i1;
-                }
-            }
-            sorting_window_size = ilst;
-        }
+        //         if (ev1 > ev2)
+        //         {
+        //             i1 = i2;
+        //         }
+        //         else
+        //         {
+        //             sorted = false;
+        //             int ierr = schur_swap(true, TW, V, i1, n1, n2);
+        //             if (ierr == 0)
+        //                 i1 = i1 + n2;
+        //             else
+        //                 i1 = i2;
+        //             ilst = i1;
+        //         }
+        //     }
+        //     sorting_window_size = ilst;
+        // }
 
         // Recalculate the eigenvalues
         idx_t i = 0;
@@ -305,8 +314,16 @@ namespace tlapack
 
             if (n1 == 1)
                 s[kwtop + i] = TW(i, i);
-            else
-                lahqr_eig22(TW(i, i), TW(i, i + 1), TW(i + 1, i), TW(i + 1, i + 1), s[kwtop + i], s[kwtop + i + 1]);
+            else{
+                // lahqr_eig22(TW(i, i), TW(i, i + 1), TW(i + 1, i), TW(i + 1, i + 1), s[kwtop + i], s[kwtop + i + 1]);
+                T a00 = TW(i,i);
+                T a01 = TW(i,i+1);
+                T a10 = TW(i+1,i);
+                T a11 = TW(i+1,i+1);
+                T sn;
+                real_t cs;
+                lahqr_schur22( a00, a01, a10, a11, s[kwtop + i], s[kwtop + i + 1], cs, sn );
+            }
             i = i + n1;
         }
 

@@ -20,6 +20,11 @@
 namespace tlapack
 {
 
+    extern "C"
+    {
+        void fortran_slanv2(float &a, float &b, float &c, float &d, float &rt1r, float &rt1i, float &rt2r, float &rt2i, float &cs, float &sn);
+    }
+
     /** Computes the Schur factorization of a 2x2 matrix A
      *
      *  A = [a b] = [cs -sn] [aa bb] [ cs sn]
@@ -55,6 +60,13 @@ namespace tlapack
         enable_if_t<!is_complex<T>::value, bool> = true>
     int lahqr_schur22(T &a, T &b, T &c, T &d, std::complex<T> &s1, std::complex<T> &s2, T &cs, T &sn)
     {
+
+        T rt1r, rt1i, rt2r, rt2i;
+        fortran_slanv2( a, b, c, d, rt1r, rt1i, rt2r, rt2i, cs, sn );
+        s1 = std::complex<T>( rt1r, rt1i );
+        s2 = std::complex<T>( rt2r, rt2i );
+
+        return 0;
 
         using std::copysign;
         using std::log;

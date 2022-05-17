@@ -444,6 +444,7 @@
 *        ==== Main Loop ====
 *
          DO 80 IT = 1, ITMAX
+            return 0
 *
 *           ==== Done when KBOT falls below ILO ====
 *
@@ -520,7 +521,7 @@
 *
 *           ==== Aggressive early deflation ====
 * 
-            ! write(*,*) "ITER ", IT, KBOT
+            ! write(*,*) "ITER ", IT, KBOT, NSWEEP, NSHIFTS
             ! write(*,*) "NW   ", NW
             NAED = NAED + 1
             CALL SLAQR2( WANTT, WANTZ, N, KTOP, KBOT, NW, H, LDH, ILOZ,
@@ -584,38 +585,38 @@
 *                 .    there is enough space below the subdiagonal
 *                 .    to fit an NS-by-NS scratch array.) ====
 *
-                  IF( KBOT-KS+1.LE.NS / 2 ) THEN
-                     KS = KBOT - NS + 1
-                     KT = N - NS + 1
-                     CALL SLACPY( 'A', NS, NS, H( KS, KS ), LDH,
-     $                            H( KT, 1 ), LDH )
-                     IF( NS.GT.NMIN ) THEN
-                        CALL SLAQR4( .false., .false., NS, 1, NS,
-     $                               H( KT, 1 ), LDH, WR( KS ),
-     $                               WI( KS ), 1, 1, ZDUM, 1, WORK,
-     $                               LWORK, INF )
-                     ELSE
-                        CALL SLAHQR( .false., .false., NS, 1, NS,
-     $                               H( KT, 1 ), LDH, WR( KS ),
-     $                               WI( KS ), 1, 1, ZDUM, 1, INF )
-                     END IF
-                     KS = KS + INF
-*
-*                    ==== In case of a rare QR failure use
-*                    .    eigenvalues of the trailing 2-by-2
-*                    .    principal submatrix.  ====
-*
-                     IF( KS.GE.KBOT ) THEN
-                        AA = H( KBOT-1, KBOT-1 )
-                        CC = H( KBOT, KBOT-1 )
-                        BB = H( KBOT-1, KBOT )
-                        DD = H( KBOT, KBOT )
-                        CALL SLANV2( AA, BB, CC, DD, WR( KBOT-1 ),
-     $                               WI( KBOT-1 ), WR( KBOT ),
-     $                               WI( KBOT ), CS, SN )
-                        KS = KBOT - 1
-                     END IF
-                  END IF
+!                   IF( KBOT-KS+1.LE.NS / 2 ) THEN
+!                      KS = KBOT - NS + 1
+!                      KT = N - NS + 1
+!                      CALL SLACPY( 'A', NS, NS, H( KS, KS ), LDH,
+!      $                            H( KT, 1 ), LDH )
+!                      IF( NS.GT.NMIN ) THEN
+!                         CALL SLAQR4( .false., .false., NS, 1, NS,
+!      $                               H( KT, 1 ), LDH, WR( KS ),
+!      $                               WI( KS ), 1, 1, ZDUM, 1, WORK,
+!      $                               LWORK, INF )
+!                      ELSE
+!                         CALL SLAHQR( .false., .false., NS, 1, NS,
+!      $                               H( KT, 1 ), LDH, WR( KS ),
+!      $                               WI( KS ), 1, 1, ZDUM, 1, INF )
+!                      END IF
+!                      KS = KS + INF
+! *
+! *                    ==== In case of a rare QR failure use
+! *                    .    eigenvalues of the trailing 2-by-2
+! *                    .    principal submatrix.  ====
+! *
+!                      IF( KS.GE.KBOT ) THEN
+!                         AA = H( KBOT-1, KBOT-1 )
+!                         CC = H( KBOT, KBOT-1 )
+!                         BB = H( KBOT-1, KBOT )
+!                         DD = H( KBOT, KBOT )
+!                         CALL SLANV2( AA, BB, CC, DD, WR( KBOT-1 ),
+!      $                               WI( KBOT-1 ), WR( KBOT ),
+!      $                               WI( KBOT ), CS, SN )
+!                         KS = KBOT - 1
+!                      END IF
+!                   END IF
 *
                   IF( KBOT-KS+1.GT.NS ) THEN
 *
@@ -623,27 +624,27 @@
 *                    .    Bubble sort keeps complex conjugate
 *                    .    pairs together. ====
 *
-!                      SORTED = .false.
-!                      DO 50 K = KBOT, KS + 1, -1
-!                         IF( SORTED )
-!      $                     GO TO 60
-!                         SORTED = .true.
-!                         DO 40 I = KS, K - 1
-!                            IF( ABS( WR( I ) )+ABS( WI( I ) ).LT.
-!      $                         ABS( WR( I+1 ) )+ABS( WI( I+1 ) ) ) THEN
-!                               SORTED = .false.
-! *
-!                               SWAP = WR( I )
-!                               WR( I ) = WR( I+1 )
-!                               WR( I+1 ) = SWAP
-! *
-!                               SWAP = WI( I )
-!                               WI( I ) = WI( I+1 )
-!                               WI( I+1 ) = SWAP
-!                            END IF
-!    40                   CONTINUE
-!    50                CONTINUE
-!    60                CONTINUE
+                     SORTED = .false.
+                     DO 50 K = KBOT, KS + 1, -1
+                        IF( SORTED )
+     $                     GO TO 60
+                        SORTED = .true.
+                        DO 40 I = KS, K - 1
+                           IF( ABS( WR( I ) )+ABS( WI( I ) ).LT.
+     $                         ABS( WR( I+1 ) )+ABS( WI( I+1 ) ) ) THEN
+                              SORTED = .false.
+*
+                              SWAP = WR( I )
+                              WR( I ) = WR( I+1 )
+                              WR( I+1 ) = SWAP
+*
+                              SWAP = WI( I )
+                              WI( I ) = WI( I+1 )
+                              WI( I+1 ) = SWAP
+                           END IF
+   40                   CONTINUE
+   50                CONTINUE
+   60                CONTINUE
                   END IF
 *
 *                 ==== Shuffle shifts into pairs of real shifts
@@ -652,20 +653,20 @@
 *                 .    already adjacent to one another. (Yes,
 *                 .    they are.)  ====
 *
-!                   DO 70 I = KBOT, KS + 2, -2
-!                      IF( WI( I ).NE.-WI( I-1 ) ) THEN
-! *
-!                         SWAP = WR( I )
-!                         WR( I ) = WR( I-1 )
-!                         WR( I-1 ) = WR( I-2 )
-!                         WR( I-2 ) = SWAP
-! *
-!                         SWAP = WI( I )
-!                         WI( I ) = WI( I-1 )
-!                         WI( I-1 ) = WI( I-2 )
-!                         WI( I-2 ) = SWAP
-!                      END IF
-!    70             CONTINUE
+                  DO 70 I = KBOT, KS + 2, -2
+                     IF( WI( I ).NE.-WI( I-1 ) ) THEN
+*
+                        SWAP = WR( I )
+                        WR( I ) = WR( I-1 )
+                        WR( I-1 ) = WR( I-2 )
+                        WR( I-2 ) = SWAP
+*
+                        SWAP = WI( I )
+                        WI( I ) = WI( I-1 )
+                        WI( I-1 ) = WI( I-2 )
+                        WI( I-2 ) = SWAP
+                     END IF
+   70             CONTINUE
                END IF
 *
 *              ==== If there are only two shifts and both are

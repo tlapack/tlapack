@@ -26,11 +26,11 @@ namespace tlapack
 {
     extern "C"
     {
-        void fortran_slaqr2(const bool& wantt, const bool& wantz, const int& n, const int& ilo, const int& ihi,
-                            const int& nw, float* H, const int& ldh, float* Z, const int& ldz, int& ns, int& nd, float* sr, float* si);
+        void fortran_slaqr2(const bool &wantt, const bool &wantz, const int &n, const int &ilo, const int &ihi,
+                            const int &nw, float *H, const int &ldh, float *Z, const int &ldz, int &ns, int &nd, float *sr, float *si);
 
-        void fortran_slaqr5(const bool& wantt, const bool& wantz, const int& n, const int& ilo, const int& ihi,
-                            const int& nshifts, float* sr, float* si, float* H, const int& ldh, float* Z, const int& ldz);
+        void fortran_slaqr5(const bool &wantt, const bool &wantz, const int &n, const int &ilo, const int &ihi,
+                            const int &nshifts, float *sr, float *si, float *H, const int &ldh, float *Z, const int &ldz);
     }
 
     /**
@@ -79,6 +79,9 @@ namespace tlapack
         };
 
         idx_t nibble = 14;
+
+        idx_t nmin = 75;
+
         // Workspace pointer, if no workspace is provided, one will be allocated internally
         T *_work = nullptr;
         // Workspace size
@@ -153,7 +156,6 @@ namespace tlapack
         // This routine uses the space below the subdiagonal as workspace
         // For small matrices, this is not enough
         // if n < nmin, the matrix will be passed to lahqr
-        const idx_t nmin = 15;
 
         // Recommended number of shifts
         const idx_t nsr = opts.nshift_recommender(n, nh);
@@ -163,6 +165,8 @@ namespace tlapack
         const idx_t nw_max = (n - 3) / 3;
 
         const idx_t nibble = opts.nibble;
+
+        const idx_t nmin = opts.nmin;
 
         // check arguments
         lapack_error_if(n != nrows(A), -5);
@@ -231,6 +235,8 @@ namespace tlapack
         for (idx_t iter = 0; iter <= itmax; ++iter)
         {
 
+            return 0;
+
             if (iter == itmax)
             {
                 // The QR algorithm failed to converge, return with error.
@@ -240,8 +246,8 @@ namespace tlapack
 
             if (ilo + 1 >= istop)
             {
-                if( ilo + 1 == istop )
-                    w[ilo] = A(ilo,ilo);
+                if (ilo + 1 == istop)
+                    w[ilo] = A(ilo, ilo);
                 // All eigenvalues have been found, exit and return 0.
                 break;
             }
@@ -275,7 +281,8 @@ namespace tlapack
                 // Try to vary the deflation window size.
                 nw = std::min(nwupbd, 2 * nw);
             }
-            if( nh <= 4 ){
+            if (nh <= 4)
+            {
                 // n >= nmin, so there is always enough space for a 4x4 window
                 nw = nh;
             }
@@ -283,12 +290,12 @@ namespace tlapack
             {
                 if (nw + 1 >= nh)
                     nw = nh;
-                idx_t kwtop = ihi - nw;
+                idx_t kwtop = istop - nw;
                 if (abs1(A(kwtop, kwtop - 1)) > abs1(A(kwtop - 1, kwtop - 2)))
                     nw = nw + 1;
             }
 
-            // std::cout<<"iter "<<iter<<" "<<istop<<std::endl;
+            // std::cout << "iter " << iter << " " << istop << " " << istart << " " << nsweep << " " << n_shifts_total << std::endl;
             // std::cout<<"nw   "<<nw<<std::endl;
             idx_t ls, ld;
             naed = naed + 1;
@@ -296,11 +303,13 @@ namespace tlapack
             int ls2, ld2;
             std::vector<real_t> sr(n);
             std::vector<real_t> si(n);
-            fortran_slaqr2( want_t, want_z, n, istart+1, istop, nw, A.ptr, n, Z.ptr, n, ls2, ld2, sr.data(), si.data() );
-            for( idx_t i = istop - nw; i < istop ; ++i )
-                w[i] = std::complex<real_t>( sr[i], si[i] );
+            fortran_slaqr2(want_t, want_z, n, istart + 1, istop, nw, A.ptr, n, Z.ptr, n, ls2, ld2, sr.data(), si.data());
+            for (idx_t i = istop - nw; i < istop; ++i)
+                w[i] = std::complex<real_t>(sr[i], si[i]);
             ls = ls2;
             ld = ld2;
+
+            // std::cout<<"test"<<std::endl;
 
             istop = istop - ld;
 
@@ -311,7 +320,7 @@ namespace tlapack
             // reason to expect that many eigenvalues will deflate without it.
             // Here, the QR sweep is skipped if many eigenvalues have just been
             // deflated or if the remaining active block is small.
-            if (ld > 0 and (100 * ld > nwr * nibble or (istop - istart) <= nw_max))
+            if (ld > 0 and (100 * ld > nwr * nibble or (istop - istart) <= std::min(nmin, nw_max)))
             {
                 continue;
             }
@@ -337,23 +346,39 @@ namespace tlapack
 
             // Sort the shifts (helps a little)
             // Bubble sort keeps complex conjugate pairs together
-            // bool sorted = false;
-            // idx_t k = istop;
-            // while (!sorted && k > i_shifts)
-            // {
-            //     sorted = true;
-            //     for (idx_t i = i_shifts; i < k - 1; ++i)
-            //     {
-            //         if (abs1(w[i]) < abs1(w[i + 1]))
-            //         {
-            //             sorted = false;
-            //             auto tmp = w[i];
-            //             w[i] = w[i + 1];
-            //             w[i + 1] = tmp;
-            //         }
-            //     }
-            //     --k;
-            // }
+            bool sorted = false;
+            idx_t k = istop;
+            while (!sorted && k > i_shifts)
+            {
+                sorted = true;
+                for (idx_t i = i_shifts; i < k - 1; ++i)
+                {
+                    if (abs1(w[i]) < abs1(w[i + 1]))
+                    {
+                        sorted = false;
+                        auto tmp = w[i];
+                        w[i] = w[i + 1];
+                        w[i + 1] = tmp;
+                    }
+                }
+                --k;
+            }
+
+            // Shuffle shifts into pairs of real shifts
+            // and pairs of complex conjugate shifts
+            // assuming complex conjugate shifts are
+            // already adjacent to one another. (Yes,
+            // they are.)
+            for (idx_t i = istop - 1; i > i_shifts + 1; i = i - 2)
+            {
+                if (imag(w[i]) != -imag(w[i - 1]))
+                {
+                    auto tmp = w[i];
+                    w[i] = w[i - 1];
+                    w[i - 1] = w[i - 2];
+                    w[i - 2] = tmp;
+                }
+            }
 
             // If there are only two shifts and both are real
             // then use only one (helps avoid interference)
@@ -371,7 +396,6 @@ namespace tlapack
                 }
             }
 
-
             if (ns % 2 == 1)
                 ns = ns - 1;
             i_shifts = istop - ns;
@@ -380,20 +404,21 @@ namespace tlapack
             nsweep = nsweep + 1;
             n_shifts_total = n_shifts_total + size(shifts);
             // multishift_QR_sweep(want_t, want_z, istart, istop, A, shifts, Z, V);
-            for( idx_t i = 0; i < n ; ++i ){
+            for (idx_t i = 0; i < n; ++i)
+            {
                 sr[i] = real(shifts[i]);
                 si[i] = imag(shifts[i]);
             }
-            fortran_slaqr5( want_t, want_z, n, istart+1, istop, (int) size(shifts), sr.data(), si.data(), A.ptr, n, Z.ptr, n );
+            fortran_slaqr5(want_t, want_z, n, istart + 1, istop, (int)size(shifts), sr.data(), si.data(), A.ptr, A.ldim, Z.ptr, Z.ldim);
         }
 
-        std::cout<<std::endl;
-        std::cout<<"AED calls"<<naed<<std::endl;
-        std::cout<<"sweep calls"<<nsweep<<std::endl;
-        std::cout<<"shifts used"<<n_shifts_total<<std::endl;
+        std::cout << std::endl;
+        std::cout << "AED calls" << naed << std::endl;
+        std::cout << "sweep calls" << nsweep << std::endl;
+        std::cout << "shifts used" << n_shifts_total << std::endl;
 
         if (locally_allocated)
-            delete [] _work;
+            delete[] _work;
         return info;
     }
 

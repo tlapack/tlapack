@@ -33,11 +33,47 @@ inline void printMatrix(const matrix_t &A)
     }
 }
 
+class rand_generator
+{
+
+private:
+    const uint64_t a = 6364136223846793005;
+    const uint64_t c = 1442695040888963407;
+    uint64_t state = 1302;
+
+public:
+    uint32_t min()
+    {
+        return 0;
+    }
+
+    uint32_t max()
+    {
+        return UINT32_MAX;
+    }
+
+    void seed(uint64_t s)
+    {
+        state = s;
+    }
+
+    uint32_t operator()()
+    {
+        state = state * a + c;
+        return state >> 32;
+    }
+};
+
+template <typename T>
+T rand_helper(rand_generator &gen)
+{
+    return static_cast<T>(gen()) / static_cast<T>(gen.max());
+}
 extern "C"
 {
-   void fortran_slaqr0(const bool& wantt, const bool& wantz, const int& n, const int& ilo, const int& ihi, float* H, const int& ldh, float* wr, float* wi, float* Z, const int& ldz, int& info);
-   void fortran_sgehrd(const int& n, const int& ilo, const int& ihi, float* H, const int& ldh, float* tau, int& info);
-   void fortran_sorghr(const int& n, const int& ilo, const int& ihi, float* H, const int& ldh, float* tau, int& info);
+    void fortran_slaqr0(const bool &wantt, const bool &wantz, const int &n, const int &ilo, const int &ihi, float *H, const int &ldh, float *wr, float *wi, float *Z, const int &ldz, int &info);
+    void fortran_sgehrd(const int &n, const int &ilo, const int &ihi, float *H, const int &ldh, float *tau, int &info);
+    void fortran_sorghr(const int &n, const int &ilo, const int &ihi, float *H, const int &ldh, float *tau, int &info);
 }
 
 //------------------------------------------------------------------------------
@@ -47,11 +83,14 @@ void run(size_t n, bool use_fortran)
     srand(1); // Init random seed
 
     using real_t = tlapack::real_type<T>;
-    using tlapack::internal::colmajor_matrix;
     using std::size_t;
+    using tlapack::internal::colmajor_matrix;
 
     // Turn it off if m or n are large
     bool verbose = false;
+
+    rand_generator gen;
+    gen.seed(1302);
 
     // Leading dimensions
     size_t lda = (n > 0) ? n : 1;
@@ -87,7 +126,9 @@ void run(size_t n, bool use_fortran)
     // Generate a random matrix in A
     for (size_t j = 0; j < n; ++j)
         for (size_t i = 0; i < n; ++i)
-            A(i, j) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+            A(i, j) = rand_helper<T>(gen);
+
+    std::cout << "sanity check" << A(n, 0) << std::endl;
 
     // Frobenius norm of A
     auto normA = tlapack::lange(tlapack::frob_norm, A);
@@ -111,14 +152,13 @@ void run(size_t n, bool use_fortran)
         int err;
         // Hessenberg factorization
         // int err = tlapack::gehrd(0, n, Q, tau);
-        T* _tau = tau.data();
-        fortran_sgehrd( n, 1, n, Q.ptr, n, _tau, err );
+        T *_tau = tau.data();
+        fortran_sgehrd(n, 1, n, Q.ptr, Q.ldim, _tau, err);
         // tblas_error_if(tlapack::gehd2(0, n, Q, tau, work));
         tblas_error_if(err);
     }
     // Record end time
     auto endQHQ = std::chrono::high_resolution_clock::now();
-
 
     // Save the H matrix
     for (size_t j = 0; j < n; ++j)
@@ -131,14 +171,13 @@ void run(size_t n, bool use_fortran)
         int err;
         // Generate Q = H_1 H_2 ... H_n
         // std::vector<T> work(n);
-        // int err = tlapack::unghr(0, n, Q, tau, work);
+        // err = tlapack::unghr(0, n, Q, tau, work);
         T* _tau = tau.data();
         fortran_sorghr( n, 1, n, Q.ptr, n, _tau, err );
         tblas_error_if(err);
     }
     // Record end time
     auto endQ = std::chrono::high_resolution_clock::now();
-
 
     // Remove junk from lower half of H
     for (size_t j = 0; j < n; ++j)
@@ -150,12 +189,14 @@ void run(size_t n, bool use_fortran)
     {
         // Shur factorization
         int err;
-        if(use_fortran){
+        if (use_fortran)
+        {
             std::unique_ptr<T[]> _wr(new T[n]);
             std::unique_ptr<T[]> _wi(new T[n]);
             fortran_slaqr0( true, true, n, 1, n, H.ptr, n, &_wr[0], &_wi[0], Q.ptr, n, err );
         }
-        else{
+        else
+        {
             std::vector<std::complex<real_t>> w(n);
             err = tlapack::multishift_qr(true, true, 0, n, H, w, Q);
             // err = tlapack::lahqr(true, true, 0, n, H, w, Q);
@@ -218,13 +259,13 @@ void run(size_t n, bool use_fortran)
 
     std::unique_ptr<T[]> _H_copy(new T[n * n]);
     auto H_copy = colmajor_matrix<T>(&_H_copy[0], n, n);
-    tlapack::lacpy(tlapack::Uplo::General,H, H_copy);
+    tlapack::lacpy(tlapack::Uplo::General, H, H_copy);
     {
         std::unique_ptr<T[]> _work(new T[n * n]);
         auto work = colmajor_matrix<T>(&_work[0], n, n);
         for (size_t j = 0; j < n; ++j)
             for (size_t i = 0; i < n; ++i)
-                work(i, j) = static_cast<float>(0xABADBABC);
+                work(i, j) = (T) 0.0;
 
         tlapack::gemm(tlapack::Op::NoTrans, tlapack::Op::NoTrans, (T)1.0, Q, H, (T)0.0, work);
         tlapack::gemm(tlapack::Op::NoTrans, tlapack::Op::ConjTrans, (T)1.0, work, Q, (T)0.0, H);
@@ -245,18 +286,19 @@ void run(size_t n, bool use_fortran)
 
     // 4) Compute Q*AQ (usefull for debugging)
 
-    if(verbose){
+    if (verbose)
+    {
         std::unique_ptr<T[]> _work(new T[n * n]);
         auto work = colmajor_matrix<T>(&_work[0], n, n);
         for (size_t j = 0; j < n; ++j)
             for (size_t i = 0; i < n; ++i)
-                work(i, j) = static_cast<float>(0xABADBABC);
+                work(i, j) = (T)0.0;
 
         tlapack::gemm(tlapack::Op::ConjTrans, tlapack::Op::NoTrans, (T)1.0, Q, A, (T)0.0, work);
         tlapack::gemm(tlapack::Op::NoTrans, tlapack::Op::NoTrans, (T)1.0, work, Q, (T)0.0, A);
 
         std::cout << std::endl
-                    << "Q'AQ = ";
+                  << "Q'AQ = ";
         printMatrix(A);
 
         for (size_t j = 0; j < n; ++j)
@@ -264,13 +306,13 @@ void run(size_t n, bool use_fortran)
                 A(i, j) -= H_copy(i, j);
 
         std::cout << std::endl
-                    << "Q'AQ - H = ";
+                  << "Q'AQ - H = ";
         printMatrix(A);
     }
 
     std::cout << std::endl;
     std::cout << "Hessenberg time = " << elapsedQHQ.count() * 1.0e-9 << " s" << std::endl;
-    std::cout << "Q forming time = "<< elapsedQ.count() * 1.0e-9 << " s" << std::endl;
+    std::cout << "Q forming time = " << elapsedQ.count() * 1.0e-9 << " s" << std::endl;
     std::cout << "QR time = " << elapsedSchur.count() * 1.0e-9 << " s" << std::endl;
     std::cout << "||QHQ* - A||_F/||A||_F  = " << norm_repres_1
               << ",        ||Q'Q - I||_F  = " << norm_orth_1;
@@ -289,15 +331,45 @@ int main(int argc, char **argv)
     std::cout.precision(5);
     std::cout << std::scientific << std::showpos;
 
-    if( use_lapack == -1 or use_lapack == 0 ){
+    if (use_lapack == -1 or use_lapack == 0)
+    {
         printf("run< float >( %d, false )", n);
+        run<float>(n, true);
+        printf("-----------------------\n");
+    }
+
+    if (use_lapack == -1 or use_lapack == 1)
+    {
+        printf("run< float >( %d, true )", n);
+        run<float>(n, true);
+        printf("-----------------------\n");
+    }
+
+    if (use_lapack == -1 or use_lapack == 1)
+    {
+        printf("run< float >( %d, true )", n);
+        run<float>(n, true);
+        printf("-----------------------\n");
+    }
+
+    if (use_lapack == -1 or use_lapack == 1)
+    {
+        printf("run< float >( %d, true )", n);
         run<float>(n, false);
         printf("-----------------------\n");
     }
 
-    if( use_lapack == -1 or use_lapack == 1 ){
+    if (use_lapack == -1 or use_lapack == 1)
+    {
         printf("run< float >( %d, true )", n);
-        run<float>(n, true);
+        run<float>(n, false);
+        printf("-----------------------\n");
+    }
+
+    if (use_lapack == -1 or use_lapack == 1)
+    {
+        printf("run< float >( %d, true )", n);
+        run<float>(n, false);
         printf("-----------------------\n");
     }
 

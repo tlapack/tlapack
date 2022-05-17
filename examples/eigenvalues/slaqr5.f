@@ -375,6 +375,8 @@
 *     ==== KDU = width of slab ====
 *
       KDU = 4*NBMPS
+
+      ! write(*,*) "starting new bulge sweep"
 *
 *     ==== Create and chase chains of NBMPS bulges ====
 *
