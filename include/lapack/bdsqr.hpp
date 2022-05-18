@@ -83,7 +83,6 @@ namespace tlapack {
  *   ldC >= n if ncC > 0.
  * 
  * @return 0 if success.
- * @return -i if the ith argument is invalid.
  * @return 1
  *   if ncVT = nrU = ncC = 0, then 1 element of e has not converged to
  *   zero,

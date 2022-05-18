@@ -26,7 +26,6 @@ namespace tlapack
     *  This is used to introduce shifts in the QR algorithm
     *
     * @return  0 if success
-    * @return -i if the ith argument is invalid
     *
     * @param[in] H 2x2 or 3x3 matrix.
     *      The matrix H as in the formula above.
@@ -103,7 +102,6 @@ namespace tlapack
     *  This is used to introduce shifts in the QR algorithm
     *
     * @return  0 if success
-    * @return -i if the ith argument is invalid
     *
     * @param[in] H 2x2 or 3x3 matrix.
     *      The matrix H as in the formula above.

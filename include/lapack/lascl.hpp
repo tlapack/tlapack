@@ -44,8 +44,7 @@ namespace tlapack {
  * @param[in] a The numerator of the scalar a/b.
  * @param[in,out] A Matrix to be scaled by a/b.
  * 
- * @return  0 if success.
- * @return -i if the ith argument is invalid.
+ * @return  0 if success..
  * 
  * @ingroup auxiliary
  */

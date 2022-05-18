@@ -40,7 +40,6 @@ namespace tlapack
      *
      *
      * @return  0 if success
-     * @return -i if the ith argument is invalid
      * @return  i if the QR algorithm failed to compute all the eigenvalues
      *            in a total of 30 iterations per eigenvalue. elements
      *            i:ihi of w contain those eigenvalues which have been

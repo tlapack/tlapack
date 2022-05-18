@@ -36,7 +36,6 @@ namespace tlapack {
  * in the ith column of A, and tau in tau[i].
  * 
  * @return  0 if success
- * @return -i if the ith argument is invalid
  * 
  * @param[in] ilo integer
  * @param[in] ihi integer

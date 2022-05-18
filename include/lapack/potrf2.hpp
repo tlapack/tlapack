@@ -58,12 +58,7 @@ namespace tlapack {
  *      - On successful exit, the factor U or L from the Cholesky
  *      factorization $A = U^H U$ or $A = L L^H.$
  *
- * @param[in] ec Exception handling configuration at runtime.
- *      Default options are defined in ErrorCheck.
- *      This routine uses:
- *          ec.nan;
- *          ec.inf;
- *          ec.root
+ * @param[in] ec Exception handling configuration at runtime.   
  *
  * @return = 0: successful exit
  * @return > 0: if return value = i, the leading minor of order i is not
@@ -83,7 +78,6 @@ int potrf2( uplo_t uplo, matrix_t& A, const ErrorCheck& ec = {} )
     const real_t one( 1.0 );
     const real_t rzero( 0.0 );
     const idx_t n = nrows(A);
-    const ErrorCheck ec_leaf = ec.leaf();
 
     // check arguments
     tlapack_check_false(    uplo != Uplo::Lower &&
@@ -103,7 +97,7 @@ int potrf2( uplo_t uplo, matrix_t& A, const ErrorCheck& ec = {} )
             return 0;
         }
         else {
-            tlapack_error_if( ec.root, 1,
+            tlapack_error_internal( ec, 1,
                 "The leading minor of order 1 is not positive definite,"
                 " and the factorization could not be completed." );
             return 1;
@@ -119,9 +113,9 @@ int potrf2( uplo_t uplo, matrix_t& A, const ErrorCheck& ec = {} )
         auto A22 = slice( A, pair{n1,n}, pair{n1,n} );
         
         // Factor A11
-        int info = potrf2( uplo, A11, ec_leaf );
+        int info = potrf2( uplo, A11, noErrorCheck );
         if( info != 0 ) {
-            tlapack_error_if( ec.root, info,
+            tlapack_error_internal( ec, info,
                 "The leading minor of the reported order is not positive definite,"
                 " and the factorization could not be completed." );
             return info;
@@ -153,11 +147,11 @@ int potrf2( uplo_t uplo, matrix_t& A, const ErrorCheck& ec = {} )
         }
         
         // Factor A22
-        info = potrf2( uplo, A22, ec_leaf );
+        info = potrf2( uplo, A22, noErrorCheck );
         if( info == 0 )
             return 0;
         else {
-            tlapack_error_if( ec.root, info + n1,
+            tlapack_error_internal( ec, info + n1,
                 "The leading minor of the reported order is not positive definite,"
                 " and the factorization could not be completed." );
             return info + n1;

@@ -39,7 +39,7 @@ namespace tlapack {
  * 
  * @param work Vector of at least size n-1.
  * 
- * @return int 
+ * @return 0 if success 
  * 
  * @ingroup geqrf
  */

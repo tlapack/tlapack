@@ -136,8 +136,8 @@ namespace tlapack
             // Swap 1-by-1 block with 2-by-2 block
             //
 
-            std::unique_ptr<T[]> _B(new T[6]);
-            auto B = internal::colmajor_matrix<T>(&_B[0], 3, 2);
+            std::unique_ptr<T[]> B_(new T[6]);
+            auto B = internal::colmajor_matrix<T>(&B_[0], 3, 2);
             B(0, 0) = A(j0, j1);
             B(1, 0) = A(j1, j1) - A(j0, j0);
             B(2, 0) = A(j2, j1);
@@ -210,8 +210,8 @@ namespace tlapack
             // Swap 2-by-2 block with 1-by-1 block
             //
 
-            std::unique_ptr<T[]> _B(new T[6]);
-            auto B = internal::colmajor_matrix<T>(&_B[0], 3, 2);
+            std::unique_ptr<T[]> B_(new T[6]);
+            auto B = internal::colmajor_matrix<T>(&B_[0], 3, 2);
             B(0, 0) = A(j1, j2);
             B(1, 0) = A(j1, j1) - A(j2, j2);
             B(2, 0) = A(j1, j0);

@@ -13,14 +13,17 @@
 #include <cassert>
 
 #ifndef TLAPACK_DEFAULT_INFCHECK
-    #define TLAPACK_DEFAULT_INFCHECK 0
+    #define TLAPACK_DEFAULT_INFCHECK true
 #endif
 
 #ifndef TLAPACK_DEFAULT_NANCHECK
-    #define TLAPACK_DEFAULT_NANCHECK 0
+    #define TLAPACK_DEFAULT_NANCHECK true
 #endif
 
 namespace tlapack {
+
+    using check_error = std::domain_error;
+    using internal_error = std::runtime_error;
 
     namespace internal {
         inline
@@ -34,22 +37,12 @@ namespace tlapack {
         
         bool inf  = TLAPACK_DEFAULT_INFCHECK; ///< Default behavior of inf check in the routines of <T>LAPACK.
         bool nan  = TLAPACK_DEFAULT_NANCHECK; ///< Default behavior of nan check in the routines of <T>LAPACK.
-        bool root = true; ///< Used to enable / disable some checks on recursive calls.
-        
-        // /** Search for infs and nans in the input and ouput of internal calls.
-        //  * 
-        //  * - 0 : No internal check.
-        //  * - k : Internal check on k levels in the call tree.
-        //  */
-        // std::size_t infnanInternalCheck = std::numeric_limits<std::size_t>::max();
+        bool internal = true; ///< Used to enable / disable internal checks.
 
-        inline ErrorCheck leaf() const {
-            ErrorCheck ec = *this;
-            ec.root = false;
-            return ec;
-        }
     };
 
+    /// It has all errors turned off
+    constexpr ErrorCheck noErrorCheck = { false, false, false };
 }
 
 // -----------------------------------------------------------------------------
@@ -57,16 +50,24 @@ namespace tlapack {
 
 #if defined(TLAPACK_CHECK_INPUT) && !defined(TLAPACK_NDEBUG)
 
-    /// ex: lapack_check( 1 < 2, -6 );
+    /**
+     * @brief Throw an error if cond is false.
+     * 
+     * ex: lapack_check( 1 > 2, -6 ); throws an error.
+     */
     #define tlapack_check( cond ) do { \
         if( !static_cast<bool>(cond) ) \
-            throw std::domain_error( #cond ); \
+            throw tlapack::check_error( #cond ); \
     } while(false)
 
-    /// ex: tlapack_check_false( 2 < 1, -6 );
+    /**
+     * @brief Throw an error if cond is true.
+     * 
+     * ex: lapack_check( 1 < 2, -6 ); throws an error.
+     */
     #define tlapack_check_false( cond, ... ) do { \
         if( static_cast<bool>(cond) ) \
-            throw std::domain_error( #cond ); \
+            throw tlapack::check_error( #cond ); \
     } while(false)
 
 #else // !defined(TLAPACK_CHECK_INPUT) || defined(TLAPACK_NDEBUG)
@@ -92,20 +93,8 @@ namespace tlapack {
      * @param[in] detailedInfo String with information about the error.
      */
     #define tlapack_error( info, detailedInfo ) \
-        throw std::runtime_error( \
+        throw tlapack::internal_error( \
             tlapack::internal::error_msg(info, detailedInfo) )
-
-    /**
-     * @brief Error handler with conditional
-     * 
-     * @param[in] check If true, throw an exception.
-     * @param[in] info Code of the error.
-     * @param[in] detailedInfo String with information about the error.
-     */
-    #define tlapack_error_if( check, info, detailedInfo ) do { \
-        if( static_cast<bool>(check) ) \
-            tlapack_error( info, detailedInfo ); \
-    } while(false)
 
     /**
      * @brief Warning handler
@@ -118,10 +107,28 @@ namespace tlapack {
             << tlapack::internal::error_msg(info, detailedInfo) \
             << std::endl;
 
+    /**
+     * @brief Error handler with conditional for internal checks
+     * 
+     * @param[in] ec Exception handling configuration at runtime.
+     *      Default options are defined in ErrorCheck.
+     * @param[in] info Code of the error.
+     * @param[in] detailedInfo String with information about the error.
+     */
+    #define tlapack_error_internal( ec, info, detailedInfo ) do { \
+        if( static_cast<bool>(ec.internal) ) \
+            tlapack_error( info, detailedInfo ); \
+    } while(false)
+
 #else
-    #define tlapack_error( check, info, detailedInfo ) \
+
+    // <T>LAPACK does not throw errors or display warnings
+
+    #define tlapack_error( info, detailedInfo ) \
         ((void)0)
-    #define tlapack_warning( check, info, detailedInfo ) \
+    #define tlapack_warning( info, detailedInfo ) \
+        ((void)0)
+    #define tlapack_error_internal( ec, info, detailedInfo ) \
         ((void)0)
 #endif
 
@@ -129,19 +136,24 @@ namespace tlapack {
 // Macros to handle Infs warnings
 
 #if defined(TLAPACK_ENABLE_INFCHECK) && !defined(TLAPACK_NDEBUG)
-    #define tlapack_warn_infs_in_matrix( check, accessType, A, info, detailedInfo ) do { \
-        if( static_cast<bool>(check) && hasinf(accessType, A) ) \
+
+    #define tlapack_warn_infs_in_matrix( ec, accessType, A, info, detailedInfo ) do { \
+        if( static_cast<bool>(ec.inf) && hasinf(accessType, A) ) \
             tlapack_warning( info, detailedInfo ); \
     } while(false)
 
-    #define tlapack_warn_infs_in_vector( check, x, info, detailedInfo ) do { \
-        if( static_cast<bool>(check) && hasinf(x) ) \
+    #define tlapack_warn_infs_in_vector( ec, x, info, detailedInfo ) do { \
+        if( static_cast<bool>(ec.inf) && hasinf(x) ) \
             tlapack_warning( info, detailedInfo ); \
     } while(false)
+
 #else // !defined(TLAPACK_ENABLE_INFCHECK) || defined(TLAPACK_NDEBUG)
-    #define tlapack_warn_infs_in_matrix( check, accessType, A, info, detailedInfo ) \
+
+    // <T>LAPACK does not check for infs
+
+    #define tlapack_warn_infs_in_matrix( ec, accessType, A, info, detailedInfo ) \
         ((void)0)
-    #define tlapack_warn_infs_in_vector( check, x, info, detailedInfo ) \
+    #define tlapack_warn_infs_in_vector( ec, x, info, detailedInfo ) \
         ((void)0)
 #endif
 
@@ -149,19 +161,24 @@ namespace tlapack {
 // Macros to handle NaNs warnings
 
 #if defined(TLAPACK_ENABLE_NANCHECK) && !defined(TLAPACK_NDEBUG)
-    #define tlapack_warn_nans_in_matrix( check, accessType, A, info, detailedInfo ) do { \
-        if( static_cast<bool>(check) && hasnan(accessType, A) ) \
+
+    #define tlapack_warn_nans_in_matrix( ec, accessType, A, info, detailedInfo ) do { \
+        if( static_cast<bool>(ec.nan) && hasnan(accessType, A) ) \
             tlapack_warning( info, detailedInfo ); \
     } while(false)
 
-    #define tlapack_warn_nans_in_vector( check, x, info, detailedInfo ) do { \
-        if( static_cast<bool>(check) && hasnan(x) ) \
+    #define tlapack_warn_nans_in_vector( ec, x, info, detailedInfo ) do { \
+        if( static_cast<bool>(ec.nan) && hasnan(x) ) \
             tlapack_warning( info, detailedInfo ); \
     } while(false)
+    
 #else // !defined(TLAPACK_ENABLE_NANCHECK) || defined(TLAPACK_NDEBUG)
-    #define tlapack_warn_nans_in_matrix( check, accessType, A, info, detailedInfo ) \
+
+    // <T>LAPACK does not check for nans
+
+    #define tlapack_warn_nans_in_matrix( ec, accessType, A, info, detailedInfo ) \
         ((void)0)
-    #define tlapack_warn_nans_in_vector( check, x, info, detailedInfo ) \
+    #define tlapack_warn_nans_in_vector( ec, x, info, detailedInfo ) \
         ((void)0)
 #endif
 
