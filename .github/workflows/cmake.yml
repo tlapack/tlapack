@@ -1,15 +1,6 @@
 name: CMake
 
 on:
-  push:
-    paths-exclude:
-    - '.github/**'
-    - 'docs/**'
-    - '**.md'
-    - 'LICENSE'
-    - 'version.txt'
-    - '.gitattributes'
-    - '.gitignore'
   pull_request:
     paths-exclude:
     - '.github/**'
