@@ -158,11 +158,11 @@ namespace tlapack
         const idx_t nibble = opts.nibble;
 
         // check arguments
-        lapack_error_if(n != nrows(A), -5);
-        lapack_error_if((idx_t)size(w) != n, -6);
+        tlapack_check_false(n != nrows(A), -5);
+        tlapack_check_false((idx_t)size(w) != n, -6);
         if (want_z)
         {
-            lapack_error_if((n != ncols(Z)) or (n != nrows(Z)), -7);
+            tlapack_check_false((n != ncols(Z)) or (n != nrows(Z)), -7);
         }
 
         // quick return
