@@ -20,7 +20,12 @@ namespace tlapack {
  *
  * @ingroup swap
  */
-template< class vectorX_t, class vectorY_t >
+template< class vectorX_t, class vectorY_t,
+    disable_if_allow_optblas_t<
+        pair< vectorX_t, type_t< vectorX_t > >,
+        pair< vectorY_t, type_t< vectorX_t > >
+    > = 0
+>
 void swap( vectorX_t& x, vectorY_t& y )
 {
     using idx_t = size_type< vectorY_t >;
@@ -29,7 +34,7 @@ void swap( vectorX_t& x, vectorY_t& y )
     const idx_t n = size(x);
 
     // check arguments
-    tblas_error_if( size(y) != n );
+    tlapack_check_false( size(y) != n );
 
     for (idx_t i = 0; i < n; ++i) {
         const auto aux = x[i];

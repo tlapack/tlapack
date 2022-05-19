@@ -9,7 +9,7 @@ cmake_minimum_required(VERSION 3.1)
 project( potrf CXX )
 
 # Add the CMake directory for custom CMake modules
-set(CMAKE_MODULE_PATH "cmake" ${CMAKE_MODULE_PATH})
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake)
 
 if(LAPACK_DIR)
     find_package(LAPACK HINTS ${LAPACK_DIR})

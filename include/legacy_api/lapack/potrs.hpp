@@ -29,14 +29,14 @@ inline int potrs(
     using internal::colmajor_matrix;
 
     // Check arguments
-    lapack_error_if(    uplo != Uplo::Lower &&
+    tlapack_check_false(    uplo != Uplo::Lower &&
                         uplo != Uplo::Upper, -1 );
 
     // Matrix views
-    const auto _A = colmajor_matrix<T>( (T*) A, n, n, lda );
-          auto _B = colmajor_matrix<T>( B, n, nrhs, ldb );
+    const auto A_ = colmajor_matrix<T>( (T*) A, n, n, lda );
+          auto B_ = colmajor_matrix<T>( B, n, nrhs, ldb );
 
-    return potrs( uplo, _A, _B );
+    return potrs( uplo, A_, B_ );
 }
 
 } // lapack

@@ -21,7 +21,12 @@ namespace tlapack {
  *
  * @ingroup axpy
  */
-template< class vectorX_t, class vectorY_t, class alpha_t >
+template< class vectorX_t, class vectorY_t, class alpha_t,
+    disable_if_allow_optblas_t<
+        pair< vectorX_t, alpha_t >,
+        pair< vectorY_t, alpha_t >
+    > = 0
+>
 void axpy(
     const alpha_t& alpha,
     const vectorX_t& x, vectorY_t& y )
@@ -32,7 +37,7 @@ void axpy(
     const idx_t n = size(x);
 
     // check arguments
-    tblas_error_if( size(y) < n );
+    tlapack_check_false( size(y) < n );
 
     for (idx_t i = 0; i < n; ++i)
         y[i] += alpha * x[i];

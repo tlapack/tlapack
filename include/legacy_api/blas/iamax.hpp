@@ -33,19 +33,21 @@ namespace tlapack {
  * 4. the Index of the infinity-norm of $x$, $|| x ||_{inf}$,
  *     $\arg\max_{i=0}^{n-1} \left(|Re(x_i)| + |Im(x_i)|\right)$.
  * 
- * @see iamax( check_t c, const vector_t& x )
+ * @see iamax_ec( const vector_t& x )
  *
  * @ingroup iamax
  */
 template< typename T >
-inline idx_t
-iamax(
-    idx_t n, T const *x, int_t incx )
+idx_t iamax( idx_t n, T const *x, int_t incx )
 {
-    tblas_error_if( incx <= 0 );
+    tlapack_check_false( incx <= 0 );
+
+    // quick return
+    if( n <= 0 ) return 0;
+
     tlapack_expr_with_vector_positiveInc(
         _x, T, n, x, incx,
-        return iamax( _x )
+        return iamax_ec( _x )
     );
 }
 

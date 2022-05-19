@@ -24,15 +24,15 @@ void lacpy(
     using internal::colmajor_matrix;
 
     // check arguments
-    tblas_error_if(  uplo != Uplo::Lower &&
+    tlapack_check_false(  uplo != Uplo::Lower &&
                     uplo != Uplo::Upper &&
                     uplo != Uplo::General );
     
     // Matrix views
-    const auto _A = colmajor_matrix<TA>( (TA*)A, m, n, lda );
-    auto _B = colmajor_matrix<TB>( B, m, n, ldb );
+    const auto A_ = colmajor_matrix<TA>( (TA*)A, m, n, lda );
+    auto B_ = colmajor_matrix<TB>( B, m, n, ldb );
 
-    lacpy( uplo, _A, _B );
+    lacpy( uplo, A_, B_ );
 }
 
 /** Copies a real matrix from A to B where A is either a full, upper triangular or lower triangular matrix.

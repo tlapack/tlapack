@@ -60,17 +60,17 @@ inline int unm2r(
     using internal::vector;
 
     // check arguments
-    lapack_error_if( side != Side::Left &&
+    tlapack_check_false( side != Side::Left &&
                      side != Side::Right, -1 );
-    lapack_error_if( trans != Op::NoTrans &&
+    tlapack_check_false( trans != Op::NoTrans &&
                      trans != Op::Trans &&
                      trans != Op::ConjTrans, -2 );
-    lapack_error_if( m < 0, -3 );
-    lapack_error_if( n < 0, -4 );
+    tlapack_check_false( m < 0, -3 );
+    tlapack_check_false( n < 0, -4 );
     const idx_t q = (side == Side::Left) ? m : n;
-    lapack_error_if( k < 0 || k > q, -5 );
-    lapack_error_if( lda < q, -7 );
-    lapack_error_if( ldc < m, -10 );
+    tlapack_check_false( k < 0 || k > q, -5 );
+    tlapack_check_false( lda < q, -7 );
+    tlapack_check_false( ldc < m, -10 );
 
     // quick return
     if ((m == 0) || (n == 0) || (k == 0))
@@ -79,12 +79,12 @@ inline int unm2r(
     scalar_t* work = new scalar_t[ (q > 0) ? q : 0 ];
 
     // Matrix views
-    const auto _A = colmajor_matrix<TA>( (TA*)A, q, k, lda );
+    const auto A_ = colmajor_matrix<TA>( (TA*)A, q, k, lda );
     const auto _tau = vector( (TA*)tau, k );
-    auto _C = colmajor_matrix<TC>( C, m, n, ldc );
+    auto C_ = colmajor_matrix<TC>( C, m, n, ldc );
     auto _work = vector( work, q );
 
-    int info = unm2r( side, trans, A, _tau, _C, _work );
+    int info = unm2r( side, trans, A, _tau, C_, _work );
 
     delete[] work;
     return info;

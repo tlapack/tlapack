@@ -17,6 +17,13 @@
 
 namespace tlapack {
 
+/// Default options for potrf
+template< typename idx_t >
+struct potrf_opts_t
+{
+    idx_t nb = 32; ///< Block size
+};
+
 /** Computes the Cholesky factorization of a Hermitian
  * positive definite matrix A using a blocked algorithm.
  *
@@ -29,21 +36,15 @@ namespace tlapack {
  *      Access type: Upper or Lower.
  *      Either Uplo or any class that implements `operator Uplo()`.
  * 
- * @tparam opts_t
- * \code{.cpp}
- *      struct opts_t {
- *          size_type< matrix_t > nb; // Block size
- *          // ...
- *      };
- * \endcode
- *      If opts_t::nb does not exist, nb assumes a default value.
+ * @tparam opts_t Struct with the members:
+ *      opts_t::nb.
  *
  * @param[in] uplo
  *      - Uplo::Upper: Upper triangle of A is referenced;
  *      - Uplo::Lower: Lower triangle of A is referenced.
  *
  * @param[in,out] A
- *      On entry, the Hermitian matrix A.
+ *      On entry, the Hermitian matrix A of size n-by-n.
  *      
  *      - If uplo = Uplo::Upper, the strictly lower
  *      triangular part of A is not referenced.
@@ -54,18 +55,19 @@ namespace tlapack {
  *      - On successful exit, the factor U or L from the Cholesky
  *      factorization $A = U^H U$ or $A = L L^H.$
  *
- * @param[in] opts Options.
- *      - opts.nb Block size.
- *      If opts.nb does not exist or opts.nb <= 0, nb assumes a default value.
+ * @param[in] opts Options. Default options are defined in @see potrf_opts_t.
  *
- * @return = 0: successful exit.
- * @return > 0: if return value = i, the leading minor of order i is not
+ * @param[in] ec Exception handling configuration at runtime.
+ *      Default options are defined in ErrorCheck.
+ *
+ * @return 0: successful exit.
+ * @return i, 0 < i <= n, if the leading minor of order i is not
  *      positive definite, and the factorization could not be completed.
  *
  * @ingroup posv_computational
  */
 template< class uplo_t, class matrix_t, class opts_t >
-int potrf( uplo_t uplo, matrix_t& A, opts_t&& opts )
+int potrf( uplo_t uplo, matrix_t& A, opts_t&& opts, const ErrorCheck& ec = {} )
 {
     using T      = type_t< matrix_t >;
     using real_t = real_type< T >;
@@ -77,22 +79,19 @@ int potrf( uplo_t uplo, matrix_t& A, opts_t&& opts )
     // Constants
     const real_t one( 1.0 );
     const idx_t n  = nrows(A);
-
-    // Options
-    const idx_t nb = get_nb(opts);
+    const idx_t nb = opts.nb;
 
     // check arguments
-    lapack_error_if(    uplo != Uplo::Lower &&
-                        uplo != Uplo::Upper, -1 );
-    lapack_error_if(    access_denied( uplo, write_policy(A) ), -1 );
-    lapack_error_if(    nrows(A) != ncols(A), -2 );
+    tlapack_check( uplo == Uplo::Lower || uplo == Uplo::Upper );
+    tlapack_check( access_granted( uplo, write_policy(A) ) );
+    tlapack_check( nrows(A) == ncols(A) );
 
     // Quick return
     if (n <= 0)
         return 0;
 
     // Unblocked code
-    else if ( nb <= 1 && nb >= n)
+    else if ( nb <= 1 || nb >= n )
         return potrf2( uplo, A );
     
     // Blocked code
@@ -108,9 +107,13 @@ int potrf( uplo_t uplo, matrix_t& A, opts_t&& opts )
 
                 herk( uplo, conjTranspose, -one, A1J, one, AJJ );
                 
-                int info = potrf2( uplo, AJJ );
-                if( info != 0 )
+                int info = potrf2( uplo, AJJ, noErrorCheck );
+                if( info != 0 ) {
+                    tlapack_error( info + j,
+                        "The leading minor of the reported order is not positive definite,"
+                        " and the factorization could not be completed." );
                     return info + j;
+                }
 
                 if( j+jb < n ){
 
@@ -135,9 +138,13 @@ int potrf( uplo_t uplo, matrix_t& A, opts_t&& opts )
 
                 herk( uplo, noTranspose, -one, AJ1, one, AJJ );
                 
-                int info = potrf2( uplo, AJJ );
-                if( info != 0 )
+                int info = potrf2( uplo, AJJ, noErrorCheck );
+                if( info != 0 ) {
+                    tlapack_error( info + j,
+                        "The leading minor of the reported order is not positive definite,"
+                        " and the factorization could not be completed." );
                     return info + j;
+                }
 
                 if( j+jb < n ){
 
@@ -151,8 +158,30 @@ int potrf( uplo_t uplo, matrix_t& A, opts_t&& opts )
                 }
             }
         }
+
+        // Report infs and nans on the output
+        tlapack_warn_nans_in_matrix( ec, uplo, A, n+1,
+            "The factorization has some nans." );
+        tlapack_warn_infs_in_matrix( ec, uplo, A, n+1,
+            "The factorization has some infs." );
+        
         return 0;
     }
+}
+
+/** Computes the Cholesky factorization of a Hermitian
+ * positive definite matrix A using a blocked algorithm.
+ * 
+ * Version with default options defined in @see potrf_opts_t.
+ *
+ * @see potrf( uplo_t uplo, matrix_t& A, opts_t&& opts ) 
+ */
+template< class uplo_t, class matrix_t >
+inline
+int potrf( uplo_t uplo, matrix_t& A, const ErrorCheck& ec = {} )
+{    
+    using idx_t = size_type< matrix_t >;
+    return potrf( uplo, A, potrf_opts_t<idx_t>{}, ec );
 }
 
 } // lapack

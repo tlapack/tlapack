@@ -27,16 +27,13 @@ inline int potrf( uplo_t uplo, idx_t n, T* A, idx_t lda )
     using internal::colmajor_matrix;
 
     // check arguments
-    lapack_error_if(    uplo != Uplo::Lower &&
+    tlapack_check_false(    uplo != Uplo::Lower &&
                         uplo != Uplo::Upper, -1 );
 
     // Matrix views
-    auto _A = colmajor_matrix<T>( A, n, n, lda );
+    auto A_ = colmajor_matrix( A, n, n, lda );
 
-    // Options
-    struct { idx_t nb = 32; } opts;
-
-    return potrf( uplo, _A, opts );
+    return potrf( uplo, A_ );
 }
 
 } // lapack

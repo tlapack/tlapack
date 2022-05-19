@@ -20,7 +20,7 @@ if( EXISTS "${blaspp_TEST_DIR}/test.cc" )
     ${blaspp_TEST_DIR}/test_copy.cc
     ${blaspp_TEST_DIR}/test_dot.cc
     ${blaspp_TEST_DIR}/test_dotu.cc
-    ${blaspp_TEST_DIR}/test_error.cc
+    # ${blaspp_TEST_DIR}/test_error.cc
     ${blaspp_TEST_DIR}/test_gemm.cc
     ${blaspp_TEST_DIR}/test_gemv.cc
     ${blaspp_TEST_DIR}/test_ger.cc

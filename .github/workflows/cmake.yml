@@ -324,6 +324,7 @@ jobs:
         -D BUILD_EXAMPLES=OFF
         -D BUILD_TESTING=OFF
         -D USE_BLASPP_WRAPPERS=ON
+        -D TLAPACK_CHECK_INPUT=OFF
 
     - name: Build and Install
       # Build your program with the given configuration

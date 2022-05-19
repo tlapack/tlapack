@@ -13,7 +13,6 @@
 
 #include <complex>
 #include <cmath>
-#include <assert.h>
 
 #include <iostream>
 #include <iomanip>
@@ -31,7 +30,6 @@ namespace tlapack
      *
      *
      * @return  0 if success
-     * @return -i if the ith argument is invalid
      * @return  1 two adjacent blocks were too close to swap (the problem
                   is very ill-conditioned); T may have been partially
                   reordered, and ILST points to the first row of the

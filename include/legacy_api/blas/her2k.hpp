@@ -103,30 +103,30 @@ void her2k(
     using internal::colmajor_matrix;
 
     // check arguments
-    tblas_error_if( layout != Layout::ColMajor &&
+    tlapack_check_false( layout != Layout::ColMajor &&
                    layout != Layout::RowMajor );
-    tblas_error_if( uplo != Uplo::Lower &&
+    tlapack_check_false( uplo != Uplo::Lower &&
                    uplo != Uplo::Upper &&
                    uplo != Uplo::General );
-    tblas_error_if( trans != Op::NoTrans &&
+    tlapack_check_false( trans != Op::NoTrans &&
                    trans != Op::Trans &&
                    trans != Op::ConjTrans );
-    tblas_error_if( is_complex<TA>::value && trans == Op::Trans );
-    tblas_error_if( n < 0 );
-    tblas_error_if( k < 0 );
-    tblas_error_if( lda < (
+    tlapack_check_false( is_complex<TA>::value && trans == Op::Trans );
+    tlapack_check_false( n < 0 );
+    tlapack_check_false( k < 0 );
+    tlapack_check_false( lda < (
         (layout == Layout::RowMajor)
             ? ((trans == Op::NoTrans) ? k : n)
             : ((trans == Op::NoTrans) ? n : k)
         )
     );
-    tblas_error_if( ldb < (
+    tlapack_check_false( ldb < (
         (layout == Layout::RowMajor)
             ? ((trans == Op::NoTrans) ? k : n)
             : ((trans == Op::NoTrans) ? n : k)
         )
     );
-    tblas_error_if( ldc < n );
+    tlapack_check_false( ldc < n );
 
     // quick return
     if (n == 0)
@@ -148,15 +148,15 @@ void her2k(
     }
 
     // Matrix views
-    const auto _A = (trans == Op::NoTrans)
+    const auto A_ = (trans == Op::NoTrans)
                   ? colmajor_matrix<TA>( (TA*)A, n, k, lda )
                   : colmajor_matrix<TA>( (TA*)A, k, n, lda );
-    const auto _B = (trans == Op::NoTrans)
+    const auto B_ = (trans == Op::NoTrans)
                   ? colmajor_matrix<TB>( (TB*)B, n, k, ldb )
                   : colmajor_matrix<TB>( (TB*)B, k, n, ldb );
-    auto _C = colmajor_matrix<TC>( C, n, n, ldc );
+    auto C_ = colmajor_matrix<TC>( C, n, n, ldc );
 
-    her2k( uplo, trans, alpha, _A, _B, beta, _C );
+    her2k( uplo, trans, alpha, A_, B_, beta, C_ );
 }
 
 }  // namespace tlapack

@@ -40,7 +40,12 @@ template< class matrixA_t, class vectorX_t, class alpha_t,
     enable_if_t<(
     /* Requires: */
         ! is_complex<alpha_t>::value
-    ), int > = 0
+    ), int > = 0,
+    disable_if_allow_optblas_t<
+        pair< alpha_t, real_type<type_t<matrixA_t>> >,
+        pair< matrixA_t, type_t<matrixA_t> >,
+        pair< vectorX_t, type_t<matrixA_t> >
+    > = 0
 >
 void her(
     Uplo uplo,
@@ -55,12 +60,12 @@ void her(
     const idx_t n = nrows(A);
 
     // check arguments
-    tblas_error_if( uplo != Uplo::Lower &&
+    tlapack_check_false( uplo != Uplo::Lower &&
                    uplo != Uplo::Upper );
-    tblas_error_if( size(x)  != n );
-    tblas_error_if( ncols(A) != n );
+    tlapack_check_false( size(x)  != n );
+    tlapack_check_false( ncols(A) != n );
 
-    tblas_error_if( access_denied( uplo, write_policy(A) ) );
+    tlapack_check_false( access_denied( uplo, write_policy(A) ) );
 
     if (uplo == Uplo::Upper) {
         for (idx_t j = 0; j < n; ++j) {

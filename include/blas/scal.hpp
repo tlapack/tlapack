@@ -20,7 +20,11 @@ namespace tlapack {
  *
  * @ingroup scal
  */
-template< class vector_t, class alpha_t >
+template< class vector_t, class alpha_t,
+    disable_if_allow_optblas_t<
+        pair< vector_t, alpha_t >
+    > = 0
+>
 void scal( const alpha_t& alpha, vector_t& x )
 {
     using idx_t = size_type< vector_t >;

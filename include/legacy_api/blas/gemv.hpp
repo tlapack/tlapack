@@ -91,16 +91,16 @@ void gemv(
     using internal::colmajor_matrix;
 
     // check arguments
-    tblas_error_if( layout != Layout::ColMajor &&
+    tlapack_check_false( layout != Layout::ColMajor &&
                    layout != Layout::RowMajor );
-    tblas_error_if( trans != Op::NoTrans &&
+    tlapack_check_false( trans != Op::NoTrans &&
                    trans != Op::Trans &&
                    trans != Op::ConjTrans );
-    tblas_error_if( m < 0 );
-    tblas_error_if( n < 0 );
-    tblas_error_if( lda < ((layout == Layout::ColMajor) ? m : n) );
-    tblas_error_if( incx == 0 );
-    tblas_error_if( incy == 0 );
+    tlapack_check_false( m < 0 );
+    tlapack_check_false( n < 0 );
+    tlapack_check_false( lda < ((layout == Layout::ColMajor) ? m : n) );
+    tlapack_check_false( incx == 0 );
+    tlapack_check_false( incy == 0 );
 
     // quick return
     if (m == 0 || n == 0)
@@ -120,12 +120,12 @@ void gemv(
     idx_t leny = ((trans == Op::NoTrans || trans == Op::Conj) ? m : n);
     
     // Matrix views
-    const auto _A = colmajor_matrix<TA>( (TA*)A, m, n, lda );
+    const auto A_ = colmajor_matrix<TA>( (TA*)A, m, n, lda );
 
     tlapack_expr_with_2vectors(
         _x, TX, lenx, x, incx,
         _y, TY, leny, y, incy,
-        return gemv( trans, alpha, _A, _x, beta, _y )
+        return gemv( trans, alpha, A_, _x, beta, _y )
     );
 }
 

@@ -21,7 +21,12 @@ namespace tlapack {
  *
  * @ingroup dotu
  */
-template< class vectorX_t, class vectorY_t >
+template< class vectorX_t, class vectorY_t,
+    disable_if_allow_optblas_t<
+        pair< vectorX_t, type_t< vectorX_t > >,
+        pair< vectorY_t, type_t< vectorX_t > >
+    > = 0
+>
 auto dotu( const vectorX_t& x, const vectorY_t& y )
 {
     using T = scalar_type<
@@ -34,7 +39,7 @@ auto dotu( const vectorX_t& x, const vectorY_t& y )
     const idx_t n = size(x);
 
     // check arguments
-    tblas_error_if( size(y) != n );
+    tlapack_check_false( size(y) != n );
 
     T result( 0.0 );
     for (idx_t i = 0; i < n; ++i)

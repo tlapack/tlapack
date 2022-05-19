@@ -36,7 +36,6 @@ namespace tlapack {
  * in the ith column of A, and tau in tau[i].
  * 
  * @return  0 if success
- * @return -i if the ith argument is invalid
  * 
  * @param[in] ilo integer
  * @param[in] ihi integer
@@ -67,10 +66,10 @@ int gehd2( size_type< matrix_t > ilo, size_type< matrix_t > ihi, matrix_t& A, ve
     const idx_t n = ncols(A);
 
     // check arguments
-    lapack_error_if( access_denied( dense, write_policy(A) ), -3 );
-    lapack_error_if( ncols(A) != nrows(A), -3 );
-    lapack_error_if( (idx_t) size(tau)  < n-1, -4 );
-    lapack_error_if( (idx_t) size(work) < n, -5 );
+    tlapack_check_false( access_denied( dense, write_policy(A) ), -3 );
+    tlapack_check_false( ncols(A) != nrows(A), -3 );
+    tlapack_check_false( (idx_t) size(tau)  < n-1, -4 );
+    tlapack_check_false( (idx_t) size(work) < n, -5 );
 
     // quick return
     if (n <= 0) return 0;

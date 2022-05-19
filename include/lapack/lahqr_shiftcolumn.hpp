@@ -26,7 +26,6 @@ namespace tlapack
     *  This is used to introduce shifts in the QR algorithm
     *
     * @return  0 if success
-    * @return -i if the ith argument is invalid
     *
     * @param[in] H 2x2 or 3x3 matrix.
     *      The matrix H as in the formula above.
@@ -56,9 +55,9 @@ namespace tlapack
       const real_t zero(0);
 
       // Check arguments
-      lapack_error_if((n != 2 and n != 3), -1);
-      lapack_error_if(n != nrows(H), -1);
-      lapack_error_if((idx_t)size(v) != n, -2);
+      tlapack_check_false((n != 2 and n != 3), -1);
+      tlapack_check_false(n != nrows(H), -1);
+      tlapack_check_false((idx_t)size(v) != n, -2);
 
       if (n == 2)
       {
@@ -103,7 +102,6 @@ namespace tlapack
     *  This is used to introduce shifts in the QR algorithm
     *
     * @return  0 if success
-    * @return -i if the ith argument is invalid
     *
     * @param[in] H 2x2 or 3x3 matrix.
     *      The matrix H as in the formula above.
@@ -133,9 +131,9 @@ namespace tlapack
       const TH zero(0);
 
       // Check arguments
-      lapack_error_if((n != 2 and n != 3), -1);
-      lapack_error_if(n != nrows(H), -1);
-      lapack_error_if((idx_t)size(v) != n, -2);
+      tlapack_check_false((n != 2 and n != 3), -1);
+      tlapack_check_false(n != nrows(H), -1);
+      tlapack_check_false((idx_t)size(v) != n, -2);
 
       if (n == 2)
       {

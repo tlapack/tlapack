@@ -30,7 +30,13 @@ namespace tlapack {
 template<
     class matrixA_t,
     class vectorX_t, class vectorY_t,
-    class alpha_t >
+    class alpha_t,
+    disable_if_allow_optblas_t<
+        pair< matrixA_t, alpha_t >,
+        pair< vectorX_t, alpha_t >,
+        pair< vectorY_t, alpha_t >
+    > = 0
+>
 void ger(
     const alpha_t& alpha,
     const vectorX_t& x, const vectorY_t& y,
@@ -44,9 +50,9 @@ void ger(
     const idx_t n = ncols(A);
 
     // check arguments
-    tblas_error_if( size(x) != m );
-    tblas_error_if( size(y) != n );
-    tblas_error_if( access_denied( dense, write_policy(A) ) );
+    tlapack_check_false( size(x) != m );
+    tlapack_check_false( size(y) != n );
+    tlapack_check_false( access_denied( dense, write_policy(A) ) );
 
     for (idx_t j = 0; j < n; ++j) {
         auto tmp = alpha * conj( y[j] );
