@@ -134,6 +134,7 @@ TEMPLATE_LIST_TEST_CASE("Multishift QR", "[eigenvalues][multishift_qr]", types_t
         {
             return nw;
         };
+        opts.nmin = 15;
 
         int ierr = multishift_qr(true, true, ilo, ihi, H, s, Q, opts);
 

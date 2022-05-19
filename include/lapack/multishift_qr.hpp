@@ -69,6 +69,8 @@ namespace tlapack
             return 384;
         };
 
+        idx_t nmin = 75;
+
         idx_t nibble = 14;
         // Workspace pointer, if no workspace is provided, one will be allocated internally
         T *_work = nullptr;
@@ -144,7 +146,7 @@ namespace tlapack
         // This routine uses the space below the subdiagonal as workspace
         // For small matrices, this is not enough
         // if n < nmin, the matrix will be passed to lahqr
-        const idx_t nmin = 15;
+        const idx_t nmin = opts.nmin;
 
         // Recommended number of shifts
         const idx_t nsr = opts.nshift_recommender(n, nh);
@@ -287,7 +289,7 @@ namespace tlapack
             // reason to expect that many eigenvalues will deflate without it.
             // Here, the QR sweep is skipped if many eigenvalues have just been
             // deflated or if the remaining active block is small.
-            if (ld > 0 and (100 * ld > nwr * nibble or (istop - istart) <= nw_max))
+            if (ld > 0 and (100 * ld > nwr * nibble or (istop - istart) <= std::min(nmin, nw_max)))
             {
                 continue;
             }
@@ -330,6 +332,27 @@ namespace tlapack
                 }
                 --k;
             }
+            
+            // Shuffle shifts into pairs of real shifts
+            // and pairs of complex conjugate shifts
+            // assuming complex conjugate shifts are
+            // already adjacent to one another. (Yes,
+            // they are.)
+            for (idx_t i = istop - 1; i > i_shifts + 1; i = i - 2)
+            {
+                if (imag(w[i]) != -imag(w[i - 1]))
+                {
+                    auto tmp = w[i];
+                    w[i] = w[i - 1];
+                    w[i - 1] = w[i - 2];
+                    w[i - 2] = tmp;
+                }
+            }
+
+            // Since we shuffled the shifts, we will only drop
+            // Real shifts
+            if (ns % 2 == 1)
+                ns = ns - 1;
 
             // If there are only two shifts and both are real
             // then use only one (helps avoid interference)
@@ -347,8 +370,7 @@ namespace tlapack
                 }
             }
 
-            i_shifts = istop - ns;
-            auto shifts = slice(w, pair{i_shifts, istop});
+            auto shifts = slice(w, pair{i_shifts, i_shifts + ns});
 
             multishift_QR_sweep(want_t, want_z, istart, istop, A, shifts, Z, V);
         }
