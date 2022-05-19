@@ -71,14 +71,14 @@ T rand_helper(rand_generator &gen)
 }
 extern "C"
 {
-    void fortran_slaqr0(const bool &wantt, const bool &wantz, const int &n, const int &ilo, const int &ihi, float *H, const int &ldh, float *wr, float *wi, float *Z, const int &ldz, int &info, int &n_aed, int &n_sweep, int &n_shifts);
-    void fortran_sgehrd(const int &n, const int &ilo, const int &ihi, float *H, const int &ldh, float *tau, int &info);
-    void fortran_sorghr(const int &n, const int &ilo, const int &ihi, float *H, const int &ldh, float *tau, int &info);
+    void fortran_slaqr2(const bool &wantt, const bool &wantz, const int &n, const int &ilo, const int &ihi,
+    const int &nw, float *H, const int &ldh, float *Z, const int &ldz, int &ns, int &nd, float *sr, float *si);
+
 }
 
 //------------------------------------------------------------------------------
 template <typename T>
-void run(size_t n, int seed, bool use_fortran)
+void run(size_t n, size_t nw, bool use_fortran)
 {
     srand(1); // Init random seed
 
@@ -86,8 +86,11 @@ void run(size_t n, int seed, bool use_fortran)
     using std::size_t;
     using tlapack::internal::colmajor_matrix;
 
+    // Turn it off if m or n are large
+    bool verbose = false;
+
     rand_generator gen;
-    gen.seed(seed);
+    gen.seed(1302);
 
     // Leading dimensions
     size_t lda = (n > 0) ? n : 1;
@@ -122,96 +125,41 @@ void run(size_t n, int seed, bool use_fortran)
 
     // Generate a random matrix in A
     for (size_t j = 0; j < n; ++j)
-        for (size_t i = 0; i < n; ++i)
+        for (size_t i = 0; i < j + 2; ++i)
             A(i, j) = rand_helper<T>(gen);
-    // for (size_t j = 0; j < n; ++j)
-    //     for (size_t i = j + 2; i < n; ++i)
-    //         A(i, j) = 0.0;
+    for (size_t j = 0; j < n; ++j)
+        for (size_t i = j + 2; i < n; ++i)
+            A(i, j) = 0.0;
 
     // Frobenius norm of A
     auto normA = tlapack::lange(tlapack::frob_norm, A);
 
-    // Print A
-    if (verbose)
-    {
-        std::cout << std::endl
-                  << "A = ";
-        printMatrix(A);
-    }
+    // Copy A to H
+    tlapack::lacpy(tlapack::Uplo::General, A, H);
+    tlapack::laset(tlapack::Uplo::General, (T)0.0, (T)1.0, Q );
 
-    // Copy A to Q
-    tlapack::lacpy(tlapack::Uplo::General, A, Q);
-
-    // 1) Compute A = QHQ* (Stored in the matrix Q)
-
+    size_t ls, ld;
     // Record start time
-    auto startQHQ = std::chrono::high_resolution_clock::now();
-    {
-        int err;
-        // Hessenberg factorization
-        if(use_fortran){
-            T *_tau = tau.data();
-            fortran_sgehrd(n, 1, n, Q.ptr, Q.ldim, _tau, err);
-        }else{
-            err = tlapack::gehrd(0, n, Q, tau);
-        }
-        tblas_error_if(err);
-    }
-    // Record end time
-    auto endQHQ = std::chrono::high_resolution_clock::now();
-
-    // Save the H matrix
-    for (size_t j = 0; j < n; ++j)
-        for (size_t i = 0; i < std::min(n, j + 2); ++i)
-            H(i, j) = Q(i, j);
-
-    // Record start time
-    auto startQ = std::chrono::high_resolution_clock::now();
-    {
-        int err;
-        // Generate Q = H_1 H_2 ... H_n
-        // std::vector<T> work(n);
-        // err = tlapack::unghr(0, n, Q, tau, work);
-        T* _tau = tau.data();
-        fortran_sorghr( n, 1, n, Q.ptr, n, _tau, err );
-        tblas_error_if(err);
-    }
-    // Record end time
-    auto endQ = std::chrono::high_resolution_clock::now();
-
-    // Remove junk from lower half of H
-    for (size_t j = 0; j < n; ++j)
-        for (size_t i = j + 2; i < n; ++i)
-            H(i, j) = 0.0;
-
-    // Record start time
-    int n_aed = 0;
-    int n_sweep = 0;
-    int n_shifts_total = 0;
-    auto startSchur = std::chrono::high_resolution_clock::now();
+    auto startTime = std::chrono::high_resolution_clock::now();
     {
         // Shur factorization
-        int err;
         if (use_fortran)
         {
             std::unique_ptr<T[]> _wr(new T[n]);
             std::unique_ptr<T[]> _wi(new T[n]);
-            fortran_slaqr0( true, true, n, 1, n, H.ptr, n, &_wr[0], &_wi[0], Q.ptr, n, err, n_aed, n_sweep, n_shifts_total );
+            int ls2, ld2;
+            fortran_slaqr2(true, true, n, 1, n, nw, H.ptr, H.ldim, Q.ptr, n, ls2, ld2, &_wr[0], &_wi[0]);
+            ls = ls2;
+            ld = ld2;
         }
         else
         {
-            tlapack::francis_opts_t<TLAPACK_SIZE_T, T> opts;
             std::vector<std::complex<real_t>> w(n);
-            err = tlapack::multishift_qr(true, true, 0, n, H, w, Q, opts);
-            // err = tlapack::lahqr(true, true, 0, n, H, w, Q);
-            n_aed = opts.n_aed;
-            n_sweep = opts.n_sweep;
-            n_shifts_total = opts.n_shifts_total;
+            tlapack::agressive_early_deflation(true, true, (size_t)0, n, nw, H, w, Q, ls, ld);
         }
-        tblas_error_if(err);
     }
     // Record end time
-    auto endSchur = std::chrono::high_resolution_clock::now();
+    auto endTime = std::chrono::high_resolution_clock::now();
 
     // Remove junk from lower half of H
     for (size_t j = 0; j < n; ++j)
@@ -219,20 +167,7 @@ void run(size_t n, int seed, bool use_fortran)
             H(i, j) = 0.0;
 
     // Compute elapsed time in nanoseconds
-    auto elapsedQHQ = std::chrono::duration_cast<std::chrono::nanoseconds>(endQHQ - startQHQ);
-    auto elapsedQ = std::chrono::duration_cast<std::chrono::nanoseconds>(endQ - startQ);
-    auto elapsedSchur = std::chrono::duration_cast<std::chrono::nanoseconds>(endSchur - startSchur);
-
-    // Print Q and H
-    if (verbose)
-    {
-        std::cout << std::endl
-                  << "Q = ";
-        printMatrix(Q);
-        std::cout << std::endl
-                  << "H = ";
-        printMatrix(H);
-    }
+    auto elapsedTime = std::chrono::duration_cast<std::chrono::nanoseconds>(endTime - startTime);
 
     real_t norm_orth_1, norm_repres_1;
 
@@ -265,7 +200,7 @@ void run(size_t n, int seed, bool use_fortran)
         auto work = colmajor_matrix<T>(&_work[0], n, n);
         for (size_t j = 0; j < n; ++j)
             for (size_t i = 0; i < n; ++i)
-                work(i, j) = (T) 0.0;
+                work(i, j) = (T)0.0;
 
         tlapack::gemm(tlapack::Op::NoTrans, tlapack::Op::NoTrans, (T)1.0, Q, H, (T)0.0, work);
         tlapack::gemm(tlapack::Op::NoTrans, tlapack::Op::ConjTrans, (T)1.0, work, Q, (T)0.0, H);
@@ -278,25 +213,22 @@ void run(size_t n, int seed, bool use_fortran)
     }
 
     std::cout << std::endl;
-    std::cout << "Hessenberg time = " << elapsedQHQ.count() * 1.0e-9 << " s" << std::endl;
-    std::cout << "Q forming time = " << elapsedQ.count() * 1.0e-9 << " s" << std::endl;
-    std::cout << "QR time = " << elapsedSchur.count() * 1.0e-9 << " s" << std::endl;
+    std::cout << "AED time = " << elapsedTime.count() * 1.0e-9 << " s" << std::endl;
     std::cout << "||QHQ* - A||_F/||A||_F  = " << norm_repres_1
               << ",        ||Q'Q - I||_F  = " << norm_orth_1 << std::endl;
-    std::cout << "AED calls   " << n_aed << std::endl
-              << "Sweep calls " << n_sweep << std::endl
-              << "Shifts used " << n_shifts_total << std::endl;
+    std::cout << "Number of shifts   " << ls << std::endl
+              << "Deflations " << ld << std::endl;
     std::cout << std::endl;
 }
 
 //------------------------------------------------------------------------------
 int main(int argc, char **argv)
 {
-    int n, use_lapack, seed;
+    int n, nw, use_lapack;
 
     // Default arguments
     n = (argc < 2) ? 100 : atoi(argv[1]);
-    seed =  (argc < 3) ? 1302 : atoi(argv[2]);
+    nw = (argc < 3) ? 20 : atoi(argv[2]);
     use_lapack = (argc < 4) ? -1 : atoi(argv[3]);
 
     std::cout.precision(5);
@@ -305,16 +237,16 @@ int main(int argc, char **argv)
     if (use_lapack == -1 or use_lapack == 0)
     {
         printf("run< float >( %d ) without LAPACK \n", n);
-        run<float>(n, seed, false);
+        run<float>(n, nw, false);
         printf("-----------------------\n");
     }
 
     if (use_lapack == -1 or use_lapack == 1)
     {
         printf("run< float >( %d ) with LAPACK \n", n);
-        run<float>(n, seed, true);
+        run<float>(n, nw, true);
         printf("-----------------------\n");
     }
-    
+
     return 0;
 }

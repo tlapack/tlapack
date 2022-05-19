@@ -4,7 +4,7 @@ LFLAGS=-L/opt/slate/lib -I/opt/slate/include -lstdc++ -lgfortran -lblaspp -L${MK
 
 FINC=fortran_wrappers.o slahqr.o slaqr0.o slaqr1.o slaqr2.o slaqr3.o slaqr4.o slaqr5.o
 
-all: profile_multishift_qr
+all: profile_multishift_qr profile_aed
 
 slahqr.o : slahqr.f
 	gfortran $(FFLAGS) -c -o $@ $<
@@ -33,9 +33,12 @@ fortran_wrappers.o : fortran_wrappers.f90
 profile_multishift_qr : profile_multishift_qr.cpp $(FINC)
 	g++ $(CXXFLAGS) -o $@ $< $(FINC) -I../../include $(LFLAGS)
 
+profile_aed : profile_aed.cpp $(FINC)
+	g++ $(CXXFLAGS) -o $@ $< $(FINC) -I../../include $(LFLAGS)
+
 
 # Some phony commands
 .PHONY: clean
 
 clean:
-	rm -f ./*.mod ./*.o ./profile_multishift_qr
+	rm -f ./*.mod ./*.o ./profile_multishift_qr ./profile_aed

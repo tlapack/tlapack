@@ -522,7 +522,7 @@
 *           ==== Aggressive early deflation ====
 *
             N_AED = N_AED + 1;
-            CALL SLAQR3( WANTT, WANTZ, N, KTOP, KBOT, NW, H, LDH, ILOZ,
+            CALL SLAQR2( WANTT, WANTZ, N, KTOP, KBOT, NW, H, LDH, ILOZ,
      $                   IHIZ, Z, LDZ, LS, LD, WR, WI, H( KV, 1 ), LDH,
      $                   NHO, H( KV, KT ), LDH, NVE, H( KWV, 1 ), LDH,
      $                   WORK, LWORK )

@@ -45,13 +45,13 @@ namespace tlapack
      * @param[in] ihi    integer.
      *      ilo and ihi determine an isolated block in A.
      *
-     * @param[in,out] A  n by n matrix.
-     *       Hessenberg matrix on which AED will be performed
-     *
      * @param[in] nw    integer.
      *      Desired window size to perform agressive early deflation on.
      *      If the matrix is not large enough to provide the scratch space
      *      or if the isolated block is small, a smaller value may be used.
+     *
+     * @param[in,out] A  n by n matrix.
+     *       Hessenberg matrix on which AED will be performed
      *
      * @param[out] s  size n vector.
      *      On exit, the entries s[ihi-nd-ns:ihi-nd] contain the unconverged
