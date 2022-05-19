@@ -45,8 +45,8 @@ void swap(
     TY *y, int_t incy )
 {
     // check arguments
-    tblas_error_if( incx == 0 );
-    tblas_error_if( incy == 0 );
+    tlapack_check_false( incx == 0 );
+    tlapack_check_false( incy == 0 );
 
     // quick return
     if( n <= 0 ) return;

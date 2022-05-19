@@ -34,7 +34,7 @@ void copy( const vectorX_t& x, vectorY_t& y )
     const idx_t n = size(x);
 
     // check arguments
-    tblas_error_if( size(y) < n );
+    tlapack_check_false( size(y) < n );
 
     for (idx_t i = 0; i < n; ++i)
         y[i] = x[i];

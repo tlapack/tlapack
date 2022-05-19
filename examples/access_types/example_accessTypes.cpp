@@ -108,7 +108,7 @@ int main( int argc, char** argv )
         printBandedMatrix(A3);
         std::cout << std::endl;
     }
-    catch( Error& e ) {
+    catch( const tlapack::check_error& e ) {
         std::cout << std::endl;
         std::cout << "Generates access error as predicted" << std::endl;
         std::cerr << e.what() << std::endl;
@@ -119,7 +119,7 @@ int main( int argc, char** argv )
         printBandedMatrix(A3);
         std::cout << std::endl;
     }
-    catch( Error& e ) {
+    catch( const tlapack::check_error& e ) {
         std::cout << std::endl;
         std::cout << "Generates access error as predicted" << std::endl;
         std::cerr << e.what() << std::endl;

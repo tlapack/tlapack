@@ -83,19 +83,19 @@ void her2k(
     const idx_t k = (trans == Op::NoTrans) ? ncols(A) : nrows(A);
 
     // check arguments
-    tblas_error_if( uplo != Uplo::Lower &&
+    tlapack_check_false( uplo != Uplo::Lower &&
                    uplo != Uplo::Upper &&
                    uplo != Uplo::General );
-    tblas_error_if( trans != Op::NoTrans &&
+    tlapack_check_false( trans != Op::NoTrans &&
                    trans != Op::ConjTrans );
-    tblas_error_if( nrows(B) != nrows(A) ||
+    tlapack_check_false( nrows(B) != nrows(A) ||
                    ncols(B) != ncols(A) );
-    tblas_error_if( nrows(C) != ncols(C) );
-    tblas_error_if( nrows(C) != n );
+    tlapack_check_false( nrows(C) != ncols(C) );
+    tlapack_check_false( nrows(C) != n );
 
-    tblas_error_if( access_denied( dense, read_policy(A) ) );
-    tblas_error_if( access_denied( dense, read_policy(B) ) );
-    tblas_error_if( access_denied( uplo, write_policy(C) ) );
+    tlapack_check_false( access_denied( dense, read_policy(A) ) );
+    tlapack_check_false( access_denied( dense, read_policy(B) ) );
+    tlapack_check_false( access_denied( uplo, write_policy(C) ) );
 
     if (trans == Op::NoTrans) {
         if (uplo != Uplo::Lower) {

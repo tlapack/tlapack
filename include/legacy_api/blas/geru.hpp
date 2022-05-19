@@ -70,12 +70,13 @@ void geru(
     using internal::colmajor_matrix;
 
     // check arguments
-    tblas_error_if( layout != Layout::ColMajor );
-    tblas_error_if( m < 0 );
-    tblas_error_if( n < 0 );
-    tblas_error_if( incx == 0 );
-    tblas_error_if( incy == 0 );
-    tblas_error_if( lda < ((layout == Layout::ColMajor) ? m : n) );
+    tlapack_check_false( layout != Layout::ColMajor &&
+                   layout != Layout::RowMajor );
+    tlapack_check_false( m < 0 );
+    tlapack_check_false( n < 0 );
+    tlapack_check_false( incx == 0 );
+    tlapack_check_false( incy == 0 );
+    tlapack_check_false( lda < ((layout == Layout::ColMajor) ? m : n) );
 
     // quick return
     if (m == 0 || n == 0)

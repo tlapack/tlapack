@@ -13,7 +13,6 @@
 
 #include <complex>
 #include <cmath>
-#include <assert.h>
 
 #include <iostream>
 #include <iomanip>
@@ -60,13 +59,13 @@ namespace tlapack
         const T one(1);
         const T ten(10);
 
-        assert(nrows(A) == n);
-        assert(nrows(Q) == n);
-        assert(ncols(Q) == n);
-        assert(0 <= j0);
-        assert(j0 + n1 + n2 <= n);
-        assert(n1 == 1 or n1 == 2);
-        assert(n2 == 1 or n2 == 2);
+        tlapack_check(nrows(A) == n);
+        tlapack_check(nrows(Q) == n);
+        tlapack_check(ncols(Q) == n);
+        tlapack_check(0 <= j0);
+        tlapack_check(j0 + n1 + n2 <= n);
+        tlapack_check(n1 == 1 or n1 == 2);
+        tlapack_check(n2 == 1 or n2 == 2);
 
         const idx_t j1 = j0 + 1;
         const idx_t j2 = j0 + 2;
@@ -279,8 +278,8 @@ namespace tlapack
         }
         if (n1 == 2 and n2 == 2)
         {
-            std::unique_ptr<T[]> D_(new T[4 * 4]);
-            auto D = internal::colmajor_matrix<T>(&D_[0], 4, 4);
+            std::unique_ptr<T[]> _D(new T[4 * 4]);
+            auto D = internal::colmajor_matrix<T>(&_D[0], 4, 4);
 
             auto AD_slice = slice(A, pair{j0, j0 + 4}, pair{j0, j0 + 4});
             lacpy(Uplo::General, AD_slice, D);
@@ -290,8 +289,8 @@ namespace tlapack
             const T small_num = safe_min<T>() / eps;
             T thresh = max(ten * eps * dnorm, small_num);
 
-            std::unique_ptr<T[]> V_(new T[4 * 2]);
-            auto V = internal::colmajor_matrix<T>(&V_[0], 4, 2);
+            std::unique_ptr<T[]> _V(new T[4 * 2]);
+            auto V = internal::colmajor_matrix<T>(&_V[0], 4, 2);
             auto X = slice(V, pair{0, 2}, pair{0, 2});
             auto TL = slice(D, pair{0, 2}, pair{0, 2});
             auto TR = slice(D, pair{2, 4}, pair{2, 4});
@@ -434,7 +433,7 @@ namespace tlapack
             T cs, sn;
             std::complex<T> s1, s2;
             lahqr_schur22(A(j0_2, j0_2), A(j0_2, j1_2), A(j1_2, j0_2), A(j1_2, j1_2), s1, s2, cs, sn); // Apply transformation from the left
-            if (j0_2 + 2 < n)
+            if (j2 < n)
             {
                 auto row1 = slice(A, j0_2, pair{j0_2 + 2, n});
                 auto row2 = slice(A, j1_2, pair{j0_2 + 2, n});
@@ -487,12 +486,12 @@ namespace tlapack
 
         const idx_t n = ncols(A);
 
-        assert(nrows(A) == n);
-        assert(nrows(Q) == n);
-        assert(ncols(Q) == n);
-        assert(0 <= j0 and j0 < n);
-        assert(n1 == 1);
-        assert(n2 == 1);
+        tlapack_check(nrows(A) == n);
+        tlapack_check(nrows(Q) == n);
+        tlapack_check(ncols(Q) == n);
+        tlapack_check(0 <= j0 and j0 < n);
+        tlapack_check(n1 == 1);
+        tlapack_check(n2 == 1);
 
         const idx_t j1 = j0 + 1;
         const idx_t j2 = j0 + 2;

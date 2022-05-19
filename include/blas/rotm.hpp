@@ -79,7 +79,7 @@ void rotm( vectorX_t& x, vectorY_t& y, const real_t h[4] )
     const idx_t n = size(x);
 
     // check arguments
-    tblas_error_if( size(y) != n );
+    tlapack_check_false( size(y) != n );
 
     if ( flag == -1 ) {
         for (idx_t i = 0; i < n; ++i) {

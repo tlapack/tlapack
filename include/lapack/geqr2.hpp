@@ -36,7 +36,6 @@ namespace tlapack {
  * in the ith column of A, and tau in tau[i].
  * 
  * @return  0 if success
- * @return -i if the ith argument is invalid
  * 
  * @param[in,out] A m-by-n matrix.
  *      On exit, the elements on and above the diagonal of the array
@@ -67,9 +66,9 @@ int geqr2( matrix_t& A, vector_t &tau, work_t &work )
     const idx_t k = std::min<idx_t>( m, n-1 );
 
     // check arguments
-    lapack_error_if( access_denied( dense, write_policy(A) ), -1 );
-    lapack_error_if( (idx_t) size(tau)  < std::min<idx_t>( m, n ), -2 );
-    lapack_error_if( (idx_t) size(work) < n-1, -3 );
+    tlapack_check_false( access_denied( dense, write_policy(A) ), -1 );
+    tlapack_check_false( (idx_t) size(tau)  < std::min<idx_t>( m, n ), -2 );
+    tlapack_check_false( (idx_t) size(work) < n-1, -3 );
 
     // quick return
     if (n <= 0) return 0;

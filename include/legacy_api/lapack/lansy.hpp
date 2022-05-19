@@ -46,7 +46,7 @@ real_type<TA> lansy(
     using internal::colmajor_matrix;
 
     // check arguments
-    tblas_error_if(  normType != Norm::Fro &&
+    tlapack_check_false(  normType != Norm::Fro &&
                     normType != Norm::Inf &&
                     normType != Norm::Max &&
                     normType != Norm::One );
