@@ -69,8 +69,14 @@ namespace tlapack
             return 384;
         };
 
+        // On exit of the routine. Stores the number of times AED and sweep were called
+        // And the total number of shifts used.
+        int n_aed = 0;
+        int n_sweep = 0;
+        int n_shifts_total = 0;
+        // Threshold to switch between blocked and unblocked code
         idx_t nmin = 75;
-
+        // Threshold of percent of AED window that must converge to skip a sweep
         idx_t nibble = 14;
         // Workspace pointer, if no workspace is provided, one will be allocated internally
         T *_work = nullptr;
@@ -126,7 +132,7 @@ namespace tlapack
         class matrix_t,
         class vector_t,
         enable_if_t<is_complex<type_t<vector_t>>::value, bool> = true>
-    int multishift_qr(bool want_t, bool want_z, size_type<matrix_t> ilo, size_type<matrix_t> ihi, matrix_t &A, vector_t &w, matrix_t &Z, const francis_opts_t<size_type<matrix_t>, type_t<matrix_t>> &opts = {})
+    int multishift_qr(bool want_t, bool want_z, size_type<matrix_t> ilo, size_type<matrix_t> ihi, matrix_t &A, vector_t &w, matrix_t &Z, francis_opts_t<size_type<matrix_t>, type_t<matrix_t>> &opts)
     {
         using TA = type_t<matrix_t>;
         using real_t = real_type<TA>;
@@ -156,6 +162,10 @@ namespace tlapack
         const idx_t nw_max = (n - 3) / 3;
 
         const idx_t nibble = opts.nibble;
+
+        opts.n_aed = 0;
+        opts.n_sweep = 0;
+        opts.n_shifts_total = 0;
 
         // check arguments
         lapack_error_if(n != nrows(A), -5);
@@ -229,8 +239,8 @@ namespace tlapack
 
             if (ilo + 1 >= istop)
             {
-                if( ilo + 1 == istop )
-                    w[ilo] = A(ilo,ilo);
+                if (ilo + 1 == istop)
+                    w[ilo] = A(ilo, ilo);
                 // All eigenvalues have been found, exit and return 0.
                 break;
             }
@@ -264,7 +274,8 @@ namespace tlapack
                 // Try to vary the deflation window size.
                 nw = std::min(nwupbd, 2 * nw);
             }
-            if( nh <= 4 ){
+            if (nh <= 4)
+            {
                 // n >= nmin, so there is always enough space for a 4x4 window
                 nw = nh;
             }
@@ -273,11 +284,13 @@ namespace tlapack
                 if (nw + 1 >= nh)
                     nw = nh;
                 idx_t kwtop = istop - nw;
-                if (abs1(A(kwtop, kwtop - 1)) > abs1(A(kwtop - 1, kwtop - 2)))
-                    nw = nw + 1;
+                if (kwtop > istart + 2)
+                    if (abs1(A(kwtop, kwtop - 1)) > abs1(A(kwtop - 1, kwtop - 2)))
+                        nw = nw + 1;
             }
 
             idx_t ls, ld;
+            opts.n_aed = opts.n_aed + 1;
             agressive_early_deflation(want_t, want_z, istart, istop, nw, A, w, Z, ls, ld);
 
             istop = istop - ld;
@@ -332,7 +345,7 @@ namespace tlapack
                 }
                 --k;
             }
-            
+
             // Shuffle shifts into pairs of real shifts
             // and pairs of complex conjugate shifts
             // assuming complex conjugate shifts are
@@ -370,14 +383,26 @@ namespace tlapack
                     }
                 }
             }
-            auto shifts = slice(w, pair{i_shifts, i_shifts+ns});
+            auto shifts = slice(w, pair{i_shifts, i_shifts + ns});
 
+            opts.n_sweep = opts.n_sweep + 1;
+            opts.n_shifts_total = opts.n_shifts_total + ns;
             multishift_QR_sweep(want_t, want_z, istart, istop, A, shifts, Z, V);
         }
 
         if (locally_allocated)
-            delete [] _work;
+            delete[] _work;
         return info;
+    }
+
+    template <
+    class matrix_t,
+    class vector_t,
+    enable_if_t<is_complex<type_t<vector_t>>::value, bool> = true>
+    int multishift_qr(bool want_t, bool want_z, size_type<matrix_t> ilo, size_type<matrix_t> ihi, matrix_t &A, vector_t &w, matrix_t &Z)
+    {
+        francis_opts_t<size_type<matrix_t>, type_t<matrix_t>> opts = {};
+        return multishift_qr( want_t, want_z, ilo, ihi, A, w, Z, opts );
     }
 
 } // lapack
