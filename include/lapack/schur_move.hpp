@@ -13,7 +13,6 @@
 
 #include <complex>
 #include <cmath>
-#include <assert.h>
 
 #include <iostream>
 #include <iomanip>

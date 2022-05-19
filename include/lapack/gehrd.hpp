@@ -10,7 +10,6 @@
 #define __TLAPACK_GEHRD_HH__
 
 #include "legacy_api/base/utils.hpp"
-#include "legacy_api/base/types.hpp"
 #include "base/utils.hpp"
 #include "base/types.hpp"
 #include "lapack/lahr2.hpp"

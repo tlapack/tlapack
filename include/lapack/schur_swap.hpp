@@ -13,7 +13,6 @@
 
 #include <complex>
 #include <cmath>
-#include <assert.h>
 
 #include <iostream>
 #include <iomanip>
@@ -487,12 +486,12 @@ namespace tlapack
 
         const idx_t n = ncols(A);
 
-        assert(nrows(A) == n);
-        assert(nrows(Q) == n);
-        assert(ncols(Q) == n);
-        assert(0 <= j0 and j0 < n);
-        assert(n1 == 1);
-        assert(n2 == 1);
+        tlapack_check(nrows(A) == n);
+        tlapack_check(nrows(Q) == n);
+        tlapack_check(ncols(Q) == n);
+        tlapack_check(0 <= j0 and j0 < n);
+        tlapack_check(n1 == 1);
+        tlapack_check(n2 == 1);
 
         const idx_t j1 = j0 + 1;
         const idx_t j2 = j0 + 2;

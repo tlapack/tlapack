@@ -110,7 +110,7 @@ namespace tlapack {
          * 
          */
         inline constexpr T&
-        operator()( idx_t i, idx_t j ) const {
+        operator()( idx_t i, idx_t j ) const noexcept {
             assert( i >= 0);
             assert( i < m);
             assert( j >= 0);

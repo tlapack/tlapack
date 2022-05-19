@@ -13,7 +13,6 @@
 
 #include <complex>
 #include <memory>
-#include <assert.h>
 
 #include "base/utils.hpp"
 #include "base/types.hpp"
