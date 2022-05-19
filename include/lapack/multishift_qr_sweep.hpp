@@ -129,7 +129,7 @@ namespace tlapack
                         // Introduce bulge
                         T tau;
                         auto H = slice(A, pair{ilo, ilo + 3}, pair{ilo, ilo + 3});
-                        lahqr_shiftcolumn(H, v, s[2 * i_bulge], s[2 * i_bulge + 1]);
+                        lahqr_shiftcolumn(H, v, s[size(s)- 1 - 2 * i_bulge], s[size(s)- 1 - 2 * i_bulge - 1]);
                         larfg(v, tau);
                         v[0] = tau;
                     }
@@ -137,7 +137,7 @@ namespace tlapack
                     {
                         // Chase bulge down
                         auto H = slice(A, pair{i_pos - 1, i_pos + 3}, pair{i_pos - 1, i_pos + 3});
-                        move_bulge(H, v, s[2 * i_bulge], s[2 * i_bulge + 1]);
+                        move_bulge(H, v, s[size(s)- 1 - 2 * i_bulge], s[size(s)- 1 - 2 * i_bulge - 1]);
                     }
 
                     // Apply the reflector we just calculated from the right
@@ -324,7 +324,7 @@ namespace tlapack
                     idx_t i_pos = i_pos_last - 2 * i_bulge;
                     auto v = col(V, i_bulge);
                     auto H = slice(A, pair{i_pos - 1, i_pos + 3}, pair{i_pos - 1, i_pos + 3});
-                    move_bulge(H, v, s[2 * i_bulge], s[2 * i_bulge + 1]);
+                    move_bulge(H, v, s[size(s)- 1 - 2 * i_bulge], s[size(s)- 1 - 2 * i_bulge - 1]);
 
                     // Apply the reflector we just calculated from the right
                     // We leave the last row for later (it interferes with the optimally packed bulges)
@@ -545,7 +545,7 @@ namespace tlapack
                     {
                         auto v = col(V, i_bulge);
                         auto H = slice(A, pair{i_pos - 1, i_pos + 3}, pair{i_pos - 1, i_pos + 3});
-                        move_bulge(H, v, s[2 * i_bulge], s[2 * i_bulge + 1]);
+                        move_bulge(H, v, s[size(s)- 1 - 2 * i_bulge], s[size(s)- 1 - 2 * i_bulge - 1]);
 
                         auto t1 = conj(v[0]);
                         auto v2 = v[1];
