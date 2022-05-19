@@ -230,7 +230,9 @@ namespace tlapack
                 {
                     idx_t i_pos = i_pos_last - 2 * i_bulge;
                     auto v = col(V, i_bulge);
-                    for (idx_t j = 0; j < nrows(U2); ++j)
+                    idx_t i1 = 0;
+                    idx_t i2 = std::min(nrows(U2), (i_pos_last - ilo) + (i_pos_last - ilo) + 3);
+                    for (idx_t j = i1; j < i2; ++j)
                     {
                         auto sum = U2(j, i_pos - ilo) + v[1] * U2(j, i_pos - ilo + 1) + v[2] * U2(j, i_pos - ilo + 2);
                         U2(j, i_pos - ilo) = U2(j, i_pos - ilo) - sum * v[0];
@@ -414,7 +416,9 @@ namespace tlapack
                 {
                     idx_t i_pos = i_pos_last - 2 * i_bulge;
                     auto v = col(V, i_bulge);
-                    for (idx_t j = 0; j < nrows(U2); ++j)
+                    idx_t i1 = (i_pos - i_pos_block) - (i_pos_last - i_pos_block - n_shifts + 2);
+                    idx_t i2 = std::min(nrows(U2), (i_pos_last - i_pos_block) + (i_pos_last - i_pos_block - n_shifts + 2) + 3);
+                    for (idx_t j = i1; j < i2; ++j)
                     {
                         auto sum = U2(j, i_pos - i_pos_block) + v[1] * U2(j, i_pos - i_pos_block + 1) + v[2] * U2(j, i_pos - i_pos_block + 2);
                         U2(j, i_pos - i_pos_block) = U2(j, i_pos - i_pos_block) - sum * v[0];
@@ -641,7 +645,9 @@ namespace tlapack
                 {
                     idx_t i_pos = i_pos_last - 2 * i_bulge;
                     auto v = col(V, i_bulge);
-                    for (idx_t j = 0; j < nrows(U2); ++j)
+                    idx_t i1 = (i_pos - i_pos_block) - (i_pos_last - i_pos_block - n_shifts + 2);
+                    idx_t i2 = std::min(nrows(U2), (i_pos_last - i_pos_block) + (i_pos_last - i_pos_block - n_shifts + 2) + 3);
+                    for (idx_t j = i1; j < i2; ++j)
                     {
                         auto sum = U2(j, i_pos - i_pos_block) + v[1] * U2(j, i_pos - i_pos_block + 1) + v[2] * U2(j, i_pos - i_pos_block + 2);
                         U2(j, i_pos - i_pos_block) = U2(j, i_pos - i_pos_block) - sum * v[0];
