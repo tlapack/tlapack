@@ -26,11 +26,11 @@ void check_hess_reduction(size_type<matrix_t> ilo, size_type<matrix_t> ihi, matr
     const real_type<T> eps = uroundoff<real_type<T>>();
     const real_type<T> tol = n * 1.0e2 * eps;
 
-    std::unique_ptr<T[]> _Q(new T[n * n]);
+    std::unique_ptr<T[]> Q_(new T[n * n]);
     std::unique_ptr<T[]> _res(new T[n * n]);
     std::unique_ptr<T[]> _work(new T[n * n]);
 
-    auto Q = legacyMatrix<T, layout<matrix_t>>(n, n, &_Q[0], n);
+    auto Q = legacyMatrix<T, layout<matrix_t>>(n, n, &Q_[0], n);
     auto res = legacyMatrix<T, layout<matrix_t>>(n, n, &_res[0], n);
     auto work = legacyMatrix<T, layout<matrix_t>>(n, n, &_work[0], n);
     std::vector<T> workv(n);
@@ -86,12 +86,12 @@ TEMPLATE_LIST_TEST_CASE("Hessenberg reduction is backward stable", "[eigenvalues
     }
 
     // Define the matrices and vectors
-    std::unique_ptr<T[]> _A(new T[n * n]);
-    std::unique_ptr<T[]> _H(new T[n * n]);
+    std::unique_ptr<T[]> A_(new T[n * n]);
+    std::unique_ptr<T[]> H_(new T[n * n]);
 
     // This only works for legacy matrix, we really work on that construct_matrix function
-    auto A = legacyMatrix<T, layout<matrix_t>>(n, n, &_A[0], n);
-    auto H = legacyMatrix<T, layout<matrix_t>>(n, n, &_H[0], n);
+    auto A = legacyMatrix<T, layout<matrix_t>>(n, n, &A_[0], n);
+    auto H = legacyMatrix<T, layout<matrix_t>>(n, n, &H_[0], n);
     std::vector<T> tau(n);
 
     if (matrix_type == "Random")

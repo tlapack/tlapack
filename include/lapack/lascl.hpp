@@ -44,8 +44,7 @@ namespace tlapack {
  * @param[in] a The numerator of the scalar a/b.
  * @param[in,out] A Matrix to be scaled by a/b.
  * 
- * @return  0 if success.
- * @return -i if the ith argument is invalid.
+ * @return  0 if success..
  * 
  * @ingroup auxiliary
  */
@@ -75,7 +74,7 @@ int lascl(
     const real_t big   = safe_max<real_t>();
     
     // check arguments
-    lapack_error_if(
+    tlapack_check_false(
         (accessType != MatrixAccessPolicy::Dense) && 
         (accessType != MatrixAccessPolicy::UpperHessenberg) && 
         (accessType != MatrixAccessPolicy::LowerHessenberg) && 
@@ -83,9 +82,9 @@ int lascl(
         (accessType != MatrixAccessPolicy::LowerTriangle) && 
         (accessType != MatrixAccessPolicy::StrictUpper) && 
         (accessType != MatrixAccessPolicy::StrictLower), -1 );
-    lapack_error_if( access_denied( accessType, write_policy(A) ), -1 );
-    lapack_error_if( (b == b_type(0)) || isnan(b), -2 );
-    lapack_error_if( isnan(a), -3 );
+    tlapack_check_false( access_denied( accessType, write_policy(A) ), -1 );
+    tlapack_check_false( (b == b_type(0)) || isnan(b), -2 );
+    tlapack_check_false( isnan(a), -3 );
 
     // quick return
     if( m <= 0 || n <= 0 )
@@ -225,10 +224,10 @@ int lascl(
     const real_t big   = safe_max<real_t>();
     
     // check arguments
-    lapack_error_if( (kl < 0) || (kl >= m) || (ku < 0) || (ku >= n), -1 );
-    lapack_error_if( access_denied( accessType, write_policy(A) ), -1 );
-    lapack_error_if( (b == b_type(0)) || isnan(b), -2 );
-    lapack_error_if( isnan(a), -3 );
+    tlapack_check_false( (kl < 0) || (kl >= m) || (ku < 0) || (ku >= n), -1 );
+    tlapack_check_false( access_denied( accessType, write_policy(A) ), -1 );
+    tlapack_check_false( (b == b_type(0)) || isnan(b), -2 );
+    tlapack_check_false( isnan(a), -3 );
 
     // quick return
     if( m <= 0 || n <= 0 )

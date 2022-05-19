@@ -48,7 +48,12 @@ namespace tlapack {
  *
  * @ingroup trmv
  */
-template< class matrixA_t, class vectorX_t >
+template< class matrixA_t, class vectorX_t,
+    disable_if_allow_optblas_t<
+        pair< matrixA_t, type_t< matrixA_t > >,
+        pair< vectorX_t, type_t< matrixA_t > >
+    > = 0
+>
 void trmv(
     Uplo uplo,
     Op trans,
@@ -66,18 +71,18 @@ void trmv(
     const bool nonunit = (diag == Diag::NonUnit);
 
     // check arguments
-    tblas_error_if( uplo != Uplo::Lower &&
+    tlapack_check_false( uplo != Uplo::Lower &&
                    uplo != Uplo::Upper );
-    tblas_error_if( trans != Op::NoTrans &&
+    tlapack_check_false( trans != Op::NoTrans &&
                    trans != Op::Trans &&
                    trans != Op::ConjTrans &&
                    trans != Op::Conj );
-    tblas_error_if( diag != Diag::NonUnit &&
+    tlapack_check_false( diag != Diag::NonUnit &&
                    diag != Diag::Unit );
-    tblas_error_if( nrows(A) != ncols(A) );
-    tblas_error_if( size(x) != n );
+    tlapack_check_false( nrows(A) != ncols(A) );
+    tlapack_check_false( size(x) != n );
 
-    tblas_error_if( access_denied( uplo, read_policy(A) ) );
+    tlapack_check_false( access_denied( uplo, read_policy(A) ) );
 
     if (trans == Op::NoTrans) {
         // Form x := A*x

@@ -107,21 +107,21 @@ void trsm(
     using internal::colmajor_matrix;
 
     // check arguments
-    tblas_error_if( layout != Layout::ColMajor &&
+    tlapack_check_false( layout != Layout::ColMajor &&
                    layout != Layout::RowMajor );
-    tblas_error_if( side != Side::Left &&
+    tlapack_check_false( side != Side::Left &&
                    side != Side::Right );
-    tblas_error_if( uplo != Uplo::Lower &&
+    tlapack_check_false( uplo != Uplo::Lower &&
                    uplo != Uplo::Upper );
-    tblas_error_if( trans != Op::NoTrans &&
+    tlapack_check_false( trans != Op::NoTrans &&
                    trans != Op::Trans &&
                    trans != Op::ConjTrans );
-    tblas_error_if( diag != Diag::NonUnit &&
+    tlapack_check_false( diag != Diag::NonUnit &&
                    diag != Diag::Unit );
-    tblas_error_if( m < 0 );
-    tblas_error_if( n < 0 );
-    tblas_error_if( lda < ((side == Side::Left) ? m : n) );
-    tblas_error_if( ldb < ((layout == Layout::RowMajor) ? n : m) );
+    tlapack_check_false( m < 0 );
+    tlapack_check_false( n < 0 );
+    tlapack_check_false( lda < ((side == Side::Left) ? m : n) );
+    tlapack_check_false( ldb < ((layout == Layout::RowMajor) ? n : m) );
 
     // quick return
     if (m == 0 || n == 0)
@@ -140,12 +140,12 @@ void trsm(
     }
 
     // Matrix views
-    const auto _A = (side == Side::Left)
+    const auto A_ = (side == Side::Left)
                   ? colmajor_matrix<TA>( (TA*)A, m, m, lda )
                   : colmajor_matrix<TA>( (TA*)A, n, n, lda );
-    auto _B = colmajor_matrix<TB>( B, m, n, ldb );
+    auto B_ = colmajor_matrix<TB>( B, m, n, ldb );
 
-    trsm( side, uplo, trans, diag, alpha, _A, _B );
+    trsm( side, uplo, trans, diag, alpha, A_, B_ );
 }
 
 }  // namespace tlapack

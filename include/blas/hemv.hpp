@@ -39,7 +39,14 @@ namespace tlapack {
 template<
     class matrixA_t,
     class vectorX_t, class vectorY_t, 
-    class alpha_t, class beta_t >
+    class alpha_t, class beta_t,
+    disable_if_allow_optblas_t<
+        pair< matrixA_t, alpha_t >,
+        pair< vectorX_t, alpha_t >,
+        pair< vectorY_t, alpha_t >,
+        pair< beta_t,    alpha_t >
+    > = 0
+>
 void hemv(
     Uplo uplo,
     const alpha_t& alpha, const matrixA_t& A, const vectorX_t& x,
@@ -57,13 +64,13 @@ void hemv(
     const idx_t n = nrows(A);
 
     // check arguments
-    tblas_error_if( uplo != Uplo::Lower &&
+    tlapack_check_false( uplo != Uplo::Lower &&
                    uplo != Uplo::Upper );
-    tblas_error_if( ncols(A) != n );
-    tblas_error_if( size(x)  != n );
-    tblas_error_if( size(y)  != n );
+    tlapack_check_false( ncols(A) != n );
+    tlapack_check_false( size(x)  != n );
+    tlapack_check_false( size(y)  != n );
 
-    tblas_error_if( access_denied( uplo, read_policy(A) ) );
+    tlapack_check_false( access_denied( uplo, read_policy(A) ) );
 
     // form y = beta*y
     if (beta != beta_t(1)) {

@@ -32,7 +32,12 @@ namespace tlapack {
  *
  * @ingroup syr
  */
-template< class matrixA_t, class vectorX_t, class alpha_t >
+template< class matrixA_t, class vectorX_t, class alpha_t,
+    disable_if_allow_optblas_t<
+        pair< matrixA_t, alpha_t >,
+        pair< vectorX_t, alpha_t >
+    > = 0
+>
 void syr(
     Uplo uplo,
     const alpha_t& alpha,
@@ -46,12 +51,12 @@ void syr(
     const idx_t n = nrows(A);
 
     // check arguments
-    tblas_error_if( uplo != Uplo::Lower &&
+    tlapack_check_false( uplo != Uplo::Lower &&
                    uplo != Uplo::Upper );
-    tblas_error_if( size(x)  != n );
-    tblas_error_if( ncols(A) != n );
+    tlapack_check_false( size(x)  != n );
+    tlapack_check_false( ncols(A) != n );
 
-    tblas_error_if( access_denied( uplo, write_policy(A) ) );
+    tlapack_check_false( access_denied( uplo, write_policy(A) ) );
 
     if (uplo == Uplo::Upper) {
         for (idx_t j = 0; j < n; ++j) {

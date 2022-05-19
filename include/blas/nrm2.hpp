@@ -29,7 +29,9 @@ namespace tlapack {
  *
  * @ingroup nrm2
  */
-template< class vector_t >
+template< class vector_t,
+    disable_if_allow_optblas_t< vector_t > = 0
+>
 auto nrm2( const vector_t& x )
 {
     using real_t = real_type< type_t<vector_t> >;

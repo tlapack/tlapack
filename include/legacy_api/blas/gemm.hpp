@@ -115,40 +115,37 @@ void gemm(
             beta,
             C, ldc );
     }
-    else {
-        // check layout
-        tblas_error_if_msg( layout != Layout::ColMajor,
-            "layout != Layout::ColMajor && layout != Layout::RowMajor" );
-    }
 
     // check arguments
-    tblas_error_if( transA != Op::NoTrans &&
+    tlapack_check_false( layout != Layout::ColMajor &&
+                      layout != Layout::RowMajor );
+    tlapack_check_false( transA != Op::NoTrans &&
                    transA != Op::Trans &&
                    transA != Op::ConjTrans );
-    tblas_error_if( transB != Op::NoTrans &&
+    tlapack_check_false( transB != Op::NoTrans &&
                    transB != Op::Trans &&
                    transB != Op::ConjTrans );
-    tblas_error_if( m < 0 );
-    tblas_error_if( n < 0 );
-    tblas_error_if( k < 0 );
-    tblas_error_if( lda < ((transA != Op::NoTrans) ? k : m) );
-    tblas_error_if( ldb < ((transB != Op::NoTrans) ? n : k) );
-    tblas_error_if( ldc < m );
+    tlapack_check_false( m < 0 );
+    tlapack_check_false( n < 0 );
+    tlapack_check_false( k < 0 );
+    tlapack_check_false( lda < ((transA != Op::NoTrans) ? k : m) );
+    tlapack_check_false( ldb < ((transB != Op::NoTrans) ? n : k) );
+    tlapack_check_false( ldc < m );
 
     // quick return
     if (m == 0 || n == 0)
         return;
 
     // Matrix views
-    const auto _A = (transA == Op::NoTrans)
+    const auto A_ = (transA == Op::NoTrans)
             ? colmajor_matrix<TA>( (TA*)A, m, k, lda )
             : colmajor_matrix<TA>( (TA*)A, k, m, lda );
-    const auto _B = (transB == Op::NoTrans)
+    const auto B_ = (transB == Op::NoTrans)
             ? colmajor_matrix<TB>( (TB*)B, k, n, ldb )
             : colmajor_matrix<TB>( (TB*)B, n, k, ldb );
-    auto _C = colmajor_matrix<TC>( C, m, n, ldc );
+    auto C_ = colmajor_matrix<TC>( C, m, n, ldc );
 
-    return gemm( transA, transB, alpha, _A, _B, beta, _C );
+    return gemm( transA, transB, alpha, A_, B_, beta, C_ );
 }
 
 }  // namespace tlapack

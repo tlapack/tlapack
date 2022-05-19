@@ -91,24 +91,24 @@ void syrk(
     using internal::colmajor_matrix;
 
     // check arguments
-    tblas_error_if( layout != Layout::ColMajor &&
+    tlapack_check_false( layout != Layout::ColMajor &&
                    layout != Layout::RowMajor );
-    tblas_error_if( uplo != Uplo::Lower &&
+    tlapack_check_false( uplo != Uplo::Lower &&
                    uplo != Uplo::Upper &&
                    uplo != Uplo::General );
-    tblas_error_if( trans != Op::NoTrans &&
+    tlapack_check_false( trans != Op::NoTrans &&
                    trans != Op::Trans &&
                    trans != Op::ConjTrans );
-    tblas_error_if( is_complex<TA>::value && trans == Op::ConjTrans );
-    tblas_error_if( n < 0 );
-    tblas_error_if( k < 0 );
-    tblas_error_if( lda < (
+    tlapack_check_false( is_complex<TA>::value && trans == Op::ConjTrans );
+    tlapack_check_false( n < 0 );
+    tlapack_check_false( k < 0 );
+    tlapack_check_false( lda < (
         (layout == Layout::RowMajor)
             ? ((trans == Op::NoTrans) ? k : n)
             : ((trans == Op::NoTrans) ? n : k)
         )
     );
-    tblas_error_if( ldc < n );
+    tlapack_check_false( ldc < n );
 
     // quick return
     if (n == 0)
@@ -129,12 +129,12 @@ void syrk(
     }
 
     // Matrix views
-    const auto _A = (trans == Op::NoTrans)
+    const auto A_ = (trans == Op::NoTrans)
                   ? colmajor_matrix<TA>( (TA*)A, n, k, lda )
                   : colmajor_matrix<TA>( (TA*)A, k, n, lda );
-    auto _C = colmajor_matrix<TC>( C, n, n, ldc );
+    auto C_ = colmajor_matrix<TC>( C, n, n, ldc );
 
-    syrk( uplo, trans, alpha, _A, beta, _C );
+    syrk( uplo, trans, alpha, A_, beta, C_ );
 }
 
 }  // namespace tlapack

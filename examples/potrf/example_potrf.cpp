@@ -67,8 +67,8 @@ void run( idx_t n )
     using real_t = real_type<T>;
 
     // Matrix A
-    std::vector<T> _A( n*n );
-    legacyMatrix<T> A( n, n, &_A[0], n );
+    std::vector<T> A_( n*n );
+    legacyMatrix<T> A( n, n, &A_[0], n );
 
     // Flops
     const real_t nFlops = real_t(n*n*n) / 3;
@@ -89,17 +89,17 @@ void run( idx_t n )
 
     // 1) Using <T>LAPACK interface:
     {
-        std::vector<T> _U( n*n );
-        legacyMatrix<T> U( n, n, &_U[0], n );
+        std::vector<T> U_( n*n );
+        legacyMatrix<T> U( n, n, &U_[0], n );
 
-        // Put garbage on _U
+        // Put garbage on U_
         for (idx_t j = 0; j < n*n; ++j)
-            _U[j] = make_scalar<real_t>( static_cast<float>( 0xDEADBEEF ), static_cast<float>( 0xDEADBEEF ) );
+            U_[j] = make_scalar<real_t>( static_cast<float>( 0xDEADBEEF ), static_cast<float>( 0xDEADBEEF ) );
 
-        // _U receives the upper part of A
+        // U_ receives the upper part of A
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = 0; i <= j; ++i)
-                _U[i+j*n] = A(i,j);
+                U_[i+j*n] = A(i,j);
 
         // Record start time
         auto start = std::chrono::high_resolution_clock::now();
@@ -117,8 +117,8 @@ void run( idx_t n )
         }
 
         // Solve U^H U R = A
-        std::vector<T> _R( n*n );
-        legacyMatrix<T> R( n, n, &_R[0], n );
+        std::vector<T> R_( n*n );
+        legacyMatrix<T> R( n, n, &R_[0], n );
         lacpy( dense, A, R );
         potrs( upperTriangle, U, R );
 
@@ -163,8 +163,8 @@ void run( idx_t n )
         }
 
         // Solve U^H U R = A
-        std::vector<T> _R( n*n );
-        legacyMatrix<T> R( n, n, &_R[0], n );
+        std::vector<T> R_( n*n );
+        legacyMatrix<T> R( n, n, &R_[0], n );
         lacpy( dense, A, R );
         potrs( upperTriangle, legacyMatrix<T>( n, n, &U[0], n ), R );
 

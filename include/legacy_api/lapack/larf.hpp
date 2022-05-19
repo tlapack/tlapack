@@ -35,12 +35,12 @@ inline void larf(
     using internal::vector;
 
     // check arguments
-    tblas_error_if( side != Side::Left &&
+    tlapack_check_false( side != Side::Left &&
                    side != Side::Right );
-    tblas_error_if( m < 0 );
-    tblas_error_if( n < 0 );
-    tblas_error_if( incv == 0 );
-    tblas_error_if( ldC < m );
+    tlapack_check_false( m < 0 );
+    tlapack_check_false( n < 0 );
+    tlapack_check_false( incv == 0 );
+    tlapack_check_false( ldC < m );
 
     // scalar_t *work = new scalar_t[ ( side == Side::Left ) ? n : m ];
     std::unique_ptr<scalar_t[]> work(new scalar_t[
@@ -52,12 +52,12 @@ inline void larf(
     idx_t lwork = (( side == Side::Left ) ? n : m);
     
     // Matrix views
-    auto _C = colmajor_matrix<TC>( C, m, n, ldC );
+    auto C_ = colmajor_matrix<TC>( C, m, n, ldC );
     auto _work = vector( &work[0], lwork );
 
     tlapack_expr_with_vector(
         _v, TV, lenv, v, incv,
-        return larf( side, _v, tau, _C, _work)
+        return larf( side, _v, tau, C_, _work)
     );
 }
 

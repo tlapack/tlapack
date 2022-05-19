@@ -74,14 +74,14 @@ void syr2(
     using internal::colmajor_matrix;
 
     // check arguments
-    tblas_error_if( layout != Layout::ColMajor &&
+    tlapack_check_false( layout != Layout::ColMajor &&
                    layout != Layout::RowMajor );
-    tblas_error_if( uplo != Uplo::Lower &&
+    tlapack_check_false( uplo != Uplo::Lower &&
                    uplo != Uplo::Upper );
-    tblas_error_if( n < 0 );
-    tblas_error_if( incx == 0 );
-    tblas_error_if( incy == 0 );
-    tblas_error_if( lda < n );
+    tlapack_check_false( n < 0 );
+    tlapack_check_false( incx == 0 );
+    tlapack_check_false( incy == 0 );
+    tlapack_check_false( lda < n );
 
     // quick return
     if (n == 0)
@@ -93,12 +93,12 @@ void syr2(
     }
     
     // Matrix views
-    auto _A = colmajor_matrix<TA>( A, n, n, lda );
+    auto A_ = colmajor_matrix<TA>( A, n, n, lda );
 
     tlapack_expr_with_2vectors(
         _x, TX, n, x, incx,
         _y, TY, n, y, incy,
-        return syr2( uplo, alpha, _x, _y, _A )
+        return syr2( uplo, alpha, _x, _y, A_ )
     );
 }
 

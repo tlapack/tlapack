@@ -34,9 +34,12 @@ namespace tlapack {
  */
 template< typename T >
 inline
-auto asum( idx_t n, T const *x, int_t incx )
+real_type<T> asum( idx_t n, T const *x, int_t incx )
 {
-    tblas_error_if( incx <= 0 );
+    tlapack_check_false( incx <= 0 );
+
+    // quick return
+    if( n <= 0 ) return 0;
     
     tlapack_expr_with_vector_positiveInc(
         _x, T, n, x, incx,

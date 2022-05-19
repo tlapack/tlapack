@@ -15,6 +15,7 @@
 namespace lapack {
     
     using namespace tlapack;
+    using blas::Error;
 
     inline char sides2char( Sides sides )
     {
