@@ -86,9 +86,6 @@ void run(size_t n, size_t nw, bool use_fortran)
     using std::size_t;
     using tlapack::internal::colmajor_matrix;
 
-    // Turn it off if m or n are large
-    bool verbose = false;
-
     rand_generator gen;
     gen.seed(1302);
 

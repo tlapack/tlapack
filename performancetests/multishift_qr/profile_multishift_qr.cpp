@@ -131,14 +131,6 @@ void run(size_t n, int seed, bool use_fortran)
     // Frobenius norm of A
     auto normA = tlapack::lange(tlapack::frob_norm, A);
 
-    // Print A
-    if (verbose)
-    {
-        std::cout << std::endl
-                  << "A = ";
-        printMatrix(A);
-    }
-
     // Copy A to Q
     tlapack::lacpy(tlapack::Uplo::General, A, Q);
 
@@ -155,7 +147,6 @@ void run(size_t n, int seed, bool use_fortran)
         }else{
             err = tlapack::gehrd(0, n, Q, tau);
         }
-        tblas_error_if(err);
     }
     // Record end time
     auto endQHQ = std::chrono::high_resolution_clock::now();
@@ -174,7 +165,6 @@ void run(size_t n, int seed, bool use_fortran)
         // err = tlapack::unghr(0, n, Q, tau, work);
         T* _tau = tau.data();
         fortran_sorghr( n, 1, n, Q.ptr, n, _tau, err );
-        tblas_error_if(err);
     }
     // Record end time
     auto endQ = std::chrono::high_resolution_clock::now();
@@ -208,7 +198,6 @@ void run(size_t n, int seed, bool use_fortran)
             n_sweep = opts.n_sweep;
             n_shifts_total = opts.n_shifts_total;
         }
-        tblas_error_if(err);
     }
     // Record end time
     auto endSchur = std::chrono::high_resolution_clock::now();
@@ -222,17 +211,6 @@ void run(size_t n, int seed, bool use_fortran)
     auto elapsedQHQ = std::chrono::duration_cast<std::chrono::nanoseconds>(endQHQ - startQHQ);
     auto elapsedQ = std::chrono::duration_cast<std::chrono::nanoseconds>(endQ - startQ);
     auto elapsedSchur = std::chrono::duration_cast<std::chrono::nanoseconds>(endSchur - startSchur);
-
-    // Print Q and H
-    if (verbose)
-    {
-        std::cout << std::endl
-                  << "Q = ";
-        printMatrix(Q);
-        std::cout << std::endl
-                  << "H = ";
-        printMatrix(H);
-    }
 
     real_t norm_orth_1, norm_repres_1;
 
