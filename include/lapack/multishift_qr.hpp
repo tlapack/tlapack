@@ -272,7 +272,7 @@ namespace tlapack
             {
                 if (nw + 1 >= nh)
                     nw = nh;
-                idx_t kwtop = ihi - nw;
+                idx_t kwtop = istop - nw;
                 if (abs1(A(kwtop, kwtop - 1)) > abs1(A(kwtop - 1, kwtop - 2)))
                     nw = nw + 1;
             }
@@ -322,7 +322,7 @@ namespace tlapack
                 sorted = true;
                 for (idx_t i = i_shifts; i < k - 1; ++i)
                 {
-                    if (abs1(w[i]) > abs1(w[i + 1]))
+                    if (abs1(w[i]) < abs1(w[i + 1]))
                     {
                         sorted = false;
                         auto tmp = w[i];
@@ -353,6 +353,7 @@ namespace tlapack
             // Real shifts
             if (ns % 2 == 1)
                 ns = ns - 1;
+            i_shifts = istop - ns;
 
             // If there are only two shifts and both are real
             // then use only one (helps avoid interference)
@@ -369,8 +370,7 @@ namespace tlapack
                     }
                 }
             }
-
-            auto shifts = slice(w, pair{i_shifts, i_shifts + ns});
+            auto shifts = slice(w, pair{i_shifts, i_shifts+ns});
 
             multishift_QR_sweep(want_t, want_z, istart, istop, A, shifts, Z, V);
         }
