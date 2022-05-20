@@ -8,7 +8,6 @@
 #define __TLAPACK_MDSPAN_HH__
 
 #include <experimental/mdspan>
-#include <type_traits>
 
 #include "base/arrayTraits.hpp"
 #include "legacy_api/legacyArray.hpp"
@@ -16,20 +15,6 @@
 namespace tlapack {
 
     using std::experimental::mdspan;
-
-    // -----------------------------------------------------------------------------
-    // Data traits for mdspan
-
-    // Data type
-    template< class ET, class Exts, class LP, class AP >
-    struct type_trait< mdspan<ET,Exts,LP,AP> > {
-        using type = ET;
-    };
-    // Size type
-    template< class ET, class Exts, class LP, class AP >
-    struct sizet_trait< mdspan<ET,Exts,LP,AP> > {
-        using type = typename mdspan<ET,Exts,LP,AP>::size_type;
-    };
 
     // -----------------------------------------------------------------------------
     // blas functions to access mdspan properties

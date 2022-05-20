@@ -9,58 +9,9 @@
 #define __TLAPACK_EIGEN_HH__
 
 #include <Eigen/Core>
-#include <type_traits>
 #include "base/arrayTraits.hpp"
 
 namespace tlapack{
-
-    // // -----------------------------------------------------------------------------
-    // // is_EigenBlock
-    
-    // template< class >
-    // struct is_EigenBlock : public std::false_type {};
-
-    // template< typename T, int R, int C, bool P >
-    // struct is_EigenBlock< Eigen::Block<T,R,C,P> > : public std::true_type {};
-
-    // -----------------------------------------------------------------------------
-    // Data traits for Eigen
-
-    // Data type
-    template<typename Scalar_, int Rows_, int Cols_, int Options_, int MaxRows_, int MaxCols_>
-    struct type_trait< Eigen::Matrix<Scalar_, Rows_, Cols_, Options_, MaxRows_, MaxCols_> > {
-        using type = Scalar_;
-    };
-    template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel>
-    struct type_trait< Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel> > {
-        using type = typename XprType::Scalar;
-    };
-    template<class T>
-    struct type_trait< Eigen::VectorBlock<T> > {
-        using type = typename T::Scalar;
-    };
-    template<class T, int idx>
-    struct type_trait< Eigen::Diagonal<T,idx> > {
-        using type = typename T::Scalar;
-    };
-
-    // Size type
-    template<typename Scalar_, int Rows_, int Cols_, int Options_, int MaxRows_, int MaxCols_>
-    struct sizet_trait< Eigen::Matrix<Scalar_, Rows_, Cols_, Options_, MaxRows_, MaxCols_> > {
-        using type = Eigen::Index;
-    };
-    template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel>
-    struct sizet_trait< Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel> > {
-        using type = Eigen::Index;
-    };
-    template<class T>
-    struct sizet_trait< Eigen::VectorBlock<T> > {
-        using type = Eigen::Index;
-    };
-    template<class T, int idx>
-    struct sizet_trait< Eigen::Diagonal<T,idx> > {
-        using type = Eigen::Index;
-    };
 
     // -----------------------------------------------------------------------------
     // blas functions to access Eigen properties

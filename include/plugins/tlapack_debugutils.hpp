@@ -15,7 +15,7 @@
 #include <fstream>
 
 #include "legacy_api/legacyArray.hpp"
-#include "base/types.hpp"
+#include "base/utils.hpp"
 
 namespace tlapack
 {
