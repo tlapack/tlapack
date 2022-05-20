@@ -60,7 +60,7 @@ int ung2r(
     // check arguments
     lapack_error_if( k < 0 || k > n, -1 );
     lapack_error_if( access_denied( dense, write_policy(A) ), -2 );
-    lapack_error_if( (idx_t) size(tau)  < std::min<idx_t>( m, n ), -3 );
+    lapack_error_if( (idx_t) size(tau)  < k, -3 );
     lapack_error_if( (idx_t) size(work) < n-1, -4 );
 
     // quick return
