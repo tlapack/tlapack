@@ -90,27 +90,27 @@ int larft(
     using internal::vector;
 
     // check arguments
-    lapack_error_if( direction != Direction::Forward &&
+    tlapack_check_false( direction != Direction::Forward &&
                      direction != Direction::Backward, -1 );
-    lapack_error_if( storeV != StoreV::Columnwise &&
+    tlapack_check_false( storeV != StoreV::Columnwise &&
                      storeV != StoreV::Rowwise, -2 );
-    lapack_error_if( n < 0, -3 );
-    lapack_error_if( k < 1, -4 );
-    lapack_error_if( ldV < ((storeV == StoreV::Columnwise) ? n : k), -6 );
-    lapack_error_if( ldT < k, -9 );
+    tlapack_check_false( n < 0, -3 );
+    tlapack_check_false( k < 1, -4 );
+    tlapack_check_false( ldV < ((storeV == StoreV::Columnwise) ? n : k), -6 );
+    tlapack_check_false( ldT < k, -9 );
 
     // Quick return
     if (n == 0 || k == 0)
         return 0;
 
     // Matrix views
-    auto _V = (storeV == StoreV::Columnwise)
+    auto V_ = (storeV == StoreV::Columnwise)
             ? colmajor_matrix<scalar_t>( (scalar_t*)V, n, k, ldV )
             : colmajor_matrix<scalar_t>( (scalar_t*)V, k, n, ldV );
     auto _tau = vector( (scalar_t*)tau, k );
-    auto _T = colmajor_matrix<scalar_t>( T, k, k, ldT );
+    auto T_ = colmajor_matrix<scalar_t>( T, k, k, ldT );
 
-    return larft( direction, storeV, _V, _tau, _T);
+    return larft( direction, storeV, V_, _tau, T_);
 }
 
 }

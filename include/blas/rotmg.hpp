@@ -97,7 +97,7 @@ int rotmg(
     real_t h[4] )
 {
     // check arguments
-    tblas_error_if( d1 <= 0 );
+    tlapack_check_false( d1 <= 0 );
 
     // Constants
     const real_t zero( 0 );

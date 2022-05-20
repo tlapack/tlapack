@@ -38,12 +38,12 @@ namespace tlapack {
 template <class norm_t, typename TA>
 inline real_type<TA> lange(
     norm_t normType, idx_t m, idx_t n,
-    const TA *_A, idx_t lda )
+    const TA *A_, idx_t lda )
 {
     using internal::colmajor_matrix;
 
     // check arguments
-    tblas_error_if(  normType != Norm::Fro &&
+    tlapack_check_false(  normType != Norm::Fro &&
                     normType != Norm::Inf &&
                     normType != Norm::Max &&
                     normType != Norm::One );
@@ -53,7 +53,7 @@ inline real_type<TA> lange(
         return 0;
 
     // Views
-    auto A = colmajor_matrix<TA>( (TA*)_A, m, n, lda );
+    auto A = colmajor_matrix<TA>( (TA*)A_, m, n, lda );
 
     return lange( normType, A );
 }

@@ -106,7 +106,7 @@ void rotmg(
     real_t param[5] )
 {
     // check arguments
-    tblas_error_if( *d1 <= 0 );
+    tlapack_check_false( *d1 <= 0 );
 
     param[0] = rotmg(*d1,*d2,*a,b,&param[1]);
 }

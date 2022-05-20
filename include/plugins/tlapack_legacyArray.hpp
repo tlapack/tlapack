@@ -9,7 +9,7 @@
 
 #include <utility>
 #include <type_traits>
-#include <assert.h>
+#include <cassert>
 
 #include "legacy_api/legacyArray.hpp"
 #include "base/arrayTraits.hpp"

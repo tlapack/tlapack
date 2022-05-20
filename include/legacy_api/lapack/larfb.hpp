@@ -125,17 +125,17 @@ int larfb(
     using internal::colmajor_matrix;
 
     // check arguments
-    lapack_error_if(    side != Side::Left &&
+    tlapack_check_false(    side != Side::Left &&
                         side != Side::Right, -1 );
-    lapack_error_if(    trans != Op::NoTrans &&
+    tlapack_check_false(    trans != Op::NoTrans &&
                         trans != Op::ConjTrans &&
                         (
                             (trans != Op::Trans) ||
                             is_complex< TV >::value
                         ), -2 );
-    lapack_error_if(    direct != Direction::Backward &&
+    tlapack_check_false(    direct != Direction::Backward &&
                         direct != Direction::Forward, -3 );
-    lapack_error_if(    storeV != StoreV::Columnwise &&
+    tlapack_check_false(    storeV != StoreV::Columnwise &&
                         storeV != StoreV::Rowwise, -4 );
 
     // Quick return
@@ -145,16 +145,16 @@ int larfb(
     scalar_t *W = new scalar_t[ (side == Side::Left) ? k*n : m*k ];
 
     // Views
-    const auto _V = (storeV == StoreV::Columnwise)
+    const auto V_ = (storeV == StoreV::Columnwise)
                   ? colmajor_matrix<TV>( (TV*) V, (side == Side::Left) ? m : n, k, ldV )
                   : colmajor_matrix<TV>( (TV*) V, k, (side == Side::Left) ? m : n, ldV );
-    const auto _T = colmajor_matrix<TV>( (TV*) T, k, k, ldT );
-    auto _C = colmajor_matrix<TC>( C, m, n, ldC );
-    auto _W = (side == Side::Left)
+    const auto T_ = colmajor_matrix<TV>( (TV*) T, k, k, ldT );
+    auto C_ = colmajor_matrix<TC>( C, m, n, ldC );
+    auto W_ = (side == Side::Left)
                ? colmajor_matrix<scalar_t>( W, k, n )
                : colmajor_matrix<scalar_t>( W, m, k );
 
-    int info = larfb( side, trans, direct, storeV, _V, _T, _C, _W );
+    int info = larfb( side, trans, direct, storeV, V_, T_, C_, W_ );
 
     delete[] W;
     return info;

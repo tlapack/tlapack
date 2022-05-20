@@ -70,12 +70,13 @@ void geru(
     using internal::colmajor_matrix;
 
     // check arguments
-    tblas_error_if( layout != Layout::ColMajor );
-    tblas_error_if( m < 0 );
-    tblas_error_if( n < 0 );
-    tblas_error_if( incx == 0 );
-    tblas_error_if( incy == 0 );
-    tblas_error_if( lda < ((layout == Layout::ColMajor) ? m : n) );
+    tlapack_check_false( layout != Layout::ColMajor &&
+                   layout != Layout::RowMajor );
+    tlapack_check_false( m < 0 );
+    tlapack_check_false( n < 0 );
+    tlapack_check_false( incx == 0 );
+    tlapack_check_false( incy == 0 );
+    tlapack_check_false( lda < ((layout == Layout::ColMajor) ? m : n) );
 
     // quick return
     if (m == 0 || n == 0)
@@ -84,23 +85,23 @@ void geru(
     if( layout == Layout::ColMajor )
     {
         // Matrix views
-        auto _A = colmajor_matrix<TA>( A, m, n, lda );
+        auto A_ = colmajor_matrix<TA>( A, m, n, lda );
 
         tlapack_expr_with_2vectors(
             _x, TX, m, x, incx,
             _y, TY, n, y, incy,
-            return geru( alpha, _x, _y, _A )
+            return geru( alpha, _x, _y, A_ )
         );
     }
     else
     {
         // Matrix views
-        auto _A = colmajor_matrix<TA>( A, n, m, lda );
+        auto A_ = colmajor_matrix<TA>( A, n, m, lda );
 
         tlapack_expr_with_2vectors(
             _y, TY, n, y, incy,
             _x, TX, m, x, incx,
-            return geru( alpha, _y, _x, _A )
+            return geru( alpha, _y, _x, A_ )
         );
     }
 

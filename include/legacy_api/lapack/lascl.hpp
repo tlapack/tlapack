@@ -67,7 +67,7 @@ int lascl(
     using std::max;
     
     // check arguments
-    lapack_error_if(
+    tlapack_check_false(
         (matrixtype != MatrixType::General) && 
         (matrixtype != MatrixType::Lower) && 
         (matrixtype != MatrixType::Upper) && 
@@ -75,7 +75,7 @@ int lascl(
         (matrixtype != MatrixType::LowerBand) && 
         (matrixtype != MatrixType::UpperBand) && 
         (matrixtype != MatrixType::Band), -1 );
-    lapack_error_if( (
+    tlapack_check_false( (
             (matrixtype == MatrixType::LowerBand) ||
             (matrixtype == MatrixType::UpperBand) || 
             (matrixtype == MatrixType::Band)
@@ -83,7 +83,7 @@ int lascl(
             (kl < 0) ||
             (kl > max(m-1, idx_t(0)))
         ), -2 );
-    lapack_error_if( (
+    tlapack_check_false( (
             (matrixtype == MatrixType::LowerBand) ||
             (matrixtype == MatrixType::UpperBand) || 
             (matrixtype == MatrixType::Band)
@@ -91,53 +91,53 @@ int lascl(
             (ku < 0) ||
             (ku > max(n-1, idx_t(0)))
         ), -3 );
-    lapack_error_if( (
+    tlapack_check_false( (
             (matrixtype == MatrixType::LowerBand) ||
             (matrixtype == MatrixType::UpperBand)
         ) && ( kl != ku ), -3 );
-    lapack_error_if( m < 0, -6 );
-    lapack_error_if( (lda < m) && (
+    tlapack_check_false( m < 0, -6 );
+    tlapack_check_false( (lda < m) && (
         (matrixtype == MatrixType::General) || 
         (matrixtype == MatrixType::Lower) ||
         (matrixtype == MatrixType::Upper) ||
         (matrixtype == MatrixType::Hessenberg) ), -9 );
-    lapack_error_if( (matrixtype == MatrixType::LowerBand) && (lda < kl + 1), -9);
-    lapack_error_if( (matrixtype == MatrixType::UpperBand) && (lda < ku + 1), -9);
-    lapack_error_if( (matrixtype == MatrixType::Band) && (lda < 2 * kl + ku + 1), -9);
+    tlapack_check_false( (matrixtype == MatrixType::LowerBand) && (lda < kl + 1), -9);
+    tlapack_check_false( (matrixtype == MatrixType::UpperBand) && (lda < ku + 1), -9);
+    tlapack_check_false( (matrixtype == MatrixType::Band) && (lda < 2 * kl + ku + 1), -9);
 
     if (matrixtype == MatrixType::LowerBand)
     {
-        auto _A = banded_matrix<T>( A, m, n, kl, 0 );
-        return lascl( write_policy(_A), b, a, _A );
+        auto A_ = banded_matrix<T>( A, m, n, kl, 0 );
+        return lascl( write_policy(A_), b, a, A_ );
     }
     else if (matrixtype == MatrixType::UpperBand)
     {
-        auto _A = banded_matrix<T>( A, m, n, 0, ku );
-        return lascl( write_policy(_A), b, a, _A );
+        auto A_ = banded_matrix<T>( A, m, n, 0, ku );
+        return lascl( write_policy(A_), b, a, A_ );
     }
     else if (matrixtype == MatrixType::Band)
     {
-        auto _A = banded_matrix<T>( A, m, n, kl, ku );
-        return lascl( write_policy(_A), b, a, _A );
+        auto A_ = banded_matrix<T>( A, m, n, kl, ku );
+        return lascl( write_policy(A_), b, a, A_ );
     }
     else {
-        auto _A = colmajor_matrix<T>( A, m, n, lda );
+        auto A_ = colmajor_matrix<T>( A, m, n, lda );
         
         if (matrixtype == MatrixType::General)
         {
-            return lascl( MatrixAccessPolicy::Dense, b, a, _A );
+            return lascl( MatrixAccessPolicy::Dense, b, a, A_ );
         }
         else if (matrixtype == MatrixType::Lower)
         {
-            return lascl( MatrixAccessPolicy::LowerTriangle, b, a, _A );
+            return lascl( MatrixAccessPolicy::LowerTriangle, b, a, A_ );
         }
         else if (matrixtype == MatrixType::Upper)
         {
-            return lascl( MatrixAccessPolicy::UpperTriangle, b, a, _A );
+            return lascl( MatrixAccessPolicy::UpperTriangle, b, a, A_ );
         }
         else // if (matrixtype == MatrixType::Hessenberg)
         {
-            return lascl( MatrixAccessPolicy::UpperHessenberg, b, a, _A );
+            return lascl( MatrixAccessPolicy::UpperHessenberg, b, a, A_ );
         }
     }
 }

@@ -7,7 +7,7 @@
 #ifndef __TLAPACK_LEGACY_ARRAY_HH__
 #define __TLAPACK_LEGACY_ARRAY_HH__
 
-#include <assert.h>
+#include <cassert>
 
 #include "legacy_api/base/types.hpp"
 #include "base/exceptionHandling.hpp"
@@ -49,9 +49,9 @@ namespace tlapack {
         inline constexpr legacyMatrix( idx_t m, idx_t n, T* ptr, idx_t ldim )
         : m(m), n(n), ptr(ptr), ldim(ldim)
         {
-            tblas_error_if( m < 0 );
-            tblas_error_if( n < 0 );
-            tblas_error_if( ldim < ((layout == Layout::ColMajor) ? m : n) );
+            tlapack_check_false( m < 0 );
+            tlapack_check_false( n < 0 );
+            tlapack_check_false( ldim < ((layout == Layout::ColMajor) ? m : n) );
         }
     };
 
@@ -81,8 +81,8 @@ namespace tlapack {
         inline constexpr legacyVector( idx_t n, T* ptr, int_t inc = one )
         : n(n), ptr(ptr), inc(inc)
         {
-            tblas_error_if( n < 0 );
-            tblas_error_if( inc == 0 );
+            tlapack_check_false( n < 0 );
+            tlapack_check_false( inc == 0 );
         }
     };
 
@@ -110,7 +110,7 @@ namespace tlapack {
          * 
          */
         inline constexpr T&
-        operator()( idx_t i, idx_t j ) const {
+        operator()( idx_t i, idx_t j ) const noexcept {
             assert( i >= 0);
             assert( i < m);
             assert( j >= 0);
@@ -123,9 +123,9 @@ namespace tlapack {
         inline constexpr legacyBandedMatrix( idx_t m, idx_t n, idx_t kl, idx_t ku, T* ptr )
         : m(m), n(n), kl(kl), ku(ku), ptr(ptr)
         {
-            tblas_error_if( m < 0 );
-            tblas_error_if( n < 0 );
-            tblas_error_if( (kl + 1 > m && m > 0) || (ku + 1 > n && n > 0) );
+            tlapack_check_false( m < 0 );
+            tlapack_check_false( n < 0 );
+            tlapack_check_false( (kl + 1 > m && m > 0) || (ku + 1 > n && n > 0) );
         }
     };
 

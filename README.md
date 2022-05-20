@@ -71,35 +71,35 @@ cmake --build build
 
 Here are the \<T\>LAPACK specific options and their default values
 
-    # Option                         # Default
+    # Option                            # Default
 
-    BUILD_EXAMPLES                   ON
+    BUILD_EXAMPLES                      ON
         
         Build examples
     
-    BUILD_TESTING                    ON
+    BUILD_TESTING                       ON
     
         Build the testing tree
         
-    C_WRAPPERS                       OFF
+    C_WRAPPERS                          OFF
     
         Build and install C wrappers
         
-    Fortran_WRAPPERS                 OFF
+    Fortran_WRAPPERS                    OFF
     
         Build and install Fortran wrappers
 
-    CBLAS_WRAPPERS                   OFF
+    CBLAS_WRAPPERS                      OFF
     
         Build and install CBLAS wrappers to <T>BLAS
     
-    USE_BLASPP_WRAPPERS              OFF
+    USE_BLASPP_WRAPPERS                 OFF
 
         Use BLAS++ wrappers to link with an optimized BLAS library.
         Branch compatible with \<T>LAPACK:
             https://bitbucket.org/weslleyspereira/blaspp/branch/tlapack
     
-    USE_LAPACKPP_WRAPPERS            OFF
+    USE_LAPACKPP_WRAPPERS               OFF
 
         Use LAPACK++ wrappers to link with an optimized LAPACK library.
     
@@ -125,15 +125,44 @@ Here are the \<T\>LAPACK specific options and their default values
             intmax_t, intptr_t, ptrdiff_t,
             size_t, uint8_t, uint16_t, uint32_t, uint64_t
     
-    BUILD_BLASPP_TESTS               OFF
+    BUILD_BLASPP_TESTS                  OFF
 
         Build BLAS++ tests. Not used if BUILD_TESTING is OFF. If it is ON, you also need to inform blaspp_TEST_DIR,
         which is the path for the test sources of BLAS++.
     
-    BUILD_LAPACKPP_TESTS               OFF
+    BUILD_LAPACKPP_TESTS                OFF
 
         Build LAPACK++ tests. Not used if BUILD_TESTING is OFF. If it is ON, you also need to inform lapackpp_TEST_DIR,
         which is the path for the test sources of LAPACK++.
+
+    TLAPACK_NDEBUG                      OFF
+
+        Disable all error checks from <T>LAPACK.
+
+    TLAPACK_CHECK_INPUT                 ON
+                                        OFF if TLAPACK_NDEBUG is ON
+
+        <T>LAPACK routines check if the input parameters are illegal.
+
+    TLAPACK_ENABLE_NANCHECK             OFF
+
+        Enable NaN checks for the <T>LAPACK routines.
+
+    TLAPACK_DEFAULT_NANCHECK            ON
+                                        OFF if TLAPACK_NDEBUG is ON
+                                        OFF if TLAPACK_ENABLE_NANCHECK is OFF
+
+        By default, <T>LAPACK routines check for NaNs as specified in their documentation.
+
+    TLAPACK_ENABLE_INFCHECK             OFF
+
+        Enable Inf checks for the <T>LAPACK routines.
+
+    TLAPACK_DEFAULT_INFCHECK            ON
+                                        OFF if TLAPACK_NDEBUG is ON
+                                        OFF if TLAPACK_ENABLE_INFCHECK is OFF
+
+        By default, <T>LAPACK routines check for Infs as specified in their documentation.
 
 ## Testing
 

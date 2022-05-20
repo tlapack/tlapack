@@ -49,10 +49,10 @@ inline int ung2r(
     using internal::vector;
 
     // check arguments
-    lapack_error_if( m < 0, -1 );
-    lapack_error_if( n < 0 || n > m, -2 );
-    lapack_error_if( k < 0 || k > n, -3 );
-    lapack_error_if( lda < m, -5 );
+    tlapack_check_false( m < 0, -1 );
+    tlapack_check_false( n < 0 || n > m, -2 );
+    tlapack_check_false( k < 0 || k > n, -3 );
+    tlapack_check_false( lda < m, -5 );
 
     // quick return
     if (n <= 0) return 0;
@@ -62,11 +62,11 @@ inline int ung2r(
     TA* work = new TA[ (n > 0) ? n-1 : 0 ];
 
     // Matrix views
-    auto _A    = colmajor_matrix<TA>( A, m, n, lda );
+    auto A_    = colmajor_matrix<TA>( A, m, n, lda );
     auto _tau  = vector( (Ttau*)tau, std::min<idx_t>( m, n ) );
     auto _work = vector( work, n-1 );
     
-    info = ung2r( k, _A, _tau, _work );
+    info = ung2r( k, A_, _tau, _work );
 
     delete[] work;
     return info;

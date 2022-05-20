@@ -33,17 +33,17 @@ TEMPLATE_LIST_TEST_CASE("sylvester solver gives correct result", "[sylvester]", 
     const real_t eps = uroundoff<real_t>();
     const real_t tol = 1.0e2 * eps;
 
-    std::unique_ptr<T[]> _TL(new T[n1 * n1]);
-    std::unique_ptr<T[]> _TR(new T[n2 * n2]);
-    std::unique_ptr<T[]> _B(new T[n1 * n2]);
-    std::unique_ptr<T[]> _X(new T[n1 * n2]);
-    std::unique_ptr<T[]> _X_exact(new T[n1 * n2]);
+    std::unique_ptr<T[]> TL_(new T[n1 * n1]);
+    std::unique_ptr<T[]> TR_(new T[n2 * n2]);
+    std::unique_ptr<T[]> B_(new T[n1 * n2]);
+    std::unique_ptr<T[]> X_(new T[n1 * n2]);
+    std::unique_ptr<T[]> X_exact_(new T[n1 * n2]);
 
-    auto TL = legacyMatrix<T, layout<matrix_t>>(n1, n1, &_TL[0], n1);
-    auto TR = legacyMatrix<T, layout<matrix_t>>(n2, n2, &_TR[0], n2);
-    auto B = legacyMatrix<T, layout<matrix_t>>(n1, n2, &_B[0], layout<matrix_t> == Layout::ColMajor ? n1 : n2);
-    auto X = legacyMatrix<T, layout<matrix_t>>(n1, n2, &_X[0], layout<matrix_t> == Layout::ColMajor ? n1 : n2);
-    auto X_exact = legacyMatrix<T, layout<matrix_t>>(n1, n2, &_X_exact[0], layout<matrix_t> == Layout::ColMajor ? n1 : n2);
+    auto TL = legacyMatrix<T, layout<matrix_t>>(n1, n1, &TL_[0], n1);
+    auto TR = legacyMatrix<T, layout<matrix_t>>(n2, n2, &TR_[0], n2);
+    auto B = legacyMatrix<T, layout<matrix_t>>(n1, n2, &B_[0], layout<matrix_t> == Layout::ColMajor ? n1 : n2);
+    auto X = legacyMatrix<T, layout<matrix_t>>(n1, n2, &X_[0], layout<matrix_t> == Layout::ColMajor ? n1 : n2);
+    auto X_exact = legacyMatrix<T, layout<matrix_t>>(n1, n2, &X_exact_[0], layout<matrix_t> == Layout::ColMajor ? n1 : n2);
 
     for (idx_t i = 0; i < n1; ++i)
         for (idx_t j = 0; j < n1; ++j)

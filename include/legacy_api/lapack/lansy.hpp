@@ -46,7 +46,7 @@ real_type<TA> lansy(
     using internal::colmajor_matrix;
 
     // check arguments
-    tblas_error_if(  normType != Norm::Fro &&
+    tlapack_check_false(  normType != Norm::Fro &&
                     normType != Norm::Inf &&
                     normType != Norm::Max &&
                     normType != Norm::One );
@@ -55,9 +55,9 @@ real_type<TA> lansy(
     if ( n == 0 ) return 0;
 
     // Matrix views
-    auto _A = colmajor_matrix<TA>( (TA*)A, n, n, lda );
+    auto A_ = colmajor_matrix<TA>( (TA*)A, n, n, lda );
 
-    return lansy( normType, uplo, _A );
+    return lansy( normType, uplo, A_ );
 }
 
 } // lapack

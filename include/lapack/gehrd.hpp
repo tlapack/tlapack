@@ -10,7 +10,6 @@
 #define __TLAPACK_GEHRD_HH__
 
 #include "legacy_api/base/utils.hpp"
-#include "legacy_api/base/types.hpp"
 #include "base/utils.hpp"
 #include "base/types.hpp"
 #include "lapack/lahr2.hpp"
@@ -68,7 +67,6 @@ namespace tlapack
      * in the ith column of A, and tau in tau[i].
      *
      * @return  0 if success
-     * @return -i if the ith argument is invalid
      *
      * @param[in] ilo integer
      * @param[in] ihi integer
@@ -109,11 +107,11 @@ namespace tlapack
         idx_t nx = std::max( nb, nx_switch );
 
         // check arguments
-        lapack_error_if((ilo < 0) or (ilo >= n), -1);
-        lapack_error_if((ihi < 0) or (ihi > n), -2);
-        lapack_error_if(access_denied(dense, write_policy(A)), -3);
-        lapack_error_if(ncols(A) != nrows(A), -3);
-        lapack_error_if((idx_t)size(tau) < n - 1, -4);
+        tlapack_check_false((ilo < 0) or (ilo >= n), -1);
+        tlapack_check_false((ihi < 0) or (ihi > n), -2);
+        tlapack_check_false(access_denied(dense, write_policy(A)), -3);
+        tlapack_check_false(ncols(A) != nrows(A), -3);
+        tlapack_check_false((idx_t)size(tau) < n - 1, -4);
 
         // quick return
         if (n <= 0)
