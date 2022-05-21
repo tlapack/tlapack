@@ -19,42 +19,10 @@ namespace tlapack {
     // -----------------------------------------------------------------------------
     // Data traits
 
-    // Data type
-    template< typename T, Layout layout >
-    struct type_trait< legacyMatrix<T,layout> > { using type = T; };
-    // Size type
-    template< typename T, Layout layout >
-    struct sizet_trait< legacyMatrix<T,layout> > { using type = typename legacyMatrix<T>::idx_t; };
     // Layout
     template< typename T, Layout L >
     constexpr Layout layout< legacyMatrix<T,L> > = L;
-    
-    /// Specialization of has_blas_type for arrays.
-    template< typename T, Layout L >
-    struct allow_optblas< legacyMatrix<T,L> > {
-        static constexpr bool value = allow_optblas_v<T>;
-    };
 
-    // Data type
-    template< typename T, typename int_t, Direction direction >
-    struct type_trait< legacyVector<T,int_t,direction> > { using type = T; };
-    // Size type
-    template< typename T, typename int_t, Direction direction >
-    struct sizet_trait< legacyVector<T,int_t,direction> > { using type = typename legacyVector<T>::idx_t; };
-    
-    /// Specialization of has_blas_type for arrays.
-    template< typename T, typename int_t, Direction direction >
-    struct allow_optblas< legacyVector<T,int_t,direction> > {
-        using type = T;
-        static constexpr bool value = allow_optblas_v<type>;
-    };
-
-    // Data type
-    template< typename T >
-    struct type_trait< legacyBandedMatrix<T> > { using type = T; };
-    // Size type
-    template< typename T >
-    struct sizet_trait< legacyBandedMatrix<T> > { using type = typename legacyBandedMatrix<T>::idx_t; };
     // Layout
     template< typename T >
     constexpr Layout layout< legacyBandedMatrix<T> > = Layout::BandStorage;
