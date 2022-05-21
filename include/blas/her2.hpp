@@ -39,10 +39,12 @@ template<
     class matrixA_t,
     class vectorX_t, class vectorY_t,
     class alpha_t,
+    class T = type_t<matrixA_t>,
     disable_if_allow_optblas_t<
-        pair< matrixA_t, alpha_t >,
-        pair< vectorX_t, alpha_t >,
-        pair< vectorY_t, alpha_t >
+        pair< alpha_t, T >,
+        pair< matrixA_t, T >,
+        pair< vectorX_t, T >,
+        pair< vectorY_t, T >
     > = 0
 >
 void her2(

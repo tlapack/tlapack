@@ -29,26 +29,25 @@ namespace tlapack {
  *
  * @ingroup rotg
  */
-template <typename real_t,
-    disable_if_allow_optblas_t<
-        pair< real_t, real_type<real_t> >
-    > = 0
+template <typename T,
+    enable_if_t< is_same_v< T, real_type<T> >, int > = 0,
+    disable_if_allow_optblas_t< T > = 0
 >
 void rotg(
-    real_t& a, real_t& b,
-    real_t& c, real_t& s )
+    T& a, T& b,
+    T& c, T& s )
 {
     // Constants
-    const real_t one  = 1;
-    const real_t zero = 0;
+    const T one  = 1;
+    const T zero = 0;
 
     // Scaling constants
-    const real_t safmin = safe_min<real_t>();
-    const real_t safmax = safe_max<real_t>();
+    const T safmin = safe_min<T>();
+    const T safmax = safe_max<T>();
 
     // Norms
-    const real_t anorm = tlapack::abs(a);
-    const real_t bnorm = tlapack::abs(b);
+    const T anorm = tlapack::abs(a);
+    const T bnorm = tlapack::abs(b);
 
     // quick return
     if ( bnorm == zero ) {
@@ -63,11 +62,11 @@ void rotg(
         b = one;
     }
     else {
-        real_t scl = min( safmax, max(safmin, anorm, bnorm) );
-        real_t sigma = (anorm > bnorm)
+        T scl = min( safmax, max(safmin, anorm, bnorm) );
+        T sigma = (anorm > bnorm)
             ? sgn(a)
             : sgn(b);
-        real_t r = sigma * scl * sqrt( (a/scl) * (a/scl) + (b/scl) * (b/scl) );
+        T r = sigma * scl * sqrt( (a/scl) * (a/scl) + (b/scl) * (b/scl) );
         c = a / r;
         s = b / r;
         a = r;
@@ -103,6 +102,7 @@ void rotg(
  * @ingroup rotg
  */
 template <typename T,
+    enable_if_t< !is_same_v< T, real_type<T> >, int > = 0,
     disable_if_allow_optblas_t< T > = 0
 >
 void rotg(

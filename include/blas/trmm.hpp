@@ -60,7 +60,7 @@ namespace tlapack {
  * @ingroup trmm
  */
 template< class matrixA_t, class matrixB_t, class alpha_t,
-    class T  = alpha_t,
+    class T = type_t<matrixB_t>,
     disable_if_allow_optblas_t<
         pair< matrixA_t, T >,
         pair< matrixB_t, T >,

@@ -182,22 +182,22 @@ namespace tlapack {
     //         has_blas_type_v<type> && ;
     // };
 
-    template< class ET, class Exts, class LP, class AP,
-        std::enable_if_t<
-        /* Requires: */
-            LP::template mapping<Exts>::is_always_strided() &&
-            Exts::rank() == 2
-        , bool > = true
-    >
-    inline constexpr auto
-    legacy_matrix( const mdspan<ET,Exts,LP,AP>& A ) {
-        if( A.stride(0) == 1 )
-            return legacyMatrix<ET,Layout::ColMajor>( A.extent(0), A.extent(1), A.data(), A.stride(1) );
-        else if( A.stride(1) == 1 )
-            return legacyMatrix<ET,Layout::RowMajor>( A.extent(0), A.extent(1), A.data(), A.stride(0) );
-        else
-            return legacyMatrix<ET>( 0, 0, nullptr, 0 );
-    }
+    // template< class ET, class Exts, class LP, class AP,
+    //     std::enable_if_t<
+    //     /* Requires: */
+    //         LP::template mapping<Exts>::is_always_strided() &&
+    //         Exts::rank() == 2
+    //     , bool > = true
+    // >
+    // inline constexpr auto
+    // legacy_matrix( const mdspan<ET,Exts,LP,AP>& A ) {
+    //     if( A.stride(0) == 1 )
+    //         return legacyMatrix<ET,Layout::ColMajor>( A.extent(0), A.extent(1), A.data(), A.stride(1) );
+    //     else if( A.stride(1) == 1 )
+    //         return legacyMatrix<ET,Layout::RowMajor>( A.extent(0), A.extent(1), A.data(), A.stride(0) );
+    //     else
+    //         return legacyMatrix<ET>( 0, 0, nullptr, 0 );
+    // }
 
 } // namespace tlapack
 

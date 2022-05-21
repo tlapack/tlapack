@@ -646,8 +646,22 @@ namespace internal {
      */
     template<class...>
     struct allow_optblas {
-        static constexpr bool value = false; ///< True if the list of types
-                                            ///< allows optimized BLAS library.
+        static constexpr bool value = false;    ///< True if the list of types
+                                                ///< allows optimized BLAS library.
+    };
+
+    /**
+     * @brief Auxiliary for matrices and vectors.
+     */
+    template<class, class = int>
+    struct allow_optblas_aux {
+        static constexpr bool value = false;
+    };
+
+    template<class C>
+    struct allow_optblas<C> {
+        static constexpr bool value             ///< True if the type
+            = allow_optblas_aux<C,int>::value;  ///< allows optimized BLAS library.
     };
 }
 
@@ -658,7 +672,7 @@ constexpr bool allow_optblas_v = internal::allow_optblas< Ts... >::value;
 namespace internal {
 
     template< class matrix_t >
-    struct allow_optblas< matrix_t,
+    struct allow_optblas_aux< matrix_t,
         enable_if_t<
             is_matrix< matrix_t > &&
             !is_same_v<
@@ -667,12 +681,15 @@ namespace internal {
         , int >
     > {
         static constexpr bool value =
+            allow_optblas_v< type_t<matrix_t> > &&
+            (
                 ( layout<matrix_t> == Layout::ColMajor ) ||
-                ( layout<matrix_t> == Layout::RowMajor );
+                ( layout<matrix_t> == Layout::RowMajor )
+            );
     };
 
     template< class vector_t >
-    struct allow_optblas< vector_t,
+    struct allow_optblas_aux< vector_t,
         enable_if_t<
             is_vector< vector_t > &&
             !is_same_v<
@@ -680,15 +697,21 @@ namespace internal {
             , void >
         , int >
     > {
-        static constexpr bool value = true;
+        static constexpr bool value = allow_optblas_v< type_t<vector_t> >;
     };
 
     template< class C, class T >
     struct allow_optblas< pair<C,T> > {
         static constexpr bool value = 
-            allow_optblas_v<C> &&
-            allow_optblas_v<T> &&
-            is_same_v< type_t<C>, T >;
+            allow_optblas_v<T>
+            && (
+                (is_matrix<C> || is_vector<C>)
+                ? (
+                    allow_optblas_v<C> &&
+                    is_same_v< type_t<C>, typename std::decay<T>::type >
+                )
+                : std::is_convertible< C, T >::value
+            );
     };
 
     template< class C1, class T1, class C2, class T2, class... Ps >
