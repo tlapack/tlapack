@@ -22,14 +22,15 @@ namespace tlapack {
  * @ingroup dot
  */
 template< class vectorX_t, class vectorY_t,
+    class T = type_t<vectorY_t>,
     disable_if_allow_optblas_t<
-        pair< vectorX_t, type_t< vectorX_t > >,
-        pair< vectorY_t, type_t< vectorX_t > >
+        pair< vectorX_t, T >,
+        pair< vectorY_t, T >
     > = 0
 >
 auto dot( const vectorX_t& x, const vectorY_t& y )
 {
-    using T = scalar_type<
+    using return_t = scalar_type<
         type_t< vectorX_t >,
         type_t< vectorY_t >
     >;
@@ -41,7 +42,7 @@ auto dot( const vectorX_t& x, const vectorY_t& y )
     // check arguments
     tlapack_check_false( size(y) != n );
 
-    T result( 0.0 );
+    return_t result( 0.0 );
     for (idx_t i = 0; i < n; ++i)
         result += conj(x[i]) * y[i];
 

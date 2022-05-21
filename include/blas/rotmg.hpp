@@ -86,23 +86,19 @@ namespace tlapack {
  *
  * @ingroup rotmg
  */
-template< typename real_t,
-    disable_if_allow_optblas_t<
-        pair< real_t, real_type<real_t> >
-    > = 0
+template< typename T,
+    enable_if_t< is_same_v< T, real_type<T> >, int > = 0,
+    disable_if_allow_optblas_t< T > = 0
 >
-int rotmg(
-    real_t& d1, real_t& d2,
-    real_t& a, const real_t& b,
-    real_t h[4] )
+int rotmg( T& d1, T& d2, T& a, const T& b, T h[4] )
 {
     // check arguments
     tlapack_check_false( d1 <= 0 );
 
     // Constants
-    const real_t zero( 0 );
-    const real_t one( 1 );
-    const real_t gam( 4096 );
+    const T zero( 0 );
+    const T one( 1 );
+    const T gam( 4096 );
     const auto gamsq  = gam*gam;
     const auto rgamsq = one/gamsq;
 
