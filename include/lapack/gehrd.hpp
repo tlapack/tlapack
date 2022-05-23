@@ -25,9 +25,9 @@ namespace tlapack
     template <typename idx_t, typename T>
     struct gehrd_opts_t {
         // Blocksize used in the blocked reduction
-        idx_t nb = 64;
+        idx_t nb = 32;
         // If only nx_switch columns are left, the algorithm will use unblocked code
-        idx_t nx_switch = 2;
+        idx_t nx_switch = 128;
         // Workspace pointer, if no workspace is provided, one will be allocated internally
         T* _work=nullptr;
         // Workspace size

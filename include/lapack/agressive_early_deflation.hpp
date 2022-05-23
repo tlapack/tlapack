@@ -344,8 +344,11 @@ namespace tlapack
             // Hessenberg reduction
             {
                 auto tau = slice(WV, pair{0, jw}, 0);
+                gehrd_opts_t<idx_t, T> gehrd_opts;
+                gehrd_opts.lwork = opts.lwork;
+                gehrd_opts._work = opts._work;
+                gehrd(0, ns, TW, tau, gehrd_opts);
                 auto work2 = slice(WV, pair{0, jw}, 1);
-                gehd2(0, ns, TW, tau, work2);
                 unmhr(Side::Right, Op::NoTrans, 0, ns, TW, tau, V, work2);
             }
         }
