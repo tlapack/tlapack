@@ -90,12 +90,10 @@ real_type<T> imag( const T& x ) { return 0; }
  * 
  * @ingroup utils
  */
-template< typename real_t >
-inline real_t conj( const real_t& x )
+template< typename real_t, enable_if_t<!is_complex<real_t>::value,int> = 0 >
+inline constexpr
+real_t conj( const real_t& x )
 {
-    // This prohibits complex types; it can't be called as y = tlapack::conj( x ).
-    static_assert( ! is_complex<real_t>::value,
-                    "Usage: using tlapack::conj; y = conj(x); NOT: y = tlapack::conj(x);" );
     return x;
 }
 
