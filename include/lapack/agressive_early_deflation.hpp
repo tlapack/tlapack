@@ -20,6 +20,7 @@
 #include "lapack/lahqr_eig22.hpp"
 #include "lapack/gehd2.hpp"
 #include "lapack/unghr.hpp"
+#include "lapack/multishift_qr.hpp"
 
 namespace tlapack
 {
@@ -79,7 +80,7 @@ namespace tlapack
         class vector_t,
         typename idx_t = size_type<matrix_t>,
         enable_if_t<is_complex<type_t<vector_t>>::value, bool> = true>
-    void agressive_early_deflation(bool want_t, bool want_z, idx_t ilo, idx_t ihi, idx_t nw, matrix_t &A, vector_t &s, matrix_t &Z, idx_t &ns, idx_t &nd)
+    void agressive_early_deflation(bool want_t, bool want_z, idx_t ilo, idx_t ihi, idx_t nw, matrix_t &A, vector_t &s, matrix_t &Z, idx_t &ns, idx_t &nd, francis_opts_t<size_type<matrix_t>, type_t<matrix_t>> &opts)
     {
 
         using T = type_t<matrix_t>;
@@ -153,7 +154,15 @@ namespace tlapack
             for (idx_t i = 0; i < std::min(j + 2, jw); ++i)
                 TW(i, j) = A_window(i, j);
         laset(Uplo::General, zero, one, V);
-        int infqr = lahqr(true, true, 0, jw, TW, s_window, V);
+        int infqr;
+        if( jw < opts.nmin )
+            infqr = lahqr(true, true, 0, jw, TW, s_window, V);
+        else{
+            infqr = multishift_qr(true, true, 0, jw, TW, s_window, V, opts);
+            for (idx_t j = 0; j < jw; ++j)
+                for (idx_t i = j+2; i < jw; ++i)
+                    TW(i, j) = zero;
+        }
 
         // Deflation detection loop
         // one eigenvalue block at a time, we will check if it is deflatable

@@ -61,7 +61,7 @@ namespace tlapack
             if (n < 150)
                 return 10;
             if (n < 590)
-                return 16;
+                return idx_t(n/log2(n));
             if (n < 3000)
                 return 96;
             if (n < 6000)
@@ -163,9 +163,9 @@ namespace tlapack
 
         const idx_t nibble = opts.nibble;
 
-        opts.n_aed = 0;
-        opts.n_sweep = 0;
-        opts.n_shifts_total = 0;
+        int n_aed = 0;
+        int n_sweep = 0;
+        int n_shifts_total = 0;
 
         // check arguments
         tlapack_check_false(n != nrows(A), -5);
@@ -191,7 +191,7 @@ namespace tlapack
         TA *_work;
         idx_t lwork;
         // idx_t required_workspace = get_work_multishift_qr(want_t, want_z, ilo, ihi, A, w, Z, opts);
-        idx_t required_workspace = 3 * (nsr);
+        idx_t required_workspace = 3 * (nsr/2);
         // Store whether or not a workspace was locally allocated
         bool locally_allocated = false;
         if (opts._work and required_workspace <= opts.lwork)
@@ -207,7 +207,7 @@ namespace tlapack
             lwork = required_workspace;
             _work = new TA[lwork];
         }
-        auto V = legacyMatrix<TA, layout<matrix_t>>(3, nsr, &_work[0], layout<matrix_t> == Layout ::ColMajor ? 3 : nsr);
+        auto V = legacyMatrix<TA, layout<matrix_t>>(3, nsr/2, &_work[0], layout<matrix_t> == Layout ::ColMajor ? 3 : nsr/2);
 
         // itmax is the total number of QR iterations allowed.
         // For most matrices, 3 shifts per eigenvalue is enough, so
@@ -290,8 +290,8 @@ namespace tlapack
             }
 
             idx_t ls, ld;
-            opts.n_aed = opts.n_aed + 1;
-            agressive_early_deflation(want_t, want_z, istart, istop, nw, A, w, Z, ls, ld);
+            n_aed = n_aed + 1;
+            agressive_early_deflation(want_t, want_z, istart, istop, nw, A, w, Z, ls, ld, opts);
 
             istop = istop - ld;
 
@@ -385,10 +385,14 @@ namespace tlapack
             }
             auto shifts = slice(w, pair{i_shifts, i_shifts + ns});
 
-            opts.n_sweep = opts.n_sweep + 1;
-            opts.n_shifts_total = opts.n_shifts_total + ns;
+            n_sweep = n_sweep + 1;
+            n_shifts_total = n_shifts_total + ns;
             multishift_QR_sweep(want_t, want_z, istart, istop, A, shifts, Z, V);
         }
+
+        opts.n_aed = n_aed;
+        opts.n_shifts_total = n_shifts_total;
+        opts.n_sweep = n_sweep;
 
         if (locally_allocated)
             delete[] _work;

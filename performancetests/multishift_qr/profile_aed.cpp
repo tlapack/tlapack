@@ -151,8 +151,9 @@ void run(size_t n, size_t nw, bool use_fortran)
         }
         else
         {
+            tlapack::francis_opts_t<TLAPACK_SIZE_T, T> opts;
             std::vector<std::complex<real_t>> w(n);
-            tlapack::agressive_early_deflation(true, true, (size_t)0, n, nw, H, w, Q, ls, ld);
+            tlapack::agressive_early_deflation(true, true, (size_t)0, n, nw, H, w, Q, ls, ld, opts);
         }
     }
     // Record end time
