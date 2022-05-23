@@ -85,8 +85,8 @@ int geqr2( matrix_t& A, vector_t &tau, work_t &work )
         auto C = slice( A, pair{i,m}, pair{i+1,n} );
         auto w = slice( work, pair{i,n-1} );
 
-        // C := I - tau_i v v^H
-        larf( left_side, v, tau[i], C, w );
+        // C := I - conj(tau_i) v v^H
+        larf( left_side, v, conj(tau[i]), C, w );
 	}
     if( n-1 < m ) {
         // Define v := A[n-1:m,n-1]
