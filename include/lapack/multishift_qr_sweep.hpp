@@ -67,7 +67,7 @@ namespace tlapack
         const T one(1);
         const T zero(0);
         const idx_t n = ncols(A);
-        const real_t eps = uroundoff<real_t>();
+        const real_t eps = ulp<real_t>();
         const real_t small_num = safe_min<real_t>() * ((real_t)n / eps);
 
         // Assertions

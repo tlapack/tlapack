@@ -50,7 +50,7 @@ namespace tlapack
         using idx_t = size_type<matrix_t>;
         using pair = std::pair<idx_t, idx_t>;
         const T zero(0);
-        const real_t eps = uroundoff<real_t>();
+        const real_t eps = ulp<real_t>();
 
         // Perform delayed update of row below the bulge
         // Assumes the first two elements of the row are zero

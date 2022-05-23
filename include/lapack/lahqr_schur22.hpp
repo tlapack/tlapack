@@ -68,7 +68,7 @@ namespace tlapack
         const T two(2);
         const T multpl(4);
 
-        const T eps = uroundoff<T>();
+        const T eps = ulp<T>();
         const T safmin = safe_min<T>();
         const T safmn2 = pow(two, (int)(log(safmin / eps) / log(two)) / two);
         const T safmx2 = one / safmn2;

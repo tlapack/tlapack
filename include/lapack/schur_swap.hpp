@@ -284,7 +284,7 @@ namespace tlapack
             lacpy(Uplo::General, AD_slice, D);
             auto dnorm = lange(Norm::Max, D);
 
-            const T eps = uroundoff<T>();
+            const T eps = ulp<T>();
             const T small_num = safe_min<T>() / eps;
             T thresh = max(ten * eps * dnorm, small_num);
 

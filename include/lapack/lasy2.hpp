@@ -44,7 +44,7 @@ namespace tlapack
         
         const idx_t n1 = ncols(TL);
         const idx_t n2 = ncols(TR);
-        const T eps = uroundoff<T>();
+        const T eps = ulp<T>();
         const T small_num = safe_min<T>() / eps;
 
         const T zero(0);

@@ -95,8 +95,8 @@ namespace tlapack
         // Because we will use the lower triangular part of A as workspace,
         // We have a maximum window size
         const idx_t nw_max = (n - 3) / 3;
-        const real_t eps = uroundoff<real_t>();
-        const real_t small_num = safe_min<real_t>() * ((real_t)n / uroundoff<real_t>());
+        const real_t eps = ulp<real_t>();
+        const real_t small_num = safe_min<real_t>() * ((real_t)n / ulp<real_t>());
         // Size of the deflation window
         const idx_t jw = min(min(nw, ihi - ilo), nw_max);
         // First row index in the deflation window
