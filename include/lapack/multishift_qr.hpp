@@ -42,7 +42,7 @@ namespace tlapack
             if (n < 150)
                 return 10;
             if (n < 590)
-                return 16;
+                return idx_t(n / log2(n));
             if (n < 3000)
                 return 64;
             if (n < 6000)
@@ -61,7 +61,7 @@ namespace tlapack
             if (n < 150)
                 return 10;
             if (n < 590)
-                return idx_t(n/log2(n));
+                return idx_t(n / log2(n));
             if (n < 3000)
                 return 96;
             if (n < 6000)
@@ -191,7 +191,7 @@ namespace tlapack
         TA *_work;
         idx_t lwork;
         // idx_t required_workspace = get_work_multishift_qr(want_t, want_z, ilo, ihi, A, w, Z, opts);
-        idx_t required_workspace = 3 * (nsr/2);
+        idx_t required_workspace = 3 * (nsr / 2);
         // Store whether or not a workspace was locally allocated
         bool locally_allocated = false;
         if (opts._work and required_workspace <= opts.lwork)
@@ -207,7 +207,7 @@ namespace tlapack
             lwork = required_workspace;
             _work = new TA[lwork];
         }
-        auto V = legacyMatrix<TA, layout<matrix_t>>(3, nsr/2, &_work[0], layout<matrix_t> == Layout ::ColMajor ? 3 : nsr/2);
+        auto V = legacyMatrix<TA, layout<matrix_t>>(3, nsr / 2, &_work[0], layout<matrix_t> == Layout ::ColMajor ? 3 : nsr / 2);
 
         // itmax is the total number of QR iterations allowed.
         // For most matrices, 3 shifts per eigenvalue is enough, so
@@ -310,10 +310,12 @@ namespace tlapack
             k_defl = k_defl + 1;
             idx_t ns = std::min(nh - 1, std::min(ls, nsr));
 
+            idx_t i_shifts = istop - ls;
+
             if (k_defl % non_convergence_limit_shift == 0)
             {
                 ns = nsr;
-                for (idx_t i = istop - ns; i < istop - 1; i = i + 2)
+                for (idx_t i = i_shifts; i < istop - 1; i = i + 2)
                 {
                     real_t ss = abs1(A(i, i - 1)) + abs1(A(i - 1, i - 2));
                     TA aa = dat1 * ss + A(i, i);
@@ -323,50 +325,74 @@ namespace tlapack
                     lahqr_eig22(aa, bb, cc, dd, w[i], w[i + 1]);
                 }
             }
-
-            idx_t i_shifts = istop - ls;
-
-            // Sort the shifts (helps a little)
-            // Bubble sort keeps complex conjugate pairs together
-            bool sorted = false;
-            idx_t k = istop;
-            while (!sorted && k > i_shifts)
+            else
             {
-                sorted = true;
-                for (idx_t i = i_shifts; i < k - 1; ++i)
+
+                if( ls < nsr/2 ){
+                    // Got nsr/2 or fewer shifts? Then use multi/double shift qr to get more
+                    auto temp = slice(A, pair{ n-nsr, n }, pair{0,nsr});
+                    auto shifts = slice( w, pair{ istop - nsr, istop } );
+                    auto Z_slice = slice( Z,  pair{0,nsr},  pair{0,nsr} );
+                    int ierr = lahqr( false, false, 0, nsr, temp, shifts, Z_slice );
+
+                    ns = nsr - ierr;
+
+                    if( ns < 2 ){
+                        // In case of a rare QR failure, use eigenvalues
+                        // of the trailing 2x2 submatrix
+                        TA aa = A(istop-2, istop-2);
+                        TA bb = A(istop-2, istop-1);
+                        TA cc = A(istop-1, istop-2);
+                        TA dd = A(istop-1, istop-1);
+                        lahqr_eig22(aa, bb, cc, dd, w[istop-2], w[istop-1]);
+                        ns = 2;
+                    }
+
+                    i_shifts = istop - ns;
+                }
+
+                // Sort the shifts (helps a little)
+                // Bubble sort keeps complex conjugate pairs together
+                bool sorted = false;
+                idx_t k = istop;
+                while (!sorted && k > i_shifts)
                 {
-                    if (abs1(w[i]) < abs1(w[i + 1]))
+                    sorted = true;
+                    for (idx_t i = i_shifts; i < k - 1; ++i)
                     {
-                        sorted = false;
+                        if (abs1(w[i]) < abs1(w[i + 1]))
+                        {
+                            sorted = false;
+                            auto tmp = w[i];
+                            w[i] = w[i + 1];
+                            w[i + 1] = tmp;
+                        }
+                    }
+                    --k;
+                }
+
+                // Shuffle shifts into pairs of real shifts
+                // and pairs of complex conjugate shifts
+                // assuming complex conjugate shifts are
+                // already adjacent to one another. (Yes,
+                // they are.)
+                for (idx_t i = istop - 1; i > i_shifts + 1; i = i - 2)
+                {
+                    if (imag(w[i]) != -imag(w[i - 1]))
+                    {
                         auto tmp = w[i];
-                        w[i] = w[i + 1];
-                        w[i + 1] = tmp;
+                        w[i] = w[i - 1];
+                        w[i - 1] = w[i - 2];
+                        w[i - 2] = tmp;
                     }
                 }
-                --k;
-            }
 
-            // Shuffle shifts into pairs of real shifts
-            // and pairs of complex conjugate shifts
-            // assuming complex conjugate shifts are
-            // already adjacent to one another. (Yes,
-            // they are.)
-            for (idx_t i = istop - 1; i > i_shifts + 1; i = i - 2)
-            {
-                if (imag(w[i]) != -imag(w[i - 1]))
-                {
-                    auto tmp = w[i];
-                    w[i] = w[i - 1];
-                    w[i - 1] = w[i - 2];
-                    w[i - 2] = tmp;
-                }
+                // Since we shuffled the shifts, we will only drop
+                // Real shifts
+                if (ns % 2 == 1)
+                    ns = ns - 1;
+                i_shifts = istop - ns;
             }
-
-            // Since we shuffled the shifts, we will only drop
-            // Real shifts
-            if (ns % 2 == 1)
-                ns = ns - 1;
-            i_shifts = istop - ns;
 
             // If there are only two shifts and both are real
             // then use only one (helps avoid interference)
@@ -400,13 +426,13 @@ namespace tlapack
     }
 
     template <
-    class matrix_t,
-    class vector_t,
-    enable_if_t<is_complex<type_t<vector_t>>::value, bool> = true>
+        class matrix_t,
+        class vector_t,
+        enable_if_t<is_complex<type_t<vector_t>>::value, bool> = true>
     int multishift_qr(bool want_t, bool want_z, size_type<matrix_t> ilo, size_type<matrix_t> ihi, matrix_t &A, vector_t &w, matrix_t &Z)
     {
         francis_opts_t<size_type<matrix_t>, type_t<matrix_t>> opts = {};
-        return multishift_qr( want_t, want_z, ilo, ihi, A, w, Z, opts );
+        return multishift_qr(want_t, want_z, ilo, ihi, A, w, Z, opts);
     }
 
 } // lapack
