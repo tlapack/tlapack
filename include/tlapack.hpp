@@ -69,7 +69,6 @@
 #include "lapack/schur_move.hpp"
 #include "lapack/move_bulge.hpp"
 #include "lapack/multishift_qr_sweep.hpp"
-#include "lapack/multishift_qr_sweep_rowoptimized.hpp"
 #include "lapack/agressive_early_deflation.hpp"
 #include "lapack/multishift_qr.hpp"
 
