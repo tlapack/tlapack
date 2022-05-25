@@ -23,8 +23,8 @@ namespace tlapack
      * @ingroup ggev
      */
     template <typename M>
-    void lahqr_eig22(M &A, M &B, std::complex<real_type<type_t<M>>> &alpha1,
-                     std::complex<real_type<type_t<M>>> &alpha2, type_t<M> beta1, type_t<M> beta2)
+    void lahqz_eig22(M &A, M &B, std::complex<real_type<type_t<M>>> &alpha1,
+                     std::complex<real_type<type_t<M>>> &alpha2, type_t<M>& beta1, type_t<M>& beta2)
     {
         // Aliases
         using T = type_t<M>;
@@ -123,7 +123,7 @@ namespace tlapack
         if (discr >= zero or r == zero)
         {
             auto sum = pp + copysign(r, pp);
-            auto diff = pp - sign(r, pp);
+            auto diff = pp - copysign(r, pp);
             auto wbig = shift + sum;
 
             // Compute smaller eigenvalue
@@ -197,16 +197,19 @@ namespace tlapack
                 alpha2 = alpha2 * wscale;
                 beta2 = beta1;
             }
+        } else {
+            beta1 = ascale * bsize;
+            beta2 = beta1;
         }
 
         // Scale second eigenvalue (if real)
         if (imag(alpha1) == rzero)
         {
-            wsize = max(safmin, v1, fuzzy1 * (abs1(alpha2) * c2 + c3),
+            wsize = max(safmin, c1, fuzzy1 * (abs1(alpha2) * c2 + c3),
                         min(c4, half * max(abs1(alpha2), c5)));
             if (wsize != rone)
             {
-                wscale = rone / wsize;
+                auto wscale = rone / wsize;
                 if (wsize > rone)
                     beta2 = (max(ascale, bsize) * wscale) * min(ascale, bsize);
                 else

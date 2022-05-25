@@ -67,4 +67,9 @@
 #include "lapack/schur_swap.hpp"
 #include "lapack/schur_move.hpp"
 
+// Nonsymmetric generalized eigenvalue routines
+// ----------------
+
+#include "lapack/lahqz_eig22.hpp"
+
 #endif // __TLAPACK_HH__
