@@ -37,9 +37,8 @@ target_link_libraries( tlapack INTERFACE tblas )
 # Includes CMAKE_DEPENDENT_OPTION
 include(CMakeDependentOption)
 
-# BLAS++ and LAPACK++ interface
-option( USE_BLASPP_WRAPPERS   "Use BLAS++ wrappers to link with an optimized BLAS library"     OFF )
-option( USE_LAPACKPP_WRAPPERS "Use LAPACK++ wrappers to link with an optimized LAPACK library" OFF )
+# LAPACK++ interface
+option( USE_LAPACKPP_WRAPPERS "Use LAPACK++ wrappers to link with optimized BLAS and LAPACK libraries" OFF )
 
 cmake_dependent_option( BUILD_BLASPP_TESTS   "Build BLAS++ tests. Please inform blaspp_TEST_DIR if BUILD_BLASPP_TESTS=ON"
   OFF "BUILD_TESTING" # Default value when condition is true
@@ -143,14 +142,6 @@ endif()
 #-------------------------------------------------------------------------------
 # Modules
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
-
-#-------------------------------------------------------------------------------
-# Search for BLAS++ library if it is needed
-if( USE_BLASPP_WRAPPERS )
-  find_package( blaspp REQUIRED )
-  target_compile_definitions( tblas INTERFACE USE_BLASPP_WRAPPERS )
-  target_link_libraries( tblas INTERFACE blaspp )
-endif()
 
 #-------------------------------------------------------------------------------
 # Search for LAPACK++ library if it is needed

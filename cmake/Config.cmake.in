@@ -2,11 +2,6 @@
 
 include( CMakeFindDependencyMacro )
 
-set( USE_BLASPP_WRAPPERS "@USE_BLASPP_WRAPPERS@" )
-if( USE_BLASPP_WRAPPERS )
-    find_dependency( blaspp )
-endif()
-
 set( USE_LAPACKPP_WRAPPERS "@USE_LAPACKPP_WRAPPERS@" )
 if( USE_LAPACKPP_WRAPPERS )
     find_dependency( lapackpp )

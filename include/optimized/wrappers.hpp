@@ -5,10 +5,10 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_BLASPP_WRAPPERS_HH__
-#define __TLAPACK_BLASPP_WRAPPERS_HH__
+#ifndef __TLAPACK_LAPACKPP_WRAPPERS_HH__
+#define __TLAPACK_LAPACKPP_WRAPPERS_HH__
 
-#include "blas/wrappers.hh" // from BLAS++
+#include "lapack.hh" // from LAPACK++
 #include "base/utils.hpp"
 
 namespace tlapack {
@@ -176,12 +176,41 @@ void rot(
 }
 
 template <typename T,
+    enable_if_t< is_same_v< T, real_type<T> >, int > = 0,
     enable_if_allow_optblas_t< T > = 0
 >
 inline
-void rotg( T& a, const T& b, real_type<T>& c, T& s )
+void rotg( T& a, T& b, T& c, T& s )
 {
-    return ::blas::rotg( &a, (T*) &b, &c, &s );
+    // Constants
+    const T zero = 0;
+    const T one  = 1;
+    const T anorm = tlapack::abs(a);
+    const T bnorm = tlapack::abs(b);
+
+    T r;
+    ::lapack::lartg( a, b, &c, &s, &r );
+    
+    // Return information on a and b:
+    a = r;
+    if( s == zero || c == zero || (anorm > bnorm) )
+        b = s;
+    else if ( c != zero )
+        b = one / c;
+    else
+        b = one;
+}
+
+template <typename T,
+    enable_if_t< !is_same_v< T, real_type<T> >, int > = 0,
+    enable_if_allow_optblas_t< T > = 0
+>
+inline
+void rotg( T& a, const T& b, real_type<T>& c, complex_type<T>& s )
+{
+    T r;
+    ::lapack::lartg( a, b, &c, &s, &r );
+    a = r;
 }
 
 template<
@@ -533,7 +562,6 @@ template<
     class alpha_t, class beta_t,
     class T = type_t<vectorY_t>,
     enable_if_allow_optblas_t<
-        pair< alpha_t, real_type<T> >, // Standard BLAS does not support csymv or zsymv
         pair< matrixA_t, T >,
         pair< vectorX_t, T >,
         pair< vectorY_t, T >,
@@ -1196,4 +1224,4 @@ void trsm(
 
 }  // namespace tlapack
 
-#endif // __TLAPACK_BLASPP_WRAPPERS_HH__
+#endif // __TLAPACK_LAPACKPP_WRAPPERS_HH__

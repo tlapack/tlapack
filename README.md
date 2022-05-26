@@ -97,15 +97,13 @@ Here are the \<T\>LAPACK specific options and their default values
     
         Build and install CBLAS wrappers to <T>BLAS
     
-    USE_BLASPP_WRAPPERS                 OFF
-
-        Use BLAS++ wrappers to link with an optimized BLAS library.
-        Branch compatible with \<T>LAPACK:
-            https://bitbucket.org/weslleyspereira/blaspp/branch/tlapack
-    
     USE_LAPACKPP_WRAPPERS               OFF
 
         Use LAPACK++ wrappers to link with an optimized LAPACK library.
+        Mind that LAPACK++ needs BLAS++.
+        Branches compatible with \<T>LAPACK:
+            https://bitbucket.org/weslleyspereira/blaspp/branch/tlapack
+            https://bitbucket.org/weslleyspereira/lapackpp/branch/tlapack
     
     TLAPACK_INT_T                       int64_t
     
