@@ -1,5 +1,5 @@
-/// @file test_gehrd.cpp
-/// @brief Test hessenberg reduction
+/// @file test_transpose.cpp
+/// @brief Test transpose
 //
 // Copyright (c) 2022, University of Colorado Denver. All rights reserved.
 //
