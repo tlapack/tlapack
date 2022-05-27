@@ -666,7 +666,7 @@ if (opts.aux_norm):
     # todo: lanhe is failing
     [ 'lanhe', gen + dtype + align + n  + norm + uplo ],
     [ 'lansy', gen + dtype + align + n  + norm + uplo ],
-    # [ 'lantr', gen + dtype + align + mn + norm + uplo + diag ],
+    [ 'lantr', gen + dtype + align + mn + norm + uplo + diag ],
     # [ 'lanhs', gen + dtype + align + n  + norm ],
 
     # # Packed

@@ -24,6 +24,7 @@
 #include "legacy_api/lapack/lacpy.hpp"
 #include "legacy_api/lapack/lange.hpp"
 #include "legacy_api/lapack/lanhe.hpp"
+#include "legacy_api/lapack/lantr.hpp"
 #include "legacy_api/lapack/lansy.hpp"
 #include "legacy_api/lapack/larnv.hpp"
 #include "legacy_api/lapack/lascl.hpp"

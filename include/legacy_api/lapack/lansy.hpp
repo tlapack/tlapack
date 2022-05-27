@@ -50,6 +50,8 @@ real_type<TA> lansy(
                     normType != Norm::Inf &&
                     normType != Norm::Max &&
                     normType != Norm::One );
+    tlapack_check_false(  uplo != Uplo::Lower &&
+                          uplo != Uplo::Upper );
 
     // quick return
     if ( n == 0 ) return 0;
