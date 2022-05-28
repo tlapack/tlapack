@@ -55,7 +55,7 @@ TEMPLATE_LIST_TEST_CASE("Conjugate Transpose gives correct result", "[util]", ty
     }
 }
 
-TEMPLATE_LIST_TEST_CASE("Conjugate Transpose gives correct result", "[util]", types_to_test)
+TEMPLATE_LIST_TEST_CASE("Transpose gives correct result", "[util]", types_to_test)
 {
     srand(1);
 
