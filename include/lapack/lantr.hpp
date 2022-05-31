@@ -20,6 +20,7 @@ namespace tlapack {
  * 
  * @tparam norm_t Either Norm or any class that implements `operator Norm()`.
  * @tparam uplo_t Either Uplo or any class that implements `operator Uplo()`.
+ * @tparam diag_t Either Diag or any class that implements `operator Diag()`.
  * 
  * @param[in] normType
  *      - Norm::Max: Maximum absolute value over all elements of the matrix.
@@ -38,7 +39,7 @@ namespace tlapack {
  *     - Diag::Unit:    A is assumed to be unit triangular.
  *     - Diag::NonUnit: A is not assumed to be unit triangular.
  * 
- * @param[in] A n-by-n triangular matrix.
+ * @param[in] A m-by-n triangular matrix.
  * 
  * @ingroup auxiliary
  */
@@ -48,7 +49,6 @@ lantr( norm_t normType, uplo_t uplo, diag_t diag, const matrix_t& A )
 {
     using real_t = real_type< type_t<matrix_t> >;
     using idx_t  = size_type< matrix_t >;
-    using pair   = pair<idx_t,idx_t>;
 
     // constants
     const idx_t m = nrows(A);
@@ -74,10 +74,10 @@ lantr( norm_t normType, uplo_t uplo, diag_t diag, const matrix_t& A )
 
     if( normType == Norm::Max )
     {
-        if( uplo == Uplo::Upper ) {
-            for (idx_t j = 0; j < n; ++j) {
-                if( diag == Diag::NonUnit )
-                    for (idx_t i = 0; i <= j; ++i)
+        if( diag == Diag::NonUnit ) {
+            if( uplo == Uplo::Upper ) {
+                for (idx_t j = 0; j < n; ++j) {
+                    for (idx_t i = 0; i <= std::min(j,m-1); ++i)
                     {
                         real_t temp = tlapack::abs( A(i,j) );
 
@@ -88,23 +88,10 @@ lantr( norm_t normType, uplo_t uplo, diag_t diag, const matrix_t& A )
                                 return temp;
                         }
                     }
-                else
-                    for (idx_t i = 0; i < j; ++i)
-                    {
-                        real_t temp = tlapack::abs( A(i,j) );
-
-                        if (temp > norm)
-                            norm = temp;
-                        else {
-                            if ( isnan(temp) ) 
-                                return temp;
-                        }
-                    }
+                }
             }
-        }
-        else {
-            for (idx_t j = 0; j < n; ++j) {
-                if( diag == Diag::NonUnit )
+            else {
+                for (idx_t j = 0; j < n; ++j) {
                     for (idx_t i = j; i < m; ++i)
                     {
                         real_t temp = tlapack::abs( A(i,j) );
@@ -116,7 +103,28 @@ lantr( norm_t normType, uplo_t uplo, diag_t diag, const matrix_t& A )
                                 return temp;
                         }
                     }
-                else
+                }
+            }
+        }
+        else {
+            norm = real_t( 1 );
+            if( uplo == Uplo::Upper ) {
+                for (idx_t j = 0; j < n; ++j) {
+                    for (idx_t i = 0; i < std::min(j,m); ++i)
+                    {
+                        real_t temp = tlapack::abs( A(i,j) );
+
+                        if (temp > norm)
+                            norm = temp;
+                        else {
+                            if ( isnan(temp) ) 
+                                return temp;
+                        }
+                    }
+                }
+            }
+            else {
+                for (idx_t j = 0; j < n; ++j) {
                     for (idx_t i = j+1; i < m; ++i)
                     {
                         real_t temp = tlapack::abs( A(i,j) );
@@ -128,10 +136,9 @@ lantr( norm_t normType, uplo_t uplo, diag_t diag, const matrix_t& A )
                                 return temp;
                         }
                     }
+                }
             }
         }
-        if (norm < 1)
-            norm = 1;
     }
     else if( normType == Norm::Inf )
     {
@@ -143,9 +150,9 @@ lantr( norm_t normType, uplo_t uplo, diag_t diag, const matrix_t& A )
                     for (idx_t j = i; j < n; ++j)
                         sum += tlapack::abs( A(i,j) );
                 else {
+                    sum = real_t( 1 );
                     for (idx_t j = i+1; j < n; ++j)
                         sum += tlapack::abs( A(i,j) );
-                    sum += 1;
                 }
 
                 if (sum > norm)
@@ -160,13 +167,13 @@ lantr( norm_t normType, uplo_t uplo, diag_t diag, const matrix_t& A )
             for (idx_t i = 0; i < m; ++i)
             {
                 real_t sum( 0 );
-                if( diag == Diag::NonUnit )
-                    for (idx_t j = 0; j <= i; ++j)
+                if( diag == Diag::NonUnit || i >= n )
+                    for (idx_t j = 0; j <= std::min(i,n-1); ++j)
                         sum += tlapack::abs( A(i,j) );
                 else {
+                    sum = real_t( 1 );
                     for (idx_t j = 0; j < i; ++j)
                         sum += tlapack::abs( A(i,j) );
-                    sum += 1;
                 }
 
                 if (sum > norm)
@@ -184,13 +191,13 @@ lantr( norm_t normType, uplo_t uplo, diag_t diag, const matrix_t& A )
             for (idx_t j = 0; j < n; ++j)
             {
                 real_t sum( 0 );
-                if( diag == Diag::NonUnit )
-                    for (idx_t i = 0; i <= j; ++i)
+                if( diag == Diag::NonUnit || j >= m )
+                    for (idx_t i = 0; i <= std::min(j,m-1); ++i)
                         sum += tlapack::abs( A(i,j) );
                 else {
+                    sum = real_t( 1 );
                     for (idx_t i = 0; i < j; ++i)
                         sum += tlapack::abs( A(i,j) );
-                    sum += 1;
                 }
 
                 if (sum > norm)
@@ -209,9 +216,9 @@ lantr( norm_t normType, uplo_t uplo, diag_t diag, const matrix_t& A )
                     for (idx_t i = j; i < m; ++i)
                         sum += tlapack::abs( A(i,j) );
                 else {
+                    sum = real_t( 1 );
                     for (idx_t i = j+1; i < m; ++i)
                         sum += tlapack::abs( A(i,j) );
-                    sum += 1;
                 }
 
                 if (sum > norm)
@@ -225,29 +232,27 @@ lantr( norm_t normType, uplo_t uplo, diag_t diag, const matrix_t& A )
     }
     else
     {
-        real_t scale(1), sum;
+        real_t scale(1), sum( 0 );
 
         if( uplo == Uplo::Upper ) {
             if( diag == Diag::NonUnit ) {
-                sum = real_t( 0 );
                 for (idx_t j = 0; j < n; ++j)
-                    lassq( slice(A,range<idx_t>(0,j+1),j), scale, sum );
+                    lassq( slice(A,range<idx_t>(0,std::min(j+1,m)),j), scale, sum );
             }
             else {
                 sum = real_t( std::min(m,n) );
-                for (idx_t j = 0; j < n; ++j)
-                    lassq( slice(A,range<idx_t>(0,j),j), scale, sum );
+                for (idx_t j = 1; j < n; ++j)
+                    lassq( slice(A,range<idx_t>(0,std::min(j,m)),j), scale, sum );
             }
         }
         else {
             if( diag == Diag::NonUnit ) {
-                sum = real_t( 0 );
-                for (idx_t j = 0; j < n; ++j)
+                for (idx_t j = 0; j < std::min(m,n); ++j)
                     lassq( slice(A,range<idx_t>(j,m),j), scale, sum );
             }
             else {
                 sum = real_t( std::min(m,n) );
-                for (idx_t j = 0; j < n; ++j)
+                for (idx_t j = 0; j < std::min(m-1,n); ++j)
                     lassq( slice(A,range<idx_t>(j+1,m),j), scale, sum );
             }
         }
@@ -309,44 +314,41 @@ lantr( norm_t normType, uplo_t uplo, diag_t diag, const matrix_t& A, work_t& wor
 
         if( uplo == Uplo::Upper ) {
             if( diag == Diag::NonUnit ) {
-                work[0] = tlapack::abs( A(0,0) );
-                for (idx_t i = 1; i < m; ++i)
+                for (idx_t i = 0; i < m; ++i)
                     work[i] = real_t(0);
     
-                for (idx_t j = 1; j < n; ++j)
-                    for (idx_t i = 0; i <= j; ++i)
+                for (idx_t j = 0; j < n; ++j)
+                    for (idx_t i = 0; i <= std::min(j,m-1); ++i)
                         work[i] += tlapack::abs( A(i,j) );
             }
             else {
-                work[0] = real_t(1);
-                for (idx_t i = 1; i < m; ++i)
-                    work[i] = real_t(0);
+                for (idx_t i = 0; i < m; ++i)
+                    work[i] = real_t(1);
     
                 for (idx_t j = 1; j < n; ++j) {
-                    for (idx_t i = 0; i < j; ++i)
+                    for (idx_t i = 0; i < std::min(j,m); ++i)
                         work[i] += tlapack::abs( A(i,j) );
-                    work[j] += real_t(1);
                 }
             }
         }
         else {
             if( diag == Diag::NonUnit ) {
                 for (idx_t i = 0; i < m; ++i)
-                    work[i] = tlapack::abs( A(i,0) );
+                    work[i] = real_t(0);
     
-                for (idx_t j = 1; j < n; ++j)
+                for (idx_t j = 0; j < n; ++j)
                     for (idx_t i = j; i < m; ++i)
                         work[i] += tlapack::abs( A(i,j) );
             }
             else {
-                work[0] = real_t(1);
-                for (idx_t i = 1; i < m; ++i)
-                    work[i] = tlapack::abs( A(i,0) );
+                for (idx_t i = 0; i < std::min(m,n); ++i)
+                    work[i] = real_t(1);
+                for (idx_t i = n; i < m; ++i)
+                    work[i] = real_t(0);
     
                 for (idx_t j = 1; j < n; ++j) {
                     for (idx_t i = j+1; i < m; ++i)
                         work[i] += tlapack::abs( A(i,j) );
-                    work[j] += real_t(1);
                 }
             }
         }

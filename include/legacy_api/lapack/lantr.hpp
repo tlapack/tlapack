@@ -44,9 +44,9 @@ namespace tlapack {
  * 
  * @ingroup auxiliary
 **/
-template <class norm_t, typename TA>
+template <typename TA>
 real_type<TA> lantr(
-    norm_t normType, Uplo uplo, Diag diag, idx_t n,
+    Norm normType, Uplo uplo, Diag diag, idx_t m, idx_t n,
     const TA *A, idx_t lda )
 {
     using internal::colmajor_matrix;
@@ -62,10 +62,10 @@ real_type<TA> lantr(
                          diag != Diag::Unit );
 
     // quick return
-    if ( n == 0 ) return 0;
+    if (m == 0 || n == 0) return 0;
 
     // Matrix views
-    auto A_ = colmajor_matrix<TA>( (TA*)A, n, n, lda );
+    auto A_ = colmajor_matrix<TA>( (TA*)A, m, n, lda );
 
     return lantr( normType, uplo, diag, A_ );
 }
