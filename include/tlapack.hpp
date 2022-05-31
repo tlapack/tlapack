@@ -74,9 +74,11 @@
 // Auxiliary routines
 // ------------------
 
+
 #include "tlapack/lapack/larf.hpp"
 #include "tlapack/lapack/larfg.hpp"
 #include "tlapack/lapack/larft.hpp"
+#include "tlapack/lapack/larft_recursive.hpp"
 #include "tlapack/lapack/larfb.hpp"
 #include "tlapack/lapack/lapy2.hpp"
 #include "tlapack/lapack/lapy3.hpp"
