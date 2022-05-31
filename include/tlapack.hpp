@@ -22,6 +22,7 @@
 #include "lapack/larf.hpp"
 #include "lapack/larfg.hpp"
 #include "lapack/larft.hpp"
+#include "lapack/larft_recursive.hpp"
 #include "lapack/larfb.hpp"
 #include "lapack/lapy2.hpp"
 #include "lapack/lapy3.hpp"

@@ -31,6 +31,7 @@ add_executable( test_gelqf test_gelqf.cpp )
 add_executable( test_gelq2 test_gelq2.cpp )
 add_executable( test_trtri test_trtri.cpp )
 add_executable( test_gebd2 test_gebd2.cpp )
+add_executable( test_larft_recursive test_larft_recursive.cpp )
 
 # Reset the output directory
 set( CMAKE_RUNTIME_OUTPUT_DIRECTORY "${TLAPACK_RUNTIME_OUTPUT_DIRECTORY}" )
