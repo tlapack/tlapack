@@ -71,5 +71,6 @@
 #include "lapack/multishift_qr_sweep.hpp"
 #include "lapack/agressive_early_deflation.hpp"
 #include "lapack/multishift_qr.hpp"
+#include "lapack/recursive_bulge_move.hpp"
 
 #endif // __TLAPACK_HH__
