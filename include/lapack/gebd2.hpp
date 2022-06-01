@@ -12,13 +12,12 @@
 #include "lapack/larfg.hpp"
 #include "lapack/larf.hpp"
 
+namespace tlapack {
+
 /** 
 * hand-crafted  reduction to bidiagonal form of a general m-by-n matrix A, level 2, right looking algorithm
 * @param[in,out] A
 */
-
-namespace tlapack {
-
 template <typename matrix_t, class vector_t>
 int gebd2( matrix_t & A, vector_t & tauv, vector_t & tauw, vector_t & work ){
 
