@@ -12,10 +12,7 @@
 
 #include "base/utils.hpp"
 #include "base/types.hpp"
-// #include "lapack/larfg.hpp"
-// #include "lapack/larf.hpp"
 
-// using namespace tlapack;
 namespace tlapack {
 
 template <typename idx_t>
@@ -29,7 +26,8 @@ struct lu_mult_opts_t
 /**
  *
  * @brief in-place multiplication of lower triangular matrix L and upper triangular matrix U.
- *
+ *      this is the recursive variant
+ * 
  * @param[in,out] A n-by-n matrix
  *      On entry, the strictly lower triangular entries of A contain the matrix L.
  *      L is assumed to have unit diagonal.  
@@ -49,6 +47,10 @@ void lu_mult(matrix_t &A, const lu_mult_opts_t<size_type<matrix_t>> &opts = {})
 
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
+
+    // quick return
+    if (n == 0)
+        return;
 
     if (n <= opts.nx)
     { // Matrix is small, use for loops instead of recursion
@@ -72,7 +74,7 @@ void lu_mult(matrix_t &A, const lu_mult_opts_t<size_type<matrix_t>> &opts = {})
         return;
     }
 
-    idx_t n0 = n / 2;
+    const idx_t n0 = n / 2;
 
     auto A00 = slice(A, range(0, n0), range(0, n0));
     auto A01 = slice(A, range(0, n0), range(n0, n));
@@ -97,5 +99,7 @@ void lu_mult(matrix_t &A, const lu_mult_opts_t<size_type<matrix_t>> &opts = {})
 
     return;
 }
+
 }
+
 #endif // __TLAPACK_LU_MULT_HH__

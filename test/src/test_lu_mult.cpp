@@ -23,10 +23,7 @@ TEMPLATE_LIST_TEST_CASE("lu multiplication is backward stable", "[lu check][lu][
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
     typedef real_type<T> real_t;
-    typedef std::complex<real_t> complex_t;
 
-    const T zero(0);
-    const T one(1);
     idx_t n;
 
     n = GENERATE(1, 2, 6, 9, 20, 23, 28);
@@ -58,11 +55,12 @@ TEMPLATE_LIST_TEST_CASE("lu multiplication is backward stable", "[lu check][lu][
     DYNAMIC_SECTION("n = " << n)
     {
         lu_mult(A);
+
         // Calculate residual
 
         gemm(Op::NoTrans, Op::NoTrans, real_t(1), L, U, real_t(-1), A);
 
-        auto lu_mult_res_norm = lange(max_norm, A) / norma;;
+        real_t lu_mult_res_norm = lange(max_norm, A) / norma;;
         CHECK(lu_mult_res_norm <= tol);
     }
 }
