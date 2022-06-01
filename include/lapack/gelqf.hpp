@@ -1,11 +1,18 @@
-#ifndef GELQF
-#define GELQF
+/// @file gelqf.hpp
+/// @author Yuxin Cai, University of Colorado Denver, USA
+/// Adapted from @see https://github.com/Reference-LAPACK/lapack/blob/master/SRC/dgelqf.f
+//
+// Copyright (c) 2014-2022, University of Colorado Denver. All rights reserved.
+//
+// This file is part of <T>LAPACK.
+// <T>LAPACK is free software: you can redistribute it and/or modify it under
+// the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-// #include <utility>
+#ifndef __TLAPACK_GELQF_HH__
+#define __TLAPACK_GELQF_HH__
+
 #include <plugins/tlapack_stdvector.hpp>
 #include <plugins/tlapack_legacyArray.hpp>
-// #include <plugins/tlapack_debugutils.hpp>
-// #include <tlapack.hpp>
 
 #include "base/utils.hpp"
 #include "base/types.hpp"

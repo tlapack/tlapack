@@ -1,11 +1,18 @@
-#ifndef UNGL2
-#define UNGL2
+/// @file ungl2.hpp
+/// @author Yuxin Cai, University of Colorado Denver, USA
+/// Adapted from @see https://github.com/Reference-LAPACK/lapack/blob/master/SRC/cungl2.f
+//
+// Copyright (c) 2014-2022, University of Colorado Denver. All rights reserved.
+//
+// This file is part of <T>LAPACK.
+// <T>LAPACK is free software: you can redistribute it and/or modify it under
+// the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-// #include <utility>
+#ifndef __TLAPACK_UNGL2_HH__
+#define __TLAPACK_UNGL2_HH__
+
 #include <plugins/tlapack_stdvector.hpp>
 #include <plugins/tlapack_legacyArray.hpp>
-// #include <plugins/tlapack_debugutils.hpp>
-// #include <tlapack.hpp>
 
 #include "base/utils.hpp"
 #include "base/types.hpp"
@@ -15,7 +22,7 @@
 namespace tlapack {
 
 /**
- * hand-crafted full LQ factorization for a general m-by-n column major matrix A (m <= n), level 0, right looking algorithm
+ * hand-crafted full LQ factorization for a general m-by-n column major matrix A (m <= n), level 2, right looking algorithm
  * outputing Q is an orthonormal matrix, allowing for bidiagonal reduction, n <= m, and the inclusion of m <= k <=n.
  * @param[in,out] Q
  */

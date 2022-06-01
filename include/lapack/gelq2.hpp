@@ -1,11 +1,18 @@
-#ifndef GELQ2
-#define GELQ2
+/// @file gelq2.hpp
+/// @author Yuxin Cai, University of Colorado Denver, USA
+/// Adapted from @see https://github.com/Reference-LAPACK/lapack/blob/master/SRC/dgelq2.f
+//
+// Copyright (c) 2014-2022, University of Colorado Denver. All rights reserved.
+//
+// This file is part of <T>LAPACK.
+// <T>LAPACK is free software: you can redistribute it and/or modify it under
+// the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-// #include <utility>
+#ifndef __TLAPACK_GELQ2_HH__
+#define __TLAPACK_GELQ2_HH__
+
 #include <plugins/tlapack_stdvector.hpp>
 #include <plugins/tlapack_legacyArray.hpp>
-// #include <plugins/tlapack_debugutils.hpp>
-// #include <tlapack.hpp>
 
 #include "base/utils.hpp"
 #include "base/types.hpp"
