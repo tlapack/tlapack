@@ -1,4 +1,4 @@
-/// @file test_schur_swap.cpp
+/// @file test_gebd2.cpp
 /// @brief Test 1x1 and 2x2 sylvester solver
 //
 // Copyright (c) 2022, University of Colorado Denver. All rights reserved.
@@ -38,11 +38,11 @@ TEMPLATE_LIST_TEST_CASE("bidiagonal reduction is backward stable", "[bidiagonal]
     const real_t eps = uroundoff<real_t>();
     const real_t tol = 1.0e2 * max(m,n) * eps;
 
-    std::unique_ptr<T[]> A_(new T[max(m,n)*max(m,n)]);
-    std::unique_ptr<T[]> A_copy_(new T[max(m,n)*max(m,n)]);
+    std::unique_ptr<T[]> A_(new T[m * n]);
+    std::unique_ptr<T[]> A_copy_(new T[m * n]);
 
-    auto A = legacyMatrix<T, layout<matrix_t>>(m, n, &A_[0], max(m,n) );
-    auto A_copy = legacyMatrix<T, layout<matrix_t>>(m, n, &A_copy_[0], max(m,n) );
+    auto A = legacyMatrix<T, layout<matrix_t>>(m, n, &A_[0], layout<matrix_t> == Layout::ColMajor ? m : n );
+    auto A_copy = legacyMatrix<T, layout<matrix_t>>(m, n, &A_copy_[0], layout<matrix_t> == Layout::ColMajor ? m : n  );
 
     std::vector<T> work(m); // max of m and n
     std::vector<T> tauv(n); // min of m and n
@@ -59,10 +59,8 @@ TEMPLATE_LIST_TEST_CASE("bidiagonal reduction is backward stable", "[bidiagonal]
     {
         gebd2(A, tauv, tauw, work);
 
-        // std::unique_ptr<T[]> B_(new T[m * n]);
-        // auto B = legacyMatrix<T, layout<matrix_t>>(m, n, &B_[0], ( layout<matrix_t> == Layout::ColMajor )?m:n );
-        std::unique_ptr<T[]> B_(new T[max(m,n)*max(m,n)]);
-        auto B = legacyMatrix<T, layout<matrix_t>>(m, n, &B_[0], max(m,n) );
+        std::unique_ptr<T[]> B_(new T[m * n]);
+        auto B = legacyMatrix<T, layout<matrix_t>>(m, n, &B_[0], layout<matrix_t> == Layout::ColMajor ? m : n );
 
         laset(Uplo::General, zero, zero, B);
 
@@ -74,6 +72,20 @@ TEMPLATE_LIST_TEST_CASE("bidiagonal reduction is backward stable", "[bidiagonal]
 
         std::unique_ptr<T[]> Q_(new T[m * m]);
         auto Q = legacyMatrix<T, layout<matrix_t>>(m, m, &Q_[0], m );
+
+        lacpy(tlapack::Uplo::Lower, A, Q);
+
+        ung2r( n, Q, tauv, work);
+
+        std::unique_ptr<T[]> _res(new T[m * m]);
+
+        auto res = legacyMatrix<T, layout<matrix_t>>(m, m, &_res[0], m);
+        auto orth_res_norm = check_orthogonality(Q, res);
+        CHECK(orth_res_norm <= tol);
+
+
+        std::unique_ptr<T[]> Z_(new T[n * n]);
+        auto Z = legacyMatrix<T, layout<matrix_t>>(n, n, &Q_[0], n );
 
         lacpy(tlapack::Uplo::Lower, A, Q);
 
