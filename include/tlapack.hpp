@@ -36,6 +36,11 @@
 #include "lapack/transpose.hpp"
 #include "lapack/lauum_recursive.hpp"
 
+// SVD
+// ----------------
+
+#include "lapack/gebd2.hpp"
+
 // QR factorization
 // ----------------
 
