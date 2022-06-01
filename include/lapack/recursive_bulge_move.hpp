@@ -80,9 +80,9 @@ namespace tlapack
 
         for (idx_t ip = 0; ip < np; ++ip)
         {
-            for (idx_t i_bulge = 0; i_bulge < n_bulges; ++i_bulge)
+            for (idx_t i_bulge = 0; i_bulge < 1; ++i_bulge)
             {
-                idx_t i_pos = 1 + ip + 2 * (n_bulges - i_bulge);
+                idx_t i_pos = 1 + ip + 2 * (n_bulges - i_bulge - 1);
                 auto v = col(V, i_bulge);
                 auto H = slice(A, pair{i_pos - 1, i_pos + 3}, pair{i_pos - 1, i_pos + 3});
                 move_bulge(H, v, s[2 * i_bulge], s[2 * i_bulge + 1]);
@@ -159,9 +159,9 @@ namespace tlapack
             // }
 
             // Delayed update from the left
-            for (idx_t i_bulge = 0; i_bulge < n_bulges; ++i_bulge)
+            for (idx_t i_bulge = 0; i_bulge < 1; ++i_bulge)
             {
-                idx_t i_pos = 1 + ip + 2 * (n_bulges - i_bulge);
+                idx_t i_pos = 1 + ip + 2 * (n_bulges - i_bulge - 1);
                 auto v = col(V, i_bulge);
                 auto t0 = conj(v[0]);
                 auto t1 = t0 * v[1];
@@ -176,9 +176,9 @@ namespace tlapack
             }
 
             // Accumulate the reflectors into U
-            for (idx_t i_bulge = 0; i_bulge < n_bulges; ++i_bulge)
+            for (idx_t i_bulge = 0; i_bulge < 1; ++i_bulge)
             {
-                idx_t i_pos = ip + 2 * (n_bulges - i_bulge);
+                idx_t i_pos = ip + 2 * (n_bulges - i_bulge - 1);
                 auto v = col(V, i_bulge);
                 // idx_t i1 = (i_pos - i_pos_block) - (i_pos_last - i_pos_block - n_shifts + 2);
                 // idx_t i2 = std::min(nrows(U2), (i_pos_last - i_pos_block) + (i_pos_last - i_pos_block - n_shifts + 2) + 3);

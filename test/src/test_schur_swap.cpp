@@ -9,7 +9,6 @@
 
 #include <catch2/catch.hpp>
 #include <plugins/tlapack_stdvector.hpp>
-#include <plugins/tlapack_debugutils.hpp>
 #include <tlapack.hpp>
 #include <testutils.hpp>
 #include <testdefinitions.hpp>
