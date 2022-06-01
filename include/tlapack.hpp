@@ -37,6 +37,7 @@
 #include "lapack/lassq.hpp"
 #include "lapack/transpose.hpp"
 #include "lapack/lauum_recursive.hpp"
+#include "lapack/lu_mult.hpp"
 
 // SVD
 // ----------------
