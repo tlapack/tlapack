@@ -32,8 +32,6 @@ int gelqf(matrix_t &A, matrix_t &TT, vector_t &tauw, work_t &work, const size_ty
 
     // type alias for indexes
     using idx_t = size_type<matrix_t>;
-    using T = type_t<matrix_t>;
-    using real_t = real_type<T>;
     using range = std::pair<idx_t, idx_t>;
 
     const idx_t m = nrows(A);

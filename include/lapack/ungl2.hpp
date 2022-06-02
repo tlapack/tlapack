@@ -32,7 +32,6 @@ int ungl2(matrix_t &Q, vector_t &tauw, vector_t &work, bool &bidg)
 
     using idx_t = size_type<matrix_t>;
     using T = type_t<matrix_t>;
-    using real_t = real_type<T>;
     using range = std::pair<idx_t, idx_t>;
 
     const idx_t k = nrows(Q);
