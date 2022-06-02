@@ -27,9 +27,11 @@ auto asum( vector_t const& x )
 }
 
 template< class vectorX_t, class vectorY_t, class alpha_t,
+    class T = type_t<vectorY_t>,
     enable_if_allow_optblas_t<
-        pair< vectorX_t, alpha_t >,
-        pair< vectorY_t, alpha_t >
+        pair< alpha_t, T >,
+        pair< vectorX_t, T >,
+        pair< vectorY_t, T >
     > = 0
 >
 inline
@@ -52,9 +54,10 @@ void axpy(
 }
 
 template< class vectorX_t, class vectorY_t,
+    class T = type_t<vectorY_t>,
     enable_if_allow_optblas_t<
-        pair< vectorX_t, type_t< vectorX_t > >,
-        pair< vectorY_t, type_t< vectorX_t > >
+        pair< vectorX_t, T >,
+        pair< vectorY_t, T >
     > = 0
 >
 inline
@@ -75,9 +78,10 @@ void copy( const vectorX_t& x, vectorY_t& y )
 }
 
 template< class vectorX_t, class vectorY_t,
+    class T = type_t<vectorY_t>,
     enable_if_allow_optblas_t<
-        pair< vectorX_t, type_t< vectorX_t > >,
-        pair< vectorY_t, type_t< vectorX_t > >
+        pair< vectorX_t, T >,
+        pair< vectorY_t, T >
     > = 0
 >
 inline
@@ -98,9 +102,10 @@ auto dot( const vectorX_t& x, const vectorY_t& y )
 }
 
 template< class vectorX_t, class vectorY_t,
+    class T = type_t<vectorY_t>,
     enable_if_allow_optblas_t<
-        pair< vectorX_t, type_t< vectorX_t > >,
-        pair< vectorY_t, type_t< vectorX_t > >
+        pair< vectorX_t, T >,
+        pair< vectorY_t, T >
     > = 0
 >
 inline
@@ -143,13 +148,12 @@ auto nrm2( vector_t const& x )
 template<
     class vectorX_t, class vectorY_t,
     class c_type, class s_type,
-    class T = vectorX_t,
-    class real_t = real_type< T >,
+    class T = type_t<vectorX_t>,
     enable_if_allow_optblas_t<
         pair< vectorX_t, T >,
         pair< vectorY_t, T >,
-        pair< c_type, real_t >,
-        pair< s_type, real_t >
+        pair< c_type, real_type<T> >,
+        pair< s_type, real_type<T> >
     > = 0
 >
 inline
@@ -182,16 +186,17 @@ void rotg( T& a, const T& b, real_type<T>& c, T& s )
 
 template<
     int flag,
-    class vectorX_t, class vectorY_t, class real_t,
+    class vectorX_t, class vectorY_t,
     enable_if_t<((-2 <= flag) && (flag <= 1)), int > = 0,
+    class T = type_t<vectorX_t>,
+    enable_if_t< is_same_v< T, real_type<T> >, int > = 0,
     enable_if_allow_optblas_t<
-        pair< real_t, real_type<real_t> >,
-        pair< vectorX_t, real_t >,
-        pair< vectorY_t, real_t >
+        pair< vectorX_t, T >,
+        pair< vectorY_t, T >
     > = 0
 >
 inline
-void rotm( vectorX_t& x, vectorY_t& y, const real_t h[4] )
+void rotm( vectorX_t& x, vectorY_t& y, const T h[4] )
 {
     using idx_t = size_type< vectorX_t >;
 
@@ -203,23 +208,19 @@ void rotm( vectorX_t& x, vectorY_t& y, const real_t h[4] )
     const idx_t& n = _x.n;
     const idx_t incx = (_x.direction == Direction::Forward) ? _x.inc : -_x.inc;
     const idx_t incy = (_y.direction == Direction::Forward) ? _y.inc : -_y.inc;
-    const real_t _h[] = { (real_t) flag, h[0], h[1], h[2], h[3] };
+    const T _h[] = { (T) flag, h[0], h[1], h[2], h[3] };
 
     return ::blas::rotm( n, _x.ptr, incx, _y.ptr, incy, _h );
 }
 
-template< typename real_t,
-    enable_if_allow_optblas_t<
-        pair< real_t, real_type<real_t> >
-    > = 0
+template< typename T,
+    enable_if_t< is_same_v< T, real_type<T> >, int > = 0,
+    enable_if_allow_optblas_t< T > = 0
 >
 inline
-int rotmg(
-    real_t& d1, real_t& d2,
-    real_t& a, const real_t b,
-    real_t h[4] )
+int rotmg( T& d1, T& d2, T& a, const T b, T h[4] )
 {
-    real_t param[5];
+    T param[5];
     ::blas::rotmg( &d1, &d2, &a, b, param );
     
     h[0] = param[1];
@@ -231,8 +232,10 @@ int rotmg(
 }
 
 template< class vector_t, class alpha_t,
+    class T = type_t<vector_t>,
     enable_if_allow_optblas_t<
-        pair< vector_t, alpha_t >
+        pair< alpha_t, T >,
+        pair< vector_t, T >
     > = 0
 >
 inline
@@ -243,9 +246,10 @@ void scal( const alpha_t alpha, vector_t& x )
 }
 
 template< class vectorX_t, class vectorY_t,
+    class T = type_t<vectorY_t>,
     enable_if_allow_optblas_t<
-        pair< vectorX_t, type_t< vectorX_t > >,
-        pair< vectorY_t, type_t< vectorX_t > >
+        pair< vectorX_t, T >,
+        pair< vectorY_t, T >
     > = 0
 >
 inline
@@ -284,11 +288,13 @@ template<
     class matrixA_t,
     class vectorX_t, class vectorY_t, 
     class alpha_t, class beta_t,
+    class T = type_t<vectorY_t>,
     enable_if_allow_optblas_t<
-        pair< matrixA_t, alpha_t >,
-        pair< vectorX_t, alpha_t >,
-        pair< vectorY_t, alpha_t >,
-        pair< beta_t,    alpha_t >
+        pair< alpha_t, T >,
+        pair< matrixA_t, T >,
+        pair< vectorX_t, T >,
+        pair< vectorY_t, T >,
+        pair< beta_t,    T >
     > = 0
 >
 inline
@@ -325,15 +331,17 @@ template<
     class matrixA_t,
     class vectorX_t, class vectorY_t,
     class alpha_t,
+    class T = type_t<matrixA_t>,
     enable_if_allow_optblas_t<
-        pair< matrixA_t, alpha_t >,
-        pair< vectorX_t, alpha_t >,
-        pair< vectorY_t, alpha_t >
+        pair< alpha_t, T >,
+        pair< matrixA_t, T >,
+        pair< vectorX_t, T >,
+        pair< vectorY_t, T >
     > = 0
 >
 inline
 void ger(
-    const alpha_t& alpha,
+    const alpha_t alpha,
     const vectorX_t& x, const vectorY_t& y,
     matrixA_t& A )
 {
@@ -363,15 +371,17 @@ template<
     class matrixA_t,
     class vectorX_t, class vectorY_t,
     class alpha_t,
+    class T = type_t<matrixA_t>,
     enable_if_allow_optblas_t<
-        pair< matrixA_t, alpha_t >,
-        pair< vectorX_t, alpha_t >,
-        pair< vectorY_t, alpha_t >
+        pair< alpha_t, T >,
+        pair< matrixA_t, T >,
+        pair< vectorX_t, T >,
+        pair< vectorY_t, T >
     > = 0
 >
 inline
 void geru(
-    const alpha_t& alpha,
+    const alpha_t alpha,
     const vectorX_t& x, const vectorY_t& y,
     matrixA_t& A )
 {
@@ -401,18 +411,20 @@ template<
     class matrixA_t,
     class vectorX_t, class vectorY_t, 
     class alpha_t, class beta_t,
+    class T = type_t<vectorY_t>,
     enable_if_allow_optblas_t<
-        pair< matrixA_t, alpha_t >,
-        pair< vectorX_t, alpha_t >,
-        pair< vectorY_t, alpha_t >,
-        pair< beta_t,    alpha_t >
+        pair< alpha_t, T >,
+        pair< matrixA_t, T >,
+        pair< vectorX_t, T >,
+        pair< vectorY_t, T >,
+        pair< beta_t,    T >
     > = 0
 >
 inline
 void hemv(
     Uplo uplo,
-    const alpha_t& alpha, const matrixA_t& A, const vectorX_t& x,
-    const beta_t& beta, vectorY_t& y )
+    const alpha_t alpha, const matrixA_t& A, const vectorX_t& x,
+    const beta_t beta, vectorY_t& y )
 {
     using idx_t = size_type< matrixA_t >;
 
@@ -441,16 +453,17 @@ template<
     class matrixA_t,
     class vectorX_t,
     class alpha_t,
+    class T = type_t<matrixA_t>,
     enable_if_allow_optblas_t<
-        pair< alpha_t, real_type<type_t<matrixA_t>> >,
-        pair< matrixA_t, type_t<matrixA_t> >,
-        pair< vectorX_t, type_t<matrixA_t> >
+        pair< alpha_t, real_type<T> >,
+        pair< matrixA_t, T >,
+        pair< vectorX_t, T >
     > = 0
 >
 inline
 void her(
     Uplo  uplo,
-    const alpha_t& alpha,
+    const alpha_t alpha,
     const vectorX_t& x,
     matrixA_t& A )
 {
@@ -477,16 +490,18 @@ template<
     class matrixA_t,
     class vectorX_t, class vectorY_t,
     class alpha_t,
+    class T = type_t<matrixA_t>,
     enable_if_allow_optblas_t<
-        pair< matrixA_t, alpha_t >,
-        pair< vectorX_t, alpha_t >,
-        pair< vectorY_t, alpha_t >
+        pair< alpha_t, T >,
+        pair< matrixA_t, T >,
+        pair< vectorX_t, T >,
+        pair< vectorY_t, T >
     > = 0
 >
 inline
 void her2(
     Uplo  uplo,
-    const alpha_t& alpha,
+    const alpha_t alpha,
     const vectorX_t& x, const vectorY_t& y,
     matrixA_t& A )
 {
@@ -516,19 +531,20 @@ template<
     class matrixA_t,
     class vectorX_t, class vectorY_t, 
     class alpha_t, class beta_t,
+    class T = type_t<vectorY_t>,
     enable_if_allow_optblas_t<
-        pair< alpha_t, real_type<alpha_t> >,
-        pair< matrixA_t, alpha_t >,
-        pair< vectorX_t, alpha_t >,
-        pair< vectorY_t, alpha_t >,
-        pair< beta_t,    alpha_t >
+        pair< alpha_t, real_type<T> >, // Standard BLAS does not support csymv or zsymv
+        pair< matrixA_t, T >,
+        pair< vectorX_t, T >,
+        pair< vectorY_t, T >,
+        pair< beta_t,    T >
     > = 0
 >
 inline
 void symv(
     Uplo uplo,
-    const alpha_t& alpha, const matrixA_t& A, const vectorX_t& x,
-    const beta_t& beta, vectorY_t& y )
+    const alpha_t alpha, const matrixA_t& A, const vectorX_t& x,
+    const beta_t beta, vectorY_t& y )
 {
     using idx_t = size_type< matrixA_t >;
 
@@ -557,15 +573,17 @@ template<
     class matrixA_t,
     class vectorX_t,
     class alpha_t,
+    class T = type_t<matrixA_t>,
     enable_if_allow_optblas_t<
-        pair< matrixA_t, alpha_t >,
-        pair< vectorX_t, alpha_t >
+        pair< alpha_t, T >,
+        pair< matrixA_t, T >,
+        pair< vectorX_t, T >
     > = 0
 >
 inline
 void syr(
     Uplo  uplo,
-    const alpha_t& alpha,
+    const alpha_t alpha,
     const vectorX_t& x,
     matrixA_t& A )
 {
@@ -592,16 +610,18 @@ template<
     class matrixA_t,
     class vectorX_t, class vectorY_t,
     class alpha_t,
+    class T = type_t<matrixA_t>,
     enable_if_allow_optblas_t<
-        pair< matrixA_t, alpha_t >,
-        pair< vectorX_t, alpha_t >,
-        pair< vectorY_t, alpha_t >
+        pair< alpha_t, T >,
+        pair< matrixA_t, T >,
+        pair< vectorX_t, T >,
+        pair< vectorY_t, T >
     > = 0
 >
 inline
 void syr2(
     Uplo  uplo,
-    const alpha_t& alpha,
+    const alpha_t alpha,
     const vectorX_t& x, const vectorY_t& y,
     matrixA_t& A )
 {
@@ -628,9 +648,10 @@ void syr2(
 }
 
 template< class matrixA_t, class vectorX_t,
+    class T = type_t<vectorX_t>,
     enable_if_allow_optblas_t<
-        pair< matrixA_t, type_t< matrixA_t > >,
-        pair< vectorX_t, type_t< matrixA_t > >
+        pair< matrixA_t, T >,
+        pair< vectorX_t, T >
     > = 0
 >
 inline
@@ -662,9 +683,10 @@ void trmv(
 }
 
 template< class matrixA_t, class vectorX_t,
+    class T = type_t<vectorX_t>,
     enable_if_allow_optblas_t<
-        pair< matrixA_t, type_t< matrixA_t > >,
-        pair< vectorX_t, type_t< matrixA_t > >
+        pair< matrixA_t, T >,
+        pair< vectorX_t, T >
     > = 0
 >
 inline
@@ -720,7 +742,7 @@ template<
     class matrixC_t, 
     class alpha_t, 
     class beta_t,
-    class T  = alpha_t,
+    class T  = type_t<matrixC_t>,
     enable_if_allow_optblas_t<
         pair< matrixA_t, T >,
         pair< matrixB_t, T >,
@@ -779,7 +801,7 @@ template<
     class matrixC_t, 
     class alpha_t, 
     class beta_t,
-    class T  = alpha_t,
+    class T  = type_t<matrixC_t>,
     enable_if_allow_optblas_t<
         pair< matrixA_t, T >,
         pair< matrixB_t, T >,
@@ -831,7 +853,7 @@ void hemm(
 template<
     class matrixA_t, class matrixC_t, 
     class alpha_t, class beta_t,
-    class T  = type_t<matrixA_t>,
+    class T  = type_t<matrixC_t>,
     enable_if_allow_optblas_t<
         pair< matrixA_t, T >,
         pair< matrixC_t, T >,
@@ -885,7 +907,7 @@ template<
     /* Requires: */
         ! is_complex<beta_t>::value
     ), int > = 0,
-    class T  = type_t<matrixA_t>,
+    class T  = type_t<matrixC_t>,
     enable_if_allow_optblas_t<
         pair< matrixA_t, T >,
         pair< matrixB_t, T >,
@@ -941,7 +963,7 @@ template<
     class matrixC_t, 
     class alpha_t, 
     class beta_t,
-    class T  = alpha_t,
+    class T  = type_t<matrixC_t>,
     enable_if_allow_optblas_t<
         pair< matrixA_t, T >,
         pair< matrixB_t, T >,
@@ -993,7 +1015,7 @@ void symm(
 template<
     class matrixA_t, class matrixC_t, 
     class alpha_t, class beta_t,
-    class T  = alpha_t,
+    class T  = type_t<matrixC_t>,
     enable_if_allow_optblas_t<
         pair< matrixA_t, T >,
         pair< matrixC_t, T >,
@@ -1043,7 +1065,7 @@ void syrk(
 template<
     class matrixA_t, class matrixB_t, class matrixC_t, 
     class alpha_t, class beta_t,
-    class T  = alpha_t,
+    class T  = type_t<matrixC_t>,
     enable_if_allow_optblas_t<
         pair< matrixA_t, T >,
         pair< matrixB_t, T >,
@@ -1097,7 +1119,7 @@ void syr2k(
  * @ingroup trmm
  */
 template< class matrixA_t, class matrixB_t, class alpha_t,
-    class T  = alpha_t,
+    class T  = type_t<matrixB_t>,
     enable_if_allow_optblas_t<
         pair< matrixA_t, T >,
         pair< matrixB_t, T >,
@@ -1135,7 +1157,7 @@ void trmm(
 }
 
 template< class matrixA_t, class matrixB_t, class alpha_t,
-    class T  = alpha_t,
+    class T  = type_t<matrixB_t>,
     enable_if_allow_optblas_t<
         pair< matrixA_t, T >,
         pair< matrixB_t, T >,

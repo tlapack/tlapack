@@ -38,12 +38,13 @@ template<
     class matrixA_t,
     class vectorX_t, class vectorY_t, 
     class alpha_t, class beta_t,
+    class T = type_t<vectorY_t>,
     disable_if_allow_optblas_t<
-        pair< alpha_t, real_type<alpha_t> >,
-        pair< matrixA_t, alpha_t >,
-        pair< vectorX_t, alpha_t >,
-        pair< vectorY_t, alpha_t >,
-        pair< beta_t,    alpha_t >
+        pair< alpha_t, real_type<T> >, // Standard BLAS does not support csymv or zsymv
+        pair< matrixA_t, T >,
+        pair< vectorX_t, T >,
+        pair< vectorY_t, T >,
+        pair< beta_t,    T >
     > = 0
 >
 void symv(

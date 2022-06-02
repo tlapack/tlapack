@@ -73,7 +73,7 @@ namespace tlapack {
 
     // Constants
     constexpr noTranspose_t noTranspose = { };
-    constexpr transpose_t transpose = { };
+    constexpr transpose_t Transpose = { };
     constexpr conjTranspose_t conjTranspose = { };
 
     // -----------------------------------------------------------------------------

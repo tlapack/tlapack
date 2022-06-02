@@ -86,22 +86,6 @@ namespace internal {
         return legacyVector<T,one_t,Direction::Backward>{ n, x, one };
     }
 
-    // Transpose
-    template< typename T >
-    inline constexpr auto transpose(
-        const legacyMatrix<T,Layout::ColMajor>& A )
-    {
-        return legacyMatrix<T,Layout::RowMajor>{ A.n, A.m, A.ptr, A.ldim };
-    }
-
-    // Transpose
-    template< typename T >
-    inline constexpr auto transpose(
-        const legacyMatrix<T,Layout::RowMajor>& A )
-    {
-        return legacyMatrix<T,Layout::ColMajor>{ A.n, A.m, A.ptr, A.ldim };
-    }
-
 } // namespace internal
 
 } // namespace tlapack

@@ -58,7 +58,7 @@ template<
     /* Requires: */
         ! is_complex<beta_t>::value
     ), int > = 0,
-    class T  = type_t<matrixA_t>,
+    class T  = type_t<matrixC_t>,
     disable_if_allow_optblas_t<
         pair< matrixA_t, T >,
         pair< matrixB_t, T >,

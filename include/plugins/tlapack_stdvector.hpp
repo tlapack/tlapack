@@ -19,20 +19,6 @@
 namespace tlapack {
 
     // -----------------------------------------------------------------------------
-    // Data traits for std::vector
-
-    // Data type
-    template< class T, class Allocator >
-    struct type_trait< std::vector<T,Allocator> > {
-        using type = T;
-    };
-    // Size type
-    template< class T, class Allocator >
-    struct sizet_trait< std::vector<T,Allocator> > {
-        using type = typename std::vector<T,Allocator>::size_type;
-    };
-
-    // -----------------------------------------------------------------------------
     // blas functions to access std::vector properties
 
     // Size

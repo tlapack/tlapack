@@ -22,9 +22,11 @@ namespace tlapack {
  * @ingroup axpy
  */
 template< class vectorX_t, class vectorY_t, class alpha_t,
+    class T = type_t<vectorY_t>,
     disable_if_allow_optblas_t<
-        pair< vectorX_t, alpha_t >,
-        pair< vectorY_t, alpha_t >
+        pair< alpha_t, T >,
+        pair< vectorX_t, T >,
+        pair< vectorY_t, T >
     > = 0
 >
 void axpy(

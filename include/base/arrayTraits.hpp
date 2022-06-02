@@ -173,50 +173,6 @@ namespace tlapack {
     constexpr lowerTriangle_t lowerTriangle = { };
     constexpr strictUpper_t strictUpper = { };
     constexpr strictLower_t strictLower = { };
-
-    /**
-     * @brief Data type trait. Type of the entries of the array class.
-     * 
-     * The data type is defined on @c type_trait<array_t>::type.
-     * 
-     * @tparam array_t Array class.
-     */
-    template< class array_t > struct type_trait {
-        using type = void;
-    };
-    
-    /**
-     * @brief Size type trait. Index type used in the array class.
-     * 
-     * The size type is defined on @c sizet_trait<array_t>::type.
-     * 
-     * @tparam array_t Array class.
-     */
-    template< class array_t > struct sizet_trait {
-        using type = void;
-    };
-
-    /**
-     * @brief Trait to determine if a given list of data allows optimization
-     * using a optimized BLAS library.
-     */
-    template<class...>
-    struct allow_optblas {
-        static constexpr bool value = false; ///< True if the list of types
-                                             ///< allows optimized BLAS library.
-    };
-
-    /// Alias for @c type_trait<>::type.
-    template< class array_t >
-    using type_t = typename type_trait< array_t >::type;
-
-    /// Alias for @c sizet_trait<>::type.
-    template< class array_t >
-    using size_type = typename sizet_trait< array_t >::type;
-
-    /// Alias for @c allow_optblas<>::value.
-    template<class... Ts>
-    constexpr bool allow_optblas_v = allow_optblas< Ts... >::value;
 }
 
 #endif // __TLAPACK_ARRAY_TRAITS__

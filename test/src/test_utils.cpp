@@ -11,6 +11,8 @@
 #include <tlapack.hpp>
 #include <testutils.hpp>
 
+#include "testdefinitions.hpp"
+
 using namespace tlapack;
 
 TEST_CASE( "Random generator is consistent if seed is fixed", "[utils]" ) {
@@ -71,4 +73,26 @@ TEST_CASE( "MatrixAccessPolicy can be cast to Uplo", "[utils]" ) {
 
     CHECK( dense == (Uplo) runtimeAccess );
     CHECK( dense == (MatrixAccessPolicy) uplo );
+}
+
+TEMPLATE_LIST_TEST_CASE("is_matrix works", "[utils]", types_to_test)
+{
+    using matrix_t  = TestType;
+
+    CHECK( is_matrix<matrix_t> );
+}
+
+TEST_CASE("is_matrix and is_vector work", "[utils]")
+{
+    CHECK( !is_matrix< std::vector<float> > );
+    CHECK( !is_matrix< legacyVector<float> > );
+
+    CHECK( is_vector< std::vector<float> > );
+    CHECK( is_vector< legacyVector<float> > );
+
+    CHECK( !is_matrix< float > );
+    CHECK( !is_matrix< std::complex<double> > );
+
+    CHECK( !is_vector< float > );
+    CHECK( !is_vector< std::complex<double> > );
 }
