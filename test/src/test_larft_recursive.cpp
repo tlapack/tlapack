@@ -17,7 +17,7 @@
 using namespace tlapack;
 
 /// TODO: Improve the tad here: 
-TEMPLATE_LIST_TEST_CASE("larft_recursive works properly", "[qr]", real_types_to_test)
+TEMPLATE_LIST_TEST_CASE("larft_recursive works properly", "[qr]", types_to_test)
 {
     srand(1);
 
@@ -32,21 +32,24 @@ TEMPLATE_LIST_TEST_CASE("larft_recursive works properly", "[qr]", real_types_to_
     idx_t m = GENERATE(10, 5);
     // Once 1x2 solver is finished, generate n independantly
     idx_t n = GENERATE( 6, 8 );
+
+    const idx_t k = std::min(m,n);
+
     const real_t eps = uroundoff<real_t>();
     const real_t tol = 1.0e2 * eps;
 
     std::unique_ptr<T[]> A_(new T[m * n]);
     std::unique_ptr<T[]> B_(new T[m * n]);
-    std::unique_ptr<T[]> TT_(new T[n * n]);
-    std::unique_ptr<T[]> TTT_(new T[n * n]);
+    std::unique_ptr<T[]> TT_(new T[k * k]);
+    std::unique_ptr<T[]> TTT_(new T[k * k]);
 
-    std::vector<T> tau(std::min(m,n));
+    std::vector<T> tau(k);
     std::vector<T> work(std::max(m,n));
 
     auto A = legacyMatrix<T, layout<matrix_t>>(m, n, &A_[0], m);
     auto B = legacyMatrix<T, layout<matrix_t>>(m, n, &B_[0], m);
-    auto TT = legacyMatrix<T, layout<matrix_t>>(n, n, &TT_[0], n);
-    auto TTT = legacyMatrix<T, layout<matrix_t>>(n, n, &TTT_[0], n);
+    auto TT = legacyMatrix<T, layout<matrix_t>>(k, k, &TT_[0], k);
+    auto TTT = legacyMatrix<T, layout<matrix_t>>(k, k, &TTT_[0], k);
 
     for (idx_t i = 0; i < m; ++i)
         for (idx_t j = 0; j < n; ++j)
@@ -56,12 +59,12 @@ TEMPLATE_LIST_TEST_CASE("larft_recursive works properly", "[qr]", real_types_to_
         for (idx_t j = 0; j < n; ++j)
             B(i, j) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
 
-    for (idx_t i = 0; i < n; ++i)
-        for (idx_t j = 0; j < n; ++j)
+    for (idx_t i = 0; i < k; ++i)
+        for (idx_t j = 0; j < k; ++j)
             TT(i, j) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
 
-    for (idx_t i = 0; i < n; ++i)
-        for (idx_t j = 0; j < n; ++j)
+    for (idx_t i = 0; i < k; ++i)
+        for (idx_t j = 0; j < k; ++j)
             TTT(i, j) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
 
     
@@ -88,16 +91,16 @@ TEMPLATE_LIST_TEST_CASE("larft_recursive works properly", "[qr]", real_types_to_
 
         // TTT receives TTT - TT on the upper part
         // The strict lower part of TTT receives 0's
-        for (idx_t j = 0; j < n; ++j){ 
+        for (idx_t j = 0; j < k; ++j){ 
             for (idx_t i = 0; i <= j; ++i)
                 TTT(i,j) -= TT(i,j);
                 
-            for (idx_t i = j+1; i <n; ++i)
+            for (idx_t i = j+1; i <k; ++i)
                 TTT(i,j) = tlapack::make_scalar<T>(0,0);
         }
         // Strict lower part of TT will be 0's 
-        for (idx_t j = 0; j < n; ++j){    
-            for (idx_t i = j+1; i <n; ++i)
+        for (idx_t j = 0; j < k; ++j){    
+            for (idx_t i = j+1; i <k; ++i)
                 TT(i,j) = tlapack::make_scalar<T>(0,0);
         }
 
