@@ -30,8 +30,6 @@ namespace tlapack {
 template <typename matrix_t, class vector_t, class work_t>
 int gelq2(matrix_t & A, vector_t & tauw, work_t & work ){
     using idx_t = size_type< matrix_t >;
-    using T = type_t< matrix_t >;
-    using real_t = real_type<T>;
     using range = std::pair<idx_t, idx_t>;
 
 

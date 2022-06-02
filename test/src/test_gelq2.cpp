@@ -25,7 +25,6 @@ TEMPLATE_LIST_TEST_CASE("LQ factorization of a general m-by-n matrix", "[lqf]", 
     using idx_t = size_type<matrix_t>;
     using range = std::pair<idx_t, idx_t>;
     typedef real_type<T> real_t;
-    typedef std::complex<real_t> complex_t;
 
     const T zero(0);
     const T one(1);
