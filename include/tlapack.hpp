@@ -48,7 +48,6 @@
 // ----------------
 
 #include "lapack/gelq2.hpp"
-#include "lapack/gelqf.hpp"
 #include "lapack/ungl2.hpp"
 
 // Solution of positive definite systems
