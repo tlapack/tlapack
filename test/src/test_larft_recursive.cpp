@@ -1,0 +1,122 @@
+/// @file test_larft_recursive.cpp
+/// @brief Test for larft recursive
+//
+// Copyright (c) 2022, University of Colorado Denver. All rights reserved.
+//
+// This file is part of <T>LAPACK.
+// <T>LAPACK is free software: you can redistribute it and/or modify it under
+// the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
+
+#include <catch2/catch.hpp>
+#include <plugins/tlapack_stdvector.hpp>
+#include <plugins/tlapack_legacyArray.hpp>
+#include <lapack/larft_recursive.h>
+#include <testutils.hpp>
+#include <testdefinitions.hpp>
+
+using namespace tlapack;
+
+/// TODO: Improve the tad here: 
+TEMPLATE_LIST_TEST_CASE("larft_recursive works properly", "[qr]", real_types_to_test)
+{
+    srand(1);
+
+    using matrix_t = TestType;
+    using T = type_t<matrix_t>;
+    using idx_t = size_type<matrix_t>;
+    typedef real_type<T> real_t;
+    typedef std::complex<real_t> complex_t;
+
+    const T zero(0);
+    const T one(1);
+    idx_t m = GENERATE(10, 5);
+    // Once 1x2 solver is finished, generate n independantly
+    idx_t n = GENERATE( 6, 8 );
+    const real_t eps = uroundoff<real_t>();
+    const real_t tol = 1.0e2 * eps;
+
+    std::unique_ptr<T[]> A_(new T[m * n]);
+    std::unique_ptr<T[]> B_(new T[m * n]);
+    std::unique_ptr<T[]> TT_(new T[n * n]);
+    std::unique_ptr<T[]> TTT_(new T[n * n]);
+
+    std::vector<T> tau(std::min(m,n));
+    std::vector<T> work(std::max(m,n));
+
+    auto A = legacyMatrix<T, layout<matrix_t>>(m, n, &A_[0], m);
+    auto B = legacyMatrix<T, layout<matrix_t>>(m, n, &B_[0], m);
+    auto TT = legacyMatrix<T, layout<matrix_t>>(n, n, &TT_[0], n);
+    auto TTT = legacyMatrix<T, layout<matrix_t>>(n, n, &TTT_[0], n);
+
+    for (idx_t i = 0; i < m; ++i)
+        for (idx_t j = 0; j < n; ++j)
+            A(i, j) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+    
+    for (idx_t i = 0; i < m; ++i)
+        for (idx_t j = 0; j < n; ++j)
+            B(i, j) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+
+    for (idx_t i = 0; i < n; ++i)
+        for (idx_t j = 0; j < n; ++j)
+            TT(i, j) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+
+    for (idx_t i = 0; i < n; ++i)
+        for (idx_t j = 0; j < n; ++j)
+            TTT(i, j) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+
+    
+    // Op trans_l = Op::NoTrans;
+    // Op trans_r = Op::NoTrans;
+
+    // int sign = 1;
+
+    // // Calculate op(TL)*X + ISGN*X*op(TR)
+    // gemm(trans_l, Op::NoTrans, one, TL, X_exact, zero, B);
+    // gemm(Op::NoTrans, trans_r, sign, X_exact, TR, one, B);
+
+    tlapack::geqr2( A, tau, work );
+
+    tlapack::larft(tlapack::Direction::Forward, tlapack::columnwise_storage, A, tau, TT);
+
+
+
+
+    DYNAMIC_SECTION("m = " << m << " n =" << n)
+    {
+
+        larft_recursive( A, tau, TTT);
+
+        // TTT receives TTT - TT on the upper part
+        // The strict lower part of TTT receives 0's
+        for (idx_t j = 0; j < n; ++j){ 
+            for (idx_t i = 0; i <= j; ++i)
+                TTT(i,j) -= TT(i,j);
+                
+            for (idx_t i = j+1; i <n; ++i)
+                TTT(i,j) = tlapack::make_scalar<T>(0,0);
+        }
+        // Strict lower part of TT will be 0's 
+        for (idx_t j = 0; j < n; ++j){    
+            for (idx_t i = j+1; i <n; ++i)
+                TT(i,j) = tlapack::make_scalar<T>(0,0);
+        }
+
+        
+        // Relative Error
+        real_t norm = tlapack::lange(tlapack::max_norm, TTT) / tlapack::lange(tlapack::max_norm, TT);
+
+        CHECK( norm <= tol );
+
+
+
+
+    //     // Solve sylvester equation
+    //     T scale, xnorm;
+    //     lasy2(Op::NoTrans, Op::NoTrans, 1, TL, TR, B, scale, X, xnorm);
+
+    //     // Check that X_exact == X
+    //     for (idx_t i = 0; i < m; ++i)
+    //         for (idx_t j = 0; j < n; ++j)
+    //             CHECK(abs1(X_exact(i, j) - scale * X(i, j)) <= tol * X_exact(i, j));
+    }
+}

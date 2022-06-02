@@ -2,13 +2,19 @@
 #ifndef LARFT_RECURSIVE
 #define LARFT_RECURSIVE
 
+#include "base/utils.hpp"
+#include "base/types.hpp"
+#include "tblas.hpp"
 
+namespace tlapack{
 
 /*
 * @param[in] A
 * @param[in] tau
 * @param [in, out] T
 */
+
+
 template <typename matrix_t, typename vector_t> // we need two argus because one for R&C and the other for the values of the entries
 int larft_recursive(matrix_t &A, vector_t tau, matrix_t &TTT )
 {
@@ -22,8 +28,8 @@ int larft_recursive(matrix_t &A, vector_t tau, matrix_t &TTT )
     
 
     
-    const idx_t m = tlapack::nrows(A);
-    const idx_t n = tlapack::ncols(A);
+    const idx_t m = nrows(A);
+    const idx_t n = ncols(A);
 
     if( n == 1){
         TTT(0,0) = tau[0];
@@ -72,6 +78,10 @@ int larft_recursive(matrix_t &A, vector_t tau, matrix_t &TTT )
     tlapack::trmm(tlapack::Side::Left, tlapack::Uplo::Upper, tlapack::Op::NoTrans, tlapack::Diag::NonUnit, real_t(1), T00, T01 );
     }
     return 0;
+
+
+}
+
 }
 
 #endif // LARFT_RECURSIVE
