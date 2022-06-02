@@ -45,7 +45,9 @@ TEMPLATE_LIST_TEST_CASE("LQ factorization of a general m-by-n matrix", "[lqf]", 
     auto A = legacyMatrix<T, layout<matrix_t>>(m, n, &A_[0], layout<matrix_t> == Layout::ColMajor ? m : n);
     auto A_copy = legacyMatrix<T, layout<matrix_t>>(m, n, &A_copy_[0], layout<matrix_t> == Layout::ColMajor ? m : n);
 
-    std::vector<T> work(max(m, n));
+    std::vector<T> work_gelq2(m);
+    std::vector<T> work_ungl2(k);
+    
     std::vector<T> tauw(min(m, n));
 
     for (idx_t j = 0; j < n; ++j)
@@ -58,7 +60,7 @@ TEMPLATE_LIST_TEST_CASE("LQ factorization of a general m-by-n matrix", "[lqf]", 
     {
         DYNAMIC_SECTION("m = " << m << " n = " << n << " k = " << k)
         {
-            gelq2(A, tauw, work);
+            gelq2(A, tauw, work_gelq2);
 
             // Q is sliced down to the desired size of output Q (k-by-n). 
             // It stores the desired amount of horizontal reflectors that UNGL2 will use--when k < m, 
@@ -68,7 +70,7 @@ TEMPLATE_LIST_TEST_CASE("LQ factorization of a general m-by-n matrix", "[lqf]", 
             auto Q = legacyMatrix<T, layout<matrix_t>>(k, n, &Q_[0], layout<matrix_t> == Layout::ColMajor ? k : n);
             lacpy(Uplo::General, slice(A, range(0, min(m, k)), range(0, n)), Q);
 
-            ungl2(Q, tauw, work, bidg);
+            ungl2(Q, tauw, work_ungl2, bidg);
 
             // Wq is the identity matrix to check the orthogonality of Q
             std::unique_ptr<T[]> Wq_(new T[k * k]);
