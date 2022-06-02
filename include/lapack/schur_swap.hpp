@@ -432,7 +432,7 @@ namespace tlapack
             T cs, sn;
             std::complex<T> s1, s2;
             lahqr_schur22(A(j0_2, j0_2), A(j0_2, j1_2), A(j1_2, j0_2), A(j1_2, j1_2), s1, s2, cs, sn); // Apply transformation from the left
-            if (j2 < n)
+            if (j0_2 + 2 < n)
             {
                 auto row1 = slice(A, j0_2, pair{j0_2 + 2, n});
                 auto row2 = slice(A, j1_2, pair{j0_2 + 2, n});
