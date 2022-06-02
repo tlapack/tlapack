@@ -7,11 +7,76 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
+#ifndef __TESTUTILS_HH__
+#define __TESTUTILS_HH__
+
 #include <legacy_api/legacyArray.hpp>
 #include <tlapack.hpp>
 
+#include <complex>
 namespace tlapack
 {
+
+    class rand_generator
+    {
+
+    private:
+        const uint64_t a = 6364136223846793005;
+        const uint64_t c = 1442695040888963407;
+        uint64_t state = 1302;
+
+    public:
+        uint32_t min()
+        {
+            return 0;
+        }
+
+        uint32_t max()
+        {
+            return UINT32_MAX;
+        }
+
+        void seed(uint64_t s)
+        {
+            state = s;
+        }
+
+        uint32_t operator()()
+        {
+            state = state * a + c;
+            return state >> 32;
+        }
+    };
+
+    template <typename T, enable_if_t<!is_complex<T>::value, bool> = true>
+    T rand_helper(rand_generator &gen)
+    {
+        return static_cast<T>(gen()) / static_cast<T>(gen.max());
+    }
+
+    template <typename T, enable_if_t<is_complex<T>::value, bool> = true>
+    T rand_helper(rand_generator &gen)
+    {
+        using real_t = real_type<T>;
+        real_t r1 = static_cast<real_t>(gen()) / static_cast<real_t>(gen.max());
+        real_t r2 = static_cast<real_t>(gen()) / static_cast<real_t>(gen.max());
+        return std::complex<real_t>(r1, r2);
+    }
+
+    template <typename T, enable_if_t<!is_complex<T>::value, bool> = true>
+    T rand_helper()
+    {
+        return static_cast<T>(rand()) / static_cast<T>(RAND_MAX);
+    }
+
+    template <typename T, enable_if_t<is_complex<T>::value, bool> = true>
+    T rand_helper()
+    {
+        using real_t = real_type<T>;
+        real_t r1 = static_cast<real_t>(rand()) / static_cast<real_t>(RAND_MAX);
+        real_t r2 = static_cast<real_t>(rand()) / static_cast<real_t>(RAND_MAX);
+        return std::complex<real_t>(r1, r2);
+    }
 
     /** Calculates res = Q'*Q - I if m <= n or res = Q*Q' otherwise
      *  Also computes the frobenius norm of res.
@@ -135,3 +200,5 @@ namespace tlapack
     }
 
 }
+
+#endif // __TESTUTILS_HH__

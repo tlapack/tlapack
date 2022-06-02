@@ -56,7 +56,7 @@ inline void larf(
     // data traits
     using T = type_t<matrix_t>;
     using idx_t = size_type< matrix_t >;
-    using pair = pair<size_t,size_t>;
+    using pair = pair<idx_t,idx_t>;
 
     // constants
     const T one(1.0);

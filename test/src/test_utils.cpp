@@ -9,10 +9,24 @@
 
 #include <catch2/catch.hpp>
 #include <tlapack.hpp>
+#include <testutils.hpp>
 
 #include "testdefinitions.hpp"
 
 using namespace tlapack;
+
+TEST_CASE( "Random generator is consistent if seed is fixed", "[utils]" ) {
+    rand_generator gen;
+    gen.seed(6845315);
+
+    CHECK( gen() == 1225581775 );
+    CHECK( gen() == 1985311242 );
+    CHECK( gen() == 300629471 );
+    CHECK( gen() == 2636314308 );
+    CHECK( gen() == 1603395911 );
+    CHECK( gen() == 393807335 );
+    CHECK( gen() == 3641191292 );
+}
 
 TEST_CASE( "MatrixAccessPolicy can be cast to Uplo", "[utils]" ) {
     Uplo uplo;

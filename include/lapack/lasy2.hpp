@@ -44,7 +44,7 @@ namespace tlapack
         
         const idx_t n1 = ncols(TL);
         const idx_t n2 = ncols(TR);
-        const T eps = uroundoff<T>();
+        const T eps = ulp<T>();
         const T small_num = safe_min<T>() / eps;
 
         const T zero(0);
@@ -145,6 +145,8 @@ namespace tlapack
             idx_t ipsv, jpsv;
             for (idx_t i = 0; i < 3; ++i)
             {
+                ipsv = i;
+                jpsv = i;
                 // Do pivoting to get largest pivot element
                 auto xmax = zero;
                 for (idx_t ip = i; ip < 4; ++ip)

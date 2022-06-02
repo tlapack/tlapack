@@ -23,7 +23,6 @@ TEMPLATE_LIST_TEST_CASE("move of eigenvalue block gives correct results", "[eige
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
     typedef real_type<T> real_t;
-    typedef std::complex<real_t> complex_t;
 
     const T zero(0);
     const T one(1);
@@ -63,7 +62,7 @@ TEMPLATE_LIST_TEST_CASE("move of eigenvalue block gives correct results", "[eige
     // Generate random matrix in Schur form
     for (idx_t j = 0; j < n; ++j)
         for (idx_t i = 0; i < n; ++i)
-            A(i, j) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+            A(i, j) = rand_helper<T>();
 
     for (idx_t j = 0; j < n; ++j)
         for (idx_t i = j + 1; i < n; ++i)
@@ -72,21 +71,21 @@ TEMPLATE_LIST_TEST_CASE("move of eigenvalue block gives correct results", "[eige
     if (n1 == 2)
     {
         if (ifst < n - 1)
-            A(ifst + 1, ifst) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+            A(ifst + 1, ifst) = rand_helper<T>();
         else
-            A(ifst, ifst - 1) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+            A(ifst, ifst - 1) = rand_helper<T>();
     }
     if (n2 == 2)
     {
         if (ilst < n - 1)
-            A(ilst + 1, ilst) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+            A(ilst + 1, ilst) = rand_helper<T>();
         else
-            A(ilst, ilst - 1) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+            A(ilst, ilst - 1) = rand_helper<T>();
     }
 
     if( !is_complex<T>::value ){
         // Put a 2x2 block in the middle
-        A(5, 4) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+        A(5, 4) = rand_helper<T>();
     }
 
     lacpy(Uplo::General, A, A_copy);

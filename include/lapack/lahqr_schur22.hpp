@@ -21,15 +21,15 @@ namespace tlapack
 {
 
     /** Computes the Schur factorization of a 2x2 matrix A
-     * 
+     *
      *  A = [a b] = [cs -sn] [aa bb] [ cs sn]
      *      [c d]   [sn  cs] [cc dd] [-sn cs]
-     * 
+     *
      * This routine is designed for real matrices.
      * If the template T is complex, it returns with error
      * and does nothing. (This is so we don't need c++17's static if
      * but still keep the code somewhat clean).
-     * 
+     *
      * @return 0 if the template T is real
      * @return -1 if the template T is complex
      *
@@ -56,11 +56,11 @@ namespace tlapack
     int lahqr_schur22(T &a, T &b, T &c, T &d, std::complex<T> &s1, std::complex<T> &s2, T &cs, T &sn)
     {
 
-            using std::log;
+        using std::copysign;
+        using std::log;
         using std::max;
         using std::min;
         using std::pow;
-        using std::copysign;
 
         const T zero(0);
         const T half(0.5);
@@ -68,7 +68,7 @@ namespace tlapack
         const T two(2);
         const T multpl(4);
 
-        const T eps = uroundoff<T>();
+        const T eps = ulp<T>();
         const T safmin = safe_min<T>();
         const T safmn2 = pow(two, (int)(log(safmin / eps) / log(two)) / two);
         const T safmx2 = one / safmn2;
@@ -90,7 +90,7 @@ namespace tlapack
             b = -c;
             c = zero;
         }
-        else if ((a - d) == zero and copysign(one,b) != copysign(one,c))
+        else if ((a - d) == zero and copysign(one, b) != copysign(one, c))
         {
             cs = one;
             sn = zero;
@@ -100,7 +100,7 @@ namespace tlapack
             auto temp = a - d;
             auto p = half * temp;
             auto bcmax = max(abs(b), abs(c));
-            auto bcmin = min(abs(b), abs(c)) * copysign(one,b) * copysign(one,c);
+            auto bcmin = min(abs(b), abs(c)) * copysign(one, b) * copysign(one, c);
             auto scale = max(abs(p), bcmax);
             auto z = (p / scale) * p + (bcmax / scale) * bcmin;
             // if z is positive, we should have real eigenvalues
@@ -110,7 +110,7 @@ namespace tlapack
                 // Real eigenvalues.
 
                 // Compute a and d.
-                z = p + copysign(one,p) * sqrt(scale) * sqrt(z);
+                z = p + copysign(one, p) * sqrt(scale) * sqrt(z);
                 a = d + z;
                 d = d - (bcmax / z) * bcmin;
                 // Compute b and the rotation matrix
@@ -146,7 +146,7 @@ namespace tlapack
                 p = half * temp;
                 auto tau = lapy2(sigma, temp);
                 cs = sqrt(half * (one + abs(sigma) / tau));
-                sn = -(p / (tau * cs)) * copysign(one,sigma);
+                sn = -(p / (tau * cs)) * copysign(one, sigma);
                 //
                 // Compute [aa bb] = [a b][cs -sn]
                 //         [cc dd] = [c d][sn  cs]
@@ -172,12 +172,12 @@ namespace tlapack
                 {
                     if (b != zero)
                     {
-                        if (copysign(one,b) == copysign(one,c))
+                        if (copysign(one, b) == copysign(one, c))
                         {
                             // Real eigenvalues: reduce to upper triangular form
                             auto sab = sqrt(abs(b));
                             auto sac = sqrt(abs(c));
-                            p = abs(c) * copysign(one,sab * sac);
+                            p = copysign(sab * sac, c);
                             tau = one / sqrt(abs(b + c));
                             a = temp + p;
                             d = temp - p;

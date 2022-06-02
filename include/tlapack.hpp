@@ -62,11 +62,16 @@
 #include "lapack/gehrd.hpp"
 #include "lapack/lahr2.hpp"
 #include "lapack/unghr.hpp"
+#include "lapack/unmhr.hpp"
 #include "lapack/lahqr.hpp"
 #include "lapack/lahqr_shiftcolumn.hpp"
 #include "lapack/lahqr_eig22.hpp"
 #include "lapack/lahqr_schur22.hpp"
 #include "lapack/schur_swap.hpp"
 #include "lapack/schur_move.hpp"
+#include "lapack/move_bulge.hpp"
+#include "lapack/multishift_qr_sweep.hpp"
+#include "lapack/agressive_early_deflation.hpp"
+#include "lapack/multishift_qr.hpp"
 
 #endif // __TLAPACK_HH__

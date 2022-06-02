@@ -25,9 +25,9 @@ namespace tlapack
     template <typename idx_t, typename T>
     struct gehrd_opts_t {
         // Blocksize used in the blocked reduction
-        idx_t nb = 64;
+        idx_t nb = 32;
         // If only nx_switch columns are left, the algorithm will use unblocked code
-        idx_t nx_switch = 2;
+        idx_t nx_switch = 128;
         // Workspace pointer, if no workspace is provided, one will be allocated internally
         T* _work=nullptr;
         // Workspace size
@@ -93,12 +93,10 @@ namespace tlapack
     int gehrd(size_type<matrix_t> ilo, size_type<matrix_t> ihi, matrix_t &A, vector_t &tau, const gehrd_opts_t<idx_t, TA> &opts = {})
     {
         using pair = pair<idx_t, idx_t>;
-        using internal::colmajor_matrix;
 
         // constants
         const TA one(1);
         const idx_t n = ncols(A);
-        const idx_t nbmin = 2;
 
         // Blocksize
         idx_t nb = opts.nb;
@@ -134,9 +132,8 @@ namespace tlapack
             _work = new TA[lwork];
         }
 
-
-        auto Y = colmajor_matrix<TA>(&_work[0], n, nb);
-        auto T = colmajor_matrix<TA>(&_work[n*nb], nb, nb);
+        auto Y = legacyMatrix<TA, layout<matrix_t>>( n, nb, &_work[0], layout<matrix_t> == Layout::ColMajor ? n : nb );
+        auto T = legacyMatrix<TA, layout<matrix_t>>( nb, nb, &_work[n*nb], nb );
 
         idx_t i = ilo;
         for (; i+nx < ihi-1; i = i + nb)
@@ -173,7 +170,7 @@ namespace tlapack
 
             // Apply the block reflector H to A(i+1:ihi,i+nb:n) from the left
             auto A5 = slice(A, pair{i + 1, ihi}, pair{i + nb2, n});
-            auto Y_left = colmajor_matrix<TA>(&_work[0], nb2, n - i - nb2, nb2);
+            auto Y_left = legacyMatrix<TA, layout<matrix_t>>( nb2, n - i - nb2, &_work[0], layout<matrix_t> == Layout::ColMajor ? nb2 : n - i - nb2 );
             larfb(Side::Left, Op::ConjTrans, Direction::Forward, StoreV::Columnwise, V, T_s, A5, Y_left);
         }
 
@@ -181,7 +178,7 @@ namespace tlapack
         gehd2( i, ihi, A, tau, workspace_vector );
 
         if(locally_allocated)
-            delete _work;
+            delete [] _work;
         return 0;
     }
 
