@@ -577,6 +577,7 @@ namespace lapack {
 using lapack::matrixtype2char;
 using lapack::norm2char;
 using blas::uplo2char;
+using blas::diag2char;
 using blas::op2char;
 using blas::side2char;
 using lapack::direction2char;

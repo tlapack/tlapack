@@ -29,6 +29,7 @@
 #include "lapack/lange.hpp"
 #include "lapack/lanhe.hpp"
 #include "lapack/lansy.hpp"
+#include "lapack/lantr.hpp"
 #include "lapack/larnv.hpp"
 #include "lapack/lascl.hpp"
 #include "lapack/lassq.hpp"

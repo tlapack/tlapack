@@ -1,4 +1,4 @@
-/// @file lanhe.hpp
+/// @file lantr.hpp
 /// @author Weslley S Pereira, University of Colorado Denver, USA
 //
 // Copyright (c) 2012-2022, University of Colorado Denver. All rights reserved.
@@ -7,17 +7,17 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_LEGACY_LANHE_HH__
-#define __TLAPACK_LEGACY_LANHE_HH__
+#ifndef __TLAPACK_LEGACY_LANTR_HH__
+#define __TLAPACK_LEGACY_LANTR_HH__
 
 #include <memory>
 
 #include "base/types.hpp"
-#include "lapack/lanhe.hpp"
+#include "lapack/lantr.hpp"
 
 namespace tlapack {
 
-/** Calculates the value of the one norm, Frobenius norm, infinity norm, or element of largest absolute value of a symmetric matrix
+/** Calculates the value of the one norm, Frobenius norm, infinity norm, or element of largest absolute value of a triangular matrix
  *
  * @return Calculated norm value for the specified type.
  * 
@@ -30,17 +30,23 @@ namespace tlapack {
  *     Norm::Fro = the Frobenius norm of the matrix A.
  *         This the square root of the sum of the squares of each element in A.
  * 
- * @param uplo Indicates whether the symmetric matrix A is stored as upper triangular or lower triangular.
+ * @param uplo Indicates whether A is upper or lower triangular.
  *      The other strict triangular part of A is not referenced.
+ *
+ * @param[in] diag
+ *     Whether A has a unit or non-unit diagonal:
+ *     - Diag::Unit:    A is assumed to be unit triangular.
+ *     - Diag::NonUnit: A is not assumed to be unit triangular.
+ * 
  * @param n Number of columns to be included in the norm. n >= 0
  * @param A symmetric matrix size lda-by-n.
  * @param lda Leading dimension of matrix A.  ldA >= m
  * 
  * @ingroup auxiliary
 **/
-template <class norm_t, typename TA>
-real_type<TA> lanhe(
-    norm_t normType, Uplo uplo, idx_t n,
+template <typename TA>
+real_type<TA> lantr(
+    Norm normType, Uplo uplo, Diag diag, idx_t m, idx_t n,
     const TA *A, idx_t lda )
 {
     using internal::colmajor_matrix;
@@ -52,16 +58,18 @@ real_type<TA> lanhe(
                     normType != Norm::One );
     tlapack_check_false(  uplo != Uplo::Lower &&
                           uplo != Uplo::Upper );
+    tlapack_check_false( diag != Diag::NonUnit &&
+                         diag != Diag::Unit );
 
     // quick return
-    if ( n == 0 ) return 0;
+    if (m == 0 || n == 0) return 0;
 
     // Matrix views
-    auto A_ = colmajor_matrix<TA>( (TA*)A, n, n, lda );
+    auto A_ = colmajor_matrix<TA>( (TA*)A, m, n, lda );
 
-    return lanhe( normType, uplo, A_ );
+    return lantr( normType, uplo, diag, A_ );
 }
 
 } // lapack
 
-#endif // __TLAPACK_LEGACY_LANHE_HH__
+#endif // __TLAPACK_LEGACY_LANTR_HH__

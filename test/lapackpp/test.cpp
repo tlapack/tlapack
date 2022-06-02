@@ -403,7 +403,7 @@ std::vector< testsweeper::routines_t > routines = {
     { "lange",              test_lange,     Section::aux_norm },
     { "lanhe",              test_lanhe,     Section::aux_norm },
     { "lansy",              test_lansy,     Section::aux_norm },
-//     { "lantr",              test_lantr,     Section::aux_norm },
+    { "lantr",              test_lantr,     Section::aux_norm },
 //     { "lanhs",              test_lanhs,     Section::aux_norm },
     { "",                   nullptr,        Section::newline },
 
