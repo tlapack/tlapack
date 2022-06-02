@@ -119,7 +119,7 @@ lange( norm_t normType, const matrix_t& A )
 
 /** Calculates the norm of a matrix.
  * 
- * Code optimzed for the infinity norm on column-major layouts using a workspace
+ * Code optimized for the infinity norm on column-major layouts using a workspace
  * of size at least m, where m is the number of rows of A.
  * @see lange( norm_t normType, const matrix_t& A ).
  * 

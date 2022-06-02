@@ -163,7 +163,7 @@ lansy( norm_t normType, uplo_t uplo, const matrix_t& A )
 
 /** Calculates the norm of a symmetric matrix.
  * 
- * Code optimzed for the infinity and one norm on column-major layouts using a workspace
+ * Code optimized for the infinity and one norm on column-major layouts using a workspace
  * of size at least n, where n is the number of rows of A.
  * @see lanhe( norm_t normType, uplo_t uplo, const matrix_t& A ).
  * 
