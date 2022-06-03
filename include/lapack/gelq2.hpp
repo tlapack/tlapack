@@ -21,22 +21,23 @@
 
 namespace tlapack
 {
-    /** Computes an LQ factorization of a complex m-by-n matrix A
+    /** Computes an LQ factorization of a complex m-by-n matrix A using
+     *  an unblocked algorithm.
      *
-     * The matrix Q is represented as a product of elementary reflectors
+     * The matrix Q is represented as a product of elementary reflectors.
      * \[
-     *          Q = H(k)**H ... H(2)**H H(1)**H
+     *          Q = H(k)**H ... H(2)**H H(1)**H,
      * \]
-     * Each H(i) has the form
+     * where k = min(m,n). Each H(j) has the form
      * \[
-     *          H(i) = I - tauw * w * w**H
+     *          H(j) = I - tauw * w * w**H
      * \]
      * where tauw is a complex scalar, and w is a complex vector with
      * \[
-     *          w[0] = w[1] = ... = w[i-1] = 0; w[i] = 1,
+     *          w[0] = w[1] = ... = w[j-1] = 0; w[j] = 1,
      * \]
-     * with w[i+1]**H through w[n]**H is stored on exit
-     * in the ith row of A, and tauw in tauw[i].
+     * with w[j+1]**H through w[n]**H is stored on exit
+     * in the jth row of A, and tauw in tauw[j].
      *
      * @return  0 if success
      *
@@ -49,7 +50,7 @@ namespace tlapack
      *
      * @param[out] tauw Complex vector of length min(m,n).
      *      The scalar factors of the elementary reflectors.
-     *      
+     *
      * @param work Vector of size m.
      *
      * @ingroup gelqf
@@ -60,24 +61,37 @@ namespace tlapack
         using idx_t = size_type<matrix_t>;
         using range = std::pair<idx_t, idx_t>;
 
+        // constants
         const idx_t m = nrows(A);
         const idx_t n = ncols(A);
         const idx_t k = std::min(m, n);
 
+        // check arguments
+        tlapack_check_false(access_denied(dense, write_policy(A)), -1);
+        tlapack_check_false((idx_t)size(tauw) < std::min<idx_t>(m, n), -2);
+        tlapack_check_false((idx_t)size(work) < m, -3);
+
+        // quick return
+        if (m <= 0)
+            return 0;
+
         for (idx_t j = 0; j < k; ++j)
         {
+            // Define w := A(j,j:n)
             auto w = slice(A, j, range(j, n));
+
+            // Generate elementary reflector H(j) to annihilate A(j,j+1:n)
             for (idx_t i = 0; i < n - j; ++i)
                 w[i] = conj(w[i]); // see LAPACK about conjugating w
-
-            larfg(w, tauw[j]); // generate the horizontal reflector w
+            larfg(w, tauw[j]);
 
             if (j < k - 1 || k < m)
             {
+                // Apply H(j) to A(j+1:m,j:n) from the right
                 auto Q11 = slice(A, range(j + 1, m), range(j, n));
                 larf(Side::Right, w, tauw[j], Q11, work);
             }
-            for (idx_t i = 0; i < n - j; ++i) 
+            for (idx_t i = 0; i < n - j; ++i)
                 w[i] = conj(w[i]); // see LAPACK about conjugating w back
         }
 
