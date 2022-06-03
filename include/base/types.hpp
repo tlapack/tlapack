@@ -11,6 +11,37 @@
 #include <complex>
 #include <type_traits>
 
+// Helpers:
+
+#define TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_2_VALUES( EnumClass, A, B ) \
+    std::ostream& operator << ( std::ostream& out, const EnumClass v ) \
+    { \
+        if( v == EnumClass::A ) return out << #A; \
+        if( v == EnumClass::B ) return out << #B; \
+        return out << "<Invalid>"; \
+    }
+
+#define TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_3_VALUES( EnumClass, A, B, C ) \
+    std::ostream& operator << ( std::ostream& out, const EnumClass v ) \
+    { \
+        if( v == EnumClass::A ) return out << #A; \
+        if( v == EnumClass::B ) return out << #B; \
+        if( v == EnumClass::C ) return out << #C; \
+        return out << "<Invalid>"; \
+    }
+
+#define TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_4_VALUES( EnumClass, A, B, C, D ) \
+    std::ostream& operator << ( std::ostream& out, const EnumClass v ) \
+    { \
+        if( v == EnumClass::A ) return out << #A; \
+        if( v == EnumClass::B ) return out << #B; \
+        if( v == EnumClass::C ) return out << #C; \
+        if( v == EnumClass::D ) return out << #D; \
+        return out << "<Invalid>"; \
+    }
+
+// Types:
+
 namespace tlapack {
 
     // -----------------------------------------------------------------------------
@@ -22,6 +53,15 @@ namespace tlapack {
         RowMajor = 'R',
         BandStorage = 'B'
     };
+    TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_4_VALUES(Layout, Unspecified, ColMajor, RowMajor, BandStorage)
+
+    // std::ostream& operator << ( std::ostream& out, const Layout v )
+    // {
+    //     if( v == Layout::Unspecified ) return out << "Unspecified";
+    //     else if( v == Layout::ColMajor ) return out << "ColMajor";
+    //     else if( v == Layout::RowMajor ) return out << "RowMajor";
+    //     else if( v == Layout::BandStorage ) return out << "BandStorage";
+    // }
 
     // -----------------------------------------------------------------------------
     // Upper or Lower access
@@ -31,6 +71,7 @@ namespace tlapack {
         Lower    = 'L', 
         General  = 'G'
     };
+    TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_3_VALUES( Uplo, Upper, Lower, General )
 
     // -----------------------------------------------------------------------------
     // Information about the main diagonal
@@ -274,5 +315,9 @@ namespace tlapack {
     };
 
 } // namespace tlapack
+
+#undef TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_2_VALUES
+#undef TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_3_VALUES
+#undef TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_4_VALUES
 
 #endif // __TLAPACK_TYPES_HH__
