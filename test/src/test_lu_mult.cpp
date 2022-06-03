@@ -12,6 +12,7 @@
 #include <tlapack.hpp>
 #include <testutils.hpp>
 #include <testdefinitions.hpp>
+#include <plugins/tlapack_legacyArray.hpp>
 
 using namespace tlapack;
 
@@ -24,9 +25,12 @@ TEMPLATE_LIST_TEST_CASE("lu multiplication is backward stable", "[lu check][lu][
     using idx_t = size_type<matrix_t>;
     typedef real_type<T> real_t;
 
-    idx_t n;
+    idx_t n, nx;
 
-    n = GENERATE(1, 2, 6, 9, 20, 23, 28);
+    n = GENERATE(1, 2, 6, 9);
+    nx = GENERATE(1, 2, 4, 5);
+
+    if(nx <= n){
 
     const real_t eps = uroundoff<real_t>();
     const real_t tol = 1.0e2 * n * eps;
@@ -60,7 +64,8 @@ TEMPLATE_LIST_TEST_CASE("lu multiplication is backward stable", "[lu check][lu][
 
         gemm(Op::NoTrans, Op::NoTrans, real_t(1), L, U, real_t(-1), A);
 
-        real_t lu_mult_res_norm = lange(max_norm, A) / norma;;
+        real_t lu_mult_res_norm = lange(max_norm, A) / norma;
         CHECK(lu_mult_res_norm <= tol);
+    }
     }
 }
