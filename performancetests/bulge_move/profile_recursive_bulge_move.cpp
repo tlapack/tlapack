@@ -55,7 +55,7 @@ T rand_helper(rand_generator &gen)
 
 //------------------------------------------------------------------------------
 template <typename T>
-void run(size_t n, size_t ns, int seed, bool use_recursion)
+void run(size_t n, size_t ns, int seed, bool use_recursion, size_t nx)
 {
     srand(1); // Init random seed
 
@@ -98,7 +98,7 @@ void run(size_t n, size_t ns, int seed, bool use_recursion)
     tlapack::introduce_bulges(A, s, Q, V);
 
     tlapack::move_bulges_opts_t<TLAPACK_SIZE_T, T> opts;
-    opts.nx = 16;
+    opts.nx = nx;
     std::unique_ptr<T[]> _work(new T[2*n*n]);
     opts._work = &_work[0];
     opts.lwork = 2*n*n;
@@ -129,28 +129,29 @@ void run(size_t n, size_t ns, int seed, bool use_recursion)
 //------------------------------------------------------------------------------
 int main(int argc, char **argv)
 {
-    int n, ns, use_recursion, seed;
+    int n, ns, use_recursion, seed, nx;
 
     // Default arguments
-    n = (argc < 2) ? 64 : atoi(argv[1]);
-    ns = (argc < 3) ? 32 : atoi(argv[2]);
-    seed = (argc < 4) ? 1302 : atoi(argv[3]);
-    use_recursion = (argc < 5) ? -1 : atoi(argv[4]);
+    ns = (argc < 2) ? 32 : atoi(argv[1]);
+    seed = (argc < 3) ? 1302 : atoi(argv[2]);
+    use_recursion = (argc < 4) ? -1 : atoi(argv[3]);
+    nx = (argc < 5) ? 16 : atoi(argv[4]);
+    n = 2*ns;
 
     std::cout.precision(5);
     std::cout << std::scientific << std::showpos;
 
     if (use_recursion == -1 or use_recursion == 0)
     {
-        printf("run< float >( %d ) without recursion \n", n);
-        run<float>(n, ns, seed, false);
+        printf("ns = %d, nx = %d without recursion \n", ns, nx);
+        run<float>(n, ns, seed, false, nx);
         printf("-----------------------\n");
     }
 
     if (use_recursion == -1 or use_recursion == 1)
     {
-        printf("run< float >( %d ) with recursion \n", n);
-        run<float>(n, ns, seed, true);
+        printf("ns = %d, nx = %d with recursion \n", ns, nx);
+        run<float>(n, ns, seed, true, nx);
         printf("-----------------------\n");
     }
 

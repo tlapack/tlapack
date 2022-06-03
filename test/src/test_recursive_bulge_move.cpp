@@ -183,7 +183,7 @@ TEMPLATE_LIST_TEST_CASE("Recursive move bulges is backward stable", "[eigenvalue
 
         move_bulges_opts_t<idx_t, T> opts;
         opts.nx = nx;
-        move_bulges_recursive(A, s, Q2, V);
+        move_bulges_recursive(A, s, Q2, V, opts);
 
         std::cout<<"A"<<std::endl;
         print_matrix( A );

@@ -152,7 +152,7 @@ namespace tlapack
             move_bulges_recursive(A_slice, s_slice, Q_work, V_slice, opts2);
 
             // Update Q
-            auto Q_slice = slice(Q, pair{0, nrows(Q)}, pair{i_pos, i_pos + n_block - 1});
+            auto Q_slice = slice(Q, pair{2 * nb1, nrows(Q)}, pair{i_pos, i_pos + n_block - 1});
             auto Q_work_right = legacyMatrix<T, layout<matrix_t>>(nrows(Q_slice), ncols(Q_slice),
                                                                   &_work[iwork2], layout<matrix_t> == Layout::ColMajor ? nrows(Q_slice) : ncols(Q_slice));
             gemm(Op::NoTrans, Op::NoTrans, (real_t)1.0, Q_slice, Q_work, (real_t)0.0, Q_work_right);
@@ -177,7 +177,7 @@ namespace tlapack
             move_bulges_recursive(A_slice, s_slice, Q_work, V_slice, opts2);
 
             // Update Q
-            auto Q_slice = slice(Q, pair{0, nrows(Q)}, pair{i_pos, i_pos + n_block - 1});
+            auto Q_slice = slice(Q, pair{0, 2 * nb + np1}, pair{i_pos, i_pos + n_block - 1});
             auto Q_work_right = legacyMatrix<T, layout<matrix_t>>(nrows(Q_slice), ncols(Q_slice),
                                                                   &_work[iwork2], layout<matrix_t> == Layout::ColMajor ? nrows(Q_slice) : ncols(Q_slice));
             gemm(Op::NoTrans, Op::NoTrans, (real_t)1.0, Q_slice, Q_work, (real_t)0.0, Q_work_right);
