@@ -44,9 +44,9 @@ namespace tlapack
      * @param[in,out] A m-by-n matrix.
      *      On exit, the elements on and below the diagonal of the array
      *      contain the m by min(m,n) lower trapezoidal matrix L (L is
-     *       lower triangular if m <= n); the elements above the diagonal,
-     *       with the array tauw, represent the unitary matrix Q as a
-     *       product of elementary reflectors.
+     *      lower triangular if m <= n); the elements above the diagonal,
+     *      with the array tauw, represent the unitary matrix Q as a
+     *      product of elementary reflectors.
      *
      * @param[out] tauw Complex vector of length min(m,n).
      *      The scalar factors of the elementary reflectors.
@@ -64,16 +64,12 @@ namespace tlapack
         // constants
         const idx_t m = nrows(A);
         const idx_t n = ncols(A);
-        const idx_t k = std::min(m, n);
+        const idx_t k = min(m, n);
 
         // check arguments
         tlapack_check_false(access_denied(dense, write_policy(A)), -1);
         tlapack_check_false((idx_t)size(tauw) < std::min<idx_t>(m, n), -2);
         tlapack_check_false((idx_t)size(work) < m, -3);
-
-        // quick return
-        if (m <= 0)
-            return 0;
 
         for (idx_t j = 0; j < k; ++j)
         {
@@ -82,9 +78,10 @@ namespace tlapack
 
             // Generate elementary reflector H(j) to annihilate A(j,j+1:n)
             for (idx_t i = 0; i < n - j; ++i)
-                w[i] = conj(w[i]); // see LAPACK about conjugating w
+                w[i] = conj(w[i]); 
             larfg(w, tauw[j]);
 
+            // If either condition is satisfied, Q11 will not be empty
             if (j < k - 1 || k < m)
             {
                 // Apply H(j) to A(j+1:m,j:n) from the right
@@ -92,7 +89,7 @@ namespace tlapack
                 larf(Side::Right, w, tauw[j], Q11, work);
             }
             for (idx_t i = 0; i < n - j; ++i)
-                w[i] = conj(w[i]); // see LAPACK about conjugating w back
+                w[i] = conj(w[i]); 
         }
 
         return 0;
