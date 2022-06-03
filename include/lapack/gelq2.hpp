@@ -96,4 +96,4 @@ namespace tlapack
     }
 }
 
-#endif // GELQ2
+#endif // __TLAPACK_GELQ2_HH__
