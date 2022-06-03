@@ -63,9 +63,12 @@ TEMPLATE_LIST_TEST_CASE("larft_recursive works properly", "[qr]", types_to_test)
         for (idx_t j = 0; j < k; ++j)
             TT(i, j) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
 
-    for (idx_t i = 0; i < k; ++i)
+     for (idx_t i = 0; i < k; ++i) {
         for (idx_t j = 0; j < k; ++j)
-            TTT(i, j) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+            TTT(i,j) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+        for (idx_t j = 0; j < i; ++j)
+            TTT(i,j) = T(-1);
+    }
 
     
     // Op trans_l = Op::NoTrans;
@@ -95,20 +98,36 @@ TEMPLATE_LIST_TEST_CASE("larft_recursive works properly", "[qr]", types_to_test)
             for (idx_t i = 0; i <= j; ++i)
                 TTT(i,j) -= TT(i,j);
                 
-            for (idx_t i = j+1; i <k; ++i)
-                TTT(i,j) = tlapack::make_scalar<T>(0,0);
+            // for (idx_t i = j+1; i <k; ++i)
+            //     TTT(i,j) = tlapack::make_scalar<T>(0,0);
         }
-        // Strict lower part of TT will be 0's 
-        for (idx_t j = 0; j < k; ++j){    
-            for (idx_t i = j+1; i <k; ++i)
-                TT(i,j) = tlapack::make_scalar<T>(0,0);
+        // // Strict lower part of TT will be 0's 
+        // for (idx_t j = 0; j < k; ++j){    
+        //     for (idx_t i = j+1; i <k; ++i)
+        //         TT(i,j) = tlapack::make_scalar<T>(0,0);
+        // }
+
+        // lantr
+        real_t norm = lantr( tlapack::max_norm, tlapack::Uplo::Upper, tlapack::Diag::NonUnit, TTT )
+         / lantr( tlapack::max_norm, tlapack::Uplo::Upper, tlapack::Diag::NonUnit,
+          TT );
+
+
+        //check if the lower part is -1
+        bool lowerNotFound = true;
+        for (idx_t i = 0; i < k; ++i) {
+            for (idx_t j = 0; j < i; ++j){
+                if(TTT(i,j) != T(-1))
+                    lowerNotFound = false;
+            }    
         }
 
-        
+
         // Relative Error
-        real_t norm = tlapack::lange(tlapack::max_norm, TTT) / tlapack::lange(tlapack::max_norm, TT);
+        //real_t norm = tlapack::lange(tlapack::max_norm, TTT) / tlapack::lange(tlapack::max_norm, TT);
 
         CHECK( norm <= tol );
+        CHECK( lowerNotFound == true );
 
 
 
