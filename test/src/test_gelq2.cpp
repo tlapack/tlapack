@@ -30,7 +30,6 @@ TEMPLATE_LIST_TEST_CASE("LQ factorization of a general m-by-n matrix", "[lqf]", 
     const T one(1);
 
     idx_t m, n, k;
-    bool bidg = false; // Whether we want a bidiagonal reduction
 
     m = GENERATE(10, 20, 30);
     n = GENERATE(10, 20, 30);
@@ -63,34 +62,30 @@ TEMPLATE_LIST_TEST_CASE("LQ factorization of a general m-by-n matrix", "[lqf]", 
             gelq2(A, tauw, work_gelq2);
 
             // Q is sliced down to the desired size of output Q (k-by-n). 
-            // It stores the desired amount of horizontal reflectors that UNGL2 will use--when k < m, 
-            // we are only using part of A to do LQ factorization, and Q cuts A down to the right size 
-            // in advance of UNGL2.
+            // It stores the desired number of Householder reflectors that UNGL2 will use.
             std::unique_ptr<T[]> Q_(new T[k * n]);
             auto Q = legacyMatrix<T, layout<matrix_t>>(k, n, &Q_[0], layout<matrix_t> == Layout::ColMajor ? k : n);
             lacpy(Uplo::General, slice(A, range(0, min(m, k)), range(0, n)), Q);
 
-            ungl2(Q, tauw, work_ungl2, bidg);
+            ungl2(Q, tauw, work_ungl2);
 
             // Wq is the identity matrix to check the orthogonality of Q
             std::unique_ptr<T[]> Wq_(new T[k * k]);
             auto Wq = legacyMatrix<T, layout<matrix_t>>(k, k, &Wq_[0], k);
             laset(Uplo::General, zero, one, Wq);
-
-            herk(Uplo::Upper, Op::NoTrans, real_t(1), Q, real_t(-1), Wq);
-            real_t orth_Q = lanhe(Norm::Max, Uplo::Lower, Wq);
+            auto orth_Q = check_orthogonality(Q, Wq);
             CHECK(orth_Q <= tol);
-
-            // R stores the product of the final output L and Q
-            std::unique_ptr<T[]> R_(new T[min(k, m) * n]);
-            auto R = legacyMatrix<T, layout<matrix_t>>(min(k, m), n, &R_[0], layout<matrix_t> == Layout::ColMajor ? min(k, m) : n);
-            laset(Uplo::General, zero, zero, R);
 
             // L is sliced from A after GELQ2
             std::unique_ptr<T[]> L_(new T[min(k, m) * k]);
             auto L = legacyMatrix<T, layout<matrix_t>>(min(k, m), k, &L_[0], layout<matrix_t> == Layout::ColMajor ? min(k, m) : k);
             laset(Uplo::Upper, zero, zero, L);
             lacpy(Uplo::Lower, slice(A, range(0, min(m, k)), range(0, k)), L);
+
+            // R stores the product of L and Q
+            std::unique_ptr<T[]> R_(new T[min(k, m) * n]);
+            auto R = legacyMatrix<T, layout<matrix_t>>(min(k, m), n, &R_[0], layout<matrix_t> == Layout::ColMajor ? min(k, m) : n);
+            laset(Uplo::General, zero, zero, R);
 
             // Test A = L * Q
             gemm(Op::NoTrans, Op::NoTrans, T(1), L, Q, T(0), R);
@@ -99,13 +94,8 @@ TEMPLATE_LIST_TEST_CASE("LQ factorization of a general m-by-n matrix", "[lqf]", 
                 for (idx_t i = 0; i < min(m, k); ++i)
                     A_copy(i, j) -= R(i, j);
             }
-
             real_t repres = tlapack::lange(tlapack::Norm::Max, slice(A_copy, range(0, min(m, k)), range(0, n)));
             CHECK(repres <= tol);
-
-            // auto res = legacyMatrix<T, layout<matrix_t>>(k, k, &_res[0], k);
-            // auto orth_res_norm = check_orthogonality(Q, res);
-            // CHECK(orth_res_norm <= tol);
         }
     }
 }
