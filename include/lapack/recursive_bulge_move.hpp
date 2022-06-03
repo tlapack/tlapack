@@ -23,16 +23,17 @@
 namespace tlapack
 {
 
-    inline bool isPowerOfTwo(int x)
+    template <typename idx_t, typename T>
+    struct move_bulges_opts_t
     {
-        /* First x in the below expression is for the case when x is 0 */
-        return x && (!(x & (x - 1)));
-    }
-
-    inline int highestPowerOf2(int n)
-    {
-        return (n & (~(n - 1)));
-    }
+        // Optimization parameter, recursion will be ended if
+        // number of shifts or number of positions is smaller than nx.
+        idx_t nx = 32;
+        // Workspace pointer, if no workspace is provided, one will be allocated internally
+        T *_work = nullptr;
+        // Workspace size
+        idx_t lwork;
+    };
 
     /** move_bulges pushes shifts present in the pencil down to the edge of the matrix.
      *
@@ -54,7 +55,8 @@ namespace tlapack
         class matrix_t,
         class vector_t,
         enable_if_t<is_complex<type_t<vector_t>>::value, bool> = true>
-    void move_bulges_recursive(matrix_t &A, vector_t &s, matrix_t &Q, matrix_t &V)
+    void move_bulges_recursive(matrix_t &A, vector_t &s, matrix_t &Q, matrix_t &V,
+                               const move_bulges_opts_t<size_type<matrix_t>, type_t<matrix_t>> &opts = {})
     {
 
         using T = type_t<matrix_t>;
@@ -64,12 +66,10 @@ namespace tlapack
 
         const idx_t n = ncols(A);
 
-        const idx_t nx = 2;
-
         const idx_t ns = size(s);
         const idx_t np = n - 1 - ns;
 
-        if (min(ns, np) <= nx)
+        if (min(ns, np) <= opts.nx)
         {
             return move_bulges(A, s, Q, V);
         }
@@ -83,9 +83,32 @@ namespace tlapack
         const idx_t np1 = np / 2;
         const idx_t np2 = np - np1;
 
-        // Locally allocate workspace for now, should be changed later
-        std::unique_ptr<T[]> _work(new T[(2 * nb2 + np2) * (2 * nb2 + np2)]);
-        std::unique_ptr<T[]> _work2(new T[n * n]);
+        // Get workspace
+        T *_work;
+        idx_t lwork;
+        idx_t required_workspace = (n + 2 * nb2 + np2) * (2 * nb2 + np2);
+        // Store whether or not a workspace was locally allocated
+        bool locally_allocated = false;
+        if (opts._work and required_workspace <= opts.lwork)
+        {
+            // Provided workspace is large enough, use it
+            _work = opts._work;
+            lwork = opts.lwork;
+        }
+        else
+        {
+            // No workspace provided or not large enough, allocate it
+            locally_allocated = true;
+            lwork = required_workspace;
+            _work = new T[lwork];
+        }
+        idx_t iwork2 = (2 * nb2 + np2) * (2 * nb2 + np2);
+        idx_t lwork2 = lwork - iwork2;
+
+        move_bulges_opts_t<idx_t, T> opts2;
+        opts2.nx = opts.nx;
+        opts2._work = &_work[iwork2];
+        opts2.lwork = lwork2;
 
         laset(Uplo::General, (T)0, (T)1, Q);
 
@@ -97,23 +120,23 @@ namespace tlapack
             auto A_slice = slice(A, pair{i_pos, i_pos + n_block}, pair{i_pos, i_pos + n_block});
             auto V_slice = slice(V, pair{0, 3}, pair{0, nb2});
             auto s_slice = slice(s, pair{0, 2 * nb2});
-            move_bulges(A_slice, s_slice, Q_work, V_slice);
+            move_bulges_recursive(A_slice, s_slice, Q_work, V_slice, opts2);
 
             // Update Q
-            auto Q_slice = slice(Q, pair{i_pos, i_pos + n_block-1}, pair{i_pos, i_pos + n_block-1});
+            auto Q_slice = slice(Q, pair{i_pos, i_pos + n_block - 1}, pair{i_pos, i_pos + n_block - 1});
             lacpy(Uplo::General, Q_work, Q_slice);
 
             // Multiply A with Q_work from the left
             auto A_slice_left = slice(A, pair{i_pos + 1, i_pos + n_block}, pair{i_pos + n_block, n});
             auto work_left = legacyMatrix<T, layout<matrix_t>>(nrows(A_slice_left), ncols(A_slice_left),
-                                                               &_work2[0], layout<matrix_t> == Layout::ColMajor ? nrows(A_slice_left) : ncols(A_slice_left));
+                                                               &_work[iwork2], layout<matrix_t> == Layout::ColMajor ? nrows(A_slice_left) : ncols(A_slice_left));
             gemm(Op::ConjTrans, Op::NoTrans, (real_t)1.0, Q_work, A_slice_left, (real_t)0.0, work_left);
             lacpy(Uplo::General, work_left, A_slice_left);
 
             // Multiply A with Q_work from the right
             auto A_slice_right = slice(A, pair{0, i_pos}, pair{i_pos + 1, i_pos + n_block});
             auto work_right = legacyMatrix<T, layout<matrix_t>>(nrows(A_slice_right), ncols(A_slice_right),
-                                                                &_work2[0], layout<matrix_t> == Layout::ColMajor ? nrows(A_slice_right) : ncols(A_slice_right));
+                                                                &_work[iwork2], layout<matrix_t> == Layout::ColMajor ? nrows(A_slice_right) : ncols(A_slice_right));
             gemm(Op::NoTrans, Op::NoTrans, (real_t)1.0, A_slice_right, Q_work, (real_t)0.0, work_right);
             lacpy(Uplo::General, work_right, A_slice_right);
         }
@@ -126,19 +149,19 @@ namespace tlapack
             auto A_slice = slice(A, pair{i_pos, i_pos + n_block}, pair{i_pos, i_pos + n_block});
             auto V_slice = slice(V, pair{0, 3}, pair{0, nb2});
             auto s_slice = slice(s, pair{0, 2 * nb2});
-            move_bulges(A_slice, s_slice, Q_work, V_slice);
+            move_bulges_recursive(A_slice, s_slice, Q_work, V_slice, opts2);
 
             // Update Q
-            auto Q_slice = slice(Q, pair{0, nrows(Q)}, pair{i_pos, i_pos + n_block-1});
+            auto Q_slice = slice(Q, pair{0, nrows(Q)}, pair{i_pos, i_pos + n_block - 1});
             auto Q_work_right = legacyMatrix<T, layout<matrix_t>>(nrows(Q_slice), ncols(Q_slice),
-                                                                &_work2[0], layout<matrix_t> == Layout::ColMajor ? nrows(Q_slice) : ncols(Q_slice));
+                                                                  &_work[iwork2], layout<matrix_t> == Layout::ColMajor ? nrows(Q_slice) : ncols(Q_slice));
             gemm(Op::NoTrans, Op::NoTrans, (real_t)1.0, Q_slice, Q_work, (real_t)0.0, Q_work_right);
             lacpy(Uplo::General, Q_work_right, Q_slice);
 
             // Multiply A with Q_work from the right
             auto A_slice_right = slice(A, pair{0, i_pos}, pair{i_pos + 1, i_pos + n_block});
             auto work_right = legacyMatrix<T, layout<matrix_t>>(nrows(A_slice_right), ncols(A_slice_right),
-                                                                &_work2[0], layout<matrix_t> == Layout::ColMajor ? nrows(A_slice_right) : ncols(A_slice_right));
+                                                                &_work[iwork2], layout<matrix_t> == Layout::ColMajor ? nrows(A_slice_right) : ncols(A_slice_right));
             gemm(Op::NoTrans, Op::NoTrans, (real_t)1.0, A_slice_right, Q_work, (real_t)0.0, work_right);
             lacpy(Uplo::General, work_right, A_slice_right);
         }
@@ -151,19 +174,19 @@ namespace tlapack
             auto A_slice = slice(A, pair{i_pos, i_pos + n_block}, pair{i_pos, i_pos + n_block});
             auto V_slice = slice(V, pair{0, 3}, pair{nb2, nb});
             auto s_slice = slice(s, pair{2 * nb2, 2 * nb});
-            move_bulges(A_slice, s_slice, Q_work, V_slice);
+            move_bulges_recursive(A_slice, s_slice, Q_work, V_slice, opts2);
 
             // Update Q
-            auto Q_slice = slice(Q, pair{0, nrows(Q)}, pair{i_pos, i_pos + n_block-1});
+            auto Q_slice = slice(Q, pair{0, nrows(Q)}, pair{i_pos, i_pos + n_block - 1});
             auto Q_work_right = legacyMatrix<T, layout<matrix_t>>(nrows(Q_slice), ncols(Q_slice),
-                                                                &_work2[0], layout<matrix_t> == Layout::ColMajor ? nrows(Q_slice) : ncols(Q_slice));
+                                                                  &_work[iwork2], layout<matrix_t> == Layout::ColMajor ? nrows(Q_slice) : ncols(Q_slice));
             gemm(Op::NoTrans, Op::NoTrans, (real_t)1.0, Q_slice, Q_work, (real_t)0.0, Q_work_right);
             lacpy(Uplo::General, Q_work_right, Q_slice);
 
             // Multiply A with Q_work from the left
             auto A_slice_left = slice(A, pair{i_pos + 1, i_pos + n_block}, pair{i_pos + n_block, n});
             auto work_left = legacyMatrix<T, layout<matrix_t>>(nrows(A_slice_left), ncols(A_slice_left),
-                                                               &_work2[0], layout<matrix_t> == Layout::ColMajor ? nrows(A_slice_left) : ncols(A_slice_left));
+                                                               &_work[iwork2], layout<matrix_t> == Layout::ColMajor ? nrows(A_slice_left) : ncols(A_slice_left));
             gemm(Op::ConjTrans, Op::NoTrans, (real_t)1.0, Q_work, A_slice_left, (real_t)0.0, work_left);
             lacpy(Uplo::General, work_left, A_slice_left);
         }
@@ -176,29 +199,32 @@ namespace tlapack
             auto A_slice = slice(A, pair{i_pos, i_pos + n_block}, pair{i_pos, i_pos + n_block});
             auto V_slice = slice(V, pair{0, 3}, pair{nb2, nb});
             auto s_slice = slice(s, pair{2 * nb2, 2 * nb});
-            move_bulges(A_slice, s_slice, Q_work, V_slice);
+            move_bulges_recursive(A_slice, s_slice, Q_work, V_slice, opts2);
 
             // Update Q
-            auto Q_slice = slice(Q, pair{0, nrows(Q)}, pair{i_pos, i_pos + n_block-1});
+            auto Q_slice = slice(Q, pair{0, nrows(Q)}, pair{i_pos, i_pos + n_block - 1});
             auto Q_work_right = legacyMatrix<T, layout<matrix_t>>(nrows(Q_slice), ncols(Q_slice),
-                                                                &_work2[0], layout<matrix_t> == Layout::ColMajor ? nrows(Q_slice) : ncols(Q_slice));
+                                                                  &_work[iwork2], layout<matrix_t> == Layout::ColMajor ? nrows(Q_slice) : ncols(Q_slice));
             gemm(Op::NoTrans, Op::NoTrans, (real_t)1.0, Q_slice, Q_work, (real_t)0.0, Q_work_right);
             lacpy(Uplo::General, Q_work_right, Q_slice);
 
             // Multiply A with Q_work from the left
             auto A_slice_left = slice(A, pair{i_pos + 1, i_pos + n_block}, pair{i_pos + n_block, n});
             auto work_left = legacyMatrix<T, layout<matrix_t>>(nrows(A_slice_left), ncols(A_slice_left),
-                                                               &_work2[0], layout<matrix_t> == Layout::ColMajor ? nrows(A_slice_left) : ncols(A_slice_left));
+                                                               &_work[iwork2], layout<matrix_t> == Layout::ColMajor ? nrows(A_slice_left) : ncols(A_slice_left));
             gemm(Op::ConjTrans, Op::NoTrans, (real_t)1.0, Q_work, A_slice_left, (real_t)0.0, work_left);
             lacpy(Uplo::General, work_left, A_slice_left);
 
             // Multiply A with Q_work from the right
             auto A_slice_right = slice(A, pair{0, i_pos}, pair{i_pos + 1, i_pos + n_block});
             auto work_right = legacyMatrix<T, layout<matrix_t>>(nrows(A_slice_right), ncols(A_slice_right),
-                                                                &_work2[0], layout<matrix_t> == Layout::ColMajor ? nrows(A_slice_right) : ncols(A_slice_right));
+                                                                &_work[iwork2], layout<matrix_t> == Layout::ColMajor ? nrows(A_slice_right) : ncols(A_slice_right));
             gemm(Op::NoTrans, Op::NoTrans, (real_t)1.0, A_slice_right, Q_work, (real_t)0.0, work_right);
             lacpy(Uplo::General, work_right, A_slice_right);
         }
+
+        if (locally_allocated)
+            delete[] _work;
     }
 
     /** move_bulges pushes shifts present in the pencil down to the edge of the matrix.

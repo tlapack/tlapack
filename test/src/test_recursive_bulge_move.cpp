@@ -25,7 +25,7 @@ TEMPLATE_LIST_TEST_CASE("Non recursive moves bulges is backward stable", "[eigen
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
     using real_t = real_type<T>;
-    using pair = std::pair<idx_t,idx_t>;
+    using pair = std::pair<idx_t, idx_t>;
 
     rand_generator gen;
 
@@ -69,26 +69,27 @@ TEMPLATE_LIST_TEST_CASE("Non recursive moves bulges is backward stable", "[eigen
     tlapack::lacpy(Uplo::General, A, A_copy);
 
     // Pick some shifts to use
-    for( idx_t i = 0; i < ns; i = i+2 ){
-        s[i] = std::complex<real_t>( (real_t) i, (real_t) +1 );
-        s[i+1] = std::complex<real_t>( (real_t) i, (real_t) -1 );
+    for (idx_t i = 0; i < ns; i = i + 2)
+    {
+        s[i] = std::complex<real_t>((real_t)i, (real_t) + 1);
+        s[i + 1] = std::complex<real_t>((real_t)i, (real_t)-1);
     }
 
-    introduce_bulges( A, s, Q1, V );
+    introduce_bulges(A, s, Q1, V);
 
     // laset(Uplo::General, (T) 0.0, (T) 1.0, Q2);
     move_bulges(A, s, Q2, V);
 
     // Merge Q1 and Q2 into Q
-    lacpy( Uplo::General, Q1, Q );
-    auto Q1_slice = slice( Q1, pair{0,n}, pair{1,n} );
-    auto Q_slice = slice( Q, pair{0,n}, pair{1,n} );
-    gemm( Op::NoTrans, Op::NoTrans, (real_t) 1.0, Q1_slice, Q2, (real_t) 0.0, Q_slice );
+    lacpy(Uplo::General, Q1, Q);
+    auto Q1_slice = slice(Q1, pair{0, n}, pair{1, n});
+    auto Q_slice = slice(Q, pair{0, n}, pair{1, n});
+    gemm(Op::NoTrans, Op::NoTrans, (real_t)1.0, Q1_slice, Q2, (real_t)0.0, Q_slice);
 
     remove_bulges(A, s, Q2, V);
 
-    lacpy( Uplo::General, Q, Q1 );
-    gemm( Op::NoTrans, Op::NoTrans, (real_t) 1.0, Q1_slice, Q2, (real_t) 0.0, Q_slice );
+    lacpy(Uplo::General, Q, Q1);
+    gemm(Op::NoTrans, Op::NoTrans, (real_t)1.0, Q1_slice, Q2, (real_t)0.0, Q_slice);
 
     std::unique_ptr<T[]> _res_orth(new T[n * n]);
     auto res_orth = legacyMatrix<T, layout<matrix_t>>(n, n, &_res_orth[0], n);
@@ -104,13 +105,12 @@ TEMPLATE_LIST_TEST_CASE("Non recursive moves bulges is backward stable", "[eigen
 
     gemm(Op::ConjTrans, Op::NoTrans, (T)1.0, Q, A_copy, (T)0.0, work);
     gemm(Op::NoTrans, Op::NoTrans, (T)1.0, work, Q, (T)0.0, res);
-    for(idx_t j = 0; j < n; ++j)
-        for(idx_t i =0;i<n;++i)
-            res(i,j) -= A(i,j);
+    for (idx_t j = 0; j < n; ++j)
+        for (idx_t i = 0; i < n; ++i)
+            res(i, j) -= A(i, j);
     auto simil_res_norm = tlapack::lange(tlapack::frob_norm, res);
     CHECK(simil_res_norm <= tol * normA);
 }
-
 
 TEMPLATE_LIST_TEST_CASE("Recursive move bulges is backward stable", "[eigenvalues][hessenberg]", types_to_test)
 {
@@ -120,14 +120,16 @@ TEMPLATE_LIST_TEST_CASE("Recursive move bulges is backward stable", "[eigenvalue
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
     using real_t = real_type<T>;
-    using pair = std::pair<idx_t,idx_t>;
+    using pair = std::pair<idx_t, idx_t>;
 
     rand_generator gen;
 
     // Number of shifts
-    idx_t ns = GENERATE(2,4,6);
+    idx_t ns = GENERATE(2,4,6,10);
     // Number of positions to move the shifts
-    idx_t np = GENERATE(2,4,6);
+    idx_t np = GENERATE(2,4,6,10);
+    // Optimization parameter
+    idx_t nx = GENERATE(2, 4);
     // size of matrix
     idx_t n = ns + 1 + np;
     // Number of bulges
@@ -164,57 +166,64 @@ TEMPLATE_LIST_TEST_CASE("Recursive move bulges is backward stable", "[eigenvalue
     tlapack::lacpy(Uplo::General, A, A_copy);
 
     // Pick some shifts to use
-    for( idx_t i = 0; i < ns; i = i+2 ){
-        s[i] = std::complex<real_t>( (real_t) i, (real_t) +1 );
-        s[i+1] = std::complex<real_t>( (real_t) i, (real_t) -1 );
+    for (idx_t i = 0; i < ns; i = i + 2)
+    {
+        s[i] = std::complex<real_t>((real_t)i, (real_t) + 1);
+        s[i + 1] = std::complex<real_t>((real_t)i, (real_t)-1);
     }
 
-    introduce_bulges( A, s, Q1, V );
+    DYNAMIC_SECTION("Recursive bulge move with"
+                    << " ns = " << ns << " np = " << np << " nx = " << nx)
+    {
 
-    // laset(Uplo::General, (T) 0.0, (T) 1.0, Q2);
-    move_bulges_recursive(A, s, Q2, V);
-    // move_bulges(A, s, Q2, V);
+        introduce_bulges(A, s, Q1, V);
 
-    std::cout<<"A"<<std::endl;
-    print_matrix( A );
+        std::cout<<"A"<<std::endl;
+        print_matrix( A );
 
-    std::cout<<"Q2"<<std::endl;
-    print_matrix( Q2 );
+        move_bulges_opts_t<idx_t, T> opts;
+        opts.nx = nx;
+        move_bulges_recursive(A, s, Q2, V);
 
-    // Merge Q1 and Q2 into Q
-    lacpy( Uplo::General, Q1, Q );
-    auto Q1_slice = slice( Q1, pair{0,n}, pair{1,n} );
-    auto Q_slice = slice( Q, pair{0,n}, pair{1,n} );
-    gemm( Op::NoTrans, Op::NoTrans, (real_t) 1.0, Q1_slice, Q2, (real_t) 0.0, Q_slice );
+        std::cout<<"A"<<std::endl;
+        print_matrix( A );
 
-    remove_bulges(A, s, Q2, V);
-    lacpy( Uplo::General, Q, Q1 );
-    gemm( Op::NoTrans, Op::NoTrans, (real_t) 1.0, Q1_slice, Q2, (real_t) 0.0, Q_slice );
+        // Merge Q1 and Q2 into Q
+        lacpy(Uplo::General, Q1, Q);
+        auto Q1_slice = slice(Q1, pair{0, n}, pair{1, n});
+        auto Q_slice = slice(Q, pair{0, n}, pair{1, n});
+        gemm(Op::NoTrans, Op::NoTrans, (real_t)1.0, Q1_slice, Q2, (real_t)0.0, Q_slice);
 
-    // std::cout<<"A"<<std::endl;
-    // print_matrix( A );
+        remove_bulges(A, s, Q2, V);
+        lacpy(Uplo::General, Q, Q1);
+        gemm(Op::NoTrans, Op::NoTrans, (real_t)1.0, Q1_slice, Q2, (real_t)0.0, Q_slice);
 
-    std::unique_ptr<T[]> _res_orth(new T[n * n]);
-    auto res_orth = legacyMatrix<T, layout<matrix_t>>(n, n, &_res_orth[0], n);
-    auto orth_res_norm = check_orthogonality(Q, res_orth);
-    CHECK(orth_res_norm <= tol);
+        std::cout<<"A"<<std::endl;
+        print_matrix( A );
 
-    std::unique_ptr<T[]> _Q2(new T[n * n]);
-    std::unique_ptr<T[]> _res(new T[n * n]);
-    std::unique_ptr<T[]> _work(new T[n * n]);
-    auto res = legacyMatrix<T, layout<matrix_t>>(n, n, &_res[0], n);
-    auto work = legacyMatrix<T, layout<matrix_t>>(n, n, &_work[0], n);
-    auto normA = tlapack::lange(tlapack::frob_norm, A_copy);
+        std::unique_ptr<T[]> _res_orth(new T[n * n]);
+        auto res_orth = legacyMatrix<T, layout<matrix_t>>(n, n, &_res_orth[0], n);
+        auto orth_res_norm = check_orthogonality(Q, res_orth);
+        CHECK(orth_res_norm <= tol);
 
-    gemm(Op::ConjTrans, Op::NoTrans, (T)1.0, Q, A_copy, (T)0.0, work);
-    gemm(Op::NoTrans, Op::NoTrans, (T)1.0, work, Q, (T)0.0, res);
-    // std::cout<<"res"<<std::endl;
-    // print_matrix( res );
-    for(idx_t j = 0; j < n; ++j)
-        for(idx_t i =0;i<n;++i)
-            res(i,j) -= A(i,j);
-    // std::cout<<"res"<<std::endl;
-    // print_matrix( res );
-    auto simil_res_norm = tlapack::lange(tlapack::frob_norm, res);
-    CHECK(simil_res_norm <= tol * normA);
+        std::unique_ptr<T[]> _Q2(new T[n * n]);
+        std::unique_ptr<T[]> _res(new T[n * n]);
+        std::unique_ptr<T[]> _work(new T[n * n]);
+        auto res = legacyMatrix<T, layout<matrix_t>>(n, n, &_res[0], n);
+        auto work = legacyMatrix<T, layout<matrix_t>>(n, n, &_work[0], n);
+        auto normA = tlapack::lange(tlapack::frob_norm, A_copy);
+
+        gemm(Op::ConjTrans, Op::NoTrans, (T)1.0, Q, A_copy, (T)0.0, work);
+        gemm(Op::NoTrans, Op::NoTrans, (T)1.0, work, Q, (T)0.0, res);
+
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = 0; i < n; ++i)
+                res(i, j) -= A(i, j);
+
+        std::cout<<"A"<<std::endl;
+        print_matrix( A );
+
+        auto simil_res_norm = tlapack::lange(tlapack::frob_norm, res);
+        CHECK(simil_res_norm <= tol * normA);
+    }
 }
