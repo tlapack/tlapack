@@ -40,13 +40,15 @@ struct lu_mult_opts_t
 template <class matrix_t>
 void lu_mult(matrix_t &A, const lu_mult_opts_t<size_type<matrix_t>> &opts = {})
 {
-    using idx_t = size_type< matrix_t >;;
+    using idx_t = size_type< matrix_t >;
     using T = type_t<matrix_t>;
     using range = std::pair<idx_t, idx_t>;
     using real_t = real_type<T>;
 
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
+    tlapack_check(m == n);
+    tlapack_check(opts.nx >= 1);
 
     // quick return
     if (n == 0)
@@ -81,20 +83,21 @@ void lu_mult(matrix_t &A, const lu_mult_opts_t<size_type<matrix_t>> &opts = {})
     auto A10 = slice(A, range(n0, n), range(0, n0));
     auto A11 = slice(A, range(n0, n), range(n0, n));
 
+    // L11*U11
     lu_mult(A11, opts);
 
-    // Step 2
+    // A11 = L10*U01 + L11*U11
     gemm(Op::NoTrans, Op::NoTrans, T(1), A10, A01, T(1), A11);
 
-    // Step 3
+    // A01 = L00*U01
     trmm(Side::Left, Uplo::Lower, Op::NoTrans,
                   Diag::Unit, real_t(1), A00, A01);
 
-    // Step 4
+    // L10*U00
     trmm(Side::Right, Uplo::Upper, Op::NoTrans,
                   Diag::NonUnit, real_t(1), A00, A10);
 
-    // Step 5
+    // L00*U00
     lu_mult(A00, opts);
 
     return;
