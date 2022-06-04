@@ -32,63 +32,40 @@ TEMPLATE_LIST_TEST_CASE("LAUUM is stable", "[lauum]", types_to_test)
 
     std::unique_ptr<T[]> A_(new T[n * n]);
     std::unique_ptr<T[]> C_(new T[n * n]);
-    std::unique_ptr<T[]> C_copy_(new T[n * n]);
 
     auto A = legacyMatrix<T, layout<matrix_t>>(n, n, &A_[0], n);
     auto C = legacyMatrix<T, layout<matrix_t>>(n, n, &C_[0], n);
-    auto C_copy = legacyMatrix<T, layout<matrix_t>>(n, n, &C_copy_[0], n);
 
-    // Generate random matrix in Schur form
+    // Generate random matrix
     for (idx_t j = 0; j < n; ++j)
-    {
         for (idx_t i = 0; i < n; ++i)
             A(i, j) = rand_helper<T>();
-        A(j, j) += tlapack::make_scalar<T>(n, 0);
-    }
 
-    laset(Uplo::General, (T)0., (T) 0., C_copy);
-    laset(Uplo::General, (T)0., (T) 0., C);
-    lacpy(uplo, A, C);
-    lacpy(uplo, A, C_copy);
+    lacpy(Uplo::General, A, C);
 
-    DYNAMIC_SECTION("n = " << n << " uplo " << (uplo == Uplo::Upper ? "upper" : "lower"))
+    DYNAMIC_SECTION("n = " << n << " uplo = " << (uplo == Uplo::Upper ? "upper" : "lower"))
     {
-        lauum_recursive(uplo, C);
+        lauum_recursive(uplo, A);
 
-        // Calculate residuals
+        // Calculate residual
+        real_t normC = lantr(max_norm, uplo, Diag::NonUnit, C);
 
         if (uplo == Uplo::Lower)
-            tlapack::gemm(tlapack::Op::ConjTrans, tlapack::Op::NoTrans, T(1), C_copy, C_copy, T(-1), C);
+        {
+            for (idx_t j = 0; j < n; ++j)
+                for (idx_t i = 0; i < j; ++i)
+                    C(i, j) = T(0.);
+            herk(Uplo::Lower, Op::ConjTrans, real_t(1), C, real_t(-1), A);
+        }
         else
-            tlapack::gemm(tlapack::Op::NoTrans, tlapack::Op::ConjTrans, T(1), C_copy, C_copy, T(-1), C);
+        {
+            for (idx_t j = 0; j < n; ++j)
+                for (idx_t i = j + 1; i < n; ++i)
+                    C(i, j) = T(0.);
+            herk(Uplo::Upper, Op::NoTrans, real_t(1), C, real_t(-1), A);
+        }
 
-        real_t normC = tlapack::lansy(tlapack::max_norm, uplo, C) / (tlapack::lansy(tlapack::max_norm, uplo, C_copy));
-        CHECK(normC <= tol);
-        // std::cout << "backward error = " << normC << std::endl;
-
-        /////
-
-        // if (uplo == Uplo::Lower)
-        // {
-        //     for (idx_t j = 0; j < n; j++)
-        //         for (idx_t i = 0; i < j; i++)
-        //             C(i, j) = T(0);
-        // }
-        // else
-        // {
-        //     for (idx_t i = 0; i < n; i++)
-        //         for (idx_t j = 0; j < i; j++)
-        //             C(i, j) = T(0);
-        // }
-
-        // // TRMM with X starting as the inverse of C and leaving as the identity. This checks that the inverse is correct.
-        // // Note: it would be nice to have a ``upper * upper`` MM function to do this
-        // trmm(Side::Left, uplo, Op::NoTrans, Diag::NonUnit, T(1), A, C);
-
-        // for (idx_t i = 0; i < n; ++i)
-        //     C(i, i) = C(i, i) - T(1);
-
-        // real_t normres = lantr(max_norm, uplo, Diag::NonUnit, C) / (lantr(max_norm, uplo, Diag::NonUnit, A));
-        // CHECK(normres <= tol);
+        real_t res = lanhe(max_norm, uplo, A) / normC / normC;
+        CHECK(res <= tol);
     }
 }
