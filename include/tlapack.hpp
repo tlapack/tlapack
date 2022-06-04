@@ -34,6 +34,7 @@
 #include "lapack/lascl.hpp"
 #include "lapack/lassq.hpp"
 #include "lapack/transpose.hpp"
+#include "lapack/lauum_recursive.hpp"
 
 // QR factorization
 // ----------------
