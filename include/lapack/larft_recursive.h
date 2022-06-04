@@ -14,6 +14,7 @@ namespace tlapack{
 * @param [in, out] T
 */
 
+<<<<<<< HEAD
 /**
  * @brief 
  * 
@@ -24,6 +25,9 @@ namespace tlapack{
  * @param TTT 
  * @return int 
  */
+=======
+
+>>>>>>> aca9ff685ab0616e3319d2c23ee409a646b80f98
 template <typename matrix_t, typename vector_t> // we need two argus because one for R&C and the other for the values of the entries
 int larft_recursive(matrix_t &A, vector_t tau, matrix_t &TTT )
 {
@@ -36,7 +40,11 @@ int larft_recursive(matrix_t &A, vector_t tau, matrix_t &TTT )
     using real_t = tlapack::real_type<T>;
     
 
+<<<<<<< HEAD
     /// TODO:
+=======
+    
+>>>>>>> aca9ff685ab0616e3319d2c23ee409a646b80f98
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
 
