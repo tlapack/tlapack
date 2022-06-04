@@ -30,73 +30,67 @@ TEMPLATE_LIST_TEST_CASE("bidiagonal reduction is backward stable", "[bidiagonal]
 
     idx_t m, n;
 
-    m = GENERATE( 20, 30 );
-    n = GENERATE( 10, 30 );
+    m = GENERATE(20, 30);
+    n = GENERATE(10, 30);
 
-    if( m >= n ){
-
-    const real_t eps = uroundoff<real_t>();
-    const real_t tol = 1.0e2 * max(m,n) * eps;
-
-    std::unique_ptr<T[]> A_(new T[m * n]);
-    std::unique_ptr<T[]> A_copy_(new T[m * n]);
-
-    auto A = legacyMatrix<T, layout<matrix_t>>(m, n, &A_[0], layout<matrix_t> == Layout::ColMajor ? m : n );
-    auto A_copy = legacyMatrix<T, layout<matrix_t>>(m, n, &A_copy_[0], layout<matrix_t> == Layout::ColMajor ? m : n  );
-
-    std::vector<T> work(m); // max of m and n
-    std::vector<T> tauv(n); // min of m and n
-    std::vector<T> tauw(n); // min of m and n
-
-    // Generate random m-by-n matrix
-    for (idx_t j = 0; j < n; ++j)
-        for (idx_t i = 0; i < m; ++i)
-            A(i, j) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
-
-    lacpy(Uplo::General, A, A_copy);
-
-    DYNAMIC_SECTION("m = " << m << " n = " << n)
+    if (m >= n)
     {
-        gebd2(A, tauv, tauw, work);
 
-        std::unique_ptr<T[]> B_(new T[m * n]);
-        auto B = legacyMatrix<T, layout<matrix_t>>(m, n, &B_[0], layout<matrix_t> == Layout::ColMajor ? m : n );
+        const real_t eps = uroundoff<real_t>();
+        const real_t tol = 1.0e2 * max(m, n) * eps;
 
-        laset(Uplo::General, zero, zero, B);
+        std::unique_ptr<T[]> A_(new T[m * n]);
+        std::unique_ptr<T[]> A_copy_(new T[m * n]);
 
-        B(0,0) = A(0,0);
-        for (idx_t j = 1; j < n; ++j){
-            B(j-1,j) = A(j-1,j); 
-            B(j,j) = A(j,j); //get bidiagonal B
+        auto A = legacyMatrix<T, layout<matrix_t>>(m, n, &A_[0], layout<matrix_t> == Layout::ColMajor ? m : n);
+        auto A_copy = legacyMatrix<T, layout<matrix_t>>(m, n, &A_copy_[0], layout<matrix_t> == Layout::ColMajor ? m : n);
+
+        std::vector<T> work(m); // max of m and n
+        std::vector<T> tauv(n); // min of m and n
+        std::vector<T> tauw(n); // min of m and n
+
+        // Generate random m-by-n matrix
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = 0; i < m; ++i)
+                A(i, j) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+
+        lacpy(Uplo::General, A, A_copy);
+
+        DYNAMIC_SECTION("m = " << m << " n = " << n)
+        {
+            gebd2(A, tauv, tauw, work);
+
+            // Get upper bidiagonal B
+            std::unique_ptr<T[]> B_(new T[m * n]);
+            auto B = legacyMatrix<T, layout<matrix_t>>(m, n, &B_[0], layout<matrix_t> == Layout::ColMajor ? m : n);
+            laset(Uplo::General, zero, zero, B);
+
+            B(0, 0) = A(0, 0);
+            for (idx_t j = 1; j < n; ++j)
+            {
+                B(j - 1, j) = A(j - 1, j);
+                B(j, j) = A(j, j);
+            }
+
+            // Generate unitary matrix Q of m-by-m
+            std::unique_ptr<T[]> Q_(new T[m * m]);
+            auto Q = legacyMatrix<T, layout<matrix_t>>(m, m, &Q_[0], m);
+            lacpy(tlapack::Uplo::Lower, A, Q);
+
+            ung2r(n, Q, tauv, work);
+
+            // Test for Q's orthogonality
+            std::unique_ptr<T[]> _Wq(new T[m * m]);
+            auto Wq = legacyMatrix<T, layout<matrix_t>>(m, m, &_Wq[0], m);
+            auto orth_Q = check_orthogonality(Q, Wq);
+            CHECK(orth_Q <= tol);
+
+            // Generate unitary matrix Z of n-by-n
+            std::unique_ptr<T[]> Z_(new T[n * n]);
+            auto Z = legacyMatrix<T, layout<matrix_t>>(n, n, &Z_[0], n);
+            // lacpy(tlapack::Uplo::Upper, slice(A, range(0, n), range(1, n)), Z);
+
+            
         }
-
-        std::unique_ptr<T[]> Q_(new T[m * m]);
-        auto Q = legacyMatrix<T, layout<matrix_t>>(m, m, &Q_[0], m );
-
-        lacpy(tlapack::Uplo::Lower, A, Q);
-
-        ung2r( n, Q, tauv, work);
-
-        std::unique_ptr<T[]> _res(new T[m * m]);
-
-        auto res = legacyMatrix<T, layout<matrix_t>>(m, m, &_res[0], m);
-        auto orth_res_norm = check_orthogonality(Q, res);
-        CHECK(orth_res_norm <= tol);
-
-
-        std::unique_ptr<T[]> Z_(new T[n * n]);
-        auto Z = legacyMatrix<T, layout<matrix_t>>(n, n, &Q_[0], n );
-
-        lacpy(tlapack::Uplo::Lower, A, Q);
-
-        ung2r( n, Q, tauv, work);
-
-        std::unique_ptr<T[]> _res(new T[m * m]);
-
-        auto res = legacyMatrix<T, layout<matrix_t>>(m, m, &_res[0], m);
-        auto orth_res_norm = check_orthogonality(Q, res);
-        CHECK(orth_res_norm <= tol);
-
-    }
     }
 }
