@@ -72,7 +72,6 @@ TEMPLATE_LIST_TEST_CASE("LQ factorization of a general m-by-n matrix", "[lqf]", 
             // Wq is the identity matrix to check the orthogonality of Q
             std::unique_ptr<T[]> Wq_(new T[k * k]);
             auto Wq = legacyMatrix<T, layout<matrix_t>>(k, k, &Wq_[0], k);
-            laset(Uplo::General, zero, one, Wq);
             auto orth_Q = check_orthogonality(Q, Wq);
             CHECK(orth_Q <= tol);
 
@@ -88,12 +87,11 @@ TEMPLATE_LIST_TEST_CASE("LQ factorization of a general m-by-n matrix", "[lqf]", 
             laset(Uplo::General, zero, zero, R);
 
             // Test A = L * Q
-            gemm(Op::NoTrans, Op::NoTrans, T(1), L, Q, T(0), R);
+            gemm(Op::NoTrans, Op::NoTrans, real_t(1.), L, Q, real_t(0.), R);
             for (idx_t j = 0; j < n; ++j)
-            {
                 for (idx_t i = 0; i < min(m, k); ++i)
                     A_copy(i, j) -= R(i, j);
-            }
+    
             real_t repres = tlapack::lange(tlapack::Norm::Max, slice(A_copy, range(0, min(m, k)), range(0, n)));
             CHECK(repres <= tol);
         }
