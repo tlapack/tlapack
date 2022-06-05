@@ -70,6 +70,9 @@ endif()
 # Examples
 option( BUILD_EXAMPLES "Build examples" ON  )
 
+# Tests
+option( TLAPACK_BUILD_SINGLE_TESTER "Build one additional executable that contains all tests" OFF  )
+
 # Wrappers to <T>BLAS and <T>LAPACK
 option( C_WRAPPERS       "Build and install C wrappers"               OFF )
 option( CBLAS_WRAPPERS   "Build and install CBLAS wrappers to <T>BLAS" OFF )
