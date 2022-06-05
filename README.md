@@ -80,6 +80,10 @@ Here are the \<T\>LAPACK specific options and their default values
     BUILD_TESTING                       ON
     
         Build the testing tree
+    
+    TLAPACK_BUILD_SINGLE_TESTER         OFF
+    
+        Build one additional executable that contains all tests
         
     C_WRAPPERS                          OFF
     

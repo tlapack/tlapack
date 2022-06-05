@@ -237,7 +237,7 @@ jobs:
 
     # Mind that the job won't fail if only this step fails
     - name: Run BLASPP and LAPACKPP testers
-      working-directory: ${{github.workspace}}/build
+      working-directory: ${{github.workspace}}/build/test
       continue-on-error: true
       run: |
         echo "Mind that the job won't fail if only this step fails."
@@ -246,45 +246,45 @@ jobs:
 
     # Mind that the job won't fail if only this step fails
     - name: Test InfNaN propagation
-      working-directory: ${{github.workspace}}/build
+      working-directory: ${{github.workspace}}/build/test
       continue-on-error: true
       run: |
         echo "Mind that the job won't fail if only this step fails."
-        ./tester -# [#test_infNaN] -r compact
+        ./tester_testBLAS -# [#test_infNaN] -r compact
 
     # Mind that the job won't fail if only this step fails
     - name: Test InfNaN propagation on iamax
-      working-directory: ${{github.workspace}}/build
+      working-directory: ${{github.workspace}}/build/test
       continue-on-error: true
       run: |
         echo "Mind that the job won't fail if only this step fails."
-        ./tester -# [#test_infNaN_iamax] -r compact
+        ./tester_testBLAS -# [#test_infNaN_iamax] -r compact
 
     # Mind that the job won't fail if only this step fails
     - name: Test InfNaN propagation on nrm2
-      working-directory: ${{github.workspace}}/build
+      working-directory: ${{github.workspace}}/build/test
       continue-on-error: true
       run: |
         echo "Mind that the job won't fail if only this step fails."
-        ./tester -# [#test_infNaN_nrm2] -r compact
+        ./tester_testBLAS -# [#test_infNaN_nrm2] -r compact
 
     # Mind that the job won't fail if only this step fails
     - name: Test InfNaN propagation on trsv and trsm
-      working-directory: ${{github.workspace}}/build
+      working-directory: ${{github.workspace}}/build/test
       continue-on-error: true
       run: |
         echo "Mind that the job won't fail if only this step fails."
-        ./tester -# [#test_infNaN_trsv_trsm] -r compact
+        ./tester_testBLAS -# [#test_infNaN_trsv_trsm] -r compact
 
     # Mind that the job won't fail if only this step fails
     - name: Test Corner Cases
-      working-directory: ${{github.workspace}}/build
+      working-directory: ${{github.workspace}}/build/test
       continue-on-error: true
       run: |
         echo "Mind that the job won't fail if only this step fails."
-        ./tester -# [#test_corner_cases] -r compact
+        ./tester_testBLAS -# [#test_corner_cases] -r compact
       # echo "Total of:"
-      # ./tester -# [#test_corner_cases] -l | tail -n 2
+      # ./tester_testBLAS -# [#test_corner_cases] -l | tail -n 2
 
   build-test-performance:
     # Use GNU compilers
