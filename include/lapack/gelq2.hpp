@@ -11,9 +11,6 @@
 #ifndef __TLAPACK_GELQ2_HH__
 #define __TLAPACK_GELQ2_HH__
 
-#include <plugins/tlapack_stdvector.hpp>
-#include <plugins/tlapack_legacyArray.hpp>
-
 #include "base/utils.hpp"
 #include "base/types.hpp"
 #include "lapack/larfg.hpp"
