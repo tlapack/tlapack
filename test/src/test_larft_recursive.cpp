@@ -62,19 +62,13 @@ TEMPLATE_LIST_TEST_CASE("larft_recursive works properly", "[qr]", types_to_test)
     for (idx_t i = 0; i < k; ++i)
         for (idx_t j = 0; j < k; ++j)
             TT(i, j) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
-
-<<<<<<< HEAD
+ 
      for (idx_t i = 0; i < k; ++i) {
         for (idx_t j = 0; j < k; ++j)
             TTT(i,j) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
         for (idx_t j = 0; j < i; ++j)
             TTT(i,j) = T(-1);
     }
-=======
-    for (idx_t i = 0; i < k; ++i)
-        for (idx_t j = 0; j < k; ++j)
-            TTT(i, j) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
->>>>>>> aca9ff685ab0616e3319d2c23ee409a646b80f98
 
     
     // Op trans_l = Op::NoTrans;
@@ -104,7 +98,6 @@ TEMPLATE_LIST_TEST_CASE("larft_recursive works properly", "[qr]", types_to_test)
             for (idx_t i = 0; i <= j; ++i)
                 TTT(i,j) -= TT(i,j);
                 
-<<<<<<< HEAD
             // for (idx_t i = j+1; i <k; ++i)
             //     TTT(i,j) = tlapack::make_scalar<T>(0,0);
         }
@@ -135,33 +128,7 @@ TEMPLATE_LIST_TEST_CASE("larft_recursive works properly", "[qr]", types_to_test)
 
         CHECK( norm <= tol );
         CHECK( lowerNotFound == true );
-=======
-            for (idx_t i = j+1; i <k; ++i)
-                TTT(i,j) = tlapack::make_scalar<T>(0,0);
-        }
-        // Strict lower part of TT will be 0's 
-        for (idx_t j = 0; j < k; ++j){    
-            for (idx_t i = j+1; i <k; ++i)
-                TT(i,j) = tlapack::make_scalar<T>(0,0);
-        }
-
-        
-        // Relative Error
-        real_t norm = tlapack::lange(tlapack::max_norm, TTT) / tlapack::lange(tlapack::max_norm, TT);
-
-        CHECK( norm <= tol );
->>>>>>> aca9ff685ab0616e3319d2c23ee409a646b80f98
 
 
-
-
-    //     // Solve sylvester equation
-    //     T scale, xnorm;
-    //     lasy2(Op::NoTrans, Op::NoTrans, 1, TL, TR, B, scale, X, xnorm);
-
-    //     // Check that X_exact == X
-    //     for (idx_t i = 0; i < m; ++i)
-    //         for (idx_t j = 0; j < n; ++j)
-    //             CHECK(abs1(X_exact(i, j) - scale * X(i, j)) <= tol * X_exact(i, j));
     }
 }
