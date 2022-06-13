@@ -30,7 +30,7 @@ namespace tlapack
      * \[
      *          Q = H(k)**H ... H(2)**H H(1)**H
      * \]
-     * as returned by gelq2 and k <= n. 
+     * as returned by gelq2 and k <= n.
      *
      * @return  0 if success
      *
@@ -58,34 +58,49 @@ namespace tlapack
         // constants
         const idx_t k = nrows(Q);
         const idx_t n = ncols(Q);
-        const idx_t m = size(tauw);     // maximum number of Householder reflectors to use
-        const idx_t t = min(k, m);      // desired number of Householder reflectors to use
+        const idx_t m = size(tauw); // maximum number of Householder reflectors to use
+        const idx_t t = min(k, m);  // desired number of Householder reflectors to use
 
         // check arguments
         tlapack_check_false(access_denied(dense, write_policy(Q)), -1);
         tlapack_check_false((idx_t)size(tauw) < std::min<idx_t>(m, n), -2);
         tlapack_check_false((idx_t)size(work) < t, -3);
 
-        // Initialise matrix C with 1 on its diagonal 
-        std::vector<T> C_(k * n);
-        legacyMatrix<T> C(k, n, &C_[0], k);
-        laset(Uplo::General, T(0), T(1), C);
-
-        for (idx_t j = t - 1; j != -1; --j)
-        {   
-            // Apply H(j)**H to Q(j:k,j:n) from the right
-            auto w = slice(Q, j, range(j, n));
-            for (idx_t i = 0; i < n - j; ++i)
-                w[i] = conj(w[i]);
-
-            auto C11 = slice(C, range(0, k), range(j, n));
-
-            larf(Side::Right, w, conj(tauw[j]), C11, work);
-            for (idx_t i = 0; i < n - j; ++i)
-                w[i] = conj(w[i]);
+        // Initialise columns t:k-1 to rows of the unit matrix
+        if (k > m)
+        {
+            for (idx_t j = 0; j < n; ++j)
+            {
+                for (idx_t i = t + 1; i < k; ++i)
+                    Q(i, j) = make_scalar<T>(0, 0);
+                Q(j, j) = make_scalar<T>(1, 0);
+            }
         }
 
-        lacpy(Uplo::General, C, Q);
+        for (idx_t j = t - 1; j != -1; --j)
+        {
+            if (j + 1 < n)
+            {
+                auto w = slice(Q, j, range(j, n));
+                for (idx_t i = 0; i < n - j; ++i) 
+                    w[i] = conj(w[i]);
+
+                if (j + 1 < t)
+                {
+                    Q(j, j) = make_scalar<T>(1, 0);
+                    auto Q11 = slice(Q, range(j + 1, k), range(j, n));
+                    larf(Side::Right, w, conj(tauw[j]), Q11, work);
+                }
+
+                scal(-tauw[j], w);
+                for (idx_t i = 0; i < n - j; ++i)
+                    w[i] = conj(w[i]);
+            }
+            Q(j, j) = T(1) - conj(tauw[j]);
+
+            for (idx_t l = 0; l < j; l++)
+                Q(j, l) = make_scalar<T>(0, 0);
+        }
 
         return 0;
     }
