@@ -35,6 +35,8 @@ namespace tlapack
      * \]
      * with w[j+1]**H through w[n]**H is stored on exit
      * in the jth row of A, and tauw in tauw[j].
+     * 
+     * 
      *
      * @return  0 if success
      *
