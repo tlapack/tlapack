@@ -11,12 +11,8 @@
 #ifndef __TLAPACK_UNGL2_HH__
 #define __TLAPACK_UNGL2_HH__
 
-#include <plugins/tlapack_stdvector.hpp>
-#include <plugins/tlapack_legacyArray.hpp>
-
 #include "base/utils.hpp"
 #include "base/types.hpp"
-#include "lapack/larfg.hpp"
 #include "lapack/larf.hpp"
 
 namespace tlapack
@@ -54,6 +50,7 @@ namespace tlapack
         using idx_t = size_type<matrix_t>;
         using T = type_t<matrix_t>;
         using range = std::pair<idx_t, idx_t>;
+        using real_t = real_type<T>;
 
         // constants
         const idx_t k = nrows(Q);
@@ -96,7 +93,7 @@ namespace tlapack
                 for (idx_t i = 0; i < n - j; ++i)
                     w[i] = conj(w[i]);
             }
-            Q(j, j) = T(1) - conj(tauw[j]);
+            Q(j, j) = real_t(1.) - conj(tauw[j]);
 
             for (idx_t l = 0; l < j; l++)
                 Q(j, l) = make_scalar<T>(0, 0);
