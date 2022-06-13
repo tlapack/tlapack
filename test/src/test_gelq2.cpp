@@ -55,7 +55,7 @@ TEMPLATE_LIST_TEST_CASE("LQ factorization of a general m-by-n matrix", "[lqf]", 
 
     lacpy(Uplo::General, A, A_copy);
 
-    if (k <= n) //k must be less than or equal to n, because we cannot get a Q bigger than n-by-n 
+    if (k <= n ) //k must be less than or equal to n, because we cannot get a Q bigger than n-by-n 
     {
         DYNAMIC_SECTION("m = " << m << " n = " << n << " k = " << k)
         {

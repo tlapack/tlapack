@@ -64,13 +64,14 @@ namespace tlapack
         tlapack_check_false((idx_t)size(work) < t, -3);
 
         // Initialise columns t:k-1 to rows of the unit matrix
-        if (k > m)
+        if (m <= n && k > m)
         {
             for (idx_t j = 0; j < n; ++j)
             {
                 for (idx_t i = t + 1; i < k; ++i)
                     Q(i, j) = make_scalar<T>(0, 0);
-                Q(j, j) = make_scalar<T>(1, 0);
+                if (j < k && j > t-1)
+                    Q(j, j) = make_scalar<T>(1, 0);
             }
         }
 
@@ -79,7 +80,7 @@ namespace tlapack
             if (j + 1 < n)
             {
                 auto w = slice(Q, j, range(j, n));
-                for (idx_t i = 0; i < n - j; ++i) 
+                for (idx_t i = 0; i < n - j; ++i)
                     w[i] = conj(w[i]);
 
                 if (j + 1 < t)
