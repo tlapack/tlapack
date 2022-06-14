@@ -64,13 +64,13 @@ namespace tlapack
         tlapack_check_false((idx_t)size(work) < t, -3);
 
         // Initialise columns t:k-1 to rows of the unit matrix
-        if (m <= n && k > m)
+        if (k > m)
         {
             for (idx_t j = 0; j < n; ++j)
             {
                 for (idx_t i = t + 1; i < k; ++i)
                     Q(i, j) = make_scalar<T>(0, 0);
-                if (j < k && j > t-1)
+                if (j < k && j > t - 1)
                     Q(j, j) = make_scalar<T>(1, 0);
             }
         }
@@ -80,8 +80,15 @@ namespace tlapack
             if (j + 1 < n)
             {
                 auto w = slice(Q, j, range(j, n));
-                for (idx_t i = 0; i < n - j; ++i)
+                for (idx_t i = 0; i < n - j; ++i) // for loop to conj w.
                     w[i] = conj(w[i]);
+
+                if (k > m && j + 1 == t)
+                {
+                    Q(j, j) = make_scalar<T>(1, 0);
+                    auto Q11 = slice(Q, range(j + 1, k), range(j, n));
+                    larf(Side::Right, w, conj(tauw[j]), Q11, work);
+                }
 
                 if (j + 1 < t)
                 {
@@ -91,7 +98,7 @@ namespace tlapack
                 }
 
                 scal(-tauw[j], w);
-                for (idx_t i = 0; i < n - j; ++i)
+                for (idx_t i = 0; i < n - j; ++i) // for loop to conj w back.
                     w[i] = conj(w[i]);
             }
             Q(j, j) = real_t(1.) - conj(tauw[j]);
