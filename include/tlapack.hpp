@@ -44,6 +44,12 @@
 #include "lapack/unm2r.hpp"
 #include "lapack/unmqr.hpp"
 
+// LQ factorization
+// ----------------
+
+#include "lapack/gelq2.hpp"
+#include "lapack/ungl2.hpp"
+
 // Solution of positive definite systems
 // ----------------
 
