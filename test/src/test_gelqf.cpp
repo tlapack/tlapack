@@ -16,7 +16,7 @@
 
 using namespace tlapack;
 
-TEMPLATE_LIST_TEST_CASE("LQ factorization of a general m-by-n matrix, blocked", "[lqf]", types_to_test)
+TEMPLATE_LIST_TEST_CASE("LQ factorization of a general m-by-n matrix, blocked", "[gelqf]", types_to_test)
 {
     srand(1);
 
