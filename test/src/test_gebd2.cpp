@@ -9,6 +9,7 @@
 
 #include <catch2/catch.hpp>
 #include <plugins/tlapack_stdvector.hpp>
+#include <plugins/tlapack_legacyArray.hpp>
 #include <tlapack.hpp>
 #include <testutils.hpp>
 #include <testdefinitions.hpp>
@@ -75,7 +76,7 @@ TEMPLATE_LIST_TEST_CASE("bidiagonal reduction is backward stable", "[bidiagonal]
             // Generate unitary matrix Q of m-by-m
             std::unique_ptr<T[]> Q_(new T[m * m]);
             auto Q = legacyMatrix<T, layout<matrix_t>>(m, m, &Q_[0], m);
-            lacpy(tlapack::Uplo::Lower, A, Q);
+            lacpy(Uplo::Lower, A, Q);
 
             ung2r(n, Q, tauv, work);
 
@@ -88,8 +89,28 @@ TEMPLATE_LIST_TEST_CASE("bidiagonal reduction is backward stable", "[bidiagonal]
             // Generate unitary matrix Z of n-by-n
             std::unique_ptr<T[]> Z_(new T[n * n]);
             auto Z = legacyMatrix<T, layout<matrix_t>>(n, n, &Z_[0], n);
-            // lacpy(tlapack::Uplo::Upper, slice(A, range(0, n), range(1, n)), Z);
+            lacpy(Uplo::Upper, slice(A, range(0, n), range(1, n)), Z);
 
+            ungl2(Z, tauw, work); // Note: the unitary matrix Z we get here is ConjTransed
+
+            // Test for Z's orthogonality
+            std::unique_ptr<T[]> _Wz(new T[n * n]);
+            auto Wz = legacyMatrix<T, layout<matrix_t>>(n, n, &_Wz[0], n);
+            auto orth_Z = check_orthogonality(Z, Wz);
+            CHECK(orth_Z <= tol);
+
+            // Test B = Q_H * A * Z
+            // Generate a zero matrix K of size m-by-n to be the product of Q_H * A
+            std::unique_ptr<T[]> K_(new T[m * n]);
+            auto K = legacyMatrix<T, layout<matrix_t>>(m, n, &K_[0], layout<matrix_t> == Layout::ColMajor ? m : n);
+            laset(Uplo::General, zero, zero, K);
+            gemm(Op::ConjTrans, Op::NoTrans, real_t(1.), Q, A_copy, real_t(0), K);
+
+            // B = K * Z
+            gemm(Op::NoTrans, Op::ConjTrans, real_t(1.), K, Z, real_t(-1.), B);
+
+            real_t repres =lange(Norm::Max, B);
+            CHECK(repres <= tol);
             
         }
     }
