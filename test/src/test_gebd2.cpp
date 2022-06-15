@@ -23,6 +23,7 @@ TEMPLATE_LIST_TEST_CASE("bidiagonal reduction is backward stable", "[bidiagonal]
     using matrix_t = TestType;
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
+    using range = std::pair<idx_t, idx_t>;
     typedef real_type<T> real_t;
     typedef std::complex<real_t> complex_t;
 
