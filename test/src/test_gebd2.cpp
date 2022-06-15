@@ -97,6 +97,7 @@ TEMPLATE_LIST_TEST_CASE("bidiagonal reduction is backward stable", "[bidiagonal]
             // Test for Z's orthogonality
             std::unique_ptr<T[]> _Wz(new T[n * n]);
             auto Wz = legacyMatrix<T, layout<matrix_t>>(n, n, &_Wz[0], n);
+            laset(Uplo::General, zero, one, Wz);
             auto orth_Z = check_orthogonality(Z, Wz);
             CHECK(orth_Z <= tol);
 
