@@ -68,7 +68,7 @@ namespace tlapack
         {
             for (idx_t j = 0; j < n; ++j)
             {
-                for (idx_t i = t + 1; i < k; ++i)
+                for (idx_t i = t; i < k; ++i)
                     Q(i, j) = make_scalar<T>(0, 0);
                 if (j < k && j > t - 1)
                     Q(j, j) = make_scalar<T>(1, 0);
@@ -77,12 +77,15 @@ namespace tlapack
 
         for (idx_t j = t - 1; j != -1; --j)
         {
+            // Apply H(j)**H to Q(j:k,j:n) from the right
             if (j + 1 < n)
             {
                 auto w = slice(Q, j, range(j, n));
-                for (idx_t i = 0; i < n - j; ++i) // for loop to conj w.
+                for (idx_t i = 0; i < n - j; ++i)
                     w[i] = conj(w[i]);
 
+                // When k > m, we need to start from the (t-1)th row of w and apply to Q(j+1:k,j:n)
+                // This procedure is only used once when both conditions are satisfied
                 if (k > m && j + 1 == t)
                 {
                     Q(j, j) = make_scalar<T>(1, 0);
@@ -90,6 +93,7 @@ namespace tlapack
                     larf(Side::Right, w, conj(tauw[j]), Q11, work);
                 }
 
+                // Apply to the Q11 below the w
                 if (j + 1 < t)
                 {
                     Q(j, j) = make_scalar<T>(1, 0);
@@ -98,11 +102,12 @@ namespace tlapack
                 }
 
                 scal(-tauw[j], w);
-                for (idx_t i = 0; i < n - j; ++i) // for loop to conj w back.
+                for (idx_t i = 0; i < n - j; ++i)
                     w[i] = conj(w[i]);
             }
             Q(j, j) = real_t(1.) - conj(tauw[j]);
 
+            // Set Q(j,0:j-1) to zero
             for (idx_t l = 0; l < j; l++)
                 Q(j, l) = make_scalar<T>(0, 0);
         }
