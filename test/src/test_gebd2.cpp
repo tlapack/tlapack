@@ -1,5 +1,5 @@
 /// @file test_gebd2.cpp
-/// @brief Test 1x1 and 2x2 sylvester solver
+/// @brief Test GEDB2 using UNG2R and UNGL2. Output an upper bidiagonal matrix B for a m-by-n matrix A (m >= n).
 //
 // Copyright (c) 2022, University of Colorado Denver. All rights reserved.
 //
