@@ -98,7 +98,6 @@ TEMPLATE_LIST_TEST_CASE("LQ factorization of a general m-by-n matrix, blocked", 
             real_t repres = tlapack::lange(tlapack::Norm::Max, slice(A_copy, range(0, min(m, k)), range(0, n)));
             CHECK(repres <= tol);
 
-            return 0;
         }
     }
 }
