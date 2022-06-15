@@ -34,7 +34,7 @@ TEMPLATE_LIST_TEST_CASE("bidiagonal reduction is backward stable", "[bidiagonal]
     m = GENERATE(20, 30);
     n = GENERATE(10, 30);
 
-    if (m >= n)
+    if (m >= n) // Only m >= n matrices are supported (yet). gebd2 will give upper bidiagonal matrix B
     {
 
         const real_t eps = uroundoff<real_t>();
