@@ -116,6 +116,8 @@ namespace tlapack
                     auto B11 = slice(A, range(j + 1, m), range(j + 1, n));
                     larf(Side::Right, w, tauw[j], B11, work);
                 }
+                for (idx_t i = 0; i < n-j-1; ++i) 
+                    w[i] = conj(w[i]);
             }
         }
 

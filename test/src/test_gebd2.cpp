@@ -32,8 +32,8 @@ TEMPLATE_LIST_TEST_CASE("bidiagonal reduction is backward stable", "[bidiagonal]
 
     idx_t m, n;
 
-    m = GENERATE(20, 30);
-    n = GENERATE(10, 30);
+    m = GENERATE(10, 15, 20, 30);
+    n = GENERATE(10, 12, 20, 30);
 
     if (m >= n) // Only m >= n matrices are supported (yet). gebd2 will give upper bidiagonal matrix B
     {
@@ -90,9 +90,14 @@ TEMPLATE_LIST_TEST_CASE("bidiagonal reduction is backward stable", "[bidiagonal]
             // Generate unitary matrix Z of n-by-n
             std::unique_ptr<T[]> Z_(new T[n * n]);
             auto Z = legacyMatrix<T, layout<matrix_t>>(n, n, &Z_[0], n);
-            lacpy(Uplo::Upper, slice(A, range(0, n), range(1, n)), Z);
+            laset(Uplo::General, zero, one, Z); // Initialize Z as identity matrix.
 
-            ungl2(Z, tauw, work); // Note: the unitary matrix Z we get here is ConjTransed
+            // Slice Z down to Z11 of size (n-1)-by-(n-1) and copy upper A to Z11
+            auto X = slice(A, range(0,n-1), range(1,n)); // X is (n-1)-by-(n-1) slice of A
+            auto Z11 = slice(Z, range(1, n), range(1, n));
+            lacpy(Uplo::General, X, Z11);
+
+            ungl2(Z11, tauw, work); // Note: the unitary matrix Z we get here is ConjTransed
 
             // Test for Z's orthogonality
             std::unique_ptr<T[]> _Wz(new T[n * n]);
