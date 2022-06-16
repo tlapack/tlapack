@@ -68,13 +68,14 @@ namespace tlapack
         // constants
         const idx_t m = nrows(A);
         const idx_t n = ncols(A);
+        const idx_t k = min(m, n);
 
         // check arguments
         tlapack_check_false(access_denied(dense, write_policy(A)), -1);
-        tlapack_check_false((idx_t)size(tauw) < std::min<idx_t>(m, n), -2);
+        tlapack_check_false((idx_t)size(tauw) < k, -2);
         tlapack_check_false((idx_t)size(work) < m, -3);
 
-        for (idx_t j = 0; j < m; j += nb)
+        for (idx_t j = 0; j < k; j += nb)
         {
             // Use blocked code initially
             idx_t ib = std::min<idx_t>(nb, m - j);
@@ -86,7 +87,7 @@ namespace tlapack
 
             gelq2(A11, tauw1, work);
 
-            if (j + ib < m)
+            if (j + ib < k)
             {
                 // Form the triangular factor of the block reflector H = H(j) H(j+1) . . . H(j+ib-1)
                 larft(Direction::Forward, StoreV::Rowwise, A11, tauw1, TT1);
