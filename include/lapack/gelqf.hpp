@@ -33,9 +33,8 @@ namespace tlapack
      * \[
      *          w[0] = w[1] = ... = w[j-1] = 0; w[j] = 1,
      * \]
-     * with w[j+1]**H through w[n]**H is stored on exit
-     * in the jth row of A, and tauw in tauw[j].
-     *
+     * with w[j+1]**H through w[n]**H is stored on exit in the jth row of A.
+     * tauw is stored in TT(j,i), where 0 <= i < nb and i = j (mod nb).
      *
      * @return  0 if success
      *
@@ -46,11 +45,19 @@ namespace tlapack
      *      with the array tauw, represent the unitary matrix Q as a
      *      product of elementary reflectors.
      * 
-     * @param[in] TT m-by-nb matrix.
+     * @param[in,out] TT m-by-nb matrix.
      *      In the representation of the block reflector.
-     *
-     * @param[out] tauw Complex vector of length min(m,n).
-     *      The scalar factors of the elementary reflectors.
+     *      tauw[j] is stored in TT(j,i), where 0 <= i < nb and i = j (mod nb).
+     *      On exit, TT( 0:k, 0:nb ) contains blocks used to build Q :
+     *      \[
+     *          Q^H
+     *          =
+     *          [ I - W(0:nb,0:k)^T * TT(0:nb,0:nb) * conj(W(0:nb,0:k)) ]
+     *          *
+     *          [ I - W(nb:2nb,0:k)^T * TT(nb:2nb,0:nb) * conj(W(nb:2nb,0:k)) ]
+     *          *
+     *          ...
+     *      \]
      *
      * @param work Vector of size m.
      * 
@@ -58,8 +65,8 @@ namespace tlapack
      *
      * @ingroup gelqf
      */
-    template <typename matrix_t, class vector_t, class work_t>
-    int gelqf(matrix_t &A, matrix_t &TT, vector_t &tauw, work_t &work, const size_type<matrix_t> &nb)
+    template <typename matrix_t, class work_t>
+    int gelqf(matrix_t &A, matrix_t &TT, work_t &work, const size_type<matrix_t> &nb)
     {
         using idx_t = size_type<matrix_t>;
         using range = std::pair<idx_t, idx_t>;
@@ -72,18 +79,17 @@ namespace tlapack
 
         // check arguments
         tlapack_check_false(access_denied(dense, write_policy(A)), -1);
-        tlapack_check_false((idx_t)size(tauw) < k, -2);
         tlapack_check_false((idx_t)size(work) < m, -3);
 
         for (idx_t j = 0; j < k; j += nb)
         {
             // Use blocked code initially
-            idx_t ib = std::min<idx_t>(nb, m - j);
+            idx_t ib = std::min<idx_t>(nb, k - j);
 
             // Compute the LQ factorization of the current block A(j:j+ib-1,j:n)
             auto TT1 = slice(TT, range(j, j + ib), range(0, ib));
             auto A11 = slice(A, range(j, j + ib), range(j, n));
-            auto tauw1 = slice(tauw, range(j, j + ib));
+            auto tauw1 = diag(TT1);
 
             gelq2(A11, tauw1, work);
 

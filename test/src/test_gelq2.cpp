@@ -51,7 +51,7 @@ TEMPLATE_LIST_TEST_CASE("LQ factorization of a general m-by-n matrix", "[lqf]", 
 
     for (idx_t j = 0; j < n; ++j)
         for (idx_t i = 0; i < m; ++i)
-            A(i, j) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+            A(i, j) = rand_helper<T>();
 
     lacpy(Uplo::General, A, A_copy);
 

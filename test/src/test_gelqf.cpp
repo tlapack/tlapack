@@ -36,8 +36,8 @@ TEMPLATE_LIST_TEST_CASE("LQ factorization of a general m-by-n matrix, blocked", 
     k = GENERATE(8, 10, 20, 30); // k is the number of rows for output Q. Can personalize it.
     nb = GENERATE(2, 3, 7, 12);  // nb is the block height. Can personalize it.
 
-    const real_t eps = uroundoff<real_t>();
-    const real_t tol = 1.0e2 * max(m, n) * eps;
+    const real_t eps = ulp<real_t>();
+    const real_t tol = max(m, n) * eps;
 
     std::unique_ptr<T[]> A_(new T[m * n]);
     std::unique_ptr<T[]> A_copy_(new T[m * n]);
@@ -54,7 +54,7 @@ TEMPLATE_LIST_TEST_CASE("LQ factorization of a general m-by-n matrix, blocked", 
 
     for (idx_t j = 0; j < n; ++j)
         for (idx_t i = 0; i < m; ++i)
-            A(i, j) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+            A(i, j) = rand_helper<T>();
 
     lacpy(Uplo::General, A, A_copy);
 
@@ -62,7 +62,16 @@ TEMPLATE_LIST_TEST_CASE("LQ factorization of a general m-by-n matrix, blocked", 
     {
         DYNAMIC_SECTION("m = " << m << " n = " << n << " k = " << k << " nb = " << nb)
         {
-            gelqf(A, TT, tauw, work_gelqf, nb);
+            gelqf(A, TT, work_gelqf, nb);
+
+            // Build tauw vector from matrix TT
+            for (idx_t j = 0; j < min(m,n); j += nb)
+            {
+                idx_t ib = std::min<idx_t>(nb, min(m,n) - j);
+                
+                for (idx_t i = 0; i < ib; i++)
+                    tauw[i+j] = TT(i+j,i);
+            }
 
             // Q is sliced down to the desired size of output Q (k-by-n).
             // It stores the desired number of Householder reflectors that UNGL2 will use.
