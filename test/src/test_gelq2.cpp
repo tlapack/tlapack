@@ -35,8 +35,8 @@ TEMPLATE_LIST_TEST_CASE("LQ factorization of a general m-by-n matrix", "[lqf]", 
     n = GENERATE(10, 20, 30);
     k = GENERATE(8, 10, 20, 30); // k is the number of rows for output Q. Can personalize it.
 
-    const real_t eps = uroundoff<real_t>();
-    const real_t tol = 1.0e2 * max(m, n) * eps;
+    const real_t eps = ulp<real_t>();
+    const real_t tol = max(m, n) * eps;
 
     std::unique_ptr<T[]> A_(new T[m * n]);
     std::unique_ptr<T[]> A_copy_(new T[m * n]);
