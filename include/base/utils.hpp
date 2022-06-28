@@ -742,7 +742,7 @@ using disable_if_allow_optblas_t = enable_if_t<(
     }
 
     /// Optimized types
-    #ifdef USE_BLASPP_WRAPPERS
+    #ifdef USE_LAPACKPP_WRAPPERS
         TLAPACK_OPT_TYPE(float)
         TLAPACK_OPT_TYPE(double)
         TLAPACK_OPT_TYPE(std::complex<float>)

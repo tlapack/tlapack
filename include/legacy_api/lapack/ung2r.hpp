@@ -13,8 +13,6 @@
 
 #include "lapack/ung2r.hpp"
 
-#include "tblas.hpp"
-
 namespace tlapack {
 
 /** Generates a m-by-n matrix Q with orthogonal columns.

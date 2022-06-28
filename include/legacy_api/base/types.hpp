@@ -15,7 +15,7 @@
 #include <cstdint> // Defines std::int64_t
 #include <cstddef> // Defines std::size_t
 
-#if defined(USE_BLASPP_WRAPPERS) || defined(USE_LAPACKPP_WRAPPERS)
+#ifdef USE_LAPACKPP_WRAPPERS
     #ifndef TLAPACK_SIZE_T
         #define TLAPACK_SIZE_T std::int64_t
     #endif

@@ -41,7 +41,7 @@ set_property( CACHE TLAPACK_SIZE_T
 #-------------------------------------------------------------------------------
 # Force options when using BLAS++ or LAPACK++ wrappers
 
-if( USE_BLASPP_WRAPPERS OR USE_LAPACKPP_WRAPPERS )
+if( USE_LAPACKPP_WRAPPERS )
   mark_as_advanced( FORCE TLAPACK_INT_T TLAPACK_SIZE_T )
   get_property( docString CACHE TLAPACK_INT_T PROPERTY HELPSTRING )
   set( TLAPACK_INT_T int64_t CACHE STRING "${docString}" FORCE )

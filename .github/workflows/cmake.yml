@@ -17,6 +17,9 @@ env:
   FFLAGS: "-fimplicit-none -fcheck=all"
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
+  blaspp_DIR: ${{github.workspace}}/blaspp
+  lapackpp_DIR: ${{github.workspace}}/lapackpp
+  mdspan_DIR: ${{github.workspace}}/mdspan
 
 defaults:
   run:
@@ -32,10 +35,6 @@ jobs:
     # cross-platform coverage.
     # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
     runs-on: ${{ matrix.os }}
-    env:
-      blaspp_DIR: ${{github.workspace}}/blaspp
-      lapackpp_DIR: ${{github.workspace}}/lapackpp
-      mdspan_DIR: ${{github.workspace}}/mdspan
 
     strategy:
       fail-fast: false
@@ -158,6 +157,8 @@ jobs:
       run: cmake --build build --target install
 
   build-with-mpfr:
+    # Use GNU compilers
+
     runs-on: ubuntu-latest
     steps:     
     
@@ -192,9 +193,9 @@ jobs:
       run: cmake --build build --target install
 
   build-with-openblas:
+    # Use GNU compilers
+
     runs-on: ubuntu-latest
-    env:
-      blaspp_DIR: ${{github.workspace}}/blaspp
     steps:
     
     - name: Checkout <T>LAPACK
@@ -203,95 +204,65 @@ jobs:
     - name: Install ninja-build tool
       uses: seanmiddleditch/gha-setup-ninja@v3
 
+    - name: Install LAPACKE on Ubuntu
+      run: sudo apt install liblapacke-dev
+
     - name: Install OpenBLAS
       run: sudo apt install libopenblas-dev
 
-    - name: Checkout BLAS++
-      run: git clone https://bitbucket.org/weslleyspereira/blaspp ${{env.blaspp_DIR}}
+    - name: Checkout BLAS++ and LAPACK++
+      run: |
+        git clone https://bitbucket.org/weslleyspereira/blaspp ${{env.blaspp_DIR}}
+        git clone https://bitbucket.org/weslleyspereira/lapackpp ${{env.lapackpp_DIR}}
 
     - name: Build and install BLAS++
       working-directory: ${{env.blaspp_DIR}}
       run: |
         git checkout tlapack
-        mkdir build
         cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBLA_VENDOR=OpenBLAS -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.blaspp_DIR}}
+        cmake --build build --target install
+
+    - name: Build and install LAPACK++
+      working-directory: ${{env.lapackpp_DIR}}
+      run: |
+        git checkout tlapack
+        cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBLA_VENDOR=OpenBLAS -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.lapackpp_DIR}} -D CMAKE_CXX_FLAGS="${{env.CXXFLAGS}} -D LAPACK_FORTRAN_ADD_"
         cmake --build build --target install
 
     - name: Configure CMake for <T>LAPACK
       run: >
         cmake -B build -G Ninja
         -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+        -D CMAKE_INSTALL_PREFIX=${{github.workspace}}/tlapack_install
+        -D CMAKE_CXX_FLAGS="${{env.CXXFLAGS}} -D LAPACK_FORTRAN_ADD_"
         -D BUILD_SHARED_LIBS=ON
         -D BUILD_EXAMPLES=ON
         -D BUILD_TESTING=ON
         -D C_WRAPPERS=ON
         -D Fortran_WRAPPERS=ON
         -D CBLAS_WRAPPERS=ON
-        -D USE_BLASPP_WRAPPERS=ON
+        -D USE_LAPACKPP_WRAPPERS=ON
         -D BUILD_BLASPP_TESTS=ON
-        -D blaspp_DIR=${{env.blaspp_DIR}}
         -D blaspp_TEST_DIR=${{env.blaspp_DIR}}/test
+        -D BUILD_LAPACKPP_TESTS=ON
+        -D lapackpp_TEST_DIR=${{env.lapackpp_DIR}}/test
 
     - name: Build <T>LAPACK
       run: cmake --build build --config ${{env.BUILD_TYPE}}
 
     # Mind that the job won't fail if only this step fails
-    - name: Run BLASPP and LAPACKPP testers
-      working-directory: ${{github.workspace}}/build/test
+    - name: Run tests
+      working-directory: ${{github.workspace}}/build
       continue-on-error: true
-      run: |
-        echo "Mind that the job won't fail if only this step fails."
-        ctest -C ${{env.BUILD_TYPE}} --output-on-failure -R blaspp_test
-        ctest -C ${{env.BUILD_TYPE}} --output-on-failure -R lapackpp_test
+      run: ctest -C ${{env.BUILD_TYPE}} --output-on-failure
 
-    # Mind that the job won't fail if only this step fails
-    - name: Test InfNaN propagation
-      working-directory: ${{github.workspace}}/build/test
-      continue-on-error: true
-      run: |
-        echo "Mind that the job won't fail if only this step fails."
-        ./tester_testBLAS -# [#test_infNaN] -r compact
-
-    # Mind that the job won't fail if only this step fails
-    - name: Test InfNaN propagation on iamax
-      working-directory: ${{github.workspace}}/build/test
-      continue-on-error: true
-      run: |
-        echo "Mind that the job won't fail if only this step fails."
-        ./tester_testBLAS -# [#test_infNaN_iamax] -r compact
-
-    # Mind that the job won't fail if only this step fails
-    - name: Test InfNaN propagation on nrm2
-      working-directory: ${{github.workspace}}/build/test
-      continue-on-error: true
-      run: |
-        echo "Mind that the job won't fail if only this step fails."
-        ./tester_testBLAS -# [#test_infNaN_nrm2] -r compact
-
-    # Mind that the job won't fail if only this step fails
-    - name: Test InfNaN propagation on trsv and trsm
-      working-directory: ${{github.workspace}}/build/test
-      continue-on-error: true
-      run: |
-        echo "Mind that the job won't fail if only this step fails."
-        ./tester_testBLAS -# [#test_infNaN_trsv_trsm] -r compact
-
-    # Mind that the job won't fail if only this step fails
-    - name: Test Corner Cases
-      working-directory: ${{github.workspace}}/build/test
-      continue-on-error: true
-      run: |
-        echo "Mind that the job won't fail if only this step fails."
-        ./tester_testBLAS -# [#test_corner_cases] -r compact
-      # echo "Total of:"
-      # ./tester_testBLAS -# [#test_corner_cases] -l | tail -n 2
+    - name: Install
+      run: cmake --build build --target install
 
   build-test-performance:
     # Use GNU compilers
   
     runs-on: ubuntu-latest
-    env:
-      blaspp_DIR: ${{github.workspace}}/blaspp
 
     strategy:
       fail-fast: false
@@ -304,15 +275,23 @@ jobs:
     - name: Install ninja-build tool
       uses: seanmiddleditch/gha-setup-ninja@v3
 
-    - name: Checkout BLAS++
+    - name: Checkout BLAS++ and LAPACK++
       run: |
         git clone https://bitbucket.org/weslleyspereira/blaspp ${{env.blaspp_DIR}}
+        git clone https://bitbucket.org/weslleyspereira/lapackpp ${{env.lapackpp_DIR}}
 
     - name: Build and install BLAS++
       working-directory: ${{env.blaspp_DIR}}
       run: |
         git checkout tlapack
         cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.blaspp_DIR}}
+        cmake --build build --target install
+
+    - name: Build and install LAPACK++
+      working-directory: ${{env.lapackpp_DIR}}
+      run: |
+        git checkout tlapack
+        cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.lapackpp_DIR}}
         cmake --build build --target install
 
     - name: Configure CMake
@@ -323,7 +302,7 @@ jobs:
         -D BUILD_SHARED_LIBS=ON
         -D BUILD_EXAMPLES=OFF
         -D BUILD_TESTING=OFF
-        -D USE_BLASPP_WRAPPERS=ON
+        -D USE_LAPACKPP_WRAPPERS=ON
         -D TLAPACK_CHECK_INPUT=OFF
 
     - name: Build and Install
@@ -341,11 +320,15 @@ jobs:
         ./build/example_potrf
 
   build-with-mkl:
+    # Use Intel compilers
+
     runs-on: ubuntu-latest
     env:
-      blaspp_DIR: ${{github.workspace}}/blaspp
       CXX: icpx
     steps:
+
+    - name: Install LAPACKE on Ubuntu
+      run: sudo apt install liblapacke-dev
 
     - name: Intel Apt repository
       timeout-minutes: 1
@@ -371,40 +354,50 @@ jobs:
         source /opt/intel/oneapi/setvars.sh
         printenv >> $GITHUB_ENV
 
-    - name: Checkout BLAS++
-      run: git clone https://bitbucket.org/weslleyspereira/blaspp ${{env.blaspp_DIR}}
+    - name: Checkout BLAS++ and LAPACK++
+      run: |
+        git clone https://bitbucket.org/weslleyspereira/blaspp ${{env.blaspp_DIR}}
+        git clone https://bitbucket.org/weslleyspereira/lapackpp ${{env.lapackpp_DIR}}
 
     - name: Build and install BLAS++
       working-directory: ${{env.blaspp_DIR}}
       run: |
         git checkout tlapack
-        mkdir build
         cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.blaspp_DIR}}
+        cmake --build build --target install
+
+    - name: Build and install LAPACK++
+      working-directory: ${{env.lapackpp_DIR}}
+      run: |
+        git checkout tlapack
+        cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.lapackpp_DIR}}
         cmake --build build --target install
 
     - name: Configure CMake for <T>LAPACK
       run: >
         cmake -B build -G Ninja
         -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+        -D CMAKE_INSTALL_PREFIX=${{github.workspace}}/tlapack_install
         -D BUILD_SHARED_LIBS=ON
         -D BUILD_EXAMPLES=ON
         -D BUILD_TESTING=ON
         -D C_WRAPPERS=ON
         -D Fortran_WRAPPERS=ON
         -D CBLAS_WRAPPERS=ON
-        -D USE_BLASPP_WRAPPERS=ON
+        -D USE_LAPACKPP_WRAPPERS=ON
         -D BUILD_BLASPP_TESTS=ON
-        -D blaspp_DIR=${{env.blaspp_DIR}}
         -D blaspp_TEST_DIR=${{env.blaspp_DIR}}/test
+        -D BUILD_LAPACKPP_TESTS=ON
+        -D lapackpp_TEST_DIR=${{env.lapackpp_DIR}}/test
 
     - name: Build <T>LAPACK
       run: cmake --build build --config ${{env.BUILD_TYPE}}
 
     # Mind that the job won't fail if only this step fails
-    - name: Run BLASPP and LAPACKPP testers
+    - name: Run tests
       working-directory: ${{github.workspace}}/build
       continue-on-error: true
-      run: |
-        echo "Mind that the job won't fail if only this step fails."
-        ctest -C ${{env.BUILD_TYPE}} --output-on-failure -R blaspp_test
-        ctest -C ${{env.BUILD_TYPE}} --output-on-failure -R lapackpp_test
+      run: ctest -C ${{env.BUILD_TYPE}} --output-on-failure
+
+    - name: Install
+      run: cmake --build build --target install

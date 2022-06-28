@@ -9,7 +9,7 @@
 
 // Optimized BLAS
 
-#ifdef USE_BLASPP_WRAPPERS
+#ifdef USE_LAPACKPP_WRAPPERS
     #include "optimized/wrappers.hpp"
 #endif
 
