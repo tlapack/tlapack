@@ -32,8 +32,9 @@ int main( int argc, char** argv )
     using idx_t = std::size_t;
     using pair = std::pair<idx_t,idx_t>;
 
-    using TiledMapping  = typename TiledLayout::template mapping<dextents<2>>;
-    using strideMapping = typename layout_stride::template mapping<dextents<2>>;
+    using my_dextents   = dextents<idx_t,2>;
+    using TiledMapping  = typename TiledLayout::template mapping<my_dextents>;
+    using strideMapping = typename layout_stride::template mapping<my_dextents>;
     
     // constants
     const idx_t n = 100, k = 40, row_tile = 2, col_tile = 5;
@@ -47,18 +48,18 @@ int main( int argc, char** argv )
     /// Using dynamic extents: 
 
     // Column Major Matrix A
-    auto A  = mdspan< T, dextents<2>, layout_stride >(
-        A_, strideMapping( dextents<2>(n, n), std::array<idx_t,2>{1,lda} )
+    auto A  = mdspan< T, my_dextents, layout_stride >(
+        A_, strideMapping( my_dextents(n, n), std::array<idx_t,2>{1,lda} )
     );
     // Column Major Matrix Ak with the first k columns of A
     auto Ak = submdspan( A, pair{0,n}, pair{0,k} );
     // Tiled Matrix B with the last k*n elements of A_
-    auto B  = mdspan< T, dextents<2>, TiledLayout >(
-        &A(n*(lda-k),0), TiledMapping( dextents<2>(k, n), row_tile, col_tile )
+    auto B  = mdspan< T, my_dextents, TiledLayout >(
+        &A(n*(lda-k),0), TiledMapping( my_dextents(k, n), row_tile, col_tile )
     );
     // Row Major Matrix C
-    auto C  = mdspan< T, dextents<2>, layout_stride >(
-        C_, strideMapping( dextents<2>(n, n), std::array<idx_t,2>{ldc,1} )
+    auto C  = mdspan< T, my_dextents, layout_stride >(
+        C_, strideMapping( my_dextents(n, n), std::array<idx_t,2>{ldc,1} )
     );
 
     // Init random seed
