@@ -137,9 +137,9 @@ namespace tlapack {
         using std::array;
         using std::experimental::layout_stride;
 
-        using extents_t = std::experimental::dextents<1>;
+        using size_type = typename mdspan<ET,Exts,LP,AP>::size_type;
+        using extents_t = std::experimental::dextents<size_type,1>;
         using mapping   = typename layout_stride::template mapping< extents_t >;
-        using size_type = typename extents_t::size_type;
         
         // mdspan components
         auto ptr = A.accessor().offset( A.data(),
