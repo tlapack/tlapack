@@ -24,8 +24,8 @@ namespace tlapack {
  *
  * larfg generates a elementary Householder reflection H of order n, such that
  * 
- *        H * ( alpha ) = ( beta ),   H' * H = I.
- *            (   x   )   (   0  )
+ *        H' * ( alpha ) = ( beta ),   H' * H = I.
+ *             (   x   )   (   0  )
  * 
  * where alpha and beta are scalars, with beta real, and x is an (n-1)-element vector.
  * H is represented in the form

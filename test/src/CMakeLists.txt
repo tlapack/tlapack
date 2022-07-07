@@ -28,6 +28,8 @@ add_executable( test_optBLAS test_optBLAS.cpp )
 add_executable( test_schur_swap test_schur_swap.cpp )
 add_executable( test_unblocked_francis test_unblocked_francis.cpp )
 add_executable( test_utils test_utils.cpp )
+add_executable( test_gelqf test_gelqf.cpp )
+add_executable( test_gelq2 test_gelq2.cpp )
 
 # Reset the output directory
 set( CMAKE_RUNTIME_OUTPUT_DIRECTORY "${TLAPACK_RUNTIME_OUTPUT_DIRECTORY}" )

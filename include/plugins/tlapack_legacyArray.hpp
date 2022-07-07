@@ -206,9 +206,9 @@ namespace tlapack {
     }
 
     // Diagonal
-    template< typename T, Layout layout, class int_t >
+    template< typename T, Layout layout >
     inline constexpr auto
-    diag( const legacyMatrix<T,layout>& A, int_t diagIdx = 0 ) noexcept {
+    diag( const legacyMatrix<T,layout>& A, int diagIdx = 0 ) noexcept {
         
         using idx_t = typename legacyMatrix<T,layout>::idx_t;
         

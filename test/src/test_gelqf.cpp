@@ -1,5 +1,5 @@
-/// @file test_gelq2.cpp
-/// @brief Test GELQ2 and UNGL2 and output a k-by-n orthogonal matrix Q.
+/// @file test_gelqf.cpp
+/// @brief Test GELQF and UNGL2 and output a k-by-n orthogonal matrix Q.
 //
 // Copyright (c) 2022, University of Colorado Denver. All rights reserved.
 //
@@ -16,7 +16,7 @@
 
 using namespace tlapack;
 
-TEMPLATE_LIST_TEST_CASE("LQ factorization of a general m-by-n matrix", "[lqf]", types_to_test)
+TEMPLATE_LIST_TEST_CASE("LQ factorization of a general m-by-n matrix, blocked", "[lqf]", types_to_test)
 {
     srand(1);
 
@@ -29,22 +29,25 @@ TEMPLATE_LIST_TEST_CASE("LQ factorization of a general m-by-n matrix", "[lqf]", 
     const T zero(0);
     const T one(1);
 
-    idx_t m, n, k;
+    idx_t m, n, k, nb;
 
     m = GENERATE(10, 20, 30);
     n = GENERATE(10, 20, 30);
     k = GENERATE(8, 10, 20, 30); // k is the number of rows for output Q. Can personalize it.
+    nb = GENERATE(2, 3, 7, 12);  // nb is the block height. Can personalize it.
 
     const real_t eps = ulp<real_t>();
     const real_t tol = max(m, n) * eps;
 
     std::unique_ptr<T[]> A_(new T[m * n]);
     std::unique_ptr<T[]> A_copy_(new T[m * n]);
+    std::unique_ptr<T[]> TT_(new T[m * nb]);
 
     auto A = legacyMatrix<T, layout<matrix_t>>(m, n, &A_[0], layout<matrix_t> == Layout::ColMajor ? m : n);
     auto A_copy = legacyMatrix<T, layout<matrix_t>>(m, n, &A_copy_[0], layout<matrix_t> == Layout::ColMajor ? m : n);
+    auto TT = legacyMatrix<T, layout<matrix_t>>(m, nb, &TT_[0], layout<matrix_t> == Layout::ColMajor ? m : nb);
 
-    std::vector<T> work_gelq2(m);
+    std::vector<T> work_gelqf(m);
     std::vector<T> work_ungl2(k);
 
     std::vector<T> tauw(min(m, n));
@@ -57,9 +60,18 @@ TEMPLATE_LIST_TEST_CASE("LQ factorization of a general m-by-n matrix", "[lqf]", 
 
     if (k <= n) // k must be less than or equal to n, because we cannot get a Q bigger than n-by-n
     {
-        DYNAMIC_SECTION("m = " << m << " n = " << n << " k = " << k)
+        DYNAMIC_SECTION("m = " << m << " n = " << n << " k = " << k << " nb = " << nb)
         {
-            gelq2(A, tauw, work_gelq2);
+            gelqf(A, TT, work_gelqf, nb);
+
+            // Build tauw vector from matrix TT
+            for (idx_t j = 0; j < min(m,n); j += nb)
+            {
+                idx_t ib = std::min<idx_t>(nb, min(m,n) - j);
+                
+                for (idx_t i = 0; i < ib; i++)
+                    tauw[i+j] = TT(i+j,i);
+            }
 
             // Q is sliced down to the desired size of output Q (k-by-n).
             // It stores the desired number of Householder reflectors that UNGL2 will use.
@@ -92,8 +104,9 @@ TEMPLATE_LIST_TEST_CASE("LQ factorization of a general m-by-n matrix", "[lqf]", 
                 for (idx_t i = 0; i < min(m, k); ++i)
                     A_copy(i, j) -= R(i, j);
 
-            real_t repres = lange(Norm::Max, slice(A_copy, range(0, min(m, k)), range(0, n)));
+            real_t repres = tlapack::lange(tlapack::Norm::Max, slice(A_copy, range(0, min(m, k)), range(0, n)));
             CHECK(repres <= tol);
+
         }
     }
 }
