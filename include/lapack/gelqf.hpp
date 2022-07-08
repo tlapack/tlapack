@@ -70,7 +70,6 @@ namespace tlapack
     {
         using idx_t = size_type<matrix_t>;
         using range = std::pair<idx_t, idx_t>;
-        using T = type_t<matrix_t>;
 
         // constants
         const idx_t m = nrows(A);

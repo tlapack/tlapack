@@ -11,6 +11,48 @@
 #include <complex>
 #include <type_traits>
 
+// Helpers:
+
+#define TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_2_VALUES( EnumClass, A, B ) \
+    inline std::ostream& operator << ( std::ostream& out, const EnumClass v ) \
+    { \
+        if( v == EnumClass::A ) return out << #A; \
+        if( v == EnumClass::B ) return out << #B; \
+        return out << "<Invalid>"; \
+    }
+
+#define TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_3_VALUES( EnumClass, A, B, C ) \
+    inline std::ostream& operator << ( std::ostream& out, const EnumClass v ) \
+    { \
+        if( v == EnumClass::A ) return out << #A; \
+        if( v == EnumClass::B ) return out << #B; \
+        if( v == EnumClass::C ) return out << #C; \
+        return out << "<Invalid>"; \
+    }
+
+#define TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_4_VALUES( EnumClass, A, B, C, D ) \
+    inline std::ostream& operator << ( std::ostream& out, const EnumClass v ) \
+    { \
+        if( v == EnumClass::A ) return out << #A; \
+        if( v == EnumClass::B ) return out << #B; \
+        if( v == EnumClass::C ) return out << #C; \
+        if( v == EnumClass::D ) return out << #D; \
+        return out << "<Invalid>"; \
+    }
+
+#define TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_5_VALUES( EnumClass, A, B, C, D, E ) \
+    inline std::ostream& operator << ( std::ostream& out, const EnumClass v ) \
+    { \
+        if( v == EnumClass::A ) return out << #A; \
+        if( v == EnumClass::B ) return out << #B; \
+        if( v == EnumClass::C ) return out << #C; \
+        if( v == EnumClass::D ) return out << #D; \
+        if( v == EnumClass::E ) return out << #E; \
+        return out << "<Invalid>"; \
+    }
+
+// Types:
+
 namespace tlapack {
 
     // -----------------------------------------------------------------------------
@@ -22,6 +64,7 @@ namespace tlapack {
         RowMajor = 'R',
         BandStorage = 'B'
     };
+    TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_4_VALUES(Layout, Unspecified, ColMajor, RowMajor, BandStorage)
 
     // -----------------------------------------------------------------------------
     // Upper or Lower access
@@ -31,6 +74,7 @@ namespace tlapack {
         Lower    = 'L', 
         General  = 'G'
     };
+    TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_3_VALUES( Uplo, Upper, Lower, General )
 
     // -----------------------------------------------------------------------------
     // Information about the main diagonal
@@ -39,6 +83,7 @@ namespace tlapack {
         NonUnit  = 'N',
         Unit     = 'U'
     };
+    TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_2_VALUES( Diag, NonUnit, Unit )
 
     struct nonUnit_diagonal_t {
         constexpr operator Diag() const { return Diag::NonUnit; }
@@ -60,6 +105,7 @@ namespace tlapack {
         ConjTrans = 'C',
         Conj = 0            ///< non-transpose conjugate
     };
+    TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_4_VALUES( Op, NoTrans, Trans, ConjTrans, Conj )
 
     struct noTranspose_t {
         constexpr operator Op() const { return Op::NoTrans; }
@@ -83,6 +129,7 @@ namespace tlapack {
         Left     = 'L', 
         Right    = 'R'
     };
+    TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_2_VALUES( Side, Left, Right )
 
     struct left_side_t {
         constexpr operator Side() const { return Side::Left; }
@@ -105,6 +152,7 @@ namespace tlapack {
         Fro = 'F',  // or 'E'
         Max = 'M',
     };
+    TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_5_VALUES( Norm, One, Two, Inf, Fro, Max )
 
     struct max_norm_t {
         constexpr operator Norm() const { return Norm::Max; }
@@ -132,6 +180,7 @@ namespace tlapack {
         Forward     = 'F',
         Backward    = 'B',
     };
+    TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_2_VALUES( Direction, Forward, Backward )
 
     struct forward_t {
         constexpr operator Direction() const { return Direction::Forward; }
@@ -151,6 +200,7 @@ namespace tlapack {
         Columnwise  = 'C',
         Rowwise     = 'R',
     };
+    TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_2_VALUES( StoreV, Columnwise, Rowwise )
 
     struct columnwise_storage_t {
         constexpr operator StoreV() const { return StoreV::Columnwise; }
@@ -274,5 +324,10 @@ namespace tlapack {
     };
 
 } // namespace tlapack
+
+#undef TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_2_VALUES
+#undef TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_3_VALUES
+#undef TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_4_VALUES
+#undef TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_5_VALUES
 
 #endif // __TLAPACK_TYPES_HH__
