@@ -75,7 +75,7 @@ namespace tlapack
             }
         }
 
-        for (idx_t j = t - 1; j != -1; --j)
+        for (idx_t j = t - 1; j != idx_t(-1); --j)
         {
             // Apply H(j)**H to Q(j:k,j:n) from the right
             if (j + 1 < n)
