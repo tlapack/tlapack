@@ -147,8 +147,8 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 # Search for LAPACK++ library if it is needed
 if( USE_LAPACKPP_WRAPPERS )
   find_package( lapackpp REQUIRED )
-  target_compile_definitions( tlapack INTERFACE USE_LAPACKPP_WRAPPERS )
-  target_link_libraries( tlapack INTERFACE lapackpp )
+  target_compile_definitions( tblas INTERFACE USE_LAPACKPP_WRAPPERS )
+  target_link_libraries( tblas INTERFACE lapackpp )
 endif()
 
 #-------------------------------------------------------------------------------
