@@ -23,11 +23,8 @@ endif()
 
 #-------------------------------------------------------------------------------
 # Load Catch2
-FetchPackage( "Catch2" "https://github.com/catchorg/Catch2.git" "v2.13.1" )
-
-#-------------------------------------------------------------------------------
-# Add folder with Catch.cmake to the CMAKE_MODULE_PATH
-set( CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${Catch2_SOURCE_DIR}/extras;${Catch2_SOURCE_DIR}/contrib" )
+FetchPackage( "Catch2" "https://github.com/catchorg/Catch2.git" "devel" )
+list(APPEND CMAKE_MODULE_PATH "${Catch2_SOURCE_DIR}/extras")
 
 add_subdirectory(src)
 
@@ -36,12 +33,12 @@ add_subdirectory(src)
 
 if( TLAPACK_BUILD_SINGLE_TESTER )# Test sources
   file( GLOB test_sources "${CMAKE_CURRENT_SOURCE_DIR}/src/test_*.cpp" )
-  add_executable( tester tests_main.cpp ${test_sources} )
+  add_executable( tester ${test_sources} )
   set_target_properties( tester
     PROPERTIES
       RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}" )
 else()
-  add_executable( tester tests_main.cpp )
+  add_executable( tester )
   set_target_properties( tester
     PROPERTIES
       OUTPUT_NAME "tester_testBLAS"
@@ -51,9 +48,9 @@ endif()
 # Load testBLAS tests
 FetchPackage( "testBLAS" "https://github.com/tlapack/testBLAS.git" "master" )
 
+# Configurations
 target_include_directories( tester PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include" )
-target_link_libraries( tester PRIVATE Catch2::Catch2 tlapack )
-
+target_link_libraries( tester PRIVATE Catch2::Catch2WithMain tlapack )
 if( TEST_MPFR )
   target_include_directories( tester PRIVATE ${MPFR_INCLUDES} ${GMP_INCLUDES} )
   target_link_libraries( tester PRIVATE ${MPFR_LIBRARIES} ${GMP_LIBRARIES} )

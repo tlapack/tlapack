@@ -1,7 +1,6 @@
 # FetchPackage tries to load ${pkg} using:
 # 1. The usual CMake find_package
-# 2. Via the environment variable ${pkg}_DIR
-# 3. An online Git repository via the CMake FetchContent module
+# 2. An online Git repository via the CMake FetchContent module
 #
 # Copyright (c) 2021-2022, University of Colorado Denver. All rights reserved.
 #
@@ -14,15 +13,7 @@ macro( FetchPackage pkg pkgURL gitTag )
   find_package( ${pkg} QUIET ) # Try to load ${pkg} from the system
   if( NOT ${pkg}_FOUND )
 
-    if( EXISTS "$ENV{${pkg}_DIR}" )
-
-      get_property( docString CACHE ${pkg}_DIR PROPERTY HELPSTRING )
-      set( ${pkg}_DIR $ENV{${pkg}_DIR} CACHE STRING "${docString}" FORCE )
-
-      add_subdirectory( ${${pkg}_DIR} ${CMAKE_CURRENT_BINARY_DIR}/${pkg} )
-      message( STATUS "Using ${pkg} from ${${pkg}_DIR}" )
-
-    elseif( ${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.14" )
+    if( ${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.14" )
 
       message( STATUS "${pkg} not found. Trying to fetch from ${pkgURL}. "
                       "It may take a while." )
@@ -37,9 +28,9 @@ macro( FetchPackage pkg pkgURL gitTag )
 
       # Test if the fetch was successful
       if( EXISTS "${${pkg}_SOURCE_DIR}" )
-      message( STATUS "Using ${pkg} from ${pkgURL}." )
+        message( STATUS "Using ${pkg} from ${pkgURL}." )
       else()
-      message( FATAL_ERROR "Failed in fetching ${pkg} from ${pkgURL}." )
+        message( FATAL_ERROR "Failed in fetching ${pkg} from ${pkgURL}." )
       endif()
 
       # Hide ${pkg}_DIR and FETCHCONTENT_ options
@@ -53,8 +44,7 @@ macro( FetchPackage pkg pkgURL gitTag )
 
     else()
       message( FATAL_ERROR "${pkg} not found. Set \"${pkg}_DIR\" to a directory containing "
-                      "one of the files: ${pkg}Config.cmake, ${pkg}-config.cmake; or "
-                      "containing the root of the project ${pkg}." )
+                      "one of the files: ${pkg}Config.cmake, ${pkg}-config.cmake." )
     endif()
 
   endif( NOT ${pkg}_FOUND )
