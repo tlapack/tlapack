@@ -38,6 +38,9 @@ target_link_libraries( tlapack INTERFACE tblas )
 # Includes CMAKE_DEPENDENT_OPTION
 include(CMakeDependentOption)
 
+# Includes BUILD_TESTING option
+include(CTest)
+
 # LAPACK++ interface
 option( USE_LAPACKPP_WRAPPERS "Use LAPACK++ wrappers to link with optimized BLAS and LAPACK libraries" OFF )
 
@@ -216,7 +219,6 @@ endif()
 
 #-------------------------------------------------------------------------------
 # Include tests
-include(CTest)
 if( BUILD_TESTING )
   add_subdirectory(test)
 endif()
