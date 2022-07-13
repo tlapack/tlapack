@@ -137,6 +137,10 @@ Here are the \<T\>LAPACK specific options and their default values
         Build LAPACK++ tests. Not used if BUILD_TESTING is OFF. If it is ON, you also need to inform lapackpp_TEST_DIR,
         which is the path for the test sources of LAPACK++.
 
+    BUILD_testBLAS_TESTS                ON
+
+        Build testBLAS tests.
+
     TLAPACK_NDEBUG                      OFF
 
         Disable all error checks from <T>LAPACK.

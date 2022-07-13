@@ -34,11 +34,10 @@ add_executable( test_gelq2 test_gelq2.cpp )
 set( CMAKE_RUNTIME_OUTPUT_DIRECTORY "${TLAPACK_RUNTIME_OUTPUT_DIRECTORY}" )
   
 # Add tests to CTest
-if( NOT TLAPACK_BUILD_SINGLE_TESTER )
-  include(Catch)
-  
-  get_property( DIRECTORY_BUILDSYSTEM_TARGETS DIRECTORY PROPERTY BUILDSYSTEM_TARGETS )
-  foreach(target ${DIRECTORY_BUILDSYSTEM_TARGETS})
-    catch_discover_tests( ${target} )
-  endforeach()
-endif()
+
+include(Catch)
+
+get_property( DIRECTORY_BUILDSYSTEM_TARGETS DIRECTORY PROPERTY BUILDSYSTEM_TARGETS )
+foreach(target ${DIRECTORY_BUILDSYSTEM_TARGETS})
+  catch_discover_tests( ${target} )
+endforeach()
