@@ -93,6 +93,7 @@ jobs:
       if: ${{ matrix.os == 'ubuntu-latest' }}
       run: >
         cmake -B build -G Ninja
+        -D BUILD_TESTING=ON
         -D BUILD_BLASPP_TESTS=ON
         -D blaspp_DIR=${{env.blaspp_DIR}}/build
         -D blaspp_TEST_DIR=${{env.blaspp_DIR}}/test
