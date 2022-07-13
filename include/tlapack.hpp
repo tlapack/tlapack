@@ -14,6 +14,8 @@
 // =============================================================================
 // Template LAPACK
 
+#include "lapack/trtri_recursive.hpp"
+
 // Auxiliary routines
 // ------------------
 
