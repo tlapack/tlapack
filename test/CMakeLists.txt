@@ -8,7 +8,7 @@ include( "${TLAPACK_SOURCE_DIR}/cmake/FetchPackage.cmake" )
 
 #-------------------------------------------------------------------------------
 # Load Catch2
-FetchPackage( "Catch2" "https://github.com/catchorg/Catch2.git" "devel" )
+FetchPackage( "Catch2" "https://github.com/catchorg/Catch2.git" "v3.0.1" )
 if( EXISTS "${Catch2_SOURCE_DIR}" )
   list(APPEND CMAKE_MODULE_PATH "${Catch2_SOURCE_DIR}/extras")
 else()
