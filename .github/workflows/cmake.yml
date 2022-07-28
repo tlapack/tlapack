@@ -402,3 +402,85 @@ jobs:
 
     - name: Install
       run: cmake --build build --target install
+
+  build-with-blis:
+    # Use GNU compilers
+    
+    env:
+      blis_DIR: ${{github.workspace}}/blis
+      lapack_DIR: ${{github.workspace}}/lapack
+      LD_LIBRARY_PATH: "/usr/local/lib/"
+
+    runs-on: ubuntu-latest
+    steps:
+    
+    - name: Checkout <T>LAPACK
+      uses: actions/checkout@v2
+
+    - name: Install ninja-build tool
+      uses: seanmiddleditch/gha-setup-ninja@v3
+
+    - name: Install LAPACKE on Ubuntu
+      run: sudo apt install liblapacke-dev
+
+    - name: Install BLIS
+      run: sudo apt install libblis-dev
+
+    - name: Checkout LAPACK
+      run: |
+        git clone https://github.com/Reference-LAPACK/lapack.git ${{env.lapack_DIR}}
+
+    - name: Build and install LAPACK
+      working-directory: ${{env.lapack_DIR}}
+      run: |
+        cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -D CMAKE_INSTALL_PREFIX=${{env.lapack_DIR}} -D USE_OPTIMIZED_BLAS=ON -D BLA_VENDOR=FLAME -D LAPACKE=ON -D CBLAS=ON
+        cmake --build build --target install
+
+    - name: Checkout BLAS++ and LAPACK++
+      run: |
+        git clone https://bitbucket.org/weslleyspereira/blaspp ${{env.blaspp_DIR}}
+        git clone https://bitbucket.org/weslleyspereira/lapackpp ${{env.lapackpp_DIR}}
+
+    - name: Build and install BLAS++
+      working-directory: ${{env.blaspp_DIR}}
+      run: |
+        git checkout tlapack
+        cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBLA_VENDOR=FLAME -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.blaspp_DIR}}
+        cmake --build build --target install
+
+    - name: Build and install LAPACK++
+      working-directory: ${{env.lapackpp_DIR}}
+      run: |
+        git checkout tlapack
+        cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBLA_VENDOR=OpenBLAS -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.lapackpp_DIR}} -D CMAKE_CXX_FLAGS="${{env.CXXFLAGS}} -D LAPACK_FORTRAN_ADD_" -D LAPACK_LIBRARIES="${{env.lapack_DIR}}/lib/liblapacke.a;${{env.lapack_DIR}}/lib/libcblas.a;${{env.lapack_DIR}}/lib/liblapack.a;-lgfortran"
+        cmake --build build --target install
+
+    - name: Configure CMake for <T>LAPACK
+      run: >
+        cmake -B build -G Ninja
+        -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+        -D CMAKE_INSTALL_PREFIX=${{github.workspace}}/tlapack_install
+        -D CMAKE_CXX_FLAGS="${{env.CXXFLAGS}} -D LAPACK_FORTRAN_ADD_"
+        -D BUILD_SHARED_LIBS=ON
+        -D BUILD_EXAMPLES=ON
+        -D BUILD_TESTING=ON
+        -D C_WRAPPERS=ON
+        -D Fortran_WRAPPERS=ON
+        -D CBLAS_WRAPPERS=ON
+        -D USE_LAPACKPP_WRAPPERS=ON
+        -D BUILD_BLASPP_TESTS=ON
+        -D blaspp_TEST_DIR=${{env.blaspp_DIR}}/test
+        -D BUILD_LAPACKPP_TESTS=ON
+        -D lapackpp_TEST_DIR=${{env.lapackpp_DIR}}/test
+
+    - name: Build <T>LAPACK
+      run: cmake --build build --config ${{env.BUILD_TYPE}}
+
+    # Mind that the job won't fail if only this step fails
+    - name: Run tests
+      working-directory: ${{github.workspace}}/build
+      continue-on-error: true
+      run: ctest -C ${{env.BUILD_TYPE}} --output-on-failure
+
+    - name: Install
+      run: cmake --build build --target install
