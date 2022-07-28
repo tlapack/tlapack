@@ -8,8 +8,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_LANSY_HH__
-#define __TLAPACK_LANSY_HH__
+#ifndef TLAPACK_LANSY_HH
+#define TLAPACK_LANSY_HH
 
 #include "base/types.hpp"
 #include "lapack/lassq.hpp"
@@ -252,4 +252,4 @@ lansy( norm_t normType, uplo_t uplo, const matrix_t& A, work_t& work )
 
 } // lapack
 
-#endif // __LANSY_HH__
+#endif // TLAPACK_LANSY_HH

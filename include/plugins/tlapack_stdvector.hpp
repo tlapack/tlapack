@@ -4,8 +4,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_STDVECTOR_HH__
-#define __TLAPACK_STDVECTOR_HH__
+#ifndef TLAPACK_STDVECTOR_HH
+#define TLAPACK_STDVECTOR_HH
 
 #include <vector>
 #include "base/arrayTraits.hpp"
@@ -46,4 +46,4 @@ namespace tlapack {
 
 } // namespace tlapack
 
-#endif // __TLAPACK_STDVECTOR_HH__
+#endif // TLAPACK_STDVECTOR_HH

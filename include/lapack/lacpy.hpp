@@ -8,8 +8,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_LACPY_HH__
-#define __TLAPACK_LACPY_HH__
+#ifndef TLAPACK_LACPY_HH
+#define TLAPACK_LACPY_HH
 
 #include "base/types.hpp"
 
@@ -73,4 +73,4 @@ void lacpy( uplo_t uplo, const matrixA_t& A, matrixB_t& B )
 
 }
 
-#endif // __LACPY_HH__
+#endif // TLAPACK_LACPY_HH

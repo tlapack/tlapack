@@ -8,8 +8,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_LASCL_HH__
-#define __TLAPACK_LASCL_HH__
+#ifndef TLAPACK_LASCL_HH
+#define TLAPACK_LASCL_HH
 
 #include "base/utils.hpp"
 
@@ -91,45 +91,45 @@ int lascl(
         return 0;
 
     bool done = false;
-    real_t _a = a, _b = b;
+    real_t a_ = a, b_ = b;
     while (!done)
     {
         real_t c, a1, b1 = b * small;
-        if (b1 == _b) {
+        if (b1 == b_) {
             // b is not finite:
             //  c is a correctly signed zero if a is finite,
             //  c is NaN otherwise.
-            c = _a / _b;
+            c = a_ / b_;
             done = true;
         }
         else { // b is finite
-            a1 = _a / big;
-            if (a1 == _a) {
+            a1 = a_ / big;
+            if (a1 == a_) {
                 // a is either 0 or an infinity number:
                 //  in both cases, c = a serves as the correct multiplication factor.
-                c = _a;
+                c = a_;
                 done = true;
             }
-            else if ( (abs(b1) > abs(_a)) && (_a != real_t(0)) ) {
+            else if ( (abs(b1) > abs(a_)) && (a_ != real_t(0)) ) {
                 // a is a non-zero finite number and abs(a/b) < small:
                 //  Set c = small as the multiplication factor,
                 //  Multiply b by the small factor.
                 c = small;
                 done = false;
-                _b = b1;
+                b_ = b1;
             }
-            else if (abs(a1) > abs(_b)) {
+            else if (abs(a1) > abs(b_)) {
                 // abs(a/b) > big:
                 //  Set c = big as the multiplication factor,
                 //  Divide a by the big factor.
                 c = big;
                 done = false;
-                _a = a1;
+                a_ = a1;
             }
             else {
                 // small <= abs(a/b) <= big:
                 //  Set c = a/b as the multiplication factor.
-                c = _a / _b;
+                c = a_ / b_;
                 done = true;
             }
         }
@@ -234,45 +234,45 @@ int lascl(
         return 0;
 
     bool done = false;
-    real_t _a = a, _b = b;
+    real_t a_ = a, b_ = b;
     while (!done)
     {
         real_t c, a1, b1 = b * small;
-        if (b1 == _b) {
+        if (b1 == b_) {
             // b is not finite:
             //  c is a correctly signed zero if a is finite,
             //  c is NaN otherwise.
-            c = _a / _b;
+            c = a_ / b_;
             done = true;
         }
         else { // b is finite
-            a1 = _a / big;
-            if (a1 == _a) {
+            a1 = a_ / big;
+            if (a1 == a_) {
                 // a is either 0 or an infinity number:
                 //  in both cases, c = a serves as the correct multiplication factor.
-                c = _a;
+                c = a_;
                 done = true;
             }
-            else if ( (abs(b1) > abs(_a)) && (_a != real_t(0)) ) {
+            else if ( (abs(b1) > abs(a_)) && (a_ != real_t(0)) ) {
                 // a is a non-zero finite number and abs(a/b) < small:
                 //  Set c = small as the multiplication factor,
                 //  Multiply b by the small factor.
                 c = small;
                 done = false;
-                _b = b1;
+                b_ = b1;
             }
-            else if (abs(a1) > abs(_b)) {
+            else if (abs(a1) > abs(b_)) {
                 // abs(a/b) > big:
                 //  Set c = big as the multiplication factor,
                 //  Divide a by the big factor.
                 c = big;
                 done = false;
-                _a = a1;
+                a_ = a1;
             }
             else {
                 // small <= abs(a/b) <= big:
                 //  Set c = a/b as the multiplication factor.
-                c = _a / _b;
+                c = a_ / b_;
                 done = true;
             }
         }
@@ -287,4 +287,4 @@ int lascl(
 
 }
 
-#endif // __LASCL_HH__
+#endif // TLAPACK_LASCL_HH

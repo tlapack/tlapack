@@ -5,8 +5,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_LEGACY_ROTMG_HH__
-#define __TLAPACK_LEGACY_ROTMG_HH__
+#ifndef TLAPACK_LEGACY_ROTMG_HH
+#define TLAPACK_LEGACY_ROTMG_HH
 
 #include "legacy_api/base/utils.hpp"
 #include "legacy_api/base/types.hpp"
@@ -88,7 +88,7 @@ namespace tlapack {
  *     Array of length 5 giving parameters of modified plane rotation,
  *     as described above.
  *
- * __Further details__
+ * @details
  *
  * Hammarling, Sven. A note on modifications to the Givens plane rotation.
  * IMA Journal of Applied Mathematics, 13:215-218, 1974.
@@ -113,4 +113,4 @@ void rotmg(
 
 }  // namespace tlapack
 
-#endif        //  #ifndef __TLAPACK_LEGACY_ROTMG_HH__
+#endif        //  #ifndef TLAPACK_LEGACY_ROTMG_HH

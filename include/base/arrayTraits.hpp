@@ -4,8 +4,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_ARRAY_TRAITS__
-#define __TLAPACK_ARRAY_TRAITS__
+#ifndef TLAPACK_ARRAY_TRAITS
+#define TLAPACK_ARRAY_TRAITS
 
 #include <type_traits>
 #include "base/types.hpp"
@@ -175,4 +175,4 @@ namespace tlapack {
     constexpr strictLower_t strictLower = { };
 }
 
-#endif // __TLAPACK_ARRAY_TRAITS__
+#endif // TLAPACK_ARRAY_TRAITS

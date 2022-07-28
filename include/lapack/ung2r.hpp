@@ -8,8 +8,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_UNG2R_HH__
-#define __TLAPACK_UNG2R_HH__
+#ifndef TLAPACK_UNG2R_HH
+#define TLAPACK_UNG2R_HH
 
 #include "base/utils.hpp"
 #include "base/types.hpp"
@@ -102,4 +102,4 @@ int ung2r(
 
 }
 
-#endif // __UNG2R_HH__
+#endif // TLAPACK_UNG2R_HH

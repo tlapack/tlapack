@@ -4,8 +4,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_HH__
-#define __TLAPACK_HH__
+#ifndef TLAPACK_HH
+#define TLAPACK_HH
 
 // BLAS
 
@@ -82,4 +82,4 @@
 #include "lapack/agressive_early_deflation.hpp"
 #include "lapack/multishift_qr.hpp"
 
-#endif // __TLAPACK_HH__
+#endif // TLAPACK_HH

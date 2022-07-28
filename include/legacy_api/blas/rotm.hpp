@@ -5,8 +5,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_LEGACY_ROTM_HH__
-#define __TLAPACK_LEGACY_ROTM_HH__
+#ifndef TLAPACK_LEGACY_ROTM_HH
+#define TLAPACK_LEGACY_ROTM_HH
 
 #include "legacy_api/base/utils.hpp"
 #include "legacy_api/base/types.hpp"
@@ -68,15 +68,15 @@ void rotm(
     if( n <= 0 ) return;
     
     tlapack_expr_with_2vectors(
-        _x, TX, n, x, incx,
-        _y, TY, n, y, incy,
-        if      ( flag == -2 ) return rotm<-2>(_x,_y,h);
-        else if ( flag == -1 ) return rotm<-1>(_x,_y,h);
-        else if ( flag ==  0 ) return rotm< 0>(_x,_y,h);
-        else                   return rotm< 1>(_x,_y,h);
+        x_, TX, n, x, incx,
+        y_, TY, n, y, incy,
+        if      ( flag == -2 ) return rotm<-2>(x_,y_,h);
+        else if ( flag == -1 ) return rotm<-1>(x_,y_,h);
+        else if ( flag ==  0 ) return rotm< 0>(x_,y_,h);
+        else                   return rotm< 1>(x_,y_,h);
     );
 }
 
 }  // namespace tlapack
 
-#endif        //  #ifndef __TLAPACK_LEGACY_ROTM_HH__
+#endif        //  #ifndef TLAPACK_LEGACY_ROTM_HH

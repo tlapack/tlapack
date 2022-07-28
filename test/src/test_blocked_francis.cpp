@@ -60,14 +60,14 @@ TEMPLATE_LIST_TEST_CASE("Multishift QR", "[eigenvalues][multishift_qr]", types_t
     }
 
     // Define the matrices and vectors
-    std::unique_ptr<T[]> _A(new T[n * n]);
-    std::unique_ptr<T[]> _H(new T[n * n]);
-    std::unique_ptr<T[]> _Q(new T[n * n]);
+    std::unique_ptr<T[]> A_(new T[n * n]);
+    std::unique_ptr<T[]> H_(new T[n * n]);
+    std::unique_ptr<T[]> Q_(new T[n * n]);
 
     // This only works for legacy matrix, we really work on that construct_matrix function
-    auto A = legacyMatrix<T, layout<matrix_t>>(n, n, &_A[0], n);
-    auto H = legacyMatrix<T, layout<matrix_t>>(n, n, &_H[0], n);
-    auto Q = legacyMatrix<T, layout<matrix_t>>(n, n, &_Q[0], n);
+    auto A = legacyMatrix<T, layout<matrix_t>>(n, n, &A_[0], n);
+    auto H = legacyMatrix<T, layout<matrix_t>>(n, n, &H_[0], n);
+    auto Q = legacyMatrix<T, layout<matrix_t>>(n, n, &Q_[0], n);
 
     if (matrix_type == "Random")
     {

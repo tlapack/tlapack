@@ -8,8 +8,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_LANHE_HH__
-#define __TLAPACK_LANHE_HH__
+#ifndef TLAPACK_LANHE_HH
+#define TLAPACK_LANHE_HH
 
 #include "base/types.hpp"
 #include "lapack/lassq.hpp"
@@ -280,4 +280,4 @@ lanhe( norm_t normType, uplo_t uplo, const matrix_t& A, work_t& work )
 
 } // lapack
 
-#endif // __LANHE_HH__
+#endif // TLAPACK_LANHE_HH

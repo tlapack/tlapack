@@ -6,8 +6,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_GEHD2_HH__
-#define __TLAPACK_GEHD2_HH__
+#ifndef TLAPACK_GEHD2_HH
+#define TLAPACK_GEHD2_HH
 
 #include <iostream>
 
@@ -99,4 +99,4 @@ int gehd2( size_type< matrix_t > ilo, size_type< matrix_t > ihi, matrix_t& A, ve
 
 } // lapack
 
-#endif // __GEHD2_HH__
+#endif // TLAPACK_GEHD2_HH

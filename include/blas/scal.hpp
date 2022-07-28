@@ -5,8 +5,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_BLAS_SCAL_HH__
-#define __TLAPACK_BLAS_SCAL_HH__
+#ifndef TLAPACK_BLAS_SCAL_HH
+#define TLAPACK_BLAS_SCAL_HH
 
 #include "base/utils.hpp"
 
@@ -40,4 +40,4 @@ void scal( const alpha_t& alpha, vector_t& x )
 
 }  // namespace tlapack
 
-#endif        //  #ifndef __TLAPACK_BLAS_SCAL_HH__
+#endif        //  #ifndef TLAPACK_BLAS_SCAL_HH

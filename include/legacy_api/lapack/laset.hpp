@@ -8,8 +8,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_LEGACY_LASET_HH__
-#define __TLAPACK_LEGACY_LASET_HH__
+#ifndef TLAPACK_LEGACY_LASET_HH
+#define TLAPACK_LEGACY_LASET_HH
 
 #include "lapack/laset.hpp"
 
@@ -67,4 +67,4 @@ void inline laset(
 
 }
 
-#endif // __TLAPACK_LEGACY_LASET_HH__
+#endif // TLAPACK_LEGACY_LASET_HH

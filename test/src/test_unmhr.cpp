@@ -40,14 +40,14 @@ TEMPLATE_LIST_TEST_CASE("Result of unmhr matches result from unghr", "[eigenvalu
     const real_type<T> tol = n * 1.0e2 * eps;
 
     // Define the matrices and vectors
-    std::unique_ptr<T[]> _H(new T[n * n]);
-    std::unique_ptr<T[]> _C(new T[m * n]);
-    std::unique_ptr<T[]> _C_copy(new T[m * n]);
+    std::unique_ptr<T[]> H_(new T[n * n]);
+    std::unique_ptr<T[]> C_(new T[m * n]);
+    std::unique_ptr<T[]> C_copy_(new T[m * n]);
 
     // This only works for legacy matrix, we really work on that construct_matrix function
-    auto H = legacyMatrix<T, layout<matrix_t>>(n, n, &_H[0], n);
-    auto C = legacyMatrix<T, layout<matrix_t>>(m, n, &_C[0], layout<matrix_t> == Layout::ColMajor ? m : n);
-    auto C_copy = legacyMatrix<T, layout<matrix_t>>(m, n, &_C_copy[0], layout<matrix_t> == Layout::ColMajor ? m : n);
+    auto H = legacyMatrix<T, layout<matrix_t>>(n, n, &H_[0], n);
+    auto C = legacyMatrix<T, layout<matrix_t>>(m, n, &C_[0], layout<matrix_t> == Layout::ColMajor ? m : n);
+    auto C_copy = legacyMatrix<T, layout<matrix_t>>(m, n, &C_copy_[0], layout<matrix_t> == Layout::ColMajor ? m : n);
     std::vector<T> tau(n);
     std::vector<T> work(std::max(n,m));
 

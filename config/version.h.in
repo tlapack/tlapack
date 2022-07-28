@@ -4,8 +4,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_VERSION_H__
-#define __TLAPACK_VERSION_H__
+#ifndef TLAPACK_VERSION_H
+#define TLAPACK_VERSION_H
 
 // the configured options and settings for <T>LAPACK
 #define TLAPACK_VERSION @TLAPACK_VERSION@
@@ -13,4 +13,4 @@
 #define TLAPACK_VERSION_MINOR @TLAPACK_VERSION_MINOR@
 #define TLAPACK_VERSION_PATCH @TLAPACK_VERSION_PATCH@
 
-#endif // __TLAPACK_VERSION_H__
+#endif // TLAPACK_VERSION_H

@@ -8,8 +8,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_LEGACY_LARF_HH__
-#define __TLAPACK_LEGACY_LARF_HH__
+#ifndef TLAPACK_LEGACY_LARF_HH
+#define TLAPACK_LEGACY_LARF_HH
 
 #include "lapack/larf.hpp"
 #include <memory>
@@ -56,11 +56,11 @@ inline void larf(
     auto _work = vector( &work[0], lwork );
 
     tlapack_expr_with_vector(
-        _v, TV, lenv, v, incv,
-        return larf( side, _v, tau, C_, _work)
+        v_, TV, lenv, v, incv,
+        return larf( side, v_, tau, C_, _work)
     );
 }
 
 } // lapack
 
-#endif // __TLAPACK_LEGACY_LARF_HH__
+#endif // TLAPACK_LEGACY_LARF_HH

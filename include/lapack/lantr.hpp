@@ -8,8 +8,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_LANTR_HH__
-#define __TLAPACK_LANTR_HH__
+#ifndef TLAPACK_LANTR_HH
+#define TLAPACK_LANTR_HH
 
 #include "base/types.hpp"
 #include "lapack/lassq.hpp"
@@ -371,4 +371,4 @@ lantr( norm_t normType, uplo_t uplo, diag_t diag, const matrix_t& A, work_t& wor
 
 } // lapack
 
-#endif // __LANTR_HH__
+#endif // TLAPACK_LANTR_HH

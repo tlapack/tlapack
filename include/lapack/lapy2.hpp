@@ -8,8 +8,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_LAPY2_HH__
-#define __TLAPACK_LAPY2_HH__
+#ifndef TLAPACK_LAPY2_HH
+#define TLAPACK_LAPY2_HH
 
 namespace tlapack {
 
@@ -56,4 +56,4 @@ real_type<TX,TY> lapy2( const TX& x, const TY& y )
 
 }
 
-#endif // __LAPY2_HH__
+#endif // TLAPACK_LAPY2_HH

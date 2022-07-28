@@ -12,8 +12,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_LASSQ_HH__
-#define __TLAPACK_LASSQ_HH__
+#ifndef TLAPACK_LASSQ_HH
+#define TLAPACK_LASSQ_HH
 
 #include "base/utils.hpp"
 
@@ -198,4 +198,4 @@ void lassq(
 
 } // lapack
 
-#endif // __LASSQ_HH__
+#endif // TLAPACK_LASSQ_HH

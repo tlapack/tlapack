@@ -7,8 +7,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TESTDEFINITIONS_HH__
-#define __TESTDEFINITIONS_HH__
+#ifndef TLAPACK_TESTDEFINITIONS_HH
+#define TLAPACK_TESTDEFINITIONS_HH
 
 #include <legacy_api/legacyArray.hpp>
 #include <tlapack.hpp>
@@ -51,4 +51,4 @@ namespace tlapack
 
 }
 
-#endif // __TESTDEFINITIONS_HH__
+#endif // TLAPACK_TESTDEFINITIONS_HH

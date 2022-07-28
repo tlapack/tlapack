@@ -4,8 +4,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_LEGACY_LEGACYARRAY_HH__
-#define __TLAPACK_LEGACY_LEGACYARRAY_HH__
+#ifndef TLAPACK_LEGACY_LEGACYARRAY_HH
+#define TLAPACK_LEGACY_LEGACYARRAY_HH
 
 #include "legacy_api/legacyArray.hpp"
 
@@ -90,4 +90,4 @@ namespace internal {
 
 } // namespace tlapack
 
-#endif // __TLAPACK_LEGACY_LEGACYARRAY_HH__
+#endif // TLAPACK_LEGACY_LEGACYARRAY_HH

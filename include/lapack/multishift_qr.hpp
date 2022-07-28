@@ -8,8 +8,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __MULTISHIFT_QR_HH__
-#define __MULTISHIFT_QR_HH__
+#ifndef TLAPACK_MULTISHIFT_QR_HH
+#define TLAPACK_MULTISHIFT_QR_HH
 
 #include <complex>
 #include <vector>
@@ -437,4 +437,4 @@ namespace tlapack
 
 } // lapack
 
-#endif // __MULTISHIFT_QR_HH__
+#endif // TLAPACK_MULTISHIFT_QR_HH

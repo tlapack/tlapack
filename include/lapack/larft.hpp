@@ -8,8 +8,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_LARFT_HH__
-#define __TLAPACK_LARFT_HH__
+#ifndef TLAPACK_LARFT_HH
+#define TLAPACK_LARFT_HH
 
 #include "base/utils.hpp"
 #include "base/types.hpp"
@@ -258,4 +258,4 @@ int larft(
 
 }
 
-#endif // __LARFT_HH__
+#endif // TLAPACK_LARFT_HH

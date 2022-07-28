@@ -5,8 +5,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_LEGACY_SYR_HH__
-#define __TLAPACK_LEGACY_SYR_HH__
+#ifndef TLAPACK_LEGACY_SYR_HH
+#define TLAPACK_LEGACY_SYR_HH
 
 #include "legacy_api/base/utils.hpp"
 #include "legacy_api/base/types.hpp"
@@ -86,9 +86,9 @@ void syr(
     // Matrix views
     auto A_ = colmajor_matrix<TA>( A, n, n, lda );
 
-    tlapack_expr_with_vector( _x, TX, n, x, incx, syr( uplo, alpha, _x, A_ ) );
+    tlapack_expr_with_vector( x_, TX, n, x, incx, syr( uplo, alpha, x_, A_ ) );
 }
 
 }  // namespace tlapack
 
-#endif        //  #ifndef __TLAPACK_LEGACY_SYR_HH__
+#endif        //  #ifndef TLAPACK_LEGACY_SYR_HH

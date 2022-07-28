@@ -5,8 +5,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_LAUUM_RECURSIVE__TLAPACK_
-#define __TLAPACK_LAUUM_RECURSIVE__TLAPACK_
+#ifndef TLAPACK_LAUUM_RECURSIVETLAPACK_
+#define TLAPACK_LAUUM_RECURSIVETLAPACK_
 
 #include "base/utils.hpp"
 #include "base/types.hpp"
@@ -110,4 +110,4 @@ namespace tlapack
 
 } // namespace tlapack
 
-#endif // __TLAPACK_LAUUM_RECURSIVE__TLAPACK_
+#endif // TLAPACK_LAUUM_RECURSIVETLAPACK_

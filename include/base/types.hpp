@@ -5,8 +5,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_TYPES_HH__
-#define __TLAPACK_TYPES_HH__
+#ifndef TLAPACK_TYPES_HH
+#define TLAPACK_TYPES_HH
 
 #include <complex>
 #include <type_traits>
@@ -330,4 +330,4 @@ namespace tlapack {
 #undef TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_4_VALUES
 #undef TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_5_VALUES
 
-#endif // __TLAPACK_TYPES_HH__
+#endif // TLAPACK_TYPES_HH

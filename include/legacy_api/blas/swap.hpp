@@ -5,8 +5,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_LEGACY_SWAP_HH__
-#define __TLAPACK_LEGACY_SWAP_HH__
+#ifndef TLAPACK_LEGACY_SWAP_HH
+#define TLAPACK_LEGACY_SWAP_HH
 
 #include "legacy_api/base/utils.hpp"
 #include "legacy_api/base/types.hpp"
@@ -52,12 +52,12 @@ void swap(
     if( n <= 0 ) return;
 
     tlapack_expr_with_2vectors(
-        _x, TX, n, x, incx,
-        _y, TY, n, y, incy,
-        return tlapack::swap( _x, _y );
+        x_, TX, n, x, incx,
+        y_, TY, n, y, incy,
+        return tlapack::swap( x_, y_ );
     );
 }
 
 }  // namespace tlapack
 
-#endif        //  #ifndef __TLAPACK_LEGACY_SWAP_HH__
+#endif        //  #ifndef TLAPACK_LEGACY_SWAP_HH
