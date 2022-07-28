@@ -453,7 +453,7 @@ jobs:
       working-directory: ${{env.lapackpp_DIR}}
       run: |
         git checkout tlapack
-        cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBLA_VENDOR=OpenBLAS -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.lapackpp_DIR}} -D CMAKE_CXX_FLAGS="${{env.CXXFLAGS}} -D LAPACK_FORTRAN_ADD_" -D LAPACK_LIBRARIES="${{env.lapack_DIR}}/lib/liblapacke.a;${{env.lapack_DIR}}/lib/libcblas.a;${{env.lapack_DIR}}/lib/liblapack.a;-lgfortran"
+        cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.lapackpp_DIR}} -D CMAKE_CXX_FLAGS="${{env.CXXFLAGS}} -D LAPACK_FORTRAN_ADD_" -D LAPACK_LIBRARIES="${{env.lapack_DIR}}/lib/liblapacke.a;${{env.lapack_DIR}}/lib/liblapack.a;-lgfortran"
         cmake --build build --target install
 
     - name: Configure CMake for <T>LAPACK
