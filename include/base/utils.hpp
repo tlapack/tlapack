@@ -35,15 +35,7 @@ using std::pair;
 
 template<typename idx_t>
 using range = pair<idx_t,idx_t>;
-
-// -----------------------------------------------------------------------------
-// enable_if_t is defined in C++14; here's a C++11 definition
-#if __cplusplus >= 201402L
-    using std::enable_if_t;
-#else
-    template< bool B, class T = void >
-    using enable_if_t = typename enable_if<B,T>::type;
-#endif
+using std::enable_if_t;
 
 // -----------------------------------------------------------------------------
 // is_same_v is defined in C++17; here's a C++11 definition

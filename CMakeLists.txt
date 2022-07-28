@@ -182,8 +182,6 @@ if( TLAPACK_USE_MDSPAN )
   include( "${TLAPACK_SOURCE_DIR}/cmake/FetchPackage.cmake" )
   FetchPackage( "mdspan" "https://github.com/kokkos/mdspan.git" "stable" )
   if( mdspan_FOUND )
-    # enforce the C++14 standard
-    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14" )
     target_compile_definitions( tblas INTERFACE TLAPACK_USE_MDSPAN )
     target_link_libraries( tblas INTERFACE std::mdspan )
   else()
