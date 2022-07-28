@@ -86,6 +86,7 @@ jobs:
       if: ${{ matrix.os == 'ubuntu-latest' }}
       working-directory: ${{env.mdspan_DIR}}
       run: |
+        git checkout mdspan-0.4.0
         cmake -B build -G Ninja -DCMAKE_INSTALL_PREFIX=${{env.mdspan_DIR}}
         cmake --build build --target install
         
