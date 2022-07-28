@@ -5,8 +5,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_LEGACY_HEMV_HH__
-#define __TLAPACK_LEGACY_HEMV_HH__
+#ifndef TLAPACK_LEGACY_HEMV_HH
+#define TLAPACK_LEGACY_HEMV_HH
 
 #include "legacy_api/base/utils.hpp"
 #include "legacy_api/base/types.hpp"
@@ -97,21 +97,21 @@ void hemv(
     if(layout == Layout::ColMajor)
     {
         tlapack_expr_with_2vectors(
-            _x, TX, n, x, incx,
-            _y, TY, n, y, incy,
-            return hemv( uplo, alpha, colmajor_matrix<TA>( (TA*)A, n, n, lda ), _x, beta, _y )
+            x_, TX, n, x, incx,
+            y_, TY, n, y, incy,
+            return hemv( uplo, alpha, colmajor_matrix<TA>( (TA*)A, n, n, lda ), x_, beta, y_ )
         );
     }
     else
     {
         tlapack_expr_with_2vectors(
-            _x, TX, n, x, incx,
-            _y, TY, n, y, incy,
-            return hemv( uplo, alpha, rowmajor_matrix<TA>( (TA*)A, n, n, lda ), _x, beta, _y )
+            x_, TX, n, x, incx,
+            y_, TY, n, y, incy,
+            return hemv( uplo, alpha, rowmajor_matrix<TA>( (TA*)A, n, n, lda ), x_, beta, y_ )
         );
     }
 }
 
 }  // namespace tlapack
 
-#endif        //  #ifndef __TLAPACK_LEGACY_HEMV_HH__
+#endif        //  #ifndef TLAPACK_LEGACY_HEMV_HH

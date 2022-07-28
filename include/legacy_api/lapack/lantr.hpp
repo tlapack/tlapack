@@ -7,8 +7,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_LEGACY_LANTR_HH__
-#define __TLAPACK_LEGACY_LANTR_HH__
+#ifndef TLAPACK_LEGACY_LANTR_HH
+#define TLAPACK_LEGACY_LANTR_HH
 
 #include <memory>
 
@@ -72,4 +72,4 @@ real_type<TA> lantr(
 
 } // lapack
 
-#endif // __TLAPACK_LEGACY_LANTR_HH__
+#endif // TLAPACK_LEGACY_LANTR_HH

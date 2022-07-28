@@ -7,8 +7,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __QR_SWEEP_HH__
-#define __QR_SWEEP_HH__
+#ifndef TLAPACK_QR_SWEEP_HH
+#define TLAPACK_QR_SWEEP_HH
 
 #include <memory>
 #include <complex>
@@ -715,4 +715,4 @@ namespace tlapack
 
 } // lapack
 
-#endif // __QR_SWEEP_HH__
+#endif // TLAPACK_QR_SWEEP_HH

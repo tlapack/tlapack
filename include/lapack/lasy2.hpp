@@ -8,8 +8,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_LASY2_HH__
-#define __TLAPACK_LASY2_HH__
+#ifndef TLAPACK_LASY2_HH
+#define TLAPACK_LASY2_HH
 
 #include <complex>
 #include <memory>
@@ -245,4 +245,4 @@ namespace tlapack
 
 } // lapack
 
-#endif // __LASY2_HH__
+#endif // TLAPACK_LASY2_HH

@@ -12,8 +12,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_LEGACY_LASSQ_HH__
-#define __TLAPACK_LEGACY_LASSQ_HH__
+#ifndef TLAPACK_LEGACY_LASSQ_HH
+#define TLAPACK_LEGACY_LASSQ_HH
 
 #include "lapack/lassq.hpp"
 
@@ -61,9 +61,9 @@ void lassq(
     // quick return
     if( isnan(scl) || isnan(sumsq) || n <= 0 ) return;
 
-    tlapack_expr_with_vector( _x, TX, n, x, incx, return lassq( _x, scl, sumsq ) );
+    tlapack_expr_with_vector( x_, TX, n, x, incx, return lassq( x_, scl, sumsq ) );
 }
 
 } // lapack
 
-#endif // __LASSQ_HH__
+#endif // TLAPACK_LEGACY_LASSQ_HH

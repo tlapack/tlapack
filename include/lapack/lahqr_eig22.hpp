@@ -7,8 +7,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_LAHQR_EIG22_HH__
-#define __TLAPACK_LAHQR_EIG22_HH__
+#ifndef TLAPACK_LAHQR_EIG22_HH
+#define TLAPACK_LAHQR_EIG22_HH
 
 #include <complex>
 
@@ -69,4 +69,4 @@ namespace tlapack
 
 } // lapack
 
-#endif // __LAHQR_EIG22_HH__
+#endif // TLAPACK_LAHQR_EIG22_HH

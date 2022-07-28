@@ -4,8 +4,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_LEGACYARRAY_HH__
-#define __TLAPACK_LEGACYARRAY_HH__
+#ifndef TLAPACK_LEGACYARRAY_HH
+#define TLAPACK_LEGACYARRAY_HH
 
 #include <utility>
 #include <type_traits>
@@ -250,4 +250,4 @@ namespace tlapack {
 
 } // namespace tlapack
 
-#endif // __TLAPACK_LEGACYARRAY_HH__
+#endif // TLAPACK_LEGACYARRAY_HH

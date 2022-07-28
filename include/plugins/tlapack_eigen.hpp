@@ -5,8 +5,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_EIGEN_HH__
-#define __TLAPACK_EIGEN_HH__
+#ifndef TLAPACK_EIGEN_HH
+#define TLAPACK_EIGEN_HH
 
 #include <Eigen/Core>
 #include "base/arrayTraits.hpp"
@@ -225,4 +225,4 @@ namespace tlapack{
 
 } // namespace tlapack
 
-#endif // __TLAPACK_EIGEN_HH__
+#endif // TLAPACK_EIGEN_HH

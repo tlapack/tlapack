@@ -8,8 +8,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_LEGACY_LARFG_HH__
-#define __TLAPACK_LEGACY_LARFG_HH__
+#ifndef TLAPACK_LEGACY_LARFG_HH
+#define TLAPACK_LEGACY_LARFG_HH
 
 #include "lapack/larfg.hpp"
 
@@ -19,7 +19,7 @@ template< typename T >
 void larfg(
     idx_t n, T &alpha, T *x, int_t incx, T &tau )
 {    
-    tlapack_expr_with_vector( _x, T, n-1, x, incx, return larfg( alpha, _x, tau ) );
+    tlapack_expr_with_vector( x_, T, n-1, x, incx, return larfg( alpha, x_, tau ) );
 }
 
 /** Generates a elementary Householder reflection.
@@ -37,4 +37,4 @@ void inline larfg(
 
 }
 
-#endif // __TLAPACK_LEGACY_LARFG_HH__
+#endif // TLAPACK_LEGACY_LARFG_HH

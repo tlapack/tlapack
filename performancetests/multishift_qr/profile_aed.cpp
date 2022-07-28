@@ -95,15 +95,15 @@ void run(size_t n, size_t nw, bool use_fortran)
     size_t ldq = lda;
 
     // Arrays
-    std::unique_ptr<T[]> _A(new T[lda * n]); // m-by-n
-    std::unique_ptr<T[]> _H(new T[ldh * n]); // n-by-n
-    std::unique_ptr<T[]> _Q(new T[ldq * n]); // m-by-n
+    std::unique_ptr<T[]> A_(new T[lda * n]); // m-by-n
+    std::unique_ptr<T[]> H_(new T[ldh * n]); // n-by-n
+    std::unique_ptr<T[]> Q_(new T[ldq * n]); // m-by-n
     std::vector<T> tau(n);
 
     // Matrix views
-    auto A = colmajor_matrix<T>(&_A[0], n, n, lda);
-    auto H = colmajor_matrix<T>(&_H[0], n, n, ldh);
-    auto Q = colmajor_matrix<T>(&_Q[0], n, n, ldq);
+    auto A = colmajor_matrix<T>(&A_[0], n, n, lda);
+    auto H = colmajor_matrix<T>(&H_[0], n, n, ldh);
+    auto Q = colmajor_matrix<T>(&Q_[0], n, n, ldq);
 
     // Initialize arrays with junk
     for (size_t j = 0; j < n; ++j)
@@ -190,8 +190,8 @@ void run(size_t n, size_t nw, bool use_fortran)
 
     // 3) Compute ||QHQ* - A||_F / ||A||_F
 
-    std::unique_ptr<T[]> _H_copy(new T[n * n]);
-    auto H_copy = colmajor_matrix<T>(&_H_copy[0], n, n);
+    std::unique_ptr<T[]> H_copy_(new T[n * n]);
+    auto H_copy = colmajor_matrix<T>(&H_copy_[0], n, n);
     tlapack::lacpy(tlapack::Uplo::General, H, H_copy);
     {
         std::unique_ptr<T[]> _work(new T[n * n]);

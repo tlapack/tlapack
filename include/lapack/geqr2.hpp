@@ -8,8 +8,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_GEQR2_HH__
-#define __TLAPACK_GEQR2_HH__
+#ifndef TLAPACK_GEQR2_HH
+#define TLAPACK_GEQR2_HH
 
 #include "base/utils.hpp"
 #include "base/types.hpp"
@@ -100,4 +100,4 @@ int geqr2( matrix_t& A, vector_t &tau, work_t &work )
 
 } // lapack
 
-#endif // __GEQR2_HH__
+#endif // TLAPACK_GEQR2_HH

@@ -13,8 +13,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_LEGACY_NRM2_HH__
-#define __TLAPACK_LEGACY_NRM2_HH__
+#ifndef TLAPACK_LEGACY_NRM2_HH
+#define TLAPACK_LEGACY_NRM2_HH
 
 #include "legacy_api/base/utils.hpp"
 #include "legacy_api/base/types.hpp"
@@ -48,11 +48,11 @@ real_type<T> nrm2( idx_t n, T const * x, int_t incx )
     if( n <= 0 ) return 0;
 
     tlapack_expr_with_vector_positiveInc(
-        _x, T, n, x, incx,
-        return nrm2( _x )
+        x_, T, n, x, incx,
+        return nrm2( x_ )
     );
 }
 
 }  // namespace tlapack
 
-#endif        // #ifndef __TLAPACK_LEGACY_NRM2_HH__
+#endif        // #ifndef TLAPACK_LEGACY_NRM2_HH

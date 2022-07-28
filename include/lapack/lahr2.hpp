@@ -6,8 +6,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_LAHR2_HH__
-#define __TLAPACK_LAHR2_HH__
+#ifndef TLAPACK_LAHR2_HH
+#define TLAPACK_LAHR2_HH
 
 #include "base/utils.hpp"
 #include "base/types.hpp"
@@ -177,4 +177,4 @@ namespace tlapack
 
 } // lapack
 
-#endif // __LAHR2_HH__
+#endif // TLAPACK_LAHR2_HH

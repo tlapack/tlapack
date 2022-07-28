@@ -8,8 +8,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_LADIV_HH__
-#define __TLAPACK_LADIV_HH__
+#ifndef TLAPACK_LADIV_HH
+#define TLAPACK_LADIV_HH
 
 #include "base/utils.hpp"
 
@@ -82,4 +82,4 @@ inline std::complex<real_t> ladiv(
 
 }
 
-#endif // __LADIV_HH__
+#endif // TLAPACK_LADIV_HH

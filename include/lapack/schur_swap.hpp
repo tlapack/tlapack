@@ -8,8 +8,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_SCHUR_SWAP_HH__
-#define __TLAPACK_SCHUR_SWAP_HH__
+#ifndef TLAPACK_SCHUR_SWAP_HH
+#define TLAPACK_SCHUR_SWAP_HH
 
 #include <complex>
 #include <cmath>
@@ -277,8 +277,8 @@ namespace tlapack
         }
         if (n1 == 2 and n2 == 2)
         {
-            std::unique_ptr<T[]> _D(new T[4 * 4]);
-            auto D = internal::colmajor_matrix<T>(&_D[0], 4, 4);
+            std::unique_ptr<T[]> D_(new T[4 * 4]);
+            auto D = internal::colmajor_matrix<T>(&D_[0], 4, 4);
 
             auto AD_slice = slice(A, pair{j0, j0 + 4}, pair{j0, j0 + 4});
             lacpy(Uplo::General, AD_slice, D);
@@ -288,8 +288,8 @@ namespace tlapack
             const T small_num = safe_min<T>() / eps;
             T thresh = max(ten * eps * dnorm, small_num);
 
-            std::unique_ptr<T[]> _V(new T[4 * 2]);
-            auto V = internal::colmajor_matrix<T>(&_V[0], 4, 2);
+            std::unique_ptr<T[]> V_(new T[4 * 2]);
+            auto V = internal::colmajor_matrix<T>(&V_[0], 4, 2);
             auto X = slice(V, pair{0, 2}, pair{0, 2});
             auto TL = slice(D, pair{0, 2}, pair{0, 2});
             auto TR = slice(D, pair{2, 4}, pair{2, 4});
@@ -538,4 +538,4 @@ namespace tlapack
 
 } // lapack
 
-#endif // __SCHUR_SWAP_HH__
+#endif // TLAPACK_SCHUR_SWAP_HH

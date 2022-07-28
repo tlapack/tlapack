@@ -5,8 +5,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_LEGACY_GERU_HH__
-#define __TLAPACK_LEGACY_GERU_HH__
+#ifndef TLAPACK_LEGACY_GERU_HH
+#define TLAPACK_LEGACY_GERU_HH
 
 #include "legacy_api/base/utils.hpp"
 #include "legacy_api/base/types.hpp"
@@ -88,9 +88,9 @@ void geru(
         auto A_ = colmajor_matrix<TA>( A, m, n, lda );
 
         tlapack_expr_with_2vectors(
-            _x, TX, m, x, incx,
-            _y, TY, n, y, incy,
-            return geru( alpha, _x, _y, A_ )
+            x_, TX, m, x, incx,
+            y_, TY, n, y, incy,
+            return geru( alpha, x_, y_, A_ )
         );
     }
     else
@@ -99,9 +99,9 @@ void geru(
         auto A_ = colmajor_matrix<TA>( A, n, m, lda );
 
         tlapack_expr_with_2vectors(
-            _y, TY, n, y, incy,
-            _x, TX, m, x, incx,
-            return geru( alpha, _y, _x, A_ )
+            y_, TY, n, y, incy,
+            x_, TX, m, x, incx,
+            return geru( alpha, y_, x_, A_ )
         );
     }
 
@@ -109,4 +109,4 @@ void geru(
 
 }  // namespace tlapack
 
-#endif        //  #ifndef __TLAPACK_LEGACY_GER_HH__
+#endif        //  #ifndef TLAPACK_LEGACY_GER_HH

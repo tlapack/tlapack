@@ -5,8 +5,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_DEBUG_UTILS_HH__
-#define __TLAPACK_DEBUG_UTILS_HH__
+#ifndef TLAPACK_DEBUG_UTILS_HH
+#define TLAPACK_DEBUG_UTILS_HH
 
 #include <iostream>
 #include <iomanip>
@@ -225,4 +225,4 @@ namespace tlapack
 
 }
 
-#endif // __TLAPACK_DEBUG_UTILS_HH
+#endif // TLAPACK_DEBUG_UTILS_HH

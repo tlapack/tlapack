@@ -4,8 +4,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_EXCEPTION_HH__
-#define __TLAPACK_EXCEPTION_HH__
+#ifndef TLAPACK_EXCEPTION_HH
+#define TLAPACK_EXCEPTION_HH
 
 #include <stdexcept>
 #include <string>
@@ -182,4 +182,4 @@ namespace tlapack {
         ((void)0)
 #endif
 
-#endif // __TLAPACK_EXCEPTION_HH__
+#endif // TLAPACK_EXCEPTION_HH

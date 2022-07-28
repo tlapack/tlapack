@@ -7,8 +7,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_POTRF2_HH__
-#define __TLAPACK_POTRF2_HH__
+#ifndef TLAPACK_POTRF2_HH
+#define TLAPACK_POTRF2_HH
 
 #include "base/utils.hpp"
 #include "tblas.hpp"
@@ -161,4 +161,4 @@ int potrf2( uplo_t uplo, matrix_t& A, const ErrorCheck& ec = {} )
 
 } // lapack
 
-#endif // __POTRF2_HH__
+#endif // TLAPACK_POTRF2_HH

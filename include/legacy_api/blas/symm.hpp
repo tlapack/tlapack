@@ -5,8 +5,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_LEGACY_SYMM_HH__
-#define __TLAPACK_LEGACY_SYMM_HH__
+#ifndef TLAPACK_LEGACY_SYMM_HH
+#define TLAPACK_LEGACY_SYMM_HH
 
 #include "legacy_api/base/utils.hpp"
 #include "legacy_api/base/types.hpp"
@@ -132,4 +132,4 @@ void symm(
 
 }  // namespace tlapack
 
-#endif        //  #ifndef __TLAPACK_LEGACY_SYMM_HH__
+#endif        //  #ifndef TLAPACK_LEGACY_SYMM_HH

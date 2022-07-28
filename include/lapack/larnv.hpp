@@ -8,8 +8,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_LARNV_HH__
-#define __TLAPACK_LARNV_HH__
+#ifndef TLAPACK_LARNV_HH
+#define TLAPACK_LARNV_HH
 
 #include <random>
 #include "base/types.hpp"
@@ -108,4 +108,4 @@ void larnv( Sseq& iseed, vector_t& x )
 
 }
 
-#endif // __LARNV_HH__
+#endif // TLAPACK_LARNV_HH

@@ -4,8 +4,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_CONSTANTS_HH__
-#define __TLAPACK_CONSTANTS_HH__
+#ifndef TLAPACK_CONSTANTS_HH
+#define TLAPACK_CONSTANTS_HH
 
 #include <type_traits>
 #include <limits>
@@ -16,7 +16,7 @@ namespace tlapack {
 // -----------------------------------------------------------------------------
 // Macros to compute scaling constants
 //
-// __Further details__
+// @details
 //
 // Anderson E (2017) Algorithm 978: Safe scaling in the level 1 BLAS.
 // ACM Trans Math Softw 44:. https://doi.org/10.1145/3061665
@@ -176,4 +176,4 @@ inline constexpr real_t blue_scalingMax()
 
 } // namespace tlapack
 
-#endif // __TLAPACK_CONSTANTS_HH__
+#endif // TLAPACK_CONSTANTS_HH
