@@ -55,9 +55,9 @@ namespace tlapack
       const real_t zero(0);
 
       // Check arguments
-      tlapack_check_false((n != 2 and n != 3), -1);
-      tlapack_check_false(n != nrows(H), -1);
-      tlapack_check_false((idx_t)size(v) != n, -2);
+      tlapack_check_false((n != 2 and n != 3) );
+      tlapack_check_false(n != nrows(H) );
+      tlapack_check_false((idx_t)size(v) != n );
 
       if (n == 2)
       {
@@ -131,9 +131,9 @@ namespace tlapack
       const TH zero(0);
 
       // Check arguments
-      tlapack_check_false((n != 2 and n != 3), -1);
-      tlapack_check_false(n != nrows(H), -1);
-      tlapack_check_false((idx_t)size(v) != n, -2);
+      tlapack_check_false((n != 2 and n != 3) );
+      tlapack_check_false(n != nrows(H) );
+      tlapack_check_false((idx_t)size(v) != n );
 
       if (n == 2)
       {

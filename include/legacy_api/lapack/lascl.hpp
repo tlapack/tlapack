@@ -74,7 +74,7 @@ int lascl(
         (matrixtype != MatrixType::Hessenberg) && 
         (matrixtype != MatrixType::LowerBand) && 
         (matrixtype != MatrixType::UpperBand) && 
-        (matrixtype != MatrixType::Band), -1 );
+        (matrixtype != MatrixType::Band) );
     tlapack_check_false( (
             (matrixtype == MatrixType::LowerBand) ||
             (matrixtype == MatrixType::UpperBand) || 
@@ -82,7 +82,7 @@ int lascl(
         ) && (
             (kl < 0) ||
             (kl > max(m-1, idx_t(0)))
-        ), -2 );
+        ) );
     tlapack_check_false( (
             (matrixtype == MatrixType::LowerBand) ||
             (matrixtype == MatrixType::UpperBand) || 
@@ -90,20 +90,20 @@ int lascl(
         ) && (
             (ku < 0) ||
             (ku > max(n-1, idx_t(0)))
-        ), -3 );
+        ) );
     tlapack_check_false( (
             (matrixtype == MatrixType::LowerBand) ||
             (matrixtype == MatrixType::UpperBand)
-        ) && ( kl != ku ), -3 );
-    tlapack_check_false( m < 0, -6 );
+        ) && ( kl != ku ) );
+    tlapack_check_false( m < 0 );
     tlapack_check_false( (lda < m) && (
         (matrixtype == MatrixType::General) || 
         (matrixtype == MatrixType::Lower) ||
         (matrixtype == MatrixType::Upper) ||
-        (matrixtype == MatrixType::Hessenberg) ), -9 );
-    tlapack_check_false( (matrixtype == MatrixType::LowerBand) && (lda < kl + 1), -9);
-    tlapack_check_false( (matrixtype == MatrixType::UpperBand) && (lda < ku + 1), -9);
-    tlapack_check_false( (matrixtype == MatrixType::Band) && (lda < 2 * kl + ku + 1), -9);
+        (matrixtype == MatrixType::Hessenberg) ) );
+    tlapack_check_false( (matrixtype == MatrixType::LowerBand) && (lda < kl + 1) );
+    tlapack_check_false( (matrixtype == MatrixType::UpperBand) && (lda < ku + 1) );
+    tlapack_check_false( (matrixtype == MatrixType::Band) && (lda < 2 * kl + ku + 1) );
 
     if (matrixtype == MatrixType::LowerBand)
     {

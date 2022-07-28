@@ -66,10 +66,10 @@ int gehd2( size_type< matrix_t > ilo, size_type< matrix_t > ihi, matrix_t& A, ve
     const idx_t n = ncols(A);
 
     // check arguments
-    tlapack_check_false( access_denied( dense, write_policy(A) ), -3 );
-    tlapack_check_false( ncols(A) != nrows(A), -3 );
-    tlapack_check_false( (idx_t) size(tau)  < n-1, -4 );
-    tlapack_check_false( (idx_t) size(work) < n, -5 );
+    tlapack_check_false( access_denied( dense, write_policy(A) ) );
+    tlapack_check_false( ncols(A) != nrows(A) );
+    tlapack_check_false( (idx_t) size(tau)  < n-1 );
+    tlapack_check_false( (idx_t) size(work) < n );
 
     // quick return
     if (n <= 0) return 0;

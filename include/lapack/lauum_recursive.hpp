@@ -54,10 +54,9 @@ namespace tlapack
 
         // check arguments
         tlapack_check_false(uplo != Uplo::Lower &&
-                                uplo != Uplo::Upper,
-                            -1);
-        tlapack_check_false(access_denied(uplo, write_policy(C)), -1);
-        tlapack_check_false(nrows(C) != ncols(C), -2);
+                                uplo != Uplo::Upper );
+        tlapack_check_false(access_denied(uplo, write_policy(C)) );
+        tlapack_check_false(nrows(C) != ncols(C) );
 
         // Quick return
         if (n <= 0)

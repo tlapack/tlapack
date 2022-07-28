@@ -96,11 +96,11 @@ namespace tlapack
         const idx_t nh = ihi - ilo;
 
         // check arguments
-        tlapack_check_false(n != nrows(A), -5);
-        tlapack_check_false((idx_t)size(w) != n, -6);
+        tlapack_check_false(n != nrows(A) );
+        tlapack_check_false((idx_t)size(w) != n );
         if (want_z)
         {
-            tlapack_check_false((n != ncols(Z)) or (n != nrows(Z)), -7);
+            tlapack_check_false((n != ncols(Z)) or (n != nrows(Z)) );
         }
 
         // quick return
@@ -490,11 +490,11 @@ namespace tlapack
         const idx_t nh = ihi - ilo;
 
         // check arguments
-        tlapack_check_false(n != nrows(A), -5);
-        tlapack_check_false((idx_t)size(w) != n, -6);
+        tlapack_check_false(n != nrows(A) );
+        tlapack_check_false((idx_t)size(w) != n );
         if (want_z)
         {
-            tlapack_check_false((n != ncols(Z)) or (n != nrows(Z)), -7);
+            tlapack_check_false((n != ncols(Z)) or (n != nrows(Z)) );
         }
 
         // quick return

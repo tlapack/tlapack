@@ -61,10 +61,10 @@ int potrs( uplo_t uplo, const matrixA_t& A, matrixB_t& B )
 
     // Check arguments
     tlapack_check_false(    uplo != Uplo::Lower &&
-                        uplo != Uplo::Upper, -1 );
-    tlapack_check_false(    access_denied( uplo, write_policy(A) ), -1 );
-    tlapack_check_false(    nrows(A) != ncols(A), -2 );
-    tlapack_check_false(    nrows(B) != ncols(A), -3 );
+                        uplo != Uplo::Upper );
+    tlapack_check_false(    access_denied( uplo, write_policy(A) ) );
+    tlapack_check_false(    nrows(A) != ncols(A) );
+    tlapack_check_false(    nrows(B) != ncols(A) );
 
     if( uplo == Uplo::Upper ) {
         // Solve A*X = B where A = U**H *U.

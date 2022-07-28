@@ -93,14 +93,14 @@ int unm2r(
 
     // check arguments
     tlapack_check_false( side != Side::Left &&
-                     side != Side::Right, -1 );
+                     side != Side::Right );
     tlapack_check_false( trans != Op::NoTrans &&
                      trans != Op::Trans &&
-                     trans != Op::ConjTrans, -2 );
-    tlapack_check_false( trans == Op::Trans && is_complex<matrixA_t>::value, -2 );
-    tlapack_check_false( access_denied( lowerTriangle, read_policy(A)  ), -3 );
-    tlapack_check_false( access_denied( band_t(0,0),   write_policy(A) ), -3 );
-    tlapack_check_false( access_denied( dense, write_policy(C) ), -5 );
+                     trans != Op::ConjTrans );
+    tlapack_check_false( trans == Op::Trans && is_complex<matrixA_t>::value );
+    tlapack_check_false( access_denied( lowerTriangle, read_policy(A)  ) );
+    tlapack_check_false( access_denied( band_t(0,0),   write_policy(A) ) );
+    tlapack_check_false( access_denied( dense, write_policy(C) ) );
 
     // quick return
     if ((m == 0) || (n == 0) || (k == 0))
