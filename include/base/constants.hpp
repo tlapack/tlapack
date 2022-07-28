@@ -58,7 +58,7 @@ inline constexpr real_t uroundoff()
  * @ingroup utils
  */
 template <typename real_t>
-inline const real_t digits()
+inline const int digits()
 {
     return std::numeric_limits< real_t >::digits;
 }
