@@ -92,10 +92,10 @@ inline int unmqr(
 
     // check arguments
     tlapack_check_false( side != Side::Left &&
-                     side != Side::Right, -1 );
+                     side != Side::Right );
     tlapack_check_false( trans != Op::NoTrans &&
                      trans != Op::Trans &&
-                     trans != Op::ConjTrans, -2 );
+                     trans != Op::ConjTrans );
     
     // Allocate work
     std::unique_ptr<scalar_t[]> _work( new scalar_t[ nb * (nw + nb) ] );

@@ -126,17 +126,17 @@ int larfb(
 
     // check arguments
     tlapack_check_false(    side != Side::Left &&
-                        side != Side::Right, -1 );
+                        side != Side::Right );
     tlapack_check_false(    trans != Op::NoTrans &&
                         trans != Op::ConjTrans &&
                         (
                             (trans != Op::Trans) ||
                             is_complex< TV >::value
-                        ), -2 );
+                        ) );
     tlapack_check_false(    direct != Direction::Backward &&
-                        direct != Direction::Forward, -3 );
+                        direct != Direction::Forward );
     tlapack_check_false(    storeV != StoreV::Columnwise &&
-                        storeV != StoreV::Rowwise, -4 );
+                        storeV != StoreV::Rowwise );
 
     // Quick return
     if (m <= 0 || n <= 0) return 0;

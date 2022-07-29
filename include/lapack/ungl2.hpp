@@ -59,9 +59,9 @@ namespace tlapack
         const idx_t t = min(k, m);  // desired number of Householder reflectors to use
 
         // check arguments
-        tlapack_check_false(access_denied(dense, write_policy(Q)), -1);
-        tlapack_check_false((idx_t)size(tauw) < std::min<idx_t>(m, n), -2);
-        tlapack_check_false((idx_t)size(work) < t, -3);
+        tlapack_check_false(access_denied(dense, write_policy(Q)) );
+        tlapack_check_false((idx_t)size(tauw) < std::min<idx_t>(m, n) );
+        tlapack_check_false((idx_t)size(work) < t );
 
         // Initialise columns t:k-1 to rows of the unit matrix
         if (k > m)

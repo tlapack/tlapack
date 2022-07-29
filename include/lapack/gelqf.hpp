@@ -77,9 +77,9 @@ namespace tlapack
         const idx_t k = min(m, n);
 
         // check arguments
-        tlapack_check_false(access_denied(dense, write_policy(A)), -1);
-        tlapack_check_false( nrows(TT) < m || ncols(TT) < nb, -2);
-        tlapack_check_false((idx_t)size(work) < m, -3);
+        tlapack_check_false(access_denied(dense, write_policy(A)) );
+        tlapack_check_false( nrows(TT) < m || ncols(TT) < nb );
+        tlapack_check_false((idx_t)size(work) < m );
 
         for (idx_t j = 0; j < k; j += nb)
         {

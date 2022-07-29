@@ -30,7 +30,7 @@ inline int potrs(
 
     // Check arguments
     tlapack_check_false(    uplo != Uplo::Lower &&
-                        uplo != Uplo::Upper, -1 );
+                        uplo != Uplo::Upper );
 
     // Matrix views
     const auto A_ = colmajor_matrix<T>( (T*) A, n, n, lda );

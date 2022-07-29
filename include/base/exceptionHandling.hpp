@@ -53,7 +53,7 @@ namespace tlapack {
     /**
      * @brief Throw an error if cond is false.
      * 
-     * ex: lapack_check( 1 > 2, -6 ); throws an error.
+     * ex: lapack_check( 1 > 2 ); throws an error.
      */
     #define tlapack_check( cond ) do { \
         if( !static_cast<bool>(cond) ) \
@@ -63,9 +63,9 @@ namespace tlapack {
     /**
      * @brief Throw an error if cond is true.
      * 
-     * ex: lapack_check( 1 < 2, -6 ); throws an error.
+     * ex: lapack_check( 1 < 2 ); throws an error.
      */
-    #define tlapack_check_false( cond, ... ) do { \
+    #define tlapack_check_false( cond ) do { \
         if( static_cast<bool>(cond) ) \
             throw tlapack::check_error( #cond ); \
     } while(false)
@@ -74,7 +74,7 @@ namespace tlapack {
 
     // <T>LAPACK does not check input parameters
 
-    #define tlapack_check_false( cond, ... ) \
+    #define tlapack_check_false( cond ) \
         ((void)0)
     #define tlapack_check( cond ) \
         ((void)0)

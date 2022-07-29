@@ -101,7 +101,6 @@ void run(size_t n)
     {
         // Hessenberg factorization
         int err = tlapack::gehrd(0, n, Q, tau);
-        // tlapack_check_false(tlapack::gehd2(0, n, Q, tau, work));
         tlapack_check_false(err);
     }
     // Record end time

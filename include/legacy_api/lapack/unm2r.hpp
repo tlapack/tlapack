@@ -61,16 +61,16 @@ inline int unm2r(
 
     // check arguments
     tlapack_check_false( side != Side::Left &&
-                     side != Side::Right, -1 );
+                     side != Side::Right );
     tlapack_check_false( trans != Op::NoTrans &&
                      trans != Op::Trans &&
-                     trans != Op::ConjTrans, -2 );
-    tlapack_check_false( m < 0, -3 );
-    tlapack_check_false( n < 0, -4 );
+                     trans != Op::ConjTrans );
+    tlapack_check_false( m < 0 );
+    tlapack_check_false( n < 0 );
     const idx_t q = (side == Side::Left) ? m : n;
-    tlapack_check_false( k < 0 || k > q, -5 );
-    tlapack_check_false( lda < q, -7 );
-    tlapack_check_false( ldc < m, -10 );
+    tlapack_check_false( k < 0 || k > q );
+    tlapack_check_false( lda < q );
+    tlapack_check_false( ldc < m );
 
     // quick return
     if ((m == 0) || (n == 0) || (k == 0))

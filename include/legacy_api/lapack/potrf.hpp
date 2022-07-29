@@ -28,7 +28,7 @@ inline int potrf( uplo_t uplo, idx_t n, T* A, idx_t lda )
 
     // check arguments
     tlapack_check_false(    uplo != Uplo::Lower &&
-                        uplo != Uplo::Upper, -1 );
+                        uplo != Uplo::Upper );
 
     // Matrix views
     auto A_ = colmajor_matrix( A, n, n, lda );
