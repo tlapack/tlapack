@@ -27,7 +27,6 @@ TEMPLATE_LIST_TEST_CASE("LQ factorization of a general m-by-n matrix", "[lqf]", 
     typedef real_type<T> real_t;
 
     const T zero(0);
-    const T one(1);
 
     idx_t m, n, k;
 

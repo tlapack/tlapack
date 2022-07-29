@@ -51,13 +51,13 @@ namespace tlapack {
     #ifdef MPREAL_HAVE_DYNAMIC_STD_NUMERIC_LIMITS
         
         // Forward declaration
-        template< typename real_t > const real_t digits();
+        template< typename real_t > const int digits();
 
         /** Digits for the mpfr::mpreal datatype
          * @ingroup utils
          */
         template<>
-        inline const mpfr::mpreal digits() {
+        inline const int digits<mpfr::mpreal>() {
             return std::numeric_limits< mpfr::mpreal >::digits(); 
         }
     #endif

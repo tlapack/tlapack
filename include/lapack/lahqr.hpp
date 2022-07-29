@@ -478,7 +478,6 @@ namespace tlapack
 
         // constants
         const real_t rzero(0);
-        const TA one(1);
         const TA zero(0);
         const real_t eps = ulp<real_t>();
         const real_t small_num = safe_min<real_t>() / ulp<real_t>();

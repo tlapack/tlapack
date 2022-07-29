@@ -327,6 +327,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CXX: icpx
+      CXXFLAGS: "-Wall -pedantic -Wno-unused-variable -Wno-unused-function -Wno-c99-extensions -fp-model=precise"
     steps:
 
     - name: Install LAPACKE on Ubuntu
