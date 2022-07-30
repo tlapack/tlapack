@@ -94,7 +94,7 @@ TEMPLATE_LIST_TEST_CASE("Result of unmhr matches result from unghr", "[eigenvalu
         {
             auto C_copy_s = slice(C_copy, pair{ilo + 1, ihi}, pair{0, ncols(C)});
             auto C_s = slice(C, pair{ilo + 1, ihi}, pair{0, ncols(C)});
-            gemm(op, Op::NoTrans, one, Q, C_copy_s, -one, C_s);
+            matrix_multiply(op, Op::NoTrans, one, Q, C_copy_s, -one, C_s);
             for (idx_t i = 0; i < ilo+1; ++i)
                 for (idx_t j = 0; j < ncols(C); ++j)
                     C(i, j) =  C(i,j) - C_copy(i,j);
@@ -106,7 +106,7 @@ TEMPLATE_LIST_TEST_CASE("Result of unmhr matches result from unghr", "[eigenvalu
         {
             auto C_copy_s = slice(C_copy, pair{0, nrows(C)}, pair{ilo + 1, ihi});
             auto C_s = slice(C, pair{0, nrows(C)}, pair{ilo + 1, ihi});
-            gemm(Op::NoTrans, op, one, C_copy_s, Q, -one, C_s);
+            matrix_multiply(Op::NoTrans, op, one, C_copy_s, Q, -one, C_s);
             for (idx_t j = 0; j < ilo+1; ++j)
                 for (idx_t i = 0; i < nrows(C); ++i)
                     C(i, j) =  C(i,j) - C_copy(i,j);

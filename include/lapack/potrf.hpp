@@ -122,7 +122,7 @@ int potrf( uplo_t uplo, matrix_t& A, opts_t&& opts, const ErrorCheck& ec = {} )
                     auto C = slice( A, pair{j,j+jb}, pair{j+jb,n} );
                 
                     // Compute the current block row
-                    gemm( conjTranspose, noTranspose, -one, A1J, B, one, C );
+                    matrix_multiply( conjTranspose, noTranspose, -one, A1J, B, one, C );
                     trsm( left_side, uplo, conjTranspose, nonUnit_diagonal, one, AJJ, C );
                 }
             }
@@ -153,7 +153,7 @@ int potrf( uplo_t uplo, matrix_t& A, opts_t&& opts, const ErrorCheck& ec = {} )
                     auto C = slice( A, pair{j+jb,n}, pair{j,j+jb} );
                 
                     // Compute the current block row
-                    gemm( noTranspose, conjTranspose, -one, B, AJ1, one, C );
+                    matrix_multiply( noTranspose, conjTranspose, -one, B, AJ1, one, C );
                     trsm( right_side, uplo, conjTranspose, nonUnit_diagonal, one, AJJ, C );
                 }
             }

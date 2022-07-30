@@ -176,7 +176,7 @@ void run(size_t n)
         tlapack::laset(tlapack::Uplo::General, (T)0.0, (T)1.0, work);
         // work receives Q'Q - I
         // tlapack::syrk( tlapack::Uplo::Upper, tlapack::Op::ConjTrans, (T) 1.0, Q, (T) -1.0, work );
-        tlapack::gemm(tlapack::Op::ConjTrans, tlapack::Op::NoTrans, (T)1.0, Q, Q, (T)-1.0, work);
+        tlapack::matrix_multiply(tlapack::Op::ConjTrans, tlapack::Op::NoTrans, (T)1.0, Q, Q, (T)-1.0, work);
 
         // Compute ||Q'Q - I||_F
         norm_orth_1 = tlapack::lansy(tlapack::frob_norm, tlapack::Uplo::Upper, work);
@@ -201,8 +201,8 @@ void run(size_t n)
             for (size_t i = 0; i < n; ++i)
                 work(i, j) = static_cast<float>(0xABADBABC);
 
-        tlapack::gemm(tlapack::Op::NoTrans, tlapack::Op::NoTrans, (T)1.0, Q, H, (T)0.0, work);
-        tlapack::gemm(tlapack::Op::NoTrans, tlapack::Op::ConjTrans, (T)1.0, work, Q, (T)0.0, H);
+        tlapack::matrix_multiply(tlapack::Op::NoTrans, tlapack::Op::NoTrans, (T)1.0, Q, H, work);
+        tlapack::matrix_multiply(tlapack::Op::NoTrans, tlapack::Op::ConjTrans, (T)1.0, work, Q, H);
 
         for (size_t j = 0; j < n; ++j)
             for (size_t i = 0; i < n; ++i)
@@ -227,8 +227,8 @@ void run(size_t n)
             for (size_t i = 0; i < n; ++i)
                 work(i, j) = static_cast<float>(0xABADBABC);
 
-        tlapack::gemm(tlapack::Op::ConjTrans, tlapack::Op::NoTrans, (T)1.0, Q, A, (T)0.0, work);
-        tlapack::gemm(tlapack::Op::NoTrans, tlapack::Op::NoTrans, (T)1.0, work, Q, (T)0.0, A);
+        tlapack::matrix_multiply(tlapack::Op::ConjTrans, tlapack::Op::NoTrans, (T)1.0, Q, A, work);
+        tlapack::matrix_multiply(tlapack::Op::NoTrans, tlapack::Op::NoTrans, (T)1.0, work, Q, A);
 
         std::cout << std::endl
                     << "Q'AQ = ";

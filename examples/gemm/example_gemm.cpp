@@ -125,7 +125,7 @@ void run( tlapack::idx_t m, tlapack::idx_t n, tlapack::idx_t k )
         auto start = std::chrono::high_resolution_clock::now();
 
             // C = -1.0*A*B + 1.0*C
-            tlapack::gemm( tlapack::Op::NoTrans,
+            tlapack::matrix_multiply( tlapack::Op::NoTrans,
                         tlapack::Op::NoTrans,
                         T(-1.0), A, B,
                         T( 1.0), C );
@@ -159,7 +159,7 @@ void run( tlapack::idx_t m, tlapack::idx_t n, tlapack::idx_t k )
         auto start = std::chrono::high_resolution_clock::now();
 
             // C = -1.0*A*B + 1.0*C
-            tlapack::gemm( tlapack::Op::NoTrans,
+            tlapack::matrix_multiply( tlapack::Op::NoTrans,
                         tlapack::Op::NoTrans,
                         T(-1.0), Ar, Br,
                         T( 1.0), Cr );

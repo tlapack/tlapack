@@ -171,7 +171,7 @@ int larfb(
                     one, V1, W );
                 if( m > k )
                     // W := W + V2^H C2
-                    gemm(
+                    matrix_multiply(
                         Op::ConjTrans, Op::NoTrans,
                         one, V2, C2, one, W );
                 // W := op(T) W
@@ -181,7 +181,7 @@ int larfb(
                     one, T, W );
                 if( m > k )
                     // C2 := C2 - V2 W
-                    gemm(
+                    matrix_multiply(
                         Op::NoTrans, Op::NoTrans,
                         -one, V2, W, one, C2 );
                 // W := - V1 W
@@ -215,7 +215,7 @@ int larfb(
                     one, V1, W );
                 if( n > k )
                     // W := W + C2 V2
-                    gemm(
+                    matrix_multiply(
                         Op::NoTrans, Op::NoTrans,
                         one, C2, V2, one, W );
                 // W := W op(T)
@@ -225,7 +225,7 @@ int larfb(
                     one, T, W );
                 if( n > k )
                     // C2 := C2 - W V2^H
-                    gemm(
+                    matrix_multiply(
                         Op::NoTrans, Op::ConjTrans,
                         -one, W, V2, one, C2 );
                 // W := - W V1^H
@@ -261,7 +261,7 @@ int larfb(
                     one, V2, W );
                 if( m > k )
                     // W := W + V1^H C1
-                    gemm(
+                    matrix_multiply(
                         Op::ConjTrans, Op::NoTrans,
                         one, V1, C1, one, W );
                 // W := op(T) W
@@ -271,7 +271,7 @@ int larfb(
                     one, T, W );
                 if( m > k )
                     // C1 := C1 - V1 W
-                    gemm(
+                    matrix_multiply(
                         Op::NoTrans, Op::NoTrans,
                         -one, V1, W, one, C1 );
                 // W := - V2 W
@@ -305,7 +305,7 @@ int larfb(
                     one, V2, W );
                 if( n > k )
                     // W := W + C1 V1
-                    gemm(
+                    matrix_multiply(
                         Op::NoTrans, Op::NoTrans,
                         one, C1, V1, one, W );
                 // W := W op(T)
@@ -315,7 +315,7 @@ int larfb(
                     one, T, W );
                 if( n > k )
                     // C1 := C1 - W V1^H
-                    gemm(
+                    matrix_multiply(
                         Op::NoTrans, Op::ConjTrans,
                         -one, W, V1, one, C1 );
                 // W := - W V2^H
@@ -353,7 +353,7 @@ int larfb(
                     one, V1, W );
                 if( m > k )
                     // W := W + V2 C2
-                    gemm(
+                    matrix_multiply(
                         Op::NoTrans, Op::NoTrans,
                         one, V2, C2, one, W );
                 // W := op(T) W
@@ -363,7 +363,7 @@ int larfb(
                     one, T, W );
                 if( m > k )
                     // C2 := C2 - V2^H W
-                    gemm(
+                    matrix_multiply(
                         Op::ConjTrans, Op::NoTrans,
                         -one, V2, W, one, C2 );
                 // W := - V1^H W
@@ -397,7 +397,7 @@ int larfb(
                     one, V1, W );
                 if( n > k )
                     // W := W + C2 V2^H
-                    gemm(
+                    matrix_multiply(
                         Op::NoTrans, Op::ConjTrans,
                         one, C2, V2, one, W );
                 // W := W op(T)
@@ -407,7 +407,7 @@ int larfb(
                     one, T, W );
                 if( n > k )
                     // C2 := C2 - W V2
-                    gemm(
+                    matrix_multiply(
                         Op::NoTrans, Op::NoTrans,
                         -one, W, V2, one, C2 );
                 // W := - W V1
@@ -443,7 +443,7 @@ int larfb(
                     one, V2, W );
                 if( m > k )
                     // W := W + V1 C1
-                    gemm(
+                    matrix_multiply(
                         Op::NoTrans, Op::NoTrans,
                         one, V1, C1, one, W );
                 // W := op(T) W
@@ -453,7 +453,7 @@ int larfb(
                     one, T, W );
                 if( m > k )
                     // C1 := C1 - V1^H W
-                    gemm(
+                    matrix_multiply(
                         Op::ConjTrans, Op::NoTrans,
                         -one, V1, W, one, C1 );
                 // W := - V2^H W
@@ -487,7 +487,7 @@ int larfb(
                     one, V2, W );
                 if( n > k )
                     // W := W + C1 V1^H
-                    gemm(
+                    matrix_multiply(
                         Op::NoTrans, Op::ConjTrans,
                         one, C1, V1, one, W );
                 // W := W op(T)
@@ -497,7 +497,7 @@ int larfb(
                     one, T, W );
                 if( n > k )
                     // C1 := C1 - W V1
-                    gemm(
+                    matrix_multiply(
                         Op::NoTrans, Op::NoTrans,
                         -one, W, V1, one, C1 );
                 // W := - W V2

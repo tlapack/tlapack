@@ -167,8 +167,8 @@ namespace tlapack
 
         // res = Q'*A*Q - B
         lacpy(Uplo::General, B, res);
-        gemm(Op::ConjTrans, Op::NoTrans, (real_t)1.0, Q, A, (real_t)0.0, work);
-        gemm(Op::NoTrans, Op::NoTrans, (real_t)1.0, work, Q, (real_t)-1.0, res);
+        matrix_multiply(Op::ConjTrans, Op::NoTrans, (real_t)1.0, Q, A, work);
+        matrix_multiply(Op::NoTrans, Op::NoTrans, (real_t)1.0, work, Q, (real_t)-1.0, res);
 
         // Compute ||res||_F
         return lange(frob_norm, res);

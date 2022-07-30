@@ -55,6 +55,61 @@
 
 namespace tlapack {
 
+    namespace internal {
+
+        /**
+         * @brief Auxiliary data type
+         * 
+         * Suppose x is of type T. Then:
+         * 
+         * 1. T(StrongZero()) is equivalent to T(0).
+         * 2. x *= StrongZero() is equivalent to x = T(0).
+         * 3. x += StrongZero() does not modify x.
+         * 
+         * This class satisfies:
+         * 
+         *      x * StrongZero() = StrongZero()
+         *      StrongZero() * x = StrongZero()
+         *      x + StrongZero() = x
+         *      StrongZero() + x = x 
+         * 
+         */
+        class StrongZero {
+
+            template<typename T>
+            constexpr operator T() const { return T(0); }
+
+            template<typename T>
+            friend constexpr
+            T& operator*=( T& lhs, const StrongZero& )
+            {
+                lhs = T(0);
+                return lhs;
+            }
+
+            template<typename T>
+            friend constexpr
+            const StrongZero operator*( const StrongZero&, const T& ) { return StrongZero(); }
+
+            template<typename T>
+            friend constexpr
+            const StrongZero operator*( const T&, const StrongZero& ) { return StrongZero(); }
+
+            template<typename T>
+            friend constexpr
+            const T& operator+=( const T& lhs, const StrongZero& ) { return lhs; }
+
+            template<typename T>
+            friend constexpr
+            const T operator+( const StrongZero&, const T& rhs ) { return rhs; }
+
+            template<typename T>
+            friend constexpr
+            const T operator+( const T& lhs, const StrongZero& ) { return lhs; }
+
+        };
+    }
+
     // -----------------------------------------------------------------------------
     // Layouts
 

@@ -175,7 +175,7 @@ int larft(
                     // t := t - tau[i] V(0:i,i:n) V(i,i+1:n)^H
                     if( i+1 < n ) {
                         auto Ti = slice( T, pair{0,i}, pair{i,i+1} );
-                        gemm( noTranspose, conjTranspose,
+                        matrix_multiply( noTranspose, conjTranspose,
                             -tau[i],
                             slice( V, pair{0,i}, pair{i+1,n} ),
                             slice( V, pair{i,i+1}, pair{i+1,n} ),
@@ -235,7 +235,7 @@ int larft(
 
                     // t := t - tau[i] V(i+1:k,0:n-k+i) V(i,0:n-k+i)^H
                     auto Ti = slice( T, pair{i+1,k}, pair{i,i+1} );
-                    gemm( noTranspose, conjTranspose,
+                    matrix_multiply( noTranspose, conjTranspose,
                         -tau[i],
                         slice( V, pair{i+1,k}, pair{0,n-k+i} ),
                         slice( V, pair{i,i+1}, pair{0,n-k+i} ),
