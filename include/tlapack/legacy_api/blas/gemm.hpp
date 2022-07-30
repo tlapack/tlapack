@@ -101,6 +101,7 @@ void gemm(
     TC       *C, idx_t ldc )
 {
     using internal::colmajor_matrix;
+    using scalar_t = scalar_type<TA, TB, TC>;
 
     // redirect if row major
     if (layout == Layout::RowMajor) {
@@ -145,7 +146,22 @@ void gemm(
             : colmajor_matrix<TB>( (TB*)B, n, k, ldb );
     auto C_ = colmajor_matrix<TC>( C, m, n, ldc );
 
-    return gemm( transA, transB, alpha, A_, B_, beta, C_ );
+    if( alpha == scalar_t(0) )
+        if( beta == scalar_t(0) ) {
+            for(idx_t j = 0; j < n; ++j)
+                for(idx_t i = 0; i < m; ++i)
+                    C_(i,j) = TC(0);
+        }
+        else {
+            for(idx_t j = 0; j < n; ++j)
+                for(idx_t i = 0; i < m; ++i)
+                    C_(i,j) *= beta;
+        }
+    else
+        if( beta == scalar_t(0) )
+            gemm( transA, transB, alpha, A_, B_, C_ );
+        else
+            gemm( transA, transB, alpha, A_, B_, beta, C_ );
 }
 
 }  // namespace tlapack

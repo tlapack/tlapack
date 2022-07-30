@@ -25,7 +25,6 @@ TEMPLATE_LIST_TEST_CASE("sylvester solver gives correct result", "[sylvester]", 
     using idx_t = size_type<matrix_t>;
     typedef real_type<T> real_t;
 
-    const T zero(0);
     const T one(1);
     idx_t n1 = GENERATE(1, 2);
     // Once 1x2 solver is finished, generate n2 independantly
@@ -63,7 +62,7 @@ TEMPLATE_LIST_TEST_CASE("sylvester solver gives correct result", "[sylvester]", 
     int sign = 1;
 
     // Calculate op(TL)*X + ISGN*X*op(TR)
-    gemm(trans_l, Op::NoTrans, one, TL, X_exact, zero, B);
+    gemm(trans_l, Op::NoTrans, one, TL, X_exact, B);
     gemm(Op::NoTrans, trans_r, sign, X_exact, TR, one, B);
 
 

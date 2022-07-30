@@ -799,6 +799,11 @@ void gemm(
     const auto& n = C_.n;
     const auto& k = (transA == Op::NoTrans) ? A_.n : A_.m;
 
+    if( alpha == alpha_t(0) )
+        tlapack_warning( -3, "Infs and NaNs in A or B will not propagate to C on output" );
+    if( beta == beta_t(0) )
+        tlapack_warning( -6, "Infs and NaNs in C on input will not propagate to C on output" );
+
     return ::blas::gemm(
         (::blas::Layout) A_.layout,
         (::blas::Op) transA, (::blas::Op) transB, 
@@ -807,6 +812,52 @@ void gemm(
         A_.ptr, A_.ldim,
         B_.ptr, B_.ldim,
         beta,
+        C_.ptr, C_.ldim );
+}
+
+template<
+    class matrixA_t,
+    class matrixB_t,
+    class matrixC_t,
+    class alpha_t,
+    class T = type_t<matrixC_t>,
+    enable_if_allow_optblas_t<
+        pair< matrixA_t, T >,
+        pair< matrixB_t, T >,
+        pair< matrixC_t, T >,
+        pair< alpha_t,   T >
+    > = 0
+>
+inline
+void gemm(
+    Op transA,
+    Op transB,
+    const alpha_t alpha,
+    const matrixA_t& A,
+    const matrixB_t& B,
+    matrixC_t& C )
+{
+    // Legacy objects
+    auto A_ = legacy_matrix(A);
+    auto B_ = legacy_matrix(B);
+    auto C_ = legacy_matrix(C);
+
+    // Constants to forward
+    const auto& m = C_.m;
+    const auto& n = C_.n;
+    const auto& k = (transA == Op::NoTrans) ? A_.n : A_.m;
+
+    if( alpha == alpha_t(0) )
+        tlapack_warning( -3, "Infs and NaNs in A or B will not propagate to C on output" );
+
+    return ::blas::gemm(
+        (::blas::Layout) A_.layout,
+        (::blas::Op) transA, (::blas::Op) transB, 
+        m, n, k,
+        alpha,
+        A_.ptr, A_.ldim,
+        B_.ptr, B_.ldim,
+        T(0),
         C_.ptr, C_.ldim );
 }
 
