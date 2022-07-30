@@ -261,7 +261,7 @@ namespace tlapack
                     idx_t iblock = std::min<idx_t>(istop_m - i, ncols(WH));
                     auto A_slice = slice(A, pair{ilo, ilo + n_block}, pair{i, i + iblock});
                     auto WH_slice = slice(WH, pair{0, nrows(A_slice)}, pair{0, ncols(A_slice)});
-                    gemm(Op::ConjTrans, Op::NoTrans, one, U2, A_slice, zero, WH_slice);
+                    matrix_multiply(Op::ConjTrans, Op::NoTrans, one, U2, A_slice, WH_slice);
                     lacpy(Uplo::General, WH_slice, A_slice);
                     i = i + iblock;
                 }
@@ -275,7 +275,7 @@ namespace tlapack
                     idx_t iblock = std::min<idx_t>(ilo - i, nrows(WV));
                     auto A_slice = slice(A, pair{i, i + iblock}, pair{ilo, ilo + n_block});
                     auto WV_slice = slice(WV, pair{0, nrows(A_slice)}, pair{0, ncols(A_slice)});
-                    gemm(Op::NoTrans, Op::NoTrans, one, A_slice, U2, zero, WV_slice);
+                    matrix_multiply(Op::NoTrans, Op::NoTrans, one, A_slice, U2, WV_slice);
                     lacpy(Uplo::General, WV_slice, A_slice);
                     i = i + iblock;
                 }
@@ -289,7 +289,7 @@ namespace tlapack
                     idx_t iblock = std::min<idx_t>(n - i, nrows(WV));
                     auto Z_slice = slice(Z, pair{i, i + iblock}, pair{ilo, ilo + n_block});
                     auto WV_slice = slice(WV, pair{0, nrows(Z_slice)}, pair{0, ncols(Z_slice)});
-                    gemm(Op::NoTrans, Op::NoTrans, one, Z_slice, U2, zero, WV_slice);
+                    matrix_multiply(Op::NoTrans, Op::NoTrans, one, Z_slice, U2, WV_slice);
                     lacpy(Uplo::General, WV_slice, Z_slice);
                     i = i + iblock;
                 }
@@ -447,7 +447,7 @@ namespace tlapack
                     idx_t iblock = std::min<idx_t>(istop_m - i, ncols(WH));
                     auto A_slice = slice(A, pair{i_pos_block, i_pos_block + n_block}, pair{i, i + iblock});
                     auto WH_slice = slice(WH, pair{0, nrows(A_slice)}, pair{0, ncols(A_slice)});
-                    gemm(Op::ConjTrans, Op::NoTrans, one, U2, A_slice, zero, WH_slice);
+                    matrix_multiply(Op::ConjTrans, Op::NoTrans, one, U2, A_slice, WH_slice);
                     lacpy(Uplo::General, WH_slice, A_slice);
                     i = i + iblock;
                 }
@@ -461,7 +461,7 @@ namespace tlapack
                     idx_t iblock = std::min<idx_t>(i_pos_block - i, nrows(WV));
                     auto A_slice = slice(A, pair{i, i + iblock}, pair{i_pos_block, i_pos_block + n_block});
                     auto WV_slice = slice(WV, pair{0, nrows(A_slice)}, pair{0, ncols(A_slice)});
-                    gemm(Op::NoTrans, Op::NoTrans, one, A_slice, U2, zero, WV_slice);
+                    matrix_multiply(Op::NoTrans, Op::NoTrans, one, A_slice, U2, WV_slice);
                     lacpy(Uplo::General, WV_slice, A_slice);
                     i = i + iblock;
                 }
@@ -475,7 +475,7 @@ namespace tlapack
                     idx_t iblock = std::min<idx_t>(n - i, nrows(WV));
                     auto Z_slice = slice(Z, pair{i, i + iblock}, pair{i_pos_block, i_pos_block + n_block});
                     auto WV_slice = slice(WV, pair{0, nrows(Z_slice)}, pair{0, ncols(Z_slice)});
-                    gemm(Op::NoTrans, Op::NoTrans, one, Z_slice, U2, zero, WV_slice);
+                    matrix_multiply(Op::NoTrans, Op::NoTrans, one, Z_slice, U2, WV_slice);
                     lacpy(Uplo::General, WV_slice, Z_slice);
                     i = i + iblock;
                 }
@@ -677,7 +677,7 @@ namespace tlapack
                     idx_t iblock = std::min<idx_t>(istop_m - i, ncols(WH));
                     auto A_slice = slice(A, pair{i_pos_block, ihi}, pair{i, i + iblock});
                     auto WH_slice = slice(WH, pair{0, nrows(A_slice)}, pair{0, ncols(A_slice)});
-                    gemm(Op::ConjTrans, Op::NoTrans, one, U2, A_slice, zero, WH_slice);
+                    matrix_multiply(Op::ConjTrans, Op::NoTrans, one, U2, A_slice, WH_slice);
                     lacpy(Uplo::General, WH_slice, A_slice);
                     i = i + iblock;
                 }
@@ -691,7 +691,7 @@ namespace tlapack
                     idx_t iblock = std::min<idx_t>(i_pos_block - i, nrows(WV));
                     auto A_slice = slice(A, pair{i, i + iblock}, pair{i_pos_block, ihi});
                     auto WV_slice = slice(WV, pair{0, nrows(A_slice)}, pair{0, ncols(A_slice)});
-                    gemm(Op::NoTrans, Op::NoTrans, one, A_slice, U2, zero, WV_slice);
+                    matrix_multiply(Op::NoTrans, Op::NoTrans, one, A_slice, U2, WV_slice);
                     lacpy(Uplo::General, WV_slice, A_slice);
                     i = i + iblock;
                 }
@@ -705,7 +705,7 @@ namespace tlapack
                     idx_t iblock = std::min<idx_t>(n - i, nrows(WV));
                     auto Z_slice = slice(Z, pair{i, i + iblock}, pair{i_pos_block, ihi});
                     auto WV_slice = slice(WV, pair{0, nrows(Z_slice)}, pair{0, ncols(Z_slice)});
-                    gemm(Op::NoTrans, Op::NoTrans, one, Z_slice, U2, zero, WV_slice);
+                    matrix_multiply(Op::NoTrans, Op::NoTrans, one, Z_slice, U2, WV_slice);
                     lacpy(Uplo::General, WV_slice, Z_slice);
                     i = i + iblock;
                 }

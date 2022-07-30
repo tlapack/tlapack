@@ -156,7 +156,7 @@ namespace tlapack
                 V(nb2-1, nb2-1) = one;
                 auto A3 = slice(A, pair{0, ihi}, pair{i + nb2, ihi});
                 auto Y_2 = slice(Y, pair{0, ihi}, pair{0, nb2});
-                gemm(Op::NoTrans, Op::ConjTrans, -one, Y_2, V2, one, A3);
+                matrix_multiply(Op::NoTrans, Op::ConjTrans, -one, Y_2, V2, one, A3);
                 V(nb2-1, nb2-1) = ei;
             }
             // Apply the block reflector H to A(0:i+1,i+1:i+ib) from the right

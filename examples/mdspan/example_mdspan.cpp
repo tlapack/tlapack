@@ -99,7 +99,7 @@ int main( int argc, char** argv )
     // gemm:
 
     // C = Ak*B + C
-    gemm( Op::NoTrans, Op::NoTrans, T(-1.0), Ak, B, T(1.0), C );
+    matrix_multiply( Op::NoTrans, Op::NoTrans, T(-1.0), Ak, B, T(1.0), C );
 
     std::cout.precision(5);
     std::cout << std::scientific << std::showpos;
