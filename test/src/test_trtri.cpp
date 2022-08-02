@@ -7,7 +7,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_template_test_macros.hpp>
+#include <catch2/generators/catch_generators.hpp>
 #include <plugins/tlapack_stdvector.hpp>
 #include <tlapack.hpp>
 #include <testutils.hpp>
@@ -27,8 +28,8 @@ TEMPLATE_LIST_TEST_CASE("TRTRI is stable", "[trtri]", types_to_test)
     Uplo uplo = GENERATE(Uplo::Lower, Uplo::Upper);
     idx_t n = GENERATE(1, 2, 6, 9);
 
-    const real_t eps = uroundoff<real_t>();
-    const real_t tol = 1.0e2 * n * eps;
+    const real_t eps = ulp<real_t>();
+    const real_t tol = n * eps;
 
     std::unique_ptr<T[]> A_(new T[n * n]);
     std::unique_ptr<T[]> C_(new T[n * n]);
@@ -46,7 +47,7 @@ TEMPLATE_LIST_TEST_CASE("TRTRI is stable", "[trtri]", types_to_test)
 
     lacpy(uplo, A, C);
 
-    DYNAMIC_SECTION("n = " << n)
+    DYNAMIC_SECTION("n = " << n << ", " << uplo)
     {
         trtri_recursive(uplo, C);
 

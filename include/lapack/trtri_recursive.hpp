@@ -1,17 +1,16 @@
 /// @file trtri_recursive.hpp
 /// @author Heidi Meier, University of Colorado Denver
 //
+// Copyright (c) 2022, University of Colorado Denver. All rights reserved.
+//
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_TRTRI_RECURSIVE__TLAPACK_
-#define __TLAPACK_TRTRI_RECURSIVE__TLAPACK_
+#ifndef TLAPACK_TRTRI_RECURSIVE_HH
+#define TLAPACK_TRTRI_RECURSIVE_HH
 
 #include "base/utils.hpp"
-#include "base/types.hpp"
-#include "lapack/larfg.hpp"
-#include "lapack/larf.hpp"
 
 namespace tlapack
 {
@@ -39,8 +38,8 @@ namespace tlapack
      * @todo: implement nx to bail out of recursion before 1-by-1 case
      *
      */
-    template <typename matrix_t>
-    int trtri_recursive(const Uplo &uplo, matrix_t &C, const ErrorCheck &ec = {})
+    template <typename uplo_t, typename matrix_t>
+    int trtri_recursive(uplo_t uplo, matrix_t &C, const ErrorCheck &ec = {})
     {
 
         using T = type_t<matrix_t>;
@@ -53,11 +52,9 @@ namespace tlapack
         const T zero(0.0);
 
         // check arguments
-        tlapack_check_false(uplo != Uplo::Lower &&
-                                uplo != Uplo::Upper,
-                            -1);
-        tlapack_check_false(access_denied(uplo, write_policy(C)), -1);
-        tlapack_check_false(nrows(C) != ncols(C), -2);
+        tlapack_check_false(uplo != Uplo::Lower && uplo != Uplo::Upper);
+        tlapack_check_false(access_denied(uplo, write_policy(C)));
+        tlapack_check_false(nrows(C) != ncols(C));
 
         // Quick return
         if (n <= 0)
@@ -152,6 +149,6 @@ namespace tlapack
         }
     }
 
-} // lapack
+} // tlapack
 
-#endif // __TLAPACK_TRTRI_RECURSIVE__TLAPACK_
+#endif // TLAPACK_TRTRI_RECURSIVE_HH
