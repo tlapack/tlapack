@@ -81,6 +81,7 @@ namespace tlapack
         tlapack_check_false((idx_t)size(tauv) < std::min<idx_t>(m, n));
         tlapack_check_false((idx_t)size(tauw) < std::min<idx_t>(m, n));
         tlapack_check_false((idx_t)size(work) < std::max<idx_t>(m, n));
+        tlapack_check(m >= n); // Only m >= n matrices are supported (yet).
 
         // quick return
         if (n <= 0)

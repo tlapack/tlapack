@@ -73,6 +73,7 @@ TEMPLATE_LIST_TEST_CASE("bidiagonal reduction is backward stable", "[bidiagonal]
                 B(j - 1, j) = A(j - 1, j);
                 B(j, j) = A(j, j);
             }
+            real_t normB = lange(Norm::Max, B);
 
             // Generate unitary matrix Q of m-by-m
             std::unique_ptr<T[]> Q_(new T[m * m]);
@@ -113,11 +114,11 @@ TEMPLATE_LIST_TEST_CASE("bidiagonal reduction is backward stable", "[bidiagonal]
             laset(Uplo::General, zero, zero, K);
             gemm(Op::ConjTrans, Op::NoTrans, real_t(1.), Q, A_copy, real_t(0), K);
 
-            // B = K * Z
+            // B = K * Z - B
             gemm(Op::NoTrans, Op::ConjTrans, real_t(1.), K, Z, real_t(-1.), B);
 
-            real_t repres =lange(Norm::Max, B);
-            CHECK(repres <= tol);
+            real_t repres = lange(Norm::Max, B);
+            CHECK(repres <= tol * normB);
             
         }
     }
