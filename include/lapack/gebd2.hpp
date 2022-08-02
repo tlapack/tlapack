@@ -8,11 +8,10 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_GEBD2_HH__
-#define __TLAPACK_GEBD2_HH__
+#ifndef TLAPACK_GEBD2_HH
+#define TLAPACK_GEBD2_HH
 
 #include "base/utils.hpp"
-#include "base/types.hpp"
 #include "lapack/larfg.hpp"
 #include "lapack/larf.hpp"
 
@@ -66,12 +65,11 @@ namespace tlapack
      *
      * @ingroup gebrd
      */
-    template <typename matrix_t, class vector_t>
-    int gebd2(matrix_t &A, vector_t &tauv, vector_t &tauw, vector_t &work)
+    template <typename matrix_t, class vector_t, class work_t>
+    int gebd2(matrix_t &A, vector_t &tauv, vector_t &tauw, work_t &work)
     {
 
         using idx_t = size_type<matrix_t>;
-        using T = type_t<matrix_t>;
         using range = std::pair<idx_t, idx_t>;
 
         // constants
@@ -79,10 +77,10 @@ namespace tlapack
         const idx_t n = ncols(A);
 
         // check arguments
-        tlapack_check_false(access_denied(dense, write_policy(A)), -1);
-        tlapack_check_false((idx_t)size(tauv) < std::min<idx_t>(m, n), -2);
-        tlapack_check_false((idx_t)size(tauw) < std::min<idx_t>(m, n), -3);
-        tlapack_check_false((idx_t)size(work) < std::max<idx_t>(m, n), -4);
+        tlapack_check_false(access_denied(dense, write_policy(A)));
+        tlapack_check_false((idx_t)size(tauv) < std::min<idx_t>(m, n));
+        tlapack_check_false((idx_t)size(tauw) < std::min<idx_t>(m, n));
+        tlapack_check_false((idx_t)size(work) < std::max<idx_t>(m, n));
 
         // quick return
         if (n <= 0)
@@ -124,4 +122,5 @@ namespace tlapack
         return 0;
     }
 }
-#endif // __TLAPACK_GEBD2_HH__
+
+#endif // TLAPACK_GEBD2_HH

@@ -7,7 +7,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_template_test_macros.hpp>
+#include <catch2/generators/catch_generators.hpp>
 #include <plugins/tlapack_stdvector.hpp>
 #include <plugins/tlapack_legacyArray.hpp>
 #include <tlapack.hpp>
@@ -25,7 +26,6 @@ TEMPLATE_LIST_TEST_CASE("bidiagonal reduction is backward stable", "[bidiagonal]
     using idx_t = size_type<matrix_t>;
     using range = std::pair<idx_t, idx_t>;
     typedef real_type<T> real_t;
-    typedef std::complex<real_t> complex_t;
 
     const T zero(0);
     const T one(1);
@@ -38,8 +38,8 @@ TEMPLATE_LIST_TEST_CASE("bidiagonal reduction is backward stable", "[bidiagonal]
     if (m >= n) // Only m >= n matrices are supported (yet). gebd2 will give upper bidiagonal matrix B
     {
 
-        const real_t eps = uroundoff<real_t>();
-        const real_t tol = 1.0e2 * max(m, n) * eps;
+        const real_t eps = ulp<real_t>();
+        const real_t tol = max(m, n) * eps;
 
         std::unique_ptr<T[]> A_(new T[m * n]);
         std::unique_ptr<T[]> A_copy_(new T[m * n]);
