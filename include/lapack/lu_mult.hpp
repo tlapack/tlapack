@@ -7,11 +7,10 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef __TLAPACK_LU_MULT_HH__
-#define __TLAPACK_LU_MULT_HH__
+#ifndef TLAPACK_LU_MULT_HH
+#define TLAPACK_LU_MULT_HH
 
 #include "base/utils.hpp"
-#include "base/types.hpp"
 
 namespace tlapack {
 
@@ -78,26 +77,35 @@ void lu_mult(matrix_t &A, const lu_mult_opts_t<size_type<matrix_t>> &opts = {})
 
     const idx_t n0 = n / 2;
 
+    /*
+        Matrix A is splitted into 4 submatrices:
+        A = [ A00 A01 ]
+            [ A10 A11 ]
+        and, hereafter,
+            L00 is the strict lower triangular part of A00, with unitary main diagonal.
+            L11 is the strict lower triangular part of A11, with unitary main diagonal.
+            U00 is the upper triangular part of A00.
+            U11 is the upper triangular part of A11.
+    */
     auto A00 = slice(A, range(0, n0), range(0, n0));
     auto A01 = slice(A, range(0, n0), range(n0, n));
     auto A10 = slice(A, range(n0, n), range(0, n0));
     auto A11 = slice(A, range(n0, n), range(n0, n));
 
-    // L11*U11
     lu_mult(A11, opts);
 
-    // A11 = L10*U01 + L11*U11
+    // A11 = A10*A01 + L11*U11
     gemm(Op::NoTrans, Op::NoTrans, T(1), A10, A01, T(1), A11);
 
-    // A01 = L00*U01
+    // A01 = L00*A01
     trmm(Side::Left, Uplo::Lower, Op::NoTrans,
                   Diag::Unit, real_t(1), A00, A01);
 
-    // L10*U00
+    // A10 = A10*U00
     trmm(Side::Right, Uplo::Upper, Op::NoTrans,
                   Diag::NonUnit, real_t(1), A00, A10);
 
-    // L00*U00
+    // A00 = L00*U00
     lu_mult(A00, opts);
 
     return;
@@ -105,4 +113,4 @@ void lu_mult(matrix_t &A, const lu_mult_opts_t<size_type<matrix_t>> &opts = {})
 
 }
 
-#endif // __TLAPACK_LU_MULT_HH__
+#endif // TLAPACK_LU_MULT_HH
