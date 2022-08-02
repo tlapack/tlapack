@@ -75,17 +75,5 @@ TEMPLATE_LIST_TEST_CASE("TRTRI is stable", "[trtri]", types_to_test)
 
         real_t normres = lantr(max_norm, uplo, Diag::NonUnit, C) / (lantr(max_norm, uplo, Diag::NonUnit, A));
         CHECK(normres <= tol);
-
-        // std::unique_ptr<T[]> _res(new T[n * n]);
-        // std::unique_ptr<T[]> _work(new T[n * n]);
-
-        // auto res = legacyMatrix<T, layout<matrix_t>>(n, n, &_res[0], n);
-        // auto work = legacyMatrix<T, layout<matrix_t>>(n, n, &_work[0], n);
-        // auto orth_res_norm = check_orthogonality(Q, res);
-        // CHECK(orth_res_norm <= tol);
-
-        // auto normA = lange(frob_norm, A);
-        // auto simil_res_norm = check_similarity_transform(A_copy, Q, A, res, work);
-        // CHECK(simil_res_norm <= tol * normA);
     }
 }
