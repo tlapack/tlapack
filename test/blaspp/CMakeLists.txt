@@ -57,7 +57,7 @@ if( EXISTS "${blaspp_TEST_DIR}/test.cc" )
   target_link_libraries(
     blaspp_tester
     testsweeper
-    tblas
+    tlapack
   )
   target_link_libraries(
     blaspp_tester

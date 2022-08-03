@@ -20,17 +20,14 @@ project(TLAPACK
 message(STATUS "<T>LAPACK version " ${PROJECT_VERSION})
 
 #-------------------------------------------------------------------------------
-# <T>LAPACK and <T>BLAS template libraries
+# <T>LAPACK template libraries
 
-add_library( tblas INTERFACE )
-target_include_directories( tblas
+add_library( tlapack INTERFACE )
+target_include_directories( tlapack
   INTERFACE 
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
     $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>
     $<INSTALL_INTERFACE:include> )
-
-add_library( tlapack INTERFACE )
-target_link_libraries( tlapack INTERFACE tblas )
 
 #-------------------------------------------------------------------------------
 # Options
@@ -76,9 +73,9 @@ option( BUILD_EXAMPLES "Build examples" ON  )
 # Tests
 option( TLAPACK_BUILD_SINGLE_TESTER "Build one additional executable that contains all tests" OFF  )
 
-# Wrappers to <T>BLAS and <T>LAPACK
+# Wrappers to <T>LAPACK
 option( C_WRAPPERS       "Build and install C wrappers"               OFF )
-option( CBLAS_WRAPPERS   "Build and install CBLAS wrappers to <T>BLAS" OFF )
+option( CBLAS_WRAPPERS   "Build and install CBLAS wrappers to <T>LAPACK" OFF )
 option( Fortran_WRAPPERS "Build and install Fortran wrappers"         OFF )
 
 # Use of mdspan instead of the <T>LAPACK legacy arrays
@@ -120,25 +117,25 @@ cmake_dependent_option(
 
 # Configure compiler flags for Error Checking
 if( TLAPACK_NDEBUG )
-  target_compile_definitions( tblas INTERFACE TLAPACK_NDEBUG )
+  target_compile_definitions( tlapack INTERFACE TLAPACK_NDEBUG )
 else()
   if( TLAPACK_CHECK_INPUT )
-    target_compile_definitions( tblas INTERFACE TLAPACK_CHECK_INPUT )
+    target_compile_definitions( tlapack INTERFACE TLAPACK_CHECK_INPUT )
   endif()
   if( TLAPACK_ENABLE_NANCHECK )
-    target_compile_definitions( tblas INTERFACE TLAPACK_ENABLE_NANCHECK )
+    target_compile_definitions( tlapack INTERFACE TLAPACK_ENABLE_NANCHECK )
     if( TLAPACK_DEFAULT_NANCHECK )
-      target_compile_definitions( tblas INTERFACE TLAPACK_DEFAULT_NANCHECK=1 )
+      target_compile_definitions( tlapack INTERFACE TLAPACK_DEFAULT_NANCHECK=1 )
     else()
-      target_compile_definitions( tblas INTERFACE TLAPACK_DEFAULT_NANCHECK=0 )
+      target_compile_definitions( tlapack INTERFACE TLAPACK_DEFAULT_NANCHECK=0 )
     endif()
   endif()
   if( TLAPACK_ENABLE_INFCHECK )
-    target_compile_definitions( tblas INTERFACE TLAPACK_ENABLE_INFCHECK )
+    target_compile_definitions( tlapack INTERFACE TLAPACK_ENABLE_INFCHECK )
     if( TLAPACK_DEFAULT_INFCHECK )
-      target_compile_definitions( tblas INTERFACE TLAPACK_DEFAULT_INFCHECK=1 )
+      target_compile_definitions( tlapack INTERFACE TLAPACK_DEFAULT_INFCHECK=1 )
     else()
-      target_compile_definitions( tblas INTERFACE TLAPACK_DEFAULT_INFCHECK=0 )
+      target_compile_definitions( tlapack INTERFACE TLAPACK_DEFAULT_INFCHECK=0 )
     endif()
   endif()
 endif()
@@ -172,8 +169,8 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 # Search for LAPACK++ library if it is needed
 if( USE_LAPACKPP_WRAPPERS )
   find_package( lapackpp REQUIRED )
-  target_compile_definitions( tblas INTERFACE USE_LAPACKPP_WRAPPERS )
-  target_link_libraries( tblas INTERFACE lapackpp )
+  target_compile_definitions( tlapack INTERFACE USE_LAPACKPP_WRAPPERS )
+  target_link_libraries( tlapack INTERFACE lapackpp )
 endif()
 
 #-------------------------------------------------------------------------------
@@ -182,8 +179,8 @@ if( TLAPACK_USE_MDSPAN )
   include( "${TLAPACK_SOURCE_DIR}/cmake/FetchPackage.cmake" )
   FetchPackage( "mdspan" "https://github.com/kokkos/mdspan.git" "stable" )
   if( mdspan_FOUND )
-    target_compile_definitions( tblas INTERFACE TLAPACK_USE_MDSPAN )
-    target_link_libraries( tblas INTERFACE std::mdspan )
+    target_compile_definitions( tlapack INTERFACE TLAPACK_USE_MDSPAN )
+    target_link_libraries( tlapack INTERFACE std::mdspan )
   else()
     message( STATUS "Legacy wrappers will use legacy arrays instead of mdspan" )
   endif()
@@ -203,7 +200,7 @@ add_subdirectory(config)
 if( C_WRAPPERS OR CBLAS_WRAPPERS OR Fortran_WRAPPERS )
   enable_language( C )
   if( Fortran_WRAPPERS )
-    set( CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/include )
+    set( CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/fortran )
     enable_language( Fortran )
   endif()
   add_subdirectory(src)
@@ -241,10 +238,10 @@ install(
 # Modules
 install(
   FILES ${installable_mods}
-  DESTINATION include )
+  DESTINATION include/tlapack/fortran )
 
 # Libraries
-list( APPEND installable_libs tblas tlapack )
+list( APPEND installable_libs tlapack )
 install(
   TARGETS ${installable_libs}
   EXPORT tlapackTargets

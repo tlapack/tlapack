@@ -6,7 +6,7 @@ In this example, we compute _C - AB_ using matrices A, B and C.
 - B is a k-by-n identity matrix.
 - C is a m-by-n matrix. Its _min(n,k)_ first columns are equal to the first columns in matrix 'A'.
 
-The code uses the routine `dgemm` from [tblas.h](../../include/tblas.h), so that the expected output is _C = 0_. In the final step of the algorithm, we use `dnrm2` to compute the Frobenius norm of C. The norm must be identically null in a successfull run.
+The code uses the routine `dgemm` from [tlapack.h](../../include/tlapack.h), so that the expected output is _C = 0_. In the final step of the algorithm, we use `dnrm2` to compute the Frobenius norm of C. The norm must be identically null in a successfull run.
 
 ## Build
 

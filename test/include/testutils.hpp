@@ -10,7 +10,7 @@
 #ifndef TLAPACK_TESTUTILS_HH
 #define TLAPACK_TESTUTILS_HH
 
-#include <legacy_api/legacyArray.hpp>
+#include <tlapack/legacy_api/legacyArray.hpp>
 #include <tlapack.hpp>
 
 #include <complex>

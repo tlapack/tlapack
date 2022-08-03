@@ -12,7 +12,7 @@
 #include <chrono>   // for high_resolution_clock
 
 // <T>LAPACK
-#include <plugins/tlapack_legacyArray.hpp>
+#include <tlapack/plugins/legacyArray.hpp>
 #include <tlapack.hpp>
 
 #ifndef USE_MKL

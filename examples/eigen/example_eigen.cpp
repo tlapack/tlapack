@@ -10,7 +10,7 @@
 #include <iostream>
 
 // Must be loaded in the following order
-#include <plugins/tlapack_eigen.hpp>
+#include <tlapack/plugins/eigen.hpp>
 #include <tlapack.hpp>
 
 #include <Eigen/Dense>

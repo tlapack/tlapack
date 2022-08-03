@@ -13,7 +13,7 @@ example_fortranModule_caxpy: example_fortranModule_caxpy.o
 
 .PHONY: all
 
-%.o: %.f90 $(tlapack_inc)/tblas.mod
+%.o: %.f90 $(tlapack_inc)/tlapack.mod
 	$(FC) $(FFLAGS) -c -o $@ $<
 
 clean:

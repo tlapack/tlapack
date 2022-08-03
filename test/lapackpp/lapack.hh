@@ -9,7 +9,7 @@
 
 #include "lapack/defines.h"
 #include "lapack/util.hh"
-#include "legacy_api/lapack.hpp"
+#include "tlapack/legacy_api/lapack.hpp"
 
 namespace lapack {
     using namespace tlapack;
