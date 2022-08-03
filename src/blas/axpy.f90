@@ -17,7 +17,7 @@ implicit none
     real(wp)           :: alpha
     real(wp), target   :: x(*), y(*)
 
-    include "tblas.fi"
+    include "tlapack.fi"
 
     call saxpy_( n, alpha, c_loc(x), incx, c_loc(y), incy )
 end subroutine
@@ -35,7 +35,7 @@ implicit none
     real(wp)           :: alpha
     real(wp), target   :: x(*), y(*)
 
-    include "tblas.fi"
+    include "tlapack.fi"
 
     call daxpy_( n, alpha, c_loc(x), incx, c_loc(y), incy )
 end subroutine
@@ -53,7 +53,7 @@ implicit none
     complex(wp)           :: alpha
     complex(wp), target   :: x(*), y(*)
 
-    include "tblas.fi"
+    include "tlapack.fi"
 
     call caxpy_( n, alpha, c_loc(x), incx, c_loc(y), incy )
 end subroutine
@@ -71,7 +71,7 @@ implicit none
     complex(wp)           :: alpha
     complex(wp), target   :: x(*), y(*)
 
-    include "tblas.fi"
+    include "tlapack.fi"
 
     call zaxpy_( n, alpha, c_loc(x), incx, c_loc(y), incy )
 end subroutine

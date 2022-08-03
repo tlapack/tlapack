@@ -10,7 +10,7 @@
 #undef TLAPACK_ERROR_NDEBUG
 #undef NDEBUG
 
-#include <plugins/tlapack_legacyArray.hpp>
+#include <tlapack/plugins/legacyArray.hpp>
 #include <tlapack.hpp>
 
 #include <vector>

@@ -10,7 +10,7 @@
 
 #include <assert.h>
 
-#include "base/utils.hpp"
+#include "tlapack/base/utils.hpp"
 
 /// Use to silence compiler warning of unused variable.
 #define blas_unused( var ) ((void)var)

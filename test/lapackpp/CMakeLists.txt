@@ -188,7 +188,6 @@ if( EXISTS "${lapackpp_TEST_DIR}/test.cc" )
     lapackpp_tester
     testsweeper
     tlapack
-    tblas
   )
   target_link_libraries(
     lapackpp_tester

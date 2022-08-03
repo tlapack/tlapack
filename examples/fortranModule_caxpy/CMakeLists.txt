@@ -9,10 +9,10 @@ cmake_minimum_required(VERSION 3.1)
 project( fortranModule_caxpy C CXX Fortran )
 
 # Load <T>LAPACK
-if( NOT TARGET tblas_fortran )
+if( NOT TARGET tlapack_fortran )
   find_package( tlapack REQUIRED )
 endif()
 
 # add the example fortranModule_saxpy
 add_executable( example_fortranModule_caxpy example_fortranModule_caxpy.f90 )
-target_link_libraries( example_fortranModule_caxpy PRIVATE tblas_fortran )
+target_link_libraries( example_fortranModule_caxpy PRIVATE tlapack_fortran )

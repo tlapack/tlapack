@@ -7,7 +7,7 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#include <tblas.h>
+#include <tlapack.h>
 
 #include <stdio.h>
 #include <stdlib.h>

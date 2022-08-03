@@ -12,7 +12,7 @@
 #include <vector>
 #include <iostream>
 
-#include <plugins/tlapack_mdspan.hpp>
+#include <tlapack/plugins/mdspan.hpp>
 #include <tlapack.hpp>
 
 #include "tiledLayout.h"

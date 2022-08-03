@@ -7,14 +7,14 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#include <legacy_api/blas.hpp>
+#include <tlapack/legacy_api/blas.hpp>
 
 #include <vector>
 #include <iostream>
 #include <chrono>   // for high_resolution_clock
 
 #ifdef USE_MPFR
-    #include <plugins/tlapack_mpreal.hpp>
+    #include <tlapack/plugins/mpreal.hpp>
 #endif
 
 //------------------------------------------------------------------------------

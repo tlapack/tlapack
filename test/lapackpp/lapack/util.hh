@@ -9,8 +9,8 @@
 #define LAPACK_UTIL_HH
 
 #include "blas.hh"
-#include "base/utils.hpp"
-#include "legacy_api/base/types.hpp"
+#include "tlapack/base/utils.hpp"
+#include "tlapack/legacy_api/base/types.hpp"
 
 namespace lapack {
     

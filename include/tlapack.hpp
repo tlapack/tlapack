@@ -7,87 +7,142 @@
 #ifndef TLAPACK_HH
 #define TLAPACK_HH
 
-// BLAS
+// Wrappers to Optimized BLAS and LAPACK
 
-#include "tblas.hpp"
+#ifdef USE_LAPACKPP_WRAPPERS
+    #include "tlapack/optimized/wrappers.hpp"
+#endif
+
+// =============================================================================
+// Level 1 BLAS template implementations
+
+#include "tlapack/blas/asum.hpp"
+#include "tlapack/blas/axpy.hpp"
+#include "tlapack/blas/copy.hpp"
+#include "tlapack/blas/dot.hpp"
+#include "tlapack/blas/dotu.hpp"
+#include "tlapack/blas/iamax.hpp"
+#include "tlapack/blas/nrm2.hpp"
+#include "tlapack/blas/rot.hpp"
+#include "tlapack/blas/rotg.hpp"
+#include "tlapack/blas/rotm.hpp"
+#include "tlapack/blas/rotmg.hpp"
+#include "tlapack/blas/scal.hpp"
+#include "tlapack/blas/swap.hpp"
+
+// =============================================================================
+// Level 2 BLAS template implementations
+
+#include "tlapack/blas/gemv.hpp"
+#include "tlapack/blas/ger.hpp"
+#include "tlapack/blas/geru.hpp"
+#include "tlapack/blas/hemv.hpp"
+#include "tlapack/blas/her.hpp"
+#include "tlapack/blas/her2.hpp"
+#include "tlapack/blas/symv.hpp"
+#include "tlapack/blas/syr.hpp"
+#include "tlapack/blas/syr2.hpp"
+// #include "tlapack/blas/spmv.hpp"
+// #include "tlapack/blas/spr.hpp"
+// #include "tlapack/blas/spr2.hpp"
+// #include "tlapack/blas/sbmv.hpp"
+#include "tlapack/blas/trmv.hpp"
+#include "tlapack/blas/trsv.hpp"
+// #include "tlapack/blas/tpmv.hpp"
+// #include "tlapack/blas/tbmv.hpp"
+// #include "tlapack/blas/tpsv.hpp"
+// #include "tlapack/blas/tbsv.hpp"
+
+// =============================================================================
+// Level 3 BLAS template implementations
+
+#include "tlapack/blas/gemm.hpp"
+#include "tlapack/blas/hemm.hpp"
+#include "tlapack/blas/herk.hpp"
+#include "tlapack/blas/her2k.hpp"
+#include "tlapack/blas/symm.hpp"
+#include "tlapack/blas/syrk.hpp"
+#include "tlapack/blas/syr2k.hpp"
+#include "tlapack/blas/trmm.hpp"
+#include "tlapack/blas/trsm.hpp"
 
 // =============================================================================
 // Template LAPACK
 
-#include "lapack/trtri_recursive.hpp"
+#include "tlapack/lapack/trtri_recursive.hpp"
 
 // Auxiliary routines
 // ------------------
 
-#include "lapack/larf.hpp"
-#include "lapack/larfg.hpp"
-#include "lapack/larft.hpp"
-#include "lapack/larfb.hpp"
-#include "lapack/lapy2.hpp"
-#include "lapack/lapy3.hpp"
-#include "lapack/ladiv.hpp"
-#include "lapack/laset.hpp"
-#include "lapack/lacpy.hpp"
-#include "lapack/lange.hpp"
-#include "lapack/lanhe.hpp"
-#include "lapack/lansy.hpp"
-#include "lapack/lantr.hpp"
-#include "lapack/larnv.hpp"
-#include "lapack/lascl.hpp"
-#include "lapack/lassq.hpp"
-#include "lapack/transpose.hpp"
-#include "lapack/lauum_recursive.hpp"
-#include "lapack/lu_mult.hpp"
+#include "tlapack/lapack/larf.hpp"
+#include "tlapack/lapack/larfg.hpp"
+#include "tlapack/lapack/larft.hpp"
+#include "tlapack/lapack/larfb.hpp"
+#include "tlapack/lapack/lapy2.hpp"
+#include "tlapack/lapack/lapy3.hpp"
+#include "tlapack/lapack/ladiv.hpp"
+#include "tlapack/lapack/laset.hpp"
+#include "tlapack/lapack/lacpy.hpp"
+#include "tlapack/lapack/lange.hpp"
+#include "tlapack/lapack/lanhe.hpp"
+#include "tlapack/lapack/lansy.hpp"
+#include "tlapack/lapack/lantr.hpp"
+#include "tlapack/lapack/larnv.hpp"
+#include "tlapack/lapack/lascl.hpp"
+#include "tlapack/lapack/lassq.hpp"
+#include "tlapack/lapack/transpose.hpp"
+#include "tlapack/lapack/lauum_recursive.hpp"
+#include "tlapack/lapack/lu_mult.hpp"
 
 // SVD
 // ----------------
 
-#include "lapack/gebd2.hpp"
+#include "tlapack/lapack/gebd2.hpp"
 
 // QR factorization
 // ----------------
 
-#include "lapack/geqr2.hpp"
-#include "lapack/ung2r.hpp"
-#include "lapack/unm2r.hpp"
-#include "lapack/unmqr.hpp"
+#include "tlapack/lapack/geqr2.hpp"
+#include "tlapack/lapack/ung2r.hpp"
+#include "tlapack/lapack/unm2r.hpp"
+#include "tlapack/lapack/unmqr.hpp"
 
 // LQ factorization
 // ----------------
 
-#include "lapack/gelq2.hpp"
-#include "lapack/ungl2.hpp"
-#include "lapack/gelqf.hpp"
+#include "tlapack/lapack/gelq2.hpp"
+#include "tlapack/lapack/ungl2.hpp"
+#include "tlapack/lapack/gelqf.hpp"
 
 // Solution of positive definite systems
 // ----------------
 
-#include "lapack/potrf2.hpp"
-#include "lapack/potrf.hpp"
-#include "lapack/potrs.hpp"
+#include "tlapack/lapack/potrf2.hpp"
+#include "tlapack/lapack/potrf.hpp"
+#include "tlapack/lapack/potrs.hpp"
 
 // Sylver equation routines
 // ----------------
 
-#include "lapack/lasy2.hpp"
+#include "tlapack/lapack/lasy2.hpp"
 
 // Nonsymmetric standard eigenvalue routines
 // ----------------
 
-#include "lapack/gehd2.hpp"
-#include "lapack/gehrd.hpp"
-#include "lapack/lahr2.hpp"
-#include "lapack/unghr.hpp"
-#include "lapack/unmhr.hpp"
-#include "lapack/lahqr.hpp"
-#include "lapack/lahqr_shiftcolumn.hpp"
-#include "lapack/lahqr_eig22.hpp"
-#include "lapack/lahqr_schur22.hpp"
-#include "lapack/schur_swap.hpp"
-#include "lapack/schur_move.hpp"
-#include "lapack/move_bulge.hpp"
-#include "lapack/multishift_qr_sweep.hpp"
-#include "lapack/agressive_early_deflation.hpp"
-#include "lapack/multishift_qr.hpp"
+#include "tlapack/lapack/gehd2.hpp"
+#include "tlapack/lapack/gehrd.hpp"
+#include "tlapack/lapack/lahr2.hpp"
+#include "tlapack/lapack/unghr.hpp"
+#include "tlapack/lapack/unmhr.hpp"
+#include "tlapack/lapack/lahqr.hpp"
+#include "tlapack/lapack/lahqr_shiftcolumn.hpp"
+#include "tlapack/lapack/lahqr_eig22.hpp"
+#include "tlapack/lapack/lahqr_schur22.hpp"
+#include "tlapack/lapack/schur_swap.hpp"
+#include "tlapack/lapack/schur_move.hpp"
+#include "tlapack/lapack/move_bulge.hpp"
+#include "tlapack/lapack/multishift_qr_sweep.hpp"
+#include "tlapack/lapack/agressive_early_deflation.hpp"
+#include "tlapack/lapack/multishift_qr.hpp"
 
 #endif // TLAPACK_HH

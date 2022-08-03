@@ -5,7 +5,7 @@ In this example, we compute _c x + y_ using complex matrices x and y and a compl
 - x[k] = k * c and
 - y[k] = 10*k * c,
 
-for each k from 1 to n. The code uses the routine `caxpy` from [tblas.f90](../../src/tblas.f90). The code prints the error in the 1-norm. One may set the `verbosity` parameter to `.true.` to print all vectors in the default output.
+for each k from 1 to n. The code uses the routine `caxpy` from [tlapack.f90](../../src/tlapack.f90). The code prints the error in the 1-norm. One may set the `verbosity` parameter to `.true.` to print all vectors in the default output.
 
 ## Build
 
@@ -23,19 +23,19 @@ You will find the executable inside the `build` directory.
 
 2. Using `make` on the same directory of [example_fortranModule_caxpy.f90](example_fortranModule_caxpy.f90). In this case, you should edit `make.inc` to set the \<T\>LAPACK include and library directories. After a successful build, the executable will be in the current directory.
 
-** Note that the module file `tblas.mod` is installed in the root of the \<T\>LAPACK include directory. This file is mandatory for both builds. If the module was not correctly installed, one may compile it using the following rules
+** Note that the module file `tlapack.mod` is installed in the root of the \<T\>LAPACK include directory. This file is mandatory for both builds. If the module was not correctly installed, one may compile it using the following rules
 
 ```Makefile
 .o.mod:
     @true
-tblas.o: $(tlapack_inc)/tblas.f90 constants.mod
+tblas.o: $(tlapack_inc)/tlapack.f90 constants.mod
     $(FC) $(FFLAGS) -c -o $@ $<
 	rm -f constants.mod constants.o
 constants.o: $(tlapack_inc)/blas/constants.f90
     $(FC) $(FFLAGS) -c -o $@ $<
 ```
 
-in [Makefile](Makefile). In this case, replace `$(tlapack_inc)/tblas.mod` with `tblas.mod` also in [Makefile](Makefile).
+in [Makefile](Makefile). In this case, replace `$(tlapack_inc)/tlapack.mod` with `tlapack.mod` also in [Makefile](Makefile).
 
 ## Run
 

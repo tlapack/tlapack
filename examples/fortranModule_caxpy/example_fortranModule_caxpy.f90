@@ -5,7 +5,7 @@
 ! the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
 program example_fortranModule_caxpy
-use tblas
+use tlapack
 implicit none
     logical, parameter            :: verbose = .false.
 
