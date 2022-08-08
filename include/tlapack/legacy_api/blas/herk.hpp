@@ -89,6 +89,7 @@ void herk(
     TC       *C, idx_t ldc )
 {
     using internal::colmajor_matrix;
+    using real_t = real_type<TA, TC>;
 
     // check arguments
     tlapack_check_false( layout != Layout::ColMajor &&
@@ -111,8 +112,8 @@ void herk(
     tlapack_check_false( ldc < n );
 
     // quick return
-    if (n == 0)
-        return;
+    if ( n == 0 || 
+        ((alpha == real_t(0) || k == 0 ) && (beta == real_t(1))) ) return;
 
     // This algorithm only works with Op::NoTrans or Op::ConjTrans
     if(trans == Op::Trans) trans = Op::ConjTrans;
@@ -135,7 +136,24 @@ void herk(
                  : colmajor_matrix<TA>( (TA*)A, k, n, lda );
     auto C_ = colmajor_matrix<TC>( C, n, n, ldc );
 
-    herk( uplo, trans, alpha, A_, beta, C_ );
+    if( alpha == real_t(0) ) {
+        if( beta == real_t(0) ) {
+            for(idx_t j = 0; j < n; ++j)
+                for(idx_t i = 0; i < n; ++i)
+                    C_(i,j) = TC(0);
+        }
+        else {
+            for(idx_t j = 0; j < n; ++j)
+                for(idx_t i = 0; i < n; ++i)
+                    C_(i,j) *= beta;
+        }
+    }
+    else {
+        if( beta == real_t(0) )
+            herk( uplo, trans, alpha, A_, C_ );
+        else
+            herk( uplo, trans, alpha, A_, beta, C_ );
+    }
 }
 
 }  // namespace tlapack

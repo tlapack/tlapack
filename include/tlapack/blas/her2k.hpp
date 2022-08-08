@@ -76,6 +76,7 @@ void her2k(
     // data traits
     using TA    = type_t< matrixA_t >;
     using TB    = type_t< matrixB_t >;
+    using TC    = type_t< matrixC_t >;
     using idx_t = size_type< matrixA_t >;
 
     // constants
@@ -104,7 +105,7 @@ void her2k(
 
                 for(idx_t i = 0; i < j; ++i)
                     C(i,j) *= beta;
-                C(j,j) = beta * real( C(j,j) );
+                C(j,j) = TC( beta * real(C(j,j)) );
 
                 for(idx_t l = 0; l < k; ++l) {
 
@@ -120,7 +121,7 @@ void her2k(
         else { // uplo == Uplo::Lower
             for(idx_t j = 0; j < n; ++j) {
 
-                C(j,j) = beta * real( C(j,j) );
+                C(j,j) = TC( beta * real(C(j,j)) );
                 for(idx_t i = j+1; i < n; ++i)
                     C(i,j) *= beta;
 
@@ -184,6 +185,63 @@ void her2k(
                 C(i,j) = conj( C(j,i) );
         }
     }
+}
+
+/**
+ * Hermitian rank-k update:
+ * \[
+ *     C := \alpha A B^H + conj(\alpha) B A^H,
+ * \]
+ * or
+ * \[
+ *     C := \alpha A^H B + conj(\alpha) B^H A,
+ * \]
+ * where alpha and beta are scalars, C is an n-by-n Hermitian matrix,
+ * and A and B are n-by-k or k-by-n matrices.
+ *
+ * Mind that if beta is complex, the output matrix C is no longer Hermitian.
+ *
+ * @param[in] uplo
+ *     What part of the matrix C is referenced,
+ *     the opposite triangle being assumed from symmetry:
+ *     - Uplo::Lower: only the lower triangular part of C is referenced.
+ *     - Uplo::Upper: only the upper triangular part of C is referenced.
+ *
+ * @param[in] trans
+ *     The operation to be performed:
+ *     - Op::NoTrans:   $C = \alpha A B^H + conj(\alpha) A^H B$.
+ *     - Op::ConjTrans: $C = \alpha A^H B + conj(\alpha) B A^H$.
+ *
+ * @param[in] alpha Real scalar.
+ * @param[in] A A n-by-k matrix.
+ *     - If trans = NoTrans: a n-by-k matrix.
+ *     - Otherwise:          a k-by-n matrix.
+ * @param[in] B A n-by-k matrix.
+ *     - If trans = NoTrans: a n-by-k matrix.
+ *     - Otherwise:          a k-by-n matrix.
+ * @param[out] C A n-by-n Hermitian matrix.
+ *
+ * @ingroup her2k
+ */
+template<
+    class matrixA_t, class matrixB_t, class matrixC_t, 
+    class alpha_t,
+    class T  = type_t<matrixC_t>,
+    disable_if_allow_optblas_t<
+        pair< matrixA_t, T >,
+        pair< matrixB_t, T >,
+        pair< matrixC_t, T >,
+        pair< alpha_t,   T >
+    > = 0
+>
+inline
+void her2k(
+    Uplo uplo,
+    Op trans,
+    const alpha_t& alpha, const matrixA_t& A, const matrixB_t& B,
+    matrixC_t& C )
+{
+    return her2k( uplo, trans, alpha, A, B, internal::StrongZero(), C );
 }
 
 }  // namespace tlapack

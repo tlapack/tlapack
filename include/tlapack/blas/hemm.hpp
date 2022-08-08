@@ -182,6 +182,62 @@ void hemm(
     }
 }
 
+/**
+ * Hermitian matrix-matrix multiply:
+ * \[
+ *     C := \alpha A B,
+ * \]
+ * or
+ * \[
+ *     C := \alpha B A,
+ * \]
+ * where alpha and beta are scalars, A is an m-by-m or n-by-n Hermitian matrix,
+ * and B and C are m-by-n matrices.
+ *
+ * @param[in] side
+ *     The side the matrix A appears on:
+ *     - Side::Left:  $C = \alpha A B$,
+ *     - Side::Right: $C = \alpha B A$.
+ *
+ * @param[in] uplo
+ *     What part of the matrix A is referenced:
+ *     - Uplo::Lower: only the lower triangular part of A is referenced.
+ *     - Uplo::Upper: only the upper triangular part of A is referenced.
+ *
+ * @param[in] alpha Scalar.
+ * @param[in] A
+ *     - If side = Left:  A m-by-m Hermitian matrix.
+ *     - If side = Right: A n-by-n Hermitian matrix.
+ *     Imaginary parts of the diagonal elements need not be set,
+ *     are assumed to be zero on entry, and are set to zero on exit.
+ * @param[in] B A m-by-n matrix.
+ * @param[out] C A m-by-n matrix.
+ *
+ * @ingroup hemm
+ */
+template<
+    class matrixA_t,
+    class matrixB_t,
+    class matrixC_t, 
+    class alpha_t,
+    class T = type_t<matrixC_t>,
+    disable_if_allow_optblas_t<
+        pair< matrixA_t, T >,
+        pair< matrixB_t, T >,
+        pair< matrixC_t, T >,
+        pair< alpha_t,   T >
+    > = 0
+>
+inline
+void hemm(
+    Side side,
+    Uplo uplo,
+    const alpha_t& alpha, const matrixA_t& A, const matrixB_t& B,
+    matrixC_t& C )
+{
+    return hemm( side, uplo, alpha, A, B, internal::StrongZero(), C );
+}
+
 }  // namespace tlapack
 
 #endif        //  #ifndef TLAPACK_BLAS_HEMM_HH

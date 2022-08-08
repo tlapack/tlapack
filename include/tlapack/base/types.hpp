@@ -74,10 +74,11 @@ namespace tlapack {
          *      StrongZero() + x = x 
          * 
          */
-        class StrongZero {
+        struct StrongZero {
 
             template<typename T>
-            constexpr operator T() const { return T(0); }
+            explicit constexpr
+            operator T() const { return T(0); }
 
             template<typename T>
             friend constexpr

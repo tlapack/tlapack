@@ -101,6 +101,8 @@ void her2k(
     TC       *C, idx_t ldc )
 {
     using internal::colmajor_matrix;
+    using scalar_t = scalar_type<TA, TB, TC>;
+    using real_t = real_type<TA, TB, TC>;
 
     // check arguments
     tlapack_check_false( layout != Layout::ColMajor &&
@@ -129,8 +131,8 @@ void her2k(
     tlapack_check_false( ldc < n );
 
     // quick return
-    if (n == 0)
-        return;
+    if ( n == 0 ||
+        ((alpha == scalar_t(0) || k == 0 ) && (beta == real_t(1))) ) return;
 
     // This algorithm only works with Op::NoTrans or Op::ConjTrans
     if(trans == Op::Trans) trans = Op::ConjTrans;
@@ -156,7 +158,24 @@ void her2k(
                   : colmajor_matrix<TB>( (TB*)B, k, n, ldb );
     auto C_ = colmajor_matrix<TC>( C, n, n, ldc );
 
-    her2k( uplo, trans, alpha, A_, B_, beta, C_ );
+    if( alpha == scalar_t(0) ) {
+        if( beta == real_t(0) ) {
+            for(idx_t j = 0; j < n; ++j)
+                for(idx_t i = 0; i < n; ++i)
+                    C_(i,j) = TC(0);
+        }
+        else {
+            for(idx_t j = 0; j < n; ++j)
+                for(idx_t i = 0; i < n; ++i)
+                    C_(i,j) *= beta;
+        }
+    }
+    else {
+        if( beta == real_t(0) )
+            her2k( uplo, trans, alpha, A_, B_, C_ );
+        else
+            her2k( uplo, trans, alpha, A_, B_, beta, C_ );
+    }
 }
 
 }  // namespace tlapack

@@ -89,6 +89,7 @@ void symm(
     TC       *C, idx_t ldc )
 {    
     using internal::colmajor_matrix;
+    using scalar_t = scalar_type<TA, TB, TC>;
 
     // check arguments
     tlapack_check_false( layout != Layout::ColMajor &&
@@ -105,8 +106,8 @@ void symm(
     tlapack_check_false( ldc < ((layout == Layout::RowMajor) ? n : m) );
 
     // quick return
-    if (m == 0 || n == 0)
-        return;
+    if ( m == 0 || n == 0 ||
+        ((alpha == scalar_t(0)) && (beta == scalar_t(1))) ) return;
 
     // adapt if row major
     if (layout == Layout::RowMajor) {
@@ -127,7 +128,24 @@ void symm(
     const auto B_ = colmajor_matrix<TB>( (TB*)B, m, n, ldb );
     auto C_ = colmajor_matrix<TC>( C, m, n, ldc );
 
-    symm( side, uplo, alpha, A_, B_, beta, C_ );
+    if( alpha == scalar_t(0) ) {
+        if( beta == scalar_t(0) ) {
+            for(idx_t j = 0; j < n; ++j)
+                for(idx_t i = 0; i < m; ++i)
+                    C_(i,j) = TC(0);
+        }
+        else {
+            for(idx_t j = 0; j < n; ++j)
+                for(idx_t i = 0; i < m; ++i)
+                    C_(i,j) *= beta;
+        }
+    }
+    else {
+        if( beta == scalar_t(0) )
+            symm( side, uplo, alpha, A_, B_, C_ );
+        else
+            symm( side, uplo, alpha, A_, B_, beta, C_ );
+    }
 }
 
 }  // namespace tlapack

@@ -101,6 +101,7 @@ void syr2k(
     TC       *C, idx_t ldc )
 {
     using internal::colmajor_matrix;
+    using scalar_t = scalar_type<TA, TB, TC>;
 
     // check arguments
     tlapack_check_false( layout != Layout::ColMajor &&
@@ -129,8 +130,8 @@ void syr2k(
     tlapack_check_false( ldc < n );
 
     // quick return
-    if (n == 0)
-        return;
+    if ( n == 0 ||
+        ((alpha == scalar_t(0) || k == 0 ) && (beta == scalar_t(1))) ) return;
 
     // This algorithm only works with Op::NoTrans or Op::Trans
     if(trans == Op::ConjTrans) trans = Op::Trans;
@@ -155,7 +156,24 @@ void syr2k(
                   : colmajor_matrix<TB>( (TB*)B, k, n, ldb );
     auto C_ = colmajor_matrix<TC>( C, n, n, ldc );
 
-    syr2k( uplo, trans, alpha, A_, B_, beta, C_ );
+    if( alpha == scalar_t(0) ) {
+        if( beta == scalar_t(0) ) {
+            for(idx_t j = 0; j < n; ++j)
+                for(idx_t i = 0; i < n; ++i)
+                    C_(i,j) = TC(0);
+        }
+        else {
+            for(idx_t j = 0; j < n; ++j)
+                for(idx_t i = 0; i < n; ++i)
+                    C_(i,j) *= beta;
+        }
+    }
+    else {
+        if( beta == scalar_t(0) )
+            syr2k( uplo, trans, alpha, A_, B_, C_ );
+        else
+            syr2k( uplo, trans, alpha, A_, B_, beta, C_ );
+    }
 }
 
 }  // namespace tlapack

@@ -134,8 +134,8 @@ void gemm(
     tlapack_check_false( ldc < m );
 
     // quick return
-    if (m == 0 || n == 0)
-        return;
+    if ( m == 0 || n == 0 || 
+        ((alpha == scalar_t(0) || k == 0 ) && (beta == scalar_t(1))) ) return;
 
     // Matrix views
     const auto A_ = (transA == Op::NoTrans)
@@ -146,7 +146,7 @@ void gemm(
             : colmajor_matrix<TB>( (TB*)B, n, k, ldb );
     auto C_ = colmajor_matrix<TC>( C, m, n, ldc );
 
-    if( alpha == scalar_t(0) )
+    if( alpha == scalar_t(0) ) {
         if( beta == scalar_t(0) ) {
             for(idx_t j = 0; j < n; ++j)
                 for(idx_t i = 0; i < m; ++i)
@@ -157,11 +157,13 @@ void gemm(
                 for(idx_t i = 0; i < m; ++i)
                     C_(i,j) *= beta;
         }
-    else
+    }
+    else {
         if( beta == scalar_t(0) )
             gemm( transA, transB, alpha, A_, B_, C_ );
         else
             gemm( transA, transB, alpha, A_, B_, beta, C_ );
+    }
 }
 
 }  // namespace tlapack

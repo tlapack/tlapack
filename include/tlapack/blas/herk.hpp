@@ -73,6 +73,7 @@ void herk(
 {
     // data traits
     using TA    = type_t< matrixA_t >;
+    using TC    = type_t< matrixC_t >;
     using idx_t = size_type< matrixA_t >;
 
     // constants
@@ -98,7 +99,7 @@ void herk(
 
                 for(idx_t i = 0; i < j; ++i)
                     C(i,j) *= beta;
-                C(j,j) = beta * real( C(j,j) );
+                C(j,j) = TC( beta * real(C(j,j)) );
 
                 for(idx_t l = 0; l < k; ++l) {
 
@@ -113,7 +114,7 @@ void herk(
         else { // uplo == Uplo::Lower
             for(idx_t j = 0; j < n; ++j) {
 
-                C(j,j) = beta * real( C(j,j) );
+                C(j,j) = TC( beta * real(C(j,j)) );
                 for(idx_t i = j+1; i < n; ++i)
                     C(i,j) *= beta;
 
@@ -168,6 +169,64 @@ void herk(
                 C(i,j) = conj( C(j,i) );
         }
     }
+}
+
+/**
+ * Hermitian rank-k update:
+ * \[
+ *     C := \alpha A A^H,
+ * \]
+ * or
+ * \[
+ *     C := \alpha A^H A,
+ * \]
+ * where alpha and beta are real scalars, C is an n-by-n Hermitian matrix,
+ * and A is an n-by-k or k-by-n matrix.
+ *
+ * Mind that if alpha or beta are complex,
+ * the output matrix C may no longer Hermitian.
+ *
+ * @param[in] uplo
+ *     What part of the matrix C is referenced,
+ *     the opposite triangle being assumed from symmetry:
+ *     - Uplo::Lower: only the lower triangular part of C is referenced.
+ *     - Uplo::Upper: only the upper triangular part of C is referenced.
+ *
+ * @param[in] trans
+ *     The operation to be performed:
+ *     - Op::NoTrans:   $C = \alpha A A^H$.
+ *     - Op::ConjTrans: $C = \alpha A^H A$.
+ *
+ * @param[in] alpha Real scalar.
+ * @param[in] A A n-by-k matrix.
+ *     - If trans = NoTrans: a n-by-k matrix.
+ *     - Otherwise:          a k-by-n matrix.
+ * @param[out] C A n-by-n Hermitian matrix.
+ *
+ * @ingroup herk
+ */
+template<
+    class matrixA_t, class matrixC_t, 
+    class alpha_t,
+    enable_if_t<(
+    /* Requires: */
+        !is_complex<alpha_t>::value
+    ), int > = 0,
+    class T  = type_t<matrixC_t>,
+    disable_if_allow_optblas_t<
+        pair< matrixA_t, T >,
+        pair< matrixC_t, T >,
+        pair< alpha_t,   real_type<T> >
+    > = 0
+>
+inline
+void herk(
+    Uplo uplo,
+    Op trans,
+    const alpha_t& alpha, const matrixA_t& A,
+    matrixC_t& C )
+{
+    return herk( uplo, trans, alpha, A, internal::StrongZero(), C );
 }
 
 }  // namespace tlapack
