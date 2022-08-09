@@ -64,6 +64,7 @@ void syr(
     TA       *A, idx_t lda )
 {
     using internal::colmajor_matrix;
+    using scalar_t = scalar_type<TA,TX>;
 
     // check arguments
     tlapack_check_false( layout != Layout::ColMajor &&
@@ -75,7 +76,7 @@ void syr(
     tlapack_check_false( lda < n );
 
     // quick return
-    if (n == 0)
+    if (n == 0 || alpha == scalar_t(0))
         return;
 
     // for row major, swap lower <=> upper

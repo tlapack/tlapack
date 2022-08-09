@@ -81,25 +81,13 @@ void gemv(
     tlapack_check_false( access_denied( dense, read_policy(A) ) );
 
     // quick return
-    if (m == 0 || n == 0 || (alpha == alpha_t(0) && beta == beta_t(1)))
+    if (m == 0 || n == 0)
         return;
 
-    // ----------
     // form y := beta*y
-    if (beta != beta_t(1)) {
-        if (beta == beta_t(0)) {
-            for (idx_t i = 0; i < m; ++i)
-                y[i] = 0;
-        }
-        else {
-            for (idx_t i = 0; i < m; ++i)
-                y[i] *= beta;
-        }
-    }
-    if (alpha == alpha_t(0))
-        return;
+    for (idx_t i = 0; i < m; ++i)
+        y[i] *= beta;
 
-    // ----------
     if (trans == Op::NoTrans ) {
         // form y += alpha * A * x
         for (idx_t j = 0; j < n; ++j) {
@@ -138,6 +126,53 @@ void gemv(
             y[i] += alpha*tmp;
         }
     }
+}
+
+/**
+ * General matrix-vector multiply:
+ * \[
+ *     y := \alpha op(A) x,
+ * \]
+ * where $op(A)$ is one of
+ *     $op(A) = A$,
+ *     $op(A) = A^T$,
+ *     $op(A) = A^H$, or
+ *     $op(A) = conj(A)$,
+ * alpha and beta are scalars, x and y are vectors, and A is a matrix.
+ *
+ * @param[in] trans
+ *     The operation to be performed:
+ *     - Op::NoTrans:   $y = \alpha A   x$,
+ *     - Op::Trans:     $y = \alpha A^T x$,
+ *     - Op::ConjTrans: $y = \alpha A^H x$,
+ *     - Op::Conj:  $y = \alpha conj(A) x$.
+ *
+ * @param[in] alpha Scalar.
+ * @param[in] A $op(A)$ is an m-by-n matrix.
+ * @param[in] x A n-element vector.
+ * @param[in,out] y A m-element vector.
+ * 
+ * @ingroup gemv
+ */
+template<
+    class matrixA_t,
+    class vectorX_t, class vectorY_t, 
+    class alpha_t,
+    class T = type_t<vectorY_t>,
+    disable_if_allow_optblas_t<
+        pair< alpha_t,    T >,
+        pair< matrixA_t, T >,
+        pair< vectorX_t, T >,
+        pair< vectorY_t, T >
+    > = 0
+>
+inline
+void gemv(
+    Op trans,
+    const alpha_t& alpha, const matrixA_t& A, const vectorX_t& x,
+    vectorY_t& y )
+{
+    return gemv( trans, alpha, A, x, internal::StrongZero(), y );
 }
 
 }  // namespace tlapack

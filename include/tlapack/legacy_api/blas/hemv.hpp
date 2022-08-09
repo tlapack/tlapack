@@ -79,6 +79,7 @@ void hemv(
 {
     using internal::colmajor_matrix;
     using internal::rowmajor_matrix;
+    using scalar_t = scalar_type<TA, TX, TY>;
 
     // check arguments
     tlapack_check_false( layout != Layout::ColMajor &&
@@ -91,23 +92,33 @@ void hemv(
     tlapack_check_false( incy == 0 );
 
     // quick return
-    if (n == 0)
-        return;
+    if ( n == 0 ||
+        ((alpha == scalar_t(0)) && (beta == scalar_t(1))) ) return;
 
-    if(layout == Layout::ColMajor)
-    {
-        tlapack_expr_with_2vectors(
-            x_, TX, n, x, incx,
-            y_, TY, n, y, incy,
-            return hemv( uplo, alpha, colmajor_matrix<TA>( (TA*)A, n, n, lda ), x_, beta, y_ )
+    if( alpha == scalar_t(0) ) {
+        tlapack_expr_with_vector( y_, TY, n, y, incy,
+            if( beta == scalar_t(0) )
+                for(idx_t i = 0; i < n; ++i)
+                    y_[i] = TY(0);
+            else
+                for(idx_t i = 0; i < n; ++i)
+                    y_[i] *= beta
         );
     }
-    else
-    {
+    else {
         tlapack_expr_with_2vectors(
             x_, TX, n, x, incx,
             y_, TY, n, y, incy,
-            return hemv( uplo, alpha, rowmajor_matrix<TA>( (TA*)A, n, n, lda ), x_, beta, y_ )
+            if( beta == scalar_t(0) )
+                if(layout == Layout::ColMajor)
+                    return hemv( uplo, alpha, colmajor_matrix<TA>( (TA*)A, n, n, lda ), x_, y_ );
+                else
+                    return hemv( uplo, alpha, rowmajor_matrix<TA>( (TA*)A, n, n, lda ), x_, y_ );
+            else
+                if(layout == Layout::ColMajor)
+                    return hemv( uplo, alpha, colmajor_matrix<TA>( (TA*)A, n, n, lda ), x_, beta, y_ );
+                else
+                    return hemv( uplo, alpha, rowmajor_matrix<TA>( (TA*)A, n, n, lda ), x_, beta, y_ )
         );
     }
 }
