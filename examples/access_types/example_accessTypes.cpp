@@ -10,7 +10,6 @@
 #undef TLAPACK_ERROR_NDEBUG
 #undef NDEBUG
 
-#include <tlapack/plugins/legacyArray.hpp>
 #include <tlapack.hpp>
 
 #include <vector>
@@ -63,7 +62,7 @@ int main( int argc, char** argv )
         data1[i] = i+1;
 
     // Matrix 1
-    legacyMatrix<int,Layout::RowMajor> A1( m, n, &data1[0], n );
+    legacyMatrix<int,size_t,Layout::RowMajor> A1( m, n, &data1[0], n );
     printMatrix(A1);
     std::cout << std::endl;
 
@@ -73,7 +72,7 @@ int main( int argc, char** argv )
         data2[i] = data1[i];
 
     // Matrix 2
-    legacyMatrix<int,Layout::RowMajor> A2( m, n, &data2[0], n );
+    legacyMatrix<int,size_t,Layout::RowMajor> A2( m, n, &data2[0], n );
 
     // Scale all matrix by 3
     lascl( dense, 1.0, 3.0, A1 );

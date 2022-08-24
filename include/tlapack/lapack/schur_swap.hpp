@@ -50,8 +50,11 @@ namespace tlapack
         enable_if_t<!is_complex<T>::value, bool> = true>
     int schur_swap(bool want_q, matrix_t &A, matrix_t &Q, const idx_t &j0, const idx_t &n1, const idx_t &n2)
     {
-                using pair = pair<idx_t, idx_t>;
+        using pair = pair<idx_t, idx_t>;
         using std::max;
+
+        // Functor for creating new matrices
+        Create<matrix_t> new_matrix;
 
         const idx_t n = ncols(A);
         const T zero(0);
@@ -134,7 +137,7 @@ namespace tlapack
             //
 
             std::unique_ptr<T[]> B_(new T[6]);
-            auto B = internal::colmajor_matrix<T>(&B_[0], 3, 2);
+            auto B = new_matrix(&B_[0], 3, 2);
             B(0, 0) = A(j0, j1);
             B(1, 0) = A(j1, j1) - A(j0, j0);
             B(2, 0) = A(j2, j1);
@@ -208,7 +211,7 @@ namespace tlapack
             //
 
             std::unique_ptr<T[]> B_(new T[6]);
-            auto B = internal::colmajor_matrix<T>(&B_[0], 3, 2);
+            auto B = new_matrix(&B_[0], 3, 2);
             B(0, 0) = A(j1, j2);
             B(1, 0) = A(j1, j1) - A(j2, j2);
             B(2, 0) = A(j1, j0);
@@ -277,7 +280,7 @@ namespace tlapack
         if (n1 == 2 and n2 == 2)
         {
             std::unique_ptr<T[]> D_(new T[4 * 4]);
-            auto D = internal::colmajor_matrix<T>(&D_[0], 4, 4);
+            auto D = new_matrix(&D_[0], 4, 4);
 
             auto AD_slice = slice(A, pair{j0, j0 + 4}, pair{j0, j0 + 4});
             lacpy(Uplo::General, AD_slice, D);
@@ -288,7 +291,7 @@ namespace tlapack
             T thresh = max(ten * eps * dnorm, small_num);
 
             std::unique_ptr<T[]> V_(new T[4 * 2]);
-            auto V = internal::colmajor_matrix<T>(&V_[0], 4, 2);
+            auto V = new_matrix(&V_[0], 4, 2);
             auto X = slice(V, pair{0, 2}, pair{0, 2});
             auto TL = slice(D, pair{0, 2}, pair{0, 2});
             auto TR = slice(D, pair{2, 4}, pair{2, 4});

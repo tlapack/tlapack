@@ -10,7 +10,6 @@
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 #include <tlapack/plugins/stdvector.hpp>
-#include <tlapack/plugins/legacyArray.hpp>
 #include <tlapack.hpp>
 #include <testutils.hpp>
 #include <testdefinitions.hpp>
@@ -44,8 +43,8 @@ TEMPLATE_LIST_TEST_CASE("bidiagonal reduction is backward stable", "[bidiagonal]
         std::unique_ptr<T[]> A_(new T[m * n]);
         std::unique_ptr<T[]> A_copy_(new T[m * n]);
 
-        auto A = legacyMatrix<T, layout<matrix_t>>(m, n, &A_[0], layout<matrix_t> == Layout::ColMajor ? m : n);
-        auto A_copy = legacyMatrix<T, layout<matrix_t>>(m, n, &A_copy_[0], layout<matrix_t> == Layout::ColMajor ? m : n);
+        auto A = legacyMatrix<T, idx_t, layout<matrix_t>>(m, n, &A_[0], layout<matrix_t> == Layout::ColMajor ? m : n);
+        auto A_copy = legacyMatrix<T, idx_t, layout<matrix_t>>(m, n, &A_copy_[0], layout<matrix_t> == Layout::ColMajor ? m : n);
 
         std::vector<T> work(m); // max of m and n
         std::vector<T> tauv(n); // min of m and n
@@ -64,7 +63,7 @@ TEMPLATE_LIST_TEST_CASE("bidiagonal reduction is backward stable", "[bidiagonal]
 
             // Get upper bidiagonal B
             std::unique_ptr<T[]> B_(new T[m * n]);
-            auto B = legacyMatrix<T, layout<matrix_t>>(m, n, &B_[0], layout<matrix_t> == Layout::ColMajor ? m : n);
+            auto B = legacyMatrix<T, idx_t, layout<matrix_t>>(m, n, &B_[0], layout<matrix_t> == Layout::ColMajor ? m : n);
             laset(Uplo::General, zero, zero, B);
 
             B(0, 0) = A(0, 0);
@@ -77,20 +76,20 @@ TEMPLATE_LIST_TEST_CASE("bidiagonal reduction is backward stable", "[bidiagonal]
 
             // Generate unitary matrix Q of m-by-m
             std::unique_ptr<T[]> Q_(new T[m * m]);
-            auto Q = legacyMatrix<T, layout<matrix_t>>(m, m, &Q_[0], m);
+            auto Q = legacyMatrix<T, idx_t, layout<matrix_t>>(m, m, &Q_[0], m);
             lacpy(Uplo::Lower, A, Q);
 
             ung2r(n, Q, tauv, work);
 
             // Test for Q's orthogonality
             std::unique_ptr<T[]> _Wq(new T[m * m]);
-            auto Wq = legacyMatrix<T, layout<matrix_t>>(m, m, &_Wq[0], m);
+            auto Wq = legacyMatrix<T, idx_t, layout<matrix_t>>(m, m, &_Wq[0], m);
             auto orth_Q = check_orthogonality(Q, Wq);
             CHECK(orth_Q <= tol);
 
             // Generate unitary matrix Z of n-by-n
             std::unique_ptr<T[]> Z_(new T[n * n]);
-            auto Z = legacyMatrix<T, layout<matrix_t>>(n, n, &Z_[0], n);
+            auto Z = legacyMatrix<T, idx_t, layout<matrix_t>>(n, n, &Z_[0], n);
             laset(Uplo::General, zero, one, Z); // Initialize Z as identity matrix.
 
             // Slice Z down to Z11 of size (n-1)-by-(n-1) and copy upper A to Z11
@@ -102,7 +101,7 @@ TEMPLATE_LIST_TEST_CASE("bidiagonal reduction is backward stable", "[bidiagonal]
 
             // Test for Z's orthogonality
             std::unique_ptr<T[]> _Wz(new T[n * n]);
-            auto Wz = legacyMatrix<T, layout<matrix_t>>(n, n, &_Wz[0], n);
+            auto Wz = legacyMatrix<T, idx_t, layout<matrix_t>>(n, n, &_Wz[0], n);
             laset(Uplo::General, zero, one, Wz);
             auto orth_Z = check_orthogonality(Z, Wz);
             CHECK(orth_Z <= tol);
@@ -110,7 +109,7 @@ TEMPLATE_LIST_TEST_CASE("bidiagonal reduction is backward stable", "[bidiagonal]
             // Test B = Q_H * A * Z
             // Generate a zero matrix K of size m-by-n to be the product of Q_H * A
             std::unique_ptr<T[]> K_(new T[m * n]);
-            auto K = legacyMatrix<T, layout<matrix_t>>(m, n, &K_[0], layout<matrix_t> == Layout::ColMajor ? m : n);
+            auto K = legacyMatrix<T, idx_t, layout<matrix_t>>(m, n, &K_[0], layout<matrix_t> == Layout::ColMajor ? m : n);
             laset(Uplo::General, zero, zero, K);
             gemm(Op::ConjTrans, Op::NoTrans, real_t(1.), Q, A_copy, real_t(0), K);
 

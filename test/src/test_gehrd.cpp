@@ -31,9 +31,9 @@ void check_hess_reduction(size_type<matrix_t> ilo, size_type<matrix_t> ihi, matr
     std::unique_ptr<T[]> _res(new T[n * n]);
     std::unique_ptr<T[]> _work(new T[n * n]);
 
-    auto Q = legacyMatrix<T, layout<matrix_t>>(n, n, &Q_[0], n);
-    auto res = legacyMatrix<T, layout<matrix_t>>(n, n, &_res[0], n);
-    auto work = legacyMatrix<T, layout<matrix_t>>(n, n, &_work[0], n);
+    auto Q = legacyMatrix<T, idx_t, layout<matrix_t>>(n, n, &Q_[0], n);
+    auto res = legacyMatrix<T, idx_t, layout<matrix_t>>(n, n, &_res[0], n);
+    auto work = legacyMatrix<T, idx_t, layout<matrix_t>>(n, n, &_work[0], n);
     std::vector<T> workv(n);
 
     // Generate orthogonal matrix Q
@@ -91,8 +91,8 @@ TEMPLATE_LIST_TEST_CASE("Hessenberg reduction is backward stable", "[eigenvalues
     std::unique_ptr<T[]> H_(new T[n * n]);
 
     // This only works for legacy matrix, we really work on that construct_matrix function
-    auto A = legacyMatrix<T, layout<matrix_t>>(n, n, &A_[0], n);
-    auto H = legacyMatrix<T, layout<matrix_t>>(n, n, &H_[0], n);
+    auto A = legacyMatrix<T, idx_t, layout<matrix_t>>(n, n, &A_[0], n);
+    auto H = legacyMatrix<T, idx_t, layout<matrix_t>>(n, n, &H_[0], n);
     std::vector<T> tau(n);
 
     if (matrix_type == "Random")

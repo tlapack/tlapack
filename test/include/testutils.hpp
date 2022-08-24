@@ -10,7 +10,6 @@
 #ifndef TLAPACK_TESTUTILS_HH
 #define TLAPACK_TESTUTILS_HH
 
-#include <tlapack/legacy_api/legacyArray.hpp>
 #include <tlapack.hpp>
 
 #include <complex>
@@ -130,10 +129,13 @@ namespace tlapack
     {
         using T = type_t<matrix_t>;
 
+        // Functor
+        Create<matrix_t> new_matrix;
+
         auto m = min(nrows(Q), ncols(Q));
 
         std::unique_ptr<T[]> res_(new T[m * m]);
-        auto res = legacyMatrix<T, layout<matrix_t>>(m, m, &res_[0], m);
+        auto res = new_matrix(&res_[0], m, m);
         return check_orthogonality(Q, res);
     }
 
@@ -189,12 +191,15 @@ namespace tlapack
     {
         using T = type_t<matrix_t>;
 
+        // Functor
+        Create<matrix_t> new_matrix;
+
         auto n = ncols(A);
 
         std::unique_ptr<T[]> res_(new T[n * n]);
-        auto res = legacyMatrix<T, layout<matrix_t>>(n, n, &res_[0], n);
+        auto res = new_matrix(&res_[0], n, n);
         std::unique_ptr<T[]> work_(new T[n * n]);
-        auto work = legacyMatrix<T, layout<matrix_t>>(n, n, &work_[0], n);
+        auto work = new_matrix(&work_[0], n, n);
 
         return check_similarity_transform(A, Q, B, res, work);
     }

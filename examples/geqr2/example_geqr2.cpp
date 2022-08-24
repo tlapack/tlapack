@@ -36,26 +36,24 @@ template <typename real_t>
 void run( size_t m, size_t n )
 {
     using std::size_t;
-    using tlapack::internal::colmajor_matrix;
+    using matrix_t = tlapack::legacyMatrix<real_t>;
+
+    // Functors for creating new matrices
+    tlapack::Create<matrix_t> new_matrix;
 
     // Turn it off if m or n are large
     bool verbose = false;
 
-    // Leading dimensions
-    size_t lda = (m > 0) ? m : 1;
-    size_t ldr = (n > 0) ? n : 1;
-    size_t ldq = lda;
-
     // Arrays
-    std::unique_ptr<real_t[]> A_(new real_t[ lda*n ]); // m-by-n
-    std::unique_ptr<real_t[]> R_(new real_t[ ldr*n ]); // n-by-n
-    std::unique_ptr<real_t[]> Q_(new real_t[ ldq*n ]); // m-by-n
+    std::unique_ptr<real_t[]> A_(new real_t[ m*n ]); // m-by-n
+    std::unique_ptr<real_t[]> R_(new real_t[ n*n ]); // n-by-n
+    std::unique_ptr<real_t[]> Q_(new real_t[ m*n ]); // m-by-n
     std::vector<real_t> tau ( n );
 
     // Matrix views
-    auto A = colmajor_matrix<real_t>( &A_[0], m, n, lda );
-    auto R = colmajor_matrix<real_t>( &R_[0], n, n, ldr );
-    auto Q = colmajor_matrix<real_t>( &Q_[0], m, n, ldq );
+    auto A = new_matrix( &A_[0], m, n );
+    auto R = new_matrix( &R_[0], n, n );
+    auto Q = new_matrix( &Q_[0], m, n );
 
     // Initialize arrays with junk
     for (size_t j = 0; j < n; ++j) {
@@ -127,7 +125,7 @@ void run( size_t m, size_t n )
 
     {
         std::unique_ptr<real_t[]> _work(new real_t[ n*n ]);
-        auto work = colmajor_matrix<real_t>( &_work[0], n, n );
+        auto work = new_matrix( &_work[0], n, n );
         for (size_t j = 0; j < n; ++j)
             for (size_t i = 0; i < n; ++i)
                 work(i,j) = static_cast<float>( 0xABADBABE );
@@ -151,7 +149,7 @@ void run( size_t m, size_t n )
 
     {
         std::unique_ptr<real_t[]> _work(new real_t[ m*n ]);
-        auto work = colmajor_matrix<real_t>( &_work[0], m, n );
+        auto work = new_matrix( &_work[0], m, n );
         for (size_t j = 0; j < n; ++j)
             for (size_t i = 0; i < m; ++i)
                 work(i,j) = static_cast<float>( 0xABADBABE );

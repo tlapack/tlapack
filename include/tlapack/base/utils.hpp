@@ -14,8 +14,8 @@
 #include <type_traits>
 
 #include "tlapack/base/types.hpp"
-#include "tlapack/base/arrayTraits.hpp"
 #include "tlapack/base/exceptionHandling.hpp"
+#include "tlapack/base/legacyArray.hpp"
 
 namespace tlapack {
 
@@ -951,12 +951,60 @@ inline constexpr auto get_work( opts_t&& opts ) {
 // -----------------------------------------------------------------------------
 // Options:
 
-// /// Workspace
-// template< typename idx_t, typename T >
-// struct workspace_t {
-//     T* work = nullptr; ///< Workspace pointer
-//     idx_t lwork = 0;   ///< Workspace size
-// };
+/**
+ * @brief Allocates workspace if needed and updates the workspace size
+ * 
+ * @param[out] work
+ *      If `opts_lwork <= 0`, lwork bytes are allocated in work.
+ *      If `opts_lwork > 0`, work is kept unchanged.
+ * @param[in,out] lwork
+ *      On the input: Optimal workspace size.
+ *      On the output: Computed workspace size.
+ * @param[in] opts_work     Optional workspace previously allocated.
+ * @param[in] opts_lwork    Size of the optional workspace previously allocated.
+ * 
+ * @return byte*
+ *      Returns a pointer to the workspace in case of a success.
+ *      Returns a null pointer if `opts_lwork < lwork`.
+ */
+inline
+byte* alloc_workspace(
+    vectorOfBytes& work, size_t& lwork,
+    const byte* opts_work, const size_t opts_lwork )
+{
+    if( opts_lwork <= 0 )
+    {
+        work = vectorOfBytes( lwork ); // Allocates space in memory
+        return &work[0];
+    }
+    else if( opts_lwork < lwork )
+    {
+        lwork = 0;
+        tlapack_error( -4, "Insuficient workspace" );
+        return nullptr;
+    }
+    else
+    {
+        lwork = opts_lwork;
+        return (byte*) opts_work;
+    }
+}
+
+/// Workspace options
+template<
+    class T,
+    class idx_t = std::size_t,
+    class work_type = legacyMatrix<T,idx_t>
+>
+struct workspace_opts_t
+{
+    using work_t = work_type;   ///< Workspace type
+
+    byte* work = nullptr;       ///< Workspace
+    std::size_t lwork = 0;      ///< Workspace size
+};
+
+
 
 } // namespace tlapack
 

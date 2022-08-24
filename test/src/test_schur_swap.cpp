@@ -50,9 +50,9 @@ TEMPLATE_LIST_TEST_CASE("schur swap gives correct result", "[eigenvalues]", type
     std::unique_ptr<T[]> Q_(new T[n * n]);
     std::unique_ptr<T[]> A_copy_(new T[n * n]);
 
-    auto A = legacyMatrix<T, layout<matrix_t>>(n, n, &A_[0], n);
-    auto Q = legacyMatrix<T, layout<matrix_t>>(n, n, &Q_[0], n);
-    auto A_copy = legacyMatrix<T, layout<matrix_t>>(n, n, &A_copy_[0], n);
+    auto A = legacyMatrix<T, idx_t, layout<matrix_t>>(n, n, &A_[0], n);
+    auto Q = legacyMatrix<T, idx_t, layout<matrix_t>>(n, n, &Q_[0], n);
+    auto A_copy = legacyMatrix<T, idx_t, layout<matrix_t>>(n, n, &A_copy_[0], n);
 
     // Generate random matrix in Schur form
     for (idx_t j = 0; j < n; ++j)
@@ -79,8 +79,8 @@ TEMPLATE_LIST_TEST_CASE("schur swap gives correct result", "[eigenvalues]", type
         std::unique_ptr<T[]> _res(new T[n * n]);
         std::unique_ptr<T[]> _work(new T[n * n]);
 
-        auto res = legacyMatrix<T, layout<matrix_t>>(n, n, &_res[0], n);
-        auto work = legacyMatrix<T, layout<matrix_t>>(n, n, &_work[0], n);
+        auto res = legacyMatrix<T, idx_t, layout<matrix_t>>(n, n, &_res[0], n);
+        auto work = legacyMatrix<T, idx_t, layout<matrix_t>>(n, n, &_work[0], n);
         auto orth_res_norm = check_orthogonality(Q, res);
         CHECK(orth_res_norm <= tol);
 

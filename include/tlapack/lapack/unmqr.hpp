@@ -16,6 +16,19 @@
 
 namespace tlapack {
 
+/**
+ * Options struct for unmqr
+ */
+template<
+    class T,
+    class idx_t = std::size_t,
+    class work_t = legacyMatrix<T,idx_t>
+>
+struct unmqr_opts_t : public workspace_opts_t<T,idx_t,work_t>
+{
+    idx_t nb = 32; ///< Block size
+};
+
 /** Applies orthogonal matrix op(Q) to a matrix C using a blocked code.
  *
  * - side = Side::Left  & trans = Op::NoTrans:    $C := Q C$;
@@ -40,15 +53,6 @@ namespace tlapack {
  * 
  * @tparam side_t Either Side or any class that implements `operator Side()`.
  * @tparam trans_t Either Op or any class that implements `operator Op()`. 
- * @tparam opts_t
- * \code{.cpp}
- *      struct opts_t {
- *          idx_t nb; // Block size
- *          matrix_t* workPtr; // Workspace pointer
- *          // ...
- *      };
- * \endcode
- *      If opts_t::nb does not exist, nb assumes a default value.
  *
  * @param[in] side Specifies which side op(Q) is to be applied.
  *      - Side::Left:  C := op(Q) C;
@@ -74,58 +78,60 @@ namespace tlapack {
  *      - side = Side::Left  & trans = Op::ConjTrans:  $C := C Q^H$;
  *      - side = Side::Right & trans = Op::ConjTrans:  $C := Q^H C$.
  *
- * @param opts Options.
- *      - opts.nb [input] Block size.
- *      If opts.nb does not exist or opts.nb <= 0, nb assumes a default value.
- *      
- *      - opts.workPtr Workspace pointer.
- *          - Pointer to a matrix of size (nb)-by-(n+nb) if side = Side::Left.
- *          - Pointer to a matrix of size (nb)-by-(m+nb) if side = Side::Right.
+ * @param[in] opts Options. @see unmqr_opts_t.
  * 
  * @ingroup geqrf
  */
 template<
     class matrixA_t, class matrixC_t,
     class tau_t, class side_t, class trans_t,
-    class opts_t,
-    enable_if_t< /// TODO: Remove this requirement when get_work() is fully functional
-        has_work_v< opts_t >
-    , int > = 0
+    // opts_t:
+    class T = scalar_type<
+        type_t< matrixA_t >,
+        type_t< tau_t >,
+        type_t< matrixC_t >
+    >,
+    class idx_t = size_type< matrixC_t >,
+    class work_t = legacyMatrix<T,idx_t>
 >
 int unmqr(
     side_t side, trans_t trans,
     const matrixA_t& A,
     const tau_t& tau,
     matrixC_t& C,
-    opts_t&& opts )
+    const unmqr_opts_t<T,idx_t,work_t>& opts = {} )
 {
-    using idx_t = size_type< matrixC_t >;
-    using pair  = pair<idx_t,idx_t>;
+    using pair = pair<idx_t,idx_t>;
     using std::max;
     using std::min;
+
+    // Functor
+    Create<work_t> new_matrix;
 
     // Constants
     const idx_t m = nrows(C);
     const idx_t n = ncols(C);
     const idx_t k = size(tau);
     const idx_t nA = (side == Side::Left) ? m : n;
-    const idx_t nw = (side == Side::Left) ? max<idx_t>(1,n) : max<idx_t>(1,m);
-    
-    // Options
-    const idx_t nb = get_nb(opts); // Block size
-    auto W = get_work(opts); // (nb)-by-(nw+nb) matrix
+    const idx_t nw = (side == Side::Left) ? n : m;
+    const idx_t nb = opts.nb;
 
     // check arguments
     tlapack_check_false( side != Side::Left &&
-                     side != Side::Right );
+                         side != Side::Right );
     tlapack_check_false( trans != Op::NoTrans &&
-                     trans != Op::Trans &&
-                     trans != Op::ConjTrans );
+                         trans != Op::Trans &&
+                         trans != Op::ConjTrans );
     tlapack_check_false( trans == Op::Trans && is_complex<matrixA_t>::value );
     
     tlapack_check_false( access_denied( strictLower, read_policy(A) ) );
     tlapack_check_false( access_denied( dense, write_policy(C) ) );
 
+    // Allocates workspace
+    vectorOfBytes localwork;
+    size_t lwork = unmqr_worksize( side, trans, A, tau, C, opts );
+    byte* work = alloc_workspace( localwork, lwork, opts.work, opts.lwork );
+    
     // quick return
     if ((m == 0) || (n == 0) || (k == 0))
         return 0;
@@ -145,11 +151,11 @@ int unmqr(
         idx_t ib = min<idx_t>( nb, k-i );
         const auto V = slice( A, pair{i,nA}, pair{i,i+ib} );
         const auto taui = slice( tau, pair{i,i+ib} );
-        auto T = slice( W, pair{nw,nw+ib}, pair{nw,nw+ib} );
+        work_t Tmatrix = new_matrix( (T*)(&work[nw*nb]), ib, ib );
 
         // Form the triangular factor of the block reflector
         // $H = H(i) H(i+1) ... H(i+ib-1)$
-        larft( forward, columnwise_storage, V, taui, T );
+        larft( forward, columnwise_storage, V, taui, Tmatrix );
 
         // H or H**H is applied to either C[i:m,0:n] or C[0:m,i:n]
         auto Ci = ( side == Side::Left )
@@ -157,14 +163,47 @@ int unmqr(
            : slice( C, pair{0,m}, pair{i,n} );
 
         // Apply H or H**H
-        auto W0 = slice( W, pair{0,ib}, pair{0,nw} );
-        larfb(
-            side, trans, forward, columnwise_storage,
-            V, T, Ci, W0
-        );
+        larfb( side, trans, forward, columnwise_storage, V, Tmatrix, Ci, opts );
     }
 
     return 0;
+}
+
+/** Worspace query for unmqr
+ *      
+ * @return  nb*(n+nb)*sizeof(T) if side = Side::Left, or
+ *          nb*(m+nb)*sizeof(T) if side = Side::Right,
+ *      where T is the common type that fits the elements of A, tau and C
+ * 
+ * @ingroup geqrf
+ */
+template<
+    class matrixA_t, class matrixC_t,
+    class tau_t, class side_t, class trans_t,
+    // opts_t:
+    class work_t,
+    class T = scalar_type<
+        type_t< matrixA_t >,
+        type_t< tau_t >,
+        type_t< matrixC_t >
+    >,
+    class idx_t = size_type< matrixC_t >
+>
+inline constexpr
+size_t unmqr_worksize(
+    side_t side, trans_t trans,
+    const matrixA_t& A,
+    const tau_t& tau,
+    matrixC_t& C,
+    const unmqr_opts_t<T,idx_t,work_t>& opts = {} )
+{
+    // Constants
+    const idx_t m = nrows(C);
+    const idx_t n = ncols(C);
+    const idx_t nw = (side == Side::Left) ? n : m;
+    const idx_t nb = opts.nb;
+    
+    return nb*(nw+nb) * sizeof(T);
 }
 
 }

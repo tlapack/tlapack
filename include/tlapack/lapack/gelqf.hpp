@@ -106,7 +106,7 @@ namespace tlapack
                     Op::NoTrans,
                     Direction::Forward,
                     StoreV::Rowwise,
-                    A11, TT1, A12, work1);
+                    A11, TT1, A12);
             }
         }
 

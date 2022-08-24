@@ -16,8 +16,8 @@ using namespace tlapack;
 
 TEST_CASE("has_compatible_layout gives the correct result", "[optBLAS]")
 {
-    using matrixA_t = legacyMatrix< float, Layout::ColMajor >;
-    using matrixB_t = legacyMatrix< float, Layout::RowMajor >;
+    using matrixA_t = legacyMatrix< float, size_t, Layout::ColMajor >;
+    using matrixB_t = legacyMatrix< float, size_t, Layout::RowMajor >;
     using vector_t  = legacyVector< float >;
 
     CHECK( has_compatible_layout< matrixA_t, matrixA_t > );

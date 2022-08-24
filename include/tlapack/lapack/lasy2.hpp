@@ -15,7 +15,6 @@
 #include <memory>
 
 #include "tlapack/base/utils.hpp"
-#include "tlapack/legacy_api/base/utils.hpp"
 
 namespace tlapack
 {
@@ -39,7 +38,9 @@ namespace tlapack
     {
 
         using std::max;
-        using internal::colmajor_matrix;
+
+        // Functor for creating new matrices of type matrix_t
+        Create<matrix_t> new_matrix;
         
         const idx_t n1 = ncols(TL);
         const idx_t n2 = ncols(TR);
@@ -90,7 +91,7 @@ namespace tlapack
             std::unique_ptr<T[]> _tmp(new T[4]);
             auto tmp = legacyVector<T>(4, &_tmp[0]);
             std::unique_ptr<T[]> T16_(new T[16]);
-            auto T16 = colmajor_matrix<T>(&T16_[0], 4, 4);
+            auto T16 = new_matrix(&T16_[0], 4, 4);
             std::unique_ptr<idx_t[]> _jpiv(new idx_t[4]);
             auto jpiv = legacyVector<idx_t>(4, &_jpiv[0]);
 

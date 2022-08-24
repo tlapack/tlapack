@@ -34,8 +34,8 @@ TEMPLATE_LIST_TEST_CASE("Conjugate Transpose gives correct result", "[util]", ty
     std::unique_ptr<T[]> B_(new T[n * m]);
 
     // This only works for legacy matrix, we really work on that construct_matrix function
-    auto A = legacyMatrix<T, layout<matrix_t>>(m, n, &A_[0], layout<matrix_t> == Layout::ColMajor ? m : n);
-    auto B = legacyMatrix<T, layout<matrix_t>>(n, m, &B_[0], layout<matrix_t> == Layout::ColMajor ? n : m);
+    auto A = legacyMatrix<T, idx_t, layout<matrix_t>>(m, n, &A_[0], layout<matrix_t> == Layout::ColMajor ? m : n);
+    auto B = legacyMatrix<T, idx_t, layout<matrix_t>>(n, m, &B_[0], layout<matrix_t> == Layout::ColMajor ? n : m);
 
     // Generate a random matrix in A
     for (idx_t j = 0; j < n; ++j)
@@ -74,8 +74,8 @@ TEMPLATE_LIST_TEST_CASE("Transpose gives correct result", "[util]", types_to_tes
     std::unique_ptr<T[]> B_(new T[n * m]);
 
     // This only works for legacy matrix, we really work on that construct_matrix function
-    auto A = legacyMatrix<T, layout<matrix_t>>(m, n, &A_[0], layout<matrix_t> == Layout::ColMajor ? m : n);
-    auto B = legacyMatrix<T, layout<matrix_t>>(n, m, &B_[0], layout<matrix_t> == Layout::ColMajor ? n : m);
+    auto A = legacyMatrix<T, idx_t, layout<matrix_t>>(m, n, &A_[0], layout<matrix_t> == Layout::ColMajor ? m : n);
+    auto B = legacyMatrix<T, idx_t, layout<matrix_t>>(n, m, &B_[0], layout<matrix_t> == Layout::ColMajor ? n : m);
 
     // Generate a random matrix in A
     for (idx_t j = 0; j < n; ++j)

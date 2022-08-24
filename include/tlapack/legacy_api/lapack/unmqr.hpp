@@ -79,16 +79,8 @@ inline int unmqr(
     TA const* tau,
     TC* C, idx_t ldc )
 {
-    typedef scalar_type<TA,TC> scalar_t;
     using internal::colmajor_matrix;
     using internal::vector;
-
-    // Constants
-    const idx_t nb = 32; // number of blocks
-                         /// TODO: Improve me!
-    const idx_t nw = (side == Side::Left)
-                ? ( (n >= 1) ? n : 1 )
-                : ( (m >= 1) ? m : 1 );
 
     // check arguments
     tlapack_check_false( side != Side::Left &&
@@ -96,9 +88,6 @@ inline int unmqr(
     tlapack_check_false( trans != Op::NoTrans &&
                      trans != Op::Trans &&
                      trans != Op::ConjTrans );
-    
-    // Allocate work
-    std::unique_ptr<scalar_t[]> _work( new scalar_t[ nb * (nw + nb) ] );
                 
     // Matrix views
     const auto A_ = (side == Side::Left)
@@ -106,15 +95,8 @@ inline int unmqr(
             : colmajor_matrix<TA>( (TA*)A, n, k, lda );
     const auto _tau = vector( (TA*)tau, k );
     auto C_ = colmajor_matrix<TC>( C, m, n, ldc );
-    auto W_ = colmajor_matrix<scalar_t>( &_work[0], nb, nw+nb );
 
-    // Options
-    struct {
-        idx_t nb;
-        decltype(W_)* workPtr;
-    } opts = { nb, &W_ };
-    
-    return unmqr( side, trans, A_, _tau, C_, std::move(opts) );
+    return unmqr( side, trans, A_, _tau, C_ );
 }
 
 }

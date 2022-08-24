@@ -84,26 +84,24 @@ void run(size_t n, size_t nw, bool use_fortran)
 
     using real_t = tlapack::real_type<T>;
     using std::size_t;
-    using tlapack::internal::colmajor_matrix;
+    using matrix_t = tlapack::legacyMatrix<real_t>;
+
+    // Functors for creating new matrices
+    tlapack::Create<matrix_t> new_matrix;
 
     rand_generator gen;
     gen.seed(1302);
 
-    // Leading dimensions
-    size_t lda = (n > 0) ? n : 1;
-    size_t ldh = (n > 0) ? n : 1;
-    size_t ldq = lda;
-
     // Arrays
-    std::unique_ptr<T[]> A_(new T[lda * n]); // m-by-n
-    std::unique_ptr<T[]> H_(new T[ldh * n]); // n-by-n
-    std::unique_ptr<T[]> Q_(new T[ldq * n]); // m-by-n
+    std::unique_ptr<T[]> A_(new T[n * n]); // n-by-n
+    std::unique_ptr<T[]> H_(new T[n * n]); // n-by-n
+    std::unique_ptr<T[]> Q_(new T[n * n]); // n-by-n
     std::vector<T> tau(n);
 
     // Matrix views
-    auto A = colmajor_matrix<T>(&A_[0], n, n, lda);
-    auto H = colmajor_matrix<T>(&H_[0], n, n, ldh);
-    auto Q = colmajor_matrix<T>(&Q_[0], n, n, ldq);
+    auto A = new_matrix(&A_[0], n, n);
+    auto H = new_matrix(&H_[0], n, n);
+    auto Q = new_matrix(&Q_[0], n, n);
 
     // Initialize arrays with junk
     for (size_t j = 0; j < n; ++j)
@@ -173,7 +171,7 @@ void run(size_t n, size_t nw, bool use_fortran)
 
     {
         std::unique_ptr<T[]> _work(new T[n * n]);
-        auto work = colmajor_matrix<T>(&_work[0], n, n);
+        auto work = new_matrix(&_work[0], n, n);
         for (size_t j = 0; j < n; ++j)
             for (size_t i = 0; i < n; ++i)
                 work(i, j) = static_cast<float>(0xABADBABE);
@@ -191,11 +189,14 @@ void run(size_t n, size_t nw, bool use_fortran)
     // 3) Compute ||QHQ* - A||_F / ||A||_F
 
     std::unique_ptr<T[]> H_copy_(new T[n * n]);
-    auto H_copy = colmajor_matrix<T>(&H_copy_[0], n, n);
+    auto H_copy = new_matrix(&H_copy_[0], n, n);
     tlapack::lacpy(tlapack::Uplo::General, H, H_copy);
     {
         std::unique_ptr<T[]> _work(new T[n * n]);
-        auto work = colmajor_matrix<T>(&_work[0], n, n);
+        auto work = new_matrix(&_work[0], n, n);
+        for (size_t j = 0; j < n; ++j)
+            for (size_t i = 0; i < n; ++i)
+                work(i, j) = (T)0.0;
 
         tlapack::gemm(tlapack::Op::NoTrans, tlapack::Op::NoTrans, (T)1.0, Q, H, work);
         tlapack::gemm(tlapack::Op::NoTrans, tlapack::Op::ConjTrans, (T)1.0, work, Q, H);

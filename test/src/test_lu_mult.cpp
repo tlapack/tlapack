@@ -10,7 +10,6 @@
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 #include <tlapack/plugins/stdvector.hpp>
-#include <tlapack/plugins/legacyArray.hpp>
 #include <tlapack.hpp>
 #include <testutils.hpp>
 #include <testdefinitions.hpp>
@@ -40,9 +39,9 @@ TEMPLATE_LIST_TEST_CASE("lu multiplication is backward stable", "[lu check][lu][
         std::unique_ptr<T[]> U_(new T[n * n]);
         std::unique_ptr<T[]> A_(new T[n * n]);
 
-        auto L = legacyMatrix<T, layout<matrix_t>>(n, n, &L_[0], n);
-        auto U = legacyMatrix<T, layout<matrix_t>>(n, n, &U_[0], n);
-        auto A = legacyMatrix<T, layout<matrix_t>>(n, n, &A_[0], n);
+        auto L = legacyMatrix<T, idx_t, layout<matrix_t>>(n, n, &L_[0], n);
+        auto U = legacyMatrix<T, idx_t, layout<matrix_t>>(n, n, &U_[0], n);
+        auto A = legacyMatrix<T, idx_t, layout<matrix_t>>(n, n, &A_[0], n);
 
         // Generate n-by-n random matrix
         for (idx_t j = 0; j < n; ++j)

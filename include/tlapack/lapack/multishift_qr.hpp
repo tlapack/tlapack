@@ -138,6 +138,9 @@ namespace tlapack
         using idx_t = size_type<matrix_t>;
         using pair = std::pair<idx_t, idx_t>;
 
+        // Functor
+        Create<matrix_t> new_matrix;
+
         // constants
         const TA zero(0);
         const idx_t non_convergence_limit_window = 5;
@@ -206,7 +209,7 @@ namespace tlapack
             lwork = required_workspace;
             _work = new TA[lwork];
         }
-        auto V = legacyMatrix<TA, layout<matrix_t>>(3, nsr / 2, &_work[0], layout<matrix_t> == Layout ::ColMajor ? 3 : nsr / 2);
+        auto V = new_matrix(&_work[0], 3, nsr / 2);
 
         // itmax is the total number of QR iterations allowed.
         // For most matrices, 3 shifts per eigenvalue is enough, so

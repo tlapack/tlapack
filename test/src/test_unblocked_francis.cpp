@@ -54,9 +54,9 @@ TEMPLATE_LIST_TEST_CASE("lahqr", "[eigenvalues][doubleshift_qr]", types_to_test)
     std::unique_ptr<T[]> Q_(new T[n * n]);
 
     // This only works for legacy matrix, we really work on that construct_matrix function
-    auto A = legacyMatrix<T, layout<matrix_t>>(n, n, &A_[0], n);
-    auto H = legacyMatrix<T, layout<matrix_t>>(n, n, &H_[0], n);
-    auto Q = legacyMatrix<T, layout<matrix_t>>(n, n, &Q_[0], n);
+    auto A = legacyMatrix<T, idx_t, layout<matrix_t>>(n, n, &A_[0], n);
+    auto H = legacyMatrix<T, idx_t, layout<matrix_t>>(n, n, &H_[0], n);
+    auto Q = legacyMatrix<T, idx_t, layout<matrix_t>>(n, n, &Q_[0], n);
 
     if (matrix_type == "Random")
     {
@@ -106,8 +106,8 @@ TEMPLATE_LIST_TEST_CASE("lahqr", "[eigenvalues][doubleshift_qr]", types_to_test)
         std::unique_ptr<T[]> _res(new T[n * n]);
         std::unique_ptr<T[]> _work(new T[n * n]);
 
-        auto res = legacyMatrix<T, layout<matrix_t>>(n, n, &_res[0], n);
-        auto work = legacyMatrix<T, layout<matrix_t>>(n, n, &_work[0], n);
+        auto res = legacyMatrix<T, idx_t, layout<matrix_t>>(n, n, &_res[0], n);
+        auto work = legacyMatrix<T, idx_t, layout<matrix_t>>(n, n, &_work[0], n);
 
         // Calculate residuals
         auto orth_res_norm = check_orthogonality(Q, res);

@@ -10,6 +10,7 @@
 
 #include <complex>
 #include <type_traits>
+#include <vector>
 
 // Helpers:
 
@@ -268,6 +269,14 @@ namespace tlapack {
     // Constants
     constexpr columnwise_storage_t columnwise_storage { };
     constexpr rowwise_storage_t rowwise_storage { };
+} // namespace tlapack
+
+#undef TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_2_VALUES
+#undef TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_3_VALUES
+#undef TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_4_VALUES
+#undef TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_5_VALUES
+
+namespace tlapack {
 
     // -----------------------------------------------------------------------------
     // Based on C++14 std::common_type implementation from
@@ -379,11 +388,15 @@ namespace tlapack {
         using real_t = scalar_type< real_type<T1>, real_type< Types... > >;
     };
 
-} // namespace tlapack
+    // Related to the workspace:
 
-#undef TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_2_VALUES
-#undef TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_3_VALUES
-#undef TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_4_VALUES
-#undef TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_5_VALUES
+    /// Byte type
+    using byte = unsigned char;
+    /// Byte allocator
+    using byteAlloc = std::allocator<byte>;
+    /// Vector of bytes. May use a specialized allocator in future
+    using vectorOfBytes = std::vector<byte,byteAlloc>;
+
+} // namespace tlapack
 
 #endif // TLAPACK_TYPES_HH

@@ -173,6 +173,85 @@ namespace tlapack {
     constexpr lowerTriangle_t lowerTriangle = { };
     constexpr strictUpper_t strictUpper = { };
     constexpr strictLower_t strictLower = { };
+
+    // Functor:
+
+    /**
+     * @brief Implements the options for data creation in <T>LAPACK
+     * 
+     * Must be specialized for each datatype
+     * 
+     * Usage:
+     * @code{.cpp}
+     * // matrix_t is a predefined type at this point
+     * 
+     * using T = type_t<matrix_t>;
+     * using idx_t = size_type<matrix_t>;
+     * 
+     * Create<matrix_t> new_matrix; // Creates the functor
+     * 
+     * idx_t m = 11;
+     * idx_t n = 6;
+     * 
+     * std::vector<T> A_container( m*n ); // Pre-allocated space
+     * auto A = new_matrix(&A_container[0], 11, 6);
+     * 
+     * std::vector<T> B_container; // Empty vector
+     * auto B = new_matrix(11, 6, B_container); // Allocates space
+     * 
+     * tlapack::vectorOfBytes C_container; // Empty vector of bytes
+     * auto C = new_matrix(11, 6, C_container); // Allocates space
+     * @endcode
+     */
+    template< class matrix_t > class Create {
+
+        static_assert(false && sizeof(matrix_t), "Must use correct specialization");
+
+        /**
+         * @brief Creates a matrix using the preallocated memory
+         * 
+         * @param ptr   Pointer to the preallocated memory
+         * @param m     Number of rows
+         * @param n     Number of Columns
+         * 
+         * @return The matrix using the preallocated memory
+         */
+        template< class T, class idx_t >
+        inline constexpr auto
+        operator()( T* ptr, idx_t m, idx_t n ) const {
+            return matrix_t();
+        }
+
+        /**
+         * @brief Creates a matrix
+         * 
+         * @param m         Number of rows
+         * @param n         Number of Columns
+         * @param container Vector that can be used to store some allocated memory
+         * 
+         * @return The new matrix
+         */
+        template< class T, class idx_t, class Allocator >
+        inline constexpr auto
+        operator()( idx_t m, idx_t n, std::vector<T,Allocator>& container ) const {
+            return matrix_t();
+        }
+
+        /**
+         * @brief Creates a matrix
+         * 
+         * @param m         Number of rows
+         * @param n         Number of Columns
+         * @param container Vector that can be used to store some allocated memory
+         * 
+         * @return The new matrix
+         */
+        template< class idx_t >
+        inline constexpr auto
+        operator()( idx_t m, idx_t n, vectorOfBytes& container ) const {
+            return matrix_t();
+        }
+    };
 }
 
 #endif // TLAPACK_ARRAY_TRAITS

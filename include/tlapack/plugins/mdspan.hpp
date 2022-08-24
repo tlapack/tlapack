@@ -10,7 +10,7 @@
 #include <experimental/mdspan>
 
 #include "tlapack/base/arrayTraits.hpp"
-#include "tlapack/legacy_api/legacyArray.hpp"
+#include "tlapack/base/legacyArray.hpp"
 
 namespace tlapack {
 

@@ -20,14 +20,12 @@ int main(int argc, char **argv)
 {
     typedef float T;
 
-    using tlapack::internal::colmajor_matrix;
-
     const int n = 10;
     const T one(1);
     const T zero(0);
 
     std::unique_ptr<T[]> A_(new T[n * n]);
-    auto A = colmajor_matrix<T>(&A_[0], n, n, n);
+    auto A = tlapack::legacyMatrix<T>(n, n, &A_[0], n);
 
     tlapack::laset( tlapack::Uplo::General, zero, one, A );
 

@@ -37,27 +37,22 @@ template <typename T>
 void run(size_t n)
 {
     using real_t = tlapack::real_type<T>;
-    using tlapack::internal::colmajor_matrix;
+    using matrix_t = tlapack::legacyMatrix<T>;
     using std::size_t;
+
+    // Functor for creating new matrices of type matrix_t
+    tlapack::Create<matrix_t> new_matrix;
 
     // Turn it off if m or n are large
     bool verbose = false;
 
-    // Leading dimensions
-    size_t lda = (n > 0) ? n : 1;
-    size_t ldh = (n > 0) ? n : 1;
-    size_t ldq = lda;
-
     // Arrays
-    std::unique_ptr<T[]> A_(new T[lda * n]); // m-by-n
-    std::unique_ptr<T[]> H_(new T[ldh * n]); // n-by-n
-    std::unique_ptr<T[]> Q_(new T[ldq * n]); // m-by-n
     std::vector<T> tau(n);
 
     // Matrix views
-    auto A = colmajor_matrix<T>(&A_[0], n, n, lda);
-    auto H = colmajor_matrix<T>(&H_[0], n, n, ldh);
-    auto Q = colmajor_matrix<T>(&Q_[0], n, n, ldq);
+    std::vector<T> A_container; auto A = new_matrix(n, n, A_container);
+    std::vector<T> H_container; auto H = new_matrix(n, n, H_container);
+    std::vector<T> Q_container; auto Q = new_matrix(n, n, Q_container);
 
     // Initialize arrays with junk
     for (size_t j = 0; j < n; ++j)
@@ -165,8 +160,8 @@ void run(size_t n)
     // 2) Compute ||Q'Q - I||_F
 
     {
-        std::unique_ptr<T[]> _work(new T[n * n]);
-        auto work = colmajor_matrix<T>(&_work[0], n, n);
+        std::vector<T> work_container;
+        auto work = new_matrix(n, n, work_container);
         for (size_t j = 0; j < n; ++j)
             for (size_t i = 0; i < n; ++i)
                 work(i, j) = static_cast<float>(0xABADBABE);
@@ -190,12 +185,12 @@ void run(size_t n)
 
     // 3) Compute ||QHQ* - A||_F / ||A||_F
 
-    std::unique_ptr<T[]> Hcopy_(new T[n * n]);
-    auto H_copy = colmajor_matrix<T>(&Hcopy_[0], n, n);
+    std::vector<T> Hcopy_container;
+    auto H_copy = new_matrix(n, n, Hcopy_container);
     tlapack::lacpy(tlapack::Uplo::General,H, H_copy);
     {
-        std::unique_ptr<T[]> _work(new T[n * n]);
-        auto work = colmajor_matrix<T>(&_work[0], n, n);
+        std::vector<T> work_container;
+        auto work = new_matrix(n, n, work_container);
         for (size_t j = 0; j < n; ++j)
             for (size_t i = 0; i < n; ++i)
                 work(i, j) = static_cast<float>(0xABADBABC);
@@ -220,8 +215,8 @@ void run(size_t n)
     // 4) Compute Q*AQ (usefull for debugging)
 
     if(verbose){
-        std::unique_ptr<T[]> _work(new T[n * n]);
-        auto work = colmajor_matrix<T>(&_work[0], n, n);
+        std::vector<T> work_container;
+        auto work = new_matrix(n, n, work_container);
         for (size_t j = 0; j < n; ++j)
             for (size_t i = 0; i < n; ++i)
                 work(i, j) = static_cast<float>(0xABADBABC);
