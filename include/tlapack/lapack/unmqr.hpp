@@ -129,8 +129,9 @@ int unmqr(
 
     // Allocates workspace
     vectorOfBytes localwork;
-    size_t lwork = unmqr_worksize( side, trans, A, tau, C, opts );
-    byte* work = alloc_workspace( localwork, lwork, opts.work, opts.lwork );
+    size_t lwork, minwork;
+    unmqr_worksize( side, trans, A, tau, C, lwork, minwork, opts );
+    byte* work = alloc_workspace( localwork, lwork, minwork, opts.work, opts.lwork );
     
     // quick return
     if ((m == 0) || (n == 0) || (k == 0))
@@ -171,9 +172,13 @@ int unmqr(
 
 /** Worspace query for unmqr
  *      
- * @return  nb*(n+nb)*sizeof(T) if side = Side::Left, or
- *          nb*(m+nb)*sizeof(T) if side = Side::Right,
- *      where T is the common type that fits the elements of A, tau and C
+ * Returns
+ *  nb*nb*sizeof(T) +
+ *  workspace needed for larfb,
+ * where T is the common type that fits the elements of A, tau and C.
+ * 
+ * @param[out] optSize Optimal workspace size.
+ * @param[out] minSize Minimum workspace size.
  * 
  * @ingroup geqrf
  */
@@ -190,20 +195,34 @@ template<
     class idx_t = size_type< matrixC_t >
 >
 inline constexpr
-size_t unmqr_worksize(
+void unmqr_worksize(
     side_t side, trans_t trans,
     const matrixA_t& A,
     const tau_t& tau,
     matrixC_t& C,
+    size_t& optSize, size_t& minSize,
     const unmqr_opts_t<T,idx_t,work_t>& opts = {} )
 {
     // Constants
     const idx_t m = nrows(C);
     const idx_t n = ncols(C);
-    const idx_t nw = (side == Side::Left) ? n : m;
+    const idx_t nA = (side == Side::Left) ? m : n;
     const idx_t nb = opts.nb;
+
+    // Functors
+    Create<matrixA_t> new_matrixV;
+    Create<work_t> new_matrixT;
     
-    return nb*(nw+nb) * sizeof(T);
+    // Empty matrices
+    const auto V        = new_matrixV( nullptr, nA, nb );
+    const auto Tmatrix  = new_matrixT( nullptr, nb, nb );
+
+    // Internal workspace queries
+    larfb_worksize( side, trans, forward, columnwise_storage, V, Tmatrix, C, optSize, minSize, opts );
+    
+    // Additional workspace needed inside the routine
+    optSize += sizeof(T) * nb*nb;
+    minSize += sizeof(T) * nb*nb;
 }
 
 }

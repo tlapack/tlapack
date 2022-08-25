@@ -153,8 +153,9 @@ int larfb(
 
     // Allocates workspace
     vectorOfBytes localwork;
-    size_t lwork = larfb_worksize( side, trans, direction, storeMode, V, Tmatrix, C, opts );
-    const byte* work = alloc_workspace( localwork, lwork, opts.work, opts.lwork );
+    size_t lwork, minwork;
+    larfb_worksize( side, trans, direction, storeMode, V, Tmatrix, C, lwork, minwork, opts );
+    byte* work = alloc_workspace( localwork, lwork, minwork, opts.work, opts.lwork );
 
     // Quick return
     if (m <= 0 || n <= 0 || k <= 0) return 0;
@@ -529,9 +530,13 @@ int larfb(
 
 /** Worspace query for larfb
  *      
- * @return  k*n*sizeof(T) if side = Side::Left, or
- *          k*m*sizeof(T) if side = Side::Right,
- *      where T is the common type that fits the elements of V and C
+ * Returns
+ *  k*n*sizeof(T) if side = Side::Left, or
+ *  k*m*sizeof(T) if side = Side::Right,
+ * where T is the common type that fits the elements of V and C.
+ * 
+ * @param[out] optSize Optimal workspace size.
+ * @param[out] minSize Minimum workspace size.
  * 
  * @ingroup auxiliary
  */
@@ -547,18 +552,20 @@ template<
     class idx_t = size_type< matrixC_t >
 >
 inline constexpr
-size_t larfb_worksize(
+void larfb_worksize(
     side_t side, trans_t trans,
     direction_t direction, storage_t storeMode,
     const matrixV_t& V, const matrixT_t& Tmatrix,
-    matrixC_t& C, const workspace_opts_t<T,idx_t,work_t>& opts )
+    matrixC_t& C, 
+    size_t& optSize, size_t& minSize,
+    const workspace_opts_t<T,idx_t,work_t>& opts )
 {
     // constants
     const idx_t m = nrows(C);
     const idx_t n = ncols(C);
     const idx_t k = nrows(Tmatrix);
 
-    return sizeof(T) * ((side == Side::Left) ? k*n : k*m);
+    minSize = optSize = sizeof(T) * ((side == Side::Left) ? k*n : k*m);
 }
 
 }
