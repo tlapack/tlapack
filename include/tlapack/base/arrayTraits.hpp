@@ -208,11 +208,11 @@ namespace tlapack {
         static_assert(false && sizeof(matrix_t), "Must use correct specialization");
 
         /**
-         * @brief Creates a matrix using the preallocated memory
+         * @brief Creates a matrix using preallocated memory
          * 
-         * @param ptr   Pointer to the preallocated memory
-         * @param m     Number of rows
-         * @param n     Number of Columns
+         * @param[in] ptr   Pointer to the preallocated memory
+         * @param[in] m     Number of rows
+         * @param[in] n     Number of Columns
          * 
          * @return The matrix using the preallocated memory
          */
@@ -223,11 +223,29 @@ namespace tlapack {
         }
 
         /**
+         * @brief Creates a matrix using preallocated memory
+         * 
+         * @param[in] ptr   Pointer to the preallocated memory
+         * @param[in] m     Number of rows
+         * @param[in] n     Number of Columns
+         * @param[in] size  Preallocated size, for error checks
+         * 
+         * @return The matrix using the preallocated memory
+         */
+        template< class T, class idx_t >
+        inline constexpr auto
+        operator()( T* ptr, idx_t m, idx_t n, size_t size ) const {
+            assert( size >= m*n );
+            return matrix_t();
+        }
+
+        /**
          * @brief Creates a matrix
          * 
-         * @param m         Number of rows
-         * @param n         Number of Columns
-         * @param container Vector that can be used to store some allocated memory
+         * @param[in] m Number of rows
+         * @param[in] n Number of Columns
+         * @param[out] container
+         *      Vector that can be used to store some allocated memory.
          * 
          * @return The new matrix
          */
@@ -240,9 +258,10 @@ namespace tlapack {
         /**
          * @brief Creates a matrix
          * 
-         * @param m         Number of rows
-         * @param n         Number of Columns
-         * @param container Vector that can be used to store some allocated memory
+         * @param[in] m Number of rows
+         * @param[in] n Number of Columns
+         * @param[out] container
+         *      Vector that can be used to store some allocated memory.
          * 
          * @return The new matrix
          */

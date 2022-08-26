@@ -361,6 +361,12 @@ namespace tlapack {
             return legacyMatrix<T,idx_t,layout>( m, n, ptr );
         }
 
+        inline constexpr auto
+        operator()( T* ptr, idx_t m, idx_t n, size_t size ) const {
+            assert( size >= m*n );
+            return legacyMatrix<T,idx_t,layout>( m, n, ptr );
+        }
+
         template< class Allocator >
         inline constexpr auto
         operator()( idx_t m, idx_t n, std::vector<T,Allocator>& container ) const {

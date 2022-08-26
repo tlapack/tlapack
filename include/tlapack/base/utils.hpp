@@ -958,9 +958,8 @@ inline constexpr auto get_work( opts_t&& opts ) {
  *      If `opts_lwork <= 0`, lwork bytes are allocated in work.
  *      If `opts_lwork > 0`, work is kept unchanged.
  * @param[in,out] lwork
- *      On the input: Optimal workspace size.
- *      On the output: Computed workspace size.
- * @param[in] minwork       Minimum workspace size.
+ *      On the input: Workspace size needed.
+ *      On the output: Available workspace size.
  * @param[in] opts_work     Optional workspace previously allocated.
  * @param[in] opts_lwork    Size of the optional workspace previously allocated.
  * 
@@ -970,42 +969,28 @@ inline constexpr auto get_work( opts_t&& opts ) {
  */
 inline
 byte* alloc_workspace(
-    vectorOfBytes& work, size_t& lwork, size_t minwork,
-    const byte* opts_work, const size_t opts_lwork )
+    vectorOfBytes& work, size_t& lwork,
+    byte* opts_work, const size_t opts_lwork )
 {
     if( opts_lwork <= 0 )
     {
-        try {
-            work = vectorOfBytes( lwork ); // Allocates space in memory
-        } catch( const std::bad_alloc& e ) {
-            try {
-                tlapack_warning( 1,
-                    std::string("std::bad_alloc caught: ") + e.what() + "\n"
-                    "Allocates minimum workspace instead." );
-                work = vectorOfBytes( minwork ); // Allocates space in memory
-                lwork = minwork;
-            }
-            catch( const std::bad_alloc& e ) {
-                tlapack_error( 2,
-                    std::string("std::bad_alloc caught: ") + e.what() + "\n" );
-                return nullptr;
-            }
-        }
-
+        work = vectorOfBytes( lwork ); // Allocates space in memory
         return &work[0];
     }
-    else if( opts_lwork < minwork )
+    else if( opts_lwork < lwork )
     {
-        lwork = 0;
         tlapack_error( -4,
-            std::string("Insuficient workspace. Minimum: ") + std::to_string(minwork)
-            + ", Provided: " + std::to_string(opts_lwork) );
+            std::string("Insuficient workspace.") +
+            " Required: " + std::to_string(lwork)
+            + ". Provided: " + std::to_string(opts_lwork)
+        );
+        lwork = 0;
         return nullptr;
     }
     else
     {
         lwork = opts_lwork;
-        return (byte*) opts_work;
+        return opts_work;
     }
 }
 
