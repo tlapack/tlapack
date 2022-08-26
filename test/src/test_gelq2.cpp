@@ -26,6 +26,9 @@ TEMPLATE_LIST_TEST_CASE("LQ factorization of a general m-by-n matrix", "[lqf]", 
     using range = std::pair<idx_t, idx_t>;
     typedef real_type<T> real_t;
 
+    // Functor
+    Create<matrix_t> new_matrix;
+
     const T zero(0);
 
     idx_t m, n, k;
@@ -40,8 +43,8 @@ TEMPLATE_LIST_TEST_CASE("LQ factorization of a general m-by-n matrix", "[lqf]", 
     std::unique_ptr<T[]> A_(new T[m * n]);
     std::unique_ptr<T[]> A_copy_(new T[m * n]);
 
-    auto A = legacyMatrix<T, idx_t, layout<matrix_t>>(m, n, &A_[0], layout<matrix_t> == Layout::ColMajor ? m : n);
-    auto A_copy = legacyMatrix<T, idx_t, layout<matrix_t>>(m, n, &A_copy_[0], layout<matrix_t> == Layout::ColMajor ? m : n);
+    auto A = new_matrix( &A_[0], m, n );
+    auto A_copy = new_matrix( &A_copy_[0], m, n );
 
     std::vector<T> work_gelq2(m);
     std::vector<T> work_ungl2(k);
@@ -63,26 +66,26 @@ TEMPLATE_LIST_TEST_CASE("LQ factorization of a general m-by-n matrix", "[lqf]", 
             // Q is sliced down to the desired size of output Q (k-by-n).
             // It stores the desired number of Householder reflectors that UNGL2 will use.
             std::unique_ptr<T[]> Q_(new T[k * n]);
-            auto Q = legacyMatrix<T, idx_t, layout<matrix_t>>(k, n, &Q_[0], layout<matrix_t> == Layout::ColMajor ? k : n);
+            auto Q = new_matrix( &Q_[0], k, n );
             lacpy(Uplo::General, slice(A, range(0, min(m, k)), range(0, n)), Q);
 
             ungl2(Q, tauw, work_ungl2);
 
             // Wq is the identity matrix to check the orthogonality of Q
             std::unique_ptr<T[]> Wq_(new T[k * k]);
-            auto Wq = legacyMatrix<T, idx_t, layout<matrix_t>>(k, k, &Wq_[0], k);
+            auto Wq = new_matrix( &Wq_[0], k, k );
             auto orth_Q = check_orthogonality(Q, Wq);
             CHECK(orth_Q <= tol);
 
             // L is sliced from A after GELQ2
             std::unique_ptr<T[]> L_(new T[min(k, m) * k]);
-            auto L = legacyMatrix<T, idx_t, layout<matrix_t>>(min(k, m), k, &L_[0], layout<matrix_t> == Layout::ColMajor ? min(k, m) : k);
+            auto L = new_matrix( &L_[0], min(k, m), k );
             laset(Uplo::Upper, zero, zero, L);
             lacpy(Uplo::Lower, slice(A, range(0, min(m, k)), range(0, k)), L);
 
             // R stores the product of L and Q
             std::unique_ptr<T[]> R_(new T[min(k, m) * n]);
-            auto R = legacyMatrix<T, idx_t, layout<matrix_t>>(min(k, m), n, &R_[0], layout<matrix_t> == Layout::ColMajor ? min(k, m) : n);
+            auto R = new_matrix( &R_[0], min(k, m), n );
 
             // Test A = L * Q
             gemm(Op::NoTrans, Op::NoTrans, real_t(1.), L, Q, R);

@@ -25,6 +25,9 @@ TEMPLATE_LIST_TEST_CASE("Multishift QR", "[eigenvalues][multishift_qr]", types_t
     using real_t = real_type<T>;
     using complex_t = std::complex<real_t>;
 
+    // Functor
+    Create<matrix_t> new_matrix;
+
     rand_generator gen;
 
     const T zero(0);
@@ -66,9 +69,9 @@ TEMPLATE_LIST_TEST_CASE("Multishift QR", "[eigenvalues][multishift_qr]", types_t
     std::unique_ptr<T[]> Q_(new T[n * n]);
 
     // This only works for legacy matrix, we really work on that construct_matrix function
-    auto A = legacyMatrix<T, idx_t, layout<matrix_t>>(n, n, &A_[0], n);
-    auto H = legacyMatrix<T, idx_t, layout<matrix_t>>(n, n, &H_[0], n);
-    auto Q = legacyMatrix<T, idx_t, layout<matrix_t>>(n, n, &Q_[0], n);
+    auto A = new_matrix( &A_[0], n, n );
+    auto H = new_matrix( &H_[0], n, n );
+    auto Q = new_matrix( &Q_[0], n, n );
 
     if (matrix_type == "Random")
     {
@@ -154,8 +157,8 @@ TEMPLATE_LIST_TEST_CASE("Multishift QR", "[eigenvalues][multishift_qr]", types_t
         std::unique_ptr<T[]> _res(new T[n * n]);
         std::unique_ptr<T[]> _work(new T[n * n]);
 
-        auto res = legacyMatrix<T, idx_t, layout<matrix_t>>(n, n, &_res[0], n);
-        auto work = legacyMatrix<T, idx_t, layout<matrix_t>>(n, n, &_work[0], n);
+        auto res = new_matrix( &_res[0], n, n );
+        auto work = new_matrix( &_work[0], n, n );
 
         // Calculate residuals
         auto orth_res_norm = check_orthogonality(Q, res);

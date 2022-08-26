@@ -25,6 +25,9 @@ TEMPLATE_LIST_TEST_CASE("sylvester solver gives correct result", "[sylvester]", 
     using idx_t = size_type<matrix_t>;
     typedef real_type<T> real_t;
 
+    // Functor
+    Create<matrix_t> new_matrix;
+
     const T one(1);
     idx_t n1 = GENERATE(1, 2);
     // Once 1x2 solver is finished, generate n2 independantly
@@ -38,11 +41,11 @@ TEMPLATE_LIST_TEST_CASE("sylvester solver gives correct result", "[sylvester]", 
     std::unique_ptr<T[]> X_(new T[n1 * n2]);
     std::unique_ptr<T[]> X_exact_(new T[n1 * n2]);
 
-    auto TL = legacyMatrix<T, idx_t, layout<matrix_t>>(n1, n1, &TL_[0], n1);
-    auto TR = legacyMatrix<T, idx_t, layout<matrix_t>>(n2, n2, &TR_[0], n2);
-    auto B = legacyMatrix<T, idx_t, layout<matrix_t>>(n1, n2, &B_[0], layout<matrix_t> == Layout::ColMajor ? n1 : n2);
-    auto X = legacyMatrix<T, idx_t, layout<matrix_t>>(n1, n2, &X_[0], layout<matrix_t> == Layout::ColMajor ? n1 : n2);
-    auto X_exact = legacyMatrix<T, idx_t, layout<matrix_t>>(n1, n2, &X_exact_[0], layout<matrix_t> == Layout::ColMajor ? n1 : n2);
+    auto TL = new_matrix( &TL_[0], n1, n1 );
+    auto TR = new_matrix( &TR_[0], n2, n2 );
+    auto B = new_matrix( &B_[0], n1, n2 );
+    auto X = new_matrix( &X_[0], n1, n2 );
+    auto X_exact = new_matrix( &X_exact_[0], n1, n2 );
 
     for (idx_t i = 0; i < n1; ++i)
         for (idx_t j = 0; j < n1; ++j)

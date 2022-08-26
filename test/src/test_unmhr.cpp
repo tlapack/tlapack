@@ -26,6 +26,9 @@ TEMPLATE_LIST_TEST_CASE("Result of unmhr matches result from unghr", "[eigenvalu
     using real_t = real_type<T>;
     using pair = std::pair<idx_t, idx_t>;
 
+    // Functor
+    Create<matrix_t> new_matrix;
+
     auto matrix_type = GENERATE(as<std::string>{}, "Random");
     Side side = GENERATE(Side::Left, Side::Right);
     Op op = GENERATE(Op::NoTrans, Op::ConjTrans);
@@ -46,9 +49,9 @@ TEMPLATE_LIST_TEST_CASE("Result of unmhr matches result from unghr", "[eigenvalu
     std::unique_ptr<T[]> C_copy_(new T[m * n]);
 
     // This only works for legacy matrix, we really work on that construct_matrix function
-    auto H = legacyMatrix<T, idx_t, layout<matrix_t>>(n, n, &H_[0], n);
-    auto C = legacyMatrix<T, idx_t, layout<matrix_t>>(m, n, &C_[0], layout<matrix_t> == Layout::ColMajor ? m : n);
-    auto C_copy = legacyMatrix<T, idx_t, layout<matrix_t>>(m, n, &C_copy_[0], layout<matrix_t> == Layout::ColMajor ? m : n);
+    auto H = new_matrix( &H_[0], n, n );
+    auto C = new_matrix( &C_[0], m, n );
+    auto C_copy = new_matrix( &C_copy_[0], m, n );
     std::vector<T> tau(n);
     std::vector<T> work(std::max(n,m));
 

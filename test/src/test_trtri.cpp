@@ -25,6 +25,9 @@ TEMPLATE_LIST_TEST_CASE("TRTRI is stable", "[trtri]", types_to_test)
     using idx_t = size_type<matrix_t>;
     typedef real_type<T> real_t;
 
+    // Functor
+    Create<matrix_t> new_matrix;
+
     Uplo uplo = GENERATE(Uplo::Lower, Uplo::Upper);
     Diag diag = GENERATE(Diag::Unit, Diag::NonUnit);
     idx_t n = GENERATE(1, 2, 6, 9);
@@ -35,8 +38,8 @@ TEMPLATE_LIST_TEST_CASE("TRTRI is stable", "[trtri]", types_to_test)
     std::unique_ptr<T[]> A_(new T[n * n]);
     std::unique_ptr<T[]> C_(new T[n * n]);
 
-    auto A = legacyMatrix<T, idx_t, layout<matrix_t>>(n, n, &A_[0], n);
-    auto C = legacyMatrix<T, idx_t, layout<matrix_t>>(n, n, &C_[0], n);
+    auto A = new_matrix( &A_[0], n, n );
+    auto C = new_matrix( &C_[0], n, n );
 
     // Generate random matrix in Schur form
     for (idx_t j = 0; j < n; ++j)

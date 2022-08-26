@@ -25,6 +25,9 @@ TEMPLATE_LIST_TEST_CASE("move of eigenvalue block gives correct results", "[eige
     using idx_t = size_type<matrix_t>;
     typedef real_type<T> real_t;
 
+    // Functor
+    Create<matrix_t> new_matrix;
+
     const T zero(0);
     const T one(1);
     idx_t n = 10;
@@ -56,9 +59,9 @@ TEMPLATE_LIST_TEST_CASE("move of eigenvalue block gives correct results", "[eige
     std::unique_ptr<T[]> Q_(new T[n * n]);
     std::unique_ptr<T[]> A_copy_(new T[n * n]);
 
-    auto A = legacyMatrix<T, idx_t, layout<matrix_t>>(n, n, &A_[0], n);
-    auto Q = legacyMatrix<T, idx_t, layout<matrix_t>>(n, n, &Q_[0], n);
-    auto A_copy = legacyMatrix<T, idx_t, layout<matrix_t>>(n, n, &A_copy_[0], n);
+    auto A = new_matrix( &A_[0], n, n );
+    auto Q = new_matrix( &Q_[0], n, n );
+    auto A_copy = new_matrix( &A_copy_[0], n, n );
 
     // Generate random matrix in Schur form
     for (idx_t j = 0; j < n; ++j)
@@ -100,8 +103,8 @@ TEMPLATE_LIST_TEST_CASE("move of eigenvalue block gives correct results", "[eige
         std::unique_ptr<T[]> _res(new T[n * n]);
         std::unique_ptr<T[]> _work(new T[n * n]);
 
-        auto res = legacyMatrix<T, idx_t, layout<matrix_t>>(n, n, &_res[0], n);
-        auto work = legacyMatrix<T, idx_t, layout<matrix_t>>(n, n, &_work[0], n);
+        auto res = new_matrix( &_res[0], n, n );
+        auto work = new_matrix( &_work[0], n, n );
         auto orth_res_norm = check_orthogonality(Q, res);
         CHECK(orth_res_norm <= tol);
 

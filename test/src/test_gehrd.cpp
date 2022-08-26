@@ -22,6 +22,9 @@ void check_hess_reduction(size_type<matrix_t> ilo, size_type<matrix_t> ihi, matr
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
 
+    // Functor
+    Create<matrix_t> new_matrix;
+
     idx_t n = ncols(A);
 
     const real_type<T> eps = uroundoff<real_type<T>>();
@@ -31,9 +34,9 @@ void check_hess_reduction(size_type<matrix_t> ilo, size_type<matrix_t> ihi, matr
     std::unique_ptr<T[]> _res(new T[n * n]);
     std::unique_ptr<T[]> _work(new T[n * n]);
 
-    auto Q = legacyMatrix<T, idx_t, layout<matrix_t>>(n, n, &Q_[0], n);
-    auto res = legacyMatrix<T, idx_t, layout<matrix_t>>(n, n, &_res[0], n);
-    auto work = legacyMatrix<T, idx_t, layout<matrix_t>>(n, n, &_work[0], n);
+    auto Q = new_matrix( &Q_[0], n, n );
+    auto res = new_matrix( &_res[0], n, n );
+    auto work = new_matrix( &_work[0], n, n );
     std::vector<T> workv(n);
 
     // Generate orthogonal matrix Q
@@ -63,6 +66,9 @@ TEMPLATE_LIST_TEST_CASE("Hessenberg reduction is backward stable", "[eigenvalues
     using idx_t = size_type<matrix_t>;
     using real_t = real_type<T>;
 
+    // Functor
+    Create<matrix_t> new_matrix;
+
     auto matrix_type = GENERATE(as<std::string>{}, "Random", "Near overflow");
 
     rand_generator gen;
@@ -91,8 +97,8 @@ TEMPLATE_LIST_TEST_CASE("Hessenberg reduction is backward stable", "[eigenvalues
     std::unique_ptr<T[]> H_(new T[n * n]);
 
     // This only works for legacy matrix, we really work on that construct_matrix function
-    auto A = legacyMatrix<T, idx_t, layout<matrix_t>>(n, n, &A_[0], n);
-    auto H = legacyMatrix<T, idx_t, layout<matrix_t>>(n, n, &H_[0], n);
+    auto A = new_matrix( &A_[0], n, n );
+    auto H = new_matrix( &H_[0], n, n );
     std::vector<T> tau(n);
 
     if (matrix_type == "Random")
