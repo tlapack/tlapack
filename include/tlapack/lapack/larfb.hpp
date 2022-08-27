@@ -94,24 +94,23 @@ namespace tlapack {
 template<
     class matrixV_t, class matrixT_t, class matrixC_t,
     class side_t, class trans_t, class direction_t, class storage_t,
-    // opts_t:
-    class T = scalar_type<
-        type_t< matrixV_t >,
-        type_t< matrixC_t >
-    >,
-    class idx_t = size_type< matrixC_t >,
-    class work_t = legacyMatrix<T,idx_t>
+    class work_t = undefined_t
 >
 int larfb(
     side_t side, trans_t trans,
     direction_t direction, storage_t storeMode,
     const matrixV_t& V, const matrixT_t& Tmatrix,
-    matrixC_t& C, const workspace_opts_t<T,idx_t,work_t>& opts = {} )
+    matrixC_t& C, const workspace_opts_t<work_t>& opts = {} )
 {
+    using T         = scalar_type< type_t<matrixV_t >, type_t<matrixC_t> >;
+    using idx_t     = size_type< matrixC_t >;
+    using matrixW_t = deduce_work_t< work_t, legacyMatrix<T,idx_t> >;
+    using TW        = type_t< matrixW_t >;
+
     using pair  = pair<idx_t,idx_t>;
 
     // Functor
-    Create<work_t> new_matrix;
+    Create< matrixW_t > new_matrix;
 
     // constants
     const T one( 1 );
@@ -171,7 +170,7 @@ int larfb(
                 const auto V2 = rows( V, ( m > k ) ? pair{k,m} : pair{0,0} );
                 auto C1 = rows( C, pair{0,k} );
                 auto C2 = rows( C, ( m > k ) ? pair{k,m} : pair{0,0} );
-                auto W  = new_matrix( (T*)work, k, n, lwork/sizeof(T) );
+                auto W  = new_matrix( (TW*)work, k, n, lwork/sizeof(TW) );
 
                 // W := C1
                 lacpy( dense, C1, W );
@@ -215,7 +214,7 @@ int larfb(
                 const auto V2 = rows( V, ( n > k ) ? pair{k,n} : pair{0,0} );
                 auto C1 = cols( C, pair{0,k} );
                 auto C2 = cols( C, ( n > k ) ? pair{k,n} : pair{0,0} );
-                auto W  = new_matrix( (T*)work, m, k, lwork/sizeof(T) );
+                auto W  = new_matrix( (TW*)work, m, k, lwork/sizeof(TW) );
 
                 // W := C1
                 lacpy( dense, C1, W );
@@ -261,7 +260,7 @@ int larfb(
                 const auto V2 = rows( V, pair{m-k,m} );
                 auto C1 = rows( C, pair{0,m-k} );
                 auto C2 = rows( C, pair{m-k,m} );
-                auto W  = new_matrix( (T*)work, k, n, lwork/sizeof(T) );
+                auto W  = new_matrix( (TW*)work, k, n, lwork/sizeof(TW) );
 
                 // W := C2
                 lacpy( dense, C2, W );
@@ -305,7 +304,7 @@ int larfb(
                 const auto V2 = rows( V, pair{n-k,n} );
                 auto C1 = cols( C, pair{0,n-k} );
                 auto C2 = cols( C, pair{n-k,n} );
-                auto W  = new_matrix( (T*)work, m, k, lwork/sizeof(T) );
+                auto W  = new_matrix( (TW*)work, m, k, lwork/sizeof(TW) );
 
                 // W := C2
                 lacpy( dense, C2, W );
@@ -353,7 +352,7 @@ int larfb(
                 const auto V2 = cols( V, ( m > k ) ? pair{k,m} : pair{0,0} );
                 auto C1 = rows( C, pair{0,k} );
                 auto C2 = rows( C, ( m > k ) ? pair{k,m} : pair{0,0} );
-                auto W  = new_matrix( (T*)work, k, n, lwork/sizeof(T) );
+                auto W  = new_matrix( (TW*)work, k, n, lwork/sizeof(TW) );
 
                 // W := C1
                 lacpy( dense, C1, W );
@@ -397,7 +396,7 @@ int larfb(
                 const auto V2 = cols( V, ( n > k ) ? pair{k,n} : pair{0,0} );
                 auto C1 = cols( C, pair{0,k} );
                 auto C2 = cols( C, ( n > k ) ? pair{k,n} : pair{0,0} );
-                auto W  = new_matrix( (T*)work, m, k, lwork/sizeof(T) );
+                auto W  = new_matrix( (TW*)work, m, k, lwork/sizeof(TW) );
 
                 // W := C1
                 lacpy( dense, C1, W );
@@ -443,7 +442,7 @@ int larfb(
                 const auto V2 = cols( V, pair{m-k,m} );
                 auto C1 = rows( C, pair{0,m-k} );
                 auto C2 = rows( C, pair{m-k,m} );
-                auto W  = new_matrix( (T*)work, k, n, lwork/sizeof(T) );
+                auto W  = new_matrix( (TW*)work, k, n, lwork/sizeof(TW) );
 
                 // W := C2
                 lacpy( dense, C2, W );
@@ -487,7 +486,7 @@ int larfb(
                 const auto V2 = cols( V, pair{n-k,n} );
                 auto C1 = cols( C, pair{0,n-k} );
                 auto C2 = cols( C, pair{n-k,n} );
-                auto W  = new_matrix( (T*)work, m, k, lwork/sizeof(T) );
+                auto W  = new_matrix( (TW*)work, m, k, lwork/sizeof(TW) );
 
                 // W := C2
                 lacpy( dense, C2, W );
@@ -537,13 +536,7 @@ int larfb(
 template<
     class matrixV_t, class matrixT_t, class matrixC_t,
     class side_t, class trans_t, class direction_t, class storage_t,
-    // opts_t:
-    class T = scalar_type<
-        type_t< matrixV_t >,
-        type_t< matrixC_t >
-    >,
-    class idx_t = size_type< matrixC_t >,
-    class work_t = legacyMatrix<T,idx_t>
+    class work_t = undefined_t
 >
 inline constexpr
 void larfb_worksize(
@@ -552,14 +545,19 @@ void larfb_worksize(
     const matrixV_t& V, const matrixT_t& Tmatrix,
     matrixC_t& C,
     size_t& worksize,
-    const workspace_opts_t<T,idx_t,work_t>& opts = {} )
+    const workspace_opts_t<work_t>& opts = {} )
 {
+    using T         = scalar_type< type_t<matrixV_t >, type_t<matrixC_t> >;
+    using idx_t     = size_type< matrixC_t >;
+    using matrixW_t = deduce_work_t< work_t, legacyMatrix<T,idx_t> >;
+    using TW        = type_t< matrixW_t >;
+
     // constants
     const idx_t m = nrows(C);
     const idx_t n = ncols(C);
     const idx_t k = nrows(Tmatrix);
 
-    worksize = sizeof(T) * ((side == Side::Left) ? k*n : k*m);
+    worksize = sizeof(TW) * ((side == Side::Left) ? k*n : k*m);
 }
 
 }

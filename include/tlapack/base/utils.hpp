@@ -995,20 +995,33 @@ byte* alloc_workspace(
 }
 
 /// Workspace options
-template<
-    class T,
-    class idx_t = std::size_t,
-    class work_type = legacyMatrix<T,idx_t>
->
+template< class work_type >
 struct workspace_opts_t
 {
     using work_t = work_type;   ///< Workspace type
 
-    byte* work = nullptr;       ///< Workspace
-    std::size_t lwork = 0;      ///< Workspace size
+    byte* work = nullptr;   ///< Workspace
+    std::size_t lwork = 0;  ///< Workspace size
 };
 
+/// Used to inform Undefined Workspace
+class undefined_t {};
 
+/// Workspace options without defining work_t
+using workspace_t = workspace_opts_t<undefined_t>;
+
+template< class work_type, class work_default >
+struct deduce_work {
+    using type = work_type;
+};
+
+template< class work_default >
+struct deduce_work<undefined_t,work_default> {
+    using type = work_default;
+};
+
+template< class work_type, class work_default >
+using deduce_work_t = typename deduce_work<work_type,work_default>::type;
 
 } // namespace tlapack
 
