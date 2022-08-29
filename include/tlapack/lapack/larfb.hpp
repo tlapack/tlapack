@@ -106,6 +106,7 @@ int larfb(
     using idx_t     = size_type< matrixC_t >;
     using matrixW_t = deduce_work_t< work_t, legacyMatrix<T,idx_t> >;
     using TW        = type_t< matrixW_t >;
+    using real_t = real_type<TW>;
 
     using pair  = pair<idx_t,idx_t>;
 
@@ -113,7 +114,7 @@ int larfb(
     Create< matrixW_t > new_matrix;
 
     // constants
-    const T one( 1 );
+    const real_t one( 1 );
     const idx_t m = nrows(C);
     const idx_t n = ncols(C);
     const idx_t k = nrows(Tmatrix);
@@ -154,8 +155,7 @@ int larfb(
     if (m <= 0 || n <= 0 || k <= 0) return 0;
 
     // Allocates workspace
-    vectorOfBytes localwork;
-    size_t lwork;
+    vectorOfBytes localwork; size_t lwork;
     larfb_worksize( side, trans, direction, storeMode, V, Tmatrix, C, lwork, opts );
     byte* work = alloc_workspace( localwork, lwork, opts.work, opts.lwork );
 

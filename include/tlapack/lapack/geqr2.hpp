@@ -53,10 +53,18 @@ namespace tlapack {
  * 
  * @ingroup geqrf
  */
-template< class matrix_t, class vector_t, class work_t >
-int geqr2( matrix_t& A, vector_t &tau, work_t &work )
+template< class matrix_t, class vector_t,
+    // opts_t:
+    class T = scalar_type<
+        type_t< matrix_t >,
+        type_t< vector_t >
+    >,
+    class idx_t = size_type< matrix_t >,
+    class work_t = legacyVector<T,idx_t>
+>
+int geqr2( matrix_t& A, vector_t &tau,
+    const workspace_opts_t<T,idx_t,work_t>& opts = {} )
 {
-    using idx_t = size_type< matrix_t >;
     using pair  = pair<idx_t,idx_t>;
 
     // constants
@@ -67,10 +75,14 @@ int geqr2( matrix_t& A, vector_t &tau, work_t &work )
     // check arguments
     tlapack_check_false( access_denied( dense, write_policy(A) ) );
     tlapack_check_false( (idx_t) size(tau)  < std::min<idx_t>( m, n ) );
-    tlapack_check_false( (idx_t) size(work) < n-1 );
 
     // quick return
     if (n <= 0) return 0;
+
+    // Allocates workspace
+    vectorOfBytes localwork; size_t lwork;
+    geqr2_worksize( A, tau, opts );
+    byte* work = alloc_workspace( localwork, lwork, opts.work, opts.lwork );
 
     for(idx_t i = 0; i < k; ++i) {
       
@@ -82,10 +94,10 @@ int geqr2( matrix_t& A, vector_t &tau, work_t &work )
 
         // Define v := A[i:m,i] and C := A[i:m,i+1:n], and w := work[i:n-1]
         auto C = slice( A, pair{i,m}, pair{i+1,n} );
-        auto w = slice( work, pair{i,n-1} );
-
+        
         // C := I - conj(tau_i) v v^H
-        larf( left_side, v, conj(tau[i]), C, w );
+        opts.work
+        larf( left_side, v, conj(tau[i]), C, opts );
 	}
     if( n-1 < m ) {
         // Define v := A[n-1:m,n-1]
@@ -95,6 +107,22 @@ int geqr2( matrix_t& A, vector_t &tau, work_t &work )
     }
 
     return 0;
+}
+
+template< class matrix_t, class vector_t,
+    // opts_t:
+    class T = scalar_type<
+        type_t< matrix_t >,
+        type_t< vector_t >
+    >,
+    class idx_t = size_type< matrix_t >,
+    class work_t = legacyVector<T,idx_t>
+>
+inline constexpr
+void geqr2_worksize( matrix_t& A, vector_t &tau, size_t& worksize,
+    const workspace_opts_t<T,idx_t,work_t>& opts = {} )
+{
+    larf_worksize( left_side, col(A,0), tau[0], A, worksize, opts );
 }
 
 } // lapack

@@ -381,6 +381,40 @@ namespace tlapack {
         }
     };
 
+    template< class T, class idx_t, typename int_t, Direction D >
+    struct Create< legacyVector<T,idx_t,int_t,D> > {
+
+        using vector_t = legacyVector<T,idx_t,int_t,D>;
+
+        inline constexpr auto
+        operator()( T* ptr, idx_t m, idx_t n ) const {
+            assert( n == 1 );
+            return vector_t( m, ptr );
+        }
+
+        inline constexpr auto
+        operator()( T* ptr, idx_t m, idx_t n, size_t size ) const {
+            assert( n == 1 );
+            assert( size >= m*n );
+            return vector_t( m, ptr );
+        }
+
+        template< class Allocator >
+        inline constexpr auto
+        operator()( idx_t m, idx_t n, std::vector<T,Allocator>& container ) const {
+            assert( n == 1 );
+            container = std::vector<T,Allocator>( m*n );
+            return vector_t( m, &container[0] );
+        }
+
+        inline constexpr auto
+        operator()( idx_t m, idx_t n, vectorOfBytes& container ) const {
+            assert( n == 1 );
+            container = vectorOfBytes( m*n*sizeof(T) );
+            return vector_t( m, (T*)(&container[0]) );
+        }
+    };
+
     // -----------------------------------------------------------------------------
     // Cast to Legacy arrays
 

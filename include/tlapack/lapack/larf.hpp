@@ -46,20 +46,29 @@ namespace tlapack {
  * 
  * @ingroup auxiliary
  */
-template< class side_t, class vector_t, class tau_t, class matrix_t, class work_t >
-inline void larf(
+template< class side_t, class vector_t, class tau_t, class matrix_t,
+    // opts_t:
+    class T = scalar_type<
+        type_t< matrix_t >,
+        type_t< vector_t >
+    >,
+    class idx_t = size_type< matrix_t >,
+    class work_t = legacyVector<T,idx_t>
+>
+void larf(
     side_t side,
     vector_t const& v, const tau_t& tau,
-    matrix_t& C, work_t& work )
+    matrix_t& C, const workspace_opts_t<T,idx_t,work_t>& opts = {} )
 {
-
     // data traits
-    using T = type_t<matrix_t>;
-    using idx_t = size_type< matrix_t >;
+    using real_t = real_type<T>;
     using pair = pair<idx_t,idx_t>;
 
+    // Functor
+    Create<work_t> new_vector;
+
     // constants
-    const T one(1.0);
+    const real_t one(1);
     const idx_t m = nrows(C);
     const idx_t n = ncols(C);
 
@@ -67,6 +76,11 @@ inline void larf(
     tlapack_check_false( side != Side::Left &&
                    side != Side::Right );
     tlapack_check_false(  access_denied( dense, write_policy(C) ) );
+
+    // Allocates workspace
+    vectorOfBytes localwork; size_t lwork;
+    larf_worksize( side, v, tau, C, lwork, opts );
+    byte* work = alloc_workspace( localwork, lwork, opts.work, opts.lwork );
 
     // The following code was changed from:
     //
@@ -83,10 +97,9 @@ inline void larf(
     // which is better for thread safety.
 
     if( side == Side::Left ) {
-        auto w = slice(work,pair{0,n});
-        copy( row(C, 0), w );
+        auto w = new_vector( (T*)work, n, 1, lwork/sizeof(T) );
         for (idx_t i = 0; i < n; ++i )
-            w[i] = conj(w[i]);
+            w[i] = conj(C(0,i));
         if(m > 1){
             auto x = slice(v,pair{1,m});
             gemv(Op::ConjTrans, one, rows(C, pair{1,m}), x, one, w);
@@ -99,7 +112,7 @@ inline void larf(
         }
     }
     else {
-        auto w = slice(work,pair{0,m});
+        auto w = new_vector( (T*)work, m, 1, lwork/sizeof(T) );
         copy( col(C, 0), w );
         if(n > 1){
             auto x = slice(v,pair{1,n});
@@ -115,6 +128,28 @@ inline void larf(
                 C(i,j) += w[i] * tmp;
         }
     }
+}
+
+template< class side_t, class vector_t, class tau_t, class matrix_t,
+    // opts_t:
+    class T = scalar_type<
+        type_t< matrix_t >,
+        type_t< vector_t >
+    >,
+    class idx_t = size_type< matrix_t >,
+    class work_t = legacyVector<T,idx_t>
+>
+inline constexpr
+void larf_worksize(
+    side_t side,
+    vector_t const& v, const tau_t& tau, size_t& worksize,
+    matrix_t& C, const workspace_opts_t<T,idx_t,work_t>& opts = {} )
+{
+    // constants
+    const idx_t m = nrows(C);
+    const idx_t n = ncols(C);
+
+    worksize = sizeof(T) * ((side == Side::Left) ? n : m);
 }
 
 } // lapack

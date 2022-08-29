@@ -133,8 +133,7 @@ int unmqr(
         return 0;
 
     // Allocates workspace
-    vectorOfBytes localwork;
-    size_t lwork;
+    vectorOfBytes localwork; size_t lwork;
     unmqr_worksize( side, trans, A, tau, C, lwork, opts );
     byte* work = alloc_workspace( localwork, lwork, opts.work, opts.lwork );
 

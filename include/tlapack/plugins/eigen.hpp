@@ -223,6 +223,52 @@ namespace tlapack{
         return A.diagonal( diagIdx );
     }
 
+    // -----------------------------------------------------------------------------
+    // Create objects
+
+    template<typename T, int Rows_, int Cols_, int Options_, int MaxRows_, int MaxCols_>
+    struct Create< Eigen::Matrix< T, Rows_, Cols_, Options_, MaxRows_, MaxCols_ > >
+    {
+        using matrix_t  = Eigen::Matrix< T, Eigen::Dynamic, Eigen::Dynamic, Options_ >;
+        using idx_t     = Eigen::Index;
+
+        inline constexpr auto
+        operator()( T* ptr, idx_t m, idx_t n ) const {
+            return Eigen::Map< matrix_t >( ptr, m, n );
+        }
+
+        inline constexpr auto
+        operator()( T* ptr, idx_t m, idx_t n, size_t size ) const {
+            assert( size >= m*n );
+            return Eigen::Map< matrix_t >( ptr, m, n );
+        }
+
+        template< class Allocator >
+        inline constexpr auto
+        operator()( idx_t m, idx_t n, std::vector<T,Allocator>& ) const {
+            return matrix_t( m, n );
+        }
+
+        inline constexpr auto
+        operator()( idx_t m, idx_t n, vectorOfBytes& ) const {
+            return matrix_t( m, n );
+        }
+    };
+    
+    // Other types that may appear
+
+    template<typename PlainObjectType, int MapOptions, typename StrideType>
+    struct Create< Eigen::Map<PlainObjectType, MapOptions, StrideType> >
+    : public Create<PlainObjectType> { };
+
+    template<typename MatrixType, int DiagIndex_>
+    struct Create< Eigen::Diagonal< MatrixType, DiagIndex_ > >
+    : public Create<MatrixType> { };
+
+    template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel>
+    struct Create< Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel> >
+    : public Create<XprType> { };
+
 } // namespace tlapack
 
 #endif // TLAPACK_EIGEN_HH
