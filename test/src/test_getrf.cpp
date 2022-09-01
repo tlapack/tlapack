@@ -17,8 +17,69 @@
 
 using namespace tlapack;
 
-TEMPLATE_LIST_TEST_CASE("LQ factorization of a general m-by-n matrix, blocked", "[lqf]", types_to_test)
+TEMPLATE_LIST_TEST_CASE("LU factorization of a general m-by-n matrix, blocked", "[lqf]", types_to_test)
 {
+    srand(1);
+
+    using matrix_t = TestType;
+    using T = type_t<matrix_t>;
+    using idx_t = size_type<matrix_t>;
+    using range = std::pair<idx_t, idx_t>;
+    typedef real_type<T> real_t; // equivalent to using real_t = real_type<T>;
+
+    //not sure if we need const 
+    T zero(0);
+
+    idx_t m, n;
+    m = GENERATE(10, 20, 30);
+    n = GENERATE(10, 20, 30);
+    idx_t k=min<idx_t>(m,n);
+
+
+    const real_t eps = ulp<real_t>();
+    const real_t tol = max(m, n) * eps;
+
+    std::unique_ptr<T[]> A_(new T[m * n]);
+    std::unique_ptr<T[]> A_copy_(new T[m * n]);
+
+    auto A = legacyMatrix<T, layout<matrix_t>>(m, n, &A_[0], layout<matrix_t> == Layout::ColMajor ? m : n);
+    auto A_copy = legacyMatrix<T, layout<matrix_t>>(m, n, &A_copy_[0], layout<matrix_t> == Layout::ColMajor ? m : n);
+
+    for (idx_t j = 0; j < n; ++j)
+        for (idx_t i = 0; i < m; ++i)
+            A(i, j) = rand_helper<T>();
+
+    lacpy(Uplo::General, A, A_copy);
+    
+    double norma=tlapack::lange( tlapack::Norm::Max, A);
+
+    getrf(A);
+    std::vector<T> L_( m*k , T(0) );
+    std::vector<T> U_( k*n , T(0) );
+
+    auto L = legacyMatrix<T, layout<matrix_t>>(m, k, &L_[0], layout<matrix_t> == Layout::ColMajor ? m : k);
+    auto U = legacyMatrix<T, layout<matrix_t>>(k, n, &U_[0], layout<matrix_t> == Layout::ColMajor ? k : n);
+    for(idx_t i=0;i<m;i++){
+        for(idx_t j=0;j<n;j++){
+            if(i==j){
+                L(i,j)=1.0;
+                U(i,j)=A(i,j);
+            }
+            else if(i>j){
+                L(i,j)=A(i,j);
+            }
+            else{
+                U(i,j)=A(i,j);
+            }
+        }
+    }
+    gemm(Op::NoTrans,Op::NoTrans,real_t(1),L,U,real_t(-1),A_copy);
+
+    real_t error = tlapack::lange( tlapack::Norm::Max, A_copy)/norma;
+    CHECK(error <= tol);
+}
+//Proposoed modification
+/*
     srand(1);
 
     using matrix_t = TestType;
@@ -27,86 +88,56 @@ TEMPLATE_LIST_TEST_CASE("LQ factorization of a general m-by-n matrix, blocked", 
     using range = std::pair<idx_t, idx_t>;
     typedef real_type<T> real_t;
 
-    const T zero(0);
+    //not sure if we need const 
+    T zero(0);
 
-    idx_t m, n, k, nb;
-
+    idx_t m, n;
     m = GENERATE(10, 20, 30);
     n = GENERATE(10, 20, 30);
-    k = GENERATE(8, 10, 20, 30); // k is the number of rows for output Q. Can personalize it.
-    nb = GENERATE(2, 3, 7, 12);  // nb is the block height. Can personalize it.
+    idx_t k=min<idx_t>(m,n);
+
 
     const real_t eps = ulp<real_t>();
     const real_t tol = max(m, n) * eps;
 
     std::unique_ptr<T[]> A_(new T[m * n]);
     std::unique_ptr<T[]> A_copy_(new T[m * n]);
-    std::unique_ptr<T[]> TT_(new T[m * nb]);
 
     auto A = legacyMatrix<T, layout<matrix_t>>(m, n, &A_[0], layout<matrix_t> == Layout::ColMajor ? m : n);
     auto A_copy = legacyMatrix<T, layout<matrix_t>>(m, n, &A_copy_[0], layout<matrix_t> == Layout::ColMajor ? m : n);
-    auto TT = legacyMatrix<T, layout<matrix_t>>(m, nb, &TT_[0], layout<matrix_t> == Layout::ColMajor ? m : nb);
-
-    std::vector<T> work_gelqf(m);
-    std::vector<T> work_ungl2(k);
-
-    std::vector<T> tauw(min(m, n));
 
     for (idx_t j = 0; j < n; ++j)
         for (idx_t i = 0; i < m; ++i)
             A(i, j) = rand_helper<T>();
 
     lacpy(Uplo::General, A, A_copy);
+    
+    double norma=tlapack::lange( tlapack::Norm::Max, A);
 
-    if (k <= n) // k must be less than or equal to n, because we cannot get a Q bigger than n-by-n
-    {
-        DYNAMIC_SECTION("m = " << m << " n = " << n << " k = " << k << " nb = " << nb)
-        {
-            gelqf(A, TT, work_gelqf, nb);
+    LU(A);
+    std::vector<T> L_( m*k , T(0) );
+    std::vector<T> U_( k*n , T(0) );
 
-            // Build tauw vector from matrix TT
-            for (idx_t j = 0; j < min(m,n); j += nb)
-            {
-                idx_t ib = std::min<idx_t>(nb, min(m,n) - j);
-                
-                for (idx_t i = 0; i < ib; i++)
-                    tauw[i+j] = TT(i+j,i);
+    auto L = legacyMatrix<T, layout<matrix_t>>(m, k, &L_[0], layout<matrix_t> == Layout::ColMajor ? m : k);
+    auto U = legacyMatrix<T, layout<matrix_t>>(k, n, &U_[0], layout<matrix_t> == Layout::ColMajor ? k : n);
+    Question: How do I defualt L and U to be zero??
+    for(idx_t i=0;i<m;i++){
+        for(idx_t j=0;j<n;j++){
+            if(i==j){
+                L(i,j)=1.0;
+                U(i,j)=A(i,j);
             }
-
-            // Q is sliced down to the desired size of output Q (k-by-n).
-            // It stores the desired number of Householder reflectors that UNGL2 will use.
-            std::unique_ptr<T[]> Q_(new T[k * n]);
-            auto Q = legacyMatrix<T, layout<matrix_t>>(k, n, &Q_[0], layout<matrix_t> == Layout::ColMajor ? k : n);
-            lacpy(Uplo::General, slice(A, range(0, min(m, k)), range(0, n)), Q);
-
-            ungl2(Q, tauw, work_ungl2);
-
-            // Wq is the identity matrix to check the orthogonality of Q
-            std::unique_ptr<T[]> Wq_(new T[k * k]);
-            auto Wq = legacyMatrix<T, layout<matrix_t>>(k, k, &Wq_[0], k);
-            auto orth_Q = check_orthogonality(Q, Wq);
-            CHECK(orth_Q <= tol);
-
-            // L is sliced from A after GELQ2
-            std::unique_ptr<T[]> L_(new T[min(k, m) * k]);
-            auto L = legacyMatrix<T, layout<matrix_t>>(min(k, m), k, &L_[0], layout<matrix_t> == Layout::ColMajor ? min(k, m) : k);
-            laset(Uplo::Upper, zero, zero, L);
-            lacpy(Uplo::Lower, slice(A, range(0, min(m, k)), range(0, k)), L);
-
-            // R stores the product of L and Q
-            std::unique_ptr<T[]> R_(new T[min(k, m) * n]);
-            auto R = legacyMatrix<T, layout<matrix_t>>(min(k, m), n, &R_[0], layout<matrix_t> == Layout::ColMajor ? min(k, m) : n);
-            laset(Uplo::General, zero, zero, R);
-
-            // Test A = L * Q
-            gemm(Op::NoTrans, Op::NoTrans, real_t(1.), L, Q, real_t(0.), R);
-            for (idx_t j = 0; j < n; ++j)
-                for (idx_t i = 0; i < min(m, k); ++i)
-                    A_copy(i, j) -= R(i, j);
-
-            real_t repres = tlapack::lange(tlapack::Norm::Max, slice(A_copy, range(0, min(m, k)), range(0, n)));
-            CHECK(repres <= tol);
-
+            else if(i>j){
+                L(i,j)=A(i,j);
+            }
+            else{
+                U(i,j)=A(i,j);
+            }
         }
     }
-}
+    gemm(Op::NoTrans,Op::NoTrans,1,L,U,-1,A_copy);
+
+    real_t error = tlapack::lange( tlapack::Norm::Max, A_copy)/norma;
+    CHECK(error <= tol);
+
+*/

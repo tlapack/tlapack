@@ -1,5 +1,5 @@
 /// @file geqr2.hpp
-/// @author Weslley S Pereira, University of Colorado Denver, USA
+/// @author Ali Lotfi, University of Colorado Denver, USA
 /// Adapted from @see https://github.com/langou/latl/blob/master/include/geqr2.h
 //
 // Copyright (c) 2013-2022, University of Colorado Denver. All rights reserved.
@@ -55,6 +55,8 @@ template< class matrix_t >
 int getrf( matrix_t& A )
 {
     using idx_t = size_type< matrix_t >;
+    using T = type_t<matrix_t>;
+    using real_t = real_type<T>;
     // using pair  = pair<idx_t,idx_t>;
 
     // constants
@@ -72,7 +74,7 @@ int getrf( matrix_t& A )
     
     for(idx_t j=0;j<end;j++){
         for(idx_t i=j+1;i<m;i++){
-            assert( A(j,j) != 0 );
+            assert( A(j,j) != real_t(0) );
             A(i,j)=A(i,j)/A(j,j);
         }
         for(idx_t row=j+1;row<m;row++){
