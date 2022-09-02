@@ -967,48 +967,67 @@ inline constexpr auto get_work( opts_t&& opts ) {
  *      Returns a pointer to the workspace in case of a success.
  *      Returns a null pointer if `opts_lwork < lwork`.
  */
-inline
-byte* alloc_workspace(
-    vectorOfBytes& work, size_t& lwork,
-    byte* opts_work, const size_t opts_lwork )
+inline Workspace
+alloc_workspace( vectorOfBytes& v, size_t lwork )
 {
-    if( opts_lwork <= 0 )
+    v = vectorOfBytes( lwork ); // Allocates space in memory
+    return Workspace( v.data(), v.size() );
+}
+inline Workspace
+alloc_workspace( vectorOfBytes& v, size_t lwork, const Workspace& opts_w )
+{
+    if( opts_w.size() <= 0 )
     {
-        work = vectorOfBytes( lwork ); // Allocates space in memory
-        return &work[0];
+        return alloc_workspace( v, lwork );
     }
-    else if( opts_lwork < lwork )
+    else if( opts_w.size() < lwork )
     {
         tlapack_error( -4,
             std::string("Insuficient workspace.") +
             " Required: " + std::to_string(lwork)
-            + ". Provided: " + std::to_string(opts_lwork)
+            + ". Provided: " + std::to_string(opts_w.size())
         );
-        lwork = 0;
-        return nullptr;
+        return Workspace();
     }
     else
     {
-        lwork = opts_lwork;
-        return opts_work;
+        return Workspace( opts_w );
     }
 }
 
-/// Workspace options
-template< class work_type >
-struct workspace_opts_t
-{
-    using work_t = work_type;   ///< Workspace type
+template< class T, class idx_t, Layout L >
+inline constexpr legacyMatrix<byte>
+matrix_in_bytes( const legacyMatrix<T,idx_t,L>& A ) {
+    if( L == Layout::ColMajor )
+        return legacyMatrix<byte>( A.m * sizeof(T), A.n, (byte*) A.ptr, A.ldim * sizeof(T) );
+    else // if( L == Layout::RowMajor )
+        return legacyMatrix<byte>( A.n * sizeof(T), A.m, (byte*) A.ptr, A.ldim * sizeof(T) );
+}
+inline constexpr legacyMatrix<byte>
+matrix_in_bytes( const legacyMatrix<byte>& A ) noexcept {
+    return A;
+}
 
-    byte* work = nullptr;   ///< Workspace
-    std::size_t lwork = 0;  ///< Workspace size
-};
-
-/// Used to inform Undefined Workspace
+/// Used to inform Undefined Workspace type
 class undefined_t {};
 
-/// Workspace options without defining work_t
-using workspace_t = workspace_opts_t<undefined_t>;
+/// Workspace options
+template< class work_type = undefined_t >
+struct workspace_opts_t
+{
+    using work_t = work_type;   ///< Workspace matrix type
+    Workspace work;             ///< Workspace object
+
+    inline constexpr
+    workspace_opts_t( Workspace&& w = {} ) : work(w) { }
+
+    // inline constexpr
+    // workspace_opts_t( const Workspace& w ) : work(w) { }
+
+    inline constexpr
+    workspace_opts_t( const work_t& W )
+    : work( matrix_in_bytes(legacy_matrix(W)) ) { }
+};
 
 template< class work_type, class work_default >
 struct deduce_work {
@@ -1022,6 +1041,11 @@ struct deduce_work<undefined_t,work_default> {
 
 template< class work_type, class work_default >
 using deduce_work_t = typename deduce_work<work_type,work_default>::type;
+
+template< class work_t >
+inline constexpr
+workspace_opts_t<work_t>
+create_workspace_opts( const work_t& W ){ return workspace_opts_t<work_t>(W); }
 
 } // namespace tlapack
 

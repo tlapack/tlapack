@@ -177,7 +177,7 @@ namespace tlapack
         }
 
         auto workspace_vector = col( Y, 0 );
-        gehd2( i, ihi, A, tau, workspace_vector );
+        gehd2( i, ihi, A, tau );
 
         if(locally_allocated)
             delete [] _work;

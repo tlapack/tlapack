@@ -9,7 +9,7 @@
 #define TLAPACK_EIGEN_HH
 
 #include <Eigen/Core>
-#include "tlapack/base/arrayTraits.hpp"
+#include "tlapack/base/legacyArray.hpp"
 
 namespace tlapack{
 
@@ -229,7 +229,7 @@ namespace tlapack{
     template<typename T, int Rows_, int Cols_, int Options_, int MaxRows_, int MaxCols_>
     struct Create< Eigen::Matrix< T, Rows_, Cols_, Options_, MaxRows_, MaxCols_ > >
     {
-        using matrix_t  = Eigen::Matrix< T, Eigen::Dynamic, Eigen::Dynamic, Options_ >;
+        using matrix_t  = Eigen::Matrix< T, Eigen::Dynamic, (MaxCols_==1) ? 1 : Eigen::Dynamic, Options_ >;
         using idx_t     = Eigen::Index;
 
         inline constexpr auto
@@ -238,20 +238,46 @@ namespace tlapack{
         }
 
         inline constexpr auto
-        operator()( T* ptr, idx_t m, idx_t n, size_t size ) const {
-            assert( size >= m*n );
-            return Eigen::Map< matrix_t >( ptr, m, n );
-        }
+        operator()( Workspace& W, idx_t m, idx_t n ) const {
+        
+            using stride_t = Eigen::Stride<Eigen::Dynamic,1>;
+            using map_t = Eigen::Map< matrix_t, Eigen::Unaligned, stride_t >;
 
-        template< class Allocator >
-        inline constexpr auto
-        operator()( idx_t m, idx_t n, std::vector<T,Allocator>& ) const {
-            return matrix_t( m, n );
-        }
+            assert( m > 0 && n > 0 );
+            assert( idx_t(W.size()/sizeof(T)) >= m*n );
+                
+            T* ptr = (T*) W.ptr;
+            
+            if( W.ldim == W.m ) { // contiguous space in memory
 
-        inline constexpr auto
-        operator()( idx_t m, idx_t n, vectorOfBytes& ) const {
-            return matrix_t( m, n );
+                W.ptr  += (m*n)*sizeof(T);
+                W.m     = W.size() - (m*n)*sizeof(T);
+                W.ldim  = W.m;
+                W.n     = 1;
+
+                return map_t( ptr, m, n, matrix_t::IsRowMajor ? stride_t(n,1) : stride_t(m,1) );
+            }
+            else {
+
+                if( !matrix_t::IsRowMajor )
+                {
+                    assert( idx_t(W.m/sizeof(T)) >= m );
+                    assert( idx_t(W.n) >= n );
+
+                    W.ptr   += n * W.ldim;
+                    W.n     -= n;
+                }
+                else // if( matrix_t::IsRowMajor )
+                {
+                    assert( idx_t(W.m/sizeof(T)) >= n );
+                    assert( idx_t(W.n) >= m );
+
+                    W.ptr   += m * W.ldim;
+                    W.n     -= m;
+                }
+
+                return map_t( ptr, m, n, stride_t(W.ldim/sizeof(T),1) );
+            }
         }
     };
     

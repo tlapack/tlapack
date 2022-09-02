@@ -37,11 +37,13 @@ void check_hess_reduction(size_type<matrix_t> ilo, size_type<matrix_t> ihi, matr
     auto Q = new_matrix( &Q_[0], n, n );
     auto res = new_matrix( &_res[0], n, n );
     auto work = new_matrix( &_work[0], n, n );
-    std::vector<T> workv(n);
+
+    vectorOfBytes workVec;
+    workspace_opts_t<> workOpts( alloc_workspace( workVec, n*sizeof(T) ) );
 
     // Generate orthogonal matrix Q
     tlapack::lacpy(Uplo::General, H, Q);
-    tlapack::unghr(ilo, ihi, Q, tau, workv);
+    tlapack::unghr(ilo, ihi, Q, tau, workOpts);
 
     // Remove junk from lower half of H
     for (idx_t j = 0; j < n; ++j)
@@ -129,8 +131,10 @@ TEMPLATE_LIST_TEST_CASE("Hessenberg reduction is backward stable", "[eigenvalues
     DYNAMIC_SECTION("GEHD2 with"
                     << " matrix = " << matrix_type << " n = " << n << " ilo = " << ilo << " ihi = " << ihi)
     {
-        std::vector<T> workv(n);
-        tlapack::gehd2(ilo, ihi, H, tau, workv);
+        vectorOfBytes workVec;
+        workspace_opts_t<> workOpts( alloc_workspace( workVec, n*sizeof(T) ) );
+
+        tlapack::gehd2(ilo, ihi, H, tau, workOpts);
 
         check_hess_reduction(ilo, ihi, H, tau, A);
     }

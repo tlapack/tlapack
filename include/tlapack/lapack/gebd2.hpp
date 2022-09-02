@@ -18,6 +18,29 @@
 namespace tlapack
 {
 
+    template <typename matrix_t, class vector_t, class work_t = undefined_t>
+    inline constexpr 
+    void gebd2_worksize(matrix_t &A, vector_t &tauv, vector_t &tauw, size_t& worksize, const workspace_opts_t<work_t>& opts = {})
+    {
+        using idx_t = size_type< matrix_t >;
+
+        // constants
+        const idx_t m = nrows(A);
+        const idx_t n = ncols(A);
+        
+        size_t wsize1 = 0, wsize2 = 0;
+        if( n > 1 ) {
+            auto A11 = cols( A, range<idx_t>{1,n} );
+            larf_worksize( left_side, col(A,0), tauv[0], A11, wsize1, opts );
+            if( m > 1 ) {
+                auto B11 = rows( A11, range<idx_t>{1,m} );
+                larf_worksize( right_side, slice(A,0,range<idx_t>{1,n}), tauw[0], B11, wsize2, opts );
+            }
+        }
+
+        worksize = std::max<size_t>( wsize1, wsize2 );
+    }
+
     /** Reduces a complex general m by n matrix A to an upper
      *  real bidiagonal form B by a unitary transformation:
      * \[
@@ -65,10 +88,9 @@ namespace tlapack
      *
      * @ingroup gebrd
      */
-    template <typename matrix_t, class vector_t, class work_t>
-    int gebd2(matrix_t &A, vector_t &tauv, vector_t &tauw, work_t &work)
+    template <typename matrix_t, class vector_t, class work_t = undefined_t>
+    int gebd2(matrix_t &A, vector_t &tauv, vector_t &tauw, const workspace_opts_t<work_t>& opts = {})
     {
-
         using idx_t = size_type<matrix_t>;
         using range = std::pair<idx_t, idx_t>;
 
@@ -80,12 +102,23 @@ namespace tlapack
         tlapack_check_false(access_denied(dense, write_policy(A)));
         tlapack_check_false((idx_t)size(tauv) < std::min<idx_t>(m, n));
         tlapack_check_false((idx_t)size(tauw) < std::min<idx_t>(m, n));
-        tlapack_check_false((idx_t)size(work) < std::max<idx_t>(m, n));
         tlapack_check(m >= n); // Only m >= n matrices are supported (yet).
 
         // quick return
         if (n <= 0)
             return 0;
+
+        // Allocates workspace
+        vectorOfBytes localworkdata;
+        Workspace work = [&]()
+        {
+            size_t lwork;
+            gebd2_worksize( A, tauv, tauw, lwork, opts );
+            return alloc_workspace( localworkdata, lwork, opts.work );
+        }();
+        
+        // Options to forward
+        auto&& larfOpts = workspace_opts_t<work_t>{ std::move(work) };
 
         for (idx_t j = 0; j < n; ++j)
         {
@@ -98,7 +131,7 @@ namespace tlapack
             if (j < n - 1)
             {
                 auto A11 = slice(A, range(j, m), range(j + 1, n));
-                larf(Side::Left, v, conj(tauv[j]), A11, work);
+                larf(Side::Left, v, conj(tauv[j]), A11, larfOpts);
             }
 
             if (j < n - 1)
@@ -113,7 +146,7 @@ namespace tlapack
                 if (j < m - 1)
                 {
                     auto B11 = slice(A, range(j + 1, m), range(j + 1, n));
-                    larf(Side::Right, w, tauw[j], B11, work);
+                    larf(Side::Right, w, tauw[j], B11, larfOpts);
                 }
                 for (idx_t i = 0; i < n-j-1; ++i) 
                     w[i] = conj(w[i]);

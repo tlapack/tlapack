@@ -388,15 +388,6 @@ namespace tlapack {
         using real_t = scalar_type< real_type<T1>, real_type< Types... > >;
     };
 
-    // Related to the workspace:
-
-    /// Byte type
-    using byte = unsigned char;
-    /// Byte allocator
-    using byteAlloc = std::allocator<byte>;
-    /// Vector of bytes. May use a specialized allocator in future
-    using vectorOfBytes = std::vector<byte,byteAlloc>;
-
 } // namespace tlapack
 
 #endif // TLAPACK_TYPES_HH

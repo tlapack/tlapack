@@ -17,6 +17,25 @@
 
 namespace tlapack {
 
+template< class matrix_t, class vector_t, class work_t = undefined_t >
+inline constexpr
+void ung2r_worksize(
+    size_type< matrix_t > k, matrix_t& A, const vector_t &tau,
+    size_t& worksize, const workspace_opts_t<work_t>& opts = {} )
+{
+    using idx_t = size_type< matrix_t >;
+
+    // constants
+    const idx_t n = ncols(A);
+
+    if( n > 1 ) {
+        auto C = cols( A, range<idx_t>{1,n} );
+        larf_worksize( left_side, col(A,0), tau[0], C, worksize, opts );
+    }
+    else
+        worksize = 0;
+}
+
 /**
  * @brief Generates a matrix Q with orthogonal columns.
  * \[
@@ -41,9 +60,9 @@ namespace tlapack {
  * 
  * @ingroup geqrf
  */
-template< class matrix_t, class vector_t, class work_t >
+template< class matrix_t, class vector_t, class work_t = undefined_t >
 int ung2r(
-    size_type< matrix_t > k, matrix_t& A, const vector_t &tau, work_t &work )
+    size_type< matrix_t > k, matrix_t& A, const vector_t &tau, const workspace_opts_t<work_t>& opts = {} )
 {
     using T      = type_t< matrix_t >;
     using idx_t  = size_type< matrix_t >;
@@ -59,10 +78,21 @@ int ung2r(
     tlapack_check_false( k < 0 || k > n );
     tlapack_check_false( access_denied( dense, write_policy(A) ) );
     tlapack_check_false( (idx_t) size(tau)  < k );
-    tlapack_check_false( (idx_t) size(work) < n-1 );
 
     // quick return
     if (n <= 0) return 0;
+
+    // Allocates workspace
+    vectorOfBytes localworkdata;
+    Workspace work = [&]()
+    {
+        size_t lwork;
+        ung2r_worksize( k, A, tau, lwork, opts );
+        return alloc_workspace( localworkdata, lwork, opts.work );
+    }();
+        
+    // Options to forward
+    auto&& larfOpts = workspace_opts_t<work_t>{ std::move(work) };
     
     // Initialise columns k:n-1 to columns of the unit matrix
     for (idx_t j = k; j < n; ++j) {
@@ -80,9 +110,8 @@ int ung2r(
             // Define v and C
             auto v = slice( A, pair{i,m}, i );
             auto C = slice( A, pair{i,m}, pair{i+1,n} );
-            auto w = slice( work, pair{i,n-1} );
 
-            larf( left_side, std::move(v), tau[i], C, w );
+            larf( left_side, v, tau[i], C, larfOpts );
         }
         if ( i+1 < m ) {
             auto v = slice( A, pair{i+1,m}, i );

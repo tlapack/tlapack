@@ -14,6 +14,8 @@
 #include "tlapack/base/arrayTraits.hpp"
 #include "tlapack/base/exceptionHandling.hpp"
 
+using std::enable_if_t;
+
 namespace tlapack {
 
     namespace internal {
@@ -22,7 +24,8 @@ namespace tlapack {
     }
     
     struct one_t {
-        constexpr operator int()   const{ return 1; }
+        inline constexpr operator int() const { return 1; }
+        inline constexpr one_t( int i = 1 ) { assert( i == 1 ); }
     };
     constexpr one_t one = { };
 
@@ -34,7 +37,9 @@ namespace tlapack {
      * @tparam idx_t Index type
      * @tparam L Either Layout::ColMajor or Layout::RowMajor
      */
-    template< class T, class idx_t = std::size_t, Layout L = Layout::ColMajor >
+    template< class T, class idx_t = std::size_t, Layout L = Layout::ColMajor,
+        enable_if_t< (L == Layout::RowMajor) || (L == Layout::ColMajor), int > = 0
+    >
     struct legacyMatrix {
         idx_t m, n;                 ///< Sizes
         T* ptr;                     ///< Pointer to array in memory
@@ -141,6 +146,32 @@ namespace tlapack {
             tlapack_check_false( n < 0 );
             tlapack_check_false( (kl + 1 > m && m > 0) || (ku + 1 > n && n > 0) );
         }
+    };
+
+    // Workspace
+
+    /// Byte type
+    using byte = unsigned char;
+    /// Byte allocator
+    using byteAlloc = std::allocator<byte>;
+    /// Vector of bytes. May use a specialized allocator in future
+    using vectorOfBytes = std::vector<byte,byteAlloc>;
+
+    // Workspace
+    struct Workspace : public legacyMatrix<byte>
+    {
+        using idx_t = std::size_t;
+
+        inline constexpr byte* data() const { return ptr; }
+        inline constexpr idx_t size() const { return m*n; }
+
+        inline constexpr
+        Workspace( byte* ptr = nullptr, idx_t n = 0 )
+        : legacyMatrix<byte>( n, 1, ptr ) { }
+
+        inline constexpr
+        Workspace( const legacyMatrix<byte>& w ) noexcept
+        : legacyMatrix<byte>( w ) { }
     };
 
     // -----------------------------------------------------------------------------
@@ -356,29 +387,71 @@ namespace tlapack {
     template< class T, class idx_t, Layout layout >
     struct Create< legacyMatrix<T,idx_t,layout> > {
 
+        using matrix_t = legacyMatrix<T,idx_t,layout>;
+
         inline constexpr auto
         operator()( T* ptr, idx_t m, idx_t n ) const {
-            return legacyMatrix<T,idx_t,layout>( m, n, ptr );
+            return matrix_t( m, n, ptr );
         }
 
         inline constexpr auto
-        operator()( T* ptr, idx_t m, idx_t n, size_t size ) const {
-            assert( size >= m*n );
-            return legacyMatrix<T,idx_t,layout>( m, n, ptr );
+        operator()( Workspace& W, idx_t m, idx_t n ) const {
+
+            assert( m > 0 && n > 0 );
+            assert( idx_t(W.size()/sizeof(T)) >= m*n );
+                
+            T* ptr = (T*) W.ptr;
+            
+            if( W.ldim == W.m ) { // contiguous space in memory
+                
+                W.ptr  += (m*n)*sizeof(T);
+                W.m     = W.size() - (m*n)*sizeof(T);
+                W.ldim  = W.m;
+                W.n     = 1;
+
+                return matrix_t( m, n, ptr );
+            }
+            else { // non-contiguous space in memory
+
+                if( layout == Layout::ColMajor )
+                {
+                    assert( idx_t(W.m/sizeof(T)) >= m );
+                    assert( idx_t(W.n) >= n );
+
+                    W.ptr   += n * W.ldim;
+                    W.n     -= n;
+                }
+                else // if( layout == Layout::RowMajor )
+                {
+                    assert( idx_t(W.m/sizeof(T)) >= n );
+                    assert( idx_t(W.n) >= m );
+
+                    W.ptr   += m * W.ldim;
+                    W.n     -= m;
+                }
+
+                return matrix_t( m, n, ptr, W.ldim/sizeof(T) );
+            }
         }
 
-        template< class Allocator >
-        inline constexpr auto
-        operator()( idx_t m, idx_t n, std::vector<T,Allocator>& container ) const {
-            container = std::vector<T,Allocator>( m*n );
-            return legacyMatrix<T,idx_t,layout>( m, n, &container[0] );
-        }
+        // inline constexpr auto
+        // operator()( T* ptr, idx_t m, idx_t n, size_t size ) const {
+        //     assert( size >= m*n );
+        //     return legacyMatrix<T,idx_t,layout>( m, n, ptr );
+        // }
 
-        inline constexpr auto
-        operator()( idx_t m, idx_t n, vectorOfBytes& container ) const {
-            container = vectorOfBytes( m*n*sizeof(T) );
-            return legacyMatrix<T,idx_t,layout>( m, n, (T*)(&container[0]) );
-        }
+        // template< class Allocator >
+        // inline constexpr auto
+        // operator()( idx_t m, idx_t n, std::vector<T,Allocator>& container ) const {
+        //     container = std::vector<T,Allocator>( m*n );
+        //     return legacyMatrix<T,idx_t,layout>( m, n, &container[0] );
+        // }
+
+        // inline constexpr auto
+        // operator()( idx_t m, idx_t n, vectorOfBytes& container ) const {
+        //     container = vectorOfBytes( m*n*sizeof(T) );
+        //     return legacyMatrix<T,idx_t,layout>( m, n, (T*)(&container[0]) );
+        // }
     };
 
     template< class T, class idx_t, typename int_t, Direction D >
@@ -393,42 +466,63 @@ namespace tlapack {
         }
 
         inline constexpr auto
-        operator()( T* ptr, idx_t m, idx_t n, size_t size ) const {
-            assert( n == 1 );
-            assert( size >= m*n );
-            return vector_t( m, ptr );
-        }
+        operator()( Workspace& W, idx_t m, idx_t n ) const {
 
-        template< class Allocator >
-        inline constexpr auto
-        operator()( idx_t m, idx_t n, std::vector<T,Allocator>& container ) const {
-            assert( n == 1 );
-            container = std::vector<T,Allocator>( m*n );
-            return vector_t( m, &container[0] );
-        }
+            assert( m > 0 && n == 1 );
+            assert( idx_t(W.size()/sizeof(T)) >= m );
 
-        inline constexpr auto
-        operator()( idx_t m, idx_t n, vectorOfBytes& container ) const {
-            assert( n == 1 );
-            container = vectorOfBytes( m*n*sizeof(T) );
-            return vector_t( m, (T*)(&container[0]) );
+            T* ptr = (T*) W.ptr;
+            
+            if( W.ldim == W.m ) { // contiguous space in memory
+                
+                W.ptr  += m*sizeof(T);
+                W.m     = W.size() - m*sizeof(T);
+                W.ldim  = W.m;
+                W.n     = 1;
+
+                return vector_t( m, ptr );
+            }
+            else { // non-contiguous space in memory
+
+                assert( W.m == sizeof(T) );
+
+                W.ptr   += m * W.ldim;
+                W.n     -= m;
+                
+                W.ptr  += W.ldim;
+                W.n    -= W.ldim;
+
+                return vector_t( m, ptr, W.ldim/sizeof(T) );
+            }
         }
     };
 
     // -----------------------------------------------------------------------------
     // Cast to Legacy arrays
 
-    template< typename T, class idx_t, Layout layout >
-    inline constexpr auto
-    legacy_matrix( legacyMatrix<T,idx_t,layout>& A ) noexcept { return A; }
+    // template< typename T, class idx_t, Layout layout >
+    // inline constexpr auto
+    // legacy_matrix( legacyMatrix<T,idx_t,layout>& A ) noexcept { return A; }
 
     template< typename T, class idx_t, Layout layout >
     inline constexpr auto
     legacy_matrix( const legacyMatrix<T,idx_t,layout>& A ) noexcept { return A; }
 
-    template< typename T, class idx_t, typename int_t, Direction direction >
+    template< class T, class idx_t, class int_t, Direction direction >
     inline constexpr auto
-    legacy_vector( legacyVector<T,idx_t,int_t,direction>& v ) noexcept { return v; }
+    legacy_matrix( const legacyVector<T,idx_t,int_t,direction>& v ) noexcept {
+        return legacyMatrix<T,idx_t,Layout::ColMajor>( 1, v.n, v.ptr, v.inc );
+    }
+
+    template< class T, class idx_t, Direction direction >
+    inline constexpr auto
+    legacy_matrix( const legacyVector<T,idx_t,one_t,direction>& v ) noexcept {
+        return legacyMatrix<T,idx_t,Layout::ColMajor>( v.n, 1, v.ptr );
+    }
+
+    // template< typename T, class idx_t, typename int_t, Direction direction >
+    // inline constexpr auto
+    // legacy_vector( legacyVector<T,idx_t,int_t,direction>& v ) noexcept { return v; }
 
     template< typename T, class idx_t, typename int_t, Direction direction >
     inline constexpr auto

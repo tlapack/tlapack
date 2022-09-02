@@ -16,6 +16,26 @@
 
 namespace tlapack
 {
+
+    template< class matrix_t, class vector_t, class work_t = undefined_t >
+    inline constexpr
+    void ungl2_worksize(
+        matrix_t& Q, vector_t &tauw, size_t& worksize,
+        const workspace_opts_t<work_t>& opts = {} )
+    {
+        using idx_t = size_type< matrix_t >;
+
+        // constants
+        const idx_t k = nrows(Q);
+
+        if( k > 1 ) {
+            auto C = rows( Q, range<idx_t>{1,k} );
+            larf_worksize( right_side, row(Q,0), tauw[0], C, worksize, opts );
+        }
+        else
+            worksize = 0;
+    }
+    
     /**
      * Generates all or part of the unitary matrix Q from an LQ factorization
      * determined by gelq2 (unblocked algorithm).
@@ -43,8 +63,8 @@ namespace tlapack
      *
      * @ingroup ungl2
      */
-    template <typename matrix_t, class vector_t, class work_t>
-    int ungl2(matrix_t &Q, const vector_t &tauw, work_t &work)
+    template <typename matrix_t, class vector_t, class work_t = undefined_t>
+    int ungl2(matrix_t &Q, const vector_t &tauw, const workspace_opts_t<work_t>& opts = {})
     {
         using idx_t = size_type<matrix_t>;
         using T = type_t<matrix_t>;
@@ -60,7 +80,18 @@ namespace tlapack
         // check arguments
         tlapack_check_false(access_denied(dense, write_policy(Q)) );
         tlapack_check_false((idx_t)size(tauw) < std::min<idx_t>(m, n) );
-        tlapack_check_false((idx_t)size(work) < t );
+
+        // Allocates workspace
+        vectorOfBytes localworkdata;
+        Workspace work = [&]()
+        {
+            size_t lwork;
+            ungl2_worksize( Q, tauw, lwork, opts );
+            return alloc_workspace( localworkdata, lwork, opts.work );
+        }();
+        
+        // Options to forward
+        auto&& larfOpts = workspace_opts_t<work_t>{ std::move(work) };
 
         // Initialise columns t:k-1 to rows of the unit matrix
         if (k > m)
@@ -93,7 +124,7 @@ namespace tlapack
                     Q(j, j) = make_scalar<T>(1, 0);
 
                     auto Q11 = slice(Q, range(j + 1, k), range(j, n));
-                    larf(Side::Right, w, conj(tauw[j]), Q11, work);
+                    larf(Side::Right, w, conj(tauw[j]), Q11, larfOpts);
                     
                     for (idx_t i = 0; i < n - j; ++i)
                         w[i] = conj(w[i]);

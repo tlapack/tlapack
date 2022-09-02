@@ -18,6 +18,39 @@
 
 namespace tlapack {
 
+/** Worspace query for larfb
+ * 
+ * @param[out] worksize Workspace size.
+ * 
+ * @ingroup auxiliary
+ */
+template<
+    class matrixV_t, class matrixT_t, class matrixC_t,
+    class side_t, class trans_t, class direction_t, class storage_t,
+    class work_t = undefined_t
+>
+inline constexpr
+void larfb_worksize(
+    side_t side, trans_t trans,
+    direction_t direction, storage_t storeMode,
+    const matrixV_t& V, const matrixT_t& Tmatrix,
+    matrixC_t& C,
+    size_t& worksize,
+    const workspace_opts_t<work_t>& opts = {} )
+{
+    using commonT   = scalar_type< type_t<matrixV_t >, type_t<matrixC_t> >;
+    using idx_t     = size_type< matrixC_t >;
+    using matrixW_t = deduce_work_t< work_t, legacyMatrix<commonT,idx_t> >;
+    using T         = type_t< matrixW_t >;
+
+    // constants
+    const idx_t m = nrows(C);
+    const idx_t n = ncols(C);
+    const idx_t k = nrows(Tmatrix);
+
+    worksize = sizeof(T) * ((side == Side::Left) ? k*n : k*m);
+}
+
 /** Applies a block reflector $H$ or its conjugate transpose $H^H$ to a
  * m-by-n matrix C, from either the left or the right.
  * 
@@ -102,11 +135,11 @@ int larfb(
     const matrixV_t& V, const matrixT_t& Tmatrix,
     matrixC_t& C, const workspace_opts_t<work_t>& opts = {} )
 {
-    using T         = scalar_type< type_t<matrixV_t >, type_t<matrixC_t> >;
+    using commonT   = scalar_type< type_t<matrixV_t >, type_t<matrixC_t> >;
     using idx_t     = size_type< matrixC_t >;
-    using matrixW_t = deduce_work_t< work_t, legacyMatrix<T,idx_t> >;
-    using TW        = type_t< matrixW_t >;
-    using real_t = real_type<TW>;
+    using matrixW_t = deduce_work_t< work_t, legacyMatrix<commonT,idx_t> >;
+    using T         = type_t< matrixW_t >;
+    using real_t    = real_type<T>;
 
     using pair  = pair<idx_t,idx_t>;
 
@@ -155,9 +188,13 @@ int larfb(
     if (m <= 0 || n <= 0 || k <= 0) return 0;
 
     // Allocates workspace
-    vectorOfBytes localwork; size_t lwork;
-    larfb_worksize( side, trans, direction, storeMode, V, Tmatrix, C, lwork, opts );
-    byte* work = alloc_workspace( localwork, lwork, opts.work, opts.lwork );
+    vectorOfBytes localworkdata;
+    Workspace work = [&]()
+    {
+        size_t lwork;
+        larfb_worksize( side, trans, direction, storeMode, V, Tmatrix, C, lwork, opts );
+        return alloc_workspace( localworkdata, lwork, opts.work );
+    }();
 
     if( storeMode == StoreV::Columnwise ){
         if( direction == Direction::Forward ){
@@ -170,7 +207,7 @@ int larfb(
                 const auto V2 = rows( V, ( m > k ) ? pair{k,m} : pair{0,0} );
                 auto C1 = rows( C, pair{0,k} );
                 auto C2 = rows( C, ( m > k ) ? pair{k,m} : pair{0,0} );
-                auto W  = new_matrix( (TW*)work, k, n, lwork/sizeof(TW) );
+                auto W  = new_matrix( work, k, n );
 
                 // W := C1
                 lacpy( dense, C1, W );
@@ -214,7 +251,7 @@ int larfb(
                 const auto V2 = rows( V, ( n > k ) ? pair{k,n} : pair{0,0} );
                 auto C1 = cols( C, pair{0,k} );
                 auto C2 = cols( C, ( n > k ) ? pair{k,n} : pair{0,0} );
-                auto W  = new_matrix( (TW*)work, m, k, lwork/sizeof(TW) );
+                auto W  = new_matrix( work, m, k );
 
                 // W := C1
                 lacpy( dense, C1, W );
@@ -260,7 +297,7 @@ int larfb(
                 const auto V2 = rows( V, pair{m-k,m} );
                 auto C1 = rows( C, pair{0,m-k} );
                 auto C2 = rows( C, pair{m-k,m} );
-                auto W  = new_matrix( (TW*)work, k, n, lwork/sizeof(TW) );
+                auto W  = new_matrix( work, k, n );
 
                 // W := C2
                 lacpy( dense, C2, W );
@@ -304,7 +341,7 @@ int larfb(
                 const auto V2 = rows( V, pair{n-k,n} );
                 auto C1 = cols( C, pair{0,n-k} );
                 auto C2 = cols( C, pair{n-k,n} );
-                auto W  = new_matrix( (TW*)work, m, k, lwork/sizeof(TW) );
+                auto W  = new_matrix( work, m, k );
 
                 // W := C2
                 lacpy( dense, C2, W );
@@ -352,7 +389,7 @@ int larfb(
                 const auto V2 = cols( V, ( m > k ) ? pair{k,m} : pair{0,0} );
                 auto C1 = rows( C, pair{0,k} );
                 auto C2 = rows( C, ( m > k ) ? pair{k,m} : pair{0,0} );
-                auto W  = new_matrix( (TW*)work, k, n, lwork/sizeof(TW) );
+                auto W  = new_matrix( work, k, n );
 
                 // W := C1
                 lacpy( dense, C1, W );
@@ -396,7 +433,7 @@ int larfb(
                 const auto V2 = cols( V, ( n > k ) ? pair{k,n} : pair{0,0} );
                 auto C1 = cols( C, pair{0,k} );
                 auto C2 = cols( C, ( n > k ) ? pair{k,n} : pair{0,0} );
-                auto W  = new_matrix( (TW*)work, m, k, lwork/sizeof(TW) );
+                auto W  = new_matrix( work, m, k );
 
                 // W := C1
                 lacpy( dense, C1, W );
@@ -442,7 +479,7 @@ int larfb(
                 const auto V2 = cols( V, pair{m-k,m} );
                 auto C1 = rows( C, pair{0,m-k} );
                 auto C2 = rows( C, pair{m-k,m} );
-                auto W  = new_matrix( (TW*)work, k, n, lwork/sizeof(TW) );
+                auto W  = new_matrix( work, k, n );
 
                 // W := C2
                 lacpy( dense, C2, W );
@@ -486,7 +523,7 @@ int larfb(
                 const auto V2 = cols( V, pair{n-k,n} );
                 auto C1 = cols( C, pair{0,n-k} );
                 auto C2 = cols( C, pair{n-k,n} );
-                auto W  = new_matrix( (TW*)work, m, k, lwork/sizeof(TW) );
+                auto W  = new_matrix( work, m, k );
 
                 // W := C2
                 lacpy( dense, C2, W );
@@ -525,39 +562,6 @@ int larfb(
     }
 
     return 0;
-}
-
-/** Worspace query for larfb
- * 
- * @param[out] worksize Workspace size.
- * 
- * @ingroup auxiliary
- */
-template<
-    class matrixV_t, class matrixT_t, class matrixC_t,
-    class side_t, class trans_t, class direction_t, class storage_t,
-    class work_t = undefined_t
->
-inline constexpr
-void larfb_worksize(
-    side_t side, trans_t trans,
-    direction_t direction, storage_t storeMode,
-    const matrixV_t& V, const matrixT_t& Tmatrix,
-    matrixC_t& C,
-    size_t& worksize,
-    const workspace_opts_t<work_t>& opts = {} )
-{
-    using T         = scalar_type< type_t<matrixV_t >, type_t<matrixC_t> >;
-    using idx_t     = size_type< matrixC_t >;
-    using matrixW_t = deduce_work_t< work_t, legacyMatrix<T,idx_t> >;
-    using TW        = type_t< matrixW_t >;
-
-    // constants
-    const idx_t m = nrows(C);
-    const idx_t n = ncols(C);
-    const idx_t k = nrows(Tmatrix);
-
-    worksize = sizeof(TW) * ((side == Side::Left) ? k*n : k*m);
 }
 
 }

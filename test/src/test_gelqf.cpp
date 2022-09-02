@@ -49,8 +49,9 @@ TEMPLATE_LIST_TEST_CASE("LQ factorization of a general m-by-n matrix, blocked", 
     auto A_copy = new_matrix( &A_copy_[0], m, n );
     auto TT = new_matrix( &TT_[0], m, nb );
 
-    std::vector<T> work_gelqf(m);
-    std::vector<T> work_ungl2(k);
+    vectorOfBytes workVec;
+    gelqf_opts_t<> workOpts( alloc_workspace( workVec, max(m,k)*sizeof(T) ) );
+    workOpts.nb = nb;
 
     std::vector<T> tauw(min(m, n));
 
@@ -64,7 +65,7 @@ TEMPLATE_LIST_TEST_CASE("LQ factorization of a general m-by-n matrix, blocked", 
     {
         DYNAMIC_SECTION("m = " << m << " n = " << n << " k = " << k << " nb = " << nb)
         {
-            gelqf(A, TT, work_gelqf, nb);
+            gelqf(A, TT, workOpts);
 
             // Build tauw vector from matrix TT
             for (idx_t j = 0; j < min(m,n); j += nb)
@@ -81,7 +82,7 @@ TEMPLATE_LIST_TEST_CASE("LQ factorization of a general m-by-n matrix, blocked", 
             auto Q = new_matrix( &Q_[0], k, n );
             lacpy(Uplo::General, slice(A, range(0, min(m, k)), range(0, n)), Q);
 
-            ungl2(Q, tauw, work_ungl2);
+            ungl2(Q, tauw, workOpts);
 
             // Wq is the identity matrix to check the orthogonality of Q
             std::unique_ptr<T[]> Wq_(new T[k * k]);

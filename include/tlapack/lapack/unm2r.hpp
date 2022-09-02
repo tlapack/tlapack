@@ -16,6 +16,29 @@
 
 namespace tlapack {
 
+template<
+    class matrixA_t, class matrixC_t, class tau_t,
+    class side_t, class trans_t, class work_t = undefined_t >
+inline constexpr
+void unm2r_worksize(
+    side_t side, trans_t trans,
+    matrixA_t& A,
+    const tau_t& tau,
+    matrixC_t& C, size_t& worksize,
+    const workspace_opts_t<work_t>& opts = {} )
+{
+    using idx_t = size_type< matrixA_t >;
+    using pair = std::pair<idx_t, idx_t>;
+
+    // constants
+    const idx_t m = nrows(C);
+    const idx_t n = ncols(C);
+    const idx_t nA = (side == Side::Left) ? m : n;
+
+    auto v = slice( A, pair{0,nA}, 0 );
+    larf_worksize( side, v, tau[0], C, worksize, opts );
+}
+
 /** Applies unitary matrix Q to a matrix C.
  * 
  * - side = Side::Left  & trans = Op::NoTrans:    $C := Q C$;
@@ -70,14 +93,14 @@ namespace tlapack {
  * @ingroup geqrf
  */
 template<
-    class matrixA_t, class matrixC_t, class tau_t, class work_t,
-    class side_t, class trans_t >
+    class matrixA_t, class matrixC_t, class tau_t,
+    class side_t, class trans_t, class work_t = undefined_t >
 int unm2r(
     side_t side, trans_t trans,
     matrixA_t& A,
     const tau_t& tau,
     matrixC_t& C,
-    work_t& work )
+    const workspace_opts_t<work_t>& opts = {} )
 {
     using idx_t = size_type< matrixA_t >;
     using T     = type_t< matrixA_t >;
@@ -105,6 +128,18 @@ int unm2r(
     if ((m == 0) || (n == 0) || (k == 0))
         return 0;
 
+    // Allocates workspace
+    vectorOfBytes localworkdata;
+    Workspace work = [&]()
+    {
+        size_t lwork;
+        unm2r_worksize( side, trans, A, tau, C, lwork, opts );
+        return alloc_workspace( localworkdata, lwork, opts.work );
+    }();
+        
+    // Options to forward
+    auto&& larfOpts = workspace_opts_t<work_t>{ std::move(work) };
+
     // const expressions
     const bool positiveInc = (
         ( (side == Side::Left) && !(trans == Op::NoTrans) ) ||
@@ -127,7 +162,7 @@ int unm2r(
         larf(
             side, v,
             (trans == Op::ConjTrans) ? conj(tau[i]) : tau[i],
-            Ci, work );
+            Ci, larfOpts );
         A(i,i) = Aii;
     }
 

@@ -331,7 +331,7 @@ namespace tlapack
                     v[i] = conj(V(0, i));
                 }
                 larfg(v, tau);
-                auto work2 = slice(WV, pair{0, jw}, 1);
+                auto work2 = create_workspace_opts(slice(WV, pair{0, jw}, 1));
                 auto TW_slice = slice(TW, pair{0, ns}, pair{0, jw});
                 larf(Side::Left, v, conj(tau), TW_slice, work2);
                 TW_slice = slice(TW, pair{0, jw}, pair{0, ns});
@@ -347,7 +347,7 @@ namespace tlapack
                 gehrd_opts.lwork = opts.lwork;
                 gehrd_opts._work = opts._work;
                 gehrd(0, ns, TW, tau, gehrd_opts);
-                auto work2 = slice(WV, pair{0, jw}, 1);
+                auto work2 = create_workspace_opts(slice(WV, pair{0, jw}, 1));
                 unmhr(Side::Right, Op::NoTrans, 0, ns, TW, tau, V, work2);
             }
         }

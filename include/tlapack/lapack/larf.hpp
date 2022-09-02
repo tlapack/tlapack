@@ -17,6 +17,28 @@
 
 namespace tlapack {
 
+template<
+    class side_t, class vector_t, class tau_t, class matrix_t,
+    class work_t = undefined_t
+>
+inline constexpr
+void larf_worksize(
+    side_t side,
+    vector_t const& v, const tau_t& tau, matrix_t& C,
+    size_t& worksize, const workspace_opts_t<work_t>& opts = {} )
+{
+    using commonT   = scalar_type< type_t<vector_t >, type_t<matrix_t> >;
+    using idx_t     = size_type< matrix_t >;
+    using vectorw_t = deduce_work_t< work_t, legacyVector<commonT,idx_t,idx_t> >;
+    using T         = type_t< vectorw_t >;
+
+    // constants
+    const idx_t m = nrows(C);
+    const idx_t n = ncols(C);
+
+    worksize = sizeof(T) * ((side == Side::Left) ? n : m);
+}
+
 /** Applies an elementary reflector H to a m-by-n matrix C.
  *
  * The elementary reflector H can be applied on either the left or right, with
@@ -46,26 +68,25 @@ namespace tlapack {
  * 
  * @ingroup auxiliary
  */
-template< class side_t, class vector_t, class tau_t, class matrix_t,
-    // opts_t:
-    class T = scalar_type<
-        type_t< matrix_t >,
-        type_t< vector_t >
-    >,
-    class idx_t = size_type< matrix_t >,
-    class work_t = legacyVector<T,idx_t>
+template<
+    class side_t, class vector_t, class tau_t, class matrix_t,
+    class work_t = undefined_t
 >
 void larf(
     side_t side,
     vector_t const& v, const tau_t& tau,
-    matrix_t& C, const workspace_opts_t<T,idx_t,work_t>& opts = {} )
+    matrix_t& C, const workspace_opts_t<work_t>& opts = {} )
 {
-    // data traits
-    using real_t = real_type<T>;
+    using commonT   = scalar_type< type_t<vector_t >, type_t<matrix_t> >;
+    using idx_t     = size_type< matrix_t >;
+    using vectorw_t = deduce_work_t< work_t, legacyVector<commonT,idx_t,idx_t> >;
+    using T         = type_t< vectorw_t >;
+    using real_t    = real_type<T>;
+
     using pair = pair<idx_t,idx_t>;
 
     // Functor
-    Create<work_t> new_vector;
+    Create<vectorw_t> new_vector;
 
     // constants
     const real_t one(1);
@@ -78,9 +99,13 @@ void larf(
     tlapack_check_false(  access_denied( dense, write_policy(C) ) );
 
     // Allocates workspace
-    vectorOfBytes localwork; size_t lwork;
-    larf_worksize( side, v, tau, C, lwork, opts );
-    byte* work = alloc_workspace( localwork, lwork, opts.work, opts.lwork );
+    vectorOfBytes localworkdata;
+    Workspace work = [&]()
+    {
+        size_t lwork;
+        larf_worksize( side, v, tau, C, lwork, opts );
+        return alloc_workspace( localworkdata, lwork, opts.work );
+    }();
 
     // The following code was changed from:
     //
@@ -97,7 +122,7 @@ void larf(
     // which is better for thread safety.
 
     if( side == Side::Left ) {
-        auto w = new_vector( (T*)work, n, 1, lwork/sizeof(T) );
+        auto w = new_vector( work, n, 1 );
         for (idx_t i = 0; i < n; ++i )
             w[i] = conj(C(0,i));
         if(m > 1){
@@ -112,7 +137,7 @@ void larf(
         }
     }
     else {
-        auto w = new_vector( (T*)work, m, 1, lwork/sizeof(T) );
+        auto w = new_vector( work, m, 1 );
         copy( col(C, 0), w );
         if(n > 1){
             auto x = slice(v,pair{1,n});
@@ -128,28 +153,6 @@ void larf(
                 C(i,j) += w[i] * tmp;
         }
     }
-}
-
-template< class side_t, class vector_t, class tau_t, class matrix_t,
-    // opts_t:
-    class T = scalar_type<
-        type_t< matrix_t >,
-        type_t< vector_t >
-    >,
-    class idx_t = size_type< matrix_t >,
-    class work_t = legacyVector<T,idx_t>
->
-inline constexpr
-void larf_worksize(
-    side_t side,
-    vector_t const& v, const tau_t& tau, size_t& worksize,
-    matrix_t& C, const workspace_opts_t<T,idx_t,work_t>& opts = {} )
-{
-    // constants
-    const idx_t m = nrows(C);
-    const idx_t n = ncols(C);
-
-    worksize = sizeof(T) * ((side == Side::Left) ? n : m);
 }
 
 } // lapack

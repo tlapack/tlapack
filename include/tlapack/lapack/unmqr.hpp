@@ -19,17 +19,70 @@ namespace tlapack {
 /**
  * Options struct for unmqr
  */
-template< class work_t, class idx_t = size_type< work_t > >
+template<
+    class work_t = undefined_t,
+    class idx_t = size_type< deduce_work_t< work_t, legacyMatrix<byte> > >
+>
 struct unmqr_opts_t : public workspace_opts_t<work_t>
 {
+    // Use constructors from workspace_opts_t<work_t>
+    using workspace_opts_t<work_t>::workspace_opts_t;
+
     idx_t nb = 32; ///< Block size
 };
 
-template<>
-struct unmqr_opts_t<undefined_t> : public workspace_t
+/** Worspace query for unmqr
+ * 
+ * @param[out] worksize Workspace size.
+ * 
+ * @ingroup geqrf
+ */
+template<
+    class matrixA_t, class matrixC_t,
+    class tau_t, class side_t, class trans_t,
+    class work_t = undefined_t,
+    class idx_t = size_type< matrixC_t >
+>
+inline constexpr
+void unmqr_worksize(
+    side_t side, trans_t trans,
+    const matrixA_t& A,
+    const tau_t& tau,
+    matrixC_t& C,
+    size_t& worksize,
+    const unmqr_opts_t<work_t,idx_t>& opts = {} )
 {
-    std::size_t nb = 32; ///< Block size
-};
+    using commonT   = scalar_type< type_t<matrixA_t >, type_t<tau_t> >;
+    using matrixT_t = deduce_work_t< work_t, legacyMatrix<commonT,idx_t> >;
+    using T         = type_t< matrixT_t >;
+    using pair      = std::pair<idx_t, idx_t>;
+
+    // Constants
+    const idx_t k = size(tau);
+    const idx_t nb = min<idx_t>( opts.nb, k );
+    const size_t matrixT_worksize = nb*nb*sizeof(T);
+
+    // larfb:
+    {
+        // Constants
+        const idx_t m = nrows(C);
+        const idx_t n = ncols(C);
+        const idx_t nA = (side == Side::Left) ? m : n;
+
+        // Functors
+        Create<matrixT_t> new_matrix;
+        
+        // Empty matrices
+        const auto V = slice( A, pair{0,nA}, pair{0,nb} );
+        const auto matrixT = new_matrix( nullptr, nb, nb );
+
+        // Internal workspace queries
+        larfb_worksize( side, trans, forward, columnwise_storage, V, matrixT, C, worksize, opts );
+    }
+    
+    // Additional workspace needed inside the routine
+    worksize += matrixT_worksize;
+}
 
 /** Applies orthogonal matrix op(Q) to a matrix C using a blocked code.
  *
@@ -97,9 +150,8 @@ int unmqr(
     matrixC_t& C,
     const unmqr_opts_t<work_t,idx_t>& opts = {} )
 {
-    using T         = scalar_type< type_t<matrixA_t >, type_t<tau_t> >;
-    using matrixT_t = deduce_work_t< work_t, legacyMatrix<T,idx_t> >;
-    using TT        = type_t< matrixT_t >;
+    using commonT   = scalar_type< type_t<matrixA_t >, type_t<tau_t> >;
+    using matrixT_t = deduce_work_t< work_t, legacyMatrix<commonT,idx_t> >;
     
     using pair  = pair<idx_t,idx_t>;
     using std::max;
@@ -113,9 +165,7 @@ int unmqr(
     const idx_t n = ncols(C);
     const idx_t k = size(tau);
     const idx_t nA = (side == Side::Left) ? m : n;
-    const idx_t nw = (side == Side::Left) ? n : m;
-    const idx_t nb = opts.nb;
-    const size_t Tmatrix_worksize = nb*nb*sizeof(TT);
+    const idx_t nb = min<idx_t>( opts.nb, k );
 
     // check arguments
     tlapack_check_false( side != Side::Left &&
@@ -133,21 +183,27 @@ int unmqr(
         return 0;
 
     // Allocates workspace
-    vectorOfBytes localwork; size_t lwork;
-    unmqr_worksize( side, trans, A, tau, C, lwork, opts );
-    byte* work = alloc_workspace( localwork, lwork, opts.work, opts.lwork );
+    vectorOfBytes localworkdata;
+    Workspace work = [&]()
+    {
+        size_t lwork;
+        unmqr_worksize( side, trans, A, tau, C, lwork, opts );
+        return alloc_workspace( localworkdata, lwork, opts.work );
+    }();
 
-    // Prepare pointer to matrix T
-    assert( lwork >= Tmatrix_worksize );
-    TT* Tmatrix_ptr = (TT*)( &work[ lwork - Tmatrix_worksize ] );
+    // Matrix T 
+    auto matrixT = new_matrix( work, nb, nb );
+    
+    // Options to forward
+    auto&& larfbOpts = workspace_opts_t<work_t>{ std::move(work) };
 
     // Preparing loop indexes
     const bool positiveInc = (
         ( (side == Side::Left) && !(trans == Op::NoTrans) ) ||
         (!(side == Side::Left) &&  (trans == Op::NoTrans) )
     );
-    const idx_t i0 = (positiveInc) ? 0      : ( (k-1) / nb ) * nb;
-    const idx_t iN = (positiveInc) ? k-1+nb : -nb;
+    const idx_t i0  = (positiveInc) ? 0     : ( (k-1) / nb ) * nb;
+    const idx_t iN  = (positiveInc) ? ( (k-1) / nb + 1 ) * nb : -nb;
     const idx_t inc = (positiveInc) ? nb    : -nb;
     
     // Main loop
@@ -156,11 +212,11 @@ int unmqr(
         idx_t ib = min<idx_t>( nb, k-i );
         const auto V = slice( A, pair{i,nA}, pair{i,i+ib} );
         const auto taui = slice( tau, pair{i,i+ib} );
-        auto Tmatrix = new_matrix( Tmatrix_ptr, ib, ib );
+        auto matrixTi   = slice( matrixT, pair{0,ib}, pair{0,ib} );
 
         // Form the triangular factor of the block reflector
         // $H = H(i) H(i+1) ... H(i+ib-1)$
-        larft( forward, columnwise_storage, V, taui, Tmatrix );
+        larft( forward, columnwise_storage, V, taui, matrixTi );
 
         // H or H**H is applied to either C[i:m,0:n] or C[0:m,i:n]
         auto Ci = ( side == Side::Left )
@@ -168,64 +224,10 @@ int unmqr(
            : slice( C, pair{0,m}, pair{i,n} );
 
         // Apply H or H**H
-        larfb( side, trans, forward, columnwise_storage, V, Tmatrix, Ci,
-            workspace_opts_t<work_t>{ work, lwork-Tmatrix_worksize }
-        );
+        larfb( side, trans, forward, columnwise_storage, V, matrixTi, Ci, larfbOpts );
     }
 
     return 0;
-}
-
-/** Worspace query for unmqr
- * 
- * @param[out] worksize Workspace size.
- * 
- * @ingroup geqrf
- */
-template<
-    class matrixA_t, class matrixC_t,
-    class tau_t, class side_t, class trans_t,
-    class work_t = undefined_t,
-    class idx_t = size_type< matrixC_t >
->
-inline constexpr
-void unmqr_worksize(
-    side_t side, trans_t trans,
-    const matrixA_t& A,
-    const tau_t& tau,
-    matrixC_t& C,
-    size_t& worksize,
-    const unmqr_opts_t<work_t,idx_t>& opts = {} )
-{
-    using T         = scalar_type< type_t<matrixA_t >, type_t<tau_t> >;
-    using matrixT_t = deduce_work_t< work_t, legacyMatrix<T,idx_t> >;
-    using TT        = type_t< matrixT_t >;
-
-    // Constants
-    const idx_t nb = opts.nb;
-    const size_t Tmatrix_worksize = nb*nb*sizeof(TT);
-
-    // larfb:
-    {
-        // Constants
-        const idx_t m = nrows(C);
-        const idx_t n = ncols(C);
-        const idx_t nA = (side == Side::Left) ? m : n;
-
-        // Functors
-        Create<matrixA_t> new_matrixV;
-        Create<matrixT_t> new_matrixT;
-        
-        // Empty matrices
-        const auto V        = new_matrixV( nullptr, nA, nb );
-        const auto Tmatrix  = new_matrixT( nullptr, nb, nb );
-
-        // Internal workspace queries
-        larfb_worksize( side, trans, forward, columnwise_storage, V, Tmatrix, C, worksize, opts );
-    }
-    
-    // Additional workspace needed inside the routine
-    worksize += Tmatrix_worksize;
 }
 
 }

@@ -17,6 +17,32 @@
 
 namespace tlapack {
 
+template< class matrix_t, class vector_t, class work_t = undefined_t >
+inline constexpr
+void gehd2_worksize(
+    size_type< matrix_t > ilo, size_type< matrix_t > ihi, matrix_t& A,
+    vector_t &tau, size_t& worksize,
+    const workspace_opts_t<work_t>& opts = {} )
+{
+    using idx_t = size_type< matrix_t >;
+    using pair  = pair<idx_t,idx_t>;
+
+    // constants
+    const idx_t n = ncols(A);
+
+    size_t wsize1 = 0, wsize2 = 0;
+    if( ilo+1 < ihi ) {
+        const auto v = slice( A, pair{ilo+1,ihi}, ilo );
+        
+        auto C = slice( A, pair{0,ihi}, pair{ilo+1,ihi} );
+        larf_worksize( right_side, v, tau[0], C, wsize1, opts );
+        
+        C = slice( A, pair{ilo+1,ihi}, pair{ilo+1,n} );
+        larf_worksize( left_side, v, tau[0], C, wsize2, opts );
+    }
+    worksize = std::max<size_t>( wsize1, wsize2 );
+}
+
 /** Reduces a general square matrix to upper Hessenberg form
  * 
  * The matrix Q is represented as a product of elementary reflectors
@@ -55,8 +81,8 @@ namespace tlapack {
  * 
  * @ingroup gehrd
  */
-template< class matrix_t, class vector_t, class work_t >
-int gehd2( size_type< matrix_t > ilo, size_type< matrix_t > ihi, matrix_t& A, vector_t &tau, work_t &work )
+template< class matrix_t, class vector_t, class work_t = undefined_t >
+int gehd2( size_type< matrix_t > ilo, size_type< matrix_t > ihi, matrix_t& A, vector_t &tau, const workspace_opts_t<work_t>& opts = {} )
 {
     using idx_t = size_type< matrix_t >;
     using pair  = pair<idx_t,idx_t>;
@@ -68,10 +94,21 @@ int gehd2( size_type< matrix_t > ilo, size_type< matrix_t > ihi, matrix_t& A, ve
     tlapack_check_false( access_denied( dense, write_policy(A) ) );
     tlapack_check_false( ncols(A) != nrows(A) );
     tlapack_check_false( (idx_t) size(tau)  < n-1 );
-    tlapack_check_false( (idx_t) size(work) < n );
 
     // quick return
     if (n <= 0) return 0;
+
+    // Allocates workspace
+    vectorOfBytes localworkdata;
+    Workspace work = [&]()
+    {
+        size_t lwork;
+        gehd2_worksize( ilo, ihi, A, tau, lwork, opts );
+        return alloc_workspace( localworkdata, lwork, opts.work );
+    }();
+    
+    // Options to forward
+    auto&& larfOpts = workspace_opts_t<work_t>{ std::move(work) };
 
     for(idx_t i = ilo; i < ihi-1; ++i) {
 
@@ -82,15 +119,12 @@ int gehd2( size_type< matrix_t > ilo, size_type< matrix_t > ihi, matrix_t& A, ve
         larfg( v, tau[i] );
 
         // Apply Householder reflection from the right to A[0:ihi,i+1:ihi]
-        auto w = slice( work, pair{0,ihi} );
         auto C = slice( A, pair{0,ihi}, pair{i+1,ihi} );
-        larf( right_side, v, tau[i], C, w );
+        larf( right_side, v, tau[i], C, larfOpts );
 
         // Apply Householder reflection from the left to A[i+1:ihi,i+1:n-1]
-        w = slice( work, pair{i+1,n} );
         C = slice( A, pair{i+1,ihi}, pair{i+1,n} );
-        auto tauconj = conj(tau[i]);
-        larf( left_side, v, tauconj, C, w );
+        larf( left_side, v, conj(tau[i]), C, larfOpts );
 	}
 
     return 0;

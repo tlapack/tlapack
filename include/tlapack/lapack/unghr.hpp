@@ -28,13 +28,13 @@ namespace tlapack {
  * @ingroup gehrd
  */
 template<
-    class matrix_t, class vector_t, class work_t >
+    class matrix_t, class vector_t, class work_t = undefined_t >
 int unghr(
     size_type< matrix_t > ilo,
     size_type< matrix_t > ihi,
     matrix_t& A,
     vector_t& tau,
-    work_t& work )
+    const workspace_opts_t<work_t>& opts = {} )
 {
     using T      = type_t< matrix_t >;
     using idx_t  = size_type< matrix_t >;
@@ -49,8 +49,6 @@ int unghr(
 
     // check arguments
     tlapack_check_false( (idx_t) size(tau)  < std::min<idx_t>( m, n ) );
-    tlapack_check_false( (idx_t) size(work) < n-1 );
-
 
     // Shift the vectors which define the elementary reflectors one
     // column to the right, and set the first ilo and the last n-ihi
@@ -87,10 +85,39 @@ int unghr(
     if( nh > 0 ){
         auto A_s = slice( A, pair{ilo+1,ihi}, pair{ilo+1,ihi} );
         auto tau_s = slice( tau, pair{ilo,ihi-1} );
-        ung2r( nh, A_s, tau_s, work );
+        ung2r( nh, A_s, tau_s, opts );
     }
 
     return 0;
+}
+
+template< class matrix_t, class vector_t, class work_t = undefined_t >
+inline constexpr
+void unghr_worksize(
+    size_type< matrix_t > ilo,
+    size_type< matrix_t > ihi,
+    matrix_t& A,
+    vector_t& tau,
+    size_t& worksize, const workspace_opts_t<work_t>& opts = {} )
+{
+    using T      = type_t< matrix_t >;
+    using idx_t  = size_type< matrix_t >;
+    using pair  = pair<idx_t,idx_t>;
+    
+    // constants
+    const T zero( 0.0 );
+    const T one ( 1.0 );
+    const idx_t m = nrows(A);
+    const idx_t n = ncols(A);
+    const idx_t nh = (ihi > ilo +1) ? ihi-1-ilo : 0;
+
+    if( nh > 0 && ilo+1 < ihi ) {
+        auto A_s = slice( A, pair{ilo+1,ihi}, pair{ilo+1,ihi} );
+        auto tau_s = slice( tau, pair{ilo,ihi-1} );
+        ung2r_worksize( nh, A_s, tau_s, worksize, opts );
+    }
+    else
+        worksize = 0;
 }
 
 }

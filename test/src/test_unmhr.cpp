@@ -53,7 +53,9 @@ TEMPLATE_LIST_TEST_CASE("Result of unmhr matches result from unghr", "[eigenvalu
     auto C = new_matrix( &C_[0], m, n );
     auto C_copy = new_matrix( &C_copy_[0], m, n );
     std::vector<T> tau(n);
-    std::vector<T> work(std::max(n,m));
+
+    vectorOfBytes workVec;
+    workspace_opts_t<> workOpts( alloc_workspace( workVec, max(m,n)*sizeof(T) ) );
 
     if (matrix_type == "Random")
     {
@@ -78,7 +80,7 @@ TEMPLATE_LIST_TEST_CASE("Result of unmhr matches result from unghr", "[eigenvalu
             H(i, j) = zero;
 
     // Hessenberg reduction of H
-    gehd2(ilo, ihi, H, tau, work);
+    gehd2(ilo, ihi, H, tau, workOpts);
 
     DYNAMIC_SECTION("UNMHR with"
                     << " matrix = " << matrix_type << " ilo = " << ilo << " ihi = " << ihi)
@@ -87,10 +89,10 @@ TEMPLATE_LIST_TEST_CASE("Result of unmhr matches result from unghr", "[eigenvalu
         real_t c_norm = lange(frob_norm, C);
 
         // Apply the orthogonal factor to C
-        unmhr(side, op, ilo, ihi, H, tau, C, work);
+        unmhr(side, op, ilo, ihi, H, tau, C, workOpts);
 
         // Generate the orthogonal factor
-        unghr(ilo, ihi, H, tau, work);
+        unghr(ilo, ihi, H, tau, workOpts);
 
         // Multiply C_copy with the orthogonal factor
         auto Q = slice(H, pair{ilo + 1, ihi}, pair{ilo + 1, ihi});

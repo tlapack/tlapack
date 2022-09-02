@@ -39,8 +39,7 @@ namespace tlapack
      *
      * @ingroup gehrd
      */
-    template <
-        class matrix_t, class vector_t, class work_t>
+    template < class matrix_t, class vector_t, class work_t = undefined_t >
     int unmhr(
         Side side,
         Op trans,
@@ -49,7 +48,7 @@ namespace tlapack
         matrix_t &A,
         vector_t &tau,
         matrix_t &C,
-        work_t &work)
+        const workspace_opts_t<work_t>& opts = {} )
     {
         using idx_t = size_type<matrix_t>;
         using pair = std::pair<idx_t, idx_t>;
@@ -58,11 +57,32 @@ namespace tlapack
         auto tau_s = slice(tau, pair{ilo, ihi - 1});
         auto C_s = (side == Side::Left) ? slice(C, pair{ilo + 1, ihi}, pair{0, ncols(C)}) : slice(C, pair{0, nrows(C)}, pair{ilo + 1, ihi});
 
-        unm2r(side, trans, A_s, tau_s, C_s, work);
+        unm2r(side, trans, A_s, tau_s, C_s, opts);
 
         return 0;
     }
 
+    template < class matrix_t, class vector_t, class work_t = undefined_t >
+    inline constexpr
+    void unmhr_worksize(
+        Side side,
+        Op trans,
+        size_type<matrix_t> ilo,
+        size_type<matrix_t> ihi,
+        matrix_t &A,
+        vector_t &tau,
+        matrix_t &C, size_t& worksize,
+        const workspace_opts_t<work_t>& opts = {} )
+    {
+        using idx_t = size_type<matrix_t>;
+        using pair = std::pair<idx_t, idx_t>;
+
+        auto A_s = slice(A, pair{ilo + 1, ihi}, pair{ilo, ihi-1});
+        auto tau_s = slice(tau, pair{ilo, ihi - 1});
+        auto C_s = (side == Side::Left) ? slice(C, pair{ilo + 1, ihi}, pair{0, ncols(C)}) : slice(C, pair{0, nrows(C)}, pair{ilo + 1, ihi});
+
+        unm2r_worksize(side, trans, A_s, tau_s, C_s, worksize, opts);
+    }
 }
 
 #endif // TLAPACK_UNMHR_HH

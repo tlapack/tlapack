@@ -50,9 +50,9 @@ void run(size_t n)
     std::vector<T> tau(n);
 
     // Matrix views
-    std::vector<T> A_container; auto A = new_matrix(n, n, A_container);
-    std::vector<T> H_container; auto H = new_matrix(n, n, H_container);
-    std::vector<T> Q_container; auto Q = new_matrix(n, n, Q_container);
+    std::vector<T> A_(n*n); auto A = new_matrix(A_.data(), n, n);
+    std::vector<T> H_(n*n); auto H = new_matrix(H_.data(), n, n);
+    std::vector<T> Q_(n*n); auto Q = new_matrix(Q_.data(), n, n);
 
     // Initialize arrays with junk
     for (size_t j = 0; j < n; ++j)
@@ -110,8 +110,7 @@ void run(size_t n)
     auto startQ = std::chrono::high_resolution_clock::now();
     {
         // Generate Q = H_1 H_2 ... H_n
-        std::vector<T> work(n);
-        int err = tlapack::unghr(0, n, Q, tau, work);
+        int err = tlapack::unghr(0, n, Q, tau);
         tlapack_check_false(err);
     }
     // Record end time
@@ -160,8 +159,8 @@ void run(size_t n)
     // 2) Compute ||Q'Q - I||_F
 
     {
-        std::vector<T> work_container;
-        auto work = new_matrix(n, n, work_container);
+        std::vector<T> work_;
+        auto work = new_matrix(work_.data(), n, n);
         for (size_t j = 0; j < n; ++j)
             for (size_t i = 0; i < n; ++i)
                 work(i, j) = static_cast<float>(0xABADBABE);
@@ -185,12 +184,12 @@ void run(size_t n)
 
     // 3) Compute ||QHQ* - A||_F / ||A||_F
 
-    std::vector<T> Hcopy_container;
-    auto H_copy = new_matrix(n, n, Hcopy_container);
+    std::vector<T> Hcopy_;
+    auto H_copy = new_matrix(Hcopy_.data(), n, n);
     tlapack::lacpy(tlapack::Uplo::General,H, H_copy);
     {
-        std::vector<T> work_container;
-        auto work = new_matrix(n, n, work_container);
+        std::vector<T> work_;
+        auto work = new_matrix(work_.data(), n, n);
         for (size_t j = 0; j < n; ++j)
             for (size_t i = 0; i < n; ++i)
                 work(i, j) = static_cast<float>(0xABADBABC);
@@ -215,8 +214,8 @@ void run(size_t n)
     // 4) Compute Q*AQ (usefull for debugging)
 
     if(verbose){
-        std::vector<T> work_container;
-        auto work = new_matrix(n, n, work_container);
+        std::vector<T> work_;
+        auto work = new_matrix(work_.data(), n, n);
         for (size_t j = 0; j < n; ++j)
             for (size_t i = 0; i < n; ++i)
                 work(i, j) = static_cast<float>(0xABADBABC);

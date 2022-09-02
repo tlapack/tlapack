@@ -89,16 +89,15 @@ void run( size_t m, size_t n )
 
     // Record start time
     auto startQR = std::chrono::high_resolution_clock::now(); {
-        std::vector<real_t> work( n-1 );
-    
+
         // QR factorization
-        tlapack::geqr2( Q, tau, work );
+        tlapack::geqr2( Q, tau );
 
         // Save the R matrix
         tlapack::lacpy( tlapack::upperTriangle, Q, R );
 
         // Generates Q = H_1 H_2 ... H_n
-        tlapack::ung2r( n, Q, tau, work );
+        tlapack::ung2r( n, Q, tau );
     }
     // Record end time
     auto endQR = std::chrono::high_resolution_clock::now();

@@ -49,9 +49,11 @@ TEMPLATE_LIST_TEST_CASE("bidiagonal reduction is backward stable", "[bidiagonal]
         auto A = new_matrix( &A_[0], m, n );
         auto A_copy = new_matrix( &A_copy_[0], m, n );
 
-        std::vector<T> work(m); // max of m and n
         std::vector<T> tauv(n); // min of m and n
         std::vector<T> tauw(n); // min of m and n
+
+        vectorOfBytes workVec;
+        workspace_opts_t<> workOpts( alloc_workspace( workVec, m*sizeof(T) ) );
 
         // Generate random m-by-n matrix
         for (idx_t j = 0; j < n; ++j)
@@ -62,7 +64,7 @@ TEMPLATE_LIST_TEST_CASE("bidiagonal reduction is backward stable", "[bidiagonal]
 
         DYNAMIC_SECTION("m = " << m << " n = " << n)
         {
-            gebd2(A, tauv, tauw, work);
+            gebd2(A, tauv, tauw, workOpts);
 
             // Get upper bidiagonal B
             std::unique_ptr<T[]> B_(new T[m * n]);
@@ -82,7 +84,7 @@ TEMPLATE_LIST_TEST_CASE("bidiagonal reduction is backward stable", "[bidiagonal]
             auto Q = new_matrix( &Q_[0], m, m );
             lacpy(Uplo::Lower, A, Q);
 
-            ung2r(n, Q, tauv, work);
+            ung2r(n, Q, tauv, workOpts);
 
             // Test for Q's orthogonality
             std::unique_ptr<T[]> _Wq(new T[m * m]);
@@ -100,7 +102,7 @@ TEMPLATE_LIST_TEST_CASE("bidiagonal reduction is backward stable", "[bidiagonal]
             auto Z11 = slice(Z, range(1, n), range(1, n));
             lacpy(Uplo::General, X, Z11);
 
-            ungl2(Z11, tauw, work); // Note: the unitary matrix Z we get here is ConjTransed
+            ungl2(Z11, tauw, workOpts); // Note: the unitary matrix Z we get here is ConjTransed
 
             // Test for Z's orthogonality
             std::unique_ptr<T[]> _Wz(new T[n * n]);
