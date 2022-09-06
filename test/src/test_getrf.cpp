@@ -16,6 +16,7 @@
 #include <testdefinitions.hpp>
 
 using namespace tlapack;
+using namespace std;
 
 TEMPLATE_LIST_TEST_CASE("LU factorization of a general m-by-n matrix, blocked", "[lqf]", types_to_test)
 {
@@ -52,8 +53,8 @@ TEMPLATE_LIST_TEST_CASE("LU factorization of a general m-by-n matrix, blocked", 
     lacpy(Uplo::General, A, A_copy);
     
     double norma=tlapack::lange( tlapack::Norm::Max, A);
-
-    getrf(A);
+    std::vector<idx_t> Piv( k , idx_t(0) );
+    getrf(A,Piv);
     std::vector<T> L_( m*k , T(0) );
     std::vector<T> U_( k*n , T(0) );
 
@@ -73,10 +74,21 @@ TEMPLATE_LIST_TEST_CASE("LU factorization of a general m-by-n matrix, blocked", 
             }
         }
     }
+    for(idx_t j=k-idx_t(1);j!=idx_t(-1);j--){
+        auto vect1=tlapack::row(L,j);
+        auto vect2=tlapack::row(L,Piv[j]);
+        tlapack::swap(vect1,vect2);
+        // auto vect3=tlapack::col(U,j);
+        // auto vect4=tlapack::col(U,Piv[j]);
+        // swap(vect3,vect4);
+    }
     gemm(Op::NoTrans,Op::NoTrans,real_t(1),L,U,real_t(-1),A_copy);
-
     real_t error = tlapack::lange( tlapack::Norm::Max, A_copy)/norma;
+    for(idx_t i=0;i<k;i++){
+        cout<<Piv[i]<<endl;
+    }
     CHECK(error <= tol);
+    
 }
 //Proposoed modification
 /*

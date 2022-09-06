@@ -52,7 +52,7 @@ namespace tlapack {
  * @ingroup geqrf
  */
 template< class matrix_t >
-int getrf( matrix_t& A )
+int getrf( matrix_t& A, std::vector<idx_t> &P)
 {
     using idx_t = size_type< matrix_t >;
     using T = type_t<matrix_t>;
@@ -70,11 +70,31 @@ int getrf( matrix_t& A )
     // tlapack_check_false( (idx_t) size(work) < n-1 );
 
     // quick return
+    idx_t toswap = idx_t(0);
     if (m<=0 || n <= 0) return 0;
     
     for(idx_t j=0;j<end;j++){
+        toswap=j+iamax(tlapack::slice(A,tlapack::range<idx_t>(j,m),j));
+        P[j]=toswap;
+        auto vect1=tlapack::row(A,j);
+        auto vect2=tlapack::row(A,toswap);
+        tlapack::swap(vect1,vect2);
+        // for (idx_t i = 0; i < m; ++i)
+        // {
+        //     std::cout << std::endl;
+        //     for (idx_t k = 0; k < n; ++k)
+        //         std::cout << std::setw(16) << A(i, k) << " ";
+        // }
+        // return pivot is zero
+        if (A(j,j)==real_t(0)){
+            return j+1;
+        }
+
+
+        
+        
+        
         for(idx_t i=j+1;i<m;i++){
-            assert( A(j,j) != real_t(0) );
             A(i,j)=A(i,j)/A(j,j);
         }
         for(idx_t row=j+1;row<m;row++){
@@ -84,9 +104,12 @@ int getrf( matrix_t& A )
         } 
 
     }
+    
     return 0;
 }
 
 } // lapack
 
 #endif // TLAPACK_GETRF_HH
+//const idx_t toswap = iammax();
+//tlapack::auto D=tlapack::slice(E,tlapack::range(m,m+1),tlapack::range(m,m+1));
