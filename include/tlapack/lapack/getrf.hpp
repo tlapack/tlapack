@@ -1,4 +1,4 @@
-/// @file geqr2.hpp
+/// @file getrf.hpp
 /// @author Ali Lotfi, University of Colorado Denver, USA
 /// Adapted from @see https://github.com/langou/latl/blob/master/include/geqr2.h
 //
@@ -14,42 +14,28 @@
 #include "tlapack/base/utils.hpp"
 
 namespace tlapack {
-
-/** Computes a QR factorization of a matrix A.
- * 
- * The matrix Q is represented as a product of elementary reflectors
- * \[
- *          Q = H_1 H_2 ... H_k,
- * \]
- * where k = min(m,n). Each H_i has the form
- * \[
- *          H_i = I - tau * v * v',
- * \]
- * where tau is a scalar, and v is a vector with
- * \[
- *          v[0] = v[1] = ... = v[i-1] = 0; v[i] = 1,
- * \]
- * with v[i+1] through v[m-1] stored on exit below the diagonal
- * in the ith column of A, and tau in tau[i].
- * 
+/** getrf computes an LU factorization of a general m-by-n matrix A
+ *  using partial pivoting with row interchanges.
+ *  The factorization has the form
+ *   A = P * L * U
+ *  where P is a permutation matrix constructed from our Piv vector, L is lower triangular with unit
+ *  diagonal elements (lower trapezoidal if m > n), and U is upper
+ *  triangular (upper trapezoidal if m < n).
+ *  This is Level 0 version of the algorithm.
  * @return  0 if success
  * 
- * @param[in,out] A m-by-n matrix.
- *      On exit, the elements on and above the diagonal of the array
- *      contain the min(m,n)-by-n upper trapezoidal matrix R
- *      (R is upper triangular if m >= n); the elements below the diagonal,
- *      with the array tau, represent the unitary matrix Q as a
- *      product of elementary reflectors.
- * @param[out] tau Real vector of length min(m,n).
- *      The scalar factors of the elementary reflectors.
- *      If
- *          n-1 < m and
- *          type_t<matrix_t> == type_t<vector_t>
- *      then one may use tau[1:n] as the workspace.
- * 
- * @param work Vector of size n-1.
- * 
- * @ingroup geqrf
+ * @param[in,out] A m-by-n complex matrix.
+ *      A=PLU, and to construct L and U, one proceeds as in the following steps
+ *      1- Set matrices L m-by-k, and U k-by-n be to matrices with all zeros, where k=min(m,n)
+ *      2- Set elements on the diagonal of L to 1
+ *      3- below the diagonal of A will be copied to L
+ *      4- On and above the diagonal of A will be copied to U
+ *      
+ * @param[in,out] Piv is a k-by-1 vector where k=min(m,n)
+ * and Piv[i]=j where i<=j<=k-1, which means in the i-th iteration of the algorithm,
+ * the j-th row needs to be swapped with i 
+ *
+ * @ingroup getrf
  */
 template< class matrix_t >
 int getrf( matrix_t& A, std::vector<idx_t> &P)
@@ -57,7 +43,6 @@ int getrf( matrix_t& A, std::vector<idx_t> &P)
     using idx_t = size_type< matrix_t >;
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
-    // using pair  = pair<idx_t,idx_t>;
 
     // constants
     const idx_t m = nrows(A);
@@ -66,37 +51,30 @@ int getrf( matrix_t& A, std::vector<idx_t> &P)
 
     // check arguments
     tlapack_check_false( access_denied( dense, write_policy(A) ) );
-    // tlapack_check_false( (idx_t) size(tau)  < std::min<idx_t>( m, n ) );
-    // tlapack_check_false( (idx_t) size(work) < n-1 );
 
     // quick return
     idx_t toswap = idx_t(0);
     if (m<=0 || n <= 0) return 0;
     
     for(idx_t j=0;j<end;j++){
+        // find pivot and swap the row with pivot row
         toswap=j+iamax(tlapack::slice(A,tlapack::range<idx_t>(j,m),j));
         P[j]=toswap;
         auto vect1=tlapack::row(A,j);
         auto vect2=tlapack::row(A,toswap);
         tlapack::swap(vect1,vect2);
-        // for (idx_t i = 0; i < m; ++i)
-        // {
-        //     std::cout << std::endl;
-        //     for (idx_t k = 0; k < n; ++k)
-        //         std::cout << std::setw(16) << A(i, k) << " ";
-        // }
-        // return pivot is zero
+        
+        // if nonzero pivot does not exist, return 
         if (A(j,j)==real_t(0)){
             return j+1;
         }
-
-
         
-        
-        
+        // divide below diagonal part of j-th column by the element on the diagonal(A(j,j))
         for(idx_t i=j+1;i<m;i++){
-            A(i,j)=A(i,j)/A(j,j);
+            A(i,j)/=A(j,j);
         }
+        
+        // update the submatrix A(j+1:m-1,j+1:n-1)
         for(idx_t row=j+1;row<m;row++){
             for(idx_t col=j+1;col<n;col++){
                 A(row,col)=A(row,col)-A(row,j)*A(j,col);
@@ -111,5 +89,3 @@ int getrf( matrix_t& A, std::vector<idx_t> &P)
 } // lapack
 
 #endif // TLAPACK_GETRF_HH
-//const idx_t toswap = iammax();
-//tlapack::auto D=tlapack::slice(E,tlapack::range(m,m+1),tlapack::range(m,m+1));
