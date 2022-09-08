@@ -139,10 +139,10 @@ namespace tlapack
             //
             auto A2 = slice(A, pair{k + 1, n}, pair{i + 1, n - k});
             auto y = slice(Y, pair{k + 1, n}, i);
-            gemv(Op::NoTrans, one, A2, v, zero, y);
+            gemv(Op::NoTrans, one, A2, v, y);
             auto t = slice(T, pair{0, i}, i);
             auto A3 = slice(A, pair{k + i + 1, n}, pair{0, i});
-            gemv(Op::ConjTrans, one, A3, v, zero, t);
+            gemv(Op::ConjTrans, one, A3, v, t);
             auto Y2 = slice(Y, pair{k + 1, n}, pair{0, i});
             gemv(Op::NoTrans, -one, Y2, t, one, y);
             scal(tau[i], y);

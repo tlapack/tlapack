@@ -75,16 +75,8 @@ void hemv(
     tlapack_check_false( access_denied( uplo, read_policy(A) ) );
 
     // form y = beta*y
-    if (beta != beta_t(1)) {
-        if (beta == beta_t(0)) {
-            for (idx_t i = 0; i < n; ++i)
-                y[i] = 0;
-        }
-        else {
-            for (idx_t i = 0; i < n; ++i)
-                y[i] *= beta;
-        }
-    }
+    for (idx_t i = 0; i < n; ++i)
+        y[i] *= beta;
 
     if (uplo == Uplo::Upper) {
         // A is stored in upper triangle
@@ -112,6 +104,50 @@ void hemv(
             y[j] += tmp1 * real( A(j,j) ) + alpha * tmp2;
         }
     }
+}
+
+/**
+ * Hermitian matrix-vector multiply:
+ * \[
+ *     y := \alpha A x,
+ * \]
+ * where alpha and beta are scalars, x and y are vectors,
+ * and A is an n-by-n Hermitian matrix.
+ *
+ * @param[in] uplo
+ *     What part of the matrix A is referenced,
+ *     the opposite triangle being assumed from symmetry.
+ *     - Uplo::Lower: only the lower triangular part of A is referenced.
+ *     - Uplo::Upper: only the upper triangular part of A is referenced.
+ *
+ * @param[in] alpha Scalar.
+ * @param[in] A A n-by-n Hermitian matrix.
+ *     Imaginary parts of the diagonal elements need not be set,
+ *     are assumed to be zero on entry, and are set to zero on exit.
+ * @param[in] x A n-element vector.
+ * @param[in,out] y A n-element vector.
+ *
+ * @ingroup hemv
+ */
+template<
+    class matrixA_t,
+    class vectorX_t, class vectorY_t, 
+    class alpha_t,
+    class T = type_t<vectorY_t>,
+    disable_if_allow_optblas_t<
+        pair< alpha_t,   T >,
+        pair< matrixA_t, T >,
+        pair< vectorX_t, T >,
+        pair< vectorY_t, T >
+    > = 0
+>
+inline
+void hemv(
+    Uplo uplo,
+    const alpha_t& alpha, const matrixA_t& A, const vectorX_t& x,
+    vectorY_t& y )
+{
+    return hemv( uplo, alpha, A, x, internal::StrongZero(), y );
 }
 
 }  // namespace tlapack

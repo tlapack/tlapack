@@ -52,9 +52,10 @@ void axpy(
 {
     tlapack_check_false( incx == 0 );
     tlapack_check_false( incy == 0 );
+    using scalar_t = scalar_type<TX, TY>;
 
     // quick return
-    if( n <= 0 ) return;
+    if( n <= 0 || alpha == scalar_t(0) ) return;
     
     tlapack_expr_with_2vectors(
         x_, TX, n, x, incx,

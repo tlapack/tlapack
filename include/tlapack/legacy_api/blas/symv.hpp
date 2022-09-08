@@ -76,6 +76,7 @@ void symv(
     TY *y, int_t incy )
 {
     using internal::colmajor_matrix;
+    using scalar_t = scalar_type<TA, TX, TY>;
 
     // check arguments
     tlapack_check_false( layout != Layout::ColMajor &&
@@ -88,8 +89,8 @@ void symv(
     tlapack_check_false( incy == 0 );
 
     // quick return
-    if (n == 0)
-        return;
+    if ( n == 0 ||
+        ((alpha == scalar_t(0)) && (beta == scalar_t(1))) ) return;
 
     // for row major, swap lower <=> upper
     if (layout == Layout::RowMajor) {
@@ -99,11 +100,26 @@ void symv(
     // Views
     const auto A_ = colmajor_matrix<TA>( (TA*)A, n, n, lda );
 
-    tlapack_expr_with_2vectors(
-        x_, TX, n, x, incx,
-        y_, TY, n, y, incy,
-        return symv( uplo, alpha, A_, x_, beta, y_ )
-    );
+    if( alpha == scalar_t(0) ) {
+        tlapack_expr_with_vector( y_, TY, n, y, incy,
+            if( beta == scalar_t(0) )
+                for(idx_t i = 0; i < n; ++i)
+                    y_[i] = TY(0);
+            else
+                for(idx_t i = 0; i < n; ++i)
+                    y_[i] *= beta
+        );
+    }
+    else {
+        tlapack_expr_with_2vectors(
+            x_, TX, n, x, incx,
+            y_, TY, n, y, incy,
+            if( beta == scalar_t(0) )
+                return symv( uplo, alpha, A_, x_, y_ );
+            else
+                return symv( uplo, alpha, A_, x_, beta, y_ )
+        );
+    }
 }
 
 }  // namespace tlapack

@@ -69,6 +69,7 @@ void ger(
 {
     using internal::colmajor_matrix;
     using internal::rowmajor_matrix;
+    using scalar_t = scalar_type<TA, TX, TY>;
 
     // check arguments
     tlapack_check_false( layout != Layout::ColMajor &&
@@ -80,7 +81,7 @@ void ger(
     tlapack_check_false( lda < ((layout == Layout::ColMajor) ? m : n) );
 
     // quick return
-    if (m == 0 || n == 0)
+    if (m == 0 || n == 0 || alpha == scalar_t(0))
         return;
 
     if( layout == Layout::ColMajor )
