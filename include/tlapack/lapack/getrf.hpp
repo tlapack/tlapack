@@ -55,7 +55,7 @@ int getrf( matrix_t& A, std::vector<idx_t> &Piv)
 
     // check arguments
     tlapack_check_false( access_denied( dense, write_policy(A) ) );
-
+    tlapack_check( (idx_t) Piv.size() >= end);
     // quick return
     idx_t toswap = idx_t(0);
     if (m<=0 || n <= 0) return 0;
