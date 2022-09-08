@@ -84,10 +84,9 @@ TEMPLATE_LIST_TEST_CASE("LQ factorization of a general m-by-n matrix", "[lqf]", 
             // R stores the product of L and Q
             std::unique_ptr<T[]> R_(new T[min(k, m) * n]);
             auto R = legacyMatrix<T, layout<matrix_t>>(min(k, m), n, &R_[0], layout<matrix_t> == Layout::ColMajor ? min(k, m) : n);
-            laset(Uplo::General, zero, zero, R);
 
             // Test A = L * Q
-            gemm(Op::NoTrans, Op::NoTrans, real_t(1.), L, Q, real_t(0.), R);
+            gemm(Op::NoTrans, Op::NoTrans, real_t(1.), L, Q, R);
             for (idx_t j = 0; j < n; ++j)
                 for (idx_t i = 0; i < min(m, k); ++i)
                     A_copy(i, j) -= R(i, j);

@@ -799,6 +799,11 @@ void gemm(
     const auto& n = C_.n;
     const auto& k = (transA == Op::NoTrans) ? A_.n : A_.m;
 
+    if( alpha == alpha_t(0) )
+        tlapack_warning( -3, "Infs and NaNs in A or B will not propagate to C on output" );
+    if( beta == beta_t(0) )
+        tlapack_warning( -6, "Infs and NaNs in C on input will not propagate to C on output" );
+
     return ::blas::gemm(
         (::blas::Layout) A_.layout,
         (::blas::Op) transA, (::blas::Op) transB, 
@@ -807,6 +812,67 @@ void gemm(
         A_.ptr, A_.ldim,
         B_.ptr, B_.ldim,
         beta,
+        C_.ptr, C_.ldim );
+}
+
+/**
+ * General matrix-matrix multiply.
+ * 
+ * Wrapper to optimized BLAS.
+ * 
+ * @see gemm(
+    Op transA,
+    Op transB,
+    const alpha_t& alpha,
+    const matrixA_t& A,
+    const matrixB_t& B,
+    matrixC_t& C )
+ * 
+ * @ingroup gemm
+ */
+template<
+    class matrixA_t,
+    class matrixB_t,
+    class matrixC_t,
+    class alpha_t,
+    class T = type_t<matrixC_t>,
+    enable_if_allow_optblas_t<
+        pair< matrixA_t, T >,
+        pair< matrixB_t, T >,
+        pair< matrixC_t, T >,
+        pair< alpha_t,   T >
+    > = 0
+>
+inline
+void gemm(
+    Op transA,
+    Op transB,
+    const alpha_t alpha,
+    const matrixA_t& A,
+    const matrixB_t& B,
+    matrixC_t& C )
+{
+    // Legacy objects
+    auto A_ = legacy_matrix(A);
+    auto B_ = legacy_matrix(B);
+    auto C_ = legacy_matrix(C);
+
+    // Constants to forward
+    const auto& m = C_.m;
+    const auto& n = C_.n;
+    const auto& k = (transA == Op::NoTrans) ? A_.n : A_.m;
+
+    if( alpha == alpha_t(0) )
+        tlapack_warning( -3, "Infs and NaNs in A or B will not propagate to C on output" );
+
+    return ::blas::gemm(
+        (::blas::Layout) A_.layout,
+        (::blas::Op) transA, (::blas::Op) transB, 
+        m, n, k,
+        alpha,
+        A_.ptr, A_.ldim,
+        B_.ptr, B_.ldim,
+        T(0),
         C_.ptr, C_.ldim );
 }
 
@@ -854,6 +920,11 @@ void hemm(
     const auto& m = C_.m;
     const auto& n = C_.n;
 
+    if( alpha == alpha_t(0) )
+        tlapack_warning( -3, "Infs and NaNs in A or B will not propagate to C on output" );
+    if( beta == beta_t(0) )
+        tlapack_warning( -6, "Infs and NaNs in C on input will not propagate to C on output" );
+
     return ::blas::hemm(
         (::blas::Layout) A_.layout,
         (::blas::Side) side, (::blas::Uplo) uplo, 
@@ -862,6 +933,62 @@ void hemm(
         A_.ptr, A_.ldim,
         B_.ptr, B_.ldim,
         beta,
+        C_.ptr, C_.ldim );
+}
+
+/**
+ * Hermitian matrix-matrix multiply.
+ * 
+ * Wrapper to optimized BLAS.
+ * 
+ * @see hemm(
+    Side side,
+    Uplo uplo,
+    const alpha_t& alpha, const matrixA_t& A, const matrixB_t& B,
+    matrixC_t& C )
+ * 
+ * @ingroup hemm
+ */
+template<
+    class matrixA_t,
+    class matrixB_t, 
+    class matrixC_t, 
+    class alpha_t,
+    class T  = type_t<matrixC_t>,
+    enable_if_allow_optblas_t<
+        pair< matrixA_t, T >,
+        pair< matrixB_t, T >,
+        pair< matrixC_t, T >,
+        pair< alpha_t,   T >
+    > = 0
+>
+inline
+void hemm(
+    Side side,
+    Uplo uplo,
+    const alpha_t alpha, const matrixA_t& A, const matrixB_t& B,
+    matrixC_t& C )
+{
+    // Legacy objects
+    auto A_ = legacy_matrix(A);
+    auto B_ = legacy_matrix(B);
+    auto C_ = legacy_matrix(C);
+
+    // Constants to forward
+    const auto& m = C_.m;
+    const auto& n = C_.n;
+
+    if( alpha == alpha_t(0) )
+        tlapack_warning( -3, "Infs and NaNs in A or B will not propagate to C on output" );
+
+    return ::blas::hemm(
+        (::blas::Layout) A_.layout,
+        (::blas::Side) side, (::blas::Uplo) uplo, 
+        m, n,
+        alpha,
+        A_.ptr, A_.ldim,
+        B_.ptr, B_.ldim,
+        T(0),
         C_.ptr, C_.ldim );
 }
 
@@ -904,6 +1031,11 @@ void herk(
     const auto& n = C_.n;
     const auto& k = (trans == Op::NoTrans) ? A_.n : A_.m;
 
+    if( alpha == alpha_t(0) )
+        tlapack_warning( -3, "Infs and NaNs in A will not propagate to C on output" );
+    if( beta == beta_t(0) )
+        tlapack_warning( -5, "Infs and NaNs in C on input will not propagate to C on output" );
+
     return ::blas::herk(
         (::blas::Layout) A_.layout,
         (::blas::Uplo) uplo,
@@ -912,6 +1044,58 @@ void herk(
         alpha,
         A_.ptr, A_.ldim,
         beta,
+        C_.ptr, C_.ldim );
+}
+
+/**
+ * Hermitian rank-k update
+ * 
+ * Wrapper to optimized BLAS.
+ * 
+ * @see herk(
+    Uplo uplo,
+    Op trans,
+    const alpha_t& alpha, const matrixA_t& A,
+    matrixC_t& C )
+ * 
+ * @ingroup herk
+ */
+template<
+    class matrixA_t, class matrixC_t, 
+    class alpha_t,
+    class T  = type_t<matrixC_t>,
+    enable_if_allow_optblas_t<
+        pair< matrixA_t, T >,
+        pair< matrixC_t, T >,
+        pair< alpha_t,   real_type<T> >
+    > = 0
+>
+inline
+void herk(
+    Uplo uplo,
+    Op trans,
+    const alpha_t alpha, const matrixA_t& A,
+    matrixC_t& C )
+{
+    // Legacy objects
+    auto A_ = legacy_matrix(A);
+    auto C_ = legacy_matrix(C);
+
+    // Constants to forward
+    const auto& n = C_.n;
+    const auto& k = (trans == Op::NoTrans) ? A_.n : A_.m;
+
+    if( alpha == alpha_t(0) )
+        tlapack_warning( -3, "Infs and NaNs in A or B will not propagate to C on output" );
+
+    return ::blas::herk(
+        (::blas::Layout) A_.layout,
+        (::blas::Uplo) uplo,
+        (::blas::Op) trans, 
+        n, k,
+        alpha,
+        A_.ptr, A_.ldim,
+        real_type<T>(0),
         C_.ptr, C_.ldim );
 }
 
@@ -960,6 +1144,11 @@ void her2k(
     const auto& n = C_.n;
     const auto& k = (trans == Op::NoTrans) ? A_.n : A_.m;
 
+    if( alpha == alpha_t(0) )
+        tlapack_warning( -3, "Infs and NaNs in A or B will not propagate to C on output" );
+    if( beta == beta_t(0) )
+        tlapack_warning( -6, "Infs and NaNs in C on input will not propagate to C on output" );
+
     return ::blas::her2k(
         (::blas::Layout) A_.layout,
         (::blas::Uplo) uplo,
@@ -969,6 +1158,61 @@ void her2k(
         A_.ptr, A_.ldim,
         B_.ptr, B_.ldim,
         beta,
+        C_.ptr, C_.ldim );
+}
+
+/**
+ * Hermitian rank-k update
+ * 
+ * Wrapper to optimized BLAS.
+ * 
+ * @see her2k(
+    Uplo uplo,
+    Op trans,
+    const alpha_t& alpha, const matrixA_t& A, const matrixB_t& B,
+    matrixC_t& C )
+ * 
+ * @ingroup her2k
+ */
+template<
+    class matrixA_t, class matrixB_t, class matrixC_t, 
+    class alpha_t,
+    class T  = type_t<matrixC_t>,
+    enable_if_allow_optblas_t<
+        pair< matrixA_t, T >,
+        pair< matrixB_t, T >,
+        pair< matrixC_t, T >,
+        pair< alpha_t,   T >
+    > = 0
+>
+inline
+void her2k(
+    Uplo uplo,
+    Op trans,
+    const alpha_t alpha, const matrixA_t& A, const matrixB_t& B,
+    matrixC_t& C )
+{
+    // Legacy objects
+    auto A_ = legacy_matrix(A);
+    auto B_ = legacy_matrix(B);
+    auto C_ = legacy_matrix(C);
+
+    // Constants to forward
+    const auto& n = C_.n;
+    const auto& k = (trans == Op::NoTrans) ? A_.n : A_.m;
+
+    if( alpha == alpha_t(0) )
+        tlapack_warning( -3, "Infs and NaNs in A or B will not propagate to C on output" );
+
+    return ::blas::her2k(
+        (::blas::Layout) A_.layout,
+        (::blas::Uplo) uplo,
+        (::blas::Op) trans, 
+        n, k,
+        alpha,
+        A_.ptr, A_.ldim,
+        B_.ptr, B_.ldim,
+        real_type<T>(0),
         C_.ptr, C_.ldim );
 }
 
@@ -1016,6 +1260,11 @@ void symm(
     const auto& m = C_.m;
     const auto& n = C_.n;
 
+    if( alpha == alpha_t(0) )
+        tlapack_warning( -3, "Infs and NaNs in A or B will not propagate to C on output" );
+    if( beta == beta_t(0) )
+        tlapack_warning( -6, "Infs and NaNs in C on input will not propagate to C on output" );
+
     return ::blas::symm(
         (::blas::Layout) A_.layout,
         (::blas::Side) side, (::blas::Uplo) uplo, 
@@ -1024,6 +1273,62 @@ void symm(
         A_.ptr, A_.ldim,
         B_.ptr, B_.ldim,
         beta,
+        C_.ptr, C_.ldim );
+}
+
+/**
+ * Symmetric matrix-matrix multiply.
+ * 
+ * Wrapper to optimized BLAS.
+ * 
+ * @see symm(
+    Side side,
+    Uplo uplo,
+    const alpha_t& alpha, const matrixA_t& A, const matrixB_t& B,
+    matrixC_t& C )
+ * 
+ * @ingroup symm
+ */
+template<
+    class matrixA_t,
+    class matrixB_t, 
+    class matrixC_t, 
+    class alpha_t,
+    class T  = type_t<matrixC_t>,
+    enable_if_allow_optblas_t<
+        pair< matrixA_t, T >,
+        pair< matrixB_t, T >,
+        pair< matrixC_t, T >,
+        pair< alpha_t,   T >
+    > = 0
+>
+inline
+void symm(
+    Side side,
+    Uplo uplo,
+    const alpha_t alpha, const matrixA_t& A, const matrixB_t& B,
+    matrixC_t& C )
+{
+    // Legacy objects
+    auto A_ = legacy_matrix(A);
+    auto B_ = legacy_matrix(B);
+    auto C_ = legacy_matrix(C);
+
+    // Constants to forward
+    const auto& m = C_.m;
+    const auto& n = C_.n;
+
+    if( alpha == alpha_t(0) )
+        tlapack_warning( -3, "Infs and NaNs in A or B will not propagate to C on output" );
+
+    return ::blas::symm(
+        (::blas::Layout) A_.layout,
+        (::blas::Side) side, (::blas::Uplo) uplo, 
+        m, n,
+        alpha,
+        A_.ptr, A_.ldim,
+        B_.ptr, B_.ldim,
+        T(0),
         C_.ptr, C_.ldim );
 }
 
@@ -1066,6 +1371,11 @@ void syrk(
     const auto& n = C_.n;
     const auto& k = (trans == Op::NoTrans) ? A_.n : A_.m;
 
+    if( alpha == alpha_t(0) )
+        tlapack_warning( -3, "Infs and NaNs in A will not propagate to C on output" );
+    if( beta == beta_t(0) )
+        tlapack_warning( -5, "Infs and NaNs in C on input will not propagate to C on output" );
+
     return ::blas::syrk(
         (::blas::Layout) A_.layout,
         (::blas::Uplo) uplo,
@@ -1074,6 +1384,58 @@ void syrk(
         alpha,
         A_.ptr, A_.ldim,
         beta,
+        C_.ptr, C_.ldim );
+}
+
+/**
+ * Symmetric rank-k update
+ * 
+ * Wrapper to optimized BLAS.
+ * 
+ * @see syrk(
+    Uplo uplo,
+    Op trans,
+    const alpha_t& alpha, const matrixA_t& A,
+    matrixC_t& C )
+ * 
+ * @ingroup syrk
+ */
+template<
+    class matrixA_t, class matrixC_t, 
+    class alpha_t,
+    class T  = type_t<matrixC_t>,
+    enable_if_allow_optblas_t<
+        pair< matrixA_t, T >,
+        pair< matrixC_t, T >,
+        pair< alpha_t,   T >
+    > = 0
+>
+inline
+void syrk(
+    Uplo uplo,
+    Op trans,
+    const alpha_t alpha, const matrixA_t& A,
+    matrixC_t& C )
+{
+    // Legacy objects
+    auto A_ = legacy_matrix(A);
+    auto C_ = legacy_matrix(C);
+
+    // Constants to forward
+    const auto& n = C_.n;
+    const auto& k = (trans == Op::NoTrans) ? A_.n : A_.m;
+
+    if( alpha == alpha_t(0) )
+        tlapack_warning( -3, "Infs and NaNs in A or B will not propagate to C on output" );
+
+    return ::blas::syrk(
+        (::blas::Layout) A_.layout,
+        (::blas::Uplo) uplo,
+        (::blas::Op) trans, 
+        n, k,
+        alpha,
+        A_.ptr, A_.ldim,
+        T(0),
         C_.ptr, C_.ldim );
 }
 
@@ -1118,6 +1480,11 @@ void syr2k(
     const auto& n = C_.n;
     const auto& k = (trans == Op::NoTrans) ? A_.n : A_.m;
 
+    if( alpha == alpha_t(0) )
+        tlapack_warning( -3, "Infs and NaNs in A or B will not propagate to C on output" );
+    if( beta == beta_t(0) )
+        tlapack_warning( -6, "Infs and NaNs in C on input will not propagate to C on output" );
+
     return ::blas::syr2k(
         (::blas::Layout) A_.layout,
         (::blas::Uplo) uplo,
@@ -1127,6 +1494,61 @@ void syr2k(
         A_.ptr, A_.ldim,
         B_.ptr, B_.ldim,
         beta,
+        C_.ptr, C_.ldim );
+}
+
+/**
+ * Symmetric rank-k update
+ * 
+ * Wrapper to optimized BLAS.
+ * 
+ * @see syr2k(
+    Uplo uplo,
+    Op trans,
+    const alpha_t& alpha, const matrixA_t& A, const matrixB_t& B,
+    matrixC_t& C )
+ * 
+ * @ingroup syr2k
+ */
+template<
+    class matrixA_t, class matrixB_t, class matrixC_t, 
+    class alpha_t,
+    class T  = type_t<matrixC_t>,
+    enable_if_allow_optblas_t<
+        pair< matrixA_t, T >,
+        pair< matrixB_t, T >,
+        pair< matrixC_t, T >,
+        pair< alpha_t,   T >
+    > = 0
+>
+inline
+void syr2k(
+    Uplo uplo,
+    Op trans,
+    const alpha_t alpha, const matrixA_t& A, const matrixB_t& B,
+    matrixC_t& C )
+{
+    // Legacy objects
+    auto A_ = legacy_matrix(A);
+    auto B_ = legacy_matrix(B);
+    auto C_ = legacy_matrix(C);
+
+    // Constants to forward
+    const auto& n = C_.n;
+    const auto& k = (trans == Op::NoTrans) ? A_.n : A_.m;
+
+    if( alpha == alpha_t(0) )
+        tlapack_warning( -3, "Infs and NaNs in A or B will not propagate to C on output" );
+
+    return ::blas::syr2k(
+        (::blas::Layout) A_.layout,
+        (::blas::Uplo) uplo,
+        (::blas::Op) trans, 
+        n, k,
+        alpha,
+        A_.ptr, A_.ldim,
+        B_.ptr, B_.ldim,
+        T(0),
         C_.ptr, C_.ldim );
 }
 
@@ -1172,6 +1594,9 @@ void trmm(
     const auto& m = B_.m;
     const auto& n = B_.n;
 
+    if( alpha == alpha_t(0) )
+        tlapack_warning( -5, "Infs and NaNs in A or B will not propagate to B on output" );
+
     return ::blas::trmm(
         (::blas::Layout) A_.layout,
         (::blas::Side) side,
@@ -1209,6 +1634,9 @@ void trsm(
     // Constants to forward
     const auto& m = B_.m;
     const auto& n = B_.n;
+
+    if( alpha == alpha_t(0) )
+        tlapack_warning( -5, "Infs and NaNs in A or B will not propagate to B on output" );
 
     return ::blas::trsm(
         (::blas::Layout) A_.layout,

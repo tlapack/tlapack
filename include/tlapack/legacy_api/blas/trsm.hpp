@@ -105,6 +105,7 @@ void trsm(
     TB       *B, idx_t ldb )
 {
     using internal::colmajor_matrix;
+    using scalar_t = scalar_type<TA, TB>;
 
     // check arguments
     tlapack_check_false( layout != Layout::ColMajor &&
@@ -145,7 +146,12 @@ void trsm(
                   : colmajor_matrix<TA>( (TA*)A, n, n, lda );
     auto B_ = colmajor_matrix<TB>( B, m, n, ldb );
 
-    trsm( side, uplo, trans, diag, alpha, A_, B_ );
+    if( alpha == scalar_t(0) )
+        for(idx_t j = 0; j < n; ++j)
+            for(idx_t i = 0; i < m; ++i)
+                B_(i,j) = TB(0);
+    else
+        trsm( side, uplo, trans, diag, alpha, A_, B_ );
 }
 
 }  // namespace tlapack

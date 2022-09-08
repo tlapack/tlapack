@@ -200,8 +200,8 @@ void run(size_t n)
             for (size_t i = 0; i < n; ++i)
                 work(i, j) = static_cast<float>(0xABADBABC);
 
-        tlapack::gemm(tlapack::Op::NoTrans, tlapack::Op::NoTrans, (T)1.0, Q, H, (T)0.0, work);
-        tlapack::gemm(tlapack::Op::NoTrans, tlapack::Op::ConjTrans, (T)1.0, work, Q, (T)0.0, H);
+        tlapack::gemm(tlapack::Op::NoTrans, tlapack::Op::NoTrans, (T)1.0, Q, H, work);
+        tlapack::gemm(tlapack::Op::NoTrans, tlapack::Op::ConjTrans, (T)1.0, work, Q, H);
 
         for (size_t j = 0; j < n; ++j)
             for (size_t i = 0; i < n; ++i)
@@ -226,8 +226,8 @@ void run(size_t n)
             for (size_t i = 0; i < n; ++i)
                 work(i, j) = static_cast<float>(0xABADBABC);
 
-        tlapack::gemm(tlapack::Op::ConjTrans, tlapack::Op::NoTrans, (T)1.0, Q, A, (T)0.0, work);
-        tlapack::gemm(tlapack::Op::NoTrans, tlapack::Op::NoTrans, (T)1.0, work, Q, (T)0.0, A);
+        tlapack::gemm(tlapack::Op::ConjTrans, tlapack::Op::NoTrans, (T)1.0, Q, A, work);
+        tlapack::gemm(tlapack::Op::NoTrans, tlapack::Op::NoTrans, (T)1.0, work, Q, A);
 
         std::cout << std::endl
                     << "Q'AQ = ";

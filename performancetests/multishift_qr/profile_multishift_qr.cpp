@@ -241,12 +241,9 @@ void run(size_t n, int seed, bool use_fortran)
     {
         std::unique_ptr<T[]> _work(new T[n * n]);
         auto work = colmajor_matrix<T>(&_work[0], n, n);
-        for (size_t j = 0; j < n; ++j)
-            for (size_t i = 0; i < n; ++i)
-                work(i, j) = (T) 0.0;
 
-        tlapack::gemm(tlapack::Op::NoTrans, tlapack::Op::NoTrans, (T)1.0, Q, H, (T)0.0, work);
-        tlapack::gemm(tlapack::Op::NoTrans, tlapack::Op::ConjTrans, (T)1.0, work, Q, (T)0.0, H);
+        tlapack::gemm(tlapack::Op::NoTrans, tlapack::Op::NoTrans, (T)1.0, Q, H, work);
+        tlapack::gemm(tlapack::Op::NoTrans, tlapack::Op::ConjTrans, (T)1.0, work, Q, H);
 
         for (size_t j = 0; j < n; ++j)
             for (size_t i = 0; i < n; ++i)
