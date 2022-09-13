@@ -50,9 +50,9 @@ TEMPLATE_LIST_TEST_CASE("LU factorization of a general m-by-n matrix, blocked", 
         for (idx_t i = 0; i < m; ++i){
             // A(i, j) = rand_helper<T>();
             A(i, j) = rand_helper<T>();
-            if(i==j){
-                A(i,j)+=T(100);
-            }
+            // if(i==j){
+            //     A(i,j)+=T(100);
+            // }
         }
             
 

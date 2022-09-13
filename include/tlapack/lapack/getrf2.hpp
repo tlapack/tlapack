@@ -11,6 +11,7 @@
 #define TLAPACK_GETRF2_HH
 
 #include "tlapack/base/utils.hpp"
+#include "tlapack.hpp"
 
 namespace tlapack {
 /** getrf computes an LU factorization of a general m-by-n matrix A
@@ -74,6 +75,17 @@ int getrf2( matrix_t& A, vector_t &Piv)
     auto Piv0 = tlapack::slice(Piv,tlapack::range<idx_t>(0,m0));
     auto A0 = tlapack::slice(A,tlapack::range<idx_t>(0,m),tlapack::range<idx_t>(0,n0));
     getrf(A0,Piv0);
+    
+    //swap the rows of A1
+    auto A1 = tlapack::slice(A,tlapack::range<idx_t>(0,m),tlapack::range<idx_t>(n0,n));
+    for(idx_t j=0;j<size(Piv0);j++){
+        if (Piv0[j]>j){
+            auto vect1=tlapack::row(A1,j);
+            auto vect2=tlapack::row(A1,Piv0[j]);
+            tlapack::swap(vect1,vect2);
+        }   
+    }
+    
     // Define the four blocks:
     
     //A00
@@ -104,9 +116,17 @@ int getrf2( matrix_t& A, vector_t &Piv)
     gemm(Op::NoTrans,Op::NoTrans,real_t(-1),A10,A01,real_t(1),A11);
 
     getrf(A11,Piv1);
-
+    
+    //swap the rows of A10
+    for(idx_t j=0;j<size(Piv1);j++){
+        if (Piv1[j]>j){
+            auto vect1=tlapack::row(A10,j);
+            auto vect2=tlapack::row(A10,Piv1[j]);
+            tlapack::swap(vect1,vect2);
+        }   
+    }
     for(idx_t i=0;i<end-m0;i++){
-        Piv1[i] += m0;
+        Piv1[i] += n0;
     }
 
 //      C := \alpha op(A) \times op(B) + \beta C
