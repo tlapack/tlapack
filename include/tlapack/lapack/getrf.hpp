@@ -41,8 +41,8 @@ namespace tlapack {
  *
  * @ingroup group_solve
  */
-template< class matrix_t >
-int getrf( matrix_t& A, std::vector<idx_t> &Piv)
+template< class matrix_t , class vector_t >
+int getrf( matrix_t& A, vector_t &Piv)
 {
     using idx_t = size_type< matrix_t >;
     using T = type_t<matrix_t>;
@@ -55,7 +55,7 @@ int getrf( matrix_t& A, std::vector<idx_t> &Piv)
 
     // check arguments
     tlapack_check_false( access_denied( dense, write_policy(A) ) );
-    tlapack_check( (idx_t) Piv.size() >= end);
+    tlapack_check( (idx_t) size(Piv)>= end);
     // quick return
     idx_t toswap = idx_t(0);
     if (m<=0 || n <= 0) return 0;

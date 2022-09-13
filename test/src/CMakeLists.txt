@@ -33,6 +33,7 @@ add_executable( test_trtri test_trtri.cpp )
 add_executable( test_gebd2 test_gebd2.cpp )
 add_executable( test_lu_mult test_lu_mult.cpp )
 add_executable( test_getrf test_getrf.cpp )
+add_executable( test_getrf2 test_getrf2.cpp )
 
 # Reset the output directory
 set( CMAKE_RUNTIME_OUTPUT_DIRECTORY "${TLAPACK_RUNTIME_OUTPUT_DIRECTORY}" )
