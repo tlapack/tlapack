@@ -10,6 +10,9 @@ on:
     - 'version.txt'
     - '.gitattributes'
     - '.gitignore'
+  push:
+    branches:
+    - main
 
 env:
   CFLAGS: "-Wall -pedantic -Wno-unused-variable -Wno-unused-function"

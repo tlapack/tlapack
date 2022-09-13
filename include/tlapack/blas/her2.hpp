@@ -74,14 +74,20 @@ void her2(
             auto tmp2 = conj( alpha * x[j] );
             for (idx_t i = 0; i < j; ++i)
                 A(i,j) += x[i]*tmp1 + y[i]*tmp2;
-            A(j,j) = real( A(j,j) ) + real( x[j]*tmp1 + y[j]*tmp2 );
+            A(j,j) = real( A(j,j) ) + real(x[j])*real(tmp1)
+                                    - imag(x[j])*imag(tmp1)
+                                    + real(y[j])*real(tmp2)
+                                    - imag(y[j])*imag(tmp2);
         }
     }
     else {
         for (idx_t j = 0; j < n; ++j) {
             auto tmp1 = alpha * conj( y[j] );
             auto tmp2 = conj( alpha * x[j] );
-            A(j,j) = real( A(j,j) ) + real( x[j]*tmp1 + y[j]*tmp2 );
+            A(j,j) = real( A(j,j) ) + real(x[j])*real(tmp1)
+                                    - imag(x[j])*imag(tmp1)
+                                    + real(y[j])*real(tmp2)
+                                    - imag(y[j])*imag(tmp2);
             for (idx_t i = j+1; i < n; ++i)
                 A(i,j) += x[i]*tmp1 + y[i]*tmp2;
         }

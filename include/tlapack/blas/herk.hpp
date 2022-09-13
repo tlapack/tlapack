@@ -107,7 +107,8 @@ void herk(
 
                     for(idx_t i = 0; i < j; ++i)
                         C(i,j) += A(i,l)*alphaConjAjl;
-                    C(j,j) += real( A(j,l) * alphaConjAjl );
+                    C(j,j) += real(A(j,l)) * real(alphaConjAjl)
+                            - imag(A(j,l)) * imag(alphaConjAjl);
                 }
             }
         }
@@ -122,7 +123,8 @@ void herk(
 
                     auto alphaConjAjl = alpha*conj( A(j,l) );
 
-                    C(j,j) += real( A(j,l) * alphaConjAjl );
+                    C(j,j) += real(A(j,l)) * real(alphaConjAjl)
+                            - imag(A(j,l)) * imag(alphaConjAjl);
                     for(idx_t i = j+1; i < n; ++i)
                         C(i,j) += A(i,l) * alphaConjAjl;
                 }

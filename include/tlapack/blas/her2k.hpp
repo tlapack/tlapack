@@ -114,7 +114,8 @@ void her2k(
 
                     for(idx_t i = 0; i < j; ++i)
                         C(i,j) += A(i,l)*alphaConjBjl + B(i,l)*conjAlphaAjl;
-                    C(j,j) += 2 * real( A(j,l) * alphaConjBjl );
+                    C(j,j) += 2 * (real(A(j,l)) * real(alphaConjBjl)
+                                    - imag(A(j,l)) * imag(alphaConjBjl));
                 }
             }
         }
@@ -130,7 +131,8 @@ void her2k(
                     auto alphaConjBjl = alpha*conj( B(j,l) );
                     auto conjAlphaAjl = conj( alpha*A(j,l) );
 
-                    C(j,j) += 2 * real( A(j,l) * alphaConjBjl );
+                    C(j,j) += 2 * (real(A(j,l)) * real(alphaConjBjl)
+                                    - imag(A(j,l)) * imag(alphaConjBjl));
                     for(idx_t i = j+1; i < n; ++i)
                         C(i,j) += A(i,l) * alphaConjBjl + B(i,l) * conjAlphaAjl;
                 }
@@ -154,7 +156,10 @@ void her2k(
 
                     C(i,j) = (i < j)
                         ? alpha*sum1 + conj(alpha)*sum2 + beta*C(i,j)
-                        : real( alpha*sum1 + conj(alpha)*sum2 )
+                        : real(alpha)*real(sum1)
+                            - imag(alpha)*imag(sum1)
+                            + real(alpha)*real(sum2)
+                            + imag(alpha)*imag(sum2)
                             + beta*real( C(i,j) );
                 }
             }
@@ -172,7 +177,10 @@ void her2k(
 
                     C(i,j) = (i > j)
                         ? alpha*sum1 + conj(alpha)*sum2 + beta*C(i,j)
-                        : real( alpha*sum1 + conj(alpha)*sum2 )
+                        : real(alpha)*real(sum1)
+                            - imag(alpha)*imag(sum1)
+                            + real(alpha)*real(sum2)
+                            + imag(alpha)*imag(sum2)
                             + beta*real( C(i,j) );
                 }
             }
