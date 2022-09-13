@@ -70,7 +70,12 @@ int getrf2( matrix_t& A, vector_t &Piv)
     idx_t m1, n1;
     m1=m-m0;
     n1=n-n0;
+    //
+    auto Piv0 = tlapack::slice(Piv,tlapack::range<idx_t>(0,m0));
+    auto A0 = tlapack::slice(A,tlapack::range<idx_t>(0,m),tlapack::range<idx_t>(0,n0));
+    getrf(A0,Piv0);
     // Define the four blocks:
+    
     //A00
     auto A00 = tlapack::slice(A,tlapack::range<idx_t>(0,m0),tlapack::range<idx_t>(0,n0));
     
@@ -83,7 +88,7 @@ int getrf2( matrix_t& A, vector_t &Piv)
     //A11
     auto A11 = tlapack::slice(A,tlapack::range<idx_t>(m0,m),tlapack::range<idx_t>(n0,n));
 
-    auto Piv0 = tlapack::slice(Piv,tlapack::range<idx_t>(0,m0));
+    
     auto Piv1 = tlapack::slice(Piv,tlapack::range<idx_t>(m0,end));
     //
 
@@ -99,6 +104,10 @@ int getrf2( matrix_t& A, vector_t &Piv)
     gemm(Op::NoTrans,Op::NoTrans,real_t(-1),A10,A01,real_t(1),A11);
 
     getrf(A11,Piv1);
+
+    for(idx_t i=0;i<end-m0;i++){
+        Piv1[i] += m0;
+    }
 
 //      C := \alpha op(A) \times op(B) + \beta C
 // void gemm(

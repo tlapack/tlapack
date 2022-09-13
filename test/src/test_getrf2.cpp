@@ -11,7 +11,7 @@
 #include <catch2/generators/catch_generators.hpp>
 #include <tlapack/plugins/stdvector.hpp>
 #include <tlapack/plugins/legacyArray.hpp>
-#include <tlapack.hpp>
+#include <tlapack/lapack/getrf2.hpp>
 #include <testutils.hpp>
 #include <testdefinitions.hpp>
 
@@ -68,12 +68,12 @@ TEMPLATE_LIST_TEST_CASE("LU factorization of a general m-by-n matrix, blocked", 
     // Run getrf and both A and Piv will be update
     getrf2(A,Piv);
     
-    // cout<<"Printing Piv"<<endl;
+    cout<<"Printing Piv"<<endl;
     
-    // for(idx_t j=0;j<k;j++){
-    //     cout<<Piv[j]<<endl;
-    // }
-    // cout<<"End of Piv"<<endl;
+    for(idx_t j=0;j<k;j++){
+        cout<<Piv[j]<<endl;
+    }
+    cout<<"End of Piv"<<endl;
     // Initialize L and U
     
     std::vector<T> L_( m*k , T(0) );
