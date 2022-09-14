@@ -29,10 +29,10 @@ TEMPLATE_LIST_TEST_CASE("LU factorization of a general m-by-n matrix, blocked", 
     
     // m and n represent no. rows and columns of the matrices we will be testing respectively
     idx_t m, n;
-    // m = GENERATE(10, 20, 30);
-    // n = GENERATE(10, 20, 30);
-    m = GENERATE(15);
-    n = GENERATE(11);
+    m = GENERATE(10, 20, 30);
+    n = GENERATE(10, 20, 30);
+    // m = GENERATE(1);
+    // n = GENERATE(1);
     idx_t k=min<idx_t>(m,n);
 
     // eps is the machine precision, and tol is the tolerance we accept for tests to pass
@@ -68,14 +68,14 @@ TEMPLATE_LIST_TEST_CASE("LU factorization of a general m-by-n matrix, blocked", 
     // Run getrf and both A and Piv will be update
     getrf2(A,Piv);
     
-    cout<<"Printing Piv"<<endl;
+    // cout<<"Printing Piv"<<endl;
+    // for(idx_t j=0;j<k;j++){
+    //     cout<<Piv[j]<<endl;
+    // }
+    // cout<<"End of Piv"<<endl;
     
-    for(idx_t j=0;j<k;j++){
-        cout<<Piv[j]<<endl;
-    }
-    cout<<"End of Piv"<<endl;
+    
     // Initialize L and U
-    
     std::vector<T> L_( m*k , T(0) );
     std::vector<T> U_( k*n , T(0) );
     auto L = legacyMatrix<T, layout<matrix_t>>(m, k, &L_[0], layout<matrix_t> == Layout::ColMajor ? m : k);
