@@ -404,8 +404,8 @@ void gemv(
     // Constants to forward
     const idx_t& m = A_.m;
     const idx_t& n = A_.n;
-    const idx_t incx = (x_.direction == Direction::Forward) ? x_.inc : -x_.inc;
-    const idx_t incy = (y_.direction == Direction::Forward) ? y_.inc : -y_.inc;
+    const idx_t incx = (x_.direction == Direction::Forward) ? idx_t(x_.inc) : idx_t(-x_.inc);
+    const idx_t incy = (y_.direction == Direction::Forward) ? idx_t(y_.inc) : idx_t(-y_.inc);
 
     if( alpha == alpha_t(0) )
         tlapack_warning( -2, "Infs and NaNs in A or x will not propagate to y on output" );
@@ -575,8 +575,8 @@ void hemv(
 
     // Constants to forward
     const idx_t& n = A_.n;
-    const idx_t incx = (x_.direction == Direction::Forward) ? x_.inc : -x_.inc;
-    const idx_t incy = (y_.direction == Direction::Forward) ? y_.inc : -y_.inc;
+    const idx_t incx = (x_.direction == Direction::Forward) ? idx_t(x_.inc) : idx_t(-x_.inc);
+    const idx_t incy = (y_.direction == Direction::Forward) ? idx_t(y_.inc) : idx_t(-y_.inc);
 
     if( alpha == alpha_t(0) )
         tlapack_warning( -2, "Infs and NaNs in A or x will not propagate to y on output" );
@@ -742,8 +742,8 @@ void symv(
 
     // Constants to forward
     const idx_t& n = A_.n;
-    const idx_t incx = (x_.direction == Direction::Forward) ? x_.inc : -x_.inc;
-    const idx_t incy = (y_.direction == Direction::Forward) ? y_.inc : -y_.inc;
+    const idx_t incx = (x_.direction == Direction::Forward) ? idx_t(x_.inc) : idx_t(-x_.inc);
+    const idx_t incy = (y_.direction == Direction::Forward) ? idx_t(y_.inc) : idx_t(-y_.inc);
 
     if( alpha == alpha_t(0) )
         tlapack_warning( -2, "Infs and NaNs in A or x will not propagate to y on output" );
