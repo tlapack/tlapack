@@ -150,4 +150,5 @@
 
 #include "tlapack/lapack/getrf.hpp"
 #include "tlapack/lapack/getrf2.hpp"
+#include "tlapack/lapack/getri.hpp"
 #endif // TLAPACK_HH

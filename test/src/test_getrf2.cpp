@@ -1,5 +1,5 @@
-/// @file test_getrf.cpp
-/// @brief Test GELQF and UNGL2 and output a k-by-n orthogonal matrix Q.
+/// @file test_getrf2.cpp
+/// @brief Test GETRF2.
 //
 // Copyright (c) 2022, University of Colorado Denver. All rights reserved.
 //
@@ -12,11 +12,12 @@
 #include <tlapack/plugins/stdvector.hpp>
 #include <tlapack/plugins/legacyArray.hpp>
 #include <tlapack/lapack/getrf2.hpp>
+#include <tlapack/lapack/lu_mult.hpp>
 #include <testutils.hpp>
 #include <testdefinitions.hpp>
 
-using namespace tlapack;
 using namespace std;
+using namespace tlapack;
 
 TEMPLATE_LIST_TEST_CASE("LU factorization of a general m-by-n matrix, blocked", "[lqf]", types_to_test)
 {
@@ -31,8 +32,6 @@ TEMPLATE_LIST_TEST_CASE("LU factorization of a general m-by-n matrix, blocked", 
     idx_t m, n;
     m = GENERATE(10, 20, 30);
     n = GENERATE(10, 20, 30);
-    // m = GENERATE(1);
-    // n = GENERATE(1);
     idx_t k=min<idx_t>(m,n);
 
     // eps is the machine precision, and tol is the tolerance we accept for tests to pass
@@ -50,13 +49,8 @@ TEMPLATE_LIST_TEST_CASE("LU factorization of a general m-by-n matrix, blocked", 
         for (idx_t i = 0; i < m; ++i){
             // A(i, j) = rand_helper<T>();
             A(i, j) = rand_helper<T>();
-            // if(i==j){
-            //     A(i,j)+=T(100);
-            // }
         }
-            
 
-    
     // We will make a deep copy A
     // We intend to test A=LU, however, since after calling getrf, A will be udpated
     // then to test A=LU, we'll make a deep copy of A prior to calling getrf
@@ -68,45 +62,41 @@ TEMPLATE_LIST_TEST_CASE("LU factorization of a general m-by-n matrix, blocked", 
     // Run getrf and both A and Piv will be update
     getrf2(A,Piv);
     
-    // cout<<"Printing Piv"<<endl;
-    // for(idx_t j=0;j<k;j++){
-    //     cout<<Piv[j]<<endl;
-    // }
-    // cout<<"End of Piv"<<endl;
-    
-    
-    // Initialize L and U
-    std::vector<T> L_( m*k , T(0) );
-    std::vector<T> U_( k*n , T(0) );
-    auto L = legacyMatrix<T, layout<matrix_t>>(m, k, &L_[0], layout<matrix_t> == Layout::ColMajor ? m : k);
-    auto U = legacyMatrix<T, layout<matrix_t>>(k, n, &U_[0], layout<matrix_t> == Layout::ColMajor ? k : n);
-    
-    // construct L and U in one pass from the matrix A
-    for(idx_t i=0;i<m;i++){
-        for(idx_t j=0;j<n;j++){
-            if(i==j){
-                L(i,j)=1.0;
-                U(i,j)=A(i,j);
-            }
-            else if(i>j){
-                L(i,j)=A(i,j);
-            }
-            else{
-                U(i,j)=A(i,j);
-            }
-        }
+    // A contains L and U now, then form A <--- LU
+    if( m > n )
+    {
+        auto A0 = tlapack::slice(A,tlapack::range<idx_t>(0,n),tlapack::range<idx_t>(0,n));
+        auto A1 = tlapack::slice(A,tlapack::range<idx_t>(n,m),tlapack::range<idx_t>(0,n));
+        trmm( Side::Right, Uplo::Upper, Op::NoTrans, Diag::NonUnit, real_t(1), A0, A1 );
+        lu_mult( A0 );
     }
+    else if( m < n )
+    {
+        auto A0 = tlapack::slice(A,tlapack::range<idx_t>(0,m),tlapack::range<idx_t>(0,m));
+        auto A1 = tlapack::slice(A,tlapack::range<idx_t>(0,m),tlapack::range<idx_t>(m,n));
+        trmm( Side::Left, Uplo::Lower, Op::NoTrans, Diag::Unit, real_t(1), A0, A1 );
+        lu_mult( A0 );
+    }
+    else
+        lu_mult( A );
     
-    // Now that Piv is updated, we work our way backwards in Piv and switch rows of L
+    // Now that Piv is updated, we work our way backwards in Piv and switch rows of LU
     for(idx_t j=k-idx_t(1);j!=idx_t(-1);j--){
-        auto vect1=tlapack::row(L,j);
-        auto vect2=tlapack::row(L,Piv[j]);
+        auto vect1=tlapack::row(A,j);
+        auto vect2=tlapack::row(A,Piv[j]);
         tlapack::swap(vect1,vect2);
     }
-    
-    // Now that L is updated, we test if LU=A_copy
-    gemm(Op::NoTrans,Op::NoTrans,real_t(1),L,U,real_t(-1),A_copy);
-    real_t error = tlapack::lange( tlapack::Norm::Max, A_copy)/norma;
+
+    // A <- A_original - LU
+    for (idx_t i = 0; i < m; i++)
+        for (idx_t j = 0; j < n; j++)
+            A(i,j) -= A_copy(i,j);
+
+    // Check for relative error: norm(A-LU)/norm(A)
+    real_t error = tlapack::lange( tlapack::Norm::Max, A)/norma;
     CHECK(error <= tol);
+    
+    
+    
     
 }
