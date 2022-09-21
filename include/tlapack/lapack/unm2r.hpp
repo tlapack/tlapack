@@ -138,7 +138,7 @@ int unm2r(
     }();
         
     // Options to forward
-    auto&& larfOpts = workspace_opts_t<work_t>{ std::move(work) };
+    auto&& larfOpts = workspace_opts_t<work_t>{ work };
 
     // const expressions
     const bool positiveInc = (

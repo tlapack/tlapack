@@ -1021,8 +1021,8 @@ struct workspace_opts_t
     inline constexpr
     workspace_opts_t( Workspace&& w = {} ) : work(w) { }
 
-    // inline constexpr
-    // workspace_opts_t( const Workspace& w ) : work(w) { }
+    inline constexpr
+    workspace_opts_t( const Workspace& w ) : work(w) { }
 
     inline constexpr
     workspace_opts_t( const work_t& W )

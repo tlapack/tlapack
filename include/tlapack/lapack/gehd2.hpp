@@ -108,7 +108,7 @@ int gehd2( size_type< matrix_t > ilo, size_type< matrix_t > ihi, matrix_t& A, ve
     }();
     
     // Options to forward
-    auto&& larfOpts = workspace_opts_t<work_t>{ std::move(work) };
+    auto&& larfOpts = workspace_opts_t<work_t>{ work };
 
     for(idx_t i = ilo; i < ihi-1; ++i) {
 

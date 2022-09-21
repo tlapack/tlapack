@@ -7,7 +7,6 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#include "tlapack/legacy_api/base/utils.hpp"
 #include <tlapack/plugins/stdvector.hpp>
 #include <tlapack.hpp>
 
@@ -188,7 +187,7 @@ void run(size_t n, int seed, bool use_fortran)
         }
         else
         {
-            tlapack::francis_opts_t<TLAPACK_SIZE_T, T> opts;
+            tlapack::francis_opts_t<> opts;
             std::vector<std::complex<real_t>> w(n);
             err = tlapack::multishift_qr(true, true, 0, n, H, w, Q, opts);
             // err = tlapack::lahqr(true, true, 0, n, H, w, Q);

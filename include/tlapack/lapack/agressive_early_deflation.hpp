@@ -23,6 +23,62 @@
 
 namespace tlapack
 {
+    template <
+        class matrix_t,
+        class vector_t,
+        class work_t = undefined_t,
+        typename idx_t = size_type<matrix_t>,
+        enable_if_t<
+            is_complex< type_t<vector_t> >::value
+        , int > = 0
+    >
+    void agressive_early_deflation_worksize(
+        bool want_t, 
+        bool want_z, 
+        idx_t ilo, 
+        idx_t ihi, 
+        idx_t nw, 
+        matrix_t &A, 
+        vector_t &s, 
+        matrix_t &Z, 
+        idx_t &ns, 
+        idx_t &nd, 
+        size_t& worksize,
+        const francis_opts_t<work_t,idx_t> &opts = {} )
+    {
+        using pair = std::pair<idx_t, idx_t>;
+        
+        const idx_t n = ncols(A);
+        const idx_t nw_max = (n - 3) / 3;
+        const idx_t jw = min( min(nw, ihi - ilo), nw_max );
+
+        auto TW = slice(A, pair{0,jw}, pair{0,jw});
+
+        // quick return
+        if( n < 9 || nw <= 1 || ihi <= 1+ilo ) {
+            worksize = 0;
+            return;
+        }
+
+        idx_t worksize_multishift_qr = 0;
+        if( jw >= opts.nmin )
+        {
+            auto s_window = slice(s, pair{0,jw});
+            auto V = slice(A, pair{0,jw}, pair{0,jw});
+            
+            multishift_qr_worksize(true, true, 0, jw, TW, s_window, V, worksize_multishift_qr, opts);
+        }
+
+        idx_t worksize_gehrd = 0;
+        if( jw != ihi-ilo )
+        {
+            // Hessenberg reduction
+            auto tau = slice(A, pair{0,jw}, 0);
+            gehrd_worksize(0, jw, TW, tau, worksize_gehrd);
+        }
+        
+        worksize = std::max( worksize_multishift_qr, worksize_gehrd );
+    }
 
     /** agressive_early_deflation accepts as input an upper Hessenberg matrix
      *  H and performs an orthogonal similarity transformation
@@ -77,9 +133,24 @@ namespace tlapack
     template <
         class matrix_t,
         class vector_t,
+        class work_t = undefined_t,
         typename idx_t = size_type<matrix_t>,
-        enable_if_t<is_complex<type_t<vector_t>>::value, bool> = true>
-    void agressive_early_deflation(bool want_t, bool want_z, idx_t ilo, idx_t ihi, idx_t nw, matrix_t &A, vector_t &s, matrix_t &Z, idx_t &ns, idx_t &nd, francis_opts_t<size_type<matrix_t>, type_t<matrix_t>> &opts)
+        enable_if_t<
+            is_complex< type_t<vector_t> >::value
+        , int > = 0
+    >
+    void agressive_early_deflation(
+        bool want_t, 
+        bool want_z, 
+        idx_t ilo, 
+        idx_t ihi, 
+        idx_t nw, 
+        matrix_t &A, 
+        vector_t &s, 
+        matrix_t &Z, 
+        idx_t &ns, 
+        idx_t &nd, 
+        francis_opts_t<work_t,idx_t> &opts )
     {
 
         using T = type_t<matrix_t>;
@@ -132,6 +203,19 @@ namespace tlapack
             return;
         }
 
+        // Allocates workspace
+        vectorOfBytes localworkdata;
+        Workspace work = [&]()
+        {
+            size_t lwork;
+            agressive_early_deflation_worksize( want_t, want_z, ilo, ihi, nw, A, s, Z, ns, nd, lwork, opts );
+            return alloc_workspace( localworkdata, lwork, opts.work );
+        }();
+        
+        // Options to forward
+        auto mQROpts = opts; mQROpts.work = work;
+        auto&& gehrdOpts = gehrd_opts_t<work_t>{ work };
+
         // Define workspace matrices
         // We use the lower triangular part of A as workspace
         // TW and WH overlap, but WH is only used after we no longer need
@@ -157,7 +241,7 @@ namespace tlapack
         if( jw < opts.nmin )
             infqr = lahqr(true, true, 0, jw, TW, s_window, V);
         else{
-            infqr = multishift_qr(true, true, 0, jw, TW, s_window, V, opts);
+            infqr = multishift_qr(true, true, 0, jw, TW, s_window, V, mQROpts);
             for (idx_t j = 0; j < jw; ++j)
                 for (idx_t i = j+2; i < jw; ++i)
                     TW(i, j) = zero;
@@ -343,10 +427,8 @@ namespace tlapack
             // Hessenberg reduction
             {
                 auto tau = slice(WV, pair{0, jw}, 0);
-                gehrd_opts_t<idx_t, T> gehrd_opts;
-                gehrd_opts.lwork = opts.lwork;
-                gehrd_opts._work = opts._work;
-                gehrd(0, ns, TW, tau, gehrd_opts);
+                gehrd(0, ns, TW, tau, gehrdOpts);
+
                 auto work2 = create_workspace_opts(slice(WV, pair{0, jw}, 1));
                 unmhr(Side::Right, Op::NoTrans, 0, ns, TW, tau, V, work2);
             }

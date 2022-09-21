@@ -131,7 +131,7 @@ TEMPLATE_LIST_TEST_CASE("Multishift QR", "[eigenvalues][multishift_qr]", types_t
                     << " matrix = " << matrix_type << " n = " << n << " ilo = " << ilo << " ihi = " << ihi << " ns = " << ns << " nw = " << nw << " seed = " << seed)
     {
 
-        francis_opts_t<idx_t, T> opts;
+        francis_opts_t<> opts;
         opts.nshift_recommender = [ns](idx_t n, idx_t nh) -> idx_t
         {
             return ns;

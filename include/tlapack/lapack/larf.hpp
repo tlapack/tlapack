@@ -100,7 +100,7 @@ void larf(
 
     // Allocates workspace
     vectorOfBytes localworkdata;
-    Workspace work = [&]()
+    const Workspace work = [&]()
     {
         size_t lwork;
         larf_worksize( side, v, tau, C, lwork, opts );

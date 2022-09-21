@@ -10,11 +10,9 @@
 #ifndef TLAPACK_MOVE_BULGE_HH
 #define TLAPACK_MOVE_BULGE_HH
 
-
 #include <memory>
 #include <complex>
 
-#include "tlapack/legacy_api/base/utils.hpp"
 #include "tlapack/base/utils.hpp"
 #include "tlapack/lapack/larfg.hpp"
 #include "tlapack/lapack/lahqr_shiftcolumn.hpp"

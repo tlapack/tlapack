@@ -92,7 +92,7 @@ int ung2r(
     }();
         
     // Options to forward
-    auto&& larfOpts = workspace_opts_t<work_t>{ std::move(work) };
+    auto&& larfOpts = workspace_opts_t<work_t>{ work };
     
     // Initialise columns k:n-1 to columns of the unit matrix
     for (idx_t j = k; j < n; ++j) {

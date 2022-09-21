@@ -7,7 +7,6 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#include "tlapack/legacy_api/base/utils.hpp"
 #include <tlapack/plugins/stdvector.hpp>
 #include <tlapack.hpp>
 
@@ -149,9 +148,8 @@ void run(size_t n, size_t nw, bool use_fortran)
         }
         else
         {
-            tlapack::francis_opts_t<TLAPACK_SIZE_T, T> opts;
             std::vector<std::complex<real_t>> w(n);
-            tlapack::agressive_early_deflation(true, true, (size_t)0, n, nw, H, w, Q, ls, ld, opts);
+            tlapack::agressive_early_deflation( true, true, (size_t)0, n, nw, H, w, Q, ls, ld );
         }
     }
     // Record end time

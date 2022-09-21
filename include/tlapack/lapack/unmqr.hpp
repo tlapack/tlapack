@@ -191,11 +191,11 @@ int unmqr(
         return alloc_workspace( localworkdata, lwork, opts.work );
     }();
 
-    // Matrix T 
-    auto matrixT = new_matrix( work, nb, nb );
+    // Matrix T and recompute work
+    auto matrixT = new_matrix( work, nb, nb, work );
     
     // Options to forward
-    auto&& larfbOpts = workspace_opts_t<work_t>{ std::move(work) };
+    auto&& larfbOpts = workspace_opts_t<work_t>{ work };
 
     // Preparing loop indexes
     const bool positiveInc = (

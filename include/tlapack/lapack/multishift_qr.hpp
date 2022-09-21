@@ -15,7 +15,6 @@
 #include <vector>
 #include <functional>
 
-#include "tlapack/legacy_api/base/utils.hpp"
 #include "tlapack/base/utils.hpp"
 #include "tlapack/lapack/multishift_qr_sweep.hpp"
 #include "tlapack/lapack/agressive_early_deflation.hpp"
@@ -26,9 +25,14 @@ namespace tlapack
     /**
      * Options struct for multishift_qr
      */
-    template <typename idx_t, typename T>
-    struct francis_opts_t
+    template <
+        class work_t = undefined_t,
+        class idx_t = size_type< deduce_work_t< work_t, legacyMatrix<byte> > >
+    >
+    struct francis_opts_t : public workspace_opts_t<work_t>
     {
+        // Use constructors from workspace_opts_t<work_t>
+        using workspace_opts_t<work_t>::workspace_opts_t;
 
         // Function that returns the number of shifts to use
         // for a given matrix size
@@ -77,11 +81,58 @@ namespace tlapack
         idx_t nmin = 75;
         // Threshold of percent of AED window that must converge to skip a sweep
         idx_t nibble = 14;
-        // Workspace pointer, if no workspace is provided, one will be allocated internally
-        T *_work = nullptr;
-        // Workspace size
-        idx_t lwork;
     };
+
+    template <
+        class matrix_t,
+        class vector_t,
+        class work_t = undefined_t,
+        class idx_t = size_type<matrix_t>,
+        enable_if_t<
+            is_complex< type_t<vector_t> >::value
+        , int > = 0
+    >
+    void multishift_qr_worksize(
+        bool want_t, 
+        bool want_z, 
+        size_type<matrix_t> ilo, 
+        size_type<matrix_t> ihi, 
+        matrix_t &A,
+        vector_t &w,
+        matrix_t &Z,
+        size_t& worksize,
+        const francis_opts_t<work_t,idx_t> &opts = {} )
+    {
+        using pair = std::pair<idx_t, idx_t>;
+
+        const idx_t n = ncols(A);
+        const idx_t nh = ihi-ilo;
+
+        // quick return
+        if ( ilo + 1 >= ihi || n < opts.nmin || nh <= 0 )
+        {
+            worksize = 0;
+            return;
+        }
+
+        size_t worksize_aed = 0;
+        {
+            const idx_t nw_max = (n - 3) / 3;
+
+            idx_t ls, ld;
+            agressive_early_deflation_worksize(want_t, want_z, ilo, ihi, nw_max, A, w, Z, ls, ld, worksize_aed, opts);
+        }
+
+        size_t worksize_multishift_QR_sweep = 0;
+        {
+            const idx_t nsr = opts.nshift_recommender(n, nh);
+            const auto shifts = slice(w, pair{0,nsr});
+
+            multishift_QR_sweep_worksize(want_t, want_z, ilo, ihi, A, shifts, Z, worksize_multishift_QR_sweep, opts);
+        }
+        
+        worksize = std::max( worksize_multishift_QR_sweep, worksize_aed );
+    }
 
     /** multishift_qr computes the eigenvalues and optionally the Schur
      *  factorization of an upper Hessenberg matrix, using the multishift
@@ -130,16 +181,25 @@ namespace tlapack
     template <
         class matrix_t,
         class vector_t,
-        enable_if_t<is_complex<type_t<vector_t>>::value, bool> = true>
-    int multishift_qr(bool want_t, bool want_z, size_type<matrix_t> ilo, size_type<matrix_t> ihi, matrix_t &A, vector_t &w, matrix_t &Z, francis_opts_t<size_type<matrix_t>, type_t<matrix_t>> &opts)
+        class work_t = undefined_t,
+        class idx_t = size_type<matrix_t>,
+        enable_if_t<
+            is_complex< type_t<vector_t> >::value
+        , int > = 0
+    >
+    int multishift_qr(
+        bool want_t, 
+        bool want_z, 
+        size_type<matrix_t> ilo, 
+        size_type<matrix_t> ihi, 
+        matrix_t &A,
+        vector_t &w,
+        matrix_t &Z,
+        francis_opts_t<work_t,idx_t> &opts )
     {
         using TA = type_t<matrix_t>;
         using real_t = real_type<TA>;
-        using idx_t = size_type<matrix_t>;
         using pair = std::pair<idx_t, idx_t>;
-
-        // Functor
-        Create<matrix_t> new_matrix;
 
         // constants
         const TA zero(0);
@@ -189,27 +249,18 @@ namespace tlapack
             return lahqr(want_t, want_z, ilo, ihi, A, w, Z);
         }
 
-        // Get the workspace
-        TA *_work;
-        idx_t lwork;
-        // idx_t required_workspace = get_work_multishift_qr(want_t, want_z, ilo, ihi, A, w, Z, opts);
-        idx_t required_workspace = 3 * (nsr / 2);
-        // Store whether or not a workspace was locally allocated
-        bool locally_allocated = false;
-        if (opts._work and required_workspace <= opts.lwork)
+        // Allocates workspace
+        vectorOfBytes localworkdata;
+        Workspace work = [&]()
         {
-            // Provided workspace is large enough, use it
-            _work = opts._work;
-            lwork = opts.lwork;
-        }
-        else
-        {
-            // No workspace provided or not large enough, allocate it
-            locally_allocated = true;
-            lwork = required_workspace;
-            _work = new TA[lwork];
-        }
-        auto V = new_matrix(&_work[0], 3, nsr / 2);
+            size_t lwork;
+            multishift_qr_worksize( want_t, want_z, ilo, ihi, A, w, Z, lwork, opts );
+            return alloc_workspace( localworkdata, lwork, opts.work );
+        }();
+        
+        // Options to forward
+        auto aedOpts = opts; aedOpts.work = work;
+        auto&& mQRsweepOpts = workspace_opts_t<work_t>{ work };
 
         // itmax is the total number of QR iterations allowed.
         // For most matrices, 3 shifts per eigenvalue is enough, so
@@ -293,7 +344,7 @@ namespace tlapack
 
             idx_t ls, ld;
             n_aed = n_aed + 1;
-            agressive_early_deflation(want_t, want_z, istart, istop, nw, A, w, Z, ls, ld, opts);
+            agressive_early_deflation(want_t, want_z, istart, istop, nw, A, w, Z, ls, ld, aedOpts);
 
             istop = istop - ld;
 
@@ -415,25 +466,35 @@ namespace tlapack
 
             n_sweep = n_sweep + 1;
             n_shifts_total = n_shifts_total + ns;
-            multishift_QR_sweep(want_t, want_z, istart, istop, A, shifts, Z, V);
+            multishift_QR_sweep(want_t, want_z, istart, istop, A, shifts, Z, mQRsweepOpts);
         }
 
         opts.n_aed = n_aed;
         opts.n_shifts_total = n_shifts_total;
         opts.n_sweep = n_sweep;
 
-        if (locally_allocated)
-            delete[] _work;
         return info;
     }
 
     template <
         class matrix_t,
         class vector_t,
-        enable_if_t<is_complex<type_t<vector_t>>::value, bool> = true>
-    int multishift_qr(bool want_t, bool want_z, size_type<matrix_t> ilo, size_type<matrix_t> ihi, matrix_t &A, vector_t &w, matrix_t &Z)
+        class work_t = undefined_t,
+        class idx_t = size_type<matrix_t>,
+        enable_if_t<
+            is_complex< type_t<vector_t> >::value
+        , int > = 0
+    >
+    int multishift_qr(
+        bool want_t, 
+        bool want_z, 
+        size_type<matrix_t> ilo, 
+        size_type<matrix_t> ihi, 
+        matrix_t &A,
+        vector_t &w,
+        matrix_t &Z )
     {
-        francis_opts_t<size_type<matrix_t>, type_t<matrix_t>> opts = {};
+        francis_opts_t<work_t,idx_t> opts = {};
         return multishift_qr(want_t, want_z, ilo, ihi, A, w, Z, opts);
     }
 

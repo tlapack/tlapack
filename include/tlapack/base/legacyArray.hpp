@@ -172,6 +172,23 @@ namespace tlapack {
         inline constexpr
         Workspace( const legacyMatrix<byte>& w ) noexcept
         : legacyMatrix<byte>( w ) { }
+
+        inline constexpr Workspace
+        extract( idx_t m, idx_t n ) const {
+
+            assert( m >= 0 && n >= 0 );
+            
+            if( ldim == this->m || this->n <= 1 ) {
+                // contiguous space in memory
+                assert( size() >= (m*n) );
+                return legacyMatrix<byte>( size()-(m*n), 1, ptr + (m*n) );
+            }
+            else {
+                // non-contiguous space in memory
+                assert( this->m >= m && this->n >= n );
+                return legacyMatrix<byte>( this->m, this->n - n, ptr + n*ldim, ldim );
+            }
+        }
     };
 
     // -----------------------------------------------------------------------------
@@ -395,63 +412,21 @@ namespace tlapack {
         }
 
         inline constexpr auto
-        operator()( Workspace& W, idx_t m, idx_t n ) const {
-
-            assert( m > 0 && n > 0 );
-            assert( idx_t(W.size()/sizeof(T)) >= m*n );
-                
+        operator()( const Workspace& W, idx_t m, idx_t n, Workspace& rW ) const {
             T* ptr = (T*) W.ptr;
-            
-            if( W.ldim == W.m ) { // contiguous space in memory
-                
-                W.ptr  += (m*n)*sizeof(T);
-                W.m     = W.size() - (m*n)*sizeof(T);
-                W.ldim  = W.m;
-                W.n     = 1;
-
-                return matrix_t( m, n, ptr );
-            }
-            else { // non-contiguous space in memory
-
-                if( layout == Layout::ColMajor )
-                {
-                    assert( idx_t(W.m/sizeof(T)) >= m );
-                    assert( idx_t(W.n) >= n );
-
-                    W.ptr   += n * W.ldim;
-                    W.n     -= n;
-                }
-                else // if( layout == Layout::RowMajor )
-                {
-                    assert( idx_t(W.m/sizeof(T)) >= n );
-                    assert( idx_t(W.n) >= m );
-
-                    W.ptr   += m * W.ldim;
-                    W.n     -= m;
-                }
-
-                return matrix_t( m, n, ptr, W.ldim/sizeof(T) );
-            }
+            rW = ( layout == Layout::ColMajor )
+                ? W.extract( m*sizeof(T), n )
+                : W.extract( n*sizeof(T), m );
+            return (rW.ldim == rW.m)
+                ? matrix_t( m, n, ptr ) // contiguous space in memory
+                : matrix_t( m, n, ptr, rW.ldim/sizeof(T) );
         }
 
-        // inline constexpr auto
-        // operator()( T* ptr, idx_t m, idx_t n, size_t size ) const {
-        //     assert( size >= m*n );
-        //     return legacyMatrix<T,idx_t,layout>( m, n, ptr );
-        // }
-
-        // template< class Allocator >
-        // inline constexpr auto
-        // operator()( idx_t m, idx_t n, std::vector<T,Allocator>& container ) const {
-        //     container = std::vector<T,Allocator>( m*n );
-        //     return legacyMatrix<T,idx_t,layout>( m, n, &container[0] );
-        // }
-
-        // inline constexpr auto
-        // operator()( idx_t m, idx_t n, vectorOfBytes& container ) const {
-        //     container = vectorOfBytes( m*n*sizeof(T) );
-        //     return legacyMatrix<T,idx_t,layout>( m, n, (T*)(&container[0]) );
-        // }
+        inline constexpr auto
+        operator()( const Workspace& W, idx_t m, idx_t n ) const {
+            Workspace rW;
+            return operator()( W, m, n, rW );
+        }
     };
 
     template< class T, class idx_t, typename int_t, Direction D >
@@ -466,34 +441,17 @@ namespace tlapack {
         }
 
         inline constexpr auto
-        operator()( Workspace& W, idx_t m, idx_t n ) const {
-
-            assert( m > 0 && n == 1 );
-            assert( idx_t(W.size()/sizeof(T)) >= m );
-
+        operator()( const Workspace& W, idx_t m, idx_t n, Workspace& rW ) const {
+            assert( n == 1 );
             T* ptr = (T*) W.ptr;
-            
-            if( W.ldim == W.m ) { // contiguous space in memory
-                
-                W.ptr  += m*sizeof(T);
-                W.m     = W.size() - m*sizeof(T);
-                W.ldim  = W.m;
-                W.n     = 1;
+            rW = W.extract( sizeof(T), m );
+            return vector_t( m, ptr, (rW.ldim == rW.m) ? 1 : rW.ldim/sizeof(T) );
+        }
 
-                return vector_t( m, ptr );
-            }
-            else { // non-contiguous space in memory
-
-                assert( W.m == sizeof(T) );
-
-                W.ptr   += m * W.ldim;
-                W.n     -= m;
-                
-                W.ptr  += W.ldim;
-                W.n    -= W.ldim;
-
-                return vector_t( m, ptr, W.ldim/sizeof(T) );
-            }
+        inline constexpr auto
+        operator()( const Workspace& W, idx_t m, idx_t n ) const {
+            Workspace rW;
+            return operator()( W, m, n, rW );
         }
     };
 

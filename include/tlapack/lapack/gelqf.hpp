@@ -130,7 +130,7 @@ namespace tlapack
         }();
         
         // Options to forward
-        auto&& gelq2Opts = workspace_opts_t<work_t>{ std::move(work) };
+        auto&& gelq2Opts = workspace_opts_t<work_t>{ work };
 
         for (idx_t j = 0; j < k; j += nb)
         {

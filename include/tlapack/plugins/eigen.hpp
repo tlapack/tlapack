@@ -238,46 +238,32 @@ namespace tlapack{
         }
 
         inline constexpr auto
-        operator()( Workspace& W, idx_t m, idx_t n ) const {
+        operator()( const Workspace& W, idx_t m, idx_t n, Workspace& rW ) const {
         
             using stride_t = Eigen::Stride<Eigen::Dynamic,1>;
             using map_t = Eigen::Map< matrix_t, Eigen::Unaligned, stride_t >;
 
-            assert( m > 0 && n > 0 );
-            assert( idx_t(W.size()/sizeof(T)) >= m*n );
-                
             T* ptr = (T*) W.ptr;
-            
-            if( W.ldim == W.m ) { // contiguous space in memory
-
-                W.ptr  += (m*n)*sizeof(T);
-                W.m     = W.size() - (m*n)*sizeof(T);
-                W.ldim  = W.m;
-                W.n     = 1;
-
-                return map_t( ptr, m, n, matrix_t::IsRowMajor ? stride_t(n,1) : stride_t(m,1) );
+            if( !matrix_t::IsRowMajor )
+            {
+                rW = W.extract( m*sizeof(T), n );
+                return map_t( ptr, m, n, stride_t(
+                                (rW.ldim == rW.m) ? m : rW.ldim/sizeof(T)
+                              ,1) );
             }
-            else {
-
-                if( !matrix_t::IsRowMajor )
-                {
-                    assert( idx_t(W.m/sizeof(T)) >= m );
-                    assert( idx_t(W.n) >= n );
-
-                    W.ptr   += n * W.ldim;
-                    W.n     -= n;
-                }
-                else // if( matrix_t::IsRowMajor )
-                {
-                    assert( idx_t(W.m/sizeof(T)) >= n );
-                    assert( idx_t(W.n) >= m );
-
-                    W.ptr   += m * W.ldim;
-                    W.n     -= m;
-                }
-
-                return map_t( ptr, m, n, stride_t(W.ldim/sizeof(T),1) );
+            else
+            {
+                rW = W.extract( n*sizeof(T), m );
+                return map_t( ptr, m, n, stride_t(
+                                (rW.ldim == rW.m) ? n : rW.ldim/sizeof(T)
+                              ,1) );
             }
+        }
+
+        inline constexpr auto
+        operator()( const Workspace& W, idx_t m, idx_t n ) const {
+            Workspace rW;
+            return operator()( W, m, n, rW );
         }
     };
     

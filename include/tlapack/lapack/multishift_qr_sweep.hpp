@@ -13,7 +13,6 @@
 #include <memory>
 #include <complex>
 
-#include "tlapack/legacy_api/base/utils.hpp"
 #include "tlapack/base/utils.hpp"
 #include "tlapack/lapack/larfg.hpp"
 #include "tlapack/lapack/lahqr_shiftcolumn.hpp"
@@ -21,6 +20,32 @@
 
 namespace tlapack
 {
+    template <
+        class matrix_t,
+        class vector_t,
+        class work_t = undefined_t,
+        enable_if_t<is_complex<type_t<vector_t>>::value, bool> = true
+    >
+    inline constexpr
+    void multishift_QR_sweep_worksize(
+        bool want_t, 
+        bool want_z, 
+        size_type<matrix_t> ilo, 
+        size_type<matrix_t> ihi, 
+        matrix_t &A, 
+        vector_t &s, 
+        matrix_t &Z, 
+        size_t& worksize,
+        const workspace_opts_t<work_t> &opts = {} )
+    {
+        using commonT   = scalar_type< type_t<matrix_t> >;
+        using idx_t     = size_type< matrix_t >;
+        using matrixV_t = deduce_work_t< work_t, legacyMatrix<commonT,idx_t> >;
+        using T         = type_t< matrixV_t >;
+
+        worksize = sizeof(T) * (3*size(s)/2);
+    }
+
     /** multishift_QR_sweep performs a single small-bulge multi-shift QR sweep.
      *
      * @param[in] want_t bool.
@@ -54,17 +79,33 @@ namespace tlapack
     template <
         class matrix_t,
         class vector_t,
-        enable_if_t<is_complex<type_t<vector_t>>::value, bool> = true>
-    void multishift_QR_sweep(bool want_t, bool want_z, size_type<matrix_t> ilo, size_type<matrix_t> ihi, matrix_t &A, vector_t &s, matrix_t &Z, matrix_t &V)
+        class work_t = undefined_t,
+        enable_if_t<is_complex<type_t<vector_t>>::value, bool> = true
+    >
+    void multishift_QR_sweep(
+        bool want_t, 
+        bool want_z, 
+        size_type<matrix_t> ilo, 
+        size_type<matrix_t> ihi, 
+        matrix_t &A, 
+        vector_t &s, 
+        matrix_t &Z, 
+        const workspace_opts_t<work_t> &opts = {} )
     {
+        using commonT   = scalar_type< type_t<matrix_t> >;
+        using idx_t     = size_type< matrix_t >;
+        using matrixV_t = deduce_work_t< work_t, legacyMatrix<commonT,idx_t> >;
 
-        using T = type_t<matrix_t>;
-        using real_t = real_type<T>;
+        using TA = type_t<matrix_t>;
+        using real_t = real_type<TA>;
         using idx_t = size_type<matrix_t>;
         using pair = std::pair<idx_t, idx_t>;
 
-        const T one(1);
-        const T zero(0);
+        // Functor
+        Create< matrixV_t > new_matrix;
+
+        const real_t one(1);
+        const real_t zero(0);
         const idx_t n = ncols(A);
         const real_t eps = ulp<real_t>();
         const real_t small_num = safe_min<real_t>() * ((real_t)n / eps);
@@ -74,8 +115,16 @@ namespace tlapack
         assert(nrows(A) == n);
         assert(ncols(Z) == n);
         assert(nrows(Z) == n);
-        assert(nrows(V) == 3);
-        assert(ncols(V) >= size(s) / 2);
+
+        // Allocates workspace
+        vectorOfBytes localworkdata;
+        const Workspace work = [&]()
+        {
+            size_t lwork;
+            multishift_QR_sweep_worksize( want_t, want_z, ilo, ihi, A, s, Z, lwork, opts );
+            return alloc_workspace( localworkdata, lwork, opts.work );
+        }();
+        auto V = new_matrix( work, 3, size(s)/2 );
 
         const idx_t n_block_max = (n - 3) / 3;
         const idx_t n_shifts_max = std::min(ihi - ilo - 1, std::max<idx_t>(2, 3 * (n_block_max / 4)));
@@ -126,7 +175,7 @@ namespace tlapack
                     if (i_pos == ilo)
                     {
                         // Introduce bulge
-                        T tau;
+                        TA tau;
                         auto H = slice(A, pair{ilo, ilo + 3}, pair{ilo, ilo + 3});
                         lahqr_shiftcolumn(H, v, s[size(s)- 1 - 2 * i_bulge], s[size(s)- 1 - 2 * i_bulge - 1]);
                         larfg(v, tau);

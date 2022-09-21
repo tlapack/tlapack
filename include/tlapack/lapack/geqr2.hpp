@@ -96,6 +96,9 @@ int geqr2(
         geqr2_worksize( A, tau, lwork, opts );
         return alloc_workspace( localworkdata, lwork, opts.work );
     }();
+    
+    // Options to forward
+    auto&& larfOpts = workspace_opts_t<work_t>{ work };
 
     for(idx_t i = 0; i < k; ++i) {
       
@@ -109,7 +112,7 @@ int geqr2(
         auto C = slice( A, pair{i,m}, pair{i+1,n} );
         
         // C := I - conj(tau_i) v v^H
-        larf( left_side, v, conj(tau[i]), C, workspace_opts_t<work_t>{ std::move(work) } );
+        larf( left_side, v, conj(tau[i]), C, larfOpts );
 	}
     if( n-1 < m ) {
         // Define v := A[n-1:m,n-1]

@@ -118,7 +118,7 @@ namespace tlapack
         }();
         
         // Options to forward
-        auto&& larfOpts = workspace_opts_t<work_t>{ std::move(work) };
+        auto&& larfOpts = workspace_opts_t<work_t>{ work };
 
         for (idx_t j = 0; j < n; ++j)
         {

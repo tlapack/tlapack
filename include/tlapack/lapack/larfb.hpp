@@ -189,7 +189,7 @@ int larfb(
 
     // Allocates workspace
     vectorOfBytes localworkdata;
-    Workspace work = [&]()
+    const Workspace work = [&]()
     {
         size_t lwork;
         larfb_worksize( side, trans, direction, storeMode, V, Tmatrix, C, lwork, opts );
