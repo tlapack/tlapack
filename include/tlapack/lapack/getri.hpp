@@ -59,6 +59,7 @@ int getri( matrix_t& A, vector_t &Piv){
     // quick return
     if (m!=n) return 0;
     getrf2(A,Piv);
+    
 
     // A has L and U in it, we will create X such that UXL=A in place of
     for(idx_t j=n-idx_t(1);j!=idx_t(-1);j--){
@@ -74,7 +75,7 @@ int getri( matrix_t& A, vector_t &Piv){
             // work1 = -X22 * l21
             std::vector<T> work1( n-j-id_t(1) , idx_t(0) );
             tlapack::gemv(Op::NoTrans,T(-1), X22, l21,T(1), work1);
-            std::cout<<nrows(X22)<<std::endl;
+            // std::cout<<nrows(X22)<<std::endl;
             
             //second line of the algorithm, work2 holds x21
             // work2 = -u12 X22 / A(j,j)
@@ -87,24 +88,11 @@ int getri( matrix_t& A, vector_t &Piv){
             tlapack::copy(work1,l21);
             tlapack::copy(work2,u12);
 
-            // for(idx_t j=n-idx_t(1);j!=idx_t(-1);j--){
-            //     auto vect1=tlapack::col(A,j);
-            //     auto vect2=tlapack::col(A,Piv[j]);
-            //     tlapack::swap(vect1,vect2);
-            // }
-            // for(idx_t j=idx_t(0);j<n;j++){
-            //     auto vect1=tlapack::col(A,j);
-            //     auto vect2=tlapack::col(A,Piv[j]);
-            //     tlapack::swap(vect1,vect2);
-            // }
-
-
+            
 
         }
     }
     
-
-
 
     
     
@@ -117,112 +105,3 @@ int getri( matrix_t& A, vector_t &Piv){
 #endif // TLAPACK_GETRI_HH
 
 
-
-// if (m==1 || n ==1){
-//         if(m==1){
-//             Piv[0]=idx_t(0);
-//                 if (A(Piv[0],0)==real_t(0)){
-//                     return 1;
-//                 }
-//             return 0;
-//         }
-//         else{
-//             idx_t toswap = idx_t(0);
-//             toswap=iamax(tlapack::slice(A,tlapack::range<idx_t>(0,m),0));
-//             Piv[0]=toswap;
-
-//             if (Piv[0]!=0){
-//                 auto vect1=tlapack::row(A,0);
-//                 auto vect2=tlapack::row(A,toswap);
-//                 tlapack::swap(vect1,vect2);
-//             }
-//             for(idx_t i=1;i<m;i++){
-//                 A(i,0)/=A(0,0);
-//             }
-            
-//             return 0;
-//         }
-        
-//     }
-
-// the case where m<n, we simply slice A into two parts, A0, a square matrix and A1 where A=[A0 , A1]
-    // if(m<n){
-    //     auto A0 = tlapack::slice(A,tlapack::range<idx_t>(0,m),tlapack::range<idx_t>(0,m));
-    //     auto A1 = tlapack::slice(A,tlapack::range<idx_t>(0,m),tlapack::range<idx_t>(m,n));
-    //     getri(A0,Piv);
-    //     for(idx_t j=0;j<size(Piv);j++){
-    //         if (Piv[j]>j){
-    //             auto vect1=tlapack::row(A1,j);
-    //             auto vect2=tlapack::row(A1,Piv[j]);
-    //             tlapack::swap(vect1,vect2);
-    //         }   
-    //     }
-    //     trsm(Side::Left,Uplo::Lower,Op::NoTrans,Diag::Unit,T(1),A0,A1);
-    //     return 0;
-    // }
-    // else{
-    //     // Dimensions for the submatrices
-    //     idx_t k0;
-    //     k0=end/2;
-    //     idx_t m1, n1;
-    //     m1=m-k0;
-    //     n1=n-k0;
-        
-    //     // in this step, we break A into two matrices, A=[A0 , A1]
-    //     auto A0 = tlapack::slice(A,tlapack::range<idx_t>(0,m),tlapack::range<idx_t>(0,k0));
-    //     auto A1 = tlapack::slice(A,tlapack::range<idx_t>(0,m),tlapack::range<idx_t>(k0,n));
-        
-    //     // Piv0 is the first k0 elements of Piv
-    //     auto Piv0 = tlapack::slice(Piv,tlapack::range<idx_t>(0,k0));
-
-    //     // Apply getrf2 on the left of half of the matrix
-    //     getri(A0,Piv0);
-        
-    //     //swap the rows of A1
-    //     for(idx_t j=0;j<size(Piv0);j++){
-    //         if (Piv0[j]>j){
-    //             auto vect1=tlapack::row(A1,j);
-    //             auto vect2=tlapack::row(A1,Piv0[j]);
-    //             tlapack::swap(vect1,vect2);
-    //         }   
-    //     }
-        
-    //     // Define the four blocks:
-    //     //A00
-    //     auto A00 = tlapack::slice(A,tlapack::range<idx_t>(0,k0),tlapack::range<idx_t>(0,k0));
-    //     //A01
-    //     auto A01 = tlapack::slice(A,tlapack::range<idx_t>(0,k0),tlapack::range<idx_t>(k0,n));
-    //     //A10
-    //     auto A10 = tlapack::slice(A,tlapack::range<idx_t>(k0,m),tlapack::range<idx_t>(0,k0));
-    //     //A11
-    //     auto A11 = tlapack::slice(A,tlapack::range<idx_t>(k0,m),tlapack::range<idx_t>(k0,n));
-
-    //     // Take Piv1 to be the second slice of of Piv, meaning Piv= [Piv0, Piv1]
-    //     auto Piv1 = tlapack::slice(Piv,tlapack::range<idx_t>(k0,end));
-
-    //     // Solve the triangular system of equations given by A00 X = A01
-    //     trsm(Side::Left,Uplo::Lower,Op::NoTrans,Diag::Unit,T(1),A00,A01);
-        
-    //     // A11 <---- A11 - (A10 * A01)
-    //     gemm(Op::NoTrans,Op::NoTrans,real_t(-1),A10,A01,real_t(1),A11);
-
-    //     // Finding LU factorization of A11 in place
-    //     getri(A11,Piv1);
-        
-    //     //swap the rows of A10 according to the swapped rows of A11 by refering to Piv1
-    //     for(idx_t j=0;j<size(Piv1);j++){
-    //         if (Piv1[j]>j){
-    //             auto vect1=tlapack::row(A10,j);
-    //             auto vect2=tlapack::row(A10,Piv1[j]);
-    //             tlapack::swap(vect1,vect2);
-    //         }   
-    //     }
-        
-    //     // Shift Piv1, so Piv will have the accurate representation of overall pivots
-    //     for(idx_t i=0;i<end-k0;i++){
-    //         Piv1[i] += k0;
-    //     }
-        
-    //     return 0;
-
-    // }
