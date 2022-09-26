@@ -29,8 +29,8 @@ TEMPLATE_LIST_TEST_CASE("LU factorization of a general m-by-n matrix, blocked", 
     
     // m and n represent no. rows and columns of the matrices we will be testing respectively
     idx_t m, n;
-    m = GENERATE(10);
-    n = GENERATE(10);
+    m = GENERATE(100);
+    n = GENERATE(100);
     idx_t k=min<idx_t>(m,n);
 
     // eps is the machine precision, and tol is the tolerance we accept for tests to pass
@@ -66,8 +66,7 @@ TEMPLATE_LIST_TEST_CASE("LU factorization of a general m-by-n matrix, blocked", 
                 A(i, j) = rand_helper<T>()+T(1000);
             }
             else{
-                // A(i, j) = T(100)*rand_helper<T>();
-                A(i, j) = rand_helper<T>()+T(1000);
+                A(i, j) = rand_helper<T>();
 
             }
             
@@ -89,42 +88,9 @@ TEMPLATE_LIST_TEST_CASE("LU factorization of a general m-by-n matrix, blocked", 
     // identit1 -----> A * A_copy - ident1
     gemm(Op::NoTrans,Op::NoTrans,real_t(1),A,A_copy,real_t(-1),ident1);
     real_t error1 = tlapack::lange( tlapack::Norm::Max, ident1)/norma;
-    
     CHECK(error1 <= tol);
     
 }
 
 
 
-// // construct L and U in one pass from the matrix A
-//     for(idx_t i=0;i<m;i++){
-//         for(idx_t j=0;j<n;j++){
-//             if(i==j){
-//                 L(i,j)=1.0;
-//                 U(i,j)=A(i,j);
-//             }
-//             else if(i>j){
-//                 L(i,j)=A(i,j);
-//             }
-//             else{
-//                 U(i,j)=A(i,j);
-//             }
-//         }
-//     }
-    
-//     // Now that Piv is updated, we work our way backwards in Piv and switch rows of L
-//     for(idx_t j=k-idx_t(1);j!=idx_t(-1);j--){
-//         auto vect1=tlapack::row(L,j);
-//         auto vect2=tlapack::row(L,Piv[j]);
-//         tlapack::swap(vect1,vect2);
-//     }
-    
-//     // Now that L is updated, we test if LU=A_copy
-//     // gemm(Op::NoTrans,Op::NoTrans,real_t(1),L,U,real_t(-1),A_copy);
-//     // real_t error = tlapack::lange( tlapack::Norm::Max, A_copy)/norma;
-//     // CHECK(error <= tol);
-//     // for (idx_t j = 0; j < n; ++j)
-//     //     for (idx_t i = 0; i < m; ++i){
-//     //         cout<<ident1(i,j);
-//     //     }
-//     //     cout<<endl;
