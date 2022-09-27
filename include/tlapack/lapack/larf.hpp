@@ -79,7 +79,7 @@ void larf(
 {
     using commonT   = scalar_type< type_t<vector_t >, type_t<matrix_t> >;
     using idx_t     = size_type< matrix_t >;
-    using vectorw_t = deduce_work_t< work_t, legacyVector<commonT,idx_t,idx_t> >;
+    using vectorw_t = deduce_work_t< work_t, legacyVector<commonT,idx_t> >;
     using T         = type_t< vectorw_t >;
     using real_t    = real_type<T>;
 

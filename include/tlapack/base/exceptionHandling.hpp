@@ -43,6 +43,14 @@ namespace tlapack {
 
     /// It has all errors turned off
     constexpr ErrorCheck noErrorCheck = { false, false, false };
+
+    /// Error Checking options
+    struct ec_opts_t {
+        ErrorCheck ec = {};
+        
+        inline constexpr
+        ec_opts_t( const ErrorCheck& ec_ = {} ) : ec(ec_) {}
+    };
 }
 
 // -----------------------------------------------------------------------------

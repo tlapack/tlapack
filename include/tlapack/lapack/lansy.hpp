@@ -41,7 +41,8 @@ template< class norm_t, class uplo_t, class matrix_t >
 auto
 lansy( norm_t normType, uplo_t uplo, const matrix_t& A )
 {
-    using real_t = real_type< type_t<matrix_t> >;
+    using T      = type_t<matrix_t>;
+    using real_t = real_type< T >;
     using idx_t  = size_type< matrix_t >;
     using pair   = pair<idx_t,idx_t>;
 
@@ -161,6 +162,22 @@ lansy( norm_t normType, uplo_t uplo, const matrix_t& A )
     return norm;
 }
 
+template< class norm_t, class uplo_t, class matrix_t, class work_t = undefined_t >
+inline constexpr
+void lansy_worksize(
+    norm_t normType,
+    uplo_t uplo,
+    const matrix_t& A,
+    size_t& worksize,
+    const workspace_opts_t<work_t>& opts )
+{
+    using T     = type_t< matrix_t >;
+    using idx_t = size_type< matrix_t >;
+    using vectorw_t = deduce_work_t< work_t, legacyVector<T,idx_t> >;
+
+    worksize = sizeof( type_t< vectorw_t > ) * nrows(A);
+}
+
 /** Calculates the norm of a symmetric matrix.
  * 
  * Code optimized for the infinity and one norm on column-major layouts using a workspace
@@ -171,11 +188,12 @@ lansy( norm_t normType, uplo_t uplo, const matrix_t& A )
  * 
  * @ingroup auxiliary
  */
-template< class norm_t, class uplo_t, class matrix_t, class work_t >
+template< class norm_t, class uplo_t, class matrix_t, class work_t = undefined_t >
 auto
-lansy( norm_t normType, uplo_t uplo, const matrix_t& A, work_t& work )
+lansy( norm_t normType, uplo_t uplo, const matrix_t& A, const workspace_opts_t<work_t>& opts )
 {
-    using real_t = real_type< type_t<matrix_t> >;
+    using T      = type_t<matrix_t>;
+    using real_t = real_type< T >;
     using idx_t  = size_type< matrix_t >;
 
     // check arguments
@@ -190,64 +208,78 @@ lansy( norm_t normType, uplo_t uplo, const matrix_t& A, work_t& work )
     // quick redirect for max-norm and Frobenius norm
     if      ( normType == Norm::Max  ) return lansy( max_norm,  uplo, A );
     else if ( normType == Norm::Fro  ) return lansy( frob_norm, uplo, A );
-
-    // the code below uses a workspace and is meant for column-major layout
-    // so as to do one pass on the data in a contiguous way when computing
-    // the infinite and one norm
-
-    // constants
-    const idx_t n = nrows(A);
-
-    // quick return
-    if ( n <= 0 ) return real_t( 0 );
-
-    // Norm value
-    real_t norm( 0 );
-
-    for (idx_t i = 0; i < n; ++i)
-        work[i] = type_t<work_t>(0);
-
-    if( uplo == Uplo::Upper ) {
-        for (idx_t j = 0; j < n; ++j)
-        {
-            real_t sum( 0 );
-            for (idx_t i = 0; i < j; ++i) {
-                const real_t absa = tlapack::abs( A(i,j) );
-                sum += absa;
-                work[i] += absa;
-            }
-            work[j] = sum + tlapack::abs( A(j,j) );
-        }
-        for (idx_t i = 0; i < n; ++i)
-        {
-            real_t sum = work[i];
-            if (sum > norm)
-                norm = sum;
-            else {
-                if ( isnan(sum) )
-                    return sum;
-            }
-        }
-    }
     else {
-        for (idx_t j = 0; j < n; ++j)
+
+        // the code below uses a workspace and is meant for column-major layout
+        // so as to do one pass on the data in a contiguous way when computing
+        // the infinite and one norm
+
+        using vectorw_t = deduce_work_t< work_t, legacyVector<T,idx_t> >;
+
+        // constants
+        const idx_t n = nrows(A);
+
+        // quick return
+        if ( n <= 0 ) return real_t( 0 );
+
+        // Allocates workspace
+        vectorOfBytes localworkdata;
+        const Workspace work = [&]()
         {
-            real_t sum = work[j] + tlapack::abs( A(j,j) );
-            for (idx_t i = j+1; i < n; ++i) {
-                const real_t absa = tlapack::abs( A(i,j) );
-                sum += absa;
-                work[i] += absa;
+            size_t lwork;
+            lansy_worksize( normType, uplo, A, lwork, opts );
+            return alloc_workspace( localworkdata, lwork, opts.work );
+        }();
+        auto w = Create< vectorw_t >( work, n, 1 );
+
+        // Norm value
+        real_t norm( 0 );
+
+        for (idx_t i = 0; i < n; ++i)
+            w[i] = type_t<vectorw_t>(0);
+
+        if( uplo == Uplo::Upper ) {
+            for (idx_t j = 0; j < n; ++j)
+            {
+                real_t sum( 0 );
+                for (idx_t i = 0; i < j; ++i) {
+                    const real_t absa = tlapack::abs( A(i,j) );
+                    sum += absa;
+                    w[i] += absa;
+                }
+                w[j] = sum + tlapack::abs( A(j,j) );
             }
-            if (sum > norm)
-                norm = sum;
-            else {
-                if ( isnan(sum) )
-                    return sum;
+            for (idx_t i = 0; i < n; ++i)
+            {
+                real_t sum = w[i];
+                if (sum > norm)
+                    norm = sum;
+                else {
+                    if ( isnan(sum) )
+                        return sum;
+                }
             }
         }
-    }
+        else {
+            for (idx_t j = 0; j < n; ++j)
+            {
+                real_t sum = w[j] + tlapack::abs( A(j,j) );
+                for (idx_t i = j+1; i < n; ++i) {
+                    const real_t absa = tlapack::abs( A(i,j) );
+                    sum += absa;
+                    w[i] += absa;
+                }
+                if (sum > norm)
+                    norm = sum;
+                else {
+                    if ( isnan(sum) )
+                        return sum;
+                }
+            }
+        }
 
-    return norm;
+        return norm;
+    }
 }
 
 } // lapack

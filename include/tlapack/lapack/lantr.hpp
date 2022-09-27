@@ -47,7 +47,8 @@ template< class norm_t, class uplo_t, class diag_t, class matrix_t >
 auto
 lantr( norm_t normType, uplo_t uplo, diag_t diag, const matrix_t& A )
 {
-    using real_t = real_type< type_t<matrix_t> >;
+    using T      = type_t< matrix_t >;
+    using real_t = real_type< T >;
     using idx_t  = size_type< matrix_t >;
 
     // constants
@@ -262,6 +263,28 @@ lantr( norm_t normType, uplo_t uplo, diag_t diag, const matrix_t& A )
     return norm;
 }
 
+template<
+    class norm_t, 
+    class uplo_t, 
+    class diag_t, 
+    class matrix_t, 
+    class work_t = undefined_t >
+inline constexpr
+void lantr_worksize(
+    norm_t normType,
+    uplo_t uplo,
+    diag_t diag,
+    const matrix_t& A,
+    size_t& worksize,
+    const workspace_opts_t<work_t>& opts )
+{
+    using T     = type_t< matrix_t >;
+    using idx_t = size_type< matrix_t >;
+    using vectorw_t = deduce_work_t< work_t, legacyVector<T,idx_t> >;
+
+    worksize = sizeof( type_t< vectorw_t > ) * nrows(A);
+}
+
 /** Calculates the norm of a triangular matrix.
  * 
  * Code optimized for the infinity norm on column-major layouts using a workspace
@@ -272,9 +295,20 @@ lantr( norm_t normType, uplo_t uplo, diag_t diag, const matrix_t& A )
  * 
  * @ingroup auxiliary
  */
-template< class norm_t, class uplo_t, class diag_t, class matrix_t, class work_t >
+template<
+    class norm_t, 
+    class uplo_t, 
+    class diag_t, 
+    class matrix_t, 
+    class work_t = undefined_t >
 auto
-lantr( norm_t normType, uplo_t uplo, diag_t diag, const matrix_t& A, work_t& work )
+lantr(
+    norm_t normType,
+    uplo_t uplo,
+    diag_t diag,
+    const matrix_t& A,
+    size_t& worksize,
+    const workspace_opts_t<work_t>& opts )
 {
     using T      = type_t< matrix_t >;
     using real_t = real_type< T >;
@@ -309,53 +343,65 @@ lantr( norm_t normType, uplo_t uplo, diag_t diag, const matrix_t& A, work_t& wor
         // so as to do one pass on the data in a contiguous way when computing
 	    // the infinite norm.
 
+        using vectorw_t = deduce_work_t< work_t, legacyVector<T,idx_t> >;
+
+        // Allocates workspace
+        vectorOfBytes localworkdata;
+        const Workspace work = [&]()
+        {
+            size_t lwork;
+            lantr_worksize( normType, uplo, diag, A, lwork, opts );
+            return alloc_workspace( localworkdata, lwork, opts.work );
+        }();
+        auto w = Create< vectorw_t >( work, n, 1 );
+
         // Norm value
         real_t norm( 0 );
 
         if( uplo == Uplo::Upper ) {
             if( diag == Diag::NonUnit ) {
                 for (idx_t i = 0; i < m; ++i)
-                    work[i] = real_t(0);
+                    w[i] = real_t(0);
     
                 for (idx_t j = 0; j < n; ++j)
                     for (idx_t i = 0; i <= std::min(j,m-1); ++i)
-                        work[i] += tlapack::abs( A(i,j) );
+                        w[i] += tlapack::abs( A(i,j) );
             }
             else {
                 for (idx_t i = 0; i < m; ++i)
-                    work[i] = real_t(1);
+                    w[i] = real_t(1);
     
                 for (idx_t j = 1; j < n; ++j) {
                     for (idx_t i = 0; i < std::min(j,m); ++i)
-                        work[i] += tlapack::abs( A(i,j) );
+                        w[i] += tlapack::abs( A(i,j) );
                 }
             }
         }
         else {
             if( diag == Diag::NonUnit ) {
                 for (idx_t i = 0; i < m; ++i)
-                    work[i] = real_t(0);
+                    w[i] = real_t(0);
     
                 for (idx_t j = 0; j < n; ++j)
                     for (idx_t i = j; i < m; ++i)
-                        work[i] += tlapack::abs( A(i,j) );
+                        w[i] += tlapack::abs( A(i,j) );
             }
             else {
                 for (idx_t i = 0; i < std::min(m,n); ++i)
-                    work[i] = real_t(1);
+                    w[i] = real_t(1);
                 for (idx_t i = n; i < m; ++i)
-                    work[i] = real_t(0);
+                    w[i] = real_t(0);
     
                 for (idx_t j = 1; j < n; ++j) {
                     for (idx_t i = j+1; i < m; ++i)
-                        work[i] += tlapack::abs( A(i,j) );
+                        w[i] += tlapack::abs( A(i,j) );
                 }
             }
         }
 
         for (idx_t i = 0; i < m; ++i)
         {
-            real_t temp = work[i];
+            real_t temp = w[i];
 
             if (temp > norm)
                 norm = temp;

@@ -21,9 +21,9 @@ namespace tlapack {
 
 /// Default options for potrf
 template< typename idx_t >
-struct potrf_opts_t
+struct potrf_opts_t : public ec_opts_t
 {
-    idx_t nb = 32; ///< Block size
+    idx_t nb = 32;      ///< Block size
 };
 
 /** Computes the Cholesky factorization of a Hermitian
@@ -68,8 +68,11 @@ struct potrf_opts_t
  *
  * @ingroup posv_computational
  */
-template< class uplo_t, class matrix_t, class opts_t >
-int potrf( uplo_t uplo, matrix_t& A, opts_t&& opts, const ErrorCheck& ec = {} )
+template< class uplo_t, class matrix_t >
+int potrf(
+    uplo_t uplo,
+    matrix_t& A,
+    const potrf_opts_t< size_type<matrix_t> >& opts = {} )
 {
     using T      = type_t< matrix_t >;
     using real_t = real_type< T >;
@@ -162,28 +165,13 @@ int potrf( uplo_t uplo, matrix_t& A, opts_t&& opts, const ErrorCheck& ec = {} )
         }
 
         // Report infs and nans on the output
-        tlapack_warn_nans_in_matrix( ec, uplo, A, n+1,
+        tlapack_warn_nans_in_matrix( opts.ec, uplo, A, n+1,
             "The factorization has some nans." );
-        tlapack_warn_infs_in_matrix( ec, uplo, A, n+1,
+        tlapack_warn_infs_in_matrix( opts.ec, uplo, A, n+1,
             "The factorization has some infs." );
         
         return 0;
     }
-}
-
-/** Computes the Cholesky factorization of a Hermitian
- * positive definite matrix A using a blocked algorithm.
- * 
- * Version with default options defined in @see potrf_opts_t.
- *
- * @see potrf( uplo_t uplo, matrix_t& A, opts_t&& opts ) 
- */
-template< class uplo_t, class matrix_t >
-inline
-int potrf( uplo_t uplo, matrix_t& A, const ErrorCheck& ec = {} )
-{    
-    using idx_t = size_type< matrix_t >;
-    return potrf( uplo, A, potrf_opts_t<idx_t>{}, ec );
 }
 
 } // lapack
