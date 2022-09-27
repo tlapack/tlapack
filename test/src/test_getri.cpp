@@ -29,13 +29,13 @@ TEMPLATE_LIST_TEST_CASE("LU factorization of a general m-by-n matrix, blocked", 
     
     // m and n represent no. rows and columns of the matrices we will be testing respectively
     idx_t m, n;
-    m = GENERATE(5);
-    n = GENERATE(5);
+    m = GENERATE(10);
+    n = GENERATE(10);
     idx_t k=min<idx_t>(m,n);
 
     // eps is the machine precision, and tol is the tolerance we accept for tests to pass
     const real_t eps = ulp<real_t>();
-    const real_t tol = max(m, n) * eps;
+    const real_t tol = max(m, n)*max(m, n)*eps;
     
     // Initialize matrices A, and A_copy to run tests on
     std::unique_ptr<T[]> A_(new T[m * n]);
@@ -91,7 +91,7 @@ TEMPLATE_LIST_TEST_CASE("LU factorization of a general m-by-n matrix, blocked", 
     real_t error1 = tlapack::lange( tlapack::Norm::Max, ident1)/norma;
     // std::cout<<tlapack::lange( tlapack::Norm::One, ident1)<<endl;
     // std::cout<<norma<<endl;
-    CHECK(error1 <= tol);
+    CHECK(error1/tol <= 1);
     
 }
 
