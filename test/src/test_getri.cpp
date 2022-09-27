@@ -29,8 +29,8 @@ TEMPLATE_LIST_TEST_CASE("LU factorization of a general m-by-n matrix, blocked", 
     
     // m and n represent no. rows and columns of the matrices we will be testing respectively
     idx_t m, n;
-    m = GENERATE(100);
-    n = GENERATE(100);
+    m = GENERATE(5);
+    n = GENERATE(5);
     idx_t k=min<idx_t>(m,n);
 
     // eps is the machine precision, and tol is the tolerance we accept for tests to pass
@@ -62,8 +62,7 @@ TEMPLATE_LIST_TEST_CASE("LU factorization of a general m-by-n matrix, blocked", 
     for (idx_t j = 0; j < n; ++j)
         for (idx_t i = 0; i < m; ++i){
             if(i==j){
-                // A(i, j) = T(100)*rand_helper<T>();
-                A(i, j) = rand_helper<T>()+T(1000);
+                A(i, j) = rand_helper<T>();
             }
             else{
                 A(i, j) = rand_helper<T>();
@@ -83,11 +82,15 @@ TEMPLATE_LIST_TEST_CASE("LU factorization of a general m-by-n matrix, blocked", 
     // Initialize Piv vector to all zeros
     std::vector<idx_t> Piv( k , idx_t(0) );
     // Run getrf and both A and Piv will be update
-    getri(A,Piv);
-    
+    //getri(A,Piv);
+    int res=getri(A,Piv);
     // identit1 -----> A * A_copy - ident1
     gemm(Op::NoTrans,Op::NoTrans,real_t(1),A,A_copy,real_t(-1),ident1);
+    
+       
     real_t error1 = tlapack::lange( tlapack::Norm::Max, ident1)/norma;
+    // std::cout<<tlapack::lange( tlapack::Norm::One, ident1)<<endl;
+    // std::cout<<norma<<endl;
     CHECK(error1 <= tol);
     
 }

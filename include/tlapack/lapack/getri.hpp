@@ -1,4 +1,4 @@
-/// @file getrf.hpp
+/// @file getri.hpp
 /// @author Ali Lotfi, University of Colorado Denver, USA
 //
 // Copyright (c) 2013-2022, University of Colorado Denver. All rights reserved.
@@ -58,8 +58,7 @@ int getri( matrix_t& A, vector_t &Piv){
     tlapack_check( (idx_t) size(Piv) >= end);
     // quick return
     if (m!=n) return 0;
-    getrf2(A,Piv);
-    
+    int res=getrf2(A,Piv);
     
     // A has L and U in it, we will create X such that UXL=A in place of
     for(idx_t j=n-idx_t(1);j!=idx_t(-1);j--){
@@ -73,18 +72,18 @@ int getri( matrix_t& A, vector_t &Piv){
 
             // first step of the algorithm, work1 holds x12
             // work1 = -X22 * l21
-            std::vector<T> work1( n-j-idx_t(1) , T(0) );
+            std::vector<T> work1( n-j-idx_t(1) , T(0));
             tlapack::gemv(Op::NoTrans,T(-1), X22, l21,T(0), work1);
             // std::cout<<nrows(X22)<<std::endl;
             
             //second line of the algorithm, work2 holds x21
             // work2 = -u12 X22 / A(j,j)
             std::vector<T> work2( n-j-idx_t(1) , T(0) );
-            tlapack::gemv(Op::ConjTrans,T(-1)/A(j,j), X22, u12,T(0), work2);
+            tlapack::gemv(Op::Trans,T(-1)/A(j,j), X22, u12,T(0), work2);
 
             // third line of the algorithm
             // A(j,j) = T(1) / A(j,j) - <x12,l21>
-            A(j,j) = T(1)/ A(j,j) - tlapack::dot(work2,l21);
+            A(j,j) = (T(1)/ A(j,j)) - tlapack::dotu(work2,l21);
             tlapack::copy(work1,l21);
             tlapack::copy(work2,u12);
 
@@ -92,20 +91,20 @@ int getri( matrix_t& A, vector_t &Piv){
 
         }
     }
-    // for(idx_t j=n-idx_t(1);j!=idx_t(-1);j--){
-    //             if(Piv[j]>j){
-    //                 auto vect1=tlapack::col(A,j);
-    //                 auto vect2=tlapack::col(A,Piv[j]);
-    //                 tlapack::swap(vect1,vect2);
-    //             }
-    //     }
-    for(idx_t j=idx_t(0);j<n;j++){
+    for(idx_t j=n-idx_t(1);j!=idx_t(-1);j--){
                 if(Piv[j]>j){
                     auto vect1=tlapack::col(A,j);
                     auto vect2=tlapack::col(A,Piv[j]);
                     tlapack::swap(vect1,vect2);
                 }
         }
+    // for(idx_t j=idx_t(0);j<n;j++){
+    //             if(Piv[j]>j){
+    //                 auto vect1=tlapack::row(A,j);
+    //                 auto vect2=tlapack::row(A,Piv[j]);
+    //                 tlapack::swap(vect1,vect2);
+    //             }
+    //     }
   
 
 
