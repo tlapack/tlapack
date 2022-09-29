@@ -148,8 +148,8 @@
 // LU
 // ----------------
 
-#include "tlapack/lapack/getrf.hpp"
+// #include "tlapack/lapack/getrf.hpp"
 #include "tlapack/lapack/getrf2.hpp"
-#include "tlapack/lapack/getri.hpp"
+// #include "tlapack/lapack/getri.hpp"
 #include "tlapack/lapack/ul_mult.hpp"
 #endif // TLAPACK_HH
