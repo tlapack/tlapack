@@ -95,6 +95,7 @@ TEMPLATE_LIST_TEST_CASE("LU factorization of a general m-by-n matrix, blocked", 
     
     // store UL-A ---> A 
     gemm(Op::NoTrans,Op::NoTrans,T(1),U,L,T(-1),A);
+    getri_methodD(A);
 
 
     real_t error1 = tlapack::lange( tlapack::Norm::Max, A)/norma;

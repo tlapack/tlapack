@@ -1,4 +1,4 @@
-/// @file ul_mult.hpp
+/// @file getri_methodD.hpp
 /// @author Ali Lotfi, University of Colorado Denver, USA
 //
 // Copyright (c) 2013-2022, University of Colorado Denver. All rights reserved.
@@ -7,10 +7,11 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 // PA = LU   A^(-1)P^T=U^(-1)L^(-1) --- > U(A^(-1)P^T) L=I
-#ifndef TLAPACK_ul_mult_HH
-#define TLAPACK_ul_mult_HH
+#ifndef TLAPACK_getri_methodD_HH
+#define TLAPACK_getri_methodD_HH
 
 #include "tlapack/base/utils.hpp"
+#include <tlapack/lapack/getrf2.hpp>
 #include "tlapack.hpp"
 
 namespace tlapack {
@@ -26,7 +27,7 @@ namespace tlapack {
  * @ingroup group_solve
  */
 template< class matrix_t>
-int ul_mult( matrix_t& A){
+int getri_methodD( matrix_t& A){
     using idx_t = size_type< matrix_t >;
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
@@ -38,38 +39,33 @@ int ul_mult( matrix_t& A){
     
     // constant
     const idx_t n = ncols(A);
+    
+    // LU factorize Pivoted A
+    std::vector<idx_t> Piv( n , idx_t(0) );
+    getrf2(A,Piv);
+    
+    // Invert the upper part of A, aka U
+    trtri_recursive(Uplo::Upper, A);
 
-    // if L and U are 1-by-1, then L is 1 and we simply UL=A(0,0)
-    if(n==1){
-        return 0;
+    // save inverse of diagonal elements of U in work, and substitute with 1
+    std::vector<T> work( n , T(0) );
+    for (idx_t i = 0; i < n; ++i){
+        work[i]=A(i,i);
+        A(i,i)=T(1);
     }
-    idx_t n0 = n / 2;
-    // break A into four parts
-    auto A00 = tlapack::slice(A,tlapack::range<idx_t>(0,n0),tlapack::range<idx_t>(0,n0));
-    auto A10 = tlapack::slice(A,tlapack::range<idx_t>(n0,n),tlapack::range<idx_t>(0,n0));
-    auto A01 = tlapack::slice(A,tlapack::range<idx_t>(0,n0),tlapack::range<idx_t>(n0,n));
-    auto A11 = tlapack::slice(A,tlapack::range<idx_t>(n0,n),tlapack::range<idx_t>(n0,n));
-    
-    // calculate top left corner
-    ul_mult(A00);
-    tlapack::gemm(Op::NoTrans,Op::NoTrans,T(1),A01,A10,T(1),A00);
+    // Invert the lower part of A, aka L
+    trtri_recursive(Uplo::Lower, A);
 
-    // calculate bottom left corner
-    tlapack::trmm(Side::Left,Uplo::Upper,Op::NoTrans,Diag::NonUnit,T(1),A11,A10);
-    
-    // calculate top right
-    tlapack::trmm(Side::Right,Uplo::Lower,Op::NoTrans,Diag::NonUnit,T(1),A11,A01);
-    
-    // calculate bottom right
-    ul_mult(A11);
+    //multiply U and L
+    lu_mult(A);
     
     return 0;
     
-} // ul_mult
+} //getri_methodD
 
 } // lapack
 
-#endif // TLAPACK_ul_mult_HH
+#endif // TLAPACK_getri_methodD_HH
 
 
 
