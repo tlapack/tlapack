@@ -16,7 +16,7 @@
 namespace tlapack {
 /** test_ul computes UL of a general n-by-n matrix A
  *  where the nonzero part of L is the subdiagonal of A and on the diagonal of A is 1,
- *  nonzero part of U is diagonal and upper diagonal part of A 
+ *  nonzero part of U is diagonal and super-diagonal part of A 
  *
  * @return  0 
  *
@@ -31,17 +31,14 @@ int ul_mult( matrix_t& A){
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
 
-    // constants
-    const idx_t m = nrows(A);
-    const idx_t n = ncols(A);
-    const idx_t end = std::min<idx_t>( m, n );
-
     // check arguments
     tlapack_check_false( access_denied( dense, write_policy(A) ) );
-    tlapack_check( m==n);
+    tlapack_check( nrows(A)==ncols(A));
     // quick return
     
-    if (m!=n) return -1;
+    // constant
+    const idx_t n = ncols(A);
+
     // if L and U are 1-by-1, then L is 1 and we simply UL=A(0,0)
     if(n==1){
         return 0;
