@@ -165,6 +165,122 @@ namespace tlapack {
     #undef isSlice
 
     // -----------------------------------------------------------------------------
+    // Create objects
+
+    template< class ET, class Exts, class LP, class AP >
+    struct Create< mdspan<ET,Exts,LP,AP> >
+    {
+        using idx_t = typename mdspan<ET,Exts,LP,AP>::size_type;
+        using extents_t = std::experimental::dextents<idx_t,Exts::rank()>;
+
+        template<std::enable_if_t< Exts::rank() == 1 ,int> =0>
+        inline constexpr auto
+        operator()( ET* ptr, idx_t m, idx_t n ) const {
+                return mdspan<ET,extents_t,LP,AP>( ptr, m );
+        }
+
+        template<std::enable_if_t< Exts::rank() == 2 ,int> =0>
+        inline constexpr auto
+        operator()( ET* ptr, idx_t m, idx_t n ) const {
+                return mdspan<ET,extents_t,LP,AP>( ptr, m, n );
+        }
+
+        template<std::enable_if_t< Exts::rank() == 2 ,int> =0>
+        inline constexpr auto
+        operator()( const Workspace& W, idx_t m, idx_t n, Workspace& rW ) const
+        {
+            using std::array;
+            using std::experimental::layout_stride;
+            using mapping   = typename layout_stride::template mapping< extents_t >;
+            using matrix_t  = mdspan<ET,extents_t,layout_stride,AP>;
+
+            using std::experimental::layout_right; // Row-Major
+            using std::experimental::layout_left; // Col-Major
+
+            assert( m >= 0 && n >= 0 );
+            
+            // Variables to be forwarded to the returned matrix
+            ET* ptr = (ET*) W.ptr;
+            mapping map;
+
+            if( W.ldim == m*sizeof(ET) || W.n <= 1 )
+            {
+                // contiguous space in memory
+                const std::size_t nBytes = m*n*sizeof(ET);
+                assert( W.size() >= nBytes );
+                rW = legacyMatrix<byte>( W.size()-nBytes, 1, W.ptr + nBytes );
+
+                map = mapping( extents_t(m,n), array<idx_t,2>{m,1} );
+            }
+            else
+            {
+                // non-contiguous space in memory
+
+                if( W.m >= m*sizeof(ET) && W.n >= n )
+                {
+                    rW = legacyMatrix<byte>( W.m, W.n-n, W.ptr+n*W.ldim, W.ldim );
+
+                    map = mapping( extents_t(m,n), array<idx_t,2>{W.ldim/sizeof(ET),1} );
+                }
+                else
+                {
+                    assert( W.m >= n*sizeof(ET) && W.n >= m );
+                    rW = legacyMatrix<byte>( W.m, W.n-m, W.ptr+m*W.ldim, W.ldim );
+
+                    map = mapping( extents_t(m,n), array<idx_t,2>{1,W.ldim/sizeof(ET)} );
+                }
+            }
+
+            return matrix_t( std::move(ptr), std::move(map) );
+        }
+
+        template<std::enable_if_t< Exts::rank() == 1 ,int> =0>
+        inline constexpr auto
+        operator()( const Workspace& W, idx_t m, idx_t n, Workspace& rW ) const
+        {
+            using std::array;
+            using std::experimental::layout_stride;
+            using mapping   = typename layout_stride::template mapping< extents_t >;
+            using matrix_t  = mdspan<ET,extents_t,layout_stride,AP>;
+
+            using std::experimental::layout_right; // Row-Major
+            using std::experimental::layout_left; // Col-Major
+
+            assert( m >= 0 && n == 1 );
+            
+            // Variables to be forwarded to the returned matrix
+            ET* ptr = (ET*) W.ptr;
+            mapping map;
+
+            if( W.ldim == m*sizeof(ET) || W.n <= 1 )
+            {
+                // contiguous space in memory
+                const std::size_t nBytes = m*sizeof(ET);
+                assert( W.size() >= nBytes );
+                rW = legacyMatrix<byte>( W.size()-nBytes, 1, W.ptr + nBytes );
+
+                map = mapping( extents_t(m), array<idx_t,1>{1} );
+            }
+            else
+            {
+                // non-contiguous space in memory
+                assert( W.m >= sizeof(ET) && W.n >= m );
+                rW = legacyMatrix<byte>( W.m, W.n-m, W.ptr+m*W.ldim, W.ldim );
+
+                map = mapping( extents_t(m), array<idx_t,1>{W.ldim/sizeof(ET)} );
+            }
+
+            return matrix_t( std::move(ptr), std::move(map) );
+        }
+
+        inline constexpr auto
+        operator()( const Workspace& W, idx_t m, idx_t n ) const {
+            Workspace rW;
+            return operator()( W, m, n, rW );
+        }
+    };
+
+    // -----------------------------------------------------------------------------
     // Convert to legacy array
 
     // /// alias has_blas_type for arrays

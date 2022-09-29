@@ -240,23 +240,22 @@ namespace tlapack{
         inline constexpr auto
         operator()( const Workspace& W, idx_t m, idx_t n, Workspace& rW ) const {
         
-            using stride_t = Eigen::Stride<Eigen::Dynamic,1>;
-            using map_t = Eigen::Map< matrix_t, Eigen::Unaligned, stride_t >;
+            using map_t = Eigen::Map< matrix_t, Eigen::Unaligned, Eigen::OuterStride<> >;
 
             T* ptr = (T*) W.ptr;
             if( !matrix_t::IsRowMajor )
             {
                 rW = W.extract( m*sizeof(T), n );
-                return map_t( ptr, m, n, stride_t(
+                return map_t( ptr, m, n, Eigen::OuterStride<>(
                                 (rW.ldim == rW.m) ? m : rW.ldim/sizeof(T)
-                              ,1) );
+                              ) );
             }
             else
             {
                 rW = W.extract( n*sizeof(T), m );
-                return map_t( ptr, m, n, stride_t(
+                return map_t( ptr, m, n, Eigen::OuterStride<>(
                                 (rW.ldim == rW.m) ? n : rW.ldim/sizeof(T)
-                              ,1) );
+                              ) );
             }
         }
 

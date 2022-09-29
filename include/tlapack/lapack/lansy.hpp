@@ -175,7 +175,10 @@ void lansy_worksize(
     using idx_t = size_type< matrix_t >;
     using vectorw_t = deduce_work_t< work_t, legacyVector<T,idx_t> >;
 
-    worksize = sizeof( type_t< vectorw_t > ) * nrows(A);
+    if ( normType == Norm::Inf || normType == Norm::One )
+        worksize = sizeof( type_t< vectorw_t > ) * nrows(A);
+    else
+        worksize = 0;
 }
 
 /** Calculates the norm of a symmetric matrix.
