@@ -11,8 +11,7 @@
 #include <catch2/generators/catch_generators.hpp>
 #include <tlapack/plugins/stdvector.hpp>
 #include <tlapack/plugins/legacyArray.hpp>
-#include <tlapack/lapack/getrf.hpp>
-#include <tlapack/lapack/lu_mult.hpp>
+#include <tlapack.hpp>
 #include <testutils.hpp>
 #include <testdefinitions.hpp>
 
