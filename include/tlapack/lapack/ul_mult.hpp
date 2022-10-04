@@ -41,7 +41,8 @@ int ul_mult( matrix_t& A){
 
     // if L and U are 1-by-1, then L is 1 and we simply UL=A(0,0)
     if(n==1){
-        return 0;
+        return -1;
+        // return 0;
     }
     idx_t n0 = n / 2;
     // break A into four parts
@@ -58,7 +59,7 @@ int ul_mult( matrix_t& A){
     tlapack::trmm(Side::Left,Uplo::Upper,Op::NoTrans,Diag::NonUnit,T(1),A11,A10);
     
     // calculate top right
-    tlapack::trmm(Side::Right,Uplo::Lower,Op::NoTrans,Diag::NonUnit,T(1),A11,A01);
+    tlapack::trmm(Side::Right,Uplo::Lower,Op::NoTrans,Diag::Unit,T(1),A11,A01);
     
     // calculate bottom right
     ul_mult(A11);

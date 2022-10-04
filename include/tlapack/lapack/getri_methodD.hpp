@@ -56,16 +56,15 @@ int getri_methodD( matrix_t& A){
     // Invert the lower part of A, aka L
     trtri_recursive(Uplo::Lower, A);
 
-    // put inverse of diagonal elements of U back
+    //put inverse of diagonal elements of U back
     for (idx_t i = 0; i < n; ++i){
         A(i,i)=work[i];
     }
 
     //multiply U^{-1} and L^{-1} in place using 
     ul_mult(A);
-    
     // A <----- U^{-1}L^{-1}P
-    for(idx_t i=idx_t(0);i<n;i++){
+    for(idx_t i=idx_t(n-1);i!=idx_t(-1);i--){
         auto vect1=tlapack::col(A,i);
         auto vect2=tlapack::col(A,Piv[i]);
         tlapack::swap(vect1,vect2);
