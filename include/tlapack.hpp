@@ -145,4 +145,8 @@
 #include "tlapack/lapack/agressive_early_deflation.hpp"
 #include "tlapack/lapack/multishift_qr.hpp"
 
+// LU
+// ----------------
+
+#include "tlapack/lapack/getrf.hpp"
 #endif // TLAPACK_HH
