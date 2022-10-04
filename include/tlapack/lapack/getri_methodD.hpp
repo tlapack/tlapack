@@ -6,7 +6,7 @@
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
-// PA = LU   A^(-1)P^T=U^(-1)L^(-1) --- > U(A^(-1)P^T) L=I
+// PA = LU   A^(-1) = U^(-1)L^(-1)P
 #ifndef TLAPACK_getri_methodD_HH
 #define TLAPACK_getri_methodD_HH
 
@@ -15,9 +15,11 @@
 #include "tlapack.hpp"
 
 namespace tlapack {
-/** test_ul computes UL of a general n-by-n matrix A
- *  where the nonzero part of L is the subdiagonal of A and on the diagonal of A is 1,
- *  nonzero part of U is diagonal and super-diagonal part of A 
+/** getri_methodD of a general n-by-n matrix A
+ *  it computes L U factorization by getrf2 in place,
+ *  then it uses trtri to invert U and L
+ *  thereafter, ul_mult is called to calculate U^(-1)L^(-1) in place
+ *  then columns of U^(-1)L^(-1) are swapped according to the pivot vector given by getrf2
  *
  * @return  0 
  *
@@ -43,27 +45,17 @@ int getri_methodD( matrix_t& A){
     // LU factorize Pivoted A
     std::vector<idx_t> Piv( n , idx_t(0) );
     getrf2(A,Piv);
-    
+
     // Invert the upper part of A, aka U
-    trtri_recursive(Uplo::Upper, A);
+    trtri_recursive(Uplo::Upper, Diag::NonUnit, A);
 
-    // save inverse of diagonal elements of U in work, and substitute with 1
-    std::vector<T> work( n , T(0) );
-    for (idx_t i = 0; i < n; ++i){
-        work[i]=A(i,i);
-        A(i,i)=T(1);
-    }
-    // Invert the lower part of A, aka L
-    trtri_recursive(Uplo::Lower, A);
-
-    //put inverse of diagonal elements of U back
-    for (idx_t i = 0; i < n; ++i){
-        A(i,i)=work[i];
-    }
+    // Invert the lower part of A, aka L which has 1 on the diagonal
+    trtri_recursive(Uplo::Lower, Diag::Unit, A);
 
     //multiply U^{-1} and L^{-1} in place using 
     ul_mult(A);
-    // A <----- U^{-1}L^{-1}P
+    
+    // A <----- U^{-1}L^{-1}P; swapping columns of A according to Piv
     for(idx_t i=idx_t(n-1);i!=idx_t(-1);i--){
         auto vect1=tlapack::col(A,i);
         auto vect2=tlapack::col(A,Piv[i]);
