@@ -153,4 +153,5 @@
 // #include "tlapack/lapack/getri.hpp"
 #include "tlapack/lapack/ul_mult.hpp"
 #include "tlapack/lapack/getri_methodD.hpp"
+#include "tlapack/lapack/getri_methodA.hpp"
 #endif // TLAPACK_HH
