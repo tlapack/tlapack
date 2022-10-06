@@ -18,7 +18,7 @@
 #include "tlapack.hpp"
 
 namespace tlapack {
-/** getri_methodD of a general n-by-n matrix A
+/** getri_methodA of a general n-by-n matrix A
  *  it computes L U factorization by getrf2 in place,
  *  thereafter, we solve L U (X) = I
  *  then we find A^{-1} through A^{-1}= X P 
@@ -47,7 +47,7 @@ int getri_methodA( matrix_t& A){
     std::vector<idx_t> Piv( n , idx_t(0) );
     getrf2(A,Piv);
 
-    // create X to store invese of A
+    // create X to store invese of A later
     std::vector<T> X_( n*n , T(0) );
     auto  X = tlapack::internal::colmajor_matrix<T>( &X_[0], n, n, n);
     
@@ -56,7 +56,7 @@ int getri_methodA( matrix_t& A){
         // to solve L U X_i = e_i, we will make i'th column of X to be e_i
         auto Xi = tlapack::slice(X,tlapack::range<idx_t>(0,n),i);
         
-        // step1: solve L Y = e_i
+        // step1: solve L Y = e_i where e_i is a vector zeros with i'th position being 1.
         trsv(Uplo::Lower, Op::NoTrans, Diag::Unit, A, Xi);
         
         // step2: solve U X_i = Y
@@ -83,7 +83,7 @@ int getri_methodA( matrix_t& A){
     }
     return 0;
     
-} //getri_methodD
+} //getri_methodA
 
 } // lapack
 
