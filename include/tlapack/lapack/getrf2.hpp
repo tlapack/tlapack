@@ -131,9 +131,6 @@ namespace tlapack {
             // Dimensions for the submatrices
             idx_t k0;
             k0=end/2;
-            idx_t m1, n1;
-            m1=m-k0;
-            n1=n-k0;
             
             // in this step, we break A into two matrices, A=[A0 , A1]
             auto A0 = tlapack::slice(A,tlapack::range<idx_t>(0,m),tlapack::range<idx_t>(0,k0));

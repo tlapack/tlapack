@@ -24,14 +24,12 @@ TEMPLATE_LIST_TEST_CASE("LU factorization of a general m-by-n matrix, blocked", 
     using matrix_t = TestType;
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
-    using range = std::pair<idx_t, idx_t>;
     typedef real_type<T> real_t; // equivalent to using real_t = real_type<T>;
     
     // m and n represent no. rows and columns of the matrices we will be testing respectively
     idx_t m, n;
     m = GENERATE(10);
     n = GENERATE(10);
-    idx_t k=min<idx_t>(m,n);
 
     // eps is the machine precision, and tol is the tolerance we accept for tests to pass
     const real_t eps = ulp<real_t>();

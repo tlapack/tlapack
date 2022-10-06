@@ -25,7 +25,6 @@ TEMPLATE_LIST_TEST_CASE("LU factorization of a general m-by-n matrix, blocked", 
     using matrix_t = TestType;
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
-    using range = std::pair<idx_t, idx_t>;
     typedef real_type<T> real_t; // equivalent to using real_t = real_type<T>;
     
     // m and n represent no. rows and columns of the matrices we will be testing respectively
