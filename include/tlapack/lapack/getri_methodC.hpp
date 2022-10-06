@@ -6,14 +6,18 @@
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
-// PA = LU,   then A^(-1) is the solution to U (XP^T) L = I
+
 #ifndef TLAPACK_GETRI_methodC_HH
 #define TLAPACK_GETRI_methodC_HH
 
 #include "tlapack/base/utils.hpp"
-#include "tlapack.hpp"
+#include "tlapack/blas/gemv.hpp"
+#include "tlapack/blas/dotu.hpp"
+#include "tlapack/blas/copy.hpp"
+#include "tlapack/blas/swap.hpp"
 
 namespace tlapack {
+    
 /** getri computes inverse of a general n-by-n matrix A
  *  using LU factorization. 
  *  we first run LU in place of A
@@ -35,11 +39,10 @@ namespace tlapack {
  *      
  * @ingroup group_solve
  */
-template< class matrix_t>
-int getri_methodC( matrix_t& A){
+template< class matrix_t >
+int getri_methodC( matrix_t& A ){
     using idx_t = size_type< matrix_t >;
     using T = type_t<matrix_t>;
-    using real_t = real_type<T>;
 
     // check arguments
     tlapack_check_false( access_denied( dense, write_policy(A) ) );
