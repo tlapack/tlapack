@@ -1,7 +1,7 @@
 /// @file getri_methodD.hpp
 /// @author Ali Lotfi, University of Colorado Denver, USA
 //
-// Copyright (c) 2013-2022, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2022, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under

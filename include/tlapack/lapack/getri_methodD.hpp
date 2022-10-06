@@ -1,7 +1,7 @@
 /// @file getri_methodD.hpp
 /// @author Ali Lotfi, University of Colorado Denver, USA
 //
-// Copyright (c) 2013-2022, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2022, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -15,9 +15,9 @@
 #include "tlapack.hpp"
 
 namespace tlapack {
-/** getri_methodD of a general n-by-n matrix A
- *  it computes L U factorization by getrf2 in place,
- *  then it uses trtri to invert U and L
+/** getri_methodD calculates inverse of a general n-by-n matrix A
+ *  starts by computing L U factorization by getrf2 in place,
+ *  then it uses trtri to invert U and L in place
  *  thereafter, ul_mult is called to calculate U^(-1)L^(-1) in place
  *  then columns of U^(-1)L^(-1) are swapped according to the pivot vector given by getrf2
  *
@@ -30,6 +30,7 @@ namespace tlapack {
  */
 template< class matrix_t>
 int getri_methodD( matrix_t& A){
+    
     using idx_t = size_type< matrix_t >;
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
@@ -39,17 +40,17 @@ int getri_methodD( matrix_t& A){
     tlapack_check( nrows(A)==ncols(A));
     // quick return
     
-    // constant
+    // constant, n is the number of rows and columns of the square matrix A
     const idx_t n = ncols(A);
     
-    // LU factorize Pivoted A
+    // call getr2 to factorize Pivoted A to L and U in place
     std::vector<idx_t> Piv( n , idx_t(0) );
     getrf2(A,Piv);
 
-    // Invert the upper part of A, aka U
+    // Invert the upper part of A; U
     trtri_recursive(Uplo::Upper, Diag::NonUnit, A);
 
-    // Invert the lower part of A, aka L which has 1 on the diagonal
+    // Invert the lower part of A; L which has 1 on the diagonal
     trtri_recursive(Uplo::Lower, Diag::Unit, A);
 
     //multiply U^{-1} and L^{-1} in place using 

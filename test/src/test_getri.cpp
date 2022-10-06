@@ -1,5 +1,5 @@
-/// @file test_getrf.cpp
-/// @brief Test GELQF and UNGL2 and output a k-by-n orthogonal matrix Q.
+/// @file test_getri.cpp
+/// @brief Tests inverse functions.
 //
 // Copyright (c) 2022, University of Colorado Denver. All rights reserved.
 //
@@ -71,7 +71,7 @@ TEMPLATE_LIST_TEST_CASE("LU factorization of a general m-by-n matrix, blocked", 
     double norma=tlapack::lange( tlapack::Norm::Max, A);
     
     // run inverse function, this could test any inverse function of choice
-    getri_methodA(A);
+    getri_methodD(A);
     
     // identit1 -----> A * A_copy - ident1
     gemm(Op::NoTrans,Op::NoTrans,real_t(1),A,A_copy,real_t(-1),ident1);
