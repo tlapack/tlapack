@@ -4,13 +4,13 @@
 # <T>LAPACK is free software: you can redistribute it and/or modify it under
 # the terms of the BSD 3-Clause license. See the accompanying LICENSE file
 
-# Configurations
-include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/../include" )
-link_libraries( Catch2::Catch2WithMain tlapack )
-if( TEST_MPFR )
-  include_directories( ${MPFR_INCLUDES} ${GMP_INCLUDES} )
-  link_libraries( ${MPFR_LIBRARIES} ${GMP_LIBRARIES} )
-endif()
+# # Configurations
+# include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/../include" )
+# link_libraries( Catch2::Catch2WithMain tlapack )
+# if( TEST_MPFR )
+#   include_directories( ${MPFR_INCLUDES} ${GMP_INCLUDES} )
+#   link_libraries( ${MPFR_LIBRARIES} ${GMP_LIBRARIES} )
+# endif()
 
 # Set the directory where to put testers
 set( TLAPACK_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}" )
