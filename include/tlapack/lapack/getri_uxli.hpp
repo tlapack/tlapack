@@ -39,17 +39,19 @@ namespace tlapack {
  * @return  -1 if matrix is not invertible
  *
  * @param[in,out] A n-by-n complex matrix.
+ * @param[in,out] work a vector of size at least n-1.
  *      
  * @ingroup group_solve
  */
-template< class matrix_t>
-int getri_uxli( matrix_t& A ){
+template< class matrix_t, class work_t >
+int getri_uxli( matrix_t& A, work_t& work ){
     using idx_t = size_type< matrix_t >;
     using T = type_t<matrix_t>;
 
     // check arguments
     tlapack_check_false( access_denied( dense, write_policy(A) ) );
     tlapack_check( nrows(A)==ncols(A));
+    tlapack_check( size(work) >= ncols(A) - 1);
     
     // constant n, number of rows and also columns of A
     const idx_t n = ncols(A);
@@ -57,7 +59,7 @@ int getri_uxli( matrix_t& A ){
     // initialize a pivot vector and run getrf2 on A
     std::vector<idx_t> Piv( n , idx_t(0) );
     int not_inv=getrf_recursive(A,Piv);
-    
+
     // not_inv is the return integer of LU and if it is not zero, it means that our matrix is not invertible
     if(not_inv!=0){
         return -1;
@@ -75,22 +77,22 @@ int getri_uxli( matrix_t& A ){
             auto X22 = tlapack::slice(A,tlapack::range<idx_t>(j+1,n),tlapack::range<idx_t>(j+1,n));
             auto l21 = tlapack::slice(A,tlapack::range<idx_t>(j+1,n),j);
             auto u12 = tlapack::slice(A,j,tlapack::range<idx_t>(j+1,n));
+            auto slicework   = tlapack::slice(work,tlapack::range<idx_t>(0, n-j-1));
 
             // first step of the algorithm, work1 holds x12
-            // work1 = -X22 * l21
-            std::vector<T> work1( n-j-idx_t(1) , T(0));
-            tlapack::gemv(Op::NoTrans,T(-1), X22, l21,T(0), work1);
+            tlapack::gemv(Op::Trans,T(-1)/A(j,j), X22, u12,T(0), slicework);
             
-            //second line of the algorithm, work2 holds x21
-            // work2 = -u12 X22 / A(j,j)
-            std::vector<T> work2( n-j-idx_t(1) , T(0) );
-            tlapack::gemv(Op::Trans,T(-1)/A(j,j), X22, u12,T(0), work2);
+            // second line of the algorithm, work2 holds x21
+            A(j,j) = (T(1)/ A(j,j)) - tlapack::dotu(l21,slicework);
 
+            // u12 updated, slicework available for use again
+            tlapack::copy(slicework,u12);
+            
             // third line of the algorithm
-            // A(j,j) = T(1) / A(j,j) - <x12,l21>
-            A(j,j) = (T(1)/ A(j,j)) - tlapack::dotu(work2,l21);
-            tlapack::copy(work1,l21);
-            tlapack::copy(work2,u12);
+            tlapack::gemv(Op::NoTrans,T(-1), X22, l21,T(0), slicework);
+            
+            // update l21
+            tlapack::copy(slicework,l21);
 
         }
     }
@@ -105,11 +107,11 @@ int getri_uxli( matrix_t& A ){
     
     return 0;
     
-} // getri_methodC
+} // getri_uxli
 
 } // lapack
 
-#endif // TLAPACK_GETRI_methodC_HH
+#endif // TLAPACK_GETRI_UXLI_HH
 
 
 

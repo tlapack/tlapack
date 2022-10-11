@@ -148,8 +148,11 @@
 // LU
 // ----------------
 
-#include "tlapack/lapack/getrf2.hpp"
-#include "tlapack/lapack/getri_methodC.hpp"
+#include "tlapack/lapack/getrf_recursive.hpp"
 #include "tlapack/lapack/ul_mult.hpp"
+
+// Inverse
+// ----------------
+#include "tlapack/lapack/getri_uxli.hpp"
 
 #endif // TLAPACK_HH

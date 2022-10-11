@@ -68,8 +68,9 @@ TEMPLATE_LIST_TEST_CASE("LU factorization of a general m-by-n matrix, blocked", 
     // save norm of norma
     double norma=tlapack::lange( tlapack::Norm::Max, A);
     
-    // run inverse function of choice
-    getri_methodC(A);
+    // run inverse function of choice after defining a work vector
+    std::vector<T> work(n-1);
+    getri_uxli(A,work);
     
     // identit1 <----- A * A_copy - ident1
     gemm(Op::NoTrans,Op::NoTrans,real_t(1),A,A_copy,real_t(-1),ident1);

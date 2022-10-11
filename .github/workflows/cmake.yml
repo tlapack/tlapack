@@ -39,6 +39,9 @@ jobs:
     # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
     runs-on: ${{ matrix.os }}
 
+    env:
+      CXXFLAGS: "-Wall -pedantic -Wno-unused-variable -Wno-unused-function -D TEST_REAL_TYPES=\"float, double, long double\" -D TEST_CPLX_TYPES=\"std::complex<float>, std::complex<double>, std::complex<long double>\""
+
     strategy:
       fail-fast: false
       matrix:
@@ -182,17 +185,17 @@ jobs:
         -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} 
         -D CMAKE_INSTALL_PREFIX=${{github.workspace}}/tlapack_install
         -D BUILD_SHARED_LIBS=ON
+        -D BUILD_EXAMPLES=ON
+        -D BUILD_TESTING=OFF
         -D TEST_MPFR=ON
 
     - name: Build <T>LAPACK
       run: cmake --build build --config ${{env.BUILD_TYPE}}
 
-    - name: Test <T>LAPACK
-      working-directory: ${{github.workspace}}/build
+    - name: Run all examples
+      # Mind that the job won't fail with only this step fails
       continue-on-error: true
-      run: |
-        echo "Mind that the job won't fail if only this step fails."
-        ctest -C ${{env.BUILD_TYPE}} --output-on-failure
+      run: cmake --build build --target run-all-examples
 
     - name: Install
       run: cmake --build build --target install

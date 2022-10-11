@@ -11,7 +11,7 @@
 #include <catch2/generators/catch_generators.hpp>
 #include <tlapack/plugins/stdvector.hpp>
 #include <tlapack/plugins/legacyArray.hpp>
-#include <tlapack/lapack/getrf2.hpp>
+#include <tlapack/lapack/getrf_recursive.hpp>
 #include <tlapack/lapack/lu_mult.hpp>
 #include <testutils.hpp>
 #include <testdefinitions.hpp>
@@ -59,7 +59,7 @@ TEMPLATE_LIST_TEST_CASE("LU factorization of a general m-by-n matrix, blocked", 
     // Initialize Piv vector to all zeros
     std::vector<idx_t> Piv( k , idx_t(0) );
     // Run getrf and both A and Piv will be update
-    getrf2(A,Piv);
+    getrf_recursive(A,Piv);
     
     // A contains L and U now, then form A <--- LU
     if( m > n )

@@ -39,6 +39,7 @@ if( BUILD_testBLAS_TESTS )
     message(FATAL_ERROR "The testBLAS submodule was not downloaded! GIT_SUBMODULE was turned off or failed. Please update submodules or -Duse BUILD_testBLAS_TESTS=OFF and try again.")
   endif()
 
+  set( TESTBLAS_BLAS tlapack CACHE STRING "C++ package used to access BLAS routines." )  
   add_subdirectory( testBLAS )
 
 endif()
