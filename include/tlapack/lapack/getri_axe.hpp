@@ -1,4 +1,4 @@
-/// @file getri_methodD.hpp
+/// @file getri_axe.hpp
 /// @author Ali Lotfi, University of Colorado Denver, USA
 //
 // Copyright (c) 2022, University of Colorado Denver. All rights reserved.
@@ -6,21 +6,21 @@
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
-// PA = LU   A^(-1) = U^(-1)L^(-1)P
-#ifndef TLAPACK_getri_methodA_HH
-#define TLAPACK_getri_methodA_HH
+// PA = LU , X = U^(-1)L^(-1), A^(-1) = XP. 
+#ifndef TLAPACK_getri_axe_HH
+#define TLAPACK_getri_axe_HH
 
 #include <iostream>
 #include <stdio.h>
 #include "tlapack/base/utils.hpp"
-#include <tlapack/lapack/getrf2.hpp>
+#include <tlapack/lapack/getrf_recursive.hpp>
 #include <tlapack/blas/trsv.hpp>
 #include "tlapack.hpp"
 
 namespace tlapack {
-/** getri_methodA of a general n-by-n matrix A
- *  it computes L U factorization by getrf2 in place,
- *  thereafter, we solve L U (X) = I
+/** getri_axe computes the inverse of a general n-by-n matrix A
+ *  it computes L U factorization by getrf_recursive in place,
+ *  thereafter, we solve L U (X) = I one column at a time
  *  then we find A^{-1} through A^{-1}= X P 
  * @return  0 
  *
@@ -30,7 +30,7 @@ namespace tlapack {
  * @ingroup group_solve
  */
 template< class matrix_t>
-int getri_methodA( matrix_t& A){
+int getri_axe( matrix_t& A){
     using idx_t = size_type< matrix_t >;
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
@@ -45,7 +45,7 @@ int getri_methodA( matrix_t& A){
     
     // LU factorize Pivoted A
     std::vector<idx_t> Piv( n , idx_t(0) );
-    getrf2(A,Piv);
+    getrf_recursive(A,Piv);
 
     // create X to store invese of A later
     std::vector<T> X_( n*n , T(0) );
@@ -64,7 +64,6 @@ int getri_methodA( matrix_t& A){
         
     }
 
-
     // copy inverse of X(inverse of A) into A
     for(idx_t i=idx_t(0); i<n; i++){
         for(idx_t j=idx_t(0); j<n; j++){
@@ -74,7 +73,6 @@ int getri_methodA( matrix_t& A){
         
     }
     
-    
     // A <----- U^{-1}L^{-1}P; swapping columns of A according to Piv
     for(idx_t i=idx_t(n-1);i!=idx_t(-1);i--){
         auto vect1=tlapack::col(A,i);
@@ -83,11 +81,11 @@ int getri_methodA( matrix_t& A){
     }
     return 0;
     
-} //getri_methodA
+} //getri_axe
 
 } // lapack
 
-#endif // TLAPACK_getri_methodA_HH
+#endif // TLAPACK_getri_axe_HH
 
 
 

@@ -11,7 +11,7 @@
 #include <catch2/generators/catch_generators.hpp>
 #include <tlapack/plugins/stdvector.hpp>
 #include <tlapack/plugins/legacyArray.hpp>
-#include <tlapack/lapack/getrf2.hpp>
+#include <tlapack/lapack/getrf_recursive.hpp>
 #include <testutils.hpp>
 #include <testdefinitions.hpp>
 
@@ -71,7 +71,7 @@ TEMPLATE_LIST_TEST_CASE("LU factorization of a general m-by-n matrix, blocked", 
     double norma=tlapack::lange( tlapack::Norm::Max, A);
     
     // run inverse function, this could test any inverse function of choice
-    getri_methodD(A);
+    getri_axe(A);
     
     // identit1 -----> A * A_copy - ident1
     gemm(Op::NoTrans,Op::NoTrans,real_t(1),A,A_copy,real_t(-1),ident1);

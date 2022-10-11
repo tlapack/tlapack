@@ -148,10 +148,16 @@
 // LU
 // ----------------
 
-// #include "tlapack/lapack/getrf.hpp"
-#include "tlapack/lapack/getrf2.hpp"
-// #include "tlapack/lapack/getri.hpp"
+#include "tlapack/lapack/getrf_recursive.hpp"
+
+// UL in place, where L and U are coming from the LU factorization of a matrix
+// ----------------
+
 #include "tlapack/lapack/ul_mult.hpp"
-#include "tlapack/lapack/getri_methodD.hpp"
-#include "tlapack/lapack/getri_methodA.hpp"
+
+// Inverse
+// ----------------
+#include "tlapack/lapack/getri_uili.hpp"
+#include "tlapack/lapack/getri_axe.hpp"
+
 #endif // TLAPACK_HH
