@@ -12,7 +12,8 @@
 
 #include "tlapack/base/utils.hpp"
 #include "tlapack/blas/gemm.hpp"
-#include "tlapack.hpp"
+#include "tlapack/blas/trmm.hpp"
+// #include "tlapack.hpp"
 
 namespace tlapack {
 /** ul_mult computes U(n-by-n) multiplied by L(n-by-n) of a general n-by-n matrix A

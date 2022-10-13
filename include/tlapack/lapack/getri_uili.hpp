@@ -12,7 +12,9 @@
 
 #include "tlapack/base/utils.hpp"
 #include <tlapack/lapack/getrf_recursive.hpp>
-#include "tlapack.hpp"
+#include "tlapack/blas/gemm.hpp"
+#include "tlapack/lapack/trtri_recursive.hpp"
+#include "tlapack/blas/swap.hpp"
 
 namespace tlapack {
 /** getri_uili calculates inverse of a general n-by-n matrix A
