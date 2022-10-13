@@ -116,7 +116,7 @@ namespace tlapack {
             
             // swap the rows of A1 according to Piv
             for(idx_t j=0;j<size(Piv);j++){
-                if (Piv[j]>j){
+                if (Piv[j]!=j){
                     auto vect1=tlapack::row(A1,j);
                     auto vect2=tlapack::row(A1,Piv[j]);
                     tlapack::swap(vect1,vect2);
@@ -144,7 +144,7 @@ namespace tlapack {
             
             //swap the rows of A1
             for(idx_t j=0;j<size(Piv0);j++){
-                if (Piv0[j]>j){
+                if (Piv0[j]!=j){
                     auto vect1=tlapack::row(A1,j);
                     auto vect2=tlapack::row(A1,Piv0[j]);
                     tlapack::swap(vect1,vect2);
@@ -178,7 +178,7 @@ namespace tlapack {
             
             //swap the rows of A10 according to the swapped rows of A11 by refering to Piv1
             for(idx_t j=0;j<size(Piv1);j++){
-                if (Piv1[j]>j){
+                if (Piv1[j]!=j){
                     auto vect1=tlapack::row(A10,j);
                     auto vect2=tlapack::row(A10,Piv1[j]);
                     tlapack::swap(vect1,vect2);
