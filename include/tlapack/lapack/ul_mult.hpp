@@ -6,17 +6,18 @@
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
-// PA = LU   A^(-1)P^T=U^(-1)L^(-1) --- > U(A^(-1)P^T) L=I
+
 #ifndef TLAPACK_ul_mult_HH
 #define TLAPACK_ul_mult_HH
 
 #include "tlapack/base/utils.hpp"
+#include "tlapack/blas/gemm.hpp"
 #include "tlapack.hpp"
 
 namespace tlapack {
-/** test_ul computes UL of a general n-by-n matrix A
- *  where the nonzero part of L is the subdiagonal of A and on the diagonal of A is 1,
- *  nonzero part of U is diagonal and super-diagonal part of A 
+/** ul_mult computes U(n-by-n) multiplied by L(n-by-n) of a general n-by-n matrix A
+ *  where the nonzero part of L is the subdiagonal of A and on the diagonal of L is assumed to be 1,
+ *  and nonzero part of U is coming from diagonal and super-diagonal part of A 
  *
  * @return  0 
  *
@@ -34,7 +35,6 @@ int ul_mult( matrix_t& A){
     // check arguments
     tlapack_check_false( access_denied( dense, write_policy(A) ) );
     tlapack_check( nrows(A)==ncols(A));
-    // quick return
     
     // constant
     const idx_t n = ncols(A);

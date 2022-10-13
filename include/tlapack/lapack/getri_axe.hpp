@@ -6,7 +6,7 @@
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
-// PA = LU , X = U^(-1)L^(-1), A^(-1) = XP. 
+
 #ifndef TLAPACK_getri_axe_HH
 #define TLAPACK_getri_axe_HH
 
@@ -75,9 +75,11 @@ int getri_axe( matrix_t& A){
     
     // A <----- U^{-1}L^{-1}P; swapping columns of A according to Piv
     for(idx_t i=idx_t(n-1);i!=idx_t(-1);i--){
-        auto vect1=tlapack::col(A,i);
-        auto vect2=tlapack::col(A,Piv[i]);
-        tlapack::swap(vect1,vect2);
+        if(Piv[i]!=i){
+            auto vect1=tlapack::col(A,i);
+            auto vect2=tlapack::col(A,Piv[i]);
+            tlapack::swap(vect1,vect2);
+        }
     }
     return 0;
     

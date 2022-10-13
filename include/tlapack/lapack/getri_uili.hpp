@@ -1,4 +1,4 @@
-/// @file getri_methodD.hpp
+/// @file getri_uili.hpp
 /// @author Ali Lotfi, University of Colorado Denver, USA
 //
 // Copyright (c) 2022, University of Colorado Denver. All rights reserved.
@@ -6,7 +6,7 @@
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
-// PA = LU   A^(-1) = U^(-1)L^(-1)P
+
 #ifndef TLAPACK_getri_uili_HH
 #define TLAPACK_getri_uili_HH
 
@@ -15,7 +15,7 @@
 #include "tlapack.hpp"
 
 namespace tlapack {
-/** getri_methodD calculates inverse of a general n-by-n matrix A
+/** getri_uili calculates inverse of a general n-by-n matrix A
  *  starts by computing L U factorization by getrf2 in place,
  *  then it uses trtri to invert U and L in place
  *  thereafter, ul_mult is called to calculate U^(-1)L^(-1) in place
@@ -58,9 +58,11 @@ int getri_uili( matrix_t& A){
     
     // A <----- U^{-1}L^{-1}P; swapping columns of A according to Piv
     for(idx_t i=idx_t(n-1);i!=idx_t(-1);i--){
-        auto vect1=tlapack::col(A,i);
-        auto vect2=tlapack::col(A,Piv[i]);
-        tlapack::swap(vect1,vect2);
+        if(Piv[i]!=i){
+            auto vect1=tlapack::col(A,i);
+            auto vect2=tlapack::col(A,Piv[i]);
+            tlapack::swap(vect1,vect2);
+        }
     }
     return 0;
     

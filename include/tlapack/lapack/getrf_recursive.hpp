@@ -15,6 +15,7 @@
 #include "tlapack/blas/trsm.hpp"
 #include "tlapack/blas/gemm.hpp"
 #include "tlapack/blas/swap.hpp"
+#include "tlapack/blas/scal.hpp"
 
 namespace tlapack {
 
@@ -98,10 +99,9 @@ namespace tlapack {
                     tlapack::swap(vect1,vect2);
                 }
                 
-                // by the previous comment, we can safely divide by A(0,0) and finish the base case of the algorithm
-                for(idx_t i=1;i<m;i++){
-                    A(i,0)/=A(0,0);
-                }
+                // by the previous comment, we can safely divide by A(0,0); scale all elements of 0th column but the first element by 1/A(0,0)
+                auto vect3=tlapack::slice(A,tlapack::range<idx_t>(1,m),0);
+                tlapack::scal(real_t(1)/A(0,0),vect3);
                 
                 return 0;
             }

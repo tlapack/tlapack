@@ -71,7 +71,7 @@ TEMPLATE_LIST_TEST_CASE("LU factorization of a general m-by-n matrix, blocked", 
     double norma=tlapack::lange( tlapack::Norm::Max, A);
     
     // run inverse function, this could test any inverse function of choice
-    getri_axe(A);
+    getri_uili(A);
     
     // identit1 -----> A * A_copy - ident1
     gemm(Op::NoTrans,Op::NoTrans,real_t(1),A,A_copy,real_t(-1),ident1);
