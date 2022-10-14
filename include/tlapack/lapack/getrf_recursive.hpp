@@ -23,7 +23,7 @@ namespace tlapack{
      *
      *  The factorization has the form
      * \[
-     *   A = P L U
+     *   P A = L U
      * \]
      *  where P is a permutation matrix constructed from our Piv vector, L is lower triangular with unit
      *  diagonal elements (lower trapezoidal if m > n), and U is upper
@@ -140,7 +140,7 @@ namespace tlapack{
             // Piv0 is the first k0 elements of Piv
             auto Piv0 = tlapack::slice(Piv,tlapack::range<idx_t>(0,k0));
 
-            // Apply getrf2 on the left of half of the matrix
+            // Apply getrf_recursive on the left of half of the matrix
             int info = getrf_recursive(A0,Piv0);
             if( info != 0 )
                 return info;

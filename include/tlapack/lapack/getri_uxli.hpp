@@ -37,12 +37,15 @@ namespace tlapack {
  * @return  -1 if matrix is not invertible
  *
  * @param[in,out] A n-by-n complex matrix.
+ * 
+ * @param[in,out] Piv Piv vector of size at least n.
+ * 
  * @param[in,out] work a vector of size at least n-1.
  *      
  * @ingroup group_solve
  */
-template< class matrix_t, class work_t >
-int getri_uxli( matrix_t& A, work_t& work ){
+template< class matrix_t, class vector_t , class work_t >
+int getri_uxli( matrix_t& A, vector_t &Piv , work_t& work ){
     using idx_t = size_type< matrix_t >;
     using T = type_t<matrix_t>;
 
@@ -54,19 +57,13 @@ int getri_uxli( matrix_t& A, work_t& work ){
     // constant n, number of rows and also columns of A
     const idx_t n = ncols(A);
 
-    // initialize a pivot vector and run getrf2 on A
-    std::vector<idx_t> Piv( n , idx_t(0) );
-    int not_inv=getrf_recursive(A,Piv);
-
-    // not_inv is the return integer of LU and if it is not zero, it means that our matrix is not invertible
-    if(not_inv!=0){
-        return -1;
-    }
-
     // A has L and U in it, we will create X such that UXL=A in place of
     for(idx_t j=n-idx_t(1);j!=idx_t(-1);j--){
         if(j==n-1){
-            // since A(n-1,n-1) is diagonal of U, if it zero, then the matrix is not invertible
+            // if A(n-1,n-1) zero, then the matrix is not invertible
+            if(A(j,j)==T(0))
+                return -1;
+            // if A(n-1,n-1)!=0, we can divide by A(n-1,n-1)
             A(j,j) = T(1) / A(j,j);
             
         }

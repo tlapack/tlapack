@@ -161,6 +161,7 @@
 
 #include "tlapack/lapack/getri_uili.hpp"
 #include "tlapack/lapack/getri_axe.hpp"
+#include "tlapack/lapack/getri_uxli.hpp"
 
 
 #endif // TLAPACK_HH

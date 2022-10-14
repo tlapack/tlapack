@@ -18,20 +18,21 @@
 
 namespace tlapack {
 /** getri_uili calculates inverse of a general n-by-n matrix A
- *  starts by computing L U factorization by getrf2 in place,
- *  then it uses trtri to invert U and L in place
+ *  A is assumed to be in the form L U factors on the input,
+ *  trtri is used to invert U and L in place
  *  thereafter, ul_mult is called to calculate U^(-1)L^(-1) in place
  *  then columns of U^(-1)L^(-1) are swapped according to the pivot vector given by getrf_recursive
  *
  * @return  0 
  *
  * @param[in,out] A n-by-n complex matrix.
- *      
+ *
+ * @param[in,out] Piv vector of size at least n.      
  *
  * @ingroup group_solve
  */
-template< class matrix_t>
-int getri_uili( matrix_t& A){
+template< class matrix_t , class vector_t>
+int getri_uili( matrix_t& A , vector_t &Piv){
     
     using idx_t = size_type< matrix_t >;
 
@@ -42,10 +43,6 @@ int getri_uili( matrix_t& A){
     
     // constant, n is the number of rows and columns of the square matrix A
     const idx_t n = ncols(A);
-    
-    // call getrf_recursive to factorize Pivoted A to L and U in place
-    std::vector<idx_t> Piv( n , idx_t(0) );
-    getrf_recursive(A,Piv);
 
     // Invert the upper part of A; U
     trtri_recursive(Uplo::Upper, Diag::NonUnit, A);
