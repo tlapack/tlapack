@@ -11,7 +11,7 @@
 #include <catch2/generators/catch_generators.hpp>
 #include <tlapack/plugins/stdvector.hpp>
 #include <tlapack/plugins/legacyArray.hpp>
-#include <tlapack/lapack/getrf2.hpp>
+#include <tlapack/lapack/getrf_recursive.hpp>
 #include <testutils.hpp>
 #include <testdefinitions.hpp>
 
@@ -28,24 +28,24 @@ TEMPLATE_LIST_TEST_CASE("LU factorization of a general m-by-n matrix, blocked", 
     
     // m and n represent no. rows and columns of the matrices we will be testing respectively
     idx_t m, n;
-    m = GENERATE(10);
-    n = GENERATE(10);
+    m = GENERATE(5,10,20,30,100);
+    n = m;
+    idx_t k=min<idx_t>(m,n);
 
     // eps is the machine precision, and tol is the tolerance we accept for tests to pass
     const real_t eps = ulp<real_t>();
-    const real_t tol = max(m, n)*eps;
+    const real_t tol = 10*max(m, n)*eps;
     
     // Initialize matrices A, and A_copy to run tests on
     std::unique_ptr<T[]> A_(new T[m * n]);
     std::unique_ptr<T[]> A_copy_(new T[m * n]);
     auto A = legacyMatrix<T, layout<matrix_t>>(m, n, &A_[0], layout<matrix_t> == Layout::ColMajor ? m : n);
     auto A_copy = legacyMatrix<T, layout<matrix_t>>(m, n, &A_copy_[0], layout<matrix_t> == Layout::ColMajor ? m : n);
-    
     // forming A, a random matrix with diagonal of 1
     for (idx_t j = 0; j < n; ++j)
         for (idx_t i = 0; i < m; ++i){
             if(i==j){
-                A(i, j) = T(1);
+                A(i, j) = rand_helper<T>();
 
             }
             else{
@@ -93,10 +93,11 @@ TEMPLATE_LIST_TEST_CASE("LU factorization of a general m-by-n matrix, blocked", 
     
     // store UL-A ---> A 
     gemm(Op::NoTrans,Op::NoTrans,T(1),U,L,T(-1),A);
+    // getri_methodD(A);
 
 
     real_t error1 = tlapack::lange( tlapack::Norm::Max, A)/norma;
-    CHECK(error1 <= tol);
+    CHECK(error1/tol <= 1);
     
 }
 

@@ -1,6 +1,5 @@
 /// @file ul_mult.hpp
 /// @author Ali Lotfi, University of Colorado Denver, USA
-//
 // Copyright (c) 2013-2022, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
@@ -8,25 +7,18 @@
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 // PA = LU   A^(-1)P^T=U^(-1)L^(-1) --- > U(A^(-1)P^T) L=I
 
-
 #ifndef TLAPACK_ul_mult_HH
 #define TLAPACK_ul_mult_HH
 
 #include "tlapack/base/utils.hpp"
-#include "tlapack.hpp"
+#include "tlapack/blas/gemm.hpp"
+#include "tlapack/blas/trmm.hpp"
+// #include "tlapack.hpp"
 
 namespace tlapack {
-/** test_ul computes UL of a general n-by-n matrix A
- *  where the nonzero part of L is the subdiagonal of A and on the diagonal of A is 1,
- *  nonzero part of U is diagonal and super-diagonal part of A 
-=======
-
-/** test_ul multiplies the upper part of a general n-by-n matrix A, denoted by U,
- *  by the strict lower part of A, denoted by L, in place. We consider the
- *  diagonal of L to be unitary. 
- * 
- *  This algorithm is recursive.
->>>>>>> bdb23dafdcd843b89abd863234807ad08562f1f5
+/** ul_mult computes U(n-by-n) multiplied by L(n-by-n) of a general n-by-n matrix A
+ *  where the nonzero part of L is the subdiagonal of A and on the diagonal of L is assumed to be 1,
+ *  and nonzero part of U is coming from diagonal and super-diagonal part of A 
  *
  * @return  0 
  *
@@ -42,14 +34,14 @@ int ul_mult( matrix_t& A){
     // check arguments
     tlapack_check_false( access_denied( dense, write_policy(A) ) );
     tlapack_check( nrows(A)==ncols(A));
-    // quick return
     
     // constant
     const idx_t n = ncols(A);
 
     // if L and U are 1-by-1, then L is 1 and we simply UL=A(0,0)
     if(n==1){
-        return 0;
+        return -1;
+        // return 0;
     }
     idx_t n0 = n / 2;
     // break A into four parts
@@ -66,7 +58,7 @@ int ul_mult( matrix_t& A){
     tlapack::trmm(Side::Left,Uplo::Upper,Op::NoTrans,Diag::NonUnit,T(1),A11,A10);
     
     // calculate top right
-    tlapack::trmm(Side::Right,Uplo::Lower,Op::NoTrans,Diag::NonUnit,T(1),A11,A01);
+    tlapack::trmm(Side::Right,Uplo::Lower,Op::NoTrans,Diag::Unit,T(1),A11,A01);
     
     // calculate bottom right
     ul_mult(A11);
