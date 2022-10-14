@@ -6,14 +6,11 @@
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
-// PA = LU,   then A^(-1) is the solution to U (XP^T) L = I
-
 
 #ifndef TLAPACK_GETRI_UXLI_HH
 #define TLAPACK_GETRI_UXLI_HH
 
 #include "tlapack/base/utils.hpp"
-#include "tlapack.hpp"
 
 #include "tlapack/blas/gemv.hpp"
 #include "tlapack/blas/dotu.hpp"
@@ -21,6 +18,7 @@
 #include "tlapack/blas/swap.hpp"
 
 namespace tlapack {
+
 /** getri computes inverse of a general n-by-n matrix A
  *  using LU factorization. 
  *  we first run LU in place of A
@@ -98,12 +96,12 @@ int getri_uxli( matrix_t& A, work_t& work ){
     }
     // swap columns of X to find A^{-1} since A^{-1}=X P
     for(idx_t j=n-idx_t(1);j!=idx_t(-1);j--){
-                if(Piv[j]>j){
-                    auto vect1=tlapack::col(A,j);
-                    auto vect2=tlapack::col(A,Piv[j]);
-                    tlapack::swap(vect1,vect2);
-                }
+        if(Piv[j]>j){
+            auto vect1=tlapack::col(A,j);
+            auto vect2=tlapack::col(A,Piv[j]);
+            tlapack::swap(vect1,vect2);
         }
+    }
     
     return 0;
     

@@ -11,7 +11,7 @@
 #define TLAPACK_GETRF_HH
 
 #include "tlapack/base/utils.hpp"
-#include "tlapack/blas/swap.hpp"
+#include "tlapack/blas/iamax.hpp"
 
 namespace tlapack {
 
@@ -65,7 +65,7 @@ namespace tlapack {
         // quick return
         if (m<=0 || n <= 0) return 0;
 
-        for(idx_t j=0;j<end;j++){
+        for(idx_t j=0;j<end-1;j++){
             
             // find pivot and swap the row with pivot row
             idx_t toswap = j+iamax(tlapack::slice(A,tlapack::range<idx_t>(j,m),j));
@@ -78,9 +78,8 @@ namespace tlapack {
             
             // if the pivot happens to be a Piv[j]>j(Piv[j] not equal to j), then swap j-th row and Piv[j] row of A
             if (Piv[j]!=j){
-                auto vect1=tlapack::row(A,j);
-                auto vect2=tlapack::row(A,toswap);
-                tlapack::swap(vect1,vect2);
+                for(idx_t j=0; j<n; j++)
+                    std::swap( A(i,j), A(toswap,j) );
             }
             
             // divide below diagonal part of j-th column by the element on the diagonal(A(j,j))
@@ -94,7 +93,6 @@ namespace tlapack {
                     A(row,col)-=A(row,j)*A(j,col);
                 }   
             } 
-
         }
         
         return 0;

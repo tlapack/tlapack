@@ -32,7 +32,6 @@ template< class matrix_t>
 int getri_axe( matrix_t& A){
     using idx_t = size_type< matrix_t >;
     using T = type_t<matrix_t>;
-    using real_t = real_type<T>;
 
     // check arguments
     tlapack_check_false( access_denied( dense, write_policy(A) ) );

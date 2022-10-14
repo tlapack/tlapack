@@ -43,10 +43,6 @@ namespace tlapack
      *
      */
     template <typename uplo_t, typename matrix_t>
-    
-    // we should add a parameter diag which can be 
-    //     - Diag::Unit:    A is assumed to be unit triangular.
-    //     - Diag::NonUnit: A is not assumed to be unit triangular.
     int trtri_recursive(uplo_t uplo, Diag diag, matrix_t &C, const ErrorCheck &ec = {})
     {
 
