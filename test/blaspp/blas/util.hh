@@ -170,6 +170,16 @@ namespace blas {
 
 }
 
+using blas::uplo2char;
+using blas::side2char;
+using blas::op2char;
+using blas::layout2char;
+using blas::diag2char;
+
 using blas::uplo2str;
+using blas::side2str;
+using blas::op2str;
+using blas::layout2str;
+using blas::diag2str;
 
 #endif
