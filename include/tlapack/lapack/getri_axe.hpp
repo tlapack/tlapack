@@ -24,6 +24,8 @@ namespace tlapack {
  * @return  0 
  *
  * @param[in,out] A n-by-n complex matrix.
+ *      On entry, the m by n general matrix given in form of its L and U.
+ *      On exit, inverse of A is overwritten on A
  *      
  * @param[in,out] Piv pivot vector of size at least n.
  *
@@ -37,7 +39,6 @@ int getri_axe( matrix_t& A , vector_t &Piv){
     // check arguments
     tlapack_check_false( access_denied( dense, write_policy(A) ) );
     tlapack_check( nrows(A)==ncols(A));
-    // quick return
     
     // constant
     const idx_t n = ncols(A);
@@ -47,6 +48,7 @@ int getri_axe( matrix_t& A , vector_t &Piv){
     auto  X = tlapack::internal::colmajor_matrix<T>( &X_[0], n, n, n);
     
     for(idx_t i=idx_t(0); i<n; i++){
+        
         X(i,i)=T(1);
         // to solve L U X_i = e_i, we will make i'th column of X to be e_i
         auto Xi = tlapack::slice(X,tlapack::range<idx_t>(0,n),i);
@@ -63,9 +65,7 @@ int getri_axe( matrix_t& A , vector_t &Piv){
     for(idx_t i=idx_t(0); i<n; i++){
         for(idx_t j=idx_t(0); j<n; j++){
             A(i,j)=X(i,j);
-
         }
-        
     }
     
     // A <----- U^{-1}L^{-1}P; swapping columns of A according to Piv
@@ -76,6 +76,7 @@ int getri_axe( matrix_t& A , vector_t &Piv){
             tlapack::swap(vect1,vect2);
         }
     }
+    
     return 0;
     
 } //getri_axe

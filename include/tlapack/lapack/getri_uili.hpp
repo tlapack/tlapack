@@ -17,7 +17,8 @@
 #include "tlapack/blas/swap.hpp"
 
 namespace tlapack {
-/** getri_uili calculates inverse of a general n-by-n matrix A
+
+/** getri_uili calculates the inverse of a general n-by-n matrix A
  *  A is assumed to be in the form L U factors on the input,
  *  trtri is used to invert U and L in place
  *  thereafter, ul_mult is called to calculate U^(-1)L^(-1) in place
@@ -26,9 +27,12 @@ namespace tlapack {
  * @return  0 
  *
  * @param[in,out] A n-by-n complex matrix.
- *
+ *      On entry, the m by n general matrix given in form of its L and U.
+ *      On exit, A is overwritten with its inverse
+ * 
  * @param[in,out] Piv vector of size at least n.      
- *
+ * On entry and exit, Piv is the pivot vector of the LU factorization
+ * 
  * @ingroup group_solve
  */
 template< class matrix_t , class vector_t>
@@ -39,7 +43,6 @@ int getri_uili( matrix_t& A , vector_t &Piv){
     // check arguments
     tlapack_check_false( access_denied( dense, write_policy(A) ) );
     tlapack_check( nrows(A)==ncols(A));
-    // quick return
     
     // constant, n is the number of rows and columns of the square matrix A
     const idx_t n = ncols(A);
@@ -50,7 +53,7 @@ int getri_uili( matrix_t& A , vector_t &Piv){
     // Invert the lower part of A; L which has 1 on the diagonal
     trtri_recursive(Uplo::Lower, Diag::Unit, A);
 
-    //multiply U^{-1} and L^{-1} in place using 
+    //multiply U^{-1} and L^{-1} in place using ul_mult
     ul_mult(A);
     
     // A <----- U^{-1}L^{-1}P; swapping columns of A according to Piv
@@ -61,6 +64,7 @@ int getri_uili( matrix_t& A , vector_t &Piv){
             tlapack::swap(vect1,vect2);
         }
     }
+    
     return 0;
     
 } //getri_uili

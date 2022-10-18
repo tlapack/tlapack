@@ -37,10 +37,14 @@ namespace tlapack {
  * @return  -1 if matrix is not invertible
  *
  * @param[in,out] A n-by-n complex matrix.
+ *      On entry, the m by n general matrix given in form of its L and U.
+ *      On exit, inverse of A is overwritten on A
  * 
  * @param[in,out] Piv Piv vector of size at least n.
+ * On entry and exit, Piv is the pivot vector of the LU factorization
  * 
  * @param[in,out] work a vector of size at least n-1.
+ * A work vector of size at least n-1 required for parts of the computation
  *      
  * @ingroup group_solve
  */
@@ -59,15 +63,19 @@ int getri_uxli( matrix_t& A, vector_t &Piv , work_t& work ){
 
     // A has L and U in it, we will create X such that UXL=A in place of
     for(idx_t j=n-idx_t(1);j!=idx_t(-1);j--){
+        
         if(j==n-1){
+            
             // if A(n-1,n-1) zero, then the matrix is not invertible
             if(A(j,j)==T(0))
                 return -1;
+            
             // if A(n-1,n-1)!=0, we can divide by A(n-1,n-1)
             A(j,j) = T(1) / A(j,j);
             
         }
         else{
+            
             // X22, l21, u12 are as in method C Nick Higham
             auto X22 = tlapack::slice(A,tlapack::range<idx_t>(j+1,n),tlapack::range<idx_t>(j+1,n));
             auto l21 = tlapack::slice(A,tlapack::range<idx_t>(j+1,n),j);
@@ -90,7 +98,9 @@ int getri_uxli( matrix_t& A, vector_t &Piv , work_t& work ){
             tlapack::copy(slicework,l21);
 
         }
+
     }
+    
     // swap columns of X to find A^{-1} since A^{-1}=X P
     for(idx_t j=n-idx_t(1);j!=idx_t(-1);j--){
         if(Piv[j]>j){

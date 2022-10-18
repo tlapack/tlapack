@@ -1,5 +1,6 @@
 /// @file getrf_recursive.hpp
 /// @author Ali Lotfi, University of Colorado Denver, USA
+//
 // Copyright (c) 2022, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
@@ -34,7 +35,7 @@ namespace tlapack{
      * @return  i+1 if failed to compute the LU on iteration i
      *
      * @param[in,out] A m-by-n matrix.
-     *      On exit, the factors L and U from the factorization A=PLU;
+     *      On exit, the factors L and U stored in A from the factorization A=PLU;
      *      the unit diagonal elements of L are not stored.
      *      
      * @param[in,out] Piv is a k-by-1 integer vector where k=min(m,n)
@@ -78,7 +79,9 @@ namespace tlapack{
                 // in case which A(0,0) is zero, then we return 1 since in the first iteration we stopped
                 return 1;
             }
+
             return 0;
+
         }
 
         // one-column matrices
@@ -95,8 +98,7 @@ namespace tlapack{
             if( Piv[0]!=0)
                 std::swap( A(Piv[0],0), A(0,0) );
             
-            // by the previous comment, we can safely divide by A(0,0);
-            // scale all elements of 0th column but the first element by 1/A(0,0)
+            // by the previous comment, we can safely scale all elements of 0th column by 1/A(0,0)
             auto l = slice( A, range<idx_t>(1,m), 0 );
             scal( real_t(1)/A(0,0), l );
             
@@ -119,7 +121,7 @@ namespace tlapack{
                     auto vect1=tlapack::row(A1,j);
                     auto vect2=tlapack::row(A1,Piv[j]);
                     tlapack::swap(vect1,vect2); 
-                } 
+                }
             }
             
             // Solve triangular system A0 X = A1 and update A1
@@ -127,7 +129,6 @@ namespace tlapack{
 
             return 0;
         }
-
         else
         {
             // Dimensions for the submatrices

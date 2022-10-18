@@ -1,6 +1,7 @@
 /// @file ul_mult.hpp
 /// @author Ali Lotfi, University of Colorado Denver, USA
-// Copyright (c) 2013-2022, University of Colorado Denver. All rights reserved.
+//
+// Copyright (c) 2022, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -15,14 +16,16 @@
 
 namespace tlapack {
 
-/** ul_mult computes U(n-by-n) multiplied by L(n-by-n) of a general n-by-n matrix A
- *  where the nonzero part of L is the subdiagonal of A and on the diagonal of L is assumed to be 1,
- *  and nonzero part of U is coming from diagonal and super-diagonal part of A 
+/** ul_mult computes the matrix product of an upper triangular matrix U and a lower triangular unital matrix L 
+ *  Given input matrix A, nonzero part of L is the subdiagonal of A and on the diagonal of L is assumed to be 1,
+ *  and the nonzero part of U is diagonal and super-diagonal part of A 
  *
  * @return  0 if success.
  *
  * @param[in,out] A n-by-n complex matrix.
- *
+ *      On entry, subdiagonal of A contains L(lower triangular and unital) and diagonal and superdiagonal part of A contains U(upper triangular).
+ *      On exit, A is overwritten by L*U
+ * 
  * @ingroup group_solve
  */
 template< class matrix_t>
@@ -38,11 +41,12 @@ int ul_mult( matrix_t& A){
     const idx_t n = ncols(A);
 
     // if L and U are 1-by-1, then L is 1 and we simply UL=A(0,0)
-    if(n==1){
-        return -1;
-        // return 0;
-    }
+    if(n==1)
+        return 0;
+
+    // if n>1
     idx_t n0 = n / 2;
+    
     // break A into four parts
     auto A00 = tlapack::slice(A,tlapack::range<idx_t>(0,n0),tlapack::range<idx_t>(0,n0));
     auto A10 = tlapack::slice(A,tlapack::range<idx_t>(n0,n),tlapack::range<idx_t>(0,n0));
