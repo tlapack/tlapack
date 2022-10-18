@@ -57,7 +57,8 @@ int getri_uili( matrix_t& A , vector_t &Piv){
     ul_mult(A);
     
     // A <----- U^{-1}L^{-1}P; swapping columns of A according to Piv
-    for(idx_t i=idx_t(n-1);i!=idx_t(-1);i--){
+    for(idx_t i=idx_t(n-1);i!=idx_t(-1);i--)
+    {
         if(Piv[i]!=i){
             auto vect1=tlapack::col(A,i);
             auto vect2=tlapack::col(A,Piv[i]);

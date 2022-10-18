@@ -154,7 +154,7 @@
 // ----------------
 
 
-#include "tlapack/lapack/ul_mult.hpp"
+//#include "tlapack/lapack/ul_mult.hpp"
 
 // Inverse
 // ----------------
@@ -162,7 +162,6 @@
 #include "tlapack/lapack/getri_uili.hpp"
 #include "tlapack/lapack/getri_axe.hpp"
 #include "tlapack/lapack/getri_uxli.hpp"
-#include "tlapack/lapack/getri_uxli_recursive.hpp"
 
 
 #endif // TLAPACK_HH
