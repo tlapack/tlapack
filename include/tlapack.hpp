@@ -152,7 +152,7 @@
 
 // UL in place, where L and U are coming from the LU factorization of a matrix
 // ----------------
-
+#include "tlapack/lapack/ul_mult.hpp"
 
 //#include "tlapack/lapack/ul_mult.hpp"
 
