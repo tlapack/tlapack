@@ -15,41 +15,32 @@
 #include "tlapack/blas/gemv.hpp"
 #include "tlapack/blas/dotu.hpp"
 #include "tlapack/blas/copy.hpp"
-#include "tlapack/blas/swap.hpp"
 
 namespace tlapack {
 
 /** getri computes inverse of a general n-by-n matrix A
- *  using LU factorization. 
- *  we first run LU in place of A
- *  then we solve for X in the following equation
+ *  by solving for X in the following equation
  * \[
  *   U X L = I
  * \]
- * Notice that from LU, we have PA=LU and as a result
- * \[
- *   U (A^{-1} P^{T}) L = I
- * \]
- * last equation means that $A^{-1} P^{T}=X$, therefore, to solve for $A^{-1}$
- * we just need to swap the columns of X according to $X=A^{-1} P$
  *
- * @return  0 if success
- * @return  -1 if matrix is not invertible
+ * @return = 0: successful exit
+ * @return = i+1: if U(i,i) is exactly zero.  The triangular
+ *          matrix is singular and its inverse can not be computed.
  *
- * @param[in,out] A n-by-n complex matrix.
- *      On entry, the m by n general matrix given in form of its L and U.
- *      On exit, inverse of A is overwritten on A
+ * @param[in,out] A n-by-n matrix.
+ *      On entry, the factors L and U from the factorization P A = L U.
+ *          L is stored in the lower triangle of A; unit diagonal is not stored.
+ *          U is stored in the upper triangle of A.
+ *      On exit, inverse of A is overwritten on A.
  * 
- * @param[in,out] Piv Piv vector of size at least n.
- * On entry and exit, Piv is the pivot vector of the LU factorization
- * 
- * @param[in,out] work a vector of size at least n-1.
- * A work vector of size at least n-1 required for parts of the computation
+ * @param work Workspace vector of size at least n-1.
  *      
  * @ingroup group_solve
  */
-template< class matrix_t, class vector_t , class work_t >
-int getri_uxli( matrix_t& A, vector_t &Piv , work_t& work ){
+template< class matrix_t, class work_t >
+int getri_uxli( matrix_t& A, work_t& work )
+{
     using idx_t = size_type< matrix_t >;
     using T = type_t<matrix_t>;
 
@@ -63,19 +54,17 @@ int getri_uxli( matrix_t& A, vector_t &Piv , work_t& work ){
 
     // A has L and U in it, we will create X such that UXL=A in place of
     for(idx_t j=n-idx_t(1);j!=idx_t(-1);j--){
+            
+        // if A(j,j) is zero, then the matrix is not invertible
+        if(A(j,j)==T(0))
+            return j+1;
         
-        if(j==n-1){
-            
-            // if A(n-1,n-1) zero, then the matrix is not invertible
-            if(A(j,j)==T(0))
-                return -1;
-            
-            // if A(n-1,n-1)!=0, we can divide by A(n-1,n-1)
+        if(j==n-1)
+        {
             A(j,j) = T(1) / A(j,j);
-            
         }
-        else{
-            
+        else
+        {    
             // X22, l21, u12 are as in method C Nick Higham
             auto X22 = tlapack::slice(A,tlapack::range<idx_t>(j+1,n),tlapack::range<idx_t>(j+1,n));
             auto l21 = tlapack::slice(A,tlapack::range<idx_t>(j+1,n),j);
@@ -99,15 +88,6 @@ int getri_uxli( matrix_t& A, vector_t &Piv , work_t& work ){
 
         }
 
-    }
-    
-    // swap columns of X to find A^{-1} since A^{-1}=X P
-    for(idx_t j=n-idx_t(1);j!=idx_t(-1);j--){
-        if(Piv[j]>j){
-            auto vect1=tlapack::col(A,j);
-            auto vect2=tlapack::col(A,Piv[j]);
-            tlapack::swap(vect1,vect2);
-        }
     }
     
     return 0;

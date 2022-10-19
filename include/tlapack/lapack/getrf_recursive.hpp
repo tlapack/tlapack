@@ -15,12 +15,12 @@
 #include "tlapack/blas/trsm.hpp"
 #include "tlapack/blas/gemm.hpp"
 #include "tlapack/blas/swap.hpp"
-#include "tlapack/lapack/lascl.hpp"
+#include "tlapack/blas/scal.hpp"
 
 namespace tlapack{
 
     /** getrf_recursive computes an LU factorization of a general m-by-n matrix A
-     *  using partial pivoting with row interchanges. Recursive algorithm.
+     *  using partial pivoting with row interchanges.
      *
      *  The factorization has the form
      * \[
@@ -29,13 +29,14 @@ namespace tlapack{
      *  where P is a permutation matrix constructed from our Piv vector, L is lower triangular with unit
      *  diagonal elements (lower trapezoidal if m > n), and U is upper
      *  triangular (upper trapezoidal if m < n).
-     *  This is Level 2 version of the algorithm.
+     * 
+     *  This is a recursive version of the algorithm.
      *
      * @return  0 if success
      * @return  i+1 if failed to compute the LU on iteration i
      *
      * @param[in,out] A m-by-n matrix.
-     *      On exit, the factors L and U stored in A from the factorization A=PLU;
+     *      On exit, the factors L and U from the factorization A=PLU;
      *      the unit diagonal elements of L are not stored.
      *      
      * @param[in,out] Piv is a k-by-1 integer vector where k=min(m,n)

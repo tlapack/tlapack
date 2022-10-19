@@ -11,60 +11,47 @@
 #define TLAPACK_getri_uili_HH
 
 #include "tlapack/base/utils.hpp"
-#include <tlapack/lapack/getrf_recursive.hpp>
 #include "tlapack/blas/gemm.hpp"
 #include "tlapack/lapack/trtri_recursive.hpp"
-#include "tlapack/blas/swap.hpp"
+#include "tlapack/lapack/ul_mult.hpp"
 
 namespace tlapack {
 
 /** getri_uili calculates the inverse of a general n-by-n matrix A
+ * 
  *  A is assumed to be in the form L U factors on the input,
  *  trtri is used to invert U and L in place
- *  thereafter, ul_mult is called to calculate U^(-1)L^(-1) in place
- *  then columns of U^(-1)L^(-1) are swapped according to the pivot vector given by getrf_recursive
+ *  thereafter, ul_mult is called to calculate U^(-1)L^(-1) in place.
  *
- * @return  0 
+ * @return = 0: successful exit
+ * @return = i+1: if U(i,i) is exactly zero.  The triangular
+ *          matrix is singular and its inverse can not be computed.
  *
- * @param[in,out] A n-by-n complex matrix.
- *      On entry, the m by n general matrix given in form of its L and U.
- *      On exit, A is overwritten with its inverse
- * 
- * @param[in,out] Piv vector of size at least n.      
- * On entry and exit, Piv is the pivot vector of the LU factorization
+ * @param[in,out] A n-by-n matrix.
+ *      On entry, the factors L and U from the factorization A = L U.
+ *          L is stored in the lower triangle of A; unit diagonal is not stored.
+ *          U is stored in the upper triangle of A.
+ *      On exit, inverse of A is overwritten on A.
  * 
  * @ingroup group_solve
  */
-template< class matrix_t , class vector_t>
-int getri_uili( matrix_t& A , vector_t &Piv){
-    
-    using idx_t = size_type< matrix_t >;
-
+template< class matrix_t >
+int getri_uili( matrix_t& A )
+{
     // check arguments
     tlapack_check_false( access_denied( dense, write_policy(A) ) );
     tlapack_check( nrows(A)==ncols(A));
-    
-    // constant, n is the number of rows and columns of the square matrix A
-    const idx_t n = ncols(A);
 
     // Invert the upper part of A; U
-    trtri_recursive(Uplo::Upper, Diag::NonUnit, A);
+    int info = trtri_recursive(Uplo::Upper, Diag::NonUnit, A);
+    if( info != 0 )
+        return info;
 
     // Invert the lower part of A; L which has 1 on the diagonal
     trtri_recursive(Uplo::Lower, Diag::Unit, A);
 
     //multiply U^{-1} and L^{-1} in place using ul_mult
     ul_mult(A);
-    
-    // A <----- U^{-1}L^{-1}P; swapping columns of A according to Piv
-    for(idx_t i=idx_t(n-1);i!=idx_t(-1);i--)
-    {
-        if(Piv[i]!=i){
-            auto vect1=tlapack::col(A,i);
-            auto vect2=tlapack::col(A,Piv[i]);
-            tlapack::swap(vect1,vect2);
-        }
-    }
     
     return 0;
     

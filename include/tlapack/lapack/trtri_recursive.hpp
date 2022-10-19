@@ -36,7 +36,7 @@ namespace tlapack
      * @param[in] ec Exception handling configuration at runtime.
      *
      * @return = 0: successful exit
-     * @return > 0: if return value = i, A(i,i) is exactly zero.  The triangular
+     * @return = i+1: if A(i,i) is exactly zero.  The triangular
      *          matrix is singular and its inverse can not be computed.
      *
      * @todo: implement nx to bail out of recursion before 1-by-1 case

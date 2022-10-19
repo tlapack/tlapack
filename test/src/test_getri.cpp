@@ -9,14 +9,13 @@
 #include <catch2/generators/catch_generators.hpp>
 #include <tlapack/plugins/stdvector.hpp>
 #include <tlapack/plugins/legacyArray.hpp>
-#include <tlapack/lapack/getrf_recursive.hpp>
+#include <tlapack.hpp>
 #include <testutils.hpp>
 #include <testdefinitions.hpp>
 
 using namespace tlapack;
-using namespace std;
 
-TEMPLATE_LIST_TEST_CASE("LU factorization of a general m-by-n matrix, blocked", "[lqf]", types_to_test)
+TEMPLATE_LIST_TEST_CASE("Inversion of a general m-by-n matrix", "[getri]", types_to_test)
 {
     srand(1);
     using matrix_t = TestType;
@@ -25,8 +24,8 @@ TEMPLATE_LIST_TEST_CASE("LU factorization of a general m-by-n matrix, blocked", 
     typedef real_type<T> real_t; // equivalent to using real_t = real_type<T>;
     
     //n represent no. rows and columns of the square matrices we will performing tests on
-    idx_t n;
-    n = GENERATE(5,10,20,100);
+    idx_t n = GENERATE(5,10,20,100);
+    GetriVariant variant = GENERATE( GetriVariant::UXLI, GetriVariant::UILI );
 
     // eps is the machine precision, and tol is the tolerance we accept for tests to pass
     const real_t eps = ulp<real_t>();
@@ -69,17 +68,21 @@ TEMPLATE_LIST_TEST_CASE("LU factorization of a general m-by-n matrix, blocked", 
     
     // LU factorize Pivoted A
     std::vector<idx_t> Piv( n , idx_t(0) );
-    getrf_recursive(A,Piv);
+    getrf(A,Piv);
 
     // run inverse function, this could test any inverse function of choice
     std::vector<T> work( n , T(0) );
-    getri_uxli(A,Piv,work);
+    getri_opts_t< std::vector<T> > opts = { variant, &work };
+    getri(A,Piv,opts);
     
     // identit1 -----> A * A_copy - ident1
     gemm(Op::NoTrans,Op::NoTrans,real_t(1),A,A_copy,real_t(-1),ident1);
     
     // error1 is  || A * A_copy - ident1 || / ||A||   
     real_t error1 = tlapack::lange( tlapack::Norm::Max, ident1)/norma;
+
+    INFO( "n = " << n );
+    INFO( "variant = " << (char) variant );
     
     // following tests if error1<=tol
     CHECK(error1/tol <= 1);
