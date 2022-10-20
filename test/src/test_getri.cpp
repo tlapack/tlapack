@@ -31,26 +31,11 @@ TEMPLATE_LIST_TEST_CASE("Inversion of a general m-by-n matrix", "[getri]", types
     const real_t eps = ulp<real_t>();
     const real_t tol = n*n*eps;
     
-    // Initialize matrices A, and A_copy to run tests on
+    // Initialize matrices A, and invA to run tests on
     std::unique_ptr<T[]> A_(new T[n * n]);
-    std::unique_ptr<T[]> A_copy_(new T[n * n]);
-    auto A = legacyMatrix<T, layout<matrix_t>>(n, n, &A_[0], layout<matrix_t> == Layout::ColMajor ? n : n);
-    auto A_copy = legacyMatrix<T, layout<matrix_t>>(n, n, &A_copy_[0], layout<matrix_t> == Layout::ColMajor ? n : n);
-    
-    // building identity matrix
-    std::unique_ptr<T[]> ident1_(new T[n * n]);
-    auto ident1 = legacyMatrix<T, layout<matrix_t>>(n, n, &ident1_[0], layout<matrix_t> == Layout::ColMajor ? n : n);
-    for (idx_t j = 0; j < n; ++j)
-        for (idx_t i = 0; i < n; ++i){
-            if(i==j){
-                ident1(i, j) = T(1);
-            }
-            else{
-                ident1(i, j) = T(0);
-            }
-            
-        }
-
+    std::unique_ptr<T[]> invA_(new T[n * n]);
+    auto A = legacyMatrix<T, layout<matrix_t>>(n, n, &A_[0], n);
+    auto invA = legacyMatrix<T, layout<matrix_t>>(n, n, &invA_[0], n);
     
     // forming A, a random matrix 
     for (idx_t j = 0; j < n; ++j)
@@ -60,32 +45,51 @@ TEMPLATE_LIST_TEST_CASE("Inversion of a general m-by-n matrix", "[getri]", types
 
     
     // make a deep copy A
-    lacpy(Uplo::General, A, A_copy);
+    lacpy(Uplo::General, A, invA);
     
     // calculate norm of A for later use in relative error
     double norma=tlapack::lange( tlapack::Norm::Max, A);
     
-    
     // LU factorize Pivoted A
     std::vector<idx_t> Piv( n , idx_t(0) );
-    getrf(A,Piv);
+    getrf(invA,Piv);
 
     // run inverse function, this could test any inverse function of choice
     std::vector<T> work( n , T(0) );
     getri_opts_t< std::vector<T> > opts = { variant, &work };
-    getri(A,Piv,opts);
-    
-    // identit1 -----> A * A_copy - ident1
-    gemm(Op::NoTrans,Op::NoTrans,real_t(1),A,A_copy,real_t(-1),ident1);
-    
-    // error1 is  || A * A_copy - ident1 || / ||A||   
-    real_t error1 = tlapack::lange( tlapack::Norm::Max, ident1)/norma;
+    getri(invA,Piv,opts);
 
+    // building error matrix E
+    std::unique_ptr<T[]> E_(new T[n * n]);
+    legacyMatrix<T, layout<matrix_t>> E(n, n, &E_[0], n);
+    
+    // E <----- inv(A)*A - I
+    gemm(Op::NoTrans,Op::NoTrans,real_t(1),A,invA,E);
+    for (idx_t i = 0; i < n; i++)
+        E(i,i) -= real_t(1);
+    
+    // error is  || inv(A)*A - I || / ( ||A|| * ||inv(A)|| )
+    real_t error = tlapack::lange( tlapack::Norm::Max, E)
+                    / (norma * tlapack::lange( tlapack::Norm::Max, invA ));
+
+    INFO( "|| inv(A)*A - I || / ( ||A|| * ||inv(A)|| )" );
     INFO( "n = " << n );
     INFO( "variant = " << (char) variant );
+    CHECK(error/tol <= 1); // tests if error<=tol
     
-    // following tests if error1<=tol
-    CHECK(error1/tol <= 1);
+    // E <----- A*inv(A) - I
+    gemm(Op::NoTrans,Op::NoTrans,real_t(1),invA,A,E);
+    for (idx_t i = 0; i < n; i++)
+        E(i,i) -= real_t(1);
+    
+    // error is  || A*inv(A) - I || / ( ||A|| * ||inv(A)|| )
+    error = tlapack::lange( tlapack::Norm::Max, E)
+                    / (norma * tlapack::lange( tlapack::Norm::Max, invA ));
+
+    INFO( "|| A*inv(A) - I || / ( ||A|| * ||inv(A)|| )" );
+    INFO( "n = " << n );
+    INFO( "variant = " << (char) variant );
+    CHECK(error/tol <= 1); // tests if error<=tol
     
 }
 
