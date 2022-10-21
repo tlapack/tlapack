@@ -21,9 +21,9 @@ inline constexpr
 void lange_worksize(
     norm_t normType,
     const matrix_t& A,
-    size_t& worksize )
+    workinfo_t& workinfo )
 {
-    worksize = 0;
+    workinfo = {};
 }
 
 template< typename norm_t, typename matrix_t >
@@ -31,17 +31,18 @@ inline constexpr
 void lange_worksize(
     norm_t normType,
     const matrix_t& A,
-    size_t& worksize,
+    workinfo_t& workinfo,
     const workspace_opts_t<>& opts )
 {
-    using T     = type_t< matrix_t >;
-    using idx_t = size_type< matrix_t >;
-    using vectorw_t = legacyVector<T,idx_t>;
+    using T = type_t< matrix_t >;
 
     if ( normType == Norm::Inf  )
-        worksize = sizeof( type_t< vectorw_t > ) * nrows(A);
+    {
+        workinfo.m = sizeof(T);
+        workinfo.n = nrows(A);
+    }
     else
-        worksize = 0;
+        workinfo = {};
 }
 
 /** Calculates the norm of a matrix.
@@ -188,15 +189,15 @@ lange( norm_t normType, const matrix_t& A, const workspace_opts_t<>& opts )
         // so as to do one pass on the data in a contiguous way when computing
 	    // the infinite norm.
 
-        using vectorw_t = legacyVector<T,idx_t>;
+        using vectorw_t = legacyVector<T,idx_t,idx_t>;
 
         // Allocates workspace
         vectorOfBytes localworkdata;
         const Workspace work = [&]()
         {
-            size_t lwork;
-            lange_worksize( normType, A, lwork, opts );
-            return alloc_workspace( localworkdata, lwork, opts.work );
+            workinfo_t workinfo;
+            lange_worksize( normType, A, workinfo, opts );
+            return alloc_workspace( localworkdata, workinfo.size(), opts.work );
         }();
         auto w = Create< vectorw_t >( work, m, 1 );
 

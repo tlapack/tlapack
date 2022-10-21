@@ -21,7 +21,7 @@ template< class matrix_t, class vector_t >
 inline constexpr
 void gehd2_worksize(
     size_type< matrix_t > ilo, size_type< matrix_t > ihi, matrix_t& A,
-    vector_t &tau, size_t& worksize,
+    vector_t &tau, workinfo_t& workinfo,
     const workspace_opts_t<>& opts = {} )
 {
     using idx_t = size_type< matrix_t >;
@@ -30,17 +30,20 @@ void gehd2_worksize(
     // constants
     const idx_t n = ncols(A);
 
-    size_t wsize1 = 0, wsize2 = 0;
     if( ilo+1 < ihi ) {
         const auto v = slice( A, pair{ilo+1,ihi}, ilo );
+        workinfo_t workinfo2;
         
         auto C = slice( A, pair{0,ihi}, pair{ilo+1,ihi} );
-        larf_worksize( right_side, v, tau[0], C, wsize1, opts );
+        larf_worksize( right_side, v, tau[0], C, workinfo, opts );
         
         C = slice( A, pair{ilo+1,ihi}, pair{ilo+1,n} );
-        larf_worksize( left_side, v, tau[0], C, wsize2, opts );
+        larf_worksize( left_side, v, tau[0], C, workinfo2, opts );
+                
+        workinfo.minMax( workinfo2 );
     }
-    worksize = std::max<size_t>( wsize1, wsize2 );
+    else
+        workinfo = {};
 }
 
 /** Reduces a general square matrix to upper Hessenberg form
@@ -102,9 +105,9 @@ int gehd2( size_type< matrix_t > ilo, size_type< matrix_t > ihi, matrix_t& A, ve
     vectorOfBytes localworkdata;
     Workspace work = [&]()
     {
-        size_t lwork;
-        gehd2_worksize( ilo, ihi, A, tau, lwork, opts );
-        return alloc_workspace( localworkdata, lwork, opts.work );
+        workinfo_t workinfo;
+        gehd2_worksize( ilo, ihi, A, tau, workinfo, opts );
+        return alloc_workspace( localworkdata, workinfo.size(), opts.work );
     }();
     
     // Options to forward

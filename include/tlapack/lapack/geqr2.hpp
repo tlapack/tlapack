@@ -20,7 +20,7 @@ namespace tlapack {
 template< class matrix_t, class vector_t >
 inline constexpr
 void geqr2_worksize(
-    matrix_t& A, vector_t &tau, size_t& worksize,
+    matrix_t& A, vector_t &tau, workinfo_t& workinfo,
     const workspace_opts_t<>& opts = {} )
 {
     using idx_t = size_type< matrix_t >;
@@ -30,10 +30,10 @@ void geqr2_worksize(
 
     if( n > 1 ) {
         auto C = cols( A, range<idx_t>{1,n} );
-        larf_worksize( left_side, col(A,0), tau[0], C, worksize, opts );
+        larf_worksize( left_side, col(A,0), tau[0], C, workinfo, opts );
     }
     else
-        worksize = 0;
+        workinfo = {};
 }
 
 /** Computes a QR factorization of a matrix A.
@@ -92,9 +92,9 @@ int geqr2(
     vectorOfBytes localworkdata;
     Workspace work = [&]()
     {
-        size_t lwork;
-        geqr2_worksize( A, tau, lwork, opts );
-        return alloc_workspace( localworkdata, lwork, opts.work );
+        workinfo_t workinfo;
+        geqr2_worksize( A, tau, workinfo, opts );
+        return alloc_workspace( localworkdata, workinfo.size(), opts.work );
     }();
     
     // Options to forward

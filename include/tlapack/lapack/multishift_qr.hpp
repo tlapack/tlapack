@@ -95,7 +95,7 @@ namespace tlapack
         matrix_t &A,
         vector_t &w,
         matrix_t &Z,
-        size_t& worksize,
+        workinfo_t& workinfo,
         const francis_opts_t< size_type<matrix_t> > &opts = {} )
     {
         using idx_t = size_type<matrix_t>;
@@ -107,27 +107,26 @@ namespace tlapack
         // quick return
         if ( ilo + 1 >= ihi || n < opts.nmin || nh <= 0 )
         {
-            worksize = 0;
+            workinfo = {};
             return;
         }
 
-        size_t worksize_aed = 0;
         {
             const idx_t nw_max = (n - 3) / 3;
 
             idx_t ls, ld;
-            agressive_early_deflation_worksize(want_t, want_z, ilo, ihi, nw_max, A, w, Z, ls, ld, worksize_aed, opts);
+            agressive_early_deflation_worksize(want_t, want_z, ilo, ihi, nw_max, A, w, Z, ls, ld, workinfo, opts);
         }
 
-        size_t worksize_multishift_QR_sweep = 0;
+        workinfo_t workinfo2;
         {
             const idx_t nsr = opts.nshift_recommender(n, nh);
             const auto shifts = slice(w, pair{0,nsr});
 
-            multishift_QR_sweep_worksize(want_t, want_z, ilo, ihi, A, shifts, Z, worksize_multishift_QR_sweep, opts);
+            multishift_QR_sweep_worksize(want_t, want_z, ilo, ihi, A, shifts, Z, workinfo2, opts);
         }
         
-        worksize = std::max( worksize_multishift_QR_sweep, worksize_aed );
+        workinfo.minMax( workinfo2 );
     }
 
     /** multishift_qr computes the eigenvalues and optionally the Schur
@@ -248,9 +247,9 @@ namespace tlapack
         vectorOfBytes localworkdata;
         Workspace work = [&]()
         {
-            size_t lwork;
-            multishift_qr_worksize( want_t, want_z, ilo, ihi, A, w, Z, lwork, opts );
-            return alloc_workspace( localworkdata, lwork, opts.work );
+            workinfo_t workinfo;
+            multishift_qr_worksize( want_t, want_z, ilo, ihi, A, w, Z, workinfo, opts );
+            return alloc_workspace( localworkdata, workinfo.size(), opts.work );
         }();
         
         // Options to forward

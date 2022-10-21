@@ -21,7 +21,7 @@ namespace tlapack
     template< class matrix_t, class vector_t >
     inline constexpr
     void gelq2_worksize(
-        matrix_t& A, vector_t &tauw, size_t& worksize,
+        matrix_t& A, vector_t &tauw, workinfo_t& workinfo,
         const workspace_opts_t<>& opts = {} )
     {
         using idx_t = size_type< matrix_t >;
@@ -31,9 +31,9 @@ namespace tlapack
 
         if( m > 1 ) {
             auto C = rows( A, range<idx_t>{1,m} );
-            larf_worksize( right_side, row(A,0), tauw[0], C, worksize, opts );
+            larf_worksize( right_side, row(A,0), tauw[0], C, workinfo, opts );
         } else
-            worksize = 0;
+            workinfo = {};
     }
     
     /** Computes an LQ factorization of a complex m-by-n matrix A using
@@ -91,9 +91,9 @@ namespace tlapack
         vectorOfBytes localworkdata;
         Workspace work = [&]()
         {
-            size_t lwork;
-            gelq2_worksize( A, tauw, lwork, opts );
-            return alloc_workspace( localworkdata, lwork, opts.work );
+            workinfo_t workinfo;
+            gelq2_worksize( A, tauw, workinfo, opts );
+            return alloc_workspace( localworkdata, workinfo.size(), opts.work );
         }();
         
         // Options to forward

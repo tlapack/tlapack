@@ -20,7 +20,7 @@ namespace tlapack
 
     template <typename matrix_t, class vector_t>
     inline constexpr 
-    void gebd2_worksize(matrix_t &A, vector_t &tauv, vector_t &tauw, size_t& worksize, const workspace_opts_t<>& opts = {})
+    void gebd2_worksize(matrix_t &A, vector_t &tauv, vector_t &tauw, workinfo_t& workinfo, const workspace_opts_t<>& opts = {})
     {
         using idx_t = size_type< matrix_t >;
 
@@ -28,17 +28,24 @@ namespace tlapack
         const idx_t m = nrows(A);
         const idx_t n = ncols(A);
         
-        size_t wsize1 = 0, wsize2 = 0;
-        if( n > 1 ) {
+        if( n > 1 )
+        {
             auto A11 = cols( A, range<idx_t>{1,n} );
-            larf_worksize( left_side, col(A,0), tauv[0], A11, wsize1, opts );
-            if( m > 1 ) {
+            larf_worksize( left_side, col(A,0), tauv[0], A11, workinfo, opts );
+            
+            if( m > 1 )
+            {
+                workinfo_t workinfo2;
                 auto B11 = rows( A11, range<idx_t>{1,m} );
-                larf_worksize( right_side, slice(A,0,range<idx_t>{1,n}), tauw[0], B11, wsize2, opts );
+                auto row0 = slice(A,0,range<idx_t>{1,n});
+                
+                larf_worksize( right_side, row0, tauw[0], B11, workinfo2, opts );
+                
+                workinfo.minMax( workinfo2 );
             }
         }
-
-        worksize = std::max<size_t>( wsize1, wsize2 );
+        else
+            workinfo = {};
     }
 
     /** Reduces a complex general m by n matrix A to an upper
@@ -112,9 +119,9 @@ namespace tlapack
         vectorOfBytes localworkdata;
         Workspace work = [&]()
         {
-            size_t lwork;
-            gebd2_worksize( A, tauv, tauw, lwork, opts );
-            return alloc_workspace( localworkdata, lwork, opts.work );
+            workinfo_t workinfo;
+            gebd2_worksize( A, tauv, tauw, workinfo, opts );
+            return alloc_workspace( localworkdata, workinfo.size(), opts.work );
         }();
         
         // Options to forward

@@ -97,7 +97,7 @@ void unghr_worksize(
     size_type< matrix_t > ihi,
     matrix_t& A,
     vector_t& tau,
-    size_t& worksize, const workspace_opts_t<>& opts = {} )
+    workinfo_t& workinfo, const workspace_opts_t<>& opts = {} )
 {
     using T      = type_t< matrix_t >;
     using idx_t  = size_type< matrix_t >;
@@ -113,10 +113,10 @@ void unghr_worksize(
     if( nh > 0 && ilo+1 < ihi ) {
         auto A_s = slice( A, pair{ilo+1,ihi}, pair{ilo+1,ihi} );
         auto tau_s = slice( tau, pair{ilo,ihi-1} );
-        ung2r_worksize( nh, A_s, tau_s, worksize, opts );
+        ung2r_worksize( nh, A_s, tau_s, workinfo, opts );
     }
     else
-        worksize = 0;
+        workinfo = {};
 }
 
 }

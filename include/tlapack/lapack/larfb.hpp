@@ -20,7 +20,7 @@ namespace tlapack {
 
 /** Worspace query for larfb
  * 
- * @param[out] worksize Workspace size.
+ * @param[out] workinfo Workspace sizes.
  * 
  * @ingroup auxiliary
  */

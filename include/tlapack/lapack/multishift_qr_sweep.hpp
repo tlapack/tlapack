@@ -34,11 +34,13 @@ namespace tlapack
         matrix_t &A, 
         vector_t &s, 
         matrix_t &Z, 
-        size_t& worksize,
+        workinfo_t& workinfo,
         const workspace_opts_t<> &opts = {} )
     {
         using T  = type_t< matrix_t >;
-        worksize = sizeof(T) * (3*size(s)/2);
+        
+        workinfo.m = sizeof(T)*3;
+        workinfo.n = size(s)/2;
     }
 
     /** multishift_QR_sweep performs a single small-bulge multi-shift QR sweep.
@@ -110,9 +112,9 @@ namespace tlapack
         vectorOfBytes localworkdata;
         const Workspace work = [&]()
         {
-            size_t lwork;
-            multishift_QR_sweep_worksize( want_t, want_z, ilo, ihi, A, s, Z, lwork, opts );
-            return alloc_workspace( localworkdata, lwork, opts.work );
+            workinfo_t workinfo;
+            multishift_QR_sweep_worksize( want_t, want_z, ilo, ihi, A, s, Z, workinfo, opts );
+            return alloc_workspace( localworkdata, workinfo.size(), opts.work );
         }();
         auto V = new_matrix( work, 3, size(s)/2 );
 

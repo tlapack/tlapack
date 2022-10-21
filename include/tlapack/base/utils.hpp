@@ -1055,6 +1055,30 @@ struct workinfo_t {
 
     inline constexpr
     size_t size() const { return m*n; }
+
+    /**
+     * @brief Set the current object to the smaller sizes that
+     *  fit its current sizes and the sizes of workinfo
+     * 
+     * @param workinfo Another specification of work sizes
+     */
+    void minMax( const workinfo_t& workinfo )
+    {
+        // Check if the current sizes cover the sizes from workinfo
+        if( m < workinfo.size() || ((m >= workinfo.m) && (n >= workinfo.n)) )
+        {
+            // Check if the sizes from workinfo cover the current sizes
+            if( size() <= workinfo.m || ((m < workinfo.m) && (n < workinfo.n)) )
+            {
+                *this = workinfo;
+            }
+            else // Sizes do not match. Simple solution: contiguous space in memory
+            {
+                m = std::max( size(), workinfo.size() );
+                n = 1;
+            }
+        }
+    }
 };
 
     // Common matrix type deduction

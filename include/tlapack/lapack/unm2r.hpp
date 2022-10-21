@@ -24,7 +24,7 @@ void unm2r_worksize(
     side_t side, trans_t trans,
     matrixA_t& A,
     const tau_t& tau,
-    matrixC_t& C, size_t& worksize,
+    matrixC_t& C, workinfo_t& workinfo,
     const workspace_opts_t<>& opts = {} )
 {
     using idx_t = size_type< matrixA_t >;
@@ -36,7 +36,7 @@ void unm2r_worksize(
     const idx_t nA = (side == Side::Left) ? m : n;
 
     auto v = slice( A, pair{0,nA}, 0 );
-    larf_worksize( side, v, tau[0], C, worksize, opts );
+    larf_worksize( side, v, tau[0], C, workinfo, opts );
 }
 
 /** Applies unitary matrix Q to a matrix C.
@@ -132,9 +132,9 @@ int unm2r(
     vectorOfBytes localworkdata;
     Workspace work = [&]()
     {
-        size_t lwork;
-        unm2r_worksize( side, trans, A, tau, C, lwork, opts );
-        return alloc_workspace( localworkdata, lwork, opts.work );
+        workinfo_t workinfo;
+        unm2r_worksize( side, trans, A, tau, C, workinfo, opts );
+        return alloc_workspace( localworkdata, workinfo.size(), opts.work );
     }();
         
     // Options to forward

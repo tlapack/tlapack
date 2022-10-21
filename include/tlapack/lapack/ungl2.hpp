@@ -20,7 +20,7 @@ namespace tlapack
     template< class matrix_t, class vector_t >
     inline constexpr
     void ungl2_worksize(
-        matrix_t& Q, vector_t &tauw, size_t& worksize,
+        matrix_t& Q, vector_t &tauw, workinfo_t& workinfo,
         const workspace_opts_t<>& opts = {} )
     {
         using idx_t = size_type< matrix_t >;
@@ -30,10 +30,10 @@ namespace tlapack
 
         if( k > 1 ) {
             auto C = rows( Q, range<idx_t>{1,k} );
-            larf_worksize( right_side, row(Q,0), tauw[0], C, worksize, opts );
+            larf_worksize( right_side, row(Q,0), tauw[0], C, workinfo, opts );
         }
         else
-            worksize = 0;
+            workinfo = {};
     }
     
     /**
@@ -85,9 +85,9 @@ namespace tlapack
         vectorOfBytes localworkdata;
         Workspace work = [&]()
         {
-            size_t lwork;
-            ungl2_worksize( Q, tauw, lwork, opts );
-            return alloc_workspace( localworkdata, lwork, opts.work );
+            workinfo_t workinfo;
+            ungl2_worksize( Q, tauw, workinfo, opts );
+            return alloc_workspace( localworkdata, workinfo.size(), opts.work );
         }();
         
         // Options to forward

@@ -41,7 +41,7 @@ namespace tlapack
         matrix_t &Z, 
         size_type<matrix_t> &ns, 
         size_type<matrix_t> &nd, 
-        size_t& worksize,
+        workinfo_t& workinfo,
         const francis_opts_t< size_type<matrix_t> > &opts = {} )
     {
         using idx_t = size_type<matrix_t>;
@@ -55,28 +55,27 @@ namespace tlapack
 
         // quick return
         if( n < 9 || nw <= 1 || ihi <= 1+ilo ) {
-            worksize = 0;
+            workinfo = {};
             return;
         }
 
-        idx_t worksize_multishift_qr = 0;
         if( jw >= opts.nmin )
         {
             auto s_window = slice(s, pair{0,jw});
             auto V = slice(A, pair{0,jw}, pair{0,jw});
             
-            multishift_qr_worksize(true, true, 0, jw, TW, s_window, V, worksize_multishift_qr, opts);
+            multishift_qr_worksize(true, true, 0, jw, TW, s_window, V, workinfo, opts);
         }
 
-        idx_t worksize_gehrd = 0;
+        workinfo_t workinfo2;
         if( jw != ihi-ilo )
         {
             // Hessenberg reduction
             auto tau = slice(A, pair{0,jw}, 0);
-            gehrd_worksize(0, jw, TW, tau, worksize_gehrd);
+            gehrd_worksize(0, jw, TW, tau, workinfo2);
         }
         
-        worksize = std::max( worksize_multishift_qr, worksize_gehrd );
+        workinfo.minMax( workinfo2 );
     }
 
     /** agressive_early_deflation accepts as input an upper Hessenberg matrix
@@ -205,9 +204,9 @@ namespace tlapack
         vectorOfBytes localworkdata;
         Workspace work = [&]()
         {
-            size_t lwork;
-            agressive_early_deflation_worksize( want_t, want_z, ilo, ihi, nw, A, s, Z, ns, nd, lwork, opts );
-            return alloc_workspace( localworkdata, lwork, opts.work );
+            workinfo_t workinfo;
+            agressive_early_deflation_worksize( want_t, want_z, ilo, ihi, nw, A, s, Z, ns, nd, workinfo, opts );
+            return alloc_workspace( localworkdata, workinfo.size(), opts.work );
         }();
         
         // Options to forward

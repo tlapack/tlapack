@@ -30,7 +30,7 @@ namespace tlapack
 
     /** Worspace query for gehrd.
      * 
-     * @param[out] worksize Workspace size.
+     * @param[out] workinfo Workspace sizes.
      * 
      * @ingroup gehrd
      */
@@ -44,7 +44,7 @@ namespace tlapack
         size_type<matrix_t> ihi, 
         matrix_t &A, 
         vector_t &tau,
-        size_t& worksize, 
+        workinfo_t& workinfo, 
         const gehrd_opts_t<idx_t> &opts = {} )
     {
         using work_t    = matrix_type<matrix_t,vector_t>;
@@ -53,7 +53,8 @@ namespace tlapack
         const idx_t n = ncols(A);
         const idx_t nb = std::min( opts.nb, ihi-ilo-1 );
 
-        worksize = sizeof(T) * ((n+nb)*nb);
+        workinfo.m = sizeof(T) * (n+nb);
+        workinfo.n = nb;
     }
 
     /** Reduces a general square matrix to upper Hessenberg form
@@ -141,9 +142,9 @@ namespace tlapack
         vectorOfBytes localworkdata;
         Workspace work = [&]()
         {
-            size_t lwork;
-            gehrd_worksize( ilo, ihi, A, tau, lwork, opts );
-            return alloc_workspace( localworkdata, lwork, opts.work );
+            workinfo_t workinfo;
+            gehrd_worksize( ilo, ihi, A, tau, workinfo, opts );
+            return alloc_workspace( localworkdata, workinfo.size(), opts.work );
         }();
     
         // Options to forward

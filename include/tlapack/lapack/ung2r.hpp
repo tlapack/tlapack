@@ -21,7 +21,7 @@ template< class matrix_t, class vector_t >
 inline constexpr
 void ung2r_worksize(
     size_type< matrix_t > k, matrix_t& A, const vector_t &tau,
-    size_t& worksize, const workspace_opts_t<>& opts = {} )
+    workinfo_t& workinfo, const workspace_opts_t<>& opts = {} )
 {
     using idx_t = size_type< matrix_t >;
 
@@ -30,10 +30,10 @@ void ung2r_worksize(
 
     if( n > 1 ) {
         auto C = cols( A, range<idx_t>{1,n} );
-        larf_worksize( left_side, col(A,0), tau[0], C, worksize, opts );
+        larf_worksize( left_side, col(A,0), tau[0], C, workinfo, opts );
     }
     else
-        worksize = 0;
+        workinfo = {};
 }
 
 /**
@@ -86,9 +86,9 @@ int ung2r(
     vectorOfBytes localworkdata;
     Workspace work = [&]()
     {
-        size_t lwork;
-        ung2r_worksize( k, A, tau, lwork, opts );
-        return alloc_workspace( localworkdata, lwork, opts.work );
+        workinfo_t workinfo;
+        ung2r_worksize( k, A, tau, workinfo, opts );
+        return alloc_workspace( localworkdata, workinfo.size(), opts.work );
     }();
         
     // Options to forward

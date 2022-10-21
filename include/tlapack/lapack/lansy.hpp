@@ -22,9 +22,9 @@ void lansy_worksize(
     norm_t normType,
     uplo_t uplo,
     const matrix_t& A,
-    size_t& worksize )
+    workinfo_t& workinfo )
 {
-    worksize = 0;
+    workinfo = {};
 }
 
 template< class norm_t, class uplo_t, class matrix_t >
@@ -33,17 +33,18 @@ void lansy_worksize(
     norm_t normType,
     uplo_t uplo,
     const matrix_t& A,
-    size_t& worksize,
+    workinfo_t& workinfo,
     const workspace_opts_t<>& opts )
 {
     using T     = type_t< matrix_t >;
-    using idx_t = size_type< matrix_t >;
-    using vectorw_t = legacyVector<T,idx_t>;
 
     if ( normType == Norm::Inf || normType == Norm::One )
-        worksize = sizeof( type_t< vectorw_t > ) * nrows(A);
+    {
+        workinfo.m = sizeof(T);
+        workinfo.n = nrows(A);
+    }
     else
-        worksize = 0;
+        workinfo = {};
 }
 
 /** Calculates the norm of a symmetric matrix.
@@ -228,7 +229,7 @@ lansy( norm_t normType, uplo_t uplo, const matrix_t& A, const workspace_opts_t<>
         // so as to do one pass on the data in a contiguous way when computing
         // the infinite and one norm
 
-        using vectorw_t = legacyVector<T,idx_t>;
+        using vectorw_t = legacyVector<T,idx_t,idx_t>;
 
         // constants
         const idx_t n = nrows(A);
@@ -240,9 +241,9 @@ lansy( norm_t normType, uplo_t uplo, const matrix_t& A, const workspace_opts_t<>
         vectorOfBytes localworkdata;
         const Workspace work = [&]()
         {
-            size_t lwork;
-            lansy_worksize( normType, uplo, A, lwork, opts );
-            return alloc_workspace( localworkdata, lwork, opts.work );
+            workinfo_t workinfo;
+            lansy_worksize( normType, uplo, A, workinfo, opts );
+            return alloc_workspace( localworkdata, workinfo.size(), opts.work );
         }();
         auto w = Create< vectorw_t >( work, n, 1 );
 

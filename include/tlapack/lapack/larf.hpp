@@ -22,7 +22,7 @@ inline constexpr
 void larf_worksize(
     side_t side,
     vector_t const& v, const tau_t& tau, matrix_t& C,
-    size_t& worksize, const workspace_opts_t<>& opts = {} )
+    workinfo_t& workinfo, const workspace_opts_t<>& opts = {} )
 {
     using work_t    = vector_type< matrix_t, vector_t >;
     using idx_t     = size_type< matrix_t >;
@@ -32,7 +32,8 @@ void larf_worksize(
     const idx_t m = nrows(C);
     const idx_t n = ncols(C);
 
-    worksize = sizeof(T) * ((side == Side::Left) ? n : m);
+    workinfo.m = sizeof(T);
+    workinfo.n = (side == Side::Left) ? n : m;
 }
 
 /** Applies an elementary reflector H to a m-by-n matrix C.
@@ -94,9 +95,9 @@ void larf(
     vectorOfBytes localworkdata;
     const Workspace work = [&]()
     {
-        size_t lwork;
-        larf_worksize( side, v, tau, C, lwork, opts );
-        return alloc_workspace( localworkdata, lwork, opts.work );
+        workinfo_t workinfo;
+        larf_worksize( side, v, tau, C, workinfo, opts );
+        return alloc_workspace( localworkdata, workinfo.size(), opts.work );
     }();
 
     // The following code was changed from:

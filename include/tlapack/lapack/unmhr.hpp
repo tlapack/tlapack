@@ -71,7 +71,7 @@ namespace tlapack
         size_type<matrix_t> ihi,
         matrix_t &A,
         vector_t &tau,
-        matrix_t &C, size_t& worksize,
+        matrix_t &C, workinfo_t& workinfo,
         const workspace_opts_t<>& opts = {} )
     {
         using idx_t = size_type<matrix_t>;
@@ -81,7 +81,7 @@ namespace tlapack
         auto tau_s = slice(tau, pair{ilo, ihi - 1});
         auto C_s = (side == Side::Left) ? slice(C, pair{ilo + 1, ihi}, pair{0, ncols(C)}) : slice(C, pair{0, nrows(C)}, pair{ilo + 1, ihi});
 
-        unm2r_worksize(side, trans, A_s, tau_s, C_s, worksize, opts);
+        unm2r_worksize(side, trans, A_s, tau_s, C_s, workinfo, opts);
     }
 }
 

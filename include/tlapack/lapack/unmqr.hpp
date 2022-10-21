@@ -31,7 +31,7 @@ struct unmqr_opts_t : public workspace_opts_t<workT_t>
 
 /** Worspace query for unmqr
  * 
- * @param[out] worksize Workspace size.
+ * @param[out] workinfo Workspace sizes.
  * 
  * @ingroup geqrf
  */
@@ -46,7 +46,7 @@ void unmqr_worksize(
     const matrixA_t& A,
     const tau_t& tau,
     matrixC_t& C,
-    size_t& worksize,
+    workinfo_t& workinfo,
     const unmqr_opts_t<workT_t>& opts = {} )
 {
     using idx_t     = size_type< matrixC_t >;
@@ -60,11 +60,13 @@ void unmqr_worksize(
     // Constants
     const idx_t k = size(tau);
     const idx_t nb = min<idx_t>( opts.nb, k );
-    const size_t matrixT_worksize = nb*nb*sizeof(T);
-    
-    workinfo_t workinfo;
+
+    // Local workspace sizes
+    workinfo.m = nb*sizeof(T);
+    workinfo.n = nb;
 
     // larfb:
+    workinfo_t workinfo2;
     {
         // Constants
         const idx_t m = nrows(C);
@@ -79,11 +81,11 @@ void unmqr_worksize(
         const auto matrixT = new_matrix( nullptr, nb, nb );
 
         // Internal workspace queries
-        larfb_worksize( side, trans, forward, columnwise_storage, V, matrixT, C, workinfo, opts );
+        larfb_worksize( side, trans, forward, columnwise_storage, V, matrixT, C, workinfo2, opts );
     }
     
     // Additional workspace needed inside the routine
-    worksize = matrixT_worksize + workinfo.size();
+    workinfo.minMax( workinfo2 );
 }
 
 /** Applies orthogonal matrix op(Q) to a matrix C using a blocked code.
@@ -190,9 +192,9 @@ int unmqr(
     vectorOfBytes localworkdata;
     Workspace work = [&]()
     {
-        size_t lwork;
-        unmqr_worksize( side, trans, A, tau, C, lwork, opts );
-        return alloc_workspace( localworkdata, lwork, opts.work );
+        workinfo_t workinfo;
+        unmqr_worksize( side, trans, A, tau, C, workinfo, opts );
+        return alloc_workspace( localworkdata, workinfo.size(), opts.work );
     }();
 
     // Matrix T and recompute work
