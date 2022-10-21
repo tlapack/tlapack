@@ -27,7 +27,7 @@ namespace tlapack {
 template<
     class matrixV_t, class matrixT_t, class matrixC_t,
     class side_t, class trans_t, class direction_t, class storage_t,
-    class work_t = undefined_t
+    class workW_t = undefined_t
 >
 inline constexpr
 void larfb_worksize(
@@ -35,12 +35,14 @@ void larfb_worksize(
     direction_t direction, storage_t storeMode,
     const matrixV_t& V, const matrixT_t& Tmatrix,
     matrixC_t& C,
-    size_t& worksize,
-    const workspace_opts_t<work_t>& opts = {} )
+    workinfo_t& workinfo,
+    const workspace_opts_t<workW_t>& opts = {} )
 {
-    using commonT   = scalar_type< type_t<matrixV_t >, type_t<matrixC_t> >;
     using idx_t     = size_type< matrixC_t >;
-    using matrixW_t = deduce_work_t< work_t, legacyMatrix<commonT,idx_t> >;
+    using matrixW_t = deduce_work_t<
+                        workW_t,
+                        matrix_type< matrixV_t, matrixC_t >
+                      >;
     using T         = type_t< matrixW_t >;
 
     // constants
@@ -48,7 +50,8 @@ void larfb_worksize(
     const idx_t n = ncols(C);
     const idx_t k = nrows(Tmatrix);
 
-    worksize = sizeof(T) * ((side == Side::Left) ? k*n : k*m);
+    workinfo.m = sizeof(T) * ((side == Side::Left) ? k : m);
+    workinfo.n = (side == Side::Left) ? n : k;
 }
 
 /** Applies a block reflector $H$ or its conjugate transpose $H^H$ to a
@@ -127,17 +130,19 @@ void larfb_worksize(
 template<
     class matrixV_t, class matrixT_t, class matrixC_t,
     class side_t, class trans_t, class direction_t, class storage_t,
-    class work_t = undefined_t
+    class workW_t = undefined_t
 >
 int larfb(
     side_t side, trans_t trans,
     direction_t direction, storage_t storeMode,
     const matrixV_t& V, const matrixT_t& Tmatrix,
-    matrixC_t& C, const workspace_opts_t<work_t>& opts = {} )
+    matrixC_t& C, const workspace_opts_t<workW_t>& opts = {} )
 {
-    using commonT   = scalar_type< type_t<matrixV_t >, type_t<matrixC_t> >;
     using idx_t     = size_type< matrixC_t >;
-    using matrixW_t = deduce_work_t< work_t, legacyMatrix<commonT,idx_t> >;
+    using matrixW_t = deduce_work_t<
+                        workW_t,
+                        matrix_type< matrixV_t, matrixC_t >
+                      >;
     using T         = type_t< matrixW_t >;
     using real_t    = real_type<T>;
 
@@ -191,9 +196,9 @@ int larfb(
     vectorOfBytes localworkdata;
     const Workspace work = [&]()
     {
-        size_t lwork;
-        larfb_worksize( side, trans, direction, storeMode, V, Tmatrix, C, lwork, opts );
-        return alloc_workspace( localworkdata, lwork, opts.work );
+        workinfo_t workinfo;
+        larfb_worksize( side, trans, direction, storeMode, V, Tmatrix, C, workinfo, opts );
+        return alloc_workspace( localworkdata, workinfo.size(), opts.work );
     }();
 
     if( storeMode == StoreV::Columnwise ){

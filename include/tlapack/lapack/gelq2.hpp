@@ -18,11 +18,11 @@
 namespace tlapack
 {
 
-    template< class matrix_t, class vector_t, class work_t = undefined_t >
+    template< class matrix_t, class vector_t >
     inline constexpr
     void gelq2_worksize(
         matrix_t& A, vector_t &tauw, size_t& worksize,
-        const workspace_opts_t<work_t>& opts = {} )
+        const workspace_opts_t<>& opts = {} )
     {
         using idx_t = size_type< matrix_t >;
 
@@ -72,8 +72,8 @@ namespace tlapack
      *
      * @ingroup gelqf
      */
-    template <typename matrix_t, class vector_t, class work_t = undefined_t>
-    int gelq2(matrix_t &A, vector_t &tauw, const workspace_opts_t<work_t>& opts = {})
+    template <typename matrix_t, class vector_t>
+    int gelq2(matrix_t &A, vector_t &tauw, const workspace_opts_t<>& opts = {})
     {
         using idx_t = size_type<matrix_t>;
         using range = std::pair<idx_t, idx_t>;
@@ -97,7 +97,7 @@ namespace tlapack
         }();
         
         // Options to forward
-        auto&& larfOpts = workspace_opts_t<work_t>{ work };
+        auto&& larfOpts = workspace_opts_t<>{ work };
 
         for (idx_t j = 0; j < k; ++j)
         {

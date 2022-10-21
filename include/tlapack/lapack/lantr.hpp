@@ -16,6 +16,46 @@
 
 namespace tlapack {
 
+template<
+    class norm_t, 
+    class uplo_t, 
+    class diag_t, 
+    class matrix_t >
+inline constexpr
+void lantr_worksize(
+    norm_t normType,
+    uplo_t uplo,
+    diag_t diag,
+    const matrix_t& A,
+    size_t& worksize )
+{
+    worksize = 0;
+}
+
+template<
+    class norm_t, 
+    class uplo_t, 
+    class diag_t, 
+    class matrix_t >
+inline constexpr
+void lantr_worksize(
+    norm_t normType,
+    uplo_t uplo,
+    diag_t diag,
+    const matrix_t& A,
+    size_t& worksize,
+    const workspace_opts_t<>& opts )
+{
+    using T     = type_t< matrix_t >;
+    using idx_t = size_type< matrix_t >;
+    using vectorw_t = legacyVector<T,idx_t>;
+
+    if ( normType == Norm::Inf  )
+        worksize = sizeof( type_t< vectorw_t > ) * nrows(A);
+    else
+        worksize = 0;
+}
+
 /** Calculates the norm of a symmetric matrix.
  * 
  * @tparam norm_t Either Norm or any class that implements `operator Norm()`.
@@ -263,31 +303,6 @@ lantr( norm_t normType, uplo_t uplo, diag_t diag, const matrix_t& A )
     return norm;
 }
 
-template<
-    class norm_t, 
-    class uplo_t, 
-    class diag_t, 
-    class matrix_t, 
-    class work_t = undefined_t >
-inline constexpr
-void lantr_worksize(
-    norm_t normType,
-    uplo_t uplo,
-    diag_t diag,
-    const matrix_t& A,
-    size_t& worksize,
-    const workspace_opts_t<work_t>& opts )
-{
-    using T     = type_t< matrix_t >;
-    using idx_t = size_type< matrix_t >;
-    using vectorw_t = deduce_work_t< work_t, legacyVector<T,idx_t> >;
-
-    if ( normType == Norm::Inf  )
-        worksize = sizeof( type_t< vectorw_t > ) * nrows(A);
-    else
-        worksize = 0;
-}
-
 /** Calculates the norm of a triangular matrix.
  * 
  * Code optimized for the infinity norm on column-major layouts using a workspace
@@ -302,8 +317,7 @@ template<
     class norm_t, 
     class uplo_t, 
     class diag_t, 
-    class matrix_t, 
-    class work_t = undefined_t >
+    class matrix_t >
 auto
 lantr(
     norm_t normType,
@@ -311,7 +325,7 @@ lantr(
     diag_t diag,
     const matrix_t& A,
     size_t& worksize,
-    const workspace_opts_t<work_t>& opts )
+    const workspace_opts_t<>& opts )
 {
     using T      = type_t< matrix_t >;
     using real_t = real_type< T >;
@@ -346,7 +360,7 @@ lantr(
         // so as to do one pass on the data in a contiguous way when computing
 	    // the infinite norm.
 
-        using vectorw_t = deduce_work_t< work_t, legacyVector<T,idx_t> >;
+        using vectorw_t = legacyVector<T,idx_t>;
 
         // Allocates workspace
         vectorOfBytes localworkdata;

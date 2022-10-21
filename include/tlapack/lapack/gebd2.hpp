@@ -18,9 +18,9 @@
 namespace tlapack
 {
 
-    template <typename matrix_t, class vector_t, class work_t = undefined_t>
+    template <typename matrix_t, class vector_t>
     inline constexpr 
-    void gebd2_worksize(matrix_t &A, vector_t &tauv, vector_t &tauw, size_t& worksize, const workspace_opts_t<work_t>& opts = {})
+    void gebd2_worksize(matrix_t &A, vector_t &tauv, vector_t &tauw, size_t& worksize, const workspace_opts_t<>& opts = {})
     {
         using idx_t = size_type< matrix_t >;
 
@@ -88,8 +88,8 @@ namespace tlapack
      *
      * @ingroup gebrd
      */
-    template <typename matrix_t, class vector_t, class work_t = undefined_t>
-    int gebd2(matrix_t &A, vector_t &tauv, vector_t &tauw, const workspace_opts_t<work_t>& opts = {})
+    template <typename matrix_t, class vector_t>
+    int gebd2(matrix_t &A, vector_t &tauv, vector_t &tauw, const workspace_opts_t<>& opts = {})
     {
         using idx_t = size_type<matrix_t>;
         using range = std::pair<idx_t, idx_t>;
@@ -118,7 +118,7 @@ namespace tlapack
         }();
         
         // Options to forward
-        auto&& larfOpts = workspace_opts_t<work_t>{ work };
+        auto&& larfOpts = workspace_opts_t<>{ work };
 
         for (idx_t j = 0; j < n; ++j)
         {

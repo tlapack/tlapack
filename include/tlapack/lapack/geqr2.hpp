@@ -17,11 +17,11 @@
 
 namespace tlapack {
 
-template< class matrix_t, class vector_t, class work_t = undefined_t >
+template< class matrix_t, class vector_t >
 inline constexpr
 void geqr2_worksize(
     matrix_t& A, vector_t &tau, size_t& worksize,
-    const workspace_opts_t<work_t>& opts = {} )
+    const workspace_opts_t<>& opts = {} )
 {
     using idx_t = size_type< matrix_t >;
 
@@ -68,10 +68,10 @@ void geqr2_worksize(
  * 
  * @ingroup geqrf
  */
-template< class matrix_t, class vector_t, class work_t = undefined_t >
+template< class matrix_t, class vector_t >
 int geqr2(
     matrix_t& A, vector_t &tau,
-    const workspace_opts_t<work_t>& opts = {} )
+    const workspace_opts_t<>& opts = {} )
 {
     using idx_t = size_type< matrix_t >;
     using pair  = pair<idx_t,idx_t>;
@@ -98,7 +98,7 @@ int geqr2(
     }();
     
     // Options to forward
-    auto&& larfOpts = workspace_opts_t<work_t>{ work };
+    auto&& larfOpts = workspace_opts_t<>{ work };
 
     for(idx_t i = 0; i < k; ++i) {
       

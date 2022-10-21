@@ -25,14 +25,11 @@ namespace tlapack
     /**
      * Options struct for multishift_qr
      */
-    template <
-        class work_t = undefined_t,
-        class idx_t = size_type< deduce_work_t< work_t, legacyMatrix<byte> > >
-    >
-    struct francis_opts_t : public workspace_opts_t<work_t>
+    template < class idx_t = size_t >
+    struct francis_opts_t : public workspace_opts_t<>
     {
-        // Use constructors from workspace_opts_t<work_t>
-        using workspace_opts_t<work_t>::workspace_opts_t;
+        // Use constructors from workspace_opts_t<>
+        using workspace_opts_t<>::workspace_opts_t;
 
         // Function that returns the number of shifts to use
         // for a given matrix size
@@ -86,8 +83,6 @@ namespace tlapack
     template <
         class matrix_t,
         class vector_t,
-        class work_t = undefined_t,
-        class idx_t = size_type<matrix_t>,
         enable_if_t<
             is_complex< type_t<vector_t> >::value
         , int > = 0
@@ -101,8 +96,9 @@ namespace tlapack
         vector_t &w,
         matrix_t &Z,
         size_t& worksize,
-        const francis_opts_t<work_t,idx_t> &opts = {} )
+        const francis_opts_t< size_type<matrix_t> > &opts = {} )
     {
+        using idx_t = size_type<matrix_t>;
         using pair = std::pair<idx_t, idx_t>;
 
         const idx_t n = ncols(A);
@@ -181,8 +177,6 @@ namespace tlapack
     template <
         class matrix_t,
         class vector_t,
-        class work_t = undefined_t,
-        class idx_t = size_type<matrix_t>,
         enable_if_t<
             is_complex< type_t<vector_t> >::value
         , int > = 0
@@ -195,10 +189,11 @@ namespace tlapack
         matrix_t &A,
         vector_t &w,
         matrix_t &Z,
-        francis_opts_t<work_t,idx_t> &opts )
+        francis_opts_t< size_type<matrix_t> > &opts )
     {
         using TA = type_t<matrix_t>;
         using real_t = real_type<TA>;
+        using idx_t = size_type<matrix_t>;
         using pair = std::pair<idx_t, idx_t>;
 
         // constants
@@ -260,7 +255,7 @@ namespace tlapack
         
         // Options to forward
         auto aedOpts = opts; aedOpts.work = work;
-        auto&& mQRsweepOpts = workspace_opts_t<work_t>{ work };
+        auto&& mQRsweepOpts = workspace_opts_t<>{ work };
 
         // itmax is the total number of QR iterations allowed.
         // For most matrices, 3 shifts per eigenvalue is enough, so
@@ -479,8 +474,6 @@ namespace tlapack
     template <
         class matrix_t,
         class vector_t,
-        class work_t = undefined_t,
-        class idx_t = size_type<matrix_t>,
         enable_if_t<
             is_complex< type_t<vector_t> >::value
         , int > = 0
@@ -494,7 +487,7 @@ namespace tlapack
         vector_t &w,
         matrix_t &Z )
     {
-        francis_opts_t<work_t,idx_t> opts = {};
+        francis_opts_t< size_type<matrix_t> > opts = {};
         return multishift_qr(want_t, want_z, ilo, ihi, A, w, Z, opts);
     }
 

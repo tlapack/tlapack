@@ -16,6 +16,34 @@
 
 namespace tlapack {
 
+template< typename norm_t, typename matrix_t >
+inline constexpr
+void lange_worksize(
+    norm_t normType,
+    const matrix_t& A,
+    size_t& worksize )
+{
+    worksize = 0;
+}
+
+template< typename norm_t, typename matrix_t >
+inline constexpr
+void lange_worksize(
+    norm_t normType,
+    const matrix_t& A,
+    size_t& worksize,
+    const workspace_opts_t<>& opts )
+{
+    using T     = type_t< matrix_t >;
+    using idx_t = size_type< matrix_t >;
+    using vectorw_t = legacyVector<T,idx_t>;
+
+    if ( normType == Norm::Inf  )
+        worksize = sizeof( type_t< vectorw_t > ) * nrows(A);
+    else
+        worksize = 0;
+}
+
 /** Calculates the norm of a matrix.
  * 
  * @tparam norm_t Either Norm or any class that implements `operator Norm()`.
@@ -117,24 +145,6 @@ lange( norm_t normType, const matrix_t& A )
     return norm;
 }
 
-template< typename norm_t, typename matrix_t, class work_t = undefined_t >
-inline constexpr
-void lange_worksize(
-    norm_t normType,
-    const matrix_t& A,
-    size_t& worksize,
-    const workspace_opts_t<work_t>& opts )
-{
-    using T     = type_t< matrix_t >;
-    using idx_t = size_type< matrix_t >;
-    using vectorw_t = deduce_work_t< work_t, legacyVector<T,idx_t> >;
-
-    if ( normType == Norm::Inf  )
-        worksize = sizeof( type_t< vectorw_t > ) * nrows(A);
-    else
-        worksize = 0;
-}
-
 /** Calculates the norm of a matrix.
  * 
  * Code optimized for the infinity norm on column-major layouts using a workspace
@@ -145,9 +155,9 @@ void lange_worksize(
  * 
  * @ingroup auxiliary
  */
-template< typename norm_t, typename matrix_t, class work_t = undefined_t >
+template< typename norm_t, typename matrix_t >
 auto
-lange( norm_t normType, const matrix_t& A, const workspace_opts_t<work_t>& opts )
+lange( norm_t normType, const matrix_t& A, const workspace_opts_t<>& opts )
 {
     using T      = type_t< matrix_t >;
     using real_t = real_type< T >;
@@ -178,7 +188,7 @@ lange( norm_t normType, const matrix_t& A, const workspace_opts_t<work_t>& opts 
         // so as to do one pass on the data in a contiguous way when computing
 	    // the infinite norm.
 
-        using vectorw_t = deduce_work_t< work_t, legacyVector<T,idx_t> >;
+        using vectorw_t = legacyVector<T,idx_t>;
 
         // Allocates workspace
         vectorOfBytes localworkdata;

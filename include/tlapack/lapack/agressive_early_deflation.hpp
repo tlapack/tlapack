@@ -26,8 +26,6 @@ namespace tlapack
     template <
         class matrix_t,
         class vector_t,
-        class work_t = undefined_t,
-        typename idx_t = size_type<matrix_t>,
         enable_if_t<
             is_complex< type_t<vector_t> >::value
         , int > = 0
@@ -35,17 +33,18 @@ namespace tlapack
     void agressive_early_deflation_worksize(
         bool want_t, 
         bool want_z, 
-        idx_t ilo, 
-        idx_t ihi, 
-        idx_t nw, 
+        size_type<matrix_t> ilo, 
+        size_type<matrix_t> ihi, 
+        size_type<matrix_t> nw, 
         matrix_t &A, 
         vector_t &s, 
         matrix_t &Z, 
-        idx_t &ns, 
-        idx_t &nd, 
+        size_type<matrix_t> &ns, 
+        size_type<matrix_t> &nd, 
         size_t& worksize,
-        const francis_opts_t<work_t,idx_t> &opts = {} )
+        const francis_opts_t< size_type<matrix_t> > &opts = {} )
     {
+        using idx_t = size_type<matrix_t>;
         using pair = std::pair<idx_t, idx_t>;
         
         const idx_t n = ncols(A);
@@ -133,8 +132,6 @@ namespace tlapack
     template <
         class matrix_t,
         class vector_t,
-        class work_t = undefined_t,
-        typename idx_t = size_type<matrix_t>,
         enable_if_t<
             is_complex< type_t<vector_t> >::value
         , int > = 0
@@ -142,19 +139,20 @@ namespace tlapack
     void agressive_early_deflation(
         bool want_t, 
         bool want_z, 
-        idx_t ilo, 
-        idx_t ihi, 
-        idx_t nw, 
+        size_type<matrix_t> ilo, 
+        size_type<matrix_t> ihi, 
+        size_type<matrix_t> nw, 
         matrix_t &A, 
         vector_t &s, 
         matrix_t &Z, 
-        idx_t &ns, 
-        idx_t &nd, 
-        francis_opts_t<work_t,idx_t> &opts )
+        size_type<matrix_t> &ns, 
+        size_type<matrix_t> &nd, 
+        francis_opts_t< size_type<matrix_t> > &opts )
     {
 
         using T = type_t<matrix_t>;
         using real_t = real_type<T>;
+        using idx_t = size_type<matrix_t>;
         using pair = std::pair<idx_t, idx_t>;
         using std::max;
         using std::min;
@@ -214,7 +212,7 @@ namespace tlapack
         
         // Options to forward
         auto mQROpts = opts; mQROpts.work = work;
-        auto&& gehrdOpts = gehrd_opts_t<work_t>{ work };
+        auto&& gehrdOpts = gehrd_opts_t<idx_t>{ work };
 
         // Define workspace matrices
         // We use the lower triangular part of A as workspace
@@ -415,7 +413,7 @@ namespace tlapack
                     v[i] = conj(V(0, i));
                 }
                 larfg(v, tau);
-                auto work2 = create_workspace_opts(slice(WV, pair{0, jw}, 1));
+                auto work2 = workspace_opts_t<>(slice(WV, pair{0, jw}, 1));
                 auto TW_slice = slice(TW, pair{0, ns}, pair{0, jw});
                 larf(Side::Left, v, conj(tau), TW_slice, work2);
                 TW_slice = slice(TW, pair{0, jw}, pair{0, ns});
@@ -429,7 +427,7 @@ namespace tlapack
                 auto tau = slice(WV, pair{0, jw}, 0);
                 gehrd(0, ns, TW, tau, gehrdOpts);
 
-                auto work2 = create_workspace_opts(slice(WV, pair{0, jw}, 1));
+                auto work2 = workspace_opts_t<>(slice(WV, pair{0, jw}, 1));
                 unmhr(Side::Right, Op::NoTrans, 0, ns, TW, tau, V, work2);
             }
         }

@@ -23,7 +23,6 @@ namespace tlapack
     template <
         class matrix_t,
         class vector_t,
-        class work_t = undefined_t,
         enable_if_t<is_complex<type_t<vector_t>>::value, bool> = true
     >
     inline constexpr
@@ -36,13 +35,9 @@ namespace tlapack
         vector_t &s, 
         matrix_t &Z, 
         size_t& worksize,
-        const workspace_opts_t<work_t> &opts = {} )
+        const workspace_opts_t<> &opts = {} )
     {
-        using commonT   = scalar_type< type_t<matrix_t> >;
-        using idx_t     = size_type< matrix_t >;
-        using matrixV_t = deduce_work_t< work_t, legacyMatrix<commonT,idx_t> >;
-        using T         = type_t< matrixV_t >;
-
+        using T  = type_t< matrix_t >;
         worksize = sizeof(T) * (3*size(s)/2);
     }
 
@@ -79,7 +74,6 @@ namespace tlapack
     template <
         class matrix_t,
         class vector_t,
-        class work_t = undefined_t,
         enable_if_t<is_complex<type_t<vector_t>>::value, bool> = true
     >
     void multishift_QR_sweep(
@@ -90,19 +84,15 @@ namespace tlapack
         matrix_t &A, 
         vector_t &s, 
         matrix_t &Z, 
-        const workspace_opts_t<work_t> &opts = {} )
+        const workspace_opts_t<> &opts = {} )
     {
-        using commonT   = scalar_type< type_t<matrix_t> >;
-        using idx_t     = size_type< matrix_t >;
-        using matrixV_t = deduce_work_t< work_t, legacyMatrix<commonT,idx_t> >;
-
         using TA = type_t<matrix_t>;
         using real_t = real_type<TA>;
         using idx_t = size_type<matrix_t>;
         using pair = std::pair<idx_t, idx_t>;
 
         // Functor
-        Create< matrixV_t > new_matrix;
+        Create< matrix_t > new_matrix;
 
         const real_t one(1);
         const real_t zero(0);

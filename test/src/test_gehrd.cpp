@@ -142,7 +142,7 @@ TEMPLATE_LIST_TEST_CASE("Hessenberg reduction is backward stable", "[eigenvalues
     DYNAMIC_SECTION("GEHRD with"
                     << " matrix = " << matrix_type << " n = " << n << " ilo = " << ilo << " ihi = " << ihi << " nb = " << nb)
     {
-        gehrd_opts_t<> opts;
+        gehrd_opts_t<idx_t> opts;
         opts.nb = nb;
         opts.nx_switch = 2;
         tlapack::gehrd(ilo, ihi, H, tau, opts);

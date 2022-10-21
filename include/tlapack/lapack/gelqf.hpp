@@ -20,27 +20,23 @@ namespace tlapack
     /**
      * Options struct for gelqf
      */
-    template<
-        class work_t = undefined_t,
-        class idx_t = size_type< deduce_work_t< work_t, legacyMatrix<byte> > >
-    >
-    struct gelqf_opts_t : public workspace_opts_t<work_t>
+    template< class idx_t = size_t >
+    struct gelqf_opts_t : public workspace_opts_t<>
     {
-        // Use constructors from workspace_opts_t<work_t>
-        using workspace_opts_t<work_t>::workspace_opts_t;
+        // Use constructors from workspace_opts_t<>
+        using workspace_opts_t<>::workspace_opts_t;
 
         idx_t nb = 32; ///< Block size
     };
 
     template<
         typename matrix_t,
-        class work_t = undefined_t,
         class idx_t = size_type< matrix_t>
     >
     inline constexpr
     void gelqf_worksize(
         matrix_t &A, matrix_t &TT, size_t& worksize,
-        const gelqf_opts_t<work_t,idx_t> &opts = {} )
+        const gelqf_opts_t<idx_t> &opts = {} )
     {
         // constants
         const idx_t m = nrows(A);
@@ -103,10 +99,9 @@ namespace tlapack
      */
     template<
         typename matrix_t,
-        class work_t = undefined_t,
         class idx_t = size_type<matrix_t>
     >
-    int gelqf(matrix_t &A, matrix_t &TT, const gelqf_opts_t<work_t,idx_t> &opts = {})
+    int gelqf(matrix_t &A, matrix_t &TT, const gelqf_opts_t<idx_t> &opts = {})
     {
         using range = std::pair<idx_t, idx_t>;
 
@@ -130,7 +125,7 @@ namespace tlapack
         }();
         
         // Options to forward
-        auto&& gelq2Opts = workspace_opts_t<work_t>{ work };
+        auto&& gelq2Opts = workspace_opts_t<>{ work };
 
         for (idx_t j = 0; j < k; j += nb)
         {
@@ -152,7 +147,8 @@ namespace tlapack
                 // Apply H to A(j+ib:m,j:n) from the right
                 auto A12 = slice(A, range(j + ib, m), range(j, n));
                 
-                auto work1 = create_workspace_opts( slice(TT, range(j + ib, m), range(0, ib)) );
+                auto work1 = workspace_opts_t<undefined_t>(
+                                slice(TT, range(j + ib, m), range(0, ib)) );
                 larfb(
                     Side::Right,
                     Op::NoTrans,

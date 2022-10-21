@@ -27,14 +27,13 @@ namespace tlapack {
  * 
  * @ingroup gehrd
  */
-template<
-    class matrix_t, class vector_t, class work_t = undefined_t >
+template< class matrix_t, class vector_t >
 int unghr(
     size_type< matrix_t > ilo,
     size_type< matrix_t > ihi,
     matrix_t& A,
     vector_t& tau,
-    const workspace_opts_t<work_t>& opts = {} )
+    const workspace_opts_t<>& opts = {} )
 {
     using T      = type_t< matrix_t >;
     using idx_t  = size_type< matrix_t >;
@@ -91,14 +90,14 @@ int unghr(
     return 0;
 }
 
-template< class matrix_t, class vector_t, class work_t = undefined_t >
+template< class matrix_t, class vector_t >
 inline constexpr
 void unghr_worksize(
     size_type< matrix_t > ilo,
     size_type< matrix_t > ihi,
     matrix_t& A,
     vector_t& tau,
-    size_t& worksize, const workspace_opts_t<work_t>& opts = {} )
+    size_t& worksize, const workspace_opts_t<>& opts = {} )
 {
     using T      = type_t< matrix_t >;
     using idx_t  = size_type< matrix_t >;

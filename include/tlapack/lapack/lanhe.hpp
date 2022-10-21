@@ -16,6 +16,36 @@
 
 namespace tlapack {
 
+template< class norm_t, class uplo_t, class matrix_t >
+inline constexpr
+void lanhe_worksize(
+    norm_t normType,
+    uplo_t uplo,
+    const matrix_t& A,
+    size_t& worksize )
+{
+    worksize = 0;
+}
+
+template< class norm_t, class uplo_t, class matrix_t >
+inline constexpr
+void lanhe_worksize(
+    norm_t normType,
+    uplo_t uplo,
+    const matrix_t& A,
+    size_t& worksize,
+    const workspace_opts_t<>& opts )
+{
+    using T     = type_t< matrix_t >;
+    using idx_t = size_type< matrix_t >;
+    using vectorw_t = legacyVector<T,idx_t>;
+
+    if ( normType == Norm::Inf || normType == Norm::One )
+        worksize = sizeof( type_t< vectorw_t > ) * nrows(A);
+    else
+        worksize = 0;
+}
+
 /** Calculates the norm of a hermitian matrix.
  * 
  * @tparam norm_t Either Norm or any class that implements `operator Norm()`.
@@ -189,25 +219,6 @@ lanhe( norm_t normType, uplo_t uplo, const matrix_t& A )
     return norm;
 }
 
-template< class norm_t, class uplo_t, class matrix_t, class work_t = undefined_t >
-inline constexpr
-void lanhe_worksize(
-    norm_t normType,
-    uplo_t uplo,
-    const matrix_t& A,
-    size_t& worksize,
-    const workspace_opts_t<work_t>& opts )
-{
-    using T     = type_t< matrix_t >;
-    using idx_t = size_type< matrix_t >;
-    using vectorw_t = deduce_work_t< work_t, legacyVector<T,idx_t> >;
-
-    if ( normType == Norm::Inf || normType == Norm::One )
-        worksize = sizeof( type_t< vectorw_t > ) * nrows(A);
-    else
-        worksize = 0;
-}
-
 /** Calculates the norm of a hermitian matrix.
  * 
  * Code optimized for the infinity and one norm on column-major layouts using a workspace
@@ -218,9 +229,9 @@ void lanhe_worksize(
  * 
  * @ingroup auxiliary
  */
-template< class norm_t, class uplo_t, class matrix_t, class work_t = undefined_t >
+template< class norm_t, class uplo_t, class matrix_t >
 auto
-lanhe( norm_t normType, uplo_t uplo, const matrix_t& A, const workspace_opts_t<work_t>& opts )
+lanhe( norm_t normType, uplo_t uplo, const matrix_t& A, const workspace_opts_t<>& opts )
 {
     using T      = type_t<matrix_t>;
     using real_t = real_type< T >;
@@ -244,7 +255,7 @@ lanhe( norm_t normType, uplo_t uplo, const matrix_t& A, const workspace_opts_t<w
         // so as to do one pass on the data in a contiguous way when computing
         // the infinite and one norm
 
-        using vectorw_t = deduce_work_t< work_t, legacyVector<T,idx_t> >;
+        using vectorw_t = legacyVector<T,idx_t>;
 
         // constants
         const idx_t n = nrows(A);

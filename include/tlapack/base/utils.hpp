@@ -1011,11 +1011,17 @@ matrix_in_bytes( const legacyMatrix<byte>& A ) noexcept {
 /// Used to inform Undefined Workspace type
 class undefined_t {};
 
+namespace internal {
+    template<>
+    struct sizet_trait< undefined_t, int > {
+        using type = std::size_t;
+    };
+}
+
 /// Workspace options
-template< class work_type = undefined_t >
+template< class ... work_t >
 struct workspace_opts_t
 {
-    using work_t = work_type;   ///< Workspace matrix type
     Workspace work;             ///< Workspace object
 
     inline constexpr
@@ -1024,9 +1030,10 @@ struct workspace_opts_t
     inline constexpr
     workspace_opts_t( const Workspace& w ) : work(w) { }
 
+    template< class matrix_t >
     inline constexpr
-    workspace_opts_t( const work_t& W )
-    : work( matrix_in_bytes(legacy_matrix(W)) ) { }
+    workspace_opts_t( const matrix_t& A )
+    : work( matrix_in_bytes(legacy_matrix(A)) ) { }
 };
 
 template< class work_type, class work_default >
@@ -1042,10 +1049,104 @@ struct deduce_work<undefined_t,work_default> {
 template< class work_type, class work_default >
 using deduce_work_t = typename deduce_work<work_type,work_default>::type;
 
-template< class work_t >
-inline constexpr
-workspace_opts_t<work_t>
-create_workspace_opts( const work_t& W ){ return workspace_opts_t<work_t>(W); }
+struct workinfo_t {
+    size_t m = 0;
+    size_t n = 0;
+
+    inline constexpr
+    size_t size() const { return m*n; }
+};
+
+    // Common matrix type deduction
+
+    // for zero types
+    template< typename... matrix_t >
+    struct matrix_type_traits;
+
+    /// define matrix_type<> type alias
+    template< typename... matrix_t >
+    using matrix_type = typename matrix_type_traits< matrix_t... >::type;
+
+    // for one type
+    template< typename matrix_t >
+    struct matrix_type_traits< matrix_t >
+    {
+        using type = typename std::decay<matrix_t>::type;
+    };
+
+    // for two types
+    // should be especialized for every new matrix class
+    template< typename matrixA_t, typename matrixB_t >
+    struct matrix_type_traits< matrixA_t, matrixB_t >
+    {
+        using T = scalar_type< type_t<matrixA_t>, type_t<matrixB_t> >;
+        using idx_t = size_type<matrixA_t>;
+
+        static constexpr Layout LA = layout<matrixA_t>;
+        static constexpr Layout LB = layout<matrixB_t>;
+        static constexpr Layout L  =
+            ((LA == Layout::RowMajor) && (LB == Layout::RowMajor))
+                ? Layout::RowMajor
+                : Layout::ColMajor;
+
+        using type = legacyMatrix<T,idx_t,L>;
+    };
+
+    // for two types, one undefined
+    template< typename matrix_t >
+    struct matrix_type_traits< matrix_t, undefined_t >
+    {
+        using type = matrix_t;
+    };
+    
+    // for two types, one undefined
+    template< typename matrix_t >
+    struct matrix_type_traits< undefined_t, matrix_t >
+    {
+        using type = matrix_t;
+    };
+
+    // for three or more types
+    template< typename matrixA_t, typename matrixB_t, typename... matrix_t >
+    struct matrix_type_traits< matrixA_t, matrixB_t, matrix_t... >
+    {
+        using type = matrix_type< matrix_type< matrixA_t, matrixB_t >, matrix_t... >;
+    };
+
+    // Common vector type deduction
+
+    // for zero types
+    template< typename... vector_t >
+    struct vector_type_traits;
+
+    /// define vector_type<> type alias
+    template< typename... vector_t >
+    using vector_type = typename vector_type_traits< vector_t... >::type;
+
+    // for one type
+    template< typename vector_t >
+    struct vector_type_traits< vector_t >
+    {
+        using type = typename std::decay<vector_t>::type;
+    };
+
+    // for two types
+    // should be especialized for every new vector class
+    template< typename vecA_t, typename vecB_t >
+    struct vector_type_traits< vecA_t, vecB_t >
+    {
+        using T = scalar_type< type_t<vecA_t>, type_t<vecB_t> >;
+        using idx_t = size_type<vecA_t>;
+
+        using type = legacyVector<T,idx_t,idx_t>;
+    };
+
+    // for three or more types
+    template< typename vectorA_t, typename vectorB_t, typename... vector_t >
+    struct vector_type_traits< vectorA_t, vectorB_t, vector_t... >
+    {
+        using type = vector_type< vector_type< vectorA_t, vectorB_t >, vector_t... >;
+    };
 
 } // namespace tlapack
 

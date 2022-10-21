@@ -18,14 +18,14 @@ namespace tlapack {
 
 template<
     class matrixA_t, class matrixC_t, class tau_t,
-    class side_t, class trans_t, class work_t = undefined_t >
+    class side_t, class trans_t >
 inline constexpr
 void unm2r_worksize(
     side_t side, trans_t trans,
     matrixA_t& A,
     const tau_t& tau,
     matrixC_t& C, size_t& worksize,
-    const workspace_opts_t<work_t>& opts = {} )
+    const workspace_opts_t<>& opts = {} )
 {
     using idx_t = size_type< matrixA_t >;
     using pair = std::pair<idx_t, idx_t>;
@@ -94,13 +94,13 @@ void unm2r_worksize(
  */
 template<
     class matrixA_t, class matrixC_t, class tau_t,
-    class side_t, class trans_t, class work_t = undefined_t >
+    class side_t, class trans_t >
 int unm2r(
     side_t side, trans_t trans,
     matrixA_t& A,
     const tau_t& tau,
     matrixC_t& C,
-    const workspace_opts_t<work_t>& opts = {} )
+    const workspace_opts_t<>& opts = {} )
 {
     using idx_t = size_type< matrixA_t >;
     using T     = type_t< matrixA_t >;
@@ -138,7 +138,7 @@ int unm2r(
     }();
         
     // Options to forward
-    auto&& larfOpts = workspace_opts_t<work_t>{ work };
+    auto&& larfOpts = workspace_opts_t<>{ work };
 
     // const expressions
     const bool positiveInc = (

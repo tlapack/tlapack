@@ -18,14 +18,11 @@ namespace tlapack
     /**
      * Options struct for gehrd
      */
-    template<
-        class work_t = undefined_t,
-        class idx_t = size_type< deduce_work_t< work_t, legacyMatrix<byte> > >
-    >
-    struct gehrd_opts_t : public workspace_opts_t<work_t>
+    template< class idx_t = size_t >
+    struct gehrd_opts_t : public workspace_opts_t<>
     {
-        // Use constructors from workspace_opts_t<work_t>
-        using workspace_opts_t<work_t>::workspace_opts_t;
+        // Use constructors from workspace_opts_t<>
+        using workspace_opts_t<>::workspace_opts_t;
 
         idx_t nb = 32; ///< Block size used in the blocked reduction
         idx_t nx_switch = 128; ///< If only nx_switch columns are left, the algorithm will use unblocked code
@@ -39,8 +36,7 @@ namespace tlapack
      */
     template <
         class matrix_t, 
-        class vector_t, 
-        class work_t = undefined_t, 
+        class vector_t,
         typename idx_t = size_type<matrix_t>
     >
     void gehrd_worksize(
@@ -49,11 +45,10 @@ namespace tlapack
         matrix_t &A, 
         vector_t &tau,
         size_t& worksize, 
-        const gehrd_opts_t<work_t,idx_t> &opts = {} )
+        const gehrd_opts_t<idx_t> &opts = {} )
     {
-        using commonT   = scalar_type< type_t<matrix_t>, type_t<vector_t> >;
-        using matrixW_t = deduce_work_t< work_t, legacyMatrix<commonT,idx_t> >;
-        using T         = type_t< matrixW_t >;
+        using work_t    = matrix_type<matrix_t,vector_t>;
+        using T         = type_t< work_t >;
 
         const idx_t n = ncols(A);
         const idx_t nb = std::min( opts.nb, ihi-ilo-1 );
@@ -103,8 +98,7 @@ namespace tlapack
      */
     template <
         class matrix_t, 
-        class vector_t, 
-        class work_t = undefined_t, 
+        class vector_t,
         typename idx_t = size_type<matrix_t>
     >
     int gehrd(
@@ -112,16 +106,15 @@ namespace tlapack
         size_type<matrix_t> ihi, 
         matrix_t &A, 
         vector_t &tau,
-        const gehrd_opts_t<work_t,idx_t> &opts = {} )
+        const gehrd_opts_t<idx_t> &opts = {} )
     {
-        using commonT   = scalar_type< type_t<matrix_t>, type_t<vector_t> >;
-        using matrixW_t = deduce_work_t< work_t, legacyMatrix<commonT,idx_t> >;
-        using T         = type_t< matrixW_t >;
+        using work_t    = matrix_type<matrix_t,vector_t>;
+        using T         = type_t< work_t >;
         using pair = pair<idx_t, idx_t>;
-        using TA = type_t< matrix_t >;
+        using TA   = type_t< matrix_t >;
 
         // Functor
-        Create<matrixW_t> new_matrix;
+        Create<work_t> new_matrix;
 
         // constants
         const TA one(1);
@@ -154,9 +147,8 @@ namespace tlapack
         }();
     
         // Options to forward
-        /// TODO: Change me if we implement transpose_t<matrixW_t>
+        /// TODO: Change me if we implement transpose_t<work_t>
         auto&& larfbOpts = workspace_opts_t< legacyMatrix<T,idx_t,Layout::RowMajor> >{ work };
-        /// TODO: Change me if matrices and vectors can use the same structure
         auto&& gehd2Opts = workspace_opts_t<>{ work };
 
         // Matrix Y

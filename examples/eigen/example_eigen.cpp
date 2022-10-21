@@ -51,11 +51,11 @@ int main( int argc, char** argv )
     Matrix<float, n, n> orthQ;
 
     // Compute QR decomposision in place
-    geqr2( Q, tau, workspace_opts_t<Eigen::VectorXf>{} ); // Use Eigen::VectorXf vectors as workspace
+    geqr2( Q, tau );
     // Copy the upper triangle to R
     lacpy( upperTriangle, slice(Q,pair{0,n},pair{0,n}), R );
     // Generate Q
-    ung2r( n, Q, tau, workspace_opts_t<Eigen::VectorXf>{} ); // Use Eigen::VectorXf vectors as workspace
+    ung2r( n, Q, tau );
 
     std::cout << "Q = " << std::endl << Q << std::endl;
     std::cout << std::endl;

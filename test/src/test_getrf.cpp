@@ -10,7 +10,6 @@
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 #include <tlapack/plugins/stdvector.hpp>
-#include <tlapack/plugins/legacyArray.hpp>
 #include <tlapack.hpp>
 #include <testutils.hpp>
 #include <testdefinitions.hpp>
@@ -24,6 +23,9 @@ TEMPLATE_LIST_TEST_CASE("LU factorization of a general m-by-n matrix", "[lqf]", 
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
     typedef real_type<T> real_t; // equivalent to using real_t = real_type<T>;
+
+    // Functor
+    Create<matrix_t> new_matrix;
 
     // m and n represent no. rows and columns of the matrices we will be testing respectively
     idx_t m = GENERATE(10, 20, 30);
@@ -39,8 +41,8 @@ TEMPLATE_LIST_TEST_CASE("LU factorization of a general m-by-n matrix", "[lqf]", 
     // Initialize matrices A, and A_copy to run tests on
     std::unique_ptr<T[]> A_(new T[m * n]);
     std::unique_ptr<T[]> A_copy_(new T[m * n]);
-    auto A = legacyMatrix<T, layout<matrix_t>>(m, n, &A_[0], layout<matrix_t> == Layout::ColMajor ? m : n);
-    auto A_copy = legacyMatrix<T, layout<matrix_t>>(m, n, &A_copy_[0], layout<matrix_t> == Layout::ColMajor ? m : n);
+    auto A = new_matrix( &A_[0], m, n );
+    auto A_copy = new_matrix( &A_copy_[0], m, n );
 
     // Update A with random numbers
     for (idx_t j = 0; j < n; ++j)

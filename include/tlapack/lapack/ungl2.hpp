@@ -17,11 +17,11 @@
 namespace tlapack
 {
 
-    template< class matrix_t, class vector_t, class work_t = undefined_t >
+    template< class matrix_t, class vector_t >
     inline constexpr
     void ungl2_worksize(
         matrix_t& Q, vector_t &tauw, size_t& worksize,
-        const workspace_opts_t<work_t>& opts = {} )
+        const workspace_opts_t<>& opts = {} )
     {
         using idx_t = size_type< matrix_t >;
 
@@ -63,8 +63,8 @@ namespace tlapack
      *
      * @ingroup ungl2
      */
-    template <typename matrix_t, class vector_t, class work_t = undefined_t>
-    int ungl2(matrix_t &Q, const vector_t &tauw, const workspace_opts_t<work_t>& opts = {})
+    template <typename matrix_t, class vector_t>
+    int ungl2(matrix_t &Q, const vector_t &tauw, const workspace_opts_t<>& opts = {})
     {
         using idx_t = size_type<matrix_t>;
         using T = type_t<matrix_t>;
@@ -91,7 +91,7 @@ namespace tlapack
         }();
         
         // Options to forward
-        auto&& larfOpts = workspace_opts_t<work_t>{ work };
+        auto&& larfOpts = workspace_opts_t<>{ work };
 
         // Initialise columns t:k-1 to rows of the unit matrix
         if (k > m)

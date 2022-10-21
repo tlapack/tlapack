@@ -17,12 +17,12 @@
 
 namespace tlapack {
 
-template< class matrix_t, class vector_t, class work_t = undefined_t >
+template< class matrix_t, class vector_t >
 inline constexpr
 void gehd2_worksize(
     size_type< matrix_t > ilo, size_type< matrix_t > ihi, matrix_t& A,
     vector_t &tau, size_t& worksize,
-    const workspace_opts_t<work_t>& opts = {} )
+    const workspace_opts_t<>& opts = {} )
 {
     using idx_t = size_type< matrix_t >;
     using pair  = pair<idx_t,idx_t>;
@@ -81,8 +81,8 @@ void gehd2_worksize(
  * 
  * @ingroup gehrd
  */
-template< class matrix_t, class vector_t, class work_t = undefined_t >
-int gehd2( size_type< matrix_t > ilo, size_type< matrix_t > ihi, matrix_t& A, vector_t &tau, const workspace_opts_t<work_t>& opts = {} )
+template< class matrix_t, class vector_t >
+int gehd2( size_type< matrix_t > ilo, size_type< matrix_t > ihi, matrix_t& A, vector_t &tau, const workspace_opts_t<>& opts = {} )
 {
     using idx_t = size_type< matrix_t >;
     using pair  = pair<idx_t,idx_t>;
@@ -108,7 +108,7 @@ int gehd2( size_type< matrix_t > ilo, size_type< matrix_t > ihi, matrix_t& A, ve
     }();
     
     // Options to forward
-    auto&& larfOpts = workspace_opts_t<work_t>{ work };
+    auto&& larfOpts = workspace_opts_t<>{ work };
 
     for(idx_t i = ilo; i < ihi-1; ++i) {
 

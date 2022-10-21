@@ -17,20 +17,16 @@
 
 namespace tlapack {
 
-template<
-    class side_t, class vector_t, class tau_t, class matrix_t,
-    class work_t = undefined_t
->
+template< class side_t, class vector_t, class tau_t, class matrix_t >
 inline constexpr
 void larf_worksize(
     side_t side,
     vector_t const& v, const tau_t& tau, matrix_t& C,
-    size_t& worksize, const workspace_opts_t<work_t>& opts = {} )
+    size_t& worksize, const workspace_opts_t<>& opts = {} )
 {
-    using commonT   = scalar_type< type_t<vector_t >, type_t<matrix_t> >;
+    using work_t    = vector_type< matrix_t, vector_t >;
     using idx_t     = size_type< matrix_t >;
-    using vectorw_t = deduce_work_t< work_t, legacyVector<commonT,idx_t,idx_t> >;
-    using T         = type_t< vectorw_t >;
+    using T         = type_t< work_t >;
 
     // constants
     const idx_t m = nrows(C);
@@ -68,25 +64,21 @@ void larf_worksize(
  * 
  * @ingroup auxiliary
  */
-template<
-    class side_t, class vector_t, class tau_t, class matrix_t,
-    class work_t = undefined_t
->
+template< class side_t, class vector_t, class tau_t, class matrix_t >
 void larf(
     side_t side,
     vector_t const& v, const tau_t& tau,
-    matrix_t& C, const workspace_opts_t<work_t>& opts = {} )
+    matrix_t& C, const workspace_opts_t<>& opts = {} )
 {
-    using commonT   = scalar_type< type_t<vector_t >, type_t<matrix_t> >;
+    using work_t    = vector_type< matrix_t, vector_t >;
     using idx_t     = size_type< matrix_t >;
-    using vectorw_t = deduce_work_t< work_t, legacyVector<commonT,idx_t> >;
-    using T         = type_t< vectorw_t >;
+    using T         = type_t< work_t >;
     using real_t    = real_type<T>;
 
     using pair = pair<idx_t,idx_t>;
 
     // Functor
-    Create<vectorw_t> new_vector;
+    Create<work_t> new_vector;
 
     // constants
     const real_t one(1);

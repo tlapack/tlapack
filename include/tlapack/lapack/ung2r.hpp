@@ -17,11 +17,11 @@
 
 namespace tlapack {
 
-template< class matrix_t, class vector_t, class work_t = undefined_t >
+template< class matrix_t, class vector_t >
 inline constexpr
 void ung2r_worksize(
     size_type< matrix_t > k, matrix_t& A, const vector_t &tau,
-    size_t& worksize, const workspace_opts_t<work_t>& opts = {} )
+    size_t& worksize, const workspace_opts_t<>& opts = {} )
 {
     using idx_t = size_type< matrix_t >;
 
@@ -60,9 +60,9 @@ void ung2r_worksize(
  * 
  * @ingroup geqrf
  */
-template< class matrix_t, class vector_t, class work_t = undefined_t >
+template< class matrix_t, class vector_t >
 int ung2r(
-    size_type< matrix_t > k, matrix_t& A, const vector_t &tau, const workspace_opts_t<work_t>& opts = {} )
+    size_type< matrix_t > k, matrix_t& A, const vector_t &tau, const workspace_opts_t<>& opts = {} )
 {
     using T      = type_t< matrix_t >;
     using idx_t  = size_type< matrix_t >;
@@ -92,7 +92,7 @@ int ung2r(
     }();
         
     // Options to forward
-    auto&& larfOpts = workspace_opts_t<work_t>{ work };
+    auto&& larfOpts = workspace_opts_t<>{ work };
     
     // Initialise columns k:n-1 to columns of the unit matrix
     for (idx_t j = k; j < n; ++j) {

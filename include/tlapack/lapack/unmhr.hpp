@@ -39,7 +39,7 @@ namespace tlapack
      *
      * @ingroup gehrd
      */
-    template < class matrix_t, class vector_t, class work_t = undefined_t >
+    template < class matrix_t, class vector_t >
     int unmhr(
         Side side,
         Op trans,
@@ -48,7 +48,7 @@ namespace tlapack
         matrix_t &A,
         vector_t &tau,
         matrix_t &C,
-        const workspace_opts_t<work_t>& opts = {} )
+        const workspace_opts_t<>& opts = {} )
     {
         using idx_t = size_type<matrix_t>;
         using pair = std::pair<idx_t, idx_t>;
@@ -62,7 +62,7 @@ namespace tlapack
         return 0;
     }
 
-    template < class matrix_t, class vector_t, class work_t = undefined_t >
+    template < class matrix_t, class vector_t >
     inline constexpr
     void unmhr_worksize(
         Side side,
@@ -72,7 +72,7 @@ namespace tlapack
         matrix_t &A,
         vector_t &tau,
         matrix_t &C, size_t& worksize,
-        const workspace_opts_t<work_t>& opts = {} )
+        const workspace_opts_t<>& opts = {} )
     {
         using idx_t = size_type<matrix_t>;
         using pair = std::pair<idx_t, idx_t>;
