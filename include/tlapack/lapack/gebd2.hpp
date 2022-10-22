@@ -98,6 +98,7 @@ namespace tlapack
     template <typename matrix_t, class vector_t>
     int gebd2(matrix_t &A, vector_t &tauv, vector_t &tauw, const workspace_opts_t<>& opts = {})
     {
+
         using idx_t = size_type<matrix_t>;
         using range = std::pair<idx_t, idx_t>;
 

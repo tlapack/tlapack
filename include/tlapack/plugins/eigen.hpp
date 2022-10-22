@@ -233,8 +233,9 @@ namespace tlapack{
         using idx_t     = Eigen::Index;
 
         inline constexpr auto
-        operator()( T* ptr, idx_t m, idx_t n ) const {
-            return Eigen::Map< matrix_t >( ptr, m, n );
+        operator()( std::vector<T>& v, idx_t m, idx_t n ) const {
+            v.resize(0);
+            return matrix_t( m, n );
         }
 
         inline constexpr auto

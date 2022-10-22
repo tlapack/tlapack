@@ -11,8 +11,6 @@
 #ifndef TLAPACK_LAHQR_SHIFTCOLUMN_HH
 #define TLAPACK_LAHQR_SHIFTCOLUMN_HH
 
-#include <complex>
-
 #include "tlapack/base/utils.hpp"
 
 namespace tlapack
@@ -37,21 +35,21 @@ namespace tlapack
     *
     * @ingroup geev
     */
-   template <
-       class matrix_t,
-       class vector_t,
-       typename TH = type_t<matrix_t>,
-       typename idx_t = size_type<matrix_t>,
-       typename real_t = real_type<TH>,
-       enable_if_t<!is_complex<TH>::value, bool> = true>
-   int lahqr_shiftcolumn(matrix_t &H, vector_t &v, std::complex<real_t> s1, std::complex<real_t> s2)
+   template < class matrix_t, class vector_t,
+      enable_if_t<!is_complex<type_t<matrix_t>>::value, bool> = true
+   >
+   int lahqr_shiftcolumn(
+      matrix_t &H, vector_t &v, 
+      complex_type<type_t<matrix_t>> s1, 
+      complex_type<type_t<matrix_t>> s2 )
    {
-
       // Using
+      using idx_t = size_type<matrix_t>;
+      using TH    = type_t<matrix_t>;
       
       // Constants
       idx_t n = ncols(H);
-      const real_t zero(0);
+      const TH zero(0);
 
       // Check arguments
       tlapack_check_false((n != 2 and n != 3) );
@@ -113,16 +111,18 @@ namespace tlapack
     *
     * @ingroup geev
     */
-   template <
-       class matrix_t,
-       class vector_t,
-       typename TH = type_t<matrix_t>,
-       typename idx_t = size_type<matrix_t>,
-       typename real_t = real_type<TH>,
-       enable_if_t<is_complex<TH>::value, bool> = true>
-   int lahqr_shiftcolumn(matrix_t &H, vector_t &v, std::complex<real_t> s1, std::complex<real_t> s2)
+   template < class matrix_t, class vector_t,
+      enable_if_t<is_complex<type_t<matrix_t>>::value, bool> = true
+   >
+   int lahqr_shiftcolumn(
+      matrix_t &H, vector_t &v, 
+      type_t<matrix_t> s1, 
+      type_t<matrix_t> s2 )
    {
-
+      // Using
+      using idx_t = size_type<matrix_t>;
+      using TH    = type_t<matrix_t>;
+      using real_t = real_type<TH>;
   
       // Constants
       idx_t n = ncols(H);

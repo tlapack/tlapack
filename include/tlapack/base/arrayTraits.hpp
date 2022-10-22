@@ -193,8 +193,8 @@ namespace tlapack {
      * idx_t m = 11;
      * idx_t n = 6;
      * 
-     * std::vector<T> A_container( m*n ); // Pre-allocated space
-     * auto A = new_matrix(&A_container[0], 11, 6);
+     * std::vector<T> A_container; // Empty vector
+     * auto A = new_matrix(A_container, 11, 6);
      * 
      * std::vector<T> B_container; // Empty vector
      * auto B = new_matrix(11, 6, B_container); // Allocates space

@@ -185,23 +185,7 @@ template <typename T,
 inline
 void rotg( T& a, T& b, T& c, T& s )
 {
-    // Constants
-    const T zero = 0;
-    const T one  = 1;
-    const T anorm = tlapack::abs(a);
-    const T bnorm = tlapack::abs(b);
-
-    T r;
-    ::lapack::lartg( a, b, &c, &s, &r );
-    
-    // Return information on a and b:
-    a = r;
-    if( s == zero || c == zero || (anorm > bnorm) )
-        b = s;
-    else if ( c != zero )
-        b = one / c;
-    else
-        b = one;
+    ::blas::rotg( &a, &b, &c, &s );
 }
 
 template <typename T,

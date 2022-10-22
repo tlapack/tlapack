@@ -29,15 +29,14 @@ namespace tlapack
         idx_t nb = 32; ///< Block size
     };
 
-    template<
-        typename matrix_t,
-        class idx_t = size_type< matrix_t>
-    >
+    template< typename matrix_t >
     inline constexpr
     void gelqf_worksize(
         matrix_t &A, matrix_t &TT, workinfo_t& workinfo,
-        const gelqf_opts_t<idx_t> &opts = {} )
+        const gelqf_opts_t< size_type<matrix_t> > &opts = {} )
     {
+        using idx_t = size_type<matrix_t>;
+
         // constants
         const idx_t m = nrows(A);
         const idx_t n = ncols(A);
@@ -97,12 +96,10 @@ namespace tlapack
      *
      * @ingroup gelqf
      */
-    template<
-        typename matrix_t,
-        class idx_t = size_type<matrix_t>
-    >
-    int gelqf(matrix_t &A, matrix_t &TT, const gelqf_opts_t<idx_t> &opts = {})
+    template< typename matrix_t >
+    int gelqf(matrix_t &A, matrix_t &TT, const gelqf_opts_t< size_type<matrix_t> > &opts = {})
     {
+        using idx_t = size_type<matrix_t>;
         using range = std::pair<idx_t, idx_t>;
 
         // constants

@@ -43,15 +43,10 @@ TEMPLATE_LIST_TEST_CASE("Result of unmhr matches result from unghr", "[eigenvalu
     const real_type<T> eps = uroundoff<real_type<T>>();
     const real_type<T> tol = n * 1.0e2 * eps;
 
-    // Define the matrices and vectors
-    std::unique_ptr<T[]> H_(new T[n * n]);
-    std::unique_ptr<T[]> C_(new T[m * n]);
-    std::unique_ptr<T[]> C_copy_(new T[m * n]);
-
-    // This only works for legacy matrix, we really work on that construct_matrix function
-    auto H = new_matrix( &H_[0], n, n );
-    auto C = new_matrix( &C_[0], m, n );
-    auto C_copy = new_matrix( &C_copy_[0], m, n );
+    // Define the matrices
+    std::vector<T> H_; auto H = new_matrix( H_, n, n );
+    std::vector<T> C_; auto C = new_matrix( C_, m, n );
+    std::vector<T> C_copy_; auto C_copy = new_matrix( C_copy_, m, n );
     std::vector<T> tau(n);
 
     vectorOfBytes workVec;

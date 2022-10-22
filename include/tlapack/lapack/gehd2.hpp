@@ -9,8 +9,6 @@
 #ifndef TLAPACK_GEHD2_HH
 #define TLAPACK_GEHD2_HH
 
-#include <iostream>
-
 #include "tlapack/base/utils.hpp"
 #include "tlapack/lapack/larfg.hpp"
 #include "tlapack/lapack/larf.hpp"

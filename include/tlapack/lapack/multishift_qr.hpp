@@ -11,8 +11,6 @@
 #ifndef TLAPACK_MULTISHIFT_QR_HH
 #define TLAPACK_MULTISHIFT_QR_HH
 
-#include <complex>
-#include <vector>
 #include <functional>
 
 #include "tlapack/base/utils.hpp"
@@ -253,7 +251,7 @@ namespace tlapack
         }();
         
         // Options to forward
-        auto aedOpts = opts; aedOpts.work = work;
+        opts.work = work;
         auto&& mQRsweepOpts = workspace_opts_t<>{ work };
 
         // itmax is the total number of QR iterations allowed.
@@ -338,7 +336,7 @@ namespace tlapack
 
             idx_t ls, ld;
             n_aed = n_aed + 1;
-            agressive_early_deflation(want_t, want_z, istart, istop, nw, A, w, Z, ls, ld, aedOpts);
+            agressive_early_deflation(want_t, want_z, istart, istop, nw, A, w, Z, ls, ld, opts);
 
             istop = istop - ld;
 
@@ -477,6 +475,7 @@ namespace tlapack
             is_complex< type_t<vector_t> >::value
         , int > = 0
     >
+    inline
     int multishift_qr(
         bool want_t, 
         bool want_z, 

@@ -11,12 +11,6 @@
 #ifndef TLAPACK_SCHUR_MOVE_HH
 #define TLAPACK_SCHUR_MOVE_HH
 
-#include <complex>
-#include <cmath>
-
-#include <iostream>
-#include <iomanip>
-
 #include "tlapack/base/utils.hpp"
 #include "tlapack/lapack/schur_move.hpp"
 
@@ -49,12 +43,11 @@ namespace tlapack
      *
      * @ingroup auxiliary
      */
-    template <
-        typename matrix_t,
-        typename idx_t = size_type<matrix_t>,
-        typename T = type_t<matrix_t>>
-    int schur_move(bool want_q, matrix_t &A, matrix_t &Q, idx_t &ifst, idx_t &ilst)
+    template < typename matrix_t >
+    int schur_move(bool want_q, matrix_t &A, matrix_t &Q, size_type<matrix_t> &ifst, size_type<matrix_t> &ilst)
     {
+        using idx_t = size_type<matrix_t>;
+        using T = type_t<matrix_t>;
 
         const idx_t n = ncols(A);
         const T zero(0);

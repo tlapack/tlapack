@@ -407,8 +407,9 @@ namespace tlapack {
         using matrix_t = legacyMatrix<T,idx_t,layout>;
 
         inline constexpr auto
-        operator()( T* ptr, idx_t m, idx_t n ) const {
-            return matrix_t( m, n, ptr );
+        operator()( std::vector<T>& v, idx_t m, idx_t n ) const {
+            v.resize( m*n ); // Allocates space in memory
+            return matrix_t( m, n, v.data() );
         }
 
         inline constexpr auto
@@ -435,9 +436,10 @@ namespace tlapack {
         using vector_t = legacyVector<T,idx_t,int_t,D>;
 
         inline constexpr auto
-        operator()( T* ptr, idx_t m, idx_t n ) const {
+        operator()( std::vector<T>& v, idx_t m, idx_t n ) const {
             assert( n == 1 );
-            return vector_t( m, ptr );
+            v.resize( m ); // Allocates space in memory
+            return vector_t( m, v.data() );
         }
 
         inline constexpr auto

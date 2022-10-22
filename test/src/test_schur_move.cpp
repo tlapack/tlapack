@@ -55,13 +55,9 @@ TEMPLATE_LIST_TEST_CASE("move of eigenvalue block gives correct results", "[eige
     const real_t eps = uroundoff<real_t>();
     const real_t tol = 1.0e2 * n * eps;
 
-    std::unique_ptr<T[]> A_(new T[n * n]);
-    std::unique_ptr<T[]> Q_(new T[n * n]);
-    std::unique_ptr<T[]> A_copy_(new T[n * n]);
-
-    auto A = new_matrix( &A_[0], n, n );
-    auto Q = new_matrix( &Q_[0], n, n );
-    auto A_copy = new_matrix( &A_copy_[0], n, n );
+    std::vector<T> A_; auto A = new_matrix( A_, n, n );
+    std::vector<T> Q_; auto Q = new_matrix( Q_, n, n );
+    std::vector<T> A_copy_; auto A_copy = new_matrix( A_copy_, n, n );
 
     // Generate random matrix in Schur form
     for (idx_t j = 0; j < n; ++j)
@@ -100,11 +96,8 @@ TEMPLATE_LIST_TEST_CASE("move of eigenvalue block gives correct results", "[eige
         schur_move(true, A, Q, ifst, ilst);
         // Calculate residuals
 
-        std::unique_ptr<T[]> _res(new T[n * n]);
-        std::unique_ptr<T[]> _work(new T[n * n]);
-
-        auto res = new_matrix( &_res[0], n, n );
-        auto work = new_matrix( &_work[0], n, n );
+        std::vector<T> res_; auto res = new_matrix( res_, n, n );
+        std::vector<T> work_; auto work = new_matrix( work_, n, n );
         auto orth_res_norm = check_orthogonality(Q, res);
         CHECK(orth_res_norm <= tol);
 

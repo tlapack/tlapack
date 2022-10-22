@@ -45,15 +45,12 @@ void run( size_t m, size_t n )
     bool verbose = false;
 
     // Arrays
-    std::unique_ptr<real_t[]> A_(new real_t[ m*n ]); // m-by-n
-    std::unique_ptr<real_t[]> R_(new real_t[ n*n ]); // n-by-n
-    std::unique_ptr<real_t[]> Q_(new real_t[ m*n ]); // m-by-n
     std::vector<real_t> tau ( n );
 
-    // Matrix views
-    auto A = new_matrix( &A_[0], m, n );
-    auto R = new_matrix( &R_[0], n, n );
-    auto Q = new_matrix( &Q_[0], m, n );
+    // Matrices
+    std::vector<real_t> A_; auto A = new_matrix( A_, m, n );
+    std::vector<real_t> R_; auto R = new_matrix( R_, n, n );
+    std::vector<real_t> Q_; auto Q = new_matrix( Q_, m, n );
 
     // Initialize arrays with junk
     for (size_t j = 0; j < n; ++j) {
@@ -123,8 +120,8 @@ void run( size_t m, size_t n )
     // 2) Compute ||Q'Q - I||_F
 
     {
-        std::unique_ptr<real_t[]> _work(new real_t[ n*n ]);
-        auto work = new_matrix( &_work[0], n, n );
+        std::vector<real_t> work_;
+        auto work = new_matrix( work_, n, n );
         for (size_t j = 0; j < n; ++j)
             for (size_t i = 0; i < n; ++i)
                 work(i,j) = static_cast<float>( 0xABADBABE );
@@ -147,8 +144,8 @@ void run( size_t m, size_t n )
     // 3) Compute ||QR - A||_F / ||A||_F
 
     {
-        std::unique_ptr<real_t[]> _work(new real_t[ m*n ]);
-        auto work = new_matrix( &_work[0], m, n );
+        std::vector<real_t> work_;
+        auto work = new_matrix( work_, m, n );
         for (size_t j = 0; j < n; ++j)
             for (size_t i = 0; i < m; ++i)
                 work(i,j) = static_cast<float>( 0xABADBABE );

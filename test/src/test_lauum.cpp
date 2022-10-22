@@ -34,11 +34,8 @@ TEMPLATE_LIST_TEST_CASE("LAUUM is stable", "[lauum]", types_to_test)
     const real_t eps = uroundoff<real_t>();
     const real_t tol = 1.0e2 * n * eps;
 
-    std::unique_ptr<T[]> A_(new T[n * n]);
-    std::unique_ptr<T[]> C_(new T[n * n]);
-
-    auto A = new_matrix( &A_[0], n, n );
-    auto C = new_matrix( &C_[0], n, n );
+    std::vector<T> A_; auto A = new_matrix( A_, n, n );
+    std::vector<T> C_; auto C = new_matrix( C_, n, n );
 
     // Generate random matrix
     for (idx_t j = 0; j < n; ++j)

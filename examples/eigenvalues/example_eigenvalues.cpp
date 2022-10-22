@@ -50,9 +50,9 @@ void run(size_t n)
     std::vector<T> tau(n);
 
     // Matrix views
-    std::vector<T> A_(n*n); auto A = new_matrix(A_.data(), n, n);
-    std::vector<T> H_(n*n); auto H = new_matrix(H_.data(), n, n);
-    std::vector<T> Q_(n*n); auto Q = new_matrix(Q_.data(), n, n);
+    std::vector<T> A_; auto A = new_matrix(A_, n, n);
+    std::vector<T> H_; auto H = new_matrix(H_, n, n);
+    std::vector<T> Q_; auto Q = new_matrix(Q_, n, n);
 
     // Initialize arrays with junk
     for (size_t j = 0; j < n; ++j)
@@ -160,7 +160,7 @@ void run(size_t n)
 
     {
         std::vector<T> work_;
-        auto work = new_matrix(work_.data(), n, n);
+        auto work = new_matrix(work_, n, n);
         for (size_t j = 0; j < n; ++j)
             for (size_t i = 0; i < n; ++i)
                 work(i, j) = static_cast<float>(0xABADBABE);
@@ -185,11 +185,11 @@ void run(size_t n)
     // 3) Compute ||QHQ* - A||_F / ||A||_F
 
     std::vector<T> Hcopy_;
-    auto H_copy = new_matrix(Hcopy_.data(), n, n);
+    auto H_copy = new_matrix(Hcopy_, n, n);
     tlapack::lacpy(tlapack::Uplo::General,H, H_copy);
     {
         std::vector<T> work_;
-        auto work = new_matrix(work_.data(), n, n);
+        auto work = new_matrix(work_, n, n);
         for (size_t j = 0; j < n; ++j)
             for (size_t i = 0; i < n; ++i)
                 work(i, j) = static_cast<float>(0xABADBABC);
@@ -215,7 +215,7 @@ void run(size_t n)
 
     if(verbose){
         std::vector<T> work_;
-        auto work = new_matrix(work_.data(), n, n);
+        auto work = new_matrix(work_, n, n);
         for (size_t j = 0; j < n; ++j)
             for (size_t i = 0; i < n; ++i)
                 work(i, j) = static_cast<float>(0xABADBABC);

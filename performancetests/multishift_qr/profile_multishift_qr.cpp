@@ -91,16 +91,13 @@ void run(size_t n, int seed, bool use_fortran)
     rand_generator gen;
     gen.seed(seed);
 
-    // Arrays
-    std::unique_ptr<T[]> A_(new T[lda * n]); // m-by-n
-    std::unique_ptr<T[]> H_(new T[ldh * n]); // n-by-n
-    std::unique_ptr<T[]> Q_(new T[ldq * n]); // m-by-n
+    // Vectors
     std::vector<T> tau(n);
 
-    // Matrix views
-    auto A = new_matrix(&A_[0], n, n);
-    auto H = new_matrix(&H_[0], n, n);
-    auto Q = new_matrix(&Q_[0], n, n);
+    // Matrices
+    std::vector<T> A_; auto A = new_matrix(A_, n, n);
+    std::vector<T> H_; auto H = new_matrix(H_, n, n);
+    std::vector<T> Q_; auto Q = new_matrix(Q_, n, n);
 
     // Initialize arrays with junk
     for (size_t j = 0; j < n; ++j)
@@ -214,8 +211,7 @@ void run(size_t n, int seed, bool use_fortran)
     // 2) Compute ||Q'Q - I||_F
 
     {
-        std::unique_ptr<T[]> _work(new T[n * n]);
-        auto work = new_matrix(&_work[0], n, n);
+        std::vector<T> work_; auto work = new_matrix(work_, n, n);
         for (size_t j = 0; j < n; ++j)
             for (size_t i = 0; i < n; ++i)
                 work(i, j) = static_cast<float>(0xABADBABE);
@@ -232,12 +228,10 @@ void run(size_t n, int seed, bool use_fortran)
 
     // 3) Compute ||QHQ* - A||_F / ||A||_F
 
-    std::unique_ptr<T[]> H_copy_(new T[n * n]);
-    auto H_copy = new_matrix(&H_copy_[0], n, n);
+    std::vector<T> H_copy_; auto H_copy = new_matrix(H_copy_, n, n);
     tlapack::lacpy(tlapack::Uplo::General, H, H_copy);
     {
-        std::unique_ptr<T[]> _work(new T[n * n]);
-        auto work = new_matrix(&_work[0], n, n);
+        std::vector<T> work_; auto work = new_matrix(work_, n, n);
 
         tlapack::gemm(tlapack::Op::NoTrans, tlapack::Op::NoTrans, (T)1.0, Q, H, work);
         tlapack::gemm(tlapack::Op::NoTrans, tlapack::Op::ConjTrans, (T)1.0, work, Q, H);

@@ -32,13 +32,9 @@ TEMPLATE_LIST_TEST_CASE("Conjugate Transpose gives correct result", "[util]", ty
     // Generate m
     idx_t m = GENERATE(1, 2, 3, 5, 10);
 
-    // Define the matrices and vectors
-    std::unique_ptr<T[]> A_(new T[n * m]);
-    std::unique_ptr<T[]> B_(new T[n * m]);
-
-    // This only works for legacy matrix, we really work on that construct_matrix function
-    auto A = new_matrix( &A_[0], m, n );
-    auto B = new_matrix( &B_[0], n, m );
+    // Define the matrices
+    std::vector<T> A_; auto A = new_matrix( A_, m, n );
+    std::vector<T> B_; auto B = new_matrix( B_, n, m );
 
     // Generate a random matrix in A
     for (idx_t j = 0; j < n; ++j)
@@ -75,13 +71,9 @@ TEMPLATE_LIST_TEST_CASE("Transpose gives correct result", "[util]", types_to_tes
     // Generate m
     idx_t m = GENERATE(1, 2, 3, 5, 10);
 
-    // Define the matrices and vectors
-    std::unique_ptr<T[]> A_(new T[n * m]);
-    std::unique_ptr<T[]> B_(new T[n * m]);
-
-    // This only works for legacy matrix, we really work on that construct_matrix function
-    auto A = new_matrix( &A_[0], m, n );
-    auto B = new_matrix( &B_[0], n, m );
+    // Define the matrices
+    std::vector<T> A_; auto A = new_matrix( A_, m, n );
+    std::vector<T> B_; auto B = new_matrix( B_, n, m );
 
     // Generate a random matrix in A
     for (idx_t j = 0; j < n; ++j)

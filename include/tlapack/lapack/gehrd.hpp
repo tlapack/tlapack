@@ -34,19 +34,16 @@ namespace tlapack
      * 
      * @ingroup gehrd
      */
-    template <
-        class matrix_t, 
-        class vector_t,
-        typename idx_t = size_type<matrix_t>
-    >
+    template < class matrix_t, class vector_t >
     void gehrd_worksize(
         size_type<matrix_t> ilo, 
         size_type<matrix_t> ihi, 
         matrix_t &A, 
         vector_t &tau,
         workinfo_t& workinfo, 
-        const gehrd_opts_t<idx_t> &opts = {} )
+        const gehrd_opts_t< size_type<matrix_t> > &opts = {} )
     {
+        using idx_t = size_type<matrix_t>;
         using work_t    = matrix_type<matrix_t,vector_t>;
         using T         = type_t< work_t >;
 
@@ -97,18 +94,15 @@ namespace tlapack
      *
      * @ingroup gehrd
      */
-    template <
-        class matrix_t, 
-        class vector_t,
-        typename idx_t = size_type<matrix_t>
-    >
+    template < class matrix_t, class vector_t >
     int gehrd(
         size_type<matrix_t> ilo, 
         size_type<matrix_t> ihi, 
         matrix_t &A, 
         vector_t &tau,
-        const gehrd_opts_t<idx_t> &opts = {} )
+        const gehrd_opts_t< size_type<matrix_t> > &opts = {} )
     {
+        using idx_t     = size_type<matrix_t>;
         using work_t    = matrix_type<matrix_t,vector_t>;
         using T         = type_t< work_t >;
         using pair = pair<idx_t, idx_t>;

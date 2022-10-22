@@ -43,11 +43,8 @@ TEMPLATE_LIST_TEST_CASE("bidiagonal reduction is backward stable", "[bidiagonal]
         const real_t eps = ulp<real_t>();
         const real_t tol = max(m, n) * eps;
 
-        std::unique_ptr<T[]> A_(new T[m * n]);
-        std::unique_ptr<T[]> A_copy_(new T[m * n]);
-
-        auto A = new_matrix( &A_[0], m, n );
-        auto A_copy = new_matrix( &A_copy_[0], m, n );
+        std::vector<T> A_; auto A = new_matrix( A_, m, n );
+        std::vector<T> A_copy_; auto A_copy = new_matrix( A_copy_, m, n );
 
         std::vector<T> tauv(n); // min of m and n
         std::vector<T> tauw(n); // min of m and n
@@ -67,8 +64,7 @@ TEMPLATE_LIST_TEST_CASE("bidiagonal reduction is backward stable", "[bidiagonal]
             gebd2(A, tauv, tauw, workOpts);
 
             // Get upper bidiagonal B
-            std::unique_ptr<T[]> B_(new T[m * n]);
-            auto B = new_matrix( &B_[0], m, n );
+            std::vector<T> B_; auto B = new_matrix( B_, m, n );
             laset(Uplo::General, zero, zero, B);
 
             B(0, 0) = A(0, 0);
@@ -80,21 +76,18 @@ TEMPLATE_LIST_TEST_CASE("bidiagonal reduction is backward stable", "[bidiagonal]
             real_t normB = lange(Norm::Max, B);
 
             // Generate unitary matrix Q of m-by-m
-            std::unique_ptr<T[]> Q_(new T[m * m]);
-            auto Q = new_matrix( &Q_[0], m, m );
+            std::vector<T> Q_; auto Q = new_matrix( Q_, m, m );
             lacpy(Uplo::Lower, A, Q);
 
             ung2r(n, Q, tauv, workOpts);
 
             // Test for Q's orthogonality
-            std::unique_ptr<T[]> _Wq(new T[m * m]);
-            auto Wq = new_matrix( &_Wq[0], m, m );
+            std::vector<T> Wq_; auto Wq = new_matrix( Wq_, m, m );
             auto orth_Q = check_orthogonality(Q, Wq);
             CHECK(orth_Q <= tol);
 
             // Generate unitary matrix Z of n-by-n
-            std::unique_ptr<T[]> Z_(new T[n * n]);
-            auto Z = new_matrix( &Z_[0], n, n );
+            std::vector<T> Z_; auto Z = new_matrix( Z_, n, n );
             laset(Uplo::General, zero, one, Z); // Initialize Z as identity matrix.
 
             // Slice Z down to Z11 of size (n-1)-by-(n-1) and copy upper A to Z11
@@ -105,16 +98,14 @@ TEMPLATE_LIST_TEST_CASE("bidiagonal reduction is backward stable", "[bidiagonal]
             ungl2(Z11, tauw, workOpts); // Note: the unitary matrix Z we get here is ConjTransed
 
             // Test for Z's orthogonality
-            std::unique_ptr<T[]> _Wz(new T[n * n]);
-            auto Wz = new_matrix( &_Wz[0], n, n );
+            std::vector<T> Wz_; auto Wz = new_matrix( Wz_, n, n );
             laset(Uplo::General, zero, one, Wz);
             auto orth_Z = check_orthogonality(Z, Wz);
             CHECK(orth_Z <= tol);
 
             // Test B = Q_H * A * Z
             // Generate a zero matrix K of size m-by-n to be the product of Q_H * A
-            std::unique_ptr<T[]> K_(new T[m * n]);
-            auto K = new_matrix( &K_[0], m, n );
+            std::vector<T> K_; auto K = new_matrix( K_, m, n );
             laset(Uplo::General, zero, zero, K);
             gemm(Op::ConjTrans, Op::NoTrans, real_t(1.), Q, A_copy, real_t(0), K);
 

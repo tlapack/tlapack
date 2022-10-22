@@ -29,26 +29,16 @@ void run( tlapack::idx_t m, tlapack::idx_t n, tlapack::idx_t k )
     // Functors for creating new matrices
     tlapack::Create<colmajor_matrix_t> new_colmajor_matrix;
     tlapack::Create<rowmajor_matrix_t> new_rowmajor_matrix;
-    
-    // Column Major data
-    std::vector<T> A_( m*k, T(0) );    // m-by-k
-    std::vector<T> B_( k*n, T(0) );    // k-by-n
-    std::vector<T> C_( m*n, T(0) );    // m-by-n
 
-    // Column Major Matrix views
-    auto A = new_colmajor_matrix( &A_[0], m, k );
-    auto B = new_colmajor_matrix( &B_[0], k, n );
-    auto C = new_colmajor_matrix( &C_[0], m, n );
+    // Column Major Matrices
+    std::vector<T> A_; auto A = new_colmajor_matrix( A_, m, k );
+    std::vector<T> B_; auto B = new_colmajor_matrix( B_, k, n );
+    std::vector<T> C_; auto C = new_colmajor_matrix( C_, m, n );
 
-    // Row Major data
-    std::vector<T> Ar_( m*k, T(0) );   // m-by-k
-    std::vector<T> Br_( k*n, T(0) );   // k-by-n
-    std::vector<T> Cr_( m*n, T(0) );   // m-by-n
-
-    // Row Major Matrix views
-    auto Ar = new_rowmajor_matrix( &Ar_[0], m, k );
-    auto Br = new_rowmajor_matrix( &Br_[0], k, n );
-    auto Cr = new_rowmajor_matrix( &Cr_[0], m, n );
+    // Row Major Matrices
+    std::vector<T> Ar_; auto Ar = new_rowmajor_matrix( Ar_, m, k );
+    std::vector<T> Br_; auto Br = new_rowmajor_matrix( Br_, k, n );
+    std::vector<T> Cr_; auto Cr = new_rowmajor_matrix( Cr_, m, n );
 
     // Number of runs to measure the minimum execution time
     int Nruns = 10;

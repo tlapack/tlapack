@@ -30,7 +30,6 @@
     typedef _MKL_Complex16 dComplex;
 #endif
 
-
 inline
 lapack_int LAPACKE_xpotrf2( int matrix_layout, char uplo, lapack_int n, float* a, lapack_int lda ) {
     return LAPACKE_spotrf2( matrix_layout, uplo, n, a, lda );

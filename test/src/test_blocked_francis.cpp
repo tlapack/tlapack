@@ -63,15 +63,10 @@ TEMPLATE_LIST_TEST_CASE("Multishift QR", "[eigenvalues][multishift_qr]", types_t
         ihi = n;
     }
 
-    // Define the matrices and vectors
-    std::unique_ptr<T[]> A_(new T[n * n]);
-    std::unique_ptr<T[]> H_(new T[n * n]);
-    std::unique_ptr<T[]> Q_(new T[n * n]);
-
-    // This only works for legacy matrix, we really work on that construct_matrix function
-    auto A = new_matrix( &A_[0], n, n );
-    auto H = new_matrix( &H_[0], n, n );
-    auto Q = new_matrix( &Q_[0], n, n );
+    // Define the matrices
+    std::vector<T> A_; auto A = new_matrix( A_, n, n );
+    std::vector<T> H_; auto H = new_matrix( H_, n, n );
+    std::vector<T> Q_; auto Q = new_matrix( Q_, n, n );
 
     if (matrix_type == "Random")
     {
@@ -154,11 +149,8 @@ TEMPLATE_LIST_TEST_CASE("Multishift QR", "[eigenvalues][multishift_qr]", types_t
         const real_type<T> eps = uroundoff<real_type<T>>();
         const real_type<T> tol = n * 1.0e2 * eps;
 
-        std::unique_ptr<T[]> _res(new T[n * n]);
-        std::unique_ptr<T[]> _work(new T[n * n]);
-
-        auto res = new_matrix( &_res[0], n, n );
-        auto work = new_matrix( &_work[0], n, n );
+        std::vector<T> res_; auto res = new_matrix( res_, n, n );
+        std::vector<T> work_; auto work = new_matrix( work_, n, n );
 
         // Calculate residuals
         auto orth_res_norm = check_orthogonality(Q, res);

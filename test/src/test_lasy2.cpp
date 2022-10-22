@@ -35,17 +35,11 @@ TEMPLATE_LIST_TEST_CASE("sylvester solver gives correct result", "[sylvester]", 
     const real_t eps = uroundoff<real_t>();
     const real_t tol = 1.0e2 * eps;
 
-    std::unique_ptr<T[]> TL_(new T[n1 * n1]);
-    std::unique_ptr<T[]> TR_(new T[n2 * n2]);
-    std::unique_ptr<T[]> B_(new T[n1 * n2]);
-    std::unique_ptr<T[]> X_(new T[n1 * n2]);
-    std::unique_ptr<T[]> X_exact_(new T[n1 * n2]);
-
-    auto TL = new_matrix( &TL_[0], n1, n1 );
-    auto TR = new_matrix( &TR_[0], n2, n2 );
-    auto B = new_matrix( &B_[0], n1, n2 );
-    auto X = new_matrix( &X_[0], n1, n2 );
-    auto X_exact = new_matrix( &X_exact_[0], n1, n2 );
+    std::vector<T> TL_; auto TL = new_matrix( TL_, n1, n1 );
+    std::vector<T> TR_; auto TR = new_matrix( TR_, n2, n2 );
+    std::vector<T> B_; auto B = new_matrix( B_, n1, n2 );
+    std::vector<T> X_; auto X = new_matrix( X_, n1, n2 );
+    std::vector<T> X_exact_; auto X_exact = new_matrix( X_exact_, n1, n2 );
 
     for (idx_t i = 0; i < n1; ++i)
         for (idx_t j = 0; j < n1; ++j)

@@ -39,10 +39,8 @@ TEMPLATE_LIST_TEST_CASE("LU factorization of a general m-by-n matrix", "[lqf]", 
     const real_t tol = max(m, n) * eps;
 
     // Initialize matrices A, and A_copy to run tests on
-    std::unique_ptr<T[]> A_(new T[m * n]);
-    std::unique_ptr<T[]> A_copy_(new T[m * n]);
-    auto A = new_matrix( &A_[0], m, n );
-    auto A_copy = new_matrix( &A_copy_[0], m, n );
+    std::vector<T> A_; auto A = new_matrix( A_, m, n );
+    std::vector<T> A_copy_; auto A_copy = new_matrix( A_copy_, m, n );
 
     // Update A with random numbers
     for (idx_t j = 0; j < n; ++j)

@@ -10,8 +10,6 @@
 #ifndef TLAPACK_AED_HH
 #define TLAPACK_AED_HH
 
-#include <complex>
-
 #include "tlapack/base/utils.hpp"
 #include "tlapack/lapack/larfg.hpp"
 #include "tlapack/lapack/larf.hpp"
@@ -210,7 +208,7 @@ namespace tlapack
         }();
         
         // Options to forward
-        auto mQROpts = opts; mQROpts.work = work;
+        opts.work = work;
         auto&& gehrdOpts = gehrd_opts_t<idx_t>{ work };
 
         // Define workspace matrices
@@ -238,7 +236,7 @@ namespace tlapack
         if( jw < opts.nmin )
             infqr = lahqr(true, true, 0, jw, TW, s_window, V);
         else{
-            infqr = multishift_qr(true, true, 0, jw, TW, s_window, V, mQROpts);
+            infqr = multishift_qr(true, true, 0, jw, TW, s_window, V, opts);
             for (idx_t j = 0; j < jw; ++j)
                 for (idx_t i = j+2; i < jw; ++i)
                     TW(i, j) = zero;
@@ -498,6 +496,30 @@ namespace tlapack
                 i = i + iblock;
             }
         }
+    }
+
+    template <
+        class matrix_t,
+        class vector_t,
+        enable_if_t<
+            is_complex< type_t<vector_t> >::value
+        , int > = 0
+    >
+    inline
+    void agressive_early_deflation(
+        bool want_t, 
+        bool want_z, 
+        size_type<matrix_t> ilo, 
+        size_type<matrix_t> ihi, 
+        size_type<matrix_t> nw, 
+        matrix_t &A, 
+        vector_t &s, 
+        matrix_t &Z, 
+        size_type<matrix_t> &ns, 
+        size_type<matrix_t> &nd )
+    {
+        francis_opts_t< size_type<matrix_t> > opts = {};
+        agressive_early_deflation( want_t, want_z, ilo, ihi, nw, A, s, Z, ns, nd, opts );
     }
 
 } // lapack

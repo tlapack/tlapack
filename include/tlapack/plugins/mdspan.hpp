@@ -175,14 +175,19 @@ namespace tlapack {
 
         template<std::enable_if_t< Exts::rank() == 1 ,int> =0>
         inline constexpr auto
-        operator()( ET* ptr, idx_t m, idx_t n ) const {
-                return mdspan<ET,extents_t,LP,AP>( ptr, m );
+        operator()( std::vector<ET>& v, idx_t m, idx_t n ) const
+        {
+            assert( n == 1 );
+            v.resize( m ); // Allocates space in memory
+            return mdspan<ET,extents_t,LP,AP>( v.data(), m );
         }
 
         template<std::enable_if_t< Exts::rank() == 2 ,int> =0>
         inline constexpr auto
-        operator()( ET* ptr, idx_t m, idx_t n ) const {
-                return mdspan<ET,extents_t,LP,AP>( ptr, m, n );
+        operator()( std::vector<ET>& v, idx_t m, idx_t n ) const
+        {
+            v.resize( m*n ); // Allocates space in memory
+            return mdspan<ET,extents_t,LP,AP>( v.data(), m, n );
         }
 
         template<std::enable_if_t< Exts::rank() == 2 ,int> =0>

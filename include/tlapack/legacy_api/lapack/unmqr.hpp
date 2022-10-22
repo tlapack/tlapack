@@ -10,7 +10,6 @@
 #ifndef TLAPACK_LEGACY_UNMQR_HH
 #define TLAPACK_LEGACY_UNMQR_HH
 
-#include <memory>
 #include "tlapack/lapack/unmqr.hpp"
 
 namespace tlapack {
@@ -93,10 +92,10 @@ inline int unmqr(
     const auto A_ = (side == Side::Left)
             ? colmajor_matrix<TA>( (TA*)A, m, k, lda )
             : colmajor_matrix<TA>( (TA*)A, n, k, lda );
-    const auto _tau = vector( (TA*)tau, k );
+    const auto tau_ = vector( (TA*)tau, k );
     auto C_ = colmajor_matrix<TC>( C, m, n, ldc );
 
-    return unmqr( side, trans, A_, _tau, C_ );
+    return unmqr( side, trans, A_, tau_, C_ );
 }
 
 }

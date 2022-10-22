@@ -10,9 +10,6 @@
 #ifndef TLAPACK_QR_SWEEP_HH
 #define TLAPACK_QR_SWEEP_HH
 
-#include <memory>
-#include <complex>
-
 #include "tlapack/base/utils.hpp"
 #include "tlapack/lapack/larfg.hpp"
 #include "tlapack/lapack/lahqr_shiftcolumn.hpp"

@@ -38,13 +38,9 @@ TEMPLATE_LIST_TEST_CASE("lu multiplication is backward stable", "[lu check][lu][
         const real_t eps = ulp<real_t>();
         const real_t tol = n * eps;
 
-        std::unique_ptr<T[]> L_(new T[n * n]);
-        std::unique_ptr<T[]> U_(new T[n * n]);
-        std::unique_ptr<T[]> A_(new T[n * n]);
-
-        auto L = new_matrix( &L_[0], n, n );
-        auto U = new_matrix( &U_[0], n, n );
-        auto A = new_matrix( &A_[0], n, n );
+        std::vector<T> L_; auto L = new_matrix( L_, n, n );
+        std::vector<T> U_; auto U = new_matrix( U_, n, n );
+        std::vector<T> A_; auto A = new_matrix( A_, n, n );
 
         // Generate n-by-n random matrix
         for (idx_t j = 0; j < n; ++j)

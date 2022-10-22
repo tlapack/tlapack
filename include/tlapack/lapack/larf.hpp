@@ -71,6 +71,8 @@ void larf(
     vector_t const& v, const tau_t& tau,
     matrix_t& C, const workspace_opts_t<>& opts = {} )
 {
+
+    // data traits
     using work_t    = vector_type< matrix_t, vector_t >;
     using idx_t     = size_type< matrix_t >;
     using T         = type_t< work_t >;

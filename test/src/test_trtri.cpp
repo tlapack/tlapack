@@ -35,11 +35,8 @@ TEMPLATE_LIST_TEST_CASE("TRTRI is stable", "[trtri]", types_to_test)
     const real_t eps = ulp<real_t>();
     const real_t tol = n * eps;
 
-    std::unique_ptr<T[]> A_(new T[n * n]);
-    std::unique_ptr<T[]> C_(new T[n * n]);
-
-    auto A = new_matrix( &A_[0], n, n );
-    auto C = new_matrix( &C_[0], n, n );
+    std::vector<T> A_; auto A = new_matrix( A_, n, n );
+    std::vector<T> C_; auto C = new_matrix( C_, n, n );
 
     // Generate random matrix in Schur form
     for (idx_t j = 0; j < n; ++j)

@@ -11,12 +11,6 @@
 #ifndef TLAPACK_SCHUR_SWAP_HH
 #define TLAPACK_SCHUR_SWAP_HH
 
-#include <complex>
-#include <cmath>
-
-#include <iostream>
-#include <iomanip>
-
 #include "tlapack/base/utils.hpp"
 
 namespace tlapack
@@ -43,13 +37,13 @@ namespace tlapack
      *
      * @ingroup auxiliary
      */
-    template <
-        typename matrix_t,
-        typename idx_t = size_type<matrix_t>,
-        typename T = type_t<matrix_t>,
-        enable_if_t<!is_complex<T>::value, bool> = true>
-    int schur_swap(bool want_q, matrix_t &A, matrix_t &Q, const idx_t &j0, const idx_t &n1, const idx_t &n2)
+    template < typename matrix_t,
+        enable_if_t<!is_complex<type_t<matrix_t>>::value, bool> = true
+    >
+    int schur_swap(bool want_q, matrix_t &A, matrix_t &Q, const size_type<matrix_t> &j0, const size_type<matrix_t> &n1, const size_type<matrix_t> &n2)
     {
+        using idx_t = size_type<matrix_t>;
+        using T = type_t<matrix_t>;
         using pair = pair<idx_t, idx_t>;
         using std::max;
 
@@ -136,8 +130,7 @@ namespace tlapack
             // Swap 1-by-1 block with 2-by-2 block
             //
 
-            std::unique_ptr<T[]> B_(new T[6]);
-            auto B = new_matrix(&B_[0], 3, 2);
+            std::vector<T> B_; auto B = new_matrix(B_, 3, 2);
             B(0, 0) = A(j0, j1);
             B(1, 0) = A(j1, j1) - A(j0, j0);
             B(2, 0) = A(j2, j1);
@@ -210,8 +203,7 @@ namespace tlapack
             // Swap 2-by-2 block with 1-by-1 block
             //
 
-            std::unique_ptr<T[]> B_(new T[6]);
-            auto B = new_matrix(&B_[0], 3, 2);
+            std::vector<T> B_; auto B = new_matrix(B_, 3, 2);
             B(0, 0) = A(j1, j2);
             B(1, 0) = A(j1, j1) - A(j2, j2);
             B(2, 0) = A(j1, j0);
@@ -279,8 +271,7 @@ namespace tlapack
         }
         if (n1 == 2 and n2 == 2)
         {
-            std::unique_ptr<T[]> D_(new T[4 * 4]);
-            auto D = new_matrix(&D_[0], 4, 4);
+            std::vector<T> D_; auto D = new_matrix(D_, 4, 4);
 
             auto AD_slice = slice(A, pair{j0, j0 + 4}, pair{j0, j0 + 4});
             lacpy(Uplo::General, AD_slice, D);
@@ -290,8 +281,7 @@ namespace tlapack
             const T small_num = safe_min<T>() / eps;
             T thresh = max(ten * eps * dnorm, small_num);
 
-            std::unique_ptr<T[]> V_(new T[4 * 2]);
-            auto V = new_matrix(&V_[0], 4, 2);
+            std::vector<T> V_; auto V = new_matrix(V_, 4, 2);
             auto X = slice(V, pair{0, 2}, pair{0, 2});
             auto TL = slice(D, pair{0, 2}, pair{0, 2});
             auto TR = slice(D, pair{2, 4}, pair{2, 4});
@@ -475,15 +465,15 @@ namespace tlapack
      *
      * @ingroup auxiliary
      */
-    template <
-        typename matrix_t,
-        typename idx_t = size_type<matrix_t>,
-        typename T = type_t<matrix_t>,
-        enable_if_t<is_complex<T>::value, bool> = true>
-    int schur_swap(bool want_q, matrix_t &A, matrix_t &Q, const idx_t &j0, const idx_t &n1, const idx_t &n2)
+    template < typename matrix_t,
+        enable_if_t<is_complex<type_t<matrix_t>>::value, bool> = true
+    >
+    int schur_swap(bool want_q, matrix_t &A, matrix_t &Q, const size_type<matrix_t> &j0, const size_type<matrix_t> &n1, const size_type<matrix_t> &n2)
     {
-                using pair = pair<idx_t, idx_t>;
-            using real_t = real_type<T>;
+        using idx_t = size_type<matrix_t>;
+        using T = type_t<matrix_t>;
+        using real_t = real_type<T>;
+        using pair = pair<idx_t, idx_t>;
 
         const idx_t n = ncols(A);
 

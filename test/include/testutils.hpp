@@ -134,8 +134,8 @@ namespace tlapack
 
         auto m = min(nrows(Q), ncols(Q));
 
-        std::unique_ptr<T[]> res_(new T[m * m]);
-        auto res = new_matrix(&res_[0], m, m);
+        std::vector<T> res_;
+        auto res = new_matrix(res_, m, m);
         return check_orthogonality(Q, res);
     }
 
@@ -196,10 +196,10 @@ namespace tlapack
 
         auto n = ncols(A);
 
-        std::unique_ptr<T[]> res_(new T[n * n]);
-        auto res = new_matrix(&res_[0], n, n);
-        std::unique_ptr<T[]> work_(new T[n * n]);
-        auto work = new_matrix(&work_[0], n, n);
+        std::vector<T> res_;
+        auto res = new_matrix(res_, n, n);
+        std::vector<T> work_;
+        auto work = new_matrix(work_, n, n);
 
         return check_similarity_transform(A, Q, B, res, work);
     }
