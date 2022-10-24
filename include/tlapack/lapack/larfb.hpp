@@ -18,16 +18,15 @@
 
 namespace tlapack {
 
-/** Worspace query for larfb
+/** Worspace query.
+ * @see larfb
  * 
- * @param[out] workinfo Workspace sizes.
- * 
- * @ingroup auxiliary
+ * @param[out] workinfo On return, contains the required workspace sizes.
  */
 template<
     class matrixV_t, class matrixT_t, class matrixC_t,
     class side_t, class trans_t, class direction_t, class storage_t,
-    class workW_t = undefined_t
+    class workW_t = void
 >
 inline constexpr
 void larfb_worksize(
@@ -98,7 +97,9 @@ void larfb_worksize(
  *     On entry, the m-by-n matrix C.
  *     On exit, C is overwritten by $H C$ or $H^H C$ or $C H$ or $C H^H$.
  *
- * @param[in] opts Options. @see workspace_opts_t.
+ * @param[in] opts Options.
+ *      - @c opts.work is used if whenever it has sufficient size.
+ *        The sufficient size can be obtained through a workspace query.
  *
  * @par Further Details
  *
@@ -130,7 +131,7 @@ void larfb_worksize(
 template<
     class matrixV_t, class matrixT_t, class matrixC_t,
     class side_t, class trans_t, class direction_t, class storage_t,
-    class workW_t = undefined_t
+    class workW_t = void
 >
 int larfb(
     side_t side, trans_t trans,

@@ -35,7 +35,10 @@ namespace tlapack
      *      - side = Side::Right & trans = Op::NoTrans:    $C := C Q$;
      *      - side = Side::Left  & trans = Op::ConjTrans:  $C := C Q^H$;
      *      - side = Side::Right & trans = Op::ConjTrans:  $C := Q^H C$.
-     * @param work Vector of size n-1.
+     *
+     * @param[in] opts Options.
+     *      @c opts.work is used if whenever it has sufficient size.
+     *      The sufficient size can be obtained through a workspace query.
      *
      * @ingroup gehrd
      */
@@ -62,6 +65,11 @@ namespace tlapack
         return 0;
     }
 
+    /** Worspace query.
+     * @see unmhr
+     * 
+     * @param[out] workinfo On return, contains the required workspace sizes.
+     */
     template < class matrix_t, class vector_t >
     inline constexpr
     void unmhr_worksize(

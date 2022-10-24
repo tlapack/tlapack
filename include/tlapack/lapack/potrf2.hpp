@@ -59,7 +59,8 @@ namespace tlapack {
  *      - On successful exit, the factor U or L from the Cholesky
  *      factorization $A = U^H U$ or $A = L L^H.$
  *
- * @param[in] ec Exception handling configuration at runtime.   
+ * @param[in] opts Options.
+ *      Define the behavior of Exception Handling.   
  *
  * @return = 0: successful exit
  * @return > 0: if return value = i, the leading minor of order i is not

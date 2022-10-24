@@ -17,6 +17,11 @@
 
 namespace tlapack {
 
+/** Worspace query.
+ * @see ung2r
+ * 
+ * @param[out] workinfo On return, contains the required workspace sizes.
+ */
 template< class matrix_t, class vector_t >
 inline constexpr
 void ung2r_worksize(
@@ -53,8 +58,10 @@ void ung2r_worksize(
 
  * @param[in] tau Real vector of length min(m,n).
  *      The scalar factors of the elementary reflectors.
- * 
- * @param work Vector of at least size n-1.
+ *
+ * @param[in] opts Options.
+ *      @c opts.work is used if whenever it has sufficient size.
+ *      The sufficient size can be obtained through a workspace query.
  * 
  * @return 0 if success 
  * 

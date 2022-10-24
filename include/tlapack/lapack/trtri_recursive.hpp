@@ -33,7 +33,8 @@ namespace tlapack
      *      On entry, the n-by-n triangular matrix to be inverted.
      *      On exit, the inverse.
      *
-     * @param[in] ec Exception handling configuration at runtime.
+     * @param[in] opts Options.
+     *      Define the behavior of checks for NaNs.
      *
      * @return = 0: successful exit
      * @return = i+1: if A(i,i) is exactly zero.  The triangular

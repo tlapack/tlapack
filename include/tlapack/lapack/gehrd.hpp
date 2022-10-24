@@ -28,11 +28,10 @@ namespace tlapack
         idx_t nx_switch = 128; ///< If only nx_switch columns are left, the algorithm will use unblocked code
     };
 
-    /** Worspace query for gehrd.
+    /** Worspace query.
+     * @see gehrd
      * 
-     * @param[out] workinfo Workspace sizes.
-     * 
-     * @ingroup gehrd
+     * @param[out] workinfo On return, contains the required workspace sizes.
      */
     template < class matrix_t, class vector_t >
     void gehrd_worksize(
@@ -89,8 +88,9 @@ namespace tlapack
      * @param[out] tau Real vector of length n-1.
      *      The scalar factors of the elementary reflectors.
      *
-     * @param[in,out] opts Struct containing the options
-     *      See gehrd_opts_t for more details
+     * @param[in] opts Options.
+     *      - @c opts.work is used if whenever it has sufficient size.
+     *        The sufficient size can be obtained through a workspace query.
      *
      * @ingroup gehrd
      */

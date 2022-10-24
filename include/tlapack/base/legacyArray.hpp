@@ -14,14 +14,7 @@
 #include "tlapack/base/arrayTraits.hpp"
 #include "tlapack/base/exceptionHandling.hpp"
 
-using std::enable_if_t;
-
 namespace tlapack {
-
-    namespace internal {
-        template<typename T> struct identity { typedef T type; };
-        template<typename T> using Id_t = typename identity<T>::type;
-    }
     
     struct one_t {
         inline constexpr operator int() const { return 1; }
@@ -38,7 +31,7 @@ namespace tlapack {
      * @tparam L Either Layout::ColMajor or Layout::RowMajor
      */
     template< class T, class idx_t = std::size_t, Layout L = Layout::ColMajor,
-        enable_if_t< (L == Layout::RowMajor) || (L == Layout::ColMajor), int > = 0
+        std::enable_if_t< (L == Layout::RowMajor) || (L == Layout::ColMajor), int > = 0
     >
     struct legacyMatrix {
         idx_t m, n;                 ///< Sizes
@@ -71,6 +64,18 @@ namespace tlapack {
         {
             tlapack_check_false( m < 0 );
             tlapack_check_false( n < 0 );
+        }
+        
+        /**
+         * @brief Converts a legacyMatrix<T,idx_t,L> to legacyMatrix<byte>
+
+         * @return constexpr legacyMatrix<byte> Column-major matrix.
+         */
+        inline constexpr legacyMatrix<byte> in_bytes() const {
+            if( L == Layout::ColMajor )
+                return legacyMatrix<byte>( m * sizeof(T), n, (byte*) ptr, ldim * sizeof(T) );
+            else // if( L == Layout::RowMajor )
+                return legacyMatrix<byte>( n * sizeof(T), m, (byte*) ptr, ldim * sizeof(T) );
         }
     };
 
@@ -147,15 +152,6 @@ namespace tlapack {
             tlapack_check_false( (kl + 1 > m && m > 0) || (ku + 1 > n && n > 0) );
         }
     };
-
-    // Workspace
-
-    /// Byte type
-    using byte = unsigned char;
-    /// Byte allocator
-    using byteAlloc = std::allocator<byte>;
-    /// Vector of bytes. May use a specialized allocator in future
-    using vectorOfBytes = std::vector<byte,byteAlloc>;
 
     // Workspace
     struct Workspace : public legacyMatrix<byte>
@@ -300,7 +296,7 @@ namespace tlapack {
     // Slice
     template< typename T, class idx_t, Layout layout, class SliceSpecCol >
     inline constexpr auto
-    slice( const legacyMatrix<T,idx_t,layout>& A, internal::Id_t<idx_t> rowIdx, SliceSpecCol&& cols ) noexcept {
+    slice( const legacyMatrix<T,idx_t,layout>& A, size_type<legacyMatrix<T,idx_t,layout>> rowIdx, SliceSpecCol&& cols ) noexcept {
         assert( cols.first >= 0 and cols.first < ncols(A));
         assert( cols.second >= 0 and cols.second <= ncols(A));
         assert( cols.first <= cols.second );
@@ -311,7 +307,7 @@ namespace tlapack {
     // Slice
     template< typename T, class idx_t, Layout layout, class SliceSpecRow >
     inline constexpr auto
-    slice( const legacyMatrix<T,idx_t,layout>& A, SliceSpecRow&& rows, internal::Id_t<idx_t> colIdx = 0 ) noexcept {
+    slice( const legacyMatrix<T,idx_t,layout>& A, SliceSpecRow&& rows, size_type<legacyMatrix<T,idx_t,layout>> colIdx = 0 ) noexcept {
         assert( rows.first >= 0 and rows.first < nrows(A));
         assert( rows.second >= 0 and rows.second <= nrows(A));
         assert( rows.first <= rows.second );
@@ -335,7 +331,7 @@ namespace tlapack {
     // Row
     template< typename T, class idx_t >
     inline constexpr auto
-    row( const legacyMatrix<T,idx_t>& A, internal::Id_t<idx_t> rowIdx ) noexcept {
+    row( const legacyMatrix<T,idx_t>& A, size_type<legacyMatrix<T,idx_t>> rowIdx ) noexcept {
         assert( rowIdx >= 0 and rowIdx < nrows(A));
         return legacyVector<T,idx_t,idx_t>( A.n, &A(rowIdx,0), A.ldim );
     }
@@ -343,7 +339,7 @@ namespace tlapack {
     // Row
     template< typename T, class idx_t >
     inline constexpr auto
-    row( const legacyMatrix<T,idx_t,Layout::RowMajor>& A, internal::Id_t<idx_t> rowIdx ) noexcept {
+    row( const legacyMatrix<T,idx_t,Layout::RowMajor>& A, size_type<legacyMatrix<T,idx_t,Layout::RowMajor>> rowIdx ) noexcept {
         assert( rowIdx >= 0 and rowIdx < nrows(A));
         return legacyVector<T,idx_t>( A.n, &A(rowIdx,0) );
     }
@@ -363,7 +359,7 @@ namespace tlapack {
     // Column
     template< typename T, class idx_t >
     inline constexpr auto
-    col( const legacyMatrix<T,idx_t>& A, internal::Id_t<idx_t> colIdx ) noexcept {
+    col( const legacyMatrix<T,idx_t>& A, size_type<legacyMatrix<T,idx_t>> colIdx ) noexcept {
         assert( colIdx >= 0 and colIdx < ncols(A));
         return legacyVector<T,idx_t>( A.m, &A(0,colIdx) );
     }
@@ -371,7 +367,7 @@ namespace tlapack {
     // Column
     template< typename T, class idx_t >
     inline constexpr auto
-    col( const legacyMatrix<T,idx_t,Layout::RowMajor>& A, internal::Id_t<idx_t> colIdx ) noexcept {
+    col( const legacyMatrix<T,idx_t,Layout::RowMajor>& A, size_type<legacyMatrix<T,idx_t,Layout::RowMajor>> colIdx ) noexcept {
         assert( colIdx >= 0 and colIdx < ncols(A));
         return legacyVector<T,idx_t,idx_t>( A.m, &A(0,colIdx), A.ldim );
     }
@@ -460,10 +456,6 @@ namespace tlapack {
     // -----------------------------------------------------------------------------
     // Cast to Legacy arrays
 
-    // template< typename T, class idx_t, Layout layout >
-    // inline constexpr auto
-    // legacy_matrix( legacyMatrix<T,idx_t,layout>& A ) noexcept { return A; }
-
     template< typename T, class idx_t, Layout layout >
     inline constexpr auto
     legacy_matrix( const legacyMatrix<T,idx_t,layout>& A ) noexcept { return A; }
@@ -479,10 +471,6 @@ namespace tlapack {
     legacy_matrix( const legacyVector<T,idx_t,one_t,direction>& v ) noexcept {
         return legacyMatrix<T,idx_t,Layout::ColMajor>( v.n, 1, v.ptr );
     }
-
-    // template< typename T, class idx_t, typename int_t, Direction direction >
-    // inline constexpr auto
-    // legacy_vector( legacyVector<T,idx_t,int_t,direction>& v ) noexcept { return v; }
 
     template< typename T, class idx_t, typename int_t, Direction direction >
     inline constexpr auto

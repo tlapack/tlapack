@@ -17,6 +17,11 @@
 
 namespace tlapack {
 
+/** Worspace query.
+ * @see geqr2
+ * 
+ * @param[out] workinfo On return, contains the required workspace sizes.
+ */
 template< class matrix_t, class vector_t >
 inline constexpr
 void geqr2_worksize(
@@ -63,8 +68,10 @@ void geqr2_worksize(
  *      product of elementary reflectors.
  * @param[out] tau Real vector of length min(m,n).
  *      The scalar factors of the elementary reflectors.
- * 
- * @param work Vector of size n-1.
+ *
+ * @param[in] opts Options.
+ *      - @c opts.work is used if whenever it has sufficient size.
+ *        The sufficient size can be obtained through a workspace query.
  * 
  * @ingroup geqrf
  */
@@ -111,7 +118,7 @@ int geqr2(
         // Define v := A[i:m,i] and C := A[i:m,i+1:n], and w := work[i:n-1]
         auto C = slice( A, pair{i,m}, pair{i+1,n} );
         
-        // C := I - conj(tau_i) v v^H
+        // C := ( I - conj(tau_i) v v^H ) C
         larf( left_side, v, conj(tau[i]), C, larfOpts );
 	}
     if( n-1 < m ) {

@@ -37,9 +37,6 @@ struct potrf_opts_t : public ec_opts_t
  * @tparam uplo_t
  *      Access type: Upper or Lower.
  *      Either Uplo or any class that implements `operator Uplo()`.
- * 
- * @tparam opts_t Struct with the members:
- *      opts_t::nb.
  *
  * @param[in] uplo
  *      - Uplo::Upper: Upper triangle of A is referenced;
@@ -57,10 +54,8 @@ struct potrf_opts_t : public ec_opts_t
  *      - On successful exit, the factor U or L from the Cholesky
  *      factorization $A = U^H U$ or $A = L L^H.$
  *
- * @param[in] opts Options. Default options are defined in @see potrf_opts_t.
- *
- * @param[in] ec Exception handling configuration at runtime.
- *      Default options are defined in ErrorCheck.
+ * @param[in] opts Options.
+ *      Define the behavior of checks for NaNs.
  *
  * @return 0: successful exit.
  * @return i, 0 < i <= n, if the leading minor of order i is not

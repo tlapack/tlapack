@@ -78,6 +78,11 @@ namespace tlapack
         idx_t nibble = 14;
     };
 
+    /** Worspace query.
+     * @see multishift_qr
+     * 
+     * @param[out] workinfo On return, contains the required workspace sizes.
+     */
     template <
         class matrix_t,
         class vector_t,
@@ -168,6 +173,15 @@ namespace tlapack
      *      On entry, the previously calculated Schur factors
      *      On exit, the orthogonal updates applied to A are accumulated
      *      into Z.
+     *
+     * @param[in,out] opts Options.
+     *      - @c opts.work is used if whenever it has sufficient size.
+     *        The sufficient size can be obtained through a workspace query.
+     *      - Output parameters
+     *          @c opts.n_aed,
+     *          @c opts.n_sweep and
+     *          @c opts.n_shifts_total
+     *      are updated inside the routine.
      *
      * @ingroup geev
      */

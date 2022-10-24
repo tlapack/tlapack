@@ -29,6 +29,11 @@ namespace tlapack
         idx_t nb = 32; ///< Block size
     };
 
+    /** Worspace query.
+     * @see gelqf
+     * 
+     * @param[out] workinfo On return, contains the required workspace sizes.
+     */
     template< typename matrix_t >
     inline constexpr
     void gelqf_worksize(
@@ -92,7 +97,9 @@ namespace tlapack
      *          ...
      *      \]
      * 
-     * @param nb Constant of block height.
+     * @param[in] opts Options.
+     *      - @c opts.work is used if whenever it has sufficient size.
+     *        The sufficient size can be obtained through a workspace query.
      *
      * @ingroup gelqf
      */
@@ -144,7 +151,7 @@ namespace tlapack
                 // Apply H to A(j+ib:m,j:n) from the right
                 auto A12 = slice(A, range(j + ib, m), range(j, n));
                 
-                auto work1 = workspace_opts_t<undefined_t>(
+                auto work1 = workspace_opts_t<void>(
                                 slice(TT, range(j + ib, m), range(0, ib)) );
                 larfb(
                     Side::Right,

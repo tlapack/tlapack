@@ -16,6 +16,11 @@
 
 namespace tlapack {
 
+/** Worspace query.
+ * @see lanhe
+ * 
+ * @param[out] workinfo On return, contains the required workspace sizes.
+ */
 template< class norm_t, class uplo_t, class matrix_t >
 inline constexpr
 void lanhe_worksize(
@@ -27,6 +32,11 @@ void lanhe_worksize(
     workinfo = {};
 }
 
+/** Worspace query.
+ * @see lanhe
+ * 
+ * @param[out] workinfo On return, contains the required workspace sizes.
+ */
 template< class norm_t, class uplo_t, class matrix_t >
 inline constexpr
 void lanhe_worksize(
@@ -225,8 +235,10 @@ lanhe( norm_t normType, uplo_t uplo, const matrix_t& A )
  * Code optimized for the infinity and one norm on column-major layouts using a workspace
  * of size at least n, where n is the number of rows of A.
  * @see lanhe( norm_t normType, uplo_t uplo, const matrix_t& A ).
- * 
- * @param work Vector of size at least n.
+ *
+ * @param[in] opts Options.
+ *      - @c opts.work is used if whenever it has sufficient size.
+ *        The sufficient size can be obtained through a workspace query.
  * 
  * @ingroup auxiliary
  */

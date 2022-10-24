@@ -182,7 +182,8 @@ iamax_nc( const vector_t& x )
  * @see iamax_ec( const vector_t& x ) for the version that check for NaNs.
  * 
  * @param[in] x The n-element vector x.
- * @param[in] ec Error check configuration.
+ * @param[in] opts Options.
+ *      Define the behavior of checks for NaNs.
  * 
  * @return In priority order:
  * 1. 0 if n <= 0,

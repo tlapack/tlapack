@@ -17,6 +17,11 @@
 namespace tlapack
 {
 
+    /** Worspace query.
+     * @see ungl2
+     * 
+     * @param[out] workinfo On return, contains the required workspace sizes.
+     */
     template< class matrix_t, class vector_t >
     inline constexpr
     void ungl2_worksize(
@@ -59,7 +64,9 @@ namespace tlapack
      *      tauw(j) must contain the scalar factor of the elementary
      *      reflector H(j), as returned by gelq2.
      *
-     * @param work Vector of size k.
+    * @param[in] opts Options.
+     *      @c opts.work is used if whenever it has sufficient size.
+     *      The sufficient size can be obtained through a workspace query.
      *
      * @ingroup ungl2
      */

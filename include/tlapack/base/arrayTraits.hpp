@@ -185,91 +185,84 @@ namespace tlapack {
      * @code{.cpp}
      * // matrix_t is a predefined type at this point
      * 
-     * using T = type_t<matrix_t>;
-     * using idx_t = size_type<matrix_t>;
+     * using T = tlapack::type_t<matrix_t>;
+     * using idx_t = tlapack::size_type<matrix_t>;
      * 
-     * Create<matrix_t> new_matrix; // Creates the functor
+     * tlapack::Create<matrix_t> new_matrix; // Creates the functor
      * 
      * idx_t m = 11;
      * idx_t n = 6;
      * 
      * std::vector<T> A_container; // Empty vector
-     * auto A = new_matrix(A_container, 11, 6);
+     * auto A = new_matrix(A_container, m, n); // Initialize A_container if needed
      * 
-     * std::vector<T> B_container; // Empty vector
-     * auto B = new_matrix(11, 6, B_container); // Allocates space
+     * tlapack::vectorOfBytes B_container; // Empty vector
+     * auto B = new_matrix(
+     *  tlapack::alloc_workspace( B_container, m*n*sizeof(T) ),
+     *  m, n ); // B_container stores allocated memory
      * 
-     * tlapack::vectorOfBytes C_container; // Empty vector of bytes
-     * auto C = new_matrix(11, 6, C_container); // Allocates space
+     * tlapack::vectorOfBytes C_container; // Empty vector
+     * Workspace W; // Empty workspace
+     * auto C = new_matrix(
+     *  tlapack::alloc_workspace( C_container, m*n*sizeof(T) ),
+     *  m, n, W ); // W receives the updated workspace, i.e., without the space taken by C
      * @endcode
      */
     template< class matrix_t > class Create {
 
         static_assert(false && sizeof(matrix_t), "Must use correct specialization");
 
-        // /**
-        //  * @brief Creates a matrix using preallocated memory
-        //  * 
-        //  * @param[in] ptr   Pointer to the preallocated memory
-        //  * @param[in] m     Number of rows
-        //  * @param[in] n     Number of Columns
-        //  * 
-        //  * @return The matrix using the preallocated memory
-        //  */
-        // template< class T, class idx_t >
-        // inline constexpr auto
-        // operator()( T* ptr, idx_t m, idx_t n ) const {
-        //     return matrix_t();
-        // }
+        /**
+         * @brief Creates an object (matrix or vector)
+         * 
+         * @param[out] v
+         *      Vector that can be used to reference allocated memory.
+         * @param[in] m Number of rows
+         * @param[in] n Number of Columns
+         * 
+         * @return The new object
+         */
+        template< class T, class idx_t >
+        inline constexpr auto
+        operator()( std::vector<T>& v, idx_t m, idx_t n ) const {
+            return matrix_t();
+        }
 
-        // /**
-        //  * @brief Creates a matrix using preallocated memory
-        //  * 
-        //  * @param[in] ptr   Pointer to the preallocated memory
-        //  * @param[in] m     Number of rows
-        //  * @param[in] n     Number of Columns
-        //  * @param[in] size  Preallocated size, for error checks
-        //  * 
-        //  * @return The matrix using the preallocated memory
-        //  */
-        // template< class T, class idx_t >
-        // inline constexpr auto
-        // operator()( T* ptr, idx_t m, idx_t n, size_t size ) const {
-        //     assert( size >= m*n );
-        //     return matrix_t();
-        // }
+        /**
+         * @brief Creates an object (matrix or vector)
+         * 
+         * @param[in] W
+         *      Workspace that references to allocated memory.
+         * @param[in] m Number of rows
+         * @param[in] n Number of Columns
+         * @param[out] rW
+         *      On exit, receives the updated workspace, i.e., that references
+         *      remaining allocated memory.
+         * 
+         * @return The new object
+         */
+        template< class idx_t, class Workspace >
+        inline constexpr auto
+        operator()( const Workspace& W, idx_t m, idx_t n, Workspace& rW ) const {
+            return matrix_t();
+        }
 
-        // /**
-        //  * @brief Creates a matrix
-        //  * 
-        //  * @param[in] m Number of rows
-        //  * @param[in] n Number of Columns
-        //  * @param[out] container
-        //  *      Vector that can be used to store some allocated memory.
-        //  * 
-        //  * @return The new matrix
-        //  */
-        // template< class T, class idx_t, class Allocator >
-        // inline constexpr auto
-        // operator()( idx_t m, idx_t n, std::vector<T,Allocator>& container ) const {
-        //     return matrix_t();
-        // }
-
-        // /**
-        //  * @brief Creates a matrix
-        //  * 
-        //  * @param[in] m Number of rows
-        //  * @param[in] n Number of Columns
-        //  * @param[out] container
-        //  *      Vector that can be used to store some allocated memory.
-        //  * 
-        //  * @return The new matrix
-        //  */
-        // template< class idx_t >
-        // inline constexpr auto
-        // operator()( idx_t m, idx_t n, vectorOfBytes& container ) const {
-        //     return matrix_t();
-        // }
+        /**
+         * @brief Creates an object (matrix or vector)
+         * 
+         * @param[in] W
+         *      Vector that can be used to reference allocated memory.
+         * @param[in] m Number of rows
+         * @param[in] n Number of Columns
+         * 
+         * @return The new object
+         */
+        template< class idx_t, class Workspace >
+        inline constexpr auto
+        operator()( const Workspace& W, idx_t m, idx_t n ) const {
+            Workspace rW;
+            return operator()( W, m, n, rW );
+        }
     };
 }
 

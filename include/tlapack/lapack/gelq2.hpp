@@ -18,6 +18,11 @@
 namespace tlapack
 {
 
+    /** Worspace query.
+     * @see gelq2
+     * 
+     * @param[out] workinfo On return, contains the required workspace sizes.
+     */
     template< class matrix_t, class vector_t >
     inline constexpr
     void gelq2_worksize(
@@ -68,7 +73,9 @@ namespace tlapack
      * @param[out] tauw Complex vector of length min(m,n).
      *      The scalar factors of the elementary reflectors.
      *
-     * @param work Vector of size m.
+     * @param[in] opts Options.
+     *      - @c opts.work is used if whenever it has sufficient size.
+     *        The sufficient size can be obtained through a workspace query.
      *
      * @ingroup gelqf
      */

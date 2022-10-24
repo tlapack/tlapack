@@ -16,6 +16,11 @@
 
 namespace tlapack {
 
+/** Worspace query.
+ * @see unm2r
+ * 
+ * @param[out] workinfo On return, contains the required workspace sizes.
+ */
 template<
     class matrixA_t, class matrixC_t, class tau_t,
     class side_t, class trans_t >
@@ -87,8 +92,10 @@ void unm2r_worksize(
  *      - side = Side::Right & trans = Op::NoTrans:    $C := C Q$;
  *      - side = Side::Left  & trans = Op::ConjTrans:  $C := C Q^H$;
  *      - side = Side::Right & trans = Op::ConjTrans:  $C := Q^H C$.
- * 
- * @param work Vector of size n, if side = Side::Left, or m, if side = Side::Right.
+ *
+ * @param[in] opts Options.
+ *      @c opts.work is used if whenever it has sufficient size.
+ *      The sufficient size can be obtained through a workspace query.
  * 
  * @ingroup geqrf
  */

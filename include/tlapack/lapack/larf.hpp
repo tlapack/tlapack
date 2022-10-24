@@ -17,6 +17,10 @@
 
 namespace tlapack {
 
+/** Worspace query.
+ * 
+ * @param[out] workinfo On return, contains the required workspace sizes.
+ */
 template< class side_t, class vector_t, class tau_t, class matrix_t >
 inline constexpr
 void larf_worksize(
@@ -59,9 +63,10 @@ void larf_worksize(
  *     On entry, the m-by-n matrix C.
  *     On exit, C is overwritten by $H C$ if side = Side::Left,
  *                               or $C H$ if side = Side::Right.
- * 
- * @param work Workspace vector with length n if side = Side::Left,
- *                                       or m if side = Side::Right.
+ *
+ * @param[in] opts Options.
+ *      - @c opts.work is used if whenever it has sufficient size.
+ *        The sufficient size can be obtained through a workspace query.
  * 
  * @ingroup auxiliary
  */

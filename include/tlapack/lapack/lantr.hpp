@@ -16,6 +16,11 @@
 
 namespace tlapack {
 
+/** Worspace query.
+ * @see lantr
+ * 
+ * @param[out] workinfo On return, contains the required workspace sizes.
+ */
 template<
     class norm_t, 
     class uplo_t, 
@@ -32,6 +37,11 @@ void lantr_worksize(
     workinfo = {};
 }
 
+/** Worspace query.
+ * @see lantr
+ * 
+ * @param[out] workinfo On return, contains the required workspace sizes.
+ */
 template<
     class norm_t, 
     class uplo_t, 
@@ -309,8 +319,10 @@ lantr( norm_t normType, uplo_t uplo, diag_t diag, const matrix_t& A )
  * Code optimized for the infinity norm on column-major layouts using a workspace
  * of size at least m, where m is the number of rows of A.
  * @see lantr( norm_t normType, uplo_t uplo, diag_t diag, const matrix_t& A ).
- * 
- * @param work Vector of size at least m.
+ *
+ * @param[in] opts Options.
+ *      - @c opts.work is used if whenever it has sufficient size.
+ *        The sufficient size can be obtained through a workspace query.
  * 
  * @ingroup auxiliary
  */

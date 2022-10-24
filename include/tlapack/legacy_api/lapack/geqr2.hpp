@@ -42,7 +42,6 @@ inline int geqr2(
 {
     using internal::colmajor_matrix;
     using internal::vector;
-    using work_t = scalar_type<TA,Ttau>;
 
     // check arguments
     tlapack_check_false( m < 0 );
@@ -52,26 +51,11 @@ inline int geqr2(
     // quick return
     if (n <= 0) return 0;
 
-    // Local parameters
-    int info = 0;
-    work_t* work;
-    if( !is_same_v< TA, Ttau > || n-1 >= m ) {
-        work = new work_t[ (n > 0) ? n-1 : 0 ];
-    } else {
-        work = tau + 1;
-    }
-
     // Matrix views
     auto A_    = colmajor_matrix( A, m, n, lda );
-    auto _tau  = vector         ( tau, std::min( m, n ) );
-    auto _work = vector         ( work, n-1 );
+    auto tau_  = vector         ( tau, std::min( m, n ) );
     
-    info = geqr2( A_, _tau, _work );
-
-    if( !is_same_v< TA, Ttau > || n-1 >= m )
-        delete[] work;
-        
-    return info;
+    return geqr2( A_, tau_ );
 }
 
 } // lapack

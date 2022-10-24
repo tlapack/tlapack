@@ -55,7 +55,6 @@ inline int unm2r(
     const real_type<TA,TC>* tau,
     TC* C, idx_t ldc )
 {
-    typedef scalar_type<TA,TC> scalar_t;
     using internal::colmajor_matrix;
     using internal::vector;
 
@@ -76,18 +75,12 @@ inline int unm2r(
     if ((m == 0) || (n == 0) || (k == 0))
         return 0;
 
-    scalar_t* work = new scalar_t[ (q > 0) ? q : 0 ];
-
     // Matrix views
     const auto A_ = colmajor_matrix<TA>( (TA*)A, q, k, lda );
-    const auto _tau = vector( (TA*)tau, k );
+    const auto tau_ = vector( (TA*)tau, k );
     auto C_ = colmajor_matrix<TC>( C, m, n, ldc );
-    auto _work = vector( work, q );
 
-    int info = unm2r( side, trans, A, _tau, C_, _work );
-
-    delete[] work;
-    return info;
+    return unm2r( side, trans, A, tau_, C_ );
 }
 
 }

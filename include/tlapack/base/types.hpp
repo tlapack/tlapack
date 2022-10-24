@@ -390,4 +390,57 @@ namespace tlapack {
 
 } // namespace tlapack
 
+namespace tlapack {
+
+    namespace internal {
+
+        /**
+         * @brief Data type trait.
+         * 
+         * The data type is defined on @c type_trait<array_t>::type.
+         * 
+         * @tparam T A non-array class.
+         */
+        template< class T, typename = int >
+        struct type_trait {
+            using type = void;
+        };
+
+        /**
+         * @brief Size type trait.
+         * 
+         * The size type is defined on @c sizet_trait<array_t>::type.
+         * 
+         * @tparam T A non-array class.
+         */
+        template< class T, typename = int >
+        struct sizet_trait {
+            using type = std::size_t;
+        };
+
+    }
+
+    /// Alias for @c type_trait<>::type.
+    template< class array_t >
+    using type_t = typename internal::type_trait< array_t >::type;
+
+    /// Alias for @c sizet_trait<>::type.
+    template< class array_t >
+    using size_type = typename internal::sizet_trait< array_t >::type;
+
+} // namespace tlapack
+
+namespace tlapack {
+    
+    // Workspace
+
+    /// Byte type
+    using byte = unsigned char;
+    /// Byte allocator
+    using byteAlloc = std::allocator<byte>;
+    /// Vector of bytes. May use a specialized allocator in future
+    using vectorOfBytes = std::vector<byte,byteAlloc>;
+
+} // namespace tlapack
+
 #endif // TLAPACK_TYPES_HH

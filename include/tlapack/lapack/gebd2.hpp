@@ -18,6 +18,11 @@
 namespace tlapack
 {
 
+    /** Worspace query.
+     * @see gebd2
+     * 
+     * @param[out] workinfo On return, contains the required workspace sizes.
+     */
     template <typename matrix_t, class vector_t>
     inline constexpr 
     void gebd2_worksize(matrix_t &A, vector_t &tauv, vector_t &tauw, workinfo_t& workinfo, const workspace_opts_t<>& opts = {})
@@ -91,7 +96,9 @@ namespace tlapack
      *      The scalar factors of the elementary reflectors which
      *      represent the unitary matrix Z.
      *
-     * @param work Vector of size max(m,n).
+     * @param[in] opts Options.
+     *      - @c opts.work is used if whenever it has sufficient size.
+     *        The sufficient size can be obtained through a workspace query.
      *
      * @ingroup gebrd
      */

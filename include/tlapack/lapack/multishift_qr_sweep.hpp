@@ -17,6 +17,11 @@
 
 namespace tlapack
 {
+    /** Worspace query.
+     * @see multishift_QR_sweep 
+     * 
+     * @param[out] workinfo On return, contains the required workspace sizes.
+     */
     template <
         class matrix_t,
         class vector_t,
@@ -65,8 +70,9 @@ namespace tlapack
      *      On exit, the orthogonal updates applied to A accumulated
      *      into Z.
      *
-     * @param[out] V    3 by size(s)/2 matrix.
-     *      Workspace matrix
+     * @param[in] opts Options.
+     *      - @c opts.work is used if whenever it has sufficient size.
+     *        The sufficient size can be obtained through a workspace query.
      *
      * @ingroup geev
      */

@@ -21,6 +21,11 @@
 
 namespace tlapack
 {
+    /** Worspace query.
+     * @see agressive_early_deflation
+     * 
+     * @param[out] workinfo On return, contains the required workspace sizes.
+     */
     template <
         class matrix_t,
         class vector_t,
@@ -123,6 +128,15 @@ namespace tlapack
      *
      * @param[out] nd    integer.
      *      Number of converged eigenvalues available as shifts in s.
+     *
+     * @param[in,out] opts Options.
+     *      - @c opts.work is used if whenever it has sufficient size.
+     *        The sufficient size can be obtained through a workspace query.
+     *      - Output parameters
+     *          @c opts.n_aed,
+     *          @c opts.n_sweep and
+     *          @c opts.n_shifts_total
+     *        are updated by the internal call to multishift_qr.
      *
      * @ingroup geev
      */

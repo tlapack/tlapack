@@ -136,8 +136,8 @@ void run(size_t n, int seed, bool use_fortran)
         int err;
         // Hessenberg factorization
         if(use_fortran){
-            T *_tau = tau.data();
-            fortran_sgehrd(n, 1, n, Q.ptr, Q.ldim, _tau, err);
+            T *tau_ = tau.data();
+            fortran_sgehrd(n, 1, n, Q.ptr, Q.ldim, tau_, err);
         }else{
             err = tlapack::gehrd(0, n, Q, tau);
         }
@@ -157,8 +157,8 @@ void run(size_t n, int seed, bool use_fortran)
         // Generate Q = H_1 H_2 ... H_n
         // std::vector<T> work(n);
         // err = tlapack::unghr(0, n, Q, tau, work);
-        T* _tau = tau.data();
-        fortran_sorghr( n, 1, n, Q.ptr, n, _tau, err );
+        T* tau_ = tau.data();
+        fortran_sorghr( n, 1, n, Q.ptr, n, tau_, err );
     }
     // Record end time
     auto endQ = std::chrono::high_resolution_clock::now();

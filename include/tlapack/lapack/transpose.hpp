@@ -14,14 +14,12 @@
 
 namespace tlapack
 {
-
     template <typename idx_t>
     struct transpose_opts_t {
         // Optimization parameter. Matrices smaller than nx will not
         // be transposed using recursion. Must be at least 2.s
         idx_t nx = 16;
     };
-
 
     /**
      *
@@ -32,6 +30,8 @@ namespace tlapack
      *
      * @param[out] B n-by-m matrix
      *      On exit, B = A**H
+     * 
+     * @param[in] opts Options.
      *
      * @ingroup util
      */
@@ -78,7 +78,7 @@ namespace tlapack
         }
     }
 
-        /**
+    /**
      *
      * @brief transpose a matrix A into a matrix B.
      *
@@ -87,6 +87,8 @@ namespace tlapack
      *
      * @param[out] B n-by-m matrix
      *      On exit, B = A**T
+     * 
+     * @param[in] opts Options.
      *
      * @ingroup util
      */

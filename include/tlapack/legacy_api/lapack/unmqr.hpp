@@ -66,7 +66,7 @@ namespace tlapack {
  * @see unmqr(
     side_t side, trans_t trans,
     const matrixA_t& A, const tau_t& tau,
-    matrixC_t& C, opts_t&& opts )
+    matrixC_t& C, const unmqr_opts_t<workT_t>& opts = {} )
  *
  * @ingroup geqrf
  */

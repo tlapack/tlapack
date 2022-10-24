@@ -15,6 +15,11 @@
 
 namespace tlapack {
 
+/** Worspace query.
+ * @see gehd2
+ * 
+ * @param[out] workinfo On return, contains the required workspace sizes.
+ */
 template< class matrix_t, class vector_t >
 inline constexpr
 void gehd2_worksize(
@@ -78,7 +83,10 @@ void gehd2_worksize(
  *      reflectors. See Further Details.
  * @param[out] tau Real vector of length n-1.
  *      The scalar factors of the elementary reflectors.
- * @param work Vector of size n.
+ *
+ * @param[in] opts Options.
+ *      - @c opts.work is used if whenever it has sufficient size.
+ *        The sufficient size can be obtained through a workspace query.
  * 
  * @ingroup gehrd
  */

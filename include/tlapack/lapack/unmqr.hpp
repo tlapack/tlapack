@@ -19,26 +19,26 @@ namespace tlapack {
 /**
  * Options struct for unmqr
  */
-template< class workT_t = undefined_t >
+template< class workT_t = void >
 struct unmqr_opts_t : public workspace_opts_t<workT_t>
 {
     // Use constructors from workspace_opts_t<workT_t>
     using workspace_opts_t<workT_t>::workspace_opts_t;
 
-    using idx_t = size_type<workT_t>;
-    idx_t nb    = 32; ///< Block size
+    size_type<workT_t> nb = 32; ///< Block size
 };
 
-/** Worspace query for unmqr
+/** Worspace query.
+ * @see unmqr
  * 
- * @param[out] workinfo Workspace sizes.
+ * @param[out] workinfo On return, contains the required workspace sizes.
  * 
- * @ingroup geqrf
+ * @see unmqr
  */
 template<
     class matrixA_t, class matrixC_t,
     class tau_t, class side_t, class trans_t,
-    class workT_t = undefined_t
+    class workT_t = void
 >
 inline constexpr
 void unmqr_worksize(
@@ -137,14 +137,16 @@ void unmqr_worksize(
  *      - side = Side::Left  & trans = Op::ConjTrans:  $C := C Q^H$;
  *      - side = Side::Right & trans = Op::ConjTrans:  $C := Q^H C$.
  *
- * @param[in] opts Options. @see unmqr_opts_t.
+ * @param[in] opts Options.
+ *      @c opts.work is used if whenever it has sufficient size.
+ *      The sufficient size can be obtained through a workspace query.
  * 
  * @ingroup geqrf
  */
 template<
     class matrixA_t, class matrixC_t,
     class tau_t, class side_t, class trans_t,
-    class workT_t = undefined_t
+    class workT_t = void
 >
 int unmqr(
     side_t side, trans_t trans,
@@ -201,7 +203,7 @@ int unmqr(
     auto matrixT = new_matrix( work, nb, nb, work );
     
     // Options to forward
-    auto&& larfbOpts = workspace_opts_t<undefined_t>{ work };
+    auto&& larfbOpts = workspace_opts_t<void>{ work };
 
     // Preparing loop indexes
     const bool positiveInc = (

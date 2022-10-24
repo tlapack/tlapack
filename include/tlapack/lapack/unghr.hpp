@@ -23,7 +23,10 @@ namespace tlapack {
  *      previous call to gehrd. Q is equal to the unit
  *      matrix except in the submatrix Q(ilo+1:ihi,ilo+1:ihi).
  *      0 <= ilo <= ihi <= max(1,n).
- * @param work Vector of size n-1.
+ * 
+ * @param[in] opts Options.
+ *      @c opts.work is used if whenever it has sufficient size.
+ *      The sufficient size can be obtained through a workspace query.
  * 
  * @ingroup gehrd
  */
@@ -90,6 +93,11 @@ int unghr(
     return 0;
 }
 
+/** Worspace query.
+ * @see unghr
+ * 
+ * @param[out] workinfo On return, contains the required workspace sizes.
+ */
 template< class matrix_t, class vector_t >
 inline constexpr
 void unghr_worksize(
