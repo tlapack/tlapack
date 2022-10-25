@@ -106,7 +106,6 @@ namespace tlapack {
         : n(n), ptr(ptr), inc(inc)
         {
             tlapack_check_false( n < 0 );
-            tlapack_check_false( inc == 0 );
         }
     };
 
@@ -154,12 +153,17 @@ namespace tlapack {
     };
 
     // Workspace
-    struct Workspace : public legacyMatrix<byte>
+    struct Workspace : protected legacyMatrix<byte>
     {
         using idx_t = std::size_t;
 
         inline constexpr byte* data() const { return ptr; }
+        inline constexpr idx_t getM() const { return m; }
+        inline constexpr idx_t getN() const { return n; }
+        inline constexpr idx_t getLdim() const { return ldim; }
+
         inline constexpr idx_t size() const { return m*n; }
+        inline constexpr bool isContiguous() const { return (ldim == m); }
 
         inline constexpr
         Workspace( byte* ptr = nullptr, idx_t n = 0 )
@@ -167,22 +171,42 @@ namespace tlapack {
 
         inline constexpr
         Workspace( const legacyMatrix<byte>& w ) noexcept
-        : legacyMatrix<byte>( w ) { }
+        : legacyMatrix<byte>( w )
+        {
+            if( n <= 1 || m == 0 ) ldim = m;
+        }
 
+        /** Returns a workspace that is obtained by removing at least m*n bytes from the current workspace
+         * 
+         * @param m
+         * @param n 
+         * @return constexpr Workspace 
+         */
         inline constexpr Workspace
         extract( idx_t m, idx_t n ) const {
 
-            assert( m >= 0 && n >= 0 );
+            tlapack_check( m >= 0 && n >= 0 );
             
-            if( ldim == this->m || this->n <= 1 ) {
+            if( isContiguous() )
+            {
                 // contiguous space in memory
-                assert( size() >= (m*n) );
+                tlapack_check( size() >= (m*n) );
                 return legacyMatrix<byte>( size()-(m*n), 1, ptr + (m*n) );
             }
-            else {
-                // non-contiguous space in memory
-                assert( this->m >= m && this->n >= n );
-                return legacyMatrix<byte>( this->m, this->n - n, ptr + n*ldim, ldim );
+            else
+            {
+                tlapack_check( this->m >= m && this->n >= n );
+                if( m*this->n >= n*this->m )
+                {
+                    return ( this->n <= n+1 )
+                        ? legacyMatrix<byte>( this->m, this->n-n, ptr + n*ldim ) // contiguous space in memory
+                        : legacyMatrix<byte>( this->m, this->n-n, ptr + n*ldim, ldim ); // non-contiguous space in memory
+                }
+                else
+                {
+                    // non-contiguous space in memory
+                    return legacyMatrix<byte>( this->m-m, this->n, ptr + m, ldim );
+                }
             }
         }
     };
@@ -410,13 +434,13 @@ namespace tlapack {
 
         inline constexpr auto
         operator()( const Workspace& W, idx_t m, idx_t n, Workspace& rW ) const {
-            T* ptr = (T*) W.ptr;
+            T* ptr = (T*) W.data();
             rW = ( layout == Layout::ColMajor )
                 ? W.extract( m*sizeof(T), n )
                 : W.extract( n*sizeof(T), m );
-            return (rW.ldim == rW.m)
+            return ( W.isContiguous() )
                 ? matrix_t( m, n, ptr ) // contiguous space in memory
-                : matrix_t( m, n, ptr, rW.ldim/sizeof(T) );
+                : matrix_t( m, n, ptr, W.getLdim()/sizeof(T) );
         }
 
         inline constexpr auto
@@ -441,9 +465,9 @@ namespace tlapack {
         inline constexpr auto
         operator()( const Workspace& W, idx_t m, idx_t n, Workspace& rW ) const {
             assert( n == 1 );
-            T* ptr = (T*) W.ptr;
+            T* ptr = (T*) W.data();
             rW = W.extract( sizeof(T), m );
-            return vector_t( m, ptr, (rW.ldim == rW.m) ? 1 : rW.ldim/sizeof(T) );
+            return vector_t( m, ptr, ( W.isContiguous() ) ? int_t(1) : int_t(rW.getLdim()/sizeof(T)) );
         }
 
         inline constexpr auto

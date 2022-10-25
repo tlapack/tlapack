@@ -26,8 +26,8 @@ namespace tlapack
     template < class idx_t = size_t >
     struct francis_opts_t : public workspace_opts_t<>
     {
-        // Use constructors from workspace_opts_t<>
-        using workspace_opts_t<>::workspace_opts_t;
+        inline constexpr francis_opts_t( const workspace_opts_t<>& opts = {} )
+        : workspace_opts_t<>( opts ) {};
 
         // Function that returns the number of shifts to use
         // for a given matrix size

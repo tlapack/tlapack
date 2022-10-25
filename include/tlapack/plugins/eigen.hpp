@@ -243,19 +243,19 @@ namespace tlapack{
         
             using map_t = Eigen::Map< matrix_t, Eigen::Unaligned, Eigen::OuterStride<> >;
 
-            T* ptr = (T*) W.ptr;
-            if( !matrix_t::IsRowMajor )
+            T* ptr = (T*) W.data();
+            if( matrix_t::IsRowMajor )
             {
-                rW = W.extract( m*sizeof(T), n );
+                rW = W.extract( n*sizeof(T), m );
                 return map_t( ptr, m, n, Eigen::OuterStride<>(
-                                (rW.ldim == rW.m) ? m : rW.ldim/sizeof(T)
+                                (W.isContiguous()) ? n : rW.getLdim()/sizeof(T)
                               ) );
             }
             else
             {
-                rW = W.extract( n*sizeof(T), m );
+                rW = W.extract( m*sizeof(T), n );
                 return map_t( ptr, m, n, Eigen::OuterStride<>(
-                                (rW.ldim == rW.m) ? n : rW.ldim/sizeof(T)
+                                (W.isContiguous()) ? m : rW.getLdim()/sizeof(T)
                               ) );
             }
         }

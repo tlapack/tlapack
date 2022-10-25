@@ -18,6 +18,12 @@
 namespace tlapack
 {
 
+    struct gebd2_opts_t : public workspace_opts_t<>
+    {
+        inline constexpr gebd2_opts_t( const workspace_opts_t<>& opts = {} )
+        : workspace_opts_t<>( opts ) {};
+    };
+
     /** Worspace query.
      * @see gebd2
      * 
@@ -25,7 +31,7 @@ namespace tlapack
      */
     template <typename matrix_t, class vector_t>
     inline constexpr 
-    void gebd2_worksize(matrix_t &A, vector_t &tauv, vector_t &tauw, workinfo_t& workinfo, const workspace_opts_t<>& opts = {})
+    void gebd2_worksize(matrix_t &A, vector_t &tauv, vector_t &tauw, workinfo_t& workinfo, const gebd2_opts_t& opts = {})
     {
         using idx_t = size_type< matrix_t >;
 
@@ -103,7 +109,7 @@ namespace tlapack
      * @ingroup gebrd
      */
     template <typename matrix_t, class vector_t>
-    int gebd2(matrix_t &A, vector_t &tauv, vector_t &tauw, const workspace_opts_t<>& opts = {})
+    int gebd2(matrix_t &A, vector_t &tauv, vector_t &tauw, const gebd2_opts_t& opts = {})
     {
 
         using idx_t = size_type<matrix_t>;

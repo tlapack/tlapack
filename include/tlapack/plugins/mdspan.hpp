@@ -205,35 +205,23 @@ namespace tlapack {
             assert( m >= 0 && n >= 0 );
             
             // Variables to be forwarded to the returned matrix
-            ET* ptr = (ET*) W.ptr;
+            ET* ptr = (ET*) W.data();
             mapping map;
 
-            if( W.ldim == m*sizeof(ET) || W.n <= 1 )
+            if( W.isContiguous() )
             {
-                // contiguous space in memory
-                const std::size_t nBytes = m*n*sizeof(ET);
-                assert( W.size() >= nBytes );
-                rW = legacyMatrix<byte>( W.size()-nBytes, 1, W.ptr + nBytes );
-
+                rW = W.extract( m*sizeof(ET), n );
                 map = mapping( extents_t(m,n), array<idx_t,2>{m,1} );
+            }
+            else if( W.m >= m*sizeof(ET) && W.n >= n )
+            {
+                rW = W.extract( m*sizeof(ET), n );
+                map = mapping( extents_t(m,n), array<idx_t,2>{W.ldim/sizeof(ET),1} );
             }
             else
             {
-                // non-contiguous space in memory
-
-                if( W.m >= m*sizeof(ET) && W.n >= n )
-                {
-                    rW = legacyMatrix<byte>( W.m, W.n-n, W.ptr+n*W.ldim, W.ldim );
-
-                    map = mapping( extents_t(m,n), array<idx_t,2>{W.ldim/sizeof(ET),1} );
-                }
-                else
-                {
-                    assert( W.m >= n*sizeof(ET) && W.n >= m );
-                    rW = legacyMatrix<byte>( W.m, W.n-m, W.ptr+m*W.ldim, W.ldim );
-
-                    map = mapping( extents_t(m,n), array<idx_t,2>{1,W.ldim/sizeof(ET)} );
-                }
+                rW = W.extract( n*sizeof(ET), m );
+                map = mapping( extents_t(m,n), array<idx_t,2>{1,W.ldim/sizeof(ET)} );
             }
 
             return matrix_t( std::move(ptr), std::move(map) );
@@ -254,7 +242,7 @@ namespace tlapack {
             assert( m >= 0 && n == 1 );
             
             // Variables to be forwarded to the returned matrix
-            ET* ptr = (ET*) W.ptr;
+            ET* ptr = (ET*) W.data();
             mapping map;
 
             if( W.ldim == m*sizeof(ET) || W.n <= 1 )
@@ -262,7 +250,7 @@ namespace tlapack {
                 // contiguous space in memory
                 const std::size_t nBytes = m*sizeof(ET);
                 assert( W.size() >= nBytes );
-                rW = legacyMatrix<byte>( W.size()-nBytes, 1, W.ptr + nBytes );
+                rW = legacyMatrix<byte>( W.size()-nBytes, 1, W.data() + nBytes );
 
                 map = mapping( extents_t(m), array<idx_t,1>{1} );
             }
@@ -270,7 +258,7 @@ namespace tlapack {
             {
                 // non-contiguous space in memory
                 assert( W.m >= sizeof(ET) && W.n >= m );
-                rW = legacyMatrix<byte>( W.m, W.n-m, W.ptr+m*W.ldim, W.ldim );
+                rW = legacyMatrix<byte>( W.m, W.n-m, W.data()+m*W.ldim, W.ldim );
 
                 map = mapping( extents_t(m), array<idx_t,1>{W.ldim/sizeof(ET)} );
             }

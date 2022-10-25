@@ -21,8 +21,8 @@ namespace tlapack
     template< class idx_t = size_t >
     struct gehrd_opts_t : public workspace_opts_t<>
     {
-        // Use constructors from workspace_opts_t<>
-        using workspace_opts_t<>::workspace_opts_t;
+        inline constexpr gehrd_opts_t( const workspace_opts_t<>& opts = {} )
+        : workspace_opts_t<>( opts ) {};
 
         idx_t nb = 32; ///< Block size used in the blocked reduction
         idx_t nx_switch = 128; ///< If only nx_switch columns are left, the algorithm will use unblocked code

@@ -23,8 +23,8 @@ namespace tlapack
     template< class idx_t = size_t >
     struct gelqf_opts_t : public workspace_opts_t<>
     {
-        // Use constructors from workspace_opts_t<>
-        using workspace_opts_t<>::workspace_opts_t;
+        inline constexpr gelqf_opts_t( const workspace_opts_t<>& opts = {} )
+        : workspace_opts_t<>( opts ) {};
 
         idx_t nb = 32; ///< Block size
     };

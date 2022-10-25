@@ -71,7 +71,7 @@ namespace tlapack {
     /**
      * @brief Throw an error if cond is true.
      * 
-     * ex: lapack_check( 1 < 2 ); throws an error.
+     * ex: tlapack_check_false( 1 < 2 ); throws an error.
      */
     #define tlapack_check_false( cond ) do { \
         if( static_cast<bool>(cond) ) \

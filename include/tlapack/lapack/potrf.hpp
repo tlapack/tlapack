@@ -23,6 +23,9 @@ namespace tlapack {
 template< typename idx_t >
 struct potrf_opts_t : public ec_opts_t
 {
+    inline constexpr potrf_opts_t( const ec_opts_t& opts = {} )
+    : ec_opts_t( opts ) {};
+
     idx_t nb = 32;      ///< Block size
 };
 

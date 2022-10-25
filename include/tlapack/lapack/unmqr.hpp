@@ -22,9 +22,9 @@ namespace tlapack {
 template< class workT_t = void >
 struct unmqr_opts_t : public workspace_opts_t<workT_t>
 {
-    // Use constructors from workspace_opts_t<workT_t>
-    using workspace_opts_t<workT_t>::workspace_opts_t;
-
+    inline constexpr unmqr_opts_t( const workspace_opts_t<workT_t>& opts = {} )
+    : workspace_opts_t<workT_t>( opts ) {};
+    
     size_type<workT_t> nb = 32; ///< Block size
 };
 
