@@ -26,10 +26,11 @@ TEMPLATE_LIST_TEST_CASE("LU factorization of a general m-by-n matrix", "[lqf]", 
     typedef real_type<T> real_t; // equivalent to using real_t = real_type<T>;
 
     // m and n represent no. rows and columns of the matrices we will be testing respectively
-    idx_t m, n;
-    m = GENERATE(10, 20, 30);
-    n = GENERATE(10, 20, 30);
-    idx_t k=min<idx_t>(m,n);
+    idx_t m = GENERATE(10, 20, 30);
+    idx_t n = GENERATE(10, 20, 30);
+    GetrfVariant variant = GENERATE( GetrfVariant::Level0, GetrfVariant::Recursive );
+    
+    idx_t k = min<idx_t>(m,n);
 
     // eps is the machine precision, and tol is the tolerance we accept for tests to pass
     const real_t eps = ulp<real_t>();
@@ -57,7 +58,7 @@ TEMPLATE_LIST_TEST_CASE("LU factorization of a general m-by-n matrix", "[lqf]", 
     // Initialize Piv vector to all zeros
     std::vector<idx_t> Piv( k , idx_t(0) );
     // Run getrf and both A and Piv will be update
-    getrf(A,Piv);
+    getrf(A,Piv, getrf_opts_t{variant} );
 
     // A contains L and U now, then form A <--- LU
     if( m > n )

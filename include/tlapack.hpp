@@ -149,4 +149,15 @@
 // ----------------
 
 #include "tlapack/lapack/getrf.hpp"
+
+// UL in place, where L and U are coming from the LU factorization of a matrix
+// ----------------
+#include "tlapack/lapack/ul_mult.hpp"
+
+// Inverse
+// ----------------
+
+#include "tlapack/lapack/getri.hpp"
+
+
 #endif // TLAPACK_HH

@@ -26,6 +26,7 @@ TEMPLATE_LIST_TEST_CASE("TRTRI is stable", "[trtri]", types_to_test)
     typedef real_type<T> real_t;
 
     Uplo uplo = GENERATE(Uplo::Lower, Uplo::Upper);
+    Diag diag = GENERATE(Diag::Unit, Diag::NonUnit);
     idx_t n = GENERATE(1, 2, 6, 9);
 
     const real_t eps = ulp<real_t>();
@@ -42,14 +43,18 @@ TEMPLATE_LIST_TEST_CASE("TRTRI is stable", "[trtri]", types_to_test)
     {
         for (idx_t i = 0; i < n; ++i)
             A(i, j) = rand_helper<T>();
-        A(j, j) += tlapack::make_scalar<T>(n, 0);
+
+        if( diag == Diag::NonUnit )
+            A(j, j) += tlapack::make_scalar<T>(n, 0);
+        else
+            A(j, j) = T(1); 
     }
 
     lacpy(uplo, A, C);
 
     DYNAMIC_SECTION("n = " << n << ", " << uplo)
     {
-        trtri_recursive(uplo, C);
+        trtri_recursive(uplo, diag, C);
 
         // Calculate residuals
 
@@ -68,12 +73,12 @@ TEMPLATE_LIST_TEST_CASE("TRTRI is stable", "[trtri]", types_to_test)
 
         // TRMM with X starting as the inverse of C and leaving as the identity. This checks that the inverse is correct.
         // Note: it would be nice to have a ``upper * upper`` MM function to do this
-        trmm(Side::Left, uplo, Op::NoTrans, Diag::NonUnit, T(1), A, C);
+        trmm(Side::Left, uplo, Op::NoTrans, diag, T(1), A, C);
 
         for (idx_t i = 0; i < n; ++i)
             C(i, i) = C(i, i) - T(1);
 
-        real_t normres = lantr(max_norm, uplo, Diag::NonUnit, C) / (lantr(max_norm, uplo, Diag::NonUnit, A));
+        real_t normres = lantr(max_norm, uplo, Diag::NonUnit, C) / (lantr(max_norm, uplo, diag, A));
         CHECK(normres <= tol);
     }
 }
