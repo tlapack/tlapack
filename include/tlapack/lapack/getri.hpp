@@ -23,11 +23,12 @@ namespace tlapack {
         UXLI = 'C'  ///< Method C from doi:10.1137/1.9780898718027
     };
 
-    template< class work_t >
-    struct getri_opts_t
+    struct getri_opts_t : public workspace_opts_t<>
     {
+        inline constexpr getri_opts_t( const workspace_opts_t<>& opts = {} )
+        : workspace_opts_t<>( opts ) {};
+
         GetriVariant variant = GetriVariant::UILI;
-        work_t* work_ptr = nullptr;
     };
 
     /** getri computes inverse of a general n-by-n matrix A
@@ -45,15 +46,16 @@ namespace tlapack {
      * @param[in] Piv pivot vector of size at least n.
      * 
      * @param[in] opts Options.
-     *      - variant:
+     *      - @c opts.variant:
      *          - UILI = 'D', ///< Method D from doi:10.1137/1.9780898718027
      *          - UXLI = 'C'  ///< Method C from doi:10.1137/1.9780898718027
-     *      - work: Check the correct variant to obtain details.
+     *      - @c opts.work is used if whenever it has sufficient size.
+     *        Check the correct variant to obtain details.
      *      
      * @ingroup group_solve
      */
-    template< class matrix_t, class vector_t, class work_t >
-    int getri( matrix_t& A, const vector_t &Piv, const getri_opts_t<work_t>& opts )
+    template< class matrix_t, class vector_t >
+    int getri( matrix_t& A, const vector_t &Piv, const getri_opts_t& opts = {} )
     {
         using idx_t = size_type< matrix_t >;
 
@@ -66,7 +68,7 @@ namespace tlapack {
         // Call variant
         int info;
         if( opts.variant == GetriVariant::UXLI )
-            info = getri_uxli( A, *opts.work_ptr );
+            info = getri_uxli( A, opts );
         else
             info = getri_uili( A );
 

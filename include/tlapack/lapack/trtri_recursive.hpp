@@ -34,7 +34,6 @@ namespace tlapack
      *      On exit, the inverse.
      *
      * @param[in] opts Options.
-     *      Define the behavior of checks for NaNs.
      *
      * @return = 0: successful exit
      * @return = i+1: if A(i,i) is exactly zero.  The triangular
@@ -108,7 +107,7 @@ namespace tlapack
                                            "A diagonal of entry of triangular matrix is exactly zero.");
                     return info;
                 }
-                info = trtri_recursive(Uplo::Lower, C11, opts);
+                info = trtri_recursive(Uplo::Lower, diag, C11, opts);
                 if (info == 0)
                     return 0;
                 else

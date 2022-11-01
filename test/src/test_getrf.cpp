@@ -16,7 +16,7 @@
 
 using namespace tlapack;
 
-TEMPLATE_LIST_TEST_CASE("LU factorization of a general m-by-n matrix", "[lqf]", types_to_test)
+TEMPLATE_LIST_TEST_CASE("LU factorization of a general m-by-n matrix", "[getrf]", types_to_test)
 {
     srand(1);
     using matrix_t = TestType;
