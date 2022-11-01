@@ -10,7 +10,6 @@
 #include <stdexcept>
 #include <string>
 #include <iostream>
-#include <cassert>
 
 #ifndef TLAPACK_DEFAULT_INFCHECK
     #define TLAPACK_DEFAULT_INFCHECK true

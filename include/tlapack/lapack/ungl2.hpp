@@ -94,7 +94,7 @@ namespace tlapack
         {
             workinfo_t workinfo;
             ungl2_worksize( Q, tauw, workinfo, opts );
-            return alloc_workspace( localworkdata, workinfo.size(), opts.work );
+            return alloc_workspace( localworkdata, workinfo, opts.work );
         }();
         
         // Options to forward

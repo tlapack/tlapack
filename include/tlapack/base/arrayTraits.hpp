@@ -7,7 +7,6 @@
 #ifndef TLAPACK_ARRAY_TRAITS
 #define TLAPACK_ARRAY_TRAITS
 
-#include <type_traits>
 #include "tlapack/base/types.hpp"
 
 namespace tlapack {
@@ -208,8 +207,8 @@ namespace tlapack {
      *  m, n, W ); // W receives the updated workspace, i.e., without the space taken by C
      * @endcode
      */
-    template< class matrix_t > class Create {
-
+    template< class matrix_t, class = int > struct CreateImpl
+    {
         static_assert(false && sizeof(matrix_t), "Must use correct specialization");
 
         /**
@@ -260,10 +259,11 @@ namespace tlapack {
         template< class idx_t, class Workspace >
         inline constexpr auto
         operator()( const Workspace& W, idx_t m, idx_t n ) const {
-            Workspace rW;
-            return operator()( W, m, n, rW );
+            return matrix_t();
         }
     };
+
+    template< class T > using Create = CreateImpl<T,int>;
 }
 
 #endif // TLAPACK_ARRAY_TRAITS

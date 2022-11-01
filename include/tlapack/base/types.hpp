@@ -11,6 +11,7 @@
 #include <complex>
 #include <type_traits>
 #include <vector>
+#include <cassert>
 
 // Helpers:
 
@@ -57,6 +58,12 @@
 namespace tlapack {
 
     namespace internal {
+
+        /// Auxiliary data type to vector increments.
+        struct StrongOne {
+            inline constexpr operator int() const { return 1; }
+            inline constexpr StrongOne( int i = 1 ) { assert( i == 1 ); }
+        };
 
         /**
          * @brief Auxiliary data type

@@ -218,7 +218,7 @@ namespace tlapack
         {
             workinfo_t workinfo;
             agressive_early_deflation_worksize( want_t, want_z, ilo, ihi, nw, A, s, Z, ns, nd, workinfo, opts );
-            return alloc_workspace( localworkdata, workinfo.size(), opts.work );
+            return alloc_workspace( localworkdata, workinfo, opts.work );
         }();
         
         // Options to forward

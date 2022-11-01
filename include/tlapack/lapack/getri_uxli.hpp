@@ -73,9 +73,9 @@ int getri_uxli( matrix_t& A, const workspace_opts_t<>& opts = {} )
     {
         workinfo_t workinfo;
         getri_uxli_worksize( A, workinfo, opts );
-        return alloc_workspace( localworkdata, workinfo.size(), opts.work );
+        return alloc_workspace( localworkdata, workinfo, opts.work );
     }();
-    auto w = new_vector( work, n-1, 1 );
+    auto w = new_vector( work, n-1 );
 
     // A has L and U in it, we will create X such that UXL=A in place of
     for(idx_t j=n-idx_t(1);j!=idx_t(-1);j--){

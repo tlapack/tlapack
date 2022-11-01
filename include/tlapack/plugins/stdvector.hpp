@@ -9,6 +9,7 @@
 
 #include <vector>
 #include "tlapack/base/arrayTraits.hpp"
+#include "tlapack/base/workspace.hpp"
 
 #ifndef TLAPACK_USE_MDSPAN
     #include "tlapack/base/legacyArray.hpp"

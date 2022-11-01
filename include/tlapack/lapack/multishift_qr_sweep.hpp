@@ -117,7 +117,7 @@ namespace tlapack
         {
             workinfo_t workinfo;
             multishift_QR_sweep_worksize( want_t, want_z, ilo, ihi, A, s, Z, workinfo, opts );
-            return alloc_workspace( localworkdata, workinfo.size(), opts.work );
+            return alloc_workspace( localworkdata, workinfo, opts.work );
         }();
         auto V = new_matrix( work, 3, size(s)/2 );
 

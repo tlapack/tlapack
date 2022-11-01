@@ -95,7 +95,7 @@ int ung2r(
     {
         workinfo_t workinfo;
         ung2r_worksize( k, A, tau, workinfo, opts );
-        return alloc_workspace( localworkdata, workinfo.size(), opts.work );
+        return alloc_workspace( localworkdata, workinfo, opts.work );
     }();
         
     // Options to forward

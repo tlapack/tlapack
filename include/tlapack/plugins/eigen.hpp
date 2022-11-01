@@ -8,8 +8,11 @@
 #ifndef TLAPACK_EIGEN_HH
 #define TLAPACK_EIGEN_HH
 
+#include <cassert>
 #include <Eigen/Core>
+#include "tlapack/base/arrayTraits.hpp"
 #include "tlapack/base/legacyArray.hpp"
+#include "tlapack/base/workspace.hpp"
 
 namespace tlapack{
 
@@ -226,14 +229,23 @@ namespace tlapack{
     // -----------------------------------------------------------------------------
     // Create objects
 
-    template<typename T, int Rows_, int Cols_, int Options_, int MaxRows_, int MaxCols_>
-    struct Create< Eigen::Matrix< T, Rows_, Cols_, Options_, MaxRows_, MaxCols_ > >
+    template<typename U>
+    struct CreateImpl< U, typename std::enable_if<
+        !std::is_same< decltype(std::declval<U>().derived()), void >::value
+    ,int>::type >
     {
-        using matrix_t  = Eigen::Matrix< T, Eigen::Dynamic, (MaxCols_==1) ? 1 : Eigen::Dynamic, Options_ >;
+        using traits = Eigen::internal::traits<U>;
+        using T = typename traits::Scalar;
+        static constexpr int Rows_ = (traits::RowsAtCompileTime == 1) ? 1 : Eigen::Dynamic;
+        static constexpr int Cols_ = (traits::ColsAtCompileTime == 1) ? 1 : Eigen::Dynamic;
+        static constexpr int Options_ = traits::Options;
+
+        using matrix_t  = Eigen::Matrix< T, Rows_, Cols_, Options_ >;
         using idx_t     = Eigen::Index;
 
         inline constexpr auto
-        operator()( std::vector<T>& v, idx_t m, idx_t n ) const {
+        operator()( std::vector<T>& v, idx_t m, idx_t n = 1 ) const {
+            assert( m >= 0 && n >= 0 );
             v.resize(0);
             return matrix_t( m, n );
         }
@@ -243,43 +255,165 @@ namespace tlapack{
         
             using map_t = Eigen::Map< matrix_t, Eigen::Unaligned, Eigen::OuterStride<> >;
 
-            T* ptr = (T*) W.data();
+            assert( m >= 0 && n >= 0 );
+
             if( matrix_t::IsRowMajor )
             {
                 rW = W.extract( n*sizeof(T), m );
-                return map_t( ptr, m, n, Eigen::OuterStride<>(
-                                (W.isContiguous()) ? n : rW.getLdim()/sizeof(T)
+                return map_t( (T*) W.data(), m, n, Eigen::OuterStride<>(
+                                (W.isContiguous()) ? n : W.getLdim()/sizeof(T)
                               ) );
             }
             else
             {
                 rW = W.extract( m*sizeof(T), n );
-                return map_t( ptr, m, n, Eigen::OuterStride<>(
-                                (W.isContiguous()) ? m : rW.getLdim()/sizeof(T)
+                return map_t( (T*) W.data(), m, n, Eigen::OuterStride<>(
+                                (W.isContiguous()) ? m : W.getLdim()/sizeof(T)
                               ) );
             }
         }
+        inline constexpr auto
+        operator()( const Workspace& W, idx_t m, Workspace& rW ) const {
+            return operator()( W, m, 1, rW );
+        }
 
         inline constexpr auto
-        operator()( const Workspace& W, idx_t m, idx_t n ) const {
-            Workspace rW;
-            return operator()( W, m, n, rW );
+        operator()( const Workspace& W, idx_t m, idx_t n = 1 ) const {
+        
+            using map_t = Eigen::Map< matrix_t, Eigen::Unaligned, Eigen::OuterStride<> >;
+            
+            assert( m >= 0 && n >= 0 );
+
+            if( matrix_t::IsRowMajor )
+            {
+                tlapack_check( W.contains( n*sizeof(T), m ) );
+                return map_t( (T*) W.data(), m, n, Eigen::OuterStride<>(
+                                (W.isContiguous()) ? n : W.getLdim()/sizeof(T)
+                              ) );
+            }
+            else
+            {
+                tlapack_check( W.contains( m*sizeof(T), n ) );
+                return map_t( (T*) W.data(), m, n, Eigen::OuterStride<>(
+                                (W.isContiguous()) ? m : W.getLdim()/sizeof(T)
+                              ) );
+            }
         }
     };
-    
-    // Other types that may appear
 
-    template<typename PlainObjectType, int MapOptions, typename StrideType>
-    struct Create< Eigen::Map<PlainObjectType, MapOptions, StrideType> >
-    : public Create<PlainObjectType> { };
+    // Matrix type specialization:
 
-    template<typename MatrixType, int DiagIndex_>
-    struct Create< Eigen::Diagonal< MatrixType, DiagIndex_ > >
-    : public Create<MatrixType> { };
+    template< typename... matrix_t >
+    struct matrix_type_traits;
 
-    template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel>
-    struct Create< Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel> >
-    : public Create<XprType> { };
+    template< class DerivedA, class DerivedB >
+    struct matrix_type_traits< Eigen::EigenBase<DerivedA>, Eigen::EigenBase<DerivedB> >
+    {
+        using traitsA = Eigen::internal::traits<DerivedA>;
+        using traitsB = Eigen::internal::traits<DerivedB>;
+
+        using TA = typename traitsA::Scalar;
+        using TB = typename traitsB::Scalar;
+        using T = scalar_type<TA,TB>;
+
+        using type = Eigen::Matrix<
+            T,
+            (traitsA::RowsAtCompileTime == 1 && traitsB::RowsAtCompileTime == 1) ? 1 : Eigen::Dynamic,
+            (traitsA::ColsAtCompileTime == 1 && traitsB::ColsAtCompileTime == 1) ? 1 : Eigen::Dynamic,
+            traitsA::Options 
+        >;
+    };
+
+    template<
+        class TA, int RowsA_, int ColsA_, int OptionsA_, int MaxRowsA_, int MaxColsA_,
+        class TB, int RowsB_, int ColsB_, int OptionsB_, int MaxRowsB_, int MaxColsB_ >
+    struct matrix_type_traits<
+        Eigen::Matrix< TA, RowsA_, ColsA_, OptionsA_, MaxRowsA_, MaxColsA_ >,
+        Eigen::Matrix< TB, RowsB_, ColsB_, OptionsB_, MaxRowsB_, MaxColsB_ > >
+    : public matrix_type_traits<
+        Eigen::EigenBase< Eigen::Matrix< TA, RowsA_, ColsA_, OptionsA_, MaxRowsA_, MaxColsA_ > >,
+        Eigen::EigenBase< Eigen::Matrix< TB, RowsB_, ColsB_, OptionsB_, MaxRowsB_, MaxColsB_ > >
+    > { };
+
+    template<
+        class XprTypeA, int BlockRowsA, int BlockColsA, bool InnerPanelA,
+        class VectorTypeB, int SizeB >
+    struct matrix_type_traits<
+        Eigen::Block<XprTypeA, BlockRowsA, BlockColsA, InnerPanelA>,
+        Eigen::VectorBlock<VectorTypeB, SizeB> >
+    : public matrix_type_traits<
+        Eigen::EigenBase< Eigen::Block<XprTypeA, BlockRowsA, BlockColsA, InnerPanelA> >,
+        Eigen::EigenBase< Eigen::VectorBlock<VectorTypeB, SizeB> >
+    > { };
+
+    template<
+        class XprTypeA, int BlockRowsA, int BlockColsA, bool InnerPanelA,
+        class VectorTypeB, int SizeB >
+    struct matrix_type_traits<
+        Eigen::VectorBlock<VectorTypeB, SizeB>,
+        Eigen::Block<XprTypeA, BlockRowsA, BlockColsA, InnerPanelA> >
+    : public matrix_type_traits<
+        Eigen::EigenBase< Eigen::VectorBlock<VectorTypeB, SizeB> >,
+        Eigen::EigenBase< Eigen::Block<XprTypeA, BlockRowsA, BlockColsA, InnerPanelA> >
+    > { };
+
+    // Forward declaration
+
+    template< typename... vector_t >
+    struct vector_type_traits;
+
+    template< class DerivedA, class DerivedB >
+    struct vector_type_traits< Eigen::EigenBase<DerivedA>, Eigen::EigenBase<DerivedB> >
+    {
+        using traitsA = Eigen::internal::traits<DerivedA>;
+        using traitsB = Eigen::internal::traits<DerivedB>;
+
+        using TA = typename traitsA::Scalar;
+        using TB = typename traitsB::Scalar;
+        using T = scalar_type<TA,TB>;
+
+        using type = Eigen::Matrix<
+            T,
+            (traitsA::RowsAtCompileTime == 1 && traitsB::RowsAtCompileTime == 1) ? 1 : Eigen::Dynamic,
+            (traitsA::RowsAtCompileTime == 1 && traitsB::RowsAtCompileTime == 1) ? Eigen::Dynamic : 1,
+            traitsA::Options 
+        >;
+    };
+
+    template<
+        class TA, int RowsA_, int ColsA_, int OptionsA_, int MaxRowsA_, int MaxColsA_,
+        class TB, int RowsB_, int ColsB_, int OptionsB_, int MaxRowsB_, int MaxColsB_ >
+    struct vector_type_traits<
+        Eigen::Matrix< TA, RowsA_, ColsA_, OptionsA_, MaxRowsA_, MaxColsA_ >,
+        Eigen::Matrix< TB, RowsB_, ColsB_, OptionsB_, MaxRowsB_, MaxColsB_ > >
+    : public vector_type_traits<
+        Eigen::EigenBase< Eigen::Matrix< TA, RowsA_, ColsA_, OptionsA_, MaxRowsA_, MaxColsA_ > >,
+        Eigen::EigenBase< Eigen::Matrix< TB, RowsB_, ColsB_, OptionsB_, MaxRowsB_, MaxColsB_ > >
+    > { };
+
+    template<
+        class XprTypeA, int BlockRowsA, int BlockColsA, bool InnerPanelA,
+        class VectorTypeB, int SizeB >
+    struct vector_type_traits<
+        Eigen::Block<XprTypeA, BlockRowsA, BlockColsA, InnerPanelA>,
+        Eigen::VectorBlock<VectorTypeB, SizeB> >
+    : public vector_type_traits<
+        Eigen::EigenBase< Eigen::Block<XprTypeA, BlockRowsA, BlockColsA, InnerPanelA> >,
+        Eigen::EigenBase< Eigen::VectorBlock<VectorTypeB, SizeB> >
+    > { };
+
+    template<
+        class XprTypeA, int BlockRowsA, int BlockColsA, bool InnerPanelA,
+        class VectorTypeB, int SizeB >
+    struct vector_type_traits<
+        Eigen::VectorBlock<VectorTypeB, SizeB>,
+        Eigen::Block<XprTypeA, BlockRowsA, BlockColsA, InnerPanelA> >
+    : public vector_type_traits<
+        Eigen::EigenBase< Eigen::VectorBlock<VectorTypeB, SizeB> >,
+        Eigen::EigenBase< Eigen::Block<XprTypeA, BlockRowsA, BlockColsA, InnerPanelA> >
+    > { };
+
+    /// TODO: Complete the implementation of vector_type_traits and matrix_type_traits
 
 } // namespace tlapack
 

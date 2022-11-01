@@ -135,7 +135,7 @@ namespace tlapack
         {
             workinfo_t workinfo;
             gebd2_worksize( A, tauv, tauw, workinfo, opts );
-            return alloc_workspace( localworkdata, workinfo.size(), opts.work );
+            return alloc_workspace( localworkdata, workinfo, opts.work );
         }();
         
         // Options to forward

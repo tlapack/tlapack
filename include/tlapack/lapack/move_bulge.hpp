@@ -74,7 +74,7 @@ namespace tlapack
         {
             // The bulge has collapsed, attempt to reintroduce using
             // 2-small-subdiagonals trick
-            std::vector<T> vt_; auto vt = new_vector(vt_, 3, 1);
+            std::vector<T> vt_; auto vt = new_vector(vt_, 3);
             auto H2 = slice(H, pair{1, 4}, pair{1, 4});
             lahqr_shiftcolumn(H2, vt, s1, s2);
             larfg(vt, tau);

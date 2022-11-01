@@ -209,7 +209,7 @@ lange( norm_t normType, const matrix_t& A, const workspace_opts_t<>& opts )
         {
             workinfo_t workinfo;
             lange_worksize( normType, A, workinfo, opts );
-            return alloc_workspace( localworkdata, workinfo.size(), opts.work );
+            return alloc_workspace( localworkdata, workinfo, opts.work );
         }();
         auto w = Create< vectorw_t >( work, m, 1 );
 

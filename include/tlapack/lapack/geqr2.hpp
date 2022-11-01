@@ -101,7 +101,7 @@ int geqr2(
     {
         workinfo_t workinfo;
         geqr2_worksize( A, tau, workinfo, opts );
-        return alloc_workspace( localworkdata, workinfo.size(), opts.work );
+        return alloc_workspace( localworkdata, workinfo, opts.work );
     }();
     
     // Options to forward

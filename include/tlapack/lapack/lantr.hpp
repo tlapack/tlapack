@@ -381,7 +381,7 @@ lantr(
         {
             workinfo_t workinfo;
             lantr_worksize( normType, uplo, diag, A, workinfo, opts );
-            return alloc_workspace( localworkdata, workinfo.size(), opts.work );
+            return alloc_workspace( localworkdata, workinfo, opts.work );
         }();
         auto w = Create< vectorw_t >( work, n, 1 );
 

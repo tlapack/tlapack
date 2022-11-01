@@ -72,7 +72,7 @@ namespace internal {
     template< typename T >
     inline constexpr auto vector( T* x, idx_t n )
     {
-        return legacyVector<T,idx_t>{ n, x, one };
+        return legacyVector<T,idx_t>{ n, x };
     }
 
     template< typename T, typename int_t >
@@ -84,7 +84,7 @@ namespace internal {
     template< typename T >
     inline constexpr auto backward_vector( T* x, idx_t n )
     {
-        return legacyVector<T,idx_t,one_t,Direction::Backward>{ n, x, one };
+        return legacyVector<T,idx_t,internal::StrongOne,Direction::Backward>{ n, x };
     }
 
 } // namespace internal

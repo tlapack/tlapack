@@ -141,7 +141,7 @@ int unm2r(
     {
         workinfo_t workinfo;
         unm2r_worksize( side, trans, A, tau, C, workinfo, opts );
-        return alloc_workspace( localworkdata, workinfo.size(), opts.work );
+        return alloc_workspace( localworkdata, workinfo, opts.work );
     }();
         
     // Options to forward

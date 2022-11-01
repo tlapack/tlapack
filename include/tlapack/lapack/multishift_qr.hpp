@@ -261,7 +261,7 @@ namespace tlapack
         {
             workinfo_t workinfo;
             multishift_qr_worksize( want_t, want_z, ilo, ihi, A, w, Z, workinfo, opts );
-            return alloc_workspace( localworkdata, workinfo.size(), opts.work );
+            return alloc_workspace( localworkdata, workinfo, opts.work );
         }();
         
         // Options to forward

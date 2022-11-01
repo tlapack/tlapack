@@ -255,7 +255,7 @@ lansy( norm_t normType, uplo_t uplo, const matrix_t& A, const workspace_opts_t<>
         {
             workinfo_t workinfo;
             lansy_worksize( normType, uplo, A, workinfo, opts );
-            return alloc_workspace( localworkdata, workinfo.size(), opts.work );
+            return alloc_workspace( localworkdata, workinfo, opts.work );
         }();
         auto w = Create< vectorw_t >( work, n, 1 );
 

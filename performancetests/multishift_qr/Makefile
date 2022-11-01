@@ -1,6 +1,6 @@
-CXXFLAGS=-g -O3 -fPIC -Wall -std=c++17 -DNDEBUG -DUSE_BLASPP_WRAPPERS
+CXXFLAGS=-g -O3 -fPIC -Wall -std=c++17 -DNDEBUG -DUSE_LAPACKPP_WRAPPERS
 FFLAGS=-g -O3 -fPIC
-LFLAGS=-L/opt/slate/lib -I/opt/slate/include -lstdc++ -lgfortran -lblaspp -L${MKLROOT}/lib/intel64 -lmkl_rt -Wl,--no-as-needed -lpthread -lm -ldl
+LFLAGS=-L/home/weslleyp/storage/lapackpp/build_RelWithDebInfo/lib -L/home/weslleyp/storage/blaspp/build_RelWithDebInfo/lib -I/home/weslleyp/storage/lapackpp/build_RelWithDebInfo/include -I/home/weslleyp/storage/blaspp/build_RelWithDebInfo/include -lstdc++ -lgfortran -llapackpp -lblaspp /usr/lib/x86_64-linux-gnu/liblapack.so /usr/lib/x86_64-linux-gnu/libblas.so -lm -ldl
 
 FINC=fortran_wrappers.o slahqr.o slaqr0.o slaqr1.o slaqr2.o slaqr3.o slaqr4.o slaqr5.o
 

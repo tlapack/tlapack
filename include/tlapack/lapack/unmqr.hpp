@@ -196,7 +196,7 @@ int unmqr(
     {
         workinfo_t workinfo;
         unmqr_worksize( side, trans, A, tau, C, workinfo, opts );
-        return alloc_workspace( localworkdata, workinfo.size(), opts.work );
+        return alloc_workspace( localworkdata, workinfo, opts.work );
     }();
 
     // Matrix T and recompute work

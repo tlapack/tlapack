@@ -9,8 +9,10 @@
 
 #include <experimental/mdspan>
 
+#include <cassert>
 #include "tlapack/base/arrayTraits.hpp"
 #include "tlapack/base/legacyArray.hpp"
+#include "tlapack/base/workspace.hpp"
 
 namespace tlapack {
 
@@ -168,16 +170,15 @@ namespace tlapack {
     // Create objects
 
     template< class ET, class Exts, class LP, class AP >
-    struct Create< mdspan<ET,Exts,LP,AP> >
+    struct CreateImpl< mdspan<ET,Exts,LP,AP>, int >
     {
         using idx_t = typename mdspan<ET,Exts,LP,AP>::size_type;
         using extents_t = std::experimental::dextents<idx_t,Exts::rank()>;
 
         template<std::enable_if_t< Exts::rank() == 1 ,int> =0>
         inline constexpr auto
-        operator()( std::vector<ET>& v, idx_t m, idx_t n ) const
+        operator()( std::vector<ET>& v, idx_t m ) const
         {
-            assert( n == 1 );
             v.resize( m ); // Allocates space in memory
             return mdspan<ET,extents_t,LP,AP>( v.data(), m );
         }
@@ -199,13 +200,9 @@ namespace tlapack {
             using mapping   = typename layout_stride::template mapping< extents_t >;
             using matrix_t  = mdspan<ET,extents_t,layout_stride,AP>;
 
-            using std::experimental::layout_right; // Row-Major
-            using std::experimental::layout_left; // Col-Major
-
             assert( m >= 0 && n >= 0 );
             
             // Variables to be forwarded to the returned matrix
-            ET* ptr = (ET*) W.data();
             mapping map;
 
             if( W.isContiguous() )
@@ -224,52 +221,78 @@ namespace tlapack {
                 map = mapping( extents_t(m,n), array<idx_t,2>{1,W.ldim/sizeof(ET)} );
             }
 
-            return matrix_t( std::move(ptr), std::move(map) );
+            return matrix_t( (ET*) W.data(), std::move(map) );
         }
 
-        template<std::enable_if_t< Exts::rank() == 1 ,int> =0>
+        template<std::enable_if_t< Exts::rank() == 2 ,int> =0>
         inline constexpr auto
-        operator()( const Workspace& W, idx_t m, idx_t n, Workspace& rW ) const
+        operator()( const Workspace& W, idx_t m, idx_t n ) const
         {
             using std::array;
             using std::experimental::layout_stride;
             using mapping   = typename layout_stride::template mapping< extents_t >;
             using matrix_t  = mdspan<ET,extents_t,layout_stride,AP>;
 
-            using std::experimental::layout_right; // Row-Major
-            using std::experimental::layout_left; // Col-Major
-
-            assert( m >= 0 && n == 1 );
+            assert( m >= 0 && n >= 0 );
             
             // Variables to be forwarded to the returned matrix
-            ET* ptr = (ET*) W.data();
             mapping map;
 
-            if( W.ldim == m*sizeof(ET) || W.n <= 1 )
+            if( W.isContiguous() )
             {
-                // contiguous space in memory
-                const std::size_t nBytes = m*sizeof(ET);
-                assert( W.size() >= nBytes );
-                rW = legacyMatrix<byte>( W.size()-nBytes, 1, W.data() + nBytes );
-
-                map = mapping( extents_t(m), array<idx_t,1>{1} );
+                tlapack_check( W.contains( m*sizeof(ET), n ) );
+                map = mapping( extents_t(m,n), array<idx_t,2>{m,1} );
+            }
+            else if( W.m >= m*sizeof(ET) && W.n >= n )
+            {
+                tlapack_check( W.contains( m*sizeof(ET), n ) );
+                map = mapping( extents_t(m,n), array<idx_t,2>{W.ldim/sizeof(ET),1} );
             }
             else
             {
-                // non-contiguous space in memory
-                assert( W.m >= sizeof(ET) && W.n >= m );
-                rW = legacyMatrix<byte>( W.m, W.n-m, W.data()+m*W.ldim, W.ldim );
-
-                map = mapping( extents_t(m), array<idx_t,1>{W.ldim/sizeof(ET)} );
+                tlapack_check( W.contains( n*sizeof(ET), m ) );
+                map = mapping( extents_t(m,n), array<idx_t,2>{1,W.ldim/sizeof(ET)} );
             }
 
-            return matrix_t( std::move(ptr), std::move(map) );
+            return matrix_t( (ET*) W.data(), std::move(map) );
         }
 
+        template<std::enable_if_t< Exts::rank() == 1 ,int> =0>
         inline constexpr auto
-        operator()( const Workspace& W, idx_t m, idx_t n ) const {
-            Workspace rW;
-            return operator()( W, m, n, rW );
+        operator()( const Workspace& W, idx_t m, Workspace& rW ) const
+        {
+            using std::array;
+            using std::experimental::layout_stride;
+            using mapping   = typename layout_stride::template mapping< extents_t >;
+            using matrix_t  = mdspan<ET,extents_t,layout_stride,AP>;
+
+            assert( m >= 0 );
+
+            rW = W.extract( sizeof(ET), m );
+            mapping map = ( W.isContiguous() )
+                        ? mapping( extents_t(m), array<idx_t,1>{1} )
+                        : mapping( extents_t(m), array<idx_t,1>{W.ldim/sizeof(ET)} );
+
+            return matrix_t( (ET*) W.data(), std::move(map) );
+        }
+
+        template<std::enable_if_t< Exts::rank() == 1 ,int> =0>
+        inline constexpr auto
+        operator()( const Workspace& W, idx_t m ) const
+        {
+            using std::array;
+            using std::experimental::layout_stride;
+            using mapping   = typename layout_stride::template mapping< extents_t >;
+            using matrix_t  = mdspan<ET,extents_t,layout_stride,AP>;
+
+            assert( m >= 0 );
+
+            tlapack_check( W.contains( sizeof(ET), m ) );
+            mapping map = ( W.isContiguous() )
+                        ? mapping( extents_t(m), array<idx_t,1>{1} )
+                        : mapping( extents_t(m), array<idx_t,1>{W.ldim/sizeof(ET)} );
+
+            return matrix_t( (ET*) W.data(), std::move(map) );
         }
     };
 

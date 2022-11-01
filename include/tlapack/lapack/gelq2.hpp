@@ -100,7 +100,7 @@ namespace tlapack
         {
             workinfo_t workinfo;
             gelq2_worksize( A, tauw, workinfo, opts );
-            return alloc_workspace( localworkdata, workinfo.size(), opts.work );
+            return alloc_workspace( localworkdata, workinfo, opts.work );
         }();
         
         // Options to forward

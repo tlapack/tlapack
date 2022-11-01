@@ -15,7 +15,7 @@
 
 #include "tlapack/base/types.hpp"
 #include "tlapack/base/exceptionHandling.hpp"
-#include "tlapack/base/legacyArray.hpp"
+#include "tlapack/base/legacyArray_interface.hpp"
 
 namespace tlapack {
 
@@ -856,96 +856,7 @@ bool access_denied( access_t a, accessPolicy_t p ) {
 }
 
 // -----------------------------------------------------------------------------
-// Options:
-
-/**
- * @brief Allocates workspace
- * 
- * @param[out] v On exit, reference to allocated memory.
- * @param[in] lwork Number of bytes to allocate.
- * 
- * @return Workspace referencing the allocated memory.
- */
-inline Workspace
-alloc_workspace( vectorOfBytes& v, size_t lwork )
-{
-    v = vectorOfBytes( lwork ); // Allocates space in memory
-    return Workspace( v.data(), v.size() );
-}
-
-/**
- * @brief Allocates workspace
- * 
- * @param[out] v        On exit, reference to allocated memory if needed.
- * @param[in] lwork     Number of bytes needed.
- * @param[in] opts_w    Workspace previously allocated.
- * 
- * @return Workspace referencing either:
- *      1. new allocated memory, if opts_w.size() <= 0.
- *      2. previously allocated memory, if opts_w.size() >= lwork.
- */
-inline Workspace
-alloc_workspace( vectorOfBytes& v, size_t lwork, const Workspace& opts_w )
-{
-    if( opts_w.size() <= 0 )
-    {
-        return alloc_workspace( v, lwork );
-    }
-    else if( opts_w.size() < lwork )
-    {
-        tlapack_error( -4,
-            std::string("Insuficient workspace.") +
-            " Required: " + std::to_string(lwork)
-            + ". Provided: " + std::to_string(opts_w.size())
-        );
-        return Workspace();
-    }
-    else
-    {
-        return Workspace( opts_w );
-    }
-}
-
-/**
- * @brief Options structure with a Workspace attribute
- * 
- * @tparam work_t Give specialized data type to the workspaces.
- *      Behavior defined by each implementation using this option.
- */
-template< class ... work_t >
-struct workspace_opts_t
-{
-    Workspace work; ///< Workspace object
-
-    // Constructors:
-
-    inline constexpr
-    workspace_opts_t( Workspace&& w = {} ) : work(w) { }
-
-    inline constexpr
-    workspace_opts_t( const Workspace& w ) : work(w) { }
-
-    template< class matrix_t >
-    inline constexpr
-    workspace_opts_t( const matrix_t& A )
-    : work( legacy_matrix(A).in_bytes() ) { }
-};
-
-/** Chooses between a preferrable type `work_type` and a default type `work_default`
- * 
- * @c deduce_work<>::type = work_default only if deduce_work is void.
- * 
- * @tparam work_type    Preferrable workspace type
- * @tparam work_default Default workspace type
- */
-template< class work_type, class work_default >
-struct deduce_work { using type = work_type; };
-template< class work_default >
-struct deduce_work< void, work_default > { using type = work_default; };
-
-/// Alias for @c deduce_work<>::type
-template< class work_type, class work_default >
-using deduce_work_t = typename deduce_work<work_type,work_default>::type;
+// Workspace:
 
 /// @brief Output information in the workspace query
 struct workinfo_t
@@ -982,10 +893,68 @@ struct workinfo_t
     }
 };
 
+/**
+ * @brief Allocates workspace
+ * 
+ * @param[out] v On exit, reference to allocated memory.
+ * @param[in] lwork Number of bytes to allocate.
+ * 
+ * @return Workspace referencing the allocated memory.
+ */
+inline Workspace
+alloc_workspace( vectorOfBytes& v, std::size_t lwork )
+{
+    v = vectorOfBytes( lwork ); // Allocates space in memory
+    return Workspace( v.data(), v.size() );
+}
+
+/**
+ * @brief Allocates workspace
+ * 
+ * @param[out] v        On exit, reference to allocated memory if needed.
+ * @param[in] lwork     Number of bytes needed.
+ * @param[in] opts_w    Workspace previously allocated.
+ * 
+ * @return Workspace referencing either:
+ *      1. new allocated memory, if opts_w.size() <= 0.
+ *      2. previously allocated memory, if opts_w.size() >= lwork.
+ */
+inline Workspace
+alloc_workspace( vectorOfBytes& v, const workinfo_t& workinfo, const Workspace& opts_w )
+{
+    if( opts_w.size() <= 0 )
+    {
+        return alloc_workspace( v, workinfo.size() );
+    }
+    else
+    {
+        tlapack_check(
+            (opts_w.isContiguous() && opts_w.size() >= workinfo.size()) ||
+            (opts_w.getM() >= workinfo.m && opts_w.getN() >= workinfo.n) );
+        
+        return Workspace( opts_w );
+    }
+}
+
+/** Chooses between a preferrable type `work_type` and a default type `work_default`
+ * 
+ * @c deduce_work<>::type = work_default only if deduce_work is void.
+ * 
+ * @tparam work_type    Preferrable workspace type
+ * @tparam work_default Default workspace type
+ */
+template< class work_type, class work_default >
+struct deduce_work { using type = work_type; };
+template< class work_default >
+struct deduce_work< void, work_default > { using type = work_default; };
+
+/// Alias for @c deduce_work<>::type
+template< class work_type, class work_default >
+using deduce_work_t = typename deduce_work<work_type,work_default>::type;
+
     //--------------------------------------------------------------------------
     // Common matrix type deduction
 
-    // for zero types
     template< typename... matrix_t >
     struct matrix_type_traits;
 
@@ -1018,20 +987,6 @@ struct workinfo_t
         using type = legacyMatrix<T,idx_t,L>;
     };
 
-    // for two types, one undefined
-    template< typename matrix_t >
-    struct matrix_type_traits< matrix_t, void >
-    {
-        using type = matrix_t;
-    };
-    
-    // for two types, one undefined
-    template< typename matrix_t >
-    struct matrix_type_traits< void, matrix_t >
-    {
-        using type = matrix_t;
-    };
-
     // for three or more types
     template< typename matrixA_t, typename matrixB_t, typename... matrix_t >
     struct matrix_type_traits< matrixA_t, matrixB_t, matrix_t... >
@@ -1042,7 +997,6 @@ struct workinfo_t
     //--------------------------------------------------------------------------
     // Common vector type deduction
 
-    // for zero types
     template< typename... vector_t >
     struct vector_type_traits;
 

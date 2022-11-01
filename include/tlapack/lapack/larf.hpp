@@ -104,7 +104,7 @@ void larf(
     {
         workinfo_t workinfo;
         larf_worksize( side, v, tau, C, workinfo, opts );
-        return alloc_workspace( localworkdata, workinfo.size(), opts.work );
+        return alloc_workspace( localworkdata, workinfo, opts.work );
     }();
 
     // The following code was changed from:
@@ -122,7 +122,7 @@ void larf(
     // which is better for thread safety.
 
     if( side == Side::Left ) {
-        auto w = new_vector( work, n, 1 );
+        auto w = new_vector( work, n );
         for (idx_t i = 0; i < n; ++i )
             w[i] = conj(C(0,i));
         if(m > 1){
@@ -137,7 +137,7 @@ void larf(
         }
     }
     else {
-        auto w = new_vector( work, m, 1 );
+        auto w = new_vector( work, m );
         copy( col(C, 0), w );
         if(n > 1){
             auto x = slice(v,pair{1,n});

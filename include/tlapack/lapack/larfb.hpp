@@ -49,8 +49,16 @@ void larfb_worksize(
     const idx_t n = ncols(C);
     const idx_t k = nrows(Tmatrix);
 
-    workinfo.m = sizeof(T) * ((side == Side::Left) ? k : m);
-    workinfo.n = (side == Side::Left) ? n : k;
+    if( layout<matrixW_t> == Layout::RowMajor )
+    {
+        workinfo.m = (side == Side::Left) ? k : m;
+        workinfo.n = sizeof(T) * ((side == Side::Left) ? n : k);
+    }
+    else
+    {
+        workinfo.m = sizeof(T) * ((side == Side::Left) ? k : m);
+        workinfo.n = (side == Side::Left) ? n : k;
+    }
 }
 
 /** Applies a block reflector $H$ or its conjugate transpose $H^H$ to a
@@ -199,7 +207,7 @@ int larfb(
     {
         workinfo_t workinfo;
         larfb_worksize( side, trans, direction, storeMode, V, Tmatrix, C, workinfo, opts );
-        return alloc_workspace( localworkdata, workinfo.size(), opts.work );
+        return alloc_workspace( localworkdata, workinfo, opts.work );
     }();
 
     if( storeMode == StoreV::Columnwise ){

@@ -12,11 +12,7 @@
 #include <vector>
 
 #include <tlapack/plugins/stdvector.hpp>
-#include <tlapack/lapack/getrf.hpp>
-#include <tlapack/lapack/lange.hpp>
-#include <tlapack/lapack/lacpy.hpp>
-#include <tlapack/blas/gemm.hpp>
-#include <tlapack/blas/trsm.hpp>
+#include <tlapack.hpp>
 
 #ifdef USE_MPFR
     #include <tlapack/plugins/mpreal.hpp>

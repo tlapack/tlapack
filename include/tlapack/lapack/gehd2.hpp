@@ -113,7 +113,7 @@ int gehd2( size_type< matrix_t > ilo, size_type< matrix_t > ihi, matrix_t& A, ve
     {
         workinfo_t workinfo;
         gehd2_worksize( ilo, ihi, A, tau, workinfo, opts );
-        return alloc_workspace( localworkdata, workinfo.size(), opts.work );
+        return alloc_workspace( localworkdata, workinfo, opts.work );
     }();
     
     // Options to forward

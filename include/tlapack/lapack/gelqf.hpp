@@ -125,7 +125,7 @@ namespace tlapack
         {
             workinfo_t workinfo;
             gelqf_worksize( A, TT, workinfo, opts );
-            return alloc_workspace( localworkdata, workinfo.size(), opts.work );
+            return alloc_workspace( localworkdata, workinfo, opts.work );
         }();
         
         // Options to forward
