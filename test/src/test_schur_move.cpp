@@ -9,10 +9,9 @@
 
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
-#include <plugins/tlapack_stdvector.hpp>
+
+#include "testutils.hpp"
 #include <tlapack.hpp>
-#include <testutils.hpp>
-#include <testdefinitions.hpp>
 
 using namespace tlapack;
 
@@ -24,6 +23,9 @@ TEMPLATE_LIST_TEST_CASE("move of eigenvalue block gives correct results", "[eige
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
     typedef real_type<T> real_t;
+
+    // Functor
+    Create<matrix_t> new_matrix;
 
     const T zero(0);
     const T one(1);
@@ -52,13 +54,9 @@ TEMPLATE_LIST_TEST_CASE("move of eigenvalue block gives correct results", "[eige
     const real_t eps = uroundoff<real_t>();
     const real_t tol = 1.0e2 * n * eps;
 
-    std::unique_ptr<T[]> A_(new T[n * n]);
-    std::unique_ptr<T[]> Q_(new T[n * n]);
-    std::unique_ptr<T[]> A_copy_(new T[n * n]);
-
-    auto A = legacyMatrix<T, layout<matrix_t>>(n, n, &A_[0], n);
-    auto Q = legacyMatrix<T, layout<matrix_t>>(n, n, &Q_[0], n);
-    auto A_copy = legacyMatrix<T, layout<matrix_t>>(n, n, &A_copy_[0], n);
+    std::vector<T> A_; auto A = new_matrix( A_, n, n );
+    std::vector<T> Q_; auto Q = new_matrix( Q_, n, n );
+    std::vector<T> A_copy_; auto A_copy = new_matrix( A_copy_, n, n );
 
     // Generate random matrix in Schur form
     for (idx_t j = 0; j < n; ++j)
@@ -97,11 +95,8 @@ TEMPLATE_LIST_TEST_CASE("move of eigenvalue block gives correct results", "[eige
         schur_move(true, A, Q, ifst, ilst);
         // Calculate residuals
 
-        std::unique_ptr<T[]> _res(new T[n * n]);
-        std::unique_ptr<T[]> _work(new T[n * n]);
-
-        auto res = legacyMatrix<T, layout<matrix_t>>(n, n, &_res[0], n);
-        auto work = legacyMatrix<T, layout<matrix_t>>(n, n, &_work[0], n);
+        std::vector<T> res_; auto res = new_matrix( res_, n, n );
+        std::vector<T> work_; auto work = new_matrix( work_, n, n );
         auto orth_res_norm = check_orthogonality(Q, res);
         CHECK(orth_res_norm <= tol);
 

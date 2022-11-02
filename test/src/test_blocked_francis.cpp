@@ -9,10 +9,9 @@
 
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
-#include <plugins/tlapack_stdvector.hpp>
+
+#include "testutils.hpp"
 #include <tlapack.hpp>
-#include <testutils.hpp>
-#include <testdefinitions.hpp>
 
 using namespace tlapack;
 
@@ -24,6 +23,9 @@ TEMPLATE_LIST_TEST_CASE("Multishift QR", "[eigenvalues][multishift_qr]", types_t
     using idx_t = size_type<matrix_t>;
     using real_t = real_type<T>;
     using complex_t = std::complex<real_t>;
+
+    // Functor
+    Create<matrix_t> new_matrix;
 
     rand_generator gen;
 
@@ -60,15 +62,10 @@ TEMPLATE_LIST_TEST_CASE("Multishift QR", "[eigenvalues][multishift_qr]", types_t
         ihi = n;
     }
 
-    // Define the matrices and vectors
-    std::unique_ptr<T[]> A_(new T[n * n]);
-    std::unique_ptr<T[]> H_(new T[n * n]);
-    std::unique_ptr<T[]> Q_(new T[n * n]);
-
-    // This only works for legacy matrix, we really work on that construct_matrix function
-    auto A = legacyMatrix<T, layout<matrix_t>>(n, n, &A_[0], n);
-    auto H = legacyMatrix<T, layout<matrix_t>>(n, n, &H_[0], n);
-    auto Q = legacyMatrix<T, layout<matrix_t>>(n, n, &Q_[0], n);
+    // Define the matrices
+    std::vector<T> A_; auto A = new_matrix( A_, n, n );
+    std::vector<T> H_; auto H = new_matrix( H_, n, n );
+    std::vector<T> Q_; auto Q = new_matrix( Q_, n, n );
 
     if (matrix_type == "Random")
     {
@@ -128,7 +125,7 @@ TEMPLATE_LIST_TEST_CASE("Multishift QR", "[eigenvalues][multishift_qr]", types_t
                     << " matrix = " << matrix_type << " n = " << n << " ilo = " << ilo << " ihi = " << ihi << " ns = " << ns << " nw = " << nw << " seed = " << seed)
     {
 
-        francis_opts_t<idx_t, T> opts;
+        francis_opts_t<> opts;
         opts.nshift_recommender = [ns](idx_t n, idx_t nh) -> idx_t
         {
             return ns;
@@ -151,11 +148,8 @@ TEMPLATE_LIST_TEST_CASE("Multishift QR", "[eigenvalues][multishift_qr]", types_t
         const real_type<T> eps = uroundoff<real_type<T>>();
         const real_type<T> tol = n * 1.0e2 * eps;
 
-        std::unique_ptr<T[]> _res(new T[n * n]);
-        std::unique_ptr<T[]> _work(new T[n * n]);
-
-        auto res = legacyMatrix<T, layout<matrix_t>>(n, n, &_res[0], n);
-        auto work = legacyMatrix<T, layout<matrix_t>>(n, n, &_work[0], n);
+        std::vector<T> res_; auto res = new_matrix( res_, n, n );
+        std::vector<T> work_; auto work = new_matrix( work_, n, n );
 
         // Calculate residuals
         auto orth_res_norm = check_orthogonality(Q, res);

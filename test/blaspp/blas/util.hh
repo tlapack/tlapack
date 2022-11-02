@@ -8,9 +8,7 @@
 #ifndef BLAS_UTIL_HH
 #define BLAS_UTIL_HH
 
-#include <assert.h>
-
-#include "base/utils.hpp"
+#include "tlapack/base/utils.hpp"
 
 /// Use to silence compiler warning of unused variable.
 #define blas_unused( var ) ((void)var)
@@ -20,6 +18,12 @@
 namespace blas {
 
     using namespace tlapack;
+
+    // Empty structure since <T>LAPACK is not defining device BLAS
+    struct Queue
+    {
+        void sync() {}
+    };
 
     class Error: public std::exception {
     public:
@@ -49,12 +53,17 @@ namespace blas {
     };
 
     // -----------------------------------------------------------------------------
+    // New enum
+    enum class Format : char { LAPACK   = 'L', Tile     = 'T' };
+
+    // -----------------------------------------------------------------------------
     // Convert enum to LAPACK-style char.
     inline char layout2char( Layout layout ) { return char(layout); }
     inline char     op2char( Op     op     ) { return char(op);     }
     inline char   uplo2char( Uplo   uplo   ) { return char(uplo);   }
     inline char   diag2char( Diag   diag   ) { return char(diag);   }
     inline char   side2char( Side   side   ) { return char(side);   }
+    inline char format2char( Format format ) { return char(format); }
 
     // -----------------------------------------------------------------------------
     // Convert enum to LAPACK-style string.
@@ -106,6 +115,15 @@ namespace blas {
         return "";
     }
 
+    inline const char* format2str( Format format )
+    {
+        switch (format) {
+            case Format::LAPACK: return "lapack";
+            case Format::Tile: return "tile";
+        }
+        return "";
+    }
+
     // -----------------------------------------------------------------------------
     // Convert LAPACK-style char to enum.
     inline Layout char2layout( char layout )
@@ -143,8 +161,25 @@ namespace blas {
         return Side( side );
     }
 
+    inline Format char2format( char format )
+    {
+        format = (char) toupper( format );
+        assert( format == 'L' || format == 'T' );
+        return Format( format );
+    }
+
 }
 
+using blas::uplo2char;
+using blas::side2char;
+using blas::op2char;
+using blas::layout2char;
+using blas::diag2char;
+
 using blas::uplo2str;
+using blas::side2str;
+using blas::op2str;
+using blas::layout2str;
+using blas::diag2str;
 
 #endif

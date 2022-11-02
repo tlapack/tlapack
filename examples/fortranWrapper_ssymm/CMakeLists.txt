@@ -9,10 +9,10 @@ cmake_minimum_required(VERSION 3.1)
 project( fortranWrapper_ssymm C CXX Fortran )
 
 # Load <T>LAPACK
-if( NOT TARGET tblas_fortran )
+if( NOT TARGET tlapack_fortran )
   find_package( tlapack REQUIRED )
 endif()
 
 # add the example fortranModule_saxpy
 add_executable( example_fortranWrapper_ssymm example_fortranWrapper_ssymm.f90 )
-target_link_libraries( example_fortranWrapper_ssymm PRIVATE tblas_fortran )
+target_link_libraries( example_fortranWrapper_ssymm PRIVATE tlapack_fortran )

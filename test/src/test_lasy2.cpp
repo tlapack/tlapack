@@ -9,10 +9,9 @@
 
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
-#include <plugins/tlapack_stdvector.hpp>
+
+#include "testutils.hpp"
 #include <tlapack.hpp>
-#include <testutils.hpp>
-#include <testdefinitions.hpp>
 
 using namespace tlapack;
 
@@ -25,7 +24,9 @@ TEMPLATE_LIST_TEST_CASE("sylvester solver gives correct result", "[sylvester]", 
     using idx_t = size_type<matrix_t>;
     typedef real_type<T> real_t;
 
-    const T zero(0);
+    // Functor
+    Create<matrix_t> new_matrix;
+
     const T one(1);
     idx_t n1 = GENERATE(1, 2);
     // Once 1x2 solver is finished, generate n2 independantly
@@ -33,17 +34,11 @@ TEMPLATE_LIST_TEST_CASE("sylvester solver gives correct result", "[sylvester]", 
     const real_t eps = uroundoff<real_t>();
     const real_t tol = 1.0e2 * eps;
 
-    std::unique_ptr<T[]> TL_(new T[n1 * n1]);
-    std::unique_ptr<T[]> TR_(new T[n2 * n2]);
-    std::unique_ptr<T[]> B_(new T[n1 * n2]);
-    std::unique_ptr<T[]> X_(new T[n1 * n2]);
-    std::unique_ptr<T[]> X_exact_(new T[n1 * n2]);
-
-    auto TL = legacyMatrix<T, layout<matrix_t>>(n1, n1, &TL_[0], n1);
-    auto TR = legacyMatrix<T, layout<matrix_t>>(n2, n2, &TR_[0], n2);
-    auto B = legacyMatrix<T, layout<matrix_t>>(n1, n2, &B_[0], layout<matrix_t> == Layout::ColMajor ? n1 : n2);
-    auto X = legacyMatrix<T, layout<matrix_t>>(n1, n2, &X_[0], layout<matrix_t> == Layout::ColMajor ? n1 : n2);
-    auto X_exact = legacyMatrix<T, layout<matrix_t>>(n1, n2, &X_exact_[0], layout<matrix_t> == Layout::ColMajor ? n1 : n2);
+    std::vector<T> TL_; auto TL = new_matrix( TL_, n1, n1 );
+    std::vector<T> TR_; auto TR = new_matrix( TR_, n2, n2 );
+    std::vector<T> B_; auto B = new_matrix( B_, n1, n2 );
+    std::vector<T> X_; auto X = new_matrix( X_, n1, n2 );
+    std::vector<T> X_exact_; auto X_exact = new_matrix( X_exact_, n1, n2 );
 
     for (idx_t i = 0; i < n1; ++i)
         for (idx_t j = 0; j < n1; ++j)
@@ -63,7 +58,7 @@ TEMPLATE_LIST_TEST_CASE("sylvester solver gives correct result", "[sylvester]", 
     int sign = 1;
 
     // Calculate op(TL)*X + ISGN*X*op(TR)
-    gemm(trans_l, Op::NoTrans, one, TL, X_exact, zero, B);
+    gemm(trans_l, Op::NoTrans, one, TL, X_exact, B);
     gemm(Op::NoTrans, trans_r, sign, X_exact, TR, one, B);
 
 

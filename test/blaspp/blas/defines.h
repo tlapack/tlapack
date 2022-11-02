@@ -7,7 +7,7 @@
 #ifndef BLAS_DEFINES_H
 #define BLAS_DEFINES_H
 
-// Using defines.h from BLAS++ to enforce the integer types of <T>BLAS
+// Using defines.h from BLAS++ to enforce the integer types of <T>LAPACK
 #define TLAPACK_SIZE_T std::int64_t
 #define TLAPACK_INT_T  std::int64_t
 

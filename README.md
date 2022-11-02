@@ -95,7 +95,7 @@ Here are the \<T\>LAPACK specific options and their default values
 
     CBLAS_WRAPPERS                      OFF
     
-        Build and install CBLAS wrappers to <T>BLAS
+        Build and install CBLAS wrappers to <T>LAPACK
     
     USE_LAPACKPP_WRAPPERS               OFF
 
@@ -107,7 +107,7 @@ Here are the \<T\>LAPACK specific options and their default values
     
     TLAPACK_INT_T                       int64_t
     
-        Type of all non size-related integers in libtblas_c, libtlapack_cblas, and libtblas_fortran. It is the type
+        Type of all non size-related integers in libtlapack_c, libtlapack_cblas, and libtlapack_fortran. It is the type
         used for the array increments, e.g., incx and incy.
         Supported types:
             int, short, long, long long, int8_t, int16_t,
@@ -118,7 +118,7 @@ Here are the \<T\>LAPACK specific options and their default values
     
     TLAPACK_SIZE_T                      size_t
     
-        Type of all size-relatedintegers in libtblas_c, libtlapack_cblas, and libtblas_fortran.
+        Type of all size-relatedintegers in libtlapack_c, libtlapack_cblas, and libtlapack_fortran.
         Supported types:
             int, short, long, long long, int8_t, int16_t,
             int32_t, int64_t, int_least8_t, int_least16_t,

@@ -7,10 +7,10 @@
 # Configurations
 include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/../include" )
 link_libraries( Catch2::Catch2WithMain tlapack )
-if( TEST_MPFR )
-  include_directories( ${MPFR_INCLUDES} ${GMP_INCLUDES} )
-  link_libraries( ${MPFR_LIBRARIES} ${GMP_LIBRARIES} )
-endif()
+# if( TEST_MPFR )
+#   include_directories( ${MPFR_INCLUDES} ${GMP_INCLUDES} )
+#   link_libraries( ${MPFR_LIBRARIES} ${GMP_LIBRARIES} )
+# endif()
 
 # Set the directory where to put testers
 set( TLAPACK_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}" )
@@ -32,6 +32,10 @@ add_executable( test_gelq2 test_gelq2.cpp )
 add_executable( test_trtri test_trtri.cpp )
 add_executable( test_gebd2 test_gebd2.cpp )
 add_executable( test_larft_recursive test_larft_recursive.cpp )
+add_executable( test_lu_mult test_lu_mult.cpp )
+add_executable( test_getrf test_getrf.cpp )
+add_executable( test_getri test_getri.cpp )
+add_executable( test_ul_mult test_ul_mult.cpp )
 
 # Reset the output directory
 set( CMAKE_RUNTIME_OUTPUT_DIRECTORY "${TLAPACK_RUNTIME_OUTPUT_DIRECTORY}" )

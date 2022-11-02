@@ -9,8 +9,8 @@
 #define LAPACK_UTIL_HH
 
 #include "blas.hh"
-#include "base/utils.hpp"
-#include "legacy_api/base/types.hpp"
+#include "tlapack/base/utils.hpp"
+#include "tlapack/legacy_api/base/types.hpp"
 
 namespace lapack {
     
@@ -576,10 +576,6 @@ namespace lapack {
 
 using lapack::matrixtype2char;
 using lapack::norm2char;
-using blas::uplo2char;
-using blas::diag2char;
-using blas::op2char;
-using blas::side2char;
 using lapack::direction2char;
 using lapack::storev2char;
 

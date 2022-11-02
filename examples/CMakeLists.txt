@@ -16,6 +16,9 @@ add_subdirectory( cpp_visualizer )
 # add the example gemm (Use MPFR library if it is available)
 add_subdirectory( gemm )
 
+# add the example lu (Use MPFR library if it is available)
+add_subdirectory( lu )
+
 # add the example access_types
 add_subdirectory( access_types )
 
@@ -54,6 +57,9 @@ add_custom_target( run-all-examples
 COMMAND
   echo "- example_gemm -----------------" &&
   ${CMAKE_CURRENT_BINARY_DIR}/gemm/example_gemm${CMAKE_EXECUTABLE_SUFFIX}
+COMMAND
+  echo "- example_lu -----------------" &&
+  ${CMAKE_CURRENT_BINARY_DIR}/lu/example_lu${CMAKE_EXECUTABLE_SUFFIX}
 COMMAND
   echo "- example_geqr2 ----------------" &&
   ${CMAKE_CURRENT_BINARY_DIR}/geqr2/example_geqr2${CMAKE_EXECUTABLE_SUFFIX}

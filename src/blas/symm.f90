@@ -19,7 +19,7 @@ implicit none
 
     character(c_char) :: c_layout, c_side, c_uplo
 
-    include "tblas.fi"
+    include "tlapack.fi"
 
     c_layout = layout
     c_side = side

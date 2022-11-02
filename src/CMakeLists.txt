@@ -29,12 +29,12 @@ set( blas_intt_list
   ptrdiff_t )
 
 set( TLAPACK_INT_T int64_t CACHE STRING
-  "Type of all non size-related integers in libtblas_c, libtlapack_cblas, and libtblas_fortran" )
+  "Type of all non size-related integers in libtlapack_c, libtlapack_cblas, and libtlapack_fortran" )
 set_property( CACHE TLAPACK_INT_T
   PROPERTY STRINGS ${blas_intt_list} )
 
 set( TLAPACK_SIZE_T size_t CACHE STRING
-  "Type of all size-relatedintegers in libtblas_c, libtlapack_cblas, and libtblas_fortran" )
+  "Type of all size-relatedintegers in libtlapack_c, libtlapack_cblas, and libtlapack_fortran" )
 set_property( CACHE TLAPACK_SIZE_T
   PROPERTY STRINGS ${blas_intt_list} size_t uint8_t uint16_t uint32_t uint64_t )
 
@@ -52,10 +52,10 @@ else()
 endif()
 
 #-------------------------------------------------------------------------------
-# Library: libtblas_c
+# Library: libtlapack_c
 if( C_WRAPPERS OR Fortran_WRAPPERS )
-  add_library( tblas_c tblas_cwrappers.cpp )
-  target_link_libraries( tblas_c PUBLIC tblas )
+  add_library( tlapack_c tlapack_cwrappers.cpp )
+  target_link_libraries( tlapack_c PUBLIC tlapack )
 
   set( TLAPACK_DEFINES "" )
   if( NOT TLAPACK_SIZE_T STREQUAL "" )
@@ -65,13 +65,13 @@ if( C_WRAPPERS OR Fortran_WRAPPERS )
     string( APPEND TLAPACK_DEFINES "#define TLAPACK_INT_T ${TLAPACK_INT_T}\n" )
   endif()
   configure_file(
-    ${PROJECT_SOURCE_DIR}/include/tblas.h.in
-    ${PROJECT_BINARY_DIR}/include/tblas.h @ONLY )
+    ${PROJECT_SOURCE_DIR}/include/tlapack.h.in
+    ${PROJECT_BINARY_DIR}/include/tlapack.h @ONLY )
 
-  list( APPEND installable_libs tblas_c )
+  list( APPEND installable_libs tlapack_c )
   if( C_WRAPPERS )
     install(
-      FILES ${PROJECT_BINARY_DIR}/include/tblas.h
+      FILES ${PROJECT_BINARY_DIR}/include/tlapack.h
       DESTINATION include )
   endif()
 endif()
@@ -79,8 +79,8 @@ endif()
 #-------------------------------------------------------------------------------
 # Library: libtlapack_cblas
 if( CBLAS_WRAPPERS )
-  add_library( tlapack_cblas tblas_cwrappers.cpp )
-  target_link_libraries( tlapack_cblas PUBLIC tblas )
+  add_library( tlapack_cblas tlapack_cwrappers.cpp )
+  target_link_libraries( tlapack_cblas PUBLIC tlapack )
   target_compile_definitions( tlapack_cblas PRIVATE BUILD_CBLAS )
   
   set( TLAPACK_CBLAS_DEFINES "" )
@@ -98,7 +98,7 @@ if( CBLAS_WRAPPERS )
 endif()
 
 #-------------------------------------------------------------------------------
-# Library: libtblas_fortran
+# Library: libtlapack_fortran
 if( Fortran_WRAPPERS )
 
   # Integer types mapped to the ISO_FORTRAN_ENV module
@@ -137,41 +137,41 @@ if( Fortran_WRAPPERS )
   # Fortran interface. Used to call C-based BLAS directly from a Fortran program.
   # The Fortran code needs to import this interface and link with the library blas
   configure_file(
-    tblas.fi.in
-    ${CMAKE_CURRENT_SOURCE_DIR}/tblas.fi @ONLY )
+    tlapack.fi.in
+    ${CMAKE_CURRENT_SOURCE_DIR}/tlapack.fi @ONLY )
 
   # Constants module.
   configure_file( 
-    blas/constants.f90.in 
-    ${CMAKE_CURRENT_SOURCE_DIR}/blas/constants.f90 @ONLY )
+    base/constants.f90.in 
+    ${CMAKE_CURRENT_SOURCE_DIR}/base/constants.f90 @ONLY )
 
-  add_library( tblas_fortran
-    tblas.f90
-    blas/constants.f90
+  add_library( tlapack_fortran
+    tlapack.f90
+    base/constants.f90
     blas/axpy.f90
     blas/symm.f90
     blas/nrm2.f90 )
-  target_include_directories( tblas_fortran
+  target_include_directories( tlapack_fortran
   PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_Fortran_MODULE_DIRECTORY}>
-    $<INSTALL_INTERFACE:include> )
-  target_link_libraries( tblas_fortran PUBLIC tblas_c )
+    $<INSTALL_INTERFACE:include/tlapack/fortran> )
+  target_link_libraries( tlapack_fortran PUBLIC tlapack_c )
 
-  list( APPEND installable_libs tblas_fortran )
-  list( APPEND installable_mods ${CMAKE_Fortran_MODULE_DIRECTORY}/tblas.mod )
+  list( APPEND installable_libs tlapack_fortran )
+  list( APPEND installable_mods ${CMAKE_Fortran_MODULE_DIRECTORY}/tlapack.mod )
   list( APPEND installable_mods ${CMAKE_Fortran_MODULE_DIRECTORY}/constants.mod )
 
   install(
     FILES
-      ${CMAKE_CURRENT_SOURCE_DIR}/tblas.fi
-      ${CMAKE_CURRENT_SOURCE_DIR}/tblas.f90
+      ${CMAKE_CURRENT_SOURCE_DIR}/tlapack.fi
+      ${CMAKE_CURRENT_SOURCE_DIR}/tlapack.f90
     DESTINATION include )
   install(
     FILES
-      ${CMAKE_CURRENT_SOURCE_DIR}/blas/constants.f90
-    DESTINATION include )
+      ${CMAKE_CURRENT_SOURCE_DIR}/base/constants.f90
+    DESTINATION include/tlapack/base )
 endif()
 
 set( installable_libs ${installable_libs} PARENT_SCOPE )

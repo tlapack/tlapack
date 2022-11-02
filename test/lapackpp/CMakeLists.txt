@@ -188,7 +188,6 @@ if( EXISTS "${lapackpp_TEST_DIR}/test.cc" )
     lapackpp_tester
     testsweeper
     tlapack
-    tblas
   )
   target_link_libraries(
     lapackpp_tester
@@ -200,7 +199,7 @@ if( EXISTS "${lapackpp_TEST_DIR}/test.cc" )
     ${CMAKE_CURRENT_SOURCE_DIR}/../blaspp
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${lapackpp_TEST_DIR} )
-  target_compile_definitions( lapackpp_tester PRIVATE ${lapackpp_defines} ${blaspp_defines} )
+  target_compile_definitions( lapackpp_tester PRIVATE ${lapackpp_defines} ${blaspp_defines} "-DLAPACK_FORTRAN_ADD_" )
 
   # Copy run_tests script to build directory.
   add_custom_command(

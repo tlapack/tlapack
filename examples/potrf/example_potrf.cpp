@@ -12,7 +12,7 @@
 #include <chrono>   // for high_resolution_clock
 
 // <T>LAPACK
-#include <plugins/tlapack_legacyArray.hpp>
+#include <tlapack/plugins/legacyArray.hpp>
 #include <tlapack.hpp>
 
 #ifndef USE_MKL
@@ -31,33 +31,24 @@
     typedef _MKL_Complex16 dComplex;
 #endif
 
-template<typename T>
-inline constexpr
-lapack_int LAPACKE_xpotrf2( int matrix_layout, char uplo, lapack_int n, T* a, lapack_int lda ) {
-    return 1;
-}
-template<>
 inline
-lapack_int LAPACKE_xpotrf2<float>( int matrix_layout, char uplo, lapack_int n, float* a, lapack_int lda ) {
+lapack_int LAPACKE_xpotrf2( int matrix_layout, char uplo, lapack_int n, float* a, lapack_int lda ) {
     return LAPACKE_spotrf2( matrix_layout, uplo, n, a, lda );
 }
-template<>
 inline
-lapack_int LAPACKE_xpotrf2<double>( int matrix_layout, char uplo, lapack_int n, double* a, lapack_int lda ) {
+lapack_int LAPACKE_xpotrf2( int matrix_layout, char uplo, lapack_int n, double* a, lapack_int lda ) {
     return LAPACKE_dpotrf2( matrix_layout, uplo, n, a, lda );
 }
-template<>
 inline
-lapack_int LAPACKE_xpotrf2<std::complex<float>>( int matrix_layout, char uplo, lapack_int n, std::complex<float>* a, lapack_int lda ) {
+lapack_int LAPACKE_xpotrf2( int matrix_layout, char uplo, lapack_int n, std::complex<float>* a, lapack_int lda ) {
     return LAPACKE_cpotrf2( matrix_layout, uplo, n, reinterpret_cast<complex*>(a), lda );
 }
-template<>
 inline
-lapack_int LAPACKE_xpotrf2<std::complex<double>>( int matrix_layout, char uplo, lapack_int n, std::complex<double>* a, lapack_int lda ) {
+lapack_int LAPACKE_xpotrf2( int matrix_layout, char uplo, lapack_int n, std::complex<double>* a, lapack_int lda ) {
     return LAPACKE_zpotrf2( matrix_layout, uplo, n, reinterpret_cast<dComplex*>(a), lda );
 }
 
-using idx_t = TLAPACK_SIZE_T;
+using idx_t = lapack_int;
 
 //------------------------------------------------------------------------------
 template <typename T>
@@ -150,7 +141,7 @@ void run( idx_t n )
         // Record start time
         auto start = std::chrono::high_resolution_clock::now();
 
-            lapack_int info = LAPACKE_xpotrf2<T>( LAPACK_COL_MAJOR, 'U', n, &U[0], n );
+            lapack_int info = LAPACKE_xpotrf2( LAPACK_COL_MAJOR, 'U', n, U.data(), n );
         
         // Record end time
         auto end = std::chrono::high_resolution_clock::now();

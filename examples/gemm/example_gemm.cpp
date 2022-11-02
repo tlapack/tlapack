@@ -7,14 +7,14 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#include <legacy_api/blas.hpp>
+#include <tlapack/legacy_api/blas.hpp>
 
 #include <vector>
 #include <iostream>
 #include <chrono>   // for high_resolution_clock
 
 #ifdef USE_MPFR
-    #include <plugins/tlapack_mpreal.hpp>
+    #include <tlapack/plugins/mpreal.hpp>
 #endif
 
 //------------------------------------------------------------------------------
@@ -23,31 +23,22 @@ void run( tlapack::idx_t m, tlapack::idx_t n, tlapack::idx_t k )
 {
     using tlapack::idx_t;
     using tlapack::min;
-    using tlapack::internal::colmajor_matrix;
-    using tlapack::internal::rowmajor_matrix;
-    
-    // Column Major data
-    idx_t lda = (m > 0) ? m : 1;
-    idx_t ldb = (k > 0) ? k : 1;
-    idx_t ldc = (m > 0) ? m : 1;
-    std::vector<T> A_( lda*k, T(0) );    // m-by-k
-    std::vector<T> B_( ldb*n, T(0) );    // k-by-n
-    std::vector<T> C_( ldc*n, T(0) );    // m-by-n
+    using colmajor_matrix_t = tlapack::legacyMatrix<T,idx_t,tlapack::Layout::ColMajor>;
+    using rowmajor_matrix_t = tlapack::legacyMatrix<T,idx_t,tlapack::Layout::RowMajor>;
 
-    // Column Major Matrix views
-    auto A = colmajor_matrix<T>( &A_[0], m, k, lda );
-    auto B = colmajor_matrix<T>( &B_[0], k, n, ldb );
-    auto C = colmajor_matrix<T>( &C_[0], m, n, ldc );
+    // Functors for creating new matrices
+    tlapack::Create<colmajor_matrix_t> new_colmajor_matrix;
+    tlapack::Create<rowmajor_matrix_t> new_rowmajor_matrix;
 
-    // Row Major data
-    std::vector<T> Ar_( m*k, T(0) );   // m-by-k
-    std::vector<T> Br_( k*n, T(0) );   // k-by-n
-    std::vector<T> Cr_( m*n, T(0) );   // m-by-n
+    // Column Major Matrices
+    std::vector<T> A_; auto A = new_colmajor_matrix( A_, m, k );
+    std::vector<T> B_; auto B = new_colmajor_matrix( B_, k, n );
+    std::vector<T> C_; auto C = new_colmajor_matrix( C_, m, n );
 
-    // Row Major Matrix views
-    auto Ar = rowmajor_matrix( &Ar_[0], m, k );
-    auto Br = rowmajor_matrix( &Br_[0], k, n );
-    auto Cr = rowmajor_matrix( &Cr_[0], m, n );
+    // Row Major Matrices
+    std::vector<T> Ar_; auto Ar = new_rowmajor_matrix( Ar_, m, k );
+    std::vector<T> Br_; auto Br = new_rowmajor_matrix( Br_, k, n );
+    std::vector<T> Cr_; auto Cr = new_rowmajor_matrix( Cr_, m, n );
 
     // Number of runs to measure the minimum execution time
     int Nruns = 10;
@@ -93,8 +84,8 @@ void run( tlapack::idx_t m, tlapack::idx_t n, tlapack::idx_t k )
                         tlapack::Op::NoTrans,
                         tlapack::Op::NoTrans,
                         m, n, k,
-                        T(-1.0), &A_[0], lda, &B_[0], ldb, 
-                        T( 1.0), &C_[0], ldc );
+                        T(-1.0), &A_[0], m, &B_[0], k, 
+                        T( 1.0), &C_[0], m );
         
         // Record end time
         auto end = std::chrono::high_resolution_clock::now();

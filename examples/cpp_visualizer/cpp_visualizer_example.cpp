@@ -7,8 +7,9 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
+#include <tlapack/plugins/legacyArray.hpp>
 #include <tlapack.hpp>
-#include <plugins/tlapack_debugutils.hpp>
+#include <tlapack/plugins/debugutils.hpp>
 
 #include <memory>
 #include <vector>
@@ -20,14 +21,12 @@ int main(int argc, char **argv)
 {
     typedef float T;
 
-    using tlapack::internal::colmajor_matrix;
-
     const int n = 10;
     const T one(1);
     const T zero(0);
 
     std::unique_ptr<T[]> A_(new T[n * n]);
-    auto A = colmajor_matrix<T>(&A_[0], n, n, n);
+    auto A = tlapack::legacyMatrix<T>(n, n, &A_[0], n);
 
     tlapack::laset( tlapack::Uplo::General, zero, one, A );
 

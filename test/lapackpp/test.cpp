@@ -44,6 +44,7 @@ enum Section {
     blas1,
     blas2,
     blas3,
+    gpu,
     num_sections,  // last
 };
 
@@ -66,6 +67,7 @@ const char* section_names[] = {
    "Level 1 BLAS (additional)",
    "Level 2 BLAS (additional)",
    "Level 3 BLAS (additional)",
+   "GPU device functions",
 };
 
 // { "", nullptr, Section::newline } entries force newline in help
@@ -240,10 +242,12 @@ std::vector< testsweeper::routines_t > routines = {
 
 //     // -----
 //     // QR, LQ, RQ, QL
+//     { "geqr",               test_geqr,      Section::qr }, // tested numerically
 //     { "geqrf",              test_geqrf,     Section::qr }, // tested numerically
 //     { "gelqf",              test_gelqf,     Section::qr }, // tested numerically
 //     { "geqlf",              test_geqlf,     Section::qr }, // tested numerically
 //     { "gerqf",              test_gerqf,     Section::qr }, // tested numerically; R, Q are full sizeof(A), could be smaller
+//     { "unhr_col",           test_unhr_col,  Section::qr },
 //     { "",                   nullptr,        Section::newline },
 
 //     { "ggqrf",              test_ggqrf,     Section::qr }, // tested via LAPACKE using gcc/MKL, TODO for now use p=param.k
@@ -286,6 +290,7 @@ std::vector< testsweeper::routines_t > routines = {
 //     { "heev",               test_heev,      Section::heev }, // tested via LAPACKE
 //     { "hpev",               test_hpev,      Section::heev }, // tested via LAPACKE
 //     { "hbev",               test_hbev,      Section::heev }, // tested via LAPACKE
+//     { "sturm",              test_sturm,     Section::heev },
 //     { "",                   nullptr,        Section::newline },
 
 //     { "heevx",              test_heevx,     Section::heev }, // tested via LAPACKE
@@ -438,6 +443,13 @@ std::vector< testsweeper::routines_t > routines = {
     // { "syr",                test_syr,       Section::blas2 },
     { "symv",               test_symv,      Section::blas2 },
     { "",                   nullptr,        Section::newline },
+
+//     //----------------------------------------
+//     // GPU device functions
+//     { "dev-potrf",          test_potrf_device,  Section::gpu },
+//     { "dev-getrf",          test_getrf_device,  Section::gpu },
+//     { "dev-geqrf",          test_geqrf_device,  Section::gpu },
+//     { "",                   nullptr,            Section::newline },
 };
 
 // -----------------------------------------------------------------------------
@@ -522,6 +534,7 @@ Params::Params():
     incx      ( "incx",    4,    ParamType::List,   1, -1000,    1000, "stride of x vector" ),
     incy      ( "incy",    4,    ParamType::List,   1, -1000,    1000, "stride of y vector" ),
     align     ( "align",   0,    ParamType::List,   1,     1,    1024, "column alignment (sets lda, ldb, etc. to multiple of align)" ),
+    device    ( "device",  6,    ParamType::List,   0,     0,     100, "device id" ),
 
     // ----- output parameters
     // min, max are ignored

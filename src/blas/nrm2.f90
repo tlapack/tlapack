@@ -17,7 +17,7 @@ implicit none
     real(wp), target   :: x(*)
     real(wp)           :: snrm2
 
-    include "tblas.fi"
+    include "tlapack.fi"
 
     snrm2 = snrm2_( n, c_loc(x), incx )
 end function

@@ -9,7 +9,7 @@
 
 #include "blas/defines.h"
 #include "blas/util.hh"
-#include "legacy_api/blas.hpp"
+#include "tlapack/legacy_api/blas.hpp"
 
 namespace blas {
     using namespace tlapack;

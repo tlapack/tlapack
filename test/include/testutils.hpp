@@ -10,8 +10,10 @@
 #ifndef TLAPACK_TESTUTILS_HH
 #define TLAPACK_TESTUTILS_HH
 
-#include <legacy_api/legacyArray.hpp>
-#include <tlapack.hpp>
+#include "testdefinitions.hpp"
+#include <tlapack/plugins/stdvector.hpp>
+
+#include <tlapack/base/utils.hpp>
 
 #include <complex>
 namespace tlapack
@@ -130,10 +132,13 @@ namespace tlapack
     {
         using T = type_t<matrix_t>;
 
+        // Functor
+        Create<matrix_t> new_matrix;
+
         auto m = min(nrows(Q), ncols(Q));
 
-        std::unique_ptr<T[]> res_(new T[m * m]);
-        auto res = legacyMatrix<T, layout<matrix_t>>(m, m, &res_[0], m);
+        std::vector<T> res_;
+        auto res = new_matrix(res_, m, m);
         return check_orthogonality(Q, res);
     }
 
@@ -167,7 +172,7 @@ namespace tlapack
 
         // res = Q'*A*Q - B
         lacpy(Uplo::General, B, res);
-        gemm(Op::ConjTrans, Op::NoTrans, (real_t)1.0, Q, A, (real_t)0.0, work);
+        gemm(Op::ConjTrans, Op::NoTrans, (real_t)1.0, Q, A, work);
         gemm(Op::NoTrans, Op::NoTrans, (real_t)1.0, work, Q, (real_t)-1.0, res);
 
         // Compute ||res||_F
@@ -189,12 +194,15 @@ namespace tlapack
     {
         using T = type_t<matrix_t>;
 
+        // Functor
+        Create<matrix_t> new_matrix;
+
         auto n = ncols(A);
 
-        std::unique_ptr<T[]> res_(new T[n * n]);
-        auto res = legacyMatrix<T, layout<matrix_t>>(n, n, &res_[0], n);
-        std::unique_ptr<T[]> work_(new T[n * n]);
-        auto work = legacyMatrix<T, layout<matrix_t>>(n, n, &work_[0], n);
+        std::vector<T> res_;
+        auto res = new_matrix(res_, n, n);
+        std::vector<T> work_;
+        auto work = new_matrix(work_, n, n);
 
         return check_similarity_transform(A, Q, B, res, work);
     }

@@ -9,10 +9,9 @@
 
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
-#include <plugins/tlapack_stdvector.hpp>
+
+#include "testutils.hpp"
 #include <tlapack.hpp>
-#include <testutils.hpp>
-#include <testdefinitions.hpp>
 
 using namespace tlapack;
 
@@ -25,17 +24,17 @@ TEMPLATE_LIST_TEST_CASE("LAUUM is stable", "[lauum]", types_to_test)
     using idx_t = size_type<matrix_t>;
     typedef real_type<T> real_t;
 
+    // Functor
+    Create<matrix_t> new_matrix;
+
     Uplo uplo = GENERATE(Uplo::Lower, Uplo::Upper);
     idx_t n = GENERATE(1, 2, 6, 9);
 
     const real_t eps = uroundoff<real_t>();
     const real_t tol = 1.0e2 * n * eps;
 
-    std::unique_ptr<T[]> A_(new T[n * n]);
-    std::unique_ptr<T[]> C_(new T[n * n]);
-
-    auto A = legacyMatrix<T, layout<matrix_t>>(n, n, &A_[0], n);
-    auto C = legacyMatrix<T, layout<matrix_t>>(n, n, &C_[0], n);
+    std::vector<T> A_; auto A = new_matrix( A_, n, n );
+    std::vector<T> C_; auto C = new_matrix( C_, n, n );
 
     // Generate random matrix
     for (idx_t j = 0; j < n; ++j)

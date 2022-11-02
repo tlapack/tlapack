@@ -9,10 +9,10 @@ cmake_minimum_required(VERSION 3.1)
 project( cwrapper_gemm C )
 
 # Load <T>LAPACK
-if( NOT TARGET tblas_c )
+if( NOT TARGET tlapack_c )
   find_package( tlapack REQUIRED )
 endif()
 
 # add the example gemm
 add_executable( example_cwrapper_gemm example_cwrapper_gemm.c )
-target_link_libraries( example_cwrapper_gemm PRIVATE tblas_c )
+target_link_libraries( example_cwrapper_gemm PRIVATE tlapack_c )

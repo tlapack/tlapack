@@ -9,10 +9,9 @@
 
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
-#include <plugins/tlapack_stdvector.hpp>
+
+#include "testutils.hpp"
 #include <tlapack.hpp>
-#include <testutils.hpp>
-#include <testdefinitions.hpp>
 
 using namespace tlapack;
 
@@ -24,18 +23,17 @@ TEMPLATE_LIST_TEST_CASE("Conjugate Transpose gives correct result", "[util]", ty
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
 
+    // Functor
+    Create<matrix_t> new_matrix;
+
     // Generate n
     idx_t n = GENERATE(1, 2, 3, 5, 10);
     // Generate m
     idx_t m = GENERATE(1, 2, 3, 5, 10);
 
-    // Define the matrices and vectors
-    std::unique_ptr<T[]> A_(new T[n * m]);
-    std::unique_ptr<T[]> B_(new T[n * m]);
-
-    // This only works for legacy matrix, we really work on that construct_matrix function
-    auto A = legacyMatrix<T, layout<matrix_t>>(m, n, &A_[0], layout<matrix_t> == Layout::ColMajor ? m : n);
-    auto B = legacyMatrix<T, layout<matrix_t>>(n, m, &B_[0], layout<matrix_t> == Layout::ColMajor ? n : m);
+    // Define the matrices
+    std::vector<T> A_; auto A = new_matrix( A_, m, n );
+    std::vector<T> B_; auto B = new_matrix( B_, n, m );
 
     // Generate a random matrix in A
     for (idx_t j = 0; j < n; ++j)
@@ -64,18 +62,17 @@ TEMPLATE_LIST_TEST_CASE("Transpose gives correct result", "[util]", types_to_tes
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
 
+    // Functor
+    Create<matrix_t> new_matrix;
+
     // Generate n
     idx_t n = GENERATE(1, 2, 3, 5, 10);
     // Generate m
     idx_t m = GENERATE(1, 2, 3, 5, 10);
 
-    // Define the matrices and vectors
-    std::unique_ptr<T[]> A_(new T[n * m]);
-    std::unique_ptr<T[]> B_(new T[n * m]);
-
-    // This only works for legacy matrix, we really work on that construct_matrix function
-    auto A = legacyMatrix<T, layout<matrix_t>>(m, n, &A_[0], layout<matrix_t> == Layout::ColMajor ? m : n);
-    auto B = legacyMatrix<T, layout<matrix_t>>(n, m, &B_[0], layout<matrix_t> == Layout::ColMajor ? n : m);
+    // Define the matrices
+    std::vector<T> A_; auto A = new_matrix( A_, m, n );
+    std::vector<T> B_; auto B = new_matrix( B_, n, m );
 
     // Generate a random matrix in A
     for (idx_t j = 0; j < n; ++j)
