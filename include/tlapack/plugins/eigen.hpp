@@ -333,7 +333,7 @@ namespace tlapack{
         struct vector_type_traits< vecA_t, vecB_t >
         {
             using T = scalar_type< type_t<vecA_t>, type_t<vecB_t> >;
-            using type = Eigen::Vector< T, Eigen::Dynamic >;
+            using type = Eigen::Matrix< T, Eigen::Dynamic, 1 >;
         };
 
     #endif // TLAPACK_PREFERRED_MATRIX

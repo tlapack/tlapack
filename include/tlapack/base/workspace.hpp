@@ -18,19 +18,19 @@ namespace tlapack {
      *      1. `(n > 1) && (m > 0)`.
      *      2. `((n <= 1) || (m == 0)) && (ldim == m)`.
      */
-    struct Workspace : protected legacyMatrix<byte>
+    struct Workspace
     {
         using idx_t = std::size_t;
 
         // Constructors:
         
         inline constexpr
-        Workspace( byte* ptr = nullptr, idx_t n = 0 )
-        : legacyMatrix<byte>( n, 1, ptr ) { }
+        Workspace( byte* ptr = nullptr, idx_t n = 0 ) noexcept
+        : m(n), n(1), ptr(ptr), ldim(n) { }
 
         inline constexpr
         Workspace( const legacyMatrix<byte>& w ) noexcept
-        : legacyMatrix<byte>( w )
+        : m(w.m), n(w.n), ptr(w.ptr), ldim(w.ldim)
         {
             if( n <= 1 || m == 0 ) ldim = m;
         }
@@ -101,6 +101,11 @@ namespace tlapack {
                 }
             }
         }
+
+    private:
+        idx_t m, n; ///< Sizes
+        byte* ptr;  ///< Pointer to array in memory
+        idx_t ldim; ///< Leading dimension
     };
 
     /**
