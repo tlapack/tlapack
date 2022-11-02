@@ -9,11 +9,8 @@
 #ifndef TLAPACK_GEHRD_HH
 #define TLAPACK_GEHRD_HH
 
-#include "tlapack/legacy_api/base/utils.hpp"
 #include "tlapack/base/utils.hpp"
 #include "tlapack/lapack/lahr2.hpp"
-
-#include <memory>
 
 namespace tlapack
 {
@@ -21,31 +18,39 @@ namespace tlapack
     /**
      * Options struct for gehrd
      */
-    template <typename idx_t, typename T>
-    struct gehrd_opts_t {
-        // Blocksize used in the blocked reduction
-        idx_t nb = 32;
-        // If only nx_switch columns are left, the algorithm will use unblocked code
-        idx_t nx_switch = 128;
-        // Workspace pointer, if no workspace is provided, one will be allocated internally
-        T* _work=nullptr;
-        // Workspace size
-        idx_t lwork;
+    template< class idx_t = size_t >
+    struct gehrd_opts_t : public workspace_opts_t<>
+    {
+        inline constexpr gehrd_opts_t( const workspace_opts_t<>& opts = {} )
+        : workspace_opts_t<>( opts ) {};
+
+        idx_t nb = 32; ///< Block size used in the blocked reduction
+        idx_t nx_switch = 128; ///< If only nx_switch columns are left, the algorithm will use unblocked code
     };
 
-    /**
-     * Returns the required workspace for gehrd.
-     * The arguments are the same as for gehrd itself.
+    /** Worspace query.
+     * @see gehrd
      * 
-     * @return idx_t The size of the required workspace
+     * @param[out] workinfo On return, contains the required workspace sizes.
      */
-    template <class matrix_t, class vector_t, typename idx_t = size_type<matrix_t>, typename TA = type_t<matrix_t>>
-    idx_t get_work_gehrd(size_type<matrix_t> ilo, size_type<matrix_t> ihi, matrix_t &A, vector_t &tau, const gehrd_opts_t<idx_t, TA> &opts = {})
+    template < class matrix_t, class vector_t >
+    void gehrd_worksize(
+        size_type<matrix_t> ilo, 
+        size_type<matrix_t> ihi, 
+        matrix_t &A, 
+        vector_t &tau,
+        workinfo_t& workinfo, 
+        const gehrd_opts_t< size_type<matrix_t> > &opts = {} )
     {
-        const idx_t n = ncols(A);
-        idx_t nb = opts.nb;
+        using idx_t = size_type<matrix_t>;
+        using work_t    = matrix_type<matrix_t,vector_t>;
+        using T         = type_t< work_t >;
 
-        return (n+nb)*nb;
+        const idx_t n = ncols(A);
+        const idx_t nb = std::min( opts.nb, ihi-ilo-1 );
+
+        workinfo.m = sizeof(T) * (n+nb);
+        workinfo.n = nb;
     }
 
     /** Reduces a general square matrix to upper Hessenberg form
@@ -83,22 +88,34 @@ namespace tlapack
      * @param[out] tau Real vector of length n-1.
      *      The scalar factors of the elementary reflectors.
      *
-     * @param[in,out] opts Struct containing the options
-     *      See gehrd_opts_t for more details
+     * @param[in] opts Options.
+     *      - @c opts.work is used if whenever it has sufficient size.
+     *        The sufficient size can be obtained through a workspace query.
      *
      * @ingroup gehrd
      */
-    template <class matrix_t, class vector_t, typename idx_t = size_type<matrix_t>, typename TA = type_t<matrix_t>>
-    int gehrd(size_type<matrix_t> ilo, size_type<matrix_t> ihi, matrix_t &A, vector_t &tau, const gehrd_opts_t<idx_t, TA> &opts = {})
+    template < class matrix_t, class vector_t >
+    int gehrd(
+        size_type<matrix_t> ilo, 
+        size_type<matrix_t> ihi, 
+        matrix_t &A, 
+        vector_t &tau,
+        const gehrd_opts_t< size_type<matrix_t> > &opts = {} )
     {
+        using idx_t     = size_type<matrix_t>;
+        using work_t    = matrix_type<matrix_t,vector_t>;
         using pair = pair<idx_t, idx_t>;
+        using TA   = type_t< matrix_t >;
+
+        // Functor
+        Create<work_t> new_matrix;
 
         // constants
         const TA one(1);
         const idx_t n = ncols(A);
 
         // Blocksize
-        idx_t nb = opts.nb;
+        idx_t nb = std::min( opts.nb, ihi-ilo-1 );
         // Size of the last block which be handled with unblocked code
         idx_t nx_switch = opts.nx_switch;
         idx_t nx = std::max( nb, nx_switch );
@@ -114,25 +131,25 @@ namespace tlapack
         if (n <= 0)
             return 0;
 
-        // Get the workspace
-        TA* _work;
-        idx_t lwork;
-        idx_t required_workspace = get_work_gehrd(ilo, ihi, A, tau, opts);
-        // Store whether or not a workspace was locally allocated
-        bool locally_allocated = false;
-        if( opts._work and required_workspace <= opts.lwork ){
-            // Provided workspace is large enough, use it
-            _work = opts._work;
-            lwork = opts.lwork;
-        } else {
-            // No workspace provided or not large enough, allocate it
-            locally_allocated = true;
-            lwork = required_workspace;
-            _work = new TA[lwork];
-        }
+        // Allocates workspace
+        vectorOfBytes localworkdata;
+        Workspace work = [&]()
+        {
+            workinfo_t workinfo;
+            gehrd_worksize( ilo, ihi, A, tau, workinfo, opts );
+            return alloc_workspace( localworkdata, workinfo, opts.work );
+        }();
+    
+        // Options to forward
+        auto&& larfbOpts = workspace_opts_t< transpose_type<work_t> >{ work };
+        auto&& gehd2Opts = workspace_opts_t<>{ work };
 
-        auto Y = legacyMatrix<TA, layout<matrix_t>>( n, nb, &_work[0], layout<matrix_t> == Layout::ColMajor ? n : nb );
-        auto T = legacyMatrix<TA, layout<matrix_t>>( nb, nb, &_work[n*nb], nb );
+        // Matrix Y
+        Workspace workMatrixT;
+        auto Y = new_matrix( work, n, nb, workMatrixT );
+
+        // Matrix T
+        auto matrixT = new_matrix( workMatrixT, nb, nb );
 
         idx_t i = ilo;
         for (; i+nx < ihi-1; i = i + nb)
@@ -142,7 +159,7 @@ namespace tlapack
             auto V = slice(A, pair{i + 1, ihi}, pair{i, i + nb2});
             auto A2 = slice(A, pair{0, ihi}, pair{i, ihi});
             auto tau2 = slice(tau, pair{i, ihi});
-            auto T_s = slice(T, pair{0, nb2}, pair{0, nb2});
+            auto T_s = slice(matrixT, pair{0, nb2}, pair{0, nb2});
             auto Y_s = slice(Y, pair{0, n}, pair{0, nb2});
             lahr2(i, nb2, A2, tau2, T_s, Y_s);
             if( i + nb2 < ihi ){
@@ -169,15 +186,12 @@ namespace tlapack
 
             // Apply the block reflector H to A(i+1:ihi,i+nb:n) from the left
             auto A5 = slice(A, pair{i + 1, ihi}, pair{i + nb2, n});
-            auto Y_left = legacyMatrix<TA, layout<matrix_t>>( nb2, n - i - nb2, &_work[0], layout<matrix_t> == Layout::ColMajor ? nb2 : n - i - nb2 );
-            larfb(Side::Left, Op::ConjTrans, Direction::Forward, StoreV::Columnwise, V, T_s, A5, Y_left);
+            larfb( Side::Left, Op::ConjTrans, Direction::Forward,
+                   StoreV::Columnwise, V, T_s, A5, larfbOpts );
         }
 
-        auto workspace_vector = col( Y, 0 );
-        gehd2( i, ihi, A, tau, workspace_vector );
+        gehd2( i, ihi, A, tau, gehd2Opts );
 
-        if(locally_allocated)
-            delete [] _work;
         return 0;
     }
 

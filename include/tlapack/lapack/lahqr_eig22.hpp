@@ -10,8 +10,6 @@
 #ifndef TLAPACK_LAHQR_EIG22_HH
 #define TLAPACK_LAHQR_EIG22_HH
 
-#include <complex>
-
 #include "tlapack/base/utils.hpp"
 
 namespace tlapack

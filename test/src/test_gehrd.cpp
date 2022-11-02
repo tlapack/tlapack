@@ -9,10 +9,9 @@
 
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
-#include <tlapack/plugins/stdvector.hpp>
+
+#include "testutils.hpp"
 #include <tlapack.hpp>
-#include <testutils.hpp>
-#include <testdefinitions.hpp>
 
 using namespace tlapack;
 
@@ -22,23 +21,24 @@ void check_hess_reduction(size_type<matrix_t> ilo, size_type<matrix_t> ihi, matr
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
 
+    // Functor
+    Create<matrix_t> new_matrix;
+
     idx_t n = ncols(A);
 
     const real_type<T> eps = uroundoff<real_type<T>>();
     const real_type<T> tol = n * 1.0e2 * eps;
 
-    std::unique_ptr<T[]> Q_(new T[n * n]);
-    std::unique_ptr<T[]> _res(new T[n * n]);
-    std::unique_ptr<T[]> _work(new T[n * n]);
+    std::vector<T> Q_; auto Q = new_matrix( Q_, n, n );
+    std::vector<T> res_; auto res = new_matrix( res_, n, n );
+    std::vector<T> work_; auto work = new_matrix( work_, n, n );
 
-    auto Q = legacyMatrix<T, layout<matrix_t>>(n, n, &Q_[0], n);
-    auto res = legacyMatrix<T, layout<matrix_t>>(n, n, &_res[0], n);
-    auto work = legacyMatrix<T, layout<matrix_t>>(n, n, &_work[0], n);
-    std::vector<T> workv(n);
+    vectorOfBytes workVec;
+    workspace_opts_t<> workOpts( alloc_workspace( workVec, n*sizeof(T) ) );
 
     // Generate orthogonal matrix Q
     tlapack::lacpy(Uplo::General, H, Q);
-    tlapack::unghr(ilo, ihi, Q, tau, workv);
+    tlapack::unghr(ilo, ihi, Q, tau, workOpts);
 
     // Remove junk from lower half of H
     for (idx_t j = 0; j < n; ++j)
@@ -62,6 +62,9 @@ TEMPLATE_LIST_TEST_CASE("Hessenberg reduction is backward stable", "[eigenvalues
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
     using real_t = real_type<T>;
+
+    // Functor
+    Create<matrix_t> new_matrix;
 
     auto matrix_type = GENERATE(as<std::string>{}, "Random", "Near overflow");
 
@@ -87,12 +90,8 @@ TEMPLATE_LIST_TEST_CASE("Hessenberg reduction is backward stable", "[eigenvalues
     }
 
     // Define the matrices and vectors
-    std::unique_ptr<T[]> A_(new T[n * n]);
-    std::unique_ptr<T[]> H_(new T[n * n]);
-
-    // This only works for legacy matrix, we really work on that construct_matrix function
-    auto A = legacyMatrix<T, layout<matrix_t>>(n, n, &A_[0], n);
-    auto H = legacyMatrix<T, layout<matrix_t>>(n, n, &H_[0], n);
+    std::vector<T> A_; auto A = new_matrix( A_, n, n );
+    std::vector<T> H_; auto H = new_matrix( H_, n, n );
     std::vector<T> tau(n);
 
     if (matrix_type == "Random")
@@ -123,8 +122,10 @@ TEMPLATE_LIST_TEST_CASE("Hessenberg reduction is backward stable", "[eigenvalues
     DYNAMIC_SECTION("GEHD2 with"
                     << " matrix = " << matrix_type << " n = " << n << " ilo = " << ilo << " ihi = " << ihi)
     {
-        std::vector<T> workv(n);
-        tlapack::gehd2(ilo, ihi, H, tau, workv);
+        vectorOfBytes workVec;
+        workspace_opts_t<> workOpts( alloc_workspace( workVec, n*sizeof(T) ) );
+
+        tlapack::gehd2(ilo, ihi, H, tau, workOpts);
 
         check_hess_reduction(ilo, ihi, H, tau, A);
     }
@@ -132,13 +133,9 @@ TEMPLATE_LIST_TEST_CASE("Hessenberg reduction is backward stable", "[eigenvalues
     DYNAMIC_SECTION("GEHRD with"
                     << " matrix = " << matrix_type << " n = " << n << " ilo = " << ilo << " ihi = " << ihi << " nb = " << nb)
     {
-        gehrd_opts_t<idx_t, T> opts;
+        gehrd_opts_t<idx_t> opts;
         opts.nb = nb;
         opts.nx_switch = 2;
-        idx_t required_workspace = get_work_gehrd(ilo, ihi, A, tau, opts);
-        std::unique_ptr<T[]> _work2(new T[required_workspace]);
-        opts._work = &_work2[0];
-        opts.lwork = required_workspace;
         tlapack::gehrd(ilo, ihi, H, tau, opts);
 
         check_hess_reduction(ilo, ihi, H, tau, A);

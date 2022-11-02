@@ -8,16 +8,15 @@
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
 #include <catch2/catch_template_test_macros.hpp>
-#include <testdefinitions.hpp>
 
-#include <complex>
+#include "testutils.hpp"
 
 using namespace tlapack;
 
 TEST_CASE("has_compatible_layout gives the correct result", "[optBLAS]")
 {
-    using matrixA_t = legacyMatrix< float, Layout::ColMajor >;
-    using matrixB_t = legacyMatrix< float, Layout::RowMajor >;
+    using matrixA_t = legacyMatrix< float, size_t, Layout::ColMajor >;
+    using matrixB_t = legacyMatrix< float, size_t, Layout::RowMajor >;
     using vector_t  = legacyVector< float >;
 
     CHECK( has_compatible_layout< matrixA_t, matrixA_t > );

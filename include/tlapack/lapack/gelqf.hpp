@@ -17,6 +17,45 @@
 
 namespace tlapack
 {
+    /**
+     * Options struct for gelqf
+     */
+    template< class idx_t = size_t >
+    struct gelqf_opts_t : public workspace_opts_t<>
+    {
+        inline constexpr gelqf_opts_t( const workspace_opts_t<>& opts = {} )
+        : workspace_opts_t<>( opts ) {};
+
+        idx_t nb = 32; ///< Block size
+    };
+
+    /** Worspace query.
+     * @see gelqf
+     * 
+     * @param[out] workinfo On return, contains the required workspace sizes.
+     */
+    template< typename matrix_t >
+    inline constexpr
+    void gelqf_worksize(
+        matrix_t &A, matrix_t &TT, workinfo_t& workinfo,
+        const gelqf_opts_t< size_type<matrix_t> > &opts = {} )
+    {
+        using idx_t = size_type<matrix_t>;
+
+        // constants
+        const idx_t m = nrows(A);
+        const idx_t n = ncols(A);
+        const idx_t k = min(m, n);
+        const idx_t nb = opts.nb;
+        const idx_t ib = std::min<idx_t>(nb, k);
+
+        auto TT1 = slice(TT, range<idx_t>(0, ib), range<idx_t>(0, ib));
+        auto A11 = rows(A, range<idx_t>(0, ib));
+        auto tauw1 = diag(TT1);
+
+        gelq2_worksize(A11, tauw1, workinfo, opts);
+    }
+
     /** Computes an LQ factorization of a complex m-by-n matrix A using
      *  a blocked algorithm.
      *
@@ -57,15 +96,15 @@ namespace tlapack
      *          *
      *          ...
      *      \]
-     *
-     * @param work Vector of size m.
      * 
-     * @param nb Constant of block height.
+     * @param[in] opts Options.
+     *      - @c opts.work is used if whenever it has sufficient size.
+     *        The sufficient size can be obtained through a workspace query.
      *
      * @ingroup gelqf
      */
-    template <typename matrix_t, class work_t>
-    int gelqf(matrix_t &A, matrix_t &TT, work_t &work, const size_type<matrix_t> &nb)
+    template< typename matrix_t >
+    int gelqf(matrix_t &A, matrix_t &TT, const gelqf_opts_t< size_type<matrix_t> > &opts = {})
     {
         using idx_t = size_type<matrix_t>;
         using range = std::pair<idx_t, idx_t>;
@@ -74,11 +113,23 @@ namespace tlapack
         const idx_t m = nrows(A);
         const idx_t n = ncols(A);
         const idx_t k = min(m, n);
+        const idx_t nb = opts.nb;
 
         // check arguments
         tlapack_check_false(access_denied(dense, write_policy(A)) );
         tlapack_check_false( nrows(TT) < m || ncols(TT) < nb );
-        tlapack_check_false((idx_t)size(work) < m );
+
+        // Allocates workspace
+        vectorOfBytes localworkdata;
+        Workspace work = [&]()
+        {
+            workinfo_t workinfo;
+            gelqf_worksize( A, TT, workinfo, opts );
+            return alloc_workspace( localworkdata, workinfo, opts.work );
+        }();
+        
+        // Options to forward
+        auto&& gelq2Opts = workspace_opts_t<>{ work };
 
         for (idx_t j = 0; j < k; j += nb)
         {
@@ -90,7 +141,7 @@ namespace tlapack
             auto A11 = slice(A, range(j, j + ib), range(j, n));
             auto tauw1 = diag(TT1);
 
-            gelq2(A11, tauw1, work);
+            gelq2(A11, tauw1, gelq2Opts);
 
             if (j + ib < k)
             {
@@ -99,8 +150,9 @@ namespace tlapack
 
                 // Apply H to A(j+ib:m,j:n) from the right
                 auto A12 = slice(A, range(j + ib, m), range(j, n));
-                auto work1 = slice(TT, range(j + ib, m), range(0, ib));
-
+                
+                auto work1 = workspace_opts_t<void>(
+                                slice(TT, range(j + ib, m), range(0, ib)) );
                 larfb(
                     Side::Right,
                     Op::NoTrans,

@@ -10,8 +10,6 @@
 #ifndef TLAPACK_LEGACY_LANHE_HH
 #define TLAPACK_LEGACY_LANHE_HH
 
-#include <memory>
-
 #include "tlapack/base/types.hpp"
 #include "tlapack/lapack/lanhe.hpp"
 

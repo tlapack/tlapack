@@ -17,6 +17,30 @@
 
 namespace tlapack
 {
+
+    /** Worspace query.
+     * @see gelq2
+     * 
+     * @param[out] workinfo On return, contains the required workspace sizes.
+     */
+    template< class matrix_t, class vector_t >
+    inline constexpr
+    void gelq2_worksize(
+        matrix_t& A, vector_t &tauw, workinfo_t& workinfo,
+        const workspace_opts_t<>& opts = {} )
+    {
+        using idx_t = size_type< matrix_t >;
+
+        // constants
+        const idx_t m = nrows(A);
+
+        if( m > 1 ) {
+            auto C = rows( A, range<idx_t>{1,m} );
+            larf_worksize( right_side, row(A,0), tauw[0], C, workinfo, opts );
+        } else
+            workinfo = {};
+    }
+    
     /** Computes an LQ factorization of a complex m-by-n matrix A using
      *  an unblocked algorithm.
      *
@@ -49,12 +73,14 @@ namespace tlapack
      * @param[out] tauw Complex vector of length min(m,n).
      *      The scalar factors of the elementary reflectors.
      *
-     * @param work Vector of size m.
+     * @param[in] opts Options.
+     *      - @c opts.work is used if whenever it has sufficient size.
+     *        The sufficient size can be obtained through a workspace query.
      *
      * @ingroup gelqf
      */
-    template <typename matrix_t, class vector_t, class work_t>
-    int gelq2(matrix_t &A, vector_t &tauw, work_t &work)
+    template <typename matrix_t, class vector_t>
+    int gelq2(matrix_t &A, vector_t &tauw, const workspace_opts_t<>& opts = {})
     {
         using idx_t = size_type<matrix_t>;
         using range = std::pair<idx_t, idx_t>;
@@ -67,7 +93,18 @@ namespace tlapack
         // check arguments
         tlapack_check_false(access_denied(dense, write_policy(A)) );
         tlapack_check_false((idx_t)size(tauw) < std::min<idx_t>(m, n) );
-        tlapack_check_false((idx_t)size(work) < m );
+
+        // Allocates workspace
+        vectorOfBytes localworkdata;
+        Workspace work = [&]()
+        {
+            workinfo_t workinfo;
+            gelq2_worksize( A, tauw, workinfo, opts );
+            return alloc_workspace( localworkdata, workinfo, opts.work );
+        }();
+        
+        // Options to forward
+        auto&& larfOpts = workspace_opts_t<>{ work };
 
         for (idx_t j = 0; j < k; ++j)
         {
@@ -84,7 +121,7 @@ namespace tlapack
             {
                 // Apply H(j) to A(j+1:m,j:n) from the right
                 auto Q11 = slice(A, range(j + 1, m), range(j, n));
-                larf(Side::Right, w, tauw[j], Q11, work);
+                larf(Side::Right, w, tauw[j], Q11, larfOpts);
             }
             for (idx_t i = 0; i < n - j; ++i)
                 w[i] = conj(w[i]); 

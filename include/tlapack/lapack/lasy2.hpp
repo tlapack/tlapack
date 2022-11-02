@@ -11,11 +11,7 @@
 #ifndef TLAPACK_LASY2_HH
 #define TLAPACK_LASY2_HH
 
-#include <complex>
-#include <memory>
-
 #include "tlapack/base/utils.hpp"
-#include "tlapack/legacy_api/base/utils.hpp"
 
 namespace tlapack
 {
@@ -32,14 +28,19 @@ namespace tlapack
      */
     template <
         typename matrix_t,
-        typename T = type_t<matrix_t>,
-        typename idx_t = size_type<matrix_t>,
-        enable_if_t<!is_complex<T>::value, bool> = true>
-    int lasy2(Op trans_l, Op trans_r, int isign, const matrix_t &TL, const matrix_t &TR, const matrix_t &B, T &scale, matrix_t &X, T &xnorm)
+        enable_if_t<!is_complex< type_t<matrix_t> >::value, bool> = true>
+    int lasy2(
+        Op trans_l, Op trans_r, int isign, 
+        const matrix_t &TL, const matrix_t &TR, const matrix_t &B,
+        type_t<matrix_t> &scale,
+        matrix_t &X, type_t<matrix_t> &xnorm )
     {
-
+        using idx_t = size_type<matrix_t>;
+        using T = type_t<matrix_t>;
         using std::max;
-        using internal::colmajor_matrix;
+
+        // Functor for creating new matrices of type matrix_t
+        Create<matrix_t> new_matrix;
         
         const idx_t n1 = ncols(TL);
         const idx_t n2 = ncols(TR);
@@ -85,14 +86,10 @@ namespace tlapack
         if (n1 == 2 and n2 == 2)
         {
             // 2x2 blocks, build a 4x4 matrix
-            std::unique_ptr<T[]> _btmp(new T[4]);
-            auto btmp = legacyVector<T>(4, &_btmp[0]);
-            std::unique_ptr<T[]> _tmp(new T[4]);
-            auto tmp = legacyVector<T>(4, &_tmp[0]);
-            std::unique_ptr<T[]> T16_(new T[16]);
-            auto T16 = colmajor_matrix<T>(&T16_[0], 4, 4);
-            std::unique_ptr<idx_t[]> _jpiv(new idx_t[4]);
-            auto jpiv = legacyVector<idx_t>(4, &_jpiv[0]);
+            std::vector<T> btmp(4);
+            std::vector<T> tmp(4);
+            std::vector<T> T16_; auto T16 = new_matrix(T16_, 4, 4);
+            std::vector<idx_t> jpiv(4);
 
             auto smin = max( max(abs(TR(0, 0)), abs(TR(0, 1))), max(abs(TR(1, 0)), abs(TR(1, 1))));
             smin = max(smin, max(max(abs(TL(0, 0)), abs(TL(0, 1))), max(abs(TL(1, 0)), abs(TL(1, 1)))));

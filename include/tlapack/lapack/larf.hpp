@@ -17,6 +17,29 @@
 
 namespace tlapack {
 
+/** Worspace query.
+ * 
+ * @param[out] workinfo On return, contains the required workspace sizes.
+ */
+template< class side_t, class vector_t, class tau_t, class matrix_t >
+inline constexpr
+void larf_worksize(
+    side_t side,
+    vector_t const& v, const tau_t& tau, matrix_t& C,
+    workinfo_t& workinfo, const workspace_opts_t<>& opts = {} )
+{
+    using work_t    = vector_type< matrix_t, vector_t >;
+    using idx_t     = size_type< matrix_t >;
+    using T         = type_t< work_t >;
+
+    // constants
+    const idx_t m = nrows(C);
+    const idx_t n = ncols(C);
+
+    workinfo.m = sizeof(T);
+    workinfo.n = (side == Side::Left) ? n : m;
+}
+
 /** Applies an elementary reflector H to a m-by-n matrix C.
  *
  * The elementary reflector H can be applied on either the left or right, with
@@ -40,26 +63,33 @@ namespace tlapack {
  *     On entry, the m-by-n matrix C.
  *     On exit, C is overwritten by $H C$ if side = Side::Left,
  *                               or $C H$ if side = Side::Right.
- * 
- * @param work Workspace vector with length n if side = Side::Left,
- *                                       or m if side = Side::Right.
+ *
+ * @param[in] opts Options.
+ *      - @c opts.work is used if whenever it has sufficient size.
+ *        The sufficient size can be obtained through a workspace query.
  * 
  * @ingroup auxiliary
  */
-template< class side_t, class vector_t, class tau_t, class matrix_t, class work_t >
-inline void larf(
+template< class side_t, class vector_t, class tau_t, class matrix_t >
+void larf(
     side_t side,
     vector_t const& v, const tau_t& tau,
-    matrix_t& C, work_t& work )
+    matrix_t& C, const workspace_opts_t<>& opts = {} )
 {
 
     // data traits
-    using T = type_t<matrix_t>;
-    using idx_t = size_type< matrix_t >;
+    using work_t    = vector_type< matrix_t, vector_t >;
+    using idx_t     = size_type< matrix_t >;
+    using T         = type_t< work_t >;
+    using real_t    = real_type<T>;
+
     using pair = pair<idx_t,idx_t>;
 
+    // Functor
+    Create<work_t> new_vector;
+
     // constants
-    const T one(1.0);
+    const real_t one(1);
     const idx_t m = nrows(C);
     const idx_t n = ncols(C);
 
@@ -67,6 +97,15 @@ inline void larf(
     tlapack_check_false( side != Side::Left &&
                    side != Side::Right );
     tlapack_check_false(  access_denied( dense, write_policy(C) ) );
+
+    // Allocates workspace
+    vectorOfBytes localworkdata;
+    const Workspace work = [&]()
+    {
+        workinfo_t workinfo;
+        larf_worksize( side, v, tau, C, workinfo, opts );
+        return alloc_workspace( localworkdata, workinfo, opts.work );
+    }();
 
     // The following code was changed from:
     //
@@ -83,10 +122,9 @@ inline void larf(
     // which is better for thread safety.
 
     if( side == Side::Left ) {
-        auto w = slice(work,pair{0,n});
-        copy( row(C, 0), w );
+        auto w = new_vector( work, n );
         for (idx_t i = 0; i < n; ++i )
-            w[i] = conj(w[i]);
+            w[i] = conj(C(0,i));
         if(m > 1){
             auto x = slice(v,pair{1,m});
             gemv(Op::ConjTrans, one, rows(C, pair{1,m}), x, one, w);
@@ -99,7 +137,7 @@ inline void larf(
         }
     }
     else {
-        auto w = slice(work,pair{0,m});
+        auto w = new_vector( work, m );
         copy( col(C, 0), w );
         if(n > 1){
             auto x = slice(v,pair{1,n});

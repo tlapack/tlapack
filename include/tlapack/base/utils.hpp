@@ -15,12 +15,13 @@
 
 #include "tlapack/base/types.hpp"
 #include "tlapack/base/arrayTraits.hpp"
+#include "tlapack/base/workspace.hpp"
 #include "tlapack/base/exceptionHandling.hpp"
 
 namespace tlapack {
 
 // -----------------------------------------------------------------------------
-// Use routines from std C++
+// From std C++
 using std::isinf;
 using std::isnan;
 using std::ceil;
@@ -225,18 +226,6 @@ namespace internal {
      * 
      * The data type is defined on @c type_trait<array_t>::type.
      * 
-     * @tparam T A non-array class.
-     */
-    template< class T, typename = int >
-    struct type_trait {
-        using type = void;
-    };
-
-    /**
-     * @brief Data type trait.
-     * 
-     * The data type is defined on @c type_trait<array_t>::type.
-     * 
      * @tparam matrix_t Matrix class.
      */
     template< class matrix_t >
@@ -254,18 +243,6 @@ namespace internal {
     template< class vector_t >
     struct type_trait< vector_t, enable_if_t< is_vector< vector_t >, int > > {
         using type = typename std::decay< decltype( std::declval<vector_t>()[0] ) >::type;
-    };
-
-    /**
-     * @brief Size type trait.
-     * 
-     * The size type is defined on @c sizet_trait<array_t>::type.
-     * 
-     * @tparam T A non-array class.
-     */
-    template< class T, typename = int >
-    struct sizet_trait {
-        using type = void;
     };
 
     /**
@@ -879,84 +856,102 @@ bool access_denied( access_t a, accessPolicy_t p ) {
     return ! access_granted( a, p );
 }
 
-/** Defines structures that check if opts_t has an attribute called member.
- * 
- * has_member<opts_t> is a true type if the struct opts_t has an attribute called member.
- * has_member_v<opts_t> is true if the struct opts_t has a member called member.
- * 
- * @param member Attribute to be checked
- * 
- * @see https://stackoverflow.com/questions/1005476/how-to-detect-whether-there-is-a-specific-member-variable-in-class
- */
-#define TLAPACK_MEMBER_CHECKER(member) \
-    template< class opts_t, typename = int > \
-    struct has_ ## member : std::false_type { }; \
-    \
-    template< class opts_t > \
-    struct has_ ## member< opts_t, \
-        enable_if_t< \
-            !is_same_v< \
-                decltype(std::declval<opts_t>().member), \
-                void > \
-        , int > \
-    > : std::true_type { }; \
-    \
-    template< class opts_t > \
-    constexpr bool has_ ## member ## _v = has_ ## member<opts_t>::value;
+// -----------------------------------------------------------------------------
+// Workspace:
 
-// Activate checkers:
-TLAPACK_MEMBER_CHECKER(nb)
-TLAPACK_MEMBER_CHECKER(workPtr)
+/// @brief Output information in the workspace query
+struct workinfo_t
+{
+    size_t m = 0; ///< Number of rows needed in the Workspace
+    size_t n = 0; ///< Number of columns needed in the Workspace
 
-/** has_work_v<opts_t> is true if the struct opts_t has a member called workPtr.
- */
-template< class opts_t > constexpr bool has_work_v = has_workPtr_v<opts_t>;
+    /// Size needed in the Workspace
+    inline constexpr
+    size_t size() const { return m*n; }
+
+    /**
+     * @brief Set the current object to a state that
+     *  fit its current sizes and the sizes of workinfo
+     * 
+     * @param[in] workinfo Another specification of work sizes
+     */
+    void minMax( const workinfo_t& workinfo )
+    {
+        // Check if the current sizes cover the sizes from workinfo
+        if( m < workinfo.size() || ((m >= workinfo.m) && (n >= workinfo.n)) )
+        {
+            // Check if the sizes from workinfo cover the current sizes
+            if( size() <= workinfo.m || ((m < workinfo.m) && (n < workinfo.n)) )
+            {
+                *this = workinfo;
+            }
+            else // Sizes do not match. Simple solution: contiguous space in memory
+            {
+                m = std::max( size(), workinfo.size() );
+                n = 1;
+            }
+        }
+    }
+};
 
 /**
- * @return a default value if nb is not a member of opts_t.
+ * @brief Allocates workspace
+ * 
+ * @param[out] v On exit, reference to allocated memory.
+ * @param[in] lwork Number of bytes to allocate.
+ * 
+ * @return Workspace referencing the allocated memory.
  */
-template< class opts_t, enable_if_t< !has_nb_v<opts_t>, int > = 0 >
-inline constexpr auto get_nb( opts_t&& opts ) {
-    /// TODO: Put default values somewhere else
-    return 32;
+inline Workspace
+alloc_workspace( vectorOfBytes& v, std::size_t lwork )
+{
+    v = vectorOfBytes( lwork ); // Allocates space in memory
+    return Workspace( v.data(), v.size() );
 }
 
 /**
- * @return opts.nb if nb is a member of opts_t and opts.nb > 0.
- * @return a default value otherwise.
+ * @brief Allocates workspace
+ * 
+ * @param[out] v        On exit, reference to allocated memory if needed.
+ * @param[in] lwork     Number of bytes needed.
+ * @param[in] opts_w    Workspace previously allocated.
+ * 
+ * @return Workspace referencing either:
+ *      1. new allocated memory, if opts_w.size() <= 0.
+ *      2. previously allocated memory, if opts_w.size() >= lwork.
  */
-template< class opts_t, enable_if_t<  has_nb_v<opts_t>, int > = 0 >
-inline constexpr auto get_nb( opts_t&& opts )
--> std::remove_reference_t<decltype(opts.nb)> {
-    return ( opts.nb > 0 ) 
-        ? opts.nb
-        : get_nb( 0 ); // get default nb
-}
-
-/**
- * @return *(opts.workPtr) if workPtr is a member of opts_t.
- */
-template< class opts_t, enable_if_t<  has_workPtr_v<opts_t>, int > = 0 >
-inline constexpr auto get_work( opts_t&& opts ) {
-    if ( opts.workPtr )
-        return *(opts.workPtr);
-    else {    
-        /// TODO: Allocate space.
-        /// TODO: Create matrix.
-        /// TODO: Return matrix.
-        return *(opts.workPtr);
+inline Workspace
+alloc_workspace( vectorOfBytes& v, const workinfo_t& workinfo, const Workspace& opts_w )
+{
+    if( opts_w.size() <= 0 )
+    {
+        return alloc_workspace( v, workinfo.size() );
+    }
+    else
+    {
+        tlapack_check(
+            (opts_w.isContiguous() && (opts_w.size() >= workinfo.size())) ||
+            (opts_w.getM() >= workinfo.m && opts_w.getN() >= workinfo.n) );
+        
+        return Workspace( opts_w );
     }
 }
 
-// -----------------------------------------------------------------------------
-// Options:
+/** Chooses between a preferrable type `work_type` and a default type `work_default`
+ * 
+ * @c deduce_work<>::type = work_default only if deduce_work is void.
+ * 
+ * @tparam work_type    Preferrable workspace type
+ * @tparam work_default Default workspace type
+ */
+template< class work_type, class work_default >
+struct deduce_work { using type = work_type; };
+template< class work_default >
+struct deduce_work< void, work_default > { using type = work_default; };
 
-// /// Workspace
-// template< typename idx_t, typename T >
-// struct workspace_t {
-//     T* work = nullptr; ///< Workspace pointer
-//     idx_t lwork = 0;   ///< Workspace size
-// };
+/// Alias for @c deduce_work<>::type
+template< class work_type, class work_default >
+using deduce_work_t = typename deduce_work<work_type,work_default>::type;
 
 } // namespace tlapack
 

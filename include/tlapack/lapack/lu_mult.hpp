@@ -32,7 +32,10 @@ struct lu_mult_opts_t
  *      L is assumed to have unit diagonal.  
  *      The upper triangular entires of A contain the matrix U. 
  *      On exit, A contains the product L*U. 
- * @param[in] (Optional)  struct containing optimization parameters. See lu_mult_ops_t
+ *
+ * @param[in] opts Options.
+ *      - @c opts.work is used if whenever it has sufficient size.
+ *        The sufficient size can be obtained through a workspace query.
  * 
  * @ingroup util
  */

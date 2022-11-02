@@ -17,6 +17,30 @@
 
 namespace tlapack {
 
+/** Worspace query.
+ * @see geqr2
+ * 
+ * @param[out] workinfo On return, contains the required workspace sizes.
+ */
+template< class matrix_t, class vector_t >
+inline constexpr
+void geqr2_worksize(
+    matrix_t& A, vector_t &tau, workinfo_t& workinfo,
+    const workspace_opts_t<>& opts = {} )
+{
+    using idx_t = size_type< matrix_t >;
+
+    // constants
+    const idx_t n = ncols(A);
+
+    if( n > 1 ) {
+        auto C = cols( A, range<idx_t>{1,n} );
+        larf_worksize( left_side, col(A,0), tau[0], C, workinfo, opts );
+    }
+    else
+        workinfo = {};
+}
+
 /** Computes a QR factorization of a matrix A.
  * 
  * The matrix Q is represented as a product of elementary reflectors
@@ -44,17 +68,17 @@ namespace tlapack {
  *      product of elementary reflectors.
  * @param[out] tau Real vector of length min(m,n).
  *      The scalar factors of the elementary reflectors.
- *      If
- *          n-1 < m and
- *          type_t<matrix_t> == type_t<vector_t>
- *      then one may use tau[1:n] as the workspace.
- * 
- * @param work Vector of size n-1.
+ *
+ * @param[in] opts Options.
+ *      - @c opts.work is used if whenever it has sufficient size.
+ *        The sufficient size can be obtained through a workspace query.
  * 
  * @ingroup geqrf
  */
-template< class matrix_t, class vector_t, class work_t >
-int geqr2( matrix_t& A, vector_t &tau, work_t &work )
+template< class matrix_t, class vector_t >
+int geqr2(
+    matrix_t& A, vector_t &tau,
+    const workspace_opts_t<>& opts = {} )
 {
     using idx_t = size_type< matrix_t >;
     using pair  = pair<idx_t,idx_t>;
@@ -67,10 +91,21 @@ int geqr2( matrix_t& A, vector_t &tau, work_t &work )
     // check arguments
     tlapack_check_false( access_denied( dense, write_policy(A) ) );
     tlapack_check_false( (idx_t) size(tau)  < std::min<idx_t>( m, n ) );
-    tlapack_check_false( (idx_t) size(work) < n-1 );
 
     // quick return
     if (n <= 0) return 0;
+
+    // Allocates workspace
+    vectorOfBytes localworkdata;
+    Workspace work = [&]()
+    {
+        workinfo_t workinfo;
+        geqr2_worksize( A, tau, workinfo, opts );
+        return alloc_workspace( localworkdata, workinfo, opts.work );
+    }();
+    
+    // Options to forward
+    auto&& larfOpts = workspace_opts_t<>{ work };
 
     for(idx_t i = 0; i < k; ++i) {
       
@@ -82,10 +117,9 @@ int geqr2( matrix_t& A, vector_t &tau, work_t &work )
 
         // Define v := A[i:m,i] and C := A[i:m,i+1:n], and w := work[i:n-1]
         auto C = slice( A, pair{i,m}, pair{i+1,n} );
-        auto w = slice( work, pair{i,n-1} );
-
-        // C := I - conj(tau_i) v v^H
-        larf( left_side, v, conj(tau[i]), C, w );
+        
+        // C := ( I - conj(tau_i) v v^H ) C
+        larf( left_side, v, conj(tau[i]), C, larfOpts );
 	}
     if( n-1 < m ) {
         // Define v := A[n-1:m,n-1]

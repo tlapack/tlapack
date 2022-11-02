@@ -8,27 +8,23 @@
 #define TLAPACK_LEGACY_ARRAY_HH
 
 #include <cassert>
-
-#include "tlapack/legacy_api/base/types.hpp"
+#include "tlapack/base/types.hpp"
 #include "tlapack/base/exceptionHandling.hpp"
 
 namespace tlapack {
-    
-    struct one_t {
-        constexpr operator int()   const{ return 1; }
-    };
-    constexpr one_t one = { };
 
     /** Legacy matrix.
      * 
      * legacyMatrix::ldim is assumed to be positive.
      * 
      * @tparam T Floating-point type
+     * @tparam idx_t Index type
      * @tparam L Either Layout::ColMajor or Layout::RowMajor
      */
-    template< typename T, Layout L = Layout::ColMajor >
+    template< class T, class idx_t = std::size_t, Layout L = Layout::ColMajor,
+        std::enable_if_t< (L == Layout::RowMajor) || (L == Layout::ColMajor), int > = 0
+    >
     struct legacyMatrix {
-        using idx_t = TLAPACK_SIZE_T;  ///< Index type
         idx_t m, n;                 ///< Sizes
         T* ptr;                     ///< Pointer to array in memory
         idx_t ldim;                 ///< Leading dimension
@@ -53,16 +49,35 @@ namespace tlapack {
             tlapack_check_false( n < 0 );
             tlapack_check_false( ldim < ((layout == Layout::ColMajor) ? m : n) );
         }
+        
+        inline constexpr legacyMatrix( idx_t m, idx_t n, T* ptr )
+        : m(m), n(n), ptr(ptr), ldim((layout == Layout::ColMajor) ? m : n)
+        {
+            tlapack_check_false( m < 0 );
+            tlapack_check_false( n < 0 );
+        }
+        
+        /**
+         * @brief Converts a legacyMatrix<T,idx_t,L> to legacyMatrix<byte>
+
+         * @return constexpr legacyMatrix<byte> Column-major matrix.
+         */
+        inline constexpr legacyMatrix<byte> in_bytes() const {
+            if( L == Layout::ColMajor )
+                return legacyMatrix<byte>( m * sizeof(T), n, (byte*) ptr, ldim * sizeof(T) );
+            else // if( L == Layout::RowMajor )
+                return legacyMatrix<byte>( n * sizeof(T), m, (byte*) ptr, ldim * sizeof(T) );
+        }
     };
 
     /** Legacy vector.
      * 
      * @tparam T Floating-point type
+     * @tparam idx_t Index type
      * @tparam D Either Direction::Forward or Direction::Backward
      */
-    template< typename T, typename int_t = one_t, Direction D = Direction::Forward >
+    template< typename T, class idx_t = std::size_t, typename int_t = internal::StrongOne, Direction D = Direction::Forward >
     struct legacyVector {
-        using idx_t = TLAPACK_SIZE_T;  ///< Index type
         idx_t n;                    ///< Size
         T* ptr;                     ///< Pointer to array in memory
         int_t inc;                  ///< Memory increment
@@ -78,11 +93,10 @@ namespace tlapack {
                 : *(ptr + ((n-1)-i)*inc);
         }
         
-        inline constexpr legacyVector( idx_t n, T* ptr, int_t inc = one )
+        inline constexpr legacyVector( idx_t n, T* ptr, int_t inc = 1 )
         : n(n), ptr(ptr), inc(inc)
         {
             tlapack_check_false( n < 0 );
-            tlapack_check_false( inc == 0 );
         }
     };
 
@@ -94,10 +108,10 @@ namespace tlapack {
      * otherwise it would lack in performance.
      * 
      * @tparam T Floating-point type
+     * @tparam idx_t Index type
      */
-    template< typename T >
+    template< typename T, class idx_t = std::size_t >
     struct legacyBandedMatrix {
-        using idx_t = TLAPACK_SIZE_T;  ///< Index type
         idx_t m, n, kl, ku;         ///< Sizes
         T* ptr;                     ///< Pointer to array in memory
         

@@ -17,6 +17,30 @@
 
 namespace tlapack {
 
+/** Worspace query.
+ * @see ung2r
+ * 
+ * @param[out] workinfo On return, contains the required workspace sizes.
+ */
+template< class matrix_t, class vector_t >
+inline constexpr
+void ung2r_worksize(
+    size_type< matrix_t > k, matrix_t& A, const vector_t &tau,
+    workinfo_t& workinfo, const workspace_opts_t<>& opts = {} )
+{
+    using idx_t = size_type< matrix_t >;
+
+    // constants
+    const idx_t n = ncols(A);
+
+    if( n > 1 ) {
+        auto C = cols( A, range<idx_t>{1,n} );
+        larf_worksize( left_side, col(A,0), tau[0], C, workinfo, opts );
+    }
+    else
+        workinfo = {};
+}
+
 /**
  * @brief Generates a matrix Q with orthogonal columns.
  * \[
@@ -34,16 +58,18 @@ namespace tlapack {
 
  * @param[in] tau Real vector of length min(m,n).
  *      The scalar factors of the elementary reflectors.
- * 
- * @param work Vector of at least size n-1.
+ *
+ * @param[in] opts Options.
+ *      @c opts.work is used if whenever it has sufficient size.
+ *      The sufficient size can be obtained through a workspace query.
  * 
  * @return 0 if success 
  * 
  * @ingroup geqrf
  */
-template< class matrix_t, class vector_t, class work_t >
+template< class matrix_t, class vector_t >
 int ung2r(
-    size_type< matrix_t > k, matrix_t& A, const vector_t &tau, work_t &work )
+    size_type< matrix_t > k, matrix_t& A, const vector_t &tau, const workspace_opts_t<>& opts = {} )
 {
     using T      = type_t< matrix_t >;
     using idx_t  = size_type< matrix_t >;
@@ -59,10 +85,21 @@ int ung2r(
     tlapack_check_false( k < 0 || k > n );
     tlapack_check_false( access_denied( dense, write_policy(A) ) );
     tlapack_check_false( (idx_t) size(tau)  < k );
-    tlapack_check_false( (idx_t) size(work) < n-1 );
 
     // quick return
     if (n <= 0) return 0;
+
+    // Allocates workspace
+    vectorOfBytes localworkdata;
+    Workspace work = [&]()
+    {
+        workinfo_t workinfo;
+        ung2r_worksize( k, A, tau, workinfo, opts );
+        return alloc_workspace( localworkdata, workinfo, opts.work );
+    }();
+        
+    // Options to forward
+    auto&& larfOpts = workspace_opts_t<>{ work };
     
     // Initialise columns k:n-1 to columns of the unit matrix
     for (idx_t j = k; j < n; ++j) {
@@ -80,9 +117,8 @@ int ung2r(
             // Define v and C
             auto v = slice( A, pair{i,m}, i );
             auto C = slice( A, pair{i,m}, pair{i+1,n} );
-            auto w = slice( work, pair{i,n-1} );
 
-            larf( left_side, std::move(v), tau[i], C, w );
+            larf( left_side, v, tau[i], C, larfOpts );
         }
         if ( i+1 < m ) {
             auto v = slice( A, pair{i+1,m}, i );

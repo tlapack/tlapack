@@ -9,11 +9,9 @@
 
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
-#include <tlapack/plugins/stdvector.hpp>
-#include <tlapack/plugins/legacyArray.hpp>
+
+#include "testutils.hpp"
 #include <tlapack.hpp>
-#include <testutils.hpp>
-#include <testdefinitions.hpp>
 
 using namespace tlapack;
 
@@ -26,6 +24,9 @@ TEMPLATE_LIST_TEST_CASE("lu multiplication is backward stable", "[lu check][lu][
     using idx_t = size_type<matrix_t>;
     typedef real_type<T> real_t;
 
+    // Functor
+    Create<matrix_t> new_matrix;
+
     idx_t n, nx;
 
     n = GENERATE(1, 2, 6, 9);
@@ -36,13 +37,9 @@ TEMPLATE_LIST_TEST_CASE("lu multiplication is backward stable", "[lu check][lu][
         const real_t eps = ulp<real_t>();
         const real_t tol = n * eps;
 
-        std::unique_ptr<T[]> L_(new T[n * n]);
-        std::unique_ptr<T[]> U_(new T[n * n]);
-        std::unique_ptr<T[]> A_(new T[n * n]);
-
-        auto L = legacyMatrix<T, layout<matrix_t>>(n, n, &L_[0], n);
-        auto U = legacyMatrix<T, layout<matrix_t>>(n, n, &U_[0], n);
-        auto A = legacyMatrix<T, layout<matrix_t>>(n, n, &A_[0], n);
+        std::vector<T> L_; auto L = new_matrix( L_, n, n );
+        std::vector<T> U_; auto U = new_matrix( U_, n, n );
+        std::vector<T> A_; auto A = new_matrix( A_, n, n );
 
         // Generate n-by-n random matrix
         for (idx_t j = 0; j < n; ++j)

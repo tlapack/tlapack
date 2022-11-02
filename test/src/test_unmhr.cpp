@@ -9,10 +9,9 @@
 
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
-#include <tlapack/plugins/stdvector.hpp>
+
+#include "testutils.hpp"
 #include <tlapack.hpp>
-#include <testutils.hpp>
-#include <testdefinitions.hpp>
 
 using namespace tlapack;
 
@@ -25,6 +24,9 @@ TEMPLATE_LIST_TEST_CASE("Result of unmhr matches result from unghr", "[eigenvalu
     using idx_t = size_type<matrix_t>;
     using real_t = real_type<T>;
     using pair = std::pair<idx_t, idx_t>;
+
+    // Functor
+    Create<matrix_t> new_matrix;
 
     auto matrix_type = GENERATE(as<std::string>{}, "Random");
     Side side = GENERATE(Side::Left, Side::Right);
@@ -40,17 +42,14 @@ TEMPLATE_LIST_TEST_CASE("Result of unmhr matches result from unghr", "[eigenvalu
     const real_type<T> eps = uroundoff<real_type<T>>();
     const real_type<T> tol = n * 1.0e2 * eps;
 
-    // Define the matrices and vectors
-    std::unique_ptr<T[]> H_(new T[n * n]);
-    std::unique_ptr<T[]> C_(new T[m * n]);
-    std::unique_ptr<T[]> C_copy_(new T[m * n]);
-
-    // This only works for legacy matrix, we really work on that construct_matrix function
-    auto H = legacyMatrix<T, layout<matrix_t>>(n, n, &H_[0], n);
-    auto C = legacyMatrix<T, layout<matrix_t>>(m, n, &C_[0], layout<matrix_t> == Layout::ColMajor ? m : n);
-    auto C_copy = legacyMatrix<T, layout<matrix_t>>(m, n, &C_copy_[0], layout<matrix_t> == Layout::ColMajor ? m : n);
+    // Define the matrices
+    std::vector<T> H_; auto H = new_matrix( H_, n, n );
+    std::vector<T> C_; auto C = new_matrix( C_, m, n );
+    std::vector<T> C_copy_; auto C_copy = new_matrix( C_copy_, m, n );
     std::vector<T> tau(n);
-    std::vector<T> work(std::max(n,m));
+
+    vectorOfBytes workVec;
+    workspace_opts_t<> workOpts( alloc_workspace( workVec, max(m,n)*sizeof(T) ) );
 
     if (matrix_type == "Random")
     {
@@ -75,7 +74,7 @@ TEMPLATE_LIST_TEST_CASE("Result of unmhr matches result from unghr", "[eigenvalu
             H(i, j) = zero;
 
     // Hessenberg reduction of H
-    gehd2(ilo, ihi, H, tau, work);
+    gehd2(ilo, ihi, H, tau, workOpts);
 
     DYNAMIC_SECTION("UNMHR with"
                     << " matrix = " << matrix_type << " ilo = " << ilo << " ihi = " << ihi)
@@ -84,10 +83,10 @@ TEMPLATE_LIST_TEST_CASE("Result of unmhr matches result from unghr", "[eigenvalu
         real_t c_norm = lange(frob_norm, C);
 
         // Apply the orthogonal factor to C
-        unmhr(side, op, ilo, ihi, H, tau, C, work);
+        unmhr(side, op, ilo, ihi, H, tau, C, workOpts);
 
         // Generate the orthogonal factor
-        unghr(ilo, ihi, H, tau, work);
+        unghr(ilo, ihi, H, tau, workOpts);
 
         // Multiply C_copy with the orthogonal factor
         auto Q = slice(H, pair{ilo + 1, ihi}, pair{ilo + 1, ihi});

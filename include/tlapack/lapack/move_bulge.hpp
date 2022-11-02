@@ -10,11 +10,6 @@
 #ifndef TLAPACK_MOVE_BULGE_HH
 #define TLAPACK_MOVE_BULGE_HH
 
-
-#include <memory>
-#include <complex>
-
-#include "tlapack/legacy_api/base/utils.hpp"
 #include "tlapack/base/utils.hpp"
 #include "tlapack/lapack/larfg.hpp"
 #include "tlapack/lapack/lahqr_shiftcolumn.hpp"
@@ -38,18 +33,18 @@ namespace tlapack
      *
      * @ingroup geev
      */
-    template <
-        class matrix_t,
-        class vector_t,
-        typename T = type_t<matrix_t>,
-        typename real_t = real_type<T>>
-    void move_bulge(matrix_t &H, vector_t &v, std::complex<real_t> s1, std::complex<real_t> s2)
+    template < class matrix_t, class vector_t >
+    void move_bulge(matrix_t &H, vector_t &v, complex_type<type_t<matrix_t>> s1, complex_type<type_t<matrix_t>> s2)
     {
+        using T = type_t<matrix_t>;
+        using real_t = real_type<T>;
 
         using idx_t = size_type<matrix_t>;
         using pair = std::pair<idx_t, idx_t>;
         const T zero(0);
         const real_t eps = ulp<real_t>();
+
+        Create<vector_t> new_vector;
 
         // Perform delayed update of row below the bulge
         // Assumes the first two elements of the row are zero
@@ -79,8 +74,7 @@ namespace tlapack
         {
             // The bulge has collapsed, attempt to reintroduce using
             // 2-small-subdiagonals trick
-            std::unique_ptr<T[]> _vt(new T[3]);
-            auto vt = legacyVector<T>(3, &_vt[0]);
+            std::vector<T> vt_; auto vt = new_vector(vt_, 3);
             auto H2 = slice(H, pair{1, 4}, pair{1, 4});
             lahqr_shiftcolumn(H2, vt, s1, s2);
             larfg(vt, tau);

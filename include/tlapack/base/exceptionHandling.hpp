@@ -10,7 +10,6 @@
 #include <stdexcept>
 #include <string>
 #include <iostream>
-#include <cassert>
 
 #ifndef TLAPACK_DEFAULT_INFCHECK
     #define TLAPACK_DEFAULT_INFCHECK true
@@ -43,6 +42,14 @@ namespace tlapack {
 
     /// It has all errors turned off
     constexpr ErrorCheck noErrorCheck = { false, false, false };
+
+    /// Error Checking options
+    struct ec_opts_t {
+        ErrorCheck ec = {};
+        
+        inline constexpr
+        ec_opts_t( const ErrorCheck& ec_ = {} ) : ec(ec_) {}
+    };
 }
 
 // -----------------------------------------------------------------------------
@@ -63,7 +70,7 @@ namespace tlapack {
     /**
      * @brief Throw an error if cond is true.
      * 
-     * ex: lapack_check( 1 < 2 ); throws an error.
+     * ex: tlapack_check_false( 1 < 2 ); throws an error.
      */
     #define tlapack_check_false( cond ) do { \
         if( static_cast<bool>(cond) ) \

@@ -16,6 +16,34 @@
 
 namespace tlapack {
 
+/** Worspace query.
+ * @see unm2r
+ * 
+ * @param[out] workinfo On return, contains the required workspace sizes.
+ */
+template<
+    class matrixA_t, class matrixC_t, class tau_t,
+    class side_t, class trans_t >
+inline constexpr
+void unm2r_worksize(
+    side_t side, trans_t trans,
+    matrixA_t& A,
+    const tau_t& tau,
+    matrixC_t& C, workinfo_t& workinfo,
+    const workspace_opts_t<>& opts = {} )
+{
+    using idx_t = size_type< matrixA_t >;
+    using pair = std::pair<idx_t, idx_t>;
+
+    // constants
+    const idx_t m = nrows(C);
+    const idx_t n = ncols(C);
+    const idx_t nA = (side == Side::Left) ? m : n;
+
+    auto v = slice( A, pair{0,nA}, 0 );
+    larf_worksize( side, v, tau[0], C, workinfo, opts );
+}
+
 /** Applies unitary matrix Q to a matrix C.
  * 
  * - side = Side::Left  & trans = Op::NoTrans:    $C := Q C$;
@@ -64,20 +92,22 @@ namespace tlapack {
  *      - side = Side::Right & trans = Op::NoTrans:    $C := C Q$;
  *      - side = Side::Left  & trans = Op::ConjTrans:  $C := C Q^H$;
  *      - side = Side::Right & trans = Op::ConjTrans:  $C := Q^H C$.
- * 
- * @param work Vector of size n, if side = Side::Left, or m, if side = Side::Right.
+ *
+ * @param[in] opts Options.
+ *      @c opts.work is used if whenever it has sufficient size.
+ *      The sufficient size can be obtained through a workspace query.
  * 
  * @ingroup geqrf
  */
 template<
-    class matrixA_t, class matrixC_t, class tau_t, class work_t,
+    class matrixA_t, class matrixC_t, class tau_t,
     class side_t, class trans_t >
 int unm2r(
     side_t side, trans_t trans,
     matrixA_t& A,
     const tau_t& tau,
     matrixC_t& C,
-    work_t& work )
+    const workspace_opts_t<>& opts = {} )
 {
     using idx_t = size_type< matrixA_t >;
     using T     = type_t< matrixA_t >;
@@ -105,6 +135,18 @@ int unm2r(
     if ((m == 0) || (n == 0) || (k == 0))
         return 0;
 
+    // Allocates workspace
+    vectorOfBytes localworkdata;
+    Workspace work = [&]()
+    {
+        workinfo_t workinfo;
+        unm2r_worksize( side, trans, A, tau, C, workinfo, opts );
+        return alloc_workspace( localworkdata, workinfo, opts.work );
+    }();
+        
+    // Options to forward
+    auto&& larfOpts = workspace_opts_t<>{ work };
+
     // const expressions
     const bool positiveInc = (
         ( (side == Side::Left) && !(trans == Op::NoTrans) ) ||
@@ -127,7 +169,7 @@ int unm2r(
         larf(
             side, v,
             (trans == Op::ConjTrans) ? conj(tau[i]) : tau[i],
-            Ci, work );
+            Ci, larfOpts );
         A(i,i) = Aii;
     }
 

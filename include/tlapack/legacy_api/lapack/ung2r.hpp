@@ -55,19 +55,11 @@ inline int ung2r(
     // quick return
     if (n <= 0) return 0;
 
-    // Local parameters
-    int info = 0;
-    TA* work = new TA[ (n > 0) ? n-1 : 0 ];
-
     // Matrix views
     auto A_    = colmajor_matrix<TA>( A, m, n, lda );
-    auto _tau  = vector( (Ttau*)tau, std::min<idx_t>( m, n ) );
-    auto _work = vector( work, n-1 );
+    auto tau_  = vector( (Ttau*)tau, std::min<idx_t>( m, n ) );
     
-    info = ung2r( k, A_, _tau, _work );
-
-    delete[] work;
-    return info;
+    return ung2r( k, A_, tau_ );
 }
 
 }

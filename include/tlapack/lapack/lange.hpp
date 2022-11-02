@@ -11,10 +11,49 @@
 #ifndef TLAPACK_LANGE_HH
 #define TLAPACK_LANGE_HH
 
-#include "tlapack/base/types.hpp"
+#include "tlapack/base/legacyArray.hpp"
 #include "tlapack/lapack/lassq.hpp"
 
 namespace tlapack {
+
+/** Worspace query.
+ * @see lange
+ * 
+ * @param[out] workinfo On return, contains the required workspace sizes.
+ */
+template< typename norm_t, typename matrix_t >
+inline constexpr
+void lange_worksize(
+    norm_t normType,
+    const matrix_t& A,
+    workinfo_t& workinfo )
+{
+    workinfo = {};
+}
+
+/** Worspace query.
+ * @see lange
+ * 
+ * @param[out] workinfo On return, contains the required workspace sizes.
+ */
+template< typename norm_t, typename matrix_t >
+inline constexpr
+void lange_worksize(
+    norm_t normType,
+    const matrix_t& A,
+    workinfo_t& workinfo,
+    const workspace_opts_t<>& opts )
+{
+    using T = type_t< matrix_t >;
+
+    if ( normType == Norm::Inf  )
+    {
+        workinfo.m = sizeof(T);
+        workinfo.n = nrows(A);
+    }
+    else
+        workinfo = {};
+}
 
 /** Calculates the norm of a matrix.
  * 
@@ -122,14 +161,16 @@ lange( norm_t normType, const matrix_t& A )
  * Code optimized for the infinity norm on column-major layouts using a workspace
  * of size at least m, where m is the number of rows of A.
  * @see lange( norm_t normType, const matrix_t& A ).
- * 
- * @param work Vector of size at least m.
+ *
+ * @param[in] opts Options.
+ *      - @c opts.work is used if whenever it has sufficient size.
+ *        The sufficient size can be obtained through a workspace query.
  * 
  * @ingroup auxiliary
  */
-template< typename norm_t, typename matrix_t, class work_t >
-real_type< type_t< matrix_t > >
-lange( norm_t normType, const matrix_t& A, work_t& work )
+template< typename norm_t, typename matrix_t >
+auto
+lange( norm_t normType, const matrix_t& A, const workspace_opts_t<>& opts )
 {
     using T      = type_t< matrix_t >;
     using real_t = real_type< T >;
@@ -160,19 +201,29 @@ lange( norm_t normType, const matrix_t& A, work_t& work )
         // so as to do one pass on the data in a contiguous way when computing
 	    // the infinite norm.
 
+        // Allocates workspace
+        vectorOfBytes localworkdata;
+        const Workspace work = [&]()
+        {
+            workinfo_t workinfo;
+            lange_worksize( normType, A, workinfo, opts );
+            return alloc_workspace( localworkdata, workinfo, opts.work );
+        }();
+        auto w = legacyVector<T,idx_t>( m, work );
+
         // Norm value
         real_t norm( 0 );
 
         for (idx_t i = 0; i < m; ++i)
-            work[i] = tlapack::abs( A(i,0) );
+            w[i] = tlapack::abs( A(i,0) );
     
         for (idx_t j = 1; j < n; ++j)
             for (idx_t i = 0; i < m; ++i)
-                work[i] += tlapack::abs( A(i,j) );
+                w[i] += tlapack::abs( A(i,j) );
 
         for (idx_t i = 0; i < m; ++i)
         {
-            real_t temp = work[i];
+            real_t temp = w[i];
 
             if (temp > norm)
                 norm = temp;

@@ -11,9 +11,6 @@
 #ifndef TLAPACK_LAHQR_SCHUR22_HH
 #define TLAPACK_LAHQR_SCHUR22_HH
 
-#include <complex>
-#include <cmath>
-
 #include "tlapack/base/utils.hpp"
 
 namespace tlapack

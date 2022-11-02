@@ -7,7 +7,7 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#include "tlapack/legacy_api/base/utils.hpp"
+#include <tlapack/plugins/legacyArray.hpp>
 #include <tlapack/plugins/stdvector.hpp>
 #include <tlapack.hpp>
 
@@ -84,26 +84,21 @@ void run(size_t n, int seed, bool use_fortran)
 
     using real_t = tlapack::real_type<T>;
     using std::size_t;
-    using tlapack::internal::colmajor_matrix;
+    using matrix_t = tlapack::legacyMatrix<real_t>;
+
+    // Functors for creating new matrices
+    tlapack::Create<matrix_t> new_matrix;
 
     rand_generator gen;
     gen.seed(seed);
 
-    // Leading dimensions
-    size_t lda = (n > 0) ? n : 1;
-    size_t ldh = (n > 0) ? n : 1;
-    size_t ldq = lda;
-
-    // Arrays
-    std::unique_ptr<T[]> A_(new T[lda * n]); // m-by-n
-    std::unique_ptr<T[]> H_(new T[ldh * n]); // n-by-n
-    std::unique_ptr<T[]> Q_(new T[ldq * n]); // m-by-n
+    // Vectors
     std::vector<T> tau(n);
 
-    // Matrix views
-    auto A = colmajor_matrix<T>(&A_[0], n, n, lda);
-    auto H = colmajor_matrix<T>(&H_[0], n, n, ldh);
-    auto Q = colmajor_matrix<T>(&Q_[0], n, n, ldq);
+    // Matrices
+    std::vector<T> A_; auto A = new_matrix(A_, n, n);
+    std::vector<T> H_; auto H = new_matrix(H_, n, n);
+    std::vector<T> Q_; auto Q = new_matrix(Q_, n, n);
 
     // Initialize arrays with junk
     for (size_t j = 0; j < n; ++j)
@@ -142,8 +137,8 @@ void run(size_t n, int seed, bool use_fortran)
         int err;
         // Hessenberg factorization
         if(use_fortran){
-            T *_tau = tau.data();
-            fortran_sgehrd(n, 1, n, Q.ptr, Q.ldim, _tau, err);
+            T *tau_ = tau.data();
+            fortran_sgehrd(n, 1, n, Q.ptr, Q.ldim, tau_, err);
         }else{
             err = tlapack::gehrd(0, n, Q, tau);
         }
@@ -163,8 +158,8 @@ void run(size_t n, int seed, bool use_fortran)
         // Generate Q = H_1 H_2 ... H_n
         // std::vector<T> work(n);
         // err = tlapack::unghr(0, n, Q, tau, work);
-        T* _tau = tau.data();
-        fortran_sorghr( n, 1, n, Q.ptr, n, _tau, err );
+        T* tau_ = tau.data();
+        fortran_sorghr( n, 1, n, Q.ptr, n, tau_, err );
     }
     // Record end time
     auto endQ = std::chrono::high_resolution_clock::now();
@@ -190,7 +185,7 @@ void run(size_t n, int seed, bool use_fortran)
         }
         else
         {
-            tlapack::francis_opts_t<TLAPACK_SIZE_T, T> opts;
+            tlapack::francis_opts_t<> opts;
             std::vector<std::complex<real_t>> w(n);
             err = tlapack::multishift_qr(true, true, 0, n, H, w, Q, opts);
             // err = tlapack::lahqr(true, true, 0, n, H, w, Q);
@@ -217,8 +212,7 @@ void run(size_t n, int seed, bool use_fortran)
     // 2) Compute ||Q'Q - I||_F
 
     {
-        std::unique_ptr<T[]> _work(new T[n * n]);
-        auto work = colmajor_matrix<T>(&_work[0], n, n);
+        std::vector<T> work_; auto work = new_matrix(work_, n, n);
         for (size_t j = 0; j < n; ++j)
             for (size_t i = 0; i < n; ++i)
                 work(i, j) = static_cast<float>(0xABADBABE);
@@ -235,12 +229,10 @@ void run(size_t n, int seed, bool use_fortran)
 
     // 3) Compute ||QHQ* - A||_F / ||A||_F
 
-    std::unique_ptr<T[]> H_copy_(new T[n * n]);
-    auto H_copy = colmajor_matrix<T>(&H_copy_[0], n, n);
+    std::vector<T> H_copy_; auto H_copy = new_matrix(H_copy_, n, n);
     tlapack::lacpy(tlapack::Uplo::General, H, H_copy);
     {
-        std::unique_ptr<T[]> _work(new T[n * n]);
-        auto work = colmajor_matrix<T>(&_work[0], n, n);
+        std::vector<T> work_; auto work = new_matrix(work_, n, n);
 
         tlapack::gemm(tlapack::Op::NoTrans, tlapack::Op::NoTrans, (T)1.0, Q, H, work);
         tlapack::gemm(tlapack::Op::NoTrans, tlapack::Op::ConjTrans, (T)1.0, work, Q, H);

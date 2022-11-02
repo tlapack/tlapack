@@ -11,10 +11,6 @@
 #ifndef TLAPACK_LAHQR_HH
 #define TLAPACK_LAHQR_HH
 
-#include <complex>
-#include <iostream>
-#include <vector>
-
 #include "tlapack/base/utils.hpp"
 #include "tlapack/lapack/larfg.hpp"
 #include "tlapack/lapack/larf.hpp"

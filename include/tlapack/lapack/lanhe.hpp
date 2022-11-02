@@ -11,10 +11,51 @@
 #ifndef TLAPACK_LANHE_HH
 #define TLAPACK_LANHE_HH
 
-#include "tlapack/base/types.hpp"
+#include "tlapack/base/legacyArray.hpp"
 #include "tlapack/lapack/lassq.hpp"
 
 namespace tlapack {
+
+/** Worspace query.
+ * @see lanhe
+ * 
+ * @param[out] workinfo On return, contains the required workspace sizes.
+ */
+template< class norm_t, class uplo_t, class matrix_t >
+inline constexpr
+void lanhe_worksize(
+    norm_t normType,
+    uplo_t uplo,
+    const matrix_t& A,
+    workinfo_t& workinfo )
+{
+    workinfo = {};
+}
+
+/** Worspace query.
+ * @see lanhe
+ * 
+ * @param[out] workinfo On return, contains the required workspace sizes.
+ */
+template< class norm_t, class uplo_t, class matrix_t >
+inline constexpr
+void lanhe_worksize(
+    norm_t normType,
+    uplo_t uplo,
+    const matrix_t& A,
+    workinfo_t& workinfo,
+    const workspace_opts_t<>& opts )
+{
+    using T     = type_t< matrix_t >;
+
+    if ( normType == Norm::Inf || normType == Norm::One )
+    {
+        workinfo.m = sizeof(T);
+        workinfo.n = nrows(A);
+    }
+    else
+        workinfo = {};
+}
 
 /** Calculates the norm of a hermitian matrix.
  * 
@@ -194,16 +235,19 @@ lanhe( norm_t normType, uplo_t uplo, const matrix_t& A )
  * Code optimized for the infinity and one norm on column-major layouts using a workspace
  * of size at least n, where n is the number of rows of A.
  * @see lanhe( norm_t normType, uplo_t uplo, const matrix_t& A ).
- * 
- * @param work Vector of size at least n.
+ *
+ * @param[in] opts Options.
+ *      - @c opts.work is used if whenever it has sufficient size.
+ *        The sufficient size can be obtained through a workspace query.
  * 
  * @ingroup auxiliary
  */
-template< class norm_t, class uplo_t, class matrix_t, class work_t >
+template< class norm_t, class uplo_t, class matrix_t >
 auto
-lanhe( norm_t normType, uplo_t uplo, const matrix_t& A, work_t& work )
+lanhe( norm_t normType, uplo_t uplo, const matrix_t& A, const workspace_opts_t<>& opts )
 {
-    using real_t = real_type< type_t<matrix_t> >;
+    using T      = type_t<matrix_t>;
+    using real_t = real_type< T >;
     using idx_t  = size_type< matrix_t >;
 
     // check arguments
@@ -218,64 +262,76 @@ lanhe( norm_t normType, uplo_t uplo, const matrix_t& A, work_t& work )
     // quick redirect for max-norm and Frobenius norm
     if      ( normType == Norm::Max  ) return lanhe( max_norm,  uplo, A );
     else if ( normType == Norm::Fro  ) return lanhe( frob_norm, uplo, A );
-
-    // the code below uses a workspace and is meant for column-major layout
-    // so as to do one pass on the data in a contiguous way when computing
-    // the infinite and one norm
-
-    // constants
-    const idx_t n = nrows(A);
-
-    // quick return
-    if ( n <= 0 ) return real_t( 0 );
-
-    // Norm value
-    real_t norm( 0 );
-
-    for (idx_t i = 0; i < n; ++i)
-        work[i] = type_t<work_t>(0);
-
-    if( uplo == Uplo::Upper ) {
-        for (idx_t j = 0; j < n; ++j)
-        {
-            real_t sum( 0 );
-            for (idx_t i = 0; i < j; ++i) {
-                const real_t absa = tlapack::abs( A(i,j) );
-                sum += absa;
-                work[i] += absa;
-            }
-            work[j] = sum + tlapack::abs( real(A(j,j)) );
-        }
-        for (idx_t i = 0; i < n; ++i)
-        {
-            real_t sum = work[i];
-            if (sum > norm)
-                norm = sum;
-            else {
-                if ( isnan(sum) )
-                    return sum;
-            }
-        }
-    }
     else {
-        for (idx_t j = 0; j < n; ++j)
+
+        // the code below uses a workspace and is meant for column-major layout
+        // so as to do one pass on the data in a contiguous way when computing
+        // the infinite and one norm
+
+        // constants
+        const idx_t n = nrows(A);
+
+        // quick return
+        if ( n <= 0 ) return real_t( 0 );
+
+        // Allocates workspace
+        vectorOfBytes localworkdata;
+        const Workspace work = [&]()
         {
-            real_t sum = work[j] + tlapack::abs( real(A(j,j)) );
-            for (idx_t i = j+1; i < n; ++i) {
-                const real_t absa = tlapack::abs( A(i,j) );
-                sum += absa;
-                work[i] += absa;
+            workinfo_t workinfo;
+            lanhe_worksize( normType, uplo, A, workinfo, opts );
+            return alloc_workspace( localworkdata, workinfo, opts.work );
+        }();
+        auto w = legacyVector<T,idx_t>( n, work );
+
+        // Norm value
+        real_t norm( 0 );
+
+        for (idx_t i = 0; i < n; ++i)
+            w[i] = T(0);
+
+        if( uplo == Uplo::Upper ) {
+            for (idx_t j = 0; j < n; ++j)
+            {
+                real_t sum( 0 );
+                for (idx_t i = 0; i < j; ++i) {
+                    const real_t absa = tlapack::abs( A(i,j) );
+                    sum += absa;
+                    w[i] += absa;
+                }
+                w[j] = sum + tlapack::abs( real(A(j,j)) );
             }
-            if (sum > norm)
-                norm = sum;
-            else {
-                if ( isnan(sum) )
-                    return sum;
+            for (idx_t i = 0; i < n; ++i)
+            {
+                real_t sum = w[i];
+                if (sum > norm)
+                    norm = sum;
+                else {
+                    if ( isnan(sum) )
+                        return sum;
+                }
             }
         }
-    }
+        else {
+            for (idx_t j = 0; j < n; ++j)
+            {
+                real_t sum = w[j] + tlapack::abs( real(A(j,j)) );
+                for (idx_t i = j+1; i < n; ++i) {
+                    const real_t absa = tlapack::abs( A(i,j) );
+                    sum += absa;
+                    w[i] += absa;
+                }
+                if (sum > norm)
+                    norm = sum;
+                else {
+                    if ( isnan(sum) )
+                        return sum;
+                }
+            }
+        }
 
-    return norm;
+        return norm;
+    }
 }
 
 } // lapack

@@ -18,6 +18,49 @@
 
 namespace tlapack {
 
+/** Worspace query.
+ * @see larfb
+ * 
+ * @param[out] workinfo On return, contains the required workspace sizes.
+ */
+template<
+    class matrixV_t, class matrixT_t, class matrixC_t,
+    class side_t, class trans_t, class direction_t, class storage_t,
+    class workW_t = void
+>
+inline constexpr
+void larfb_worksize(
+    side_t side, trans_t trans,
+    direction_t direction, storage_t storeMode,
+    const matrixV_t& V, const matrixT_t& Tmatrix,
+    matrixC_t& C,
+    workinfo_t& workinfo,
+    const workspace_opts_t<workW_t>& opts = {} )
+{
+    using idx_t     = size_type< matrixC_t >;
+    using matrixW_t = deduce_work_t<
+                        workW_t,
+                        matrix_type< matrixV_t, matrixC_t >
+                      >;
+    using T         = type_t< matrixW_t >;
+
+    // constants
+    const idx_t m = nrows(C);
+    const idx_t n = ncols(C);
+    const idx_t k = nrows(Tmatrix);
+
+    if( layout<matrixW_t> == Layout::RowMajor )
+    {
+        workinfo.m = (side == Side::Left) ? k : m;
+        workinfo.n = sizeof(T) * ((side == Side::Left) ? n : k);
+    }
+    else
+    {
+        workinfo.m = sizeof(T) * ((side == Side::Left) ? k : m);
+        workinfo.n = (side == Side::Left) ? n : k;
+    }
+}
+
 /** Applies a block reflector $H$ or its conjugate transpose $H^H$ to a
  * m-by-n matrix C, from either the left or the right.
  * 
@@ -62,9 +105,9 @@ namespace tlapack {
  *     On entry, the m-by-n matrix C.
  *     On exit, C is overwritten by $H C$ or $H^H C$ or $C H$ or $C H^H$.
  *
- * @param W Workspace matrix with length
- *     - k*n if side = Side::Left.
- *     - k*m if side = Side::Right.
+ * @param[in] opts Options.
+ *      - @c opts.work is used if whenever it has sufficient size.
+ *        The sufficient size can be obtained through a workspace query.
  *
  * @par Further Details
  *
@@ -94,24 +137,34 @@ namespace tlapack {
  * @ingroup auxiliary
  */
 template<
-    class matrixV_t, class matrixT_t, class matrixC_t, class matrixW_t,
-    class side_t, class trans_t, class direction_t, class storage_t >
+    class matrixV_t, class matrixT_t, class matrixC_t,
+    class side_t, class trans_t, class direction_t, class storage_t,
+    class workW_t = void
+>
 int larfb(
     side_t side, trans_t trans,
     direction_t direction, storage_t storeMode,
-    const matrixV_t& V, const matrixT_t& T,
-    matrixC_t& C, matrixW_t& work )
+    const matrixV_t& V, const matrixT_t& Tmatrix,
+    matrixC_t& C, const workspace_opts_t<workW_t>& opts = {} )
 {
-    using idx_t = size_type< matrixV_t >;
+    using idx_t     = size_type< matrixC_t >;
+    using matrixW_t = deduce_work_t<
+                        workW_t,
+                        matrix_type< matrixV_t, matrixC_t >
+                      >;
+    using T         = type_t< matrixW_t >;
+    using real_t    = real_type<T>;
+
     using pair  = pair<idx_t,idx_t>;
 
-    // constants
-    const type_t< matrixW_t > one( 1 );
+    // Functor
+    Create< matrixW_t > new_matrix;
 
     // constants
+    const real_t one( 1 );
     const idx_t m = nrows(C);
     const idx_t n = ncols(C);
-    const idx_t k = nrows(T);
+    const idx_t k = nrows(Tmatrix);
 
     // check arguments
     tlapack_check_false(    side != Side::Left &&
@@ -134,20 +187,28 @@ int larfb(
         else
             tlapack_check_false( access_denied( strictUpper, read_policy(V) ) );
 
-        tlapack_check_false( access_denied( Uplo::Upper, read_policy(T) ) );
+        tlapack_check_false( access_denied( Uplo::Upper, read_policy(Tmatrix) ) );
     }
     else
     {
         tlapack_check_false( access_denied( dense, read_policy(V) ) );
 
-        tlapack_check_false( access_denied( Uplo::Lower, read_policy(T) ) );
+        tlapack_check_false( access_denied( Uplo::Lower, read_policy(Tmatrix) ) );
     }
 
     tlapack_check_false(    access_denied( dense, write_policy(C) ) );
-    tlapack_check_false(    access_denied( dense, write_policy(work) ) );
 
     // Quick return
     if (m <= 0 || n <= 0 || k <= 0) return 0;
+
+    // Allocates workspace
+    vectorOfBytes localworkdata;
+    const Workspace work = [&]()
+    {
+        workinfo_t workinfo;
+        larfb_worksize( side, trans, direction, storeMode, V, Tmatrix, C, workinfo, opts );
+        return alloc_workspace( localworkdata, workinfo, opts.work );
+    }();
 
     if( storeMode == StoreV::Columnwise ){
         if( direction == Direction::Forward ){
@@ -160,7 +221,7 @@ int larfb(
                 const auto V2 = rows( V, ( m > k ) ? pair{k,m} : pair{0,0} );
                 auto C1 = rows( C, pair{0,k} );
                 auto C2 = rows( C, ( m > k ) ? pair{k,m} : pair{0,0} );
-                auto W  = slice( work, pair{0,k}, pair{0,n} );
+                auto W  = new_matrix( work, k, n );
 
                 // W := C1
                 lacpy( dense, C1, W );
@@ -174,11 +235,11 @@ int larfb(
                     gemm(
                         Op::ConjTrans, Op::NoTrans,
                         one, V2, C2, one, W );
-                // W := op(T) W
+                // W := op(Tmatrix) W
                 trmm(
                     side, Uplo::Upper,
                     trans, Diag::NonUnit,
-                    one, T, W );
+                    one, Tmatrix, W );
                 if( m > k )
                     // C2 := C2 - V2 W
                     gemm(
@@ -204,7 +265,7 @@ int larfb(
                 const auto V2 = rows( V, ( n > k ) ? pair{k,n} : pair{0,0} );
                 auto C1 = cols( C, pair{0,k} );
                 auto C2 = cols( C, ( n > k ) ? pair{k,n} : pair{0,0} );
-                auto W  = slice( work, pair{0,m}, pair{0,k} );
+                auto W  = new_matrix( work, m, k );
 
                 // W := C1
                 lacpy( dense, C1, W );
@@ -218,11 +279,11 @@ int larfb(
                     gemm(
                         Op::NoTrans, Op::NoTrans,
                         one, C2, V2, one, W );
-                // W := W op(T)
+                // W := W op(Tmatrix)
                 trmm(
                     Side::Right, Uplo::Upper,
                     trans, Diag::NonUnit,
-                    one, T, W );
+                    one, Tmatrix, W );
                 if( n > k )
                     // C2 := C2 - W V2^H
                     gemm(
@@ -250,7 +311,7 @@ int larfb(
                 const auto V2 = rows( V, pair{m-k,m} );
                 auto C1 = rows( C, pair{0,m-k} );
                 auto C2 = rows( C, pair{m-k,m} );
-                auto W  = slice( work, pair{0,k}, pair{0,n} );
+                auto W  = new_matrix( work, k, n );
 
                 // W := C2
                 lacpy( dense, C2, W );
@@ -264,11 +325,11 @@ int larfb(
                     gemm(
                         Op::ConjTrans, Op::NoTrans,
                         one, V1, C1, one, W );
-                // W := op(T) W
+                // W := op(Tmatrix) W
                 trmm(
                     side, Uplo::Lower,
                     trans, Diag::NonUnit,
-                    one, T, W );
+                    one, Tmatrix, W );
                 if( m > k )
                     // C1 := C1 - V1 W
                     gemm(
@@ -294,7 +355,7 @@ int larfb(
                 const auto V2 = rows( V, pair{n-k,n} );
                 auto C1 = cols( C, pair{0,n-k} );
                 auto C2 = cols( C, pair{n-k,n} );
-                auto W  = slice( work, pair{0,m}, pair{0,k} );
+                auto W  = new_matrix( work, m, k );
 
                 // W := C2
                 lacpy( dense, C2, W );
@@ -308,11 +369,11 @@ int larfb(
                     gemm(
                         Op::NoTrans, Op::NoTrans,
                         one, C1, V1, one, W );
-                // W := W op(T)
+                // W := W op(Tmatrix)
                 trmm(
                     side, Uplo::Lower,
                     trans, Diag::NonUnit,
-                    one, T, W );
+                    one, Tmatrix, W );
                 if( n > k )
                     // C1 := C1 - W V1^H
                     gemm(
@@ -342,7 +403,7 @@ int larfb(
                 const auto V2 = cols( V, ( m > k ) ? pair{k,m} : pair{0,0} );
                 auto C1 = rows( C, pair{0,k} );
                 auto C2 = rows( C, ( m > k ) ? pair{k,m} : pair{0,0} );
-                auto W  = slice( work, pair{0,k}, pair{0,n} );
+                auto W  = new_matrix( work, k, n );
 
                 // W := C1
                 lacpy( dense, C1, W );
@@ -356,11 +417,11 @@ int larfb(
                     gemm(
                         Op::NoTrans, Op::NoTrans,
                         one, V2, C2, one, W );
-                // W := op(T) W
+                // W := op(Tmatrix) W
                 trmm(
                     side, Uplo::Upper,
                     trans, Diag::NonUnit,
-                    one, T, W );
+                    one, Tmatrix, W );
                 if( m > k )
                     // C2 := C2 - V2^H W
                     gemm(
@@ -386,7 +447,7 @@ int larfb(
                 const auto V2 = cols( V, ( n > k ) ? pair{k,n} : pair{0,0} );
                 auto C1 = cols( C, pair{0,k} );
                 auto C2 = cols( C, ( n > k ) ? pair{k,n} : pair{0,0} );
-                auto W  = slice( work, pair{0,m}, pair{0,k} );
+                auto W  = new_matrix( work, m, k );
 
                 // W := C1
                 lacpy( dense, C1, W );
@@ -400,11 +461,11 @@ int larfb(
                     gemm(
                         Op::NoTrans, Op::ConjTrans,
                         one, C2, V2, one, W );
-                // W := W op(T)
+                // W := W op(Tmatrix)
                 trmm(
                     side, Uplo::Upper,
                     trans, Diag::NonUnit,
-                    one, T, W );
+                    one, Tmatrix, W );
                 if( n > k )
                     // C2 := C2 - W V2
                     gemm(
@@ -432,7 +493,7 @@ int larfb(
                 const auto V2 = cols( V, pair{m-k,m} );
                 auto C1 = rows( C, pair{0,m-k} );
                 auto C2 = rows( C, pair{m-k,m} );
-                auto W  = slice( work, pair{0,k}, pair{0,n} );
+                auto W  = new_matrix( work, k, n );
 
                 // W := C2
                 lacpy( dense, C2, W );
@@ -446,11 +507,11 @@ int larfb(
                     gemm(
                         Op::NoTrans, Op::NoTrans,
                         one, V1, C1, one, W );
-                // W := op(T) W
+                // W := op(Tmatrix) W
                 trmm(
                     side, Uplo::Lower,
                     trans, Diag::NonUnit,
-                    one, T, W );
+                    one, Tmatrix, W );
                 if( m > k )
                     // C1 := C1 - V1^H W
                     gemm(
@@ -476,7 +537,7 @@ int larfb(
                 const auto V2 = cols( V, pair{n-k,n} );
                 auto C1 = cols( C, pair{0,n-k} );
                 auto C2 = cols( C, pair{n-k,n} );
-                auto W  = slice( work, pair{0,m}, pair{0,k} );
+                auto W  = new_matrix( work, m, k );
 
                 // W := C2
                 lacpy( dense, C2, W );
@@ -490,11 +551,11 @@ int larfb(
                     gemm(
                         Op::NoTrans, Op::ConjTrans,
                         one, C1, V1, one, W );
-                // W := W op(T)
+                // W := W op(Tmatrix)
                 trmm(
                     side, Uplo::Lower,
                     trans, Diag::NonUnit,
-                    one, T, W );
+                    one, Tmatrix, W );
                 if( n > k )
                     // C1 := C1 - W V1
                     gemm(

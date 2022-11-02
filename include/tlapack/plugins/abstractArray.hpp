@@ -311,6 +311,14 @@ namespace tlapack {
     inline constexpr auto
     slice( const vector_t& v, pair_t&& rows );
 
+    // -------------------------------------------------------------------------
+    // Create new data based on allocated memory
+
+    /**
+     * @see Create class in arrayTraits.hpp
+     */
+    template< class matrix_t > class Create;
+
 } // namespace tlapack
 
 #endif // TLAPACK_ABSTRACT_ARRAY_HH

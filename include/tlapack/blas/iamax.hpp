@@ -182,7 +182,8 @@ iamax_nc( const vector_t& x )
  * @see iamax_ec( const vector_t& x ) for the version that check for NaNs.
  * 
  * @param[in] x The n-element vector x.
- * @param[in] ec Error check configuration.
+ * @param[in] opts Options.
+ *      Define the behavior of checks for NaNs.
  * 
  * @return In priority order:
  * 1. 0 if n <= 0,
@@ -198,9 +199,9 @@ template< class vector_t,
 >
 inline
 size_type<vector_t>
-iamax( const vector_t& x, const ErrorCheck& ec = {} )
+iamax( const vector_t& x, const ec_opts_t& opts = {} )
 {
-    return ( ec.nan == true ) ? iamax_ec(x) : iamax_nc(x);
+    return ( opts.ec.nan == true ) ? iamax_ec(x) : iamax_nc(x);
 }
 
 }  // namespace tlapack

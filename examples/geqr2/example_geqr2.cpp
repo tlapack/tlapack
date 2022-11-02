@@ -7,6 +7,7 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
+#include <tlapack/plugins/legacyArray.hpp>
 #include <tlapack/plugins/stdvector.hpp>
 #include <tlapack.hpp>
 
@@ -36,26 +37,21 @@ template <typename real_t>
 void run( size_t m, size_t n )
 {
     using std::size_t;
-    using tlapack::internal::colmajor_matrix;
+    using matrix_t = tlapack::legacyMatrix<real_t>;
+
+    // Functors for creating new matrices
+    tlapack::Create<matrix_t> new_matrix;
 
     // Turn it off if m or n are large
     bool verbose = false;
 
-    // Leading dimensions
-    size_t lda = (m > 0) ? m : 1;
-    size_t ldr = (n > 0) ? n : 1;
-    size_t ldq = lda;
-
     // Arrays
-    std::unique_ptr<real_t[]> A_(new real_t[ lda*n ]); // m-by-n
-    std::unique_ptr<real_t[]> R_(new real_t[ ldr*n ]); // n-by-n
-    std::unique_ptr<real_t[]> Q_(new real_t[ ldq*n ]); // m-by-n
     std::vector<real_t> tau ( n );
 
-    // Matrix views
-    auto A = colmajor_matrix<real_t>( &A_[0], m, n, lda );
-    auto R = colmajor_matrix<real_t>( &R_[0], n, n, ldr );
-    auto Q = colmajor_matrix<real_t>( &Q_[0], m, n, ldq );
+    // Matrices
+    std::vector<real_t> A_; auto A = new_matrix( A_, m, n );
+    std::vector<real_t> R_; auto R = new_matrix( R_, n, n );
+    std::vector<real_t> Q_; auto Q = new_matrix( Q_, m, n );
 
     // Initialize arrays with junk
     for (size_t j = 0; j < n; ++j) {
@@ -91,16 +87,15 @@ void run( size_t m, size_t n )
 
     // Record start time
     auto startQR = std::chrono::high_resolution_clock::now(); {
-        std::vector<real_t> work( n-1 );
-    
+
         // QR factorization
-        tlapack::geqr2( Q, tau, work );
+        tlapack::geqr2( Q, tau );
 
         // Save the R matrix
         tlapack::lacpy( tlapack::upperTriangle, Q, R );
 
         // Generates Q = H_1 H_2 ... H_n
-        tlapack::ung2r( n, Q, tau, work );
+        tlapack::ung2r( n, Q, tau );
     }
     // Record end time
     auto endQR = std::chrono::high_resolution_clock::now();
@@ -126,8 +121,8 @@ void run( size_t m, size_t n )
     // 2) Compute ||Q'Q - I||_F
 
     {
-        std::unique_ptr<real_t[]> _work(new real_t[ n*n ]);
-        auto work = colmajor_matrix<real_t>( &_work[0], n, n );
+        std::vector<real_t> work_;
+        auto work = new_matrix( work_, n, n );
         for (size_t j = 0; j < n; ++j)
             for (size_t i = 0; i < n; ++i)
                 work(i,j) = static_cast<float>( 0xABADBABE );
@@ -150,8 +145,8 @@ void run( size_t m, size_t n )
     // 3) Compute ||QR - A||_F / ||A||_F
 
     {
-        std::unique_ptr<real_t[]> _work(new real_t[ m*n ]);
-        auto work = colmajor_matrix<real_t>( &_work[0], m, n );
+        std::vector<real_t> work_;
+        auto work = new_matrix( work_, m, n );
         for (size_t j = 0; j < n; ++j)
             for (size_t i = 0; i < m; ++i)
                 work(i,j) = static_cast<float>( 0xABADBABE );

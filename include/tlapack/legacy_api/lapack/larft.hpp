@@ -107,10 +107,10 @@ int larft(
     auto V_ = (storeV == StoreV::Columnwise)
             ? colmajor_matrix<scalar_t>( (scalar_t*)V, n, k, ldV )
             : colmajor_matrix<scalar_t>( (scalar_t*)V, k, n, ldV );
-    auto _tau = vector( (scalar_t*)tau, k );
+    auto tau_ = vector( (scalar_t*)tau, k );
     auto T_ = colmajor_matrix<scalar_t>( T, k, k, ldT );
 
-    return larft( direction, storeV, V_, _tau, T_);
+    return larft( direction, storeV, V_, tau_, T_);
 }
 
 }

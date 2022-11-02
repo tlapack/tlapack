@@ -33,7 +33,7 @@ namespace tlapack
      *      On entry, the n-by-n triangular matrix to be inverted.
      *      On exit, the inverse.
      *
-     * @param[in] ec Exception handling configuration at runtime.
+     * @param[in] opts Options.
      *
      * @return = 0: successful exit
      * @return = i+1: if A(i,i) is exactly zero.  The triangular
@@ -43,7 +43,7 @@ namespace tlapack
      *
      */
     template <typename uplo_t, typename matrix_t>
-    int trtri_recursive(uplo_t uplo, Diag diag, matrix_t &C, const ErrorCheck &ec = {})
+    int trtri_recursive(uplo_t uplo, Diag diag, matrix_t &C, const ec_opts_t &opts = {})
     {
 
         using T = type_t<matrix_t>;
@@ -77,7 +77,7 @@ namespace tlapack
                 }
                 else
                 {
-                    tlapack_error_internal(ec, 1,
+                    tlapack_error_internal(opts.ec, 1,
                                         "A diagonal of entry of triangular matrix is exactly zero.");
                     return 1;
                 }
@@ -92,27 +92,27 @@ namespace tlapack
 
             if (uplo == Uplo::Lower)
             {
-                
+
                 auto C00 = slice(C, range(0, n0), range(0, n0));
                 auto C10 = slice(C, range(n0, n), range(0, n0));
                 auto C11 = slice(C, range(n0, n), range(n0, n));
 
                 trsm(Side::Right, Uplo::Lower, Op::NoTrans, diag, T(-1), C00, C10);
                 trsm(Side::Left, Uplo::Lower, Op::NoTrans, diag, T(+1), C11, C10);
-                int info = trtri_recursive(Uplo::Lower, diag, C00, ec);
+                int info = trtri_recursive(Uplo::Lower, diag, C00, opts);
                 
                 if (info != 0)
                 {
-                    tlapack_error_internal(ec, info,
+                    tlapack_error_internal(opts.ec, info,
                                            "A diagonal of entry of triangular matrix is exactly zero.");
                     return info;
                 }
-                info = trtri_recursive(Uplo::Lower, diag, C11, ec);
+                info = trtri_recursive(Uplo::Lower, diag, C11, opts);
                 if (info == 0)
                     return 0;
                 else
                 {
-                    tlapack_error_internal(ec, info + n0,
+                    tlapack_error_internal(opts.ec, info + n0,
                                            "A diagonal of entry of triangular matrix is exactly zero.");
                     return info + n0;
                 }
@@ -133,19 +133,19 @@ namespace tlapack
 
                 trsm(Side::Left, Uplo::Upper, Op::NoTrans, diag, T(-1), C00, C01);
                 trsm(Side::Right, Uplo::Upper, Op::NoTrans, diag, T(+1), C11, C01);
-                int info = trtri_recursive(Uplo::Upper, diag,C00, ec);
+                int info = trtri_recursive(Uplo::Upper, diag,C00, opts);
                 if (info != 0)
                 {
-                    tlapack_error_internal(ec, info,
+                    tlapack_error_internal(opts.ec, info,
                                            "A diagonal of entry of triangular matrix is exactly zero.");
                     return info;
                 }
-                info = trtri_recursive(Uplo::Upper, diag, C11, ec);
+                info = trtri_recursive(Uplo::Upper, diag, C11, opts);
                 if (info == 0)
                     return 0;
                 else
                 {
-                    tlapack_error_internal(ec, info + n0,
+                    tlapack_error_internal(opts.ec, info + n0,
                                            "A diagonal of entry of triangular matrix is exactly zero.");
                     return info + n0;
                 }

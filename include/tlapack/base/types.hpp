@@ -10,6 +10,8 @@
 
 #include <complex>
 #include <type_traits>
+#include <vector>
+#include <cassert>
 
 // Helpers:
 
@@ -56,6 +58,12 @@
 namespace tlapack {
 
     namespace internal {
+
+        /// Auxiliary data type to vector increments.
+        struct StrongOne {
+            inline constexpr operator int() const { return 1; }
+            inline constexpr StrongOne( int i = 1 ) { assert( i == 1 ); }
+        };
 
         /**
          * @brief Auxiliary data type
@@ -268,6 +276,14 @@ namespace tlapack {
     // Constants
     constexpr columnwise_storage_t columnwise_storage { };
     constexpr rowwise_storage_t rowwise_storage { };
+} // namespace tlapack
+
+#undef TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_2_VALUES
+#undef TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_3_VALUES
+#undef TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_4_VALUES
+#undef TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_5_VALUES
+
+namespace tlapack {
 
     // -----------------------------------------------------------------------------
     // Based on C++14 std::common_type implementation from
@@ -381,9 +397,57 @@ namespace tlapack {
 
 } // namespace tlapack
 
-#undef TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_2_VALUES
-#undef TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_3_VALUES
-#undef TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_4_VALUES
-#undef TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_5_VALUES
+namespace tlapack {
+
+    namespace internal {
+
+        /**
+         * @brief Data type trait.
+         * 
+         * The data type is defined on @c type_trait<array_t>::type.
+         * 
+         * @tparam T A non-array class.
+         */
+        template< class T, typename = int >
+        struct type_trait {
+            using type = void;
+        };
+
+        /**
+         * @brief Size type trait.
+         * 
+         * The size type is defined on @c sizet_trait<array_t>::type.
+         * 
+         * @tparam T A non-array class.
+         */
+        template< class T, typename = int >
+        struct sizet_trait {
+            using type = std::size_t;
+        };
+
+    }
+
+    /// Alias for @c type_trait<>::type.
+    template< class array_t >
+    using type_t = typename internal::type_trait< array_t >::type;
+
+    /// Alias for @c sizet_trait<>::type.
+    template< class array_t >
+    using size_type = typename internal::sizet_trait< array_t >::type;
+
+} // namespace tlapack
+
+namespace tlapack {
+    
+    // Workspace
+
+    /// Byte type
+    using byte = unsigned char;
+    /// Byte allocator
+    using byteAlloc = std::allocator<byte>;
+    /// Vector of bytes. May use a specialized allocator in future
+    using vectorOfBytes = std::vector<byte,byteAlloc>;
+
+} // namespace tlapack
 
 #endif // TLAPACK_TYPES_HH

@@ -47,8 +47,8 @@ void axpy(
 
     // Constants to forward
     const idx_t& n = x_.n;
-    const idx_t incx = (x_.direction == Direction::Forward) ? x_.inc : -x_.inc;
-    const idx_t incy = (y_.direction == Direction::Forward) ? y_.inc : -y_.inc;
+    const idx_t incx = (x_.direction == Direction::Forward) ? idx_t(x_.inc) : idx_t(-x_.inc);
+    const idx_t incy = (y_.direction == Direction::Forward) ? idx_t(y_.inc) : idx_t(-y_.inc);
 
     if( alpha == alpha_t(0) )
         tlapack_warning( -1, "Infs and NaNs in x will not propagate to y on output" );
@@ -74,8 +74,8 @@ void copy( const vectorX_t& x, vectorY_t& y )
 
     // Constants to forward
     const idx_t& n = x_.n;
-    const idx_t incx = (x_.direction == Direction::Forward) ? x_.inc : -x_.inc;
-    const idx_t incy = (y_.direction == Direction::Forward) ? y_.inc : -y_.inc;
+    const idx_t incx = (x_.direction == Direction::Forward) ? idx_t(x_.inc) : idx_t(-x_.inc);
+    const idx_t incy = (y_.direction == Direction::Forward) ? idx_t(y_.inc) : idx_t(-y_.inc);
 
     return ::blas::copy( n, x_.ptr, incx, y_.ptr, incy );
 }
@@ -98,8 +98,8 @@ auto dot( const vectorX_t& x, const vectorY_t& y )
 
     // Constants to forward
     const idx_t& n = x_.n;
-    const idx_t incx = (x_.direction == Direction::Forward) ? x_.inc : -x_.inc;
-    const idx_t incy = (y_.direction == Direction::Forward) ? y_.inc : -y_.inc;
+    const idx_t incx = (x_.direction == Direction::Forward) ? idx_t(x_.inc) : idx_t(-x_.inc);
+    const idx_t incy = (y_.direction == Direction::Forward) ? idx_t(y_.inc) : idx_t(-y_.inc);
 
     return ::blas::dot( n, x_.ptr, incx, y_.ptr, incy );
 }
@@ -122,8 +122,8 @@ auto dotu( const vectorX_t& x, const vectorY_t& y )
 
     // Constants to forward
     const idx_t& n = x_.n;
-    const idx_t incx = (x_.direction == Direction::Forward) ? x_.inc : -x_.inc;
-    const idx_t incy = (y_.direction == Direction::Forward) ? y_.inc : -y_.inc;
+    const idx_t incx = (x_.direction == Direction::Forward) ? idx_t(x_.inc) : idx_t(-x_.inc);
+    const idx_t incy = (y_.direction == Direction::Forward) ? idx_t(y_.inc) : idx_t(-y_.inc);
 
     return ::blas::dotu( n, x_.ptr, incx, y_.ptr, incy );
 }
@@ -172,8 +172,8 @@ void rot(
 
     // Constants to forward
     const idx_t& n = x_.n;
-    const idx_t incx = (x_.direction == Direction::Forward) ? x_.inc : -x_.inc;
-    const idx_t incy = (y_.direction == Direction::Forward) ? y_.inc : -y_.inc;
+    const idx_t incx = (x_.direction == Direction::Forward) ? idx_t(x_.inc) : idx_t(-x_.inc);
+    const idx_t incy = (y_.direction == Direction::Forward) ? idx_t(y_.inc) : idx_t(-y_.inc);
 
     return ::blas::rot( n, x_.ptr, incx, y_.ptr, incy, c, s );
 }
@@ -238,8 +238,8 @@ void rotm( vectorX_t& x, vectorY_t& y, const T h[4] )
 
     // Constants to forward
     const idx_t& n = x_.n;
-    const idx_t incx = (x_.direction == Direction::Forward) ? x_.inc : -x_.inc;
-    const idx_t incy = (y_.direction == Direction::Forward) ? y_.inc : -y_.inc;
+    const idx_t incx = (x_.direction == Direction::Forward) ? idx_t(x_.inc) : idx_t(-x_.inc);
+    const idx_t incy = (y_.direction == Direction::Forward) ? idx_t(y_.inc) : idx_t(-y_.inc);
     const T h_[] = { (T) flag, h[0], h[1], h[2], h[3] };
 
     return ::blas::rotm( n, x_.ptr, incx, y_.ptr, incy, h_ );
@@ -295,8 +295,8 @@ void swap( vectorX_t& x, vectorY_t& y )
 
     // Constants to forward
     const idx_t& n = x_.n;
-    const idx_t incx = (x_.direction == Direction::Forward) ? x_.inc : -x_.inc;
-    const idx_t incy = (y_.direction == Direction::Forward) ? y_.inc : -y_.inc;
+    const idx_t incx = (x_.direction == Direction::Forward) ? idx_t(x_.inc) : idx_t(-x_.inc);
+    const idx_t incy = (y_.direction == Direction::Forward) ? idx_t(y_.inc) : idx_t(-y_.inc);
 
     return ::blas::swap( n, x_.ptr, incx, y_.ptr, incy );
 }
@@ -345,8 +345,8 @@ void gemv(
     // Constants to forward
     const idx_t& m = A_.m;
     const idx_t& n = A_.n;
-    const idx_t incx = (x_.direction == Direction::Forward) ? x_.inc : -x_.inc;
-    const idx_t incy = (y_.direction == Direction::Forward) ? y_.inc : -y_.inc;
+    const idx_t incx = (x_.direction == Direction::Forward) ? idx_t(x_.inc) : idx_t(-x_.inc);
+    const idx_t incy = (y_.direction == Direction::Forward) ? idx_t(y_.inc) : idx_t(-y_.inc);
 
     if( alpha == alpha_t(0) )
         tlapack_warning( -2, "Infs and NaNs in A or x will not propagate to y on output" );
@@ -404,8 +404,8 @@ void gemv(
     // Constants to forward
     const idx_t& m = A_.m;
     const idx_t& n = A_.n;
-    const idx_t incx = (x_.direction == Direction::Forward) ? x_.inc : -x_.inc;
-    const idx_t incy = (y_.direction == Direction::Forward) ? y_.inc : -y_.inc;
+    const idx_t incx = (x_.direction == Direction::Forward) ? idx_t(x_.inc) : idx_t(-x_.inc);
+    const idx_t incy = (y_.direction == Direction::Forward) ? idx_t(y_.inc) : idx_t(-y_.inc);
 
     if( alpha == alpha_t(0) )
         tlapack_warning( -2, "Infs and NaNs in A or x will not propagate to y on output" );
@@ -449,8 +449,8 @@ void ger(
     // Constants to forward
     const idx_t& m = A_.m;
     const idx_t& n = A_.n;
-    const idx_t incx = (x_.direction == Direction::Forward) ? x_.inc : -x_.inc;
-    const idx_t incy = (y_.direction == Direction::Forward) ? y_.inc : -y_.inc;
+    const idx_t incx = (x_.direction == Direction::Forward) ? idx_t(x_.inc) : idx_t(-x_.inc);
+    const idx_t incy = (y_.direction == Direction::Forward) ? idx_t(y_.inc) : idx_t(-y_.inc);
 
     return ::blas::ger(
         (::blas::Layout) A_.layout,
@@ -489,8 +489,8 @@ void geru(
     // Constants to forward
     const idx_t& m = A_.m;
     const idx_t& n = A_.n;
-    const idx_t incx = (x_.direction == Direction::Forward) ? x_.inc : -x_.inc;
-    const idx_t incy = (y_.direction == Direction::Forward) ? y_.inc : -y_.inc;
+    const idx_t incx = (x_.direction == Direction::Forward) ? idx_t(x_.inc) : idx_t(-x_.inc);
+    const idx_t incy = (y_.direction == Direction::Forward) ? idx_t(y_.inc) : idx_t(-y_.inc);
 
     return ::blas::geru(
         (::blas::Layout) A_.layout,
@@ -529,8 +529,8 @@ void hemv(
 
     // Constants to forward
     const idx_t& n = A_.n;
-    const idx_t incx = (x_.direction == Direction::Forward) ? x_.inc : -x_.inc;
-    const idx_t incy = (y_.direction == Direction::Forward) ? y_.inc : -y_.inc;
+    const idx_t incx = (x_.direction == Direction::Forward) ? idx_t(x_.inc) : idx_t(-x_.inc);
+    const idx_t incy = (y_.direction == Direction::Forward) ? idx_t(y_.inc) : idx_t(-y_.inc);
 
     if( alpha == alpha_t(0) )
         tlapack_warning( -2, "Infs and NaNs in A or x will not propagate to y on output" );
@@ -575,8 +575,8 @@ void hemv(
 
     // Constants to forward
     const idx_t& n = A_.n;
-    const idx_t incx = (x_.direction == Direction::Forward) ? x_.inc : -x_.inc;
-    const idx_t incy = (y_.direction == Direction::Forward) ? y_.inc : -y_.inc;
+    const idx_t incx = (x_.direction == Direction::Forward) ? idx_t(x_.inc) : idx_t(-x_.inc);
+    const idx_t incy = (y_.direction == Direction::Forward) ? idx_t(y_.inc) : idx_t(-y_.inc);
 
     if( alpha == alpha_t(0) )
         tlapack_warning( -2, "Infs and NaNs in A or x will not propagate to y on output" );
@@ -618,7 +618,7 @@ void her(
 
     // Constants to forward
     const idx_t& n = A_.n;
-    const idx_t incx = (x_.direction == Direction::Forward) ? x_.inc : -x_.inc;
+    const idx_t incx = (x_.direction == Direction::Forward) ? idx_t(x_.inc) : idx_t(-x_.inc);
     
     return ::blas::her(
         (::blas::Layout) A_.layout,
@@ -657,8 +657,8 @@ void her2(
 
     // Constants to forward
     const idx_t& n = A_.n;
-    const idx_t incx = (x_.direction == Direction::Forward) ? x_.inc : -x_.inc;
-    const idx_t incy = (y_.direction == Direction::Forward) ? y_.inc : -y_.inc;
+    const idx_t incx = (x_.direction == Direction::Forward) ? idx_t(x_.inc) : idx_t(-x_.inc);
+    const idx_t incy = (y_.direction == Direction::Forward) ? idx_t(y_.inc) : idx_t(-y_.inc);
 
     return ::blas::her2(
         (::blas::Layout) A_.layout,
@@ -697,8 +697,8 @@ void symv(
 
     // Constants to forward
     const idx_t& n = A_.n;
-    const idx_t incx = (x_.direction == Direction::Forward) ? x_.inc : -x_.inc;
-    const idx_t incy = (y_.direction == Direction::Forward) ? y_.inc : -y_.inc;
+    const idx_t incx = (x_.direction == Direction::Forward) ? idx_t(x_.inc) : idx_t(-x_.inc);
+    const idx_t incy = (y_.direction == Direction::Forward) ? idx_t(y_.inc) : idx_t(-y_.inc);
 
     if( alpha == alpha_t(0) )
         tlapack_warning( -2, "Infs and NaNs in A or x will not propagate to y on output" );
@@ -742,8 +742,8 @@ void symv(
 
     // Constants to forward
     const idx_t& n = A_.n;
-    const idx_t incx = (x_.direction == Direction::Forward) ? x_.inc : -x_.inc;
-    const idx_t incy = (y_.direction == Direction::Forward) ? y_.inc : -y_.inc;
+    const idx_t incx = (x_.direction == Direction::Forward) ? idx_t(x_.inc) : idx_t(-x_.inc);
+    const idx_t incy = (y_.direction == Direction::Forward) ? idx_t(y_.inc) : idx_t(-y_.inc);
 
     if( alpha == alpha_t(0) )
         tlapack_warning( -2, "Infs and NaNs in A or x will not propagate to y on output" );
@@ -785,7 +785,7 @@ void syr(
 
     // Constants to forward
     const idx_t& n = A_.n;
-    const idx_t incx = (x_.direction == Direction::Forward) ? x_.inc : -x_.inc;
+    const idx_t incx = (x_.direction == Direction::Forward) ? idx_t(x_.inc) : idx_t(-x_.inc);
     
     return ::blas::syr(
         (::blas::Layout) A_.layout,
@@ -824,8 +824,8 @@ void syr2(
 
     // Constants to forward
     const idx_t& n = A_.n;
-    const idx_t incx = (x_.direction == Direction::Forward) ? x_.inc : -x_.inc;
-    const idx_t incy = (y_.direction == Direction::Forward) ? y_.inc : -y_.inc;
+    const idx_t incx = (x_.direction == Direction::Forward) ? idx_t(x_.inc) : idx_t(-x_.inc);
+    const idx_t incy = (y_.direction == Direction::Forward) ? idx_t(y_.inc) : idx_t(-y_.inc);
 
     return ::blas::syr2(
         (::blas::Layout) A_.layout,
@@ -860,7 +860,7 @@ void trmv(
 
     // Constants to forward
     const idx_t& n = A_.n;
-    const idx_t incx = (x_.direction == Direction::Forward) ? x_.inc : -x_.inc;
+    const idx_t incx = (x_.direction == Direction::Forward) ? idx_t(x_.inc) : idx_t(-x_.inc);
     
     return ::blas::trmv(
         (::blas::Layout) A_.layout,
@@ -895,7 +895,7 @@ void trsv(
 
     // Constants to forward
     const idx_t& n = A_.n;
-    const idx_t incx = (x_.direction == Direction::Forward) ? x_.inc : -x_.inc;
+    const idx_t incx = (x_.direction == Direction::Forward) ? idx_t(x_.inc) : idx_t(-x_.inc);
     
     return ::blas::trsv(
         (::blas::Layout) A_.layout,

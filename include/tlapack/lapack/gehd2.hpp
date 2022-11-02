@@ -9,13 +9,45 @@
 #ifndef TLAPACK_GEHD2_HH
 #define TLAPACK_GEHD2_HH
 
-#include <iostream>
-
 #include "tlapack/base/utils.hpp"
 #include "tlapack/lapack/larfg.hpp"
 #include "tlapack/lapack/larf.hpp"
 
 namespace tlapack {
+
+/** Worspace query.
+ * @see gehd2
+ * 
+ * @param[out] workinfo On return, contains the required workspace sizes.
+ */
+template< class matrix_t, class vector_t >
+inline constexpr
+void gehd2_worksize(
+    size_type< matrix_t > ilo, size_type< matrix_t > ihi, matrix_t& A,
+    vector_t &tau, workinfo_t& workinfo,
+    const workspace_opts_t<>& opts = {} )
+{
+    using idx_t = size_type< matrix_t >;
+    using pair  = pair<idx_t,idx_t>;
+
+    // constants
+    const idx_t n = ncols(A);
+
+    if( ilo+1 < ihi ) {
+        const auto v = slice( A, pair{ilo+1,ihi}, ilo );
+        workinfo_t workinfo2;
+        
+        auto C = slice( A, pair{0,ihi}, pair{ilo+1,ihi} );
+        larf_worksize( right_side, v, tau[0], C, workinfo, opts );
+        
+        C = slice( A, pair{ilo+1,ihi}, pair{ilo+1,n} );
+        larf_worksize( left_side, v, tau[0], C, workinfo2, opts );
+                
+        workinfo.minMax( workinfo2 );
+    }
+    else
+        workinfo = {};
+}
 
 /** Reduces a general square matrix to upper Hessenberg form
  * 
@@ -51,12 +83,15 @@ namespace tlapack {
  *      reflectors. See Further Details.
  * @param[out] tau Real vector of length n-1.
  *      The scalar factors of the elementary reflectors.
- * @param work Vector of size n.
+ *
+ * @param[in] opts Options.
+ *      - @c opts.work is used if whenever it has sufficient size.
+ *        The sufficient size can be obtained through a workspace query.
  * 
  * @ingroup gehrd
  */
-template< class matrix_t, class vector_t, class work_t >
-int gehd2( size_type< matrix_t > ilo, size_type< matrix_t > ihi, matrix_t& A, vector_t &tau, work_t &work )
+template< class matrix_t, class vector_t >
+int gehd2( size_type< matrix_t > ilo, size_type< matrix_t > ihi, matrix_t& A, vector_t &tau, const workspace_opts_t<>& opts = {} )
 {
     using idx_t = size_type< matrix_t >;
     using pair  = pair<idx_t,idx_t>;
@@ -68,10 +103,21 @@ int gehd2( size_type< matrix_t > ilo, size_type< matrix_t > ihi, matrix_t& A, ve
     tlapack_check_false( access_denied( dense, write_policy(A) ) );
     tlapack_check_false( ncols(A) != nrows(A) );
     tlapack_check_false( (idx_t) size(tau)  < n-1 );
-    tlapack_check_false( (idx_t) size(work) < n );
 
     // quick return
     if (n <= 0) return 0;
+
+    // Allocates workspace
+    vectorOfBytes localworkdata;
+    Workspace work = [&]()
+    {
+        workinfo_t workinfo;
+        gehd2_worksize( ilo, ihi, A, tau, workinfo, opts );
+        return alloc_workspace( localworkdata, workinfo, opts.work );
+    }();
+    
+    // Options to forward
+    auto&& larfOpts = workspace_opts_t<>{ work };
 
     for(idx_t i = ilo; i < ihi-1; ++i) {
 
@@ -82,15 +128,12 @@ int gehd2( size_type< matrix_t > ilo, size_type< matrix_t > ihi, matrix_t& A, ve
         larfg( v, tau[i] );
 
         // Apply Householder reflection from the right to A[0:ihi,i+1:ihi]
-        auto w = slice( work, pair{0,ihi} );
         auto C = slice( A, pair{0,ihi}, pair{i+1,ihi} );
-        larf( right_side, v, tau[i], C, w );
+        larf( right_side, v, tau[i], C, larfOpts );
 
         // Apply Householder reflection from the left to A[i+1:ihi,i+1:n-1]
-        w = slice( work, pair{i+1,n} );
         C = slice( A, pair{i+1,ihi}, pair{i+1,n} );
-        auto tauconj = conj(tau[i]);
-        larf( left_side, v, tauconj, C, w );
+        larf( left_side, v, conj(tau[i]), C, larfOpts );
 	}
 
     return 0;

@@ -59,7 +59,8 @@ namespace tlapack {
  *      - On successful exit, the factor U or L from the Cholesky
  *      factorization $A = U^H U$ or $A = L L^H.$
  *
- * @param[in] ec Exception handling configuration at runtime.   
+ * @param[in] opts Options.
+ *      Define the behavior of Exception Handling.   
  *
  * @return = 0: successful exit
  * @return > 0: if return value = i, the leading minor of order i is not
@@ -68,7 +69,7 @@ namespace tlapack {
  * @ingroup posv_computational
  */
 template< class uplo_t, class matrix_t >
-int potrf2( uplo_t uplo, matrix_t& A, const ErrorCheck& ec = {} )
+int potrf2( uplo_t uplo, matrix_t& A, const ec_opts_t& opts = {} )
 {
     using T      = type_t< matrix_t >;
     using real_t = real_type<T>;
@@ -98,7 +99,7 @@ int potrf2( uplo_t uplo, matrix_t& A, const ErrorCheck& ec = {} )
             return 0;
         }
         else {
-            tlapack_error_internal( ec, 1,
+            tlapack_error_internal( opts.ec, 1,
                 "The leading minor of order 1 is not positive definite,"
                 " and the factorization could not be completed." );
             return 1;
@@ -116,7 +117,7 @@ int potrf2( uplo_t uplo, matrix_t& A, const ErrorCheck& ec = {} )
         // Factor A11
         int info = potrf2( uplo, A11, noErrorCheck );
         if( info != 0 ) {
-            tlapack_error_internal( ec, info,
+            tlapack_error_internal( opts.ec, info,
                 "The leading minor of the reported order is not positive definite,"
                 " and the factorization could not be completed." );
             return info;
@@ -152,7 +153,7 @@ int potrf2( uplo_t uplo, matrix_t& A, const ErrorCheck& ec = {} )
         if( info == 0 )
             return 0;
         else {
-            tlapack_error_internal( ec, info + n1,
+            tlapack_error_internal( opts.ec, info + n1,
                 "The leading minor of the reported order is not positive definite,"
                 " and the factorization could not be completed." );
             return info + n1;

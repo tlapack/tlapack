@@ -10,8 +10,6 @@
 #ifndef TLAPACK_AED_HH
 #define TLAPACK_AED_HH
 
-#include <complex>
-
 #include "tlapack/base/utils.hpp"
 #include "tlapack/lapack/larfg.hpp"
 #include "tlapack/lapack/larf.hpp"
@@ -23,6 +21,65 @@
 
 namespace tlapack
 {
+    /** Worspace query.
+     * @see agressive_early_deflation
+     * 
+     * @param[out] workinfo On return, contains the required workspace sizes.
+     */
+    template <
+        class matrix_t,
+        class vector_t,
+        enable_if_t<
+            is_complex< type_t<vector_t> >::value
+        , int > = 0
+    >
+    void agressive_early_deflation_worksize(
+        bool want_t, 
+        bool want_z, 
+        size_type<matrix_t> ilo, 
+        size_type<matrix_t> ihi, 
+        size_type<matrix_t> nw, 
+        matrix_t &A, 
+        vector_t &s, 
+        matrix_t &Z, 
+        size_type<matrix_t> &ns, 
+        size_type<matrix_t> &nd, 
+        workinfo_t& workinfo,
+        const francis_opts_t< size_type<matrix_t> > &opts = {} )
+    {
+        using idx_t = size_type<matrix_t>;
+        using pair = std::pair<idx_t, idx_t>;
+        
+        const idx_t n = ncols(A);
+        const idx_t nw_max = (n - 3) / 3;
+        const idx_t jw = min( min(nw, ihi - ilo), nw_max );
+
+        auto TW = slice(A, pair{0,jw}, pair{0,jw});
+
+        // quick return
+        if( n < 9 || nw <= 1 || ihi <= 1+ilo ) {
+            workinfo = {};
+            return;
+        }
+
+        if( jw >= opts.nmin )
+        {
+            auto s_window = slice(s, pair{0,jw});
+            auto V = slice(A, pair{0,jw}, pair{0,jw});
+            
+            multishift_qr_worksize(true, true, 0, jw, TW, s_window, V, workinfo, opts);
+        }
+
+        workinfo_t workinfo2;
+        if( jw != ihi-ilo )
+        {
+            // Hessenberg reduction
+            auto tau = slice(A, pair{0,jw}, 0);
+            gehrd_worksize(0, jw, TW, tau, workinfo2);
+        }
+        
+        workinfo.minMax( workinfo2 );
+    }
 
     /** agressive_early_deflation accepts as input an upper Hessenberg matrix
      *  H and performs an orthogonal similarity transformation
@@ -72,18 +129,41 @@ namespace tlapack
      * @param[out] nd    integer.
      *      Number of converged eigenvalues available as shifts in s.
      *
+     * @param[in,out] opts Options.
+     *      - @c opts.work is used if whenever it has sufficient size.
+     *        The sufficient size can be obtained through a workspace query.
+     *      - Output parameters
+     *          @c opts.n_aed,
+     *          @c opts.n_sweep and
+     *          @c opts.n_shifts_total
+     *        are updated by the internal call to multishift_qr.
+     *
      * @ingroup geev
      */
     template <
         class matrix_t,
         class vector_t,
-        typename idx_t = size_type<matrix_t>,
-        enable_if_t<is_complex<type_t<vector_t>>::value, bool> = true>
-    void agressive_early_deflation(bool want_t, bool want_z, idx_t ilo, idx_t ihi, idx_t nw, matrix_t &A, vector_t &s, matrix_t &Z, idx_t &ns, idx_t &nd, francis_opts_t<size_type<matrix_t>, type_t<matrix_t>> &opts)
+        enable_if_t<
+            is_complex< type_t<vector_t> >::value
+        , int > = 0
+    >
+    void agressive_early_deflation(
+        bool want_t, 
+        bool want_z, 
+        size_type<matrix_t> ilo, 
+        size_type<matrix_t> ihi, 
+        size_type<matrix_t> nw, 
+        matrix_t &A, 
+        vector_t &s, 
+        matrix_t &Z, 
+        size_type<matrix_t> &ns, 
+        size_type<matrix_t> &nd, 
+        francis_opts_t< size_type<matrix_t> > &opts )
     {
 
         using T = type_t<matrix_t>;
         using real_t = real_type<T>;
+        using idx_t = size_type<matrix_t>;
         using pair = std::pair<idx_t, idx_t>;
         using std::max;
         using std::min;
@@ -131,6 +211,19 @@ namespace tlapack
             }
             return;
         }
+
+        // Allocates workspace
+        vectorOfBytes localworkdata;
+        Workspace work = [&]()
+        {
+            workinfo_t workinfo;
+            agressive_early_deflation_worksize( want_t, want_z, ilo, ihi, nw, A, s, Z, ns, nd, workinfo, opts );
+            return alloc_workspace( localworkdata, workinfo, opts.work );
+        }();
+        
+        // Options to forward
+        opts.work = work;
+        auto&& gehrdOpts = gehrd_opts_t<idx_t>{ work };
 
         // Define workspace matrices
         // We use the lower triangular part of A as workspace
@@ -331,7 +424,7 @@ namespace tlapack
                     v[i] = conj(V(0, i));
                 }
                 larfg(v, tau);
-                auto work2 = slice(WV, pair{0, jw}, 1);
+                auto work2 = workspace_opts_t<>(slice(WV, pair{0, jw}, 1));
                 auto TW_slice = slice(TW, pair{0, ns}, pair{0, jw});
                 larf(Side::Left, v, conj(tau), TW_slice, work2);
                 TW_slice = slice(TW, pair{0, jw}, pair{0, ns});
@@ -343,11 +436,9 @@ namespace tlapack
             // Hessenberg reduction
             {
                 auto tau = slice(WV, pair{0, jw}, 0);
-                gehrd_opts_t<idx_t, T> gehrd_opts;
-                gehrd_opts.lwork = opts.lwork;
-                gehrd_opts._work = opts._work;
-                gehrd(0, ns, TW, tau, gehrd_opts);
-                auto work2 = slice(WV, pair{0, jw}, 1);
+                gehrd(0, ns, TW, tau, gehrdOpts);
+
+                auto work2 = workspace_opts_t<>(slice(WV, pair{0, jw}, 1));
                 unmhr(Side::Right, Op::NoTrans, 0, ns, TW, tau, V, work2);
             }
         }
@@ -419,6 +510,30 @@ namespace tlapack
                 i = i + iblock;
             }
         }
+    }
+
+    template <
+        class matrix_t,
+        class vector_t,
+        enable_if_t<
+            is_complex< type_t<vector_t> >::value
+        , int > = 0
+    >
+    inline
+    void agressive_early_deflation(
+        bool want_t, 
+        bool want_z, 
+        size_type<matrix_t> ilo, 
+        size_type<matrix_t> ihi, 
+        size_type<matrix_t> nw, 
+        matrix_t &A, 
+        vector_t &s, 
+        matrix_t &Z, 
+        size_type<matrix_t> &ns, 
+        size_type<matrix_t> &nd )
+    {
+        francis_opts_t< size_type<matrix_t> > opts = {};
+        agressive_early_deflation( want_t, want_z, ilo, ihi, nw, A, s, Z, ns, nd, opts );
     }
 
 } // lapack

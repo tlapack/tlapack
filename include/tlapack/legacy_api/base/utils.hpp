@@ -10,7 +10,6 @@
 #ifndef TLAPACK_USE_MDSPAN
 
     #include "tlapack/legacy_api/base/legacyArray.hpp"
-    #include "tlapack/plugins/legacyArray.hpp" // Loads LegacyArray plugin
 
     #define tlapack_expr_with_2vectors( x, TX, n, X, incx, ... ) do { \
         using tlapack::internal::vector; \
