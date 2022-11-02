@@ -10,7 +10,7 @@
 #ifndef TLAPACK_TESTDEFINITIONS_HH
 #define TLAPACK_TESTDEFINITIONS_HH
 
-#include <tlapack.hpp>
+#include <tlapack/plugins/legacyArray.hpp>
 
 namespace tlapack
 {

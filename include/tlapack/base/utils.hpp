@@ -14,13 +14,14 @@
 #include <type_traits>
 
 #include "tlapack/base/types.hpp"
+#include "tlapack/base/arrayTraits.hpp"
+#include "tlapack/base/workspace.hpp"
 #include "tlapack/base/exceptionHandling.hpp"
-#include "tlapack/base/legacyArray_interface.hpp"
 
 namespace tlapack {
 
 // -----------------------------------------------------------------------------
-// Use from std C++
+// From std C++
 using std::isinf;
 using std::isnan;
 using std::ceil;
@@ -929,7 +930,7 @@ alloc_workspace( vectorOfBytes& v, const workinfo_t& workinfo, const Workspace& 
     else
     {
         tlapack_check(
-            (opts_w.isContiguous() && opts_w.size() >= workinfo.size()) ||
+            (opts_w.isContiguous() && (opts_w.size() >= workinfo.size())) ||
             (opts_w.getM() >= workinfo.m && opts_w.getN() >= workinfo.n) );
         
         return Workspace( opts_w );
@@ -951,83 +952,6 @@ struct deduce_work< void, work_default > { using type = work_default; };
 /// Alias for @c deduce_work<>::type
 template< class work_type, class work_default >
 using deduce_work_t = typename deduce_work<work_type,work_default>::type;
-
-    //--------------------------------------------------------------------------
-    // Common matrix type deduction
-
-    template< typename... matrix_t >
-    struct matrix_type_traits;
-
-    /// define @c matrix_type<>::type alias
-    template< typename... matrix_t >
-    using matrix_type = typename matrix_type_traits< matrix_t... >::type;
-
-    // for one type
-    template< typename matrix_t >
-    struct matrix_type_traits< matrix_t >
-    {
-        using type = typename std::decay<matrix_t>::type;
-    };
-
-    // for two types
-    // should be especialized for every new matrix class
-    template< typename matrixA_t, typename matrixB_t >
-    struct matrix_type_traits< matrixA_t, matrixB_t >
-    {
-        using T = scalar_type< type_t<matrixA_t>, type_t<matrixB_t> >;
-        using idx_t = size_type<matrixA_t>;
-
-        static constexpr Layout LA = layout<matrixA_t>;
-        static constexpr Layout LB = layout<matrixB_t>;
-        static constexpr Layout L  =
-            ((LA == Layout::RowMajor) && (LB == Layout::RowMajor))
-                ? Layout::RowMajor
-                : Layout::ColMajor;
-
-        using type = legacyMatrix<T,idx_t,L>;
-    };
-
-    // for three or more types
-    template< typename matrixA_t, typename matrixB_t, typename... matrix_t >
-    struct matrix_type_traits< matrixA_t, matrixB_t, matrix_t... >
-    {
-        using type = matrix_type< matrix_type< matrixA_t, matrixB_t >, matrix_t... >;
-    };
-
-    //--------------------------------------------------------------------------
-    // Common vector type deduction
-
-    template< typename... vector_t >
-    struct vector_type_traits;
-
-    /// define @c vector_type<>::type alias
-    template< typename... vector_t >
-    using vector_type = typename vector_type_traits< vector_t... >::type;
-
-    // for one type
-    template< typename vector_t >
-    struct vector_type_traits< vector_t >
-    {
-        using type = typename std::decay<vector_t>::type;
-    };
-
-    // for two types
-    // should be especialized for every new vector class
-    template< typename vecA_t, typename vecB_t >
-    struct vector_type_traits< vecA_t, vecB_t >
-    {
-        using T = scalar_type< type_t<vecA_t>, type_t<vecB_t> >;
-        using idx_t = size_type<vecA_t>;
-
-        using type = legacyVector<T,idx_t,idx_t>;
-    };
-
-    // for three or more types
-    template< typename vectorA_t, typename vectorB_t, typename... vector_t >
-    struct vector_type_traits< vectorA_t, vectorB_t, vector_t... >
-    {
-        using type = vector_type< vector_type< vectorA_t, vectorB_t >, vector_t... >;
-    };
 
 } // namespace tlapack
 

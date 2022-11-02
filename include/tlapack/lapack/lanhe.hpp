@@ -11,7 +11,7 @@
 #ifndef TLAPACK_LANHE_HH
 #define TLAPACK_LANHE_HH
 
-#include "tlapack/base/types.hpp"
+#include "tlapack/base/legacyArray.hpp"
 #include "tlapack/lapack/lassq.hpp"
 
 namespace tlapack {
@@ -268,8 +268,6 @@ lanhe( norm_t normType, uplo_t uplo, const matrix_t& A, const workspace_opts_t<>
         // so as to do one pass on the data in a contiguous way when computing
         // the infinite and one norm
 
-        using vectorw_t = legacyVector<T,idx_t,idx_t>;
-
         // constants
         const idx_t n = nrows(A);
 
@@ -284,13 +282,13 @@ lanhe( norm_t normType, uplo_t uplo, const matrix_t& A, const workspace_opts_t<>
             lanhe_worksize( normType, uplo, A, workinfo, opts );
             return alloc_workspace( localworkdata, workinfo, opts.work );
         }();
-        auto w = Create< vectorw_t >( work, n, 1 );
+        auto w = legacyVector<T,idx_t>( n, work );
 
         // Norm value
         real_t norm( 0 );
 
         for (idx_t i = 0; i < n; ++i)
-            w[i] = type_t<vectorw_t>(0);
+            w[i] = T(0);
 
         if( uplo == Uplo::Upper ) {
             for (idx_t j = 0; j < n; ++j)

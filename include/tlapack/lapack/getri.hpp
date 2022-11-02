@@ -31,6 +31,16 @@ namespace tlapack {
         GetriVariant variant = GetriVariant::UILI;
     };
 
+    template< class matrix_t, class vector_t >
+    inline constexpr
+    void getri_worksize( matrix_t& A, const vector_t &Piv, workinfo_t& workinfo, const getri_opts_t& opts = {} )
+    {
+        if( opts.variant == GetriVariant::UXLI )
+            getri_uxli_worksize( A, workinfo, opts );
+        else
+            workinfo = {};
+    }
+
     /** getri computes inverse of a general n-by-n matrix A
      *
      * @return = 0: successful exit

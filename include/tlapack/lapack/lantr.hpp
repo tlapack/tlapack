@@ -11,7 +11,7 @@
 #ifndef TLAPACK_LANTR_HH
 #define TLAPACK_LANTR_HH
 
-#include "tlapack/base/types.hpp"
+#include "tlapack/base/legacyArray.hpp"
 #include "tlapack/lapack/lassq.hpp"
 
 namespace tlapack {
@@ -373,8 +373,6 @@ lantr(
         // so as to do one pass on the data in a contiguous way when computing
 	    // the infinite norm.
 
-        using vectorw_t = legacyVector<T,idx_t,idx_t>;
-
         // Allocates workspace
         vectorOfBytes localworkdata;
         const Workspace work = [&]()
@@ -383,7 +381,7 @@ lantr(
             lantr_worksize( normType, uplo, diag, A, workinfo, opts );
             return alloc_workspace( localworkdata, workinfo, opts.work );
         }();
-        auto w = Create< vectorw_t >( work, n, 1 );
+        auto w = legacyVector<T,idx_t>( n, work );
 
         // Norm value
         real_t norm( 0 );

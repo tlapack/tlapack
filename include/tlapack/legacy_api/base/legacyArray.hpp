@@ -8,7 +8,7 @@
 #define TLAPACK_LEGACY_LEGACYARRAY_HH
 
 #include "tlapack/legacy_api/base/types.hpp"
-#include "tlapack/base/legacyArray.hpp"
+#include "tlapack/plugins/legacyArray.hpp"
 
 namespace tlapack {
 

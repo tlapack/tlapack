@@ -264,6 +264,65 @@ namespace tlapack {
     };
 
     template< class T > using Create = CreateImpl<T,int>;
+
+    //--------------------------------------------------------------------------
+    // Transpose type trait
+
+    template< class T >
+    struct transpose_type_trait;
+
+    template< class T >
+    using transpose_type = typename transpose_type_trait<T>::type;
+
+    //--------------------------------------------------------------------------
+    // Common matrix type deduction
+
+    template< typename... matrix_t >
+    struct matrix_type_traits;
+
+    /// define @c matrix_type<>::type alias
+    template< typename... matrix_t >
+    using matrix_type = typename matrix_type_traits< matrix_t... >::type;
+
+    // for one type
+    /// TODO: Verify that matrix_t is actually a matrix type
+    template< typename matrix_t >
+    struct matrix_type_traits< matrix_t >
+    {
+        using type = typename std::decay<matrix_t>::type;
+    };
+
+    // for three or more types
+    template< typename matrixA_t, typename matrixB_t, typename... matrix_t >
+    struct matrix_type_traits< matrixA_t, matrixB_t, matrix_t... >
+    {
+        using type = matrix_type< matrix_type< matrixA_t, matrixB_t >, matrix_t... >;
+    };
+
+    //--------------------------------------------------------------------------
+    // Common vector type deduction
+
+    template< typename... vector_t >
+    struct vector_type_traits;
+
+    /// define @c vector_type<>::type alias
+    template< typename... vector_t >
+    using vector_type = typename vector_type_traits< vector_t... >::type;
+
+    // for one type
+    /// TODO: Verify that vector_t is actually a vector type
+    template< typename vector_t >
+    struct vector_type_traits< vector_t >
+    {
+        using type = typename std::decay<vector_t>::type;
+    };
+
+    // for three or more types
+    template< typename vectorA_t, typename vectorB_t, typename... vector_t >
+    struct vector_type_traits< vectorA_t, vectorB_t, vector_t... >
+    {
+        using type = vector_type< vector_type< vectorA_t, vectorB_t >, vector_t... >;
+    };
 }
 
 #endif // TLAPACK_ARRAY_TRAITS

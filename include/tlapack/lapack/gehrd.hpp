@@ -104,7 +104,6 @@ namespace tlapack
     {
         using idx_t     = size_type<matrix_t>;
         using work_t    = matrix_type<matrix_t,vector_t>;
-        using T         = type_t< work_t >;
         using pair = pair<idx_t, idx_t>;
         using TA   = type_t< matrix_t >;
 
@@ -142,8 +141,7 @@ namespace tlapack
         }();
     
         // Options to forward
-        /// TODO: Change me if we implement transpose_t<work_t>
-        auto&& larfbOpts = workspace_opts_t< legacyMatrix<T,idx_t,Layout::RowMajor> >{ work };
+        auto&& larfbOpts = workspace_opts_t< transpose_type<work_t> >{ work };
         auto&& gehd2Opts = workspace_opts_t<>{ work };
 
         // Matrix Y

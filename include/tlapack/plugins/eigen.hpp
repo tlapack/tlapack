@@ -10,11 +10,16 @@
 
 #include <cassert>
 #include <Eigen/Core>
+
 #include "tlapack/base/arrayTraits.hpp"
-#include "tlapack/base/legacyArray.hpp"
 #include "tlapack/base/workspace.hpp"
 
 namespace tlapack{
+
+    // -----------------------------------------------------------------------------
+    // Data traits
+
+    /// TODO: Implement transpose_type_trait
 
     // -----------------------------------------------------------------------------
     // blas functions to access Eigen properties
@@ -301,10 +306,37 @@ namespace tlapack{
         }
     };
 
-    // Matrix type specialization:
+    // Matrix and vector type specialization:
 
-    template< typename... matrix_t >
-    struct matrix_type_traits;
+    #ifndef TLAPACK_PREFERRED_MATRIX
+
+        // for two types
+        // should be especialized for every new matrix class
+        template< typename matrixA_t, typename matrixB_t >
+        struct matrix_type_traits< matrixA_t, matrixB_t >
+        {
+            using T = scalar_type< type_t<matrixA_t>, type_t<matrixB_t> >;
+
+            static constexpr Layout LA = layout<matrixA_t>;
+            static constexpr Layout LB = layout<matrixB_t>;
+            static constexpr int L =
+                ((LA == Layout::RowMajor) && (LB == Layout::RowMajor))
+                    ? Eigen::RowMajor
+                    : Eigen::ColMajor;
+
+            using type = Eigen::Matrix< T, Eigen::Dynamic, Eigen::Dynamic, L >;
+        };
+
+        // for two types
+        // should be especialized for every new vector class
+        template< typename vecA_t, typename vecB_t >
+        struct vector_type_traits< vecA_t, vecB_t >
+        {
+            using T = scalar_type< type_t<vecA_t>, type_t<vecB_t> >;
+            using type = Eigen::Vector< T, Eigen::Dynamic >;
+        };
+
+    #endif // TLAPACK_PREFERRED_MATRIX
 
     template< class DerivedA, class DerivedB >
     struct matrix_type_traits< Eigen::EigenBase<DerivedA>, Eigen::EigenBase<DerivedB> >
@@ -356,11 +388,6 @@ namespace tlapack{
         Eigen::EigenBase< Eigen::VectorBlock<VectorTypeB, SizeB> >,
         Eigen::EigenBase< Eigen::Block<XprTypeA, BlockRowsA, BlockColsA, InnerPanelA> >
     > { };
-
-    // Forward declaration
-
-    template< typename... vector_t >
-    struct vector_type_traits;
 
     template< class DerivedA, class DerivedB >
     struct vector_type_traits< Eigen::EigenBase<DerivedA>, Eigen::EigenBase<DerivedB> >

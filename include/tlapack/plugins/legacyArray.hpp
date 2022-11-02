@@ -9,8 +9,8 @@
 
 #include <cassert>
 
-#include "tlapack/base/arrayTraits.hpp"
 #include "tlapack/base/legacyArray.hpp"
+#include "tlapack/base/arrayTraits.hpp"
 #include "tlapack/base/workspace.hpp"
 
 namespace tlapack {
@@ -25,6 +25,16 @@ namespace tlapack {
     // Layout
     template< typename T, class idx_t >
     constexpr Layout layout< legacyBandedMatrix<T,idx_t> > = Layout::BandStorage;
+
+    // Transpose type
+    template< class T, class idx_t >
+    struct transpose_type_trait< legacyMatrix<T,idx_t,Layout::ColMajor> > {
+        using type = legacyMatrix<T,idx_t,Layout::RowMajor>;
+    };
+    template< class T, class idx_t >
+    struct transpose_type_trait< legacyMatrix<T,idx_t,Layout::RowMajor> > {
+        using type = legacyMatrix<T,idx_t,Layout::ColMajor>;
+    };
 
     // -----------------------------------------------------------------------------
     // Data description
@@ -315,6 +325,43 @@ namespace tlapack {
     template< typename T, class idx_t, typename int_t, Direction direction >
     inline constexpr auto
     legacy_vector( const legacyVector<T,idx_t,int_t,direction>& v ) noexcept { return v; }
+
+    // Matrix and vector type specialization:
+
+    #ifndef TLAPACK_PREFERRED_MATRIX
+
+        // for two types
+        // should be especialized for every new matrix class
+        template< typename matrixA_t, typename matrixB_t >
+        struct matrix_type_traits< matrixA_t, matrixB_t >
+        {
+            using T = scalar_type< type_t<matrixA_t>, type_t<matrixB_t> >;
+            using idx_t = size_type<matrixA_t>;
+
+            static constexpr Layout LA = layout<matrixA_t>;
+            static constexpr Layout LB = layout<matrixB_t>;
+            static constexpr Layout L  =
+                ((LA == Layout::RowMajor) && (LB == Layout::RowMajor))
+                    ? Layout::RowMajor
+                    : Layout::ColMajor;
+
+            using type = legacyMatrix<T,idx_t,L>;
+        };
+
+        // for two types
+        // should be especialized for every new vector class
+        template< typename vecA_t, typename vecB_t >
+        struct vector_type_traits< vecA_t, vecB_t >
+        {
+            using T = scalar_type< type_t<vecA_t>, type_t<vecB_t> >;
+            using idx_t = size_type<vecA_t>;
+
+            using type = legacyVector<T,idx_t,idx_t>;
+        };
+
+    #endif // TLAPACK_PREFERRED_MATRIX
+
+    /// TODO: Complete the implementation of vector_type_traits and matrix_type_traits
 
 } // namespace tlapack
 

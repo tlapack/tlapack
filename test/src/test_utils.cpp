@@ -8,10 +8,8 @@
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
 #include <catch2/catch_template_test_macros.hpp>
-#include <tlapack.hpp>
-#include <testutils.hpp>
 
-#include "testdefinitions.hpp"
+#include "testutils.hpp"
 
 using namespace tlapack;
 

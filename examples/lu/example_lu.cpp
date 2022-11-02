@@ -11,6 +11,7 @@
 #include <iostream>
 #include <vector>
 
+#include <tlapack/plugins/legacyArray.hpp>
 #include <tlapack/plugins/stdvector.hpp>
 #include <tlapack.hpp>
 

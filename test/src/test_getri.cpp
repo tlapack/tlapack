@@ -8,10 +8,9 @@
 
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
-#include <tlapack/plugins/stdvector.hpp>
+
+#include "testutils.hpp"
 #include <tlapack.hpp>
-#include <testutils.hpp>
-#include <testdefinitions.hpp>
 
 using namespace tlapack;
 

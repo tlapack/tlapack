@@ -1,5 +1,5 @@
-/// @file test_getrf.cpp
-/// @brief Test GELQF and UNGL2 and output a k-by-n orthogonal matrix Q.
+/// @file test_ul_mult.cpp
+/// @brief Test UL multiplication.
 //
 // Copyright (c) 2022, University of Colorado Denver. All rights reserved.
 //
@@ -9,9 +9,9 @@
 
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
+
+#include "testutils.hpp"
 #include <tlapack.hpp>
-#include <testutils.hpp>
-#include <testdefinitions.hpp>
 
 using namespace tlapack;
 using namespace std;
@@ -53,8 +53,6 @@ TEMPLATE_LIST_TEST_CASE("LU factorization of a general m-by-n matrix, blocked", 
         }
             
     // We will make a deep copy A
-    // We intend to test A=LU, however, since after calling getrf, A will be udpated
-    // then to test A=LU, we'll make a deep copy of A prior to calling getrf
     lacpy(Uplo::General, A, A_copy);
     double norma=tlapack::lange( tlapack::Norm::Max, A);
     

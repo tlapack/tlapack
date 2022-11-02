@@ -19,6 +19,11 @@ namespace tlapack {
     using std::experimental::mdspan;
 
     // -----------------------------------------------------------------------------
+    // Data traits
+
+    /// TODO: Implement transpose_type_trait
+
+    // -----------------------------------------------------------------------------
     // blas functions to access mdspan properties
 
     // Size

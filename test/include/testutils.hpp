@@ -10,7 +10,10 @@
 #ifndef TLAPACK_TESTUTILS_HH
 #define TLAPACK_TESTUTILS_HH
 
-#include <tlapack.hpp>
+#include "testdefinitions.hpp"
+#include <tlapack/plugins/stdvector.hpp>
+
+#include <tlapack/base/utils.hpp>
 
 #include <complex>
 namespace tlapack

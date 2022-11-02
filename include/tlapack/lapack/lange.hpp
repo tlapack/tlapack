@@ -11,7 +11,7 @@
 #ifndef TLAPACK_LANGE_HH
 #define TLAPACK_LANGE_HH
 
-#include "tlapack/base/types.hpp"
+#include "tlapack/base/legacyArray.hpp"
 #include "tlapack/lapack/lassq.hpp"
 
 namespace tlapack {
@@ -201,8 +201,6 @@ lange( norm_t normType, const matrix_t& A, const workspace_opts_t<>& opts )
         // so as to do one pass on the data in a contiguous way when computing
 	    // the infinite norm.
 
-        using vectorw_t = legacyVector<T,idx_t,idx_t>;
-
         // Allocates workspace
         vectorOfBytes localworkdata;
         const Workspace work = [&]()
@@ -211,7 +209,7 @@ lange( norm_t normType, const matrix_t& A, const workspace_opts_t<>& opts )
             lange_worksize( normType, A, workinfo, opts );
             return alloc_workspace( localworkdata, workinfo, opts.work );
         }();
-        auto w = Create< vectorw_t >( work, m, 1 );
+        auto w = legacyVector<T,idx_t>( m, work );
 
         // Norm value
         real_t norm( 0 );
