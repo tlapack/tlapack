@@ -194,6 +194,117 @@ void syrk(
     return syrk( uplo, trans, alpha, A, internal::StrongZero(), C );
 }
 
+#ifdef USE_LAPACKPP_WRAPPERS
+
+    /**
+     * Symmetric rank-k update
+     * 
+     * Wrapper to optimized BLAS.
+     * 
+     * @see syrk(
+        Uplo uplo,
+        Op trans,
+        const alpha_t& alpha, const matrixA_t& A,
+        const beta_t& beta, matrixC_t& C )
+    * 
+    * @ingroup syrk
+    */
+    template<
+        class matrixA_t, class matrixC_t, 
+        class alpha_t, class beta_t,
+        class T  = type_t<matrixC_t>,
+        enable_if_allow_optblas_t<
+            pair< matrixA_t, T >,
+            pair< matrixC_t, T >,
+            pair< alpha_t,   T >,
+            pair< beta_t,    T >
+        > = 0
+    >
+    inline
+    void syrk(
+        Uplo uplo,
+        Op trans,
+        const alpha_t alpha, const matrixA_t& A,
+        const beta_t beta, matrixC_t& C )
+    {
+        // Legacy objects
+        auto A_ = legacy_matrix(A);
+        auto C_ = legacy_matrix(C);
+
+        // Constants to forward
+        const auto& n = C_.n;
+        const auto& k = (trans == Op::NoTrans) ? A_.n : A_.m;
+
+        if( alpha == alpha_t(0) )
+            tlapack_warning( -3, "Infs and NaNs in A will not propagate to C on output" );
+        if( beta == beta_t(0) )
+            tlapack_warning( -5, "Infs and NaNs in C on input will not propagate to C on output" );
+
+        return ::blas::syrk(
+            (::blas::Layout) A_.layout,
+            (::blas::Uplo) uplo,
+            (::blas::Op) trans, 
+            n, k,
+            alpha,
+            A_.ptr, A_.ldim,
+            beta,
+            C_.ptr, C_.ldim );
+    }
+
+    /**
+     * Symmetric rank-k update
+     * 
+     * Wrapper to optimized BLAS.
+     * 
+     * @see syrk(
+        Uplo uplo,
+        Op trans,
+        const alpha_t& alpha, const matrixA_t& A,
+        matrixC_t& C )
+    * 
+    * @ingroup syrk
+    */
+    template<
+        class matrixA_t, class matrixC_t, 
+        class alpha_t,
+        class T  = type_t<matrixC_t>,
+        enable_if_allow_optblas_t<
+            pair< matrixA_t, T >,
+            pair< matrixC_t, T >,
+            pair< alpha_t,   T >
+        > = 0
+    >
+    inline
+    void syrk(
+        Uplo uplo,
+        Op trans,
+        const alpha_t alpha, const matrixA_t& A,
+        matrixC_t& C )
+    {
+        // Legacy objects
+        auto A_ = legacy_matrix(A);
+        auto C_ = legacy_matrix(C);
+
+        // Constants to forward
+        const auto& n = C_.n;
+        const auto& k = (trans == Op::NoTrans) ? A_.n : A_.m;
+
+        if( alpha == alpha_t(0) )
+            tlapack_warning( -3, "Infs and NaNs in A or B will not propagate to C on output" );
+
+        return ::blas::syrk(
+            (::blas::Layout) A_.layout,
+            (::blas::Uplo) uplo,
+            (::blas::Op) trans, 
+            n, k,
+            alpha,
+            A_.ptr, A_.ldim,
+            T(0),
+            C_.ptr, C_.ldim );
+    }
+
+#endif
+
 }  // namespace tlapack
 
 #endif        //  #ifndef TLAPACK_BLAS_SYRK_HH

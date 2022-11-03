@@ -63,6 +63,40 @@ void rot(
     }
 }
 
+#ifdef USE_LAPACKPP_WRAPPERS
+
+    template<
+        class vectorX_t, class vectorY_t,
+        class c_type, class s_type,
+        class T = type_t<vectorX_t>,
+        enable_if_allow_optblas_t<
+            pair< vectorX_t, T >,
+            pair< vectorY_t, T >,
+            pair< c_type, real_type<T> >,
+            pair< s_type, real_type<T> >
+        > = 0
+    >
+    inline
+    void rot(
+        vectorX_t& x, vectorY_t& y,
+        const c_type c, const s_type s )
+    {
+        using idx_t = size_type< vectorX_t >;
+
+        // Legacy objects
+        auto x_ = legacy_vector(x);
+        auto y_ = legacy_vector(y);
+
+        // Constants to forward
+        const idx_t& n = x_.n;
+        const idx_t incx = (x_.direction == Direction::Forward) ? idx_t(x_.inc) : idx_t(-x_.inc);
+        const idx_t incy = (y_.direction == Direction::Forward) ? idx_t(y_.inc) : idx_t(-y_.inc);
+
+        return ::blas::rot( n, x_.ptr, incx, y_.ptr, incy, c, s );
+    }
+
+#endif
+
 }  // namespace tlapack
 
 #endif        //  #ifndef TLAPACK_BLAS_ROT_HH

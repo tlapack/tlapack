@@ -12,9 +12,10 @@
 #define TLAPACK_LARFG_HH
 
 #include "tlapack/base/utils.hpp"
+#include "tlapack/blas/nrm2.hpp"
+#include "tlapack/blas/scal.hpp"
 #include "tlapack/lapack/lapy2.hpp"
 #include "tlapack/lapack/lapy3.hpp"
-#include "tlapack/blas/nrm2.hpp"
 
 namespace tlapack {
 

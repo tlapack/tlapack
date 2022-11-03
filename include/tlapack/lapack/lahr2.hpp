@@ -10,9 +10,14 @@
 #define TLAPACK_LAHR2_HH
 
 #include "tlapack/base/utils.hpp"
+
+#include "tlapack/blas/gemv.hpp"
+#include "tlapack/blas/trmm.hpp"
+#include "tlapack/blas/trmv.hpp"
+#include "tlapack/blas/axpy.hpp"
+#include "tlapack/blas/scal.hpp"
 #include "tlapack/lapack/larfg.hpp"
 #include "tlapack/lapack/larf.hpp"
-#include "tlapack/blas/gemv.hpp"
 
 namespace tlapack
 {

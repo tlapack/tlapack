@@ -12,6 +12,7 @@
 #include "tlapack/base/utils.hpp"
 #include "tlapack/lapack/larf.hpp"
 #include "tlapack/lapack/ung2r.hpp"
+#include "tlapack/lapack/unm2r.hpp"
 
 namespace tlapack
 {

@@ -11,6 +11,7 @@
 #define TLAPACK_TRTRI_RECURSIVE_HH
 
 #include "tlapack/base/utils.hpp"
+#include "tlapack/blas/trsm.hpp"
 
 namespace tlapack
 {

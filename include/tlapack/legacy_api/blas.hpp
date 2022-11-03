@@ -7,12 +7,6 @@
 #ifndef TLAPACK_BLAS_HH
 #define TLAPACK_BLAS_HH
 
-// Optimized BLAS
-
-#ifdef USE_LAPACKPP_WRAPPERS
-    #include "tlapack/optimized/wrappers.hpp"
-#endif
-
 // Template BLAS
 
 // =============================================================================

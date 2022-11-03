@@ -120,6 +120,20 @@ auto nrm2( const vector_t& x )
     return scl * sqrt( sumsq );
 }
 
+#ifdef USE_LAPACKPP_WRAPPERS
+
+    template< class vector_t,
+        enable_if_allow_optblas_t< vector_t > = 0
+    >
+    inline
+    auto nrm2( vector_t const& x )
+    {
+        auto x_ = legacy_vector(x);
+        return ::blas::nrm2( x_.n, x_.ptr, x_.inc );
+    }
+
+#endif
+
 }  // namespace tlapack
 
 #endif        // #ifndef TLAPACK_BLAS_NRM2_HH

@@ -12,6 +12,10 @@
 #define TLAPACK_LAHQR_HH
 
 #include "tlapack/base/utils.hpp"
+
+#include "tlapack/blas/rot.hpp"
+#include "tlapack/blas/rotg.hpp"
+
 #include "tlapack/lapack/larfg.hpp"
 #include "tlapack/lapack/larf.hpp"
 #include "tlapack/lapack/lahqr_eig22.hpp"

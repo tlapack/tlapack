@@ -11,7 +11,10 @@
 #include <catch2/generators/catch_generators.hpp>
 
 #include "testutils.hpp"
-#include <tlapack.hpp>
+
+// Other routines
+#include <tlapack/blas/gemm.hpp>
+#include <tlapack/lapack/lasy2.hpp>
 
 using namespace tlapack;
 

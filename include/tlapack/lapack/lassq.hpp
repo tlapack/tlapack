@@ -16,6 +16,7 @@
 #define TLAPACK_LASSQ_HH
 
 #include "tlapack/base/utils.hpp"
+#include "tlapack/base/constants.hpp"
 
 namespace tlapack {
 
