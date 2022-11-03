@@ -23,6 +23,7 @@ env:
   lapackpp_DIR: ${{github.workspace}}/lapackpp
   mdspan_DIR: ${{github.workspace}}/mdspan
   Catch2_DIR: ${{github.workspace}}/Catch2
+  Catch2_CMAKE_DIR: ${{github.workspace}}/Catch2/build/lib/cmake/Catch2
 
 defaults:
   run:
@@ -63,7 +64,7 @@ jobs:
       if: ${{ matrix.os != 'macos-latest' }}
       run: |
         git clone https://github.com/catchorg/Catch2.git
-        cd ${{env.Catch2_DIR}}
+        cd Catch2
         git checkout v3.0.1
         cmake -B build -G Ninja -H. -DBUILD_TESTING=OFF -DCMAKE_INSTALL_PREFIX=${{env.Catch2_DIR}}/build
         cmake --build build/ --target install
@@ -74,7 +75,7 @@ jobs:
         LDFLAGS: "-lstdc++"
       run: |
         git clone https://github.com/catchorg/Catch2.git
-        cd ${{env.Catch2_DIR}}
+        cd Catch2
         git checkout v3.0.1
         cmake -B build -G Ninja -DCMAKE_CXX_COMPILER="gcc-11" -H. -DBUILD_TESTING=OFF -DCMAKE_INSTALL_PREFIX=${{env.Catch2_DIR}}/build
         cmake --build build/ --target install
@@ -127,7 +128,7 @@ jobs:
         -D BUILD_LAPACKPP_TESTS=ON
         -D lapackpp_DIR=${{env.lapackpp_DIR}}/build
         -D lapackpp_TEST_DIR=${{env.lapackpp_DIR}}/test
-        -D Catch2_DIR=${{env.Catch2_DIR}}/build
+        -D Catch2_DIR=${{env.Catch2_CMAKE_DIR}}
 
     - name: Specific configurations for CMake on MacOS
       if: ${{ matrix.os == 'macos-latest' }}
@@ -137,14 +138,14 @@ jobs:
         cmake -B build -G Ninja
         -DCMAKE_CXX_COMPILER="gcc-11"
         -DCMAKE_Fortran_COMPILER="gfortran-11"
-        -D Catch2_DIR=${{env.Catch2_DIR}}/build
+        -D Catch2_DIR=${{env.Catch2_CMAKE_DIR}}
 
     - name: Specific configurations for CMake on Windows
       if: ${{ matrix.os == 'windows-latest' }}
       run: >
         cmake -B build -G Ninja
         -D CMAKE_EXE_LINKER_FLAGS="-Wl,--allow-multiple-definition"
-        -D Catch2_DIR=${{env.Catch2_DIR}}/build
+        -D Catch2_DIR=${{env.Catch2_CMAKE_DIR}}
 
     - name: Configure CMake on all platforms
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
