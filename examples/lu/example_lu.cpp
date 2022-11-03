@@ -13,7 +13,11 @@
 
 #include <tlapack/plugins/legacyArray.hpp>
 #include <tlapack/plugins/stdvector.hpp>
-#include <tlapack.hpp>
+
+#include <tlapack/blas/trsm.hpp>
+#include <tlapack/lapack/lange.hpp>
+#include <tlapack/lapack/lacpy.hpp>
+#include <tlapack/lapack/getrf.hpp>
 
 #ifdef USE_MPFR
     #include <tlapack/plugins/mpreal.hpp>

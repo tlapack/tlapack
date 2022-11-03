@@ -11,7 +11,7 @@
 #undef NDEBUG
 
 #include <tlapack/plugins/legacyArray.hpp>
-#include <tlapack.hpp>
+#include <tlapack/lapack/lascl.hpp>
 
 #include <vector>
 #include <iostream>

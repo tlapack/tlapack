@@ -9,9 +9,15 @@
 
 #include <iostream>
 
-// Must be loaded in the following order
 #include <tlapack/plugins/eigen.hpp>
-#include <tlapack.hpp>
+
+#include <tlapack/blas/trmm.hpp>
+#include <tlapack/blas/syrk.hpp>
+#include <tlapack/lapack/lacpy.hpp>
+#include <tlapack/lapack/lange.hpp>
+#include <tlapack/lapack/lansy.hpp>
+#include <tlapack/lapack/geqr2.hpp>
+#include <tlapack/lapack/ung2r.hpp>
 
 #include <Eigen/Dense>
 #include <Eigen/Householder>

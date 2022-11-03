@@ -170,15 +170,6 @@ jobs:
       continue-on-error: true
       run: cmake --build build --target run-all-examples
 
-    - name: Run additional examples for Eigen and mdspan on Ubuntu
-      if: ${{ matrix.os == 'ubuntu-latest' }}
-      working-directory: build/examples
-      # Mind that the job won't fail with only this step fails
-      continue-on-error: true
-      run: |
-        ./mdspan/example_mdspan
-        ./eigen/example_eigen
-
     - name: Run tests
       working-directory: ${{github.workspace}}/build
       # Execute tests defined by the CMake configuration.  

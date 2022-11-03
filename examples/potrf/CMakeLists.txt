@@ -11,11 +11,8 @@ project( potrf CXX )
 # Add the CMake directory for custom CMake modules
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake)
 
-if(LAPACK_DIR)
-    find_package(LAPACK HINTS ${LAPACK_DIR})
-else()
-    find_package(LAPACK)
-endif()
+# Load LAPACK
+find_package( LAPACK REQUIRED )
 
 # Load <T>LAPACK
 if( NOT TARGET tlapack )
@@ -28,11 +25,7 @@ target_link_libraries( example_potrf PRIVATE tlapack )
 
 # Load LAPACKE if not using MKL
 if( NOT USE_MKL )
-  if(LAPACKE_DIR)
-      find_package(LAPACKE HINTS ${LAPACKE_DIR})
-  else()
-      find_package(LAPACKE)
-  endif()
+  find_package( LAPACKE REQUIRED )
   message( STATUS "LAPACKE: ${LAPACKE_LIBRARIES}" )
   target_link_libraries( example_potrf PRIVATE ${LAPACKE_LIBRARIES} )
 else()

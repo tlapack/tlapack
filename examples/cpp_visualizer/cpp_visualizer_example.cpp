@@ -8,8 +8,8 @@
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
 #include <tlapack/plugins/legacyArray.hpp>
-#include <tlapack.hpp>
 #include <tlapack/plugins/debugutils.hpp>
+#include <tlapack/lapack/laset.hpp>
 
 #include <memory>
 #include <vector>
