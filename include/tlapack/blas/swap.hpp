@@ -44,6 +44,20 @@ void swap( vectorX_t& x, vectorY_t& y )
     }
 }
 
+/** 
+ * Swap vectors, $x <=> y$.
+ * 
+ * @see swap( vectorX_t& x, vectorY_t& y )
+ * 
+ * @note This overload avoids conflicts with the STD library.
+ *      Without it, the unspecialized call `swap( x, y )` using arrays with
+ *      `std::complex` entries would call `std::swap`, while `swap( x, y )`
+ *      using arrays with float or double entries would call `tlapack::swap`.
+ *      Use @c tlapack::swap(x,y) instead of @c swap(x,y) .
+ */
+template< class vector_t >
+inline void swap( vector_t& x, vector_t& y ) { return swap<vector_t,vector_t>(x,y); }
+
 #ifdef USE_LAPACKPP_WRAPPERS
 
     template< class vectorX_t, class vectorY_t,
