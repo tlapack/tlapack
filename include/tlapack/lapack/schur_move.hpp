@@ -12,7 +12,7 @@
 #define TLAPACK_SCHUR_MOVE_HH
 
 #include "tlapack/base/utils.hpp"
-#include "tlapack/lapack/schur_move.hpp"
+#include "tlapack/lapack/schur_swap.hpp"
 
 namespace tlapack
 {

@@ -10,7 +10,11 @@
 #define TLAPACK_GEHRD_HH
 
 #include "tlapack/base/utils.hpp"
+
+#include "tlapack/blas/gemm.hpp"
 #include "tlapack/lapack/lahr2.hpp"
+#include "tlapack/lapack/larfb.hpp"
+#include "tlapack/lapack/gehd2.hpp"
 
 namespace tlapack
 {

@@ -35,6 +35,7 @@ add_executable( test_lu_mult test_lu_mult.cpp )
 add_executable( test_getrf test_getrf.cpp )
 add_executable( test_getri test_getri.cpp )
 add_executable( test_ul_mult test_ul_mult.cpp )
+add_executable( test_lauum test_lauum.cpp )
 
 # Reset the output directory
 set( CMAKE_RUNTIME_OUTPUT_DIRECTORY "${TLAPACK_RUNTIME_OUTPUT_DIRECTORY}" )

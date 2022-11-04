@@ -11,6 +11,7 @@
 #define TLAPACK_AED_HH
 
 #include "tlapack/base/utils.hpp"
+
 #include "tlapack/lapack/larfg.hpp"
 #include "tlapack/lapack/larf.hpp"
 #include "tlapack/lapack/lahqr.hpp"
@@ -18,9 +19,15 @@
 #include "tlapack/lapack/gehd2.hpp"
 #include "tlapack/lapack/unghr.hpp"
 #include "tlapack/lapack/multishift_qr.hpp"
+#include "tlapack/lapack/schur_move.hpp"
+#include "tlapack/lapack/schur_swap.hpp"
+#include "tlapack/lapack/unmhr.hpp"
 
 namespace tlapack
 {
+    // Forward declaration
+    template < class idx_t > struct francis_opts_t;
+
     /** Worspace query.
      * @see agressive_early_deflation
      * 

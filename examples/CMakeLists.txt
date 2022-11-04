@@ -4,28 +4,98 @@
 # <T>LAPACK is free software: you can redistribute it and/or modify it under
 # the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
+# Add the CMake directory for custom CMake modules
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake)
+
+add_custom_target( run-all-examples DEPENDS run-all-examples-cmd )
+add_custom_command(
+  OUTPUT run-all-examples-cmd
+  COMMAND echo "Running all examples:" && echo "" )
+
 # add the example geqr2
 add_subdirectory( geqr2 )
+add_custom_command(
+  OUTPUT run-all-examples-cmd APPEND
+  COMMAND
+    echo "- example_geqr2 ----------------" &&
+    "${CMAKE_CURRENT_BINARY_DIR}/geqr2/example_geqr2${CMAKE_EXECUTABLE_SUFFIX}"
+    && echo ""
+)
 
 # add the eigenvalues example
 add_subdirectory( eigenvalues )
+add_custom_command(
+  OUTPUT run-all-examples-cmd APPEND
+  COMMAND
+    echo "- example_eigenvalues ----------------" &&
+    "${CMAKE_CURRENT_BINARY_DIR}/eigenvalues/example_eigenvalues${CMAKE_EXECUTABLE_SUFFIX}"
+    && echo ""
+)
 
 # add the debug example
 add_subdirectory( cpp_visualizer )
 
 # add the example gemm (Use MPFR library if it is available)
 add_subdirectory( gemm )
+add_custom_command(
+  OUTPUT run-all-examples-cmd APPEND
+  COMMAND
+    echo "- example_gemm ----------------" &&
+    "${CMAKE_CURRENT_BINARY_DIR}/gemm/example_gemm${CMAKE_EXECUTABLE_SUFFIX}"
+    && echo ""
+)
 
 # add the example lu (Use MPFR library if it is available)
 add_subdirectory( lu )
+add_custom_command(
+  OUTPUT run-all-examples-cmd APPEND
+  COMMAND
+    echo "- example_lu ----------------" &&
+    "${CMAKE_CURRENT_BINARY_DIR}/lu/example_lu${CMAKE_EXECUTABLE_SUFFIX}"
+    && echo ""
+)
 
 # add the example access_types
 add_subdirectory( access_types )
+add_custom_command(
+  OUTPUT run-all-examples-cmd APPEND
+  COMMAND
+    echo "- example_accessTypes ----------------" &&
+    "${CMAKE_CURRENT_BINARY_DIR}/access_types/example_accessTypes${CMAKE_EXECUTABLE_SUFFIX}"
+    && echo ""
+)
+
+# add the example potrf
+find_package( LAPACK QUIET )
+if( LAPACK_FOUND )
+  find_package( LAPACKE QUIET )
+  if( LAPACKE_FOUND )
+    add_subdirectory( potrf )
+    add_custom_command(
+      OUTPUT run-all-examples-cmd APPEND
+      COMMAND
+        echo "- example_potrf ----------------" &&
+        "${CMAKE_CURRENT_BINARY_DIR}/potrf/example_potrf${CMAKE_EXECUTABLE_SUFFIX}"
+        && echo ""
+    )
+  else()
+    mark_as_advanced( FORCE LAPACKE_DIR )
+  endif()
+else()
+  mark_as_advanced( FORCE LAPACK_DIR )
+endif()
 
 find_package( Eigen3 QUIET )
 if( Eigen3_FOUND )
   # add the example eigen
   add_subdirectory( eigen )
+  add_custom_command(
+    OUTPUT run-all-examples-cmd APPEND
+    COMMAND
+      echo "- example_eigen ----------------" &&
+      "${CMAKE_CURRENT_BINARY_DIR}/eigen/example_eigen${CMAKE_EXECUTABLE_SUFFIX}"
+      && echo ""
+  )
 else()
   mark_as_advanced( FORCE Eigen3_DIR )
 endif()
@@ -34,6 +104,13 @@ find_package( mdspan QUIET )
 if( mdspan_FOUND )
   # add the example mdspan
   add_subdirectory( mdspan )
+  add_custom_command(
+    OUTPUT run-all-examples-cmd APPEND
+    COMMAND
+      echo "- example_mdspan ----------------" &&
+      "${CMAKE_CURRENT_BINARY_DIR}/mdspan/example_mdspan${CMAKE_EXECUTABLE_SUFFIX}"
+      && echo ""
+  )
 else()
   mark_as_advanced( FORCE mdspan_DIR )
 endif()
@@ -41,37 +118,35 @@ endif()
 # add the example gemm using the C wrapper
 if( C_WRAPPERS )
   add_subdirectory( cwrapper_gemm )
+  add_custom_command(
+    OUTPUT run-all-examples-cmd APPEND
+    COMMAND
+      echo "- cwrapper_gemm ----------------" &&
+      "${CMAKE_CURRENT_BINARY_DIR}/cwrapper_gemm/example_cwrapper_gemm${CMAKE_EXECUTABLE_SUFFIX}"
+      && echo ""
+  )
 endif()
 
 # add the example caxpy using the Fortran module
 if( Fortran_WRAPPERS )
   add_subdirectory( fortranModule_caxpy )
+  add_custom_command(
+    OUTPUT run-all-examples-cmd APPEND
+    COMMAND
+      echo "- fortranModule_caxpy ----------------" &&
+      "${CMAKE_CURRENT_BINARY_DIR}/fortranModule_caxpy/example_fortranModule_caxpy${CMAKE_EXECUTABLE_SUFFIX}"
+      && echo ""
+  )
 endif()
 
 # add the example daxpy using the Fortran wrapper
 if( Fortran_WRAPPERS )
-add_subdirectory( fortranWrapper_ssymm )
+  add_subdirectory( fortranWrapper_ssymm )
+  add_custom_command(
+    OUTPUT run-all-examples-cmd APPEND
+    COMMAND
+      echo "- fortranWrapper_ssymm ----------------" &&
+      "${CMAKE_CURRENT_BINARY_DIR}/fortranWrapper_ssymm/example_fortranWrapper_ssymm${CMAKE_EXECUTABLE_SUFFIX}"
+      && echo ""
+  )
 endif()
-
-add_custom_target( run-all-examples
-COMMAND
-  echo "- example_gemm -----------------" &&
-  ${CMAKE_CURRENT_BINARY_DIR}/gemm/example_gemm${CMAKE_EXECUTABLE_SUFFIX}
-COMMAND
-  echo "- example_lu -----------------" &&
-  ${CMAKE_CURRENT_BINARY_DIR}/lu/example_lu${CMAKE_EXECUTABLE_SUFFIX}
-COMMAND
-  echo "- example_geqr2 ----------------" &&
-  ${CMAKE_CURRENT_BINARY_DIR}/geqr2/example_geqr2${CMAKE_EXECUTABLE_SUFFIX}
-COMMAND
-  echo "- example_accessTypes ----------------" &&
-  ${CMAKE_CURRENT_BINARY_DIR}/access_types/example_accessTypes${CMAKE_EXECUTABLE_SUFFIX}
-COMMAND
-  echo "- example_cwrapper_gemm --------" &&
-  ${CMAKE_CURRENT_BINARY_DIR}/cwrapper_gemm/example_cwrapper_gemm${CMAKE_EXECUTABLE_SUFFIX}
-COMMAND
-  echo "- example_fortranModule_caxpy --" &&
-  ${CMAKE_CURRENT_BINARY_DIR}/fortranModule_caxpy/example_fortranModule_caxpy${CMAKE_EXECUTABLE_SUFFIX}
-COMMAND
-  echo "- example_fortranWrapper_saxpy -" &&
-  ${CMAKE_CURRENT_BINARY_DIR}/fortranWrapper_ssymm/example_fortranWrapper_ssymm${CMAKE_EXECUTABLE_SUFFIX} )

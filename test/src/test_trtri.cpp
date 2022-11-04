@@ -11,7 +11,14 @@
 #include <catch2/generators/catch_generators.hpp>
 
 #include "testutils.hpp"
-#include <tlapack.hpp>
+
+// Auxiliary routines
+#include <tlapack/lapack/lacpy.hpp>
+
+// Other routines
+#include <tlapack/blas/trmm.hpp>
+#include <tlapack/lapack/trtri_recursive.hpp>
+#include <tlapack/lapack/lantr.hpp>
 
 using namespace tlapack;
 

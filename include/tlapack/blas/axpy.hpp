@@ -45,6 +45,40 @@ void axpy(
         y[i] += alpha * x[i];
 }
 
+#ifdef USE_LAPACKPP_WRAPPERS
+
+    template< class vectorX_t, class vectorY_t, class alpha_t,
+        class T = type_t<vectorY_t>,
+        enable_if_allow_optblas_t<
+            pair< alpha_t, T >,
+            pair< vectorX_t, T >,
+            pair< vectorY_t, T >
+        > = 0
+    >
+    inline
+    void axpy(
+        const alpha_t alpha,
+        const vectorX_t& x, vectorY_t& y )
+    {
+        using idx_t = size_type< vectorX_t >;
+
+        // Legacy objects
+        auto x_ = legacy_vector(x);
+        auto y_ = legacy_vector(y);
+
+        // Constants to forward
+        const idx_t& n = x_.n;
+        const idx_t incx = (x_.direction == Direction::Forward) ? idx_t(x_.inc) : idx_t(-x_.inc);
+        const idx_t incy = (y_.direction == Direction::Forward) ? idx_t(y_.inc) : idx_t(-y_.inc);
+
+        if( alpha == alpha_t(0) )
+            tlapack_warning( -1, "Infs and NaNs in x will not propagate to y on output" );
+
+        return ::blas::axpy( n, alpha, x_.ptr, incx, y_.ptr, incy );
+    }
+
+#endif
+
 }  // namespace tlapack
 
 #endif        //  #ifndef TLAPACK_BLAS_AXPY_HH

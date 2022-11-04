@@ -11,7 +11,8 @@
 #include <catch2/generators/catch_generators.hpp>
 
 #include "testutils.hpp"
-#include <tlapack.hpp>
+
+#include <tlapack/lapack/transpose.hpp>
 
 using namespace tlapack;
 

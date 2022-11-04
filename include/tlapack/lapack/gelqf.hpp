@@ -12,8 +12,10 @@
 #define TLAPACK_GELQF_HH
 
 #include "tlapack/base/utils.hpp"
-#include "tlapack/lapack/larfg.hpp"
-#include "tlapack/lapack/larf.hpp"
+
+#include "tlapack/lapack/larft.hpp"
+#include "tlapack/lapack/larfb.hpp"
+#include "tlapack/lapack/gelq2.hpp"
 
 namespace tlapack
 {

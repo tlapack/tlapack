@@ -18,6 +18,10 @@
 #include "tlapack/base/workspace.hpp"
 #include "tlapack/base/exceptionHandling.hpp"
 
+#ifdef USE_LAPACKPP_WRAPPERS
+    #include "lapack.hh" // from LAPACK++
+#endif
+
 namespace tlapack {
 
 // -----------------------------------------------------------------------------

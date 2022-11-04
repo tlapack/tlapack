@@ -14,8 +14,11 @@
 #include <tlapack/plugins/stdvector.hpp>
 
 #include <tlapack/base/utils.hpp>
+#include <tlapack/blas/gemm.hpp>
+#include <tlapack/blas/herk.hpp>
+#include <tlapack/lapack/lanhe.hpp>
+#include <tlapack/lapack/laset.hpp>
 
-#include <complex>
 namespace tlapack
 {
 

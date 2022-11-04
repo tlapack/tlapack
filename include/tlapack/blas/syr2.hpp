@@ -84,6 +84,51 @@ void syr2(
     }
 }
 
+#ifdef USE_LAPACKPP_WRAPPERS
+
+    template<
+        class matrixA_t,
+        class vectorX_t, class vectorY_t,
+        class alpha_t,
+        class T = type_t<matrixA_t>,
+        enable_if_allow_optblas_t<
+            pair< alpha_t, T >,
+            pair< matrixA_t, T >,
+            pair< vectorX_t, T >,
+            pair< vectorY_t, T >
+        > = 0
+    >
+    inline
+    void syr2(
+        Uplo  uplo,
+        const alpha_t alpha,
+        const vectorX_t& x, const vectorY_t& y,
+        matrixA_t& A )
+    {
+        using idx_t = size_type< matrixA_t >;
+
+        // Legacy objects
+        auto A_ = legacy_matrix(A);
+        auto x_ = legacy_vector(x);
+        auto y_ = legacy_vector(y);
+
+        // Constants to forward
+        const idx_t& n = A_.n;
+        const idx_t incx = (x_.direction == Direction::Forward) ? idx_t(x_.inc) : idx_t(-x_.inc);
+        const idx_t incy = (y_.direction == Direction::Forward) ? idx_t(y_.inc) : idx_t(-y_.inc);
+
+        return ::blas::syr2(
+            (::blas::Layout) A_.layout,
+            (::blas::Uplo) uplo,
+            n,
+            alpha,
+            x_.ptr, incx,
+            y_.ptr, incy,
+            A_.ptr, A_.ldim );
+    }
+
+#endif
+
 }  // namespace tlapack
 
 #endif        //  #ifndef TLAPACK_BLAS_SYR2_HH

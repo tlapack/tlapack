@@ -9,7 +9,15 @@
 
 #include <tlapack/plugins/legacyArray.hpp>
 #include <tlapack/plugins/stdvector.hpp>
-#include <tlapack.hpp>
+
+#include <tlapack/blas/syrk.hpp>
+#include <tlapack/blas/trmm.hpp>
+#include <tlapack/lapack/lange.hpp>
+#include <tlapack/lapack/lansy.hpp>
+#include <tlapack/lapack/laset.hpp>
+#include <tlapack/lapack/lacpy.hpp>
+#include <tlapack/lapack/geqr2.hpp>
+#include <tlapack/lapack/ung2r.hpp>
 
 #include <memory>
 #include <vector>

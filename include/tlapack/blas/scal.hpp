@@ -38,6 +38,24 @@ void scal( const alpha_t& alpha, vector_t& x )
         x[i] *= alpha;
 }
 
+#ifdef USE_LAPACKPP_WRAPPERS
+
+    template< class vector_t, class alpha_t,
+        class T = type_t<vector_t>,
+        enable_if_allow_optblas_t<
+            pair< alpha_t, T >,
+            pair< vector_t, T >
+        > = 0
+    >
+    inline
+    void scal( const alpha_t alpha, vector_t& x )
+    {
+        auto x_ = legacy_vector(x);
+        return ::blas::scal( x_.n, alpha, x_.ptr, x_.inc );
+    }
+
+#endif
+
 }  // namespace tlapack
 
 #endif        //  #ifndef TLAPACK_BLAS_SCAL_HH
