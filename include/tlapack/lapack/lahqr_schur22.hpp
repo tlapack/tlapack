@@ -49,7 +49,7 @@ namespace tlapack
     template <
         typename T,
         enable_if_t<!is_complex<T>::value, bool> = true>
-    int lahqr_schur22(T &a, T &b, T &c, T &d, std::complex<T> &s1, std::complex<T> &s2, T &cs, T &sn)
+    int lahqr_schur22(T &a, T &b, T &c, T &d, complex_type<T> &s1, complex_type<T> &s2, T &cs, T &sn)
     {
 
         using std::copysign;
@@ -193,8 +193,8 @@ namespace tlapack
         if (c != zero)
         {
             auto temp = sqrt(abs(b)) * sqrt(abs(c));
-            s1 = std::complex<T>(a, temp);
-            s2 = std::complex<T>(d, -temp);
+            s1 = complex_type<T>(a, temp);
+            s2 = complex_type<T>(d, -temp);
         }
         else
         {

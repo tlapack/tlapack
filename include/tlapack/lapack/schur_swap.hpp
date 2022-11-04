@@ -401,7 +401,7 @@ namespace tlapack
         if (n2 == 2)
         {
             T cs, sn;
-            std::complex<T> s1, s2;
+            complex_type<T> s1, s2;
             lahqr_schur22(A(j0, j0), A(j0, j1), A(j1, j0), A(j1, j1), s1, s2, cs, sn); // Apply transformation from the left
             if (j2 < n)
             {
@@ -429,7 +429,7 @@ namespace tlapack
             idx_t j1_2 = j0_2 + 1;
 
             T cs, sn;
-            std::complex<T> s1, s2;
+            complex_type<T> s1, s2;
             lahqr_schur22(A(j0_2, j0_2), A(j0_2, j1_2), A(j1_2, j0_2), A(j1_2, j1_2), s1, s2, cs, sn); // Apply transformation from the left
             if (j0_2 + 2 < n)
             {

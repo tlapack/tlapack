@@ -300,10 +300,10 @@ namespace tlapack
             else
             {
                 // 2x2 eigenvalue block
-                auto foo = abs(TW(ns - 1, ns - 1)) + sqrt(abs(TW(ns - 1, ns - 2))) * sqrt(abs(TW(ns - 2, ns - 1)));
+                auto foo = tlapack::abs(TW(ns - 1, ns - 1)) + sqrt(tlapack::abs(TW(ns - 1, ns - 2))) * sqrt(tlapack::abs(TW(ns - 2, ns - 1)));
                 if (foo == zero)
-                    foo = abs(s_spike);
-                if (max(abs(s_spike * V(0, ns - 1)), abs(s_spike * V(0, ns - 2))) <= max<real_t>(small_num, eps * foo))
+                    foo = tlapack::abs(s_spike);
+                if (max(tlapack::abs(s_spike * V(0, ns - 1)), tlapack::abs(s_spike * V(0, ns - 2))) <= max<real_t>(small_num, eps * foo))
                 {
                     // Eigenvalue pair is deflatable
                     ns = ns - 2;
@@ -377,11 +377,11 @@ namespace tlapack
                 if (n1 == 1)
                     ev1 = abs1(TW(i1, i1));
                 else
-                    ev1 = abs(TW(i1, i1)) + sqrt(abs(TW(i1 + 1, i1))) * sqrt(abs(TW(i1, i1 + 1)));
+                    ev1 = tlapack::abs(TW(i1, i1)) + sqrt(tlapack::abs(TW(i1 + 1, i1))) * sqrt(tlapack::abs(TW(i1, i1 + 1)));
                 if (n2 == 1)
                     ev2 = abs1(TW(i2, i2));
                 else
-                    ev2 = abs(TW(i2, i2)) + sqrt(abs(TW(i2 + 1, i2))) * sqrt(abs(TW(i2, i2 + 1)));
+                    ev2 = tlapack::abs(TW(i2, i2)) + sqrt(tlapack::abs(TW(i2 + 1, i2))) * sqrt(tlapack::abs(TW(i2, i2 + 1)));
 
                 if (ev1 > ev2)
                 {

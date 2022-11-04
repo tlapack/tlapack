@@ -108,10 +108,10 @@ template <typename T,
 void rotg(
     T& a, const T& b,
     real_type<T>& c,
-    complex_type<T>& s )
+    T& s )
 {
     typedef real_type<T> real_t;
-    typedef complex_type<T> scalar_t;
+    typedef T scalar_t;
 
     // Constants
     const real_t r_one = 1;
@@ -237,7 +237,7 @@ void rotg(
         enable_if_allow_optblas_t< T > = 0
     >
     inline
-    void rotg( T& a, const T& b, real_type<T>& c, complex_type<T>& s )
+    void rotg( T& a, const T& b, real_type<T>& c, T& s )
     {
         T r;
         ::lapack::lartg( a, b, &c, &s, &r );

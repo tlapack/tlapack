@@ -52,17 +52,11 @@ using std::enable_if_t;
 #endif
 
 //------------------------------------------------------------------------------
-/// True if T is std::complex<T2> for some type T2.
+/// True if T is complex_type<T>
 template <typename T>
-struct is_complex:
-    std::integral_constant<bool, false>
-{};
-
-/// specialize for std::complex
-template <typename T>
-struct is_complex< std::complex<T> >:
-    std::integral_constant<bool, true>
-{};
+struct is_complex {
+    static constexpr bool value = is_same_v< complex_type<T>, T >;
+};
 
 template <typename T, enable_if_t<!is_complex<T>::value,int> = 0>
 inline constexpr
@@ -569,13 +563,17 @@ bool hasnan( const vector_t& x ) {
 /// @see https://en.cppreference.com/w/cpp/numeric/complex/abs
 /// but it may not propagate NaNs.
 ///
+template< typename T > auto abs ( const T& x );
+
+inline float abs( float x ) { return std::fabs( x ); }
+inline double abs( double x ) { return std::fabs( x ); }
+inline long double abs( long double x ) { return std::fabs( x ); }
+
 template< typename T >
-inline auto abs( const T& x ) {
-    if( is_complex<T>::value ) {
-        if( isnan(x) )
-            return std::numeric_limits< real_type<T> >::quiet_NaN();
-    }
-    return std::abs( x ); // Contains the 2-norm for the complex case
+inline auto abs( const std::complex<T>& x ) {
+    return ( isnan(x) )
+        ? std::numeric_limits<T>::quiet_NaN()
+        : std::abs( x );
 }
 
 // -----------------------------------------------------------------------------

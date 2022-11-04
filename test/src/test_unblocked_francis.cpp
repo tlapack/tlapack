@@ -30,7 +30,7 @@ TEMPLATE_LIST_TEST_CASE("lahqr", "[eigenvalues][doubleshift_qr]", types_to_test)
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
     using real_t = real_type<T>;
-    using complex_t = std::complex<real_t>;
+    using complex_t = complex_type<real_t>;
 
     // Functor
     Create<matrix_t> new_matrix;

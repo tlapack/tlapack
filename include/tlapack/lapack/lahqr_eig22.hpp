@@ -31,13 +31,11 @@ namespace tlapack
      *
      * @ingroup geev
      */
-    template <
-        typename T,
-        typename real_t = real_type<T>>
-    void lahqr_eig22(T a00, T a01, T a10, T a11, std::complex<real_t> &s1, std::complex<real_t> &s2)
+    template < typename T >
+    void lahqr_eig22(T a00, T a01, T a10, T a11, complex_type<T> &s1, complex_type<T> &s2)
     {
-
         // Using
+        using real_t = real_type<T>;
         
         // Constants
         const real_t rzero(0);
@@ -57,7 +55,7 @@ namespace tlapack
         a10 = a10 / s;
         a11 = a11 / s;
         auto tr = (a00 + a11) / two;
-        std::complex<real_t> det = (a00 - tr) * (a00 - tr) + a01 * a10;
+        complex_type<T> det = (a00 - tr) * (a00 - tr) + a01 * a10;
         auto rtdisc = sqrt(det);
 
         s1 = s*(tr + rtdisc);

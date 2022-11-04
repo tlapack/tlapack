@@ -461,7 +461,7 @@ namespace tlapack
                 {
                     if (imag(w[i_shifts]) == zero)
                     {
-                        if (abs(real(w[i_shifts]) - A(istop - 1, istop - 1)) < abs(real(w[i_shifts + 1]) - A(istop - 1, istop - 1)))
+                        if (tlapack::abs(real(w[i_shifts]) - A(istop - 1, istop - 1)) < tlapack::abs(real(w[i_shifts + 1]) - A(istop - 1, istop - 1)))
                             w[i_shifts + 1] = w[i_shifts];
                         else
                             w[i_shifts] = w[i_shifts + 1];
