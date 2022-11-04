@@ -368,31 +368,56 @@ namespace tlapack {
 
     /// define real_type<> type alias
     template< typename... Types >
-    using real_type = typename real_type_traits< Types... >::real_t;
-
-    /// define complex_type<> type alias
-    template< typename... Types >
-    using complex_type = std::complex< real_type< Types... > >;
+    using real_type = typename real_type_traits< Types... >::type;
 
     // for one type
     template< typename T >
     struct real_type_traits<T>
     {
-        using real_t = T;
+        using type = T;
     };
 
     // for one complex type, strip complex
     template< typename T >
     struct real_type_traits< std::complex<T> >
     {
-        using real_t = T;
+        using type = T;
     };
 
     // for two or more types
     template< typename T1, typename... Types >
     struct real_type_traits< T1, Types... >
     {
-        using real_t = scalar_type< real_type<T1>, real_type< Types... > >;
+        using type = scalar_type< real_type<T1>, real_type< Types... > >;
+    };
+
+    // for zero types
+    template< typename... Types >
+    struct complex_type_traits;
+
+    /// define complex_type<> type alias
+    template< typename... Types >
+    using complex_type = typename complex_type_traits< Types... >::type;
+
+    // for one type
+    template< typename T >
+    struct complex_type_traits<T>
+    {
+        using type = std::complex<T>;
+    };
+
+    // for one complex type, strip complex
+    template< typename T >
+    struct complex_type_traits< std::complex<T> >
+    {
+        using type = std::complex<T>;
+    };
+
+    // for two or more types
+    template< typename T1, typename... Types >
+    struct complex_type_traits< T1, Types... >
+    {
+        using type = scalar_type< complex_type<T1>, complex_type< Types... > >;
     };
 
 } // namespace tlapack
