@@ -21,7 +21,7 @@
 
 using namespace tlapack;
 
-TEMPLATE_LIST_TEST_CASE("LAUUM is stable", "[lauum]", types_to_test)
+TEMPLATE_TEST_CASE("LAUUM is stable", "[lauum]", TLAPACK_TYPES_TO_TEST)
 {
     srand(1);
 
@@ -49,7 +49,7 @@ TEMPLATE_LIST_TEST_CASE("LAUUM is stable", "[lauum]", types_to_test)
 
     lacpy(Uplo::General, A, C);
 
-    DYNAMIC_SECTION("n = " << n << " uplo = " << (uplo == Uplo::Upper ? "upper" : "lower"))
+    INFO("n = " << n << " uplo = " << uplo);
     {
         lauum_recursive(uplo, A);
 

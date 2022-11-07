@@ -23,7 +23,7 @@
 
 using namespace tlapack;
 
-TEMPLATE_LIST_TEST_CASE("LQ factorization of a general m-by-n matrix, blocked", "[lqf]", types_to_test)
+TEMPLATE_TEST_CASE("LQ factorization of a general m-by-n matrix, blocked", "[lqf]", TLAPACK_TYPES_TO_TEST)
 {
     srand(1);
 
@@ -51,12 +51,19 @@ TEMPLATE_LIST_TEST_CASE("LQ factorization of a general m-by-n matrix, blocked", 
     std::vector<T> A_; auto A = new_matrix( A_, m, n );
     std::vector<T> A_copy_; auto A_copy = new_matrix( A_copy_, m, n );
     std::vector<T> TT_; auto TT = new_matrix( TT_, m, nb );
-
-    vectorOfBytes workVec;
-    gelqf_opts_t<> workOpts( alloc_workspace( workVec, max(m,k)*sizeof(T) ) );
-    workOpts.nb = nb;
+    std::vector<T> Q_; auto Q = new_matrix( Q_, k, n );
 
     std::vector<T> tauw(min(m, n));
+
+    // Workspace computation:
+    gelqf_opts_t<> workOpts; workOpts.nb = nb;
+    workinfo_t workinfo;
+    gelqf_worksize(A, TT, workinfo, workOpts);
+    ungl2_worksize(Q, tauw, workinfo, workOpts);
+
+    // Workspace allocation:
+    vectorOfBytes workVec;
+    workOpts.work = alloc_workspace( workVec, workinfo );
 
     for (idx_t j = 0; j < n; ++j)
         for (idx_t i = 0; i < m; ++i)
@@ -66,7 +73,7 @@ TEMPLATE_LIST_TEST_CASE("LQ factorization of a general m-by-n matrix, blocked", 
 
     if (k <= n) // k must be less than or equal to n, because we cannot get a Q bigger than n-by-n
     {
-        DYNAMIC_SECTION("m = " << m << " n = " << n << " k = " << k << " nb = " << nb)
+        INFO("m = " << m << " n = " << n << " k = " << k << " nb = " << nb);
         {
             gelqf(A, TT, workOpts);
 
@@ -81,7 +88,6 @@ TEMPLATE_LIST_TEST_CASE("LQ factorization of a general m-by-n matrix, blocked", 
 
             // Q is sliced down to the desired size of output Q (k-by-n).
             // It stores the desired number of Householder reflectors that UNGL2 will use.
-            std::vector<T> Q_; auto Q = new_matrix( Q_, k, n );
             lacpy(Uplo::General, slice(A, range(0, min(m, k)), range(0, n)), Q);
 
             ungl2(Q, tauw, workOpts);

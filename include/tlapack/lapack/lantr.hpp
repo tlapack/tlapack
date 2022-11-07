@@ -19,7 +19,9 @@ namespace tlapack {
 /** Worspace query.
  * @see lantr
  * 
- * @param[out] workinfo On return, contains the required workspace sizes.
+ * @param[in,out] workinfo
+ *      On output, the amount workspace required. It is larger than or equal
+ *      to that given on input.
  */
 template<
     class norm_t, 
@@ -32,15 +34,14 @@ void lantr_worksize(
     uplo_t uplo,
     diag_t diag,
     const matrix_t& A,
-    workinfo_t& workinfo )
-{
-    workinfo = {};
-}
+    workinfo_t& workinfo ) { }
 
 /** Worspace query.
  * @see lantr
  * 
- * @param[out] workinfo On return, contains the required workspace sizes.
+ * @param[in,out] workinfo
+ *      On output, the amount workspace required. It is larger than or equal
+ *      to that given on input.
  */
 template<
     class norm_t, 
@@ -60,11 +61,9 @@ void lantr_worksize(
 
     if ( normType == Norm::Inf )
     {
-        workinfo.m = sizeof(T);
-        workinfo.n = nrows(A);
+        const workinfo_t myWorkinfo( sizeof(T), nrows(A) );
+        workinfo.minMax( myWorkinfo );
     }
-    else
-        workinfo = {};
 }
 
 /** Calculates the norm of a symmetric matrix.
@@ -337,7 +336,6 @@ lantr(
     uplo_t uplo,
     diag_t diag,
     const matrix_t& A,
-    workinfo_t& workinfo,
     const workspace_opts_t<>& opts )
 {
     using T      = type_t< matrix_t >;

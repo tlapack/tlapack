@@ -19,22 +19,23 @@ namespace tlapack {
 /** Worspace query.
  * @see lange
  * 
- * @param[out] workinfo On return, contains the required workspace sizes.
+ * @param[in,out] workinfo
+ *      On output, the amount workspace required. It is larger than or equal
+ *      to that given on input.
  */
 template< typename norm_t, typename matrix_t >
 inline constexpr
 void lange_worksize(
     norm_t normType,
     const matrix_t& A,
-    workinfo_t& workinfo )
-{
-    workinfo = {};
-}
+    workinfo_t& workinfo ) { }
 
 /** Worspace query.
  * @see lange
  * 
- * @param[out] workinfo On return, contains the required workspace sizes.
+ * @param[in,out] workinfo
+ *      On output, the amount workspace required. It is larger than or equal
+ *      to that given on input.
  */
 template< typename norm_t, typename matrix_t >
 inline constexpr
@@ -48,11 +49,9 @@ void lange_worksize(
 
     if ( normType == Norm::Inf  )
     {
-        workinfo.m = sizeof(T);
-        workinfo.n = nrows(A);
+        const workinfo_t myWorkinfo( sizeof(T), nrows(A) );
+        workinfo.minMax( myWorkinfo );
     }
-    else
-        workinfo = {};
 }
 
 /** Calculates the norm of a matrix.

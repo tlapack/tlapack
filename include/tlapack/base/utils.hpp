@@ -867,25 +867,31 @@ struct workinfo_t
     size_t m = 0; ///< Number of rows needed in the Workspace
     size_t n = 0; ///< Number of columns needed in the Workspace
 
+    /// Constructor using sizes
+    inline constexpr workinfo_t( size_t m = 0, size_t n = 0 ) noexcept
+    : m(m), n(n) {}
+
     /// Size needed in the Workspace
-    inline constexpr
-    size_t size() const { return m*n; }
+    inline constexpr size_t size() const noexcept { return m*n; }
 
     /**
      * @brief Set the current object to a state that
-     *  fit its current sizes and the sizes of workinfo
+     *  fit its current sizes and the sizes of workinfo.
+     * 
+     * If sizes don't match, use simple solution: require contiguous space in memory.
      * 
      * @param[in] workinfo Another specification of work sizes
      */
-    void minMax( const workinfo_t& workinfo )
+    void minMax( const workinfo_t& workinfo ) noexcept
     {
-        // Check if the current sizes cover the sizes from workinfo
-        if( m < workinfo.size() || ((m >= workinfo.m) && (n >= workinfo.n)) )
+        // Check if the current sizes do not cover the sizes from workinfo
+        if( m < workinfo.size() && ((m < workinfo.m) || (n < workinfo.n)) )
         {
             // Check if the sizes from workinfo cover the current sizes
-            if( size() <= workinfo.m || ((m < workinfo.m) && (n < workinfo.n)) )
+            if( size() <= workinfo.m || ((m <= workinfo.m) && (n <= workinfo.n)) )
             {
-                *this = workinfo;
+                m = workinfo.m;
+                n = workinfo.n;
             }
             else // Sizes do not match. Simple solution: contiguous space in memory
             {
@@ -893,6 +899,35 @@ struct workinfo_t
                 n = 1;
             }
         }
+    }
+
+    /**
+     * @brief Sum two object by matching sizes.
+     * 
+     * If sizes don't match, use simple solution: require contiguous space in memory.
+     * 
+     * @param workinfo The object to be added to *this.
+     * @return constexpr workinfo_t& The modified workinfo.
+     */
+    constexpr
+    workinfo_t& operator +=( const workinfo_t& workinfo ) noexcept
+    {
+        // If first dimension matches, update second dimension
+        if( m == workinfo.m )
+        {
+            n += workinfo.n;
+        }
+        // Else, if second dimension matches, update first dimension
+        else if( n == workinfo.n )
+        {
+            m += workinfo.m;
+        }
+        else // Sizes do not match. Simple solution: contiguous space in memory
+        {
+            m = size() + workinfo.size();
+            n = 1;
+        }
+        return *this;
     }
 };
 
@@ -923,7 +958,7 @@ alloc_workspace( vectorOfBytes& v, std::size_t lwork )
  *      2. previously allocated memory, if opts_w.size() >= lwork.
  */
 inline Workspace
-alloc_workspace( vectorOfBytes& v, const workinfo_t& workinfo, const Workspace& opts_w )
+alloc_workspace( vectorOfBytes& v, const workinfo_t& workinfo, const Workspace& opts_w = {} )
 {
     if( opts_w.size() <= 0 )
     {

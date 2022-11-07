@@ -23,7 +23,7 @@
 using namespace tlapack;
 using namespace std;
 
-TEMPLATE_LIST_TEST_CASE("LU factorization of a general m-by-n matrix, blocked", "[ul_mul]", types_to_test)
+TEMPLATE_TEST_CASE("LU factorization of a general m-by-n matrix, blocked", "[ul_mul]", TLAPACK_TYPES_TO_TEST)
 {
     srand(1);
     using matrix_t = TestType;

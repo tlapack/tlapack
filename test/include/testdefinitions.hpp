@@ -10,44 +10,39 @@
 #ifndef TLAPACK_TESTDEFINITIONS_HH
 #define TLAPACK_TESTDEFINITIONS_HH
 
+#include <complex>
 #include <tlapack/plugins/legacyArray.hpp>
 
-namespace tlapack
-{
+// 
+// The matrix types that will be tested for routines
+// that only accept real matrices
+// 
+#ifndef TLAPACK_REAL_TYPES_TO_TEST
+    #define TLAPACK_REAL_TYPES_TO_TEST \
+        (legacyMatrix<float,std::size_t,Layout::ColMajor>), \
+        (legacyMatrix<double,std::size_t,Layout::ColMajor>), \
+        (legacyMatrix<float,std::size_t,Layout::RowMajor>), \
+        (legacyMatrix<double,std::size_t,Layout::RowMajor>)
+#endif
 
-    // 
-    // List of matrix types that will be tested
-    // 
-    using types_to_test = std::tuple<
-        legacyMatrix<float, std::size_t, Layout::ColMajor>,
-        legacyMatrix<double, std::size_t, Layout::ColMajor>,
-        legacyMatrix<std::complex<float>, std::size_t, Layout::ColMajor>,
-        legacyMatrix<std::complex<double>, std::size_t, Layout::ColMajor>,
-        legacyMatrix<float, std::size_t, Layout::RowMajor>,
-        legacyMatrix<double, std::size_t, Layout::RowMajor>,
-        legacyMatrix<std::complex<float>, std::size_t, Layout::RowMajor>,
-        legacyMatrix<std::complex<double>, std::size_t, Layout::RowMajor>>;
-        
-    // 
-    // The matrix types that will be tested for routines
-    // that only accept real matrices
-    // 
-    using real_types_to_test = std::tuple<
-        legacyMatrix<float, std::size_t, Layout::ColMajor>,
-        legacyMatrix<double, std::size_t, Layout::ColMajor>,
-        legacyMatrix<float, std::size_t, Layout::RowMajor>,
-        legacyMatrix<double, std::size_t, Layout::RowMajor>>;
+// 
+// The matrix types that will be tested for routines
+// that only accept complex matrices
+// 
+#ifndef TLAPACK_COMPLEX_TYPES_TO_TEST
+    #define TLAPACK_COMPLEX_TYPES_TO_TEST \
+        (legacyMatrix<std::complex<float>,std::size_t,Layout::ColMajor>), \
+        (legacyMatrix<std::complex<double>,std::size_t,Layout::ColMajor>), \
+        (legacyMatrix<std::complex<float>,std::size_t,Layout::RowMajor>), \
+        (legacyMatrix<std::complex<double>,std::size_t,Layout::RowMajor>)
+#endif
 
-    // 
-    // The matrix types that will be tested for routines
-    // that only accept complex matrices
-    // 
-    using complex_types_to_test = std::tuple<
-        legacyMatrix<std::complex<float>, std::size_t, Layout::ColMajor>,
-        legacyMatrix<std::complex<double>, std::size_t, Layout::ColMajor>,
-        legacyMatrix<std::complex<float>, std::size_t, Layout::RowMajor>,
-        legacyMatrix<std::complex<double>, std::size_t, Layout::RowMajor>>;
-
-}
+// 
+// List of matrix types that will be tested
+// 
+#ifndef TLAPACK_TYPES_TO_TEST
+    #define TLAPACK_TYPES_TO_TEST \
+        TLAPACK_REAL_TYPES_TO_TEST, TLAPACK_COMPLEX_TYPES_TO_TEST
+#endif
 
 #endif // TLAPACK_TESTDEFINITIONS_HH

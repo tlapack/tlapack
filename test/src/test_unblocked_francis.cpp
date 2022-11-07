@@ -22,7 +22,7 @@
 
 using namespace tlapack;
 
-TEMPLATE_LIST_TEST_CASE("lahqr", "[eigenvalues][doubleshift_qr]", types_to_test)
+TEMPLATE_TEST_CASE("Double shift QR", "[eigenvalues][doubleshift_qr]", TLAPACK_TYPES_TO_TEST)
 {
     srand(1);
 
@@ -97,8 +97,7 @@ TEMPLATE_LIST_TEST_CASE("lahqr", "[eigenvalues][doubleshift_qr]", types_to_test)
     auto s = std::vector<complex_t>(n);
     laset(Uplo::General, zero, one, Q);
 
-    DYNAMIC_SECTION("Double shift QR with"
-                    << " matrix = " << matrix_type << " n = " << n << " ilo = " << ilo << " ihi = " << ihi)
+    INFO("matrix = " << matrix_type << " n = " << n << " ilo = " << ilo << " ihi = " << ihi);
     {
         int ierr = lahqr(true, true, ilo, ihi, H, s, Q);
 

@@ -16,7 +16,7 @@
 
 using namespace tlapack;
 
-TEMPLATE_LIST_TEST_CASE("Conjugate Transpose gives correct result", "[util]", types_to_test)
+TEMPLATE_TEST_CASE("Conjugate Transpose gives correct result", "[util]", TLAPACK_TYPES_TO_TEST)
 {
     srand(1);
 
@@ -41,8 +41,7 @@ TEMPLATE_LIST_TEST_CASE("Conjugate Transpose gives correct result", "[util]", ty
         for (idx_t i = 0; i < m; ++i)
             A(i, j) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
 
-    DYNAMIC_SECTION("Conjugate Transpose with"
-                    << " m = " << m << " n = " << n)
+    INFO("m = " << m << " n = " << n);
     {
         transpose_opts_t<idx_t> opts;
         // Set nx to a small value so that the blocked algorithm gets tested even for small n and m;
@@ -55,7 +54,7 @@ TEMPLATE_LIST_TEST_CASE("Conjugate Transpose gives correct result", "[util]", ty
     }
 }
 
-TEMPLATE_LIST_TEST_CASE("Transpose gives correct result", "[util]", types_to_test)
+TEMPLATE_TEST_CASE("Transpose gives correct result", "[util]", TLAPACK_TYPES_TO_TEST)
 {
     srand(1);
 
@@ -80,8 +79,7 @@ TEMPLATE_LIST_TEST_CASE("Transpose gives correct result", "[util]", types_to_tes
         for (idx_t i = 0; i < m; ++i)
             A(i, j) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
 
-    DYNAMIC_SECTION("Transpose with"
-                    << " m = " << m << " n = " << n)
+    INFO("m = " << m << " n = " << n);
     {
         transpose_opts_t<idx_t> opts;
         // Set nx to a small value so that the blocked algorithm gets tested even for small n and m;

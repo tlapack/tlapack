@@ -18,7 +18,7 @@
 
 using namespace tlapack;
 
-TEMPLATE_LIST_TEST_CASE("sylvester solver gives correct result", "[sylvester]", real_types_to_test)
+TEMPLATE_TEST_CASE("sylvester solver gives correct result", "[sylvester]", TLAPACK_REAL_TYPES_TO_TEST)
 {
     srand(1);
 
@@ -65,7 +65,7 @@ TEMPLATE_LIST_TEST_CASE("sylvester solver gives correct result", "[sylvester]", 
     gemm(Op::NoTrans, trans_r, sign, X_exact, TR, one, B);
 
 
-    DYNAMIC_SECTION("n1 = " << n1 << " n2 =" << n2)
+    INFO("n1 = " << n1 << " n2 =" << n2);
     {
         // Solve sylvester equation
         T scale, xnorm;

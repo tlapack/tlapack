@@ -18,7 +18,9 @@ namespace tlapack {
 /** Worspace query.
  * @see gehd2
  * 
- * @param[out] workinfo On return, contains the required workspace sizes.
+ * @param[in,out] workinfo
+ *      On output, the amount workspace required. It is larger than or equal
+ *      to that given on input.
  */
 template< class matrix_t, class vector_t >
 inline constexpr
@@ -35,18 +37,13 @@ void gehd2_worksize(
 
     if( ilo+1 < ihi ) {
         const auto v = slice( A, pair{ilo+1,ihi}, ilo );
-        workinfo_t workinfo2;
         
         auto C = slice( A, pair{0,ihi}, pair{ilo+1,ihi} );
         larf_worksize( right_side, v, tau[0], C, workinfo, opts );
         
         C = slice( A, pair{ilo+1,ihi}, pair{ilo+1,n} );
-        larf_worksize( left_side, v, tau[0], C, workinfo2, opts );
-                
-        workinfo.minMax( workinfo2 );
+        larf_worksize( left_side, v, tau[0], C, workinfo, opts );
     }
-    else
-        workinfo = {};
 }
 
 /** Reduces a general square matrix to upper Hessenberg form

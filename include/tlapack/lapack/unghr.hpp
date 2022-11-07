@@ -96,7 +96,9 @@ int unghr(
 /** Worspace query.
  * @see unghr
  * 
- * @param[out] workinfo On return, contains the required workspace sizes.
+ * @param[in,out] workinfo
+ *      On output, the amount workspace required. It is larger than or equal
+ *      to that given on input.
  */
 template< class matrix_t, class vector_t >
 inline constexpr
@@ -107,15 +109,10 @@ void unghr_worksize(
     vector_t& tau,
     workinfo_t& workinfo, const workspace_opts_t<>& opts = {} )
 {
-    using T      = type_t< matrix_t >;
-    using idx_t  = size_type< matrix_t >;
+    using idx_t = size_type< matrix_t >;
     using pair  = pair<idx_t,idx_t>;
     
     // constants
-    const T zero( 0.0 );
-    const T one ( 1.0 );
-    const idx_t m = nrows(A);
-    const idx_t n = ncols(A);
     const idx_t nh = (ihi > ilo +1) ? ihi-1-ilo : 0;
 
     if( nh > 0 && ilo+1 < ihi ) {
@@ -123,8 +120,6 @@ void unghr_worksize(
         auto tau_s = slice( tau, pair{ilo,ihi-1} );
         ung2r_worksize( nh, A_s, tau_s, workinfo, opts );
     }
-    else
-        workinfo = {};
 }
 
 }

@@ -27,7 +27,9 @@ namespace tlapack
     /** Worspace query.
      * @see gebd2
      * 
-     * @param[out] workinfo On return, contains the required workspace sizes.
+     * @param[in,out] workinfo
+     *      On output, the amount workspace required. It is larger than or equal
+     *      to that given on input.
      */
     template <typename matrix_t, class vector_t>
     inline constexpr 
@@ -46,17 +48,12 @@ namespace tlapack
             
             if( m > 1 )
             {
-                workinfo_t workinfo2;
                 auto B11 = rows( A11, range<idx_t>{1,m} );
                 auto row0 = slice(A,0,range<idx_t>{1,n});
                 
-                larf_worksize( right_side, row0, tauw[0], B11, workinfo2, opts );
-                
-                workinfo.minMax( workinfo2 );
+                larf_worksize( right_side, row0, tauw[0], B11, workinfo, opts );
             }
         }
-        else
-            workinfo = {};
     }
 
     /** Reduces a complex general m by n matrix A to an upper

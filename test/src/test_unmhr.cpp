@@ -23,7 +23,7 @@
 
 using namespace tlapack;
 
-TEMPLATE_LIST_TEST_CASE("Result of unmhr matches result from unghr", "[eigenvalues][hessenberg]", types_to_test)
+TEMPLATE_TEST_CASE("Result of unmhr matches result from unghr", "[eigenvalues][hessenberg]", TLAPACK_TYPES_TO_TEST)
 {
     srand(1);
 
@@ -40,10 +40,17 @@ TEMPLATE_LIST_TEST_CASE("Result of unmhr matches result from unghr", "[eigenvalu
     Side side = GENERATE(Side::Left, Side::Right);
     Op op = GENERATE(Op::NoTrans, Op::ConjTrans);
 
+    INFO( "matrix_type = " << matrix_type );
+    INFO( "side = " << side );
+    INFO( "Op = " << op );
+
     idx_t m = 12;
     idx_t n = 10;
     idx_t ilo = GENERATE(0, 1);
     idx_t ihi = GENERATE(9, 10);
+
+    INFO("ilo = " << ilo);
+    INFO("ihi = " << ihi);
 
     const T zero(0);
     const T one(1);
@@ -56,8 +63,15 @@ TEMPLATE_LIST_TEST_CASE("Result of unmhr matches result from unghr", "[eigenvalu
     std::vector<T> C_copy_; auto C_copy = new_matrix( C_copy_, m, n );
     std::vector<T> tau(n);
 
+    // Workspace computation:
+    workinfo_t workinfo = {};
+    gehd2_worksize(ilo, ihi, H, tau, workinfo);
+    unmhr_worksize(side, op, ilo, ihi, H, tau, C, workinfo);
+    unghr_worksize(ilo, ihi, H, tau, workinfo);
+
+    // Workspace allocation:
     vectorOfBytes workVec;
-    workspace_opts_t<> workOpts( alloc_workspace( workVec, max(m,n)*sizeof(T) ) );
+    workspace_opts_t<> workOpts( alloc_workspace( workVec, workinfo ) );
 
     if (matrix_type == "Random")
     {
@@ -84,8 +98,6 @@ TEMPLATE_LIST_TEST_CASE("Result of unmhr matches result from unghr", "[eigenvalu
     // Hessenberg reduction of H
     gehd2(ilo, ihi, H, tau, workOpts);
 
-    DYNAMIC_SECTION("UNMHR with"
-                    << " matrix = " << matrix_type << " ilo = " << ilo << " ihi = " << ihi)
     {
 
         real_t c_norm = lange(frob_norm, C);
