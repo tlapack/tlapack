@@ -20,7 +20,9 @@ namespace tlapack
     /** Worspace query.
      * @see multishift_QR_sweep 
      * 
-     * @param[out] workinfo On return, contains the required workspace sizes.
+     * @param[in,out] workinfo
+     *      On output, the amount workspace required. It is larger than or equal
+     *      to that given on input.
      */
     template <
         class matrix_t,
@@ -40,9 +42,9 @@ namespace tlapack
         const workspace_opts_t<> &opts = {} )
     {
         using T  = type_t< matrix_t >;
-        
-        workinfo.m = sizeof(T)*3;
-        workinfo.n = size(s)/2;
+
+        const workinfo_t myWorkinfo( sizeof(T)*3, size(s)/2 );
+        workinfo.minMax( myWorkinfo );
     }
 
     /** multishift_QR_sweep performs a single small-bulge multi-shift QR sweep.

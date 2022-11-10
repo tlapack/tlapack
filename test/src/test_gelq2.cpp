@@ -23,7 +23,7 @@
 
 using namespace tlapack;
 
-TEMPLATE_LIST_TEST_CASE("LQ factorization of a general m-by-n matrix", "[lqf]", types_to_test)
+TEMPLATE_TEST_CASE("LQ factorization of a general m-by-n matrix", "[lqf]", TLAPACK_TYPES_TO_TEST)
 {
     srand(1);
 
@@ -49,11 +49,18 @@ TEMPLATE_LIST_TEST_CASE("LQ factorization of a general m-by-n matrix", "[lqf]", 
 
     std::vector<T> A_; auto A = new_matrix( A_, m, n );
     std::vector<T> A_copy_; auto A_copy = new_matrix( A_copy_, m, n );
-
-    vectorOfBytes workVec;
-    workspace_opts_t<> workOpts( alloc_workspace( workVec, max(m,k)*sizeof(T) ) );
+    std::vector<T> Q_; auto Q = new_matrix( Q_, k, n );
 
     std::vector<T> tauw(min(m, n));
+
+    // Workspace computation:
+    workinfo_t workinfo = {};
+    gelq2_worksize(A, tauw, workinfo);
+    ungl2_worksize(Q, tauw, workinfo);
+
+    // Workspace allocation:
+    vectorOfBytes workVec;
+    workspace_opts_t<> workOpts( alloc_workspace( workVec, workinfo ) );
 
     for (idx_t j = 0; j < n; ++j)
         for (idx_t i = 0; i < m; ++i)
@@ -63,13 +70,12 @@ TEMPLATE_LIST_TEST_CASE("LQ factorization of a general m-by-n matrix", "[lqf]", 
 
     if (k <= n) // k must be less than or equal to n, because we cannot get a Q bigger than n-by-n
     {
-        DYNAMIC_SECTION("m = " << m << " n = " << n << " k = " << k)
+        INFO("m = " << m << " n = " << n << " k = " << k);
         {
             gelq2(A, tauw, workOpts);
 
             // Q is sliced down to the desired size of output Q (k-by-n).
             // It stores the desired number of Householder reflectors that UNGL2 will use.
-            std::vector<T> Q_; auto Q = new_matrix( Q_, k, n );
             lacpy(Uplo::General, slice(A, range(0, min(m, k)), range(0, n)), Q);
 
             ungl2(Q, tauw, workOpts);

@@ -20,7 +20,9 @@ namespace tlapack
     /** Worspace query.
      * @see ungl2
      * 
-     * @param[out] workinfo On return, contains the required workspace sizes.
+     * @param[in,out] workinfo
+     *      On output, the amount workspace required. It is larger than or equal
+     *      to that given on input.
      */
     template< class matrix_t, class vector_t >
     inline constexpr
@@ -37,8 +39,6 @@ namespace tlapack
             auto C = rows( Q, range<idx_t>{1,k} );
             larf_worksize( right_side, row(Q,0), tauw[0], C, workinfo, opts );
         }
-        else
-            workinfo = {};
     }
     
     /**

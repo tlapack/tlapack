@@ -31,7 +31,9 @@ struct unmqr_opts_t : public workspace_opts_t<workT_t>
 /** Worspace query.
  * @see unmqr
  * 
- * @param[out] workinfo On return, contains the required workspace sizes.
+ * @param[in,out] workinfo
+ *      On output, the amount workspace required. It is larger than or equal
+ *      to that given on input.
  * 
  * @see unmqr
  */
@@ -62,11 +64,9 @@ void unmqr_worksize(
     const idx_t nb = min<idx_t>( opts.nb, k );
 
     // Local workspace sizes
-    workinfo.m = nb*sizeof(T);
-    workinfo.n = nb;
+    const workinfo_t myWorkinfo( nb*sizeof(T), nb );
 
     // larfb:
-    workinfo_t workinfo2;
     {
         // Constants
         const idx_t m = nrows(C);
@@ -81,11 +81,11 @@ void unmqr_worksize(
         const auto matrixT = new_matrix( nullptr, nb, nb );
 
         // Internal workspace queries
-        larfb_worksize( side, trans, forward, columnwise_storage, V, matrixT, C, workinfo2, opts );
+        larfb_worksize( side, trans, forward, columnwise_storage, V, matrixT, C, workinfo, opts );
     }
     
     // Additional workspace needed inside the routine
-    workinfo.minMax( workinfo2 );
+    workinfo += myWorkinfo;
 }
 
 /** Applies orthogonal matrix op(Q) to a matrix C using a blocked code.

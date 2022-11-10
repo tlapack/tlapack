@@ -31,7 +31,9 @@ namespace tlapack
     /** Worspace query.
      * @see agressive_early_deflation
      * 
-     * @param[out] workinfo On return, contains the required workspace sizes.
+     * @param[in,out] workinfo
+     *      On output, the amount workspace required. It is larger than or equal
+     *      to that given on input.
      */
     template <
         class matrix_t,
@@ -64,10 +66,8 @@ namespace tlapack
         auto TW = slice(A, pair{0,jw}, pair{0,jw});
 
         // quick return
-        if( n < 9 || nw <= 1 || ihi <= 1+ilo ) {
-            workinfo = {};
+        if( n < 9 || nw <= 1 || ihi <= 1+ilo )
             return;
-        }
 
         if( jw >= opts.nmin )
         {
@@ -77,15 +77,12 @@ namespace tlapack
             multishift_qr_worksize(true, true, 0, jw, TW, s_window, V, workinfo, opts);
         }
 
-        workinfo_t workinfo2;
         if( jw != ihi-ilo )
         {
             // Hessenberg reduction
             auto tau = slice(A, pair{0,jw}, 0);
-            gehrd_worksize(0, jw, TW, tau, workinfo2);
+            gehrd_worksize(0, jw, TW, tau, workinfo);
         }
-        
-        workinfo.minMax( workinfo2 );
     }
 
     /** agressive_early_deflation accepts as input an upper Hessenberg matrix

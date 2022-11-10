@@ -25,7 +25,7 @@
 
 using namespace tlapack;
 
-TEMPLATE_LIST_TEST_CASE("bidiagonal reduction is backward stable", "[bidiagonal][svd]", types_to_test)
+TEMPLATE_TEST_CASE("bidiagonal reduction is backward stable", "[bidiagonal][svd]", TLAPACK_TYPES_TO_TEST)
 {
     srand(1);
 
@@ -54,12 +54,21 @@ TEMPLATE_LIST_TEST_CASE("bidiagonal reduction is backward stable", "[bidiagonal]
 
         std::vector<T> A_; auto A = new_matrix( A_, m, n );
         std::vector<T> A_copy_; auto A_copy = new_matrix( A_copy_, m, n );
+        std::vector<T> Q_; auto Q = new_matrix( Q_, m, m );
+        std::vector<T> Z_; auto Z = new_matrix( Z_, n, n );
+        auto Z11 = slice(Z, range(1, n), range(1, n));
 
         std::vector<T> tauv(n); // min of m and n
         std::vector<T> tauw(n); // min of m and n
 
+        // Workspace computation:
+        workinfo_t workinfo = {};
+        gebd2_worksize(A, tauv, tauw, workinfo);
+        ung2r_worksize(n, Q, tauv, workinfo);
+        ungl2_worksize(Z11, tauw, workinfo);
+
         vectorOfBytes workVec;
-        workspace_opts_t<> workOpts( alloc_workspace( workVec, m*sizeof(T) ) );
+        workspace_opts_t<> workOpts( alloc_workspace( workVec, workinfo ) );
 
         // Generate random m-by-n matrix
         for (idx_t j = 0; j < n; ++j)
@@ -68,7 +77,7 @@ TEMPLATE_LIST_TEST_CASE("bidiagonal reduction is backward stable", "[bidiagonal]
 
         lacpy(Uplo::General, A, A_copy);
 
-        DYNAMIC_SECTION("m = " << m << " n = " << n)
+        INFO("m = " << m << " n = " << n);
         {
             gebd2(A, tauv, tauw, workOpts);
 
@@ -85,7 +94,6 @@ TEMPLATE_LIST_TEST_CASE("bidiagonal reduction is backward stable", "[bidiagonal]
             real_t normB = lange(Norm::Max, B);
 
             // Generate unitary matrix Q of m-by-m
-            std::vector<T> Q_; auto Q = new_matrix( Q_, m, m );
             lacpy(Uplo::Lower, A, Q);
 
             ung2r(n, Q, tauv, workOpts);
@@ -96,12 +104,10 @@ TEMPLATE_LIST_TEST_CASE("bidiagonal reduction is backward stable", "[bidiagonal]
             CHECK(orth_Q <= tol);
 
             // Generate unitary matrix Z of n-by-n
-            std::vector<T> Z_; auto Z = new_matrix( Z_, n, n );
             laset(Uplo::General, zero, one, Z); // Initialize Z as identity matrix.
 
             // Slice Z down to Z11 of size (n-1)-by-(n-1) and copy upper A to Z11
             auto X = slice(A, range(0,n-1), range(1,n)); // X is (n-1)-by-(n-1) slice of A
-            auto Z11 = slice(Z, range(1, n), range(1, n));
             lacpy(Uplo::General, X, Z11);
 
             ungl2(Z11, tauw, workOpts); // Note: the unitary matrix Z we get here is ConjTransed

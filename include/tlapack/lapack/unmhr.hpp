@@ -69,7 +69,9 @@ namespace tlapack
     /** Worspace query.
      * @see unmhr
      * 
-     * @param[out] workinfo On return, contains the required workspace sizes.
+     * @param[in,out] workinfo
+     *      On output, the amount workspace required. It is larger than or equal
+     *      to that given on input.
      */
     template < class matrix_t, class vector_t >
     inline constexpr

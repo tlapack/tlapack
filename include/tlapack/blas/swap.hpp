@@ -49,7 +49,7 @@ void swap( vectorX_t& x, vectorY_t& y )
  * 
  * @see swap( vectorX_t& x, vectorY_t& y )
  * 
- * @note This overload avoids conflicts with the STD library.
+ * @note This overload avoids unexpected behavior as follows.
  *      Without it, the unspecialized call `swap( x, y )` using arrays with
  *      `std::complex` entries would call `std::swap`, while `swap( x, y )`
  *      using arrays with float or double entries would call `tlapack::swap`.

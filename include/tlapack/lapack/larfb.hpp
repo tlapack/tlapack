@@ -21,7 +21,9 @@ namespace tlapack {
 /** Worspace query.
  * @see larfb
  * 
- * @param[out] workinfo On return, contains the required workspace sizes.
+ * @param[in,out] workinfo
+ *      On output, the amount workspace required. It is larger than or equal
+ *      to that given on input.
  */
 template<
     class matrixV_t, class matrixT_t, class matrixC_t,
@@ -49,16 +51,19 @@ void larfb_worksize(
     const idx_t n = ncols(C);
     const idx_t k = nrows(Tmatrix);
 
+    workinfo_t myWorkinfo;
     if( layout<matrixW_t> == Layout::RowMajor )
     {
-        workinfo.m = (side == Side::Left) ? k : m;
-        workinfo.n = sizeof(T) * ((side == Side::Left) ? n : k);
+        myWorkinfo.m = (side == Side::Left) ? k : m;
+        myWorkinfo.n = sizeof(T) * ((side == Side::Left) ? n : k);
     }
     else
     {
-        workinfo.m = sizeof(T) * ((side == Side::Left) ? k : m);
-        workinfo.n = (side == Side::Left) ? n : k;
+        myWorkinfo.m = sizeof(T) * ((side == Side::Left) ? k : m);
+        myWorkinfo.n = (side == Side::Left) ? n : k;
     }
+
+    workinfo.minMax( myWorkinfo );
 }
 
 /** Applies a block reflector $H$ or its conjugate transpose $H^H$ to a

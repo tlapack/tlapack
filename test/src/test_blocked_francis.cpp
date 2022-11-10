@@ -23,7 +23,7 @@
 
 using namespace tlapack;
 
-TEMPLATE_LIST_TEST_CASE("Multishift QR", "[eigenvalues][multishift_qr]", types_to_test)
+TEMPLATE_TEST_CASE("Multishift QR", "[eigenvalues][multishift_qr]", TLAPACK_TYPES_TO_TEST)
 {
 
     using matrix_t = TestType;
@@ -129,8 +129,7 @@ TEMPLATE_LIST_TEST_CASE("Multishift QR", "[eigenvalues][multishift_qr]", types_t
     idx_t ns = GENERATE(4, 2);
     idx_t nw = GENERATE(4, 2);
 
-    DYNAMIC_SECTION("Multishift QR with"
-                    << " matrix = " << matrix_type << " n = " << n << " ilo = " << ilo << " ihi = " << ihi << " ns = " << ns << " nw = " << nw << " seed = " << seed)
+    INFO("matrix = " << matrix_type << " n = " << n << " ilo = " << ilo << " ihi = " << ihi << " ns = " << ns << " nw = " << nw << " seed = " << seed);
     {
 
         francis_opts_t<> opts;

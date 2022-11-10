@@ -19,7 +19,9 @@ namespace tlapack {
 
 /** Worspace query.
  * 
- * @param[out] workinfo On return, contains the required workspace sizes.
+ * @param[in,out] workinfo
+ *      On output, the amount workspace required. It is larger than or equal
+ *      to that given on input.
  */
 template< class side_t, class vector_t, class tau_t, class matrix_t >
 inline constexpr
@@ -36,8 +38,8 @@ void larf_worksize(
     const idx_t m = nrows(C);
     const idx_t n = ncols(C);
 
-    workinfo.m = sizeof(T);
-    workinfo.n = (side == Side::Left) ? n : m;
+    const workinfo_t myWorkinfo( sizeof(T), (side == Side::Left) ? n : m );
+    workinfo.minMax( myWorkinfo );
 }
 
 /** Applies an elementary reflector H to a m-by-n matrix C.

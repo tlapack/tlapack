@@ -22,7 +22,7 @@
 
 using namespace tlapack;
 
-TEMPLATE_LIST_TEST_CASE("TRTRI is stable", "[trtri]", types_to_test)
+TEMPLATE_TEST_CASE("TRTRI is stable", "[trtri]", TLAPACK_TYPES_TO_TEST)
 {
     srand(1);
 
@@ -35,8 +35,12 @@ TEMPLATE_LIST_TEST_CASE("TRTRI is stable", "[trtri]", types_to_test)
     Create<matrix_t> new_matrix;
 
     Uplo uplo = GENERATE(Uplo::Lower, Uplo::Upper);
-    Diag diag = GENERATE(Diag::Unit, Diag::NonUnit);
+    Diag diag = GENERATE(Diag::Unit, Diag::NonUnit); 
     idx_t n = GENERATE(1, 2, 6, 9);
+
+    INFO("uplo = " << uplo);
+    INFO("diag = " << diag);
+    INFO("n = " << n);
 
     const real_t eps = ulp<real_t>();
     const real_t tol = n * eps;
@@ -58,7 +62,6 @@ TEMPLATE_LIST_TEST_CASE("TRTRI is stable", "[trtri]", types_to_test)
 
     lacpy(uplo, A, C);
 
-    DYNAMIC_SECTION("n = " << n << ", " << uplo)
     {
         trtri_recursive(uplo, diag, C);
 

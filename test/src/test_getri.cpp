@@ -22,7 +22,7 @@
 
 using namespace tlapack;
 
-TEMPLATE_LIST_TEST_CASE("Inversion of a general m-by-n matrix", "[getri]", types_to_test)
+TEMPLATE_TEST_CASE("Inversion of a general m-by-n matrix", "[getri]", TLAPACK_TYPES_TO_TEST)
 {
     srand(1);
     using matrix_t = TestType;
