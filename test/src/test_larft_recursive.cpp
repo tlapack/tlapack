@@ -9,11 +9,11 @@
 
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
-#include <plugins/tlapack_stdvector.hpp>
-#include <plugins/tlapack_legacyArray.hpp>
-#include <lapack/larft_recursive.hpp>
-#include <testutils.hpp>
-#include <testdefinitions.hpp>
+
+#include "testutils.hpp"
+// #include <tlapack.hpp>
+#include <tlapack/base/constants.hpp>
+#include <tlapack/lapack/larft_recursive.hpp>
 
 using namespace tlapack;
 
