@@ -30,31 +30,36 @@ TEMPLATE_LIST_TEST_CASE("Inversion of a general m-by-n matrix", "[getri]", types
     Create<matrix_t> new_matrix;
     
     //n represent no. rows and columns of the square matrices we will performing tests on
-    idx_t m = GENERATE(21,20, 10);
-    idx_t n = GENERATE(13,10,5);
+    // idx_t m = GENERATE(21,20, 10);
+    // idx_t n = GENERATE(13,10,5);
+    idx_t n = GENERATE(21,20, 10);
+    idx_t m = GENERATE(10,5);
     idx_t k = min<idx_t>(m,n);
 
     
     // eps is the machine precision, and tol is the tolerance we accept for tests to pass
     const real_t eps = ulp<real_t>();
-    const real_t tol = m*n*eps;
+    const real_t tol = m*m*m*m*n*m*n*eps;
 
     
     std::vector<T> tau(k);
+    for (idx_t i = 0; i < k; ++i){
+        tau[i]=rand_helper<T>();
+    }
     std::vector<T> C_; auto C = new_matrix( C_, m, n );
-    //auto C = legacyMatrix<T, layout<matrix_t>>(m, n, &C_[0], m);
-    // for (idx_t j = 0; j < n; ++j)
-    //     for (idx_t i = 0; i < m; ++i){
-    //         C(i, j) = rand_helper<T>();
-    //     }
-
-    // this definion C is proper for backward columnwise case, is for the backward case
+    
+    
     for (idx_t j = 0; j < n; ++j)
         for (idx_t i = 0; i < m; ++i){
-            if(i-j == m-n){
+            if(j-i==n-k){
                 C(i, j) = T(1);
             }
-            else{
+            else if (j-i>n-k)
+            {
+                C(i, j) = T(0);
+            }
+            else
+            {
                 C(i, j) = rand_helper<T>();
             }
         }
@@ -70,23 +75,30 @@ TEMPLATE_LIST_TEST_CASE("Inversion of a general m-by-n matrix", "[getri]", types
             TT(i,j)=T(0);
             TTT(i,j)=T(0);
         }
+        
             
     
     
-    tlapack::larft(tlapack::Direction::Backward, tlapack::columnwise_storage, C, tau, TT);
-    larft_recursive(tlapack::Direction::Backward,tlapack::StoreV::Columnwise,C, tau, TTT);
-
+    tlapack::larft(tlapack::Direction::Backward, tlapack::rowwise_storage, C, tau, TT);
+    larft_recursive(tlapack::Direction::Backward,tlapack::StoreV::Rowwise,C, tau, TTT);
+    
+    // for (idx_t i = 0; i < k; ++i)
+    //     for (idx_t j = 0; j < k; ++j){
+    //         if(i<=j)
+    //         std::cout<<TTT(i,j);
+    //     }
     for (idx_t i = 0; i < k; ++i)
         for (idx_t j = 0; j < k; ++j){
             TTT(i,j)-=TT(i,j);
         }
+    
 
     real_t error1;
     error1 = tlapack::lange( tlapack::Norm::Max, TTT)
                     / (normc);
 
     
-    CHECK(error1 /tol <= 1); // tests if error<=tol
+    CHECK(error1 /tol <=1); // tests if error<=tol
     
 }
 
