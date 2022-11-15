@@ -36,7 +36,6 @@ add_executable( test_lu_mult test_lu_mult.cpp )
 add_executable( test_getrf test_getrf.cpp )
 add_executable( test_getri test_getri.cpp )
 add_executable( test_ul_mult test_ul_mult.cpp )
-add_executable( test_larft_recursive test_larft_recursive.cpp )
 #test_larft_recursive2.cpp
 add_executable( test_larft_recursive2 test_larft_recursive2.cpp )
 

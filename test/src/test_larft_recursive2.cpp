@@ -30,16 +30,26 @@ TEMPLATE_LIST_TEST_CASE("Inversion of a general m-by-n matrix", "[getri]", types
     Create<matrix_t> new_matrix;
     
     //n represent no. rows and columns of the square matrices we will performing tests on
+    idx_t m = GENERATE(21,20, 11);
+    idx_t n = GENERATE(11,5);
+    // idx_t n = GENERATE(21,20, 11);
+    // idx_t m = GENERATE(13,11,5);
+    // idx_t n = GENERATE(21,20, 10);
+    // idx_t n = GENERATE(11,7);
     // idx_t m = GENERATE(21,20, 10);
-    // idx_t n = GENERATE(13,10,5);
-    idx_t n = GENERATE(21,20, 10);
-    idx_t m = GENERATE(10,5);
+    // idx_t n = GENERATE(11);
+    // idx_t m = GENERATE(11);
+    // idx_t m = GENERATE(11,7);
+    // idx_t n = GENERATE(21,20, 10);
+    // idx_t n = GENERATE(12);
+    // idx_t m = GENERATE(11);
+    
     idx_t k = min<idx_t>(m,n);
 
     
     // eps is the machine precision, and tol is the tolerance we accept for tests to pass
     const real_t eps = ulp<real_t>();
-    const real_t tol = m*m*m*m*n*m*n*eps;
+    const real_t tol = m*n*m*n*eps;
 
     
     std::vector<T> tau(k);
@@ -63,7 +73,8 @@ TEMPLATE_LIST_TEST_CASE("Inversion of a general m-by-n matrix", "[getri]", types
                 C(i, j) = rand_helper<T>();
             }
         }
-
+    
+    
     real_t normc;
     normc=tlapack::lange( tlapack::Norm::Max, C);
     //tlapack::geqr2( C, tau );
@@ -80,7 +91,7 @@ TEMPLATE_LIST_TEST_CASE("Inversion of a general m-by-n matrix", "[getri]", types
     
     
     tlapack::larft(tlapack::Direction::Backward, tlapack::rowwise_storage, C, tau, TT);
-    larft_recursive(tlapack::Direction::Backward,tlapack::StoreV::Rowwise,C, tau, TTT);
+    larft_recursive(tlapack::backward,tlapack::StoreV::Rowwise,C, tau, TTT);
     
     // for (idx_t i = 0; i < k; ++i)
     //     for (idx_t j = 0; j < k; ++j){
@@ -97,7 +108,8 @@ TEMPLATE_LIST_TEST_CASE("Inversion of a general m-by-n matrix", "[getri]", types
     error1 = tlapack::lange( tlapack::Norm::Max, TTT)
                     / (normc);
 
-    
+    INFO("m=="<<m);
+    INFO("n=="<<n);
     CHECK(error1 /tol <=1); // tests if error<=tol
     
 }

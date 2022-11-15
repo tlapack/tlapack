@@ -155,7 +155,7 @@ int larft_recursive(direction_t direction, storage_t storeMode,matrix_t &A, vect
     //backward column wise case
     if(direction == Direction::Backward && storeMode == StoreV::Columnwise){
 
-        auto Av0 = slice( A, range(0,m-n0), range(0,n0) );
+        auto Av0 = slice( A, range(0,m-k+n0), range(0,n0) );
         auto Av1 = slice( A, range(0,m), range(n0,k) );
 
 
@@ -172,12 +172,15 @@ int larft_recursive(direction_t direction, storage_t storeMode,matrix_t &A, vect
         
 
         // two recursive calls on left half and right half
-        larft_recursive( direction ,storeMode, Av0, tau0, T00);
-        larft_recursive( direction ,storeMode,Av1, tau1, T11);
+        // larft_recursive( direction ,storeMode, Av0, tau0, T00);
+        // larft_recursive( direction ,storeMode,Av1, tau1, T11);
+        larft( direction ,storeMode, Av0, tau0, T00);
+        larft( direction ,storeMode,Av1, tau1, T11);
 
 
         // Step 1 ---- (V01)^H -> T01
         auto A11 = slice(A, range(m-k, m-k+n0), range(n0, k));
+        // auto A11 = slice(A, range(m-k, m-n0), range(n0, k));
         //auto T10 = slice( TTT, range(n0,k), range(0,n0) );
         for (idx_t i = 0; i < k-n0; ++i) {
             for (idx_t j = 0; j < n0; ++j)
@@ -186,14 +189,15 @@ int larft_recursive(direction_t direction, storage_t storeMode,matrix_t &A, vect
 
         // step 2--- T10 * V10 -> T10
         auto A10 = slice(A, range(m-k, m-k+n0), range(0, n0));
+        // auto A10 = slice(A, range(m-k, m-n0), range(0, n0));
         tlapack::trmm(tlapack::Side::Right, tlapack::Uplo::Upper, tlapack::Op::NoTrans, tlapack::Diag::Unit, real_t(1), A10, T10 );
 
         if(m > n){
             auto A00 = slice(A, range(0, m-k), range(0, n0));
             auto A01 = slice(A, range(0, m-k), range(n0, k));
             
-            auto A20 = slice(A, range(n, m), range(0, n0));
-            auto A21 = slice(A, range(n, m), range(n0, n));
+            // auto A20 = slice(A, range(n, m), range(0, n0));
+            // auto A21 = slice(A, range(n, m), range(n0, n));
             tlapack::gemm( tlapack:: Op::ConjTrans, tlapack:: Op::NoTrans, T(1), A01, A00, T(1), T10 );
         }
 
@@ -282,7 +286,7 @@ int larft_recursive(direction_t direction, storage_t storeMode,matrix_t &A, vect
 //  *         (        1 )
     if(direction == Direction::Backward && storeMode == StoreV::Rowwise){
         
-        auto Av0 = slice( A, range(0,n0) , range(0,n-n0));
+        auto Av0 = slice( A, range(0,n0) , range(0,n-k+n0));
         auto Av1 = slice( A,range(n0,k) ,range(0,n));
 
 
