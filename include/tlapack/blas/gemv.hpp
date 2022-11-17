@@ -75,8 +75,8 @@ void gemv(
                    trans != Op::Trans &&
                    trans != Op::ConjTrans &&
                    trans != Op::Conj );
-    tlapack_check_false( size(x) != n );
-    tlapack_check_false( size(y) != m );
+    tlapack_check_false( (idx_t) size(x) != n );
+    tlapack_check_false( (idx_t) size(y) != m );
 
     tlapack_check_false( access_denied( dense, read_policy(A) ) );
 

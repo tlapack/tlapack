@@ -16,8 +16,12 @@ namespace tlapack {
      * 
      * @tparam array_t Array class.
      */
+    template< class array_t, class = int >
+    struct LayoutImpl {
+        static constexpr Layout layout = Layout::Unspecified;
+    };
     template< class array_t >
-    constexpr Layout layout = Layout::Unspecified;
+    constexpr Layout layout = LayoutImpl<array_t,int>::layout;
 
     // -----------------------------------------------------------------------------
     // Access policies
@@ -268,11 +272,11 @@ namespace tlapack {
     //--------------------------------------------------------------------------
     // Transpose type trait
 
-    template< class T >
+    template< class T, class = int >
     struct transpose_type_trait;
 
     template< class T >
-    using transpose_type = typename transpose_type_trait<T>::type;
+    using transpose_type = typename transpose_type_trait<T,int>::type;
 
     //--------------------------------------------------------------------------
     // Common matrix type deduction

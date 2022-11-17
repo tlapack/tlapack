@@ -17,9 +17,109 @@
 namespace tlapack{
 
     // -----------------------------------------------------------------------------
+    // Helpers
+
+    namespace internal
+    {
+        /// @see https://stackoverflow.com/a/51472601/5253097
+        template<class Derived>
+        constexpr bool is_eigen_type_f(const Eigen::EigenBase<Derived> *) {
+            return true;
+        }
+        constexpr bool is_eigen_type_f(const void *) {
+            return false;
+        }
+        template<class T>
+        constexpr bool is_eigen_type = is_eigen_type_f(reinterpret_cast<T*>(NULL));
+
+        template<class Derived>
+        constexpr bool is_eigen_dense_f(const Eigen::DenseBase<Derived> *) {
+            return true;
+        }
+        constexpr bool is_eigen_dense_f(const void *) {
+            return false;
+        }
+        template<class T>
+        constexpr bool is_eigen_dense = is_eigen_dense_f(reinterpret_cast<T*>(NULL));
+
+        template<class Derived>
+        constexpr bool is_eigen_matrix_f(const Eigen::MatrixBase<Derived> *) {
+            return true;
+        }
+        constexpr bool is_eigen_matrix_f(const void *) {
+            return false;
+        }
+        template<class T>
+        constexpr bool is_eigen_matrix = is_eigen_matrix_f(reinterpret_cast<T*>(NULL));
+
+        template<class T>
+        struct is_eigen_block_s : public std::false_type
+        {};
+        template<class XprType, int BlockRows, int BlockCols, bool InnerPanel>
+        struct is_eigen_block_s< Eigen::Block<XprType,BlockRows,BlockCols,InnerPanel> > : public std::true_type
+        {};
+        template<class T>
+        constexpr bool is_eigen_block = is_eigen_block_s<T>::value;
+
+        // template<class PlainObjectType, int MapOptions, class StrideType>
+        // constexpr bool is_eigen_map_f(const Eigen::Map<PlainObjectType,MapOptions,StrideType> *) {
+        //     return true;
+        // }
+        // constexpr bool is_eigen_map_f(const void *) {
+        //     return false;
+        // }
+        // template<class T>
+        // constexpr bool is_eigen_map = is_eigen_map_f(reinterpret_cast<T*>(NULL));
+    }
+
+    // -----------------------------------------------------------------------------
     // Data traits
 
-    /// TODO: Implement transpose_type_trait
+    // Layout
+    template< class matrix_t >
+    struct LayoutImpl< matrix_t, typename std::enable_if<
+        internal::is_eigen_dense<matrix_t> &&
+        !internal::is_eigen_block<matrix_t>
+    ,int>::type >
+    {
+        static constexpr Layout layout = (matrix_t::IsRowMajor)
+            ? Layout::RowMajor
+            : Layout::ColMajor;
+    };
+
+    // Layout
+    template<class XprType, int BlockRows, int BlockCols, bool InnerPanel>
+    struct LayoutImpl< Eigen::Block<XprType,BlockRows,BlockCols,InnerPanel>, int >
+    {
+        static constexpr Layout layout = layout<XprType>;
+    };
+
+    // Transpose type
+    template< class matrix_t >
+    struct transpose_type_trait< matrix_t, typename std::enable_if<
+        internal::is_eigen_matrix<matrix_t>
+    ,int>::type >
+    {
+        using type = Eigen::Matrix<
+            typename matrix_t::Scalar,
+            matrix_t::ColsAtCompileTime,
+            matrix_t::RowsAtCompileTime, 
+            ((matrix_t::IsRowMajor) ? Eigen::ColMajor : Eigen::RowMajor),
+            matrix_t::MaxColsAtCompileTime,
+            matrix_t::MaxRowsAtCompileTime
+        >;
+    };
+
+    // // Layout
+    // template<class PlainObjectType, int MapOptions, class StrideType>
+    // struct LayoutImpl< Eigen::Map<PlainObjectType,MapOptions,StrideType>, int >
+    // {
+    //     static constexpr Layout layout = (
+    //         (StrideType::InnerStrideAtCompileTime == 0)
+    //             ? LayoutImpl< PlainObjectType >::layout
+    //             : Layout::Unspecified
+    //     );
+    // };
 
     // -----------------------------------------------------------------------------
     // blas functions to access Eigen properties
@@ -60,173 +160,201 @@ namespace tlapack{
 
     #define isSlice(SliceSpec) !std::is_convertible< SliceSpec, Eigen::Index >::value
 
-    // Slice
-    template<class T, typename SliceSpecRow, typename SliceSpecCol,
-        typename std::enable_if< isSlice(SliceSpecRow) && isSlice(SliceSpecCol), int >::type = 0
-    >
-    inline constexpr auto slice(
-        const Eigen::DenseBase<T>& A, SliceSpecRow&& rows, SliceSpecCol&& cols ) noexcept
+    // Slice a const ref
+    template< class T, class SliceSpecRow, class SliceSpecCol,
+              typename std::enable_if< isSlice(SliceSpecRow) && isSlice(SliceSpecCol), int >::type = 0 >
+    inline constexpr auto
+    slice( const Eigen::DenseBase<T>& A, SliceSpecRow&& rows, SliceSpecCol&& cols ) noexcept
     {
-        return A.block( rows.first, cols.first,
-                        rows.second-rows.first, cols.second-cols.first );
-    }
-    template<class T, typename SliceSpecRow, typename SliceSpecCol,
-        typename std::enable_if< isSlice(SliceSpecRow) && isSlice(SliceSpecCol), int >::type = 0
-    >
-    inline constexpr auto slice(
-        Eigen::DenseBase<T>& A, SliceSpecRow&& rows, SliceSpecCol&& cols ) noexcept
-    {
-        return A.block( rows.first, cols.first,
-                        rows.second-rows.first, cols.second-cols.first );
-    }
-    template< typename XprType, int BlockRows, int BlockCols, bool InnerPanel,
-              typename SliceSpecRow, typename SliceSpecCol,
-        typename std::enable_if< isSlice(SliceSpecRow) && isSlice(SliceSpecCol), int >::type = 0
-    >
-    inline constexpr auto slice(
-        Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>&& A,
-        SliceSpecRow&& rows, SliceSpecCol&& cols ) noexcept
-    {
-        return A.block( rows.first, cols.first,
-                        rows.second-rows.first, cols.second-cols.first );
-    }
-
-    #undef isSlice
-
-    // Slice
-    template<class T, typename SliceSpecCol>
-    inline constexpr auto slice(
-        const Eigen::DenseBase<T>& A, Eigen::Index rowIdx, SliceSpecCol&& cols ) noexcept
-    {
-        return A.row( rowIdx ).segment( cols.first, cols.second-cols.first );
+        return A.block( rows.first, cols.first, rows.second-rows.first, cols.second-cols.first );
     }
     template<class T, typename SliceSpecCol>
-    inline constexpr auto slice(
-        Eigen::DenseBase<T>& A, Eigen::Index rowIdx, SliceSpecCol&& cols ) noexcept
+    inline constexpr auto
+    slice( const Eigen::DenseBase<T>& A, Eigen::Index rowIdx, SliceSpecCol&& cols ) noexcept
     {
         return A.row( rowIdx ).segment( cols.first, cols.second-cols.first );
     }
-    template< typename XprType, int BlockRows, int BlockCols, bool InnerPanel,
-              typename SliceSpecCol >
-    inline constexpr auto slice(
-        Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>&& A,
-        Eigen::Index rowIdx, SliceSpecCol&& cols ) noexcept
-    {
-        return A.row( rowIdx ).segment( cols.first, cols.second-cols.first );
-    }
-
-    // Slice
     template<class T, typename SliceSpecRow>
-    inline constexpr auto slice(
-        const Eigen::DenseBase<T>& A, SliceSpecRow&& rows, Eigen::Index colIdx = 0 ) noexcept
+    inline constexpr auto
+    slice( const Eigen::DenseBase<T>& A, SliceSpecRow&& rows, Eigen::Index colIdx ) noexcept
     {
         return A.col( colIdx ).segment( rows.first, rows.second-rows.first );
-    }
-    template<class T, typename SliceSpecRow>
-    inline constexpr auto slice(
-        Eigen::DenseBase<T>& A, SliceSpecRow&& rows, Eigen::Index colIdx = 0 ) noexcept
-    {
-        return A.col( colIdx ).segment( rows.first, rows.second-rows.first );
-    }
-    template< typename XprType, int BlockRows, int BlockCols, bool InnerPanel,
-              typename SliceSpecRow >
-    inline constexpr auto slice(
-        Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>&& A,
-        SliceSpecRow&& rows, Eigen::Index colIdx = 0 ) noexcept
-    {
-        return A.col( colIdx ).segment( rows.first, rows.second-rows.first );
-    }
-
-    // Rows
-    template<class T, typename SliceSpec>
-    inline constexpr auto rows(
-        const Eigen::DenseBase<T>& A, SliceSpec&& rows ) noexcept
-    {
-        return A.middleRows( rows.first, rows.second-rows.first );
     }
     template<class T, typename SliceSpec>
-    inline constexpr auto rows(
-        Eigen::DenseBase<T>& A, SliceSpec&& rows ) noexcept
+    inline constexpr auto
+    slice( const Eigen::DenseBase<T>& x, SliceSpec&& range ) noexcept
+    {
+        return x.segment( range.first, range.second-range.first );
+    }
+    template<class T, typename SliceSpec>
+    inline constexpr auto
+    rows( const Eigen::DenseBase<T>& A, SliceSpec&& rows ) noexcept
     {
         return A.middleRows( rows.first, rows.second-rows.first );
     }
-    template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel,
-             typename SliceSpec>
-    inline constexpr auto rows(
-        Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>&& A, SliceSpec&& rows ) noexcept
-    {
-        return A.middleRows( rows.first, rows.second-rows.first );
-    }
-
-    // Row
     template<class T>
     inline constexpr auto row( const Eigen::DenseBase<T>& A, Eigen::Index rowIdx ) noexcept
     {
         return A.row( rowIdx );
+    }
+    template<class T, typename SliceSpec>
+    inline constexpr auto cols( const Eigen::DenseBase<T>& A, SliceSpec&& cols ) noexcept
+    {
+        return A.middleCols( cols.first, cols.second-cols.first );
+    }
+    template<class T>
+    inline constexpr auto col( const Eigen::DenseBase<T>& A, Eigen::Index colIdx ) noexcept
+    {
+        return A.col( colIdx );
+    }
+
+    // Slice a non-const ref
+    template< class T, class SliceSpecRow, class SliceSpecCol,
+              typename std::enable_if< isSlice(SliceSpecRow) && isSlice(SliceSpecCol), int >::type = 0 >
+    inline constexpr auto
+    slice( Eigen::DenseBase<T>& A, SliceSpecRow&& rows, SliceSpecCol&& cols ) noexcept
+    {
+        return A.block( rows.first, cols.first, rows.second-rows.first, cols.second-cols.first );
+    }
+    template<class T, typename SliceSpecCol>
+    inline constexpr auto
+    slice( Eigen::DenseBase<T>& A, Eigen::Index rowIdx, SliceSpecCol&& cols ) noexcept
+    {
+        return A.row( rowIdx ).segment( cols.first, cols.second-cols.first );
+    }
+    template<class T, typename SliceSpecRow>
+    inline constexpr auto
+    slice( Eigen::DenseBase<T>& A, SliceSpecRow&& rows, Eigen::Index colIdx ) noexcept
+    {
+        return A.col( colIdx ).segment( rows.first, rows.second-rows.first );
+    }
+    template<class T, typename SliceSpec>
+    inline constexpr auto
+    slice( Eigen::DenseBase<T>& x, SliceSpec&& range ) noexcept
+    {
+        return x.segment( range.first, range.second-range.first );
+    }
+    template<class T, typename SliceSpec>
+    inline constexpr auto
+    rows( Eigen::DenseBase<T>& A, SliceSpec&& rows ) noexcept
+    {
+        return A.middleRows( rows.first, rows.second-rows.first );
     }
     template<class T>
     inline constexpr auto row( Eigen::DenseBase<T>& A, Eigen::Index rowIdx ) noexcept
     {
         return A.row( rowIdx );
     }
-    template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel>
-    inline constexpr auto row(
-        Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>&& A, Eigen::Index rowIdx ) noexcept
-    {
-        return A.row( rowIdx );
-    }
-
-    // Cols
     template<class T, typename SliceSpec>
-    inline constexpr auto cols(
-        const Eigen::DenseBase<T>& A, SliceSpec&& cols ) noexcept
+    inline constexpr auto cols( Eigen::DenseBase<T>& A, SliceSpec&& cols ) noexcept
     {
         return A.middleCols( cols.first, cols.second-cols.first );
-    }
-    template<class T, typename SliceSpec>
-    inline constexpr auto cols(
-        Eigen::DenseBase<T>& A, SliceSpec&& cols ) noexcept
-    {
-        return A.middleCols( cols.first, cols.second-cols.first );
-    }
-    template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel,
-             typename SliceSpec>
-    inline constexpr auto cols(
-        Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>&& A, SliceSpec&& cols ) noexcept
-    {
-        return A.middleCols( cols.first, cols.second-cols.first );
-    }
-
-    // Column
-    template<class T>
-    inline constexpr auto col( const Eigen::DenseBase<T>& A, Eigen::Index colIdx ) noexcept
-    {
-        return A.col( colIdx );
     }
     template<class T>
     inline constexpr auto col( Eigen::DenseBase<T>& A, Eigen::Index colIdx ) noexcept
     {
         return A.col( colIdx );
     }
-    template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel>
-    inline constexpr auto col( Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>&& A, Eigen::Index colIdx ) noexcept
+
+    // Slice a Block
+    template< class XprType, int BlockRows, int BlockCols, bool InnerPanel, class SliceSpecRow, class SliceSpecCol,
+              typename std::enable_if< isSlice(SliceSpecRow) && isSlice(SliceSpecCol), int >::type = 0 >
+    inline constexpr auto
+    slice( Eigen::Block<XprType,BlockRows,BlockCols,InnerPanel>& A, SliceSpecRow&& rows, SliceSpecCol&& cols ) noexcept
     {
-        return A.col( colIdx );
+        assert( rows.second <= A.rows() );
+        assert( cols.second <= A.cols() );
+
+        return Eigen::Block< XprType, Eigen::Dynamic, Eigen::Dynamic, InnerPanel >
+        (   A.nestedExpression(),
+            A.startRow() + rows.first, A.startCol() + cols.first,
+            rows.second-rows.first, cols.second-cols.first );
+    }
+    template<class XprType, int BlockRows, int BlockCols, bool InnerPanel, typename SliceSpecCol>
+    inline constexpr auto
+    slice( Eigen::Block<XprType,BlockRows,BlockCols,InnerPanel>& A, Eigen::Index rowIdx, SliceSpecCol&& cols ) noexcept
+    {
+        assert( rowIdx < A.rows() );
+        assert( cols.second <= A.cols() );
+
+        return Eigen::Block< XprType, 1, Eigen::Dynamic, InnerPanel >
+        (   A.nestedExpression(),
+            A.startRow() + rowIdx, A.startCol() + cols.first,
+            1, cols.second-cols.first );
+    }
+    template<class XprType, int BlockRows, int BlockCols, bool InnerPanel, typename SliceSpecRow>
+    inline constexpr auto
+    slice( Eigen::Block<XprType,BlockRows,BlockCols,InnerPanel>& A, SliceSpecRow&& rows, Eigen::Index colIdx ) noexcept
+    {
+        assert( rows.second <= A.rows() );
+        assert( colIdx < A.cols() );
+
+        return Eigen::Block< XprType, Eigen::Dynamic, 1, InnerPanel >
+        (   A.nestedExpression(),
+            A.startRow() + rows.first, A.startCol() + colIdx,
+            rows.second-rows.first, 1 );
+    }
+    template<class VectorType, int Size, typename SliceSpec>
+    inline constexpr auto
+    slice( Eigen::VectorBlock<VectorType,Size>& x, SliceSpec&& range ) noexcept
+    {
+        return x.segment( range.first, range.second-range.first );
+    }
+    template<class XprType, int BlockRows, int BlockCols, bool InnerPanel, typename SliceSpec>
+    inline constexpr auto
+    rows( Eigen::Block<XprType,BlockRows,BlockCols,InnerPanel>& A, SliceSpec&& rows ) noexcept
+    {
+        assert( rows.second <= A.rows() );
+
+        return Eigen::Block< XprType, Eigen::Dynamic, BlockCols, InnerPanel >
+        (   A.nestedExpression(),
+            A.startRow() + rows.first, A.startCol(),
+            rows.second-rows.first, A.cols() );
+    }
+    template<class XprType, int BlockRows, int BlockCols, bool InnerPanel>
+    inline constexpr auto
+    row( Eigen::Block<XprType,BlockRows,BlockCols,InnerPanel>& A, Eigen::Index rowIdx ) noexcept
+    {
+        assert( rowIdx < A.rows() );
+
+        return Eigen::Block< XprType, 1, BlockCols, InnerPanel >
+        (   A.nestedExpression(),
+            A.startRow() + rowIdx, A.startCol(),
+            1, A.cols() );
+    }
+    template<class XprType, int BlockRows, int BlockCols, bool InnerPanel, typename SliceSpec>
+    inline constexpr auto
+    cols( Eigen::Block<XprType,BlockRows,BlockCols,InnerPanel>& A, SliceSpec&& cols ) noexcept
+    {
+        assert( cols.second <= A.cols() );
+
+        return Eigen::Block< XprType, BlockRows, Eigen::Dynamic, InnerPanel >
+        (   A.nestedExpression(),
+            A.startRow(), A.startCol() + cols.first,
+            A.rows(), cols.second-cols.first );
+    }
+    template<class XprType, int BlockRows, int BlockCols, bool InnerPanel>
+    inline constexpr auto
+    col( Eigen::Block<XprType,BlockRows,BlockCols,InnerPanel>& A, Eigen::Index colIdx ) noexcept
+    {
+        assert( colIdx < A.cols() );
+
+        return Eigen::Block< XprType, BlockRows, 1, InnerPanel >
+        (   A.nestedExpression(),
+            A.startRow(), A.startCol() + colIdx,
+            A.rows(), 1 );
     }
 
+    #undef isSlice
+
     // Diagonal
-    template<class T, class int_t>
-    inline constexpr auto diag( const Eigen::MatrixBase<T>& A, int_t diagIdx = 0 ) noexcept
+    template<class T>
+    inline constexpr auto diag( const Eigen::MatrixBase<T>& A, int diagIdx = 0 ) noexcept
     {
         return A.diagonal( diagIdx );
     }
-    template<class T, class int_t>
-    inline constexpr auto diag( Eigen::MatrixBase<T>& A, int_t diagIdx = 0 ) noexcept
-    {
-        return A.diagonal( diagIdx );
-    }
-    template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel, typename SliceSpec, class int_t>
-    inline constexpr auto diag( Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>&& A, int_t diagIdx = 0 ) noexcept
+    template<class T>
+    inline constexpr auto diag( Eigen::MatrixBase<T>& A, int diagIdx = 0 ) noexcept
     {
         return A.diagonal( diagIdx );
     }
@@ -235,15 +363,14 @@ namespace tlapack{
     // Create objects
 
     template<typename U>
-    struct CreateImpl< U, typename std::enable_if<
-        !std::is_same< decltype(std::declval<U>().derived()), void >::value
-    ,int>::type >
+    struct CreateImpl< U, typename std::enable_if< internal::is_eigen_dense<U> ,int>::type >
     {
-        using traits = Eigen::internal::traits<U>;
-        using T = typename traits::Scalar;
-        static constexpr int Rows_ = (traits::RowsAtCompileTime == 1) ? 1 : Eigen::Dynamic;
-        static constexpr int Cols_ = (traits::ColsAtCompileTime == 1) ? 1 : Eigen::Dynamic;
-        static constexpr int Options_ = traits::Options;
+        using T = typename U::Scalar;
+        static constexpr int Rows_ = (U::RowsAtCompileTime == 1) ? 1 : Eigen::Dynamic;
+        static constexpr int Cols_ = (U::ColsAtCompileTime == 1) ? 1 : Eigen::Dynamic;
+        static constexpr int Options_ = (U::IsRowMajor)
+                                        ? Eigen::RowMajor
+                                        : Eigen::ColMajor;
 
         using matrix_t  = Eigen::Matrix< T, Rows_, Cols_, Options_ >;
         using idx_t     = Eigen::Index;
@@ -309,6 +436,7 @@ namespace tlapack{
     // Matrix and vector type specialization:
 
     #ifndef TLAPACK_PREFERRED_MATRIX
+        #define TLAPACK_PREFERRED_MATRIX
 
         // for two types
         // should be especialized for every new matrix class
@@ -338,109 +466,189 @@ namespace tlapack{
 
     #endif // TLAPACK_PREFERRED_MATRIX
 
-    template< class DerivedA, class DerivedB >
-    struct matrix_type_traits< Eigen::EigenBase<DerivedA>, Eigen::EigenBase<DerivedB> >
-    {
-        using traitsA = Eigen::internal::traits<DerivedA>;
-        using traitsB = Eigen::internal::traits<DerivedB>;
+    // template< class DerivedA, class DerivedB >
+    // struct matrix_type_traits< Eigen::EigenBase<DerivedA>, Eigen::EigenBase<DerivedB> >
+    // {
+    //     using traitsA = Eigen::internal::traits<DerivedA>;
+    //     using traitsB = Eigen::internal::traits<DerivedB>;
 
-        using TA = typename traitsA::Scalar;
-        using TB = typename traitsB::Scalar;
-        using T = scalar_type<TA,TB>;
+    //     using TA = typename traitsA::Scalar;
+    //     using TB = typename traitsB::Scalar;
+    //     using T = scalar_type<TA,TB>;
 
-        using type = Eigen::Matrix<
-            T,
-            (traitsA::RowsAtCompileTime == 1 && traitsB::RowsAtCompileTime == 1) ? 1 : Eigen::Dynamic,
-            (traitsA::ColsAtCompileTime == 1 && traitsB::ColsAtCompileTime == 1) ? 1 : Eigen::Dynamic,
-            traitsA::Options 
-        >;
-    };
+    //     using type = Eigen::Matrix<
+    //         T,
+    //         (traitsA::RowsAtCompileTime == 1 && traitsB::RowsAtCompileTime == 1) ? 1 : Eigen::Dynamic,
+    //         (traitsA::ColsAtCompileTime == 1 && traitsB::ColsAtCompileTime == 1) ? 1 : Eigen::Dynamic,
+    //         traitsA::Options 
+    //     >;
+    // };
 
-    template<
-        class TA, int RowsA_, int ColsA_, int OptionsA_, int MaxRowsA_, int MaxColsA_,
-        class TB, int RowsB_, int ColsB_, int OptionsB_, int MaxRowsB_, int MaxColsB_ >
-    struct matrix_type_traits<
-        Eigen::Matrix< TA, RowsA_, ColsA_, OptionsA_, MaxRowsA_, MaxColsA_ >,
-        Eigen::Matrix< TB, RowsB_, ColsB_, OptionsB_, MaxRowsB_, MaxColsB_ > >
-    : public matrix_type_traits<
-        Eigen::EigenBase< Eigen::Matrix< TA, RowsA_, ColsA_, OptionsA_, MaxRowsA_, MaxColsA_ > >,
-        Eigen::EigenBase< Eigen::Matrix< TB, RowsB_, ColsB_, OptionsB_, MaxRowsB_, MaxColsB_ > >
-    > { };
+    // template<
+    //     class TA, int RowsA_, int ColsA_, int OptionsA_, int MaxRowsA_, int MaxColsA_,
+    //     class TB, int RowsB_, int ColsB_, int OptionsB_, int MaxRowsB_, int MaxColsB_ >
+    // struct matrix_type_traits<
+    //     Eigen::Matrix< TA, RowsA_, ColsA_, OptionsA_, MaxRowsA_, MaxColsA_ >,
+    //     Eigen::Matrix< TB, RowsB_, ColsB_, OptionsB_, MaxRowsB_, MaxColsB_ > >
+    // : public matrix_type_traits<
+    //     Eigen::EigenBase< Eigen::Matrix< TA, RowsA_, ColsA_, OptionsA_, MaxRowsA_, MaxColsA_ > >,
+    //     Eigen::EigenBase< Eigen::Matrix< TB, RowsB_, ColsB_, OptionsB_, MaxRowsB_, MaxColsB_ > >
+    // > { };
 
-    template<
-        class XprTypeA, int BlockRowsA, int BlockColsA, bool InnerPanelA,
-        class VectorTypeB, int SizeB >
-    struct matrix_type_traits<
-        Eigen::Block<XprTypeA, BlockRowsA, BlockColsA, InnerPanelA>,
-        Eigen::VectorBlock<VectorTypeB, SizeB> >
-    : public matrix_type_traits<
-        Eigen::EigenBase< Eigen::Block<XprTypeA, BlockRowsA, BlockColsA, InnerPanelA> >,
-        Eigen::EigenBase< Eigen::VectorBlock<VectorTypeB, SizeB> >
-    > { };
+    // template<
+    //     class XprTypeA, int BlockRowsA, int BlockColsA, bool InnerPanelA,
+    //     class VectorTypeB, int SizeB >
+    // struct matrix_type_traits<
+    //     Eigen::Block<XprTypeA, BlockRowsA, BlockColsA, InnerPanelA>,
+    //     Eigen::VectorBlock<VectorTypeB, SizeB> >
+    // : public matrix_type_traits<
+    //     Eigen::EigenBase< Eigen::Block<XprTypeA, BlockRowsA, BlockColsA, InnerPanelA> >,
+    //     Eigen::EigenBase< Eigen::VectorBlock<VectorTypeB, SizeB> >
+    // > { };
 
-    template<
-        class XprTypeA, int BlockRowsA, int BlockColsA, bool InnerPanelA,
-        class VectorTypeB, int SizeB >
-    struct matrix_type_traits<
-        Eigen::VectorBlock<VectorTypeB, SizeB>,
-        Eigen::Block<XprTypeA, BlockRowsA, BlockColsA, InnerPanelA> >
-    : public matrix_type_traits<
-        Eigen::EigenBase< Eigen::VectorBlock<VectorTypeB, SizeB> >,
-        Eigen::EigenBase< Eigen::Block<XprTypeA, BlockRowsA, BlockColsA, InnerPanelA> >
-    > { };
+    // template<
+    //     class XprTypeA, int BlockRowsA, int BlockColsA, bool InnerPanelA,
+    //     class VectorTypeB, int SizeB >
+    // struct matrix_type_traits<
+    //     Eigen::VectorBlock<VectorTypeB, SizeB>,
+    //     Eigen::Block<XprTypeA, BlockRowsA, BlockColsA, InnerPanelA> >
+    // : public matrix_type_traits<
+    //     Eigen::EigenBase< Eigen::VectorBlock<VectorTypeB, SizeB> >,
+    //     Eigen::EigenBase< Eigen::Block<XprTypeA, BlockRowsA, BlockColsA, InnerPanelA> >
+    // > { };
 
-    template< class DerivedA, class DerivedB >
-    struct vector_type_traits< Eigen::EigenBase<DerivedA>, Eigen::EigenBase<DerivedB> >
-    {
-        using traitsA = Eigen::internal::traits<DerivedA>;
-        using traitsB = Eigen::internal::traits<DerivedB>;
+    // template< class DerivedA, class DerivedB >
+    // struct vector_type_traits< Eigen::EigenBase<DerivedA>, Eigen::EigenBase<DerivedB> >
+    // {
+    //     using traitsA = Eigen::internal::traits<DerivedA>;
+    //     using traitsB = Eigen::internal::traits<DerivedB>;
 
-        using TA = typename traitsA::Scalar;
-        using TB = typename traitsB::Scalar;
-        using T = scalar_type<TA,TB>;
+    //     using TA = typename traitsA::Scalar;
+    //     using TB = typename traitsB::Scalar;
+    //     using T = scalar_type<TA,TB>;
 
-        using type = Eigen::Matrix<
-            T,
-            (traitsA::RowsAtCompileTime == 1 && traitsB::RowsAtCompileTime == 1) ? 1 : Eigen::Dynamic,
-            (traitsA::RowsAtCompileTime == 1 && traitsB::RowsAtCompileTime == 1) ? Eigen::Dynamic : 1,
-            traitsA::Options 
-        >;
-    };
+    //     using type = Eigen::Matrix<
+    //         T,
+    //         (traitsA::RowsAtCompileTime == 1 && traitsB::RowsAtCompileTime == 1) ? 1 : Eigen::Dynamic,
+    //         (traitsA::RowsAtCompileTime == 1 && traitsB::RowsAtCompileTime == 1) ? Eigen::Dynamic : 1,
+    //         traitsA::Options 
+    //     >;
+    // };
 
-    template<
-        class TA, int RowsA_, int ColsA_, int OptionsA_, int MaxRowsA_, int MaxColsA_,
-        class TB, int RowsB_, int ColsB_, int OptionsB_, int MaxRowsB_, int MaxColsB_ >
-    struct vector_type_traits<
-        Eigen::Matrix< TA, RowsA_, ColsA_, OptionsA_, MaxRowsA_, MaxColsA_ >,
-        Eigen::Matrix< TB, RowsB_, ColsB_, OptionsB_, MaxRowsB_, MaxColsB_ > >
-    : public vector_type_traits<
-        Eigen::EigenBase< Eigen::Matrix< TA, RowsA_, ColsA_, OptionsA_, MaxRowsA_, MaxColsA_ > >,
-        Eigen::EigenBase< Eigen::Matrix< TB, RowsB_, ColsB_, OptionsB_, MaxRowsB_, MaxColsB_ > >
-    > { };
+    // template<
+    //     class TA, int RowsA_, int ColsA_, int OptionsA_, int MaxRowsA_, int MaxColsA_,
+    //     class TB, int RowsB_, int ColsB_, int OptionsB_, int MaxRowsB_, int MaxColsB_ >
+    // struct vector_type_traits<
+    //     Eigen::Matrix< TA, RowsA_, ColsA_, OptionsA_, MaxRowsA_, MaxColsA_ >,
+    //     Eigen::Matrix< TB, RowsB_, ColsB_, OptionsB_, MaxRowsB_, MaxColsB_ > >
+    // : public vector_type_traits<
+    //     Eigen::EigenBase< Eigen::Matrix< TA, RowsA_, ColsA_, OptionsA_, MaxRowsA_, MaxColsA_ > >,
+    //     Eigen::EigenBase< Eigen::Matrix< TB, RowsB_, ColsB_, OptionsB_, MaxRowsB_, MaxColsB_ > >
+    // > { };
 
-    template<
-        class XprTypeA, int BlockRowsA, int BlockColsA, bool InnerPanelA,
-        class VectorTypeB, int SizeB >
-    struct vector_type_traits<
-        Eigen::Block<XprTypeA, BlockRowsA, BlockColsA, InnerPanelA>,
-        Eigen::VectorBlock<VectorTypeB, SizeB> >
-    : public vector_type_traits<
-        Eigen::EigenBase< Eigen::Block<XprTypeA, BlockRowsA, BlockColsA, InnerPanelA> >,
-        Eigen::EigenBase< Eigen::VectorBlock<VectorTypeB, SizeB> >
-    > { };
+    // template<
+    //     class XprTypeA, int BlockRowsA, int BlockColsA, bool InnerPanelA,
+    //     class VectorTypeB, int SizeB >
+    // struct vector_type_traits<
+    //     Eigen::Block<XprTypeA, BlockRowsA, BlockColsA, InnerPanelA>,
+    //     Eigen::VectorBlock<VectorTypeB, SizeB> >
+    // : public vector_type_traits<
+    //     Eigen::EigenBase< Eigen::Block<XprTypeA, BlockRowsA, BlockColsA, InnerPanelA> >,
+    //     Eigen::EigenBase< Eigen::VectorBlock<VectorTypeB, SizeB> >
+    // > { };
 
-    template<
-        class XprTypeA, int BlockRowsA, int BlockColsA, bool InnerPanelA,
-        class VectorTypeB, int SizeB >
-    struct vector_type_traits<
-        Eigen::VectorBlock<VectorTypeB, SizeB>,
-        Eigen::Block<XprTypeA, BlockRowsA, BlockColsA, InnerPanelA> >
-    : public vector_type_traits<
-        Eigen::EigenBase< Eigen::VectorBlock<VectorTypeB, SizeB> >,
-        Eigen::EigenBase< Eigen::Block<XprTypeA, BlockRowsA, BlockColsA, InnerPanelA> >
-    > { };
+    // template<
+    //     class XprTypeA, int BlockRowsA, int BlockColsA, bool InnerPanelA,
+    //     class VectorTypeB, int SizeB >
+    // struct vector_type_traits<
+    //     Eigen::VectorBlock<VectorTypeB, SizeB>,
+    //     Eigen::Block<XprTypeA, BlockRowsA, BlockColsA, InnerPanelA> >
+    // : public vector_type_traits<
+    //     Eigen::EigenBase< Eigen::VectorBlock<VectorTypeB, SizeB> >,
+    //     Eigen::EigenBase< Eigen::Block<XprTypeA, BlockRowsA, BlockColsA, InnerPanelA> >
+    // > { };
 
     /// TODO: Complete the implementation of vector_type_traits and matrix_type_traits
+
+    // -----------------------------------------------------------------------------
+    // Cast to Legacy arrays
+
+    // template< class Derived >
+    // inline constexpr auto
+    // legacy_matrix( const Eigen::DenseBase<Derived>& A ) noexcept
+    // {
+    //     using matrix_t = Eigen::DenseBase<Derived>;
+    //     using T = typename matrix_t::Scalar;
+    //     using idx_t = Eigen::Index;
+    //     constexpr Layout L = layout<matrix_t>;
+
+    //     const idx_t ldim = ((Eigen::MatrixX<T>)A).outerStride();
+
+    //     return legacyMatrix<T,idx_t,L>( nrows(A), ncols(A), (T*) ((Eigen::MatrixX<T>)A).data(), ((Eigen::MatrixX<T>)A).outerStride() );
+    // }
+
+    template< class T, int Rows, int Cols, int Options, int MaxRows, int MaxCols >
+    inline constexpr auto
+    legacy_matrix( const Eigen::Matrix< T, Rows, Cols, Options, MaxRows, MaxCols >& A ) noexcept
+    {
+        using matrix_t = Eigen::Matrix< T, Rows, Cols, Options, MaxRows, MaxCols >;
+        using idx_t = Eigen::Index;
+        constexpr Layout L = layout<matrix_t>;
+
+        return legacyMatrix<T,idx_t,L>( nrows(A), ncols(A), (T*) A.data() );
+    }
+
+    template< class Derived >
+    inline constexpr auto
+    legacy_matrix( const Eigen::MapBase<Derived,Eigen::ReadOnlyAccessors>& A ) noexcept
+    {
+        using T = typename Derived::Scalar;
+        using idx_t = Eigen::Index;
+        constexpr Layout L = layout<Derived>;
+
+        assert( A.innerStride() == 1 || A.innerSize() <= 1 || A.outerStride() == 1 || A.outerSize() <= 1 );
+
+        return legacyMatrix<T,idx_t,L>( nrows(A), ncols(A), (T*) A.data(), A.outerStride() );
+    }
+
+    // template< class T, class idx_t, class int_t, Direction direction >
+    // inline constexpr auto
+    // legacy_matrix( const legacyVector<T,idx_t,int_t,direction>& v ) noexcept {
+    //     return legacyMatrix<T,idx_t,Layout::ColMajor>( 1, v.n, v.ptr, v.inc );
+    // }
+
+    // template< class T, class idx_t, Direction direction >
+    // inline constexpr auto
+    // legacy_matrix( const legacyVector<T,idx_t,internal::StrongOne,direction>& v ) noexcept {
+    //     return legacyMatrix<T,idx_t,Layout::ColMajor>( v.n, 1, v.ptr );
+    // }
+
+    template< class T, int Rows, int Cols, int Options, int MaxRows, int MaxCols >
+    inline constexpr auto
+    legacy_vector( const Eigen::Matrix< T, Rows, Cols, Options, MaxRows, MaxCols >& A ) noexcept
+    {
+        using idx_t = Eigen::Index;
+        assert( A.innerSize() <= 1 || A.outerSize() <= 1 );
+        
+        return legacyVector<T,idx_t,idx_t>( A.size(), (T*) A.data(),
+            (A.outerSize() == 1) ? A.innerStride() : A.outerStride() );
+    }
+
+    template< class T, int Rows, int MaxRows, int MaxCols >
+    inline constexpr auto
+    legacy_vector( const Eigen::Matrix< T, Rows, 1, Eigen::ColMajor, MaxRows, MaxCols >& A ) noexcept
+    {
+        using idx_t = Eigen::Index;
+        return legacyVector<T,idx_t>( A.innerSize(), (T*) A.data() );
+    }
+
+    template< class T, int Cols, int MaxRows, int MaxCols >
+    inline constexpr auto
+    legacy_vector( const Eigen::Matrix< T, 1, Cols, Eigen::RowMajor, MaxRows, MaxCols >& A ) noexcept
+    {
+        using idx_t = Eigen::Index;
+        return legacyVector<T,idx_t>( A.innerSize(), (T*) A.data() );
+    }
 
 } // namespace tlapack
 

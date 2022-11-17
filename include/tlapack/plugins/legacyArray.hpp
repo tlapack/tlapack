@@ -20,19 +20,23 @@ namespace tlapack {
 
     // Layout
     template< typename T, class idx_t, Layout L >
-    constexpr Layout layout< legacyMatrix<T,idx_t,L> > = L;
+    struct LayoutImpl< legacyMatrix<T,idx_t,L>, int > {
+        static constexpr Layout layout = L;
+    };
 
     // Layout
     template< typename T, class idx_t >
-    constexpr Layout layout< legacyBandedMatrix<T,idx_t> > = Layout::BandStorage;
+    struct LayoutImpl< legacyBandedMatrix<T,idx_t>, int > {
+        static constexpr Layout layout = Layout::BandStorage;
+    };
 
     // Transpose type
     template< class T, class idx_t >
-    struct transpose_type_trait< legacyMatrix<T,idx_t,Layout::ColMajor> > {
+    struct transpose_type_trait< legacyMatrix<T,idx_t,Layout::ColMajor>, int > {
         using type = legacyMatrix<T,idx_t,Layout::RowMajor>;
     };
     template< class T, class idx_t >
-    struct transpose_type_trait< legacyMatrix<T,idx_t,Layout::RowMajor> > {
+    struct transpose_type_trait< legacyMatrix<T,idx_t,Layout::RowMajor>, int > {
         using type = legacyMatrix<T,idx_t,Layout::ColMajor>;
     };
 
@@ -329,6 +333,7 @@ namespace tlapack {
     // Matrix and vector type specialization:
 
     #ifndef TLAPACK_PREFERRED_MATRIX
+        #define TLAPACK_PREFERRED_MATRIX
 
         // for two types
         // should be especialized for every new matrix class

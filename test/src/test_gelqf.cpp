@@ -56,7 +56,7 @@ TEMPLATE_TEST_CASE("LQ factorization of a general m-by-n matrix, blocked", "[lqf
     std::vector<T> tauw(min(m, n));
 
     // Workspace computation:
-    gelqf_opts_t<> workOpts; workOpts.nb = nb;
+    gelqf_opts_t<idx_t> workOpts; workOpts.nb = nb;
     workinfo_t workinfo;
     gelqf_worksize(A, TT, workinfo, workOpts);
     ungl2_worksize(Q, tauw, workinfo, workOpts);

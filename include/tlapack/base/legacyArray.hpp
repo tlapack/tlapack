@@ -45,16 +45,16 @@ namespace tlapack {
         inline constexpr legacyMatrix( idx_t m, idx_t n, T* ptr, idx_t ldim )
         : m(m), n(n), ptr(ptr), ldim(ldim)
         {
-            tlapack_check_false( m < 0 );
-            tlapack_check_false( n < 0 );
-            tlapack_check_false( ldim < ((layout == Layout::ColMajor) ? m : n) );
+            tlapack_check( m >= 0 );
+            tlapack_check( n >= 0 );
+            tlapack_check( ldim >= ((layout == Layout::ColMajor) ? m : n) );
         }
         
         inline constexpr legacyMatrix( idx_t m, idx_t n, T* ptr )
         : m(m), n(n), ptr(ptr), ldim((layout == Layout::ColMajor) ? m : n)
         {
-            tlapack_check_false( m < 0 );
-            tlapack_check_false( n < 0 );
+            tlapack_check( m >= 0 );
+            tlapack_check( n >= 0 );
         }
         
         /**

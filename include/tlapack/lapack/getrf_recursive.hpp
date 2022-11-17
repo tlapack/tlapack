@@ -109,15 +109,15 @@ namespace tlapack{
         // the case where m<n, we simply slice A into two parts, A0, a square matrix and A1 where A=[A0 , A1]
         else if( m < n )
         {
-            auto A0 = tlapack::slice(A,tlapack::range<idx_t>(0,m),tlapack::range<idx_t>(0,m));
-            auto A1 = tlapack::slice(A,tlapack::range<idx_t>(0,m),tlapack::range<idx_t>(m,n));
+            auto A0 = tlapack::cols(A,tlapack::range<idx_t>(0,m));
+            auto A1 = tlapack::cols(A,tlapack::range<idx_t>(m,n));
             
             int info = getrf_recursive(A0,Piv);
             if( info != 0 )
                 return info;
             
             // swap the rows of A1 according to Piv
-            for(idx_t j=0;j<size(Piv);j++){
+            for(idx_t j=0;j<k;j++){
                 if (Piv[j]!=j){
                     auto vect1=tlapack::row(A1,j);
                     auto vect2=tlapack::row(A1,Piv[j]);
@@ -136,19 +136,19 @@ namespace tlapack{
             idx_t k0 = k/2;
             
             // in this step, we break A into two matrices, A=[A0 , A1]
-            auto A0 = tlapack::slice(A,tlapack::range<idx_t>(0,m),tlapack::range<idx_t>(0,k0));
-            auto A1 = tlapack::slice(A,tlapack::range<idx_t>(0,m),tlapack::range<idx_t>(k0,n));
+            auto A0 = tlapack::cols(A,tlapack::range<idx_t>(0,k0));
+            auto A1 = tlapack::cols(A,tlapack::range<idx_t>(k0,n));
             
             // Piv0 is the first k0 elements of Piv
             auto Piv0 = tlapack::slice(Piv,tlapack::range<idx_t>(0,k0));
 
-            // Apply getrf_recursive on the left of half of the matrix
+            // Apply getrf on the left of half of the matrix
             int info = getrf_recursive(A0,Piv0);
             if( info != 0 )
                 return info;
             
             //swap the rows of A1
-            for(idx_t j=0;j<size(Piv0);j++){
+            for(idx_t j=0;j<k0;j++){
                 if (Piv0[j]!=j){
                     auto vect1=tlapack::row(A1,j);
                     auto vect2=tlapack::row(A1,Piv0[j]);
@@ -177,7 +177,7 @@ namespace tlapack{
                 return info+k0;
             
             //swap the rows of A10 according to the swapped rows of A11 by refering to Piv1
-            for(idx_t j=0;j<size(Piv1);j++){
+            for(idx_t j=0;j<k-k0;j++){
                 if (Piv1[j]!=j){
                     auto vect1=tlapack::row(A10,j);
                     auto vect2=tlapack::row(A10,Piv1[j]);

@@ -269,14 +269,6 @@ namespace internal {
 
 }
 
-/// Alias for @c type_trait<>::type.
-template< class array_t >
-using type_t = typename internal::type_trait< array_t >::type;
-
-/// Alias for @c sizet_trait<>::type.
-template< class array_t >
-using size_type = typename internal::sizet_trait< array_t >::type;
-
 /**
  * Returns true if and only if A has an infinite entry.
  * 
@@ -989,6 +981,31 @@ struct deduce_work< void, work_default > { using type = work_default; };
 /// Alias for @c deduce_work<>::type
 template< class work_type, class work_default >
 using deduce_work_t = typename deduce_work<work_type,work_default>::type;
+
+    /**
+     * @brief Options structure with a Workspace attribute
+     * 
+     * @tparam work_t Give specialized data type to the workspaces.
+     *      Behavior defined by each implementation using this option.
+     */
+    template< class ... work_t >
+    struct workspace_opts_t
+    {
+        Workspace work; ///< Workspace object
+
+        // Constructors:
+
+        inline constexpr
+        workspace_opts_t( Workspace&& w = {} ) : work(w) { }
+
+        inline constexpr
+        workspace_opts_t( const Workspace& w ) : work(w) { }
+
+        template< class matrix_t >
+        inline constexpr
+        workspace_opts_t( const matrix_t& A )
+        : work( legacy_matrix(A).in_bytes() ) { }
+    };
 
 } // namespace tlapack
 

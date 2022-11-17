@@ -123,6 +123,7 @@ jobs:
         cmake -B build -G Ninja
         -D BUILD_TESTING=ON
         -D BUILD_BLASPP_TESTS=ON
+        -D TLAPACK_TEST_EIGEN=ON
         -D blaspp_DIR="${{env.blaspp_DIR}}/build"
         -D blaspp_TEST_DIR="${{env.blaspp_DIR}}/test"
         -D BUILD_LAPACKPP_TESTS=ON

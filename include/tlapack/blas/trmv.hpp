@@ -81,7 +81,7 @@ void trmv(
     tlapack_check_false( diag != Diag::NonUnit &&
                    diag != Diag::Unit );
     tlapack_check_false( nrows(A) != ncols(A) );
-    tlapack_check_false( size(x) != n );
+    tlapack_check_false( (idx_t) size(x) != n );
 
     tlapack_check_false( access_denied( uplo, read_policy(A) ) );
 

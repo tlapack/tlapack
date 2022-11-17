@@ -162,16 +162,25 @@ int unm2r(
     for (idx_t i = i0; i != iN; i += inc) {
         
         auto v = slice( A, pair{i,nA}, i );
-        auto Ci = (side == Side::Left)
-                 ? rows( C, pair{i,m} )
-                 : cols( C, pair{i,n} );
         
         const auto Aii = A(i,i);
         A(i,i) = one;
-        larf(
-            side, v,
-            (trans == Op::ConjTrans) ? conj(tau[i]) : tau[i],
-            Ci, larfOpts );
+        if( side == Side::Left )
+        {
+            auto Ci = rows( C, pair{i,m} );
+            larf(
+                left_side, v,
+                (trans == Op::ConjTrans) ? conj(tau[i]) : tau[i],
+                Ci, larfOpts );
+        }
+        else
+        {
+            auto Ci = cols( C, pair{i,n} );
+            larf(
+                right_side, v,
+                (trans == Op::ConjTrans) ? conj(tau[i]) : tau[i],
+                Ci, larfOpts );
+        }
         A(i,i) = Aii;
     }
 

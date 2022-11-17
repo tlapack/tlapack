@@ -107,32 +107,6 @@ namespace tlapack {
         byte* ptr;  ///< Pointer to array in memory
         idx_t ldim; ///< Leading dimension
     };
-
-    /**
-     * @brief Options structure with a Workspace attribute
-     * 
-     * @tparam work_t Give specialized data type to the workspaces.
-     *      Behavior defined by each implementation using this option.
-     */
-    template< class ... work_t >
-    struct workspace_opts_t
-    {
-        Workspace work; ///< Workspace object
-
-        // Constructors:
-
-        inline constexpr
-        workspace_opts_t( Workspace&& w = {} ) : work(w) { }
-
-        inline constexpr
-        workspace_opts_t( const Workspace& w ) : work(w) { }
-
-        template< class matrix_t >
-        inline constexpr
-        workspace_opts_t( const matrix_t& A )
-        : work( legacy_matrix(A).in_bytes() ) { }
-    };
-
 }
 
 #endif // TLAPACK_WORKSPACE_HH
