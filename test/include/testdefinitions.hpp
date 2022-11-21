@@ -10,11 +10,11 @@
 #ifndef TLAPACK_TESTDEFINITIONS_HH
 #define TLAPACK_TESTDEFINITIONS_HH
 
-#include <tlapack/plugins/legacyArray.hpp>
-
+#define TLAPACK_PREFERRED_MATRIX_LEGACY
 #ifdef TLAPACK_TEST_EIGEN
     #include <tlapack/plugins/eigen.hpp>
 #endif
+#include <tlapack/plugins/legacyArray.hpp>
 
 // 
 // The matrix types that will be tested for routines

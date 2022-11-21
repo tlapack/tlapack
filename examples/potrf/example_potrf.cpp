@@ -11,6 +11,7 @@
 #include <iostream>
 #include <chrono>   // for high_resolution_clock
 
+#define TLAPACK_PREFERRED_MATRIX_LEGACY
 #include <tlapack/plugins/legacyArray.hpp>
 
 // <T>LAPACK

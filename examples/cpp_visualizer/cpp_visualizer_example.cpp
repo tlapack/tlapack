@@ -7,6 +7,7 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
+#define TLAPACK_PREFERRED_MATRIX_LEGACY
 #include <tlapack/plugins/legacyArray.hpp>
 #include <tlapack/plugins/debugutils.hpp>
 #include <tlapack/lapack/laset.hpp>

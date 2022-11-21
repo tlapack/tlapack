@@ -12,50 +12,95 @@
 #include <tlapack/plugins/eigen.hpp>
 #include <tlapack/base/utils.hpp>
 
-TEST_CASE("is_eigen_type and is_eigen_map work", "[plugins]")
+template< class block_t >
+void test_block()
 {
-    // Non-class types
-    CHECK( tlapack::internal::is_eigen_type< int > == false );
-    CHECK( tlapack::internal::is_eigen_type< float > == false );
+    CHECK( tlapack::internal::is_eigen_dense< block_t > == true );
+    CHECK( tlapack::internal::is_eigen_matrix< block_t > == true );
+    CHECK( tlapack::internal::is_eigen_block< block_t > == true );
+    CHECK( tlapack::internal::is_eigen_map< block_t > == false );
+}
 
-    // Class types
-    CHECK( tlapack::internal::is_eigen_type< std::complex<float> > == false );
-    CHECK( tlapack::internal::is_eigen_type< std::string > == false );
+template< class matrix_t >
+void test_matrix()
+{
+    CHECK( tlapack::internal::is_eigen_dense< matrix_t > == true );
+    CHECK( tlapack::internal::is_eigen_matrix< matrix_t > == true );
+    CHECK( tlapack::internal::is_eigen_block< matrix_t > == false );
+    CHECK( tlapack::internal::is_eigen_map< matrix_t > == false );
+}
 
-    // Eigen types
-    CHECK( tlapack::internal::is_eigen_type< Eigen::MatrixXd > == true );
-    CHECK( tlapack::internal::is_eigen_type< Eigen::Matrix<float,2,2> > == true );
-    CHECK( tlapack::internal::is_eigen_type< Eigen::Matrix<float,3,10> > == true );
-    CHECK( tlapack::internal::is_eigen_type< Eigen::Block<Eigen::MatrixXd> > == true );
-    CHECK( tlapack::internal::is_eigen_type< Eigen::Map< Eigen::MatrixXd > > == true );
+template< class map_t >
+void test_map()
+{
+    CHECK( tlapack::internal::is_eigen_dense< map_t > == true );
+    CHECK( tlapack::internal::is_eigen_matrix< map_t > == true );
+    CHECK( tlapack::internal::is_eigen_block< map_t > == false );
+    CHECK( tlapack::internal::is_eigen_map< map_t > == true );
+}
+
+template< class matrix_t >
+void test_blocks()
+{
+    test_block< Eigen::Block<matrix_t> >();
+    test_block< Eigen::Block<matrix_t,3,2> >();
+    test_block< Eigen::Block<matrix_t,3,1> >();
+    test_block< Eigen::Block<matrix_t,1,3> >();
+    test_block< Eigen::Block<matrix_t,1,-1> >();
+    test_block< Eigen::Block<matrix_t,-1,1> >();
+}
+
+template< class vector_t >
+void test_vectorblocks()
+{
+    test_block< Eigen::VectorBlock<vector_t> >();
+    test_block< Eigen::VectorBlock<vector_t,1> >();
+    test_block< Eigen::VectorBlock<vector_t,0> >();
+}
+
+template< class matrix_t >
+void test_maps()
+{
+    test_map< Eigen::Map<matrix_t> >();
+    test_map< Eigen::Map< matrix_t, 0, Eigen::OuterStride<> > >();
+    test_map< Eigen::Map< matrix_t, 0, Eigen::OuterStride<-1> > >();
+    test_map< Eigen::Map< matrix_t, 0, Eigen::OuterStride< 5> > >();
+}
+
+TEST_CASE("is_eigen_dense, is_eigen_block and is_eigen_map work", "[plugins]")
+{
+    CHECK( tlapack::internal::is_eigen_dense< int > == false );
+    CHECK( tlapack::internal::is_eigen_dense< float > == false );
+    CHECK( tlapack::internal::is_eigen_dense< std::complex<float> > == false );
+    CHECK( tlapack::internal::is_eigen_dense< std::string > == false );
     
-    // // Non-class types
-    // CHECK( tlapack::internal::is_eigen_map< int > == false );
-    // CHECK( tlapack::internal::is_eigen_map< float > == false );
+    using M0 = Eigen::MatrixXd;
+    using M1 = Eigen::VectorXd;
+    using M2 = Eigen::Matrix<float,2,5>;
+    using M3 = Eigen::Matrix<float,-1,-1,Eigen::RowMajor>;
 
-    // // Class types
-    // CHECK( tlapack::internal::is_eigen_map< std::complex<float> > == false );
-    // CHECK( tlapack::internal::is_eigen_map< std::string > == false );
+    test_matrix<M0>();
+    test_matrix<M1>();
+    test_matrix<M2>();
+    test_matrix<M3>();
 
-    // // Eigen types
-    // CHECK( tlapack::internal::is_eigen_map< Eigen::MatrixXd > == false );
-    // CHECK( tlapack::internal::is_eigen_map< Eigen::Matrix2<float> > == false );
-    // CHECK( tlapack::internal::is_eigen_map< Eigen::Matrix<float,3,10> > == false );
-    // CHECK( tlapack::internal::is_eigen_map< Eigen::Block<Eigen::MatrixXd> > == false );
-    
-    // CHECK( tlapack::internal::is_eigen_map< Eigen::Map< Eigen::MatrixXd > > == true );
-    // CHECK( tlapack::internal::is_eigen_map< Eigen::MapBase< Eigen::Map< Eigen::MatrixXd > > > == false );
+    test_blocks<M0>();
+    test_vectorblocks<M1>();
+    test_blocks<M2>();
+    test_blocks<M3>();
 
-    // Eigen::Map< Eigen::MatrixXd > map1(NULL,0,0);
-    // Eigen::MapBase< Eigen::Map< Eigen::MatrixXd > > map2( NULL, 0, 0 );
-    
-    // CHECK( tlapack::internal::is_eigen_map_f(&map1) == true );
-    // CHECK( tlapack::internal::is_eigen_map_f(&map2) == false );
+    test_maps<M0>();
+    test_maps<M1>();
+    test_maps<M2>();
+    test_maps<M3>();
 
-    CHECK( tlapack::internal::is_eigen_block< Eigen::Block<Eigen::MatrixXd> > == true );
-    CHECK( tlapack::internal::is_eigen_block< Eigen::Block<Eigen::Matrix<float,-1,-1,1,-1,-1>> > == true );
+    test_block< Eigen::Block< Eigen::Block<M0> > >();
+    test_block< Eigen::Block< Eigen::Map<M0> > >();
+    test_map< Eigen::Map< Eigen::Block<M0> > >();
+    test_map< Eigen::Map< Eigen::Map<M0> > >();
 
-    CHECK( tlapack::internal::is_eigen_block< Eigen::Matrix<float,-1,-1,1,-1,-1> > == false );
+    using B = Eigen::VectorBlock<const Eigen::Block<Eigen::Block<Eigen::MatrixXd,-1,1,true>,-1,1,false>,-1>;
+    test_block<B>();
 }
 
 TEST_CASE("legacy_matrix works", "[plugins]")
@@ -95,6 +140,10 @@ TEST_CASE("legacy_matrix works", "[plugins]")
         CHECK( B2[0] == A(0,3) );
         CHECK( B2[1] == A(1,3) );
     }
+    // {
+    //     using B = Eigen::VectorBlock<Eigen::Block<Eigen::Block<Eigen::MatrixXd,-1,1,true>,-1,1,false>,-1>;
+    //     CHECK( tlapack::layout<B> == tlapack::Layout::Unspecified );
+    // }
 }
 
 TEST_CASE("slice works", "[plugins]")
@@ -135,7 +184,17 @@ TEST_CASE("Layout works", "[plugins]")
 
     {
         using Derived = Eigen::Block<Eigen::Matrix<float, -1, -1, 1, -1, -1>, -1, 1, false>;
-
         CHECK( tlapack::layout< Derived > == tlapack::Layout::RowMajor );
+        
+        using Derived2 = Eigen::Map<Derived>;
+        CHECK( tlapack::layout< Derived2 > == tlapack::Layout::RowMajor );
+        
+        using Derived3 = Eigen::VectorBlock<Derived>;
+        CHECK( tlapack::layout< Derived3 > == tlapack::Layout::Unspecified );
+    }
+    {
+        using Derived = Eigen::Block<Eigen::Matrix<float, -1, -1, 1, -1, -1>, -1, 1, false>;
+        using Derived2 = Eigen::Map<Derived>;
+        CHECK( tlapack::layout< Derived2 > == tlapack::Layout::RowMajor );
     }
 }

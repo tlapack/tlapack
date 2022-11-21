@@ -10,18 +10,6 @@
 #include "tlapack/base/types.hpp"
 
 namespace tlapack {
-    
-    /**
-     * @brief Layout trait. Layout type used in the array class.
-     * 
-     * @tparam array_t Array class.
-     */
-    template< class array_t, class = int >
-    struct LayoutImpl {
-        static constexpr Layout layout = Layout::Unspecified;
-    };
-    template< class array_t >
-    constexpr Layout layout = LayoutImpl<array_t,int>::layout;
 
     // -----------------------------------------------------------------------------
     // Access policies
@@ -177,12 +165,154 @@ namespace tlapack {
     constexpr strictUpper_t strictUpper = { };
     constexpr strictLower_t strictLower = { };
 
-    // Functor:
+    // -----------------------------------------------------------------------------
+    // Data traits
+    
+    namespace internal
+    {
+        template< class array_t, class = int >
+        struct LayoutImpl {
+            static constexpr Layout layout = Layout::Unspecified;
+        };
+
+        template< class T, class = int >
+        struct TransposeTypeImpl;
+
+        /**
+         * @brief Functor for data Creation
+         * 
+         * This is a boilerplate. It must be specialized for each class
+         */
+        template< class matrix_t, class = int > struct CreateImpl
+        {
+            static_assert(false && sizeof(matrix_t), "Must use correct specialization");
+
+            /**
+             * @brief Creates an object (matrix or vector)
+             * 
+             * @param[out] v
+             *      Vector that can be used to reference allocated memory.
+             * @param[in] m Number of rows
+             * @param[in] n Number of Columns
+             * 
+             * @return The new object
+             */
+            template< class T, class idx_t >
+            inline constexpr auto
+            operator()( std::vector<T>& v, idx_t m, idx_t n = 1 ) const {
+                return matrix_t();
+            }
+
+            /**
+             * @brief Creates a matrix
+             * 
+             * @param[in] W
+             *      Workspace that references to allocated memory.
+             * @param[in] m Number of rows
+             * @param[in] n Number of Columns
+             * @param[out] rW
+             *      On exit, receives the updated workspace, i.e., that references
+             *      remaining allocated memory.
+             * 
+             * @return The new object
+             */
+            template< class idx_t, class Workspace >
+            inline constexpr auto
+            operator()( const Workspace& W, idx_t m, idx_t n, Workspace& rW ) const {
+                return matrix_t();
+            }
+
+            /**
+             * @brief Creates a vector
+             * 
+             * @param[in] W
+             *      Workspace that references to allocated memory.
+             * @param[in] m Number of rows
+             * @param[in] n Number of Columns
+             * @param[out] rW
+             *      On exit, receives the updated workspace, i.e., that references
+             *      remaining allocated memory.
+             * 
+             * @return The new object
+             */
+            template< class idx_t, class Workspace >
+            inline constexpr auto
+            operator()( const Workspace& W, idx_t m, Workspace& rW ) const {
+                return matrix_t();
+            }
+
+            /**
+             * @brief Creates an object (matrix or vector)
+             * 
+             * @param[in] W
+             *      Vector that can be used to reference allocated memory.
+             * @param[in] m Number of rows
+             * @param[in] n Number of Columns
+             * 
+             * @return The new object
+             */
+            template< class idx_t, class Workspace >
+            inline constexpr auto
+            operator()( const Workspace& W, idx_t m, idx_t n = 1 ) const {
+                return matrix_t();
+            }
+        };
+        
+        // Matrix and vector type deduction:
+
+        // Matrix type deduction
+        template< typename... matrix_t >
+        struct matrix_type_traits;
+
+        // for one type
+        /// TODO: Verify that matrix_t is actually a matrix type
+        template< typename matrix_t >
+        struct matrix_type_traits< matrix_t, int >
+        {
+            using type = typename std::decay<matrix_t>::type;
+        };
+
+        // for three or more types
+        template< typename matrixA_t, typename matrixB_t, typename... matrix_t >
+        struct matrix_type_traits< matrixA_t, matrixB_t, matrix_t... >
+        {
+            using type = typename matrix_type_traits< typename matrix_type_traits< matrixA_t, matrixB_t, int >::type, matrix_t... >::type;
+        };
+
+        // Vector type deduction
+        template< typename... vector_t >
+        struct vector_type_traits;
+
+        /// define @c vector_type<>::type alias
+        template< typename... vector_t >
+        using vector_type = typename vector_type_traits< vector_t..., int >::type;
+
+        // for one type
+        /// TODO: Verify that vector_t is actually a vector type
+        template< typename vector_t >
+        struct vector_type_traits< vector_t, int >
+        {
+            using type = typename std::decay<vector_t>::type;
+        };
+
+        // for three or more types
+        template< typename vectorA_t, typename vectorB_t, typename... vector_t >
+        struct vector_type_traits< vectorA_t, vectorB_t, vector_t... >
+        {
+            using type = typename vector_type_traits< typename vector_type_traits< vectorA_t, vectorB_t, int >::type, vector_t... >::type;
+        };
+    }
+
+    /**
+     * @brief Layout trait. Layout type used in the array class.
+     * 
+     * @tparam array_t Matrix or vector class.
+     */
+    template< class array_t >
+    constexpr Layout layout = internal::LayoutImpl<array_t,int>::layout;
 
     /**
      * @brief Implements the options for data creation in <T>LAPACK
-     * 
-     * Must be specialized for each datatype
      * 
      * Usage:
      * @code{.cpp}
@@ -211,122 +341,24 @@ namespace tlapack {
      *  m, n, W ); // W receives the updated workspace, i.e., without the space taken by C
      * @endcode
      */
-    template< class matrix_t, class = int > struct CreateImpl
-    {
-        static_assert(false && sizeof(matrix_t), "Must use correct specialization");
+    template< class T > using Create = internal::CreateImpl<T,int>;
 
-        /**
-         * @brief Creates an object (matrix or vector)
-         * 
-         * @param[out] v
-         *      Vector that can be used to reference allocated memory.
-         * @param[in] m Number of rows
-         * @param[in] n Number of Columns
-         * 
-         * @return The new object
-         */
-        template< class T, class idx_t >
-        inline constexpr auto
-        operator()( std::vector<T>& v, idx_t m, idx_t n ) const {
-            return matrix_t();
-        }
-
-        /**
-         * @brief Creates an object (matrix or vector)
-         * 
-         * @param[in] W
-         *      Workspace that references to allocated memory.
-         * @param[in] m Number of rows
-         * @param[in] n Number of Columns
-         * @param[out] rW
-         *      On exit, receives the updated workspace, i.e., that references
-         *      remaining allocated memory.
-         * 
-         * @return The new object
-         */
-        template< class idx_t, class Workspace >
-        inline constexpr auto
-        operator()( const Workspace& W, idx_t m, idx_t n, Workspace& rW ) const {
-            return matrix_t();
-        }
-
-        /**
-         * @brief Creates an object (matrix or vector)
-         * 
-         * @param[in] W
-         *      Vector that can be used to reference allocated memory.
-         * @param[in] m Number of rows
-         * @param[in] n Number of Columns
-         * 
-         * @return The new object
-         */
-        template< class idx_t, class Workspace >
-        inline constexpr auto
-        operator()( const Workspace& W, idx_t m, idx_t n ) const {
-            return matrix_t();
-        }
-    };
-
-    template< class T > using Create = CreateImpl<T,int>;
-
-    //--------------------------------------------------------------------------
-    // Transpose type trait
-
-    template< class T, class = int >
-    struct transpose_type_trait;
-
+    /**
+     * @brief Transpose 
+     * 
+     * @tparam T 
+     */
     template< class T >
-    using transpose_type = typename transpose_type_trait<T,int>::type;
-
-    //--------------------------------------------------------------------------
-    // Common matrix type deduction
-
-    template< typename... matrix_t >
-    struct matrix_type_traits;
+    using transpose_type = typename internal::TransposeTypeImpl<T,int>::type;
 
     /// define @c matrix_type<>::type alias
     template< typename... matrix_t >
-    using matrix_type = typename matrix_type_traits< matrix_t... >::type;
-
-    // for one type
-    /// TODO: Verify that matrix_t is actually a matrix type
-    template< typename matrix_t >
-    struct matrix_type_traits< matrix_t >
-    {
-        using type = typename std::decay<matrix_t>::type;
-    };
-
-    // for three or more types
-    template< typename matrixA_t, typename matrixB_t, typename... matrix_t >
-    struct matrix_type_traits< matrixA_t, matrixB_t, matrix_t... >
-    {
-        using type = matrix_type< matrix_type< matrixA_t, matrixB_t >, matrix_t... >;
-    };
-
-    //--------------------------------------------------------------------------
-    // Common vector type deduction
-
-    template< typename... vector_t >
-    struct vector_type_traits;
+    using matrix_type = typename internal::matrix_type_traits< matrix_t..., int >::type;
 
     /// define @c vector_type<>::type alias
     template< typename... vector_t >
-    using vector_type = typename vector_type_traits< vector_t... >::type;
+    using vector_type = typename internal::vector_type_traits< vector_t..., int >::type;
 
-    // for one type
-    /// TODO: Verify that vector_t is actually a vector type
-    template< typename vector_t >
-    struct vector_type_traits< vector_t >
-    {
-        using type = typename std::decay<vector_t>::type;
-    };
-
-    // for three or more types
-    template< typename vectorA_t, typename vectorB_t, typename... vector_t >
-    struct vector_type_traits< vectorA_t, vectorB_t, vector_t... >
-    {
-        using type = vector_type< vector_type< vectorA_t, vectorB_t >, vector_t... >;
-    };
 }
 
 #endif // TLAPACK_ARRAY_TRAITS

@@ -21,7 +21,7 @@ namespace tlapack {
     // -----------------------------------------------------------------------------
     // Data traits
 
-    /// TODO: Implement transpose_type_trait
+    /// TODO: Implement TransposeTypeImpl
 
     // -----------------------------------------------------------------------------
     // blas functions to access mdspan properties
@@ -175,7 +175,7 @@ namespace tlapack {
     // Create objects
 
     template< class ET, class Exts, class LP, class AP >
-    struct CreateImpl< mdspan<ET,Exts,LP,AP>, int >
+    struct internal::CreateImpl< mdspan<ET,Exts,LP,AP>, int >
     {
         using idx_t = typename mdspan<ET,Exts,LP,AP>::size_type;
         using extents_t = std::experimental::dextents<idx_t,Exts::rank()>;
