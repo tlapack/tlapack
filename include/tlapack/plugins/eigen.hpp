@@ -22,67 +22,52 @@ namespace tlapack{
     namespace internal
     {
         // Auxiliary constexpr routines
+
         template<class Derived>
-        inline constexpr bool is_eigen_type_f(const Eigen::EigenBase<Derived> *) {
-            return true;
-        }
-        inline constexpr bool is_eigen_type_f(const void *) {
-            return false;
-        }
+        std::true_type is_eigen_type_f(const Eigen::EigenBase<Derived> *);
+        std::false_type is_eigen_type_f(const void *);
+
         template<class Derived>
-        inline constexpr bool is_eigen_dense_f(const Eigen::DenseBase<Derived> *) {
-            return true;
-        }
-        inline constexpr bool is_eigen_dense_f(const void *) {
-            return false;
-        }
+        std::true_type is_eigen_dense_f(const Eigen::DenseBase<Derived> *);
+        std::false_type is_eigen_dense_f(const void *);
+
         template<class Derived>
-        inline constexpr bool is_eigen_matrix_f(const Eigen::MatrixBase<Derived> *) {
-            return true;
-        }
-        inline constexpr bool is_eigen_matrix_f(const void *) {
-            return false;
-        }
+        std::true_type is_eigen_matrix_f(const Eigen::MatrixBase<Derived> *);
+        std::false_type is_eigen_matrix_f(const void *);
+
         template<class XprType, int BlockRows, int BlockCols, bool InnerPanel>
-        inline constexpr bool is_eigen_block_f(const Eigen::Block<XprType,BlockRows,BlockCols,InnerPanel> *) {
-            return true;
-        }
-        inline constexpr bool is_eigen_block_f(const void *) {
-            return false;
-        }
+        std::true_type is_eigen_block_f(const Eigen::Block<XprType,BlockRows,BlockCols,InnerPanel> *);
+        std::false_type is_eigen_block_f(const void *);
+
         template<class PlainObjectType, int MapOptions, class StrideType>
-        inline constexpr bool is_eigen_map_f(const Eigen::Map<PlainObjectType,MapOptions,StrideType> *) {
-            return true;
-        }
-        inline constexpr bool is_eigen_map_f(const void *) {
-            return false;
-        }
+        std::true_type is_eigen_map_f(const Eigen::Map<PlainObjectType,MapOptions,StrideType> *);
+        std::false_type is_eigen_map_f(const void *);
 
         /// True if T is derived from Eigen::EigenDense<T>
-        /// @see https://stackoverflow.com/a/51472601/5253097
+        /// @see https://stackoverflow.com/a/25223400/5253097
         template<class T>
-        constexpr bool is_eigen_dense = is_eigen_dense_f(reinterpret_cast<T*>(NULL));
+        constexpr bool is_eigen_dense = decltype(is_eigen_dense_f(std::declval<T*>()))::value;
 
         /// True if T is derived from Eigen::EigenMatrix<T>
-        /// @see https://stackoverflow.com/a/51472601/5253097
+        /// @see https://stackoverflow.com/a/25223400/5253097
         template<class T>
-        constexpr bool is_eigen_matrix = is_eigen_matrix_f(reinterpret_cast<T*>(NULL));
+        constexpr bool is_eigen_matrix = decltype(is_eigen_matrix_f(std::declval<T*>()))::value;
 
         /// True if T is derived from Eigen::EigenBlock
-        /// @see https://stackoverflow.com/a/51472601/5253097
+        /// @see https://stackoverflow.com/a/25223400/5253097
         template<class T>
-        constexpr bool is_eigen_block = is_eigen_block_f(reinterpret_cast<T*>(NULL));
+        constexpr bool is_eigen_block = decltype(is_eigen_block_f(std::declval<T*>()))::value;
 
         /// True if T is derived from Eigen::MapBase
-        /// @see https://stackoverflow.com/a/51472601/5253097
+        /// @see https://stackoverflow.com/a/25223400/5253097
         template<class T>
-        constexpr bool is_eigen_map = is_eigen_map_f(reinterpret_cast<T*>(NULL));
+        constexpr bool is_eigen_map = decltype(is_eigen_map_f(std::declval<T*>()))::value;
     }
 
     /// True if T is derived from Eigen::EigenBase
-    /// @see https://stackoverflow.com/a/51472601/5253097
+    /// @see https://stackoverflow.com/a/25223400/5253097
     template<class T>
-    constexpr bool is_eigen_type = internal::is_eigen_type_f(reinterpret_cast<T*>(NULL));
+    constexpr bool is_eigen_type = decltype(internal::is_eigen_type_f(std::declval<T*>()))::value;
 
     // -----------------------------------------------------------------------------
     // Data traits
@@ -107,28 +92,28 @@ namespace tlapack{
         template<class XprType, int BlockRows, int BlockCols, bool InnerPanel>
         struct LayoutImpl< Eigen::Block<XprType,BlockRows,BlockCols,InnerPanel>, int >
         {
-            static constexpr Layout layout = layout<XprType>;
+            static constexpr Layout layout = tlapack::layout<XprType>;
         };
 
         /// Layout for const Eigen::Block
         template<class XprType, int BlockRows, int BlockCols, bool InnerPanel>
         struct LayoutImpl< const Eigen::Block<XprType,BlockRows,BlockCols,InnerPanel>, int >
         {
-            static constexpr Layout layout = layout<XprType>;
+            static constexpr Layout layout = tlapack::layout<XprType>;
         };
 
         /// Layout for Eigen::Map
         template<class PlainObjectType, int MapOptions, class StrideType>
         struct LayoutImpl< Eigen::Map<PlainObjectType,MapOptions,StrideType>, int >
         {
-            static constexpr Layout layout = layout<PlainObjectType>;
+            static constexpr Layout layout = tlapack::layout<PlainObjectType>;
         };
 
         /// Layout for const Eigen::Map
         template<class PlainObjectType, int MapOptions, class StrideType>
         struct LayoutImpl< const Eigen::Map<PlainObjectType,MapOptions,StrideType>, int >
         {
-            static constexpr Layout layout = layout<PlainObjectType>;
+            static constexpr Layout layout = tlapack::layout<PlainObjectType>;
         };
 
         /// Transpose for Eigen::Matrix

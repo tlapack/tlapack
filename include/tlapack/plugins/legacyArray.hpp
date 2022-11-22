@@ -21,18 +21,18 @@ namespace tlapack {
     namespace internal
     {
         template< typename T, class idx_t, Layout L >
-        inline constexpr bool is_legacy_type_f(const legacyMatrix<T,idx_t,L> *) { return true; }
+        std::true_type is_legacy_type_f(const legacyMatrix<T,idx_t,L> *);
 
         template< typename T, class idx_t, class int_t, Direction D >
-        inline constexpr bool is_legacy_type_f(const legacyVector<T,idx_t,int_t,D> *) { return true; }
+        std::true_type is_legacy_type_f(const legacyVector<T,idx_t,int_t,D> *);
 
-        inline constexpr bool is_legacy_type_f(const void *) { return false; }
+        std::false_type is_legacy_type_f(const void *);
     }
 
     /// True if T is a legacy array
-    /// @see https://stackoverflow.com/a/51472601/5253097
+    /// @see https://stackoverflow.com/a/25223400/5253097
     template<class T>
-    constexpr bool is_legacy_type = internal::is_legacy_type_f(reinterpret_cast<T*>(NULL));
+    constexpr bool is_legacy_type = decltype(internal::is_legacy_type_f(std::declval<T*>()))::value;
 
     // -----------------------------------------------------------------------------
     // Data traits
