@@ -526,7 +526,7 @@ namespace tlapack{
     }
 
     // -----------------------------------------------------------------------------
-    // Deduce matrix and vector type from two provided ones:
+    // Deduce matrix and vector type from two provided ones
 
     namespace internal {
 
