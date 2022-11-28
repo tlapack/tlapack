@@ -14,6 +14,9 @@
 #ifdef TLAPACK_TEST_EIGEN
     #include <tlapack/plugins/eigen.hpp>
 #endif
+#ifdef TLAPACK_TEST_MDSPAN
+    #include <tlapack/plugins/mdspan.hpp>
+#endif
 #include <tlapack/plugins/legacyArray.hpp>
 
 // 
@@ -37,10 +40,20 @@
     #else
         #define TLAPACK_EIGEN_REAL_TYPES_TO_TEST
     #endif
+    
+    #ifdef TLAPACK_TEST_MDSPAN
+        #define TLAPACK_MDSPAN_REAL_TYPES_TO_TEST \
+            , \
+            (std::experimental::mdspan<float,std::experimental::dextents<std::size_t,2>,std::experimental::layout_left>), \
+            (std::experimental::mdspan<float,std::experimental::dextents<std::size_t,2>,std::experimental::layout_right>)
+    #else
+        #define TLAPACK_MDSPAN_REAL_TYPES_TO_TEST
+    #endif
 
     #define TLAPACK_REAL_TYPES_TO_TEST \
         TLAPACK_LEGACY_REAL_TYPES_TO_TEST \
-        TLAPACK_EIGEN_REAL_TYPES_TO_TEST
+        TLAPACK_EIGEN_REAL_TYPES_TO_TEST \
+        TLAPACK_MDSPAN_REAL_TYPES_TO_TEST
 #endif
 
 // 

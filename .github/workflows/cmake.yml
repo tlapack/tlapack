@@ -124,6 +124,7 @@ jobs:
         -D BUILD_TESTING=ON
         -D BUILD_BLASPP_TESTS=ON
         -D TLAPACK_TEST_EIGEN=ON
+        -D TLAPACK_TEST_MDSPAN=ON
         -D blaspp_DIR="${{env.blaspp_DIR}}/build"
         -D blaspp_TEST_DIR="${{env.blaspp_DIR}}/test"
         -D BUILD_LAPACKPP_TESTS=ON
@@ -349,6 +350,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CXX: icpx
+      FC: ifx
       CXXFLAGS: "-Wall -pedantic -Wno-unused-variable -Wno-unused-function -Wno-c99-extensions -fp-model=precise"
     steps:
 
@@ -366,7 +368,7 @@ jobs:
         
     - name: Install Intel oneAPI
       timeout-minutes: 5
-      run: sudo apt install intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic intel-oneapi-mkl
+      run: sudo apt install intel-oneapi-compiler-fortran intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic intel-oneapi-mkl
     
     - name: Checkout <T>LAPACK
       uses: actions/checkout@v2

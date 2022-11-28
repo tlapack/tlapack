@@ -10,7 +10,6 @@
 #undef TLAPACK_ERROR_NDEBUG
 #undef NDEBUG
 
-#define TLAPACK_PREFERRED_MATRIX_LEGACY
 #include <tlapack/plugins/legacyArray.hpp>
 #include <tlapack/lapack/lascl.hpp>
 

@@ -12,6 +12,7 @@
 #include <Eigen/Core>
 
 #include "tlapack/base/arrayTraits.hpp"
+#include "tlapack/base/legacyArray.hpp"
 #include "tlapack/base/workspace.hpp"
 
 namespace tlapack{
@@ -532,10 +533,18 @@ namespace tlapack{
 
         #ifdef TLAPACK_PREFERRED_MATRIX_EIGEN
 
-            #ifndef TLAPACK_LEGACYARRAY_HH
-                #define TLAPACK_USE_PREFERRED_MATRIX_TYPE(T) true
+            #ifndef TLAPACK_LEGACY_HH
+                #ifndef TLAPACK_MDSPAN_HH
+                    #define TLAPACK_USE_PREFERRED_MATRIX_TYPE(T) true
+                #else
+                    #define TLAPACK_USE_PREFERRED_MATRIX_TYPE(T) !is_mdspan_type<T>
+                #endif
             #else
-                #define TLAPACK_USE_PREFERRED_MATRIX_TYPE(T) !is_legacy_type<T>
+                #ifndef TLAPACK_MDSPAN_HH
+                    #define TLAPACK_USE_PREFERRED_MATRIX_TYPE(T) !is_legacy_type<T>
+                #else
+                    #define TLAPACK_USE_PREFERRED_MATRIX_TYPE(T) !is_legacy_type<T> && !is_mdspan_type<T>
+                #endif
             #endif
 
             // for two types

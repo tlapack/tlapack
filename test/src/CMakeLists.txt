@@ -14,6 +14,12 @@ if( TLAPACK_TEST_EIGEN )
   add_compile_definitions( TLAPACK_TEST_EIGEN )
 endif()
 
+if( TLAPACK_TEST_MDSPAN )
+  find_package( mdspan REQUIRED )
+  link_libraries( std::mdspan )
+  add_compile_definitions( TLAPACK_TEST_MDSPAN )
+endif()
+
 # if( TEST_MPFR )
 #   include_directories( ${MPFR_INCLUDES} ${GMP_INCLUDES} )
 #   link_libraries( ${MPFR_LIBRARIES} ${GMP_LIBRARIES} )
