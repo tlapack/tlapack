@@ -132,7 +132,7 @@ TEMPLATE_TEST_CASE("Multishift QR", "[eigenvalues][multishift_qr]", TLAPACK_TYPE
     INFO("matrix = " << matrix_type << " n = " << n << " ilo = " << ilo << " ihi = " << ihi << " ns = " << ns << " nw = " << nw << " seed = " << seed);
     {
 
-        francis_opts_t<> opts;
+        francis_opts_t<idx_t> opts;
         opts.nshift_recommender = [ns](idx_t n, idx_t nh) -> idx_t
         {
             return ns;

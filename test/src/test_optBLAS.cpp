@@ -47,13 +47,13 @@ TEST_CASE("allow_optblas_v does not allow bool, int, long int, char", "[optBLAS]
     CHECK(!allow_optblas_v<char> );
 }
 
-TEMPLATE_TEST_CASE("legacy_matrix() exists", "[utils]", TLAPACK_TYPES_TO_TEST)
-{
-    using matrix_t = TestType;
-    using legacy_t = decltype( legacy_matrix( std::declval<matrix_t>() ) );
+// TEMPLATE_TEST_CASE("legacy_matrix() exists", "[utils]", TLAPACK_TYPES_TO_TEST)
+// {
+//     using matrix_t = TestType;
+//     using legacy_t = decltype( legacy_matrix( std::declval<matrix_t>() ) );
 
-    CHECK ( is_same_v< matrix_t, legacy_t > );
-}
+//     CHECK ( is_same_v< matrix_t, legacy_t > );
+// }
 
 TEMPLATE_TEST_CASE("allow_optblas_v gives the correct result", "[optBLAS]", TLAPACK_TYPES_TO_TEST)
 {

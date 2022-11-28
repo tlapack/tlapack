@@ -9,6 +9,7 @@
 
 #include <iostream>
 
+#define TLAPACK_PREFERRED_MATRIX_EIGEN
 #include <tlapack/plugins/eigen.hpp>
 
 #include <tlapack/blas/trmm.hpp>

@@ -170,9 +170,9 @@ namespace tlapack
         auto Y1 = slice( Y, pair{0,k+1}, pair{0,nb} );
         trmm( Side::Right, Uplo::Lower, Op::NoTrans, Diag::Unit, one, V1, Y1 );
         if( k + nb + 1 < n ){
-            A4 = slice( A, pair{0,k+1}, pair{nb+1,n-k} );
+            auto A5 = slice( A, pair{0,k+1}, pair{nb+1,n-k} );
             auto V2 = slice( A, pair{k+nb+1,n}, pair{0,nb} );
-            gemm( Op::NoTrans, Op::NoTrans,  one, A4, V2, one, Y1);
+            gemm( Op::NoTrans, Op::NoTrans,  one, A5, V2, one, Y1);
         }
         trmm( Side::Right, Uplo::Upper, Op::NoTrans, Diag::NonUnit, one, T, Y1 );
 

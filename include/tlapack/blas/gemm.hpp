@@ -88,9 +88,9 @@ void gemm(
     tlapack_check_false( transB != Op::NoTrans &&
                    transB != Op::Trans &&
                    transB != Op::ConjTrans );
-    tlapack_check_false( nrows(C) != m );
-    tlapack_check_false( ncols(C) != n );
-    tlapack_check_false( ((transB == Op::NoTrans) ? nrows(B) : ncols(B)) != k );
+    tlapack_check_false( (idx_t) nrows(C) != m );
+    tlapack_check_false( (idx_t) ncols(C) != n );
+    tlapack_check_false( (idx_t) ((transB == Op::NoTrans) ? nrows(B) : ncols(B)) != k );
 
     tlapack_check_false( access_denied( dense, read_policy(A) ) );
     tlapack_check_false( access_denied( dense, read_policy(B) ) );

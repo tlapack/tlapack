@@ -57,10 +57,15 @@ void larfb_worksize(
         myWorkinfo.m = (side == Side::Left) ? k : m;
         myWorkinfo.n = sizeof(T) * ((side == Side::Left) ? n : k);
     }
-    else
+    else if( layout<matrixW_t> == Layout::ColMajor )
     {
         myWorkinfo.m = sizeof(T) * ((side == Side::Left) ? k : m);
         myWorkinfo.n = (side == Side::Left) ? n : k;
+    }
+    else
+    {
+        myWorkinfo.m = sizeof(T);
+        myWorkinfo.n = (side == Side::Left) ? k*n : m*k;
     }
 
     workinfo.minMax( myWorkinfo );

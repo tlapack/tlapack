@@ -11,8 +11,9 @@
 #include <iostream>
 #include <vector>
 
-#include <tlapack/plugins/legacyArray.hpp>
+#define TLAPACK_PREFERRED_MATRIX_LEGACY
 #include <tlapack/plugins/stdvector.hpp>
+#include <tlapack/plugins/legacyArray.hpp>
 
 #include <tlapack/blas/trsm.hpp>
 #include <tlapack/lapack/lange.hpp>
