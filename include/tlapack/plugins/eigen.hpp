@@ -367,11 +367,28 @@ namespace tlapack{
             rows.second-rows.first, 1 );
     }
 
-    template<class XprType, int BlockRows, int BlockCols, bool InnerPanel, typename SliceSpec>
+    template<class XprType, int BlockRows, bool InnerPanel, typename SliceSpec>
     inline constexpr auto
-    slice( Eigen::Block<XprType,BlockRows,BlockCols,InnerPanel>& x, SliceSpec&& range ) noexcept
+    slice( Eigen::Block<XprType,BlockRows,1,InnerPanel>& x, SliceSpec&& range ) noexcept
     {
-        return x.segment( range.first, range.second-range.first );
+        assert( range.second <= x.size() );
+
+        return Eigen::Block< XprType, Eigen::Dynamic, 1, InnerPanel >
+        (   x.nestedExpression(),
+            x.startRow() + range.first, x.startCol(),
+            range.second-range.first, 1 );
+    }
+
+    template<class XprType, int BlockCols, bool InnerPanel, typename SliceSpec>
+    inline constexpr auto
+    slice( Eigen::Block<XprType,1,BlockCols,InnerPanel>& x, SliceSpec&& range ) noexcept
+    {
+        assert( range.second <= x.size() );
+
+        return Eigen::Block< XprType, 1, Eigen::Dynamic, InnerPanel >
+        (   x.nestedExpression(),
+            x.startRow(), x.startCol() + range.first,
+            range.second-range.first, 1 );
     }
 
     template<class XprType, int BlockRows, int BlockCols, bool InnerPanel, typename SliceSpec>
@@ -462,11 +479,28 @@ namespace tlapack{
             rows.second-rows.first, 1 );
     }
 
-    template<class XprType, int BlockRows, int BlockCols, bool InnerPanel, typename SliceSpec>
+    template<class XprType, int BlockRows, bool InnerPanel, typename SliceSpec>
     inline constexpr auto
-    slice( const Eigen::Block<XprType,BlockRows,BlockCols,InnerPanel>& x, SliceSpec&& range ) noexcept
+    slice( const Eigen::Block<XprType,BlockRows,1,InnerPanel>& x, SliceSpec&& range ) noexcept
     {
-        return x.segment( range.first, range.second-range.first );
+        assert( range.second <= x.size() );
+
+        return Eigen::Block< const XprType, Eigen::Dynamic, 1, InnerPanel >
+        (   x.nestedExpression(),
+            x.startRow() + range.first, x.startCol(),
+            range.second-range.first, 1 );
+    }
+
+    template<class XprType, int BlockCols, bool InnerPanel, typename SliceSpec>
+    inline constexpr auto
+    slice( const Eigen::Block<XprType,1,BlockCols,InnerPanel>& x, SliceSpec&& range ) noexcept
+    {
+        assert( range.second <= x.size() );
+
+        return Eigen::Block< const XprType, 1, Eigen::Dynamic, InnerPanel >
+        (   x.nestedExpression(),
+            x.startRow(), x.startCol() + range.first,
+            range.second-range.first, 1 );
     }
 
     template<class XprType, int BlockRows, int BlockCols, bool InnerPanel, typename SliceSpec>

@@ -11,6 +11,7 @@
 #define TLAPACK_QR_SWEEP_HH
 
 #include "tlapack/base/utils.hpp"
+#include "tlapack/blas/gemm.hpp"
 #include "tlapack/lapack/larfg.hpp"
 #include "tlapack/lapack/lahqr_shiftcolumn.hpp"
 #include "tlapack/lapack/move_bulge.hpp"
@@ -110,8 +111,10 @@ namespace tlapack
         // Assertions
         assert(n >= 12);
         assert(nrows(A) == n);
-        assert(ncols(Z) == n);
-        assert(nrows(Z) == n);
+        if(want_z) {
+            assert(ncols(Z) == n);
+            assert(nrows(Z) == n);
+        }
 
         // Allocates workspace
         vectorOfBytes localworkdata;

@@ -81,6 +81,9 @@ namespace tlapack
         using idx_t = size_type<matrix_t>;
         using pair = pair<idx_t, idx_t>;
 
+        // Functor
+        Create< vector_type<matrix_t,matrix_t> > new_vector;
+
         // constants
         const real_t rzero(0);
         const TA one(1);
@@ -295,7 +298,7 @@ namespace tlapack
             // If it has split, we can introduce any shift at the top of the new subblock.
             // Now that we know the specific shift, we can also check whether we can introduce that shift
             // somewhere else in the subblock.
-            std::vector<TA> v(3);
+            std::vector<TA> v_; auto v = new_vector(v_,3);
             TA t1;
             auto istart2 = istart;
             if (istart + 3 < istop)
@@ -324,8 +327,8 @@ namespace tlapack
                     auto H = slice(A, pair{i, i + nr}, pair{i, i + nr});
                     auto x = slice(v, pair{0, nr});
                     lahqr_shiftcolumn(H, x, s1, s2);
-                    x = slice(v, pair{1, nr});
-                    larfg(v[0], x, t1);
+                    auto y = slice(v, pair{1, nr});
+                    larfg(v[0], y, t1);
                     if (i > istart)
                     {
                         A(i, i - 1) = A(i, i - 1) * (one - conj(t1));
