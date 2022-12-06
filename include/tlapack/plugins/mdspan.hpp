@@ -139,22 +139,24 @@ namespace tlapack {
                 assert( m >= 0 && n >= 0 );
                 
                 // Variables to be forwarded to the returned matrix
-                array<idx_t,2> strides;
-                if( W.isContiguous() )
+                array<idx_t,2> strides = [&]( Workspace& rW )
                 {
-                    rW = W.extract( m*sizeof(ET), n );
-                    strides = {1,m};
-                }
-                else if( W.getM() >= m*sizeof(ET) && W.getN() >= n )
-                {
-                    rW = W.extract( m*sizeof(ET), n );
-                    strides = {1,W.getLdim()/sizeof(ET)};
-                }
-                else
-                {
-                    rW = W.extract( n*sizeof(ET), m );
-                    strides = {W.getLdim()/sizeof(ET),1};
-                }
+                    if( W.isContiguous() )
+                    {
+                        rW = W.extract( m*sizeof(ET), n );
+                        return array<idx_t,2>{1,m};
+                    }
+                    else if( W.getM() >= m*sizeof(ET) && W.getN() >= n )
+                    {
+                        rW = W.extract( m*sizeof(ET), n );
+                        return array<idx_t,2>{1,W.getLdim()/sizeof(ET)};
+                    }
+                    else
+                    {
+                        rW = W.extract( n*sizeof(ET), m );
+                        return array<idx_t,2>{W.getLdim()/sizeof(ET),1};
+                    }
+                }(rW);
                 mapping map = mapping( extents_t(m,n), std::move(strides) );
 
                 return matrix_t( (ET*) W.data(), std::move(map) );
@@ -171,22 +173,24 @@ namespace tlapack {
                 assert( m >= 0 && n >= 0 );
                 
                 // Variables to be forwarded to the returned matrix
-                array<idx_t,2> strides;
-                if( W.isContiguous() )
+                array<idx_t,2> strides = [&]()
                 {
-                    tlapack_check( W.contains( m*sizeof(ET), n ) );
-                    strides = {1,m};
-                }
-                else if( W.getM() >= m*sizeof(ET) && W.getN() >= n )
-                {
-                    tlapack_check( W.contains( m*sizeof(ET), n ) );
-                    strides = {1,W.getLdim()/sizeof(ET)};
-                }
-                else
-                {
-                    tlapack_check( W.contains( n*sizeof(ET), m ) );
-                    strides = {W.getLdim()/sizeof(ET),1};
-                }
+                    if( W.isContiguous() )
+                    {
+                        tlapack_check( W.contains( m*sizeof(ET), n ) );
+                        return array<idx_t,2>{1,m};
+                    }
+                    else if( W.getM() >= m*sizeof(ET) && W.getN() >= n )
+                    {
+                        tlapack_check( W.contains( m*sizeof(ET), n ) );
+                        return array<idx_t,2>{1,W.getLdim()/sizeof(ET)};
+                    }
+                    else
+                    {
+                        tlapack_check( W.contains( n*sizeof(ET), m ) );
+                        return array<idx_t,2>{W.getLdim()/sizeof(ET),1};
+                    }
+                }();
                 mapping map = mapping( extents_t(m,n), std::move(strides) );
 
                 return matrix_t( (ET*) W.data(), std::move(map) );

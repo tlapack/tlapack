@@ -388,7 +388,7 @@ namespace tlapack{
         return Eigen::Block< XprType, 1, Eigen::Dynamic, InnerPanel >
         (   x.nestedExpression(),
             x.startRow(), x.startCol() + range.first,
-            range.second-range.first, 1 );
+            1, range.second-range.first );
     }
 
     template<class XprType, int BlockRows, int BlockCols, bool InnerPanel, typename SliceSpec>
@@ -500,7 +500,7 @@ namespace tlapack{
         return Eigen::Block< const XprType, 1, Eigen::Dynamic, InnerPanel >
         (   x.nestedExpression(),
             x.startRow(), x.startCol() + range.first,
-            range.second-range.first, 1 );
+            1, range.second-range.first );
     }
 
     template<class XprType, int BlockRows, int BlockCols, bool InnerPanel, typename SliceSpec>
