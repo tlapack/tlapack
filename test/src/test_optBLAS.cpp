@@ -39,12 +39,12 @@ TEST_CASE("has_compatible_layout gives the correct result", "[optBLAS]")
     CHECK( has_compatible_layout< matrixB_t, matrixB_t, matrixB_t > );
 }
 
-TEST_CASE("allow_optblas_v does not allow bool, int, long int, char", "[optBLAS]")
+TEST_CASE("allow_optblas does not allow bool, int, long int, char", "[optBLAS]")
 {
-    CHECK(!allow_optblas_v<bool> );
-    CHECK(!allow_optblas_v<int> );
-    CHECK(!allow_optblas_v<long double> );
-    CHECK(!allow_optblas_v<char> );
+    CHECK(!allow_optblas<bool> );
+    CHECK(!allow_optblas<int> );
+    CHECK(!allow_optblas<long double> );
+    CHECK(!allow_optblas<char> );
 }
 
 // TEMPLATE_TEST_CASE("legacy_matrix() exists", "[utils]", TLAPACK_TYPES_TO_TEST)
@@ -55,28 +55,28 @@ TEST_CASE("allow_optblas_v does not allow bool, int, long int, char", "[optBLAS]
 //     CHECK ( is_same_v< matrix_t, legacy_t > );
 // }
 
-TEMPLATE_TEST_CASE("allow_optblas_v gives the correct result", "[optBLAS]", TLAPACK_TYPES_TO_TEST)
+TEMPLATE_TEST_CASE("allow_optblas gives the correct result", "[optBLAS]", TLAPACK_TYPES_TO_TEST)
 {
     using matrix_t  = TestType;
     using T = type_t<matrix_t>;
 
     // Test matrix_t and pair< matrix_t, T >
-    CHECK( allow_optblas_v<matrix_t> == allow_optblas_v<T> );
-    CHECK( allow_optblas_v< pair< matrix_t, T > > == allow_optblas_v<T> );
+    CHECK( allow_optblas<matrix_t> == allow_optblas<T> );
+    CHECK( allow_optblas< pair< matrix_t, T > > == allow_optblas<T> );
 
     // Test pairs of convertible types
-    CHECK( allow_optblas_v< pair< float, double > > == allow_optblas_v<double> );
-    CHECK( allow_optblas_v< pair< int, float > > == allow_optblas_v<float> );
-    CHECK( allow_optblas_v< pair< double, std::complex<double> > > == allow_optblas_v<std::complex<double>> );
-    CHECK( allow_optblas_v< pair< double, long double > > == allow_optblas_v<long double> );
-    CHECK( allow_optblas_v< pair< std::complex<double>, double > > == false );
+    CHECK( allow_optblas< pair< float, double > > == allow_optblas<double> );
+    CHECK( allow_optblas< pair< int, float > > == allow_optblas<float> );
+    CHECK( allow_optblas< pair< double, std::complex<double> > > == allow_optblas<std::complex<double>> );
+    CHECK( allow_optblas< pair< double, long double > > == allow_optblas<long double> );
+    CHECK( allow_optblas< pair< std::complex<double>, double > > == false );
     
     // Test pair< matrix_t, T > and pairs of convertible types
-    CHECK( allow_optblas_v< pair< matrix_t, T >, pair< T, T > > == allow_optblas_v<T> );
-    CHECK( allow_optblas_v< pair< matrix_t, T >, pair< int, T > > == allow_optblas_v<T> );
-    CHECK( allow_optblas_v< pair< matrix_t, T >, pair< float, T > > == allow_optblas_v<T> );
-    CHECK( allow_optblas_v< pair< matrix_t, T >, pair< long double, T > > == allow_optblas_v<T> );
+    CHECK( allow_optblas< pair< matrix_t, T >, pair< T, T > > == allow_optblas<T> );
+    CHECK( allow_optblas< pair< matrix_t, T >, pair< int, T > > == allow_optblas<T> );
+    CHECK( allow_optblas< pair< matrix_t, T >, pair< float, T > > == allow_optblas<T> );
+    CHECK( allow_optblas< pair< matrix_t, T >, pair< long double, T > > == allow_optblas<T> );
     
     // Test pair< matrix_t, T > and pair< matrix_t, T >
-    CHECK( allow_optblas_v< pair< matrix_t, T >, pair< matrix_t, T > > == allow_optblas_v<T> );
+    CHECK( allow_optblas< pair< matrix_t, T >, pair< matrix_t, T > > == allow_optblas<T> );
 }

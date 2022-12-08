@@ -117,6 +117,13 @@ namespace tlapack{
             static constexpr Layout layout = tlapack::layout<PlainObjectType>;
         };
 
+        /// Implementation of AllowOptBLASImpl for Eigen datatypes
+        template< class matrix_t >
+        struct AllowOptBLASImpl< matrix_t, typename std::enable_if< is_eigen_dense<matrix_t>, int >::type >
+        {
+            static constexpr bool value = allow_optblas<typename matrix_t::Scalar>;
+        };
+
         /// Transpose for Eigen::Matrix
         template< class matrix_t >
         struct TransposeTypeImpl< matrix_t, typename std::enable_if<

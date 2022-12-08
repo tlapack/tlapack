@@ -177,6 +177,16 @@ namespace tlapack {
 
         template< class T, class = int >
         struct TransposeTypeImpl;
+    
+        /**
+         * @brief Trait to determine if a given list of data allows optimization
+         * using a optimized BLAS library.
+         */
+        template<class...>
+        struct AllowOptBLASImpl {
+            static constexpr bool value = false;    ///< True if the list of types
+                                                    ///< allows optimized BLAS library.
+        };
 
         /**
          * @brief Functor for data Creation
@@ -358,6 +368,10 @@ namespace tlapack {
     /// define @c vector_type<>::type alias
     template< typename... vector_t >
     using vector_type = typename internal::vector_type_traits< vector_t..., int >::type;
+
+    /// Alias for @c AllowOptBLASImpl<>::value.
+    template<class... Ts>
+    constexpr bool allow_optblas = internal::AllowOptBLASImpl< Ts..., int >::value;
 
 }
 

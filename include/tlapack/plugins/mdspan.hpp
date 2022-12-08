@@ -47,6 +47,18 @@ namespace tlapack {
             static constexpr Layout layout = Layout::RowMajor;
         };
 
+        /// Implementation of AllowOptBLASImpl for mdspan datatypes
+        template< class ET, class Exts, class LP, class AP >
+        struct AllowOptBLASImpl< std::experimental::mdspan<ET,Exts,LP,AP>,
+            std::enable_if_t<
+            /* Requires: */
+                LP::template mapping<Exts>::is_always_strided()
+            , int >
+        >
+        {
+            static constexpr bool value = allow_optblas<ET>;
+        };
+
         /// Transpose type for legacyMatrix
         template< class ET, class Exts, class AP >
         struct TransposeTypeImpl< std::experimental::mdspan<ET,Exts,std::experimental::layout_left,AP>, int > {
