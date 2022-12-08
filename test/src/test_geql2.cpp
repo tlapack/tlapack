@@ -43,7 +43,7 @@ TEMPLATE_LIST_TEST_CASE("LQ factorization of a general m-by-n matrix", "[lqf]", 
     std::vector<T> A_copy_; auto A_copy = new_matrix( A_copy_, m, n );
 
     vectorOfBytes workVec;
-    workspace_opts_t<> workOpts( alloc_workspace( workVec, max(m,k)*sizeof(T) ) );
+    workspace_opts_t<> workOpts( alloc_workspace( workVec, max(n,k)*sizeof(T) ) );
 
     std::vector<T> tauw(min(m, n));
 
@@ -62,36 +62,40 @@ TEMPLATE_LIST_TEST_CASE("LQ factorization of a general m-by-n matrix", "[lqf]", 
     {
         DYNAMIC_SECTION("m = " << m << " n = " << n << " k = " << k)
         {
-            gelq2(A, tauw, workOpts);
+            geql2(A, tauw, workOpts);
 
             // Q is sliced down to the desired size of output Q (k-by-n).
             // It stores the desired number of Householder reflectors that UNGL2 will use.
-            std::vector<T> Q_; auto Q = new_matrix( Q_, k, n );
-            lacpy(Uplo::General, slice(A, range(0, min(m, k)), range(0, n)), Q);
+            std::vector<T> Q_; auto Q = new_matrix( Q_, m, k );
+            // lacpy(Uplo::General, slice(A,range(0, m)),range(0, min(n, k)), Q);
 
-            ungl2(Q, tauw, workOpts);
-
-            // Wq is the identity matrix to check the orthogonality of Q
-            std::vector<T> Wq_; auto Wq = new_matrix( Wq_, k, k );
-            auto orth_Q = check_orthogonality(Q, Wq);
-            CHECK(orth_Q <= tol);
-
-            // L is sliced from A after GELQ2
-            std::vector<T> L_; auto L = new_matrix( L_, min(k, m), k );
-            laset(Uplo::Upper, zero, zero, L);
-            lacpy(Uplo::Lower, slice(A, range(0, min(m, k)), range(0, k)), L);
-
-            // R stores the product of L and Q
-            std::vector<T> R_; auto R = new_matrix( R_, min(k, m), n );
-
-            // Test A = L * Q
-            gemm(Op::NoTrans, Op::NoTrans, real_t(1.), L, Q, R);
-            for (idx_t j = 0; j < n; ++j)
-                for (idx_t i = 0; i < min(m, k); ++i)
-                    A_copy(i, j) -= R(i, j);
-
-            real_t repres = lange(Norm::Max, slice(A_copy, range(0, min(m, k)), range(0, n)));
-            CHECK(repres <= tol);
+            
         }
     }
 }
+
+
+            // ungl2(Q, tauw, workOpts);
+
+            // // Wq is the identity matrix to check the orthogonality of Q
+            // std::vector<T> Wq_; auto Wq = new_matrix( Wq_, k, k );
+            // auto orth_Q = check_orthogonality(Q, Wq);
+            // CHECK(orth_Q <= tol);
+
+            // // L is sliced from A after GELQ2
+            // std::vector<T> L_; auto L = new_matrix( L_, min(k, m), k );
+            // laset(Uplo::Upper, zero, zero, L);
+            // lacpy(Uplo::Lower, slice(A, range(0, min(m, k)), range(0, k)), L);
+
+            // // R stores the product of L and Q
+            // std::vector<T> R_; auto R = new_matrix( R_, min(k, m), n );
+
+            // // Test A = L * Q
+            // gemm(Op::NoTrans, Op::NoTrans, real_t(1.), L, Q, R);
+            
+            // for (idx_t j = 0; j < n; ++j)
+            //     for (idx_t i = 0; i < min(m, k); ++i)
+            //         A_copy(i, j) -= R(i, j);
+
+            // real_t repres = lange(Norm::Max, slice(A_copy, range(0, min(m, k)), range(0, n)));
+            // CHECK(repres <= tol);

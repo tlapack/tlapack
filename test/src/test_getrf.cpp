@@ -47,7 +47,10 @@ TEMPLATE_LIST_TEST_CASE("LU factorization of a general m-by-n matrix", "[getrf]"
             // A(i, j) = rand_helper<T>();
             A(i, j) = rand_helper<T>();
         }
-
+    //remove this later
+    //
+    
+    
     // We will make a deep copy A
     // We intend to test A=LU, however, since after calling getrf, A will be udpated
     // then to test A=LU, we'll make a deep copy of A prior to calling getrf

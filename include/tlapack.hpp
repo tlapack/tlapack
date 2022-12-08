@@ -110,6 +110,7 @@
 // LQ factorization
 // ----------------
 
+#include "tlapack/lapack/geql2.hpp"
 #include "tlapack/lapack/gelq2.hpp"
 #include "tlapack/lapack/ungl2.hpp"
 #include "tlapack/lapack/gelqf.hpp"
