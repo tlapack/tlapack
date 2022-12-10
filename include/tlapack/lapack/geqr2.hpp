@@ -37,7 +37,7 @@ void geqr2_worksize(
 
     if( n > 1 ) {
         auto C = cols( A, range<idx_t>{1,n} );
-        larf_worksize( left_side, col(A,0), tau[0], C, workinfo, opts );
+        larf_worksize( left_side, forward, col(A,0), tau[0], C, workinfo, opts );
     }
 }
 
@@ -119,7 +119,7 @@ int geqr2(
         auto C = slice( A, pair{i,m}, pair{i+1,n} );
         
         // C := ( I - conj(tau_i) v v^H ) C
-        larf( left_side, v, conj(tau[i]), C, larfOpts );
+        larf( left_side, forward, v, conj(tau[i]), C, larfOpts );
 	}
     if( n-1 < m ) {
         // Define v := A[n-1:m,n-1]

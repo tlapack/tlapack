@@ -433,13 +433,13 @@ namespace tlapack
                 auto work2 = workspace_opts_t<>(Wv_aux);
                 
                 auto TW_slice = slice(TW, pair{0, ns}, pair{0, jw});
-                larf(Side::Left, v, conj(tau), TW_slice, work2);
+                larf(Side::Left, forward, v, conj(tau), TW_slice, work2);
                 
                 auto TW_slice2 = slice(TW, pair{0, jw}, pair{0, ns});
-                larf(Side::Right, v, tau, TW_slice2, work2);
+                larf(Side::Right, forward, v, tau, TW_slice2, work2);
                 
                 auto V_slice = slice(V, pair{0, jw}, pair{0, ns});
-                larf(Side::Right, v, tau, V_slice, work2);
+                larf(Side::Right, forward, v, tau, V_slice, work2);
             }
 
             // Hessenberg reduction
