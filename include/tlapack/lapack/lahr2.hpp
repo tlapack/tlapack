@@ -12,6 +12,7 @@
 #include "tlapack/base/utils.hpp"
 
 #include "tlapack/blas/gemv.hpp"
+#include "tlapack/blas/copy.hpp"
 #include "tlapack/blas/trmm.hpp"
 #include "tlapack/blas/trmv.hpp"
 #include "tlapack/blas/axpy.hpp"

@@ -39,10 +39,10 @@ void gehd2_worksize(
         const auto v = slice( A, pair{ilo+1,ihi}, ilo );
         
         auto C0 = slice( A, pair{0,ihi}, pair{ilo+1,ihi} );
-        larf_worksize( right_side, v, tau[0], C0, workinfo, opts );
+        larf_worksize( right_side, forward, v, tau[0], C0, workinfo, opts );
         
         auto C1 = slice( A, pair{ilo+1,ihi}, pair{ilo+1,n} );
-        larf_worksize( left_side, v, tau[0], C1, workinfo, opts );
+        larf_worksize( left_side, forward, v, tau[0], C1, workinfo, opts );
     }
 }
 
@@ -126,11 +126,11 @@ int gehd2( size_type< matrix_t > ilo, size_type< matrix_t > ihi, matrix_t& A, ve
 
         // Apply Householder reflection from the right to A[0:ihi,i+1:ihi]
         auto C0 = slice( A, pair{0,ihi}, pair{i+1,ihi} );
-        larf( right_side, v, tau[i], C0, larfOpts );
+        larf( right_side, forward, v, tau[i], C0, larfOpts );
 
         // Apply Householder reflection from the left to A[i+1:ihi,i+1:n-1]
         auto C1 = slice( A, pair{i+1,ihi}, pair{i+1,n} );
-        larf( left_side, v, conj(tau[i]), C1, larfOpts );
+        larf( left_side, forward, v, conj(tau[i]), C1, larfOpts );
 	}
 
     return 0;

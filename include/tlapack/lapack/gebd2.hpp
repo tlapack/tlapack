@@ -44,14 +44,14 @@ namespace tlapack
         if( n > 1 )
         {
             auto A11 = cols( A, range<idx_t>{1,n} );
-            larf_worksize( left_side, col(A,0), tauv[0], A11, workinfo, opts );
+            larf_worksize( left_side, forward, col(A,0), tauv[0], A11, workinfo, opts );
             
             if( m > 1 )
             {
                 auto B11 = rows( A11, range<idx_t>{1,m} );
                 auto row0 = slice(A,0,range<idx_t>{1,n});
                 
-                larf_worksize( right_side, row0, tauw[0], B11, workinfo, opts );
+                larf_worksize( right_side, forward, row0, tauw[0], B11, workinfo, opts );
             }
         }
     }
@@ -149,7 +149,7 @@ namespace tlapack
             if (j < n - 1)
             {
                 auto A11 = slice(A, range(j, m), range(j + 1, n));
-                larf(Side::Left, v, conj(tauv[j]), A11, larfOpts);
+                larf(Side::Left, forward, v, conj(tauv[j]), A11, larfOpts);
             }
 
             if (j < n - 1)
@@ -164,7 +164,7 @@ namespace tlapack
                 if (j < m - 1)
                 {
                     auto B11 = slice(A, range(j + 1, m), range(j + 1, n));
-                    larf(Side::Right, w, tauw[j], B11, larfOpts);
+                    larf(Side::Right, forward, w, tauw[j], B11, larfOpts);
                 }
                 for (idx_t i = 0; i < n-j-1; ++i) 
                     w[i] = conj(w[i]);

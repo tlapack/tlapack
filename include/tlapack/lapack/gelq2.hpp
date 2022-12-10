@@ -38,7 +38,7 @@ namespace tlapack
 
         if( m > 1 ) {
             auto C = rows( A, range<idx_t>{1,m} );
-            larf_worksize( right_side, row(A,0), tauw[0], C, workinfo, opts );
+            larf_worksize( right_side, forward, row(A,0), tauw[0], C, workinfo, opts );
         }
     }
     
@@ -122,7 +122,7 @@ namespace tlapack
             {
                 // Apply H(j) to A(j+1:m,j:n) from the right
                 auto Q11 = slice(A, range(j + 1, m), range(j, n));
-                larf(Side::Right, w, tauw[j], Q11, larfOpts);
+                larf(Side::Right, forward, w, tauw[j], Q11, larfOpts);
             }
             for (idx_t i = 0; i < n - j; ++i)
                 w[i] = conj(w[i]); 
