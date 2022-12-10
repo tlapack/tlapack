@@ -212,9 +212,16 @@ namespace tlapack{
     // Data descriptors for Eigen datatypes
 
     // Size
-    template<class T>
+    template< class Derived
+    #if __cplusplus >= 201703L
+        // Avoids conflict with std::size
+        , std::enable_if_t<
+            !std::is_same_v< complex_type<typename Derived::Scalar>, typename Derived::Scalar >
+        ,int> = 0
+    #endif
+    >
     inline constexpr auto
-    size( const Eigen::EigenBase<T>& x ) {
+    size( const Eigen::EigenBase<Derived>& x ) {
         return x.size();
     }
     // Number of rows
