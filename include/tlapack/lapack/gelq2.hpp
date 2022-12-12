@@ -21,7 +21,9 @@ namespace tlapack
     /** Worspace query.
      * @see gelq2
      * 
-     * @param[out] workinfo On return, contains the required workspace sizes.
+     * @param[in,out] workinfo
+     *      On output, the amount workspace required. It is larger than or equal
+     *      to that given on input.
      */
     template< class matrix_t, class vector_t >
     inline constexpr
@@ -36,9 +38,8 @@ namespace tlapack
 
         if( m > 1 ) {
             auto C = rows( A, range<idx_t>{1,m} );
-            larf_worksize( right_side, row(A,0), tauw[0], C, workinfo, opts );
-        } else
-            workinfo = {};
+            larf_worksize( right_side, forward, row(A,0), tauw[0], C, workinfo, opts );
+        }
     }
     
     /** Computes an LQ factorization of a complex m-by-n matrix A using
@@ -121,7 +122,7 @@ namespace tlapack
             {
                 // Apply H(j) to A(j+1:m,j:n) from the right
                 auto Q11 = slice(A, range(j + 1, m), range(j, n));
-                larf(Side::Right, w, tauw[j], Q11, larfOpts);
+                larf(Side::Right, forward, w, tauw[j], Q11, larfOpts);
             }
             for (idx_t i = 0; i < n - j; ++i)
                 w[i] = conj(w[i]); 

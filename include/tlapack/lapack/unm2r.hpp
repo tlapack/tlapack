@@ -19,7 +19,9 @@ namespace tlapack {
 /** Worspace query.
  * @see unm2r
  * 
- * @param[out] workinfo On return, contains the required workspace sizes.
+ * @param[in,out] workinfo
+ *      On output, the amount workspace required. It is larger than or equal
+ *      to that given on input.
  */
 template<
     class matrixA_t, class matrixC_t, class tau_t,
@@ -27,7 +29,7 @@ template<
 inline constexpr
 void unm2r_worksize(
     side_t side, trans_t trans,
-    matrixA_t& A,
+    const matrixA_t& A,
     const tau_t& tau,
     matrixC_t& C, workinfo_t& workinfo,
     const workspace_opts_t<>& opts = {} )
@@ -41,7 +43,7 @@ void unm2r_worksize(
     const idx_t nA = (side == Side::Left) ? m : n;
 
     auto v = slice( A, pair{0,nA}, 0 );
-    larf_worksize( side, v, tau[0], C, workinfo, opts );
+    larf_worksize( side, forward, v, tau[0], C, workinfo, opts );
 }
 
 /** Applies unitary matrix Q to a matrix C.
@@ -104,17 +106,15 @@ template<
     class side_t, class trans_t >
 int unm2r(
     side_t side, trans_t trans,
-    matrixA_t& A,
+    const matrixA_t& A,
     const tau_t& tau,
     matrixC_t& C,
     const workspace_opts_t<>& opts = {} )
 {
     using idx_t = size_type< matrixA_t >;
-    using T     = type_t< matrixA_t >;
     using pair = std::pair<idx_t, idx_t>;
 
     // constants
-    const T one( 1 );
     const idx_t m = nrows(C);
     const idx_t n = ncols(C);
     const idx_t k = size(tau);
@@ -128,7 +128,6 @@ int unm2r(
                      trans != Op::ConjTrans );
     tlapack_check_false( trans == Op::Trans && is_complex<matrixA_t>::value );
     tlapack_check_false( access_denied( lowerTriangle, read_policy(A)  ) );
-    tlapack_check_false( access_denied( band_t(0,0),   write_policy(A) ) );
     tlapack_check_false( access_denied( dense, write_policy(C) ) );
 
     // quick return
@@ -160,17 +159,23 @@ int unm2r(
     for (idx_t i = i0; i != iN; i += inc) {
         
         auto v = slice( A, pair{i,nA}, i );
-        auto Ci = (side == Side::Left)
-                 ? rows( C, pair{i,m} )
-                 : cols( C, pair{i,n} );
         
-        const auto Aii = A(i,i);
-        A(i,i) = one;
-        larf(
-            side, v,
-            (trans == Op::ConjTrans) ? conj(tau[i]) : tau[i],
-            Ci, larfOpts );
-        A(i,i) = Aii;
+        if( side == Side::Left )
+        {
+            auto Ci = rows( C, pair{i,m} );
+            larf(
+                left_side, forward, v,
+                (trans == Op::ConjTrans) ? conj(tau[i]) : tau[i],
+                Ci, larfOpts );
+        }
+        else
+        {
+            auto Ci = cols( C, pair{i,n} );
+            larf(
+                right_side, forward, v,
+                (trans == Op::ConjTrans) ? conj(tau[i]) : tau[i],
+                Ci, larfOpts );
+        }
     }
 
     return 0;

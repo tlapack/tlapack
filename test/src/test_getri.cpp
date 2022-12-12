@@ -10,11 +10,19 @@
 #include <catch2/generators/catch_generators.hpp>
 
 #include "testutils.hpp"
-#include <tlapack.hpp>
+
+// Auxiliary routines
+#include <tlapack/lapack/lacpy.hpp>
+#include <tlapack/lapack/lange.hpp>
+
+// Other routines
+#include <tlapack/blas/gemm.hpp>
+#include <tlapack/lapack/getri.hpp>
+#include <tlapack/lapack/getrf.hpp>
 
 using namespace tlapack;
 
-TEMPLATE_LIST_TEST_CASE("Inversion of a general m-by-n matrix", "[getri]", types_to_test)
+TEMPLATE_TEST_CASE("Inversion of a general m-by-n matrix", "[getri]", TLAPACK_TYPES_TO_TEST)
 {
     srand(1);
     using matrix_t = TestType;

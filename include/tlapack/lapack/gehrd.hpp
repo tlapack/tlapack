@@ -10,7 +10,11 @@
 #define TLAPACK_GEHRD_HH
 
 #include "tlapack/base/utils.hpp"
+
+#include "tlapack/blas/gemm.hpp"
 #include "tlapack/lapack/lahr2.hpp"
+#include "tlapack/lapack/larfb.hpp"
+#include "tlapack/lapack/gehd2.hpp"
 
 namespace tlapack
 {
@@ -31,7 +35,9 @@ namespace tlapack
     /** Worspace query.
      * @see gehrd
      * 
-     * @param[out] workinfo On return, contains the required workspace sizes.
+     * @param[in,out] workinfo
+     *      On output, the amount workspace required. It is larger than or equal
+     *      to that given on input.
      */
     template < class matrix_t, class vector_t >
     void gehrd_worksize(
@@ -49,8 +55,8 @@ namespace tlapack
         const idx_t n = ncols(A);
         const idx_t nb = std::min( opts.nb, ihi-ilo-1 );
 
-        workinfo.m = sizeof(T) * (n+nb);
-        workinfo.n = nb;
+        const workinfo_t myWorkinfo( sizeof(T)*(n+nb), nb );
+        workinfo.minMax( myWorkinfo );
     }
 
     /** Reduces a general square matrix to upper Hessenberg form

@@ -13,9 +13,12 @@
 #include <iostream>
 
 #include <tlapack/plugins/mdspan.hpp>
-#include <tlapack.hpp>
-
 #include "tiledLayout.h"
+
+#include <tlapack/blas/gemm.hpp>
+#include <tlapack/blas/trsm.hpp>
+#include <tlapack/lapack/lange.hpp>
+#include <tlapack/lapack/potrf2.hpp>
 
 //------------------------------------------------------------------------------
 int main( int argc, char** argv )

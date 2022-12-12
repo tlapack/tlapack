@@ -11,12 +11,17 @@
 #include <catch2/generators/catch_generators.hpp>
 
 #include "testutils.hpp"
-#include <tlapack/plugins/debugutils.hpp>
-#include <tlapack.hpp>
+
+// Auxiliary routines
+#include <tlapack/lapack/lacpy.hpp>
+#include <tlapack/lapack/lange.hpp>
+
+// Other routines
+#include <tlapack/lapack/schur_swap.hpp>
 
 using namespace tlapack;
 
-TEMPLATE_LIST_TEST_CASE("schur swap gives correct result", "[eigenvalues]", types_to_test)
+TEMPLATE_TEST_CASE("schur swap gives correct result", "[eigenvalues]", TLAPACK_TYPES_TO_TEST)
 {    
     srand(1);
 
@@ -69,7 +74,7 @@ TEMPLATE_LIST_TEST_CASE("schur swap gives correct result", "[eigenvalues]", type
     lacpy(Uplo::General, A, A_copy);
     laset(Uplo::General, zero, one, Q);
 
-    DYNAMIC_SECTION("j = " << j << " n1 = " << n1 << " n2 =" << n2)
+    INFO("j = " << j << " n1 = " << n1 << " n2 =" << n2);
     {
         schur_swap(true, A, Q, j, n1, n2);
         // Calculate residuals

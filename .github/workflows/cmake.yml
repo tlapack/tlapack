@@ -3,7 +3,6 @@ name: CMake
 on:
   pull_request:
     paths-exclude:
-    - '.github/**'
     - 'docs/**'
     - '**.md'
     - 'LICENSE'
@@ -12,7 +11,7 @@ on:
     - '.gitignore'
   push:
     branches:
-    - main
+    - master
 
 env:
   CFLAGS: "-Wall -pedantic -Wno-unused-variable -Wno-unused-function"
@@ -20,9 +19,11 @@ env:
   FFLAGS: "-fimplicit-none -fcheck=all"
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
-  blaspp_DIR: ${{github.workspace}}/blaspp
-  lapackpp_DIR: ${{github.workspace}}/lapackpp
-  mdspan_DIR: ${{github.workspace}}/mdspan
+  blaspp_DIR: "${{github.workspace}}/blaspp"
+  lapackpp_DIR: "${{github.workspace}}/lapackpp"
+  mdspan_DIR: "${{github.workspace}}/mdspan"
+  Catch2_DIR: "${{github.workspace}}/Catch2"
+  Catch2_CMAKE_DIR: "${{github.workspace}}/Catch2/build/lib/cmake/Catch2"
 
 defaults:
   run:
@@ -59,30 +60,50 @@ jobs:
       if: ${{ matrix.os == 'ubuntu-latest' }}
       run: sudo apt install liblapacke-dev
 
+    - name: Build and install Catch2
+      if: ${{ matrix.os != 'macos-latest' }}
+      run: |
+        git clone https://github.com/catchorg/Catch2.git
+        cd Catch2
+        git checkout v3.0.1
+        cmake -B build -G Ninja -H. -DBUILD_TESTING=OFF -DCMAKE_INSTALL_PREFIX="${{env.Catch2_DIR}}/build"
+        cmake --build build --target install
+
+    - name: Build and install Catch2 on MacOS
+      if: ${{ matrix.os == 'macos-latest' }}
+      env:
+        LDFLAGS: "-lstdc++"
+      run: |
+        git clone https://github.com/catchorg/Catch2.git
+        cd Catch2
+        git checkout v3.0.1
+        cmake -B build -G Ninja -DCMAKE_CXX_COMPILER="gcc-11" -H. -DBUILD_TESTING=OFF -DCMAKE_INSTALL_PREFIX="${{env.Catch2_DIR}}/build"
+        cmake --build build --target install
+
     - name: Checkout BLAS++ and LAPACK++
       if: ${{ matrix.os == 'ubuntu-latest' }}
       run: |
-        git clone https://bitbucket.org/weslleyspereira/blaspp ${{env.blaspp_DIR}}
-        git clone https://bitbucket.org/weslleyspereira/lapackpp ${{env.lapackpp_DIR}}
+        git clone https://bitbucket.org/weslleyspereira/blaspp "${{env.blaspp_DIR}}"
+        git clone https://bitbucket.org/weslleyspereira/lapackpp "${{env.lapackpp_DIR}}"
 
     - name: Configure BLAS++
       if: ${{ matrix.os == 'ubuntu-latest' }}
       working-directory: ${{env.blaspp_DIR}}
       run: |
         git checkout tlapack
-        cmake -B build
+        cmake -B build -G Ninja
 
     - name: Configure LAPACK++
       if: ${{ matrix.os == 'ubuntu-latest' }}
       working-directory: ${{env.lapackpp_DIR}}
       run: |
         git checkout tlapack
-        cmake -B build -D blaspp_DIR=${{env.blaspp_DIR}}/build
+        cmake -B build -G Ninja -D blaspp_DIR="${{env.blaspp_DIR}}/build"
 
     - name: Checkout mdspan on Ubuntu
       if: ${{ matrix.os == 'ubuntu-latest' }}
       run: |
-        git clone https://github.com/kokkos/mdspan.git ${{env.mdspan_DIR}}
+        git clone https://github.com/kokkos/mdspan.git "${{env.mdspan_DIR}}"
 
     - name: Install Eigen on Ubuntu
       if: ${{ matrix.os == 'ubuntu-latest' }}
@@ -93,7 +114,7 @@ jobs:
       working-directory: ${{env.mdspan_DIR}}
       run: |
         git checkout mdspan-0.4.0
-        cmake -B build -G Ninja -DCMAKE_INSTALL_PREFIX=${{env.mdspan_DIR}}
+        cmake -B build -G Ninja -DCMAKE_INSTALL_PREFIX="${{env.mdspan_DIR}}"
         cmake --build build --target install
         
     - name: Specific configurations for CMake on Ubuntu
@@ -102,11 +123,14 @@ jobs:
         cmake -B build -G Ninja
         -D BUILD_TESTING=ON
         -D BUILD_BLASPP_TESTS=ON
-        -D blaspp_DIR=${{env.blaspp_DIR}}/build
-        -D blaspp_TEST_DIR=${{env.blaspp_DIR}}/test
+        -D TLAPACK_TEST_EIGEN=ON
+        -D TLAPACK_TEST_MDSPAN=ON
+        -D blaspp_DIR="${{env.blaspp_DIR}}/build"
+        -D blaspp_TEST_DIR="${{env.blaspp_DIR}}/test"
         -D BUILD_LAPACKPP_TESTS=ON
-        -D lapackpp_DIR=${{env.lapackpp_DIR}}/build
-        -D lapackpp_TEST_DIR=${{env.lapackpp_DIR}}/test
+        -D lapackpp_DIR="${{env.lapackpp_DIR}}/build"
+        -D lapackpp_TEST_DIR="${{env.lapackpp_DIR}}/test"
+        -D Catch2_DIR="${{env.Catch2_CMAKE_DIR}}"
 
     - name: Specific configurations for CMake on MacOS
       if: ${{ matrix.os == 'macos-latest' }}
@@ -116,20 +140,22 @@ jobs:
         cmake -B build -G Ninja
         -DCMAKE_CXX_COMPILER="gcc-11"
         -DCMAKE_Fortran_COMPILER="gfortran-11"
+        -D Catch2_DIR="${{env.Catch2_CMAKE_DIR}}"
 
     - name: Specific configurations for CMake on Windows
       if: ${{ matrix.os == 'windows-latest' }}
       run: >
         cmake -B build -G Ninja
         -D CMAKE_EXE_LINKER_FLAGS="-Wl,--allow-multiple-definition"
+        -D Catch2_DIR="${{env.Catch2_CMAKE_DIR}}"
 
     - name: Configure CMake on all platforms
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
       run: >
-        cmake -B build
+        cmake -B build -G Ninja
         -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
-        -D CMAKE_INSTALL_PREFIX=${{github.workspace}}/tlapack_install
+        -D CMAKE_INSTALL_PREFIX="${{github.workspace}}/tlapack_install"
         -D BUILD_SHARED_LIBS=ON
         -D BUILD_EXAMPLES=ON
         -D BUILD_TESTING=ON
@@ -145,15 +171,6 @@ jobs:
       # Mind that the job won't fail with only this step fails
       continue-on-error: true
       run: cmake --build build --target run-all-examples
-
-    - name: Run additional examples for Eigen and mdspan on Ubuntu
-      if: ${{ matrix.os == 'ubuntu-latest' }}
-      working-directory: build/examples
-      # Mind that the job won't fail with only this step fails
-      continue-on-error: true
-      run: |
-        ./mdspan/example_mdspan
-        ./eigen/example_eigen
 
     - name: Run tests
       working-directory: ${{github.workspace}}/build
@@ -333,6 +350,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CXX: icpx
+      FC: ifx
       CXXFLAGS: "-Wall -pedantic -Wno-unused-variable -Wno-unused-function -Wno-c99-extensions -fp-model=precise"
     steps:
 
@@ -350,7 +368,7 @@ jobs:
         
     - name: Install Intel oneAPI
       timeout-minutes: 5
-      run: sudo apt install intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic intel-oneapi-mkl
+      run: sudo apt install intel-oneapi-compiler-fortran intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic intel-oneapi-mkl
     
     - name: Checkout <T>LAPACK
       uses: actions/checkout@v2

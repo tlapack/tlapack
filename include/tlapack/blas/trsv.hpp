@@ -214,6 +214,45 @@ void trsv(
     }
 }
 
+#ifdef USE_LAPACKPP_WRAPPERS
+
+    template< class matrixA_t, class vectorX_t,
+        class T = type_t<vectorX_t>,
+        enable_if_allow_optblas_t<
+            pair< matrixA_t, T >,
+            pair< vectorX_t, T >
+        > = 0
+    >
+    inline
+    void trsv(
+        Uplo uplo,
+        Op trans,
+        Diag diag,
+        const matrixA_t& A,
+        vectorX_t& x )
+    {
+        using idx_t = size_type< matrixA_t >;
+
+        // Legacy objects
+        auto A_ = legacy_matrix(A);
+        auto x_ = legacy_vector(x);
+
+        // Constants to forward
+        const idx_t& n = A_.n;
+        const idx_t incx = (x_.direction == Direction::Forward) ? idx_t(x_.inc) : idx_t(-x_.inc);
+        
+        return ::blas::trsv(
+            (::blas::Layout) A_.layout,
+            (::blas::Uplo) uplo,
+            (::blas::Op) trans,
+            (::blas::Diag) diag,
+            n,
+            A_.ptr, A_.ldim,
+            x_.ptr, incx );
+    }
+
+#endif
+
 }  // namespace tlapack
 
 #endif        //  #ifndef TLAPACK_BLAS_TRSV_HH

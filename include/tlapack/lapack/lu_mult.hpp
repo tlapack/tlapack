@@ -11,6 +11,7 @@
 #define TLAPACK_LU_MULT_HH
 
 #include "tlapack/base/utils.hpp"
+#include "tlapack/blas/trmm.hpp"
 
 namespace tlapack {
 

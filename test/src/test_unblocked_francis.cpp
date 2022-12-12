@@ -11,11 +11,18 @@
 #include <catch2/generators/catch_generators.hpp>
 
 #include "testutils.hpp"
-#include <tlapack.hpp>
+
+// Auxiliary routines
+#include <tlapack/lapack/lacpy.hpp>
+#include <tlapack/lapack/laset.hpp>
+#include <tlapack/lapack/lange.hpp>
+
+// Other routines
+#include <tlapack/lapack/lahqr.hpp>
 
 using namespace tlapack;
 
-TEMPLATE_LIST_TEST_CASE("lahqr", "[eigenvalues][doubleshift_qr]", types_to_test)
+TEMPLATE_TEST_CASE("Double shift QR", "[eigenvalues][doubleshift_qr]", TLAPACK_TYPES_TO_TEST)
 {
     srand(1);
 
@@ -23,7 +30,7 @@ TEMPLATE_LIST_TEST_CASE("lahqr", "[eigenvalues][doubleshift_qr]", types_to_test)
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
     using real_t = real_type<T>;
-    using complex_t = std::complex<real_t>;
+    using complex_t = complex_type<real_t>;
 
     // Functor
     Create<matrix_t> new_matrix;
@@ -90,8 +97,7 @@ TEMPLATE_LIST_TEST_CASE("lahqr", "[eigenvalues][doubleshift_qr]", types_to_test)
     auto s = std::vector<complex_t>(n);
     laset(Uplo::General, zero, one, Q);
 
-    DYNAMIC_SECTION("Double shift QR with"
-                    << " matrix = " << matrix_type << " n = " << n << " ilo = " << ilo << " ihi = " << ihi)
+    INFO("matrix = " << matrix_type << " n = " << n << " ilo = " << ilo << " ihi = " << ihi);
     {
         int ierr = lahqr(true, true, ilo, ihi, H, s, Q);
 

@@ -75,8 +75,8 @@ void gemv(
                    trans != Op::Trans &&
                    trans != Op::ConjTrans &&
                    trans != Op::Conj );
-    tlapack_check_false( size(x) != n );
-    tlapack_check_false( size(y) != m );
+    tlapack_check_false( (idx_t) size(x) != n );
+    tlapack_check_false( (idx_t) size(y) != m );
 
     tlapack_check_false( access_denied( dense, read_policy(A) ) );
 
@@ -174,6 +174,127 @@ void gemv(
 {
     return gemv( trans, alpha, A, x, internal::StrongZero(), y );
 }
+
+#ifdef USE_LAPACKPP_WRAPPERS
+
+    /**
+     * General matrix-vector multiply.
+     * 
+     * Wrapper to optimized BLAS.
+     * 
+     * @see gemv(
+        Op trans,
+        const alpha_t& alpha, const matrixA_t& A, const vectorX_t& x,
+        const beta_t& beta, vectorY_t& y )
+    * 
+    * @ingroup gemv
+    */
+    template<
+        class matrixA_t,
+        class vectorX_t, class vectorY_t, 
+        class alpha_t, class beta_t,
+        class T = type_t<vectorY_t>,
+        enable_if_allow_optblas_t<
+            pair< alpha_t, T >,
+            pair< matrixA_t, T >,
+            pair< vectorX_t, T >,
+            pair< vectorY_t, T >,
+            pair< beta_t,    T >
+        > = 0
+    >
+    inline
+    void gemv(
+        Op trans,
+        const alpha_t alpha, const matrixA_t& A, const vectorX_t& x,
+        const beta_t beta, vectorY_t& y )
+    {
+        using idx_t = size_type< matrixA_t >;
+
+        // Legacy objects
+        auto A_ = legacy_matrix(A);
+        auto x_ = legacy_vector(x);
+        auto y_ = legacy_vector(y);
+
+        // Constants to forward
+        const idx_t& m = A_.m;
+        const idx_t& n = A_.n;
+        const idx_t incx = (x_.direction == Direction::Forward) ? idx_t(x_.inc) : idx_t(-x_.inc);
+        const idx_t incy = (y_.direction == Direction::Forward) ? idx_t(y_.inc) : idx_t(-y_.inc);
+
+        if( alpha == alpha_t(0) )
+            tlapack_warning( -2, "Infs and NaNs in A or x will not propagate to y on output" );
+        if( beta == beta_t(0) )
+            tlapack_warning( -5, "Infs and NaNs in y on input will not propagate to y on output" );
+
+        return ::blas::gemv(
+            (::blas::Layout) A_.layout,
+            (::blas::Op) trans,
+            m, n,
+            alpha,
+            A_.ptr, A_.ldim,
+            x_.ptr, incx,
+            beta,
+            y_.ptr, incy );
+    }
+
+    /**
+     * General matrix-vector multiply.
+     * 
+     * Wrapper to optimized BLAS.
+     * 
+     * @see gemv(
+        Op trans,
+        const alpha_t& alpha, const matrixA_t& A, const vectorX_t& x,
+        vectorY_t& y )
+    * 
+    * @ingroup gemv
+    */
+    template<
+        class matrixA_t,
+        class vectorX_t, class vectorY_t, 
+        class alpha_t,
+        class T = type_t<vectorY_t>,
+        enable_if_allow_optblas_t<
+            pair< alpha_t, T >,
+            pair< matrixA_t, T >,
+            pair< vectorX_t, T >,
+            pair< vectorY_t, T >
+        > = 0
+    >
+    inline
+    void gemv(
+        Op trans,
+        const alpha_t alpha, const matrixA_t& A, const vectorX_t& x,
+        vectorY_t& y )
+    {
+        using idx_t = size_type< matrixA_t >;
+
+        // Legacy objects
+        auto A_ = legacy_matrix(A);
+        auto x_ = legacy_vector(x);
+        auto y_ = legacy_vector(y);
+
+        // Constants to forward
+        const idx_t& m = A_.m;
+        const idx_t& n = A_.n;
+        const idx_t incx = (x_.direction == Direction::Forward) ? idx_t(x_.inc) : idx_t(-x_.inc);
+        const idx_t incy = (y_.direction == Direction::Forward) ? idx_t(y_.inc) : idx_t(-y_.inc);
+
+        if( alpha == alpha_t(0) )
+            tlapack_warning( -2, "Infs and NaNs in A or x will not propagate to y on output" );
+
+        return ::blas::gemv(
+            (::blas::Layout) A_.layout,
+            (::blas::Op) trans,
+            m, n,
+            alpha,
+            A_.ptr, A_.ldim,
+            x_.ptr, incx,
+            T(0),
+            y_.ptr, incy );
+    }
+
+#endif
 
 }  // namespace tlapack
 

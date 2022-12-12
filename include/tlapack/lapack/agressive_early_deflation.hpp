@@ -11,6 +11,7 @@
 #define TLAPACK_AED_HH
 
 #include "tlapack/base/utils.hpp"
+
 #include "tlapack/lapack/larfg.hpp"
 #include "tlapack/lapack/larf.hpp"
 #include "tlapack/lapack/lahqr.hpp"
@@ -18,13 +19,21 @@
 #include "tlapack/lapack/gehd2.hpp"
 #include "tlapack/lapack/unghr.hpp"
 #include "tlapack/lapack/multishift_qr.hpp"
+#include "tlapack/lapack/schur_move.hpp"
+#include "tlapack/lapack/schur_swap.hpp"
+#include "tlapack/lapack/unmhr.hpp"
 
 namespace tlapack
 {
+    // Forward declaration
+    template < class idx_t > struct francis_opts_t;
+
     /** Worspace query.
      * @see agressive_early_deflation
      * 
-     * @param[out] workinfo On return, contains the required workspace sizes.
+     * @param[in,out] workinfo
+     *      On output, the amount workspace required. It is larger than or equal
+     *      to that given on input.
      */
     template <
         class matrix_t,
@@ -57,10 +66,8 @@ namespace tlapack
         auto TW = slice(A, pair{0,jw}, pair{0,jw});
 
         // quick return
-        if( n < 9 || nw <= 1 || ihi <= 1+ilo ) {
-            workinfo = {};
+        if( n < 9 || nw <= 1 || ihi <= 1+ilo )
             return;
-        }
 
         if( jw >= opts.nmin )
         {
@@ -70,15 +77,12 @@ namespace tlapack
             multishift_qr_worksize(true, true, 0, jw, TW, s_window, V, workinfo, opts);
         }
 
-        workinfo_t workinfo2;
         if( jw != ihi-ilo )
         {
             // Hessenberg reduction
             auto tau = slice(A, pair{0,jw}, 0);
-            gehrd_worksize(0, jw, TW, tau, workinfo2);
+            gehrd_worksize(0, jw, TW, tau, workinfo);
         }
-        
-        workinfo.minMax( workinfo2 );
     }
 
     /** agressive_early_deflation accepts as input an upper Hessenberg matrix
@@ -293,10 +297,10 @@ namespace tlapack
             else
             {
                 // 2x2 eigenvalue block
-                auto foo = abs(TW(ns - 1, ns - 1)) + sqrt(abs(TW(ns - 1, ns - 2))) * sqrt(abs(TW(ns - 2, ns - 1)));
+                auto foo = tlapack::abs(TW(ns - 1, ns - 1)) + sqrt(tlapack::abs(TW(ns - 1, ns - 2))) * sqrt(tlapack::abs(TW(ns - 2, ns - 1)));
                 if (foo == zero)
-                    foo = abs(s_spike);
-                if (max(abs(s_spike * V(0, ns - 1)), abs(s_spike * V(0, ns - 2))) <= max<real_t>(small_num, eps * foo))
+                    foo = tlapack::abs(s_spike);
+                if (max(tlapack::abs(s_spike * V(0, ns - 1)), tlapack::abs(s_spike * V(0, ns - 2))) <= max<real_t>(small_num, eps * foo))
                 {
                     // Eigenvalue pair is deflatable
                     ns = ns - 2;
@@ -370,11 +374,11 @@ namespace tlapack
                 if (n1 == 1)
                     ev1 = abs1(TW(i1, i1));
                 else
-                    ev1 = abs(TW(i1, i1)) + sqrt(abs(TW(i1 + 1, i1))) * sqrt(abs(TW(i1, i1 + 1)));
+                    ev1 = tlapack::abs(TW(i1, i1)) + sqrt(tlapack::abs(TW(i1 + 1, i1))) * sqrt(tlapack::abs(TW(i1, i1 + 1)));
                 if (n2 == 1)
                     ev2 = abs1(TW(i2, i2));
                 else
-                    ev2 = abs(TW(i2, i2)) + sqrt(abs(TW(i2 + 1, i2))) * sqrt(abs(TW(i2, i2 + 1)));
+                    ev2 = tlapack::abs(TW(i2, i2)) + sqrt(tlapack::abs(TW(i2 + 1, i2))) * sqrt(tlapack::abs(TW(i2, i2 + 1)));
 
                 if (ev1 > ev2)
                 {
@@ -424,13 +428,18 @@ namespace tlapack
                     v[i] = conj(V(0, i));
                 }
                 larfg(v, tau);
-                auto work2 = workspace_opts_t<>(slice(WV, pair{0, jw}, 1));
+                
+                auto Wv_aux = slice(WV, pair{0, jw}, 1);
+                auto work2 = workspace_opts_t<>(Wv_aux);
+                
                 auto TW_slice = slice(TW, pair{0, ns}, pair{0, jw});
-                larf(Side::Left, v, conj(tau), TW_slice, work2);
-                TW_slice = slice(TW, pair{0, jw}, pair{0, ns});
-                larf(Side::Right, v, tau, TW_slice, work2);
+                larf(Side::Left, forward, v, conj(tau), TW_slice, work2);
+                
+                auto TW_slice2 = slice(TW, pair{0, jw}, pair{0, ns});
+                larf(Side::Right, forward, v, tau, TW_slice2, work2);
+                
                 auto V_slice = slice(V, pair{0, jw}, pair{0, ns});
-                larf(Side::Right, v, tau, V_slice, work2);
+                larf(Side::Right, forward, v, tau, V_slice, work2);
             }
 
             // Hessenberg reduction

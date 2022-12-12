@@ -18,6 +18,10 @@
 #include "tlapack/base/workspace.hpp"
 #include "tlapack/base/exceptionHandling.hpp"
 
+#ifdef USE_LAPACKPP_WRAPPERS
+    #include "lapack.hh" // from LAPACK++
+#endif
+
 namespace tlapack {
 
 // -----------------------------------------------------------------------------
@@ -48,17 +52,11 @@ using std::enable_if_t;
 #endif
 
 //------------------------------------------------------------------------------
-/// True if T is std::complex<T2> for some type T2.
+/// True if T is complex_type<T>
 template <typename T>
-struct is_complex:
-    std::integral_constant<bool, false>
-{};
-
-/// specialize for std::complex
-template <typename T>
-struct is_complex< std::complex<T> >:
-    std::integral_constant<bool, true>
-{};
+struct is_complex {
+    static constexpr bool value = is_same_v< complex_type<T>, T >;
+};
 
 template <typename T, enable_if_t<!is_complex<T>::value,int> = 0>
 inline constexpr
@@ -270,14 +268,6 @@ namespace internal {
     };
 
 }
-
-/// Alias for @c type_trait<>::type.
-template< class array_t >
-using type_t = typename internal::type_trait< array_t >::type;
-
-/// Alias for @c sizet_trait<>::type.
-template< class array_t >
-using size_type = typename internal::sizet_trait< array_t >::type;
 
 /**
  * Returns true if and only if A has an infinite entry.
@@ -565,13 +555,17 @@ bool hasnan( const vector_t& x ) {
 /// @see https://en.cppreference.com/w/cpp/numeric/complex/abs
 /// but it may not propagate NaNs.
 ///
+template< typename T > auto abs ( const T& x );
+
+inline float abs( float x ) { return std::fabs( x ); }
+inline double abs( double x ) { return std::fabs( x ); }
+inline long double abs( long double x ) { return std::fabs( x ); }
+
 template< typename T >
-inline auto abs( const T& x ) {
-    if( is_complex<T>::value ) {
-        if( isnan(x) )
-            return std::numeric_limits< real_type<T> >::quiet_NaN();
-    }
-    return std::abs( x ); // Contains the 2-norm for the complex case
+inline auto abs( const std::complex<T>& x ) {
+    return ( isnan(x) )
+        ? std::numeric_limits<T>::quiet_NaN()
+        : std::abs( x );
 }
 
 // -----------------------------------------------------------------------------
@@ -865,25 +859,31 @@ struct workinfo_t
     size_t m = 0; ///< Number of rows needed in the Workspace
     size_t n = 0; ///< Number of columns needed in the Workspace
 
+    /// Constructor using sizes
+    inline constexpr workinfo_t( size_t m = 0, size_t n = 0 ) noexcept
+    : m(m), n(n) {}
+
     /// Size needed in the Workspace
-    inline constexpr
-    size_t size() const { return m*n; }
+    inline constexpr size_t size() const noexcept { return m*n; }
 
     /**
      * @brief Set the current object to a state that
-     *  fit its current sizes and the sizes of workinfo
+     *  fit its current sizes and the sizes of workinfo.
+     * 
+     * If sizes don't match, use simple solution: require contiguous space in memory.
      * 
      * @param[in] workinfo Another specification of work sizes
      */
-    void minMax( const workinfo_t& workinfo )
+    void minMax( const workinfo_t& workinfo ) noexcept
     {
-        // Check if the current sizes cover the sizes from workinfo
-        if( m < workinfo.size() || ((m >= workinfo.m) && (n >= workinfo.n)) )
+        // Check if the current sizes do not cover the sizes from workinfo
+        if( m < workinfo.size() && ((m < workinfo.m) || (n < workinfo.n)) )
         {
             // Check if the sizes from workinfo cover the current sizes
-            if( size() <= workinfo.m || ((m < workinfo.m) && (n < workinfo.n)) )
+            if( size() <= workinfo.m || ((m <= workinfo.m) && (n <= workinfo.n)) )
             {
-                *this = workinfo;
+                m = workinfo.m;
+                n = workinfo.n;
             }
             else // Sizes do not match. Simple solution: contiguous space in memory
             {
@@ -891,6 +891,35 @@ struct workinfo_t
                 n = 1;
             }
         }
+    }
+
+    /**
+     * @brief Sum two object by matching sizes.
+     * 
+     * If sizes don't match, use simple solution: require contiguous space in memory.
+     * 
+     * @param workinfo The object to be added to *this.
+     * @return constexpr workinfo_t& The modified workinfo.
+     */
+    constexpr
+    workinfo_t& operator +=( const workinfo_t& workinfo ) noexcept
+    {
+        // If first dimension matches, update second dimension
+        if( m == workinfo.m )
+        {
+            n += workinfo.n;
+        }
+        // Else, if second dimension matches, update first dimension
+        else if( n == workinfo.n )
+        {
+            m += workinfo.m;
+        }
+        else // Sizes do not match. Simple solution: contiguous space in memory
+        {
+            m = size() + workinfo.size();
+            n = 1;
+        }
+        return *this;
     }
 };
 
@@ -921,7 +950,7 @@ alloc_workspace( vectorOfBytes& v, std::size_t lwork )
  *      2. previously allocated memory, if opts_w.size() >= lwork.
  */
 inline Workspace
-alloc_workspace( vectorOfBytes& v, const workinfo_t& workinfo, const Workspace& opts_w )
+alloc_workspace( vectorOfBytes& v, const workinfo_t& workinfo, const Workspace& opts_w = {} )
 {
     if( opts_w.size() <= 0 )
     {
@@ -952,6 +981,31 @@ struct deduce_work< void, work_default > { using type = work_default; };
 /// Alias for @c deduce_work<>::type
 template< class work_type, class work_default >
 using deduce_work_t = typename deduce_work<work_type,work_default>::type;
+
+    /**
+     * @brief Options structure with a Workspace attribute
+     * 
+     * @tparam work_t Give specialized data type to the workspaces.
+     *      Behavior defined by each implementation using this option.
+     */
+    template< class ... work_t >
+    struct workspace_opts_t
+    {
+        Workspace work; ///< Workspace object
+
+        // Constructors:
+
+        inline constexpr
+        workspace_opts_t( Workspace&& w = {} ) : work(w) { }
+
+        inline constexpr
+        workspace_opts_t( const Workspace& w ) : work(w) { }
+
+        template< class matrix_t >
+        inline constexpr
+        workspace_opts_t( const matrix_t& A )
+        : work( legacy_matrix(A).in_bytes() ) { }
+    };
 
 } // namespace tlapack
 

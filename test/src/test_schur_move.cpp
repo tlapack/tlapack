@@ -11,11 +11,17 @@
 #include <catch2/generators/catch_generators.hpp>
 
 #include "testutils.hpp"
-#include <tlapack.hpp>
+
+// Auxiliary routines
+#include <tlapack/lapack/lacpy.hpp>
+#include <tlapack/lapack/lange.hpp>
+
+// Other routines
+#include <tlapack/lapack/schur_move.hpp>
 
 using namespace tlapack;
 
-TEMPLATE_LIST_TEST_CASE("move of eigenvalue block gives correct results", "[eigenvalues]", types_to_test)
+TEMPLATE_TEST_CASE("move of eigenvalue block gives correct results", "[eigenvalues]", TLAPACK_TYPES_TO_TEST)
 {
     srand(1);
 
@@ -90,7 +96,7 @@ TEMPLATE_LIST_TEST_CASE("move of eigenvalue block gives correct results", "[eige
     lacpy(Uplo::General, A, A_copy);
     laset(Uplo::General, zero, one, Q);
 
-    DYNAMIC_SECTION("ifst = " << ifst << " n1 = " << n1 << " ilst = " << ilst << " n2 =" << n2)
+    INFO("ifst = " << ifst << " n1 = " << n1 << " ilst = " << ilst << " n2 =" << n2);
     {
         schur_move(true, A, Q, ifst, ilst);
         // Calculate residuals

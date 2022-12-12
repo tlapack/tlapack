@@ -11,18 +11,26 @@
 #include <catch2/generators/catch_generators.hpp>
 
 #include "testutils.hpp"
-#include <tlapack.hpp>
+
+// Auxiliary routines
+#include <tlapack/lapack/lacpy.hpp>
+#include <tlapack/lapack/laset.hpp>
+#include <tlapack/lapack/lange.hpp>
+
+// Other routines
+#include <tlapack/lapack/gehrd.hpp>
+#include <tlapack/lapack/multishift_qr.hpp>
 
 using namespace tlapack;
 
-TEMPLATE_LIST_TEST_CASE("Multishift QR", "[eigenvalues][multishift_qr]", types_to_test)
+TEMPLATE_TEST_CASE("Multishift QR", "[eigenvalues][multishift_qr]", TLAPACK_TYPES_TO_TEST)
 {
 
     using matrix_t = TestType;
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
     using real_t = real_type<T>;
-    using complex_t = std::complex<real_t>;
+    using complex_t = complex_type<real_t>;
 
     // Functor
     Create<matrix_t> new_matrix;
@@ -121,11 +129,10 @@ TEMPLATE_LIST_TEST_CASE("Multishift QR", "[eigenvalues][multishift_qr]", types_t
     idx_t ns = GENERATE(4, 2);
     idx_t nw = GENERATE(4, 2);
 
-    DYNAMIC_SECTION("Multishift QR with"
-                    << " matrix = " << matrix_type << " n = " << n << " ilo = " << ilo << " ihi = " << ihi << " ns = " << ns << " nw = " << nw << " seed = " << seed)
+    INFO("matrix = " << matrix_type << " n = " << n << " ilo = " << ilo << " ihi = " << ihi << " ns = " << ns << " nw = " << nw << " seed = " << seed);
     {
 
-        francis_opts_t<> opts;
+        francis_opts_t<idx_t> opts;
         opts.nshift_recommender = [ns](idx_t n, idx_t nh) -> idx_t
         {
             return ns;

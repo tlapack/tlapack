@@ -11,11 +11,18 @@
 #include <catch2/generators/catch_generators.hpp>
 
 #include "testutils.hpp"
-#include <tlapack.hpp>
+
+// Auxiliary routines
+#include <tlapack/lapack/lacpy.hpp>
+#include <tlapack/lapack/lange.hpp>
+
+// Other routines
+#include <tlapack/blas/gemm.hpp>
+#include <tlapack/lapack/lu_mult.hpp>
 
 using namespace tlapack;
 
-TEMPLATE_LIST_TEST_CASE("lu multiplication is backward stable", "[lu check][lu][qrt]", types_to_test)
+TEMPLATE_TEST_CASE("lu multiplication is backward stable", "[lu check][lu][qrt]", TLAPACK_TYPES_TO_TEST)
 {
     srand(1);
 
@@ -29,8 +36,8 @@ TEMPLATE_LIST_TEST_CASE("lu multiplication is backward stable", "[lu check][lu][
 
     idx_t n, nx;
 
-    n = GENERATE(1, 2, 6, 9);
-    nx = GENERATE(1, 2, 4, 5);
+    n = GENERATE(1, 2, 6, 9); INFO("n = " << n);
+    nx = GENERATE(1, 2, 4, 5); INFO("nx = " << nx);
 
     if(nx <= n){
 
@@ -54,7 +61,6 @@ TEMPLATE_LIST_TEST_CASE("lu multiplication is backward stable", "[lu check][lu][
 
         real_t norma = lange(max_norm, A);
 
-        DYNAMIC_SECTION("n = " << n)
         {
             lu_mult(A);
 

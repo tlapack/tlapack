@@ -12,8 +12,10 @@
 #define TLAPACK_GELQF_HH
 
 #include "tlapack/base/utils.hpp"
-#include "tlapack/lapack/larfg.hpp"
-#include "tlapack/lapack/larf.hpp"
+
+#include "tlapack/lapack/larft.hpp"
+#include "tlapack/lapack/larfb.hpp"
+#include "tlapack/lapack/gelq2.hpp"
 
 namespace tlapack
 {
@@ -32,7 +34,9 @@ namespace tlapack
     /** Worspace query.
      * @see gelqf
      * 
-     * @param[out] workinfo On return, contains the required workspace sizes.
+     * @param[in,out] workinfo
+     *      On output, the amount workspace required. It is larger than or equal
+     *      to that given on input.
      */
     template< typename matrix_t >
     inline constexpr

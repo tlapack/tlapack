@@ -81,7 +81,7 @@ void trmv(
     tlapack_check_false( diag != Diag::NonUnit &&
                    diag != Diag::Unit );
     tlapack_check_false( nrows(A) != ncols(A) );
-    tlapack_check_false( size(x) != n );
+    tlapack_check_false( (idx_t) size(x) != n );
 
     tlapack_check_false( access_denied( uplo, read_policy(A) ) );
 
@@ -193,6 +193,45 @@ void trmv(
         }
     }
 }
+
+#ifdef USE_LAPACKPP_WRAPPERS
+
+    template< class matrixA_t, class vectorX_t,
+        class T = type_t<vectorX_t>,
+        enable_if_allow_optblas_t<
+            pair< matrixA_t, T >,
+            pair< vectorX_t, T >
+        > = 0
+    >
+    inline
+    void trmv(
+        Uplo uplo,
+        Op trans,
+        Diag diag,
+        const matrixA_t& A,
+        vectorX_t& x )
+    {
+        using idx_t = size_type< matrixA_t >;
+
+        // Legacy objects
+        auto A_ = legacy_matrix(A);
+        auto x_ = legacy_vector(x);
+
+        // Constants to forward
+        const idx_t& n = A_.n;
+        const idx_t incx = (x_.direction == Direction::Forward) ? idx_t(x_.inc) : idx_t(-x_.inc);
+        
+        return ::blas::trmv(
+            (::blas::Layout) A_.layout,
+            (::blas::Uplo) uplo,
+            (::blas::Op) trans,
+            (::blas::Diag) diag,
+            n,
+            A_.ptr, A_.ldim,
+            x_.ptr, incx );
+    }
+
+#endif
 
 }  // namespace tlapack
 

@@ -24,8 +24,8 @@ void getri_uxli_worksize( matrix_t& A, workinfo_t& workinfo, const workspace_opt
 {
     using T = type_t< matrix_t >;
 
-    workinfo.m = sizeof(T);
-    workinfo.n = ncols(A)-1;
+    const workinfo_t myWorkinfo( sizeof(T), ncols(A)-1 );
+    workinfo.minMax( myWorkinfo );
 }
 
 /** getri computes inverse of a general n-by-n matrix A

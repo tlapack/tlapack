@@ -20,7 +20,9 @@ namespace tlapack {
 /** Worspace query.
  * @see geqr2
  * 
- * @param[out] workinfo On return, contains the required workspace sizes.
+ * @param[in,out] workinfo
+ *      On output, the amount workspace required. It is larger than or equal
+ *      to that given on input.
  */
 template< class matrix_t, class vector_t >
 inline constexpr
@@ -35,10 +37,8 @@ void geqr2_worksize(
 
     if( n > 1 ) {
         auto C = cols( A, range<idx_t>{1,n} );
-        larf_worksize( left_side, col(A,0), tau[0], C, workinfo, opts );
+        larf_worksize( left_side, forward, col(A,0), tau[0], C, workinfo, opts );
     }
-    else
-        workinfo = {};
 }
 
 /** Computes a QR factorization of a matrix A.
@@ -119,7 +119,7 @@ int geqr2(
         auto C = slice( A, pair{i,m}, pair{i+1,n} );
         
         // C := ( I - conj(tau_i) v v^H ) C
-        larf( left_side, v, conj(tau[i]), C, larfOpts );
+        larf( left_side, forward, v, conj(tau[i]), C, larfOpts );
 	}
     if( n-1 < m ) {
         // Define v := A[n-1:m,n-1]

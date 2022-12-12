@@ -12,6 +12,7 @@
 #define TLAPACK_LASY2_HH
 
 #include "tlapack/base/utils.hpp"
+#include "tlapack/blas/swap.hpp"
 
 namespace tlapack
 {

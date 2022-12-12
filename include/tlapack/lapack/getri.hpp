@@ -37,8 +37,6 @@ namespace tlapack {
     {
         if( opts.variant == GetriVariant::UXLI )
             getri_uxli_worksize( A, workinfo, opts );
-        else
-            workinfo = {};
     }
 
     /** getri computes inverse of a general n-by-n matrix A

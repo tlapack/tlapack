@@ -286,6 +286,67 @@ void trmm(
     }
 }
 
+#ifdef USE_LAPACKPP_WRAPPERS
+
+    /**
+     * Triangular matrix-matrix multiply.
+     * 
+     * Wrapper to optimized BLAS.
+     * 
+     * @see trmm(
+        Side side,
+        Uplo uplo,
+        Op trans,
+        Diag diag,
+        const alpha_t alpha,
+        const matrixA_t& A,
+        matrixB_t& B )
+    * 
+    * @ingroup trmm
+    */
+    template< class matrixA_t, class matrixB_t, class alpha_t,
+        class T  = type_t<matrixB_t>,
+        enable_if_allow_optblas_t<
+            pair< matrixA_t, T >,
+            pair< matrixB_t, T >,
+            pair< alpha_t,   T >
+        > = 0
+    >
+    inline
+    void trmm(
+        Side side,
+        Uplo uplo,
+        Op trans,
+        Diag diag,
+        const alpha_t alpha,
+        const matrixA_t& A,
+        matrixB_t& B )
+    {
+        // Legacy objects
+        auto A_ = legacy_matrix(A);
+        auto B_ = legacy_matrix(B);
+
+        // Constants to forward
+        const auto& m = B_.m;
+        const auto& n = B_.n;
+
+        if( alpha == alpha_t(0) )
+            tlapack_warning( -5, "Infs and NaNs in A or B will not propagate to B on output" );
+
+        return ::blas::trmm(
+            (::blas::Layout) A_.layout,
+            (::blas::Side) side,
+            (::blas::Uplo) uplo,
+            (::blas::Op) trans,
+            (::blas::Diag) diag,
+            m, n,
+            alpha,
+            A_.ptr, A_.ldim,
+            B_.ptr, B_.ldim );
+    }
+
+#endif
+
 }  // namespace tlapack
 
 #endif        //  #ifndef TLAPACK_BLAS_TRMM_HH

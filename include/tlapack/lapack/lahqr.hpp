@@ -12,6 +12,10 @@
 #define TLAPACK_LAHQR_HH
 
 #include "tlapack/base/utils.hpp"
+
+#include "tlapack/blas/rot.hpp"
+#include "tlapack/blas/rotg.hpp"
+
 #include "tlapack/lapack/larfg.hpp"
 #include "tlapack/lapack/larf.hpp"
 #include "tlapack/lapack/lahqr_eig22.hpp"
@@ -275,8 +279,8 @@ namespace tlapack
                 a01 = A(istop - 2, istop - 1);
                 a11 = A(istop - 1, istop - 1);
             }
-            std::complex<real_t> s1;
-            std::complex<real_t> s2;
+            complex_type<real_t> s1;
+            complex_type<real_t> s2;
             lahqr_eig22(a00, a01, a10, a11, s1, s2);
             if ((imag(s1) == rzero and imag(s2) == rzero) or is_complex<TA>::value)
             {
@@ -561,11 +565,11 @@ namespace tlapack
                 {
                     if (i >= ilo + 2)
                     {
-                        tst = tst + abs(A(i - 1, i - 2));
+                        tst = tst + tlapack::abs(A(i - 1, i - 2));
                     }
                     if (i < ihi)
                     {
-                        tst = tst + abs(A(i + 1, i));
+                        tst = tst + tlapack::abs(A(i + 1, i));
                     }
                 }
                 if (abs1(A(i, i - 1)) <= eps * tst)
@@ -610,9 +614,9 @@ namespace tlapack
             if (k_defl % non_convergence_limit == 0)
             {
                 // Exceptional shift
-                auto s = abs(A(istop - 1, istop - 2));
+                auto s = tlapack::abs(A(istop - 1, istop - 2));
                 if (istop > ilo + 2)
-                    s = s + abs(A(istop - 2, istop - 3));
+                    s = s + tlapack::abs(A(istop - 2, istop - 3));
                 a00 = dat1 * s + A(istop - 1, istop - 1);
                 a01 = dat2 * s;
                 a10 = s;
@@ -626,8 +630,8 @@ namespace tlapack
                 a01 = A(istop - 2, istop - 1);
                 a11 = A(istop - 1, istop - 1);
             }
-            std::complex<real_t> s1;
-            std::complex<real_t> s2;
+            complex_type<real_t> s1;
+            complex_type<real_t> s2;
             lahqr_eig22(a00, a01, a10, a11, s1, s2);
             if (abs1(s1 - A(istop - 1, istop - 1)) > abs1(s2 - A(istop - 1, istop - 1)))
                 s1 = s2;

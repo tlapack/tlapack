@@ -81,7 +81,9 @@ namespace tlapack
     /** Worspace query.
      * @see multishift_qr
      * 
-     * @param[out] workinfo On return, contains the required workspace sizes.
+     * @param[in,out] workinfo
+     *      On output, the amount workspace required. It is larger than or equal
+     *      to that given on input.
      */
     template <
         class matrix_t,
@@ -109,10 +111,7 @@ namespace tlapack
 
         // quick return
         if ( ilo + 1 >= ihi || n < opts.nmin || nh <= 0 )
-        {
-            workinfo = {};
             return;
-        }
 
         {
             const idx_t nw_max = (n - 3) / 3;
@@ -121,15 +120,12 @@ namespace tlapack
             agressive_early_deflation_worksize(want_t, want_z, ilo, ihi, nw_max, A, w, Z, ls, ld, workinfo, opts);
         }
 
-        workinfo_t workinfo2;
         {
             const idx_t nsr = opts.nshift_recommender(n, nh);
             const auto shifts = slice(w, pair{0,nsr});
 
-            multishift_QR_sweep_worksize(want_t, want_z, ilo, ihi, A, shifts, Z, workinfo2, opts);
+            multishift_QR_sweep_worksize(want_t, want_z, ilo, ihi, A, shifts, Z, workinfo, opts);
         }
-        
-        workinfo.minMax( workinfo2 );
     }
 
     /** multishift_qr computes the eigenvalues and optionally the Schur
@@ -461,7 +457,7 @@ namespace tlapack
                 {
                     if (imag(w[i_shifts]) == zero)
                     {
-                        if (abs(real(w[i_shifts]) - A(istop - 1, istop - 1)) < abs(real(w[i_shifts + 1]) - A(istop - 1, istop - 1)))
+                        if (tlapack::abs(real(w[i_shifts]) - A(istop - 1, istop - 1)) < tlapack::abs(real(w[i_shifts + 1]) - A(istop - 1, istop - 1)))
                             w[i_shifts + 1] = w[i_shifts];
                         else
                             w[i_shifts] = w[i_shifts + 1];

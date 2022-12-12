@@ -44,6 +44,48 @@ void swap( vectorX_t& x, vectorY_t& y )
     }
 }
 
+#ifdef USE_LAPACKPP_WRAPPERS
+
+    template< class vectorX_t, class vectorY_t,
+        class T = type_t<vectorY_t>,
+        enable_if_allow_optblas_t<
+            pair< vectorX_t, T >,
+            pair< vectorY_t, T >
+        > = 0
+    >
+    inline
+    void swap( vectorX_t& x, vectorY_t& y )
+    {
+        using idx_t = size_type< vectorX_t >;
+
+        // Legacy objects
+        auto x_ = legacy_vector(x);
+        auto y_ = legacy_vector(y);
+
+        // Constants to forward
+        const idx_t& n = x_.n;
+        const idx_t incx = (x_.direction == Direction::Forward) ? idx_t(x_.inc) : idx_t(-x_.inc);
+        const idx_t incy = (y_.direction == Direction::Forward) ? idx_t(y_.inc) : idx_t(-y_.inc);
+
+        return ::blas::swap( n, x_.ptr, incx, y_.ptr, incy );
+    }
+
+#endif
+
+/** 
+ * Swap vectors, $x <=> y$.
+ * 
+ * @see swap( vectorX_t& x, vectorY_t& y )
+ * 
+ * @note This overload avoids unexpected behavior as follows.
+ *      Without it, the unspecialized call `swap( x, y )` using arrays with
+ *      `std::complex` entries would call `std::swap`, while `swap( x, y )`
+ *      using arrays with float or double entries would call `tlapack::swap`.
+ *      Use @c tlapack::swap(x,y) instead of @c swap(x,y) .
+ */
+template< class vector_t >
+inline void swap( vector_t& x, vector_t& y ) { return swap<vector_t,vector_t>(x,y); }
+
 }  // namespace tlapack
 
 #endif        //  #ifndef TLAPACK_BLAS_SWAP_HH

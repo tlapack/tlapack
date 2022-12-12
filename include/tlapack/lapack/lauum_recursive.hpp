@@ -9,6 +9,7 @@
 #define TLAPACK_LAUUM_RECURSIVETLAPACK_
 
 #include "tlapack/base/utils.hpp"
+#include "tlapack/blas/trmm.hpp"
 
 namespace tlapack
 {

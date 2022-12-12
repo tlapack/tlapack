@@ -11,11 +11,19 @@
 #include <catch2/generators/catch_generators.hpp>
 
 #include "testutils.hpp"
-#include <tlapack.hpp>
+
+// Auxiliary routines
+#include <tlapack/lapack/lacpy.hpp>
+#include <tlapack/lapack/lange.hpp>
+
+// Other routines
+#include <tlapack/blas/trmm.hpp>
+#include <tlapack/lapack/getrf.hpp>
+#include <tlapack/lapack/lu_mult.hpp>
 
 using namespace tlapack;
 
-TEMPLATE_LIST_TEST_CASE("LU factorization of a general m-by-n matrix", "[getrf]", types_to_test)
+TEMPLATE_TEST_CASE("LU factorization of a general m-by-n matrix", "[getrf]", TLAPACK_TYPES_TO_TEST)
 {
     srand(1);
     using matrix_t = TestType;

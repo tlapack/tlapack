@@ -11,7 +11,14 @@
 #include <catch2/generators/catch_generators.hpp>
 
 #include "testutils.hpp"
-#include <tlapack.hpp>
+
+// Auxiliary routines
+#include <tlapack/lapack/lacpy.hpp>
+#include <tlapack/lapack/lange.hpp>
+
+// Other routines
+#include <tlapack/lapack/gehrd.hpp>
+#include <tlapack/lapack/unghr.hpp>
 
 using namespace tlapack;
 
@@ -33,12 +40,9 @@ void check_hess_reduction(size_type<matrix_t> ilo, size_type<matrix_t> ihi, matr
     std::vector<T> res_; auto res = new_matrix( res_, n, n );
     std::vector<T> work_; auto work = new_matrix( work_, n, n );
 
-    vectorOfBytes workVec;
-    workspace_opts_t<> workOpts( alloc_workspace( workVec, n*sizeof(T) ) );
-
     // Generate orthogonal matrix Q
     tlapack::lacpy(Uplo::General, H, Q);
-    tlapack::unghr(ilo, ihi, Q, tau, workOpts);
+    tlapack::unghr(ilo, ihi, Q, tau);
 
     // Remove junk from lower half of H
     for (idx_t j = 0; j < n; ++j)
@@ -54,7 +58,7 @@ void check_hess_reduction(size_type<matrix_t> ilo, size_type<matrix_t> ihi, matr
     CHECK(simil_res_norm <= tol * normA);
 }
 
-TEMPLATE_LIST_TEST_CASE("Hessenberg reduction is backward stable", "[eigenvalues][hessenberg]", types_to_test)
+TEMPLATE_TEST_CASE("Hessenberg reduction is backward stable", "[eigenvalues][hessenberg]", TLAPACK_TYPES_TO_TEST)
 {
     srand(1);
 
@@ -119,20 +123,20 @@ TEMPLATE_LIST_TEST_CASE("Hessenberg reduction is backward stable", "[eigenvalues
             A(i, j) = (T)0.0;
     tlapack::lacpy(Uplo::General, A, H);
 
-    DYNAMIC_SECTION("GEHD2 with"
-                    << " matrix = " << matrix_type << " n = " << n << " ilo = " << ilo << " ihi = " << ihi)
-    {
-        vectorOfBytes workVec;
-        workspace_opts_t<> workOpts( alloc_workspace( workVec, n*sizeof(T) ) );
-
-        tlapack::gehd2(ilo, ihi, H, tau, workOpts);
+    INFO("matrix = " << matrix_type << " n = " << n << " ilo = " << ilo << " ihi = " << ihi);
+    
+    SECTION("GEHD2")
+    {    
+        tlapack::gehd2(ilo, ihi, H, tau);
 
         check_hess_reduction(ilo, ihi, H, tau, A);
     }
-    idx_t nb = GENERATE(2, 3);
-    DYNAMIC_SECTION("GEHRD with"
-                    << " matrix = " << matrix_type << " n = " << n << " ilo = " << ilo << " ihi = " << ihi << " nb = " << nb)
+    
+    SECTION("GEHRD")
     {
+        idx_t nb = GENERATE(2, 3);
+        INFO("nb = " << nb);
+        
         gehrd_opts_t<idx_t> opts;
         opts.nb = nb;
         opts.nx_switch = 2;

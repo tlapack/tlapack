@@ -11,9 +11,14 @@
 #include <iostream>
 #include <chrono>   // for high_resolution_clock
 
-// <T>LAPACK
 #include <tlapack/plugins/legacyArray.hpp>
-#include <tlapack.hpp>
+
+// <T>LAPACK
+#include <tlapack/blas/gemm.hpp>
+#include <tlapack/lapack/lange.hpp>
+#include <tlapack/lapack/lacpy.hpp>
+#include <tlapack/lapack/potrf2.hpp>
+#include <tlapack/lapack/potrs.hpp>
 
 #ifndef USE_MKL
     // LAPACKE
@@ -61,8 +66,8 @@ void run( idx_t n )
     std::vector<T> A_( n*n );
     legacyMatrix<T> A( n, n, &A_[0], n );
 
-    // Flops
-    const real_t nFlops = real_t(n*n*n) / 3;
+    // // Flops
+    // const real_t nFlops = real_t(n*n*n) / 3;
     
     // Fill A with random entries
     for (idx_t j = 0; j < n; ++j) {

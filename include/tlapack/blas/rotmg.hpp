@@ -209,6 +209,28 @@ int rotmg( T& d1, T& d2, T& a, const T& b, T h[4] )
     return flag;
 }
 
+#ifdef USE_LAPACKPP_WRAPPERS
+
+    template< typename T,
+        enable_if_t< is_same_v< T, real_type<T> >, int > = 0,
+        enable_if_allow_optblas_t< T > = 0
+    >
+    inline
+    int rotmg( T& d1, T& d2, T& a, const T b, T h[4] )
+    {
+        T param[5];
+        ::blas::rotmg( &d1, &d2, &a, b, param );
+        
+        h[0] = param[1];
+        h[1] = param[2];
+        h[2] = param[3];
+        h[3] = param[4];
+        
+        return param[0];
+    }
+
+#endif
+
 }  // namespace tlapack
 
 #endif        //  #ifndef TLAPACK_BLAS_ROTMG_HH

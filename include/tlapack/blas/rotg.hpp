@@ -108,10 +108,10 @@ template <typename T,
 void rotg(
     T& a, const T& b,
     real_type<T>& c,
-    complex_type<T>& s )
+    T& s )
 {
     typedef real_type<T> real_t;
-    typedef complex_type<T> scalar_t;
+    typedef T scalar_t;
 
     // Constants
     const real_t r_one = 1;
@@ -203,6 +203,48 @@ void rotg(
         }
     }
 }
+
+#ifdef USE_LAPACKPP_WRAPPERS
+
+    template <typename T,
+        enable_if_t< is_same_v< T, real_type<T> >, int > = 0,
+        enable_if_allow_optblas_t< T > = 0
+    >
+    inline
+    void rotg( T& a, T& b, T& c, T& s )
+    {
+        // Constants
+        const T zero = 0;
+        const T one  = 1;
+        const T anorm = tlapack::abs(a);
+        const T bnorm = tlapack::abs(b);
+
+        T r;
+        ::lapack::lartg( a, b, &c, &s, &r );
+        
+        // Return information on a and b:
+        a = r;
+        if( s == zero || c == zero || (anorm > bnorm) )
+            b = s;
+        else if ( c != zero )
+            b = one / c;
+        else
+            b = one;
+    }
+
+    template <typename T,
+        enable_if_t< !is_same_v< T, real_type<T> >, int > = 0,
+        enable_if_allow_optblas_t< T > = 0
+    >
+    inline
+    void rotg( T& a, const T& b, real_type<T>& c, T& s )
+    {
+        T r;
+        ::lapack::lartg( a, b, &c, &s, &r );
+        a = r;
+    }
+
+#endif
 
 }  // namespace tlapack
 

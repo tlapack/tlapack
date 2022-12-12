@@ -73,7 +73,7 @@ TEST_CASE( "MatrixAccessPolicy can be cast to Uplo", "[utils]" ) {
     CHECK( dense == (MatrixAccessPolicy) uplo );
 }
 
-TEMPLATE_LIST_TEST_CASE("is_matrix works", "[utils]", types_to_test)
+TEMPLATE_TEST_CASE("is_matrix works", "[utils]", TLAPACK_TYPES_TO_TEST)
 {
     using matrix_t  = TestType;
 

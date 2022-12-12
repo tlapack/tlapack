@@ -23,8 +23,8 @@ implicit none
 
     ! Fill arrays
     do i = 1, n
-        x(i) = complex(i, sp) * c 
-        y(i) = 10*complex(i, sp) * ( 0.e0, 1.e0 )
+        x(i) = i * c 
+        y(i) = 10*i * ( 0.e0, 1.e0 )
     end do
 
     if( verbose ) then
@@ -54,7 +54,7 @@ implicit none
     ! Error
     error1 = 0.e0
     do i = 1, n
-        aux = complex(i, sp) * ( -1.e0, 10.e0 )
+        aux = i * ( -1.e0, 10.e0 )
         error1 = error1 + abs( y(i) - aux )
     end do
     print *, "||y_exact - y_caxpy||_1 = ", error1
