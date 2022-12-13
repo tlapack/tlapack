@@ -36,7 +36,7 @@ namespace tlapack
 
         if( n > 1 ) {
             auto C = cols( A, range<idx_t>{1,n} );
-            larf_worksize( left_side, col(A,0), tau[0], C, workinfo, opts );
+            larf_worksize( left_side, backward, col(A,0), tau[0], C, workinfo, opts );
         }
         else
             workinfo = {};
@@ -113,23 +113,27 @@ namespace tlapack
 
         
         for (idx_t i = k-1; i!=-1; --i){
+            
             T alpha=A(m-1 -(k-1)+i , n-1-(k-1) + i);
 
             auto x=slice(A, range(0, m-k+i) , n-k + i );
 
             larfg( alpha,  x, tauw[i] );
 
-            A(m-1 -(k-1)+i , n-1-(k-1) + i)=T(1);
+            if( n-k + i > 0 )
+            {
+                A(m-1 -(k-1)+i , n-1-(k-1) + i)=T(1);
 
-            auto v=slice(A, range(0, m-k+i+1) , n-k + i );
+                auto v=slice(A, range(0, m-k+i+1) , n-k + i );
 
-            auto C=slice(A, range(0, m-k+i+1) , range(0, n-k + i)  );
+                auto C=slice(A, range(0, m-k+i+1) , range(0, n-k + i)  );
 
-            // larf(Side::Left,v, conj(tauw[i]) ,C, larfOpts);
+                // This won't work because larf is prepared to
+                // work with vectors v in the shape [1 x], not [x 1]
+                larf(left_side,backward,v, conj(tauw[i]) ,C, larfOpts);
 
-            // A(m-1 -(k-1)+i , n-1-(k-1) + i)=alpha;
-
-            
+                A(m-1 -(k-1)+i , n-1-(k-1) + i)=alpha;
+            }
         }
 
         return 0;

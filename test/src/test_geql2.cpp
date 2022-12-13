@@ -14,8 +14,8 @@
 #include <tlapack.hpp>
 
 using namespace tlapack;
-
-TEMPLATE_LIST_TEST_CASE("LQ factorization of a general m-by-n matrix", "[lqf]", types_to_test)
+// types_to_test
+TEMPLATE_TEST_CASE("LQ factorization of a general m-by-n matrix", "[lqf]", TLAPACK_TYPES_TO_TEST)
 {
     srand(1);
 
