@@ -122,7 +122,7 @@ namespace tlapack
 
             if( n-k + i > 0 )
             {
-                A(m-1 -(k-1)+i , n-1-(k-1) + i)=T(1);
+                // A(m-1 -(k-1)+i , n-1-(k-1) + i)=T(1);
 
                 auto v=slice(A, range(0, m-k+i+1) , n-k + i );
 
@@ -132,7 +132,7 @@ namespace tlapack
                 // work with vectors v in the shape [1 x], not [x 1]
                 larf(left_side,backward,v, conj(tauw[i]) ,C, larfOpts);
 
-                A(m-1 -(k-1)+i , n-1-(k-1) + i)=alpha;
+                // A(m-1 -(k-1)+i , n-1-(k-1) + i)=alpha;
             }
         }
 
