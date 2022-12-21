@@ -58,7 +58,7 @@ namespace tlapack
         if (n1 == 0 or n2 == 0)
             return 0;
 
-        int sgn = isign;
+        T sgn( isign );
         int info = 0;
 
         if (n1 == 1 and n2 == 1)

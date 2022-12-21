@@ -39,7 +39,7 @@ TEMPLATE_TEST_CASE("LU factorization of a general m-by-n matrix, blocked", "[ul_
 
     // eps is the machine precision, and tol is the tolerance we accept for tests to pass
     const real_t eps = ulp<real_t>();
-    const real_t tol = 10*n*eps;
+    const real_t tol = real_t(10*n)*eps;
     
     // Initialize matrices A, and A_copy to run tests on
     std::vector<T> A_; auto A = new_matrix( A_, n, n );
@@ -95,7 +95,7 @@ TEMPLATE_TEST_CASE("LU factorization of a general m-by-n matrix, blocked", "[ul_
     gemm(Op::NoTrans,Op::NoTrans,T(1),U,L,T(-1),A);
 
     real_t error1 = tlapack::lange( tlapack::Norm::Max, A)/norma;
-    CHECK(error1/tol <= 1);
+    CHECK(error1/tol <= real_t(1));
     
 }
 

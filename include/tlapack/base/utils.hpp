@@ -64,7 +64,7 @@ real_type<T> real( const T& x ) { return x; }
 
 template <typename T, enable_if_t<!is_complex<T>::value,int> = 0>
 inline constexpr
-real_type<T> imag( const T& x ) { return 0; }
+real_type<T> imag( const T& x ) { return real_type<T>(0); }
 
 /** Extend conj to real datatypes.
  * 
@@ -555,14 +555,14 @@ bool hasnan( const vector_t& x ) {
 /// @see https://en.cppreference.com/w/cpp/numeric/complex/abs
 /// but it may not propagate NaNs.
 ///
-template< typename T > auto abs ( const T& x );
+template< typename T > auto abs ( const T& x ) -> T;
 
 inline float abs( float x ) { return std::fabs( x ); }
 inline double abs( double x ) { return std::fabs( x ); }
 inline long double abs( long double x ) { return std::fabs( x ); }
 
 template< typename T >
-inline auto abs( const std::complex<T>& x ) {
+inline auto abs( const std::complex<T>& x ) -> T {
     return ( isnan(x) )
         ? std::numeric_limits<T>::quiet_NaN()
         : std::abs( x );

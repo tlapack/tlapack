@@ -58,7 +58,7 @@ TEMPLATE_TEST_CASE("move of eigenvalue block gives correct results", "[eigenvalu
         n2 = n1;
 
     const real_t eps = uroundoff<real_t>();
-    const real_t tol = 1.0e2 * n * eps;
+    const real_t tol = real_t(1.0e2 * n) * eps;
 
     std::vector<T> A_; auto A = new_matrix( A_, n, n );
     std::vector<T> Q_; auto Q = new_matrix( Q_, n, n );

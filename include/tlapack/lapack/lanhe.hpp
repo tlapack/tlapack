@@ -161,7 +161,7 @@ lanhe( norm_t normType, uplo_t uplo, const matrix_t& A )
     {
         if( uplo == Uplo::Upper ) {
             for (idx_t j = 0; j < n; ++j) {
-                real_t temp = 0;
+                real_t temp( 0 );
 
                 for (idx_t i = 0; i < j; ++i)
                     temp += tlapack::abs( A(i,j) );
@@ -181,7 +181,7 @@ lanhe( norm_t normType, uplo_t uplo, const matrix_t& A )
         }
         else {
             for (idx_t j = 0; j < n; ++j) {
-                real_t temp = 0;
+                real_t temp( 0 );
 
                 for (idx_t i = 0; i < j; ++i)
                     temp += tlapack::abs( A(j,i) );
@@ -214,7 +214,7 @@ lanhe( norm_t normType, uplo_t uplo, const matrix_t& A )
             for (idx_t j = 0; j < n-1; ++j)
                 lassq( slice(A, pair{j+1,n}, j ), scale, ssq );
         }
-        ssq *= 2;
+        ssq *= real_t(2);
 
         // Sum the real part in the diagonal
         lassq( diag(A,0), scale, ssq,

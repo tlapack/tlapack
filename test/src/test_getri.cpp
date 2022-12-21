@@ -39,7 +39,7 @@ TEMPLATE_TEST_CASE("Inversion of a general m-by-n matrix", "[getri]", TLAPACK_TY
 
     // eps is the machine precision, and tol is the tolerance we accept for tests to pass
     const real_t eps = ulp<real_t>();
-    const real_t tol = n*n*eps;
+    const real_t tol = real_t(n*n)*eps;
     
     // Initialize matrices A, and invA to run tests on
     std::vector<T> A_; auto A = new_matrix( A_, n, n );
@@ -56,7 +56,7 @@ TEMPLATE_TEST_CASE("Inversion of a general m-by-n matrix", "[getri]", TLAPACK_TY
     lacpy(Uplo::General, A, invA);
     
     // calculate norm of A for later use in relative error
-    double norma=tlapack::lange( tlapack::Norm::Max, A);
+    real_t norma = tlapack::lange( tlapack::Norm::Max, A);
     
     // LU factorize Pivoted A
     std::vector<idx_t> Piv( n , idx_t(0) );
@@ -81,7 +81,7 @@ TEMPLATE_TEST_CASE("Inversion of a general m-by-n matrix", "[getri]", TLAPACK_TY
     INFO( "|| inv(A)*A - I || / ( ||A|| * ||inv(A)|| )" );
     INFO( "n = " << n );
     INFO( "variant = " << (char) variant );
-    CHECK(error/tol <= 1); // tests if error<=tol
+    CHECK(error/tol <= real_t(1)); // tests if error<=tol
     
     // E <----- A*inv(A) - I
     gemm(Op::NoTrans,Op::NoTrans,real_t(1),invA,A,E);
@@ -95,7 +95,7 @@ TEMPLATE_TEST_CASE("Inversion of a general m-by-n matrix", "[getri]", TLAPACK_TY
     INFO( "|| A*inv(A) - I || / ( ||A|| * ||inv(A)|| )" );
     INFO( "n = " << n );
     INFO( "variant = " << (char) variant );
-    CHECK(error/tol <= 1); // tests if error<=tol
+    CHECK(error/tol <= real_t(1)); // tests if error<=tol
     
 }
 

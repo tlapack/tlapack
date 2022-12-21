@@ -43,7 +43,7 @@ TEMPLATE_TEST_CASE("LU factorization of a general m-by-n matrix", "[getrf]", TLA
 
     // eps is the machine precision, and tol is the tolerance we accept for tests to pass
     const real_t eps = ulp<real_t>();
-    const real_t tol = max(m, n) * eps;
+    const real_t tol = real_t(max(m, n)) * eps;
 
     // Initialize matrices A, and A_copy to run tests on
     std::vector<T> A_; auto A = new_matrix( A_, m, n );

@@ -40,14 +40,14 @@ iamax_ec( const vector_t& x )
     using real_t = real_type< T >;
 
     // constants
-    const real_t oneFourth = 0.25;
+    const real_t oneFourth( 0.25f );
     const idx_t n = size(x);
 
     // quick return
     if( n <= 0 ) return 0;
 
     bool scaledsmax = false; // indicates whether |Re(x_i)| + |Im(x_i)| = Inf
-    real_t smax = -1;
+    real_t smax( -1.0f );
     idx_t index = -1;
     idx_t i = 0;
     for (; i < n; ++i) {
@@ -127,14 +127,14 @@ iamax_nc( const vector_t& x )
     using real_t = real_type< T >;
 
     // constants
-    const real_t oneFourth = 0.25;
+    const real_t oneFourth( 0.25f );
     const idx_t n = size(x);
 
     // quick return
     if( n <= 0 ) return 0;
 
     bool scaledsmax = false; // indicates whether |Re(x_i)| + |Im(x_i)| = Inf
-    real_t smax = -1;
+    real_t smax( -1.0f );
     idx_t index = -1;
     idx_t i = 0;
     for (; i < n; ++i) {

@@ -66,7 +66,7 @@ namespace tlapack
 
         const T eps = ulp<T>();
         const T safmin = safe_min<T>();
-        const T safmn2 = pow(two, (int)(log(safmin / eps) / log(two)) / two);
+        const T safmn2 = pow(two, T((int)(log(safmin / eps) / log(two)) / 2));
         const T safmx2 = one / safmn2;
 
         if (c == zero)
@@ -86,7 +86,7 @@ namespace tlapack
             b = -c;
             c = zero;
         }
-        else if ((a - d) == zero and copysign(one, b) != copysign(one, c))
+        else if ((a - d) == zero and sgn(b) != sgn(c))
         {
             cs = one;
             sn = zero;
@@ -96,7 +96,7 @@ namespace tlapack
             auto temp = a - d;
             auto p = half * temp;
             auto bcmax = max(abs(b), abs(c));
-            auto bcmin = min(abs(b), abs(c)) * copysign(one, b) * copysign(one, c);
+            auto bcmin = min(abs(b), abs(c)) * T(sgn(b)*sgn(c));
             auto scale = max(abs(p), bcmax);
             auto z = (p / scale) * p + (bcmax / scale) * bcmin;
             // if z is positive, we should have real eigenvalues
@@ -106,7 +106,7 @@ namespace tlapack
                 // Real eigenvalues.
 
                 // Compute a and d.
-                z = p + copysign(one, p) * sqrt(scale) * sqrt(z);
+                z = p + T(sgn(p)) * sqrt(scale) * sqrt(z);
                 a = d + z;
                 d = d - (bcmax / z) * bcmin;
                 // Compute b and the rotation matrix
@@ -142,7 +142,7 @@ namespace tlapack
                 p = half * temp;
                 auto tau = lapy2(sigma, temp);
                 cs = sqrt(half * (one + abs(sigma) / tau));
-                sn = -(p / (tau * cs)) * copysign(one, sigma);
+                sn = -(p / (tau * cs)) * T(sgn(sigma));
                 //
                 // Compute [aa bb] = [a b][cs -sn]
                 //         [cc dd] = [c d][sn  cs]
@@ -168,12 +168,12 @@ namespace tlapack
                 {
                     if (b != zero)
                     {
-                        if (copysign(one, b) == copysign(one, c))
+                        if (sgn(b) == sgn(c))
                         {
                             // Real eigenvalues: reduce to upper triangular form
                             auto sab = sqrt(abs(b));
                             auto sac = sqrt(abs(c));
-                            p = copysign(sab * sac, c);
+                            p = ( c > T(0) ) ? sab*sac : -sab*sac;
                             tau = one / sqrt(abs(b + c));
                             a = temp + p;
                             d = temp - p;

@@ -53,7 +53,7 @@ void rot(
     tlapack_check_false( size(y) != n );
 
     // quick return
-    if ( n == 0 || (c == 1 && s == s_type(0)) )
+    if ( n == 0 || (c == c_type(1) && s == s_type(0)) )
         return;
 
     for (idx_t i = 0; i < n; ++i) {

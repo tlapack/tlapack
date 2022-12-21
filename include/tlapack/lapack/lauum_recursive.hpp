@@ -70,7 +70,7 @@ namespace tlapack
 
             real_t rC00 = real(C(0, 0));
             real_t iC00 = imag(C(0, 0));
-            C(0, 0) = make_scalar<T>( rC00*rC00 + iC00*iC00, 0 );
+            C(0, 0) = rC00*rC00 + iC00*iC00;
 
         }
         else

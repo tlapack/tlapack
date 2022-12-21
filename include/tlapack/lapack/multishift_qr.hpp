@@ -207,8 +207,8 @@ namespace tlapack
         const TA zero(0);
         const idx_t non_convergence_limit_window = 5;
         const idx_t non_convergence_limit_shift = 6;
-        const real_t dat1 = 3.0 / 4.0;
-        const real_t dat2 = -0.4375;
+        const real_t dat1( 0.75f );
+        const real_t dat2( -0.4375f );
 
         const idx_t n = ncols(A);
         const idx_t nh = ihi - ilo;
