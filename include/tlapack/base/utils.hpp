@@ -601,74 +601,14 @@ constexpr bool has_compatible_layout< pair<C1,T1>, pair<C2,T2> > =
 
 namespace internal {
 
-    /**
-     * @brief Trait to determine if a given list of data allows optimization
-     * using a optimized BLAS library.
-     */
-    template<class...>
-    struct allow_optblas {
-        static constexpr bool value = false;    ///< True if the list of types
-                                                ///< allows optimized BLAS library.
-    };
-
-    /**
-     * @brief Auxiliary for matrices and vectors.
-     */
-    template<class, class = int>
-    struct allow_optblas_aux {
-        static constexpr bool value = false;
-    };
-
-    template<class C>
-    struct allow_optblas<C> {
-        static constexpr bool value             ///< True if the type
-            = allow_optblas_aux<C,int>::value;  ///< allows optimized BLAS library.
-    };
-}
-
-/// Alias for @c allow_optblas<>::value.
-template<class... Ts>
-constexpr bool allow_optblas_v = internal::allow_optblas< Ts... >::value;
-
-namespace internal {
-
-    template< class matrix_t >
-    struct allow_optblas_aux< matrix_t,
-        enable_if_t<
-            is_matrix< matrix_t > &&
-            !is_same_v<
-                decltype( legacy_matrix( std::declval<matrix_t>() ) )
-            , void >
-        , int >
-    > {
-        static constexpr bool value =
-            allow_optblas_v< type_t<matrix_t> > &&
-            (
-                ( layout<matrix_t> == Layout::ColMajor ) ||
-                ( layout<matrix_t> == Layout::RowMajor )
-            );
-    };
-
-    template< class vector_t >
-    struct allow_optblas_aux< vector_t,
-        enable_if_t<
-            is_vector< vector_t > &&
-            !is_same_v<
-                decltype( legacy_vector( std::declval<vector_t>() ) )
-            , void >
-        , int >
-    > {
-        static constexpr bool value = allow_optblas_v< type_t<vector_t> >;
-    };
-
     template< class C, class T >
-    struct allow_optblas< pair<C,T> > {
+    struct AllowOptBLASImpl< pair<C,T>, int > {
         static constexpr bool value = 
-            allow_optblas_v<T>
+            allow_optblas<T>
             && (
                 (is_matrix<C> || is_vector<C>)
                 ? (
-                    allow_optblas_v<C> &&
+                    allow_optblas<C> &&
                     is_same_v< type_t<C>, typename std::decay<T>::type >
                 )
                 : std::is_convertible< C, T >::value
@@ -676,27 +616,27 @@ namespace internal {
     };
 
     template< class C1, class T1, class C2, class T2, class... Ps >
-    struct allow_optblas< pair<C1,T1>, pair<C2,T2>, Ps... > {
+    struct AllowOptBLASImpl< pair<C1,T1>, pair<C2,T2>, Ps... > {
         static constexpr bool value = 
-            allow_optblas_v< pair<C1,T1> > &&
-            allow_optblas_v< pair<C2,T2>, Ps... > &&
+            AllowOptBLASImpl< pair<C1,T1>, int >::value &&
+            AllowOptBLASImpl< pair<C2,T2>, Ps... >::value &&
             has_compatible_layout< C1, C2, Ps... >;
     };
 }
 
 template<class T1, class... Ts>
 using enable_if_allow_optblas_t = enable_if_t<(
-    allow_optblas_v< T1, Ts... >
+    allow_optblas< T1, Ts... >
 ), int >;
 
 template<class T1, class... Ts>
 using disable_if_allow_optblas_t = enable_if_t<(
-    ! allow_optblas_v< T1, Ts... >
+    ! allow_optblas< T1, Ts... >
 ), int >;
 
 #define TLAPACK_OPT_TYPE( T ) \
     namespace internal { \
-        template<> struct allow_optblas< T > { \
+        template<> struct AllowOptBLASImpl< T, int > { \
             static constexpr bool value = true; \
         }; \
         template<> struct type_trait< T > { \

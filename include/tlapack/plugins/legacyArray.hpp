@@ -51,6 +51,18 @@ namespace tlapack {
             static constexpr Layout layout = Layout::BandStorage;
         };
 
+        /// Implementation of AllowOptBLASImpl for legacy datatypes
+        template< typename T, class idx_t, Layout L >
+        struct AllowOptBLASImpl< legacyMatrix<T,idx_t,L>, int >
+        {
+            static constexpr bool value = allow_optblas<T>;
+        };
+        template< typename T, class idx_t, class int_t, Direction D >
+        struct AllowOptBLASImpl< legacyVector<T,idx_t,int_t,D>, int >
+        {
+            static constexpr bool value = allow_optblas<T>;
+        };
+
         /// Transpose type for legacyMatrix
         template< class T, class idx_t >
         struct TransposeTypeImpl< legacyMatrix<T,idx_t,Layout::ColMajor>, int > {

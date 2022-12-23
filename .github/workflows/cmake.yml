@@ -22,6 +22,7 @@ env:
   blaspp_DIR: "${{github.workspace}}/blaspp"
   lapackpp_DIR: "${{github.workspace}}/lapackpp"
   mdspan_DIR: "${{github.workspace}}/mdspan"
+  eigen_DIR: "${{github.workspace}}/eigen"
   Catch2_DIR: "${{github.workspace}}/Catch2"
   Catch2_CMAKE_DIR: "${{github.workspace}}/Catch2/build/lib/cmake/Catch2"
 
@@ -100,14 +101,19 @@ jobs:
         git checkout tlapack
         cmake -B build -G Ninja -D blaspp_DIR="${{env.blaspp_DIR}}/build"
 
-    - name: Checkout mdspan on Ubuntu
+    - name: Checkout mdspan and Eigen on Ubuntu
       if: ${{ matrix.os == 'ubuntu-latest' }}
       run: |
         git clone https://github.com/kokkos/mdspan.git "${{env.mdspan_DIR}}"
+        git clone https://gitlab.com/libeigen/eigen.git "${{env.eigen_DIR}}"
 
-    - name: Install Eigen on Ubuntu
+    - name: Build and install Eigen on Ubuntu
       if: ${{ matrix.os == 'ubuntu-latest' }}
-      run: sudo apt install libeigen3-dev
+      working-directory: ${{env.eigen_DIR}}
+      run: |
+        git checkout master
+        cmake -B build -G Ninja -DCMAKE_INSTALL_PREFIX="${{env.eigen_DIR}}"
+        cmake --build build --target install
 
     - name: Build and install mdspan on Ubuntu
       if: ${{ matrix.os == 'ubuntu-latest' }}

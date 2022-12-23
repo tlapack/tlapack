@@ -11,6 +11,7 @@
 
 #include "tlapack/base/utils.hpp"
 
+#include "tlapack/blas/gemm.hpp"
 #include "tlapack/blas/gemv.hpp"
 #include "tlapack/blas/copy.hpp"
 #include "tlapack/blas/trmm.hpp"

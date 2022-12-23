@@ -96,6 +96,17 @@ if( Eigen3_FOUND )
       "${CMAKE_CURRENT_BINARY_DIR}/eigen/example_eigen${CMAKE_EXECUTABLE_SUFFIX}"
       && echo ""
   )
+  # add the example performance_eigen
+  add_subdirectory( performance_eigen )
+  add_custom_command(
+    OUTPUT run-all-examples-cmd APPEND
+    COMMAND
+      echo "- performance_eigen ----------------" &&
+      "${CMAKE_CURRENT_BINARY_DIR}/performance_eigen/performance_eigen${CMAKE_EXECUTABLE_SUFFIX}"
+      && echo "-x-x-x-x-x-x-x-x-" &&
+      "${CMAKE_CURRENT_BINARY_DIR}/performance_eigen/performance_tlapack${CMAKE_EXECUTABLE_SUFFIX}"
+      && echo ""
+  )
 else()
   mark_as_advanced( FORCE Eigen3_DIR )
 endif()

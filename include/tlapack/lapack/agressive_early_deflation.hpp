@@ -12,6 +12,8 @@
 
 #include "tlapack/base/utils.hpp"
 
+#include "tlapack/blas/gemm.hpp"
+#include "tlapack/lapack/laset.hpp"
 #include "tlapack/lapack/larfg.hpp"
 #include "tlapack/lapack/larf.hpp"
 #include "tlapack/lapack/lahqr.hpp"
@@ -188,8 +190,10 @@ namespace tlapack
 
         // Assertions
         assert(nrows(A) == n);
-        assert(ncols(Z) == n);
-        assert(nrows(Z) == n);
+        if(want_z) {
+            assert(ncols(Z) == n);
+            assert(nrows(Z) == n);
+        }
         assert((idx_t) size(s) == n);
 
         // s is the value just outside the window. It determines the spike
