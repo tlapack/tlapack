@@ -636,7 +636,7 @@ namespace tlapack{
                 #ifndef TLAPACK_MDSPAN_HH
                     #define TLAPACK_USE_PREFERRED_MATRIX_TYPE(T) !is_legacy_type<T>
                 #else
-                    #define TLAPACK_USE_PREFERRED_MATRIX_TYPE(T) !is_legacy_type<T> && !is_mdspan_type<T>
+                    #define TLAPACK_USE_PREFERRED_MATRIX_TYPE(T) (!is_legacy_type<T> && !is_mdspan_type<T>)
                 #endif
             #endif
 

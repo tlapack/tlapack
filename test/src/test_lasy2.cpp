@@ -68,7 +68,7 @@ TEMPLATE_TEST_CASE("sylvester solver gives correct result", "[sylvester]", TLAPA
     INFO("n1 = " << n1 << " n2 =" << n2);
     {
         // Solve sylvester equation
-        T scale, xnorm;
+        T scale(0), xnorm;
         lasy2(Op::NoTrans, Op::NoTrans, 1, TL, TR, B, scale, X, xnorm);
 
         // Check that X_exact == X

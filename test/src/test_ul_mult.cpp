@@ -61,7 +61,7 @@ TEMPLATE_TEST_CASE("LU factorization of a general m-by-n matrix, blocked", "[ul_
             
     // We will make a deep copy A
     lacpy(Uplo::General, A, A_copy);
-    double norma=tlapack::lange( tlapack::Norm::Max, A);
+    real_t norma=tlapack::lange( tlapack::Norm::Max, A);
     
     // Put diagonal and super-diagonal of A into U and sub-diagonal in L  
     std::vector<T> L_; auto L = new_matrix( L_, n, n );

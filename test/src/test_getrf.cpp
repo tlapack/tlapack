@@ -61,7 +61,7 @@ TEMPLATE_TEST_CASE("LU factorization of a general m-by-n matrix", "[getrf]", TLA
     // then to test A=LU, we'll make a deep copy of A prior to calling getrf
     lacpy(Uplo::General, A, A_copy);
 
-    double norma=tlapack::lange( tlapack::Norm::Max, A);
+    real_t norma = tlapack::lange( tlapack::Norm::Max, A);
     // Initialize Piv vector to all zeros
     std::vector<idx_t> Piv( k , idx_t(0) );
     // Run getrf and both A and Piv will be update

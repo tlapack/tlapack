@@ -375,7 +375,7 @@ namespace tlapack {
                 #ifndef TLAPACK_LEGACYARRAY_HH
                     #define TLAPACK_USE_PREFERRED_MATRIX_TYPE(T) !is_eigen_type<T>
                 #else
-                    #define TLAPACK_USE_PREFERRED_MATRIX_TYPE(T) !is_eigen_type<T> && !is_legacy_type<T>
+                    #define TLAPACK_USE_PREFERRED_MATRIX_TYPE(T) (!is_eigen_type<T> && !is_legacy_type<T>)
                 #endif
             #endif
 
