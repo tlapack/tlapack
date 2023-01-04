@@ -26,7 +26,7 @@ target_link_libraries( example_potrf PRIVATE tlapack )
 # Load LAPACKE if not using MKL
 if( NOT USE_MKL )
   find_package( LAPACKE REQUIRED )
-  message( STATUS "LAPACKE: ${LAPACKE_LIBRARIES}" )
+  target_include_directories( example_potrf PRIVATE ${LAPACKE_INCLUDE_DIRS} )
   target_link_libraries( example_potrf PRIVATE ${LAPACKE_LIBRARIES} )
 else()
   target_compile_definitions( example_potrf PRIVATE "USE_MKL" )
