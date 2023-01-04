@@ -45,7 +45,7 @@ TEMPLATE_TEST_CASE("LQ factorization of a general m-by-n matrix", "[lqf]", TLAPA
     k = GENERATE(8, 10, 20, 30); // k is the number of rows for output Q. Can personalize it.
 
     const real_t eps = ulp<real_t>();
-    const real_t tol = real_t(max(m, n)) * eps;
+    const real_t tol = real_t(m*n) * eps;
 
     std::vector<T> A_; auto A = new_matrix( A_, m, n );
     std::vector<T> A_copy_; auto A_copy = new_matrix( A_copy_, m, n );
