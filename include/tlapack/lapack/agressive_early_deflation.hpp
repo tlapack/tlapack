@@ -313,7 +313,7 @@ namespace tlapack
             if (!bulge)
             {
                 // 1x1 eigenvalue block
-                auto foo = abs1(TW(ns - 1, ns - 1));
+                real_t foo = abs1(TW(ns - 1, ns - 1));
                 if (foo == zero)
                     foo = abs1(s_spike);
                 if (abs1(s_spike) * abs1(V(0, ns - 1)) <= max(small_num, eps * foo))
@@ -333,7 +333,7 @@ namespace tlapack
             else
             {
                 // 2x2 eigenvalue block
-                auto foo = tlapack::abs(TW(ns - 1, ns - 1)) + sqrt(tlapack::abs(TW(ns - 1, ns - 2))) * sqrt(tlapack::abs(TW(ns - 2, ns - 1)));
+                real_t foo = tlapack::abs(TW(ns - 1, ns - 1)) + sqrt(tlapack::abs(TW(ns - 1, ns - 2))) * sqrt(tlapack::abs(TW(ns - 2, ns - 1)));
                 if (foo == zero)
                     foo = tlapack::abs(s_spike);
                 if (max(tlapack::abs(s_spike * V(0, ns - 1)), tlapack::abs(s_spike * V(0, ns - 2))) <= max<real_t>(small_num, eps * foo))

@@ -20,13 +20,13 @@
 namespace tlapack{
 
     // Forward declarations
-    template< typename T > auto abs ( const T& x ) -> T;
+    template< typename T > T abs ( const T& x );
     template< typename T > bool isnan( const std::complex<T>& x );
     template< typename T > bool isinf( const std::complex<T>& x );
 
     /// Absolute value
     template<>
-    inline auto abs( const Eigen::half& x ) -> Eigen::half {
+    inline Eigen::half abs( const Eigen::half& x ) {
         return Eigen::half_impl::abs( x );
     }
 

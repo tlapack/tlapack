@@ -94,7 +94,7 @@ void gemv(
     if (trans == Op::NoTrans ) {
         // form y += alpha * A * x
         for (idx_t j = 0; j < n; ++j) {
-            auto tmp = alpha*x[j];
+            const scalar_type<alpha_t,TX> tmp = alpha*x[j];
             for (idx_t i = 0; i < m; ++i) {
                 y[i] += tmp * A(i, j);
             }
@@ -103,7 +103,7 @@ void gemv(
     else if (trans == Op::Conj) {
         // form y += alpha * conj( A ) * x
         for (idx_t j = 0; j < n; ++j) {
-            auto tmp = alpha*x[j];
+            const scalar_type<alpha_t,TX> tmp = alpha*x[j];
             for (idx_t i = 0; i < m; ++i) {
                 y[i] += tmp * conj(A(i, j));
             }

@@ -41,10 +41,10 @@ real_type<TX,TY,TZ> lapy3(
 
     // constants
     const real_t zero( 0 );
-    const auto xabs = abs(x);
-    const auto yabs = abs(y);
-    const auto zabs = abs(z);
-    const auto w = max( xabs, yabs, zabs );
+    const TX xabs = abs(x);
+    const TY yabs = abs(y);
+    const TZ zabs = abs(z);
+    const real_t w = max( xabs, yabs, zabs );
 
     return ( w == zero )
         // W can be zero for max(0,nan,0)

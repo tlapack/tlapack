@@ -266,7 +266,7 @@ namespace tlapack
             if (k_defl % non_convergence_limit == 0)
             {
                 // Exceptional shift
-                auto s = abs(A(istop - 1, istop - 2));
+                real_t s = abs(A(istop - 1, istop - 2));
                 if (istop > ilo + 2)
                     s = s + abs(A(istop - 2, istop - 3));
                 a00 = dat1 * s + A(istop - 1, istop - 1);
@@ -300,7 +300,7 @@ namespace tlapack
             // somewhere else in the subblock.
             std::vector<TA> v_; auto v = new_vector(v_,3);
             TA t1;
-            auto istart2 = istart;
+            idx_t istart2 = istart;
             if (istart + 3 < istop)
             {
                 for (idx_t i = istop - 3; i > istart; --i)
@@ -309,7 +309,7 @@ namespace tlapack
                     lahqr_shiftcolumn(H, v, s1, s2);
                     larfg(v, t1);
                     v[0] = t1;
-                    auto refsum = conj(v[0]) * A(i, i - 1) + conj(v[1]) * A(i + 1, i - 1);
+                    const TA refsum = conj(v[0]) * A(i, i - 1) + conj(v[1]) * A(i + 1, i - 1);
                     if (abs1(A(i + 1, i - 1) - refsum * v[1]) + abs1(refsum * v[2]) <=
                         eps * (abs1(A(i, i - 1)) + abs1(A(i, i + 1)) + abs1(A(i + 1, i + 2))))
                     {
@@ -321,7 +321,7 @@ namespace tlapack
 
             for (idx_t i = istart2; i < istop - 1; ++i)
             {
-                auto nr = std::min<idx_t>(3, istop - i);
+                const idx_t nr = std::min<idx_t>(3, istop - i);
                 if (i == istart2)
                 {
                     auto H = slice(A, pair{i, i + nr}, pair{i, i + nr});
@@ -353,13 +353,13 @@ namespace tlapack
                 // efficient for small reflectors.
 
                 t1 = conj(t1);
-                auto v2 = v[1];
-                auto t2 = t1 * v2;
+                const TA v2 = v[1];
+                const TA t2 = t1 * v2;
                 TA sum;
                 if (nr == 3)
                 {
-                    auto v3 = v[2];
-                    auto t3 = t1 * v[2];
+                    const TA v3 = v[2];
+                    const TA t3 = t1 * v[2];
 
                     // Apply G from the left to A
                     for (idx_t j = i; j < istop_m; ++j)
@@ -577,7 +577,7 @@ namespace tlapack
             if (k_defl % non_convergence_limit == 0)
             {
                 // Exceptional shift
-                auto s = tlapack::abs(A(istop - 1, istop - 2));
+                real_t s = tlapack::abs(A(istop - 1, istop - 2));
                 if (istop > ilo + 2)
                     s = s + tlapack::abs(A(istop - 2, istop - 3));
                 a00 = dat1 * s + A(istop - 1, istop - 1);
@@ -605,13 +605,13 @@ namespace tlapack
             // somewhere else in the subblock.
             TA sn;
             real_t cs;
-            auto istart2 = istart;
+            idx_t istart2 = istart;
             if (istart + 2 < istop)
             {
                 for (idx_t i = istop - 2; i > istart; --i)
                 {
-                    auto h00 = A(i, i) - s1;
-                    auto h10 = A(i + 1, i);
+                    TA h00 = A(i, i) - s1;
+                    TA h10 = A(i + 1, i);
                     rotg(h00, h10, cs, sn);
 
                     if (abs1(conj(sn) * A(i, i - 1)) <= eps * (abs1(A(i, i - 1)) + abs1(A(i, i + 1))))
@@ -626,8 +626,8 @@ namespace tlapack
             {
                 if (i == istart2)
                 {
-                    auto h00 = A(i, i) - s1;
-                    auto h10 = A(i + 1, i);
+                    TA h00 = A(i, i) - s1;
+                    TA h10 = A(i + 1, i);
                     rotg(h00, h10, cs, sn);
                     if (i > istart)
                         A(i, i - 1) = A(i, i - 1) * cs;

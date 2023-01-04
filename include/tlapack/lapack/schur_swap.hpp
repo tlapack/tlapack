@@ -98,14 +98,14 @@ namespace tlapack
             //
             // Swap two 1-by-1 blocks.
             //
-            auto t00 = A(j0, j0);
-            auto t11 = A(j1, j1);
+            const T t00 = A(j0, j0);
+            const T t11 = A(j1, j1);
             //
             // Determine the transformation to perform the interchange
             //
             T cs, sn;
-            auto temp = A(j0, j1);
-            auto temp2 = t11 - t00;
+            T temp = A(j0, j1);
+            T temp2 = t11 - t00;
             rotg(temp, temp2, cs, sn);
 
             A(j1, j1) = t00;
@@ -151,7 +151,7 @@ namespace tlapack
             auto v1 = slice(B, pair{0, 3}, 0);
             auto v2 = slice(B, pair{1, 3}, 1);
             larfg(v1, tau1);
-            auto sum = B(0, 1) + v1[1] * B(1, 1) + v1[2] * B(2, 1);
+            const T sum = B(0, 1) + v1[1] * B(1, 1) + v1[2] * B(2, 1);
             B(0, 1) = B(0, 1) - sum * tau1;
             B(1, 1) = B(1, 1) - sum * tau1 * v1[1];
             B(2, 1) = B(2, 1) - sum * tau1 * v1[2];
@@ -164,7 +164,7 @@ namespace tlapack
             // Reflections from the left
             for (idx_t j = j0; j < n; ++j)
             {
-                auto sum = A(j0, j) + v1[1] * A(j1, j) + v1[2] * A(j2, j);
+                T sum = A(j0, j) + v1[1] * A(j1, j) + v1[2] * A(j2, j);
                 A(j0, j) = A(j0, j) - sum * tau1;
                 A(j1, j) = A(j1, j) - sum * tau1 * v1[1];
                 A(j2, j) = A(j2, j) - sum * tau1 * v1[2];
@@ -176,7 +176,7 @@ namespace tlapack
             // Reflections from the right
             for (idx_t j = 0; j < j3; ++j)
             {
-                auto sum = A(j, j0) + v1[1] * A(j, j1) + v1[2] * A(j, j2);
+                T sum = A(j, j0) + v1[1] * A(j, j1) + v1[2] * A(j, j2);
                 A(j, j0) = A(j, j0) - sum * tau1;
                 A(j, j1) = A(j, j1) - sum * tau1 * v1[1];
                 A(j, j2) = A(j, j2) - sum * tau1 * v1[2];
@@ -191,7 +191,7 @@ namespace tlapack
 
                 for (idx_t j = 0; j < n; ++j)
                 {
-                    auto sum = Q(j, j0) + v1[1] * Q(j, j1) + v1[2] * Q(j, j2);
+                    T sum = Q(j, j0) + v1[1] * Q(j, j1) + v1[2] * Q(j, j2);
                     Q(j, j0) = Q(j, j0) - sum * tau1;
                     Q(j, j1) = Q(j, j1) - sum * tau1 * v1[1];
                     Q(j, j2) = Q(j, j2) - sum * tau1 * v1[2];
@@ -224,7 +224,7 @@ namespace tlapack
             auto v1 = slice(B, pair{0, 3}, 0);
             auto v2 = slice(B, pair{1, 3}, 1);
             larfg(v1, tau1);
-            auto sum = B(0, 1) + v1[1] * B(1, 1) + v1[2] * B(2, 1);
+            const T sum = B(0, 1) + v1[1] * B(1, 1) + v1[2] * B(2, 1);
             B(0, 1) = B(0, 1) - sum * tau1;
             B(1, 1) = B(1, 1) - sum * tau1 * v1[1];
             B(2, 1) = B(2, 1) - sum * tau1 * v1[2];
@@ -237,7 +237,7 @@ namespace tlapack
             // Reflections from the left
             for (idx_t j = j0; j < n; ++j)
             {
-                auto sum = A(j2, j) + v1[1] * A(j1, j) + v1[2] * A(j0, j);
+                T sum = A(j2, j) + v1[1] * A(j1, j) + v1[2] * A(j0, j);
                 A(j2, j) = A(j2, j) - sum * tau1;
                 A(j1, j) = A(j1, j) - sum * tau1 * v1[1];
                 A(j0, j) = A(j0, j) - sum * tau1 * v1[2];
@@ -249,7 +249,7 @@ namespace tlapack
             // Reflections from the right
             for (idx_t j = 0; j < j3; ++j)
             {
-                auto sum = A(j, j2) + v1[1] * A(j, j1) + v1[2] * A(j, j0);
+                T sum = A(j, j2) + v1[1] * A(j, j1) + v1[2] * A(j, j0);
                 A(j, j2) = A(j, j2) - sum * tau1;
                 A(j, j1) = A(j, j1) - sum * tau1 * v1[1];
                 A(j, j0) = A(j, j0) - sum * tau1 * v1[2];
@@ -263,7 +263,7 @@ namespace tlapack
             {
                 for (idx_t j = 0; j < n; ++j)
                 {
-                    auto sum = Q(j, j2) + v1[1] * Q(j, j1) + v1[2] * Q(j, j0);
+                    T sum = Q(j, j2) + v1[1] * Q(j, j1) + v1[2] * Q(j, j0);
                     Q(j, j2) = Q(j, j2) - sum * tau1;
                     Q(j, j1) = Q(j, j1) - sum * tau1 * v1[1];
                     Q(j, j0) = Q(j, j0) - sum * tau1 * v1[2];
@@ -307,7 +307,7 @@ namespace tlapack
             auto v1 = slice(V, pair{0, 4}, 0);
             auto v2 = slice(V, pair{1, 4}, 1);
             larfg(v1, tau1);
-            auto sum = V(0, 1) + v1[1] * V(1, 1) + v1[2] * V(2, 1) + v1[3] * V(3, 1);
+            const T sum = V(0, 1) + v1[1] * V(1, 1) + v1[2] * V(2, 1) + v1[3] * V(3, 1);
             V(0, 1) = V(0, 1) - sum * tau1;
             V(1, 1) = V(1, 1) - sum * tau1 * v1[1];
             V(2, 1) = V(2, 1) - sum * tau1 * v1[2];
@@ -317,7 +317,7 @@ namespace tlapack
             // Apply reflections to D to check error
             for (idx_t j = 0; j < 4; ++j)
             {
-                auto sum = D(0, j) + v1[1] * D(1, j) + v1[2] * D(2, j) + v1[3] * D(3, j);
+                T sum = D(0, j) + v1[1] * D(1, j) + v1[2] * D(2, j) + v1[3] * D(3, j);
                 D(0, j) = D(0, j) - sum * tau1;
                 D(1, j) = D(1, j) - sum * tau1 * v1[1];
                 D(2, j) = D(2, j) - sum * tau1 * v1[2];
@@ -330,7 +330,7 @@ namespace tlapack
             }
             for (idx_t j = 0; j < 4; ++j)
             {
-                auto sum = D(j, 0) + v1[1] * D(j, 1) + v1[2] * D(j, 2) + v1[3] * D(j, 3);
+                T sum = D(j, 0) + v1[1] * D(j, 1) + v1[2] * D(j, 2) + v1[3] * D(j, 3);
                 D(j, 0) = D(j, 0) - sum * tau1;
                 D(j, 1) = D(j, 1) - sum * tau1 * v1[1];
                 D(j, 2) = D(j, 2) - sum * tau1 * v1[2];
@@ -348,7 +348,7 @@ namespace tlapack
             // Reflections from the left
             for (idx_t j = j0; j < n; ++j)
             {
-                auto sum = A(j0, j) + v1[1] * A(j1, j) + v1[2] * A(j2, j) + v1[3] * A(j3, j);
+                T sum = A(j0, j) + v1[1] * A(j1, j) + v1[2] * A(j2, j) + v1[3] * A(j3, j);
                 A(j0, j) = A(j0, j) - sum * tau1;
                 A(j1, j) = A(j1, j) - sum * tau1 * v1[1];
                 A(j2, j) = A(j2, j) - sum * tau1 * v1[2];
@@ -362,7 +362,7 @@ namespace tlapack
             // Reflections from the right
             for (idx_t j = 0; j < j0 + 4; ++j)
             {
-                auto sum = A(j, j0) + v1[1] * A(j, j1) + v1[2] * A(j, j2) + v1[3] * A(j, j3);
+                T sum = A(j, j0) + v1[1] * A(j, j1) + v1[2] * A(j, j2) + v1[3] * A(j, j3);
                 A(j, j0) = A(j, j0) - sum * tau1;
                 A(j, j1) = A(j, j1) - sum * tau1 * v1[1];
                 A(j, j2) = A(j, j2) - sum * tau1 * v1[2];
@@ -379,7 +379,7 @@ namespace tlapack
 
                 for (idx_t j = 0; j < n; ++j)
                 {
-                    auto sum = Q(j, j0) + v1[1] * Q(j, j1) + v1[2] * Q(j, j2) + v1[3] * Q(j, j3);
+                    T sum = Q(j, j0) + v1[1] * Q(j, j1) + v1[2] * Q(j, j2) + v1[3] * Q(j, j3);
                     Q(j, j0) = Q(j, j0) - sum * tau1;
                     Q(j, j1) = Q(j, j1) - sum * tau1 * v1[1];
                     Q(j, j2) = Q(j, j2) - sum * tau1 * v1[2];
@@ -487,15 +487,15 @@ namespace tlapack
         //
         // In the complex case, there can only be 1x1 blocks to swap
         //
-        auto t00 = A(j0, j0);
-        auto t11 = A(j1, j1);
+        const T t00 = A(j0, j0);
+        const T t11 = A(j1, j1);
         //
         // Determine the transformation to perform the interchange
         //
         real_t cs;
         T sn;
-        auto temp = A(j0, j1);
-        auto temp2 = t11 - t00;
+        T temp = A(j0, j1);
+        T temp2 = t11 - t00;
         rotg(temp, temp2, cs, sn);
 
         A(j1, j1) = t00;

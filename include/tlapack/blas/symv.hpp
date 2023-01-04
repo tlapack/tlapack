@@ -59,9 +59,6 @@ void symv(
     using TX    = type_t< vectorX_t >;
     using idx_t = size_type< matrixA_t >;
 
-    // using
-    using scalar_t = scalar_type<TA,TX>;
-
     // constants
     const idx_t n = nrows(A);
 
@@ -82,26 +79,26 @@ void symv(
         // A is stored in upper triangle
         // form y += alpha * A * x
         for (idx_t j = 0; j < n; ++j) {
-            auto tmp1 = alpha*x[j];
-            auto tmp2 = scalar_t(0);
+            const scalar_type<alpha_t,TX> tmp1 = alpha*x[j];
+            scalar_type<TA,TX> sum(0);
             for (idx_t i = 0; i < j; ++i) {
                 y[i] += tmp1 * A(i,j);
-                tmp2 += A(i,j) * x[i];
+                sum += A(i,j) * x[i];
             }
-            y[j] += tmp1 * A(j,j) + alpha * tmp2;
+            y[j] += tmp1 * A(j,j) + alpha * sum;
         }
     }
     else {
         // A is stored in lower triangle
         // form y += alpha * A * x
         for (idx_t j = 0; j < n; ++j) {
-            auto tmp1 = alpha*x[j];
-            auto tmp2 = scalar_t(0);
+            const scalar_type<alpha_t,TX> tmp1 = alpha*x[j];
+            scalar_type<TA,TX> sum(0);
             for (idx_t i = j+1; i < n; ++i) {
                 y[i] += tmp1 * A(i,j);
-                tmp2 += A(i,j) * x[i];
+                sum += A(i,j) * x[i];
             }
-            y[j] += tmp1 * A(j,j) + alpha * tmp2;
+            y[j] += tmp1 * A(j,j) + alpha * sum;
         }
     }
 }

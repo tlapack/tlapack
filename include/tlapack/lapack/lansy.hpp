@@ -110,8 +110,7 @@ void lansy_worksize(
  * @ingroup auxiliary
  */
 template< class norm_t, class uplo_t, class matrix_t >
-auto
-lansy( norm_t normType, uplo_t uplo, const matrix_t& A )
+auto lansy( norm_t normType, uplo_t uplo, const matrix_t& A )
 {
     using T      = type_t<matrix_t>;
     using real_t = real_type< T >;
@@ -264,8 +263,7 @@ lansy( norm_t normType, uplo_t uplo, const matrix_t& A )
  * @ingroup auxiliary
  */
 template< class norm_t, class uplo_t, class matrix_t >
-auto
-lansy( norm_t normType, uplo_t uplo, const matrix_t& A, const workspace_opts_t<>& opts )
+auto lansy( norm_t normType, uplo_t uplo, const matrix_t& A, const workspace_opts_t<>& opts )
 {
     using T      = type_t<matrix_t>;
     using real_t = real_type< T >;

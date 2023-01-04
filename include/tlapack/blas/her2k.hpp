@@ -112,8 +112,8 @@ void her2k(
 
                 for(idx_t l = 0; l < k; ++l) {
 
-                    auto alphaConjBjl = alpha*conj( B(j,l) );
-                    auto conjAlphaAjl = conj( alpha*A(j,l) );
+                    const scalar_type<alpha_t,TB> alphaConjBjl = alpha*conj( B(j,l) );
+                    const scalar_type<alpha_t,TA> conjAlphaAjl = conj( alpha*A(j,l) );
 
                     for(idx_t i = 0; i < j; ++i)
                         C(i,j) += A(i,l)*alphaConjBjl + B(i,l)*conjAlphaAjl;
@@ -131,8 +131,8 @@ void her2k(
 
                 for(idx_t l = 0; l < k; ++l) {
 
-                    auto alphaConjBjl = alpha*conj( B(j,l) );
-                    auto conjAlphaAjl = conj( alpha*A(j,l) );
+                    const scalar_type<alpha_t,TB> alphaConjBjl = alpha*conj( B(j,l) );
+                    const scalar_type<alpha_t,TA> conjAlphaAjl = conj( alpha*A(j,l) );
 
                     C(j,j) += 2 * (real(A(j,l)) * real(alphaConjBjl)
                                     - imag(A(j,l)) * imag(alphaConjBjl));

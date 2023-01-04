@@ -80,7 +80,7 @@ namespace tlapack
             // b is zero, swapping rows and columns results in Schur form.
             cs = zero;
             sn = one;
-            auto temp = d;
+            const T temp = d;
             d = a;
             a = temp;
             b = -c;
@@ -93,12 +93,12 @@ namespace tlapack
         }
         else
         {
-            auto temp = a - d;
-            auto p = half * temp;
-            auto bcmax = max(abs(b), abs(c));
-            auto bcmin = min(abs(b), abs(c)) * T(sgn(b)*sgn(c));
-            auto scale = max(abs(p), bcmax);
-            auto z = (p / scale) * p + (bcmax / scale) * bcmin;
+            T temp = a - d;
+            T p = half * temp;
+            const T bcmax = max(abs(b), abs(c));
+            const T bcmin = min(abs(b), abs(c)) * T(sgn(b)*sgn(c));
+            T scale = max(abs(p), bcmax);
+            T z = (p / scale) * p + (bcmax / scale) * bcmin;
             // if z is positive, we should have real eigenvalues
             // however, is z is very small, but positive, we postpone the decision
             if (z >= multpl * eps)
@@ -110,7 +110,7 @@ namespace tlapack
                 a = d + z;
                 d = d - (bcmax / z) * bcmin;
                 // Compute b and the rotation matrix
-                auto tau = lapy2(c, z);
+                const T tau = lapy2(c, z);
                 cs = z / tau;
                 sn = c / tau;
                 b = b - c;
@@ -121,7 +121,7 @@ namespace tlapack
                 // Complex eigenvalues, or real (almost) equal eigenvalues.
 
                 // Make diagonal elements equal.
-                auto sigma = b + c;
+                T sigma = b + c;
                 for (int count = 0; count < 20; ++count)
                 {
                     scale = max(abs(temp), abs(sigma));
@@ -140,17 +140,17 @@ namespace tlapack
                     break;
                 }
                 p = half * temp;
-                auto tau = lapy2(sigma, temp);
+                T tau = lapy2(sigma, temp);
                 cs = sqrt(half * (one + abs(sigma) / tau));
                 sn = -(p / (tau * cs)) * T(sgn(sigma));
                 //
                 // Compute [aa bb] = [a b][cs -sn]
                 //         [cc dd] = [c d][sn  cs]
                 //
-                auto aa = a * cs + b * sn;
-                auto bb = -a * sn + b * cs;
-                auto cc = c * cs + d * sn;
-                auto dd = -c * sn + d * cs;
+                const T aa = a * cs + b * sn;
+                const T bb = -a * sn + b * cs;
+                const T cc = c * cs + d * sn;
+                const T dd = -c * sn + d * cs;
                 //
                 // Compute [a b] = [ cs sn][aa bb]
                 //         [c d] = [-sn cs][cc dd]
@@ -171,16 +171,16 @@ namespace tlapack
                         if (sgn(b) == sgn(c))
                         {
                             // Real eigenvalues: reduce to upper triangular form
-                            auto sab = sqrt(abs(b));
-                            auto sac = sqrt(abs(c));
+                            const T sab = sqrt(abs(b));
+                            const T sac = sqrt(abs(c));
                             p = ( c > T(0) ) ? sab*sac : -sab*sac;
                             tau = one / sqrt(abs(b + c));
                             a = temp + p;
                             d = temp - p;
                             b = b - c;
                             c = zero;
-                            auto cs1 = sab * tau;
-                            auto sn1 = sac * tau;
+                            const T cs1 = sab * tau;
+                            const T sn1 = sac * tau;
                             temp = cs * cs1 - sn * sn1;
                             sn = cs * sn1 + sn * cs1;
                             cs = temp;
@@ -192,7 +192,7 @@ namespace tlapack
         // Store eigenvalues in s1 and s2
         if (c != zero)
         {
-            auto temp = sqrt(abs(b)) * sqrt(abs(c));
+            const T temp = sqrt(abs(b)) * sqrt(abs(c));
             s1 = complex_type<T>(a, temp);
             s2 = complex_type<T>(d, -temp);
         }

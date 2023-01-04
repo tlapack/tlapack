@@ -78,6 +78,7 @@ template<
 void rotm( vectorX_t& x, vectorY_t& y, const T h[4] )
 {
     using idx_t = size_type< vectorX_t >;
+    using scalar_t = scalar_type< T, type_t<vectorX_t>, type_t<vectorY_t> >;
 
     // constants
     const idx_t n = size(x);
@@ -87,21 +88,21 @@ void rotm( vectorX_t& x, vectorY_t& y, const T h[4] )
 
     if ( flag == -1 ) {
         for (idx_t i = 0; i < n; ++i) {
-            auto stmp = h[0]*x[i] + h[2]*y[i];
+            const scalar_t stmp = h[0]*x[i] + h[2]*y[i];
             y[i] = h[3]*y[i] + h[1]*x[i];
             x[i] = stmp;
         }
     }
     else if ( flag == 0 ) {
         for (idx_t i = 0; i < n; ++i) {
-            auto stmp = x[i] + h[2]*y[i];
+            const scalar_t stmp = x[i] + h[2]*y[i];
             y[i] = y[i] + h[1]*x[i];
             x[i] = stmp;
         }
     }
     else if ( flag == 1 ) {
         for (idx_t i = 0; i < n; ++i) {
-            auto stmp = h[0]*x[i] + y[i];
+            const scalar_t stmp = h[0]*x[i] + y[i];
             y[i] = h[3]*y[i] - x[i];
             x[i] = stmp;
         }

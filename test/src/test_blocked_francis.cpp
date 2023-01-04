@@ -41,9 +41,9 @@ TEMPLATE_TEST_CASE("Multishift QR", "[eigenvalues][multishift_qr]", TLAPACK_TYPE
     const T zero(0);
     const T one(1);
 
-    auto matrix_type = GENERATE(as<std::string>{}, "Large Random", "Random");
+    const std::string matrix_type = GENERATE(as<std::string>{}, "Large Random", "Random");
     // The near overflow tests are disabled untill a bug in rotg is fixed
-    // auto matrix_type = GENERATE(as<std::string>{}, "Large Random", "Near overflow", "Random");
+    // const std::string matrix_type = GENERATE(as<std::string>{}, "Large Random", "Near overflow", "Random");
 
     idx_t n = 0;
     idx_t ilo = 0;

@@ -36,8 +36,8 @@ real_type<TX,TY> lapy2( const TX& x, const TY& y )
     // constants
     const real_t one( 1 );
     const real_t zero( 0 );
-    const auto xabs = abs(x);
-    const auto yabs = abs(y);
+    const TX xabs = abs(x);
+    const TY yabs = abs(y);
 
     real_t w, z;
     if( xabs > yabs ) {

@@ -50,6 +50,7 @@ void geru(
 {
     // data traits
     using idx_t = size_type< matrixA_t >;
+    using scalar_t = scalar_type< alpha_t, type_t<vectorY_t> >;
 
     // constants
     const idx_t m = nrows(A);
@@ -61,7 +62,7 @@ void geru(
     tlapack_check_false( access_denied( dense, write_policy(A) ) );
 
     for (idx_t j = 0; j < n; ++j) {
-        auto tmp = alpha * y[j];
+        const scalar_t tmp = alpha * y[j];
         for (idx_t i = 0; i < m; ++i)
             A(i,j) += x[i] * tmp;
     }

@@ -434,7 +434,7 @@ namespace tlapack
                         if (abs1(w[i]) < abs1(w[i + 1]))
                         {
                             sorted = false;
-                            auto tmp = w[i];
+                            const type_t<vector_t> tmp = w[i];
                             w[i] = w[i + 1];
                             w[i + 1] = tmp;
                         }
@@ -451,7 +451,7 @@ namespace tlapack
                 {
                     if (imag(w[i]) != -imag(w[i - 1]))
                     {
-                        auto tmp = w[i];
+                        const type_t<vector_t> tmp = w[i];
                         w[i] = w[i - 1];
                         w[i - 1] = w[i - 2];
                         w[i - 2] = tmp;

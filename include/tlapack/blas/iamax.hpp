@@ -213,7 +213,8 @@ iamax( const vector_t& x, const ec_opts_t& opts = {} )
         enable_if_allow_optblas_t< vector_t > = 0
     >
     inline
-    auto iamax( vector_t const& x )
+    size_type<vector_t>
+    iamax( vector_t const& x )
     {
         auto x_ = legacy_vector(x);
         return ::blas::iamax( x_.n, x_.ptr, x_.inc );

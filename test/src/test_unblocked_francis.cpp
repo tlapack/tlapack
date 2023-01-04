@@ -39,7 +39,7 @@ TEMPLATE_TEST_CASE("Double shift QR", "[eigenvalues][doubleshift_qr]", TLAPACK_T
     const T zero(0);
     const T one(1);
 
-    auto matrix_type = GENERATE(as<std::string>{}, "Random", "Near overflow");
+    const std::string matrix_type = GENERATE(as<std::string>{}, "Random", "Near overflow");
 
     idx_t n = 0;
     idx_t ilo = 0;
@@ -95,7 +95,7 @@ TEMPLATE_TEST_CASE("Double shift QR", "[eigenvalues][doubleshift_qr]", TLAPACK_T
             A(i, j) = (T)0.0;
 
     tlapack::lacpy(Uplo::General, A, H);
-    auto s = std::vector<complex_t>(n);
+    std::vector<complex_t> s( n );
     laset(Uplo::General, zero, one, Q);
 
     INFO("matrix = " << matrix_type << " n = " << n << " ilo = " << ilo << " ihi = " << ihi);

@@ -56,6 +56,8 @@ void syr2(
 {
     // data traits
     using idx_t = size_type< matrixA_t >;
+    using TX = type_t< vectorX_t >;
+    using TY = type_t< vectorY_t >;
 
     // constants
     const idx_t n = nrows(A);
@@ -71,16 +73,16 @@ void syr2(
 
     if (uplo == Uplo::Upper) {
         for (idx_t j = 0; j < n; ++j) {
-            auto tmp1 = alpha * y[j];
-            auto tmp2 = alpha * x[j];
+            const scalar_type<alpha_t,TY> tmp1 = alpha * y[j];
+            const scalar_type<alpha_t,TX> tmp2 = alpha * x[j];
             for (idx_t i = 0; i <= j; ++i)
                 A(i,j) += x[i]*tmp1 + y[i]*tmp2;
         }
     }
     else {
         for (idx_t j = 0; j < n; ++j) {
-            auto tmp1 = alpha * y[j];
-            auto tmp2 = alpha * x[j];
+            const scalar_type<alpha_t,TY> tmp1 = alpha * y[j];
+            const scalar_type<alpha_t,TX> tmp2 = alpha * x[j];
             for (idx_t i = j; i < n; ++i)
                 A(i,j) += x[i]*tmp1 + y[i]*tmp2;
         }

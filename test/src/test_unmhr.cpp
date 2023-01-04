@@ -37,7 +37,7 @@ TEMPLATE_TEST_CASE("Result of unmhr matches result from unghr", "[eigenvalues][h
     // Functor
     Create<matrix_t> new_matrix;
 
-    auto matrix_type = GENERATE(as<std::string>{}, "Random");
+    const std::string matrix_type = GENERATE(as<std::string>{}, "Random");
     Side side = GENERATE(Side::Left, Side::Right);
     Op op = GENERATE(Op::NoTrans, Op::ConjTrans);
 

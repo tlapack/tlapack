@@ -58,6 +58,8 @@ void her2(
 {
     // data traits
     using idx_t = size_type< matrixA_t >;
+    using TX = type_t< vectorX_t >;
+    using TY = type_t< vectorY_t >;
 
     // constants
     const idx_t n = nrows(A);
@@ -73,8 +75,8 @@ void her2(
 
     if (uplo == Uplo::Upper) {
         for (idx_t j = 0; j < n; ++j) {
-            auto tmp1 = alpha * conj( y[j] );
-            auto tmp2 = conj( alpha * x[j] );
+            const scalar_type<alpha_t,TY> tmp1 = alpha * conj( y[j] );
+            const scalar_type<alpha_t,TX> tmp2 = conj( alpha * x[j] );
             for (idx_t i = 0; i < j; ++i)
                 A(i,j) += x[i]*tmp1 + y[i]*tmp2;
             A(j,j) = real( A(j,j) ) + real(x[j])*real(tmp1)
@@ -85,8 +87,8 @@ void her2(
     }
     else {
         for (idx_t j = 0; j < n; ++j) {
-            auto tmp1 = alpha * conj( y[j] );
-            auto tmp2 = conj( alpha * x[j] );
+            const scalar_type<alpha_t,TY> tmp1 = alpha * conj( y[j] );
+            const scalar_type<alpha_t,TX> tmp2 = conj( alpha * x[j] );
             A(j,j) = real( A(j,j) ) + real(x[j])*real(tmp1)
                                     - imag(x[j])*imag(tmp1)
                                     + real(y[j])*real(tmp2)

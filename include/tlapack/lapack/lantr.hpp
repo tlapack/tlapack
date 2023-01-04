@@ -136,8 +136,7 @@ void lantr_worksize(
  * @ingroup auxiliary
  */
 template< class norm_t, class uplo_t, class diag_t, class matrix_t >
-auto
-lantr( norm_t normType, uplo_t uplo, diag_t diag, const matrix_t& A )
+auto lantr( norm_t normType, uplo_t uplo, diag_t diag, const matrix_t& A )
 {
     using T      = type_t< matrix_t >;
     using real_t = real_type< T >;
@@ -395,8 +394,7 @@ template<
     class uplo_t, 
     class diag_t, 
     class matrix_t >
-auto
-lantr(
+auto lantr(
     norm_t normType,
     uplo_t uplo,
     diag_t diag,

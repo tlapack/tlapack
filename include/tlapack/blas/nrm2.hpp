@@ -117,7 +117,7 @@ auto nrm2( const vector_t& x )
         sumsq = amed;
     }
 
-    return scl * sqrt( sumsq );
+    return real_t( scl * sqrt(sumsq) );
 }
 
 #ifdef USE_LAPACKPP_WRAPPERS

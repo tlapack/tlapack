@@ -48,6 +48,7 @@ void rot(
     const c_type& c, const s_type& s )
 {
     using idx_t = size_type< vectorX_t >;
+    using scalar_t = scalar_type< c_type, s_type, type_t<vectorX_t>, type_t<vectorY_t> >;
 
     // constants
     const idx_t n = size(x);
@@ -60,7 +61,7 @@ void rot(
         return;
 
     for (idx_t i = 0; i < n; ++i) {
-        auto stmp = c*x[i] + s*y[i];
+        const scalar_t stmp = c*x[i] + s*y[i];
         y[i] = c*y[i] - conj(s)*x[i];
         x[i] = stmp;
     }

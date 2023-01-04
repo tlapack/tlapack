@@ -51,17 +51,17 @@ int main( int argc, char** argv )
     /// Using dynamic extents: 
 
     // Column Major Matrix A
-    auto A  = mdspan< T, my_dextents, layout_stride >(
+    mdspan< T, my_dextents, layout_stride > A (
         A_, strideMapping( my_dextents(n, n), std::array<idx_t,2>{1,lda} )
     );
     // Column Major Matrix Ak with the first k columns of A
     auto Ak = submdspan( A, pair{0,n}, pair{0,k} );
     // Tiled Matrix B with the last k*n elements of A_
-    auto B  = mdspan< T, my_dextents, TiledLayout >(
+    mdspan< T, my_dextents, TiledLayout > B (
         &A(n*(lda-k),0), TiledMapping( my_dextents(k, n), row_tile, col_tile )
     );
     // Row Major Matrix C
-    auto C  = mdspan< T, my_dextents, layout_stride >(
+    mdspan< T, my_dextents, layout_stride > C (
         C_, strideMapping( my_dextents(n, n), std::array<idx_t,2>{ldc,1} )
     );
 

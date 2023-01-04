@@ -69,9 +69,6 @@ void symm(
     using TA    = type_t< matrixA_t >;
     using TB    = type_t< matrixB_t >;
     using idx_t = size_type< matrixC_t >;
-
-    // using
-    using scalar_t = scalar_type<TA,TB>;
             
     // constants
     const idx_t m = nrows(B);
@@ -98,8 +95,8 @@ void symm(
             for(idx_t j = 0; j < n; ++j) {
                 for(idx_t i = 0; i < m; ++i) {
 
-                    auto alphaTimesBij = alpha*B(i,j);
-                    scalar_t sum( 0 );
+                    const scalar_type<alpha_t,TB> alphaTimesBij = alpha*B(i,j);
+                    scalar_type<TA,TB> sum( 0 );
 
                     for(idx_t k = 0; k < i; ++k) {
                         C(k,j) += A(k,i) * alphaTimesBij;
@@ -117,8 +114,8 @@ void symm(
             for(idx_t j = 0; j < n; ++j) {
                 for(idx_t i = m-1; i != idx_t(-1); --i) {
 
-                    auto alphaTimesBij = alpha*B(i,j);
-                    scalar_t sum( 0 );
+                    const scalar_type<alpha_t,TB> alphaTimesBij = alpha*B(i,j);
+                    scalar_type<TA,TB> sum( 0 );
 
                     for(idx_t k = i+1; k < m; ++k) {
                         C(k,j) += A(k,i) * alphaTimesBij;
@@ -133,45 +130,48 @@ void symm(
         }
     }
     else { // side == Side::Right
+
+        using scalar_t = scalar_type<alpha_t,TA>;
+
         if (uplo != Uplo::Lower) {
             // uplo == Uplo::Upper or uplo == Uplo::General
             for(idx_t j = 0; j < n; ++j) {
-
-                auto alphaTimesAkj = alpha * A(j,j);
-
-                for(idx_t i = 0; i < m; ++i)
-                    C(i,j) = beta * C(i,j) + B(i,j) * alphaTimesAkj;
+                {
+                    const scalar_t alphaTimesAjj = alpha * A(j,j);
+                    for(idx_t i = 0; i < m; ++i)
+                        C(i,j) = beta * C(i,j) + B(i,j) * alphaTimesAjj;
+                }
 
                 for(idx_t k = 0; k < j; ++k) {
-                    alphaTimesAkj = alpha*A(k,j);
+                    const scalar_t alphaTimesAkj = alpha*A(k,j);
                     for(idx_t i = 0; i < m; ++i)
                         C(i,j) += B(i,k) * alphaTimesAkj;
                 }
 
                 for(idx_t k = j+1; k < n; ++k) {
-                    alphaTimesAkj = alpha * A(j,k);
+                    const scalar_t alphaTimesAjk = alpha * A(j,k);
                     for(idx_t i = 0; i < m; ++i)
-                        C(i,j) += B(i,k) * alphaTimesAkj;
+                        C(i,j) += B(i,k) * alphaTimesAjk;
                 }
             }
         }
         else {
             // uplo == Uplo::Lower
             for(idx_t j = 0; j < n; ++j) {
-
-                auto alphaTimesAkj = alpha * A(j,j);
-
-                for(idx_t i = 0; i < m; ++i)
-                    C(i,j) = beta * C(i,j) + B(i,j) * alphaTimesAkj;
+                {
+                    const scalar_t alphaTimesAjj = alpha * A(j,j);
+                    for(idx_t i = 0; i < m; ++i)
+                        C(i,j) = beta * C(i,j) + B(i,j) * alphaTimesAjj;
+                }
 
                 for(idx_t k = 0; k < j; ++k) {
-                    alphaTimesAkj = alpha * A(j,k);
+                    const scalar_t alphaTimesAjk = alpha * A(j,k);
                     for(idx_t i = 0; i < m; ++i)
-                        C(i,j) += B(i,k) * alphaTimesAkj;
+                        C(i,j) += B(i,k) * alphaTimesAjk;
                 }
 
                 for(idx_t k = j+1; k < n; ++k) {
-                    alphaTimesAkj = alpha*A(k,j);
+                    const scalar_t alphaTimesAkj = alpha*A(k,j);
                     for(idx_t i = 0; i < m; ++i)
                         C(i,j) += B(i,k) * alphaTimesAkj;
                 }

@@ -80,15 +80,15 @@ struct TiledLayout {
 
         size_type
         tile_offset(size_type row, size_type col) const noexcept {
-            auto col_tile = col / col_tile_size_;
-            auto row_tile = row / row_tile_size_;
+            const size_type col_tile = col / col_tile_size_;
+            const size_type row_tile = row / row_tile_size_;
             return (col_tile * n_row_tiles() + row_tile) * tile_size();
         }
 
         size_type
         offset_in_tile(size_type row, size_type col) const noexcept {
-            auto t_row = row % row_tile_size_;
-            auto t_col = col % col_tile_size_;
+            const size_type t_row = row % row_tile_size_;
+            const size_type t_col = col % col_tile_size_;
             return t_row + t_col * row_tile_size_;
         }
 

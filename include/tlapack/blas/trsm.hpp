@@ -85,6 +85,7 @@ void trsm(
 {    
     // data traits
     using idx_t = size_type< matrixA_t >;
+    using TB = type_t< matrixB_t >;
 
     // constants
     const idx_t m = nrows(B);
@@ -107,6 +108,7 @@ void trsm(
     tlapack_check_false( access_denied( dense, write_policy(B) ) );
 
     if (side == Side::Left) {
+        using scalar_t = scalar_type<alpha_t,TB>;
         if (trans == Op::NoTrans) {
             if (uplo == Uplo::Upper) {
                 for(idx_t j = 0; j < n; ++j) {
@@ -137,7 +139,7 @@ void trsm(
             if (uplo == Uplo::Upper) {
                 for(idx_t j = 0; j < n; ++j) {
                     for(idx_t i = 0; i < m; ++i) {
-                        auto sum = alpha*B(i,j);
+                        scalar_t sum = alpha*B(i,j);
                         for(idx_t k = 0; k < i; ++k)
                             sum -= A(k,i)*B(k,j);
                         B(i,j) = (diag == Diag::NonUnit)
@@ -149,7 +151,7 @@ void trsm(
             else { // uplo == Uplo::Lower
                 for(idx_t j = 0; j < n; ++j) {
                     for(idx_t i = m-1; i != idx_t(-1); --i) {
-                        auto sum = alpha*B(i,j);
+                        scalar_t sum = alpha*B(i,j);
                         for(idx_t k = i+1; k < m; ++k)
                             sum -= A(k,i)*B(k,j);
                         B(i,j) = (diag == Diag::NonUnit)
@@ -163,7 +165,7 @@ void trsm(
             if (uplo == Uplo::Upper) {
                 for(idx_t j = 0; j < n; ++j) {
                     for(idx_t i = 0; i < m; ++i) {
-                        auto sum = alpha*B(i,j);
+                        scalar_t sum = alpha*B(i,j);
                         for(idx_t k = 0; k < i; ++k)
                             sum -= conj(A(k,i))*B(k,j);
                         B(i,j) = (diag == Diag::NonUnit)
@@ -175,7 +177,7 @@ void trsm(
             else { // uplo == Uplo::Lower
                 for(idx_t j = 0; j < n; ++j) {
                     for(idx_t i = m-1; i != idx_t(-1); --i) {
-                        auto sum = alpha*B(i,j);
+                        scalar_t sum = alpha*B(i,j);
                         for(idx_t k = i+1; k < m; ++k)
                             sum -= conj(A(k,i))*B(k,j);
                         B(i,j) = (diag == Diag::NonUnit)

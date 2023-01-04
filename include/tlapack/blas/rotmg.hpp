@@ -102,8 +102,8 @@ int rotmg( T& d1, T& d2, T& a, const T& b, T h[4] )
     const T zero( 0 );
     const T one( 1 );
     const T gam( 4096 );
-    const auto gamsq  = gam*gam;
-    const auto rgamsq = one/gamsq;
+    const T gamsq = gam*gam;
+    const T rgamsq = one/gamsq;
 
     int flag;
     h[0] = zero;
@@ -118,20 +118,20 @@ int rotmg( T& d1, T& d2, T& a, const T& b, T h[4] )
         a = zero;
     }
     else {
-        auto p2 = d2*b;
+        const T p2 = d2*b;
         if(p2 == zero) {
             flag = -2;
         }
         else {
-            auto p1 = d1*a;
-            auto q2 = p2*b;
-            auto q1 = p1*a;
+            const T p1 = d1*a;
+            const T q2 = p2*b;
+            const T q1 = p1*a;
 
             if( tlapack::abs(q1) > tlapack::abs(q2) ) {
                 flag = zero;
                 h[1] = -b/a;
                 h[2] = p2/p1;
-                auto u = one - h[2]*h[1];
+                const T u = one - h[2]*h[1];
                 if( u > zero ) {
                     d1 /= u;
                     d2 /= u;
@@ -148,8 +148,8 @@ int rotmg( T& d1, T& d2, T& a, const T& b, T h[4] )
                 flag = 1;
                 h[0] = p1/p2;
                 h[3] = a/b;
-                auto u = one + h[0]*h[3];
-                auto stemp = d2/u;
+                const T u = one + h[0]*h[3];
+                const T stemp = d2/u;
                 d2 = d1/u;
                 d1 = stemp;
                 a = b*u;
