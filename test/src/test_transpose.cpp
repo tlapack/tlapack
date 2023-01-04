@@ -39,7 +39,7 @@ TEMPLATE_TEST_CASE("Conjugate Transpose gives correct result", "[util]", TLAPACK
     // Generate a random matrix in A
     for (idx_t j = 0; j < n; ++j)
         for (idx_t i = 0; i < m; ++i)
-            A(i, j) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+            A(i, j) = rand_helper<T>();
 
     INFO("m = " << m << " n = " << n);
     {
@@ -77,7 +77,7 @@ TEMPLATE_TEST_CASE("Transpose gives correct result", "[util]", TLAPACK_TYPES_TO_
     // Generate a random matrix in A
     for (idx_t j = 0; j < n; ++j)
         for (idx_t i = 0; i < m; ++i)
-            A(i, j) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+            A(i, j) = rand_helper<T>();
 
     INFO("m = " << m << " n = " << n);
     {

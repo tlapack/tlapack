@@ -51,7 +51,7 @@ TEMPLATE_TEST_CASE("schur swap gives correct result", "[eigenvalues]", TLAPACK_T
         n2 = GENERATE(1, 2);
     }
     const real_t eps = uroundoff<real_t>();
-    const real_t tol = 1.0e2 * n * eps;
+    const real_t tol = real_t(1.0e2 * n) * eps;
 
     std::vector<T> A_; auto A = new_matrix( A_, n, n );
     std::vector<T> Q_; auto Q = new_matrix( Q_, n, n );

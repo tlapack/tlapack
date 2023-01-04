@@ -69,12 +69,11 @@ inline const int digits()
 template <typename real_t>
 inline constexpr real_t safe_min()
 {
-    const real_t one( 1 );
-    const int fradix = std::numeric_limits<real_t>::radix;
-    const int expm = std::numeric_limits<real_t>::min_exponent;
-    const int expM = std::numeric_limits<real_t>::max_exponent;
+    constexpr int fradix = std::numeric_limits<real_t>::radix;
+    constexpr int expm = std::numeric_limits<real_t>::min_exponent;
+    constexpr int expM = std::numeric_limits<real_t>::max_exponent;
 
-    return max( pow(fradix, expm-one), pow(fradix, one-expM) );
+    return max( pow(fradix, real_t(expm-1)), pow(fradix, real_t(1-expM)) );
 }
 
 /** Safe Maximum such that 1/safe_max() is representable 
@@ -86,12 +85,11 @@ inline constexpr real_t safe_min()
 template <typename real_t>
 inline constexpr real_t safe_max()
 {
-    const real_t one( 1 );
-    const int fradix = std::numeric_limits<real_t>::radix;
-    const int expm = std::numeric_limits<real_t>::min_exponent;
-    const int expM = std::numeric_limits<real_t>::max_exponent;
+    constexpr int fradix = std::numeric_limits<real_t>::radix;
+    constexpr int expm = std::numeric_limits<real_t>::min_exponent;
+    constexpr int expM = std::numeric_limits<real_t>::max_exponent;
 
-    return min( pow(fradix, one-expm), pow(fradix, expM-one) );
+    return min( pow(fradix, real_t(1-expm)), pow(fradix, real_t(expM-1)) );
 }
 
 /** Safe Minimum such its square is representable
@@ -120,10 +118,10 @@ template <typename real_t>
 inline constexpr real_t blue_min()
 {
     const real_t half( 0.5 );
-    const int fradix = std::numeric_limits<real_t>::radix;
-    const int expm   = std::numeric_limits<real_t>::min_exponent;
+    constexpr int fradix = std::numeric_limits<real_t>::radix;
+    constexpr int expm   = std::numeric_limits<real_t>::min_exponent;
 
-    return pow( fradix, ceil( half*(expm-1) ) );
+    return pow( fradix, ceil( half*real_t(expm-1) ) );
 }
 
 /** Blue's max constant B for the sum of squares
@@ -134,11 +132,11 @@ template <typename real_t>
 inline constexpr real_t blue_max()
 {
     const real_t half( 0.5 );
-    const int fradix = std::numeric_limits<real_t>::radix;
-    const int expM   = std::numeric_limits<real_t>::max_exponent;
-    const int t      = digits<real_t>();
+    constexpr int fradix = std::numeric_limits<real_t>::radix;
+    constexpr int expM   = std::numeric_limits<real_t>::max_exponent;
+    const int t          = digits<real_t>();
 
-    return pow( fradix, floor( half*( expM - t + 1 ) ) );
+    return pow( fradix, floor( half*real_t( expM - t + 1 ) ) );
 }
 
 /** Blue's scaling constant for numbers smaller than b
@@ -152,11 +150,11 @@ template <typename real_t>
 inline constexpr real_t blue_scalingMin()
 {
     const real_t half( 0.5 );
-    const int fradix = std::numeric_limits<real_t>::radix;
-    const int expm   = std::numeric_limits<real_t>::min_exponent;
-    const int t      = digits<real_t>();
+    constexpr int fradix = std::numeric_limits<real_t>::radix;
+    constexpr int expm   = std::numeric_limits<real_t>::min_exponent;
+    const int t          = digits<real_t>();
 
-    return pow( fradix, -floor( half*(expm-t) ) );
+    return pow( fradix, -floor( half*real_t(expm-t) ) );
 }
 
 /** Blue's scaling constant for numbers bigger than B
@@ -167,11 +165,11 @@ template <typename real_t>
 inline constexpr real_t blue_scalingMax()
 {
     const real_t half( 0.5 );
-    const int fradix = std::numeric_limits<real_t>::radix;
-    const int expM   = std::numeric_limits<real_t>::max_exponent;
-    const int t      = digits<real_t>();
+    constexpr int fradix = std::numeric_limits<real_t>::radix;
+    constexpr int expM   = std::numeric_limits<real_t>::max_exponent;
+    const int t          = digits<real_t>();
 
-    return pow( fradix, -ceil( half*( expM + t - 1 ) ) );
+    return pow( fradix, -ceil( half*real_t( expM + t - 1 ) ) );
 }
 
 } // namespace tlapack

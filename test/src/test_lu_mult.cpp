@@ -42,7 +42,7 @@ TEMPLATE_TEST_CASE("lu multiplication is backward stable", "[lu check][lu][qrt]"
     if(nx <= n){
 
         const real_t eps = ulp<real_t>();
-        const real_t tol = n * eps;
+        const real_t tol = real_t(n) * eps;
 
         std::vector<T> L_; auto L = new_matrix( L_, n, n );
         std::vector<T> U_; auto U = new_matrix( U_, n, n );
@@ -51,7 +51,7 @@ TEMPLATE_TEST_CASE("lu multiplication is backward stable", "[lu check][lu][qrt]"
         // Generate n-by-n random matrix
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = 0; i < n; ++i)
-                A(i, j) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+                A(i, j) = rand_helper<T>();
 
         lacpy(Uplo::Lower, A, L);
         laset(Uplo::Upper, real_t(0), real_t(1), L);

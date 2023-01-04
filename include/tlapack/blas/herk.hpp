@@ -141,7 +141,7 @@ void herk(
                         sum += conj( A(l,i) ) * A(l,j);
                     C(i,j) = alpha*sum + beta*C(i,j);
                 }
-                real_type<TA> sum = 0;
+                real_type<TA> sum( 0 );
                 for(idx_t l = 0; l < k; ++l)
                     sum += real(A(l,j)) * real(A(l,j))
                          + imag(A(l,j)) * imag(A(l,j));
@@ -156,7 +156,7 @@ void herk(
                         sum += conj( A(l,i) ) * A(l,j);
                     C(i,j) = alpha*sum + beta*C(i,j);
                 }
-                real_type<TA> sum = 0;
+                real_type<TA> sum( 0 );
                 for(idx_t l = 0; l < k; ++l)
                     sum += real(A(l,j)) * real(A(l,j))
                          + imag(A(l,j)) * imag(A(l,j));

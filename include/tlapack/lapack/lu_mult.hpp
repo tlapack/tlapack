@@ -65,7 +65,7 @@ void lu_mult(matrix_t &A, const lu_mult_opts_t<size_type<matrix_t>> &opts = {})
             for (idx_t j2 = n; j2 > 0; --j2)
             {
                 idx_t j = j2 - 1;
-                auto sum = make_scalar<T>(0, 0);
+                T sum( 0 );
                 for (idx_t k = 0; k <= min(i, j); ++k)
                 {
                     if (i == k)

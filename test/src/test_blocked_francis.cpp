@@ -152,8 +152,8 @@ TEMPLATE_TEST_CASE("Multishift QR", "[eigenvalues][multishift_qr]", TLAPACK_TYPE
             for (idx_t i = j + 2; i < n; ++i)
                 H(i, j) = zero;
 
-        const real_type<T> eps = uroundoff<real_type<T>>();
-        const real_type<T> tol = n * 1.0e2 * eps;
+        const real_t eps = uroundoff<real_t>();
+        const real_t tol = real_t(n * 1.0e2) * eps;
 
         std::vector<T> res_; auto res = new_matrix( res_, n, n );
         std::vector<T> work_; auto work = new_matrix( work_, n, n );
@@ -178,7 +178,7 @@ TEMPLATE_TEST_CASE("Multishift QR", "[eigenvalues][multishift_qr]", TLAPACK_TYPE
 
             if (nb == 1)
             {
-                CHECK( abs1( s[i] - H(i,i) ) <= tol * std::max<real_t>(1,abs1(H(i,i))) );
+                CHECK( abs1( s[i] - H(i,i) ) <= tol * std::max(real_t(1),abs1(H(i,i))) );
                 i = i + 1;
             } else {
 
@@ -195,8 +195,8 @@ TEMPLATE_TEST_CASE("Multishift QR", "[eigenvalues][multishift_qr]", TLAPACK_TYPE
                     s1 = s2;
                     s2 = swp;
                 }
-                CHECK( abs1( s[i] - s1 ) <= tol * std::max<real_t>(1,abs1(s1)) );
-                CHECK( abs1( s[i+1] - s2 ) <= tol * std::max<real_t>(1,abs1(s2)) );
+                CHECK( abs1( s[i] - s1 ) <= tol * std::max(real_t(1),abs1(s1)) );
+                CHECK( abs1( s[i+1] - s2 ) <= tol * std::max(real_t(1),abs1(s2)) );
                 i = i + 2;
             }
         }

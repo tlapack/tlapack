@@ -17,6 +17,51 @@
 
 namespace tlapack{
 
+    // Forward declarations
+    template< typename T > auto abs ( const T& x ) -> T;
+    template< typename T > bool isnan( const std::complex<T>& x );
+    template< typename T > bool isinf( const std::complex<T>& x );
+
+    /// Absolute value
+    template<>
+    inline auto abs( const Eigen::half& x ) -> Eigen::half {
+        return Eigen::half_impl::abs( x );
+    }
+
+    inline auto
+    pow( int base, const Eigen::half& exp )
+    {
+        return pow( Eigen::half(base), exp );
+    }
+
+    std::complex<Eigen::half>
+    sqrt( const std::complex<Eigen::half>& z )
+    {
+        const Eigen::half x = real(z);
+        const Eigen::half y = imag(z);
+        const Eigen::half zero(0);
+        const Eigen::half two(2);
+        const Eigen::half half(0.5);
+
+        if( isnan(z) )
+            return std::numeric_limits<Eigen::half>::quiet_NaN();
+        else if( isinf(z) )
+            return std::numeric_limits<Eigen::half>::infinity();
+        else if( x == zero )
+        {
+            Eigen::half t = sqrt(half*abs(y));
+            return std::complex<Eigen::half>(t, (y < zero) ? -t : t);
+        }
+        else
+        {
+            Eigen::half t = sqrt(two*(std::abs(z)+abs(x)));
+            Eigen::half u = half*t;
+            return (x > zero)
+                ? std::complex<Eigen::half>( u, y/t )
+                : std::complex<Eigen::half>( abs(y)/t, (y < zero) ? -u : u );
+        }
+    }
+
     // -----------------------------------------------------------------------------
     // Helpers
 
@@ -591,7 +636,7 @@ namespace tlapack{
                 #ifndef TLAPACK_MDSPAN_HH
                     #define TLAPACK_USE_PREFERRED_MATRIX_TYPE(T) !is_legacy_type<T>
                 #else
-                    #define TLAPACK_USE_PREFERRED_MATRIX_TYPE(T) !is_legacy_type<T> && !is_mdspan_type<T>
+                    #define TLAPACK_USE_PREFERRED_MATRIX_TYPE(T) (!is_legacy_type<T> && !is_mdspan_type<T>)
                 #endif
             #endif
 

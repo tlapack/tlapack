@@ -43,7 +43,7 @@ TEMPLATE_TEST_CASE("TRTRI is stable", "[trtri]", TLAPACK_TYPES_TO_TEST)
     INFO("n = " << n);
 
     const real_t eps = ulp<real_t>();
-    const real_t tol = n * eps;
+    const real_t tol = real_t(n) * eps;
 
     std::vector<T> A_; auto A = new_matrix( A_, n, n );
     std::vector<T> C_; auto C = new_matrix( C_, n, n );
@@ -55,9 +55,9 @@ TEMPLATE_TEST_CASE("TRTRI is stable", "[trtri]", TLAPACK_TYPES_TO_TEST)
             A(i, j) = rand_helper<T>();
 
         if( diag == Diag::NonUnit )
-            A(j, j) += tlapack::make_scalar<T>(n, 0);
+            A(j, j) += real_t(n);
         else
-            A(j, j) = T(1); 
+            A(j, j) = real_t(1); 
     }
 
     lacpy(uplo, A, C);

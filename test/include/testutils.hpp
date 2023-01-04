@@ -56,30 +56,30 @@ namespace tlapack
     template <typename T, enable_if_t<!is_complex<T>::value, bool> = true>
     T rand_helper(rand_generator &gen)
     {
-        return static_cast<T>(gen()) / static_cast<T>(gen.max());
+        return T(static_cast<float>(gen()) / static_cast<float>(gen.max()));
     }
 
     template <typename T, enable_if_t<is_complex<T>::value, bool> = true>
     T rand_helper(rand_generator &gen)
     {
         using real_t = real_type<T>;
-        real_t r1 = static_cast<real_t>(gen()) / static_cast<real_t>(gen.max());
-        real_t r2 = static_cast<real_t>(gen()) / static_cast<real_t>(gen.max());
+        real_t r1( static_cast<float>(gen()) / static_cast<float>(gen.max()) );
+        real_t r2( static_cast<float>(gen()) / static_cast<float>(gen.max()) );
         return complex_type<real_t>(r1, r2);
     }
 
     template <typename T, enable_if_t<!is_complex<T>::value, bool> = true>
     T rand_helper()
     {
-        return static_cast<T>(rand()) / static_cast<T>(RAND_MAX);
+        return T( static_cast<float>(rand()) / static_cast<float>(RAND_MAX) );
     }
 
     template <typename T, enable_if_t<is_complex<T>::value, bool> = true>
     T rand_helper()
     {
         using real_t = real_type<T>;
-        real_t r1 = static_cast<real_t>(rand()) / static_cast<real_t>(RAND_MAX);
-        real_t r2 = static_cast<real_t>(rand()) / static_cast<real_t>(RAND_MAX);
+        real_t r1( static_cast<float>(rand()) / static_cast<float>(RAND_MAX) );
+        real_t r2( static_cast<float>(rand()) / static_cast<float>(RAND_MAX) );
         return complex_type<real_t>(r1, r2);
     }
 

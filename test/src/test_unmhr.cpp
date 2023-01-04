@@ -55,7 +55,7 @@ TEMPLATE_TEST_CASE("Result of unmhr matches result from unghr", "[eigenvalues][h
     const T zero(0);
     const T one(1);
     const real_type<T> eps = uroundoff<real_type<T>>();
-    const real_type<T> tol = n * 1.0e2 * eps;
+    const real_type<T> tol = real_t(n * 1.0e2) * eps;
 
     // Define the matrices
     std::vector<T> H_; auto H = new_matrix( H_, n, n );

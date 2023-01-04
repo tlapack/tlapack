@@ -38,8 +38,8 @@ void rotg(
     T& c, T& s )
 {
     // Constants
-    const T one  = 1;
-    const T zero = 0;
+    const T one( 1 );
+    const T zero( 0 );
 
     // Scaling constants
     const T safmin = safe_min<T>();
@@ -63,9 +63,7 @@ void rotg(
     }
     else {
         T scl = min( safmax, max(safmin, anorm, bnorm) );
-        T sigma = (anorm > bnorm)
-            ? sgn(a)
-            : sgn(b);
+        T sigma( (anorm > bnorm) ? sgn(a) : sgn(b) );
         T r = sigma * scl * sqrt( (a/scl) * (a/scl) + (b/scl) * (b/scl) );
         c = a / r;
         s = b / r;

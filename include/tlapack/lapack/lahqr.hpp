@@ -91,8 +91,8 @@ namespace tlapack
         const real_t eps = ulp<real_t>();
         const real_t small_num = safe_min<real_t>() / ulp<real_t>();
         const idx_t non_convergence_limit = 10;
-        const real_t dat1 = 3.0 / 4.0;
-        const real_t dat2 = -0.4375;
+        const real_t dat1( 0.75f );
+        const real_t dat2( -0.4375f );
 
         const idx_t n = ncols(A);
         const idx_t nh = ihi - ilo;

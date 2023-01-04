@@ -106,9 +106,9 @@ namespace tlapack
             for (idx_t j = 0; j < n; ++j)
             {
                 for (idx_t i = t; i < k; ++i)
-                    Q(i, j) = make_scalar<T>(0, 0);
+                    Q(i, j) = real_t(0);
                 if (j < k && j > t - 1)
-                    Q(j, j) = make_scalar<T>(1, 0);
+                    Q(j, j) = real_t(1);
             }
         }
 
@@ -142,7 +142,7 @@ namespace tlapack
 
             // Set Q(j,0:j-1) to zero
             for (idx_t l = 0; l < j; l++)
-                Q(j, l) = make_scalar<T>(0, 0);
+                Q(j, l) = real_t(0);
         }
 
         return 0;

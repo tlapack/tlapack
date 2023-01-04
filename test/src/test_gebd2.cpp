@@ -50,7 +50,7 @@ TEMPLATE_TEST_CASE("bidiagonal reduction is backward stable", "[bidiagonal][svd]
     {
 
         const real_t eps = ulp<real_t>();
-        const real_t tol = max(m, n) * eps;
+        const real_t tol = real_t(max(m, n)) * eps;
 
         std::vector<T> A_; auto A = new_matrix( A_, m, n );
         std::vector<T> A_copy_; auto A_copy = new_matrix( A_copy_, m, n );
@@ -73,7 +73,7 @@ TEMPLATE_TEST_CASE("bidiagonal reduction is backward stable", "[bidiagonal][svd]
         // Generate random m-by-n matrix
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = 0; i < m; ++i)
-                A(i, j) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+                A(i, j) = rand_helper<T>();
 
         lacpy(Uplo::General, A, A_copy);
 

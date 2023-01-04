@@ -36,7 +36,8 @@
             , \
             Eigen::MatrixXf, \
             Eigen::MatrixXd, \
-            (Eigen::Matrix<float,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor>)
+            (Eigen::Matrix<float,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor>), \
+            (Eigen::Matrix<Eigen::half,Eigen::Dynamic,Eigen::Dynamic>)
     #else
         #define TLAPACK_EIGEN_REAL_TYPES_TO_TEST
     #endif

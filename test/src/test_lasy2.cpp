@@ -35,7 +35,7 @@ TEMPLATE_TEST_CASE("sylvester solver gives correct result", "[sylvester]", TLAPA
     // Once 1x2 solver is finished, generate n2 independantly
     idx_t n2 = n1;
     const real_t eps = uroundoff<real_t>();
-    const real_t tol = 1.0e2 * eps;
+    const real_t tol = real_t(1.0e2f) * eps;
 
     std::vector<T> TL_; auto TL = new_matrix( TL_, n1, n1 );
     std::vector<T> TR_; auto TR = new_matrix( TR_, n2, n2 );
@@ -58,7 +58,7 @@ TEMPLATE_TEST_CASE("sylvester solver gives correct result", "[sylvester]", TLAPA
     Op trans_l = Op::NoTrans;
     Op trans_r = Op::NoTrans;
 
-    int sign = 1;
+    real_t sign( 1 );
 
     // Calculate op(TL)*X + ISGN*X*op(TR)
     gemm(trans_l, Op::NoTrans, one, TL, X_exact, B);
@@ -68,7 +68,7 @@ TEMPLATE_TEST_CASE("sylvester solver gives correct result", "[sylvester]", TLAPA
     INFO("n1 = " << n1 << " n2 =" << n2);
     {
         // Solve sylvester equation
-        T scale, xnorm;
+        T scale(0), xnorm;
         lasy2(Op::NoTrans, Op::NoTrans, 1, TL, TR, B, scale, X, xnorm);
 
         // Check that X_exact == X

@@ -34,7 +34,7 @@ void check_hess_reduction(size_type<matrix_t> ilo, size_type<matrix_t> ihi, matr
     idx_t n = ncols(A);
 
     const real_type<T> eps = uroundoff<real_type<T>>();
-    const real_type<T> tol = n * 1.0e2 * eps;
+    const real_type<T> tol = real_type<T>(n * 1.0e2) * eps;
 
     std::vector<T> Q_; auto Q = new_matrix( Q_, n, n );
     std::vector<T> res_; auto res = new_matrix( res_, n, n );
@@ -47,7 +47,7 @@ void check_hess_reduction(size_type<matrix_t> ilo, size_type<matrix_t> ihi, matr
     // Remove junk from lower half of H
     for (idx_t j = 0; j < n; ++j)
         for (idx_t i = j + 2; i < n; ++i)
-            H(i, j) = 0.0;
+            H(i, j) = T(0);
 
     // Calculate residuals
     auto orth_res_norm = check_orthogonality(Q, res);
