@@ -20,10 +20,14 @@ if( TLAPACK_TEST_MDSPAN )
   add_compile_definitions( TLAPACK_TEST_MDSPAN )
 endif()
 
-# if( TEST_MPFR )
-#   include_directories( ${MPFR_INCLUDES} ${GMP_INCLUDES} )
-#   link_libraries( ${MPFR_LIBRARIES} ${GMP_LIBRARIES} )
-# endif()
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
+if( TLAPACK_TEST_MPFR )
+  find_package( MPFR 2.3.1 REQUIRED )
+  find_package( GMP  4.2.1 REQUIRED )
+  include_directories( ${MPFR_INCLUDES} ${GMP_INCLUDES} )
+  link_libraries( ${MPFR_LIBRARIES} ${GMP_LIBRARIES} )
+  add_compile_definitions( TLAPACK_TEST_MPFR )
+endif()
 
 # Set the directory where to put testers
 set( TLAPACK_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}" )

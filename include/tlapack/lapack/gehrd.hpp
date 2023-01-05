@@ -132,6 +132,7 @@ namespace tlapack
 
         // constants
         const real_t one(1);
+        const type_t<work_t> zero(0);
         const idx_t n = ncols(A);
 
         // Blocksize
@@ -167,6 +168,7 @@ namespace tlapack
         // Matrix Y
         Workspace workMatrixT;
         auto Y = new_matrix( work, n, nb, workMatrixT );
+        laset( dense, zero, zero, Y );
 
         // Matrix T
         auto matrixT = new_matrix( workMatrixT, nb, nb );

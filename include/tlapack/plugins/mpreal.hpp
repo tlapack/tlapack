@@ -35,7 +35,6 @@ namespace tlapack {
     ///
     /// Also, std::abs< mpfr::mpreal > may not propagate Infs.
     ///
-    template<>
     inline mpfr::mpreal abs( const std::complex<mpfr::mpreal>& x ) {
         if( isnan(x) )
             return std::numeric_limits< mpfr::mpreal >::quiet_NaN();
