@@ -472,7 +472,7 @@ jobs:
       lapack_DIR: ${{github.workspace}}/lapack
       LD_LIBRARY_PATH: "/usr/local/lib/"
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
     
     - name: Checkout <T>LAPACK
