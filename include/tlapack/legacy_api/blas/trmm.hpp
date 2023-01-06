@@ -45,7 +45,7 @@ namespace tlapack {
  *     the opposite triangle being assumed to be zero:
  *     - Uplo::Lower: A is lower triangular.
  *     - Uplo::Upper: A is upper triangular.
- *     - Uplo::General is illegal (see @ref gemm instead).
+ *     - Uplo::General is illegal (see @ref gemm() instead).
  *
  * @param[in] trans
  *     The form of $op(A)$:
@@ -84,7 +84,7 @@ namespace tlapack {
  * @param[in] ldb
  *     Leading dimension of B. ldb >= max(1, m) [RowMajor: ldb >= max(1, n)].
  *
- * @ingroup trmm
+ * @ingroup legacy_blas
  */
 template< typename TA, typename TB >
 void trmm(

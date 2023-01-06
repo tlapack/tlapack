@@ -32,7 +32,7 @@ namespace tlapack {
  * 
  * @see geqr2( matrix_t& A, vector_t &tau, vector_t &work )
  * 
- * @ingroup geqrf
+ * @ingroup legacy_lapack
  */
 template< typename TA, typename Ttau >
 inline int geqr2(

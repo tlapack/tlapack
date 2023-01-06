@@ -65,7 +65,7 @@ void ung2r_worksize(
  * 
  * @return 0 if success 
  * 
- * @ingroup geqrf
+ * @ingroup computational
  */
 template< class matrix_t, class vector_t >
 int ung2r(

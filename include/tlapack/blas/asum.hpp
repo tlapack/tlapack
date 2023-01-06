@@ -12,14 +12,13 @@
 
 namespace tlapack {
 
-/**
- * @return 1-norm of vector,
- *     $|| Re(x) ||_1 + || Im(x) ||_1
- *         := \sum_{i=0}^{n-1} |Re(x_i)| + |Im(x_i)|$.
+/** 
+ * Vector 1-norm:
+ *      $\sum_{i=0}^{n-1} |Re(x_i)| + |Im(x_i)|$.
  * 
  * @param[in] x     A n-element vector.
  *
- * @ingroup asum
+ * @ingroup blas1
  */
 template< class vector_t,
     disable_if_allow_optblas_t< vector_t > = 0

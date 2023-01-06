@@ -89,7 +89,7 @@ namespace tlapack {
  * @param[in] ldb
  *     Leading dimension of B. ldb >= max(1, m) [RowMajor: ldb >= max(1, n)].
  *
- * @ingroup trsm
+ * @ingroup legacy_blas
  */
 template< typename TA, typename TB >
 void trsm(

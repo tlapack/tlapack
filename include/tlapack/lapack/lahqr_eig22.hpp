@@ -29,7 +29,7 @@ namespace tlapack
      * @param[out] s2
      *      s1 and s2 are the eigenvalues of A
      *
-     * @ingroup geev
+     * @ingroup auxiliary
      */
     template < typename T >
     void lahqr_eig22(T a00, T a01, T a10, T a11, complex_type<T> &s1, complex_type<T> &s2)

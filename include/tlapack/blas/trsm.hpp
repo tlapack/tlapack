@@ -61,7 +61,7 @@ namespace tlapack {
  *      On entry, the m-by-n matrix B.
  *      On exit,  the m-by-n matrix X.
  *
- * @ingroup trsm
+ * @ingroup blas3
  */
 template< class matrixA_t, class matrixB_t, class alpha_t,
     class T = type_t<matrixB_t>,

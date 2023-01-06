@@ -33,7 +33,7 @@ namespace tlapack {
  *     Imaginary parts of the diagonal elements need not be set,
  *     are assumed to be zero on entry, and are set to zero on exit.
  *
- * @ingroup her2
+ * @ingroup blas2
  */
 template<
     class matrixA_t,

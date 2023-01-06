@@ -30,7 +30,7 @@ namespace tlapack {
  * @param[in] incx
  *     Stride between elements of x. incx > 0.
  *
- * @ingroup asum
+ * @ingroup legacy_blas
  */
 template< typename T >
 inline

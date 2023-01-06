@@ -27,7 +27,7 @@ namespace tlapack {
  * \]
  * where b is the machine base, and p is the number of digits in the mantissa.
  * 
- * @ingroup utils
+ * @ingroup constants
  */
 template <typename real_t>
 inline constexpr real_t ulp()
@@ -46,7 +46,7 @@ inline constexpr real_t ulp()
  * 
  * @see https://people.eecs.berkeley.edu/~demmel/cs267/lecture21/lecture21.html
  * 
- * @ingroup utils
+ * @ingroup constants
  */
 template <typename real_t>
 inline constexpr real_t uroundoff()
@@ -55,7 +55,7 @@ inline constexpr real_t uroundoff()
 }
 
 /** Digits
- * @ingroup utils
+ * @ingroup constants
  */
 template <typename real_t>
 inline const int digits()
@@ -64,7 +64,7 @@ inline const int digits()
 }
 
 /** Safe Minimum such that 1/safe_min() is representable
- * @ingroup utils
+ * @ingroup constants
  */
 template <typename real_t>
 inline constexpr real_t safe_min()
@@ -80,7 +80,7 @@ inline constexpr real_t safe_min()
  *
  * safe_max() := 1/SAFMIN
  * 
- * @ingroup utils
+ * @ingroup constants
  */
 template <typename real_t>
 inline constexpr real_t safe_max()
@@ -93,7 +93,7 @@ inline constexpr real_t safe_max()
 }
 
 /** Safe Minimum such its square is representable
- * @ingroup utils
+ * @ingroup constants
  */
 template <typename real_t>
 inline constexpr real_t root_min()
@@ -102,7 +102,7 @@ inline constexpr real_t root_min()
 }
 
 /** Safe Maximum such its square is representable
- * @ingroup utils
+ * @ingroup constants
  */
 template <typename real_t>
 inline constexpr real_t root_max()
@@ -112,7 +112,7 @@ inline constexpr real_t root_max()
 
 /** Blue's min constant b for the sum of squares
  * @see https://doi.org/10.1145/355769.355771
- * @ingroup utils
+ * @ingroup constants
  */
 template <typename real_t>
 inline constexpr real_t blue_min()
@@ -126,7 +126,7 @@ inline constexpr real_t blue_min()
 
 /** Blue's max constant B for the sum of squares
  * @see https://doi.org/10.1145/355769.355771
- * @ingroup utils
+ * @ingroup constants
  */
 template <typename real_t>
 inline constexpr real_t blue_max()
@@ -144,7 +144,7 @@ inline constexpr real_t blue_max()
  * @details Modification introduced in @see https://doi.org/10.1145/3061665
  *          to scale denormalized numbers correctly.
  * 
- * @ingroup utils
+ * @ingroup constants
  */
 template <typename real_t>
 inline constexpr real_t blue_scalingMin()
@@ -159,7 +159,7 @@ inline constexpr real_t blue_scalingMin()
 
 /** Blue's scaling constant for numbers bigger than B
  * @see https://doi.org/10.1145/355769.355771
- * @ingroup utils
+ * @ingroup constants
  */
 template <typename real_t>
 inline constexpr real_t blue_scalingMax()

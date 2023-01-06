@@ -26,7 +26,7 @@ namespace tlapack {
  *      On entry, subdiagonal of A contains L(lower triangular and unital) and diagonal and superdiagonal part of A contains U(upper triangular).
  *      On exit, A is overwritten by L*U
  * 
- * @ingroup group_solve
+ * @ingroup auxiliary
  */
 template< class matrix_t>
 int ul_mult( matrix_t& A){

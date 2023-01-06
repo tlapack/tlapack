@@ -33,9 +33,9 @@ namespace tlapack {
  * 4. the Index of the infinity-norm of $x$, $|| x ||_{inf}$,
  *     $\arg\max_{i=0}^{n-1} \left(|Re(x_i)| + |Im(x_i)|\right)$.
  * 
- * @see iamax( const vector_t& x )
+ * @see iamax( const vector_t& x, const ec_opts_t& opts = {} )
  *
- * @ingroup iamax
+ * @ingroup legacy_blas
  */
 template< typename T >
 idx_t iamax( idx_t n, T const *x, int_t incx )

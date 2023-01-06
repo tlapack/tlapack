@@ -42,7 +42,7 @@ namespace tlapack {
  * @param[in] beta Scalar.
  * @param[in,out] C A m-by-n matrix.
  * 
- * @ingroup gemm
+ * @ingroup blas3
  */
 template<
     class matrixA_t,
@@ -226,7 +226,7 @@ void gemm(
  * @param[in] B $op(B)$ is an k-by-n matrix.
  * @param[out] C A m-by-n matrix.
  * 
- * @ingroup gemm
+ * @ingroup blas3
  */
 template<
     class matrixA_t,
@@ -269,7 +269,7 @@ void gemm(
         const beta_t& beta,
         matrixC_t& C )
     * 
-    * @ingroup gemm
+    * @ingroup blas3
     */
     template<
         class matrixA_t,
@@ -335,7 +335,7 @@ void gemm(
         const matrixB_t& B,
         matrixC_t& C )
     * 
-    * @ingroup gemm
+    * @ingroup blas3
     */
     template<
         class matrixA_t,

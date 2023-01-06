@@ -60,7 +60,7 @@ namespace tlapack {
      *      - @c opts.work is used if whenever it has sufficient size.
      *        Check the correct variant to obtain details.
      *      
-     * @ingroup group_solve
+     * @ingroup computational
      */
     template< class matrix_t, class vector_t >
     int getri( matrix_t& A, const vector_t &Piv, const getri_opts_t& opts = {} )

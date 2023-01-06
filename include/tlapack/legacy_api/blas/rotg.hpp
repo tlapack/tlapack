@@ -43,7 +43,7 @@ namespace tlapack {
  * Anderson E (2017) Algorithm 978: Safe scaling in the level 1 BLAS.
  * ACM Trans Math Softw 44:. https://doi.org/10.1145/3061665
  *
- * @ingroup rotg
+ * @ingroup legacy_blas
  */
 template <typename T>
 inline void

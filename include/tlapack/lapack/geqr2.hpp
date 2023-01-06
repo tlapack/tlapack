@@ -73,7 +73,7 @@ void geqr2_worksize(
  *      - @c opts.work is used if whenever it has sufficient size.
  *        The sufficient size can be obtained through a workspace query.
  * 
- * @ingroup geqrf
+ * @ingroup computational
  */
 template< class matrix_t, class vector_t >
 int geqr2(

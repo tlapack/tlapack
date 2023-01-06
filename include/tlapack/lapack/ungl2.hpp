@@ -68,7 +68,7 @@ namespace tlapack
      *      @c opts.work is used if whenever it has sufficient size.
      *      The sufficient size can be obtained through a workspace query.
      *
-     * @ingroup ungl2
+     * @ingroup computational
      */
     template <typename matrix_t, class vector_t>
     int ungl2(matrix_t &Q, const vector_t &tauw, const workspace_opts_t<>& opts = {})

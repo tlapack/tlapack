@@ -33,7 +33,7 @@ namespace tlapack {
  *          U is stored in the upper triangle of A.
  *      On exit, inverse of A is overwritten on A.
  * 
- * @ingroup group_solve
+ * @ingroup computational
  */
 template< class matrix_t >
 int getri_uili( matrix_t& A )

@@ -192,6 +192,8 @@ namespace tlapack {
          * @brief Functor for data Creation
          * 
          * This is a boilerplate. It must be specialized for each class
+         * 
+         * @ingroup abstract_matrix
          */
         template< class matrix_t, class = int > struct CreateImpl
         {
@@ -321,7 +323,7 @@ namespace tlapack {
     constexpr Layout layout = internal::LayoutImpl<array_t,int>::layout;
 
     /**
-     * @brief Implements the options for data creation in <T>LAPACK
+     * @brief Implements the options for data creation
      * 
      * Usage:
      * @code{.cpp}
@@ -349,6 +351,8 @@ namespace tlapack {
      *  tlapack::alloc_workspace( C_container, m*n*sizeof(T) ),
      *  m, n, W ); // W receives the updated workspace, i.e., without the space taken by C
      * @endcode
+     * 
+     * @ingroup abstract_matrix
      */
     template< class T > using Create = internal::CreateImpl<T,int>;
 

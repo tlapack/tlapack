@@ -45,7 +45,7 @@ namespace tlapack {
  *                 If side='R' & trans='N':  C <- C * Q
  * @param ldc The column length the matrix C. ldC>=m.
  * 
- * @ingroup geqrf
+ * @ingroup legacy_lapack
  */
 template< class side_t, class trans_t, typename TA, typename TC>
 inline int unm2r(

@@ -27,7 +27,7 @@ namespace tlapack {
  *
  * @param[in] x A n-element vector.
  *
- * @ingroup nrm2
+ * @ingroup blas1
  */
 template< class vector_t,
     disable_if_allow_optblas_t< vector_t > = 0

@@ -41,7 +41,7 @@ namespace tlapack {
  * @param A symmetric matrix size lda-by-n.
  * @param lda Leading dimension of matrix A.  ldA >= m
  * 
- * @ingroup auxiliary
+ * @ingroup legacy_lapack
 **/
 template <typename TA>
 real_type<TA> lantr(

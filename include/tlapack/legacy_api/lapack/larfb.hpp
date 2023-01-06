@@ -108,7 +108,7 @@ namespace tlapack {
  *         (     1 v3 )
  *         (        1 )
  * 
- * @ingroup auxiliary
+ * @ingroup legacy_lapack
  */
 
 template <class side_t, class trans_t, class direction_t, class storeV_t,

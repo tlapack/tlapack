@@ -144,7 +144,7 @@ namespace tlapack
      *          @c opts.n_shifts_total
      *        are updated by the internal call to multishift_qr.
      *
-     * @ingroup geev
+     * @ingroup computational
      */
     template <
         class matrix_t,

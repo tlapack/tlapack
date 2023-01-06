@@ -72,7 +72,7 @@ void laset(
  *
  * @see laset( Uplo, idx_t, idx_t, TA, TA, TA*, idx_t )
  * 
- * @ingroup auxiliary
+ * @ingroup legacy_lapack
  */
 template< typename TA >
 void inline laset(

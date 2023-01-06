@@ -44,7 +44,7 @@ namespace tlapack
      * @param[out] sn scalar.
      *       Sine factor of the rotation
      *
-     * @ingroup geev
+     * @ingroup auxiliary
      */
     template <
         typename T,

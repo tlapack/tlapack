@@ -98,7 +98,7 @@ namespace tlapack
      *      - @c opts.work is used if whenever it has sufficient size.
      *        The sufficient size can be obtained through a workspace query.
      *
-     * @ingroup gehrd
+     * @ingroup computational
      */
     template < class matrix_t, class vector_t >
     int gehrd(

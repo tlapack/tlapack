@@ -59,7 +59,7 @@ namespace tlapack {
  *      h = { h_{11}, h_{21}, h_{12}, h_{22} }.
  * \]
  *
- * @ingroup rotm
+ * @ingroup blas1
  */
 template<
     int flag,

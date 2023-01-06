@@ -18,7 +18,7 @@ namespace tlapack {
  * @param[in] alpha Scalar.
  * @param[in,out] x A n-element vector.
  *
- * @ingroup scal
+ * @ingroup blas1
  */
 template< class vector_t, class alpha_t,
     class T = type_t<vector_t>,

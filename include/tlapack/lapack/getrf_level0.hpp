@@ -47,7 +47,7 @@ namespace tlapack {
      *      3. below the diagonal of A will be copied to L
      *      4. On and above the diagonal of A will be copied to U
      *
-     * @ingroup group_solve
+     * @ingroup computational
      */
     template< class matrix_t , class vector_t >
     int getrf_level0( matrix_t& A, vector_t &Piv)

@@ -38,7 +38,7 @@ struct lu_mult_opts_t
  *      - @c opts.work is used if whenever it has sufficient size.
  *        The sufficient size can be obtained through a workspace query.
  * 
- * @ingroup util
+ * @ingroup auxiliary
  */
 template <class matrix_t>
 void lu_mult(matrix_t &A, const lu_mult_opts_t<size_type<matrix_t>> &opts = {})

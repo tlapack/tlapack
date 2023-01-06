@@ -48,7 +48,7 @@ namespace tlapack {
  * 
  * @return = 0: successful exit.
  *
- * @ingroup posv_computational
+ * @ingroup computational
  */
 template< class uplo_t, class matrixA_t, class matrixB_t >
 int potrs( uplo_t uplo, const matrixA_t& A, matrixB_t& B )

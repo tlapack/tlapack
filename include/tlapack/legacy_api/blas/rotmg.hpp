@@ -95,7 +95,7 @@ namespace tlapack {
  * http://dx.doi.org/10.1093/imamat/13.2.215
  * (Note the notation swaps u <=> x, v <=> y, d_i -> l_i.)
  *
- * @ingroup rotmg
+ * @ingroup legacy_blas
  */
 template< typename real_t >
 void rotmg(

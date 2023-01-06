@@ -53,9 +53,7 @@ namespace tlapack {
         // Forward declaration
         template< typename real_t > const int digits();
 
-        /** Digits for the mpfr::mpreal datatype
-         * @ingroup utils
-         */
+        /// Specialization for the mpfr::mpreal datatype
         template<>
         inline const int digits<mpfr::mpreal>() {
             return std::numeric_limits< mpfr::mpreal >::digits(); 

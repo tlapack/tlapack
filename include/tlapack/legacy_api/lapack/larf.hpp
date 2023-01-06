@@ -19,7 +19,7 @@ namespace tlapack {
  * 
  * @see larf( Side side, idx_t m, idx_t n, TV const *v, int_t incv, scalar_type< TV, TC , TW > tau, TC *C, idx_t ldC, TW *work )
  * 
- * @ingroup auxiliary
+ * @ingroup legacy_lapack
  */
 template< class side_t, typename TV, typename TC >
 inline void larf(

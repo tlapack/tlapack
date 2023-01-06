@@ -29,7 +29,7 @@ namespace tlapack {
      * 
      * @param A Matrix.
      * 
-     * @ingroup utils
+     * @ingroup abstract_matrix
      */
     template< class idx_t, class matrix_t >
     inline constexpr idx_t
@@ -43,7 +43,7 @@ namespace tlapack {
      * 
      * @param A Matrix.
      * 
-     * @ingroup utils
+     * @ingroup abstract_matrix
      */
     template< class idx_t, class matrix_t >
     inline constexpr idx_t
@@ -67,8 +67,6 @@ namespace tlapack {
      *      band_t.
      * 
      * @param A Matrix.
-     * 
-     * @ingroup utils
      */
     template< class access_t, class matrix_t >
     inline constexpr access_t
@@ -93,8 +91,6 @@ namespace tlapack {
      *      band_t.
      * 
      * @param A Matrix.
-     * 
-     * @ingroup utils
      */
     template< class access_t, class matrix_t >
     inline constexpr access_t
@@ -111,7 +107,7 @@ namespace tlapack {
      * 
      * @param v Vector.
      * 
-     * @ingroup utils
+     * @ingroup abstract_matrix
      */
     template< class idx_t, class vector_t >
     inline constexpr idx_t
@@ -137,7 +133,7 @@ namespace tlapack {
      *      j   is the index of the first column, and
      *      l-1 is the index of the last column.
      * 
-     * @ingroup utils
+     * @ingroup abstract_matrix
      */
     template< class matrix_t, class pair_t >
     inline constexpr auto
@@ -159,7 +155,7 @@ namespace tlapack {
      *      j   is the index of the first column, and
      *      l-1 is the index of the last column.
      * 
-     * @ingroup utils
+     * @ingroup abstract_matrix
      */
     template< class matrix_t, class idx_t, class pair_t >
     inline constexpr auto
@@ -185,7 +181,7 @@ namespace tlapack {
      *      k-1 is the index of the last row.
      * @param colIdx    Column index. Default value is zero.
      * 
-     * @ingroup utils
+     * @ingroup abstract_matrix
      */
     template< class matrix_t, class pair_t, class idx_t >
     inline constexpr auto
@@ -205,7 +201,7 @@ namespace tlapack {
      *      i   is the index of the first row, and
      *      k-1 is the index of the last row.
      * 
-     * @ingroup utils
+     * @ingroup abstract_matrix
      */
     template< class matrix_t, class pair_t >
     inline constexpr auto
@@ -225,7 +221,7 @@ namespace tlapack {
      *      j   is the index of the first column, and
      *      l-1 is the index of the last column.
      * 
-     * @ingroup utils
+     * @ingroup abstract_matrix
      */
     template< class matrix_t, class pair_t >
     inline constexpr auto
@@ -242,7 +238,7 @@ namespace tlapack {
      * @param A         Matrix.
      * @param rowIdx    Row index.
      * 
-     * @ingroup utils
+     * @ingroup abstract_matrix
      */
     template< class matrix_t, class idx_t >
     inline constexpr auto
@@ -259,7 +255,7 @@ namespace tlapack {
      * @param A         Matrix.
      * @param colIdx    Column index.
      * 
-     * @ingroup utils
+     * @ingroup abstract_matrix
      */
     template< class matrix_t, class idx_t >
     inline constexpr auto
@@ -282,7 +278,7 @@ namespace tlapack {
      *      - diagIdx > 0: superdiagonal starting on A( 0, diagIdx ).
      *          Vector of size min( m+diagIdx, n ) - diagIdx.
      * 
-     * @ingroup utils
+     * @ingroup abstract_matrix
      */
     template< class matrix_t, class idx_t >
     inline constexpr auto
@@ -305,19 +301,11 @@ namespace tlapack {
      *      i   is the index of the first row, and
      *      k-1 is the index of the last row.
      * 
-     * @ingroup utils
+     * @ingroup abstract_matrix
      */
     template< class vector_t, class pair_t >
     inline constexpr auto
     slice( const vector_t& v, pair_t&& rows );
-
-    // -------------------------------------------------------------------------
-    // Create new data based on allocated memory
-
-    /**
-     * @see Create class in arrayTraits.hpp
-     */
-    template< class matrix_t > class Create;
 
 } // namespace tlapack
 

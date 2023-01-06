@@ -52,7 +52,7 @@ namespace tlapack {
  * @param[in,out] A Pointer to the matrix A [in/out].
  * @param[in] lda The column length of the matrix A.
  * 
- * @ingroup auxiliary
+ * @ingroup legacy_lapack
  */
 template< class matrixType_t, typename T >
 int lascl(

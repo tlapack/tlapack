@@ -33,7 +33,7 @@ namespace tlapack
      * 
      * @param[in] opts Options.
      *
-     * @ingroup util
+     * @ingroup auxiliary
      */
     template <class matrixA_t, class matrixB_t>
     void conjtranspose(matrixA_t &A, matrixB_t &B, const transpose_opts_t<size_type<matrixA_t>> &opts = {} )
@@ -90,7 +90,7 @@ namespace tlapack
      * 
      * @param[in] opts Options.
      *
-     * @ingroup util
+     * @ingroup auxiliary
      */
     template <class matrixA_t, class matrixB_t>
     void transpose(matrixA_t &A, matrixB_t &B, const transpose_opts_t<size_type<matrixA_t>> &opts = {} )

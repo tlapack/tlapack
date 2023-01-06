@@ -50,7 +50,7 @@ namespace tlapack {
  *      On entry, the n-element vector b.
  *      On exit,  the n-element vector x.
  *
- * @ingroup trsv
+ * @ingroup blas2
  */
 template< class matrixA_t, class vectorX_t,
     class T = type_t<vectorX_t>,

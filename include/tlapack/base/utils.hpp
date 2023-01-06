@@ -78,8 +78,6 @@ real_type<T> imag( const T& x ) { return real_type<T>(0); }
  * @return x
  * 
  * @note C++11 to C++17 returns complex<real_t> instead of real_t. @see std::conj
- * 
- * @ingroup utils
  */
 template< typename real_t, enable_if_t<!is_complex<real_t>::value,int> = 0 >
 inline constexpr
@@ -689,8 +687,6 @@ using disable_if_allow_optblas_t = enable_if_t<(
  * 
  * @param a Access type.
  * @param p Access policy.
- * 
- * @ingroup utils
  */
 template< class access_t, class accessPolicy_t >
 inline constexpr
@@ -729,8 +725,6 @@ bool access_granted( access_t a, accessPolicy_t p )
  * Specific implementation for band_t.
  * 
  * @see bool access_granted( access_t a, accessPolicy_t p )
- * 
- * @ingroup utils
  */
 template< class accessPolicy_t >
 inline constexpr
@@ -751,8 +745,6 @@ bool access_granted( band_t a, accessPolicy_t p )
  * Specific implementation for band_t.
  * 
  * @see bool access_granted( access_t a, accessPolicy_t p )
- * 
- * @ingroup utils
  */
 template< class access_t >
 inline constexpr
@@ -767,8 +759,6 @@ bool access_granted( access_t a, band_t p )
  * Specific implementation for band_t.
  * 
  * @see bool access_granted( access_t a, accessPolicy_t p )
- * 
- * @ingroup utils
  */
 inline constexpr
 bool access_granted( band_t a, band_t p )
@@ -781,8 +771,6 @@ bool access_granted( band_t a, band_t p )
  * @return ! access_granted( a, p ).
  * 
  * @see bool access_granted( access_t a, accessPolicy_t p )
- * 
- * @ingroup utils
  */
 template< class access_t, class accessPolicy_t >
 inline constexpr

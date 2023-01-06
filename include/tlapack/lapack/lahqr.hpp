@@ -68,7 +68,7 @@ namespace tlapack
      *      On exit, the orthogonal updates applied to A are accumulated
      *      into Z.
      *
-     * @ingroup geev
+     * @ingroup auxiliary
      */
     template <
         class matrix_t,

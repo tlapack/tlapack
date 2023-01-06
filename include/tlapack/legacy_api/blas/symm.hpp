@@ -74,7 +74,7 @@ namespace tlapack {
  * @param[in] ldc
  *     Leading dimension of C. ldc >= max(1, n).
  *
- * @ingroup symm
+ * @ingroup legacy_blas
  */
 template< typename TA, typename TB, typename TC >
 void symm(

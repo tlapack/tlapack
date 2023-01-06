@@ -70,7 +70,7 @@ void lacpy(
  * 
  * @see lacpy( uplo_t, idx_t, idx_t, const TA*, idx_t, TB* B, idx_t )
  * 
- * @ingroup auxiliary
+ * @ingroup legacy_lapack
  */
 template< typename TA, typename TB >
 void inline lacpy(

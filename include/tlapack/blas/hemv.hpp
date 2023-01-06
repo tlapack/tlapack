@@ -34,7 +34,7 @@ namespace tlapack {
  * @param[in] beta Scalar.
  * @param[in,out] y A n-element vector.
  *
- * @ingroup hemv
+ * @ingroup blas2
  */
 template<
     class matrixA_t,
@@ -127,7 +127,7 @@ void hemv(
  * @param[in] x A n-element vector.
  * @param[in,out] y A n-element vector.
  *
- * @ingroup hemv
+ * @ingroup blas2
  */
 template<
     class matrixA_t,

@@ -33,7 +33,7 @@ namespace tlapack {
  * @param A matrix size m-by-n.
  * @param lda Column length of the matrix A.  ldA >= m
  * 
- * @ingroup auxiliary
+ * @ingroup legacy_lapack
 **/
 template <class norm_t, typename TA>
 inline real_type<TA> lange(

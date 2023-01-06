@@ -179,7 +179,7 @@ namespace tlapack
      *          @c opts.n_shifts_total
      *      are updated inside the routine.
      *
-     * @ingroup geev
+     * @ingroup computational
      */
     template <
         class matrix_t,

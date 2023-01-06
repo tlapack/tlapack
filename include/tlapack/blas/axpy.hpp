@@ -19,7 +19,7 @@ namespace tlapack {
  * @param[in] x     A n-element vector.
  * @param[in,out] y A vector with at least n elements.
  *
- * @ingroup axpy
+ * @ingroup blas1
  */
 template< class vectorX_t, class vectorY_t, class alpha_t,
     class T = type_t<vectorY_t>,

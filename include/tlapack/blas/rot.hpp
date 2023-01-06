@@ -27,7 +27,7 @@ namespace tlapack {
  * @param[in] c     Cosine of rotation; real.
  * @param[in] s     Sine of rotation; scalar.
  *
- * @ingroup rot
+ * @ingroup blas1
  */
 template<
     class vectorX_t, class vectorY_t,

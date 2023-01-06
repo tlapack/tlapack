@@ -69,7 +69,7 @@ namespace tlapack {
  *     Stride between elements of x. incx must not be zero.
  *     If incx < 0, uses elements of x in reverse order: x(n-1), ..., x(0).
  *
- * @ingroup trsv
+ * @ingroup legacy_blas
  */
 template< typename TA, typename TX >
 void trsv(

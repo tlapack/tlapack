@@ -37,7 +37,7 @@ namespace tlapack {
  * @param[in] beta Scalar.
  * @param[in,out] y A m-element vector.
  * 
- * @ingroup gemv
+ * @ingroup blas2
  */
 template<
     class matrixA_t,
@@ -152,7 +152,7 @@ void gemv(
  * @param[in] x A n-element vector.
  * @param[in,out] y A m-element vector.
  * 
- * @ingroup gemv
+ * @ingroup blas2
  */
 template<
     class matrixA_t,
@@ -187,7 +187,7 @@ void gemv(
         const alpha_t& alpha, const matrixA_t& A, const vectorX_t& x,
         const beta_t& beta, vectorY_t& y )
     * 
-    * @ingroup gemv
+    * @ingroup blas2
     */
     template<
         class matrixA_t,
@@ -247,7 +247,7 @@ void gemv(
         const alpha_t& alpha, const matrixA_t& A, const vectorX_t& x,
         vectorY_t& y )
     * 
-    * @ingroup gemv
+    * @ingroup blas2
     */
     template<
         class matrixA_t,

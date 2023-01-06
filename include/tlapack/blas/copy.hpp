@@ -18,7 +18,7 @@ namespace tlapack {
  * @param[in]  x A n-element vector x.
  * @param[out] y A vector of at least n elements.
  *
- * @ingroup copy
+ * @ingroup blas1
  */
 template< class vectorX_t, class vectorY_t,
     class T = type_t<vectorY_t>,

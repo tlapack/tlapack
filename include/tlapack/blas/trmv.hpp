@@ -46,7 +46,7 @@ namespace tlapack {
  * @param[in] A     A n-by-n matrix.
  * @param[in,out] x A n-element vector.
  *
- * @ingroup trmv
+ * @ingroup blas2
  */
 template< class matrixA_t, class vectorX_t,
     class T = type_t<vectorX_t>,

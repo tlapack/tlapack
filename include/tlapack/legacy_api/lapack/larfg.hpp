@@ -26,7 +26,7 @@ void larfg(
  * 
  * @see larfg( idx_t, T &, T *, int_t, T & )
  * 
- * @ingroup auxiliary
+ * @ingroup legacy_lapack
  */
 template< typename T >
 void inline larfg(

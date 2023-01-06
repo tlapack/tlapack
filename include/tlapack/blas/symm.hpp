@@ -42,7 +42,7 @@ namespace tlapack {
  * @param[in] beta Scalar.
  * @param[in,out] C A m-by-n matrix.
  *
- * @ingroup symm
+ * @ingroup blas3
  */
 template<
     class matrixA_t, class matrixB_t, class matrixC_t, 
@@ -206,7 +206,7 @@ void symm(
  * @param[in] B A m-by-n matrix.
  * @param[out] C A m-by-n matrix.
  *
- * @ingroup symm
+ * @ingroup blas3
  */
 template<
     class matrixA_t, class matrixB_t, class matrixC_t, 
@@ -242,7 +242,7 @@ void symm(
         const alpha_t& alpha, const matrixA_t& A, const matrixB_t& B,
         const beta_t& beta, matrixC_t& C )
     * 
-    * @ingroup symm
+    * @ingroup blas3
     */
     template<
         class matrixA_t,
@@ -302,7 +302,7 @@ void symm(
         const alpha_t& alpha, const matrixA_t& A, const matrixB_t& B,
         matrixC_t& C )
     * 
-    * @ingroup symm
+    * @ingroup blas3
     */
     template<
         class matrixA_t,

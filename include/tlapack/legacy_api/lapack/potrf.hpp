@@ -19,7 +19,7 @@ namespace tlapack {
  * 
  * @see potrf( uplo_t uplo, matrix_t& A, const potrf_opts_t< size_type<matrix_t> >& opts = {} )
  * 
- * @ingroup posv_computational
+ * @ingroup legacy_lapack
  */
 template< class uplo_t, typename T >
 inline int potrf( uplo_t uplo, idx_t n, T* A, idx_t lda )

@@ -64,7 +64,7 @@ struct potrf_opts_t : public ec_opts_t
  * @return i, 0 < i <= n, if the leading minor of order i is not
  *      positive definite, and the factorization could not be completed.
  *
- * @ingroup posv_computational
+ * @ingroup computational
  */
 template< class uplo_t, class matrix_t >
 int potrf(

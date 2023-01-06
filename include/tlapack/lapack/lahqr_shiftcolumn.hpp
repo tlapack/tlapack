@@ -33,7 +33,7 @@ namespace tlapack
     * @param[in] s2
     *      The scalar s2 as in the formula above
     *
-    * @ingroup geev
+    * @ingroup auxiliary
     */
    template < class matrix_t, class vector_t,
       enable_if_t<!is_complex<type_t<matrix_t>>::value, bool> = true
@@ -109,7 +109,7 @@ namespace tlapack
     * @param[in] s2
     *      The scalar s2 as in the formula above
     *
-    * @ingroup geev
+    * @ingroup auxiliary
     */
    template < class matrix_t, class vector_t,
       enable_if_t<is_complex<type_t<matrix_t>>::value, bool> = true

@@ -25,7 +25,7 @@ namespace tlapack {
  * @param[in] y A n-element vector.
  * @param[in] A A m-by-n matrix.
  *
- * @ingroup ger
+ * @ingroup blas2
  */
 template<
     class matrixA_t,

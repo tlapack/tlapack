@@ -31,7 +31,7 @@ namespace tlapack {
  * @param[in] y A n-element vector.
  * @param[in,out] A A n-by-n symmetric matrix.
  *
- * @ingroup syr2
+ * @ingroup blas2
  */
 template<
     class matrixA_t,

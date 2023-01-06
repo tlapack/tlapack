@@ -80,7 +80,7 @@ namespace tlapack {
  *     Leading dimension of C.
  *     ldc >= max(1, m) [RowMajor: ldc >= max(1, n)].
  *
- * @ingroup hemm
+ * @ingroup legacy_blas
  */
 template< typename TA, typename TB, typename TC >
 void hemm(

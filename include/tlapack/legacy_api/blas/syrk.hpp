@@ -42,7 +42,7 @@ namespace tlapack {
  *     - Op::NoTrans: $C = \alpha A A^T + \beta C$.
  *     - Op::Trans:   $C = \alpha A^T A + \beta C$.
  *     - In the real    case, Op::ConjTrans is interpreted as Op::Trans.
- *       In the complex case, Op::ConjTrans is illegal (see @ref herk instead).
+ *       In the complex case, Op::ConjTrans is illegal (see @ref herk() instead).
  *
  * @param[in] n
  *     Number of rows and columns of the matrix C. n >= 0.
@@ -75,7 +75,7 @@ namespace tlapack {
  * @param[in] ldc
  *     Leading dimension of C. ldc >= max(1, n).
  *
- * @ingroup syrk
+ * @ingroup legacy_blas
  */
 template< typename TA, typename TC >
 void syrk(

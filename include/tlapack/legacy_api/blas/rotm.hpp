@@ -46,7 +46,7 @@ namespace tlapack {
  * @param[in] param
  *     Array of length 5 giving parameters of modified plane rotation.
  *
- * @ingroup rotm
+ * @ingroup legacy_blas
  */
 template< typename TX, typename TY >
 void rotm(

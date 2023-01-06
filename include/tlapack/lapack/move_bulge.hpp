@@ -31,7 +31,7 @@ namespace tlapack
      * @param[in] s1 complex valued shift
      * @param[in] s2 complex valued shift
      *
-     * @ingroup geev
+     * @ingroup auxiliary
      */
     template < class matrix_t, class vector_t >
     void move_bulge(matrix_t &H, vector_t &v, complex_type<type_t<matrix_t>> s1, complex_type<type_t<matrix_t>> s2)

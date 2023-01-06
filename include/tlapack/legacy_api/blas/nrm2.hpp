@@ -37,7 +37,7 @@ namespace tlapack {
  * @param[in] incx
  *     Stride between elements of x. incx > 0.
  *
- * @ingroup nrm2
+ * @ingroup legacy_blas
  */
 template< typename T >
 real_type<T> nrm2( idx_t n, T const * x, int_t incx )

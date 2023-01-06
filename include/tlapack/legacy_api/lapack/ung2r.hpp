@@ -35,7 +35,7 @@ namespace tlapack {
  * @param[in] tau Real vector of length min(m,n).      
  *      The scalar factors of the elementary reflectors.
  * 
- * @ingroup geqrf
+ * @ingroup legacy_lapack
  */
 template< typename TA, typename Ttau >
 inline int ung2r(

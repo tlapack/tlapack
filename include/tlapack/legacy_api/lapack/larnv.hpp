@@ -37,7 +37,7 @@ namespace tlapack {
  * @param[in] n Length of vector x.
  * @param[out] x Pointer to real vector of length n.
  * 
- * @ingroup auxiliary
+ * @ingroup legacy_lapack
  */
 template< typename T >
 inline void larnv(

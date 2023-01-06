@@ -49,7 +49,7 @@ namespace tlapack {
  * @param[in] s
  *     Sine of rotation; complex.
  *
- * @ingroup rot
+ * @ingroup legacy_blas
  */
 template< typename TX, typename TY >
 void rot(

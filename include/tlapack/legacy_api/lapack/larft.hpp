@@ -76,7 +76,7 @@ namespace tlapack {
  * if the direction of the elementary reflectors is backward, T is lower triangular.
  * @param ldT Column length of the matrix T.  ldT >= k.
  * 
- * @ingroup auxiliary
+ * @ingroup legacy_lapack
  */
 template <class direction_t, class storeV_t, typename scalar_t>
 int larft(

@@ -84,7 +84,7 @@ namespace tlapack {
  * http://dx.doi.org/10.1093/imamat/13.2.215
  * (Note the notation swaps u <=> x, v <=> y, d_i -> l_i.)
  *
- * @ingroup rotmg
+ * @ingroup blas1
  */
 template< typename T,
     enable_if_t< is_same_v< T, real_type<T> >, int > = 0,

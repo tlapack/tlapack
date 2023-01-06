@@ -52,7 +52,7 @@ namespace tlapack {
  * @param[in] lda
  *     Leading dimension of A. lda >= max(1, n).
  *
- * @ingroup syr
+ * @ingroup legacy_blas
  */
 template< typename TA, typename TX >
 void syr(

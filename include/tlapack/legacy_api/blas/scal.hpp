@@ -31,7 +31,7 @@ namespace tlapack {
  * @param[in] incx
  *     Stride between elements of x. incx > 0.
  *
- * @ingroup scal
+ * @ingroup legacy_blas
  */
 template< typename TA, typename TX >
 void scal(

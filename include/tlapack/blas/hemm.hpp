@@ -44,7 +44,7 @@ namespace tlapack {
  * @param[in] beta Scalar.
  * @param[in,out] C A m-by-n matrix.
  *
- * @ingroup hemm
+ * @ingroup blas3
  */
 template<
     class matrixA_t,
@@ -213,7 +213,7 @@ void hemm(
  * @param[in] B A m-by-n matrix.
  * @param[out] C A m-by-n matrix.
  *
- * @ingroup hemm
+ * @ingroup blas3
  */
 template<
     class matrixA_t,
@@ -251,7 +251,7 @@ void hemm(
         const alpha_t& alpha, const matrixA_t& A, const matrixB_t& B,
         const beta_t& beta, matrixC_t& C )
     * 
-    * @ingroup hemm
+    * @ingroup blas3
     */
     template<
         class matrixA_t,
@@ -311,7 +311,7 @@ void hemm(
         const alpha_t& alpha, const matrixA_t& A, const matrixB_t& B,
         matrixC_t& C )
     * 
-    * @ingroup hemm
+    * @ingroup blas3
     */
     template<
         class matrixA_t,

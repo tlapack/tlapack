@@ -45,7 +45,7 @@ namespace tlapack {
  * @param[in] beta Scalar.
  * @param[in,out] C A n-by-n symmetric matrix.
  *
- * @ingroup syr2k
+ * @ingroup blas3
  */
 template<
     class matrixA_t, class matrixB_t, class matrixC_t, 
@@ -194,7 +194,7 @@ void syr2k(
  *     - Otherwise:          a k-by-n matrix.
  * @param[out] C A n-by-n symmetric matrix.
  *
- * @ingroup syr2k
+ * @ingroup blas3
  */
 template<
     class matrixA_t, class matrixB_t, class matrixC_t, 
@@ -230,7 +230,7 @@ void syr2k(
         const alpha_t& alpha, const matrixA_t& A, const matrixB_t& B,
         const beta_t& beta, matrixC_t& C )
     * 
-    * @ingroup syr2k
+    * @ingroup blas3
     */
     template<
         class matrixA_t, class matrixB_t, class matrixC_t, 
@@ -288,7 +288,7 @@ void syr2k(
         const alpha_t& alpha, const matrixA_t& A, const matrixB_t& B,
         matrixC_t& C )
     * 
-    * @ingroup syr2k
+    * @ingroup blas3
     */
     template<
         class matrixA_t, class matrixB_t, class matrixC_t, 

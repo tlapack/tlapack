@@ -24,11 +24,18 @@ namespace tlapack {
  *      matrix except in the submatrix Q(ilo+1:ihi,ilo+1:ihi).
  *      0 <= ilo <= ihi <= max(1,n).
  * 
+ * @param[in,out] A m-by-n matrix.
+ *      On entry, the vectors which define the elementary reflectors.
+ *      On exit, the m-by-n matrix Q.
+ * 
+ * @param[in] tau Real vector of length n-1.
+ *      The scalar factors of the elementary reflectors.
+ * 
  * @param[in] opts Options.
  *      @c opts.work is used if whenever it has sufficient size.
  *      The sufficient size can be obtained through a workspace query.
  * 
- * @ingroup gehrd
+ * @ingroup computational
  */
 template< class matrix_t, class vector_t >
 int unghr(

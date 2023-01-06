@@ -68,7 +68,7 @@ namespace tlapack {
     const matrixA_t& A, const tau_t& tau,
     matrixC_t& C, const unmqr_opts_t<workT_t>& opts = {} )
  *
- * @ingroup geqrf
+ * @ingroup legacy_lapack
  */
 template< class side_t, class trans_t, typename TA, typename TC >
 inline int unmqr(

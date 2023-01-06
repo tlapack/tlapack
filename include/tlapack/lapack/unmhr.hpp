@@ -18,6 +18,16 @@ namespace tlapack
 {
 
     /** Applies unitary matrix Q to a matrix C.
+     * 
+     * @param[in] side Specifies which side op(Q) is to be applied.
+     *      - Side::Left:  C := op(Q) C;
+     *      - Side::Right: C := C op(Q).
+     * 
+     * @param[in] trans The operation $op(Q)$ to be used:
+     *      - Op::NoTrans:      $op(Q) = Q$;
+     *      - Op::ConjTrans:    $op(Q) = Q^H$.
+     *      Op::Trans is a valid value if the data type of A is real. In this case,
+     *      the algorithm treats Op::Trans as Op::ConjTrans.
      *
      * @param[in] ilo integer
      * @param[in] ihi integer
@@ -41,7 +51,7 @@ namespace tlapack
      *      @c opts.work is used if whenever it has sufficient size.
      *      The sufficient size can be obtained through a workspace query.
      *
-     * @ingroup gehrd
+     * @ingroup computational
      */
     template < class matrix_t, class vector_t >
     int unmhr(

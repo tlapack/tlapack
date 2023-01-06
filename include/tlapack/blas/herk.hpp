@@ -47,7 +47,7 @@ namespace tlapack {
  *     Imaginary parts of the diagonal elements need not be set,
  *     are assumed to be zero on entry, and are set to zero on exit.
  *
- * @ingroup herk
+ * @ingroup blas3
  */
 template<
     class matrixA_t, class matrixC_t, 
@@ -205,7 +205,7 @@ void herk(
  *     - Otherwise:          a k-by-n matrix.
  * @param[out] C A n-by-n Hermitian matrix.
  *
- * @ingroup herk
+ * @ingroup blas3
  */
 template<
     class matrixA_t, class matrixC_t, 
@@ -244,7 +244,7 @@ void herk(
         const alpha_t& alpha, const matrixA_t& A,
         const beta_t& beta, matrixC_t& C )
     * 
-    * @ingroup herk
+    * @ingroup blas3
     */
     template<
         class matrixA_t, class matrixC_t, 
@@ -299,7 +299,7 @@ void herk(
         const alpha_t& alpha, const matrixA_t& A,
         matrixC_t& C )
     * 
-    * @ingroup herk
+    * @ingroup blas3
     */
     template<
         class matrixA_t, class matrixC_t, 

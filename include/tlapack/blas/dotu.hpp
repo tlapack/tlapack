@@ -19,7 +19,7 @@ namespace tlapack {
  * @param[in] x A n-element vector.
  * @param[in] y A n-element vector.
  *
- * @ingroup dotu
+ * @ingroup blas1
  */
 template< class vectorX_t, class vectorY_t,
     class T = type_t<vectorY_t>,

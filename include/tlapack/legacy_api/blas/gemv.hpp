@@ -75,7 +75,7 @@ namespace tlapack {
  *     Stride between elements of y. incy must not be zero.
  *     If incy < 0, uses elements of y in reverse order: y(n-1), ..., y(0).
  *
- * @ingroup gemv
+ * @ingroup legacy_blas
  */
 template< typename TA, typename TX, typename TY >
 void gemv(

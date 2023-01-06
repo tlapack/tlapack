@@ -85,7 +85,7 @@ void gehd2_worksize(
  *      - @c opts.work is used if whenever it has sufficient size.
  *        The sufficient size can be obtained through a workspace query.
  * 
- * @ingroup gehrd
+ * @ingroup computational
  */
 template< class matrix_t, class vector_t >
 int gehd2( size_type< matrix_t > ilo, size_type< matrix_t > ihi, matrix_t& A, vector_t &tau, const workspace_opts_t<>& opts = {} )

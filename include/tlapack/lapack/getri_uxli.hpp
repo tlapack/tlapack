@@ -48,7 +48,7 @@ void getri_uxli_worksize( matrix_t& A, workinfo_t& workinfo, const workspace_opt
  *      - @c opts.work is used if whenever it has sufficient size.
  *        The sufficient size can be obtained through a workspace query.
  *      
- * @ingroup group_solve
+ * @ingroup computational
  */
 template< class matrix_t >
 int getri_uxli( matrix_t& A, const workspace_opts_t<>& opts = {} )

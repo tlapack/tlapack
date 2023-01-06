@@ -18,7 +18,7 @@ namespace tlapack {
  * 
  * @see potrs( uplo_t uplo, const matrixA_t& A, matrixB_t& B )
  * 
- * @ingroup posv_computational
+ * @ingroup legacy_lapack
  */
 template< class uplo_t, typename T >
 inline int potrs(

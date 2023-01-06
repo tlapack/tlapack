@@ -32,7 +32,7 @@ namespace tlapack {
  * @param[in] beta Scalar.
  * @param[in,out] y A n-element vector.
  *
- * @ingroup symv
+ * @ingroup blas2
  */
 template<
     class matrixA_t,
@@ -122,7 +122,7 @@ void symv(
  * @param[in] x A n-element vector.
  * @param[in,out] y A n-element vector.
  *
- * @ingroup symv
+ * @ingroup blas2
  */
 template<
     class matrixA_t,
