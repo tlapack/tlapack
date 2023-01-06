@@ -47,22 +47,29 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ macos-latest, windows-latest, ubuntu-latest ]
+        os: [ macos-11, windows-latest, ubuntu-latest ]
     
     steps:
     
     - name: Checkout <T>LAPACK
       uses: actions/checkout@v2
+    
+    - name: Install the Basics
+      if: ${{ matrix.os == 'ubuntu-latest' }}
+      run: |
+        sudo apt update
+        sudo apt install -y cmake
+        sudo apt install -y gfortran
 
     - name: Install ninja-build tool
       uses: seanmiddleditch/gha-setup-ninja@v3
 
     - name: Install LAPACKE on Ubuntu
       if: ${{ matrix.os == 'ubuntu-latest' }}
-      run: sudo apt install liblapacke-dev
+      run: sudo apt install -y liblapacke-dev
 
     - name: Build and install Catch2
-      if: ${{ matrix.os != 'macos-latest' }}
+      if: ${{ matrix.os != 'macos-11' }}
       run: |
         git clone https://github.com/catchorg/Catch2.git
         cd Catch2
@@ -71,7 +78,7 @@ jobs:
         cmake --build build --target install
 
     - name: Build and install Catch2 on MacOS
-      if: ${{ matrix.os == 'macos-latest' }}
+      if: ${{ matrix.os == 'macos-11' }}
       env:
         LDFLAGS: "-lstdc++"
       run: |
@@ -139,7 +146,7 @@ jobs:
         -D Catch2_DIR="${{env.Catch2_CMAKE_DIR}}"
 
     - name: Specific configurations for CMake on MacOS
-      if: ${{ matrix.os == 'macos-latest' }}
+      if: ${{ matrix.os == 'macos-11' }}
       env:
         LDFLAGS: "-lstdc++"
       run: >
@@ -195,12 +202,17 @@ jobs:
     
     - name: Checkout <T>LAPACK
       uses: actions/checkout@v2
+    
+    - name: Install the Basics
+      run: |
+        sudo apt update
+        sudo apt install -y cmake
 
     - name: Install ninja-build tool
       uses: seanmiddleditch/gha-setup-ninja@v3
 
     - name: Install MPFR C++
-      run: sudo apt install libmpfrc++-dev
+      run: sudo apt install -y libmpfrc++-dev
 
     - name: Configure CMake for <T>LAPACK
       run: >
@@ -231,15 +243,21 @@ jobs:
     
     - name: Checkout <T>LAPACK
       uses: actions/checkout@v2
+    
+    - name: Install the Basics
+      run: |
+        sudo apt update
+        sudo apt install -y cmake
+        sudo apt install -y gfortran
 
     - name: Install ninja-build tool
       uses: seanmiddleditch/gha-setup-ninja@v3
 
     - name: Install LAPACKE on Ubuntu
-      run: sudo apt install liblapacke-dev
+      run: sudo apt install -y liblapacke-dev
 
     - name: Install OpenBLAS
-      run: sudo apt install libopenblas-dev
+      run: sudo apt install -y libopenblas-dev
 
     - name: Checkout BLAS++ and LAPACK++
       run: |
@@ -302,6 +320,12 @@ jobs:
     
     - name: Checkout <T>LAPACK
       uses: actions/checkout@v2
+    
+    - name: Install the Basics
+      run: |
+        sudo apt update
+        sudo apt install -y cmake
+        sudo apt install -y liblapack-dev
 
     - name: Install ninja-build tool
       uses: seanmiddleditch/gha-setup-ninja@v3
@@ -341,7 +365,7 @@ jobs:
       run: cmake --build build --config ${{env.BUILD_TYPE}}  --target install
 
     - name: Install LAPACKE on Ubuntu
-      run: sudo apt install liblapacke-dev
+      run: sudo apt install -y liblapacke-dev
 
     - name: Build and run example comparing performance
       working-directory: ${{github.workspace}}/examples/potrf
@@ -359,9 +383,14 @@ jobs:
       FC: ifx
       CXXFLAGS: "-Wall -pedantic -Wno-unused-variable -Wno-unused-function -Wno-c99-extensions -fp-model=precise"
     steps:
+    
+    - name: Install the Basics
+      run: |
+        sudo apt update
+        sudo apt install -y cmake
 
     - name: Install LAPACKE on Ubuntu
-      run: sudo apt install liblapacke-dev
+      run: sudo apt install -y liblapacke-dev
 
     - name: Intel Apt repository
       timeout-minutes: 1
@@ -374,7 +403,7 @@ jobs:
         
     - name: Install Intel oneAPI
       timeout-minutes: 5
-      run: sudo apt install intel-oneapi-compiler-fortran intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic intel-oneapi-mkl
+      run: sudo apt install -y intel-oneapi-compiler-fortran intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic intel-oneapi-mkl
     
     - name: Checkout <T>LAPACK
       uses: actions/checkout@v2
@@ -443,20 +472,23 @@ jobs:
       lapack_DIR: ${{github.workspace}}/lapack
       LD_LIBRARY_PATH: "/usr/local/lib/"
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
     
     - name: Checkout <T>LAPACK
       uses: actions/checkout@v2
+    
+    - name: Install the Basics
+      run: |
+        sudo apt update
+        sudo apt install -y cmake
+        sudo apt install -y gfortran
 
     - name: Install ninja-build tool
       uses: seanmiddleditch/gha-setup-ninja@v3
 
-    - name: Install LAPACKE on Ubuntu
-      run: sudo apt install liblapacke-dev
-
     - name: Install BLIS
-      run: sudo apt install libblis-dev
+      run: sudo apt install -y libblis-dev
 
     - name: Checkout LAPACK
       run: |
@@ -484,7 +516,7 @@ jobs:
       working-directory: ${{env.lapackpp_DIR}}
       run: |
         git checkout tlapack
-        cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.lapackpp_DIR}} -D CMAKE_CXX_FLAGS="${{env.CXXFLAGS}} -D LAPACK_FORTRAN_ADD_" -D LAPACK_LIBRARIES="${{env.lapack_DIR}}/lib/liblapacke.a;${{env.lapack_DIR}}/lib/liblapack.a;-lgfortran"
+        cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.lapackpp_DIR}} -D CMAKE_CXX_FLAGS="${{env.CXXFLAGS}} -D LAPACK_FORTRAN_ADD_" -D LAPACK_LIBRARIES="${{env.lapack_DIR}}/lib/liblapack.a;-lgfortran"
         cmake --build build --target install
 
     - name: Configure CMake for <T>LAPACK
@@ -492,6 +524,7 @@ jobs:
         cmake -B build -G Ninja
         -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
         -D CMAKE_INSTALL_PREFIX=${{github.workspace}}/tlapack_install
+        -D CMAKE_PREFIX_PATH="${{env.lapack_DIR}}"
         -D CMAKE_CXX_FLAGS="${{env.CXXFLAGS}} -D LAPACK_FORTRAN_ADD_"
         -D BUILD_SHARED_LIBS=ON
         -D BUILD_EXAMPLES=ON

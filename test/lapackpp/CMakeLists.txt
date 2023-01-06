@@ -4,8 +4,12 @@
 # <T>LAPACK is free software: you can redistribute it and/or modify it under
 # the terms of the BSD 3-Clause license. See the accompanying LICENSE file
 
+# Add the CMake directory for custom CMake modules
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake)
+
 find_package( blaspp REQUIRED )
 find_package( LAPACK REQUIRED )
+find_package( LAPACKE REQUIRED )
 find_package( lapackpp REQUIRED )
 
 if( EXISTS "${lapackpp_TEST_DIR}/test.cc" )
@@ -192,13 +196,14 @@ if( EXISTS "${lapackpp_TEST_DIR}/test.cc" )
   target_link_libraries(
     lapackpp_tester
     ${LAPACK_LIBRARIES}
-    "-llapacke"          # TODO: Improve this link.
+    ${LAPACKE_LIBRARIES}
   )
 
   target_include_directories( lapackpp_tester PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/../blaspp
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${lapackpp_TEST_DIR} )
+    ${lapackpp_TEST_DIR}
+    ${LAPACKE_INCLUDE_DIRS} )
   target_compile_definitions( lapackpp_tester PRIVATE ${lapackpp_defines} ${blaspp_defines} "-DLAPACK_FORTRAN_ADD_" )
 
   # Copy run_tests script to build directory.
