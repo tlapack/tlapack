@@ -96,7 +96,7 @@ void symm(
                 for(idx_t i = 0; i < m; ++i) {
 
                     auto alphaTimesBij = alpha*B(i,j);
-                    scalar_t sum( 0.0 );
+                    scalar_t sum( 0 );
 
                     for(idx_t k = 0; k < i; ++k) {
                         C(k,j) += A(k,i) * alphaTimesBij;
@@ -115,7 +115,7 @@ void symm(
                 for(idx_t i = m-1; i != idx_t(-1); --i) {
 
                     auto alphaTimesBij = alpha*B(i,j);
-                    scalar_t sum( 0.0 );
+                    scalar_t sum( 0 );
 
                     for(idx_t k = i+1; k < m; ++k) {
                         C(k,j) += A(k,i) * alphaTimesBij;

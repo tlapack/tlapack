@@ -38,12 +38,11 @@ namespace tlapack
         using real_t = real_type<T>;
         
         // Constants
-        const real_t rzero(0);
+        const real_t zero(0);
         const real_t two(2);
-        const T zero(0);
 
         auto s = abs1(a00) + abs1(a01) + abs1(a10) + abs1(a11);
-        if (s == rzero)
+        if (s == zero)
         {
             s1 = zero;
             s2 = zero;

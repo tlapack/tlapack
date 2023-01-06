@@ -48,9 +48,10 @@ namespace tlapack
     {
         using idx_t = size_type<matrix_t>;
         using T = type_t<matrix_t>;
+        using real_t = real_type<T>;
 
         const idx_t n = ncols(A);
-        const T zero(0);
+        const real_t zero(0);
 
         // Quick return
         if (n == 0)

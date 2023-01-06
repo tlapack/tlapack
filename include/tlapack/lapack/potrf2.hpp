@@ -77,8 +77,8 @@ int potrf2( uplo_t uplo, matrix_t& A, const ec_opts_t& opts = {} )
     using pair   = pair<idx_t,idx_t>;
 
     // Constants
-    const real_t one( 1.0 );
-    const real_t rzero( 0.0 );
+    const real_t one( 1 );
+    const real_t zero( 0 );
     const idx_t n = nrows(A);
 
     // check arguments
@@ -94,7 +94,7 @@ int potrf2( uplo_t uplo, matrix_t& A, const ec_opts_t& opts = {} )
     // Stop recursion
     else if (n == 1) {
         const real_t a00 = real( A(0,0) );
-        if( a00 > rzero ) {
+        if( a00 > zero ) {
             A(0,0) = sqrt( a00 );
             return 0;
         }

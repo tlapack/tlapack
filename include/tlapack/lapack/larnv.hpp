@@ -47,9 +47,9 @@ void larnv( Sseq& iseed, vector_t& x )
 
 
     // Constants
-    const idx_t n      = size(x);
-    const real_t one   = 1.0;
-    const real_t eight = 8.0;
+    const idx_t n = size(x);
+    const real_t one(1);
+    const real_t eight(8);
     const real_t twopi = eight * atan(one);
 
     // Initialize the Mersenne Twister generator

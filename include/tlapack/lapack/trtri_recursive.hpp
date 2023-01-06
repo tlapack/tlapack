@@ -53,8 +53,7 @@ namespace tlapack
         using real_t = real_type<T>;
 
         const idx_t n = nrows(C);
-
-        const T zero(0.0);
+        const real_t zero(0);
 
         // check arguments
         tlapack_check_false(uplo != Uplo::Lower && uplo != Uplo::Upper);

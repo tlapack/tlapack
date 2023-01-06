@@ -83,8 +83,8 @@ namespace tlapack
                 auto C11 = slice(C, range(n0, n), range(n0, n));
 
                 lauum_recursive(uplo, C00);
-                herk(Uplo::Lower, Op::ConjTrans, real_t(1.0), C10, real_t(1.0), C00);
-                trmm(Side::Left, uplo, Op::ConjTrans, Diag::NonUnit, real_t(1.0), C11, C10);
+                herk(Uplo::Lower, Op::ConjTrans, real_t(1), C10, real_t(1), C00);
+                trmm(Side::Left, uplo, Op::ConjTrans, Diag::NonUnit, real_t(1), C11, C10);
                 lauum_recursive(uplo, C11);
 
             }
@@ -96,8 +96,8 @@ namespace tlapack
                 auto C11 = slice(C, range(n0, n), range(n0, n));
 
                 lauum_recursive(uplo, C00);
-                herk(Uplo::Upper, Op::NoTrans, real_t(1.0), C01, real_t(1.0), C00);
-                trmm(Side::Right, uplo, Op::ConjTrans, Diag::NonUnit, real_t(1.0), C11, C01);
+                herk(Uplo::Upper, Op::NoTrans, real_t(1), C01, real_t(1), C00);
+                trmm(Side::Right, uplo, Op::ConjTrans, Diag::NonUnit, real_t(1), C11, C01);
                 lauum_recursive(Uplo::Upper, C11);
 
             }

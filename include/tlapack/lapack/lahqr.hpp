@@ -86,14 +86,13 @@ namespace tlapack
         Create< vector_type<matrix_t,matrix_t> > new_vector;
 
         // constants
-        const real_t rzero(0);
-        const TA one(1);
-        const TA zero(0);
+        const real_t zero(0);
+        const real_t one(1);
         const real_t eps = ulp<real_t>();
         const real_t small_num = safe_min<real_t>() / ulp<real_t>();
         const idx_t non_convergence_limit = 10;
-        const real_t dat1( 0.75f );
-        const real_t dat2( -0.4375f );
+        const real_t dat1( 0.75 );
+        const real_t dat2( -0.4375 );
 
         const idx_t n = ncols(A);
         const idx_t nh = ihi - ilo;
@@ -177,7 +176,7 @@ namespace tlapack
                 }
 
                 real_t tst = abs1(A(i - 1, i - 1)) + abs1(A(i, i));
-                if (tst == rzero)
+                if (tst == zero)
                 {
                     if (i >= ilo + 2)
                     {
@@ -286,7 +285,7 @@ namespace tlapack
             complex_type<real_t> s1;
             complex_type<real_t> s2;
             lahqr_eig22(a00, a01, a10, a11, s1, s2);
-            if ((imag(s1) == rzero and imag(s2) == rzero) or is_complex<TA>::value)
+            if ((imag(s1) == zero and imag(s2) == zero) or is_complex<TA>::value)
             {
                 // The eigenvalues are not complex conjugate, keep only the one closest to A(istop-1, istop-1)
                 if (abs1(s1 - A(istop - 1, istop - 1)) <= abs1(s2 - A(istop - 1, istop - 1)))
@@ -441,13 +440,12 @@ namespace tlapack
         using idx_t = size_type<matrix_t>;
 
         // constants
-        const real_t rzero(0);
-        const TA zero(0);
+        const real_t zero(0);
         const real_t eps = ulp<real_t>();
         const real_t small_num = safe_min<real_t>() / ulp<real_t>();
         const idx_t non_convergence_limit = 10;
-        const real_t dat1 = 3.0 / 4.0;
-        const real_t dat2 = -0.4375;
+        const real_t dat1( 0.75 );
+        const real_t dat2( -0.4375 );
 
         const idx_t n = ncols(A);
         const idx_t nh = ihi - ilo;
@@ -526,7 +524,7 @@ namespace tlapack
                 }
 
                 real_t tst = abs1(A(i - 1, i - 1)) + abs1(A(i, i));
-                if (tst == rzero)
+                if (tst == zero)
                 {
                     if (i >= ilo + 2)
                     {

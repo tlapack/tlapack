@@ -80,7 +80,7 @@ int potrf(
     using std::min;
 
     // Constants
-    const real_t one( 1.0 );
+    const real_t one( 1 );
     const idx_t n  = nrows(A);
     const idx_t nb = opts.nb;
 

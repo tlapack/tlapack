@@ -48,7 +48,7 @@ namespace tlapack
       using TH    = type_t<matrix_t>;
       
       // Constants
-      idx_t n = ncols(H);
+      const idx_t n = ncols(H);
       const TH zero(0);
 
       // Check arguments
@@ -125,9 +125,8 @@ namespace tlapack
       using real_t = real_type<TH>;
   
       // Constants
-      idx_t n = ncols(H);
-      const real_t rzero(0);
-      const TH zero(0);
+      const idx_t n = ncols(H);
+      const real_t zero(0);
 
       // Check arguments
       tlapack_check_false((n != 2 and n != 3) );
@@ -137,7 +136,7 @@ namespace tlapack
       if (n == 2)
       {
          auto s = abs1(H(0, 0) - s2) + abs1(H(1, 0));
-         if (s == rzero)
+         if (s == zero)
          {
             v[0] = zero;
             v[1] = zero;
@@ -152,7 +151,7 @@ namespace tlapack
       else
       {
          auto s = abs1(H(0, 0) - s2) + abs1(H(1, 0)) + abs1(H(2, 0));
-         if (s == rzero)
+         if (s == zero)
          {
             v[0] = zero;
             v[1] = zero;
