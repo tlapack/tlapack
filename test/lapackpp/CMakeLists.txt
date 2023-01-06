@@ -195,6 +195,7 @@ if( EXISTS "${lapackpp_TEST_DIR}/test.cc" )
   )
   target_link_libraries(
     lapackpp_tester
+    ${LAPACK_LIBRARIES}
     ${LAPACKE_LIBRARIES}
   )
 
