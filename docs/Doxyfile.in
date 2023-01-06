@@ -778,7 +778,7 @@ WARN_FORMAT            = "$file:$line: $text"
 # messages should be written. If left blank the output is written to standard
 # error (stderr).
 
-WARN_LOGFILE           = docs/errors.txt
+WARN_LOGFILE           = docs/doxygen_warnings.log
 
 #---------------------------------------------------------------------------
 # Configuration options related to the input files

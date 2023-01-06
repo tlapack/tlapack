@@ -1,4 +1,4 @@
-/// @file tlapack_debugutils.hpp
+/// @file debugutils.hpp
 /// @author Thijs Steel, KU Leuven, Belgium
 //
 // This file is part of <T>LAPACK.

@@ -40,7 +40,7 @@ namespace tlapack {
  * 
  * @param[in] n The number of elements to be used from the vector x.
  * @param[in] x Array of dimension $(1+(n-1)*|incx|)$.
- * @param[in] incx. The increment between successive values of the vector x.
+ * @param[in] incx The increment between successive values of the vector x.
  *          If incx > 0, X(i*incx) = x_i for 0 <= i < n
  *          If incx < 0, X((n-i-1)*(-incx)) = x_i for 0 <= i < n
  *          If incx = 0, x isn't a vector so there is no need to call

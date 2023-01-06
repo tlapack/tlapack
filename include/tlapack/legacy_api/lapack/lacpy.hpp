@@ -15,6 +15,24 @@
 
 namespace tlapack {
 
+/**
+ * @brief Copies a matrix from A to B.
+ * 
+ * @tparam uplo_t
+ *      Either Uplo or any class that implements `operator Uplo()`.
+ * 
+ * @param[in] uplo
+ *      - Uplo::Upper:   Upper triangle of A and B are referenced;
+ *      - Uplo::Lower:   Lower triangle of A and B are referenced;
+ *      - Uplo::General: All entries of A are referenced; the first m rows of B
+ *                          and first n columns of B are referenced.
+ * @param[in] m Number of rows of A.
+ * @param[in] n Number of columns of A.
+ * @param[in] A m-by-n matrix.
+ * @param[in] lda Leading dimension of A.
+ * @param[out] B Matrix with at least m rows and at least n columns.
+ * @param[in] ldb Leading dimension of B.
+ */
 template< class uplo_t, typename TA, typename TB >
 void lacpy(
     uplo_t uplo, idx_t m, idx_t n,
@@ -43,7 +61,14 @@ void lacpy(
  *        'L': A is assumed to be lower triangular; elements above the diagonal are not referenced.
  *        otherwise, A is assumed to be a full matrix.
  * 
- * @see lacpy( Uplo, idx_t, idx_t, TA*, idx_t, TB* B, idx_t )
+ * @param[in] m Number of rows of A.
+ * @param[in] n Number of columns of A.
+ * @param[in] A m-by-n matrix.
+ * @param[in] lda Leading dimension of A.
+ * @param[out] B Matrix with at least m rows and at least n columns.
+ * @param[in] ldb Leading dimension of B.
+ * 
+ * @see lacpy( uplo_t, idx_t, idx_t, const TA*, idx_t, TB* B, idx_t )
  * 
  * @ingroup auxiliary
  */

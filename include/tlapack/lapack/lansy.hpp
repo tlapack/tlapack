@@ -207,6 +207,23 @@ lansy( norm_t normType, uplo_t uplo, const matrix_t& A )
  * Code optimized for the infinity and one norm on column-major layouts using a workspace
  * of size at least n, where n is the number of rows of A.
  * @see lanhe( norm_t normType, uplo_t uplo, const matrix_t& A ).
+ * 
+ * @tparam norm_t Either Norm or any class that implements `operator Norm()`.
+ * @tparam uplo_t Either Uplo or any class that implements `operator Uplo()`.
+ * 
+ * @param[in] normType
+ *      - Norm::Max: Maximum absolute value over all elements of the matrix.
+ *          Note: this is not a consistent matrix norm.
+ *      - Norm::One: 1-norm, the maximum value of the absolute sum of each column.
+ *      - Norm::Inf: Inf-norm, the maximum value of the absolute sum of each row.
+ *      - Norm::Fro: Frobenius norm of the matrix.
+ *          Square root of the sum of the square of each entry in the matrix.
+ * 
+ * @param[in] uplo
+ *      - Uplo::Upper: Upper triangle of A is referenced;
+ *      - Uplo::Lower: Lower triangle of A is referenced.
+ * 
+ * @param[in] A n-by-n symmetric matrix.
  *
  * @param[in] opts Options.
  *      - @c opts.work is used if whenever it has sufficient size.

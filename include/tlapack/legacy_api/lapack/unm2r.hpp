@@ -34,7 +34,7 @@ namespace tlapack {
  * @param[in] A Matrix containing the elementary reflectors H.
  *                 If side='L', A is k-by-m;
  *                 if side='R', A is k-by-n.
- * @param[in] ldA The column length of the matrix A.  ldA>=k.
+ * @param[in] lda The column length of the matrix A.  ldA>=k.
  * @param[in] tau Real vector of length k containing the scalar factors of the
  * elementary reflectors.
  * @param[in,out] C m-by-n matrix. 
@@ -43,7 +43,7 @@ namespace tlapack {
  *                 If side='L' & trans='T':  C <- Q'* C
  *                 If side='R' & trans='T':  C <- C * Q'
  *                 If side='R' & trans='N':  C <- C * Q
- * @param ldC The column length the matrix C. ldC>=m.
+ * @param ldc The column length the matrix C. ldC>=m.
  * 
  * @ingroup geqrf
  */

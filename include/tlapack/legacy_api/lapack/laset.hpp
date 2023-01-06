@@ -15,6 +15,24 @@
 
 namespace tlapack {
 
+/**
+ * @brief Initializes a matrix to diagonal and off-diagonal values
+ * 
+ * @tparam uplo_t
+ *      Either Uplo or any class that implements `operator Uplo()`.
+ * 
+ * @param[in] uplo
+ *      - Uplo::Upper:   Upper triangle of A and B are referenced;
+ *      - Uplo::Lower:   Lower triangle of A and B are referenced;
+ *      - Uplo::General: All entries of A are referenced; the first m rows of B
+ *                          and first n columns of B are referenced.
+ * @param[in] m Number of rows of A.
+ * @param[in] n Number of columns of A.
+ * @param[in] alpha Value to be assigned to the off-diagonal elements of A.
+ * @param[in] beta Value to assign to the diagonal elements of A.
+ * @param[in] A m-by-n matrix.
+ * @param[in] lda Leading dimension of A.
+ */
 template< class uplo_t, typename TA >
 void laset(
     uplo_t uplo, idx_t m, idx_t n,
@@ -45,6 +63,12 @@ void laset(
  *        'U': A is assumed to be upper triangular; elements below the diagonal are not referenced.
  *        'L': A is assumed to be lower triangular; elements above the diagonal are not referenced.
  *        otherwise, A is assumed to be a full matrix.
+ * @param[in] m Number of rows of A.
+ * @param[in] n Number of columns of A.
+ * @param[in] alpha Value to be assigned to the off-diagonal elements of A.
+ * @param[in] beta Value to assign to the diagonal elements of A.
+ * @param[in] A m-by-n matrix.
+ * @param[in] lda Leading dimension of A.
  *
  * @see laset( Uplo, idx_t, idx_t, TA, TA, TA*, idx_t )
  * 

@@ -36,6 +36,7 @@ namespace tlapack {
  *     - Diag::Unit:    A is assumed to be unit triangular.
  *     - Diag::NonUnit: A is not assumed to be unit triangular.
  * 
+ * @param m Number of rows to be included in the norm. m >= 0
  * @param n Number of columns to be included in the norm. n >= 0
  * @param A symmetric matrix size lda-by-n.
  * @param lda Leading dimension of matrix A.  ldA >= m

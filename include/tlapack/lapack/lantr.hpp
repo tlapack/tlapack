@@ -318,6 +318,29 @@ lantr( norm_t normType, uplo_t uplo, diag_t diag, const matrix_t& A )
  * Code optimized for the infinity norm on column-major layouts using a workspace
  * of size at least m, where m is the number of rows of A.
  * @see lantr( norm_t normType, uplo_t uplo, diag_t diag, const matrix_t& A ).
+ * 
+ * @tparam norm_t Either Norm or any class that implements `operator Norm()`.
+ * @tparam uplo_t Either Uplo or any class that implements `operator Uplo()`.
+ * @tparam diag_t Either Diag or any class that implements `operator Diag()`.
+ * 
+ * @param[in] normType
+ *      - Norm::Max: Maximum absolute value over all elements of the matrix.
+ *          Note: this is not a consistent matrix norm.
+ *      - Norm::One: 1-norm, the maximum value of the absolute sum of each column.
+ *      - Norm::Inf: Inf-norm, the maximum value of the absolute sum of each row.
+ *      - Norm::Fro: Frobenius norm of the matrix.
+ *          Square root of the sum of the square of each entry in the matrix.
+ * 
+ * @param[in] uplo
+ *      - Uplo::Upper: A is a upper triangle matrix;
+ *      - Uplo::Lower: A is a lower triangle matrix.
+ *
+ * @param[in] diag
+ *     Whether A has a unit or non-unit diagonal:
+ *     - Diag::Unit:    A is assumed to be unit triangular.
+ *     - Diag::NonUnit: A is not assumed to be unit triangular.
+ * 
+ * @param[in] A m-by-n triangular matrix.
  *
  * @param[in] opts Options.
  *      - @c opts.work is used if whenever it has sufficient size.

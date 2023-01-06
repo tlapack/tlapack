@@ -39,6 +39,7 @@ namespace tlapack
      *
      *
      * @return  0 if success
+     * @return -i if the ith argument is invalid
      * @return  i if the QR algorithm failed to compute all the eigenvalues
      *            in a total of 30 iterations per eigenvalue. elements
      *            i:ihi of w contain those eigenvalues which have been
@@ -425,47 +426,8 @@ namespace tlapack
     /** lahqr computes the eigenvalues and optionally the Schur
      *  factorization of an upper Hessenberg matrix, using the double-shift
      *  implicit QR algorithm.
-     *
-     *  The Schur factorization is returned in standard form. For complex matrices
-     *  this means that the matrix T is upper-triangular. The diagonal entries
-     *  of T are also its eigenvalues. For real matrices, this means that the
-     *  matrix T is block-triangular, with real eigenvalues appearing as 1x1 blocks
-     *  on the diagonal and imaginary eigenvalues appearing as 2x2 blocks on the diagonal.
-     *  All 2x2 blocks are normalized so that the diagonal entries are equal to the real part
-     *  of the eigenvalue.
-     *
-     *
-     * @return  0 if success
-     * @return -i if the ith argument is invalid
-     * @return  i if the QR algorithm failed to compute all the eigenvalues
-     *            in a total of 30 iterations per eigenvalue. elements
-     *            i:ihi of w contain those eigenvalues which have been
-     *            successfully computed.
-     *
-     * @param[in] want_t bool.
-     *      If true, the full Schur factor T will be computed.
-     * @param[in] want_z bool.
-     *      If true, the Schur vectors Z will be computed.
-     * @param[in] ilo    integer.
-     *      Either ilo=0 or A(ilo,ilo-1) = 0.
-     * @param[in] ihi    integer.
-     *      The matrix A is assumed to be already quasi-triangular in rows and
-     *      columns ihi:n.
-     * @param[in,out] A  n by n matrix.
-     *      On entry, the matrix A.
-     *      On exit, if info=0 and want_t=true, the Schur factor T.
-     *      T is quasi-triangular in rows and columns ilo:ihi, with
-     *      the diagonal (block) entries in standard form (see above).
-     * @param[out] w  size n vector.
-     *      On exit, if info=0, w(ilo:ihi) contains the eigenvalues
-     *      of A(ilo:ihi,ilo:ihi). The eigenvalues appear in the same
-     *      order as the diagonal (block) entries of T.
-     * @param[in,out] Z  n by n matrix.
-     *      On entry, the previously calculated Schur factors
-     *      On exit, the orthogonal updates applied to A are accumulated
-     *      into Z.
-     *
-     * @ingroup geev
+     * 
+     * Implementation for complex matrices.
      */
     template <
         class matrix_t,

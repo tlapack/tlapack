@@ -457,19 +457,8 @@ namespace tlapack
     }
 
     /** schur_swap, swaps 2 eigenvalues of A.
-     *
-     * @param[in]     want_q bool
-     *                Whether or not to apply the transformations to Q
-     * @param[in,out] A n-by-n matrix.
-     *                Must be in Schur form
-     * @param[in,out] Q n-by-n matrix.
-     *                Orthogonal matrix, not referenced if want_q is false
-     * @param[in]     j0 integer
-     *                Index of first eigenvalue block
-     * @param[in]     n1 integer
-     *                Size of first eigenvalue block
-     * @param[in]     n2 integer
-     *                Size of second eigenvalue block
+     * 
+     * Implementation for complex matrices
      *
      * @ingroup auxiliary
      */
