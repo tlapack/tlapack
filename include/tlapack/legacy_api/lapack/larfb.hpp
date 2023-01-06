@@ -115,11 +115,11 @@ template <class side_t, class trans_t, class direction_t, class storeV_t,
     typename TV, typename TC>
 int larfb(
     side_t side, trans_t trans,
-    direction_t direct, storeV_t storeV,
+    direction_t direction, storeV_t storev,
     idx_t m, idx_t n, idx_t k,
-    TV const* V, idx_t ldV,
-    TV const* T, idx_t ldT,
-    TC* C, idx_t ldC )
+    TV const* V, idx_t ldv,
+    TV const* T, idx_t ldt,
+    TC* C, idx_t ldc )
 {
     using internal::colmajor_matrix;
 
@@ -132,22 +132,22 @@ int larfb(
                             (trans != Op::Trans) ||
                             is_complex< TV >::value
                         ) );
-    tlapack_check_false(    direct != Direction::Backward &&
-                        direct != Direction::Forward );
-    tlapack_check_false(    storeV != StoreV::Columnwise &&
-                        storeV != StoreV::Rowwise );
+    tlapack_check_false(    direction != Direction::Backward &&
+                        direction != Direction::Forward );
+    tlapack_check_false(    storev != StoreV::Columnwise &&
+                        storev != StoreV::Rowwise );
 
     // Quick return
     if (m <= 0 || n <= 0) return 0;
 
     // Views
-    const auto V_ = (storeV == StoreV::Columnwise)
-                  ? colmajor_matrix<TV>( (TV*) V, (side == Side::Left) ? m : n, k, ldV )
-                  : colmajor_matrix<TV>( (TV*) V, k, (side == Side::Left) ? m : n, ldV );
-    const auto T_ = colmajor_matrix<TV>( (TV*) T, k, k, ldT );
-    auto C_ = colmajor_matrix<TC>( C, m, n, ldC );
+    const auto V_ = (storev == StoreV::Columnwise)
+                  ? colmajor_matrix<TV>( (TV*) V, (side == Side::Left) ? m : n, k, ldv )
+                  : colmajor_matrix<TV>( (TV*) V, k, (side == Side::Left) ? m : n, ldv );
+    const auto T_ = colmajor_matrix<TV>( (TV*) T, k, k, ldt );
+    auto C_ = colmajor_matrix<TC>( C, m, n, ldc );
 
-    return larfb( side, trans, direct, storeV, V_, T_, C_ );
+    return larfb( side, trans, direction, storev, V_, T_, C_ );
 }
 
 }

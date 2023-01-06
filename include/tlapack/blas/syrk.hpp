@@ -169,7 +169,6 @@ void syrk(
  * @param[in] A A n-by-k matrix.
  *     - If trans = NoTrans: a n-by-k matrix.
  *     - Otherwise:          a k-by-n matrix.
- * @param[in] beta Scalar.
  * @param[out] C A n-by-n symmetric matrix.
  *
  * @ingroup syrk

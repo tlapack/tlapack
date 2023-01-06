@@ -107,7 +107,7 @@ void larfb_worksize(
  *       - if side = Side::Left,  the k-by-m matrix V;
  *       - if side = Side::Right, the k-by-n matrix V.
  *
- * @param[in] T
+ * @param[in] Tmatrix
  *     The k-by-k matrix T.
  *     The triangular k-by-k matrix T in the representation of the block reflector.
  *

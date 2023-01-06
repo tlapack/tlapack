@@ -1,3 +1,6 @@
+/// @file exceptionHandling.hpp
+/// @author Weslley S Pereira, University of Colorado Denver, USA
+//
 // Copyright (c) 2022, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
@@ -34,8 +37,8 @@ namespace tlapack {
     /// Descriptor for Exception Handling
     struct ErrorCheck {
         
-        bool inf  = TLAPACK_DEFAULT_INFCHECK; ///< Default behavior of inf check in the routines of <T>LAPACK.
-        bool nan  = TLAPACK_DEFAULT_NANCHECK; ///< Default behavior of nan check in the routines of <T>LAPACK.
+        bool inf  = TLAPACK_DEFAULT_INFCHECK; ///< Default behavior of inf check 
+        bool nan  = TLAPACK_DEFAULT_NANCHECK; ///< Default behavior of nan check
         bool internal = true; ///< Used to enable / disable internal checks.
 
     };

@@ -31,14 +31,14 @@ namespace tlapack {
  * @param m Number of rows to be included in the norm. m >= 0
  * @param n Number of columns to be included in the norm. n >= 0
  * @param A matrix size m-by-n.
- * @param ldA Column length of the matrix A.  ldA >= m
+ * @param lda Column length of the matrix A.  ldA >= m
  * 
  * @ingroup auxiliary
 **/
 template <class norm_t, typename TA>
 inline real_type<TA> lange(
     norm_t normType, idx_t m, idx_t n,
-    const TA *A_, idx_t lda )
+    const TA *A, idx_t lda )
 {
     using internal::colmajor_matrix;
 
@@ -53,9 +53,9 @@ inline real_type<TA> lange(
         return 0;
 
     // Views
-    auto A = colmajor_matrix<TA>( (TA*)A_, m, n, lda );
+    auto A_ = colmajor_matrix<TA>( (TA*)A, m, n, lda );
 
-    return lange( normType, A );
+    return lange( normType, A_ );
 }
 
 } // lapack

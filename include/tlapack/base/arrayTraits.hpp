@@ -237,8 +237,7 @@ namespace tlapack {
              * 
              * @param[in] W
              *      Workspace that references to allocated memory.
-             * @param[in] m Number of rows
-             * @param[in] n Number of Columns
+             * @param[in] m Size of the vector
              * @param[out] rW
              *      On exit, receives the updated workspace, i.e., that references
              *      remaining allocated memory.

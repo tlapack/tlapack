@@ -24,7 +24,7 @@ namespace tlapack {
  * @return 0 if success.
  * @return -i if the ith argument is invalid.
  * 
- * @param[in] type Specifies the type of matrix A.
+ * @param[in] matrixtype Specifies the type of matrix A.
  *
  *        MatrixType::General: 
  *          A is a full matrix.

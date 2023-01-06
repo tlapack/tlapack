@@ -189,6 +189,10 @@ int lascl(
  * 
  * @param[in] accessType Determines the entries of A that are scaled by a/b.
  * 
+ * @param[in] b The denominator of the scalar a/b.
+ * @param[in] a The numerator of the scalar a/b.
+ * @param[in,out] A Matrix to be scaled by a/b.
+ * 
  * @see lascl(
     access_t accessType,
     const b_type& b, const a_type& a,

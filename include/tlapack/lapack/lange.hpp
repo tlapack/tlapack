@@ -160,6 +160,16 @@ lange( norm_t normType, const matrix_t& A )
  * Code optimized for the infinity norm on column-major layouts using a workspace
  * of size at least m, where m is the number of rows of A.
  * @see lange( norm_t normType, const matrix_t& A ).
+ * 
+ * @param[in] normType
+ *      - Norm::Max: Maximum absolute value over all elements of the matrix.
+ *          Note: this is not a consistent matrix norm.
+ *      - Norm::One: 1-norm, the maximum value of the absolute sum of each column.
+ *      - Norm::Inf: Inf-norm, the maximum value of the absolute sum of each row.
+ *      - Norm::Fro: Frobenius norm of the matrix.
+ *          Square root of the sum of the square of each entry in the matrix.
+ * 
+ * @param[in] A m-by-n matrix.
  *
  * @param[in] opts Options.
  *      - @c opts.work is used if whenever it has sufficient size.

@@ -1,0 +1,57 @@
+name: Doxygen
+
+on:
+  pull_request:
+    paths:
+    - '**.c'
+    - '**.cc'
+    - '**.cxx'
+    - '**.cpp'
+    - '**.h'
+    - '**.hh'
+    - '**.hxx'
+    - '**.hpp'
+    - '**.f90'
+    - '**.f95'
+    - '**.f03'
+    - '**.f08'
+    - '**.f'
+    - 'README.md'
+    - 'docs/**'
+  push:
+    branches:
+    - master
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+
+  check-errors-in-the-documentation:
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Checkout <T>LAPACK
+      uses: actions/checkout@v3
+
+    - name: Install Basic Dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y doxygen cmake graphviz
+
+    - name: Prepare the documentation
+      run: |
+        cmake -B build
+
+    - name: Generate the documentation
+      run: doxygen docs/Doxyfile
+
+    - name: Check for errors in the documentation
+      run: |
+        if [ -s docs/doxygen_warnings.log ]; then
+          echo "There are errors in the documentation. Please, check the file docs/doxygen_warnings.log"
+          ls -l docs/doxygen_warnings.log
+          cat docs/doxygen_warnings.log | head -n 20
+          exit 1
+        fi

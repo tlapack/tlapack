@@ -1,4 +1,4 @@
-/// @file tlapack_abstractArray.hpp
+/// @file arrayTraits.hpp
 /// @author Weslley S Pereira, University of Colorado Denver, US
 ///
 /// This file contains has two purposes:
@@ -33,7 +33,7 @@ namespace tlapack {
      */
     template< class idx_t, class matrix_t >
     inline constexpr idx_t
-    nrows( const matrix_t& x );
+    nrows( const matrix_t& A );
 
     /**
      * @brief Return the number of columns of a given matrix.

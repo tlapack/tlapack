@@ -1,4 +1,4 @@
-/// @file multishift_QR_sweep_coloptimized.hpp
+/// @file multishift_qr_sweep.hpp
 /// @author Thijs Steel, KU Leuven, Belgium
 //
 // Copyright (c) 2013-2022, University of Colorado Denver. All rights reserved.
