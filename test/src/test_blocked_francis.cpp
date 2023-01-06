@@ -124,7 +124,7 @@ TEMPLATE_TEST_CASE("Multishift QR", "[eigenvalues][multishift_qr]", TLAPACK_TYPE
             A(i, j) = (T)0.0;
 
     lacpy(Uplo::General, A, H);
-    auto s = std::vector<complex_t>(n);
+    std::vector<complex_t> s(n);
     laset(Uplo::General, zero, one, Q);
 
     idx_t ns = GENERATE(4, 2);

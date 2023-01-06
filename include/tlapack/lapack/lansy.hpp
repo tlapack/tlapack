@@ -301,7 +301,7 @@ auto lansy( norm_t normType, uplo_t uplo, const matrix_t& A, const workspace_opt
             lansy_worksize( normType, uplo, A, workinfo, opts );
             return alloc_workspace( localworkdata, workinfo, opts.work );
         }();
-        auto w = legacyVector<T,idx_t>( n, work );
+        legacyVector<T,idx_t> w( n, work );
 
         // Norm value
         real_t norm( 0 );

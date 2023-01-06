@@ -239,7 +239,7 @@ auto lange( norm_t normType, const matrix_t& A, const workspace_opts_t<>& opts )
             lange_worksize( normType, A, workinfo, opts );
             return alloc_workspace( localworkdata, workinfo, opts.work );
         }();
-        auto w = legacyVector<T,idx_t>( m, work );
+        legacyVector<T,idx_t> w( m, work );
 
         // Norm value
         real_t norm( 0 );
