@@ -47,7 +47,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ macos-latest, windows-latest, ubuntu-latest ]
+        os: [ macos-11, windows-latest, ubuntu-latest ]
     
     steps:
     
@@ -69,7 +69,7 @@ jobs:
       run: sudo apt install -y liblapacke-dev
 
     - name: Build and install Catch2
-      if: ${{ matrix.os != 'macos-latest' }}
+      if: ${{ matrix.os != 'macos-11' }}
       run: |
         git clone https://github.com/catchorg/Catch2.git
         cd Catch2
@@ -78,7 +78,7 @@ jobs:
         cmake --build build --target install
 
     - name: Build and install Catch2 on MacOS
-      if: ${{ matrix.os == 'macos-latest' }}
+      if: ${{ matrix.os == 'macos-11' }}
       env:
         LDFLAGS: "-lstdc++"
       run: |
@@ -146,7 +146,7 @@ jobs:
         -D Catch2_DIR="${{env.Catch2_CMAKE_DIR}}"
 
     - name: Specific configurations for CMake on MacOS
-      if: ${{ matrix.os == 'macos-latest' }}
+      if: ${{ matrix.os == 'macos-11' }}
       env:
         LDFLAGS: "-lstdc++"
       run: >
