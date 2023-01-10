@@ -1,7 +1,8 @@
 /// @file test_blocked_francis.cpp
+/// @author Thijs, KU Leuven, Belgium
 /// @brief Test multishift QR algorithm.
 //
-// Copyright (c) 2022, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
 // This file is part of testBLAS.
 // testBLAS is free software: you can redistribute it and/or modify it under

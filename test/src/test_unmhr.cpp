@@ -1,7 +1,8 @@
 /// @file test_unmhr.cpp
+/// @author Thijs Steel, KU Leuven, Belgium
 /// @brief Test Hessenberg factor application
 //
-// Copyright (c) 2022, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
 // This file is part of testBLAS.
 // testBLAS is free software: you can redistribute it and/or modify it under

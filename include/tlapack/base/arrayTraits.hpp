@@ -1,4 +1,7 @@
-// Copyright (c) 2022, University of Colorado Denver. All rights reserved.
+/// @file arrayTraits.hpp
+/// @author Weslley S Pereira, University of Colorado Denver, USA
+//
+// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -170,28 +173,51 @@ namespace tlapack {
     
     namespace internal
     {
+
+        /**
+         * @brief Trait to determine the layout of a given data structure.
+         * 
+         * This is used to verify if optimized routines can be used.
+         * 
+         * @tparam array_t Data structure.
+         * @tparam class If this is not an int, then the trait is not defined.
+         * 
+         * @ingroup abstract_matrix
+         */
         template< class array_t, class = int >
         struct LayoutImpl {
             static constexpr Layout layout = Layout::Unspecified;
         };
 
-        template< class T, class = int >
+        /**
+         * @brief Trait to determine the transpose of matrices from class matrix_t.
+         * 
+         * @tparam matrix_t Data structure.
+         * @tparam class If this is not an int, then the trait is not defined.
+         * 
+         * @ingroup abstract_matrix
+         */
+        template< class matrix_t, class = int >
         struct TransposeTypeImpl;
-    
+
         /**
          * @brief Trait to determine if a given list of data allows optimization
          * using a optimized BLAS library.
+         * 
+         * @tparam Ts If the last class in this list is not an int, then the trait is not defined.
+         * 
+         * @ingroup abstract_matrix
          */
-        template<class...>
+        template<class... Ts>
         struct AllowOptBLASImpl {
             static constexpr bool value = false;    ///< True if the list of types
                                                     ///< allows optimized BLAS library.
         };
 
         /**
-         * @brief Functor for data Creation
+         * @brief Functor for data creation
          * 
-         * This is a boilerplate. It must be specialized for each class
+         * This is a boilerplate. It must be specialized for each class.
          * 
          * @ingroup abstract_matrix
          */
@@ -271,42 +297,56 @@ namespace tlapack {
         
         // Matrix and vector type deduction:
 
-        // Matrix type deduction
+        /**
+         * @brief Matrix type deduction
+         * 
+         * The deduction for two types must be implemented elsewhere. For example,
+         * the plugins for LegacyArray, Eigen and mdspan all have their own
+         * implementation.
+         * 
+         * @tparam matrix_t List of matrix types. The last type must be an int.
+         * 
+         * @ingroup abstract_matrix
+         */
         template< typename... matrix_t >
         struct matrix_type_traits;
 
-        // for one type
-        /// TODO: Verify that matrix_t is actually a matrix type
+        /// Matrix type deduction for one type
         template< typename matrix_t >
         struct matrix_type_traits< matrix_t, int >
         {
-            using type = typename std::decay<matrix_t>::type;
+            using type = typename matrix_type_traits<matrix_t,matrix_t,int>::type;
         };
 
-        // for three or more types
+        /// Matrix type deduction for three or more types
         template< typename matrixA_t, typename matrixB_t, typename... matrix_t >
         struct matrix_type_traits< matrixA_t, matrixB_t, matrix_t... >
         {
             using type = typename matrix_type_traits< typename matrix_type_traits< matrixA_t, matrixB_t, int >::type, matrix_t... >::type;
         };
 
-        // Vector type deduction
+        /**
+         * @brief Vector type deduction
+         * 
+         * The deduction for two types must be implemented elsewhere. For example,
+         * the plugins for LegacyArray, Eigen and mdspan all have their own
+         * implementation.
+         * 
+         * @tparam vector_t List of vector types. The last type must be an int.
+         * 
+         * @ingroup abstract_matrix
+         */
         template< typename... vector_t >
         struct vector_type_traits;
 
-        /// define @c vector_type<>::type alias
-        template< typename... vector_t >
-        using vector_type = typename vector_type_traits< vector_t..., int >::type;
-
-        // for one type
-        /// TODO: Verify that vector_t is actually a vector type
+        /// Vector type deduction for one type
         template< typename vector_t >
         struct vector_type_traits< vector_t, int >
         {
-            using type = typename std::decay<vector_t>::type;
+            using type = typename matrix_type_traits<vector_t,vector_t,int>::type;
         };
 
-        // for three or more types
+        /// Vector type deduction for three or more types
         template< typename vectorA_t, typename vectorB_t, typename... vector_t >
         struct vector_type_traits< vectorA_t, vectorB_t, vector_t... >
         {
@@ -314,16 +354,13 @@ namespace tlapack {
         };
     }
 
-    /**
-     * @brief Layout trait. Layout type used in the array class.
-     * 
-     * @tparam array_t Matrix or vector class.
-     */
+    /// @brief Alias for @c internal::LayoutImpl<,int>::layout.
+    /// @ingroup abstract_matrix
     template< class array_t >
     constexpr Layout layout = internal::LayoutImpl<array_t,int>::layout;
 
     /**
-     * @brief Implements the options for data creation
+     * @brief Alias for @c internal::CreateImpl<,int>.
      * 
      * Usage:
      * @code{.cpp}
@@ -356,23 +393,23 @@ namespace tlapack {
      */
     template< class T > using Create = internal::CreateImpl<T,int>;
 
-    /**
-     * @brief Transpose 
-     * 
-     * @tparam T 
-     */
+    /// Alias for @c internal::TransposeTypeImpl<,int>::type.
+    /// @ingroup abstract_matrix
     template< class T >
     using transpose_type = typename internal::TransposeTypeImpl<T,int>::type;
 
-    /// define @c matrix_type<>::type alias
+    /// Alias for @c internal::matrix_type<,int>::type.
+    /// @ingroup abstract_matrix
     template< typename... matrix_t >
     using matrix_type = typename internal::matrix_type_traits< matrix_t..., int >::type;
 
-    /// define @c vector_type<>::type alias
+    /// Alias for @c internal::vector_type<,int>::type.
+    /// @ingroup abstract_matrix
     template< typename... vector_t >
     using vector_type = typename internal::vector_type_traits< vector_t..., int >::type;
 
-    /// Alias for @c AllowOptBLASImpl<>::value.
+    /// Alias for @c internal::AllowOptBLASImpl<,int>::value.
+    /// @ingroup abstract_matrix
     template<class... Ts>
     constexpr bool allow_optblas = internal::AllowOptBLASImpl< Ts..., int >::value;
 

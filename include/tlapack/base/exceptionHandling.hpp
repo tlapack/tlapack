@@ -1,7 +1,7 @@
 /// @file exceptionHandling.hpp
 /// @author Weslley S Pereira, University of Colorado Denver, USA
 //
-// Copyright (c) 2022, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -28,13 +28,26 @@ namespace tlapack {
     using internal_error = std::runtime_error;
 
     namespace internal {
+
+        /**
+         * @brief Create a string with the error message.
+         * 
+         * @param info Error code.
+         * @param detailedInfo Details about the error.
+         * @return std::string Final error message.
+         * 
+         * @ingroup exception
+         */
         inline
         std::string error_msg( int info, const std::string& detailedInfo ) {
             return std::string("[") + std::to_string(info) + "] " + detailedInfo;
         }
     }
 
-    /// Descriptor for Exception Handling
+    /**
+     * @brief Descriptor for Exception Handling
+     * @ingroup exception
+     */
     struct ErrorCheck {
         
         bool inf  = TLAPACK_DEFAULT_INFCHECK; ///< Default behavior of inf check 
@@ -43,10 +56,16 @@ namespace tlapack {
 
     };
 
-    /// It has all errors turned off
+    /**
+     * @brief Options to disable error checking.
+     * @ingroup exception
+     */
     constexpr ErrorCheck noErrorCheck = { false, false, false };
 
-    /// Error Checking options
+    /**
+     * @brief Options for error checking.
+     * @ingroup exception
+     */
     struct ec_opts_t {
         ErrorCheck ec = {};
         
@@ -64,6 +83,11 @@ namespace tlapack {
      * @brief Throw an error if cond is false.
      * 
      * ex: lapack_check( 1 > 2 ); throws an error.
+     * 
+     * @note Disable the check by defining TLAPACK_NDEBUG or
+     *  undefining TLAPACK_CHECK_INPUT.
+     * 
+     * @ingroup exception
      */
     #define tlapack_check( cond ) do { \
         if( !static_cast<bool>(cond) ) \
@@ -74,6 +98,11 @@ namespace tlapack {
      * @brief Throw an error if cond is true.
      * 
      * ex: tlapack_check_false( 1 < 2 ); throws an error.
+     * 
+     * @note Disable the check by defining TLAPACK_NDEBUG or
+     *  undefining TLAPACK_CHECK_INPUT.
+     * 
+     * @ingroup exception
      */
     #define tlapack_check_false( cond ) do { \
         if( static_cast<bool>(cond) ) \
@@ -101,6 +130,10 @@ namespace tlapack {
      * 
      * @param[in] info Code of the error.
      * @param[in] detailedInfo String with information about the error.
+     * 
+     * @note Disable the handler by defining TLAPACK_NDEBUG.
+     * 
+     * @ingroup exception
      */
     #define tlapack_error( info, detailedInfo ) \
         throw tlapack::internal_error( \
@@ -111,6 +144,10 @@ namespace tlapack {
      * 
      * @param[in] info Code of the warning.
      * @param[in] detailedInfo String with information about the warning.
+     * 
+     * @note Disable the handler by defining TLAPACK_NDEBUG.
+     * 
+     * @ingroup exception
      */
     #define tlapack_warning( info, detailedInfo ) \
         std::cerr \
@@ -124,6 +161,10 @@ namespace tlapack {
      *      Default options are defined in ErrorCheck.
      * @param[in] info Code of the error.
      * @param[in] detailedInfo String with information about the error.
+     * 
+     * @note Disable the handler by defining TLAPACK_NDEBUG.
+     * 
+     * @ingroup exception
      */
     #define tlapack_error_internal( ec, info, detailedInfo ) do { \
         if( static_cast<bool>(ec.internal) ) \
@@ -140,6 +181,7 @@ namespace tlapack {
         ((void)0)
     #define tlapack_error_internal( ec, info, detailedInfo ) \
         ((void)0)
+
 #endif
 
 // -----------------------------------------------------------------------------
@@ -147,11 +189,27 @@ namespace tlapack {
 
 #if defined(TLAPACK_ENABLE_INFCHECK) && !defined(TLAPACK_NDEBUG)
 
+    /**
+     * @brief Run tlapack_warning if there is an inf in the matrix.
+     * 
+     * @note Disable the warning by defining TLAPACK_NDEBUG
+     *  or undefining TLAPACK_ENABLE_INFCHECK
+     * 
+     * @ingroup exception
+     */
     #define tlapack_warn_infs_in_matrix( ec, accessType, A, info, detailedInfo ) do { \
         if( static_cast<bool>(ec.inf) && hasinf(accessType, A) ) \
             tlapack_warning( info, detailedInfo ); \
     } while(false)
 
+    /**
+     * @brief Run tlapack_warning if there is an inf in the vector.
+     * 
+     * @note Disable the warning by defining TLAPACK_NDEBUG
+     *  or undefining TLAPACK_ENABLE_INFCHECK
+     * 
+     * @ingroup exception
+     */
     #define tlapack_warn_infs_in_vector( ec, x, info, detailedInfo ) do { \
         if( static_cast<bool>(ec.inf) && hasinf(x) ) \
             tlapack_warning( info, detailedInfo ); \
@@ -165,6 +223,7 @@ namespace tlapack {
         ((void)0)
     #define tlapack_warn_infs_in_vector( ec, x, info, detailedInfo ) \
         ((void)0)
+
 #endif
 
 // -----------------------------------------------------------------------------
@@ -172,11 +231,27 @@ namespace tlapack {
 
 #if defined(TLAPACK_ENABLE_NANCHECK) && !defined(TLAPACK_NDEBUG)
 
+    /**
+     * @brief Run tlapack_warning if there is a nan in the matrix.
+     * 
+     * @note Disable the warning by defining TLAPACK_NDEBUG
+     *  or undefining TLAPACK_ENABLE_NANCHECK
+     * 
+     * @ingroup exception
+     */
     #define tlapack_warn_nans_in_matrix( ec, accessType, A, info, detailedInfo ) do { \
         if( static_cast<bool>(ec.nan) && hasnan(accessType, A) ) \
             tlapack_warning( info, detailedInfo ); \
     } while(false)
 
+    /**
+     * @brief Run tlapack_warning if there is a nan in the vector.
+     * 
+     * @note Disable the warning by defining TLAPACK_NDEBUG
+     *  or undefining TLAPACK_ENABLE_NANCHECK
+     * 
+     * @ingroup exception
+     */
     #define tlapack_warn_nans_in_vector( ec, x, info, detailedInfo ) do { \
         if( static_cast<bool>(ec.nan) && hasnan(x) ) \
             tlapack_warning( info, detailedInfo ); \
@@ -190,6 +265,7 @@ namespace tlapack {
         ((void)0)
     #define tlapack_warn_nans_in_vector( ec, x, info, detailedInfo ) \
         ((void)0)
+        
 #endif
 
 #endif // TLAPACK_EXCEPTION_HH

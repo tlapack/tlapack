@@ -5,7 +5,7 @@
 ///     1. It serves as a template for writing <T>LAPACK abstract arrays.
 ///     2. It is used by Doxygen to generate the documentation.
 //
-// Copyright (c) 2021-2022, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -179,13 +179,13 @@ namespace tlapack {
      * @param rows      Pair (i,k).
      *      i   is the index of the first row, and
      *      k-1 is the index of the last row.
-     * @param colIdx    Column index. Default value is zero.
+     * @param colIdx    Column index.
      * 
      * @ingroup abstract_matrix
      */
     template< class matrix_t, class pair_t, class idx_t >
     inline constexpr auto
-    slice( const matrix_t& A, pair_t&& rows, idx_t colIdx = 0 );
+    slice( const matrix_t& A, pair_t&& rows, idx_t colIdx );
     
     /**
      * @brief Extracts a set of rows from a given matrix.
