@@ -873,7 +873,7 @@ alloc_workspace( vectorOfBytes& v, std::size_t lwork )
  * @brief Allocates workspace
  * 
  * @param[out] v        On exit, reference to allocated memory if needed.
- * @param[in] lwork     Number of bytes needed.
+ * @param[in] workinfo  Information about the amount of workspace required.
  * @param[in] opts_w    Workspace previously allocated.
  * 
  * @return Workspace referencing either:

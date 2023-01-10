@@ -21,26 +21,28 @@ namespace tlapack
      * This is the recursive variant
      *
      * @param[in] uplo
-     *      - Uplo::Upper: Upper triangle of A is referenced; the strictly lower
-     *      triangular part of A is not referenced.
-     *      - Uplo::Lower: Lower triangle of A is referenced; the strictly upper
-     *      triangular part of A is not referenced.
+     *      - Uplo::Upper: Upper triangle of C is referenced; the strictly lower
+     *      triangular part of C is not referenced.
+     *      - Uplo::Lower: Lower triangle of C is referenced; the strictly upper
+     *      triangular part of C is not referenced.
      *
      * @param[in] diag
-     *     Whether A has a unit or non-unit diagonal:
-     *      - Diag::Unit:    A is assumed to be unit triangular.
-     *      - Diag::NonUnit: A is not assumed to be unit triangular.
-     * @param[in,out] A n-by-n matrix.
+     *     Whether C has a unit or non-unit diagonal:
+     *      - Diag::Unit:    C is assumed to be unit triangular.
+     *      - Diag::NonUnit: C is not assumed to be unit triangular.
+     * @param[in,out] C n-by-n matrix.
      *      On entry, the n-by-n triangular matrix to be inverted.
      *      On exit, the inverse.
      *
      * @param[in] opts Options.
      *
      * @return = 0: successful exit
-     * @return = i+1: if A(i,i) is exactly zero.  The triangular
+     * @return = i+1: if C(i,i) is exactly zero.  The triangular
      *          matrix is singular and its inverse can not be computed.
      *
      * @todo: implement nx to bail out of recursion before 1-by-1 case
+     * 
+     * @ingroup computational
      *
      */
     template <typename uplo_t, typename matrix_t>

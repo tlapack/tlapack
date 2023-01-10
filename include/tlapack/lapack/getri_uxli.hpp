@@ -18,9 +18,21 @@
 
 namespace tlapack {
 
+/** Worspace query of getri()
+ *
+ * @param[in] A n-by-n matrix.
+ *
+ * @param[in] opts Options.
+ * 
+ * @param[in,out] workinfo
+ *      On output, the amount workspace required. It is larger than or equal
+ *      to that given on input.
+ *
+ * @ingroup workspace_query
+ */
 template< class matrix_t >
 inline constexpr
-void getri_uxli_worksize( matrix_t& A, workinfo_t& workinfo, const workspace_opts_t<>& opts = {} )
+void getri_uxli_worksize( const matrix_t& A, workinfo_t& workinfo, const workspace_opts_t<>& opts = {} )
 {
     using T = type_t< matrix_t >;
 

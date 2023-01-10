@@ -16,12 +16,34 @@
 
 namespace tlapack {
 
-/** Worspace query.
- * @see unm2r
+/** Worspace query of unm2r() 
+ * 
+ * @param[in] side Specifies which side op(Q) is to be applied.
+ *      - Side::Left:  C := op(Q) C;
+ *      - Side::Right: C := C op(Q).
+ * 
+ * @param[in] trans The operation $op(Q)$ to be used:
+ *      - Op::NoTrans:      $op(Q) = Q$;
+ *      - Op::ConjTrans:    $op(Q) = Q^H$.
+ *      Op::Trans is a valid value if the data type of A is real. In this case,
+ *      the algorithm treats Op::Trans as Op::ConjTrans.
+ * 
+ * @param[in] A
+ *      - side = Side::Left:    m-by-k matrix;
+ *      - side = Side::Right:   n-by-k matrix.
+ * 
+ * @param[in] tau Vector of length k
+ *      Contains the scalar factors of the elementary reflectors.
+ * 
+ * @param[in] C m-by-n matrix.
+ *
+ * @param[in] opts Options.
  * 
  * @param[in,out] workinfo
  *      On output, the amount workspace required. It is larger than or equal
  *      to that given on input.
+ *
+ * @ingroup workspace_query
  */
 template<
     class matrixA_t, class matrixC_t, class tau_t,
@@ -31,7 +53,7 @@ void unm2r_worksize(
     side_t side, trans_t trans,
     const matrixA_t& A,
     const tau_t& tau,
-    matrixC_t& C, workinfo_t& workinfo,
+    const matrixC_t& C, workinfo_t& workinfo,
     const workspace_opts_t<>& opts = {} )
 {
     using idx_t = size_type< matrixA_t >;

@@ -32,19 +32,32 @@ namespace tlapack
         idx_t nx_switch = 128; ///< If only nx_switch columns are left, the algorithm will use unblocked code
     };
 
-    /** Worspace query.
-     * @see gehrd
+    /** Worspace query of gehrd()
+     * 
+     * @param[in] ilo integer
+     * @param[in] ihi integer
+     *      It is assumed that A is already upper Hessenberg in columns
+     *      0:ilo and rows ihi:n and is already upper triangular in
+     *      columns ihi+1:n and rows 0:ilo.
+     *      0 <= ilo <= ihi <= max(1,n).
+     * @param[in] A n-by-n matrix.
+     *      On entry, the n by n general matrix to be reduced.
+     * @param tau Not referenced.
+     *
+     * @param[in] opts Options.
      * 
      * @param[in,out] workinfo
      *      On output, the amount workspace required. It is larger than or equal
      *      to that given on input.
+     *
+     * @ingroup workspace_query
      */
     template < class matrix_t, class vector_t >
     void gehrd_worksize(
         size_type<matrix_t> ilo, 
         size_type<matrix_t> ihi, 
-        matrix_t &A, 
-        vector_t &tau,
+        const matrix_t &A, 
+        const vector_t &tau,
         workinfo_t& workinfo, 
         const gehrd_opts_t< size_type<matrix_t> > &opts = {} )
     {

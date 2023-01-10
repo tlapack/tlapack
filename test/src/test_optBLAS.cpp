@@ -1,6 +1,6 @@
 /// @file test_optBLAS.cpp
 /// @author Weslley S Pereira, University of Colorado Denver, USA
-/// @brief Test optBLAS wrappers from <T>LAPACK.
+/// @brief Test optBLAS wrappers
 //
 // Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //

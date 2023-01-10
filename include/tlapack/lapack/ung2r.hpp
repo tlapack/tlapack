@@ -17,17 +17,29 @@
 
 namespace tlapack {
 
-/** Worspace query.
- * @see ung2r
+/** Worspace query of ung2r()
+ * 
+ * @param[in] k
+ *      The number of elementary reflectors whose product defines the matrix Q.
+ *      Note that: `n >= k >= 0`.
+ * 
+ * @param[in] A m-by-n matrix.
+
+ * @param[in] tau Real vector of length min(m,n).
+ *      The scalar factors of the elementary reflectors.
+ *
+ * @param[in] opts Options.
  * 
  * @param[in,out] workinfo
  *      On output, the amount workspace required. It is larger than or equal
  *      to that given on input.
+ *
+ * @ingroup workspace_query
  */
 template< class matrix_t, class vector_t >
 inline constexpr
 void ung2r_worksize(
-    size_type< matrix_t > k, matrix_t& A, const vector_t &tau,
+    size_type< matrix_t > k, const matrix_t& A, const vector_t &tau,
     workinfo_t& workinfo, const workspace_opts_t<>& opts = {} )
 {
     using idx_t = size_type< matrix_t >;

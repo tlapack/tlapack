@@ -18,12 +18,50 @@
 
 namespace tlapack {
 
-/** Worspace query.
- * @see larfb
+/** Worspace query of larfb()
+ *
+ * @param[in] side
+ *     - Side::Left:  apply $H$ or $H^H$ from the Left.
+ *     - Side::Right: apply $H$ or $H^H$ from the Right.
+ *
+ * @param[in] trans
+ *     - Op::NoTrans:   apply $H  $ (No transpose).
+ *     - Op::Trans:     apply $H^T$ (Transpose, only allowed if the type of H is Real).
+ *     - Op::ConjTrans: apply $H^H$ (Conjugate transpose).
+ *
+ * @param[in] direction
+ *     Indicates how H is formed from a product of elementary reflectors.
+ *     - Direction::Forward:  $H = H(1) H(2) ... H(k)$.
+ *     - Direction::Backward: $H = H(k) ... H(2) H(1)$.
+ *
+ * @param[in] storeMode
+ *     Indicates how the vectors which define the elementary reflectors are stored:
+ *     - StoreV::Columnwise.
+ *     - StoreV::Rowwise.
+ *     See Further Details.
+ *
+ * @param[in] V
+ *     - If storeMode = StoreV::Columnwise:
+ *       - if side = Side::Left,  the m-by-k matrix V;
+ *       - if side = Side::Right, the n-by-k matrix V.
+ *     - If storeMode = StoreV::Rowwise:
+ *       - if side = Side::Left,  the k-by-m matrix V;
+ *       - if side = Side::Right, the k-by-n matrix V.
+ *
+ * @param[in] Tmatrix
+ *     The k-by-k matrix T.
+ *     The triangular k-by-k matrix T in the representation of the block reflector.
+ *
+ * @param[in] C
+ *     On entry, the m-by-n matrix C.
+ *
+ * @param[in] opts Options.
  * 
  * @param[in,out] workinfo
  *      On output, the amount workspace required. It is larger than or equal
  *      to that given on input.
+ *
+ * @ingroup workspace_query
  */
 template<
     class matrixV_t, class matrixT_t, class matrixC_t,
@@ -35,7 +73,7 @@ void larfb_worksize(
     side_t side, trans_t trans,
     direction_t direction, storage_t storeMode,
     const matrixV_t& V, const matrixT_t& Tmatrix,
-    matrixC_t& C,
+    const matrixC_t& C,
     workinfo_t& workinfo,
     const workspace_opts_t<workW_t>& opts = {} )
 {

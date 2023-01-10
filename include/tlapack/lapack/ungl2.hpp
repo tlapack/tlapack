@@ -17,17 +17,26 @@
 namespace tlapack
 {
 
-    /** Worspace query.
-     * @see ungl2
+    /** Worspace query of ungl2()
+     *
+     * @param[in] Q k-by-n matrix.
+     *
+     * @param[in] tauw Complex vector of length min(m,n).
+     *      tauw(j) must contain the scalar factor of the elementary
+     *      reflector H(j), as returned by gelq2.
+     *
+    * @param[in] opts Options.
      * 
      * @param[in,out] workinfo
      *      On output, the amount workspace required. It is larger than or equal
      *      to that given on input.
+     *
+     * @ingroup workspace_query
      */
     template< class matrix_t, class vector_t >
     inline constexpr
     void ungl2_worksize(
-        matrix_t& Q, vector_t &tauw, workinfo_t& workinfo,
+        const matrix_t& Q, const vector_t &tauw, workinfo_t& workinfo,
         const workspace_opts_t<>& opts = {} )
     {
         using idx_t = size_type< matrix_t >;

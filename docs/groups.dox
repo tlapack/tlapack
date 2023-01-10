@@ -17,6 +17,9 @@
     
     ----------------------------------------------------------------------------
     @defgroup computational     Computational routines
+    
+    ----------------------------------------------------------------------------
+    @defgroup workspace_query   Workspace queries
 
     ----------------------------------------------------------------------------
     @defgroup auxiliary Auxiliary routines

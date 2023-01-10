@@ -1,6 +1,6 @@
 /// @file test_utils.cpp
 /// @author Weslley S Pereira, University of Colorado Denver, USA
-/// @brief Test utils from <T>LAPACK.
+/// @brief Test utils
 //
 // Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //

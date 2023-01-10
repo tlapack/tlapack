@@ -31,17 +31,24 @@ namespace tlapack
         idx_t nb = 32; ///< Block size
     };
 
-    /** Worspace query.
-     * @see gelqf
+    /** Worspace query of gelqf()
+     *
+     * @param[in] A m-by-n matrix.
+     *
+     * @param TT Not referenced.
+     *
+     * @param[in] opts Options.
      * 
      * @param[in,out] workinfo
      *      On output, the amount workspace required. It is larger than or equal
      *      to that given on input.
+     *
+     * @ingroup workspace_query
      */
     template< typename matrix_t >
     inline constexpr
     void gelqf_worksize(
-        matrix_t &A, matrix_t &TT, workinfo_t& workinfo,
+        const matrix_t &A, const matrix_t &TT, workinfo_t& workinfo,
         const gelqf_opts_t< size_type<matrix_t> > &opts = {} )
     {
         using idx_t = size_type<matrix_t>;
@@ -87,7 +94,7 @@ namespace tlapack
      *      with the array tauw, represent the unitary matrix Q as a
      *      product of elementary reflectors.
      * 
-     * @param[in,out] TT m-by-nb matrix.
+     * @param[out] TT m-by-nb matrix.
      *      In the representation of the block reflector.
      *      tauw[j] is stored in TT(j,i), where 0 <= i < nb and i = j (mod nb).
      *      On exit, TT( 0:k, 0:nb ) contains blocks used to build Q :

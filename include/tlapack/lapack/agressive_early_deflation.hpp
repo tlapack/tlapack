@@ -30,12 +30,44 @@ namespace tlapack
     // Forward declaration
     template < class idx_t > struct francis_opts_t;
 
-    /** Worspace query.
-     * @see agressive_early_deflation
+    /** Worspace query of agressive_early_deflation().
+     *
+     * @param[in] want_t bool.
+     *      If true, the full Schur factor T will be computed.
+     *
+     * @param[in] want_z bool.
+     *      If true, the Schur vectors Z will be computed.
+     *
+     * @param[in] ilo    integer.
+     *      Either ilo=0 or A(ilo,ilo-1) = 0.
+     *
+     * @param[in] ihi    integer.
+     *      ilo and ihi determine an isolated block in A.
+     *
+     * @param[in] nw    integer.
+     *      Desired window size to perform agressive early deflation on.
+     *      If the matrix is not large enough to provide the scratch space
+     *      or if the isolated block is small, a smaller value may be used.
+     *
+     * @param[in] A  n by n matrix.
+     *       Hessenberg matrix on which AED will be performed
+     *
+     * @param s  Not referenced.
+     *
+     * @param[in] Z  n by n matrix.
+     *      On entry, the previously calculated Schur factors.
+     *
+     * @param ns    Not referenced.
+     *
+     * @param nd    Not referenced.
+     *
+     * @param[in] opts Options.
      * 
      * @param[in,out] workinfo
      *      On output, the amount workspace required. It is larger than or equal
      *      to that given on input.
+     *
+     * @ingroup workspace_query
      */
     template <
         class matrix_t,
@@ -50,11 +82,11 @@ namespace tlapack
         size_type<matrix_t> ilo, 
         size_type<matrix_t> ihi, 
         size_type<matrix_t> nw, 
-        matrix_t &A, 
-        vector_t &s, 
-        matrix_t &Z, 
-        size_type<matrix_t> &ns, 
-        size_type<matrix_t> &nd, 
+        const matrix_t &A, 
+        const vector_t &s, 
+        const matrix_t &Z, 
+        const size_type<matrix_t> &ns,
+        const size_type<matrix_t> &nd,
         workinfo_t& workinfo,
         const francis_opts_t< size_type<matrix_t> > &opts = {} )
     {
@@ -525,6 +557,56 @@ namespace tlapack
         }
     }
 
+    /** agressive_early_deflation accepts as input an upper Hessenberg matrix
+     *  H and performs an orthogonal similarity transformation
+     *  designed to detect and deflate fully converged eigenvalues from
+     *  a trailing principal submatrix.  On output H has been over-
+     *  written by a new Hessenberg matrix that is a perturbation of
+     *  an orthogonal similarity transformation of H.  It is to be
+     *  hoped that the final version of H has many zero subdiagonal
+     *  entries.
+     *
+     * @param[in] want_t bool.
+     *      If true, the full Schur factor T will be computed.
+     *
+     * @param[in] want_z bool.
+     *      If true, the Schur vectors Z will be computed.
+     *
+     * @param[in] ilo    integer.
+     *      Either ilo=0 or A(ilo,ilo-1) = 0.
+     *
+     * @param[in] ihi    integer.
+     *      ilo and ihi determine an isolated block in A.
+     *
+     * @param[in] nw    integer.
+     *      Desired window size to perform agressive early deflation on.
+     *      If the matrix is not large enough to provide the scratch space
+     *      or if the isolated block is small, a smaller value may be used.
+     *
+     * @param[in,out] A  n by n matrix.
+     *       Hessenberg matrix on which AED will be performed
+     *
+     * @param[out] s  size n vector.
+     *      On exit, the entries s[ihi-nd-ns:ihi-nd] contain the unconverged
+     *      eigenvalues that can be used a shifts. The entries s[ihi-nd:ihi]
+     *      contain the converged eigenvalues. Entries outside the range
+     *      s[ihi-nw:ihi] are not changed. The converged shifts are stored
+     *      in the same positions as their correspinding diagonal elements
+     *      in A.
+     *
+     * @param[in,out] Z  n by n matrix.
+     *      On entry, the previously calculated Schur factors
+     *      On exit, the orthogonal updates applied to A accumulated
+     *      into Z.
+     *
+     * @param[out] ns    integer.
+     *      Number of eigenvalues available as shifts in s.
+     *
+     * @param[out] nd    integer.
+     *      Number of converged eigenvalues available as shifts in s.
+     *
+     * @ingroup computational
+     */
     template <
         class matrix_t,
         class vector_t,

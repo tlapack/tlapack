@@ -24,16 +24,26 @@ namespace tlapack
         : workspace_opts_t<>( opts ) {};
     };
 
-    /** Worspace query.
-     * @see gebd2
+    /** Worspace query of gebd2().
+     *
+     * @param[in] A m-by-n matrix.
+     *      On entry, the m by n general matrix to be reduced.
+     *
+     * @param tauv Not referenced.
+     *
+     * @param tauw Not referenced.
+     *
+     * @param[in] opts Options.
      * 
      * @param[in,out] workinfo
      *      On output, the amount workspace required. It is larger than or equal
      *      to that given on input.
+     *
+     * @ingroup workspace_query
      */
     template <typename matrix_t, class vector_t>
     inline constexpr 
-    void gebd2_worksize(matrix_t &A, vector_t &tauv, vector_t &tauw, workinfo_t& workinfo, const gebd2_opts_t& opts = {})
+    void gebd2_worksize(const matrix_t &A, const vector_t &tauv, const vector_t &tauw, workinfo_t& workinfo, const gebd2_opts_t& opts = {})
     {
         using idx_t = size_type< matrix_t >;
 

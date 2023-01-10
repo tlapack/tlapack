@@ -49,7 +49,7 @@ jobs:
 
     - name: Check for errors in the documentation
       run: |
-        if [ -s docs/doxygen_warnings.log ]; then
+        if [[ $(wc -l < docs/doxygen_warnings.log) -gt 1 ]]; then
           echo "There are errors in the documentation. Please, check the file docs/doxygen_warnings.log"
           ls -l docs/doxygen_warnings.log
           cat docs/doxygen_warnings.log | head -n 20

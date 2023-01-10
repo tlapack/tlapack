@@ -2,7 +2,7 @@
 /// @author Weslley S Pereira, University of Colorado Denver, US
 ///
 /// This file contains has two purposes:
-///     1. It serves as a template for writing <T>LAPACK abstract arrays.
+///     1. It serves as a template for writing \<T\>LAPACK abstract arrays.
 ///     2. It is used by Doxygen to generate the documentation.
 //
 // Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.

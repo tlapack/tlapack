@@ -17,17 +17,24 @@
 
 namespace tlapack {
 
-/** Worspace query.
- * @see geqr2
+/** Worspace query of geqr2()
+ *
+ * @param[in] A m-by-n matrix.
+ *
+ * @param tau Not referenced.
+ *
+ * @param[in] opts Options.
  * 
  * @param[in,out] workinfo
  *      On output, the amount workspace required. It is larger than or equal
  *      to that given on input.
+ *
+ * @ingroup workspace_query
  */
 template< class matrix_t, class vector_t >
 inline constexpr
 void geqr2_worksize(
-    matrix_t& A, vector_t &tau, workinfo_t& workinfo,
+    const matrix_t& A, const vector_t &tau, workinfo_t& workinfo,
     const workspace_opts_t<>& opts = {} )
 {
     using idx_t = size_type< matrix_t >;
