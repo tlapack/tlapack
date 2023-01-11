@@ -5,6 +5,13 @@ on:
   # Runs on pushes targeting the default branch
   push:
     branches: ["master"]
+    paths:
+    - '.github/workflows/deploy_pages.yml'
+    - 'docs/**'
+    - 'include/**'
+    - 'README.md'
+    - 'test/include/**'
+    - 'test/src/**'
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -48,8 +55,8 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
-          # Upload docs/Doxyfile
-          path: 'docs/Doxyfile'
+          # Upload docs/html
+          path: 'docs/html'
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v1

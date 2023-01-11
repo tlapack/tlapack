@@ -3,15 +3,29 @@ name: CMake
 on:
   pull_request:
     paths-exclude:
-    - 'docs/**'
-    - '**.md'
-    - 'LICENSE'
-    - 'version.txt'
+    - '.github/workflows/deploy_pages.yml'
+    - '.github/workflows/doxygen.yml'
     - '.gitattributes'
     - '.gitignore'
+    - '.gitmodules'
+    - 'docs/**'
+    - 'LICENSE'
+    - 'version.txt'
+    - '**.md'
+
   push:
     branches:
     - master
+    paths-exclude:
+    - '.github/workflows/deploy_pages.yml'
+    - '.github/workflows/doxygen.yml'
+    - '.gitattributes'
+    - '.gitignore'
+    - '.gitmodules'
+    - 'docs/**'
+    - 'LICENSE'
+    - 'version.txt'
+    - '**.md'
 
 env:
   CFLAGS: "-Wall -pedantic -Wno-unused-variable -Wno-unused-function"
