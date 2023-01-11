@@ -3,24 +3,22 @@ name: Doxygen
 on:
   pull_request:
     paths:
-    - '**.c'
-    - '**.cc'
-    - '**.cxx'
-    - '**.cpp'
-    - '**.h'
-    - '**.hh'
-    - '**.hxx'
-    - '**.hpp'
-    - '**.f90'
-    - '**.f95'
-    - '**.f03'
-    - '**.f08'
-    - '**.f'
-    - 'README.md'
+    - '.github/workflows/doxygen.yml'
     - 'docs/**'
+    - 'include/**'
+    - 'README.md'
+    - 'test/include/**'
+    - 'test/src/**'
   push:
     branches:
     - master
+    paths:
+    - '.github/workflows/doxygen.yml'
+    - 'docs/**'
+    - 'include/**'
+    - 'README.md'
+    - 'test/include/**'
+    - 'test/src/**'
 
 defaults:
   run:
@@ -42,7 +40,7 @@ jobs:
 
     - name: Prepare the documentation
       run: |
-        cmake -B build
+        cmake -B build -D BUILD_TESTING=OFF -D BUILD_EXAMPLES=OFF
 
     - name: Generate the documentation
       run: doxygen docs/Doxyfile
