@@ -2,7 +2,7 @@
 /// @author Weslley S Pereira, University of Colorado Denver, USA
 /// Adapted from @see https://github.com/langou/latl/blob/master/include/larf.h
 //
-// Copyright (c) 2013-2022, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -19,7 +19,7 @@ namespace tlapack {
  * 
  * @see larf( Side side, idx_t m, idx_t n, TV const *v, int_t incv, scalar_type< TV, TC , TW > tau, TC *C, idx_t ldC, TW *work )
  * 
- * @ingroup auxiliary
+ * @ingroup legacy_lapack
  */
 template< class side_t, typename TV, typename TC >
 inline void larf(

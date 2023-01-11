@@ -1,4 +1,7 @@
-// Copyright (c) 2021-2022, University of Colorado Denver. All rights reserved.
+/// @file legacyArray.hpp
+/// @author Weslley S Pereira, University of Colorado Denver, USA
+//
+// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -253,7 +256,7 @@ namespace tlapack {
     // Slice legacyMatrix over a single column
     template< typename T, class idx_t, Layout layout, class SliceSpecRow >
     inline constexpr auto
-    slice( const legacyMatrix<T,idx_t,layout>& A, SliceSpecRow&& rows, size_type<legacyMatrix<T,idx_t,layout>> colIdx = 0 ) noexcept {
+    slice( const legacyMatrix<T,idx_t,layout>& A, SliceSpecRow&& rows, size_type<legacyMatrix<T,idx_t,layout>> colIdx ) noexcept {
         assert( rows.first >= 0 and rows.first < nrows(A));
         assert( rows.second >= 0 and rows.second <= nrows(A));
         assert( rows.first <= rows.second );

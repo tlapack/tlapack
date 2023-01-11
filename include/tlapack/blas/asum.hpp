@@ -1,5 +1,8 @@
+/// @file asum.hpp
+/// @author Weslley S Pereira, University of Colorado Denver, USA
+//
 // Copyright (c) 2017-2021, University of Tennessee. All rights reserved.
-// Copyright (c) 2021-2022, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -12,14 +15,13 @@
 
 namespace tlapack {
 
-/**
- * @return 1-norm of vector,
- *     $|| Re(x) ||_1 + || Im(x) ||_1
- *         := \sum_{i=0}^{n-1} |Re(x_i)| + |Im(x_i)|$.
+/** 
+ * Vector 1-norm:
+ *      $\sum_{i=0}^{n-1} |Re(x_i)| + |Im(x_i)|$.
  * 
  * @param[in] x     A n-element vector.
  *
- * @ingroup asum
+ * @ingroup blas1
  */
 template< class vector_t,
     disable_if_allow_optblas_t< vector_t > = 0

@@ -1,5 +1,8 @@
+/// @file syrk.hpp
+/// @author Weslley S Pereira, University of Colorado Denver, USA
+//
 // Copyright (c) 2017-2021, University of Tennessee. All rights reserved.
-// Copyright (c) 2021-2022, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -42,7 +45,7 @@ namespace tlapack {
  *     - Op::NoTrans: $C = \alpha A A^T + \beta C$.
  *     - Op::Trans:   $C = \alpha A^T A + \beta C$.
  *     - In the real    case, Op::ConjTrans is interpreted as Op::Trans.
- *       In the complex case, Op::ConjTrans is illegal (see @ref herk instead).
+ *       In the complex case, Op::ConjTrans is illegal (see @ref herk() instead).
  *
  * @param[in] n
  *     Number of rows and columns of the matrix C. n >= 0.
@@ -75,7 +78,7 @@ namespace tlapack {
  * @param[in] ldc
  *     Leading dimension of C. ldc >= max(1, n).
  *
- * @ingroup syrk
+ * @ingroup legacy_blas
  */
 template< typename TA, typename TC >
 void syrk(

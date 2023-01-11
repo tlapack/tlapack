@@ -51,7 +51,7 @@ namespace tlapack
      * @param[in,out] T nb-by-nb matrix.
      * @param[in,out] Y n-by-nb matrix.
      *
-     * @ingroup gehrd
+     * @ingroup auxiliary
      */
     template <class matrix_t, class vector_t, class T_t, class Y_t>
     int lahr2(size_type<matrix_t> k, size_type<matrix_t> nb, matrix_t &A, vector_t &tau, T_t &T, Y_t &Y)

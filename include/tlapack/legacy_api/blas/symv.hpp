@@ -1,5 +1,8 @@
+/// @file symv.hpp
+/// @author Weslley S Pereira, University of Colorado Denver, USA
+//
 // Copyright (c) 2017-2021, University of Tennessee. All rights reserved.
-// Copyright (c) 2021-2022, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -62,7 +65,7 @@ namespace tlapack {
  *     Stride between elements of y. incy must not be zero.
  *     If incy < 0, uses elements of y in reverse order: y(n-1), ..., y(0).
  *
- * @ingroup symv
+ * @ingroup legacy_blas
  */
 template< typename TA, typename TX, typename TY >
 void symv(

@@ -1,7 +1,7 @@
 /// @file getri.hpp
 /// @author Weslley S Pereira, University of Colorado Denver, USA
 //
-// Copyright (c) 2022, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -31,9 +31,26 @@ namespace tlapack {
         GetriVariant variant = GetriVariant::UILI;
     };
 
+    /** Worspace query of getri()
+     *
+     * @param[in] A n-by-n matrix.
+     *      
+     * @param[in] Piv pivot vector of size at least n.
+     *
+     * @param[in] opts Options.
+     *      - @c opts.variant:
+     *          - UILI = 'D', ///< Method D from doi:10.1137/1.9780898718027
+     *          - UXLI = 'C'  ///< Method C from doi:10.1137/1.9780898718027
+     * 
+     * @param[in,out] workinfo
+     *      On output, the amount workspace required. It is larger than or equal
+     *      to that given on input.
+     *
+     * @ingroup workspace_query
+     */
     template< class matrix_t, class vector_t >
     inline constexpr
-    void getri_worksize( matrix_t& A, const vector_t &Piv, workinfo_t& workinfo, const getri_opts_t& opts = {} )
+    void getri_worksize( const matrix_t& A, const vector_t &Piv, workinfo_t& workinfo, const getri_opts_t& opts = {} )
     {
         if( opts.variant == GetriVariant::UXLI )
             getri_uxli_worksize( A, workinfo, opts );
@@ -60,7 +77,7 @@ namespace tlapack {
      *      - @c opts.work is used if whenever it has sufficient size.
      *        Check the correct variant to obtain details.
      *      
-     * @ingroup group_solve
+     * @ingroup computational
      */
     template< class matrix_t, class vector_t >
     int getri( matrix_t& A, const vector_t &Piv, const getri_opts_t& opts = {} )

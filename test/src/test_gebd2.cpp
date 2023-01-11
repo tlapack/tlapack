@@ -1,7 +1,8 @@
 /// @file test_gebd2.cpp
+/// @author Yuxin Cai, University of Colorado Denver, USA
 /// @brief Test GEBD2 using UNG2R and UNGL2. Output an upper bidiagonal matrix B for a m-by-n matrix A (m >= n).
 //
-// Copyright (c) 2022, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under

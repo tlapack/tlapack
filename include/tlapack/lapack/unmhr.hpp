@@ -18,6 +18,16 @@ namespace tlapack
 {
 
     /** Applies unitary matrix Q to a matrix C.
+     * 
+     * @param[in] side Specifies which side op(Q) is to be applied.
+     *      - Side::Left:  C := op(Q) C;
+     *      - Side::Right: C := C op(Q).
+     * 
+     * @param[in] trans The operation $op(Q)$ to be used:
+     *      - Op::NoTrans:      $op(Q) = Q$;
+     *      - Op::ConjTrans:    $op(Q) = Q^H$.
+     *      Op::Trans is a valid value if the data type of A is real. In this case,
+     *      the algorithm treats Op::Trans as Op::ConjTrans.
      *
      * @param[in] ilo integer
      * @param[in] ihi integer
@@ -41,7 +51,7 @@ namespace tlapack
      *      @c opts.work is used if whenever it has sufficient size.
      *      The sufficient size can be obtained through a workspace query.
      *
-     * @ingroup gehrd
+     * @ingroup computational
      */
     template < class matrix_t, class vector_t >
     int unmhr(
@@ -49,8 +59,8 @@ namespace tlapack
         Op trans,
         size_type<matrix_t> ilo,
         size_type<matrix_t> ihi,
-        matrix_t &A,
-        vector_t &tau,
+        const matrix_t &A,
+        const vector_t &tau,
         matrix_t &C,
         const workspace_opts_t<>& opts = {} )
     {
@@ -66,12 +76,38 @@ namespace tlapack
         return 0;
     }
 
-    /** Worspace query.
-     * @see unmhr
+    /** Worspace query of unmhr()
+     * 
+     * @param[in] side Specifies which side op(Q) is to be applied.
+     *      - Side::Left:  C := op(Q) C;
+     *      - Side::Right: C := C op(Q).
+     * 
+     * @param[in] trans The operation $op(Q)$ to be used:
+     *      - Op::NoTrans:      $op(Q) = Q$;
+     *      - Op::ConjTrans:    $op(Q) = Q^H$.
+     *      Op::Trans is a valid value if the data type of A is real. In this case,
+     *      the algorithm treats Op::Trans as Op::ConjTrans.
+     *
+     * @param[in] ilo integer
+     * @param[in] ihi integer
+     *      ilo and ihi must have the same values as in the
+     *      previous call to gehrd. Q is equal to the unit
+     *      matrix except in the submatrix Q(ilo+1:ihi,ilo+1:ihi).
+     *      0 <= ilo <= ihi <= max(1,n).
+     * @param[in] A n-by-n matrix
+     *      Matrix containing orthogonal vectors, as returned by gehrd
+     * @param[in] tau Vector of length n-1
+     *      Contains the scalar factors of the elementary reflectors.
+     *
+     * @param[in] C m-by-n matrix.
+     *
+     * @param[in] opts Options.
      * 
      * @param[in,out] workinfo
      *      On output, the amount workspace required. It is larger than or equal
      *      to that given on input.
+     *
+     * @ingroup workspace_query
      */
     template < class matrix_t, class vector_t >
     inline constexpr
@@ -80,9 +116,9 @@ namespace tlapack
         Op trans,
         size_type<matrix_t> ilo,
         size_type<matrix_t> ihi,
-        matrix_t &A,
-        vector_t &tau,
-        matrix_t &C, workinfo_t& workinfo,
+        const matrix_t &A,
+        const vector_t &tau,
+        const matrix_t &C, workinfo_t& workinfo,
         const workspace_opts_t<>& opts = {} )
     {
         using idx_t = size_type<matrix_t>;

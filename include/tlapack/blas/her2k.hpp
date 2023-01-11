@@ -1,5 +1,8 @@
+/// @file her2k.hpp
+/// @author Weslley S Pereira, University of Colorado Denver, USA
+//
 // Copyright (c) 2017-2021, University of Tennessee. All rights reserved.
-// Copyright (c) 2021-2022, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -49,7 +52,7 @@ namespace tlapack {
  *     Imaginary parts of the diagonal elements need not be set,
  *     are assumed to be zero on entry, and are set to zero on exit.
  *
- * @ingroup her2k
+ * @ingroup blas3
  */
 template<
     class matrixA_t, class matrixB_t, class matrixC_t, 
@@ -229,7 +232,7 @@ void her2k(
  *     - Otherwise:          a k-by-n matrix.
  * @param[out] C A n-by-n Hermitian matrix.
  *
- * @ingroup her2k
+ * @ingroup blas3
  */
 template<
     class matrixA_t, class matrixB_t, class matrixC_t, 
@@ -265,7 +268,7 @@ void her2k(
         const alpha_t& alpha, const matrixA_t& A, const matrixB_t& B,
         const beta_t& beta, matrixC_t& C )
     * 
-    * @ingroup her2k
+    * @ingroup blas3
     */
     template<
         class matrixA_t, class matrixB_t, class matrixC_t, 
@@ -327,7 +330,7 @@ void her2k(
         const alpha_t& alpha, const matrixA_t& A, const matrixB_t& B,
         matrixC_t& C )
     * 
-    * @ingroup her2k
+    * @ingroup blas3
     */
     template<
         class matrixA_t, class matrixB_t, class matrixC_t, 

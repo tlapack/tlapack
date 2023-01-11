@@ -1,5 +1,8 @@
+/// @file rotg.hpp
+/// @author Weslley S Pereira, University of Colorado Denver, USA
+//
 // Copyright (c) 2017-2021, University of Tennessee. All rights reserved.
-// Copyright (c) 2021-2022, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -27,7 +30,7 @@ namespace tlapack {
  * @param[out]    c Cosine of rotation; real.
  * @param[in]     s Sine of rotation;   real.
  *
- * @ingroup rotg
+ * @ingroup blas1
  */
 template <typename T,
     enable_if_t< is_same_v< T, real_type<T> >, int > = 0,
@@ -97,7 +100,7 @@ void rotg(
  * Anderson E (2017) Algorithm 978: Safe scaling in the level 1 BLAS.
  * ACM Trans Math Softw 44:. https://doi.org/10.1145/3061665
  *
- * @ingroup rotg
+ * @ingroup blas1
  */
 template <typename T,
     enable_if_t< !is_same_v< T, real_type<T> >, int > = 0,

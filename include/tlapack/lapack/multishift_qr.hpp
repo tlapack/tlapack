@@ -2,7 +2,7 @@
 /// @author Thijs, KU Leuven, Belgium
 /// Adapted from @see https://github.com/Reference-LAPACK/lapack/tree/master/SRC/dlaqr0.f
 //
-// Copyright (c) 2013-2022, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -78,12 +78,28 @@ namespace tlapack
         idx_t nibble = 14;
     };
 
-    /** Worspace query.
-     * @see multishift_qr
+    /** Worspace query of multishift_qr()
+     *
+     * @param[in] want_t bool.
+     *      If true, the full Schur factor T will be computed.
+     * @param[in] want_z bool.
+     *      If true, the Schur vectors Z will be computed.
+     * @param[in] ilo    integer.
+     *      Either ilo=0 or A(ilo,ilo-1) = 0.
+     * @param[in] ihi    integer.
+     *      The matrix A is assumed to be already quasi-triangular in rows and
+     *      columns ihi:n.
+     * @param[in] A  n by n matrix.
+     * @param w Not referenced.
+     * @param[in] Z  n by n matrix.
+     *
+     * @param[in,out] opts Options.
      * 
      * @param[in,out] workinfo
      *      On output, the amount workspace required. It is larger than or equal
      *      to that given on input.
+     *
+     * @ingroup workspace_query
      */
     template <
         class matrix_t,
@@ -97,9 +113,9 @@ namespace tlapack
         bool want_z, 
         size_type<matrix_t> ilo, 
         size_type<matrix_t> ihi, 
-        matrix_t &A,
-        vector_t &w,
-        matrix_t &Z,
+        const matrix_t &A,
+        const vector_t &w,
+        const matrix_t &Z,
         workinfo_t& workinfo,
         const francis_opts_t< size_type<matrix_t> > &opts = {} )
     {
@@ -179,7 +195,7 @@ namespace tlapack
      *          @c opts.n_shifts_total
      *      are updated inside the routine.
      *
-     * @ingroup geev
+     * @ingroup computational
      */
     template <
         class matrix_t,

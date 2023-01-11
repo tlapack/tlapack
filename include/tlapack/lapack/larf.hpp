@@ -2,7 +2,7 @@
 /// @author Weslley S Pereira, University of Colorado Denver, USA
 /// Adapted from @see https://github.com/langou/latl/blob/master/include/larf.h
 //
-// Copyright (c) 2013-2022, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -17,17 +17,37 @@
 
 namespace tlapack {
 
-/** Worspace query.
+/** Worspace query of larf().
+ * 
+ * @param[in] side
+ *     - Side::Left:  apply $H$ from the Left.
+ *     - Side::Right: apply $H$ from the Right.
+ *
+ * @param[in] direction
+ *     v = [ 1 x ] if direction == Direction::Forward and
+ *     v = [ x 1 ] if direction == Direction::Backward.
+ * 
+ * @param[in] v Vector of size m if side = Side::Left,
+ *                          or n if side = Side::Right.
+ * 
+ * @param[in] tau Value of tau in the representation of H.
+ * 
+ * @param[in] C
+ *     On entry, the m-by-n matrix C.
+ *
+ * @param[in] opts Options.
  * 
  * @param[in,out] workinfo
  *      On output, the amount workspace required. It is larger than or equal
  *      to that given on input.
+ *
+ * @ingroup workspace_query
  */
 template< class side_t, class direction_t, class vector_t, class tau_t, class matrix_t >
 inline constexpr
 void larf_worksize(
     side_t side, direction_t direction,
-    vector_t const& v, const tau_t& tau, matrix_t& C,
+    vector_t const& v, const tau_t& tau, const matrix_t& C,
     workinfo_t& workinfo, const workspace_opts_t<>& opts = {} )
 {
     using work_t    = vector_type< matrix_t, vector_t >;

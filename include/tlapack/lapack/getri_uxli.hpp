@@ -1,7 +1,7 @@
 /// @file getri_uxli.hpp
 /// @author Ali Lotfi, University of Colorado Denver, USA
 //
-// Copyright (c) 2022, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -18,9 +18,21 @@
 
 namespace tlapack {
 
+/** Worspace query of getri()
+ *
+ * @param[in] A n-by-n matrix.
+ *
+ * @param[in] opts Options.
+ * 
+ * @param[in,out] workinfo
+ *      On output, the amount workspace required. It is larger than or equal
+ *      to that given on input.
+ *
+ * @ingroup workspace_query
+ */
 template< class matrix_t >
 inline constexpr
-void getri_uxli_worksize( matrix_t& A, workinfo_t& workinfo, const workspace_opts_t<>& opts = {} )
+void getri_uxli_worksize( const matrix_t& A, workinfo_t& workinfo, const workspace_opts_t<>& opts = {} )
 {
     using T = type_t< matrix_t >;
 
@@ -48,7 +60,7 @@ void getri_uxli_worksize( matrix_t& A, workinfo_t& workinfo, const workspace_opt
  *      - @c opts.work is used if whenever it has sufficient size.
  *        The sufficient size can be obtained through a workspace query.
  *      
- * @ingroup group_solve
+ * @ingroup computational
  */
 template< class matrix_t >
 int getri_uxli( matrix_t& A, const workspace_opts_t<>& opts = {} )

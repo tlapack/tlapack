@@ -1,7 +1,7 @@
 /// @file unmqr.hpp Multiplies the general m-by-n matrix C by Q from tlapack::geqrf()
 /// @author Weslley S Pereira, University of Colorado Denver, USA
 //
-// Copyright (c) 2021-2022, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -28,12 +28,36 @@ struct unmqr_opts_t : public workspace_opts_t<workT_t>
     size_type<workT_t> nb = 32; ///< Block size
 };
 
-/** Worspace query.
- * @see unmqr
+/** Worspace query of unmqr()
+ *
+ * @param[in] side Specifies which side op(Q) is to be applied.
+ *      - Side::Left:  C := op(Q) C;
+ *      - Side::Right: C := C op(Q).
+ * 
+ * @param[in] trans The operation $op(Q)$ to be used:
+ *      - Op::NoTrans:      $op(Q) = Q$;
+ *      - Op::ConjTrans:    $op(Q) = Q^H$.
+ *      Op::Trans is a valid value if the data type of A is real. In this case,
+ *      the algorithm treats Op::Trans as Op::ConjTrans.
+ * 
+ * @param[in] A
+ *      - side = Side::Left:    m-by-k matrix;
+ *      - side = Side::Right:   n-by-k matrix.
+ * 
+ * @param[in] tau Vector of length k
+ *      Contains the scalar factors of the elementary reflectors.
+ * 
+ * @param[in] C m-by-n matrix.
+ *
+ * @param[in] opts Options.
+ *      @c opts.work is used if whenever it has sufficient size.
+ *      The sufficient size can be obtained through a workspace query.
  * 
  * @param[in,out] workinfo
  *      On output, the amount workspace required. It is larger than or equal
  *      to that given on input.
+ *
+ * @ingroup workspace_query
  * 
  * @see unmqr
  */
@@ -47,7 +71,7 @@ void unmqr_worksize(
     side_t side, trans_t trans,
     const matrixA_t& A,
     const tau_t& tau,
-    matrixC_t& C,
+    const matrixC_t& C,
     workinfo_t& workinfo,
     const unmqr_opts_t<workT_t>& opts = {} )
 {
@@ -141,7 +165,7 @@ void unmqr_worksize(
  *      @c opts.work is used if whenever it has sufficient size.
  *      The sufficient size can be obtained through a workspace query.
  * 
- * @ingroup geqrf
+ * @ingroup computational
  */
 template<
     class matrixA_t, class matrixC_t,

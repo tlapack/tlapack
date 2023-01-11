@@ -1,7 +1,7 @@
 /// @file unmqr.hpp Multiplies the general m-by-n matrix C by Q from geqrf()
 /// @author Weslley S Pereira, University of Colorado Denver, USA
 //
-// Copyright (c) 2021-2022, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -68,7 +68,7 @@ namespace tlapack {
     const matrixA_t& A, const tau_t& tau,
     matrixC_t& C, const unmqr_opts_t<workT_t>& opts = {} )
  *
- * @ingroup geqrf
+ * @ingroup legacy_lapack
  */
 template< class side_t, class trans_t, typename TA, typename TC >
 inline int unmqr(

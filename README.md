@@ -183,7 +183,7 @@ Here are the \<T\>LAPACK specific options and their default values
 
 BSD 3-Clause License
 
-Copyright (c) 2012-2022, University of Colorado Denver. All rights reserved.
+Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 
 Copyright (c) 2017-2021, University of Tennessee. All rights reserved.
 

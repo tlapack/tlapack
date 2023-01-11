@@ -1,5 +1,8 @@
+/// @file herk.hpp
+/// @author Weslley S Pereira, University of Colorado Denver, USA
+//
 // Copyright (c) 2017-2021, University of Tennessee. All rights reserved.
-// Copyright (c) 2021-2022, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -42,7 +45,7 @@ namespace tlapack {
  *     - Op::NoTrans:   $C = \alpha A A^H + \beta C$.
  *     - Op::ConjTrans: $C = \alpha A^H A + \beta C$.
  *     - In the real    case, Op::Trans is interpreted as Op::ConjTrans.
- *       In the complex case, Op::Trans is illegal (see @ref syrk instead).
+ *       In the complex case, Op::Trans is illegal (see @ref syrk() instead).
  *
  * @param[in] n
  *     Number of rows and columns of the matrix C. n >= 0.
@@ -75,7 +78,7 @@ namespace tlapack {
  * @param[in] ldc
  *     Leading dimension of C. ldc >= max(1, n).
  *
- * @ingroup herk
+ * @ingroup legacy_blas
  */
 template< typename TA, typename TC >
 void herk(

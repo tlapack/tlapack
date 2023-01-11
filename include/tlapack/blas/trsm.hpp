@@ -1,5 +1,8 @@
+/// @file trsm.hpp
+/// @author Weslley S Pereira, University of Colorado Denver, USA
+//
 // Copyright (c) 2017-2021, University of Tennessee. All rights reserved.
-// Copyright (c) 2021-2022, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -61,7 +64,7 @@ namespace tlapack {
  *      On entry, the m-by-n matrix B.
  *      On exit,  the m-by-n matrix X.
  *
- * @ingroup trsm
+ * @ingroup blas3
  */
 template< class matrixA_t, class matrixB_t, class alpha_t,
     class T = type_t<matrixB_t>,

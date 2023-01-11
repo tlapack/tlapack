@@ -2,7 +2,7 @@
 /// @author Weslley S Pereira, University of Colorado Denver, USA
 /// Adapted from @see https://github.com/langou/latl/blob/master/include/larft.h
 //
-// Copyright (c) 2013-2022, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -76,7 +76,7 @@ namespace tlapack {
  * if the direction of the elementary reflectors is backward, T is lower triangular.
  * @param ldT Column length of the matrix T.  ldT >= k.
  * 
- * @ingroup auxiliary
+ * @ingroup legacy_lapack
  */
 template <class direction_t, class storeV_t, typename scalar_t>
 int larft(

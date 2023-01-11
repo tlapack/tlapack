@@ -1,5 +1,7 @@
-
-// Copyright (c) 2021-2022, University of Colorado Denver. All rights reserved.
+/// @file mpreal.hpp
+/// @author Weslley S Pereira, University of Colorado Denver, USA
+//
+// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -53,9 +55,7 @@ namespace tlapack {
         // Forward declaration
         template< typename real_t > const int digits();
 
-        /** Digits for the mpfr::mpreal datatype
-         * @ingroup utils
-         */
+        /// Specialization for the mpfr::mpreal datatype
         template<>
         inline const int digits<mpfr::mpreal>() {
             return std::numeric_limits< mpfr::mpreal >::digits(); 

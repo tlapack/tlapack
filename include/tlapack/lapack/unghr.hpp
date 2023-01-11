@@ -24,18 +24,25 @@ namespace tlapack {
  *      matrix except in the submatrix Q(ilo+1:ihi,ilo+1:ihi).
  *      0 <= ilo <= ihi <= max(1,n).
  * 
+ * @param[in,out] A m-by-n matrix.
+ *      On entry, the vectors which define the elementary reflectors.
+ *      On exit, the m-by-n matrix Q.
+ * 
+ * @param[in] tau Real vector of length n-1.
+ *      The scalar factors of the elementary reflectors.
+ * 
  * @param[in] opts Options.
  *      @c opts.work is used if whenever it has sufficient size.
  *      The sufficient size can be obtained through a workspace query.
  * 
- * @ingroup gehrd
+ * @ingroup computational
  */
 template< class matrix_t, class vector_t >
 int unghr(
     size_type< matrix_t > ilo,
     size_type< matrix_t > ihi,
     matrix_t& A,
-    vector_t& tau,
+    const vector_t& tau,
     const workspace_opts_t<>& opts = {} )
 {
     using T      = type_t< matrix_t >;
@@ -93,20 +100,35 @@ int unghr(
     return 0;
 }
 
-/** Worspace query.
- * @see unghr
+/** Worspace query of unghr()
+ * 
+ * @param[in] ilo integer
+ * @param[in] ihi integer
+ *      ilo and ihi must have the same values as in the
+ *      previous call to gehrd. Q is equal to the unit
+ *      matrix except in the submatrix Q(ilo+1:ihi,ilo+1:ihi).
+ *      0 <= ilo <= ihi <= max(1,n).
+ * 
+ * @param[in] A m-by-n matrix.
+ * 
+ * @param[in] tau Real vector of length n-1.
+ *      The scalar factors of the elementary reflectors.
+ * 
+ * @param[in] opts Options.
  * 
  * @param[in,out] workinfo
  *      On output, the amount workspace required. It is larger than or equal
  *      to that given on input.
+ *
+ * @ingroup workspace_query
  */
 template< class matrix_t, class vector_t >
 inline constexpr
 void unghr_worksize(
     size_type< matrix_t > ilo,
     size_type< matrix_t > ihi,
-    matrix_t& A,
-    vector_t& tau,
+    const matrix_t& A,
+    const vector_t& tau,
     workinfo_t& workinfo, const workspace_opts_t<>& opts = {} )
 {
     using idx_t = size_type< matrix_t >;

@@ -1,7 +1,7 @@
 /// @file potrf.hpp
 /// @author Weslley S Pereira, University of Colorado Denver, USA
 //
-// Copyright (c) 2021-2022, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -19,7 +19,7 @@ namespace tlapack {
  * 
  * @see potrf( uplo_t uplo, matrix_t& A, const potrf_opts_t< size_type<matrix_t> >& opts = {} )
  * 
- * @ingroup posv_computational
+ * @ingroup legacy_lapack
  */
 template< class uplo_t, typename T >
 inline int potrf( uplo_t uplo, idx_t n, T* A, idx_t lda )

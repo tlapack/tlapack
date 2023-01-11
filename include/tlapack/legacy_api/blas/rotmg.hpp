@@ -1,5 +1,8 @@
+/// @file rotmg.hpp
+/// @author Weslley S Pereira, University of Colorado Denver, USA
+//
 // Copyright (c) 2017-2021, University of Tennessee. All rights reserved.
-// Copyright (c) 2021-2022, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -95,7 +98,7 @@ namespace tlapack {
  * http://dx.doi.org/10.1093/imamat/13.2.215
  * (Note the notation swaps u <=> x, v <=> y, d_i -> l_i.)
  *
- * @ingroup rotmg
+ * @ingroup legacy_blas
  */
 template< typename real_t >
 void rotmg(

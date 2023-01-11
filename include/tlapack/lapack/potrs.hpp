@@ -1,7 +1,7 @@
 /// @file potrs.hpp Apply the Cholesky factorization to solve a linear system.
 /// @author Weslley S Pereira, University of Colorado Denver, USA
 //
-// Copyright (c) 2021-2022, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -48,7 +48,7 @@ namespace tlapack {
  * 
  * @return = 0: successful exit.
  *
- * @ingroup posv_computational
+ * @ingroup computational
  */
 template< class uplo_t, class matrixA_t, class matrixB_t >
 int potrs( uplo_t uplo, const matrixA_t& A, matrixB_t& B )

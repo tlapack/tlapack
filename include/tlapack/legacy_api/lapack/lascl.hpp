@@ -1,7 +1,7 @@
 /// @file lascl.hpp Multiplies a matrix by a scalar.
 /// @author Weslley S Pereira, University of Colorado Denver, USA
 //
-// Copyright (c) 2012-2022, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -52,7 +52,7 @@ namespace tlapack {
  * @param[in,out] A Pointer to the matrix A [in/out].
  * @param[in] lda The column length of the matrix A.
  * 
- * @ingroup auxiliary
+ * @ingroup legacy_lapack
  */
 template< class matrixType_t, typename T >
 int lascl(

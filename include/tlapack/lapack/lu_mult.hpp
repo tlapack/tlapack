@@ -1,7 +1,7 @@
 /// @file lu_mult.hpp
 /// @author Lindsay Slager, University of Colorado Denver, USA
 //
-// Copyright (c) 2013-2022, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -38,7 +38,7 @@ struct lu_mult_opts_t
  *      - @c opts.work is used if whenever it has sufficient size.
  *        The sufficient size can be obtained through a workspace query.
  * 
- * @ingroup util
+ * @ingroup auxiliary
  */
 template <class matrix_t>
 void lu_mult(matrix_t &A, const lu_mult_opts_t<size_type<matrix_t>> &opts = {})

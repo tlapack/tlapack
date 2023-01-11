@@ -1,7 +1,7 @@
 /// @file transpose.hpp Out of place transpose
 /// @author Thijs Steel, KU Leuven, Belgium
 //
-// Copyright (c) 2021-2022, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -33,7 +33,7 @@ namespace tlapack
      * 
      * @param[in] opts Options.
      *
-     * @ingroup util
+     * @ingroup auxiliary
      */
     template <class matrixA_t, class matrixB_t>
     void conjtranspose(matrixA_t &A, matrixB_t &B, const transpose_opts_t<size_type<matrixA_t>> &opts = {} )
@@ -90,7 +90,7 @@ namespace tlapack
      * 
      * @param[in] opts Options.
      *
-     * @ingroup util
+     * @ingroup auxiliary
      */
     template <class matrixA_t, class matrixB_t>
     void transpose(matrixA_t &A, matrixB_t &B, const transpose_opts_t<size_type<matrixA_t>> &opts = {} )

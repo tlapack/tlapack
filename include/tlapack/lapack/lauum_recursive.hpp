@@ -14,25 +14,25 @@
 namespace tlapack
 {
 
-    /** LAUUM is a specific type of inplace HERK. Given `A` a triangular 
+    /** LAUUM is a specific type of inplace HERK. Given `C` a triangular 
      * matrix (lower or upper), LAUUM computes the Hermitian matrix 
      * `upper times lower`. 
      * 
-     * If `A` is lower triangular, then LAUUM computes `A^H * A`. If `A` 
-     * is upper triangular in input, then LAUUM computes `A*A^H`. The output 
+     * If `C` is lower triangular, then LAUUM computes `C^H * C`. If `C` 
+     * is upper triangular in input, then LAUUM computes `C*C^H`. The output 
      * (symmetric) matrix is stored in place of the input triangular matrix.
      * 
      * This is the recursive variant.
      *
      * @param[in] uplo
-     *      - Uplo::Upper: Upper triangle of `A` is referenced; the strictly lower
-     *      triangular part of `A` is not referenced.
-     *      - Uplo::Lower: Lower triangle of `A` is referenced; the strictly upper
-     *      triangular part of `A` is not referenced.
+     *      - Uplo::Upper: Upper triangle of `C` is referenced; the strictly lower
+     *      triangular part of `C` is not referenced.
+     *      - Uplo::Lower: Lower triangle of `C` is referenced; the strictly upper
+     *      triangular part of `C` is not referenced.
      *
-     * @param[in,out] A n-by-n (upper of lower) (triangular or symmetric) matrix.
+     * @param[in,out] C n-by-n (upper of lower) (triangular or symmetric) matrix.
      *      On entry, the (upper of lower) part of the n-by-n triangular matrix.
-     *      On exit, the (upper of lower) part of the n-by-n symmetric matrix `A^H * A` or `A * A^H`.
+     *      On exit, the (upper of lower) part of the n-by-n symmetric matrix `C^H * C` or `C * C^H`.
      * 
      * @return = 0: successful exit
      *

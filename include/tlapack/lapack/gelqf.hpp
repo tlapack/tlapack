@@ -2,7 +2,7 @@
 /// @author Yuxin Cai, University of Colorado Denver, USA
 /// Adapted from @see https://github.com/Reference-LAPACK/lapack/blob/master/SRC/zgelqf.f
 //
-// Copyright (c) 2014-2022, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -31,17 +31,24 @@ namespace tlapack
         idx_t nb = 32; ///< Block size
     };
 
-    /** Worspace query.
-     * @see gelqf
+    /** Worspace query of gelqf()
+     *
+     * @param[in] A m-by-n matrix.
+     *
+     * @param TT Not referenced.
+     *
+     * @param[in] opts Options.
      * 
      * @param[in,out] workinfo
      *      On output, the amount workspace required. It is larger than or equal
      *      to that given on input.
+     *
+     * @ingroup workspace_query
      */
     template< typename matrix_t >
     inline constexpr
     void gelqf_worksize(
-        matrix_t &A, matrix_t &TT, workinfo_t& workinfo,
+        const matrix_t &A, const matrix_t &TT, workinfo_t& workinfo,
         const gelqf_opts_t< size_type<matrix_t> > &opts = {} )
     {
         using idx_t = size_type<matrix_t>;
@@ -87,7 +94,7 @@ namespace tlapack
      *      with the array tauw, represent the unitary matrix Q as a
      *      product of elementary reflectors.
      * 
-     * @param[in,out] TT m-by-nb matrix.
+     * @param[out] TT m-by-nb matrix.
      *      In the representation of the block reflector.
      *      tauw[j] is stored in TT(j,i), where 0 <= i < nb and i = j (mod nb).
      *      On exit, TT( 0:k, 0:nb ) contains blocks used to build Q :
@@ -105,7 +112,7 @@ namespace tlapack
      *      - @c opts.work is used if whenever it has sufficient size.
      *        The sufficient size can be obtained through a workspace query.
      *
-     * @ingroup gelqf
+     * @ingroup computational
      */
     template< typename matrix_t >
     int gelqf(matrix_t &A, matrix_t &TT, const gelqf_opts_t< size_type<matrix_t> > &opts = {})

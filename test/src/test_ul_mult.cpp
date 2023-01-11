@@ -1,7 +1,8 @@
 /// @file test_ul_mult.cpp
+/// @author Ali Lotfi, University of Colorado Denver, USA
 /// @brief Test UL multiplication.
 //
-// Copyright (c) 2022, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under

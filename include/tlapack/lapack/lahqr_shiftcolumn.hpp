@@ -2,7 +2,7 @@
 /// @author Thijs Steel, KU Leuven, Belgium
 /// Adapted from @see https://github.com/Reference-LAPACK/lapack/tree/master/SRC/dlaqr1.f
 //
-// Copyright (c) 2013-2022, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -33,7 +33,7 @@ namespace tlapack
     * @param[in] s2
     *      The scalar s2 as in the formula above
     *
-    * @ingroup geev
+    * @ingroup auxiliary
     */
    template < class matrix_t, class vector_t,
       enable_if_t<!is_complex<type_t<matrix_t>>::value, bool> = true
@@ -109,7 +109,7 @@ namespace tlapack
     * @param[in] s2
     *      The scalar s2 as in the formula above
     *
-    * @ingroup geev
+    * @ingroup auxiliary
     */
    template < class matrix_t, class vector_t,
       enable_if_t<is_complex<type_t<matrix_t>>::value, bool> = true

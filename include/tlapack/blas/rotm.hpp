@@ -1,5 +1,8 @@
+/// @file rotm.hpp
+/// @author Weslley S Pereira, University of Colorado Denver, USA
+//
 // Copyright (c) 2017-2021, University of Tennessee. All rights reserved.
-// Copyright (c) 2021-2022, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -59,7 +62,7 @@ namespace tlapack {
  *      h = { h_{11}, h_{21}, h_{12}, h_{22} }.
  * \]
  *
- * @ingroup rotm
+ * @ingroup blas1
  */
 template<
     int flag,

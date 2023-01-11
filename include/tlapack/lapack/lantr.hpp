@@ -2,7 +2,7 @@
 /// @author Weslley S Pereira, University of Colorado Denver, USA
 /// Adapted from @see https://github.com/langou/latl/blob/master/include/lantr.h
 //
-// Copyright (c) 2012-2022, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -16,12 +16,32 @@
 
 namespace tlapack {
 
-/** Worspace query.
- * @see lantr
+/** Worspace query of lantr().
+ * 
+ * @param[in] normType
+ *      - Norm::Max: Maximum absolute value over all elements of the matrix.
+ *          Note: this is not a consistent matrix norm.
+ *      - Norm::One: 1-norm, the maximum value of the absolute sum of each column.
+ *      - Norm::Inf: Inf-norm, the maximum value of the absolute sum of each row.
+ *      - Norm::Fro: Frobenius norm of the matrix.
+ *          Square root of the sum of the square of each entry in the matrix.
+ * 
+ * @param[in] uplo
+ *      - Uplo::Upper: A is a upper triangle matrix;
+ *      - Uplo::Lower: A is a lower triangle matrix.
+ *
+ * @param[in] diag
+ *     Whether A has a unit or non-unit diagonal:
+ *     - Diag::Unit:    A is assumed to be unit triangular.
+ *     - Diag::NonUnit: A is not assumed to be unit triangular.
+ * 
+ * @param[in] A m-by-n triangular matrix.
  * 
  * @param[in,out] workinfo
  *      On output, the amount workspace required. It is larger than or equal
  *      to that given on input.
+ *
+ * @ingroup workspace_query
  */
 template<
     class norm_t, 
@@ -36,12 +56,34 @@ void lantr_worksize(
     const matrix_t& A,
     workinfo_t& workinfo ) { }
 
-/** Worspace query.
- * @see lantr
+/** Worspace query of lantr().
+ * 
+ * @param[in] normType
+ *      - Norm::Max: Maximum absolute value over all elements of the matrix.
+ *          Note: this is not a consistent matrix norm.
+ *      - Norm::One: 1-norm, the maximum value of the absolute sum of each column.
+ *      - Norm::Inf: Inf-norm, the maximum value of the absolute sum of each row.
+ *      - Norm::Fro: Frobenius norm of the matrix.
+ *          Square root of the sum of the square of each entry in the matrix.
+ * 
+ * @param[in] uplo
+ *      - Uplo::Upper: A is a upper triangle matrix;
+ *      - Uplo::Lower: A is a lower triangle matrix.
+ *
+ * @param[in] diag
+ *     Whether A has a unit or non-unit diagonal:
+ *     - Diag::Unit:    A is assumed to be unit triangular.
+ *     - Diag::NonUnit: A is not assumed to be unit triangular.
+ * 
+ * @param[in] A m-by-n triangular matrix.
+ *
+ * @param[in] opts Options.
  * 
  * @param[in,out] workinfo
  *      On output, the amount workspace required. It is larger than or equal
  *      to that given on input.
+ *
+ * @ingroup workspace_query
  */
 template<
     class norm_t, 

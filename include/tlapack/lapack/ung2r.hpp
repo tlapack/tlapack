@@ -2,7 +2,7 @@
 /// @author Weslley S Pereira, University of Colorado Denver, USA
 /// Adapted from @see https://github.com/langou/latl/blob/master/include/ung2r.h
 //
-// Copyright (c) 2013-2022, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -17,17 +17,29 @@
 
 namespace tlapack {
 
-/** Worspace query.
- * @see ung2r
+/** Worspace query of ung2r()
+ * 
+ * @param[in] k
+ *      The number of elementary reflectors whose product defines the matrix Q.
+ *      Note that: `n >= k >= 0`.
+ * 
+ * @param[in] A m-by-n matrix.
+
+ * @param[in] tau Real vector of length min(m,n).
+ *      The scalar factors of the elementary reflectors.
+ *
+ * @param[in] opts Options.
  * 
  * @param[in,out] workinfo
  *      On output, the amount workspace required. It is larger than or equal
  *      to that given on input.
+ *
+ * @ingroup workspace_query
  */
 template< class matrix_t, class vector_t >
 inline constexpr
 void ung2r_worksize(
-    size_type< matrix_t > k, matrix_t& A, const vector_t &tau,
+    size_type< matrix_t > k, const matrix_t& A, const vector_t &tau,
     workinfo_t& workinfo, const workspace_opts_t<>& opts = {} )
 {
     using idx_t = size_type< matrix_t >;
@@ -65,7 +77,7 @@ void ung2r_worksize(
  * 
  * @return 0 if success 
  * 
- * @ingroup geqrf
+ * @ingroup computational
  */
 template< class matrix_t, class vector_t >
 int ung2r(

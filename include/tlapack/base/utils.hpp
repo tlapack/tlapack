@@ -1,5 +1,8 @@
+/// @file utils.hpp
+/// @author Weslley S Pereira, University of Colorado Denver, USA
+//
 // Copyright (c) 2017-2021, University of Tennessee. All rights reserved.
-// Copyright (c) 2021-2022, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -78,8 +81,6 @@ real_type<T> imag( const T& x ) { return real_type<T>(0); }
  * @return x
  * 
  * @note C++11 to C++17 returns complex<real_t> instead of real_t. @see std::conj
- * 
- * @ingroup utils
  */
 template< typename real_t, enable_if_t<!is_complex<real_t>::value,int> = 0 >
 inline constexpr
@@ -689,8 +690,6 @@ using disable_if_allow_optblas_t = enable_if_t<(
  * 
  * @param a Access type.
  * @param p Access policy.
- * 
- * @ingroup utils
  */
 template< class access_t, class accessPolicy_t >
 inline constexpr
@@ -729,8 +728,6 @@ bool access_granted( access_t a, accessPolicy_t p )
  * Specific implementation for band_t.
  * 
  * @see bool access_granted( access_t a, accessPolicy_t p )
- * 
- * @ingroup utils
  */
 template< class accessPolicy_t >
 inline constexpr
@@ -751,8 +748,6 @@ bool access_granted( band_t a, accessPolicy_t p )
  * Specific implementation for band_t.
  * 
  * @see bool access_granted( access_t a, accessPolicy_t p )
- * 
- * @ingroup utils
  */
 template< class access_t >
 inline constexpr
@@ -767,8 +762,6 @@ bool access_granted( access_t a, band_t p )
  * Specific implementation for band_t.
  * 
  * @see bool access_granted( access_t a, accessPolicy_t p )
- * 
- * @ingroup utils
  */
 inline constexpr
 bool access_granted( band_t a, band_t p )
@@ -781,8 +774,6 @@ bool access_granted( band_t a, band_t p )
  * @return ! access_granted( a, p ).
  * 
  * @see bool access_granted( access_t a, accessPolicy_t p )
- * 
- * @ingroup utils
  */
 template< class access_t, class accessPolicy_t >
 inline constexpr
@@ -882,7 +873,7 @@ alloc_workspace( vectorOfBytes& v, std::size_t lwork )
  * @brief Allocates workspace
  * 
  * @param[out] v        On exit, reference to allocated memory if needed.
- * @param[in] lwork     Number of bytes needed.
+ * @param[in] workinfo  Information about the amount of workspace required.
  * @param[in] opts_w    Workspace previously allocated.
  * 
  * @return Workspace referencing either:

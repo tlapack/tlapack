@@ -1,7 +1,7 @@
 /// @file multishift_qr_sweep.hpp
 /// @author Thijs Steel, KU Leuven, Belgium
 //
-// Copyright (c) 2013-2022, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -18,12 +18,36 @@
 
 namespace tlapack
 {
-    /** Worspace query.
-     * @see multishift_QR_sweep 
+    /** Worspace query of multishift_QR_sweep()
+     *
+     * @param[in] want_t bool.
+     *      If true, the full Schur factor T will be computed.
+     *
+     * @param[in] want_z bool.
+     *      If true, the Schur vectors Z will be computed.
+     *
+     * @param[in] ilo    integer.
+     *      Either ilo=0 or A(ilo,ilo-1) = 0.
+     *
+     * @param[in] ihi    integer.
+     *      ilo and ihi determine an isolated block in A.
+     *
+     * @param[in] A  n by n matrix.
+     *      Hessenberg matrix on which AED will be performed
+     *
+     * @param[in] s  complex vector.
+     *      Vector containing the shifts to be used during the sweep
+     *
+     * @param[in] Z  n by n matrix.
+     *      On entry, the previously calculated Schur factors.
+     *
+     * @param[in] opts Options.
      * 
      * @param[in,out] workinfo
      *      On output, the amount workspace required. It is larger than or equal
      *      to that given on input.
+     *
+     * @ingroup workspace_query
      */
     template <
         class matrix_t,
@@ -36,9 +60,9 @@ namespace tlapack
         bool want_z, 
         size_type<matrix_t> ilo, 
         size_type<matrix_t> ihi, 
-        matrix_t &A, 
-        vector_t &s, 
-        matrix_t &Z, 
+        const matrix_t &A, 
+        const vector_t &s, 
+        const matrix_t &Z, 
         workinfo_t& workinfo,
         const workspace_opts_t<> &opts = {} )
     {
@@ -77,7 +101,7 @@ namespace tlapack
      *      - @c opts.work is used if whenever it has sufficient size.
      *        The sufficient size can be obtained through a workspace query.
      *
-     * @ingroup geev
+     * @ingroup computational
      */
     template <
         class matrix_t,
@@ -90,7 +114,7 @@ namespace tlapack
         size_type<matrix_t> ilo, 
         size_type<matrix_t> ihi, 
         matrix_t &A, 
-        vector_t &s, 
+        const vector_t &s, 
         matrix_t &Z, 
         const workspace_opts_t<> &opts = {} )
     {

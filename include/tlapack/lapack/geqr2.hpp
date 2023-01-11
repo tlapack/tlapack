@@ -2,7 +2,7 @@
 /// @author Weslley S Pereira, University of Colorado Denver, USA
 /// Adapted from @see https://github.com/langou/latl/blob/master/include/geqr2.h
 //
-// Copyright (c) 2013-2022, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -17,17 +17,24 @@
 
 namespace tlapack {
 
-/** Worspace query.
- * @see geqr2
+/** Worspace query of geqr2()
+ *
+ * @param[in] A m-by-n matrix.
+ *
+ * @param tau Not referenced.
+ *
+ * @param[in] opts Options.
  * 
  * @param[in,out] workinfo
  *      On output, the amount workspace required. It is larger than or equal
  *      to that given on input.
+ *
+ * @ingroup workspace_query
  */
 template< class matrix_t, class vector_t >
 inline constexpr
 void geqr2_worksize(
-    matrix_t& A, vector_t &tau, workinfo_t& workinfo,
+    const matrix_t& A, const vector_t &tau, workinfo_t& workinfo,
     const workspace_opts_t<>& opts = {} )
 {
     using idx_t = size_type< matrix_t >;
@@ -73,7 +80,7 @@ void geqr2_worksize(
  *      - @c opts.work is used if whenever it has sufficient size.
  *        The sufficient size can be obtained through a workspace query.
  * 
- * @ingroup geqrf
+ * @ingroup computational
  */
 template< class matrix_t, class vector_t >
 int geqr2(

@@ -1,7 +1,7 @@
 /// @file ul_mult.hpp
 /// @author Ali Lotfi, University of Colorado Denver, USA
 //
-// Copyright (c) 2022, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -26,7 +26,7 @@ namespace tlapack {
  *      On entry, subdiagonal of A contains L(lower triangular and unital) and diagonal and superdiagonal part of A contains U(upper triangular).
  *      On exit, A is overwritten by L*U
  * 
- * @ingroup group_solve
+ * @ingroup auxiliary
  */
 template< class matrix_t>
 int ul_mult( matrix_t& A){

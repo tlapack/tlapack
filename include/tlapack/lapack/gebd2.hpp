@@ -2,7 +2,7 @@
 /// @author Yuxin Cai, University of Colorado Denver, USA
 /// Adapted from @see https://github.com/Reference-LAPACK/lapack/blob/master/SRC/zgebd2.f
 //
-// Copyright (c) 2014-2022, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -24,16 +24,26 @@ namespace tlapack
         : workspace_opts_t<>( opts ) {};
     };
 
-    /** Worspace query.
-     * @see gebd2
+    /** Worspace query of gebd2().
+     *
+     * @param[in] A m-by-n matrix.
+     *      On entry, the m by n general matrix to be reduced.
+     *
+     * @param tauv Not referenced.
+     *
+     * @param tauw Not referenced.
+     *
+     * @param[in] opts Options.
      * 
      * @param[in,out] workinfo
      *      On output, the amount workspace required. It is larger than or equal
      *      to that given on input.
+     *
+     * @ingroup workspace_query
      */
     template <typename matrix_t, class vector_t>
     inline constexpr 
-    void gebd2_worksize(matrix_t &A, vector_t &tauv, vector_t &tauw, workinfo_t& workinfo, const gebd2_opts_t& opts = {})
+    void gebd2_worksize(const matrix_t &A, const vector_t &tauv, const vector_t &tauw, workinfo_t& workinfo, const gebd2_opts_t& opts = {})
     {
         using idx_t = size_type< matrix_t >;
 
@@ -103,7 +113,7 @@ namespace tlapack
      *      - @c opts.work is used if whenever it has sufficient size.
      *        The sufficient size can be obtained through a workspace query.
      *
-     * @ingroup gebrd
+     * @ingroup computational
      */
     template <typename matrix_t, class vector_t>
     int gebd2(matrix_t &A, vector_t &tauv, vector_t &tauw, const gebd2_opts_t& opts = {})

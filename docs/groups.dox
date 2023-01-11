@@ -1,246 +1,46 @@
 /**
     ------------------------------------------------------------
-    @defgroup blas1            Level 1: vectors operations, O(n) work
-    @brief    Vector operations that perform $O(n)$ work on $O(n)$ data.
-              These are memory bound, since every operation requires a memory read or write.
-    @{
-        @defgroup asum         asum:  Vector 1 norm (sum)
-        @brief    $\sum_i |Re(x_i)| + |Im(x_i)|$
-
-        @defgroup axpy         axpy:  Add vectors
-        @brief    $y = \alpha x + y$
-
-        @defgroup copy         copy:  Copy vector
-        @brief    $y = x$
-
-        @defgroup dot          dot:   Dot (inner) product
-        @brief    $x^H y$
-
-        @defgroup dotu         dotu:  Dot (inner) product, unconjugated
-        @brief    $x^T y$
-
-        @defgroup iamax        iamax: Find max element
-        @brief    $\arg\max_i\; |x_i|$
-
-        @defgroup nrm2         nrm2:  Vector 2 norm
-        @brief    $||x||_2$
-
-        @defgroup rot          rot:   Apply Givens plane rotation
-
-        @defgroup rotg         rotg:  Generate Givens plane rotation
-
-        @defgroup rotm         rotm:  Apply modified (fast) Givens plane rotation
-
-        @defgroup rotmg        rotmg: Generate modified (fast) Givens plane rotation
-
-        @defgroup scal         scal:  Scale vector
-        @brief    $x = \alpha x$
-
-        @defgroup swap         swap:  Swap vectors
-        @brief    $x \leftrightarrow y$
-    @}
+    @defgroup blas1             BLAS Level 1: vectors operations, O(n) work
+    @brief      Vector operations that perform $O(n)$ work on $O(n)$ data.
+                These are memory bound, since every operation requires a memory read or write.
 
     ------------------------------------------------------------
-    @defgroup blas2            Level 2: matrix-vector operations, O(n^2) work
-    @brief    Matrix operations that perform $O(n^2)$ work on $O(n^2)$ data.
-              These are memory bound, since every operation requires a memory read or write.
-    @{
-        @defgroup gemv         gemv:       General matrix-vector multiply
-        @brief    $y = \alpha Ax + \beta y$
-
-        @defgroup ger          ger:        General matrix rank 1 update
-        @brief    $A = \alpha xy^H + A$
-
-        @defgroup geru         geru:       General matrix rank 1 update, unconjugated
-        @brief    $A = \alpha xy^T + A$
-
-        @defgroup hemv         hemv:    Hermitian matrix-vector multiply
-        @brief    $y = \alpha Ax + \beta y$
-
-        @defgroup her          her:     Hermitian rank 1 update
-        @brief    $A = \alpha xx^H + A$
-
-        @defgroup her2         her2:    Hermitian rank 2 update
-        @brief    $A = \alpha xy^H + conj(\alpha) yx^H + A$
-
-        @defgroup symv         symv:    Symmetric matrix-vector multiply
-        @brief    $y = \alpha Ax + \beta y$
-
-        @defgroup syr          syr:     Symmetric rank 1 update
-        @brief    $A = \alpha xx^T + A$
-
-        @defgroup syr2         syr2:    Symmetric rank 2 update
-        @brief    $A = \alpha xy^T + \alpha yx^T + A$
-
-        @defgroup trmv         trmv:       Triangular matrix-vector multiply
-        @brief    $x = Ax$
-
-        @defgroup trsv         trsv:       Triangular matrix-vector solve
-        @brief    $x = op(A^{-1})\; b$
-    @}
+    @defgroup blas2             BLAS Level 2: matrix-vector operations, O(n^2) work
+    @brief      Matrix operations that perform $O(n^2)$ work on $O(n^2)$ data.
+                These are memory bound, since every operation requires a memory read or write.
 
     ------------------------------------------------------------
-    @defgroup blas3            Level 3: matrix-matrix operations, O(n^3) work
-    @brief    Matrix-matrix operations that perform $O(n^3)$ work on $O(n^2)$ data.
-              These benefit from cache reuse, since many operations can be
-              performed for every read from main memory.
-    @{
-        @defgroup gemm         gemm:  General matrix multiply: C = AB + C
-        @brief    $C = \alpha \;op(A) \;op(B) + \beta C$
-
-        @defgroup hemm         hemm:  Hermitian matrix multiply
-        @brief    $C = \alpha A B + \beta C$
-               or $C = \alpha B A + \beta C$ where $A$ is Hermitian
-
-        @defgroup herk         herk:  Hermitian rank k update
-        @brief    $C = \alpha A A^H + \beta C$ where $C$ is Hermitian
-
-        @defgroup her2k        her2k: Hermitian rank 2k update
-        @brief    $C = \alpha A B^H + conj(\alpha) B A^H + \beta C$ where $C$ is Hermitian
-
-        @defgroup symm         symm:  Symmetric matrix multiply
-        @brief    $C = \alpha A B + \beta C$
-               or $C = \alpha B A + \beta C$ where $A$ is symmetric
-
-        @defgroup syrk         syrk:  Symmetric rank k update
-        @brief    $C = \alpha A A^T + \beta C$ where $C$ is symmetric
-
-        @defgroup syr2k        syr2k: Symmetric rank 2k update
-        @brief    $C = \alpha A B^T + \alpha B A^T + \beta C$ where $C$ is symmetric
-
-        @defgroup trmm         trmm:  Triangular matrix multiply
-        @brief    $B = \alpha \;op(A)\; B$
-               or $B = \alpha B \;op(A)$ where $A$ is triangular
-
-        @defgroup trsm         trsm:  Triangular solve matrix
-        @brief    $C = op(A)^{-1} B  $
-               or $C = B \;op(A)^{-1}$ where $A$ is triangular
-    @}
-
+    @defgroup blas3             BLAS Level 3: matrix-matrix operations, O(n^3) work
+    @brief      Matrix-matrix operations that perform $O(n^3)$ work on $O(n^2)$ data.
+                These benefit from cache reuse, since many operations can be
+                performed for every read from main memory.
     
     ----------------------------------------------------------------------------
-    @defgroup group_solve Linear solve, AX = B
-    @brief Solve $AX = B$
-    @{
-        @defgroup gesv General matrix: LU
-        @defgroup gbsv General matrix: LU: banded
-        @defgroup gtsv General matrix: LU: tridiagonal
-        @defgroup posv Positive definite: Cholesky
-        @defgroup ppsv Positive definite: Cholesky: packed
-        @defgroup pbsv Positive definite: Cholesky: banded
-        @defgroup ptsv Positive definite: Cholesky: tridiagonal
-        @defgroup sysv Symmetric indefinite
-        @defgroup spsv Symmetric indefinite: packed
-        @defgroup hesv Hermitian indefinite
-        @defgroup hpsv Hermitian indefinite: packed
-    @}
+    @defgroup computational     Computational routines
+    
+    ----------------------------------------------------------------------------
+    @defgroup workspace_query   Workspace queries
 
     ----------------------------------------------------------------------------
-    @defgroup group_solve_computational Linear solve: computational routines
-    @brief Factor $LU$, $LL^H$, $LDL^H$; solve; inverse; condition number estimate
-    @{
-        @defgroup gesv_computational General matrix: LU
-        @defgroup gbsv_computational General matrix: LU: banded
-        @defgroup gtsv_computational General matrix: LU: tridiagonal
-        @defgroup posv_computational Positive definite: Cholesky
-        @defgroup ppsv_computational Positive definite: Cholesky: packed
-        @defgroup pfsv_computational Positive definite: Cholesky: RFP
-        @defgroup pbsv_computational Positive definite: Cholesky: banded
-        @defgroup ptsv_computational Positive definite: Cholesky: tridiagonal
-        @defgroup sysv_computational Symmetric indefinite: Bunch-Kaufman
-        @defgroup spsv_computational Symmetric indefinite: Bunch-Kaufman: packed
-        @defgroup sysv_rk_computational Symmetric indefinite: Rook
-        @defgroup sysv_aa_computational Symmetric indefinite: Aasen's
-        @defgroup hesv_computational Hermitian indefinite: Bunch-Kaufman
-        @defgroup hpsv_computational Hermitian indefinite: Bunch-Kaufman: packed
-        @defgroup hesv_rk_computational Hermitian indefinite: Rook
-        @defgroup hesv_aa_computational Hermitian indefinite: Aasen's
-        @defgroup trsv_computational Triangular
-        @defgroup tpsv_computational Triangular: packed
-        @defgroup tfsv_computational Triangular: RFP
-        @defgroup tbsv_computational Triangular: banded
-    @}
+    @defgroup auxiliary Auxiliary routines
 
     ----------------------------------------------------------------------------
-    @defgroup group_gels Least squares
-    @{
-        @defgroup gels Standard, AX = B
-        @brief Solve $AX \approx B$
-
-        @defgroup ggls Constrained
-    @}
+    @defgroup exception         Exception handling
 
     ----------------------------------------------------------------------------
-    @defgroup group_unitary Orthogonal/unitary factorizations (QR, etc.)
-    @{
-        @defgroup geqrf A = QR factorization
-        @defgroup tpqrt A = QR factorization, triangle-pentagonal tiles
-        @defgroup geqpf AP = QR factorization with pivoting
-        @defgroup gelqf A = LQ factorization
-        @defgroup tplqt A = LQ factorization, triangle-pentagonal tiles
-        @defgroup geqlf A = QL factorization
-        @defgroup gerqf A = RQ factorization
-        @defgroup tzrzf A = RZ factorization
-        @defgroup ggqrf Generalized QR factorization
-        @defgroup ggrqf Generalized RQ factorization
-        @defgroup bbcsd Cosine-Sine (CS) decomposition
-        @defgroup unitary_computational Householder reflectors and plane rotations
-    @}
+    @defgroup abstract_matrix   Abstract matrix interface
+    @brief      These routines should be implemented for each data structure
+                representing matrices and vectors.
 
     ----------------------------------------------------------------------------
-    @defgroup group_symmetric_eigen Symmetric/Hermitian eigenvalues
-    @{
-        @defgroup heev Standard, AV = V Lambda
-        @defgroup hpev Standard, AV = V Lambda: packed
-        @defgroup hbev Standard, AV = V Lambda: banded
-        @defgroup htev Standard, AV = V Lambda: tridiagonal
-        @defgroup hygv Generalized, AV = BV Lambda, etc.
-        @defgroup hpgv Generalized, AV = BV Lambda, etc.: packed
-        @defgroup hbgv Generalized, AV = BV Lambda, etc.: banded
-        @defgroup heev_computational Computational routines
-    @}
+    @defgroup constants         Scaling constants
 
-    ----------------------------------------------------------------------------
-    @defgroup group_nonsymmetric_eigen Non-symmetric eigenvalues
+    ------------------------------------------------------------
+    @defgroup legacy            Legacy interface
+    @brief      Interface in C++ that use raw pointers for arrays arguments.
+                These routines are wrappers to the higher-level C++ abstraction.
     @{
-        @defgroup geev Standard, AV = V Lambda
-        @defgroup ggev Generalized, AV = BV Lambda
-        @defgroup gees Schur form, A = ZTZ^H
-        @defgroup gges Generalized Schur form
-        @defgroup geev_computational Computational routines
-    @}
-
-    ----------------------------------------------------------------------------
-    @defgroup group_svd Singular Value Decomposition (SVD)
-    @{
-        @defgroup gesvd Standard, A = U Sigma V^H
-        @defgroup bdsvd Standard, A = U Sigma V^H, bidiagonal
-        @defgroup ggsvd Generalized
-        @defgroup gesvd_computational Computational routines
-    @}
-
-    ----------------------------------------------------------------------------
-    @defgroup group_aux Auxiliary routines
-    @{
-        @defgroup initialize Initialize, copy, convert matrices
-        @defgroup norm Matrix norms
-        @defgroup auxiliary Other auxiliary routines
-    @}
-
-    ----------------------------------------------------------------------------
-    @defgroup group_blas BLAS extensions in LAPACK
-    @{
-        @defgroup symv         symv:    Symmetric matrix-vector multiply
-        @brief    $y = \alpha Ax + \beta y$
-
-        @defgroup syr          syr:     Symmetric rank 1 update
-        @brief    $A = \alpha xx^T + A$
-    @}
-
-    ----------------------------------------------------------------------------
-    @defgroup group_test Test routines
-    @{
-        @defgroup generate_matrix Test matrix generation
-        @defgroup utils Utilities
+        @defgroup legacy_blas   Legacy BLAS interface.
+        @defgroup legacy_lapack Legacy LAPACK interface.
     @}
 */
