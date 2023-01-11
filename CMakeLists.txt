@@ -76,43 +76,43 @@ option( TLAPACK_TEST_EIGEN "Add Eigen matrices to the types to test" OFF )
 option( TLAPACK_TEST_MDSPAN "Add mdspan matrices to the types to test" OFF )
 
 # Wrappers to <T>LAPACK
-option( C_WRAPPERS       "Build and install C wrappers"               OFF )
-option( CBLAS_WRAPPERS   "Build and install CBLAS wrappers to <T>LAPACK" OFF )
-option( Fortran_WRAPPERS "Build and install Fortran wrappers"         OFF )
+option( BUILD_C_WRAPPERS       "Build and install C wrappers (WIP)" OFF )
+option( BUILD_CBLAS_WRAPPERS   "Build and install CBLAS wrappers (WIP)" OFF )
+option( BUILD_Fortran_WRAPPERS "Build and install Fortran wrappers (WIP)" OFF )
 
 # Use of mdspan instead of the <T>LAPACK legacy arrays
 option( TLAPACK_USE_MDSPAN "Use mdspan for the legacy wrappers" OFF )
 mark_as_advanced( FORCE TLAPACK_USE_MDSPAN )
 
 # Enable disable error checks
-option( TLAPACK_NDEBUG "Disable all error checks from <T>LAPACK" OFF )
+option( TLAPACK_NDEBUG "Disable all error checks" OFF )
 
 cmake_dependent_option(
-  TLAPACK_CHECK_INPUT "<T>LAPACK routines check if the input parameters are illegal"
+  TLAPACK_CHECK_INPUT "Enable checks on input arguments"
   ON "NOT TLAPACK_NDEBUG" # Default value when condition is true
   OFF # Value when condition is false
 )
 
 cmake_dependent_option(
-  TLAPACK_ENABLE_NANCHECK "Enable NaN checks for the <T>LAPACK routines"
+  TLAPACK_ENABLE_NANCHECK "Enable check for NaNs as specified in the documentation of each routine"
   OFF "NOT TLAPACK_NDEBUG" # Default value when condition is true
   OFF # Value when condition is false
 )
 
 cmake_dependent_option(
-  TLAPACK_DEFAULT_NANCHECK "By default, <T>LAPACK routines check for NaNs as specified in their documentation"
+  TLAPACK_DEFAULT_NANCHECK "Default behavior of checks for NaNs. Checks can be activated/deactivated at runtime"
   ON "NOT TLAPACK_NDEBUG; TLAPACK_ENABLE_NANCHECK" # Default value when condition is true
   OFF # Value when condition is false
 )
 
 cmake_dependent_option(
-  TLAPACK_ENABLE_INFCHECK "Enable Inf checks for the <T>LAPACK routines"
+  TLAPACK_ENABLE_INFCHECK "Enable check for Infs as specified in the documentation of each routine"
   OFF "NOT TLAPACK_NDEBUG" # Default value when condition is true
   OFF # Value when condition is false
 )
 
 cmake_dependent_option(
-  TLAPACK_DEFAULT_INFCHECK "By default, <T>LAPACK routines check for Infs as specified in their documentation"
+  TLAPACK_DEFAULT_INFCHECK "Default behavior of checks for Infs. Checks can be activated/deactivated at runtime"
   ON "NOT TLAPACK_NDEBUG; TLAPACK_ENABLE_INFCHECK" # Default value when condition is true
   OFF # Value when condition is false
 )
@@ -199,9 +199,9 @@ add_subdirectory(config)
 #-------------------------------------------------------------------------------
 # C and Fortran wrappers
 
-if( C_WRAPPERS OR CBLAS_WRAPPERS OR Fortran_WRAPPERS )
+if( BUILD_C_WRAPPERS OR BUILD_CBLAS_WRAPPERS OR BUILD_Fortran_WRAPPERS )
   enable_language( C )
-  if( Fortran_WRAPPERS )
+  if( BUILD_Fortran_WRAPPERS )
     set( CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/fortran )
     enable_language( Fortran )
   endif()

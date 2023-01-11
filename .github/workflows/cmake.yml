@@ -186,9 +186,9 @@ jobs:
         -D BUILD_SHARED_LIBS=ON
         -D BUILD_EXAMPLES=ON
         -D BUILD_TESTING=ON
-        -D C_WRAPPERS=ON
-        -D Fortran_WRAPPERS=ON
-        -D CBLAS_WRAPPERS=ON
+        -D BUILD_C_WRAPPERS=ON
+        -D BUILD_Fortran_WRAPPERS=ON
+        -D BUILD_CBLAS_WRAPPERS=ON
 
     - name: Build
       # Build your program with the given configuration
@@ -301,9 +301,9 @@ jobs:
         -D BUILD_SHARED_LIBS=ON
         -D BUILD_EXAMPLES=ON
         -D BUILD_TESTING=ON
-        -D C_WRAPPERS=ON
-        -D Fortran_WRAPPERS=ON
-        -D CBLAS_WRAPPERS=ON
+        -D BUILD_C_WRAPPERS=ON
+        -D BUILD_Fortran_WRAPPERS=ON
+        -D BUILD_CBLAS_WRAPPERS=ON
         -D USE_LAPACKPP_WRAPPERS=ON
         -D BUILD_BLASPP_TESTS=ON
         -D blaspp_TEST_DIR=${{env.blaspp_DIR}}/test
@@ -372,7 +372,7 @@ jobs:
         -D BUILD_EXAMPLES=OFF
         -D BUILD_TESTING=OFF
         -D USE_LAPACKPP_WRAPPERS=ON
-        -D TLAPACK_CHECK_INPUT=OFF
+        -D TLAPACK_NDEBUG=ON
 
     - name: Build and Install
       # Build your program with the given configuration
@@ -457,9 +457,9 @@ jobs:
         -D BUILD_SHARED_LIBS=ON
         -D BUILD_EXAMPLES=ON
         -D BUILD_TESTING=ON
-        -D C_WRAPPERS=ON
-        -D Fortran_WRAPPERS=ON
-        -D CBLAS_WRAPPERS=ON
+        -D BUILD_C_WRAPPERS=ON
+        -D BUILD_Fortran_WRAPPERS=ON
+        -D BUILD_CBLAS_WRAPPERS=ON
         -D USE_LAPACKPP_WRAPPERS=ON
         -D BUILD_BLASPP_TESTS=ON
         -D blaspp_TEST_DIR=${{env.blaspp_DIR}}/test
@@ -543,9 +543,9 @@ jobs:
         -D BUILD_SHARED_LIBS=ON
         -D BUILD_EXAMPLES=ON
         -D BUILD_TESTING=ON
-        -D C_WRAPPERS=ON
-        -D Fortran_WRAPPERS=ON
-        -D CBLAS_WRAPPERS=ON
+        -D BUILD_C_WRAPPERS=ON
+        -D BUILD_Fortran_WRAPPERS=ON
+        -D BUILD_CBLAS_WRAPPERS=ON
         -D USE_LAPACKPP_WRAPPERS=ON
         -D BUILD_BLASPP_TESTS=ON
         -D blaspp_TEST_DIR=${{env.blaspp_DIR}}/test

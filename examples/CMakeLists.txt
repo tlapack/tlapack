@@ -127,7 +127,7 @@ else()
 endif()
 
 # add the example gemm using the C wrapper
-if( C_WRAPPERS )
+if( BUILD_C_WRAPPERS )
   add_subdirectory( cwrapper_gemm )
   add_custom_command(
     OUTPUT run-all-examples-cmd APPEND
@@ -139,7 +139,7 @@ if( C_WRAPPERS )
 endif()
 
 # add the example caxpy using the Fortran module
-if( Fortran_WRAPPERS )
+if( BUILD_Fortran_WRAPPERS )
   add_subdirectory( fortranModule_caxpy )
   add_custom_command(
     OUTPUT run-all-examples-cmd APPEND
@@ -151,7 +151,7 @@ if( Fortran_WRAPPERS )
 endif()
 
 # add the example daxpy using the Fortran wrapper
-if( Fortran_WRAPPERS )
+if( BUILD_Fortran_WRAPPERS )
   add_subdirectory( fortranWrapper_ssymm )
   add_custom_command(
     OUTPUT run-all-examples-cmd APPEND
