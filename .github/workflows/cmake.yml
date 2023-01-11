@@ -2,7 +2,7 @@ name: CMake
 
 on:
   pull_request:
-    paths-exclude:
+    paths-ignore:
     - '.github/workflows/deploy_pages.yml'
     - '.github/workflows/doxygen.yml'
     - '.gitattributes'
@@ -16,7 +16,7 @@ on:
   push:
     branches:
     - master
-    paths-exclude:
+    paths-ignore:
     - '.github/workflows/deploy_pages.yml'
     - '.github/workflows/doxygen.yml'
     - '.gitattributes'
