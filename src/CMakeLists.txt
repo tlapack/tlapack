@@ -53,7 +53,7 @@ endif()
 
 #-------------------------------------------------------------------------------
 # Library: libtlapack_c
-if( C_WRAPPERS OR Fortran_WRAPPERS )
+if( BUILD_C_WRAPPERS OR BUILD_Fortran_WRAPPERS )
   add_library( tlapack_c tlapack_cwrappers.cpp )
   target_link_libraries( tlapack_c PUBLIC tlapack )
 
@@ -69,7 +69,7 @@ if( C_WRAPPERS OR Fortran_WRAPPERS )
     ${PROJECT_BINARY_DIR}/include/tlapack.h @ONLY )
 
   list( APPEND installable_libs tlapack_c )
-  if( C_WRAPPERS )
+  if( BUILD_C_WRAPPERS )
     install(
       FILES ${PROJECT_BINARY_DIR}/include/tlapack.h
       DESTINATION include )
@@ -78,7 +78,7 @@ endif()
 
 #-------------------------------------------------------------------------------
 # Library: libtlapack_cblas
-if( CBLAS_WRAPPERS )
+if( BUILD_CBLAS_WRAPPERS )
   add_library( tlapack_cblas tlapack_cwrappers.cpp )
   target_link_libraries( tlapack_cblas PUBLIC tlapack )
   target_compile_definitions( tlapack_cblas PRIVATE BUILD_CBLAS )
@@ -99,7 +99,7 @@ endif()
 
 #-------------------------------------------------------------------------------
 # Library: libtlapack_fortran
-if( Fortran_WRAPPERS )
+if( BUILD_Fortran_WRAPPERS )
 
   # Integer types mapped to the ISO_FORTRAN_ENV module
   if( (${TLAPACK_SIZE_T} IN_LIST blas_intt_list) OR

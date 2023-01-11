@@ -43,18 +43,3 @@ if( BUILD_testBLAS_TESTS )
   add_subdirectory( testBLAS )
 
 endif()
-
-#-------------------------------------------------------------------------------
-# Create a single-file tester with all tests
-
-if( TLAPACK_BUILD_SINGLE_TESTER )
-
-  file( GLOB test_sources "${CMAKE_CURRENT_SOURCE_DIR}/src/test_*.cpp" )
-  add_executable( tester ${test_sources} )
-
-  if( BUILD_testBLAS_TESTS )
-    file( GLOB test_sources "${CMAKE_CURRENT_SOURCE_DIR}/testBLAS/src/test_*.cpp" )
-    target_sources( tester PRIVATE ${test_sources} )
-  endif()
-
-endif()

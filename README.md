@@ -73,42 +73,72 @@ cmake --build build
 Here are the \<T\>LAPACK specific options and their default values
 
     # Option                            # Default
+    
+    BUILD_BLASPP_TESTS                  OFF
+
+        Build BLAS++ tests. If enabled, please inform the path with the test sources of BLAS++ in the CMake variable blaspp_TEST_DIR.
+        REQUIRES: BUILD_TESTING=ON
 
     BUILD_EXAMPLES                      ON
         
         Build examples
     
+    BUILD_LAPACKPP_TESTS                OFF
+
+        Build LAPACK++ tests. If enabled, please inform the path with the test sources of LAPACK++ in the CMake variable lapackpp_TEST_DIR.
+        REQUIRES: BUILD_TESTING=ON
+
+    BUILD_testBLAS_TESTS                ON
+
+        Build testBLAS tests.
+        REQUIRES: BUILD_TESTING=ON
+    
     BUILD_TESTING                       ON
     
         Build the testing tree
-    
-    TLAPACK_BUILD_SINGLE_TESTER         OFF
-    
-        Build one additional executable that contains all tests
         
-    C_WRAPPERS                          OFF
+    BUILD_C_WRAPPERS                          OFF
     
-        Build and install C wrappers
+        Build and install C wrappers (Work In Progress)
+
+    BUILD_CBLAS_WRAPPERS                      OFF
+    
+        Build and install CBLAS wrappers (Work In Progress)
         
-    Fortran_WRAPPERS                    OFF
+    BUILD_Fortran_WRAPPERS                    OFF
     
-        Build and install Fortran wrappers
+        Build and install Fortran wrappers (Work In Progress)
 
-    CBLAS_WRAPPERS                      OFF
-    
-        Build and install CBLAS wrappers to <T>LAPACK
-    
-    USE_LAPACKPP_WRAPPERS               OFF
+    TLAPACK_CHECK_INPUT                 ON
 
-        Use LAPACK++ wrappers to link with an optimized LAPACK library.
-        Mind that LAPACK++ needs BLAS++.
-        Branches compatible with \<T>LAPACK:
-            https://bitbucket.org/weslleyspereira/blaspp/branch/tlapack
-            https://bitbucket.org/weslleyspereira/lapackpp/branch/tlapack
+        Enable checks on input arguments.
+        REQUIRES: TLAPACK_NDEBUG=OFF
+
+    TLAPACK_DEFAULT_INFCHECK            ON
+
+        Default behavior of checks for Infs. Checks can be activated/deactivated at runtime.
+        REQUIRES: TLAPACK_NDEBUG=OFF
+                  TLAPACK_ENABLE_INFCHECK=ON
+
+    TLAPACK_DEFAULT_NANCHECK            ON
+
+        Default behavior of checks for NaNs. Checks can be activated/deactivated at runtime.
+        REQUIRES: TLAPACK_NDEBUG=OFF
+                  TLAPACK_ENABLE_NANCHECK=ON
+
+    TLAPACK_ENABLE_INFCHECK             OFF
+
+        Enable check for Infs as specified in the documentation of each routine.
+        REQUIRES: TLAPACK_NDEBUG=OFF
+
+    TLAPACK_ENABLE_NANCHECK             OFF
+
+        Enable check for NaNs as specified in the documentation of each routine.
+        REQUIRES: TLAPACK_NDEBUG=OFF
     
     TLAPACK_INT_T                       int64_t
     
-        Type of all non size-related integers in libtlapack_c, libtlapack_cblas, and libtlapack_fortran. It is the type
+        Type of all non size-related integers in libtlapack_c, libtlapack_cblas, libtlapack_fortran, and in the routines of the legacy API. It is the type
         used for the array increments, e.g., incx and incy.
         Supported types:
             int, short, long, long long, int8_t, int16_t,
@@ -116,10 +146,15 @@ Here are the \<T\>LAPACK specific options and their default values
             int_least32_t, int_least64_t, int_fast8_t, 
             int_fast16_t, int_fast32_t, int_fast64_t, 
             intmax_t, intptr_t, ptrdiff_t
+        NOTE: TLAPACK_INT_T=int64_t if USE_LAPACKPP_WRAPPERS=ON
+
+    TLAPACK_NDEBUG                      OFF
+
+        Disable all error checks.
     
     TLAPACK_SIZE_T                      size_t
     
-        Type of all size-relatedintegers in libtlapack_c, libtlapack_cblas, and libtlapack_fortran.
+        Type of all size-related integers in libtlapack_c, libtlapack_cblas, libtlapack_fortran, and in the routines of the legacy API.
         Supported types:
             int, short, long, long long, int8_t, int16_t,
             int32_t, int64_t, int_least8_t, int_least16_t,
@@ -127,57 +162,37 @@ Here are the \<T\>LAPACK specific options and their default values
             int_fast16_t, int_fast32_t, int_fast64_t, 
             intmax_t, intptr_t, ptrdiff_t,
             size_t, uint8_t, uint16_t, uint32_t, uint64_t
+        NOTE: TLAPACK_SIZE_T=int64_t if USE_LAPACKPP_WRAPPERS=ON
     
-    BUILD_BLASPP_TESTS                  OFF
+    USE_LAPACKPP_WRAPPERS               OFF
 
-        Build BLAS++ tests. Not used if BUILD_TESTING is OFF. If it is ON, you also need to inform blaspp_TEST_DIR,
-        which is the path for the test sources of BLAS++.
-    
-    BUILD_LAPACKPP_TESTS                OFF
-
-        Build LAPACK++ tests. Not used if BUILD_TESTING is OFF. If it is ON, you also need to inform lapackpp_TEST_DIR,
-        which is the path for the test sources of LAPACK++.
-
-    BUILD_testBLAS_TESTS                ON
-
-        Build testBLAS tests.
-
-    TLAPACK_NDEBUG                      OFF
-
-        Disable all error checks from <T>LAPACK.
-
-    TLAPACK_CHECK_INPUT                 ON
-                                        OFF if TLAPACK_NDEBUG is ON
-
-        <T>LAPACK routines check if the input parameters are illegal.
-
-    TLAPACK_ENABLE_NANCHECK             OFF
-
-        Enable NaN checks for the <T>LAPACK routines.
-
-    TLAPACK_DEFAULT_NANCHECK            ON
-                                        OFF if TLAPACK_NDEBUG is ON
-                                        OFF if TLAPACK_ENABLE_NANCHECK is OFF
-
-        By default, <T>LAPACK routines check for NaNs as specified in their documentation.
-
-    TLAPACK_ENABLE_INFCHECK             OFF
-
-        Enable Inf checks for the <T>LAPACK routines.
-
-    TLAPACK_DEFAULT_INFCHECK            ON
-                                        OFF if TLAPACK_NDEBUG is ON
-                                        OFF if TLAPACK_ENABLE_INFCHECK is OFF
-
-        By default, <T>LAPACK routines check for Infs as specified in their documentation.
+        Use LAPACK++ wrappers to link with optimized BLAS and LAPACK libraries.
+        Mind that LAPACK++ needs BLAS++.
+        Branches compatible with <T>LAPACK:
+            https://bitbucket.org/weslleyspereira/blaspp/branch/tlapack
+            https://bitbucket.org/weslleyspereira/lapackpp/branch/tlapack
 
 ## Testing
 
-\<T\>LAPACK is currently tested using [testBLAS](https://github.com/tlapack/testBLAS).
+\<T\>LAPACK is currently tested using:
+
++ Test routines in [test/src](test/src) using
+  
+    1. various precision types: `float`, `double`, `std::complex<float>`, `std::complex<double>` and `Eigen::half`.
+  
+    2. various matrix and vector data structures: `tlapack::legacyMatrix`, `Eigen::Matrix` and `std::experimental::mdspan` (the latter from `https://github.com/kokkos/mdspan`). 
+
++ [testBLAS](https://github.com/tlapack/testBLAS) for good conformance with BLAS standards.
+
++ [BLAS++ testers](https://github.com/icl-utk-edu/blaspp/tree/master/test) and [LAPACK++ testers](https://github.com/icl-utk-edu/lapackpp/tree/master/test) for measuring performance and accuracy compared to LAPACKE.
+
+To test \<T\>LAPACK, build with `BUILD_TESTING=ON`. Then, run `ctest` inside the build directory.
 
 ## Documentation
 
-+ Run `doxygen docs/Doxyfile` to generate the \<T\>LAPACK documentation via Doxygen.
++ Online documentation for the master branch at https://tlapack.github.io/tlapack.
+
++ Run `doxygen docs/Doxyfile` to generate the \<T\>LAPACK documentation via Doxygen in your local machine.
 
 ## License
 
