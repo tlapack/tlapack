@@ -1,5 +1,5 @@
 /// @file test_blocked_francis.cpp
-/// @author Thijs, KU Leuven, Belgium
+/// @author Thijs Steel, KU Leuven, Belgium
 /// @brief Test multishift QR algorithm.
 //
 // Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
