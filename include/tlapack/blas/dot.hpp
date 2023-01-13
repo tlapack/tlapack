@@ -45,7 +45,7 @@ auto dot( const vectorX_t& x, const vectorY_t& y )
     // check arguments
     tlapack_check_false( size(y) != n );
 
-    return_t result( 0.0 );
+    return_t result( 0 );
     for (idx_t i = 0; i < n; ++i)
         result += conj(x[i]) * y[i];
 

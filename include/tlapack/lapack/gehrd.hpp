@@ -125,12 +125,13 @@ namespace tlapack
         using work_t    = matrix_type<matrix_t,vector_t>;
         using pair = pair<idx_t, idx_t>;
         using TA   = type_t< matrix_t >;
+        using real_t = real_type< TA >;
 
         // Functor
         Create<work_t> new_matrix;
 
         // constants
-        const TA one(1);
+        const real_t one(1);
         const idx_t n = ncols(A);
 
         // Blocksize

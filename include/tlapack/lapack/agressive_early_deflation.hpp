@@ -207,8 +207,8 @@ namespace tlapack
         using std::min;
 
         // Constants
-        const T one(1);
-        const T zero(0);
+        const real_t one(1);
+        const real_t zero(0);
         const idx_t n = ncols(A);
         // Because we will use the lower triangular part of A as workspace,
         // We have a maximum window size

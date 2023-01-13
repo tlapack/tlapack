@@ -220,11 +220,11 @@ namespace tlapack
         using pair = std::pair<idx_t, idx_t>;
 
         // constants
-        const TA zero(0);
+        const real_t zero(0);
         const idx_t non_convergence_limit_window = 5;
         const idx_t non_convergence_limit_shift = 6;
-        const real_t dat1( 0.75f );
-        const real_t dat2( -0.4375f );
+        const real_t dat1( 0.75 );
+        const real_t dat2( -0.4375 );
 
         const idx_t n = ncols(A);
         const idx_t nh = ihi - ilo;

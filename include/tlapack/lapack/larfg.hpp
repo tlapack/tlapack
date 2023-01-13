@@ -65,7 +65,7 @@ void larfg( alpha_t& alpha, vector_t& x, tau_t& tau )
     // constants
     const idx_t n = size(x) + 1;
     const real_t one( 1 );
-    const real_t rzero( 0 );
+    const real_t zero( 0 );
     const real_t safemin  = safe_min<real_t>() / uroundoff<real_t>();
     const real_t rsafemin = one / safemin;
 
@@ -74,12 +74,12 @@ void larfg( alpha_t& alpha, vector_t& x, tau_t& tau )
     {
         idx_t knt = 0;
         real_t xnorm = nrm2( x );
-        if ( xnorm > rzero || (imag(alpha) != rzero) )
+        if ( xnorm > zero || (imag(alpha) != zero) )
         {
             real_t temp = ( ! is_complex<alpha_t>::value )
                         ? lapy2(real(alpha), xnorm)
                         : lapy3(real(alpha), imag(alpha), xnorm);
-            real_t beta = (real(alpha) < rzero) ? temp : -temp;
+            real_t beta = (real(alpha) < zero) ? temp : -temp;
             if (abs(beta) < safemin)
             {
                 while( (abs(beta) < safemin) && (knt < 20) )
@@ -93,7 +93,7 @@ void larfg( alpha_t& alpha, vector_t& x, tau_t& tau )
                 temp = ( ! is_complex<alpha_t>::value )
                      ? lapy2(real(alpha), xnorm)
                      : lapy3(real(alpha), imag(alpha), xnorm);
-                beta = (real(alpha) < rzero) ? temp : -temp;
+                beta = (real(alpha) < zero) ? temp : -temp;
             }
             tau = (beta - alpha) / beta;
             scal( one/(alpha-beta), x );

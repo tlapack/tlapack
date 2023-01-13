@@ -36,7 +36,7 @@ TEMPLATE_TEST_CASE("sylvester solver gives correct result", "[sylvester]", TLAPA
     // Once 1x2 solver is finished, generate n2 independantly
     idx_t n2 = n1;
     const real_t eps = uroundoff<real_t>();
-    const real_t tol = real_t(1.0e2f) * eps;
+    const real_t tol = real_t(1.0e2) * eps;
 
     std::vector<T> TL_; auto TL = new_matrix( TL_, n1, n1 );
     std::vector<T> TR_; auto TR = new_matrix( TR_, n2, n2 );

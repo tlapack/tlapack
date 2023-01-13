@@ -88,6 +88,7 @@ int larft(
 {
     // data traits
     using scalar_t  = type_t< matrixT_t >;
+    using real_t    = real_type<scalar_t>;
     using tau_t     = type_t< vector_t >;
     using idx_t     = size_type< matrixV_t >;
 
@@ -95,9 +96,8 @@ int larft(
     using pair = pair<idx_t,idx_t>;
 
     // constants
-    const scalar_t one(1);
-    const scalar_t zero(0);
-    const tau_t    tzero(0);
+    const real_t one(1);
+    const real_t zero(0);
     const idx_t n = (storeMode == StoreV::Columnwise) ? nrows( V ) : ncols( V );
     const idx_t k = size( tau );
 
@@ -143,7 +143,7 @@ int larft(
             // Column vector t := T(0:i,i)
             auto t = slice( T, pair{0,i}, i );
 
-            if (tau[i] == tzero) {
+            if (tau[i] == tau_t(0)) {
                 // H(i) =  I
                 for (idx_t j = 0; j < i; ++j)
                     t[j] = zero;
@@ -206,7 +206,7 @@ int larft(
             // Column vector t := T(0:i,i)
             auto t = slice( T, pair{i+1,k}, i );
 
-            if (tau[i] == tzero) {
+            if (tau[i] == tau_t(0)) {
                 // H(i) =  I
                 for (idx_t j = 0; j < k-i-1; ++j)
                     t[j] = zero;

@@ -84,12 +84,13 @@ int ung2r(
     size_type< matrix_t > k, matrix_t& A, const vector_t &tau, const workspace_opts_t<>& opts = {} )
 {
     using T      = type_t< matrix_t >;
+    using real_t = real_type< T >;
     using idx_t  = size_type< matrix_t >;
     using pair  = pair<idx_t,idx_t>;
     
     // constants
-    const T zero( 0.0 );
-    const T one ( 1.0 );
+    const real_t zero( 0 );
+    const real_t one ( 1 );
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
 

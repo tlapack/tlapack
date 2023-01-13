@@ -59,18 +59,17 @@ namespace tlapack
         using TA = type_t<matrix_t>;
         using idx_t = size_type<matrix_t>;
         using pair = pair<idx_t, idx_t>;
-
+        using real_t = real_type<TA>;
                             
         // constants
-        const TA one(1);
-        const TA zero(0);
+        const real_t one(1);
         const idx_t n = nrows(A);
 
         // quick return if possible
         if (n <= 1)
             return 0;
 
-        TA ei = zero;
+        TA ei(0);
         for (idx_t i = 0; i < nb; ++i)
         {
             if (i > 0)

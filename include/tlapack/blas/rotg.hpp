@@ -115,9 +115,8 @@ void rotg(
     typedef T scalar_t;
 
     // Constants
-    const real_t r_one = 1;
-    const real_t r_zero = 0;
-    const scalar_t zero = 0;
+    const real_t one(1);
+    const real_t zero(0);
 
     // Scaling constants
     const real_t safmin = safe_min<real_t>();
@@ -127,13 +126,13 @@ void rotg(
 
     // quick return
     if ( b == zero ) {
-        c = r_one;
+        c = one;
         s = zero;
         return;
     }
 
     if ( a == zero ) {
-        c = r_zero;
+        c = zero;
         real_t g1 = max( tlapack::abs(real(b)), tlapack::abs(imag(b)) );
         if ( g1 > rtmin && g1 < rtmax ) {
             // Use unscaled algorithm
@@ -145,7 +144,7 @@ void rotg(
         else {
             // Use scaled algorithm
             real_t u = min( safmax, max( safmin, g1 ) );
-            real_t uu = r_one / u;
+            real_t uu = one / u;
             scalar_t gs = b*uu;
             real_t g2 = real(gs)*real(gs) + imag(gs)*imag(gs);
             real_t d = sqrt( g2 );
@@ -165,7 +164,7 @@ void rotg(
             real_t d = ( f2 > rtmin && h2 < rtmax )
                        ? sqrt( f2*h2 )
                        : sqrt( f2 )*sqrt( h2 );
-            real_t p = r_one / d;
+            real_t p = one / d;
             c  = f2*p;
             s  = conj( b )*( a*p );
             a *= h2*p ;
@@ -173,7 +172,7 @@ void rotg(
         else {
             // Use scaled algorithm
             real_t u = min( safmax, max( safmin, f1, g1 ) );
-            real_t uu = r_one / u;
+            real_t uu = one / u;
             scalar_t gs = b*uu;
             real_t g2 = real(gs)*real(gs) + imag(gs)*imag(gs);
             real_t f2, h2, w;
@@ -181,7 +180,7 @@ void rotg(
             if ( f1*uu < rtmin ) {
                 // a is not well-scaled when scaled by g1.
                 real_t v = min( safmax, max( safmin, f1 ) );
-                real_t vv = r_one / v;
+                real_t vv = one / v;
                 w = v * uu;
                 fs = a*vv;
                 f2 = real(fs)*real(fs) + imag(fs)*imag(fs);
@@ -189,7 +188,7 @@ void rotg(
             }
             else {
                 // Otherwise use the same scaling for a and b.
-                w = r_one;
+                w = one;
                 fs = a*uu;
                 f2 = real(fs)*real(fs) + imag(fs)*imag(fs);
                 h2 = f2 + g2;
@@ -197,7 +196,7 @@ void rotg(
             real_t d = ( f2 > rtmin && h2 < rtmax )
                        ? sqrt( f2*h2 )
                        : sqrt( f2 )*sqrt( h2 );
-            real_t p = r_one / d;
+            real_t p = one / d;
             c = ( f2*p )*w;
             s = conj( gs )*( fs*p );
             a = ( fs*( h2*p ) )*u;

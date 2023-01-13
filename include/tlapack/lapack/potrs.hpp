@@ -54,9 +54,10 @@ template< class uplo_t, class matrixA_t, class matrixB_t >
 int potrs( uplo_t uplo, const matrixA_t& A, matrixB_t& B )
 {
     using T = type_t< matrixB_t >;
+    using real_t = real_type< T >;
 
     // Constants
-    const T one( 1.0 );
+    const real_t one( 1 );
 
     // Check arguments
     tlapack_check_false(    uplo != Uplo::Lower &&
