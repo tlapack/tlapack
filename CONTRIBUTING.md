@@ -4,6 +4,8 @@ Thank you for investing your precious time to contribute to \<T\>LAPACK! Please 
 
 ## Code style
 
+\<T\>LAPACK uses [ClangFormat](https://clang.llvm.org/docs/ClangFormat.html) to enforce a consistent code style. The configuration file is located at [`.clang-format`](.clang-format). The code style is based on the [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html) and the differences are marked in the configuration file. Make sure you have ClangFormat set up and running properly before marking your pull request as ready for review. You should never modify the [`.clang-format`](.clang-format) file in \<T\>LAPACK, unless this is the reason behind your pull request.
+
 ### Usage of the `auto` keyword
 
 In C++ all types are evaluated at compile time. The `auto` keyword is used to enable the compiler to deduce the type of a variable automatically. For instance, the instructions
