@@ -174,7 +174,7 @@ Here are the \<T\>LAPACK specific options and their default values
 
 ## Testing
 
-\<T\>LAPACK is currently tested using:
+\<T\>LAPACK is continuously tested on Ubuntu, MacOS and Windows using GNU compilers. See the latest test results in the (Github Actions)[https://github.com/tlapack/tlapack/actions/workflows/cmake.yml] webpage for \<T\>LAPACK. The tests split into three categories:
 
 + Test routines in [test/src](test/src) using
   
@@ -182,7 +182,7 @@ Here are the \<T\>LAPACK specific options and their default values
   
     2. various matrix and vector data structures: `tlapack::legacyMatrix`, `Eigen::Matrix` and `std::experimental::mdspan` (the latter from `https://github.com/kokkos/mdspan`). 
 
-+ [testBLAS](https://github.com/tlapack/testBLAS) for good conformance with BLAS standards.
++ Tests from [testBLAS](https://github.com/tlapack/testBLAS) for good conformance with BLAS standards.
 
 + [BLAS++ testers](https://github.com/icl-utk-edu/blaspp/tree/master/test) and [LAPACK++ testers](https://github.com/icl-utk-edu/lapackpp/tree/master/test) for measuring performance and accuracy compared to LAPACKE.
 
