@@ -83,7 +83,6 @@ int lascl(
         (accessType != MatrixAccessPolicy::LowerTriangle) && 
         (accessType != MatrixAccessPolicy::StrictUpper) && 
         (accessType != MatrixAccessPolicy::StrictLower) );
-    tlapack_check_false( access_denied( accessType, write_policy(A) ) );
     tlapack_check_false( (b == b_type(0)) || isnan(b) );
     tlapack_check_false( isnan(a) );
 
@@ -230,7 +229,6 @@ int lascl(
     
     // check arguments
     tlapack_check_false( (kl < 0) || (kl >= m) || (ku < 0) || (ku >= n) );
-    tlapack_check_false( access_denied( accessType, write_policy(A) ) );
     tlapack_check_false( (b == b_type(0)) || isnan(b) );
     tlapack_check_false( isnan(a) );
 

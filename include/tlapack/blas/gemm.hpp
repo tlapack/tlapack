@@ -92,9 +92,6 @@ void gemm(
     tlapack_check_false( (idx_t) ncols(C) != n );
     tlapack_check_false( (idx_t) ((transB == Op::NoTrans) ? nrows(B) : ncols(B)) != k );
 
-    tlapack_check_false( access_denied( dense, read_policy(A) ) );
-    tlapack_check_false( access_denied( dense, read_policy(B) ) );
-    tlapack_check_false( access_denied( dense, write_policy(C) ) );
 
     if (transA == Op::NoTrans) {
 

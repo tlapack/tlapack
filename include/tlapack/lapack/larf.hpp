@@ -124,7 +124,6 @@ void larf(
                    side == Side::Right );
     tlapack_check( direction == Direction::Backward ||
                    direction == Direction::Forward );
-    tlapack_check(  access_granted( dense, write_policy(C) ) );
 
     // Allocates workspace
     vectorOfBytes localworkdata;

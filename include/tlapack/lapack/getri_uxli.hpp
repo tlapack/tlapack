@@ -73,7 +73,6 @@ int getri_uxli( matrix_t& A, const workspace_opts_t<>& opts = {} )
     Create<work_t> new_vector;
 
     // check arguments
-    tlapack_check_false( access_denied( dense, write_policy(A) ) );
     tlapack_check( nrows(A)==ncols(A));
     
     // constant n, number of rows and also columns of A

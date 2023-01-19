@@ -144,7 +144,6 @@ namespace tlapack
         // check arguments
         tlapack_check_false((ilo < 0) or (ilo >= n) );
         tlapack_check_false((ihi < 0) or (ihi > n) );
-        tlapack_check_false(access_denied(dense, write_policy(A)) );
         tlapack_check_false(ncols(A) != nrows(A) );
         tlapack_check_false((idx_t)size(tau) < n - 1 );
 

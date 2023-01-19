@@ -71,7 +71,6 @@ void her2(
     tlapack_check_false( size(y)  != n );
     tlapack_check_false( ncols(A) != n );
 
-    tlapack_check_false( access_denied( uplo, write_policy(A) ) );
 
     if (uplo == Uplo::Upper) {
         for (idx_t j = 0; j < n; ++j) {

@@ -101,8 +101,6 @@ void trmm(
     tlapack_check_false( nrows(A) != ncols(A) );
     tlapack_check_false( nrows(A) != ((side == Side::Left) ? m : n) );
 
-    tlapack_check_false( access_denied( uplo, read_policy(A) ) );
-    tlapack_check_false( access_denied( dense, write_policy(B) ) );
     
     if (side == Side::Left) {
         if (trans == Op::NoTrans) {

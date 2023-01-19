@@ -86,7 +86,6 @@ int potrf(
 
     // check arguments
     tlapack_check( uplo == Uplo::Lower || uplo == Uplo::Upper );
-    tlapack_check( access_granted( uplo, write_policy(A) ) );
     tlapack_check( nrows(A) == ncols(A) );
 
     // Quick return

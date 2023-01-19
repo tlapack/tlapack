@@ -110,7 +110,6 @@ auto lange( norm_t normType, const matrix_t& A )
                     normType != Norm::Inf &&
                     normType != Norm::Max &&
                     normType != Norm::One );
-    tlapack_check_false(  access_denied( dense, read_policy(A) ) );
 
     // quick return
     if (m == 0 || n == 0)
@@ -215,7 +214,6 @@ auto lange( norm_t normType, const matrix_t& A, const workspace_opts_t<>& opts )
                     normType != Norm::Inf &&
                     normType != Norm::Max &&
                     normType != Norm::One );
-    tlapack_check_false(  access_denied( dense, read_policy(A) ) );
 
     // quick return
     if (m == 0 || n == 0)

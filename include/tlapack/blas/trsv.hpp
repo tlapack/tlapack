@@ -90,7 +90,6 @@ void trsv(
     tlapack_check_false( nrows(A) != ncols(A) );
     tlapack_check_false( size(x) != n );
 
-    tlapack_check_false( access_denied( uplo, read_policy(A) ) );
 
     if (trans == Op::NoTrans) {
         // Form x := A^{-1} * x

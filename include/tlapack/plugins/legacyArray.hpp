@@ -160,20 +160,6 @@ namespace tlapack {
     inline constexpr auto
     ncols( const legacyMatrix<T,idx_t,layout>& A ){ return A.n; }
 
-    // Read policy of legacyMatrix
-    template< typename T, class idx_t, Layout layout >
-    inline constexpr auto
-    read_policy( const legacyMatrix<T,idx_t,layout>& A ) {
-        return dense;
-    }
-
-    // Write policy of legacyMatrix
-    template< typename T, class idx_t, Layout layout >
-    inline constexpr auto
-    write_policy( const legacyMatrix<T,idx_t,layout>& A ) {
-        return dense;
-    }
-
     // Size of legacyVector
     template< typename T, class idx_t, typename int_t, Direction direction >
     inline constexpr auto
@@ -198,24 +184,6 @@ namespace tlapack {
     template< typename T, class idx_t >
     inline constexpr auto
     upperband( const legacyBandedMatrix<T,idx_t>& A ){ return A.ku; }
-
-    // Read policy of legacyBandedMatrix
-    template< typename T, class idx_t >
-    inline constexpr auto
-    read_policy( const legacyBandedMatrix<T,idx_t>& A ) {
-        return band_t {
-            (std::size_t) A.kl, (std::size_t) A.ku
-        };
-    }
-
-    // Access policy of legacyBandedMatrix
-    template< typename T, class idx_t >
-    inline constexpr auto
-    write_policy( const legacyBandedMatrix<T,idx_t>& A ) {
-        return band_t {
-            (std::size_t) A.kl, (std::size_t) A.ku
-        };
-    }
 
     // -----------------------------------------------------------------------------
     // Block operations

@@ -127,7 +127,6 @@ namespace tlapack
         const idx_t nb = opts.nb;
 
         // check arguments
-        tlapack_check_false(access_denied(dense, write_policy(A)) );
         tlapack_check_false( nrows(TT) < m || ncols(TT) < nb );
 
         // Allocates workspace

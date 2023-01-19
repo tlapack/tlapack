@@ -96,7 +96,6 @@ int ung2r(
 
     // check arguments
     tlapack_check_false( k < 0 || k > n );
-    tlapack_check_false( access_denied( dense, write_policy(A) ) );
     tlapack_check_false( (idx_t) size(tau)  < k );
 
     // quick return

@@ -85,9 +85,6 @@ void symm(
     tlapack_check_false( nrows(C) != m );
     tlapack_check_false( ncols(C) != n );
 
-    tlapack_check_false( access_denied( uplo,  read_policy(A) ) );
-    tlapack_check_false( access_denied( dense, read_policy(B) ) );
-    tlapack_check_false( access_denied( dense, write_policy(C) ) );
 
     if (side == Side::Left) {
         if (uplo != Uplo::Lower) {

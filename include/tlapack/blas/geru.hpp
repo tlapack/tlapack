@@ -59,7 +59,6 @@ void geru(
     // check arguments
     tlapack_check_false( size(x) != m );
     tlapack_check_false( size(y) != n );
-    tlapack_check_false( access_denied( dense, write_policy(A) ) );
 
     for (idx_t j = 0; j < n; ++j) {
         const scalar_t tmp = alpha * y[j];

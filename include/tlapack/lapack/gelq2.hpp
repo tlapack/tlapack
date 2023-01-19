@@ -99,7 +99,6 @@ namespace tlapack
         const idx_t k = min(m, n);
 
         // check arguments
-        tlapack_check_false(access_denied(dense, write_policy(A)) );
         tlapack_check_false((idx_t)size(tauw) < std::min<idx_t>(m, n) );
 
         // Allocates workspace

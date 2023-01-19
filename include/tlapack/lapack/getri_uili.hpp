@@ -39,7 +39,6 @@ template< class matrix_t >
 int getri_uili( matrix_t& A )
 {
     // check arguments
-    tlapack_check_false( access_denied( dense, write_policy(A) ) );
     tlapack_check( nrows(A)==ncols(A));
 
     // Invert the upper part of A; U
