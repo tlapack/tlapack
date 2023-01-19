@@ -33,13 +33,10 @@ namespace tlapack {
  * 
  * @ingroup auxiliary 
  */
-template<
-    class uplo_t, class matrix_t,
-    class alpha_t, class beta_t
->
+template< class uplo_t, class matrix_t >
 void laset(
     uplo_t uplo,
-    const alpha_t& alpha, const beta_t& beta,
+    const type_t<matrix_t>& alpha, const type_t<matrix_t>& beta,
     matrix_t& A )
 {
     using idx_t  = size_type< matrix_t >;

@@ -110,8 +110,7 @@ void lanhe_worksize(
  * @ingroup auxiliary
  */
 template< class norm_t, class uplo_t, class matrix_t >
-auto
-lanhe( norm_t normType, uplo_t uplo, const matrix_t& A )
+auto lanhe( norm_t normType, uplo_t uplo, const matrix_t& A )
 {
     using T      = type_t<matrix_t>;
     using real_t = real_type< T >;
@@ -291,8 +290,7 @@ lanhe( norm_t normType, uplo_t uplo, const matrix_t& A )
  * @ingroup auxiliary
  */
 template< class norm_t, class uplo_t, class matrix_t >
-auto
-lanhe( norm_t normType, uplo_t uplo, const matrix_t& A, const workspace_opts_t<>& opts )
+auto lanhe( norm_t normType, uplo_t uplo, const matrix_t& A, const workspace_opts_t<>& opts )
 {
     using T      = type_t<matrix_t>;
     using real_t = real_type< T >;
@@ -330,7 +328,7 @@ lanhe( norm_t normType, uplo_t uplo, const matrix_t& A, const workspace_opts_t<>
             lanhe_worksize( normType, uplo, A, workinfo, opts );
             return alloc_workspace( localworkdata, workinfo, opts.work );
         }();
-        auto w = legacyVector<T,idx_t>( n, work );
+        legacyVector<T,idx_t> w( n, work );
 
         // Norm value
         real_t norm( 0 );

@@ -22,6 +22,10 @@
 #endif
 #include <tlapack/plugins/legacyArray.hpp>
 
+#ifdef TLAPACK_TEST_MPFR
+    #include <tlapack/plugins/mpreal.hpp>
+#endif
+
 // 
 // The matrix types that will be tested for routines
 // that only accept real matrices
@@ -33,6 +37,14 @@
         (legacyMatrix<double,std::size_t,Layout::ColMajor>), \
         (legacyMatrix<float,std::size_t,Layout::RowMajor>), \
         (legacyMatrix<double,std::size_t,Layout::RowMajor>)
+
+    #ifdef TLAPACK_TEST_MPFR
+        #define TLAPACK_LEGACY_REAL_TYPES_TO_TEST_WITH_MPREAL \
+            , \
+            legacyMatrix<mpfr::mpreal>
+    #else
+        #define TLAPACK_LEGACY_REAL_TYPES_TO_TEST_WITH_MPREAL
+    #endif
     
     #ifdef TLAPACK_TEST_EIGEN
         #define TLAPACK_EIGEN_REAL_TYPES_TO_TEST \
@@ -56,6 +68,7 @@
 
     #define TLAPACK_REAL_TYPES_TO_TEST \
         TLAPACK_LEGACY_REAL_TYPES_TO_TEST \
+        TLAPACK_LEGACY_REAL_TYPES_TO_TEST_WITH_MPREAL \
         TLAPACK_EIGEN_REAL_TYPES_TO_TEST \
         TLAPACK_MDSPAN_REAL_TYPES_TO_TEST
 #endif

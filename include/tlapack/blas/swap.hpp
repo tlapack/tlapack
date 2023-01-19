@@ -33,6 +33,7 @@ template< class vectorX_t, class vectorY_t,
 void swap( vectorX_t& x, vectorY_t& y )
 {
     using idx_t = size_type< vectorY_t >;
+    using TX = type_t<vectorX_t>;
 
     // constants
     const idx_t n = size(x);
@@ -41,7 +42,7 @@ void swap( vectorX_t& x, vectorY_t& y )
     tlapack_check_false( size(y) != n );
 
     for (idx_t i = 0; i < n; ++i) {
-        const auto aux = x[i];
+        const TX aux = x[i];
         x[i] = y[i];
         y[i] = aux;
     }

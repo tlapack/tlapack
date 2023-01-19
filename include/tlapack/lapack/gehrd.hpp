@@ -132,6 +132,7 @@ namespace tlapack
 
         // constants
         const real_t one(1);
+        const type_t<work_t> zero(0);
         const idx_t n = ncols(A);
 
         // Blocksize
@@ -167,6 +168,7 @@ namespace tlapack
         // Matrix Y
         Workspace workMatrixT;
         auto Y = new_matrix( work, n, nb, workMatrixT );
+        laset( dense, zero, zero, Y );
 
         // Matrix T
         auto matrixT = new_matrix( workMatrixT, nb, nb );
@@ -174,7 +176,7 @@ namespace tlapack
         idx_t i = ilo;
         for (; i+nx < ihi-1; i = i + nb)
         {
-            auto nb2 = std::min(nb, ihi - i - 1);
+            const idx_t nb2 = std::min(nb, ihi - i - 1);
 
             auto V = slice(A, pair{i + 1, ihi}, pair{i, i + nb2});
             auto A2 = slice(A, pair{0, ihi}, pair{i, ihi});
@@ -188,7 +190,7 @@ namespace tlapack
 
                 // Apply the block reflector H to A(0:ihi,i+nb:ihi) from the right, computing
                 // A := A - Y * V**T. The multiplication requires V(nb2-1,nb2-1) to be set to 1.
-                auto ei = V(nb2-1, nb2-1);
+                const TA ei = V(nb2-1, nb2-1);
                 V(nb2-1, nb2-1) = one;
                 auto A3 = slice(A, pair{0, ihi}, pair{i + nb2, ihi});
                 auto Y_2 = slice(Y, pair{0, ihi}, pair{0, nb2});

@@ -16,13 +16,13 @@
 namespace tlapack {
 
     // Forward declarations
-    template< typename T > auto abs ( const T& x ) -> T;
+    template< typename T > T abs ( const T& x );
     template< typename T > bool isnan( const std::complex<T>& x );
     template< typename T > bool isinf( const std::complex<T>& x );
 
     /// Absolute value
     template<>
-    inline auto abs( const mpfr::mpreal& x ) -> mpfr::mpreal {
+    inline mpfr::mpreal abs( const mpfr::mpreal& x ) {
         return mpfr::abs( x );
     }
     
@@ -35,8 +35,7 @@ namespace tlapack {
     ///
     /// Also, std::abs< mpfr::mpreal > may not propagate Infs.
     ///
-    template<>
-    inline auto abs( const std::complex<mpfr::mpreal>& x ) -> mpfr::mpreal {
+    inline mpfr::mpreal abs( const std::complex<mpfr::mpreal>& x ) {
         if( isnan(x) )
             return std::numeric_limits< mpfr::mpreal >::quiet_NaN();
         else if( isinf(x) )

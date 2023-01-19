@@ -216,7 +216,7 @@ namespace tlapack
                     // We leave the last row for later (it interferes with the optimally packed bulges)
                     for (idx_t j = istart_m; j < i_pos + 3; ++j)
                     {
-                        auto sum = A(j, i_pos) + v[1] * A(j, i_pos + 1) + v[2] * A(j, i_pos + 2);
+                        const TA sum = A(j, i_pos) + v[1] * A(j, i_pos + 1) + v[2] * A(j, i_pos + 2);
                         A(j, i_pos) = A(j, i_pos) - sum * v[0];
                         A(j, i_pos + 1) = A(j, i_pos + 1) - sum * v[0] * conj(v[1]);
                         A(j, i_pos + 2) = A(j, i_pos + 2) - sum * v[0] * conj(v[2]);
@@ -224,7 +224,7 @@ namespace tlapack
 
                     // Apply the reflector we just calculated from the left
                     // We only update a single column, the rest is updated later
-                    auto sum = A(i_pos, i_pos) + conj(v[1]) * A(i_pos + 1, i_pos) + conj(v[2]) * A(i_pos + 2, i_pos);
+                    const TA sum = A(i_pos, i_pos) + conj(v[1]) * A(i_pos + 1, i_pos) + conj(v[2]) * A(i_pos + 2, i_pos);
                     A(i_pos, i_pos) = A(i_pos, i_pos) - sum * conj(v[0]);
                     A(i_pos + 1, i_pos) = A(i_pos + 1, i_pos) - sum * conj(v[0]) * v[1];
                     A(i_pos + 2, i_pos) = A(i_pos + 2, i_pos) - sum * conj(v[0]) * v[2];
@@ -234,7 +234,7 @@ namespace tlapack
                     {
                         if (A(i_pos, i_pos - 1) != zero)
                         {
-                            auto tst1 = abs1(A(i_pos - 1, i_pos - 1)) + abs1(A(i_pos, i_pos));
+                            real_t tst1 = abs1(A(i_pos - 1, i_pos - 1)) + abs1(A(i_pos, i_pos));
                             if (tst1 == zero)
                             {
                                 if (i_pos > ilo + 1)
@@ -252,11 +252,11 @@ namespace tlapack
                             }
                             if (abs1(A(i_pos, i_pos - 1)) < std::max(small_num, eps * tst1))
                             {
-                                auto ab = std::max(abs1(A(i_pos, i_pos - 1)), abs1(A(i_pos - 1, i_pos)));
-                                auto ba = std::min(abs1(A(i_pos, i_pos - 1)), abs1(A(i_pos - 1, i_pos)));
-                                auto aa = std::max(abs1(A(i_pos, i_pos)), abs1(A(i_pos, i_pos) - A(i_pos - 1, i_pos - 1)));
-                                auto bb = std::min(abs1(A(i_pos, i_pos)), abs1(A(i_pos, i_pos) - A(i_pos - 1, i_pos - 1)));
-                                auto s = aa + ab;
+                                const real_t ab = std::max(abs1(A(i_pos, i_pos - 1)), abs1(A(i_pos - 1, i_pos)));
+                                const real_t ba = std::min(abs1(A(i_pos, i_pos - 1)), abs1(A(i_pos - 1, i_pos)));
+                                const real_t aa = std::max(abs1(A(i_pos, i_pos)), abs1(A(i_pos, i_pos) - A(i_pos - 1, i_pos - 1)));
+                                const real_t bb = std::min(abs1(A(i_pos, i_pos)), abs1(A(i_pos, i_pos) - A(i_pos - 1, i_pos - 1)));
+                                const real_t s = aa + ab;
                                 if (ba * (ab / s) <= std::max(small_num, eps * (bb * (aa / s))))
                                 {
                                     A(i_pos, i_pos - 1) = zero;
@@ -290,7 +290,7 @@ namespace tlapack
                     auto v = col(V, i_bulge);
                     for (idx_t j = i_pos + 1; j < istop_m; ++j)
                     {
-                        auto sum = A(i_pos, j) + conj(v[1]) * A(i_pos + 1, j) + conj(v[2]) * A(i_pos + 2, j);
+                        const TA sum = A(i_pos, j) + conj(v[1]) * A(i_pos + 1, j) + conj(v[2]) * A(i_pos + 2, j);
                         A(i_pos, j) = A(i_pos, j) - sum * conj(v[0]);
                         A(i_pos + 1, j) = A(i_pos + 1, j) - sum * conj(v[0]) * v[1];
                         A(i_pos + 2, j) = A(i_pos + 2, j) - sum * conj(v[0]) * v[2];
@@ -306,7 +306,7 @@ namespace tlapack
                     idx_t i2 = std::min(nrows(U2), (i_pos_last - ilo) + (i_pos_last - ilo) + 3);
                     for (idx_t j = i1; j < i2; ++j)
                     {
-                        auto sum = U2(j, i_pos - ilo) + v[1] * U2(j, i_pos - ilo + 1) + v[2] * U2(j, i_pos - ilo + 2);
+                        const TA sum = U2(j, i_pos - ilo) + v[1] * U2(j, i_pos - ilo + 1) + v[2] * U2(j, i_pos - ilo + 2);
                         U2(j, i_pos - ilo) = U2(j, i_pos - ilo) - sum * v[0];
                         U2(j, i_pos - ilo + 1) = U2(j, i_pos - ilo + 1) - sum * v[0] * conj(v[1]);
                         U2(j, i_pos - ilo + 2) = U2(j, i_pos - ilo + 2) - sum * v[0] * conj(v[2]);
@@ -402,7 +402,7 @@ namespace tlapack
                     // We leave the last row for later (it interferes with the optimally packed bulges)
                     for (idx_t j = istart_m; j < i_pos + 3; ++j)
                     {
-                        auto sum = A(j, i_pos) + v[1] * A(j, i_pos + 1) + v[2] * A(j, i_pos + 2);
+                        const TA sum = A(j, i_pos) + v[1] * A(j, i_pos + 1) + v[2] * A(j, i_pos + 2);
                         A(j, i_pos) = A(j, i_pos) - sum * v[0];
                         A(j, i_pos + 1) = A(j, i_pos + 1) - sum * v[0] * conj(v[1]);
                         A(j, i_pos + 2) = A(j, i_pos + 2) - sum * v[0] * conj(v[2]);
@@ -410,7 +410,7 @@ namespace tlapack
 
                     // Apply the reflector we just calculated from the left
                     // We only update a single column, the rest is updated later
-                    auto sum = A(i_pos, i_pos) + conj(v[1]) * A(i_pos + 1, i_pos) + conj(v[2]) * A(i_pos + 2, i_pos);
+                    const TA sum = A(i_pos, i_pos) + conj(v[1]) * A(i_pos + 1, i_pos) + conj(v[2]) * A(i_pos + 2, i_pos);
                     A(i_pos, i_pos) = A(i_pos, i_pos) - sum * conj(v[0]);
                     A(i_pos + 1, i_pos) = A(i_pos + 1, i_pos) - sum * conj(v[0]) * v[1];
                     A(i_pos + 2, i_pos) = A(i_pos + 2, i_pos) - sum * conj(v[0]) * v[2];
@@ -420,7 +420,7 @@ namespace tlapack
                     {
                         if (A(i_pos, i_pos - 1) != zero)
                         {
-                            auto tst1 = abs1(A(i_pos - 1, i_pos - 1)) + abs1(A(i_pos, i_pos));
+                            real_t tst1 = abs1(A(i_pos - 1, i_pos - 1)) + abs1(A(i_pos, i_pos));
                             if (tst1 == zero)
                             {
                                 if (i_pos > ilo + 1)
@@ -438,11 +438,11 @@ namespace tlapack
                             }
                             if (abs1(A(i_pos, i_pos - 1)) < std::max(small_num, eps * tst1))
                             {
-                                auto ab = std::max(abs1(A(i_pos, i_pos - 1)), abs1(A(i_pos - 1, i_pos)));
-                                auto ba = std::min(abs1(A(i_pos, i_pos - 1)), abs1(A(i_pos - 1, i_pos)));
-                                auto aa = std::max(abs1(A(i_pos, i_pos)), abs1(A(i_pos, i_pos) - A(i_pos - 1, i_pos - 1)));
-                                auto bb = std::min(abs1(A(i_pos, i_pos)), abs1(A(i_pos, i_pos) - A(i_pos - 1, i_pos - 1)));
-                                auto s = aa + ab;
+                                const real_t ab = std::max(abs1(A(i_pos, i_pos - 1)), abs1(A(i_pos - 1, i_pos)));
+                                const real_t ba = std::min(abs1(A(i_pos, i_pos - 1)), abs1(A(i_pos - 1, i_pos)));
+                                const real_t aa = std::max(abs1(A(i_pos, i_pos)), abs1(A(i_pos, i_pos) - A(i_pos - 1, i_pos - 1)));
+                                const real_t bb = std::min(abs1(A(i_pos, i_pos)), abs1(A(i_pos, i_pos) - A(i_pos - 1, i_pos - 1)));
+                                const real_t s = aa + ab;
                                 if (ba * (ab / s) <= std::max(small_num, eps * (bb * (aa / s))))
                                 {
                                     A(i_pos, i_pos - 1) = zero;
@@ -476,7 +476,7 @@ namespace tlapack
                     auto v = col(V, i_bulge);
                     for (idx_t j = i_pos + 1; j < istop_m; ++j)
                     {
-                        auto sum = A(i_pos, j) + conj(v[1]) * A(i_pos + 1, j) + conj(v[2]) * A(i_pos + 2, j);
+                        const TA sum = A(i_pos, j) + conj(v[1]) * A(i_pos + 1, j) + conj(v[2]) * A(i_pos + 2, j);
                         A(i_pos, j) = A(i_pos, j) - sum * conj(v[0]);
                         A(i_pos + 1, j) = A(i_pos + 1, j) - sum * conj(v[0]) * v[1];
                         A(i_pos + 2, j) = A(i_pos + 2, j) - sum * conj(v[0]) * v[2];
@@ -492,7 +492,7 @@ namespace tlapack
                     idx_t i2 = std::min(nrows(U2), (i_pos_last - i_pos_block) + (i_pos_last - i_pos_block - n_shifts + 2) + 3);
                     for (idx_t j = i1; j < i2; ++j)
                     {
-                        auto sum = U2(j, i_pos - i_pos_block) + v[1] * U2(j, i_pos - i_pos_block + 1) + v[2] * U2(j, i_pos - i_pos_block + 2);
+                        const TA sum = U2(j, i_pos - i_pos_block) + v[1] * U2(j, i_pos - i_pos_block + 1) + v[2] * U2(j, i_pos - i_pos_block + 2);
                         U2(j, i_pos - i_pos_block) = U2(j, i_pos - i_pos_block) - sum * v[0];
                         U2(j, i_pos - i_pos_block + 1) = U2(j, i_pos - i_pos_block + 1) - sum * v[0] * conj(v[1]);
                         U2(j, i_pos - i_pos_block + 2) = U2(j, i_pos - i_pos_block + 2) - sum * v[0] * conj(v[2]);
@@ -587,20 +587,20 @@ namespace tlapack
                         v[1] = h[1];
                         h[1] = zero;
 
-                        auto t1 = conj(v[0]);
-                        auto v2 = v[1];
-                        auto t2 = t1 * v2;
+                        const TA t1 = conj(v[0]);
+                        const TA v2 = v[1];
+                        const TA t2 = t1 * v2;
                         // Apply the reflector we just calculated from the right
                         for (idx_t j = istart_m; j < i_pos + 2; ++j)
                         {
-                            auto sum = A(j, i_pos) + v2 * A(j, i_pos + 1);
+                            const TA sum = A(j, i_pos) + v2 * A(j, i_pos + 1);
                             A(j, i_pos) = A(j, i_pos) - sum * conj(t1);
                             A(j, i_pos + 1) = A(j, i_pos + 1) - sum * conj(t2);
                         }
                         // Apply the reflector we just calculated from the left
                         for (idx_t j = i_pos; j < istop_m; ++j)
                         {
-                            auto sum = A(i_pos, j) + conj(v2) * A(i_pos + 1, j);
+                            const TA sum = A(i_pos, j) + conj(v2) * A(i_pos + 1, j);
                             A(i_pos, j) = A(i_pos, j) - sum * t1;
                             A(i_pos + 1, j) = A(i_pos + 1, j) - sum * t2;
                         }
@@ -608,7 +608,7 @@ namespace tlapack
                         // The loop bounds should be changed to reflect the fact that U2 starts off as diagonal
                         for (idx_t j = 0; j < nrows(U2); ++j)
                         {
-                            auto sum = U2(j, i_pos - i_pos_block) + v2 * U2(j, i_pos - i_pos_block + 1);
+                            const TA sum = U2(j, i_pos - i_pos_block) + v2 * U2(j, i_pos - i_pos_block + 1);
                             U2(j, i_pos - i_pos_block) = U2(j, i_pos - i_pos_block) - sum * conj(t1);
                             U2(j, i_pos - i_pos_block + 1) = U2(j, i_pos - i_pos_block + 1) - sum * conj(t2);
                         }
@@ -619,15 +619,15 @@ namespace tlapack
                         auto H = slice(A, pair{i_pos - 1, i_pos + 3}, pair{i_pos - 1, i_pos + 3});
                         move_bulge(H, v, s[size(s)- 1 - 2 * i_bulge], s[size(s)- 1 - 2 * i_bulge - 1]);
 
-                        auto t1 = conj(v[0]);
-                        auto v2 = v[1];
-                        auto t2 = t1 * v2;
-                        auto v3 = v[2];
-                        auto t3 = t1 * v[2];
+                        const TA t1 = conj(v[0]);
+                        const TA v2 = v[1];
+                        const TA t2 = t1 * v2;
+                        const TA v3 = v[2];
+                        const TA t3 = t1 * v3;
                         // Apply the reflector we just calculated from the right (but leave the last row for later)
                         for (idx_t j = istart_m; j < i_pos + 3; ++j)
                         {
-                            auto sum = A(j, i_pos) + v2 * A(j, i_pos + 1) + v3 * A(j, i_pos + 2);
+                            const TA sum = A(j, i_pos) + v2 * A(j, i_pos + 1) + v3 * A(j, i_pos + 2);
                             A(j, i_pos) = A(j, i_pos) - sum * conj(t1);
                             A(j, i_pos + 1) = A(j, i_pos + 1) - sum * conj(t2);
                             A(j, i_pos + 2) = A(j, i_pos + 2) - sum * conj(t3);
@@ -635,7 +635,7 @@ namespace tlapack
 
                         // Apply the reflector we just calculated from the left
                         // We only update a single column, the rest is updated later
-                        auto sum = A(i_pos, i_pos) + conj(v[1]) * A(i_pos + 1, i_pos) + conj(v[2]) * A(i_pos + 2, i_pos);
+                        const TA sum = A(i_pos, i_pos) + conj(v[1]) * A(i_pos + 1, i_pos) + conj(v[2]) * A(i_pos + 2, i_pos);
                         A(i_pos, i_pos) = A(i_pos, i_pos) - sum * conj(v[0]);
                         A(i_pos + 1, i_pos) = A(i_pos + 1, i_pos) - sum * conj(v[0]) * v[1];
                         A(i_pos + 2, i_pos) = A(i_pos + 2, i_pos) - sum * conj(v[0]) * v[2];
@@ -645,7 +645,7 @@ namespace tlapack
                         {
                             if (A(i_pos, i_pos - 1) != zero)
                             {
-                                auto tst1 = abs1(A(i_pos - 1, i_pos - 1)) + abs1(A(i_pos, i_pos));
+                                real_t tst1 = abs1(A(i_pos - 1, i_pos - 1)) + abs1(A(i_pos, i_pos));
                                 if (tst1 == zero)
                                 {
                                     if (i_pos > ilo + 1)
@@ -663,11 +663,11 @@ namespace tlapack
                                 }
                                 if (abs1(A(i_pos, i_pos - 1)) < std::max(small_num, eps * tst1))
                                 {
-                                    auto ab = std::max(abs1(A(i_pos, i_pos - 1)), abs1(A(i_pos - 1, i_pos)));
-                                    auto ba = std::min(abs1(A(i_pos, i_pos - 1)), abs1(A(i_pos - 1, i_pos)));
-                                    auto aa = std::max(abs1(A(i_pos, i_pos)), abs1(A(i_pos, i_pos) - A(i_pos - 1, i_pos - 1)));
-                                    auto bb = std::min(abs1(A(i_pos, i_pos)), abs1(A(i_pos, i_pos) - A(i_pos - 1, i_pos - 1)));
-                                    auto s = aa + ab;
+                                    const real_t ab = std::max(abs1(A(i_pos, i_pos - 1)), abs1(A(i_pos - 1, i_pos)));
+                                    const real_t ba = std::min(abs1(A(i_pos, i_pos - 1)), abs1(A(i_pos - 1, i_pos)));
+                                    const real_t aa = std::max(abs1(A(i_pos, i_pos)), abs1(A(i_pos, i_pos) - A(i_pos - 1, i_pos - 1)));
+                                    const real_t bb = std::min(abs1(A(i_pos, i_pos)), abs1(A(i_pos, i_pos) - A(i_pos - 1, i_pos - 1)));
+                                    const real_t s = aa + ab;
                                     if (ba * (ab / s) <= std::max(small_num, eps * (bb * (aa / s))))
                                     {
                                         A(i_pos, i_pos - 1) = zero;
@@ -705,7 +705,7 @@ namespace tlapack
                     auto v = col(V, i_bulge);
                     for (idx_t j = i_pos + 1; j < istop_m; ++j)
                     {
-                        auto sum = A(i_pos, j) + conj(v[1]) * A(i_pos + 1, j) + conj(v[2]) * A(i_pos + 2, j);
+                        const TA sum = A(i_pos, j) + conj(v[1]) * A(i_pos + 1, j) + conj(v[2]) * A(i_pos + 2, j);
                         A(i_pos, j) = A(i_pos, j) - sum * conj(v[0]);
                         A(i_pos + 1, j) = A(i_pos + 1, j) - sum * conj(v[0]) * v[1];
                         A(i_pos + 2, j) = A(i_pos + 2, j) - sum * conj(v[0]) * v[2];
@@ -721,7 +721,7 @@ namespace tlapack
                     idx_t i2 = std::min(nrows(U2), (i_pos_last - i_pos_block) + (i_pos_last - i_pos_block - n_shifts + 2) + 3);
                     for (idx_t j = i1; j < i2; ++j)
                     {
-                        auto sum = U2(j, i_pos - i_pos_block) + v[1] * U2(j, i_pos - i_pos_block + 1) + v[2] * U2(j, i_pos - i_pos_block + 2);
+                        const TA sum = U2(j, i_pos - i_pos_block) + v[1] * U2(j, i_pos - i_pos_block + 1) + v[2] * U2(j, i_pos - i_pos_block + 2);
                         U2(j, i_pos - i_pos_block) = U2(j, i_pos - i_pos_block) - sum * v[0];
                         U2(j, i_pos - i_pos_block + 1) = U2(j, i_pos - i_pos_block + 1) - sum * v[0] * conj(v[1]);
                         U2(j, i_pos - i_pos_block + 2) = U2(j, i_pos - i_pos_block + 2) - sum * v[0] * conj(v[2]);

@@ -101,8 +101,8 @@ void syr2k(
                     C(i,j) *= beta;
 
                 for(idx_t l = 0; l < k; ++l) {
-                    auto alphaBjl = alpha*B(j,l);
-                    auto alphaAjl = alpha*A(j,l);
+                    const scalar_type<alpha_t,TB> alphaBjl = alpha*B(j,l);
+                    const scalar_type<alpha_t,TA> alphaAjl = alpha*A(j,l);
                     for(idx_t i = 0; i <= j; ++i)
                         C(i,j) += A(i,l)*alphaBjl + B(i,l)*alphaAjl;
                 }
@@ -115,8 +115,8 @@ void syr2k(
                     C(i,j) *= beta;
 
                 for(idx_t l = 0; l < k; ++l) {
-                    auto alphaBjl = alpha*B(j,l);
-                    auto alphaAjl = alpha*A(j,l);
+                    const scalar_type<alpha_t,TB> alphaBjl = alpha*B(j,l);
+                    const scalar_type<alpha_t,TA> alphaAjl = alpha*A(j,l);
                     for(idx_t i = j; i < n; ++i)
                         C(i,j) += A(i,l)*alphaBjl + B(i,l)*alphaAjl;
                 }

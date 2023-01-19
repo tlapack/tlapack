@@ -106,7 +106,7 @@ void herk(
 
                 for(idx_t l = 0; l < k; ++l) {
 
-                    auto alphaConjAjl = alpha*conj( A(j,l) );
+                    const scalar_type<alpha_t,TA> alphaConjAjl = alpha*conj( A(j,l) );
 
                     for(idx_t i = 0; i < j; ++i)
                         C(i,j) += A(i,l)*alphaConjAjl;
@@ -124,7 +124,7 @@ void herk(
 
                 for(idx_t l = 0; l < k; ++l) {
 
-                    auto alphaConjAjl = alpha*conj( A(j,l) );
+                    const scalar_type<alpha_t,TA> alphaConjAjl = alpha*conj( A(j,l) );
 
                     C(j,j) += real(A(j,l)) * real(alphaConjAjl)
                             - imag(A(j,l)) * imag(alphaConjAjl);

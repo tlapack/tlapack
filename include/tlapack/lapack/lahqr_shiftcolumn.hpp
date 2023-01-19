@@ -58,7 +58,7 @@ namespace tlapack
 
       if (n == 2)
       {
-         auto s = abs(H(0, 0) - real(s2)) + abs(imag(s2)) + abs(H(1, 0));
+         const TH s = abs(H(0, 0) - real(s2)) + abs(imag(s2)) + abs(H(1, 0));
          if (s == zero)
          {
             v[0] = zero;
@@ -66,14 +66,14 @@ namespace tlapack
          }
          else
          {
-            auto h10s = H(1, 0) / s;
+            const TH h10s = H(1, 0) / s;
             v[0] = h10s * H(0, 1) + (H(0, 0) - real(s1)) * ((H(0, 0) - real(s2)) / s) - imag(s1) * (imag(s2) / s);
             v[1] = h10s * (H(0, 0) + H(1, 1) - real(s1) - real(s2));
          }
       }
       else
       {
-         auto s = abs(H(0, 0) - real(s2)) + abs(imag(s2)) + abs(H(1, 0)) + abs(H(2, 0));
+         const TH s = abs(H(0, 0) - real(s2)) + abs(imag(s2)) + abs(H(1, 0)) + abs(H(2, 0));
          if (s == zero)
          {
             v[0] = zero;
@@ -82,8 +82,8 @@ namespace tlapack
          }
          else
          {
-            auto h10s = H(1, 0) / s;
-            auto h20s = H(2, 0) / s;
+            const TH h10s = H(1, 0) / s;
+            const TH h20s = H(2, 0) / s;
             v[0] = (H(0, 0) - real(s1)) * ((H(0, 0) - real(s2)) / s) - imag(s1) * (imag(s2) / s) + H(0, 1) * h10s + H(0, 2) * h20s;
             v[1] = h10s * (H(0, 0) + H(1, 1) - real(s1) - real(s2)) + H(1, 2) * h20s;
             v[2] = h20s * (H(0, 0) + H(2, 2) - real(s1) - real(s2)) + h10s * H(2, 1);
@@ -135,7 +135,7 @@ namespace tlapack
 
       if (n == 2)
       {
-         auto s = abs1(H(0, 0) - s2) + abs1(H(1, 0));
+         const TH s = abs1(H(0, 0) - s2) + abs1(H(1, 0));
          if (s == zero)
          {
             v[0] = zero;
@@ -143,14 +143,14 @@ namespace tlapack
          }
          else
          {
-            auto h10s = H(1, 0) / s;
+            const TH h10s = H(1, 0) / s;
             v[0] = h10s * H(0, 1) + (H(0, 0) - s1) * ((H(0, 0) - s2) / s);
             v[1] = h10s * (H(0, 0) + H(1, 1) - s1 - s2);
          }
       }
       else
       {
-         auto s = abs1(H(0, 0) - s2) + abs1(H(1, 0)) + abs1(H(2, 0));
+         const TH s = abs1(H(0, 0) - s2) + abs1(H(1, 0)) + abs1(H(2, 0));
          if (s == zero)
          {
             v[0] = zero;
@@ -159,8 +159,8 @@ namespace tlapack
          }
          else
          {
-            auto h10s = H(1, 0) / s;
-            auto h20s = H(2, 0) / s;
+            const TH h10s = H(1, 0) / s;
+            const TH h20s = H(2, 0) / s;
             v[0] = (H(0, 0) - s1) * ((H(0, 0) - s2) / s) + H(0, 1) * h10s + H(0, 2) * h20s;
             v[1] = h10s * (H(0, 0) + H(1, 1) - s1 - s2) + H(1, 2) * h20s;
             v[2] = h20s * (H(0, 0) + H(2, 2) - s1 - s2) + h10s * H(2, 1);

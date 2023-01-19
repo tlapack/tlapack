@@ -101,9 +101,8 @@ void trsv(
                 if (nonunit) {
                     x[j] /= A(j,j);
                 }
-                auto tmp = x[j];
                 for (idx_t i = j - 1; i != idx_t(-1); --i) {
-                    x[i] -= tmp * A(i,j);
+                    x[i] -= x[j] * A(i,j);
                 }
             }
         }
@@ -114,9 +113,8 @@ void trsv(
                 if (nonunit) {
                     x[j] /= A(j,j);
                 }
-                auto tmp = x[j];
                 for (idx_t i = j + 1; i < n; ++i) {
-                    x[i] -= tmp * A(i,j);
+                    x[i] -= x[j] * A(i,j);
                 }
             }
         }
@@ -130,9 +128,8 @@ void trsv(
                 if (nonunit) {
                     x[j] /= conj( A(j,j) );
                 }
-                auto tmp = x[j];
                 for (idx_t i = j - 1; i != idx_t(-1); --i) {
-                    x[i] -= tmp * conj( A(i,j) );
+                    x[i] -= x[j] * conj( A(i,j) );
                 }
             }
         }
@@ -143,9 +140,8 @@ void trsv(
                 if (nonunit) {
                     x[j] /= conj( A(j,j) );
                 }
-                auto tmp = x[j];
                 for (idx_t i = j + 1; i < n; ++i) {
-                    x[i] -= tmp * conj( A(i,j) );
+                    x[i] -= x[j] * conj( A(i,j) );
                 }
             }
         }

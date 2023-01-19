@@ -136,8 +136,7 @@ void lantr_worksize(
  * @ingroup auxiliary
  */
 template< class norm_t, class uplo_t, class diag_t, class matrix_t >
-auto
-lantr( norm_t normType, uplo_t uplo, diag_t diag, const matrix_t& A )
+auto lantr( norm_t normType, uplo_t uplo, diag_t diag, const matrix_t& A )
 {
     using T      = type_t< matrix_t >;
     using real_t = real_type< T >;
@@ -395,8 +394,7 @@ template<
     class uplo_t, 
     class diag_t, 
     class matrix_t >
-auto
-lantr(
+auto lantr(
     norm_t normType,
     uplo_t uplo,
     diag_t diag,
@@ -444,7 +442,7 @@ lantr(
             lantr_worksize( normType, uplo, diag, A, workinfo, opts );
             return alloc_workspace( localworkdata, workinfo, opts.work );
         }();
-        auto w = legacyVector<T,idx_t>( n, work );
+        legacyVector<T,idx_t> w( n, work );
 
         // Norm value
         real_t norm( 0 );

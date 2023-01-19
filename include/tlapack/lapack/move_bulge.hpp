@@ -48,7 +48,7 @@ namespace tlapack
 
         // Perform delayed update of row below the bulge
         // Assumes the first two elements of the row are zero
-        auto refsum = v[0] * v[2] * H(3, 2);
+        scalar_type< type_t<vector_t>, T > refsum = v[0] * v[2] * H(3, 2);
         H(3, 0) = -refsum;
         H(3, 1) = -refsum * conj(v[1]);
         H(3, 2) = H(3, 2) - refsum * conj(v[2]);

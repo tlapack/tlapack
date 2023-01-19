@@ -94,9 +94,8 @@ void trmv(
             // upper
             for (idx_t j = 0; j < n; ++j) {
                 // note: NOT skipping if x[j] is zero, for consistent NAN handling
-                auto tmp = x[j];
                 for (idx_t i = 0; i < j; ++i)
-                    x[i] += tmp * A(i,j);
+                    x[i] += x[j] * A(i,j);
                 if (nonunit)
                     x[j] *= A(j,j);
             }
@@ -105,9 +104,8 @@ void trmv(
             // lower
             for (idx_t j = n-1; j != idx_t(-1); --j) {
                 // note: NOT skipping if x[j] is zero ...
-                auto tmp = x[j];
                 for (idx_t i = n-1; i >= j+1; --i)
-                    x[i] += tmp * A(i,j);
+                    x[i] += x[j] * A(i,j);
                 if (nonunit)
                     x[j] *= A(j,j);
             }
@@ -119,9 +117,8 @@ void trmv(
             // upper
             for (idx_t j = 0; j < n; ++j) {
                 // note: NOT skipping if x[j] is zero, for consistent NAN handling
-                auto tmp = x[j];
                 for (idx_t i = 0; i < j; ++i)
-                    x[i] += tmp * conj( A(i,j) );
+                    x[i] += x[j] * conj( A(i,j) );
                 if (nonunit)
                     x[j] *= conj( A(j,j) );
             }
@@ -130,9 +127,8 @@ void trmv(
             // lower
             for (idx_t j = n-1; j != idx_t(-1); --j) {
                 // note: NOT skipping if x[j] is zero ...
-                auto tmp = x[j];
                 for (idx_t i = n-1; i >= j+1; --i)
-                    x[i] += tmp * conj( A(i,j) );
+                    x[i] += x[j] * conj( A(i,j) );
                 if (nonunit)
                     x[j] *= conj( A(j,j) );
             }

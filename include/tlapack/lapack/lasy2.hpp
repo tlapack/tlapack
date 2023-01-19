@@ -63,8 +63,8 @@ namespace tlapack
 
         if (n1 == 1 and n2 == 1)
         {
-            auto tau1 = TL(0, 0) + sgn * TR(0, 0);
-            auto bet = abs(tau1);
+            T tau1 = TL(0, 0) + sgn * TR(0, 0);
+            T bet = abs(tau1);
             if (bet < small_num)
             {
                 tau1 = small_num;
@@ -72,7 +72,7 @@ namespace tlapack
                 info = 1;
             }
             scale = one;
-            auto gam = abs(B(0, 0));
+            const T gam = abs(B(0, 0));
             if (small_num * gam > bet)
                 scale = one / gam;
             X(0, 0) = (B(0, 0) * scale) / tau1;
@@ -92,7 +92,7 @@ namespace tlapack
             std::vector<T> T16_; auto T16 = new_matrix(T16_, 4, 4);
             std::vector<idx_t> jpiv(4);
 
-            auto smin = max( max(abs(TR(0, 0)), abs(TR(0, 1))), max(abs(TR(1, 0)), abs(TR(1, 1))));
+            T smin = max( max(abs(TR(0, 0)), abs(TR(0, 1))), max(abs(TR(1, 0)), abs(TR(1, 1))));
             smin = max(smin, max(max(abs(TL(0, 0)), abs(TL(0, 1))), max(abs(TL(1, 0)), abs(TL(1, 1)))));
             smin = max(eps * smin, small_num);
 
@@ -145,7 +145,7 @@ namespace tlapack
                 ipsv = i;
                 jpsv = i;
                 // Do pivoting to get largest pivot element
-                auto xmax = zero;
+                T xmax = zero;
                 for (idx_t ip = i; ip < 4; ++ip)
                 {
                     for (idx_t jp = i; jp < 4; ++jp)
@@ -163,7 +163,7 @@ namespace tlapack
                     auto row1 = row(T16, ipsv);
                     auto row2 = row(T16, i);
                     tlapack::swap(row1, row2);
-                    auto temp = btmp[i];
+                    const T temp = btmp[i];
                     btmp[i] = btmp[ipsv];
                     btmp[ipsv] = temp;
                 }
@@ -222,7 +222,7 @@ namespace tlapack
             {
                 if (jpiv[2 - i] != 2 - i)
                 {
-                    auto temp = tmp[2 - i];
+                    const T temp = tmp[2 - i];
                     tmp[2 - i] = tmp[jpiv[2 - i]];
                     tmp[jpiv[2 - i]] = temp;
                 }

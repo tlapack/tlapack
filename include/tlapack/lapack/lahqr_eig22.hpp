@@ -41,7 +41,7 @@ namespace tlapack
         const real_t zero(0);
         const real_t two(2);
 
-        auto s = abs1(a00) + abs1(a01) + abs1(a10) + abs1(a11);
+        const T s = abs1(a00) + abs1(a01) + abs1(a10) + abs1(a11);
         if (s == zero)
         {
             s1 = zero;
@@ -53,9 +53,9 @@ namespace tlapack
         a01 = a01 / s;
         a10 = a10 / s;
         a11 = a11 / s;
-        auto tr = (a00 + a11) / two;
-        complex_type<T> det = (a00 - tr) * (a00 - tr) + a01 * a10;
-        auto rtdisc = sqrt(det);
+        const T tr = (a00 + a11) / two;
+        const complex_type<T> det = (a00 - tr) * (a00 - tr) + a01 * a10;
+        const complex_type<T> rtdisc = sqrt(det);
 
         s1 = s*(tr + rtdisc);
         s2 = s*(tr - rtdisc);

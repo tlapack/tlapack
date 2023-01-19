@@ -313,7 +313,7 @@ namespace tlapack
             if (!bulge)
             {
                 // 1x1 eigenvalue block
-                auto foo = abs1(TW(ns - 1, ns - 1));
+                real_t foo = abs1(TW(ns - 1, ns - 1));
                 if (foo == zero)
                     foo = abs1(s_spike);
                 if (abs1(s_spike) * abs1(V(0, ns - 1)) <= max(small_num, eps * foo))
@@ -333,7 +333,7 @@ namespace tlapack
             else
             {
                 // 2x2 eigenvalue block
-                auto foo = tlapack::abs(TW(ns - 1, ns - 1)) + sqrt(tlapack::abs(TW(ns - 1, ns - 2))) * sqrt(tlapack::abs(TW(ns - 2, ns - 1)));
+                real_t foo = tlapack::abs(TW(ns - 1, ns - 1)) + sqrt(tlapack::abs(TW(ns - 1, ns - 2))) * sqrt(tlapack::abs(TW(ns - 2, ns - 1)));
                 if (foo == zero)
                     foo = tlapack::abs(s_spike);
                 if (max(tlapack::abs(s_spike * V(0, ns - 1)), tlapack::abs(s_spike * V(0, ns - 2))) <= max<real_t>(small_num, eps * foo))
@@ -466,7 +466,7 @@ namespace tlapack
                 larfg(v, tau);
                 
                 auto Wv_aux = slice(WV, pair{0, jw}, 1);
-                auto work2 = workspace_opts_t<>(Wv_aux);
+                workspace_opts_t<> work2(Wv_aux);
                 
                 auto TW_slice = slice(TW, pair{0, ns}, pair{0, jw});
                 larf(Side::Left, forward, v, conj(tau), TW_slice, work2);
@@ -483,7 +483,7 @@ namespace tlapack
                 auto tau = slice(WV, pair{0, jw}, 0);
                 gehrd(0, ns, TW, tau, gehrdOpts);
 
-                auto work2 = workspace_opts_t<>(slice(WV, pair{0, jw}, 1));
+                workspace_opts_t<> work2(slice(WV, pair{0, jw}, 1));
                 unmhr(Side::Right, Op::NoTrans, 0, ns, TW, tau, V, work2);
             }
         }

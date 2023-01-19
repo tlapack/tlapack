@@ -99,11 +99,12 @@ namespace tlapack
     template <class matrix_t>
     real_type<type_t<matrix_t>> check_orthogonality(matrix_t &Q, matrix_t &res)
     {
+        using idx_t = size_type<matrix_t>;
         using T = type_t<matrix_t>;
         using real_t = real_type<T>;
 
-        auto m = nrows(Q);
-        auto n = ncols(Q);
+        const idx_t m = nrows(Q);
+        const idx_t n = ncols(Q);
 
         tlapack_check(nrows(res) == ncols(res));
         tlapack_check(nrows(res) == min(m, n));
@@ -137,11 +138,12 @@ namespace tlapack
     real_type<type_t<matrix_t>> check_orthogonality(matrix_t &Q)
     {
         using T = type_t<matrix_t>;
+        using idx_t = size_type<matrix_t>;
 
         // Functor
         Create<matrix_t> new_matrix;
 
-        auto m = min(nrows(Q), ncols(Q));
+        const idx_t m = min(nrows(Q), ncols(Q));
 
         std::vector<T> res_;
         auto res = new_matrix(res_, m, m);
@@ -199,11 +201,12 @@ namespace tlapack
     real_type<type_t<matrix_t>> check_similarity_transform(matrix_t &A, matrix_t &Q, matrix_t &B)
     {
         using T = type_t<matrix_t>;
+        using idx_t = size_type<matrix_t>;
 
         // Functor
         Create<matrix_t> new_matrix;
 
-        auto n = ncols(A);
+        const idx_t n = ncols(A);
 
         std::vector<T> res_;
         auto res = new_matrix(res_, n, n);

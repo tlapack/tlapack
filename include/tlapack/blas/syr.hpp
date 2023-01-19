@@ -51,6 +51,7 @@ void syr(
 {
     // data traits
     using idx_t = size_type< matrixA_t >;
+    using scalar_t = scalar_type< alpha_t, type_t<vectorX_t> >;
 
     // constants
     const idx_t n = nrows(A);
@@ -65,14 +66,14 @@ void syr(
 
     if (uplo == Uplo::Upper) {
         for (idx_t j = 0; j < n; ++j) {
-            auto tmp = alpha * x[j];
+            const scalar_t tmp = alpha * x[j];
             for (idx_t i = 0; i <= j; ++i)
                 A(i,j) += x[i] * tmp;
         }
     }
     else {
         for (idx_t j = 0; j < n; ++j) {
-            auto tmp = alpha * x[j];
+            const scalar_t tmp = alpha * x[j];
             for (idx_t i = j; i < n; ++i)
                 A(i,j) += x[i] * tmp;
         }

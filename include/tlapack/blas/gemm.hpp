@@ -76,9 +76,6 @@ void gemm(
     using TB    = type_t< matrixB_t >;
     using idx_t = size_type< matrixA_t >;
 
-    // using
-    using scalar_t = scalar_type<TA,TB>;
-
     // constants
     const idx_t m = (transA == Op::NoTrans) ? nrows(A) : ncols(A);
     const idx_t n = (transB == Op::NoTrans) ? ncols(B) : nrows(B);
@@ -100,12 +97,15 @@ void gemm(
     tlapack_check_false( access_denied( dense, write_policy(C) ) );
 
     if (transA == Op::NoTrans) {
+
+        using scalar_t = scalar_type<alpha_t,TB>;
+
         if (transB == Op::NoTrans) {
             for(idx_t j = 0; j < n; ++j) {
                 for(idx_t i = 0; i < m; ++i)
                     C(i,j) *= beta;
                 for(idx_t l = 0; l < k; ++l) {
-                    const auto alphaTimesblj = alpha*B(l,j);
+                    const scalar_t alphaTimesblj = alpha*B(l,j);
                     for(idx_t i = 0; i < m; ++i)
                         C(i,j) += A(i,l)*alphaTimesblj;
                 }
@@ -116,7 +116,7 @@ void gemm(
                 for(idx_t i = 0; i < m; ++i)
                     C(i,j) *= beta;
                 for(idx_t l = 0; l < k; ++l) {
-                    const auto alphaTimesbjl = alpha*B(j,l);
+                    const scalar_t alphaTimesbjl = alpha*B(j,l);
                     for(idx_t i = 0; i < m; ++i)
                         C(i,j) += A(i,l)*alphaTimesbjl;
                 }
@@ -127,7 +127,7 @@ void gemm(
                 for(idx_t i = 0; i < m; ++i)
                     C(i,j) *= beta;
                 for(idx_t l = 0; l < k; ++l) {
-                    const auto alphaTimesbjl = alpha*conj(B(j,l));
+                    const scalar_t alphaTimesbjl = alpha*conj(B(j,l));
                     for(idx_t i = 0; i < m; ++i)
                         C(i,j) += A(i,l)*alphaTimesbjl;
                 }
@@ -135,6 +135,9 @@ void gemm(
         }
     }
     else if (transA == Op::Trans) {
+
+        using scalar_t = scalar_type<TA,TB>;
+
         if (transB == Op::NoTrans) {
             for(idx_t j = 0; j < n; ++j) {
                 for(idx_t i = 0; i < m; ++i) {
@@ -167,6 +170,9 @@ void gemm(
         }
     }
     else { // transA == Op::ConjTrans
+
+        using scalar_t = scalar_type<TA,TB>;
+        
         if (transB == Op::NoTrans) {
             for(idx_t j = 0; j < n; ++j) {
                 for(idx_t i = 0; i < m; ++i) {

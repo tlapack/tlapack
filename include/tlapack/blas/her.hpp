@@ -59,6 +59,7 @@ void her(
 {
     // data traits
     using idx_t = size_type< matrixA_t >;
+    using scalar_t = scalar_type< alpha_t, type_t<vectorX_t> >;
 
     // constants
     const idx_t n = nrows(A);
@@ -73,7 +74,7 @@ void her(
 
     if (uplo == Uplo::Upper) {
         for (idx_t j = 0; j < n; ++j) {
-            auto tmp = alpha * conj( x[j] );
+            const scalar_t tmp = alpha * conj( x[j] );
             for (idx_t i = 0; i < j; ++i)
                 A(i,j) += x[i] * tmp;
             A(j,j) = real( A(j,j) ) + real(x[j])*real(tmp)
@@ -82,7 +83,7 @@ void her(
     }
     else {
         for (idx_t j = 0; j < n; ++j) {
-            auto tmp = alpha * conj( x[j] );
+            const scalar_t tmp = alpha * conj( x[j] );
             A(j,j) = real( A(j,j) ) + real(x[j])*real(tmp)
                                     - imag(x[j])*imag(tmp);
             for (idx_t i = j+1; i < n; ++i)

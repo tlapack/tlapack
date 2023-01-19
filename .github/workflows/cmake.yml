@@ -212,6 +212,9 @@ jobs:
     # Use GNU compilers
 
     runs-on: ubuntu-latest
+    env:
+      CXXFLAGS: "-Wall -pedantic -Wno-unused-variable -Wno-unused-function -D TLAPACK_TYPES_TO_TEST=\"(legacyMatrix<mpfr::mpreal>), (legacyMatrix<mpfr::mpreal,std::size_t,Layout::RowMajor>)\""
+      
     steps:     
     
     - name: Checkout <T>LAPACK
@@ -235,8 +238,9 @@ jobs:
         -D CMAKE_INSTALL_PREFIX=${{github.workspace}}/tlapack_install
         -D BUILD_SHARED_LIBS=ON
         -D BUILD_EXAMPLES=ON
-        -D BUILD_TESTING=OFF
-        -D TEST_MPFR=ON
+        -D BUILD_TESTING=ON
+        -D BUILD_testBLAS_TESTS=OFF
+        -D TLAPACK_TEST_MPFR=ON
 
     - name: Build <T>LAPACK
       run: cmake --build build --config ${{env.BUILD_TYPE}}
@@ -245,6 +249,12 @@ jobs:
       # Mind that the job won't fail with only this step fails
       continue-on-error: true
       run: cmake --build build --target run-all-examples
+
+    - name: Run tests
+      working-directory: ${{github.workspace}}/build
+      # Execute tests defined by the CMake configuration.  
+      # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
+      run: ctest -C ${{env.BUILD_TYPE}} --output-on-failure
 
     - name: Install
       run: cmake --build build --target install

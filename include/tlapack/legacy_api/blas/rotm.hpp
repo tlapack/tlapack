@@ -60,7 +60,7 @@ void rotm(
 {
     // constants
     const int flag = (int) param[0];
-    auto h = &param[1];
+    const scalar_type<TX, TY>* h = &param[1];
 
     // check arguments
     tlapack_check_false( incx == 0 );

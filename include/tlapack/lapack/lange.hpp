@@ -95,8 +95,7 @@ void lange_worksize(
  * @ingroup auxiliary
  */
 template< typename norm_t, typename matrix_t >
-auto
-lange( norm_t normType, const matrix_t& A )
+auto lange( norm_t normType, const matrix_t& A )
 {
     using T      = type_t< matrix_t >;
     using real_t = real_type< T >;
@@ -201,8 +200,7 @@ lange( norm_t normType, const matrix_t& A )
  * @ingroup auxiliary
  */
 template< typename norm_t, typename matrix_t >
-auto
-lange( norm_t normType, const matrix_t& A, const workspace_opts_t<>& opts )
+auto lange( norm_t normType, const matrix_t& A, const workspace_opts_t<>& opts )
 {
     using T      = type_t< matrix_t >;
     using real_t = real_type< T >;
@@ -241,7 +239,7 @@ lange( norm_t normType, const matrix_t& A, const workspace_opts_t<>& opts )
             lange_worksize( normType, A, workinfo, opts );
             return alloc_workspace( localworkdata, workinfo, opts.work );
         }();
-        auto w = legacyVector<T,idx_t>( m, work );
+        legacyVector<T,idx_t> w( m, work );
 
         // Norm value
         real_t norm( 0 );
