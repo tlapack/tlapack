@@ -89,21 +89,20 @@ namespace tlapack {
  *
  * @ingroup blas1
  */
-template< typename T,
-    enable_if_t< is_same_v< T, real_type<T> >, int > = 0,
-    disable_if_allow_optblas_t< T > = 0
->
-int rotmg( T& d1, T& d2, T& a, const T& b, T h[4] )
+template <typename T,
+          enable_if_t<is_same_v<T, real_type<T> >, int> = 0,
+          disable_if_allow_optblas_t<T> = 0>
+int rotmg(T& d1, T& d2, T& a, const T& b, T h[4])
 {
     // check arguments
-    tlapack_check_false( d1 <= 0 );
+    tlapack_check_false(d1 <= 0);
 
     // Constants
-    const T zero( 0 );
-    const T one( 1 );
-    const T gam( 4096 );
-    const T gamsq = gam*gam;
-    const T rgamsq = one/gamsq;
+    const T zero(0);
+    const T one(1);
+    const T gam(4096);
+    const T gamsq = gam * gam;
+    const T rgamsq = one / gamsq;
 
     int flag;
     h[0] = zero;
@@ -111,34 +110,34 @@ int rotmg( T& d1, T& d2, T& a, const T& b, T h[4] )
     h[2] = zero;
     h[3] = zero;
 
-    if(d1 < zero) {
+    if (d1 < zero) {
         flag = -1;
         d1 = zero;
         d2 = zero;
         a = zero;
     }
     else {
-        const T p2 = d2*b;
-        if(p2 == zero) {
+        const T p2 = d2 * b;
+        if (p2 == zero) {
             flag = -2;
         }
         else {
-            const T p1 = d1*a;
-            const T q2 = p2*b;
-            const T q1 = p1*a;
+            const T p1 = d1 * a;
+            const T q2 = p2 * b;
+            const T q1 = p1 * a;
 
-            if( tlapack::abs(q1) > tlapack::abs(q2) ) {
+            if (tlapack::abs(q1) > tlapack::abs(q2)) {
                 flag = zero;
-                h[1] = -b/a;
-                h[2] = p2/p1;
-                const T u = one - h[2]*h[1];
-                if( u > zero ) {
+                h[1] = -b / a;
+                h[2] = p2 / p1;
+                const T u = one - h[2] * h[1];
+                if (u > zero) {
                     d1 /= u;
                     d2 /= u;
                     a *= u;
                 }
             }
-            else if(q2 < zero) {
+            else if (q2 < zero) {
                 flag = -1;
                 d1 = zero;
                 d2 = zero;
@@ -146,18 +145,18 @@ int rotmg( T& d1, T& d2, T& a, const T& b, T h[4] )
             }
             else {
                 flag = 1;
-                h[0] = p1/p2;
-                h[3] = a/b;
-                const T u = one + h[0]*h[3];
-                const T stemp = d2/u;
-                d2 = d1/u;
+                h[0] = p1 / p2;
+                h[3] = a / b;
+                const T u = one + h[0] * h[3];
+                const T stemp = d2 / u;
+                d2 = d1 / u;
                 d1 = stemp;
-                a = b*u;
+                a = b * u;
             }
 
-            if(d1 != zero) {
-                while( (d1 <= rgamsq) || (d1 >= gamsq) ) {
-                    if(flag == 0) {
+            if (d1 != zero) {
+                while ((d1 <= rgamsq) || (d1 >= gamsq)) {
+                    if (flag == 0) {
                         h[0] = one;
                         h[3] = one;
                         flag = -1;
@@ -167,40 +166,41 @@ int rotmg( T& d1, T& d2, T& a, const T& b, T h[4] )
                         h[2] = one;
                         flag = -1;
                     }
-                    if(d1 <= rgamsq) {
-                        d1  *= gam*gam;
-                        a  /= gam;
+                    if (d1 <= rgamsq) {
+                        d1 *= gam * gam;
+                        a /= gam;
                         h[0] /= gam;
                         h[2] /= gam;
                     }
                     else {
-                        d1 /= gam*gam;
-                        a  *= gam;
+                        d1 /= gam * gam;
+                        a *= gam;
                         h[0] *= gam;
                         h[2] *= gam;
                     }
                 }
             }
 
-            if(d2 != zero) {
-                while( (tlapack::abs(d2) <= rgamsq) || (tlapack::abs(d2) >= gamsq) ) {
-                    if(flag == 0) {
-                        h[0]=one;
-                        h[3]=one;
-                        flag=-1;
+            if (d2 != zero) {
+                while ((tlapack::abs(d2) <= rgamsq) ||
+                       (tlapack::abs(d2) >= gamsq)) {
+                    if (flag == 0) {
+                        h[0] = one;
+                        h[3] = one;
+                        flag = -1;
                     }
                     else {
-                        h[1]=-one;
-                        h[2]=one;
-                        flag=-1;
+                        h[1] = -one;
+                        h[2] = one;
+                        flag = -1;
                     }
-                    if(tlapack::abs(d2) <= rgamsq) {
-                        d2  *= gam*gam;
+                    if (tlapack::abs(d2) <= rgamsq) {
+                        d2 *= gam * gam;
                         h[1] /= gam;
                         h[3] /= gam;
                     }
                     else {
-                        d2 /= gam*gam;
+                        d2 /= gam * gam;
                         h[1] *= gam;
                         h[3] *= gam;
                     }
@@ -214,26 +214,24 @@ int rotmg( T& d1, T& d2, T& a, const T& b, T h[4] )
 
 #ifdef USE_LAPACKPP_WRAPPERS
 
-    template< typename T,
-        enable_if_t< is_same_v< T, real_type<T> >, int > = 0,
-        enable_if_allow_optblas_t< T > = 0
-    >
-    inline
-    int rotmg( T& d1, T& d2, T& a, const T b, T h[4] )
-    {
-        T param[5];
-        ::blas::rotmg( &d1, &d2, &a, b, param );
-        
-        h[0] = param[1];
-        h[1] = param[2];
-        h[2] = param[3];
-        h[3] = param[4];
-        
-        return param[0];
-    }
+template <typename T,
+          enable_if_t<is_same_v<T, real_type<T> >, int> = 0,
+          enable_if_allow_optblas_t<T> = 0>
+inline int rotmg(T& d1, T& d2, T& a, const T b, T h[4])
+{
+    T param[5];
+    ::blas::rotmg(&d1, &d2, &a, b, param);
+
+    h[0] = param[1];
+    h[1] = param[2];
+    h[2] = param[3];
+    h[3] = param[4];
+
+    return param[0];
+}
 
 #endif
 
 }  // namespace tlapack
 
-#endif        //  #ifndef TLAPACK_BLAS_ROTMG_HH
+#endif  //  #ifndef TLAPACK_BLAS_ROTMG_HH

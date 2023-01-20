@@ -11,9 +11,9 @@
 #ifndef TLAPACK_LEGACY_GEMV_HH
 #define TLAPACK_LEGACY_GEMV_HH
 
-#include "tlapack/legacy_api/base/utils.hpp"
-#include "tlapack/legacy_api/base/types.hpp"
 #include "tlapack/blas/gemv.hpp"
+#include "tlapack/legacy_api/base/types.hpp"
+#include "tlapack/legacy_api/base/utils.hpp"
 
 namespace tlapack {
 
@@ -80,74 +80,69 @@ namespace tlapack {
  *
  * @ingroup legacy_blas
  */
-template< typename TA, typename TX, typename TY >
-void gemv(
-    Layout layout,
-    Op trans,
-    idx_t m, idx_t n,
-    scalar_type<TA, TX, TY> alpha,
-    TA const *A, idx_t lda,
-    TX const *x, int_t incx,
-    scalar_type<TA, TX, TY> beta,
-    TY *y, int_t incy )
+template <typename TA, typename TX, typename TY>
+void gemv(Layout layout,
+          Op trans,
+          idx_t m,
+          idx_t n,
+          scalar_type<TA, TX, TY> alpha,
+          TA const* A,
+          idx_t lda,
+          TX const* x,
+          int_t incx,
+          scalar_type<TA, TX, TY> beta,
+          TY* y,
+          int_t incy)
 {
     using internal::colmajor_matrix;
     using scalar_t = scalar_type<TA, TX, TY>;
 
     // check arguments
-    tlapack_check_false( layout != Layout::ColMajor &&
-                   layout != Layout::RowMajor );
-    tlapack_check_false( trans != Op::NoTrans &&
-                   trans != Op::Trans &&
-                   trans != Op::ConjTrans );
-    tlapack_check_false( m < 0 );
-    tlapack_check_false( n < 0 );
-    tlapack_check_false( lda < ((layout == Layout::ColMajor) ? m : n) );
-    tlapack_check_false( incx == 0 );
-    tlapack_check_false( incy == 0 );
+    tlapack_check_false(layout != Layout::ColMajor &&
+                        layout != Layout::RowMajor);
+    tlapack_check_false(trans != Op::NoTrans && trans != Op::Trans &&
+                        trans != Op::ConjTrans);
+    tlapack_check_false(m < 0);
+    tlapack_check_false(n < 0);
+    tlapack_check_false(lda < ((layout == Layout::ColMajor) ? m : n));
+    tlapack_check_false(incx == 0);
+    tlapack_check_false(incy == 0);
 
     // quick return
-    if ( m == 0 || n == 0 ||
-        ((alpha == scalar_t(0)) && (beta == scalar_t(1))) ) return;
+    if (m == 0 || n == 0 || ((alpha == scalar_t(0)) && (beta == scalar_t(1))))
+        return;
 
     // Transpose if Row Major
     if (layout == Layout::RowMajor) {
         // A => A^T; A^T => A; A^H => conj(A)
-        std::swap( m, n );
+        std::swap(m, n);
         trans = (trans == Op::NoTrans)
-              ? Op::Trans
-              : ((trans == Op::Trans) ? Op::NoTrans : Op::Conj);
+                    ? Op::Trans
+                    : ((trans == Op::Trans) ? Op::NoTrans : Op::Conj);
     }
 
     // Initialize indexes
     idx_t lenx = ((trans == Op::NoTrans || trans == Op::Conj) ? n : m);
     idx_t leny = ((trans == Op::NoTrans || trans == Op::Conj) ? m : n);
-    
-    // Matrix views
-    const auto A_ = colmajor_matrix<TA>( (TA*)A, m, n, lda );
 
-    if( alpha == scalar_t(0) ) {
-        tlapack_expr_with_vector( y_, TY, leny, y, incy,
-            if( beta == scalar_t(0) )
-                for(idx_t i = 0; i < leny; ++i)
-                    y_[i] = TY(0);
-            else
-                for(idx_t i = 0; i < leny; ++i)
-                    y_[i] *= beta
-        );
+    // Matrix views
+    const auto A_ = colmajor_matrix<TA>((TA*)A, m, n, lda);
+
+    if (alpha == scalar_t(0)) {
+        tlapack_expr_with_vector(
+            y_, TY, leny, y, incy,
+            if (beta == scalar_t(0)) for (idx_t i = 0; i < leny; ++i) y_[i] =
+                TY(0);
+            else for (idx_t i = 0; i < leny; ++i) y_[i] *= beta);
     }
     else {
         tlapack_expr_with_2vectors(
-            x_, TX, lenx, x, incx,
-            y_, TY, leny, y, incy,
-            if( beta == scalar_t(0) )
-                return gemv( trans, alpha, A_, x_, y_ );
-            else
-                return gemv( trans, alpha, A_, x_, beta, y_ )
-        );
+            x_, TX, lenx, x, incx, y_, TY, leny, y, incy,
+            if (beta == scalar_t(0)) return gemv(trans, alpha, A_, x_, y_);
+            else return gemv(trans, alpha, A_, x_, beta, y_));
     }
 }
 
 }  // namespace tlapack
 
-#endif        //  #ifndef TLAPACK_LEGACY_GEMV_HH
+#endif  //  #ifndef TLAPACK_LEGACY_GEMV_HH

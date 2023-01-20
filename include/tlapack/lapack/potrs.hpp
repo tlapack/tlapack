@@ -23,7 +23,7 @@ namespace tlapack {
  *      $A = U^H U,$ if uplo = Upper, or
  *      $A = L L^H,$ if uplo = Lower,
  * where U is an upper triangular matrix and L is lower triangular.
- * 
+ *
  * @tparam uplo_t
  *      Access type: Upper or Lower.
  *      Either Uplo or any class that implements `operator Uplo()`.
@@ -35,7 +35,7 @@ namespace tlapack {
  *
  * @param[in] A
  *      The factor U or L from the Cholesky factorization of A.
- *      
+ *
  *      - If uplo = Uplo::Upper, the strictly lower
  *      triangular part of A is not referenced.
  *
@@ -45,39 +45,38 @@ namespace tlapack {
  * @param[in,out] B
  *      On entry, the matrix B.
  *      On exit,  the matrix X.
- * 
+ *
  * @return = 0: successful exit.
  *
  * @ingroup computational
  */
-template< class uplo_t, class matrixA_t, class matrixB_t >
-int potrs( uplo_t uplo, const matrixA_t& A, matrixB_t& B )
+template <class uplo_t, class matrixA_t, class matrixB_t>
+int potrs(uplo_t uplo, const matrixA_t& A, matrixB_t& B)
 {
-    using T = type_t< matrixB_t >;
-    using real_t = real_type< T >;
+    using T = type_t<matrixB_t>;
+    using real_t = real_type<T>;
 
     // Constants
-    const real_t one( 1 );
+    const real_t one(1);
 
     // Check arguments
-    tlapack_check_false(    uplo != Uplo::Lower &&
-                        uplo != Uplo::Upper );
-    tlapack_check_false(    nrows(A) != ncols(A) );
-    tlapack_check_false(    nrows(B) != ncols(A) );
+    tlapack_check_false(uplo != Uplo::Lower && uplo != Uplo::Upper);
+    tlapack_check_false(nrows(A) != ncols(A));
+    tlapack_check_false(nrows(B) != ncols(A));
 
-    if( uplo == Uplo::Upper ) {
+    if (uplo == Uplo::Upper) {
         // Solve A*X = B where A = U**H *U.
-        trsm( left_side, uplo, conjTranspose, nonUnit_diagonal, one, A, B );
-        trsm( left_side, uplo, noTranspose,   nonUnit_diagonal, one, A, B );
+        trsm(left_side, uplo, conjTranspose, nonUnit_diagonal, one, A, B);
+        trsm(left_side, uplo, noTranspose, nonUnit_diagonal, one, A, B);
     }
     else {
         // Solve A*X = B where A = L*L**H.
-        trsm( left_side, uplo, noTranspose,   nonUnit_diagonal, one, A, B );
-        trsm( left_side, uplo, conjTranspose, nonUnit_diagonal, one, A, B );
+        trsm(left_side, uplo, noTranspose, nonUnit_diagonal, one, A, B);
+        trsm(left_side, uplo, conjTranspose, nonUnit_diagonal, one, A, B);
     }
     return 0;
 }
 
-} // lapack
+}  // namespace tlapack
 
-#endif // TLAPACK_POTRS_HH
+#endif  // TLAPACK_POTRS_HH

@@ -15,26 +15,25 @@
 
 namespace tlapack {
 
-template< typename T >
-void larfg(
-    idx_t n, T &alpha, T *x, int_t incx, T &tau )
-{    
-    tlapack_expr_with_vector( x_, T, n-1, x, incx, return larfg( alpha, x_, tau ) );
+template <typename T>
+void larfg(idx_t n, T& alpha, T* x, int_t incx, T& tau)
+{
+    tlapack_expr_with_vector(x_, T, n - 1, x, incx,
+                             return larfg(alpha, x_, tau));
 }
 
 /** Generates a elementary Householder reflection.
- * 
+ *
  * @see larfg( idx_t, T &, T *, int_t, T & )
- * 
+ *
  * @ingroup legacy_lapack
  */
-template< typename T >
-void inline larfg(
-    idx_t n, T *alpha, T *x, int_t incx, T *tau )
+template <typename T>
+void inline larfg(idx_t n, T* alpha, T* x, int_t incx, T* tau)
 {
     larfg(n, *alpha, x, incx, *tau);
 }
 
-}
+}  // namespace tlapack
 
-#endif // TLAPACK_LEGACY_LARFG_HH
+#endif  // TLAPACK_LEGACY_LARFG_HH

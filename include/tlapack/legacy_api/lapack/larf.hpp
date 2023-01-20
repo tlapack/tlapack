@@ -16,41 +16,41 @@
 namespace tlapack {
 
 /** Applies an elementary reflector H to a m-by-n matrix C.
- * 
- * @see larf( Side side, idx_t m, idx_t n, TV const *v, int_t incv, scalar_type< TV, TC , TW > tau, TC *C, idx_t ldC, TW *work )
- * 
+ *
+ * @see larf( Side side, idx_t m, idx_t n, TV const *v, int_t incv, scalar_type<
+ * TV, TC , TW > tau, TC *C, idx_t ldC, TW *work )
+ *
  * @ingroup legacy_lapack
  */
-template< class side_t, typename TV, typename TC >
-inline void larf(
-    side_t side,
-    idx_t m, idx_t n,
-    TV const *v, int_t incv,
-    scalar_type< TV, TC > tau,
-    TC *C, idx_t ldC )
+template <class side_t, typename TV, typename TC>
+inline void larf(side_t side,
+                 idx_t m,
+                 idx_t n,
+                 TV const* v,
+                 int_t incv,
+                 scalar_type<TV, TC> tau,
+                 TC* C,
+                 idx_t ldC)
 {
     using internal::colmajor_matrix;
 
     // check arguments
-    tlapack_check_false( side != Side::Left &&
-                   side != Side::Right );
-    tlapack_check_false( m < 0 );
-    tlapack_check_false( n < 0 );
-    tlapack_check_false( incv == 0 );
-    tlapack_check_false( ldC < m );
+    tlapack_check_false(side != Side::Left && side != Side::Right);
+    tlapack_check_false(m < 0);
+    tlapack_check_false(n < 0);
+    tlapack_check_false(incv == 0);
+    tlapack_check_false(ldC < m);
 
     // Initialize indexes
-    idx_t lenv  = (( side == Side::Left ) ? m : n);
-    
-    // Matrix views
-    auto C_ = colmajor_matrix<TC>( C, m, n, ldC );
+    idx_t lenv = ((side == Side::Left) ? m : n);
 
-    tlapack_expr_with_vector(
-        v_, TV, lenv, v, incv,
-        return larf( side, v_, tau, C_)
-    );
+    // Matrix views
+    auto C_ = colmajor_matrix<TC>(C, m, n, ldC);
+
+    tlapack_expr_with_vector(v_, TV, lenv, v, incv,
+                             return larf(side, v_, tau, C_));
 }
 
-} // lapack
+}  // namespace tlapack
 
-#endif // TLAPACK_LEGACY_LARF_HH
+#endif  // TLAPACK_LEGACY_LARF_HH

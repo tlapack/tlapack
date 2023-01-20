@@ -11,8 +11,8 @@
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 
-#include "testutils.hpp"
 #include "TestUploMatrix.hpp"
+#include "testutils.hpp"
 
 // Auxiliary routines
 #include <tlapack/lapack/lacpy.hpp>
@@ -24,7 +24,10 @@
 
 using namespace tlapack;
 
-TEMPLATE_TEST_CASE("Cholesky factorization of a Hermitian positive-definite matrix", "[potrf]", TLAPACK_TYPES_TO_TEST)
+TEMPLATE_TEST_CASE(
+    "Cholesky factorization of a Hermitian positive-definite matrix",
+    "[potrf]",
+    TLAPACK_TYPES_TO_TEST)
 {
     srand(1);
     using matrix_t = TestType;
@@ -35,14 +38,12 @@ TEMPLATE_TEST_CASE("Cholesky factorization of a Hermitian positive-definite matr
     // Functor
     Create<matrix_t> new_matrix;
 
-    using variant_t = std::pair<PotrfVariant,idx_t>;
-    const variant_t variant = GENERATE(
-        (variant_t(PotrfVariant::Blocked,1)),
-        (variant_t(PotrfVariant::Blocked,2)),
-        (variant_t(PotrfVariant::Blocked,7)),
-        (variant_t(PotrfVariant::Blocked,10)),
-        (variant_t(PotrfVariant::Recursive,0))
-    );
+    using variant_t = std::pair<PotrfVariant, idx_t>;
+    const variant_t variant = GENERATE((variant_t(PotrfVariant::Blocked, 1)),
+                                       (variant_t(PotrfVariant::Blocked, 2)),
+                                       (variant_t(PotrfVariant::Blocked, 7)),
+                                       (variant_t(PotrfVariant::Blocked, 10)),
+                                       (variant_t(PotrfVariant::Recursive, 0)));
     const idx_t n = GENERATE(10, 19, 30);
     const Uplo uplo = GENERATE(Uplo::Lower, Uplo::Upper);
 
@@ -50,21 +51,25 @@ TEMPLATE_TEST_CASE("Cholesky factorization of a Hermitian positive-definite matr
     INFO("Matrix size: " << n << "x" << n);
     INFO("Uplo: " << uplo);
 
-    // eps is the machine precision, and tol is the tolerance we accept for tests to pass
+    // eps is the machine precision, and tol is the tolerance we accept for
+    // tests to pass
     const real_t eps = ulp<real_t>();
     const real_t tol = real_t(n) * eps;
 
     // Create matrices
-    std::vector<T> A_; auto A = new_matrix( A_, n, n );
-    std::vector<T> L_; auto L = new_matrix( L_, n, n );
-    std::vector<T> E_; auto E = new_matrix( E_, n, n );
+    std::vector<T> A_;
+    auto A = new_matrix(A_, n, n);
+    std::vector<T> L_;
+    auto L = new_matrix(L_, n, n);
+    std::vector<T> E_;
+    auto E = new_matrix(E_, n, n);
 
     // Update A with random numbers
     for (idx_t j = 0; j < n; ++j) {
         for (idx_t i = 0; i < n; ++i) {
-            if( uplo == Uplo::Lower && i >= j )
+            if (uplo == Uplo::Lower && i >= j)
                 A(i, j) = rand_helper<T>();
-            else if( uplo == Uplo::Upper && i <= j )
+            else if (uplo == Uplo::Upper && i <= j)
                 A(i, j) = rand_helper<T>();
             else
                 A(i, j) = real_t(0xCAFEBABE);
@@ -73,8 +78,8 @@ TEMPLATE_TEST_CASE("Cholesky factorization of a Hermitian positive-definite matr
     }
 
     lacpy(dense, A, L);
-    real_t normA = tlapack::lanhe( tlapack::Norm::Max, uplo, A);
-    
+    real_t normA = tlapack::lanhe(tlapack::Norm::Max, uplo, A);
+
     // Run the Cholesky factorization
     potrf_opts_t<idx_t> opts;
     opts.variant = variant.first;
@@ -82,40 +87,44 @@ TEMPLATE_TEST_CASE("Cholesky factorization of a Hermitian positive-definite matr
     int info = potrf(uplo, L, opts);
 
     // Check that the factorization was successful
-    REQUIRE( info == 0 );
+    REQUIRE(info == 0);
 
     // Initialize E with the hermitian part of L
     for (idx_t j = 0; j < n; ++j)
         for (idx_t i = 0; i < n; ++i) {
-            if( uplo == Uplo::Lower && i <= j )
+            if (uplo == Uplo::Lower && i <= j)
                 E(i, j) = conj(L(j, i));
-            else if( uplo == Uplo::Upper && i >= j )
+            else if (uplo == Uplo::Upper && i >= j)
                 E(i, j) = conj(L(j, i));
             else
                 E(i, j) = real_t(0);
         }
 
     // Compute E = L*L^H or E = L^H*L
-    if( uplo == Uplo::Lower )
-        trmm( Side::Left, Uplo::Lower, Op::NoTrans, Diag::NonUnit, real_t(1), L, E );
+    if (uplo == Uplo::Lower)
+        trmm(Side::Left, Uplo::Lower, Op::NoTrans, Diag::NonUnit, real_t(1), L,
+             E);
     else
-        trmm( Side::Right, Uplo::Upper, Op::NoTrans, Diag::NonUnit, real_t(1), L, E );
+        trmm(Side::Right, Uplo::Upper, Op::NoTrans, Diag::NonUnit, real_t(1), L,
+             E);
 
-    // Check that the factorization is correct    
+    // Check that the factorization is correct
     for (idx_t i = 0; i < n; i++)
         for (idx_t j = 0; j < n; j++) {
-            if( uplo == Uplo::Lower && i >= j )
+            if (uplo == Uplo::Lower && i >= j)
                 E(i, j) -= A(i, j);
-            else if( uplo == Uplo::Upper && i <= j )
+            else if (uplo == Uplo::Upper && i <= j)
                 E(i, j) -= A(i, j);
         }
 
     // Check for relative error: norm(A-cholesky(A))/norm(A)
-    real_t error = tlapack::lanhe( tlapack::Norm::Max, uplo, E)/normA;
+    real_t error = tlapack::lanhe(tlapack::Norm::Max, uplo, E) / normA;
     CHECK(error <= tol);
 }
 
-TEMPLATE_TEST_CASE("Cholesky factorization access valid positions only", "[potrf]", TLAPACK_LEGACY_REAL_TYPES_TO_TEST)
+TEMPLATE_TEST_CASE("Cholesky factorization access valid positions only",
+                   "[potrf]",
+                   TLAPACK_LEGACY_REAL_TYPES_TO_TEST)
 {
     srand(1);
     using matrix_t = TestType;
@@ -127,11 +136,9 @@ TEMPLATE_TEST_CASE("Cholesky factorization access valid positions only", "[potrf
     // Functor
     Create<matrix_t> new_matrix;
 
-    using variant_t = std::pair<PotrfVariant,idx_t>;
-    const variant_t variant = GENERATE(
-        (variant_t(PotrfVariant::Blocked,2)),
-        (variant_t(PotrfVariant::Recursive,0))
-    );
+    using variant_t = std::pair<PotrfVariant, idx_t>;
+    const variant_t variant = GENERATE((variant_t(PotrfVariant::Blocked, 2)),
+                                       (variant_t(PotrfVariant::Recursive, 0)));
     const idx_t n = GENERATE(10);
     const Uplo uplo = GENERATE(Uplo::Lower, Uplo::Upper);
 
@@ -140,37 +147,36 @@ TEMPLATE_TEST_CASE("Cholesky factorization access valid positions only", "[potrf
     INFO("Uplo: " << uplo);
 
     // Create matrices
-    std::vector<T> A_; auto A = new_matrix( A_, n, n );
+    std::vector<T> A_;
+    auto A = new_matrix(A_, n, n);
 
     // Update A with random numbers
     for (idx_t j = 0; j < n; ++j) {
         for (idx_t i = 0; i < n; ++i) {
-            if( uplo == Uplo::Lower && i >= j )
+            if (uplo == Uplo::Lower && i >= j)
                 A(i, j) = rand_helper<T>();
-            else if( uplo == Uplo::Upper && i <= j )
+            else if (uplo == Uplo::Upper && i <= j)
                 A(i, j) = rand_helper<T>();
             else
                 A(i, j) = real_t(0xCAFEBABE);
         }
         A(j, j) += real_t(n);
     }
-    
+
     // Run the Cholesky factorization
     potrf_opts_t<idx_t> opts;
     opts.variant = variant.first;
     opts.nb = variant.second;
-    if( uplo == Uplo::Lower )
-    {
-        TestUploMatrix<T,idx_t,Uplo::Lower,L> testA(A);
-        
-        int info = potrf(uplo, testA, opts);
-        REQUIRE( info == 0 );
-    }
-    else
-    {
-        TestUploMatrix<T,idx_t,Uplo::Upper,L> testA(A);
+    if (uplo == Uplo::Lower) {
+        TestUploMatrix<T, idx_t, Uplo::Lower, L> testA(A);
 
         int info = potrf(uplo, testA, opts);
-        REQUIRE( info == 0 );
+        REQUIRE(info == 0);
+    }
+    else {
+        TestUploMatrix<T, idx_t, Uplo::Upper, L> testA(A);
+
+        int info = potrf(uplo, testA, opts);
+        REQUIRE(info == 0);
     }
 }

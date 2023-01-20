@@ -11,9 +11,9 @@
 #ifndef TLAPACK_LEGACY_DOTU_HH
 #define TLAPACK_LEGACY_DOTU_HH
 
-#include "tlapack/legacy_api/base/utils.hpp"
-#include "tlapack/legacy_api/base/types.hpp"
 #include "tlapack/blas/dotu.hpp"
+#include "tlapack/legacy_api/base/types.hpp"
+#include "tlapack/legacy_api/base/utils.hpp"
 
 namespace tlapack {
 
@@ -42,25 +42,20 @@ namespace tlapack {
  *
  * @ingroup legacy_blas
  */
-template< typename TX, typename TY >
+template <typename TX, typename TY>
 scalar_type<TX, TY> dotu(
-    idx_t n,
-    TX const *x, int_t incx,
-    TY const *y, int_t incy )
+    idx_t n, TX const* x, int_t incx, TY const* y, int_t incy)
 {
-    tlapack_check_false( incx == 0 );
-    tlapack_check_false( incy == 0 );
+    tlapack_check_false(incx == 0);
+    tlapack_check_false(incy == 0);
 
     // quick return
-    if( n <= 0 ) return scalar_type<TX,TY>(0);
-    
-    tlapack_expr_with_2vectors(
-        x_, TX, n, x, incx,
-        y_, TY, n, y, incy,
-        return dotu( x_, y_ )
-    );
+    if (n <= 0) return scalar_type<TX, TY>(0);
+
+    tlapack_expr_with_2vectors(x_, TX, n, x, incx, y_, TY, n, y, incy,
+                               return dotu(x_, y_));
 }
 
 }  // namespace tlapack
 
-#endif        //  #ifndef TLAPACK_LEGACY_DOTU_HH
+#endif  //  #ifndef TLAPACK_LEGACY_DOTU_HH

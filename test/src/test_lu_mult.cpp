@@ -23,7 +23,9 @@
 
 using namespace tlapack;
 
-TEMPLATE_TEST_CASE("lu multiplication is backward stable", "[lu check][lu][qrt]", TLAPACK_TYPES_TO_TEST)
+TEMPLATE_TEST_CASE("lu multiplication is backward stable",
+                   "[lu check][lu][qrt]",
+                   TLAPACK_TYPES_TO_TEST)
 {
     srand(1);
 
@@ -37,17 +39,21 @@ TEMPLATE_TEST_CASE("lu multiplication is backward stable", "[lu check][lu][qrt]"
 
     idx_t n, nx;
 
-    n = GENERATE(1, 2, 6, 9); INFO("n = " << n);
-    nx = GENERATE(1, 2, 4, 5); INFO("nx = " << nx);
+    n = GENERATE(1, 2, 6, 9);
+    INFO("n = " << n);
+    nx = GENERATE(1, 2, 4, 5);
+    INFO("nx = " << nx);
 
-    if(nx <= n){
-
+    if (nx <= n) {
         const real_t eps = ulp<real_t>();
         const real_t tol = real_t(n) * eps;
 
-        std::vector<T> L_; auto L = new_matrix( L_, n, n );
-        std::vector<T> U_; auto U = new_matrix( U_, n, n );
-        std::vector<T> A_; auto A = new_matrix( A_, n, n );
+        std::vector<T> L_;
+        auto L = new_matrix(L_, n, n);
+        std::vector<T> U_;
+        auto U = new_matrix(U_, n, n);
+        std::vector<T> A_;
+        auto A = new_matrix(A_, n, n);
 
         // Generate n-by-n random matrix
         for (idx_t j = 0; j < n; ++j)

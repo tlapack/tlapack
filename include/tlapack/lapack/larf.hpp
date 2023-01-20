@@ -18,7 +18,7 @@
 namespace tlapack {
 
 /** Worspace query of larf().
- * 
+ *
  * @param[in] side
  *     - Side::Left:  apply $H$ from the Left.
  *     - Side::Right: apply $H$ from the Right.
@@ -26,40 +26,46 @@ namespace tlapack {
  * @param[in] direction
  *     v = [ 1 x ] if direction == Direction::Forward and
  *     v = [ x 1 ] if direction == Direction::Backward.
- * 
+ *
  * @param[in] v Vector of size m if side = Side::Left,
  *                          or n if side = Side::Right.
- * 
+ *
  * @param[in] tau Value of tau in the representation of H.
- * 
+ *
  * @param[in] C
  *     On entry, the m-by-n matrix C.
  *
  * @param[in] opts Options.
- * 
+ *
  * @param[in,out] workinfo
  *      On output, the amount workspace required. It is larger than or equal
  *      to that given on input.
  *
  * @ingroup workspace_query
  */
-template< class side_t, class direction_t, class vector_t, class tau_t, class matrix_t >
-inline constexpr
-void larf_worksize(
-    side_t side, direction_t direction,
-    vector_t const& v, const tau_t& tau, const matrix_t& C,
-    workinfo_t& workinfo, const workspace_opts_t<>& opts = {} )
+template <class side_t,
+          class direction_t,
+          class vector_t,
+          class tau_t,
+          class matrix_t>
+inline constexpr void larf_worksize(side_t side,
+                                    direction_t direction,
+                                    vector_t const& v,
+                                    const tau_t& tau,
+                                    const matrix_t& C,
+                                    workinfo_t& workinfo,
+                                    const workspace_opts_t<>& opts = {})
 {
-    using work_t    = vector_type< matrix_t, vector_t >;
-    using idx_t     = size_type< matrix_t >;
-    using T         = type_t< work_t >;
+    using work_t = vector_type<matrix_t, vector_t>;
+    using idx_t = size_type<matrix_t>;
+    using T = type_t<work_t>;
 
     // constants
     const idx_t m = nrows(C);
     const idx_t n = ncols(C);
 
-    const workinfo_t myWorkinfo( sizeof(T), (side == Side::Left) ? n : m );
-    workinfo.minMax( myWorkinfo );
+    const workinfo_t myWorkinfo(sizeof(T), (side == Side::Left) ? n : m);
+    workinfo.minMax(myWorkinfo);
 }
 
 /** Applies an elementary reflector H to a m-by-n matrix C.
@@ -70,9 +76,9 @@ void larf_worksize(
  * \]
  * where v = [ 1 x ] if direction == Direction::Forward and
  *       v = [ x 1 ] if direction == Direction::Backward.
- * 
+ *
  * @tparam side_t Either Side or any class that implements `operator Side()`.
- * 
+ *
  * @param[in] side
  *     - Side::Left:  apply $H$ from the Left.
  *     - Side::Right: apply $H$ from the Right.
@@ -80,12 +86,12 @@ void larf_worksize(
  * @param[in] direction
  *     v = [ 1 x ] if direction == Direction::Forward and
  *     v = [ x 1 ] if direction == Direction::Backward.
- * 
+ *
  * @param[in] v Vector of size m if side = Side::Left,
  *                          or n if side = Side::Right.
- * 
+ *
  * @param[in] tau Value of tau in the representation of H.
- * 
+ *
  * @param[in,out] C
  *     On entry, the m-by-n matrix C.
  *     On exit, C is overwritten by $H C$ if side = Side::Left,
@@ -94,22 +100,28 @@ void larf_worksize(
  * @param[in] opts Options.
  *      - @c opts.work is used if whenever it has sufficient size.
  *        The sufficient size can be obtained through a workspace query.
- * 
+ *
  * @ingroup auxiliary
  */
-template< class side_t, class direction_t, class vector_t, class tau_t, class matrix_t >
-void larf(
-    side_t side, direction_t direction,
-    vector_t const& v, const tau_t& tau,
-    matrix_t& C, const workspace_opts_t<>& opts = {} )
+template <class side_t,
+          class direction_t,
+          class vector_t,
+          class tau_t,
+          class matrix_t>
+void larf(side_t side,
+          direction_t direction,
+          vector_t const& v,
+          const tau_t& tau,
+          matrix_t& C,
+          const workspace_opts_t<>& opts = {})
 {
     // data traits
-    using work_t    = vector_type< matrix_t, vector_t >;
-    using idx_t     = size_type< matrix_t >;
-    using T         = type_t< work_t >;
-    using real_t    = real_type<T>;
+    using work_t = vector_type<matrix_t, vector_t>;
+    using idx_t = size_type<matrix_t>;
+    using T = type_t<work_t>;
+    using real_t = real_type<T>;
 
-    using pair = pair<idx_t,idx_t>;
+    using pair = pair<idx_t, idx_t>;
 
     // Functor
     Create<work_t> new_vector;
@@ -120,18 +132,16 @@ void larf(
     const idx_t n = ncols(C);
 
     // check arguments
-    tlapack_check( side == Side::Left ||
-                   side == Side::Right );
-    tlapack_check( direction == Direction::Backward ||
-                   direction == Direction::Forward );
+    tlapack_check(side == Side::Left || side == Side::Right);
+    tlapack_check(direction == Direction::Backward ||
+                  direction == Direction::Forward);
 
     // Allocates workspace
     vectorOfBytes localworkdata;
-    const Workspace work = [&]()
-    {
+    const Workspace work = [&]() {
         workinfo_t workinfo;
-        larf_worksize( side, direction, v, tau, C, workinfo, opts );
-        return alloc_workspace( localworkdata, workinfo, opts.work );
+        larf_worksize(side, direction, v, tau, C, workinfo, opts);
+        return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
 
     // The following code was changed from:
@@ -148,60 +158,60 @@ void larf(
     // This is so that v[0] doesn't need to be changed to 1,
     // which is better for thread safety.
 
-    if( side == Side::Left )
-    {
-        if( m <= 1 )
-        {
+    if (side == Side::Left) {
+        if (m <= 1) {
             for (idx_t j = 0; j < n; ++j)
-                C(0,j) -= tau*C(0,j);
+                C(0, j) -= tau * C(0, j);
             return;
         }
 
-        auto C0 = (direction == Direction::Forward) ? row(C,0) : row(C,m-1);
-        auto C1 = (direction == Direction::Forward) ? rows(C, pair{1,m}) : rows(C, pair{0,m-1});
-        auto x  = (direction == Direction::Forward) ? slice(v, pair{1,m}) : slice(v, pair{0,m-1});
-        auto w  = new_vector( work, n );
+        auto C0 = (direction == Direction::Forward) ? row(C, 0) : row(C, m - 1);
+        auto C1 = (direction == Direction::Forward) ? rows(C, pair{1, m})
+                                                    : rows(C, pair{0, m - 1});
+        auto x = (direction == Direction::Forward) ? slice(v, pair{1, m})
+                                                   : slice(v, pair{0, m - 1});
+        auto w = new_vector(work, n);
 
         // w := C0^H + C1^H*x
-        for (idx_t i = 0; i < n; ++i )
+        for (idx_t i = 0; i < n; ++i)
             w[i] = conj(C0[i]);
         gemv(Op::ConjTrans, one, C1, x, one, w);
 
         // C1 := C1 - tau*x*w^H
-        ger( -tau, x, w, C1 );
+        ger(-tau, x, w, C1);
 
         // C0 := C0 - tau*w^H
-        for (idx_t i = 0; i < n; ++i )
-            C0[i] -= tau*conj(w[i]);
+        for (idx_t i = 0; i < n; ++i)
+            C0[i] -= tau * conj(w[i]);
     }
-    else
-    {
-        if( n <= 1 )
-        {
+    else {
+        if (n <= 1) {
             for (idx_t i = 0; i < m; ++i)
-                C(i,0) -= tau*C(i,0);
+                C(i, 0) -= tau * C(i, 0);
             return;
         }
 
-        auto C0 = (direction == Direction::Forward) ? col(C,0) : col(C,n-1);
-        auto C1 = (direction == Direction::Forward) ? cols(C, pair{1,n}) : cols(C, pair{0,n-1});
-        auto x  = (direction == Direction::Forward) ? slice(v, pair{1,n}) : slice(v, pair{0,n-1});
-        auto w = new_vector( work, m );
+        auto C0 = (direction == Direction::Forward) ? col(C, 0) : col(C, n - 1);
+        auto C1 = (direction == Direction::Forward) ? cols(C, pair{1, n})
+                                                    : cols(C, pair{0, n - 1});
+        auto x = (direction == Direction::Forward) ? slice(v, pair{1, n})
+                                                   : slice(v, pair{0, n - 1});
+        auto w = new_vector(work, m);
 
         // w := C0 + C1*x
-        for (idx_t i = 0; i < m; ++i )
+        for (idx_t i = 0; i < m; ++i)
             w[i] = C0[i];
         gemv(Op::NoTrans, one, C1, x, one, w);
 
         // C1 := C1 - tau*w*x^H
-        ger( -tau, w, x, C1 );
+        ger(-tau, w, x, C1);
 
         // C0 := C0 - tau*w
-        for (idx_t i = 0; i < m; ++i )
-            C0[i] -= tau*w[i];
+        for (idx_t i = 0; i < m; ++i)
+            C0[i] -= tau * w[i];
     }
 }
 
-} // lapack
+}  // namespace tlapack
 
-#endif // TLAPACK_LARF_HH
+#endif  // TLAPACK_LARF_HH

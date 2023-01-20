@@ -32,75 +32,68 @@ namespace tlapack {
  *
  * @ingroup blas1
  */
-template<
-    class vectorX_t, class vectorY_t,
-    class c_type, class s_type,
-    class T = type_t<vectorX_t>,
-    disable_if_allow_optblas_t<
-        pair< vectorX_t, T >,
-        pair< vectorY_t, T >,
-        pair< c_type, real_type<T> >,
-        pair< s_type, real_type<T> >
-    > = 0
->
-void rot(
-    vectorX_t& x, vectorY_t& y,
-    const c_type& c, const s_type& s )
+template <class vectorX_t,
+          class vectorY_t,
+          class c_type,
+          class s_type,
+          class T = type_t<vectorX_t>,
+          disable_if_allow_optblas_t<pair<vectorX_t, T>,
+                                     pair<vectorY_t, T>,
+                                     pair<c_type, real_type<T> >,
+                                     pair<s_type, real_type<T> > > = 0>
+void rot(vectorX_t& x, vectorY_t& y, const c_type& c, const s_type& s)
 {
-    using idx_t = size_type< vectorX_t >;
-    using scalar_t = scalar_type< c_type, s_type, type_t<vectorX_t>, type_t<vectorY_t> >;
+    using idx_t = size_type<vectorX_t>;
+    using scalar_t =
+        scalar_type<c_type, s_type, type_t<vectorX_t>, type_t<vectorY_t> >;
 
     // constants
     const idx_t n = size(x);
 
     // check arguments
-    tlapack_check_false( size(y) != n );
+    tlapack_check_false(size(y) != n);
 
     // quick return
-    if ( n == 0 || (c == c_type(1) && s == s_type(0)) )
-        return;
+    if (n == 0 || (c == c_type(1) && s == s_type(0))) return;
 
     for (idx_t i = 0; i < n; ++i) {
-        const scalar_t stmp = c*x[i] + s*y[i];
-        y[i] = c*y[i] - conj(s)*x[i];
+        const scalar_t stmp = c * x[i] + s * y[i];
+        y[i] = c * y[i] - conj(s) * x[i];
         x[i] = stmp;
     }
 }
 
 #ifdef USE_LAPACKPP_WRAPPERS
 
-    template<
-        class vectorX_t, class vectorY_t,
-        class c_type, class s_type,
-        class T = type_t<vectorX_t>,
-        enable_if_allow_optblas_t<
-            pair< vectorX_t, T >,
-            pair< vectorY_t, T >,
-            pair< c_type, real_type<T> >,
-            pair< s_type, real_type<T> >
-        > = 0
-    >
-    inline
-    void rot(
-        vectorX_t& x, vectorY_t& y,
-        const c_type c, const s_type s )
-    {
-        using idx_t = size_type< vectorX_t >;
+template <class vectorX_t,
+          class vectorY_t,
+          class c_type,
+          class s_type,
+          class T = type_t<vectorX_t>,
+          enable_if_allow_optblas_t<pair<vectorX_t, T>,
+                                    pair<vectorY_t, T>,
+                                    pair<c_type, real_type<T> >,
+                                    pair<s_type, real_type<T> > > = 0>
+inline void rot(vectorX_t& x, vectorY_t& y, const c_type c, const s_type s)
+{
+    using idx_t = size_type<vectorX_t>;
 
-        // Legacy objects
-        auto x_ = legacy_vector(x);
-        auto y_ = legacy_vector(y);
+    // Legacy objects
+    auto x_ = legacy_vector(x);
+    auto y_ = legacy_vector(y);
 
-        // Constants to forward
-        const idx_t& n = x_.n;
-        const idx_t incx = (x_.direction == Direction::Forward) ? idx_t(x_.inc) : idx_t(-x_.inc);
-        const idx_t incy = (y_.direction == Direction::Forward) ? idx_t(y_.inc) : idx_t(-y_.inc);
+    // Constants to forward
+    const idx_t& n = x_.n;
+    const idx_t incx =
+        (x_.direction == Direction::Forward) ? idx_t(x_.inc) : idx_t(-x_.inc);
+    const idx_t incy =
+        (y_.direction == Direction::Forward) ? idx_t(y_.inc) : idx_t(-y_.inc);
 
-        return ::blas::rot( n, x_.ptr, incx, y_.ptr, incy, c, s );
-    }
+    return ::blas::rot(n, x_.ptr, incx, y_.ptr, incy, c, s);
+}
 
 #endif
 
 }  // namespace tlapack
 
-#endif        //  #ifndef TLAPACK_BLAS_ROT_HH
+#endif  //  #ifndef TLAPACK_BLAS_ROT_HH

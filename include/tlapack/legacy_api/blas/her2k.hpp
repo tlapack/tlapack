@@ -11,9 +11,9 @@
 #ifndef TLAPACK_LEGACY_HER2K_HH
 #define TLAPACK_LEGACY_HER2K_HH
 
-#include "tlapack/legacy_api/base/utils.hpp"
-#include "tlapack/legacy_api/base/types.hpp"
 #include "tlapack/blas/her2k.hpp"
+#include "tlapack/legacy_api/base/types.hpp"
+#include "tlapack/legacy_api/base/utils.hpp"
 
 namespace tlapack {
 
@@ -91,54 +91,49 @@ namespace tlapack {
  *
  * @ingroup legacy_blas
  */
-template< typename TA, typename TB, typename TC >
-void her2k(
-    Layout layout,
-    Uplo uplo,
-    Op trans,
-    idx_t n, idx_t k,
-    scalar_type<TA, TB, TC> alpha,  // note: complex
-    TA const *A, idx_t lda,
-    TB const *B, idx_t ldb,
-    real_type<TA, TB, TC> beta,  // note: real
-    TC       *C, idx_t ldc )
+template <typename TA, typename TB, typename TC>
+void her2k(Layout layout,
+           Uplo uplo,
+           Op trans,
+           idx_t n,
+           idx_t k,
+           scalar_type<TA, TB, TC> alpha,  // note: complex
+           TA const* A,
+           idx_t lda,
+           TB const* B,
+           idx_t ldb,
+           real_type<TA, TB, TC> beta,  // note: real
+           TC* C,
+           idx_t ldc)
 {
     using internal::colmajor_matrix;
     using scalar_t = scalar_type<TA, TB, TC>;
     using real_t = real_type<TA, TB, TC>;
 
     // check arguments
-    tlapack_check_false( layout != Layout::ColMajor &&
-                   layout != Layout::RowMajor );
-    tlapack_check_false( uplo != Uplo::Lower &&
-                   uplo != Uplo::Upper &&
-                   uplo != Uplo::General );
-    tlapack_check_false( trans != Op::NoTrans &&
-                   trans != Op::Trans &&
-                   trans != Op::ConjTrans );
-    tlapack_check_false( is_complex<TA>::value && trans == Op::Trans );
-    tlapack_check_false( n < 0 );
-    tlapack_check_false( k < 0 );
-    tlapack_check_false( lda < (
-        (layout == Layout::RowMajor)
-            ? ((trans == Op::NoTrans) ? k : n)
-            : ((trans == Op::NoTrans) ? n : k)
-        )
-    );
-    tlapack_check_false( ldb < (
-        (layout == Layout::RowMajor)
-            ? ((trans == Op::NoTrans) ? k : n)
-            : ((trans == Op::NoTrans) ? n : k)
-        )
-    );
-    tlapack_check_false( ldc < n );
+    tlapack_check_false(layout != Layout::ColMajor &&
+                        layout != Layout::RowMajor);
+    tlapack_check_false(uplo != Uplo::Lower && uplo != Uplo::Upper &&
+                        uplo != Uplo::General);
+    tlapack_check_false(trans != Op::NoTrans && trans != Op::Trans &&
+                        trans != Op::ConjTrans);
+    tlapack_check_false(is_complex<TA>::value && trans == Op::Trans);
+    tlapack_check_false(n < 0);
+    tlapack_check_false(k < 0);
+    tlapack_check_false(lda < ((layout == Layout::RowMajor)
+                                   ? ((trans == Op::NoTrans) ? k : n)
+                                   : ((trans == Op::NoTrans) ? n : k)));
+    tlapack_check_false(ldb < ((layout == Layout::RowMajor)
+                                   ? ((trans == Op::NoTrans) ? k : n)
+                                   : ((trans == Op::NoTrans) ? n : k)));
+    tlapack_check_false(ldc < n);
 
     // quick return
-    if ( n == 0 ||
-        ((alpha == scalar_t(0) || k == 0 ) && (beta == real_t(1))) ) return;
+    if (n == 0 || ((alpha == scalar_t(0) || k == 0) && (beta == real_t(1))))
+        return;
 
     // This algorithm only works with Op::NoTrans or Op::ConjTrans
-    if(trans == Op::Trans) trans = Op::ConjTrans;
+    if (trans == Op::Trans) trans = Op::ConjTrans;
 
     // adapt if row major
     if (layout == Layout::RowMajor) {
@@ -146,41 +141,39 @@ void her2k(
             uplo = Uplo::Upper;
         else if (uplo == Uplo::Upper)
             uplo = Uplo::Lower;
-        trans = (trans == Op::NoTrans)
-            ? Op::ConjTrans
-            : Op::NoTrans;
+        trans = (trans == Op::NoTrans) ? Op::ConjTrans : Op::NoTrans;
         alpha = conj(alpha);
     }
 
     // Matrix views
     const auto A_ = (trans == Op::NoTrans)
-                  ? colmajor_matrix<TA>( (TA*)A, n, k, lda )
-                  : colmajor_matrix<TA>( (TA*)A, k, n, lda );
+                        ? colmajor_matrix<TA>((TA*)A, n, k, lda)
+                        : colmajor_matrix<TA>((TA*)A, k, n, lda);
     const auto B_ = (trans == Op::NoTrans)
-                  ? colmajor_matrix<TB>( (TB*)B, n, k, ldb )
-                  : colmajor_matrix<TB>( (TB*)B, k, n, ldb );
-    auto C_ = colmajor_matrix<TC>( C, n, n, ldc );
+                        ? colmajor_matrix<TB>((TB*)B, n, k, ldb)
+                        : colmajor_matrix<TB>((TB*)B, k, n, ldb);
+    auto C_ = colmajor_matrix<TC>(C, n, n, ldc);
 
-    if( alpha == scalar_t(0) ) {
-        if( beta == real_t(0) ) {
-            for(idx_t j = 0; j < n; ++j)
-                for(idx_t i = 0; i < n; ++i)
-                    C_(i,j) = TC(0);
+    if (alpha == scalar_t(0)) {
+        if (beta == real_t(0)) {
+            for (idx_t j = 0; j < n; ++j)
+                for (idx_t i = 0; i < n; ++i)
+                    C_(i, j) = TC(0);
         }
         else {
-            for(idx_t j = 0; j < n; ++j)
-                for(idx_t i = 0; i < n; ++i)
-                    C_(i,j) *= beta;
+            for (idx_t j = 0; j < n; ++j)
+                for (idx_t i = 0; i < n; ++i)
+                    C_(i, j) *= beta;
         }
     }
     else {
-        if( beta == real_t(0) )
-            her2k( uplo, trans, alpha, A_, B_, C_ );
+        if (beta == real_t(0))
+            her2k(uplo, trans, alpha, A_, B_, C_);
         else
-            her2k( uplo, trans, alpha, A_, B_, beta, C_ );
+            her2k(uplo, trans, alpha, A_, B_, beta, C_);
     }
 }
 
 }  // namespace tlapack
 
-#endif        //  #ifndef TLAPACK_LEGACY_HER2K_HH
+#endif  //  #ifndef TLAPACK_LEGACY_HER2K_HH

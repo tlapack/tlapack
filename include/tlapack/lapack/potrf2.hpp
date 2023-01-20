@@ -1,4 +1,5 @@
-/// @file potrf2.hpp Computes the Cholesky factorization of a Hermitian positive definite matrix A using the recursive algorithm.
+/// @file potrf2.hpp Computes the Cholesky factorization of a Hermitian positive
+/// definite matrix A using the recursive algorithm.
 /// @author Weslley S Pereira, University of Colorado Denver, USA
 //
 // Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
@@ -38,7 +39,7 @@ namespace tlapack {
  * updates and scales $A_{21}$ or $A_{12},$
  * updates $A_{22},$
  * and calls itself to factor $A_{22}.$
- * 
+ *
  * @tparam uplo_t
  *      Access type: Upper or Lower.
  *      Either Uplo or any class that implements `operator Uplo()`.
@@ -49,7 +50,7 @@ namespace tlapack {
  *
  * @param[in,out] A
  *      On entry, the Hermitian matrix A.
- *      
+ *
  *      - If uplo = Uplo::Upper, the strictly lower
  *      triangular part of A is not referenced.
  *
@@ -60,7 +61,7 @@ namespace tlapack {
  *      factorization $A = U^H U$ or $A = L L^H.$
  *
  * @param[in] opts Options.
- *      Define the behavior of Exception Handling.   
+ *      Define the behavior of Exception Handling.
  *
  * @return = 0: successful exit
  * @return i, 0 < i <= n, if the leading minor of order i is not
@@ -68,98 +69,95 @@ namespace tlapack {
  *
  * @ingroup computational
  */
-template< class uplo_t, class matrix_t >
-int potrf2( uplo_t uplo, matrix_t& A, const ec_opts_t& opts = {} )
+template <class uplo_t, class matrix_t>
+int potrf2(uplo_t uplo, matrix_t& A, const ec_opts_t& opts = {})
 {
-    using T      = type_t< matrix_t >;
+    using T = type_t<matrix_t>;
     using real_t = real_type<T>;
-    using idx_t  = size_type< matrix_t >;
-    using pair   = pair<idx_t,idx_t>;
+    using idx_t = size_type<matrix_t>;
+    using pair = pair<idx_t, idx_t>;
 
     // Constants
-    const real_t one( 1 );
-    const real_t zero( 0 );
+    const real_t one(1);
+    const real_t zero(0);
     const idx_t n = nrows(A);
 
     // check arguments
-    tlapack_check_false(    uplo != Uplo::Lower &&
-                            uplo != Uplo::Upper );
-    tlapack_check_false(    nrows(A) != ncols(A) );
+    tlapack_check_false(uplo != Uplo::Lower && uplo != Uplo::Upper);
+    tlapack_check_false(nrows(A) != ncols(A));
 
     // Quick return
-    if (n <= 0)
-        return 0;
+    if (n <= 0) return 0;
 
     // Stop recursion
     else if (n == 1) {
-        const real_t a00 = real( A(0,0) );
-        if( a00 > zero ) {
-            A(0,0) = sqrt( a00 );
+        const real_t a00 = real(A(0, 0));
+        if (a00 > zero) {
+            A(0, 0) = sqrt(a00);
             return 0;
         }
         else {
-            tlapack_error_internal( opts.ec, 1,
+            tlapack_error_internal(
+                opts.ec, 1,
                 "The leading minor of order 1 is not positive definite,"
-                " and the factorization could not be completed." );
+                " and the factorization could not be completed.");
             return 1;
         }
     }
 
     // Recursive code
     else {
-        const idx_t n1 = n/2;
+        const idx_t n1 = n / 2;
 
         // Define A11 and A22
-        auto A11 = slice( A, pair{0,n1}, pair{0,n1} );
-        auto A22 = slice( A, pair{n1,n}, pair{n1,n} );
-        
+        auto A11 = slice(A, pair{0, n1}, pair{0, n1});
+        auto A22 = slice(A, pair{n1, n}, pair{n1, n});
+
         // Factor A11
-        int info = potrf2( uplo, A11, noErrorCheck );
-        if( info != 0 ) {
-            tlapack_error_internal( opts.ec, info,
-                "The leading minor of the reported order is not positive definite,"
-                " and the factorization could not be completed." );
+        int info = potrf2(uplo, A11, noErrorCheck);
+        if (info != 0) {
+            tlapack_error_internal(
+                opts.ec, info,
+                "The leading minor of the reported order is not positive "
+                "definite,"
+                " and the factorization could not be completed.");
             return info;
         }
 
-        if( uplo == Uplo::Upper ) {
-
+        if (uplo == Uplo::Upper) {
             // Update and scale A12
-            auto A12 = slice( A, pair{0,n1}, pair{n1,n} );
-            trsm(
-                Side::Left, Uplo::Upper,
-                Op::ConjTrans, Diag::NonUnit,
-                one, A11, A12 );
+            auto A12 = slice(A, pair{0, n1}, pair{n1, n});
+            trsm(Side::Left, Uplo::Upper, Op::ConjTrans, Diag::NonUnit, one,
+                 A11, A12);
 
             // Update A22
-            herk( uplo, Op::ConjTrans, -one, A12, one, A22 );
+            herk(uplo, Op::ConjTrans, -one, A12, one, A22);
         }
         else {
-
             // Update and scale A21
-            auto A21 = slice( A, pair{n1,n}, pair{0,n1} );
-            trsm(
-                Side::Right, Uplo::Lower,
-                Op::ConjTrans, Diag::NonUnit,
-                one, A11, A21 );
+            auto A21 = slice(A, pair{n1, n}, pair{0, n1});
+            trsm(Side::Right, Uplo::Lower, Op::ConjTrans, Diag::NonUnit, one,
+                 A11, A21);
 
             // Update A22
-            herk( uplo, Op::NoTrans, -one, A21, one, A22 );
+            herk(uplo, Op::NoTrans, -one, A21, one, A22);
         }
-        
+
         // Factor A22
-        info = potrf2( uplo, A22, noErrorCheck );
-        if( info == 0 )
+        info = potrf2(uplo, A22, noErrorCheck);
+        if (info == 0)
             return 0;
         else {
-            tlapack_error_internal( opts.ec, info + n1,
-                "The leading minor of the reported order is not positive definite,"
-                " and the factorization could not be completed." );
+            tlapack_error_internal(
+                opts.ec, info + n1,
+                "The leading minor of the reported order is not positive "
+                "definite,"
+                " and the factorization could not be completed.");
             return info + n1;
         }
     }
 }
 
-} // lapack
+}  // namespace tlapack
 
-#endif // TLAPACK_POTRF2_HH
+#endif  // TLAPACK_POTRF2_HH

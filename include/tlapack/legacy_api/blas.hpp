@@ -54,12 +54,12 @@
 
 #include "tlapack/legacy_api/blas/gemm.hpp"
 #include "tlapack/legacy_api/blas/hemm.hpp"
-#include "tlapack/legacy_api/blas/herk.hpp"
 #include "tlapack/legacy_api/blas/her2k.hpp"
+#include "tlapack/legacy_api/blas/herk.hpp"
 #include "tlapack/legacy_api/blas/symm.hpp"
-#include "tlapack/legacy_api/blas/syrk.hpp"
 #include "tlapack/legacy_api/blas/syr2k.hpp"
+#include "tlapack/legacy_api/blas/syrk.hpp"
 #include "tlapack/legacy_api/blas/trmm.hpp"
 #include "tlapack/legacy_api/blas/trsm.hpp"
 
-#endif // TLAPACK_BLAS_HH
+#endif  // TLAPACK_BLAS_HH

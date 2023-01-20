@@ -11,10 +11,9 @@
 #define TLAPACK_GETRI_UXLI_HH
 
 #include "tlapack/base/utils.hpp"
-
-#include "tlapack/blas/gemv.hpp"
-#include "tlapack/blas/dotu.hpp"
 #include "tlapack/blas/copy.hpp"
+#include "tlapack/blas/dotu.hpp"
+#include "tlapack/blas/gemv.hpp"
 
 namespace tlapack {
 
@@ -23,21 +22,22 @@ namespace tlapack {
  * @param[in] A n-by-n matrix.
  *
  * @param[in] opts Options.
- * 
+ *
  * @param[in,out] workinfo
  *      On output, the amount workspace required. It is larger than or equal
  *      to that given on input.
  *
  * @ingroup workspace_query
  */
-template< class matrix_t >
-inline constexpr
-void getri_uxli_worksize( const matrix_t& A, workinfo_t& workinfo, const workspace_opts_t<>& opts = {} )
+template <class matrix_t>
+inline constexpr void getri_uxli_worksize(const matrix_t& A,
+                                          workinfo_t& workinfo,
+                                          const workspace_opts_t<>& opts = {})
 {
-    using T = type_t< matrix_t >;
+    using T = type_t<matrix_t>;
 
-    const workinfo_t myWorkinfo( sizeof(T), ncols(A)-1 );
-    workinfo.minMax( myWorkinfo );
+    const workinfo_t myWorkinfo(sizeof(T), ncols(A) - 1);
+    workinfo.minMax(myWorkinfo);
 }
 
 /** getri computes inverse of a general n-by-n matrix A
@@ -59,80 +59,72 @@ void getri_uxli_worksize( const matrix_t& A, workinfo_t& workinfo, const workspa
  * @param[in] opts Options.
  *      - @c opts.work is used if whenever it has sufficient size.
  *        The sufficient size can be obtained through a workspace query.
- *      
+ *
  * @ingroup computational
  */
-template< class matrix_t >
-int getri_uxli( matrix_t& A, const workspace_opts_t<>& opts = {} )
+template <class matrix_t>
+int getri_uxli(matrix_t& A, const workspace_opts_t<>& opts = {})
 {
-    using work_t = vector_type< matrix_t, matrix_t >;
-    using idx_t = size_type< matrix_t >;
+    using work_t = vector_type<matrix_t, matrix_t>;
+    using idx_t = size_type<matrix_t>;
     using T = type_t<matrix_t>;
 
     // Functor
     Create<work_t> new_vector;
 
     // check arguments
-    tlapack_check( nrows(A)==ncols(A));
-    
+    tlapack_check(nrows(A) == ncols(A));
+
     // constant n, number of rows and also columns of A
     const idx_t n = ncols(A);
 
     // Allocates workspace
     vectorOfBytes localworkdata;
-    const Workspace work = [&]()
-    {
+    const Workspace work = [&]() {
         workinfo_t workinfo;
-        getri_uxli_worksize( A, workinfo, opts );
-        return alloc_workspace( localworkdata, workinfo, opts.work );
+        getri_uxli_worksize(A, workinfo, opts);
+        return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
-    auto w = new_vector( work, n-1 );
+    auto w = new_vector(work, n - 1);
 
     // A has L and U in it, we will create X such that UXL=A in place of
-    for(idx_t j=n-idx_t(1);j!=idx_t(-1);j--){
-            
+    for (idx_t j = n - idx_t(1); j != idx_t(-1); j--) {
         // if A(j,j) is zero, then the matrix is not invertible
-        if(A(j,j)==T(0))
-            return j+1;
-        
-        if(j==n-1)
-        {
-            A(j,j) = T(1) / A(j,j);
+        if (A(j, j) == T(0)) return j + 1;
+
+        if (j == n - 1) {
+            A(j, j) = T(1) / A(j, j);
         }
-        else
-        {    
+        else {
             // X22, l21, u12 are as in method C Nick Higham
-            auto X22 = tlapack::slice(A,tlapack::range<idx_t>(j+1,n),tlapack::range<idx_t>(j+1,n));
-            auto l21 = tlapack::slice(A,tlapack::range<idx_t>(j+1,n),j);
-            auto u12 = tlapack::slice(A,j,tlapack::range<idx_t>(j+1,n));
-            auto slicework   = tlapack::slice(w,tlapack::range<idx_t>(0, n-j-1));
+            auto X22 = tlapack::slice(A, tlapack::range<idx_t>(j + 1, n),
+                                      tlapack::range<idx_t>(j + 1, n));
+            auto l21 = tlapack::slice(A, tlapack::range<idx_t>(j + 1, n), j);
+            auto u12 = tlapack::slice(A, j, tlapack::range<idx_t>(j + 1, n));
+            auto slicework =
+                tlapack::slice(w, tlapack::range<idx_t>(0, n - j - 1));
 
             // first step of the algorithm, work1 holds x12
-            tlapack::gemv(Op::Trans,T(-1)/A(j,j), X22, u12, slicework);
-            
+            tlapack::gemv(Op::Trans, T(-1) / A(j, j), X22, u12, slicework);
+
             // second line of the algorithm, work2 holds x21
-            A(j,j) = (T(1)/ A(j,j)) - tlapack::dotu(l21,slicework);
+            A(j, j) = (T(1) / A(j, j)) - tlapack::dotu(l21, slicework);
 
             // u12 updated, slicework available for use again
-            tlapack::copy(slicework,u12);
-            
+            tlapack::copy(slicework, u12);
+
             // third line of the algorithm
-            tlapack::gemv(Op::NoTrans,T(-1), X22, l21, slicework);
-            
+            tlapack::gemv(Op::NoTrans, T(-1), X22, l21, slicework);
+
             // update l21
-            tlapack::copy(slicework,l21);
-
+            tlapack::copy(slicework, l21);
         }
-
     }
-    
+
     return 0;
-    
-} // getri_uxli
 
-} // lapack
+}  // getri_uxli
 
-#endif // TLAPACK_GETRI_UXLI_HH
+}  // namespace tlapack
 
-
-
+#endif  // TLAPACK_GETRI_UXLI_HH

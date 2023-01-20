@@ -11,9 +11,9 @@
 #ifndef TLAPACK_LEGACY_ROTMG_HH
 #define TLAPACK_LEGACY_ROTMG_HH
 
-#include "tlapack/legacy_api/base/utils.hpp"
-#include "tlapack/legacy_api/base/types.hpp"
 #include "tlapack/blas/rotmg.hpp"
+#include "tlapack/legacy_api/base/types.hpp"
+#include "tlapack/legacy_api/base/utils.hpp"
 
 namespace tlapack {
 
@@ -100,20 +100,15 @@ namespace tlapack {
  *
  * @ingroup legacy_blas
  */
-template< typename real_t >
-void rotmg(
-    real_t *d1,
-    real_t *d2,
-    real_t *a,
-    real_t  b,
-    real_t param[5] )
+template <typename real_t>
+void rotmg(real_t* d1, real_t* d2, real_t* a, real_t b, real_t param[5])
 {
     // check arguments
-    tlapack_check_false( *d1 <= 0 );
+    tlapack_check_false(*d1 <= 0);
 
-    param[0] = rotmg(*d1,*d2,*a,b,&param[1]);
+    param[0] = rotmg(*d1, *d2, *a, b, &param[1]);
 }
 
 }  // namespace tlapack
 
-#endif        //  #ifndef TLAPACK_LEGACY_ROTMG_HH
+#endif  //  #ifndef TLAPACK_LEGACY_ROTMG_HH

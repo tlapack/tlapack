@@ -16,39 +16,40 @@ using namespace tlapack;
 
 TEST_CASE("has_compatible_layout gives the correct result", "[optBLAS]")
 {
-    using matrixA_t = legacyMatrix< float, size_t, Layout::ColMajor >;
-    using matrixB_t = legacyMatrix< float, size_t, Layout::RowMajor >;
-    using vector_t  = legacyVector< float >;
+    using matrixA_t = legacyMatrix<float, size_t, Layout::ColMajor>;
+    using matrixB_t = legacyMatrix<float, size_t, Layout::RowMajor>;
+    using vector_t = legacyVector<float>;
 
-    CHECK( has_compatible_layout< matrixA_t, matrixA_t > );
-    CHECK(!has_compatible_layout< matrixA_t, matrixB_t > );
-    CHECK( has_compatible_layout< matrixB_t, matrixB_t > );
-    CHECK(!has_compatible_layout< matrixB_t, matrixA_t > );
+    CHECK(has_compatible_layout<matrixA_t, matrixA_t>);
+    CHECK(!has_compatible_layout<matrixA_t, matrixB_t>);
+    CHECK(has_compatible_layout<matrixB_t, matrixB_t>);
+    CHECK(!has_compatible_layout<matrixB_t, matrixA_t>);
 
-    CHECK( has_compatible_layout< matrixA_t, vector_t > );
-    CHECK( has_compatible_layout< vector_t, matrixA_t > );
-    CHECK( has_compatible_layout< matrixB_t, vector_t > );
-    CHECK( has_compatible_layout< vector_t, matrixB_t > );
+    CHECK(has_compatible_layout<matrixA_t, vector_t>);
+    CHECK(has_compatible_layout<vector_t, matrixA_t>);
+    CHECK(has_compatible_layout<matrixB_t, vector_t>);
+    CHECK(has_compatible_layout<vector_t, matrixB_t>);
 
-    CHECK( has_compatible_layout< matrixA_t, matrixA_t, matrixA_t > );
-    CHECK(!has_compatible_layout< matrixA_t, matrixA_t, matrixB_t > );
-    CHECK(!has_compatible_layout< matrixA_t, matrixB_t, matrixA_t > );
-    CHECK(!has_compatible_layout< matrixA_t, matrixB_t, matrixB_t > );
-    CHECK(!has_compatible_layout< matrixB_t, matrixA_t, matrixA_t > );
-    CHECK(!has_compatible_layout< matrixB_t, matrixA_t, matrixB_t > );
-    CHECK(!has_compatible_layout< matrixB_t, matrixB_t, matrixA_t > );
-    CHECK( has_compatible_layout< matrixB_t, matrixB_t, matrixB_t > );
+    CHECK(has_compatible_layout<matrixA_t, matrixA_t, matrixA_t>);
+    CHECK(!has_compatible_layout<matrixA_t, matrixA_t, matrixB_t>);
+    CHECK(!has_compatible_layout<matrixA_t, matrixB_t, matrixA_t>);
+    CHECK(!has_compatible_layout<matrixA_t, matrixB_t, matrixB_t>);
+    CHECK(!has_compatible_layout<matrixB_t, matrixA_t, matrixA_t>);
+    CHECK(!has_compatible_layout<matrixB_t, matrixA_t, matrixB_t>);
+    CHECK(!has_compatible_layout<matrixB_t, matrixB_t, matrixA_t>);
+    CHECK(has_compatible_layout<matrixB_t, matrixB_t, matrixB_t>);
 }
 
 TEST_CASE("allow_optblas does not allow bool, int, long int, char", "[optBLAS]")
 {
-    CHECK(!allow_optblas<bool> );
-    CHECK(!allow_optblas<int> );
-    CHECK(!allow_optblas<long double> );
-    CHECK(!allow_optblas<char> );
+    CHECK(!allow_optblas<bool>);
+    CHECK(!allow_optblas<int>);
+    CHECK(!allow_optblas<long double>);
+    CHECK(!allow_optblas<char>);
 }
 
-// TEMPLATE_TEST_CASE("legacy_matrix() exists", "[utils]", TLAPACK_TYPES_TO_TEST)
+// TEMPLATE_TEST_CASE("legacy_matrix() exists", "[utils]",
+// TLAPACK_TYPES_TO_TEST)
 // {
 //     using matrix_t = TestType;
 //     using legacy_t = decltype( legacy_matrix( std::declval<matrix_t>() ) );
@@ -56,28 +57,34 @@ TEST_CASE("allow_optblas does not allow bool, int, long int, char", "[optBLAS]")
 //     CHECK ( is_same_v< matrix_t, legacy_t > );
 // }
 
-TEMPLATE_TEST_CASE("allow_optblas gives the correct result", "[optBLAS]", TLAPACK_TYPES_TO_TEST)
+TEMPLATE_TEST_CASE("allow_optblas gives the correct result",
+                   "[optBLAS]",
+                   TLAPACK_TYPES_TO_TEST)
 {
-    using matrix_t  = TestType;
+    using matrix_t = TestType;
     using T = type_t<matrix_t>;
 
     // Test matrix_t and pair< matrix_t, T >
-    CHECK( allow_optblas<matrix_t> == allow_optblas<T> );
-    CHECK( allow_optblas< pair< matrix_t, T > > == allow_optblas<T> );
+    CHECK(allow_optblas<matrix_t> == allow_optblas<T>);
+    CHECK(allow_optblas<pair<matrix_t, T>> == allow_optblas<T>);
 
     // Test pairs of convertible types
-    CHECK( allow_optblas< pair< float, double > > == allow_optblas<double> );
-    CHECK( allow_optblas< pair< int, float > > == allow_optblas<float> );
-    CHECK( allow_optblas< pair< double, std::complex<double> > > == allow_optblas<std::complex<double>> );
-    CHECK( allow_optblas< pair< double, long double > > == allow_optblas<long double> );
-    CHECK( allow_optblas< pair< std::complex<double>, double > > == false );
-    
+    CHECK(allow_optblas<pair<float, double>> == allow_optblas<double>);
+    CHECK(allow_optblas<pair<int, float>> == allow_optblas<float>);
+    CHECK(allow_optblas<pair<double, std::complex<double>>> ==
+          allow_optblas<std::complex<double>>);
+    CHECK(allow_optblas<pair<double, long double>> ==
+          allow_optblas<long double>);
+    CHECK(allow_optblas<pair<std::complex<double>, double>> == false);
+
     // Test pair< matrix_t, T > and pairs of convertible types
-    CHECK( allow_optblas< pair< matrix_t, T >, pair< T, T > > == allow_optblas<T> );
-    CHECK( allow_optblas< pair< matrix_t, T >, pair< int, T > > == allow_optblas<T> );
-    CHECK( allow_optblas< pair< matrix_t, T >, pair< float, T > > == allow_optblas<T> );
-    CHECK( allow_optblas< pair< matrix_t, T >, pair< long double, T > > == allow_optblas<T> );
-    
+    CHECK(allow_optblas<pair<matrix_t, T>, pair<T, T>> == allow_optblas<T>);
+    CHECK(allow_optblas<pair<matrix_t, T>, pair<int, T>> == allow_optblas<T>);
+    CHECK(allow_optblas<pair<matrix_t, T>, pair<float, T>> == allow_optblas<T>);
+    CHECK(allow_optblas<pair<matrix_t, T>, pair<long double, T>> ==
+          allow_optblas<T>);
+
     // Test pair< matrix_t, T > and pair< matrix_t, T >
-    CHECK( allow_optblas< pair< matrix_t, T >, pair< matrix_t, T > > == allow_optblas<T> );
+    CHECK(allow_optblas<pair<matrix_t, T>, pair<matrix_t, T>> ==
+          allow_optblas<T>);
 }

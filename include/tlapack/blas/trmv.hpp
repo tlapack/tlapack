@@ -51,62 +51,49 @@ namespace tlapack {
  *
  * @ingroup blas2
  */
-template< class matrixA_t, class vectorX_t,
+template <
+    class matrixA_t,
+    class vectorX_t,
     class T = type_t<vectorX_t>,
-    disable_if_allow_optblas_t<
-        pair< matrixA_t, T >,
-        pair< vectorX_t, T >
-    > = 0
->
-void trmv(
-    Uplo uplo,
-    Op trans,
-    Diag diag,
-    const matrixA_t& A,
-    vectorX_t& x )
+    disable_if_allow_optblas_t<pair<matrixA_t, T>, pair<vectorX_t, T> > = 0>
+void trmv(Uplo uplo, Op trans, Diag diag, const matrixA_t& A, vectorX_t& x)
 {
     // data traits
-    using TA    = type_t< matrixA_t >;
-    using TX    = type_t< vectorX_t >;
-    using idx_t = size_type< matrixA_t >;
+    using TA = type_t<matrixA_t>;
+    using TX = type_t<vectorX_t>;
+    using idx_t = size_type<matrixA_t>;
 
     // constants
     const idx_t n = nrows(A);
     const bool nonunit = (diag == Diag::NonUnit);
 
     // check arguments
-    tlapack_check_false( uplo != Uplo::Lower &&
-                   uplo != Uplo::Upper );
-    tlapack_check_false( trans != Op::NoTrans &&
-                   trans != Op::Trans &&
-                   trans != Op::ConjTrans &&
-                   trans != Op::Conj );
-    tlapack_check_false( diag != Diag::NonUnit &&
-                   diag != Diag::Unit );
-    tlapack_check_false( nrows(A) != ncols(A) );
-    tlapack_check_false( (idx_t) size(x) != n );
-
+    tlapack_check_false(uplo != Uplo::Lower && uplo != Uplo::Upper);
+    tlapack_check_false(trans != Op::NoTrans && trans != Op::Trans &&
+                        trans != Op::ConjTrans && trans != Op::Conj);
+    tlapack_check_false(diag != Diag::NonUnit && diag != Diag::Unit);
+    tlapack_check_false(nrows(A) != ncols(A));
+    tlapack_check_false((idx_t)size(x) != n);
 
     if (trans == Op::NoTrans) {
         // Form x := A*x
         if (uplo == Uplo::Upper) {
             // upper
             for (idx_t j = 0; j < n; ++j) {
-                // note: NOT skipping if x[j] is zero, for consistent NAN handling
+                // note: NOT skipping if x[j] is zero, for consistent NAN
+                // handling
                 for (idx_t i = 0; i < j; ++i)
-                    x[i] += x[j] * A(i,j);
-                if (nonunit)
-                    x[j] *= A(j,j);
+                    x[i] += x[j] * A(i, j);
+                if (nonunit) x[j] *= A(j, j);
             }
         }
         else {
             // lower
-            for (idx_t j = n-1; j != idx_t(-1); --j) {
+            for (idx_t j = n - 1; j != idx_t(-1); --j) {
                 // note: NOT skipping if x[j] is zero ...
-                for (idx_t i = n-1; i >= j+1; --i)
-                    x[i] += x[j] * A(i,j);
-                if (nonunit)
-                    x[j] *= A(j,j);
+                for (idx_t i = n - 1; i >= j + 1; --i)
+                    x[i] += x[j] * A(i, j);
+                if (nonunit) x[j] *= A(j, j);
             }
         }
     }
@@ -115,37 +102,35 @@ void trmv(
         if (uplo == Uplo::Upper) {
             // upper
             for (idx_t j = 0; j < n; ++j) {
-                // note: NOT skipping if x[j] is zero, for consistent NAN handling
+                // note: NOT skipping if x[j] is zero, for consistent NAN
+                // handling
                 for (idx_t i = 0; i < j; ++i)
-                    x[i] += x[j] * conj( A(i,j) );
-                if (nonunit)
-                    x[j] *= conj( A(j,j) );
+                    x[i] += x[j] * conj(A(i, j));
+                if (nonunit) x[j] *= conj(A(j, j));
             }
         }
         else {
             // lower
-            for (idx_t j = n-1; j != idx_t(-1); --j) {
+            for (idx_t j = n - 1; j != idx_t(-1); --j) {
                 // note: NOT skipping if x[j] is zero ...
-                for (idx_t i = n-1; i >= j+1; --i)
-                    x[i] += x[j] * conj( A(i,j) );
-                if (nonunit)
-                    x[j] *= conj( A(j,j) );
+                for (idx_t i = n - 1; i >= j + 1; --i)
+                    x[i] += x[j] * conj(A(i, j));
+                if (nonunit) x[j] *= conj(A(j, j));
             }
         }
     }
     else if (trans == Op::Trans) {
         // Form  x := A^T * x
-        
-        using scalar_t = scalar_type<TA,TX>;
+
+        using scalar_t = scalar_type<TA, TX>;
 
         if (uplo == Uplo::Upper) {
             // upper
-            for (idx_t j = n-1; j != idx_t(-1); --j) {
+            for (idx_t j = n - 1; j != idx_t(-1); --j) {
                 scalar_t tmp = x[j];
-                if (nonunit)
-                    tmp *= A(j,j);
+                if (nonunit) tmp *= A(j, j);
                 for (idx_t i = j - 1; i != idx_t(-1); --i)
-                    tmp += A(i,j) * x[i];
+                    tmp += A(i, j) * x[i];
                 x[j] = tmp;
             }
         }
@@ -153,10 +138,9 @@ void trmv(
             // lower
             for (idx_t j = 0; j < n; ++j) {
                 scalar_t tmp = x[j];
-                if (nonunit)
-                    tmp *= A(j,j);
+                if (nonunit) tmp *= A(j, j);
                 for (idx_t i = j + 1; i < n; ++i)
-                    tmp += A(i,j) * x[i];
+                    tmp += A(i, j) * x[i];
                 x[j] = tmp;
             }
         }
@@ -164,17 +148,16 @@ void trmv(
     else {
         // Form x := A^H * x
         // same code as above A^T * x case, except add conj()
-        
-        using scalar_t = scalar_type<TA,TX>;
-        
+
+        using scalar_t = scalar_type<TA, TX>;
+
         if (uplo == Uplo::Upper) {
             // upper
-            for (idx_t j = n-1; j != idx_t(-1); --j) {
+            for (idx_t j = n - 1; j != idx_t(-1); --j) {
                 scalar_t tmp = x[j];
-                if (nonunit)
-                    tmp *= conj( A(j,j) );
+                if (nonunit) tmp *= conj(A(j, j));
                 for (idx_t i = j - 1; i != idx_t(-1); --i)
-                    tmp += conj( A(i,j) ) * x[i];
+                    tmp += conj(A(i, j)) * x[i];
                 x[j] = tmp;
             }
         }
@@ -182,10 +165,9 @@ void trmv(
             // lower
             for (idx_t j = 0; j < n; ++j) {
                 scalar_t tmp = x[j];
-                if (nonunit)
-                    tmp *= conj( A(j,j) );
+                if (nonunit) tmp *= conj(A(j, j));
                 for (idx_t i = j + 1; i < n; ++i)
-                    tmp += conj( A(i,j) ) * x[i];
+                    tmp += conj(A(i, j)) * x[i];
                 x[j] = tmp;
             }
         }
@@ -194,43 +176,32 @@ void trmv(
 
 #ifdef USE_LAPACKPP_WRAPPERS
 
-    template< class matrixA_t, class vectorX_t,
-        class T = type_t<vectorX_t>,
-        enable_if_allow_optblas_t<
-            pair< matrixA_t, T >,
-            pair< vectorX_t, T >
-        > = 0
-    >
-    inline
-    void trmv(
-        Uplo uplo,
-        Op trans,
-        Diag diag,
-        const matrixA_t& A,
-        vectorX_t& x )
-    {
-        using idx_t = size_type< matrixA_t >;
+template <
+    class matrixA_t,
+    class vectorX_t,
+    class T = type_t<vectorX_t>,
+    enable_if_allow_optblas_t<pair<matrixA_t, T>, pair<vectorX_t, T> > = 0>
+inline void trmv(
+    Uplo uplo, Op trans, Diag diag, const matrixA_t& A, vectorX_t& x)
+{
+    using idx_t = size_type<matrixA_t>;
 
-        // Legacy objects
-        auto A_ = legacy_matrix(A);
-        auto x_ = legacy_vector(x);
+    // Legacy objects
+    auto A_ = legacy_matrix(A);
+    auto x_ = legacy_vector(x);
 
-        // Constants to forward
-        const idx_t& n = A_.n;
-        const idx_t incx = (x_.direction == Direction::Forward) ? idx_t(x_.inc) : idx_t(-x_.inc);
-        
-        return ::blas::trmv(
-            (::blas::Layout) A_.layout,
-            (::blas::Uplo) uplo,
-            (::blas::Op) trans,
-            (::blas::Diag) diag,
-            n,
-            A_.ptr, A_.ldim,
-            x_.ptr, incx );
-    }
+    // Constants to forward
+    const idx_t& n = A_.n;
+    const idx_t incx =
+        (x_.direction == Direction::Forward) ? idx_t(x_.inc) : idx_t(-x_.inc);
+
+    return ::blas::trmv((::blas::Layout)A_.layout, (::blas::Uplo)uplo,
+                        (::blas::Op)trans, (::blas::Diag)diag, n, A_.ptr,
+                        A_.ldim, x_.ptr, incx);
+}
 
 #endif
 
 }  // namespace tlapack
 
-#endif        //  #ifndef TLAPACK_BLAS_TRMV_HH
+#endif  //  #ifndef TLAPACK_BLAS_TRMV_HH

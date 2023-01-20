@@ -17,18 +17,14 @@
 
 namespace tlapack {
 
-enum class PotrfVariant : char {
-    Blocked = 'B',
-    Recursive = 'R'
-};
+enum class PotrfVariant : char { Blocked = 'B', Recursive = 'R' };
 
-template< typename idx_t >
-struct potrf_opts_t : public ec_opts_t
-{
-    inline constexpr potrf_opts_t( const ec_opts_t& opts = {} )
-    : ec_opts_t( opts ) {};
+template <typename idx_t>
+struct potrf_opts_t : public ec_opts_t {
+    inline constexpr potrf_opts_t(const ec_opts_t& opts = {})
+        : ec_opts_t(opts){};
 
-    idx_t nb = 32;      ///< Block size
+    idx_t nb = 32;  ///< Block size
 
     PotrfVariant variant = PotrfVariant::Blocked;
 };
@@ -74,10 +70,9 @@ struct potrf_opts_t : public ec_opts_t
  * @ingroup computational
  */
 template <class uplo_t, class matrix_t>
-inline int potrf(
-    uplo_t uplo, 
-    matrix_t &A, 
-    const potrf_opts_t< size_type<matrix_t> >& opts = {} )
+inline int potrf(uplo_t uplo,
+                 matrix_t& A,
+                 const potrf_opts_t<size_type<matrix_t> >& opts = {})
 {
     // check arguments
     tlapack_check(uplo == Uplo::Lower || uplo == Uplo::Upper);
@@ -86,12 +81,12 @@ inline int potrf(
                   opts.variant == PotrfVariant::Recursive);
 
     // Call variant
-    if( opts.variant == PotrfVariant::Blocked )
-        return potrf_blocked( uplo, A, opts );
-    else // if( opts.variant == PotrfVariant::Recursive )
-        return potrf2( uplo, A, opts );
+    if (opts.variant == PotrfVariant::Blocked)
+        return potrf_blocked(uplo, A, opts);
+    else  // if( opts.variant == PotrfVariant::Recursive )
+        return potrf2(uplo, A, opts);
 }
 
-} // namespace tlapack
+}  // namespace tlapack
 
-#endif // TLAPACK_POTRF_HH
+#endif  // TLAPACK_POTRF_HH

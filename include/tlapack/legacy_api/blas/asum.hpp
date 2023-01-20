@@ -11,15 +11,15 @@
 #ifndef TLAPACK_LEGACY_ASUM_HH
 #define TLAPACK_LEGACY_ASUM_HH
 
-#include "tlapack/legacy_api/base/utils.hpp"
-#include "tlapack/legacy_api/base/types.hpp"
 #include "tlapack/blas/asum.hpp"
+#include "tlapack/legacy_api/base/types.hpp"
+#include "tlapack/legacy_api/base/utils.hpp"
 
 namespace tlapack {
 
 /**
  * Wrapper to asum( vector_t const& x ).
- * 
+ *
  * @return 1-norm of vector,
  *     $|| Re(x) ||_1 + || Im(x) ||_1
  *         = \sum_{i=0}^{n-1} |Re(x_i)| + |Im(x_i)|$.
@@ -35,21 +35,17 @@ namespace tlapack {
  *
  * @ingroup legacy_blas
  */
-template< typename T >
-inline
-real_type<T> asum( idx_t n, T const *x, int_t incx )
+template <typename T>
+inline real_type<T> asum(idx_t n, T const* x, int_t incx)
 {
-    tlapack_check_false( incx <= 0 );
+    tlapack_check_false(incx <= 0);
 
     // quick return
-    if( n <= 0 ) return 0;
-    
-    tlapack_expr_with_vector_positiveInc(
-        x_, T, n, x, incx,
-        return asum( x_ )
-    );
+    if (n <= 0) return 0;
+
+    tlapack_expr_with_vector_positiveInc(x_, T, n, x, incx, return asum(x_));
 }
 
 }  // namespace tlapack
 
-#endif        //  #ifndef TLAPACK_LEGACY_ASUM_HH
+#endif  //  #ifndef TLAPACK_LEGACY_ASUM_HH

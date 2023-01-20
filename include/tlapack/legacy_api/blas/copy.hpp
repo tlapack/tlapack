@@ -11,15 +11,15 @@
 #ifndef TLAPACK_LEGACY_COPY_HH
 #define TLAPACK_LEGACY_COPY_HH
 
-#include "tlapack/legacy_api/base/utils.hpp"
-#include "tlapack/legacy_api/base/types.hpp"
 #include "tlapack/blas/copy.hpp"
+#include "tlapack/legacy_api/base/types.hpp"
+#include "tlapack/legacy_api/base/utils.hpp"
 
 namespace tlapack {
 
 /**
  * Copy vector, $y = x$.
- * 
+ *
  * Wrapper to copy( const vectorX_t& x, vectorY_t& y ).
  *
  * @param[in] n
@@ -41,25 +41,19 @@ namespace tlapack {
  *
  * @ingroup legacy_blas
  */
-template< typename TX, typename TY >
-void copy(
-    idx_t n,
-    TX const *x, int_t incx,
-    TY       *y, int_t incy )
-{    
-    tlapack_check_false( incx == 0 );
-    tlapack_check_false( incy == 0 );
+template <typename TX, typename TY>
+void copy(idx_t n, TX const* x, int_t incx, TY* y, int_t incy)
+{
+    tlapack_check_false(incx == 0);
+    tlapack_check_false(incy == 0);
 
     // quick return
-    if( n <= 0 ) return;
-    
-    tlapack_expr_with_2vectors(
-        x_, TX, n, x, incx,
-        y_, TY, n, y, incy,
-        return copy( x_, y_ )
-    );
+    if (n <= 0) return;
+
+    tlapack_expr_with_2vectors(x_, TX, n, x, incx, y_, TY, n, y, incy,
+                               return copy(x_, y_));
 }
 
 }  // namespace tlapack
 
-#endif        //  #ifndef TLAPACK_LEGACY_COPY_HH
+#endif  //  #ifndef TLAPACK_LEGACY_COPY_HH

@@ -14,33 +14,33 @@
 namespace tlapack {
 
 /** Finds $\sqrt{x^2+y^2}$, taking care not to cause unnecessary overflow.
- * 
+ *
  * @return $\sqrt{x^2+y^2}$
  *
  * @param[in] x scalar value x
  * @param[in] y scalar value y
- * 
+ *
  * @ingroup auxiliary
  */
-template< class TX, class TY,
-    enable_if_t<(
-    /* Requires: */
-        ! is_complex<TX>::value &&
-        ! is_complex<TY>::value
-    ), int > = 0 >
-real_type<TX,TY> lapy2( const TX& x, const TY& y )
+template <class TX,
+          class TY,
+          enable_if_t<(
+                          /* Requires: */
+                          !is_complex<TX>::value && !is_complex<TY>::value),
+                      int> = 0>
+real_type<TX, TY> lapy2(const TX& x, const TY& y)
 {
     // using
-    using real_t = real_type<TX,TY>;
+    using real_t = real_type<TX, TY>;
 
     // constants
-    const real_t one( 1 );
-    const real_t zero( 0 );
+    const real_t one(1);
+    const real_t zero(0);
     const TX xabs = abs(x);
     const TY yabs = abs(y);
 
     real_t w, z;
-    if( xabs > yabs ) {
+    if (xabs > yabs) {
         w = xabs;
         z = yabs;
     }
@@ -49,11 +49,9 @@ real_type<TX,TY> lapy2( const TX& x, const TY& y )
         z = xabs;
     }
 
-    return ( z == zero )
-        ? w
-        : w * sqrt( one + (z/w)*(z/w) );
+    return (z == zero) ? w : w * sqrt(one + (z / w) * (z / w));
 }
 
-}
+}  // namespace tlapack
 
-#endif // TLAPACK_LAPY2_HH
+#endif  // TLAPACK_LAPY2_HH

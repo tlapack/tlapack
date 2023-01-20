@@ -24,7 +24,11 @@
 using namespace tlapack;
 
 template <typename matrix_t, typename vector_t>
-void check_hess_reduction(size_type<matrix_t> ilo, size_type<matrix_t> ihi, matrix_t H, vector_t tau, matrix_t A)
+void check_hess_reduction(size_type<matrix_t> ilo,
+                          size_type<matrix_t> ihi,
+                          matrix_t H,
+                          vector_t tau,
+                          matrix_t A)
 {
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
@@ -37,9 +41,12 @@ void check_hess_reduction(size_type<matrix_t> ilo, size_type<matrix_t> ihi, matr
     const real_type<T> eps = uroundoff<real_type<T>>();
     const real_type<T> tol = real_type<T>(n * 1.0e2) * eps;
 
-    std::vector<T> Q_; auto Q = new_matrix( Q_, n, n );
-    std::vector<T> res_; auto res = new_matrix( res_, n, n );
-    std::vector<T> work_; auto work = new_matrix( work_, n, n );
+    std::vector<T> Q_;
+    auto Q = new_matrix(Q_, n, n);
+    std::vector<T> res_;
+    auto res = new_matrix(res_, n, n);
+    std::vector<T> work_;
+    auto work = new_matrix(work_, n, n);
 
     // Generate orthogonal matrix Q
     tlapack::lacpy(Uplo::General, H, Q);
@@ -59,7 +66,9 @@ void check_hess_reduction(size_type<matrix_t> ilo, size_type<matrix_t> ihi, matr
     CHECK(simil_res_norm <= tol * normA);
 }
 
-TEMPLATE_TEST_CASE("Hessenberg reduction is backward stable", "[eigenvalues][hessenberg]", TLAPACK_TYPES_TO_TEST)
+TEMPLATE_TEST_CASE("Hessenberg reduction is backward stable",
+                   "[eigenvalues][hessenberg]",
+                   TLAPACK_TYPES_TO_TEST)
 {
     srand(1);
 
@@ -78,31 +87,30 @@ TEMPLATE_TEST_CASE("Hessenberg reduction is backward stable", "[eigenvalues][hes
 
     // Only runs the near overflow case
     // when n = 5 and ilo_offset = 0 and ihi_offset = 0
-    if( matrix_type == "Near overflow" &&
-        n != 5 && ilo_offset != 0 && ihi_offset != 0 )
+    if (matrix_type == "Near overflow" && n != 5 && ilo_offset != 0 &&
+        ihi_offset != 0)
         return;
-    
+
     // Constants
     const idx_t ilo = n > 1 ? ilo_offset : 0;
     const idx_t ihi = n > 1 + ilo_offset ? n - ihi_offset : n;
 
-    // Random number generator
     rand_generator gen;
 
     // Define the matrices and vectors
-    std::vector<T> A_; auto A = new_matrix( A_, n, n );
-    std::vector<T> H_; auto H = new_matrix( H_, n, n );
+    std::vector<T> A_;
+    auto A = new_matrix(A_, n, n);
+    std::vector<T> H_;
+    auto H = new_matrix(H_, n, n);
     std::vector<T> tau(n);
 
-    if (matrix_type == "Random")
-    {
+    if (matrix_type == "Random") {
         // Generate a random matrix in A
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = 0; i < n; ++i)
                 A(i, j) = rand_helper<T>(gen);
     }
-    if (matrix_type == "Near overflow")
-    {
+    if (matrix_type == "Near overflow") {
         const real_t large_num = safe_max<real_t>() * uroundoff<real_t>();
 
         for (idx_t j = 0; j < n; ++j)
@@ -119,20 +127,21 @@ TEMPLATE_TEST_CASE("Hessenberg reduction is backward stable", "[eigenvalues][hes
             A(i, j) = (T)0.0;
     tlapack::lacpy(Uplo::General, A, H);
 
-    INFO("matrix = " << matrix_type << " n = " << n << " ilo = " << ilo << " ihi = " << ihi);
-    
+    INFO("matrix = " << matrix_type << " n = " << n << " ilo = " << ilo
+                     << " ihi = " << ihi);
+
     SECTION("GEHD2")
-    {    
+    {
         tlapack::gehd2(ilo, ihi, H, tau);
 
         check_hess_reduction(ilo, ihi, H, tau, A);
     }
-    
+
     SECTION("GEHRD")
     {
         idx_t nb = GENERATE(2, 3);
         INFO("nb = " << nb);
-        
+
         gehrd_opts_t<idx_t> opts;
         opts.nb = nb;
         opts.nx_switch = 2;

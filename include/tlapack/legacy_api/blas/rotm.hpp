@@ -11,9 +11,9 @@
 #ifndef TLAPACK_LEGACY_ROTM_HH
 #define TLAPACK_LEGACY_ROTM_HH
 
-#include "tlapack/legacy_api/base/utils.hpp"
-#include "tlapack/legacy_api/base/types.hpp"
 #include "tlapack/blas/rotm.hpp"
+#include "tlapack/legacy_api/base/types.hpp"
+#include "tlapack/legacy_api/base/utils.hpp"
 
 namespace tlapack {
 
@@ -51,35 +51,33 @@ namespace tlapack {
  *
  * @ingroup legacy_blas
  */
-template< typename TX, typename TY >
-void rotm(
-    idx_t n,
-    TX *x, int_t incx,
-    TY *y, int_t incy,
-    scalar_type<TX, TY> const param[5] )
+template <typename TX, typename TY>
+void rotm(idx_t n,
+          TX* x,
+          int_t incx,
+          TY* y,
+          int_t incy,
+          scalar_type<TX, TY> const param[5])
 {
     // constants
-    const int flag = (int) param[0];
+    const int flag = (int)param[0];
     const scalar_type<TX, TY>* h = &param[1];
 
     // check arguments
-    tlapack_check_false( incx == 0 );
-    tlapack_check_false( incy == 0 );
-    tlapack_check_false( flag < -2 && flag > 1 );
+    tlapack_check_false(incx == 0);
+    tlapack_check_false(incy == 0);
+    tlapack_check_false(flag < -2 && flag > 1);
 
     // quick return
-    if( n <= 0 ) return;
-    
-    tlapack_expr_with_2vectors(
-        x_, TX, n, x, incx,
-        y_, TY, n, y, incy,
-        if      ( flag == -2 ) return rotm<-2>(x_,y_,h);
-        else if ( flag == -1 ) return rotm<-1>(x_,y_,h);
-        else if ( flag ==  0 ) return rotm< 0>(x_,y_,h);
-        else                   return rotm< 1>(x_,y_,h);
-    );
+    if (n <= 0) return;
+
+    tlapack_expr_with_2vectors(x_, TX, n, x, incx, y_, TY, n, y, incy,
+                               if (flag == -2) return rotm<-2>(x_, y_, h);
+                               else if (flag == -1) return rotm<-1>(x_, y_, h);
+                               else if (flag == 0) return rotm<0>(x_, y_, h);
+                               else return rotm<1>(x_, y_, h););
 }
 
 }  // namespace tlapack
 
-#endif        //  #ifndef TLAPACK_LEGACY_ROTM_HH
+#endif  //  #ifndef TLAPACK_LEGACY_ROTM_HH

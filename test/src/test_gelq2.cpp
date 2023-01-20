@@ -24,7 +24,9 @@
 
 using namespace tlapack;
 
-TEMPLATE_TEST_CASE("LQ factorization of a general m-by-n matrix", "[lqf]", TLAPACK_TYPES_TO_TEST)
+TEMPLATE_TEST_CASE("LQ factorization of a general m-by-n matrix",
+                   "[lqf]",
+                   TLAPACK_TYPES_TO_TEST)
 {
     srand(1);
 
@@ -43,14 +45,19 @@ TEMPLATE_TEST_CASE("LQ factorization of a general m-by-n matrix", "[lqf]", TLAPA
 
     m = GENERATE(10, 20, 30);
     n = GENERATE(10, 20, 30);
-    k = GENERATE(8, 10, 20, 30); // k is the number of rows for output Q. Can personalize it.
+    k = GENERATE(
+        8, 10, 20,
+        30);  // k is the number of rows for output Q. Can personalize it.
 
     const real_t eps = ulp<real_t>();
-    const real_t tol = real_t(m*n) * eps;
+    const real_t tol = real_t(m * n) * eps;
 
-    std::vector<T> A_; auto A = new_matrix( A_, m, n );
-    std::vector<T> A_copy_; auto A_copy = new_matrix( A_copy_, m, n );
-    std::vector<T> Q_; auto Q = new_matrix( Q_, k, n );
+    std::vector<T> A_;
+    auto A = new_matrix(A_, m, n);
+    std::vector<T> A_copy_;
+    auto A_copy = new_matrix(A_copy_, m, n);
+    std::vector<T> Q_;
+    auto Q = new_matrix(Q_, k, n);
 
     std::vector<T> tauw(min(m, n));
 
@@ -61,7 +68,7 @@ TEMPLATE_TEST_CASE("LQ factorization of a general m-by-n matrix", "[lqf]", TLAPA
 
     // Workspace allocation:
     vectorOfBytes workVec;
-    workspace_opts_t<> workOpts( alloc_workspace( workVec, workinfo ) );
+    workspace_opts_t<> workOpts(alloc_workspace(workVec, workinfo));
 
     for (idx_t j = 0; j < n; ++j)
         for (idx_t i = 0; i < m; ++i)
@@ -69,30 +76,35 @@ TEMPLATE_TEST_CASE("LQ factorization of a general m-by-n matrix", "[lqf]", TLAPA
 
     lacpy(Uplo::General, A, A_copy);
 
-    if (k <= n) // k must be less than or equal to n, because we cannot get a Q bigger than n-by-n
+    if (k <= n)  // k must be less than or equal to n, because we cannot get a Q
+                 // bigger than n-by-n
     {
         INFO("m = " << m << " n = " << n << " k = " << k);
         {
             gelq2(A, tauw, workOpts);
 
             // Q is sliced down to the desired size of output Q (k-by-n).
-            // It stores the desired number of Householder reflectors that UNGL2 will use.
+            // It stores the desired number of Householder reflectors that UNGL2
+            // will use.
             lacpy(Uplo::General, slice(A, range(0, min(m, k)), range(0, n)), Q);
 
             ungl2(Q, tauw, workOpts);
 
             // Wq is the identity matrix to check the orthogonality of Q
-            std::vector<T> Wq_; auto Wq = new_matrix( Wq_, k, k );
+            std::vector<T> Wq_;
+            auto Wq = new_matrix(Wq_, k, k);
             auto orth_Q = check_orthogonality(Q, Wq);
             CHECK(orth_Q <= tol);
 
             // L is sliced from A after GELQ2
-            std::vector<T> L_; auto L = new_matrix( L_, min(k, m), k );
+            std::vector<T> L_;
+            auto L = new_matrix(L_, min(k, m), k);
             laset(Uplo::Upper, zero, zero, L);
             lacpy(Uplo::Lower, slice(A, range(0, min(m, k)), range(0, k)), L);
 
             // R stores the product of L and Q
-            std::vector<T> R_; auto R = new_matrix( R_, min(k, m), n );
+            std::vector<T> R_;
+            auto R = new_matrix(R_, min(k, m), n);
 
             // Test A = L * Q
             gemm(Op::NoTrans, Op::NoTrans, real_t(1.), L, Q, R);
@@ -100,7 +112,8 @@ TEMPLATE_TEST_CASE("LQ factorization of a general m-by-n matrix", "[lqf]", TLAPA
                 for (idx_t i = 0; i < min(m, k); ++i)
                     A_copy(i, j) -= R(i, j);
 
-            real_t repres = lange(Norm::Max, slice(A_copy, range(0, min(m, k)), range(0, n)));
+            real_t repres = lange(
+                Norm::Max, slice(A_copy, range(0, min(m, k)), range(0, n)));
             CHECK(repres <= tol);
         }
     }

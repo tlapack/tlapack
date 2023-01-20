@@ -9,35 +9,34 @@
 
 // Plugins for <T>LAPACK (must come before <T>LAPACK headers)
 #define TLAPACK_PREFERRED_MATRIX_LEGACY
-#include <tlapack/plugins/stdvector.hpp>
 #include <tlapack/plugins/legacyArray.hpp>
+#include <tlapack/plugins/stdvector.hpp>
 
 // <T>LAPACK
-#include <tlapack/lapack/lange.hpp>
-#include <tlapack/lapack/laset.hpp>
-#include <tlapack/lapack/lansy.hpp>
-#include <tlapack/lapack/lacpy.hpp>
 #include <tlapack/lapack/gehrd.hpp>
-#include <tlapack/lapack/unghr.hpp>
+#include <tlapack/lapack/lacpy.hpp>
+#include <tlapack/lapack/lange.hpp>
+#include <tlapack/lapack/lansy.hpp>
+#include <tlapack/lapack/laset.hpp>
 #include <tlapack/lapack/multishift_qr.hpp>
+#include <tlapack/lapack/unghr.hpp>
 
 // C++ headers
+#include <chrono>  // for high_resolution_clock
+#include <iostream>
 #include <memory>
 #include <vector>
-#include <chrono> // for high_resolution_clock
-#include <iostream>
 
 //------------------------------------------------------------------------------
 /// Print matrix A in the standard output
 template <typename matrix_t>
-inline void printMatrix(const matrix_t &A)
+inline void printMatrix(const matrix_t& A)
 {
     using idx_t = tlapack::size_type<matrix_t>;
     const idx_t m = tlapack::nrows(A);
     const idx_t n = tlapack::ncols(A);
 
-    for (idx_t i = 0; i < m; ++i)
-    {
+    for (idx_t i = 0; i < m; ++i) {
         std::cout << std::endl;
         for (idx_t j = 0; j < n; ++j)
             std::cout << A(i, j) << " ";
@@ -62,20 +61,20 @@ void run(size_t n)
     std::vector<T> tau(n);
 
     // Matrix views
-    std::vector<T> A_; auto A = new_matrix(A_, n, n);
-    std::vector<T> H_; auto H = new_matrix(H_, n, n);
-    std::vector<T> Q_; auto Q = new_matrix(Q_, n, n);
+    std::vector<T> A_;
+    auto A = new_matrix(A_, n, n);
+    std::vector<T> H_;
+    auto H = new_matrix(H_, n, n);
+    std::vector<T> Q_;
+    auto Q = new_matrix(Q_, n, n);
 
     // Initialize arrays with junk
-    for (size_t j = 0; j < n; ++j)
-    {
-        for (size_t i = 0; i < n; ++i)
-        {
+    for (size_t j = 0; j < n; ++j) {
+        for (size_t i = 0; i < n; ++i) {
             A(i, j) = static_cast<float>(0xDEADBEEF);
             Q(i, j) = static_cast<float>(0xCAFED00D);
         }
-        for (size_t i = 0; i < n; ++i)
-        {
+        for (size_t i = 0; i < n; ++i) {
             H(i, j) = static_cast<float>(0xFEE1DEAD);
         }
         tau[j] = static_cast<float>(0xFFBADD11);
@@ -90,10 +89,8 @@ void run(size_t n)
     auto normA = tlapack::lange(tlapack::frob_norm, A);
 
     // Print A
-    if (verbose)
-    {
-        std::cout << std::endl
-                  << "A = ";
+    if (verbose) {
+        std::cout << std::endl << "A = ";
         printMatrix(A);
     }
 
@@ -112,7 +109,6 @@ void run(size_t n)
     // Record end time
     auto endQHQ = std::chrono::high_resolution_clock::now();
 
-
     // Save the H matrix
     for (size_t j = 0; j < n; ++j)
         for (size_t i = 0; i < std::min(n, j + 2); ++i)
@@ -127,7 +123,6 @@ void run(size_t n)
     }
     // Record end time
     auto endQ = std::chrono::high_resolution_clock::now();
-
 
     // Remove junk from lower half of H
     for (size_t j = 0; j < n; ++j)
@@ -151,18 +146,18 @@ void run(size_t n)
             H(i, j) = 0.0;
 
     // Compute elapsed time in nanoseconds
-    auto elapsedQHQ = std::chrono::duration_cast<std::chrono::nanoseconds>(endQHQ - startQHQ);
-    auto elapsedQ = std::chrono::duration_cast<std::chrono::nanoseconds>(endQ - startQ);
-    auto elapsedSchur = std::chrono::duration_cast<std::chrono::nanoseconds>(endSchur - startSchur);
+    auto elapsedQHQ =
+        std::chrono::duration_cast<std::chrono::nanoseconds>(endQHQ - startQHQ);
+    auto elapsedQ =
+        std::chrono::duration_cast<std::chrono::nanoseconds>(endQ - startQ);
+    auto elapsedSchur = std::chrono::duration_cast<std::chrono::nanoseconds>(
+        endSchur - startSchur);
 
     // Print Q and H
-    if (verbose)
-    {
-        std::cout << std::endl
-                  << "Q = ";
+    if (verbose) {
+        std::cout << std::endl << "Q = ";
         printMatrix(Q);
-        std::cout << std::endl
-                  << "H = ";
+        std::cout << std::endl << "H = ";
         printMatrix(H);
     }
 
@@ -180,16 +175,17 @@ void run(size_t n)
         // work receives the identity n*n
         tlapack::laset(tlapack::Uplo::General, (T)0.0, (T)1.0, work);
         // work receives Q'Q - I
-        // tlapack::syrk( tlapack::Uplo::Upper, tlapack::Op::ConjTrans, (T) 1.0, Q, (T) -1.0, work );
-        tlapack::gemm(tlapack::Op::ConjTrans, tlapack::Op::NoTrans, (T)1.0, Q, Q, (T)-1.0, work);
+        // tlapack::syrk( tlapack::Uplo::Upper, tlapack::Op::ConjTrans, (T) 1.0,
+        // Q, (T) -1.0, work );
+        tlapack::gemm(tlapack::Op::ConjTrans, tlapack::Op::NoTrans, (T)1.0, Q,
+                      Q, (T)-1.0, work);
 
         // Compute ||Q'Q - I||_F
-        norm_orth_1 = tlapack::lansy(tlapack::frob_norm, tlapack::Uplo::Upper, work);
+        norm_orth_1 =
+            tlapack::lansy(tlapack::frob_norm, tlapack::Uplo::Upper, work);
 
-        if (verbose)
-        {
-            std::cout << std::endl
-                      << "Q'Q-I = ";
+        if (verbose) {
+            std::cout << std::endl << "Q'Q-I = ";
             printMatrix(work);
         }
     }
@@ -198,7 +194,7 @@ void run(size_t n)
 
     std::vector<T> Hcopy_;
     auto H_copy = new_matrix(Hcopy_, n, n);
-    tlapack::lacpy(tlapack::Uplo::General,H, H_copy);
+    tlapack::lacpy(tlapack::Uplo::General, H, H_copy);
     {
         std::vector<T> work_;
         auto work = new_matrix(work_, n, n);
@@ -206,17 +202,17 @@ void run(size_t n)
             for (size_t i = 0; i < n; ++i)
                 work(i, j) = static_cast<float>(0xABADBABC);
 
-        tlapack::gemm(tlapack::Op::NoTrans, tlapack::Op::NoTrans, (T)1.0, Q, H, work);
-        tlapack::gemm(tlapack::Op::NoTrans, tlapack::Op::ConjTrans, (T)1.0, work, Q, H);
+        tlapack::gemm(tlapack::Op::NoTrans, tlapack::Op::NoTrans, (T)1.0, Q, H,
+                      work);
+        tlapack::gemm(tlapack::Op::NoTrans, tlapack::Op::ConjTrans, (T)1.0,
+                      work, Q, H);
 
         for (size_t j = 0; j < n; ++j)
             for (size_t i = 0; i < n; ++i)
                 H(i, j) -= A(i, j);
 
-        if (verbose)
-        {
-            std::cout << std::endl
-                      << "QHQ'-A = ";
+        if (verbose) {
+            std::cout << std::endl << "QHQ'-A = ";
             printMatrix(H);
         }
 
@@ -225,47 +221,50 @@ void run(size_t n)
 
     // 4) Compute Q*AQ (usefull for debugging)
 
-    if(verbose){
+    if (verbose) {
         std::vector<T> work_;
         auto work = new_matrix(work_, n, n);
         for (size_t j = 0; j < n; ++j)
             for (size_t i = 0; i < n; ++i)
                 work(i, j) = static_cast<float>(0xABADBABC);
 
-        tlapack::gemm(tlapack::Op::ConjTrans, tlapack::Op::NoTrans, (T)1.0, Q, A, work);
-        tlapack::gemm(tlapack::Op::NoTrans, tlapack::Op::NoTrans, (T)1.0, work, Q, A);
+        tlapack::gemm(tlapack::Op::ConjTrans, tlapack::Op::NoTrans, (T)1.0, Q,
+                      A, work);
+        tlapack::gemm(tlapack::Op::NoTrans, tlapack::Op::NoTrans, (T)1.0, work,
+                      Q, A);
 
-        std::cout << std::endl
-                    << "Q'AQ = ";
+        std::cout << std::endl << "Q'AQ = ";
         printMatrix(A);
 
         for (size_t j = 0; j < n; ++j)
             for (size_t i = 0; i < n; ++i)
                 A(i, j) -= H_copy(i, j);
 
-        std::cout << std::endl
-                    << "Q'AQ - H = ";
+        std::cout << std::endl << "Q'AQ - H = ";
         printMatrix(A);
     }
 
     std::cout << std::endl;
-    std::cout << "Hessenberg time = " << elapsedQHQ.count() * 1.0e-9 << " s" << std::endl;
-    std::cout << "Q forming time = "<< elapsedQ.count() * 1.0e-9 << " s" << std::endl;
-    std::cout << "QR time = " << elapsedSchur.count() * 1.0e-9 << " s" << std::endl;
+    std::cout << "Hessenberg time = " << elapsedQHQ.count() * 1.0e-9 << " s"
+              << std::endl;
+    std::cout << "Q forming time = " << elapsedQ.count() * 1.0e-9 << " s"
+              << std::endl;
+    std::cout << "QR time = " << elapsedSchur.count() * 1.0e-9 << " s"
+              << std::endl;
     std::cout << "||QHQ* - A||_F/||A||_F  = " << norm_repres_1
               << ",        ||Q'Q - I||_F  = " << norm_orth_1;
     std::cout << std::endl;
 }
 
 //------------------------------------------------------------------------------
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
     int n;
 
     // Default arguments
     n = (argc < 2) ? 100 : atoi(argv[1]);
 
-    srand(3); // Init random seed
+    srand(3);  // Init random seed
 
     std::cout.precision(5);
     std::cout << std::scientific << std::showpos;

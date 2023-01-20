@@ -18,7 +18,7 @@
 namespace tlapack {
 
 /** getri_uili calculates the inverse of a general n-by-n matrix A
- * 
+ *
  *  A is assumed to be in the form L U factors on the input,
  *  trtri is used to invert U and L in place
  *  thereafter, ul_mult is called to calculate U^(-1)L^(-1) in place.
@@ -32,33 +32,29 @@ namespace tlapack {
  *          L is stored in the lower triangle of A; unit diagonal is not stored.
  *          U is stored in the upper triangle of A.
  *      On exit, inverse of A is overwritten on A.
- * 
+ *
  * @ingroup computational
  */
-template< class matrix_t >
-int getri_uili( matrix_t& A )
+template <class matrix_t>
+int getri_uili(matrix_t& A)
 {
     // check arguments
-    tlapack_check( nrows(A)==ncols(A));
+    tlapack_check(nrows(A) == ncols(A));
 
     // Invert the upper part of A; U
     int info = trtri_recursive(Uplo::Upper, Diag::NonUnit, A);
-    if( info != 0 )
-        return info;
+    if (info != 0) return info;
 
     // Invert the lower part of A; L which has 1 on the diagonal
     trtri_recursive(Uplo::Lower, Diag::Unit, A);
 
-    //multiply U^{-1} and L^{-1} in place using ul_mult
+    // multiply U^{-1} and L^{-1} in place using ul_mult
     ul_mult(A);
-    
+
     return 0;
-    
-} //getri_uili
 
-} // lapack
+}  // getri_uili
 
-#endif // TLAPACK_getri_uili_HH
+}  // namespace tlapack
 
-
-
+#endif  // TLAPACK_getri_uili_HH

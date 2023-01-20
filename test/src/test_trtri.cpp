@@ -18,8 +18,8 @@
 
 // Other routines
 #include <tlapack/blas/trmm.hpp>
-#include <tlapack/lapack/trtri_recursive.hpp>
 #include <tlapack/lapack/lantr.hpp>
+#include <tlapack/lapack/trtri_recursive.hpp>
 
 using namespace tlapack;
 
@@ -36,7 +36,7 @@ TEMPLATE_TEST_CASE("TRTRI is stable", "[trtri]", TLAPACK_TYPES_TO_TEST)
     Create<matrix_t> new_matrix;
 
     Uplo uplo = GENERATE(Uplo::Lower, Uplo::Upper);
-    Diag diag = GENERATE(Diag::Unit, Diag::NonUnit); 
+    Diag diag = GENERATE(Diag::Unit, Diag::NonUnit);
     idx_t n = GENERATE(1, 2, 6, 9);
 
     INFO("uplo = " << uplo);
@@ -46,19 +46,20 @@ TEMPLATE_TEST_CASE("TRTRI is stable", "[trtri]", TLAPACK_TYPES_TO_TEST)
     const real_t eps = ulp<real_t>();
     const real_t tol = real_t(n) * eps;
 
-    std::vector<T> A_; auto A = new_matrix( A_, n, n );
-    std::vector<T> C_; auto C = new_matrix( C_, n, n );
+    std::vector<T> A_;
+    auto A = new_matrix(A_, n, n);
+    std::vector<T> C_;
+    auto C = new_matrix(C_, n, n);
 
     // Generate random matrix in Schur form
-    for (idx_t j = 0; j < n; ++j)
-    {
+    for (idx_t j = 0; j < n; ++j) {
         for (idx_t i = 0; i < n; ++i)
             A(i, j) = rand_helper<T>();
 
-        if( diag == Diag::NonUnit )
+        if (diag == Diag::NonUnit)
             A(j, j) += real_t(n);
         else
-            A(j, j) = real_t(1); 
+            A(j, j) = real_t(1);
     }
 
     lacpy(uplo, A, C);
@@ -68,27 +69,27 @@ TEMPLATE_TEST_CASE("TRTRI is stable", "[trtri]", TLAPACK_TYPES_TO_TEST)
 
         // Calculate residuals
 
-        if (uplo == Uplo::Lower)
-        {
+        if (uplo == Uplo::Lower) {
             for (idx_t j = 0; j < n; j++)
                 for (idx_t i = 0; i < j; i++)
                     C(i, j) = T(0);
         }
-        else
-        {
+        else {
             for (idx_t i = 0; i < n; i++)
                 for (idx_t j = 0; j < i; j++)
                     C(i, j) = T(0);
         }
 
-        // TRMM with X starting as the inverse of C and leaving as the identity. This checks that the inverse is correct.
-        // Note: it would be nice to have a ``upper * upper`` MM function to do this
+        // TRMM with X starting as the inverse of C and leaving as the identity.
+        // This checks that the inverse is correct. Note: it would be nice to
+        // have a ``upper * upper`` MM function to do this
         trmm(Side::Left, uplo, Op::NoTrans, diag, T(1), A, C);
 
         for (idx_t i = 0; i < n; ++i)
             C(i, i) = C(i, i) - T(1);
 
-        real_t normres = lantr(max_norm, uplo, Diag::NonUnit, C) / (lantr(max_norm, uplo, diag, A));
+        real_t normres = lantr(max_norm, uplo, Diag::NonUnit, C) /
+                         (lantr(max_norm, uplo, diag, A));
         CHECK(normres <= tol);
     }
 }

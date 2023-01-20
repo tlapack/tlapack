@@ -52,11 +52,11 @@
 
 #include "tlapack/blas/gemm.hpp"
 #include "tlapack/blas/hemm.hpp"
-#include "tlapack/blas/herk.hpp"
 #include "tlapack/blas/her2k.hpp"
+#include "tlapack/blas/herk.hpp"
 #include "tlapack/blas/symm.hpp"
-#include "tlapack/blas/syrk.hpp"
 #include "tlapack/blas/syr2k.hpp"
+#include "tlapack/blas/syrk.hpp"
 #include "tlapack/blas/trmm.hpp"
 #include "tlapack/blas/trsm.hpp"
 
@@ -68,25 +68,25 @@
 // Auxiliary routines
 // ------------------
 
-#include "tlapack/lapack/larf.hpp"
-#include "tlapack/lapack/larfg.hpp"
-#include "tlapack/lapack/larft.hpp"
-#include "tlapack/lapack/larfb.hpp"
-#include "tlapack/lapack/lapy2.hpp"
-#include "tlapack/lapack/lapy3.hpp"
-#include "tlapack/lapack/ladiv.hpp"
-#include "tlapack/lapack/laset.hpp"
 #include "tlapack/lapack/lacpy.hpp"
+#include "tlapack/lapack/ladiv.hpp"
 #include "tlapack/lapack/lange.hpp"
 #include "tlapack/lapack/lanhe.hpp"
 #include "tlapack/lapack/lansy.hpp"
 #include "tlapack/lapack/lantr.hpp"
+#include "tlapack/lapack/lapy2.hpp"
+#include "tlapack/lapack/lapy3.hpp"
+#include "tlapack/lapack/larf.hpp"
+#include "tlapack/lapack/larfb.hpp"
+#include "tlapack/lapack/larfg.hpp"
+#include "tlapack/lapack/larft.hpp"
 #include "tlapack/lapack/larnv.hpp"
 #include "tlapack/lapack/lascl.hpp"
+#include "tlapack/lapack/laset.hpp"
 #include "tlapack/lapack/lassq.hpp"
-#include "tlapack/lapack/transpose.hpp"
 #include "tlapack/lapack/lauum_recursive.hpp"
 #include "tlapack/lapack/lu_mult.hpp"
+#include "tlapack/lapack/transpose.hpp"
 
 // SVD
 // ----------------
@@ -105,8 +105,8 @@
 // ----------------
 
 #include "tlapack/lapack/gelq2.hpp"
-#include "tlapack/lapack/ungl2.hpp"
 #include "tlapack/lapack/gelqf.hpp"
+#include "tlapack/lapack/ungl2.hpp"
 
 // Solution of positive definite systems
 // ----------------
@@ -122,21 +122,21 @@
 // Nonsymmetric standard eigenvalue routines
 // ----------------
 
+#include "tlapack/lapack/agressive_early_deflation.hpp"
 #include "tlapack/lapack/gehd2.hpp"
 #include "tlapack/lapack/gehrd.hpp"
-#include "tlapack/lapack/lahr2.hpp"
-#include "tlapack/lapack/unghr.hpp"
-#include "tlapack/lapack/unmhr.hpp"
 #include "tlapack/lapack/lahqr.hpp"
-#include "tlapack/lapack/lahqr_shiftcolumn.hpp"
 #include "tlapack/lapack/lahqr_eig22.hpp"
 #include "tlapack/lapack/lahqr_schur22.hpp"
-#include "tlapack/lapack/schur_swap.hpp"
-#include "tlapack/lapack/schur_move.hpp"
+#include "tlapack/lapack/lahqr_shiftcolumn.hpp"
+#include "tlapack/lapack/lahr2.hpp"
 #include "tlapack/lapack/move_bulge.hpp"
-#include "tlapack/lapack/multishift_qr_sweep.hpp"
-#include "tlapack/lapack/agressive_early_deflation.hpp"
 #include "tlapack/lapack/multishift_qr.hpp"
+#include "tlapack/lapack/multishift_qr_sweep.hpp"
+#include "tlapack/lapack/schur_move.hpp"
+#include "tlapack/lapack/schur_swap.hpp"
+#include "tlapack/lapack/unghr.hpp"
+#include "tlapack/lapack/unmhr.hpp"
 
 // LU
 // ----------------
@@ -152,5 +152,4 @@
 
 #include "tlapack/lapack/getri.hpp"
 
-
-#endif // TLAPACK_HH
+#endif  // TLAPACK_HH

@@ -10,14 +10,15 @@
 
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
+#include <tlapack/lapack/transpose.hpp>
 
 #include "testutils.hpp"
 
-#include <tlapack/lapack/transpose.hpp>
-
 using namespace tlapack;
 
-TEMPLATE_TEST_CASE("Conjugate Transpose gives correct result", "[util]", TLAPACK_TYPES_TO_TEST)
+TEMPLATE_TEST_CASE("Conjugate Transpose gives correct result",
+                   "[util]",
+                   TLAPACK_TYPES_TO_TEST)
 {
     srand(1);
 
@@ -34,8 +35,10 @@ TEMPLATE_TEST_CASE("Conjugate Transpose gives correct result", "[util]", TLAPACK
     idx_t m = GENERATE(1, 2, 3, 5, 10);
 
     // Define the matrices
-    std::vector<T> A_; auto A = new_matrix( A_, m, n );
-    std::vector<T> B_; auto B = new_matrix( B_, n, m );
+    std::vector<T> A_;
+    auto A = new_matrix(A_, m, n);
+    std::vector<T> B_;
+    auto B = new_matrix(B_, n, m);
 
     // Generate a random matrix in A
     for (idx_t j = 0; j < n; ++j)
@@ -45,7 +48,8 @@ TEMPLATE_TEST_CASE("Conjugate Transpose gives correct result", "[util]", TLAPACK
     INFO("m = " << m << " n = " << n);
     {
         transpose_opts_t<idx_t> opts;
-        // Set nx to a small value so that the blocked algorithm gets tested even for small n and m;
+        // Set nx to a small value so that the blocked algorithm gets tested
+        // even for small n and m;
         opts.nx = 3;
         conjtranspose(A, B, opts);
 
@@ -55,7 +59,9 @@ TEMPLATE_TEST_CASE("Conjugate Transpose gives correct result", "[util]", TLAPACK
     }
 }
 
-TEMPLATE_TEST_CASE("Transpose gives correct result", "[util]", TLAPACK_TYPES_TO_TEST)
+TEMPLATE_TEST_CASE("Transpose gives correct result",
+                   "[util]",
+                   TLAPACK_TYPES_TO_TEST)
 {
     srand(1);
 
@@ -72,8 +78,10 @@ TEMPLATE_TEST_CASE("Transpose gives correct result", "[util]", TLAPACK_TYPES_TO_
     idx_t m = GENERATE(1, 2, 3, 5, 10);
 
     // Define the matrices
-    std::vector<T> A_; auto A = new_matrix( A_, m, n );
-    std::vector<T> B_; auto B = new_matrix( B_, n, m );
+    std::vector<T> A_;
+    auto A = new_matrix(A_, m, n);
+    std::vector<T> B_;
+    auto B = new_matrix(B_, n, m);
 
     // Generate a random matrix in A
     for (idx_t j = 0; j < n; ++j)
@@ -83,7 +91,8 @@ TEMPLATE_TEST_CASE("Transpose gives correct result", "[util]", TLAPACK_TYPES_TO_
     INFO("m = " << m << " n = " << n);
     {
         transpose_opts_t<idx_t> opts;
-        // Set nx to a small value so that the blocked algorithm gets tested even for small n and m;
+        // Set nx to a small value so that the blocked algorithm gets tested
+        // even for small n and m;
         opts.nx = 3;
         transpose(A, B, opts);
 

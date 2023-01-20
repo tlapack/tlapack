@@ -11,15 +11,15 @@
 #ifndef TLAPACK_LEGACY_AXPY_HH
 #define TLAPACK_LEGACY_AXPY_HH
 
-#include "tlapack/legacy_api/base/utils.hpp"
-#include "tlapack/legacy_api/base/types.hpp"
 #include "tlapack/blas/axpy.hpp"
+#include "tlapack/legacy_api/base/types.hpp"
+#include "tlapack/legacy_api/base/utils.hpp"
 
 namespace tlapack {
 
 /**
  * Add scaled vector, $y = \alpha x + y$.
- * 
+ *
  * Wrapper to axpy(
     const alpha_t& alpha,
     const vectorX_t& x, vectorY_t& y ).
@@ -46,27 +46,25 @@ namespace tlapack {
  *
  * @ingroup legacy_blas
  */
-template< typename TX, typename TY >
-void axpy(
-    idx_t n,
-    scalar_type<TX, TY> alpha,
-    TX const *x, int_t incx,
-    TY       *y, int_t incy )
+template <typename TX, typename TY>
+void axpy(idx_t n,
+          scalar_type<TX, TY> alpha,
+          TX const* x,
+          int_t incx,
+          TY* y,
+          int_t incy)
 {
-    tlapack_check_false( incx == 0 );
-    tlapack_check_false( incy == 0 );
+    tlapack_check_false(incx == 0);
+    tlapack_check_false(incy == 0);
     using scalar_t = scalar_type<TX, TY>;
 
     // quick return
-    if( n <= 0 || alpha == scalar_t(0) ) return;
-    
-    tlapack_expr_with_2vectors(
-        x_, TX, n, x, incx,
-        y_, TY, n, y, incy,
-        return axpy( alpha, x_, y_ )
-    );
+    if (n <= 0 || alpha == scalar_t(0)) return;
+
+    tlapack_expr_with_2vectors(x_, TX, n, x, incx, y_, TY, n, y, incy,
+                               return axpy(alpha, x_, y_));
 }
 
 }  // namespace tlapack
 
-#endif        //  #ifndef TLAPACK_LEGACY_AXPY_HH
+#endif  //  #ifndef TLAPACK_LEGACY_AXPY_HH

@@ -16,7 +16,7 @@
 namespace tlapack {
 
 /** Performs complex division in real arithmetic.
- * 
+ *
  * \[
  *      p + iq = (a + ib) / (c + id)
  * \]
@@ -28,21 +28,21 @@ namespace tlapack {
  * @param[in] d Imaginary part of denominator.
  * @param[out] p Real part of quotient.
  * @param[out] q Imaginary part of quotient.
- * 
+ *
  * @ingroup auxiliary
  */
-template< typename real_t,
-    enable_if_t<(
-    /* Requires: */
-        ! is_complex<real_t>::value
-    ), int > = 0
->
-void ladiv(
-    const real_t& a, const real_t& b,
-    const real_t& c, const real_t& d,
-    real_t &p, real_t &q )
+template <typename real_t,
+          enable_if_t<(
+                          /* Requires: */
+                          !is_complex<real_t>::value),
+                      int> = 0>
+void ladiv(const real_t& a,
+           const real_t& b,
+           const real_t& c,
+           const real_t& d,
+           real_t& p,
+           real_t& q)
 {
-
     real_t e, f;
     if (abs(d) < abs(c)) {
         e = d / c;
@@ -59,26 +59,24 @@ void ladiv(
 }
 
 /** Performs complex division in real arithmetic with complex arguments.
- * 
+ *
  * @return x/y
  *
  * @tparam real_t Floating-point type.
  * @param[in] x Complex numerator.
  * @param[in] y Complex denominator.
- * 
+ *
  * @ingroup auxiliary
  */
-template< typename T, enable_if_t< is_complex<T>::value ,int> = 0 >
-inline T ladiv(
-    const T& x,
-    const T& y )
+template <typename T, enable_if_t<is_complex<T>::value, int> = 0>
+inline T ladiv(const T& x, const T& y)
 {
     real_type<T> zr, zi;
-    ladiv( real(x), imag(x), real(y), imag(y), zr, zi );
-    
-    return T( zr, zi );
+    ladiv(real(x), imag(x), real(y), imag(y), zr, zi);
+
+    return T(zr, zi);
 }
 
-}
+}  // namespace tlapack
 
-#endif // TLAPACK_LADIV_HH
+#endif  // TLAPACK_LADIV_HH

@@ -16,8 +16,8 @@
 #ifndef TLAPACK_BLAS_NRM2_HH
 #define TLAPACK_BLAS_NRM2_HH
 
-#include "tlapack/base/utils.hpp"
 #include "tlapack/base/constants.hpp"
+#include "tlapack/base/utils.hpp"
 
 namespace tlapack {
 
@@ -29,20 +29,18 @@ namespace tlapack {
  *
  * @ingroup blas1
  */
-template< class vector_t,
-    disable_if_allow_optblas_t< vector_t > = 0
->
-auto nrm2( const vector_t& x )
+template <class vector_t, disable_if_allow_optblas_t<vector_t> = 0>
+auto nrm2(const vector_t& x)
 {
-    using real_t = real_type< type_t<vector_t> >;
-    using idx_t  = size_type< vector_t >;
+    using real_t = real_type<type_t<vector_t> >;
+    using idx_t = size_type<vector_t>;
 
     // constants
     const idx_t n = size(x);
 
     // constants
-    const real_t zero( 0 );
-    const real_t one( 1 );
+    const real_t zero(0);
+    const real_t one(1);
     const real_t tsml = blue_min<real_t>();
     const real_t tbig = blue_max<real_t>();
     const real_t ssml = blue_scalingMin<real_t>();
@@ -53,7 +51,7 @@ auto nrm2( const vector_t& x )
     real_t sumsq = zero;
 
     // quick return
-    if( n <= 0 ) return zero;
+    if (n <= 0) return zero;
 
     // Compute the sum of squares in 3 accumulators:
     //    abig -- sums of squares scaled down to avoid overflow
@@ -66,45 +64,44 @@ auto nrm2( const vector_t& x )
     real_t amed = zero;
     real_t abig = zero;
 
-    for (idx_t i = 0; i < n; ++i)
-    {
-        real_t ax = tlapack::abs( x[i] );
-        if( ax > tbig )
-            abig += (ax*sbig) * (ax*sbig);
-        else if( ax < tsml ) {
-            if( abig == zero ) asml += (ax*ssml) * (ax*ssml);
-        } else
+    for (idx_t i = 0; i < n; ++i) {
+        real_t ax = tlapack::abs(x[i]);
+        if (ax > tbig)
+            abig += (ax * sbig) * (ax * sbig);
+        else if (ax < tsml) {
+            if (abig == zero) asml += (ax * ssml) * (ax * ssml);
+        }
+        else
             amed += ax * ax;
     }
 
     // Combine abig and amed or amed and asml if
     // more than one accumulator was used.
 
-    if( abig > zero ) {
+    if (abig > zero) {
         // Combine abig and amed if abig > 0
-        if( amed > zero || isnan(amed) )
-            abig += (amed*sbig)*sbig;
+        if (amed > zero || isnan(amed)) abig += (amed * sbig) * sbig;
         scl = one / sbig;
         sumsq = abig;
     }
-    else if( asml > zero ) {
+    else if (asml > zero) {
         // Combine amed and asml if asml > 0
-        if( amed > zero || isnan(amed) ) {
-            
+        if (amed > zero || isnan(amed)) {
             amed = sqrt(amed);
             asml = sqrt(asml) / ssml;
-            
+
             real_t ymin, ymax;
-            if( asml > amed ) {
+            if (asml > amed) {
                 ymin = amed;
                 ymax = asml;
-            } else {
+            }
+            else {
                 ymin = asml;
                 ymax = amed;
             }
 
             scl = one;
-            sumsq = (ymax * ymax) * ( one + (ymin/ymax) * (ymin/ymax) );
+            sumsq = (ymax * ymax) * (one + (ymin / ymax) * (ymin / ymax));
         }
         else {
             scl = one / ssml;
@@ -117,23 +114,20 @@ auto nrm2( const vector_t& x )
         sumsq = amed;
     }
 
-    return real_t( scl * sqrt(sumsq) );
+    return real_t(scl * sqrt(sumsq));
 }
 
 #ifdef USE_LAPACKPP_WRAPPERS
 
-    template< class vector_t,
-        enable_if_allow_optblas_t< vector_t > = 0
-    >
-    inline
-    auto nrm2( vector_t const& x )
-    {
-        auto x_ = legacy_vector(x);
-        return ::blas::nrm2( x_.n, x_.ptr, x_.inc );
-    }
+template <class vector_t, enable_if_allow_optblas_t<vector_t> = 0>
+inline auto nrm2(vector_t const& x)
+{
+    auto x_ = legacy_vector(x);
+    return ::blas::nrm2(x_.n, x_.ptr, x_.inc);
+}
 
 #endif
 
 }  // namespace tlapack
 
-#endif        // #ifndef TLAPACK_BLAS_NRM2_HH
+#endif  // #ifndef TLAPACK_BLAS_NRM2_HH

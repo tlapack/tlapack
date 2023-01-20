@@ -11,9 +11,9 @@
 #ifndef TLAPACK_LEGACY_IAMAX_HH
 #define TLAPACK_LEGACY_IAMAX_HH
 
-#include "tlapack/legacy_api/base/utils.hpp"
-#include "tlapack/legacy_api/base/types.hpp"
 #include "tlapack/blas/iamax.hpp"
+#include "tlapack/legacy_api/base/types.hpp"
+#include "tlapack/legacy_api/base/utils.hpp"
 
 namespace tlapack {
 
@@ -28,32 +28,30 @@ namespace tlapack {
  *
  * @param[in] incx
  *     Stride between elements of x. incx > 0.
- * 
+ *
  * @return In priority order:
  * 1. 0 if n <= 0,
- * 2. the index of the first `NAN` in $x$ if it exists and if `checkNAN == true`,
+ * 2. the index of the first `NAN` in $x$ if it exists and if `checkNAN ==
+ * true`,
  * 3. the index of the first `Infinity` in $x$ if it exists,
  * 4. the Index of the infinity-norm of $x$, $|| x ||_{inf}$,
  *     $\arg\max_{i=0}^{n-1} \left(|Re(x_i)| + |Im(x_i)|\right)$.
- * 
+ *
  * @see iamax( const vector_t& x, const ec_opts_t& opts = {} )
  *
  * @ingroup legacy_blas
  */
-template< typename T >
-idx_t iamax( idx_t n, T const *x, int_t incx )
+template <typename T>
+idx_t iamax(idx_t n, T const* x, int_t incx)
 {
-    tlapack_check_false( incx <= 0 );
+    tlapack_check_false(incx <= 0);
 
     // quick return
-    if( n <= 0 ) return 0;
+    if (n <= 0) return 0;
 
-    tlapack_expr_with_vector_positiveInc(
-        x_, T, n, x, incx,
-        return iamax( x_ )
-    );
+    tlapack_expr_with_vector_positiveInc(x_, T, n, x, incx, return iamax(x_));
 }
 
 }  // namespace tlapack
 
-#endif        //  #ifndef TLAPACK_LEGACY_IAMAX_HH
+#endif  //  #ifndef TLAPACK_LEGACY_IAMAX_HH
