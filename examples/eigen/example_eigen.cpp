@@ -7,11 +7,10 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#include <iostream>
-
-#define TLAPACK_PREFERRED_MATRIX_EIGEN
+// Plugins for <T>LAPACK (must come before <T>LAPACK headers)
 #include <tlapack/plugins/eigen.hpp>
 
+// <T>LAPACK
 #include <tlapack/blas/trmm.hpp>
 #include <tlapack/blas/syrk.hpp>
 #include <tlapack/lapack/lacpy.hpp>
@@ -20,8 +19,12 @@
 #include <tlapack/lapack/geqr2.hpp>
 #include <tlapack/lapack/ung2r.hpp>
 
+// Eigen
 #include <Eigen/Dense>
 #include <Eigen/Householder>
+
+// C++ headers
+#include <iostream>
 
 int main( int argc, char** argv )
 {

@@ -7,16 +7,19 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#include <tlapack/legacy_api/blas/nrm2.hpp>
-#include <tlapack/legacy_api/blas/gemm.hpp>
-
-#include <vector>
-#include <iostream>
-#include <chrono>   // for high_resolution_clock
-
+// Plugins for <T>LAPACK (must come before <T>LAPACK headers)
 #ifdef USE_MPFR
     #include <tlapack/plugins/mpreal.hpp>
 #endif
+
+// <T>LAPACK
+#include <tlapack/legacy_api/blas/nrm2.hpp>
+#include <tlapack/legacy_api/blas/gemm.hpp>
+
+// C++ headers
+#include <vector>
+#include <iostream>
+#include <chrono>   // for high_resolution_clock
 
 //------------------------------------------------------------------------------
 template <typename T>

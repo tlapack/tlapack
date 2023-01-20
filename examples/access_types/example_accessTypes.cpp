@@ -10,11 +10,15 @@
 #undef TLAPACK_ERROR_NDEBUG
 #undef NDEBUG
 
+// Plugins for <T>LAPACK (must come before <T>LAPACK headers)
 #include <tlapack/plugins/legacyArray.hpp>
+
+// <T>LAPACK
 #include <tlapack/lapack/lascl.hpp>
 
-#include <vector>
+// C++ headers
 #include <iostream>
+#include <vector>
 
 using namespace tlapack;
 

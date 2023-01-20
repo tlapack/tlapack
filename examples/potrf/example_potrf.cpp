@@ -7,18 +7,20 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#include <vector>
-#include <iostream>
-#include <chrono>   // for high_resolution_clock
-
+// Plugins for <T>LAPACK (must come before <T>LAPACK headers)
 #include <tlapack/plugins/legacyArray.hpp>
 
 // <T>LAPACK
 #include <tlapack/blas/gemm.hpp>
-#include <tlapack/lapack/lange.hpp>
 #include <tlapack/lapack/lacpy.hpp>
+#include <tlapack/lapack/lange.hpp>
 #include <tlapack/lapack/potrf2.hpp>
 #include <tlapack/lapack/potrs.hpp>
+
+// C++ headers
+#include <vector>
+#include <iostream>
+#include <chrono>   // for high_resolution_clock
 
 #ifndef USE_MKL
     // LAPACKE

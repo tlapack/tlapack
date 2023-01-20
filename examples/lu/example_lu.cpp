@@ -8,21 +8,23 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#include <iostream>
-#include <vector>
-
+// Plugins for <T>LAPACK (must come before <T>LAPACK headers)
 #define TLAPACK_PREFERRED_MATRIX_LEGACY
 #include <tlapack/plugins/stdvector.hpp>
 #include <tlapack/plugins/legacyArray.hpp>
+#ifdef USE_MPFR
+    #include <tlapack/plugins/mpreal.hpp>
+#endif
 
+// <T>LAPACK
 #include <tlapack/blas/trsm.hpp>
 #include <tlapack/lapack/lange.hpp>
 #include <tlapack/lapack/lacpy.hpp>
 #include <tlapack/lapack/getrf.hpp>
 
-#ifdef USE_MPFR
-    #include <tlapack/plugins/mpreal.hpp>
-#endif
+// C++ headers
+#include <iostream>
+#include <vector>
 
 //------------------------------------------------------------------------------
 template< class T, tlapack::Layout L >

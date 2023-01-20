@@ -7,23 +7,25 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#include <iostream>
-#include <chrono>   // for high_resolution_clock
+// Plugins for <T>LAPACK (must come before <T>LAPACK headers)
+#include <tlapack/plugins/eigen.hpp>
+#ifdef USE_MDSPAN_DATA
+    #include <tlapack/plugins/mdspan.hpp>
+#endif
 
-// From Eigen
+// <T>LAPACK
+#include <tlapack/lapack/gehrd.hpp>
+#include <tlapack/blas/nrm2.hpp>
+#include <tlapack/lapack/unghr.hpp>
+#include <tlapack/lapack/multishift_qr.hpp>
+
+// Eigen
 #include <Eigen/Dense>
 #include <Eigen/Householder>
 
-#include <tlapack/plugins/eigen.hpp>
-
-#ifdef USE_MDSPAN_DATA
-    #include <tlapack/plugins/mdspan.hpp>
-    #include <tlapack/blas/nrm2.hpp>
-#endif
-
-#include <tlapack/lapack/gehrd.hpp>
-#include <tlapack/lapack/unghr.hpp>
-#include <tlapack/lapack/multishift_qr.hpp>
+// C++ headers
+#include <iostream>
+#include <chrono>   // for high_resolution_clock
 
 template <class T>
 bool complex_comparator(const std::complex<T> &a, const std::complex<T> &b) {

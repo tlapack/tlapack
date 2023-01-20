@@ -7,14 +7,18 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#include <tlapack/plugins/legacyArray.hpp>
+// Plugins for <T>LAPACK (must come before <T>LAPACK headers)
 #include <tlapack/plugins/debugutils.hpp>
+#include <tlapack/plugins/legacyArray.hpp>
+
+// <T>LAPACK
 #include <tlapack/lapack/laset.hpp>
 
+// C++ headers
+#include <chrono>  // for high_resolution_clock
+#include <iostream>
 #include <memory>
 #include <vector>
-#include <chrono> // for high_resolution_clock
-#include <iostream>
 
 //------------------------------------------------------------------------------
 int main(int argc, char **argv)

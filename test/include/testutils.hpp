@@ -13,10 +13,10 @@
 #ifndef TLAPACK_TESTUTILS_HH
 #define TLAPACK_TESTUTILS_HH
 
-// clang-format off
+// Definitions
 #include "testdefinitions.hpp"
-// clang-format on
 
+// <T>LAPACK
 #include <tlapack/base/utils.hpp>
 #include <tlapack/blas/gemm.hpp>
 #include <tlapack/blas/herk.hpp>

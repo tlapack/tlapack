@@ -7,11 +7,15 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
+// Plugins for <T>LAPACK (must come before <T>LAPACK headers)
 #define TLAPACK_PREFERRED_MATRIX_LEGACY
 #include <tlapack/plugins/stdvector.hpp>
 #include <tlapack/plugins/legacyArray.hpp>
+
+// <T>LAPACK
 #include <tlapack.hpp>
 
+// C++ headers
 #include <memory>
 #include <vector>
 #include <chrono> // for high_resolution_clock

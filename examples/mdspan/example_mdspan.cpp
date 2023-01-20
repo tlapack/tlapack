@@ -7,18 +7,20 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-// #include <tlapack.hpp>
-
-#include <vector>
-#include <iostream>
-
+// Plugins for <T>LAPACK (must come before <T>LAPACK headers)
 #include <tlapack/plugins/mdspan.hpp>
-#include "tiledLayout.h"
 
+// <T>LAPACK
 #include <tlapack/blas/gemm.hpp>
 #include <tlapack/blas/trsm.hpp>
 #include <tlapack/lapack/lange.hpp>
 #include <tlapack/lapack/potrf.hpp>
+
+// C++ headers
+#include <vector>
+#include <iostream>
+
+#include "tiledLayout.h"
 
 //------------------------------------------------------------------------------
 int main( int argc, char** argv )
