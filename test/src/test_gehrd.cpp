@@ -71,28 +71,38 @@ TEMPLATE_TEST_CASE("Hessenberg reduction is backward stable", "[eigenvalues][hes
     // Functor
     Create<matrix_t> new_matrix;
 
-    const std::string matrix_type = GENERATE(as<std::string>{}, "Random", "Near overflow");
+    using test_tuple_t = std::tuple<std::string, idx_t, idx_t, idx_t>;
+    const test_tuple_t test_tuple = GENERATE(
+        (test_tuple_t("Near overflow", 5, 0, 0)),
+        (test_tuple_t("Random", 1, 0, 0)),
+        (test_tuple_t("Random", 1, 0, 1)),
+        (test_tuple_t("Random", 1, 1, 0)),
+        (test_tuple_t("Random", 1, 1, 1)),
+        (test_tuple_t("Random", 2, 0, 0)),
+        (test_tuple_t("Random", 2, 0, 1)),
+        (test_tuple_t("Random", 2, 1, 0)),
+        (test_tuple_t("Random", 2, 1, 1)),
+        (test_tuple_t("Random", 3, 0, 0)),
+        (test_tuple_t("Random", 3, 0, 1)),
+        (test_tuple_t("Random", 3, 1, 0)),
+        (test_tuple_t("Random", 3, 1, 1)),
+        (test_tuple_t("Random", 5, 0, 0)),
+        (test_tuple_t("Random", 5, 0, 1)),
+        (test_tuple_t("Random", 5, 1, 0)),
+        (test_tuple_t("Random", 5, 1, 1)),
+        (test_tuple_t("Random", 10, 0, 0)),
+        (test_tuple_t("Random", 10, 0, 1)),
+        (test_tuple_t("Random", 10, 1, 0)),
+        (test_tuple_t("Random", 10, 1, 1)) );
+
+    const std::string matrix_type = std::get<0>(test_tuple);
+    const idx_t n = std::get<1>(test_tuple);
+    const idx_t ilo_offset = std::get<2>(test_tuple);
+    const idx_t ihi_offset = std::get<3>(test_tuple);
+    const idx_t ilo = n > 1 ? ilo_offset : 0;
+    const idx_t ihi = n > 1 + ilo_offset ? n - ihi_offset : n;
 
     rand_generator gen;
-    idx_t n = 0;
-    idx_t ilo = 0;
-    idx_t ihi = 0;
-    if (matrix_type == "Random")
-    {
-        // Generate n
-        n = GENERATE(1, 2, 3, 5, 10);
-        // Generate ilo and ihi
-        idx_t ilo_offset = GENERATE(0, 1);
-        idx_t ihi_offset = GENERATE(0, 1);
-        ilo = n > 1 ? ilo_offset : 0;
-        ihi = n > 1 + ilo_offset ? n - ihi_offset : n;
-    }
-    if (matrix_type == "Near overflow")
-    {
-        n = 5;
-        ilo = 0;
-        ihi = n;
-    }
 
     // Define the matrices and vectors
     std::vector<T> A_; auto A = new_matrix( A_, n, n );

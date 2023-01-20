@@ -38,56 +38,51 @@ TEMPLATE_TEST_CASE("schur swap gives correct result", "[eigenvalues]", TLAPACK_T
     const T one(1);
     idx_t n = 10;
 
-    idx_t n1, n2, j;
-    j = GENERATE(0, 1, 6);
+    const idx_t j = GENERATE(0, 1, 6);
+    const idx_t n1 = GENERATE(1, 2);
+    const idx_t n2 = GENERATE(1, 2);
 
-    if (is_complex<T>::value)
+    if (!is_complex<T>::value || (n1 == 1 && n2 == 1))
     {
-        n1 = 1;
-        n2 = 1;
-    }
-    else
-    {
-        n1 = GENERATE(1, 2);
-        n2 = GENERATE(1, 2);
-    }
-    const real_t eps = uroundoff<real_t>();
-    const real_t tol = real_t(1.0e2 * n) * eps;
+        
+        const real_t eps = uroundoff<real_t>();
+        const real_t tol = real_t(1.0e2 * n) * eps;
 
-    std::vector<T> A_; auto A = new_matrix( A_, n, n );
-    std::vector<T> Q_; auto Q = new_matrix( Q_, n, n );
-    std::vector<T> A_copy_; auto A_copy = new_matrix( A_copy_, n, n );
+        std::vector<T> A_; auto A = new_matrix( A_, n, n );
+        std::vector<T> Q_; auto Q = new_matrix( Q_, n, n );
+        std::vector<T> A_copy_; auto A_copy = new_matrix( A_copy_, n, n );
 
-    // Generate random matrix in Schur form
-    for (idx_t j = 0; j < n; ++j)
-        for (idx_t i = 0; i < n; ++i)
-            A(i, j) = rand_helper<T>();
+        // Generate random matrix in Schur form
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = 0; i < n; ++i)
+                A(i, j) = rand_helper<T>();
 
-    for (idx_t j = 0; j < n; ++j)
-        for (idx_t i = j + 1; i < n; ++i)
-            A(i, j) = zero;
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = j + 1; i < n; ++i)
+                A(i, j) = zero;
 
-    if( n1 == 2)
-        A( j + 1, j ) = rand_helper<T>();
-    if (n2 == 2)
-        A(j + n1 + 1, j + n1) = rand_helper<T>();
+        if( n1 == 2)
+            A( j + 1, j ) = rand_helper<T>();
+        if (n2 == 2)
+            A(j + n1 + 1, j + n1) = rand_helper<T>();
 
-    lacpy(Uplo::General, A, A_copy);
-    laset(Uplo::General, zero, one, Q);
+        lacpy(Uplo::General, A, A_copy);
+        laset(Uplo::General, zero, one, Q);
 
-    INFO("j = " << j << " n1 = " << n1 << " n2 =" << n2);
-    {
-        schur_swap(true, A, Q, j, n1, n2);
-        // Calculate residuals
+        INFO("j = " << j << " n1 = " << n1 << " n2 =" << n2);
+        {
+            schur_swap(true, A, Q, j, n1, n2);
+            // Calculate residuals
 
-        std::vector<T> res_; auto res = new_matrix( res_, n, n );
-        std::vector<T> work_; auto work = new_matrix( work_, n, n );
-        auto orth_res_norm = check_orthogonality(Q, res);
-        CHECK(orth_res_norm <= tol);
+            std::vector<T> res_; auto res = new_matrix( res_, n, n );
+            std::vector<T> work_; auto work = new_matrix( work_, n, n );
+            auto orth_res_norm = check_orthogonality(Q, res);
+            CHECK(orth_res_norm <= tol);
 
-        auto normA = tlapack::lange(tlapack::frob_norm, A);
-        auto simil_res_norm = check_similarity_transform(A_copy, Q, A, res, work);
-        CHECK(simil_res_norm <= tol * normA);
+            auto normA = tlapack::lange(tlapack::frob_norm, A);
+            auto simil_res_norm = check_similarity_transform(A_copy, Q, A, res, work);
+            CHECK(simil_res_norm <= tol * normA);
 
+        }
     }
 }

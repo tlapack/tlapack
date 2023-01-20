@@ -36,40 +36,49 @@ TEMPLATE_TEST_CASE("Multishift QR", "[eigenvalues][multishift_qr]", TLAPACK_TYPE
     // Functor
     Create<matrix_t> new_matrix;
 
-    rand_generator gen;
-
-    const T zero(0);
-    const T one(1);
-
-    const std::string matrix_type = GENERATE(as<std::string>{}, "Large Random", "Random");
+    using test_tuple_t = std::tuple<std::string, idx_t, int>;
+    const test_tuple_t test_tuple = GENERATE(
+        (test_tuple_t("Large Random", 100, 1302)),
+        (test_tuple_t("Random", 15, 2)),
+        (test_tuple_t("Random", 15, 3)),
+        (test_tuple_t("Random", 15, 4)),
+        (test_tuple_t("Random", 15, 5)),
+        (test_tuple_t("Random", 15, 6)),
+        (test_tuple_t("Random", 15, 7)),
+        (test_tuple_t("Random", 15, 8)),
+        (test_tuple_t("Random", 15, 9)),
+        (test_tuple_t("Random", 15, 10)),
+        (test_tuple_t("Random", 20, 2)),
+        (test_tuple_t("Random", 20, 3)),
+        (test_tuple_t("Random", 20, 4)),
+        (test_tuple_t("Random", 20, 5)),
+        (test_tuple_t("Random", 20, 6)),
+        (test_tuple_t("Random", 20, 7)),
+        (test_tuple_t("Random", 20, 8)),
+        (test_tuple_t("Random", 20, 9)),
+        (test_tuple_t("Random", 20, 10)),
+        (test_tuple_t("Random", 30, 2)),
+        (test_tuple_t("Random", 30, 3)),
+        (test_tuple_t("Random", 30, 4)),
+        (test_tuple_t("Random", 30, 5)),
+        (test_tuple_t("Random", 30, 6)),
+        (test_tuple_t("Random", 30, 7)),
+        (test_tuple_t("Random", 30, 8)),
+        (test_tuple_t("Random", 30, 9)),
+        (test_tuple_t("Random", 30, 10)) );
     // The near overflow tests are disabled untill a bug in rotg is fixed
     // const std::string matrix_type = GENERATE(as<std::string>{}, "Large Random", "Near overflow", "Random");
 
-    idx_t n = 0;
-    idx_t ilo = 0;
-    idx_t ihi = 0;
-    int seed = 0;
-    if (matrix_type == "Random")
-    {
-        seed = GENERATE(2, 3, 4, 5, 6, 7, 8, 9, 10);
-        gen.seed(seed);
-        // Generate n
-        n = GENERATE(15, 20, 30);
-        ilo = 0;
-        ihi = n;
-    }
-    if (matrix_type == "Near overflow")
-    {
-        n = 30;
-        ilo = 0;
-        ihi = n;
-    }
-    if (matrix_type == "Large Random")
-    {
-        n = 100;
-        ilo = 0;
-        ihi = n;
-    }
+    const std::string matrix_type = std::get<0>(test_tuple);
+    const idx_t n = std::get<1>(test_tuple);
+    const idx_t ilo = 0;
+    const idx_t ihi = n;
+    const int seed = std::get<2>(test_tuple);
+    const real_t zero(0);
+    const real_t one(1);
+
+    rand_generator gen;
+    gen.seed(seed);
 
     // Define the matrices
     std::vector<T> A_; auto A = new_matrix( A_, n, n );

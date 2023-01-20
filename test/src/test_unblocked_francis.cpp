@@ -39,24 +39,21 @@ TEMPLATE_TEST_CASE("Double shift QR", "[eigenvalues][doubleshift_qr]", TLAPACK_T
     const T zero(0);
     const T one(1);
 
-    const std::string matrix_type = GENERATE(as<std::string>{}, "Random", "Near overflow");
+    using test_tuple_t = std::tuple<std::string, idx_t>;
+    const test_tuple_t test_tuple = GENERATE(
+        (test_tuple_t("Near overflow", 4)),
+        (test_tuple_t("Near overflow", 10)),
+        (test_tuple_t("Random", 0)),
+        (test_tuple_t("Random", 1)),
+        (test_tuple_t("Random", 2)),
+        (test_tuple_t("Random", 5)),
+        (test_tuple_t("Random", 10)),
+        (test_tuple_t("Random", 15)) );
 
-    idx_t n = 0;
-    idx_t ilo = 0;
-    idx_t ihi = 0;
-    if (matrix_type == "Random")
-    {
-        // Generate n
-        n = GENERATE(0, 1, 2, 5, 10, 15);
-        ilo = 0;
-        ihi = n;
-    }
-    if (matrix_type == "Near overflow")
-    {
-        n = GENERATE(4, 10);
-        ilo = 0;
-        ihi = n;
-    }
+    const std::string matrix_type = std::get<0>(test_tuple);
+    const idx_t n = std::get<1>(test_tuple);
+    const idx_t ilo = 0;
+    const idx_t ihi = n;
 
     // Define the matrices
     std::vector<T> A_; auto A = new_matrix( A_, n, n );
