@@ -10,6 +10,7 @@
 
 #include <catch2/catch_template_test_macros.hpp>
 
+// Test utilities and definitions (must come before <T>LAPACK headers)
 #include "testutils.hpp"
 
 using namespace tlapack;

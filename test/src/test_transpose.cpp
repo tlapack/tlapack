@@ -10,9 +10,12 @@
 
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
-#include <tlapack/lapack/transpose.hpp>
 
+// Test utilities and definitions (must come before <T>LAPACK headers)
 #include "testutils.hpp"
+
+// <T>LAPACK
+#include <tlapack/lapack/transpose.hpp>
 
 using namespace tlapack;
 

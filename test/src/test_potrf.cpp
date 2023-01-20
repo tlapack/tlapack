@@ -11,7 +11,7 @@
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 
-#include "TestUploMatrix.hpp"
+// Test utilities and definitions (must come before <T>LAPACK headers)
 #include "testutils.hpp"
 
 // Auxiliary routines
@@ -21,6 +21,8 @@
 // Other routines
 #include <tlapack/blas/trmm.hpp>
 #include <tlapack/lapack/potrf.hpp>
+
+#include "TestUploMatrix.hpp"
 
 using namespace tlapack;
 

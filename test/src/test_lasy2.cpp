@@ -11,6 +11,7 @@
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 
+// Test utilities and definitions (must come before <T>LAPACK headers)
 #include "testutils.hpp"
 
 // Other routines
