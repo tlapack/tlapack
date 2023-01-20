@@ -141,19 +141,19 @@ enum class Layout : char {
     BandStorage = 'B'
 };
 TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_4_VALUES(
-    Layout, Unspecified, ColMajor, RowMajor, BandStorage)
+    Layout, Unspecified, ColMajor, RowMajor, BandStorage);
 
 // -----------------------------------------------------------------------------
 // Upper or Lower access
 
 enum class Uplo : char { Upper = 'U', Lower = 'L', General = 'G' };
-TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_3_VALUES(Uplo, Upper, Lower, General)
+TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_3_VALUES(Uplo, Upper, Lower, General);
 
 // -----------------------------------------------------------------------------
 // Information about the main diagonal
 
 enum class Diag : char { NonUnit = 'N', Unit = 'U' };
-TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_2_VALUES(Diag, NonUnit, Unit)
+TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_2_VALUES(Diag, NonUnit, Unit);
 
 struct nonUnit_diagonal_t {
     constexpr operator Diag() const { return Diag::NonUnit; }
@@ -175,7 +175,7 @@ enum class Op : char {
     ConjTrans = 'C',
     Conj = 0  ///< non-transpose conjugate
 };
-TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_4_VALUES(Op, NoTrans, Trans, ConjTrans, Conj)
+TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_4_VALUES(Op, NoTrans, Trans, ConjTrans, Conj);
 
 struct noTranspose_t {
     constexpr operator Op() const { return Op::NoTrans; }
@@ -196,7 +196,7 @@ constexpr conjTranspose_t conjTranspose = {};
 // Sides
 
 enum class Side : char { Left = 'L', Right = 'R' };
-TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_2_VALUES(Side, Left, Right)
+TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_2_VALUES(Side, Left, Right);
 
 struct left_side_t {
     constexpr operator Side() const { return Side::Left; }
@@ -219,7 +219,7 @@ enum class Norm : char {
     Fro = 'F',  // or 'E'
     Max = 'M',
 };
-TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_5_VALUES(Norm, One, Two, Inf, Fro, Max)
+TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_5_VALUES(Norm, One, Two, Inf, Fro, Max);
 
 struct max_norm_t {
     constexpr operator Norm() const { return Norm::Max; }
@@ -247,7 +247,7 @@ enum class Direction : char {
     Forward = 'F',
     Backward = 'B',
 };
-TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_2_VALUES(Direction, Forward, Backward)
+TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_2_VALUES(Direction, Forward, Backward);
 
 struct forward_t {
     constexpr operator Direction() const { return Direction::Forward; }
@@ -267,7 +267,7 @@ enum class StoreV : char {
     Columnwise = 'C',
     Rowwise = 'R',
 };
-TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_2_VALUES(StoreV, Columnwise, Rowwise)
+TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_2_VALUES(StoreV, Columnwise, Rowwise);
 
 struct columnwise_storage_t {
     constexpr operator StoreV() const { return StoreV::Columnwise; }
