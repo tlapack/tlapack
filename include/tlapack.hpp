@@ -111,7 +111,6 @@
 // Solution of positive definite systems
 // ----------------
 
-#include "tlapack/lapack/potrf2.hpp"
 #include "tlapack/lapack/potrf.hpp"
 #include "tlapack/lapack/potrs.hpp"
 

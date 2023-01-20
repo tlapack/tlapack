@@ -127,7 +127,6 @@ auto lanhe( norm_t normType, uplo_t uplo, const matrix_t& A )
                     normType != Norm::One );
     tlapack_check_false(  uplo != Uplo::Lower &&
                     uplo != Uplo::Upper );
-    tlapack_check_false(  access_denied( uplo, read_policy(A) ) );
 
     // quick return
     if ( n <= 0 ) return real_t( 0 );
@@ -303,7 +302,6 @@ auto lanhe( norm_t normType, uplo_t uplo, const matrix_t& A, const workspace_opt
                     normType != Norm::One );
     tlapack_check_false(  uplo != Uplo::Lower &&
                     uplo != Uplo::Upper );
-    tlapack_check_false(  access_denied( uplo, read_policy(A) ) );
 
     // quick redirect for max-norm and Frobenius norm
     if      ( normType == Norm::Max  ) return lanhe( max_norm,  uplo, A );

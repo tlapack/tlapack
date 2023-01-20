@@ -96,7 +96,6 @@ int geqr2(
     const idx_t k = std::min<idx_t>( m, n-1 );
 
     // check arguments
-    tlapack_check_false( access_denied( dense, write_policy(A) ) );
     tlapack_check_false( (idx_t) size(tau)  < std::min<idx_t>( m, n ) );
 
     // quick return

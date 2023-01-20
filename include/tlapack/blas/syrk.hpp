@@ -81,8 +81,6 @@ void syrk(
     tlapack_check_false( nrows(C) != ncols(C) );
     tlapack_check_false( nrows(C) != n );
 
-    tlapack_check_false( access_denied( dense, read_policy(A) ) );
-    tlapack_check_false( access_denied( uplo, write_policy(C) ) );
 
     if (trans == Op::NoTrans) {
         if (uplo != Uplo::Lower) {

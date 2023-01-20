@@ -64,7 +64,6 @@ namespace tlapack{
         const idx_t k = std::min<idx_t>( m, n );
 
         // check arguments
-        tlapack_check_false( access_denied( dense, write_policy(A) ) );
         tlapack_check( (idx_t) size(Piv) >= k);
         
         // quick return

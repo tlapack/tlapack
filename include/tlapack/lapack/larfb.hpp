@@ -228,24 +228,6 @@ int larfb(
     tlapack_check_false(    storeMode != StoreV::Columnwise &&
                         storeMode != StoreV::Rowwise );
 
-    if( direction == Direction::Forward )
-    {
-        if( storeMode == StoreV::Columnwise )
-            tlapack_check_false( access_denied( strictLower, read_policy(V) ) );
-        else
-            tlapack_check_false( access_denied( strictUpper, read_policy(V) ) );
-
-        tlapack_check_false( access_denied( Uplo::Upper, read_policy(Tmatrix) ) );
-    }
-    else
-    {
-        tlapack_check_false( access_denied( dense, read_policy(V) ) );
-
-        tlapack_check_false( access_denied( Uplo::Lower, read_policy(Tmatrix) ) );
-    }
-
-    tlapack_check_false(    access_denied( dense, write_policy(C) ) );
-
     // Quick return
     if (m <= 0 || n <= 0 || k <= 0) return 0;
 

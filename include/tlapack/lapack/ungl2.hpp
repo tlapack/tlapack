@@ -94,7 +94,6 @@ namespace tlapack
         const idx_t t = min(k, m);  // desired number of Householder reflectors to use
 
         // check arguments
-        tlapack_check_false(access_denied(dense, write_policy(Q)) );
         tlapack_check_false((idx_t)size(tauw) < std::min<idx_t>(m, n) );
 
         // Allocates workspace

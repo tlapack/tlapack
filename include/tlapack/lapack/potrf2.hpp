@@ -63,7 +63,7 @@ namespace tlapack {
  *      Define the behavior of Exception Handling.   
  *
  * @return = 0: successful exit
- * @return > 0: if return value = i, the leading minor of order i is not
+ * @return i, 0 < i <= n, if the leading minor of order i is not
  *     positive definite, and the factorization could not be completed.
  *
  * @ingroup computational
@@ -84,7 +84,6 @@ int potrf2( uplo_t uplo, matrix_t& A, const ec_opts_t& opts = {} )
     // check arguments
     tlapack_check_false(    uplo != Uplo::Lower &&
                             uplo != Uplo::Upper );
-    tlapack_check_false(    access_denied( uplo, write_policy(A) ) );
     tlapack_check_false(    nrows(A) != ncols(A) );
 
     // Quick return

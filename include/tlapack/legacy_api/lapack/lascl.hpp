@@ -108,17 +108,17 @@ int lascl(
     if (matrixtype == MatrixType::LowerBand)
     {
         auto A_ = banded_matrix<T>( A, m, n, kl, 0 );
-        return lascl( write_policy(A_), b, a, A_ );
+        return lascl( band_t(kl,0), b, a, A_ );
     }
     else if (matrixtype == MatrixType::UpperBand)
     {
         auto A_ = banded_matrix<T>( A, m, n, 0, ku );
-        return lascl( write_policy(A_), b, a, A_ );
+        return lascl( band_t(0,ku), b, a, A_ );
     }
     else if (matrixtype == MatrixType::Band)
     {
         auto A_ = banded_matrix<T>( A, m, n, kl, ku );
-        return lascl( write_policy(A_), b, a, A_ );
+        return lascl( band_t(kl,ku), b, a, A_ );
     }
     else {
         auto A_ = colmajor_matrix<T>( A, m, n, lda );

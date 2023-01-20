@@ -127,7 +127,6 @@ namespace tlapack
         const idx_t n = ncols(A);
 
         // check arguments
-        tlapack_check_false(access_denied(dense, write_policy(A)));
         tlapack_check_false((idx_t)size(tauv) < std::min<idx_t>(m, n));
         tlapack_check_false((idx_t)size(tauw) < std::min<idx_t>(m, n));
         tlapack_check(m >= n); // Only m >= n matrices are supported (yet).

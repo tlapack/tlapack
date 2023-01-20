@@ -50,7 +50,6 @@ void laset(
     tlapack_check_false(  uplo != Uplo::Lower &&
                     uplo != Uplo::Upper &&
                     uplo != Uplo::General );
-    tlapack_check_false(  access_denied( uplo, write_policy(A) ) );
 
     if (uplo == Uplo::Upper) {
         // Set the strictly upper triangular or trapezoidal part of

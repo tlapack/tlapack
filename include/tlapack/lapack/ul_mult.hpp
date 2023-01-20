@@ -34,7 +34,6 @@ int ul_mult( matrix_t& A){
     using T = type_t<matrix_t>;
 
     // check arguments
-    tlapack_check_false( access_denied( dense, write_policy(A) ) );
     tlapack_check( nrows(A)==ncols(A));
     
     // constant

@@ -86,7 +86,6 @@ void trmv(
     tlapack_check_false( nrows(A) != ncols(A) );
     tlapack_check_false( (idx_t) size(x) != n );
 
-    tlapack_check_false( access_denied( uplo, read_policy(A) ) );
 
     if (trans == Op::NoTrans) {
         // Form x := A*x

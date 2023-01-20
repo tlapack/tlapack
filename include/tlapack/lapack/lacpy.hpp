@@ -45,8 +45,6 @@ void lacpy( uplo_t uplo, const matrixA_t& A, matrixB_t& B )
     tlapack_check_false(  uplo != Uplo::Lower &&
                     uplo != Uplo::Upper &&
                     uplo != Uplo::General );
-    tlapack_check_false(  access_denied( uplo, read_policy(A) ) );
-    tlapack_check_false(  access_denied( uplo, write_policy(B) ) );
 
     if( uplo == Uplo::Upper ) {
         // Set the strictly upper triangular or trapezoidal part of B

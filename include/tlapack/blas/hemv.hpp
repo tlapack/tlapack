@@ -72,7 +72,6 @@ void hemv(
     tlapack_check_false( size(x)  != n );
     tlapack_check_false( size(y)  != n );
 
-    tlapack_check_false( access_denied( uplo, read_policy(A) ) );
 
     // form y = beta*y
     for (idx_t i = 0; i < n; ++i)

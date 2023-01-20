@@ -235,22 +235,6 @@ namespace tlapack {
         return x.extent(1);
     }
 
-    // Read policy
-    template< class ET, class Exts, class LP, class AP >
-    inline constexpr auto
-    read_policy( const std::experimental::mdspan<ET,Exts,LP,AP>& x ) {
-        /// TODO: Maybe we should get the access type from the layout here?
-        return dense;
-    }
-
-    // Write policy
-    template< class ET, class Exts, class LP, class AP >
-    inline constexpr auto
-    write_policy( const std::experimental::mdspan<ET,Exts,LP,AP>& x ) {
-        /// TODO: Maybe we should get the access type from the layout here?
-        return dense;
-    }
-
     // -----------------------------------------------------------------------------
     // Block operations
 

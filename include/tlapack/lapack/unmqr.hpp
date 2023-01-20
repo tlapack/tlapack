@@ -207,8 +207,6 @@ int unmqr(
                          trans != Op::ConjTrans );
     tlapack_check_false( trans == Op::Trans && is_complex<matrixA_t>::value );
     
-    tlapack_check_false( access_denied( strictLower, read_policy(A) ) );
-    tlapack_check_false( access_denied( dense, write_policy(C) ) );
     
     // quick return
     if ((m == 0) || (n == 0) || (k == 0))

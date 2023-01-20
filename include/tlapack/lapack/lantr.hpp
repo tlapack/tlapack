@@ -155,7 +155,6 @@ auto lantr( norm_t normType, uplo_t uplo, diag_t diag, const matrix_t& A )
                     uplo != Uplo::Upper );
     tlapack_check_false( diag != Diag::NonUnit &&
                          diag != Diag::Unit );
-    tlapack_check_false(  access_denied( uplo, read_policy(A) ) );
 
     // quick return
     if (m == 0 || n == 0)
@@ -418,7 +417,6 @@ auto lantr(
                     uplo != Uplo::Upper );
     tlapack_check_false( diag != Diag::NonUnit &&
                          diag != Diag::Unit );
-    tlapack_check_false(  access_denied( uplo, read_policy(A) ) );
 
     // quick return
     if (m == 0 || n == 0)

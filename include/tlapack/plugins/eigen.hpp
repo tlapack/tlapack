@@ -283,18 +283,6 @@ namespace tlapack{
     ncols( const Eigen::EigenBase<T>& x ) {
         return x.cols();
     }
-    // Read policy
-    template<class T>
-    inline constexpr auto
-    read_policy( const Eigen::DenseBase<T>& x ) {
-        return dense;
-    }
-    // Write policy
-    template<class T>
-    inline constexpr auto
-    write_policy( const Eigen::DenseBase<T>& x ) {
-        return dense;
-    }
 
     // -----------------------------------------------------------------------------
     /* 
