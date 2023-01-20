@@ -8,11 +8,13 @@
 #define TLAPACK_BLAS_H
 
 // -----------------------------------------------------------------------------
-#include <stdint.h>
-#include <stddef.h>
 #include <complex.h>
+#include <stddef.h>
+#include <stdint.h>
 
+// clang-format off
 @TLAPACK_DEFINES@
+// clang-format on
 
 // -----------------------------------------------------------------------------
 // Integer types TLAPACK_SIZE_T and TLAPACK_INT_T
@@ -27,1108 +29,533 @@
 // -----------------------------------------------------------------------------
 
 #ifdef __cplusplus
-extern "C" {
+    extern "C"
+{
 #endif
 
-// -----------------------------------------------------------------------------
-// Enumerations
-typedef enum Layout { ColMajor = 'C', RowMajor = 'R' } Layout;
-typedef enum Op     { NoTrans  = 'N', Trans    = 'T', ConjTrans = 'C' } Op;
-typedef enum Uplo   { Upper    = 'U', Lower    = 'L', General   = 'G' } Uplo;
-typedef enum Diag   { NonUnit  = 'N', Unit     = 'U' } Diag;
-typedef enum Side   { Left     = 'L', Right    = 'R' } Side;
-
-// =============================================================================
-// Level 1 BLAS
-
-float sasum(
-    TLAPACK_SIZE_T n,
-    float const * x, TLAPACK_INT_T incx );
-
-double dasum(
-    TLAPACK_SIZE_T n,
-    double const * x, TLAPACK_INT_T incx );
-
-float casum(
-    TLAPACK_SIZE_T n,
-    float  _Complex const * x, TLAPACK_INT_T incx );
-
-double zasum(
-    TLAPACK_SIZE_T n,
-    double _Complex const * x, TLAPACK_INT_T incx );
-
-void saxpy(
-    TLAPACK_SIZE_T n,
-    float alpha,
-    float const * x, TLAPACK_INT_T incx,
-    float * y, TLAPACK_INT_T incy );
-
-void daxpy(
-    TLAPACK_SIZE_T n,
-    double alpha,
-    double const * x, TLAPACK_INT_T incx,
-    double * y, TLAPACK_INT_T incy );
-
-void caxpy(
-    TLAPACK_SIZE_T n,
-    float  _Complex alpha,
-    float  _Complex const * x, TLAPACK_INT_T incx,
-    float  _Complex * y, TLAPACK_INT_T incy );
-
-void zaxpy(
-    TLAPACK_SIZE_T n,
-    double _Complex alpha,
-    double _Complex const * x, TLAPACK_INT_T incx,
-    double _Complex * y, TLAPACK_INT_T incy );
-
-void scopy(
-    TLAPACK_SIZE_T n,
-    float const * x, TLAPACK_INT_T incx,
-    float * y, TLAPACK_INT_T incy );
-
-void dcopy(
-    TLAPACK_SIZE_T n,
-    double const * x, TLAPACK_INT_T incx,
-    double * y, TLAPACK_INT_T incy );
-
-void ccopy(
-    TLAPACK_SIZE_T n,
-    float  _Complex const * x, TLAPACK_INT_T incx,
-    float  _Complex * y, TLAPACK_INT_T incy );
-
-void zcopy(
-    TLAPACK_SIZE_T n,
-    double _Complex const * x, TLAPACK_INT_T incx,
-    double _Complex * y, TLAPACK_INT_T incy );
-
-float sdot(
-    TLAPACK_SIZE_T n,
-    float const * x, TLAPACK_INT_T incx,
-    float const * y, TLAPACK_INT_T incy );
-
-double ddot(
-    TLAPACK_SIZE_T n,
-    double const * x, TLAPACK_INT_T incx,
-    double const * y, TLAPACK_INT_T incy );
-
-float  _Complex cdot(
-    TLAPACK_SIZE_T n,
-    float  _Complex const * x, TLAPACK_INT_T incx,
-    float  _Complex const * y, TLAPACK_INT_T incy );
-
-double _Complex zdot(
-    TLAPACK_SIZE_T n,
-    double _Complex const * x, TLAPACK_INT_T incx,
-    double _Complex const * y, TLAPACK_INT_T incy );
-
-float sdotu(
-    TLAPACK_SIZE_T n,
-    float const * x, TLAPACK_INT_T incx,
-    float const * y, TLAPACK_INT_T incy );
-
-double ddotu(
-    TLAPACK_SIZE_T n,
-    double const * x, TLAPACK_INT_T incx,
-    double const * y, TLAPACK_INT_T incy );
-
-float  _Complex cdotu(
-    TLAPACK_SIZE_T n,
-    float  _Complex const * x, TLAPACK_INT_T incx,
-    float  _Complex const * y, TLAPACK_INT_T incy );
-
-double _Complex zdotu(
-    TLAPACK_SIZE_T n,
-    double _Complex const * x, TLAPACK_INT_T incx,
-    double _Complex const * y, TLAPACK_INT_T incy );
-
-TLAPACK_SIZE_T isamax(
-    TLAPACK_SIZE_T n,
-    float const * x, TLAPACK_INT_T incx );
-
-TLAPACK_SIZE_T idamax(
-    TLAPACK_SIZE_T n,
-    double const * x, TLAPACK_INT_T incx );
-
-TLAPACK_SIZE_T icamax(
-    TLAPACK_SIZE_T n,
-    float  _Complex const * x, TLAPACK_INT_T incx );
-
-TLAPACK_SIZE_T izamax(
-    TLAPACK_SIZE_T n,
-    double _Complex const * x, TLAPACK_INT_T incx );
-
-float snrm2(
-    TLAPACK_SIZE_T n,
-    float const * x, TLAPACK_INT_T incx );
-
-double dnrm2(
-    TLAPACK_SIZE_T n,
-    double const * x, TLAPACK_INT_T incx );
-
-float cnrm2(
-    TLAPACK_SIZE_T n,
-    float  _Complex const * x, TLAPACK_INT_T incx );
-
-double znrm2(
-    TLAPACK_SIZE_T n,
-    double _Complex const * x, TLAPACK_INT_T incx );
-
-void srot(
-    TLAPACK_SIZE_T n,
-    float * x, TLAPACK_INT_T incx,
-    float * y, TLAPACK_INT_T incy,
-    float c,
-    float s );
-
-void drot(
-    TLAPACK_SIZE_T n,
-    double * x, TLAPACK_INT_T incx,
-    double * y, TLAPACK_INT_T incy,
-    double c,
-    double s );
-
-void csrot(
-    TLAPACK_SIZE_T n,
-    float  _Complex * x, TLAPACK_INT_T incx,
-    float  _Complex * y, TLAPACK_INT_T incy,
-    float c,
-    float s );
-
-void zdrot(
-    TLAPACK_SIZE_T n,
-    double _Complex * x, TLAPACK_INT_T incx,
-    double _Complex * y, TLAPACK_INT_T incy,
-    double c,
-    double s );
-
-void crot(
-    TLAPACK_SIZE_T n,
-    float  _Complex * x, TLAPACK_INT_T incx,
-    float  _Complex * y, TLAPACK_INT_T incy,
-    float c,
-    float  _Complex s );
-
-void zrot(
-    TLAPACK_SIZE_T n,
-    double _Complex * x, TLAPACK_INT_T incx,
-    double _Complex * y, TLAPACK_INT_T incy,
-    double c,
-    double _Complex s );
-
-void srotg(
-    float * a,
-    float * b,
-    float * c,
-    float * s );
-
-void drotg(
-    double * a,
-    double * b,
-    double * c,
-    double * s );
-
-void crotg(
-    float  _Complex * a,
-    float  _Complex * b,
-    float * c,
-    float  _Complex * s );
-
-void zrotg(
-    double _Complex * a,
-    double _Complex * b,
-    double * c,
-    double _Complex * s );
-
-void srotm(
-    TLAPACK_SIZE_T n,
-    float * x, TLAPACK_INT_T incx,
-    float * y, TLAPACK_INT_T incy,
-    float const * param );
-
-void drotm(
-    TLAPACK_SIZE_T n,
-    double * x, TLAPACK_INT_T incx,
-    double * y, TLAPACK_INT_T incy,
-    double const * param );
-
-void srotmg(
-    float * d1,
-    float * d2,
-    float * a,
-    float b,
-    float * param );
-
-void drotmg(
-    double * d1,
-    double * d2,
-    double * a,
-    double b,
-    double * param );
-
-void sscal(
-    TLAPACK_SIZE_T n,
-    float alpha,
-    float * x, TLAPACK_INT_T incx );
-
-void dscal(
-    TLAPACK_SIZE_T n,
-    double alpha,
-    double * x, TLAPACK_INT_T incx );
-
-void cscal(
-    TLAPACK_SIZE_T n,
-    float  _Complex alpha,
-    float  _Complex * x, TLAPACK_INT_T incx );
-
-void zscal(
-    TLAPACK_SIZE_T n,
-    double _Complex alpha,
-    double _Complex * x, TLAPACK_INT_T incx );
-
-void sswap(
-    TLAPACK_SIZE_T n,
-    float * x, TLAPACK_INT_T incx,
-    float * y, TLAPACK_INT_T incy );
-
-void dswap(
-    TLAPACK_SIZE_T n,
-    double * x, TLAPACK_INT_T incx,
-    double * y, TLAPACK_INT_T incy );
-
-void cswap(
-    TLAPACK_SIZE_T n,
-    float  _Complex * x, TLAPACK_INT_T incx,
-    float  _Complex * y, TLAPACK_INT_T incy );
-
-void zswap(
-    TLAPACK_SIZE_T n,
-    double _Complex * x, TLAPACK_INT_T incx,
-    double _Complex * y, TLAPACK_INT_T incy );
-
-// =============================================================================
-// Level 2 BLAS
-
-void sgemv(
-    Layout layout,
-    Op trans,
-    TLAPACK_SIZE_T m,
-    TLAPACK_SIZE_T n,
-    float alpha,
-    float const * A, TLAPACK_SIZE_T lda,
-    float const * x, TLAPACK_INT_T incx,
-    float beta,
-    float * y, TLAPACK_INT_T incy );
-
-void dgemv(
-    Layout layout,
-    Op trans,
-    TLAPACK_SIZE_T m,
-    TLAPACK_SIZE_T n,
-    double alpha,
-    double const * A, TLAPACK_SIZE_T lda,
-    double const * x, TLAPACK_INT_T incx,
-    double beta,
-    double * y, TLAPACK_INT_T incy );
-
-void cgemv(
-    Layout layout,
-    Op trans,
-    TLAPACK_SIZE_T m,
-    TLAPACK_SIZE_T n,
-    float  _Complex alpha,
-    float  _Complex const * A, TLAPACK_SIZE_T lda,
-    float  _Complex const * x, TLAPACK_INT_T incx,
-    float  _Complex beta,
-    float  _Complex * y, TLAPACK_INT_T incy );
-
-void zgemv(
-    Layout layout,
-    Op trans,
-    TLAPACK_SIZE_T m,
-    TLAPACK_SIZE_T n,
-    double _Complex alpha,
-    double _Complex const * A, TLAPACK_SIZE_T lda,
-    double _Complex const * x, TLAPACK_INT_T incx,
-    double _Complex beta,
-    double _Complex * y, TLAPACK_INT_T incy );
-
-void sger(
-    Layout layout,
-    TLAPACK_SIZE_T m,
-    TLAPACK_SIZE_T n,
-    float alpha,
-    float const * x, TLAPACK_INT_T incx,
-    float const * y, TLAPACK_INT_T incy,
-    float * A, TLAPACK_SIZE_T lda );
-
-void dger(
-    Layout layout,
-    TLAPACK_SIZE_T m,
-    TLAPACK_SIZE_T n,
-    double alpha,
-    double const * x, TLAPACK_INT_T incx,
-    double const * y, TLAPACK_INT_T incy,
-    double * A, TLAPACK_SIZE_T lda );
-
-void cger(
-    Layout layout,
-    TLAPACK_SIZE_T m,
-    TLAPACK_SIZE_T n,
-    float  _Complex alpha,
-    float  _Complex const * x, TLAPACK_INT_T incx,
-    float  _Complex const * y, TLAPACK_INT_T incy,
-    float  _Complex * A, TLAPACK_SIZE_T lda );
-
-void zger(
-    Layout layout,
-    TLAPACK_SIZE_T m,
-    TLAPACK_SIZE_T n,
-    double _Complex alpha,
-    double _Complex const * x, TLAPACK_INT_T incx,
-    double _Complex const * y, TLAPACK_INT_T incy,
-    double _Complex * A, TLAPACK_SIZE_T lda );
-
-void sgeru(
-    Layout layout,
-    TLAPACK_SIZE_T m,
-    TLAPACK_SIZE_T n,
-    float alpha,
-    float const * x, TLAPACK_INT_T incx,
-    float const * y, TLAPACK_INT_T incy,
-    float * A, TLAPACK_SIZE_T lda );
-
-void dgeru(
-    Layout layout,
-    TLAPACK_SIZE_T m,
-    TLAPACK_SIZE_T n,
-    double alpha,
-    double const * x, TLAPACK_INT_T incx,
-    double const * y, TLAPACK_INT_T incy,
-    double * A, TLAPACK_SIZE_T lda );
-
-void cgeru(
-    Layout layout,
-    TLAPACK_SIZE_T m,
-    TLAPACK_SIZE_T n,
-    float  _Complex alpha,
-    float  _Complex const * x, TLAPACK_INT_T incx,
-    float  _Complex const * y, TLAPACK_INT_T incy,
-    float  _Complex * A, TLAPACK_SIZE_T lda );
-
-void zgeru(
-    Layout layout,
-    TLAPACK_SIZE_T m,
-    TLAPACK_SIZE_T n,
-    double _Complex alpha,
-    double _Complex const * x, TLAPACK_INT_T incx,
-    double _Complex const * y, TLAPACK_INT_T incy,
-    double _Complex * A, TLAPACK_SIZE_T lda );
-
-void shemv(
-    Layout layout,
-    Uplo uplo,
-    TLAPACK_SIZE_T n,
-    float alpha,
-    float const * A, TLAPACK_SIZE_T lda,
-    float const * x, TLAPACK_INT_T incx,
-    float beta,
-    float * y, TLAPACK_INT_T incy );
-
-void dhemv(
-    Layout layout,
-    Uplo uplo,
-    TLAPACK_SIZE_T n,
-    double alpha,
-    double const * A, TLAPACK_SIZE_T lda,
-    double const * x, TLAPACK_INT_T incx,
-    double beta,
-    double * y, TLAPACK_INT_T incy );
-
-void chemv(
-    Layout layout,
-    Uplo uplo,
-    TLAPACK_SIZE_T n,
-    float  _Complex alpha,
-    float  _Complex const * A, TLAPACK_SIZE_T lda,
-    float  _Complex const * x, TLAPACK_INT_T incx,
-    float  _Complex beta,
-    float  _Complex * y, TLAPACK_INT_T incy );
-
-void zhemv(
-    Layout layout,
-    Uplo uplo,
-    TLAPACK_SIZE_T n,
-    double _Complex alpha,
-    double _Complex const * A, TLAPACK_SIZE_T lda,
-    double _Complex const * x, TLAPACK_INT_T incx,
-    double _Complex beta,
-    double _Complex * y, TLAPACK_INT_T incy );
-
-void sher(
-    Layout layout,
-    Uplo uplo,
-    TLAPACK_SIZE_T n,
-    float alpha,
-    float const * x, TLAPACK_INT_T incx,
-    float * A, TLAPACK_SIZE_T lda );
-
-void dher(
-    Layout layout,
-    Uplo uplo,
-    TLAPACK_SIZE_T n,
-    double alpha,
-    double const * x, TLAPACK_INT_T incx,
-    double * A, TLAPACK_SIZE_T lda );
-
-void cher(
-    Layout layout,
-    Uplo uplo,
-    TLAPACK_SIZE_T n,
-    float alpha,
-    float  _Complex const * x, TLAPACK_INT_T incx,
-    float  _Complex * A, TLAPACK_SIZE_T lda );
-
-void zher(
-    Layout layout,
-    Uplo uplo,
-    TLAPACK_SIZE_T n,
-    double alpha,
-    double _Complex const * x, TLAPACK_INT_T incx,
-    double _Complex * A, TLAPACK_SIZE_T lda );
-
-void sher2(
-    Layout layout,
-    Uplo uplo,
-    TLAPACK_SIZE_T n,
-    float alpha,
-    float const * x, TLAPACK_INT_T incx,
-    float const * y, TLAPACK_INT_T incy,
-    float * A, TLAPACK_SIZE_T lda );
-
-void dher2(
-    Layout layout,
-    Uplo uplo,
-    TLAPACK_SIZE_T n,
-    double alpha,
-    double const * x, TLAPACK_INT_T incx,
-    double const * y, TLAPACK_INT_T incy,
-    double * A, TLAPACK_SIZE_T lda );
-
-void cher2(
-    Layout layout,
-    Uplo uplo,
-    TLAPACK_SIZE_T n,
-    float  _Complex alpha,
-    float  _Complex const * x, TLAPACK_INT_T incx,
-    float  _Complex const * y, TLAPACK_INT_T incy,
-    float  _Complex * A, TLAPACK_SIZE_T lda );
-
-void zher2(
-    Layout layout,
-    Uplo uplo,
-    TLAPACK_SIZE_T n,
-    double _Complex alpha,
-    double _Complex const * x, TLAPACK_INT_T incx,
-    double _Complex const * y, TLAPACK_INT_T incy,
-    double _Complex * A, TLAPACK_SIZE_T lda );
-
-void ssymv(
-    Layout layout,
-    Uplo uplo,
-    TLAPACK_SIZE_T n,
-    float alpha,
-    float const * A, TLAPACK_SIZE_T lda,
-    float const * x, TLAPACK_INT_T incx,
-    float beta,
-    float * y, TLAPACK_INT_T incy );
-
-void dsymv(
-    Layout layout,
-    Uplo uplo,
-    TLAPACK_SIZE_T n,
-    double alpha,
-    double const * A, TLAPACK_SIZE_T lda,
-    double const * x, TLAPACK_INT_T incx,
-    double beta,
-    double * y, TLAPACK_INT_T incy );
-
-void csymv(
-    Layout layout,
-    Uplo uplo,
-    TLAPACK_SIZE_T n,
-    float  _Complex alpha,
-    float  _Complex const * A, TLAPACK_SIZE_T lda,
-    float  _Complex const * x, TLAPACK_INT_T incx,
-    float  _Complex beta,
-    float  _Complex * y, TLAPACK_INT_T incy );
-
-void zsymv(
-    Layout layout,
-    Uplo uplo,
-    TLAPACK_SIZE_T n,
-    double _Complex alpha,
-    double _Complex const * A, TLAPACK_SIZE_T lda,
-    double _Complex const * x, TLAPACK_INT_T incx,
-    double _Complex beta,
-    double _Complex * y, TLAPACK_INT_T incy );
-
-void ssyr(
-    Layout layout,
-    Uplo uplo,
-    TLAPACK_SIZE_T n,
-    float alpha,
-    float const * x, TLAPACK_INT_T incx,
-    float * A, TLAPACK_SIZE_T lda );
-
-void dsyr(
-    Layout layout,
-    Uplo uplo,
-    TLAPACK_SIZE_T n,
-    double alpha,
-    double const * x, TLAPACK_INT_T incx,
-    double * A, TLAPACK_SIZE_T lda );
-
-void ssyr2(
-    Layout layout,
-    Uplo uplo,
-    TLAPACK_SIZE_T n,
-    float alpha,
-    float const * x, TLAPACK_INT_T incx,
-    float const * y, TLAPACK_INT_T incy,
-    float * A, TLAPACK_SIZE_T lda );
-
-void dsyr2(
-    Layout layout,
-    Uplo uplo,
-    TLAPACK_SIZE_T n,
-    double alpha,
-    double const * x, TLAPACK_INT_T incx,
-    double const * y, TLAPACK_INT_T incy,
-    double * A, TLAPACK_SIZE_T lda );
-
-void csyr2(
-    Layout layout,
-    Uplo uplo,
-    TLAPACK_SIZE_T n,
-    float  _Complex alpha,
-    float  _Complex const * x, TLAPACK_INT_T incx,
-    float  _Complex const * y, TLAPACK_INT_T incy,
-    float  _Complex * A, TLAPACK_SIZE_T lda );
-
-void zsyr2(
-    Layout layout,
-    Uplo uplo,
-    TLAPACK_SIZE_T n,
-    double _Complex alpha,
-    double _Complex const * x, TLAPACK_INT_T incx,
-    double _Complex const * y, TLAPACK_INT_T incy,
-    double _Complex * A, TLAPACK_SIZE_T lda );
-
-void strmv(
-    Layout layout,
-    Uplo uplo,
-    Op trans,
-    Diag diag,
-    TLAPACK_SIZE_T n,
-    float const * A, TLAPACK_SIZE_T lda,
-    float * x, TLAPACK_INT_T incx );
-
-void dtrmv(
-    Layout layout,
-    Uplo uplo,
-    Op trans,
-    Diag diag,
-    TLAPACK_SIZE_T n,
-    double const * A, TLAPACK_SIZE_T lda,
-    double * x, TLAPACK_INT_T incx );
-
-void ctrmv(
-    Layout layout,
-    Uplo uplo,
-    Op trans,
-    Diag diag,
-    TLAPACK_SIZE_T n,
-    float  _Complex const * A, TLAPACK_SIZE_T lda,
-    float  _Complex * x, TLAPACK_INT_T incx );
-
-void ztrmv(
-    Layout layout,
-    Uplo uplo,
-    Op trans,
-    Diag diag,
-    TLAPACK_SIZE_T n,
-    double _Complex const * A, TLAPACK_SIZE_T lda,
-    double _Complex * x, TLAPACK_INT_T incx );
-
-void strsv(
-    Layout layout,
-    Uplo uplo,
-    Op trans,
-    Diag diag,
-    TLAPACK_SIZE_T n,
-    float const * A, TLAPACK_SIZE_T lda,
-    float * x, TLAPACK_INT_T incx );
-
-void dtrsv(
-    Layout layout,
-    Uplo uplo,
-    Op trans,
-    Diag diag,
-    TLAPACK_SIZE_T n,
-    double const * A, TLAPACK_SIZE_T lda,
-    double * x, TLAPACK_INT_T incx );
-
-void ctrsv(
-    Layout layout,
-    Uplo uplo,
-    Op trans,
-    Diag diag,
-    TLAPACK_SIZE_T n,
-    float  _Complex const * A, TLAPACK_SIZE_T lda,
-    float  _Complex * x, TLAPACK_INT_T incx );
-
-void ztrsv(
-    Layout layout,
-    Uplo uplo,
-    Op trans,
-    Diag diag,
-    TLAPACK_SIZE_T n,
-    double _Complex const * A, TLAPACK_SIZE_T lda,
-    double _Complex * x, TLAPACK_INT_T incx );
-
-// =============================================================================
-// Level 3 BLAS
-
-void sgemm(
-    Layout layout,
-    Op transA,
-    Op transB,
-    TLAPACK_SIZE_T m,
-    TLAPACK_SIZE_T n,
-    TLAPACK_SIZE_T k,
-    float alpha,
-    float const * A, TLAPACK_SIZE_T lda,
-    float const * B, TLAPACK_SIZE_T ldb,
-    float beta,
-    float * C, TLAPACK_SIZE_T ldc );
-
-void dgemm(
-    Layout layout,
-    Op transA,
-    Op transB,
-    TLAPACK_SIZE_T m,
-    TLAPACK_SIZE_T n,
-    TLAPACK_SIZE_T k,
-    double alpha,
-    double const * A, TLAPACK_SIZE_T lda,
-    double const * B, TLAPACK_SIZE_T ldb,
-    double beta,
-    double * C, TLAPACK_SIZE_T ldc );
-
-void cgemm(
-    Layout layout,
-    Op transA,
-    Op transB,
-    TLAPACK_SIZE_T m,
-    TLAPACK_SIZE_T n,
-    TLAPACK_SIZE_T k,
-    float  _Complex alpha,
-    float  _Complex const * A, TLAPACK_SIZE_T lda,
-    float  _Complex const * B, TLAPACK_SIZE_T ldb,
-    float  _Complex beta,
-    float  _Complex * C, TLAPACK_SIZE_T ldc );
-
-void zgemm(
-    Layout layout,
-    Op transA,
-    Op transB,
-    TLAPACK_SIZE_T m,
-    TLAPACK_SIZE_T n,
-    TLAPACK_SIZE_T k,
-    double _Complex alpha,
-    double _Complex const * A, TLAPACK_SIZE_T lda,
-    double _Complex const * B, TLAPACK_SIZE_T ldb,
-    double _Complex beta,
-    double _Complex * C, TLAPACK_SIZE_T ldc );
-
-void shemm(
-    Layout layout,
-    Side side,
-    Uplo uplo,
-    TLAPACK_SIZE_T m,
-    TLAPACK_SIZE_T n,
-    float alpha,
-    float const * A, TLAPACK_SIZE_T lda,
-    float const * B, TLAPACK_SIZE_T ldb,
-    float beta,
-    float * C, TLAPACK_SIZE_T ldc );
-
-void dhemm(
-    Layout layout,
-    Side side,
-    Uplo uplo,
-    TLAPACK_SIZE_T m,
-    TLAPACK_SIZE_T n,
-    double alpha,
-    double const * A, TLAPACK_SIZE_T lda,
-    double const * B, TLAPACK_SIZE_T ldb,
-    double beta,
-    double * C, TLAPACK_SIZE_T ldc );
-
-void chemm(
-    Layout layout,
-    Side side,
-    Uplo uplo,
-    TLAPACK_SIZE_T m,
-    TLAPACK_SIZE_T n,
-    float  _Complex alpha,
-    float  _Complex const * A, TLAPACK_SIZE_T lda,
-    float  _Complex const * B, TLAPACK_SIZE_T ldb,
-    float  _Complex beta,
-    float  _Complex * C, TLAPACK_SIZE_T ldc );
-
-void zhemm(
-    Layout layout,
-    Side side,
-    Uplo uplo,
-    TLAPACK_SIZE_T m,
-    TLAPACK_SIZE_T n,
-    double _Complex alpha,
-    double _Complex const * A, TLAPACK_SIZE_T lda,
-    double _Complex const * B, TLAPACK_SIZE_T ldb,
-    double _Complex beta,
-    double _Complex * C, TLAPACK_SIZE_T ldc );
-
-void sher2k(
-    Layout layout,
-    Uplo uplo,
-    Op trans,
-    TLAPACK_SIZE_T n,
-    TLAPACK_SIZE_T k,
-    float alpha,
-    float const * A, TLAPACK_SIZE_T lda,
-    float const * B, TLAPACK_SIZE_T ldb,
-    float beta,
-    float * C, TLAPACK_SIZE_T ldc );
-
-void dher2k(
-    Layout layout,
-    Uplo uplo,
-    Op trans,
-    TLAPACK_SIZE_T n,
-    TLAPACK_SIZE_T k,
-    double alpha,
-    double const * A, TLAPACK_SIZE_T lda,
-    double const * B, TLAPACK_SIZE_T ldb,
-    double beta,
-    double * C, TLAPACK_SIZE_T ldc );
-
-void cher2k(
-    Layout layout,
-    Uplo uplo,
-    Op trans,
-    TLAPACK_SIZE_T n,
-    TLAPACK_SIZE_T k,
-    float  _Complex alpha,
-    float  _Complex const * A, TLAPACK_SIZE_T lda,
-    float  _Complex const * B, TLAPACK_SIZE_T ldb,
-    float beta,
-    float  _Complex * C, TLAPACK_SIZE_T ldc );
-
-void zher2k(
-    Layout layout,
-    Uplo uplo,
-    Op trans,
-    TLAPACK_SIZE_T n,
-    TLAPACK_SIZE_T k,
-    double _Complex alpha,
-    double _Complex const * A, TLAPACK_SIZE_T lda,
-    double _Complex const * B, TLAPACK_SIZE_T ldb,
-    double beta,
-    double _Complex * C, TLAPACK_SIZE_T ldc );
-
-void sherk(
-    Layout layout,
-    Uplo uplo,
-    Op trans,
-    TLAPACK_SIZE_T n,
-    TLAPACK_SIZE_T k,
-    float alpha,
-    float const * A, TLAPACK_SIZE_T lda,
-    float beta,
-    float * C, TLAPACK_SIZE_T ldc );
-
-void dherk(
-    Layout layout,
-    Uplo uplo,
-    Op trans,
-    TLAPACK_SIZE_T n,
-    TLAPACK_SIZE_T k,
-    double alpha,
-    double const * A, TLAPACK_SIZE_T lda,
-    double beta,
-    double * C, TLAPACK_SIZE_T ldc );
-
-void cherk(
-    Layout layout,
-    Uplo uplo,
-    Op trans,
-    TLAPACK_SIZE_T n,
-    TLAPACK_SIZE_T k,
-    float alpha,
-    float  _Complex const * A, TLAPACK_SIZE_T lda,
-    float beta,
-    float  _Complex * C, TLAPACK_SIZE_T ldc );
-
-void zherk(
-    Layout layout,
-    Uplo uplo,
-    Op trans,
-    TLAPACK_SIZE_T n,
-    TLAPACK_SIZE_T k,
-    double alpha,
-    double _Complex const * A, TLAPACK_SIZE_T lda,
-    double beta,
-    double _Complex * C, TLAPACK_SIZE_T ldc );
-
-void ssymm(
-    Layout layout,
-    Side side,
-    Uplo uplo,
-    TLAPACK_SIZE_T m,
-    TLAPACK_SIZE_T n,
-    float alpha,
-    float const * A, TLAPACK_SIZE_T lda,
-    float const * B, TLAPACK_SIZE_T ldb,
-    float beta,
-    float * C, TLAPACK_SIZE_T ldc );
-
-void dsymm(
-    Layout layout,
-    Side side,
-    Uplo uplo,
-    TLAPACK_SIZE_T m,
-    TLAPACK_SIZE_T n,
-    double alpha,
-    double const * A, TLAPACK_SIZE_T lda,
-    double const * B, TLAPACK_SIZE_T ldb,
-    double beta,
-    double * C, TLAPACK_SIZE_T ldc );
-
-void csymm(
-    Layout layout,
-    Side side,
-    Uplo uplo,
-    TLAPACK_SIZE_T m,
-    TLAPACK_SIZE_T n,
-    float  _Complex alpha,
-    float  _Complex const * A, TLAPACK_SIZE_T lda,
-    float  _Complex const * B, TLAPACK_SIZE_T ldb,
-    float  _Complex beta,
-    float  _Complex * C, TLAPACK_SIZE_T ldc );
-
-void zsymm(
-    Layout layout,
-    Side side,
-    Uplo uplo,
-    TLAPACK_SIZE_T m,
-    TLAPACK_SIZE_T n,
-    double _Complex alpha,
-    double _Complex const * A, TLAPACK_SIZE_T lda,
-    double _Complex const * B, TLAPACK_SIZE_T ldb,
-    double _Complex beta,
-    double _Complex * C, TLAPACK_SIZE_T ldc );
-
-void ssyr2k(
-    Layout layout,
-    Uplo uplo,
-    Op trans,
-    TLAPACK_SIZE_T n,
-    TLAPACK_SIZE_T k,
-    float alpha,
-    float const * A, TLAPACK_SIZE_T lda,
-    float const * B, TLAPACK_SIZE_T ldb,
-    float beta,
-    float * C, TLAPACK_SIZE_T ldc );
-
-void dsyr2k(
-    Layout layout,
-    Uplo uplo,
-    Op trans,
-    TLAPACK_SIZE_T n,
-    TLAPACK_SIZE_T k,
-    double alpha,
-    double const * A, TLAPACK_SIZE_T lda,
-    double const * B, TLAPACK_SIZE_T ldb,
-    double beta,
-    double * C, TLAPACK_SIZE_T ldc );
-
-void csyr2k(
-    Layout layout,
-    Uplo uplo,
-    Op trans,
-    TLAPACK_SIZE_T n,
-    TLAPACK_SIZE_T k,
-    float  _Complex alpha,
-    float  _Complex const * A, TLAPACK_SIZE_T lda,
-    float  _Complex const * B, TLAPACK_SIZE_T ldb,
-    float  _Complex beta,
-    float  _Complex * C, TLAPACK_SIZE_T ldc );
-
-void zsyr2k(
-    Layout layout,
-    Uplo uplo,
-    Op trans,
-    TLAPACK_SIZE_T n,
-    TLAPACK_SIZE_T k,
-    double _Complex alpha,
-    double _Complex const * A, TLAPACK_SIZE_T lda,
-    double _Complex const * B, TLAPACK_SIZE_T ldb,
-    double _Complex beta,
-    double _Complex * C, TLAPACK_SIZE_T ldc );
-
-void ssyrk(
-    Layout layout,
-    Uplo uplo,
-    Op trans,
-    TLAPACK_SIZE_T n,
-    TLAPACK_SIZE_T k,
-    float alpha,
-    float const * A, TLAPACK_SIZE_T lda,
-    float beta,
-    float * C, TLAPACK_SIZE_T ldc );
-
-void dsyrk(
-    Layout layout,
-    Uplo uplo,
-    Op trans,
-    TLAPACK_SIZE_T n,
-    TLAPACK_SIZE_T k,
-    double alpha,
-    double const * A, TLAPACK_SIZE_T lda,
-    double beta,
-    double * C, TLAPACK_SIZE_T ldc );
-
-void csyrk(
-    Layout layout,
-    Uplo uplo,
-    Op trans,
-    TLAPACK_SIZE_T n,
-    TLAPACK_SIZE_T k,
-    float  _Complex alpha,
-    float  _Complex const * A, TLAPACK_SIZE_T lda,
-    float  _Complex beta,
-    float  _Complex * C, TLAPACK_SIZE_T ldc );
-
-void zsyrk(
-    Layout layout,
-    Uplo uplo,
-    Op trans,
-    TLAPACK_SIZE_T n,
-    TLAPACK_SIZE_T k,
-    double _Complex alpha,
-    double _Complex const * A, TLAPACK_SIZE_T lda,
-    double _Complex beta,
-    double _Complex * C, TLAPACK_SIZE_T ldc );
-
-void strmm(
-    Layout layout,
-    Side side,
-    Uplo uplo,
-    Op trans,
-    Diag diag,
-    TLAPACK_SIZE_T m,
-    TLAPACK_SIZE_T n,
-    float alpha,
-    float const * A, TLAPACK_SIZE_T lda,
-    float * B, TLAPACK_SIZE_T ldb );
-
-void dtrmm(
-    Layout layout,
-    Side side,
-    Uplo uplo,
-    Op trans,
-    Diag diag,
-    TLAPACK_SIZE_T m,
-    TLAPACK_SIZE_T n,
-    double alpha,
-    double const * A, TLAPACK_SIZE_T lda,
-    double * B, TLAPACK_SIZE_T ldb );
-
-void ctrmm(
-    Layout layout,
-    Side side,
-    Uplo uplo,
-    Op trans,
-    Diag diag,
-    TLAPACK_SIZE_T m,
-    TLAPACK_SIZE_T n,
-    float  _Complex alpha,
-    float  _Complex const * A, TLAPACK_SIZE_T lda,
-    float  _Complex * B, TLAPACK_SIZE_T ldb );
-
-void ztrmm(
-    Layout layout,
-    Side side,
-    Uplo uplo,
-    Op trans,
-    Diag diag,
-    TLAPACK_SIZE_T m,
-    TLAPACK_SIZE_T n,
-    double _Complex alpha,
-    double _Complex const * A, TLAPACK_SIZE_T lda,
-    double _Complex * B, TLAPACK_SIZE_T ldb );
-
-void strsm(
-    Layout layout,
-    Side side,
-    Uplo uplo,
-    Op trans,
-    Diag diag,
-    TLAPACK_SIZE_T m,
-    TLAPACK_SIZE_T n,
-    float alpha,
-    float const * A, TLAPACK_SIZE_T lda,
-    float * B, TLAPACK_SIZE_T ldb );
-
-void dtrsm(
-    Layout layout,
-    Side side,
-    Uplo uplo,
-    Op trans,
-    Diag diag,
-    TLAPACK_SIZE_T m,
-    TLAPACK_SIZE_T n,
-    double alpha,
-    double const * A, TLAPACK_SIZE_T lda,
-    double * B, TLAPACK_SIZE_T ldb );
-
-void ctrsm(
-    Layout layout,
-    Side side,
-    Uplo uplo,
-    Op trans,
-    Diag diag,
-    TLAPACK_SIZE_T m,
-    TLAPACK_SIZE_T n,
-    float  _Complex alpha,
-    float  _Complex const * A, TLAPACK_SIZE_T lda,
-    float  _Complex * B, TLAPACK_SIZE_T ldb );
-
-void ztrsm(
-    Layout layout,
-    Side side,
-    Uplo uplo,
-    Op trans,
-    Diag diag,
-    TLAPACK_SIZE_T m,
-    TLAPACK_SIZE_T n,
-    double _Complex alpha,
-    double _Complex const * A, TLAPACK_SIZE_T lda,
-    double _Complex * B, TLAPACK_SIZE_T ldb );
+    // -----------------------------------------------------------------------------
+    // Enumerations
+    typedef enum Layout { ColMajor = 'C', RowMajor = 'R' } Layout;
+    typedef enum Op { NoTrans = 'N', Trans = 'T', ConjTrans = 'C' } Op;
+    typedef enum Uplo { Upper = 'U', Lower = 'L', General = 'G' } Uplo;
+    typedef enum Diag { NonUnit = 'N', Unit = 'U' } Diag;
+    typedef enum Side { Left = 'L', Right = 'R' } Side;
+
+    // =============================================================================
+    // Level 1 BLAS
+
+    float sasum(TLAPACK_SIZE_T n, float const* x, TLAPACK_INT_T incx);
+
+    double dasum(TLAPACK_SIZE_T n, double const* x, TLAPACK_INT_T incx);
+
+    float casum(TLAPACK_SIZE_T n, float _Complex const* x, TLAPACK_INT_T incx);
+
+    double zasum(TLAPACK_SIZE_T n, double _Complex const* x,
+                 TLAPACK_INT_T incx);
+
+    void saxpy(TLAPACK_SIZE_T n, float alpha, float const* x,
+               TLAPACK_INT_T incx, float* y, TLAPACK_INT_T incy);
+
+    void daxpy(TLAPACK_SIZE_T n, double alpha, double const* x,
+               TLAPACK_INT_T incx, double* y, TLAPACK_INT_T incy);
+
+    void caxpy(TLAPACK_SIZE_T n, float _Complex alpha, float _Complex const* x,
+               TLAPACK_INT_T incx, float _Complex* y, TLAPACK_INT_T incy);
+
+    void zaxpy(TLAPACK_SIZE_T n, double _Complex alpha,
+               double _Complex const* x, TLAPACK_INT_T incx, double _Complex* y,
+               TLAPACK_INT_T incy);
+
+    void scopy(TLAPACK_SIZE_T n, float const* x, TLAPACK_INT_T incx, float* y,
+               TLAPACK_INT_T incy);
+
+    void dcopy(TLAPACK_SIZE_T n, double const* x, TLAPACK_INT_T incx, double* y,
+               TLAPACK_INT_T incy);
+
+    void ccopy(TLAPACK_SIZE_T n, float _Complex const* x, TLAPACK_INT_T incx,
+               float _Complex* y, TLAPACK_INT_T incy);
+
+    void zcopy(TLAPACK_SIZE_T n, double _Complex const* x, TLAPACK_INT_T incx,
+               double _Complex* y, TLAPACK_INT_T incy);
+
+    float sdot(TLAPACK_SIZE_T n, float const* x, TLAPACK_INT_T incx,
+               float const* y, TLAPACK_INT_T incy);
+
+    double ddot(TLAPACK_SIZE_T n, double const* x, TLAPACK_INT_T incx,
+                double const* y, TLAPACK_INT_T incy);
+
+    float _Complex cdot(TLAPACK_SIZE_T n, float _Complex const* x,
+                        TLAPACK_INT_T incx, float _Complex const* y,
+                        TLAPACK_INT_T incy);
+
+    double _Complex zdot(TLAPACK_SIZE_T n, double _Complex const* x,
+                         TLAPACK_INT_T incx, double _Complex const* y,
+                         TLAPACK_INT_T incy);
+
+    float sdotu(TLAPACK_SIZE_T n, float const* x, TLAPACK_INT_T incx,
+                float const* y, TLAPACK_INT_T incy);
+
+    double ddotu(TLAPACK_SIZE_T n, double const* x, TLAPACK_INT_T incx,
+                 double const* y, TLAPACK_INT_T incy);
+
+    float _Complex cdotu(TLAPACK_SIZE_T n, float _Complex const* x,
+                         TLAPACK_INT_T incx, float _Complex const* y,
+                         TLAPACK_INT_T incy);
+
+    double _Complex zdotu(TLAPACK_SIZE_T n, double _Complex const* x,
+                          TLAPACK_INT_T incx, double _Complex const* y,
+                          TLAPACK_INT_T incy);
+
+    TLAPACK_SIZE_T isamax(TLAPACK_SIZE_T n, float const* x, TLAPACK_INT_T incx);
+
+    TLAPACK_SIZE_T idamax(TLAPACK_SIZE_T n, double const* x,
+                          TLAPACK_INT_T incx);
+
+    TLAPACK_SIZE_T icamax(TLAPACK_SIZE_T n, float _Complex const* x,
+                          TLAPACK_INT_T incx);
+
+    TLAPACK_SIZE_T izamax(TLAPACK_SIZE_T n, double _Complex const* x,
+                          TLAPACK_INT_T incx);
+
+    float snrm2(TLAPACK_SIZE_T n, float const* x, TLAPACK_INT_T incx);
+
+    double dnrm2(TLAPACK_SIZE_T n, double const* x, TLAPACK_INT_T incx);
+
+    float cnrm2(TLAPACK_SIZE_T n, float _Complex const* x, TLAPACK_INT_T incx);
+
+    double znrm2(TLAPACK_SIZE_T n, double _Complex const* x,
+                 TLAPACK_INT_T incx);
+
+    void srot(TLAPACK_SIZE_T n, float* x, TLAPACK_INT_T incx, float* y,
+              TLAPACK_INT_T incy, float c, float s);
+
+    void drot(TLAPACK_SIZE_T n, double* x, TLAPACK_INT_T incx, double* y,
+              TLAPACK_INT_T incy, double c, double s);
+
+    void csrot(TLAPACK_SIZE_T n, float _Complex* x, TLAPACK_INT_T incx,
+               float _Complex* y, TLAPACK_INT_T incy, float c, float s);
+
+    void zdrot(TLAPACK_SIZE_T n, double _Complex* x, TLAPACK_INT_T incx,
+               double _Complex* y, TLAPACK_INT_T incy, double c, double s);
+
+    void crot(TLAPACK_SIZE_T n, float _Complex* x, TLAPACK_INT_T incx,
+              float _Complex* y, TLAPACK_INT_T incy, float c, float _Complex s);
+
+    void zrot(TLAPACK_SIZE_T n, double _Complex* x, TLAPACK_INT_T incx,
+              double _Complex* y, TLAPACK_INT_T incy, double c,
+              double _Complex s);
+
+    void srotg(float* a, float* b, float* c, float* s);
+
+    void drotg(double* a, double* b, double* c, double* s);
+
+    void crotg(float _Complex* a, float _Complex* b, float* c,
+               float _Complex* s);
+
+    void zrotg(double _Complex* a, double _Complex* b, double* c,
+               double _Complex* s);
+
+    void srotm(TLAPACK_SIZE_T n, float* x, TLAPACK_INT_T incx, float* y,
+               TLAPACK_INT_T incy, float const* param);
+
+    void drotm(TLAPACK_SIZE_T n, double* x, TLAPACK_INT_T incx, double* y,
+               TLAPACK_INT_T incy, double const* param);
+
+    void srotmg(float* d1, float* d2, float* a, float b, float* param);
+
+    void drotmg(double* d1, double* d2, double* a, double b, double* param);
+
+    void sscal(TLAPACK_SIZE_T n, float alpha, float* x, TLAPACK_INT_T incx);
+
+    void dscal(TLAPACK_SIZE_T n, double alpha, double* x, TLAPACK_INT_T incx);
+
+    void cscal(TLAPACK_SIZE_T n, float _Complex alpha, float _Complex* x,
+               TLAPACK_INT_T incx);
+
+    void zscal(TLAPACK_SIZE_T n, double _Complex alpha, double _Complex* x,
+               TLAPACK_INT_T incx);
+
+    void sswap(TLAPACK_SIZE_T n, float* x, TLAPACK_INT_T incx, float* y,
+               TLAPACK_INT_T incy);
+
+    void dswap(TLAPACK_SIZE_T n, double* x, TLAPACK_INT_T incx, double* y,
+               TLAPACK_INT_T incy);
+
+    void cswap(TLAPACK_SIZE_T n, float _Complex* x, TLAPACK_INT_T incx,
+               float _Complex* y, TLAPACK_INT_T incy);
+
+    void zswap(TLAPACK_SIZE_T n, double _Complex* x, TLAPACK_INT_T incx,
+               double _Complex* y, TLAPACK_INT_T incy);
+
+    // =============================================================================
+    // Level 2 BLAS
+
+    void sgemv(Layout layout, Op trans, TLAPACK_SIZE_T m, TLAPACK_SIZE_T n,
+               float alpha, float const* A, TLAPACK_SIZE_T lda, float const* x,
+               TLAPACK_INT_T incx, float beta, float* y, TLAPACK_INT_T incy);
+
+    void dgemv(Layout layout, Op trans, TLAPACK_SIZE_T m, TLAPACK_SIZE_T n,
+               double alpha, double const* A, TLAPACK_SIZE_T lda,
+               double const* x, TLAPACK_INT_T incx, double beta, double* y,
+               TLAPACK_INT_T incy);
+
+    void cgemv(Layout layout, Op trans, TLAPACK_SIZE_T m, TLAPACK_SIZE_T n,
+               float _Complex alpha, float _Complex const* A,
+               TLAPACK_SIZE_T lda, float _Complex const* x, TLAPACK_INT_T incx,
+               float _Complex beta, float _Complex* y, TLAPACK_INT_T incy);
+
+    void zgemv(Layout layout, Op trans, TLAPACK_SIZE_T m, TLAPACK_SIZE_T n,
+               double _Complex alpha, double _Complex const* A,
+               TLAPACK_SIZE_T lda, double _Complex const* x, TLAPACK_INT_T incx,
+               double _Complex beta, double _Complex* y, TLAPACK_INT_T incy);
+
+    void sger(Layout layout, TLAPACK_SIZE_T m, TLAPACK_SIZE_T n, float alpha,
+              float const* x, TLAPACK_INT_T incx, float const* y,
+              TLAPACK_INT_T incy, float* A, TLAPACK_SIZE_T lda);
+
+    void dger(Layout layout, TLAPACK_SIZE_T m, TLAPACK_SIZE_T n, double alpha,
+              double const* x, TLAPACK_INT_T incx, double const* y,
+              TLAPACK_INT_T incy, double* A, TLAPACK_SIZE_T lda);
+
+    void cger(Layout layout, TLAPACK_SIZE_T m, TLAPACK_SIZE_T n,
+              float _Complex alpha, float _Complex const* x, TLAPACK_INT_T incx,
+              float _Complex const* y, TLAPACK_INT_T incy, float _Complex* A,
+              TLAPACK_SIZE_T lda);
+
+    void zger(Layout layout, TLAPACK_SIZE_T m, TLAPACK_SIZE_T n,
+              double _Complex alpha, double _Complex const* x,
+              TLAPACK_INT_T incx, double _Complex const* y, TLAPACK_INT_T incy,
+              double _Complex* A, TLAPACK_SIZE_T lda);
+
+    void sgeru(Layout layout, TLAPACK_SIZE_T m, TLAPACK_SIZE_T n, float alpha,
+               float const* x, TLAPACK_INT_T incx, float const* y,
+               TLAPACK_INT_T incy, float* A, TLAPACK_SIZE_T lda);
+
+    void dgeru(Layout layout, TLAPACK_SIZE_T m, TLAPACK_SIZE_T n, double alpha,
+               double const* x, TLAPACK_INT_T incx, double const* y,
+               TLAPACK_INT_T incy, double* A, TLAPACK_SIZE_T lda);
+
+    void cgeru(Layout layout, TLAPACK_SIZE_T m, TLAPACK_SIZE_T n,
+               float _Complex alpha, float _Complex const* x,
+               TLAPACK_INT_T incx, float _Complex const* y, TLAPACK_INT_T incy,
+               float _Complex* A, TLAPACK_SIZE_T lda);
+
+    void zgeru(Layout layout, TLAPACK_SIZE_T m, TLAPACK_SIZE_T n,
+               double _Complex alpha, double _Complex const* x,
+               TLAPACK_INT_T incx, double _Complex const* y, TLAPACK_INT_T incy,
+               double _Complex* A, TLAPACK_SIZE_T lda);
+
+    void shemv(Layout layout, Uplo uplo, TLAPACK_SIZE_T n, float alpha,
+               float const* A, TLAPACK_SIZE_T lda, float const* x,
+               TLAPACK_INT_T incx, float beta, float* y, TLAPACK_INT_T incy);
+
+    void dhemv(Layout layout, Uplo uplo, TLAPACK_SIZE_T n, double alpha,
+               double const* A, TLAPACK_SIZE_T lda, double const* x,
+               TLAPACK_INT_T incx, double beta, double* y, TLAPACK_INT_T incy);
+
+    void chemv(Layout layout, Uplo uplo, TLAPACK_SIZE_T n, float _Complex alpha,
+               float _Complex const* A, TLAPACK_SIZE_T lda,
+               float _Complex const* x, TLAPACK_INT_T incx, float _Complex beta,
+               float _Complex* y, TLAPACK_INT_T incy);
+
+    void zhemv(Layout layout, Uplo uplo, TLAPACK_SIZE_T n,
+               double _Complex alpha, double _Complex const* A,
+               TLAPACK_SIZE_T lda, double _Complex const* x, TLAPACK_INT_T incx,
+               double _Complex beta, double _Complex* y, TLAPACK_INT_T incy);
+
+    void sher(Layout layout, Uplo uplo, TLAPACK_SIZE_T n, float alpha,
+              float const* x, TLAPACK_INT_T incx, float* A, TLAPACK_SIZE_T lda);
+
+    void dher(Layout layout, Uplo uplo, TLAPACK_SIZE_T n, double alpha,
+              double const* x, TLAPACK_INT_T incx, double* A,
+              TLAPACK_SIZE_T lda);
+
+    void cher(Layout layout, Uplo uplo, TLAPACK_SIZE_T n, float alpha,
+              float _Complex const* x, TLAPACK_INT_T incx, float _Complex* A,
+              TLAPACK_SIZE_T lda);
+
+    void zher(Layout layout, Uplo uplo, TLAPACK_SIZE_T n, double alpha,
+              double _Complex const* x, TLAPACK_INT_T incx, double _Complex* A,
+              TLAPACK_SIZE_T lda);
+
+    void sher2(Layout layout, Uplo uplo, TLAPACK_SIZE_T n, float alpha,
+               float const* x, TLAPACK_INT_T incx, float const* y,
+               TLAPACK_INT_T incy, float* A, TLAPACK_SIZE_T lda);
+
+    void dher2(Layout layout, Uplo uplo, TLAPACK_SIZE_T n, double alpha,
+               double const* x, TLAPACK_INT_T incx, double const* y,
+               TLAPACK_INT_T incy, double* A, TLAPACK_SIZE_T lda);
+
+    void cher2(Layout layout, Uplo uplo, TLAPACK_SIZE_T n, float _Complex alpha,
+               float _Complex const* x, TLAPACK_INT_T incx,
+               float _Complex const* y, TLAPACK_INT_T incy, float _Complex* A,
+               TLAPACK_SIZE_T lda);
+
+    void zher2(Layout layout, Uplo uplo, TLAPACK_SIZE_T n,
+               double _Complex alpha, double _Complex const* x,
+               TLAPACK_INT_T incx, double _Complex const* y, TLAPACK_INT_T incy,
+               double _Complex* A, TLAPACK_SIZE_T lda);
+
+    void ssymv(Layout layout, Uplo uplo, TLAPACK_SIZE_T n, float alpha,
+               float const* A, TLAPACK_SIZE_T lda, float const* x,
+               TLAPACK_INT_T incx, float beta, float* y, TLAPACK_INT_T incy);
+
+    void dsymv(Layout layout, Uplo uplo, TLAPACK_SIZE_T n, double alpha,
+               double const* A, TLAPACK_SIZE_T lda, double const* x,
+               TLAPACK_INT_T incx, double beta, double* y, TLAPACK_INT_T incy);
+
+    void csymv(Layout layout, Uplo uplo, TLAPACK_SIZE_T n, float _Complex alpha,
+               float _Complex const* A, TLAPACK_SIZE_T lda,
+               float _Complex const* x, TLAPACK_INT_T incx, float _Complex beta,
+               float _Complex* y, TLAPACK_INT_T incy);
+
+    void zsymv(Layout layout, Uplo uplo, TLAPACK_SIZE_T n,
+               double _Complex alpha, double _Complex const* A,
+               TLAPACK_SIZE_T lda, double _Complex const* x, TLAPACK_INT_T incx,
+               double _Complex beta, double _Complex* y, TLAPACK_INT_T incy);
+
+    void ssyr(Layout layout, Uplo uplo, TLAPACK_SIZE_T n, float alpha,
+              float const* x, TLAPACK_INT_T incx, float* A, TLAPACK_SIZE_T lda);
+
+    void dsyr(Layout layout, Uplo uplo, TLAPACK_SIZE_T n, double alpha,
+              double const* x, TLAPACK_INT_T incx, double* A,
+              TLAPACK_SIZE_T lda);
+
+    void ssyr2(Layout layout, Uplo uplo, TLAPACK_SIZE_T n, float alpha,
+               float const* x, TLAPACK_INT_T incx, float const* y,
+               TLAPACK_INT_T incy, float* A, TLAPACK_SIZE_T lda);
+
+    void dsyr2(Layout layout, Uplo uplo, TLAPACK_SIZE_T n, double alpha,
+               double const* x, TLAPACK_INT_T incx, double const* y,
+               TLAPACK_INT_T incy, double* A, TLAPACK_SIZE_T lda);
+
+    void csyr2(Layout layout, Uplo uplo, TLAPACK_SIZE_T n, float _Complex alpha,
+               float _Complex const* x, TLAPACK_INT_T incx,
+               float _Complex const* y, TLAPACK_INT_T incy, float _Complex* A,
+               TLAPACK_SIZE_T lda);
+
+    void zsyr2(Layout layout, Uplo uplo, TLAPACK_SIZE_T n,
+               double _Complex alpha, double _Complex const* x,
+               TLAPACK_INT_T incx, double _Complex const* y, TLAPACK_INT_T incy,
+               double _Complex* A, TLAPACK_SIZE_T lda);
+
+    void strmv(Layout layout, Uplo uplo, Op trans, Diag diag, TLAPACK_SIZE_T n,
+               float const* A, TLAPACK_SIZE_T lda, float* x,
+               TLAPACK_INT_T incx);
+
+    void dtrmv(Layout layout, Uplo uplo, Op trans, Diag diag, TLAPACK_SIZE_T n,
+               double const* A, TLAPACK_SIZE_T lda, double* x,
+               TLAPACK_INT_T incx);
+
+    void ctrmv(Layout layout, Uplo uplo, Op trans, Diag diag, TLAPACK_SIZE_T n,
+               float _Complex const* A, TLAPACK_SIZE_T lda, float _Complex* x,
+               TLAPACK_INT_T incx);
+
+    void ztrmv(Layout layout, Uplo uplo, Op trans, Diag diag, TLAPACK_SIZE_T n,
+               double _Complex const* A, TLAPACK_SIZE_T lda, double _Complex* x,
+               TLAPACK_INT_T incx);
+
+    void strsv(Layout layout, Uplo uplo, Op trans, Diag diag, TLAPACK_SIZE_T n,
+               float const* A, TLAPACK_SIZE_T lda, float* x,
+               TLAPACK_INT_T incx);
+
+    void dtrsv(Layout layout, Uplo uplo, Op trans, Diag diag, TLAPACK_SIZE_T n,
+               double const* A, TLAPACK_SIZE_T lda, double* x,
+               TLAPACK_INT_T incx);
+
+    void ctrsv(Layout layout, Uplo uplo, Op trans, Diag diag, TLAPACK_SIZE_T n,
+               float _Complex const* A, TLAPACK_SIZE_T lda, float _Complex* x,
+               TLAPACK_INT_T incx);
+
+    void ztrsv(Layout layout, Uplo uplo, Op trans, Diag diag, TLAPACK_SIZE_T n,
+               double _Complex const* A, TLAPACK_SIZE_T lda, double _Complex* x,
+               TLAPACK_INT_T incx);
+
+    // =============================================================================
+    // Level 3 BLAS
+
+    void sgemm(Layout layout, Op transA, Op transB, TLAPACK_SIZE_T m,
+               TLAPACK_SIZE_T n, TLAPACK_SIZE_T k, float alpha, float const* A,
+               TLAPACK_SIZE_T lda, float const* B, TLAPACK_SIZE_T ldb,
+               float beta, float* C, TLAPACK_SIZE_T ldc);
+
+    void dgemm(Layout layout, Op transA, Op transB, TLAPACK_SIZE_T m,
+               TLAPACK_SIZE_T n, TLAPACK_SIZE_T k, double alpha,
+               double const* A, TLAPACK_SIZE_T lda, double const* B,
+               TLAPACK_SIZE_T ldb, double beta, double* C, TLAPACK_SIZE_T ldc);
+
+    void cgemm(Layout layout, Op transA, Op transB, TLAPACK_SIZE_T m,
+               TLAPACK_SIZE_T n, TLAPACK_SIZE_T k, float _Complex alpha,
+               float _Complex const* A, TLAPACK_SIZE_T lda,
+               float _Complex const* B, TLAPACK_SIZE_T ldb, float _Complex beta,
+               float _Complex* C, TLAPACK_SIZE_T ldc);
+
+    void zgemm(Layout layout, Op transA, Op transB, TLAPACK_SIZE_T m,
+               TLAPACK_SIZE_T n, TLAPACK_SIZE_T k, double _Complex alpha,
+               double _Complex const* A, TLAPACK_SIZE_T lda,
+               double _Complex const* B, TLAPACK_SIZE_T ldb,
+               double _Complex beta, double _Complex* C, TLAPACK_SIZE_T ldc);
+
+    void shemm(Layout layout, Side side, Uplo uplo, TLAPACK_SIZE_T m,
+               TLAPACK_SIZE_T n, float alpha, float const* A,
+               TLAPACK_SIZE_T lda, float const* B, TLAPACK_SIZE_T ldb,
+               float beta, float* C, TLAPACK_SIZE_T ldc);
+
+    void dhemm(Layout layout, Side side, Uplo uplo, TLAPACK_SIZE_T m,
+               TLAPACK_SIZE_T n, double alpha, double const* A,
+               TLAPACK_SIZE_T lda, double const* B, TLAPACK_SIZE_T ldb,
+               double beta, double* C, TLAPACK_SIZE_T ldc);
+
+    void chemm(Layout layout, Side side, Uplo uplo, TLAPACK_SIZE_T m,
+               TLAPACK_SIZE_T n, float _Complex alpha, float _Complex const* A,
+               TLAPACK_SIZE_T lda, float _Complex const* B, TLAPACK_SIZE_T ldb,
+               float _Complex beta, float _Complex* C, TLAPACK_SIZE_T ldc);
+
+    void zhemm(Layout layout, Side side, Uplo uplo, TLAPACK_SIZE_T m,
+               TLAPACK_SIZE_T n, double _Complex alpha,
+               double _Complex const* A, TLAPACK_SIZE_T lda,
+               double _Complex const* B, TLAPACK_SIZE_T ldb,
+               double _Complex beta, double _Complex* C, TLAPACK_SIZE_T ldc);
+
+    void sher2k(Layout layout, Uplo uplo, Op trans, TLAPACK_SIZE_T n,
+                TLAPACK_SIZE_T k, float alpha, float const* A,
+                TLAPACK_SIZE_T lda, float const* B, TLAPACK_SIZE_T ldb,
+                float beta, float* C, TLAPACK_SIZE_T ldc);
+
+    void dher2k(Layout layout, Uplo uplo, Op trans, TLAPACK_SIZE_T n,
+                TLAPACK_SIZE_T k, double alpha, double const* A,
+                TLAPACK_SIZE_T lda, double const* B, TLAPACK_SIZE_T ldb,
+                double beta, double* C, TLAPACK_SIZE_T ldc);
+
+    void cher2k(Layout layout, Uplo uplo, Op trans, TLAPACK_SIZE_T n,
+                TLAPACK_SIZE_T k, float _Complex alpha, float _Complex const* A,
+                TLAPACK_SIZE_T lda, float _Complex const* B, TLAPACK_SIZE_T ldb,
+                float beta, float _Complex* C, TLAPACK_SIZE_T ldc);
+
+    void zher2k(Layout layout, Uplo uplo, Op trans, TLAPACK_SIZE_T n,
+                TLAPACK_SIZE_T k, double _Complex alpha,
+                double _Complex const* A, TLAPACK_SIZE_T lda,
+                double _Complex const* B, TLAPACK_SIZE_T ldb, double beta,
+                double _Complex* C, TLAPACK_SIZE_T ldc);
+
+    void sherk(Layout layout, Uplo uplo, Op trans, TLAPACK_SIZE_T n,
+               TLAPACK_SIZE_T k, float alpha, float const* A,
+               TLAPACK_SIZE_T lda, float beta, float* C, TLAPACK_SIZE_T ldc);
+
+    void dherk(Layout layout, Uplo uplo, Op trans, TLAPACK_SIZE_T n,
+               TLAPACK_SIZE_T k, double alpha, double const* A,
+               TLAPACK_SIZE_T lda, double beta, double* C, TLAPACK_SIZE_T ldc);
+
+    void cherk(Layout layout, Uplo uplo, Op trans, TLAPACK_SIZE_T n,
+               TLAPACK_SIZE_T k, float alpha, float _Complex const* A,
+               TLAPACK_SIZE_T lda, float beta, float _Complex* C,
+               TLAPACK_SIZE_T ldc);
+
+    void zherk(Layout layout, Uplo uplo, Op trans, TLAPACK_SIZE_T n,
+               TLAPACK_SIZE_T k, double alpha, double _Complex const* A,
+               TLAPACK_SIZE_T lda, double beta, double _Complex* C,
+               TLAPACK_SIZE_T ldc);
+
+    void ssymm(Layout layout, Side side, Uplo uplo, TLAPACK_SIZE_T m,
+               TLAPACK_SIZE_T n, float alpha, float const* A,
+               TLAPACK_SIZE_T lda, float const* B, TLAPACK_SIZE_T ldb,
+               float beta, float* C, TLAPACK_SIZE_T ldc);
+
+    void dsymm(Layout layout, Side side, Uplo uplo, TLAPACK_SIZE_T m,
+               TLAPACK_SIZE_T n, double alpha, double const* A,
+               TLAPACK_SIZE_T lda, double const* B, TLAPACK_SIZE_T ldb,
+               double beta, double* C, TLAPACK_SIZE_T ldc);
+
+    void csymm(Layout layout, Side side, Uplo uplo, TLAPACK_SIZE_T m,
+               TLAPACK_SIZE_T n, float _Complex alpha, float _Complex const* A,
+               TLAPACK_SIZE_T lda, float _Complex const* B, TLAPACK_SIZE_T ldb,
+               float _Complex beta, float _Complex* C, TLAPACK_SIZE_T ldc);
+
+    void zsymm(Layout layout, Side side, Uplo uplo, TLAPACK_SIZE_T m,
+               TLAPACK_SIZE_T n, double _Complex alpha,
+               double _Complex const* A, TLAPACK_SIZE_T lda,
+               double _Complex const* B, TLAPACK_SIZE_T ldb,
+               double _Complex beta, double _Complex* C, TLAPACK_SIZE_T ldc);
+
+    void ssyr2k(Layout layout, Uplo uplo, Op trans, TLAPACK_SIZE_T n,
+                TLAPACK_SIZE_T k, float alpha, float const* A,
+                TLAPACK_SIZE_T lda, float const* B, TLAPACK_SIZE_T ldb,
+                float beta, float* C, TLAPACK_SIZE_T ldc);
+
+    void dsyr2k(Layout layout, Uplo uplo, Op trans, TLAPACK_SIZE_T n,
+                TLAPACK_SIZE_T k, double alpha, double const* A,
+                TLAPACK_SIZE_T lda, double const* B, TLAPACK_SIZE_T ldb,
+                double beta, double* C, TLAPACK_SIZE_T ldc);
+
+    void csyr2k(Layout layout, Uplo uplo, Op trans, TLAPACK_SIZE_T n,
+                TLAPACK_SIZE_T k, float _Complex alpha, float _Complex const* A,
+                TLAPACK_SIZE_T lda, float _Complex const* B, TLAPACK_SIZE_T ldb,
+                float _Complex beta, float _Complex* C, TLAPACK_SIZE_T ldc);
+
+    void zsyr2k(Layout layout, Uplo uplo, Op trans, TLAPACK_SIZE_T n,
+                TLAPACK_SIZE_T k, double _Complex alpha,
+                double _Complex const* A, TLAPACK_SIZE_T lda,
+                double _Complex const* B, TLAPACK_SIZE_T ldb,
+                double _Complex beta, double _Complex* C, TLAPACK_SIZE_T ldc);
+
+    void ssyrk(Layout layout, Uplo uplo, Op trans, TLAPACK_SIZE_T n,
+               TLAPACK_SIZE_T k, float alpha, float const* A,
+               TLAPACK_SIZE_T lda, float beta, float* C, TLAPACK_SIZE_T ldc);
+
+    void dsyrk(Layout layout, Uplo uplo, Op trans, TLAPACK_SIZE_T n,
+               TLAPACK_SIZE_T k, double alpha, double const* A,
+               TLAPACK_SIZE_T lda, double beta, double* C, TLAPACK_SIZE_T ldc);
+
+    void csyrk(Layout layout, Uplo uplo, Op trans, TLAPACK_SIZE_T n,
+               TLAPACK_SIZE_T k, float _Complex alpha, float _Complex const* A,
+               TLAPACK_SIZE_T lda, float _Complex beta, float _Complex* C,
+               TLAPACK_SIZE_T ldc);
+
+    void zsyrk(Layout layout, Uplo uplo, Op trans, TLAPACK_SIZE_T n,
+               TLAPACK_SIZE_T k, double _Complex alpha,
+               double _Complex const* A, TLAPACK_SIZE_T lda,
+               double _Complex beta, double _Complex* C, TLAPACK_SIZE_T ldc);
+
+    void strmm(Layout layout, Side side, Uplo uplo, Op trans, Diag diag,
+               TLAPACK_SIZE_T m, TLAPACK_SIZE_T n, float alpha, float const* A,
+               TLAPACK_SIZE_T lda, float* B, TLAPACK_SIZE_T ldb);
+
+    void dtrmm(Layout layout, Side side, Uplo uplo, Op trans, Diag diag,
+               TLAPACK_SIZE_T m, TLAPACK_SIZE_T n, double alpha,
+               double const* A, TLAPACK_SIZE_T lda, double* B,
+               TLAPACK_SIZE_T ldb);
+
+    void ctrmm(Layout layout, Side side, Uplo uplo, Op trans, Diag diag,
+               TLAPACK_SIZE_T m, TLAPACK_SIZE_T n, float _Complex alpha,
+               float _Complex const* A, TLAPACK_SIZE_T lda, float _Complex* B,
+               TLAPACK_SIZE_T ldb);
+
+    void ztrmm(Layout layout, Side side, Uplo uplo, Op trans, Diag diag,
+               TLAPACK_SIZE_T m, TLAPACK_SIZE_T n, double _Complex alpha,
+               double _Complex const* A, TLAPACK_SIZE_T lda, double _Complex* B,
+               TLAPACK_SIZE_T ldb);
+
+    void strsm(Layout layout, Side side, Uplo uplo, Op trans, Diag diag,
+               TLAPACK_SIZE_T m, TLAPACK_SIZE_T n, float alpha, float const* A,
+               TLAPACK_SIZE_T lda, float* B, TLAPACK_SIZE_T ldb);
+
+    void dtrsm(Layout layout, Side side, Uplo uplo, Op trans, Diag diag,
+               TLAPACK_SIZE_T m, TLAPACK_SIZE_T n, double alpha,
+               double const* A, TLAPACK_SIZE_T lda, double* B,
+               TLAPACK_SIZE_T ldb);
+
+    void ctrsm(Layout layout, Side side, Uplo uplo, Op trans, Diag diag,
+               TLAPACK_SIZE_T m, TLAPACK_SIZE_T n, float _Complex alpha,
+               float _Complex const* A, TLAPACK_SIZE_T lda, float _Complex* B,
+               TLAPACK_SIZE_T ldb);
+
+    void ztrsm(Layout layout, Side side, Uplo uplo, Op trans, Diag diag,
+               TLAPACK_SIZE_T m, TLAPACK_SIZE_T n, double _Complex alpha,
+               double _Complex const* A, TLAPACK_SIZE_T lda, double _Complex* B,
+               TLAPACK_SIZE_T ldb);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // TLAPACK_BLAS_H
+#endif  // TLAPACK_BLAS_H

@@ -11,9 +11,11 @@
 #define TLAPACK_VERSION_H
 
 // the configured options and settings for <T>LAPACK
+// clang-format off
 #define TLAPACK_VERSION @TLAPACK_VERSION@
 #define TLAPACK_VERSION_MAJOR @TLAPACK_VERSION_MAJOR@
 #define TLAPACK_VERSION_MINOR @TLAPACK_VERSION_MINOR@
 #define TLAPACK_VERSION_PATCH @TLAPACK_VERSION_PATCH@
+// clang-format on
 
-#endif // TLAPACK_VERSION_H
+#endif  // TLAPACK_VERSION_H

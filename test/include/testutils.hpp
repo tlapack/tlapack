@@ -13,8 +13,9 @@
 #ifndef TLAPACK_TESTUTILS_HH
 #define TLAPACK_TESTUTILS_HH
 
+// clang-format off
 #include "testdefinitions.hpp"
-#include <tlapack/plugins/stdvector.hpp>
+// clang-format on
 
 #include <tlapack/base/utils.hpp>
 #include <tlapack/blas/gemm.hpp>

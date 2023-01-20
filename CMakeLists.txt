@@ -198,6 +198,25 @@ add_subdirectory(docs)
 add_subdirectory(config)
 
 #-------------------------------------------------------------------------------
+# Format code
+add_custom_target( format-all-hpp-cpp-files
+  COMMAND find
+    ${TLAPACK_SOURCE_DIR}/config
+    ${TLAPACK_SOURCE_DIR}/examples
+    ${TLAPACK_SOURCE_DIR}/include
+    ${TLAPACK_SOURCE_DIR}/src
+    ${TLAPACK_SOURCE_DIR}/test/include
+    ${TLAPACK_SOURCE_DIR}/test/src
+    -iname '*.hpp' -not -path '*build*' -o
+    -iname '*.cpp' -not -path '*build*' -o
+    -iname '*.h.in' -not -path '*build*' -o
+    -iname '*.c' -not -path '*build*' |
+    xargs clang-format -i -style=file
+    > ${TLAPACK_SOURCE_DIR}/format-all-hpp-cpp-files.log
+    2> ${TLAPACK_SOURCE_DIR}/format-all-hpp-cpp-files.err
+)
+
+#-------------------------------------------------------------------------------
 # C and Fortran wrappers
 
 if( BUILD_C_WRAPPERS OR BUILD_CBLAS_WRAPPERS OR BUILD_Fortran_WRAPPERS )

@@ -21,6 +21,7 @@
     #include <tlapack/plugins/mdspan.hpp>
 #endif
 #include <tlapack/plugins/legacyArray.hpp>
+#include <tlapack/plugins/stdvector.hpp>
 
 #ifdef TLAPACK_TEST_MPFR
     #include <tlapack/plugins/mpreal.hpp>
