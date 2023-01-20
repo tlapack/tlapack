@@ -1,4 +1,5 @@
-/// @file potrf.hpp Computes the Cholesky factorization of a Hermitian positive definite matrix A using a blocked algorithm.
+/// @file potrf.hpp Computes the Cholesky factorization of a Hermitian positive
+/// definite matrix A.
 /// @author Weslley S Pereira, University of Colorado Denver, USA
 //
 // Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
@@ -11,15 +12,16 @@
 #define TLAPACK_POTRF_HH
 
 #include "tlapack/base/utils.hpp"
-
 #include "tlapack/lapack/potrf2.hpp"
-#include "tlapack/blas/herk.hpp"
-#include "tlapack/blas/gemm.hpp"
-#include "tlapack/blas/trsm.hpp"
+#include "tlapack/lapack/potrf_blocked.hpp"
 
 namespace tlapack {
 
-/// Default options for potrf
+enum class PotrfVariant : char {
+    Blocked = 'B',
+    Recursive = 'R'
+};
+
 template< typename idx_t >
 struct potrf_opts_t : public ec_opts_t
 {
@@ -27,16 +29,18 @@ struct potrf_opts_t : public ec_opts_t
     : ec_opts_t( opts ) {};
 
     idx_t nb = 32;      ///< Block size
+
+    PotrfVariant variant = PotrfVariant::Blocked;
 };
 
 /** Computes the Cholesky factorization of a Hermitian
- * positive definite matrix A using a blocked algorithm.
+ * positive definite matrix A.
  *
  * The factorization has the form
  *      $A = U^H U,$ if uplo = Upper, or
  *      $A = L L^H,$ if uplo = Lower,
  * where U is an upper triangular matrix and L is lower triangular.
- * 
+ *
  * @tparam uplo_t
  *      Access type: Upper or Lower.
  *      Either Uplo or any class that implements `operator Uplo()`.
@@ -47,7 +51,7 @@ struct potrf_opts_t : public ec_opts_t
  *
  * @param[in,out] A
  *      On entry, the Hermitian matrix A of size n-by-n.
- *      
+ *
  *      - If uplo = Uplo::Upper, the strictly lower
  *      triangular part of A is not referenced.
  *
@@ -58,7 +62,10 @@ struct potrf_opts_t : public ec_opts_t
  *      factorization $A = U^H U$ or $A = L L^H.$
  *
  * @param[in] opts Options.
- *      Define the behavior of checks for NaNs.
+ *      Define the behavior of checks for NaNs, and nb for potrf_blocked.
+ *      - variant:
+ *          - Recursive = 'R',
+ *          - Blocked = 'B'
  *
  * @return 0: successful exit.
  * @return i, 0 < i <= n, if the leading minor of order i is not
@@ -66,111 +73,25 @@ struct potrf_opts_t : public ec_opts_t
  *
  * @ingroup computational
  */
-template< class uplo_t, class matrix_t >
-int potrf(
-    uplo_t uplo,
-    matrix_t& A,
+template <class uplo_t, class matrix_t>
+inline int potrf(
+    uplo_t uplo, 
+    matrix_t &A, 
     const potrf_opts_t< size_type<matrix_t> >& opts = {} )
 {
-    using T      = type_t< matrix_t >;
-    using real_t = real_type< T >;
-    using idx_t  = size_type< matrix_t >;
-    using pair   = pair<idx_t,idx_t>;
-    
-    using std::min;
-
-    // Constants
-    const real_t one( 1 );
-    const idx_t n  = nrows(A);
-    const idx_t nb = opts.nb;
-
     // check arguments
-    tlapack_check( uplo == Uplo::Lower || uplo == Uplo::Upper );
-    tlapack_check( nrows(A) == ncols(A) );
+    tlapack_check(uplo == Uplo::Lower || uplo == Uplo::Upper);
+    tlapack_check(nrows(A) == ncols(A));
+    tlapack_check(opts.variant == PotrfVariant::Blocked ||
+                  opts.variant == PotrfVariant::Recursive);
 
-    // Quick return
-    if (n <= 0)
-        return 0;
-
-    // Unblocked code
-    else if ( nb <= 1 || nb >= n )
-        return potrf2( uplo, A );
-    
-    // Blocked code
-    else {
-        if( uplo == Uplo::Upper ) {
-            for (idx_t j = 0; j < n; j+=nb)
-            {
-                idx_t jb = min( nb, n-j );
-
-                // Define AJJ and A1J
-                auto AJJ = slice( A, pair{j,j+jb}, pair{j,j+jb} );
-                auto A1J = slice( A, pair{0,j}, pair{j,j+jb} );
-
-                herk( uplo, conjTranspose, -one, A1J, one, AJJ );
-                
-                int info = potrf2( uplo, AJJ, noErrorCheck );
-                if( info != 0 ) {
-                    tlapack_error( info + j,
-                        "The leading minor of the reported order is not positive definite,"
-                        " and the factorization could not be completed." );
-                    return info + j;
-                }
-
-                if( j+jb < n ){
-
-                    // Define B and C
-                    auto B = slice( A, pair{0,j}, pair{j+jb,n} );
-                    auto C = slice( A, pair{j,j+jb}, pair{j+jb,n} );
-                
-                    // Compute the current block row
-                    gemm( conjTranspose, noTranspose, -one, A1J, B, one, C );
-                    trsm( left_side, uplo, conjTranspose, nonUnit_diagonal, one, AJJ, C );
-                }
-            }
-        }
-        else {
-            for (idx_t j = 0; j < n; j+=nb)
-            {
-                idx_t jb = min( nb, n-j );
-
-                // Define AJJ and AJ1
-                auto AJJ = slice( A, pair{j,j+jb}, pair{j,j+jb} );
-                auto AJ1 = slice( A, pair{j,j+jb}, pair{0,j} );
-
-                herk( uplo, noTranspose, -one, AJ1, one, AJJ );
-                
-                int info = potrf2( uplo, AJJ, noErrorCheck );
-                if( info != 0 ) {
-                    tlapack_error( info + j,
-                        "The leading minor of the reported order is not positive definite,"
-                        " and the factorization could not be completed." );
-                    return info + j;
-                }
-
-                if( j+jb < n ){
-
-                    // Define B and C
-                    auto B = slice( A, pair{j+jb,n}, pair{0,j} );
-                    auto C = slice( A, pair{j+jb,n}, pair{j,j+jb} );
-                
-                    // Compute the current block row
-                    gemm( noTranspose, conjTranspose, -one, B, AJ1, one, C );
-                    trsm( right_side, uplo, conjTranspose, nonUnit_diagonal, one, AJJ, C );
-                }
-            }
-        }
-
-        // Report infs and nans on the output
-        tlapack_warn_nans_in_matrix( opts.ec, uplo, A, n+1,
-            "The factorization has some nans." );
-        tlapack_warn_infs_in_matrix( opts.ec, uplo, A, n+1,
-            "The factorization has some infs." );
-        
-        return 0;
-    }
+    // Call variant
+    if( opts.variant == PotrfVariant::Blocked )
+        return potrf_blocked( uplo, A, opts );
+    else // if( opts.variant == PotrfVariant::Recursive )
+        return potrf2( uplo, A, opts );
 }
 
-} // lapack
+} // namespace tlapack
 
 #endif // TLAPACK_POTRF_HH

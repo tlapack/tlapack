@@ -33,7 +33,7 @@ inline int potrf( uplo_t uplo, idx_t n, T* A, idx_t lda )
     // Matrix views
     auto A_ = colmajor_matrix( A, n, n, lda );
 
-    return potrf( uplo, A_ );
+    return potrf_blocked( uplo, A_ );
 }
 
 } // lapack

@@ -18,7 +18,7 @@
 #include <tlapack/blas/gemm.hpp>
 #include <tlapack/blas/trsm.hpp>
 #include <tlapack/lapack/lange.hpp>
-#include <tlapack/lapack/potrf2.hpp>
+#include <tlapack/lapack/potrf.hpp>
 
 //------------------------------------------------------------------------------
 int main( int argc, char** argv )
@@ -110,7 +110,7 @@ int main( int argc, char** argv )
               << tlapack::lange( tlapack::frob_norm, C )
               << std::endl;
 
-    // potrf2:
+    // potrf:
 
     // Initialize A_ with junk one more time
     for (idx_t j = 0; j < n; ++j)
@@ -144,7 +144,7 @@ int main( int argc, char** argv )
     }
 
     // Compute the Cholesky decomposition of U
-    int info = tlapack::potrf2( tlapack::upperTriangle, U );
+    int info = tlapack::potrf( tlapack::upperTriangle, U );
 
     std::cout << "Cholesky ended with info " << info
               << std::endl;
