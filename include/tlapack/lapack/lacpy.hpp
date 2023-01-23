@@ -1,6 +1,6 @@
 /// @file lacpy.hpp
 /// @author Weslley S Pereira, University of Colorado Denver, USA
-/// Adapted from @see https://github.com/langou/latl/blob/master/include/lacpy.h
+/// @note Adapted from @see https://github.com/langou/latl/blob/master/include/lacpy.h
 //
 // Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //

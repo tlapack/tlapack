@@ -1,6 +1,6 @@
 /// @file gebd2.hpp
 /// @author Yuxin Cai, University of Colorado Denver, USA
-/// Adapted from @see https://github.com/Reference-LAPACK/lapack/blob/master/SRC/zgebd2.f
+/// @note Adapted from @see https://github.com/Reference-LAPACK/lapack/blob/master/SRC/zgebd2.f
 //
 // Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
