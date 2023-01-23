@@ -19,6 +19,69 @@ First things to know about \<T\>LAPACK:
 
 *Supported in part by [NSF ACI 2004850](http://www.nsf.gov/awardsearch/showAward?AWD_ID=2004850).*
 
+## Current functionality
+
+\<T\>LAPACK is a work in progress (WIP) project. This is a list of the current functionality:
+
++ [x] BLAS
+    + [x] Level 1, except SDSDOT.
+    + [x] Level 2, except the routines for banded and packed formats (xGBMV, xHBMV, xHPMV, xSBMV, xSPMV, xTBMV, xTPMV, xTBSV, xTPSV, xHPR, xHPR2, xSPR, xSPR2).
+    + [x] Level 3.
++ [ ] Matrix factorizations
+    + [x] Cholesky
+        + Recursive
+        + Blocked
+    + [x] Hessenberg reduction
+        + Level-2
+        + Blocked
+    + [x] Householder QR
+        + Level-2
+    + [ ] Householder RQ
+    + [x] Householder LQ
+    + [ ] Householder QL
+        + Level-2
+        + Blocked
+    + [x] Householder bidiagonalization
+        + Level-2
+    + [x] LU with partial pivoting
+        + Level-0
+        + Recursive
++ [ ] Matrix inversion
+    + [x] General matrix
+        + Method C from §14.3.3 in [[1]](#1)
+        + Method D from §14.3.4 in [[1]](#1)
+    + [ ] Hermitian positive definite
+    + [x] Triangular matrix
+        + Recursive
++ [x] Norms of general, hermitian, symmetric and triangular matrices
+    + [x] 1-norm
+    + [x] Infinity-norm
+    + [x] Frobenius-norm
++ [ ] Nonsymmetric Eigenvalue Problem
+    + [x] Schur decomposition
+        + Double-shift implicit QR
+        + Multishift implicit QR with Aggressive Early Deflation (AED)
+    + [ ] Eigenvector computation
+    + [ ] Generalized Schur problem
+    + [ ] Generalized eigenvalue problem
++ [ ] Symmetric Eigenvalue Problem
+    + [ ] Tridiagonal reduction
+    + [ ] Schur decomposition
+    + [ ] Eigenvector computation
++ [ ] Singular Value Decomposition (SVD)
+    + [ ] Standard singular value problem
+    + [ ] Generalized singular value problem
++ [ ] Linear least squares
+    + [ ] Using QR factorization
+    + [ ] Using SVD
++ [x] Additional kernels
+    + [x] Order 1 and 2 Sylverster equation solver
+    + [x] In-place upper times lower triangular matrix multiplication for general and hermitian matrices
+    + [x] In-place lower times upper triangular matrix multiplication
+    + [x] In-place transpose of a matrix
+
+The complete documentation and implementation for the routines that are available are listed in the [API documentation](https://tlapack.github.io/tlapack/).
+
 ## Installation
 
 \<T\>LAPACK is built and installed with [CMake](https://cmake.org/).
@@ -211,3 +274,7 @@ Redistribution and use in source and binary forms, with or without modification,
 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+## References
+
+<a id="1">[1]</a> Higham, N. J. (2002). Accuracy and stability of numerical algorithms. Society for industrial and applied mathematics.
