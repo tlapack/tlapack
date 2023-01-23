@@ -5,6 +5,7 @@ on:
     paths-ignore:
     - '.github/workflows/deploy_pages.yml'
     - '.github/workflows/doxygen.yml'
+    - '.github/workflows/clang-format-check.yml'
     - '.gitattributes'
     - '.gitignore'
     - '.gitmodules'
@@ -19,6 +20,7 @@ on:
     paths-ignore:
     - '.github/workflows/deploy_pages.yml'
     - '.github/workflows/doxygen.yml'
+    - '.github/workflows/clang-format-check.yml'
     - '.gitattributes'
     - '.gitignore'
     - '.gitmodules'

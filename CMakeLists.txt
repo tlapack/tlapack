@@ -200,12 +200,17 @@ add_subdirectory(config)
 #-------------------------------------------------------------------------------
 # Format code
 find_package(Git QUIET)
-if(GIT_FOUND)
+find_package(ClangFormat QUIET)
+if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git" AND CLANG_FORMAT_FOUND)
+  message(STATUS "ClangFormat found: ${CLANG_FORMAT_EXECUTABLE} (version ${CLANG_FORMAT_VERSION})")
+  if( ${CLANG_FORMAT_MAJOR_VERSION} NOT EQUAL 10 )
+    message( WARNING "Please use ClangFormat version 10" )
+  endif()
   add_custom_target( format-all-hpp-cpp-files
     COMMAND
       ${GIT_EXECUTABLE} ls-tree -r HEAD --name-only |
       grep -E '\(config/|examples/|include/|src/|test/include/|test/src/\).*\\.\(hpp|cpp|h.in|c\)$$' |
-      xargs clang-format -i -style=file
+      xargs ${CLANG_FORMAT_EXECUTABLE} -i -style=file
       > format-all-hpp-cpp-files.log
       2> format-all-hpp-cpp-files.err
     WORKING_DIRECTORY ${TLAPACK_SOURCE_DIR}
