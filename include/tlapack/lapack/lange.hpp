@@ -1,6 +1,7 @@
 /// @file lange.hpp
 /// @author Weslley S Pereira, University of Colorado Denver, USA
-/// @note Adapted from @see https://github.com/langou/latl/blob/master/include/lange.h
+/// @note Adapted from @see
+/// https://github.com/langou/latl/blob/master/include/lange.h
 //
 // Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //

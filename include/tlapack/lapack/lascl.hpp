@@ -1,6 +1,7 @@
 /// @file lascl.hpp Multiplies a matrix by a scalar.
 /// @author Weslley S Pereira, University of Colorado Denver, USA
-/// @note Adapted from @see https://github.com/langou/latl/blob/master/include/lascl.h
+/// @note Adapted from @see
+/// https://github.com/langou/latl/blob/master/include/lascl.h
 //
 // Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
