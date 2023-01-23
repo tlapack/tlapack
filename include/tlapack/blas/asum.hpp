@@ -15,47 +15,42 @@
 
 namespace tlapack {
 
-/** 
+/**
  * Vector 1-norm:
  *      $\sum_{i=0}^{n-1} |Re(x_i)| + |Im(x_i)|$.
- * 
+ *
  * @param[in] x     A n-element vector.
  *
  * @ingroup blas1
  */
-template< class vector_t,
-    disable_if_allow_optblas_t< vector_t > = 0
->
-auto asum( vector_t const& x )
+template <class vector_t, disable_if_allow_optblas_t<vector_t> = 0>
+auto asum(vector_t const& x)
 {
-    using T      = type_t< vector_t >;
-    using idx_t  = size_type< vector_t >;
-    using real_t = real_type< T >;
+    using T = type_t<vector_t>;
+    using idx_t = size_type<vector_t>;
+    using real_t = real_type<T>;
 
     // constants
     const idx_t n = size(x);
 
     real_t result = 0;
     for (idx_t i = 0; i < n; ++i)
-        result += abs1( x[i] );
+        result += abs1(x[i]);
 
     return result;
 }
 
 #ifdef USE_LAPACKPP_WRAPPERS
 
-    template< class vector_t,
-        enable_if_allow_optblas_t< vector_t > = 0
-    >
-    inline
-    auto asum( vector_t const& x )
-    {
-        auto x_ = legacy_vector(x);
-        return ::blas::asum( x_.n, x_.ptr, x_.inc );
-    }
+template <class vector_t, enable_if_allow_optblas_t<vector_t> = 0>
+inline auto asum(vector_t const& x)
+{
+    auto x_ = legacy_vector(x);
+    return ::blas::asum(x_.n, x_.ptr, x_.inc);
+}
 
 #endif
 
 }  // namespace tlapack
 
-#endif        //  #ifndef TLAPACK_BLAS_ASUM_HH
+#endif  //  #ifndef TLAPACK_BLAS_ASUM_HH

@@ -11,6 +11,7 @@
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 
+// Test utilities and definitions (must come before <T>LAPACK headers)
 #include "testutils.hpp"
 
 // Other routines
@@ -19,7 +20,9 @@
 
 using namespace tlapack;
 
-TEMPLATE_TEST_CASE("sylvester solver gives correct result", "[sylvester]", TLAPACK_REAL_TYPES_TO_TEST)
+TEMPLATE_TEST_CASE("sylvester solver gives correct result",
+                   "[sylvester]",
+                   TLAPACK_REAL_TYPES_TO_TEST)
 {
     srand(1);
 
@@ -38,11 +41,16 @@ TEMPLATE_TEST_CASE("sylvester solver gives correct result", "[sylvester]", TLAPA
     const real_t eps = uroundoff<real_t>();
     const real_t tol = real_t(1.0e2) * eps;
 
-    std::vector<T> TL_; auto TL = new_matrix( TL_, n1, n1 );
-    std::vector<T> TR_; auto TR = new_matrix( TR_, n2, n2 );
-    std::vector<T> B_; auto B = new_matrix( B_, n1, n2 );
-    std::vector<T> X_; auto X = new_matrix( X_, n1, n2 );
-    std::vector<T> X_exact_; auto X_exact = new_matrix( X_exact_, n1, n2 );
+    std::vector<T> TL_;
+    auto TL = new_matrix(TL_, n1, n1);
+    std::vector<T> TR_;
+    auto TR = new_matrix(TR_, n2, n2);
+    std::vector<T> B_;
+    auto B = new_matrix(B_, n1, n2);
+    std::vector<T> X_;
+    auto X = new_matrix(X_, n1, n2);
+    std::vector<T> X_exact_;
+    auto X_exact = new_matrix(X_exact_, n1, n2);
 
     for (idx_t i = 0; i < n1; ++i)
         for (idx_t j = 0; j < n1; ++j)
@@ -59,12 +67,11 @@ TEMPLATE_TEST_CASE("sylvester solver gives correct result", "[sylvester]", TLAPA
     Op trans_l = Op::NoTrans;
     Op trans_r = Op::NoTrans;
 
-    real_t sign( 1 );
+    real_t sign(1);
 
     // Calculate op(TL)*X + ISGN*X*op(TR)
     gemm(trans_l, Op::NoTrans, one, TL, X_exact, B);
     gemm(Op::NoTrans, trans_r, sign, X_exact, TR, one, B);
-
 
     INFO("n1 = " << n1 << " n2 =" << n2);
     {
@@ -75,6 +82,7 @@ TEMPLATE_TEST_CASE("sylvester solver gives correct result", "[sylvester]", TLAPA
         // Check that X_exact == X
         for (idx_t i = 0; i < n1; ++i)
             for (idx_t j = 0; j < n2; ++j)
-                CHECK(abs1(X_exact(i, j) - scale * X(i, j)) <= tol * X_exact(i, j));
+                CHECK(abs1(X_exact(i, j) - scale * X(i, j)) <=
+                      tol * X_exact(i, j));
     }
 }

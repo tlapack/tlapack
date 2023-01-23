@@ -17,81 +17,64 @@ namespace tlapack {
 
 namespace internal {
 
-    template< typename T >
-    inline constexpr auto colmajor_matrix(
-        T* A, 
-        idx_t m, 
-        idx_t n, 
-        idx_t lda )
+    template <typename T>
+    inline constexpr auto colmajor_matrix(T* A, idx_t m, idx_t n, idx_t lda)
     {
-        return legacyMatrix<T,idx_t,Layout::ColMajor>{ m, n, A, lda };
-    }
-    
-    template< typename T >
-    inline constexpr auto colmajor_matrix(
-        T* A, 
-        idx_t m, 
-        idx_t n )
-    {
-        return legacyMatrix<T,idx_t,Layout::ColMajor>{ m, n, A, m };
+        return legacyMatrix<T, idx_t, Layout::ColMajor>{m, n, A, lda};
     }
 
-    template< typename T >
-    inline constexpr auto rowmajor_matrix(
-        T* A, 
-        idx_t m, 
-        idx_t n, 
-        idx_t lda )
+    template <typename T>
+    inline constexpr auto colmajor_matrix(T* A, idx_t m, idx_t n)
     {
-        return legacyMatrix<T,idx_t,Layout::RowMajor>{ m, n, A, lda };
+        return legacyMatrix<T, idx_t, Layout::ColMajor>{m, n, A, m};
     }
 
-    template< typename T >
-    inline constexpr auto rowmajor_matrix(
-        T* A, 
-        idx_t m, 
-        idx_t n )
+    template <typename T>
+    inline constexpr auto rowmajor_matrix(T* A, idx_t m, idx_t n, idx_t lda)
     {
-        return legacyMatrix<T,idx_t,Layout::RowMajor>{ m, n, A, n };
+        return legacyMatrix<T, idx_t, Layout::RowMajor>{m, n, A, lda};
     }
 
-    template< typename T >
+    template <typename T>
+    inline constexpr auto rowmajor_matrix(T* A, idx_t m, idx_t n)
+    {
+        return legacyMatrix<T, idx_t, Layout::RowMajor>{m, n, A, n};
+    }
+
+    template <typename T>
     inline constexpr auto banded_matrix(
-        T* A, 
-        idx_t m, 
-        idx_t n, 
-        idx_t kl, 
-        idx_t ku )
+        T* A, idx_t m, idx_t n, idx_t kl, idx_t ku)
     {
-        return legacyBandedMatrix<T,idx_t>{ m, n, kl, ku, A };
+        return legacyBandedMatrix<T, idx_t>{m, n, kl, ku, A};
     }
 
-    template< typename T, typename int_t >
-    inline constexpr auto vector( T* x, idx_t n, int_t inc )
+    template <typename T, typename int_t>
+    inline constexpr auto vector(T* x, idx_t n, int_t inc)
     {
-        return legacyVector<T,idx_t,int_t>{ n, x, inc };
+        return legacyVector<T, idx_t, int_t>{n, x, inc};
     }
 
-    template< typename T >
-    inline constexpr auto vector( T* x, idx_t n )
+    template <typename T>
+    inline constexpr auto vector(T* x, idx_t n)
     {
-        return legacyVector<T,idx_t>{ n, x };
+        return legacyVector<T, idx_t>{n, x};
     }
 
-    template< typename T, typename int_t >
-    inline constexpr auto backward_vector( T* x, idx_t n, int_t inc )
+    template <typename T, typename int_t>
+    inline constexpr auto backward_vector(T* x, idx_t n, int_t inc)
     {
-        return legacyVector<T,idx_t,int_t,Direction::Backward>{ n, x, inc };
+        return legacyVector<T, idx_t, int_t, Direction::Backward>{n, x, inc};
     }
 
-    template< typename T >
-    inline constexpr auto backward_vector( T* x, idx_t n )
+    template <typename T>
+    inline constexpr auto backward_vector(T* x, idx_t n)
     {
-        return legacyVector<T,idx_t,internal::StrongOne,Direction::Backward>{ n, x };
+        return legacyVector<T, idx_t, internal::StrongOne, Direction::Backward>{
+            n, x};
     }
 
-} // namespace internal
+}  // namespace internal
 
-} // namespace tlapack
+}  // namespace tlapack
 
-#endif // TLAPACK_LEGACY_LEGACYARRAY_HH
+#endif  // TLAPACK_LEGACY_LEGACYARRAY_HH

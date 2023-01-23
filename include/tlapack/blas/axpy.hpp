@@ -24,25 +24,22 @@ namespace tlapack {
  *
  * @ingroup blas1
  */
-template< class vectorX_t, class vectorY_t, class alpha_t,
-    class T = type_t<vectorY_t>,
-    disable_if_allow_optblas_t<
-        pair< alpha_t, T >,
-        pair< vectorX_t, T >,
-        pair< vectorY_t, T >
-    > = 0
->
-void axpy(
-    const alpha_t& alpha,
-    const vectorX_t& x, vectorY_t& y )
+template <class vectorX_t,
+          class vectorY_t,
+          class alpha_t,
+          class T = type_t<vectorY_t>,
+          disable_if_allow_optblas_t<pair<alpha_t, T>,
+                                     pair<vectorX_t, T>,
+                                     pair<vectorY_t, T> > = 0>
+void axpy(const alpha_t& alpha, const vectorX_t& x, vectorY_t& y)
 {
-    using idx_t = size_type< vectorX_t >;
+    using idx_t = size_type<vectorX_t>;
 
     // constants
     const idx_t n = size(x);
 
     // check arguments
-    tlapack_check_false( (idx_t) size(y) < n );
+    tlapack_check_false((idx_t)size(y) < n);
 
     for (idx_t i = 0; i < n; ++i)
         y[i] += alpha * x[i];
@@ -50,38 +47,37 @@ void axpy(
 
 #ifdef USE_LAPACKPP_WRAPPERS
 
-    template< class vectorX_t, class vectorY_t, class alpha_t,
-        class T = type_t<vectorY_t>,
-        enable_if_allow_optblas_t<
-            pair< alpha_t, T >,
-            pair< vectorX_t, T >,
-            pair< vectorY_t, T >
-        > = 0
-    >
-    inline
-    void axpy(
-        const alpha_t alpha,
-        const vectorX_t& x, vectorY_t& y )
-    {
-        using idx_t = size_type< vectorX_t >;
+template <class vectorX_t,
+          class vectorY_t,
+          class alpha_t,
+          class T = type_t<vectorY_t>,
+          enable_if_allow_optblas_t<pair<alpha_t, T>,
+                                    pair<vectorX_t, T>,
+                                    pair<vectorY_t, T> > = 0>
+inline void axpy(const alpha_t alpha, const vectorX_t& x, vectorY_t& y)
+{
+    using idx_t = size_type<vectorX_t>;
 
-        // Legacy objects
-        auto x_ = legacy_vector(x);
-        auto y_ = legacy_vector(y);
+    // Legacy objects
+    auto x_ = legacy_vector(x);
+    auto y_ = legacy_vector(y);
 
-        // Constants to forward
-        const idx_t& n = x_.n;
-        const idx_t incx = (x_.direction == Direction::Forward) ? idx_t(x_.inc) : idx_t(-x_.inc);
-        const idx_t incy = (y_.direction == Direction::Forward) ? idx_t(y_.inc) : idx_t(-y_.inc);
+    // Constants to forward
+    const idx_t& n = x_.n;
+    const idx_t incx =
+        (x_.direction == Direction::Forward) ? idx_t(x_.inc) : idx_t(-x_.inc);
+    const idx_t incy =
+        (y_.direction == Direction::Forward) ? idx_t(y_.inc) : idx_t(-y_.inc);
 
-        if( alpha == alpha_t(0) )
-            tlapack_warning( -1, "Infs and NaNs in x will not propagate to y on output" );
+    if (alpha == alpha_t(0))
+        tlapack_warning(-1,
+                        "Infs and NaNs in x will not propagate to y on output");
 
-        return ::blas::axpy( n, alpha, x_.ptr, incx, y_.ptr, incy );
-    }
+    return ::blas::axpy(n, alpha, x_.ptr, incx, y_.ptr, incy);
+}
 
 #endif
 
 }  // namespace tlapack
 
-#endif        //  #ifndef TLAPACK_BLAS_AXPY_HH
+#endif  //  #ifndef TLAPACK_BLAS_AXPY_HH

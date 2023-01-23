@@ -1,0 +1,40 @@
+name: clang-format Check
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - '**.hpp'
+      - '**.cpp'
+      - '**.h.in'
+      - '**.c'
+  pull_request:
+    paths:
+      - '**.hpp'
+      - '**.cpp'
+      - '**.h.in'
+      - '**.c'
+
+jobs:
+  formatting-check:
+    name: Formatting Check
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        path:
+          - 'config'
+          - 'examples'
+          - 'include'
+          - 'src'
+          - 'test/include'
+          - 'test/src'
+    steps:
+    - uses: actions/checkout@v3
+    - name: Run clang-format style check for C/C++ programs.
+      uses: jidicula/clang-format-action@v4.10.1
+      with:
+        clang-format-version: '10'
+        check-path: ${{ matrix.path }}
+        include-regex: '^.*\.(hpp|cpp|h\.in|c)$'
+        fallback-style: 'Google'

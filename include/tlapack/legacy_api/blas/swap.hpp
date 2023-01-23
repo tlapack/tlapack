@@ -11,9 +11,9 @@
 #ifndef TLAPACK_LEGACY_SWAP_HH
 #define TLAPACK_LEGACY_SWAP_HH
 
-#include "tlapack/legacy_api/base/utils.hpp"
-#include "tlapack/legacy_api/base/types.hpp"
 #include "tlapack/blas/swap.hpp"
+#include "tlapack/legacy_api/base/types.hpp"
+#include "tlapack/legacy_api/base/utils.hpp"
 
 namespace tlapack {
 
@@ -41,26 +41,20 @@ namespace tlapack {
  *
  * @ingroup legacy_blas
  */
-template< typename TX, typename TY >
-void swap(
-    idx_t n,
-    TX *x, int_t incx,
-    TY *y, int_t incy )
+template <typename TX, typename TY>
+void swap(idx_t n, TX* x, int_t incx, TY* y, int_t incy)
 {
     // check arguments
-    tlapack_check_false( incx == 0 );
-    tlapack_check_false( incy == 0 );
+    tlapack_check_false(incx == 0);
+    tlapack_check_false(incy == 0);
 
     // quick return
-    if( n <= 0 ) return;
+    if (n <= 0) return;
 
-    tlapack_expr_with_2vectors(
-        x_, TX, n, x, incx,
-        y_, TY, n, y, incy,
-        return tlapack::swap( x_, y_ );
-    );
+    tlapack_expr_with_2vectors(x_, TX, n, x, incx, y_, TY, n, y, incy,
+                               return tlapack::swap(x_, y_););
 }
 
 }  // namespace tlapack
 
-#endif        //  #ifndef TLAPACK_LEGACY_SWAP_HH
+#endif  //  #ifndef TLAPACK_LEGACY_SWAP_HH

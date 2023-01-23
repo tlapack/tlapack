@@ -11,19 +11,20 @@
 #ifndef TLAPACK_BLAS_IAMAX_HH
 #define TLAPACK_BLAS_IAMAX_HH
 
-#include "tlapack/base/utils.hpp"
 #include "tlapack/base/constants.hpp"
+#include "tlapack/base/utils.hpp"
 
 namespace tlapack {
 
 /**
  * @brief Return $\arg\max_{i=0}^{n-1} \left(|Re(x_i)| + |Im(x_i)|\right)$
- * 
+ *
  * Version with NaN checks.
- * @see iamax_nc( const vector_t& x ) for the version that does not check for NaNs.
- * 
+ * @see iamax_nc( const vector_t& x ) for the version that does not check for
+ * NaNs.
+ *
  * @param[in] x The n-element vector x.
- * 
+ *
  * @return In priority order:
  * 1. 0 if n <= 0,
  * 2. the index of the first `NAN` in $x$ if it exists,
@@ -33,36 +34,34 @@ namespace tlapack {
  *
  * @ingroup blas1
  */
-template< class vector_t >
-size_type<vector_t>
-iamax_ec( const vector_t& x )
+template <class vector_t>
+size_type<vector_t> iamax_ec(const vector_t& x)
 {
     // data traits
-    using idx_t  = size_type< vector_t >;
-    using T      = type_t<vector_t>;
-    using real_t = real_type< T >;
+    using idx_t = size_type<vector_t>;
+    using T = type_t<vector_t>;
+    using real_t = real_type<T>;
 
     // constants
-    const real_t oneFourth( 0.25 );
+    const real_t oneFourth(0.25);
     const idx_t n = size(x);
 
     // quick return
-    if( n <= 0 ) return 0;
+    if (n <= 0) return 0;
 
-    bool scaledsmax = false; // indicates whether |Re(x_i)| + |Im(x_i)| = Inf
-    real_t smax( -1 );
+    bool scaledsmax = false;  // indicates whether |Re(x_i)| + |Im(x_i)| = Inf
+    real_t smax(-1);
     idx_t index = -1;
     idx_t i = 0;
     for (; i < n; ++i) {
-        if ( isnan(x[i]) ) {
+        if (isnan(x[i])) {
             // return when first NaN found
             return i;
         }
-        else if ( isinf(x[i]) ) {
-            
+        else if (isinf(x[i])) {
             // keep looking for first NaN
-            for (idx_t k = i+1; k < n; ++k) {
-                if ( isnan(x[k]) ) {
+            for (idx_t k = i + 1; k < n; ++k) {
+                if (isnan(x[k])) {
                     // return when first NaN found
                     return k;
                 }
@@ -71,29 +70,29 @@ iamax_ec( const vector_t& x )
             // return the position of the first Inf
             return i;
         }
-        else { // still no Inf found yet
-            if ( ! is_complex<T>::value ) {
+        else {  // still no Inf found yet
+            if (!is_complex<T>::value) {
                 real_t a = abs1(x[i]);
-                if ( a > smax ) {
+                if (a > smax) {
                     smax = a;
                     index = i;
                 }
             }
-            else if ( !scaledsmax ) { // no |Re(x_i)| + |Im(x_i)| = Inf  yet
+            else if (!scaledsmax) {  // no |Re(x_i)| + |Im(x_i)| = Inf  yet
                 real_t a = abs1(x[i]);
-                if ( isinf(a) ) {
+                if (isinf(a)) {
                     scaledsmax = true;
-                    smax = abs1( oneFourth*x[i] );
+                    smax = abs1(oneFourth * x[i]);
                     index = i;
                 }
-                else if ( a > smax ) {
+                else if (a > smax) {
                     smax = a;
                     index = i;
                 }
             }
-            else { // scaledsmax = true
-                real_t a = abs1( oneFourth*x[i] );
-                if ( a > smax ) {
+            else {  // scaledsmax = true
+                real_t a = abs1(oneFourth * x[i]);
+                if (a > smax) {
                     smax = a;
                     index = i;
                 }
@@ -106,12 +105,12 @@ iamax_ec( const vector_t& x )
 
 /**
  * @brief Return $\arg\max_{i=0}^{n-1} \left(|Re(x_i)| + |Im(x_i)|\right)$
- * 
+ *
  * Version with no NaN checks.
  * @see iamax_ec( const vector_t& x ) for the version that check for NaNs.
- * 
+ *
  * @param[in] x The n-element vector x.
- * 
+ *
  * @return In priority order:
  * 1. 0 if n <= 0,
  * 2. the index of the first `Infinity` in $x$ if it exists,
@@ -120,54 +119,53 @@ iamax_ec( const vector_t& x )
  *
  * @ingroup blas1
  */
-template< class vector_t >
-size_type<vector_t>
-iamax_nc( const vector_t& x )
+template <class vector_t>
+size_type<vector_t> iamax_nc(const vector_t& x)
 {
     // data traits
-    using idx_t  = size_type< vector_t >;
-    using T      = type_t<vector_t>;
-    using real_t = real_type< T >;
+    using idx_t = size_type<vector_t>;
+    using T = type_t<vector_t>;
+    using real_t = real_type<T>;
 
     // constants
-    const real_t oneFourth( 0.25 );
+    const real_t oneFourth(0.25);
     const idx_t n = size(x);
 
     // quick return
-    if( n <= 0 ) return 0;
+    if (n <= 0) return 0;
 
-    bool scaledsmax = false; // indicates whether |Re(x_i)| + |Im(x_i)| = Inf
-    real_t smax( -1 );
+    bool scaledsmax = false;  // indicates whether |Re(x_i)| + |Im(x_i)| = Inf
+    real_t smax(-1);
     idx_t index = -1;
     idx_t i = 0;
     for (; i < n; ++i) {
-        if ( isinf(x[i]) ) {
+        if (isinf(x[i])) {
             // return the position of the first Inf
             return i;
         }
-        else { // still no Inf found yet
-            if ( ! is_complex<T>::value ) {
+        else {  // still no Inf found yet
+            if (!is_complex<T>::value) {
                 real_t a = abs1(x[i]);
-                if ( a > smax ) {
+                if (a > smax) {
                     smax = a;
                     index = i;
                 }
             }
-            else if ( !scaledsmax ) { // no |Re(x_i)| + |Im(x_i)| = Inf  yet
+            else if (!scaledsmax) {  // no |Re(x_i)| + |Im(x_i)| = Inf  yet
                 real_t a = abs1(x[i]);
-                if ( isinf(a) ) {
+                if (isinf(a)) {
                     scaledsmax = true;
-                    smax = abs1( oneFourth*x[i] );
+                    smax = abs1(oneFourth * x[i]);
                     index = i;
                 }
-                else if ( a > smax ) {
+                else if (a > smax) {
                     smax = a;
                     index = i;
                 }
             }
-            else { // scaledsmax = true
-                real_t a = abs1( oneFourth*x[i] );
-                if ( a > smax ) {
+            else {  // scaledsmax = true
+                real_t a = abs1(oneFourth * x[i]);
+                if (a > smax) {
                     smax = a;
                     index = i;
                 }
@@ -180,14 +178,15 @@ iamax_nc( const vector_t& x )
 
 /**
  * @brief Return $\arg\max_{i=0}^{n-1} \left(|Re(x_i)| + |Im(x_i)|\right)$
- * 
- * @see iamax_nc( const vector_t& x ) for the version that does not check for NaNs.
+ *
+ * @see iamax_nc( const vector_t& x ) for the version that does not check for
+ * NaNs.
  * @see iamax_ec( const vector_t& x ) for the version that check for NaNs.
- * 
+ *
  * @param[in] x The n-element vector x.
  * @param[in] opts Options.
  *      Define the behavior of checks for NaNs.
- * 
+ *
  * @return In priority order:
  * 1. 0 if n <= 0,
  * 2. the index of the first `NAN` in $x$ if it exists and if `ec.nan == true`,
@@ -197,31 +196,23 @@ iamax_nc( const vector_t& x )
  *
  * @ingroup blas1
  */
-template< class vector_t, 
-    disable_if_allow_optblas_t< vector_t > = 0
->
-inline
-size_type<vector_t>
-iamax( const vector_t& x, const ec_opts_t& opts = {} )
+template <class vector_t, disable_if_allow_optblas_t<vector_t> = 0>
+inline size_type<vector_t> iamax(const vector_t& x, const ec_opts_t& opts = {})
 {
-    return ( opts.ec.nan == true ) ? iamax_ec(x) : iamax_nc(x);
+    return (opts.ec.nan == true) ? iamax_ec(x) : iamax_nc(x);
 }
 
 #ifdef USE_LAPACKPP_WRAPPERS
 
-    template< class vector_t,
-        enable_if_allow_optblas_t< vector_t > = 0
-    >
-    inline
-    size_type<vector_t>
-    iamax( vector_t const& x )
-    {
-        auto x_ = legacy_vector(x);
-        return ::blas::iamax( x_.n, x_.ptr, x_.inc );
-    }
+template <class vector_t, enable_if_allow_optblas_t<vector_t> = 0>
+inline size_type<vector_t> iamax(vector_t const& x)
+{
+    auto x_ = legacy_vector(x);
+    return ::blas::iamax(x_.n, x_.ptr, x_.inc);
+}
 
 #endif
 
 }  // namespace tlapack
 
-#endif        //  #ifndef TLAPACK_BLAS_IAMAX_HH
+#endif  //  #ifndef TLAPACK_BLAS_IAMAX_HH

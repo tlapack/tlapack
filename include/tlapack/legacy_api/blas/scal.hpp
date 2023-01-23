@@ -11,9 +11,9 @@
 #ifndef TLAPACK_LEGACY_SCAL_HH
 #define TLAPACK_LEGACY_SCAL_HH
 
-#include "tlapack/legacy_api/base/utils.hpp"
-#include "tlapack/legacy_api/base/types.hpp"
 #include "tlapack/blas/scal.hpp"
+#include "tlapack/legacy_api/base/types.hpp"
+#include "tlapack/legacy_api/base/utils.hpp"
 
 namespace tlapack {
 
@@ -36,23 +36,18 @@ namespace tlapack {
  *
  * @ingroup legacy_blas
  */
-template< typename TA, typename TX >
-void scal(
-    idx_t n,
-    const TA& alpha,
-    TX* x, int_t incx )
+template <typename TA, typename TX>
+void scal(idx_t n, const TA& alpha, TX* x, int_t incx)
 {
-    tlapack_check_false( incx <= 0 );
+    tlapack_check_false(incx <= 0);
 
     // quick return
-    if( n <= 0 ) return;
-    
-    tlapack_expr_with_vector_positiveInc(
-        x_, TX, n, x, incx,
-        return scal( alpha, x_ )
-    );
+    if (n <= 0) return;
+
+    tlapack_expr_with_vector_positiveInc(x_, TX, n, x, incx,
+                                         return scal(alpha, x_));
 }
 
 }  // namespace tlapack
 
-#endif        //  #ifndef TLAPACK_LEGACY_SCAL_HH
+#endif  //  #ifndef TLAPACK_LEGACY_SCAL_HH

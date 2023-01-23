@@ -24,7 +24,7 @@ namespace tlapack {
  * \]
  *
  * @see rotmg to generate the rotation, and for fuller description.
- * 
+ *
  * @tparam flag Defines the format of H.
  * - For flag = -1,
  *     \[
@@ -64,46 +64,43 @@ namespace tlapack {
  *
  * @ingroup blas1
  */
-template<
+template <
     int flag,
-    class vectorX_t, class vectorY_t,
-    enable_if_t<((-2 <= flag) && (flag <= 1)), int > = 0,
+    class vectorX_t,
+    class vectorY_t,
+    enable_if_t<((-2 <= flag) && (flag <= 1)), int> = 0,
     class T = type_t<vectorX_t>,
-    enable_if_t< is_same_v< T, real_type<T> >, int > = 0,
-    disable_if_allow_optblas_t<
-        pair< vectorX_t, T >,
-        pair< vectorY_t, T >
-    > = 0
->
-void rotm( vectorX_t& x, vectorY_t& y, const T h[4] )
+    enable_if_t<is_same_v<T, real_type<T> >, int> = 0,
+    disable_if_allow_optblas_t<pair<vectorX_t, T>, pair<vectorY_t, T> > = 0>
+void rotm(vectorX_t& x, vectorY_t& y, const T h[4])
 {
-    using idx_t = size_type< vectorX_t >;
-    using scalar_t = scalar_type< T, type_t<vectorX_t>, type_t<vectorY_t> >;
+    using idx_t = size_type<vectorX_t>;
+    using scalar_t = scalar_type<T, type_t<vectorX_t>, type_t<vectorY_t> >;
 
     // constants
     const idx_t n = size(x);
 
     // check arguments
-    tlapack_check_false( size(y) != n );
+    tlapack_check_false(size(y) != n);
 
-    if ( flag == -1 ) {
+    if (flag == -1) {
         for (idx_t i = 0; i < n; ++i) {
-            const scalar_t stmp = h[0]*x[i] + h[2]*y[i];
-            y[i] = h[3]*y[i] + h[1]*x[i];
+            const scalar_t stmp = h[0] * x[i] + h[2] * y[i];
+            y[i] = h[3] * y[i] + h[1] * x[i];
             x[i] = stmp;
         }
     }
-    else if ( flag == 0 ) {
+    else if (flag == 0) {
         for (idx_t i = 0; i < n; ++i) {
-            const scalar_t stmp = x[i] + h[2]*y[i];
-            y[i] = y[i] + h[1]*x[i];
+            const scalar_t stmp = x[i] + h[2] * y[i];
+            y[i] = y[i] + h[1] * x[i];
             x[i] = stmp;
         }
     }
-    else if ( flag == 1 ) {
+    else if (flag == 1) {
         for (idx_t i = 0; i < n; ++i) {
-            const scalar_t stmp = h[0]*x[i] + y[i];
-            y[i] = h[3]*y[i] - x[i];
+            const scalar_t stmp = h[0] * x[i] + y[i];
+            y[i] = h[3] * y[i] - x[i];
             x[i] = stmp;
         }
     }
@@ -111,37 +108,35 @@ void rotm( vectorX_t& x, vectorY_t& y, const T h[4] )
 
 #ifdef USE_LAPACKPP_WRAPPERS
 
-    template<
-        int flag,
-        class vectorX_t, class vectorY_t,
-        enable_if_t<((-2 <= flag) && (flag <= 1)), int > = 0,
-        class T = type_t<vectorX_t>,
-        enable_if_t< is_same_v< T, real_type<T> >, int > = 0,
-        enable_if_allow_optblas_t<
-            pair< vectorX_t, T >,
-            pair< vectorY_t, T >
-        > = 0
-    >
-    inline
-    void rotm( vectorX_t& x, vectorY_t& y, const T h[4] )
-    {
-        using idx_t = size_type< vectorX_t >;
+template <
+    int flag,
+    class vectorX_t,
+    class vectorY_t,
+    enable_if_t<((-2 <= flag) && (flag <= 1)), int> = 0,
+    class T = type_t<vectorX_t>,
+    enable_if_t<is_same_v<T, real_type<T> >, int> = 0,
+    enable_if_allow_optblas_t<pair<vectorX_t, T>, pair<vectorY_t, T> > = 0>
+inline void rotm(vectorX_t& x, vectorY_t& y, const T h[4])
+{
+    using idx_t = size_type<vectorX_t>;
 
-        // Legacy objects
-        auto x_ = legacy_vector(x);
-        auto y_ = legacy_vector(y);
+    // Legacy objects
+    auto x_ = legacy_vector(x);
+    auto y_ = legacy_vector(y);
 
-        // Constants to forward
-        const idx_t& n = x_.n;
-        const idx_t incx = (x_.direction == Direction::Forward) ? idx_t(x_.inc) : idx_t(-x_.inc);
-        const idx_t incy = (y_.direction == Direction::Forward) ? idx_t(y_.inc) : idx_t(-y_.inc);
-        const T h_[] = { (T) flag, h[0], h[1], h[2], h[3] };
+    // Constants to forward
+    const idx_t& n = x_.n;
+    const idx_t incx =
+        (x_.direction == Direction::Forward) ? idx_t(x_.inc) : idx_t(-x_.inc);
+    const idx_t incy =
+        (y_.direction == Direction::Forward) ? idx_t(y_.inc) : idx_t(-y_.inc);
+    const T h_[] = {(T)flag, h[0], h[1], h[2], h[3]};
 
-        return ::blas::rotm( n, x_.ptr, incx, y_.ptr, incy, h_ );
-    }
+    return ::blas::rotm(n, x_.ptr, incx, y_.ptr, incy, h_);
+}
 
 #endif
 
 }  // namespace tlapack
 
-#endif        //  #ifndef TLAPACK_BLAS_ROTM_HH
+#endif  //  #ifndef TLAPACK_BLAS_ROTM_HH

@@ -11,9 +11,9 @@
 #ifndef TLAPACK_LEGACY_HEMM_HH
 #define TLAPACK_LEGACY_HEMM_HH
 
-#include "tlapack/legacy_api/base/utils.hpp"
-#include "tlapack/legacy_api/base/types.hpp"
 #include "tlapack/blas/hemm.hpp"
+#include "tlapack/legacy_api/base/types.hpp"
+#include "tlapack/legacy_api/base/utils.hpp"
 
 namespace tlapack {
 
@@ -85,78 +85,77 @@ namespace tlapack {
  *
  * @ingroup legacy_blas
  */
-template< typename TA, typename TB, typename TC >
-void hemm(
-    Layout layout,
-    Side side,
-    Uplo uplo,
-    idx_t m, idx_t n,
-    scalar_type<TA, TB, TC> alpha,
-    TA const *A, idx_t lda,
-    TB const *B, idx_t ldb,
-    scalar_type<TA, TB, TC> beta,
-    TC       *C, idx_t ldc )
-{    
+template <typename TA, typename TB, typename TC>
+void hemm(Layout layout,
+          Side side,
+          Uplo uplo,
+          idx_t m,
+          idx_t n,
+          scalar_type<TA, TB, TC> alpha,
+          TA const* A,
+          idx_t lda,
+          TB const* B,
+          idx_t ldb,
+          scalar_type<TA, TB, TC> beta,
+          TC* C,
+          idx_t ldc)
+{
     using internal::colmajor_matrix;
     using scalar_t = scalar_type<TA, TB, TC>;
 
     // check arguments
-    tlapack_check_false( layout != Layout::ColMajor &&
-                   layout != Layout::RowMajor );
-    tlapack_check_false( side != Side::Left &&
-                   side != Side::Right );
-    tlapack_check_false( uplo != Uplo::Lower &&
-                   uplo != Uplo::Upper &&
-                   uplo != Uplo::General );
-    tlapack_check_false( m < 0 );
-    tlapack_check_false( n < 0 );
-    tlapack_check_false( lda < ((side == Side::Left) ? m : n) );
-    tlapack_check_false( ldb < ((layout == Layout::RowMajor) ? n : m) );
-    tlapack_check_false( ldc < ((layout == Layout::RowMajor) ? n : m) );
+    tlapack_check_false(layout != Layout::ColMajor &&
+                        layout != Layout::RowMajor);
+    tlapack_check_false(side != Side::Left && side != Side::Right);
+    tlapack_check_false(uplo != Uplo::Lower && uplo != Uplo::Upper &&
+                        uplo != Uplo::General);
+    tlapack_check_false(m < 0);
+    tlapack_check_false(n < 0);
+    tlapack_check_false(lda < ((side == Side::Left) ? m : n));
+    tlapack_check_false(ldb < ((layout == Layout::RowMajor) ? n : m));
+    tlapack_check_false(ldc < ((layout == Layout::RowMajor) ? n : m));
 
     // quick return
-    if ( m == 0 || n == 0 ||
-        ((alpha == scalar_t(0)) && (beta == scalar_t(1))) ) return;
+    if (m == 0 || n == 0 || ((alpha == scalar_t(0)) && (beta == scalar_t(1))))
+        return;
 
     // adapt if row major
     if (layout == Layout::RowMajor) {
-        side = (side == Side::Left)
-            ? Side::Right
-            : Side::Left;
+        side = (side == Side::Left) ? Side::Right : Side::Left;
         if (uplo == Uplo::Lower)
             uplo = Uplo::Upper;
         else if (uplo == Uplo::Upper)
             uplo = Uplo::Lower;
-        std::swap( m , n );
+        std::swap(m, n);
     }
-    
+
     // Matrix views
     const auto A_ = (side == Side::Left)
-                  ? colmajor_matrix<TA>( (TA*)A, m, m, lda )
-                  : colmajor_matrix<TA>( (TA*)A, n, n, lda );
-    const auto B_ = colmajor_matrix<TB>( (TB*)B, m, n, ldb );
-    auto C_ = colmajor_matrix<TC>( C, m, n, ldc );
+                        ? colmajor_matrix<TA>((TA*)A, m, m, lda)
+                        : colmajor_matrix<TA>((TA*)A, n, n, lda);
+    const auto B_ = colmajor_matrix<TB>((TB*)B, m, n, ldb);
+    auto C_ = colmajor_matrix<TC>(C, m, n, ldc);
 
-    if( alpha == scalar_t(0) ) {
-        if( beta == scalar_t(0) ) {
-            for(idx_t j = 0; j < n; ++j)
-                for(idx_t i = 0; i < m; ++i)
-                    C_(i,j) = TC(0);
+    if (alpha == scalar_t(0)) {
+        if (beta == scalar_t(0)) {
+            for (idx_t j = 0; j < n; ++j)
+                for (idx_t i = 0; i < m; ++i)
+                    C_(i, j) = TC(0);
         }
         else {
-            for(idx_t j = 0; j < n; ++j)
-                for(idx_t i = 0; i < m; ++i)
-                    C_(i,j) *= beta;
+            for (idx_t j = 0; j < n; ++j)
+                for (idx_t i = 0; i < m; ++i)
+                    C_(i, j) *= beta;
         }
     }
     else {
-        if( beta == scalar_t(0) )
-            hemm( side, uplo, alpha, A_, B_, C_ );
+        if (beta == scalar_t(0))
+            hemm(side, uplo, alpha, A_, B_, C_);
         else
-            hemm( side, uplo, alpha, A_, B_, beta, C_ );
+            hemm(side, uplo, alpha, A_, B_, beta, C_);
     }
 }
 
 }  // namespace tlapack
 
-#endif        //  #ifndef TLAPACK_LEGACY_HEMM_HH
+#endif  //  #ifndef TLAPACK_LEGACY_HEMM_HH

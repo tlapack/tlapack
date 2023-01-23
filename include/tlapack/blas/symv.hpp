@@ -37,38 +37,36 @@ namespace tlapack {
  *
  * @ingroup blas2
  */
-template<
-    class matrixA_t,
-    class vectorX_t, class vectorY_t, 
-    class alpha_t, class beta_t,
-    class T = type_t<vectorY_t>,
-    disable_if_allow_optblas_t<
-        pair< matrixA_t, T >,
-        pair< vectorX_t, T >,
-        pair< vectorY_t, T >,
-        pair< beta_t,    T >
-    > = 0
->
-void symv(
-    Uplo uplo,
-    const alpha_t& alpha, const matrixA_t& A, const vectorX_t& x,
-    const beta_t& beta, vectorY_t& y )
+template <class matrixA_t,
+          class vectorX_t,
+          class vectorY_t,
+          class alpha_t,
+          class beta_t,
+          class T = type_t<vectorY_t>,
+          disable_if_allow_optblas_t<pair<matrixA_t, T>,
+                                     pair<vectorX_t, T>,
+                                     pair<vectorY_t, T>,
+                                     pair<beta_t, T> > = 0>
+void symv(Uplo uplo,
+          const alpha_t& alpha,
+          const matrixA_t& A,
+          const vectorX_t& x,
+          const beta_t& beta,
+          vectorY_t& y)
 {
     // data traits
-    using TA    = type_t< matrixA_t >;
-    using TX    = type_t< vectorX_t >;
-    using idx_t = size_type< matrixA_t >;
+    using TA = type_t<matrixA_t>;
+    using TX = type_t<vectorX_t>;
+    using idx_t = size_type<matrixA_t>;
 
     // constants
     const idx_t n = nrows(A);
 
     // check arguments
-    tlapack_check_false( uplo != Uplo::Lower &&
-                   uplo != Uplo::Upper );
-    tlapack_check_false( ncols(A) != n );
-    tlapack_check_false( size(x)  != n );
-    tlapack_check_false( size(y)  != n );
-
+    tlapack_check_false(uplo != Uplo::Lower && uplo != Uplo::Upper);
+    tlapack_check_false(ncols(A) != n);
+    tlapack_check_false(size(x) != n);
+    tlapack_check_false(size(y) != n);
 
     // form y = beta*y
     for (idx_t i = 0; i < n; ++i)
@@ -78,26 +76,26 @@ void symv(
         // A is stored in upper triangle
         // form y += alpha * A * x
         for (idx_t j = 0; j < n; ++j) {
-            const scalar_type<alpha_t,TX> tmp1 = alpha*x[j];
-            scalar_type<TA,TX> sum(0);
+            const scalar_type<alpha_t, TX> tmp1 = alpha * x[j];
+            scalar_type<TA, TX> sum(0);
             for (idx_t i = 0; i < j; ++i) {
-                y[i] += tmp1 * A(i,j);
-                sum += A(i,j) * x[i];
+                y[i] += tmp1 * A(i, j);
+                sum += A(i, j) * x[i];
             }
-            y[j] += tmp1 * A(j,j) + alpha * sum;
+            y[j] += tmp1 * A(j, j) + alpha * sum;
         }
     }
     else {
         // A is stored in lower triangle
         // form y += alpha * A * x
         for (idx_t j = 0; j < n; ++j) {
-            const scalar_type<alpha_t,TX> tmp1 = alpha*x[j];
-            scalar_type<TA,TX> sum(0);
-            for (idx_t i = j+1; i < n; ++i) {
-                y[i] += tmp1 * A(i,j);
-                sum += A(i,j) * x[i];
+            const scalar_type<alpha_t, TX> tmp1 = alpha * x[j];
+            scalar_type<TA, TX> sum(0);
+            for (idx_t i = j + 1; i < n; ++i) {
+                y[i] += tmp1 * A(i, j);
+                sum += A(i, j) * x[i];
             }
-            y[j] += tmp1 * A(j,j) + alpha * sum;
+            y[j] += tmp1 * A(j, j) + alpha * sum;
         }
     }
 }
@@ -123,119 +121,106 @@ void symv(
  *
  * @ingroup blas2
  */
-template<
-    class matrixA_t,
-    class vectorX_t, class vectorY_t, 
-    class alpha_t,
-    class T = type_t<vectorY_t>,
-    disable_if_allow_optblas_t<
-        pair< matrixA_t, T >,
-        pair< vectorX_t, T >,
-        pair< vectorY_t, T >
-    > = 0
->
-inline
-void symv(
-    Uplo uplo,
-    const alpha_t& alpha, const matrixA_t& A, const vectorX_t& x,
-    vectorY_t& y )
+template <class matrixA_t,
+          class vectorX_t,
+          class vectorY_t,
+          class alpha_t,
+          class T = type_t<vectorY_t>,
+          disable_if_allow_optblas_t<pair<matrixA_t, T>,
+                                     pair<vectorX_t, T>,
+                                     pair<vectorY_t, T> > = 0>
+inline void symv(Uplo uplo,
+                 const alpha_t& alpha,
+                 const matrixA_t& A,
+                 const vectorX_t& x,
+                 vectorY_t& y)
 {
-    return symv( uplo, alpha, A, x, internal::StrongZero(), y );
+    return symv(uplo, alpha, A, x, internal::StrongZero(), y);
 }
 
 #ifdef USE_LAPACKPP_WRAPPERS
 
-    template<
-        class matrixA_t,
-        class vectorX_t, class vectorY_t, 
-        class alpha_t, class beta_t,
-        class T = type_t<vectorY_t>,
-        enable_if_allow_optblas_t<
-            pair< matrixA_t, T >,
-            pair< vectorX_t, T >,
-            pair< vectorY_t, T >,
-            pair< beta_t,    T >
-        > = 0
-    >
-    inline
-    void symv(
-        Uplo uplo,
-        const alpha_t alpha, const matrixA_t& A, const vectorX_t& x,
-        const beta_t beta, vectorY_t& y )
-    {
-        using idx_t = size_type< matrixA_t >;
+template <class matrixA_t,
+          class vectorX_t,
+          class vectorY_t,
+          class alpha_t,
+          class beta_t,
+          class T = type_t<vectorY_t>,
+          enable_if_allow_optblas_t<pair<matrixA_t, T>,
+                                    pair<vectorX_t, T>,
+                                    pair<vectorY_t, T>,
+                                    pair<beta_t, T> > = 0>
+inline void symv(Uplo uplo,
+                 const alpha_t alpha,
+                 const matrixA_t& A,
+                 const vectorX_t& x,
+                 const beta_t beta,
+                 vectorY_t& y)
+{
+    using idx_t = size_type<matrixA_t>;
 
-        // Legacy objects
-        auto A_ = legacy_matrix(A);
-        auto x_ = legacy_vector(x);
-        auto y_ = legacy_vector(y);
+    // Legacy objects
+    auto A_ = legacy_matrix(A);
+    auto x_ = legacy_vector(x);
+    auto y_ = legacy_vector(y);
 
-        // Constants to forward
-        const idx_t& n = A_.n;
-        const idx_t incx = (x_.direction == Direction::Forward) ? idx_t(x_.inc) : idx_t(-x_.inc);
-        const idx_t incy = (y_.direction == Direction::Forward) ? idx_t(y_.inc) : idx_t(-y_.inc);
+    // Constants to forward
+    const idx_t& n = A_.n;
+    const idx_t incx =
+        (x_.direction == Direction::Forward) ? idx_t(x_.inc) : idx_t(-x_.inc);
+    const idx_t incy =
+        (y_.direction == Direction::Forward) ? idx_t(y_.inc) : idx_t(-y_.inc);
 
-        if( alpha == alpha_t(0) )
-            tlapack_warning( -2, "Infs and NaNs in A or x will not propagate to y on output" );
-        if( beta == beta_t(0) )
-            tlapack_warning( -5, "Infs and NaNs in y on input will not propagate to y on output" );
+    if (alpha == alpha_t(0))
+        tlapack_warning(
+            -2, "Infs and NaNs in A or x will not propagate to y on output");
+    if (beta == beta_t(0))
+        tlapack_warning(
+            -5,
+            "Infs and NaNs in y on input will not propagate to y on output");
 
-        return ::blas::symv(
-            (::blas::Layout) A_.layout,
-            (::blas::Uplo) uplo,
-            n,
-            alpha,
-            A_.ptr, A_.ldim,
-            x_.ptr, incx,
-            beta,
-            y_.ptr, incy );
-    }
+    return ::blas::symv((::blas::Layout)A_.layout, (::blas::Uplo)uplo, n, alpha,
+                        A_.ptr, A_.ldim, x_.ptr, incx, beta, y_.ptr, incy);
+}
 
-    template<
-        class matrixA_t,
-        class vectorX_t, class vectorY_t, 
-        class alpha_t,
-        class T = type_t<vectorY_t>,
-        enable_if_allow_optblas_t<
-            pair< matrixA_t, T >,
-            pair< vectorX_t, T >,
-            pair< vectorY_t, T >
-        > = 0
-    >
-    inline
-    void symv(
-        Uplo uplo,
-        const alpha_t alpha, const matrixA_t& A, const vectorX_t& x,
-        vectorY_t& y )
-    {
-        using idx_t = size_type< matrixA_t >;
+template <class matrixA_t,
+          class vectorX_t,
+          class vectorY_t,
+          class alpha_t,
+          class T = type_t<vectorY_t>,
+          enable_if_allow_optblas_t<pair<matrixA_t, T>,
+                                    pair<vectorX_t, T>,
+                                    pair<vectorY_t, T> > = 0>
+inline void symv(Uplo uplo,
+                 const alpha_t alpha,
+                 const matrixA_t& A,
+                 const vectorX_t& x,
+                 vectorY_t& y)
+{
+    using idx_t = size_type<matrixA_t>;
 
-        // Legacy objects
-        auto A_ = legacy_matrix(A);
-        auto x_ = legacy_vector(x);
-        auto y_ = legacy_vector(y);
+    // Legacy objects
+    auto A_ = legacy_matrix(A);
+    auto x_ = legacy_vector(x);
+    auto y_ = legacy_vector(y);
 
-        // Constants to forward
-        const idx_t& n = A_.n;
-        const idx_t incx = (x_.direction == Direction::Forward) ? idx_t(x_.inc) : idx_t(-x_.inc);
-        const idx_t incy = (y_.direction == Direction::Forward) ? idx_t(y_.inc) : idx_t(-y_.inc);
+    // Constants to forward
+    const idx_t& n = A_.n;
+    const idx_t incx =
+        (x_.direction == Direction::Forward) ? idx_t(x_.inc) : idx_t(-x_.inc);
+    const idx_t incy =
+        (y_.direction == Direction::Forward) ? idx_t(y_.inc) : idx_t(-y_.inc);
 
-        if( alpha == alpha_t(0) )
-            tlapack_warning( -2, "Infs and NaNs in A or x will not propagate to y on output" );
+    if (alpha == alpha_t(0))
+        tlapack_warning(
+            -2, "Infs and NaNs in A or x will not propagate to y on output");
 
-        return ::blas::symv(
-            (::blas::Layout) A_.layout,
-            (::blas::Uplo) uplo,
-            n,
-            alpha,
-            A_.ptr, A_.ldim,
-            x_.ptr, incx,
-            T(0),
-            y_.ptr, incy );
-    }
+    return ::blas::symv((::blas::Layout)A_.layout, (::blas::Uplo)uplo, n, alpha,
+                        A_.ptr, A_.ldim, x_.ptr, incx, T(0), y_.ptr, incy);
+}
 
 #endif
 
 }  // namespace tlapack
 
-#endif        //  #ifndef TLAPACK_BLAS_SYMV_HH
+#endif  //  #ifndef TLAPACK_BLAS_SYMV_HH

@@ -14,7 +14,8 @@
 
 namespace tlapack {
 
-/** Multiplies the general m-by-n matrix C by Q from geqrf() using a blocked code as follows:
+/** Multiplies the general m-by-n matrix C by Q from geqrf() using a blocked
+ code as follows:
  *
  * @param[in] side
  *     - Side::Left:  apply $Q$ or $Q^H$ from the Left;
@@ -62,7 +63,7 @@ namespace tlapack {
  *
  * @param[in] ldc
  *     The leading dimension of the array C. ldc >= max(1,m).
- * 
+ *
  * @see unmqr(
     side_t side, trans_t trans,
     const matrixA_t& A, const tau_t& tau,
@@ -70,34 +71,36 @@ namespace tlapack {
  *
  * @ingroup legacy_lapack
  */
-template< class side_t, class trans_t, typename TA, typename TC >
-inline int unmqr(
-    side_t side, trans_t trans,
-    idx_t m, idx_t n, idx_t k,
-    TA const* A, idx_t lda,
-    TA const* tau,
-    TC* C, idx_t ldc )
+template <class side_t, class trans_t, typename TA, typename TC>
+inline int unmqr(side_t side,
+                 trans_t trans,
+                 idx_t m,
+                 idx_t n,
+                 idx_t k,
+                 TA const* A,
+                 idx_t lda,
+                 TA const* tau,
+                 TC* C,
+                 idx_t ldc)
 {
     using internal::colmajor_matrix;
     using internal::vector;
 
     // check arguments
-    tlapack_check_false( side != Side::Left &&
-                     side != Side::Right );
-    tlapack_check_false( trans != Op::NoTrans &&
-                     trans != Op::Trans &&
-                     trans != Op::ConjTrans );
-                
+    tlapack_check_false(side != Side::Left && side != Side::Right);
+    tlapack_check_false(trans != Op::NoTrans && trans != Op::Trans &&
+                        trans != Op::ConjTrans);
+
     // Matrix views
     const auto A_ = (side == Side::Left)
-            ? colmajor_matrix<TA>( (TA*)A, m, k, lda )
-            : colmajor_matrix<TA>( (TA*)A, n, k, lda );
-    const auto tau_ = vector( (TA*)tau, k );
-    auto C_ = colmajor_matrix<TC>( C, m, n, ldc );
+                        ? colmajor_matrix<TA>((TA*)A, m, k, lda)
+                        : colmajor_matrix<TA>((TA*)A, n, k, lda);
+    const auto tau_ = vector((TA*)tau, k);
+    auto C_ = colmajor_matrix<TC>(C, m, n, ldc);
 
-    return unmqr( side, trans, A_, tau_, C_ );
+    return unmqr(side, trans, A_, tau_, C_);
 }
 
-}
+}  // namespace tlapack
 
-#endif // TLAPACK_LEGACY_UNMQR_HH
+#endif  // TLAPACK_LEGACY_UNMQR_HH

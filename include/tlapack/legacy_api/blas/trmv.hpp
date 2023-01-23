@@ -11,9 +11,9 @@
 #ifndef TLAPACK_LEGACY_TRMV_HH
 #define TLAPACK_LEGACY_TRMV_HH
 
-#include "tlapack/legacy_api/base/utils.hpp"
-#include "tlapack/legacy_api/base/types.hpp"
 #include "tlapack/blas/trmv.hpp"
+#include "tlapack/legacy_api/base/types.hpp"
+#include "tlapack/legacy_api/base/utils.hpp"
 
 namespace tlapack {
 
@@ -70,51 +70,49 @@ namespace tlapack {
  *
  * @ingroup legacy_blas
  */
-template< typename TA, typename TX >
-void trmv(
-    Layout layout,
-    Uplo uplo,
-    Op trans,
-    Diag diag,
-    idx_t n,
-    TA const *A, idx_t lda,
-    TX       *x, int_t incx )
+template <typename TA, typename TX>
+void trmv(Layout layout,
+          Uplo uplo,
+          Op trans,
+          Diag diag,
+          idx_t n,
+          TA const* A,
+          idx_t lda,
+          TX* x,
+          int_t incx)
 {
     using internal::colmajor_matrix;
 
     // check arguments
-    tlapack_check_false( layout != Layout::ColMajor &&
-                   layout != Layout::RowMajor );
-    tlapack_check_false( uplo != Uplo::Lower &&
-                   uplo != Uplo::Upper );
-    tlapack_check_false( trans != Op::NoTrans &&
-                   trans != Op::Trans &&
-                   trans != Op::ConjTrans );
-    tlapack_check_false( diag != Diag::NonUnit &&
-                   diag != Diag::Unit );
-    tlapack_check_false( n < 0 );
-    tlapack_check_false( lda < n );
-    tlapack_check_false( incx == 0 );
+    tlapack_check_false(layout != Layout::ColMajor &&
+                        layout != Layout::RowMajor);
+    tlapack_check_false(uplo != Uplo::Lower && uplo != Uplo::Upper);
+    tlapack_check_false(trans != Op::NoTrans && trans != Op::Trans &&
+                        trans != Op::ConjTrans);
+    tlapack_check_false(diag != Diag::NonUnit && diag != Diag::Unit);
+    tlapack_check_false(n < 0);
+    tlapack_check_false(lda < n);
+    tlapack_check_false(incx == 0);
 
     // quick return
-    if (n == 0)
-        return;
+    if (n == 0) return;
 
     // for row major, swap lower <=> upper and
     // A => A^T; A^T => A; A^H => conj(A)
     if (layout == Layout::RowMajor) {
         uplo = (uplo == Uplo::Lower ? Uplo::Upper : Uplo::Lower);
         trans = (trans == Op::NoTrans)
-              ? Op::Trans
-              : ((trans == Op::Trans) ? Op::NoTrans : Op::Conj);
+                    ? Op::Trans
+                    : ((trans == Op::Trans) ? Op::NoTrans : Op::Conj);
     }
-        
-    // Matrix views
-    const auto A_ = colmajor_matrix<TA>( (TA*)A, n, n, lda );
 
-    tlapack_expr_with_vector( x_, TX, n, x, incx, return trmv( uplo, trans, diag, A_, x_ ) );
+    // Matrix views
+    const auto A_ = colmajor_matrix<TA>((TA*)A, n, n, lda);
+
+    tlapack_expr_with_vector(x_, TX, n, x, incx,
+                             return trmv(uplo, trans, diag, A_, x_));
 }
 
 }  // namespace tlapack
 
-#endif        //  #ifndef TLAPACK_LEGACY_TRMV_HH
+#endif  //  #ifndef TLAPACK_LEGACY_TRMV_HH

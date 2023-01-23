@@ -11,9 +11,9 @@
 #ifndef TLAPACK_LEGACY_ROT_HH
 #define TLAPACK_LEGACY_ROT_HH
 
-#include "tlapack/legacy_api/base/utils.hpp"
-#include "tlapack/legacy_api/base/types.hpp"
 #include "tlapack/blas/rot.hpp"
+#include "tlapack/legacy_api/base/types.hpp"
+#include "tlapack/legacy_api/base/utils.hpp"
 
 namespace tlapack {
 
@@ -54,28 +54,26 @@ namespace tlapack {
  *
  * @ingroup legacy_blas
  */
-template< typename TX, typename TY >
-void rot(
-    idx_t n,
-    TX *x, int_t incx,
-    TY *y, int_t incy,
-    const real_type<TX, TY>&   c,
-    const scalar_type<TX, TY>& s )
+template <typename TX, typename TY>
+void rot(idx_t n,
+         TX* x,
+         int_t incx,
+         TY* y,
+         int_t incy,
+         const real_type<TX, TY>& c,
+         const scalar_type<TX, TY>& s)
 {
     // check arguments
-    tlapack_check_false( incx == 0 );
-    tlapack_check_false( incy == 0 );
+    tlapack_check_false(incx == 0);
+    tlapack_check_false(incy == 0);
 
     // quick return
-    if( n <= 0 ) return;
+    if (n <= 0) return;
 
-    tlapack_expr_with_2vectors(
-        x_, TX, n, x, incx,
-        y_, TY, n, y, incy,
-        return rot( x_, y_, c, s )
-    );
+    tlapack_expr_with_2vectors(x_, TX, n, x, incx, y_, TY, n, y, incy,
+                               return rot(x_, y_, c, s));
 }
 
 }  // namespace tlapack
 
-#endif        //  #ifndef TLAPACK_LEGACY_ROT_HH
+#endif  //  #ifndef TLAPACK_LEGACY_ROT_HH

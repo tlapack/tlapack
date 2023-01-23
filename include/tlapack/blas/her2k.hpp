@@ -54,143 +54,140 @@ namespace tlapack {
  *
  * @ingroup blas3
  */
-template<
-    class matrixA_t, class matrixB_t, class matrixC_t, 
-    class alpha_t, class beta_t,
-    enable_if_t<(
-    /* Requires: */
-        ! is_complex<beta_t>::value
-    ), int > = 0,
-    class T  = type_t<matrixC_t>,
-    disable_if_allow_optblas_t<
-        pair< matrixA_t, T >,
-        pair< matrixB_t, T >,
-        pair< matrixC_t, T >,
-        pair< alpha_t,   T >,
-        pair< beta_t,    real_type<T> >
-    > = 0
->
-void her2k(
-    Uplo uplo,
-    Op trans,
-    const alpha_t& alpha, const matrixA_t& A, const matrixB_t& B,
-    const beta_t& beta, matrixC_t& C )
+template <class matrixA_t,
+          class matrixB_t,
+          class matrixC_t,
+          class alpha_t,
+          class beta_t,
+          enable_if_t<(
+                          /* Requires: */
+                          !is_complex<beta_t>::value),
+                      int> = 0,
+          class T = type_t<matrixC_t>,
+          disable_if_allow_optblas_t<pair<matrixA_t, T>,
+                                     pair<matrixB_t, T>,
+                                     pair<matrixC_t, T>,
+                                     pair<alpha_t, T>,
+                                     pair<beta_t, real_type<T> > > = 0>
+void her2k(Uplo uplo,
+           Op trans,
+           const alpha_t& alpha,
+           const matrixA_t& A,
+           const matrixB_t& B,
+           const beta_t& beta,
+           matrixC_t& C)
 {
     // data traits
-    using TA    = type_t< matrixA_t >;
-    using TB    = type_t< matrixB_t >;
-    using TC    = type_t< matrixC_t >;
-    using idx_t = size_type< matrixA_t >;
+    using TA = type_t<matrixA_t>;
+    using TB = type_t<matrixB_t>;
+    using TC = type_t<matrixC_t>;
+    using idx_t = size_type<matrixA_t>;
 
     // constants
     const idx_t n = (trans == Op::NoTrans) ? nrows(A) : ncols(A);
     const idx_t k = (trans == Op::NoTrans) ? ncols(A) : nrows(A);
 
     // check arguments
-    tlapack_check_false( uplo != Uplo::Lower &&
-                   uplo != Uplo::Upper &&
-                   uplo != Uplo::General );
-    tlapack_check_false( trans != Op::NoTrans &&
-                   trans != Op::ConjTrans );
-    tlapack_check_false( nrows(B) != nrows(A) ||
-                   ncols(B) != ncols(A) );
-    tlapack_check_false( nrows(C) != ncols(C) );
-    tlapack_check_false( nrows(C) != n );
-
+    tlapack_check_false(uplo != Uplo::Lower && uplo != Uplo::Upper &&
+                        uplo != Uplo::General);
+    tlapack_check_false(trans != Op::NoTrans && trans != Op::ConjTrans);
+    tlapack_check_false(nrows(B) != nrows(A) || ncols(B) != ncols(A));
+    tlapack_check_false(nrows(C) != ncols(C));
+    tlapack_check_false(nrows(C) != n);
 
     if (trans == Op::NoTrans) {
         if (uplo != Uplo::Lower) {
-        // uplo == Uplo::Upper or uplo == Uplo::General
-            for(idx_t j = 0; j < n; ++j) {
+            // uplo == Uplo::Upper or uplo == Uplo::General
+            for (idx_t j = 0; j < n; ++j) {
+                for (idx_t i = 0; i < j; ++i)
+                    C(i, j) *= beta;
+                C(j, j) = TC(beta * real(C(j, j)));
 
-                for(idx_t i = 0; i < j; ++i)
-                    C(i,j) *= beta;
-                C(j,j) = TC( beta * real(C(j,j)) );
+                for (idx_t l = 0; l < k; ++l) {
+                    const scalar_type<alpha_t, TB> alphaConjBjl =
+                        alpha * conj(B(j, l));
+                    const scalar_type<alpha_t, TA> conjAlphaAjl =
+                        conj(alpha * A(j, l));
 
-                for(idx_t l = 0; l < k; ++l) {
-
-                    const scalar_type<alpha_t,TB> alphaConjBjl = alpha*conj( B(j,l) );
-                    const scalar_type<alpha_t,TA> conjAlphaAjl = conj( alpha*A(j,l) );
-
-                    for(idx_t i = 0; i < j; ++i)
-                        C(i,j) += A(i,l)*alphaConjBjl + B(i,l)*conjAlphaAjl;
-                    C(j,j) += 2 * (real(A(j,l)) * real(alphaConjBjl)
-                                    - imag(A(j,l)) * imag(alphaConjBjl));
+                    for (idx_t i = 0; i < j; ++i)
+                        C(i, j) +=
+                            A(i, l) * alphaConjBjl + B(i, l) * conjAlphaAjl;
+                    C(j, j) += 2 * (real(A(j, l)) * real(alphaConjBjl) -
+                                    imag(A(j, l)) * imag(alphaConjBjl));
                 }
             }
         }
-        else { // uplo == Uplo::Lower
-            for(idx_t j = 0; j < n; ++j) {
+        else {  // uplo == Uplo::Lower
+            for (idx_t j = 0; j < n; ++j) {
+                C(j, j) = TC(beta * real(C(j, j)));
+                for (idx_t i = j + 1; i < n; ++i)
+                    C(i, j) *= beta;
 
-                C(j,j) = TC( beta * real(C(j,j)) );
-                for(idx_t i = j+1; i < n; ++i)
-                    C(i,j) *= beta;
+                for (idx_t l = 0; l < k; ++l) {
+                    const scalar_type<alpha_t, TB> alphaConjBjl =
+                        alpha * conj(B(j, l));
+                    const scalar_type<alpha_t, TA> conjAlphaAjl =
+                        conj(alpha * A(j, l));
 
-                for(idx_t l = 0; l < k; ++l) {
-
-                    const scalar_type<alpha_t,TB> alphaConjBjl = alpha*conj( B(j,l) );
-                    const scalar_type<alpha_t,TA> conjAlphaAjl = conj( alpha*A(j,l) );
-
-                    C(j,j) += 2 * (real(A(j,l)) * real(alphaConjBjl)
-                                    - imag(A(j,l)) * imag(alphaConjBjl));
-                    for(idx_t i = j+1; i < n; ++i)
-                        C(i,j) += A(i,l) * alphaConjBjl + B(i,l) * conjAlphaAjl;
+                    C(j, j) += 2 * (real(A(j, l)) * real(alphaConjBjl) -
+                                    imag(A(j, l)) * imag(alphaConjBjl));
+                    for (idx_t i = j + 1; i < n; ++i)
+                        C(i, j) +=
+                            A(i, l) * alphaConjBjl + B(i, l) * conjAlphaAjl;
                 }
             }
         }
     }
-    else { // trans == Op::ConjTrans
-        using scalar_t = scalar_type<TA,TB>;
+    else {  // trans == Op::ConjTrans
+        using scalar_t = scalar_type<TA, TB>;
 
         if (uplo != Uplo::Lower) {
-        // uplo == Uplo::Upper or uplo == Uplo::General
-            for(idx_t j = 0; j < n; ++j) {
-                for(idx_t i = 0; i <= j; ++i) {
-
-                    scalar_t sum1( 0 );
-                    scalar_t sum2( 0 );
-                    for(idx_t l = 0; l < k; ++l) {
-                        sum1 += conj( A(l,i) ) * B(l,j);
-                        sum2 += conj( B(l,i) ) * A(l,j);
+            // uplo == Uplo::Upper or uplo == Uplo::General
+            for (idx_t j = 0; j < n; ++j) {
+                for (idx_t i = 0; i <= j; ++i) {
+                    scalar_t sum1(0);
+                    scalar_t sum2(0);
+                    for (idx_t l = 0; l < k; ++l) {
+                        sum1 += conj(A(l, i)) * B(l, j);
+                        sum2 += conj(B(l, i)) * A(l, j);
                     }
 
-                    C(i,j) = (i < j)
-                        ? alpha*sum1 + conj(alpha)*sum2 + beta*C(i,j)
-                        : real(alpha)*real(sum1)
-                            - imag(alpha)*imag(sum1)
-                            + real(alpha)*real(sum2)
-                            + imag(alpha)*imag(sum2)
-                            + beta*real( C(i,j) );
+                    C(i, j) = (i < j) ? alpha * sum1 + conj(alpha) * sum2 +
+                                            beta * C(i, j)
+                                      : real(alpha) * real(sum1) -
+                                            imag(alpha) * imag(sum1) +
+                                            real(alpha) * real(sum2) +
+                                            imag(alpha) * imag(sum2) +
+                                            beta * real(C(i, j));
                 }
             }
         }
-        else { // uplo == Uplo::Lower
-            for(idx_t j = 0; j < n; ++j) {
-                for(idx_t i = j; i < n; ++i) {
-
-                    scalar_t sum1( 0 );
-                    scalar_t sum2( 0 );
-                    for(idx_t l = 0; l < k; ++l) {
-                        sum1 += conj( A(l,i) ) * B(l,j);
-                        sum2 += conj( B(l,i) ) * A(l,j);
+        else {  // uplo == Uplo::Lower
+            for (idx_t j = 0; j < n; ++j) {
+                for (idx_t i = j; i < n; ++i) {
+                    scalar_t sum1(0);
+                    scalar_t sum2(0);
+                    for (idx_t l = 0; l < k; ++l) {
+                        sum1 += conj(A(l, i)) * B(l, j);
+                        sum2 += conj(B(l, i)) * A(l, j);
                     }
 
-                    C(i,j) = (i > j)
-                        ? alpha*sum1 + conj(alpha)*sum2 + beta*C(i,j)
-                        : real(alpha)*real(sum1)
-                            - imag(alpha)*imag(sum1)
-                            + real(alpha)*real(sum2)
-                            + imag(alpha)*imag(sum2)
-                            + beta*real( C(i,j) );
+                    C(i, j) = (i > j) ? alpha * sum1 + conj(alpha) * sum2 +
+                                            beta * C(i, j)
+                                      : real(alpha) * real(sum1) -
+                                            imag(alpha) * imag(sum1) +
+                                            real(alpha) * real(sum2) +
+                                            imag(alpha) * imag(sum2) +
+                                            beta * real(C(i, j));
                 }
             }
         }
     }
 
     if (uplo == Uplo::General) {
-        for(idx_t j = 0; j < n; ++j) {
-            for(idx_t i = j+1; i < n; ++i)
-                C(i,j) = conj( C(j,i) );
+        for (idx_t j = 0; j < n; ++j) {
+            for (idx_t i = j + 1; i < n; ++i)
+                C(i, j) = conj(C(j, i));
         }
     }
 }
@@ -231,148 +228,134 @@ void her2k(
  *
  * @ingroup blas3
  */
-template<
-    class matrixA_t, class matrixB_t, class matrixC_t, 
-    class alpha_t,
-    class T  = type_t<matrixC_t>,
-    disable_if_allow_optblas_t<
-        pair< matrixA_t, T >,
-        pair< matrixB_t, T >,
-        pair< matrixC_t, T >,
-        pair< alpha_t,   T >
-    > = 0
->
-inline
-void her2k(
-    Uplo uplo,
-    Op trans,
-    const alpha_t& alpha, const matrixA_t& A, const matrixB_t& B,
-    matrixC_t& C )
+template <class matrixA_t,
+          class matrixB_t,
+          class matrixC_t,
+          class alpha_t,
+          class T = type_t<matrixC_t>,
+          disable_if_allow_optblas_t<pair<matrixA_t, T>,
+                                     pair<matrixB_t, T>,
+                                     pair<matrixC_t, T>,
+                                     pair<alpha_t, T> > = 0>
+inline void her2k(Uplo uplo,
+                  Op trans,
+                  const alpha_t& alpha,
+                  const matrixA_t& A,
+                  const matrixB_t& B,
+                  matrixC_t& C)
 {
-    return her2k( uplo, trans, alpha, A, B, internal::StrongZero(), C );
+    return her2k(uplo, trans, alpha, A, B, internal::StrongZero(), C);
 }
 
 #ifdef USE_LAPACKPP_WRAPPERS
 
-    /**
-     * Hermitian rank-k update
-     * 
-     * Wrapper to optimized BLAS.
-     * 
-     * @see her2k(
-        Uplo uplo,
-        Op trans,
-        const alpha_t& alpha, const matrixA_t& A, const matrixB_t& B,
-        const beta_t& beta, matrixC_t& C )
-    * 
-    * @ingroup blas3
-    */
-    template<
-        class matrixA_t, class matrixB_t, class matrixC_t, 
-        class alpha_t, class beta_t,
-        enable_if_t<(
-        /* Requires: */
-            ! is_complex<beta_t>::value
-        ), int > = 0,
-        class T  = type_t<matrixC_t>,
-        enable_if_allow_optblas_t<
-            pair< matrixA_t, T >,
-            pair< matrixB_t, T >,
-            pair< matrixC_t, T >,
-            pair< alpha_t,   T >,
-            pair< beta_t,    real_type<T> >
-        > = 0
-    >
-    inline
-    void her2k(
-        Uplo uplo,
-        Op trans,
-        const alpha_t alpha, const matrixA_t& A, const matrixB_t& B,
-        const beta_t beta, matrixC_t& C )
-    {
-        // Legacy objects
-        auto A_ = legacy_matrix(A);
-        auto B_ = legacy_matrix(B);
-        auto C_ = legacy_matrix(C);
+/**
+ * Hermitian rank-k update
+ *
+ * Wrapper to optimized BLAS.
+ *
+ * @see her2k(
+    Uplo uplo,
+    Op trans,
+    const alpha_t& alpha, const matrixA_t& A, const matrixB_t& B,
+    const beta_t& beta, matrixC_t& C )
+*
+* @ingroup blas3
+*/
+template <class matrixA_t,
+          class matrixB_t,
+          class matrixC_t,
+          class alpha_t,
+          class beta_t,
+          enable_if_t<(
+                          /* Requires: */
+                          !is_complex<beta_t>::value),
+                      int> = 0,
+          class T = type_t<matrixC_t>,
+          enable_if_allow_optblas_t<pair<matrixA_t, T>,
+                                    pair<matrixB_t, T>,
+                                    pair<matrixC_t, T>,
+                                    pair<alpha_t, T>,
+                                    pair<beta_t, real_type<T> > > = 0>
+inline void her2k(Uplo uplo,
+                  Op trans,
+                  const alpha_t alpha,
+                  const matrixA_t& A,
+                  const matrixB_t& B,
+                  const beta_t beta,
+                  matrixC_t& C)
+{
+    // Legacy objects
+    auto A_ = legacy_matrix(A);
+    auto B_ = legacy_matrix(B);
+    auto C_ = legacy_matrix(C);
 
-        // Constants to forward
-        const auto& n = C_.n;
-        const auto& k = (trans == Op::NoTrans) ? A_.n : A_.m;
+    // Constants to forward
+    const auto& n = C_.n;
+    const auto& k = (trans == Op::NoTrans) ? A_.n : A_.m;
 
-        if( alpha == alpha_t(0) )
-            tlapack_warning( -3, "Infs and NaNs in A or B will not propagate to C on output" );
-        if( beta == beta_t(0) )
-            tlapack_warning( -6, "Infs and NaNs in C on input will not propagate to C on output" );
+    if (alpha == alpha_t(0))
+        tlapack_warning(
+            -3, "Infs and NaNs in A or B will not propagate to C on output");
+    if (beta == beta_t(0))
+        tlapack_warning(
+            -6,
+            "Infs and NaNs in C on input will not propagate to C on output");
 
-        return ::blas::her2k(
-            (::blas::Layout) A_.layout,
-            (::blas::Uplo) uplo,
-            (::blas::Op) trans, 
-            n, k,
-            alpha,
-            A_.ptr, A_.ldim,
-            B_.ptr, B_.ldim,
-            beta,
-            C_.ptr, C_.ldim );
-    }
+    return ::blas::her2k((::blas::Layout)A_.layout, (::blas::Uplo)uplo,
+                         (::blas::Op)trans, n, k, alpha, A_.ptr, A_.ldim,
+                         B_.ptr, B_.ldim, beta, C_.ptr, C_.ldim);
+}
 
-    /**
-     * Hermitian rank-k update
-     * 
-     * Wrapper to optimized BLAS.
-     * 
-     * @see her2k(
-        Uplo uplo,
-        Op trans,
-        const alpha_t& alpha, const matrixA_t& A, const matrixB_t& B,
-        matrixC_t& C )
-    * 
-    * @ingroup blas3
-    */
-    template<
-        class matrixA_t, class matrixB_t, class matrixC_t, 
-        class alpha_t,
-        class T  = type_t<matrixC_t>,
-        enable_if_allow_optblas_t<
-            pair< matrixA_t, T >,
-            pair< matrixB_t, T >,
-            pair< matrixC_t, T >,
-            pair< alpha_t,   T >
-        > = 0
-    >
-    inline
-    void her2k(
-        Uplo uplo,
-        Op trans,
-        const alpha_t alpha, const matrixA_t& A, const matrixB_t& B,
-        matrixC_t& C )
-    {
-        // Legacy objects
-        auto A_ = legacy_matrix(A);
-        auto B_ = legacy_matrix(B);
-        auto C_ = legacy_matrix(C);
+/**
+ * Hermitian rank-k update
+ *
+ * Wrapper to optimized BLAS.
+ *
+ * @see her2k(
+    Uplo uplo,
+    Op trans,
+    const alpha_t& alpha, const matrixA_t& A, const matrixB_t& B,
+    matrixC_t& C )
+*
+* @ingroup blas3
+*/
+template <class matrixA_t,
+          class matrixB_t,
+          class matrixC_t,
+          class alpha_t,
+          class T = type_t<matrixC_t>,
+          enable_if_allow_optblas_t<pair<matrixA_t, T>,
+                                    pair<matrixB_t, T>,
+                                    pair<matrixC_t, T>,
+                                    pair<alpha_t, T> > = 0>
+inline void her2k(Uplo uplo,
+                  Op trans,
+                  const alpha_t alpha,
+                  const matrixA_t& A,
+                  const matrixB_t& B,
+                  matrixC_t& C)
+{
+    // Legacy objects
+    auto A_ = legacy_matrix(A);
+    auto B_ = legacy_matrix(B);
+    auto C_ = legacy_matrix(C);
 
-        // Constants to forward
-        const auto& n = C_.n;
-        const auto& k = (trans == Op::NoTrans) ? A_.n : A_.m;
+    // Constants to forward
+    const auto& n = C_.n;
+    const auto& k = (trans == Op::NoTrans) ? A_.n : A_.m;
 
-        if( alpha == alpha_t(0) )
-            tlapack_warning( -3, "Infs and NaNs in A or B will not propagate to C on output" );
+    if (alpha == alpha_t(0))
+        tlapack_warning(
+            -3, "Infs and NaNs in A or B will not propagate to C on output");
 
-        return ::blas::her2k(
-            (::blas::Layout) A_.layout,
-            (::blas::Uplo) uplo,
-            (::blas::Op) trans, 
-            n, k,
-            alpha,
-            A_.ptr, A_.ldim,
-            B_.ptr, B_.ldim,
-            real_type<T>(0),
-            C_.ptr, C_.ldim );
-    }
+    return ::blas::her2k((::blas::Layout)A_.layout, (::blas::Uplo)uplo,
+                         (::blas::Op)trans, n, k, alpha, A_.ptr, A_.ldim,
+                         B_.ptr, B_.ldim, real_type<T>(0), C_.ptr, C_.ldim);
+}
 
 #endif
 
 }  // namespace tlapack
 
-#endif        //  #ifndef TLAPACK_BLAS_HER2K_HH
+#endif  //  #ifndef TLAPACK_BLAS_HER2K_HH

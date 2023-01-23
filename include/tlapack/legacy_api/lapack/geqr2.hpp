@@ -1,6 +1,7 @@
 /// @file geqr2.hpp
 /// @author Weslley S Pereira, University of Colorado Denver, USA
-/// @note Adapted from @see https://github.com/langou/latl/blob/master/include/geqr2.h
+/// @note Adapted from @see
+/// https://github.com/langou/latl/blob/master/include/geqr2.h
 //
 // Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
@@ -16,7 +17,7 @@
 namespace tlapack {
 
 /** Computes a QR factorization of a matrix A.
- * 
+ *
  * @param[in] m The number of rows of the matrix A.
  * @param[in] n The number of columns of the matrix A.
  * @param[in,out] A m-by-n matrix.
@@ -29,35 +30,32 @@ namespace tlapack {
  * @param[out] tau Real vector of length min(m,n).
  *      The scalar factors of the elementary reflectors.
  *      The subarray tau[1:n-1] is used as the workspace.
- * 
+ *
  * @see geqr2( matrix_t& A, vector_t &tau, vector_t &work )
- * 
+ *
  * @ingroup legacy_lapack
  */
-template< typename TA, typename Ttau >
-inline int geqr2(
-    idx_t m, idx_t n,
-    TA*   A, idx_t lda,
-    Ttau* tau )
+template <typename TA, typename Ttau>
+inline int geqr2(idx_t m, idx_t n, TA* A, idx_t lda, Ttau* tau)
 {
     using internal::colmajor_matrix;
     using internal::vector;
 
     // check arguments
-    tlapack_check_false( m < 0 );
-    tlapack_check_false( n < 0 );
-    tlapack_check_false( lda < m );
+    tlapack_check_false(m < 0);
+    tlapack_check_false(n < 0);
+    tlapack_check_false(lda < m);
 
     // quick return
     if (n <= 0) return 0;
 
     // Matrix views
-    auto A_    = colmajor_matrix( A, m, n, lda );
-    auto tau_  = vector         ( tau, std::min( m, n ) );
-    
-    return geqr2( A_, tau_ );
+    auto A_ = colmajor_matrix(A, m, n, lda);
+    auto tau_ = vector(tau, std::min(m, n));
+
+    return geqr2(A_, tau_);
 }
 
-} // lapack
+}  // namespace tlapack
 
-#endif // TLAPACK_LEGACY_GEQR2_HH
+#endif  // TLAPACK_LEGACY_GEQR2_HH

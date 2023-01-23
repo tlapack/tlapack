@@ -11,6 +11,7 @@
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 
+// Test utilities and definitions (must come before <T>LAPACK headers)
 #include "testutils.hpp"
 
 // Auxiliary routines
@@ -18,13 +19,15 @@
 #include <tlapack/lapack/lange.hpp>
 
 // Other routines
+#include <tlapack/lapack/gehd2.hpp>
 #include <tlapack/lapack/unghr.hpp>
 #include <tlapack/lapack/unmhr.hpp>
-#include <tlapack/lapack/gehd2.hpp>
 
 using namespace tlapack;
 
-TEMPLATE_TEST_CASE("Result of unmhr matches result from unghr", "[eigenvalues][hessenberg]", TLAPACK_TYPES_TO_TEST)
+TEMPLATE_TEST_CASE("Result of unmhr matches result from unghr",
+                   "[eigenvalues][hessenberg]",
+                   TLAPACK_TYPES_TO_TEST)
 {
     srand(1);
 
@@ -41,9 +44,9 @@ TEMPLATE_TEST_CASE("Result of unmhr matches result from unghr", "[eigenvalues][h
     Side side = GENERATE(Side::Left, Side::Right);
     Op op = GENERATE(Op::NoTrans, Op::ConjTrans);
 
-    INFO( "matrix_type = " << matrix_type );
-    INFO( "side = " << side );
-    INFO( "Op = " << op );
+    INFO("matrix_type = " << matrix_type);
+    INFO("side = " << side);
+    INFO("Op = " << op);
 
     idx_t m = 12;
     idx_t n = 10;
@@ -59,9 +62,12 @@ TEMPLATE_TEST_CASE("Result of unmhr matches result from unghr", "[eigenvalues][h
     const real_type<T> tol = real_t(n * 1.0e2) * eps;
 
     // Define the matrices
-    std::vector<T> H_; auto H = new_matrix( H_, n, n );
-    std::vector<T> C_; auto C = new_matrix( C_, m, n );
-    std::vector<T> C_copy_; auto C_copy = new_matrix( C_copy_, m, n );
+    std::vector<T> H_;
+    auto H = new_matrix(H_, n, n);
+    std::vector<T> C_;
+    auto C = new_matrix(C_, m, n);
+    std::vector<T> C_copy_;
+    auto C_copy = new_matrix(C_copy_, m, n);
     std::vector<T> tau(n);
 
     // Workspace computation:
@@ -72,10 +78,9 @@ TEMPLATE_TEST_CASE("Result of unmhr matches result from unghr", "[eigenvalues][h
 
     // Workspace allocation:
     vectorOfBytes workVec;
-    workspace_opts_t<> workOpts( alloc_workspace( workVec, workinfo ) );
+    workspace_opts_t<> workOpts(alloc_workspace(workVec, workinfo));
 
-    if (matrix_type == "Random")
-    {
+    if (matrix_type == "Random") {
         // Generate a random matrix in H
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = 0; i < n; ++i)
@@ -100,7 +105,6 @@ TEMPLATE_TEST_CASE("Result of unmhr matches result from unghr", "[eigenvalues][h
     gehd2(ilo, ihi, H, tau, workOpts);
 
     {
-
         real_t c_norm = lange(frob_norm, C);
 
         // Apply the orthogonal factor to C
@@ -111,29 +115,29 @@ TEMPLATE_TEST_CASE("Result of unmhr matches result from unghr", "[eigenvalues][h
 
         // Multiply C_copy with the orthogonal factor
         auto Q = slice(H, pair{ilo + 1, ihi}, pair{ilo + 1, ihi});
-        if (side == Side::Left)
-        {
-            auto C_copy_s = slice(C_copy, pair{ilo + 1, ihi}, pair{0, ncols(C)});
+        if (side == Side::Left) {
+            auto C_copy_s =
+                slice(C_copy, pair{ilo + 1, ihi}, pair{0, ncols(C)});
             auto C_s = slice(C, pair{ilo + 1, ihi}, pair{0, ncols(C)});
             gemm(op, Op::NoTrans, one, Q, C_copy_s, -one, C_s);
-            for (idx_t i = 0; i < ilo+1; ++i)
+            for (idx_t i = 0; i < ilo + 1; ++i)
                 for (idx_t j = 0; j < ncols(C); ++j)
-                    C(i, j) =  C(i,j) - C_copy(i,j);
+                    C(i, j) = C(i, j) - C_copy(i, j);
             for (idx_t i = ihi; i < nrows(C); ++i)
                 for (idx_t j = 0; j < ncols(C); ++j)
-                    C(i, j) =  C(i,j) - C_copy(i,j);
+                    C(i, j) = C(i, j) - C_copy(i, j);
         }
-        else
-        {
-            auto C_copy_s = slice(C_copy, pair{0, nrows(C)}, pair{ilo + 1, ihi});
+        else {
+            auto C_copy_s =
+                slice(C_copy, pair{0, nrows(C)}, pair{ilo + 1, ihi});
             auto C_s = slice(C, pair{0, nrows(C)}, pair{ilo + 1, ihi});
             gemm(Op::NoTrans, op, one, C_copy_s, Q, -one, C_s);
-            for (idx_t j = 0; j < ilo+1; ++j)
+            for (idx_t j = 0; j < ilo + 1; ++j)
                 for (idx_t i = 0; i < nrows(C); ++i)
-                    C(i, j) =  C(i,j) - C_copy(i,j);
+                    C(i, j) = C(i, j) - C_copy(i, j);
             for (idx_t j = ihi; j < ncols(C); ++j)
                 for (idx_t i = 0; i < nrows(C); ++i)
-                    C(i, j) =  C(i,j) - C_copy(i,j);
+                    C(i, j) = C(i, j) - C_copy(i, j);
         }
 
         real_t e_norm = lange(frob_norm, C);

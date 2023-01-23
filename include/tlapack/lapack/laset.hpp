@@ -1,6 +1,7 @@
 /// @file laset.hpp
 /// @author Weslley S Pereira, University of Colorado Denver, USA
-/// @note Adapted from @see https://github.com/langou/latl/blob/master/include/laset.h
+/// @note Adapted from @see
+/// https://github.com/langou/latl/blob/master/include/laset.h
 //
 // Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
@@ -17,10 +18,10 @@ namespace tlapack {
 
 /**
  * @brief Initializes a matrix to diagonal and off-diagonal values.
- * 
+ *
  * @tparam uplo_t
  *      Either Uplo or any class that implements `operator Uplo()`.
- * 
+ *
  * @param[in] uplo
  *      - Uplo::Upper: Upper triangle of A is referenced;
  *      - Uplo::Lower: Lower triangle of A is referenced;
@@ -28,18 +29,18 @@ namespace tlapack {
  *
  * @param[in] alpha Value to assign to the off-diagonal elements of A.
  * @param[in] beta Value to assign to the diagonal elements of A.
- * 
+ *
  * @param[out] A m-by-n matrix.
- * 
- * @ingroup auxiliary 
+ *
+ * @ingroup auxiliary
  */
-template< class uplo_t, class matrix_t >
-void laset(
-    uplo_t uplo,
-    const type_t<matrix_t>& alpha, const type_t<matrix_t>& beta,
-    matrix_t& A )
+template <class uplo_t, class matrix_t>
+void laset(uplo_t uplo,
+           const type_t<matrix_t>& alpha,
+           const type_t<matrix_t>& beta,
+           matrix_t& A)
 {
-    using idx_t  = size_type< matrix_t >;
+    using idx_t = size_type<matrix_t>;
     using std::min;
 
     // constants
@@ -47,41 +48,40 @@ void laset(
     const idx_t n = ncols(A);
 
     // check arguments
-    tlapack_check_false(  uplo != Uplo::Lower &&
-                    uplo != Uplo::Upper &&
-                    uplo != Uplo::General );
+    tlapack_check_false(uplo != Uplo::Lower && uplo != Uplo::Upper &&
+                        uplo != Uplo::General);
 
     if (uplo == Uplo::Upper) {
         // Set the strictly upper triangular or trapezoidal part of
         // the array to alpha.
         for (idx_t j = 1; j < n; ++j) {
-            const idx_t M = min(m,j);
+            const idx_t M = min(m, j);
             for (idx_t i = 0; i < M; ++i)
-                A(i,j) = alpha;
+                A(i, j) = alpha;
         }
     }
     else if (uplo == Uplo::Lower) {
         // Set the strictly lower triangular or trapezoidal part of
         // the array to alpha.
-        const idx_t N = min(m,n);
+        const idx_t N = min(m, n);
         for (idx_t j = 0; j < N; ++j) {
-            for (idx_t i = j+1; i < m; ++i)
-                A(i,j) = alpha;
+            for (idx_t i = j + 1; i < m; ++i)
+                A(i, j) = alpha;
         }
     }
     else {
         // Set all elements in A to alpha.
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = 0; i < m; ++i)
-                A(i,j) = alpha;
+                A(i, j) = alpha;
     }
 
     // Set the first min(m,n) diagonal elements to beta.
-    const idx_t N = min(m,n);
+    const idx_t N = min(m, n);
     for (idx_t i = 0; i < N; ++i)
-        A(i,i) = beta;
+        A(i, i) = beta;
 }
 
-}
+}  // namespace tlapack
 
-#endif // TLAPACK_LASET_HH
+#endif  // TLAPACK_LASET_HH

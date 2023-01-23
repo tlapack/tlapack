@@ -47,130 +47,124 @@ namespace tlapack {
  *
  * @ingroup blas3
  */
-template<
-    class matrixA_t, class matrixB_t, class matrixC_t, 
-    class alpha_t, class beta_t,
-    class T = type_t<matrixC_t>,
-    disable_if_allow_optblas_t<
-        pair< matrixA_t, T >,
-        pair< matrixB_t, T >,
-        pair< matrixC_t, T >,
-        pair< alpha_t,   T >,
-        pair< beta_t,    T >
-    > = 0
->
-void symm(
-    Side side,
-    Uplo uplo,
-    const alpha_t& alpha, const matrixA_t& A, const matrixB_t& B,
-    const beta_t& beta, matrixC_t& C )
+template <class matrixA_t,
+          class matrixB_t,
+          class matrixC_t,
+          class alpha_t,
+          class beta_t,
+          class T = type_t<matrixC_t>,
+          disable_if_allow_optblas_t<pair<matrixA_t, T>,
+                                     pair<matrixB_t, T>,
+                                     pair<matrixC_t, T>,
+                                     pair<alpha_t, T>,
+                                     pair<beta_t, T> > = 0>
+void symm(Side side,
+          Uplo uplo,
+          const alpha_t& alpha,
+          const matrixA_t& A,
+          const matrixB_t& B,
+          const beta_t& beta,
+          matrixC_t& C)
 {
     // data traits
-    using TA    = type_t< matrixA_t >;
-    using TB    = type_t< matrixB_t >;
-    using idx_t = size_type< matrixC_t >;
-            
+    using TA = type_t<matrixA_t>;
+    using TB = type_t<matrixB_t>;
+    using idx_t = size_type<matrixC_t>;
+
     // constants
     const idx_t m = nrows(B);
     const idx_t n = ncols(B);
 
     // check arguments
-    tlapack_check_false( side != Side::Left &&
-                   side != Side::Right );
-    tlapack_check_false( uplo != Uplo::Lower &&
-                   uplo != Uplo::Upper &&
-                   uplo != Uplo::General );
-    tlapack_check_false( nrows(A) != ncols(A) );
-    tlapack_check_false( nrows(A) != ((side == Side::Left) ? m : n) );
-    tlapack_check_false( nrows(C) != m );
-    tlapack_check_false( ncols(C) != n );
-
+    tlapack_check_false(side != Side::Left && side != Side::Right);
+    tlapack_check_false(uplo != Uplo::Lower && uplo != Uplo::Upper &&
+                        uplo != Uplo::General);
+    tlapack_check_false(nrows(A) != ncols(A));
+    tlapack_check_false(nrows(A) != ((side == Side::Left) ? m : n));
+    tlapack_check_false(nrows(C) != m);
+    tlapack_check_false(ncols(C) != n);
 
     if (side == Side::Left) {
         if (uplo != Uplo::Lower) {
             // uplo == Uplo::Upper or uplo == Uplo::General
-            for(idx_t j = 0; j < n; ++j) {
-                for(idx_t i = 0; i < m; ++i) {
+            for (idx_t j = 0; j < n; ++j) {
+                for (idx_t i = 0; i < m; ++i) {
+                    const scalar_type<alpha_t, TB> alphaTimesBij =
+                        alpha * B(i, j);
+                    scalar_type<TA, TB> sum(0);
 
-                    const scalar_type<alpha_t,TB> alphaTimesBij = alpha*B(i,j);
-                    scalar_type<TA,TB> sum( 0 );
-
-                    for(idx_t k = 0; k < i; ++k) {
-                        C(k,j) += A(k,i) * alphaTimesBij;
-                        sum += A(k,i) * B(k,j);
+                    for (idx_t k = 0; k < i; ++k) {
+                        C(k, j) += A(k, i) * alphaTimesBij;
+                        sum += A(k, i) * B(k, j);
                     }
-                    C(i,j) =
-                        beta * C(i,j)
-                        + A(i,i) * alphaTimesBij
-                        + alpha * sum;
+                    C(i, j) =
+                        beta * C(i, j) + A(i, i) * alphaTimesBij + alpha * sum;
                 }
             }
         }
         else {
             // uplo == Uplo::Lower
-            for(idx_t j = 0; j < n; ++j) {
-                for(idx_t i = m-1; i != idx_t(-1); --i) {
+            for (idx_t j = 0; j < n; ++j) {
+                for (idx_t i = m - 1; i != idx_t(-1); --i) {
+                    const scalar_type<alpha_t, TB> alphaTimesBij =
+                        alpha * B(i, j);
+                    scalar_type<TA, TB> sum(0);
 
-                    const scalar_type<alpha_t,TB> alphaTimesBij = alpha*B(i,j);
-                    scalar_type<TA,TB> sum( 0 );
-
-                    for(idx_t k = i+1; k < m; ++k) {
-                        C(k,j) += A(k,i) * alphaTimesBij;
-                        sum += A(k,i) * B(k,j);
+                    for (idx_t k = i + 1; k < m; ++k) {
+                        C(k, j) += A(k, i) * alphaTimesBij;
+                        sum += A(k, i) * B(k, j);
                     }
-                    C(i,j) =
-                        beta * C(i,j)
-                        + A(i,i) * alphaTimesBij
-                        + alpha * sum;
+                    C(i, j) =
+                        beta * C(i, j) + A(i, i) * alphaTimesBij + alpha * sum;
                 }
             }
         }
     }
-    else { // side == Side::Right
+    else {  // side == Side::Right
 
-        using scalar_t = scalar_type<alpha_t,TA>;
+        using scalar_t = scalar_type<alpha_t, TA>;
 
         if (uplo != Uplo::Lower) {
             // uplo == Uplo::Upper or uplo == Uplo::General
-            for(idx_t j = 0; j < n; ++j) {
+            for (idx_t j = 0; j < n; ++j) {
                 {
-                    const scalar_t alphaTimesAjj = alpha * A(j,j);
-                    for(idx_t i = 0; i < m; ++i)
-                        C(i,j) = beta * C(i,j) + B(i,j) * alphaTimesAjj;
+                    const scalar_t alphaTimesAjj = alpha * A(j, j);
+                    for (idx_t i = 0; i < m; ++i)
+                        C(i, j) = beta * C(i, j) + B(i, j) * alphaTimesAjj;
                 }
 
-                for(idx_t k = 0; k < j; ++k) {
-                    const scalar_t alphaTimesAkj = alpha*A(k,j);
-                    for(idx_t i = 0; i < m; ++i)
-                        C(i,j) += B(i,k) * alphaTimesAkj;
+                for (idx_t k = 0; k < j; ++k) {
+                    const scalar_t alphaTimesAkj = alpha * A(k, j);
+                    for (idx_t i = 0; i < m; ++i)
+                        C(i, j) += B(i, k) * alphaTimesAkj;
                 }
 
-                for(idx_t k = j+1; k < n; ++k) {
-                    const scalar_t alphaTimesAjk = alpha * A(j,k);
-                    for(idx_t i = 0; i < m; ++i)
-                        C(i,j) += B(i,k) * alphaTimesAjk;
+                for (idx_t k = j + 1; k < n; ++k) {
+                    const scalar_t alphaTimesAjk = alpha * A(j, k);
+                    for (idx_t i = 0; i < m; ++i)
+                        C(i, j) += B(i, k) * alphaTimesAjk;
                 }
             }
         }
         else {
             // uplo == Uplo::Lower
-            for(idx_t j = 0; j < n; ++j) {
+            for (idx_t j = 0; j < n; ++j) {
                 {
-                    const scalar_t alphaTimesAjj = alpha * A(j,j);
-                    for(idx_t i = 0; i < m; ++i)
-                        C(i,j) = beta * C(i,j) + B(i,j) * alphaTimesAjj;
+                    const scalar_t alphaTimesAjj = alpha * A(j, j);
+                    for (idx_t i = 0; i < m; ++i)
+                        C(i, j) = beta * C(i, j) + B(i, j) * alphaTimesAjj;
                 }
 
-                for(idx_t k = 0; k < j; ++k) {
-                    const scalar_t alphaTimesAjk = alpha * A(j,k);
-                    for(idx_t i = 0; i < m; ++i)
-                        C(i,j) += B(i,k) * alphaTimesAjk;
+                for (idx_t k = 0; k < j; ++k) {
+                    const scalar_t alphaTimesAjk = alpha * A(j, k);
+                    for (idx_t i = 0; i < m; ++i)
+                        C(i, j) += B(i, k) * alphaTimesAjk;
                 }
 
-                for(idx_t k = j+1; k < n; ++k) {
-                    const scalar_t alphaTimesAkj = alpha*A(k,j);
-                    for(idx_t i = 0; i < m; ++i)
-                        C(i,j) += B(i,k) * alphaTimesAkj;
+                for (idx_t k = j + 1; k < n; ++k) {
+                    const scalar_t alphaTimesAkj = alpha * A(k, j);
+                    for (idx_t i = 0; i < m; ++i)
+                        C(i, j) += B(i, k) * alphaTimesAkj;
                 }
             }
         }
@@ -208,147 +202,130 @@ void symm(
  *
  * @ingroup blas3
  */
-template<
-    class matrixA_t, class matrixB_t, class matrixC_t, 
-    class alpha_t,
-    class T = type_t<matrixC_t>,
-    disable_if_allow_optblas_t<
-        pair< matrixA_t, T >,
-        pair< matrixB_t, T >,
-        pair< matrixC_t, T >,
-        pair< alpha_t,   T >
-    > = 0
->
-inline
-void symm(
-    Side side,
-    Uplo uplo,
-    const alpha_t& alpha, const matrixA_t& A, const matrixB_t& B,
-    matrixC_t& C )
+template <class matrixA_t,
+          class matrixB_t,
+          class matrixC_t,
+          class alpha_t,
+          class T = type_t<matrixC_t>,
+          disable_if_allow_optblas_t<pair<matrixA_t, T>,
+                                     pair<matrixB_t, T>,
+                                     pair<matrixC_t, T>,
+                                     pair<alpha_t, T> > = 0>
+inline void symm(Side side,
+                 Uplo uplo,
+                 const alpha_t& alpha,
+                 const matrixA_t& A,
+                 const matrixB_t& B,
+                 matrixC_t& C)
 {
-    return symm( side, uplo, alpha, A, B, internal::StrongZero(), C );
+    return symm(side, uplo, alpha, A, B, internal::StrongZero(), C);
 }
 
 #ifdef USE_LAPACKPP_WRAPPERS
 
-    /**
-     * Symmetric matrix-matrix multiply.
-     * 
-     * Wrapper to optimized BLAS.
-     * 
-     * @see symm(
-        Side side,
-        Uplo uplo,
-        const alpha_t& alpha, const matrixA_t& A, const matrixB_t& B,
-        const beta_t& beta, matrixC_t& C )
-    * 
-    * @ingroup blas3
-    */
-    template<
-        class matrixA_t,
-        class matrixB_t, 
-        class matrixC_t, 
-        class alpha_t, 
-        class beta_t,
-        class T  = type_t<matrixC_t>,
-        enable_if_allow_optblas_t<
-            pair< matrixA_t, T >,
-            pair< matrixB_t, T >,
-            pair< matrixC_t, T >,
-            pair< alpha_t,   T >,
-            pair< beta_t,    T >
-        > = 0
-    >
-    inline
-    void symm(
-        Side side,
-        Uplo uplo,
-        const alpha_t alpha, const matrixA_t& A, const matrixB_t& B,
-        const beta_t beta, matrixC_t& C )
-    {
-        // Legacy objects
-        auto A_ = legacy_matrix(A);
-        auto B_ = legacy_matrix(B);
-        auto C_ = legacy_matrix(C);
+/**
+ * Symmetric matrix-matrix multiply.
+ *
+ * Wrapper to optimized BLAS.
+ *
+ * @see symm(
+    Side side,
+    Uplo uplo,
+    const alpha_t& alpha, const matrixA_t& A, const matrixB_t& B,
+    const beta_t& beta, matrixC_t& C )
+*
+* @ingroup blas3
+*/
+template <class matrixA_t,
+          class matrixB_t,
+          class matrixC_t,
+          class alpha_t,
+          class beta_t,
+          class T = type_t<matrixC_t>,
+          enable_if_allow_optblas_t<pair<matrixA_t, T>,
+                                    pair<matrixB_t, T>,
+                                    pair<matrixC_t, T>,
+                                    pair<alpha_t, T>,
+                                    pair<beta_t, T> > = 0>
+inline void symm(Side side,
+                 Uplo uplo,
+                 const alpha_t alpha,
+                 const matrixA_t& A,
+                 const matrixB_t& B,
+                 const beta_t beta,
+                 matrixC_t& C)
+{
+    // Legacy objects
+    auto A_ = legacy_matrix(A);
+    auto B_ = legacy_matrix(B);
+    auto C_ = legacy_matrix(C);
 
-        // Constants to forward
-        const auto& m = C_.m;
-        const auto& n = C_.n;
+    // Constants to forward
+    const auto& m = C_.m;
+    const auto& n = C_.n;
 
-        if( alpha == alpha_t(0) )
-            tlapack_warning( -3, "Infs and NaNs in A or B will not propagate to C on output" );
-        if( beta == beta_t(0) )
-            tlapack_warning( -6, "Infs and NaNs in C on input will not propagate to C on output" );
+    if (alpha == alpha_t(0))
+        tlapack_warning(
+            -3, "Infs and NaNs in A or B will not propagate to C on output");
+    if (beta == beta_t(0))
+        tlapack_warning(
+            -6,
+            "Infs and NaNs in C on input will not propagate to C on output");
 
-        return ::blas::symm(
-            (::blas::Layout) A_.layout,
-            (::blas::Side) side, (::blas::Uplo) uplo, 
-            m, n,
-            alpha,
-            A_.ptr, A_.ldim,
-            B_.ptr, B_.ldim,
-            beta,
-            C_.ptr, C_.ldim );
-    }
+    return ::blas::symm((::blas::Layout)A_.layout, (::blas::Side)side,
+                        (::blas::Uplo)uplo, m, n, alpha, A_.ptr, A_.ldim,
+                        B_.ptr, B_.ldim, beta, C_.ptr, C_.ldim);
+}
 
-    /**
-     * Symmetric matrix-matrix multiply.
-     * 
-     * Wrapper to optimized BLAS.
-     * 
-     * @see symm(
-        Side side,
-        Uplo uplo,
-        const alpha_t& alpha, const matrixA_t& A, const matrixB_t& B,
-        matrixC_t& C )
-    * 
-    * @ingroup blas3
-    */
-    template<
-        class matrixA_t,
-        class matrixB_t, 
-        class matrixC_t, 
-        class alpha_t,
-        class T  = type_t<matrixC_t>,
-        enable_if_allow_optblas_t<
-            pair< matrixA_t, T >,
-            pair< matrixB_t, T >,
-            pair< matrixC_t, T >,
-            pair< alpha_t,   T >
-        > = 0
-    >
-    inline
-    void symm(
-        Side side,
-        Uplo uplo,
-        const alpha_t alpha, const matrixA_t& A, const matrixB_t& B,
-        matrixC_t& C )
-    {
-        // Legacy objects
-        auto A_ = legacy_matrix(A);
-        auto B_ = legacy_matrix(B);
-        auto C_ = legacy_matrix(C);
+/**
+ * Symmetric matrix-matrix multiply.
+ *
+ * Wrapper to optimized BLAS.
+ *
+ * @see symm(
+    Side side,
+    Uplo uplo,
+    const alpha_t& alpha, const matrixA_t& A, const matrixB_t& B,
+    matrixC_t& C )
+*
+* @ingroup blas3
+*/
+template <class matrixA_t,
+          class matrixB_t,
+          class matrixC_t,
+          class alpha_t,
+          class T = type_t<matrixC_t>,
+          enable_if_allow_optblas_t<pair<matrixA_t, T>,
+                                    pair<matrixB_t, T>,
+                                    pair<matrixC_t, T>,
+                                    pair<alpha_t, T> > = 0>
+inline void symm(Side side,
+                 Uplo uplo,
+                 const alpha_t alpha,
+                 const matrixA_t& A,
+                 const matrixB_t& B,
+                 matrixC_t& C)
+{
+    // Legacy objects
+    auto A_ = legacy_matrix(A);
+    auto B_ = legacy_matrix(B);
+    auto C_ = legacy_matrix(C);
 
-        // Constants to forward
-        const auto& m = C_.m;
-        const auto& n = C_.n;
+    // Constants to forward
+    const auto& m = C_.m;
+    const auto& n = C_.n;
 
-        if( alpha == alpha_t(0) )
-            tlapack_warning( -3, "Infs and NaNs in A or B will not propagate to C on output" );
+    if (alpha == alpha_t(0))
+        tlapack_warning(
+            -3, "Infs and NaNs in A or B will not propagate to C on output");
 
-        return ::blas::symm(
-            (::blas::Layout) A_.layout,
-            (::blas::Side) side, (::blas::Uplo) uplo, 
-            m, n,
-            alpha,
-            A_.ptr, A_.ldim,
-            B_.ptr, B_.ldim,
-            T(0),
-            C_.ptr, C_.ldim );
-    }
+    return ::blas::symm((::blas::Layout)A_.layout, (::blas::Side)side,
+                        (::blas::Uplo)uplo, m, n, alpha, A_.ptr, A_.ldim,
+                        B_.ptr, B_.ldim, T(0), C_.ptr, C_.ldim);
+}
 
 #endif
 
 }  // namespace tlapack
 
-#endif        //  #ifndef TLAPACK_BLAS_SYMM_HH
+#endif  //  #ifndef TLAPACK_BLAS_SYMM_HH

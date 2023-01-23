@@ -11,9 +11,9 @@
 #ifndef TLAPACK_LEGACY_HER_HH
 #define TLAPACK_LEGACY_HER_HH
 
-#include "tlapack/legacy_api/base/utils.hpp"
-#include "tlapack/legacy_api/base/types.hpp"
 #include "tlapack/blas/her.hpp"
+#include "tlapack/legacy_api/base/types.hpp"
+#include "tlapack/legacy_api/base/utils.hpp"
 
 namespace tlapack {
 
@@ -59,42 +59,41 @@ namespace tlapack {
  *
  * @ingroup legacy_blas
  */
-template< typename TA, typename TX >
-void her(
-    Layout layout,
-    Uplo uplo,
-    idx_t n,
-    real_type<TA, TX> alpha,  // zher takes double alpha; use real
-    TX const *x, int_t incx,
-    TA       *A, idx_t lda )
+template <typename TA, typename TX>
+void her(Layout layout,
+         Uplo uplo,
+         idx_t n,
+         real_type<TA, TX> alpha,  // zher takes double alpha; use real
+         TX const* x,
+         int_t incx,
+         TA* A,
+         idx_t lda)
 {
     using internal::colmajor_matrix;
-    using real_t = real_type<TA,TX>;
+    using real_t = real_type<TA, TX>;
 
     // check arguments
-    tlapack_check_false( layout != Layout::ColMajor &&
-                   layout != Layout::RowMajor );
-    tlapack_check_false( uplo != Uplo::Lower &&
-                   uplo != Uplo::Upper );
-    tlapack_check_false( n < 0 );
-    tlapack_check_false( incx == 0 );
-    tlapack_check_false( lda < n );
+    tlapack_check_false(layout != Layout::ColMajor &&
+                        layout != Layout::RowMajor);
+    tlapack_check_false(uplo != Uplo::Lower && uplo != Uplo::Upper);
+    tlapack_check_false(n < 0);
+    tlapack_check_false(incx == 0);
+    tlapack_check_false(lda < n);
 
     // quick return
-    if (n == 0 || alpha == real_t(0))
-        return;
+    if (n == 0 || alpha == real_t(0)) return;
 
     // for row major, swap lower <=> upper
     if (layout == Layout::RowMajor) {
         uplo = (uplo == Uplo::Lower ? Uplo::Upper : Uplo::Lower);
     }
-    
-    // Matrix views
-    auto A_ = colmajor_matrix<TA>( A, n, n, lda );
 
-    tlapack_expr_with_vector( x_, TX, n, x, incx, her( uplo, alpha, x_, A_ ) );
+    // Matrix views
+    auto A_ = colmajor_matrix<TA>(A, n, n, lda);
+
+    tlapack_expr_with_vector(x_, TX, n, x, incx, her(uplo, alpha, x_, A_));
 }
 
 }  // namespace tlapack
 
-#endif        //  #ifndef TLAPACK_LEGACY_HER_HH
+#endif  //  #ifndef TLAPACK_LEGACY_HER_HH

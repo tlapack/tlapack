@@ -11,9 +11,9 @@
 #ifndef TLAPACK_LEGACY_GER_HH
 #define TLAPACK_LEGACY_GER_HH
 
-#include "tlapack/legacy_api/base/utils.hpp"
-#include "tlapack/legacy_api/base/types.hpp"
 #include "tlapack/blas/ger.hpp"
+#include "tlapack/legacy_api/base/types.hpp"
+#include "tlapack/legacy_api/base/utils.hpp"
 
 namespace tlapack {
 
@@ -61,56 +61,50 @@ namespace tlapack {
  *
  * @ingroup legacy_blas
  */
-template< typename TA, typename TX, typename TY >
-void ger(
-    Layout layout,
-    idx_t m, idx_t n,
-    scalar_type<TA, TX, TY> alpha,
-    TX const *x, int_t incx,
-    TY const *y, int_t incy,
-    TA *A, idx_t lda )
+template <typename TA, typename TX, typename TY>
+void ger(Layout layout,
+         idx_t m,
+         idx_t n,
+         scalar_type<TA, TX, TY> alpha,
+         TX const* x,
+         int_t incx,
+         TY const* y,
+         int_t incy,
+         TA* A,
+         idx_t lda)
 {
     using internal::colmajor_matrix;
     using internal::rowmajor_matrix;
     using scalar_t = scalar_type<TA, TX, TY>;
 
     // check arguments
-    tlapack_check_false( layout != Layout::ColMajor &&
-                   layout != Layout::RowMajor );
-    tlapack_check_false( m < 0 );
-    tlapack_check_false( n < 0 );
-    tlapack_check_false( incx == 0 );
-    tlapack_check_false( incy == 0 );
-    tlapack_check_false( lda < ((layout == Layout::ColMajor) ? m : n) );
+    tlapack_check_false(layout != Layout::ColMajor &&
+                        layout != Layout::RowMajor);
+    tlapack_check_false(m < 0);
+    tlapack_check_false(n < 0);
+    tlapack_check_false(incx == 0);
+    tlapack_check_false(incy == 0);
+    tlapack_check_false(lda < ((layout == Layout::ColMajor) ? m : n));
 
     // quick return
-    if (m == 0 || n == 0 || alpha == scalar_t(0))
-        return;
+    if (m == 0 || n == 0 || alpha == scalar_t(0)) return;
 
-    if( layout == Layout::ColMajor )
-    {
+    if (layout == Layout::ColMajor) {
         // Matrix views
-        auto A_ = colmajor_matrix<TA>( A, m, n, lda );
+        auto A_ = colmajor_matrix<TA>(A, m, n, lda);
 
-        tlapack_expr_with_2vectors(
-            x_, TX, m, x, incx,
-            y_, TY, n, y, incy,
-            return ger( alpha, x_, y_, A_ )
-        );
+        tlapack_expr_with_2vectors(x_, TX, m, x, incx, y_, TY, n, y, incy,
+                                   return ger(alpha, x_, y_, A_));
     }
-    else
-    {
+    else {
         // Matrix views
-        auto A_ = rowmajor_matrix<TA>( A, m, n, lda );
+        auto A_ = rowmajor_matrix<TA>(A, m, n, lda);
 
-        tlapack_expr_with_2vectors(
-            x_, TX, m, x, incx,
-            y_, TY, n, y, incy,
-            return ger( alpha, x_, y_, A_ )
-        );
+        tlapack_expr_with_2vectors(x_, TX, m, x, incx, y_, TY, n, y, incy,
+                                   return ger(alpha, x_, y_, A_));
     }
 }
 
 }  // namespace tlapack
 
-#endif        //  #ifndef TLAPACK_LEGACY_GER_HH
+#endif  //  #ifndef TLAPACK_LEGACY_GER_HH

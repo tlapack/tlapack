@@ -16,9 +16,9 @@
 #ifndef TLAPACK_LEGACY_NRM2_HH
 #define TLAPACK_LEGACY_NRM2_HH
 
-#include "tlapack/legacy_api/base/utils.hpp"
-#include "tlapack/legacy_api/base/types.hpp"
 #include "tlapack/blas/nrm2.hpp"
+#include "tlapack/legacy_api/base/types.hpp"
+#include "tlapack/legacy_api/base/utils.hpp"
 
 namespace tlapack {
 
@@ -39,20 +39,17 @@ namespace tlapack {
  *
  * @ingroup legacy_blas
  */
-template< typename T >
-real_type<T> nrm2( idx_t n, T const * x, int_t incx )
+template <typename T>
+real_type<T> nrm2(idx_t n, T const* x, int_t incx)
 {
-    tlapack_check_false( incx <= 0 );
+    tlapack_check_false(incx <= 0);
 
     // quick return
-    if( n <= 0 ) return 0;
+    if (n <= 0) return 0;
 
-    tlapack_expr_with_vector_positiveInc(
-        x_, T, n, x, incx,
-        return nrm2( x_ )
-    );
+    tlapack_expr_with_vector_positiveInc(x_, T, n, x, incx, return nrm2(x_));
 }
 
 }  // namespace tlapack
 
-#endif        // #ifndef TLAPACK_LEGACY_NRM2_HH
+#endif  // #ifndef TLAPACK_LEGACY_NRM2_HH

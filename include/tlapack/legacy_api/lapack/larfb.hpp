@@ -1,6 +1,7 @@
 /// @file larfb.hpp Applies a Householder block reflector to a matrix.
 /// @author Weslley S Pereira, University of Colorado Denver, USA
-/// @note Adapted from @see https://github.com/langou/latl/blob/master/include/larfb.h
+/// @note Adapted from @see
+/// https://github.com/langou/latl/blob/master/include/larfb.h
 //
 // Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
@@ -24,7 +25,8 @@ namespace tlapack {
  *
  * @param[in] trans
  *     - Op::NoTrans:   apply $H  $ (No transpose)
- *     - Op::Trans:     apply $H^T$ (Transpose, only allowed if the type of H is Real)
+ *     - Op::Trans:     apply $H^T$ (Transpose, only allowed if the type of H is
+ * Real)
  *     - Op::ConjTrans: apply $H^H$ (Conjugate transpose)
  *
  * @param[in] direction
@@ -107,49 +109,55 @@ namespace tlapack {
  *         (  1 v2 v3 )                     ( v3 v3 v3 v3  1 )
  *         (     1 v3 )
  *         (        1 )
- * 
+ *
  * @ingroup legacy_lapack
  */
 
-template <class side_t, class trans_t, class direction_t, class storeV_t,
-    typename TV, typename TC>
-int larfb(
-    side_t side, trans_t trans,
-    direction_t direction, storeV_t storev,
-    idx_t m, idx_t n, idx_t k,
-    TV const* V, idx_t ldv,
-    TV const* T, idx_t ldt,
-    TC* C, idx_t ldc )
+template <class side_t,
+          class trans_t,
+          class direction_t,
+          class storeV_t,
+          typename TV,
+          typename TC>
+int larfb(side_t side,
+          trans_t trans,
+          direction_t direction,
+          storeV_t storev,
+          idx_t m,
+          idx_t n,
+          idx_t k,
+          TV const* V,
+          idx_t ldv,
+          TV const* T,
+          idx_t ldt,
+          TC* C,
+          idx_t ldc)
 {
     using internal::colmajor_matrix;
 
     // check arguments
-    tlapack_check_false(    side != Side::Left &&
-                        side != Side::Right );
-    tlapack_check_false(    trans != Op::NoTrans &&
-                        trans != Op::ConjTrans &&
-                        (
-                            (trans != Op::Trans) ||
-                            is_complex< TV >::value
-                        ) );
-    tlapack_check_false(    direction != Direction::Backward &&
-                        direction != Direction::Forward );
-    tlapack_check_false(    storev != StoreV::Columnwise &&
-                        storev != StoreV::Rowwise );
+    tlapack_check_false(side != Side::Left && side != Side::Right);
+    tlapack_check_false(trans != Op::NoTrans && trans != Op::ConjTrans &&
+                        ((trans != Op::Trans) || is_complex<TV>::value));
+    tlapack_check_false(direction != Direction::Backward &&
+                        direction != Direction::Forward);
+    tlapack_check_false(storev != StoreV::Columnwise &&
+                        storev != StoreV::Rowwise);
 
     // Quick return
     if (m <= 0 || n <= 0) return 0;
 
     // Views
-    const auto V_ = (storev == StoreV::Columnwise)
-                  ? colmajor_matrix<TV>( (TV*) V, (side == Side::Left) ? m : n, k, ldv )
-                  : colmajor_matrix<TV>( (TV*) V, k, (side == Side::Left) ? m : n, ldv );
-    const auto T_ = colmajor_matrix<TV>( (TV*) T, k, k, ldt );
-    auto C_ = colmajor_matrix<TC>( C, m, n, ldc );
+    const auto V_ =
+        (storev == StoreV::Columnwise)
+            ? colmajor_matrix<TV>((TV*)V, (side == Side::Left) ? m : n, k, ldv)
+            : colmajor_matrix<TV>((TV*)V, k, (side == Side::Left) ? m : n, ldv);
+    const auto T_ = colmajor_matrix<TV>((TV*)T, k, k, ldt);
+    auto C_ = colmajor_matrix<TC>(C, m, n, ldc);
 
-    return larfb( side, trans, direction, storev, V_, T_, C_ );
+    return larfb(side, trans, direction, storev, V_, T_, C_);
 }
 
-}
+}  // namespace tlapack
 
-#endif // TLAPACK_LEGACY_LARFB_HH
+#endif  // TLAPACK_LEGACY_LARFB_HH

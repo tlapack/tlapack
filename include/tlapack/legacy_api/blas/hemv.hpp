@@ -11,9 +11,9 @@
 #ifndef TLAPACK_LEGACY_HEMV_HH
 #define TLAPACK_LEGACY_HEMV_HH
 
-#include "tlapack/legacy_api/base/utils.hpp"
-#include "tlapack/legacy_api/base/types.hpp"
 #include "tlapack/blas/hemv.hpp"
+#include "tlapack/legacy_api/base/types.hpp"
+#include "tlapack/legacy_api/base/utils.hpp"
 
 namespace tlapack {
 
@@ -69,63 +69,64 @@ namespace tlapack {
  *
  * @ingroup legacy_blas
  */
-template< typename TA, typename TX, typename TY >
-void hemv(
-    Layout layout,
-    Uplo uplo,
-    idx_t n,
-    scalar_type<TA, TX, TY> alpha,
-    TA const *A, idx_t lda,
-    TX const *x, int_t incx,
-    scalar_type<TA, TX, TY> beta,
-    TY *y, int_t incy )
+template <typename TA, typename TX, typename TY>
+void hemv(Layout layout,
+          Uplo uplo,
+          idx_t n,
+          scalar_type<TA, TX, TY> alpha,
+          TA const* A,
+          idx_t lda,
+          TX const* x,
+          int_t incx,
+          scalar_type<TA, TX, TY> beta,
+          TY* y,
+          int_t incy)
 {
     using internal::colmajor_matrix;
     using internal::rowmajor_matrix;
     using scalar_t = scalar_type<TA, TX, TY>;
 
     // check arguments
-    tlapack_check_false( layout != Layout::ColMajor &&
-                   layout != Layout::RowMajor );
-    tlapack_check_false( uplo != Uplo::Lower &&
-                   uplo != Uplo::Upper );
-    tlapack_check_false( n < 0 );
-    tlapack_check_false( lda < n );
-    tlapack_check_false( incx == 0 );
-    tlapack_check_false( incy == 0 );
+    tlapack_check_false(layout != Layout::ColMajor &&
+                        layout != Layout::RowMajor);
+    tlapack_check_false(uplo != Uplo::Lower && uplo != Uplo::Upper);
+    tlapack_check_false(n < 0);
+    tlapack_check_false(lda < n);
+    tlapack_check_false(incx == 0);
+    tlapack_check_false(incy == 0);
 
     // quick return
-    if ( n == 0 ||
-        ((alpha == scalar_t(0)) && (beta == scalar_t(1))) ) return;
+    if (n == 0 || ((alpha == scalar_t(0)) && (beta == scalar_t(1)))) return;
 
-    if( alpha == scalar_t(0) ) {
-        tlapack_expr_with_vector( y_, TY, n, y, incy,
-            if( beta == scalar_t(0) )
-                for(idx_t i = 0; i < n; ++i)
-                    y_[i] = TY(0);
-            else
-                for(idx_t i = 0; i < n; ++i)
-                    y_[i] *= beta
-        );
+    if (alpha == scalar_t(0)) {
+        tlapack_expr_with_vector(
+            y_, TY, n, y, incy,
+            if (beta == scalar_t(0)) for (idx_t i = 0; i < n; ++i) y_[i] =
+                TY(0);
+            else for (idx_t i = 0; i < n; ++i) y_[i] *= beta);
     }
     else {
         tlapack_expr_with_2vectors(
-            x_, TX, n, x, incx,
-            y_, TY, n, y, incy,
-            if( beta == scalar_t(0) )
-                if(layout == Layout::ColMajor)
-                    return hemv( uplo, alpha, colmajor_matrix<TA>( (TA*)A, n, n, lda ), x_, y_ );
-                else
-                    return hemv( uplo, alpha, rowmajor_matrix<TA>( (TA*)A, n, n, lda ), x_, y_ );
-            else
-                if(layout == Layout::ColMajor)
-                    return hemv( uplo, alpha, colmajor_matrix<TA>( (TA*)A, n, n, lda ), x_, beta, y_ );
-                else
-                    return hemv( uplo, alpha, rowmajor_matrix<TA>( (TA*)A, n, n, lda ), x_, beta, y_ )
-        );
+            x_, TX, n, x, incx, y_, TY, n, y, incy,
+            if (beta ==
+                scalar_t(
+                    0)) if (layout ==
+                            Layout::ColMajor) return hemv(uplo, alpha,
+                                                          colmajor_matrix<TA>(
+                                                              (TA*)A, n, n,
+                                                              lda),
+                                                          x_, y_);
+            else return hemv(uplo, alpha,
+                             rowmajor_matrix<TA>((TA*)A, n, n, lda), x_, y_);
+            else if (layout == Layout::ColMajor) return hemv(
+                uplo, alpha, colmajor_matrix<TA>((TA*)A, n, n, lda), x_, beta,
+                y_);
+            else return hemv(uplo, alpha,
+                             rowmajor_matrix<TA>((TA*)A, n, n, lda), x_, beta,
+                             y_));
     }
 }
 
 }  // namespace tlapack
 
-#endif        //  #ifndef TLAPACK_LEGACY_HEMV_HH
+#endif  //  #ifndef TLAPACK_LEGACY_HEMV_HH

@@ -13,31 +13,31 @@
 // Auxiliary routines
 // ------------------
 
-#include "tlapack/legacy_api/lapack/larf.hpp"
-#include "tlapack/legacy_api/lapack/larfg.hpp"
-#include "tlapack/legacy_api/lapack/larft.hpp"
-#include "tlapack/legacy_api/lapack/larfb.hpp"
+#include "tlapack/lapack/ladiv.hpp"
 #include "tlapack/lapack/lapy2.hpp"
 #include "tlapack/lapack/lapy3.hpp"
-#include "tlapack/lapack/ladiv.hpp"
-#include "tlapack/legacy_api/lapack/laset.hpp"
 #include "tlapack/legacy_api/lapack/lacpy.hpp"
 #include "tlapack/legacy_api/lapack/lange.hpp"
 #include "tlapack/legacy_api/lapack/lanhe.hpp"
-#include "tlapack/legacy_api/lapack/lantr.hpp"
 #include "tlapack/legacy_api/lapack/lansy.hpp"
+#include "tlapack/legacy_api/lapack/lantr.hpp"
+#include "tlapack/legacy_api/lapack/larf.hpp"
+#include "tlapack/legacy_api/lapack/larfb.hpp"
+#include "tlapack/legacy_api/lapack/larfg.hpp"
+#include "tlapack/legacy_api/lapack/larft.hpp"
 #include "tlapack/legacy_api/lapack/larnv.hpp"
 #include "tlapack/legacy_api/lapack/lascl.hpp"
+#include "tlapack/legacy_api/lapack/laset.hpp"
 #include "tlapack/legacy_api/lapack/lassq.hpp"
 
 // QR factorization
 // ----------------
 
 #include "tlapack/legacy_api/lapack/geqr2.hpp"
+#include "tlapack/legacy_api/lapack/potrf.hpp"
+#include "tlapack/legacy_api/lapack/potrs.hpp"
 #include "tlapack/legacy_api/lapack/ung2r.hpp"
 #include "tlapack/legacy_api/lapack/unm2r.hpp"
 #include "tlapack/legacy_api/lapack/unmqr.hpp"
-#include "tlapack/legacy_api/lapack/potrf.hpp"
-#include "tlapack/legacy_api/lapack/potrs.hpp"
 
-#endif // TLAPACK_LEGACY_HH
+#endif  // TLAPACK_LEGACY_HH

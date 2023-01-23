@@ -11,14 +11,15 @@
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 
+// Test utilities and definitions (must come before <T>LAPACK headers)
 #include "testutils.hpp"
 
 // Auxiliary routines
 #include <tlapack/lapack/lacpy.hpp>
 
 // Other routines
-#include <tlapack/lapack/lauum_recursive.hpp>
 #include <tlapack/lapack/lantr.hpp>
+#include <tlapack/lapack/lauum_recursive.hpp>
 
 using namespace tlapack;
 
@@ -40,8 +41,10 @@ TEMPLATE_TEST_CASE("LAUUM is stable", "[lauum]", TLAPACK_TYPES_TO_TEST)
     const real_t eps = uroundoff<real_t>();
     const real_t tol = real_t(1.0e2 * n) * eps;
 
-    std::vector<T> A_; auto A = new_matrix( A_, n, n );
-    std::vector<T> C_; auto C = new_matrix( C_, n, n );
+    std::vector<T> A_;
+    auto A = new_matrix(A_, n, n);
+    std::vector<T> C_;
+    auto C = new_matrix(C_, n, n);
 
     // Generate random matrix
     for (idx_t j = 0; j < n; ++j)
@@ -57,15 +60,13 @@ TEMPLATE_TEST_CASE("LAUUM is stable", "[lauum]", TLAPACK_TYPES_TO_TEST)
         // Calculate residual
         real_t normC = lantr(max_norm, uplo, Diag::NonUnit, C);
 
-        if (uplo == Uplo::Lower)
-        {
+        if (uplo == Uplo::Lower) {
             for (idx_t j = 0; j < n; ++j)
                 for (idx_t i = 0; i < j; ++i)
                     C(i, j) = T(0.);
             herk(Uplo::Lower, Op::ConjTrans, real_t(1), C, real_t(-1), A);
         }
-        else
-        {
+        else {
             for (idx_t j = 0; j < n; ++j)
                 for (idx_t i = j + 1; i < n; ++i)
                     C(i, j) = T(0.);

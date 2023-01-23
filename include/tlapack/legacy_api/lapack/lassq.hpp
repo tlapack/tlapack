@@ -1,6 +1,6 @@
 /// @file lassq.hpp
 /// @author Weslley S Pereira, University of Colorado Denver, USA
-/// 
+///
 /// Anderson E. (2017)
 /// Algorithm 978: Safe Scaling in the Level 1 BLAS
 /// ACM Trans Math Softw 44:1--28
@@ -21,10 +21,11 @@ namespace tlapack {
 
 /** Updates a sum of squares represented in scaled form.
  * \[
- *      scl_{[OUT]}^2 sumsq_{[OUT]} = \sum_{i = 0}^n x_i^2 + scl_{[IN]}^2 sumsq_{[IN]},
+ *      scl_{[OUT]}^2 sumsq_{[OUT]} = \sum_{i = 0}^n x_i^2 + scl_{[IN]}^2
+ * sumsq_{[IN]},
  * \]
  * The value of  sumsq  is assumed to be non-negative.
- * 
+ *
  * If (scale * sqrt( sumsq )) > tbig on entry then
  *    we require:   scale >= sqrt( TINY*EPS ) / sbig   on entry,
  * and if 0 < (scale * sqrt( sumsq )) < tsml on entry then
@@ -37,7 +38,7 @@ namespace tlapack {
  * and
  *    TINY*EPS -- tiniest representable number;
  *    HUGE     -- biggest representable number.
- * 
+ *
  * @param[in] n The number of elements to be used from the vector x.
  * @param[in] x Array of dimension $(1+(n-1)*|incx|)$.
  * @param[in] incx The increment between successive values of the vector x.
@@ -48,22 +49,19 @@ namespace tlapack {
  *          in the vector norm n times.
  * @param[in] scl
  * @param[in] sumsq
- * 
+ *
  * @ingroup legacy_lapack
  */
-template< typename TX >
+template <typename TX>
 void lassq(
-    idx_t n,
-    TX const* x, int_t incx,
-    real_type<TX> &scl,
-    real_type<TX> &sumsq)
+    idx_t n, TX const* x, int_t incx, real_type<TX>& scl, real_type<TX>& sumsq)
 {
     // quick return
-    if( isnan(scl) || isnan(sumsq) || n <= 0 ) return;
+    if (isnan(scl) || isnan(sumsq) || n <= 0) return;
 
-    tlapack_expr_with_vector( x_, TX, n, x, incx, return lassq( x_, scl, sumsq ) );
+    tlapack_expr_with_vector(x_, TX, n, x, incx, return lassq(x_, scl, sumsq));
 }
 
-} // lapack
+}  // namespace tlapack
 
-#endif // TLAPACK_LEGACY_LASSQ_HH
+#endif  // TLAPACK_LEGACY_LASSQ_HH

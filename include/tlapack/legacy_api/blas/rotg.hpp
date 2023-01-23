@@ -11,9 +11,9 @@
 #ifndef TLAPACK_LEGACY_ROTG_HH
 #define TLAPACK_LEGACY_ROTG_HH
 
-#include "tlapack/legacy_api/base/utils.hpp"
-#include "tlapack/legacy_api/base/types.hpp"
 #include "tlapack/blas/rotg.hpp"
+#include "tlapack/legacy_api/base/types.hpp"
+#include "tlapack/legacy_api/base/utils.hpp"
 
 namespace tlapack {
 
@@ -49,12 +49,11 @@ namespace tlapack {
  * @ingroup legacy_blas
  */
 template <typename T>
-inline void
-rotg ( T* a, T* b, real_type<T>* c, T* s )
+inline void rotg(T* a, T* b, real_type<T>* c, T* s)
 {
-    return rotg(*a,*b,*c,*s);
+    return rotg(*a, *b, *c, *s);
 }
 
 }  // namespace tlapack
 
-#endif        //  #ifndef TLAPACK_LEGACY_ROTG_HH
+#endif  //  #ifndef TLAPACK_LEGACY_ROTG_HH

@@ -11,6 +11,7 @@
 #define TLAPACK_STDVECTOR_HH
 
 #include <vector>
+
 #include "tlapack/base/arrayTraits.hpp"
 #include "tlapack/base/workspace.hpp"
 
@@ -22,32 +23,33 @@
 
 namespace tlapack {
 
-    // -----------------------------------------------------------------------------
-    // blas functions to access std::vector properties
+// -----------------------------------------------------------------------------
+// blas functions to access std::vector properties
 
-    // Size
-    template< class T, class Allocator >
-    inline constexpr auto
-    size( const std::vector<T,Allocator>& x ) {
-        return x.size();
-    }
+// Size
+template <class T, class Allocator>
+inline constexpr auto size(const std::vector<T, Allocator>& x)
+{
+    return x.size();
+}
 
-    // -----------------------------------------------------------------------------
-    // blas functions to access std::vector block operations
+// -----------------------------------------------------------------------------
+// blas functions to access std::vector block operations
 
-    // slice
-    template< class T, class Allocator, class SliceSpec >
-    inline constexpr auto slice( const std::vector<T,Allocator>& v, SliceSpec&& rows )
-    {
-        #ifndef TLAPACK_USE_MDSPAN
-            return legacyVector<T,std::size_t>( rows.second - rows.first, (T*) &v[ rows.first ] );
-        #else
-            return std::experimental::mdspan< T, std::experimental::dextents<1> >(
-                (T*) &v[ rows.first ], (std::size_t) (rows.second - rows.first)
-            );
-        #endif
-    }
+// slice
+template <class T, class Allocator, class SliceSpec>
+inline constexpr auto slice(const std::vector<T, Allocator>& v,
+                            SliceSpec&& rows)
+{
+#ifndef TLAPACK_USE_MDSPAN
+    return legacyVector<T, std::size_t>(rows.second - rows.first,
+                                        (T*)&v[rows.first]);
+#else
+    return std::experimental::mdspan<T, std::experimental::dextents<1> >(
+        (T*)&v[rows.first], (std::size_t)(rows.second - rows.first));
+#endif
+}
 
-} // namespace tlapack
+}  // namespace tlapack
 
-#endif // TLAPACK_STDVECTOR_HH
+#endif  // TLAPACK_STDVECTOR_HH
