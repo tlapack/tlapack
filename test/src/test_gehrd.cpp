@@ -71,37 +71,22 @@ TEMPLATE_TEST_CASE("Hessenberg reduction is backward stable", "[eigenvalues][hes
     // Functor
     Create<matrix_t> new_matrix;
 
-    using test_tuple_t = std::tuple<std::string, idx_t, idx_t, idx_t>;
-    const test_tuple_t test_tuple = GENERATE(
-        (test_tuple_t("Near overflow", 5, 0, 0)),
-        (test_tuple_t("Random", 1, 0, 0)),
-        (test_tuple_t("Random", 1, 0, 1)),
-        (test_tuple_t("Random", 1, 1, 0)),
-        (test_tuple_t("Random", 1, 1, 1)),
-        (test_tuple_t("Random", 2, 0, 0)),
-        (test_tuple_t("Random", 2, 0, 1)),
-        (test_tuple_t("Random", 2, 1, 0)),
-        (test_tuple_t("Random", 2, 1, 1)),
-        (test_tuple_t("Random", 3, 0, 0)),
-        (test_tuple_t("Random", 3, 0, 1)),
-        (test_tuple_t("Random", 3, 1, 0)),
-        (test_tuple_t("Random", 3, 1, 1)),
-        (test_tuple_t("Random", 5, 0, 0)),
-        (test_tuple_t("Random", 5, 0, 1)),
-        (test_tuple_t("Random", 5, 1, 0)),
-        (test_tuple_t("Random", 5, 1, 1)),
-        (test_tuple_t("Random", 10, 0, 0)),
-        (test_tuple_t("Random", 10, 0, 1)),
-        (test_tuple_t("Random", 10, 1, 0)),
-        (test_tuple_t("Random", 10, 1, 1)) );
+    const std::string matrix_type = GENERATE("Near overflow", "Random");
+    const idx_t n = GENERATE(1, 2, 3, 5, 10);
+    const idx_t ilo_offset = GENERATE(0, 1);
+    const idx_t ihi_offset = GENERATE(0, 1);
 
-    const std::string matrix_type = std::get<0>(test_tuple);
-    const idx_t n = std::get<1>(test_tuple);
-    const idx_t ilo_offset = std::get<2>(test_tuple);
-    const idx_t ihi_offset = std::get<3>(test_tuple);
+    // Only runs the near overflow case
+    // when n = 5 and ilo_offset = 0 and ihi_offset = 0
+    if( matrix_type == "Near overflow" &&
+        n != 5 && ilo_offset != 0 && ihi_offset != 0 )
+        return;
+    
+    // Constants
     const idx_t ilo = n > 1 ? ilo_offset : 0;
     const idx_t ihi = n > 1 + ilo_offset ? n - ihi_offset : n;
 
+    // Random number generator
     rand_generator gen;
 
     // Define the matrices and vectors
