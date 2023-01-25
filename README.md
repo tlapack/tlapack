@@ -48,8 +48,8 @@ First things to know about \<T\>LAPACK:
         + Recursive
 + [ ] Matrix inversion
     + [x] General matrix
-        + Method C from §14.3.3 in [[1]](#1)
-        + Method D from §14.3.4 in [[1]](#1)
+        + Method C from §14.3.3 in <a href="#1">[1]</a>
+        + Method D from §14.3.4 in <a href="#1">[1]</a>
     + [ ] Hermitian positive definite
     + [x] Triangular matrix
         + Recursive
@@ -75,7 +75,7 @@ First things to know about \<T\>LAPACK:
     + [ ] Using QR factorization
     + [ ] Using SVD
 + [x] Additional kernels
-    + [x] Order 1 and 2 Sylverster equation solver
+    + [x] Order 1 and 2 Sylvester equation solver
     + [x] In-place upper times lower triangular matrix multiplication for general and hermitian matrices
     + [x] In-place lower times upper triangular matrix multiplication
     + [x] In-place transpose of a matrix
@@ -235,9 +235,23 @@ Here are the \<T\>LAPACK specific options and their default values
             https://bitbucket.org/weslleyspereira/blaspp/branch/tlapack
             https://bitbucket.org/weslleyspereira/lapackpp/branch/tlapack
 
+## Documentation
+
+The documentation of \<T\>LAPACK is generated using Doxygen. The documentation is available online at https://tlapack.github.io/tlapack. Alternatively, you can generate the documentation in your local machine. To do so, follow the steps below:
+
++ Install Doxygen in your local machine. See the [Doxygen installation page](https://www.doxygen.nl/download.html) for more details.
+
++ In the top directory of \<T\>LAPACK, run `doxygen docs/Doxyfile` to generate the \<T\>LAPACK documentation via Doxygen in your local machine.
+
+Additional information about the software can be found in the [Wiki pages of the project](https://github.com/tlapack/tlapack/wiki).
+
+## Contributing
+
+Please read [CONTRIBUTING.md](https://github.com/tlapack/tlapack/blob/master/CONTRIBUTING.md) for details on how to contribute to \<T\>LAPACK.
+
 ## Testing
 
-\<T\>LAPACK is continuously tested on Ubuntu, MacOS and Windows using GNU compilers. See the latest test results in the (Github Actions)[https://github.com/tlapack/tlapack/actions/workflows/cmake.yml] webpage for \<T\>LAPACK. The tests split into three categories:
+\<T\>LAPACK is continuously tested on Ubuntu, MacOS and Windows using GNU compilers. See the latest test results in the [Github Actions](https://github.com/tlapack/tlapack/actions/workflows/cmake.yml) webpage for \<T\>LAPACK. The tests split into three categories:
 
 + Test routines in [test/src](test/src) using
   
@@ -250,12 +264,6 @@ Here are the \<T\>LAPACK specific options and their default values
 + [BLAS++ testers](https://github.com/icl-utk-edu/blaspp/tree/master/test) and [LAPACK++ testers](https://github.com/icl-utk-edu/lapackpp/tree/master/test) for measuring performance and accuracy compared to LAPACKE.
 
 To test \<T\>LAPACK, build with `BUILD_TESTING=ON`. Then, run `ctest` inside the build directory.
-
-## Documentation
-
-+ Online documentation for the master branch at https://tlapack.github.io/tlapack.
-
-+ Run `doxygen docs/Doxyfile` to generate the \<T\>LAPACK documentation via Doxygen in your local machine.
 
 ## License
 
