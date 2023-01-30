@@ -17,10 +17,10 @@
 namespace tlapack {
 
 template <typename T>
-void larfg(idx_t n, T& alpha, T* x, int_t incx, T& tau)
+void inline larfg(idx_t n, T& alpha, T* x, int_t incx, T& tau)
 {
     tlapack_expr_with_vector(x_, T, n - 1, x, incx,
-                             return larfg(alpha, x_, tau));
+                             return larfg(columnwise_storage, alpha, x_, tau));
 }
 
 /** Generates a elementary Householder reflection.

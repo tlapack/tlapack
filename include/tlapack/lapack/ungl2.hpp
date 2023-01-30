@@ -46,8 +46,8 @@ inline constexpr void ungl2_worksize(const matrix_t& Q,
 
     if (k > 1) {
         auto C = rows(Q, range<idx_t>{1, k});
-        larf_worksize(right_side, forward, row(Q, 0), tauw[0], C, workinfo,
-                      opts);
+        larf_worksize(right_side, forward, rowwise_storage, row(Q, 0), tauw[0],
+                      C, workinfo, opts);
     }
 }
 
@@ -124,7 +124,7 @@ int ungl2(matrix_t& Q,
     for (idx_t j = t - 1; j != idx_t(-1); --j) {
         // Apply H(j)**H to Q(j:k,j:n) from the right
         if (j + 1 < n) {
-            auto w = slice(Q, j, range(j, n));
+            auto x = slice(Q, j, range(j + 1, n));
 
             // Apply to the Q11 below the w
             if ((k > m && j + 1 == t) || (j + 1 < t)) {
@@ -132,17 +132,12 @@ int ungl2(matrix_t& Q,
                 // apply to Q(j+1:k,j:n) This procedure is only used once when
                 // both conditions are satisfied
 
-                for (idx_t i = 0; i < n - j; ++i)
-                    w[i] = conj(w[i]);
-
                 auto Q11 = slice(Q, range(j + 1, k), range(j, n));
-                larf(Side::Right, forward, w, conj(tauw[j]), Q11, larfOpts);
-
-                for (idx_t i = 0; i < n - j; ++i)
-                    w[i] = conj(w[i]);
+                larf(Side::Right, forward, rowwise_storage, x, conj(tauw[j]),
+                     Q11, larfOpts);
             }
 
-            scal(-conj(tauw[j]), w);
+            scal(-conj(tauw[j]), x);
         }
 
         Q(j, j) = real_t(1.) - conj(tauw[j]);

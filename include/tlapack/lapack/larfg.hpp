@@ -27,14 +27,23 @@ namespace tlapack {
  *        H' * ( alpha ) = ( beta ),   H' * H = I.
  *             (   x   )   (   0  )
  *
- * where alpha and beta are scalars, with beta real, and x is an (n-1)-element
- * vector. H is represented in the form
+ * if storeMode == StoreV::Columnwise, or
+ *
+ *        ( alpha x ) * H = ( beta 0 ),   H' * H = I.
+ *
+ * if storeMode == StoreV::Rowwise, where alpha and beta are scalars, with beta
+ * real, and x is an (n-1)-element vector. H is represented in the form
  *
  *        H = I - tau * ( 1 ) * ( 1 v' )
  *                      ( v )
  *
- * where tau is a scalar and v is a (n-1)-element vector.
- * Note that H is symmetric but not hermitian.
+ * if storeMode == StoreV::Columnwise, or
+ *
+ *        H = I - tau * ( 1  ) * ( 1 v )
+ *                      ( v' )
+ *
+ * if storeMode == StoreV::Rowwise, where tau is a scalar and
+ * v is a (n-1)-element vector. Note that H is symmetric but not hermitian.
  *
  * If the elements of x are all zero and alpha is real, then tau = 0
  * and H is taken to be the identity matrix.
@@ -53,8 +62,8 @@ namespace tlapack {
  *
  * @ingroup auxiliary
  */
-template <class vector_t, class alpha_t, class tau_t>
-void larfg(alpha_t& alpha, vector_t& x, tau_t& tau)
+template <class storage_t, class vector_t, class alpha_t, class tau_t>
+void larfg(storage_t storeMode, alpha_t& alpha, vector_t& x, tau_t& tau)
 {
     // data traits
     using TX = type_t<vector_t>;
@@ -64,64 +73,53 @@ void larfg(alpha_t& alpha, vector_t& x, tau_t& tau)
     using real_t = real_type<alpha_t, TX>;
 
     // constants
-    const idx_t n = size(x) + 1;
     const real_t one(1);
     const real_t zero(0);
     const real_t safemin = safe_min<real_t>() / uroundoff<real_t>();
     const real_t rsafemin = one / safemin;
 
+    // check arguments
+    tlapack_check(storeMode == StoreV::Columnwise ||
+                  storeMode == StoreV::Rowwise);
+
     tau = tau_t(0);
-    if (n > 0) {
+    real_t xnorm = nrm2(x);
+
+    if (xnorm > zero || (imag(alpha) != zero)) {
+        // First estimate of beta
+        real_t temp = (!is_complex<alpha_t>::value)
+                          ? lapy2(real(alpha), xnorm)
+                          : lapy3(real(alpha), imag(alpha), xnorm);
+        real_t beta = (real(alpha) < zero) ? temp : -temp;
+
+        // Scale if needed
         idx_t knt = 0;
-        real_t xnorm = nrm2(x);
-        if (xnorm > zero || (imag(alpha) != zero)) {
-            real_t temp = (!is_complex<alpha_t>::value)
-                              ? lapy2(real(alpha), xnorm)
-                              : lapy3(real(alpha), imag(alpha), xnorm);
-            real_t beta = (real(alpha) < zero) ? temp : -temp;
-            if (abs(beta) < safemin) {
-                while ((abs(beta) < safemin) && (knt < 20)) {
-                    knt++;
-                    scal(rsafemin, x);
-                    beta *= rsafemin;
-                    alpha *= rsafemin;
-                }
-                xnorm = nrm2(x);
-                temp = (!is_complex<alpha_t>::value)
-                           ? lapy2(real(alpha), xnorm)
-                           : lapy3(real(alpha), imag(alpha), xnorm);
-                beta = (real(alpha) < zero) ? temp : -temp;
+        if (abs(beta) < safemin) {
+            while ((abs(beta) < safemin) && (knt < 20)) {
+                knt++;
+                scal(rsafemin, x);
+                beta *= rsafemin;
+                alpha *= rsafemin;
             }
-            tau = (beta - alpha) / beta;
-            scal(one / (alpha - beta), x);
-            for (idx_t j = 0; j < knt; ++j)
-                beta *= safemin;
-            alpha = beta;
+            xnorm = nrm2(x);
+            temp = (!is_complex<alpha_t>::value)
+                       ? lapy2(real(alpha), xnorm)
+                       : lapy3(real(alpha), imag(alpha), xnorm);
+            beta = (real(alpha) < zero) ? temp : -temp;
         }
+
+        // compute tau and v
+        tau = (beta - alpha) / beta;
+        scal(one / (alpha - beta), x);
+        if (storeMode == StoreV::Rowwise) tau = conj(tau);
+
+        // Scale if needed
+        for (idx_t j = 0; j < knt; ++j)
+            beta *= safemin;
+
+        // Store beta in alpha
+        alpha = beta;
     }
-}
-
-/** Generates a elementary Householder reflection.
- *
- * @see larfg( alpha_t& alpha, vector_t& x, tau_t& tau )
- *
- * @param[in,out] v Vector of length n.
- *      On entry, the vector (alpha, x).
- *      On exit, it is overwritten with the vector (beta,v).
- *
- * @param[out] tau The value tau.
- *
- * @ingroup auxiliary
- */
-template <class vector_t, class tau_t>
-void larfg(vector_t& v, tau_t& tau)
-{
-    using idx_t = size_type<vector_t>;
-    using pair = pair<idx_t, idx_t>;
-
-    const idx_t n = size(v);
-    auto x = slice(v, n > 1 ? pair{1, n} : pair{0, 0});
-    larfg(v[0], x, tau);
 }
 
 }  // namespace tlapack

@@ -18,7 +18,6 @@
 #include "tlapack/lapack/lahqr_eig22.hpp"
 #include "tlapack/lapack/lahqr_schur22.hpp"
 #include "tlapack/lapack/lahqr_shiftcolumn.hpp"
-#include "tlapack/lapack/larf.hpp"
 #include "tlapack/lapack/larfg.hpp"
 
 namespace tlapack {
@@ -292,7 +291,10 @@ int lahqr(bool want_t,
             for (idx_t i = istop - 3; i > istart; --i) {
                 auto H = slice(A, pair{i, i + 3}, pair{i, i + 3});
                 lahqr_shiftcolumn(H, v, s1, s2);
-                larfg(v, t1);
+                {
+                    auto x = slice(v, pair{1, 3});
+                    larfg(columnwise_storage, v[0], x, t1);
+                }
                 v[0] = t1;
                 const TA refsum =
                     conj(v[0]) * A(i, i - 1) + conj(v[1]) * A(i + 1, i - 1);
@@ -313,7 +315,7 @@ int lahqr(bool want_t,
                 auto x = slice(v, pair{0, nr});
                 lahqr_shiftcolumn(H, x, s1, s2);
                 auto y = slice(v, pair{1, nr});
-                larfg(v[0], y, t1);
+                larfg(columnwise_storage, v[0], y, t1);
                 if (i > istart) {
                     A(i, i - 1) = A(i, i - 1) * (one - conj(t1));
                 }
@@ -323,7 +325,7 @@ int lahqr(bool want_t,
                 v[1] = A(i + 1, i - 1);
                 if (nr == 3) v[2] = A(i + 2, i - 1);
                 auto x = slice(v, pair{1, nr});
-                larfg(v[0], x, t1);
+                larfg(columnwise_storage, v[0], x, t1);
                 A(i, i - 1) = v[0];
                 A(i + 1, i - 1) = zero;
                 if (nr == 3) A(i + 2, i - 1) = zero;

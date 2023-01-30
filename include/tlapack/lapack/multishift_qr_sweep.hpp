@@ -198,7 +198,10 @@ void multishift_QR_sweep(bool want_t,
                     auto H = slice(A, pair{ilo, ilo + 3}, pair{ilo, ilo + 3});
                     lahqr_shiftcolumn(H, v, s[size(s) - 1 - 2 * i_bulge],
                                       s[size(s) - 1 - 2 * i_bulge - 1]);
-                    larfg(v, tau);
+                    {
+                        auto x = slice(v, pair{1, size(v)});
+                        larfg(columnwise_storage, v[0], x, tau);
+                    }
                     v[0] = tau;
                 }
                 else {
@@ -620,10 +623,13 @@ void multishift_QR_sweep(bool want_t,
                     // Special case, the bulge is at the bottom, needs a smaller
                     // reflector (order 2)
                     auto v = slice(V, pair{0, 2}, i_bulge);
-                    auto h = slice(A, pair{i_pos, i_pos + 2}, i_pos - 1);
-                    larfg(h, v[0]);
-                    v[1] = h[1];
-                    h[1] = zero;
+                    {
+                        auto x =
+                            slice(A, pair{i_pos + 1, i_pos + 2}, i_pos - 1);
+                        larfg(columnwise_storage, A(i_pos, i_pos - 1), x, v[0]);
+                    }
+                    v[1] = A(i_pos + 1, i_pos - 1);
+                    A(i_pos + 1, i_pos - 1) = zero;
 
                     const TA t1 = conj(v[0]);
                     const TA v2 = v[1];

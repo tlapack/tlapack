@@ -15,6 +15,7 @@
 #include "tlapack/base/utils.hpp"
 #include "tlapack/blas/gemv.hpp"
 #include "tlapack/blas/ger.hpp"
+#include "tlapack/blas/geru.hpp"
 
 namespace tlapack {
 
@@ -28,8 +29,8 @@ namespace tlapack {
  *     v = [ 1 x ] if direction == Direction::Forward and
  *     v = [ x 1 ] if direction == Direction::Backward.
  *
- * @param[in] v Vector of size m if side = Side::Left,
- *                          or n if side = Side::Right.
+ * @param[in] v Vector of size m-1 if side = Side::Left,
+ *                          or n-1 if side = Side::Right.
  *
  * @param[in] tau Value of tau in the representation of H.
  *
@@ -46,12 +47,14 @@ namespace tlapack {
  */
 template <class side_t,
           class direction_t,
+          class storage_t,
           class vector_t,
           class tau_t,
           class matrix_t>
 inline constexpr void larf_worksize(side_t side,
                                     direction_t direction,
-                                    vector_t const& v,
+                                    storage_t storeMode,
+                                    vector_t const& x,
                                     const tau_t& tau,
                                     const matrix_t& C,
                                     workinfo_t& workinfo,
@@ -88,8 +91,8 @@ inline constexpr void larf_worksize(side_t side,
  *     v = [ 1 x ] if direction == Direction::Forward and
  *     v = [ x 1 ] if direction == Direction::Backward.
  *
- * @param[in] v Vector of size m if side = Side::Left,
- *                          or n if side = Side::Right.
+ * @param[in] x Vector of size m-1 if side = Side::Left,
+ *                          or n-1 if side = Side::Right.
  *
  * @param[in] tau Value of tau in the representation of H.
  *
@@ -106,12 +109,14 @@ inline constexpr void larf_worksize(side_t side,
  */
 template <class side_t,
           class direction_t,
+          class storage_t,
           class vector_t,
           class tau_t,
           class matrix_t>
 void larf(side_t side,
           direction_t direction,
-          vector_t const& v,
+          storage_t storeMode,
+          vector_t const& x,
           const tau_t& tau,
           matrix_t& C,
           const workspace_opts_t<>& opts = {})
@@ -136,12 +141,15 @@ void larf(side_t side,
     tlapack_check(side == Side::Left || side == Side::Right);
     tlapack_check(direction == Direction::Backward ||
                   direction == Direction::Forward);
+    tlapack_check(storeMode == StoreV::Columnwise ||
+                  storeMode == StoreV::Rowwise);
+    tlapack_check((idx_t)size(x) == ((side == Side::Left) ? m - 1 : n - 1));
 
     // Allocates workspace
     vectorOfBytes localworkdata;
     const Workspace work = [&]() {
         workinfo_t workinfo;
-        larf_worksize(side, direction, v, tau, C, workinfo, opts);
+        larf_worksize(side, direction, storeMode, x, tau, C, workinfo, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
 
@@ -169,23 +177,38 @@ void larf(side_t side,
         auto C0 = (direction == Direction::Forward) ? row(C, 0) : row(C, m - 1);
         auto C1 = (direction == Direction::Forward) ? rows(C, pair{1, m})
                                                     : rows(C, pair{0, m - 1});
-        auto x = (direction == Direction::Forward) ? slice(v, pair{1, m})
-                                                   : slice(v, pair{0, m - 1});
         auto w = new_vector(work, n);
 
-        // w := C0^H + C1^H*x
-        for (idx_t i = 0; i < n; ++i)
-            w[i] = conj(C0[i]);
-        gemv(Op::ConjTrans, one, C1, x, one, w);
+        if (storeMode == StoreV::Columnwise) {
+            // w := C0^H + C1^H*x
+            for (idx_t i = 0; i < n; ++i)
+                w[i] = conj(C0[i]);
+            gemv(Op::ConjTrans, one, C1, x, one, w);
 
-        // C1 := C1 - tau*x*w^H
-        ger(-tau, x, w, C1);
+            // C1 := C1 - tau*x*w^H
+            ger(-tau, x, w, C1);
 
-        // C0 := C0 - tau*w^H
-        for (idx_t i = 0; i < n; ++i)
-            C0[i] -= tau * conj(w[i]);
+            // C0 := C0 - tau*w^H
+            for (idx_t i = 0; i < n; ++i)
+                C0[i] -= tau * conj(w[i]);
+        }
+        else {
+            // w := C0^t + C1^t*x
+            for (idx_t i = 0; i < n; ++i)
+                w[i] = C0[i];
+            gemv(Op::Trans, one, C1, x, one, w);
+
+            // C1 := C1 - tau*conj(x)*w^t
+            for (idx_t j = 0; j < n; ++j)
+                for (idx_t i = 0; i < m; ++i)
+                    C1(i, j) -= tau * conj(x[i]) * w[j];
+
+            // C0 := C0 - tau*w^t
+            for (idx_t i = 0; i < n; ++i)
+                C0[i] -= tau * w[i];
+        }
     }
-    else {
+    else {  // side == Side::Right
         if (n <= 1) {
             for (idx_t i = 0; i < m; ++i)
                 C(i, 0) -= tau * C(i, 0);
@@ -195,21 +218,34 @@ void larf(side_t side,
         auto C0 = (direction == Direction::Forward) ? col(C, 0) : col(C, n - 1);
         auto C1 = (direction == Direction::Forward) ? cols(C, pair{1, n})
                                                     : cols(C, pair{0, n - 1});
-        auto x = (direction == Direction::Forward) ? slice(v, pair{1, n})
-                                                   : slice(v, pair{0, n - 1});
         auto w = new_vector(work, m);
 
-        // w := C0 + C1*x
-        for (idx_t i = 0; i < m; ++i)
-            w[i] = C0[i];
-        gemv(Op::NoTrans, one, C1, x, one, w);
+        if (storeMode == StoreV::Columnwise) {
+            // w := C0 + C1*x
+            for (idx_t i = 0; i < m; ++i)
+                w[i] = C0[i];
+            gemv(Op::NoTrans, one, C1, x, one, w);
 
-        // C1 := C1 - tau*w*x^H
-        ger(-tau, w, x, C1);
+            // C1 := C1 - tau*w*x^H
+            ger(-tau, w, x, C1);
 
-        // C0 := C0 - tau*w
-        for (idx_t i = 0; i < m; ++i)
-            C0[i] -= tau * w[i];
+            // C0 := C0 - tau*w
+            for (idx_t i = 0; i < m; ++i)
+                C0[i] -= tau * w[i];
+        }
+        else {
+            // w := C0 + C1*conj(x)
+            gemv(Op::Conj, one, C1, x, w);
+            for (idx_t i = 0; i < m; ++i)
+                w[i] = C0[i] + conj(w[i]);
+
+            // C1 := C1 - tau*w*x^t
+            geru(-tau, w, x, C1);
+
+            // C0 := C0 - tau*w
+            for (idx_t i = 0; i < m; ++i)
+                C0[i] -= tau * w[i];
+        }
     }
 }
 

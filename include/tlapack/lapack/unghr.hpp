@@ -11,7 +11,6 @@
 #define TLAPACK_UNGHR_HH
 
 #include "tlapack/base/utils.hpp"
-#include "tlapack/lapack/larf.hpp"
 #include "tlapack/lapack/ung2r.hpp"
 
 namespace tlapack {

@@ -48,8 +48,9 @@ inline void larf(side_t side,
     // Matrix views
     auto C_ = colmajor_matrix<TC>(C, m, n, ldC);
 
-    tlapack_expr_with_vector(v_, TV, lenv, v, incv,
-                             return larf(side, v_, tau, C_));
+    tlapack_expr_with_vector(
+        v_, TV, lenv, v, incv,
+        return larf(side, forward, columnwise_storage, v_, tau, C_));
 }
 
 }  // namespace tlapack

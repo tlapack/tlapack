@@ -38,7 +38,7 @@ namespace tlapack {
 template <class matrix_t,
           class vector_t,
           enable_if_t<!is_complex<type_t<matrix_t>>::value, bool> = true>
-int lahqr_shiftcolumn(matrix_t& H,
+int lahqr_shiftcolumn(const matrix_t& H,
                       vector_t& v,
                       complex_type<type_t<matrix_t>> s1,
                       complex_type<type_t<matrix_t>> s2)
@@ -114,7 +114,7 @@ int lahqr_shiftcolumn(matrix_t& H,
 template <class matrix_t,
           class vector_t,
           enable_if_t<is_complex<type_t<matrix_t>>::value, bool> = true>
-int lahqr_shiftcolumn(matrix_t& H,
+int lahqr_shiftcolumn(const matrix_t& H,
                       vector_t& v,
                       type_t<matrix_t> s1,
                       type_t<matrix_t> s2)

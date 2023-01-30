@@ -51,7 +51,8 @@ inline constexpr void ung2r_worksize(size_type<matrix_t> k,
 
     if (n > 1) {
         auto C = cols(A, range<idx_t>{1, n});
-        larf_worksize(left_side, forward, col(A, 0), tau[0], C, workinfo, opts);
+        larf_worksize(left_side, forward, columnwise_storage, col(A, 0), tau[0],
+                      C, workinfo, opts);
     }
 }
 
@@ -124,17 +125,17 @@ int ung2r(size_type<matrix_t> k,
     }
 
     for (idx_t i = k - 1; i != idx_t(-1); --i) {
+        // Define x
+        auto x = slice(A, pair{i + 1, m}, i);
+
         // Apply $H_{i+1}$ to $A( i:m-1, i:n-1 )$ from the left
         if (i + 1 < n) {
-            // Define v and C
-            auto v = slice(A, pair{i, m}, i);
             auto C = slice(A, pair{i, m}, pair{i + 1, n});
-
-            larf(left_side, forward, v, tau[i], C, larfOpts);
+            larf(left_side, forward, columnwise_storage, x, tau[i], C,
+                 larfOpts);
         }
         if (i + 1 < m) {
-            auto v = slice(A, pair{i + 1, m}, i);
-            scal(-tau[i], v);
+            scal(-tau[i], x);
         }
         A(i, i) = one - tau[i];
 
