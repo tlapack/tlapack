@@ -29,7 +29,13 @@ namespace tlapack {
  *     v = [ 1 x ] if direction == Direction::Forward and
  *     v = [ x 1 ] if direction == Direction::Backward.
  *
- * @param[in] v Vector of size m-1 if side = Side::Left,
+ * @param[in] storeMode
+ *     Indicates how the vectors which define the elementary reflectors are
+ * stored:
+ *     - StoreV::Columnwise.
+ *     - StoreV::Rowwise.
+ *
+ * @param[in] x Vector of size m-1 if side = Side::Left,
  *                          or n-1 if side = Side::Right.
  *
  * @param[in] tau Value of tau in the representation of H.
@@ -90,6 +96,12 @@ inline constexpr void larf_worksize(side_t side,
  * @param[in] direction
  *     v = [ 1 x ] if direction == Direction::Forward and
  *     v = [ x 1 ] if direction == Direction::Backward.
+ *
+ * @param[in] storeMode
+ *     Indicates how the vectors which define the elementary reflectors are
+ * stored:
+ *     - StoreV::Columnwise.
+ *     - StoreV::Rowwise.
  *
  * @param[in] x Vector of size m-1 if side = Side::Left,
  *                          or n-1 if side = Side::Right.

@@ -235,6 +235,13 @@ int larfb(side_t side,
                         direction != Direction::Forward);
     tlapack_check_false(storeMode != StoreV::Columnwise &&
                         storeMode != StoreV::Rowwise);
+    tlapack_check(
+        (storeMode == StoreV::Columnwise)
+            ? ((ncols(V) == k) && (side == Side::Left) ? (nrows(V) == m)
+                                                       : (nrows(V) == n))
+            : ((nrows(V) == k) && (side == Side::Left) ? (ncols(V) == m)
+                                                       : (ncols(V) == n)));
+    tlapack_check(nrows(Tmatrix) == ncols(Tmatrix));
 
     // Quick return
     if (m <= 0 || n <= 0 || k <= 0) return 0;

@@ -50,6 +50,12 @@ namespace tlapack {
  *
  * Otherwise  1 <= real(tau) <= 2 and abs(tau-1) <= 1.
  *
+ * @param[in] storeMode
+ *     Indicates how the vectors which define the elementary reflectors are
+ * stored:
+ *     - StoreV::Columnwise.
+ *     - StoreV::Rowwise.
+ *
  * @param[in,out] alpha
  *      On entry, the value alpha.
  *      On exit, it is overwritten with the value beta.
