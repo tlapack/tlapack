@@ -13,9 +13,9 @@
 #include "tlapack/base/utils.hpp"
 #include "tlapack/blas/gemm.hpp"
 #include "tlapack/blas/iamax.hpp"
-#include "tlapack/blas/scal.hpp"
 #include "tlapack/blas/swap.hpp"
 #include "tlapack/blas/trsm.hpp"
+#include "tlapack/lapack/rscl.hpp"
 
 namespace tlapack {
 
@@ -110,7 +110,7 @@ int getrf_recursive(matrix_t& A, vector_t& Piv)
         // by the previous comment, we can safely scale all elements of 0th
         // column by 1/A(0,0)
         auto l = slice(A, range<idx_t>(1, m), 0);
-        scal(real_t(1) / A(0, 0), l);
+        rscl(A(0, 0), l);
 
         return 0;
     }
