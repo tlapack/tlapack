@@ -37,7 +37,7 @@ endif()
 
 # Load MKL
 if( USE_MKL )
-  set( BLA_VENDOR Intel10_64lp )
+  set( $ENV{BLA_VENDOR} Intel10_64lp )
   find_package( BLAS REQUIRED )
   if( BLAS_FOUND )
     target_compile_definitions( performance_eigen PRIVATE "EIGEN_USE_MKL_ALL" )
