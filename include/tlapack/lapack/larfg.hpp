@@ -34,16 +34,16 @@ namespace tlapack {
  * if storeMode == StoreV::Rowwise, where alpha and beta are scalars, with beta
  * real, and x is an (n-1)-element vector. H is represented in the form
  *
- *        H = I - tau * ( 1 ) * ( 1 v' )
- *                      ( v )
+ *        H = I - tau * ( 1 ) * ( 1 y' )
+ *                      ( y )
  *
  * if storeMode == StoreV::Columnwise, or
  *
- *        H = I - tau * ( 1  ) * ( 1 v )
- *                      ( v' )
+ *        H = I - tau * ( 1  ) * ( 1 y )
+ *                      ( y' )
  *
  * if storeMode == StoreV::Rowwise, where tau is a scalar and
- * v is a (n-1)-element vector. Note that H is symmetric but not hermitian.
+ * y is a (n-1)-element vector. Note that H is symmetric but not hermitian.
  *
  * If the elements of x are all zero and alpha is real, then tau = 0
  * and H is taken to be the identity matrix.
@@ -62,21 +62,24 @@ namespace tlapack {
  *
  * @param[in,out] x Vector of length n-1.
  *      On entry, the vector x.
- *      On exit, it is overwritten with the vector v.
+ *      On exit, it is overwritten with the vector y.
  *
  * @param[out] tau The value tau.
  *
  * @ingroup auxiliary
  */
-template <class storage_t, class vector_t, class alpha_t, class tau_t>
-void larfg(storage_t storeMode, alpha_t& alpha, vector_t& x, tau_t& tau)
+template <class storage_t, class vector_t>
+void larfg(storage_t storeMode,
+           type_t<vector_t>& alpha,
+           vector_t& x,
+           type_t<vector_t>& tau)
 {
     // data traits
-    using TX = type_t<vector_t>;
+    using T = type_t<vector_t>;
     using idx_t = size_type<vector_t>;
 
     // using
-    using real_t = real_type<alpha_t, TX>;
+    using real_t = real_type<T>;
 
     // constants
     const real_t one(1);
@@ -88,12 +91,12 @@ void larfg(storage_t storeMode, alpha_t& alpha, vector_t& x, tau_t& tau)
     tlapack_check(storeMode == StoreV::Columnwise ||
                   storeMode == StoreV::Rowwise);
 
-    tau = tau_t(0);
+    tau = zero;
     real_t xnorm = nrm2(x);
 
     if (xnorm > zero || (imag(alpha) != zero)) {
         // First estimate of beta
-        real_t temp = (!is_complex<alpha_t>::value)
+        real_t temp = (!is_complex<T>::value)
                           ? lapy2(real(alpha), xnorm)
                           : lapy3(real(alpha), imag(alpha), xnorm);
         real_t beta = (real(alpha) < zero) ? temp : -temp;
@@ -108,13 +111,13 @@ void larfg(storage_t storeMode, alpha_t& alpha, vector_t& x, tau_t& tau)
                 alpha *= rsafemin;
             }
             xnorm = nrm2(x);
-            temp = (!is_complex<alpha_t>::value)
+            temp = (!is_complex<T>::value)
                        ? lapy2(real(alpha), xnorm)
                        : lapy3(real(alpha), imag(alpha), xnorm);
             beta = (real(alpha) < zero) ? temp : -temp;
         }
 
-        // compute tau and v
+        // compute tau and y
         tau = (beta - alpha) / beta;
         scal(one / (alpha - beta), x);
         if (storeMode == StoreV::Rowwise) tau = conj(tau);
@@ -125,6 +128,90 @@ void larfg(storage_t storeMode, alpha_t& alpha, vector_t& x, tau_t& tau)
 
         // Store beta in alpha
         alpha = beta;
+    }
+}
+
+/**
+ * @brief Generates a elementary Householder reflection.
+ *
+ * larfg generates a elementary Householder reflection H of order n, such that
+ *
+ *        H' * ( alpha ) = ( beta ),   H' * H = I.
+ *             (   x   )   (   0  )
+ *
+ * if storeMode == StoreV::Columnwise, or
+ *
+ *        ( alpha x ) * H = ( beta 0 ),   H' * H = I.
+ *
+ * if storeMode == StoreV::Rowwise, where alpha and beta are scalars, with beta
+ * real, and x is an (n-1)-element vector. H is represented in the form
+ *
+ *        H = I - tau * ( 1 ) * ( 1 y' )
+ *                      ( y )
+ *
+ * if storeMode == StoreV::Columnwise, or
+ *
+ *        H = I - tau * ( 1  ) * ( 1 y )
+ *                      ( y' )
+ *
+ * if storeMode == StoreV::Rowwise, where tau is a scalar and
+ * y is a (n-1)-element vector. Note that H is symmetric but not hermitian.
+ *
+ * If the elements of x are all zero and alpha is real, then tau = 0
+ * and H is taken to be the identity matrix.
+ *
+ * Otherwise  1 <= real(tau) <= 2 and abs(tau-1) <= 1.
+ *
+ * @tparam direction_t Either Direction or any class that implements `operator
+ * Direction()`.
+ * @tparam storage_t Either StoreV or any class that implements `operator
+ * StoreV()`.
+ *
+ * @param[in] direction
+ *     v = [ alpha x ] if direction == Direction::Forward and
+ *     v = [ x alpha ] if direction == Direction::Backward.
+ *
+ * @param[in] storeMode
+ *     Indicates how the vectors which define the elementary reflectors are
+ * stored:
+ *     - StoreV::Columnwise.
+ *     - StoreV::Rowwise.
+ *
+ * @param[in,out] v Vector of length n.
+ *      On entry,
+ *          v = [ alpha x ] if direction == Direction::Forward and
+ *          v = [ x alpha ] if direction == Direction::Backward.
+ *      On exit,
+ *          v = [ 1 y ] if direction == Direction::Forward and
+ *          v = [ y 1 ] if direction == Direction::Backward.
+ *
+ * @param[out] tau The value tau.
+ *
+ * @ingroup auxiliary
+ */
+template <class direction_t,
+          class storage_t,
+          class vector_t,
+          enable_if_t<is_convertible_v<direction_t, Direction>, int> = 0>
+inline void larfg(direction_t direction,
+                  storage_t storeMode,
+                  vector_t& v,
+                  type_t<vector_t>& tau)
+{
+    using idx_t = size_type<vector_t>;
+    using pair = pair<idx_t, idx_t>;
+
+    // check arguments
+    tlapack_check_false(direction != Direction::Backward &&
+                        direction != Direction::Forward);
+
+    if (direction == Direction::Forward) {
+        auto x = slice(v, pair(1, size(v)));
+        larfg(storeMode, v[0], x, tau);
+    }
+    else {
+        auto x = slice(v, pair(0, size(v) - 1));
+        larfg(storeMode, v[size(v) - 1], x, tau);
     }
 }
 

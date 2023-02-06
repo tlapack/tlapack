@@ -291,10 +291,7 @@ int lahqr(bool want_t,
             for (idx_t i = istop - 3; i > istart; --i) {
                 auto H = slice(A, pair{i, i + 3}, pair{i, i + 3});
                 lahqr_shiftcolumn(H, v, s1, s2);
-                {
-                    auto x = slice(v, pair{1, 3});
-                    larfg(columnwise_storage, v[0], x, t1);
-                }
+                larfg(forward, columnwise_storage, v, t1);
                 v[0] = t1;
                 const TA refsum =
                     conj(v[0]) * A(i, i - 1) + conj(v[1]) * A(i + 1, i - 1);

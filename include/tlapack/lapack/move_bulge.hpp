@@ -61,10 +61,7 @@ void move_bulge(matrix_t& H,
     v[0] = H(1, 0);
     v[1] = H(2, 0);
     v[2] = H(3, 0);
-    {
-        auto x = slice(v, pair{1, 3});
-        larfg(columnwise_storage, v[0], x, tau);
-    }
+    larfg(forward, columnwise_storage, v, tau);
     beta = v[0];
     v[0] = tau;
 
@@ -82,10 +79,7 @@ void move_bulge(matrix_t& H,
         auto vt = new_vector(vt_, 3);
         auto H2 = slice(H, pair{1, 4}, pair{1, 4});
         lahqr_shiftcolumn(H2, vt, s1, s2);
-        {
-            auto x = slice(vt, pair{1, 3});
-            larfg(columnwise_storage, vt[0], x, tau);
-        }
+        larfg(forward, columnwise_storage, vt, tau);
         vt[0] = tau;
 
         refsum = conj(vt[0]) * H(1, 0) + conj(vt[1]) * H(2, 0);

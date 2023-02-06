@@ -145,14 +145,14 @@ int schur_swap(bool want_q,
 
         // Make B upper triangular
         T tau1, tau2;
-        auto v1 = slice(B, pair{1, 3}, 0);
-        auto v2 = slice(B, pair{2, 3}, 1);
-        larfg(columnwise_storage, B(0, 0), v1, tau1);
-        const T sum = B(0, 1) + v1[0] * B(1, 1) + v1[1] * B(2, 1);
+        auto v1 = slice(B, pair{0, 3}, 0);
+        auto v2 = slice(B, pair{1, 3}, 1);
+        larfg(forward, columnwise_storage, v1, tau1);
+        const T sum = B(0, 1) + v1[1] * B(1, 1) + v1[2] * B(2, 1);
         B(0, 1) = B(0, 1) - sum * tau1;
-        B(1, 1) = B(1, 1) - sum * tau1 * v1[0];
-        B(2, 1) = B(2, 1) - sum * tau1 * v1[1];
-        larfg(columnwise_storage, B(1, 1), v2, tau2);
+        B(1, 1) = B(1, 1) - sum * tau1 * v1[1];
+        B(2, 1) = B(2, 1) - sum * tau1 * v1[2];
+        larfg(forward, columnwise_storage, v2, tau2);
 
         //
         // Apply reflections to A and Q
@@ -160,37 +160,37 @@ int schur_swap(bool want_q,
 
         // Reflections from the left
         for (idx_t j = j0; j < n; ++j) {
-            T sum = A(j0, j) + v1[0] * A(j1, j) + v1[1] * A(j2, j);
+            T sum = A(j0, j) + v1[1] * A(j1, j) + v1[2] * A(j2, j);
             A(j0, j) = A(j0, j) - sum * tau1;
-            A(j1, j) = A(j1, j) - sum * tau1 * v1[0];
-            A(j2, j) = A(j2, j) - sum * tau1 * v1[1];
+            A(j1, j) = A(j1, j) - sum * tau1 * v1[1];
+            A(j2, j) = A(j2, j) - sum * tau1 * v1[2];
 
-            sum = A(j1, j) + v2[0] * A(j2, j);
+            sum = A(j1, j) + v2[1] * A(j2, j);
             A(j1, j) = A(j1, j) - sum * tau2;
-            A(j2, j) = A(j2, j) - sum * tau2 * v2[0];
+            A(j2, j) = A(j2, j) - sum * tau2 * v2[1];
         }
         // Reflections from the right
         for (idx_t j = 0; j < j3; ++j) {
-            T sum = A(j, j0) + v1[0] * A(j, j1) + v1[1] * A(j, j2);
+            T sum = A(j, j0) + v1[1] * A(j, j1) + v1[2] * A(j, j2);
             A(j, j0) = A(j, j0) - sum * tau1;
-            A(j, j1) = A(j, j1) - sum * tau1 * v1[0];
-            A(j, j2) = A(j, j2) - sum * tau1 * v1[1];
+            A(j, j1) = A(j, j1) - sum * tau1 * v1[1];
+            A(j, j2) = A(j, j2) - sum * tau1 * v1[2];
 
-            sum = A(j, j1) + v2[0] * A(j, j2);
+            sum = A(j, j1) + v2[1] * A(j, j2);
             A(j, j1) = A(j, j1) - sum * tau2;
-            A(j, j2) = A(j, j2) - sum * tau2 * v2[0];
+            A(j, j2) = A(j, j2) - sum * tau2 * v2[1];
         }
 
         if (want_q) {
             for (idx_t j = 0; j < n; ++j) {
-                T sum = Q(j, j0) + v1[0] * Q(j, j1) + v1[1] * Q(j, j2);
+                T sum = Q(j, j0) + v1[1] * Q(j, j1) + v1[2] * Q(j, j2);
                 Q(j, j0) = Q(j, j0) - sum * tau1;
-                Q(j, j1) = Q(j, j1) - sum * tau1 * v1[0];
-                Q(j, j2) = Q(j, j2) - sum * tau1 * v1[1];
+                Q(j, j1) = Q(j, j1) - sum * tau1 * v1[1];
+                Q(j, j2) = Q(j, j2) - sum * tau1 * v1[2];
 
-                sum = Q(j, j1) + v2[0] * Q(j, j2);
+                sum = Q(j, j1) + v2[1] * Q(j, j2);
                 Q(j, j1) = Q(j, j1) - sum * tau2;
-                Q(j, j2) = Q(j, j2) - sum * tau2 * v2[0];
+                Q(j, j2) = Q(j, j2) - sum * tau2 * v2[1];
             }
         }
 
@@ -213,14 +213,14 @@ int schur_swap(bool want_q,
 
         // Make B upper triangular
         T tau1, tau2;
-        auto v1 = slice(B, pair{1, 3}, 0);
-        auto v2 = slice(B, pair{2, 3}, 1);
-        larfg(columnwise_storage, B(0, 0), v1, tau1);
-        const T sum = B(0, 1) + v1[0] * B(1, 1) + v1[1] * B(2, 1);
+        auto v1 = slice(B, pair{0, 3}, 0);
+        auto v2 = slice(B, pair{1, 3}, 1);
+        larfg(forward, columnwise_storage, v1, tau1);
+        const T sum = B(0, 1) + v1[1] * B(1, 1) + v1[2] * B(2, 1);
         B(0, 1) = B(0, 1) - sum * tau1;
-        B(1, 1) = B(1, 1) - sum * tau1 * v1[0];
-        B(2, 1) = B(2, 1) - sum * tau1 * v1[1];
-        larfg(columnwise_storage, B(1, 1), v2, tau2);
+        B(1, 1) = B(1, 1) - sum * tau1 * v1[1];
+        B(2, 1) = B(2, 1) - sum * tau1 * v1[2];
+        larfg(forward, columnwise_storage, v2, tau2);
 
         //
         // Apply reflections to A and Q
@@ -228,37 +228,37 @@ int schur_swap(bool want_q,
 
         // Reflections from the left
         for (idx_t j = j0; j < n; ++j) {
-            T sum = A(j2, j) + v1[0] * A(j1, j) + v1[1] * A(j0, j);
+            T sum = A(j2, j) + v1[1] * A(j1, j) + v1[2] * A(j0, j);
             A(j2, j) = A(j2, j) - sum * tau1;
-            A(j1, j) = A(j1, j) - sum * tau1 * v1[0];
-            A(j0, j) = A(j0, j) - sum * tau1 * v1[1];
+            A(j1, j) = A(j1, j) - sum * tau1 * v1[1];
+            A(j0, j) = A(j0, j) - sum * tau1 * v1[2];
 
-            sum = A(j1, j) + v2[0] * A(j0, j);
+            sum = A(j1, j) + v2[1] * A(j0, j);
             A(j1, j) = A(j1, j) - sum * tau2;
-            A(j0, j) = A(j0, j) - sum * tau2 * v2[0];
+            A(j0, j) = A(j0, j) - sum * tau2 * v2[1];
         }
         // Reflections from the right
         for (idx_t j = 0; j < j3; ++j) {
-            T sum = A(j, j2) + v1[0] * A(j, j1) + v1[1] * A(j, j0);
+            T sum = A(j, j2) + v1[1] * A(j, j1) + v1[2] * A(j, j0);
             A(j, j2) = A(j, j2) - sum * tau1;
-            A(j, j1) = A(j, j1) - sum * tau1 * v1[0];
-            A(j, j0) = A(j, j0) - sum * tau1 * v1[1];
+            A(j, j1) = A(j, j1) - sum * tau1 * v1[1];
+            A(j, j0) = A(j, j0) - sum * tau1 * v1[2];
 
-            sum = A(j, j1) + v2[0] * A(j, j0);
+            sum = A(j, j1) + v2[1] * A(j, j0);
             A(j, j1) = A(j, j1) - sum * tau2;
-            A(j, j0) = A(j, j0) - sum * tau2 * v2[0];
+            A(j, j0) = A(j, j0) - sum * tau2 * v2[1];
         }
 
         if (want_q) {
             for (idx_t j = 0; j < n; ++j) {
-                T sum = Q(j, j2) + v1[0] * Q(j, j1) + v1[1] * Q(j, j0);
+                T sum = Q(j, j2) + v1[1] * Q(j, j1) + v1[2] * Q(j, j0);
                 Q(j, j2) = Q(j, j2) - sum * tau1;
-                Q(j, j1) = Q(j, j1) - sum * tau1 * v1[0];
-                Q(j, j0) = Q(j, j0) - sum * tau1 * v1[1];
+                Q(j, j1) = Q(j, j1) - sum * tau1 * v1[1];
+                Q(j, j0) = Q(j, j0) - sum * tau1 * v1[2];
 
-                sum = Q(j, j1) + v2[0] * Q(j, j0);
+                sum = Q(j, j1) + v2[1] * Q(j, j0);
                 Q(j, j1) = Q(j, j1) - sum * tau2;
-                Q(j, j0) = Q(j, j0) - sum * tau2 * v2[0];
+                Q(j, j0) = Q(j, j0) - sum * tau2 * v2[1];
             }
         }
 
@@ -293,43 +293,43 @@ int schur_swap(bool want_q,
 
         // Make V upper triangular
         T tau1, tau2;
-        auto v1 = slice(V, pair{1, 4}, 0);
-        auto v2 = slice(V, pair{2, 4}, 1);
-        larfg(columnwise_storage, V(0, 0), v1, tau1);
+        auto v1 = slice(V, pair{0, 4}, 0);
+        auto v2 = slice(V, pair{1, 4}, 1);
+        larfg(forward, columnwise_storage, v1, tau1);
         const T sum =
-            V(0, 1) + v1[0] * V(1, 1) + v1[1] * V(2, 1) + v1[2] * V(3, 1);
+            V(0, 1) + v1[1] * V(1, 1) + v1[2] * V(2, 1) + v1[3] * V(3, 1);
         V(0, 1) = V(0, 1) - sum * tau1;
-        V(1, 1) = V(1, 1) - sum * tau1 * v1[0];
-        V(2, 1) = V(2, 1) - sum * tau1 * v1[1];
-        V(3, 1) = V(3, 1) - sum * tau1 * v1[2];
-        larfg(columnwise_storage, V(1, 1), v2, tau2);
+        V(1, 1) = V(1, 1) - sum * tau1 * v1[1];
+        V(2, 1) = V(2, 1) - sum * tau1 * v1[2];
+        V(3, 1) = V(3, 1) - sum * tau1 * v1[3];
+        larfg(forward, columnwise_storage, v2, tau2);
 
         // Apply reflections to D to check error
         for (idx_t j = 0; j < 4; ++j) {
             T sum =
-                D(0, j) + v1[0] * D(1, j) + v1[1] * D(2, j) + v1[2] * D(3, j);
+                D(0, j) + v1[1] * D(1, j) + v1[2] * D(2, j) + v1[3] * D(3, j);
             D(0, j) = D(0, j) - sum * tau1;
-            D(1, j) = D(1, j) - sum * tau1 * v1[0];
-            D(2, j) = D(2, j) - sum * tau1 * v1[1];
-            D(3, j) = D(3, j) - sum * tau1 * v1[2];
+            D(1, j) = D(1, j) - sum * tau1 * v1[1];
+            D(2, j) = D(2, j) - sum * tau1 * v1[2];
+            D(3, j) = D(3, j) - sum * tau1 * v1[3];
 
-            sum = D(1, j) + v2[0] * D(2, j) + v2[1] * D(3, j);
+            sum = D(1, j) + v2[1] * D(2, j) + v2[2] * D(3, j);
             D(1, j) = D(1, j) - sum * tau2;
-            D(2, j) = D(2, j) - sum * tau2 * v2[0];
-            D(3, j) = D(3, j) - sum * tau2 * v2[1];
+            D(2, j) = D(2, j) - sum * tau2 * v2[1];
+            D(3, j) = D(3, j) - sum * tau2 * v2[2];
         }
         for (idx_t j = 0; j < 4; ++j) {
             T sum =
-                D(j, 0) + v1[0] * D(j, 1) + v1[1] * D(j, 2) + v1[2] * D(j, 3);
+                D(j, 0) + v1[1] * D(j, 1) + v1[2] * D(j, 2) + v1[3] * D(j, 3);
             D(j, 0) = D(j, 0) - sum * tau1;
-            D(j, 1) = D(j, 1) - sum * tau1 * v1[0];
-            D(j, 2) = D(j, 2) - sum * tau1 * v1[1];
-            D(j, 3) = D(j, 3) - sum * tau1 * v1[2];
+            D(j, 1) = D(j, 1) - sum * tau1 * v1[1];
+            D(j, 2) = D(j, 2) - sum * tau1 * v1[2];
+            D(j, 3) = D(j, 3) - sum * tau1 * v1[3];
 
-            sum = D(j, 1) + v2[0] * D(j, 2) + v2[1] * D(j, 3);
+            sum = D(j, 1) + v2[1] * D(j, 2) + v2[2] * D(j, 3);
             D(j, 1) = D(j, 1) - sum * tau2;
-            D(j, 2) = D(j, 2) - sum * tau2 * v2[0];
-            D(j, 3) = D(j, 3) - sum * tau2 * v2[1];
+            D(j, 2) = D(j, 2) - sum * tau2 * v2[1];
+            D(j, 3) = D(j, 3) - sum * tau2 * v2[2];
         }
 
         if (max(max(abs(D(2, 0)), abs(D(2, 1))),
@@ -338,46 +338,46 @@ int schur_swap(bool want_q,
 
         // Reflections from the left
         for (idx_t j = j0; j < n; ++j) {
-            T sum = A(j0, j) + v1[0] * A(j1, j) + v1[1] * A(j2, j) +
-                    v1[2] * A(j3, j);
+            T sum = A(j0, j) + v1[1] * A(j1, j) + v1[2] * A(j2, j) +
+                    v1[3] * A(j3, j);
             A(j0, j) = A(j0, j) - sum * tau1;
-            A(j1, j) = A(j1, j) - sum * tau1 * v1[0];
-            A(j2, j) = A(j2, j) - sum * tau1 * v1[1];
-            A(j3, j) = A(j3, j) - sum * tau1 * v1[2];
+            A(j1, j) = A(j1, j) - sum * tau1 * v1[1];
+            A(j2, j) = A(j2, j) - sum * tau1 * v1[2];
+            A(j3, j) = A(j3, j) - sum * tau1 * v1[3];
 
-            sum = A(j1, j) + v2[0] * A(j2, j) + v2[1] * A(j3, j);
+            sum = A(j1, j) + v2[1] * A(j2, j) + v2[2] * A(j3, j);
             A(j1, j) = A(j1, j) - sum * tau2;
-            A(j2, j) = A(j2, j) - sum * tau2 * v2[0];
-            A(j3, j) = A(j3, j) - sum * tau2 * v2[1];
+            A(j2, j) = A(j2, j) - sum * tau2 * v2[1];
+            A(j3, j) = A(j3, j) - sum * tau2 * v2[2];
         }
         // Reflections from the right
         for (idx_t j = 0; j < j0 + 4; ++j) {
-            T sum = A(j, j0) + v1[0] * A(j, j1) + v1[1] * A(j, j2) +
-                    v1[2] * A(j, j3);
+            T sum = A(j, j0) + v1[1] * A(j, j1) + v1[2] * A(j, j2) +
+                    v1[3] * A(j, j3);
             A(j, j0) = A(j, j0) - sum * tau1;
-            A(j, j1) = A(j, j1) - sum * tau1 * v1[0];
-            A(j, j2) = A(j, j2) - sum * tau1 * v1[1];
-            A(j, j3) = A(j, j3) - sum * tau1 * v1[2];
+            A(j, j1) = A(j, j1) - sum * tau1 * v1[1];
+            A(j, j2) = A(j, j2) - sum * tau1 * v1[2];
+            A(j, j3) = A(j, j3) - sum * tau1 * v1[3];
 
-            sum = A(j, j1) + v2[0] * A(j, j2) + v2[1] * A(j, j3);
+            sum = A(j, j1) + v2[1] * A(j, j2) + v2[2] * A(j, j3);
             A(j, j1) = A(j, j1) - sum * tau2;
-            A(j, j2) = A(j, j2) - sum * tau2 * v2[0];
-            A(j, j3) = A(j, j3) - sum * tau2 * v2[1];
+            A(j, j2) = A(j, j2) - sum * tau2 * v2[1];
+            A(j, j3) = A(j, j3) - sum * tau2 * v2[2];
         }
 
         if (want_q) {
             for (idx_t j = 0; j < n; ++j) {
-                T sum = Q(j, j0) + v1[0] * Q(j, j1) + v1[1] * Q(j, j2) +
-                        v1[2] * Q(j, j3);
+                T sum = Q(j, j0) + v1[1] * Q(j, j1) + v1[2] * Q(j, j2) +
+                        v1[3] * Q(j, j3);
                 Q(j, j0) = Q(j, j0) - sum * tau1;
-                Q(j, j1) = Q(j, j1) - sum * tau1 * v1[0];
-                Q(j, j2) = Q(j, j2) - sum * tau1 * v1[1];
-                Q(j, j3) = Q(j, j3) - sum * tau1 * v1[2];
+                Q(j, j1) = Q(j, j1) - sum * tau1 * v1[1];
+                Q(j, j2) = Q(j, j2) - sum * tau1 * v1[2];
+                Q(j, j3) = Q(j, j3) - sum * tau1 * v1[3];
 
-                sum = Q(j, j1) + v2[0] * Q(j, j2) + v2[1] * Q(j, j3);
+                sum = Q(j, j1) + v2[1] * Q(j, j2) + v2[2] * Q(j, j3);
                 Q(j, j1) = Q(j, j1) - sum * tau2;
-                Q(j, j2) = Q(j, j2) - sum * tau2 * v2[0];
-                Q(j, j3) = Q(j, j3) - sum * tau2 * v2[1];
+                Q(j, j2) = Q(j, j2) - sum * tau2 * v2[1];
+                Q(j, j3) = Q(j, j3) - sum * tau2 * v2[2];
             }
         }
 
