@@ -151,25 +151,25 @@ int gebd2(matrix_t& A,
 
     for (idx_t j = 0; j < n; ++j) {
         // Generate elementary reflector H(j) to annihilate A(j+1:m,j)
-        auto x = slice(A, range(j + 1, m), j);
-        larfg(columnwise_storage, A(j, j), x, tauv[j]);
+        auto v = slice(A, range(j, m), j);
+        larfg(forward, columnwise_storage, v, tauv[j]);
 
         // Apply H(j)**H to A(j:m,j+1:n) from the left
         if (j < n - 1) {
             auto A11 = slice(A, range(j, m), range(j + 1, n));
-            larf(Side::Left, forward, columnwise_storage, x, conj(tauv[j]), A11,
+            larf(Side::Left, forward, columnwise_storage, v, conj(tauv[j]), A11,
                  larfOpts);
         }
 
         if (j < n - 1) {
             // Generate elementary reflector G(j) to annihilate A(j,j+2:n)
-            auto y = slice(A, j, range(j + 2, n));
-            larfg(rowwise_storage, A(j, j + 1), y, tauw[j]);
+            auto w = slice(A, j, range(j + 1, n));
+            larfg(forward, rowwise_storage, w, tauw[j]);
 
             // Apply G(j) to A(j+1:m,j+1:n) from the right
             if (j < m - 1) {
                 auto B11 = slice(A, range(j + 1, m), range(j + 1, n));
-                larf(Side::Right, forward, rowwise_storage, y, tauw[j], B11,
+                larf(Side::Right, forward, rowwise_storage, w, tauw[j], B11,
                      larfOpts);
             }
         }

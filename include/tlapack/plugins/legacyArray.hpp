@@ -298,7 +298,7 @@ inline constexpr auto row(const legacyMatrix<T, idx_t>& A,
                           size_type<legacyMatrix<T, idx_t>> rowIdx) noexcept
 {
     assert(rowIdx >= 0 && rowIdx < nrows(A));
-    return legacyVector<T, idx_t, idx_t>(A.n, &A.ptr[rowIdx], A.ldim);
+    return legacyVector<T, idx_t, idx_t>(A.n, &A(rowIdx, 0), A.ldim);
 }
 
 // Get a row of a row-major legacyMatrix
@@ -308,7 +308,7 @@ inline constexpr auto row(
     size_type<legacyMatrix<T, idx_t, Layout::RowMajor>> rowIdx) noexcept
 {
     assert(rowIdx >= 0 && rowIdx < nrows(A));
-    return legacyVector<T, idx_t>(A.n, &A.ptr[rowIdx * A.ldim]);
+    return legacyVector<T, idx_t>(A.n, &A(rowIdx, 0));
 }
 
 // Get columns of legacyMatrix
@@ -333,7 +333,7 @@ inline constexpr auto col(const legacyMatrix<T, idx_t>& A,
                           size_type<legacyMatrix<T, idx_t>> colIdx) noexcept
 {
     assert(colIdx >= 0 && colIdx < ncols(A));
-    return legacyVector<T, idx_t>(A.m, &A.ptr[colIdx * A.ldim]);
+    return legacyVector<T, idx_t>(A.m, &A(0, colIdx));
 }
 
 // Get a column of a row-major legacyMatrix
@@ -343,7 +343,7 @@ inline constexpr auto col(
     size_type<legacyMatrix<T, idx_t, Layout::RowMajor>> colIdx) noexcept
 {
     assert(colIdx >= 0 && colIdx < ncols(A));
-    return legacyVector<T, idx_t, idx_t>(A.m, &A.ptr[colIdx], A.ldim);
+    return legacyVector<T, idx_t, idx_t>(A.m, &A(0, colIdx), A.ldim);
 }
 
 // Diagonal of a legacyMatrix
@@ -373,8 +373,8 @@ inline constexpr auto slice(const legacyVector<T, idx_t, int_t, direction>& v,
            rows.first == rows.second);
     assert(rows.second >= 0 && (idx_t)rows.second <= size(v));
     assert(rows.first <= rows.second);
-    return legacyVector<T, idx_t, int_t, direction>(rows.second - rows.first,
-                                                    &v[rows.first], v.inc);
+    return legacyVector<T, idx_t, int_t, direction>(
+        rows.second - rows.first, &v.ptr[rows.first * v.inc], v.inc);
 }
 
 // -----------------------------------------------------------------------------

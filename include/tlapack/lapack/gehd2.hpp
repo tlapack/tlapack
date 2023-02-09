@@ -136,19 +136,19 @@ int gehd2(size_type<matrix_t> ilo,
     auto&& larfOpts = workspace_opts_t<>{work};
 
     for (idx_t i = ilo; i < ihi - 1; ++i) {
-        // Define x := A[i+1:ihi,i]
-        auto x = slice(A, pair{i + 2, ihi}, i);
+        // Define v := A[i+1:ihi,i]
+        auto v = slice(A, pair{i + 1, ihi}, i);
 
-        // Generate the (i+1)-th elementary Householder reflection on x
-        larfg(columnwise_storage, A(i + 1, i), x, tau[i]);
+        // Generate the (i+1)-th elementary Householder reflection on v
+        larfg(forward, columnwise_storage, v, tau[i]);
 
         // Apply Householder reflection from the right to A[0:ihi,i+1:ihi]
         auto C0 = slice(A, pair{0, ihi}, pair{i + 1, ihi});
-        larf(right_side, forward, columnwise_storage, x, tau[i], C0, larfOpts);
+        larf(right_side, forward, columnwise_storage, v, tau[i], C0, larfOpts);
 
         // Apply Householder reflection from the left to A[i+1:ihi,i+1:n-1]
         auto C1 = slice(A, pair{i + 1, ihi}, pair{i + 1, n});
-        larf(left_side, forward, columnwise_storage, x, conj(tau[i]), C1,
+        larf(left_side, forward, columnwise_storage, v, conj(tau[i]), C1,
              larfOpts);
     }
 

@@ -178,17 +178,17 @@ int unm2r(side_t side,
 
     // Main loop
     for (idx_t i = i0; i != iN; i += inc) {
-        auto x = slice(A, pair{i + 1, nA}, i);
+        auto v = slice(A, pair{i, nA}, i);
 
         if (side == Side::Left) {
             auto Ci = rows(C, pair{i, m});
-            larf(left_side, forward, columnwise_storage, x,
+            larf(left_side, forward, columnwise_storage, v,
                  (trans == Op::ConjTrans) ? conj(tau[i]) : tau[i], Ci,
                  larfOpts);
         }
         else {
             auto Ci = cols(C, pair{i, n});
-            larf(right_side, forward, columnwise_storage, x,
+            larf(right_side, forward, columnwise_storage, v,
                  (trans == Op::ConjTrans) ? conj(tau[i]) : tau[i], Ci,
                  larfOpts);
         }

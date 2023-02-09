@@ -125,16 +125,16 @@ int ung2r(size_type<matrix_t> k,
     }
 
     for (idx_t i = k - 1; i != idx_t(-1); --i) {
-        // Define x
-        auto x = slice(A, pair{i + 1, m}, i);
-
         // Apply $H_{i+1}$ to $A( i:m-1, i:n-1 )$ from the left
         if (i + 1 < n) {
+            // Define v and C
+            auto v = slice(A, pair{i, m}, i);
             auto C = slice(A, pair{i, m}, pair{i + 1, n});
-            larf(left_side, forward, columnwise_storage, x, tau[i], C,
+            larf(left_side, forward, columnwise_storage, v, tau[i], C,
                  larfOpts);
         }
         if (i + 1 < m) {
+            auto x = slice(A, pair{i + 1, m}, i);
             scal(-tau[i], x);
         }
         A(i, i) = one - tau[i];

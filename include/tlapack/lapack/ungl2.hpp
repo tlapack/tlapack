@@ -124,7 +124,7 @@ int ungl2(matrix_t& Q,
     for (idx_t j = t - 1; j != idx_t(-1); --j) {
         // Apply H(j)**H to Q(j:k,j:n) from the right
         if (j + 1 < n) {
-            auto x = slice(Q, j, range(j + 1, n));
+            auto w = slice(Q, j, range(j, n));
 
             // Apply to the Q11 below the w
             if ((k > m && j + 1 == t) || (j + 1 < t)) {
@@ -133,11 +133,11 @@ int ungl2(matrix_t& Q,
                 // both conditions are satisfied
 
                 auto Q11 = slice(Q, range(j + 1, k), range(j, n));
-                larf(Side::Right, forward, rowwise_storage, x, conj(tauw[j]),
+                larf(Side::Right, forward, rowwise_storage, w, conj(tauw[j]),
                      Q11, larfOpts);
             }
 
-            scal(-conj(tauw[j]), x);
+            scal(-conj(tauw[j]), w);
         }
 
         Q(j, j) = real_t(1.) - conj(tauw[j]);
