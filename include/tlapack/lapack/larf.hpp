@@ -25,10 +25,6 @@ namespace tlapack {
  *     - Side::Left:  apply $H$ from the Left.
  *     - Side::Right: apply $H$ from the Right.
  *
- * @param[in] direction
- *     v = [ 1 x ] if direction == Direction::Forward and
- *     v = [ x 1 ] if direction == Direction::Backward.
- *
  * @param[in] storeMode
  *     Indicates how the vectors which define the elementary reflectors are
  * stored:
@@ -40,7 +36,10 @@ namespace tlapack {
  *
  * @param[in] tau Value of tau in the representation of H.
  *
- * @param[in] C
+ * @param[in] C0
+ *     On entry, the m-by-n matrix C.
+ *
+ * @param[in] C1
  *     On entry, the m-by-n matrix C.
  *
  * @param[in] opts Options.
@@ -79,14 +78,27 @@ inline constexpr void larf_worksize(side_t side,
     workinfo.minMax(myWorkinfo);
 }
 
-/** Applies an elementary reflector H to a m-by-n matrix C.
- *
- * The elementary reflector H can be applied on either the left or right, with
+/** Applies an elementary reflector defined by tau and v to a m-by-n matrix C
+ * decomposed into C0 and C1.
  * \[
- *        H = I - \tau v v^H.
+ *      C_0 = (1-\tau) C_0 - \tau v^H C_1, \\
+ *      C_1 = -\tau v C_0 + (I-\tau vv^H) C_1,
  * \]
- * where v = [ 1 x ] if direction == Direction::Forward and
- *       v = [ x 1 ] if direction == Direction::Backward.
+ * if side = Side::Left, or
+ * \[
+ *      C_0 = (1-\tau) C_0 -\tau C_1 v, \\
+ *      C_1 = -\tau C_0 v^H + C_1 (I-\tau vv^H),
+ * \]
+ * if side = Side::Right.
+ *
+ * The elementary reflector is defined as
+ * \[
+ * H =
+ * \begin{bmatrix}
+ *      1-\tau & -\tau v^H \\
+ *      -\tau v & I-\tau vv^H
+ * \end{bmatrix}
+ * \]
  *
  * @tparam side_t Either Side or any class that implements `operator Side()`.
  *
@@ -94,25 +106,28 @@ inline constexpr void larf_worksize(side_t side,
  *     - Side::Left:  apply $H$ from the Left.
  *     - Side::Right: apply $H$ from the Right.
  *
- * @param[in] direction
- *     v = [ 1 x ] if direction == Direction::Forward and
- *     v = [ x 1 ] if direction == Direction::Backward.
- *
  * @param[in] storeMode
  *     Indicates how the vectors which define the elementary reflectors are
  * stored:
  *     - StoreV::Columnwise.
  *     - StoreV::Rowwise.
  *
- * @param[in] x Vector of size m-1 if side = Side::Left,
- *                          or n-1 if side = Side::Right.
+ * @param[in] x Vector $v$ if storeMode = StoreV::Columnwise, or
+ *                     $v^H$ if storeMode = StoreV::Rowwise.
  *
  * @param[in] tau Value of tau in the representation of H.
  *
- * @param[in,out] C
- *     On entry, the m-by-n matrix C.
- *     On exit, C is overwritten by $H C$ if side = Side::Left,
- *                               or $C H$ if side = Side::Right.
+ * @param[in,out] C0 Vector of size m-1 if side = Side::Left,
+ *                               or n-1 if side = Side::Right.
+ *     On exit, C0 is overwritten by
+ *      - $(1-\tau) C_0 - \tau v^H C_1$ if side = Side::Left, or
+ *      - $(1-\tau) C_0 -\tau C_1 v$ if side = Side::Right.
+ *
+ * @param[in,out] C1 Matrix of size (m-1)-by-n if side = Side::Left,
+ *                               or m-by-(n-1) if side = Side::Right.
+ *     On exit, C1 is overwritten by
+ *     - $-\tau v C_0 + (I-\tau vv^H) C_1$ if side = Side::Left, or
+ *     - $-\tau C_0 v^H + C_1 (I-\tau vv^H)$ if side = Side::Right.
  *
  * @param[in] opts Options.
  *      - @c opts.work is used if whenever it has sufficient size.
