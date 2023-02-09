@@ -128,7 +128,7 @@ int geqr2(matrix_t& A, vector_t& tau, const workspace_opts_t<>& opts = {})
     }
     if (n - 1 < m) {
         // Define v := A[n-1:m,n-1]
-        auto v = slice(A, pair{n-1, m}, n - 1);
+        auto v = slice(A, pair{n - 1, m}, n - 1);
         // Generate the n-th elementary Householder reflection on v
         larfg(forward, columnwise_storage, v, tau[n - 1]);
     }
