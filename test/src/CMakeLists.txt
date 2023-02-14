@@ -55,6 +55,7 @@ add_executable( test_ul_mult test_ul_mult.cpp )
 add_executable( test_lauum test_lauum.cpp )
 add_executable( test_potrf test_potrf.cpp )
 add_executable( test_larf test_larf.cpp )
+add_executable( test_hetd2 test_hetd2.cpp)
 
 if( TLAPACK_TEST_EIGEN )
   add_executable( test_eigenplugin test_eigenplugin.cpp )
