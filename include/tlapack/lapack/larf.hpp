@@ -71,10 +71,9 @@ inline constexpr void larf_worksize(side_t side,
     using T = type_t<work_t>;
 
     // constants
-    const idx_t m = nrows(C1);
-    const idx_t n = ncols(C1);
+    const idx_t k = size(C0);
 
-    const workinfo_t myWorkinfo(sizeof(T), (side == Side::Left) ? n : m);
+    const workinfo_t myWorkinfo(sizeof(T), k);
     workinfo.minMax(myWorkinfo);
 }
 
@@ -162,16 +161,17 @@ void larf(side_t side,
     // constants
     const real_t one(1);
     const idx_t k = size(C0);
+    const idx_t m = nrows(C1);
+    const idx_t n = ncols(C1);
 
     // check arguments
     tlapack_check(side == Side::Left || side == Side::Right);
     tlapack_check(storeMode == StoreV::Columnwise ||
                   storeMode == StoreV::Rowwise);
-    tlapack_check((idx_t)size(x) == (side == Side::Left) ? nrows(C1)
-                                                         : ncols(C1));
+    tlapack_check((idx_t)size(x) == (side == Side::Left) ? m : n);
 
     // Quick return if possible
-    if (nrows(C1) == 0 || ncols(C1) == 0) {
+    if (m == 0 || n == 0) {
         for (idx_t i = 0; i < k; ++i)
             C0[i] -= tau * C0[i];
         return;
@@ -207,8 +207,8 @@ void larf(side_t side,
             gemv(Op::Trans, one, C1, x, one, w);
 
             // C1 := C1 - tau*conj(x)*w^t
-            for (idx_t j = 0; j < ncols(C1); ++j)
-                for (idx_t i = 0; i < nrows(C1); ++i)
+            for (idx_t j = 0; j < n; ++j)
+                for (idx_t i = 0; i < m; ++i)
                     C1(i, j) -= tau * conj(x[i]) * w[j];
 
             // C0 := C0 - tau*w^t

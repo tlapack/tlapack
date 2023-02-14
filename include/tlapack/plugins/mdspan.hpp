@@ -376,7 +376,7 @@ inline constexpr auto diag(const std::experimental::mdspan<ET, Exts, LP, AP>& A,
     using mapping = typename layout_stride::template mapping<extents_t>;
 
     // mdspan components
-    auto ptr = A.accessor().offset(&A(0, 0), (diagIdx >= 0)
+    auto ptr = A.accessor().offset(A.data(), (diagIdx >= 0)
                                                  ? A.mapping()(0, diagIdx)
                                                  : A.mapping()(-diagIdx, 0));
     auto map = mapping(
@@ -553,7 +553,7 @@ inline constexpr auto legacy_matrix(
     assert(A.stride(0) == 1 || A.extent(0) <= 1 || A.stride(1) == 1 ||
            A.extent(1) <= 1);
 
-    return legacyMatrix<ET, idx_t, L>(A.extent(0), A.extent(1), &A(0, 0));
+    return legacyMatrix<ET, idx_t, L>(A.extent(0), A.extent(1), A.data());
 }
 
 template <
@@ -576,10 +576,10 @@ inline constexpr auto legacy_matrix(
            A.extent(0) <= 1);
 
     if (A.stride(0) == 1 || A.extent(1) <= 1)
-        return legacyMatrix<ET, idx_t, L>(A.extent(0), A.extent(1), &A(0, 0),
+        return legacyMatrix<ET, idx_t, L>(A.extent(0), A.extent(1), A.data(),
                                           A.stride(1));
     else
-        return legacyMatrix<ET, idx_t, L>(A.extent(1), A.extent(0), &A(0, 0),
+        return legacyMatrix<ET, idx_t, L>(A.extent(1), A.extent(0), A.data(),
                                           A.stride(0));
 }
 
