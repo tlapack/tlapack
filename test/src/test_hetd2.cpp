@@ -153,10 +153,14 @@ TEMPLATE_TEST_CASE("Tridiagnolization of a symmetric matrix works",
     for (idx_t i = 0; i != n; ++i) {
         R(i, 0) = Q(i, 0) * D[0] + Q(i, 1) * E[0];
         for (idx_t j = 1; j != n - 1; ++j) {
-            R(i, j) = Q(i, j) * D[j] + Q(i, j + 1) * E[j] + Q(i, j) * conj(E[j - 1]);
+            R(i, j) = Q(i, j) * D[j] + Q(i, j + 1) * E[j] + Q(i, j) * E[j - 1];
         }
-        R(i, n - 1) = Q(i, n - 1) * D[n - 1] + Q(i, n - 1) * conj(E[n - 2]);
+        R(i, n - 1) = Q(i, n - 1) * D[n - 1] + Q(i, n - 1) * E[n - 2];
     }
+
+    // Create new matrix T where T is tridiagonal, 
+    // Sets some zeros and D and E
+    // Do a gemm
     
     gemm(Op::NoTrans, Op::ConjTrans, one, R, Q, -one, A);
 
