@@ -235,6 +235,13 @@ int larfb(side_t side,
                         direction != Direction::Forward);
     tlapack_check_false(storeMode != StoreV::Columnwise &&
                         storeMode != StoreV::Rowwise);
+    tlapack_check(
+        (storeMode == StoreV::Columnwise)
+            ? ((ncols(V) == k) && (side == Side::Left) ? (nrows(V) == m)
+                                                       : (nrows(V) == n))
+            : ((nrows(V) == k) && (side == Side::Left) ? (ncols(V) == m)
+                                                       : (ncols(V) == n)));
+    tlapack_check(nrows(Tmatrix) == ncols(Tmatrix));
 
     // Quick return
     if (m <= 0 || n <= 0 || k <= 0) return 0;
@@ -256,9 +263,9 @@ int larfb(side_t side,
 
                 // Matrix views
                 const auto V1 = rows(V, pair{0, k});
-                const auto V2 = rows(V, (m > k) ? pair{k, m} : pair{0, 0});
+                const auto V2 = rows(V, pair{k, m});
                 auto C1 = rows(C, pair{0, k});
-                auto C2 = rows(C, (m > k) ? pair{k, m} : pair{0, 0});
+                auto C2 = rows(C, pair{k, m});
                 auto W = new_matrix(work, k, n);
 
                 // W := C1
@@ -287,9 +294,9 @@ int larfb(side_t side,
 
                 // Matrix views
                 const auto V1 = rows(V, pair{0, k});
-                const auto V2 = rows(V, (n > k) ? pair{k, n} : pair{0, 0});
+                const auto V2 = rows(V, pair{k, n});
                 auto C1 = cols(C, pair{0, k});
-                auto C2 = cols(C, (n > k) ? pair{k, n} : pair{0, 0});
+                auto C2 = cols(C, pair{k, n});
                 auto W = new_matrix(work, m, k);
 
                 // W := C1
@@ -387,9 +394,9 @@ int larfb(side_t side,
 
                 // Matrix views
                 const auto V1 = cols(V, pair{0, k});
-                const auto V2 = cols(V, (m > k) ? pair{k, m} : pair{0, 0});
+                const auto V2 = cols(V, pair{k, m});
                 auto C1 = rows(C, pair{0, k});
-                auto C2 = rows(C, (m > k) ? pair{k, m} : pair{0, 0});
+                auto C2 = rows(C, pair{k, m});
                 auto W = new_matrix(work, k, n);
 
                 // W := C1
@@ -418,9 +425,9 @@ int larfb(side_t side,
 
                 // Matrix views
                 const auto V1 = cols(V, pair{0, k});
-                const auto V2 = cols(V, (n > k) ? pair{k, n} : pair{0, 0});
+                const auto V2 = cols(V, pair{k, n});
                 auto C1 = cols(C, pair{0, k});
-                auto C2 = cols(C, (n > k) ? pair{k, n} : pair{0, 0});
+                auto C2 = cols(C, pair{k, n});
                 auto W = new_matrix(work, m, k);
 
                 // W := C1

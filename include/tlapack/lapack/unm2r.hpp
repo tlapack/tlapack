@@ -68,7 +68,8 @@ inline constexpr void unm2r_worksize(side_t side,
     const idx_t nA = (side == Side::Left) ? m : n;
 
     auto v = slice(A, pair{0, nA}, 0);
-    larf_worksize(side, forward, v, tau[0], C, workinfo, opts);
+    larf_worksize(side, forward, columnwise_storage, v, tau[0], C, workinfo,
+                  opts);
 }
 
 /** Applies unitary matrix Q to a matrix C.
@@ -181,13 +182,13 @@ int unm2r(side_t side,
 
         if (side == Side::Left) {
             auto Ci = rows(C, pair{i, m});
-            larf(left_side, forward, v,
+            larf(left_side, forward, columnwise_storage, v,
                  (trans == Op::ConjTrans) ? conj(tau[i]) : tau[i], Ci,
                  larfOpts);
         }
         else {
             auto Ci = cols(C, pair{i, n});
-            larf(right_side, forward, v,
+            larf(right_side, forward, columnwise_storage, v,
                  (trans == Op::ConjTrans) ? conj(tau[i]) : tau[i], Ci,
                  larfOpts);
         }

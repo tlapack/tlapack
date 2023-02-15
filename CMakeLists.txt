@@ -215,6 +215,15 @@ if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git" AND CLANG_FORMAT_FOUND)
       2> format-all-hpp-cpp-files.err
     WORKING_DIRECTORY ${TLAPACK_SOURCE_DIR}
   )
+  add_custom_target( check-format-of-hpp-cpp-files
+    COMMAND
+      ${GIT_EXECUTABLE} ls-tree -r HEAD --name-only |
+      grep -E '\(config/|examples/|include/|src/|test/include/|test/src/\).*\\.\(hpp|cpp|h.in|c\)$$' |
+      xargs ${CLANG_FORMAT_EXECUTABLE} -i -style=file --dry-run
+      > format-all-hpp-cpp-files.log
+      2> format-all-hpp-cpp-files.err
+    WORKING_DIRECTORY ${TLAPACK_SOURCE_DIR}
+  )
 endif()
 
 #-------------------------------------------------------------------------------

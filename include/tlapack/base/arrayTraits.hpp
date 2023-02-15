@@ -374,7 +374,7 @@ namespace internal {
     /// Vector type deduction for one type
     template <typename vector_t>
     struct vector_type_traits<vector_t, int> {
-        using type = typename matrix_type_traits<vector_t, vector_t, int>::type;
+        using type = typename vector_type_traits<vector_t, vector_t, int>::type;
     };
 
     /// Vector type deduction for three or more types

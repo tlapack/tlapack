@@ -22,8 +22,8 @@ namespace tlapack {
  *  down. If the bulge collapses, an attempt is made to
  *  reintroduce it using shifts s1 and s2.
  *
- * @param[in] H 4x3 matrix.
- * @param[out] v vector of size 3
+ * @param[in,out] H 4x3 matrix.
+ * @param[in,out] v vector of size 3
  *      On entry, the delayed reflector to apply
  *      The first element of the reflector is assumed to be one, and v[0]
  * instead stores tau. On exit, the reflector that moves the bulge down one
@@ -61,7 +61,7 @@ void move_bulge(matrix_t& H,
     v[0] = H(1, 0);
     v[1] = H(2, 0);
     v[2] = H(3, 0);
-    larfg(v, tau);
+    larfg(forward, columnwise_storage, v, tau);
     beta = v[0];
     v[0] = tau;
 
@@ -79,7 +79,7 @@ void move_bulge(matrix_t& H,
         auto vt = new_vector(vt_, 3);
         auto H2 = slice(H, pair{1, 4}, pair{1, 4});
         lahqr_shiftcolumn(H2, vt, s1, s2);
-        larfg(vt, tau);
+        larfg(forward, columnwise_storage, vt, tau);
         vt[0] = tau;
 
         refsum = conj(vt[0]) * H(1, 0) + conj(vt[1]) * H(2, 0);

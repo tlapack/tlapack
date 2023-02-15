@@ -41,12 +41,16 @@ template <class T, class Allocator, class SliceSpec>
 inline constexpr auto slice(const std::vector<T, Allocator>& v,
                             SliceSpec&& rows)
 {
+    assert((rows.first >= 0 && (std::size_t)rows.first < size(v)) ||
+           rows.first == rows.second);
+    assert(rows.second >= 0 && (std::size_t)rows.second <= size(v));
+    assert(rows.first <= rows.second);
 #ifndef TLAPACK_USE_MDSPAN
     return legacyVector<T, std::size_t>(rows.second - rows.first,
-                                        (T*)&v[rows.first]);
+                                        (T*)v.data() + rows.first);
 #else
     return std::experimental::mdspan<T, std::experimental::dextents<1> >(
-        (T*)&v[rows.first], (std::size_t)(rows.second - rows.first));
+        (T*)v.data() + rows.first, (std::size_t)(rows.second - rows.first));
 #endif
 }
 

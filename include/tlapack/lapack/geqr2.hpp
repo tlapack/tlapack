@@ -45,7 +45,8 @@ inline constexpr void geqr2_worksize(const matrix_t& A,
 
     if (n > 1) {
         auto C = cols(A, range<idx_t>{1, n});
-        larf_worksize(left_side, forward, col(A, 0), tau[0], C, workinfo, opts);
+        larf_worksize(left_side, forward, columnwise_storage, col(A, 0), tau[0],
+                      C, workinfo, opts);
     }
 }
 
@@ -115,20 +116,21 @@ int geqr2(matrix_t& A, vector_t& tau, const workspace_opts_t<>& opts = {})
         // Define v := A[i:m,i]
         auto v = slice(A, pair{i, m}, i);
 
-        // Generate the (i+1)-th elementary Householder reflection on x
-        larfg(v, tau[i]);
+        // Generate the (i+1)-th elementary Householder reflection on v
+        larfg(forward, columnwise_storage, v, tau[i]);
 
-        // Define v := A[i:m,i] and C := A[i:m,i+1:n], and w := work[i:n-1]
+        // Define C := A[i:m,i+1:n]
         auto C = slice(A, pair{i, m}, pair{i + 1, n});
 
         // C := ( I - conj(tau_i) v v^H ) C
-        larf(left_side, forward, v, conj(tau[i]), C, larfOpts);
+        larf(left_side, forward, columnwise_storage, v, conj(tau[i]), C,
+             larfOpts);
     }
     if (n - 1 < m) {
         // Define v := A[n-1:m,n-1]
         auto v = slice(A, pair{n - 1, m}, n - 1);
-        // Generate the n-th elementary Householder reflection on x
-        larfg(v, tau[n - 1]);
+        // Generate the n-th elementary Householder reflection on v
+        larfg(forward, columnwise_storage, v, tau[n - 1]);
     }
 
     return 0;

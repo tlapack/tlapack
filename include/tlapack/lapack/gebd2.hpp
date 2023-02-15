@@ -55,15 +55,15 @@ inline constexpr void gebd2_worksize(const matrix_t& A,
 
     if (n > 1) {
         auto A11 = cols(A, range<idx_t>{1, n});
-        larf_worksize(left_side, forward, col(A, 0), tauv[0], A11, workinfo,
-                      opts);
+        larf_worksize(left_side, forward, columnwise_storage, col(A, 0),
+                      tauv[0], A11, workinfo, opts);
 
         if (m > 1) {
             auto B11 = rows(A11, range<idx_t>{1, m});
             auto row0 = slice(A, 0, range<idx_t>{1, n});
 
-            larf_worksize(right_side, forward, row0, tauw[0], B11, workinfo,
-                          opts);
+            larf_worksize(right_side, forward, rowwise_storage, row0, tauw[0],
+                          B11, workinfo, opts);
         }
     }
 }
@@ -152,28 +152,26 @@ int gebd2(matrix_t& A,
     for (idx_t j = 0; j < n; ++j) {
         // Generate elementary reflector H(j) to annihilate A(j+1:m,j)
         auto v = slice(A, range(j, m), j);
-        larfg(v, tauv[j]);
+        larfg(forward, columnwise_storage, v, tauv[j]);
 
         // Apply H(j)**H to A(j:m,j+1:n) from the left
         if (j < n - 1) {
             auto A11 = slice(A, range(j, m), range(j + 1, n));
-            larf(Side::Left, forward, v, conj(tauv[j]), A11, larfOpts);
+            larf(Side::Left, forward, columnwise_storage, v, conj(tauv[j]), A11,
+                 larfOpts);
         }
 
         if (j < n - 1) {
             // Generate elementary reflector G(j) to annihilate A(j,j+2:n)
             auto w = slice(A, j, range(j + 1, n));
-            for (idx_t i = 0; i < n - j - 1; ++i)
-                w[i] = conj(w[i]);
-            larfg(w, tauw[j]);
+            larfg(forward, rowwise_storage, w, tauw[j]);
 
             // Apply G(j) to A(j+1:m,j+1:n) from the right
             if (j < m - 1) {
                 auto B11 = slice(A, range(j + 1, m), range(j + 1, n));
-                larf(Side::Right, forward, w, tauw[j], B11, larfOpts);
+                larf(Side::Right, forward, rowwise_storage, w, tauw[j], B11,
+                     larfOpts);
             }
-            for (idx_t i = 0; i < n - j - 1; ++i)
-                w[i] = conj(w[i]);
         }
     }
 

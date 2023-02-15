@@ -431,19 +431,22 @@ void agressive_early_deflation(bool want_t,
             for (idx_t i = 0; i < ns; ++i) {
                 v[i] = conj(V(0, i));
             }
-            larfg(v, tau);
+            larfg(forward, columnwise_storage, v, tau);
 
             auto Wv_aux = slice(WV, pair{0, jw}, 1);
             workspace_opts_t<> work2(Wv_aux);
 
             auto TW_slice = slice(TW, pair{0, ns}, pair{0, jw});
-            larf(Side::Left, forward, v, conj(tau), TW_slice, work2);
+            larf(Side::Left, forward, columnwise_storage, v, conj(tau),
+                 TW_slice, work2);
 
             auto TW_slice2 = slice(TW, pair{0, jw}, pair{0, ns});
-            larf(Side::Right, forward, v, tau, TW_slice2, work2);
+            larf(Side::Right, forward, columnwise_storage, v, tau, TW_slice2,
+                 work2);
 
             auto V_slice = slice(V, pair{0, jw}, pair{0, ns});
-            larf(Side::Right, forward, v, tau, V_slice, work2);
+            larf(Side::Right, forward, columnwise_storage, v, tau, V_slice,
+                 work2);
         }
 
         // Hessenberg reduction

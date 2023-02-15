@@ -20,7 +20,6 @@
 #include "tlapack/blas/scal.hpp"
 #include "tlapack/blas/trmm.hpp"
 #include "tlapack/blas/trmv.hpp"
-#include "tlapack/lapack/larf.hpp"
 #include "tlapack/lapack/larfg.hpp"
 
 namespace tlapack {
@@ -136,7 +135,7 @@ int lahr2(size_type<matrix_t> k,
             A(k + i, i - 1) = ei;
         }
         auto v = slice(A, pair{k + i + 1, n}, i);
-        larfg(v, tau[i]);
+        larfg(forward, columnwise_storage, v, tau[i]);
 
         // larf has been edited to not require A(k+i,i) = one
         // this is for thread safety. Since we already modified

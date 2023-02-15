@@ -198,7 +198,7 @@ void multishift_QR_sweep(bool want_t,
                     auto H = slice(A, pair{ilo, ilo + 3}, pair{ilo, ilo + 3});
                     lahqr_shiftcolumn(H, v, s[size(s) - 1 - 2 * i_bulge],
                                       s[size(s) - 1 - 2 * i_bulge - 1]);
-                    larfg(v, tau);
+                    larfg(forward, columnwise_storage, v, tau);
                     v[0] = tau;
                 }
                 else {
@@ -621,7 +621,7 @@ void multishift_QR_sweep(bool want_t,
                     // reflector (order 2)
                     auto v = slice(V, pair{0, 2}, i_bulge);
                     auto h = slice(A, pair{i_pos, i_pos + 2}, i_pos - 1);
-                    larfg(h, v[0]);
+                    larfg(forward, columnwise_storage, h, v[0]);
                     v[1] = h[1];
                     h[1] = zero;
 

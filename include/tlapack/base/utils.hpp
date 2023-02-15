@@ -46,12 +46,15 @@ using range = pair<idx_t, idx_t>;
 using std::enable_if_t;
 
 // -----------------------------------------------------------------------------
-// is_same_v is defined in C++17; here's a C++11 definition
+// is_same_v, is_convertible_v are defined in C++17; here's a C++11 definition
 #if __cplusplus >= 201703L
+using std::is_convertible_v;
 using std::is_same_v;
 #else
 template <class T, class U>
-constexpr bool is_same_v = std::is_same<T, U>::value;
+inline constexpr bool is_convertible_v = std::is_convertible<T, U>::value;
+template <class T, class U>
+inline constexpr bool is_same_v = std::is_same<T, U>::value;
 #endif
 
 //------------------------------------------------------------------------------

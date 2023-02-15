@@ -45,8 +45,8 @@ inline constexpr void gelq2_worksize(const matrix_t& A,
 
     if (m > 1) {
         auto C = rows(A, range<idx_t>{1, m});
-        larf_worksize(right_side, forward, row(A, 0), tauw[0], C, workinfo,
-                      opts);
+        larf_worksize(right_side, forward, rowwise_storage, row(A, 0), tauw[0],
+                      C, workinfo, opts);
     }
 }
 
@@ -118,18 +118,15 @@ int gelq2(matrix_t& A, vector_t& tauw, const workspace_opts_t<>& opts = {})
         auto w = slice(A, j, range(j, n));
 
         // Generate elementary reflector H(j) to annihilate A(j,j+1:n)
-        for (idx_t i = 0; i < n - j; ++i)
-            w[i] = conj(w[i]);
-        larfg(w, tauw[j]);
+        larfg(forward, rowwise_storage, w, tauw[j]);
 
         // If either condition is satisfied, Q11 will not be empty
         if (j < k - 1 || k < m) {
             // Apply H(j) to A(j+1:m,j:n) from the right
             auto Q11 = slice(A, range(j + 1, m), range(j, n));
-            larf(Side::Right, forward, w, tauw[j], Q11, larfOpts);
+            larf(Side::Right, forward, rowwise_storage, w, tauw[j], Q11,
+                 larfOpts);
         }
-        for (idx_t i = 0; i < n - j; ++i)
-            w[i] = conj(w[i]);
     }
 
     return 0;
