@@ -222,13 +222,13 @@ inline constexpr auto slice(const legacyMatrix<T, idx_t, layout>& A,
                             SliceSpecRow&& rows,
                             SliceSpecCol&& cols) noexcept
 {
-    assert((rows.first >= 0 && (idx_t)rows.first < nrows(A)) ||
+    assert((rows.first >= 0 and (idx_t) rows.first < nrows(A)) ||
            rows.first == rows.second);
-    assert(rows.second >= 0 && (idx_t)rows.second <= nrows(A));
+    assert(rows.second >= 0 and (idx_t) rows.second <= nrows(A));
     assert(rows.first <= rows.second);
-    assert((cols.first >= 0 && (idx_t)cols.first < ncols(A)) ||
+    assert((cols.first >= 0 and (idx_t) cols.first < ncols(A)) ||
            cols.first == cols.second);
-    assert(cols.second >= 0 && (idx_t)cols.second <= ncols(A));
+    assert(cols.second >= 0 and (idx_t) cols.second <= ncols(A));
     assert(cols.first <= cols.second);
     return legacyMatrix<T, idx_t, layout>(
         rows.second - rows.first, cols.second - cols.first,
@@ -245,11 +245,11 @@ inline constexpr auto slice(const legacyMatrix<T, idx_t, layout>& A,
                             size_type<legacyMatrix<T, idx_t, layout>> rowIdx,
                             SliceSpecCol&& cols) noexcept
 {
-    assert((cols.first >= 0 && (idx_t)cols.first < ncols(A)) ||
+    assert((cols.first >= 0 and (idx_t) cols.first < ncols(A)) ||
            cols.first == cols.second);
-    assert(cols.second >= 0 && (idx_t)cols.second <= ncols(A));
+    assert(cols.second >= 0 and (idx_t) cols.second <= ncols(A));
     assert(cols.first <= cols.second);
-    assert(rowIdx >= 0 && rowIdx < nrows(A));
+    assert(rowIdx >= 0 and rowIdx < nrows(A));
     return legacyVector<T, idx_t, idx_t>(
         cols.second - cols.first,
         (layout == Layout::ColMajor) ? &A.ptr[rowIdx + cols.first * A.ldim]
@@ -264,11 +264,11 @@ inline constexpr auto slice(
     SliceSpecRow&& rows,
     size_type<legacyMatrix<T, idx_t, layout>> colIdx) noexcept
 {
-    assert((rows.first >= 0 && (idx_t)rows.first < nrows(A)) ||
+    assert((rows.first >= 0 and (idx_t) rows.first < nrows(A)) ||
            rows.first == rows.second);
-    assert(rows.second >= 0 && (idx_t)rows.second <= nrows(A));
+    assert(rows.second >= 0 and (idx_t) rows.second <= nrows(A));
     assert(rows.first <= rows.second);
-    assert(colIdx >= 0 && colIdx < ncols(A));
+    assert(colIdx >= 0 and colIdx < ncols(A));
     return legacyVector<T, idx_t, idx_t>(
         rows.second - rows.first,
         (layout == Layout::ColMajor) ? &A.ptr[rows.first + colIdx * A.ldim]
@@ -281,9 +281,9 @@ template <typename T, class idx_t, Layout layout, class SliceSpec>
 inline constexpr auto rows(const legacyMatrix<T, idx_t, layout>& A,
                            SliceSpec&& rows) noexcept
 {
-    assert((rows.first >= 0 && (idx_t)rows.first < nrows(A)) ||
+    assert((rows.first >= 0 and (idx_t) rows.first < nrows(A)) ||
            rows.first == rows.second);
-    assert(rows.second >= 0 && (idx_t)rows.second <= nrows(A));
+    assert(rows.second >= 0 and (idx_t) rows.second <= nrows(A));
     assert(rows.first <= rows.second);
     return legacyMatrix<T, idx_t, layout>(rows.second - rows.first, A.n,
                                           (layout == Layout::ColMajor)
@@ -297,7 +297,7 @@ template <typename T, class idx_t>
 inline constexpr auto row(const legacyMatrix<T, idx_t>& A,
                           size_type<legacyMatrix<T, idx_t>> rowIdx) noexcept
 {
-    assert(rowIdx >= 0 && rowIdx < nrows(A));
+    assert(rowIdx >= 0 and rowIdx < nrows(A));
     return legacyVector<T, idx_t, idx_t>(A.n, &A(rowIdx, 0), A.ldim);
 }
 
@@ -307,7 +307,7 @@ inline constexpr auto row(
     const legacyMatrix<T, idx_t, Layout::RowMajor>& A,
     size_type<legacyMatrix<T, idx_t, Layout::RowMajor>> rowIdx) noexcept
 {
-    assert(rowIdx >= 0 && rowIdx < nrows(A));
+    assert(rowIdx >= 0 and rowIdx < nrows(A));
     return legacyVector<T, idx_t>(A.n, &A(rowIdx, 0));
 }
 
@@ -316,9 +316,9 @@ template <typename T, class idx_t, Layout layout, class SliceSpec>
 inline constexpr auto cols(const legacyMatrix<T, idx_t, layout>& A,
                            SliceSpec&& cols) noexcept
 {
-    assert((cols.first >= 0 && (idx_t)cols.first < ncols(A)) ||
+    assert((cols.first >= 0 and (idx_t) cols.first < ncols(A)) ||
            cols.first == cols.second);
-    assert(cols.second >= 0 && (idx_t)cols.second <= ncols(A));
+    assert(cols.second >= 0 and (idx_t) cols.second <= ncols(A));
     assert(cols.first <= cols.second);
     return legacyMatrix<T, idx_t, layout>(A.m, cols.second - cols.first,
                                           (layout == Layout::ColMajor)
@@ -332,7 +332,7 @@ template <typename T, class idx_t>
 inline constexpr auto col(const legacyMatrix<T, idx_t>& A,
                           size_type<legacyMatrix<T, idx_t>> colIdx) noexcept
 {
-    assert(colIdx >= 0 && colIdx < ncols(A));
+    assert(colIdx >= 0 and colIdx < ncols(A));
     return legacyVector<T, idx_t>(A.m, &A(0, colIdx));
 }
 
@@ -342,7 +342,7 @@ inline constexpr auto col(
     const legacyMatrix<T, idx_t, Layout::RowMajor>& A,
     size_type<legacyMatrix<T, idx_t, Layout::RowMajor>> colIdx) noexcept
 {
-    assert(colIdx >= 0 && colIdx < ncols(A));
+    assert(colIdx >= 0 and colIdx < ncols(A));
     return legacyVector<T, idx_t, idx_t>(A.m, &A(0, colIdx), A.ldim);
 }
 
@@ -369,9 +369,9 @@ template <typename T,
 inline constexpr auto slice(const legacyVector<T, idx_t, int_t, direction>& v,
                             SliceSpec&& rows) noexcept
 {
-    assert((rows.first >= 0 && (idx_t)rows.first < size(v)) ||
+    assert((rows.first >= 0 and (idx_t) rows.first < size(v)) ||
            rows.first == rows.second);
-    assert(rows.second >= 0 && (idx_t)rows.second <= size(v));
+    assert(rows.second >= 0 and (idx_t) rows.second <= size(v));
     assert(rows.first <= rows.second);
     return legacyVector<T, idx_t, int_t, direction>(
         rows.second - rows.first, &v.ptr[rows.first * v.inc], v.inc);
