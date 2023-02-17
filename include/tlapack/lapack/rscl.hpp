@@ -11,8 +11,21 @@
 #define TLAPACK_RSCL_HH
 
 #include "tlapack/base/utils.hpp"
+#include "tlapack/blas/scal.hpp"
 
 namespace tlapack {
+
+template <class vector_t,
+          class alpha_t,
+          enable_if_t<!is_complex<alpha_t>::value, int> = 0>
+void rscl(const alpha_t& alpha, vector_t& x)
+{
+    using idx_t = size_type<vector_t>;
+    const idx_t n = size(x);
+
+    for (idx_t i = 0; i < n; ++i)
+        x[i] /= alpha;
+}
 
 /**
  * Scale vector by the reciprocal of a constant, $x := x / \alpha$.
@@ -22,14 +35,12 @@ namespace tlapack {
  *
  * @ingroup auxiliary
  */
-template <class vector_t, class alpha_t, class T = type_t<vector_t>>
-void rscl(const alpha_t& alpha, vector_t& x)
+template <class vector_t,
+          class alpha_t,
+          enable_if_t<is_complex<alpha_t>::value, int> = 0>
+inline void rscl(const alpha_t& alpha, vector_t& x)
 {
-    using idx_t = size_type<vector_t>;
-    const idx_t n = size(x);
-
-    for (idx_t i = 0; i < n; ++i)
-        x[i] /= alpha;
+    scal(real_type<alpha_t>(1) / alpha, x);
 }
 
 }  // namespace tlapack
