@@ -68,3 +68,59 @@ We recommend the usage of `auto` in the following cases:
     c. the functor `tlapack::Create< >(...)`. See [arrayTraits.hpp](include/tlapack/base/arrayTraits.hpp) for more details.
 
 2. In the return type of functions like `tlapack::asum`, `tlapack::dot`, `tlapack::nrm2` and `tlapack::lange`. By defining the output as `auto`, we enable overloading of those functions using mixed precision. For instance, one may write a overloading of `tlapack::lange` for matrices `Eigen::MatrixXf` that returns `double`.
+
+## Writing tests
+
+\<T\>LAPACK uses a couple of different test suites for unit tests, all located in the [test](test) directory. See [github.com/tlapack/tlapack/wiki/Test-Suite](https://github.com/tlapack/tlapack/wiki/Test-Suite) for more details on what each test set cover. Here we focus on how to write tests in [test/src](test/src) for \<T\>LAPACK.
+
+We use [Catch2](https://github.com/catchorg/Catch2) as the testing framework. This means that you need to use a few macros like `TEST_CASE`, `REQUIRE`, `CHECK`, etc. It also means that you may use other macros provided by Catch2. For instance, you may use `REQUIRE_THROWS_AS` to check that a routine throws an exception of a certain type. See [github.com/catchorg/Catch2/docs](https://github.com/catchorg/Catch2/tree/devel/docs).
+
+### Preparing the environment
+
+Consider following the steps below before writing a test for a new routine:
+
+1. Take a look at the current tests in [test/src](test/src) to see if there is already a test for the routine you want to add. If there is, you can add your test to the existing file. If there is not, you can create a new test file.
+
+2. If you need to create a new test file, you can copy one of the existing tests. The naming convention is `test_<routine_name>.cpp`. For instance, the tests for `tlapack::getrf` are located in [test/src/test_getrf.cpp](test/src/test_getrf.cpp).
+
+3. Add an entry `add_executable( test_<routine_name> test_<routine_name>.cpp )` to [test/src/CMakeLists.txt](test/src/CMakeLists.txt). This will make sure that the test is compiled and run when CTest is called.
+
+4. Configure your CMake build to build the target `test_<routine_name>` so that you only need to compile and run the test you are writing.
+
+### Directions for writing tests
+
+1. Only include the headers you need. This also means:
+    - You should never include `tlapack.hpp` in a test. Instead, include the headers for the routines you are testing. Compilation times may increase significantly if you include `tlapack.hpp` in a test.
+    - If needed, include `testutils.hpp` before including other headers from \<T\>LAPACK. This will make sure that the macros are defined before they are used. Also, it makes sure that the plugins for matrix types are loaded before other headers are included.
+
+2. You should use `using namespace tlapack;` in a test. This will make the code more readable.
+
+3. If using the macro `TEMPLATE_TEST_CASE()` from Catch2, please set the last argument to either `TLAPACK_TYPES_TO_TEST`, `TLAPACK_REAL_TYPES_TO_TEST` or `TLAPACK_COMPLEX_TYPES_TO_TEST`. This will make sure that the test is run for all the types.
+
+4. Try using tags following the directions in [Tags for tests](#tags-for-tests).
+
+5. For creating objects inside the tests:
+
+    - If you need to create a matrix, use `tlapack::Create<TestType>(...)`. See [arrayTraits.hpp](include/tlapack/base/arrayTraits.hpp) for more details.
+
+    - If you need to create a vector there are two options. The first option is to use `tlapack::Create< vector_type<TestType> >(...)`. See [arrayTraits.hpp](include/tlapack/base/arrayTraits.hpp) for more details. The secon optionis to use `std::vector< type_t<TestType> >` or `std::vector< real_type<type_t<TestType>> >`.
+
+6. Use the macro `GENERATE()` to create a range of values. For instance, you may use `GENERATE(1,2,3)` to create a range of values `{1,2,3}`. This way you can avoid writing a loop to test a routine for different values of a parameter.
+
+7. Use the macros `INFO()` and `UNSCOPED_INFO()` to print information about the test. Those messages are particularly important when you use `GENERATE()`. As a general rule, use `INFO( "var = " << var )` after you define `var = GENERATE(...)`. This will make sure that the value of `var` is printed when the test fails.
+
+### Tags for tests
+
+\<T\>LAPACK uses the following TAGs for tests:
+
+TO-DO
+
+## Other topics
+
+### Updating [tests/blaspp](tests/blaspp) and [tests/lapackpp](tests/lapackpp)
+
+There are two situations in which you may need to update [tests/blaspp](tests/blaspp) and [tests/lapackpp](tests/lapackpp):
+1. When you want to enable a test.
+2. When you want to use a new version of those libraries for tests.
+
+TO-DO
