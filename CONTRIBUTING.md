@@ -123,4 +123,29 @@ There are two situations in which you may need to update [tests/blaspp](tests/bl
 1. When you want to enable a test.
 2. When you want to use a new version of those libraries for tests.
 
+### Swap
+
+Although they have the same name, `std::swap` and `tlapack::swap` do different things.
+
+- `std::swap` takes 2 objects of the same type T and swaps either (1) their values, if T is a basic type; or (2) all their attributes, if T is a class.
+
+- `tlapack::swap` takes 2 vectors of types `vectorX_t` and `vectorY_t` and swaps their entries.
+
+> which swap should we use tlapack/blas/swap.hpp or std::swap ?
+> getrf_recursive seems to include tlapack/blas/swap.hpp and use std::swap
+
+Use `tlapack::swap` whenever you want to swap the entries between two arrays.
+Currently, `std::swap` is only used in \<T\>LAPACK to avoid a code like 
+```c++
+// Swaps a and b. Equivalent to std::swap(a,b)
+T aux = a;
+a = b;
+b = aux;
+```
+
+> Do we use std::swap to swap two scalars and tlapack/blas/swap.hpp to swap vectors?
+
+Yes, that is how we currently use those functions.
+
+
 TO-DO
