@@ -27,10 +27,17 @@ First things to know about \<T\>LAPACK:
     + [x] Level 1, except SDSDOT.
     + [x] Level 2, except the routines for banded and packed formats (xGBMV, xHBMV, xHPMV, xSBMV, xSPMV, xTBMV, xTPMV, xTBSV, xTPSV, xHPR, xHPR2, xSPR, xSPR2).
     + [x] Level 3.
++ [ ] Linear solvers
+    + [ ] Safe scaling triangular solve
+    + [ ] Safe scaling solver for Sylvester equations
 + [ ] Matrix factorizations
     + [x] Cholesky
         + Recursive
         + Blocked
+    + [ ] Fully pivoted QR
+    + [ ] Fully pivoted RQ
+    + [ ] Fully pivoted LQ
+    + [ ] Fully pivoted QL
     + [x] Hessenberg reduction
         + Level-2
         + Blocked
@@ -38,9 +45,9 @@ First things to know about \<T\>LAPACK:
         + Level-2
     + [ ] Householder RQ
     + [x] Householder LQ
-    + [ ] Householder QL
         + Level-2
         + Blocked
+    + [ ] Householder QL
     + [x] Householder bidiagonalization
         + Level-2
     + [x] LU with partial pivoting
@@ -62,6 +69,7 @@ First things to know about \<T\>LAPACK:
         + Double-shift implicit QR
         + Multishift implicit QR with Aggressive Early Deflation (AED)
     + [ ] Eigenvector computation
+    + [ ] Swap eigenvalues in Schur form
     + [ ] Generalized Schur problem
     + [ ] Generalized eigenvalue problem
 + [ ] Symmetric Eigenvalue Problem
