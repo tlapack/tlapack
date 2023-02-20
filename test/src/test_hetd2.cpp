@@ -1,5 +1,6 @@
 /// @file test_hetd2.cpp
 /// @author Skylar Johns, University of Colorado Denver, USA
+/// @author Weslley S Pereira, University of Colorado Denver, USA
 /// @brief Test HETD2
 //
 // Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
@@ -28,13 +29,12 @@
 #include <tlapack/lapack/ung2r.hpp>
 #include <tlapack/lapack/unghr.hpp>
 
-
 using namespace tlapack;
 
 TEMPLATE_TEST_CASE("Tridiagnolization of a symmetric matrix works",
                    "[hetd2]",
-                    //legacyMatrix<float>)
-                    legacyMatrix<std::complex<float>>)
+                   // legacyMatrix<float>)
+                   legacyMatrix<std::complex<float>>)
 {
     srand(1);
 
@@ -47,185 +47,140 @@ TEMPLATE_TEST_CASE("Tridiagnolization of a symmetric matrix works",
     // Functor
     Create<matrix_t> new_matrix;
 
-    const real_t zero(0);
-
-    const real_t one(1);
-
-    idx_t n;
-
-    n = GENERATE(6);
+    // Generators
+    idx_t n = GENERATE(6, 13, 29);
     const Uplo uplo = GENERATE(Uplo::Lower);
 
+    // Constants
+    const real_t zero(0);
+    const real_t one(1);
     const real_t eps = ulp<real_t>();
-    const real_t tol = real_t(n * n) * eps;
+    const real_t tol = real_t(n) * eps;
 
+    // Matrices and vectors
     std::vector<T> A_;
     auto A = new_matrix(A_, n, n);
-    std::vector<T> A_copy_;
-    auto A_copy = new_matrix(A_copy_, n, n);
     std::vector<T> Q_;
     auto Q = new_matrix(Q_, n, n);
-    std::vector<real_t> E(n-1), D(n);
+    std::vector<real_t> E(n - 1), D(n);
+    std::vector<T> tau(n - 1);
 
+    // Fill A with random values
     for (idx_t j = 0; j < n; ++j)
         for (idx_t i = 0; i < n; ++i)
             A(i, j) = rand_helper<T>();
 
+    // Compute the norm of A
     real_t normA = lange(Norm::Fro, A);
 
+    // Copy A to Q and run the algorithm in Q
     lacpy(uplo, A, Q);
+    hetd2(uplo, Q, tau);
 
-// Think about this, we need tau of size n for unghr
-// But maybe n-1 is better
-//    std::vector<T> tauw(n - 1);
-        std::vector<T> tauw(n);
-
-//    hetd2(uplo, Q, tauw);
-
-    for (idx_t j = 0; j < n; ++j) {
-        Q(j, j) = real(Q(j,j));
-        for (idx_t i = j+1; i < n; ++i)
-            Q(j, i) = conj(Q(i,j));
-    }
-
-
+    // Store D and test that the diagonal of Q is real
     for (idx_t i = 0; i < n; ++i) {
-        std::cout << std::endl;
-        for (idx_t j = 0; j < n; ++j)
-            std::cout << std::setw(3) << Q(i, j) << " ";
-            //std::printf("%+8.4f",Q(i,j));
+        const T& Qii = Q(i, i);
+        CHECK(tlapack::abs(imag(Qii)) < tol * tlapack::abs(Qii));
+        D[i] = real(Qii);
     }
-    std::cout << std::endl;
 
-    gehd2(0,n, Q, tauw);
-
-    for (idx_t i = 0; i < n; ++i) {
-        std::cout << std::endl;
-        for (idx_t j = 0; j < n; ++j)
-            std::cout << std::setw(3) << Q(i, j) << " ";
-            //std::printf("%+8.4f",Q(i,j));
+    // Store E and test that the off-diagonal of Q is real
+    for (idx_t i = 0; i < n - 1; ++i) {
+        const T& Qij = (uplo == Uplo::Lower) ? Q(i + 1, i) : Q(i, i + 1);
+        CHECK(tlapack::abs(imag(Qij)) < tol * tlapack::abs(Qij));
+        E[i] = real(Qij);
     }
-    std::cout << std::endl;
 
-    for (idx_t i = 0; i < n; ++i)
-        D[i] = real(Q(i,i));
-
-    for (idx_t i = 0; i < n-1; ++i)
-        E[i] = real(Q(i+1,i));
-
-
-    std::cout << std::endl;
-
-    for (idx_t i = 0; i < n; ++i)
-        std::cout << std::setw(3) << D[i] << " ";
-    std::cout << std::endl;
-
-    for (idx_t i = 0; i < n-1; ++i)
-        std::cout << std::setw(3) << E[i] << " ";
-    std::cout << std::endl;
-
-    /// TODO: Review the following code
-
-    //ung2r(n - 1, Q, tauw);
-    
-    unghr(0,n, Q, tauw);
-
-
-    auto orth_Q = check_orthogonality(Q);
-    CHECK(orth_Q <= tol);
-
-
-
-
-    // // When upper and positive, e = 1
-    // if (uplo == Uplo::Upper) {
-    //     auto E = diag(A, 1);
+    // for (idx_t i = 0; i < n; ++i) {
+    //     std::cout << std::endl;
+    //     for (idx_t j = 0; j < n; ++j)
+    //         std::cout << std::setw(3) << Q(i, j) << " ";
+    //     // std::printf("%+8.4f",Q(i,j));
     // }
-    // // Else, e = -1
-    // else {
-    //     auto E = diag(A, -1);
-    // }
-    std::vector<T> R_;
-    auto R = new_matrix(R_, n, n);
-    std::vector<T> Z_;
-    auto Z = new_matrix(Z_, n, n);
-    // Compute R = QB
-    for (idx_t i = 0; i != n; ++i) {
-        R(i, 0) = Q(i, 0) * D[0] + Q(i, 1) * E[0];
-        for (idx_t j = 1; j != n - 1; ++j) {
-            R(i, j) = Q(i, j) * D[j] + Q(i, j + 1) * E[j] + Q(i, j) * E[j - 1];
+    // std::cout << std::endl;
+
+    // Compute Q and check that it is orthogonal
+    {
+        // Move the reflectors in Q
+        if (uplo == Uplo::Lower)
+            for (idx_t j = n - 2; j != idx_t(0); --j)
+                for (idx_t i = j + 1; i < n; ++i)
+                    Q(i, j) = Q(i, j - 1);
+        else
+            for (idx_t j = 1; j < n - 1; ++j)
+                for (idx_t i = 0; i < j; ++i)
+                    Q(i, j) = Q(i, j + 1);
+
+        // Complete Q with the identity
+        if (uplo == Uplo::Lower) {
+            for (idx_t i = 1; i < n; ++i) {
+                Q(i, 0) = zero;
+                Q(0, i) = zero;
+            }
+            Q(0, 0) = one;
         }
-        R(i, n - 1) = Q(i, n - 1) * D[n - 1] + Q(i, n - 1) * E[n - 2];
+        else {
+            for (idx_t i = 1; i < n; ++i) {
+                Q(i, n - 1) = zero;
+                Q(n - 1, i) = zero;
+            }
+            Q(n - 1, n - 1) = one;
+        }
+
+        // Compute the Q part that use the reflectors
+        auto Qrefl = (uplo == Uplo::Lower)
+                         ? slice(Q, range(1, n), range(1, n))
+                         : slice(Q, range(0, n - 1), range(0, n - 1));
+        ung2r(n - 1, Qrefl, tau);
+
+        auto orth_Q = check_orthogonality(Q);
+        CHECK(orth_Q <= tol);
+
+        // for (idx_t i = 0; i < n; ++i) {
+        //     std::cout << std::endl;
+        //     for (idx_t j = 0; j < n; ++j)
+        //         std::cout << std::setw(3) << Q(i, j) << " ";
+        //     // std::printf("%+8.4f",Q(i,j));
+        // }
+        // std::cout << std::endl;
     }
 
-    // Create new matrix T where T is tridiagonal, 
-    // Sets some zeros and D and E
-    // Do a gemm
-    
-    gemm(Op::NoTrans, Op::ConjTrans, one, R, Q, -one, A);
+    // Compute A - QBQ^H
+    {
+        // Auxiliary matrix
+        std::vector<T> R_;
+        auto R = new_matrix(R_, n, n);
 
-    CHECK(lange(Norm::Fro, A) / normA < tol);
+        // Compute R = QB
+        for (idx_t i = 0; i < n; ++i) {
+            R(i, 0) = Q(i, 0) * D[0] + Q(i, 1) * E[0];
+            for (idx_t j = 1; j < n - 1; ++j) {
+                R(i, j) = Q(i, j - 1) * E[j - 1] + Q(i, j) * D[j] +
+                          Q(i, j + 1) * E[j];
+            }
+            R(i, n - 1) = Q(i, n - 2) * E[n - 2] + Q(i, n - 1) * D[n - 1];
+        }
 
-    // lacpy(uplo, slice(A, range(0, min(m, k)), range(0, n)), Q);
+        // Make A hermitian
+        if (uplo == Uplo::Upper) {
+            for (idx_t i = 0; i < n; ++i) {
+                for (idx_t j = 0; j < i; ++j)
+                    A(i, j) = conj(A(j, i));
+                A(i, i) = real(A(i, i));
+            }
+        }
+        else {
+            for (idx_t i = 0; i < n; ++i) {
+                for (idx_t j = i + 1; j < n; ++j)
+                    A(i, j) = conj(A(j, i));
+                A(i, i) = real(A(i, i));
+            }
+        }
 
-    // // Workspace computation:
-    // workinfo_t workinfo = {};
-    // gelq2_worksize(A, tauw, workinfo);
-    // ungl2_worksize(Q, tauw, workinfo);
+        // Compute A - QBQ^H
+        gemm(noTranspose, conjTranspose, one, R, Q, -one, A);
 
-    // // Workspace allocation:
-    // vectorOfBytes workVec;
-    // workspace_opts_t<> workOpts(alloc_workspace(workVec, workinfo));
-
-    // for (idx_t j = 0; j < n; ++j)
-    //     for (idx_t i = 0; i < m; ++i)
-    //         A(i, j) = rand_helper<T>();
-
-    // lacpy(Uplo::General, A, A_copy);
-
-    // if (k <= n)  // k must be less than or equal to n, because we cannot get
-    // a Q
-    //              // bigger than n-by-n
-    // {
-    //     INFO("m = " << m << " n = " << n << " k = " << k);
-    //     {
-    //         gelq2(A, tauw, workOpts);
-
-    //         // Q is sliced down to the desired size of output Q (k-by-n).
-    //         // It stores the desired number of Householder reflectors that
-    //         UNGL2
-    //         // will use.
-    //         lacpy(Uplo::General, slice(A, range(0, min(m, k)), range(0, n)),
-    //         Q);
-
-    //         ungl2(Q, tauw, workOpts);
-
-    //         // Wq is the identity matrix to check the orthogonality of Q
-    //         std::vector<T> Wq_;
-    //         auto Wq = new_matrix(Wq_, k, k);
-    //         auto orth_Q = check_orthogonality(Q, Wq);
-    //         CHECK(orth_Q <= tol);
-
-    //         // L is sliced from A after GELQ2
-    //         std::vector<T> L_;
-    //         auto L = new_matrix(L_, min(k, m), k);
-    //         laset(Uplo::Upper, zero, zero, L);
-    //         lacpy(Uplo::Lower, slice(A, range(0, min(m, k)), range(0, k)),
-    //         L);
-
-    //         // R stores the product of L and Q
-    //         std::vector<T> R_;
-    //         auto R = new_matrix(R_, min(k, m), n);
-
-    //         // Test A = L * Q
-    //         gemm(Op::NoTrans, Op::NoTrans, real_t(1.), L, Q, R);
-    //         for (idx_t j = 0; j < n; ++j)
-    //             for (idx_t i = 0; i < min(m, k); ++i)
-    //                 A_copy(i, j) -= R(i, j);
-
-    //         real_t repres = lange(
-    //             Norm::Max, slice(A_copy, range(0, min(m, k)), range(0, n)));
-    //         CHECK(repres <= tol);
-    //     }
-    // }
+        // Check that the error is close to zero
+        CHECK(lange(Norm::Fro, A) / normA < tol);
+    }
 }
