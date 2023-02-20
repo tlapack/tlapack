@@ -30,6 +30,10 @@ void rscl(const alpha_t& alpha, vector_t& x)
 /**
  * Scale vector by the reciprocal of a constant, $x := x / \alpha$.
  *
+ * @note When alpha is complex, the algorithm first computes $1 / \alpha$ and
+ * then do the scaling using tlapack::scal(). This is done to reduce the number
+ * of FLOPS.
+ *
  * @param[in] alpha Scalar.
  * @param[in,out] x A n-element vector.
  *
