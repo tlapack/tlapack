@@ -26,8 +26,8 @@ struct gelqf_opts_t : public workspace_opts_t<> {
     inline constexpr gelqf_opts_t(const workspace_opts_t<>& opts = {})
         : workspace_opts_t<>(opts){};
 
-    idx_t nb = 32;  ///< Block size
-    matrix_t* TT = NULL; // m-by-nb Matrix to store the triangular factors
+    idx_t nb = 32;        ///< Block size
+    matrix_t* TT = NULL;  // m-by-nb Matrix to store the triangular factors
 };
 
 /** Worspace query of gelqf()
@@ -44,7 +44,7 @@ struct gelqf_opts_t : public workspace_opts_t<> {
  *
  * @ingroup workspace_query
  */
-template <typename matrix_t,typename vector_t>
+template <typename matrix_t, typename vector_t>
 inline constexpr void gelqf_worksize(
     const matrix_t& A,
     const vector_t& tau,
@@ -65,8 +65,8 @@ inline constexpr void gelqf_worksize(
     auto A12 = slice(A, range<idx_t>(ib, m), range<idx_t>(0, n));
 
     gelq2_worksize(A11, tau, workinfo, opts);
-    if( opts.TT == NULL ){
-        workinfo_t workinfo2(sizeof(T)*m,nb);
+    if (opts.TT == NULL) {
+        workinfo_t workinfo2(sizeof(T) * m, nb);
         workinfo += workinfo2;
     }
 }
@@ -150,11 +150,11 @@ int gelqf(matrix_t& A,
     // TT serves two functions, it stores the triangular factors
     // in the compact WY representation and the parts that do not
     // store triangular factors yet are used as workspace.
-    // If passed as an optional arguments, it is used so that the 
+    // If passed as an optional arguments, it is used so that the
     // triangular factors can be reused later. Otherwise, workspace is used.
     matrix_t TT = [&]() {
-        if(opts.TT != NULL){
-            tlapack_check( nrows(*opts.TT) >= m and ncols(*opts.TT) >= nb );
+        if (opts.TT != NULL) {
+            tlapack_check(nrows(*opts.TT) >= m and ncols(*opts.TT) >= nb);
             sparework = work;
             return *opts.TT;
         }
@@ -168,7 +168,7 @@ int gelqf(matrix_t& A,
         // Compute the LQ factorization of the current block A(j:j+ib-1,j:n)
         auto TT1 = slice(TT, range(j, j + ib), range(0, ib));
         auto A11 = slice(A, range(j, j + ib), range(j, n));
-        auto tauw1 = slice(tau, range( j, j+ib ));
+        auto tauw1 = slice(tau, range(j, j + ib));
 
         gelq2(A11, tauw1, sparework);
 
