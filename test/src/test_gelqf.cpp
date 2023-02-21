@@ -49,7 +49,7 @@ TEMPLATE_TEST_CASE("LQ factorization of a general m-by-n matrix, blocked",
     k = GENERATE(
         8, 10, 20,
         30);  // k is the number of rows for output Q. Can personalize it.
-    nb = GENERATE(2, 3, 7, 12);  // nb is the block height. Can personalize it.
+    nb = GENERATE(1, 2, 3, 7, 12);  // nb is the block height. Can personalize it.
 
     const real_t eps = ulp<real_t>();
     const real_t tol = real_t(m * n) * eps;
@@ -66,10 +66,11 @@ TEMPLATE_TEST_CASE("LQ factorization of a general m-by-n matrix, blocked",
     std::vector<T> tauw(min(m, n));
 
     // Workspace computation:
-    gelqf_opts_t<idx_t> workOpts;
+    gelqf_opts_t<matrix_t, idx_t> workOpts;
     workOpts.nb = nb;
+    workOpts.TT = &TT;
     workinfo_t workinfo;
-    gelqf_worksize(A, TT, workinfo, workOpts);
+    gelqf_worksize(A, tauw, workinfo, workOpts);
     ungl2_worksize(Q, tauw, workinfo, workOpts);
 
     // Workspace allocation:
@@ -87,15 +88,7 @@ TEMPLATE_TEST_CASE("LQ factorization of a general m-by-n matrix, blocked",
     {
         INFO("m = " << m << " n = " << n << " k = " << k << " nb = " << nb);
         {
-            gelqf(A, TT, workOpts);
-
-            // Build tauw vector from matrix TT
-            for (idx_t j = 0; j < min(m, n); j += nb) {
-                idx_t ib = std::min<idx_t>(nb, min(m, n) - j);
-
-                for (idx_t i = 0; i < ib; i++)
-                    tauw[i + j] = TT(i + j, i);
-            }
+            gelqf(A, tauw, workOpts);
 
             // Q is sliced down to the desired size of output Q (k-by-n).
             // It stores the desired number of Householder reflectors that UNGL2
