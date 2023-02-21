@@ -73,7 +73,7 @@ TEMPLATE_TEST_CASE("sylvester solver gives correct result",
     gemm(trans_l, Op::NoTrans, one, TL, X_exact, B);
     gemm(Op::NoTrans, trans_r, sign, X_exact, TR, one, B);
 
-    INFO("n1 = " << n1 << " n2 =" << n2);
+    DYNAMIC_SECTION("n1 = " << n1 << " n2 =" << n2)
     {
         // Solve sylvester equation
         T scale(0), xnorm;

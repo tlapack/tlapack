@@ -76,72 +76,80 @@ TEMPLATE_TEST_CASE("Generation of Householder reflectors",
     INFO("Type of alpha: " << typeAlpha);
     INFO("alpha = " << alpha);
 
-    // Initialize v
-    if (initialX == "Zeros") {
-        for (idx_t i = 0; i < n; ++i) {
-            v[i] = zero;
-        }
-    }
-    else {  // initialX == 'R'
-        for (idx_t i = 0; i < n; ++i) {
-            v[i] = rand_helper<T>();
-        }
-    }
-    v[alphaIdx] = alpha;
-
-    // Copy v to w
-    for (idx_t i = 0; i < n; ++i) {
-        w[i] = v[i];
-    }
-
-    // Place to store the scalar factor of the Householder reflector
-    T tau;
-
-    if (whichLARFG == "alpha,x") {
-        auto x = slice(
-            v, (direction == Direction::Forward) ? pair(1, n) : pair(0, n - 1));
-        larfg(storeMode, v[alphaIdx], x, tau);
-    }
-    else  // whichLARFG == "direction,v"
+    DYNAMIC_SECTION("n = " << n << " direction = " << direction
+                           << " storeMode = " << storeMode << " initialX = "
+                           << initialX << " typeAlpha = " << typeAlpha
+                           << " whichLARFG = " << whichLARFG)
     {
-        larfg(direction, storeMode, v, tau);
-    }
+        // Initialize v
+        if (initialX == "Zeros") {
+            for (idx_t i = 0; i < n; ++i) {
+                v[i] = zero;
+            }
+        }
+        else {  // initialX == 'R'
+            for (idx_t i = 0; i < n; ++i) {
+                v[i] = rand_helper<T>();
+            }
+        }
+        v[alphaIdx] = alpha;
 
-    // Post-process v and extract beta
-    const T beta = v[alphaIdx];
-    v[alphaIdx] = one;
+        // Copy v to w
+        for (idx_t i = 0; i < n; ++i) {
+            w[i] = v[i];
+        }
 
-    // Check that the imaginary part of beta is zero
-    CHECK((imag(beta) == zero));
+        // Place to store the scalar factor of the Householder reflector
+        T tau;
 
-    // If the elements of x are all zero and alpha is real, then tau = 0
-    if (typeAlpha == "Real" && initialX == "Zeros") {
-        CHECK(tau == zero);
-    }
-    // Otherwise  1 <= real(tau) <= 2 and abs(tau-1) <= 1.
-    else {
-        CHECK(one <= real(tau));
-        CHECK(real(tau) <= two);
-        CHECK(tlapack::abs(tau - one) <= one);
-    }
+        if (whichLARFG == "alpha,x") {
+            auto x =
+                slice(v, (direction == Direction::Forward) ? pair(1, n)
+                                                           : pair(0, n - 1));
+            larfg(storeMode, v[alphaIdx], x, tau);
+        }
+        else  // whichLARFG == "direction,v"
+        {
+            larfg(direction, storeMode, v, tau);
+        }
 
-    const T vHw = dot(v, w);
-    if (storeMode == StoreV::Columnwise) {
-        // Check that (id - conj(tau)*v*v^H)*[alpha x]^t = [beta 0]^t
-        for (idx_t i = 0; i < n; ++i)
-            w[i] -= v[i] * conj(tau) * vHw;
-    }
-    else {
-        // Check that [alpha x]*(id - tau*v*v^H) = [beta 0]
-        for (idx_t i = 0; i < n; ++i)
-            w[i] -= vHw * tau * v[i];
-    }
+        // Post-process v and extract beta
+        const T beta = v[alphaIdx];
+        v[alphaIdx] = one;
 
-    // Check that larfg returns the expected reflection
-    CHECK(tlapack::abs(real(w[alphaIdx]) - beta) / tol < tlapack::abs(beta));
-    CHECK(tlapack::abs(imag(w[alphaIdx])) / tol < one);
-    w[alphaIdx] = zero;
-    CHECK(tlapack::nrm2(w) / tol < one);
+        // Check that the imaginary part of beta is zero
+        CHECK((imag(beta) == zero));
+
+        // If the elements of x are all zero and alpha is real, then tau = 0
+        if (typeAlpha == "Real" && initialX == "Zeros") {
+            CHECK(tau == zero);
+        }
+        // Otherwise  1 <= real(tau) <= 2 and abs(tau-1) <= 1.
+        else {
+            CHECK(one <= real(tau));
+            CHECK(real(tau) <= two);
+            CHECK(tlapack::abs(tau - one) <= one);
+        }
+
+        const T vHw = dot(v, w);
+        if (storeMode == StoreV::Columnwise) {
+            // Check that (id - conj(tau)*v*v^H)*[alpha x]^t = [beta 0]^t
+            for (idx_t i = 0; i < n; ++i)
+                w[i] -= v[i] * conj(tau) * vHw;
+        }
+        else {
+            // Check that [alpha x]*(id - tau*v*v^H) = [beta 0]
+            for (idx_t i = 0; i < n; ++i)
+                w[i] -= vHw * tau * v[i];
+        }
+
+        // Check that larfg returns the expected reflection
+        CHECK(tlapack::abs(real(w[alphaIdx]) - beta) / tol <
+              tlapack::abs(beta));
+        CHECK(tlapack::abs(imag(w[alphaIdx])) / tol < one);
+        w[alphaIdx] = zero;
+        CHECK(tlapack::nrm2(w) / tol < one);
+    }
 }
 
 TEMPLATE_TEST_CASE("Application of Householder reflectors",
@@ -167,86 +175,85 @@ TEMPLATE_TEST_CASE("Application of Householder reflectors",
         GENERATE(Direction::Forward, Direction::Backward);
     const StoreV storeMode = GENERATE(StoreV::Columnwise, StoreV::Rowwise);
 
-    // Print test parameters
-    INFO("Matrix size: " << m << "-by-" << n);
-    INFO("Side: " << side);
-    INFO("Direction: " << direction);
-    INFO("Store mode: " << storeMode);
+    DYNAMIC_SECTION("m = " << m << " n = " << n << " side = " << side
+                           << " direction = " << direction
+                           << " storeMode = " << storeMode)
+    {
+        // Constants
+        const idx_t k = (side == Side::Left) ? m : n;
+        const real_t tol = real_t(4 * std::max(m, n)) * ulp<real_t>();
+        const real_t one(1);
+        const idx_t oneIdx = (direction == Direction::Forward) ? 0 : k - 1;
 
-    // Constants
-    const idx_t k = (side == Side::Left) ? m : n;
-    const real_t tol = real_t(4 * std::max(m, n)) * ulp<real_t>();
-    const real_t one(1);
-    const idx_t oneIdx = (direction == Direction::Forward) ? 0 : k - 1;
+        // Vectors
+        std::vector<T> v_;
+        auto v = new_vector(v_, k);
+        std::vector<T> vH_;
+        auto vH = new_vector(vH_, k);
+        std::vector<T> w_;
+        auto w = new_vector(w_, (side == Side::Left) ? n : m);
 
-    // Vectors
-    std::vector<T> v_;
-    auto v = new_vector(v_, k);
-    std::vector<T> vH_;
-    auto vH = new_vector(vH_, k);
-    std::vector<T> w_;
-    auto w = new_vector(w_, (side == Side::Left) ? n : m);
+        // Build v and tau
+        for (idx_t i = 0; i < k; ++i)
+            v[i] = rand_helper<T>();
+        T tau;
+        larfg(direction, storeMode, v, tau);
+        v[oneIdx] =
+            real_t(0xDEADBEEF);  // Put trash in the element that should be one
 
-    // Build v and tau
-    for (idx_t i = 0; i < k; ++i)
-        v[i] = rand_helper<T>();
-    T tau;
-    larfg(direction, storeMode, v, tau);
-    v[oneIdx] =
-        real_t(0xDEADBEEF);  // Put trash in the element that should be one
+        // Initialize vH
+        for (idx_t i = 0; i < k; ++i)
+            vH[i] = conj(v[i]);
 
-    // Initialize vH
-    for (idx_t i = 0; i < k; ++i)
-        vH[i] = conj(v[i]);
+        // Initialize matrix C
+        std::vector<T> C_;
+        auto C = new_matrix(C_, m, n);
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = 0; i < m; ++i)
+                C(i, j) = rand_helper<T>();
 
-    // Initialize matrix C
-    std::vector<T> C_;
-    auto C = new_matrix(C_, m, n);
-    for (idx_t j = 0; j < n; ++j)
-        for (idx_t i = 0; i < m; ++i)
-            C(i, j) = rand_helper<T>();
+        // Copy C to C0
+        std::vector<T> C0_;
+        auto C0 = new_matrix(C0_, m, n);
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = 0; i < m; ++i)
+                C0(i, j) = C(i, j);
 
-    // Copy C to C0
-    std::vector<T> C0_;
-    auto C0 = new_matrix(C0_, m, n);
-    for (idx_t j = 0; j < n; ++j)
-        for (idx_t i = 0; i < m; ++i)
-            C0(i, j) = C(i, j);
+        // Apply the Householder reflector
+        larf(side, direction, storeMode, v, tau, C);
 
-    // Apply the Householder reflector
-    larf(side, direction, storeMode, v, tau, C);
-
-    // Apply the inverse Householder reflector
-    if (side == Side::Left) {
-        if (storeMode == StoreV::Columnwise) {
-            v[oneIdx] = one;
-            gemv(conjTranspose, one, C, v, w);
-            ger(-conj(tau), v, w, C);
+        // Apply the inverse Householder reflector
+        if (side == Side::Left) {
+            if (storeMode == StoreV::Columnwise) {
+                v[oneIdx] = one;
+                gemv(conjTranspose, one, C, v, w);
+                ger(-conj(tau), v, w, C);
+            }
+            else {
+                vH[oneIdx] = one;
+                gemv(conjTranspose, one, C, vH, w);
+                ger(-conj(tau), vH, w, C);
+            }
         }
         else {
-            vH[oneIdx] = one;
-            gemv(conjTranspose, one, C, vH, w);
-            ger(-conj(tau), vH, w, C);
+            if (storeMode == StoreV::Columnwise) {
+                v[oneIdx] = one;
+                gemv(noTranspose, one, C, v, w);
+                ger(-conj(tau), w, v, C);
+            }
+            else {
+                vH[oneIdx] = one;
+                gemv(noTranspose, one, C, vH, w);
+                ger(-conj(tau), w, vH, C);
+            }
         }
-    }
-    else {
-        if (storeMode == StoreV::Columnwise) {
-            v[oneIdx] = one;
-            gemv(noTranspose, one, C, v, w);
-            ger(-conj(tau), w, v, C);
-        }
-        else {
-            vH[oneIdx] = one;
-            gemv(noTranspose, one, C, vH, w);
-            ger(-conj(tau), w, vH, C);
-        }
-    }
 
-    // Subtract C0 from C
-    for (idx_t j = 0; j < n; ++j)
-        for (idx_t i = 0; i < m; ++i)
-            C(i, j) -= C0(i, j);
+        // Subtract C0 from C
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = 0; i < m; ++i)
+                C(i, j) -= C0(i, j);
 
-    // Check that larf returns the expected matrix
-    CHECK(lange(frob_norm, C) / tol < lange(frob_norm, C0));
+        // Check that larf returns the expected matrix
+        CHECK(lange(frob_norm, C) / tol < lange(frob_norm, C0));
+    }
 }

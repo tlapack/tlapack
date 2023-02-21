@@ -44,17 +44,10 @@ TEMPLATE_TEST_CASE("Result of unmhr matches result from unghr",
     Side side = GENERATE(Side::Left, Side::Right);
     Op op = GENERATE(Op::NoTrans, Op::ConjTrans);
 
-    INFO("matrix_type = " << matrix_type);
-    INFO("side = " << side);
-    INFO("Op = " << op);
-
     idx_t m = 12;
     idx_t n = 10;
     idx_t ilo = GENERATE(0, 1);
     idx_t ihi = GENERATE(9, 10);
-
-    INFO("ilo = " << ilo);
-    INFO("ihi = " << ihi);
 
     const T zero(0);
     const T one(1);
@@ -104,6 +97,9 @@ TEMPLATE_TEST_CASE("Result of unmhr matches result from unghr",
     // Hessenberg reduction of H
     gehd2(ilo, ihi, H, tau, workOpts);
 
+    DYNAMIC_SECTION("matrix_type = " << matrix_type << " side = " << side
+                                     << " op = " << op << " ilo = " << ilo
+                                     << " ihi = " << ihi << " frob_norm")
     {
         real_t c_norm = lange(frob_norm, C);
 

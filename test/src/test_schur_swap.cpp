@@ -71,7 +71,7 @@ TEMPLATE_TEST_CASE("schur swap gives correct result",
         lacpy(Uplo::General, A, A_copy);
         laset(Uplo::General, zero, one, Q);
 
-        INFO("j = " << j << " n1 = " << n1 << " n2 =" << n2);
+        DYNAMIC_SECTION("j = " << j << " n1 = " << n1 << " n2 =" << n2)
         {
             schur_swap(true, A, Q, j, n1, n2);
             // Calculate residuals

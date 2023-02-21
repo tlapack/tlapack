@@ -49,79 +49,79 @@ TEMPLATE_TEST_CASE(
     const idx_t n = GENERATE(10, 19, 30);
     const Uplo uplo = GENERATE(Uplo::Lower, Uplo::Upper);
 
-    INFO("Variant: " << (char)variant.first << ", nb: " << variant.second);
-    INFO("Matrix size: " << n << "x" << n);
-    INFO("Uplo: " << uplo);
+    DYNAMIC_SECTION("n = " << n << " uplo = " << uplo << " variant = "
+                           << (char)variant.first << " nb = " << variant.second)
+    {
+        // eps is the machine precision, and tol is the tolerance we accept for
+        // tests to pass
+        const real_t eps = ulp<real_t>();
+        const real_t tol = real_t(n) * eps;
 
-    // eps is the machine precision, and tol is the tolerance we accept for
-    // tests to pass
-    const real_t eps = ulp<real_t>();
-    const real_t tol = real_t(n) * eps;
+        // Create matrices
+        std::vector<T> A_;
+        auto A = new_matrix(A_, n, n);
+        std::vector<T> L_;
+        auto L = new_matrix(L_, n, n);
+        std::vector<T> E_;
+        auto E = new_matrix(E_, n, n);
 
-    // Create matrices
-    std::vector<T> A_;
-    auto A = new_matrix(A_, n, n);
-    std::vector<T> L_;
-    auto L = new_matrix(L_, n, n);
-    std::vector<T> E_;
-    auto E = new_matrix(E_, n, n);
-
-    // Update A with random numbers
-    for (idx_t j = 0; j < n; ++j) {
-        for (idx_t i = 0; i < n; ++i) {
-            if (uplo == Uplo::Lower && i >= j)
-                A(i, j) = rand_helper<T>();
-            else if (uplo == Uplo::Upper && i <= j)
-                A(i, j) = rand_helper<T>();
-            else
-                A(i, j) = real_t(0xCAFEBABE);
+        // Update A with random numbers
+        for (idx_t j = 0; j < n; ++j) {
+            for (idx_t i = 0; i < n; ++i) {
+                if (uplo == Uplo::Lower && i >= j)
+                    A(i, j) = rand_helper<T>();
+                else if (uplo == Uplo::Upper && i <= j)
+                    A(i, j) = rand_helper<T>();
+                else
+                    A(i, j) = real_t(0xCAFEBABE);
+            }
+            A(j, j) += real_t(n);
         }
-        A(j, j) += real_t(n);
+
+        lacpy(dense, A, L);
+        real_t normA = tlapack::lanhe(tlapack::Norm::Max, uplo, A);
+
+        // Run the Cholesky factorization
+        potrf_opts_t<idx_t> opts;
+        opts.variant = variant.first;
+        opts.nb = variant.second;
+        int info = potrf(uplo, L, opts);
+
+        // Check that the factorization was successful
+        REQUIRE(info == 0);
+
+        // Initialize E with the hermitian part of L
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = 0; i < n; ++i) {
+                if (uplo == Uplo::Lower && i <= j)
+                    E(i, j) = conj(L(j, i));
+                else if (uplo == Uplo::Upper && i >= j)
+                    E(i, j) = conj(L(j, i));
+                else
+                    E(i, j) = real_t(0);
+            }
+
+        // Compute E = L*L^H or E = L^H*L
+        if (uplo == Uplo::Lower)
+            trmm(Side::Left, Uplo::Lower, Op::NoTrans, Diag::NonUnit, real_t(1),
+                 L, E);
+        else
+            trmm(Side::Right, Uplo::Upper, Op::NoTrans, Diag::NonUnit,
+                 real_t(1), L, E);
+
+        // Check that the factorization is correct
+        for (idx_t i = 0; i < n; i++)
+            for (idx_t j = 0; j < n; j++) {
+                if (uplo == Uplo::Lower && i >= j)
+                    E(i, j) -= A(i, j);
+                else if (uplo == Uplo::Upper && i <= j)
+                    E(i, j) -= A(i, j);
+            }
+
+        // Check for relative error: norm(A-cholesky(A))/norm(A)
+        real_t error = tlapack::lanhe(tlapack::Norm::Max, uplo, E) / normA;
+        CHECK(error <= tol);
     }
-
-    lacpy(dense, A, L);
-    real_t normA = tlapack::lanhe(tlapack::Norm::Max, uplo, A);
-
-    // Run the Cholesky factorization
-    potrf_opts_t<idx_t> opts;
-    opts.variant = variant.first;
-    opts.nb = variant.second;
-    int info = potrf(uplo, L, opts);
-
-    // Check that the factorization was successful
-    REQUIRE(info == 0);
-
-    // Initialize E with the hermitian part of L
-    for (idx_t j = 0; j < n; ++j)
-        for (idx_t i = 0; i < n; ++i) {
-            if (uplo == Uplo::Lower && i <= j)
-                E(i, j) = conj(L(j, i));
-            else if (uplo == Uplo::Upper && i >= j)
-                E(i, j) = conj(L(j, i));
-            else
-                E(i, j) = real_t(0);
-        }
-
-    // Compute E = L*L^H or E = L^H*L
-    if (uplo == Uplo::Lower)
-        trmm(Side::Left, Uplo::Lower, Op::NoTrans, Diag::NonUnit, real_t(1), L,
-             E);
-    else
-        trmm(Side::Right, Uplo::Upper, Op::NoTrans, Diag::NonUnit, real_t(1), L,
-             E);
-
-    // Check that the factorization is correct
-    for (idx_t i = 0; i < n; i++)
-        for (idx_t j = 0; j < n; j++) {
-            if (uplo == Uplo::Lower && i >= j)
-                E(i, j) -= A(i, j);
-            else if (uplo == Uplo::Upper && i <= j)
-                E(i, j) -= A(i, j);
-        }
-
-    // Check for relative error: norm(A-cholesky(A))/norm(A)
-    real_t error = tlapack::lanhe(tlapack::Norm::Max, uplo, E) / normA;
-    CHECK(error <= tol);
 }
 
 TEMPLATE_TEST_CASE("Cholesky factorization access valid positions only",
@@ -144,41 +144,41 @@ TEMPLATE_TEST_CASE("Cholesky factorization access valid positions only",
     const idx_t n = GENERATE(10);
     const Uplo uplo = GENERATE(Uplo::Lower, Uplo::Upper);
 
-    INFO("Variant: " << (char)variant.first << ", nb: " << variant.second);
-    INFO("Matrix size: " << n << "x" << n);
-    INFO("Uplo: " << uplo);
+    DYNAMIC_SECTION("n = " << n << " uplo = " << uplo << " variant = "
+                           << (char)variant.first << " nb = " << variant.second)
+    {
+        // Create matrices
+        std::vector<T> A_;
+        auto A = new_matrix(A_, n, n);
 
-    // Create matrices
-    std::vector<T> A_;
-    auto A = new_matrix(A_, n, n);
-
-    // Update A with random numbers
-    for (idx_t j = 0; j < n; ++j) {
-        for (idx_t i = 0; i < n; ++i) {
-            if (uplo == Uplo::Lower && i >= j)
-                A(i, j) = rand_helper<T>();
-            else if (uplo == Uplo::Upper && i <= j)
-                A(i, j) = rand_helper<T>();
-            else
-                A(i, j) = real_t(0xCAFEBABE);
+        // Update A with random numbers
+        for (idx_t j = 0; j < n; ++j) {
+            for (idx_t i = 0; i < n; ++i) {
+                if (uplo == Uplo::Lower && i >= j)
+                    A(i, j) = rand_helper<T>();
+                else if (uplo == Uplo::Upper && i <= j)
+                    A(i, j) = rand_helper<T>();
+                else
+                    A(i, j) = real_t(0xCAFEBABE);
+            }
+            A(j, j) += real_t(n);
         }
-        A(j, j) += real_t(n);
-    }
 
-    // Run the Cholesky factorization
-    potrf_opts_t<idx_t> opts;
-    opts.variant = variant.first;
-    opts.nb = variant.second;
-    if (uplo == Uplo::Lower) {
-        TestUploMatrix<T, idx_t, Uplo::Lower, L> testA(A);
+        // Run the Cholesky factorization
+        potrf_opts_t<idx_t> opts;
+        opts.variant = variant.first;
+        opts.nb = variant.second;
+        if (uplo == Uplo::Lower) {
+            TestUploMatrix<T, idx_t, Uplo::Lower, L> testA(A);
 
-        int info = potrf(uplo, testA, opts);
-        REQUIRE(info == 0);
-    }
-    else {
-        TestUploMatrix<T, idx_t, Uplo::Upper, L> testA(A);
+            int info = potrf(uplo, testA, opts);
+            REQUIRE(info == 0);
+        }
+        else {
+            TestUploMatrix<T, idx_t, Uplo::Upper, L> testA(A);
 
-        int info = potrf(uplo, testA, opts);
-        REQUIRE(info == 0);
+            int info = potrf(uplo, testA, opts);
+            REQUIRE(info == 0);
+        }
     }
 }

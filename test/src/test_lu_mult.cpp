@@ -41,43 +41,44 @@ TEMPLATE_TEST_CASE("lu multiplication is backward stable",
     idx_t n, nx;
 
     n = GENERATE(1, 2, 6, 9);
-    INFO("n = " << n);
     nx = GENERATE(1, 2, 4, 5);
-    INFO("nx = " << nx);
 
-    if (nx <= n) {
-        const real_t eps = ulp<real_t>();
-        const real_t tol = real_t(n) * eps;
+    DYNAMIC_SECTION("n = " << n << " nx = " << nx)
+    {
+        if (nx <= n) {
+            const real_t eps = ulp<real_t>();
+            const real_t tol = real_t(n) * eps;
 
-        std::vector<T> L_;
-        auto L = new_matrix(L_, n, n);
-        std::vector<T> U_;
-        auto U = new_matrix(U_, n, n);
-        std::vector<T> A_;
-        auto A = new_matrix(A_, n, n);
+            std::vector<T> L_;
+            auto L = new_matrix(L_, n, n);
+            std::vector<T> U_;
+            auto U = new_matrix(U_, n, n);
+            std::vector<T> A_;
+            auto A = new_matrix(A_, n, n);
 
-        // Generate n-by-n random matrix
-        for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = 0; i < n; ++i)
-                A(i, j) = rand_helper<T>();
+            // Generate n-by-n random matrix
+            for (idx_t j = 0; j < n; ++j)
+                for (idx_t i = 0; i < n; ++i)
+                    A(i, j) = rand_helper<T>();
 
-        lacpy(Uplo::Lower, A, L);
-        laset(Uplo::Upper, real_t(0), real_t(1), L);
+            lacpy(Uplo::Lower, A, L);
+            laset(Uplo::Upper, real_t(0), real_t(1), L);
 
-        laset(Uplo::Lower, real_t(0), real_t(0), U);
-        lacpy(Uplo::Upper, A, U);
+            laset(Uplo::Lower, real_t(0), real_t(0), U);
+            lacpy(Uplo::Upper, A, U);
 
-        real_t norma = lange(max_norm, A);
+            real_t norma = lange(max_norm, A);
 
-        {
-            lu_mult(A);
+            {
+                lu_mult(A);
 
-            // Calculate residual
+                // Calculate residual
 
-            gemm(Op::NoTrans, Op::NoTrans, real_t(1), L, U, real_t(-1), A);
+                gemm(Op::NoTrans, Op::NoTrans, real_t(1), L, U, real_t(-1), A);
 
-            real_t lu_mult_res_norm = lange(max_norm, A) / norma;
-            CHECK(lu_mult_res_norm <= tol);
+                real_t lu_mult_res_norm = lange(max_norm, A) / norma;
+                CHECK(lu_mult_res_norm <= tol);
+            }
         }
     }
 }

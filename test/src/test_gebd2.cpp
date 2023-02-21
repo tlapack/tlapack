@@ -86,7 +86,7 @@ TEMPLATE_TEST_CASE("bidiagonal reduction is backward stable",
 
         lacpy(Uplo::General, A, A_copy);
 
-        INFO("m = " << m << " n = " << n);
+        DYNAMIC_SECTION("m = " << m << " n = " << n)
         {
             gebd2(A, tauv, tauw, workOpts);
 

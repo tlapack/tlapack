@@ -91,8 +91,8 @@ TEMPLATE_TEST_CASE("move of eigenvalue block gives correct results",
         lacpy(Uplo::General, A, A_copy);
         laset(Uplo::General, zero, one, Q);
 
-        INFO("ifst = " << ifst << " n1 = " << n1 << " ilst = " << ilst
-                       << " n2 =" << n2);
+        DYNAMIC_SECTION("ifst = " << ifst << " n1 = " << n1
+                                  << " ilst = " << ilst << " n2 =" << n2)
         {
             schur_move(true, A, Q, ifst, ilst);
             // Calculate residuals

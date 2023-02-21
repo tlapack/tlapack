@@ -53,7 +53,7 @@ TEMPLATE_TEST_CASE("LAUUM is stable", "[lauum]", TLAPACK_TYPES_TO_TEST)
 
     lacpy(Uplo::General, A, C);
 
-    INFO("n = " << n << " uplo = " << uplo);
+    DYNAMIC_SECTION("n = " << n << " uplo = " << uplo)
     {
         lauum_recursive(uplo, A);
 

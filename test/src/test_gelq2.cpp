@@ -80,7 +80,7 @@ TEMPLATE_TEST_CASE("LQ factorization of a general m-by-n matrix",
     if (k <= n)  // k must be less than or equal to n, because we cannot get a Q
                  // bigger than n-by-n
     {
-        INFO("m = " << m << " n = " << n << " k = " << k);
+        DYNAMIC_SECTION("m = " << m << " n = " << n << " k = " << k)
         {
             gelq2(A, tauw, workOpts);
 

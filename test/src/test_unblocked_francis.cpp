@@ -95,8 +95,8 @@ TEMPLATE_TEST_CASE("Double shift QR",
     std::vector<complex_t> s(n);
     laset(Uplo::General, zero, one, Q);
 
-    INFO("matrix = " << matrix_type << " n = " << n << " ilo = " << ilo
-                     << " ihi = " << ihi);
+    DYNAMIC_SECTION("matrix = " << matrix_type << " n = " << n
+                                << " ilo = " << ilo << " ihi = " << ihi)
     {
         int ierr = lahqr(true, true, ilo, ihi, H, s, Q);
 
