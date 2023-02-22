@@ -123,9 +123,9 @@ TEMPLATE_TEST_CASE("Multishift QR",
     idx_t ns = GENERATE(4, 2);
     idx_t nw = GENERATE(4, 2);
 
-    INFO("matrix = " << matrix_type << " n = " << n << " ilo = " << ilo
-                     << " ihi = " << ihi << " ns = " << ns << " nw = " << nw
-                     << " seed = " << seed);
+    DYNAMIC_SECTION("matrix = " << matrix_type << " n = " << n << " ilo = "
+                                << ilo << " ihi = " << ihi << " ns = " << ns
+                                << " nw = " << nw << " seed = " << seed)
     {
         francis_opts_t<idx_t> opts;
         opts.nshift_recommender = [ns](idx_t n, idx_t nh) -> idx_t {

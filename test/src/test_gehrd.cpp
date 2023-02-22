@@ -128,26 +128,27 @@ TEMPLATE_TEST_CASE("Hessenberg reduction is backward stable",
             A(i, j) = (T)0.0;
     tlapack::lacpy(Uplo::General, A, H);
 
-    INFO("matrix = " << matrix_type << " n = " << n << " ilo = " << ilo
-                     << " ihi = " << ihi);
-
-    SECTION("GEHD2")
+    DYNAMIC_SECTION("matrix = " << matrix_type << " n = " << n
+                                << " ilo = " << ilo << " ihi = " << ihi)
     {
-        tlapack::gehd2(ilo, ihi, H, tau);
+        SECTION("GEHD2")
+        {
+            tlapack::gehd2(ilo, ihi, H, tau);
 
-        check_hess_reduction(ilo, ihi, H, tau, A);
-    }
+            check_hess_reduction(ilo, ihi, H, tau, A);
+        }
 
-    SECTION("GEHRD")
-    {
-        idx_t nb = GENERATE(2, 3);
-        INFO("nb = " << nb);
+        SECTION("GEHRD")
+        {
+            idx_t nb = GENERATE(2, 3);
+            INFO("nb = " << nb);
 
-        gehrd_opts_t<idx_t> opts;
-        opts.nb = nb;
-        opts.nx_switch = 2;
-        tlapack::gehrd(ilo, ihi, H, tau, opts);
+            gehrd_opts_t<idx_t> opts;
+            opts.nb = nb;
+            opts.nx_switch = 2;
+            tlapack::gehrd(ilo, ihi, H, tau, opts);
 
-        check_hess_reduction(ilo, ihi, H, tau, A);
+            check_hess_reduction(ilo, ihi, H, tau, A);
+        }
     }
 }

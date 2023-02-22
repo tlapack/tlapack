@@ -43,67 +43,66 @@ TEMPLATE_TEST_CASE("Inversion of a general m-by-n matrix",
     idx_t n = GENERATE(5, 10, 20, 100);
     GetriVariant variant = GENERATE(GetriVariant::UXLI, GetriVariant::UILI);
 
-    // eps is the machine precision, and tol is the tolerance we accept for
-    // tests to pass
-    const real_t eps = ulp<real_t>();
-    const real_t tol = real_t(n * n) * eps;
+    DYNAMIC_SECTION("n = " << n << " variant = " << (char)variant)
+    {
+        // eps is the machine precision, and tol is the tolerance we accept for
+        // tests to pass
+        const real_t eps = ulp<real_t>();
+        const real_t tol = real_t(n * n) * eps;
 
-    // Initialize matrices A, and invA to run tests on
-    std::vector<T> A_;
-    auto A = new_matrix(A_, n, n);
-    std::vector<T> invA_;
-    auto invA = new_matrix(invA_, n, n);
+        // Initialize matrices A, and invA to run tests on
+        std::vector<T> A_;
+        auto A = new_matrix(A_, n, n);
+        std::vector<T> invA_;
+        auto invA = new_matrix(invA_, n, n);
 
-    // forming A, a random matrix
-    for (idx_t j = 0; j < n; ++j)
-        for (idx_t i = 0; i < n; ++i) {
-            A(i, j) = rand_helper<T>();
-        }
+        // forming A, a random matrix
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = 0; i < n; ++i) {
+                A(i, j) = rand_helper<T>();
+            }
 
-    // make a deep copy A
-    lacpy(Uplo::General, A, invA);
+        // make a deep copy A
+        lacpy(Uplo::General, A, invA);
 
-    // calculate norm of A for later use in relative error
-    real_t norma = tlapack::lange(tlapack::Norm::Max, A);
+        // calculate norm of A for later use in relative error
+        real_t norma = tlapack::lange(tlapack::Norm::Max, A);
 
-    // LU factorize Pivoted A
-    std::vector<idx_t> Piv(n, idx_t(0));
-    getrf(invA, Piv);
+        // LU factorize Pivoted A
+        std::vector<idx_t> Piv(n, idx_t(0));
+        getrf(invA, Piv);
 
-    // run inverse function, this could test any inverse function of choice
-    getri_opts_t opts;
-    opts.variant = variant;
-    getri(invA, Piv, opts);
+        // run inverse function, this could test any inverse function of choice
+        getri_opts_t opts;
+        opts.variant = variant;
+        getri(invA, Piv, opts);
 
-    // building error matrix E
-    std::vector<T> E_;
-    auto E = new_matrix(E_, n, n);
+        // building error matrix E
+        std::vector<T> E_;
+        auto E = new_matrix(E_, n, n);
 
-    // E <----- inv(A)*A - I
-    gemm(Op::NoTrans, Op::NoTrans, real_t(1), A, invA, E);
-    for (idx_t i = 0; i < n; i++)
-        E(i, i) -= real_t(1);
+        // E <----- inv(A)*A - I
+        gemm(Op::NoTrans, Op::NoTrans, real_t(1), A, invA, E);
+        for (idx_t i = 0; i < n; i++)
+            E(i, i) -= real_t(1);
 
-    // error is  || inv(A)*A - I || / ( ||A|| * ||inv(A)|| )
-    real_t error = tlapack::lange(tlapack::Norm::Max, E) /
-                   (norma * tlapack::lange(tlapack::Norm::Max, invA));
+        // error is  || inv(A)*A - I || / ( ||A|| * ||inv(A)|| )
+        real_t error = tlapack::lange(tlapack::Norm::Max, E) /
+                       (norma * tlapack::lange(tlapack::Norm::Max, invA));
 
-    INFO("|| inv(A)*A - I || / ( ||A|| * ||inv(A)|| )");
-    INFO("n = " << n);
-    INFO("variant = " << (char)variant);
-    CHECK(error / tol <= real_t(1));  // tests if error<=tol
+        UNSCOPED_INFO("|| inv(A)*A - I || / ( ||A|| * ||inv(A)|| )");
+        CHECK(error / tol <= real_t(1));  // tests if error<=tol
 
-    // E <----- A*inv(A) - I
-    gemm(Op::NoTrans, Op::NoTrans, real_t(1), invA, A, E);
-    for (idx_t i = 0; i < n; i++)
-        E(i, i) -= real_t(1);
+        // E <----- A*inv(A) - I
+        gemm(Op::NoTrans, Op::NoTrans, real_t(1), invA, A, E);
+        for (idx_t i = 0; i < n; i++)
+            E(i, i) -= real_t(1);
 
-    // error is  || A*inv(A) - I || / ( ||A|| * ||inv(A)|| )
-    error = tlapack::lange(tlapack::Norm::Max, E) /
-            (norma * tlapack::lange(tlapack::Norm::Max, invA));
+        // error is  || A*inv(A) - I || / ( ||A|| * ||inv(A)|| )
+        error = tlapack::lange(tlapack::Norm::Max, E) /
+                (norma * tlapack::lange(tlapack::Norm::Max, invA));
 
-    INFO("|| A*inv(A) - I || / ( ||A|| * ||inv(A)|| )");
-    INFO("n = " << n);
-    INFO("variant = " << (char)variant);
-    CHECK(error / tol <= real_t(1));  // tests if error<=tol
+        UNSCOPED_INFO("|| A*inv(A) - I || / ( ||A|| * ||inv(A)|| )");
+        CHECK(error / tol <= real_t(1));  // tests if error<=tol
+    }
 }

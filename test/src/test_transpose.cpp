@@ -48,7 +48,7 @@ TEMPLATE_TEST_CASE("Conjugate Transpose gives correct result",
         for (idx_t i = 0; i < m; ++i)
             A(i, j) = rand_helper<T>();
 
-    INFO("m = " << m << " n = " << n);
+    DYNAMIC_SECTION("m = " << m << " n = " << n)
     {
         transpose_opts_t<idx_t> opts;
         // Set nx to a small value so that the blocked algorithm gets tested
@@ -91,7 +91,7 @@ TEMPLATE_TEST_CASE("Transpose gives correct result",
         for (idx_t i = 0; i < m; ++i)
             A(i, j) = rand_helper<T>();
 
-    INFO("m = " << m << " n = " << n);
+    DYNAMIC_SECTION("m = " << m << " n = " << n)
     {
         transpose_opts_t<idx_t> opts;
         // Set nx to a small value so that the blocked algorithm gets tested

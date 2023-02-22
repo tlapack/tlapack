@@ -8,7 +8,7 @@ Thank you for investing your precious time to contribute to \<T\>LAPACK! Please 
 
 \<T\>LAPACK uses [ClangFormat](https://clang.llvm.org/docs/ClangFormat.html) (version 10) to enforce a consistent code style. The configuration file is located at [`.clang-format`](.clang-format). The code style is based on the [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html) and the differences are marked in the configuration file. You should never modify the [`.clang-format`](.clang-format) file in \<T\>LAPACK, unless this is the reason behind your pull request.
 
-To format code you are adding or modifying, we suggest using the [git-clang-format](https://github.com/llvm-mirror/clang/blob/master/tools/clang-format/git-clang-format) script that is distributed together with ClangFormat. Use `git clang-format` to format the code that was modified or added before a commit. You can use `git-clang-format --help` to access all options. Mind that one of the tests in the Continuous Integration checks that the code is properly formatted.
+To format code you are adding or modifying, we suggest using the [git-clang-format](https://github.com/llvm-mirror/clang/blob/master/tools/clang-format/git-clang-format) script that is distributed together with ClangFormat. Use `git-clang-format` to format the code that was modified or added before a commit. You can use `git-clang-format --help` to access all options. Mind that one of the tests in the Continuous Integration checks that the code is properly formatted.
 
 ### Usage of the `auto` keyword
 
@@ -107,7 +107,21 @@ Consider following the steps below before writing a test for a new routine:
 
 6. Use the macro `GENERATE()` to create a range of values. For instance, you may use `GENERATE(1,2,3)` to create a range of values `{1,2,3}`. This way you can avoid writing a loop to test a routine for different values of a parameter.
 
-7. Use the macros `INFO()` and `UNSCOPED_INFO()` to print information about the test. Those messages are particularly important when you use `GENERATE()`. As a general rule, use `INFO( "var = " << var )` after you define `var = GENERATE(...)`. This will make sure that the value of `var` is printed when the test fails.
+7. Whenever possible, create a `DYNAMIC_SECTION(...)` after all commands `GENERATE()`. Example:
+
+    ```c++
+    const idx_t m = GENERATE(1,5,9);
+    const idx_t n = GENERATE(1,5,9);
+    const Uplo = GENERATE(Uplo::Lower, Uplo::Upper);
+
+    DYNAMIC_SECTION("m = " << m << " n = " << n << " Uplo = " << Uplo) {
+        // test code
+    }
+    ```
+
+8. Use the macros `INFO()` and `UNSCOPED_INFO()` to print other information about the test.
+
+9. Use the macros `REQUIRE()`, `CHECK()`, `REQUIRE_THROWS_AS()` and `CHECK_THROWS_AS()` to check the results of the test. `CHECK()` is preferred over `REQUIRE()` because it allows the test to continue even if one of the assertions is false. Use `REQUIRE()` only when it does not make sense to continue the test if the assertion is false.
 
 ### Tags for tests
 
