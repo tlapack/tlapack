@@ -21,12 +21,13 @@ namespace tlapack {
 /**
  * Options struct for gelqf
  */
-template <class idx_t = size_t>
+template <class TT_t, class idx_t = size_t>
 struct gelqf_opts_t : public workspace_opts_t<> {
     inline constexpr gelqf_opts_t(const workspace_opts_t<>& opts = {})
         : workspace_opts_t<>(opts){};
 
-    idx_t nb = 32;  ///< Block size
+    idx_t nb = 32;    // Block size
+    TT_t* TT = NULL;  // k-by-nb Matrix to hold the triangular factors
 };
 
 /** Worspace query of gelqf()
@@ -43,12 +44,12 @@ struct gelqf_opts_t : public workspace_opts_t<> {
  *
  * @ingroup workspace_query
  */
-template <typename A_t, typename tau_t>
+template <typename A_t, typename tau_t, typename TT_t>
 inline constexpr void gelqf_worksize(
     const A_t& A,
     const tau_t& tau,
     workinfo_t& workinfo,
-    const gelqf_opts_t<size_type<A_t> >& opts = {})
+    const gelqf_opts_t<TT_t, size_type<A_t>>& opts = {})
 {
     using idx_t = size_type<A_t>;
     using T = type_t<A_t>;
@@ -69,8 +70,10 @@ inline constexpr void gelqf_worksize(
     larfb_worksize(Side::Right, Op::NoTrans, Direction::Forward,
                    StoreV::Rowwise, A11, TT1, A12, workinfo);
 
-    workinfo_t workinfo2(sizeof(T) * nb, nb);
-    workinfo += workinfo2;
+    if (opts.TT == NULL) {
+        workinfo_t workinfo2(sizeof(T) * nb, nb);
+        workinfo += workinfo2;
+    }
 }
 
 /** Computes an LQ factorization of an m-by-n matrix A using
@@ -108,8 +111,10 @@ inline constexpr void gelqf_worksize(
  *
  * @ingroup computational
  */
-template <typename A_t, typename tau_t>
-int gelqf(A_t& A, tau_t& tau, const gelqf_opts_t<size_type<A_t> >& opts = {})
+template <typename A_t, typename tau_t, typename TT_t>
+int gelqf(A_t& A,
+          tau_t& tau,
+          const gelqf_opts_t<TT_t, size_type<A_t>>& opts = {})
 {
     Create<A_t> new_matrix;
 
@@ -126,7 +131,6 @@ int gelqf(A_t& A, tau_t& tau, const gelqf_opts_t<size_type<A_t> >& opts = {})
     tlapack_check((idx_t)size(tau) >= k);
 
     // Allocate or get workspace
-    Workspace sparework;
     vectorOfBytes localworkdata;
     Workspace work = [&]() {
         workinfo_t workinfo;
@@ -134,36 +138,70 @@ int gelqf(A_t& A, tau_t& tau, const gelqf_opts_t<size_type<A_t> >& opts = {})
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
 
-    auto TT = new_matrix(work, nb, nb, sparework);
+    if (opts.TT == NULL) {
+        Workspace sparework;
+        auto TT = new_matrix(work, nb, nb, sparework);
 
-    // Options to forward
-    auto&& gelq2Opts = workspace_opts_t<>{sparework};
-    auto&& larfbOpts = workspace_opts_t<void>{sparework};
+        // Options to forward
+        auto&& gelq2Opts = workspace_opts_t<>{sparework};
+        auto&& larfbOpts = workspace_opts_t<void>{sparework};
 
-    // Main computational loop
-    for (idx_t j = 0; j < k; j += nb) {
-        idx_t ib = std::min<idx_t>(nb, k - j);
+        // Main computational loop
+        for (idx_t j = 0; j < k; j += nb) {
+            idx_t ib = std::min<idx_t>(nb, k - j);
 
-        // Compute the LQ factorization of the current block A(j:j+ib-1,j:n)
-        auto A11 = slice(A, range(j, j + ib), range(j, n));
-        auto tauw1 = slice(tau, range(j, j + ib));
+            // Compute the LQ factorization of the current block A(j:j+ib-1,j:n)
+            auto A11 = slice(A, range(j, j + ib), range(j, n));
+            auto tauw1 = slice(tau, range(j, j + ib));
 
-        gelq2(A11, tauw1, gelq2Opts);
+            gelq2(A11, tauw1, gelq2Opts);
 
-        if (j + ib < k) {
-            // Form the triangular factor of the block reflector H = H(j) H(j+1)
-            // . . . H(j+ib-1)
-            auto TT1 = slice(TT, range(0, ib), range(0, ib));
+            if (j + ib < k) {
+                // Form the triangular factor of the block reflector H = H(j)
+                // H(j+1) . . . H(j+ib-1)
+                auto TT1 = slice(TT, range(0, ib), range(0, ib));
+                larft(Direction::Forward, StoreV::Rowwise, A11, tauw1, TT1);
+
+                // Apply H to A(j+ib:m,j:n) from the right
+                auto A12 = slice(A, range(j + ib, m), range(j, n));
+                larfb(Side::Right, Op::NoTrans, Direction::Forward,
+                      StoreV::Rowwise, A11, TT1, A12, larfbOpts);
+            }
+        }
+
+        return 0;
+    }
+    else {
+        auto TT = *opts.TT;
+
+        // Options to forward
+        auto&& gelq2Opts = workspace_opts_t<>{work};
+        auto&& larfbOpts = workspace_opts_t<void>{work};
+
+        // Main computational loop
+        for (idx_t j = 0; j < k; j += nb) {
+            idx_t ib = std::min<idx_t>(nb, k - j);
+
+            // Compute the LQ factorization of the current block A(j:j+ib-1,j:n)
+            auto A11 = slice(A, range(j, j + ib), range(j, n));
+            auto tauw1 = slice(tau, range(j, j + ib));
+
+            gelq2(A11, tauw1, gelq2Opts);
+            // Form the triangular factor of the block reflector H = H(j)
+            // H(j+1) . . . H(j+ib-1)
+            auto TT1 = slice(TT, range(j, j + ib), range(0, ib));
             larft(Direction::Forward, StoreV::Rowwise, A11, tauw1, TT1);
 
-            // Apply H to A(j+ib:m,j:n) from the right
-            auto A12 = slice(A, range(j + ib, m), range(j, n));
-            larfb(Side::Right, Op::NoTrans, Direction::Forward, StoreV::Rowwise,
-                  A11, TT1, A12, larfbOpts);
+            if (j + ib < k) {
+                // Apply H to A(j+ib:m,j:n) from the right
+                auto A12 = slice(A, range(j + ib, m), range(j, n));
+                larfb(Side::Right, Op::NoTrans, Direction::Forward,
+                      StoreV::Rowwise, A11, TT1, A12, larfbOpts);
+            }
         }
-    }
 
-    return 0;
+        return 0;
+    }
 }
 }  // namespace tlapack
 #endif  // TLAPACK_GELQF_HH

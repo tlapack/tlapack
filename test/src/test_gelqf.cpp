@@ -43,6 +43,7 @@ TEMPLATE_TEST_CASE("LQ factorization of a general m-by-n matrix, blocked",
     const T zero(0);
 
     idx_t m, n, k, nb;
+    bool use_TT;
 
     m = GENERATE(10, 20, 30);
     n = GENERATE(10, 20, 30);
@@ -51,6 +52,7 @@ TEMPLATE_TEST_CASE("LQ factorization of a general m-by-n matrix, blocked",
         30);  // k is the number of rows for output Q. Can personalize it.
     nb = GENERATE(1, 2, 3, 7,
                   12);  // nb is the block height. Can personalize it.
+    use_TT = GENERATE(true, false);
 
     const real_t eps = ulp<real_t>();
     const real_t tol = real_t(m * n) * eps;
@@ -67,8 +69,9 @@ TEMPLATE_TEST_CASE("LQ factorization of a general m-by-n matrix, blocked",
     std::vector<T> tauw(min(m, n));
 
     // Workspace computation:
-    gelqf_opts_t<idx_t> workOpts;
+    gelqf_opts_t<decltype(TT), idx_t> workOpts;
     workOpts.nb = nb;
+    if (use_TT) workOpts.TT = &TT;
     workinfo_t workinfo;
     gelqf_worksize(A, tauw, workinfo, workOpts);
     ungl2_worksize(Q, tauw, workinfo, workOpts);
