@@ -138,33 +138,65 @@ int geqrf(A_t& A,
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
 
-    Workspace sparework;
-    auto TT = new_matrix(work, nb, nb, sparework);
+    if (opts.TT == NULL) {
+        Workspace sparework;
+        auto TT = new_matrix(work, nb, nb, sparework);
 
-    // Options to forward
-    auto&& geqr2Opts = workspace_opts_t<>{sparework};
-    auto&& larfbOpts = workspace_opts_t<void>{sparework};
+        // Options to forward
+        auto&& geqr2Opts = workspace_opts_t<>{sparework};
+        auto&& larfbOpts = workspace_opts_t<void>{sparework};
 
-    // Main computational loop
-    for (idx_t j = 0; j < k; j += nb) {
-        idx_t ib = std::min<idx_t>(nb, k - j);
+        // Main computational loop
+        for (idx_t j = 0; j < k; j += nb) {
+            idx_t ib = std::min<idx_t>(nb, k - j);
 
-        // Compute the QR factorization of the current block A(j:m,j:j+ib)
-        auto A11 = slice(A, range(j, m), range(j, j + ib));
-        auto tauw1 = slice(tau, range(j, j + ib));
+            // Compute the QR factorization of the current block A(j:m,j:j+ib)
+            auto A11 = slice(A, range(j, m), range(j, j + ib));
+            auto tauw1 = slice(tau, range(j, j + ib));
 
-        geqr2(A11, tauw1, geqr2Opts);
+            geqr2(A11, tauw1, geqr2Opts);
 
-        if (j + ib < n) {
+            if (j + ib < n) {
+                // Form the triangular factor of the block reflector H = H(j)
+                // H(j+1) . . . H(j+ib-1)
+                auto TT1 = slice(TT, range(0, ib), range(0, ib));
+                larft(Direction::Forward, StoreV::Columnwise, A11, tauw1, TT1);
+
+                // Apply H to A(j:m,j+ib:n) from the left
+                auto A12 = slice(A, range(j, m), range(j + ib, n));
+                larfb(Side::Left, Op::ConjTrans, Direction::Forward,
+                      StoreV::Columnwise, A11, TT1, A12, larfbOpts);
+            }
+        }
+    }
+    else {
+        auto TT = *opts.TT;
+
+        // Options to forward
+        auto&& geqr2Opts = workspace_opts_t<>{work};
+        auto&& larfbOpts = workspace_opts_t<void>{work};
+
+        // Main computational loop
+        for (idx_t j = 0; j < k; j += nb) {
+            idx_t ib = std::min<idx_t>(nb, k - j);
+
+            // Compute the QR factorization of the current block A(j:m,j:j+ib)
+            auto A11 = slice(A, range(j, m), range(j, j + ib));
+            auto tauw1 = slice(tau, range(j, j + ib));
+
+            geqr2(A11, tauw1, geqr2Opts);
+
             // Form the triangular factor of the block reflector H = H(j)
             // H(j+1) . . . H(j+ib-1)
-            auto TT1 = slice(TT, range(0, ib), range(0, ib));
+            auto TT1 = slice(TT, range(j, j + ib), range(0, ib));
             larft(Direction::Forward, StoreV::Columnwise, A11, tauw1, TT1);
 
-            // Apply H to A(j:m,j+ib:n) from the left
-            auto A12 = slice(A, range(j, m), range(j + ib, n));
-            larfb(Side::Left, Op::ConjTrans, Direction::Forward, StoreV::Columnwise,
-                  A11, TT1, A12, larfbOpts);
+            if (j + ib < n) {
+                // Apply H to A(j:m,j+ib:n) from the left
+                auto A12 = slice(A, range(j, m), range(j + ib, n));
+                larfb(Side::Left, Op::ConjTrans, Direction::Forward,
+                      StoreV::Columnwise, A11, TT1, A12, larfbOpts);
+            }
         }
     }
 
