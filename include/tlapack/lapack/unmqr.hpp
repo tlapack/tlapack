@@ -68,7 +68,7 @@ template <class matrixA_t,
           class tau_t,
           class side_t,
           class trans_t,
-          class TT_t,
+          class TT_t = matrixA_t,
           class workT_t = void>
 inline constexpr void unmqr_worksize(
     side_t side,
@@ -177,7 +177,7 @@ template <class matrixA_t,
           class tau_t,
           class side_t,
           class trans_t,
-          class TT_t,
+          class TT_t = matrixA_t,
           class workT_t = void>
 int unmqr(side_t side,
           trans_t trans,
