@@ -1,6 +1,6 @@
 /// @file test_geqrf.cpp
 /// @author Thijs Steel, KU Leuven, Belgium
-/// @brief Test GEQRF and UNG2R
+/// @brief Test GEQRF and UNMQR
 //
 // Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
@@ -13,7 +13,6 @@
 
 // Test utilities and definitions (must come before <T>LAPACK headers)
 #include "testutils.hpp"
-#include <tlapack/plugins/debugutils.hpp>
 
 // Auxiliary routines
 #include <tlapack/lapack/lacpy.hpp>
@@ -22,7 +21,7 @@
 // Other routines
 #include <tlapack/blas/gemm.hpp>
 #include <tlapack/lapack/geqrf.hpp>
-#include <tlapack/lapack/ung2r.hpp>
+#include <tlapack/lapack/unmqr.hpp>
 
 using namespace tlapack;
 
@@ -46,9 +45,9 @@ TEMPLATE_TEST_CASE("QR factorization of a general m-by-n matrix",
     idx_t m, n, k, nb;
     bool use_TT;
 
-    m = GENERATE(10,20,30);
-    n = GENERATE(10,20,30);
-    nb = GENERATE(1,2,4,10);
+    m = GENERATE(10, 20, 30);
+    n = GENERATE(10, 20, 30);
+    nb = GENERATE(1, 2, 4, 10);
     use_TT = GENERATE(true, false);
     k = min(m, n);
 
@@ -63,22 +62,28 @@ TEMPLATE_TEST_CASE("QR factorization of a general m-by-n matrix",
     auto Q = new_matrix(Q_, m, k);
     std::vector<T> TT_;
     auto TT = new_matrix(TT_, m, nb);
+    std::vector<T> R_;
+    auto R = new_matrix(R_, m, n);
 
     std::vector<T> tau(min(m, n));
 
     // Workspace computation:
-    geqrf_opts_t<matrix_t, idx_t> workOpts;
-    workOpts.nb = nb;
-    if( use_TT ){
-        workOpts.TT = &TT;
+    geqrf_opts_t<decltype(TT), idx_t> geqrfOpts;
+    unmqr_opts_t<decltype(TT)> unmqrOpts;
+    geqrfOpts.nb = nb;
+    unmqrOpts.nb = nb;
+    if (use_TT) {
+        geqrfOpts.TT = &TT;
+        unmqrOpts.TT = &TT;
     }
     workinfo_t workinfo;
-    geqrf_worksize(A, tau, workinfo, workOpts);
-    ung2r_worksize(k, Q, tau, workinfo, workOpts);
+    geqrf_worksize(A, tau, workinfo, geqrfOpts);
+    unmqr_worksize(Side::Left, Op::NoTrans, A, tau, R, workinfo, unmqrOpts);
 
     // Workspace allocation:
     vectorOfBytes workVec;
-    workOpts.work = alloc_workspace(workVec, workinfo);
+    geqrfOpts.work = alloc_workspace(workVec, workinfo);
+    unmqrOpts.work = geqrfOpts.work;
 
     for (idx_t j = 0; j < n; ++j)
         for (idx_t i = 0; i < m; ++i)
@@ -86,31 +91,20 @@ TEMPLATE_TEST_CASE("QR factorization of a general m-by-n matrix",
 
     lacpy(Uplo::General, A, A_copy);
 
-    DYNAMIC_SECTION("m = " << m << " n = " << n << " nb = " << nb << " TT used = " << use_TT)
+    DYNAMIC_SECTION("m = " << m << " n = " << n << " nb = " << nb
+                           << " TT used = " << use_TT)
     {
-        geqrf(A, tau, workOpts);
+        geqrf(A, tau, geqrfOpts);
 
-        // Q is sliced down to the desired size of output Q (m-by-k).
-        // It stores the desired number of Householder reflectors that UNG2R
-        // will use.
-        lacpy(Uplo::General, slice(A, range(0, m), range(0, k)), Q);
-
-        ung2r(k, Q, tau, workOpts);
-
-        std::vector<T> orthres_;
-        auto orthres = new_matrix(orthres_, k, k);
-        auto orth_Q = check_orthogonality(Q, orthres);
-        CHECK(orth_Q <= tol);
-
-        // R is sliced from A after
-        std::vector<T> R_;
-        auto R = new_matrix(R_, k, n);
+        // Copy upper triangular part of A to R
         laset(Uplo::Lower, zero, zero, R);
-        lacpy(Uplo::Upper, slice(A, range(0, k), range(0, n)), R);
+        lacpy(Uplo::Upper, slice(A, range(0, m), range(0, n)), R);
 
-        // Test A = Q * R
-        gemm(Op::NoTrans, Op::NoTrans, real_t(1.), Q, R, real_t(-1.),
-                A_copy);
+        // Test A == Q * R
+        unmqr(Side::Left, Op::NoTrans, A, tau, R, unmqrOpts);
+            for (idx_t j = 0; j < n; ++j)
+                for (idx_t i = 0; i < m; ++i)
+                    A_copy(i, j) -= R(i, j);
 
         real_t repres = tlapack::lange(tlapack::Norm::Max, A_copy);
         CHECK(repres <= tol);
