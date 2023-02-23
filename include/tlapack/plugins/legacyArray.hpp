@@ -298,7 +298,7 @@ inline constexpr auto row(const legacyMatrix<T, idx_t>& A,
                           size_type<legacyMatrix<T, idx_t>> rowIdx) noexcept
 {
     assert(rowIdx >= 0 and rowIdx < nrows(A));
-    return legacyVector<T, idx_t, idx_t>(A.n, &A(rowIdx, 0), A.ldim);
+    return legacyVector<T, idx_t, idx_t>(A.n, &A.ptr[rowIdx], A.ldim);
 }
 
 // Get a row of a row-major legacyMatrix
@@ -308,7 +308,7 @@ inline constexpr auto row(
     size_type<legacyMatrix<T, idx_t, Layout::RowMajor>> rowIdx) noexcept
 {
     assert(rowIdx >= 0 and rowIdx < nrows(A));
-    return legacyVector<T, idx_t>(A.n, &A(rowIdx, 0));
+    return legacyVector<T, idx_t>(A.n, &A.ptr[rowIdx * A.ldim]);
 }
 
 // Get columns of legacyMatrix
@@ -333,7 +333,7 @@ inline constexpr auto col(const legacyMatrix<T, idx_t>& A,
                           size_type<legacyMatrix<T, idx_t>> colIdx) noexcept
 {
     assert(colIdx >= 0 and colIdx < ncols(A));
-    return legacyVector<T, idx_t>(A.m, &A(0, colIdx));
+    return legacyVector<T, idx_t>(A.m, &A.ptr[colIdx * A.ldim]);
 }
 
 // Get a column of a row-major legacyMatrix
@@ -343,7 +343,7 @@ inline constexpr auto col(
     size_type<legacyMatrix<T, idx_t, Layout::RowMajor>> colIdx) noexcept
 {
     assert(colIdx >= 0 and colIdx < ncols(A));
-    return legacyVector<T, idx_t, idx_t>(A.m, &A(0, colIdx), A.ldim);
+    return legacyVector<T, idx_t, idx_t>(A.m, &A.ptr[colIdx], A.ldim);
 }
 
 // Diagonal of a legacyMatrix
@@ -353,7 +353,11 @@ inline constexpr auto diag(const legacyMatrix<T, idx_t, layout>& A,
 {
     assert(diagIdx >= 0 || (idx_t)(-diagIdx) < nrows(A));
     assert(diagIdx <= 0 || (idx_t)diagIdx < ncols(A));
-    T* ptr = (diagIdx >= 0) ? &A(0, diagIdx) : &A(-diagIdx, 0);
+    T* ptr = (diagIdx >= 0)
+                 ? ((layout == Layout::ColMajor) ? &A.ptr[diagIdx * A.ldim]
+                                                 : &A.ptr[diagIdx])
+                 : ((layout == Layout::ColMajor) ? &A.ptr[-diagIdx]
+                                                 : &A.ptr[-diagIdx * A.ldim]);
     idx_t n = (diagIdx >= 0) ? std::min(A.m + diagIdx, A.n) - (idx_t)diagIdx
                              : std::min(A.m, A.n - diagIdx) + (idx_t)diagIdx;
 

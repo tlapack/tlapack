@@ -66,10 +66,13 @@ int hetd2(uplo_t uplo, matrix_t& A, vector_t& tau)
         //
         // Reduce upper triangle of A
         //
+
+        // Only access real part of the main diagonal
         A(n - 1, n - 1) = real(A(n - 1, n - 1));
+
         for (idx_t i = n - 2; i != idx_t(-1); --i) {
             // Define v := A[0:i,i+1]
-            auto v = slice(A, pair{0, i}, i + 1);
+            auto v = slice(A, pair{0, i + 1}, i + 1);
 
             // Generate elementary reflector H(i) = I - tau * v * v**T
             // to annihilate A(0:i-1,i+1)
@@ -78,8 +81,8 @@ int hetd2(uplo_t uplo, matrix_t& A, vector_t& tau)
 
             if (taui != zero) {
                 // Apply H(i) from both sides to A(0:i, 0:i)
-                auto C = slice(A, pair{0, i}, pair{0, i});
-                auto w = slice(tau, pair{0, i});
+                auto C = slice(A, pair{0, i + 1}, pair{0, i + 1});
+                auto w = slice(tau, pair{0, i + 1});
 
                 // Store the offdiagonal element
                 auto beta = A(i, i + 1);
@@ -99,6 +102,7 @@ int hetd2(uplo_t uplo, matrix_t& A, vector_t& tau)
                 A(i, i + 1) = beta;
             }
             else {
+                // Only access real part of the main diagonal
                 A(i, i) = real(A(i, i));
             }
 
@@ -109,7 +113,10 @@ int hetd2(uplo_t uplo, matrix_t& A, vector_t& tau)
         //
         // Reduce lower triangle of A
         //
+
+        // Only access real part of the main diagonal
         A(0, 0) = real(A(0, 0));
+
         for (idx_t i = 0; i < n - 1; ++i) {
             // Define v := A[i+1:n,i]
             auto v = slice(A, pair{i + 1, n}, i);
@@ -119,7 +126,7 @@ int hetd2(uplo_t uplo, matrix_t& A, vector_t& tau)
             T taui;
             larfg(forward, columnwise_storage, v, taui);
 
-            if (taui != zero && i + 1 < n) {
+            if (taui != zero) {
                 // Apply H(i) from both sides to A(i+1:n, i+1:n)
                 auto C = slice(A, pair{i + 1, n}, pair{i + 1, n});
                 auto w = slice(tau, pair{i, n - 1});
@@ -142,6 +149,7 @@ int hetd2(uplo_t uplo, matrix_t& A, vector_t& tau)
                 A(i + 1, i) = beta;
             }
             else {
+                // Only access real part of the main diagonal
                 A(i + 1, i + 1) = real(A(i + 1, i + 1));
             }
 

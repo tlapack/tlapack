@@ -377,6 +377,9 @@ inline void larf(side_t side,
                   storeMode == StoreV::Rowwise);
     tlapack_check((idx_t)size(v) == ((side == Side::Left) ? m : n));
 
+    // quick return
+    if (m == 0 || n == 0) return;
+
     // The following code was changed from:
     //
     // if( side == Side::Left ) {
