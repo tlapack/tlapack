@@ -102,9 +102,9 @@ TEMPLATE_TEST_CASE("QR factorization of a general m-by-n matrix",
 
         // Test A == Q * R
         unmqr(Side::Left, Op::NoTrans, A, tau, R, unmqrOpts);
-            for (idx_t j = 0; j < n; ++j)
-                for (idx_t i = 0; i < m; ++i)
-                    A_copy(i, j) -= R(i, j);
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = 0; i < m; ++i)
+                A_copy(i, j) -= R(i, j);
 
         real_t repres = tlapack::lange(tlapack::Norm::Max, A_copy);
         CHECK(repres <= tol);

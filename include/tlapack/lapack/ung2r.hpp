@@ -119,7 +119,7 @@ int ung2r(size_type<matrix_t> k,
     auto&& larfOpts = workspace_opts_t<>{work};
 
     // Initialise columns k:n-1 to columns of the unit matrix
-    for (idx_t j = k; j < min(m,n); ++j) {
+    for (idx_t j = k; j < min(m, n); ++j) {
         for (idx_t l = 0; l < m; ++l)
             A(l, j) = zero;
         A(j, j) = one;

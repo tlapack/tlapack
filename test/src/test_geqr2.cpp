@@ -13,7 +13,6 @@
 
 // Test utilities and definitions (must come before <T>LAPACK headers)
 #include "testutils.hpp"
-#include <tlapack/plugins/debugutils.hpp>
 
 // Auxiliary routines
 #include <tlapack/lapack/lacpy.hpp>
@@ -45,8 +44,8 @@ TEMPLATE_TEST_CASE("QR factorization of a general m-by-n matrix",
 
     idx_t m, n, k, nb;
 
-    m = GENERATE(10,20,30);
-    n = GENERATE(10,20,30);
+    m = GENERATE(10, 20, 30);
+    n = GENERATE(10, 20, 30);
     k = min(m, n);
 
     const real_t eps = ulp<real_t>();
@@ -100,8 +99,7 @@ TEMPLATE_TEST_CASE("QR factorization of a general m-by-n matrix",
         lacpy(Uplo::Upper, slice(A, range(0, k), range(0, n)), R);
 
         // Test A = Q * R
-        gemm(Op::NoTrans, Op::NoTrans, real_t(1.), Q, R, real_t(-1.),
-                A_copy);
+        gemm(Op::NoTrans, Op::NoTrans, real_t(1.), Q, R, real_t(-1.), A_copy);
 
         real_t repres = tlapack::lange(tlapack::Norm::Max, A_copy);
         CHECK(repres <= tol);
