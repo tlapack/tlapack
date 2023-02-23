@@ -1,6 +1,6 @@
 /// @file test_geqrf.cpp
 /// @author Thijs Steel, KU Leuven, Belgium
-/// @brief Test GEQRF and UNG2R
+/// @brief Test GEQR2 and UNG2R
 //
 // Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
@@ -21,13 +21,13 @@
 
 // Other routines
 #include <tlapack/blas/gemm.hpp>
-#include <tlapack/lapack/geqrf.hpp>
+#include <tlapack/lapack/geqr2.hpp>
 #include <tlapack/lapack/ung2r.hpp>
 
 using namespace tlapack;
 
 TEMPLATE_TEST_CASE("QR factorization of a general m-by-n matrix",
-                   "[qr][qrf]",
+                   "[qr][qr2]",
                    TLAPACK_TYPES_TO_TEST)
 {
     srand(1);
@@ -47,7 +47,6 @@ TEMPLATE_TEST_CASE("QR factorization of a general m-by-n matrix",
 
     m = GENERATE(10,20,30);
     n = GENERATE(10,20,30);
-    nb = GENERATE(1,2,4,10);
     k = min(m, n);
 
     const real_t eps = ulp<real_t>();
@@ -63,10 +62,9 @@ TEMPLATE_TEST_CASE("QR factorization of a general m-by-n matrix",
     std::vector<T> tau(min(m, n));
 
     // Workspace computation:
-    geqrf_opts_t<matrix_t, idx_t> workOpts;
-    workOpts.nb = nb;
+    workspace_opts_t<> workOpts;
     workinfo_t workinfo;
-    geqrf_worksize(A, tau, workinfo, workOpts);
+    geqr2_worksize(A, tau, workinfo, workOpts);
     ung2r_worksize(k, Q, tau, workinfo, workOpts);
 
     // Workspace allocation:
@@ -79,9 +77,9 @@ TEMPLATE_TEST_CASE("QR factorization of a general m-by-n matrix",
 
     lacpy(Uplo::General, A, A_copy);
 
-    DYNAMIC_SECTION("m = " << m << " n = " << n << " nb = " << nb)
+    DYNAMIC_SECTION("m = " << m << " n = " << n)
     {
-        geqrf(A, tau, workOpts);
+        geqr2(A, tau, workOpts);
 
         // Q is sliced down to the desired size of output Q (m-by-k).
         // It stores the desired number of Householder reflectors that UNG2R

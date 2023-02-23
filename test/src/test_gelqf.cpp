@@ -63,14 +63,14 @@ TEMPLATE_TEST_CASE("LQ factorization of a general m-by-n matrix, blocked",
     std::vector<T> Q_;
     auto Q = new_matrix(Q_, k, n);
 
-    std::vector<T> tauw(min(m, n));
+    std::vector<T> tau(min(m, n));
 
     // Workspace computation:
     gelqf_opts_t<idx_t> workOpts;
     workOpts.nb = nb;
     workinfo_t workinfo;
     gelqf_worksize(A, TT, workinfo, workOpts);
-    ungl2_worksize(Q, tauw, workinfo, workOpts);
+    ungl2_worksize(Q, tau, workinfo, workOpts);
 
     // Workspace allocation:
     vectorOfBytes workVec;
@@ -90,12 +90,12 @@ TEMPLATE_TEST_CASE("LQ factorization of a general m-by-n matrix, blocked",
         {
             gelqf(A, TT, workOpts);
 
-            // Build tauw vector from matrix TT
+            // Build tau vector from matrix TT
             for (idx_t j = 0; j < min(m, n); j += nb) {
                 idx_t ib = std::min<idx_t>(nb, min(m, n) - j);
 
                 for (idx_t i = 0; i < ib; i++)
-                    tauw[i + j] = TT(i + j, i);
+                    tau[i + j] = TT(i + j, i);
             }
 
             // Q is sliced down to the desired size of output Q (k-by-n).
@@ -103,7 +103,7 @@ TEMPLATE_TEST_CASE("LQ factorization of a general m-by-n matrix, blocked",
             // will use.
             lacpy(Uplo::General, slice(A, range(0, min(m, k)), range(0, n)), Q);
 
-            ungl2(Q, tauw, workOpts);
+            ungl2(Q, tau, workOpts);
 
             // Wq is the identity matrix to check the orthogonality of Q
             std::vector<T> Wq_;
