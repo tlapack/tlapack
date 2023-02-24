@@ -257,7 +257,6 @@ int unmqr(side_t side,
         }
     }
     else {
-        auto matrixT = *opts.TT;
 
         // Options to forward
         auto&& larfbOpts = workspace_opts_t<void>{work};
@@ -267,7 +266,7 @@ int unmqr(side_t side,
             idx_t ib = min<idx_t>(nb, k - i);
             const auto V = slice(A, pair{i, nA}, pair{i, i + ib});
             const auto taui = slice(tau, pair{i, i + ib});
-            auto matrixTi = slice(matrixT, pair{i, i + ib}, pair{0, ib});
+            auto matrixTi = slice(*opts.TT, pair{i, i + ib}, pair{0, ib});
 
             // H or H**H is applied to either C[i:m,0:n] or C[0:m,i:n]
             auto Ci = (side == Side::Left) ? slice(C, pair{i, m}, pair{0, n})
