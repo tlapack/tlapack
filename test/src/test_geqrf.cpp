@@ -52,7 +52,7 @@ TEMPLATE_TEST_CASE("QR factorization of a general m-by-n matrix",
     k = min(m, n);
 
     const real_t eps = ulp<real_t>();
-    const real_t tol = real_t(100. * max(m,n)) * eps;
+    const real_t tol = real_t(100. * max(m, n)) * eps;
 
     std::vector<T> A_;
     auto A = new_matrix(A_, m, n);
@@ -108,6 +108,6 @@ TEMPLATE_TEST_CASE("QR factorization of a general m-by-n matrix",
                 A_copy(i, j) -= R(i, j);
 
         real_t repres = tlapack::lange(tlapack::Norm::Max, A_copy);
-        CHECK(repres <= tol*anorm);
+        CHECK(repres <= tol * anorm);
     }
 }

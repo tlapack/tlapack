@@ -170,7 +170,6 @@ int geqrf(A_t& A,
         }
     }
     else {
-
         // Options to forward
         auto&& geqr2Opts = workspace_opts_t<>{work};
         auto&& larfbOpts = workspace_opts_t<void>{work};

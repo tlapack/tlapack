@@ -257,7 +257,6 @@ int unmqr(side_t side,
         }
     }
     else {
-
         // Options to forward
         auto&& larfbOpts = workspace_opts_t<void>{work};
 
