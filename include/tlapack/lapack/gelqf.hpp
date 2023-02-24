@@ -44,7 +44,7 @@ struct gelqf_opts_t : public workspace_opts_t<> {
  *
  * @ingroup workspace_query
  */
-template <typename A_t, typename tau_t, typename TT_t>
+template <typename A_t, typename tau_t, typename TT_t = A_t>
 inline constexpr void gelqf_worksize(
     const A_t& A,
     const tau_t& tau,
@@ -111,7 +111,7 @@ inline constexpr void gelqf_worksize(
  *
  * @ingroup computational
  */
-template <typename A_t, typename tau_t, typename TT_t>
+template <typename A_t, typename tau_t, typename TT_t = A_t>
 int gelqf(A_t& A,
           tau_t& tau,
           const gelqf_opts_t<TT_t, size_type<A_t>>& opts = {})
@@ -172,8 +172,6 @@ int gelqf(A_t& A,
         return 0;
     }
     else {
-        auto TT = *opts.TT;
-
         // Options to forward
         auto&& gelq2Opts = workspace_opts_t<>{work};
         auto&& larfbOpts = workspace_opts_t<void>{work};
@@ -189,7 +187,7 @@ int gelqf(A_t& A,
             gelq2(A11, tauw1, gelq2Opts);
             // Form the triangular factor of the block reflector H = H(j)
             // H(j+1) . . . H(j+ib-1)
-            auto TT1 = slice(TT, range(j, j + ib), range(0, ib));
+            auto TT1 = slice(*opts.TT, range(j, j + ib), range(0, ib));
             larft(Direction::Forward, StoreV::Rowwise, A11, tauw1, TT1);
 
             if (j + ib < k) {
