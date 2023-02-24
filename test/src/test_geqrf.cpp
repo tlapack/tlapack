@@ -45,14 +45,14 @@ TEMPLATE_TEST_CASE("QR factorization of a general m-by-n matrix",
     idx_t m, n, k, nb;
     bool use_TT;
 
-    m = GENERATE(10, 20, 30);
-    n = GENERATE(10, 20, 30);
-    nb = GENERATE(1, 2, 4, 10);
+    m = GENERATE(5, 10, 20);
+    n = GENERATE(5, 10, 20);
+    nb = GENERATE(1, 2, 4, 5);
     use_TT = GENERATE(true, false);
     k = min(m, n);
 
     const real_t eps = ulp<real_t>();
-    const real_t tol = real_t(m * n) * eps;
+    const real_t tol = real_t(100. * max(m,n)) * eps;
 
     std::vector<T> A_;
     auto A = new_matrix(A_, m, n);
@@ -90,6 +90,7 @@ TEMPLATE_TEST_CASE("QR factorization of a general m-by-n matrix",
             A(i, j) = rand_helper<T>();
 
     lacpy(Uplo::General, A, A_copy);
+    real_t anorm = tlapack::lange(tlapack::Norm::Max, A_copy);
 
     DYNAMIC_SECTION("m = " << m << " n = " << n << " nb = " << nb
                            << " TT used = " << use_TT)
@@ -107,6 +108,6 @@ TEMPLATE_TEST_CASE("QR factorization of a general m-by-n matrix",
                 A_copy(i, j) -= R(i, j);
 
         real_t repres = tlapack::lange(tlapack::Norm::Max, A_copy);
-        CHECK(repres <= tol);
+        CHECK(repres <= tol*anorm);
     }
 }

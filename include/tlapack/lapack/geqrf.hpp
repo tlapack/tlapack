@@ -170,7 +170,6 @@ int geqrf(A_t& A,
         }
     }
     else {
-        auto TT = *opts.TT;
 
         // Options to forward
         auto&& geqr2Opts = workspace_opts_t<>{work};
@@ -188,7 +187,7 @@ int geqrf(A_t& A,
 
             // Form the triangular factor of the block reflector H = H(j)
             // H(j+1) . . . H(j+ib-1)
-            auto TT1 = slice(TT, range(j, j + ib), range(0, ib));
+            auto TT1 = slice(*opts.TT, range(j, j + ib), range(0, ib));
             larft(Direction::Forward, StoreV::Columnwise, A11, tauw1, TT1);
 
             if (j + ib < n) {
