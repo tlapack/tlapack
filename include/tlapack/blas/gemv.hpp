@@ -219,9 +219,8 @@ inline void gemv(Op trans,
             -5,
             "Infs and NaNs in y on input will not propagate to y on output");
 
-    return ::blas::gemv((::blas::Layout)L, (::blas::Op)trans, m, n,
-                        alpha, A_.ptr, A_.ldim, x_.ptr, x_.inc, beta, y_.ptr,
-                        y_.inc);
+    return ::blas::gemv((::blas::Layout)L, (::blas::Op)trans, m, n, alpha,
+                        A_.ptr, A_.ldim, x_.ptr, x_.inc, beta, y_.ptr, y_.inc);
 }
 
 /**
@@ -266,9 +265,8 @@ inline void gemv(Op trans,
         tlapack_warning(
             -2, "Infs and NaNs in A or x will not propagate to y on output");
 
-    return ::blas::gemv((::blas::Layout)L, (::blas::Op)trans, m, n,
-                        alpha, A_.ptr, A_.ldim, x_.ptr, x_.inc, T(0), y_.ptr,
-                        y_.inc);
+    return ::blas::gemv((::blas::Layout)L, (::blas::Op)trans, m, n, alpha,
+                        A_.ptr, A_.ldim, x_.ptr, x_.inc, T(0), y_.ptr, y_.inc);
 }
 
 #endif

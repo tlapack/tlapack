@@ -90,8 +90,8 @@ inline void geru(const alpha_t alpha,
     const auto& m = A_.m;
     const auto& n = A_.n;
 
-    return ::blas::geru((::blas::Layout)L, m, n, alpha, x_.ptr, x_.inc,
-                        y_.ptr, y_.inc, A_.ptr, A_.ldim);
+    return ::blas::geru((::blas::Layout)L, m, n, alpha, x_.ptr, x_.inc, y_.ptr,
+                        y_.inc, A_.ptr, A_.ldim);
 }
 
 #endif

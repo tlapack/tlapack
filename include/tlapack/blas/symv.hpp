@@ -175,8 +175,8 @@ inline void symv(Uplo uplo,
             -5,
             "Infs and NaNs in y on input will not propagate to y on output");
 
-    return ::blas::symv((::blas::Layout)L, (::blas::Uplo)uplo, n, alpha,
-                        A_.ptr, A_.ldim, x_.ptr, x_.inc, beta, y_.ptr, y_.inc);
+    return ::blas::symv((::blas::Layout)L, (::blas::Uplo)uplo, n, alpha, A_.ptr,
+                        A_.ldim, x_.ptr, x_.inc, beta, y_.ptr, y_.inc);
 }
 
 template <class matrixA_t,
@@ -207,8 +207,8 @@ inline void symv(Uplo uplo,
         tlapack_warning(
             -2, "Infs and NaNs in A or x will not propagate to y on output");
 
-    return ::blas::symv((::blas::Layout)L, (::blas::Uplo)uplo, n, alpha,
-                        A_.ptr, A_.ldim, x_.ptr, x_.inc, T(0), y_.ptr, y_.inc);
+    return ::blas::symv((::blas::Layout)L, (::blas::Uplo)uplo, n, alpha, A_.ptr,
+                        A_.ldim, x_.ptr, x_.inc, T(0), y_.ptr, y_.inc);
 }
 
 #endif

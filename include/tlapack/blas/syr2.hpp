@@ -109,8 +109,8 @@ inline void syr2(Uplo uplo,
     constexpr Layout L = layout<matrixA_t>;
     const auto& n = A_.n;
 
-    return ::blas::syr2((::blas::Layout)L, (::blas::Uplo)uplo, n, alpha,
-                        x_.ptr, x_.inc, y_.ptr, y_.inc, A_.ptr, A_.ldim);
+    return ::blas::syr2((::blas::Layout)L, (::blas::Uplo)uplo, n, alpha, x_.ptr,
+                        x_.inc, y_.ptr, y_.inc, A_.ptr, A_.ldim);
 }
 
 #endif

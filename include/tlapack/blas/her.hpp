@@ -106,8 +106,8 @@ inline void her(Uplo uplo,
     constexpr Layout L = layout<matrixA_t>;
     const auto& n = A_.n;
 
-    return ::blas::her((::blas::Layout)L, (::blas::Uplo)uplo, n, alpha,
-                       x_.ptr, x_.inc, A_.ptr, A_.ldim);
+    return ::blas::her((::blas::Layout)L, (::blas::Uplo)uplo, n, alpha, x_.ptr,
+                       x_.inc, A_.ptr, A_.ldim);
 }
 
 #endif

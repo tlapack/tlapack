@@ -94,8 +94,8 @@ inline void syr(Uplo uplo,
     constexpr Layout L = layout<matrixA_t>;
     const auto& n = A_.n;
 
-    return ::blas::syr((::blas::Layout)L, (::blas::Uplo)uplo, n, alpha,
-                       x_.ptr, x_.inc, A_.ptr, A_.ldim);
+    return ::blas::syr((::blas::Layout)L, (::blas::Uplo)uplo, n, alpha, x_.ptr,
+                       x_.inc, A_.ptr, A_.ldim);
 }
 
 #endif

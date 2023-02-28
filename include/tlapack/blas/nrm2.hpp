@@ -127,7 +127,7 @@ inline auto nrm2(vector_t const& x)
 
     // Constants to forward
     const auto& n = x_.n;
-    
+
     return ::blas::nrm2(n, x_.ptr, x_.inc);
 }
 
