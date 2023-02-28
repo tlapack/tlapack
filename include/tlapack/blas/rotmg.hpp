@@ -222,6 +222,7 @@ inline int rotmg(T& d1, T& d2, T& a, const T b, T h[4])
     T param[5];
     ::blas::rotmg(&d1, &d2, &a, b, param);
 
+    // Collect the output
     h[0] = param[1];
     h[1] = param[2];
     h[2] = param[3];

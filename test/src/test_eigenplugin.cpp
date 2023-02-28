@@ -3,6 +3,7 @@
 /// @brief Test plugin for integration with Eigen.
 //
 // Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
+//
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
@@ -18,7 +19,6 @@ void test_block()
     CHECK(tlapack::internal::is_eigen_dense<block_t> == true);
     CHECK(tlapack::internal::is_eigen_matrix<block_t> == true);
     CHECK(tlapack::internal::is_eigen_block<block_t> == true);
-    CHECK(tlapack::internal::is_eigen_map<block_t> == false);
 }
 
 template <class matrix_t>
@@ -27,7 +27,6 @@ void test_matrix()
     CHECK(tlapack::internal::is_eigen_dense<matrix_t> == true);
     CHECK(tlapack::internal::is_eigen_matrix<matrix_t> == true);
     CHECK(tlapack::internal::is_eigen_block<matrix_t> == false);
-    CHECK(tlapack::internal::is_eigen_map<matrix_t> == false);
 }
 
 template <class map_t>
@@ -36,7 +35,6 @@ void test_map()
     CHECK(tlapack::internal::is_eigen_dense<map_t> == true);
     CHECK(tlapack::internal::is_eigen_matrix<map_t> == true);
     CHECK(tlapack::internal::is_eigen_block<map_t> == false);
-    CHECK(tlapack::internal::is_eigen_map<map_t> == true);
 }
 
 template <class matrix_t>
@@ -114,37 +112,54 @@ TEST_CASE("legacy_matrix works", "[plugins]")
         Eigen::MatrixXd A2 = A.block<1, 2>(1, 0);
 
         auto B = tlapack::legacy_matrix(A);
-        CHECK(B(0, 0) == A(0, 0));
-        CHECK(B(1, 0) == A(1, 0));
-        CHECK(B(0, 1) == A(0, 1));
-        CHECK(B(1, 1) == A(1, 1));
+        auto C = tlapack::legacy::matrix<double, Eigen::Index>{
+            tlapack::layout<Eigen::Matrix2d>, A.rows(), A.cols(), A.data(),
+            A.rows()};
+        CHECK(B.layout == C.layout);
+        CHECK(B.m == C.m);
+        CHECK(B.n == C.n);
+        CHECK(B.ptr == C.ptr);
+        CHECK(B.ldim == C.ldim);
 
         auto B2 = tlapack::legacy_matrix(A2);
-        CHECK(B2(0, 0) == 2);
-        CHECK(B2(0, 1) == 4);
+        auto C2 = tlapack::legacy::matrix<double, Eigen::Index>{
+            tlapack::layout<Eigen::MatrixXd>, A2.rows(), A2.cols(), A2.data(),
+            A2.outerStride()};
+        CHECK(B2.layout == C2.layout);
+        CHECK(B2.m == C2.m);
+        CHECK(B2.n == C2.n);
+        CHECK(B2.ptr == C2.ptr);
+        CHECK(B2.ldim == C2.ldim);
 
         auto B3 = tlapack::legacy_vector(A2);
-        CHECK(B3[0] == 2);
-        CHECK(B3[1] == 4);
+        auto C3 = tlapack::legacy::vector<double, Eigen::Index>{
+            A2.size(), A2.data(), A2.innerStride()};
+        CHECK(B3.n == C3.n);
+        CHECK(B3.ptr == C3.ptr);
+        CHECK(B3.inc == C3.inc);
     }
     {
         Eigen::Matrix<float, -1, -1, Eigen::RowMajor> A(3, 5);
         A << 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, -1, -2, -3, -4, -5;
 
         auto B = tlapack::legacy_matrix(A);
-        CHECK(B(0, 0) == A(0, 0));
-        CHECK(B(2, 4) == A(2, 4));
+        auto C = tlapack::legacy::matrix<float, Eigen::Index>{
+            tlapack::layout<Eigen::Matrix<float, -1, -1, Eigen::RowMajor>>,
+            A.rows(), A.cols(), A.data(), A.outerStride()};
+        CHECK(B.layout == C.layout);
+        CHECK(B.m == C.m);
+        CHECK(B.n == C.n);
+        CHECK(B.ptr == C.ptr);
+        CHECK(B.ldim == C.ldim);
 
         Eigen::Matrix<float, -1, 1> A2 = A.col(3);
         auto B2 = tlapack::legacy_vector(A2);
-        CHECK(B2[0] == A(0, 3));
-        CHECK(B2[1] == A(1, 3));
+        auto C2 = tlapack::legacy::vector<float, Eigen::Index>{
+            A2.size(), A2.data(), A2.innerStride()};
+        CHECK(B2.n == C2.n);
+        CHECK(B2.ptr == C2.ptr);
+        CHECK(B2.inc == C2.inc);
     }
-    // {
-    //     using B =
-    //     Eigen::VectorBlock<Eigen::Block<Eigen::Block<Eigen::MatrixXd,-1,1,true>,-1,1,false>,-1>;
-    //     CHECK( tlapack::layout<B> == tlapack::Layout::Unspecified );
-    // }
 }
 
 TEST_CASE("slice works", "[plugins]")
@@ -183,32 +198,33 @@ TEST_CASE("Layout works", "[plugins]")
 
     CHECK(tlapack::layout<
               Eigen::Block<Eigen::Matrix<float, -1, -1, 1, -1, -1>, -1, 1>> ==
-          tlapack::Layout::RowMajor);
+          tlapack::Layout::Strided);
     CHECK(tlapack::layout<
               Eigen::Block<Eigen::Matrix<float, -1, -1, 1, -1, -1>, 1, -1>> ==
-          tlapack::Layout::RowMajor);
+          tlapack::Layout::Strided);
     CHECK(tlapack::layout<
               Eigen::Block<Eigen::Matrix<float, -1, -1, 0, -1, -1>, -1, 1>> ==
-          tlapack::Layout::ColMajor);
+          tlapack::Layout::Strided);
     CHECK(tlapack::layout<
               Eigen::Block<Eigen::Matrix<float, -1, -1, 0, -1, -1>, 1, -1>> ==
-          tlapack::Layout::ColMajor);
+          tlapack::Layout::Strided);
 
     {
         using Derived =
             Eigen::Block<Eigen::Matrix<float, -1, -1, 1, -1, -1>, -1, 1, false>;
-        CHECK(tlapack::layout<Derived> == tlapack::Layout::RowMajor);
+        CHECK(tlapack::layout<Derived> == tlapack::Layout::Strided);
 
-        using Derived2 = Eigen::Map<Derived>;
+        using Derived2 = Eigen::Map<Eigen::Matrix<float, -1, -1, 1, -1, -1>>;
         CHECK(tlapack::layout<Derived2> == tlapack::Layout::RowMajor);
 
         using Derived3 = Eigen::VectorBlock<Derived>;
-        CHECK(tlapack::layout<Derived3> == tlapack::Layout::Unspecified);
+        CHECK(tlapack::layout<Derived3> == tlapack::Layout::Strided);
     }
     {
-        using Derived =
-            Eigen::Block<Eigen::Matrix<float, -1, -1, 1, -1, -1>, -1, 1, false>;
-        using Derived2 = Eigen::Map<Derived>;
-        CHECK(tlapack::layout<Derived2> == tlapack::Layout::RowMajor);
+        using B = Eigen::VectorBlock<
+            Eigen::Block<Eigen::Block<Eigen::MatrixXd, -1, 1, true>, -1, 1,
+                         false>,
+            -1>;
+        CHECK(tlapack::layout<B> == tlapack::Layout::Strided);
     }
 }

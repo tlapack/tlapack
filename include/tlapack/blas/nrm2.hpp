@@ -122,8 +122,13 @@ auto nrm2(const vector_t& x)
 template <class vector_t, enable_if_allow_optblas_t<vector_t> = 0>
 inline auto nrm2(vector_t const& x)
 {
+    // Legacy objects
     auto x_ = legacy_vector(x);
-    return ::blas::nrm2(x_.n, x_.ptr, x_.inc);
+
+    // Constants to forward
+    const auto& n = x_.n;
+    
+    return ::blas::nrm2(n, x_.ptr, x_.inc);
 }
 
 #endif

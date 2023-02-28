@@ -10,7 +10,8 @@
 #ifndef TLAPACK_WORKSPACE_HH
 #define TLAPACK_WORKSPACE_HH
 
-#include "tlapack/base/legacyArray.hpp"
+#include "tlapack/base/exceptionHandling.hpp"
+#include "tlapack/base/types.hpp"
 
 namespace tlapack {
 
@@ -26,13 +27,42 @@ struct Workspace {
 
     // Constructors:
 
-    inline constexpr Workspace(byte* ptr = nullptr, idx_t n = 0) noexcept
-        : m(n), n(1), ptr(ptr), ldim(n)
-    {}
-
-    inline constexpr Workspace(const legacyMatrix<byte>& w) noexcept
-        : m(w.m), n(w.n), ptr(w.ptr), ldim(w.ldim)
+    inline constexpr Workspace(byte* ptr = nullptr, idx_t m = 0, idx_t n = 1)
+        : m(m), n(n), ptr(ptr), ldim(m)
     {
+        tlapack_check(m >= 0);
+        tlapack_check(n >= 0);
+    }
+
+    inline constexpr Workspace(byte* ptr, idx_t m, idx_t n, idx_t ldim)
+        : m(m), n(n), ptr(ptr), ldim(ldim)
+    {
+        tlapack_check(m >= 0);
+        tlapack_check(n >= 0);
+
+        tlapack_check(ldim >= m);
+        if (n <= 1 || m == 0) this->ldim = m;
+    }
+
+    template <class T, class idx_t>
+    inline constexpr Workspace(const legacy::matrix<T, idx_t>& A)
+        : ptr((byte*)A.ptr), ldim(A.ldim * sizeof(T))
+    {
+        tlapack_check(A.layout == Layout::ColMajor ||
+                      A.layout == Layout::RowMajor);
+        if (A.layout == Layout::ColMajor) {
+            m = A.m * sizeof(T);
+            n = A.n;
+        }
+        else {
+            m = A.n * sizeof(T);
+            n = A.m;
+        }
+
+        tlapack_check(m >= 0);
+        tlapack_check(n >= 0);
+
+        tlapack_check(ldim >= m);
         if (n <= 1 || m == 0) ldim = m;
     }
 
@@ -58,7 +88,10 @@ struct Workspace {
         if (isContiguous())
             return (size() >= (m * n));
         else
-            return (this->m >= m && this->n >= n);
+            return ((this->m == m * n && this->n >= 1) ||
+                    (this->m == m && this->n >= n) ||
+                    (this->n == n && this->m >= m) ||
+                    (this->n == m * n && this->m >= 1));
     }
 
     /** Returns a workspace that is obtained by removing m*n bytes from the
@@ -77,30 +110,39 @@ struct Workspace {
     inline constexpr Workspace extract(idx_t m, idx_t n) const
     {
         if (isContiguous()) {
-            // contiguous space in memory
             tlapack_check(size() >= (m * n));
-            return legacyMatrix<byte>(size() - (m * n), 1, ptr + (m * n));
+            // contiguous space in memory
+            return Workspace(ptr + (m * n), size() - (m * n));
+        }
+        else if (this->m == m * n) {
+            tlapack_check(this->n >= 1);
+
+            return (this->n <= 2)
+                       ? Workspace(ptr + ldim, this->m,
+                                   this->n - 1)  // contiguous space in memory
+                       : Workspace(ptr + ldim, this->m, this->n - 1,
+                                   ldim);  // non-contiguous space in memory
+        }
+        else if (this->m == m) {
+            tlapack_check(this->n >= n);
+
+            return (this->n <= n + 1)
+                       ? Workspace(ptr + n * ldim, this->m,
+                                   this->n - n)  // contiguous space in memory
+                       : Workspace(ptr + n * ldim, this->m, this->n - n,
+                                   ldim);  // non-contiguous space in memory
+        }
+        else if (this->n == n) {
+            tlapack_check(this->m >= m);
+
+            // non-contiguous space in memory
+            return Workspace(ptr + m, this->m - m, this->n, ldim);
         }
         else {
-            // Only allows for the extraction of full set of rows or full set of
-            // columns
-            tlapack_check((this->m >= m && this->n >= n) &&
-                          (this->m == m || this->n == n));
+            tlapack_check(this->n == m * n && this->m >= 1);
 
-            if (this->m == m) {
-                return (this->n <= n + 1)
-                           ? legacyMatrix<byte>(
-                                 this->m, this->n - n,
-                                 ptr + n * ldim)  // contiguous space in memory
-                           : legacyMatrix<byte>(
-                                 this->m, this->n - n, ptr + n * ldim,
-                                 ldim);  // non-contiguous space in memory
-            }
-            else  // if ( this->n == n )
-            {
-                // non-contiguous space in memory
-                return legacyMatrix<byte>(this->m - m, this->n, ptr + m, ldim);
-            }
+            // non-contiguous space in memory
+            return Workspace(ptr + 1, this->m - 1, this->n, ldim);
         }
     }
 

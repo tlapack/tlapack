@@ -158,7 +158,7 @@ struct MakeScalarTraits {
 
 // For complex scalar types.
 template <typename real_t>
-struct MakeScalarTraits<std::complex<real_t> > {
+struct MakeScalarTraits<std::complex<real_t>> {
     static inline std::complex<real_t> make(const real_t& re, const real_t& im)
     {
         return std::complex<real_t>(re, im);
@@ -198,7 +198,7 @@ namespace internal {
     struct has_operator_parenthesis_with_2_indexes<
         array_t,
         enable_if_t<!is_same_v<decltype(std::declval<array_t>()(0, 0)), void>,
-                    int> > : std::true_type {};
+                    int>> : std::true_type {};
 
     template <class array_t, typename = int>
     struct has_operator_brackets_with_1_index : std::false_type {};
@@ -207,18 +207,20 @@ namespace internal {
     struct has_operator_brackets_with_1_index<
         array_t,
         enable_if_t<!is_same_v<decltype(std::declval<array_t>()[0]), void>,
-                    int> > : std::true_type {};
+                    int>> : std::true_type {};
 
 }  // namespace internal
 
-template <class array_t>
+template <class T>
 constexpr bool is_matrix =
-    internal::has_operator_parenthesis_with_2_indexes<array_t>::value;
+    internal::has_operator_parenthesis_with_2_indexes<T>::value;
 
-template <class array_t>
+template <class T>
 constexpr bool is_vector =
-    (!is_matrix<array_t>)&&internal::has_operator_brackets_with_1_index<
-        array_t>::value;
+    !is_matrix<T> && internal::has_operator_brackets_with_1_index<T>::value;
+
+template <class T>
+constexpr bool is_scalar = !is_matrix<T> && !is_vector<T>;
 
 namespace internal {
 
@@ -230,7 +232,7 @@ namespace internal {
      * @tparam matrix_t Matrix class.
      */
     template <class matrix_t>
-    struct type_trait<matrix_t, enable_if_t<is_matrix<matrix_t>, int> > {
+    struct type_trait<matrix_t, enable_if_t<is_matrix<matrix_t>, int>> {
         using type =
             typename std::decay<decltype(std::declval<matrix_t>()(0, 0))>::type;
     };
@@ -243,7 +245,7 @@ namespace internal {
      * @tparam vector_t Vector class.
      */
     template <class vector_t>
-    struct type_trait<vector_t, enable_if_t<is_vector<vector_t>, int> > {
+    struct type_trait<vector_t, enable_if_t<is_vector<vector_t>, int>> {
         using type =
             typename std::decay<decltype(std::declval<vector_t>()[0])>::type;
     };
@@ -256,7 +258,7 @@ namespace internal {
      * @tparam matrix_t Matrix class.
      */
     template <class matrix_t>
-    struct sizet_trait<matrix_t, enable_if_t<is_matrix<matrix_t>, int> > {
+    struct sizet_trait<matrix_t, enable_if_t<is_matrix<matrix_t>, int>> {
         using type = typename std::decay<decltype(
             nrows(std::declval<matrix_t>()))>::type;
     };
@@ -269,7 +271,7 @@ namespace internal {
      * @tparam vector_t Vector class.
      */
     template <class vector_t>
-    struct sizet_trait<vector_t, enable_if_t<is_vector<vector_t>, int> > {
+    struct sizet_trait<vector_t, enable_if_t<is_vector<vector_t>, int>> {
         using type =
             typename std::decay<decltype(size(std::declval<vector_t>()))>::type;
     };
@@ -535,13 +537,15 @@ bool hasnan(const vector_t& x)
 }
 
 // -----------------------------------------------------------------------------
-/// 2-norm absolute value, sqrt( |Re(x)|^2 + |Im(x)|^2 )
-///
-/// Note that std::abs< std::complex > does not overflow or underflow at
-/// intermediate stages of the computation.
-/// @see https://en.cppreference.com/w/cpp/numeric/complex/abs
-/// but it may not propagate NaNs.
-///
+// Absolute value
+
+/** 2-norm absolute value, sqrt( |Re(x)|^2 + |Im(x)|^2 )
+ *
+ * Note that std::abs< std::complex > does not overflow or underflow at
+ * intermediate stages of the computation.
+ * @see https://en.cppreference.com/w/cpp/numeric/complex/abs
+ * but it may not propagate NaNs.
+ */
 template <typename T>
 T abs(const T& x);
 
@@ -549,10 +553,18 @@ inline float abs(float x) { return std::fabs(x); }
 inline double abs(double x) { return std::fabs(x); }
 inline long double abs(long double x) { return std::fabs(x); }
 
-template <typename T>
+// If the default value of ErrorCheck::nan is true then check for NaNs
+template <typename T, enable_if_t<ErrorCheck().nan, int> = 0>
 inline T abs(const std::complex<T>& x)
 {
-    return (isnan(x)) ? std::numeric_limits<T>::quiet_NaN() : std::abs(x);
+    return isnan(x) ? std::numeric_limits<T>::quiet_NaN() : std::abs(x);
+}
+
+// If the default value of ErrorCheck::nan is false, use std::abs
+template <typename T, enable_if_t<!ErrorCheck().nan, int> = 0>
+inline T abs(const std::complex<T>& x)
+{
+    return std::abs(x);
 }
 
 // -----------------------------------------------------------------------------
@@ -572,21 +584,77 @@ inline real_t abs1(const std::complex<real_t>& x)
 // -----------------------------------------------------------------------------
 /// Optimized BLAS
 
-template <class C1, class C2, class... Cs>
-constexpr bool has_compatible_layout = has_compatible_layout<C1, C2>&&
-    has_compatible_layout<C1, Cs...>&& has_compatible_layout<C2, Cs...>;
+namespace internal {
 
-template <class C1, class C2>
-constexpr bool has_compatible_layout<C1, C2> =
-    ((layout<C1> == Layout::Unspecified) ||
-     (layout<C2> == Layout::Unspecified) || (layout<C1> == layout<C2>));
+    /// True if C1, C2, Cs... have all compatible layouts. False otherwise.
+    template <class C1, class C2, class... Cs>
+    constexpr bool has_compatible_layout = (has_compatible_layout<C1, C2> &&
+                                            has_compatible_layout<C1, Cs...> &&
+                                            has_compatible_layout<C2, Cs...>);
 
-template <class C1, class T1, class C2, class T2>
-constexpr bool has_compatible_layout<pair<C1, T1>, pair<C2, T2> > =
-    has_compatible_layout<C1, C2>;
+    /// True if C1 and C2 are matrices with same layout.
+    /// Also true if C1 or C2 are strided vectors or scalars
+    template <class C1, class C2>
+    constexpr bool has_compatible_layout<C1, C2> =
+        is_scalar<C1> || is_scalar<C2> || (layout<C1> == Layout::Strided) ||
+        (layout<C2> == Layout::Strided) || (layout<C1> == layout<C2>);
+
+    /// True if pair C1 and C2 have compatible layouts.
+    template <class C1, class T1, class C2, class T2>
+    constexpr bool has_compatible_layout<pair<C1, T1>, pair<C2, T2>> =
+        has_compatible_layout<C1, C2>;
+
+    /**
+     * @brief Trait to determine if a given list of data allows optimization
+     * using a optimized BLAS library.
+     *
+     * @tparam Ts If the last class in this list is not an int, then the trait
+     * is not defined.
+     */
+    template <class... Ts>
+    struct AllowOptBLASImpl {
+        static constexpr bool value =
+            false;  ///< True if the list of types
+                    ///< allows optimized BLAS library.
+    };
+}  // namespace internal
+
+/// Alias for @c internal::AllowOptBLASImpl<,int>::value.
+/// @ingroup abstract_matrix
+template <class... Ts>
+constexpr bool allow_optblas = internal::AllowOptBLASImpl<Ts..., int>::value;
 
 namespace internal {
 
+    /// True if C is a row- or column-major matrix and the entry type can be
+    /// used with optimized BLAS implementations.
+    template <class C>
+    struct AllowOptBLASImpl<C, enable_if_t<is_matrix<C>, int>> {
+        static constexpr bool value =
+            allow_optblas<type_t<C>> &&
+            (layout<C> == Layout::ColMajor || layout<C> == Layout::RowMajor);
+    };
+
+    /// True if C is a strided vector and the entry type can be used with
+    /// optimized BLAS implementations.
+    template <class C>
+    struct AllowOptBLASImpl<C, enable_if_t<is_vector<C>, int>> {
+        static constexpr bool value =
+            allow_optblas<type_t<C>> && (layout<C> == Layout::Strided);
+    };
+
+    /// A pair of types <C,T> allows optimized BLAS if T allows optimized BLAS
+    /// and one of the followings happens:
+    /// 1. C is a matrix or vector that allows optimized BLAS and the entry type
+    /// is the same as T.
+    /// 2. C is not a matrix or vector, but is convertible to T.
+
+    /** A pair of types <C,T> allows optimized BLAS if T allows optimized BLAS
+     * and one of the followings happens:
+     * 1. C is a matrix or vector that allows optimized BLAS and the entry type
+     * is the same as T.
+     * 2. C is not a matrix or vector, but is convertible to T.
+     */
     template <class C, class T>
     struct AllowOptBLASImpl<pair<C, T>, int> {
         static constexpr bool value =
@@ -786,7 +854,7 @@ struct workspace_opts_t {
 
     template <class matrix_t>
     inline constexpr workspace_opts_t(const matrix_t& A)
-        : work(legacy_matrix(A).in_bytes())
+        : work(legacy_matrix(A))
     {}
 };
 

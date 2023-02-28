@@ -265,9 +265,11 @@ inline void hemm(Side side,
     auto C_ = legacy_matrix(C);
 
     // Constants to forward
+    constexpr Layout L = layout<matrixC_t>;
     const auto& m = C_.m;
     const auto& n = C_.n;
 
+    // Warnings for NaNs and Infs
     if (alpha == alpha_t(0))
         tlapack_warning(
             -3, "Infs and NaNs in A or B will not propagate to C on output");
@@ -276,7 +278,7 @@ inline void hemm(Side side,
             -6,
             "Infs and NaNs in C on input will not propagate to C on output");
 
-    return ::blas::hemm((::blas::Layout)A_.layout, (::blas::Side)side,
+    return ::blas::hemm((::blas::Layout)L, (::blas::Side)side,
                         (::blas::Uplo)uplo, m, n, alpha, A_.ptr, A_.ldim,
                         B_.ptr, B_.ldim, beta, C_.ptr, C_.ldim);
 }
@@ -316,14 +318,16 @@ inline void hemm(Side side,
     auto C_ = legacy_matrix(C);
 
     // Constants to forward
+    constexpr Layout L = layout<matrixC_t>;
     const auto& m = C_.m;
     const auto& n = C_.n;
 
+    // Warnings for NaNs and Infs
     if (alpha == alpha_t(0))
         tlapack_warning(
             -3, "Infs and NaNs in A or B will not propagate to C on output");
 
-    return ::blas::hemm((::blas::Layout)A_.layout, (::blas::Side)side,
+    return ::blas::hemm((::blas::Layout)L, (::blas::Side)side,
                         (::blas::Uplo)uplo, m, n, alpha, A_.ptr, A_.ldim,
                         B_.ptr, B_.ldim, T(0), C_.ptr, C_.ldim);
 }

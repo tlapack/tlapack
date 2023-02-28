@@ -51,20 +51,14 @@ template <
     enable_if_allow_optblas_t<pair<vectorX_t, T>, pair<vectorY_t, T> > = 0>
 inline void copy(const vectorX_t& x, vectorY_t& y)
 {
-    using idx_t = size_type<vectorX_t>;
-
     // Legacy objects
     auto x_ = legacy_vector(x);
     auto y_ = legacy_vector(y);
 
     // Constants to forward
-    const idx_t& n = x_.n;
-    const idx_t incx =
-        (x_.direction == Direction::Forward) ? idx_t(x_.inc) : idx_t(-x_.inc);
-    const idx_t incy =
-        (y_.direction == Direction::Forward) ? idx_t(y_.inc) : idx_t(-y_.inc);
+    const auto& n = x_.n;
 
-    return ::blas::copy(n, x_.ptr, incx, y_.ptr, incy);
+    return ::blas::copy(n, x_.ptr, x_.inc, y_.ptr, y_.inc);
 }
 
 #endif

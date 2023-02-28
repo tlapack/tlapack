@@ -100,22 +100,17 @@ inline void syr2(Uplo uplo,
                  const vectorY_t& y,
                  matrixA_t& A)
 {
-    using idx_t = size_type<matrixA_t>;
-
     // Legacy objects
     auto A_ = legacy_matrix(A);
     auto x_ = legacy_vector(x);
     auto y_ = legacy_vector(y);
 
     // Constants to forward
-    const idx_t& n = A_.n;
-    const idx_t incx =
-        (x_.direction == Direction::Forward) ? idx_t(x_.inc) : idx_t(-x_.inc);
-    const idx_t incy =
-        (y_.direction == Direction::Forward) ? idx_t(y_.inc) : idx_t(-y_.inc);
+    constexpr Layout L = layout<matrixA_t>;
+    const auto& n = A_.n;
 
-    return ::blas::syr2((::blas::Layout)A_.layout, (::blas::Uplo)uplo, n, alpha,
-                        x_.ptr, incx, y_.ptr, incy, A_.ptr, A_.ldim);
+    return ::blas::syr2((::blas::Layout)L, (::blas::Uplo)uplo, n, alpha,
+                        x_.ptr, x_.inc, y_.ptr, y_.inc, A_.ptr, A_.ldim);
 }
 
 #endif

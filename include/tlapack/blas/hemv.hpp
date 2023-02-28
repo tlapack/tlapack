@@ -164,20 +164,16 @@ inline void hemv(Uplo uplo,
                  const beta_t beta,
                  vectorY_t& y)
 {
-    using idx_t = size_type<matrixA_t>;
-
     // Legacy objects
     auto A_ = legacy_matrix(A);
     auto x_ = legacy_vector(x);
     auto y_ = legacy_vector(y);
 
     // Constants to forward
-    const idx_t& n = A_.n;
-    const idx_t incx =
-        (x_.direction == Direction::Forward) ? idx_t(x_.inc) : idx_t(-x_.inc);
-    const idx_t incy =
-        (y_.direction == Direction::Forward) ? idx_t(y_.inc) : idx_t(-y_.inc);
+    constexpr Layout L = layout<matrixA_t>;
+    const auto& n = A_.n;
 
+    // Warnings for NaNs and Infs
     if (alpha == alpha_t(0))
         tlapack_warning(
             -2, "Infs and NaNs in A or x will not propagate to y on output");
@@ -186,8 +182,8 @@ inline void hemv(Uplo uplo,
             -5,
             "Infs and NaNs in y on input will not propagate to y on output");
 
-    return ::blas::hemv((::blas::Layout)A_.layout, (::blas::Uplo)uplo, n, alpha,
-                        A_.ptr, A_.ldim, x_.ptr, incx, beta, y_.ptr, incy);
+    return ::blas::hemv((::blas::Layout)L, (::blas::Uplo)uplo, n, alpha,
+                        A_.ptr, A_.ldim, x_.ptr, x_.inc, beta, y_.ptr, y_.inc);
 }
 
 template <class matrixA_t,
@@ -205,26 +201,22 @@ inline void hemv(Uplo uplo,
                  const vectorX_t& x,
                  vectorY_t& y)
 {
-    using idx_t = size_type<matrixA_t>;
-
     // Legacy objects
     auto A_ = legacy_matrix(A);
     auto x_ = legacy_vector(x);
     auto y_ = legacy_vector(y);
 
     // Constants to forward
-    const idx_t& n = A_.n;
-    const idx_t incx =
-        (x_.direction == Direction::Forward) ? idx_t(x_.inc) : idx_t(-x_.inc);
-    const idx_t incy =
-        (y_.direction == Direction::Forward) ? idx_t(y_.inc) : idx_t(-y_.inc);
+    constexpr Layout L = layout<matrixA_t>;
+    const auto& n = A_.n;
 
+    // Warnings for NaNs and Infs
     if (alpha == alpha_t(0))
         tlapack_warning(
             -2, "Infs and NaNs in A or x will not propagate to y on output");
 
-    return ::blas::hemv((::blas::Layout)A_.layout, (::blas::Uplo)uplo, n, alpha,
-                        A_.ptr, A_.ldim, x_.ptr, incx, T(0), y_.ptr, incy);
+    return ::blas::hemv((::blas::Layout)L, (::blas::Uplo)uplo, n, alpha,
+                        A_.ptr, A_.ldim, x_.ptr, x_.inc, T(0), y_.ptr, y_.inc);
 }
 
 #endif
