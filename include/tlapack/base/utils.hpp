@@ -553,18 +553,13 @@ inline float abs(float x) { return std::fabs(x); }
 inline double abs(double x) { return std::fabs(x); }
 inline long double abs(long double x) { return std::fabs(x); }
 
-// If the default value of ErrorCheck::nan is true then check for NaNs
-template <typename T, enable_if_t<ErrorCheck().nan, int> = 0>
+template <typename T>
 inline T abs(const std::complex<T>& x)
 {
-    return isnan(x) ? std::numeric_limits<T>::quiet_NaN() : std::abs(x);
-}
-
-// If the default value of ErrorCheck::nan is false, use std::abs
-template <typename T, enable_if_t<!ErrorCheck().nan, int> = 0>
-inline T abs(const std::complex<T>& x)
-{
-    return std::abs(x);
+    // If the default value of ErrorCheck::nan is true then check for NaNs
+    return (ErrorCheck().nan)
+               ? (isnan(x) ? std::numeric_limits<T>::quiet_NaN() : std::abs(x))
+               : std::abs(x);
 }
 
 // -----------------------------------------------------------------------------
