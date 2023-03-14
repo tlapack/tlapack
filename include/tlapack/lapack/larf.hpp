@@ -169,6 +169,7 @@ void larf(side_t side,
     tlapack_check(storeMode == StoreV::Columnwise ||
                   storeMode == StoreV::Rowwise);
     tlapack_check((idx_t)size(x) == (side == Side::Left) ? m : n);
+    tlapack_check(k == ((side == Side::Left) ? n : m));
 
     // Quick return if possible
     if (m == 0 || n == 0) {
@@ -232,9 +233,11 @@ void larf(side_t side,
         }
         else {
             // w := C0 + C1*conj(x)
-            gemv(Op::Conj, one, C1, x, w);
             for (idx_t i = 0; i < k; ++i)
-                w[i] = C0[i] + conj(w[i]);
+                w[i] = C0[i];
+            for (idx_t j = 0; j < n; ++j)
+                for (idx_t i = 0; i < m; ++i)
+                    w[i] += C1(i, j) * conj(x[j]);
 
             // C1 := C1 - tau*w*x^t
             geru(-tau, w, x, C1);

@@ -82,6 +82,7 @@ void trmv(Layout layout,
           int_t incx)
 {
     using internal::colmajor_matrix;
+    using std::abs;
 
     // check arguments
     tlapack_check_false(layout != Layout::ColMajor &&
@@ -98,19 +99,35 @@ void trmv(Layout layout,
     if (n == 0) return;
 
     // for row major, swap lower <=> upper and
-    // A => A^T; A^T => A; A^H => conj(A)
+    // A => A^T; A^T => A; A^H => A & doConj
+    bool doConj = false;
     if (layout == Layout::RowMajor) {
         uplo = (uplo == Uplo::Lower ? Uplo::Upper : Uplo::Lower);
-        trans = (trans == Op::NoTrans)
-                    ? Op::Trans
-                    : ((trans == Op::Trans) ? Op::NoTrans : Op::Conj);
+        if (trans == Op::NoTrans)
+            trans = Op::Trans;
+        else {
+            if (trans == Op::ConjTrans) doConj = true;
+            trans = Op::NoTrans;
+        }
+    }
+
+    // Conjugate if A is row-major and initially trans is Op::ConjTrans
+    if (doConj) {
+        for (idx_t i = 0; i < n; ++i)
+            x[i * abs(incx)] = conj(x[i * abs(incx)]);
     }
 
     // Matrix views
     const auto A_ = colmajor_matrix<TA>((TA*)A, n, n, lda);
 
     tlapack_expr_with_vector(x_, TX, n, x, incx,
-                             return trmv(uplo, trans, diag, A_, x_));
+                             trmv(uplo, trans, diag, A_, x_));
+
+    // Conjugate if A is row-major and initially trans is Op::ConjTrans
+    if (doConj) {
+        for (idx_t i = 0; i < n; ++i)
+            x[i * abs(incx)] = conj(x[i * abs(incx)]);
+    }
 }
 
 }  // namespace tlapack
