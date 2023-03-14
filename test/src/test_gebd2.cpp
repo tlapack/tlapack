@@ -43,8 +43,8 @@ TEMPLATE_TEST_CASE("bidiagonal reduction is backward stable",
     // Functor
     Create<matrix_t> new_matrix;
 
-    const T zero(0);
-    const T one(1);
+    const real_t zero(0);
+    const real_t one(1);
 
     idx_t m, n;
 
@@ -111,7 +111,7 @@ TEMPLATE_TEST_CASE("bidiagonal reduction is backward stable",
             std::vector<T> Wq_;
             auto Wq = new_matrix(Wq_, m, m);
             auto orth_Q = check_orthogonality(Q, Wq);
-            CHECK(orth_Q <= tol);
+            CHECK(orth_Q / tol <= one);
 
             // Generate unitary matrix Z of n-by-n
             laset(Uplo::General, zero, one,
@@ -131,7 +131,7 @@ TEMPLATE_TEST_CASE("bidiagonal reduction is backward stable",
             auto Wz = new_matrix(Wz_, n, n);
             laset(Uplo::General, zero, one, Wz);
             auto orth_Z = check_orthogonality(Z, Wz);
-            CHECK(orth_Z <= tol);
+            CHECK(orth_Z / tol <= one);
 
             // Test B = Q_H * A * Z
             // Generate a zero matrix K of size m-by-n to be the product of Q_H

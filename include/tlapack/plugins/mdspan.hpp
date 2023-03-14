@@ -531,11 +531,7 @@ inline constexpr auto legacy_matrix(
 {
     using idx_t =
         typename std::experimental::mdspan<ET, Exts, LP, AP>::size_type;
-    const Layout L = (A.stride(0) == 1 || A.extent(0) <= 1) ? Layout::ColMajor
-                                                            : Layout::RowMajor;
-
-    assert(A.stride(0) == 1 || A.extent(0) <= 1 || A.stride(1) == 1 ||
-           A.extent(1) <= 1);
+    constexpr Layout L = layout<std::experimental::mdspan<ET, Exts, LP, AP>>;
 
     return legacy::matrix<ET, idx_t>{
         L, A.extent(0), A.extent(1), A.data(),

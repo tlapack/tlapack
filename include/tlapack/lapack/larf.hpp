@@ -169,7 +169,6 @@ void larf(side_t side,
     tlapack_check(storeMode == StoreV::Columnwise ||
                   storeMode == StoreV::Rowwise);
     tlapack_check((idx_t)size(x) == (side == Side::Left) ? m : n);
-    tlapack_check(k == ((side == Side::Left) ? n : m));
 
     // Quick return if possible
     if (m == 0 || n == 0) {

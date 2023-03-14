@@ -31,7 +31,8 @@ namespace tlapack {
  *     The operation to be performed:
  *     - Op::NoTrans:   $y = \alpha A   x + \beta y$,
  *     - Op::Trans:     $y = \alpha A^T x + \beta y$,
- *     - Op::ConjTrans: $y = \alpha A^H x + \beta y$.
+ *     - Op::ConjTrans: $y = \alpha A^H x + \beta y$,
+ *     - Op::Conj:  $y = \alpha conj(A) x + \beta y$.
  *
  * @param[in] alpha Scalar.
  * @param[in] A $op(A)$ is an m-by-n matrix.
@@ -65,12 +66,14 @@ void gemv(Op trans,
     using idx_t = size_type<matrixA_t>;
 
     // constants
-    const idx_t m = (trans == Op::NoTrans) ? nrows(A) : ncols(A);
-    const idx_t n = (trans == Op::NoTrans) ? ncols(A) : nrows(A);
+    const idx_t m =
+        (trans == Op::NoTrans || trans == Op::Conj) ? nrows(A) : ncols(A);
+    const idx_t n =
+        (trans == Op::NoTrans || trans == Op::Conj) ? ncols(A) : nrows(A);
 
     // check arguments
     tlapack_check_false(trans != Op::NoTrans && trans != Op::Trans &&
-                        trans != Op::ConjTrans);
+                        trans != Op::ConjTrans && trans != Op::Conj);
     tlapack_check_false((idx_t)size(x) != n);
     tlapack_check_false((idx_t)size(y) != m);
 
@@ -90,15 +93,15 @@ void gemv(Op trans,
             }
         }
     }
-    // else if (trans == Op::Conj) {
-    //     // form y += alpha * conj( A ) * x
-    //     for (idx_t j = 0; j < n; ++j) {
-    //         const scalar_type<alpha_t, TX> tmp = alpha * x[j];
-    //         for (idx_t i = 0; i < m; ++i) {
-    //             y[i] += tmp * conj(A(i, j));
-    //         }
-    //     }
-    // }
+    else if (trans == Op::Conj) {
+        // form y += alpha * conj( A ) * x
+        for (idx_t j = 0; j < n; ++j) {
+            const scalar_type<alpha_t, TX> tmp = alpha * x[j];
+            for (idx_t i = 0; i < m; ++i) {
+                y[i] += tmp * conj(A(i, j));
+            }
+        }
+    }
     else if (trans == Op::Trans) {
         // form y += alpha * A^T * x
         for (idx_t i = 0; i < m; ++i) {
@@ -137,7 +140,8 @@ void gemv(Op trans,
  *     The operation to be performed:
  *     - Op::NoTrans:   $y = \alpha A   x$,
  *     - Op::Trans:     $y = \alpha A^T x$,
- *     - Op::ConjTrans: $y = \alpha A^H x$.
+ *     - Op::ConjTrans: $y = \alpha A^H x$,
+ *     - Op::Conj:  $y = \alpha conj(A) x$.
  *
  * @param[in] alpha Scalar.
  * @param[in] A $op(A)$ is an m-by-n matrix.

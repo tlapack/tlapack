@@ -70,7 +70,7 @@ void trmv(Uplo uplo, Op trans, Diag diag, const matrixA_t& A, vectorX_t& x)
     // check arguments
     tlapack_check_false(uplo != Uplo::Lower && uplo != Uplo::Upper);
     tlapack_check_false(trans != Op::NoTrans && trans != Op::Trans &&
-                        trans != Op::ConjTrans);
+                        trans != Op::ConjTrans && trans != Op::Conj);
     tlapack_check_false(diag != Diag::NonUnit && diag != Diag::Unit);
     tlapack_check_false(nrows(A) != ncols(A));
     tlapack_check_false((idx_t)size(x) != n);
@@ -97,28 +97,28 @@ void trmv(Uplo uplo, Op trans, Diag diag, const matrixA_t& A, vectorX_t& x)
             }
         }
     }
-    // else if (trans == Op::Conj) {
-    //     // Form x := A*x
-    //     if (uplo == Uplo::Upper) {
-    //         // upper
-    //         for (idx_t j = 0; j < n; ++j) {
-    //             // note: NOT skipping if x[j] is zero, for consistent NAN
-    //             // handling
-    //             for (idx_t i = 0; i < j; ++i)
-    //                 x[i] += x[j] * conj(A(i, j));
-    //             if (nonunit) x[j] *= conj(A(j, j));
-    //         }
-    //     }
-    //     else {
-    //         // lower
-    //         for (idx_t j = n - 1; j != idx_t(-1); --j) {
-    //             // note: NOT skipping if x[j] is zero ...
-    //             for (idx_t i = n - 1; i >= j + 1; --i)
-    //                 x[i] += x[j] * conj(A(i, j));
-    //             if (nonunit) x[j] *= conj(A(j, j));
-    //         }
-    //     }
-    // }
+    else if (trans == Op::Conj) {
+        // Form x := A*x
+        if (uplo == Uplo::Upper) {
+            // upper
+            for (idx_t j = 0; j < n; ++j) {
+                // note: NOT skipping if x[j] is zero, for consistent NAN
+                // handling
+                for (idx_t i = 0; i < j; ++i)
+                    x[i] += x[j] * conj(A(i, j));
+                if (nonunit) x[j] *= conj(A(j, j));
+            }
+        }
+        else {
+            // lower
+            for (idx_t j = n - 1; j != idx_t(-1); --j) {
+                // note: NOT skipping if x[j] is zero ...
+                for (idx_t i = n - 1; i >= j + 1; --i)
+                    x[i] += x[j] * conj(A(i, j));
+                if (nonunit) x[j] *= conj(A(j, j));
+            }
+        }
+    }
     else if (trans == Op::Trans) {
         // Form  x := A^T * x
 
