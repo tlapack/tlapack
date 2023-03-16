@@ -638,12 +638,6 @@ namespace internal {
             allow_optblas<type_t<C>> && (layout<C> == Layout::Strided);
     };
 
-    /// A pair of types <C,T> allows optimized BLAS if T allows optimized BLAS
-    /// and one of the followings happens:
-    /// 1. C is a matrix or vector that allows optimized BLAS and the entry type
-    /// is the same as T.
-    /// 2. C is not a matrix or vector, but is convertible to T.
-
     /** A pair of types <C,T> allows optimized BLAS if T allows optimized BLAS
      * and one of the followings happens:
      * 1. C is a matrix or vector that allows optimized BLAS and the entry type
@@ -699,75 +693,6 @@ TLAPACK_OPT_TYPE(std::complex<double>)
 
 // -----------------------------------------------------------------------------
 // Workspace:
-
-/// @brief Output information in the workspace query
-struct workinfo_t {
-    size_t m = 0;  ///< Number of rows needed in the Workspace
-    size_t n = 0;  ///< Number of columns needed in the Workspace
-
-    /// Constructor using sizes
-    inline constexpr workinfo_t(size_t m = 0, size_t n = 0) noexcept
-        : m(m), n(n)
-    {}
-
-    /// Size needed in the Workspace
-    inline constexpr size_t size() const noexcept { return m * n; }
-
-    /**
-     * @brief Set the current object to a state that
-     *  fit its current sizes and the sizes of workinfo.
-     *
-     * If sizes don't match, use simple solution: require contiguous space in
-     * memory.
-     *
-     * @param[in] workinfo Another specification of work sizes
-     */
-    void minMax(const workinfo_t& workinfo) noexcept
-    {
-        // Check if the current sizes do not cover the sizes from workinfo
-        if (m < workinfo.size() && ((m < workinfo.m) || (n < workinfo.n))) {
-            // Check if the sizes from workinfo cover the current sizes
-            if (size() <= workinfo.m ||
-                ((m <= workinfo.m) && (n <= workinfo.n))) {
-                m = workinfo.m;
-                n = workinfo.n;
-            }
-            else  // Sizes do not match. Simple solution: contiguous space in
-                  // memory
-            {
-                m = std::max(size(), workinfo.size());
-                n = 1;
-            }
-        }
-    }
-
-    /**
-     * @brief Sum two object by matching sizes.
-     *
-     * If sizes don't match, use simple solution: require contiguous space in
-     * memory.
-     *
-     * @param workinfo The object to be added to *this.
-     * @return constexpr workinfo_t& The modified workinfo.
-     */
-    constexpr workinfo_t& operator+=(const workinfo_t& workinfo) noexcept
-    {
-        // If first dimension matches, update second dimension
-        if (m == workinfo.m) {
-            n += workinfo.n;
-        }
-        // Else, if second dimension matches, update first dimension
-        else if (n == workinfo.n) {
-            m += workinfo.m;
-        }
-        else  // Sizes do not match. Simple solution: contiguous space in memory
-        {
-            m = size() + workinfo.size();
-            n = 1;
-        }
-        return *this;
-    }
-};
 
 /**
  * @brief Allocates workspace

@@ -575,3 +575,72 @@ jobs:
 
     - name: Install
       run: cmake --build build --target install
+
+  build-in-debug-mode:
+    # Use GNU compilers
+
+    runs-on: ubuntu-latest
+    steps:
+    
+    - name: Checkout <T>LAPACK
+      uses: actions/checkout@v3
+    
+    - name: Install the Basics
+      run: |
+        sudo apt update
+        sudo apt install -y cmake
+        sudo apt install -y gfortran
+
+    - name: Install ninja-build tool
+      uses: seanmiddleditch/gha-setup-ninja@v3
+
+    - name: Install LAPACK and LAPACKE on Ubuntu
+      run: sudo apt install -y liblapack-dev liblapacke-dev
+
+    - name: Checkout BLAS++ and LAPACK++
+      run: |
+        git clone https://bitbucket.org/weslleyspereira/blaspp ${{env.blaspp_DIR}}
+        git clone https://bitbucket.org/weslleyspereira/lapackpp ${{env.lapackpp_DIR}}
+
+    - name: Build and install BLAS++
+      working-directory: ${{env.blaspp_DIR}}
+      run: |
+        git checkout tlapack
+        cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=Debug -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.blaspp_DIR}}
+        cmake --build build --target install
+
+    - name: Build and install LAPACK++
+      working-directory: ${{env.lapackpp_DIR}}
+      run: |
+        git checkout tlapack
+        cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=Debug -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.lapackpp_DIR}}
+        cmake --build build --target install
+
+    - name: Configure CMake for <T>LAPACK
+      run: >
+        cmake -B build -G Ninja
+        -D CMAKE_BUILD_TYPE=Debug
+        -D CMAKE_INSTALL_PREFIX=${{github.workspace}}/tlapack_install
+        -D BUILD_SHARED_LIBS=ON
+        -D BUILD_EXAMPLES=ON
+        -D BUILD_TESTING=ON
+        -D BUILD_C_WRAPPERS=ON
+        -D BUILD_Fortran_WRAPPERS=ON
+        -D BUILD_CBLAS_WRAPPERS=ON
+        -D USE_LAPACKPP_WRAPPERS=ON
+        -D BUILD_BLASPP_TESTS=ON
+        -D blaspp_TEST_DIR=${{env.blaspp_DIR}}/test
+        -D BUILD_LAPACKPP_TESTS=ON
+        -D lapackpp_TEST_DIR=${{env.lapackpp_DIR}}/test
+
+    - name: Build <T>LAPACK
+      run: cmake --build build --config Debug
+
+    # Mind that the job won't fail if only this step fails
+    - name: Run tests
+      working-directory: ${{github.workspace}}/build
+      continue-on-error: true
+      run: ctest -C Debug --output-on-failure
+
+    - name: Install
+      run: cmake --build build --target install
