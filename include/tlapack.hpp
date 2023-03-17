@@ -84,6 +84,7 @@
 #include "tlapack/lapack/lascl.hpp"
 #include "tlapack/lapack/laset.hpp"
 #include "tlapack/lapack/lassq.hpp"
+#include "tlapack/lapack/latrs.hpp"
 #include "tlapack/lapack/lauum_recursive.hpp"
 #include "tlapack/lapack/lu_mult.hpp"
 #include "tlapack/lapack/transpose.hpp"

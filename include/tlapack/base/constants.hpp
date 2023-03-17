@@ -96,6 +96,16 @@ inline constexpr real_t safe_max()
     return min(pow(fradix, real_t(1 - expm)), pow(fradix, real_t(expM - 1)));
 }
 
+/** Overflow threshold.
+ *
+ * @ingroup constants
+ */
+template <typename real_t>
+inline constexpr real_t overflow()
+{
+    return std::numeric_limits<real_t>::max();
+}
+
 /** Safe Minimum such its square is representable
  * @ingroup constants
  */
