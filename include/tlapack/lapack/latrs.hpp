@@ -3,6 +3,9 @@
 /// @note Adapted from @see
 /// https://github.com/langou/latl/blob/master/include/zlatrs.h
 //
+//  Reference: Robust Triangular Solves for Use in Condition Estimation
+//             Edward Anderson, LAWN 36
+//
 // Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
@@ -14,7 +17,9 @@
 
 #include "tlapack/base/utils.hpp"
 #include "tlapack/blas/asum.hpp"
+#include "tlapack/blas/axpy.hpp"
 #include "tlapack/blas/iamax.hpp"
+#include "tlapack/blas/scal.hpp"
 #include "tlapack/blas/trsv.hpp"
 #include "tlapack/lapack/lange.hpp"
 
@@ -96,13 +101,15 @@ int latrs(Uplo uplo,
             if (uplo == Uplo::Upper) {
                 for (idx_t j = 1; j < n; ++j) {
                     auto v = slice(A, pair{0, j}, j);
-                    tmax = std::max(lange(Norm::Max, v), tmax);
+                    auto itemp = iamax(v);
+                    tmax = std::max(tlapack::abs(v[itemp]), tmax);
                 }
             }
             else {
                 for (idx_t j = 0; j < n - 1; ++j) {
                     auto v = slice(A, pair{j + 1, n}, j);
-                    tmax = std::max(lange(Norm::Max, v), tmax);
+                    auto itemp = iamax(v);
+                    tmax = std::max(tlapack::abs(v[itemp]), tmax);
                 }
             }
         }
@@ -282,7 +289,9 @@ int latrs(Uplo uplo,
     //
     // Actually solve the system
     //
-    if ((grow * tscal) > smlnum) {
+    // if ((grow * tscal) > smlnum) {
+    // For now, always use the scaling solver so it is easier to test
+    if (false) {
         //
         // Use the Level 2 BLAS solve if the reciprocal of the bound on
         // elements of X is not too small.
@@ -293,12 +302,127 @@ int latrs(Uplo uplo,
         //
         // Use a Level 1 BLAs solve, scaling intermediate results.
         //
+        if (xmax > bignum) {
+            //
+            // Scale X so that its components are less than or equal to
+            // BIGNUM in absolute value.
+            //
+            scale = bignum / xmax;
+            scal(scale, x);
+            xmax = bignum;
+        }
+        if (trans == Op::NoTrans) {
+            //
+            // Solve A * x = b
+            //
+            for (idx_t j2 = 0; j2 < n; ++j2) {
+                idx_t j;
+                if (uplo == Uplo::Upper) {
+                    j = n - 1 - j2;
+                }
+                else {
+                    j = j2;
+                }
+                //
+                // Compute x(j) = b(j) / A(j,j), scaling x if necessary.
+                //
+                real_t xj = tlapack::abs(x[j]);
+                T tjjs;
+                if (diag == Diag::NonUnit) {
+                    tjjs = A(j, j) * tscal;
+                }
+                else {
+                    tjjs = tscal;
+                    if (tscal == one) {
+                        // TODO, implement logic for GO TO 100
+                    }
+                }
+                real_t tjj = tlapack::abs(tjjs);
+                if (tjj > smlnum) {
+                    // abs(A(j,j)) > SMLNUM
+                    if ((tjj < one) and (xj > tjj * bignum)) {
+                        // Scale x by 1/b(j).
+                        auto rec = one / xj;
+                        scal(rec, x);
+                        scale = scale * rec;
+                        xmax = xmax * rec;
+                    }
+                    x[j] = x[j] / tjjs;
+                    xj = tlapack::abs(x[j]);
+                }
+                else if (tjj > zero) {
+                    // 0 < abs(A(j,j)) <= SMLNUM
+                    if (xj > tjj * bignum) {
+                        // Scale x by (1/abs(x(j)))*abs(A(j,j))*BIGNUM
+                        // to avoid overflow when dividing by A(j,j).
+                        auto rec = (tjj * bignum) / xj;
+                        if (cnorm[j] > one) {
+                            // Scale by 1/CNORM(j) to avoid overflow when
+                            // multiplying x(j) times column j.
+                            rec = rec / cnorm[j];
+                        }
+                        scal(rec, x);
+                        scale = scale * rec;
+                        xmax = xmax * rec;
+                    }
+                }
+                else {
+                    // A(j,j) = 0:  Set x(1:n) = 0, x(j) = 1, and
+                    // scale = 0, and compute a solution to A*x = 0.
+                    for (idx_t i = 0; i < n; ++i)
+                        x[i] = zero;
+                    x[j] = one;
+                    xj = one;
+                    scale = zero;
+                    xmax = zero;
+                }
+                // Scale x if necessary to avoid overflow when adding a
+                // multiple of column j of A.
+                if (xj > one) {
+                    auto rec = one / xj;
+                    if (cnorm[j] > (bignum - xmax) * rec) {
+                        // Scale x by 1/(2*abs(x(j))).
+                        rec = rec * half;
+                        scal(rec, x);
+                        scale = scale * rec;
+                    }
+                }
+                else if (xj * cnorm[j] > (bignum - xmax)) {
+                    // Scale x by 1/2.
+                    scal(half, x);
+                    scale = scale * half;
+                }
 
-        // TODO: write this, false assertion for now
-        assert(false);
+                if (uplo == Uplo::Upper) {
+                    if (j > 0) {
+                        // Compute the update x(0:j) := x(0:j) - x(j) *
+                        // A(0:j,j)
+                        auto A2 = slice(A, pair{0, j}, j);
+                        auto x2 = slice(x, pair{0, j});
+
+                        axpy(-x[j] * tscal, A2, x2);
+                        auto itemp = iamax(x2);
+                        xmax = tlapack::abs(x[itemp]);
+                    }
+                }
+                else {
+                    auto A2 = slice(A, pair{j + 1, n}, j);
+                    auto x2 = slice(x, pair{j + 1, n});
+
+                    axpy(-x[j] * tscal, A2, x2);
+                    // TODO: this might be off by one, check it !!
+                    auto itemp = j + iamax(x2);
+                    xmax = tlapack::abs(x[itemp]);
+                }
+            }
+        }
+        else {
+            // TODO
+            assert(false);
+        }
     }
     return 0;
-}
+}  // namespace tlapack
 
 }  // namespace tlapack
 

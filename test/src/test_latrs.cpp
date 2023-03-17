@@ -33,13 +33,14 @@ TEMPLATE_TEST_CASE("safe scaling solve", "[latrs]", TLAPACK_TYPES_TO_TEST)
     const T one(1);
 
     // Number of rows in the matrix
-    idx_t n = GENERATE(10, 20, 30);
+    idx_t n = GENERATE(4, 5, 8);
 
     const real_t eps = uroundoff<real_t>();
     const real_t tol = real_t(n * 1.0e2) * eps;
 
     std::vector<T> A_;
     auto A = new_matrix(A_, n, n);
+    std::vector<T> x_exact(n);
     std::vector<T> x(n);
     std::vector<T> b(n);
     real_t scale;
@@ -51,9 +52,15 @@ TEMPLATE_TEST_CASE("safe scaling solve", "[latrs]", TLAPACK_TYPES_TO_TEST)
     for (idx_t j = 0; j < n; ++j)
         for (idx_t i = j + 1; i < n; ++i)
             A(i, j) = zero;
+    // Scale a bit to make it more singular
+    for (idx_t j = 0; j < n; ++j)
+        A(j, j) = T(1) * A(j, j);
 
     for (idx_t i = 0; i < n; ++i)
-        b[i] = rand_helper<T>();
+        x_exact[i] = rand_helper<T>();
+
+    b = x_exact;
+    trmv(Uplo::Upper, Op::NoTrans, Diag::NonUnit, A, b);
 
     for (idx_t i = 0; i < n; ++i)
         x[i] = b[i];
@@ -62,7 +69,8 @@ TEMPLATE_TEST_CASE("safe scaling solve", "[latrs]", TLAPACK_TYPES_TO_TEST)
 
     trmv(Uplo::Upper, Op::NoTrans, Diag::NonUnit, A, x);
 
-    real_t bnorm = tlapack::lange(Norm::Max, b);
+    auto itemp = iamax(b);
+    real_t bnorm = tlapack::abs(b[itemp]);
     real_t enorm = real_t(0);
     for (idx_t i = 0; i < n; ++i)
         enorm += abs1(x[i] - scale * b[i]);
