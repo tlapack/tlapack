@@ -102,14 +102,14 @@ int latrs(Uplo uplo,
                 for (idx_t j = 1; j < n; ++j) {
                     auto v = slice(A, pair{0, j}, j);
                     auto itemp = iamax(v);
-                    tmax = std::max(tlapack::abs(v[itemp]), tmax);
+                    tmax = std::max(tlapack::abs1(v[itemp]), tmax);
                 }
             }
             else {
                 for (idx_t j = 0; j < n - 1; ++j) {
                     auto v = slice(A, pair{j + 1, n}, j);
                     auto itemp = iamax(v);
-                    tmax = std::max(tlapack::abs(v[itemp]), tmax);
+                    tmax = std::max(tlapack::abs1(v[itemp]), tmax);
                 }
             }
         }
@@ -126,12 +126,14 @@ int latrs(Uplo uplo,
                     cnorm[j] = zero;
                     if (uplo == Uplo::Upper) {
                         for (idx_t i = 0; i + 1 < j; ++i) {
-                            cnorm[j] = cnorm[j] + tscal * tlapack::abs(A(i, j));
+                            cnorm[j] =
+                                cnorm[j] + tscal * tlapack::abs1(A(i, j));
                         }
                     }
                     else {
                         for (idx_t i = j + 1; i < n; ++i) {
-                            cnorm[j] = cnorm[j] + tscal * tlapack::abs(A(i, j));
+                            cnorm[j] =
+                                cnorm[j] + tscal * tlapack::abs1(A(i, j));
                         }
                     }
                 }
@@ -149,7 +151,7 @@ int latrs(Uplo uplo,
     // Level 2 BLAS routine DTRSV can be used.
     //
     auto imax2 = iamax(x);
-    real_t xmax = tlapack::abs(x[imax2]);
+    real_t xmax = tlapack::abs1(x[imax2]);
     real_t xbnd = xmax;
     real_t grow;
     if (trans == Op::NoTrans) {
@@ -184,7 +186,7 @@ int latrs(Uplo uplo,
                     //
                     // M(j) = G(j-1) / abs(A(j,j))
                     //
-                    auto tjj = tlapack::abs(A(j, j));
+                    auto tjj = tlapack::abs1(A(j, j));
                     xbnd = std::min(xbnd, std::min(one, tjj) * grow);
                     if (tjj + cnorm[j] >= smlnum) {
                         // G(j) = G(j-1)*( 1 + CNORM(j) / abs(A(j,j)) )
@@ -222,10 +224,8 @@ int latrs(Uplo uplo,
     }
     else {
         //
-        //  Compute the growth in A**T * x = b.
+        //  Compute the growth in A**T * x = b or  A**H * x = b.
         //
-        idx_t jfirst, jlast, jinc;
-
         if (tscal != one) {
             grow = zero;
         }
@@ -237,7 +237,7 @@ int latrs(Uplo uplo,
                 // Compute GROW = 1/G(j) and XBND = 1/M(j).
                 // Initially, G(0) = max{x(i), i=1,...,n}.
                 //
-                grow = one / std::max(xbnd, smlnum);
+                grow = half / std::max(xbnd, smlnum);
                 xbnd = grow;
                 for (idx_t j2 = 0; j2 < n; ++j2) {
                     // Exit the loop if the growth factor is too small.
@@ -257,7 +257,7 @@ int latrs(Uplo uplo,
                     //
                     // M(j) = M(j-1)*( 1 + CNORM(j) ) / abs(A(j,j))
                     //
-                    auto tjj = tlapack::abs(A(j, j));
+                    auto tjj = tlapack::abs1(A(j, j));
                     if (xj > tjj) xbnd = xbnd * (tjj / xj);
                 }
                 grow = std::min(grow, xbnd);
@@ -326,7 +326,7 @@ int latrs(Uplo uplo,
                 //
                 // Compute x(j) = b(j) / A(j,j), scaling x if necessary.
                 //
-                real_t xj = tlapack::abs(x[j]);
+                real_t xj = tlapack::abs1(x[j]);
                 T tjjs;
                 if (diag == Diag::NonUnit) {
                     tjjs = A(j, j) * tscal;
@@ -337,7 +337,7 @@ int latrs(Uplo uplo,
                         // TODO, implement logic for GO TO 100
                     }
                 }
-                real_t tjj = tlapack::abs(tjjs);
+                real_t tjj = tlapack::abs1(tjjs);
                 if (tjj > smlnum) {
                     // abs(A(j,j)) > SMLNUM
                     if ((tjj < one) and (xj > tjj * bignum)) {
@@ -348,7 +348,7 @@ int latrs(Uplo uplo,
                         xmax = xmax * rec;
                     }
                     x[j] = x[j] / tjjs;
-                    xj = tlapack::abs(x[j]);
+                    xj = tlapack::abs1(x[j]);
                 }
                 else if (tjj > zero) {
                     // 0 < abs(A(j,j)) <= SMLNUM
@@ -402,7 +402,7 @@ int latrs(Uplo uplo,
 
                         axpy(-x[j] * tscal, A2, x2);
                         auto itemp = iamax(x2);
-                        xmax = tlapack::abs(x[itemp]);
+                        xmax = tlapack::abs1(x[itemp]);
                     }
                 }
                 else {
@@ -412,14 +412,223 @@ int latrs(Uplo uplo,
                     axpy(-x[j] * tscal, A2, x2);
                     // TODO: this might be off by one, check it !!
                     auto itemp = j + iamax(x2);
-                    xmax = tlapack::abs(x[itemp]);
+                    xmax = tlapack::abs1(x[itemp]);
                 }
             }
         }
-        else {
-            // TODO
-            assert(false);
+        else if (trans == Op::Trans) {
+            //
+            // Solve A**T * x = b
+            //
+            for (idx_t j2 = 0; j2 < n; ++j2) {
+                idx_t j;
+                if (uplo == Uplo::Upper) {
+                    j = j2;
+                }
+                else {
+                    j = n - 1 - j2;
+                }
+                //
+                // Compute x(j) = b(j) - sum A(k,j)*x(k).
+                //
+                real_t xj = tlapack::abs1(x[j]);
+                T uscal = tscal;
+                real_t rec = one / std::max(xmax, one);
+                T tjjs;
+                if (cnorm[j] > (bignum - xj) * rec) {
+                    // If x(j) could overflow, scale x by 1/(2*XMAX).
+                    rec = rec * half;
+                    if (diag == Diag::NonUnit) {
+                        tjjs = A(j, j) * tscal;
+                    }
+                    else {
+                        tjjs = tscal;
+                    }
+                    real_t tjj = tlapack::abs1(tjjs);
+                    if (tjj > one) {
+                        // Divide by A(j,j) when scaling x if A(j,j) > 1.
+                        rec = std::min(one, rec * tjj);
+                        uscal = uscal / tjjs;
+                    }
+                    if (rec < one) {
+                        scal(rec, x);
+                        scale = scale * rec;
+                        xmax = xmax * rec;
+                    }
+                }
+                T sumj = zero;
+                if (uplo == Uplo::Upper) {
+                    for (idx_t i = 0; i < j; ++i) {
+                        sumj += (A(i, j) * uscal) * x[i];
+                    }
+                }
+                else {
+                    for (idx_t i = j + 1; i < n; ++i) {
+                        sumj += (A(i, j) * uscal) * x[i];
+                    }
+                }
+                if (uscal == tscal) {
+                    // Compute x(j) := ( x(j) - sumj ) / A(j,j) if 1/A(j,j)
+                    // was not used to scale the dotproduct.
+                    x[j] = x[j] - sumj;
+                    xj = tlapack::abs1(x[j]);
+                    if (diag == Diag::NonUnit) {
+                        tjjs = A(j, j) * tscal;
+                    }
+                    else {
+                        tjjs = tscal;
+                        // TODO, implement GO TO 150
+                    }
+                    // Compute x(j) = x(j) / A(j,j), scaling if necessary.
+                    real_t tjj = tlapack::abs1(tjjs);
+                    if (tjj > smlnum) {
+                        // abs(A(j,j)) > SMLNUM
+                        if ((tjj < one) and xj > tjj * bignum) {
+                            // Scale X by 1/abs(x(j)).
+                            rec = one / xj;
+                            scal(rec, x);
+                            scale = scale * rec;
+                            xmax = xmax * rec;
+                        }
+                        x[j] = x[j] / tjjs;
+                    }
+                    else if (tjj > zero) {
+                        // 0 < abs(A(j,j)) <= SMLNUM
+                        if (xj > tjj * bignum) {
+                            // Scale x by (1/abs(x(j)))*abs(A(j,j))*BIGNUM
+                            rec = (tjj * bignum) / xj;
+                            scal(rec, x);
+                            scale = scale * rec;
+                            xmax = xmax * rec;
+                        }
+                        x[j] = x[j] / tjjs;
+                    }
+                    else {
+                        // A(j,j) = 0:  Set x(1:n) = 0, x(j) = 1, and
+                        // scale = 0, and compute a solution to A**T*x = 0.
+                        for (idx_t i = 0; i < n; ++i)
+                            x[i] = zero;
+                        x[j] = one;
+                        xj = one;
+                        scale = zero;
+                        xmax = zero;
+                    }
+                }
+                else {
+                    // Compute x(j) := x(j) / A(j,j)  - sumj if the dot
+                    // product has already been divided by 1/A(j,j).
+                    x[j] = x[j] / tjjs - sumj;
+                }
+                xmax = std::max(xmax, tlapack::abs1(x[j]));
+            }
         }
+        else {
+            //
+            // Solve A**H * x = b
+            //
+            for (idx_t j2 = 0; j2 < n; ++j2) {
+                idx_t j;
+                if (uplo == Uplo::Upper) {
+                    j = j2;
+                }
+                else {
+                    j = n - 1 - j2;
+                }
+                //
+                // Compute x(j) = b(j) - sum A(k,j)*x(k).
+                //
+                real_t xj = tlapack::abs1(x[j]);
+                T uscal = tscal;
+                real_t rec = one / std::max(xmax, one);
+                T tjjs;
+                if (cnorm[j] > (bignum - xj) * rec) {
+                    // If x(j) could overflow, scale x by 1/(2*XMAX).
+                    rec = rec * half;
+                    if (diag == Diag::NonUnit) {
+                        tjjs = conj(A(j, j)) * tscal;
+                    }
+                    else {
+                        tjjs = tscal;
+                    }
+                    real_t tjj = tlapack::abs1(tjjs);
+                    if (tjj > one) {
+                        // Divide by A(j,j) when scaling x if A(j,j) > 1.
+                        rec = std::min(one, rec * tjj);
+                        uscal = uscal / tjjs;
+                    }
+                    if (rec < one) {
+                        scal(rec, x);
+                        scale = scale * rec;
+                        xmax = xmax * rec;
+                    }
+                }
+                T sumj = zero;
+                if (uplo == Uplo::Upper) {
+                    for (idx_t i = 0; i < j; ++i) {
+                        sumj += (conj(A(i, j)) * uscal) * x[i];
+                    }
+                }
+                else {
+                    for (idx_t i = j + 1; i < n; ++i) {
+                        sumj += (conj(A(i, j)) * uscal) * x[i];
+                    }
+                }
+                if (uscal == tscal) {
+                    // Compute x(j) := ( x(j) - sumj ) / A(j,j) if 1/A(j,j)
+                    // was not used to scale the dotproduct.
+                    x[j] = x[j] - sumj;
+                    xj = tlapack::abs1(x[j]);
+                    if (diag == Diag::NonUnit) {
+                        tjjs = conj(A(j, j)) * tscal;
+                    }
+                    else {
+                        tjjs = tscal;
+                        // TODO, implement GO TO 150
+                    }
+                    // Compute x(j) = x(j) / A(j,j), scaling if necessary.
+                    real_t tjj = tlapack::abs1(tjjs);
+                    if (tjj > smlnum) {
+                        // abs(A(j,j)) > SMLNUM
+                        if ((tjj < one) and xj > tjj * bignum) {
+                            // Scale X by 1/abs(x(j)).
+                            rec = one / xj;
+                            scal(rec, x);
+                            scale = scale * rec;
+                            xmax = xmax * rec;
+                        }
+                        x[j] = x[j] / tjjs;
+                    }
+                    else if (tjj > zero) {
+                        // 0 < abs(A(j,j)) <= SMLNUM
+                        if (xj > tjj * bignum) {
+                            // Scale x by (1/abs(x(j)))*abs(A(j,j))*BIGNUM
+                            rec = (tjj * bignum) / xj;
+                            scal(rec, x);
+                            scale = scale * rec;
+                            xmax = xmax * rec;
+                        }
+                        x[j] = x[j] / tjjs;
+                    }
+                    else {
+                        // A(j,j) = 0:  Set x(1:n) = 0, x(j) = 1, and
+                        // scale = 0, and compute a solution to A**T*x = 0.
+                        for (idx_t i = 0; i < n; ++i)
+                            x[i] = zero;
+                        x[j] = one;
+                        xj = one;
+                        scale = zero;
+                        xmax = zero;
+                    }
+                }
+                else {
+                    // Compute x(j) := x(j) / A(j,j)  - sumj if the dot
+                    // product has already been divided by 1/A(j,j).
+                    x[j] = x[j] / tjjs - sumj;
+                }
+                xmax = std::max(xmax, tlapack::abs1(x[j]));
+            }
+        }
+        scale = scale / tscal;
     }
     return 0;
 }  // namespace tlapack

@@ -33,7 +33,7 @@ auto asum(vector_t const& x)
     // constants
     const idx_t n = size(x);
 
-    real_t result = 0;
+    real_t result = real_t(0);
     for (idx_t i = 0; i < n; ++i)
         result += abs1(x[i]);
 

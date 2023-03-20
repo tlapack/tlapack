@@ -34,6 +34,9 @@ TEMPLATE_TEST_CASE("safe scaling solve", "[latrs]", TLAPACK_TYPES_TO_TEST)
 
     // Number of rows in the matrix
     idx_t n = GENERATE(4, 5, 8);
+    Uplo uplo = GENERATE(Uplo::Upper, Uplo::Lower);
+    Op trans = GENERATE(Op::NoTrans, Op::Trans, Op::ConjTrans);
+    Diag diag = GENERATE(Diag::NonUnit, Diag::Unit);
 
     const real_t eps = uroundoff<real_t>();
     const real_t tol = real_t(n * 1.0e2) * eps;
@@ -60,20 +63,24 @@ TEMPLATE_TEST_CASE("safe scaling solve", "[latrs]", TLAPACK_TYPES_TO_TEST)
         x_exact[i] = rand_helper<T>();
 
     b = x_exact;
-    trmv(Uplo::Upper, Op::NoTrans, Diag::NonUnit, A, b);
+    trmv(uplo, trans, diag, A, b);
 
     for (idx_t i = 0; i < n; ++i)
         x[i] = b[i];
 
-    latrs(Uplo::Upper, Op::NoTrans, Diag::NonUnit, false, A, x, scale, cnorm);
+    DYNAMIC_SECTION("n = " << n << " Uplo = " << uplo << " Trans = " << trans
+                           << " diag = " << diag)
+    {
+        latrs(uplo, trans, diag, false, A, x, scale, cnorm);
 
-    trmv(Uplo::Upper, Op::NoTrans, Diag::NonUnit, A, x);
+        trmv(uplo, trans, diag, A, x);
 
-    auto itemp = iamax(b);
-    real_t bnorm = tlapack::abs(b[itemp]);
-    real_t enorm = real_t(0);
-    for (idx_t i = 0; i < n; ++i)
-        enorm += abs1(x[i] - scale * b[i]);
+        auto itemp = iamax(b);
+        real_t bnorm = tlapack::abs(b[itemp]);
+        real_t enorm = real_t(0);
+        for (idx_t i = 0; i < n; ++i)
+            enorm += abs1(x[i] - scale * b[i]);
 
-    CHECK(enorm <= tol * bnorm);
+        CHECK(enorm <= tol * bnorm);
+    }
 }
