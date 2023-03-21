@@ -188,6 +188,12 @@ std::string visualize_matrix(const matrix_t& A)
 // GDB doesn't handle templates well, so we explicitly define some versions of
 // the functions for common template arguments
 //
+std::string visualize_eigen_matrix_r(
+    const Eigen::Matrix<Eigen::half, Eigen::Dynamic, Eigen::Dynamic>& A)
+{
+    return visualize_matrix(A);
+}
+
 std::string visualize_matrix_r(
     const legacyMatrix<float, size_t, Layout::ColMajor>& A)
 {

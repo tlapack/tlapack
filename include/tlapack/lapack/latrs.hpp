@@ -173,9 +173,13 @@ int latrs(Uplo uplo,
                 //
                 grow = one / std::max(xbnd, smlnum);
                 xbnd = grow;
+                bool resetgrow = true;
                 for (idx_t j2 = 0; j2 < n; ++j2) {
                     // Exit the loop if the growth factor is too small.
-                    if (grow <= smlnum) break;
+                    if (grow <= smlnum) {
+                        resetgrow = false;
+                        break;
+                    }
                     idx_t j;
                     if (uplo == Uplo::Upper) {
                         j = n - 1 - j2;
@@ -197,7 +201,7 @@ int latrs(Uplo uplo,
                         grow = zero;
                     }
                 }
-                grow = xbnd;
+                if (resetgrow) grow = xbnd;
             }
             else {
                 //
@@ -289,9 +293,9 @@ int latrs(Uplo uplo,
     //
     // Actually solve the system
     //
-    // if ((grow * tscal) > smlnum) {
-    // For now, always use the scaling solver so it is easier to test
-    if (false) {
+    if ((grow * tscal) > smlnum) {
+        // For now, always use the scaling solver so it is easier to test
+        // if (false) {
         //
         // Use the Level 2 BLAS solve if the reciprocal of the bound on
         // elements of X is not too small.
