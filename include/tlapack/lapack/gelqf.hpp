@@ -1,5 +1,5 @@
 /// @file gelqf.hpp
-/// @author Yuxin Cai, University of Colorado Denver, USA
+/// @author Thijs Steel, KU Leuven, Belgium
 /// @note Adapted from @see
 /// https://github.com/Reference-LAPACK/lapack/blob/master/SRC/zgelqf.f
 //
@@ -26,7 +26,7 @@ struct gelqf_opts_t : public workspace_opts_t<> {
     inline constexpr gelqf_opts_t(const workspace_opts_t<>& opts = {})
         : workspace_opts_t<>(opts){};
 
-    idx_t nb = 32;  // Block size
+    idx_t nb = 32;  ///< Block size
 };
 
 /** Worspace query of gelqf()
