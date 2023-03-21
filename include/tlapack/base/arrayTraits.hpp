@@ -221,22 +221,6 @@ namespace internal {
     struct TransposeTypeImpl;
 
     /**
-     * @brief Trait to determine if a given list of data allows optimization
-     * using a optimized BLAS library.
-     *
-     * @tparam Ts If the last class in this list is not an int, then the trait
-     * is not defined.
-     *
-     * @ingroup abstract_matrix
-     */
-    template <class... Ts>
-    struct AllowOptBLASImpl {
-        static constexpr bool value =
-            false;  ///< True if the list of types
-                    ///< allows optimized BLAS library.
-    };
-
-    /**
      * @brief Functor for data creation
      *
      * This is a boilerplate. It must be specialized for each class.
@@ -443,11 +427,6 @@ using matrix_type =
 template <typename... vector_t>
 using vector_type =
     typename internal::vector_type_traits<vector_t..., int>::type;
-
-/// Alias for @c internal::AllowOptBLASImpl<,int>::value.
-/// @ingroup abstract_matrix
-template <class... Ts>
-constexpr bool allow_optblas = internal::AllowOptBLASImpl<Ts..., int>::value;
 
 }  // namespace tlapack
 

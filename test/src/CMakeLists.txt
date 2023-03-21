@@ -62,6 +62,10 @@ if(TLAPACK_TEST_EIGEN)
   add_executable(test_eigenplugin test_eigenplugin.cpp)
 endif()
 
+if( TLAPACK_TEST_MDSPAN )
+  add_executable( test_mdspanplugin test_mdspanplugin.cpp )
+endif()
+
 # Reset the output directory
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${TLAPACK_RUNTIME_OUTPUT_DIRECTORY}")
 

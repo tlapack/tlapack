@@ -16,6 +16,7 @@
 #include <iostream>
 #include <sstream>
 
+#include "tlapack/base/legacyArray.hpp"
 #include "tlapack/base/utils.hpp"
 
 namespace tlapack {

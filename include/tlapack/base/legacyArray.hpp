@@ -62,21 +62,6 @@ struct legacyMatrix {
         tlapack_check(m >= 0);
         tlapack_check(n >= 0);
     }
-
-    /**
-     * @brief Converts a legacyMatrix<T,idx_t,L> to legacyMatrix<byte>
-
-     * @return constexpr legacyMatrix<byte> Column-major matrix.
-     */
-    inline constexpr legacyMatrix<byte> in_bytes() const
-    {
-        if (L == Layout::ColMajor)
-            return legacyMatrix<byte>(m * sizeof(T), n, (byte*)ptr,
-                                      ldim * sizeof(T));
-        else  // if( L == Layout::RowMajor )
-            return legacyMatrix<byte>(n * sizeof(T), m, (byte*)ptr,
-                                      ldim * sizeof(T));
-    }
 };
 
 /** Legacy vector.

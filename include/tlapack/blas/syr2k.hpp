@@ -248,9 +248,11 @@ inline void syr2k(Uplo uplo,
     auto C_ = legacy_matrix(C);
 
     // Constants to forward
+    constexpr Layout L = layout<matrixC_t>;
     const auto& n = C_.n;
     const auto& k = (trans == Op::NoTrans) ? A_.n : A_.m;
 
+    // Warnings for NaNs and Infs
     if (alpha == alpha_t(0))
         tlapack_warning(
             -3, "Infs and NaNs in A or B will not propagate to C on output");
@@ -259,7 +261,7 @@ inline void syr2k(Uplo uplo,
             -6,
             "Infs and NaNs in C on input will not propagate to C on output");
 
-    return ::blas::syr2k((::blas::Layout)A_.layout, (::blas::Uplo)uplo,
+    return ::blas::syr2k((::blas::Layout)L, (::blas::Uplo)uplo,
                          (::blas::Op)trans, n, k, alpha, A_.ptr, A_.ldim,
                          B_.ptr, B_.ldim, beta, C_.ptr, C_.ldim);
 }
@@ -299,14 +301,16 @@ inline void syr2k(Uplo uplo,
     auto C_ = legacy_matrix(C);
 
     // Constants to forward
+    constexpr Layout L = layout<matrixC_t>;
     const auto& n = C_.n;
     const auto& k = (trans == Op::NoTrans) ? A_.n : A_.m;
 
+    // Warnings for NaNs and Infs
     if (alpha == alpha_t(0))
         tlapack_warning(
             -3, "Infs and NaNs in A or B will not propagate to C on output");
 
-    return ::blas::syr2k((::blas::Layout)A_.layout, (::blas::Uplo)uplo,
+    return ::blas::syr2k((::blas::Layout)L, (::blas::Uplo)uplo,
                          (::blas::Op)trans, n, k, alpha, A_.ptr, A_.ldim,
                          B_.ptr, B_.ldim, T(0), C_.ptr, C_.ldim);
 }

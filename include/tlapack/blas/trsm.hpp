@@ -287,14 +287,16 @@ inline void trsm(Side side,
     auto B_ = legacy_matrix(B);
 
     // Constants to forward
+    constexpr Layout L = layout<matrixB_t>;
     const auto& m = B_.m;
     const auto& n = B_.n;
 
+    // Warnings for NaNs and Infs
     if (alpha == alpha_t(0))
         tlapack_warning(
             -5, "Infs and NaNs in A or B will not propagate to B on output");
 
-    return ::blas::trsm((::blas::Layout)A_.layout, (::blas::Side)side,
+    return ::blas::trsm((::blas::Layout)L, (::blas::Side)side,
                         (::blas::Uplo)uplo, (::blas::Op)trans,
                         (::blas::Diag)diag, m, n, alpha, A_.ptr, A_.ldim,
                         B_.ptr, B_.ldim);

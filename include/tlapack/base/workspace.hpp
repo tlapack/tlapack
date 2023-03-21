@@ -10,7 +10,8 @@
 #ifndef TLAPACK_WORKSPACE_HH
 #define TLAPACK_WORKSPACE_HH
 
-#include "tlapack/base/legacyArray.hpp"
+#include "tlapack/base/exceptionHandling.hpp"
+#include "tlapack/base/types.hpp"
 
 namespace tlapack {
 
@@ -26,13 +27,42 @@ struct Workspace {
 
     // Constructors:
 
-    inline constexpr Workspace(byte* ptr = nullptr, idx_t n = 0) noexcept
-        : m(n), n(1), ptr(ptr), ldim(n)
-    {}
-
-    inline constexpr Workspace(const legacyMatrix<byte>& w) noexcept
-        : m(w.m), n(w.n), ptr(w.ptr), ldim(w.ldim)
+    inline constexpr Workspace(byte* ptr = nullptr, idx_t m = 0, idx_t n = 1)
+        : m(m), n(n), ptr(ptr), ldim(m)
     {
+        tlapack_check(m >= 0);
+        tlapack_check(n >= 0);
+    }
+
+    inline constexpr Workspace(byte* ptr, idx_t m, idx_t n, idx_t ldim)
+        : m(m), n(n), ptr(ptr), ldim(ldim)
+    {
+        tlapack_check(m >= 0);
+        tlapack_check(n >= 0);
+
+        tlapack_check(ldim >= m);
+        if (n <= 1 || m == 0) this->ldim = m;
+    }
+
+    template <class T, class idx_t>
+    inline constexpr Workspace(const legacy::matrix<T, idx_t>& A)
+        : ptr((byte*)A.ptr), ldim(A.ldim * sizeof(T))
+    {
+        tlapack_check(A.layout == Layout::ColMajor ||
+                      A.layout == Layout::RowMajor);
+        if (A.layout == Layout::ColMajor) {
+            m = A.m * sizeof(T);
+            n = A.n;
+        }
+        else {
+            m = A.n * sizeof(T);
+            n = A.m;
+        }
+
+        tlapack_check(m >= 0);
+        tlapack_check(n >= 0);
+
+        tlapack_check(ldim >= m);
         if (n <= 1 || m == 0) ldim = m;
     }
 
@@ -58,15 +88,21 @@ struct Workspace {
         if (isContiguous())
             return (size() >= (m * n));
         else
-            return (this->m >= m && this->n >= n);
+            return ((this->m >= m * n && this->n >= 1) ||
+                    (this->m >= m && this->n >= n) ||
+                    (this->n >= m * n && this->m >= 1));
     }
 
     /** Returns a workspace that is obtained by removing m*n bytes from the
      * current one.
      *
-     * @note If the starting workspace is not contiguous, then we require:
+     * @note If the starting workspace is not contiguous, then we require one
+     * of the follwing is true:
      *
-     *          this->m == m || this->n == n
+     *          this->m == m * n && this->n >= 1
+     *          this->m == m     && this->n >= n
+     *          this->n == n     && this->m >= m
+     *          this->n == m * n && this->m >= 1
      *
      * This is required to prevent bad partitioning by the algorithms using
      * this functionality.
@@ -77,30 +113,39 @@ struct Workspace {
     inline constexpr Workspace extract(idx_t m, idx_t n) const
     {
         if (isContiguous()) {
-            // contiguous space in memory
             tlapack_check(size() >= (m * n));
-            return legacyMatrix<byte>(size() - (m * n), 1, ptr + (m * n));
+            // contiguous space in memory
+            return Workspace(ptr + (m * n), size() - (m * n));
+        }
+        else if (this->m == m * n) {
+            tlapack_check(this->n >= 1);
+
+            return (this->n <= 2)
+                       ? Workspace(ptr + ldim, this->m,
+                                   this->n - 1)  // contiguous space in memory
+                       : Workspace(ptr + ldim, this->m, this->n - 1,
+                                   ldim);  // non-contiguous space in memory
+        }
+        else if (this->m == m) {
+            tlapack_check(this->n >= n);
+
+            return (this->n <= n + 1)
+                       ? Workspace(ptr + n * ldim, this->m,
+                                   this->n - n)  // contiguous space in memory
+                       : Workspace(ptr + n * ldim, this->m, this->n - n,
+                                   ldim);  // non-contiguous space in memory
+        }
+        else if (this->n == n) {
+            tlapack_check(this->m >= m);
+
+            // non-contiguous space in memory
+            return Workspace(ptr + m, this->m - m, this->n, ldim);
         }
         else {
-            // Only allows for the extraction of full set of rows or full set of
-            // columns
-            tlapack_check((this->m >= m && this->n >= n) &&
-                          (this->m == m || this->n == n));
+            tlapack_check(this->n == m * n && this->m >= 1);
 
-            if (this->m == m) {
-                return (this->n <= n + 1)
-                           ? legacyMatrix<byte>(
-                                 this->m, this->n - n,
-                                 ptr + n * ldim)  // contiguous space in memory
-                           : legacyMatrix<byte>(
-                                 this->m, this->n - n, ptr + n * ldim,
-                                 ldim);  // non-contiguous space in memory
-            }
-            else  // if ( this->n == n )
-            {
-                // non-contiguous space in memory
-                return legacyMatrix<byte>(this->m - m, this->n, ptr + m, ldim);
-            }
+            // non-contiguous space in memory
+            return Workspace(ptr + 1, this->m - 1, this->n, ldim);
         }
     }
 
@@ -109,6 +154,96 @@ struct Workspace {
     byte* ptr;   ///< Pointer to array in memory
     idx_t ldim;  ///< Leading dimension
 };
+
+/// @brief Output information in the workspace query
+struct workinfo_t {
+    size_t m = 0;  ///< Number of rows needed in the Workspace
+    size_t n = 0;  ///< Number of columns needed in the Workspace
+
+    /// Constructor using sizes
+    inline constexpr workinfo_t(size_t m = 0, size_t n = 0) noexcept
+        : m(m), n(n)
+    {}
+
+    /// Size needed in the Workspace
+    inline constexpr size_t size() const noexcept { return m * n; }
+
+    /**
+     * @brief Set the current object to a state that
+     *  fit its current sizes and the sizes of workinfo.
+     *
+     * If sizes don't match, use simple solution: require contiguous space in
+     * memory.
+     *
+     * @param[in] workinfo Another specification of work sizes
+     */
+    void minMax(const workinfo_t& workinfo) noexcept
+    {
+        const size_t m1 = workinfo.m;
+        const size_t n1 = workinfo.n;
+        const size_t s1 = workinfo.size();
+        const size_t s = size();
+
+        // Check if the current sizes do not cover the sizes from workinfo
+        if (!((m >= s1 && n >= 1) || (m >= 1 && n >= s1) ||
+              (m >= m1 && n >= n1))) {
+            // Check if the sizes from workinfo cover the current sizes
+            if ((m1 >= s && n1 >= 1) || (m1 >= 1 && n1 >= s) ||
+                (m1 >= m && n1 >= n)) {
+                m = m1;
+                n = n1;
+            }
+            else  // Incompatible workinfo. Use contiguous space the maximum
+                  // size
+            {
+                m = std::max(s, s1);
+                n = 1;
+            }
+        }
+    }
+
+    /**
+     * @brief Sum two object by matching sizes.
+     *
+     * If sizes don't match, use simple solution: require contiguous space in
+     * memory.
+     *
+     * @param workinfo The object to be added to *this.
+     * @return constexpr workinfo_t& The modified workinfo.
+     */
+    constexpr workinfo_t& operator+=(const workinfo_t& workinfo) noexcept
+    {
+        const size_t m1 = workinfo.m;
+        const size_t n1 = workinfo.n;
+        const size_t s1 = workinfo.size();
+
+        // If first dimension matches the size of workinfo, increase second
+        // dimension
+        if (m == s1) {
+            n += 1;
+        }
+        // Else, if second dimension matches the size of workinfo, increase
+        // first dimension
+        else if (n == s1) {
+            m += 1;
+        }
+        // Else, if first dimension matches, update second dimension
+        else if (m == m1) {
+            n += n1;
+        }
+        // Else, if second dimension matches, update first dimension
+        else if (n == n1) {
+            m += m1;
+        }
+        else  // Sizes do not match. Simple solution: contiguous space in memory
+        {
+            m = size() + workinfo.size();
+            n = 1;
+        }
+        return *this;
+    }
+};
+
 }  // namespace tlapack
 
 #endif  // TLAPACK_WORKSPACE_HH

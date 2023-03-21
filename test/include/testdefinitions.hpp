@@ -13,6 +13,7 @@
 #ifndef TLAPACK_TESTDEFINITIONS_HH
 #define TLAPACK_TESTDEFINITIONS_HH
 
+// clang-format off
 #define TLAPACK_PREFERRED_MATRIX_LEGACY
 #ifdef TLAPACK_TEST_EIGEN
     #include <tlapack/plugins/eigen.hpp>
@@ -20,8 +21,9 @@
 #ifdef TLAPACK_TEST_MDSPAN
     #include <tlapack/plugins/mdspan.hpp>
 #endif
-#include <tlapack/plugins/legacyArray.hpp>
 #include <tlapack/plugins/stdvector.hpp>
+#include <tlapack/plugins/legacyArray.hpp>
+// clang-format on
 
 #ifdef TLAPACK_TEST_MPFR
     #include <tlapack/plugins/mpreal.hpp>

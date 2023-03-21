@@ -95,6 +95,7 @@ void gemv(Layout layout,
           int_t incy)
 {
     using internal::colmajor_matrix;
+    using std::abs;
     using scalar_t = scalar_type<TA, TX, TY>;
 
     // check arguments
@@ -113,17 +114,30 @@ void gemv(Layout layout,
         return;
 
     // Transpose if Row Major
+    bool doConj = false;
     if (layout == Layout::RowMajor) {
-        // A => A^T; A^T => A; A^H => conj(A)
+        // A => A^T; A^T => A; A^H => A & doConj
         std::swap(m, n);
-        trans = (trans == Op::NoTrans)
-                    ? Op::Trans
-                    : ((trans == Op::Trans) ? Op::NoTrans : Op::Conj);
+        if (trans == Op::NoTrans)
+            trans = Op::Trans;
+        else {
+            if (trans == Op::ConjTrans) doConj = true;
+            trans = Op::NoTrans;
+        }
     }
 
     // Initialize indexes
-    idx_t lenx = ((trans == Op::NoTrans || trans == Op::Conj) ? n : m);
-    idx_t leny = ((trans == Op::NoTrans || trans == Op::Conj) ? m : n);
+    const idx_t lenx = ((trans == Op::NoTrans) ? n : m);
+    const idx_t leny = ((trans == Op::NoTrans) ? m : n);
+
+    // Conjugate if A is row-major and initially trans is Op::ConjTrans
+    if (doConj) {
+        TX* x2 = const_cast<TX*>(x);
+        for (idx_t i = 0; i < lenx; ++i)
+            x2[i * abs(incx)] = conj(x2[i * abs(incx)]);
+        for (idx_t i = 0; i < leny; ++i)
+            y[i * abs(incy)] = conj(y[i * abs(incy)]);
+    }
 
     // Matrix views
     const auto A_ = colmajor_matrix<TA>((TA*)A, m, n, lda);
@@ -133,13 +147,25 @@ void gemv(Layout layout,
             y_, TY, leny, y, incy,
             if (beta == scalar_t(0)) for (idx_t i = 0; i < leny; ++i) y_[i] =
                 TY(0);
-            else for (idx_t i = 0; i < leny; ++i) y_[i] *= beta);
+            else for (idx_t i = 0; i < leny; ++i) y_[i] *=
+            (doConj) ? conj(beta) : beta);
     }
     else {
         tlapack_expr_with_2vectors(
             x_, TX, lenx, x, incx, y_, TY, leny, y, incy,
-            if (beta == scalar_t(0)) return gemv(trans, alpha, A_, x_, y_);
-            else return gemv(trans, alpha, A_, x_, beta, y_));
+            if (beta == scalar_t(0))
+                gemv(trans, (doConj) ? conj(alpha) : alpha, A_, x_, y_);
+            else gemv(trans, (doConj) ? conj(alpha) : alpha, A_, x_,
+                      (doConj) ? conj(beta) : beta, y_));
+    }
+
+    // Conjugate if A is row-major and initially trans is Op::ConjTrans
+    if (doConj) {
+        TX* x2 = const_cast<TX*>(x);
+        for (idx_t i = 0; i < lenx; ++i)
+            x2[i * abs(incx)] = conj(x2[i * abs(incx)]);
+        for (idx_t i = 0; i < leny; ++i)
+            y[i * abs(incy)] = conj(y[i * abs(incy)]);
     }
 }
 
