@@ -43,12 +43,10 @@ TEMPLATE_TEST_CASE("QR factorization of a general m-by-n matrix",
     const T zero(0);
 
     idx_t m, n, k, nb;
-    bool use_TT;
 
     m = GENERATE(5, 10, 20);
     n = GENERATE(5, 10, 20);
     nb = GENERATE(1, 2, 4, 5);
-    use_TT = GENERATE(true, false);
     k = min(m, n);
 
     const real_t eps = ulp<real_t>();
@@ -68,14 +66,10 @@ TEMPLATE_TEST_CASE("QR factorization of a general m-by-n matrix",
     std::vector<T> tau(min(m, n));
 
     // Workspace computation:
-    geqrf_opts_t<decltype(TT), idx_t> geqrfOpts;
-    unmqr_opts_t<decltype(TT)> unmqrOpts;
+    geqrf_opts_t<idx_t> geqrfOpts;
+    unmqr_opts_t<> unmqrOpts;
     geqrfOpts.nb = nb;
     unmqrOpts.nb = nb;
-    if (use_TT) {
-        geqrfOpts.TT = &TT;
-        unmqrOpts.TT = &TT;
-    }
     workinfo_t workinfo;
     geqrf_worksize(A, tau, workinfo, geqrfOpts);
     unmqr_worksize(Side::Left, Op::NoTrans, A, tau, R, workinfo, unmqrOpts);
@@ -92,8 +86,7 @@ TEMPLATE_TEST_CASE("QR factorization of a general m-by-n matrix",
     lacpy(Uplo::General, A, A_copy);
     real_t anorm = tlapack::lange(tlapack::Norm::Max, A_copy);
 
-    DYNAMIC_SECTION("m = " << m << " n = " << n << " nb = " << nb
-                           << " TT used = " << use_TT)
+    DYNAMIC_SECTION("m = " << m << " n = " << n << " nb = " << nb)
     {
         geqrf(A, tau, geqrfOpts);
 

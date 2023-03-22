@@ -20,13 +20,12 @@ namespace tlapack {
 /**
  * Options struct for unmqr
  */
-template <class TT_t, class workT_t = void>
+template <class workT_t = void>
 struct unmqr_opts_t : public workspace_opts_t<workT_t> {
     inline constexpr unmqr_opts_t(const workspace_opts_t<workT_t>& opts = {})
         : workspace_opts_t<workT_t>(opts){};
 
     size_type<workT_t> nb = 32;  ///< Block size
-    TT_t* TT = NULL;  // k-by-nb Matrix to hold the triangular factors
 };
 
 /** Worspace query of unmqr()
@@ -68,16 +67,14 @@ template <class matrixA_t,
           class tau_t,
           class side_t,
           class trans_t,
-          class TT_t = matrixA_t,
           class workT_t = void>
-inline constexpr void unmqr_worksize(
-    side_t side,
-    trans_t trans,
-    const matrixA_t& A,
-    const tau_t& tau,
-    const matrixC_t& C,
-    workinfo_t& workinfo,
-    const unmqr_opts_t<TT_t, workT_t>& opts = {})
+inline constexpr void unmqr_worksize(side_t side,
+                                     trans_t trans,
+                                     const matrixA_t& A,
+                                     const tau_t& tau,
+                                     const matrixC_t& C,
+                                     workinfo_t& workinfo,
+                                     const unmqr_opts_t<workT_t>& opts = {})
 {
     using idx_t = size_type<matrixC_t>;
     using matrixT_t = deduce_work_t<workT_t, matrix_type<matrixA_t, tau_t> >;
@@ -111,10 +108,8 @@ inline constexpr void unmqr_worksize(
                        workinfo, opts);
     }
 
-    if (opts.TT == NULL) {
-        // Additional workspace needed inside the routine
-        workinfo += myWorkinfo;
-    }
+    // Additional workspace needed inside the routine
+    workinfo += myWorkinfo;
 }
 
 /** Applies orthogonal matrix op(Q) to a matrix C using a blocked code.
@@ -177,14 +172,13 @@ template <class matrixA_t,
           class tau_t,
           class side_t,
           class trans_t,
-          class TT_t = matrixA_t,
           class workT_t = void>
 int unmqr(side_t side,
           trans_t trans,
           const matrixA_t& A,
           const tau_t& tau,
           matrixC_t& C,
-          const unmqr_opts_t<TT_t, workT_t>& opts = {})
+          const unmqr_opts_t<workT_t>& opts = {})
 {
     using idx_t = size_type<matrixC_t>;
     using matrixT_t = deduce_work_t<workT_t, matrix_type<matrixA_t, tau_t> >;
@@ -228,53 +222,31 @@ int unmqr(side_t side,
     const idx_t iN = (positiveInc) ? ((k - 1) / nb + 1) * nb : -nb;
     const idx_t inc = (positiveInc) ? nb : -nb;
 
-    if (opts.TT == NULL) {
-        // Matrix T and recompute work
-        Workspace sparework;
-        auto matrixT = new_matrix(work, nb, nb, sparework);
+    // Matrix T and recompute work
+    Workspace sparework;
+    auto matrixT = new_matrix(work, nb, nb, sparework);
 
-        // Options to forward
-        auto&& larfbOpts = workspace_opts_t<void>{sparework};
+    // Options to forward
+    auto&& larfbOpts = workspace_opts_t<void>{sparework};
 
-        // Main loop
-        for (idx_t i = i0; i != iN; i += inc) {
-            idx_t ib = min<idx_t>(nb, k - i);
-            const auto V = slice(A, pair{i, nA}, pair{i, i + ib});
-            const auto taui = slice(tau, pair{i, i + ib});
-            auto matrixTi = slice(matrixT, pair{0, ib}, pair{0, ib});
+    // Main loop
+    for (idx_t i = i0; i != iN; i += inc) {
+        idx_t ib = min<idx_t>(nb, k - i);
+        const auto V = slice(A, pair{i, nA}, pair{i, i + ib});
+        const auto taui = slice(tau, pair{i, i + ib});
+        auto matrixTi = slice(matrixT, pair{0, ib}, pair{0, ib});
 
-            // Form the triangular factor of the block reflector
-            // $H = H(i) H(i+1) ... H(i+ib-1)$
-            larft(forward, columnwise_storage, V, taui, matrixTi);
+        // Form the triangular factor of the block reflector
+        // $H = H(i) H(i+1) ... H(i+ib-1)$
+        larft(forward, columnwise_storage, V, taui, matrixTi);
 
-            // H or H**H is applied to either C[i:m,0:n] or C[0:m,i:n]
-            auto Ci = (side == Side::Left) ? slice(C, pair{i, m}, pair{0, n})
-                                           : slice(C, pair{0, m}, pair{i, n});
+        // H or H**H is applied to either C[i:m,0:n] or C[0:m,i:n]
+        auto Ci = (side == Side::Left) ? slice(C, pair{i, m}, pair{0, n})
+                                       : slice(C, pair{0, m}, pair{i, n});
 
-            // Apply H or H**H
-            larfb(side, trans, forward, columnwise_storage, V, matrixTi, Ci,
-                  larfbOpts);
-        }
-    }
-    else {
-        // Options to forward
-        auto&& larfbOpts = workspace_opts_t<void>{work};
-
-        // Main loop
-        for (idx_t i = i0; i != iN; i += inc) {
-            idx_t ib = min<idx_t>(nb, k - i);
-            const auto V = slice(A, pair{i, nA}, pair{i, i + ib});
-            const auto taui = slice(tau, pair{i, i + ib});
-            auto matrixTi = slice(*opts.TT, pair{i, i + ib}, pair{0, ib});
-
-            // H or H**H is applied to either C[i:m,0:n] or C[0:m,i:n]
-            auto Ci = (side == Side::Left) ? slice(C, pair{i, m}, pair{0, n})
-                                           : slice(C, pair{0, m}, pair{i, n});
-
-            // Apply H or H**H
-            larfb(side, trans, forward, columnwise_storage, V, matrixTi, Ci,
-                  larfbOpts);
-        }
+        // Apply H or H**H
+        larfb(side, trans, forward, columnwise_storage, V, matrixTi, Ci,
+              larfbOpts);
     }
 
     return 0;
