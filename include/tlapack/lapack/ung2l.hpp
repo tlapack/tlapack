@@ -1,7 +1,7 @@
-/// @file ungr2.hpp
+/// @file ung2l.hpp
 /// @author Thijs Steel, KU Leuven, Belgium
 /// @note Adapted from @see
-/// https://github.com/Reference-LAPACK/lapack/blob/master/SRC/zungr2.f
+/// https://github.com/Reference-LAPACK/lapack/blob/master/SRC/zung2l.f
 //
 // Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
@@ -9,15 +9,15 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef TLAPACK_UNGR2_HH
-#define TLAPACK_UNGR2_HH
+#ifndef TLAPACK_UNG2L_HH
+#define TLAPACK_UNG2L_HH
 
 #include "tlapack/base/utils.hpp"
 #include "tlapack/lapack/larf.hpp"
 
 namespace tlapack {
 
-/** Worspace query of ungr2()
+/** Worspace query of ung2l()
  *
  *
  * @param[in] A m-by-n matrix.
@@ -34,7 +34,7 @@ namespace tlapack {
  * @ingroup workspace_query
  */
 template <class matrix_t, class vector_t>
-inline constexpr void ungr2_worksize(const matrix_t& A,
+inline constexpr void ung2l_worksize(const matrix_t& A,
                                      const vector_t& tau,
                                      workinfo_t& workinfo,
                                      const workspace_opts_t<>& opts = {})
@@ -46,8 +46,8 @@ inline constexpr void ungr2_worksize(const matrix_t& A,
 
     if (n > 1) {
         auto C = cols(A, range<idx_t>{1, n});
-        larf_worksize(left_side, forward, columnwise_storage, col(A, 0), tau[0],
-                      C, workinfo, opts);
+        larf_worksize(Side::Left, Direction::Backward, StoreV::Columnwise,
+                      col(A, 0), tau[0], C, workinfo, opts);
     }
 }
 
@@ -74,7 +74,7 @@ inline constexpr void ungr2_worksize(const matrix_t& A,
  * @ingroup computational
  */
 template <class matrix_t, class vector_t>
-int ungr2(matrix_t& A, const vector_t& tau, const workspace_opts_t<>& opts = {})
+int ung2l(matrix_t& A, const vector_t& tau, const workspace_opts_t<>& opts = {})
 {
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
@@ -98,7 +98,7 @@ int ungr2(matrix_t& A, const vector_t& tau, const workspace_opts_t<>& opts = {})
     vectorOfBytes localworkdata;
     Workspace work = [&]() {
         workinfo_t workinfo;
-        ungr2_worksize(A, tau, workinfo, opts);
+        ung2l_worksize(A, tau, workinfo, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
 
@@ -106,29 +106,29 @@ int ungr2(matrix_t& A, const vector_t& tau, const workspace_opts_t<>& opts = {})
     auto&& larfOpts = workspace_opts_t<>{work};
 
     // Initialise rows 0:m-k to rows of the unit matrix
-    for (idx_t j = 0; j < n; ++j) {
-        for (idx_t i = 0; i < m - k; ++i)
+    for (idx_t j = 0; j < n - k; ++j) {
+        for (idx_t i = 0; i < m; ++i)
             A(i, j) = zero;
-        // if (j + m >= n and j + k <= n) A(m + j - n, j) = one;
+        A(m - n + j, j) = one;
     }
 
     for (idx_t i = 0; i < k; ++i) {
-        idx_t ii = m - k + i;
+        idx_t ii = n - k + i;
         if (ii > 0) {
-            auto v = slice(A, ii, pair{0, n - k + 1 + i});
-            auto C = slice(A, pair{0, ii}, pair{0, n - k + 1 + i});
-            larf(Side::Right, Direction::Backward, StoreV::Rowwise, v,
-                 conj(tau[i]), C, larfOpts);
+            auto v = slice(A, pair{0, m - k + i + 1}, ii);
+            auto C = slice(A, pair{0, m - k + i + 1}, pair{0, ii});
+            larf(Side::Left, Direction::Backward, StoreV::Columnwise, v, tau[i],
+                 C, larfOpts);
         }
-        if (n + i > k) {
-            auto x = slice(A, ii, pair{0, n - k + i});
-            scal(-conj(tau[i]), x);
+        if (m + i > k) {
+            auto x = slice(A, pair{0, m - k + i}, ii);
+            scal(-tau[i], x);
         }
-        A(ii, n - k + i) = one - conj(tau[i]);
+        A(m - k + i, ii) = one - tau[i];
 
         // Set A( 0:i-1, i ) to zero
-        for (idx_t l = n - k + i + 1; l < n; l++)
-            A(ii, l) = zero;
+        for (idx_t l = m - k + i + 1; l < m; l++)
+            A(l, ii) = zero;
     }
 
     return 0;
@@ -136,4 +136,4 @@ int ungr2(matrix_t& A, const vector_t& tau, const workspace_opts_t<>& opts = {})
 
 }  // namespace tlapack
 
-#endif  // TLAPACK_UNGR2_HH
+#endif  // TLAPACK_UNG2L_HH

@@ -1,6 +1,6 @@
-/// @file test_gerq2.cpp
+/// @file test_geql2.cpp
 /// @author Thijs Steel, KU Leuven, Belgium
-/// @brief Test gerq2
+/// @brief Test geql2
 //
 // Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
@@ -18,16 +18,17 @@
 // Auxiliary routines
 #include <tlapack/lapack/lacpy.hpp>
 #include <tlapack/lapack/lange.hpp>
+#include <tlapack/plugins/debugutils.hpp>
 
 // Other routines
 #include <tlapack/blas/gemm.hpp>
-#include <tlapack/lapack/gerq2.hpp>
-#include <tlapack/lapack/ungr2.hpp>
+#include <tlapack/lapack/geql2.hpp>
+#include <tlapack/lapack/ung2l.hpp>
 
 using namespace tlapack;
 
-TEMPLATE_TEST_CASE("RQ factorization of a general m-by-n matrix",
-                   "[rq]",
+TEMPLATE_TEST_CASE("QL factorization of a general m-by-n matrix",
+                   "[ql]",
                    TLAPACK_TYPES_TO_TEST)
 {
     srand(1);
@@ -45,26 +46,26 @@ TEMPLATE_TEST_CASE("RQ factorization of a general m-by-n matrix",
 
     idx_t m, n, k;
 
-    m = GENERATE(5, 10, 20);
-    n = GENERATE(5, 10, 20);
+    m = GENERATE(5, 6, 10, 20);
+    n = GENERATE(5, 6, 10, 20);
     k = min(m, n);
 
     const real_t eps = ulp<real_t>();
-    const real_t tol = real_t(m * n) * eps;
+    const real_t tol = real_t(100.0 * max(m, n)) * eps;
 
     std::vector<T> A_;
     auto A = new_matrix(A_, m, n);
     std::vector<T> A_copy_;
     auto A_copy = new_matrix(A_copy_, m, n);
     std::vector<T> Q_;
-    auto Q = new_matrix(Q_, k, n);
+    auto Q = new_matrix(Q_, m, k);
 
-    std::vector<T> tau(min(m, n));
+    std::vector<T> tau(k);
 
     // Workspace computation:
     workinfo_t workinfo = {};
-    gerq2_worksize(A, tau, workinfo);
-    ungr2_worksize(Q, tau, workinfo);
+    geql2_worksize(A, tau, workinfo);
+    ung2l_worksize(Q, tau, workinfo);
 
     // Workspace allocation:
     vectorOfBytes workVec;
@@ -78,12 +79,12 @@ TEMPLATE_TEST_CASE("RQ factorization of a general m-by-n matrix",
 
     DYNAMIC_SECTION("m = " << m << " n = " << n)
     {
-        // RQ factorization
-        gerq2(A, tau, workOpts);
+        // QLs factorization
+        geql2(A, tau, workOpts);
 
         // Generate Q
-        lacpy(Uplo::General, slice(A, range(m - k, m), range(0, n)), Q);
-        ungr2(Q, tau, workOpts);
+        lacpy(Uplo::General, slice(A, range(0, m), range(n - k, n)), Q);
+        ung2l(Q, tau, workOpts);
 
         // Check orthogonality of Q
         std::vector<T> Wq_;
@@ -91,19 +92,20 @@ TEMPLATE_TEST_CASE("RQ factorization of a general m-by-n matrix",
         auto orth_Q = check_orthogonality(Q, Wq);
         CHECK(orth_Q <= tol);
 
-        // Set lower triangular part of A to zero to get R
-        for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = 0; i + 1 < min(k, n - j); ++i)
-                A(m - 1 - i, j) = zero;
-        auto R = slice(A, range(0, m), range(n - k, n));
+        // Set upper triangular part of A to zero to get L
+        for (idx_t j = 0; j < n; ++j) {
+            for (idx_t i = j + 1; i < m; ++i)
+                A(m - i - 1, n - j - 1) = zero;
+        }
+        auto L = slice(A, range(m - k, m), range(0, n));
 
-        // Test A_copy = R * Q
+        // Test A_copy = Q * L
         std::vector<T> A2_;
-        auto A2 = new_matrix(A2_, m, k);
-        gemm(Op::NoTrans, Op::ConjTrans, real_t(1.), A_copy, Q, A2);
-        for (idx_t j = 0; j < k; ++j)
-            for (idx_t i = 0; i < m; ++i)
-                A2(i, j) -= R(i, j);
+        auto A2 = new_matrix(A2_, k, n);
+        gemm(Op::ConjTrans, Op::NoTrans, real_t(1.), Q, A_copy, A2);
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = 0; i < k; ++i)
+                A2(i, j) -= L(i, j);
 
         real_t repres = lange(Norm::Max, A2);
         CHECK(repres <= tol);
