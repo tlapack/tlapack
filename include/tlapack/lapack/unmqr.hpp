@@ -43,6 +43,7 @@ struct unmqr_opts_t : public workspace_opts_t<workT_t> {
  * @param[in] A
  *      - side = Side::Left:    m-by-k matrix;
  *      - side = Side::Right:   n-by-k matrix.
+ *      Contains the vectors that define the reflectors
  *
  * @param[in] tau Vector of length k
  *      Contains the scalar factors of the elementary reflectors.
@@ -99,7 +100,8 @@ inline constexpr void unmqr_worksize(side_t side,
 
         // Empty matrices
         const auto V = slice(A, pair{0, nA}, pair{0, nb});
-        const auto matrixT = new_matrix(nullptr, nb, nb);
+        const auto matrixT = slice(A, pair{0, nb}, pair{0, nb});
+        // const auto matrixT = new_matrix(nullptr, nb, nb);
 
         // Internal workspace queries
         larfb_worksize(side, trans, forward, columnwise_storage, V, matrixT, C,
@@ -212,12 +214,6 @@ int unmqr(side_t side,
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
 
-    // Matrix T and recompute work
-    auto matrixT = new_matrix(work, nb, nb, work);
-
-    // Options to forward
-    auto&& larfbOpts = workspace_opts_t<void>{work};
-
     // Preparing loop indexes
     const bool positiveInc =
         (((side == Side::Left) && !(trans == Op::NoTrans)) ||
@@ -225,6 +221,13 @@ int unmqr(side_t side,
     const idx_t i0 = (positiveInc) ? 0 : ((k - 1) / nb) * nb;
     const idx_t iN = (positiveInc) ? ((k - 1) / nb + 1) * nb : -nb;
     const idx_t inc = (positiveInc) ? nb : -nb;
+
+    // Matrix T and recompute work
+    Workspace sparework;
+    auto matrixT = new_matrix(work, nb, nb, sparework);
+
+    // Options to forward
+    auto&& larfbOpts = workspace_opts_t<void>{sparework};
 
     // Main loop
     for (idx_t i = i0; i != iN; i += inc) {

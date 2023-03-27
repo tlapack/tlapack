@@ -47,9 +47,10 @@ inline constexpr void ung2r_worksize(size_type<matrix_t> k,
     using idx_t = size_type<matrix_t>;
 
     // constants
+    const idx_t m = nrows(A);
     const idx_t n = ncols(A);
 
-    if (n > 1) {
+    if (n > 1 && m > 1) {
         auto C = cols(A, range<idx_t>{1, n});
         larf_worksize(left_side, forward, columnwise_storage, col(A, 0), tau[0],
                       C, workinfo, opts);
@@ -118,7 +119,7 @@ int ung2r(size_type<matrix_t> k,
     auto&& larfOpts = workspace_opts_t<>{work};
 
     // Initialise columns k:n-1 to columns of the unit matrix
-    for (idx_t j = k; j < n; ++j) {
+    for (idx_t j = k; j < min(m, n); ++j) {
         for (idx_t l = 0; l < m; ++l)
             A(l, j) = zero;
         A(j, j) = one;

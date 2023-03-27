@@ -41,9 +41,10 @@ inline constexpr void geqr2_worksize(const matrix_t& A,
     using idx_t = size_type<matrix_t>;
 
     // constants
+    const idx_t m = nrows(A);
     const idx_t n = ncols(A);
 
-    if (n > 1) {
+    if (n > 1 && m > 1) {
         auto C = cols(A, range<idx_t>{1, n});
         larf_worksize(left_side, forward, columnwise_storage, col(A, 0), tau[0],
                       C, workinfo, opts);
@@ -99,7 +100,7 @@ int geqr2(matrix_t& A, vector_t& tau, const workspace_opts_t<>& opts = {})
     tlapack_check_false((idx_t)size(tau) < std::min<idx_t>(m, n));
 
     // quick return
-    if (n <= 0) return 0;
+    if (n <= 0 || m <= 0) return 0;
 
     // Allocates workspace
     vectorOfBytes localworkdata;

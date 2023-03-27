@@ -64,14 +64,14 @@ TEMPLATE_TEST_CASE("LQ factorization of a general m-by-n matrix, blocked",
     std::vector<T> Q_;
     auto Q = new_matrix(Q_, k, n);
 
-    std::vector<T> tauw(min(m, n));
+    std::vector<T> tau(min(m, n));
 
     // Workspace computation:
     gelqf_opts_t<idx_t> workOpts;
     workOpts.nb = nb;
     workinfo_t workinfo;
-    gelqf_worksize(A, tauw, workinfo, workOpts);
-    ungl2_worksize(Q, tauw, workinfo, workOpts);
+    gelqf_worksize(A, tau, workinfo, workOpts);
+    ungl2_worksize(Q, tau, workinfo, workOpts);
 
     // Workspace allocation:
     vectorOfBytes workVec;
@@ -89,14 +89,14 @@ TEMPLATE_TEST_CASE("LQ factorization of a general m-by-n matrix, blocked",
         DYNAMIC_SECTION("m = " << m << " n = " << n << " k = " << k
                                << " nb = " << nb)
         {
-            gelqf(A, tauw, workOpts);
+            gelqf(A, tau, workOpts);
 
             // Q is sliced down to the desired size of output Q (k-by-n).
             // It stores the desired number of Householder reflectors that UNGL2
             // will use.
             lacpy(Uplo::General, slice(A, range(0, min(m, k)), range(0, n)), Q);
 
-            ungl2(Q, tauw, workOpts);
+            ungl2(Q, tau, workOpts);
 
             // Wq is the identity matrix to check the orthogonality of Q
             std::vector<T> Wq_;
