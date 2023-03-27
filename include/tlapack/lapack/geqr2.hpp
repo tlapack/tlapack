@@ -76,6 +76,7 @@ inline constexpr void geqr2_worksize(const matrix_t& A,
  *      (R is upper triangular if m >= n); the elements below the diagonal,
  *      with the array tau, represent the unitary matrix Q as a
  *      product of elementary reflectors.
+ *
  * @param[out] tau Real vector of length min(m,n).
  *      The scalar factors of the elementary reflectors.
  *

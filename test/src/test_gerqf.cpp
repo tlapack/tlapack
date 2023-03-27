@@ -1,6 +1,6 @@
-/// @file test_gerq2.cpp
+/// @file test_gerqf.cpp
 /// @author Thijs Steel, KU Leuven, Belgium
-/// @brief Test gerq2
+/// @brief Test gerqf
 //
 // Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
@@ -21,7 +21,7 @@
 
 // Other routines
 #include <tlapack/blas/gemm.hpp>
-#include <tlapack/lapack/gerq2.hpp>
+#include <tlapack/lapack/gerqf.hpp>
 #include <tlapack/lapack/ungr2.hpp>
 
 using namespace tlapack;
@@ -43,10 +43,11 @@ TEMPLATE_TEST_CASE("RQ factorization of a general m-by-n matrix",
 
     const T zero(0);
 
-    idx_t m, n, k;
+    idx_t m, n, k, nb;
 
     m = GENERATE(5, 10, 20);
     n = GENERATE(5, 10, 20);
+    nb = GENERATE(1, 2, 3, 4, 5);
     k = min(m, n);
 
     const real_t eps = ulp<real_t>();
@@ -62,13 +63,16 @@ TEMPLATE_TEST_CASE("RQ factorization of a general m-by-n matrix",
     std::vector<T> tau(min(m, n));
 
     // Workspace computation:
+    gerqf_opts_t<idx_t> gerqfOpts;
+    gerqfOpts.nb = nb;
     workinfo_t workinfo = {};
-    gerq2_worksize(A, tau, workinfo);
+    gerqf_worksize(A, tau, workinfo, gerqfOpts);
     ungr2_worksize(Q, tau, workinfo);
 
     // Workspace allocation:
     vectorOfBytes workVec;
     workspace_opts_t<> workOpts(alloc_workspace(workVec, workinfo));
+    gerqfOpts.work = workOpts.work;
 
     for (idx_t j = 0; j < n; ++j)
         for (idx_t i = 0; i < m; ++i)
@@ -79,7 +83,7 @@ TEMPLATE_TEST_CASE("RQ factorization of a general m-by-n matrix",
     DYNAMIC_SECTION("m = " << m << " n = " << n)
     {
         // RQ factorization
-        gerq2(A, tau, workOpts);
+        gerqf(A, tau, gerqfOpts);
 
         // Generate Q
         lacpy(Uplo::General, slice(A, range(m - k, m), range(0, n)), Q);
