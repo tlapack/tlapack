@@ -50,11 +50,11 @@ inline constexpr void geql2_worksize(const matrix_t& A,
     }
 }
 
-/** Computes an RQ factorization of a matrix A.
+/** Computes a QL factorization of a matrix A.
  *
  * The matrix Q is represented as a product of elementary reflectors
  * \[
- *          Q = H_1' H_2' ... H_k',
+ *          Q = H_k ... H_2 H_1,
  * \]
  * where k = min(m,n). Each H_i has the form
  * \[
@@ -62,19 +62,22 @@ inline constexpr void geql2_worksize(const matrix_t& A,
  * \]
  * where tau is a scalar, and v is a vector with
  * \[
- *          v[n-k+i+1:n] = 0; v[n-k+i-1] = 1,
+ *          v[m-k+i+1:m] = 0; v[m-k+i-1] = 1,
  * \]
  * with v[1] through v[n-k+i-1] stored on exit below the diagonal
- * in the ith column of A, and tau in tau[i].
+ * in A(0:m-k+i-1,n-k+i), and tau in tau[i].
  *
  * @return  0 if success
  *
  * @param[in,out] A m-by-n matrix.
- *      On exit, the elements on and above the diagonal of the array
- *      contain the m-by-min(m,n) upper trapezoidal matrix R
- *      (R is upper triangular if m <= n); the elements below the diagonal,
- *      with the array tau, represent the unitary matrix Q as a
- *      product of elementary reflectors.
+ *      On entry, the m by n matrix A.
+ *      On exit, if m >= n, the lower triangle of A(m-n:m,0:n) contains
+ *      the n by n lower triangular matrix L;
+ *      If m <= n, the elements on and below the (n-m)-th
+ *      superdiagonal contain the m by n lower trapezoidal matrix L
+ *      the remaining elements, with the array TAU, represent the
+ *      unitary matrix Q as a product of elementary reflectors.
+ *
  * @param[out] tau Real vector of length min(m,n).
  *      The scalar factors of the elementary reflectors.
  *

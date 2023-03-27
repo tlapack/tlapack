@@ -70,11 +70,14 @@ inline constexpr void gerq2_worksize(const matrix_t& A,
  * @return  0 if success
  *
  * @param[in,out] A m-by-n matrix.
- *      On exit, the elements on and above the diagonal of the array
- *      contain the m-by-min(m,n) upper trapezoidal matrix R
- *      (R is upper triangular if m <= n); the elements below the diagonal,
- *      with the array tau, represent the unitary matrix Q as a
- *      product of elementary reflectors.
+ *      On entry, the m by n matrix A.
+ *      On exit, if m <= n, the upper triangle of the subarray
+ *      A(0:m,n-m:n) contains the m by m upper triangular matrix R;
+ *      if m >= n, the elements on and above the (m-n)-th subdiagonal
+ *      contain the m by n upper trapezoidal matrix R; the remaining
+ *      elements, with the array TAU, represent the unitary matrix
+ *      Q as a product of elementary reflectors.
+ *
  * @param[out] tau Real vector of length min(m,n).
  *      The scalar factors of the elementary reflectors.
  *

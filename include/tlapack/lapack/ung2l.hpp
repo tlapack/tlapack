@@ -52,14 +52,18 @@ inline constexpr void ung2l_worksize(const matrix_t& A,
 }
 
 /**
- * @brief Generates a matrix Q with orthogonal columns.
+ * @brief Generates an m-by-n matrix Q with orthonormal columns,
+ *        which is defined as the last n columns of a product of k elementary
+ *        reflectors of order m
  * \[
- *     Q  =  H_1 H_2 ... H_k
+ *     Q  =  H_k ... H_2 H_1
  * \]
+ *        The reflectors are stored in the matrix A as returned by geqlf
  *
  * @param[in,out] A m-by-n matrix.
- *      On entry, the i-th column must contains the vector which defines the
- *      elementary reflector $H_i$, for $i=0,1,...,k-1$, as returned by geqrf.
+ *      On entry, the (n+k-i)-th column must contains the vector which defines
+ the
+ *      elementary reflector $H_i$, for $i=0,1,...,k-1$, as returned by geqlf.
  *      On exit, the m-by-n matrix $Q$.
 
  * @param[in] tau Real vector of length min(m,n).
