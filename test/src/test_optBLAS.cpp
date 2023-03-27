@@ -15,17 +15,32 @@
 
 using namespace tlapack;
 
-TEST_CASE("has_compatible_layout gives the correct result", "[optBLAS]")
+TEMPLATE_TEST_CASE("has_compatible_layout gives the correct result",
+                   "[optBLAS]",
+                   TLAPACK_TYPES_TO_TEST)
 {
-    using matrixA_t = legacyMatrix<float, size_t, Layout::ColMajor>;
-    using matrixB_t = legacyMatrix<float, size_t, Layout::RowMajor>;
-    using vector_t = legacyVector<float>;
+    using T = type_t<TestType>;
+    using matrixA_t = TestType;
+    using matrixB_t = transpose_type<TestType>;
+    using vector_t = vector_type<TestType>;
+    using namespace tlapack::internal;
+
+    CHECK(has_compatible_layout<T, T>);
+    CHECK(has_compatible_layout<T, T, T>);
+    CHECK(has_compatible_layout<matrixA_t, T>);
+    CHECK(has_compatible_layout<T, matrixA_t>);
+    CHECK(has_compatible_layout<matrixB_t, T>);
+    CHECK(has_compatible_layout<T, matrixB_t>);
+    CHECK(has_compatible_layout<vector_t, T>);
+    CHECK(has_compatible_layout<T, vector_t>);
 
     CHECK(has_compatible_layout<matrixA_t, matrixA_t>);
     CHECK(!has_compatible_layout<matrixA_t, matrixB_t>);
     CHECK(has_compatible_layout<matrixB_t, matrixB_t>);
     CHECK(!has_compatible_layout<matrixB_t, matrixA_t>);
 
+    CHECK(layout<vector_t> == Layout::Strided);
+    CHECK(layout<matrixA_t> != layout<matrixB_t>);
     CHECK(has_compatible_layout<matrixA_t, vector_t>);
     CHECK(has_compatible_layout<vector_t, matrixA_t>);
     CHECK(has_compatible_layout<matrixB_t, vector_t>);
@@ -68,6 +83,7 @@ TEMPLATE_TEST_CASE("allow_optblas gives the correct result",
     // Test matrix_t and pair< matrix_t, T >
     CHECK(allow_optblas<matrix_t> == allow_optblas<T>);
     CHECK(allow_optblas<pair<matrix_t, T>> == allow_optblas<T>);
+    CHECK(allow_optblas<pair<T, T>> == allow_optblas<T>);
 
     // Test pairs of convertible types
     CHECK(allow_optblas<pair<float, double>> == allow_optblas<double>);

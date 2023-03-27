@@ -184,20 +184,17 @@ template <
 inline void trmv(
     Uplo uplo, Op trans, Diag diag, const matrixA_t& A, vectorX_t& x)
 {
-    using idx_t = size_type<matrixA_t>;
-
     // Legacy objects
     auto A_ = legacy_matrix(A);
     auto x_ = legacy_vector(x);
 
     // Constants to forward
-    const idx_t& n = A_.n;
-    const idx_t incx =
-        (x_.direction == Direction::Forward) ? idx_t(x_.inc) : idx_t(-x_.inc);
+    constexpr Layout L = layout<matrixA_t>;
+    const auto& n = A_.n;
 
-    return ::blas::trmv((::blas::Layout)A_.layout, (::blas::Uplo)uplo,
+    return ::blas::trmv((::blas::Layout)L, (::blas::Uplo)uplo,
                         (::blas::Op)trans, (::blas::Diag)diag, n, A_.ptr,
-                        A_.ldim, x_.ptr, incx);
+                        A_.ldim, x_.ptr, x_.inc);
 }
 
 #endif

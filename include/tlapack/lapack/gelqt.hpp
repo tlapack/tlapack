@@ -1,5 +1,5 @@
-/// @file gelqf.hpp
-/// @author Thijs Steel, KU Leuven, Belgium
+/// @file gelqt.hpp
+/// @author Yuxin Cai, University of Colorado Denver, USA
 /// @note Adapted from @see
 /// https://github.com/Reference-LAPACK/lapack/blob/master/SRC/zgelqf.f
 //
@@ -9,8 +9,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef TLAPACK_GELQF_HH
-#define TLAPACK_GELQF_HH
+#ifndef TLAPACK_GELQT_HH
+#define TLAPACK_GELQT_HH
 
 #include "tlapack/base/utils.hpp"
 #include "tlapack/lapack/gelq2.hpp"
@@ -21,19 +21,16 @@ namespace tlapack {
 /**
  * Options struct for gelqf
  */
-template <class idx_t = size_t>
-struct gelqf_opts_t : public workspace_opts_t<> {
-    inline constexpr gelqf_opts_t(const workspace_opts_t<>& opts = {})
+struct gelqt_opts_t : public workspace_opts_t<> {
+    inline constexpr gelqt_opts_t(const workspace_opts_t<>& opts = {})
         : workspace_opts_t<>(opts){};
-
-    idx_t nb = 32;  ///< Block size
 };
 
 /** Worspace query of gelqf()
  *
  * @param[in] A m-by-n matrix.
  *
- * @param tau min(n,m) vector.
+ * @param TT m-by-nb matrix.
  *
  * @param[in] opts Options.
  *
@@ -43,38 +40,30 @@ struct gelqf_opts_t : public workspace_opts_t<> {
  *
  * @ingroup workspace_query
  */
-template <typename A_t, typename tau_t>
-inline constexpr void gelqf_worksize(
-    const A_t& A,
-    const tau_t& tau,
-    workinfo_t& workinfo,
-    const gelqf_opts_t<size_type<A_t>>& opts = {})
+template <typename matrix_t>
+inline constexpr void gelqt_worksize(const matrix_t& A,
+                                     const matrix_t& TT,
+                                     workinfo_t& workinfo,
+                                     const gelqt_opts_t& opts = {})
 {
-    using idx_t = size_type<A_t>;
-    using T = type_t<A_t>;
+    using idx_t = size_type<matrix_t>;
 
     // constants
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
     const idx_t k = min(m, n);
-    const idx_t nb = opts.nb;
+    const idx_t nb = ncols(TT);
     const idx_t ib = std::min<idx_t>(nb, k);
 
+    auto TT1 = slice(TT, range<idx_t>(0, ib), range<idx_t>(0, ib));
     auto A11 = rows(A, range<idx_t>(0, ib));
-    auto TT1 = slice(A, range<idx_t>(0, ib), range<idx_t>(0, ib));
-    auto A12 = slice(A, range<idx_t>(ib, m), range<idx_t>(0, n));
-    auto tauw1 = slice(tau, range<idx_t>(0, ib));
+    auto tauw1 = diag(TT1);
 
-    gelq2_worksize(A11, tauw1, workinfo);
-    larfb_worksize(Side::Right, Op::NoTrans, Direction::Forward,
-                   StoreV::Rowwise, A11, TT1, A12, workinfo);
-
-    workinfo_t workinfo2(sizeof(T) * nb, nb);
-    workinfo += workinfo2;
+    gelq2_worksize(A11, tauw1, workinfo, opts);
 }
 
-/** Computes an LQ factorization of an m-by-n matrix A using
- *  a blocked algorithm.
+/** Computes an LQ factorization of a complex m-by-n matrix A using
+ *  a blocked algorithm. Stores the triangular factors for later use.
  *
  * The matrix Q is represented as a product of elementary reflectors.
  * \[
@@ -84,11 +73,12 @@ inline constexpr void gelqf_worksize(
  * \[
  *          H(j) = I - tauw * w * w**H
  * \]
- * where tauw is a scalar, and w is a vector with
+ * where tauw is a complex scalar, and w is a complex vector with
  * \[
  *          w[0] = w[1] = ... = w[j-1] = 0; w[j] = 1,
  * \]
- * where w[j+1]**H through w[n]**H are stored on exit in the jth row of A.
+ * with w[j+1]**H through w[n]**H is stored on exit in the jth row of A.
+ * tauw is stored in TT(j,i), where 0 <= i < nb and i = j (mod nb).
  *
  * @return  0 if success
  *
@@ -99,8 +89,20 @@ inline constexpr void gelqf_worksize(
  *      with the array tauw, represent the unitary matrix Q as a
  *      product of elementary reflectors.
  *
- * @param[out] tau min(n,m) vector.
- *      The scalar factors of the elementary reflectors.
+ * @param[out] TT m-by-nb matrix.
+ *      In the representation of the block reflector.
+ *      tauw[j] is stored in TT(j,i), where 0 <= i < nb and i = j (mod nb).
+ *      On exit, TT( 0:k, 0:nb ) contains blocks used to build Q :
+ *      \[
+ *          Q^H
+ *          =
+ *          [ I - W(0:nb,0:k)^T * TT(0:nb,0:nb) * conj(W(0:nb,0:k)) ]
+ *          *
+ *          [ I - W(nb:2nb,0:k)^T * TT(nb:2nb,0:nb) * conj(W(nb:2nb,0:k)) ]
+ *          *
+ *          ...
+ *      \]
+ *      For a good default of nb, see gelqf_opts_t
  *
  * @param[in] opts Options.
  *      - @c opts.work is used if whenever it has sufficient size.
@@ -108,62 +110,59 @@ inline constexpr void gelqf_worksize(
  *
  * @ingroup computational
  */
-template <typename A_t, typename tau_t>
-int gelqf(A_t& A, tau_t& tau, const gelqf_opts_t<size_type<A_t>>& opts = {})
+template <typename matrix_t>
+int gelqt(matrix_t& A, matrix_t& TT, const gelqt_opts_t& opts = {})
 {
-    Create<A_t> new_matrix;
-
-    using idx_t = size_type<A_t>;
+    using idx_t = size_type<matrix_t>;
     using range = std::pair<idx_t, idx_t>;
 
     // constants
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
     const idx_t k = min(m, n);
-    const idx_t nb = opts.nb;
+    const idx_t nb = ncols(TT);
 
     // check arguments
-    tlapack_check((idx_t)size(tau) >= k);
+    tlapack_check_false(nrows(TT) < m || ncols(TT) < nb);
 
-    // Allocate or get workspace
+    // Allocates workspace
     vectorOfBytes localworkdata;
     Workspace work = [&]() {
         workinfo_t workinfo;
-        gelqf_worksize(A, tau, workinfo, opts);
+        gelqt_worksize(A, TT, workinfo, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
 
-    Workspace sparework;
-    auto TT = new_matrix(work, nb, nb, sparework);
-
     // Options to forward
-    auto&& gelq2Opts = workspace_opts_t<>{sparework};
-    auto&& larfbOpts = workspace_opts_t<void>{sparework};
+    auto&& gelq2Opts = workspace_opts_t<>{work};
 
-    // Main computational loop
     for (idx_t j = 0; j < k; j += nb) {
+        // Use blocked code initially
         idx_t ib = std::min<idx_t>(nb, k - j);
 
         // Compute the LQ factorization of the current block A(j:j+ib-1,j:n)
+        auto TT1 = slice(TT, range(j, j + ib), range(0, ib));
         auto A11 = slice(A, range(j, j + ib), range(j, n));
-        auto tauw1 = slice(tau, range(j, j + ib));
+        auto tauw1 = diag(TT1);
 
         gelq2(A11, tauw1, gelq2Opts);
 
-        if (j + ib < k) {
-            // Form the triangular factor of the block reflector H = H(j)
-            // H(j+1) . . . H(j+ib-1)
-            auto TT1 = slice(TT, range(0, ib), range(0, ib));
-            larft(Direction::Forward, StoreV::Rowwise, A11, tauw1, TT1);
+        // Form the triangular factor of the block reflector H = H(j) H(j+1)
+        // . . . H(j+ib-1)
+        larft(Direction::Forward, StoreV::Rowwise, A11, tauw1, TT1);
 
+        if (j + ib < k) {
             // Apply H to A(j+ib:m,j:n) from the right
             auto A12 = slice(A, range(j + ib, m), range(j, n));
+
+            workspace_opts_t<void> work1(
+                slice(TT, range(j + ib, m), range(0, ib)));
             larfb(Side::Right, Op::NoTrans, Direction::Forward, StoreV::Rowwise,
-                  A11, TT1, A12, larfbOpts);
+                  A11, TT1, A12, work1);
         }
     }
 
     return 0;
 }
 }  // namespace tlapack
-#endif  // TLAPACK_GELQF_HH
+#endif  // TLAPACK_GELQT_HH

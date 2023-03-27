@@ -47,20 +47,10 @@ namespace internal {
         static constexpr Layout layout = L;
     };
 
-    /// Layout for legacyBandedMatrix
-    template <typename T, class idx_t>
-    struct LayoutImpl<legacyBandedMatrix<T, idx_t>, int> {
-        static constexpr Layout layout = Layout::BandStorage;
-    };
-
-    /// Implementation of AllowOptBLASImpl for legacy datatypes
-    template <typename T, class idx_t, Layout L>
-    struct AllowOptBLASImpl<legacyMatrix<T, idx_t, L>, int> {
-        static constexpr bool value = allow_optblas<T>;
-    };
-    template <typename T, class idx_t, class int_t, Direction D>
-    struct AllowOptBLASImpl<legacyVector<T, idx_t, int_t, D>, int> {
-        static constexpr bool value = allow_optblas<T>;
+    /// Layout for legacyVector
+    template <typename T, class idx_t, typename int_t, Direction D>
+    struct LayoutImpl<legacyVector<T, idx_t, int_t, D>, int> {
+        static constexpr Layout layout = Layout::Strided;
     };
 
     /// Transpose type for legacyMatrix
@@ -488,28 +478,26 @@ template <typename T, class idx_t, Layout layout>
 inline constexpr auto legacy_matrix(
     const legacyMatrix<T, idx_t, layout>& A) noexcept
 {
-    return A;
+    return legacy::matrix<T, idx_t>{layout, A.m, A.n, A.ptr, A.ldim};
 }
 
 template <class T, class idx_t, class int_t, Direction direction>
 inline constexpr auto legacy_matrix(
     const legacyVector<T, idx_t, int_t, direction>& v) noexcept
 {
-    return legacyMatrix<T, idx_t>(1, v.n, v.ptr, v.inc);
+    return legacy::matrix<T, idx_t>{Layout::ColMajor, 1, v.n, v.ptr, v.inc};
 }
-
-// template< class T, class idx_t, Direction direction >
-// inline constexpr auto
-// legacy_matrix( const legacyVector<T,idx_t,internal::StrongOne,direction>& v )
-// noexcept {
-//     return legacyMatrix<T,idx_t>( v.n, 1, v.ptr );
-// }
 
 template <typename T, class idx_t, typename int_t, Direction direction>
 inline constexpr auto legacy_vector(
     const legacyVector<T, idx_t, int_t, direction>& v) noexcept
 {
-    return v;
+    assert(direction == Direction::Forward || std::is_signed<idx_t>::value ||
+           v.inc == 0);
+
+    return legacy::vector<T, idx_t>{
+        v.n, v.ptr,
+        (direction == Direction::Forward) ? idx_t(v.inc) : idx_t(-v.inc)};
 }
 
 }  // namespace tlapack

@@ -287,10 +287,12 @@ inline void gemm(Op transA,
     auto C_ = legacy_matrix(C);
 
     // Constants to forward
+    constexpr Layout L = layout<matrixC_t>;
     const auto& m = C_.m;
     const auto& n = C_.n;
     const auto& k = (transA == Op::NoTrans) ? A_.n : A_.m;
 
+    // Warnings for NaNs and Infs
     if (alpha == alpha_t(0))
         tlapack_warning(
             -3, "Infs and NaNs in A or B will not propagate to C on output");
@@ -299,7 +301,7 @@ inline void gemm(Op transA,
             -6,
             "Infs and NaNs in C on input will not propagate to C on output");
 
-    return ::blas::gemm((::blas::Layout)A_.layout, (::blas::Op)transA,
+    return ::blas::gemm((::blas::Layout)L, (::blas::Op)transA,
                         (::blas::Op)transB, m, n, k, alpha, A_.ptr, A_.ldim,
                         B_.ptr, B_.ldim, beta, C_.ptr, C_.ldim);
 }
@@ -341,15 +343,17 @@ inline void gemm(Op transA,
     auto C_ = legacy_matrix(C);
 
     // Constants to forward
+    constexpr Layout L = layout<matrixC_t>;
     const auto& m = C_.m;
     const auto& n = C_.n;
     const auto& k = (transA == Op::NoTrans) ? A_.n : A_.m;
 
+    // Warnings for NaNs and Infs
     if (alpha == alpha_t(0))
         tlapack_warning(
             -3, "Infs and NaNs in A or B will not propagate to C on output");
 
-    return ::blas::gemm((::blas::Layout)A_.layout, (::blas::Op)transA,
+    return ::blas::gemm((::blas::Layout)L, (::blas::Op)transA,
                         (::blas::Op)transB, m, n, k, alpha, A_.ptr, A_.ldim,
                         B_.ptr, B_.ldim, T(0), C_.ptr, C_.ldim);
 }

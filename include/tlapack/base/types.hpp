@@ -135,13 +135,16 @@ namespace internal {
 // Layouts
 
 enum class Layout : char {
-    Unspecified = 0,
-    ColMajor = 'C',
-    RowMajor = 'R',
-    BandStorage = 'B'
+    Strided = 'S',   ///< Strided layout. Vectors whose i-th element is at
+                     ///< ptr + i*inc, inc is an integer.
+    ColMajor = 'C',  ///< Column-major layout. Matrices whose (i,j)-th element
+                     ///< is at ptr + i + j*ldim.
+    RowMajor = 'R',  ///< Row-major layout. Matrices whose (i,j)-th element
+                     ///< is at ptr + i*ldim + j.
+    Unspecified = 0  ///< Used on all other data structures.
 };
 TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_4_VALUES(
-    Layout, Unspecified, ColMajor, RowMajor, BandStorage);
+    Layout, Unspecified, ColMajor, RowMajor, Strided);
 
 // -----------------------------------------------------------------------------
 // Upper or Lower access
@@ -412,10 +415,6 @@ struct complex_type_traits<T1, Types...> {
     using type = scalar_type<complex_type<T1>, complex_type<Types...> >;
 };
 
-}  // namespace tlapack
-
-namespace tlapack {
-
 namespace internal {
 
     /**
@@ -452,10 +451,6 @@ using type_t = typename internal::type_trait<array_t>::type;
 template <class array_t>
 using size_type = typename internal::sizet_trait<array_t>::type;
 
-}  // namespace tlapack
-
-namespace tlapack {
-
 // Workspace
 
 /// Byte type
@@ -464,6 +459,41 @@ using byte = unsigned char;
 using byteAlloc = std::allocator<byte>;
 /// Vector of bytes. May use a specialized allocator in future
 using vectorOfBytes = std::vector<byte, byteAlloc>;
+
+// -----------------------------------------------------------------------------
+// Legacy matrix and vector structures
+
+namespace legacy {
+
+    /**
+     * @brief Describes a row- or column-major matrix
+     *
+     * @tparam T Type of each entry.
+     * @tparam idx_t Integer type of the size attributes.
+     */
+    template <class T, class idx_t>
+    struct matrix {
+        Layout layout;
+        idx_t m;
+        idx_t n;
+        T* ptr;
+        idx_t ldim;
+    };
+
+    /**
+     * @brief Describes a strided vector.
+     *
+     * @tparam T Type of each entry.
+     * @tparam idx_t Integer type of the size attributes.
+     */
+    template <class T, class idx_t>
+    struct vector {
+        idx_t n;
+        T* ptr;
+        idx_t inc;
+    };
+
+}  // namespace legacy
 
 }  // namespace tlapack
 

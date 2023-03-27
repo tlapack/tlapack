@@ -207,8 +207,13 @@ inline size_type<vector_t> iamax(const vector_t& x, const ec_opts_t& opts = {})
 template <class vector_t, enable_if_allow_optblas_t<vector_t> = 0>
 inline size_type<vector_t> iamax(vector_t const& x)
 {
+    // Legacy objects
     auto x_ = legacy_vector(x);
-    return ::blas::iamax(x_.n, x_.ptr, x_.inc);
+
+    // Constants to forward
+    const auto& n = x_.n;
+
+    return ::blas::iamax(n, x_.ptr, x_.inc);
 }
 
 #endif
