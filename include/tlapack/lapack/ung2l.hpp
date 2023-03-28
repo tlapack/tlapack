@@ -118,16 +118,12 @@ int ung2l(matrix_t& A, const vector_t& tau, const workspace_opts_t<>& opts = {})
 
     for (idx_t i = 0; i < k; ++i) {
         idx_t ii = n - k + i;
-        if (ii > 0) {
-            auto v = slice(A, pair{0, m - k + i + 1}, ii);
-            auto C = slice(A, pair{0, m - k + i + 1}, pair{0, ii});
-            larf(Side::Left, Direction::Backward, StoreV::Columnwise, v, tau[i],
-                 C, larfOpts);
-        }
-        if (m + i > k) {
-            auto x = slice(A, pair{0, m - k + i}, ii);
-            scal(-tau[i], x);
-        }
+        auto v = slice(A, pair{0, m - k + i + 1}, ii);
+        auto C = slice(A, pair{0, m - k + i + 1}, pair{0, ii});
+        larf(Side::Left, Direction::Backward, StoreV::Columnwise, v, tau[i], C,
+             larfOpts);
+        auto x = slice(A, pair{0, m - k + i}, ii);
+        scal(-tau[i], x);
         A(m - k + i, ii) = one - tau[i];
 
         // Set A( 0:i-1, i ) to zero
