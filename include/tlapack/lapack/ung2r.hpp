@@ -20,10 +20,6 @@ namespace tlapack {
 
 /** Worspace query of ung2r()
  *
- * @param[in] k
- *      The number of elementary reflectors whose product defines the matrix Q.
- *      Note that: `n >= k >= 0`.
- *
  * @param[in] A m-by-n matrix.
 
  * @param[in] tau Real vector of length min(m,n).
