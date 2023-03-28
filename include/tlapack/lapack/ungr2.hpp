@@ -113,7 +113,7 @@ int ungr2(matrix_t& A, const vector_t& tau, const workspace_opts_t<>& opts = {})
     for (idx_t j = 0; j < n; ++j) {
         for (idx_t i = 0; i < m - k; ++i)
             A(i, j) = zero;
-        // if (j + m >= n and j + k <= n) A(m + j - n, j) = one;
+        if (j + m >= n and j + k <= n) A(m + j - n, j) = one;
     }
 
     for (idx_t i = 0; i < k; ++i) {
