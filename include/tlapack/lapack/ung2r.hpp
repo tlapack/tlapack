@@ -38,8 +38,7 @@ namespace tlapack {
  * @ingroup workspace_query
  */
 template <class matrix_t, class vector_t>
-inline constexpr void ung2r_worksize(size_type<matrix_t> k,
-                                     const matrix_t& A,
+inline constexpr void ung2r_worksize(const matrix_t& A,
                                      const vector_t& tau,
                                      workinfo_t& workinfo,
                                      const workspace_opts_t<>& opts = {})
@@ -63,10 +62,6 @@ inline constexpr void ung2r_worksize(size_type<matrix_t> k,
  *     Q  =  H_1 H_2 ... H_k
  * \]
  *
- * @param[in] k
- *      The number of elementary reflectors whose product defines the matrix Q.
- *      Note that: `n >= k >= 0`.
- *
  * @param[in,out] A m-by-n matrix.
  *      On entry, the i-th column must contains the vector which defines the
  *      elementary reflector $H_i$, for $i=0,1,...,k-1$, as returned by geqrf.
@@ -84,10 +79,7 @@ inline constexpr void ung2r_worksize(size_type<matrix_t> k,
  * @ingroup computational
  */
 template <class matrix_t, class vector_t>
-int ung2r(size_type<matrix_t> k,
-          matrix_t& A,
-          const vector_t& tau,
-          const workspace_opts_t<>& opts = {})
+int ung2r(matrix_t& A, const vector_t& tau, const workspace_opts_t<>& opts = {})
 {
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
@@ -99,10 +91,10 @@ int ung2r(size_type<matrix_t> k,
     const real_t one(1);
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
+    const idx_t k = size(tau);
 
     // check arguments
-    tlapack_check_false(k < 0 || k > n);
-    tlapack_check_false((idx_t)size(tau) < k);
+    tlapack_check_false(k > n);
 
     // quick return
     if (n <= 0) return 0;
@@ -111,7 +103,7 @@ int ung2r(size_type<matrix_t> k,
     vectorOfBytes localworkdata;
     Workspace work = [&]() {
         workinfo_t workinfo;
-        ung2r_worksize(k, A, tau, workinfo, opts);
+        ung2r_worksize(A, tau, workinfo, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
 

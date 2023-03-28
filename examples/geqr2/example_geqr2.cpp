@@ -109,7 +109,7 @@ void run(size_t m, size_t n)
         tlapack::lacpy(tlapack::upperTriangle, Q, R);
 
         // Generates Q = H_1 H_2 ... H_n
-        tlapack::ung2r(n, Q, tau);
+        tlapack::ung2r(Q, tau);
     }
     // Record end time
     auto endQR = std::chrono::high_resolution_clock::now();

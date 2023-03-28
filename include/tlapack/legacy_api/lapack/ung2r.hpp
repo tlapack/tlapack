@@ -58,7 +58,7 @@ inline int ung2r(idx_t m, idx_t n, idx_t k, TA* A, idx_t lda, const Ttau* tau)
     auto A_ = colmajor_matrix<TA>(A, m, n, lda);
     auto tau_ = vector((Ttau*)tau, std::min<idx_t>(m, n));
 
-    return ung2r(k, A_, tau_);
+    return ung2r(A_, tau_);
 }
 
 }  // namespace tlapack

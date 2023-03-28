@@ -18,7 +18,7 @@
 // Auxiliary routines
 #include <tlapack/lapack/lacpy.hpp>
 #include <tlapack/lapack/lange.hpp>
-#include <tlapack/plugins/debugutils.hpp>
+// #include <tlapack/plugins/debugutils.hpp>
 
 // Other routines
 #include <tlapack/blas/gemm.hpp>

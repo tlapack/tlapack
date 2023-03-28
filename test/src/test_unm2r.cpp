@@ -1,4 +1,4 @@
-/// @file test_unm2l.cpp
+/// @file test_unm2r.cpp
 /// @author Thijs Steel, KU Leuven, Belgium
 /// @brief Test unml2
 //
@@ -22,14 +22,14 @@
 
 // Other routines
 #include <tlapack/blas/gemm.hpp>
-#include <tlapack/lapack/geql2.hpp>
-#include <tlapack/lapack/ung2l.hpp>
-#include <tlapack/lapack/unm2l.hpp>
+#include <tlapack/lapack/geqr2.hpp>
+#include <tlapack/lapack/ung2r.hpp>
+#include <tlapack/lapack/unm2r.hpp>
 
 using namespace tlapack;
 
-TEMPLATE_TEST_CASE("Multiply m-by-n matrix with orthogonal QL factor",
-                   "[unm2l]",
+TEMPLATE_TEST_CASE("Multiply m-by-n matrix with orthogonal QR factor",
+                   "[unm2r]",
                    TLAPACK_TYPES_TO_TEST)
 {
     srand(1);
@@ -77,9 +77,9 @@ TEMPLATE_TEST_CASE("Multiply m-by-n matrix with orthogonal QL factor",
 
     // Workspace computation:
     workinfo_t workinfo = {};
-    geql2_worksize(A, tau, workinfo);
-    ung2l_worksize(Q, tau, workinfo);
-    unm2l_worksize(side, trans, A, tau, C, workinfo);
+    geqr2_worksize(A, tau, workinfo);
+    ung2r_worksize(Q, tau, workinfo);
+    unm2r_worksize(side, trans, A, tau, C, workinfo);
 
     // Workspace allocation:
     vectorOfBytes workVec;
@@ -97,13 +97,13 @@ TEMPLATE_TEST_CASE("Multiply m-by-n matrix with orthogonal QL factor",
                            << " trans = " << trans << " k2 = " << k2)
     {
         // QL factorization
-        geql2(A, tau, workOpts);
+        geqr2(A, tau, workOpts);
 
-        // Calculate the result of unm2l using ung2l and gemm
+        // Calculate the result of unm2r using ung2r and gemm
         for (idx_t j = 0; j < k; ++j)
             for (idx_t i = 0; i < m; ++i)
-                Q(i, m - k + j) = A(i, n - k + j);
-        ung2l(Q, tau, workOpts);
+                Q(i, j) = A(i, j);
+        ung2r(Q, tau, workOpts);
 
         std::vector<T> Wq_;
         auto Wq = new_matrix(Wq_, m, m);
@@ -119,7 +119,7 @@ TEMPLATE_TEST_CASE("Multiply m-by-n matrix with orthogonal QL factor",
             gemm(Op::NoTrans, trans, T(1.), C, Q, T(0.), Cq);
 
         // Run the routine we are testing
-        unm2l(side, trans, cols(A, range(n - k, n)), tau, C, workOpts);
+        unm2r(side, trans, cols(A, range(0, k)), tau, C, workOpts);
 
         // Compare results
         for (idx_t j = 0; j < nc; ++j)

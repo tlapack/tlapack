@@ -73,7 +73,7 @@ TEMPLATE_TEST_CASE("bidiagonal reduction is backward stable",
         // Workspace computation:
         workinfo_t workinfo = {};
         gebd2_worksize(A, tauv, tauw, workinfo);
-        ung2r_worksize(n, Q, tauv, workinfo);
+        ung2r_worksize(Q, tauv, workinfo);
         ungl2_worksize(Z11, tauw, workinfo);
 
         vectorOfBytes workVec;
@@ -105,7 +105,7 @@ TEMPLATE_TEST_CASE("bidiagonal reduction is backward stable",
             // Generate unitary matrix Q of m-by-m
             lacpy(Uplo::Lower, A, Q);
 
-            ung2r(n, Q, tauv, workOpts);
+            ung2r(Q, tauv, workOpts);
 
             // Test for Q's orthogonality
             std::vector<T> Wq_;

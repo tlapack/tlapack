@@ -64,7 +64,7 @@ TEMPLATE_TEST_CASE("QR factorization of a general m-by-n matrix",
     workspace_opts_t<> workOpts;
     workinfo_t workinfo;
     geqr2_worksize(A, tau, workinfo, workOpts);
-    ung2r_worksize(k, Q, tau, workinfo, workOpts);
+    ung2r_worksize(Q, tau, workinfo, workOpts);
 
     // Workspace allocation:
     vectorOfBytes workVec;
@@ -85,7 +85,7 @@ TEMPLATE_TEST_CASE("QR factorization of a general m-by-n matrix",
         // will use.
         lacpy(Uplo::General, slice(A, range(0, m), range(0, k)), Q);
 
-        ung2r(k, Q, tau, workOpts);
+        ung2r(Q, tau, workOpts);
 
         std::vector<T> orthres_;
         auto orthres = new_matrix(orthres_, k, k);
