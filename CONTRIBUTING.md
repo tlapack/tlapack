@@ -143,6 +143,8 @@ Consider following the steps below before writing a test for a new routine:
 
 9. Use the macros `REQUIRE()`, `CHECK()`, `REQUIRE_THROWS_AS()` and `CHECK_THROWS_AS()` to check the results of the test. `CHECK()` is preferred over `REQUIRE()` because it allows the test to continue even if one of the assertions is false. Use `REQUIRE()` only when it does not make sense to continue the test if the assertion is false.
 
+10. Do not allocate workspaces inside the test. Instead, let each routine allocate the workspace it needs. This has at least two benefits: (1) tests are simpler; (2) routines will run at minimum workspace, which means we will be testing that the minimum workspace size is well defined.
+
 ### Tags for tests
 
 \<T\>LAPACK uses the following TAGs for tests:
