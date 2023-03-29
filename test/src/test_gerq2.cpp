@@ -61,15 +61,6 @@ TEMPLATE_TEST_CASE("RQ factorization of a general m-by-n matrix",
 
     std::vector<T> tau(min(m, n));
 
-    // Workspace computation:
-    workinfo_t workinfo = {};
-    gerq2_worksize(A, tau, workinfo);
-    ungr2_worksize(Q, tau, workinfo);
-
-    // Workspace allocation:
-    vectorOfBytes workVec;
-    workspace_opts_t<> workOpts(alloc_workspace(workVec, workinfo));
-
     for (idx_t j = 0; j < n; ++j)
         for (idx_t i = 0; i < m; ++i)
             A(i, j) = rand_helper<T>();
@@ -79,11 +70,11 @@ TEMPLATE_TEST_CASE("RQ factorization of a general m-by-n matrix",
     DYNAMIC_SECTION("m = " << m << " n = " << n)
     {
         // RQ factorization
-        gerq2(A, tau, workOpts);
+        gerq2(A, tau);
 
         // Generate Q
         lacpy(Uplo::General, slice(A, range(m - k, m), range(0, n)), Q);
-        ungr2(Q, tau, workOpts);
+        ungr2(Q, tau);
 
         // Check orthogonality of Q
         std::vector<T> Wq_;

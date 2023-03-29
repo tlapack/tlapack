@@ -70,14 +70,6 @@ TEMPLATE_TEST_CASE("QR factorization of a general m-by-n matrix",
     unmqr_opts_t<> unmqrOpts;
     geqrfOpts.nb = nb;
     unmqrOpts.nb = nb;
-    workinfo_t workinfo;
-    geqrf_worksize(A, tau, workinfo, geqrfOpts);
-    unmqr_worksize(Side::Left, Op::NoTrans, A, tau, R, workinfo, unmqrOpts);
-
-    // Workspace allocation:
-    vectorOfBytes workVec;
-    geqrfOpts.work = alloc_workspace(workVec, workinfo);
-    unmqrOpts.work = geqrfOpts.work;
 
     for (idx_t j = 0; j < n; ++j)
         for (idx_t i = 0; i < m; ++i)

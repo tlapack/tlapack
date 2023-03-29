@@ -65,14 +65,6 @@ TEMPLATE_TEST_CASE("RQ factorization of a general m-by-n matrix",
     // Workspace computation:
     gerqf_opts_t<idx_t> gerqfOpts;
     gerqfOpts.nb = nb;
-    workinfo_t workinfo = {};
-    gerqf_worksize(A, tau, workinfo, gerqfOpts);
-    ungr2_worksize(Q, tau, workinfo);
-
-    // Workspace allocation:
-    vectorOfBytes workVec;
-    workspace_opts_t<> workOpts(alloc_workspace(workVec, workinfo));
-    gerqfOpts.work = workOpts.work;
 
     for (idx_t j = 0; j < n; ++j)
         for (idx_t i = 0; i < m; ++i)
@@ -87,7 +79,7 @@ TEMPLATE_TEST_CASE("RQ factorization of a general m-by-n matrix",
 
         // Generate Q
         lacpy(Uplo::General, slice(A, range(m - k, m), range(0, n)), Q);
-        ungr2(Q, tau, workOpts);
+        ungr2(Q, tau);
 
         // Check orthogonality of Q
         std::vector<T> Wq_;

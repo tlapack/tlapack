@@ -62,15 +62,6 @@ TEMPLATE_TEST_CASE("QL factorization of a general m-by-n matrix",
 
     std::vector<T> tau(k);
 
-    // Workspace computation:
-    workinfo_t workinfo = {};
-    geql2_worksize(A, tau, workinfo);
-    ung2l_worksize(Q, tau, workinfo);
-
-    // Workspace allocation:
-    vectorOfBytes workVec;
-    workspace_opts_t<> workOpts(alloc_workspace(workVec, workinfo));
-
     for (idx_t j = 0; j < n; ++j)
         for (idx_t i = 0; i < m; ++i)
             A(i, j) = rand_helper<T>();
@@ -80,11 +71,11 @@ TEMPLATE_TEST_CASE("QL factorization of a general m-by-n matrix",
     DYNAMIC_SECTION("m = " << m << " n = " << n)
     {
         // QLs factorization
-        geql2(A, tau, workOpts);
+        geql2(A, tau);
 
         // Generate Q
         lacpy(Uplo::General, slice(A, range(0, m), range(n - k, n)), Q);
-        ung2l(Q, tau, workOpts);
+        ung2l(Q, tau);
 
         // Check orthogonality of Q
         std::vector<T> Wq_;

@@ -66,14 +66,6 @@ TEMPLATE_TEST_CASE("QL factorization of a general m-by-n matrix",
     // Workspace computation:
     geqlf_opts_t<idx_t> geqlfOpts;
     geqlfOpts.nb = nb;
-    workinfo_t workinfo = {};
-    geqlf_worksize(A, tau, workinfo, geqlfOpts);
-    ung2l_worksize(Q, tau, workinfo);
-
-    // Workspace allocation:
-    vectorOfBytes workVec;
-    workspace_opts_t<> workOpts(alloc_workspace(workVec, workinfo));
-    geqlfOpts.work = workOpts.work;
 
     for (idx_t j = 0; j < n; ++j)
         for (idx_t i = 0; i < m; ++i)
@@ -88,7 +80,7 @@ TEMPLATE_TEST_CASE("QL factorization of a general m-by-n matrix",
 
         // Generate Q
         lacpy(Uplo::General, slice(A, range(0, m), range(n - k, n)), Q);
-        ung2l(Q, tau, workOpts);
+        ung2l(Q, tau);
 
         // Check orthogonality of Q
         std::vector<T> Wq_;

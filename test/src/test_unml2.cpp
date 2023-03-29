@@ -75,16 +75,6 @@ TEMPLATE_TEST_CASE("Multiply m-by-n matrix with orthogonal LQ factor",
 
     std::vector<T> tau(k);
 
-    // Workspace computation:
-    workinfo_t workinfo = {};
-    gelq2_worksize(A, tau, workinfo);
-    ungl2_worksize(Q, tau, workinfo);
-    unml2_worksize(side, trans, A, tau, C, workinfo);
-
-    // Workspace allocation:
-    vectorOfBytes workVec;
-    workspace_opts_t<> workOpts(alloc_workspace(workVec, workinfo));
-
     for (idx_t j = 0; j < n; ++j)
         for (idx_t i = 0; i < m; ++i)
             A(i, j) = rand_helper<T>();
@@ -97,13 +87,13 @@ TEMPLATE_TEST_CASE("Multiply m-by-n matrix with orthogonal LQ factor",
                            << " trans = " << trans << " k2 = " << k2)
     {
         // LQ factorization
-        gelq2(A, tau, workOpts);
+        gelq2(A, tau);
 
         // Calculate the result of unml2 using ungl2 and gemm
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = 0; i < k; ++i)
                 Q(i, j) = A(i, j);
-        ungl2(Q, tau, workOpts);
+        ungl2(Q, tau);
 
         std::vector<T> Wq_;
         auto Wq = new_matrix(Wq_, n, n);
@@ -119,7 +109,7 @@ TEMPLATE_TEST_CASE("Multiply m-by-n matrix with orthogonal LQ factor",
             gemm(Op::NoTrans, trans, T(1.), C, Q, T(0.), Cq);
 
         // Run the routine we are testing
-        unml2(side, trans, rows(A, range(0, k)), tau, C, workOpts);
+        unml2(side, trans, rows(A, range(0, k)), tau, C);
 
         // Compare results
         for (idx_t j = 0; j < nc; ++j)

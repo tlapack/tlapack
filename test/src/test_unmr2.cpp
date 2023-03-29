@@ -75,16 +75,6 @@ TEMPLATE_TEST_CASE("Multiply m-by-n matrix with orthogonal RQ factor",
 
     std::vector<T> tau(k);
 
-    // Workspace computation:
-    workinfo_t workinfo = {};
-    gerq2_worksize(A, tau, workinfo);
-    ungr2_worksize(Q, tau, workinfo);
-    unmr2_worksize(side, trans, A, tau, C, workinfo);
-
-    // Workspace allocation:
-    vectorOfBytes workVec;
-    workspace_opts_t<> workOpts(alloc_workspace(workVec, workinfo));
-
     for (idx_t j = 0; j < n; ++j)
         for (idx_t i = 0; i < m; ++i)
             A(i, j) = rand_helper<T>();
@@ -97,13 +87,13 @@ TEMPLATE_TEST_CASE("Multiply m-by-n matrix with orthogonal RQ factor",
                            << " trans = " << trans << " k2 = " << k2)
     {
         // RQ factorization
-        gerq2(A, tau, workOpts);
+        gerq2(A, tau);
 
         // Calculate the result of unmr2 using ungr2 and gemm
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = 0; i < k; ++i)
                 Q(n - k + i, j) = A(m - k + i, j);
-        ungr2(Q, tau, workOpts);
+        ungr2(Q, tau);
 
         std::vector<T> Cq_;
         auto Cq = new_matrix(Cq_, mc, nc);
@@ -114,7 +104,7 @@ TEMPLATE_TEST_CASE("Multiply m-by-n matrix with orthogonal RQ factor",
             gemm(Op::NoTrans, trans, T(1.), C, Q, T(0.), Cq);
 
         // Run the routine we are testing
-        unmr2(side, trans, rows(A, range(m - k, m)), tau, C, workOpts);
+        unmr2(side, trans, rows(A, range(m - k, m)), tau, C);
 
         // Compare results
         for (idx_t j = 0; j < nc; ++j)

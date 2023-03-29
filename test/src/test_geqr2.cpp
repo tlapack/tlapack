@@ -60,16 +60,6 @@ TEMPLATE_TEST_CASE("QR factorization of a general m-by-n matrix",
 
     std::vector<T> tau(min(m, n));
 
-    // Workspace computation:
-    workspace_opts_t<> workOpts;
-    workinfo_t workinfo;
-    geqr2_worksize(A, tau, workinfo, workOpts);
-    ung2r_worksize(Q, tau, workinfo, workOpts);
-
-    // Workspace allocation:
-    vectorOfBytes workVec;
-    workOpts.work = alloc_workspace(workVec, workinfo);
-
     for (idx_t j = 0; j < n; ++j)
         for (idx_t i = 0; i < m; ++i)
             A(i, j) = rand_helper<T>();
@@ -78,14 +68,14 @@ TEMPLATE_TEST_CASE("QR factorization of a general m-by-n matrix",
 
     DYNAMIC_SECTION("m = " << m << " n = " << n)
     {
-        geqr2(A, tau, workOpts);
+        geqr2(A, tau);
 
         // Q is sliced down to the desired size of output Q (m-by-k).
         // It stores the desired number of Householder reflectors that UNG2R
         // will use.
         lacpy(Uplo::General, slice(A, range(0, m), range(0, k)), Q);
 
-        ung2r(Q, tau, workOpts);
+        ung2r(Q, tau);
 
         std::vector<T> orthres_;
         auto orthres = new_matrix(orthres_, k, k);
