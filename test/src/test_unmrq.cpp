@@ -18,12 +18,12 @@
 // Auxiliary routines
 #include <tlapack/lapack/lacpy.hpp>
 #include <tlapack/lapack/lange.hpp>
-// #include <tlapack/plugins/debugutils.hpp>
+#include <tlapack/plugins/debugutils.hpp>
 
 // Other routines
 #include <tlapack/blas/gemm.hpp>
 #include <tlapack/lapack/gerq2.hpp>
-#include <tlapack/lapack/ungr2.hpp>
+#include <tlapack/lapack/ungrq.hpp>
 #include <tlapack/lapack/unmrq.hpp>
 
 using namespace tlapack;
@@ -95,11 +95,9 @@ TEMPLATE_TEST_CASE("Multiply m-by-n matrix with orthogonal RQ factor",
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = 0; i < k; ++i)
                 Q(n - k + i, j) = A(m - k + i, j);
-
-        // ungrq_opts_t<> ungrqOpts;
-        // ungrqOpts.nb = nb;
-        // ungrq(Q, tau, ungqrOpts);
-        ungr2(Q, tau);
+        ungrq_opts_t<> ungrqOpts;
+        ungrqOpts.nb = nb;
+        ungrq(Q, tau, ungrqOpts);
 
         // Check orthogonality of Q
         std::vector<T> Wq_;

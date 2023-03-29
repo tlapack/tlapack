@@ -42,11 +42,12 @@ inline constexpr void ungr2_worksize(const matrix_t& A,
     using idx_t = size_type<matrix_t>;
 
     // constants
+    const idx_t m = nrows(A);
     const idx_t n = ncols(A);
 
-    if (n > 1) {
-        auto C = cols(A, range<idx_t>{1, n});
-        larf_worksize(left_side, forward, columnwise_storage, col(A, 0), tau[0],
+    if (m > 1) {
+        auto C = rows(A, range<idx_t>{1, m});
+        larf_worksize(right_side, backward, rowwise_storage, row(A, 0), tau[0],
                       C, workinfo, opts);
     }
 }
@@ -56,7 +57,7 @@ inline constexpr void ungr2_worksize(const matrix_t& A,
  *        which is defined as the last m rows of a product of k elementary
  *        reflectors of order n
  * \[
- *     Q  =  H_1' H_2' ... H_k'
+ *     Q  =  H_1^H H_2^H ... H_k^H
  * \]
  *        The reflectors are stored in the matrix A as returned by gerqf
  *
