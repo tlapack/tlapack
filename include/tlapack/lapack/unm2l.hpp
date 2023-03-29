@@ -30,8 +30,8 @@ namespace tlapack {
  *      the algorithm treats Op::Trans as Op::ConjTrans.
  *
  * @param[in] A
- *      - side = Side::Left:    k-by-m matrix;
- *      - side = Side::Right:   k-by-n matrix.
+ *      - side = Side::Left:    m-by-k matrix;
+ *      - side = Side::Right:   n-by-k matrix.
  *
  * @param[in] tau Vector of length k
  *      Contains the scalar factors of the elementary reflectors.
