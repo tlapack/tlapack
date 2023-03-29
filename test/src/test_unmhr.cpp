@@ -63,16 +63,6 @@ TEMPLATE_TEST_CASE("Result of unmhr matches result from unghr",
     auto C_copy = new_matrix(C_copy_, m, n);
     std::vector<T> tau(n);
 
-    // Workspace computation:
-    workinfo_t workinfo = {};
-    gehd2_worksize(ilo, ihi, H, tau, workinfo);
-    unmhr_worksize(side, op, ilo, ihi, H, tau, C, workinfo);
-    unghr_worksize(ilo, ihi, H, tau, workinfo);
-
-    // Workspace allocation:
-    vectorOfBytes workVec;
-    workspace_opts_t<> workOpts(alloc_workspace(workVec, workinfo));
-
     if (matrix_type == "Random") {
         // Generate a random matrix in H
         for (idx_t j = 0; j < n; ++j)
@@ -95,7 +85,7 @@ TEMPLATE_TEST_CASE("Result of unmhr matches result from unghr",
             H(i, j) = zero;
 
     // Hessenberg reduction of H
-    gehd2(ilo, ihi, H, tau, workOpts);
+    gehd2(ilo, ihi, H, tau);
 
     DYNAMIC_SECTION("matrix_type = " << matrix_type << " side = " << side
                                      << " op = " << op << " ilo = " << ilo
@@ -104,10 +94,10 @@ TEMPLATE_TEST_CASE("Result of unmhr matches result from unghr",
         real_t c_norm = lange(frob_norm, C);
 
         // Apply the orthogonal factor to C
-        unmhr(side, op, ilo, ihi, H, tau, C, workOpts);
+        unmhr(side, op, ilo, ihi, H, tau, C);
 
         // Generate the orthogonal factor
-        unghr(ilo, ihi, H, tau, workOpts);
+        unghr(ilo, ihi, H, tau);
 
         // Multiply C_copy with the orthogonal factor
         auto Q = slice(H, pair{ilo + 1, ihi}, pair{ilo + 1, ihi});
