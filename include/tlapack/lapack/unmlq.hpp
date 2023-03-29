@@ -1,5 +1,5 @@
-/// @file unmrq.hpp Multiplies the general m-by-n matrix C by Q from
-/// tlapack::gerqf()
+/// @file unmlq.hpp Multiplies the general m-by-n matrix C by Q from
+/// tlapack::gelqf()
 /// @author Thijs Steel, KU Leuven, Belgium
 //
 // Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
@@ -8,8 +8,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef TLAPACK_UNMRQ_HH
-#define TLAPACK_UNMRQ_HH
+#ifndef TLAPACK_UNMLQ_HH
+#define TLAPACK_UNMLQ_HH
 
 #include "tlapack/base/utils.hpp"
 #include "tlapack/lapack/larfb.hpp"
@@ -18,17 +18,17 @@
 namespace tlapack {
 
 /**
- * Options struct for unmrq
+ * Options struct for unmlq
  */
 template <class workT_t = void>
-struct unmrq_opts_t : public workspace_opts_t<workT_t> {
-    inline constexpr unmrq_opts_t(const workspace_opts_t<workT_t>& opts = {})
+struct unmlq_opts_t : public workspace_opts_t<workT_t> {
+    inline constexpr unmlq_opts_t(const workspace_opts_t<workT_t>& opts = {})
         : workspace_opts_t<workT_t>(opts){};
 
     size_type<workT_t> nb = 32;  ///< Block size
 };
 
-/** Worspace query of unmrq()
+/** Worspace query of unmlq()
  *
  * @param[in] side Specifies which side op(Q) is to be applied.
  *      - Side::Left:  C := op(Q) C;
@@ -60,7 +60,7 @@ struct unmrq_opts_t : public workspace_opts_t<workT_t> {
  *
  * @ingroup workspace_query
  *
- * @see unmrq
+ * @see unmlq
  */
 template <class matrixA_t,
           class matrixC_t,
@@ -68,13 +68,13 @@ template <class matrixA_t,
           class side_t,
           class trans_t,
           class workT_t = void>
-inline constexpr void unmrq_worksize(side_t side,
+inline constexpr void unmlq_worksize(side_t side,
                                      trans_t trans,
                                      const matrixA_t& A,
                                      const tau_t& tau,
                                      const matrixC_t& C,
                                      workinfo_t& workinfo,
-                                     const unmrq_opts_t<workT_t>& opts = {})
+                                     const unmlq_opts_t<workT_t>& opts = {})
 {
     using idx_t = size_type<matrixC_t>;
     using matrixT_t = deduce_work_t<workT_t, matrix_type<matrixA_t, tau_t> >;
@@ -103,9 +103,9 @@ inline constexpr void unmrq_worksize(side_t side,
         const auto matrixT = slice(A, pair{0, nb}, pair{0, nb});
 
         // Internal workspace queries
-        larfb_worksize(
-            side, (trans == Op::NoTrans) ? Op::ConjTrans : Op::NoTrans,
-            backward, rowwise_storage, V, matrixT, C, workinfo, opts);
+        larfb_worksize(side,
+                       (trans == Op::NoTrans) ? Op::ConjTrans : Op::NoTrans,
+                       forward, rowwise_storage, V, matrixT, C, workinfo, opts);
     }
 
     // Additional workspace needed inside the routine
@@ -173,12 +173,12 @@ template <class matrixA_t,
           class side_t,
           class trans_t,
           class workT_t = void>
-int unmrq(side_t side,
+int unmlq(side_t side,
           trans_t trans,
           const matrixA_t& A,
           const tau_t& tau,
           matrixC_t& C,
-          const unmrq_opts_t<workT_t>& opts = {})
+          const unmlq_opts_t<workT_t>& opts = {})
 {
     using idx_t = size_type<matrixC_t>;
     using matrixT_t = deduce_work_t<workT_t, matrix_type<matrixA_t, tau_t> >;
@@ -210,14 +210,14 @@ int unmrq(side_t side,
     vectorOfBytes localworkdata;
     Workspace work = [&]() {
         workinfo_t workinfo;
-        unmrq_worksize(side, trans, A, tau, C, workinfo, opts);
+        unmlq_worksize(side, trans, A, tau, C, workinfo, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
 
     // Preparing loop indexes
     const bool positiveInc =
-        (((side == Side::Left) && !(trans == Op::NoTrans)) ||
-         (!(side == Side::Left) && (trans == Op::NoTrans)));
+        (((side == Side::Left) && (trans == Op::NoTrans)) ||
+         (!(side == Side::Left) && !(trans == Op::NoTrans)));
     const idx_t i0 = (positiveInc) ? 0 : ((k - 1) / nb) * nb;
     const idx_t iN = (positiveInc) ? ((k - 1) / nb + 1) * nb : -nb;
     const idx_t inc = (positiveInc) ? nb : -nb;
@@ -232,22 +232,21 @@ int unmrq(side_t side,
     // Main loop
     for (idx_t i = i0; i != iN; i += inc) {
         idx_t ib = min<idx_t>(nb, k - i);
-        const auto V = slice(A, pair{i, i + ib}, pair{0, nA - k + i + ib});
+        const auto V = slice(A, pair{i, i + ib}, pair{i, nA});
         const auto taui = slice(tau, pair{i, i + ib});
         auto matrixTi = slice(matrixT, pair{0, ib}, pair{0, ib});
 
         // Form the triangular factor of the block reflector
         // $H = H(i) H(i+1) ... H(i+ib-1)$
-        larft(backward, rowwise_storage, V, taui, matrixTi);
+        larft(forward, rowwise_storage, V, taui, matrixTi);
 
         // H or H**H is applied to either C[0:m-k+i+1,0:n] or C[0:m,0:n-k+i+1]
-        auto Ci = (side == Side::Left)
-                      ? slice(C, pair{0, m - k + i + ib}, pair{0, n})
-                      : slice(C, pair{0, m}, pair{0, n - k + i + ib});
+        auto Ci = (side == Side::Left) ? slice(C, pair{i, m}, pair{0, n})
+                                       : slice(C, pair{0, m}, pair{i, n});
 
         // Apply H or H**H
         larfb(side, (trans == Op::NoTrans) ? Op::ConjTrans : Op::NoTrans,
-              backward, rowwise_storage, V, matrixTi, Ci, larfbOpts);
+              forward, rowwise_storage, V, matrixTi, Ci, larfbOpts);
     }
 
     return 0;
@@ -255,4 +254,4 @@ int unmrq(side_t side,
 
 }  // namespace tlapack
 
-#endif  // TLAPACK_UNMRQ_HH
+#endif  // TLAPACK_UNMLQ_HH
