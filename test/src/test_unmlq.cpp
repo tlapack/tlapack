@@ -23,7 +23,7 @@
 // Other routines
 #include <tlapack/blas/gemm.hpp>
 #include <tlapack/lapack/gelq2.hpp>
-#include <tlapack/lapack/ungl2.hpp>
+#include <tlapack/lapack/unglq.hpp>
 #include <tlapack/lapack/unmlq.hpp>
 
 using namespace tlapack;
@@ -91,11 +91,13 @@ TEMPLATE_TEST_CASE("Multiply m-by-n matrix with orthogonal LQ factor",
         // LQ factorization
         gelq2(A, tau);
 
-        // Calculate the result of unml2 using ungl2 and gemm
+        // Calculate the result of unmlq using unglq and gemm
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = 0; i < k; ++i)
                 Q(i, j) = A(i, j);
-        ungl2(Q, tau);
+        unglq_opts_t<> unglqOpts;
+        unglqOpts.nb = nb;
+        unglq(Q, tau, unglqOpts);
 
         std::vector<T> Wq_;
         auto Wq = new_matrix(Wq_, n, n);
