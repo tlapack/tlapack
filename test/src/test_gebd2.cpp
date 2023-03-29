@@ -70,15 +70,6 @@ TEMPLATE_TEST_CASE("bidiagonal reduction is backward stable",
         std::vector<T> tauv(n);  // min of m and n
         std::vector<T> tauw(n);  // min of m and n
 
-        // Workspace computation:
-        workinfo_t workinfo = {};
-        gebd2_worksize(A, tauv, tauw, workinfo);
-        ung2r_worksize(Q, tauv, workinfo);
-        ungl2_worksize(Z11, tauw, workinfo);
-
-        vectorOfBytes workVec;
-        workspace_opts_t<> workOpts(alloc_workspace(workVec, workinfo));
-
         // Generate random m-by-n matrix
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = 0; i < m; ++i)
@@ -88,7 +79,7 @@ TEMPLATE_TEST_CASE("bidiagonal reduction is backward stable",
 
         DYNAMIC_SECTION("m = " << m << " n = " << n)
         {
-            gebd2(A, tauv, tauw, workOpts);
+            gebd2(A, tauv, tauw);
 
             // Get upper bidiagonal B
             std::vector<T> B_;
@@ -105,7 +96,7 @@ TEMPLATE_TEST_CASE("bidiagonal reduction is backward stable",
             // Generate unitary matrix Q of m-by-m
             lacpy(Uplo::Lower, A, Q);
 
-            ung2r(Q, tauv, workOpts);
+            ung2r(Q, tauv);
 
             // Test for Q's orthogonality
             std::vector<T> Wq_;
@@ -123,8 +114,8 @@ TEMPLATE_TEST_CASE("bidiagonal reduction is backward stable",
                            range(1, n));  // X is (n-1)-by-(n-1) slice of A
             lacpy(Uplo::General, X, Z11);
 
-            ungl2(Z11, tauw, workOpts);  // Note: the unitary matrix Z we get
-                                         // here is ConjTransed
+            ungl2(Z11, tauw);  // Note: the unitary matrix Z we get
+                               // here is ConjTransed
 
             // Test for Z's orthogonality
             std::vector<T> Wz_;
