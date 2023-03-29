@@ -65,6 +65,10 @@ struct unmql_opts_t : public workspace_opts_t<workT_t> {
  *      - side = Side::Left  & trans = Op::ConjTrans:  $C := C Q^H$;
  *      - side = Side::Right & trans = Op::ConjTrans:  $C := Q^H C$.
  *
+ * @param[in,out] workinfo
+ *      On output, the amount workspace required. It is larger than or equal
+ *      to that given on input.
+ *
  * @param[in] opts Options.
  *      @c opts.work is used if whenever it has sufficient size.
  *      The sufficient size can be obtained through a workspace query.
