@@ -1,6 +1,6 @@
-/// @file test_unm2r.cpp
+/// @file test_unmqr.cpp
 /// @author Thijs Steel, KU Leuven, Belgium
-/// @brief Test unm2r
+/// @brief Test unmqr
 //
 // Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
@@ -18,18 +18,18 @@
 // Auxiliary routines
 #include <tlapack/lapack/lacpy.hpp>
 #include <tlapack/lapack/lange.hpp>
-// #include <tlapack/plugins/debugutils.hpp>
+#include <tlapack/plugins/debugutils.hpp>
 
 // Other routines
 #include <tlapack/blas/gemm.hpp>
 #include <tlapack/lapack/geqr2.hpp>
-#include <tlapack/lapack/ung2r.hpp>
-#include <tlapack/lapack/unm2r.hpp>
+#include <tlapack/lapack/ungqr.hpp>
+#include <tlapack/lapack/unmqr.hpp>
 
 using namespace tlapack;
 
 TEMPLATE_TEST_CASE("Multiply m-by-n matrix with orthogonal QR factor",
-                   "[unm2r]",
+                   "[unmqr]",
                    TLAPACK_TYPES_TO_TEST)
 {
     srand(1);
@@ -49,6 +49,7 @@ TEMPLATE_TEST_CASE("Multiply m-by-n matrix with orthogonal QR factor",
     idx_t n = GENERATE(1, 5, 10);
     idx_t k = min(m, n);
     idx_t k2 = GENERATE(1, 4, 5, 10);
+    idx_t nb = GENERATE(1, 2, 3);
 
     Side side = GENERATE(Side::Left, Side::Right);
     Op trans = GENERATE(Op::NoTrans, Op::ConjTrans);
@@ -84,16 +85,19 @@ TEMPLATE_TEST_CASE("Multiply m-by-n matrix with orthogonal QR factor",
             C(i, j) = rand_helper<T>();
 
     DYNAMIC_SECTION("m = " << m << " n = " << n << " side = " << side
-                           << " trans = " << trans << " k2 = " << k2)
+                           << " trans = " << trans << " k2 = " << k2
+                           << " nb = " << nb)
     {
         // QR factorization
         geqr2(A, tau);
 
-        // Calculate the result of unm2r using ung2r and gemm
+        // Calculate the result of unmqr using ung2r and gemm
         for (idx_t j = 0; j < k; ++j)
             for (idx_t i = 0; i < m; ++i)
                 Q(i, j) = A(i, j);
-        ung2r(Q, tau);
+        ungqr_opts_t<> ungqrOpts;
+        ungqrOpts.nb = nb;
+        ungqr(Q, tau, ungqrOpts);
 
         std::vector<T> Cq_;
         auto Cq = new_matrix(Cq_, mc, nc);
@@ -104,7 +108,9 @@ TEMPLATE_TEST_CASE("Multiply m-by-n matrix with orthogonal QR factor",
             gemm(Op::NoTrans, trans, T(1.), C, Q, T(0.), Cq);
 
         // Run the routine we are testing
-        unm2r(side, trans, cols(A, range(0, k)), tau, C);
+        unmqr_opts_t<> unmqrOpts;
+        unmqrOpts.nb = nb;
+        unmqr(side, trans, cols(A, range(0, k)), tau, C, unmqrOpts);
 
         // Compare results
         for (idx_t j = 0; j < nc; ++j)
