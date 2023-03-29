@@ -65,16 +65,6 @@ TEMPLATE_TEST_CASE("LQ factorization of a general m-by-n matrix, blocked",
 
     std::vector<T> tauw(min(m, n));
 
-    // Workspace computation:
-    gelqt_opts_t workOpts;
-    workinfo_t workinfo;
-    gelqt_worksize(A, TT, workinfo, workOpts);
-    ungl2_worksize(Q, tauw, workinfo, workOpts);
-
-    // Workspace allocation:
-    vectorOfBytes workVec;
-    workOpts.work = alloc_workspace(workVec, workinfo);
-
     for (idx_t j = 0; j < n; ++j)
         for (idx_t i = 0; i < m; ++i)
             A(i, j) = rand_helper<T>();
@@ -87,7 +77,7 @@ TEMPLATE_TEST_CASE("LQ factorization of a general m-by-n matrix, blocked",
         DYNAMIC_SECTION("m = " << m << " n = " << n << " k = " << k
                                << " nb = " << nb)
         {
-            gelqt(A, TT, workOpts);
+            gelqt(A, TT);
 
             // Build tauw vector from matrix TT
             for (idx_t j = 0; j < min(m, n); j += nb) {
@@ -102,7 +92,7 @@ TEMPLATE_TEST_CASE("LQ factorization of a general m-by-n matrix, blocked",
             // will use.
             lacpy(Uplo::General, slice(A, range(0, min(m, k)), range(0, n)), Q);
 
-            ungl2(Q, tauw, workOpts);
+            ungl2(Q, tauw);
 
             // Wq is the identity matrix to check the orthogonality of Q
             std::vector<T> Wq_;

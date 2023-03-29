@@ -1,7 +1,7 @@
-/// @file geqr2.hpp
-/// @author Weslley S Pereira, University of Colorado Denver, USA
+/// @file geql2.hpp
+/// @author Thijs Steel, KU Leuven, Belgium
 /// @note Adapted from @see
-/// https://github.com/langou/latl/blob/master/include/geqr2.h
+/// https://github.com/Reference-LAPACK/lapack/blob/master/SRC/zgeql2.f
 //
 // Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
@@ -9,8 +9,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef TLAPACK_GEQR2_HH
-#define TLAPACK_GEQR2_HH
+#ifndef TLAPACK_GEQL2_HH
+#define TLAPACK_GEQL2_HH
 
 #include "tlapack/base/utils.hpp"
 #include "tlapack/lapack/larf.hpp"
@@ -18,7 +18,7 @@
 
 namespace tlapack {
 
-/** Worspace query of geqr2()
+/** Worspace query of geql2()
  *
  * @param[in] A m-by-n matrix.
  *
@@ -33,7 +33,7 @@ namespace tlapack {
  * @ingroup workspace_query
  */
 template <class matrix_t, class vector_t>
-inline constexpr void geqr2_worksize(const matrix_t& A,
+inline constexpr void geql2_worksize(const matrix_t& A,
                                      const vector_t& tau,
                                      workinfo_t& workinfo,
                                      const workspace_opts_t<>& opts = {})
@@ -41,21 +41,20 @@ inline constexpr void geqr2_worksize(const matrix_t& A,
     using idx_t = size_type<matrix_t>;
 
     // constants
-    const idx_t m = nrows(A);
     const idx_t n = ncols(A);
 
-    if (n > 1 && m > 1) {
+    if (n > 1) {
         auto C = cols(A, range<idx_t>{1, n});
-        larf_worksize(left_side, forward, columnwise_storage, col(A, 0), tau[0],
-                      C, workinfo, opts);
+        larf_worksize(Side::Left, Direction::Backward, StoreV::Columnwise,
+                      col(A, 0), tau[0], C, workinfo, opts);
     }
 }
 
-/** Computes a QR factorization of a matrix A.
+/** Computes a QL factorization of a matrix A.
  *
  * The matrix Q is represented as a product of elementary reflectors
  * \[
- *          Q = H_1 H_2 ... H_k,
+ *          Q = H_k ... H_2 H_1,
  * \]
  * where k = min(m,n). Each H_i has the form
  * \[
@@ -63,19 +62,21 @@ inline constexpr void geqr2_worksize(const matrix_t& A,
  * \]
  * where tau is a scalar, and v is a vector with
  * \[
- *          v[0] = v[1] = ... = v[i-1] = 0; v[i] = 1,
+ *          v[m-k+i+1:m] = 0; v[m-k+i-1] = 1,
  * \]
- * with v[i+1] through v[m-1] stored on exit below the diagonal
- * in the ith column of A, and tau in tau[i].
+ * with v[1] through v[n-k+i-1] stored on exit below the diagonal
+ * in A(0:m-k+i-1,n-k+i), and tau in tau[i].
  *
  * @return  0 if success
  *
  * @param[in,out] A m-by-n matrix.
- *      On exit, the elements on and above the diagonal of the array
- *      contain the min(m,n)-by-n upper trapezoidal matrix R
- *      (R is upper triangular if m >= n); the elements below the diagonal,
- *      with the array tau, represent the unitary matrix Q as a
- *      product of elementary reflectors.
+ *      On entry, the m by n matrix A.
+ *      On exit, if m >= n, the lower triangle of A(m-n:m,0:n) contains
+ *      the n by n lower triangular matrix L;
+ *      If m <= n, the elements on and below the (n-m)-th
+ *      superdiagonal contain the m by n lower trapezoidal matrix L
+ *      the remaining elements, with the array TAU, represent the
+ *      unitary matrix Q as a product of elementary reflectors.
  *
  * @param[out] tau Real vector of length min(m,n).
  *      The scalar factors of the elementary reflectors.
@@ -87,7 +88,7 @@ inline constexpr void geqr2_worksize(const matrix_t& A,
  * @ingroup computational
  */
 template <class matrix_t, class vector_t>
-int geqr2(matrix_t& A, vector_t& tau, const workspace_opts_t<>& opts = {})
+int geql2(matrix_t& A, vector_t& tau, const workspace_opts_t<>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using pair = pair<idx_t, idx_t>;
@@ -95,44 +96,40 @@ int geqr2(matrix_t& A, vector_t& tau, const workspace_opts_t<>& opts = {})
     // constants
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
-    const idx_t k = std::min<idx_t>(m, n - 1);
+    const idx_t k = std::min<idx_t>(m, n);
 
     // check arguments
     tlapack_check_false((idx_t)size(tau) < std::min<idx_t>(m, n));
 
     // quick return
-    if (n <= 0 || m <= 0) return 0;
+    if (n <= 0) return 0;
 
     // Allocates workspace
     vectorOfBytes localworkdata;
     Workspace work = [&]() {
         workinfo_t workinfo;
-        geqr2_worksize(A, tau, workinfo, opts);
+        geql2_worksize(A, tau, workinfo, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
 
     // Options to forward
     auto&& larfOpts = workspace_opts_t<>{work};
 
-    for (idx_t i = 0; i < k; ++i) {
-        // Define v := A[i:m,i]
-        auto v = slice(A, pair{i, m}, i);
+    for (idx_t i2 = 0; i2 < k; ++i2) {
+        idx_t i = k - 1 - i2;
+
+        // Column to be reduced
+        auto v = slice(A, pair{0, m - k + i + 1}, n - k + i);
 
         // Generate the (i+1)-th elementary Householder reflection on v
-        larfg(forward, columnwise_storage, v, tau[i]);
+        larfg(Direction::Backward, StoreV::Columnwise, v, tau[i]);
 
-        // Define C := A[i:m,i+1:n]
-        auto C = slice(A, pair{i, m}, pair{i + 1, n});
-
-        // C := ( I - conj(tau_i) v v^H ) C
-        larf(left_side, forward, columnwise_storage, v, conj(tau[i]), C,
-             larfOpts);
-    }
-    if (n - 1 < m) {
-        // Define v := A[n-1:m,n-1]
-        auto v = slice(A, pair{n - 1, m}, n - 1);
-        // Generate the n-th elementary Householder reflection on v
-        larfg(forward, columnwise_storage, v, tau[n - 1]);
+        // Apply the reflector to the rest of the matrix
+        if (n + i > k) {
+            auto C = slice(A, pair{0, m - k + i + 1}, pair{0, n - k + i});
+            larf(Side::Left, Direction::Backward, StoreV::Columnwise, v,
+                 conj(tau[i]), C, larfOpts);
+        }
     }
 
     return 0;
@@ -140,4 +137,4 @@ int geqr2(matrix_t& A, vector_t& tau, const workspace_opts_t<>& opts = {})
 
 }  // namespace tlapack
 
-#endif  // TLAPACK_GEQR2_HH
+#endif  // TLAPACK_GEQL2_HH

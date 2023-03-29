@@ -1,6 +1,6 @@
-/// @file test_geqrf.cpp
+/// @file test_geql2.cpp
 /// @author Thijs Steel, KU Leuven, Belgium
-/// @brief Test GEQR2 and UNG2R
+/// @brief Test geql2
 //
 // Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
@@ -12,21 +12,23 @@
 #include <catch2/generators/catch_generators.hpp>
 
 // Test utilities and definitions (must come before <T>LAPACK headers)
+
 #include "testutils.hpp"
 
 // Auxiliary routines
 #include <tlapack/lapack/lacpy.hpp>
 #include <tlapack/lapack/lange.hpp>
+// #include <tlapack/plugins/debugutils.hpp>
 
 // Other routines
 #include <tlapack/blas/gemm.hpp>
-#include <tlapack/lapack/geqr2.hpp>
-#include <tlapack/lapack/ung2r.hpp>
+#include <tlapack/lapack/geql2.hpp>
+#include <tlapack/lapack/ung2l.hpp>
 
 using namespace tlapack;
 
-TEMPLATE_TEST_CASE("QR factorization of a general m-by-n matrix",
-                   "[qr][qr2]",
+TEMPLATE_TEST_CASE("QL factorization of a general m-by-n matrix",
+                   "[ql]",
                    TLAPACK_TYPES_TO_TEST)
 {
     srand(1);
@@ -42,14 +44,14 @@ TEMPLATE_TEST_CASE("QR factorization of a general m-by-n matrix",
 
     const T zero(0);
 
-    idx_t m, n, k, nb;
+    idx_t m, n, k;
 
-    m = GENERATE(10, 20, 30);
-    n = GENERATE(10, 20, 30);
+    m = GENERATE(5, 6, 10, 20);
+    n = GENERATE(5, 6, 10, 20);
     k = min(m, n);
 
     const real_t eps = ulp<real_t>();
-    const real_t tol = real_t(m * n) * eps;
+    const real_t tol = real_t(100.0 * max(m, n)) * eps;
 
     std::vector<T> A_;
     auto A = new_matrix(A_, m, n);
@@ -58,7 +60,7 @@ TEMPLATE_TEST_CASE("QR factorization of a general m-by-n matrix",
     std::vector<T> Q_;
     auto Q = new_matrix(Q_, m, k);
 
-    std::vector<T> tau(min(m, n));
+    std::vector<T> tau(k);
 
     for (idx_t j = 0; j < n; ++j)
         for (idx_t i = 0; i < m; ++i)
@@ -68,30 +70,35 @@ TEMPLATE_TEST_CASE("QR factorization of a general m-by-n matrix",
 
     DYNAMIC_SECTION("m = " << m << " n = " << n)
     {
-        geqr2(A, tau);
+        // QLs factorization
+        geql2(A, tau);
 
-        // Q is sliced down to the desired size of output Q (m-by-k).
-        // It stores the desired number of Householder reflectors that UNG2R
-        // will use.
-        lacpy(Uplo::General, slice(A, range(0, m), range(0, k)), Q);
+        // Generate Q
+        lacpy(Uplo::General, slice(A, range(0, m), range(n - k, n)), Q);
+        ung2l(Q, tau);
 
-        ung2r(Q, tau);
-
-        std::vector<T> orthres_;
-        auto orthres = new_matrix(orthres_, k, k);
-        auto orth_Q = check_orthogonality(Q, orthres);
+        // Check orthogonality of Q
+        std::vector<T> Wq_;
+        auto Wq = new_matrix(Wq_, k, k);
+        auto orth_Q = check_orthogonality(Q, Wq);
         CHECK(orth_Q <= tol);
 
-        // R is sliced from A after
-        std::vector<T> R_;
-        auto R = new_matrix(R_, k, n);
-        laset(Uplo::Lower, zero, zero, R);
-        lacpy(Uplo::Upper, slice(A, range(0, k), range(0, n)), R);
+        // Set upper triangular part of A to zero to get L
+        for (idx_t j = 0; j < n; ++j) {
+            for (idx_t i = j + 1; i < m; ++i)
+                A(m - i - 1, n - j - 1) = zero;
+        }
+        auto L = slice(A, range(m - k, m), range(0, n));
 
-        // Test A = Q * R
-        gemm(Op::NoTrans, Op::NoTrans, real_t(1.), Q, R, real_t(-1.), A_copy);
+        // Test A_copy = Q * L
+        std::vector<T> A2_;
+        auto A2 = new_matrix(A2_, k, n);
+        gemm(Op::ConjTrans, Op::NoTrans, real_t(1.), Q, A_copy, A2);
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = 0; i < k; ++i)
+                A2(i, j) -= L(i, j);
 
-        real_t repres = tlapack::lange(tlapack::Norm::Max, A_copy);
+        real_t repres = lange(Norm::Max, A2);
         CHECK(repres <= tol);
     }
 }

@@ -61,7 +61,7 @@ int main(int argc, char** argv)
     // Copy the upper triangle to R
     lacpy(upperTriangle, slice(Q, pair{0, n}, pair{0, n}), R);
     // Generate Q
-    ung2r(n, Q, tau);
+    ung2r(Q, tau);
 
     std::cout << "Q = " << std::endl << Q << std::endl;
     std::cout << std::endl;
