@@ -100,15 +100,15 @@ inline constexpr void unglq_worksize(const matrix_t& A,
  *
  * @return  0 if success
  *
- * @param[in,out] Q k-by-n matrix.
+ * @param[in,out] A k-by-n matrix.
  *      On entry, the i-th row must contain the vector which defines
  *      the elementary reflector H(j), for j = 1,2,...,k, as returned
  *      by gelq2 in the first k rows of its array argument A.
  *      On exit, the k by n matrix Q.
  *
- * @param[in] tauw Complex vector of length min(m,n).
- *      tauw(j) must contain the scalar factor of the elementary
- *      reflector H(j), as returned by gelq2.
+ * @param[in] tau Complex vector of length min(m,n).
+ *      tau(j) must contain the scalar factor of the elementary
+ *      reflector H(j), as returned by gelqf.
  *
  * @param[in] opts Options.
  *      @c opts.work is used if whenever it has sufficient size.
