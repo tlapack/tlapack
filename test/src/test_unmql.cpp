@@ -1,4 +1,4 @@
-/// @file test_unm2l.cpp
+/// @file test_unmql.cpp
 /// @author Thijs Steel, KU Leuven, Belgium
 /// @brief Test unml2
 //
@@ -23,13 +23,13 @@
 // Other routines
 #include <tlapack/blas/gemm.hpp>
 #include <tlapack/lapack/geql2.hpp>
-#include <tlapack/lapack/ung2l.hpp>
+#include <tlapack/lapack/ungql.hpp>
 #include <tlapack/lapack/unmql.hpp>
 
 using namespace tlapack;
 
 TEMPLATE_TEST_CASE("Multiply m-by-n matrix with orthogonal QL factor",
-                   "[unm2l]",
+                   "[unmql]",
                    TLAPACK_TYPES_TO_TEST)
 {
     srand(1);
@@ -95,7 +95,9 @@ TEMPLATE_TEST_CASE("Multiply m-by-n matrix with orthogonal QL factor",
         for (idx_t j = 0; j < k; ++j)
             for (idx_t i = 0; i < m; ++i)
                 Q(i, m - k + j) = A(i, n - k + j);
-        ung2l(Q, tau);
+        ungql_opts_t<> ungqlOpts;
+        ungqlOpts.nb = nb;
+        ungql(Q, tau, ungqlOpts);
 
         std::vector<T> Wq_;
         auto Wq = new_matrix(Wq_, m, m);
