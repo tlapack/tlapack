@@ -1,6 +1,6 @@
-/// @file test_unmqr.cpp
+/// @file test_unmrq.cpp
 /// @author Thijs Steel, KU Leuven, Belgium
-/// @brief Test unmqr
+/// @brief Test unmrq
 //
 // Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
@@ -22,14 +22,14 @@
 
 // Other routines
 #include <tlapack/blas/gemm.hpp>
-#include <tlapack/lapack/geqr2.hpp>
-#include <tlapack/lapack/ungqr.hpp>
-#include <tlapack/lapack/unmqr.hpp>
+#include <tlapack/lapack/gerq2.hpp>
+#include <tlapack/lapack/ungr2.hpp>
+#include <tlapack/lapack/unmrq.hpp>
 
 using namespace tlapack;
 
-TEMPLATE_TEST_CASE("Multiply m-by-n matrix with orthogonal QR factor",
-                   "[unmqr]",
+TEMPLATE_TEST_CASE("Multiply m-by-n matrix with orthogonal RQ factor",
+                   "[unmrq]",
                    TLAPACK_TYPES_TO_TEST)
 {
     srand(1);
@@ -56,12 +56,12 @@ TEMPLATE_TEST_CASE("Multiply m-by-n matrix with orthogonal QR factor",
 
     idx_t mc, nc;
     if (side == Side::Left) {
-        mc = m;
+        mc = n;
         nc = k2;
     }
     else {
         mc = k2;
-        nc = m;
+        nc = n;
     }
 
     const real_t eps = ulp<real_t>();
@@ -72,7 +72,7 @@ TEMPLATE_TEST_CASE("Multiply m-by-n matrix with orthogonal QR factor",
     std::vector<T> C_;
     auto C = new_matrix(C_, mc, nc);
     std::vector<T> Q_;
-    auto Q = new_matrix(Q_, m, m);
+    auto Q = new_matrix(Q_, n, n);
 
     std::vector<T> tau(k);
 
@@ -88,16 +88,24 @@ TEMPLATE_TEST_CASE("Multiply m-by-n matrix with orthogonal QR factor",
                            << " trans = " << trans << " k2 = " << k2
                            << " nb = " << nb)
     {
-        // QR factorization
-        geqr2(A, tau);
+        // RQ factorization
+        gerq2(A, tau);
 
-        // Calculate the result of unmqr using ung2r and gemm
-        for (idx_t j = 0; j < k; ++j)
-            for (idx_t i = 0; i < m; ++i)
-                Q(i, j) = A(i, j);
-        ungqr_opts_t<> ungqrOpts;
-        ungqrOpts.nb = nb;
-        ungqr(Q, tau, ungqrOpts);
+        // Calculate the result of unmrq using ung2r and gemm
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = 0; i < k; ++i)
+                Q(n - k + i, j) = A(m - k + i, j);
+
+        // ungrq_opts_t<> ungrqOpts;
+        // ungrqOpts.nb = nb;
+        // ungrq(Q, tau, ungqrOpts);
+        ungr2(Q, tau);
+
+        // Check orthogonality of Q
+        std::vector<T> Wq_;
+        auto Wq = new_matrix(Wq_, n, n);
+        auto orth_Q = check_orthogonality(Q, Wq);
+        CHECK(orth_Q <= tol);
 
         std::vector<T> Cq_;
         auto Cq = new_matrix(Cq_, mc, nc);
@@ -108,9 +116,9 @@ TEMPLATE_TEST_CASE("Multiply m-by-n matrix with orthogonal QR factor",
             gemm(Op::NoTrans, trans, T(1.), C, Q, T(0.), Cq);
 
         // Run the routine we are testing
-        unmqr_opts_t<> unmqrOpts;
-        unmqrOpts.nb = nb;
-        unmqr(side, trans, cols(A, range(0, k)), tau, C, unmqrOpts);
+        unmrq_opts_t<> unmrqOpts;
+        unmrqOpts.nb = nb;
+        unmrq(side, trans, rows(A, range(m - k, m)), tau, C, unmrqOpts);
 
         // Compare results
         for (idx_t j = 0; j < nc; ++j)
