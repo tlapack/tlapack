@@ -42,7 +42,7 @@ TEMPLATE_TEST_CASE("QR factorization of a general m-by-n matrix",
 
     const T zero(0);
 
-    idx_t m, n, k, nb;
+    idx_t m, n, k;
 
     m = GENERATE(10, 20, 30);
     n = GENERATE(10, 20, 30);

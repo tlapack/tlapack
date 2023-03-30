@@ -43,7 +43,6 @@ inline constexpr void ungr2_worksize(const matrix_t& A,
 
     // constants
     const idx_t m = nrows(A);
-    const idx_t n = ncols(A);
 
     if (m > 1) {
         auto C = rows(A, range<idx_t>{1, m});

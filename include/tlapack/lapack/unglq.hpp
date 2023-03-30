@@ -69,10 +69,6 @@ inline constexpr void unglq_worksize(const matrix_t& A,
     {
         // Constants
         const idx_t m = nrows(A);
-        const idx_t n = ncols(A);
-
-        // Functors
-        Create<matrixT_t> new_matrix;
 
         // Empty matrices
         const auto V = slice(A, pair{0, nb}, pair{0, m});
