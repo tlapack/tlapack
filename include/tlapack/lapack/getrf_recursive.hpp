@@ -59,6 +59,17 @@ int getrf_recursive(matrix_t& A, vector_t& Piv)
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
 
+    // Using the following lines to pass the abs function to iamax
+    // TODO: Replace the following lines by a lambda function if we adopt C++17
+    struct abs_f {
+        inline constexpr real_t operator()(const T& x) const
+        {
+            return tlapack::abs(x);
+        }
+    };
+    abs_f absf;
+    iamax_opts_t<abs_f> optsIamax(absf);
+
     // constants
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
@@ -88,7 +99,7 @@ int getrf_recursive(matrix_t& A, vector_t& Piv)
     else if (n == 1) {
         // when n==1, Piv has one element, Piv[0] needs to be swapped by the
         // first row
-        Piv[0] = iamax(col(A, 0));
+        Piv[0] = iamax(col(A, 0), optsIamax);
 
         // in the following case all elements are zero, and we return 1
         if (A(Piv[0], 0) == real_t(0)) return 1;
