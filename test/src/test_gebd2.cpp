@@ -75,6 +75,7 @@ TEMPLATE_TEST_CASE("bidiagonal reduction is backward stable",
             A(i, j) = rand_helper<T>();
 
     lacpy(Uplo::General, A, A_copy);
+    real_t normA = lange(Norm::Max, A);
 
     DYNAMIC_SECTION("m = " << m << " n = " << n)
     {
@@ -101,7 +102,6 @@ TEMPLATE_TEST_CASE("bidiagonal reduction is backward stable",
                 B(j, j) = A(j, j);
             }
         }
-        real_t normB = lange(Norm::Max, B);
 
         // Generate m-by-m unitary matrix Q
         if (m >= n) {
@@ -143,18 +143,13 @@ TEMPLATE_TEST_CASE("bidiagonal reduction is backward stable",
         auto orth_Z = check_orthogonality(Z, Wz);
         CHECK(orth_Z / tol <= one);
 
-        // Test B = Q_H * A * Z
-        // Generate a zero matrix K of size m-by-n to be the product of Q_H
-        // * A
+        // Test Q * B * Z^H = A
         std::vector<T> K_;
         auto K = new_matrix(K_, m, n);
         laset(Uplo::General, zero, zero, K);
-        gemm(Op::ConjTrans, Op::NoTrans, real_t(1.), Q, A_copy, real_t(0), K);
-
-        // B = K * Z - B
-        gemm(Op::NoTrans, Op::ConjTrans, real_t(1.), K, Z, real_t(-1.), B);
-
-        real_t repres = lange(Norm::Max, B);
-        CHECK(repres <= tol * normB);
+        gemm(Op::NoTrans, Op::NoTrans, real_t(1.), Q, B, real_t(0), K);
+        gemm(Op::NoTrans, Op::NoTrans, real_t(1.), K, Z, real_t(-1.), A_copy);
+        real_t repres = lange(Norm::Max, A_copy);
+        CHECK(repres <= tol * normA);
     }
 }
