@@ -55,7 +55,8 @@ template <class matrix_t, class vector_idx, class vector_t, class vector2_t>
 int laqps(matrix_t& A,
           vector_idx& jpvt,
           vector_t& tau,
-          vector2_t& vector_of_norms,
+          vector2_t& partial_norms,
+          vector2_t& exact_norms,
           matrix_t& F,
           const workspace_opts_t<>& opts = {})
 {
@@ -80,9 +81,9 @@ int laqps(matrix_t& A,
 
     const real_t one(1);
     const real_t zero(0);
-   
+
     const real_t eps = ulp<real_t>();
-    const real_t tol3z = sqrt( eps );
+    const real_t tol3z = sqrt(eps);
 
     for (idx_t i = 0; i < nb; ++i) {
         //
@@ -90,7 +91,7 @@ int laqps(matrix_t& A,
         //
         jpvt[i] = i;
         for (idx_t j = i + 1; j < n; j++) {
-            if (vector_of_norms[j] > vector_of_norms[jpvt[i]]) jpvt[i] = j;
+            if (partial_norms[j] > partial_norms[jpvt[i]]) jpvt[i] = j;
         }
         auto ai = col(A, i);
         auto bi = col(A, jpvt[i]);
@@ -98,8 +99,8 @@ int laqps(matrix_t& A,
         auto frow1 = row(F, i);
         auto frow2 = row(F, jpvt[i]);
         tlapack::swap(frow1, frow2);
-        std::swap(vector_of_norms[i], vector_of_norms[jpvt[i]]);
-        std::swap(vector_of_norms[n + i], vector_of_norms[n + jpvt[i]]);
+        std::swap(partial_norms[i], partial_norms[jpvt[i]]);
+        std::swap(exact_norms[i], exact_norms[jpvt[i]]);
 
         //
         //          Apply previous Householder reflectors to column K:
@@ -116,7 +117,7 @@ int laqps(matrix_t& A,
         //
         // Transform A2 into a Householder reflector
         auto v = slice(A, pair{i, m}, i);
-        larfg(v, tau[i]);
+        larfg(forward, columnwise_storage, v, tau[i]);
         T Aii = A(i, i);
         A(i, i) = one;
 
@@ -170,27 +171,27 @@ int laqps(matrix_t& A,
             //  // => need review: I do not think we need rzero and rone, we
             //  can use 0 and 1 directly
 
-            if (vector_of_norms[j] != zero) {
+            if (partial_norms[j] != zero) {
                 //                  NOTE: The following 4 lines follow from
                 //                  the analysis in Lapack Working Note 176.
                 real_t temp, temp2;
 
-                temp = std::abs(A(i, j)) / vector_of_norms[j];
+                temp = std::abs(A(i, j)) / partial_norms[j];
                 temp = max(zero, (one + temp) * (one - temp));
-                temp2 = vector_of_norms[j] / vector_of_norms[n + j];
+                temp2 = partial_norms[j] / exact_norms[j];
                 temp2 = temp * (temp2 * temp2);
                 if (temp2 <= tol3z) {
                     if (i + 1 < m) {
-                        vector_of_norms[j] = nrm2(slice(A, pair{i + 1, m}, j));
-                        vector_of_norms[n + j] = vector_of_norms[j];
+                        partial_norms[j] = nrm2(slice(A, pair{i + 1, m}, j));
+                        exact_norms[j] = partial_norms[j];
                     }
                     else {
-                        vector_of_norms[j] = 0;
-                        vector_of_norms[n + j] = 0;
+                        partial_norms[j] = 0;
+                        exact_norms[j] = 0;
                     }
                 }
                 else {
-                    vector_of_norms[j] = vector_of_norms[j] * std::sqrt(temp);
+                    partial_norms[j] = partial_norms[j] * std::sqrt(temp);
                 }
             }
         }
@@ -198,6 +199,20 @@ int laqps(matrix_t& A,
         A(i, i) = Aii;
         //
     }
+
+    //
+    //  Apply the block reflector to the rest of the matrix:
+    //  A(OFFSET+KB+1:M,KB+1:N) := A(OFFSET+KB+1:M,KB+1:N) -
+    //      A(OFFSET+KB+1:M,1:KB)*F(KB+1:N,1:KB)**H.
+    //
+    auto tilA = slice(A, pair{nb, m}, pair{nb, n});
+    auto V = slice(A, pair{nb, m}, pair{0, nb});
+    auto tilF = slice(F, pair{nb, n}, pair{0, nb});
+    gemm(Op::NoTrans, Op::ConjTrans, -one, V, tilF, one, tilA);
+
+    //
+    //  TODO: Recomputation of difficult columns.
+    //
 
     return 0;
 }
@@ -300,14 +315,23 @@ int laqp3(matrix_t& A,
 
     for (idx_t ii = 0; ii < kk; ii += nb) {
         idx_t offset = ii;
-        idx_t ib = std::min<idx_t>(nb, kk - ii);
+        // idx_t ib = std::min<idx_t>(nb, kk - ii);
 
         auto Akk = slice(A, pair{offset, m}, pair{offset, n});
         auto jpvtk = slice(jpvt, pair{offset, kk});
         auto tauk = slice(tau, pair{offset, kk});
-        auto vector_of_normsk = slice(vector_of_norms, pair{offset, n});
+        auto partial_normsk = slice(vector_of_norms, pair{offset, n});
+        auto exact_normsk = slice(vector_of_norms, pair{n + offset, 2 * n});
 
-        laqps(Akk, jpvtk, tauk, vector_of_normsk, F);
+        laqps(Akk, jpvtk, tauk, partial_normsk, exact_normsk, F);
+
+        // TODO: Swap the columns above Akk
+        auto A0k = slice(A, pair{0, offset}, pair{offset, n});
+        for (idx_t j = 0; j != nb; j++) {
+            auto vect1 = tlapack::col(A0k, j);
+            auto vect2 = tlapack::col(A0k, jpvtk[j]);
+            tlapack::swap(vect1, vect2);
+        }
 
         // for (idx_t i = ii; i < ii + ib; ++i) {
         //     idx_t k = i - ii;
@@ -329,7 +353,8 @@ int laqp3(matrix_t& A,
         //     auto frow2 = row(F, jpvtk[k]);
         //     tlapack::swap(frow1, frow2);
         //     std::swap(vector_of_normsk[k], vector_of_normsk[jpvtk[k]]);
-        //     std::swap(vector_of_normsk[n + k], vector_of_normsk[n + jpvtk[k]]);
+        //     std::swap(vector_of_normsk[n + k], vector_of_normsk[n +
+        //     jpvtk[k]]);
         //     //
         //     //          Apply previous Householder reflectors to column K:
         //     //          A(RK:M,K) := A(RK:M,K) - A(RK:M,1:K-1)*F(K,1:K-1)**H.
@@ -392,14 +417,15 @@ int laqp3(matrix_t& A,
         //     //        Update partial column norms
         //     //
         //     for (idx_t j = i + 1; j < n; j++) {
-        //         //  // => need review: I do not think we need rzero and rone, we
+        //         //  // => need review: I do not think we need rzero and rone,
+        //         we
         //         //  can use 0 and 1 directly
 
         //         if (vector_of_norms[j] != zero) {
-        //             //                  NOTE: The following 4 lines follow from
-        //             //                  the analysis in Lapack Working Note 176.
-        //             real_t temp, temp2;
-        //             const real_t rone(1);
+        //             //                  NOTE: The following 4 lines follow
+        //             from
+        //             //                  the analysis in Lapack Working Note
+        //             176. real_t temp, temp2; const real_t rone(1);
 
         //             temp = std::abs(A(i, j)) / vector_of_norms[j];
         //             temp = max(zero, (rone + temp) * (rone - temp));

@@ -46,7 +46,8 @@ inline constexpr void geqpf_worksize(const matrix_t& A,
 
     if (n > 1) {
         auto C = cols(A, range<idx_t>{1, n});
-        larf_worksize(left_side, forward, col(A, 0), tau[0], C, workinfo, opts);
+        larf_worksize(left_side, forward, columnwise_storage, col(A, 0), tau[0],
+                      C, workinfo, opts);
     }
 }
 
@@ -100,10 +101,11 @@ int geqpf(matrix_t& A,
     const idx_t n = ncols(A);
     const idx_t k = std::min<idx_t>(m, n);
 
-//  // => need review: LAPACK GEQPF takes       tol3z = sqrt(dlamch('Epsilon'))
-//  // => so maybe tol3z = sqrt( 2 * eps ); ??????
-    const real_t eps = ulp<real_t>(); 
-    const real_t tol3z = sqrt( eps );
+    //  // => need review: LAPACK GEQPF takes       tol3z =
+    //  sqrt(dlamch('Epsilon'))
+    //  // => so maybe tol3z = sqrt( 2 * eps ); ??????
+    const real_t eps = ulp<real_t>();
+    const real_t tol3z = sqrt(eps);
 
     // check arguments
     tlapack_check_false((idx_t)size(tau) < std::min<idx_t>(m, n));
@@ -122,17 +124,16 @@ int geqpf(matrix_t& A,
     // Options to forward
     auto&& larfOpts = workspace_opts_t<>{work};
 
-//  // => need review: have vector_of_norms as part of the workspace
+    //  // => need review: have vector_of_norms as part of the workspace
     //  this will need to be removed
-    std::vector<real_t> vector_of_norms(2*n);
+    std::vector<real_t> vector_of_norms(2 * n);
 
     for (idx_t j = 0; j < n; j++) {
         vector_of_norms[j] = nrm2(slice(A, pair{0, m}, j));
-        vector_of_norms[n+j] = vector_of_norms[j];
+        vector_of_norms[n + j] = vector_of_norms[j];
     }
 
     for (idx_t i = 0; i < k; ++i) {
-
         jpvt[i] = i;
         for (idx_t j = i + 1; j < n; j++) {
             if (vector_of_norms[j] > vector_of_norms[jpvt[i]]) jpvt[i] = j;
@@ -140,55 +141,54 @@ int geqpf(matrix_t& A,
         auto ai = col(A, i);
         auto bi = col(A, jpvt[i]);
         tlapack::swap(ai, bi);
-        std::swap( vector_of_norms[i], vector_of_norms[jpvt[i]]);
-        std::swap( vector_of_norms[n+i], vector_of_norms[n+jpvt[i]]);
-
+        std::swap(vector_of_norms[i], vector_of_norms[jpvt[i]]);
+        std::swap(vector_of_norms[n + i], vector_of_norms[n + jpvt[i]]);
 
         // Define v := A[i:m,i]
         auto v = slice(A, pair{i, m}, i);
 
         // Generate the (i+1)-th elementary Householder reflection on x
-        larfg(v, tau[i]);
+        larfg(forward, columnwise_storage, v, tau[i]);
 
-        if( i+1 < n ) {
-
+        if (i + 1 < n) {
             // Define v := A[i:m,i] and C := A[i:m,i+1:n], and w := work[i:n-1]
             auto C = slice(A, pair{i, m}, pair{i + 1, n});
 
             // C := ( I - conj(tau_i) v v^H ) C
-            larf(left_side, forward, v, conj(tau[i]), C, larfOpts);
-
+            larf(left_side, forward, columnwise_storage, v, conj(tau[i]), C, larfOpts);
         }
 
-
-//      Update partial column norms
-        for (idx_t j = i+1; j < n; j++) {
-//  // => need review: I do not think we need rzero and rone, we can use 0 and 1 directly
+        //      Update partial column norms
+        for (idx_t j = i + 1; j < n; j++) {
+            //  // => need review: I do not think we need rzero and rone, we can
+            //  use 0 and 1 directly
 
             const real_t rzero(0);
-            if( vector_of_norms[j] != rzero ){
-//              NOTE: The following 4 lines follow from the analysis in Lapack Working Note 176.
+            if (vector_of_norms[j] != rzero) {
+                //              NOTE: The following 4 lines follow from the
+                //              analysis in Lapack Working Note 176.
                 real_t temp, temp2;
                 const real_t rone(1);
 
-                temp = std::abs( A( i, j ) ) / vector_of_norms[ j ];
-                temp = max( rzero, ( rone + temp)*( rone - temp ));
-                temp2 = vector_of_norms[ j ] / vector_of_norms[ n + j ];
-                temp2 = temp * (  temp2 * temp2 );
-                if( temp2 <= tol3z ){
-                    if( i + 1 < m ){
-                        vector_of_norms[j] = nrm2(slice(A, pair{i+1, m}, j));
-                        vector_of_norms[ n + j ] = vector_of_norms[j];
-                    } else {
-                        vector_of_norms[ j ] = 0;
-                        vector_of_norms[ n + j ] = 0;
+                temp = std::abs(A(i, j)) / vector_of_norms[j];
+                temp = max(rzero, (rone + temp) * (rone - temp));
+                temp2 = vector_of_norms[j] / vector_of_norms[n + j];
+                temp2 = temp * (temp2 * temp2);
+                if (temp2 <= tol3z) {
+                    if (i + 1 < m) {
+                        vector_of_norms[j] = nrm2(slice(A, pair{i + 1, m}, j));
+                        vector_of_norms[n + j] = vector_of_norms[j];
                     }
-                } else {
-                    vector_of_norms[ j ] = vector_of_norms[ j ] * std::sqrt( temp );
+                    else {
+                        vector_of_norms[j] = 0;
+                        vector_of_norms[n + j] = 0;
+                    }
+                }
+                else {
+                    vector_of_norms[j] = vector_of_norms[j] * std::sqrt(temp);
                 }
             }
         }
-
     }
     return 0;
 }

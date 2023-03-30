@@ -86,7 +86,7 @@ TEMPLATE_TEST_CASE("QR factorization with column pivoting of a general m-by-n ma
 
     INFO("m = " << m << " n = " << n);
     {
-        //geqpf(A, jpvt, tauw, workOpts);
+        // geqpf(A, jpvt, tauw, workOpts);
         laqp3( A, jpvt, tauw, workOpts );
 
         auto Q0 = slice(Q, range(0, m), range(0, k));
@@ -96,7 +96,7 @@ TEMPLATE_TEST_CASE("QR factorization with column pivoting of a general m-by-n ma
 
         auto orth_Q = check_orthogonality(Q);
         std::cout << orth_Q << "\n";
-        //CHECK(orth_Q <= tol);
+        CHECK(orth_Q <= tol);
 
         // check that A * P = Q * R
         // compute A_copy = A * P - Q * R
@@ -126,7 +126,7 @@ TEMPLATE_TEST_CASE("QR factorization with column pivoting of a general m-by-n ma
             lange(Norm::Max, slice(A_copy, range(0, m), range(0, n)));
         std::cout << repres << "\n";
 
-        //CHECK(repres <= tol);
+        CHECK(repres <= tol);
 
 
         // Check diagonal of R is nonincreasing (in modulus)
@@ -136,7 +136,7 @@ TEMPLATE_TEST_CASE("QR factorization with column pivoting of a general m-by-n ma
             && (tlapack::abs(R0(i,i))*(1+tol) >= tlapack::abs(R0(i+1,i+1))); 
         }
         std::cout << diagonal_is_nonincreasing << "\n";
-        //CHECK( diagonal_is_nonincreasing ); 
+        CHECK( diagonal_is_nonincreasing ); 
     
     }
 }
