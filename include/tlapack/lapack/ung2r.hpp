@@ -22,7 +22,7 @@ namespace tlapack {
  *
  * @param[in] A m-by-n matrix.
 
- * @param[in] tau Real vector of length min(m,n).
+ * @param[in] tau A vector of length k.
  *      The scalar factors of the elementary reflectors.
  *
  * @param[in] opts Options.
@@ -59,11 +59,11 @@ inline constexpr void ung2r_worksize(const matrix_t& A,
  * \]
  *
  * @param[in,out] A m-by-n matrix.
- *      On entry, the i-th column must contains the vector which defines the
+ *      On entry, the i-th column must contain the vector which defines the
  *      elementary reflector $H_i$, for $i=0,1,...,k-1$, as returned by geqrf.
  *      On exit, the m-by-n matrix $Q$.
 
- * @param[in] tau Real vector of length min(m,n).
+ * @param[in] tau A vector of size k.
  *      The scalar factors of the elementary reflectors.
  *
  * @param[in] opts Options.
@@ -90,7 +90,7 @@ int ung2r(matrix_t& A, const vector_t& tau, const workspace_opts_t<>& opts = {})
     const idx_t k = size(tau);
 
     // check arguments
-    tlapack_check_false(k > n);
+    tlapack_check(k <= n);
 
     // quick return
     if (n <= 0) return 0;
@@ -110,7 +110,8 @@ int ung2r(matrix_t& A, const vector_t& tau, const workspace_opts_t<>& opts = {})
     for (idx_t j = k; j < min(m, n); ++j) {
         for (idx_t l = 0; l < m; ++l)
             A(l, j) = zero;
-        A(j, j) = one;
+        if (j < m)
+            A(j, j) = one;
     }
 
     for (idx_t i = k - 1; i != idx_t(-1); --i) {
