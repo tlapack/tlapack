@@ -55,8 +55,6 @@ TEMPLATE_TEST_CASE("bidiagonal reduction is backward stable",
     nb = GENERATE(1, 2, 5);
     idx_t k = min(m, n);
 
-    if (m < n) return;
-
     const real_t eps = ulp<real_t>();
     const real_t tol = real_t(10. * max(m, n)) * eps;
 
@@ -112,7 +110,7 @@ TEMPLATE_TEST_CASE("bidiagonal reduction is backward stable",
 
         // Generate m-by-k unitary matrix Q
         ungbr_opts_t ungbrOpts;
-        ungbrOpts.nb = 1;
+        ungbrOpts.nb = nb;
         lacpy(Uplo::Lower, slice(A, pair{0, m}, pair{0, k}), Q);
         ungbr(QorP::Q, n, Q, tauv, ungbrOpts);
 
@@ -131,21 +129,13 @@ TEMPLATE_TEST_CASE("bidiagonal reduction is backward stable",
         auto orth_Z = check_orthogonality(Z, Wz);
         CHECK(orth_Z <= tol);
 
-        // Test B = Q^H * A * Z
+        // Test Q * B * Z^H = A
         std::vector<T> K_;
-        auto K = new_matrix(K_, k, n);
+        auto K = new_matrix(K_, m, k);
         laset(Uplo::General, zero, zero, K);
-        gemm(Op::ConjTrans, Op::NoTrans, real_t(1.), Q, A_copy, real_t(0), K);
-        gemm(Op::NoTrans, Op::ConjTrans, real_t(1.), K, Z, real_t(-1.), B);
-        real_t repres = lange(Norm::Max, B);
+        gemm(Op::NoTrans, Op::NoTrans, real_t(1.), Q, B, real_t(0), K);
+        gemm(Op::NoTrans, Op::NoTrans, real_t(1.), K, Z, real_t(-1.), A_copy);
+        real_t repres = lange(Norm::Max, A_copy);
         CHECK(repres <= tol * normA);
-
-        // // Test Q * B * Z^H = A
-        // std::vector<T> K_;
-        // auto K = new_matrix(K_, m, k);
-        // laset(Uplo::General, zzero, zero, K);
-        // gemm(Op::NoTrans, Op::NoTrans, real_t(1.), Q, B, real_t(0), K);
-        // gemm(Op::NoTrans, Op::NoTrans, real_t(1.), K, Z, real_t(-1.),
-        // A_copy); real_t repres = lange(Norm::Max, A_copy);
     }
 }
