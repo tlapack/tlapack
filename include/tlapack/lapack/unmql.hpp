@@ -108,9 +108,6 @@ inline constexpr void unmql_worksize(side_t side,
         const idx_t n = ncols(C);
         const idx_t nA = (side == Side::Left) ? m : n;
 
-        // Functors
-        Create<matrixT_t> new_matrix;
-
         // Empty matrices
         const auto V = slice(A, pair{0, nA}, pair{0, nb});
         const auto matrixT = slice(A, pair{0, nb}, pair{0, nb});

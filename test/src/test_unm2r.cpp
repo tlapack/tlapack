@@ -43,8 +43,6 @@ TEMPLATE_TEST_CASE("Multiply m-by-n matrix with orthogonal QR factor",
     // Functor
     Create<matrix_t> new_matrix;
 
-    const T zero(0);
-
     idx_t m = GENERATE(5, 10);
     idx_t n = GENERATE(1, 5, 10);
     idx_t k = min(m, n);
