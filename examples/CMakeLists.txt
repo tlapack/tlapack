@@ -161,3 +161,13 @@ if( BUILD_Fortran_WRAPPERS )
       && echo ""
   )
 endif()
+
+# add the example starpu
+add_subdirectory( starpu )
+add_custom_command(
+  OUTPUT run-all-examples-cmd APPEND
+  COMMAND
+    echo "- example_starpu ----------------" &&
+    "${CMAKE_CURRENT_BINARY_DIR}/starpu/example_starpu${CMAKE_EXECUTABLE_SUFFIX}"
+    && echo ""
+)
