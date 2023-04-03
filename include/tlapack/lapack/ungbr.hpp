@@ -35,23 +35,26 @@ struct ungbr_opts_t : public workspace_opts_t<workT_t> {
  *
  * @param[in] qp Determines which of the matrices to be generated.
  *
- * @param[in,out] A m-by-n matrix.
- *      On entry, the vectors which define the elementary reflectors
- *      as returned by gebrd.
- *      On exit, the m-by-n matrix Q or P**H.
+ * @param[in] k integer.
+ *      If qp == QorP::Q : k is the number of columns
+ *      in the original m-by-k matrix reduced by gebrd.
+ *      If qp == QorP::P : k is the number of rows
+ *      in the original k-by-n matrix reduced by gebrd.
  *
- * @param[in] tau vector of length k.
+ * @param[in,out] A m-by-n matrix.
+ *
+ * @param[in] tau vector.
+ *      If qp == QorP::Q : tau is a vector of length min(m,k)
+ *      If qp == QorP::P : tau is a vector of length min(k,n)
  *      tau(i) must contain the scalar factor of the elementary
  *      reflector H(i) or G(i), which determines Q or P**H, as
  *      returned by gebrd in its array argument tauq or taup.
  *
- * @param[in] opts Options.
- *      @c opts.work is used if whenever it has sufficient size.
- *      The sufficient size can be obtained through a workspace query.
- *
  * @param[in,out] workinfo
  *      On output, the amount workspace required. It is larger than or equal
  *      to that given on input.
+ *
+ * @param[in] opts Options.
  *
  * @ingroup workspace_query
  */
@@ -105,12 +108,20 @@ inline constexpr void ungbr_worksize(QorP qp,
  *
  * @param[in] qp Determines which of the matrices to be generated.
  *
+ * @param[in] k integer.
+ *      If qp == QorP::Q : k is the number of columns
+ *      in the original m-by-k matrix reduced by gebrd.
+ *      If qp == QorP::P : k is the number of rows
+ *      in the original k-by-n matrix reduced by gebrd.
+ *
  * @param[in,out] A m-by-n matrix.
  *      On entry, the vectors which define the elementary reflectors
  *      as returned by gebrd.
  *      On exit, the m-by-n matrix Q or P**H.
  *
- * @param[in] tau vector of length k.
+ * @param[in] tau vector.
+ *      If qp == QorP::Q : tau is a vector of length min(m,k)
+ *      If qp == QorP::P : tau is a vector of length min(k,n)
  *      tau(i) must contain the scalar factor of the elementary
  *      reflector H(i) or G(i), which determines Q or P**H, as
  *      returned by gebrd in its array argument tauq or taup.

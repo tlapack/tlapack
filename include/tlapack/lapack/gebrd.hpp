@@ -28,28 +28,34 @@ struct gebrd_opts_t : public workspace_opts_t<> {
     inline constexpr gebrd_opts_t(const workspace_opts_t<>& opts = {})
         : workspace_opts_t<>(opts){};
 
-    idx_t nb = 32;          ///< Block size used in the blocked reduction
-    idx_t nx_switch = 128;  ///< If only nx_switch columns are left, the
-                            ///< algorithm will use unblocked code
+    idx_t nb = 32;  ///< Block size used in the blocked reduction
 };
 
 /** Worspace query of gebrd()
  *
- * @param[in] ilo integer
- * @param[in] ihi integer
- *      It is assumed that A is already upper Hessenberg in columns
- *      0:ilo and rows ihi:n and is already upper triangular in
- *      columns ihi+1:n and rows 0:ilo.
- *      0 <= ilo <= ihi <= max(1,n).
- * @param[in] A n-by-n matrix.
- *      On entry, the n by n general matrix to be reduced.
- * @param tau Not referenced.
+ * @param[in,out] A m-by-n matrix.
  *
- * @param[in] opts Options.
+ * @param[out] d Real vector of length min(m,n).
+ *      Diagonal elements of B
+ *
+ * @param[out] e Real vector of length min(m,n).
+ *      Off-diagonal elements of B
+ *
+ * @param[out] tauq vector of length min(m,n).
+ *      The scalar factors of the elementary reflectors which
+ *      represent the unitary matrix Q.
+ *
+ * @param[out] taup vector of length min(m,n).
+ *      The scalar factors of the elementary reflectors which
+ *      represent the unitary matrix P.
  *
  * @param[in,out] workinfo
  *      On output, the amount workspace required. It is larger than or equal
  *      to that given on input.
+ *
+ * @param[in] opts Options.
+ *      - @c opts.work is used if whenever it has sufficient size.
+ *        The sufficient size can be obtained through a workspace query.
  *
  * @ingroup workspace_query
  */
@@ -74,6 +80,61 @@ void gebrd_worksize(const matrix_t& A,
     workinfo.minMax(myWorkinfo);
 }
 
+/** Reduces a general m by n matrix A to an upper
+ *  real bidiagonal form B by a unitary transformation:
+ * \[
+ *          Q**H * A * P = B,
+ * \]
+ *  where m >= n.
+ *
+ * The matrices Q and P are represented as products of elementary
+ * reflectors:
+ *
+ * If m >= n,
+ * \[
+ *          Q = H(1) H(2) . . . H(n)  and  P = G(1) G(2) . . . G(n-1)
+ * \]
+ * Each H(i) and G(i) has the form:
+ * \[
+ *          H(j) = I - tauv * v * v**H  and G(j) = I - tauw * w * w**H
+ * \]
+ * where tauv and tauw are scalars, and v and w are
+ * vectors; v(1:j-1) = 0, v(j) = 1, and v(j+1:m) is stored on exit in
+ * A(j+1:m,j); w(1:j) = 0, w(j+1) = 1, and w(j+2:n) is stored on exit in
+ * A(j,i+2:n); tauv is stored in tauv(j) and tauw in tauw(j).
+ *
+ * @return  0 if success
+ *
+ * @param[in,out] A m-by-n matrix.
+ *      On entry, the m by n general matrix to be reduced.
+ *      On exit, if m >= n, the diagonal and the first superdiagonal
+ *      are overwritten with the upper bidiagonal matrix B; the
+ *      elements below the diagonal, with the array tauv, represent
+ *      the unitary matrix Q as a product of elementary reflectors,
+ *      and the elements above the first superdiagonal, with the array
+ *      tauw, represent the unitary matrix P as a product of elementary
+ *      reflectors.
+ *
+ * @param[out] d Real vector of length min(m,n).
+ *      Diagonal elements of B
+ *
+ * @param[out] e Real vector of length min(m,n).
+ *      Off-diagonal elements of B
+ *
+ * @param[out] tauq vector of length min(m,n).
+ *      The scalar factors of the elementary reflectors which
+ *      represent the unitary matrix Q.
+ *
+ * @param[out] taup vector of length min(m,n).
+ *      The scalar factors of the elementary reflectors which
+ *      represent the unitary matrix P.
+ *
+ * @param[in] opts Options.
+ *      - @c opts.work is used if whenever it has sufficient size.
+ *        The sufficient size can be obtained through a workspace query.
+ *
+ * @ingroup computational
+ */
 template <class matrix_t, class vector_t, class r_vector_t>
 int gebrd(const matrix_t& A,
           r_vector_t& d,
