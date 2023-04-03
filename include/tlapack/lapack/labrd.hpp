@@ -45,10 +45,6 @@ namespace tlapack {
  * @param[out] e real vector of length nb.
  *      The off-diagonal elements of the bidiagonal matrix B.
  *
- * @param[out] taup vector of length nb.
- *      The scalar factors of the elementary reflectors which represent the
- *      unitary matrix P.
- *
  * @param[out] tauq vector of length nb.
  *      The scalar factors of the elementary reflectors which represent the
  *      unitary matrix Q.
