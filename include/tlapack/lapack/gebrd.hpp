@@ -136,11 +136,11 @@ void gebrd_worksize(const matrix_t& A,
  * @ingroup computational
  */
 template <class matrix_t, class vector_t, class r_vector_t>
-int gebrd(const matrix_t& A,
+int gebrd(matrix_t& A,
           r_vector_t& d,
           r_vector_t& e,
-          const vector_t& tauq,
-          const vector_t& taup,
+          vector_t& tauq,
+          vector_t& taup,
           const gebrd_opts_t<size_type<matrix_t> >& opts = {})
 {
     using idx_t = size_type<matrix_t>;
