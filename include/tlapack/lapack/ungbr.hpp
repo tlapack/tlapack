@@ -151,7 +151,7 @@ int ungbr(QorP qp,
     const idx_t n = ncols(A);
 
     if (qp == QorP::Q) {
-        ungqr_opts_t ungqrOpts;
+        ungqr_opts_t<matrix_t> ungqrOpts;
         ungqrOpts.nb = opts.nb;
         ungqrOpts.work = opts.work;
         //
@@ -183,7 +183,7 @@ int ungbr(QorP qp,
         }
     }
     else {
-        unglq_opts_t unglqOpts;
+        unglq_opts_t<matrix_t> unglqOpts;
         unglqOpts.nb = opts.nb;
         unglqOpts.work = opts.work;
         //

@@ -20,7 +20,7 @@
 #include <tlapack/lapack/lacpy.hpp>
 #include <tlapack/lapack/lange.hpp>
 #include <tlapack/lapack/laset.hpp>
-#include <tlapack/plugins/debugutils.hpp>
+// #include <tlapack/plugins/debugutils.hpp>
 
 // Other routines
 #include <tlapack/blas/gemm.hpp>

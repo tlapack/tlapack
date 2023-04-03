@@ -18,7 +18,7 @@
 #include <tlapack/lapack/lacpy.hpp>
 #include <tlapack/lapack/lange.hpp>
 #include <tlapack/lapack/laset.hpp>
-#include <tlapack/plugins/debugutils.hpp>
+// #include <tlapack/plugins/debugutils.hpp>
 
 // Other routines
 #include <tlapack/blas/gemm.hpp>
@@ -39,7 +39,7 @@ TEMPLATE_TEST_CASE("bidiagonal reduction is backward stable",
     using matrix_t = TestType;
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
-    using range = std::pair<idx_t, idx_t>;
+    using pair = std::pair<idx_t, idx_t>;
     typedef real_type<T> real_t;
 
     // Functor
@@ -82,7 +82,7 @@ TEMPLATE_TEST_CASE("bidiagonal reduction is backward stable",
 
     DYNAMIC_SECTION("m = " << m << " n = " << n << " nb = " << nb)
     {
-        gebrd_opts_t gebrdOpts;
+        gebrd_opts_t<idx_t> gebrdOpts;
         gebrdOpts.nb = nb;
         gebrd(A, d, e, tauv, tauw, gebrdOpts);
 
@@ -109,7 +109,7 @@ TEMPLATE_TEST_CASE("bidiagonal reduction is backward stable",
         }
 
         // Generate m-by-k unitary matrix Q
-        ungbr_opts_t ungbrOpts;
+        ungbr_opts_t<matrix_t> ungbrOpts;
         ungbrOpts.nb = nb;
         lacpy(Uplo::Lower, slice(A, pair{0, m}, pair{0, k}), Q);
         ungbr(QorP::Q, n, Q, tauv, ungbrOpts);
