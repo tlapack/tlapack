@@ -38,7 +38,7 @@ struct lu_mult_opts_t {
  *
  * @ingroup auxiliary
  */
-template <class matrix_t>
+template <AbstractMatrix matrix_t>
 void lu_mult(matrix_t& A, const lu_mult_opts_t<size_type<matrix_t>>& opts = {})
 {
     using idx_t = size_type<matrix_t>;

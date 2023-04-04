@@ -38,9 +38,9 @@ namespace tlapack {
  *
  * @ingroup blas2
  */
-template <class matrixA_t,
-          class vectorX_t,
-          class vectorY_t,
+template <AbstractMatrix matrixA_t,
+          AbstractVector vectorX_t,
+          AbstractVector vectorY_t,
           class alpha_t,
           class T = type_t<matrixA_t>,
           disable_if_allow_optblas_t<pair<alpha_t, T>,
@@ -93,9 +93,9 @@ void her2(Uplo uplo,
 
 #ifdef USE_LAPACKPP_WRAPPERS
 
-template <class matrixA_t,
-          class vectorX_t,
-          class vectorY_t,
+template <AbstractMatrix matrixA_t,
+          AbstractVector vectorX_t,
+          AbstractVector vectorY_t,
           class alpha_t,
           class T = type_t<matrixA_t>,
           enable_if_allow_optblas_t<pair<alpha_t, T>,

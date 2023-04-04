@@ -35,7 +35,7 @@ namespace tlapack {
  *
  * @ingroup computational
  */
-template <class matrix_t>
+template <AbstractMatrix matrix_t>
 int getri_uili(matrix_t& A)
 {
     // check arguments

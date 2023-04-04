@@ -34,7 +34,7 @@ namespace tlapack {
  *
  * @ingroup auxiliary
  */
-template <class uplo_t, class matrix_t>
+template <class uplo_t, AbstractMatrix matrix_t>
 void laset(uplo_t uplo,
            const type_t<matrix_t>& alpha,
            const type_t<matrix_t>& beta,

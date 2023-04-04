@@ -67,9 +67,9 @@ namespace tlapack {
  *
  * @ingroup workspace_query
  */
-template <class matrixV_t,
-          class matrixT_t,
-          class matrixC_t,
+template <AbstractMatrix matrixV_t,
+          AbstractMatrix matrixT_t,
+          AbstractMatrix matrixC_t,
           class side_t,
           class trans_t,
           class direction_t,
@@ -192,9 +192,9 @@ inline constexpr void larfb_worksize(side_t side,
  *
  * @ingroup auxiliary
  */
-template <class matrixV_t,
-          class matrixT_t,
-          class matrixC_t,
+template <AbstractMatrix matrixV_t,
+          AbstractMatrix matrixT_t,
+          AbstractMatrix matrixC_t,
           class side_t,
           class trans_t,
           class direction_t,

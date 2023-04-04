@@ -46,9 +46,9 @@ namespace tlapack {
  *
  * @ingroup workspace_query
  */
-template <class matrixA_t,
-          class matrixC_t,
-          class tau_t,
+template <AbstractMatrix matrixA_t,
+          AbstractMatrix matrixC_t,
+          AbstractVector tau_t,
           class side_t,
           class trans_t>
 inline constexpr void unm2r_worksize(side_t side,
@@ -127,9 +127,9 @@ inline constexpr void unm2r_worksize(side_t side,
  *
  * @ingroup computational
  */
-template <class matrixA_t,
-          class matrixC_t,
-          class tau_t,
+template <AbstractMatrix matrixA_t,
+          AbstractMatrix matrixC_t,
+          AbstractVector tau_t,
           class side_t,
           class trans_t>
 int unm2r(side_t side,

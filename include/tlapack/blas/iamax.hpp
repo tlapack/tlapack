@@ -34,7 +34,7 @@ namespace tlapack {
  *
  * @ingroup blas1
  */
-template <class vector_t>
+template <AbstractVector vector_t>
 size_type<vector_t> iamax_ec(const vector_t& x)
 {
     // data traits
@@ -119,7 +119,7 @@ size_type<vector_t> iamax_ec(const vector_t& x)
  *
  * @ingroup blas1
  */
-template <class vector_t>
+template <AbstractVector vector_t>
 size_type<vector_t> iamax_nc(const vector_t& x)
 {
     // data traits
@@ -196,7 +196,7 @@ size_type<vector_t> iamax_nc(const vector_t& x)
  *
  * @ingroup blas1
  */
-template <class vector_t, disable_if_allow_optblas_t<vector_t> = 0>
+template <AbstractVector vector_t, disable_if_allow_optblas_t<vector_t> = 0>
 inline size_type<vector_t> iamax(const vector_t& x, const ec_opts_t& opts = {})
 {
     return (opts.ec.nan == true) ? iamax_ec(x) : iamax_nc(x);
@@ -204,7 +204,7 @@ inline size_type<vector_t> iamax(const vector_t& x, const ec_opts_t& opts = {})
 
 #ifdef USE_LAPACKPP_WRAPPERS
 
-template <class vector_t, enable_if_allow_optblas_t<vector_t> = 0>
+template <AbstractVector vector_t, enable_if_allow_optblas_t<vector_t> = 0>
 inline size_type<vector_t> iamax(vector_t const& x)
 {
     // Legacy objects

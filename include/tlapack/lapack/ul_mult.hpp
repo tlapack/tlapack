@@ -30,7 +30,7 @@ namespace tlapack {
  *
  * @ingroup auxiliary
  */
-template <class matrix_t>
+template <AbstractMatrix matrix_t>
 int ul_mult(matrix_t& A)
 {
     using idx_t = size_type<matrix_t>;

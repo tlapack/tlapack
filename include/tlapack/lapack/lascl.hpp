@@ -52,7 +52,7 @@ namespace tlapack {
  */
 template <
     class access_t,
-    class matrix_t,
+    AbstractMatrix matrix_t,
     class a_type,
     class b_type,
     enable_if_t<(
@@ -196,7 +196,7 @@ int lascl(access_t accessType,
  * @ingroup auxiliary
  */
 template <
-    class matrix_t,
+    AbstractMatrix matrix_t,
     class a_type,
     class b_type,
     enable_if_t<(

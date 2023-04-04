@@ -32,7 +32,7 @@ namespace tlapack {
  *
  * @ingroup auxiliary
  */
-template <class uplo_t, class matrixA_t, class matrixB_t>
+template <class uplo_t, AbstractMatrix matrixA_t, AbstractMatrix matrixB_t>
 void lacpy(uplo_t uplo, const matrixA_t& A, matrixB_t& B)
 {
     // data traits

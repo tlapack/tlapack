@@ -44,7 +44,7 @@ namespace tlapack {
  *
  * @ingroup auxiliary
  */
-template <typename matrix_t,
+template <AbstractMatrix matrix_t,
           enable_if_t<!is_complex<type_t<matrix_t>>::value, bool> = true>
 int schur_swap(bool want_q,
                matrix_t& A,
@@ -446,7 +446,7 @@ int schur_swap(bool want_q,
  *
  * @ingroup auxiliary
  */
-template <typename matrix_t,
+template <AbstractMatrix matrix_t,
           enable_if_t<is_complex<type_t<matrix_t>>::value, bool> = true>
 int schur_swap(bool want_q,
                matrix_t& A,

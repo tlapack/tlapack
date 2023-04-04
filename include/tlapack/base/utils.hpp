@@ -17,6 +17,7 @@
 #include <utility>
 
 #include "tlapack/base/arrayTraits.hpp"
+#include "tlapack/base/arrayConcepts.hpp"
 #include "tlapack/base/exceptionHandling.hpp"
 #include "tlapack/base/types.hpp"
 #include "tlapack/base/workspace.hpp"

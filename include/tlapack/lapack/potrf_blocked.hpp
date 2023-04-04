@@ -60,7 +60,7 @@ struct potrf_opts_t;
  *
  * @ingroup computational
  */
-template <class uplo_t, class matrix_t>
+template <class uplo_t, AbstractMatrix matrix_t>
 int potrf_blocked(uplo_t uplo,
                   matrix_t& A,
                   const potrf_opts_t<size_type<matrix_t> >& opts = {})

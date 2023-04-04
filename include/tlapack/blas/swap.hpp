@@ -24,8 +24,8 @@ namespace tlapack {
  * @ingroup blas1
  */
 template <
-    class vectorX_t,
-    class vectorY_t,
+    AbstractVector vectorX_t,
+    AbstractVector vectorY_t,
     class T = type_t<vectorY_t>,
     disable_if_allow_optblas_t<pair<vectorX_t, T>, pair<vectorY_t, T> > = 0>
 void swap(vectorX_t& x, vectorY_t& y)
@@ -49,8 +49,8 @@ void swap(vectorX_t& x, vectorY_t& y)
 #ifdef USE_LAPACKPP_WRAPPERS
 
 template <
-    class vectorX_t,
-    class vectorY_t,
+    AbstractVector vectorX_t,
+    AbstractVector vectorY_t,
     class T = type_t<vectorY_t>,
     enable_if_allow_optblas_t<pair<vectorX_t, T>, pair<vectorY_t, T> > = 0>
 inline void swap(vectorX_t& x, vectorY_t& y)
@@ -78,7 +78,7 @@ inline void swap(vectorX_t& x, vectorY_t& y)
  *      using arrays with float or double entries would call `tlapack::swap`.
  *      Use @c tlapack::swap(x,y) instead of @c swap(x,y) .
  */
-template <class vector_t>
+template <AbstractVector vector_t>
 inline void swap(vector_t& x, vector_t& y)
 {
     return swap<vector_t, vector_t>(x, y);

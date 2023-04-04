@@ -37,9 +37,9 @@ namespace tlapack {
  *
  * @ingroup blas2
  */
-template <class matrixA_t,
-          class vectorX_t,
-          class vectorY_t,
+template <AbstractMatrix matrixA_t,
+          AbstractVector vectorX_t,
+          AbstractVector vectorY_t,
           class alpha_t,
           class beta_t,
           class T = type_t<vectorY_t>,
@@ -121,9 +121,9 @@ void symv(Uplo uplo,
  *
  * @ingroup blas2
  */
-template <class matrixA_t,
-          class vectorX_t,
-          class vectorY_t,
+template <AbstractMatrix matrixA_t,
+          AbstractVector vectorX_t,
+          AbstractVector vectorY_t,
           class alpha_t,
           class T = type_t<vectorY_t>,
           disable_if_allow_optblas_t<pair<matrixA_t, T>,
@@ -140,9 +140,9 @@ inline void symv(Uplo uplo,
 
 #ifdef USE_LAPACKPP_WRAPPERS
 
-template <class matrixA_t,
-          class vectorX_t,
-          class vectorY_t,
+template <AbstractMatrix matrixA_t,
+          AbstractVector vectorX_t,
+          AbstractVector vectorY_t,
           class alpha_t,
           class beta_t,
           class T = type_t<vectorY_t>,
@@ -179,9 +179,9 @@ inline void symv(Uplo uplo,
                         A_.ldim, x_.ptr, x_.inc, beta, y_.ptr, y_.inc);
 }
 
-template <class matrixA_t,
-          class vectorX_t,
-          class vectorY_t,
+template <AbstractMatrix matrixA_t,
+          AbstractVector vectorX_t,
+          AbstractVector vectorY_t,
           class alpha_t,
           class T = type_t<vectorY_t>,
           enable_if_allow_optblas_t<pair<matrixA_t, T>,

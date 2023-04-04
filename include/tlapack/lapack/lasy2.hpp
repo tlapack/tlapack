@@ -28,7 +28,7 @@ namespace tlapack {
  *
  * @ingroup auxiliary
  */
-template <typename matrix_t,
+template <AbstractMatrix matrix_t,
           enable_if_t<!is_complex<type_t<matrix_t> >::value, bool> = true>
 int lasy2(Op trans_l,
           Op trans_r,

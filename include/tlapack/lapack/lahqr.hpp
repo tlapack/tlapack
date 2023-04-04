@@ -67,8 +67,8 @@ namespace tlapack {
  *
  * @ingroup auxiliary
  */
-template <class matrix_t,
-          class vector_t,
+template <AbstractMatrix matrix_t,
+          AbstractVector vector_t,
           enable_if_t<is_complex<type_t<vector_t>>::value, bool> = true,
           enable_if_t<!is_complex<type_t<matrix_t>>::value, bool> = true>
 int lahqr(bool want_t,
@@ -399,8 +399,8 @@ int lahqr(bool want_t,
  *
  * Implementation for complex matrices.
  */
-template <class matrix_t,
-          class vector_t,
+template <AbstractMatrix matrix_t,
+          AbstractVector vector_t,
           enable_if_t<is_complex<type_t<vector_t>>::value, bool> = true,
           enable_if_t<is_complex<type_t<matrix_t>>::value, bool> = true>
 int lahqr(bool want_t,

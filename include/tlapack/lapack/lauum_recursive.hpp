@@ -41,7 +41,7 @@ namespace tlapack {
  * @todo: implement nx to bail out of recursion before 1-by-1 case
  *
  */
-template <typename matrix_t>
+template <AbstractMatrix matrix_t>
 int lauum_recursive(const Uplo& uplo, matrix_t& C)
 
 {

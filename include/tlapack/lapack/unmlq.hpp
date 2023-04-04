@@ -62,9 +62,9 @@ struct unmlq_opts_t : public workspace_opts_t<workT_t> {
  *
  * @see unmlq
  */
-template <class matrixA_t,
-          class matrixC_t,
-          class tau_t,
+template <AbstractMatrix matrixA_t,
+          AbstractMatrix matrixC_t,
+          AbstractVector tau_t,
           class side_t,
           class trans_t,
           class workT_t = void>
@@ -164,9 +164,9 @@ inline constexpr void unmlq_worksize(side_t side,
  *
  * @ingroup computational
  */
-template <class matrixA_t,
-          class matrixC_t,
-          class tau_t,
+template <AbstractMatrix matrixA_t,
+          AbstractMatrix matrixC_t,
+          AbstractVector tau_t,
           class side_t,
           class trans_t,
           class workT_t = void>

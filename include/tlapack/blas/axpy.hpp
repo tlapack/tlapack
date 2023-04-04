@@ -24,8 +24,8 @@ namespace tlapack {
  *
  * @ingroup blas1
  */
-template <class vectorX_t,
-          class vectorY_t,
+template <AbstractVector vectorX_t,
+          AbstractVector vectorY_t,
           class alpha_t,
           class T = type_t<vectorY_t>,
           disable_if_allow_optblas_t<pair<alpha_t, T>,
@@ -47,8 +47,8 @@ void axpy(const alpha_t& alpha, const vectorX_t& x, vectorY_t& y)
 
 #ifdef USE_LAPACKPP_WRAPPERS
 
-template <class vectorX_t,
-          class vectorY_t,
+template <AbstractVector vectorX_t,
+          AbstractVector vectorY_t,
           class alpha_t,
           class T = type_t<vectorY_t>,
           enable_if_allow_optblas_t<pair<alpha_t, T>,

@@ -58,7 +58,7 @@ namespace tlapack {
  *
  * @ingroup auxiliary
  */
-template <class abs_f, class vector_t, class T = type_t<vector_t> >
+template <class abs_f, AbstractVector vector_t, class T = type_t<vector_t> >
 void lassq(const vector_t& x,
            real_type<T>& scale,
            real_type<T>& sumsq,
@@ -183,7 +183,7 @@ void lassq(const vector_t& x,
  *
  * @ingroup auxiliary
  */
-template <class vector_t, class T = type_t<vector_t> >
+template <AbstractVector vector_t, class T = type_t<vector_t> >
 inline void lassq(const vector_t& x, real_type<T>& scale, real_type<T>& sumsq)
 {
     return lassq(

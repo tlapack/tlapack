@@ -39,7 +39,7 @@ namespace tlapack {
  *
  * @ingroup computational
  */
-template <class matrix_t, class vector_t>
+template <AbstractMatrix matrix_t, AbstractVector vector_t>
 int unghr(size_type<matrix_t> ilo,
           size_type<matrix_t> ihi,
           matrix_t& A,
@@ -124,7 +124,7 @@ int unghr(size_type<matrix_t> ilo,
  *
  * @ingroup workspace_query
  */
-template <class matrix_t, class vector_t>
+template <AbstractMatrix matrix_t, AbstractVector vector_t>
 inline constexpr void unghr_worksize(size_type<matrix_t> ilo,
                                      size_type<matrix_t> ihi,
                                      const matrix_t& A,

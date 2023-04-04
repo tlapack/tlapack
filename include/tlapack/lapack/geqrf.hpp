@@ -43,7 +43,7 @@ struct geqrf_opts_t : public workspace_opts_t<> {
  *
  * @ingroup workspace_query
  */
-template <typename A_t, typename tau_t>
+template <AbstractMatrix A_t, AbstractVector tau_t>
 inline constexpr void geqrf_worksize(
     const A_t& A,
     const tau_t& tau,
@@ -109,7 +109,7 @@ inline constexpr void geqrf_worksize(
  *
  * @ingroup computational
  */
-template <typename A_t, typename tau_t>
+template <AbstractMatrix A_t, AbstractVector tau_t>
 int geqrf(A_t& A, tau_t& tau, const geqrf_opts_t<size_type<A_t>>& opts = {})
 {
     Create<A_t> new_matrix;

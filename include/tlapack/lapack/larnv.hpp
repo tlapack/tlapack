@@ -40,7 +40,7 @@ namespace tlapack {
  *
  * @ingroup auxiliary
  */
-template <int idist, class vector_t, class Sseq>
+template <int idist, AbstractVector vector_t, class Sseq>
 void larnv(Sseq& iseed, vector_t& x)
 {
     using idx_t = size_type<vector_t>;

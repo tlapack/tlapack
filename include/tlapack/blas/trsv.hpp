@@ -56,8 +56,8 @@ namespace tlapack {
  * @ingroup blas2
  */
 template <
-    class matrixA_t,
-    class vectorX_t,
+    AbstractMatrix matrixA_t,
+    AbstractVector vectorX_t,
     class T = type_t<vectorX_t>,
     disable_if_allow_optblas_t<pair<matrixA_t, T>, pair<vectorX_t, T> > = 0>
 void trsv(Uplo uplo, Op trans, Diag diag, const matrixA_t& A, vectorX_t& x)
@@ -205,8 +205,8 @@ void trsv(Uplo uplo, Op trans, Diag diag, const matrixA_t& A, vectorX_t& x)
 #ifdef USE_LAPACKPP_WRAPPERS
 
 template <
-    class matrixA_t,
-    class vectorX_t,
+    AbstractMatrix matrixA_t,
+    AbstractVector vectorX_t,
     class T = type_t<vectorX_t>,
     enable_if_allow_optblas_t<pair<matrixA_t, T>, pair<vectorX_t, T> > = 0>
 inline void trsv(

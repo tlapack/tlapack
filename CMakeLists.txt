@@ -4,13 +4,19 @@
 # <T>LAPACK is free software: you can redistribute it and/or modify it under
 # the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-cmake_minimum_required(VERSION 3.7)
+cmake_minimum_required(VERSION 3.12)
 # VERSION 3.3: IN_LIST for if() operator
 # VERSION 3.7: VERSION_GREATER_EQUAL
 
 #-------------------------------------------------------------------------------
 # Read project version
 file(READ version.txt version_txt)
+
+#
+# We require C++17 features like if constexpr
+# If possible, compile with C++20 so we can use concepts
+set (CMAKE_CXX_STANDARD_REQUIRED 17)
+set (CMAKE_CXX_STANDARD 20)
 
 #-------------------------------------------------------------------------------
 # <T>LAPACK project
