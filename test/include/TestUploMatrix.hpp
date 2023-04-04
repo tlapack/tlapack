@@ -42,7 +42,18 @@ struct TestUploMatrix : public legacyMatrix<T, idx_t, L> {
     {}
 
     // Overload of the access operator
-    inline constexpr T& operator()(idx_t i, idx_t j) const noexcept
+    inline constexpr const T& operator()(idx_t i, idx_t j) const noexcept
+    {
+        if (uplo == Uplo::Upper)
+            assert((int)i <= (int)j + modifier);
+        else if (uplo == Uplo::Lower)
+            assert((int)i >= (int)j + modifier);
+
+        return legacyMatrix<T, idx_t, L>::operator()(i, j);
+    };
+
+    // Overload of the access operator
+    inline constexpr T& operator()(idx_t i, idx_t j) noexcept
     {
         if (uplo == Uplo::Upper)
             assert((int)i <= (int)j + modifier);
