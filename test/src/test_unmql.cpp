@@ -18,7 +18,6 @@
 // Auxiliary routines
 #include <tlapack/lapack/lacpy.hpp>
 #include <tlapack/lapack/lange.hpp>
-// #include <tlapack/plugins/debugutils.hpp>
 
 // Other routines
 #include <tlapack/blas/gemm.hpp>
@@ -42,8 +41,6 @@ TEMPLATE_TEST_CASE("Multiply m-by-n matrix with orthogonal QL factor",
 
     // Functor
     Create<matrix_t> new_matrix;
-
-    const T zero(0);
 
     idx_t m = GENERATE(5, 10);
     idx_t n = GENERATE(1, 5, 10);

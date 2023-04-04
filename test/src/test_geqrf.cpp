@@ -42,12 +42,11 @@ TEMPLATE_TEST_CASE("QR factorization of a general m-by-n matrix",
 
     const T zero(0);
 
-    idx_t m, n, k, nb;
+    idx_t m, n, nb;
 
     m = GENERATE(5, 10, 20);
     n = GENERATE(5, 10, 20);
     nb = GENERATE(1, 2, 4, 5);
-    k = min(m, n);
 
     const real_t eps = ulp<real_t>();
     const real_t tol = real_t(100. * max(m, n)) * eps;
@@ -56,10 +55,6 @@ TEMPLATE_TEST_CASE("QR factorization of a general m-by-n matrix",
     auto A = new_matrix(A_, m, n);
     std::vector<T> A_copy_;
     auto A_copy = new_matrix(A_copy_, m, n);
-    std::vector<T> Q_;
-    auto Q = new_matrix(Q_, m, k);
-    std::vector<T> TT_;
-    auto TT = new_matrix(TT_, m, nb);
     std::vector<T> R_;
     auto R = new_matrix(R_, m, n);
 
