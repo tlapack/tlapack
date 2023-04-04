@@ -73,7 +73,7 @@ int laqps(matrix_t& A,
     const idx_t n = ncols(A);
     const idx_t k = std::min<idx_t>(m, n);
 
-    const idx_t nb_opts = 3;
+    const idx_t nb_opts = 1;
     const idx_t nb = std::min<idx_t>(nb_opts, k);
 
     std::vector<T> auxv_;
@@ -134,7 +134,7 @@ int laqps(matrix_t& A,
         //
         //          Padding F(1:K,K) with zeros.
         //
-        for (idx_t j = 0; j < i; j++) {
+        for (idx_t j = 0; j <= i; j++) {
             F(j, i) = zero;
         }
 
@@ -159,9 +159,9 @@ int laqps(matrix_t& A,
         //              F(K+1:N,1:K)**H
         //
         // A5 := A5 - A4 F5^H
-        auto A4 = slice(A, pair{i, i + 1}, pair{0, i});
+        auto A4 = slice(A, pair{i, i + 1}, pair{0, i + 1});
         auto A5 = slice(A, pair{i, i + 1}, pair{i + 1, n});
-        auto F5 = slice(F, pair{i + 1, n}, pair{0, i});
+        auto F5 = slice(F, pair{i + 1, n}, pair{0, i + 1});
         gemm(Op::NoTrans, Op::ConjTrans, -one, A4, F5, one, A5);
 
         //
@@ -298,14 +298,14 @@ int laqp3(matrix_t& A,
     std::vector<real_t> vector_of_norms(2 * n);
 
     for (idx_t j = 0; j < n; j++) {
-        vector_of_norms[j] = nrm2(slice(A, pair{0, m}, j));
+        vector_of_norms[j] = nrm2(col(A, j));
         vector_of_norms[n + j] = vector_of_norms[j];
     }
 
     // Functor
     Create<matrix_t> new_matrix;
 
-    idx_t nb = 3;
+    idx_t nb = 1;
 
     std::vector<T> F_;
     auto F = new_matrix(F_, n, nb);

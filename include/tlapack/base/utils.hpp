@@ -52,9 +52,9 @@ using std::is_convertible_v;
 using std::is_same_v;
 #else
 template <class T, class U>
-inline constexpr bool is_convertible_v = std::is_convertible<T, U>::value;
+constexpr bool is_convertible_v = std::is_convertible<T, U>::value;
 template <class T, class U>
-inline constexpr bool is_same_v = std::is_same<T, U>::value;
+constexpr bool is_same_v = std::is_same<T, U>::value;
 #endif
 
 //------------------------------------------------------------------------------
