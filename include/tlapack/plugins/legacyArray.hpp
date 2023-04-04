@@ -288,7 +288,7 @@ inline constexpr auto row(const legacyMatrix<T, idx_t>& A,
                           size_type<legacyMatrix<T, idx_t>> rowIdx) noexcept
 {
     assert(rowIdx >= 0 and rowIdx < nrows(A));
-    return legacyVector<T, idx_t, idx_t>(A.n, &A(rowIdx, 0), A.ldim);
+    return legacyVector<T, idx_t, idx_t>(A.n, &A.ptr[rowIdx], A.ldim);
 }
 
 // Get a row of a row-major legacyMatrix
@@ -298,7 +298,7 @@ inline constexpr auto row(
     size_type<legacyMatrix<T, idx_t, Layout::RowMajor>> rowIdx) noexcept
 {
     assert(rowIdx >= 0 and rowIdx < nrows(A));
-    return legacyVector<T, idx_t>(A.n, &A(rowIdx, 0));
+    return legacyVector<T, idx_t>(A.n, &A.ptr[rowIdx * A.ldim]);
 }
 
 // Get columns of legacyMatrix
@@ -323,7 +323,7 @@ inline constexpr auto col(const legacyMatrix<T, idx_t>& A,
                           size_type<legacyMatrix<T, idx_t>> colIdx) noexcept
 {
     assert(colIdx >= 0 and colIdx < ncols(A));
-    return legacyVector<T, idx_t>(A.m, &A(0, colIdx));
+    return legacyVector<T, idx_t>(A.m, &A.ptr[colIdx * A.ldim]);
 }
 
 // Get a column of a row-major legacyMatrix
@@ -333,7 +333,7 @@ inline constexpr auto col(
     size_type<legacyMatrix<T, idx_t, Layout::RowMajor>> colIdx) noexcept
 {
     assert(colIdx >= 0 and colIdx < ncols(A));
-    return legacyVector<T, idx_t, idx_t>(A.m, &A(0, colIdx), A.ldim);
+    return legacyVector<T, idx_t, idx_t>(A.m, &A.ptr[colIdx], A.ldim);
 }
 
 // Diagonal of a legacyMatrix

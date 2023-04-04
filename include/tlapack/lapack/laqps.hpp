@@ -310,16 +310,13 @@ int laqp3(matrix_t& A,
     std::vector<T> F_;
     auto F = new_matrix(F_, n, nb);
 
-    std::vector<T> auxv_;
-    auto auxv = new_matrix(auxv_, nb, 1);
-
     for (idx_t ii = 0; ii < kk; ii += nb) {
         idx_t offset = ii;
         // idx_t ib = std::min<idx_t>(nb, kk - ii);
 
         auto Akk = slice(A, pair{offset, m}, pair{offset, n});
-        auto jpvtk = slice(jpvt, pair{offset, kk});
-        auto tauk = slice(tau, pair{offset, kk});
+        auto jpvtk = slice(jpvt, pair{offset, offset + nb});
+        auto tauk = slice(tau, pair{offset, offset + nb});
         auto partial_normsk = slice(vector_of_norms, pair{offset, n});
         auto exact_normsk = slice(vector_of_norms, pair{n + offset, 2 * n});
 
