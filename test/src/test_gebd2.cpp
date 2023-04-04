@@ -20,7 +20,6 @@
 #include <tlapack/lapack/lacpy.hpp>
 #include <tlapack/lapack/lange.hpp>
 #include <tlapack/lapack/laset.hpp>
-// #include <tlapack/plugins/debugutils.hpp>
 
 // Other routines
 #include <tlapack/blas/gemm.hpp>
@@ -105,7 +104,7 @@ TEMPLATE_TEST_CASE("bidiagonal reduction is backward stable",
         }
 
         // Generate m-by-k unitary matrix Q
-        ungbr_opts_t ungbrOpts;
+        ungbr_opts_t<matrix_t> ungbrOpts;
         ungbrOpts.nb = 2;
         lacpy(Uplo::Lower, slice(A, pair{0, m}, pair{0, k}), Q);
         ungbr(QorP::Q, n, Q, tauv, ungbrOpts);
