@@ -65,8 +65,6 @@ int lascl(access_t accessType, const b_type& b, const a_type& a, matrix_t& A)
     using idx_t = size_type<matrix_t>;
     using real_t = real_type<a_type, b_type>;
 
-    // using
-
     // constants
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
