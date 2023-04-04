@@ -22,7 +22,7 @@ namespace tlapack {
  * @ingroup auxiliary
  */
 template <class vector_t>
-void conjugate(const vector_t& x)
+void conjugate(vector_t& x)
 {
     using idx_t = size_type<vector_t>;
     using tlapack::conj;

@@ -126,6 +126,7 @@ int gebd2(matrix_t& A,
 {
     using idx_t = size_type<matrix_t>;
     using range = std::pair<idx_t, idx_t>;
+    using T = type_t<matrix_t>;
 
     // constants
     const idx_t m = nrows(A);
@@ -176,7 +177,7 @@ int gebd2(matrix_t& A,
                 }
             }
             else {
-                tauw[j] = 0;
+                tauw[j] = T(0);
             }
         }
     }
@@ -207,7 +208,7 @@ int gebd2(matrix_t& A,
                 }
             }
             else {
-                tauv[j] = 0;
+                tauv[j] = T(0);
             }
         }
     }
