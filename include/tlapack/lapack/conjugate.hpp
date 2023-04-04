@@ -25,6 +25,7 @@ template <class vector_t>
 void conjugate(const vector_t& x)
 {
     using idx_t = size_type<vector_t>;
+    using tlapack::conj;
 
     for (idx_t i = 0; i < size(x); ++i) {
         x[i] = conj(x[i]);
