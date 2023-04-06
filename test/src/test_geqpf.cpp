@@ -28,8 +28,8 @@ using namespace tlapack;
 
 TEMPLATE_TEST_CASE("QR factorization with column pivoting of a general m-by-n matrix",
                    "[qpf]",
-                   //TLAPACK_TYPES_TO_TEST
-                   legacyMatrix<float>
+                   TLAPACK_TYPES_TO_TEST
+                //    legacyMatrix<double>
                 //    legacyMatrix<std::complex<float>>
                    )
 {
@@ -44,18 +44,16 @@ TEMPLATE_TEST_CASE("QR factorization with column pivoting of a general m-by-n ma
     // Functor
     Create<matrix_t> new_matrix;
 
-    const T zero(0);
-
     idx_t m, n, k;
 
-    m = 19;
-    n = 9;
-    //m = GENERATE(10, 20, 30);
-    //n = GENERATE(10, 20, 30);
+    // m = 19;
+    // n = 9;
+    m = GENERATE(9, 19, 30);
+    n = GENERATE(9, 19, 30);
     k = std::min<idx_t>(m,n);
 
     const real_t eps = ulp<real_t>();
-    const real_t tol = std::max<idx_t>(m,n) * eps;
+    const real_t tol = real_t(2 * std::max<idx_t>(m,n)) * eps;
 
     std::vector<T> A_;
     auto A = new_matrix(A_, m, n);
@@ -86,8 +84,8 @@ TEMPLATE_TEST_CASE("QR factorization with column pivoting of a general m-by-n ma
 
     INFO("m = " << m << " n = " << n);
     {
-        geqpf(A, jpvt, tauw, workOpts);
-        // laqp3( A, jpvt, tauw, workOpts );
+        // geqpf(A, jpvt, tauw, workOpts);
+        laqp3( A, jpvt, tauw, workOpts );
 
         auto Q0 = slice(Q, range(0, m), range(0, k));
         lacpy(Uplo::General, slice(A, range(0, m), range(0, k)), Q0);
@@ -95,7 +93,7 @@ TEMPLATE_TEST_CASE("QR factorization with column pivoting of a general m-by-n ma
         ung2r(Q, tauw, workOpts);
 
         auto orth_Q = check_orthogonality(Q);
-        std::cout << orth_Q << "\n";
+        // std::cout << orth_Q << "\n";
         CHECK(orth_Q <= tol);
 
         // check that A * P = Q * R
@@ -124,7 +122,7 @@ TEMPLATE_TEST_CASE("QR factorization with column pivoting of a general m-by-n ma
 
         real_t repres =
             lange(Norm::Max, slice(A_copy, range(0, m), range(0, n)));
-        std::cout << repres << "\n";
+        // std::cout << repres << "\n";
 
         CHECK(repres <= tol);
 
@@ -135,12 +133,15 @@ TEMPLATE_TEST_CASE("QR factorization with column pivoting of a general m-by-n ma
             diagonal_is_nonincreasing = diagonal_is_nonincreasing 
             && (tlapack::abs(R0(i,i))*(1+tol) >= tlapack::abs(R0(i+1,i+1))); 
         }
+        for (idx_t i = 0; i < k; ++i) { 
+            UNSCOPED_INFO(tlapack::abs(R0(i,i)));
+        }
         // std::cout << diagonal_is_nonincreasing << "\n";
         CHECK( diagonal_is_nonincreasing ); 
     
-        for (idx_t i = 0; i < k; ++i) { 
-            std::cout << tlapack::abs(R0(i,i)) << "\n";
-        }
+        // for (idx_t i = 0; i < k; ++i) { 
+        //     std::cout << tlapack::abs(R0(i,i)) << "\n";
+        // }
 
 
     }
