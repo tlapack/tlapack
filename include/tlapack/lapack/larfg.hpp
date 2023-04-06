@@ -68,7 +68,7 @@ namespace tlapack {
  *
  * @ingroup auxiliary
  */
-template <class storage_t, AbstractVector vector_t>
+template <AbstractStoreV storage_t, AbstractVector vector_t>
 void larfg(storage_t storeMode,
            type_t<vector_t>& alpha,
            vector_t& x,
@@ -190,7 +190,7 @@ void larfg(storage_t storeMode,
  * @ingroup auxiliary
  */
 template <class direction_t,
-          class storage_t,
+          AbstractStoreV storage_t,
           AbstractVector vector_t,
           enable_if_t<is_convertible_v<direction_t, Direction>, int> = 0>
 inline void larfg(direction_t direction,

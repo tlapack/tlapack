@@ -50,12 +50,12 @@ namespace tlapack {
  *
  * @ingroup workspace_query
  */
-template <class side_t,
-          class storage_t,
+template <AbstractSide side_t,
+          AbstractStoreV storage_t,
           AbstractVector vector_t,
           class tau_t,
-          class vectorC0_t,
-          class matrixC1_t,
+          AbstractVector vectorC0_t,
+          AbstractMatrix matrixC1_t,
           enable_if_t<is_convertible_v<storage_t, StoreV>, int> = 0>
 inline constexpr void larf_worksize(side_t side,
                                     storage_t storeMode,
@@ -134,12 +134,12 @@ inline constexpr void larf_worksize(side_t side,
  *
  * @ingroup auxiliary
  */
-template <class side_t,
-          class storage_t,
+template <AbstractSide side_t,
+          AbstractStoreV storage_t,
           AbstractVector vector_t,
           class tau_t,
-          class vectorC0_t,
-          class matrixC1_t,
+          AbstractVector vectorC0_t,
+          AbstractMatrix matrixC1_t,
           enable_if_t<is_convertible_v<storage_t, StoreV>, int> = 0>
 void larf(side_t side,
           storage_t storeMode,
@@ -280,9 +280,9 @@ void larf(side_t side,
  *
  * @ingroup workspace_query
  */
-template <class side_t,
+template <AbstractSide side_t,
           class direction_t,
-          class storage_t,
+          AbstractStoreV storage_t,
           AbstractVector vector_t,
           class tau_t,
           AbstractMatrix matrix_t,
@@ -349,9 +349,9 @@ inline constexpr void larf_worksize(side_t side,
  *
  * @ingroup auxiliary
  */
-template <class side_t,
+template <AbstractSide side_t,
           class direction_t,
-          class storage_t,
+          AbstractStoreV storage_t,
           AbstractVector vector_t,
           class tau_t,
           AbstractMatrix matrix_t,

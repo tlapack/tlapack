@@ -49,8 +49,8 @@ namespace tlapack {
 template <AbstractMatrix matrixA_t,
           AbstractMatrix matrixC_t,
           AbstractVector tau_t,
-          class side_t,
-          class trans_t>
+          AbstractSide side_t,
+          AbstractOp trans_t>
 inline constexpr void unm2l_worksize(side_t side,
                                      trans_t trans,
                                      const matrixA_t& A,
@@ -118,8 +118,8 @@ inline constexpr void unm2l_worksize(side_t side,
 template <AbstractMatrix matrixA_t,
           AbstractMatrix matrixC_t,
           AbstractVector tau_t,
-          class side_t,
-          class trans_t>
+          AbstractSide side_t,
+          AbstractOp trans_t>
 int unm2l(side_t side,
           trans_t trans,
           const matrixA_t& A,

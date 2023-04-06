@@ -71,7 +71,7 @@ namespace tlapack {
  *
  * @ingroup legacy_lapack
  */
-template <class side_t, class trans_t, typename TA, typename TC>
+template <AbstractSide side_t, AbstractOp trans_t, typename TA, typename TC>
 inline int unmqr(side_t side,
                  trans_t trans,
                  idx_t m,

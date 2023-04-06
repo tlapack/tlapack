@@ -84,11 +84,11 @@ namespace tlapack {
  *
  * @ingroup auxiliary
  */
-template <class direction_t,
-          class storage_t,
-          class matrixV_t,
+template <AbstractDirection direction_t,
+          AbstractStoreV storage_t,
+          AbstractMatrix matrixV_t,
           AbstractVector vector_t,
-          class matrixT_t>
+          AbstractMatrix matrixT_t>
 int larft(direction_t direction,
           storage_t storeMode,
           const matrixV_t& V,

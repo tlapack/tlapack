@@ -46,7 +46,7 @@ namespace tlapack {
  *
  * @ingroup workspace_query
  */
-template <class norm_t, class uplo_t, class diag_t, AbstractMatrix matrix_t>
+template <AbstractNorm norm_t, AbstractUplo uplo_t, class diag_t, AbstractMatrix matrix_t>
 inline constexpr void lantr_worksize(norm_t normType,
                                      uplo_t uplo,
                                      diag_t diag,
@@ -85,7 +85,7 @@ inline constexpr void lantr_worksize(norm_t normType,
  *
  * @ingroup workspace_query
  */
-template <class norm_t, class uplo_t, class diag_t, AbstractMatrix matrix_t>
+template <AbstractNorm norm_t, AbstractUplo uplo_t, class diag_t, AbstractMatrix matrix_t>
 inline constexpr void lantr_worksize(norm_t normType,
                                      uplo_t uplo,
                                      diag_t diag,
@@ -130,7 +130,7 @@ inline constexpr void lantr_worksize(norm_t normType,
  *
  * @ingroup auxiliary
  */
-template <class norm_t, class uplo_t, class diag_t, AbstractMatrix matrix_t>
+template <AbstractNorm norm_t, AbstractUplo uplo_t, class diag_t, AbstractMatrix matrix_t>
 auto lantr(norm_t normType, uplo_t uplo, diag_t diag, const matrix_t& A)
 {
     using T = type_t<matrix_t>;
@@ -362,7 +362,7 @@ auto lantr(norm_t normType, uplo_t uplo, diag_t diag, const matrix_t& A)
  *
  * @ingroup auxiliary
  */
-template <class norm_t, class uplo_t, class diag_t, AbstractMatrix matrix_t>
+template <AbstractNorm norm_t, AbstractUplo uplo_t, class diag_t, AbstractMatrix matrix_t>
 auto lantr(norm_t normType,
            uplo_t uplo,
            diag_t diag,
