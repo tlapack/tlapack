@@ -23,7 +23,7 @@ namespace tlapack {
  *
  * @ingroup blas1
  */
-template <AbstractVector vector_t, disable_if_allow_optblas_t<vector_t> = 0>
+template <TLAPACK_VECTOR vector_t, disable_if_allow_optblas_t<vector_t> = 0>
 auto asum(vector_t const& x)
 {
     using T = type_t<vector_t>;
@@ -42,7 +42,7 @@ auto asum(vector_t const& x)
 
 #ifdef USE_LAPACKPP_WRAPPERS
 
-template <AbstractVector vector_t, enable_if_allow_optblas_t<vector_t> = 0>
+template <TLAPACK_VECTOR vector_t, enable_if_allow_optblas_t<vector_t> = 0>
 inline auto asum(vector_t const& x)
 {
     // Legacy objects

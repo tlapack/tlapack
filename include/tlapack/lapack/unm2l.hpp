@@ -46,11 +46,11 @@ namespace tlapack {
  *
  * @ingroup workspace_query
  */
-template <AbstractMatrix matrixA_t,
-          AbstractMatrix matrixC_t,
-          AbstractVector tau_t,
-          AbstractSide side_t,
-          AbstractOp trans_t>
+template <TLAPACK_MATRIX matrixA_t,
+          TLAPACK_MATRIX matrixC_t,
+          TLAPACK_VECTOR tau_t,
+          TLAPACK_SIDE side_t,
+          TLAPACK_OP trans_t>
 inline constexpr void unm2l_worksize(side_t side,
                                      trans_t trans,
                                      const matrixA_t& A,
@@ -115,11 +115,11 @@ inline constexpr void unm2l_worksize(side_t side,
  *
  * @ingroup computational
  */
-template <AbstractMatrix matrixA_t,
-          AbstractMatrix matrixC_t,
-          AbstractVector tau_t,
-          AbstractSide side_t,
-          AbstractOp trans_t>
+template <TLAPACK_MATRIX matrixA_t,
+          TLAPACK_MATRIX matrixC_t,
+          TLAPACK_VECTOR tau_t,
+          TLAPACK_SIDE side_t,
+          TLAPACK_OP trans_t>
 int unm2l(side_t side,
           trans_t trans,
           const matrixA_t& A,

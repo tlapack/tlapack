@@ -41,7 +41,7 @@ namespace tlapack {
  *
  * @ingroup workspace_query
  */
-template <AbstractNorm norm_t, AbstractUplo uplo_t, AbstractMatrix matrix_t>
+template <TLAPACK_NORM norm_t, TLAPACK_UPLO uplo_t, TLAPACK_MATRIX matrix_t>
 inline constexpr void lanhe_worksize(norm_t normType,
                                      uplo_t uplo,
                                      const matrix_t& A,
@@ -74,7 +74,7 @@ inline constexpr void lanhe_worksize(norm_t normType,
  *
  * @ingroup workspace_query
  */
-template <AbstractNorm norm_t, AbstractUplo uplo_t, AbstractMatrix matrix_t>
+template <TLAPACK_NORM norm_t, TLAPACK_UPLO uplo_t, TLAPACK_MATRIX matrix_t>
 inline constexpr void lanhe_worksize(norm_t normType,
                                      uplo_t uplo,
                                      const matrix_t& A,
@@ -112,7 +112,7 @@ inline constexpr void lanhe_worksize(norm_t normType,
  *
  * @ingroup auxiliary
  */
-template <AbstractNorm norm_t, AbstractUplo uplo_t, AbstractMatrix matrix_t>
+template <TLAPACK_NORM norm_t, TLAPACK_UPLO uplo_t, TLAPACK_MATRIX matrix_t>
 auto lanhe(norm_t normType, uplo_t uplo, const matrix_t& A)
 {
     using T = type_t<matrix_t>;
@@ -278,7 +278,7 @@ auto lanhe(norm_t normType, uplo_t uplo, const matrix_t& A)
  *
  * @ingroup auxiliary
  */
-template <AbstractNorm norm_t, AbstractUplo uplo_t, AbstractMatrix matrix_t>
+template <TLAPACK_NORM norm_t, TLAPACK_UPLO uplo_t, TLAPACK_MATRIX matrix_t>
 auto lanhe(norm_t normType,
            uplo_t uplo,
            const matrix_t& A,

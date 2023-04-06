@@ -54,9 +54,9 @@ namespace tlapack {
  *
  * @ingroup blas3
  */
-template <AbstractMatrix matrixA_t,
-          AbstractMatrix matrixB_t,
-          AbstractMatrix matrixC_t,
+template <TLAPACK_MATRIX matrixA_t,
+          TLAPACK_MATRIX matrixB_t,
+          TLAPACK_MATRIX matrixC_t,
           class alpha_t,
           class beta_t,
           enable_if_t<(
@@ -228,9 +228,9 @@ void her2k(Uplo uplo,
  *
  * @ingroup blas3
  */
-template <AbstractMatrix matrixA_t,
-          AbstractMatrix matrixB_t,
-          AbstractMatrix matrixC_t,
+template <TLAPACK_MATRIX matrixA_t,
+          TLAPACK_MATRIX matrixB_t,
+          TLAPACK_MATRIX matrixC_t,
           class alpha_t,
           class T = type_t<matrixC_t>,
           disable_if_allow_optblas_t<pair<matrixA_t, T>,
@@ -262,9 +262,9 @@ inline void her2k(Uplo uplo,
 *
 * @ingroup blas3
 */
-template <AbstractMatrix matrixA_t,
-          AbstractMatrix matrixB_t,
-          AbstractMatrix matrixC_t,
+template <TLAPACK_MATRIX matrixA_t,
+          TLAPACK_MATRIX matrixB_t,
+          TLAPACK_MATRIX matrixC_t,
           class alpha_t,
           class beta_t,
           enable_if_t<(
@@ -322,9 +322,9 @@ inline void her2k(Uplo uplo,
 *
 * @ingroup blas3
 */
-template <AbstractMatrix matrixA_t,
-          AbstractMatrix matrixB_t,
-          AbstractMatrix matrixC_t,
+template <TLAPACK_MATRIX matrixA_t,
+          TLAPACK_MATRIX matrixB_t,
+          TLAPACK_MATRIX matrixC_t,
           class alpha_t,
           class T = type_t<matrixC_t>,
           enable_if_allow_optblas_t<pair<matrixA_t, T>,

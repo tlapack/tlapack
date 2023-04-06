@@ -53,7 +53,7 @@ struct gehrd_opts_t : public workspace_opts_t<> {
  *
  * @ingroup workspace_query
  */
-template <AbstractMatrix matrix_t, AbstractVector vector_t>
+template <TLAPACK_MATRIX matrix_t, TLAPACK_VECTOR vector_t>
 void gehrd_worksize(size_type<matrix_t> ilo,
                     size_type<matrix_t> ihi,
                     const matrix_t& A,
@@ -113,7 +113,7 @@ void gehrd_worksize(size_type<matrix_t> ilo,
  *
  * @ingroup computational
  */
-template <AbstractMatrix matrix_t, AbstractVector vector_t>
+template <TLAPACK_MATRIX matrix_t, TLAPACK_VECTOR vector_t>
 int gehrd(size_type<matrix_t> ilo,
           size_type<matrix_t> ihi,
           matrix_t& A,

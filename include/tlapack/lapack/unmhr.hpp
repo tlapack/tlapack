@@ -54,7 +54,7 @@ namespace tlapack {
  *
  * @ingroup computational
  */
-template <AbstractMatrix matrix_t, AbstractVector vector_t>
+template <TLAPACK_MATRIX matrix_t, TLAPACK_VECTOR vector_t>
 int unmhr(Side side,
           Op trans,
           size_type<matrix_t> ilo,
@@ -111,7 +111,7 @@ int unmhr(Side side,
  *
  * @ingroup workspace_query
  */
-template <AbstractMatrix matrix_t, AbstractVector vector_t>
+template <TLAPACK_MATRIX matrix_t, TLAPACK_VECTOR vector_t>
 inline constexpr void unmhr_worksize(Side side,
                                      Op trans,
                                      size_type<matrix_t> ilo,

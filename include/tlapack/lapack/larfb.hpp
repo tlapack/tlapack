@@ -67,13 +67,13 @@ namespace tlapack {
  *
  * @ingroup workspace_query
  */
-template <AbstractMatrix matrixV_t,
-          AbstractMatrix matrixT_t,
-          AbstractMatrix matrixC_t,
-          AbstractSide side_t,
-          AbstractOp trans_t,
+template <TLAPACK_MATRIX matrixV_t,
+          TLAPACK_MATRIX matrixT_t,
+          TLAPACK_MATRIX matrixC_t,
+          TLAPACK_SIDE side_t,
+          TLAPACK_OP trans_t,
           class direction_t,
-          AbstractStoreV storage_t,
+          TLAPACK_STOREV storage_t,
           class workW_t = void>
 inline constexpr void larfb_worksize(side_t side,
                                      trans_t trans,
@@ -192,13 +192,13 @@ inline constexpr void larfb_worksize(side_t side,
  *
  * @ingroup auxiliary
  */
-template <AbstractMatrix matrixV_t,
-          AbstractMatrix matrixT_t,
-          AbstractMatrix matrixC_t,
-          AbstractSide side_t,
-          AbstractOp trans_t,
+template <TLAPACK_MATRIX matrixV_t,
+          TLAPACK_MATRIX matrixT_t,
+          TLAPACK_MATRIX matrixC_t,
+          TLAPACK_SIDE side_t,
+          TLAPACK_OP trans_t,
           class direction_t,
-          AbstractStoreV storage_t,
+          TLAPACK_STOREV storage_t,
           class workW_t = void>
 int larfb(side_t side,
           trans_t trans,

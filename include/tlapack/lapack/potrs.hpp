@@ -50,7 +50,9 @@ namespace tlapack {
  *
  * @ingroup computational
  */
-template <AbstractUplo uplo_t, AbstractMatrix matrixA_t, AbstractMatrix matrixB_t>
+template <TLAPACK_UPLO uplo_t,
+          TLAPACK_MATRIX matrixA_t,
+          TLAPACK_MATRIX matrixB_t>
 int potrs(uplo_t uplo, const matrixA_t& A, matrixB_t& B)
 {
     using T = type_t<matrixB_t>;

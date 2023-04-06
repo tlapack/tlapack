@@ -53,7 +53,10 @@ namespace tlapack {
  *
  * @ingroup auxiliary
  */
-template <AbstractMatrix matrix_t, AbstractVector vector_t, class T_t, class Y_t>
+template <TLAPACK_MATRIX matrix_t,
+          TLAPACK_VECTOR vector_t,
+          class T_t,
+          class Y_t>
 int lahr2(size_type<matrix_t> k,
           size_type<matrix_t> nb,
           matrix_t& A,

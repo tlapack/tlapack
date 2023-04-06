@@ -29,7 +29,7 @@ namespace tlapack {
  *
  * @ingroup workspace_query
  */
-template <AbstractMatrix matrix_t>
+template <TLAPACK_MATRIX matrix_t>
 inline constexpr void getri_uxli_worksize(const matrix_t& A,
                                           workinfo_t& workinfo,
                                           const workspace_opts_t<>& opts = {})
@@ -62,7 +62,7 @@ inline constexpr void getri_uxli_worksize(const matrix_t& A,
  *
  * @ingroup computational
  */
-template <AbstractMatrix matrix_t>
+template <TLAPACK_MATRIX matrix_t>
 int getri_uxli(matrix_t& A, const workspace_opts_t<>& opts = {})
 {
     using work_t = vector_type<matrix_t, matrix_t>;

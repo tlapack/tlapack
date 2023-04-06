@@ -47,7 +47,7 @@ namespace tlapack {
  *
  * @ingroup legacy_lapack
  */
-template <AbstractSide side_t, AbstractOp trans_t, typename TA, typename TC>
+template <TLAPACK_SIDE side_t, TLAPACK_OP trans_t, typename TA, typename TC>
 inline int unm2r(side_t side,
                  trans_t trans,
                  idx_t m,

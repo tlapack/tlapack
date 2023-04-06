@@ -68,8 +68,8 @@ struct francis_opts_t;
  *
  * @ingroup workspace_query
  */
-template <AbstractMatrix matrix_t,
-          AbstractVector vector_t,
+template <TLAPACK_MATRIX matrix_t,
+          TLAPACK_VECTOR vector_t,
           enable_if_t<is_complex<type_t<vector_t> >::value, int> = 0>
 void agressive_early_deflation_worksize(
     bool want_t,
@@ -171,8 +171,8 @@ void agressive_early_deflation_worksize(
  *
  * @ingroup computational
  */
-template <AbstractMatrix matrix_t,
-          AbstractVector vector_t,
+template <TLAPACK_MATRIX matrix_t,
+          TLAPACK_VECTOR vector_t,
           enable_if_t<is_complex<type_t<vector_t> >::value, int> = 0>
 void agressive_early_deflation(bool want_t,
                                bool want_z,
@@ -572,8 +572,8 @@ void agressive_early_deflation(bool want_t,
  *
  * @ingroup computational
  */
-template <AbstractMatrix matrix_t,
-          AbstractVector vector_t,
+template <TLAPACK_MATRIX matrix_t,
+          TLAPACK_VECTOR vector_t,
           enable_if_t<is_complex<type_t<vector_t> >::value, int> = 0>
 inline void agressive_early_deflation(bool want_t,
                                       bool want_z,

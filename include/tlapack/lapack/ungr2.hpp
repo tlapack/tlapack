@@ -33,7 +33,7 @@ namespace tlapack {
  *
  * @ingroup workspace_query
  */
-template <AbstractMatrix matrix_t, AbstractVector vector_t>
+template <TLAPACK_MATRIX matrix_t, TLAPACK_VECTOR vector_t>
 inline constexpr void ungr2_worksize(const matrix_t& A,
                                      const vector_t& tau,
                                      workinfo_t& workinfo,
@@ -77,7 +77,7 @@ inline constexpr void ungr2_worksize(const matrix_t& A,
  *
  * @ingroup computational
  */
-template <AbstractMatrix matrix_t, AbstractVector vector_t>
+template <TLAPACK_MATRIX matrix_t, TLAPACK_VECTOR vector_t>
 int ungr2(matrix_t& A, const vector_t& tau, const workspace_opts_t<>& opts = {})
 {
     using T = type_t<matrix_t>;

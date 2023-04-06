@@ -38,7 +38,7 @@ namespace tlapack {
  *
  * @ingroup workspace_query
  */
-template <AbstractMatrix matrix_t, AbstractVector vector_t>
+template <TLAPACK_MATRIX matrix_t, TLAPACK_VECTOR vector_t>
 inline constexpr void gehd2_worksize(size_type<matrix_t> ilo,
                                      size_type<matrix_t> ihi,
                                      const matrix_t& A,
@@ -106,7 +106,7 @@ inline constexpr void gehd2_worksize(size_type<matrix_t> ilo,
  *
  * @ingroup computational
  */
-template <AbstractMatrix matrix_t, AbstractVector vector_t>
+template <TLAPACK_MATRIX matrix_t, TLAPACK_VECTOR vector_t>
 int gehd2(size_type<matrix_t> ilo,
           size_type<matrix_t> ihi,
           matrix_t& A,

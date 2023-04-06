@@ -39,9 +39,9 @@ namespace tlapack {
  *
  * @ingroup blas2
  */
-template <AbstractMatrix matrixA_t,
-          AbstractVector vectorX_t,
-          AbstractVector vectorY_t,
+template <TLAPACK_MATRIX matrixA_t,
+          TLAPACK_VECTOR vectorX_t,
+          TLAPACK_VECTOR vectorY_t,
           class alpha_t,
           class beta_t,
           class T = type_t<vectorY_t>,
@@ -126,9 +126,9 @@ void hemv(Uplo uplo,
  *
  * @ingroup blas2
  */
-template <AbstractMatrix matrixA_t,
-          AbstractVector vectorX_t,
-          AbstractVector vectorY_t,
+template <TLAPACK_MATRIX matrixA_t,
+          TLAPACK_VECTOR vectorX_t,
+          TLAPACK_VECTOR vectorY_t,
           class alpha_t,
           class T = type_t<vectorY_t>,
           disable_if_allow_optblas_t<pair<alpha_t, T>,
@@ -146,9 +146,9 @@ inline void hemv(Uplo uplo,
 
 #ifdef USE_LAPACKPP_WRAPPERS
 
-template <AbstractMatrix matrixA_t,
-          AbstractVector vectorX_t,
-          AbstractVector vectorY_t,
+template <TLAPACK_MATRIX matrixA_t,
+          TLAPACK_VECTOR vectorX_t,
+          TLAPACK_VECTOR vectorY_t,
           class alpha_t,
           class beta_t,
           class T = type_t<vectorY_t>,
@@ -186,9 +186,9 @@ inline void hemv(Uplo uplo,
                         A_.ldim, x_.ptr, x_.inc, beta, y_.ptr, y_.inc);
 }
 
-template <AbstractMatrix matrixA_t,
-          AbstractVector vectorX_t,
-          AbstractVector vectorY_t,
+template <TLAPACK_MATRIX matrixA_t,
+          TLAPACK_VECTOR vectorX_t,
+          TLAPACK_VECTOR vectorY_t,
           class alpha_t,
           class T = type_t<vectorY_t>,
           enable_if_allow_optblas_t<pair<alpha_t, T>,

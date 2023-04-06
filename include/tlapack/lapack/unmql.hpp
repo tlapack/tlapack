@@ -75,11 +75,11 @@ struct unmql_opts_t : public workspace_opts_t<workT_t> {
  *
  * @ingroup computational
  */
-template <AbstractMatrix matrixA_t,
-          AbstractMatrix matrixC_t,
-          AbstractVector tau_t,
-          AbstractSide side_t,
-          AbstractOp trans_t,
+template <TLAPACK_MATRIX matrixA_t,
+          TLAPACK_MATRIX matrixC_t,
+          TLAPACK_VECTOR tau_t,
+          TLAPACK_SIDE side_t,
+          TLAPACK_OP trans_t,
           class workT_t = void>
 inline constexpr void unmql_worksize(side_t side,
                                      trans_t trans,
@@ -177,11 +177,11 @@ inline constexpr void unmql_worksize(side_t side,
  *
  * @ingroup computational
  */
-template <AbstractMatrix matrixA_t,
-          AbstractMatrix matrixC_t,
-          AbstractVector tau_t,
-          AbstractSide side_t,
-          AbstractOp trans_t,
+template <TLAPACK_MATRIX matrixA_t,
+          TLAPACK_MATRIX matrixC_t,
+          TLAPACK_VECTOR tau_t,
+          TLAPACK_SIDE side_t,
+          TLAPACK_OP trans_t,
           class workT_t = void>
 int unmql(side_t side,
           trans_t trans,

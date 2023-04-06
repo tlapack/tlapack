@@ -88,8 +88,8 @@ struct francis_opts_t : public workspace_opts_t<> {
  *
  * @ingroup workspace_query
  */
-template <AbstractMatrix matrix_t,
-          AbstractVector vector_t,
+template <TLAPACK_MATRIX matrix_t,
+          TLAPACK_VECTOR vector_t,
           enable_if_t<is_complex<type_t<vector_t> >::value, int> = 0>
 void multishift_qr_worksize(
     bool want_t,
@@ -181,8 +181,8 @@ void multishift_qr_worksize(
  *
  * @ingroup computational
  */
-template <AbstractMatrix matrix_t,
-          AbstractVector vector_t,
+template <TLAPACK_MATRIX matrix_t,
+          TLAPACK_VECTOR vector_t,
           enable_if_t<is_complex<type_t<vector_t> >::value, int> = 0>
 int multishift_qr(bool want_t,
                   bool want_z,
@@ -449,8 +449,8 @@ int multishift_qr(bool want_t,
     return info;
 }
 
-template <AbstractMatrix matrix_t,
-          AbstractVector vector_t,
+template <TLAPACK_MATRIX matrix_t,
+          TLAPACK_VECTOR vector_t,
           enable_if_t<is_complex<type_t<vector_t> >::value, int> = 0>
 inline int multishift_qr(bool want_t,
                          bool want_z,

@@ -40,7 +40,7 @@ struct gelqt_opts_t : public workspace_opts_t<> {
  *
  * @ingroup workspace_query
  */
-template <AbstractMatrix matrix_t>
+template <TLAPACK_MATRIX matrix_t>
 inline constexpr void gelqt_worksize(const matrix_t& A,
                                      const matrix_t& TT,
                                      workinfo_t& workinfo,
@@ -110,7 +110,7 @@ inline constexpr void gelqt_worksize(const matrix_t& A,
  *
  * @ingroup computational
  */
-template <AbstractMatrix matrix_t>
+template <TLAPACK_MATRIX matrix_t>
 int gelqt(matrix_t& A, matrix_t& TT, const gelqt_opts_t& opts = {})
 {
     using idx_t = size_type<matrix_t>;

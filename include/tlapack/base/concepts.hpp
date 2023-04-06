@@ -100,26 +100,26 @@ concept NormConcept = std::is_convertible<T, Norm>::value;
 template <typename T>
 concept UploConcept = std::is_convertible<T, Uplo>::value;
 
-    #define AbstractMatrix MatrixConcept
-    #define AbstractVector VectorConcept
-    #define AbstractNumber NumberConcept
-    #define AbstractSide SideConcept
-    #define AbstractDirection DirectionConcept
-    #define AbstractOp OpConcept
-    #define AbstractStoreV StoreVConcept
-    #define AbstractNorm NormConcept
-    #define AbstractUplo UploConcept
+    #define TLAPACK_MATRIX MatrixConcept
+    #define TLAPACK_VECTOR VectorConcept
+    #define TLAPACK_NUMBER NumberConcept
+    #define TLAPACK_SIDE SideConcept
+    #define TLAPACK_DIRECTION DirectionConcept
+    #define TLAPACK_OP OpConcept
+    #define TLAPACK_STOREV StoreVConcept
+    #define TLAPACK_NORM NormConcept
+    #define TLAPACK_UPLO UploConcept
 #else
     // Concepts are a C++20 feature, so just define them as `class` for earlier
     // versions
-    #define AbstractMatrix class
-    #define AbstractVector class
-    #define AbstractNumber class
-    #define AbstractDirection class
-    #define AbstractOp class
-    #define AbstractStoreV class
-    #define AbstractNorm class
-    #define AbstractUplo class
+    #define TLAPACK_MATRIX class
+    #define TLAPACK_VECTOR class
+    #define TLAPACK_NUMBER class
+    #define TLAPACK_DIRECTION class
+    #define TLAPACK_OP class
+    #define TLAPACK_STOREV class
+    #define TLAPACK_NORM class
+    #define TLAPACK_UPLO class
 #endif
 
 }  // namespace tlapack

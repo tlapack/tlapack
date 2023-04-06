@@ -23,7 +23,7 @@ namespace tlapack {
  *
  * @ingroup legacy_lapack
  */
-template <AbstractSide side_t, typename TV, typename TC>
+template <TLAPACK_SIDE side_t, typename TV, typename TC>
 inline void larf(side_t side,
                  idx_t m,
                  idx_t n,

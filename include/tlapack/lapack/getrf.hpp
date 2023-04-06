@@ -58,7 +58,7 @@ struct getrf_opts_t {
  *
  * @ingroup computational
  */
-template <AbstractMatrix matrix_t, AbstractVector vector_t>
+template <TLAPACK_MATRIX matrix_t, TLAPACK_VECTOR vector_t>
 inline int getrf(matrix_t& A, vector_t& Piv, const getrf_opts_t& opts = {})
 {
     // Call variant

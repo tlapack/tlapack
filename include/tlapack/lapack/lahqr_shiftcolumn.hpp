@@ -35,8 +35,8 @@ namespace tlapack {
  *
  * @ingroup auxiliary
  */
-template <AbstractMatrix matrix_t,
-          AbstractVector vector_t,
+template <TLAPACK_MATRIX matrix_t,
+          TLAPACK_VECTOR vector_t,
           enable_if_t<!is_complex<type_t<matrix_t>>::value, bool> = true>
 int lahqr_shiftcolumn(const matrix_t& H,
                       vector_t& v,
@@ -111,8 +111,8 @@ int lahqr_shiftcolumn(const matrix_t& H,
  *
  * @ingroup auxiliary
  */
-template <AbstractMatrix matrix_t,
-          AbstractVector vector_t,
+template <TLAPACK_MATRIX matrix_t,
+          TLAPACK_VECTOR vector_t,
           enable_if_t<is_complex<type_t<matrix_t>>::value, bool> = true>
 int lahqr_shiftcolumn(const matrix_t& H,
                       vector_t& v,

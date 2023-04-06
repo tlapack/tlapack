@@ -62,8 +62,8 @@ namespace tlapack {
  *
  * @ingroup blas3
  */
-template <AbstractMatrix matrixA_t,
-          AbstractMatrix matrixB_t,
+template <TLAPACK_MATRIX matrixA_t,
+          TLAPACK_MATRIX matrixB_t,
           class alpha_t,
           class T = type_t<matrixB_t>,
           disable_if_allow_optblas_t<pair<matrixA_t, T>,
@@ -297,8 +297,8 @@ void trmm(Side side,
 *
 * @ingroup blas3
 */
-template <AbstractMatrix matrixA_t,
-          AbstractMatrix matrixB_t,
+template <TLAPACK_MATRIX matrixA_t,
+          TLAPACK_MATRIX matrixB_t,
           class alpha_t,
           class T = type_t<matrixB_t>,
           enable_if_allow_optblas_t<pair<matrixA_t, T>,

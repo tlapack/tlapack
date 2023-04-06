@@ -113,8 +113,8 @@ namespace tlapack {
  * @ingroup legacy_lapack
  */
 
-template <AbstractSide side_t,
-          AbstractOp trans_t,
+template <TLAPACK_SIDE side_t,
+          TLAPACK_OP trans_t,
           class direction_t,
           class storeV_t,
           typename TV,

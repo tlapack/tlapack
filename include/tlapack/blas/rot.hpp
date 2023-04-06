@@ -32,8 +32,8 @@ namespace tlapack {
  *
  * @ingroup blas1
  */
-template <AbstractVector vectorX_t,
-          AbstractVector vectorY_t,
+template <TLAPACK_VECTOR vectorX_t,
+          TLAPACK_VECTOR vectorY_t,
           class c_type,
           class s_type,
           class T = type_t<vectorX_t>,
@@ -65,8 +65,8 @@ void rot(vectorX_t& x, vectorY_t& y, const c_type& c, const s_type& s)
 
 #ifdef USE_LAPACKPP_WRAPPERS
 
-template <AbstractVector vectorX_t,
-          AbstractVector vectorY_t,
+template <TLAPACK_VECTOR vectorX_t,
+          TLAPACK_VECTOR vectorY_t,
           class c_type,
           class s_type,
           class T = type_t<vectorX_t>,

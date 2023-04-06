@@ -32,7 +32,7 @@ namespace tlapack {
  *
  * @ingroup workspace_query
  */
-template <AbstractMatrix matrix_t, AbstractVector vector_t>
+template <TLAPACK_MATRIX matrix_t, TLAPACK_VECTOR vector_t>
 inline constexpr void gelq2_worksize(const matrix_t& A,
                                      const vector_t& tauw,
                                      workinfo_t& workinfo,
@@ -88,7 +88,7 @@ inline constexpr void gelq2_worksize(const matrix_t& A,
  *
  * @ingroup computational
  */
-template <AbstractMatrix matrix_t, AbstractVector vector_t>
+template <TLAPACK_MATRIX matrix_t, TLAPACK_VECTOR vector_t>
 int gelq2(matrix_t& A, vector_t& tauw, const workspace_opts_t<>& opts = {})
 {
     using idx_t = size_type<matrix_t>;

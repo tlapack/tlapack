@@ -33,7 +33,7 @@ namespace tlapack {
  *
  * @ingroup auxiliary
  */
-template <AbstractMatrix matrix_t, AbstractVector vector_t>
+template <TLAPACK_MATRIX matrix_t, TLAPACK_VECTOR vector_t>
 void move_bulge(matrix_t& H,
                 vector_t& v,
                 complex_type<type_t<matrix_t>> s1,

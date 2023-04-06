@@ -34,7 +34,7 @@ struct transpose_opts_t {
  *
  * @ingroup auxiliary
  */
-template <AbstractMatrix matrixA_t, AbstractMatrix matrixB_t>
+template <TLAPACK_MATRIX matrixA_t, TLAPACK_MATRIX matrixB_t>
 void conjtranspose(matrixA_t& A,
                    matrixB_t& B,
                    const transpose_opts_t<size_type<matrixA_t>>& opts = {})
@@ -91,7 +91,7 @@ void conjtranspose(matrixA_t& A,
  *
  * @ingroup auxiliary
  */
-template <AbstractMatrix matrixA_t, AbstractMatrix matrixB_t>
+template <TLAPACK_MATRIX matrixA_t, TLAPACK_MATRIX matrixB_t>
 void transpose(matrixA_t& A,
                matrixB_t& B,
                const transpose_opts_t<size_type<matrixA_t>>& opts = {})
