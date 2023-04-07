@@ -13,8 +13,9 @@
 // <T>LAPACK
 #include <tlapack/base/constants.hpp>
 #include <tlapack/blas/trmm.hpp>
-#include <tlapack/lapack/getrf_level0.hpp>
 #include <tlapack/lapack/lacpy.hpp>
+#include <tlapack/lapack/getrf_level0.hpp>
+#include <tlapack/lapack/getrf_recursive.hpp>
 
 // C++ headers
 #include <iostream>
@@ -43,7 +44,7 @@ int main(int argc, char** argv)
             A_[i] = i + 1;
         }
         Matrix<float> A(A_, 4, 10);
-        // A.create_grid(2, 5); // Try to put a grid when this is working
+        A.create_grid(1, 1); // Try to put a grid when this is working
 
         /* print matrix A */
         std::cout << "A = " << A << std::endl;
@@ -67,7 +68,10 @@ int main(int argc, char** argv)
         lacpy(dense, A, U);
 
         /* LU factorization */
-        std::vector<size_t> p(4);
+        size_t* p_;
+        starpu_malloc((void**)&p_, 4 * sizeof(size_t));
+        Matrix<size_t> p(p_, 4, 1);
+        // getrf_recursive(U, p);
         getrf_level0(U, p);
 
         /* Create and print matrix L */

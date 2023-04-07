@@ -105,7 +105,11 @@ int getrf_recursive(matrix_t& A, vector_t& Piv)
         if (A(Piv[0], 0) == real_t(0)) return 1;
 
         // in this case, we can safely swap since A(Piv[0],0) is not zero
-        if (Piv[0] != 0) std::swap(A(Piv[0], 0), A(0, 0));
+        if (Piv[0] != 0) {
+            auto aux = A(Piv[0], 0);
+            A(Piv[0], 0) = A(0, 0);
+            A(0, 0) = aux;
+        }
 
         // by the previous comment, we can safely scale all elements of 0th
         // column by 1/A(0,0)
