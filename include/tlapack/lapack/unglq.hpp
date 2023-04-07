@@ -176,7 +176,7 @@ int unglq(matrix_t& A,
             // H = H(i) H(i+1) . . . H(i+ib-1)
             const auto V = slice(A, pair{i, i + ib}, pair{i, n});
             auto matrixTi = slice(matrixT, pair{0, ib}, pair{0, ib});
-            auto C = slice(A, pair{i + ib, n}, pair{i, n});
+            auto C = slice(A, pair{i + ib, m}, pair{i, n});
 
             larft(forward, rowwise_storage, V, taui, matrixTi);
             larfb(right_side, conjTranspose, forward, rowwise_storage, V,

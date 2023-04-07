@@ -1,8 +1,6 @@
-/// @file test_gebd2.cpp
-/// @author Yuxin Cai, University of Colorado Denver, USA
+/// @file test_gebrd.cpp
 /// @author Thijs Steel, KU Leuven, Belgium
-/// @brief Test GEBD2 using UNG2R and UNGL2. Output an upper/lower bidiagonal
-/// matrix B for a m-by-n matrix A.
+/// @brief Test GEBRD
 //
 // Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
@@ -24,6 +22,7 @@
 // Other routines
 #include <tlapack/blas/gemm.hpp>
 #include <tlapack/lapack/gebd2.hpp>
+#include <tlapack/lapack/gebrd.hpp>
 #include <tlapack/lapack/ung2r.hpp>
 #include <tlapack/lapack/ungbr.hpp>
 #include <tlapack/lapack/ungl2.hpp>
@@ -48,10 +47,11 @@ TEMPLATE_TEST_CASE("bidiagonal reduction is backward stable",
     const real_t zero(0);
     const real_t one(1);
 
-    idx_t m, n;
+    idx_t m, n, nb;
 
     m = GENERATE(1, 4, 5, 10, 15);
     n = GENERATE(1, 4, 5, 10, 12);
+    nb = GENERATE(1, 2, 5);
     idx_t k = min(m, n);
 
     const real_t eps = ulp<real_t>();
@@ -66,6 +66,8 @@ TEMPLATE_TEST_CASE("bidiagonal reduction is backward stable",
     std::vector<T> Z_;
     auto Z = new_matrix(Z_, k, n);
 
+    std::vector<real_t> d(k);
+    std::vector<real_t> e(k);
     std::vector<T> tauv(k);
     std::vector<T> tauw(k);
 
@@ -77,9 +79,11 @@ TEMPLATE_TEST_CASE("bidiagonal reduction is backward stable",
     lacpy(Uplo::General, A, A_copy);
     real_t normA = lange(Norm::Max, A);
 
-    DYNAMIC_SECTION("m = " << m << " n = " << n)
+    DYNAMIC_SECTION("m = " << m << " n = " << n << " nb = " << nb)
     {
-        gebd2(A, tauv, tauw);
+        gebrd_opts_t<idx_t> gebrdOpts;
+        gebrdOpts.nb = nb;
+        gebrd(A, d, e, tauv, tauw, gebrdOpts);
 
         // Get bidiagonal B
         std::vector<T> B_;
@@ -105,7 +109,7 @@ TEMPLATE_TEST_CASE("bidiagonal reduction is backward stable",
 
         // Generate m-by-k unitary matrix Q
         ungbr_opts_t<matrix_t> ungbrOpts;
-        ungbrOpts.nb = 2;
+        ungbrOpts.nb = nb;
         lacpy(Uplo::Lower, slice(A, pair{0, m}, pair{0, k}), Q);
         ungbr_q(n, Q, tauv, ungbrOpts);
 
