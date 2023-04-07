@@ -20,6 +20,20 @@
 namespace starpu {
 
 template <class T>
+void assign_data(void** buffers, void* args)
+{
+    T* x = (T*)STARPU_VARIABLE_GET_PTR(buffers[0]);
+    *x = *((T*)STARPU_VARIABLE_GET_PTR(buffers[1]));
+}
+
+template <class T>
+void assign_value(void** buffers, void* args)
+{
+    T* x = (T*)STARPU_VARIABLE_GET_PTR(buffers[0]);
+    *x = *((T*)args);
+}
+
+template <class T>
 class Matrix {
    public:
     using idx_t = uint32_t;
@@ -27,8 +41,134 @@ class Matrix {
     struct data {
         starpu_data_handle_t root_handle;
         starpu_data_handle_t handle;
-
         ~data() { starpu_data_partition_clean(root_handle, 1, &handle); }
+
+        /// Implicit conversion to T
+        constexpr operator T() const noexcept
+        {
+            starpu_data_acquire(handle, STARPU_R);
+            const T x = *((T*)starpu_variable_get_local_ptr(handle));
+            starpu_data_release(handle);
+
+            return x;
+        }
+
+        // Operators for setting values
+
+        constexpr data& operator=(const data& x) noexcept
+        {
+            struct starpu_codelet cl_assign_data = {
+                .cpu_funcs = {assign_data<T>},
+                .nbuffers = 2,
+                .modes = {STARPU_W, STARPU_R},
+                .name = "assign_data"};
+
+            int ret = starpu_task_insert(&cl_assign_data, STARPU_W,
+                                         this->handle, STARPU_R, x.handle,
+                                         STARPU_TASK_SYNCHRONOUS, 1, 0);
+            if (ret == -ENODEV) {
+                starpu_shutdown();
+                exit(77);
+            }
+            STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+
+            return *this;
+        }
+        constexpr data& operator=(const T& x) noexcept
+        {
+            struct starpu_codelet cl_assign_value = {
+                .cpu_funcs = {assign_value<T>},
+                .nbuffers = 1,
+                .modes = {STARPU_W},
+                .name = "assign_value"};
+
+            struct starpu_task* task = starpu_task_create();
+            task->cl = &cl_assign_value;
+            task->handles[0] = this->handle;
+            task->synchronous = 1;
+            task->cl_arg = (void*)(&x);
+            task->cl_arg_size = sizeof(T);
+            int ret = starpu_task_submit(task);
+
+            // The following code does not work, but it should:
+            // int ret = starpu_task_insert(
+            //     &cl_assign_value, STARPU_W, this->handle, STARPU_VALUE, &x,
+            //     sizeof(T), STARPU_TASK_SYNCHRONOUS, 1, 0);
+
+            if (ret == -ENODEV) {
+                starpu_shutdown();
+                exit(77);
+            }
+            STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+
+            // set(x);
+            return *this;
+        }
+
+        // Arithmetic operators with assignment
+
+        constexpr data& operator+=(const data& x) noexcept
+        {
+            set(T(*this) + T(x));
+            return *this;
+        }
+        constexpr data& operator+=(const T& x) noexcept
+        {
+            set(T(*this) + x);
+            return *this;
+        }
+
+        constexpr data& operator-=(const data& x) noexcept
+        {
+            set(T(*this) - T(x));
+            return *this;
+        }
+        constexpr data& operator-=(const T& x) noexcept
+        {
+            set(T(*this) - x);
+            return *this;
+        }
+
+        constexpr data& operator*=(const data& x) noexcept
+        {
+            set(T(*this) * T(x));
+            return *this;
+        }
+        constexpr data& operator*=(const T& x) noexcept
+        {
+            set(T(*this) * x);
+            return *this;
+        }
+
+        constexpr data& operator/=(const data& x) noexcept
+        {
+            set(T(*this) / T(x));
+            return *this;
+        }
+        constexpr data& operator/=(const T& x) noexcept
+        {
+            set(T(*this) / x);
+            return *this;
+        }
+
+        // Other math functions
+
+        constexpr friend T abs(const data& x) noexcept { return abs(T(x)); }
+        constexpr friend T sqrt(const data& x) noexcept { return sqrt(T(x)); }
+
+        // Display value in ostream
+
+        constexpr friend std::ostream& operator<<(std::ostream& out,
+                                                  const data& x)
+        {
+            return out << T(x);
+        }
+
+       protected:
+        void set(const T& x) noexcept
+        {
+            *((T*)starpu_variable_get_local_ptr(handle)) = x;
+        }
     };
 
     constexpr Matrix(T* ptr, idx_t m, idx_t n, idx_t ld) noexcept
@@ -74,7 +214,6 @@ class Matrix {
             else {
                 const idx_t nb =
                     starpu_matrix_get_ny(starpu_data_get_child(x0, 0));
-                print
                 if (iy + ny < NY)
                     return ny * nb;
                 else
@@ -85,15 +224,48 @@ class Matrix {
         }
     }
 
-    constexpr data operator()(idx_t i, idx_t j) const noexcept
+    constexpr T operator()(idx_t i, idx_t j) const noexcept
     {
         starpu_data_handle_t root_handle = handle;
         uint32_t pos[2] = {i, j};
 
         if (starpu_data_get_nb_children(root_handle) > 0) {
             starpu_data_handle_t x0 = starpu_data_get_child(root_handle, 0);
-            const idx_t nbx =
-                starpu_matrix_get_nx(x0);
+            const idx_t nbx = starpu_matrix_get_nx(x0);
+            const idx_t nby =
+                starpu_matrix_get_ny(starpu_data_get_child(x0, 0));
+
+            root_handle = starpu_data_get_sub_data(
+                root_handle, 2, ix + pos[0] / nbx, iy + pos[1] / nby);
+
+            pos[0] = pos[0] % nbx;
+            pos[1] = pos[1] % nby;
+        }
+
+        starpu_data_handle_t var_handle[1];
+
+        /* Pick a variable in the matrix */
+        struct starpu_data_filter f_var = {
+            .filter_func = starpu_matrix_filter_pick_variable,
+            .nchildren = 1,
+            .get_child_ops = starpu_matrix_filter_pick_variable_child_ops,
+            .filter_arg_ptr = (void*)pos};
+
+        starpu_data_partition_plan(root_handle, &f_var, var_handle);
+        T value = *((T*)starpu_variable_get_local_ptr(var_handle[0]));
+        starpu_data_partition_clean(root_handle, 1, var_handle);
+
+        return value;
+    }
+
+    constexpr data operator()(idx_t i, idx_t j) noexcept
+    {
+        starpu_data_handle_t root_handle = handle;
+        uint32_t pos[2] = {i, j};
+
+        if (starpu_data_get_nb_children(root_handle) > 0) {
+            starpu_data_handle_t x0 = starpu_data_get_child(root_handle, 0);
+            const idx_t nbx = starpu_matrix_get_nx(x0);
             const idx_t nby =
                 starpu_matrix_get_ny(starpu_data_get_child(x0, 0));
 
@@ -185,12 +357,6 @@ class Matrix {
         if (is_owner) starpu_data_unregister(handle);
     }
 
-    inline friend std::ostream& operator<<(std::ostream& out, const data& x)
-    {
-        out << *((T*)starpu_variable_get_local_ptr(x.handle));
-        return out;
-    }
-
    private:
     starpu_data_handle_t handle;  ///< Data handle
     const bool is_owner = false;  ///< Whether this object owns the data handle
@@ -242,6 +408,11 @@ inline std::ostream& operator<<(std::ostream& out, const starpu::Matrix<T>& A)
 }
 
 namespace tlapack {
+
+template <class T>
+struct internal::type_trait<starpu::Matrix<T>, int> {
+    using type = T;
+};
 
 // -----------------------------------------------------------------------------
 // Data descriptors
