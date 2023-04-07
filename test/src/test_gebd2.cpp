@@ -107,7 +107,7 @@ TEMPLATE_TEST_CASE("bidiagonal reduction is backward stable",
         ungbr_opts_t<matrix_t> ungbrOpts;
         ungbrOpts.nb = 2;
         lacpy(Uplo::Lower, slice(A, pair{0, m}, pair{0, k}), Q);
-        ungbr(QorP::Q, n, Q, tauv, ungbrOpts);
+        ungbr_q(n, Q, tauv, ungbrOpts);
 
         // Test for Q's orthogonality
         std::vector<T> Wq_;
@@ -116,7 +116,7 @@ TEMPLATE_TEST_CASE("bidiagonal reduction is backward stable",
         CHECK(orth_Q <= tol);
 
         lacpy(Uplo::Upper, slice(A, pair{0, k}, pair{0, n}), Z);
-        ungbr(QorP::P, m, Z, tauw, ungbrOpts);
+        ungbr_p(m, Z, tauw, ungbrOpts);
 
         // Test for Z's orthogonality
         std::vector<T> Wz_;
