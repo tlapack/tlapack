@@ -43,7 +43,7 @@ int main(int argc, char** argv)
             A_[i] = i + 1;
         }
         Matrix<float> A(A_, 4, 10);
-        // A.create_grid(1, 1); // Try to put a grid when this is working
+        // A.create_grid(2, 5); // Try to put a grid when this is working
 
         /* print matrix A */
         std::cout << "A = " << A << std::endl;

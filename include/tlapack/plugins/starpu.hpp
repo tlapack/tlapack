@@ -19,18 +19,58 @@
 
 namespace starpu {
 
-template <class T>
-void assign_data(void** buffers, void* args)
+enum class Operation { Assign, Add, Subtract, Multiply, Divide };
+
+std::string to_string(Operation v)
 {
-    T* x = (T*)STARPU_VARIABLE_GET_PTR(buffers[0]);
-    *x = *((T*)STARPU_VARIABLE_GET_PTR(buffers[1]));
+    switch (v) {
+        case Operation::Assign:
+            return "assign";
+        case Operation::Add:
+            return "add";
+        case Operation::Subtract:
+            return "subtract";
+        case Operation::Multiply:
+            return "multiply";
+        case Operation::Divide:
+            return "divide";
+    }
+}
+inline std::ostream& operator<<(std::ostream& out, Operation v)
+{
+    return out << to_string(v);
 }
 
-template <class T>
-void assign_value(void** buffers, void* args)
+template <class T, Operation op>
+void data_op_data(void** buffers, void* args)
 {
     T* x = (T*)STARPU_VARIABLE_GET_PTR(buffers[0]);
-    *x = *((T*)args);
+    if constexpr (op == Operation::Assign)
+        *x = *((T*)STARPU_VARIABLE_GET_PTR(buffers[1]));
+    else if constexpr (op == Operation::Add)
+        *x += *((T*)STARPU_VARIABLE_GET_PTR(buffers[1]));
+    else if constexpr (op == Operation::Subtract)
+        *x -= *((T*)STARPU_VARIABLE_GET_PTR(buffers[1]));
+    else if constexpr (op == Operation::Multiply)
+        *x *= *((T*)STARPU_VARIABLE_GET_PTR(buffers[1]));
+    else if constexpr (op == Operation::Divide)
+        *x /= *((T*)STARPU_VARIABLE_GET_PTR(buffers[1]));
+}
+
+template <class T, Operation op>
+void data_op_value(void** buffers, void* args)
+{
+    T* x = (T*)STARPU_VARIABLE_GET_PTR(buffers[0]);
+    if constexpr (op == Operation::Assign)
+        *x = *((T*)args);
+    else if constexpr (op == Operation::Add)
+        *x += *((T*)args);
+    else if constexpr (op == Operation::Subtract)
+        *x -= *((T*)args);
+    else if constexpr (op == Operation::Multiply)
+        *x *= *((T*)args);
+    else if constexpr (op == Operation::Divide)
+        *x /= *((T*)args);
 }
 
 template <class T>
@@ -53,19 +93,20 @@ class Matrix {
             return x;
         }
 
-        // Operators for setting values
+        // Arithmetic operators with assignment
 
-        constexpr data& operator=(const data& x) noexcept
+        template <Operation op>
+        constexpr data& operate_and_assign(const data& x)
         {
-            struct starpu_codelet cl_assign_data = {
-                .cpu_funcs = {assign_data<T>},
+            struct starpu_codelet cl = {
+                .cpu_funcs = {data_op_data<T, op>},
                 .nbuffers = 2,
                 .modes = {STARPU_W, STARPU_R},
-                .name = "assign_data"};
+                .name = (to_string(op) + "_data_" + typeid(T).name()).c_str()};
 
-            int ret = starpu_task_insert(&cl_assign_data, STARPU_W,
-                                         this->handle, STARPU_R, x.handle,
-                                         STARPU_TASK_SYNCHRONOUS, 1, 0);
+            const int ret =
+                starpu_task_insert(&cl, STARPU_W, this->handle, STARPU_R,
+                                   x.handle, STARPU_TASK_SYNCHRONOUS, 1, 0);
             if (ret == -ENODEV) {
                 starpu_shutdown();
                 exit(77);
@@ -74,26 +115,28 @@ class Matrix {
 
             return *this;
         }
-        constexpr data& operator=(const T& x) noexcept
+
+        template <Operation op>
+        constexpr data& operate_and_assign(const T& x) noexcept
         {
-            struct starpu_codelet cl_assign_value = {
-                .cpu_funcs = {assign_value<T>},
+            struct starpu_codelet cl = {
+                .cpu_funcs = {data_op_value<T, op>},
                 .nbuffers = 1,
                 .modes = {STARPU_W},
-                .name = "assign_value"};
+                .name = (to_string(op) + "_value_" + typeid(T).name()).c_str()};
 
             struct starpu_task* task = starpu_task_create();
-            task->cl = &cl_assign_value;
+            task->cl = &cl;
             task->handles[0] = this->handle;
             task->synchronous = 1;
             task->cl_arg = (void*)(&x);
             task->cl_arg_size = sizeof(T);
-            int ret = starpu_task_submit(task);
+            const int ret = starpu_task_submit(task);
 
             // The following code does not work, but it should:
-            // int ret = starpu_task_insert(
-            //     &cl_assign_value, STARPU_W, this->handle, STARPU_VALUE, &x,
-            //     sizeof(T), STARPU_TASK_SYNCHRONOUS, 1, 0);
+            // int ret = starpu_task_insert(&cl, STARPU_W, this->handle,
+            //                              STARPU_VALUE, &x, sizeof(T),
+            //                              STARPU_TASK_SYNCHRONOUS, 1, 0);
 
             if (ret == -ENODEV) {
                 starpu_shutdown();
@@ -101,54 +144,52 @@ class Matrix {
             }
             STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
-            // set(x);
             return *this;
         }
 
-        // Arithmetic operators with assignment
+        constexpr data& operator=(const data& x) noexcept
+        {
+            return operate_and_assign<Operation::Assign>(x);
+        }
+        constexpr data& operator=(const T& x) noexcept
+        {
+            return operate_and_assign<Operation::Assign>(x);
+        }
 
         constexpr data& operator+=(const data& x) noexcept
         {
-            set(T(*this) + T(x));
-            return *this;
+            return operate_and_assign<Operation::Add>(x);
         }
         constexpr data& operator+=(const T& x) noexcept
         {
-            set(T(*this) + x);
-            return *this;
+            return operate_and_assign<Operation::Add>(x);
         }
 
         constexpr data& operator-=(const data& x) noexcept
         {
-            set(T(*this) - T(x));
-            return *this;
+            return operate_and_assign<Operation::Subtract>(x);
         }
         constexpr data& operator-=(const T& x) noexcept
         {
-            set(T(*this) - x);
-            return *this;
+            return operate_and_assign<Operation::Subtract>(x);
         }
 
         constexpr data& operator*=(const data& x) noexcept
         {
-            set(T(*this) * T(x));
-            return *this;
+            return operate_and_assign<Operation::Multiply>(x);
         }
         constexpr data& operator*=(const T& x) noexcept
         {
-            set(T(*this) * x);
-            return *this;
+            return operate_and_assign<Operation::Multiply>(x);
         }
 
         constexpr data& operator/=(const data& x) noexcept
         {
-            set(T(*this) / T(x));
-            return *this;
+            return operate_and_assign<Operation::Divide>(x);
         }
         constexpr data& operator/=(const T& x) noexcept
         {
-            set(T(*this) / x);
-            return *this;
+            return operate_and_assign<Operation::Divide>(x);
         }
 
         // Other math functions
@@ -162,12 +203,6 @@ class Matrix {
                                                   const data& x)
         {
             return out << T(x);
-        }
-
-       protected:
-        void set(const T& x) noexcept
-        {
-            *((T*)starpu_variable_get_local_ptr(handle)) = x;
         }
     };
 
