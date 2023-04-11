@@ -20,6 +20,9 @@ on:
     - 'test/include/**'
     - 'test/src/**'
 
+permissions:
+  contents: read
+
 defaults:
   run:
     shell: bash
