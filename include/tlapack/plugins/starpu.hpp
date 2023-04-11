@@ -14,6 +14,7 @@
 
 #include <ostream>
 #include <tuple>
+#include <type_traits>
 
 #include "tlapack/base/arrayTraits.hpp"
 #include "tlapack/base/workspace.hpp"
@@ -22,76 +23,85 @@ namespace tlapack {
 
 namespace starpu {
 
-    enum class Operation { Assign, Add, Subtract, Multiply, Divide };
+    namespace internal {
 
-    /// @brief Convert an Operation to a string
-    std::string to_string(Operation v)
-    {
-        switch (v) {
-            case Operation::Assign:
-                return "assign";
-            case Operation::Add:
-                return "add";
-            case Operation::Subtract:
-                return "subtract";
-            case Operation::Multiply:
-                return "multiply";
-            case Operation::Divide:
-                return "divide";
+        enum class Operation { Assign, Add, Subtract, Multiply, Divide };
+
+        /// @brief Convert an Operation to a string
+        std::string to_string(Operation v)
+        {
+            switch (v) {
+                case Operation::Assign:
+                    return "assign";
+                case Operation::Add:
+                    return "add";
+                case Operation::Subtract:
+                    return "subtract";
+                case Operation::Multiply:
+                    return "multiply";
+                case Operation::Divide:
+                    return "divide";
+            }
+            return "unknown";
         }
-        return "unknown";
-    }
 
-    /// @brief Convert an Operation to an output stream
-    inline std::ostream& operator<<(std::ostream& out, Operation v)
-    {
-        return out << to_string(v);
-    }
+        /// @brief Convert an Operation to an output stream
+        inline std::ostream& operator<<(std::ostream& out, Operation v)
+        {
+            return out << to_string(v);
+        }
+    }  // namespace internal
 
-    /**
-     * @brief Data operation with assignment using two StarPU variable buffers
-     *
-     * This function is used to perform data operations on Matrix<T>::data.
-     * The interface is suitable for tasks that are submitted to StarPU.
-     */
-    template <class T, Operation op>
-    void data_op_data(void** buffers, void* args)
-    {
-        T* x = (T*)STARPU_VARIABLE_GET_PTR(buffers[0]);
-        if constexpr (op == Operation::Assign)
-            *x = *((T*)STARPU_VARIABLE_GET_PTR(buffers[1]));
-        else if constexpr (op == Operation::Add)
-            *x += *((T*)STARPU_VARIABLE_GET_PTR(buffers[1]));
-        else if constexpr (op == Operation::Subtract)
-            *x -= *((T*)STARPU_VARIABLE_GET_PTR(buffers[1]));
-        else if constexpr (op == Operation::Multiply)
-            *x *= *((T*)STARPU_VARIABLE_GET_PTR(buffers[1]));
-        else if constexpr (op == Operation::Divide)
-            *x /= *((T*)STARPU_VARIABLE_GET_PTR(buffers[1]));
-    }
+    namespace cpu {
 
-    /**
-     * @brief Data operation with assignment using a StarPU variable buffer and
-     * a value
-     *
-     * This function is used to perform data operations on Matrix<T>::data.
-     * The interface is suitable for tasks that are submitted to StarPU.
-     */
-    template <class T, Operation op>
-    void data_op_value(void** buffers, void* args)
-    {
-        T* x = (T*)STARPU_VARIABLE_GET_PTR(buffers[0]);
-        if constexpr (op == Operation::Assign)
-            *x = *((T*)args);
-        else if constexpr (op == Operation::Add)
-            *x += *((T*)args);
-        else if constexpr (op == Operation::Subtract)
-            *x -= *((T*)args);
-        else if constexpr (op == Operation::Multiply)
-            *x *= *((T*)args);
-        else if constexpr (op == Operation::Divide)
-            *x /= *((T*)args);
-    }
+        /**
+         * @brief Data operation with assignment using two StarPU variable
+         * buffers
+         *
+         * This function is used to perform data operations on Matrix<T>::data.
+         * The interface is suitable for tasks that are submitted to StarPU.
+         */
+        template <class T, internal::Operation op>
+        void data_op_data(void** buffers, void* args)
+        {
+            using internal::Operation;
+            T* x = (T*)STARPU_VARIABLE_GET_PTR(buffers[0]);
+            if constexpr (op == Operation::Assign)
+                *x = *((T*)STARPU_VARIABLE_GET_PTR(buffers[1]));
+            else if constexpr (op == Operation::Add)
+                *x += *((T*)STARPU_VARIABLE_GET_PTR(buffers[1]));
+            else if constexpr (op == Operation::Subtract)
+                *x -= *((T*)STARPU_VARIABLE_GET_PTR(buffers[1]));
+            else if constexpr (op == Operation::Multiply)
+                *x *= *((T*)STARPU_VARIABLE_GET_PTR(buffers[1]));
+            else if constexpr (op == Operation::Divide)
+                *x /= *((T*)STARPU_VARIABLE_GET_PTR(buffers[1]));
+        }
+
+        /**
+         * @brief Data operation with assignment using a StarPU variable buffer
+         * and a value
+         *
+         * This function is used to perform data operations on Matrix<T>::data.
+         * The interface is suitable for tasks that are submitted to StarPU.
+         */
+        template <class T, internal::Operation op>
+        void data_op_value(void** buffers, void* args)
+        {
+            using internal::Operation;
+            T* x = (T*)STARPU_VARIABLE_GET_PTR(buffers[0]);
+            if constexpr (op == Operation::Assign)
+                *x = *((T*)args);
+            else if constexpr (op == Operation::Add)
+                *x += *((T*)args);
+            else if constexpr (op == Operation::Subtract)
+                *x -= *((T*)args);
+            else if constexpr (op == Operation::Multiply)
+                *x *= *((T*)args);
+            else if constexpr (op == Operation::Divide)
+                *x /= *((T*)args);
+        }
+    }  // namespace cpu
 
     /**
      * @brief Matrix that abstracts StarPU data handles
@@ -512,6 +522,69 @@ namespace starpu {
 
         // Arithmetic operators with assignment
 
+        constexpr data& operator=(const data& x) noexcept
+        {
+            return operate_and_assign<internal::Operation::Assign>(x);
+        }
+        constexpr data& operator=(const T& x) noexcept
+        {
+            return operate_and_assign<internal::Operation::Assign>(x);
+        }
+        constexpr data& operator=(data&& x) noexcept
+        {
+            return (*this = (const data&)x);
+        }
+
+        constexpr data& operator+=(const data& x) noexcept
+        {
+            return operate_and_assign<internal::Operation::Add>(x);
+        }
+        constexpr data& operator+=(const T& x) noexcept
+        {
+            return operate_and_assign<internal::Operation::Add>(x);
+        }
+
+        constexpr data& operator-=(const data& x) noexcept
+        {
+            return operate_and_assign<internal::Operation::Subtract>(x);
+        }
+        constexpr data& operator-=(const T& x) noexcept
+        {
+            return operate_and_assign<internal::Operation::Subtract>(x);
+        }
+
+        constexpr data& operator*=(const data& x) noexcept
+        {
+            return operate_and_assign<internal::Operation::Multiply>(x);
+        }
+        constexpr data& operator*=(const T& x) noexcept
+        {
+            return operate_and_assign<internal::Operation::Multiply>(x);
+        }
+
+        constexpr data& operator/=(const data& x) noexcept
+        {
+            return operate_and_assign<internal::Operation::Divide>(x);
+        }
+        constexpr data& operator/=(const T& x) noexcept
+        {
+            return operate_and_assign<internal::Operation::Divide>(x);
+        }
+
+        // Other math functions
+
+        constexpr friend T abs(const data& x) noexcept { return abs(T(x)); }
+        constexpr friend T sqrt(const data& x) noexcept { return sqrt(T(x)); }
+
+        // Display value in ostream
+
+        constexpr friend std::ostream& operator<<(std::ostream& out,
+                                                  const data& x)
+        {
+            return out << T(x);
+        }
+
+       private:
         /**
          * @brief Applies an operation and assigns
          *
@@ -521,11 +594,11 @@ namespace starpu {
          * @param x   Second operand
          * @return constexpr data&  Reference to the result
          */
-        template <Operation op>
+        template <internal::Operation op>
         constexpr data& operate_and_assign(const data& x) noexcept
         {
             struct starpu_codelet cl = {
-                .cpu_funcs = {data_op_data<T, op>},
+                .cpu_funcs = {cpu::data_op_data<T, op>},
                 .nbuffers = 2,
                 .modes = {STARPU_W, STARPU_R},
                 .name = (to_string(op) + "_data_" + typeid(T).name()).c_str()};
@@ -551,11 +624,11 @@ namespace starpu {
          * @param x   Second operand
          * @return constexpr data&  Reference to the result
          */
-        template <Operation op>
+        template <internal::Operation op>
         constexpr data& operate_and_assign(const T& x) noexcept
         {
             struct starpu_codelet cl = {
-                .cpu_funcs = {data_op_value<T, op>},
+                .cpu_funcs = {cpu::data_op_value<T, op>},
                 .nbuffers = 1,
                 .modes = {STARPU_W},
                 .name = (to_string(op) + "_value_" + typeid(T).name()).c_str()};
@@ -580,68 +653,6 @@ namespace starpu {
             STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
             return *this;
-        }
-
-        constexpr data& operator=(const data& x) noexcept
-        {
-            return operate_and_assign<Operation::Assign>(x);
-        }
-        constexpr data& operator=(const T& x) noexcept
-        {
-            return operate_and_assign<Operation::Assign>(x);
-        }
-        constexpr data& operator=(data&& x) noexcept
-        {
-            return (*this = (const data&)x);
-        }
-
-        constexpr data& operator+=(const data& x) noexcept
-        {
-            return operate_and_assign<Operation::Add>(x);
-        }
-        constexpr data& operator+=(const T& x) noexcept
-        {
-            return operate_and_assign<Operation::Add>(x);
-        }
-
-        constexpr data& operator-=(const data& x) noexcept
-        {
-            return operate_and_assign<Operation::Subtract>(x);
-        }
-        constexpr data& operator-=(const T& x) noexcept
-        {
-            return operate_and_assign<Operation::Subtract>(x);
-        }
-
-        constexpr data& operator*=(const data& x) noexcept
-        {
-            return operate_and_assign<Operation::Multiply>(x);
-        }
-        constexpr data& operator*=(const T& x) noexcept
-        {
-            return operate_and_assign<Operation::Multiply>(x);
-        }
-
-        constexpr data& operator/=(const data& x) noexcept
-        {
-            return operate_and_assign<Operation::Divide>(x);
-        }
-        constexpr data& operator/=(const T& x) noexcept
-        {
-            return operate_and_assign<Operation::Divide>(x);
-        }
-
-        // Other math functions
-
-        constexpr friend T abs(const data& x) noexcept { return abs(T(x)); }
-        constexpr friend T sqrt(const data& x) noexcept { return sqrt(T(x)); }
-
-        // Display value in ostream
-
-        constexpr friend std::ostream& operator<<(std::ostream& out,
-                                                  const data& x)
-        {
-            return out << T(x);
         }
     };
 

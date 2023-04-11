@@ -13,9 +13,9 @@
 // <T>LAPACK
 #include <tlapack/base/constants.hpp>
 #include <tlapack/blas/trmm.hpp>
-#include <tlapack/lapack/lacpy.hpp>
 #include <tlapack/lapack/getrf_level0.hpp>
 #include <tlapack/lapack/getrf_recursive.hpp>
+#include <tlapack/lapack/lacpy.hpp>
 
 // C++ headers
 #include <iostream>
@@ -79,7 +79,7 @@ int main(int argc, char** argv)
 
         /* Create and print matrix L */
         float* L_;
-        starpu_malloc((void **)&L_, n*n*sizeof(float));
+        starpu_malloc((void**)&L_, n * n * sizeof(float));
         Matrix<float> L(L_, 4, 4);
         lacpy(lowerTriangle, U, L);
         for (size_t i = 0; i < L.nrows(); ++i) {
@@ -125,8 +125,8 @@ int main(int argc, char** argv)
         // /* submit the task to StarPU */
         // starpu_task_submit(task);
 
-        starpu_free_noflag(L_, n*n*sizeof(int));
-        starpu_free_noflag(U_, m*n*sizeof(int));
+        starpu_free_noflag(L_, n * n * sizeof(int));
+        starpu_free_noflag(U_, m * n * sizeof(int));
         starpu_free_noflag(A_, m * n * sizeof(int));
     }
 

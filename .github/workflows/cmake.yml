@@ -44,6 +44,7 @@ env:
   eigen_DIR: "${{github.workspace}}/eigen"
   Catch2_DIR: "${{github.workspace}}/Catch2"
   Catch2_CMAKE_DIR: "${{github.workspace}}/Catch2/build/lib/cmake/Catch2"
+  starpu_DIR: "${{github.workspace}}/starpu"
 
 defaults:
   run:
@@ -79,6 +80,19 @@ jobs:
         sudo apt update
         sudo apt install -y cmake
         sudo apt install -y gfortran
+        sudo apt install -y pkg-config
+
+    - name: Build and install StarPU on Ubuntu
+      if: ${{ matrix.os == 'ubuntu-latest' }}
+      run: |
+        sudo apt install -y libtool-bin libhwloc-dev
+        git clone https://github.com/starpu-runtime/starpu
+        cd starpu
+        ./autogen.sh
+        ./configure --prefix="${{env.starpu_DIR}}/build" --enable-shared
+        make clean
+        make
+        make install
 
     - name: Install ninja-build tool
       uses: seanmiddleditch/gha-setup-ninja@v3
