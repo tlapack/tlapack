@@ -44,7 +44,6 @@ env:
   eigen_DIR: "${{github.workspace}}/eigen"
   Catch2_DIR: "${{github.workspace}}/Catch2"
   Catch2_CMAKE_DIR: "${{github.workspace}}/Catch2/build/lib/cmake/Catch2"
-  starpu_DIR: "${{github.workspace}}/starpu"
 
 defaults:
   run:
@@ -80,19 +79,6 @@ jobs:
         sudo apt update
         sudo apt install -y cmake
         sudo apt install -y gfortran
-        sudo apt install -y pkg-config
-
-    - name: Build and install StarPU on Ubuntu
-      if: ${{ matrix.os == 'ubuntu-latest' }}
-      run: |
-        sudo apt install -y libtool-bin libhwloc-dev
-        git clone https://github.com/starpu-runtime/starpu
-        cd starpu
-        ./autogen.sh
-        ./configure --prefix="${{env.starpu_DIR}}/build" --enable-shared
-        make clean
-        make
-        make install
 
     - name: Install ninja-build tool
       uses: seanmiddleditch/gha-setup-ninja@v3
@@ -658,6 +644,64 @@ jobs:
       working-directory: ${{github.workspace}}/build
       continue-on-error: true
       run: ctest -C Debug --output-on-failure
+
+    - name: Install
+      run: cmake --build build --target install
+
+  build-with-starpu:
+    # Use GNU compilers
+    
+    env:
+      starpu_DIR: ${{github.workspace}}/starpu
+      
+    runs-on: ubuntu-20.04
+    steps:
+    
+    - name: Checkout <T>LAPACK
+      uses: actions/checkout@v3
+    
+    - name: Install the Basics
+      run: |
+        sudo apt update
+        sudo apt install -y cmake
+        sudo apt install -y gfortran
+        sudo apt install -y pkg-config
+
+    - name: Build and install StarPU on Ubuntu
+      run: |
+        sudo apt install -y libtool-bin libhwloc-dev g++
+        git clone https://github.com/starpu-runtime/starpu
+        cd starpu
+        ./autogen.sh
+        ./configure --prefix="${{env.starpu_DIR}}/build"
+        make clean
+        make
+        make install
+
+    - name: Install ninja-build tool
+      uses: seanmiddleditch/gha-setup-ninja@v3
+
+    - name: Configure CMake for <T>LAPACK
+      run: >
+        cmake -B build -G Ninja
+        -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+        -D CMAKE_INSTALL_PREFIX=${{github.workspace}}/tlapack_install
+        -D CMAKE_PREFIX_PATH="${{env.lapack_DIR}}"
+        -D BUILD_SHARED_LIBS=ON
+        -D BUILD_EXAMPLES=ON
+        -D BUILD_TESTING=OFF
+        -D BUILD_C_WRAPPERS=OFF
+        -D BUILD_Fortran_WRAPPERS=OFF
+        -D BUILD_CBLAS_WRAPPERS=OFF
+        -D USE_LAPACKPP_WRAPPERS=OFF
+
+    - name: Build <T>LAPACK
+      run: cmake --build build --config ${{env.BUILD_TYPE}}
+
+    - name: Run all examples
+      # Mind that the job won't fail with only this step fails
+      continue-on-error: true
+      run: cmake --build build --target run-all-examples
 
     - name: Install
       run: cmake --build build --target install
