@@ -97,7 +97,7 @@ struct Workspace {
      * current one.
      *
      * @note If the starting workspace is not contiguous, then we require one
-     * of the follwing is true:
+     * of the following is true:
      *
      *          this->m == m * n && this->n >= 1
      *          this->m == m     && this->n >= n

@@ -69,6 +69,26 @@ We recommend the usage of `auto` in the following cases:
 
 2. In the return type of functions like `tlapack::asum`, `tlapack::dot`, `tlapack::nrm2` and `tlapack::lange`. By defining the output as `auto`, we enable overloading of those functions using mixed precision. For instance, one may write a overloading of `tlapack::lange` for matrices `Eigen::MatrixXf` that returns `double`.
 
+### Good practices when writing code inside the library
+
+1. Declare real-valued constants using real types. For instance, use `const real_type<T> zero(0)` instead of `const T zero(0)`. This is because the type `T` may be a complex type, and the constant `zero` is real. Avoid constants like `const real_type<T> rzero(0)` and `const T czero(0)` in the same function, because it is confusing.
+
+2. Avoid any identifiers starting with underscores even if not followed by Uppercase. This is aligned to [17.4.3.1.2 C++ global names](https://timsong-cpp.github.io/cppwp/n3337/global.names). You may use the following regular expression to find relevant identifiers that start with underscore in VS Code:
+
+   ```diff
+   __(.*)__                      # Identifiers limited by double underscore
+   ([^\w|])_([A-Z])              # Start with underscore then uppercase letter
+   ([^\w])_(\w)([, ;/\)\(.\[\]]) # Other identifiers that start with underscore
+   ```
+
+3. In internal calls, use compile-time flags instead of runtime flags. For instance, use `tlapack::left_side` instead of `tlapack::Side::Left` and `tlapack::noTranspose` instead of `tlapack::Op::NoTrans`. This practice usually leads to faster code.
+
+4. Avoid writing code that depends explicitly on `std::complex<T>` by using `tlapack::real_type<T>`, `tlapack::complex_type<T>` and `tlapack::scalar_type<T>`. Any scalar type `T` supported by \<T\>LAPACK should implement those 3 classes.
+
+> **_NOTE:_** `std::complex` is one way to define complex numbers. It has undesired behavior such as:
+> - `std::abs(std::complex<T>)` may not propagate NaNs. See https://github.com/tlapack/tlapack/issues/134#issue-1364091844.
+> - Operations with `std::complex<T>`, for `T=float,double,long double` are wrappers to operations in C. Other types have their implementation in C++. Because of that, the logic of complex multiplication, division and other operations may change from type to type. See https://github.com/advanpix/mpreal/issues/11.
+
 ## Writing tests
 
 \<T\>LAPACK uses a couple of different test suites for unit tests, all located in the [test](test) directory. See [github.com/tlapack/tlapack/wiki/Test-Suite](https://github.com/tlapack/tlapack/wiki/Test-Suite) for more details on what each test set cover. Here we focus on how to write tests in [test/src](test/src) for \<T\>LAPACK.
@@ -123,6 +143,8 @@ Consider following the steps below before writing a test for a new routine:
 
 9. Use the macros `REQUIRE()`, `CHECK()`, `REQUIRE_THROWS_AS()` and `CHECK_THROWS_AS()` to check the results of the test. `CHECK()` is preferred over `REQUIRE()` because it allows the test to continue even if one of the assertions is false. Use `REQUIRE()` only when it does not make sense to continue the test if the assertion is false.
 
+10. Do not allocate workspaces inside the test. Instead, let each routine allocate the workspace it needs. This has at least two benefits: (1) tests are simpler; (2) routines will run at minimum workspace, which means we will be testing that the minimum workspace size is well defined.
+
 ### Tags for tests
 
 \<T\>LAPACK uses the following TAGs for tests:
@@ -137,29 +159,6 @@ There are two situations in which you may need to update [tests/blaspp](tests/bl
 1. When you want to enable a test.
 2. When you want to use a new version of those libraries for tests.
 
-### Swap
+### Running Github Actions locally
 
-Although they have the same name, `std::swap` and `tlapack::swap` do different things.
-
-- `std::swap` takes 2 objects of the same type T and swaps either (1) their values, if T is a basic type; or (2) all their attributes, if T is a class.
-
-- `tlapack::swap` takes 2 vectors of types `vectorX_t` and `vectorY_t` and swaps their entries.
-
-> which swap should we use tlapack/blas/swap.hpp or std::swap ?
-> getrf_recursive seems to include tlapack/blas/swap.hpp and use std::swap
-
-Use `tlapack::swap` whenever you want to swap the entries between two arrays.
-Currently, `std::swap` is only used in \<T\>LAPACK to avoid a code like 
-```c++
-// Swaps a and b. Equivalent to std::swap(a,b)
-T aux = a;
-a = b;
-b = aux;
-```
-
-> Do we use std::swap to swap two scalars and tlapack/blas/swap.hpp to swap vectors?
-
-Yes, that is how we currently use those functions.
-
-
-TO-DO
+You can run the Github Actions locally using [act](https://github.com/nektos/act). This is useful for debugging the Github Actions workflow.
