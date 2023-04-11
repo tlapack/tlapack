@@ -199,7 +199,7 @@ template <class matrix_t,
 int lascl(band_t accessType,
           const b_type& b,
           const a_type& a,
-          const matrix_t& A)
+          matrix_t& A)
 {
     // data traits
     using idx_t = size_type<matrix_t>;

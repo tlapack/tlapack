@@ -165,7 +165,7 @@ endif()
 # add the example starpu
 find_package( PkgConfig QUIET )
 if (PkgConfig_FOUND)
-  pkg_check_modules(STARPU REQUIRED starpu-1.4)
+  pkg_check_modules(STARPU QUIET starpu-1.4)
   if (STARPU_FOUND)
     add_subdirectory( starpu )
     add_custom_command(
