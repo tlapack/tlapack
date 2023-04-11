@@ -29,6 +29,9 @@ on:
     - 'version.txt'
     - '**.md'
 
+permissions:
+  contents: read
+
 env:
   CFLAGS: "-Wall -pedantic -Wno-unused-variable -Wno-unused-function"
   CXXFLAGS: "-Wall -pedantic -Wno-unused-variable -Wno-unused-function"
