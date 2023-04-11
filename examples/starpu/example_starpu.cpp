@@ -26,7 +26,7 @@ struct starpu_codelet cl = {.cpu_funcs = {cpu_func}, .nbuffers = 0};
 int main(int argc, char** argv)
 {
     using namespace tlapack;
-    using namespace starpu;
+    using namespace tlapack::starpu;
 
     size_t m = 4;
     size_t n = 10;
@@ -44,7 +44,6 @@ int main(int argc, char** argv)
             A_[i] = i + 1;
         }
         Matrix<float> A(A_, 4, 10);
-        A.create_grid(1, 1); // Try to put a grid when this is working
 
         /* print matrix A */
         std::cout << "A = " << A << std::endl;
@@ -67,12 +66,16 @@ int main(int argc, char** argv)
         Matrix<float> U(U_, 4, 10);
         lacpy(dense, A, U);
 
-        /* LU factorization */
+        /* create permutation vector */
         size_t* p_;
         starpu_malloc((void**)&p_, 4 * sizeof(size_t));
         Matrix<size_t> p(p_, 4, 1);
-        // getrf_recursive(U, p);
-        getrf_level0(U, p);
+
+        /* LU factorization */
+        U.create_grid(4, 10);
+        p.create_grid(4, 1);
+        getrf_recursive(U, p);
+        // getrf_level0(U, p);
 
         /* Create and print matrix L */
         float* L_;

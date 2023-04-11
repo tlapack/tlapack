@@ -219,31 +219,31 @@ constexpr bool is_scalar = !is_matrix<T> && !is_vector<T>;
 
 namespace internal {
 
-    // /**
-    //  * @brief Data type trait.
-    //  *
-    //  * The data type is defined on @c type_trait<array_t>::type.
-    //  *
-    //  * @tparam matrix_t Matrix class.
-    //  */
-    // template <class matrix_t>
-    // struct type_trait<matrix_t, enable_if_t<is_matrix<matrix_t>, int>> {
-    //     using type =
-    //         typename std::decay<decltype(std::declval<matrix_t>()(0, 0))>::type;
-    // };
+    /**
+     * @brief Data type trait.
+     *
+     * The data type is defined on @c type_trait<array_t>::type.
+     *
+     * @tparam matrix_t Matrix class.
+     */
+    template <class matrix_t>
+    struct type_trait<matrix_t, enable_if_t<is_matrix<matrix_t>, int>> {
+        using type = typename std::decay<decltype(
+            ((const matrix_t)std::declval<matrix_t>())(0, 0))>::type;
+    };
 
-    // /**
-    //  * @brief Data type trait.
-    //  *
-    //  * The data type is defined on @c type_trait<array_t>::type.
-    //  *
-    //  * @tparam vector_t Vector class.
-    //  */
-    // template <class vector_t>
-    // struct type_trait<vector_t, enable_if_t<is_vector<vector_t>, int>> {
-    //     using type =
-    //         typename std::decay<decltype(std::declval<vector_t>()[0])>::type;
-    // };
+    /**
+     * @brief Data type trait.
+     *
+     * The data type is defined on @c type_trait<array_t>::type.
+     *
+     * @tparam vector_t Vector class.
+     */
+    template <class vector_t>
+    struct type_trait<vector_t, enable_if_t<is_vector<vector_t>, int>> {
+        using type = typename std::decay<decltype(
+            ((const vector_t)std::declval<vector_t>())[0])>::type;
+    };
 
     /**
      * @brief Size type trait.

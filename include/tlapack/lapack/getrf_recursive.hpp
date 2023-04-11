@@ -106,7 +106,7 @@ int getrf_recursive(matrix_t& A, vector_t& Piv)
 
         // in this case, we can safely swap since A(Piv[0],0) is not zero
         if (Piv[0] != 0) {
-            auto aux = A(Piv[0], 0);
+            const T aux = A(Piv[0], 0);
             A(Piv[0], 0) = A(0, 0);
             A(0, 0) = aux;
         }
