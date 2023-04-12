@@ -11,7 +11,6 @@
 #define TLAPACK_GETRF_LV0_HH
 
 #include "tlapack/base/utils.hpp"
-#include "tlapack/blas/iamax.hpp"
 
 namespace tlapack {
 
@@ -27,8 +26,6 @@ namespace tlapack {
  * upper triangular (upper trapezoidal if m < n).
  *
  *  This is a Level 0 version of the algorithm.
- *  We currently still rely on iamax because of the control on
- *  inf and nan propagation.
  *
  * @return  0 if success
  * @return  i+1 if failed to compute the LU on iteration i
@@ -70,7 +67,10 @@ int getrf_level0(matrix_t& A, vector_t& Piv)
 
     for (idx_t j = 0; j < end; j++) {
         // find pivot and swap the row with pivot row
-        Piv[j] = j + iamax(tlapack::slice(A, tlapack::range<idx_t>(j, m), j));
+        Piv[j] = j;
+        for (idx_t i = j + 1; i < m; i++) {
+            if (abs1(A(i, j)) > abs1(A(Piv[j], j))) Piv[j] = i;
+        }
 
         // if nonzero pivot does not exist, return
         if (A(Piv[j], j) == real_t(0)) {

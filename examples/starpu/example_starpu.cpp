@@ -16,20 +16,41 @@
 #include <tlapack/lapack/getrf_level0.hpp>
 #include <tlapack/lapack/getrf_recursive.hpp>
 #include <tlapack/lapack/lacpy.hpp>
+#include <tlapack/lapack/lange.hpp>
 
 // C++ headers
 #include <iostream>
 
-void cpu_func(void* buffers[], void* cl_arg) { printf("Hello world\n"); }
-struct starpu_codelet cl = {.cpu_funcs = {cpu_func}, .nbuffers = 0};
-
 int main(int argc, char** argv)
 {
     using namespace tlapack;
-    using namespace tlapack::starpu;
+    using starpu::Matrix;
+    using T = float;
 
-    size_t m = 4;
-    size_t n = 10;
+    srand(3);
+
+    size_t m = 39;
+    size_t n = 17;
+    char method = '0';  // 'r' for recursive, '0' for level0
+
+    if (argc > 1) m = atoi(argv[1]);
+    if (argc > 2) n = atoi(argv[2]);
+    if (argc > 3) method = tolower(argv[3][0]);
+    if (argc > 4 || (method != 'r' && method != '0')) {
+        std::cout << "Usage: " << argv[0] << " [m] [n] [method]" << std::endl;
+        std::cout << "  m: number of rows (default: 4)" << std::endl;
+        std::cout << "  n: number of columns (default: 10)" << std::endl;
+        std::cout << "  method: 'r' for recursive, '0' for level0 (default: r)"
+                  << std::endl;
+        return 1;
+    }
+
+    // Print input parameters
+    std::cout << "m = " << m << std::endl;
+    std::cout << "n = " << n << std::endl;
+    std::cout << "method = " << (method == 'r' ? "recursive" : "level0")
+              << std::endl
+              << std::endl;
 
     /* initialize StarPU */
     const int ret = starpu_init(NULL);
@@ -37,97 +58,107 @@ int main(int argc, char** argv)
     STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
     {
+        const size_t k = std::min(m, n);
+
         /* create matrix A */
-        float* A_;
-        starpu_malloc((void**)&A_, m * n * sizeof(float));
-        for (size_t i = 0; i < 40; i++) {
-            A_[i] = i + 1;
+        T* A_;
+        starpu_malloc((void**)&A_, m * n * sizeof(T));
+        for (size_t i = 0; i < m * n; i++) {
+            A_[i] = T((float) rand() / RAND_MAX);
         }
-        Matrix<float> A(A_, 4, 10);
+        Matrix<T> A(A_, m, n);
 
         /* print matrix A */
         std::cout << "A = " << A << std::endl;
-        assert(A.nrows() == 4);
-        assert(A.ncols() == 10);
-        assert(A(1, 2) == 10);
-        assert(A(2, 5) == 23);
+        assert(A.nrows() == m);
+        assert(A.ncols() == n);
 
         /* Modify an entry of A*/
-        A(1, 2) = float(0);
-        A(3, 3) = A(0, 0);
+        if (m > 1 && n > 2) A(1, 2) = T(0);
+        if (m > 3 && n > 3) A(3, 3) = A(0, 0);
 
         /* print matrix A */
         std::cout << "A = " << A << std::endl;
-        assert(A(1, 2) < tlapack::ulp<float>());
 
-        /* create a copy of matrix A in U */
-        float* U_;
-        starpu_malloc((void**)&U_, m * n * sizeof(float));
-        Matrix<float> U(U_, 4, 10);
-        lacpy(dense, A, U);
+        /* create a copy of matrix A in Acopy */
+        T* Acopy_;
+        starpu_malloc((void**)&Acopy_, m * n * sizeof(T));
+        Matrix<T> Acopy(Acopy_, m, n);
+        lacpy(dense, A, Acopy);
 
         /* create permutation vector */
         size_t* p_;
-        starpu_malloc((void**)&p_, 4 * sizeof(size_t));
-        Matrix<size_t> p(p_, 4, 1);
+        starpu_malloc((void**)&p_, k * sizeof(size_t));
+        Matrix<size_t> p(p_, k, 1);
 
         /* LU factorization */
-        U.create_grid(4, 10);
-        p.create_grid(4, 1);
-        getrf_recursive(U, p);
-        // getrf_level0(U, p);
+        Acopy.create_grid(m, n);
+        p.create_grid(k, 1);
+        if (method == '0')
+            getrf_level0(Acopy, p);
+        else
+            getrf_recursive(Acopy, p);
+        std::cout << "LU = " << Acopy << std::endl;
 
         /* Create and print matrix L */
-        float* L_;
-        starpu_malloc((void**)&L_, n * n * sizeof(float));
-        Matrix<float> L(L_, 4, 4);
-        lacpy(lowerTriangle, U, L);
-        for (size_t i = 0; i < L.nrows(); ++i) {
+        T* L_;
+        starpu_malloc((void**)&L_, m * k * sizeof(T));
+        Matrix<T> L(L_, m, k);
+        lacpy(lowerTriangle, Acopy, L);
+        for (size_t i = 0; i < k; ++i)
             L(i, i) = 1;
-        }
         std::cout << "L = " << L << std::endl;
 
         /* Create and print matrix U */
-        for (size_t i = 0; i < U.nrows(); ++i)
-            for (size_t j = 0; j < i; ++j)
-                U(i, j) = 0;
+        T* U_;
+        starpu_malloc((void**)&U_, k * n * sizeof(T));
+        Matrix<T> U(U_, k, n);
+        lacpy(upperTriangle, Acopy, U);
         std::cout << "U = " << U << std::endl;
 
         /* print matrix L*U */
-        trmm(left_side, lowerTriangle, noTranspose, unit_diagonal, 1, L, U);
-        std::cout << "L*U = " << U << std::endl;
+        if (m > n) {
+            for (size_t i = 0; i < m; ++i)
+                for (size_t j = i + 1; j < k; ++j)
+                    L(i, j) = 0;
+            trmm(right_side, upperTriangle, noTranspose, nonUnit_diagonal, 1, U,
+                 L);
+            lacpy(dense, L, Acopy);
+        }
+        else {
+            for (size_t i = 0; i < k; ++i)
+                for (size_t j = 0; j < i; ++j)
+                    U(i, j) = 0;
+            trmm(left_side, lowerTriangle, noTranspose, unit_diagonal, 1, L, U);
+            lacpy(dense, U, Acopy);
+        }
+        std::cout << "L*U = " << Acopy << std::endl;
 
-        /* Permute rows of A */
-        for (size_t i = 0; i < A.nrows(); ++i) {
+        /* Permute rows of Acopy */
+        for (size_t i = k - 1; i != size_t(-1); --i) {
             if (p[i] != i) {
-                for (size_t j = 0; j < A.ncols(); j++) {
-                    float tmp = A(i, j);
-                    A(i, j) = A(p[i], j);
-                    A(p[i], j) = tmp;
-                }
+                auto Api = row(Acopy, p[i]);
+                auto Ai = row(Acopy, i);
+                tlapack::swap(Ai, Api);
             }
         }
 
         /* Verify the factorization is good */
         for (size_t i = 0; i < A.nrows(); ++i) {
             for (size_t j = 0; j < A.ncols(); j++) {
-                A(i, j) -= U(i, j);
+                Acopy(i, j) -= A(i, j);
             }
         }
-        std::cout << "A - U = " << A << std::endl;
+        A.create_grid(m, n);
+        std::cout << "A - LU = " << Acopy << std::endl;
+        std::cout << "||A - LU||/||A|| = "
+                  << lange(frob_norm, Acopy) / lange(frob_norm, A) << std::endl;
 
-        // struct starpu_task* task = starpu_task_create();
-        // task->cl = &cl; /* Pointer to the codelet defined above */
-        // /* starpu_task_submit will be a blocking call. If unset,
-        // starpu_task_wait() needs to be called after submitting the task.
-        // */
-        // task->synchronous = 1;
-        // /* submit the task to StarPU */
-        // starpu_task_submit(task);
-
-        starpu_free_noflag(L_, n * n * sizeof(int));
-        starpu_free_noflag(U_, m * n * sizeof(int));
-        starpu_free_noflag(A_, m * n * sizeof(int));
+        starpu_free_noflag(L_, m * k * sizeof(T));
+        starpu_free_noflag(U_, k * n * sizeof(T));
+        starpu_free_noflag(p_, k * sizeof(size_t));
+        starpu_free_noflag(Acopy_, m * n * sizeof(T));
+        starpu_free_noflag(A_, m * n * sizeof(T));
     }
 
     /* terminate StarPU */
