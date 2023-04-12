@@ -663,9 +663,7 @@ jobs:
     - name: Install the Basics
       run: |
         sudo apt update
-        sudo apt install -y cmake
-        sudo apt install -y gfortran
-        sudo apt install -y pkg-config
+        sudo apt install -y cmake gfortran pkg-config
 
     - name: Build and install StarPU on Ubuntu
       run: |
@@ -674,8 +672,6 @@ jobs:
         cd starpu
         ./autogen.sh
         ./configure --prefix="${{env.starpu_DIR}}/build"
-        make clean
-        make
         make install
 
     - name: Install ninja-build tool
@@ -685,23 +681,14 @@ jobs:
       run: >
         cmake -B build -G Ninja
         -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
-        -D CMAKE_INSTALL_PREFIX=${{github.workspace}}/tlapack_install
-        -D CMAKE_PREFIX_PATH="${{env.lapack_DIR}}"
-        -D BUILD_SHARED_LIBS=ON
         -D BUILD_EXAMPLES=ON
-        -D BUILD_TESTING=OFF
-        -D BUILD_C_WRAPPERS=OFF
-        -D BUILD_Fortran_WRAPPERS=OFF
-        -D BUILD_CBLAS_WRAPPERS=OFF
-        -D USE_LAPACKPP_WRAPPERS=OFF
 
     - name: Build <T>LAPACK
-      run: cmake --build build --config ${{env.BUILD_TYPE}}
+      run: cmake --build build --config ${{env.BUILD_TYPE}} --target example_starpu
 
-    - name: Run all examples
-      # Mind that the job won't fail with only this step fails
-      continue-on-error: true
-      run: cmake --build build --target run-all-examples
-
-    - name: Install
-      run: cmake --build build --target install
+    - name: Run example with StarPU
+      working-directory: ${{github.workspace}}/build/examples/starpu
+      run: |
+        ./example_potrf 10 8 0
+        ./example_potrf 10 8 recursive
+        ./example_potrf 13 23 recursive
