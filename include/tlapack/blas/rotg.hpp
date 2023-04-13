@@ -28,7 +28,7 @@ namespace tlapack {
  * @param[in,out] a On entry, scalar a. On exit, set to r.
  * @param[in,out] b On entry, scalar b. On exit, set to s, 1/c, or 0.
  * @param[out]    c Cosine of rotation; real.
- * @param[in]     s Sine of rotation;   real.
+ * @param[out]     s Sine of rotation;   real.
  *
  * @ingroup blas1
  */
