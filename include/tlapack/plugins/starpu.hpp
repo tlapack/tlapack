@@ -64,7 +64,7 @@ namespace starpu {
          * The interface is suitable for tasks that are submitted to StarPU.
          */
         template <class T, internal::Operation op>
-        void data_op_data(void** buffers, void* args)
+        constexpr void data_op_data(void** buffers, void* args) noexcept
         {
             using internal::Operation;
             T* x = (T*)STARPU_VARIABLE_GET_PTR(buffers[0]);
@@ -88,7 +88,7 @@ namespace starpu {
          * The interface is suitable for tasks that are submitted to StarPU.
          */
         template <class T, internal::Operation op>
-        void data_op_value(void** buffers, void* args)
+        constexpr void data_op_value(void** buffers, void* args) noexcept
         {
             using internal::Operation;
             T* x = (T*)STARPU_VARIABLE_GET_PTR(buffers[0]);
@@ -103,6 +103,13 @@ namespace starpu {
             else if constexpr (op == internal::Operation::Divide)
                 *x /= *((T*)args);
         }
+
+        template <class T>
+        constexpr void free_arg(void* args) noexcept
+        {
+            starpu_free_noflag(args, sizeof(T));
+        }
+
     }  // namespace cpu
 
     namespace internal {
@@ -251,7 +258,7 @@ namespace starpu {
             data(const data&) = delete;
 
             /// Destructor cleans StarPU partition plan
-            constexpr ~data() noexcept
+            ~data() noexcept
             {
                 starpu_data_partition_clean(root_handle, 1, &handle);
             }
@@ -349,20 +356,26 @@ namespace starpu {
                 constexpr starpu_data_access_mode mode =
                     (op == Operation::Assign) ? STARPU_W : STARPU_RW;
 
-                struct starpu_codelet cl = {
-                    .cpu_funcs = {cpu::data_op_data<T, op>},
-                    .nbuffers = 2,
-                    .modes = {mode, STARPU_R},
-                    .name =
-                        (to_string(op) + "_data_" + typeid(T).name()).c_str()};
+                // Create the codelet
+                struct starpu_codelet cl;
+                starpu_codelet_init(&cl);
+                cl.cpu_funcs[0] = cpu::data_op_data<T, op>;
+                cl.nbuffers = 2;
+                cl.modes[0] = mode;
+                cl.modes[1] = STARPU_R;
+                cl.name = (to_string(op) + "_data_" + typeid(T).name()).c_str();
 
-                const int ret =
-                    starpu_task_insert(&cl, mode, this->handle, STARPU_R,
-                                       x.handle, STARPU_TASK_SYNCHRONOUS, 1, 0);
-                if (ret == -ENODEV) {
-                    starpu_shutdown();
-                    exit(77);
-                }
+                struct starpu_task* task = starpu_task_create();
+                task->cl = &cl;
+                task->handles[0] = this->handle;
+                task->handles[1] = x.handle;
+                task->synchronous = true;
+                const int ret = starpu_task_submit(task);
+
+                // const int ret = starpu_task_insert(
+                //     &cl, mode, this->handle, STARPU_R, x.handle,
+                //     STARPU_TASK_SYNCHRONOUS, true, 0);
+
                 STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
                 return *this;
@@ -383,36 +396,49 @@ namespace starpu {
                 constexpr starpu_data_access_mode mode =
                     (op == Operation::Assign) ? STARPU_W : STARPU_RW;
 
-                struct starpu_codelet cl = {
-                    .cpu_funcs = {cpu::data_op_value<T, op>},
-                    .nbuffers = 1,
-                    .modes = {mode},
-                    .name =
-                        (to_string(op) + "_value_" + typeid(T).name()).c_str()};
+                // Create the codelet
+                struct starpu_codelet cl;
+                starpu_codelet_init(&cl);
+                cl.cpu_funcs[0] = cpu::data_op_value<T, op>;
+                cl.nbuffers = 1;
+                cl.modes[0] = mode;
+                cl.name =
+                    (to_string(op) + "_value_" + typeid(T).name()).c_str();
+
+                // Allocate space for x
+                void* x_copy;
+                const int info = starpu_malloc(&x_copy, sizeof(T));
+                if (info != 0) {
+                    std::cerr << "Error allocating memory for x" << std::endl;
+                    starpu_shutdown();
+                    exit(77);
+                }
+
+                // Copy x to x_copy
+                *((T*)x_copy) = x;
 
                 struct starpu_task* task = starpu_task_create();
                 task->cl = &cl;
                 task->handles[0] = this->handle;
-                task->synchronous = 1;
-                task->cl_arg = (void*)(&x);
+                task->synchronous = true;
+                task->cl_arg = x_copy;
                 task->cl_arg_size = sizeof(T);
+                task->callback_func = cpu::free_arg<T>;
+                task->callback_arg = x_copy;
                 const int ret = starpu_task_submit(task);
 
-                // The following code does not work, but it should:
-                // int ret = starpu_task_insert(&cl, STARPU_W, this->handle,
-                //                              STARPU_VALUE, &x, sizeof(T),
-                //                              STARPU_TASK_SYNCHRONOUS, 1, 0);
+                // // The following code does not work, but it should:
+                // const int ret = starpu_task_insert(
+                //     &cl, mode, this->handle, STARPU_VALUE, x_copy, sizeof(T),
+                //     STARPU_TASK_SYNCHRONOUS, true, STARPU_CALLBACK_WITH_ARG,
+                //     cpu::free_arg<T>, x_copy, 0);
 
-                if (ret == -ENODEV) {
-                    starpu_shutdown();
-                    exit(77);
-                }
                 STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
                 return *this;
             }
 
-            struct starpu_data_filter var_filter(void* pos) noexcept
+            constexpr struct starpu_data_filter var_filter(void* pos) noexcept
             {
                 return {.filter_func = starpu_matrix_filter_pick_variable,
                         .nchildren = 1,
@@ -460,7 +486,7 @@ namespace starpu {
         Matrix& operator=(const Matrix&) = delete;
 
         /// Matrix destructor unpartitions and unregisters the data handle
-        constexpr ~Matrix() noexcept
+        ~Matrix() noexcept
         {
             if (is_owner) {
                 if (is_partitioned())
