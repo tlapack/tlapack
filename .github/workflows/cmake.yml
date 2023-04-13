@@ -653,6 +653,7 @@ jobs:
     
     env:
       starpu_DIR: ${{github.workspace}}/starpu
+      PKG_CONFIG_PATH: ${{github.workspace}}/starpu/build/lib/pkgconfig
       
     runs-on: ubuntu-20.04
     steps:
@@ -670,7 +671,7 @@ jobs:
     - name: Build and install StarPU on Ubuntu
       run: |
         sudo apt install -y libtool-bin libhwloc-dev g++
-        git clone https://github.com/starpu-runtime/starpu
+        git clone https://gitlab.inria.fr/starpu/starpu.git
         cd starpu
         ./autogen.sh
         ./configure --prefix="${{env.starpu_DIR}}/build"
@@ -681,28 +682,25 @@ jobs:
     - name: Install ninja-build tool
       uses: seanmiddleditch/gha-setup-ninja@v3
 
-    - name: Configure CMake for <T>LAPACK
+    - name: Configure <T>LAPACK
       run: >
         cmake -B build -G Ninja
         -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
-        -D CMAKE_INSTALL_PREFIX=${{github.workspace}}/tlapack_install
-        -D BUILD_SHARED_LIBS=ON
-        -D BUILD_EXAMPLES=ON
+        -D CMAKE_INSTALL_PREFIX="${{github.workspace}}/tlapack_install"
+        -D BUILD_EXAMPLES=OFF
         -D BUILD_TESTING=OFF
-        -D BUILD_C_WRAPPERS=OFF
-        -D BUILD_Fortran_WRAPPERS=OFF
-        -D BUILD_CBLAS_WRAPPERS=OFF
-        -D USE_LAPACKPP_WRAPPERS=OFF
 
-    - name: Build <T>LAPACK
-      run: cmake --build build --config ${{env.BUILD_TYPE}}
+    - name: Install <T>LAPACK
+      run: cmake --build build --config ${{env.BUILD_TYPE}} --target install
 
-    - name: Run example with StarPU
-      working-directory: ${{github.workspace}}/build/examples/starpu
+    - name: Build and run examples with StarPU
+      working-directory: ${{github.workspace}}/examples/starpu
       run: |
-        ./example_starpu 10 8 0
-        ./example_starpu 10 8 recursive
-        ./example_starpu 13 23 recursive
-
-    - name: Install
-      run: cmake --build build --target install
+        cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -D CMAKE_PREFIX_PATH=${{github.workspace}}/tlapack_install
+        cmake --build build --target all
+        echo "\nRunning example_starpu 10 8 level 0 ---------------------------"
+        ./build/example_starpu 10 8 0
+        echo "\nRunning example_starpu 10 8 recursive -------------------------"
+        ./build/example_starpu 10 8 recursive
+        echo "\nRunning example_starpu 13 23 recursive ------------------------"
+        ./build/example_starpu 13 23 recursive
