@@ -12,6 +12,7 @@
 #define TLAPACK_BLAS_LARTG_HH
 
 #include "tlapack/base/utils.hpp"
+#include "tlapack/blas/rotg.hpp"
 
 namespace tlapack {
 

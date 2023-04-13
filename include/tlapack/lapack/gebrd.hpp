@@ -61,8 +61,8 @@ struct gebrd_opts_t : public workspace_opts_t<> {
  */
 template <class matrix_t, class vector_t, class r_vector_t>
 void gebrd_worksize(const matrix_t& A,
-                    r_vector_t& d,
-                    r_vector_t& e,
+                    const r_vector_t& d,
+                    const r_vector_t& e,
                     const vector_t& tauq,
                     const vector_t& taup,
                     workinfo_t& workinfo,
