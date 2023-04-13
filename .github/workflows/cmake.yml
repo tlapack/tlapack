@@ -670,7 +670,7 @@ jobs:
 
     - name: Build and install StarPU on Ubuntu
       run: |
-        sudo apt install -y libtool-bin libhwloc-dev g++
+        sudo apt install -y libtool-bin libhwloc-dev g++ libudev-dev
         git clone https://gitlab.inria.fr/starpu/starpu.git
         cd starpu
         ./autogen.sh
