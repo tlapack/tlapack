@@ -52,6 +52,54 @@ namespace starpu {
             return out << to_string(v);
         }
 
+        /// Return an empty starpu_codelet struct
+        constexpr struct starpu_codelet codelet_init() noexcept
+        {
+            return {
+                0,                      // where
+                NULL,                   // can_execute
+                starpu_codelet_type(),  // type
+                0,                      // max_parallelism
+                NULL,                   // cpu_func STARPU_DEPRECATED
+                NULL,                   // cuda_func STARPU_DEPRECATED
+                NULL,                   // opencl_func STARPU_DEPRECATED
+                {},                     // cpu_funcs
+                {},                     // cuda_funcs
+                {},                     // cuda_flags
+                {},                     // hip_funcs
+                {},                     // hip_flags
+                {},                     // opencl_funcs
+                {},                     // opencl_flags
+                {},                     // max_fpga_funcs
+                {},                     // cpu_funcs_name
+                NULL,                   // bubble_func
+                NULL,                   // bubble_gen_dag_func
+                0,                      // nbuffers
+                {},                     // modes
+                NULL,                   // dyn_modes
+                0,                      // specific_nodes
+                {},                     // nodes
+                NULL,                   // dyn_nodes
+                NULL,                   // model
+                NULL,                   // energy_model
+                {},                     // per_worker_stats
+                "",                     // name
+                0,                      // color
+                NULL,                   // callback_func
+                0,                      // flags
+                NULL,                   // perf_counter_sample
+                NULL,                   // perf_counter_values
+                0                       // checked
+            };
+        }
+
+        /// Struct to store codelet and value
+        template <class T>
+        struct cl_value {
+            struct starpu_codelet cl;
+            T value;
+        };
+
     }  // namespace internal
 
     namespace cpu {
@@ -104,10 +152,15 @@ namespace starpu {
                 *x /= *((T*)args);
         }
 
-        template <class T>
-        constexpr void free_arg(void* args) noexcept
+        constexpr void free_cl(void* args) noexcept
         {
-            starpu_free_noflag(args, sizeof(T));
+            free((struct starpu_codelet*)args);
+        }
+
+        template <class T>
+        constexpr void free_cl_value(void* args) noexcept
+        {
+            free((internal::cl_value<T>*)args);
         }
 
     }  // namespace cpu
@@ -341,6 +394,59 @@ namespace starpu {
             }
 
            private:
+            /// @brief Generates a StarPU codelet for a given operation with a
+            /// value
+            /// @tparam op Operation to perform
+            template <Operation op>
+            static constexpr struct starpu_codelet gen_cl_op_value() noexcept
+            {
+                struct starpu_codelet cl = codelet_init();
+
+                cl.cpu_funcs[0] = cpu::data_op_value<T, op>;
+                cl.nbuffers = 1;
+                cl.modes[0] = (op == Operation::Assign) ? STARPU_W : STARPU_RW;
+                cl.name = (op == Operation::Assign)
+                              ? "assign_value"
+                              : (op == Operation::Add)
+                                    ? "add_value"
+                                    : (op == Operation::Subtract)
+                                          ? "subtract_value"
+                                          : (op == Operation::Multiply)
+                                                ? "multiply_value"
+                                                : (op == Operation::Divide)
+                                                      ? "divide_value"
+                                                      : "unknown";
+
+                return cl;
+            }
+
+            /// @brief Generates a StarPU codelet for a given operation with
+            /// another variable
+            /// @tparam op Operation to perform
+            template <Operation op>
+            static constexpr struct starpu_codelet gen_cl_op_data() noexcept
+            {
+                struct starpu_codelet cl = codelet_init();
+
+                cl.cpu_funcs[0] = cpu::data_op_data<T, op>;
+                cl.nbuffers = 2;
+                cl.modes[0] = (op == Operation::Assign) ? STARPU_W : STARPU_RW;
+                cl.modes[1] = STARPU_R;
+                cl.name = (op == Operation::Assign)
+                              ? "assign_data"
+                              : (op == Operation::Add)
+                                    ? "add_data"
+                                    : (op == Operation::Subtract)
+                                          ? "subtract_data"
+                                          : (op == Operation::Multiply)
+                                                ? "multiply_data"
+                                                : (op == Operation::Divide)
+                                                      ? "divide_data"
+                                                      : "unknown";
+
+                return cl;
+            }
+
             /**
              * @brief Applies an operation and assigns
              *
@@ -353,28 +459,27 @@ namespace starpu {
             template <Operation op>
             constexpr data& operate_and_assign(const data& x) noexcept
             {
-                constexpr starpu_data_access_mode mode =
-                    (op == Operation::Assign) ? STARPU_W : STARPU_RW;
+                // Allocate space for the codelet
+                struct starpu_codelet* cl = (struct starpu_codelet*)malloc(
+                    sizeof(struct starpu_codelet));
+                if (cl == nullptr) {
+                    std::cerr << "Error allocating memory for codelet"
+                              << std::endl;
+                    starpu_shutdown();
+                    exit(1);
+                }
 
-                // Create the codelet
-                struct starpu_codelet cl;
-                starpu_codelet_init(&cl);
-                cl.cpu_funcs[0] = cpu::data_op_data<T, op>;
-                cl.nbuffers = 2;
-                cl.modes[0] = mode;
-                cl.modes[1] = STARPU_R;
-                cl.name = (to_string(op) + "_data_" + typeid(T).name()).c_str();
+                // Initialize codelet
+                *cl = gen_cl_op_data<op>();
 
                 struct starpu_task* task = starpu_task_create();
-                task->cl = &cl;
+                task->cl = cl;
                 task->handles[0] = this->handle;
                 task->handles[1] = x.handle;
-                task->synchronous = true;
+                task->synchronous = false;
+                task->callback_func = cpu::free_cl;
+                task->callback_arg = (void*)cl;
                 const int ret = starpu_task_submit(task);
-
-                // const int ret = starpu_task_insert(
-                //     &cl, mode, this->handle, STARPU_R, x.handle,
-                //     STARPU_TASK_SYNCHRONOUS, true, 0);
 
                 STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
@@ -393,45 +498,29 @@ namespace starpu {
             template <Operation op>
             constexpr data& operate_and_assign(const T& x) noexcept
             {
-                constexpr starpu_data_access_mode mode =
-                    (op == Operation::Assign) ? STARPU_W : STARPU_RW;
-
-                // Create the codelet
-                struct starpu_codelet cl;
-                starpu_codelet_init(&cl);
-                cl.cpu_funcs[0] = cpu::data_op_value<T, op>;
-                cl.nbuffers = 1;
-                cl.modes[0] = mode;
-                cl.name =
-                    (to_string(op) + "_value_" + typeid(T).name()).c_str();
-
-                // Allocate space for x
-                void* x_copy;
-                const int info = starpu_malloc(&x_copy, sizeof(T));
-                if (info != 0) {
-                    std::cerr << "Error allocating memory for x" << std::endl;
+                // Allocate space for the codelet and value
+                cl_value<T>* callback_arg =
+                    (cl_value<T>*)malloc(sizeof(cl_value<T>));
+                if (callback_arg == nullptr) {
+                    std::cerr << "Error allocating memory for callback_arg"
+                              << std::endl;
                     starpu_shutdown();
-                    exit(77);
+                    exit(1);
                 }
 
-                // Copy x to x_copy
-                *((T*)x_copy) = x;
+                // Initialize codelet and value
+                callback_arg->cl = gen_cl_op_value<op>();
+                callback_arg->value = x;
 
                 struct starpu_task* task = starpu_task_create();
-                task->cl = &cl;
+                task->cl = &(callback_arg->cl);
                 task->handles[0] = this->handle;
-                task->synchronous = true;
-                task->cl_arg = x_copy;
+                task->synchronous = false;
+                task->cl_arg = (void*)&(callback_arg->value);
                 task->cl_arg_size = sizeof(T);
-                task->callback_func = cpu::free_arg<T>;
-                task->callback_arg = x_copy;
+                task->callback_func = cpu::free_cl_value<T>;
+                task->callback_arg = (void*)callback_arg;
                 const int ret = starpu_task_submit(task);
-
-                // // The following code does not work, but it should:
-                // const int ret = starpu_task_insert(
-                //     &cl, mode, this->handle, STARPU_VALUE, x_copy, sizeof(T),
-                //     STARPU_TASK_SYNCHRONOUS, true, STARPU_CALLBACK_WITH_ARG,
-                //     cpu::free_arg<T>, x_copy, 0);
 
                 STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
