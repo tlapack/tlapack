@@ -80,6 +80,7 @@ add_executable(test_potrf test_potrf.cpp)
 add_executable(test_svd22 test_svd22.cpp)
 add_executable(test_svd_qr test_svd_qr.cpp testutils.cpp)
 add_executable(test_larf test_larf.cpp)
+add_executable(test_mul_rot_sequence test_mul_rot_sequence.cpp testutils.cpp)
 
 if(TLAPACK_TEST_EIGEN)
   add_executable(test_eigenplugin test_eigenplugin.cpp)
