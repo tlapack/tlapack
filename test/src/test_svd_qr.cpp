@@ -44,7 +44,7 @@ TEMPLATE_TEST_CASE("svd is backward stable",
 
     idx_t n;
 
-    n = GENERATE(1, 2, 4, 5, 10, 12);
+    n = GENERATE(1, 2, 4, 5, 10, 12, 20);
 
     const real_t eps = ulp<real_t>();
     const real_t tol = real_t(100. * n) * eps;
@@ -73,7 +73,17 @@ TEMPLATE_TEST_CASE("svd is backward stable",
 
     DYNAMIC_SECTION(" n = " << n)
     {
-        svd_qr(Uplo::Upper, true, true, d, e, Q, Pt);
+        int err = svd_qr(Uplo::Upper, true, true, d, e, Q, Pt);
+        CHECK(err == 0);
+
+        // Check that singular values are positive and sorted in decreasing
+        // order
+        for (idx_t i = 0; i < n; ++i) {
+            CHECK(d[i] >= 0);
+        }
+        for (idx_t i = 0; i < n - 1; ++i) {
+            CHECK(d[i] >= d[i + 1]);
+        }
 
         // Test for Q's orthogonality
         std::vector<T> Wq_;
@@ -91,9 +101,7 @@ TEMPLATE_TEST_CASE("svd is backward stable",
         std::vector<T> B_;
         auto B = new_matrix(B_, n, n);
         laset(Uplo::General, zero, zero, B);
-        B(0, 0) = d[0];
-        for (idx_t j = 1; j < n; ++j) {
-            B(j - 1, j) = e[j - 1];
+        for (idx_t j = 0; j < n; ++j) {
             B(j, j) = d[j];
         }
         std::vector<T> A_;

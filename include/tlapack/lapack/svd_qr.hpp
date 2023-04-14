@@ -12,10 +12,14 @@
 #ifndef TLAPACK_SVD_QR_HH
 #define TLAPACK_SVD_QR_HH
 
+#include <algorithm>
+
 #include "tlapack/base/utils.hpp"
 #include "tlapack/blas/gemm.hpp"
+#include "tlapack/blas/iamax.hpp"
 #include "tlapack/blas/lartg.hpp"
 #include "tlapack/blas/rot.hpp"
+#include "tlapack/blas/swap.hpp"
 #include "tlapack/lapack/gebrd.hpp"
 #include "tlapack/lapack/singularvalues22.hpp"
 #include "tlapack/lapack/svd22.hpp"
@@ -274,9 +278,36 @@ int svd_qr(Uplo uplo,
         }
     }
 
-    // TODO: make the singular values positive
+    // All singular values converged, so make them positive
+    for (idx_t i = 0; i < n; ++i) {
+        if (d[i] < zero) {
+            d[i] = -d[i];
+            if (want_vt) {
+                auto vt1 = row(Vt, i);
+                scal(-one, vt1);
+            }
+        }
+    }
 
-    // TODO: sort singular values in descending order
+    // Sort the singular values into decreasing order.
+    for (idx_t i = 0; i < n - 1; ++i) {
+        auto d2 = slice(d, pair{i, n});
+        idx_t imax = i + iamax(d2);
+        if (imax != i) {
+            std::swap(d[imax], d[i]);
+
+            if (want_u) {
+                auto u1 = col(U, imax);
+                auto u2 = col(U, i);
+                tlapack::swap(u1, u2);
+            }
+            if (want_vt) {
+                auto vt1 = row(Vt, imax);
+                auto vt2 = row(Vt, i);
+                tlapack::swap(vt1, vt2);
+            }
+        }
+    }
 
     return 0;
 }
