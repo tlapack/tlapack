@@ -26,6 +26,9 @@ namespace starpu {
 
     namespace internal {
 
+        template <class T, bool TisConstType>
+        struct EntryAccess;
+
         enum class Operation { Assign, Add, Subtract, Multiply, Divide };
 
         /// @brief Convert an Operation to a string
@@ -55,6 +58,9 @@ namespace starpu {
         /// Return an empty starpu_codelet struct
         constexpr struct starpu_codelet codelet_init() noexcept
         {
+#if __cplusplus >= 202002L
+            return {};
+#else
             return {
                 0,                      // where
                 NULL,                   // can_execute
@@ -91,14 +97,8 @@ namespace starpu {
                 NULL,                   // perf_counter_values
                 0                       // checked
             };
+#endif
         }
-
-        /// Struct to store codelet and value
-        template <class T>
-        struct cl_value {
-            struct starpu_codelet cl;
-            T value;
-        };
 
     }  // namespace internal
 
@@ -128,6 +128,11 @@ namespace starpu {
                 *x /= *((T*)STARPU_VARIABLE_GET_PTR(buffers[1]));
         }
 
+        constexpr void callback_data_op_data(void* args) noexcept
+        {
+            free((struct starpu_codelet*)args);
+        }
+
         /**
          * @brief Data operation with assignment using a StarPU variable buffer
          * and a value
@@ -152,23 +157,65 @@ namespace starpu {
                 *x /= *((T*)args);
         }
 
-        constexpr void free_cl(void* args) noexcept
-        {
-            free((struct starpu_codelet*)args);
-        }
+        /// Struct to store codelet and value
+        template <class T>
+        struct callback_data_op_value_args {
+            struct starpu_codelet cl;
+            T value;
+        };
 
         template <class T>
-        constexpr void free_cl_value(void* args) noexcept
+        constexpr void callback_data_op_value(void* args) noexcept
         {
-            free((internal::cl_value<T>*)args);
+            free((callback_data_op_value_args<T>*)args);
+        }
+
+        template <class T, internal::Operation op>
+        constexpr void matrixentry_op_matrixentry(void** buffers,
+                                                  void* args) noexcept
+        {
+            using internal::Operation;
+            using idx_t = internal::EntryAccess<T, true>::idx_t;
+
+            // Translate input
+            T* A = (T*)STARPU_MATRIX_GET_PTR(buffers[0]);
+            const idx_t ld = STARPU_MATRIX_GET_LD(buffers[0]);
+            const idx_t* pos = (const idx_t*)args;
+
+            T& x = A[pos[0] + ld * pos[1]];
+            const T& y = A[pos[2] + ld * pos[3]];
+
+            if constexpr (op == internal::Operation::Assign)
+                x = y;
+            else if constexpr (op == internal::Operation::Add)
+                x += y;
+            else if constexpr (op == internal::Operation::Subtract)
+                x -= y;
+            else if constexpr (op == internal::Operation::Multiply)
+                x *= y;
+            else if constexpr (op == internal::Operation::Divide)
+                x /= y;
+        }
+
+        /// Struct to store codelet and entry positions
+        template <class T>
+        struct callback_matrixentry_op_matrixentry_args {
+            using idx_t = internal::EntryAccess<T, true>::idx_t;
+
+            struct starpu_codelet cl;
+            idx_t* pos;
+        };
+
+        template <class T>
+        constexpr void callback_matrixentry_op_matrixentry(void* args) noexcept
+        {
+            free(((callback_matrixentry_op_matrixentry_args<T>*)args)->pos);
+            free((callback_matrixentry_op_matrixentry_args<T>*)args);
         }
 
     }  // namespace cpu
 
     namespace internal {
-
-        template <class T, bool TisConstType>
-        struct EntryAccess;
 
         template <class T>
         struct EntryAccess<T, true> {
@@ -296,11 +343,12 @@ namespace starpu {
         struct EntryAccess<T, true>::data {
             const starpu_data_handle_t root_handle;  ///< Matrix handle
             starpu_data_handle_t handle;             ///< Variable handle
+            const idx_t pos[2];
 
             /// @brief Data constructor from a variable handle
             constexpr explicit data(starpu_data_handle_t root_handle,
                                     const idx_t pos[2]) noexcept
-                : root_handle(root_handle)
+                : root_handle(root_handle), pos{pos[0], pos[1]}
             {
                 struct starpu_data_filter f_var = var_filter((void*)pos);
                 starpu_data_partition_plan(root_handle, &f_var, &handle);
@@ -447,6 +495,32 @@ namespace starpu {
                 return cl;
             }
 
+            /// @brief Generates a StarPU codelet for a given operation  with
+            /// entries of a matrix
+            /// @tparam op Operation to perform
+            template <Operation op>
+            static constexpr struct starpu_codelet gen_cl_op_entries() noexcept
+            {
+                struct starpu_codelet cl = codelet_init();
+
+                cl.cpu_funcs[0] = cpu::matrixentry_op_matrixentry<T, op>;
+                cl.nbuffers = 1;
+                cl.modes[0] = STARPU_RW;
+                cl.name = (op == Operation::Assign)
+                              ? "copy_entry"
+                              : (op == Operation::Add)
+                                    ? "add_entry"
+                                    : (op == Operation::Subtract)
+                                          ? "subtract_entry"
+                                          : (op == Operation::Multiply)
+                                                ? "multiply_entry"
+                                                : (op == Operation::Divide)
+                                                      ? "divide_entry"
+                                                      : "unknown";
+
+                return cl;
+            }
+
             /**
              * @brief Applies an operation and assigns
              *
@@ -457,28 +531,78 @@ namespace starpu {
              * @return constexpr data&  Reference to the result
              */
             template <Operation op>
-            constexpr data& operate_and_assign(const data& x) noexcept
+            data& operate_and_assign(const data& x) noexcept
             {
-                // Allocate space for the codelet
-                struct starpu_codelet* cl = (struct starpu_codelet*)malloc(
-                    sizeof(struct starpu_codelet));
-                if (cl == nullptr) {
-                    std::cerr << "Error allocating memory for codelet"
-                              << std::endl;
-                    starpu_shutdown();
-                    exit(1);
+                struct starpu_task* task = starpu_task_create();
+
+                if (this->root_handle == x.root_handle) {
+                    // If both variables are in the same matrix handle, we must
+                    // directly perform the operation on the entries of the
+                    // handle
+
+                    // Allocate space for the codelet
+                    cpu::callback_matrixentry_op_matrixentry_args<
+                        T>* callback_arg =
+                        (cpu::callback_matrixentry_op_matrixentry_args<T>*)
+                            malloc(sizeof(
+                                cpu::callback_matrixentry_op_matrixentry_args<
+                                    T>));
+                    if (callback_arg == nullptr) {
+                        std::cerr << "Error allocating memory for callback_arg"
+                                  << std::endl;
+                        starpu_shutdown();
+                        exit(1);
+                    }
+
+                    // Allocate space for the arrays of positions
+                    callback_arg->pos = (idx_t*)malloc(sizeof(idx_t) * 4);
+                    if (callback_arg->pos == nullptr) {
+                        std::cerr << "Error allocating memory for callback_arg"
+                                  << std::endl;
+                        starpu_shutdown();
+                        exit(1);
+                    }
+
+                    // Initialize codelet and arrays of positions
+                    callback_arg->cl = gen_cl_op_entries<op>();
+                    callback_arg->pos[0] = pos[0];
+                    callback_arg->pos[1] = pos[1];
+                    callback_arg->pos[2] = x.pos[0];
+                    callback_arg->pos[3] = x.pos[1];
+
+                    // Initialize task
+                    task->cl = &(callback_arg->cl);
+                    task->handles[0] = this->root_handle;
+                    task->synchronous = false;
+                    task->cl_arg = (void*)(callback_arg->pos);
+                    task->cl_arg_size = sizeof(idx_t) * 4;
+                    task->callback_func =
+                        cpu::callback_matrixentry_op_matrixentry<T>;
+                    task->callback_arg = (void*)callback_arg;
+                }
+                else {
+                    // Allocate space for the codelet
+                    struct starpu_codelet* cl = (struct starpu_codelet*)malloc(
+                        sizeof(struct starpu_codelet));
+                    if (cl == nullptr) {
+                        std::cerr << "Error allocating memory for callback_arg"
+                                  << std::endl;
+                        starpu_shutdown();
+                        exit(1);
+                    }
+
+                    // Initialize codelet
+                    *cl = gen_cl_op_data<op>();
+
+                    // Initialize task
+                    task->cl = cl;
+                    task->handles[0] = this->handle;
+                    task->handles[1] = x.handle;
+                    task->synchronous = false;
+                    task->callback_func = cpu::callback_data_op_data;
+                    task->callback_arg = (void*)cl;
                 }
 
-                // Initialize codelet
-                *cl = gen_cl_op_data<op>();
-
-                struct starpu_task* task = starpu_task_create();
-                task->cl = cl;
-                task->handles[0] = this->handle;
-                task->handles[1] = x.handle;
-                task->synchronous = false;
-                task->callback_func = cpu::free_cl;
-                task->callback_arg = (void*)cl;
                 const int ret = starpu_task_submit(task);
 
                 STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
@@ -496,11 +620,12 @@ namespace starpu {
              * @return constexpr data&  Reference to the result
              */
             template <Operation op>
-            constexpr data& operate_and_assign(const T& x) noexcept
+            data& operate_and_assign(const T& x) noexcept
             {
                 // Allocate space for the codelet and value
-                cl_value<T>* callback_arg =
-                    (cl_value<T>*)malloc(sizeof(cl_value<T>));
+                cpu::callback_data_op_value_args<T>* callback_arg =
+                    (cpu::callback_data_op_value_args<T>*)malloc(
+                        sizeof(cpu::callback_data_op_value_args<T>));
                 if (callback_arg == nullptr) {
                     std::cerr << "Error allocating memory for callback_arg"
                               << std::endl;
@@ -512,13 +637,14 @@ namespace starpu {
                 callback_arg->cl = gen_cl_op_value<op>();
                 callback_arg->value = x;
 
+                // Create and submit task
                 struct starpu_task* task = starpu_task_create();
                 task->cl = &(callback_arg->cl);
                 task->handles[0] = this->handle;
                 task->synchronous = false;
                 task->cl_arg = (void*)&(callback_arg->value);
                 task->cl_arg_size = sizeof(T);
-                task->callback_func = cpu::free_cl_value<T>;
+                task->callback_func = cpu::callback_data_op_value<T>;
                 task->callback_arg = (void*)callback_arg;
                 const int ret = starpu_task_submit(task);
 

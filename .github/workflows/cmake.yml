@@ -698,9 +698,13 @@ jobs:
       run: |
         cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -D CMAKE_PREFIX_PATH=${{github.workspace}}/tlapack_install
         cmake --build build --target all
-        echo "\nRunning example_starpu 10 8 level 0 ---------------------------"
-        ./build/example_starpu 10 8 0
-        echo "\nRunning example_starpu 10 8 recursive -------------------------"
-        ./build/example_starpu 10 8 recursive
-        echo "\nRunning example_starpu 13 23 recursive ------------------------"
-        ./build/example_starpu 13 23 recursive
+        echo "\nRunning example_starpu 10 8 10 8 level 0 ---------------------------"
+        ./build/example_starpu 10 8 10 8 0
+        echo "\nRunning example_starpu 10 8 10 8 recursive -------------------------"
+        ./build/example_starpu 10 8 10 8 recursive
+        echo "\nRunning example_starpu 9 24 9 24 recursive -------------------------"
+        ./build/example_starpu 9 24 9 24 recursive
+        echo "\nRunning example_starpu 9 24 3 24 level 0 ---------------------------"
+        ./build/example_starpu 9 24 3 24
+        echo "\nRunning example_starpu 9 24 9 8 level 0 ----------------------------"
+        ./build/example_starpu 9 24 9 8

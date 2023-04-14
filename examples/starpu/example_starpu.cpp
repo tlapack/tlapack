@@ -29,18 +29,36 @@ int main(int argc, char** argv)
 
     srand(3);
 
-    size_t m = 39;
-    size_t n = 17;
+    size_t m = 14;
+    size_t n = 7;
+    size_t r = 14;
+    size_t s = 7;
     char method = '0';  // 'r' for recursive, '0' for level0
 
     if (argc > 1) m = atoi(argv[1]);
     if (argc > 2) n = atoi(argv[2]);
-    if (argc > 3) method = tolower(argv[3][0]);
-    if (argc > 4 || (method != 'r' && method != '0')) {
-        std::cout << "Usage: " << argv[0] << " [m] [n] [method]" << std::endl;
-        std::cout << "  m: number of rows (default: 4)" << std::endl;
-        std::cout << "  n: number of columns (default: 10)" << std::endl;
-        std::cout << "  method: 'r' for recursive, '0' for level0 (default: r)"
+    if (argc > 3) r = atoi(argv[3]);
+    if (argc > 4) s = atoi(argv[4]);
+    if (argc > 5) method = tolower(argv[5][0]);
+    if (argc > 6 || (method != 'r' && method != '0') || (m % r != 0) ||
+        (n % s != 0) || (r > m) || (s > n) || (r == 0) || (s == 0) ||
+        (r != m && method == 'r') || (s != n && method == 'r')) {
+        std::cout << "Usage: " << argv[0] << " [m] [n] [r] [s] [method]"
+                  << std::endl;
+        std::cout << "  m:      number of rows of A (default: 14)" << std::endl;
+        std::cout << "  n:      number of columns of A (default: 7)"
+                  << std::endl;
+        std::cout << "  r:      number of tiles in x (rows) direction "
+                     "(default: 14)."
+                  << "r=m if method is recursive."
+                  << "Currently, m must be divisible by r." << std::endl;
+        std::cout << "  s:      number of tiles in y (columns) direction "
+                     "(default: 7)."
+                  << "s=n if method is recursive."
+                  << "Currently, n must be divisible by s." << std::endl;
+
+        std::cout << "  method: 'r' for recursive, '0' for level0 (default: 0)"
+
                   << std::endl;
         return 1;
     }
@@ -60,13 +78,17 @@ int main(int argc, char** argv)
     {
         const size_t k = std::min(m, n);
 
-        /* create matrix A */
+        /* create matrix A with m-by-n tiles */
         T* A_;
         starpu_malloc((void**)&A_, m * n * sizeof(T));
         for (size_t i = 0; i < m * n; i++) {
             A_[i] = T((float)rand() / RAND_MAX);
         }
         Matrix<T> A(A_, m, n);
+        A.create_grid(m, n);
+
+        /* compute norm of A */
+        const real_type<T> normA = lange(frob_norm, A);
 
         /* print matrix A */
         std::cout << "A = " << A << std::endl;
@@ -77,23 +99,26 @@ int main(int argc, char** argv)
         if (m > 1 && n > 2) A(1, 2) = T(0);
         if (m > 3 && n > 3) A(3, 3) = A(0, 0);
 
-        /* print matrix A */
+        /* print modified matrix A */
         std::cout << "A = " << A << std::endl;
 
-        /* create a copy of matrix A in Acopy */
+        /* create a copy of matrix A in Acopy with r-by-s tiles */
         T* Acopy_;
         starpu_malloc((void**)&Acopy_, m * n * sizeof(T));
         Matrix<T> Acopy(Acopy_, m, n);
+        Acopy.create_grid(r, s);
         lacpy(dense, A, Acopy);
 
-        /* create permutation vector */
+        /* print matrix Acopy */
+        std::cout << "Acopy = " << Acopy << std::endl;
+
+        /* create permutation vector with k tiles */
         size_t* p_;
         starpu_malloc((void**)&p_, k * sizeof(size_t));
         Matrix<size_t> p(p_, k, 1);
+        p.create_grid(k, 1);
 
         /* LU factorization */
-        Acopy.create_grid(m, n);
-        p.create_grid(k, 1);
         if (method == '0')
             getrf_level0(Acopy, p);
         else
@@ -134,11 +159,11 @@ int main(int argc, char** argv)
         }
         std::cout << "L*U = " << Acopy << std::endl;
 
-        /* Permute rows of Acopy */
-        for (size_t i = k - 1; i != size_t(-1); --i) {
+        /* Permute rows of A */
+        for (size_t i = 0; i < k; ++i) {
             if (p[i] != i) {
-                auto Api = row(Acopy, p[i]);
-                auto Ai = row(Acopy, i);
+                auto Api = row(A, p[i]);
+                auto Ai = row(A, i);
                 tlapack::swap(Ai, Api);
             }
         }
@@ -146,13 +171,12 @@ int main(int argc, char** argv)
         /* Verify the factorization is good */
         for (size_t i = 0; i < A.nrows(); ++i) {
             for (size_t j = 0; j < A.ncols(); j++) {
-                Acopy(i, j) -= A(i, j);
+                A(i, j) -= Acopy(i, j);
             }
         }
-        A.create_grid(m, n);
-        std::cout << "A - LU = " << Acopy << std::endl;
-        std::cout << "||A - LU||/||A|| = "
-                  << lange(frob_norm, Acopy) / lange(frob_norm, A) << std::endl;
+        std::cout << "A - LU = " << A << std::endl;
+        std::cout << "||A - LU||/||A|| = " << lange(frob_norm, A) / normA
+                  << std::endl;
 
         starpu_free_noflag(L_, m * k * sizeof(T));
         starpu_free_noflag(U_, k * n * sizeof(T));
