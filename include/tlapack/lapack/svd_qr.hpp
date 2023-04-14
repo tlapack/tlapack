@@ -165,9 +165,22 @@ int svd_qr(Uplo uplo,
             real_t csl, snl, csr, snr, sigmn, sigmx;
             svd22(d[istart], e[istart], d[istart + 1], sigmn, sigmx, csl, snl,
                   csr, snr);
-            d[istart] = sigmn;
-            d[istart + 1] = sigmx;
+            d[istart] = sigmx;
+            d[istart + 1] = sigmn;
             e[istart] = zero;
+
+            // Update singular vectors if desired
+            if (want_u) {
+                auto u1 = col(U, istart);
+                auto u2 = col(U, istart + 1);
+                rot(u1, u2, csl, snl);
+            }
+            if (want_vt) {
+                auto vt1 = row(Vt, istart);
+                auto vt2 = row(Vt, istart + 1);
+                rot(vt1, vt2, csr, snr);
+            }
+
             istop = istop - 2;
             istart = 0;
             continue;
@@ -204,7 +217,7 @@ int svd_qr(Uplo uplo,
             for (idx_t i = istart; i < istop - 1; ++i) {
                 lartg(d[i] * cs, e[i], cs, sn, r);
                 if (i > istart) e[i - 1] = oldsn * r;
-                lartg(oldcs * r, d[i - 1] * sn, oldcs, oldsn, d[i]);
+                lartg(oldcs * r, d[i + 1] * sn, oldcs, oldsn, d[i]);
 
                 // Update singular vectors if desired
                 if (want_u) {

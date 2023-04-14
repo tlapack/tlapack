@@ -44,7 +44,7 @@ TEMPLATE_TEST_CASE("svd is backward stable",
 
     idx_t n;
 
-    n = GENERATE(1, 4, 5, 10, 12);
+    n = GENERATE(1, 2, 4, 5, 10, 12);
 
     const real_t eps = ulp<real_t>();
     const real_t tol = real_t(100. * n) * eps;
@@ -88,26 +88,29 @@ TEMPLATE_TEST_CASE("svd is backward stable",
         CHECK(orth_Pt <= tol);
 
         // Test Q * B * Z^H = A
-        // std::vector<T> B_;
-        // auto B = new_matrix(B_, k, k);
-        // B(0, 0) = d[0];
-        // for (idx_t j = 1; j < k; ++j) {
-        //     B(j - 1, j) = e[j];
-        //     B(j, j) = d[j];
-        // }
-        // std::vector<T> A_;
-        // auto A = new_matrix(B_, m, n);
-        // A(0, 0) = d[0];
-        // for (idx_t j = 1; j < k; ++j) {
-        //     B(j - 1, j) = e[j];
-        //     B(j, j) = d[j];
-        // }
-        // std::vector<T> K_;
-        // auto K = new_matrix(K_, m, k);
-        // laset(Uplo::General, zero, zero, K);
-        // gemm(Op::NoTrans, Op::NoTrans, real_t(1.), Q, B, real_t(0), K);
-        // gemm(Op::NoTrans, Op::NoTrans, real_t(1.), K, Pt, real_t(-1.),
-        // A_copy); real_t repres = lange(Norm::Max, A_copy); CHECK(repres <=
-        // tol * normA);
+        std::vector<T> B_;
+        auto B = new_matrix(B_, n, n);
+        laset(Uplo::General, zero, zero, B);
+        B(0, 0) = d[0];
+        for (idx_t j = 1; j < n; ++j) {
+            B(j - 1, j) = e[j - 1];
+            B(j, j) = d[j];
+        }
+        std::vector<T> A_;
+        auto A = new_matrix(A_, n, n);
+        laset(Uplo::General, zero, zero, A);
+        A(0, 0) = d_copy[0];
+        for (idx_t j = 1; j < n; ++j) {
+            A(j - 1, j) = e_copy[j - 1];
+            A(j, j) = d_copy[j];
+        }
+        real_t normA = tlapack::lange(tlapack::Norm::Max, A);
+        std::vector<T> K_;
+        auto K = new_matrix(K_, n, n);
+        laset(Uplo::General, zero, zero, K);
+        gemm(Op::NoTrans, Op::NoTrans, real_t(1.), B, Pt, real_t(0), K);
+        gemm(Op::NoTrans, Op::NoTrans, real_t(1.), Q, K, real_t(-1.), A);
+        real_t repres = lange(Norm::Max, A);
+        CHECK(repres <= tol * normA);
     }
 }

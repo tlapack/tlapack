@@ -78,7 +78,7 @@ add_executable(test_unm2l test_unm2l.cpp)
 add_executable(test_lauum test_lauum.cpp)
 add_executable(test_potrf test_potrf.cpp)
 add_executable(test_svd22 test_svd22.cpp)
-add_executable(test_svd_qr test_svd_qr.cpp)
+add_executable(test_svd_qr test_svd_qr.cpp testutils.cpp)
 add_executable(test_larf test_larf.cpp)
 
 if(TLAPACK_TEST_EIGEN)
