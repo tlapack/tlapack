@@ -58,46 +58,9 @@ namespace starpu {
         /// Return an empty starpu_codelet struct
         constexpr struct starpu_codelet codelet_init() noexcept
         {
-#if __cplusplus >= 202002L
-            return {};
-#else
-            return {
-                0,                      // where
-                NULL,                   // can_execute
-                starpu_codelet_type(),  // type
-                0,                      // max_parallelism
-                NULL,                   // cpu_func STARPU_DEPRECATED
-                NULL,                   // cuda_func STARPU_DEPRECATED
-                NULL,                   // opencl_func STARPU_DEPRECATED
-                {},                     // cpu_funcs
-                {},                     // cuda_funcs
-                {},                     // cuda_flags
-                {},                     // hip_funcs
-                {},                     // hip_flags
-                {},                     // opencl_funcs
-                {},                     // opencl_flags
-                {},                     // max_fpga_funcs
-                {},                     // cpu_funcs_name
-                NULL,                   // bubble_func
-                NULL,                   // bubble_gen_dag_func
-                0,                      // nbuffers
-                {},                     // modes
-                NULL,                   // dyn_modes
-                0,                      // specific_nodes
-                {},                     // nodes
-                NULL,                   // dyn_nodes
-                NULL,                   // model
-                NULL,                   // energy_model
-                {},                     // per_worker_stats
-                "",                     // name
-                0,                      // color
-                NULL,                   // callback_func
-                0,                      // flags
-                NULL,                   // perf_counter_sample
-                NULL,                   // perf_counter_values
-                0                       // checked
-            };
-#endif
+            struct starpu_codelet v = {};
+            memset(&v, 0, sizeof(v));
+            return v;
         }
 
     }  // namespace internal
