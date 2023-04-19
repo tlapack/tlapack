@@ -171,8 +171,8 @@ if (PkgConfig_FOUND)
     add_custom_command(
       OUTPUT run-all-examples-cmd APPEND
       COMMAND
-        echo "- example_starpu ----------------" &&
-        "${CMAKE_CURRENT_BINARY_DIR}/starpu/example_starpu${CMAKE_EXECUTABLE_SUFFIX}"
+        echo "- example_starpu_lu ----------------" &&
+        "${CMAKE_CURRENT_BINARY_DIR}/starpu/example_starpu_lu${CMAKE_EXECUTABLE_SUFFIX}"
         && echo ""
     )
   endif()

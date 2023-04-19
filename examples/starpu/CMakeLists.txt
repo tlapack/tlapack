@@ -25,6 +25,10 @@ else (STARPU_FOUND)
   message(FATAL_ERROR "StarPU not found")
 endif()
 
-# add the example eigen
-add_executable( example_starpu example_starpu.cpp )
-target_link_libraries( example_starpu PRIVATE tlapack )
+# add the example LU
+add_executable( example_starpu_lu example_lu.cpp )
+target_link_libraries( example_starpu_lu PRIVATE tlapack )
+
+# add the example GEMM
+add_executable( example_starpu_gemm example_gemm.cpp )
+target_link_libraries( example_starpu_gemm PRIVATE tlapack )
