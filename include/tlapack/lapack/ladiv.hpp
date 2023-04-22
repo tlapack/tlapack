@@ -1,7 +1,5 @@
 /// @file ladiv.hpp
 /// @author Weslley S Pereira, University of Colorado Denver, USA
-/// @note Adapted from @see
-/// https://github.com/langou/latl/blob/master/include/ladiv.h
 //
 // Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
@@ -12,6 +10,7 @@
 #ifndef TLAPACK_LADIV_HH
 #define TLAPACK_LADIV_HH
 
+#include "tlapack/base/constants.hpp"
 #include "tlapack/base/utils.hpp"
 
 namespace tlapack {
@@ -44,18 +43,88 @@ void ladiv(const real_t& a,
            real_t& p,
            real_t& q)
 {
-    real_t e, f;
-    if (abs(d) < abs(c)) {
-        e = d / c;
-        f = c + d * e;
-        p = (a + b * e) / f;
-        q = (b - a * e) / f;
+    // internal function sladiv2
+    auto sladiv2 = [](const real_t& a, const real_t& b, const real_t& c,
+                      const real_t& d, const real_t& r, const real_t& t) {
+        const real_t zero(0);
+        if (r != zero) {
+            const real_t br = b * r;
+            if (br != zero)
+                return (a + br) * t;
+            else
+                return a * t + (b * t) * r;
+        }
+        else
+            return (a + d * (b / c)) * t;
+    };
+
+    // internal function sladiv1
+    auto sladiv1 = [sladiv2](const real_t& a, const real_t& b, const real_t& c,
+                             const real_t& d, real_t& p, real_t& q) {
+        const real_t r = d / c;
+        const real_t t = real_t(1) / (c + d * r);
+        p = sladiv2(a, b, c, d, r, t);
+        q = sladiv2(b, -a, c, d, r, t);
+    };
+
+    // constant to control the lower limit of the overflow threshold
+    const real_t bs(2);
+
+    // constants for safe computation
+    const real_t one(1);
+    const real_t two(2);
+    const real_t half(0.5);
+    const real_t ov = std::numeric_limits<real_t>::max();
+    const real_t safeMin = safe_min<real_t>();
+    const real_t u = uroundoff<real_t>();
+    const real_t be = bs / (u * u);
+
+    // constants
+    const real_t ab = max(abs(a), abs(b));
+    const real_t cd = max(abs(c), abs(d));
+
+    // local variables
+    real_t aa = a;
+    real_t bb = b;
+    real_t cc = c;
+    real_t dd = d;
+    real_t s(1);  // scaling factor
+
+    // scale values to avoid overflow
+    if (ab >= half * ov) {
+        aa *= half;
+        bb *= half;
+        s *= two;
+    }
+    if (cd >= half * ov) {
+        cc *= half;
+        dd *= half;
+        s *= half;
+    }
+    if (ab <= safeMin * bs / u) {
+        aa *= be;
+        bb *= be;
+        s /= be;
+    }
+    if (cd <= safeMin * bs / u) {
+        cc *= be;
+        dd *= be;
+        s *= be;
+    }
+
+    // compute the quotient
+    if (tlapack::abs(d) <= tlapack::abs(c)) {
+        sladiv1(aa, bb, cc, dd, p, q);
     }
     else {
-        e = c / d;
-        f = c + d * e;
-        p = (b + a * e) / f;
-        q = (-a + b * e) / f;
+        sladiv1(bb, aa, dd, cc, p, q);
+        q = -q;
+    }
+
+    // scale the result
+    if (s != one) {
+        p *= s;
+        q *= s;
     }
 }
 

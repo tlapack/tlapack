@@ -13,12 +13,16 @@
 // Test utilities and definitions (must come before <T>LAPACK headers)
 #include "testutils.hpp"
 
+// std::complex wrapper that propagates NaNs
+#include "NaNPropagComplex.hpp"
+
 // Auxiliary routines
 #include <tlapack/base/constants.hpp>
 #include <tlapack/blas/axpy.hpp>
 #include <tlapack/blas/copy.hpp>
 #include <tlapack/blas/iamax.hpp>
 #include <tlapack/blas/nrm2.hpp>
+#include <tlapack/lapack/ladiv.hpp>
 
 // Other routines
 #include <tlapack/lapack/rscl.hpp>
@@ -58,10 +62,13 @@ TEMPLATE_TEST_CASE("reciprocal scaling works on limit cases",
                                         real_t(8), real_t(10)}));
     }
     {
-        using T = std::complex<real_t>;
-        using trustT = std::complex<long double>;
+        using T = NaNPropagComplex<real_t>;
+        using trustR = long double;
+        using trustT = NaNPropagComplex<trustR>;
 
         // scaling constants
+        const real_t Inf = std::numeric_limits<real_t>::infinity();
+        const real_t NaN = std::numeric_limits<real_t>::quiet_NaN();
         const real_t M = std::numeric_limits<real_t>::max();
         const real_t m = std::numeric_limits<real_t>::min();
         const real_t denormMin = std::numeric_limits<real_t>::denorm_min();
@@ -116,7 +123,11 @@ TEMPLATE_TEST_CASE("reciprocal scaling works on limit cases",
             T(two * m * eps, half * m),
             // Close to denormMin
             T(denormMin, denormMin * four * eps), T(denormMin, denormMin),
-            T(denormMin * four * eps, denormMin)};
+            T(denormMin * four * eps, denormMin),
+            // Inf
+            T(Inf, Inf), T(Inf, zero), T(Inf, one), T(zero, Inf), T(one, Inf),
+            T(NaN, NaN), T(NaN, zero), T(NaN, one), T(zero, NaN), T(one, NaN),
+            T(Inf, NaN), T(NaN, Inf)};
 
         // std::cout << "alpha = " << std::endl;
         // for (T alpha : alpha_vec) {
@@ -125,6 +136,7 @@ TEMPLATE_TEST_CASE("reciprocal scaling works on limit cases",
 
         for (T alpha : alpha_vec) {
             for (size_t k = 0; k < 2; ++k) {
+                // alpha = T(real_t(2.028241e+31), real_t(-4.253530e+37));
                 const std::vector<T> v = alpha_vec;
                 const std::vector<T> v_ref = [v, alpha] {
                     const trustT alpha_ = trustT(real(alpha), imag(alpha));
@@ -132,6 +144,7 @@ TEMPLATE_TEST_CASE("reciprocal scaling works on limit cases",
                     for (size_t i = 0; i < v.size(); ++i) {
                         const trustT vi_ =
                             trustT(real(v[i]), imag(v[i])) / alpha_;
+                        // ladiv(trustT(real(v[i]), imag(v[i])), alpha_);
                         v_ref[i] = T((real_t)real(vi_), (real_t)imag(vi_));
                     }
                     return v_ref;
@@ -151,13 +164,27 @@ TEMPLATE_TEST_CASE("reciprocal scaling works on limit cases",
 
                 size_t i = 0;
                 for (; i < v.size(); ++i) {
-                    if (isnan(v_ref[i])) {
-                        // If v_ref[i] is NaN, then v_scal[i] must be NaN.
+                    if ((alpha == zero) && (v[i] == zero)) {
+                        // If alpha is zero and v[i] is zero, then v_scal[i]
+                        // must be NaN.
                         if (!isnan(v_scal[i])) break;
                     }
-                    else if (isinf(v_ref[i])) {
-                        // If v_ref[i] is inf, then v_scal[i] must be inf or a
-                        // NaN.
+                    else if (isnan(alpha) || isnan(v[i])) {
+                        // If alpha is NaN, then v_scal[i] must be NaN.
+                        if (!isnan(v_scal[i])) break;
+                    }
+                    else if (isnan(v_scal[i])) {
+                        // If v_scal[i] is NaN and alpha and v[i] aren't, then
+                        // there must be a Inf or NaN in v_ref[i] or an Inf in
+                        // alpha.
+                        if (!isinf(v_ref[i]) && !isnan(v_ref[i]) &&
+                            !isinf(alpha))
+                            break;
+                    }
+
+                    if (isnan(v_ref[i]) || isinf(v_ref[i])) {
+                        // If v_ref[i] is NaN or Inf, then v_scal[i] must be a
+                        // NaN or Inf as well.
                         if (!isinf(v_scal[i]) && !isnan(v_scal[i])) break;
                     }
                     else {
@@ -175,9 +202,10 @@ TEMPLATE_TEST_CASE("reciprocal scaling works on limit cases",
                                 break;
                         }
                         else {
-                            // This condition is very strict. But all tests pass
-                            // with it. So, I will let it be for now.
-                            if (err > denormMin) break;
+                            // If both tol and err_naive are zero, then we can
+                            // only use the absolute error to determine if the
+                            // error is acceptable.
+                            if (err >= m) break;
                         }
                     }
                 }
@@ -201,8 +229,35 @@ TEMPLATE_TEST_CASE("reciprocal scaling works on limit cases",
                 CHECK(i == v.size());
 
                 // Do another round with the conjugate of alpha.
-                alpha = conj(alpha);
+                alpha = T(real(alpha), -imag(alpha));
             }
         }
     }
 }
+
+// TEST_CASE("test std::complex", "[std::complex]")
+// {
+//     const double inf = std::numeric_limits<double>::infinity();
+//     const double nan = std::numeric_limits<double>::quiet_NaN();
+
+//     std::complex<double> a(1.797693e+308, 2.220446e-16);
+//     std::complex<double> b(nan, inf);
+//     UNSCOPED_INFO("a = " << a);
+//     UNSCOPED_INFO("b = " << b);
+//     UNSCOPED_INFO("a / b = " << a / b);
+//     CHECK(isnan(a / b));
+
+//     a = std::complex<double>(inf, 0);
+//     b = std::complex<double>(4.940656e-324, 0);
+//     UNSCOPED_INFO("a = " << a);
+//     UNSCOPED_INFO("b = " << b);
+//     UNSCOPED_INFO("a / b = " << a / b);
+//     CHECK(!isnan(a / b));
+
+//     a = std::complex<double>(inf, 0);
+//     b = std::complex<double>(4.940656e-324, 0);
+//     UNSCOPED_INFO("a = " << a);
+//     UNSCOPED_INFO("b = " << b);
+//     UNSCOPED_INFO("a / b = " << a / b);
+//     CHECK(!isnan(ladiv(a, b)));
+// }

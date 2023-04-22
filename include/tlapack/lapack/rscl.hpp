@@ -25,7 +25,7 @@ void rscl(const alpha_t& alpha, vector_t& x)
     // constants
     const real_t safeMax = safe_max<real_t>();
     const real_t safeMin = safe_min<real_t>();
-    const real_t r = tlapack::abs(alpha);
+    const real_t r = abs(alpha);
 
     if (r > safeMax) {
         scal(safeMin, x);
@@ -68,14 +68,16 @@ void rscl(const alpha_t& alpha, vector_t& x)
 {
     using real_t = real_type<alpha_t>;
 
+    const real_t huge = std::numeric_limits<real_t>::max();
     const real_t safeMax = safe_max<real_t>();
     const real_t safeMin = safe_min<real_t>();
     const real_t zero(0);
+    const real_t one(1);
 
     const real_t alphaR = real(alpha);
     const real_t alphaI = imag(alpha);
-    const real_t absR = tlapack::abs(alphaR);
-    const real_t absI = tlapack::abs(alphaI);
+    const real_t absR = abs(alphaR);
+    const real_t absI = abs(alphaI);
 
     if (absI == zero) {
         // If alpha is real, then we can use another routine.
@@ -95,31 +97,55 @@ void rscl(const alpha_t& alpha, vector_t& x)
             scal(alpha_t(zero, -safeMin / alphaI), x);
         }
         else
-            scal(alpha_t(zero, -real_t(1) / alphaI), x);
+            scal(alpha_t(zero, -one / alphaI), x);
     }
 
     else if (absR > safeMax || absI > safeMax) {
         // Either real or imaginary part is too large.
         scal(safeMin, x);
-        scal(safeMax / alpha, x);
+        scal(ladiv(alpha_t(safeMax), alpha), x);
     }
 
     else {
-        // The following numbers can be computed without NaNs.
+        // The following numbers can be computed without NaNs and zeros.
         // They are the inverse of the real and imaginary parts of 1/alpha.
-        const real_t a = tlapack::abs(alphaR + alphaI * (alphaI / alphaR));
-        const real_t b = tlapack::abs(alphaI + alphaR * (alphaR / alphaI));
+        const real_t a = alphaR + alphaI * (alphaI / alphaR);
+        const real_t b = alphaI + alphaR * (alphaR / alphaI);
 
-        if (a > safeMax || b > safeMax) {
-            scal(safeMin, x);
-            scal(safeMax / alpha, x);
-        }
-        else if (a < safeMin || b < safeMin) {
+        if (abs(a) < safeMin || abs(b) < safeMin) {
+            const alpha_t invAlpha(safeMin / a, -safeMin / b);
             scal(safeMax, x);
-            scal(safeMin / alpha, x);
+            scal(invAlpha, x);
         }
-        else
-            scal(real_t(1) / alpha, x);
+        else if (abs(a) > huge) {
+            const real_t aScaled =
+                (absR >= absI) ? (safeMin * alphaR) +
+                                     alphaI * (safeMin * (alphaI / alphaR))
+                               : (safeMin * alphaR) +
+                                     alphaI * ((safeMin * alphaI) / alphaR);
+            const alpha_t invAlpha(one / aScaled, -safeMax / b);
+            scal(safeMin, x);
+            scal(invAlpha, x);
+        }
+        else if (abs(b) > huge) {
+            const real_t bScaled =
+                (absI >= absR) ? (safeMin * alphaI) +
+                                     alphaR * (safeMin * (alphaR / alphaI))
+                               : (safeMin * alphaI) +
+                                     alphaR * ((safeMin * alphaR) / alphaI);
+            const alpha_t invAlpha(safeMax / a, -one / bScaled);
+            scal(safeMin, x);
+            scal(invAlpha, x);
+        }
+        else if (abs(a) > safeMax || abs(b) > safeMax) {
+            const alpha_t invAlpha(safeMax / a, -safeMax / b);
+            scal(safeMin, x);
+            scal(invAlpha, x);
+        }
+        else {
+            const alpha_t invAlpha(one / a, -one / b);
+            scal(invAlpha, x);
+        }
     }
 }
 
