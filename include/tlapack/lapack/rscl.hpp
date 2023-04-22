@@ -12,6 +12,7 @@
 
 #include "tlapack/base/utils.hpp"
 #include "tlapack/blas/scal.hpp"
+#include "tlapack/lapack/ladiv.hpp"
 
 namespace tlapack {
 

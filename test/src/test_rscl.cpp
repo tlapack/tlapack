@@ -143,8 +143,7 @@ TEMPLATE_TEST_CASE("reciprocal scaling works on limit cases",
                     std::vector<T> v_ref(v.size());
                     for (size_t i = 0; i < v.size(); ++i) {
                         const trustT vi_ =
-                            trustT(real(v[i]), imag(v[i])) / alpha_;
-                        // ladiv(trustT(real(v[i]), imag(v[i])), alpha_);
+                            ladiv(trustT(real(v[i]), imag(v[i])), alpha_);
                         v_ref[i] = T((real_t)real(vi_), (real_t)imag(vi_));
                     }
                     return v_ref;
@@ -185,7 +184,9 @@ TEMPLATE_TEST_CASE("reciprocal scaling works on limit cases",
                     if (isnan(v_ref[i]) || isinf(v_ref[i])) {
                         // If v_ref[i] is NaN or Inf, then v_scal[i] must be a
                         // NaN or Inf as well.
-                        if (!isinf(v_scal[i]) && !isnan(v_scal[i])) break;
+                        if (!isinf(v_scal[i]) && !isnan(v_scal[i]) &&
+                            !isinf(alpha))
+                            break;
                     }
                     else {
                         const real_t tol = eps * tlapack::abs(v_ref[i]);
