@@ -64,13 +64,16 @@ inline constexpr void ungbr_q_worksize(const size_type<matrix_t> k,
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
 
+    ungqr_opts_t<matrix_t> ungqrOpts;
+    ungqrOpts.nb = opts.nb;
+    ungqrOpts.work = opts.work;
     if (m >= k) {
-        ungqr_worksize(A, tau, workinfo, opts);
+        ungqr_worksize(A, tau, workinfo, ungqrOpts);
     }
     else {
         auto A2 = slice(A, pair{0, m - 1}, pair{0, m - 1});
         auto tau2 = slice(tau, pair{0, m - 1});
-        ungqr_worksize(A2, tau2, workinfo, opts);
+        ungqr_worksize(A2, tau2, workinfo, ungqrOpts);
     }
 }
 
@@ -109,13 +112,16 @@ inline constexpr void ungbr_p_worksize(const size_type<matrix_t> k,
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
 
-    if (m >= k) {
-        auto A2 = slice(A, pair{0, n - 1}, pair{0, n - 1});
-        auto tau2 = slice(tau, pair{0, n - 1});
-        unglq_worksize(A2, tau2, workinfo, opts);
+    unglq_opts_t<matrix_t> unglqOpts;
+    unglqOpts.nb = opts.nb;
+    unglqOpts.work = opts.work;
+    if (k < n) {
+        unglq_worksize(A, tau, workinfo, unglqOpts);
     }
     else {
-        unglq_worksize(A, tau, workinfo, opts);
+        auto A2 = slice(A, pair{0, n - 1}, pair{0, n - 1});
+        auto tau2 = slice(tau, pair{0, n - 1});
+        unglq_worksize(A2, tau2, workinfo, unglqOpts);
     }
 }
 
@@ -168,9 +174,17 @@ int ungbr_q(const size_type<matrix_t> k,
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
 
+    // Allocates workspace
+    vectorOfBytes localworkdata;
+    Workspace work = [&]() {
+        workinfo_t workinfo;
+        ungbr_q_worksize(k, A, tau, workinfo, opts);
+        return alloc_workspace(localworkdata, workinfo, opts.work);
+    }();
+
     ungqr_opts_t<matrix_t> ungqrOpts;
     ungqrOpts.nb = opts.nb;
-    ungqrOpts.work = opts.work;
+    ungqrOpts.work = work;
     if (m >= k) {
         // If m >= k, assume m >= n >= k
         ungqr(A, tau, ungqrOpts);
@@ -247,9 +261,17 @@ int ungbr_p(const size_type<matrix_t> k,
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
 
+    // Allocates workspace
+    vectorOfBytes localworkdata;
+    Workspace work = [&]() {
+        workinfo_t workinfo;
+        ungbr_p_worksize(k, A, tau, workinfo, opts);
+        return alloc_workspace(localworkdata, workinfo, opts.work);
+    }();
+
     unglq_opts_t<matrix_t> unglqOpts;
     unglqOpts.nb = opts.nb;
-    unglqOpts.work = opts.work;
+    unglqOpts.work = work;
     //
     // Form P**H, determined by a call to gebrd to reduce a k-by-n
     // matrix

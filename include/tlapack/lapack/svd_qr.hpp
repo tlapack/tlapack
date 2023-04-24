@@ -79,18 +79,14 @@ namespace tlapack {
  *      On entry, an n-by-nvt unitary matrix.
  *      On exit, Vt is overwritten by P^H * Vt.
  *
- * @param[in] opts Options.
- *      - @c opts.work is used if whenever it has sufficient size.
- *        The sufficient size can be obtained through a workspace query.
- *
  * @ingroup computational
  */
-template <class matrix_t, class r_vector_t>
+template <class matrix_t, class d_t, class e_t>
 int svd_qr(Uplo uplo,
            bool want_u,
            bool want_vt,
-           r_vector_t& d,
-           r_vector_t& e,
+           d_t& d,
+           e_t& e,
            matrix_t& U,
            matrix_t& Vt)
 {

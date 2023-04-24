@@ -59,17 +59,17 @@ struct gebrd_opts_t : public workspace_opts_t<> {
  *
  * @ingroup workspace_query
  */
-template <class matrix_t, class vector_t, class r_vector_t>
-void gebrd_worksize(const matrix_t& A,
-                    const r_vector_t& d,
-                    const r_vector_t& e,
-                    const vector_t& tauq,
-                    const vector_t& taup,
+template <class A_t, class d_t, class e_t, class tauq_t, class taup_t>
+void gebrd_worksize(const A_t& A,
+                    const d_t& d,
+                    const e_t& e,
+                    const tauq_t& tauq,
+                    const taup_t& taup,
                     workinfo_t& workinfo,
-                    const gebrd_opts_t<size_type<matrix_t> >& opts = {})
+                    const gebrd_opts_t<size_type<A_t> >& opts = {})
 {
-    using idx_t = size_type<matrix_t>;
-    using work_t = matrix_type<matrix_t, vector_t>;
+    using idx_t = size_type<A_t>;
+    using work_t = matrix_type<A_t>;
     using T = type_t<work_t>;
 
     const idx_t m = nrows(A);
@@ -135,18 +135,18 @@ void gebrd_worksize(const matrix_t& A,
  *
  * @ingroup computational
  */
-template <class matrix_t, class vector_t, class r_vector_t>
-int gebrd(matrix_t& A,
-          r_vector_t& d,
-          r_vector_t& e,
-          vector_t& tauq,
-          vector_t& taup,
-          const gebrd_opts_t<size_type<matrix_t> >& opts = {})
+template <class A_t, class d_t, class e_t, class tauq_t, class taup_t>
+int gebrd(A_t& A,
+          d_t& d,
+          e_t& e,
+          tauq_t& tauq,
+          taup_t& taup,
+          const gebrd_opts_t<size_type<A_t> >& opts = {})
 {
-    using idx_t = size_type<matrix_t>;
-    using work_t = matrix_type<matrix_t, vector_t>;
+    using idx_t = size_type<A_t>;
+    using work_t = matrix_type<A_t>;
     using pair = pair<idx_t, idx_t>;
-    using TA = type_t<matrix_t>;
+    using TA = type_t<A_t>;
     using real_t = real_type<TA>;
 
     // Functor
@@ -169,7 +169,7 @@ int gebrd(matrix_t& A,
     }();
 
     // Options to forward
-    auto&& larfbOpts = workspace_opts_t<transpose_type<work_t> >{work};
+    auto&& larfbOpts = workspace_opts_t<transpose_type<A_t> >{work};
     auto&& gehd2Opts = workspace_opts_t<>{work};
 
     // Matrix X
