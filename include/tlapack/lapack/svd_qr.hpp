@@ -100,8 +100,11 @@ int svd_qr(Uplo uplo,
     const real_t zero(0);
     const idx_t n = size(d);
     const real_t eps = ulp<real_t>();
-    const real_t small_num = safe_min<real_t>() / ulp<real_t>();
-    const real_t tol = real_t(10.0) * eps;
+    const real_t unfl = safe_min<real_t>();
+    const real_t small_num = unfl / ulp<real_t>();
+    const real_t tolmul =
+        max(real_t(10.0), min(real_t(100.0), pow(eps, real_t(-0.125))));
+    const real_t tol = tolmul * eps;
 
     // Quick return
     if (n == 0) return 0;
@@ -128,11 +131,28 @@ int svd_qr(Uplo uplo,
 
     idx_t itmax = 30 * n;
 
+    //
+    // Determine threshold
+    //
+    auto sminoa = abs(d[1]);
+    if (sminoa != zero) {
+        auto mu = sminoa;
+        for (idx_t i = 1; i < n; ++i) {
+            mu = abs(d[i]) * (mu / (mu + abs(e[i - 1])));
+            sminoa = min(sminoa, mu);
+            if (sminoa == zero) break;
+        }
+    }
+    sminoa = sminoa / sqrt(real_t(n));
+    real_t thresh = max(tol * sminoa, itmax * (n * (n * unfl)));
+
     // istart and istop determine the active block
     idx_t istart = 0;
     idx_t istop = n;
 
+    //
     // Main loop
+    //
     for (idx_t iter = 0; iter <= itmax; ++iter) {
         if (iter == itmax) {
             // The QR algorithm failed to converge, return with error.
@@ -140,13 +160,20 @@ int svd_qr(Uplo uplo,
         }
 
         if (istop <= 1) {
-            // All eigenvalues have been found, exit and return 0.
+            // All singular values have been found, exit and return 0.
             break;
         }
 
         // Find active block
+        if (abs(d[istart]) <= thresh) d[istart] = zero;
+        auto smax = abs(d[istop - 1]);
         for (idx_t i = istop - 1; i > istart; --i) {
-            if (abs(e[i - 1]) <= tol * abs(d[i])) {
+            smax = max(smax, abs(d[i - 1]));
+            smax = max(smax, abs(e[i - 1]));
+            if (abs(d[i]) <= thresh) {
+                d[i] = zero;
+            }
+            if (abs(e[i - 1]) <= thresh) {
                 e[i - 1] = zero;
                 istart = i;
                 break;
@@ -186,14 +213,25 @@ int svd_qr(Uplo uplo,
             continue;
         }
 
-        // TODO: choose direction
-
-        // TODO: figure out convergence tests
+        // Extra convergence check
+        auto mu = abs(d[istart]);
+        auto sminl = mu;
+        bool found_zero = false;
+        for (idx_t i = istart; i + 1 < istop; ++i) {
+            if (abs(e[i]) < tol * mu) {
+                found_zero = true;
+                e[i] = zero;
+                break;
+            }
+            mu = abs(d[i + 1]) * (mu / (mu + abs(e[i])));
+            sminl = min(sminl, mu);
+        }
+        if (found_zero) continue;
 
         // Compute shift.  First, test if shifting would ruin relative
         // accuracy, and if so set the shift to zero.
         real_t shift;
-        if (false) {  // TODO
+        if (n * tol * (sminl / smax) <= max(eps, real_t(0.01) * tol)) {
             shift = zero;
         }
         else {
