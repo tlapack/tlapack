@@ -79,7 +79,7 @@ TEMPLATE_TEST_CASE("svd with small unitary matrix is backward stable",
         // Check that singular values are positive and sorted in decreasing
         // order
         for (idx_t i = 0; i < k; ++i) {
-            CHECK(s[i] >= 0);
+            CHECK(s[i] >= real_t(0));
         }
         for (idx_t i = 0; i + 1 < k; ++i) {
             CHECK(s[i] >= s[i + 1]);
@@ -170,7 +170,7 @@ TEMPLATE_TEST_CASE("svd with full unitary matrix is backward stable",
         // Check that singular values are positive and sorted in decreasing
         // order
         for (idx_t i = 0; i < k; ++i) {
-            CHECK(s[i] >= 0);
+            CHECK(s[i] >= real_t(0));
         }
         for (idx_t i = 0; i + 1 < k; ++i) {
             CHECK(s[i] >= s[i + 1]);

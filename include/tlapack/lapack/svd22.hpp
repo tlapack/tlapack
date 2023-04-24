@@ -63,8 +63,6 @@ void svd22(const T& f,
            T& csr,
            T& snr)
 {
-    using std::copysign;
-
     const T eps = ulp<T>();
     const T zero(0);
     const T one(1);
@@ -161,10 +159,10 @@ void svd22(const T& f,
             if (mm == zero) {
                 // m is very tiny, so m*m has underflowed
                 if (l == zero) {
-                    t = copysign(two, ft) * copysign(one, gt);
+                    t = two * T(sgn(ft)) * T(sgn(gt));
                 }
                 else {
-                    t = gt / copysign(d, ft) + m / t;
+                    t = gt / (abs(d) * T(sgn(ft))) + m / t;
                 }
             }
             else {
@@ -194,13 +192,13 @@ void svd22(const T& f,
     //
     T tsign;
     if (pmax == 1)
-        tsign = copysign(one, csr) * copysign(one, csl) * copysign(one, f);
+        tsign = T(sgn(csr)) * T(sgn(csl)) * T(sgn(f));
     else if (pmax == 2)
-        tsign = copysign(one, snr) * copysign(one, csl) * copysign(one, g);
+        tsign = T(sgn(snr)) * T(sgn(csl)) * T(sgn(g));
     else
-        tsign = copysign(one, snr) * copysign(one, snl) * copysign(one, h);
-    ssmax = copysign(ssmax, tsign);
-    ssmin = copysign(ssmin, tsign * copysign(one, f) * copysign(one, h));
+        tsign = T(sgn(snr)) * T(sgn(snl)) * T(sgn(h));
+    ssmax = ssmax * T(sgn(tsign));
+    ssmin = ssmin * T(sgn(tsign * T(sgn(f)) * T(sgn(h))));
 }
 
 }  // namespace tlapack

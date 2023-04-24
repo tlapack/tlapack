@@ -48,34 +48,34 @@ TEMPLATE_TEST_CASE("2x2 svd gives correct result",
         h = rand_helper<T>();
     }
     if (matrix_type == "large f") {
-        f = 1000. * rand_helper<T>();
+        f = T(1000.) * rand_helper<T>();
         g = rand_helper<T>();
         h = rand_helper<T>();
     }
     if (matrix_type == "large g") {
         f = rand_helper<T>();
-        g = 1000. * rand_helper<T>();
+        g = T(1000.) * rand_helper<T>();
         h = rand_helper<T>();
     }
     if (matrix_type == "large h") {
         f = rand_helper<T>();
         g = rand_helper<T>();
-        h = 1000. * rand_helper<T>();
+        h = T(1000.) * rand_helper<T>();
     }
     if (matrix_type == "zero f") {
-        f = 0.;
+        f = T(0.);
         g = rand_helper<T>();
         h = rand_helper<T>();
     }
     if (matrix_type == "zero g") {
         f = rand_helper<T>();
-        g = 0.;
+        g = T(0.);
         h = rand_helper<T>();
     }
     if (matrix_type == "zero h") {
         f = rand_helper<T>();
         g = rand_helper<T>();
-        h = 0.;
+        h = T(0.);
     }
 
     DYNAMIC_SECTION("matrix type = " << matrix_type)
@@ -95,15 +95,17 @@ TEMPLATE_TEST_CASE("2x2 svd gives correct result",
         auto c0 = col(A, 0);
         auto c1 = col(A, 1);
         rot(c0, c1, csr, snr);
-        CHECK(abs(A(0, 0) - ssmax1) <= tol * abs(ssmax1));
-        CHECK(abs(A(1, 1) - ssmin1) <= tol * abs(ssmax1));
-        CHECK(abs(A(1, 0)) <= tol * abs(ssmax1));
-        CHECK(abs(A(0, 1)) <= tol * abs(ssmax1));
+        CHECK(tlapack::abs(A(0, 0) - ssmax1) <= tol * tlapack::abs(ssmax1));
+        CHECK(tlapack::abs(A(1, 1) - ssmin1) <= tol * tlapack::abs(ssmax1));
+        CHECK(tlapack::abs(A(1, 0)) <= tol * tlapack::abs(ssmax1));
+        CHECK(tlapack::abs(A(0, 1)) <= tol * tlapack::abs(ssmax1));
 
         // Check that the singular values calculated by svd22 and
         // singularvalues22 are the same
         singularvalues22(f, g, h, ssmin2, ssmax2);
-        CHECK(abs(abs(ssmin1) - ssmin2) <= tol * abs(ssmin1));
-        CHECK(abs(abs(ssmax1) - ssmax2) <= tol * abs(ssmax1));
+        CHECK(tlapack::abs(tlapack::abs(ssmin1) - ssmin2) <=
+              tol * tlapack::abs(ssmin1));
+        CHECK(tlapack::abs(tlapack::abs(ssmax1) - ssmax2) <=
+              tol * tlapack::abs(ssmax1));
     }
 }

@@ -38,6 +38,11 @@ inline auto pow(int base, const Eigen::half& exp)
     return pow(Eigen::half(base), exp);
 }
 
+inline auto pow(const Eigen::half& base, int exp)
+{
+    return pow(base, Eigen::half(exp));
+}
+
 std::complex<Eigen::half> sqrt(const std::complex<Eigen::half>& z)
 {
     const Eigen::half x = real(z);

@@ -134,7 +134,7 @@ int svd_qr(Uplo uplo,
     //
     // Determine threshold
     //
-    auto sminoa = abs(d[1]);
+    real_t sminoa = abs(d[1]);
     if (sminoa != zero) {
         auto mu = sminoa;
         for (idx_t i = 1; i < n; ++i) {
@@ -144,7 +144,8 @@ int svd_qr(Uplo uplo,
         }
     }
     sminoa = sminoa / sqrt(real_t(n));
-    real_t thresh = max(tol * sminoa, itmax * (n * (n * unfl)));
+    real_t thresh =
+        max(tol * sminoa, real_t(itmax) * (real_t(n) * (real_t(n) * unfl)));
 
     // istart and istop determine the active block
     idx_t istart = 0;
@@ -231,7 +232,7 @@ int svd_qr(Uplo uplo,
         // Compute shift.  First, test if shifting would ruin relative
         // accuracy, and if so set the shift to zero.
         real_t shift;
-        if (n * tol * (sminl / smax) <= max(eps, real_t(0.01) * tol)) {
+        if (real_t(n) * tol * (sminl / smax) <= max(eps, real_t(0.01) * tol)) {
             shift = zero;
         }
         else {
@@ -276,7 +277,7 @@ int svd_qr(Uplo uplo,
         else {
             // Use nonzero shift
             real_t f = (abs(d[istart]) - shift) *
-                       (copysign(one, d[istart]) + shift / d[istart]);
+                       (real_t(sgn(d[istart])) + shift / d[istart]);
             real_t g = e[istart];
             for (idx_t i = istart; i < istop - 1; ++i) {
                 real_t r, csl, snl, csr, snr;
