@@ -52,8 +52,6 @@ struct gesvd_opts_t : public workspace_opts_t<> {
  *
  * @param[in,out] Vt n-by-n matrix.
  *
- * @param[in,out]
- *
  * @param[in] opts Options.
  *      - @c opts.work is used if whenever it has sufficient size.
  *        The sufficient size can be obtained through a workspace query.
