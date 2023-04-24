@@ -203,9 +203,9 @@ int gesvd(bool want_u,
 
     Uplo uplo = (m >= n) ? Uplo::Upper : Uplo::Lower;
 
-    svd_qr(uplo, want_u, want_vt, s, e, U, Vt);
+    int ierr = svd_qr(uplo, want_u, want_vt, s, e, U, Vt);
 
-    return 0;
+    return ierr;
 }
 
 }  // namespace tlapack
