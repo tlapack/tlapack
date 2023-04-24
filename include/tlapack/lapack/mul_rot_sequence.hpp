@@ -84,10 +84,6 @@ inline constexpr void mul_rot_sequence_worksize(
  *      If side == Side::Left, a k-by-n matrix
  *      If side == Side::Right, an m-by-k matrix
  *
- * @param[in,out] workinfo
- *      On output, the amount workspace required. It is larger than or equal
- *      to that given on input.
- *
  * @param[in] opts Options.
  *
  * @ingroup workspace_query
