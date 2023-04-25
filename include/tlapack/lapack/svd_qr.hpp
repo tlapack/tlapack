@@ -137,7 +137,7 @@ int svd_qr(Uplo uplo,
     //
     // Determine threshold
     //
-    real_t sminoa = abs(d[1]);
+    real_t sminoa = abs(d[0]);
     if (sminoa != zero) {
         auto mu = sminoa;
         for (idx_t i = 1; i < n; ++i) {
@@ -249,7 +249,8 @@ int svd_qr(Uplo uplo,
             // Compute the shift from 2-by-2 block at end of matrix
             real_t sstart = abs(d[istart]);
             real_t temp;
-            singularvalues22(d[istop - 1], e[istop - 1], d[istop], shift, temp);
+            singularvalues22(d[istop - 2], e[istop - 2], d[istop - 1], shift,
+                             temp);
 
             // Test if shift negligible, and if so set to zero
             if (sstart > zero and square(shift / sstart) < eps) shift = zero;
