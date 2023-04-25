@@ -47,6 +47,10 @@ TEMPLATE_TEST_CASE("svd with small unitary matrix is backward stable",
     n = GENERATE(1, 4, 5, 10, 12);
     idx_t k = min(m, n);
 
+    const int seed = GENERATE(2, 3, 4, 5, 6, 7, 8, 9, 10);
+    rand_generator gen;
+    gen.seed(seed);
+
     const real_t eps = ulp<real_t>();
     real_t tol = real_t(100. * max(m, n)) * eps;
     // Use a slightly larger tolerance for half precision
@@ -66,12 +70,12 @@ TEMPLATE_TEST_CASE("svd with small unitary matrix is backward stable",
     // Generate random m-by-n matrix
     for (idx_t j = 0; j < n; ++j)
         for (idx_t i = 0; i < m; ++i)
-            A(i, j) = rand_helper<T>();
+            A(i, j) = rand_helper<T>(gen);
 
     lacpy(Uplo::General, A, A_copy);
     real_t normA = lange(Norm::Max, A);
 
-    DYNAMIC_SECTION("m = " << m << " n = " << n)
+    DYNAMIC_SECTION("m = " << m << " n = " << n << " seed = " << seed)
     {
         int err = gesvd(true, true, A, s, U, Vt);
         CHECK(err == 0);
@@ -138,6 +142,10 @@ TEMPLATE_TEST_CASE("svd with full unitary matrix is backward stable",
     n = GENERATE(1, 4, 5, 10, 12);
     idx_t k = min(m, n);
 
+    const int seed = GENERATE(2, 3, 4, 5, 6, 7, 8, 9, 10);
+    rand_generator gen;
+    gen.seed(seed);
+
     const real_t eps = ulp<real_t>();
     real_t tol = real_t(100. * max(m, n)) * eps;
     // Use a slightly larger tolerance for half precision
@@ -157,12 +165,12 @@ TEMPLATE_TEST_CASE("svd with full unitary matrix is backward stable",
     // Generate random m-by-n matrix
     for (idx_t j = 0; j < n; ++j)
         for (idx_t i = 0; i < m; ++i)
-            A(i, j) = rand_helper<T>();
+            A(i, j) = rand_helper<T>(gen);
 
     lacpy(Uplo::General, A, A_copy);
     real_t normA = lange(Norm::Max, A);
 
-    DYNAMIC_SECTION("m = " << m << " n = " << n)
+    DYNAMIC_SECTION("m = " << m << " n = " << n << " seed = " << seed)
     {
         int err = gesvd(true, true, A, s, U, Vt);
         REQUIRE(err == 0);
