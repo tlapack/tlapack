@@ -33,7 +33,6 @@ TEMPLATE_TEST_CASE("svd is backward stable",
     using matrix_t = TestType;
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
-    using pair = std::pair<idx_t, idx_t>;
     typedef real_type<T> real_t;
 
     // Functor

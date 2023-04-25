@@ -34,9 +34,7 @@ namespace tlapack {
  *
  * @ingroup blas1
  */
-template <typename T,
-          enable_if_t<is_same_v<T, real_type<T> >, int> = 0,
-          disable_if_allow_optblas_t<T> = 0>
+template <typename T, enable_if_t<is_same_v<T, real_type<T> >, int> = 0>
 void lartg(const T& a, const T& b, real_type<T>& c, T& s, T& r)
 {
     r = a;

@@ -29,7 +29,6 @@ TEMPLATE_TEST_CASE("2x2 svd gives correct result",
 
     using matrix_t = TestType;
     using T = type_t<matrix_t>;
-    using idx_t = size_type<matrix_t>;
 
     // Functor
     Create<matrix_t> new_matrix;

@@ -81,7 +81,11 @@ namespace tlapack {
  *
  * @ingroup computational
  */
-template <class matrix_t, class d_t, class e_t>
+template <class matrix_t,
+          class d_t,
+          class e_t,
+          enable_if_t<is_same_v<type_t<d_t>, real_type<type_t<d_t>>>, int> = 0,
+          enable_if_t<is_same_v<type_t<e_t>, real_type<type_t<e_t>>>, int> = 0>
 int svd_qr(Uplo uplo,
            bool want_u,
            bool want_vt,
