@@ -105,7 +105,6 @@ int svd_qr(Uplo uplo,
     const idx_t n = size(d);
     const real_t eps = ulp<real_t>();
     const real_t unfl = safe_min<real_t>();
-    const real_t small_num = unfl / ulp<real_t>();
     const real_t tolmul =
         max(real_t(10.0), min(real_t(100.0), pow(eps, real_t(-0.125))));
     const real_t tol = tolmul * eps;
@@ -170,14 +169,10 @@ int svd_qr(Uplo uplo,
         }
 
         // Find active block
-        if (abs(d[istart]) <= thresh) d[istart] = zero;
         auto smax = abs(d[istop - 1]);
         for (idx_t i = istop - 1; i > istart; --i) {
             smax = max(smax, abs(d[i - 1]));
             smax = max(smax, abs(e[i - 1]));
-            if (abs(d[i]) <= thresh) {
-                d[i] = zero;
-            }
             if (abs(e[i - 1]) <= thresh) {
                 e[i - 1] = zero;
                 istart = i;
@@ -218,7 +213,18 @@ int svd_qr(Uplo uplo,
             continue;
         }
 
-        // Extra convergence check
+        //
+        // Extra convergence checks
+        //
+
+        // First apply standard test to bottom of matrix
+        if (abs(e[istop - 2]) <= tol * abs(d[istop - 1])) {
+            e[istop - 2] = zero;
+            istop = istop - 1;
+            continue;
+        }
+        // Now apply fancy convergence criterion using recurrence
+        // relation for minimal singular value estimate
         auto mu = abs(d[istart]);
         auto sminl = mu;
         bool found_zero = false;
