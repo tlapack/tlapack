@@ -18,6 +18,11 @@
 
 namespace tlapack {
 
+template <>
+struct is_arithmetic<Eigen::half, int> {
+    static constexpr bool value = true;
+};
+
 // Forward declarations
 template <typename T>
 T abs(const T& x);

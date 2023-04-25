@@ -291,6 +291,23 @@ constexpr rowwise_storage_t rowwise_storage{};
 
 namespace tlapack {
 
+template <class T, class>
+struct is_arithmetic {
+    static constexpr bool value = false;
+};
+
+template <class T>
+inline constexpr bool is_arithmetic_v = is_arithmetic<T, int>::value;
+
+template <class T>
+struct is_arithmetic<
+    T,
+    typename std::enable_if<
+        std::is_arithmetic<typename std::decay<T>::type>::value,
+        int>::type> {
+    static constexpr bool value = true;
+};
+
 // -----------------------------------------------------------------------------
 // Based on C++14 std::common_type implementation from
 // http://www.cplusplus.com/reference/type_traits/std::common_type/
@@ -369,24 +386,27 @@ struct real_type_traits;
 
 /// define real_type<> type alias
 template <typename... Types>
-using real_type = typename real_type_traits<Types...>::type;
+using real_type = typename real_type_traits<Types..., int>::type;
 
 // for one type
 template <typename T>
-struct real_type_traits<T> {
+struct real_type_traits<
+    T,
+    typename std::enable_if<is_arithmetic_v<T>, int>::type> {
     using type = T;
 };
 
 // for one complex type, strip complex
 template <typename T>
-struct real_type_traits<std::complex<T> > {
+struct real_type_traits<std::complex<T>, int> {
     using type = T;
 };
 
 // for two or more types
-template <typename T1, typename... Types>
-struct real_type_traits<T1, Types...> {
-    using type = scalar_type<real_type<T1>, real_type<Types...> >;
+template <typename T1, typename T2, typename... Types>
+struct real_type_traits<T1, T2, Types...> {
+    using type = scalar_type<typename real_type_traits<T1, int>::type,
+                             typename real_type_traits<T2, Types...>::type>;
 };
 
 // for zero types
