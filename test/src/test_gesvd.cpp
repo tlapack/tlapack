@@ -34,14 +34,12 @@ TEMPLATE_TEST_CASE("svd with small unitary matrix is backward stable",
     using matrix_t = TestType;
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
-    using pair = std::pair<idx_t, idx_t>;
     typedef real_type<T> real_t;
 
     // Functor
     Create<matrix_t> new_matrix;
 
     const real_t zero(0);
-    const real_t one(1);
 
     idx_t m, n;
 
@@ -127,14 +125,12 @@ TEMPLATE_TEST_CASE("svd with full unitary matrix is backward stable",
     using matrix_t = TestType;
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
-    using pair = std::pair<idx_t, idx_t>;
     typedef real_type<T> real_t;
 
     // Functor
     Create<matrix_t> new_matrix;
 
     const real_t zero(0);
-    const real_t one(1);
 
     idx_t m, n;
 
@@ -169,7 +165,7 @@ TEMPLATE_TEST_CASE("svd with full unitary matrix is backward stable",
     DYNAMIC_SECTION("m = " << m << " n = " << n)
     {
         int err = gesvd(true, true, A, s, U, Vt);
-        CHECK(err == 0);
+        REQUIRE(err == 0);
 
         // Check that singular values are positive and sorted in decreasing
         // order

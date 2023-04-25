@@ -62,7 +62,6 @@ inline constexpr void ungbr_q_worksize(const size_type<matrix_t> k,
     using pair = std::pair<idx_t, idx_t>;
 
     const idx_t m = nrows(A);
-    const idx_t n = ncols(A);
 
     ungqr_opts_t<matrix_t> ungqrOpts;
     ungqrOpts.nb = opts.nb;
@@ -109,7 +108,6 @@ inline constexpr void ungbr_p_worksize(const size_type<matrix_t> k,
     using idx_t = size_type<matrix_t>;
     using pair = std::pair<idx_t, idx_t>;
 
-    const idx_t m = nrows(A);
     const idx_t n = ncols(A);
 
     unglq_opts_t<matrix_t> unglqOpts;
@@ -172,7 +170,6 @@ int ungbr_q(const size_type<matrix_t> k,
     const real_t zero(0);
     const real_t one(1);
     const idx_t m = nrows(A);
-    const idx_t n = ncols(A);
 
     // Allocates workspace
     vectorOfBytes localworkdata;
@@ -258,7 +255,6 @@ int ungbr_p(const size_type<matrix_t> k,
     // constants
     const real_t zero(0);
     const real_t one(1);
-    const idx_t m = nrows(A);
     const idx_t n = ncols(A);
 
     // Allocates workspace

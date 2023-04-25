@@ -70,7 +70,7 @@ workinfo_t gesvd_worksize(bool want_u,
     using idx_t = size_type<matrix_t>;
     using work_t = matrix_type<matrix_t, r_vector_t>;
     using T = type_t<work_t>;
-    using real_t = real_type<T>;
+    using pair = std::pair<idx_t, idx_t>;
 
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
@@ -158,8 +158,6 @@ int gesvd(bool want_u,
     Create<work_t> new_matrix;
 
     // constants
-    const real_t one(1);
-    const type_t<work_t> zero(0);
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
     const idx_t k = min(m, n);

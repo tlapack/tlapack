@@ -168,10 +168,6 @@ int gebrd(A_t& A,
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
 
-    // Options to forward
-    auto&& larfbOpts = workspace_opts_t<transpose_type<A_t> >{work};
-    auto&& gehd2Opts = workspace_opts_t<>{work};
-
     // Matrix X
     Workspace workMatrixY;
     auto X = new_matrix(work, m, nb, workMatrixY);
