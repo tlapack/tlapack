@@ -42,37 +42,37 @@ TEMPLATE_TEST_CASE("2x2 svd gives correct result",
 
     T f, g, h, ssmin1, ssmax1, ssmin2, ssmax2, csl, snl, csr, snr;
 
-    if (matrix_type == "rand") {
+    if (strcmp(matrix_type, "rand") == 0) {
         f = rand_helper<T>();
         g = rand_helper<T>();
         h = rand_helper<T>();
     }
-    if (matrix_type == "large f") {
+    if (strcmp(matrix_type, "large f") == 0) {
         f = T(1000.) * rand_helper<T>();
         g = rand_helper<T>();
         h = rand_helper<T>();
     }
-    if (matrix_type == "large g") {
+    if (strcmp(matrix_type, "large g") == 0) {
         f = rand_helper<T>();
         g = T(1000.) * rand_helper<T>();
         h = rand_helper<T>();
     }
-    if (matrix_type == "large h") {
+    if (strcmp(matrix_type, "large h") == 0) {
         f = rand_helper<T>();
         g = rand_helper<T>();
         h = T(1000.) * rand_helper<T>();
     }
-    if (matrix_type == "zero f") {
+    if (strcmp(matrix_type, "zero f") == 0) {
         f = T(0.);
         g = rand_helper<T>();
         h = rand_helper<T>();
     }
-    if (matrix_type == "zero g") {
+    if (strcmp(matrix_type, "zero g") == 0) {
         f = rand_helper<T>();
         g = T(0.);
         h = rand_helper<T>();
     }
-    if (matrix_type == "zero h") {
+    if (strcmp(matrix_type, "zero h") == 0) {
         f = rand_helper<T>();
         g = rand_helper<T>();
         h = T(0.);
