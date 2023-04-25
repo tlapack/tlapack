@@ -50,7 +50,9 @@ TEMPLATE_TEST_CASE("svd with small unitary matrix is backward stable",
     idx_t k = min(m, n);
 
     const real_t eps = ulp<real_t>();
-    const real_t tol = real_t(100. * max(m, n)) * eps;
+    real_t tol = real_t(100. * max(m, n)) * eps;
+    // Use a slightly larger tolerance for half precision
+    if (eps > real_t(1.0e-6)) tol = tol * real_t(10.);
 
     std::vector<T> A_;
     auto A = new_matrix(A_, m, n);
@@ -141,7 +143,9 @@ TEMPLATE_TEST_CASE("svd with full unitary matrix is backward stable",
     idx_t k = min(m, n);
 
     const real_t eps = ulp<real_t>();
-    const real_t tol = real_t(100. * max(m, n)) * eps;
+    real_t tol = real_t(100. * max(m, n)) * eps;
+    // Use a slightly larger tolerance for half precision
+    if (eps > real_t(1.0e-6)) tol = tol * real_t(10.);
 
     std::vector<T> A_;
     auto A = new_matrix(A_, m, n);

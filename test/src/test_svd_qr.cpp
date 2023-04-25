@@ -47,7 +47,9 @@ TEMPLATE_TEST_CASE("svd is backward stable",
     n = GENERATE(1, 2, 4, 5, 10, 12, 20);
 
     const real_t eps = ulp<real_t>();
-    const real_t tol = real_t(100. * n) * eps;
+    real_t tol = real_t(100. * n) * eps;
+    // Use a slightly larger tolerance for half precision
+    if (eps > real_t(1.0e-6)) tol = tol * real_t(10.);
 
     std::vector<T> Q_;
     auto Q = new_matrix(Q_, n, n);
@@ -79,7 +81,7 @@ TEMPLATE_TEST_CASE("svd is backward stable",
         // Check that singular values are positive and sorted in decreasing
         // order
         for (idx_t i = 0; i < n; ++i) {
-            CHECK(d[i] >= 0);
+            CHECK(d[i] >= zero);
         }
         for (idx_t i = 0; i < n - 1; ++i) {
             CHECK(d[i] >= d[i + 1]);

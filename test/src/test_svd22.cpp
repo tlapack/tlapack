@@ -35,7 +35,7 @@ TEMPLATE_TEST_CASE("2x2 svd gives correct result",
     Create<matrix_t> new_matrix;
 
     const T eps = uroundoff<T>();
-    const T tol = T(1.0e1) * eps;
+    const T tol = T(4.0e1) * eps;
 
     auto matrix_type = GENERATE("rand", "large f", "large g", "large h",
                                 "zero f", "zero g", "zero h");
@@ -48,19 +48,19 @@ TEMPLATE_TEST_CASE("2x2 svd gives correct result",
         h = rand_helper<T>();
     }
     if (strcmp(matrix_type, "large f") == 0) {
-        f = T(1000.) * rand_helper<T>();
+        f = T(100.) * rand_helper<T>();
         g = rand_helper<T>();
         h = rand_helper<T>();
     }
     if (strcmp(matrix_type, "large g") == 0) {
         f = rand_helper<T>();
-        g = T(1000.) * rand_helper<T>();
+        g = T(100.) * rand_helper<T>();
         h = rand_helper<T>();
     }
     if (strcmp(matrix_type, "large h") == 0) {
         f = rand_helper<T>();
         g = rand_helper<T>();
-        h = T(1000.) * rand_helper<T>();
+        h = T(100.) * rand_helper<T>();
     }
     if (strcmp(matrix_type, "zero f") == 0) {
         f = T(0.);

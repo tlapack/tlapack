@@ -39,9 +39,6 @@ namespace tlapack {
 template <typename T, enable_if_t<!is_complex<T>::value, bool> = true>
 void singularvalues22(const T& f, const T& g, const T& h, T& ssmin, T& ssmax)
 {
-    using std::copysign;
-    using std::pow;
-
     const T eps = ulp<T>();
     const T zero(0);
     const T one(1);
@@ -58,14 +55,14 @@ void singularvalues22(const T& f, const T& g, const T& h, T& ssmin, T& ssmax)
             ssmax = ga;
         else
             ssmax = max(fhmx, ga) *
-                    sqrt(one + pow(min(fhmx, ga) / max(fhmx, ga), 2));
+                    sqrt(one + square(min(fhmx, ga) / max(fhmx, ga)));
     }
     else {
         T as, at, au, c;
         if (ga < fhmx) {
             as = one + fhmn / fhmx;
             at = (fhmx - fhmn) / fhmx;
-            au = pow(ga / fhmx, 2);
+            au = square(ga / fhmx);
             c = two / (sqrt(as * as + au) + sqrt(at * at + au));
             ssmin = fhmn * c;
             ssmax = fhmx / c;
@@ -83,7 +80,7 @@ void singularvalues22(const T& f, const T& g, const T& h, T& ssmin, T& ssmax)
                 as = one + fhmn / fhmx;
                 at = (fhmx - fhmn) / fhmx;
                 c = one /
-                    (sqrt(one + pow(as * au, 2)) + sqrt(one + pow(at * au, 2)));
+                    (sqrt(one + square(as * au)) + sqrt(one + square(at * au)));
                 ssmin = (fhmn * c) * au;
                 ssmin = ssmin + ssmin;
                 ssmax = ga / (c + c);

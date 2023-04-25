@@ -46,6 +46,14 @@ using range = pair<idx_t, idx_t>;
 using std::enable_if_t;
 
 // -----------------------------------------------------------------------------
+// Utility function for squaring a number to avoid using pow for everything
+template <typename T>
+inline constexpr T square(const T& x)
+{
+    return x * x;
+}
+
+// -----------------------------------------------------------------------------
 // is_same_v, is_convertible_v are defined in C++17; here's a C++11 definition
 #if __cplusplus >= 201703L
 using std::is_convertible_v;

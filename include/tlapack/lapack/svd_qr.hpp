@@ -1,7 +1,7 @@
 /// @file svd_qr.hpp
 /// @author Thijs Steel, KU Leuven, Belgium
 /// Adapted from @see
-/// https://github.com/Reference-LAPACK/lapack/tree/master/SRC/zgesvd.f
+/// https://github.com/Reference-LAPACK/lapack/tree/master/SRC/zbdsqr.f
 //
 // Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
@@ -242,7 +242,7 @@ int svd_qr(Uplo uplo,
             singularvalues22(d[istop - 1], e[istop - 1], d[istop], shift, temp);
 
             // Test if shift negligible, and if so set to zero
-            if (sstart > zero and pow(shift / sstart, 2) < eps) shift = zero;
+            if (sstart > zero and square(shift / sstart) < eps) shift = zero;
         }
 
         if (shift == zero) {
