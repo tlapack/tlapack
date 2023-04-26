@@ -388,11 +388,9 @@ struct real_type_traits;
 template <typename... Types>
 using real_type = typename real_type_traits<Types..., int>::type;
 
-// for one type
+// for one arithmetic type
 template <typename T>
-struct real_type_traits<
-    T,
-    typename std::enable_if<is_arithmetic_v<T>, int>::type> {
+struct real_type_traits<T, std::enable_if_t<is_arithmetic_v<T>, int>> {
     using type = T;
 };
 
@@ -400,6 +398,14 @@ struct real_type_traits<
 template <typename T>
 struct real_type_traits<std::complex<T>, int> {
     using type = T;
+};
+
+// pointers and references don't have a real type
+template <typename T>
+struct real_type_traits<
+    T,
+    std::enable_if_t<std::is_pointer_v<T> || std::is_reference_v<T>, int>> {
+    using type = void;
 };
 
 // for two or more types
