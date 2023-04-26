@@ -75,7 +75,7 @@ TEMPLATE_TEST_CASE("svd is backward stable",
     DYNAMIC_SECTION(" n = " << n)
     {
         int err = svd_qr(Uplo::Upper, true, true, d, e, Q, Pt);
-        CHECK(err == 0);
+        REQUIRE(err == 0);
 
         // Check that singular values are positive and sorted in decreasing
         // order

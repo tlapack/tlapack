@@ -153,6 +153,15 @@ int svd_qr(Uplo uplo,
     idx_t istart = 0;
     idx_t istop = n;
 
+    // Keep track of previous istart and istop to know when to change direction
+    idx_t istart_old = -1;
+    idx_t istop_old = -1;
+
+    // If true, chase bulges from top to bottom
+    // If false chase bulges from bottom to top
+    // This variable is reevaluated for every new subblock
+    bool forwarddirection = true;
+
     //
     // Main loop
     //
@@ -212,31 +221,64 @@ int svd_qr(Uplo uplo,
             continue;
         }
 
+        if (istart >= istop_old or istop <= istart_old) {
+            forwarddirection = abs(d[istart]) > abs(d[istop - 1]);
+        }
+        istart_old = istart;
+        istop_old = istop;
+
         //
         // Extra convergence checks
         //
 
-        // First apply standard test to bottom of matrix
-        if (abs(e[istop - 2]) <= tol * abs(d[istop - 1])) {
-            e[istop - 2] = zero;
-            istop = istop - 1;
-            continue;
-        }
-        // Now apply fancy convergence criterion using recurrence
-        // relation for minimal singular value estimate
-        auto mu = abs(d[istart]);
-        auto sminl = mu;
-        bool found_zero = false;
-        for (idx_t i = istart; i + 1 < istop; ++i) {
-            if (abs(e[i]) < tol * mu) {
-                found_zero = true;
-                e[i] = zero;
-                break;
+        real_t sminl;
+        if (forwarddirection) {
+            // First apply standard test to bottom of matrix
+            if (abs(e[istop - 2]) <= tol * abs(d[istop - 1])) {
+                e[istop - 2] = zero;
+                istop = istop - 1;
+                continue;
             }
-            mu = abs(d[i + 1]) * (mu / (mu + abs(e[i])));
-            sminl = min(sminl, mu);
+            // Now apply fancy convergence criterion using recurrence
+            // relation for minimal singular value estimate
+            auto mu = abs(d[istart]);
+            sminl = mu;
+            bool found_zero = false;
+            for (idx_t i = istart; i + 1 < istop; ++i) {
+                if (abs(e[i]) < tol * mu) {
+                    found_zero = true;
+                    e[i] = zero;
+                    break;
+                }
+                mu = abs(d[i + 1]) * (mu / (mu + abs(e[i])));
+                sminl = min(sminl, mu);
+            }
+            if (found_zero) continue;
         }
-        if (found_zero) continue;
+        else {
+            // First apply standard test to top of matrix
+            if (abs(e[istart]) <= tol * abs(d[istart])) {
+                e[istart] = zero;
+                istart = istart + 1;
+                continue;
+            }
+            // Now apply fancy convergence criterion using recurrence
+            // relation for minimal singular value estimate
+            auto mu = abs(d[istop - 1]);
+            sminl = mu;
+            bool found_zero = false;
+            for (idx_t i2 = istart; i2 + 1 < istop; ++i2) {
+                idx_t i = istop - 2 - (i2 - istart);
+                if (abs(e[i]) < tol * mu) {
+                    found_zero = true;
+                    e[i] = zero;
+                    break;
+                }
+                mu = abs(d[i]) * (mu / (mu + abs(e[i])));
+                sminl = min(sminl, mu);
+            }
+            if (found_zero) continue;
+        }
 
         // Compute shift.  First, test if shifting would ruin relative
         // accuracy, and if so set the shift to zero.
@@ -245,11 +287,19 @@ int svd_qr(Uplo uplo,
             shift = zero;
         }
         else {
-            // Compute the shift from 2-by-2 block at end of matrix
-            real_t sstart = abs(d[istart]);
-            real_t temp;
-            singularvalues22(d[istop - 2], e[istop - 2], d[istop - 1], shift,
-                             temp);
+            real_t sstart, temp;
+            if (forwarddirection) {
+                // Compute the shift from 2-by-2 block at end of matrix
+                sstart = abs(d[istart]);
+                singularvalues22(d[istop - 2], e[istop - 2], d[istop - 1],
+                                 shift, temp);
+            }
+            else {
+                // Compute the shift from 2-by-2 block at start of matrix
+                sstart = abs(d[istop - 1]);
+                singularvalues22(d[istart], e[istart], d[istart + 1], shift,
+                                 temp);
+            }
 
             // Test if shift negligible, and if so set to zero
             if (sstart > zero and square(shift / sstart) < eps) shift = zero;
@@ -258,68 +308,136 @@ int svd_qr(Uplo uplo,
         if (shift == zero) {
             // If shift = 0, do simplified QR iteration, this is better for the
             // relative accuracy of small singular values
-            real_t r, cs, sn, oldcs, oldsn;
-            cs = one;
-            sn = zero;
-            oldcs = one;
-            oldsn = zero;
-            for (idx_t i = istart; i < istop - 1; ++i) {
-                lartg(d[i] * cs, e[i], cs, sn, r);
-                if (i > istart) e[i - 1] = oldsn * r;
-                lartg(oldcs * r, d[i + 1] * sn, oldcs, oldsn, d[i]);
+            if (forwarddirection) {
+                real_t r, cs, sn, oldcs, oldsn;
+                cs = one;
+                sn = zero;
+                oldcs = one;
+                oldsn = zero;
+                for (idx_t i = istart; i < istop - 1; ++i) {
+                    lartg(d[i] * cs, e[i], cs, sn, r);
+                    if (i > istart) e[i - 1] = oldsn * r;
+                    lartg(oldcs * r, d[i + 1] * sn, oldcs, oldsn, d[i]);
 
-                // Update singular vectors if desired
-                if (want_u) {
-                    auto u1 = col(U, i);
-                    auto u2 = col(U, i + 1);
-                    rot(u1, u2, oldcs, oldsn);
+                    // Update singular vectors if desired
+                    if (want_u) {
+                        auto u1 = col(U, i);
+                        auto u2 = col(U, i + 1);
+                        rot(u1, u2, oldcs, oldsn);
+                    }
+                    if (want_vt) {
+                        auto vt1 = row(Vt, i);
+                        auto vt2 = row(Vt, i + 1);
+                        rot(vt1, vt2, cs, sn);
+                    }
                 }
-                if (want_vt) {
-                    auto vt1 = row(Vt, i);
-                    auto vt2 = row(Vt, i + 1);
-                    rot(vt1, vt2, cs, sn);
-                }
+                real_t h = d[istop - 1] * cs;
+                d[istop - 1] = h * oldcs;
+                e[istop - 2] = h * oldsn;
             }
-            real_t h = d[istop - 1] * cs;
-            d[istop - 1] = h * oldcs;
-            e[istop - 2] = h * oldsn;
+            else {
+                real_t r, cs, sn, oldcs, oldsn;
+                cs = one;
+                sn = zero;
+                oldcs = one;
+                oldsn = zero;
+                for (idx_t i = istop - 1; i > istart; --i) {
+                    lartg(d[i] * cs, e[i - 1], cs, sn, r);
+                    if (i < istop - 1) e[i] = oldsn * r;
+                    lartg(oldcs * r, d[i - 1] * sn, oldcs, oldsn, d[i]);
+
+                    // Update singular vectors if desired
+                    if (want_u) {
+                        auto u1 = col(U, i - 1);
+                        auto u2 = col(U, i);
+                        rot(u1, u2, cs, -sn);
+                    }
+                    if (want_vt) {
+                        auto vt1 = row(Vt, i - 1);
+                        auto vt2 = row(Vt, i);
+                        rot(vt1, vt2, oldcs, -oldsn);
+                    }
+                }
+                real_t h = d[istart] * cs;
+                d[istart] = h * oldcs;
+                e[istart] = h * oldsn;
+            }
         }
         else {
             // Use nonzero shift
-            real_t f = (abs(d[istart]) - shift) *
-                       (real_t(sgn(d[istart])) + shift / d[istart]);
-            real_t g = e[istart];
-            for (idx_t i = istart; i < istop - 1; ++i) {
-                real_t r, csl, snl, csr, snr;
-                lartg(f, g, csr, snr, r);
-                if (i > istart) e[i - 1] = r;
-                f = csr * d[i] + snr * e[i];
-                e[i] = csr * e[i] - snr * d[i];
-                g = snr * d[i + 1];
-                d[i + 1] = csr * d[i + 1];
 
-                lartg(f, g, csl, snl, r);
-                d[i] = r;
-                f = csl * e[i] + snl * d[i + 1];
-                d[i + 1] = csl * d[i + 1] - snl * e[i];
-                if (i + 1 < istop - 1) {
-                    g = snl * e[i + 1];
-                    e[i + 1] = csl * e[i + 1];
-                }
+            if (forwarddirection) {
+                real_t f = (abs(d[istart]) - shift) *
+                           (real_t(sgn(d[istart])) + shift / d[istart]);
+                real_t g = e[istart];
+                for (idx_t i = istart; i < istop - 1; ++i) {
+                    real_t r, csl, snl, csr, snr;
+                    lartg(f, g, csr, snr, r);
+                    if (i > istart) e[i - 1] = r;
+                    f = csr * d[i] + snr * e[i];
+                    e[i] = csr * e[i] - snr * d[i];
+                    g = snr * d[i + 1];
+                    d[i + 1] = csr * d[i + 1];
 
-                // Update singular vectors if desired
-                if (want_u) {
-                    auto u1 = col(U, i);
-                    auto u2 = col(U, i + 1);
-                    rot(u1, u2, csl, snl);
+                    lartg(f, g, csl, snl, r);
+                    d[i] = r;
+                    f = csl * e[i] + snl * d[i + 1];
+                    d[i + 1] = csl * d[i + 1] - snl * e[i];
+                    if (i + 1 < istop - 1) {
+                        g = snl * e[i + 1];
+                        e[i + 1] = csl * e[i + 1];
+                    }
+
+                    // Update singular vectors if desired
+                    if (want_u) {
+                        auto u1 = col(U, i);
+                        auto u2 = col(U, i + 1);
+                        rot(u1, u2, csl, snl);
+                    }
+                    if (want_vt) {
+                        auto vt1 = row(Vt, i);
+                        auto vt2 = row(Vt, i + 1);
+                        rot(vt1, vt2, csr, snr);
+                    }
                 }
-                if (want_vt) {
-                    auto vt1 = row(Vt, i);
-                    auto vt2 = row(Vt, i + 1);
-                    rot(vt1, vt2, csr, snr);
-                }
+                e[istop - 2] = f;
             }
-            e[istop - 2] = f;
+            else {
+                real_t f = (abs(d[istop - 1]) - shift) *
+                           (real_t(sgn(d[istop - 1])) + shift / d[istop - 1]);
+                real_t g = e[istop - 2];
+                for (idx_t i = istop - 1; i > istart; --i) {
+                    real_t r, csl, snl, csr, snr;
+                    lartg(f, g, csr, snr, r);
+                    if (i < istop - 1) e[i] = r;
+                    f = csr * d[i] + snr * e[i - 1];
+                    e[i - 1] = csr * e[i - 1] - snr * d[i];
+                    g = snr * d[i - 1];
+                    d[i - 1] = csr * d[i - 1];
+
+                    lartg(f, g, csl, snl, r);
+                    d[i] = r;
+                    f = csl * e[i - 1] + snl * d[i - 1];
+                    d[i - 1] = csl * d[i - 1] - snl * e[i - 1];
+                    if (i > istart + 1) {
+                        g = snl * e[i - 2];
+                        e[i - 2] = csl * e[i - 2];
+                    }
+
+                    // Update singular vectors if desired
+                    if (want_u) {
+                        auto u1 = col(U, i - 1);
+                        auto u2 = col(U, i);
+                        rot(u1, u2, csr, -snr);
+                    }
+                    if (want_vt) {
+                        auto vt1 = row(Vt, i - 1);
+                        auto vt2 = row(Vt, i);
+                        rot(vt1, vt2, csl, -snl);
+                    }
+                }
+                e[istart] = f;
+            }
         }
     }
 
