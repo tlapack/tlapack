@@ -11,7 +11,7 @@
 #define TLAPACK_STARPU_GEMM_HH
 
 #include "tlapack/base/utils.hpp"
-#include "tlapack/plugins/starpu.hpp"
+#include "tlapack/starpu/Matrix.hpp"
 #include "tlapack/starpu/codelets.hpp"
 
 namespace tlapack {
@@ -43,8 +43,8 @@ namespace starpu {
             std::get<3>(*args_ptr) = beta;
 
             // Initialize task
-            task->cl =
-                (struct starpu_codelet*)&(cl::gemm<TA, TB, TC, alpha_t, beta_t>);
+            task->cl = (struct starpu_codelet*)&(
+                cl::gemm<TA, TB, TC, alpha_t, beta_t>);
             task->handles[0] = A;
             task->handles[1] = B;
             task->handles[2] = C;
