@@ -24,6 +24,8 @@ namespace tlapack {
 
 namespace starpu {
 
+    using idx_t = uint32_t;
+
     namespace internal {
 
         template <class T, bool TisConstType>
@@ -124,7 +126,6 @@ namespace starpu {
         constexpr void matrixentry_op_matrixentry(void** buffers,
                                                   void* args) noexcept
         {
-            using idx_t = internal::EntryAccess<T, true>::idx_t;
             using args_t = std::tuple<idx_t, idx_t, idx_t, idx_t>;
 
             // get dimensions
@@ -161,7 +162,6 @@ namespace starpu {
 
         template <class T>
         struct EntryAccess<T, true> {
-            using idx_t = uint32_t;
             struct data;
 
             // abstract interface
@@ -218,7 +218,6 @@ namespace starpu {
 
         template <class T>
         struct EntryAccess<T, false> : public EntryAccess<T, true> {
-            using idx_t = EntryAccess<T, true>::idx_t;
             using data = EntryAccess<T, true>::data;
             using EntryAccess<T, true>::operator();
             using EntryAccess<T, true>::operator[];
@@ -599,7 +598,6 @@ namespace starpu {
     template <class T>
     class Matrix : public internal::EntryAccess<T, std::is_const_v<T>> {
        public:
-        using idx_t = internal::EntryAccess<T, true>::idx_t;
         using internal::EntryAccess<T, std::is_const_v<T>>::operator();
         using internal::EntryAccess<T, std::is_const_v<T>>::operator[];
 
@@ -845,7 +843,6 @@ namespace starpu {
         friend std::ostream& operator<<(std::ostream& out,
                                         const starpu::Matrix<T>& A)
         {
-            using idx_t = typename starpu::Matrix<T>::idx_t;
             out << "starpu::Matrix<" << typeid(T).name()
                 << ">( nrows = " << A.nrows() << ", ncols = " << A.ncols()
                 << " )";

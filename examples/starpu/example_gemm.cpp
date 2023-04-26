@@ -67,6 +67,7 @@ int main(int argc, char** argv)
     const int ret = starpu_init(NULL);
     if (ret == -ENODEV) return 77;
     STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+    starpu_cublas_init();
 
     {
         /* create matrix A */
@@ -97,12 +98,12 @@ int main(int argc, char** argv)
         A.create_grid(r, 1);
         B.create_grid(1, s);
         C.create_grid(r, s);
-        gemm(noTranspose, noTranspose, T(1), A, B, T(0), C);
+        gemm(noTranspose, noTranspose, T(1), A, B, C);
 
         /* check the result */
-        for (idx_t i = 0; i < m; ++i)
-            for (idx_t j = 0; j < n; ++j)
-                for (idx_t l = 0; l < k; ++l)
+        for (size_t i = 0; i < m; ++i)
+            for (size_t j = 0; j < n; ++j)
+                for (size_t l = 0; l < k; ++l)
                     C(i, j) -= A(i, l) * B(l, j);
 
         C.destroy_grid();
@@ -115,6 +116,7 @@ int main(int argc, char** argv)
     }
 
     /* terminate StarPU */
+    starpu_cublas_shutdown();
     starpu_shutdown();
 
     return 0;
