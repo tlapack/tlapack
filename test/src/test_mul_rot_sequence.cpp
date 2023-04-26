@@ -34,15 +34,12 @@ TEMPLATE_TEST_CASE("Apply sequence of rotations",
     using matrix_t = TestType;
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
-    using range = std::pair<idx_t, idx_t>;
     using real_t = real_type<T>;
     using real_matrix_t = legacyMatrix<real_t, std::size_t, Layout::ColMajor>;
 
     // Functor
     Create<real_matrix_t> new_real_matrix;
     Create<matrix_t> new_matrix;
-
-    const T zero(0);
 
     idx_t m, n, nr, k;
 

@@ -102,7 +102,6 @@ int mul_rot_sequence(Side side,
 
     using idx_t = size_type<A_t>;
     using TS = type_t<S_t>;
-    using TA = type_t<A_t>;
     using pair = std::pair<idx_t, idx_t>;
     using real_t = real_type<TS>;
 
@@ -141,8 +140,8 @@ int mul_rot_sequence(Side side,
             // Accumulate all the rotations into a single rotation matrix
             for (idx_t i2 = 0; i2 < nr; ++i2) {
                 for (idx_t i1 = 0; i1 < nb - 1; ++i1) {
-                    auto q1 = col(Q, i1);
-                    auto q2 = col(Q, i1 + 1);
+                    auto q1 = col(Qi, i1);
+                    auto q2 = col(Qi, i1 + 1);
                     rot(q1, q2, C(i + i1, i2), conj(S(i + i1, i2)));
                 }
             }
@@ -151,8 +150,8 @@ int mul_rot_sequence(Side side,
             // Treat the first block separately
             for (idx_t i2 = 0; i2 < nr; ++i2) {
                 for (idx_t i1 = 0; i1 < nb - i2 - 1; ++i1) {
-                    auto q1 = col(Q, i1);
-                    auto q2 = col(Q, i1 + 1);
+                    auto q1 = col(Qi, i1);
+                    auto q2 = col(Qi, i1 + 1);
                     rot(q1, q2, C(i + i1, i2), conj(S(i + i1, i2)));
                 }
             }
@@ -161,8 +160,8 @@ int mul_rot_sequence(Side side,
             // Treat the last block separately
             for (idx_t i2 = 0; i2 < nr; ++i2) {
                 for (idx_t i1 = nr - 1 - i2; i1 < nb - 1; ++i1) {
-                    auto q1 = col(Q, i1);
-                    auto q2 = col(Q, i1 + 1);
+                    auto q1 = col(Qi, i1);
+                    auto q2 = col(Qi, i1 + 1);
                     rot(q1, q2, C(i + i1, i2), conj(S(i + i1, i2)));
                 }
             }
@@ -170,8 +169,8 @@ int mul_rot_sequence(Side side,
         else {
             for (idx_t i2 = 0; i2 < nr; ++i2) {
                 for (idx_t i1 = nr - 1 - i2; i1 < nb - i2 - 1; ++i1) {
-                    auto q1 = col(Q, i1);
-                    auto q2 = col(Q, i1 + 1);
+                    auto q1 = col(Qi, i1);
+                    auto q2 = col(Qi, i1 + 1);
                     rot(q1, q2, C(i + i1, i2), conj(S(i + i1, i2)));
                 }
             }
