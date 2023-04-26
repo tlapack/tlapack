@@ -46,9 +46,9 @@ TEMPLATE_TEST_CASE("svd is backward stable",
     n = GENERATE(1, 2, 4, 5, 10, 12, 20);
 
     const real_t eps = ulp<real_t>();
-    real_t tol = real_t(100. * n) * eps;
+    real_t tol = real_t(20. * n) * eps;
     // Use a slightly larger tolerance for half precision
-    if (eps > real_t(1.0e-6)) tol = tol * real_t(10.);
+    if (eps > real_t(1.0e-6)) tol = tol * real_t(5.);
 
     std::vector<T> Q_;
     auto Q = new_matrix(Q_, n, n);

@@ -147,8 +147,7 @@ int svd_qr(Uplo uplo,
         }
     }
     sminoa = sminoa / sqrt(real_t(n));
-    real_t thresh =
-        max(tol * sminoa, real_t(itmax) * (real_t(n) * (real_t(n) * unfl)));
+    real_t thresh = max(tol * sminoa, (real_t(n) * unfl));
 
     // istart and istop determine the active block
     idx_t istart = 0;
