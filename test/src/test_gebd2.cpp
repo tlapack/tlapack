@@ -126,8 +126,7 @@ TEMPLATE_TEST_CASE("bidiagonal reduction is backward stable",
         // Test Q * B * Z^H = A
         std::vector<T> K_;
         auto K = new_matrix(K_, m, k);
-        laset(Uplo::General, zero, zero, K);
-        gemm(Op::NoTrans, Op::NoTrans, real_t(1.), Q, B, real_t(0), K);
+        gemm(Op::NoTrans, Op::NoTrans, real_t(1.), Q, B, K);
         gemm(Op::NoTrans, Op::NoTrans, real_t(1.), K, Z, real_t(-1.), A_copy);
         real_t repres = lange(Norm::Max, A_copy);
         CHECK(repres <= tol * normA);

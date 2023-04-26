@@ -155,59 +155,6 @@ void syr2k(Uplo uplo,
     }
 }
 
-/**
- * Symmetric rank-k update:
- * \[
- *     C := \alpha A B^T + \alpha B A^T,
- * \]
- * or
- * \[
- *     C := \alpha A^T B + \alpha B^T A,
- * \]
- * where alpha and beta are scalars, C is an n-by-n symmetric matrix,
- * and A and B are n-by-k or k-by-n matrices.
- *
- * @param[in] uplo
- *     What part of the matrix C is referenced,
- *     the opposite triangle being assumed from symmetry:
- *     - Uplo::Lower: only the lower triangular part of C is referenced.
- *     - Uplo::Upper: only the upper triangular part of C is referenced.
- *
- * @param[in] trans
- *     The operation to be performed:
- *     - Op::NoTrans: $C = \alpha A B^T + \alpha B A^T$.
- *     - Op::Trans:   $C = \alpha A^T B + \alpha B^T A$.
- *
- * @param[in] alpha Scalar.
- * @param[in] A A n-by-k matrix.
- *     - If trans = NoTrans: a n-by-k matrix.
- *     - Otherwise:          a k-by-n matrix.
- * @param[in] B A n-by-k matrix.
- *     - If trans = NoTrans: a n-by-k matrix.
- *     - Otherwise:          a k-by-n matrix.
- * @param[out] C A n-by-n symmetric matrix.
- *
- * @ingroup blas3
- */
-template <class matrixA_t,
-          class matrixB_t,
-          class matrixC_t,
-          class alpha_t,
-          class T = type_t<matrixC_t>,
-          disable_if_allow_optblas_t<pair<matrixA_t, T>,
-                                     pair<matrixB_t, T>,
-                                     pair<matrixC_t, T>,
-                                     pair<alpha_t, T> > = 0>
-inline void syr2k(Uplo uplo,
-                  Op trans,
-                  const alpha_t& alpha,
-                  const matrixA_t& A,
-                  const matrixB_t& B,
-                  matrixC_t& C)
-{
-    return syr2k(uplo, trans, alpha, A, B, StrongZero(), C);
-}
-
 #ifdef USE_LAPACKPP_WRAPPERS
 
 /**
@@ -256,66 +203,65 @@ inline void syr2k(Uplo uplo,
     if (alpha == alpha_t(0))
         tlapack_warning(
             -3, "Infs and NaNs in A or B will not propagate to C on output");
-    if (beta == beta_t(0))
+    if (beta == beta_t(0) && !is_same_v<beta_t, StrongZero>)
         tlapack_warning(
             -6,
             "Infs and NaNs in C on input will not propagate to C on output");
 
     return ::blas::syr2k((::blas::Layout)L, (::blas::Uplo)uplo,
                          (::blas::Op)trans, n, k, alpha, A_.ptr, A_.ldim,
-                         B_.ptr, B_.ldim, beta, C_.ptr, C_.ldim);
+                         B_.ptr, B_.ldim, (T)beta, C_.ptr, C_.ldim);
 }
 
+#endif
+
 /**
- * Symmetric rank-k update
+ * Symmetric rank-k update:
+ * \[
+ *     C := \alpha A B^T + \alpha B A^T,
+ * \]
+ * or
+ * \[
+ *     C := \alpha A^T B + \alpha B^T A,
+ * \]
+ * where alpha and beta are scalars, C is an n-by-n symmetric matrix,
+ * and A and B are n-by-k or k-by-n matrices.
  *
- * Wrapper to optimized BLAS.
+ * @param[in] uplo
+ *     What part of the matrix C is referenced,
+ *     the opposite triangle being assumed from symmetry:
+ *     - Uplo::Lower: only the lower triangular part of C is referenced.
+ *     - Uplo::Upper: only the upper triangular part of C is referenced.
  *
- * @see syr2k(
-    Uplo uplo,
-    Op trans,
-    const alpha_t& alpha, const matrixA_t& A, const matrixB_t& B,
-    matrixC_t& C )
-*
-* @ingroup blas3
-*/
+ * @param[in] trans
+ *     The operation to be performed:
+ *     - Op::NoTrans: $C = \alpha A B^T + \alpha B A^T$.
+ *     - Op::Trans:   $C = \alpha A^T B + \alpha B^T A$.
+ *
+ * @param[in] alpha Scalar.
+ * @param[in] A A n-by-k matrix.
+ *     - If trans = NoTrans: a n-by-k matrix.
+ *     - Otherwise:          a k-by-n matrix.
+ * @param[in] B A n-by-k matrix.
+ *     - If trans = NoTrans: a n-by-k matrix.
+ *     - Otherwise:          a k-by-n matrix.
+ * @param[out] C A n-by-n symmetric matrix.
+ *
+ * @ingroup blas3
+ */
 template <class matrixA_t,
           class matrixB_t,
           class matrixC_t,
-          class alpha_t,
-          class T = type_t<matrixC_t>,
-          enable_if_allow_optblas_t<pair<matrixA_t, T>,
-                                    pair<matrixB_t, T>,
-                                    pair<matrixC_t, T>,
-                                    pair<alpha_t, T> > = 0>
+          class alpha_t>
 inline void syr2k(Uplo uplo,
                   Op trans,
-                  const alpha_t alpha,
+                  const alpha_t& alpha,
                   const matrixA_t& A,
                   const matrixB_t& B,
                   matrixC_t& C)
 {
-    // Legacy objects
-    auto A_ = legacy_matrix(A);
-    auto B_ = legacy_matrix(B);
-    auto C_ = legacy_matrix(C);
-
-    // Constants to forward
-    constexpr Layout L = layout<matrixC_t>;
-    const auto& n = C_.n;
-    const auto& k = (trans == Op::NoTrans) ? A_.n : A_.m;
-
-    // Warnings for NaNs and Infs
-    if (alpha == alpha_t(0))
-        tlapack_warning(
-            -3, "Infs and NaNs in A or B will not propagate to C on output");
-
-    return ::blas::syr2k((::blas::Layout)L, (::blas::Uplo)uplo,
-                         (::blas::Op)trans, n, k, alpha, A_.ptr, A_.ldim,
-                         B_.ptr, B_.ldim, T(0), C_.ptr, C_.ldim);
+    return syr2k(uplo, trans, alpha, A, B, StrongZero(), C);
 }
-
-#endif
 
 }  // namespace tlapack
 

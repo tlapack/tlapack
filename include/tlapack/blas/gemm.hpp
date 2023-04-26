@@ -194,56 +194,6 @@ void gemm(Op transA,
     }
 }
 
-/**
- * General matrix-matrix multiply:
- * \[
- *     C := \alpha op(A) \times op(B),
- * \]
- * where $op(X)$ is one of
- *     $op(X) = X$,
- *     $op(X) = X^T$, or
- *     $op(X) = X^H$,
- * alpha and beta are scalars, and A, B, and C are matrices, with
- * $op(A)$ an m-by-k matrix, $op(B)$ a k-by-n matrix, and C an m-by-n matrix.
- *
- * @param[in] transA
- *     The operation $op(A)$ to be used:
- *     - Op::NoTrans:   $op(A) = A$.
- *     - Op::Trans:     $op(A) = A^T$.
- *     - Op::ConjTrans: $op(A) = A^H$.
- *
- * @param[in] transB
- *     The operation $op(B)$ to be used:
- *     - Op::NoTrans:   $op(B) = B$.
- *     - Op::Trans:     $op(B) = B^T$.
- *     - Op::ConjTrans: $op(B) = B^H$.
- *
- * @param[in] alpha Scalar.
- * @param[in] A $op(A)$ is an m-by-k matrix.
- * @param[in] B $op(B)$ is an k-by-n matrix.
- * @param[out] C A m-by-n matrix.
- *
- * @ingroup blas3
- */
-template <class matrixA_t,
-          class matrixB_t,
-          class matrixC_t,
-          class alpha_t,
-          class T = type_t<matrixC_t>,
-          disable_if_allow_optblas_t<pair<matrixA_t, T>,
-                                     pair<matrixB_t, T>,
-                                     pair<matrixC_t, T>,
-                                     pair<alpha_t, T> > = 0>
-inline void gemm(Op transA,
-                 Op transB,
-                 const alpha_t& alpha,
-                 const matrixA_t& A,
-                 const matrixB_t& B,
-                 matrixC_t& C)
-{
-    return gemm(transA, transB, alpha, A, B, StrongZero(), C);
-}
-
 #ifdef USE_LAPACKPP_WRAPPERS
 
 /**
@@ -296,69 +246,59 @@ inline void gemm(Op transA,
     if (alpha == alpha_t(0))
         tlapack_warning(
             -3, "Infs and NaNs in A or B will not propagate to C on output");
-    if (beta == beta_t(0))
+    if (beta == beta_t(0) && !is_same_v<beta_t, StrongZero>)
         tlapack_warning(
             -6,
             "Infs and NaNs in C on input will not propagate to C on output");
 
     return ::blas::gemm((::blas::Layout)L, (::blas::Op)transA,
                         (::blas::Op)transB, m, n, k, alpha, A_.ptr, A_.ldim,
-                        B_.ptr, B_.ldim, beta, C_.ptr, C_.ldim);
+                        B_.ptr, B_.ldim, (T)beta, C_.ptr, C_.ldim);
 }
 
+#endif
+
 /**
- * General matrix-matrix multiply.
+ * General matrix-matrix multiply:
+ * \[
+ *     C := \alpha op(A) \times op(B),
+ * \]
+ * where $op(X)$ is one of
+ *     $op(X) = X$,
+ *     $op(X) = X^T$, or
+ *     $op(X) = X^H$,
+ * alpha and beta are scalars, and A, B, and C are matrices, with
+ * $op(A)$ an m-by-k matrix, $op(B)$ a k-by-n matrix, and C an m-by-n matrix.
  *
- * Wrapper to optimized BLAS.
+ * @param[in] transA
+ *     The operation $op(A)$ to be used:
+ *     - Op::NoTrans:   $op(A) = A$.
+ *     - Op::Trans:     $op(A) = A^T$.
+ *     - Op::ConjTrans: $op(A) = A^H$.
  *
- * @see gemm(
-    Op transA,
-    Op transB,
-    const alpha_t& alpha,
-    const matrixA_t& A,
-    const matrixB_t& B,
-    matrixC_t& C )
-*
-* @ingroup blas3
-*/
-template <class matrixA_t,
-          class matrixB_t,
-          class matrixC_t,
-          class alpha_t,
-          class T = type_t<matrixC_t>,
-          enable_if_allow_optblas_t<pair<matrixA_t, T>,
-                                    pair<matrixB_t, T>,
-                                    pair<matrixC_t, T>,
-                                    pair<alpha_t, T> > = 0>
+ * @param[in] transB
+ *     The operation $op(B)$ to be used:
+ *     - Op::NoTrans:   $op(B) = B$.
+ *     - Op::Trans:     $op(B) = B^T$.
+ *     - Op::ConjTrans: $op(B) = B^H$.
+ *
+ * @param[in] alpha Scalar.
+ * @param[in] A $op(A)$ is an m-by-k matrix.
+ * @param[in] B $op(B)$ is an k-by-n matrix.
+ * @param[out] C A m-by-n matrix.
+ *
+ * @ingroup blas3
+ */
+template <class matrixA_t, class matrixB_t, class matrixC_t, class alpha_t>
 inline void gemm(Op transA,
                  Op transB,
-                 const alpha_t alpha,
+                 const alpha_t& alpha,
                  const matrixA_t& A,
                  const matrixB_t& B,
                  matrixC_t& C)
 {
-    // Legacy objects
-    auto A_ = legacy_matrix(A);
-    auto B_ = legacy_matrix(B);
-    auto C_ = legacy_matrix(C);
-
-    // Constants to forward
-    constexpr Layout L = layout<matrixC_t>;
-    const auto& m = C_.m;
-    const auto& n = C_.n;
-    const auto& k = (transA == Op::NoTrans) ? A_.n : A_.m;
-
-    // Warnings for NaNs and Infs
-    if (alpha == alpha_t(0))
-        tlapack_warning(
-            -3, "Infs and NaNs in A or B will not propagate to C on output");
-
-    return ::blas::gemm((::blas::Layout)L, (::blas::Op)transA,
-                        (::blas::Op)transB, m, n, k, alpha, A_.ptr, A_.ldim,
-                        B_.ptr, B_.ldim, T(0), C_.ptr, C_.ldim);
+    return gemm(transA, transB, alpha, A, B, StrongZero(), C);
 }
-
-#endif
 
 }  // namespace tlapack
 

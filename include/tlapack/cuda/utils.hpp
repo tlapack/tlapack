@@ -41,7 +41,7 @@ namespace cuda {
         using T = scalar_type<T1, T2, Ts...>;
         static constexpr bool value = is_cublas<T1, int>::value &&
                                       is_cublas<T2, Ts...>::value &&
-                                      std::is_convertible_v<T1, T>;
+                                      std::is_constructible_v<T, T1>;
     };
 
 }  // namespace cuda

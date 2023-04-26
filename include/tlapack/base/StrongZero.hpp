@@ -33,36 +33,45 @@ namespace tlapack {
  *
  */
 struct StrongZero {
+    // Constructors
+
+    constexpr StrongZero() {}
+
+    template <typename T>
+    constexpr StrongZero(const T& x)
+    {
+        assert(x == T(0));
+    }
+
+    // Conversion operators
+
     template <typename T>
     explicit constexpr operator T() const
     {
         return T(0);
     }
 
-    template <typename T>
-    friend constexpr T& operator*=(T& lhs, const StrongZero&)
-    {
-        lhs = T(0);
-        return lhs;
-    }
-
-    template <typename T>
-    friend constexpr const StrongZero operator*(const StrongZero&, const T&)
-    {
-        return StrongZero();
-    }
-
-    template <typename T>
-    friend constexpr const StrongZero operator*(const T&, const StrongZero&)
-    {
-        return StrongZero();
-    }
+    // Assignment operators
 
     template <typename T>
     friend constexpr const T& operator+=(const T& lhs, const StrongZero&)
     {
         return lhs;
     }
+
+    template <typename T>
+    friend constexpr const T& operator-=(const T& lhs, const StrongZero&)
+    {
+        return lhs;
+    }
+
+    template <typename T>
+    friend constexpr T& operator*=(T& lhs, const StrongZero&)
+    {
+        return (lhs = T(0));
+    }
+
+    // Arithmetic operators
 
     template <typename T>
     friend constexpr const T operator+(const StrongZero&, const T& rhs)
@@ -75,6 +84,35 @@ struct StrongZero {
     {
         return lhs;
     }
+
+    template <typename T>
+    friend constexpr const T operator-(const StrongZero&, const T& rhs)
+    {
+        return rhs;
+    }
+
+    template <typename T>
+    friend constexpr const T operator-(const T& lhs, const StrongZero&)
+    {
+        return lhs;
+    }
+
+    template <typename T>
+    friend constexpr const StrongZero operator*(const StrongZero& lhs, const T&)
+    {
+        return lhs;
+    }
+
+    template <typename T>
+    friend constexpr const StrongZero operator*(const T&, const StrongZero& rhs)
+    {
+        return rhs;
+    }
+
+    // Comparison operators
+
+    constexpr bool operator==(const StrongZero& rhs) const { return true; }
+    constexpr bool operator!=(const StrongZero& rhs) const { return false; }
 };
 
 // forward declarations

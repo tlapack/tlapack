@@ -646,7 +646,7 @@ namespace internal {
             ((is_matrix<C> || is_vector<C>)
                  ? (allow_optblas<C> &&
                     is_same_v<type_t<C>, typename std::decay<T>::type>)
-                 : std::is_convertible<C, T>::value);
+                 : std::is_constructible<T, C>::value);
     };
 
     template <class C1, class T1, class C2, class T2, class... Ps>
@@ -683,6 +683,7 @@ TLAPACK_OPT_TYPE(float)
 TLAPACK_OPT_TYPE(double)
 TLAPACK_OPT_TYPE(std::complex<float>)
 TLAPACK_OPT_TYPE(std::complex<double>)
+TLAPACK_OPT_TYPE(StrongZero)
 #endif
 #undef TLAPACK_OPT_TYPE
 

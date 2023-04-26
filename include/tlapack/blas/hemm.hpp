@@ -173,58 +173,6 @@ void hemm(Side side,
     }
 }
 
-/**
- * Hermitian matrix-matrix multiply:
- * \[
- *     C := \alpha A B,
- * \]
- * or
- * \[
- *     C := \alpha B A,
- * \]
- * where alpha and beta are scalars, A is an m-by-m or n-by-n Hermitian matrix,
- * and B and C are m-by-n matrices.
- *
- * @param[in] side
- *     The side the matrix A appears on:
- *     - Side::Left:  $C = \alpha A B$,
- *     - Side::Right: $C = \alpha B A$.
- *
- * @param[in] uplo
- *     What part of the matrix A is referenced:
- *     - Uplo::Lower: only the lower triangular part of A is referenced.
- *     - Uplo::Upper: only the upper triangular part of A is referenced.
- *
- * @param[in] alpha Scalar.
- * @param[in] A
- *     - If side = Left:  A m-by-m Hermitian matrix.
- *     - If side = Right: A n-by-n Hermitian matrix.
- *     Imaginary parts of the diagonal elements need not be set,
- *     are assumed to be zero on entry, and are set to zero on exit.
- * @param[in] B A m-by-n matrix.
- * @param[out] C A m-by-n matrix.
- *
- * @ingroup blas3
- */
-template <class matrixA_t,
-          class matrixB_t,
-          class matrixC_t,
-          class alpha_t,
-          class T = type_t<matrixC_t>,
-          disable_if_allow_optblas_t<pair<matrixA_t, T>,
-                                     pair<matrixB_t, T>,
-                                     pair<matrixC_t, T>,
-                                     pair<alpha_t, T> > = 0>
-inline void hemm(Side side,
-                 Uplo uplo,
-                 const alpha_t& alpha,
-                 const matrixA_t& A,
-                 const matrixB_t& B,
-                 matrixC_t& C)
-{
-    return hemm(side, uplo, alpha, A, B, StrongZero(), C);
-}
-
 #ifdef USE_LAPACKPP_WRAPPERS
 
 /**
@@ -273,66 +221,64 @@ inline void hemm(Side side,
     if (alpha == alpha_t(0))
         tlapack_warning(
             -3, "Infs and NaNs in A or B will not propagate to C on output");
-    if (beta == beta_t(0))
+    if (beta == beta_t(0) && !is_same_v<beta_t, StrongZero>)
         tlapack_warning(
             -6,
             "Infs and NaNs in C on input will not propagate to C on output");
 
     return ::blas::hemm((::blas::Layout)L, (::blas::Side)side,
                         (::blas::Uplo)uplo, m, n, alpha, A_.ptr, A_.ldim,
-                        B_.ptr, B_.ldim, beta, C_.ptr, C_.ldim);
+                        B_.ptr, B_.ldim, (T)beta, C_.ptr, C_.ldim);
 }
 
+#endif
+
 /**
- * Hermitian matrix-matrix multiply.
+ * Hermitian matrix-matrix multiply:
+ * \[
+ *     C := \alpha A B,
+ * \]
+ * or
+ * \[
+ *     C := \alpha B A,
+ * \]
+ * where alpha and beta are scalars, A is an m-by-m or n-by-n Hermitian matrix,
+ * and B and C are m-by-n matrices.
  *
- * Wrapper to optimized BLAS.
+ * @param[in] side
+ *     The side the matrix A appears on:
+ *     - Side::Left:  $C = \alpha A B$,
+ *     - Side::Right: $C = \alpha B A$.
  *
- * @see hemm(
-    Side side,
-    Uplo uplo,
-    const alpha_t& alpha, const matrixA_t& A, const matrixB_t& B,
-    matrixC_t& C )
-*
-* @ingroup blas3
-*/
+ * @param[in] uplo
+ *     What part of the matrix A is referenced:
+ *     - Uplo::Lower: only the lower triangular part of A is referenced.
+ *     - Uplo::Upper: only the upper triangular part of A is referenced.
+ *
+ * @param[in] alpha Scalar.
+ * @param[in] A
+ *     - If side = Left:  A m-by-m Hermitian matrix.
+ *     - If side = Right: A n-by-n Hermitian matrix.
+ *     Imaginary parts of the diagonal elements need not be set,
+ *     are assumed to be zero on entry, and are set to zero on exit.
+ * @param[in] B A m-by-n matrix.
+ * @param[out] C A m-by-n matrix.
+ *
+ * @ingroup blas3
+ */
 template <class matrixA_t,
           class matrixB_t,
           class matrixC_t,
-          class alpha_t,
-          class T = type_t<matrixC_t>,
-          enable_if_allow_optblas_t<pair<matrixA_t, T>,
-                                    pair<matrixB_t, T>,
-                                    pair<matrixC_t, T>,
-                                    pair<alpha_t, T> > = 0>
+          class alpha_t>
 inline void hemm(Side side,
                  Uplo uplo,
-                 const alpha_t alpha,
+                 const alpha_t& alpha,
                  const matrixA_t& A,
                  const matrixB_t& B,
                  matrixC_t& C)
 {
-    // Legacy objects
-    auto A_ = legacy_matrix(A);
-    auto B_ = legacy_matrix(B);
-    auto C_ = legacy_matrix(C);
-
-    // Constants to forward
-    constexpr Layout L = layout<matrixC_t>;
-    const auto& m = C_.m;
-    const auto& n = C_.n;
-
-    // Warnings for NaNs and Infs
-    if (alpha == alpha_t(0))
-        tlapack_warning(
-            -3, "Infs and NaNs in A or B will not propagate to C on output");
-
-    return ::blas::hemm((::blas::Layout)L, (::blas::Side)side,
-                        (::blas::Uplo)uplo, m, n, alpha, A_.ptr, A_.ldim,
-                        B_.ptr, B_.ldim, T(0), C_.ptr, C_.ldim);
+    return hemm(side, uplo, alpha, A, B, StrongZero(), C);
 }
-
-#endif
 
 }  // namespace tlapack
 

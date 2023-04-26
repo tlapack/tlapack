@@ -167,57 +167,6 @@ void herk(Uplo uplo,
     }
 }
 
-/**
- * Hermitian rank-k update:
- * \[
- *     C := \alpha A A^H,
- * \]
- * or
- * \[
- *     C := \alpha A^H A,
- * \]
- * where alpha and beta are real scalars, C is an n-by-n Hermitian matrix,
- * and A is an n-by-k or k-by-n matrix.
- *
- * Mind that if alpha or beta are complex,
- * the output matrix C may no longer Hermitian.
- *
- * @param[in] uplo
- *     What part of the matrix C is referenced,
- *     the opposite triangle being assumed from symmetry:
- *     - Uplo::Lower: only the lower triangular part of C is referenced.
- *     - Uplo::Upper: only the upper triangular part of C is referenced.
- *
- * @param[in] trans
- *     The operation to be performed:
- *     - Op::NoTrans:   $C = \alpha A A^H$.
- *     - Op::ConjTrans: $C = \alpha A^H A$.
- *
- * @param[in] alpha Real scalar.
- * @param[in] A A n-by-k matrix.
- *     - If trans = NoTrans: a n-by-k matrix.
- *     - Otherwise:          a k-by-n matrix.
- * @param[out] C A n-by-n Hermitian matrix.
- *
- * @ingroup blas3
- */
-template <class matrixA_t,
-          class matrixC_t,
-          class alpha_t,
-          enable_if_t<(
-                          /* Requires: */
-                          is_real<alpha_t>::value),
-                      int> = 0,
-          class T = type_t<matrixC_t>,
-          disable_if_allow_optblas_t<pair<matrixA_t, T>,
-                                     pair<matrixC_t, T>,
-                                     pair<alpha_t, real_type<T> > > = 0>
-inline void herk(
-    Uplo uplo, Op trans, const alpha_t& alpha, const matrixA_t& A, matrixC_t& C)
-{
-    return herk(uplo, trans, alpha, A, StrongZero(), C);
-}
-
 #ifdef USE_LAPACKPP_WRAPPERS
 
 /**
@@ -262,56 +211,57 @@ inline void herk(Uplo uplo,
     if (alpha == alpha_t(0))
         tlapack_warning(-3,
                         "Infs and NaNs in A will not propagate to C on output");
-    if (beta == beta_t(0))
+    if (beta == beta_t(0) && !is_same_v<beta_t, StrongZero>)
         tlapack_warning(
             -5,
             "Infs and NaNs in C on input will not propagate to C on output");
 
     return ::blas::herk((::blas::Layout)L, (::blas::Uplo)uplo,
-                        (::blas::Op)trans, n, k, alpha, A_.ptr, A_.ldim, beta,
-                        C_.ptr, C_.ldim);
+                        (::blas::Op)trans, n, k, alpha, A_.ptr, A_.ldim,
+                        (real_type<T>)beta, C_.ptr, C_.ldim);
 }
 
+#endif
+
 /**
- * Hermitian rank-k update
+ * Hermitian rank-k update:
+ * \[
+ *     C := \alpha A A^H,
+ * \]
+ * or
+ * \[
+ *     C := \alpha A^H A,
+ * \]
+ * where alpha and beta are real scalars, C is an n-by-n Hermitian matrix,
+ * and A is an n-by-k or k-by-n matrix.
  *
- * Wrapper to optimized BLAS.
+ * Mind that if alpha or beta are complex,
+ * the output matrix C may no longer Hermitian.
  *
- * @see herk(
-    Uplo uplo,
-    Op trans,
-    const alpha_t& alpha, const matrixA_t& A,
-    matrixC_t& C )
-*
-* @ingroup blas3
-*/
-template <class matrixA_t,
-          class matrixC_t,
-          class alpha_t,
-          class T = type_t<matrixC_t>,
-          enable_if_allow_optblas_t<pair<matrixA_t, T>,
-                                    pair<matrixC_t, T>,
-                                    pair<alpha_t, real_type<T> > > = 0>
+ * @param[in] uplo
+ *     What part of the matrix C is referenced,
+ *     the opposite triangle being assumed from symmetry:
+ *     - Uplo::Lower: only the lower triangular part of C is referenced.
+ *     - Uplo::Upper: only the upper triangular part of C is referenced.
+ *
+ * @param[in] trans
+ *     The operation to be performed:
+ *     - Op::NoTrans:   $C = \alpha A A^H$.
+ *     - Op::ConjTrans: $C = \alpha A^H A$.
+ *
+ * @param[in] alpha Real scalar.
+ * @param[in] A A n-by-k matrix.
+ *     - If trans = NoTrans: a n-by-k matrix.
+ *     - Otherwise:          a k-by-n matrix.
+ * @param[out] C A n-by-n Hermitian matrix.
+ *
+ * @ingroup blas3
+ */
+template <class matrixA_t, class matrixC_t, class alpha_t>
 inline void herk(
-    Uplo uplo, Op trans, const alpha_t alpha, const matrixA_t& A, matrixC_t& C)
+    Uplo uplo, Op trans, const alpha_t& alpha, const matrixA_t& A, matrixC_t& C)
 {
-    // Legacy objects
-    auto A_ = legacy_matrix(A);
-    auto C_ = legacy_matrix(C);
-
-    // Constants to forward
-    constexpr Layout L = layout<matrixC_t>;
-    const auto& n = C_.n;
-    const auto& k = (trans == Op::NoTrans) ? A_.n : A_.m;
-
-    // Warnings for NaNs and Infs
-    if (alpha == alpha_t(0))
-        tlapack_warning(
-            -3, "Infs and NaNs in A or B will not propagate to C on output");
-
-    return ::blas::herk((::blas::Layout)L, (::blas::Uplo)uplo,
-                        (::blas::Op)trans, n, k, alpha, A_.ptr, A_.ldim,
-                        real_type<T>(0), C_.ptr, C_.ldim);
+    return herk(uplo, trans, alpha, A, StrongZero(), C);
 }
 
 #endif
