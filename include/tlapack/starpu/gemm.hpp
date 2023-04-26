@@ -12,56 +12,9 @@
 
 #include "tlapack/base/utils.hpp"
 #include "tlapack/starpu/Matrix.hpp"
-#include "tlapack/starpu/codelets.hpp"
+#include "tlapack/starpu/tasks.hpp"
 
 namespace tlapack {
-namespace starpu {
-
-    namespace internal {
-
-        template <class TA, class TB, class TC, class alpha_t, class beta_t>
-        void insert_task_gemm(Op transA,
-                              Op transB,
-                              const alpha_t& alpha,
-                              starpu_data_handle_t A,
-                              starpu_data_handle_t B,
-                              const beta_t& beta,
-                              starpu_data_handle_t C)
-        {
-            using args_t = std::tuple<Op, Op, alpha_t, beta_t>;
-
-            // Allocate space for the task
-            struct starpu_task* task = starpu_task_create();
-
-            // Allocate space for the arguments
-            args_t* args_ptr = new args_t;
-
-            // Initialize arguments
-            std::get<0>(*args_ptr) = transA;
-            std::get<1>(*args_ptr) = transB;
-            std::get<2>(*args_ptr) = alpha;
-            std::get<3>(*args_ptr) = beta;
-
-            // Initialize task
-            task->cl = (struct starpu_codelet*)&(
-                cl::gemm<TA, TB, TC, alpha_t, beta_t>);
-            task->handles[0] = A;
-            task->handles[1] = B;
-            task->handles[2] = C;
-            task->cl_arg = (void*)args_ptr;
-            task->cl_arg_size = sizeof(args_t);
-            task->callback_func = [](void* args) noexcept {
-                delete (args_t*)args;
-            };
-            task->callback_arg = (void*)args_ptr;
-
-            // Submit task
-            const int ret = starpu_task_submit(task);
-            STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
-        }
-    }  // namespace internal
-
-}  // namespace starpu
 
 template <class TA, class TB, class TC, class alpha_t, class beta_t>
 void gemm(Op transA,
@@ -104,7 +57,7 @@ void gemm(Op transA,
             if (transA == Op::NoTrans) {
                 if (transB == Op::NoTrans) {
                     for (idx_t iz = 0; iz < nz; ++iz) {
-                        starpu::internal::insert_task_gemm<TA, TB, TC>(
+                        starpu::insert_task_gemm<TA, TB, TC>(
                             transA, transB, alpha, A_.get_tile_handle(ix, iz),
                             B_.get_tile_handle(iz, iy), beta,
                             C.get_tile_handle(ix, iy));
@@ -112,7 +65,7 @@ void gemm(Op transA,
                 }
                 else {
                     for (idx_t iz = 0; iz < nz; ++iz) {
-                        starpu::internal::insert_task_gemm<TA, TB, TC>(
+                        starpu::insert_task_gemm<TA, TB, TC>(
                             transA, transB, alpha, A_.get_tile_handle(ix, iz),
                             B_.get_tile_handle(iy, iz), beta,
                             C.get_tile_handle(ix, iy));
@@ -122,7 +75,7 @@ void gemm(Op transA,
             else {
                 if (transB == Op::NoTrans) {
                     for (idx_t iz = 0; iz < nz; ++iz) {
-                        starpu::internal::insert_task_gemm<TA, TB, TC>(
+                        starpu::insert_task_gemm<TA, TB, TC>(
                             transA, transB, alpha, A_.get_tile_handle(iz, ix),
                             B_.get_tile_handle(iz, iy), beta,
                             C.get_tile_handle(ix, iy));
@@ -130,7 +83,7 @@ void gemm(Op transA,
                 }
                 else {
                     for (idx_t iz = 0; iz < nz; ++iz) {
-                        starpu::internal::insert_task_gemm<TA, TB, TC>(
+                        starpu::insert_task_gemm<TA, TB, TC>(
                             transA, transB, alpha, A_.get_tile_handle(iz, ix),
                             B_.get_tile_handle(iy, iz), beta,
                             C.get_tile_handle(ix, iy));

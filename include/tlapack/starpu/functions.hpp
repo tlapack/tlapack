@@ -11,6 +11,7 @@
 #ifndef TLAPACK_STARPU_BLAS_CPU_HH
 #define TLAPACK_STARPU_BLAS_CPU_HH
 
+#include <starpu.h>
 #include <starpu_cublas_v2.h>
 
 #include "tlapack/cuda/utils.hpp"
@@ -381,7 +382,7 @@ namespace starpu {
                  lda, (TB*)B, ldb);
         }
 
-    }  // namespace internal
+    }  // namespace func
 
 }  // namespace starpu
 }  // namespace tlapack

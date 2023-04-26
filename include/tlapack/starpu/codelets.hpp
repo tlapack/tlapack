@@ -11,8 +11,10 @@
 #ifndef TLAPACK_STARPU_CODELETS_HH
 #define TLAPACK_STARPU_CODELETS_HH
 
+#include <starpu.h>
+
 #include "tlapack/cuda/utils.hpp"
-#include "tlapack/starpu/blas_funcs.hpp"
+#include "tlapack/starpu/functions.hpp"
 
 namespace tlapack {
 namespace starpu {
