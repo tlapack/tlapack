@@ -215,7 +215,7 @@ template <class matrixA_t,
 inline void herk(
     Uplo uplo, Op trans, const alpha_t& alpha, const matrixA_t& A, matrixC_t& C)
 {
-    return herk(uplo, trans, alpha, A, internal::StrongZero(), C);
+    return herk(uplo, trans, alpha, A, StrongZero(), C);
 }
 
 #ifdef USE_LAPACKPP_WRAPPERS

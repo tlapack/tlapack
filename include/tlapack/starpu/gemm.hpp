@@ -94,17 +94,6 @@ void gemm(Op transA,
     }
 }
 
-template <class TA, class TB, class TC, class alpha_t, class beta_t>
-void gemm(Op transA,
-          Op transB,
-          const alpha_t& alpha,
-          const starpu::Matrix<TA>& A,
-          const starpu::Matrix<TB>& B,
-          starpu::Matrix<TC>& C)
-{
-    return gemm(transA, transB, alpha, A, B, internal::StrongZero(), C);
-}
-
 }  // namespace tlapack
 
 #endif  // TLAPACK_STARPU_GEMM_HH

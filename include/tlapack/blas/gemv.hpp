@@ -165,7 +165,7 @@ inline void gemv(Op trans,
                  const vectorX_t& x,
                  vectorY_t& y)
 {
-    return gemv(trans, alpha, A, x, internal::StrongZero(), y);
+    return gemv(trans, alpha, A, x, StrongZero(), y);
 }
 
 #ifdef USE_LAPACKPP_WRAPPERS

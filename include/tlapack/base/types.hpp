@@ -16,6 +16,8 @@
 #include <type_traits>
 #include <vector>
 
+#include "tlapack/base/StrongZero.hpp"
+
 // Helpers:
 
 #define TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_2_VALUES(EnumClass, A, B)       \
@@ -66,68 +68,6 @@ namespace internal {
     struct StrongOne {
         inline constexpr operator int() const { return 1; }
         inline constexpr StrongOne(int i = 1) { assert(i == 1); }
-    };
-
-    /**
-     * @brief Auxiliary data type
-     *
-     * Suppose x is of type T. Then:
-     *
-     * 1. T(StrongZero()) is equivalent to T(0).
-     * 2. x *= StrongZero() is equivalent to x = T(0).
-     * 3. x += StrongZero() does not modify x.
-     *
-     * This class satisfies:
-     *
-     *      x * StrongZero() = StrongZero()
-     *      StrongZero() * x = StrongZero()
-     *      x + StrongZero() = x
-     *      StrongZero() + x = x
-     *
-     */
-    struct StrongZero {
-        template <typename T>
-        explicit constexpr operator T() const
-        {
-            return T(0);
-        }
-
-        template <typename T>
-        friend constexpr T& operator*=(T& lhs, const StrongZero&)
-        {
-            lhs = T(0);
-            return lhs;
-        }
-
-        template <typename T>
-        friend constexpr const StrongZero operator*(const StrongZero&, const T&)
-        {
-            return StrongZero();
-        }
-
-        template <typename T>
-        friend constexpr const StrongZero operator*(const T&, const StrongZero&)
-        {
-            return StrongZero();
-        }
-
-        template <typename T>
-        friend constexpr const T& operator+=(const T& lhs, const StrongZero&)
-        {
-            return lhs;
-        }
-
-        template <typename T>
-        friend constexpr const T operator+(const StrongZero&, const T& rhs)
-        {
-            return rhs;
-        }
-
-        template <typename T>
-        friend constexpr const T operator+(const T& lhs, const StrongZero&)
-        {
-            return lhs;
-        }
     };
 }  // namespace internal
 

@@ -205,7 +205,7 @@ inline void syr2k(Uplo uplo,
                   const matrixB_t& B,
                   matrixC_t& C)
 {
-    return syr2k(uplo, trans, alpha, A, B, internal::StrongZero(), C);
+    return syr2k(uplo, trans, alpha, A, B, StrongZero(), C);
 }
 
 #ifdef USE_LAPACKPP_WRAPPERS

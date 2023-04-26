@@ -218,7 +218,7 @@ inline void symm(Side side,
                  const matrixB_t& B,
                  matrixC_t& C)
 {
-    return symm(side, uplo, alpha, A, B, internal::StrongZero(), C);
+    return symm(side, uplo, alpha, A, B, StrongZero(), C);
 }
 
 #ifdef USE_LAPACKPP_WRAPPERS

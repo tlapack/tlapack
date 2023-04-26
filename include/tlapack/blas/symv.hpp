@@ -135,7 +135,7 @@ inline void symv(Uplo uplo,
                  const vectorX_t& x,
                  vectorY_t& y)
 {
-    return symv(uplo, alpha, A, x, internal::StrongZero(), y);
+    return symv(uplo, alpha, A, x, StrongZero(), y);
 }
 
 #ifdef USE_LAPACKPP_WRAPPERS

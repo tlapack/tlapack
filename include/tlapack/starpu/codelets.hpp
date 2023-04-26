@@ -38,9 +38,7 @@ namespace starpu {
             cl.nbuffers = 3;
             cl.modes[0] = STARPU_R;
             cl.modes[1] = STARPU_R;
-            cl.modes[2] = is_same_v<beta_t, tlapack::internal::StrongZero>
-                              ? STARPU_W
-                              : STARPU_RW;
+            cl.modes[2] = is_same_v<beta_t, StrongZero> ? STARPU_W : STARPU_RW;
             cl.name = "tlapack::starpu::gemm";
 
             // The following lines are needed to make the codelet const
@@ -61,9 +59,7 @@ namespace starpu {
             cl.nbuffers = 3;
             cl.modes[0] = STARPU_R;
             cl.modes[1] = STARPU_R;
-            cl.modes[2] = is_same_v<beta_t, tlapack::internal::StrongZero>
-                              ? STARPU_W
-                              : STARPU_RW;
+            cl.modes[2] = is_same_v<beta_t, StrongZero> ? STARPU_W : STARPU_RW;
             cl.name = "tlapack::starpu::symm";
 
             // The following lines are needed to make the codelet const
@@ -83,9 +79,7 @@ namespace starpu {
             cl.nbuffers = 3;
             cl.modes[0] = STARPU_R;
             cl.modes[1] = STARPU_R;
-            cl.modes[2] = is_same_v<beta_t, tlapack::internal::StrongZero>
-                              ? STARPU_W
-                              : STARPU_RW;
+            cl.modes[2] = is_same_v<beta_t, StrongZero> ? STARPU_W : STARPU_RW;
             cl.name = "tlapack::starpu::hemm";
 
             // The following lines are needed to make the codelet const
@@ -104,9 +98,7 @@ namespace starpu {
             cl.cpu_funcs[0] = func::syrk<TA, TC, alpha_t, beta_t>;
             cl.nbuffers = 2;
             cl.modes[0] = STARPU_R;
-            cl.modes[1] = is_same_v<beta_t, tlapack::internal::StrongZero>
-                              ? STARPU_W
-                              : STARPU_RW;
+            cl.modes[1] = is_same_v<beta_t, StrongZero> ? STARPU_W : STARPU_RW;
             cl.name = "tlapack::starpu::syrk";
 
             // The following lines are needed to make the codelet const
@@ -125,9 +117,7 @@ namespace starpu {
             cl.cpu_funcs[0] = func::herk<TA, TC, alpha_t, beta_t>;
             cl.nbuffers = 2;
             cl.modes[0] = STARPU_R;
-            cl.modes[1] = is_same_v<beta_t, tlapack::internal::StrongZero>
-                              ? STARPU_W
-                              : STARPU_RW;
+            cl.modes[1] = is_same_v<beta_t, StrongZero> ? STARPU_W : STARPU_RW;
             cl.name = "tlapack::starpu::herk";
 
             // The following lines are needed to make the codelet const
@@ -147,9 +137,7 @@ namespace starpu {
             cl.nbuffers = 3;
             cl.modes[0] = STARPU_R;
             cl.modes[1] = STARPU_R;
-            cl.modes[2] = is_same_v<beta_t, tlapack::internal::StrongZero>
-                              ? STARPU_W
-                              : STARPU_RW;
+            cl.modes[2] = is_same_v<beta_t, StrongZero> ? STARPU_W : STARPU_RW;
             cl.name = "tlapack::starpu::syr2k";
 
             // The following lines are needed to make the codelet const
@@ -169,9 +157,7 @@ namespace starpu {
             cl.nbuffers = 3;
             cl.modes[0] = STARPU_R;
             cl.modes[1] = STARPU_R;
-            cl.modes[2] = is_same_v<beta_t, tlapack::internal::StrongZero>
-                              ? STARPU_W
-                              : STARPU_RW;
+            cl.modes[2] = is_same_v<beta_t, StrongZero> ? STARPU_W : STARPU_RW;
             cl.name = "tlapack::starpu::her2k";
 
             // The following lines are needed to make the codelet const

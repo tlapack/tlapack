@@ -244,7 +244,7 @@ inline void her2k(Uplo uplo,
                   const matrixB_t& B,
                   matrixC_t& C)
 {
-    return her2k(uplo, trans, alpha, A, B, internal::StrongZero(), C);
+    return her2k(uplo, trans, alpha, A, B, StrongZero(), C);
 }
 
 #ifdef USE_LAPACKPP_WRAPPERS

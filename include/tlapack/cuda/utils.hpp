@@ -32,7 +32,7 @@ namespace cuda {
     };
 
     template <>
-    struct is_cublas<internal::StrongZero, int> {
+    struct is_cublas<StrongZero, int> {
         static constexpr bool value = true;
     };
 

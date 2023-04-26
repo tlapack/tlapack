@@ -241,7 +241,7 @@ inline void gemm(Op transA,
                  const matrixB_t& B,
                  matrixC_t& C)
 {
-    return gemm(transA, transB, alpha, A, B, internal::StrongZero(), C);
+    return gemm(transA, transB, alpha, A, B, StrongZero(), C);
 }
 
 #ifdef USE_LAPACKPP_WRAPPERS

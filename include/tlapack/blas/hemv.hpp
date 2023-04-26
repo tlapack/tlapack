@@ -141,7 +141,7 @@ inline void hemv(Uplo uplo,
                  const vectorX_t& x,
                  vectorY_t& y)
 {
-    return hemv(uplo, alpha, A, x, internal::StrongZero(), y);
+    return hemv(uplo, alpha, A, x, StrongZero(), y);
 }
 
 #ifdef USE_LAPACKPP_WRAPPERS
