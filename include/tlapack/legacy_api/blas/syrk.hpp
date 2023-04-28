@@ -45,7 +45,7 @@ namespace tlapack {
  *     - Op::NoTrans: $C = \alpha A A^T + \beta C$.
  *     - Op::Trans:   $C = \alpha A^T A + \beta C$.
  *     - In the real    case, Op::ConjTrans is interpreted as Op::Trans.
- *       In the complex case, Op::ConjTrans is illegal (see @ref herk()
+ *       In the complex case, Op::ConjTrans is illegal (see herk()
  * instead).
  *
  * @param[in] n

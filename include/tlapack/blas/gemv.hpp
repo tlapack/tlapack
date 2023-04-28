@@ -176,7 +176,8 @@ inline void gemv(Op trans,
             "Infs and NaNs in y on input will not propagate to y on output");
 
     return ::blas::gemv((::blas::Layout)L, (::blas::Op)trans, m, n, alpha,
-                        A_.ptr, A_.ldim, x_.ptr, x_.inc, (T)beta, y_.ptr, y_.inc);
+                        A_.ptr, A_.ldim, x_.ptr, x_.inc, (T)beta, y_.ptr,
+                        y_.inc);
 }
 
 #endif
@@ -207,10 +208,7 @@ inline void gemv(Op trans,
  *
  * @ingroup blas2
  */
-template <class matrixA_t,
-          class vectorX_t,
-          class vectorY_t,
-          class alpha_t>
+template <class matrixA_t, class vectorX_t, class vectorY_t, class alpha_t>
 inline void gemv(Op trans,
                  const alpha_t& alpha,
                  const matrixA_t& A,

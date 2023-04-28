@@ -187,8 +187,8 @@ inline void syrk(Uplo uplo,
             "Infs and NaNs in C on input will not propagate to C on output");
 
     return ::blas::syrk((::blas::Layout)L, (::blas::Uplo)uplo,
-                        (::blas::Op)trans, n, k, alpha, A_.ptr, A_.ldim, (T)beta,
-                        C_.ptr, C_.ldim);
+                        (::blas::Op)trans, n, k, alpha, A_.ptr, A_.ldim,
+                        (T)beta, C_.ptr, C_.ldim);
 }
 
 #endif
@@ -224,9 +224,7 @@ inline void syrk(Uplo uplo,
  *
  * @ingroup blas3
  */
-template <class matrixA_t,
-          class matrixC_t,
-          class alpha_t>
+template <class matrixA_t, class matrixC_t, class alpha_t>
 inline void syrk(
     Uplo uplo, Op trans, const alpha_t& alpha, const matrixA_t& A, matrixC_t& C)
 {

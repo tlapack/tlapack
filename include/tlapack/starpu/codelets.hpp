@@ -225,7 +225,7 @@ namespace starpu {
         {
             struct starpu_codelet cl = codelet_init();
 
-            cl.cpu_funcs[0] = func::potf2<uplo_t,T>;
+            cl.cpu_funcs[0] = func::potf2<uplo_t, T>;
             cl.nbuffers = 2;
             cl.modes[0] = STARPU_RW;
             cl.modes[1] = STARPU_W;
@@ -283,7 +283,7 @@ namespace starpu {
 
         template <class uplo_t, class T>
         constexpr const struct starpu_codelet potf2 =
-            internal::gen_cl_potf2<uplo_t,T>();
+            internal::gen_cl_potf2<uplo_t, T>();
 
     }  // namespace cl
 

@@ -11,8 +11,8 @@
 // Level 3 BLAS template implementations
 
 #include "tlapack/starpu/gemm.hpp"
-#include "tlapack/starpu/trsm.hpp"
 #include "tlapack/starpu/herk.hpp"
+#include "tlapack/starpu/trsm.hpp"
 
 // =============================================================================
 // LAPACK template implementations

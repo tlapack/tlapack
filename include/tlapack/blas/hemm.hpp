@@ -266,10 +266,7 @@ inline void hemm(Side side,
  *
  * @ingroup blas3
  */
-template <class matrixA_t,
-          class matrixB_t,
-          class matrixC_t,
-          class alpha_t>
+template <class matrixA_t, class matrixB_t, class matrixC_t, class alpha_t>
 inline void hemm(Side side,
                  Uplo uplo,
                  const alpha_t& alpha,

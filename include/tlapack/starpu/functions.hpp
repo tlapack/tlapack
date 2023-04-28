@@ -1,4 +1,4 @@
-/// @file starpu/blas_cpu.hpp
+/// @file starpu/functions.hpp
 /// @brief BLAS Level 3 routines for StarPU (CPU backend)
 /// @author Weslley S Pereira, University of Colorado Denver, USA
 //

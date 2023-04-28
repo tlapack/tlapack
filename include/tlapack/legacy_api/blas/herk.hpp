@@ -45,7 +45,7 @@ namespace tlapack {
  *     - Op::NoTrans:   $C = \alpha A A^H + \beta C$.
  *     - Op::ConjTrans: $C = \alpha A^H A + \beta C$.
  *     - In the real    case, Op::Trans is interpreted as Op::ConjTrans.
- *       In the complex case, Op::Trans is illegal (see @ref syrk() instead).
+ *       In the complex case, Op::Trans is illegal (see syrk() instead).
  *
  * @param[in] n
  *     Number of rows and columns of the matrix C. n >= 0.
