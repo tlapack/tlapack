@@ -12,12 +12,13 @@
 #define TLAPACK_POTRF_HH
 
 #include "tlapack/base/utils.hpp"
+#include "tlapack/lapack/potf2.hpp"
 #include "tlapack/lapack/potrf2.hpp"
 #include "tlapack/lapack/potrf_blocked.hpp"
 
 namespace tlapack {
 
-enum class PotrfVariant : char { Blocked = 'B', Recursive = 'R' };
+enum class PotrfVariant : char { Blocked = 'B', Recursive = 'R', Level2 = '2' };
 
 template <typename idx_t>
 struct potrf_opts_t : public ec_opts_t {
@@ -78,13 +79,18 @@ inline int potrf(uplo_t uplo,
     tlapack_check(uplo == Uplo::Lower || uplo == Uplo::Upper);
     tlapack_check(nrows(A) == ncols(A));
     tlapack_check(opts.variant == PotrfVariant::Blocked ||
-                  opts.variant == PotrfVariant::Recursive);
+                  opts.variant == PotrfVariant::Recursive ||
+                  opts.variant == PotrfVariant::Level2);
 
     // Call variant
     if (opts.variant == PotrfVariant::Blocked)
         return potrf_blocked(uplo, A, opts);
-    else  // if( opts.variant == PotrfVariant::Recursive )
+    else if (opts.variant == PotrfVariant::Recursive)
         return potrf2(uplo, A, opts);
+    else if (opts.variant == PotrfVariant::Level2)
+        return potf2(uplo, A);
+    else
+        return -3;
 }
 
 }  // namespace tlapack

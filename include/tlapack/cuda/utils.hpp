@@ -16,7 +16,7 @@ namespace tlapack {
 namespace cuda {
 
     template <class... Ts>
-    struct is_cublas : std::false_type {
+    struct is_cublas {
         static constexpr bool value = false;
     };
 

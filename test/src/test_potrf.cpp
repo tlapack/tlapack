@@ -45,7 +45,8 @@ TEMPLATE_TEST_CASE(
                                        (variant_t(PotrfVariant::Blocked, 2)),
                                        (variant_t(PotrfVariant::Blocked, 7)),
                                        (variant_t(PotrfVariant::Blocked, 10)),
-                                       (variant_t(PotrfVariant::Recursive, 0)));
+                                       (variant_t(PotrfVariant::Recursive, 0)),
+                                       (variant_t(PotrfVariant::Level2, 0)));
     const idx_t n = GENERATE(10, 19, 30);
     const Uplo uplo = GENERATE(Uplo::Lower, Uplo::Upper);
 

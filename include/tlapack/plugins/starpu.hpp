@@ -16,6 +16,33 @@
 
 namespace tlapack {
 
+template <class real_t, std::enable_if_t<!is_complex<real_t>::value, int> = 0>
+constexpr real_t real(const real_t&);
+template <class real_t, std::enable_if_t<!is_complex<real_t>::value, int> = 0>
+constexpr real_t imag(const real_t&);
+template <class real_t, std::enable_if_t<!is_complex<real_t>::value, int> = 0>
+constexpr real_t conj(const real_t&);
+
+template <class T>
+inline constexpr real_type<T> real(const starpu::internal::data<T>& x)
+{
+    return real(T(x));
+}
+template <class T>
+inline constexpr real_type<T> imag(const starpu::internal::data<T>& x)
+{
+    return imag(T(x));
+}
+template <class T>
+inline constexpr T conj(const starpu::internal::data<T>& x)
+{
+    return conj(T(x));
+}
+
+}  // namespace tlapack
+
+namespace tlapack {
+
 // -----------------------------------------------------------------------------
 // Data descriptors
 

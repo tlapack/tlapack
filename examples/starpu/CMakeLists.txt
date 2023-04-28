@@ -32,3 +32,7 @@ target_link_libraries( example_starpu_lu PRIVATE tlapack )
 # add the example GEMM
 add_executable( example_starpu_gemm example_gemm.cpp )
 target_link_libraries( example_starpu_gemm PRIVATE tlapack )
+
+# add the example POTRF
+add_executable( example_starpu_potrf example_potrf.cpp )
+target_link_libraries( example_starpu_potrf PRIVATE tlapack )

@@ -16,6 +16,7 @@
 
 #include "tlapack/cuda/utils.hpp"
 #include "tlapack/legacy_api/blas.hpp"
+#include "tlapack/legacy_api/lapack/potf2.hpp"
 
 namespace tlapack {
 namespace starpu {
@@ -39,6 +40,42 @@ namespace starpu {
             }
         }
 
+        inline cublasFillMode_t uplo2cublas(Uplo uplo)
+        {
+            switch (uplo) {
+                case Uplo::Upper:
+                    return CUBLAS_FILL_MODE_UPPER;
+                case Uplo::Lower:
+                    return CUBLAS_FILL_MODE_LOWER;
+                default:
+                    throw std::invalid_argument("Invalid value for Uplo");
+            }
+        }
+
+        inline cublasDiagType_t diag2cublas(Diag diag)
+        {
+            switch (diag) {
+                case Diag::NonUnit:
+                    return CUBLAS_DIAG_NON_UNIT;
+                case Diag::Unit:
+                    return CUBLAS_DIAG_UNIT;
+                default:
+                    throw std::invalid_argument("Invalid value for Diag");
+            }
+        }
+
+        inline cublasSideMode_t side2cublas(Side side)
+        {
+            switch (side) {
+                case Side::Left:
+                    return CUBLAS_SIDE_LEFT;
+                case Side::Right:
+                    return CUBLAS_SIDE_RIGHT;
+                default:
+                    throw std::invalid_argument("Invalid value for Side");
+            }
+        }
+
     }  // namespace cuda
 #endif
 
@@ -56,7 +93,6 @@ namespace starpu {
         constexpr void gemm(void** buffers, void* args) noexcept
         {
             using args_t = std::tuple<Op, Op, alpha_t, beta_t>;
-            using T = scalar_type<TA, TB, TC, alpha_t, beta_t>;
 
             // get arguments
             const args_t& cl_args = *(args_t*)args;
@@ -81,11 +117,15 @@ namespace starpu {
             const uintptr_t& C = STARPU_VARIABLE_GET_PTR(buffers[2]);
 
             // call gemm
-            if constexpr (mode == 0)
+            if constexpr (mode == 0) {
+                using T = scalar_type<TC, beta_t>;
                 gemm(Layout::ColMajor, transA, transB, m, n, k, alpha,
                      (const TA*)A, lda, (const TB*)B, ldb, (T)beta, (TC*)C,
                      ldc);
+            }
             else if constexpr (mode == 1) {
+                using T = scalar_type<TA, TB, TC, alpha_t, beta_t>;
+
                 const cublasOperation_t opA = cuda::op2cublas(transA);
                 const cublasOperation_t opB = cuda::op2cublas(transB);
                 const T alpha_ = (T)alpha;
@@ -93,22 +133,22 @@ namespace starpu {
                 cublasStatus_t status;
 
                 if constexpr (std::is_same_v<T, float>)
-                    status =
-                        cublasSgemm(starpu_cublas_get_local_handle(), opA, opB,
-                                    m, n, k, &alpha_, (const T*)A, lda,
-                                    (const T*)B, ldb, &beta_, (T*)C, ldc);
+                    status = cublasSgemm(starpu_cublas_get_local_handle(), opA,
+                                         opB, m, n, k, &alpha_, (const float*)A,
+                                         lda, (const float*)B, ldb, &beta_,
+                                         (float*)C, ldc);
                 else if constexpr (std::is_same_v<T, double>)
-                    status =
-                        cublasDgemm(starpu_cublas_get_local_handle(), opA, opB,
-                                    m, n, k, &alpha_, (const T*)A, lda,
-                                    (const T*)B, ldb, &beta_, (T*)C, ldc);
+                    status = cublasDgemm(
+                        starpu_cublas_get_local_handle(), opA, opB, m, n, k,
+                        &alpha_, (const double*)A, lda, (const double*)B, ldb,
+                        &beta_, (double*)C, ldc);
                 else if constexpr (std::is_same_v<real_type<T>, float>)
                     status = cublasCgemm(
                         starpu_cublas_get_local_handle(), opA, opB, m, n, k,
                         (const cuComplex*)&alpha_, (const cuComplex*)A, lda,
                         (const cuComplex*)B, ldb, (const cuComplex*)&beta_,
                         (cuComplex*)C, ldc);
-                else  // if constexpr (std::is_same_v<real_type<T>, double>)
+                else if constexpr (std::is_same_v<real_type<T>, double>)
                     status =
                         cublasZgemm(starpu_cublas_get_local_handle(), opA, opB,
                                     m, n, k, (const cuDoubleComplex*)&alpha_,
@@ -116,6 +156,9 @@ namespace starpu {
                                     (const cuDoubleComplex*)B, ldb,
                                     (const cuDoubleComplex*)&beta_,
                                     (cuDoubleComplex*)C, ldc);
+                else
+                    static_assert(sizeof(T) == 0,
+                                  "Type not supported in cuBLAS");
 
                 if (status != CUBLAS_STATUS_SUCCESS)
                     STARPU_CUBLAS_REPORT_ERROR(status);
@@ -133,7 +176,6 @@ namespace starpu {
         constexpr void symm(void** buffers, void* args) noexcept
         {
             using args_t = std::tuple<Side, Uplo, alpha_t, beta_t>;
-            using T = scalar_type<TA, TB, TC, alpha_t, beta_t>;
 
             // get arguments
             const args_t& cl_args = *(args_t*)args;
@@ -155,6 +197,7 @@ namespace starpu {
             const uintptr_t& C = STARPU_VARIABLE_GET_PTR(buffers[2]);
 
             // call symm
+            using T = scalar_type<TC, beta_t>;
             symm(Layout::ColMajor, side, uplo, m, n, alpha, (const TA*)A, lda,
                  (const TB*)B, ldb, (T)beta, (TC*)C, ldc);
         }
@@ -168,7 +211,6 @@ namespace starpu {
         constexpr void hemm(void** buffers, void* args) noexcept
         {
             using args_t = std::tuple<Side, Uplo, alpha_t, beta_t>;
-            using T = scalar_type<TA, TB, TC, alpha_t, beta_t>;
 
             // get arguments
             const args_t& cl_args = *(args_t*)args;
@@ -190,6 +232,7 @@ namespace starpu {
             const uintptr_t& C = STARPU_VARIABLE_GET_PTR(buffers[2]);
 
             // call hemm
+            using T = scalar_type<TC, beta_t>;
             hemm(Layout::ColMajor, side, uplo, m, n, alpha, (const TA*)A, lda,
                  (const TB*)B, ldb, (T)beta, (TC*)C, ldc);
         }
@@ -198,7 +241,6 @@ namespace starpu {
         constexpr void syrk(void** buffers, void* args) noexcept
         {
             using args_t = std::tuple<Uplo, Op, alpha_t, beta_t>;
-            using T = scalar_type<TA, TC, alpha_t, beta_t>;
 
             // get arguments
             const args_t& cl_args = *(args_t*)args;
@@ -220,6 +262,7 @@ namespace starpu {
             const uintptr_t& C = STARPU_VARIABLE_GET_PTR(buffers[1]);
 
             // call syrk
+            using T = scalar_type<TC, beta_t>;
             syrk(Layout::ColMajor, uplo, op, n, k, alpha, (const TA*)A, lda,
                  (T)beta, (TC*)C, ldc);
         }
@@ -228,7 +271,6 @@ namespace starpu {
         constexpr void herk(void** buffers, void* args) noexcept
         {
             using args_t = std::tuple<Uplo, Op, alpha_t, beta_t>;
-            using T = scalar_type<TA, TC, alpha_t, beta_t>;
 
             // get arguments
             const args_t& cl_args = *(args_t*)args;
@@ -250,8 +292,49 @@ namespace starpu {
             const uintptr_t& C = STARPU_VARIABLE_GET_PTR(buffers[1]);
 
             // call herk
-            herk(Layout::ColMajor, uplo, op, n, k, alpha, (const TA*)A, lda,
-                 (T)beta, (TC*)C, ldc);
+            if constexpr (mode == 0) {
+                using real_t = real_type<scalar_type<TC, beta_t>>;
+                herk(Layout::ColMajor, uplo, op, n, k, alpha, (const TA*)A, lda,
+                     (real_t)beta, (TC*)C, ldc);
+            }
+            else if constexpr (mode == 1) {
+                using T = scalar_type<TA, TC, alpha_t, beta_t>;
+                using real_t = real_type<T>;
+
+                const cublasFillMode_t uplo_ = cuda::uplo2cublas(uplo);
+                const cublasOperation_t op_ = cuda::op2cublas(op);
+                const real_t alpha_ = (real_t)alpha;
+                const real_t beta_ = (real_t)beta;
+                cublasStatus_t status;
+
+                if constexpr (std::is_same_v<T, float>)
+                    status = cublasSsyrk(
+                        starpu_cublas_get_local_handle(), uplo_, op_, n, k,
+                        &alpha_, (const float*)A, lda, &beta_, (float*)C, ldc);
+                else if constexpr (std::is_same_v<T, double>)
+                    status =
+                        cublasDsyrk(starpu_cublas_get_local_handle(), uplo_,
+                                    op_, n, k, &alpha_, (const double*)A, lda,
+                                    &beta_, (double*)C, ldc);
+                else if constexpr (std::is_same_v<real_type<T>, float>)
+                    status =
+                        cublasCherk(starpu_cublas_get_local_handle(), uplo_,
+                                    op_, n, k, &alpha_, (const cuComplex*)A,
+                                    lda, &beta_, (cuComplex*)C, ldc);
+                else if constexpr (std::is_same_v<real_type<T>, double>)
+                    status = cublasZherk(starpu_cublas_get_local_handle(),
+                                         uplo_, op_, n, k, &alpha_,
+                                         (const cuDoubleComplex*)A, lda, &beta_,
+                                         (cuDoubleComplex*)C, ldc);
+                else
+                    static_assert(sizeof(T) == 0,
+                                  "Type not supported in cuBLAS");
+
+                if (status != CUBLAS_STATUS_SUCCESS)
+                    STARPU_CUBLAS_REPORT_ERROR(status);
+            }
+            else
+                static_assert(mode == 0 || mode == 1, "Invalid mode");
         }
 
         template <class TA,
@@ -263,7 +346,6 @@ namespace starpu {
         constexpr void syr2k(void** buffers, void* args) noexcept
         {
             using args_t = std::tuple<Uplo, Op, alpha_t, beta_t>;
-            using T = scalar_type<TA, TB, TC, alpha_t, beta_t>;
 
             // get arguments
             const args_t& cl_args = *(args_t*)args;
@@ -287,6 +369,7 @@ namespace starpu {
             const uintptr_t& C = STARPU_VARIABLE_GET_PTR(buffers[2]);
 
             // call syr2k
+            using T = scalar_type<TC, beta_t>;
             syr2k(Layout::ColMajor, uplo, op, n, k, alpha, (const TA*)A, lda,
                   (const TB*)B, ldb, (T)beta, (TC*)C, ldc);
         }
@@ -300,7 +383,6 @@ namespace starpu {
         constexpr void her2k(void** buffers, void* args) noexcept
         {
             using args_t = std::tuple<Uplo, Op, alpha_t, beta_t>;
-            using T = scalar_type<TA, TB, TC, alpha_t, beta_t>;
 
             // get arguments
             const args_t& cl_args = *(args_t*)args;
@@ -324,8 +406,9 @@ namespace starpu {
             const uintptr_t& C = STARPU_VARIABLE_GET_PTR(buffers[2]);
 
             // call her2k
+            using real_t = real_type<scalar_type<TC, beta_t>>;
             her2k(Layout::ColMajor, uplo, op, n, k, alpha, (const TA*)A, lda,
-                  (const TB*)B, ldb, (T)beta, (TC*)C, ldc);
+                  (const TB*)B, ldb, (real_t)beta, (TC*)C, ldc);
         }
 
         template <class TA, class TB, class alpha_t, int mode = 0>
@@ -339,6 +422,7 @@ namespace starpu {
             const Uplo& uplo = std::get<1>(cl_args);
             const Op& op = std::get<2>(cl_args);
             const Diag& diag = std::get<3>(cl_args);
+            const alpha_t& alpha = std::get<4>(cl_args);
 
             // get dimensions
             const idx_t& m = STARPU_MATRIX_GET_NX(buffers[1]);
@@ -351,8 +435,8 @@ namespace starpu {
             const uintptr_t& B = STARPU_VARIABLE_GET_PTR(buffers[1]);
 
             // call trmm
-            trmm(Layout::ColMajor, side, uplo, op, diag, m, n, (const TA*)A,
-                 lda, (TB*)B, ldb);
+            trmm(Layout::ColMajor, side, uplo, op, diag, m, n, alpha,
+                 (const TA*)A, lda, (TB*)B, ldb);
         }
 
         template <class TA, class TB, class alpha_t, int mode = 0>
@@ -366,6 +450,7 @@ namespace starpu {
             const Uplo& uplo = std::get<1>(cl_args);
             const Op& op = std::get<2>(cl_args);
             const Diag& diag = std::get<3>(cl_args);
+            const alpha_t& alpha = std::get<4>(cl_args);
 
             // get dimensions
             const idx_t& m = STARPU_MATRIX_GET_NX(buffers[1]);
@@ -378,8 +463,76 @@ namespace starpu {
             const uintptr_t& B = STARPU_VARIABLE_GET_PTR(buffers[1]);
 
             // call trsm
-            trsm(Layout::ColMajor, side, uplo, op, diag, m, n, (const TA*)A,
-                 lda, (TB*)B, ldb);
+            if constexpr (mode == 0)
+                trsm(Layout::ColMajor, side, uplo, op, diag, m, n, alpha,
+                     (const TA*)A, lda, (TB*)B, ldb);
+            else if constexpr (mode == 1) {
+                using T = scalar_type<TA, TB, alpha_t>;
+
+                const cublasSideMode_t side_ = cuda::side2cublas(side);
+                const cublasFillMode_t uplo_ = cuda::uplo2cublas(uplo);
+                const cublasOperation_t op_ = cuda::op2cublas(op);
+                const cublasDiagType_t diag_ = cuda::diag2cublas(diag);
+                const T alpha_ = (T)alpha;
+                cublasStatus_t status;
+
+                if constexpr (std::is_same_v<T, float>)
+                    status =
+                        cublasStrsm(starpu_cublas_get_local_handle(), side_,
+                                    uplo_, op_, diag_, m, n, &alpha_,
+                                    (const float*)A, lda, (float*)B, ldb);
+                else if constexpr (std::is_same_v<T, double>)
+                    status =
+                        cublasDtrsm(starpu_cublas_get_local_handle(), side_,
+                                    uplo_, op_, diag_, m, n, &alpha_,
+                                    (const double*)A, lda, (double*)B, ldb);
+                else if constexpr (std::is_same_v<real_type<T>, float>)
+                    status = cublasCtrsm(
+                        starpu_cublas_get_local_handle(), side_, uplo_, op_,
+                        diag_, m, n, (const cuFloatComplex*)&alpha_,
+                        (const cuFloatComplex*)A, lda, (cuFloatComplex*)B, ldb);
+                else if constexpr (std::is_same_v<real_type<T>, double>)
+                    status = cublasZtrsm(starpu_cublas_get_local_handle(),
+                                         side_, uplo_, op_, diag_, m, n,
+                                         (const cuDoubleComplex*)&alpha_,
+                                         (const cuDoubleComplex*)A, lda,
+                                         (cuDoubleComplex*)B, ldb);
+                else
+                    static_assert(sizeof(T) == 0,
+                                  "Type not supported in cuBLAS");
+
+                if (status != CUBLAS_STATUS_SUCCESS)
+                    STARPU_CUBLAS_REPORT_ERROR(status);
+            }
+            else
+                static_assert(mode == 0 || mode == 1, "Invalid mode");
+        }
+
+        template <class uplo_t, class T, int mode = 0>
+        constexpr void potf2(void** buffers, void* args)
+        {
+            using args_t = std::tuple<uplo_t>;
+
+            // get arguments
+            const args_t& cl_args = *(args_t*)args;
+            const uplo_t& uplo = std::get<0>(cl_args);
+
+            // get dimensions
+            const idx_t& n = STARPU_MATRIX_GET_NX(buffers[0]);
+            const idx_t& lda = STARPU_MATRIX_GET_LD(buffers[0]);
+
+            // get matrix
+            const uintptr_t& A = STARPU_VARIABLE_GET_PTR(buffers[0]);
+
+            // get info
+            int* info = (int*)STARPU_VARIABLE_GET_PTR(buffers[1]);
+
+            // call potf2
+            if constexpr (mode == 0) {
+                *info = potf2(uplo, n, (T*)A, lda);
+            }
+            else
+                static_assert(mode == 0, "Invalid mode");
         }
 
     }  // namespace func

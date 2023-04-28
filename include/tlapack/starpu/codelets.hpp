@@ -30,7 +30,7 @@ namespace starpu {
             constexpr bool use_cublas =
                 tlapack::cuda::is_cublas_v<TA, TB, TC, alpha_t, beta_t>;
 
-            cl.cpu_funcs[0] = func::gemm<TA, TB, TC, alpha_t, beta_t, 0>;
+            cl.cpu_funcs[0] = func::gemm<TA, TB, TC, alpha_t, beta_t>;
             if constexpr (use_cublas) {
                 cl.cuda_funcs[0] = func::gemm<TA, TB, TC, alpha_t, beta_t, 1>;
                 cl.cuda_flags[0] = STARPU_CUDA_ASYNC;
@@ -113,8 +113,14 @@ namespace starpu {
         constexpr struct starpu_codelet gen_cl_herk() noexcept
         {
             struct starpu_codelet cl = codelet_init();
+            constexpr bool use_cublas =
+                tlapack::cuda::is_cublas_v<TA, TC, alpha_t, beta_t>;
 
             cl.cpu_funcs[0] = func::herk<TA, TC, alpha_t, beta_t>;
+            if constexpr (use_cublas) {
+                cl.cuda_funcs[0] = func::herk<TA, TC, alpha_t, beta_t, 1>;
+                cl.cuda_flags[0] = STARPU_CUDA_ASYNC;
+            }
             cl.nbuffers = 2;
             cl.modes[0] = STARPU_R;
             cl.modes[1] = is_same_v<beta_t, StrongZero> ? STARPU_W : STARPU_RW;
@@ -123,6 +129,7 @@ namespace starpu {
             // The following lines are needed to make the codelet const
             // See _starpu_codelet_check_deprecated_fields() in StarPU:
             cl.where |= STARPU_CPU;
+            cl.where |= STARPU_CUDA;
             cl.checked = 1;
 
             return cl;
@@ -191,12 +198,38 @@ namespace starpu {
         constexpr struct starpu_codelet gen_cl_trsm() noexcept
         {
             struct starpu_codelet cl = codelet_init();
+            constexpr bool use_cublas =
+                tlapack::cuda::is_cublas_v<TA, TB, alpha_t>;
 
             cl.cpu_funcs[0] = func::trsm<TA, TB, alpha_t>;
+            if constexpr (use_cublas) {
+                cl.cuda_funcs[0] = func::trsm<TA, TB, alpha_t, 1>;
+                cl.cuda_flags[0] = STARPU_CUDA_ASYNC;
+            }
             cl.nbuffers = 2;
             cl.modes[0] = STARPU_R;
             cl.modes[1] = STARPU_RW;
             cl.name = "tlapack::starpu::trsm";
+
+            // The following lines are needed to make the codelet const
+            // See _starpu_codelet_check_deprecated_fields() in StarPU:
+            cl.where |= STARPU_CPU;
+            cl.where |= STARPU_CUDA;
+            cl.checked = 1;
+
+            return cl;
+        }
+
+        template <class uplo_t, class T>
+        constexpr struct starpu_codelet gen_cl_potf2() noexcept
+        {
+            struct starpu_codelet cl = codelet_init();
+
+            cl.cpu_funcs[0] = func::potf2<uplo_t,T>;
+            cl.nbuffers = 2;
+            cl.modes[0] = STARPU_RW;
+            cl.modes[1] = STARPU_W;
+            cl.name = "tlapack::starpu::potf2";
 
             // The following lines are needed to make the codelet const
             // See _starpu_codelet_check_deprecated_fields() in StarPU:
@@ -247,6 +280,10 @@ namespace starpu {
         template <class TA, class TB, class alpha_t>
         constexpr const struct starpu_codelet trsm =
             internal::gen_cl_trsm<TA, TB, alpha_t>();
+
+        template <class uplo_t, class T>
+        constexpr const struct starpu_codelet potf2 =
+            internal::gen_cl_potf2<uplo_t,T>();
 
     }  // namespace cl
 

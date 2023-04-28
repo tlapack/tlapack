@@ -15,7 +15,7 @@
 #include "tlapack/blas/gemm.hpp"
 #include "tlapack/blas/herk.hpp"
 #include "tlapack/blas/trsm.hpp"
-#include "tlapack/lapack/potrf2.hpp"
+#include "tlapack/lapack/potf2.hpp"
 
 namespace tlapack {
 
@@ -86,7 +86,7 @@ int potrf_blocked(uplo_t uplo,
 
     // Unblocked code
     else if (nb <= 1 || nb >= n)
-        return potrf2(uplo, A);
+        return potf2(uplo, A);
 
     // Blocked code
     else {
@@ -100,7 +100,7 @@ int potrf_blocked(uplo_t uplo,
 
                 herk(uplo, conjTranspose, -one, A1J, one, AJJ);
 
-                int info = potrf2(uplo, AJJ, noErrorCheck);
+                int info = potf2(uplo, AJJ);
                 if (info != 0) {
                     tlapack_error(
                         info + j,
@@ -132,7 +132,7 @@ int potrf_blocked(uplo_t uplo,
 
                 herk(uplo, noTranspose, -one, AJ1, one, AJJ);
 
-                int info = potrf2(uplo, AJJ, noErrorCheck);
+                int info = potf2(uplo, AJJ);
                 if (info != 0) {
                     tlapack_error(
                         info + j,

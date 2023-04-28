@@ -155,10 +155,11 @@ namespace starpu {
 
     namespace internal {
 
+        template <typename T>
+        struct data;
+
         template <class T>
         struct EntryAccess<T, true> {
-            struct data;
-
             // abstract interface
             virtual idx_t nrows() const noexcept = 0;
             virtual idx_t ncols() const noexcept = 0;
@@ -193,7 +194,7 @@ namespace starpu {
                 const starpu_data_handle_t root_handle =
                     A.get_tile_handle(i / mb, j / nb);
 
-                return T(data(root_handle, pos));
+                return T(data<T>(root_handle, pos));
             }
 
             /**
@@ -213,7 +214,6 @@ namespace starpu {
 
         template <class T>
         struct EntryAccess<T, false> : public EntryAccess<T, true> {
-            using data = EntryAccess<T, true>::data;
             using EntryAccess<T, true>::operator();
             using EntryAccess<T, true>::operator[];
 
@@ -235,7 +235,7 @@ namespace starpu {
              *
              * @return A reference to the element at position (i,j)
              */
-            constexpr data operator()(idx_t i, idx_t j) noexcept
+            constexpr data<T> operator()(idx_t i, idx_t j) noexcept
             {
                 assert((i >= 0 && i < nrows()) && "Row index out of bounds");
                 assert((j >= 0 && j < ncols()) && "Column index out of bounds");
@@ -247,7 +247,7 @@ namespace starpu {
                 const starpu_data_handle_t root_handle =
                     get_tile_handle(i / mb, j / nb);
 
-                return data(root_handle, pos);
+                return data<T>(root_handle, pos);
             }
 
             /**
@@ -257,7 +257,7 @@ namespace starpu {
              *
              * @return A reference to the element at position i
              */
-            constexpr data operator[](idx_t i) noexcept
+            constexpr data<T> operator[](idx_t i) noexcept
             {
                 assert((nrows() <= 1 || ncols() <= 1) &&
                        "Matrix is not a vector");
@@ -276,7 +276,7 @@ namespace starpu {
          * overhead due to the creation of StarPU tasks.
          */
         template <typename T>
-        struct EntryAccess<T, true>::data {
+        struct data {
             const starpu_data_handle_t root_handle;  ///< Matrix handle
             starpu_data_handle_t handle;             ///< Variable handle
             const idx_t pos[2];
@@ -295,9 +295,10 @@ namespace starpu {
                 starpu_data_partition_plan(root_handle, &f_var, &handle);
             }
 
-            // Disable copy and move constructors
+            // Disable copy and move constructors, and copy assignment
             data(data&&) = delete;
             data(const data&) = delete;
+            data& operator=(const data&) = delete;
 
             /// Destructor cleans StarPU partition plan
             ~data() noexcept
@@ -317,17 +318,13 @@ namespace starpu {
 
             // Arithmetic operators with assignment
 
-            constexpr data& operator=(const data& x) noexcept
+            constexpr data& operator=(data&& x) noexcept
             {
                 return operate_and_assign<Operation::Assign>(x);
             }
             constexpr data& operator=(const T& x) noexcept
             {
                 return operate_and_assign<Operation::Assign>(x);
-            }
-            constexpr data& operator=(data&& x) noexcept
-            {
-                return (*this = (const data&)x);
             }
 
             constexpr data& operator+=(const data& x) noexcept
@@ -846,7 +843,7 @@ namespace starpu {
                 for (idx_t i = 0; i < A.nrows(); ++i) {
                     for (idx_t j = 0; j < A.ncols(); ++j) {
                         const T number = A(i, j);
-                        if (!std::signbit(number)) out << " ";
+                        if (abs(number) == -number) out << " ";
                         out << number << " ";
                     }
                     out << "\n";
