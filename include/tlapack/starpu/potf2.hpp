@@ -11,7 +11,6 @@
 #define TLAPACK_STARPU_POTF2_HH
 
 #include "tlapack/base/types.hpp"
-#include "tlapack/lapack/potrf.hpp"
 #include "tlapack/starpu/Matrix.hpp"
 #include "tlapack/starpu/tasks.hpp"
 
@@ -26,17 +25,11 @@ int potf2(uplo_t uplo, starpu::Matrix<T>& A)
     const idx_t nx = A.get_nx();
     const idx_t ny = A.get_ny();
 
-    // Forward if not a tile
-    if (nx > 1 || ny > 1) {
-        potrf_opts_t<idx_t> opts;
-        opts.nb = A.nblockrows();
-        opts.variant = PotrfVariant::Blocked;
-        return potrf(uplo, A, std::forward<potrf_opts_t<idx_t>>(opts));
-    }
+    // check arguments
+    tlapack_check(nx <= 1 && ny <= 1);
+
     // Quick return
-    else if (nx < 1 || ny < 1) {
-        return 0;
-    }
+    if (nx < 1 || ny < 1) return 0;
 
     // Create info handle
     int info = 0;

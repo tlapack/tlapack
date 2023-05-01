@@ -11,74 +11,14 @@
 #ifndef TLAPACK_STARPU_BLAS_CPU_HH
 #define TLAPACK_STARPU_BLAS_CPU_HH
 
-#include <starpu.h>
 #include <starpu_cublas_v2.h>
 
-#include "tlapack/cuda/utils.hpp"
 #include "tlapack/legacy_api/blas.hpp"
 #include "tlapack/legacy_api/lapack/potf2.hpp"
+#include "tlapack/starpu/utils.hpp"
 
 namespace tlapack {
 namespace starpu {
-
-#ifdef STARPU_USE_CUDA
-    namespace cuda {
-
-        inline cublasOperation_t op2cublas(Op op)
-        {
-            switch (op) {
-                case Op::NoTrans:
-                    return CUBLAS_OP_N;
-                case Op::Trans:
-                    return CUBLAS_OP_T;
-                case Op::ConjTrans:
-                    return CUBLAS_OP_C;
-                case Op::Conj:
-                    return CUBLAS_OP_CONJG;
-                default:
-                    throw std::invalid_argument("Invalid value for Op");
-            }
-        }
-
-        inline cublasFillMode_t uplo2cublas(Uplo uplo)
-        {
-            switch (uplo) {
-                case Uplo::Upper:
-                    return CUBLAS_FILL_MODE_UPPER;
-                case Uplo::Lower:
-                    return CUBLAS_FILL_MODE_LOWER;
-                default:
-                    throw std::invalid_argument("Invalid value for Uplo");
-            }
-        }
-
-        inline cublasDiagType_t diag2cublas(Diag diag)
-        {
-            switch (diag) {
-                case Diag::NonUnit:
-                    return CUBLAS_DIAG_NON_UNIT;
-                case Diag::Unit:
-                    return CUBLAS_DIAG_UNIT;
-                default:
-                    throw std::invalid_argument("Invalid value for Diag");
-            }
-        }
-
-        inline cublasSideMode_t side2cublas(Side side)
-        {
-            switch (side) {
-                case Side::Left:
-                    return CUBLAS_SIDE_LEFT;
-                case Side::Right:
-                    return CUBLAS_SIDE_RIGHT;
-                default:
-                    throw std::invalid_argument("Invalid value for Side");
-            }
-        }
-
-    }  // namespace cuda
-#endif
-
     namespace func {
 
         // ---------------------------------------------------------------------
@@ -123,6 +63,7 @@ namespace starpu {
                      (const TA*)A, lda, (const TB*)B, ldb, (T)beta, (TC*)C,
                      ldc);
             }
+#ifdef STARPU_USE_CUDA
             else if constexpr (mode == 1) {
                 using T = scalar_type<TA, TB, TC, alpha_t, beta_t>;
 
@@ -163,6 +104,7 @@ namespace starpu {
                 if (status != CUBLAS_STATUS_SUCCESS)
                     STARPU_CUBLAS_REPORT_ERROR(status);
             }
+#endif
             else
                 static_assert(mode == 0 || mode == 1, "Invalid mode");
         }
@@ -297,6 +239,7 @@ namespace starpu {
                 herk(Layout::ColMajor, uplo, op, n, k, alpha, (const TA*)A, lda,
                      (real_t)beta, (TC*)C, ldc);
             }
+#ifdef STARPU_USE_CUDA
             else if constexpr (mode == 1) {
                 using T = scalar_type<TA, TC, alpha_t, beta_t>;
                 using real_t = real_type<T>;
@@ -333,6 +276,7 @@ namespace starpu {
                 if (status != CUBLAS_STATUS_SUCCESS)
                     STARPU_CUBLAS_REPORT_ERROR(status);
             }
+#endif
             else
                 static_assert(mode == 0 || mode == 1, "Invalid mode");
         }
@@ -466,6 +410,7 @@ namespace starpu {
             if constexpr (mode == 0)
                 trsm(Layout::ColMajor, side, uplo, op, diag, m, n, alpha,
                      (const TA*)A, lda, (TB*)B, ldb);
+#ifdef STARPU_USE_CUDA
             else if constexpr (mode == 1) {
                 using T = scalar_type<TA, TB, alpha_t>;
 
@@ -504,6 +449,7 @@ namespace starpu {
                 if (status != CUBLAS_STATUS_SUCCESS)
                     STARPU_CUBLAS_REPORT_ERROR(status);
             }
+#endif
             else
                 static_assert(mode == 0 || mode == 1, "Invalid mode");
         }

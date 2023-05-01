@@ -11,10 +11,8 @@
 #ifndef TLAPACK_STARPU_CODELETS_HH
 #define TLAPACK_STARPU_CODELETS_HH
 
-#include <starpu.h>
-
-#include "tlapack/cuda/utils.hpp"
 #include "tlapack/starpu/functions.hpp"
+#include "tlapack/starpu/utils.hpp"
 
 namespace tlapack {
 namespace starpu {
@@ -28,7 +26,7 @@ namespace starpu {
         {
             struct starpu_codelet cl = codelet_init();
             constexpr bool use_cublas =
-                tlapack::cuda::is_cublas_v<TA, TB, TC, alpha_t, beta_t>;
+                cuda::is_cublas_v<TA, TB, TC, alpha_t, beta_t>;
 
             cl.cpu_funcs[0] = func::gemm<TA, TB, TC, alpha_t, beta_t>;
             if constexpr (use_cublas) {
@@ -44,7 +42,7 @@ namespace starpu {
             // The following lines are needed to make the codelet const
             // See _starpu_codelet_check_deprecated_fields() in StarPU:
             cl.where |= STARPU_CPU;
-            cl.where |= STARPU_CUDA;
+            if constexpr (use_cublas) cl.where |= STARPU_CUDA;
             cl.checked = 1;
 
             return cl;
@@ -114,7 +112,7 @@ namespace starpu {
         {
             struct starpu_codelet cl = codelet_init();
             constexpr bool use_cublas =
-                tlapack::cuda::is_cublas_v<TA, TC, alpha_t, beta_t>;
+                cuda::is_cublas_v<TA, TC, alpha_t, beta_t>;
 
             cl.cpu_funcs[0] = func::herk<TA, TC, alpha_t, beta_t>;
             if constexpr (use_cublas) {
@@ -129,7 +127,7 @@ namespace starpu {
             // The following lines are needed to make the codelet const
             // See _starpu_codelet_check_deprecated_fields() in StarPU:
             cl.where |= STARPU_CPU;
-            cl.where |= STARPU_CUDA;
+            if constexpr (use_cublas) cl.where |= STARPU_CUDA;
             cl.checked = 1;
 
             return cl;
@@ -198,8 +196,7 @@ namespace starpu {
         constexpr struct starpu_codelet gen_cl_trsm() noexcept
         {
             struct starpu_codelet cl = codelet_init();
-            constexpr bool use_cublas =
-                tlapack::cuda::is_cublas_v<TA, TB, alpha_t>;
+            constexpr bool use_cublas = cuda::is_cublas_v<TA, TB, alpha_t>;
 
             cl.cpu_funcs[0] = func::trsm<TA, TB, alpha_t>;
             if constexpr (use_cublas) {
@@ -214,7 +211,7 @@ namespace starpu {
             // The following lines are needed to make the codelet const
             // See _starpu_codelet_check_deprecated_fields() in StarPU:
             cl.where |= STARPU_CPU;
-            cl.where |= STARPU_CUDA;
+            if constexpr (use_cublas) cl.where |= STARPU_CUDA;
             cl.checked = 1;
 
             return cl;

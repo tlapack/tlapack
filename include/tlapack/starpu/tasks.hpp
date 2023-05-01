@@ -11,8 +11,6 @@
 #ifndef TLAPACK_STARPU_TASKS_HH
 #define TLAPACK_STARPU_TASKS_HH
 
-#include <starpu.h>
-
 #include "tlapack/starpu/codelets.hpp"
 
 namespace tlapack {
