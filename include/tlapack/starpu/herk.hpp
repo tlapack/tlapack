@@ -61,13 +61,13 @@ void herk(Uplo uplo,
             // Update off-diagonal tiles of C
             auto Ai = A.get_const_tiles(ix, 0, 1, ny);
             auto Bi = A.get_const_tiles(ix + 1, 0, nx - ix - 1, ny);
-            if (uplo == Uplo::Lower) {
-                auto Ci = C.get_tiles(ix + 1, ix, nx - ix - 1, 1);
-                gemm(noTranspose, conjTranspose, alpha, Bi, Ai, beta, Ci);
-            }
-            else {
+            if (uplo == Uplo::Upper || uplo == Uplo::General) {
                 auto Ci = C.get_tiles(ix, ix + 1, 1, nx - ix - 1);
                 gemm(noTranspose, conjTranspose, alpha, Ai, Bi, beta, Ci);
+            }
+            if (uplo == Uplo::Lower || uplo == Uplo::General) {
+                auto Ci = C.get_tiles(ix + 1, ix, nx - ix - 1, 1);
+                gemm(noTranspose, conjTranspose, alpha, Bi, Ai, beta, Ci);
             }
         }
     }
@@ -86,13 +86,13 @@ void herk(Uplo uplo,
             // Update off-diagonal tiles of C
             auto Ai = A.get_const_tiles(0, ix, ny, 1);
             auto Bi = A.get_const_tiles(0, ix + 1, ny, nx - ix - 1);
-            if (uplo == Uplo::Lower) {
-                auto Ci = C.get_tiles(ix + 1, ix, nx - ix - 1, 1);
-                gemm(conjTranspose, noTranspose, alpha, Bi, Ai, beta, Ci);
-            }
-            else {
+            if (uplo == Uplo::Upper || uplo == Uplo::General) {
                 auto Ci = C.get_tiles(ix, ix + 1, 1, nx - ix - 1);
                 gemm(conjTranspose, noTranspose, alpha, Ai, Bi, beta, Ci);
+            }
+            if (uplo == Uplo::Lower || uplo == Uplo::General) {
+                auto Ci = C.get_tiles(ix + 1, ix, nx - ix - 1, 1);
+                gemm(conjTranspose, noTranspose, alpha, Bi, Ai, beta, Ci);
             }
         }
     }

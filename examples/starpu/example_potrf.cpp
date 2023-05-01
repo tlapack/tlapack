@@ -149,6 +149,9 @@ int main(int argc, char** argv)
     std::cout << "nx = " << nx << std::endl << std::endl;
 
     /* initialize StarPU */
+    setenv("STARPU_CODELET_PROFILING", "0", 1);
+    setenv("STARPU_SCHED", "dmdas", 1);
+    setenv("HWLOC_COMPONENTS", "-gl", 1);
     const int ret = starpu_init(NULL);
     if (ret == -ENODEV) return 77;
     STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
