@@ -26,6 +26,14 @@ namespace starpu {
         template <class... Ts>
         constexpr bool is_cublas_v = is_cublas<Ts..., int>::value;
 
+        template <class... Ts>
+        constexpr bool is_cusolver_v =
+#ifdef STARPU_HAVE_LIBCUSOLVER
+            is_cublas_v<Ts...>;
+#else
+            false;
+#endif
+
 #ifdef STARPU_USE_CUDA
         template <class T>
         struct is_cublas<

@@ -52,7 +52,9 @@ namespace tlapack {
  *
  * @ingroup computational
  */
-template <class uplo_t, class matrix_t>
+template <class uplo_t,
+          class matrix_t,
+          disable_if_allow_optblas_t<matrix_t> = 0>
 int potf2(uplo_t uplo, matrix_t& A)
 {
     using T = type_t<matrix_t>;
@@ -147,6 +149,22 @@ int potf2(uplo_t uplo, matrix_t& A)
 
     return 0;
 }
+
+#ifdef USE_LAPACKPP_WRAPPERS
+
+template <class uplo_t, class matrix_t, enable_if_allow_optblas_t<matrix_t> = 0>
+int potf2(uplo_t uplo, matrix_t& A)
+{
+    // Legacy objects
+    auto A_ = legacy_matrix(A);
+
+    // Constants to forward
+    const auto& n = A_.n;
+
+    return ::lapack::potf2((::blas::Uplo)(Uplo)uplo, n, A_.ptr, A_.ldim);
+}
+
+#endif
 
 }  // namespace tlapack
 

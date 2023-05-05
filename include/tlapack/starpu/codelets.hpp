@@ -217,20 +217,31 @@ namespace starpu {
             return cl;
         }
 
-        template <class uplo_t, class T>
-        constexpr struct starpu_codelet gen_cl_potf2() noexcept
+        template <class uplo_t, class T, bool has_info>
+        constexpr struct starpu_codelet gen_cl_potrf() noexcept
         {
             struct starpu_codelet cl = codelet_init();
+            constexpr bool use_cusolver = cuda::is_cusolver_v<T>;
 
-            cl.cpu_funcs[0] = func::potf2<uplo_t, T>;
-            cl.nbuffers = 2;
+            cl.cpu_funcs[0] = func::potrf<uplo_t, T, has_info>;
+            if constexpr (use_cusolver) {
+                cl.cuda_funcs[0] = func::potrf<uplo_t, T, has_info, 1>;
+                cl.cuda_flags[0] = STARPU_CUDA_ASYNC;
+                cl.nbuffers = 2 + (has_info ? 1 : 0);
+                cl.modes[1 + (has_info ? 1 : 0)] = starpu_data_access_mode(
+                    (int)STARPU_SCRATCH | (int)STARPU_NOFOOTPRINT);
+            }
+            else {
+                cl.nbuffers = 1 + (has_info ? 1 : 0);
+            }
             cl.modes[0] = STARPU_RW;
-            cl.modes[1] = STARPU_W;
-            cl.name = "tlapack::starpu::potf2";
+            if constexpr (has_info) cl.modes[1] = STARPU_W;
+            cl.name = "tlapack::starpu::potrf";
 
             // The following lines are needed to make the codelet const
             // See _starpu_codelet_check_deprecated_fields() in StarPU:
             cl.where |= STARPU_CPU;
+            if constexpr (use_cusolver) cl.where |= STARPU_CUDA;
             cl.checked = 1;
 
             return cl;
@@ -279,8 +290,12 @@ namespace starpu {
             internal::gen_cl_trsm<TA, TB, alpha_t>();
 
         template <class uplo_t, class T>
-        constexpr const struct starpu_codelet potf2 =
-            internal::gen_cl_potf2<uplo_t, T>();
+        constexpr const struct starpu_codelet potrf =
+            internal::gen_cl_potrf<uplo_t, T, true>();
+
+        template <class uplo_t, class T>
+        constexpr const struct starpu_codelet potrf_noinfo =
+            internal::gen_cl_potrf<uplo_t, T, false>();
 
     }  // namespace cl
 

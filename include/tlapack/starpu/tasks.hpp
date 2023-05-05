@@ -130,11 +130,15 @@ namespace starpu {
     }
 
     template <class uplo_t, class T>
-    void insert_task_potf2(uplo_t uplo,
+    void insert_task_potrf(uplo_t uplo,
                            starpu_data_handle_t A,
-                           starpu_data_handle_t info)
+                           starpu_data_handle_t info = nullptr)
     {
         using args_t = std::tuple<uplo_t>;
+        constexpr bool use_cusolver = cuda::is_cusolver_v<T>;
+
+        // constants
+        const bool has_info = (info != nullptr);
 
         // Allocate space for the task
         struct starpu_task* task = starpu_task_create();
@@ -146,17 +150,59 @@ namespace starpu {
         std::get<0>(*args_ptr) = uplo;
 
         // Initialize task
-        task->cl = (struct starpu_codelet*)&(cl::potf2<uplo_t, T>);
+        task->cl = (struct starpu_codelet*)&(
+            has_info ? cl::potrf<uplo_t, T> : cl::potrf_noinfo<uplo_t, T>);
         task->handles[0] = A;
-        task->handles[1] = info;
+        if (has_info) task->handles[1] = info;
         task->cl_arg = (void*)args_ptr;
         task->cl_arg_size = sizeof(args_t);
         task->callback_func = [](void* args) noexcept { delete (args_t*)args; };
         task->callback_arg = (void*)args_ptr;
 
+#ifdef STARPU_HAVE_LIBCUSOLVER
+        starpu_data_handle_t work = nullptr;
+        if constexpr (use_cusolver) {
+            const cublasFillMode_t uplo_ = cuda::uplo2cublas(uplo);
+            const int n = starpu_matrix_get_nx(A);
+
+            int lwork = 0;
+            if constexpr (std::is_same_v<T, float>) {
+                cusolverDnSpotrf_bufferSize(
+                    starpu_cusolverDn_get_local_handle(), uplo_, n, nullptr, n,
+                    &lwork);
+                lwork *= sizeof(float);
+            }
+            else if constexpr (std::is_same_v<T, double>) {
+                cusolverDnDpotrf_bufferSize(
+                    starpu_cusolverDn_get_local_handle(), uplo_, n, nullptr, n,
+                    &lwork);
+                lwork *= sizeof(double);
+            }
+            else if constexpr (std::is_same_v<real_type<T>, float>) {
+                cusolverDnCpotrf_bufferSize(
+                    starpu_cusolverDn_get_local_handle(), uplo_, n, nullptr, n,
+                    &lwork);
+                lwork *= sizeof(cuFloatComplex);
+            }
+            else if constexpr (std::is_same_v<real_type<T>, double>) {
+                cusolverDnZpotrf_bufferSize(
+                    starpu_cusolverDn_get_local_handle(), uplo_, n, nullptr, n,
+                    &lwork);
+                lwork *= sizeof(cuDoubleComplex);
+            }
+            else
+                static_assert(sizeof(T) == 0, "Type not supported in cuSolver");
+
+            starpu_variable_data_register(&work, -1, 0, lwork);
+            task->handles[(has_info ? 2 : 1)] = work;
+        }
+#endif
+
         // Submit task
         const int ret = starpu_task_submit(task);
         STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+
+        if constexpr (use_cusolver) starpu_data_unregister_submit(work);
     }
 
 }  // namespace starpu

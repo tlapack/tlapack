@@ -31,19 +31,11 @@ int potf2(uplo_t uplo, starpu::Matrix<T>& A)
     // Quick return
     if (nx < 1 || ny < 1) return 0;
 
-    // Create info handle
-    int info = 0;
-    starpu_data_handle_t info_handle;
-    starpu_variable_data_register(&info_handle, STARPU_MAIN_RAM,
-                                  (uintptr_t)&info, sizeof(int));
-
     // Insert task to factorize A
-    starpu::insert_task_potf2<uplo_t, T>(uplo, A.get_tile_handle(0, 0),
-                                         info_handle);
+    starpu::insert_task_potrf<uplo_t, T>(uplo, A.get_tile_handle(0, 0));
 
     // Return info
-    starpu_data_unregister(info_handle);
-    return info;
+    return 0;
 }
 
 }  // namespace tlapack

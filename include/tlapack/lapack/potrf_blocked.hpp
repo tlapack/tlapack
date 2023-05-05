@@ -63,7 +63,7 @@ struct potrf_opts_t;
 template <class uplo_t, class matrix_t>
 int potrf_blocked(uplo_t uplo,
                   matrix_t& A,
-                  const potrf_opts_t<size_type<matrix_t> >& opts = {})
+                  const potrf_opts_t<size_type<matrix_t> >& opts)
 {
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
@@ -164,6 +164,30 @@ int potrf_blocked(uplo_t uplo,
         return 0;
     }
 }
+
+template <class uplo_t,
+          class matrix_t,
+          disable_if_allow_optblas_t<matrix_t> = 0>
+inline int potrf_blocked(uplo_t uplo, matrix_t& A)
+{
+    return potrf_blocked(uplo, A, {});
+}
+
+#ifdef USE_LAPACKPP_WRAPPERS
+
+template <class uplo_t, class matrix_t, enable_if_allow_optblas_t<matrix_t> = 0>
+inline int potrf_blocked(uplo_t uplo, matrix_t& A)
+{
+    // Legacy objects
+    auto A_ = legacy_matrix(A);
+
+    // Constants to forward
+    const auto& n = A_.n;
+
+    return ::lapack::potrf((::blas::Uplo)(Uplo)uplo, n, A_.ptr, A_.ldim);
+}
+
+#endif
 
 }  // namespace tlapack
 

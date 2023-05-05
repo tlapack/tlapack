@@ -17,22 +17,27 @@ endif()
 # Load StarPU
 find_package(PkgConfig)
 pkg_check_modules(STARPU REQUIRED starpu-1.4)
-if (STARPU_FOUND)
-  include_directories (${STARPU_INCLUDE_DIRS})
-  link_directories (${STARPU_STATIC_LIBRARY_DIRS})
-  link_libraries (${STARPU_STATIC_LIBRARIES})
-else (STARPU_FOUND)
-  message(FATAL_ERROR "StarPU not found")
-endif()
 
 # add the example LU
 add_executable( example_starpu_lu example_lu.cpp )
-target_link_libraries( example_starpu_lu PRIVATE tlapack )
+target_include_directories( example_starpu_lu PRIVATE ${STARPU_INCLUDE_DIRS} )
+target_link_directories( example_starpu_lu PRIVATE ${STARPU_STATIC_LIBRARY_DIRS} )
+target_link_libraries( example_starpu_lu PRIVATE tlapack ${STARPU_STATIC_LIBRARIES} )
 
 # add the example GEMM
 add_executable( example_starpu_gemm example_gemm.cpp )
-target_link_libraries( example_starpu_gemm PRIVATE tlapack )
+target_include_directories( example_starpu_gemm PRIVATE ${STARPU_INCLUDE_DIRS} )
+target_link_directories( example_starpu_gemm PRIVATE ${STARPU_STATIC_LIBRARY_DIRS} )
+target_link_libraries( example_starpu_gemm PRIVATE tlapack ${STARPU_STATIC_LIBRARIES} )
 
 # add the example POTRF
 add_executable( example_starpu_potrf example_potrf.cpp )
-target_link_libraries( example_starpu_potrf PRIVATE tlapack )
+target_include_directories( example_starpu_potrf PRIVATE ${STARPU_INCLUDE_DIRS} )
+target_link_directories( example_starpu_potrf PRIVATE ${STARPU_STATIC_LIBRARY_DIRS} )
+target_link_libraries( example_starpu_potrf PRIVATE tlapack ${STARPU_STATIC_LIBRARIES} )
+
+# add the example using MKL time comparison
+find_package( LAPACK REQUIRED )
+add_executable( example_starpu_mkl compare_with_mkl.cpp )
+target_compile_definitions( example_starpu_mkl PRIVATE "USE_MKL" )
+target_link_libraries( example_starpu_mkl PRIVATE ${LAPACK_LIBRARIES} )

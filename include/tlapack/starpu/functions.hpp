@@ -12,9 +12,10 @@
 #define TLAPACK_STARPU_BLAS_CPU_HH
 
 #include <starpu_cublas_v2.h>
+#include <starpu_cusolver.h>
 
 #include "tlapack/legacy_api/blas.hpp"
-#include "tlapack/legacy_api/lapack/potf2.hpp"
+#include "tlapack/legacy_api/lapack/potrf.hpp"
 #include "tlapack/starpu/utils.hpp"
 
 namespace tlapack {
@@ -454,8 +455,8 @@ namespace starpu {
                 static_assert(mode == 0 || mode == 1, "Invalid mode");
         }
 
-        template <class uplo_t, class T, int mode = 0>
-        constexpr void potf2(void** buffers, void* args)
+        template <class uplo_t, class T, bool has_info, int mode = 0>
+        constexpr void potrf(void** buffers, void* args)
         {
             using args_t = std::tuple<uplo_t>;
 
@@ -471,18 +472,58 @@ namespace starpu {
             const uintptr_t& A = STARPU_VARIABLE_GET_PTR(buffers[0]);
 
             // get info
-            int* info = (int*)STARPU_VARIABLE_GET_PTR(buffers[1]);
+            int* info = (has_info) ? (int*)STARPU_VARIABLE_GET_PTR(buffers[1])
+                                   : (int*)nullptr;
 
-            // call potf2
+            // call potrf
             if constexpr (mode == 0) {
-                *info = potf2(uplo, n, (T*)A, lda);
+                if constexpr (has_info)
+                    *info = potrf(uplo, n, (T*)A, lda);
+                else
+                    potrf(uplo, n, (T*)A, lda);
             }
+#ifdef STARPU_HAVE_LIBCUSOLVER
+            if constexpr (mode == 1) {
+                const uintptr_t& w =
+                    STARPU_VARIABLE_GET_PTR(buffers[(has_info ? 2 : 1)]);
+                const size_t& lwork =
+                    STARPU_VARIABLE_GET_ELEMSIZE(buffers[(has_info ? 2 : 1)]);
+
+                const cublasFillMode_t uplo_ = cuda::uplo2cublas(uplo);
+                cusolverStatus_t status = CUSOLVER_STATUS_SUCCESS;
+
+                if constexpr (std::is_same_v<T, float>)
+                    status = cusolverDnSpotrf(
+                        starpu_cusolverDn_get_local_handle(), uplo_, n,
+                        (float*)A, lda, (float*)w, lwork / sizeof(float), info);
+                else if constexpr (std::is_same_v<T, double>)
+                    status =
+                        cusolverDnDpotrf(starpu_cusolverDn_get_local_handle(),
+                                         uplo_, n, (double*)A, lda, (double*)w,
+                                         lwork / sizeof(double), info);
+                else if constexpr (std::is_same_v<real_type<T>, float>)
+                    status = cusolverDnCpotrf(
+                        starpu_cusolverDn_get_local_handle(), uplo_, n,
+                        (cuFloatComplex*)A, lda, (cuFloatComplex*)w,
+                        lwork / sizeof(cuFloatComplex), info);
+                else if constexpr (std::is_same_v<real_type<T>, double>)
+                    status = cusolverDnZpotrf(
+                        starpu_cusolverDn_get_local_handle(), uplo_, n,
+                        (cuDoubleComplex*)A, lda, (cuDoubleComplex*)w,
+                        lwork / sizeof(cuDoubleComplex), info);
+                else
+                    static_assert(sizeof(T) == 0,
+                                  "Type not supported in cuSolver");
+
+                if (status != CUSOLVER_STATUS_SUCCESS)
+                    STARPU_CUBLAS_REPORT_ERROR(status);
+            }
+#endif
             else
                 static_assert(mode == 0, "Invalid mode");
         }
 
     }  // namespace func
-
 }  // namespace starpu
 }  // namespace tlapack
 
