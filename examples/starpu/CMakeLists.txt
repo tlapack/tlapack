@@ -36,8 +36,17 @@ target_include_directories( example_starpu_potrf PRIVATE ${STARPU_INCLUDE_DIRS} 
 target_link_directories( example_starpu_potrf PRIVATE ${STARPU_STATIC_LIBRARY_DIRS} )
 target_link_libraries( example_starpu_potrf PRIVATE tlapack ${STARPU_STATIC_LIBRARIES} )
 
-# add the example using MKL time comparison
+# Find LAPACK and test if LAPACK_LIBRARIES contains MKL
 find_package( LAPACK REQUIRED )
-add_executable( example_starpu_mkl compare_with_mkl.cpp )
-target_compile_definitions( example_starpu_mkl PRIVATE "USE_MKL" )
-target_link_libraries( example_starpu_mkl PRIVATE ${LAPACK_LIBRARIES} )
+list( FIND LAPACK_LIBRARIES "mkl" MKL_FOUND ) 
+
+# add the example using an optimized LAPACK library for comparison
+add_executable( example_starpu_lapack example_lapack.cpp )
+if( MKL_FOUND GREATER -1 )
+  target_compile_definitions( example_starpu_lapack PRIVATE "USE_MKL" )
+  target_link_libraries( example_starpu_lapack PRIVATE ${LAPACK_LIBRARIES} )
+else()
+  find_package( LAPACKE REQUIRED )
+  target_include_directories( example_starpu_lapack PRIVATE ${LAPACKE_INCLUDE_DIRS} )
+  target_link_libraries( example_starpu_lapack PRIVATE ${LAPACKE_LIBRARIES} )
+endif()

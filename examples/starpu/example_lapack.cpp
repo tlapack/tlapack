@@ -1,4 +1,4 @@
-/// @file examples/starpu/compare_with_mkl.cpp
+/// @file examples/starpu/example_lapack.cpp
 /// @author Weslley S Pereira, University of Colorado Denver, USA
 //
 // Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.

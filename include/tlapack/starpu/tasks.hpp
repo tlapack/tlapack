@@ -159,10 +159,11 @@ namespace starpu {
         task->callback_func = [](void* args) noexcept { delete (args_t*)args; };
         task->callback_arg = (void*)args_ptr;
 
-#ifdef STARPU_HAVE_LIBCUSOLVER
-        starpu_data_handle_t& work = task->handles[(has_info ? 2 : 1)];
-        int lwork = 0;
         if (use_cusolver && starpu_cuda_worker_get_count() > 0) {
+            starpu_data_handle_t& work = task->handles[(has_info ? 2 : 1)];
+            int lwork = 0;
+
+#ifdef STARPU_HAVE_LIBCUSOLVER
             const cublasFillMode_t uplo_ = cuda::uplo2cublas(uplo);
             const int n = starpu_matrix_get_nx(A);
 
@@ -192,17 +193,18 @@ namespace starpu {
             }
             else
                 static_assert(sizeof(T) == 0, "Type not supported in cuSolver");
-        }
-        starpu_variable_data_register(&work, -1, 0, lwork);
 #endif
+            starpu_variable_data_register(&work, -1, 0, lwork);
+        }
 
         // Submit task
         const int ret = starpu_task_submit(task);
         STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
-#ifdef STARPU_HAVE_LIBCUSOLVER
-        if constexpr (use_cusolver) starpu_data_unregister_submit(work);
-#endif
+        if constexpr (use_cusolver) {
+            starpu_data_handle_t& work = task->handles[(has_info ? 2 : 1)];
+            starpu_data_unregister_submit(work);
+        }
     }
 
 }  // namespace starpu
