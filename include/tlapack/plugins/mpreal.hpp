@@ -12,7 +12,7 @@
 
 #include <mpreal.h>
 
-#include <complex>
+#include "tlapack/base/types.hpp"
 
 namespace tlapack {
 
@@ -20,7 +20,7 @@ namespace tlapack {
 template <class T, class>
 struct is_arithmetic;
 template <typename T>
-T abs(const T& x);
+real_type<T> abs(const T& x);
 template <typename T>
 bool isnan(const std::complex<T>& x);
 template <typename T>

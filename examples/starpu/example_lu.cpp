@@ -25,14 +25,15 @@ int main(int argc, char** argv)
 {
     using namespace tlapack;
     using starpu::Matrix;
+    using starpu::idx_t;
     using T = float;
 
     srand(3);
 
-    size_t m = 14;
-    size_t n = 7;
-    size_t r = 14;
-    size_t s = 7;
+    idx_t m = 14;
+    idx_t n = 7;
+    idx_t r = 14;
+    idx_t s = 7;
     char method = '0';  // 'r' for recursive, '0' for level0
 
     if (argc > 1) m = atoi(argv[1]);
@@ -79,12 +80,12 @@ int main(int argc, char** argv)
     STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
     {
-        const size_t k = std::min(m, n);
+        const idx_t k = std::min(m, n);
 
         /* create matrix A with m-by-n tiles */
         T* A_;
         starpu_malloc((void**)&A_, m * n * sizeof(T));
-        for (size_t i = 0; i < m * n; i++) {
+        for (idx_t i = 0; i < m * n; i++) {
             A_[i] = T((float)rand() / RAND_MAX);
         }
         Matrix<T> A(A_, m, n);
@@ -116,9 +117,9 @@ int main(int argc, char** argv)
         std::cout << "Acopy = " << Acopy << std::endl;
 
         /* create permutation vector with k tiles */
-        size_t* p_;
-        starpu_malloc((void**)&p_, k * sizeof(size_t));
-        Matrix<size_t> p(p_, k, 1);
+        idx_t* p_;
+        starpu_malloc((void**)&p_, k * sizeof(idx_t));
+        Matrix<idx_t> p(p_, k, 1);
         p.create_grid(k, 1);
 
         /* LU factorization */
@@ -133,8 +134,8 @@ int main(int argc, char** argv)
         starpu_malloc((void**)&L_, m * k * sizeof(T));
         Matrix<T> L(L_, m, k);
         lacpy(lowerTriangle, Acopy, L);
-        for (size_t i = 0; i < k; ++i)
-            L(i, i) = 1;
+        for (idx_t i = 0; i < k; ++i)
+            L(i, i) = T(1);
         std::cout << "L = " << L << std::endl;
 
         /* Create and print matrix U */
@@ -146,24 +147,24 @@ int main(int argc, char** argv)
 
         /* print matrix L*U */
         if (m > n) {
-            for (size_t i = 0; i < m; ++i)
-                for (size_t j = i + 1; j < k; ++j)
-                    L(i, j) = 0;
+            for (idx_t i = 0; i < m; ++i)
+                for (idx_t j = i + 1; j < k; ++j)
+                    L(i, j) = T(0);
             trmm(right_side, upperTriangle, noTranspose, nonUnit_diagonal, 1, U,
                  L);
             lacpy(dense, L, Acopy);
         }
         else {
-            for (size_t i = 0; i < k; ++i)
-                for (size_t j = 0; j < i; ++j)
-                    U(i, j) = 0;
+            for (idx_t i = 0; i < k; ++i)
+                for (idx_t j = 0; j < i; ++j)
+                    U(i, j) = T(0);
             trmm(left_side, lowerTriangle, noTranspose, unit_diagonal, 1, L, U);
             lacpy(dense, U, Acopy);
         }
         std::cout << "L*U = " << Acopy << std::endl;
 
         /* Permute rows of A */
-        for (size_t i = 0; i < k; ++i) {
+        for (idx_t i = 0; i < k; ++i) {
             if (p[i] != i) {
                 auto Api = row(A, p[i]);
                 auto Ai = row(A, i);
@@ -172,8 +173,8 @@ int main(int argc, char** argv)
         }
 
         /* Verify the factorization is good */
-        for (size_t i = 0; i < A.nrows(); ++i) {
-            for (size_t j = 0; j < A.ncols(); j++) {
+        for (idx_t i = 0; i < A.nrows(); ++i) {
+            for (idx_t j = 0; j < A.ncols(); j++) {
                 A(i, j) -= Acopy(i, j);
             }
         }
@@ -183,7 +184,7 @@ int main(int argc, char** argv)
 
         starpu_free_noflag(L_, m * k * sizeof(T));
         starpu_free_noflag(U_, k * n * sizeof(T));
-        starpu_free_noflag(p_, k * sizeof(size_t));
+        starpu_free_noflag(p_, k * sizeof(idx_t));
         starpu_free_noflag(Acopy_, m * n * sizeof(T));
         starpu_free_noflag(A_, m * n * sizeof(T));
     }

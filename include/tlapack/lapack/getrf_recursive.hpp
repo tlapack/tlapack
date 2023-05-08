@@ -85,7 +85,7 @@ int getrf_recursive(matrix_t& A, vector_t& Piv)
     // one-row matrices
     if (m == 1) {
         // Piv has one element
-        Piv[0] = 0;
+        Piv[0] = idx_t(0);
         if (A(Piv[0], 0) == real_t(0)) {
             // in case which A(0,0) is zero, then we return 1 since in the first
             // iteration we stopped

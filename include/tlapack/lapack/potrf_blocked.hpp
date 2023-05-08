@@ -85,7 +85,7 @@ int potrf_blocked(uplo_t uplo,
     if (n <= 0) return 0;
 
     // Unblocked code
-    else if (nb <= 1 || nb >= n)
+    else if (nb >= n)
         return potf2(uplo, A);
 
     // Blocked code

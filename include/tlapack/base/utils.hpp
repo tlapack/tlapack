@@ -542,7 +542,7 @@ bool hasnan(const vector_t& x)
  * but it may not propagate NaNs.
  */
 template <typename T>
-T abs(const T& x);
+real_type<T> abs(const T& x);
 
 inline float abs(float x) { return std::fabs(x); }
 inline double abs(double x) { return std::fabs(x); }
@@ -559,14 +559,8 @@ inline T abs(const std::complex<T>& x)
 
 // -----------------------------------------------------------------------------
 /// 1-norm absolute value, |Re(x)| + |Im(x)|
-template <typename real_t>
-inline auto abs1(const real_t& x)
-{
-    return abs(x);
-}
-
-template <typename real_t>
-inline auto abs1(const std::complex<real_t>& x)
+template <typename T>
+real_type<T> abs1(const T& x)
 {
     return abs(real(x)) + abs(imag(x));
 }

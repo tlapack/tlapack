@@ -39,6 +39,26 @@ inline constexpr T conj(const starpu::internal::data<T>& x)
     return conj(T(x));
 }
 
+template <typename T>
+real_type<T> abs(const T& x);
+
+/// Absolute value
+template <class T>
+inline constexpr real_type<T> abs(const starpu::internal::data<T>& x)
+{
+    return tlapack::abs(T(x));
+}
+
+// for one complex type, strip complex
+template <typename T>
+struct real_type_traits<starpu::internal::data<T>> {
+    using type = typename std::decay<T>::type;
+};
+template <typename T>
+struct real_type_traits<const starpu::internal::data<T>> {
+    using type = typename std::decay<T>::type;
+};
+
 }  // namespace tlapack
 
 namespace tlapack {
