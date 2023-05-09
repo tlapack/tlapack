@@ -309,63 +309,6 @@ struct is_arithmetic<
 };
 
 // -----------------------------------------------------------------------------
-// Based on C++14 std::common_type implementation from
-// http://www.cplusplus.com/reference/type_traits/std::common_type/
-// Adds promotion of complex types based on the common type of the associated
-// real types. This fixes various cases:
-//
-// std::std::common_type_t< double, complex<float> > is complex<float>  (wrong)
-//        scalar_type< double, complex<float> > is complex<double> (right)
-//
-// std::std::common_type_t< int, complex<long> > is not defined (compile error)
-//        scalar_type< int, complex<long> > is complex<long> (right)
-
-// for zero types
-template <typename... Types>
-struct scalar_type_traits;
-
-/// define scalar_type<> type alias
-template <typename... Types>
-using scalar_type = typename scalar_type_traits<Types...>::type;
-
-// for one type
-template <typename T>
-struct scalar_type_traits<T> {
-    using type = typename std::decay<T>::type;
-};
-
-// for two types
-// relies on type of ?: operator being the common type of its two arguments
-template <typename T1, typename T2>
-struct scalar_type_traits<T1, T2> {
-    using type = typename std::decay<decltype(true ? std::declval<T1>()
-                                                   : std::declval<T2>())>::type;
-};
-
-// for either or both complex,
-// find common type of associated real types, then add complex
-template <typename T1, typename T2>
-struct scalar_type_traits<std::complex<T1>, T2> {
-    using type = std::complex<typename std::common_type<T1, T2>::type>;
-};
-
-template <typename T1, typename T2>
-struct scalar_type_traits<T1, std::complex<T2> > {
-    using type = std::complex<typename std::common_type<T1, T2>::type>;
-};
-
-template <typename T1, typename T2>
-struct scalar_type_traits<std::complex<T1>, std::complex<T2> > {
-    using type = std::complex<typename std::common_type<T1, T2>::type>;
-};
-
-// for three or more types
-template <typename T1, typename T2, typename... Types>
-struct scalar_type_traits<T1, T2, Types...> {
-    using type = scalar_type<scalar_type<T1, T2>, Types...>;
-};
-
-// -----------------------------------------------------------------------------
 // for any combination of types, determine associated real, scalar,
 // and complex types.
 //
@@ -391,13 +334,19 @@ using real_type = typename real_type_traits<Types..., int>::type;
 // for one arithmetic type
 template <typename T>
 struct real_type_traits<T, std::enable_if_t<is_arithmetic_v<T>, int>> {
-    using type = T;
+    using type = typename std::decay<T>::type;
 };
 
 // for one complex type, strip complex
 template <typename T>
 struct real_type_traits<std::complex<T>, int> {
-    using type = T;
+    using type = real_type<T>;
+};
+
+// for one StrongZero type, remain StrongZero
+template <>
+struct real_type_traits<internal::StrongZero, int> {
+    using type = internal::StrongZero;
 };
 
 // pointers and references don't have a real type
@@ -411,8 +360,9 @@ struct real_type_traits<
 // for two or more types
 template <typename T1, typename T2, typename... Types>
 struct real_type_traits<T1, T2, Types...> {
-    using type = scalar_type<typename real_type_traits<T1, int>::type,
-                             typename real_type_traits<T2, Types...>::type>;
+    using type =
+        std::common_type_t<typename real_type_traits<T1, int>::type,
+                           typename real_type_traits<T2, Types...>::type>;
 };
 
 // for zero types
@@ -421,24 +371,104 @@ struct complex_type_traits;
 
 /// define complex_type<> type alias
 template <typename... Types>
-using complex_type = typename complex_type_traits<Types...>::type;
+using complex_type = typename complex_type_traits<Types..., int>::type;
 
 // for one type
 template <typename T>
-struct complex_type_traits<T> {
-    using type = std::complex<T>;
+struct complex_type_traits<T, std::enable_if_t<is_arithmetic_v<T>, int>> {
+    using type = std::complex<real_type<T>>;
 };
 
 // for one complex type, strip complex
 template <typename T>
-struct complex_type_traits<std::complex<T> > {
-    using type = std::complex<T>;
+struct complex_type_traits<std::complex<T>, int> {
+    using type = std::complex<real_type<T>>;
+};
+
+// for one complex type, strip complex
+template <>
+struct complex_type_traits<internal::StrongZero, int> {
+    using type = internal::StrongZero;
+};
+
+// pointers and references don't have a complex type
+template <typename T>
+struct complex_type_traits<
+    T,
+    std::enable_if_t<std::is_pointer_v<T> || std::is_reference_v<T>, int>> {
+    using type = void;
 };
 
 // for two or more types
-template <typename T1, typename... Types>
-struct complex_type_traits<T1, Types...> {
-    using type = scalar_type<complex_type<T1>, complex_type<Types...> >;
+template <typename T1, typename T2, typename... Types>
+struct complex_type_traits<T1, T2, Types...> {
+    using type =
+        complex_type<typename real_type_traits<T1, T2, Types...>::type>;
+};
+
+/// True if T is complex_type<T>
+template <typename T>
+struct is_complex {
+    static constexpr bool value =
+        std::is_same_v<complex_type<T>, typename std::decay<T>::type>;
+};
+
+/// True if T is real_type<T>
+template <typename T>
+struct is_real {
+    static constexpr bool value =
+        std::is_same_v<real_type<T>, typename std::decay<T>::type>;
+};
+
+// -----------------------------------------------------------------------------
+// Based on C++14 std::common_type implementation from
+// http://www.cplusplus.com/reference/type_traits/std::common_type/
+// Adds promotion of complex types based on the common type of the associated
+// real types. This fixes various cases:
+//
+// std::std::common_type_t< double, complex<float> > is complex<float>  (wrong)
+//        scalar_type< double, complex<float> > is complex<double> (right)
+//
+// std::std::common_type_t< int, complex<long> > is not defined (compile error)
+//        scalar_type< int, complex<long> > is complex<long> (right)
+
+// for zero types
+template <typename... Types>
+struct scalar_type_traits;
+
+/// define scalar_type<> type alias
+template <typename... Types>
+using scalar_type = typename scalar_type_traits<Types..., int>::type;
+
+// for one type
+template <typename T>
+struct scalar_type_traits<T, int> : scalar_type_traits<T, T, int> {};
+
+// for two types, one is complex
+template <typename T1, typename T2>
+struct scalar_type_traits<
+    T1,
+    T2,
+    std::enable_if_t<is_complex<T1>::value || is_complex<T2>::value, int>> {
+    using type = complex_type<T1, T2>;
+};
+
+// for two types, neither is complex
+template <typename T1, typename T2>
+struct scalar_type_traits<
+    T1,
+    T2,
+    std::enable_if_t<!is_complex<T1>::value && !is_complex<T2>::value &&
+                         is_real<T1>::value && is_real<T2>::value,
+                     int>> {
+    using type = real_type<T1, T2>;
+};
+
+// for three or more types
+template <typename T1, typename T2, typename... Types>
+struct scalar_type_traits<T1, T2, Types...> {
+    using type =
+        typename scalar_type_traits<scalar_type<T1, T2>, Types...>::type;
 };
 
 namespace internal {

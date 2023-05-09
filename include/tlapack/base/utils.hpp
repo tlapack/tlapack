@@ -58,11 +58,6 @@ inline constexpr bool is_same_v = std::is_same<T, U>::value;
 #endif
 
 //------------------------------------------------------------------------------
-/// True if T is complex_type<T>
-template <typename T>
-struct is_complex {
-    static constexpr bool value = is_same_v<complex_type<T>, T>;
-};
 
 template <typename T, enable_if_t<!is_complex<T>::value, int> = 0>
 inline constexpr real_type<T> real(const T& x)

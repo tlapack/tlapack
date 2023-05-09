@@ -61,7 +61,7 @@ template <class matrixA_t,
           class beta_t,
           enable_if_t<(
                           /* Requires: */
-                          !is_complex<beta_t>::value),
+                          is_real<beta_t>::value),
                       int> = 0,
           class T = type_t<matrixC_t>,
           disable_if_allow_optblas_t<pair<matrixA_t, T>,
@@ -269,7 +269,7 @@ template <class matrixA_t,
           class beta_t,
           enable_if_t<(
                           /* Requires: */
-                          !is_complex<beta_t>::value),
+                          is_real<beta_t>::value),
                       int> = 0,
           class T = type_t<matrixC_t>,
           enable_if_allow_optblas_t<pair<matrixA_t, T>,

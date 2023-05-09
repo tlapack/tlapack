@@ -152,6 +152,16 @@ struct real_type_traits<legacyMatrix<T, idx_t, layout>, int> {
     using type = legacyMatrix<real_type<T>, idx_t, layout>;
 };
 
+template <class T, class idx_t, typename int_t, Direction D>
+struct complex_type_traits<legacyVector<T, idx_t, int_t, D>, int> {
+    using type = legacyVector<complex_type<T>, idx_t, int_t, D>;
+};
+
+template <typename T, class idx_t, Layout layout>
+struct complex_type_traits<legacyMatrix<T, idx_t, layout>, int> {
+    using type = legacyMatrix<complex_type<T>, idx_t, layout>;
+};
+
 // -----------------------------------------------------------------------------
 // Data descriptors
 
