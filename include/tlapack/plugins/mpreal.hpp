@@ -20,8 +20,6 @@ namespace tlapack {
 template <class T, class>
 struct is_arithmetic;
 template <typename T>
-real_type<T> abs(const T& x);
-template <typename T>
 bool isnan(const std::complex<T>& x);
 template <typename T>
 bool isinf(const std::complex<T>& x);
@@ -32,7 +30,6 @@ struct is_arithmetic<mpfr::mpreal, int> {
 };
 
 /// Absolute value
-template <>
 inline mpfr::mpreal abs(const mpfr::mpreal& x)
 {
     return mpfr::abs(x);

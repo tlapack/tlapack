@@ -12,6 +12,7 @@
 #ifndef TLAPACK_LAHQR_SCHUR22_HH
 #define TLAPACK_LAHQR_SCHUR22_HH
 
+#include "tlapack/base/constants.hpp"
 #include "tlapack/base/utils.hpp"
 #include "tlapack/lapack/lapy2.hpp"
 

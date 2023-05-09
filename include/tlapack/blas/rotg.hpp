@@ -11,6 +11,7 @@
 #ifndef TLAPACK_BLAS_ROTG_HH
 #define TLAPACK_BLAS_ROTG_HH
 
+#include "tlapack/base/constants.hpp"
 #include "tlapack/base/utils.hpp"
 
 namespace tlapack {

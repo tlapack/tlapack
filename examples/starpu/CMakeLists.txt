@@ -54,8 +54,8 @@ else()
   target_link_libraries( example_starpu_lapack PRIVATE ${LAPACKE_LIBRARIES} )
 endif()
 
-# # add the example Multishift QR
-# add_executable( example_starpu_multishiftqr example_multishiftqr.cpp )
-# target_include_directories( example_starpu_multishiftqr PRIVATE ${STARPU_INCLUDE_DIRS} )
-# target_link_directories( example_starpu_multishiftqr PRIVATE ${STARPU_STATIC_LIBRARY_DIRS} )
-# target_link_libraries( example_starpu_multishiftqr PRIVATE tlapack ${STARPU_STATIC_LIBRARIES} )
+# add the example Multishift QR
+add_executable( example_starpu_multishiftqr example_multishiftqr.cpp )
+target_include_directories( example_starpu_multishiftqr PRIVATE ${STARPU_INCLUDE_DIRS} )
+target_link_directories( example_starpu_multishiftqr PRIVATE ${STARPU_STATIC_LIBRARY_DIRS} )
+target_link_libraries( example_starpu_multishiftqr PRIVATE tlapack ${STARPU_STATIC_LIBRARIES} )

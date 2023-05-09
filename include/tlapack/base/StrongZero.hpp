@@ -125,19 +125,15 @@ struct complex_type_traits;
 
 // for either StrongZero, return the other type
 template <typename T>
-struct scalar_type_traits<StrongZero, T> {
-    using type = T;
-};
+struct scalar_type_traits<StrongZero, T, int> : scalar_type_traits<T, int> {};
 
 // for either StrongZero, return the other type
 template <typename T>
-struct scalar_type_traits<T, StrongZero> {
-    using type = T;
-};
+struct scalar_type_traits<T, StrongZero, int> : scalar_type_traits<T, int> {};
 
 // for both StrongZero, return int8_t
 template <>
-struct scalar_type_traits<StrongZero, StrongZero> {
+struct scalar_type_traits<StrongZero, StrongZero, int> {
     using type = int8_t;
 };
 

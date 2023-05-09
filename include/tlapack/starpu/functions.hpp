@@ -87,9 +87,10 @@ namespace starpu {
                 else if constexpr (std::is_same_v<real_type<T>, float>)
                     status = cublasCgemm(
                         starpu_cublas_get_local_handle(), opA, opB, m, n, k,
-                        (const cuComplex*)&alpha_, (const cuComplex*)A, lda,
-                        (const cuComplex*)B, ldb, (const cuComplex*)&beta_,
-                        (cuComplex*)C, ldc);
+                        (const cuFloatComplex*)&alpha_,
+                        (const cuFloatComplex*)A, lda, (const cuFloatComplex*)B,
+                        ldb, (const cuFloatComplex*)&beta_, (cuFloatComplex*)C,
+                        ldc);
                 else if constexpr (std::is_same_v<real_type<T>, double>)
                     status =
                         cublasZgemm(starpu_cublas_get_local_handle(), opA, opB,
@@ -261,10 +262,10 @@ namespace starpu {
                                     op_, n, k, &alpha_, (const double*)A, lda,
                                     &beta_, (double*)C, ldc);
                 else if constexpr (std::is_same_v<real_type<T>, float>)
-                    status =
-                        cublasCherk(starpu_cublas_get_local_handle(), uplo_,
-                                    op_, n, k, &alpha_, (const cuComplex*)A,
-                                    lda, &beta_, (cuComplex*)C, ldc);
+                    status = cublasCherk(starpu_cublas_get_local_handle(),
+                                         uplo_, op_, n, k, &alpha_,
+                                         (const cuFloatComplex*)A, lda, &beta_,
+                                         (cuFloatComplex*)C, ldc);
                 else if constexpr (std::is_same_v<real_type<T>, double>)
                     status = cublasZherk(starpu_cublas_get_local_handle(),
                                          uplo_, op_, n, k, &alpha_,

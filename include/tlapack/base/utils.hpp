@@ -534,15 +534,15 @@ bool hasnan(const vector_t& x)
 // -----------------------------------------------------------------------------
 // Absolute value
 
-/** 2-norm absolute value, sqrt( |Re(x)|^2 + |Im(x)|^2 )
- *
- * Note that std::abs< std::complex > does not overflow or underflow at
- * intermediate stages of the computation.
- * @see https://en.cppreference.com/w/cpp/numeric/complex/abs
- * but it may not propagate NaNs.
- */
-template <typename T>
-real_type<T> abs(const T& x);
+// /** 2-norm absolute value, sqrt( |Re(x)|^2 + |Im(x)|^2 )
+//  *
+//  * Note that std::abs< std::complex > does not overflow or underflow at
+//  * intermediate stages of the computation.
+//  * @see https://en.cppreference.com/w/cpp/numeric/complex/abs
+//  * but it may not propagate NaNs.
+//  */
+// template <typename T>
+// real_type<T> abs(const T& x);
 
 inline float abs(float x) { return std::fabs(x); }
 inline double abs(double x) { return std::fabs(x); }

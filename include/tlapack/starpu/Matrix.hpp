@@ -17,6 +17,15 @@
 #include <tuple>
 
 namespace tlapack {
+
+// for zero types
+template <typename... Types>
+struct real_type_traits;
+
+/// define real_type<> type alias
+template <typename... Types>
+using real_type = typename real_type_traits<Types...>::type;
+
 namespace starpu {
 
     using idx_t = uint32_t;
@@ -78,20 +87,20 @@ namespace starpu {
          * This function is used to perform data operations on Matrix<T>::data.
          * The interface is suitable for tasks that are submitted to StarPU.
          */
-        template <class T, internal::Operation op>
+        template <class T, class U, internal::Operation op>
         constexpr void data_op_data(void** buffers, void* args) noexcept
         {
             T* x = (T*)STARPU_VARIABLE_GET_PTR(buffers[0]);
             if constexpr (op == internal::Operation::Assign)
-                *x = *((T*)STARPU_VARIABLE_GET_PTR(buffers[1]));
+                *x = *((U*)STARPU_VARIABLE_GET_PTR(buffers[1]));
             else if constexpr (op == internal::Operation::Add)
-                *x += *((T*)STARPU_VARIABLE_GET_PTR(buffers[1]));
+                *x += *((U*)STARPU_VARIABLE_GET_PTR(buffers[1]));
             else if constexpr (op == internal::Operation::Subtract)
-                *x -= *((T*)STARPU_VARIABLE_GET_PTR(buffers[1]));
+                *x -= *((U*)STARPU_VARIABLE_GET_PTR(buffers[1]));
             else if constexpr (op == internal::Operation::Multiply)
-                *x *= *((T*)STARPU_VARIABLE_GET_PTR(buffers[1]));
+                *x *= *((U*)STARPU_VARIABLE_GET_PTR(buffers[1]));
             else if constexpr (op == internal::Operation::Divide)
-                *x /= *((T*)STARPU_VARIABLE_GET_PTR(buffers[1]));
+                *x /= *((U*)STARPU_VARIABLE_GET_PTR(buffers[1]));
         }
 
         /**
@@ -101,20 +110,20 @@ namespace starpu {
          * This function is used to perform data operations on Matrix<T>::data.
          * The interface is suitable for tasks that are submitted to StarPU.
          */
-        template <class T, internal::Operation op>
+        template <class T, class U, internal::Operation op>
         constexpr void data_op_value(void** buffers, void* args) noexcept
         {
             T* x = (T*)STARPU_VARIABLE_GET_PTR(buffers[0]);
             if constexpr (op == internal::Operation::Assign)
-                *x = *((T*)args);
+                *x = *((U*)args);
             else if constexpr (op == internal::Operation::Add)
-                *x += *((T*)args);
+                *x += *((U*)args);
             else if constexpr (op == internal::Operation::Subtract)
-                *x -= *((T*)args);
+                *x -= *((U*)args);
             else if constexpr (op == internal::Operation::Multiply)
-                *x *= *((T*)args);
+                *x *= *((U*)args);
             else if constexpr (op == internal::Operation::Divide)
-                *x /= *((T*)args);
+                *x /= *((U*)args);
         }
 
         template <class T, internal::Operation op>
@@ -316,56 +325,77 @@ namespace starpu {
                 return x;
             }
 
+            /// Implicit conversion to T
+            template <
+                class U,
+                std::enable_if_t<std::is_same_v<real_type<U>, T>, int> = 0>
+            constexpr operator data<U>() const noexcept
+            {
+                starpu_data_acquire(handle, STARPU_R);
+                const T x = *((T*)starpu_variable_get_local_ptr(handle));
+                starpu_data_release(handle);
+
+                return x;
+            }
+
             // Arithmetic operators with assignment
 
-            constexpr data& operator=(data&& x) noexcept
+            template <class U>
+            constexpr data& operator=(data<U>&& x) noexcept
             {
-                return operate_and_assign<Operation::Assign>(x);
+                return operate_and_assign<Operation::Assign, U>(x);
             }
             constexpr data& operator=(const T& x) noexcept
             {
-                return operate_and_assign<Operation::Assign>(x);
+                return operate_and_assign<Operation::Assign, T>(x);
             }
 
-            constexpr data& operator+=(const data& x) noexcept
+            template <class U>
+            constexpr data& operator+=(const data<U>& x) noexcept
             {
-                return operate_and_assign<Operation::Add>(x);
+                return operate_and_assign<Operation::Add, U>(x);
             }
             constexpr data& operator+=(const T& x) noexcept
             {
-                return operate_and_assign<Operation::Add>(x);
+                return operate_and_assign<Operation::Add, T>(x);
             }
 
-            constexpr data& operator-=(const data& x) noexcept
+            template <class U>
+            constexpr data& operator-=(const data<U>& x) noexcept
             {
-                return operate_and_assign<Operation::Subtract>(x);
+                return operate_and_assign<Operation::Subtract, U>(x);
             }
             constexpr data& operator-=(const T& x) noexcept
             {
-                return operate_and_assign<Operation::Subtract>(x);
+                return operate_and_assign<Operation::Subtract, T>(x);
             }
 
-            constexpr data& operator*=(const data& x) noexcept
+            template <class U>
+            constexpr data& operator*=(const data<U>& x) noexcept
             {
-                return operate_and_assign<Operation::Multiply>(x);
+                return operate_and_assign<Operation::Multiply, U>(x);
             }
             constexpr data& operator*=(const T& x) noexcept
             {
-                return operate_and_assign<Operation::Multiply>(x);
+                return operate_and_assign<Operation::Multiply, T>(x);
             }
 
-            constexpr data& operator/=(const data& x) noexcept
+            template <class U>
+            constexpr data& operator/=(const data<U>& x) noexcept
             {
-                return operate_and_assign<Operation::Divide>(x);
+                return operate_and_assign<Operation::Divide, U>(x);
             }
             constexpr data& operator/=(const T& x) noexcept
             {
-                return operate_and_assign<Operation::Divide>(x);
+                return operate_and_assign<Operation::Divide, T>(x);
             }
 
             // Other math functions
 
-            constexpr friend T abs(const data& x) noexcept { return abs(T(x)); }
+            constexpr friend real_type<T> abs(const data& x) noexcept
+            {
+                return abs(T(x));
+            }
             constexpr friend T sqrt(const data& x) noexcept
             {
                 return sqrt(T(x));
@@ -383,12 +413,12 @@ namespace starpu {
             /// @brief Generates a StarPU codelet for a given operation with a
             /// value
             /// @tparam op Operation to perform
-            template <Operation op>
+            template <Operation op, class U>
             static constexpr struct starpu_codelet gen_cl_op_value() noexcept
             {
                 struct starpu_codelet cl = codelet_init();
 
-                cl.cpu_funcs[0] = cpu::data_op_value<T, op>;
+                cl.cpu_funcs[0] = cpu::data_op_value<T, U, op>;
                 cl.nbuffers = 1;
                 cl.modes[0] = (op == Operation::Assign) ? STARPU_W : STARPU_RW;
                 cl.name = (op == Operation::Assign)
@@ -412,21 +442,27 @@ namespace starpu {
             }
 
             static constexpr const struct starpu_codelet cl_op_value[] = {
-                gen_cl_op_value<Operation::Assign>(),
-                gen_cl_op_value<Operation::Add>(),
-                gen_cl_op_value<Operation::Subtract>(),
-                gen_cl_op_value<Operation::Multiply>(),
-                gen_cl_op_value<Operation::Divide>()};
+                gen_cl_op_value<Operation::Assign, T>(),
+                gen_cl_op_value<Operation::Add, T>(),
+                gen_cl_op_value<Operation::Subtract, T>(),
+                gen_cl_op_value<Operation::Multiply, T>(),
+                gen_cl_op_value<Operation::Divide, T>()};
+            static constexpr const struct starpu_codelet cl_op_rvalue[] = {
+                gen_cl_op_value<Operation::Assign, real_type<T>>(),
+                gen_cl_op_value<Operation::Add, real_type<T>>(),
+                gen_cl_op_value<Operation::Subtract, real_type<T>>(),
+                gen_cl_op_value<Operation::Multiply, real_type<T>>(),
+                gen_cl_op_value<Operation::Divide, real_type<T>>()};
 
             /// @brief Generates a StarPU codelet for a given operation with
             /// another variable
             /// @tparam op Operation to perform
-            template <Operation op>
+            template <Operation op, class U>
             static constexpr struct starpu_codelet gen_cl_op_data() noexcept
             {
                 struct starpu_codelet cl = codelet_init();
 
-                cl.cpu_funcs[0] = cpu::data_op_data<T, op>;
+                cl.cpu_funcs[0] = cpu::data_op_data<T, U, op>;
                 cl.nbuffers = 2;
                 cl.modes[0] = (op == Operation::Assign) ? STARPU_W : STARPU_RW;
                 cl.modes[1] = STARPU_R;
@@ -451,11 +487,17 @@ namespace starpu {
             }
 
             static constexpr const struct starpu_codelet cl_op_data[] = {
-                gen_cl_op_data<Operation::Assign>(),
-                gen_cl_op_data<Operation::Add>(),
-                gen_cl_op_data<Operation::Subtract>(),
-                gen_cl_op_data<Operation::Multiply>(),
-                gen_cl_op_data<Operation::Divide>()};
+                gen_cl_op_data<Operation::Assign, T>(),
+                gen_cl_op_data<Operation::Add, T>(),
+                gen_cl_op_data<Operation::Subtract, T>(),
+                gen_cl_op_data<Operation::Multiply, T>(),
+                gen_cl_op_data<Operation::Divide, T>()};
+            static constexpr const struct starpu_codelet cl_op_rdata[] = {
+                gen_cl_op_data<Operation::Assign, real_type<T>>(),
+                gen_cl_op_data<Operation::Add, real_type<T>>(),
+                gen_cl_op_data<Operation::Subtract, real_type<T>>(),
+                gen_cl_op_data<Operation::Multiply, real_type<T>>(),
+                gen_cl_op_data<Operation::Divide, real_type<T>>()};
 
             /// @brief Generates a StarPU codelet for a given operation  with
             /// entries of a matrix
@@ -504,8 +546,12 @@ namespace starpu {
              * @param x   Second operand
              * @return constexpr data&  Reference to the result
              */
-            template <Operation op>
-            data& operate_and_assign(const data& x)
+            template <Operation op,
+                      class U,
+                      std::enable_if_t<(std::is_same_v<U, T> ||
+                                        std::is_same_v<U, real_type<T>>),
+                                       int> = 0>
+            data& operate_and_assign(const data<U>& x)
             {
                 // Allocate space for the task
                 struct starpu_task* task = starpu_task_create();
@@ -539,7 +585,9 @@ namespace starpu {
                 }
                 else {
                     // Initialize task
-                    task->cl = (struct starpu_codelet*)&(cl_op_data[int(op)]);
+                    task->cl = (struct starpu_codelet*)&(
+                        std::is_same_v<U, T> ? cl_op_data[int(op)]
+                                             : cl_op_rdata[int(op)]);
                     task->handles[0] = this->handle;
                     task->handles[1] = x.handle;
                 }
@@ -560,7 +608,11 @@ namespace starpu {
              * @param x   Second operand
              * @return constexpr data&  Reference to the result
              */
-            template <Operation op>
+            template <Operation op,
+                      class U,
+                      std::enable_if_t<(std::is_same_v<U, T> ||
+                                        std::is_same_v<U, real_type<T>>),
+                                       int> = 0>
             data& operate_and_assign(const T& x)
             {
                 // Allocate space for the value and initialize it
@@ -568,7 +620,9 @@ namespace starpu {
 
                 // Create and initialize task
                 struct starpu_task* task = starpu_task_create();
-                task->cl = (struct starpu_codelet*)&(cl_op_value[int(op)]);
+                task->cl = (struct starpu_codelet*)&(
+                    std::is_same_v<U, T> ? cl_op_value[int(op)]
+                                         : cl_op_rvalue[int(op)]);
                 task->handles[0] = this->handle;
                 task->cl_arg = (void*)x_ptr;
                 task->cl_arg_size = sizeof(T);
@@ -584,6 +638,157 @@ namespace starpu {
                 return *this;
             }
         };
+
+        // Arithmetic operators with data on the right
+
+        template <class lhs_t,
+                  class rhs_t,
+                  std::enable_if_t<
+                      (std::is_same_v<lhs_t, rhs_t>) ||
+                          (std::is_same_v<real_type<lhs_t>, real_type<rhs_t>>),
+                      int> = 0>
+        constexpr auto operator+(const data<lhs_t>& x, const rhs_t& y) noexcept
+        {
+            using T = scalar_type<lhs_t, rhs_t>;
+            return T(x) + T(y);
+        }
+
+        template <class lhs_t,
+                  class rhs_t,
+                  std::enable_if_t<
+                      (std::is_same_v<lhs_t, rhs_t>) ||
+                          (std::is_same_v<real_type<lhs_t>, real_type<rhs_t>>),
+                      int> = 0>
+        constexpr auto operator+(const lhs_t& x, const data<rhs_t>& y) noexcept
+        {
+            using T = scalar_type<lhs_t, rhs_t>;
+            return T(x) + T(y);
+        }
+
+        template <class lhs_t,
+                  class rhs_t,
+                  std::enable_if_t<
+                      (std::is_same_v<lhs_t, rhs_t>) ||
+                          (std::is_same_v<real_type<lhs_t>, real_type<rhs_t>>),
+                      int> = 0>
+        constexpr auto operator+(const data<lhs_t>& x,
+                                 const data<rhs_t>& y) noexcept
+        {
+            using T = scalar_type<lhs_t, rhs_t>;
+            return T(x) + T(y);
+        }
+
+        template <class lhs_t,
+                  class rhs_t,
+                  std::enable_if_t<
+                      (std::is_same_v<lhs_t, rhs_t>) ||
+                          (std::is_same_v<real_type<lhs_t>, real_type<rhs_t>>),
+                      int> = 0>
+        constexpr auto operator-(const data<lhs_t>& x, const rhs_t& y) noexcept
+        {
+            using T = scalar_type<lhs_t, rhs_t>;
+            return T(x) - T(y);
+        }
+
+        template <class lhs_t,
+                  class rhs_t,
+                  std::enable_if_t<
+                      (std::is_same_v<lhs_t, rhs_t>) ||
+                          (std::is_same_v<real_type<lhs_t>, real_type<rhs_t>>),
+                      int> = 0>
+        constexpr auto operator-(const lhs_t& x, const data<rhs_t>& y) noexcept
+        {
+            using T = scalar_type<lhs_t, rhs_t>;
+            return T(x) - T(y);
+        }
+
+        template <class lhs_t,
+                  class rhs_t,
+                  std::enable_if_t<
+                      (std::is_same_v<lhs_t, rhs_t>) ||
+                          (std::is_same_v<real_type<lhs_t>, real_type<rhs_t>>),
+                      int> = 0>
+        constexpr auto operator-(const data<lhs_t>& x,
+                                 const data<rhs_t>& y) noexcept
+        {
+            using T = scalar_type<lhs_t, rhs_t>;
+            return T(x) - T(y);
+        }
+
+        template <class lhs_t,
+                  class rhs_t,
+                  std::enable_if_t<
+                      (std::is_same_v<lhs_t, rhs_t>) ||
+                          (std::is_same_v<real_type<lhs_t>, real_type<rhs_t>>),
+                      int> = 0>
+        constexpr auto operator*(const data<lhs_t>& x, const rhs_t& y) noexcept
+        {
+            using T = scalar_type<lhs_t, rhs_t>;
+            return T(x) * T(y);
+        }
+
+        template <class lhs_t,
+                  class rhs_t,
+                  std::enable_if_t<
+                      (std::is_same_v<lhs_t, rhs_t>) ||
+                          (std::is_same_v<real_type<lhs_t>, real_type<rhs_t>>),
+                      int> = 0>
+        constexpr auto operator*(const lhs_t& x, const data<rhs_t>& y) noexcept
+        {
+            using T = scalar_type<lhs_t, rhs_t>;
+            return T(x) * T(y);
+        }
+
+        template <class lhs_t,
+                  class rhs_t,
+                  std::enable_if_t<
+                      (std::is_same_v<lhs_t, rhs_t>) ||
+                          (std::is_same_v<real_type<lhs_t>, real_type<rhs_t>>),
+                      int> = 0>
+        constexpr auto operator*(const data<lhs_t>& x,
+                                 const data<rhs_t>& y) noexcept
+        {
+            using T = scalar_type<lhs_t, rhs_t>;
+            return T(x) * T(y);
+        }
+
+        template <class lhs_t,
+                  class rhs_t,
+                  std::enable_if_t<
+                      (std::is_same_v<lhs_t, rhs_t>) ||
+                          (std::is_same_v<real_type<lhs_t>, real_type<rhs_t>>),
+                      int> = 0>
+        constexpr auto operator/(const data<lhs_t>& x, const rhs_t& y) noexcept
+        {
+            using T = scalar_type<lhs_t, rhs_t>;
+            return T(x) / T(y);
+        }
+
+        template <class lhs_t,
+                  class rhs_t,
+                  std::enable_if_t<
+                      (std::is_same_v<lhs_t, rhs_t>) ||
+                          (std::is_same_v<real_type<lhs_t>, real_type<rhs_t>>),
+                      int> = 0>
+        constexpr auto operator/(const lhs_t& x, const data<rhs_t>& y) noexcept
+        {
+            using T = scalar_type<lhs_t, rhs_t>;
+            return T(x) / T(y);
+        }
+
+        template <class lhs_t,
+                  class rhs_t,
+                  std::enable_if_t<
+                      (std::is_same_v<lhs_t, rhs_t>) ||
+                          (std::is_same_v<real_type<lhs_t>, real_type<rhs_t>>),
+                      int> = 0>
+
+        constexpr auto operator/(const data<lhs_t>& x,
+                                 const data<rhs_t>& y) noexcept
+        {
+            using T = scalar_type<lhs_t, rhs_t>;
+            return T(x) / T(y);
+        }
 
     }  // namespace internal
 

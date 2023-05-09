@@ -40,7 +40,7 @@ inline constexpr T conj(const starpu::internal::data<T>& x)
 }
 
 template <typename T>
-real_type<T> abs(const T& x);
+T abs(const std::complex<T>& x);
 
 /// Absolute value
 template <class T>
@@ -52,11 +52,11 @@ inline constexpr real_type<T> abs(const starpu::internal::data<T>& x)
 // for one complex type, strip complex
 template <typename T>
 struct real_type_traits<starpu::internal::data<T>> {
-    using type = typename std::decay<T>::type;
+    using type = real_type<T>;
 };
 template <typename T>
 struct real_type_traits<const starpu::internal::data<T>> {
-    using type = typename std::decay<T>::type;
+    using type = real_type<T>;
 };
 
 }  // namespace tlapack
@@ -259,6 +259,83 @@ constexpr auto rows(starpu::Matrix<T>& A, SliceSpec&& rows)
     return slice(A, std::forward<SliceSpec>(rows),
                  std::make_tuple(0, A.ncols()));
 }
+
+namespace internal {
+
+    template <class TA, class TB>
+    struct matrix_type_traits<starpu::Matrix<TA>, starpu::Matrix<TB>, int> {
+        using T = scalar_type<TA, TB>;
+        using type = starpu::Matrix<T>;
+    };
+
+    template <class TA, class TB>
+    struct vector_type_traits<starpu::Matrix<TA>, starpu::Matrix<TB>, int> {
+        using T = scalar_type<TA, TB>;
+        using type = starpu::Matrix<T>;
+    };
+
+    /// Create legacyMatrix @see Create
+    template <class T>
+    struct CreateImpl<starpu::Matrix<T>, int> {
+        using matrix_t = starpu::Matrix<T>;
+
+        inline constexpr auto operator()(std::vector<T>& v,
+                                         starpu::idx_t m,
+                                         starpu::idx_t n = 1) const
+        {
+            assert(m >= 0 && n >= 0);
+            v.resize(m * n);  // Allocates space in memory
+            starpu_memory_pin((void*)v.data(), m * n * sizeof(T));
+            matrix_t W(v.data(), m, n);
+            W.create_grid(m, n);
+            return W;
+        }
+
+        inline constexpr auto operator()(const Workspace& W,
+                                         starpu::idx_t m,
+                                         starpu::idx_t n,
+                                         Workspace& rW) const
+        {
+            assert(m >= 0 && n >= 0);
+            rW = W.extract(m * sizeof(T), n);
+            return (W.isContiguous())
+                       ? matrix_t((T*)W.data(), m, n)
+                       : matrix_t((T*)W.data(), m, n, W.getLdim() / sizeof(T));
+        }
+
+        inline constexpr auto operator()(const Workspace& W,
+                                         starpu::idx_t m,
+                                         starpu::idx_t n) const
+        {
+            assert(m >= 0 && n >= 0);
+            tlapack_check(W.contains(m * sizeof(T), n));
+            return (W.isContiguous())
+                       ? matrix_t((T*)W.data(), m, n)
+                       : matrix_t((T*)W.data(), m, n, W.getLdim() / sizeof(T));
+        }
+
+        inline constexpr auto operator()(const Workspace& W,
+                                         starpu::idx_t m,
+                                         Workspace& rW) const
+        {
+            assert(m >= 0);
+            rW = W.extract(sizeof(T), m);
+            return (W.isContiguous())
+                       ? matrix_t((T*)W.data(), m, 1)
+                       : matrix_t((T*)W.data(), 1, m, W.getLdim() / sizeof(T));
+        }
+
+        inline constexpr auto operator()(const Workspace& W,
+                                         starpu::idx_t m) const
+        {
+            assert(m >= 0);
+            tlapack_check(W.contains(sizeof(T), m));
+            return (W.isContiguous())
+                       ? matrix_t((T*)W.data(), m, 1)
+                       : matrix_t((T*)W.data(), m, W.getLdim() / sizeof(T));
+        }
+    };
+}  // namespace internal
 
 }  // namespace tlapack
 
