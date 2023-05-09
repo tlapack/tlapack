@@ -52,20 +52,19 @@ namespace tlapack {
  *
  * @ingroup blas3
  */
-template <
-    class matrixA_t,
-    class matrixC_t,
-    class alpha_t,
-    class beta_t,
-    enable_if_t<(
-                    /* Requires: */
-                    is_real<alpha_t>::value && !is_complex<beta_t>::value),
-                int> = 0,
-    class T = type_t<matrixC_t>,
-    disable_if_allow_optblas_t<pair<matrixA_t, T>,
-                               pair<matrixC_t, T>,
-                               pair<alpha_t, real_type<T> >,
-                               pair<beta_t, real_type<T> > > = 0>
+template <class matrixA_t,
+          class matrixC_t,
+          class alpha_t,
+          class beta_t,
+          enable_if_t<(
+                          /* Requires: */
+                          is_real<alpha_t>::value && is_real<beta_t>::value),
+                      int> = 0,
+          class T = type_t<matrixC_t>,
+          disable_if_allow_optblas_t<pair<matrixA_t, T>,
+                                     pair<matrixC_t, T>,
+                                     pair<alpha_t, real_type<T> >,
+                                     pair<beta_t, real_type<T> > > = 0>
 void herk(Uplo uplo,
           Op trans,
           const alpha_t& alpha,
@@ -207,7 +206,7 @@ template <class matrixA_t,
           class alpha_t,
           enable_if_t<(
                           /* Requires: */
-                          !is_complex<alpha_t>::value),
+                          is_real<alpha_t>::value),
                       int> = 0,
           class T = type_t<matrixC_t>,
           disable_if_allow_optblas_t<pair<matrixA_t, T>,

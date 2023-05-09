@@ -46,7 +46,6 @@ TEMPLATE_TEST_CASE("bidiagonal reduction is backward stable",
     Create<matrix_t> new_matrix;
 
     const real_t zero(0);
-    const real_t one(1);
 
     idx_t m, n;
 

@@ -166,7 +166,6 @@ int ungbr_q(const size_type<matrix_t> k,
     const real_t zero(0);
     const real_t one(1);
     const idx_t m = nrows(A);
-    const idx_t n = ncols(A);
 
     ungqr_opts_t<matrix_t> ungqrOpts;
     ungqrOpts.nb = opts.nb;
@@ -244,7 +243,6 @@ int ungbr_p(const size_type<matrix_t> k,
     // constants
     const real_t zero(0);
     const real_t one(1);
-    const idx_t m = nrows(A);
     const idx_t n = ncols(A);
 
     unglq_opts_t<matrix_t> unglqOpts;
