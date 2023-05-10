@@ -116,32 +116,52 @@ struct StrongZero {
 };
 
 // forward declarations
-template <typename... Types>
-struct scalar_type_traits;
-template <typename... Types>
-struct real_type_traits;
-template <typename... Types>
-struct complex_type_traits;
-
-// for either StrongZero, return the other type
 template <typename T>
-struct scalar_type_traits<StrongZero, T, int> : scalar_type_traits<T, int> {};
+struct is_complex;
 
-// for either StrongZero, return the other type
-template <typename T>
-struct scalar_type_traits<T, StrongZero, int> : scalar_type_traits<T, int> {};
-
-// for both StrongZero, return int8_t
 template <>
-struct scalar_type_traits<StrongZero, StrongZero, int> {
-    using type = int8_t;
+struct is_complex<StrongZero> {
+    static constexpr bool value = false;
 };
 
-// for one StrongZero, real type is int8_t
-template <>
-struct real_type_traits<StrongZero> {
-    using type = int8_t;
-};
+namespace internal {
+
+    // forward declarations
+    template <typename... Types>
+    struct real_type_traits;
+    template <typename... Types>
+    struct complex_type_traits;
+
+    // for either StrongZero, return the other type
+    template <typename T>
+    struct real_type_traits<StrongZero, T, int> : real_type_traits<T, int> {};
+
+    // for either StrongZero, return the other type
+    template <typename T>
+    struct real_type_traits<T, StrongZero, int> : real_type_traits<T, int> {};
+
+    // for one StrongZero type, remain StrongZero
+    template <>
+    struct real_type_traits<StrongZero, int> {
+        using type = StrongZero;
+    };
+
+    // for either StrongZero, return the other type
+    template <typename T>
+    struct complex_type_traits<StrongZero, T, int>
+        : complex_type_traits<T, int> {};
+
+    // for either StrongZero, return the other type
+    template <typename T>
+    struct complex_type_traits<T, StrongZero, int>
+        : complex_type_traits<T, int> {};
+
+    // for one complex type, strip complex
+    template <>
+    struct complex_type_traits<StrongZero, int> {
+        using type = StrongZero;
+    };
+}  // namespace internal
 
 }  // namespace tlapack
 

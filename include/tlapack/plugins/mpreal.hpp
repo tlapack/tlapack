@@ -20,9 +20,7 @@ namespace tlapack {
 template <class T, class>
 struct is_arithmetic;
 template <typename T>
-bool isnan(const std::complex<T>& x);
-template <typename T>
-bool isinf(const std::complex<T>& x);
+inline T abs(const T& x);
 
 template <>
 struct is_arithmetic<mpfr::mpreal, int> {
@@ -30,28 +28,10 @@ struct is_arithmetic<mpfr::mpreal, int> {
 };
 
 /// Absolute value
+template <>
 inline mpfr::mpreal abs(const mpfr::mpreal& x)
 {
     return mpfr::abs(x);
-}
-
-/// 2-norm absolute value, sqrt( |Re(x)|^2 + |Im(x)|^2 )
-///
-/// Note that std::abs< std::complex > does not overflow or underflow at
-/// intermediate stages of the computation.
-/// @see https://en.cppreference.com/w/cpp/numeric/complex/abs
-/// but it may not propagate NaNs.
-///
-/// Also, std::abs< mpfr::mpreal > may not propagate Infs.
-///
-inline mpfr::mpreal abs(const std::complex<mpfr::mpreal>& x)
-{
-    if (isnan(x))
-        return std::numeric_limits<mpfr::mpreal>::quiet_NaN();
-    else if (isinf(x))
-        return std::numeric_limits<mpfr::mpreal>::infinity();
-    else
-        return std::abs(x);
 }
 
 // Argument-dependent lookup (ADL) will include the remaining functions,

@@ -16,11 +16,12 @@
 
 namespace tlapack {
 
-template <class real_t, std::enable_if_t<!is_complex<real_t>::value, int> = 0>
+// Forward declarations
+template <class real_t, std::enable_if_t<is_real<real_t>::value, int> = 0>
 constexpr real_t real(const real_t&);
-template <class real_t, std::enable_if_t<!is_complex<real_t>::value, int> = 0>
+template <class real_t, std::enable_if_t<is_real<real_t>::value, int> = 0>
 constexpr real_t imag(const real_t&);
-template <class real_t, std::enable_if_t<!is_complex<real_t>::value, int> = 0>
+template <class real_t, std::enable_if_t<is_real<real_t>::value, int> = 0>
 constexpr real_t conj(const real_t&);
 
 template <class T>
@@ -28,36 +29,35 @@ inline constexpr real_type<T> real(const starpu::internal::data<T>& x)
 {
     return real(T(x));
 }
+
 template <class T>
 inline constexpr real_type<T> imag(const starpu::internal::data<T>& x)
 {
     return imag(T(x));
 }
+
 template <class T>
 inline constexpr T conj(const starpu::internal::data<T>& x)
 {
     return conj(T(x));
 }
 
-template <typename T>
-T abs(const std::complex<T>& x);
-
-/// Absolute value
 template <class T>
 inline constexpr real_type<T> abs(const starpu::internal::data<T>& x)
 {
-    return tlapack::abs(T(x));
+    return abs(x);
 }
 
-// for one complex type, strip complex
-template <typename T>
-struct real_type_traits<starpu::internal::data<T>> {
-    using type = real_type<T>;
-};
-template <typename T>
-struct real_type_traits<const starpu::internal::data<T>> {
-    using type = real_type<T>;
-};
+namespace internal {
+    template <typename T>
+    struct real_type_traits<starpu::internal::data<T>, int> {
+        using type = real_type<T>;
+    };
+    template <typename T>
+    struct complex_type_traits<starpu::internal::data<T>, int> {
+        using type = complex_type<T>;
+    };
+}  // namespace internal
 
 }  // namespace tlapack
 

@@ -415,6 +415,7 @@ struct is_arithmetic {
 template <class T>
 inline constexpr bool is_arithmetic_v = is_arithmetic<T, int>::value;
 
+// specialization for standard arithmetic types
 template <class T>
 struct is_arithmetic<
     T,
@@ -490,20 +491,21 @@ namespace internal {
 
     // for one arithmetic type
     template <typename T>
-    struct real_type_traits<T, std::enable_if_t<is_arithmetic_v<T>, int>> {
+    struct real_type_traits<
+        T,
+        std::enable_if_t<is_arithmetic_v<T> && !std::is_const_v<T>, int>> {
         using type = typename std::decay<T>::type;
+    };
+
+    template <typename T>
+    struct real_type_traits<const T, int> {
+        using type = real_type<T>;
     };
 
     // for one complex type, strip complex
     template <typename T>
     struct real_type_traits<std::complex<T>, int> {
         using type = real_type<T>;
-    };
-
-    // for one StrongZero type, remain StrongZero
-    template <>
-    struct real_type_traits<internal::StrongZero, int> {
-        using type = internal::StrongZero;
     };
 
     // pointers and references don't have a real type
@@ -522,22 +524,23 @@ namespace internal {
                                typename real_type_traits<T2, Types...>::type>;
     };
 
-    // for one type
+    // for one arithmetic type
     template <typename T>
-    struct complex_type_traits<T, std::enable_if_t<is_arithmetic_v<T>, int>> {
+    struct complex_type_traits<
+        T,
+        std::enable_if_t<is_arithmetic_v<T> && !std::is_const_v<T>, int>> {
         using type = std::complex<real_type<T>>;
+    };
+
+    template <typename T>
+    struct complex_type_traits<const T, int> {
+        using type = complex_type<T>;
     };
 
     // for one complex type, strip complex
     template <typename T>
     struct complex_type_traits<std::complex<T>, int> {
         using type = std::complex<real_type<T>>;
-    };
-
-    // for one complex type, strip complex
-    template <>
-    struct complex_type_traits<internal::StrongZero, int> {
-        using type = internal::StrongZero;
     };
 
     // pointers and references don't have a complex type
@@ -573,9 +576,7 @@ namespace internal {
     struct scalar_type_traits<
         T1,
         T2,
-        std::enable_if_t<!is_complex<T1>::value && !is_complex<T2>::value &&
-                             is_real<T1>::value && is_real<T2>::value,
-                         int>> {
+        std::enable_if_t<is_real<T1>::value && is_real<T2>::value, int>> {
         using type = real_type<T1, T2>;
     };
 

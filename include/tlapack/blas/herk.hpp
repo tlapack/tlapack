@@ -264,8 +264,6 @@ inline void herk(
     return herk(uplo, trans, alpha, A, StrongZero(), C);
 }
 
-#endif
-
 }  // namespace tlapack
 
 #endif  //  #ifndef TLAPACK_BLAS_HERK_HH

@@ -18,13 +18,15 @@
 
 namespace tlapack {
 
-// for zero types
-template <typename... Types>
-struct real_type_traits;
+namespace internal {
+    // for zero types
+    template <typename... Types>
+    struct real_type_traits;
+}  // namespace internal
 
 /// define real_type<> type alias
 template <typename... Types>
-using real_type = typename real_type_traits<Types...>::type;
+using real_type = typename internal::real_type_traits<Types..., int>::type;
 
 namespace starpu {
 

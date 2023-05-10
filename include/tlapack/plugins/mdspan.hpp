@@ -359,7 +359,6 @@ template <class ET,
 inline constexpr auto diag(const std::experimental::mdspan<ET, Exts, LP, AP>& A,
                            int diagIdx = 0)
 {
-    using std::abs;
     using std::array;
     using std::min;
     using std::experimental::layout_stride;
