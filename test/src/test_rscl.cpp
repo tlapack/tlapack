@@ -83,7 +83,7 @@ TEMPLATE_TEST_CASE("reciprocal scaling works on limit cases",
         const real_t four = real_t(4);
         const real_t zero = real_t(0);
         const real_t thirty = real_t(30);
-        const real_t oneOverThiry = real_t(1) / real_t(30);
+        const real_t oneOverThirty = real_t(1) / real_t(30);
 
         const std::vector<T> alpha_vec = {
             // Close to Max
@@ -105,41 +105,35 @@ TEMPLATE_TEST_CASE("reciprocal scaling works on limit cases",
             // Close to 30
             T(thirty, four * eps), T(thirty, thirty), T(four * eps, thirty),
             // Close to 1/30
-            T(oneOverThiry, four * eps), T(oneOverThiry, oneOverThiry),
-            T(four * eps, oneOverThiry),
+            T(oneOverThirty, four * eps), T(oneOverThirty, oneOverThirty),
+            T(four * eps, oneOverThirty),
             // Close to eps
             T(eps, four * eps * eps), T(eps, eps), T(four * eps * eps, eps),
             // Close to safeMin
             T(safeMin, safeMin * four * eps), T(safeMin, safeMin),
             T(safeMin * four * eps, safeMin),
             // Close to safeMin/2
-            T(half * safeMin, half * safeMin * four * eps),
+            T(half * safeMin, (two * safeMin) * eps),
             T(half * safeMin, half * safeMin),
-            T(half * safeMin * four * eps, half * safeMin),
+            T((two * safeMin) * eps, half * safeMin),
             // Close to min
             T(m, m * four * eps), T(m, m), T(m * four * eps, m),
             // Close to min/2
-            T(half * m, two * m * eps), T(half * m, half * m),
-            T(two * m * eps, half * m),
+            T(half * m, (two * m) * eps), T(half * m, half * m),
+            T((two * m) * eps, half * m),
             // Close to denormMin
-            T(denormMin, denormMin * four * eps), T(denormMin, denormMin),
-            T(denormMin * four * eps, denormMin),
+            T(denormMin, zero), T(denormMin, denormMin), T(zero, denormMin),
             // Inf
             T(Inf, Inf), T(Inf, zero), T(Inf, one), T(zero, Inf), T(one, Inf),
             T(NaN, NaN), T(NaN, zero), T(NaN, one), T(zero, NaN), T(one, NaN),
             T(Inf, NaN), T(NaN, Inf)};
 
-        // std::cout << "alpha = " << std::endl;
-        // for (T alpha : alpha_vec) {
-        //     std::cout << "  " << alpha << std::endl;
-        // }
-
         for (T alpha : alpha_vec) {
             for (size_t k = 0; k < 2; ++k) {
-                // alpha = T(real_t(2.028241e+31), real_t(-4.253530e+37));
+                const trustT alpha_ = trustT(real(alpha), imag(alpha));
                 const std::vector<T> v = alpha_vec;
-                const std::vector<T> v_ref = [v, alpha] {
-                    const trustT alpha_ = trustT(real(alpha), imag(alpha));
+
+                const std::vector<T> v_ref = [v, alpha_] {
                     std::vector<T> v_ref(v.size());
                     for (size_t i = 0; i < v.size(); ++i) {
                         const trustT vi_ =
@@ -148,6 +142,7 @@ TEMPLATE_TEST_CASE("reciprocal scaling works on limit cases",
                     }
                     return v_ref;
                 }();
+
                 const std::vector<T> v_naive = [v, alpha] {
                     std::vector<T> v_naive(v.size());
                     for (size_t i = 0; i < v.size(); ++i) {
@@ -169,38 +164,54 @@ TEMPLATE_TEST_CASE("reciprocal scaling works on limit cases",
                         if (!isnan(v_scal[i])) break;
                     }
                     else if (isnan(alpha) || isnan(v[i])) {
-                        // If alpha is NaN, then v_scal[i] must be NaN.
+                        // If alpha or v[i] are NaN, then v_scal[i] must be NaN.
                         if (!isnan(v_scal[i])) break;
                     }
-                    else if (isnan(v_scal[i])) {
-                        // If v_scal[i] is NaN and alpha and v[i] aren't, then
-                        // there must be a Inf or NaN in v_ref[i] or an Inf in
-                        // alpha.
-                        if (!isinf(v_ref[i]) && !isnan(v_ref[i]) &&
-                            !isinf(alpha))
+                    else if (isnan(v_scal[i]) && !isnan(v_ref[i])) {
+                        // If v_scal[i] is NaN and v_ref[i] isn't, then
+                        // (1/alpha) * v[i] must be a NaN. Moreover, v_ref[i]
+                        // must be an Inf.
+                        const T invAlpha = [one, alpha_]() {
+                            trustT aux = ladiv(trustT(one), alpha_);
+                            return T((real_t)real(aux), (real_t)imag(aux));
+                        }();
+                        if (!(isinf(v_ref[i]) && isnan(invAlpha * v[i]))) break;
+                    }
+                    else if (isinf(v_scal[i]) && !isinf(v_ref[i])) {
+                        // If v_scal[i] is Inf and v_ref[i] isn't, then v_ref[i]
+                        // must be a NaN. This is an exceptional case where
+                        // either the real or imaginary part of alpha is zero
+                        // and v[i] is infinite.
+                        if (!(isnan(v_ref[i]) &&
+                              (real(alpha) == zero || imag(alpha) == zero) &&
+                              isinf(v[i])))
                             break;
                     }
 
                     if (isnan(v_ref[i]) || isinf(v_ref[i])) {
-                        // If v_ref[i] is NaN or Inf, then v_scal[i] must be a
-                        // NaN or Inf as well.
-                        if (!isinf(v_scal[i]) && !isnan(v_scal[i]) &&
-                            !isinf(alpha))
-                            break;
+                        // If v_ref[i] is NaN or Inf, then v_scal[i] must
+                        // be a NaN or Inf as well.
+                        if (!isinf(v_scal[i]) && !isnan(v_scal[i])) break;
                     }
                     else {
-                        const real_t tol = eps * tlapack::abs(v_ref[i]);
+                        const real_t rel_bnd = eps * tlapack::abs(v_ref[i]);
                         const real_t err = tlapack::abs(v_scal[i] - v_ref[i]);
                         const real_t err_naive =
                             tlapack::abs(v_naive[i] - v_ref[i]);
 
-                        if (tol > zero || err_naive > zero) {
-                            // If either tol or err_naive are greater than zero,
-                            // then we can use them to determine if the error is
-                            // acceptable.
-                            if ((tol > zero && err >= tol) &&
-                                (err_naive > zero && err > err_naive))
-                                break;
+                        if (rel_bnd > zero || err_naive > zero) {
+                            // If either the relative bound or err_naive is
+                            // greater than zero, we use both of them to
+                            // determine if the error is acceptable.
+                            if (rel_bnd == zero) {
+                                if (err > err_naive) break;
+                            }
+                            else if (err_naive == zero) {
+                                if (err > rel_bnd) break;
+                            }
+                            else {
+                                if (err > rel_bnd && err > err_naive) break;
+                            }
                         }
                         else {
                             // If both tol and err_naive are zero, then we can
@@ -212,7 +223,7 @@ TEMPLATE_TEST_CASE("reciprocal scaling works on limit cases",
                 }
 
                 if (i != v.size()) {
-                    const real_t tol = eps * tlapack::abs(v_ref[i]);
+                    const real_t rel_bnd = eps * tlapack::abs(v_ref[i]);
                     const real_t err = tlapack::abs(v_scal[i] - v_ref[i]);
                     const real_t err_naive =
                         tlapack::abs(v_naive[i] - v_ref[i]);
@@ -224,7 +235,7 @@ TEMPLATE_TEST_CASE("reciprocal scaling works on limit cases",
                     UNSCOPED_INFO("Error: " << std::scientific << err);
                     UNSCOPED_INFO("Error from naive approach: "
                                   << std::scientific << err_naive);
-                    UNSCOPED_INFO("tol: " << std::scientific << tol);
+                    UNSCOPED_INFO("rel_bnd: " << std::scientific << rel_bnd);
                 }
 
                 CHECK(i == v.size());
@@ -235,30 +246,3 @@ TEMPLATE_TEST_CASE("reciprocal scaling works on limit cases",
         }
     }
 }
-
-// TEST_CASE("test std::complex", "[std::complex]")
-// {
-//     const double inf = std::numeric_limits<double>::infinity();
-//     const double nan = std::numeric_limits<double>::quiet_NaN();
-
-//     std::complex<double> a(1.797693e+308, 2.220446e-16);
-//     std::complex<double> b(nan, inf);
-//     UNSCOPED_INFO("a = " << a);
-//     UNSCOPED_INFO("b = " << b);
-//     UNSCOPED_INFO("a / b = " << a / b);
-//     CHECK(isnan(a / b));
-
-//     a = std::complex<double>(inf, 0);
-//     b = std::complex<double>(4.940656e-324, 0);
-//     UNSCOPED_INFO("a = " << a);
-//     UNSCOPED_INFO("b = " << b);
-//     UNSCOPED_INFO("a / b = " << a / b);
-//     CHECK(!isnan(a / b));
-
-//     a = std::complex<double>(inf, 0);
-//     b = std::complex<double>(4.940656e-324, 0);
-//     UNSCOPED_INFO("a = " << a);
-//     UNSCOPED_INFO("b = " << b);
-//     UNSCOPED_INFO("a / b = " << a / b);
-//     CHECK(!isnan(ladiv(a, b)));
-// }

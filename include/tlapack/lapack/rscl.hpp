@@ -33,8 +33,8 @@ void rscl(const alpha_t& alpha, vector_t& x)
         scal(safeMax / alpha, x);
     }
     else if (r < safeMin) {
-        scal(safeMax, x);
         scal(safeMin / alpha, x);
+        scal(safeMax, x);
     }
     else
         scal(real_t(1) / alpha, x);
@@ -48,14 +48,21 @@ void rscl(const alpha_t& alpha, vector_t& x)
  * not overflow or underflow.
  *
  * If alpha is complex, then we use the following algorithm:
- * 1. If the real part of alpha is zero, then we scale by the reciprocal of
- * the imaginary part of alpha.
- * 2. If not, see if either real or imaginary part is greater than safeMax. If
- * so, do proper scaling.
- * 3. If not, we can compute the reciprocal of real and imaginary parts of
- * 1/alpha without NaNs. If both components are in the safe range, then we can
- * do the reciprocal without overflow or underflow. Otherwise, we scale by the
- * safe range.
+ * 1. If the real part of alpha is zero, then scale by the reciprocal of the
+ * imaginary part of alpha.
+ * 2. If either real or imaginary part is greater than or equal to safeMax. If
+ * so, do proper scaling using a reliable algorithm for complex division.
+ * 3. If 1 and 2 are false, we can compute the reciprocal of real and imaginary
+ * parts of 1/alpha without NaNs. If both components are in the safe range, then
+ * we can do the reciprocal without overflow or underflow. Otherwise, we do
+ * proper scaling.
+ *
+ * @note For complex alpha, it is important to always scale first by the
+ * smallest factor. This avoids an early overflow that may lead to a NaN.
+ * For example, if alpha = 5.877472e-39 + 2.802597e-45 * I and v[i] = 30 + 30 *
+ * I in single precision, we want to scale v[i] first by (safeMin / alpha) and
+ * after that scale the result by safeMax. Doing it the other way around will
+ * possibly lead to a (Inf - Inf) which should be tagged as a NaN.
  *
  * @param[in] alpha Scalar.
  * @param[in,out] x A n-element vector.
@@ -69,7 +76,6 @@ void rscl(const alpha_t& alpha, vector_t& x)
 {
     using real_t = real_type<alpha_t>;
 
-    const real_t huge = std::numeric_limits<real_t>::max();
     const real_t safeMax = safe_max<real_t>();
     const real_t safeMin = safe_min<real_t>();
     const real_t zero(0);
@@ -94,31 +100,33 @@ void rscl(const alpha_t& alpha, vector_t& x)
             scal(alpha_t(zero, -safeMax / alphaI), x);
         }
         else if (absI < safeMin) {
-            scal(safeMax, x);
             scal(alpha_t(zero, -safeMin / alphaI), x);
+            scal(safeMax, x);
         }
         else
             scal(alpha_t(zero, -one / alphaI), x);
     }
 
-    else if (absR > safeMax || absI > safeMax) {
+    else if (absR >= safeMax || absI >= safeMax) {
         // Either real or imaginary part is too large.
+        const alpha_t invAlpha = ladiv(alpha_t(safeMax), alpha);
         scal(safeMin, x);
-        scal(ladiv(alpha_t(safeMax), alpha), x);
+        scal(invAlpha, x);
     }
 
     else {
         // The following numbers can be computed without NaNs and zeros.
+        // They do not overflow simultaneously.
         // They are the inverse of the real and imaginary parts of 1/alpha.
         const real_t a = alphaR + alphaI * (alphaI / alphaR);
         const real_t b = alphaI + alphaR * (alphaR / alphaI);
 
         if (abs(a) < safeMin || abs(b) < safeMin) {
             const alpha_t invAlpha(safeMin / a, -safeMin / b);
-            scal(safeMax, x);
             scal(invAlpha, x);
+            scal(safeMax, x);
         }
-        else if (abs(a) > huge) {
+        else if (isinf(a)) {
             const real_t aScaled =
                 (absR >= absI) ? (safeMin * alphaR) +
                                      alphaI * (safeMin * (alphaI / alphaR))
@@ -128,7 +136,7 @@ void rscl(const alpha_t& alpha, vector_t& x)
             scal(safeMin, x);
             scal(invAlpha, x);
         }
-        else if (abs(b) > huge) {
+        else if (isinf(b)) {
             const real_t bScaled =
                 (absI >= absR) ? (safeMin * alphaI) +
                                      alphaR * (safeMin * (alphaR / alphaI))
