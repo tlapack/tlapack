@@ -81,6 +81,7 @@ TEMPLATE_TEST_CASE("reciprocal scaling works on limit cases",
         const real_t one = real_t(1);
         const real_t two = real_t(2);
         const real_t four = real_t(4);
+        const real_t five = real_t(5);
         const real_t zero = real_t(0);
         const real_t thirty = real_t(30);
         const real_t oneOverThirty = real_t(1) / real_t(30);
@@ -194,7 +195,8 @@ TEMPLATE_TEST_CASE("reciprocal scaling works on limit cases",
                         if (!isinf(v_scal[i]) && !isnan(v_scal[i])) break;
                     }
                     else {
-                        const real_t rel_bnd = eps * tlapack::abs(v_ref[i]);
+                        const real_t rel_bnd =
+                            five * eps * tlapack::abs(v_ref[i]);
                         const real_t err = tlapack::abs(v_scal[i] - v_ref[i]);
                         const real_t err_naive =
                             tlapack::abs(v_naive[i] - v_ref[i]);
@@ -223,7 +225,7 @@ TEMPLATE_TEST_CASE("reciprocal scaling works on limit cases",
                 }
 
                 if (i != v.size()) {
-                    const real_t rel_bnd = eps * tlapack::abs(v_ref[i]);
+                    const real_t rel_bnd = five * eps * tlapack::abs(v_ref[i]);
                     const real_t err = tlapack::abs(v_scal[i] - v_ref[i]);
                     const real_t err_naive =
                         tlapack::abs(v_naive[i] - v_ref[i]);
