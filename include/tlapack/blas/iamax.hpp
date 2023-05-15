@@ -102,7 +102,7 @@ size_type<vector_t> iamax_ec(const vector_t& x, abs_f absf)
             return i;
         }
         else {  // still no Inf found yet
-            if (!is_complex<T>::value) {
+            if (is_real<T>::value) {
                 real_t a = absf(x[i]);
                 if (a > smax) {
                     smax = a;
@@ -179,7 +179,7 @@ size_type<vector_t> iamax_nc(const vector_t& x, abs_f absf)
             return i;
         }
         else {  // still no Inf found yet
-            if (!is_complex<T>::value) {
+            if (is_real<T>::value) {
                 real_t a = absf(x[i]);
                 if (a > smax) {
                     smax = a;

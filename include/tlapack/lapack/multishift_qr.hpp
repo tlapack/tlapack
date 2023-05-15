@@ -421,7 +421,7 @@ int multishift_qr(bool want_t,
 
         // If there are only two shifts and both are real
         // then use only one (helps avoid interference)
-        if (!is_complex<TA>::value) {
+        if (is_real<TA>::value) {
             if (ns == 2) {
                 if (imag(w[i_shifts]) == zero) {
                     if (tlapack::abs(real(w[i_shifts]) -

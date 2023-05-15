@@ -37,7 +37,7 @@ namespace tlapack {
  */
 template <class matrix_t,
           class vector_t,
-          enable_if_t<!is_complex<type_t<matrix_t>>::value, bool> = true>
+          enable_if_t<is_real<type_t<matrix_t>>::value, bool> = true>
 int lahqr_shiftcolumn(const matrix_t& H,
                       vector_t& v,
                       complex_type<type_t<matrix_t>> s1,

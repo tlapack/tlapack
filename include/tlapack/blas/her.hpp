@@ -44,7 +44,7 @@ template <class matrixA_t,
           class alpha_t,
           enable_if_t<(
                           /* Requires: */
-                          !is_complex<alpha_t>::value),
+                          is_real<alpha_t>::value),
                       int> = 0,
           class T = type_t<matrixA_t>,
           disable_if_allow_optblas_t<pair<alpha_t, real_type<T> >,

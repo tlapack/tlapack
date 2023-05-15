@@ -70,7 +70,7 @@ namespace tlapack {
 template <class matrix_t,
           class vector_t,
           enable_if_t<is_complex<type_t<vector_t>>::value, bool> = true,
-          enable_if_t<!is_complex<type_t<matrix_t>>::value, bool> = true>
+          enable_if_t<is_real<type_t<matrix_t>>::value, bool> = true>
 int lahqr(bool want_t,
           bool want_z,
           size_type<matrix_t> ilo,
@@ -213,7 +213,7 @@ int lahqr(bool want_t,
                 istart = ilo;
                 continue;
             }
-            if (!is_complex<TA>::value && istart + 2 == istop) {
+            if (is_real<TA>::value && istart + 2 == istop) {
                 // 2x2 block, normalize the block
                 real_t cs;
                 TA sn;
