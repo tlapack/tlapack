@@ -706,24 +706,24 @@ jobs:
       working-directory: ${{github.workspace}}/examples/starpu/build
       run: |
         echo "\nRunning example_lu 10 8 10 8 level 0 ---------------------------"
-        ./example_lu 10 8 10 8 0
+        ./example_starpu_lu 10 8 10 8 0
         echo "\nRunning example_lu 10 8 10 8 recursive -------------------------"
-        ./example_lu 10 8 10 8 recursive
+        ./example_starpu_lu 10 8 10 8 recursive
         echo "\nRunning example_lu 9 24 9 24 recursive -------------------------"
-        ./example_lu 9 24 9 24 recursive
+        ./example_starpu_lu 9 24 9 24 recursive
         echo "\nRunning example_lu 9 24 3 24 level 0 ---------------------------"
-        ./example_lu 9 24 3 24
+        ./example_starpu_lu 9 24 3 24
         echo "\nRunning example_lu 9 24 9 8 level 0 ----------------------------"
-        ./example_lu 9 24 9 8
+        ./example_starpu_lu 9 24 9 8
 
     - name: Run example GEMM
       working-directory: ${{github.workspace}}/examples/starpu/build
       run: |
         echo "\nRunning example_gemm -------------------------------------------"
-        ./example_gemm
+        ./example_starpu_gemm
 
     - name: Run example POTRF
       working-directory: ${{github.workspace}}/examples/starpu/build
       run: |
         echo "\nRunning example_potrf ------------------------------------------"
-        ./example_potrf
+        ./example_starpu_potrf
