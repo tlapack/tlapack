@@ -668,6 +668,9 @@ jobs:
         sudo apt install -y gfortran
         sudo apt install -y pkg-config
 
+    - name: Install LAPACKE on Ubuntu
+      run: sudo apt install -y liblapacke-dev
+
     - name: Build and install StarPU on Ubuntu
       run: |
         sudo apt install -y libtool-bin libhwloc-dev g++ libudev-dev
