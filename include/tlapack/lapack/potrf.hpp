@@ -21,11 +21,9 @@ namespace tlapack {
 enum class PotrfVariant : char { Blocked = 'B', Recursive = 'R', Level2 = '2' };
 
 template <typename idx_t>
-struct potrf_opts_t : public ec_opts_t {
+struct potrf_opts_t : public potrf_blocked_opts_t<idx_t> {
     inline constexpr potrf_opts_t(const ec_opts_t& opts = {})
-        : ec_opts_t(opts){};
-
-    idx_t nb = 32;  ///< Block size
+        : potrf_blocked_opts_t<idx_t>(opts){};
 
     PotrfVariant variant = PotrfVariant::Blocked;
 };

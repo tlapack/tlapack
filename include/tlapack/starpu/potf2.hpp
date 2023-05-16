@@ -11,6 +11,7 @@
 #define TLAPACK_STARPU_POTF2_HH
 
 #include "tlapack/base/types.hpp"
+#include "tlapack/lapack/potrf_blocked.hpp"
 #include "tlapack/starpu/Matrix.hpp"
 #include "tlapack/starpu/tasks.hpp"
 
@@ -25,8 +26,12 @@ int potf2(uplo_t uplo, starpu::Matrix<T>& A)
     const idx_t nx = A.get_nx();
     const idx_t ny = A.get_ny();
 
-    // check arguments
-    tlapack_check(nx <= 1 && ny <= 1);
+    // Use blocked algorithm if matrix contains more than one tile 
+    if (nx > 1 && ny > 1) {
+        potrf_blocked_opts_t<idx_t> potrf_opts;
+        potrf_opts.nb = std::min(A.nblockrows(), A.nblockcols());
+        return potrf_blocked(uplo, A, potrf_opts);
+    }
 
     // Quick return
     if (nx < 1 || ny < 1) return 0;

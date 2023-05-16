@@ -19,9 +19,13 @@
 
 namespace tlapack {
 
-// Forward declarations
 template <typename idx_t>
-struct potrf_opts_t;
+struct potrf_blocked_opts_t : public ec_opts_t {
+    inline constexpr potrf_blocked_opts_t(const ec_opts_t& opts = {})
+        : ec_opts_t(opts){};
+
+    idx_t nb = 32;  ///< Block size
+};
 
 /** Computes the Cholesky factorization of a Hermitian
  * positive definite matrix A using a blocked algorithm.
@@ -63,7 +67,7 @@ struct potrf_opts_t;
 template <class uplo_t, class matrix_t>
 int potrf_blocked(uplo_t uplo,
                   matrix_t& A,
-                  const potrf_opts_t<size_type<matrix_t> >& opts)
+                  const potrf_blocked_opts_t<size_type<matrix_t> >& opts)
 {
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
