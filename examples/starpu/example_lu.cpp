@@ -88,8 +88,7 @@ int main(int argc, char** argv)
         for (idx_t i = 0; i < m * n; i++) {
             A_[i] = T((float)rand() / RAND_MAX);
         }
-        Matrix<T> A(A_, m, n);
-        A.create_grid(m, n);
+        Matrix<T> A(A_, m, n, m, n);
 
         /* compute norm of A */
         const real_type<T> normA = lange(frob_norm, A);
@@ -109,8 +108,7 @@ int main(int argc, char** argv)
         /* create a copy of matrix A in Acopy with r-by-s tiles */
         T* Acopy_;
         starpu_malloc((void**)&Acopy_, m * n * sizeof(T));
-        Matrix<T> Acopy(Acopy_, m, n);
-        Acopy.create_grid(r, s);
+        Matrix<T> Acopy(Acopy_, m, n, r, s);
         lacpy(dense, A, Acopy);
 
         /* print matrix Acopy */
@@ -119,8 +117,7 @@ int main(int argc, char** argv)
         /* create permutation vector with k tiles */
         idx_t* p_;
         starpu_malloc((void**)&p_, k * sizeof(idx_t));
-        Matrix<idx_t> p(p_, k, 1);
-        p.create_grid(k, 1);
+        Matrix<idx_t> p(p_, k, 1, k, 1);
 
         /* LU factorization */
         if (method == '0')
@@ -132,7 +129,7 @@ int main(int argc, char** argv)
         /* Create and print matrix L */
         T* L_;
         starpu_malloc((void**)&L_, m * k * sizeof(T));
-        Matrix<T> L(L_, m, k);
+        Matrix<T> L(L_, m, k, 1, 1);
         lacpy(lowerTriangle, Acopy, L);
         for (idx_t i = 0; i < k; ++i)
             L(i, i) = T(1);
@@ -141,7 +138,7 @@ int main(int argc, char** argv)
         /* Create and print matrix U */
         T* U_;
         starpu_malloc((void**)&U_, k * n * sizeof(T));
-        Matrix<T> U(U_, k, n);
+        Matrix<T> U(U_, k, n, 1, 1);
         lacpy(upperTriangle, Acopy, U);
         std::cout << "U = " << U << std::endl;
 

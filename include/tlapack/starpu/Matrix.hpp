@@ -13,6 +13,7 @@
 #include <starpu.h>
 
 #include <iomanip>
+#include <memory>
 #include <ostream>
 #include <tuple>
 
@@ -804,88 +805,38 @@ namespace starpu {
         // Constructors and destructor
 
         /// Create a matrix of size m-by-n from a pointer in main memory
-        constexpr Matrix(T* ptr, idx_t m, idx_t n, idx_t ld) noexcept
-            : is_owner(true)
+        constexpr Matrix(
+            T* ptr, idx_t m, idx_t n, idx_t ld, idx_t nx, idx_t ny) noexcept
+            : pHandle(new starpu_data_handle_t(), [](starpu_data_handle_t* h) {
+                  starpu_data_unpartition(*h, STARPU_MAIN_RAM);
+                  starpu_data_unregister(*h);
+                  delete h;
+              })
         {
-            starpu_matrix_data_register(&handle, STARPU_MAIN_RAM,
+            starpu_matrix_data_register(pHandle.get(), STARPU_MAIN_RAM,
                                         (uintptr_t)ptr, ld, m, n, sizeof(T));
+            create_grid(nx, ny);
         }
 
         /// Create a matrix of size m-by-n from contiguous data in main memory
-        constexpr Matrix(T* ptr, idx_t m, idx_t n) noexcept
-            : Matrix(ptr, m, n, m)
+        constexpr Matrix(T* ptr, idx_t m, idx_t n, idx_t nx, idx_t ny) noexcept
+            : Matrix(ptr, m, n, m, nx, ny)
         {}
 
         /// Create a submatrix from a handle and a grid
-        constexpr Matrix(starpu_data_handle_t handle,
+        constexpr Matrix(std::shared_ptr<starpu_data_handle_t> pHandle,
                          idx_t ix,
                          idx_t iy,
                          idx_t nx,
                          idx_t ny) noexcept
-            : handle(handle), is_owner(false), ix(ix), iy(iy), nx(nx), ny(ny)
+            : pHandle(pHandle), ix(ix), iy(iy), nx(nx), ny(ny)
         {}
 
         // Disable copy assignment operator
         Matrix& operator=(const Matrix&) = delete;
 
-        /// Matrix destructor unpartitions and unregisters the data handle
-        ~Matrix() noexcept
-        {
-            if (is_owner) {
-                if (is_partitioned())
-                    starpu_data_unpartition(handle, STARPU_MAIN_RAM);
-                starpu_data_unregister(handle);
-            }
-        }
-
         // ---------------------------------------------------------------------
         // Create grid and get tile
-
-        /// Tells whether the matrix is partitioned
-        constexpr bool is_partitioned() const noexcept
-        {
-            return starpu_data_get_nb_children(handle) > 0;
-        }
-
-        /**
-         * @brief Create a grid in the StarPU handle
-         *
-         * This function creates a grid that partitions the matrix into nx*ny
-         * tiles. If the matrix is m-by-n, then every tile (i,j) from 0 <= i <
-         * m-1 and 0 <= j < n-1 is a matrix (m/nx)-by-(n/ny). The tiles where i
-         * = nx-1 or j = ny-1 are special, as they may have a smaller sizes.
-         *
-         * @param[in] nx Partitions in x
-         * @param[in] ny Partitions in y
-         */
-        void create_grid(idx_t nx, idx_t ny) noexcept
-        {
-            assert(!is_partitioned() &&
-                   "Cannot partition a partitioned matrix");
-            assert(nx > 0 && ny > 0 && "Number of tiles must be positive");
-
-            /* Split into blocks of complete rows first */
-            const struct starpu_data_filter row_split = {
-                .filter_func = starpu_matrix_filter_block, .nchildren = nx};
-
-            /* Then split rows into tiles */
-            const struct starpu_data_filter col_split = {
-                .filter_func = starpu_matrix_filter_vertical_block,
-                .nchildren = ny};
-
-            /// TODO: This is not the correct function to use. It only works if
-            /// m is a multiple of nx and n is a multiple of ny. We may need to
-            /// use another filter.
-            starpu_data_map_filters(handle, 2, &row_split, &col_split);
-
-            this->nx = nx;
-            this->ny = ny;
-        }
-
-        constexpr void destroy_grid() noexcept
-        {
-            starpu_data_unpartition(handle, STARPU_MAIN_RAM);
-        }
 
         /// Get number of tiles in x direction
         constexpr idx_t get_nx() const noexcept { return nx; }
@@ -896,23 +847,16 @@ namespace starpu {
         /// Get the maximum number of rows of a tile
         constexpr idx_t nblockrows() const noexcept
         {
-            return starpu_matrix_get_nx(
-                (is_partitioned()) ? starpu_data_get_child(handle, 0) : handle);
+            return starpu_matrix_get_nx(starpu_data_get_child(*pHandle, 0));
         }
 
         /// Get the maximum number of columns of a tile
         constexpr idx_t nblockcols() const noexcept
         {
-            if (is_partitioned()) {
-                const starpu_data_handle_t x0 =
-                    starpu_data_get_child(handle, 0);
-                return starpu_matrix_get_ny(
-                    (starpu_data_get_nb_children(x0) > 0)
-                        ? starpu_data_get_child(x0, 0)
-                        : x0);
-            }
-            else
-                return starpu_matrix_get_ny(handle);
+            const starpu_data_handle_t x0 = starpu_data_get_child(*pHandle, 0);
+            return starpu_matrix_get_ny((starpu_data_get_nb_children(x0) > 0)
+                                            ? starpu_data_get_child(x0, 0)
+                                            : x0);
         }
 
         /// Get the data handle of a tile in the matrix or the data handle of
@@ -920,9 +864,7 @@ namespace starpu {
         constexpr starpu_data_handle_t get_tile_handle(idx_t i,
                                                        idx_t j) noexcept
         {
-            return (is_partitioned())
-                       ? starpu_data_get_sub_data(handle, 2, ix + i, iy + j)
-                       : handle;
+            return starpu_data_get_sub_data(*pHandle, 2, ix + i, iy + j);
         }
 
         // ---------------------------------------------------------------------
@@ -935,19 +877,19 @@ namespace starpu {
          */
         idx_t nrows() const noexcept
         {
-            const idx_t NX = starpu_data_get_nb_children(handle);
+            const idx_t NX = starpu_data_get_nb_children(*pHandle);
             if (NX <= 1) {
-                return starpu_matrix_get_nx(handle);
+                return starpu_matrix_get_nx(*pHandle);
             }
             else {
                 const idx_t nb =
-                    starpu_matrix_get_nx(starpu_data_get_child(handle, 0));
+                    starpu_matrix_get_nx(starpu_data_get_child(*pHandle, 0));
                 if (ix + nx < NX)
                     return nx * nb;
                 else
                     return (nx - 1) * nb +
                            starpu_matrix_get_nx(
-                               starpu_data_get_child(handle, NX - 1));
+                               starpu_data_get_child(*pHandle, NX - 1));
             }
         }
 
@@ -958,12 +900,12 @@ namespace starpu {
          */
         idx_t ncols() const noexcept
         {
-            const idx_t NX = starpu_data_get_nb_children(handle);
+            const idx_t NX = starpu_data_get_nb_children(*pHandle);
             if (NX <= 1) {
-                return starpu_matrix_get_ny(handle);
+                return starpu_matrix_get_ny(*pHandle);
             }
             else {
-                starpu_data_handle_t x0 = starpu_data_get_child(handle, 0);
+                starpu_data_handle_t x0 = starpu_data_get_child(*pHandle, 0);
                 const idx_t NY = starpu_data_get_nb_children(x0);
                 if (NY <= 1) {
                     return starpu_matrix_get_ny(x0);
@@ -998,7 +940,6 @@ namespace starpu {
                                       idx_t nx,
                                       idx_t ny) noexcept
         {
-            assert(is_partitioned() && "Matrix is not partitioned");
             assert(nx >= 0 && ny >= 0 &&
                    "Number of tiles must be positive or 0");
             assert((ix >= 0 && ix + nx <= this->nx) &&
@@ -1006,7 +947,7 @@ namespace starpu {
             assert((iy >= 0 && iy + ny <= this->ny) &&
                    "Submatrix out of bounds");
 
-            return Matrix<T>(handle, this->ix + ix, this->iy + iy, nx, ny);
+            return Matrix<T>(pHandle, this->ix + ix, this->iy + iy, nx, ny);
         }
 
         /**
@@ -1024,7 +965,6 @@ namespace starpu {
                                                   idx_t nx,
                                                   idx_t ny) const noexcept
         {
-            assert(is_partitioned() && "Matrix is not partitioned");
             assert(nx >= 0 && ny >= 0 &&
                    "Number of tiles must be positive or 0");
             assert((ix >= 0 && ix + nx <= this->nx) &&
@@ -1032,7 +972,7 @@ namespace starpu {
             assert((iy >= 0 && iy + ny <= this->ny) &&
                    "Submatrix out of bounds");
 
-            return Matrix<const T>(handle, this->ix + ix, this->iy + iy, nx,
+            return Matrix<const T>(pHandle, this->ix + ix, this->iy + iy, nx,
                                    ny);
         }
 
@@ -1060,14 +1000,45 @@ namespace starpu {
         }
 
        private:
-        starpu_data_handle_t handle;  ///< Data handle
-        const bool is_owner =
-            false;  ///< Whether this object owns the data handle
+        std::shared_ptr<starpu_data_handle_t> pHandle;  ///< Data handle
 
         const idx_t ix = 0;  ///< Index of the first tile in the x direction
         const idx_t iy = 0;  ///< Index of the first tile in the y direction
         idx_t nx = 1;        ///< Number of tiles in the x direction
         idx_t ny = 1;        ///< Number of tiles in the y direction
+
+        /**
+         * @brief Create a grid in the StarPU handle
+         *
+         * This function creates a grid that partitions the matrix into nx*ny
+         * tiles. If the matrix is m-by-n, then every tile (i,j) from 0 <= i <
+         * m-1 and 0 <= j < n-1 is a matrix (m/nx)-by-(n/ny). The tiles where i
+         * = nx-1 or j = ny-1 are special, as they may have a smaller sizes.
+         *
+         * @param[in] nx Partitions in x
+         * @param[in] ny Partitions in y
+         */
+        void create_grid(idx_t nx, idx_t ny) noexcept
+        {
+            assert(nx > 0 && ny > 0 && "Number of tiles must be positive");
+
+            /* Split into blocks of complete rows first */
+            const struct starpu_data_filter row_split = {
+                .filter_func = starpu_matrix_filter_block, .nchildren = nx};
+
+            /* Then split rows into tiles */
+            const struct starpu_data_filter col_split = {
+                .filter_func = starpu_matrix_filter_vertical_block,
+                .nchildren = ny};
+
+            /// TODO: This is not the correct function to use. It only works if
+            /// m is a multiple of nx and n is a multiple of ny. We may need to
+            /// use another filter.
+            starpu_data_map_filters(*pHandle, 2, &row_split, &col_split);
+
+            this->nx = nx;
+            this->ny = ny;
+        }
     };
 
 }  // namespace starpu

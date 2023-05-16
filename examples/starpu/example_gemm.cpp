@@ -72,35 +72,32 @@ int main(int argc, char** argv)
     STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
     starpu_cublas_init();
 
+    /* allocate data */
+    T *A_, *B_, *C_;
+    starpu_malloc((void**)&A_, m * k * sizeof(T));
+    starpu_malloc((void**)&B_, k * n * sizeof(T));
+    starpu_malloc((void**)&C_, m * n * sizeof(T));
+
     {
         /* create matrix A */
-        T* A_;
-        starpu_malloc((void**)&A_, m * k * sizeof(T));
         for (size_t i = 0; i < m * k; i++) {
             A_[i] = T((float)rand() / RAND_MAX);
         }
-        Matrix<T> A(A_, m, k);
+        Matrix<T> A(A_, m, k, r, 1);
 
         /* create matrix B */
-        T* B_;
-        starpu_malloc((void**)&B_, k * n * sizeof(T));
         for (size_t i = 0; i < k * n; i++) {
             B_[i] = T((float)rand() / RAND_MAX);
         }
-        Matrix<T> B(B_, k, n);
+        Matrix<T> B(B_, k, n, 1, s);
 
         /* create matrix C */
-        T* C_;
-        starpu_malloc((void**)&C_, m * n * sizeof(T));
         for (size_t i = 0; i < m * n; i++) {
             C_[i] = T(0xdeadbeef);
         }
-        Matrix<T> C(C_, m, n);
+        Matrix<T> C(C_, m, n, r, s);
 
         /* GEMM */
-        A.create_grid(r, 1);
-        B.create_grid(1, s);
-        C.create_grid(r, s);
         gemm(noTranspose, noTranspose, T(1), A, B, C);
 
         /* check the result */
@@ -108,15 +105,17 @@ int main(int argc, char** argv)
             for (size_t j = 0; j < n; ++j)
                 for (size_t l = 0; l < k; ++l)
                     C(i, j) -= A(i, l) * B(l, j);
-
-        C.destroy_grid();
-        C.create_grid(m, n);
-        std::cout << lange(frob_norm, C) << std::endl;
-
-        starpu_free_noflag(A_, m * k * sizeof(T));
-        starpu_free_noflag(B_, k * n * sizeof(T));
-        starpu_free_noflag(C_, m * n * sizeof(T));
     }
+
+    /* print the error */
+    std::cout << *std::max_element(C_, C_ + m * n, [](T a, T b) {
+        return std::abs(a) < std::abs(b);
+    }) << std::endl;
+
+    /* free data */
+    starpu_free_noflag(A_, m * k * sizeof(T));
+    starpu_free_noflag(B_, k * n * sizeof(T));
+    starpu_free_noflag(C_, m * n * sizeof(T));
 
     /* terminate StarPU */
     starpu_cublas_shutdown();

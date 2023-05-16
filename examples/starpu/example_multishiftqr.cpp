@@ -76,22 +76,12 @@ int run(idx_t n, idx_t nx, bool check_error = false)
     std::chrono::nanoseconds elapsed_time;
     {
         /* create matrices H, Q and vector s */
-        Matrix<T> H(H_, n, n);
+        Matrix<T> H(H_, n, n, nx, nx);
         std::cout << "H = " << H << std::endl;
-        Matrix<T> Q(Q_, n, n);
+        Matrix<T> Q(Q_, n, n, nx, nx);
         std::cout << "Q = " << Q << std::endl;
-        Matrix<complex_t> s(s_, n, 1);
+        Matrix<complex_t> s(s_, n, 1, nx, 1);
         std::cout << "s = " << s << std::endl;
-
-        // /* potrf options */
-        // potrf_opts_t<idx_t> opts;
-        // opts.nb = n / nx;
-        // opts.variant = PotrfVariant::Blocked;
-
-        /* create grid*/
-        H.create_grid(nx, nx);
-        Q.create_grid(nx, nx);
-        s.create_grid(nx, 1);
 
         // Record start time
         auto start = std::chrono::high_resolution_clock::now();
@@ -113,8 +103,7 @@ int run(idx_t n, idx_t nx, bool check_error = false)
         if (check_error) {
             T* E_;
             starpu_malloc((void**)&E_, n * n * sizeof(T));
-            Matrix<T> E(E_, n, n);
-            E.create_grid(nx, nx);
+            Matrix<T> E(E_, n, n, nx, nx);
 
             // E = Q^H Q - I
             herk(Uplo::Upper, Op::ConjTrans, (real_t)1.0, Q, E);
@@ -137,8 +126,7 @@ int run(idx_t n, idx_t nx, bool check_error = false)
                 for (idx_t i = j + 2; i < n; ++i)
                     H(i, j) = zero;
 
-            Matrix<T> A(A_, n, n);
-            A.create_grid(nx, nx);
+            Matrix<T> A(A_, n, n, nx, nx);
 
             // E = Q^H H Q - T
             gemm(Op::ConjTrans, Op::NoTrans, (real_t)1.0, Q, A, E);

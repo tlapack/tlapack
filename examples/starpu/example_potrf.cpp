@@ -60,16 +60,13 @@ int run(idx_t n, idx_t nx, bool check_error = false)
     std::chrono::nanoseconds elapsed_time;
     {
         /* create matrix A and B */
-        Matrix<T> A(A_, n, n);
+        Matrix<T> A(A_, n, n, nx, nx);
         std::cout << "A = " << A << std::endl;
 
         /* potrf options */
         potrf_opts_t<idx_t> opts;
         opts.nb = n / nx;
         opts.variant = PotrfVariant::Blocked;
-
-        /* create grid*/
-        A.create_grid(nx, nx);
 
         // Record start time
         auto start = std::chrono::high_resolution_clock::now();
@@ -90,8 +87,7 @@ int run(idx_t n, idx_t nx, bool check_error = false)
 
         if (check_error) {
             // Solve U^H U B = A_init
-            Matrix<T> B(B_, n, n);
-            B.create_grid(nx, nx);
+            Matrix<T> B(B_, n, n, nx, nx);
             trsm(left_side, upperTriangle, conjTranspose, nonUnit_diagonal, one,
                  A, B);
             trsm(left_side, upperTriangle, noTranspose, nonUnit_diagonal, one,

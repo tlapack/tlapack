@@ -286,8 +286,7 @@ namespace internal {
             assert(m >= 0 && n >= 0);
             v.resize(m * n);  // Allocates space in memory
             starpu_memory_pin((void*)v.data(), m * n * sizeof(T));
-            matrix_t W(v.data(), m, n);
-            W.create_grid(m, n);
+            matrix_t W(v.data(), m, n, m, m, n);
             return W;
         }
 
