@@ -44,8 +44,11 @@ int run(idx_t n, idx_t nx, bool check_error = false)
 
     /* A is symmetric positive definite and B is a copy of A */
     for (idx_t j = 0; j < n; j++)
-        for (idx_t i = 0; i < j; i++)
-            A_[i + j * n] = A_[i * n + j] = T((float)rand() / (float)RAND_MAX);
+        for (idx_t i = 0; i <= j; i++) {
+            A_[i * n + j] = make_scalar<T>((float)rand() / (float)RAND_MAX,
+                                           (float)rand() / (float)RAND_MAX);
+            A_[i + j * n] = A_[i * n + j];
+        }
     for (idx_t i = 0; i < n; i++)
         A_[i + n * i] += n;
     if (check_error) {
