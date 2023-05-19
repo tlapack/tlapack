@@ -9,6 +9,8 @@
 
 // Plugins for <T>LAPACK (must come before <T>LAPACK headers)
 #include <tlapack/plugins/starpu.hpp>
+#include <starpu_cublas_v2.h>
+#include <starpu_cusolver.h>
 
 // <T>LAPACK headers
 #include <tlapack/lapack/lange.hpp>
@@ -22,7 +24,7 @@
 using tlapack::starpu::idx_t;
 
 template <class T>
-int run(idx_t n, idx_t nx, bool check_error = false)
+int run(idx_t n, idx_t nt, idx_t nb, bool check_error = false)
 {
     using namespace tlapack;
     using starpu::Matrix;
@@ -60,12 +62,12 @@ int run(idx_t n, idx_t nx, bool check_error = false)
     std::chrono::nanoseconds elapsed_time;
     {
         /* create matrix A and B */
-        Matrix<T> A(A_, n, n, nx, nx);
+        Matrix<T> A(A_, n, n, nt, nt);
         std::cout << "A = " << A << std::endl;
 
         /* potrf options */
         potrf_opts_t<idx_t> opts;
-        opts.nb = n / nx;
+        opts.nb = nb;
         opts.variant = PotrfVariant::Blocked;
 
         // Record start time
@@ -87,11 +89,11 @@ int run(idx_t n, idx_t nx, bool check_error = false)
 
         if (check_error) {
             // Solve U^H U B = A_init
-            Matrix<T> B(B_, n, n, nx, nx);
-            trsm(left_side, upperTriangle, conjTranspose, nonUnit_diagonal, one,
-                 A, B);
-            trsm(left_side, upperTriangle, noTranspose, nonUnit_diagonal, one,
-                 A, B);
+            Matrix<T> B(B_, n, n, nt, nt);
+            trsm<Matrix<T>>(left_side, upperTriangle, conjTranspose,
+                            nonUnit_diagonal, one, A, B);
+            trsm<Matrix<T>>(left_side, upperTriangle, noTranspose,
+                            nonUnit_diagonal, one, A, B);
             std::cout << "B = " << B << std::endl;
         }
 
@@ -130,13 +132,14 @@ int main(int argc, char** argv)
     // initialize random seed
     srand(3);
 
-    idx_t n = 100;
-    idx_t nx = 10;
-    int precision = 0b1111;
-    bool check_error = false;
+    idx_t n = 50;
+    idx_t nt = 30;
+    idx_t nb = 28;
+    int precision = 0b0001;
+    bool check_error = true;
 
     if (argc > 1) n = atoi(argv[1]);
-    if (argc > 2) nx = atoi(argv[2]);
+    if (argc > 2) nt = atoi(argv[2]);
     if (argc > 3) {
         char p = tolower(argv[3][0]);
         switch (p) {
@@ -160,25 +163,28 @@ int main(int argc, char** argv)
         }
     }
     if (argc > 4) check_error = (tolower(argv[4][0]) == 'y');
-    if (argc > 5 || (n % nx != 0) || (nx > n) || (n <= 0) || (nx <= 0) ||
-        precision == 0) {
+    if (argc > 5) nb = atoi(argv[5]);
+    if (argc > 6 || (nt > n) || (n <= 0) || (nt <= 0) || precision == 0) {
         std::cout << "Usage: " << argv[0]
-                  << " [n] [nx] [precision] [check_error]" << std::endl;
+                  << " [n] [nt] [precision] [check_error]" << std::endl;
         std::cout << "  n:      number of rows and columns of A (default: 50)"
                   << std::endl;
-        std::cout << "  nx:      number of tiles in x and y directions of A "
+        std::cout << "  nt:      number of rows and columns of tiles in A "
                      "(default: 10)."
                   << std::endl;
         std::cout << "  precision: s (0b0001), d (0b0010), c (0b0100), z "
                      "(0b1000), a (0b1111) (default: all (0b1111))."
                   << std::endl;
         std::cout << "  check_error: yes or no (default: no)" << std::endl;
+        std::cout << "  nb:      Block size for the Cholesky factorization "
+                     "(default: nt)."
+                  << std::endl;
         return -1;
     }
 
     // Print input parameters
     std::cout << "n = " << n << std::endl;
-    std::cout << "nx = " << nx << std::endl << std::endl;
+    std::cout << "nt = " << nt << std::endl << std::endl;
 
     /* initialize StarPU */
     setenv("STARPU_CODELET_PROFILING", "0", 1);
@@ -197,7 +203,7 @@ int main(int argc, char** argv)
         std::cout << std::endl
                   << "-----------------------------------------------"
                   << std::endl;
-        if (run<float>(n, nx, check_error)) return 1;
+        if (run<float>(n, nt, nb, check_error)) return 1;
     }
 
     if (precision & 0b0010) {
@@ -207,7 +213,7 @@ int main(int argc, char** argv)
         std::cout << std::endl
                   << "-----------------------------------------------"
                   << std::endl;
-        if (run<double>(n, nx, check_error)) return 2;
+        if (run<double>(n, nt, nb, check_error)) return 2;
     }
 
     if (precision & 0b0100) {
@@ -217,7 +223,7 @@ int main(int argc, char** argv)
         std::cout << std::endl
                   << "-----------------------------------------------"
                   << std::endl;
-        if (run<std::complex<float>>(n, nx, check_error)) return 3;
+        if (run<std::complex<float>>(n, nt, nb, check_error)) return 3;
     }
 
     if (precision & 0b1000) {
@@ -227,7 +233,7 @@ int main(int argc, char** argv)
         std::cout << std::endl
                   << "-----------------------------------------------"
                   << std::endl;
-        if (run<std::complex<double>>(n, nx, check_error)) return 4;
+        if (run<std::complex<double>>(n, nt, nb, check_error)) return 4;
     }
 
     /* terminate StarPU */

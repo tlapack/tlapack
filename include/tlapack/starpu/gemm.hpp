@@ -38,9 +38,11 @@ void gemm(Op transA,
     const idx_t nz = (transA == Op::NoTrans) ? A.get_ny() : A.get_nx();
 
     // quick return
-    if (nx == 0 || ny == 0 || nz == 0) return;
+    if (m == 0 || n == 0) return;
+    if (k == 0 && beta == one) return;
 
     // check arguments
+    tlapack_check(k != 0); /// TODO: Implement this case
     tlapack_check(transA == Op::NoTrans || transA == Op::Trans ||
                   transA == Op::ConjTrans);
     tlapack_check(transB == Op::NoTrans || transB == Op::Trans ||

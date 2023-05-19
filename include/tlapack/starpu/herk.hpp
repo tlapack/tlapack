@@ -31,10 +31,16 @@ void herk(Uplo uplo,
     // constants
     const real_type<TC> one(1);
     const idx_t n = (trans == Op::NoTrans) ? A.nrows() : A.ncols();
+    const idx_t k = (trans == Op::NoTrans) ? A.ncols() : A.nrows();
     const idx_t nx = (trans == Op::NoTrans) ? A.get_nx() : A.get_ny();
     const idx_t ny = (trans == Op::NoTrans) ? A.get_ny() : A.get_nx();
 
+    // quick return
+    if (n == 0) return;
+    if (k == 0 && beta == one) return;
+
     // check arguments
+    tlapack_check(k != 0); /// TODO: Implement this case
     tlapack_check_false(uplo != Uplo::Lower && uplo != Uplo::Upper &&
                         uplo != Uplo::General);
     tlapack_check_false(trans != Op::NoTrans && trans != Op::ConjTrans);

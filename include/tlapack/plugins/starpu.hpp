@@ -88,8 +88,9 @@ constexpr auto size(const starpu::Matrix<T>& A)
 // -----------------------------------------------------------------------------
 // Block operations for starpu::Matrix
 
-#define isSlice(SliceSpec) \
-    std::is_convertible<SliceSpec, std::tuple<uint32_t, uint32_t>>::value
+#define isSlice(SliceSpec)         \
+    std::is_convertible<SliceSpec, \
+                        std::tuple<starpu::idx_t, starpu::idx_t>>::value
 
 template <
     class T,
@@ -101,27 +102,14 @@ constexpr auto slice(const starpu::Matrix<T>& A,
                      SliceSpecRow&& rows,
                      SliceSpecCol&& cols)
 {
-    const uint32_t row0 = std::get<0>(rows);
-    const uint32_t col0 = std::get<0>(cols);
-    const uint32_t row1 = std::get<1>(rows);
-    const uint32_t col1 = std::get<1>(cols);
-    const uint32_t nrows = row1 - row0;
-    const uint32_t ncols = col1 - col0;
+    using starpu::idx_t;
 
-    const uint32_t mb = A.nblockrows();
-    const uint32_t nb = A.nblockcols();
+    const idx_t row0 = std::get<0>(rows);
+    const idx_t col0 = std::get<0>(cols);
+    const idx_t row1 = std::get<1>(rows);
+    const idx_t col1 = std::get<1>(cols);
 
-    tlapack_check(row0 % mb == 0);
-    tlapack_check(col0 % nb == 0);
-    tlapack_check((nrows % mb == 0) ||
-                  (row1 == A.nrows() && ((nrows - 1) % mb == 0)));
-    tlapack_check((ncols % nb == 0) ||
-                  (col1 == A.ncols() && ((ncols - 1) % nb == 0)));
-
-    return A.get_const_tiles(
-        row0 / mb, col0 / nb,
-        (nrows == 0) ? 0 : std::max<uint32_t>(nrows / mb, 1),
-        (ncols == 0) ? 0 : std::max<uint32_t>(ncols / nb, 1));
+    return A.map_to_const_tiles(row0, row1, col0, col1);
 }
 template <
     class T,
@@ -133,26 +121,14 @@ constexpr auto slice(starpu::Matrix<T>& A,
                      SliceSpecRow&& rows,
                      SliceSpecCol&& cols)
 {
-    const uint32_t row0 = std::get<0>(rows);
-    const uint32_t col0 = std::get<0>(cols);
-    const uint32_t row1 = std::get<1>(rows);
-    const uint32_t col1 = std::get<1>(cols);
-    const uint32_t nrows = row1 - row0;
-    const uint32_t ncols = col1 - col0;
+    using starpu::idx_t;
 
-    const uint32_t mb = A.nblockrows();
-    const uint32_t nb = A.nblockcols();
+    const idx_t row0 = std::get<0>(rows);
+    const idx_t col0 = std::get<0>(cols);
+    const idx_t row1 = std::get<1>(rows);
+    const idx_t col1 = std::get<1>(cols);
 
-    tlapack_check(row0 % mb == 0);
-    tlapack_check(col0 % nb == 0);
-    tlapack_check((nrows % mb == 0) ||
-                  (row1 == A.nrows() && ((nrows - 1) % mb == 0)));
-    tlapack_check((ncols % nb == 0) ||
-                  (col1 == A.ncols() && ((ncols - 1) % nb == 0)));
-
-    return A.get_tiles(row0 / mb, col0 / nb,
-                       (nrows == 0) ? 0 : std::max<uint32_t>(nrows / mb, 1),
-                       (ncols == 0) ? 0 : std::max<uint32_t>(ncols / nb, 1));
+    return A.map_to_tiles(row0, row1, col0, col1);
 }
 
 #undef isSlice
@@ -160,13 +136,15 @@ constexpr auto slice(starpu::Matrix<T>& A,
 template <class T, class SliceSpec>
 constexpr auto slice(const starpu::Matrix<T>& v,
                      SliceSpec&& range,
-                     uint32_t colIdx)
+                     starpu::idx_t colIdx)
 {
     return slice(v, std::forward<SliceSpec>(range),
                  std::make_tuple(colIdx, colIdx + 1));
 }
 template <class T, class SliceSpec>
-constexpr auto slice(starpu::Matrix<T>& v, SliceSpec&& range, uint32_t colIdx)
+constexpr auto slice(starpu::Matrix<T>& v,
+                     SliceSpec&& range,
+                     starpu::idx_t colIdx)
 {
     return slice(v, std::forward<SliceSpec>(range),
                  std::make_tuple(colIdx, colIdx + 1));
@@ -174,14 +152,16 @@ constexpr auto slice(starpu::Matrix<T>& v, SliceSpec&& range, uint32_t colIdx)
 
 template <class T, class SliceSpec>
 constexpr auto slice(const starpu::Matrix<T>& v,
-                     uint32_t rowIdx,
+                     starpu::idx_t rowIdx,
                      SliceSpec&& range)
 {
     return slice(v, std::make_tuple(rowIdx, rowIdx + 1),
                  std::forward<SliceSpec>(range));
 }
 template <class T, class SliceSpec>
-constexpr auto slice(starpu::Matrix<T>& v, uint32_t rowIdx, SliceSpec&& range)
+constexpr auto slice(starpu::Matrix<T>& v,
+                     starpu::idx_t rowIdx,
+                     SliceSpec&& range)
 {
     return slice(v, std::make_tuple(rowIdx, rowIdx + 1),
                  std::forward<SliceSpec>(range));
@@ -209,13 +189,13 @@ constexpr auto slice(starpu::Matrix<T>& v, SliceSpec&& range)
 }
 
 template <class T>
-constexpr auto col(const starpu::Matrix<T>& A, uint32_t colIdx)
+constexpr auto col(const starpu::Matrix<T>& A, starpu::idx_t colIdx)
 {
     return slice(A, std::make_tuple(0, A.nrows()),
                  std::make_tuple(colIdx, colIdx + 1));
 }
 template <class T>
-constexpr auto col(starpu::Matrix<T>& A, uint32_t colIdx)
+constexpr auto col(starpu::Matrix<T>& A, starpu::idx_t colIdx)
 {
     return slice(A, std::make_tuple(0, A.nrows()),
                  std::make_tuple(colIdx, colIdx + 1));
@@ -235,13 +215,13 @@ constexpr auto cols(starpu::Matrix<T>& A, SliceSpec&& cols)
 }
 
 template <class T>
-constexpr auto row(const starpu::Matrix<T>& A, uint32_t rowIdx)
+constexpr auto row(const starpu::Matrix<T>& A, starpu::idx_t rowIdx)
 {
     return slice(A, std::make_tuple(rowIdx, rowIdx + 1),
                  std::make_tuple(0, A.ncols()));
 }
 template <class T>
-constexpr auto row(starpu::Matrix<T>& A, uint32_t rowIdx)
+constexpr auto row(starpu::Matrix<T>& A, starpu::idx_t rowIdx)
 {
     return slice(A, std::make_tuple(rowIdx, rowIdx + 1),
                  std::make_tuple(0, A.ncols()));
@@ -286,7 +266,7 @@ namespace internal {
             assert(m >= 0 && n >= 0);
             v.resize(m * n);  // Allocates space in memory
             starpu_memory_pin((void*)v.data(), m * n * sizeof(T));
-            matrix_t W(v.data(), m, n, m, m, n);
+            matrix_t W(v.data(), m, n, 1, 1);
             return W;
         }
 
@@ -297,9 +277,9 @@ namespace internal {
         {
             assert(m >= 0 && n >= 0);
             rW = W.extract(m * sizeof(T), n);
-            return (W.isContiguous())
-                       ? matrix_t((T*)W.data(), m, n)
-                       : matrix_t((T*)W.data(), m, n, W.getLdim() / sizeof(T));
+            return (W.isContiguous()) ? matrix_t((T*)W.data(), m, n, m, n)
+                                      : matrix_t((T*)W.data(), m, n,
+                                                 W.getLdim() / sizeof(T), m, n);
         }
 
         inline constexpr auto operator()(const Workspace& W,
@@ -308,9 +288,9 @@ namespace internal {
         {
             assert(m >= 0 && n >= 0);
             tlapack_check(W.contains(m * sizeof(T), n));
-            return (W.isContiguous())
-                       ? matrix_t((T*)W.data(), m, n)
-                       : matrix_t((T*)W.data(), m, n, W.getLdim() / sizeof(T));
+            return (W.isContiguous()) ? matrix_t((T*)W.data(), m, n, m, n)
+                                      : matrix_t((T*)W.data(), m, n,
+                                                 W.getLdim() / sizeof(T), m, n);
         }
 
         inline constexpr auto operator()(const Workspace& W,
@@ -319,9 +299,9 @@ namespace internal {
         {
             assert(m >= 0);
             rW = W.extract(sizeof(T), m);
-            return (W.isContiguous())
-                       ? matrix_t((T*)W.data(), m, 1)
-                       : matrix_t((T*)W.data(), 1, m, W.getLdim() / sizeof(T));
+            return (W.isContiguous()) ? matrix_t((T*)W.data(), m, 1, m, 1)
+                                      : matrix_t((T*)W.data(), 1, m,
+                                                 W.getLdim() / sizeof(T), 1, m);
         }
 
         inline constexpr auto operator()(const Workspace& W,
@@ -329,9 +309,9 @@ namespace internal {
         {
             assert(m >= 0);
             tlapack_check(W.contains(sizeof(T), m));
-            return (W.isContiguous())
-                       ? matrix_t((T*)W.data(), m, 1)
-                       : matrix_t((T*)W.data(), m, W.getLdim() / sizeof(T));
+            return (W.isContiguous()) ? matrix_t((T*)W.data(), m, 1, m, 1)
+                                      : matrix_t((T*)W.data(), 1, m,
+                                                 W.getLdim() / sizeof(T), 1, m);
         }
     };
 }  // namespace internal

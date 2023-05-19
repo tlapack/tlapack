@@ -35,6 +35,9 @@ void trsm(Side side,
     const idx_t nx = B.get_nx();
     const idx_t ny = B.get_ny();
 
+    // quick return
+    if (m == 0 || n == 0) return;
+
     // check arguments
     tlapack_check_false(side != Side::Left && side != Side::Right);
     tlapack_check_false(uplo != Uplo::Lower && uplo != Uplo::Upper);
@@ -46,7 +49,7 @@ void trsm(Side side,
     tlapack_check(A.get_nx() == A.get_ny());
     tlapack_check(A.get_nx() == (side == Side::Left ? nx : ny));
 
-    // Remove const type from A and B
+    // Remove const type from A
     auto& A_ = const_cast<starpu::Matrix<TA>&>(A);
 
     if (side == Side::Left) {
@@ -55,58 +58,67 @@ void trsm(Side side,
                 for (idx_t ix = 0; ix < nx; ++ix) {
                     for (idx_t iy = 0; iy < ny; ++iy) {
                         starpu::insert_task_trsm<TA, TB>(
-                            side, uplo, trans, diag, alpha,
+                            side, uplo, trans, diag, ((ix == 0) ? alpha : one),
                             A_.get_tile_handle(nx - ix - 1, nx - ix - 1),
                             B.get_tile_handle(nx - ix - 1, iy));
                     }
                     auto C = B.get_tiles(0, 0, nx - ix - 1, ny);
-                    gemm(trans, noTranspose, -one,
+                    gemm(trans, noTranspose, -alpha,
                          A.get_const_tiles(0, nx - ix - 1, nx - ix - 1, 1),
-                         B.get_const_tiles(nx - ix - 1, 0, 1, ny), one, C);
+                         B.get_const_tiles(nx - ix - 1, 0, 1, ny),
+                         ((ix == 0) ? alpha : one), C);
                 }
             }
             else {  // uplo == Uplo::Lower
                 for (idx_t ix = 0; ix < nx; ++ix) {
                     for (idx_t iy = 0; iy < ny; ++iy) {
                         starpu::insert_task_trsm<TA, TB>(
-                            side, uplo, trans, diag, alpha,
+                            side, uplo, trans, diag, ((ix == 0) ? alpha : one),
                             A_.get_tile_handle(ix, ix),
                             B.get_tile_handle(ix, iy));
                     }
                     auto C = B.get_tiles(ix + 1, 0, nx - ix - 1, ny);
-                    gemm(trans, noTranspose, -one,
+                    gemm(trans, noTranspose, -alpha,
                          A.get_const_tiles(ix + 1, ix, nx - ix - 1, 1),
-                         B.get_const_tiles(ix, 0, 1, ny), one, C);
+                         B.get_const_tiles(ix, 0, 1, ny),
+                         ((ix == 0) ? alpha : one), C);
                 }
             }
         }
         else {  // trans == Op::Trans or Op::ConjTrans
             if (uplo == Uplo::Upper) {
                 for (idx_t ix = 0; ix < nx; ++ix) {
+                    // auto Aii = A.get_const_tiles(ix, ix, 1, 1);
                     for (idx_t iy = 0; iy < ny; ++iy) {
                         starpu::insert_task_trsm<TA, TB>(
-                            side, uplo, trans, diag, alpha,
+                            side, uplo, trans, diag, ((ix == 0) ? alpha : one),
                             A_.get_tile_handle(ix, ix),
                             B.get_tile_handle(ix, iy));
+                        // auto B_ = B.get_tiles(ix, iy, 1, 1);
+                        // trsm<starpu::Matrix<const TA>>(
+                        //     side, uplo, trans, diag, ((ix == 0) ? alpha :
+                        //     ((ix == 0) ? alpha : one)), Aii, B_);
                     }
                     auto C = B.get_tiles(ix + 1, 0, nx - ix - 1, ny);
-                    gemm(trans, noTranspose, -one,
+                    gemm(trans, noTranspose, -alpha,
                          A.get_const_tiles(ix, ix + 1, 1, nx - ix - 1),
-                         B.get_const_tiles(ix, 0, 1, ny), one, C);
+                         B.get_const_tiles(ix, 0, 1, ny),
+                         ((ix == 0) ? alpha : one), C);
                 }
             }
             else {  // uplo == Uplo::Lower
                 for (idx_t ix = 0; ix < nx; ++ix) {
                     for (idx_t iy = 0; iy < ny; ++iy) {
                         starpu::insert_task_trsm<TA, TB>(
-                            side, uplo, trans, diag, alpha,
+                            side, uplo, trans, diag, ((ix == 0) ? alpha : one),
                             A_.get_tile_handle(nx - ix - 1, nx - ix - 1),
                             B.get_tile_handle(nx - ix - 1, iy));
                     }
                     auto C = B.get_tiles(0, 0, nx - ix - 1, ny);
-                    gemm(trans, noTranspose, -one,
+                    gemm(trans, noTranspose, -alpha,
                          A.get_const_tiles(nx - ix - 1, 0, 1, nx - ix - 1),
-                         B.get_const_tiles(nx - ix - 1, 0, 1, ny), one, C);
+                         B.get_const_tiles(nx - ix - 1, 0, 1, ny),
+                         ((ix == 0) ? alpha : one), C);
                 }
             }
         }
@@ -117,29 +129,30 @@ void trsm(Side side,
                 for (idx_t iy = 0; iy < ny; ++iy) {
                     for (idx_t ix = 0; ix < nx; ++ix) {
                         starpu::insert_task_trsm<TA, TB>(
-                            side, uplo, trans, diag, alpha,
+                            side, uplo, trans, diag, ((iy == 0) ? alpha : one),
                             A_.get_tile_handle(iy, iy),
                             B.get_tile_handle(ix, iy));
                     }
                     auto C = B.get_tiles(0, iy + 1, nx, ny - iy - 1);
-                    gemm(noTranspose, trans, -one,
+                    gemm(noTranspose, trans, -alpha,
                          B.get_const_tiles(0, iy, nx, 1),
-                         A.get_const_tiles(iy, iy + 1, 1, ny - iy - 1), one, C);
+                         A.get_const_tiles(iy, iy + 1, 1, ny - iy - 1),
+                         ((iy == 0) ? alpha : one), C);
                 }
             }
             else {  // uplo == Uplo::Lower
                 for (idx_t iy = 0; iy < ny; ++iy) {
                     for (idx_t ix = 0; ix < nx; ++ix) {
                         starpu::insert_task_trsm<TA, TB>(
-                            side, uplo, trans, diag, alpha,
+                            side, uplo, trans, diag, ((iy == 0) ? alpha : one),
                             A_.get_tile_handle(ny - iy - 1, ny - iy - 1),
                             B.get_tile_handle(ix, ny - iy - 1));
                     }
                     auto C = B.get_tiles(0, 0, nx, ny - iy - 1);
-                    gemm(noTranspose, trans, -one,
+                    gemm(noTranspose, trans, -alpha,
                          B.get_const_tiles(0, ny - iy - 1, nx, 1),
-                         A.get_const_tiles(ny - iy - 1, 0, 1, ny - iy - 1), one,
-                         C);
+                         A.get_const_tiles(ny - iy - 1, 0, 1, ny - iy - 1),
+                         ((iy == 0) ? alpha : one), C);
                 }
             }
         }
@@ -148,29 +161,30 @@ void trsm(Side side,
                 for (idx_t iy = 0; iy < ny; ++iy) {
                     for (idx_t ix = 0; ix < nx; ++ix) {
                         starpu::insert_task_trsm<TA, TB>(
-                            side, uplo, trans, diag, alpha,
+                            side, uplo, trans, diag, ((iy == 0) ? alpha : one),
                             A_.get_tile_handle(ny - iy - 1, ny - iy - 1),
                             B.get_tile_handle(ix, ny - iy - 1));
                     }
                     auto C = B.get_tiles(0, 0, nx, ny - iy - 1);
-                    gemm(noTranspose, trans, -one,
+                    gemm(noTranspose, trans, -alpha,
                          B.get_const_tiles(0, ny - iy - 1, nx, 1),
-                         A.get_const_tiles(0, ny - iy - 1, ny - iy - 1, 1), one,
-                         C);
+                         A.get_const_tiles(0, ny - iy - 1, ny - iy - 1, 1),
+                         ((iy == 0) ? alpha : one), C);
                 }
             }  // uplo == Uplo::Lower
             else {
                 for (idx_t iy = 0; iy < ny; ++iy) {
                     for (idx_t ix = 0; ix < nx; ++ix) {
                         starpu::insert_task_trsm<TA, TB>(
-                            side, uplo, trans, diag, alpha,
+                            side, uplo, trans, diag, ((iy == 0) ? alpha : one),
                             A_.get_tile_handle(iy, iy),
                             B.get_tile_handle(ix, iy));
                     }
                     auto C = B.get_tiles(0, iy + 1, nx, ny - iy - 1);
-                    gemm(noTranspose, trans, -one,
+                    gemm(noTranspose, trans, -alpha,
                          B.get_const_tiles(0, iy, nx, 1),
-                         A.get_const_tiles(iy + 1, iy, ny - iy - 1, 1), one, C);
+                         A.get_const_tiles(iy + 1, iy, ny - iy - 1, 1),
+                         ((iy == 0) ? alpha : one), C);
                 }
             }
         }

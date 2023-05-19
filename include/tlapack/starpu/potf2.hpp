@@ -23,18 +23,20 @@ int potf2(uplo_t uplo, starpu::Matrix<T>& A)
     using starpu::idx_t;
 
     // Constants
+    const idx_t n = A.nrows();
     const idx_t nx = A.get_nx();
     const idx_t ny = A.get_ny();
 
-    // Use blocked algorithm if matrix contains more than one tile 
+    // Quick return
+    if (nx < 1 || ny < 1 || n < 1) return 0;
+
+    // Use blocked algorithm if matrix contains more than one tile
     if (nx > 1 && ny > 1) {
         potrf_blocked_opts_t<idx_t> potrf_opts;
-        potrf_opts.nb = std::min(A.nblockrows(), A.nblockcols());
+        potrf_opts.nb =
+            std::min(std::min(A.nblockrows(), A.nblockcols()), n - 1);
         return potrf_blocked(uplo, A, potrf_opts);
     }
-
-    // Quick return
-    if (nx < 1 || ny < 1) return 0;
 
     // Insert task to factorize A
     starpu::insert_task_potrf<uplo_t, T>(uplo, A.get_tile_handle(0, 0));

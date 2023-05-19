@@ -20,10 +20,10 @@ namespace starpu {
     void insert_task_gemm(Op transA,
                           Op transB,
                           const alpha_t& alpha,
-                          starpu_data_handle_t A,
-                          starpu_data_handle_t B,
+                          const Tile& A,
+                          const Tile& B,
                           const beta_t& beta,
-                          starpu_data_handle_t C)
+                          const Tile& C)
     {
         using args_t = std::tuple<Op, Op, alpha_t, beta_t>;
 
@@ -39,29 +39,37 @@ namespace starpu {
         std::get<2>(*args_ptr) = alpha;
         std::get<3>(*args_ptr) = beta;
 
+        // Handles
+        starpu_data_handle_t handle[3];
+        C.create_compatible_handles(handle, A, B);
+
         // Initialize task
         task->cl =
             (struct starpu_codelet*)&(cl::gemm<TA, TB, TC, alpha_t, beta_t>);
-        task->handles[0] = A;
-        task->handles[1] = B;
-        task->handles[2] = C;
+        task->handles[0] = handle[1];
+        task->handles[1] = handle[2];
+        task->handles[2] = handle[0];
         task->cl_arg = (void*)args_ptr;
         task->cl_arg_size = sizeof(args_t);
         task->callback_func = [](void* args) noexcept { delete (args_t*)args; };
         task->callback_arg = (void*)args_ptr;
+        // task->synchronous = 1;
 
         // Submit task
         const int ret = starpu_task_submit(task);
         STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+
+        // Clean partition plan
+        C.clean_compatible_handles(handle, A, B);
     }
 
     template <class TA, class TC, class alpha_t, class beta_t>
     void insert_task_herk(Uplo uplo,
                           Op trans,
                           const alpha_t& alpha,
-                          starpu_data_handle_t A,
+                          const Tile& A,
                           const beta_t& beta,
-                          starpu_data_handle_t C)
+                          const Tile& C)
     {
         using args_t = std::tuple<Uplo, Op, alpha_t, beta_t>;
 
@@ -77,18 +85,26 @@ namespace starpu {
         std::get<2>(*args_ptr) = alpha;
         std::get<3>(*args_ptr) = beta;
 
+        // Handles
+        starpu_data_handle_t handle[2];
+        A.create_compatible_handles(handle, C);
+
         // Initialize task
         task->cl = (struct starpu_codelet*)&(cl::herk<TA, TC, alpha_t, beta_t>);
-        task->handles[0] = A;
-        task->handles[1] = C;
+        task->handles[0] = handle[0];
+        task->handles[1] = handle[1];
         task->cl_arg = (void*)args_ptr;
         task->cl_arg_size = sizeof(args_t);
         task->callback_func = [](void* args) noexcept { delete (args_t*)args; };
         task->callback_arg = (void*)args_ptr;
+        // task->synchronous = 1;
 
         // Submit task
         const int ret = starpu_task_submit(task);
         STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+
+        // Clean partition plan
+        A.clean_compatible_handles(handle, C);
     }
 
     template <class TA, class TB, class alpha_t>
@@ -97,8 +113,8 @@ namespace starpu {
                           Op trans,
                           Diag diag,
                           const alpha_t& alpha,
-                          starpu_data_handle_t A,
-                          starpu_data_handle_t B)
+                          const Tile& A,
+                          const Tile& B)
     {
         using args_t = std::tuple<Side, Uplo, Op, Diag, alpha_t>;
 
@@ -115,23 +131,31 @@ namespace starpu {
         std::get<3>(*args_ptr) = diag;
         std::get<4>(*args_ptr) = alpha;
 
+        // Handles
+        starpu_data_handle_t handle[2];
+        A.create_compatible_handles(handle, B);
+
         // Initialize task
         task->cl = (struct starpu_codelet*)&(cl::trsm<TA, TB, alpha_t>);
-        task->handles[0] = A;
-        task->handles[1] = B;
+        task->handles[0] = handle[0];
+        task->handles[1] = handle[1];
         task->cl_arg = (void*)args_ptr;
         task->cl_arg_size = sizeof(args_t);
         task->callback_func = [](void* args) noexcept { delete (args_t*)args; };
         task->callback_arg = (void*)args_ptr;
+        // task->synchronous = 1;
 
         // Submit task
         const int ret = starpu_task_submit(task);
         STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+
+        // Clean partition plan
+        A.clean_compatible_handles(handle, B);
     }
 
     template <class uplo_t, class T>
     void insert_task_potrf(uplo_t uplo,
-                           starpu_data_handle_t A,
+                           const Tile& A,
                            starpu_data_handle_t info = nullptr)
     {
         using args_t = std::tuple<uplo_t>;
@@ -152,19 +176,20 @@ namespace starpu {
         // Initialize task
         task->cl = (struct starpu_codelet*)&(
             has_info ? cl::potrf<uplo_t, T> : cl::potrf_noinfo<uplo_t, T>);
-        task->handles[0] = A;
+        task->handles[0] = A.handle;
         if (has_info) task->handles[1] = info;
         task->cl_arg = (void*)args_ptr;
         task->cl_arg_size = sizeof(args_t);
         task->callback_func = [](void* args) noexcept { delete (args_t*)args; };
         task->callback_arg = (void*)args_ptr;
+        // task->synchronous = 1;
 
         if (use_cusolver) {
             int lwork = 0;
             if (starpu_cuda_worker_get_count() > 0) {
 #ifdef STARPU_HAVE_LIBCUSOLVER
                 const cublasFillMode_t uplo_ = cuda::uplo2cublas(uplo);
-                const int n = starpu_matrix_get_nx(A);
+                const int n = starpu_matrix_get_nx(A.handle);
 
                 if constexpr (std::is_same_v<T, float>) {
                     cusolverDnSpotrf_bufferSize(

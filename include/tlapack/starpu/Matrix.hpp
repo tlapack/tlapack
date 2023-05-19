@@ -17,6 +17,8 @@
 #include <ostream>
 #include <tuple>
 
+#include "tlapack/starpu/filters.hpp"
+
 namespace tlapack {
 
 namespace internal {
@@ -30,8 +32,6 @@ template <typename... Types>
 using real_type = typename internal::real_type_traits<Types..., int>::type;
 
 namespace starpu {
-
-    using idx_t = uint32_t;
 
     namespace internal {
 
@@ -170,15 +170,14 @@ namespace starpu {
         template <typename T>
         struct data;
 
+        struct Tile;
+
         template <class T>
         struct EntryAccess<T, true> {
             // abstract interface
             virtual idx_t nrows() const noexcept = 0;
             virtual idx_t ncols() const noexcept = 0;
-            virtual idx_t nblockrows() const noexcept = 0;
-            virtual idx_t nblockcols() const noexcept = 0;
-            virtual starpu_data_handle_t get_tile_handle(idx_t i,
-                                                         idx_t j) noexcept = 0;
+            virtual data<T> map_to_entry(idx_t i, idx_t j) noexcept = 0;
 
             // operator() and operator[]
 
@@ -192,21 +191,8 @@ namespace starpu {
              */
             constexpr T operator()(idx_t i, idx_t j) const noexcept
             {
-                assert((i >= 0 && i < nrows()) && "Row index out of bounds");
-                assert((j >= 0 && j < ncols()) && "Column index out of bounds");
-
-                const idx_t mb = nblockrows();
-                const idx_t nb = nblockcols();
-                const idx_t pos[2] = {i % mb, j % nb};
-
-                // A is const, but we need to cast away constness to call
-                // get_tile_handle
                 auto& A = const_cast<EntryAccess<T, true>&>(*this);
-
-                const starpu_data_handle_t root_handle =
-                    A.get_tile_handle(i / mb, j / nb);
-
-                return T(data<T>(root_handle, pos));
+                return T(A.map_to_entry(i, j));
             }
 
             /**
@@ -232,10 +218,7 @@ namespace starpu {
             // abstract interface
             virtual idx_t nrows() const noexcept = 0;
             virtual idx_t ncols() const noexcept = 0;
-            virtual idx_t nblockrows() const noexcept = 0;
-            virtual idx_t nblockcols() const noexcept = 0;
-            virtual starpu_data_handle_t get_tile_handle(idx_t i,
-                                                         idx_t j) noexcept = 0;
+            virtual data<T> map_to_entry(idx_t i, idx_t j) noexcept = 0;
 
             // operator() and operator[]
 
@@ -249,17 +232,7 @@ namespace starpu {
              */
             constexpr data<T> operator()(idx_t i, idx_t j) noexcept
             {
-                assert((i >= 0 && i < nrows()) && "Row index out of bounds");
-                assert((j >= 0 && j < ncols()) && "Column index out of bounds");
-
-                const idx_t mb = nblockrows();
-                const idx_t nb = nblockcols();
-                const idx_t pos[2] = {i % mb, j % nb};
-
-                const starpu_data_handle_t root_handle =
-                    get_tile_handle(i / mb, j / nb);
-
-                return data<T>(root_handle, pos);
+                return map_to_entry(i, j);
             }
 
             /**
@@ -795,6 +768,106 @@ namespace starpu {
 
     }  // namespace internal
 
+    struct Tile {
+        starpu_data_handle_t handle, root_handle;
+        bool partition_planned = false;
+
+        idx_t i, j;
+        idx_t m, n;
+
+        Tile(starpu_data_handle_t h,
+             starpu_data_handle_t root_h,
+             idx_t i,
+             idx_t j,
+             idx_t m,
+             idx_t n) noexcept
+            : handle(h), root_handle(root_h), i(i), j(j), m(m), n(n)
+        {}
+
+        ~Tile() noexcept
+        {
+            if (partition_planned)
+                starpu_data_partition_clean(root_handle, 1, &handle);
+        }
+
+        void create_compatible_handles(starpu_data_handle_t* handles,
+                                       const Tile& A) const noexcept
+        {
+            if (root_handle == A.root_handle) {
+                idx_t pos[8] = {i, j, m, n, A.i, A.j, A.m, A.n};
+
+                struct starpu_data_filter f_ntiles = {
+                    .filter_func = filter_ntiles,
+                    .nchildren = 2,
+                    .filter_arg_ptr = (void*)pos};
+
+                starpu_data_partition_plan(root_handle, &f_ntiles, handles);
+            }
+            else {
+                handles[0] = handle;
+                handles[1] = A.handle;
+            }
+        }
+
+        void create_compatible_handles(starpu_data_handle_t* handles,
+                                       const Tile& A,
+                                       const Tile& B) const noexcept
+        {
+            if (root_handle == A.root_handle) {
+                if (root_handle == B.root_handle) {
+                    idx_t pos[12] = {i,   j,   m,   n,   A.i, A.j,
+                                     A.m, A.n, B.i, B.j, B.m, B.n};
+
+                    struct starpu_data_filter f_ntiles = {
+                        .filter_func = filter_ntiles,
+                        .nchildren = 3,
+                        .filter_arg_ptr = (void*)pos};
+
+                    starpu_data_partition_plan(root_handle, &f_ntiles, handles);
+                }
+                else {
+                    create_compatible_handles(handles, A);
+                    handles[2] = B.handle;
+                }
+            }
+            else if (root_handle == B.root_handle) {
+                create_compatible_handles(handles, B);
+                handles[2] = handles[1];
+                handles[1] = A.handle;
+            }
+            else {
+                handles[0] = handle;
+                handles[1] = A.handle;
+                handles[2] = B.handle;
+            }
+        }
+
+        void clean_compatible_handles(starpu_data_handle_t* handles,
+                                      const Tile& A) const noexcept
+        {
+            if (handle != handles[0])
+                starpu_data_partition_clean(root_handle, 2, handles);
+        }
+
+        void clean_compatible_handles(starpu_data_handle_t* handles,
+                                      const Tile& A,
+                                      const Tile& B) const noexcept
+        {
+            if (root_handle == A.root_handle) {
+                if (root_handle == B.root_handle)
+                    starpu_data_partition_clean(root_handle, 3, handles);
+                else
+                    starpu_data_partition_clean(root_handle, 2, handles);
+            }
+            else if (root_handle == B.root_handle) {
+                starpu_data_handle_t aux = handles[1];
+                handles[1] = handles[2];
+                starpu_data_partition_clean(root_handle, 2, handles);
+                handles[1] = aux;
+            }
+        }
+    };
+
     template <class T>
     class Matrix : public internal::EntryAccess<T, std::is_const_v<T>> {
        public:
@@ -806,21 +879,32 @@ namespace starpu {
 
         /// Create a matrix of size m-by-n from a pointer in main memory
         constexpr Matrix(
-            T* ptr, idx_t m, idx_t n, idx_t ld, idx_t nx, idx_t ny) noexcept
+            T* ptr, idx_t m, idx_t n, idx_t ld, idx_t mt, idx_t nt) noexcept
             : pHandle(new starpu_data_handle_t(), [](starpu_data_handle_t* h) {
                   starpu_data_unpartition(*h, STARPU_MAIN_RAM);
                   starpu_data_unregister(*h);
                   delete h;
               })
         {
+            assert(m > 0 && n > 0 && "Invalid matrix size");
+            assert(mt <= m && nt <= n && "Invalid tile size");
+
+            nx = (mt == 0) ? 1 : ((m % mt == 0) ? m / mt : m / mt + 1);
+            ny = (nt == 0) ? 1 : ((n % nt == 0) ? n / nt : n / nt + 1);
+
             starpu_matrix_data_register(pHandle.get(), STARPU_MAIN_RAM,
                                         (uintptr_t)ptr, ld, m, n, sizeof(T));
-            create_grid(nx, ny);
+            create_grid(mt, nt);
+
+            starpu_data_handle_t handleN = starpu_data_get_child(
+                starpu_data_get_child(*pHandle, nx - 1), ny - 1);
+            lastRows = starpu_matrix_get_nx(handleN);
+            lastCols = starpu_matrix_get_ny(handleN);
         }
 
         /// Create a matrix of size m-by-n from contiguous data in main memory
-        constexpr Matrix(T* ptr, idx_t m, idx_t n, idx_t nx, idx_t ny) noexcept
-            : Matrix(ptr, m, n, m, nx, ny)
+        constexpr Matrix(T* ptr, idx_t m, idx_t n, idx_t mt, idx_t nt) noexcept
+            : Matrix(ptr, m, n, m, mt, nt)
         {}
 
         /// Create a submatrix from a handle and a grid
@@ -828,15 +912,27 @@ namespace starpu {
                          idx_t ix,
                          idx_t iy,
                          idx_t nx,
-                         idx_t ny) noexcept
-            : pHandle(pHandle), ix(ix), iy(iy), nx(nx), ny(ny)
+                         idx_t ny,
+                         idx_t row0,
+                         idx_t col0,
+                         idx_t lastRows,
+                         idx_t lastCols) noexcept
+            : pHandle(pHandle),
+              ix(ix),
+              iy(iy),
+              nx(nx),
+              ny(ny),
+              row0(row0),
+              col0(col0),
+              lastRows(lastRows),
+              lastCols(lastCols)
         {}
 
         // Disable copy assignment operator
         Matrix& operator=(const Matrix&) = delete;
 
         // ---------------------------------------------------------------------
-        // Create grid and get tile
+        // Getters
 
         /// Get number of tiles in x direction
         constexpr idx_t get_nx() const noexcept { return nx; }
@@ -853,22 +949,45 @@ namespace starpu {
         /// Get the maximum number of columns of a tile
         constexpr idx_t nblockcols() const noexcept
         {
-            const starpu_data_handle_t x0 = starpu_data_get_child(*pHandle, 0);
-            return starpu_matrix_get_ny((starpu_data_get_nb_children(x0) > 0)
-                                            ? starpu_data_get_child(x0, 0)
-                                            : x0);
+            return starpu_matrix_get_ny(
+                starpu_data_get_child(starpu_data_get_child(*pHandle, 0), 0));
         }
 
         /// Get the data handle of a tile in the matrix or the data handle of
         /// the matrix if it is not partitioned
-        constexpr starpu_data_handle_t get_tile_handle(idx_t i,
-                                                       idx_t j) noexcept
+        constexpr Tile get_tile_handle(idx_t i, idx_t j) noexcept
         {
-            return starpu_data_get_sub_data(*pHandle, 2, ix + i, iy + j);
-        }
+            assert(i >= 0 && j >= 0 && i < nx && j < ny &&
+                   "Invalid tile index");
 
-        // ---------------------------------------------------------------------
-        // Get number of rows and columns
+            starpu_data_handle_t root_handle =
+                starpu_data_get_sub_data(*pHandle, 2, ix + i, iy + j);
+
+            // Collect information about the tile and create a Tile object
+            idx_t m = starpu_matrix_get_nx(root_handle);
+            idx_t n = starpu_matrix_get_ny(root_handle);
+            Tile tile(root_handle, root_handle, 0, 0, m, n);
+
+            // Update information about the tile
+            if (i == 0) tile.i = row0;
+            if (j == 0) tile.j = col0;
+            if (i == nx - 1) tile.m = lastRows;
+            if (j == ny - 1) tile.n = lastCols;
+
+            // Partition the tile if it is not a full tile
+            if (tile.i != 0 || tile.j != 0 || tile.m != m || tile.n != n) {
+                idx_t pos[4] = {tile.i, tile.j, tile.m, tile.n};
+                struct starpu_data_filter f_tile = {
+                    .filter_func = filter_tile,
+                    .nchildren = 1,
+                    .filter_arg_ptr = (void*)pos};
+
+                starpu_data_partition_plan(root_handle, &f_tile, &tile.handle);
+                tile.partition_planned = true;
+            }
+
+            return tile;
+        }
 
         /**
          * @brief Get the number of rows in the matrix
@@ -877,20 +996,10 @@ namespace starpu {
          */
         idx_t nrows() const noexcept
         {
-            const idx_t NX = starpu_data_get_nb_children(*pHandle);
-            if (NX <= 1) {
-                return starpu_matrix_get_nx(*pHandle);
-            }
-            else {
-                const idx_t nb =
-                    starpu_matrix_get_nx(starpu_data_get_child(*pHandle, 0));
-                if (ix + nx < NX)
-                    return nx * nb;
-                else
-                    return (nx - 1) * nb +
-                           starpu_matrix_get_nx(
-                               starpu_data_get_child(*pHandle, NX - 1));
-            }
+            const idx_t mb = nblockrows();
+            if (nx == 1) return lastRows;
+            if (nx == 2) return (mb - row0) + lastRows;
+            return (mb - row0) + (nx - 2) * mb + lastRows;
         }
 
         /**
@@ -900,27 +1009,10 @@ namespace starpu {
          */
         idx_t ncols() const noexcept
         {
-            const idx_t NX = starpu_data_get_nb_children(*pHandle);
-            if (NX <= 1) {
-                return starpu_matrix_get_ny(*pHandle);
-            }
-            else {
-                starpu_data_handle_t x0 = starpu_data_get_child(*pHandle, 0);
-                const idx_t NY = starpu_data_get_nb_children(x0);
-                if (NY <= 1) {
-                    return starpu_matrix_get_ny(x0);
-                }
-                else {
-                    const idx_t nb =
-                        starpu_matrix_get_ny(starpu_data_get_child(x0, 0));
-                    if (iy + ny < NY)
-                        return ny * nb;
-                    else
-                        return (ny - 1) * nb +
-                               starpu_matrix_get_ny(
-                                   starpu_data_get_child(x0, NY - 1));
-                }
-            }
+            const idx_t nb = nblockcols();
+            if (ny <= 1) return lastCols;
+            if (ny <= 2) return (nb - col0) + lastCols;
+            return (nb - col0) + (ny - 2) * nb + lastCols;
         }
 
         // ---------------------------------------------------------------------
@@ -940,14 +1032,26 @@ namespace starpu {
                                       idx_t nx,
                                       idx_t ny) noexcept
         {
-            assert(nx >= 0 && ny >= 0 &&
-                   "Number of tiles must be positive or 0");
-            assert((ix >= 0 && ix + nx <= this->nx) &&
-                   "Submatrix out of bounds");
-            assert((iy >= 0 && iy + ny <= this->ny) &&
-                   "Submatrix out of bounds");
+            const auto [row0, col0, lastRows, lastCols] =
+                _get_tiles_info(ix, iy, nx, ny);
 
-            return Matrix<T>(pHandle, this->ix + ix, this->iy + iy, nx, ny);
+            if (nx == 0) nx = 1;
+            if (ny == 0) ny = 1;
+
+            return Matrix<T>(pHandle, this->ix + ix, this->iy + iy, nx, ny,
+                             row0, col0, lastRows, lastCols);
+        }
+
+        Matrix<T> map_to_tiles(idx_t rowStart,
+                               idx_t rowEnd,
+                               idx_t colStart,
+                               idx_t colEnd) noexcept
+        {
+            const auto [ix, iy, nx, ny, row0, col0, lastRows, lastCols] =
+                _map_to_tiles(rowStart, rowEnd, colStart, colEnd);
+
+            return Matrix<T>(pHandle, this->ix + ix, this->iy + iy, nx, ny,
+                             row0, col0, lastRows, lastCols);
         }
 
         /**
@@ -959,21 +1063,33 @@ namespace starpu {
          * @param[in] nx Number of tiles in x
          * @param[in] ny Number of tiles in y
          *
+         *
          */
         constexpr Matrix<const T> get_const_tiles(idx_t ix,
                                                   idx_t iy,
                                                   idx_t nx,
                                                   idx_t ny) const noexcept
         {
-            assert(nx >= 0 && ny >= 0 &&
-                   "Number of tiles must be positive or 0");
-            assert((ix >= 0 && ix + nx <= this->nx) &&
-                   "Submatrix out of bounds");
-            assert((iy >= 0 && iy + ny <= this->ny) &&
-                   "Submatrix out of bounds");
+            const auto [row0, col0, lastRows, lastCols] =
+                _get_tiles_info(ix, iy, nx, ny);
+
+            if (nx == 0) nx = 1;
+            if (ny == 0) ny = 1;
 
             return Matrix<const T>(pHandle, this->ix + ix, this->iy + iy, nx,
-                                   ny);
+                                   ny, row0, col0, lastRows, lastCols);
+        }
+
+        Matrix<const T> map_to_const_tiles(idx_t rowStart,
+                                           idx_t rowEnd,
+                                           idx_t colStart,
+                                           idx_t colEnd) const noexcept
+        {
+            const auto [ix, iy, nx, ny, row0, col0, lastRows, lastCols] =
+                _map_to_tiles(rowStart, rowEnd, colStart, colEnd);
+
+            return Matrix<T>(pHandle, this->ix + ix, this->iy + iy, nx, ny,
+                             row0, col0, lastRows, lastCols);
         }
 
         // ---------------------------------------------------------------------
@@ -1002,10 +1118,15 @@ namespace starpu {
        private:
         std::shared_ptr<starpu_data_handle_t> pHandle;  ///< Data handle
 
-        const idx_t ix = 0;  ///< Index of the first tile in the x direction
-        const idx_t iy = 0;  ///< Index of the first tile in the y direction
-        idx_t nx = 1;        ///< Number of tiles in the x direction
-        idx_t ny = 1;        ///< Number of tiles in the y direction
+        idx_t ix = 0;  ///< Index of the first tile in the x direction
+        idx_t iy = 0;  ///< Index of the first tile in the y direction
+        idx_t nx = 1;  ///< Number of tiles in the x direction
+        idx_t ny = 1;  ///< Number of tiles in the y direction
+
+        idx_t row0 = 0;      ///< Index of the first row in the first tile
+        idx_t col0 = 0;      ///< Index of the first column in the first tile
+        idx_t lastRows = 0;  ///< Number of rows in the last tile
+        idx_t lastCols = 0;  ///< Number of columns in the last tile
 
         /**
          * @brief Create a grid in the StarPU handle
@@ -1018,26 +1139,112 @@ namespace starpu {
          * @param[in] nx Partitions in x
          * @param[in] ny Partitions in y
          */
-        void create_grid(idx_t nx, idx_t ny) noexcept
+        void create_grid(idx_t mt, idx_t nt) noexcept
         {
-            assert(nx > 0 && ny > 0 && "Number of tiles must be positive");
-
             /* Split into blocks of complete rows first */
             const struct starpu_data_filter row_split = {
-                .filter_func = starpu_matrix_filter_block, .nchildren = nx};
+                .filter_func = filter_rows, .nchildren = nx, .filter_arg = mt};
 
             /* Then split rows into tiles */
             const struct starpu_data_filter col_split = {
-                .filter_func = starpu_matrix_filter_vertical_block,
-                .nchildren = ny};
+                .filter_func = filter_cols, .nchildren = ny, .filter_arg = nt};
 
-            /// TODO: This is not the correct function to use. It only works if
-            /// m is a multiple of nx and n is a multiple of ny. We may need to
-            /// use another filter.
             starpu_data_map_filters(*pHandle, 2, &row_split, &col_split);
+        }
 
-            this->nx = nx;
-            this->ny = ny;
+        internal::data<T> map_to_entry(idx_t i, idx_t j) noexcept override
+        {
+            const idx_t mb = nblockrows();
+            const idx_t nb = nblockcols();
+
+            assert((i >= 0 && i < nrows()) && "Row index out of bounds");
+            assert((j >= 0 && j < ncols()) && "Column index out of bounds");
+
+            const idx_t ix = (i + row0) / mb;
+            const idx_t iy = (j + col0) / nb;
+            const idx_t row = (i + row0) % mb;
+            const idx_t col = (j + col0) % nb;
+
+            // std::cout << "Map to entry: (" << i << ", " << j << ") -> (" <<
+            // ix
+            //           << ", " << iy << ", " << row0 << ", " << col0 << ")\n";
+
+            // const starpu_data_handle_t root_handle =
+            //     starpu_data_get_sub_data(*pHandle, 2, ix, iy);
+            const idx_t pos[2] = {row, col};
+
+            return internal::data<T>(
+                starpu_data_get_sub_data(*pHandle, 2, ix + this->ix,
+                                         iy + this->iy),
+                pos);
+        }
+
+        std::array<idx_t, 4> _get_tiles_info(idx_t ix,
+                                             idx_t iy,
+                                             idx_t nx,
+                                             idx_t ny) const noexcept
+        {
+            assert(ix >= 0 && iy >= 0 && ix + nx <= this->nx &&
+                   iy + ny <= this->ny && "Invalid tile indices");
+            assert(nx >= 0 && ny >= 0 && "Invalid number of tiles");
+
+            const idx_t row0 = (ix == 0) ? this->row0 : 0;
+            const idx_t col0 = (iy == 0) ? this->col0 : 0;
+            const idx_t lastRows =
+                (nx == 0)
+                    ? 0
+                    : ((ix + nx == this->nx) ? this->lastRows : nblockrows());
+            const idx_t lastCols =
+                (ny == 0)
+                    ? 0
+                    : ((iy + ny == this->ny) ? this->lastCols : nblockcols());
+
+            return {row0, col0, lastRows, lastCols};
+        }
+
+        std::array<idx_t, 8> _map_to_tiles(idx_t rowStart,
+                                           idx_t rowEnd,
+                                           idx_t colStart,
+                                           idx_t colEnd) const noexcept
+        {
+            const idx_t mb = this->nblockrows();
+            const idx_t nb = this->nblockcols();
+            const idx_t nrows = rowEnd - rowStart;
+            const idx_t ncols = colEnd - colStart;
+
+            assert(rowStart >= 0 && colStart >= 0 &&
+                   "Submatrix starts before the beginning of the matrix");
+            assert(rowEnd >= rowStart && colEnd >= colStart &&
+                   "Submatrix has negative dimensions");
+            assert(rowEnd <= this->nrows() && colEnd <= this->ncols() &&
+                   "Submatrix ends after the end of the matrix");
+
+            const idx_t ix = (rowStart + this->row0) / mb;
+            const idx_t iy = (colStart + this->col0) / nb;
+            const idx_t row0 = (rowStart + this->row0) % mb;
+            const idx_t col0 = (colStart + this->col0) % nb;
+
+            const idx_t nx = (nrows == 0) ? 1 : (row0 + nrows - 1) / mb + 1;
+            const idx_t ny = (ncols == 0) ? 1 : (col0 + ncols - 1) / nb + 1;
+
+            const idx_t lastRows =
+                (nx == 1) ? nrows : (row0 + nrows - 1) % mb + 1;
+            const idx_t lastCols =
+                (ny == 1) ? ncols : (col0 + ncols - 1) % nb + 1;
+            // (nx <= 1) ? nrows : ((rowEnd - 1) + this->row0) % mb + 1;
+
+            // const idx_t lastCols =
+            //     (ny <= 1) ? ncols : ((colEnd - 1) + this->col0) % nb + 1;
+
+            // std::cout << "Map to tiles: (" << rowStart << ", " << rowEnd <<
+            // ", "
+            //           << colStart << ", " << colEnd << ") -> (" << ix << ", "
+            //           << iy << ", " << nx << ", " << ny << ", " << row0 << ",
+            //           "
+            //           << col0 << ", " << lastRows << ", " << lastCols <<
+            //           ")\n";
+
+            return {ix, iy, nx, ny, row0, col0, lastRows, lastCols};
         }
     };
 
