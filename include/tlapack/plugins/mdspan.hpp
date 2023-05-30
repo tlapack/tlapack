@@ -226,6 +226,17 @@ namespace internal {
             return matrix_t((ET*)W.data(), std::move(map));
         }
     };
+
+    template <class ET, class Exts, class LP, class AP>
+    struct real_type_traits<std::experimental::mdspan<ET, Exts, LP, AP>, int> {
+        using type = std::experimental::mdspan<real_type<ET>, Exts, LP, AP>;
+    };
+
+    template <class ET, class Exts, class LP, class AP>
+    struct complex_type_traits<std::experimental::mdspan<ET, Exts, LP, AP>,
+                               int> {
+        using type = std::experimental::mdspan<complex_type<ET>, Exts, LP, AP>;
+    };
 }  // namespace internal
 
 // -----------------------------------------------------------------------------

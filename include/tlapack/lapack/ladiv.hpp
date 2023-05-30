@@ -35,7 +35,7 @@ namespace tlapack {
 template <typename real_t,
           enable_if_t<(
                           /* Requires: */
-                          !is_complex<real_t>::value),
+                          is_real<real_t>::value),
                       int> = 0>
 void ladiv(const real_t& a,
            const real_t& b,

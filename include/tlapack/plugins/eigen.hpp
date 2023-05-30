@@ -18,6 +18,11 @@
 
 namespace tlapack {
 
+template <>
+struct is_arithmetic<Eigen::half, int> {
+    static constexpr bool value = true;
+};
+
 // Forward declarations
 template <typename T>
 T abs(const T& x);
@@ -253,6 +258,34 @@ namespace internal {
                     Stride((W.isContiguous()) ? m : W.getLdim() / sizeof(T)));
             }
         }
+    };
+
+    template <class matrix_t>
+    struct real_type_traits<
+        matrix_t,
+        typename std::enable_if<internal::is_eigen_dense<matrix_t>,
+                                int>::type> {
+        using type = Eigen::Matrix<real_type<typename matrix_t::Scalar>,
+                                   matrix_t::RowsAtCompileTime,
+                                   matrix_t::ColsAtCompileTime,
+                                   matrix_t::IsRowMajor ? Eigen::RowMajor
+                                                        : Eigen::ColMajor,
+                                   matrix_t::MaxRowsAtCompileTime,
+                                   matrix_t::MaxColsAtCompileTime>;
+    };
+
+    template <class matrix_t>
+    struct complex_type_traits<
+        matrix_t,
+        typename std::enable_if<internal::is_eigen_dense<matrix_t>,
+                                int>::type> {
+        using type = Eigen::Matrix<complex_type<typename matrix_t::Scalar>,
+                                   matrix_t::RowsAtCompileTime,
+                                   matrix_t::ColsAtCompileTime,
+                                   matrix_t::IsRowMajor ? Eigen::RowMajor
+                                                        : Eigen::ColMajor,
+                                   matrix_t::MaxRowsAtCompileTime,
+                                   matrix_t::MaxColsAtCompileTime>;
     };
 }  // namespace internal
 

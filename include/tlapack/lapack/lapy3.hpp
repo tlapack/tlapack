@@ -33,8 +33,8 @@ template <class TX,
           class TZ,
           enable_if_t<(
                           /* Requires: */
-                          !is_complex<TX>::value && !is_complex<TY>::value &&
-                          !is_complex<TZ>::value),
+                          is_real<TX>::value && is_real<TY>::value &&
+                          is_real<TZ>::value),
                       int> = 0>
 real_type<TX, TY, TZ> lapy3(const TX& x, const TY& y, const TZ& z)
 {

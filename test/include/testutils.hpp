@@ -48,7 +48,7 @@ class rand_generator {
     }
 };
 
-template <typename T, enable_if_t<!is_complex<T>::value, bool> = true>
+template <typename T, enable_if_t<is_real<T>::value, bool> = true>
 T rand_helper(rand_generator& gen)
 {
     return T(static_cast<float>(gen()) / static_cast<float>(gen.max()));
@@ -63,7 +63,7 @@ T rand_helper(rand_generator& gen)
     return complex_type<real_t>(r1, r2);
 }
 
-template <typename T, enable_if_t<!is_complex<T>::value, bool> = true>
+template <typename T, enable_if_t<is_real<T>::value, bool> = true>
 T rand_helper()
 {
     return T(static_cast<float>(rand()) / static_cast<float>(RAND_MAX));

@@ -127,6 +127,7 @@ int unm2l(side_t side,
           matrixC_t& C,
           const workspace_opts_t<>& opts = {})
 {
+    using TA = type_t<matrixA_t>;
     using idx_t = size_type<matrixA_t>;
     using pair = std::pair<idx_t, idx_t>;
 
@@ -140,7 +141,7 @@ int unm2l(side_t side,
     tlapack_check_false(side != Side::Left && side != Side::Right);
     tlapack_check_false(trans != Op::NoTrans && trans != Op::Trans &&
                         trans != Op::ConjTrans);
-    tlapack_check_false(trans == Op::Trans && is_complex<matrixA_t>::value);
+    tlapack_check_false(trans == Op::Trans && is_complex<TA>::value);
 
     // quick return
     if ((m == 0) || (n == 0) || (k == 0)) return 0;

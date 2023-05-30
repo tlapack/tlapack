@@ -96,7 +96,7 @@ void larfg(storage_t storeMode,
 
     if (xnorm > zero || (imag(alpha) != zero)) {
         // First estimate of beta
-        real_t temp = (!is_complex<T>::value)
+        real_t temp = (is_real<T>::value)
                           ? lapy2(real(alpha), xnorm)
                           : lapy3(real(alpha), imag(alpha), xnorm);
         real_t beta = (real(alpha) < zero) ? temp : -temp;
@@ -111,9 +111,8 @@ void larfg(storage_t storeMode,
                 alpha *= rsafemin;
             }
             xnorm = nrm2(x);
-            temp = (!is_complex<T>::value)
-                       ? lapy2(real(alpha), xnorm)
-                       : lapy3(real(alpha), imag(alpha), xnorm);
+            temp = (is_real<T>::value) ? lapy2(real(alpha), xnorm)
+                                       : lapy3(real(alpha), imag(alpha), xnorm);
             beta = (real(alpha) < zero) ? temp : -temp;
         }
 

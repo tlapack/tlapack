@@ -50,7 +50,7 @@ TEMPLATE_TEST_CASE("Generation of Householder reflectors",
         GENERATE(as<std::string>{}, "direction,v", "alpha,x");
 
     // Skip tests with invalid parameters
-    if (typeAlpha == "Complex" && !is_complex<T>::value) return;
+    if (typeAlpha == "Complex" && is_real<T>::value) return;
 
     // Vectors
     std::vector<T> v_;

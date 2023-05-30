@@ -17,12 +17,19 @@
 namespace tlapack {
 
 // Forward declarations
+template <class T, class>
+struct is_arithmetic;
 template <typename T>
 T abs(const T& x);
 template <typename T>
 bool isnan(const std::complex<T>& x);
 template <typename T>
 bool isinf(const std::complex<T>& x);
+
+template <>
+struct is_arithmetic<mpfr::mpreal, int> {
+    static constexpr bool value = true;
+};
 
 /// Absolute value
 template <>

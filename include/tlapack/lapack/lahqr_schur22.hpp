@@ -47,7 +47,7 @@ namespace tlapack {
  *
  * @ingroup auxiliary
  */
-template <typename T, enable_if_t<!is_complex<T>::value, bool> = true>
+template <typename T, enable_if_t<is_real<T>::value, bool> = true>
 int lahqr_schur22(T& a,
                   T& b,
                   T& c,

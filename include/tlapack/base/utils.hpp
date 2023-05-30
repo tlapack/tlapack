@@ -58,19 +58,14 @@ inline constexpr bool is_same_v = std::is_same<T, U>::value;
 #endif
 
 //------------------------------------------------------------------------------
-/// True if T is complex_type<T>
-template <typename T>
-struct is_complex {
-    static constexpr bool value = is_same_v<complex_type<T>, T>;
-};
 
-template <typename T, enable_if_t<!is_complex<T>::value, int> = 0>
+template <typename T, enable_if_t<is_real<T>::value, int> = 0>
 inline constexpr real_type<T> real(const T& x)
 {
     return x;
 }
 
-template <typename T, enable_if_t<!is_complex<T>::value, int> = 0>
+template <typename T, enable_if_t<is_real<T>::value, int> = 0>
 inline constexpr real_type<T> imag(const T& x)
 {
     return real_type<T>(0);
@@ -90,8 +85,8 @@ inline constexpr real_type<T> imag(const T& x)
  * @note C++11 to C++17 returns complex<real_t> instead of real_t. @see
  * std::conj
  */
-template <typename real_t, enable_if_t<!is_complex<real_t>::value, int> = 0>
-inline constexpr real_t conj(const real_t& x)
+template <typename T, enable_if_t<is_real<T>::value, int> = 0>
+inline constexpr T conj(const T& x)
 {
     return x;
 }

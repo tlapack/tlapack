@@ -288,7 +288,7 @@ void agressive_early_deflation(bool want_t,
     idx_t ilst = infqr;
     while (ilst < ns) {
         bool bulge = false;
-        if (!is_complex<T>::value)
+        if (is_real<T>::value)
             if (ns > 1)
                 if (TW(ns - 1, ns - 2) != zero) bulge = true;
 
@@ -358,7 +358,7 @@ void agressive_early_deflation(bool want_t,
         while (i1 + 1 < sorting_window_size) {
             // Size of the first block
             idx_t n1 = 1;
-            if (!is_complex<T>::value)
+            if (is_real<T>::value)
                 if (TW(i1 + 1, i1) != zero) n1 = 2;
 
             // Check if there is a next block
@@ -372,7 +372,7 @@ void agressive_early_deflation(bool want_t,
 
             // Size of the second block
             idx_t n2 = 1;
-            if (!is_complex<T>::value)
+            if (is_real<T>::value)
                 if (i2 + 1 < jw)
                     if (TW(i2 + 1, i2) != zero) n2 = 2;
 
@@ -410,7 +410,7 @@ void agressive_early_deflation(bool want_t,
     idx_t i = 0;
     while (i < jw) {
         idx_t n1 = 1;
-        if (!is_complex<T>::value)
+        if (is_real<T>::value)
             if (i + 1 < jw)
                 if (TW(i + 1, i) != zero) n1 = 2;
 

@@ -27,7 +27,7 @@ template <class TX,
           class TY,
           enable_if_t<(
                           /* Requires: */
-                          !is_complex<TX>::value && !is_complex<TY>::value),
+                          is_real<TX>::value && is_real<TY>::value),
                       int> = 0>
 real_type<TX, TY> lapy2(const TX& x, const TY& y)
 {
