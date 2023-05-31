@@ -86,13 +86,13 @@ void rscl(const alpha_t& alpha, vector_t& x)
     const real_t absR = abs(alphaR);
     const real_t absI = abs(alphaI);
 
-    if (absI == zero) {
+    if (alphaI == zero) {
         // If alpha is real, then we can use another routine.
         // std::cout << "absI == zero" << std::endl;
         rscl(alphaR, x);
     }
 
-    else if (absR == zero) {
+    else if (alphaR == zero) {
         // If alpha has a zero real part, then we follow the same rules as if
         // alpha were real.
         if (absI > safeMax) {
@@ -107,53 +107,56 @@ void rscl(const alpha_t& alpha, vector_t& x)
             scal(alpha_t(zero, -one / alphaI), x);
     }
 
-    else if (absR >= safeMax || absI >= safeMax) {
-        // Either real or imaginary part is too large.
-        const alpha_t invAlpha = ladiv(alpha_t(safeMax), alpha);
-        scal(safeMin, x);
-        scal(invAlpha, x);
-    }
-
     else {
-        // The following numbers can be computed without NaNs and zeros.
-        // They do not overflow simultaneously.
+        // The following numbers can be computed.
         // They are the inverse of the real and imaginary parts of 1/alpha.
-        const real_t a = alphaR + alphaI * (alphaI / alphaR);
-        const real_t b = alphaI + alphaR * (alphaR / alphaI);
+        // Note that a and b are always different from zero.
+        // NaNs are only possible if either:
+        // 1. alphaR or alphaI is NaN.
+        // 2. alphaR and alphaI are both infinite, in which case it makes sense
+        // to propagate a NaN.
+        real_t a = alphaR + alphaI * (alphaI / alphaR);
+        real_t b = alphaI + alphaR * (alphaR / alphaI);
 
         if (abs(a) < safeMin || abs(b) < safeMin) {
-            const alpha_t invAlpha(safeMin / a, -safeMin / b);
-            scal(invAlpha, x);
+            // This means that both alphaR and alphaI are very small.
+            scal(alpha_t(safeMin / a, -safeMin / b), x);
             scal(safeMax, x);
         }
-        else if (isinf(a)) {
-            const real_t aScaled =
-                (absR >= absI) ? (safeMin * alphaR) +
-                                     alphaI * (safeMin * (alphaI / alphaR))
-                               : (safeMin * alphaR) +
-                                     alphaI * ((safeMin * alphaI) / alphaR);
-            const alpha_t invAlpha(one / aScaled, -safeMax / b);
-            scal(safeMin, x);
-            scal(invAlpha, x);
-        }
-        else if (isinf(b)) {
-            const real_t bScaled =
-                (absI >= absR) ? (safeMin * alphaI) +
-                                     alphaR * (safeMin * (alphaR / alphaI))
-                               : (safeMin * alphaI) +
-                                     alphaR * ((safeMin * alphaR) / alphaI);
-            const alpha_t invAlpha(safeMax / a, -one / bScaled);
-            scal(safeMin, x);
-            scal(invAlpha, x);
-        }
         else if (abs(a) > safeMax || abs(b) > safeMax) {
-            const alpha_t invAlpha(safeMax / a, -safeMax / b);
-            scal(safeMin, x);
-            scal(invAlpha, x);
+            if (isinf(alphaR) || isinf(alphaI)) {
+                // This means that a and b are both Inf. No need for scaling.
+                // Propagates zero.
+                scal(alpha_t(one / a, -one / b), x);
+            }
+            else {
+                scal(safeMin, x);
+                if (isinf(a) || isinf(b)) {
+                    // Infs were generated. We do proper scaling to avoid them.
+                    if (absR >= absI) {
+                        // |a| <= |b|
+                        a = (safeMin * alphaR) +
+                            safeMin * (alphaI * (alphaI / alphaR));
+                        b = (safeMin * alphaI) +
+                            alphaR * ((safeMin * alphaR) / alphaI);
+                    }
+                    else {
+                        // |a| > |b|
+                        a = (safeMin * alphaR) +
+                            alphaI * ((safeMin * alphaI) / alphaR);
+                        b = (safeMin * alphaI) +
+                            safeMin * (alphaR * (alphaR / alphaI));
+                    }
+                    scal(alpha_t(one / a, -one / b), x);
+                }
+                else {
+                    scal(alpha_t(safeMax / a, -safeMax / b), x);
+                }
+            }
         }
         else {
-            const alpha_t invAlpha(one / a, -one / b);
-            scal(invAlpha, x);
+            // No overflow or underflow.
+            scal(alpha_t(one / a, -one / b), x);
         }
     }
 }
