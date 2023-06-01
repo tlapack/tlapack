@@ -112,30 +112,17 @@ struct NaNPropagComplex : public std::complex<T> {
     }
 };
 
-template <typename T>
-struct real_type_traits<NaNPropagComplex<T>> {
-    using type = T;
-};
+namespace internal {
+    template <typename T>
+    struct real_type_traits<NaNPropagComplex<T>, int> {
+        using type = real_type<T>;
+    };
 
-template <typename T>
-struct complex_type_traits<NaNPropagComplex<T>> {
-    using type = NaNPropagComplex<T>;
-};
-
-template <typename T1, typename T2>
-struct scalar_type_traits<NaNPropagComplex<T1>, T2> {
-    using type = NaNPropagComplex<typename std::common_type<T1, T2>::type>;
-};
-
-template <typename T1, typename T2>
-struct scalar_type_traits<T1, NaNPropagComplex<T2>> {
-    using type = NaNPropagComplex<typename std::common_type<T1, T2>::type>;
-};
-
-template <typename T1, typename T2>
-struct scalar_type_traits<NaNPropagComplex<T1>, NaNPropagComplex<T2>> {
-    using type = NaNPropagComplex<typename std::common_type<T1, T2>::type>;
-};
+    template <typename T>
+    struct complex_type_traits<NaNPropagComplex<T>, int> {
+        using type = NaNPropagComplex<real_type<T>>;
+    };
+}  // namespace internal
 
 template <typename T>
 inline T abs(const NaNPropagComplex<T>& x)
