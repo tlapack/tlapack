@@ -27,6 +27,12 @@ namespace starpu {
     {
         using args_t = std::tuple<Op, Op, alpha_t, beta_t>;
 
+        // check sizes
+        tlapack_check(C.m == (transA == Op::NoTrans ? A.m : A.n));
+        tlapack_check(C.n == (transB == Op::NoTrans ? B.n : B.m));
+        tlapack_check((transA == Op::NoTrans ? A.n : A.m) ==
+                      (transB == Op::NoTrans ? B.m : B.n));
+
         // Allocate space for the task
         struct starpu_task* task = starpu_task_create();
 
@@ -73,6 +79,10 @@ namespace starpu {
     {
         using args_t = std::tuple<Uplo, Op, alpha_t, beta_t>;
 
+        // check sizes
+        tlapack_check(C.m == C.n);
+        tlapack_check(C.m == (trans == Op::NoTrans ? A.m : A.n));
+
         // Allocate space for the task
         struct starpu_task* task = starpu_task_create();
 
@@ -118,6 +128,10 @@ namespace starpu {
     {
         using args_t = std::tuple<Side, Uplo, Op, Diag, alpha_t>;
 
+        // check sizes
+        tlapack_check(A.m == A.n);
+        tlapack_check(A.m == ((side == Side::Left) ? B.m : B.n));
+
         // Allocate space for the task
         struct starpu_task* task = starpu_task_create();
 
@@ -160,6 +174,9 @@ namespace starpu {
     {
         using args_t = std::tuple<uplo_t>;
         constexpr bool use_cusolver = cuda::is_cusolver_v<T>;
+
+        // check sizes
+        tlapack_check(A.m == A.n);
 
         // constants
         const bool has_info = (info != nullptr);

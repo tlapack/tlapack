@@ -23,16 +23,17 @@ int main(int argc, char** argv)
     using namespace tlapack;
     using starpu::Matrix;
     using T = float;
+    using pair = std::pair<size_t, size_t>;
 
     srand(3);
     T u = tlapack::uroundoff<T>();
 
-    size_t m = 21;
-    size_t n = 10;
-    size_t k = 6;
-    size_t r = 7;
-    size_t s = 5;
-    size_t t = 3;
+    size_t m = 4;
+    size_t n = 4;
+    size_t k = 3;
+    size_t r = 4;
+    size_t s = 4;
+    size_t t = 2;
 
     if (argc > 1) m = atoi(argv[1]);
     if (argc > 2) n = atoi(argv[2]);
@@ -44,22 +45,27 @@ int main(int argc, char** argv)
         (t == 0)) {
         std::cout << "Usage: " << argv[0] << " [m] [n] [k] [r] [s]"
                   << std::endl;
-        std::cout << "  m:      number of rows of C (default: 21)" << std::endl;
-        std::cout << "  n:      number of columns of C (default: 10)"
+        std::cout << "  m:      number of rows of C (default: 4)" << std::endl;
+        std::cout << "  n:      number of columns of C (default: 4)"
                   << std::endl;
         std::cout << "  k:      number of columns of A and rows of B "
-                     "(default: 6)"
+                     "(default: 3)"
                   << std::endl;
         std::cout << "  r:      number of tiles along the row dimension of C "
-                     "(default: 7)."
+                     "(default: 4)."
                   << std::endl;
         std::cout << "  s:      number of tiles along the col dimension of C "
-                     "(default: 5).";
+                     "(default: 4).";
         std::cout << "  t:      number of tiles along the col dimension of A "
-                     "(default: 3)."
+                     "(default: 2)."
                   << std::endl;
         return 1;
     }
+
+    // for test purposes
+    size_t d1 = 1;
+    size_t d2 = 1;
+    size_t d3 = 1;
 
     // Print input parameters
     std::cout << "m = " << m << std::endl;
@@ -80,59 +86,78 @@ int main(int argc, char** argv)
 
     /* allocate data */
     T *A_, *B_, *C_;
-    starpu_malloc((void**)&A_, m * k * sizeof(T));
-    starpu_malloc((void**)&B_, k * n * sizeof(T));
-    starpu_malloc((void**)&C_, m * n * sizeof(T));
+    starpu_malloc((void**)&A_, (m + d1) * (k + d3) * sizeof(T));
+    starpu_malloc((void**)&B_, (k + d3) * (n + d2) * sizeof(T));
+    starpu_malloc((void**)&C_, (m + d1) * (n + d2) * sizeof(T));
+
+    /* initialize data with garbage*/
+    for (size_t i = 0; i < (m + d1) * (k + d3); i++)
+        A_[i] = T(0xbeefdead);
+    for (size_t i = 0; i < (k + d3) * (n + d2); i++)
+        B_[i] = T(0xdeaddead);
+    for (size_t i = 0; i < (m + d1) * (n + d2); i++)
+        C_[i] = T(0xdeadbeef);
 
     {
         /* create matrix A */
-        for (size_t i = 0; i < m * k; i++) {
-            A_[i] = T((float)rand() / RAND_MAX);
-        }
-        Matrix<T> A(A_, m, k, r, t);
+        for (size_t j = 0; j < k; j++)
+            for (size_t i = 0; i < m; i++)
+                A_[(j + d3) * (m + d1) + (i + d1)] = 10 * i + j + 1;
+        Matrix<T> Abig(A_, m + d1, k + d3, r, t);
+        auto A = slice(Abig, pair{d1, m + d1}, pair{d3, k + d3});
 
         /* create matrix B */
-        for (size_t i = 0; i < k * n; i++) {
-            B_[i] = T((float)rand() / RAND_MAX);
-        }
-        Matrix<T> B(B_, k, n, t, s);
+        for (size_t j = 0; j < n; j++)
+            for (size_t i = 0; i < k; i++)
+                B_[(j + d2) * (k + d3) + (i + d3)] = 10 * i + j + 1;
+        Matrix<T> Bbig(B_, k + d3, n + d2, t, s);
+        auto B = slice(Bbig, pair{d3, k + d3}, pair{d2, n + d2});
 
         /* create matrix C */
-        for (size_t i = 0; i < m * n; i++) {
-            C_[i] = T(0xdeadbeef);
-        }
-        Matrix<T> C(C_, m, n, r, s);
+        Matrix<T> Cbig(C_, m + d1, n + d2, r, s);
+        auto C = slice(Cbig, pair{d1, m + d1}, pair{d2, n + d2});
+
+        std::cout << "Abig = " << Abig << std::endl;
+        std::cout << "A = " << A << std::endl;
+        std::cout << "Bbig = " << Bbig << std::endl;
+        std::cout << "B = " << B << std::endl;
 
         /* GEMM */
         gemm(noTranspose, noTranspose, T(1), A, B, C);
+
+        std::cout << "A = " << A << std::endl;
+        std::cout << "B = " << B << std::endl;
+        std::cout << "C = " << C << std::endl;
 
         /* check the result */
         for (size_t i = 0; i < m; ++i)
             for (size_t j = 0; j < n; ++j)
                 for (size_t l = 0; l < k; ++l)
                     C(i, j) -= A(i, l) * B(l, j);
-    }
 
-    T componentwise_relerror = 0;
-    for (size_t i = 0; i < m; ++i) {
-        for (size_t j = 0; j < n; ++j) {
-            T aux = 0;
-            for (size_t l = 0; l < k; ++l)
-                aux += std::abs(A_[i + l * m] * B_[l + j * k]);
-            componentwise_relerror =
-                max(componentwise_relerror, std::abs(C_[i + j * m]) / aux);
+        // std::cout << "C = " << C << std::endl;
+
+        T componentwise_relerror = 0;
+        for (size_t i = 0; i < m; ++i) {
+            for (size_t j = 0; j < n; ++j) {
+                T aux = 0;
+                for (size_t l = 0; l < k; ++l)
+                    aux += std::abs(A(i, l) * B(l, j));
+                componentwise_relerror =
+                    max(componentwise_relerror, std::abs(C(i, j)) / aux);
+            }
         }
-    }
 
-    /* print the error */
-    std::cout << "componentwise rel. error = " << componentwise_relerror
-              << std::endl;
-    std::cout << "gammak = " << (k * u) / (1 - k * u) << std::endl;
+        /* print the error */
+        std::cout << "componentwise rel. error = " << componentwise_relerror
+                  << std::endl;
+        std::cout << "gammak = " << (k * u) / (1 - k * u) << std::endl;
+    }
 
     /* free data */
-    starpu_free_noflag(A_, m * k * sizeof(T));
-    starpu_free_noflag(B_, k * n * sizeof(T));
-    starpu_free_noflag(C_, m * n * sizeof(T));
+    starpu_free_noflag(A_, (m + d1) * (k + d3) * sizeof(T));
+    starpu_free_noflag(B_, (k + d3) * (n + d2) * sizeof(T));
+    starpu_free_noflag(C_, (m + d1) * (n + d2) * sizeof(T));
 
     /* terminate StarPU */
     starpu_cublas_shutdown();

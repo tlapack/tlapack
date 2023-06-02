@@ -136,9 +136,9 @@ int main(int argc, char** argv)
     // initialize random seed
     srand(3);
 
-    idx_t n = 5;
-    idx_t nt = 4;
-    idx_t nb = nt;
+    idx_t n = 100;
+    idx_t nt = 23;
+    idx_t nb = 20;
     int precision = 0b0001;
     bool check_error = true;
 
