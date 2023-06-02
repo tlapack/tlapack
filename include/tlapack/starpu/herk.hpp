@@ -40,7 +40,6 @@ void herk(Uplo uplo,
     if (k == 0 && beta == one) return;
 
     // check arguments
-    tlapack_check(k != 0); /// TODO: Implement this case
     tlapack_check_false(uplo != Uplo::Lower && uplo != Uplo::Upper &&
                         uplo != Uplo::General);
     tlapack_check_false(trans != Op::NoTrans && trans != Op::ConjTrans);
@@ -55,10 +54,9 @@ void herk(Uplo uplo,
     if (trans == Op::NoTrans) {
         for (idx_t ix = 0; ix < nx; ++ix) {
             // Update diagonal tile of C
-            if (ny > 0)
-                starpu::insert_task_herk<TA, TC>(
-                    uplo, trans, alpha, A_.get_tile_handle(ix, 0), beta,
-                    C.get_tile_handle(ix, ix));
+            starpu::insert_task_herk<TA, TC>(uplo, trans, alpha,
+                                             A_.get_tile_handle(ix, 0), beta,
+                                             C.get_tile_handle(ix, ix));
             for (idx_t iy = 1; iy < ny; ++iy)
                 starpu::insert_task_herk<TA, TC>(
                     uplo, trans, alpha, A_.get_tile_handle(ix, iy), one,
@@ -80,10 +78,9 @@ void herk(Uplo uplo,
     else {  // trans == Op::ConjTrans
         for (idx_t ix = 0; ix < nx; ++ix) {
             // Update diagonal tile of C
-            if (ny > 0)
-                starpu::insert_task_herk<TA, TC>(
-                    uplo, trans, alpha, A_.get_tile_handle(0, ix), beta,
-                    C.get_tile_handle(ix, ix));
+            starpu::insert_task_herk<TA, TC>(uplo, trans, alpha,
+                                             A_.get_tile_handle(0, ix), beta,
+                                             C.get_tile_handle(ix, ix));
             for (idx_t iy = 1; iy < ny; ++iy)
                 starpu::insert_task_herk<TA, TC>(
                     uplo, trans, alpha, A_.get_tile_handle(iy, ix), one,

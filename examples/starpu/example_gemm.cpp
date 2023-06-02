@@ -25,33 +25,38 @@ int main(int argc, char** argv)
     using T = float;
 
     srand(3);
+    T u = tlapack::uroundoff<T>();
 
-    size_t m = 100;
-    size_t n = 50;
-    size_t k = 10;
-    size_t r = 20;
-    size_t s = 10;
+    size_t m = 21;
+    size_t n = 10;
+    size_t k = 6;
+    size_t r = 7;
+    size_t s = 5;
+    size_t t = 3;
 
     if (argc > 1) m = atoi(argv[1]);
     if (argc > 2) n = atoi(argv[2]);
     if (argc > 3) k = atoi(argv[3]);
     if (argc > 4) r = atoi(argv[4]);
     if (argc > 5) s = atoi(argv[5]);
-    if (argc > 6 || (m % r != 0) || (n % s != 0) || (r > m) || (s > n) ||
-        (r == 0) || (s == 0)) {
+    if (argc > 6) t = atoi(argv[6]);
+    if (argc > 7 || (r > m) || (s > n) || (t > k) || (r == 0) || (s == 0) ||
+        (t == 0)) {
         std::cout << "Usage: " << argv[0] << " [m] [n] [k] [r] [s]"
                   << std::endl;
-        std::cout << "  m:      number of rows of C (default: 14)" << std::endl;
-        std::cout << "  n:      number of columns of C (default: 7)"
+        std::cout << "  m:      number of rows of C (default: 21)" << std::endl;
+        std::cout << "  n:      number of columns of C (default: 10)"
                   << std::endl;
         std::cout << "  k:      number of columns of A and rows of B "
                      "(default: 6)"
                   << std::endl;
-        std::cout << "  r:      number of tiles in x (rows) direction of C "
-                     "(default: 14)."
-                  << std::endl;
-        std::cout << "  s:      number of tiles in y (columns) direction of C "
+        std::cout << "  r:      number of tiles along the row dimension of C "
                      "(default: 7)."
+                  << std::endl;
+        std::cout << "  s:      number of tiles along the col dimension of C "
+                     "(default: 5).";
+        std::cout << "  t:      number of tiles along the col dimension of A "
+                     "(default: 3)."
                   << std::endl;
         return 1;
     }
@@ -61,7 +66,8 @@ int main(int argc, char** argv)
     std::cout << "n = " << n << std::endl;
     std::cout << "k = " << k << std::endl;
     std::cout << "r = " << r << std::endl;
-    std::cout << "s = " << s << std::endl << std::endl;
+    std::cout << "s = " << s << std::endl;
+    std::cout << "t = " << t << std::endl << std::endl;
 
     /* initialize StarPU */
     setenv("STARPU_CODELET_PROFILING", "0", 1);
@@ -83,13 +89,13 @@ int main(int argc, char** argv)
         for (size_t i = 0; i < m * k; i++) {
             A_[i] = T((float)rand() / RAND_MAX);
         }
-        Matrix<T> A(A_, m, k, r, 1);
+        Matrix<T> A(A_, m, k, r, t);
 
         /* create matrix B */
         for (size_t i = 0; i < k * n; i++) {
             B_[i] = T((float)rand() / RAND_MAX);
         }
-        Matrix<T> B(B_, k, n, 1, s);
+        Matrix<T> B(B_, k, n, t, s);
 
         /* create matrix C */
         for (size_t i = 0; i < m * n; i++) {
@@ -107,10 +113,21 @@ int main(int argc, char** argv)
                     C(i, j) -= A(i, l) * B(l, j);
     }
 
+    T componentwise_relerror = 0;
+    for (size_t i = 0; i < m; ++i) {
+        for (size_t j = 0; j < n; ++j) {
+            T aux = 0;
+            for (size_t l = 0; l < k; ++l)
+                aux += std::abs(A_[i + l * m] * B_[l + j * k]);
+            componentwise_relerror =
+                max(componentwise_relerror, std::abs(C_[i + j * m]) / aux);
+        }
+    }
+
     /* print the error */
-    std::cout << *std::max_element(C_, C_ + m * n, [](T a, T b) {
-        return std::abs(a) < std::abs(b);
-    }) << std::endl;
+    std::cout << "componentwise rel. error = " << componentwise_relerror
+              << std::endl;
+    std::cout << "gammak = " << (k * u) / (1 - k * u) << std::endl;
 
     /* free data */
     starpu_free_noflag(A_, m * k * sizeof(T));

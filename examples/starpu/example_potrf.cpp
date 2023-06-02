@@ -7,10 +7,12 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-// Plugins for <T>LAPACK (must come before <T>LAPACK headers)
-#include <tlapack/plugins/starpu.hpp>
+#include <starpu.h>
 #include <starpu_cublas_v2.h>
 #include <starpu_cusolver.h>
+
+// Plugins for <T>LAPACK (must come before <T>LAPACK headers)
+#include <tlapack/plugins/starpu.hpp>
 
 // <T>LAPACK headers
 #include <tlapack/lapack/lange.hpp>
@@ -90,8 +92,10 @@ int run(idx_t n, idx_t nt, idx_t nb, bool check_error = false)
         if (check_error) {
             // Solve U^H U B = A_init
             Matrix<T> B(B_, n, n, nt, nt);
+            // std::cout << "B = " << B << std::endl;
             trsm<Matrix<T>>(left_side, upperTriangle, conjTranspose,
                             nonUnit_diagonal, one, A, B);
+            // std::cout << "B = " << B << std::endl;
             trsm<Matrix<T>>(left_side, upperTriangle, noTranspose,
                             nonUnit_diagonal, one, A, B);
             std::cout << "B = " << B << std::endl;
@@ -132,9 +136,9 @@ int main(int argc, char** argv)
     // initialize random seed
     srand(3);
 
-    idx_t n = 50;
-    idx_t nt = 30;
-    idx_t nb = 28;
+    idx_t n = 5;
+    idx_t nt = 4;
+    idx_t nb = nt;
     int precision = 0b0001;
     bool check_error = true;
 
@@ -184,6 +188,7 @@ int main(int argc, char** argv)
 
     // Print input parameters
     std::cout << "n = " << n << std::endl;
+    std::cout << "nb = " << nb << std::endl;
     std::cout << "nt = " << nt << std::endl << std::endl;
 
     /* initialize StarPU */

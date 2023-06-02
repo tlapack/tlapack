@@ -926,7 +926,12 @@ namespace starpu {
               col0(col0),
               lastRows(lastRows),
               lastCols(lastCols)
-        {}
+        {
+            assert(ix >= 0 && iy >= 0 && "Invalid tile position");
+            assert(nx > 0 && ny > 0 && "Invalid tile size");
+            assert(row0 >= 0 && col0 >= 0 && "Invalid tile offset");
+            assert(lastRows >= 0 && lastCols >= 0 && "Invalid tile size");
+        }
 
         // Disable copy assignment operator
         Matrix& operator=(const Matrix&) = delete;
@@ -1080,7 +1085,7 @@ namespace starpu {
                                    ny, row0, col0, lastRows, lastCols);
         }
 
-        Matrix<const T> map_to_const_tiles(idx_t rowStart,
+        Matrix<T> map_to_const_tiles(idx_t rowStart,
                                            idx_t rowEnd,
                                            idx_t colStart,
                                            idx_t colEnd) const noexcept

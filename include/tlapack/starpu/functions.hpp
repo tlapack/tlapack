@@ -53,9 +53,9 @@ namespace starpu {
             const idx_t& ldc = STARPU_MATRIX_GET_LD(buffers[2]);
 
             // get matrices
-            const uintptr_t& A = STARPU_VARIABLE_GET_PTR(buffers[0]);
-            const uintptr_t& B = STARPU_VARIABLE_GET_PTR(buffers[1]);
-            const uintptr_t& C = STARPU_VARIABLE_GET_PTR(buffers[2]);
+            const uintptr_t& A = STARPU_MATRIX_GET_PTR(buffers[0]);
+            const uintptr_t& B = STARPU_MATRIX_GET_PTR(buffers[1]);
+            const uintptr_t& C = STARPU_MATRIX_GET_PTR(buffers[2]);
 
             // call gemm
             if constexpr (mode == 0) {
@@ -136,9 +136,9 @@ namespace starpu {
             const idx_t& ldc = STARPU_MATRIX_GET_LD(buffers[2]);
 
             // get matrices
-            const uintptr_t& A = STARPU_VARIABLE_GET_PTR(buffers[0]);
-            const uintptr_t& B = STARPU_VARIABLE_GET_PTR(buffers[1]);
-            const uintptr_t& C = STARPU_VARIABLE_GET_PTR(buffers[2]);
+            const uintptr_t& A = STARPU_MATRIX_GET_PTR(buffers[0]);
+            const uintptr_t& B = STARPU_MATRIX_GET_PTR(buffers[1]);
+            const uintptr_t& C = STARPU_MATRIX_GET_PTR(buffers[2]);
 
             // call symm
             using T = scalar_type<TC, beta_t>;
@@ -171,9 +171,9 @@ namespace starpu {
             const idx_t& ldc = STARPU_MATRIX_GET_LD(buffers[2]);
 
             // get matrices
-            const uintptr_t& A = STARPU_VARIABLE_GET_PTR(buffers[0]);
-            const uintptr_t& B = STARPU_VARIABLE_GET_PTR(buffers[1]);
-            const uintptr_t& C = STARPU_VARIABLE_GET_PTR(buffers[2]);
+            const uintptr_t& A = STARPU_MATRIX_GET_PTR(buffers[0]);
+            const uintptr_t& B = STARPU_MATRIX_GET_PTR(buffers[1]);
+            const uintptr_t& C = STARPU_MATRIX_GET_PTR(buffers[2]);
 
             // call hemm
             using T = scalar_type<TC, beta_t>;
@@ -202,8 +202,8 @@ namespace starpu {
             const idx_t& ldc = STARPU_MATRIX_GET_LD(buffers[1]);
 
             // get matrices
-            const uintptr_t& A = STARPU_VARIABLE_GET_PTR(buffers[0]);
-            const uintptr_t& C = STARPU_VARIABLE_GET_PTR(buffers[1]);
+            const uintptr_t& A = STARPU_MATRIX_GET_PTR(buffers[0]);
+            const uintptr_t& C = STARPU_MATRIX_GET_PTR(buffers[1]);
 
             // call syrk
             using T = scalar_type<TC, beta_t>;
@@ -232,8 +232,8 @@ namespace starpu {
             const idx_t& ldc = STARPU_MATRIX_GET_LD(buffers[1]);
 
             // get matrices
-            const uintptr_t& A = STARPU_VARIABLE_GET_PTR(buffers[0]);
-            const uintptr_t& C = STARPU_VARIABLE_GET_PTR(buffers[1]);
+            const uintptr_t& A = STARPU_MATRIX_GET_PTR(buffers[0]);
+            const uintptr_t& C = STARPU_MATRIX_GET_PTR(buffers[1]);
 
             // call herk
             if constexpr (mode == 0) {
@@ -310,9 +310,9 @@ namespace starpu {
             const idx_t& ldc = STARPU_MATRIX_GET_LD(buffers[2]);
 
             // get matrices
-            const uintptr_t& A = STARPU_VARIABLE_GET_PTR(buffers[0]);
-            const uintptr_t& B = STARPU_VARIABLE_GET_PTR(buffers[1]);
-            const uintptr_t& C = STARPU_VARIABLE_GET_PTR(buffers[2]);
+            const uintptr_t& A = STARPU_MATRIX_GET_PTR(buffers[0]);
+            const uintptr_t& B = STARPU_MATRIX_GET_PTR(buffers[1]);
+            const uintptr_t& C = STARPU_MATRIX_GET_PTR(buffers[2]);
 
             // call syr2k
             using T = scalar_type<TC, beta_t>;
@@ -347,9 +347,9 @@ namespace starpu {
             const idx_t& ldc = STARPU_MATRIX_GET_LD(buffers[2]);
 
             // get matrices
-            const uintptr_t& A = STARPU_VARIABLE_GET_PTR(buffers[0]);
-            const uintptr_t& B = STARPU_VARIABLE_GET_PTR(buffers[1]);
-            const uintptr_t& C = STARPU_VARIABLE_GET_PTR(buffers[2]);
+            const uintptr_t& A = STARPU_MATRIX_GET_PTR(buffers[0]);
+            const uintptr_t& B = STARPU_MATRIX_GET_PTR(buffers[1]);
+            const uintptr_t& C = STARPU_MATRIX_GET_PTR(buffers[2]);
 
             // call her2k
             using real_t = real_type<scalar_type<TC, beta_t>>;
@@ -377,8 +377,8 @@ namespace starpu {
             const idx_t& ldb = STARPU_MATRIX_GET_LD(buffers[1]);
 
             // get matrices
-            const uintptr_t& A = STARPU_VARIABLE_GET_PTR(buffers[0]);
-            const uintptr_t& B = STARPU_VARIABLE_GET_PTR(buffers[1]);
+            const uintptr_t& A = STARPU_MATRIX_GET_PTR(buffers[0]);
+            const uintptr_t& B = STARPU_MATRIX_GET_PTR(buffers[1]);
 
             // call trmm
             trmm(Layout::ColMajor, side, uplo, op, diag, m, n, alpha,
@@ -405,8 +405,8 @@ namespace starpu {
             const idx_t& ldb = STARPU_MATRIX_GET_LD(buffers[1]);
 
             // get matrices
-            const uintptr_t& A = STARPU_VARIABLE_GET_PTR(buffers[0]);
-            const uintptr_t& B = STARPU_VARIABLE_GET_PTR(buffers[1]);
+            const uintptr_t& A = STARPU_MATRIX_GET_PTR(buffers[0]);
+            const uintptr_t& B = STARPU_MATRIX_GET_PTR(buffers[1]);
 
             // call trsm
             if constexpr (mode == 0)
@@ -470,7 +470,7 @@ namespace starpu {
             const idx_t& lda = STARPU_MATRIX_GET_LD(buffers[0]);
 
             // get matrix
-            const uintptr_t& A = STARPU_VARIABLE_GET_PTR(buffers[0]);
+            const uintptr_t& A = STARPU_MATRIX_GET_PTR(buffers[0]);
 
             // get info
             int* info = (has_info) ? (int*)STARPU_VARIABLE_GET_PTR(buffers[1])
