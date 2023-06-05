@@ -138,7 +138,7 @@ int main(int argc, char** argv)
 
     idx_t n = 100;
     idx_t nt = 23;
-    idx_t nb = 20;
+    idx_t nb;
     int precision = 0b0001;
     bool check_error = true;
 
@@ -167,7 +167,10 @@ int main(int argc, char** argv)
         }
     }
     if (argc > 4) check_error = (tolower(argv[4][0]) == 'y');
-    if (argc > 5) nb = atoi(argv[5]);
+    if (argc > 5)
+        nb = atoi(argv[5]);
+    else
+        nb = nt;
     if (argc > 6 || (nt > n) || (n <= 0) || (nt <= 0) || precision == 0) {
         std::cout << "Usage: " << argv[0]
                   << " [n] [nt] [precision] [check_error]" << std::endl;
