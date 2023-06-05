@@ -17,12 +17,12 @@
 namespace tlapack {
 
 // Forward declarations
-template <class real_t, std::enable_if_t<is_real<real_t>::value, int> = 0>
-constexpr real_t real(const real_t&);
-template <class real_t, std::enable_if_t<is_real<real_t>::value, int> = 0>
-constexpr real_t imag(const real_t&);
-template <class real_t, std::enable_if_t<is_real<real_t>::value, int> = 0>
-constexpr real_t conj(const real_t&);
+template <typename T, std::enable_if_t<is_real<T>::value, int> = 0>
+inline constexpr real_type<T> real(const T& x);
+template <typename T, std::enable_if_t<is_real<T>::value, int> = 0>
+inline constexpr real_type<T> imag(const T& x);
+template <typename T, std::enable_if_t<is_real<T>::value, int> = 0>
+inline constexpr T conj(const T& x);
 
 template <class T>
 inline constexpr real_type<T> real(const starpu::internal::data<T>& x)

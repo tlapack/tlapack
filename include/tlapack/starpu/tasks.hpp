@@ -30,8 +30,6 @@ namespace starpu {
         // check sizes
         tlapack_check(C.m == (transA == Op::NoTrans ? A.m : A.n));
         tlapack_check(C.n == (transB == Op::NoTrans ? B.n : B.m));
-        tlapack_check((transA == Op::NoTrans ? A.n : A.m) ==
-                      (transB == Op::NoTrans ? B.m : B.n));
 
         // Allocate space for the task
         struct starpu_task* task = starpu_task_create();
@@ -59,7 +57,6 @@ namespace starpu {
         task->cl_arg_size = sizeof(args_t);
         task->callback_func = [](void* args) noexcept { delete (args_t*)args; };
         task->callback_arg = (void*)args_ptr;
-        // task->synchronous = 1;
 
         // Submit task
         const int ret = starpu_task_submit(task);
@@ -107,7 +104,6 @@ namespace starpu {
         task->cl_arg_size = sizeof(args_t);
         task->callback_func = [](void* args) noexcept { delete (args_t*)args; };
         task->callback_arg = (void*)args_ptr;
-        // task->synchronous = 1;
 
         // Submit task
         const int ret = starpu_task_submit(task);
@@ -157,7 +153,6 @@ namespace starpu {
         task->cl_arg_size = sizeof(args_t);
         task->callback_func = [](void* args) noexcept { delete (args_t*)args; };
         task->callback_arg = (void*)args_ptr;
-        // task->synchronous = 1;
 
         // Submit task
         const int ret = starpu_task_submit(task);
@@ -199,9 +194,8 @@ namespace starpu {
         task->cl_arg_size = sizeof(args_t);
         task->callback_func = [](void* args) noexcept { delete (args_t*)args; };
         task->callback_arg = (void*)args_ptr;
-        // task->synchronous = 1;
 
-        if (use_cusolver) {
+        if constexpr (use_cusolver) {
             int lwork = 0;
             if (starpu_cuda_worker_get_count() > 0) {
 #ifdef STARPU_HAVE_LIBCUSOLVER
@@ -245,7 +239,7 @@ namespace starpu {
         const int ret = starpu_task_submit(task);
         STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
-        if (use_cusolver)
+        if constexpr (use_cusolver)
             starpu_data_unregister_submit(task->handles[(has_info ? 2 : 1)]);
     }
 

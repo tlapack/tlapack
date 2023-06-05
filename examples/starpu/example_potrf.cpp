@@ -61,7 +61,7 @@ int run(idx_t n, idx_t nt, idx_t nb, bool check_error = false)
                 B_[i * n + j] = A_[i * n + j];
     }
 
-    std::chrono::nanoseconds elapsed_time;
+    double elapsed_time;
     {
         /* create matrix A and B */
         Matrix<T> A(A_, n, n, nt, nt);
@@ -73,18 +73,17 @@ int run(idx_t n, idx_t nt, idx_t nb, bool check_error = false)
         opts.variant = PotrfVariant::Blocked;
 
         // Record start time
-        auto start = std::chrono::high_resolution_clock::now();
+        double start = starpu_timing_now();
 
         /* call potrf */
         int info = potrf(upperTriangle, A, opts);
 
         // Record end time
         starpu_task_wait_for_all();
-        auto end = std::chrono::high_resolution_clock::now();
+        double end = starpu_timing_now();
 
         // Compute elapsed time in nanoseconds
-        elapsed_time =
-            std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
+        elapsed_time = end - start;
 
         if (info != 0)
             std::cout << "Cholesky ended with info " << info << std::endl;
@@ -93,10 +92,10 @@ int run(idx_t n, idx_t nt, idx_t nb, bool check_error = false)
             // Solve U^H U B = A_init
             Matrix<T> B(B_, n, n, nt, nt);
             // std::cout << "B = " << B << std::endl;
-            trsm<Matrix<T>>(left_side, upperTriangle, conjTranspose,
+            trsm(left_side, upperTriangle, conjTranspose,
                             nonUnit_diagonal, one, A, B);
             // std::cout << "B = " << B << std::endl;
-            trsm<Matrix<T>>(left_side, upperTriangle, noTranspose,
+            trsm(left_side, upperTriangle, noTranspose,
                             nonUnit_diagonal, one, A, B);
             std::cout << "B = " << B << std::endl;
         }
@@ -119,7 +118,7 @@ int run(idx_t n, idx_t nt, idx_t nb, bool check_error = false)
     // Output
     std::cout << "U^H U R = A   =>   ||R-Id||_1 / ||Id||_1 = "
               << ((check_error) ? error : real_t(-1)) << std::endl
-              << "time = " << elapsed_time.count() * 1.0e-9 << " s"
+              << "time = " << elapsed_time * 1e-6 << " s"
               << std::endl;
 
     // Clean up
@@ -139,8 +138,8 @@ int main(int argc, char** argv)
     idx_t n = 100;
     idx_t nt = 23;
     idx_t nb;
-    int precision = 0b0001;
-    bool check_error = true;
+    int precision = 0b1111;
+    bool check_error = false;
 
     if (argc > 1) n = atoi(argv[1]);
     if (argc > 2) nt = atoi(argv[2]);
