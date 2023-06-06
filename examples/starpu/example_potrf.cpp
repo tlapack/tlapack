@@ -92,11 +92,11 @@ int run(idx_t n, idx_t nt, idx_t nb, bool check_error = false)
             // Solve U^H U B = A_init
             Matrix<T> B(B_, n, n, nt, nt);
             // std::cout << "B = " << B << std::endl;
-            trsm(left_side, upperTriangle, conjTranspose,
-                            nonUnit_diagonal, one, A, B);
+            trsm(left_side, upperTriangle, conjTranspose, nonUnit_diagonal, one,
+                 A, B);
             // std::cout << "B = " << B << std::endl;
-            trsm(left_side, upperTriangle, noTranspose,
-                            nonUnit_diagonal, one, A, B);
+            trsm(left_side, upperTriangle, noTranspose, nonUnit_diagonal, one,
+                 A, B);
             std::cout << "B = " << B << std::endl;
         }
 
@@ -118,8 +118,7 @@ int run(idx_t n, idx_t nt, idx_t nb, bool check_error = false)
     // Output
     std::cout << "U^H U R = A   =>   ||R-Id||_1 / ||Id||_1 = "
               << ((check_error) ? error : real_t(-1)) << std::endl
-              << "time = " << elapsed_time * 1e-6 << " s"
-              << std::endl;
+              << "time = " << elapsed_time * 1e-6 << " s" << std::endl;
 
     // Clean up
     starpu_memory_unpin((void*)A_, n * n * sizeof(T));

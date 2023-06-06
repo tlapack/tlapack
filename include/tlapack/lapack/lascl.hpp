@@ -196,10 +196,7 @@ template <class matrix_t,
                           /* Requires: */
                           is_real<a_type>::value && is_real<b_type>::value),
                       int> = 0>
-int lascl(band_t accessType,
-          const b_type& b,
-          const a_type& a,
-          matrix_t& A)
+int lascl(band_t accessType, const b_type& b, const a_type& a, matrix_t& A)
 {
     // data traits
     using idx_t = size_type<matrix_t>;

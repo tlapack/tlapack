@@ -25,36 +25,36 @@ template <typename T, std::enable_if_t<is_real<T>::value, int> = 0>
 inline constexpr T conj(const T& x);
 
 template <class T>
-inline constexpr real_type<T> real(const starpu::internal::data<T>& x)
+inline constexpr real_type<T> real(const starpu::MatrixEntry<T>& x)
 {
     return real(T(x));
 }
 
 template <class T>
-inline constexpr real_type<T> imag(const starpu::internal::data<T>& x)
+inline constexpr real_type<T> imag(const starpu::MatrixEntry<T>& x)
 {
     return imag(T(x));
 }
 
 template <class T>
-inline constexpr T conj(const starpu::internal::data<T>& x)
+inline constexpr T conj(const starpu::MatrixEntry<T>& x)
 {
     return conj(T(x));
 }
 
 template <class T>
-inline constexpr real_type<T> abs(const starpu::internal::data<T>& x)
+inline constexpr real_type<T> abs(const starpu::MatrixEntry<T>& x)
 {
     return abs(x);
 }
 
 namespace internal {
     template <typename T>
-    struct real_type_traits<starpu::internal::data<T>, int> {
+    struct real_type_traits<starpu::MatrixEntry<T>, int> {
         using type = real_type<T>;
     };
     template <typename T>
-    struct complex_type_traits<starpu::internal::data<T>, int> {
+    struct complex_type_traits<starpu::MatrixEntry<T>, int> {
         using type = complex_type<T>;
     };
 }  // namespace internal

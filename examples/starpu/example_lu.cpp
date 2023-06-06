@@ -24,8 +24,8 @@
 int main(int argc, char** argv)
 {
     using namespace tlapack;
-    using starpu::Matrix;
     using starpu::idx_t;
+    using starpu::Matrix;
     using T = float;
 
     srand(3);

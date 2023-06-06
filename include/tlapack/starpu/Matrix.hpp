@@ -15,171 +15,36 @@
 #include <iomanip>
 #include <memory>
 #include <ostream>
-#include <tuple>
 
+#include "tlapack/starpu/MatrixEntry.hpp"
+#include "tlapack/starpu/Tile.hpp"
 #include "tlapack/starpu/filters.hpp"
 
 namespace tlapack {
-
-namespace internal {
-    // for zero types
-    template <typename... Types>
-    struct real_type_traits;
-}  // namespace internal
-
-/// define real_type<> type alias
-template <typename... Types>
-using real_type = typename internal::real_type_traits<Types..., int>::type;
-
 namespace starpu {
 
     namespace internal {
 
+        /**
+         * @brief Abstract class for accessing the elements of a matrix
+         *
+         * @details This class is used to implement the operator() and
+         * operator[] for the Matrix class. It is not intended to be used
+         * directly. Instead, use the Matrix class.
+         *
+         * @tparam T Type of the elements
+         * @tparam TisConstType True if T is const
+         */
         template <class T, bool TisConstType>
         struct EntryAccess;
 
-        enum class Operation : int {
-            Assign = 0,
-            Add = 1,
-            Subtract = 2,
-            Multiply = 3,
-            Divide = 4
-        };
-
-        /// @brief Convert an Operation to a string
-        std::string to_string(Operation v)
-        {
-            switch (v) {
-                case Operation::Assign:
-                    return "assign";
-                case Operation::Add:
-                    return "add";
-                case Operation::Subtract:
-                    return "subtract";
-                case Operation::Multiply:
-                    return "multiply";
-                case Operation::Divide:
-                    return "divide";
-                default:
-                    return "unknown";
-            }
-        }
-
-        /// @brief Convert an Operation to an output stream
-        inline std::ostream& operator<<(std::ostream& out, Operation v)
-        {
-            return out << to_string(v);
-        }
-
-        /// Return an empty starpu_codelet struct
-        constexpr struct starpu_codelet codelet_init() noexcept
-        {
-            /// TODO: Check that this is correctly initializing values to 0 and
-            /// NULL
-            return {};
-        }
-
-    }  // namespace internal
-
-    namespace cpu {
-
-        /**
-         * @brief Data operation with assignment using two StarPU variable
-         * buffers
-         *
-         * This function is used to perform data operations on Matrix<T>::data.
-         * The interface is suitable for tasks that are submitted to StarPU.
-         */
-        template <class T, class U, internal::Operation op>
-        constexpr void data_op_data(void** buffers, void* args) noexcept
-        {
-            T* x = (T*)STARPU_VARIABLE_GET_PTR(buffers[0]);
-            if constexpr (op == internal::Operation::Assign)
-                *x = *((U*)STARPU_VARIABLE_GET_PTR(buffers[1]));
-            else if constexpr (op == internal::Operation::Add)
-                *x += *((U*)STARPU_VARIABLE_GET_PTR(buffers[1]));
-            else if constexpr (op == internal::Operation::Subtract)
-                *x -= *((U*)STARPU_VARIABLE_GET_PTR(buffers[1]));
-            else if constexpr (op == internal::Operation::Multiply)
-                *x *= *((U*)STARPU_VARIABLE_GET_PTR(buffers[1]));
-            else if constexpr (op == internal::Operation::Divide)
-                *x /= *((U*)STARPU_VARIABLE_GET_PTR(buffers[1]));
-        }
-
-        /**
-         * @brief Data operation with assignment using a StarPU variable buffer
-         * and a value
-         *
-         * This function is used to perform data operations on Matrix<T>::data.
-         * The interface is suitable for tasks that are submitted to StarPU.
-         */
-        template <class T, class U, internal::Operation op>
-        constexpr void data_op_value(void** buffers, void* args) noexcept
-        {
-            T* x = (T*)STARPU_VARIABLE_GET_PTR(buffers[0]);
-            if constexpr (op == internal::Operation::Assign)
-                *x = *((U*)args);
-            else if constexpr (op == internal::Operation::Add)
-                *x += *((U*)args);
-            else if constexpr (op == internal::Operation::Subtract)
-                *x -= *((U*)args);
-            else if constexpr (op == internal::Operation::Multiply)
-                *x *= *((U*)args);
-            else if constexpr (op == internal::Operation::Divide)
-                *x /= *((U*)args);
-        }
-
-        template <class T, internal::Operation op>
-        constexpr void matrixentry_op_matrixentry(void** buffers,
-                                                  void* args) noexcept
-        {
-            using args_t = std::tuple<idx_t, idx_t, idx_t, idx_t>;
-
-            // get dimensions
-            const idx_t& ld = STARPU_MATRIX_GET_LD(buffers[0]);
-
-            // get arguments
-            const args_t& cl_args = *(args_t*)args;
-            const idx_t& i = std::get<0>(cl_args);
-            const idx_t& j = std::get<1>(cl_args);
-            const idx_t& k = std::get<2>(cl_args);
-            const idx_t& l = std::get<3>(cl_args);
-
-            // get entries
-            const uintptr_t& A = STARPU_MATRIX_GET_PTR(buffers[0]);
-            T& x = ((T*)A)[i + ld * j];
-            const T& y = ((T*)A)[k + ld * l];
-
-            // perform operation
-            if constexpr (op == internal::Operation::Assign)
-                x = y;
-            else if constexpr (op == internal::Operation::Add)
-                x += y;
-            else if constexpr (op == internal::Operation::Subtract)
-                x -= y;
-            else if constexpr (op == internal::Operation::Multiply)
-                x *= y;
-            else if constexpr (op == internal::Operation::Divide)
-                x /= y;
-        }
-
-    }  // namespace cpu
-
-    namespace internal {
-
-        template <typename T>
-        struct data;
-
-        struct Tile;
-
+        // EntryAccess for const types
         template <class T>
         struct EntryAccess<T, true> {
             // abstract interface
             virtual idx_t nrows() const noexcept = 0;
             virtual idx_t ncols() const noexcept = 0;
-            virtual data<T> map_to_entry(idx_t i, idx_t j) noexcept = 0;
-
-            // operator() and operator[]
+            virtual MatrixEntry<T> map_to_entry(idx_t i, idx_t j) noexcept = 0;
 
             /**
              * @brief Returns an element of the matrix
@@ -210,17 +75,19 @@ namespace starpu {
             }
         };
 
+        // EntryAccess for non-const types
         template <class T>
         struct EntryAccess<T, false> : public EntryAccess<T, true> {
-            using EntryAccess<T, true>::operator();
-            using EntryAccess<T, true>::operator[];
-
             // abstract interface
             virtual idx_t nrows() const noexcept = 0;
             virtual idx_t ncols() const noexcept = 0;
-            virtual data<T> map_to_entry(idx_t i, idx_t j) noexcept = 0;
+            virtual MatrixEntry<T> map_to_entry(idx_t i, idx_t j) noexcept = 0;
 
-            // operator() and operator[]
+            /// @copydoc EntryAccess<T, true>::operator()
+            using EntryAccess<T, true>::operator();
+
+            /// @copydoc EntryAccess<T, true>::operator[]
+            using EntryAccess<T, true>::operator[];
 
             /**
              * @brief Returns a reference to an element of the matrix
@@ -230,7 +97,7 @@ namespace starpu {
              *
              * @return A reference to the element at position (i,j)
              */
-            constexpr data<T> operator()(idx_t i, idx_t j) noexcept
+            constexpr MatrixEntry<T> operator()(idx_t i, idx_t j) noexcept
             {
                 return map_to_entry(i, j);
             }
@@ -242,7 +109,7 @@ namespace starpu {
              *
              * @return A reference to the element at position i
              */
-            constexpr data<T> operator[](idx_t i) noexcept
+            constexpr MatrixEntry<T> operator[](idx_t i) noexcept
             {
                 assert((nrows() <= 1 || ncols() <= 1) &&
                        "Matrix is not a vector");
@@ -250,653 +117,39 @@ namespace starpu {
             }
         };
 
-        /**
-         * @brief Arithmetic data type used by Matrix
-         *
-         * This is a wrapper around StarPU variable handles. It is used to
-         * perform arithmetic operations on data types stored in StarPU
-         * matrices. It uses StarPU tasks to perform the operations.
-         *
-         * @note Mind that operations between variables may create a large
-         * overhead due to the creation of StarPU tasks.
-         */
-        template <typename T>
-        struct data {
-            const starpu_data_handle_t root_handle;  ///< Matrix handle
-            starpu_data_handle_t handle;             ///< Variable handle
-            const idx_t pos[2];
-
-            /// @brief Data constructor from a variable handle
-            constexpr explicit data(starpu_data_handle_t root_handle,
-                                    const idx_t pos[2]) noexcept
-                : root_handle(root_handle), pos{pos[0], pos[1]}
-            {
-                struct starpu_data_filter f_var = {
-                    .filter_func = starpu_matrix_filter_pick_variable,
-                    .nchildren = 1,
-                    .get_child_ops =
-                        starpu_matrix_filter_pick_variable_child_ops,
-                    .filter_arg_ptr = (void*)pos};
-                starpu_data_partition_plan(root_handle, &f_var, &handle);
-            }
-
-            // Disable copy and move constructors, and copy assignment
-            data(data&&) = delete;
-            data(const data&) = delete;
-            data& operator=(const data&) = delete;
-
-            /// Destructor cleans StarPU partition plan
-            ~data() noexcept
-            {
-                starpu_data_partition_clean(root_handle, 1, &handle);
-            }
-
-            /// Implicit conversion to T
-            constexpr operator T() const noexcept
-            {
-                starpu_data_acquire(handle, STARPU_R);
-                const T x = *((T*)starpu_variable_get_local_ptr(handle));
-                starpu_data_release(handle);
-
-                return x;
-            }
-
-            /// Implicit conversion to T
-            template <
-                class U,
-                std::enable_if_t<std::is_same_v<real_type<U>, T>, int> = 0>
-            constexpr operator data<U>() const noexcept
-            {
-                starpu_data_acquire(handle, STARPU_R);
-                const T x = *((T*)starpu_variable_get_local_ptr(handle));
-                starpu_data_release(handle);
-
-                return x;
-            }
-
-            // Arithmetic operators with assignment
-
-            template <class U>
-            constexpr data& operator=(data<U>&& x) noexcept
-            {
-                return operate_and_assign<Operation::Assign, U>(x);
-            }
-            constexpr data& operator=(const T& x) noexcept
-            {
-                return operate_and_assign<Operation::Assign, T>(x);
-            }
-
-            template <class U>
-            constexpr data& operator+=(const data<U>& x) noexcept
-            {
-                return operate_and_assign<Operation::Add, U>(x);
-            }
-            constexpr data& operator+=(const T& x) noexcept
-            {
-                return operate_and_assign<Operation::Add, T>(x);
-            }
-
-            template <class U>
-            constexpr data& operator-=(const data<U>& x) noexcept
-            {
-                return operate_and_assign<Operation::Subtract, U>(x);
-            }
-            constexpr data& operator-=(const T& x) noexcept
-            {
-                return operate_and_assign<Operation::Subtract, T>(x);
-            }
-
-            template <class U>
-            constexpr data& operator*=(const data<U>& x) noexcept
-            {
-                return operate_and_assign<Operation::Multiply, U>(x);
-            }
-            constexpr data& operator*=(const T& x) noexcept
-            {
-                return operate_and_assign<Operation::Multiply, T>(x);
-            }
-
-            template <class U>
-            constexpr data& operator/=(const data<U>& x) noexcept
-            {
-                return operate_and_assign<Operation::Divide, U>(x);
-            }
-            constexpr data& operator/=(const T& x) noexcept
-            {
-                return operate_and_assign<Operation::Divide, T>(x);
-            }
-
-            // Other math functions
-
-            constexpr friend real_type<T> abs(const data& x) noexcept
-            {
-                return abs(T(x));
-            }
-            constexpr friend T sqrt(const data& x) noexcept
-            {
-                return sqrt(T(x));
-            }
-
-            // Display value in ostream
-
-            constexpr friend std::ostream& operator<<(std::ostream& out,
-                                                      const data& x)
-            {
-                return out << T(x);
-            }
-
-           private:
-            /// @brief Generates a StarPU codelet for a given operation with a
-            /// value
-            /// @tparam op Operation to perform
-            template <Operation op, class U>
-            static constexpr struct starpu_codelet gen_cl_op_value() noexcept
-            {
-                struct starpu_codelet cl = codelet_init();
-
-                cl.cpu_funcs[0] = cpu::data_op_value<T, U, op>;
-                cl.nbuffers = 1;
-                cl.modes[0] = (op == Operation::Assign) ? STARPU_W : STARPU_RW;
-                cl.name = (op == Operation::Assign)
-                              ? "assign_value"
-                              : (op == Operation::Add)
-                                    ? "add_value"
-                                    : (op == Operation::Subtract)
-                                          ? "subtract_value"
-                                          : (op == Operation::Multiply)
-                                                ? "multiply_value"
-                                                : (op == Operation::Divide)
-                                                      ? "divide_value"
-                                                      : "unknown";
-
-                // The following lines are needed to make the codelet const
-                // See _starpu_codelet_check_deprecated_fields() in StarPU:
-                cl.where |= STARPU_CPU;
-                cl.checked = 1;
-
-                return cl;
-            }
-
-            static constexpr const struct starpu_codelet cl_op_value[] = {
-                gen_cl_op_value<Operation::Assign, T>(),
-                gen_cl_op_value<Operation::Add, T>(),
-                gen_cl_op_value<Operation::Subtract, T>(),
-                gen_cl_op_value<Operation::Multiply, T>(),
-                gen_cl_op_value<Operation::Divide, T>()};
-            static constexpr const struct starpu_codelet cl_op_rvalue[] = {
-                gen_cl_op_value<Operation::Assign, real_type<T>>(),
-                gen_cl_op_value<Operation::Add, real_type<T>>(),
-                gen_cl_op_value<Operation::Subtract, real_type<T>>(),
-                gen_cl_op_value<Operation::Multiply, real_type<T>>(),
-                gen_cl_op_value<Operation::Divide, real_type<T>>()};
-
-            /// @brief Generates a StarPU codelet for a given operation with
-            /// another variable
-            /// @tparam op Operation to perform
-            template <Operation op, class U>
-            static constexpr struct starpu_codelet gen_cl_op_data() noexcept
-            {
-                struct starpu_codelet cl = codelet_init();
-
-                cl.cpu_funcs[0] = cpu::data_op_data<T, U, op>;
-                cl.nbuffers = 2;
-                cl.modes[0] = (op == Operation::Assign) ? STARPU_W : STARPU_RW;
-                cl.modes[1] = STARPU_R;
-                cl.name = (op == Operation::Assign)
-                              ? "assign_data"
-                              : (op == Operation::Add)
-                                    ? "add_data"
-                                    : (op == Operation::Subtract)
-                                          ? "subtract_data"
-                                          : (op == Operation::Multiply)
-                                                ? "multiply_data"
-                                                : (op == Operation::Divide)
-                                                      ? "divide_data"
-                                                      : "unknown";
-
-                // The following lines are needed to make the codelet const
-                // See _starpu_codelet_check_deprecated_fields() in StarPU:
-                cl.where |= STARPU_CPU;
-                cl.checked = 1;
-
-                return cl;
-            }
-
-            static constexpr const struct starpu_codelet cl_op_data[] = {
-                gen_cl_op_data<Operation::Assign, T>(),
-                gen_cl_op_data<Operation::Add, T>(),
-                gen_cl_op_data<Operation::Subtract, T>(),
-                gen_cl_op_data<Operation::Multiply, T>(),
-                gen_cl_op_data<Operation::Divide, T>()};
-            static constexpr const struct starpu_codelet cl_op_rdata[] = {
-                gen_cl_op_data<Operation::Assign, real_type<T>>(),
-                gen_cl_op_data<Operation::Add, real_type<T>>(),
-                gen_cl_op_data<Operation::Subtract, real_type<T>>(),
-                gen_cl_op_data<Operation::Multiply, real_type<T>>(),
-                gen_cl_op_data<Operation::Divide, real_type<T>>()};
-
-            /// @brief Generates a StarPU codelet for a given operation  with
-            /// entries of a matrix
-            /// @tparam op Operation to perform
-            template <Operation op>
-            static constexpr struct starpu_codelet gen_cl_op_entries() noexcept
-            {
-                struct starpu_codelet cl = codelet_init();
-
-                cl.cpu_funcs[0] = cpu::matrixentry_op_matrixentry<T, op>;
-                cl.nbuffers = 1;
-                cl.modes[0] = STARPU_RW;
-                cl.name = (op == Operation::Assign)
-                              ? "copy_entry"
-                              : (op == Operation::Add)
-                                    ? "add_entry"
-                                    : (op == Operation::Subtract)
-                                          ? "subtract_entry"
-                                          : (op == Operation::Multiply)
-                                                ? "multiply_entry"
-                                                : (op == Operation::Divide)
-                                                      ? "divide_entry"
-                                                      : "unknown";
-
-                // The following lines are needed to make the codelet const
-                // See _starpu_codelet_check_deprecated_fields() in StarPU:
-                cl.where |= STARPU_CPU;
-                cl.checked = 1;
-
-                return cl;
-            }
-
-            static constexpr const struct starpu_codelet cl_op_entries[] = {
-                gen_cl_op_entries<Operation::Assign>(),
-                gen_cl_op_entries<Operation::Add>(),
-                gen_cl_op_entries<Operation::Subtract>(),
-                gen_cl_op_entries<Operation::Multiply>(),
-                gen_cl_op_entries<Operation::Divide>()};
-
-            /**
-             * @brief Applies an operation and assigns
-             *
-             * Operations: +, -, *, /
-             *
-             * @tparam op  Operation
-             * @param x   Second operand
-             * @return constexpr data&  Reference to the result
-             */
-            template <Operation op,
-                      class U,
-                      std::enable_if_t<(std::is_same_v<U, T> ||
-                                        std::is_same_v<U, real_type<T>>),
-                                       int> = 0>
-            data& operate_and_assign(const data<U>& x)
-            {
-                // Allocate space for the task
-                struct starpu_task* task = starpu_task_create();
-
-                if (this->root_handle == x.root_handle) {
-                    // If both variables are in the same matrix handle, we must
-                    // directly perform the operation on the entries of the
-                    // handle
-
-                    using args_t = std::tuple<idx_t, idx_t, idx_t, idx_t>;
-
-                    // Allocate space for the arguments
-                    args_t* args_ptr = new args_t;
-
-                    // Initialize arguments
-                    std::get<0>(*args_ptr) = pos[0];
-                    std::get<1>(*args_ptr) = pos[1];
-                    std::get<2>(*args_ptr) = x.pos[0];
-                    std::get<3>(*args_ptr) = x.pos[1];
-
-                    // Initialize task
-                    task->cl =
-                        (struct starpu_codelet*)&(cl_op_entries[int(op)]);
-                    task->handles[0] = this->root_handle;
-                    task->cl_arg = (void*)args_ptr;
-                    task->cl_arg_size = sizeof(args_t);
-                    task->callback_func = [](void* args) noexcept {
-                        delete (args_t*)args;
-                    };
-                    task->callback_arg = (void*)args_ptr;
-                }
-                else {
-                    // Initialize task
-                    task->cl = (struct starpu_codelet*)&(
-                        std::is_same_v<U, T> ? cl_op_data[int(op)]
-                                             : cl_op_rdata[int(op)]);
-                    task->handles[0] = this->handle;
-                    task->handles[1] = x.handle;
-                }
-
-                // Submit task and check for errors
-                const int ret = starpu_task_submit(task);
-                STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
-
-                return *this;
-            }
-
-            /**
-             * @brief Applies an operation and assigns
-             *
-             * Operations: +, -, *, /
-             *
-             * @tparam op  Operation
-             * @param x   Second operand
-             * @return constexpr data&  Reference to the result
-             */
-            template <Operation op,
-                      class U,
-                      std::enable_if_t<(std::is_same_v<U, T> ||
-                                        std::is_same_v<U, real_type<T>>),
-                                       int> = 0>
-            data& operate_and_assign(const T& x)
-            {
-                // Allocate space for the value and initialize it
-                T* x_ptr = new T(x);
-
-                // Create and initialize task
-                struct starpu_task* task = starpu_task_create();
-                task->cl = (struct starpu_codelet*)&(
-                    std::is_same_v<U, T> ? cl_op_value[int(op)]
-                                         : cl_op_rvalue[int(op)]);
-                task->handles[0] = this->handle;
-                task->cl_arg = (void*)x_ptr;
-                task->cl_arg_size = sizeof(T);
-                task->callback_func = [](void* arg) noexcept {
-                    delete (T*)arg;
-                };
-                task->callback_arg = (void*)x_ptr;
-
-                // Submit task and check for errors
-                const int ret = starpu_task_submit(task);
-                STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
-
-                return *this;
-            }
-        };
-
-        // Arithmetic operators with data on the right
-
-        template <class lhs_t,
-                  class rhs_t,
-                  std::enable_if_t<
-                      (std::is_same_v<lhs_t, rhs_t>) ||
-                          (std::is_same_v<real_type<lhs_t>, real_type<rhs_t>>),
-                      int> = 0>
-        constexpr auto operator+(const data<lhs_t>& x, const rhs_t& y) noexcept
-        {
-            using T = scalar_type<lhs_t, rhs_t>;
-            return T(x) + T(y);
-        }
-
-        template <class lhs_t,
-                  class rhs_t,
-                  std::enable_if_t<
-                      (std::is_same_v<lhs_t, rhs_t>) ||
-                          (std::is_same_v<real_type<lhs_t>, real_type<rhs_t>>),
-                      int> = 0>
-        constexpr auto operator+(const lhs_t& x, const data<rhs_t>& y) noexcept
-        {
-            using T = scalar_type<lhs_t, rhs_t>;
-            return T(x) + T(y);
-        }
-
-        template <class lhs_t,
-                  class rhs_t,
-                  std::enable_if_t<
-                      (std::is_same_v<lhs_t, rhs_t>) ||
-                          (std::is_same_v<real_type<lhs_t>, real_type<rhs_t>>),
-                      int> = 0>
-        constexpr auto operator+(const data<lhs_t>& x,
-                                 const data<rhs_t>& y) noexcept
-        {
-            using T = scalar_type<lhs_t, rhs_t>;
-            return T(x) + T(y);
-        }
-
-        template <class lhs_t,
-                  class rhs_t,
-                  std::enable_if_t<
-                      (std::is_same_v<lhs_t, rhs_t>) ||
-                          (std::is_same_v<real_type<lhs_t>, real_type<rhs_t>>),
-                      int> = 0>
-        constexpr auto operator-(const data<lhs_t>& x, const rhs_t& y) noexcept
-        {
-            using T = scalar_type<lhs_t, rhs_t>;
-            return T(x) - T(y);
-        }
-
-        template <class lhs_t,
-                  class rhs_t,
-                  std::enable_if_t<
-                      (std::is_same_v<lhs_t, rhs_t>) ||
-                          (std::is_same_v<real_type<lhs_t>, real_type<rhs_t>>),
-                      int> = 0>
-        constexpr auto operator-(const lhs_t& x, const data<rhs_t>& y) noexcept
-        {
-            using T = scalar_type<lhs_t, rhs_t>;
-            return T(x) - T(y);
-        }
-
-        template <class lhs_t,
-                  class rhs_t,
-                  std::enable_if_t<
-                      (std::is_same_v<lhs_t, rhs_t>) ||
-                          (std::is_same_v<real_type<lhs_t>, real_type<rhs_t>>),
-                      int> = 0>
-        constexpr auto operator-(const data<lhs_t>& x,
-                                 const data<rhs_t>& y) noexcept
-        {
-            using T = scalar_type<lhs_t, rhs_t>;
-            return T(x) - T(y);
-        }
-
-        template <class lhs_t,
-                  class rhs_t,
-                  std::enable_if_t<
-                      (std::is_same_v<lhs_t, rhs_t>) ||
-                          (std::is_same_v<real_type<lhs_t>, real_type<rhs_t>>),
-                      int> = 0>
-        constexpr auto operator*(const data<lhs_t>& x, const rhs_t& y) noexcept
-        {
-            using T = scalar_type<lhs_t, rhs_t>;
-            return T(x) * T(y);
-        }
-
-        template <class lhs_t,
-                  class rhs_t,
-                  std::enable_if_t<
-                      (std::is_same_v<lhs_t, rhs_t>) ||
-                          (std::is_same_v<real_type<lhs_t>, real_type<rhs_t>>),
-                      int> = 0>
-        constexpr auto operator*(const lhs_t& x, const data<rhs_t>& y) noexcept
-        {
-            using T = scalar_type<lhs_t, rhs_t>;
-            return T(x) * T(y);
-        }
-
-        template <class lhs_t,
-                  class rhs_t,
-                  std::enable_if_t<
-                      (std::is_same_v<lhs_t, rhs_t>) ||
-                          (std::is_same_v<real_type<lhs_t>, real_type<rhs_t>>),
-                      int> = 0>
-        constexpr auto operator*(const data<lhs_t>& x,
-                                 const data<rhs_t>& y) noexcept
-        {
-            using T = scalar_type<lhs_t, rhs_t>;
-            return T(x) * T(y);
-        }
-
-        template <class lhs_t,
-                  class rhs_t,
-                  std::enable_if_t<
-                      (std::is_same_v<lhs_t, rhs_t>) ||
-                          (std::is_same_v<real_type<lhs_t>, real_type<rhs_t>>),
-                      int> = 0>
-        constexpr auto operator/(const data<lhs_t>& x, const rhs_t& y) noexcept
-        {
-            using T = scalar_type<lhs_t, rhs_t>;
-            return T(x) / T(y);
-        }
-
-        template <class lhs_t,
-                  class rhs_t,
-                  std::enable_if_t<
-                      (std::is_same_v<lhs_t, rhs_t>) ||
-                          (std::is_same_v<real_type<lhs_t>, real_type<rhs_t>>),
-                      int> = 0>
-        constexpr auto operator/(const lhs_t& x, const data<rhs_t>& y) noexcept
-        {
-            using T = scalar_type<lhs_t, rhs_t>;
-            return T(x) / T(y);
-        }
-
-        template <class lhs_t,
-                  class rhs_t,
-                  std::enable_if_t<
-                      (std::is_same_v<lhs_t, rhs_t>) ||
-                          (std::is_same_v<real_type<lhs_t>, real_type<rhs_t>>),
-                      int> = 0>
-
-        constexpr auto operator/(const data<lhs_t>& x,
-                                 const data<rhs_t>& y) noexcept
-        {
-            using T = scalar_type<lhs_t, rhs_t>;
-            return T(x) / T(y);
-        }
-
     }  // namespace internal
 
-    struct Tile {
-        starpu_data_handle_t handle, root_handle;
-        bool partition_planned = false;
-
-        idx_t i, j;
-        idx_t m, n;
-
-        Tile(starpu_data_handle_t h,
-             starpu_data_handle_t root_h,
-             idx_t i,
-             idx_t j,
-             idx_t m,
-             idx_t n) noexcept
-            : handle(h), root_handle(root_h), i(i), j(j), m(m), n(n)
-        {}
-
-        ~Tile() noexcept
-        {
-            if (partition_planned)
-                starpu_data_partition_clean(root_handle, 1, &handle);
-        }
-
-        void create_compatible_handles(starpu_data_handle_t* handles,
-                                       const Tile& A) const noexcept
-        {
-            if (root_handle == A.root_handle) {
-                idx_t pos[8] = {i, j, m, n, A.i, A.j, A.m, A.n};
-
-                struct starpu_data_filter f_ntiles = {
-                    .filter_func = filter_ntiles,
-                    .nchildren = 2,
-                    .filter_arg_ptr = (void*)pos};
-
-                starpu_data_partition_plan(root_handle, &f_ntiles, handles);
-
-                assert(starpu_matrix_get_nx(handles[0]) == m &&
-                       starpu_matrix_get_ny(handles[0]) == n &&
-                       "Invalid tile size");
-                assert(starpu_matrix_get_nx(handles[1]) == A.m &&
-                       starpu_matrix_get_ny(handles[1]) == A.n &&
-                       "Invalid tile size");
-            }
-            else {
-                handles[0] = handle;
-                handles[1] = A.handle;
-            }
-        }
-
-        void create_compatible_handles(starpu_data_handle_t* handles,
-                                       const Tile& A,
-                                       const Tile& B) const noexcept
-        {
-            if (root_handle == A.root_handle) {
-                if (root_handle == B.root_handle) {
-                    idx_t pos[12] = {i,   j,   m,   n,   A.i, A.j,
-                                     A.m, A.n, B.i, B.j, B.m, B.n};
-
-                    struct starpu_data_filter f_ntiles = {
-                        .filter_func = filter_ntiles,
-                        .nchildren = 3,
-                        .filter_arg_ptr = (void*)pos};
-
-                    starpu_data_partition_plan(root_handle, &f_ntiles, handles);
-
-                    assert(starpu_matrix_get_nx(handles[0]) == m &&
-                           starpu_matrix_get_ny(handles[0]) == n &&
-                           "Invalid tile size");
-                    assert(starpu_matrix_get_nx(handles[1]) == A.m &&
-                           starpu_matrix_get_ny(handles[1]) == A.n &&
-                           "Invalid tile size");
-                    assert(starpu_matrix_get_nx(handles[2]) == B.m &&
-                           starpu_matrix_get_ny(handles[2]) == B.n &&
-                           "Invalid tile size");
-                }
-                else {
-                    create_compatible_handles(handles, A);
-                    handles[2] = B.handle;
-                }
-            }
-            else if (root_handle == B.root_handle) {
-                create_compatible_handles(handles, B);
-                handles[2] = handles[1];
-                handles[1] = A.handle;
-            }
-            else {
-                handles[0] = handle;
-                handles[1] = A.handle;
-                handles[2] = B.handle;
-            }
-        }
-
-        void clean_compatible_handles(starpu_data_handle_t* handles,
-                                      const Tile& A) const noexcept
-        {
-            if (root_handle == A.root_handle)
-                starpu_data_partition_clean(root_handle, 2, handles);
-        }
-
-        void clean_compatible_handles(starpu_data_handle_t* handles,
-                                      const Tile& A,
-                                      const Tile& B) const noexcept
-        {
-            if (root_handle == A.root_handle) {
-                if (root_handle == B.root_handle)
-                    starpu_data_partition_clean(root_handle, 3, handles);
-                else
-                    starpu_data_partition_clean(root_handle, 2, handles);
-            }
-            else if (root_handle == B.root_handle) {
-                starpu_data_handle_t aux = handles[1];
-                handles[1] = handles[2];
-                starpu_data_partition_clean(root_handle, 2, handles);
-                handles[1] = aux;
-            }
-        }
-    };
-
+    /**
+     * @brief Class for representing a matrix in StarPU that is split into tiles
+     *
+     * This class is a wrapper around a StarPU data handle. The grid is created
+     * by the StarPU map filters. In order to be able to extract submatrices,
+     * this class stores a virtual partition in addition to the StarPU data
+     * handle.
+     *
+     * @tparam T Type of the elements of the matrix
+     */
     template <class T>
     class Matrix : public internal::EntryAccess<T, std::is_const_v<T>> {
        public:
+        /// @copydoc EntryAccess<T, false>::operator()
         using internal::EntryAccess<T, std::is_const_v<T>>::operator();
+        /// @copydoc EntryAccess<T, false>::operator[]
         using internal::EntryAccess<T, std::is_const_v<T>>::operator[];
 
         // ---------------------------------------------------------------------
         // Constructors and destructor
 
-        /// Create a matrix of size m-by-n from a pointer in main memory
-        constexpr Matrix(
-            T* ptr, idx_t m, idx_t n, idx_t ld, idx_t mt, idx_t nt) noexcept
+        /** Create a matrix of size m-by-n from a pointer in main memory
+         *
+         * @param[in] ptr Pointer to the data
+         * @param[in] m Number of rows
+         * @param[in] n Number of columns
+         * @param[in] ld Leading dimension of the matrix
+         * @param[in] mt Number of rows in a tile
+         * @param[in] nt Number of columns in a tile
+         */
+        Matrix(T* ptr, idx_t m, idx_t n, idx_t ld, idx_t mt, idx_t nt) noexcept
             : pHandle(new starpu_data_handle_t(), [](starpu_data_handle_t* h) {
                   starpu_data_unpartition(*h, STARPU_MAIN_RAM);
                   starpu_data_unregister(*h);
@@ -919,7 +172,10 @@ namespace starpu {
             lastCols = starpu_matrix_get_ny(handleN);
         }
 
-        /// Create a matrix of size m-by-n from contiguous data in main memory
+        /** Create a matrix of size m-by-n from contiguous data in main memory
+         *
+         * @see Matrix(T*, idx_t, idx_t, idx_t, idx_t, idx_t)
+         */
         constexpr Matrix(T* ptr, idx_t m, idx_t n, idx_t mt, idx_t nt) noexcept
             : Matrix(ptr, m, n, m, mt, nt)
         {}
@@ -977,56 +233,30 @@ namespace starpu {
 
         /// Get the data handle of a tile in the matrix or the data handle of
         /// the matrix if it is not partitioned
-        constexpr Tile get_tile_handle(idx_t i, idx_t j) noexcept
+        Tile get_tile_handle(idx_t ix, idx_t iy) noexcept
         {
-            assert(i >= 0 && j >= 0 && i < nx && j < ny &&
+            assert(ix >= 0 && iy >= 0 && ix < nx && iy < ny &&
                    "Invalid tile index");
 
-            starpu_data_handle_t root_handle =
-                starpu_data_get_sub_data(*pHandle, 2, ix + i, iy + j);
+            starpu_data_handle_t tile_handle = starpu_data_get_sub_data(
+                *pHandle, 2, ix + this->ix, iy + this->iy);
 
-            // Collect information about the tile and create a Tile object
-            idx_t m = starpu_matrix_get_nx(root_handle);
-            idx_t n = starpu_matrix_get_ny(root_handle);
-            Tile tile(root_handle, root_handle, 0, 0, m, n);
-
-            // Update information about the tile
-            if (i == 0) {
-                tile.i = row0;
-                tile.m -= tile.i;
+            // Collect information about the tile
+            idx_t i = 0, j = 0;
+            idx_t m = starpu_matrix_get_nx(tile_handle);
+            idx_t n = starpu_matrix_get_ny(tile_handle);
+            if (ix == 0) {
+                i = row0;
+                m -= i;
             }
-            if (j == 0) {
-                tile.j = col0;
-                tile.n -= tile.j;
+            if (iy == 0) {
+                j = col0;
+                n -= j;
             }
-            if (i == nx - 1) tile.m = lastRows;
-            if (j == ny - 1) tile.n = lastCols;
+            if (ix == nx - 1) m = lastRows;
+            if (iy == ny - 1) n = lastCols;
 
-            // std::cout << "nx = " << nx << ", ny = " << ny << "\n";
-            // std::cout << "First positions: " << row0 << ", " << col0 << "\n";
-            // std::cout << "Max tile sizes: " << m << ", " << n << "\n";
-            // std::cout << "Last tile sizes: " << lastRows << ", " << lastCols
-            //           << "\n";
-            // std::cout << "Tile " << i << ", " << j << ": " << tile.i << ", "
-            //           << tile.j << ", " << tile.m << ", " << tile.n << "\n";
-
-            // Partition the tile if it is not a full tile
-            if (tile.m != m || tile.n != n) {
-                idx_t pos[4] = {tile.i, tile.j, tile.m, tile.n};
-                struct starpu_data_filter f_tile = {
-                    .filter_func = filter_tile,
-                    .nchildren = 1,
-                    .filter_arg_ptr = (void*)pos};
-
-                starpu_data_partition_plan(root_handle, &f_tile, &tile.handle);
-                tile.partition_planned = true;
-            }
-
-            assert(starpu_matrix_get_nx(tile.handle) == tile.m &&
-                   starpu_matrix_get_ny(tile.handle) == tile.n &&
-                   "Invalid tile size");
-
-            return tile;
+            return Tile(tile_handle, i, j, m, n);
         }
 
         /**
@@ -1059,7 +289,7 @@ namespace starpu {
         // Submatrix creation
 
         /**
-         * @brief Create a submatrix when the matrix is partitioned into tiles
+         * @brief Create a submatrix from a list of tiles
          *
          * @param[in] ix Index of the first tile in x
          * @param[in] iy Index of the first tile in y
@@ -1067,10 +297,7 @@ namespace starpu {
          * @param[in] ny Number of tiles in y
          *
          */
-        constexpr Matrix<T> get_tiles(idx_t ix,
-                                      idx_t iy,
-                                      idx_t nx,
-                                      idx_t ny) noexcept
+        Matrix<T> get_tiles(idx_t ix, idx_t iy, idx_t nx, idx_t ny) noexcept
         {
             const auto [row0, col0, lastRows, lastCols] =
                 _get_tiles_info(ix, iy, nx, ny);
@@ -1082,6 +309,14 @@ namespace starpu {
                              row0, col0, lastRows, lastCols);
         }
 
+        /**
+         * @brief Create a submatrix from starting and ending indices
+         *
+         * @param[in] rowStart Starting row index
+         * @param[in] rowEnd Ending row index
+         * @param[in] colStart Starting column index
+         * @param[in] colEnd Ending column index
+         */
         Matrix<T> map_to_tiles(idx_t rowStart,
                                idx_t rowEnd,
                                idx_t colStart,
@@ -1095,8 +330,7 @@ namespace starpu {
         }
 
         /**
-         * @brief Create a const submatrix when the matrix is partitioned into
-         * tiles
+         * @brief Create a const submatrix from a list of tiles
          *
          * @param[in] ix Index of the first tile in x
          * @param[in] iy Index of the first tile in y
@@ -1105,10 +339,10 @@ namespace starpu {
          *
          *
          */
-        constexpr Matrix<const T> get_const_tiles(idx_t ix,
-                                                  idx_t iy,
-                                                  idx_t nx,
-                                                  idx_t ny) const noexcept
+        Matrix<const T> get_const_tiles(idx_t ix,
+                                        idx_t iy,
+                                        idx_t nx,
+                                        idx_t ny) const noexcept
         {
             const auto [row0, col0, lastRows, lastCols] =
                 _get_tiles_info(ix, iy, nx, ny);
@@ -1120,6 +354,14 @@ namespace starpu {
                                    ny, row0, col0, lastRows, lastCols);
         }
 
+        /**
+         * @brief Create a const submatrix from starting and ending indices
+         *
+         * @param[in] rowStart Starting row index
+         * @param[in] rowEnd Ending row index
+         * @param[in] colStart Starting column index
+         * @param[in] colEnd Ending column index
+         */
         Matrix<const T> map_to_const_tiles(idx_t rowStart,
                                            idx_t rowEnd,
                                            idx_t colStart,
@@ -1135,6 +377,12 @@ namespace starpu {
         // ---------------------------------------------------------------------
         // Display matrix in output stream
 
+        /**
+         * @brief Display matrix in output stream
+         *
+         * @param[in,out] out Output stream
+         * @param[in] A Matrix to display
+         */
         friend std::ostream& operator<<(std::ostream& out,
                                         const starpu::Matrix<T>& A)
         {
@@ -1158,11 +406,13 @@ namespace starpu {
        private:
         std::shared_ptr<starpu_data_handle_t> pHandle;  ///< Data handle
 
+        // Position in the grid
         idx_t ix = 0;  ///< Index of the first tile in the x direction
         idx_t iy = 0;  ///< Index of the first tile in the y direction
         idx_t nx = 1;  ///< Number of tiles in the x direction
         idx_t ny = 1;  ///< Number of tiles in the y direction
 
+        // Position in the first and last tiles of the grid
         idx_t row0 = 0;      ///< Index of the first row in the first tile
         idx_t col0 = 0;      ///< Index of the first column in the first tile
         idx_t lastRows = 0;  ///< Number of rows in the last tile
@@ -1192,7 +442,15 @@ namespace starpu {
             starpu_data_map_filters(*pHandle, 2, &row_split, &col_split);
         }
 
-        internal::data<T> map_to_entry(idx_t i, idx_t j) noexcept override
+        /**
+         * @brief Gets a reference to the entry (i,j) of the matrix
+         *
+         * @param[in] i Row index
+         * @param[in] j Column index
+         *
+         * @return MatrixEntry<T> Reference to the entry (i,j)
+         */
+        MatrixEntry<T> map_to_entry(idx_t i, idx_t j) noexcept override
         {
             const idx_t mb = nblockrows();
             const idx_t nb = nblockcols();
@@ -1205,20 +463,26 @@ namespace starpu {
             const idx_t row = (i + row0) % mb;
             const idx_t col = (j + col0) % nb;
 
-            // std::cout << "Map to entry: (" << i << ", " << j << ") -> (" <<
-            // ix
-            //           << ", " << iy << ", " << row0 << ", " << col0 << ")\n";
-
-            // const starpu_data_handle_t root_handle =
-            //     starpu_data_get_sub_data(*pHandle, 2, ix, iy);
             const idx_t pos[2] = {row, col};
 
-            return internal::data<T>(
+            return MatrixEntry<T>(
                 starpu_data_get_sub_data(*pHandle, 2, ix + this->ix,
                                          iy + this->iy),
                 pos);
         }
 
+        /**
+         * @brief Get the position in the first and last tiles of the grid that
+         * should be used in the submatrix.
+         *
+         * @param[in] ix Index of the first tile in the x direction
+         * @param[in] iy Index of the first tile in the y direction
+         * @param[in] nx Number of tiles in the x direction
+         * @param[in] ny Number of tiles in the y direction
+         *
+         * @return The array [row0, col0, lastRows, lastCols] to be used in the
+         * submatrix.
+         */
         std::array<idx_t, 4> _get_tiles_info(idx_t ix,
                                              idx_t iy,
                                              idx_t nx,
@@ -1230,8 +494,6 @@ namespace starpu {
 
             const idx_t mb = nblockrows();
             const idx_t nb = nblockcols();
-
-            // std::cout << "mb = " << mb << ", nb = " << nb << "\n";
 
             const idx_t row0 = (ix == 0) ? this->row0 : 0;
             const idx_t col0 = (iy == 0) ? this->col0 : 0;
@@ -1256,18 +518,20 @@ namespace starpu {
             else
                 lastCols = nb;
 
-            // std::cout << "Get tiles info: (" << ix << ", " << iy << ", " <<
-            // nx
-            //           << ", " << ny << ") from (" << this->ix << ", "
-            //           << this->iy << ", " << this->nx << ", " << this->ny
-            //           << ", " << this->row0 << ", " << this->col0 << ", "
-            //           << this->lastRows << ", " << this->lastCols << ") -> ("
-            //           << row0 << ", " << col0 << ", " << lastRows << ", "
-            //           << lastCols << ")\n";
-
             return {row0, col0, lastRows, lastCols};
         }
 
+        /**
+         * @brief Get all the virtual grid to be used in the submatrix delimited
+         * by [rowStart, rowEnd) x [colStart, colEnd).
+         *
+         * @param[in] rowStart First row of the submatrix.
+         * @param[in] rowEnd Last row of the submatrix.
+         * @param[in] colStart First column of the submatrix.
+         * @param[in] colEnd Last column of the submatrix.
+         *
+         * @return The array [ix, iy, nx, ny, row0, col0, lastRows, lastCols]
+         */
         std::array<idx_t, 8> _map_to_tiles(idx_t rowStart,
                                            idx_t rowEnd,
                                            idx_t colStart,
@@ -1297,18 +561,6 @@ namespace starpu {
                 (nx == 1) ? nrows : (row0 + nrows - 1) % mb + 1;
             const idx_t lastCols =
                 (ny == 1) ? ncols : (col0 + ncols - 1) % nb + 1;
-            // (nx <= 1) ? nrows : ((rowEnd - 1) + this->row0) % mb + 1;
-
-            // const idx_t lastCols =
-            //     (ny <= 1) ? ncols : ((colEnd - 1) + this->col0) % nb + 1;
-
-            // std::cout << "Map to tiles: (" << rowStart << ", " << rowEnd <<
-            // ", "
-            //           << colStart << ", " << colEnd << ") -> (" << ix << ", "
-            //           << iy << ", " << nx << ", " << ny << ", " << row0 << ",
-            //           "
-            //           << col0 << ", " << lastRows << ", " << lastCols <<
-            //           ")\n";
 
             return {ix, iy, nx, ny, row0, col0, lastRows, lastCols};
         }

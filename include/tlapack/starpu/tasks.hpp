@@ -45,7 +45,7 @@ namespace starpu {
 
         // Handles
         starpu_data_handle_t handle[3];
-        C.create_compatible_handles(handle, A, B);
+        C.create_compatible_inout_handles(handle, A, B);
 
         // Initialize task
         task->cl =
@@ -63,7 +63,7 @@ namespace starpu {
         STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
         // Clean partition plan
-        C.clean_compatible_handles(handle, A, B);
+        C.clean_compatible_inout_handles(handle, A, B);
     }
 
     template <class TA, class TC, class alpha_t, class beta_t>
@@ -94,7 +94,7 @@ namespace starpu {
 
         // Handles
         starpu_data_handle_t handle[2];
-        A.create_compatible_handles(handle, C);
+        Tile::create_compatible_handles(handle, A, C);
 
         // Initialize task
         task->cl = (struct starpu_codelet*)&(cl::herk<TA, TC, alpha_t, beta_t>);
@@ -110,7 +110,7 @@ namespace starpu {
         STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
         // Clean partition plan
-        A.clean_compatible_handles(handle, C);
+        Tile::clean_compatible_handles(handle, A, C);
     }
 
     template <class TA, class TB, class alpha_t>
@@ -143,7 +143,7 @@ namespace starpu {
 
         // Handles
         starpu_data_handle_t handle[2];
-        A.create_compatible_handles(handle, B);
+        Tile::create_compatible_handles(handle, A, B);
 
         // Initialize task
         task->cl = (struct starpu_codelet*)&(cl::trsm<TA, TB, alpha_t>);
@@ -159,7 +159,7 @@ namespace starpu {
         STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
         // Clean partition plan
-        A.clean_compatible_handles(handle, B);
+        Tile::clean_compatible_handles(handle, A, B);
     }
 
     template <class uplo_t, class T>

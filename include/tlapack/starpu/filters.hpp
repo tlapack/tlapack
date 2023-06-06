@@ -13,10 +13,10 @@
 
 #include <starpu.h>
 
+#include "tlapack/starpu/types.hpp"
+
 namespace tlapack {
 namespace starpu {
-
-    using idx_t = uint32_t;
 
     inline void filter_tile(void* father_interface,
                             void* child_interface,
