@@ -16,6 +16,7 @@
 
 namespace tlapack {
 
+/// Overload of gemm for starpu::Matrix
 template <class TA, class TB, class TC, class alpha_t, class beta_t>
 void gemm(Op transA,
           Op transB,
@@ -62,49 +63,41 @@ void gemm(Op transA,
             if (transA == Op::NoTrans) {
                 if (transB == Op::NoTrans) {
                     starpu::insert_task_gemm<TA, TB, TC>(
-                        transA, transB, alpha, A_.get_tile_handle(ix, 0),
-                        B_.get_tile_handle(0, iy), beta,
-                        C.get_tile_handle(ix, iy));
+                        transA, transB, alpha, A_.tile(ix, 0), B_.tile(0, iy),
+                        beta, C.tile(ix, iy));
                     for (idx_t iz = 1; iz < nz; ++iz)
                         starpu::insert_task_gemm<TA, TB, TC>(
-                            transA, transB, alpha, A_.get_tile_handle(ix, iz),
-                            B_.get_tile_handle(iz, iy), one,
-                            C.get_tile_handle(ix, iy));
+                            transA, transB, alpha, A_.tile(ix, iz),
+                            B_.tile(iz, iy), one, C.tile(ix, iy));
                 }
                 else {
                     starpu::insert_task_gemm<TA, TB, TC>(
-                        transA, transB, alpha, A_.get_tile_handle(ix, 0),
-                        B_.get_tile_handle(iy, 0), beta,
-                        C.get_tile_handle(ix, iy));
+                        transA, transB, alpha, A_.tile(ix, 0), B_.tile(iy, 0),
+                        beta, C.tile(ix, iy));
                     for (idx_t iz = 1; iz < nz; ++iz)
                         starpu::insert_task_gemm<TA, TB, TC>(
-                            transA, transB, alpha, A_.get_tile_handle(ix, iz),
-                            B_.get_tile_handle(iy, iz), one,
-                            C.get_tile_handle(ix, iy));
+                            transA, transB, alpha, A_.tile(ix, iz),
+                            B_.tile(iy, iz), one, C.tile(ix, iy));
                 }
             }
             else {
                 if (transB == Op::NoTrans) {
                     starpu::insert_task_gemm<TA, TB, TC>(
-                        transA, transB, alpha, A_.get_tile_handle(0, ix),
-                        B_.get_tile_handle(0, iy), beta,
-                        C.get_tile_handle(ix, iy));
+                        transA, transB, alpha, A_.tile(0, ix), B_.tile(0, iy),
+                        beta, C.tile(ix, iy));
                     for (idx_t iz = 1; iz < nz; ++iz)
                         starpu::insert_task_gemm<TA, TB, TC>(
-                            transA, transB, alpha, A_.get_tile_handle(iz, ix),
-                            B_.get_tile_handle(iz, iy), one,
-                            C.get_tile_handle(ix, iy));
+                            transA, transB, alpha, A_.tile(iz, ix),
+                            B_.tile(iz, iy), one, C.tile(ix, iy));
                 }
                 else {
                     starpu::insert_task_gemm<TA, TB, TC>(
-                        transA, transB, alpha, A_.get_tile_handle(0, ix),
-                        B_.get_tile_handle(iy, 0), beta,
-                        C.get_tile_handle(ix, iy));
+                        transA, transB, alpha, A_.tile(0, ix), B_.tile(iy, 0),
+                        beta, C.tile(ix, iy));
                     for (idx_t iz = 1; iz < nz; ++iz)
                         starpu::insert_task_gemm<TA, TB, TC>(
-                            transA, transB, alpha, A_.get_tile_handle(iz, ix),
-                            B_.get_tile_handle(iy, iz), one,
-                            C.get_tile_handle(ix, iy));
+                            transA, transB, alpha, A_.tile(iz, ix),
+                            B_.tile(iy, iz), one, C.tile(ix, iy));
                 }
             }
         }

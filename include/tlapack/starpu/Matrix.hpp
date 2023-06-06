@@ -132,9 +132,7 @@ namespace starpu {
     template <class T>
     class Matrix : public internal::EntryAccess<T, std::is_const_v<T>> {
        public:
-        /// @copydoc EntryAccess<T, false>::operator()
         using internal::EntryAccess<T, std::is_const_v<T>>::operator();
-        /// @copydoc EntryAccess<T, false>::operator[]
         using internal::EntryAccess<T, std::is_const_v<T>>::operator[];
 
         // ---------------------------------------------------------------------
@@ -233,7 +231,7 @@ namespace starpu {
 
         /// Get the data handle of a tile in the matrix or the data handle of
         /// the matrix if it is not partitioned
-        Tile get_tile_handle(idx_t ix, idx_t iy) noexcept
+        Tile tile(idx_t ix, idx_t iy) noexcept
         {
             assert(ix >= 0 && iy >= 0 && ix < nx && iy < ny &&
                    "Invalid tile index");

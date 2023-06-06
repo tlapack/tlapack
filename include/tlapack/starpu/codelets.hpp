@@ -1,5 +1,5 @@
 /// @file starpu/codelets.hpp
-/// @brief Codelet for BLAS routines
+/// @brief Codelets for StarPU tasks.
 /// @author Weslley S Pereira, University of Colorado Denver, USA
 //
 // Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
@@ -216,6 +216,9 @@ namespace starpu {
 
             return cl;
         }
+
+        // ---------------------------------------------------------------------
+        // Functions to generate codelets for LAPACK routines
 
         template <class uplo_t, class T, bool has_info>
         constexpr struct starpu_codelet gen_cl_potrf() noexcept

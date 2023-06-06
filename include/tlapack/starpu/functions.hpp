@@ -1,5 +1,5 @@
 /// @file starpu/functions.hpp
-/// @brief BLAS Level 3 routines for StarPU (CPU backend)
+/// @brief StarPU functions for BLAS and LAPACK tasks.
 /// @author Weslley S Pereira, University of Colorado Denver, USA
 //
 // Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
@@ -455,6 +455,9 @@ namespace starpu {
             else
                 static_assert(mode == 0 || mode == 1, "Invalid mode");
         }
+
+        // ---------------------------------------------------------------------
+        // Generic functions for LAPACK routines
 
         template <class uplo_t, class T, bool has_info, int mode = 0>
         constexpr void potrf(void** buffers, void* args)

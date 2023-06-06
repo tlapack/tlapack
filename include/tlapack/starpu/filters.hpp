@@ -18,6 +18,14 @@
 namespace tlapack {
 namespace starpu {
 
+    /** @brief StarPU filter to define a single submatrix of a non-tiled matrix.
+     *
+     * @param[in] father_interface starpu_matrix_interface of the matrix.
+     * @param[out] child_interface starpu_matrix_interface of the submatrix.
+     * @param[in] f array with indexes {row0, col0, nrows, ncols}.
+     * @param[in] id unused.
+     * @param[in] nparts unused.
+     */
     inline void filter_tile(void* father_interface,
                             void* child_interface,
                             struct starpu_data_filter* f,
@@ -59,6 +67,18 @@ namespace starpu {
                 matrix_child->nx * matrix_child->ny * matrix_child->elemsize;
     }
 
+    /** @brief StarPU filter to define a multiple submatrices of a non-tiled
+     * matrix.
+     *
+     * @note The submatrices shouldn't overlap.
+     *
+     * @param[in] father_interface starpu_matrix_interface of the matrix.
+     * @param[out] child_interface starpu_matrix_interface of the submatrix.
+     * @param[in] f array with indexes {row0, col0, nrows, ncols}.
+     *      The size of f is 4 * nparts.
+     * @param[in] id index of the submatrix.
+     * @param[in] nparts unused.
+     */
     inline void filter_ntiles(void* father_interface,
                               void* child_interface,
                               struct starpu_data_filter* f,
@@ -71,12 +91,23 @@ namespace starpu {
         filter_tile(father_interface, child_interface, &f_tile, 0, 1);
     }
 
+    /** @brief StarPU filter to partition a matrix along the x (row) dimension.
+     *
+     * If \p nparts does not divide the number of rows, the last submatrix
+     * contains the remainder.
+     *
+     * @param[in] father_interface starpu_matrix_interface of the matrix.
+     * @param[out] child_interface starpu_matrix_interface of the submatrix.
+     * @param[in] f unused.
+     * @param[in] id index of the submatrix.
+     * @param[in] nparts number of submatrices.
+     */
     inline void filter_rows(
         void* father_interface,
         void* child_interface,
         STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter* f,
         unsigned id,
-        unsigned nchunks)
+        unsigned nparts)
     {
         struct starpu_matrix_interface* matrix_father =
             (struct starpu_matrix_interface*)father_interface;
@@ -88,7 +119,7 @@ namespace starpu {
         matrix_child->id = matrix_father->id;
         matrix_child->elemsize = matrix_father->elemsize;
         matrix_child->nx =
-            (id == nchunks - 1) ? (matrix_father->nx - (mt * id)) : mt;
+            (id == nparts - 1) ? (matrix_father->nx - (mt * id)) : mt;
         matrix_child->ny = matrix_father->ny;
 
         /* is the information on this node valid ? */
@@ -109,11 +140,23 @@ namespace starpu {
                 matrix_child->nx * matrix_child->ny * matrix_child->elemsize;
     }
 
+    /** @brief StarPU filter to partition a matrix along the y (column)
+     * dimension.
+     *
+     * If \p nparts does not divide the number of columns, the last submatrix
+     * contains the remainder.
+     *
+     * @param[in] father_interface starpu_matrix_interface of the matrix.
+     * @param[out] child_interface starpu_matrix_interface of the submatrix.
+     * @param[in] f unused.
+     * @param[in] id index of the submatrix.
+     * @param[in] nparts number of submatrices.
+     */
     inline void filter_cols(void* father_interface,
                             void* child_interface,
                             struct starpu_data_filter* f,
                             unsigned id,
-                            unsigned nchunks)
+                            unsigned nparts)
     {
         struct starpu_matrix_interface* matrix_father =
             (struct starpu_matrix_interface*)father_interface;
@@ -126,7 +169,7 @@ namespace starpu {
         matrix_child->elemsize = matrix_father->elemsize;
         matrix_child->nx = matrix_father->nx;
         matrix_child->ny =
-            (id == nchunks - 1) ? (matrix_father->ny - (nt * id)) : nt;
+            (id == nparts - 1) ? (matrix_father->ny - (nt * id)) : nt;
 
         /* is the information on this node valid ? */
         if (matrix_father->dev_handle) {

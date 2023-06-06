@@ -18,14 +18,17 @@ namespace tlapack {
 namespace starpu {
     namespace cuda {
 
+        /// Check if a type is supported by cuBLAS
         template <class... Ts>
         struct is_cublas {
             static constexpr bool value = false;
         };
 
+        /// Alias for is_cublas<>::value
         template <class... Ts>
         constexpr bool is_cublas_v = is_cublas<Ts..., int>::value;
 
+        /// True if a type is supported by cuSOLVER
         template <class... Ts>
         constexpr bool is_cusolver_v =
 #ifdef STARPU_HAVE_LIBCUSOLVER

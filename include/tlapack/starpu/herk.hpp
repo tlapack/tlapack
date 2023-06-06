@@ -17,6 +17,7 @@
 
 namespace tlapack {
 
+/// Overload of herk for starpu::Matrix
 template <class TA, class TC, class alpha_t, class beta_t>
 void herk(Uplo uplo,
           Op trans,
@@ -54,13 +55,11 @@ void herk(Uplo uplo,
     if (trans == Op::NoTrans) {
         for (idx_t ix = 0; ix < nx; ++ix) {
             // Update diagonal tile of C
-            starpu::insert_task_herk<TA, TC>(uplo, trans, alpha,
-                                             A_.get_tile_handle(ix, 0), beta,
-                                             C.get_tile_handle(ix, ix));
+            starpu::insert_task_herk<TA, TC>(uplo, trans, alpha, A_.tile(ix, 0),
+                                             beta, C.tile(ix, ix));
             for (idx_t iy = 1; iy < ny; ++iy)
                 starpu::insert_task_herk<TA, TC>(
-                    uplo, trans, alpha, A_.get_tile_handle(ix, iy), one,
-                    C.get_tile_handle(ix, ix));
+                    uplo, trans, alpha, A_.tile(ix, iy), one, C.tile(ix, ix));
 
             // Update off-diagonal tiles of C
             auto Ai = A.get_const_tiles(ix, 0, 1, ny);
@@ -78,13 +77,11 @@ void herk(Uplo uplo,
     else {  // trans == Op::ConjTrans
         for (idx_t ix = 0; ix < nx; ++ix) {
             // Update diagonal tile of C
-            starpu::insert_task_herk<TA, TC>(uplo, trans, alpha,
-                                             A_.get_tile_handle(0, ix), beta,
-                                             C.get_tile_handle(ix, ix));
+            starpu::insert_task_herk<TA, TC>(uplo, trans, alpha, A_.tile(0, ix),
+                                             beta, C.tile(ix, ix));
             for (idx_t iy = 1; iy < ny; ++iy)
                 starpu::insert_task_herk<TA, TC>(
-                    uplo, trans, alpha, A_.get_tile_handle(iy, ix), one,
-                    C.get_tile_handle(ix, ix));
+                    uplo, trans, alpha, A_.tile(iy, ix), one, C.tile(ix, ix));
 
             // Update off-diagonal tiles of C
             auto Ai = A.get_const_tiles(0, ix, ny, 1);

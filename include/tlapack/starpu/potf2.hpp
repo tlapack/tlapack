@@ -17,6 +17,7 @@
 
 namespace tlapack {
 
+/// Overload of potf2 for starpu::Matrix
 template <class uplo_t, class T>
 int potf2(uplo_t uplo, starpu::Matrix<T>& A)
 {
@@ -39,7 +40,7 @@ int potf2(uplo_t uplo, starpu::Matrix<T>& A)
     }
 
     // Insert task to factorize A
-    starpu::insert_task_potrf<uplo_t, T>(uplo, A.get_tile_handle(0, 0));
+    starpu::insert_task_potrf<uplo_t, T>(uplo, A.tile(0, 0));
 
     // Return info
     return 0;
