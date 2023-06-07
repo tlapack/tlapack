@@ -105,22 +105,19 @@ int unmhr(Side side,
  *
  * @param[in] opts Options.
  *
- * @param[in,out] workinfo
- *      On output, the amount workspace required. It is larger than or equal
- *      to that given on input.
+ * @return workinfo_t The amount workspace required.
  *
  * @ingroup workspace_query
  */
 template <class matrix_t, class vector_t>
-inline constexpr void unmhr_worksize(Side side,
-                                     Op trans,
-                                     size_type<matrix_t> ilo,
-                                     size_type<matrix_t> ihi,
-                                     const matrix_t& A,
-                                     const vector_t& tau,
-                                     const matrix_t& C,
-                                     workinfo_t& workinfo,
-                                     const workspace_opts_t<>& opts = {})
+inline constexpr workinfo_t unmhr_worksize(Side side,
+                                           Op trans,
+                                           size_type<matrix_t> ilo,
+                                           size_type<matrix_t> ihi,
+                                           const matrix_t& A,
+                                           const vector_t& tau,
+                                           const matrix_t& C,
+                                           const workspace_opts_t<>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using pair = std::pair<idx_t, idx_t>;
@@ -131,7 +128,7 @@ inline constexpr void unmhr_worksize(Side side,
                    ? slice(C, pair{ilo + 1, ihi}, pair{0, ncols(C)})
                    : slice(C, pair{0, nrows(C)}, pair{ilo + 1, ihi});
 
-    unm2r_worksize(side, trans, A_s, tau_s, C_s, workinfo, opts);
+    return unm2r_worksize(side, trans, A_s, tau_s, C_s, opts);
 }
 }  // namespace tlapack
 

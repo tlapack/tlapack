@@ -40,9 +40,7 @@ namespace tlapack {
  *
  * @param[in] opts Options.
  *
- * @param[in,out] workinfo
- *      On output, the amount workspace required. It is larger than or equal
- *      to that given on input.
+ * @return workinfo_t The amount workspace required.
  *
  * @ingroup workspace_query
  */
@@ -51,13 +49,12 @@ template <class matrixA_t,
           class tau_t,
           class side_t,
           class trans_t>
-inline constexpr void unm2r_worksize(side_t side,
-                                     trans_t trans,
-                                     const matrixA_t& A,
-                                     const tau_t& tau,
-                                     const matrixC_t& C,
-                                     workinfo_t& workinfo,
-                                     const workspace_opts_t<>& opts = {})
+inline constexpr workinfo_t unm2r_worksize(side_t side,
+                                           trans_t trans,
+                                           const matrixA_t& A,
+                                           const tau_t& tau,
+                                           const matrixC_t& C,
+                                           const workspace_opts_t<>& opts = {})
 {
     using idx_t = size_type<matrixA_t>;
     using pair = std::pair<idx_t, idx_t>;
@@ -68,8 +65,7 @@ inline constexpr void unm2r_worksize(side_t side,
     const idx_t nA = (side == Side::Left) ? m : n;
 
     auto v = slice(A, pair{0, nA}, 0);
-    larf_worksize(side, forward, columnwise_storage, v, tau[0], C, workinfo,
-                  opts);
+    return larf_worksize(side, forward, columnwise_storage, v, tau[0], C, opts);
 }
 
 /** Applies unitary matrix Q to a matrix C.
@@ -161,8 +157,7 @@ int unm2r(side_t side,
     // Allocates workspace
     vectorOfBytes localworkdata;
     Workspace work = [&]() {
-        workinfo_t workinfo;
-        unm2r_worksize(side, trans, A, tau, C, workinfo, opts);
+        workinfo_t workinfo = unm2r_worksize(side, trans, A, tau, C, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
 

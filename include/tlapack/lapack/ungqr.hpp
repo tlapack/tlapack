@@ -41,17 +41,15 @@ struct ungqr_opts_t : public workspace_opts_t<workT_t> {
  *
  * @param[in] opts Options.
  *
- * @param[in,out] workinfo
- *      On output, the amount workspace required. It is larger than or equal
- *      to that given on input.
+ * @return workinfo_t The amount workspace required.
  *
  * @ingroup workspace_query
  */
 template <class matrix_t, class vector_t, class workT_t = void>
-inline constexpr void ungqr_worksize(const matrix_t& A,
-                                     const vector_t& tau,
-                                     workinfo_t& workinfo,
-                                     const ungqr_opts_t<workT_t>& opts = {})
+inline constexpr workinfo_t ungqr_worksize(
+    const matrix_t& A,
+    const vector_t& tau,
+    const ungqr_opts_t<workT_t>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using matrixT_t = deduce_work_t<workT_t, matrix_type<matrix_t, vector_t> >;
@@ -63,7 +61,7 @@ inline constexpr void ungqr_worksize(const matrix_t& A,
     const idx_t nb = min<idx_t>(opts.nb, k);
 
     // Local workspace sizes
-    const workinfo_t myWorkinfo(nb * sizeof(T), nb);
+    workinfo_t workinfo(nb * sizeof(T), nb);
 
     // larfb:
     {
@@ -75,12 +73,11 @@ inline constexpr void ungqr_worksize(const matrix_t& A,
         const auto matrixT = slice(A, pair{0, nb}, pair{0, nb});
 
         // Internal workspace queries
-        larfb_worksize(left_side, noTranspose, forward, columnwise_storage, V,
-                       matrixT, A, workinfo, opts);
+        workinfo += larfb_worksize(left_side, noTranspose, forward,
+                                   columnwise_storage, V, matrixT, A, opts);
     }
 
-    // Additional workspace needed inside the routine
-    workinfo += myWorkinfo;
+    return workinfo;
 }
 
 /**
@@ -136,8 +133,7 @@ int ungqr(matrix_t& A,
     // Allocates workspace
     vectorOfBytes localworkdata;
     Workspace work = [&]() {
-        workinfo_t workinfo;
-        ungqr_worksize(A, tau, workinfo, opts);
+        workinfo_t workinfo = ungqr_worksize(A, tau, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
 
