@@ -89,6 +89,7 @@ int getrf_level0(matrix_t& A, vector_t& Piv)
 
         // divide below diagonal part of j-th column by the element on the
         // diagonal(A(j,j))
+        // This is a level 0 routine, so we do not use tlapack::rscl.
         for (idx_t i = j + 1; i < m; i++) {
             A(i, j) /= A(j, j);
         }

@@ -17,6 +17,7 @@
 #include "tlapack/blas/scal.hpp"
 #include "tlapack/lapack/lapy2.hpp"
 #include "tlapack/lapack/lapy3.hpp"
+#include "tlapack/lapack/rscl.hpp"
 
 namespace tlapack {
 
@@ -118,7 +119,7 @@ void larfg(storage_t storeMode,
 
         // compute tau and y
         tau = (beta - alpha) / beta;
-        scal(one / (alpha - beta), x);
+        rscl(alpha - beta, x);
         if (storeMode == StoreV::Rowwise) tau = conj(tau);
 
         // Scale if needed
