@@ -27,17 +27,14 @@ namespace tlapack {
  *
  * @param[in] opts Options.
  *
- * @param[in,out] workinfo
- *      On output, the amount workspace required. It is larger than or equal
- *      to that given on input.
+ * @return workinfo_t The amount workspace required.
  *
  * @ingroup workspace_query
  */
 template <class matrix_t, class vector_t>
-inline constexpr void ungl2_worksize(const matrix_t& Q,
-                                     const vector_t& tauw,
-                                     workinfo_t& workinfo,
-                                     const workspace_opts_t<>& opts = {})
+inline constexpr workinfo_t ungl2_worksize(const matrix_t& Q,
+                                           const vector_t& tauw,
+                                           const workspace_opts_t<>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
 
@@ -46,9 +43,10 @@ inline constexpr void ungl2_worksize(const matrix_t& Q,
 
     if (k > 1) {
         auto C = rows(Q, range<idx_t>{1, k});
-        larf_worksize(right_side, forward, rowwise_storage, row(Q, 0), tauw[0],
-                      C, workinfo, opts);
+        return larf_worksize(right_side, forward, rowwise_storage, row(Q, 0),
+                             tauw[0], C, opts);
     }
+    return workinfo_t{};
 }
 
 /**
@@ -104,8 +102,7 @@ int ungl2(matrix_t& Q,
     // Allocates workspace
     vectorOfBytes localworkdata;
     Workspace work = [&]() {
-        workinfo_t workinfo;
-        ungl2_worksize(Q, tauw, workinfo, opts);
+        workinfo_t workinfo = ungl2_worksize(Q, tauw, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
 

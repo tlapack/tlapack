@@ -34,17 +34,14 @@ struct gelqt_opts_t : public workspace_opts_t<> {
  *
  * @param[in] opts Options.
  *
- * @param[in,out] workinfo
- *      On output, the amount workspace required. It is larger than or equal
- *      to that given on input.
+ * @return workinfo_t The amount workspace required.
  *
  * @ingroup workspace_query
  */
 template <typename matrix_t>
-inline constexpr void gelqt_worksize(const matrix_t& A,
-                                     const matrix_t& TT,
-                                     workinfo_t& workinfo,
-                                     const gelqt_opts_t& opts = {})
+inline constexpr workinfo_t gelqt_worksize(const matrix_t& A,
+                                           const matrix_t& TT,
+                                           const gelqt_opts_t& opts = {})
 {
     using idx_t = size_type<matrix_t>;
 
@@ -59,7 +56,7 @@ inline constexpr void gelqt_worksize(const matrix_t& A,
     auto A11 = rows(A, range<idx_t>(0, ib));
     auto tauw1 = diag(TT1);
 
-    gelq2_worksize(A11, tauw1, workinfo, opts);
+    return gelq2_worksize(A11, tauw1, opts);
 }
 
 /** Computes an LQ factorization of a complex m-by-n matrix A using
@@ -128,8 +125,7 @@ int gelqt(matrix_t& A, matrix_t& TT, const gelqt_opts_t& opts = {})
     // Allocates workspace
     vectorOfBytes localworkdata;
     Workspace work = [&]() {
-        workinfo_t workinfo;
-        gelqt_worksize(A, TT, workinfo, opts);
+        workinfo_t workinfo = gelqt_worksize(A, TT, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
 

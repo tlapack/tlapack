@@ -118,19 +118,16 @@ int unghr(size_type<matrix_t> ilo,
  *
  * @param[in] opts Options.
  *
- * @param[in,out] workinfo
- *      On output, the amount workspace required. It is larger than or equal
- *      to that given on input.
+ * @return workinfo_t The amount workspace required.
  *
  * @ingroup workspace_query
  */
 template <class matrix_t, class vector_t>
-inline constexpr void unghr_worksize(size_type<matrix_t> ilo,
-                                     size_type<matrix_t> ihi,
-                                     const matrix_t& A,
-                                     const vector_t& tau,
-                                     workinfo_t& workinfo,
-                                     const workspace_opts_t<>& opts = {})
+inline constexpr workinfo_t unghr_worksize(size_type<matrix_t> ilo,
+                                           size_type<matrix_t> ihi,
+                                           const matrix_t& A,
+                                           const vector_t& tau,
+                                           const workspace_opts_t<>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using pair = pair<idx_t, idx_t>;
@@ -141,8 +138,9 @@ inline constexpr void unghr_worksize(size_type<matrix_t> ilo,
     if (nh > 0 && ilo + 1 < ihi) {
         auto A_s = slice(A, pair{ilo + 1, ihi}, pair{ilo + 1, ihi});
         auto tau_s = slice(tau, pair{ilo, ihi - 1});
-        ung2r_worksize(A_s, tau_s, workinfo, opts);
+        return ung2r_worksize(A_s, tau_s, opts);
     }
+    return workinfo_t{};
 }
 
 }  // namespace tlapack

@@ -40,20 +40,18 @@ struct getri_opts_t : public workspace_opts_t<> {
  *          - UILI = 'D', ///< Method D from doi:10.1137/1.9780898718027
  *          - UXLI = 'C'  ///< Method C from doi:10.1137/1.9780898718027
  *
- * @param[in,out] workinfo
- *      On output, the amount workspace required. It is larger than or equal
- *      to that given on input.
+ * @return workinfo_t The amount workspace required.
  *
  * @ingroup workspace_query
  */
 template <class matrix_t, class vector_t>
-inline constexpr void getri_worksize(const matrix_t& A,
-                                     const vector_t& Piv,
-                                     workinfo_t& workinfo,
-                                     const getri_opts_t& opts = {})
+inline constexpr workinfo_t getri_worksize(const matrix_t& A,
+                                           const vector_t& Piv,
+                                           const getri_opts_t& opts = {})
 {
-    if (opts.variant == GetriVariant::UXLI)
-        getri_uxli_worksize(A, workinfo, opts);
+    if (opts.variant == GetriVariant::UXLI) return getri_uxli_worksize(A, opts);
+
+    return workinfo_t{};
 }
 
 /** getri computes inverse of a general n-by-n matrix A

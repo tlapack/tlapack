@@ -54,9 +54,7 @@ struct unmqr_opts_t : public workspace_opts_t<workT_t> {
  *      @c opts.work is used if whenever it has sufficient size.
  *      The sufficient size can be obtained through a workspace query.
  *
- * @param[in,out] workinfo
- *      On output, the amount workspace required. It is larger than or equal
- *      to that given on input.
+ * @return workinfo_t The amount workspace required.
  *
  * @ingroup workspace_query
  *
@@ -68,13 +66,13 @@ template <class matrixA_t,
           class side_t,
           class trans_t,
           class workT_t = void>
-inline constexpr void unmqr_worksize(side_t side,
-                                     trans_t trans,
-                                     const matrixA_t& A,
-                                     const tau_t& tau,
-                                     const matrixC_t& C,
-                                     workinfo_t& workinfo,
-                                     const unmqr_opts_t<workT_t>& opts = {})
+inline constexpr workinfo_t unmqr_worksize(
+    side_t side,
+    trans_t trans,
+    const matrixA_t& A,
+    const tau_t& tau,
+    const matrixC_t& C,
+    const unmqr_opts_t<workT_t>& opts = {})
 {
     using idx_t = size_type<matrixC_t>;
     using matrixT_t = deduce_work_t<workT_t, matrix_type<matrixA_t, tau_t> >;
@@ -86,7 +84,7 @@ inline constexpr void unmqr_worksize(side_t side,
     const idx_t nb = min<idx_t>(opts.nb, k);
 
     // Local workspace sizes
-    const workinfo_t myWorkinfo(nb * sizeof(T), nb);
+    workinfo_t workinfo(nb * sizeof(T), nb);
 
     // larfb:
     {
@@ -98,15 +96,13 @@ inline constexpr void unmqr_worksize(side_t side,
         // Empty matrices
         const auto V = slice(A, pair{0, nA}, pair{0, nb});
         const auto matrixT = slice(A, pair{0, nb}, pair{0, nb});
-        // const auto matrixT = new_matrix(nullptr, nb, nb);
 
         // Internal workspace queries
-        larfb_worksize(side, trans, forward, columnwise_storage, V, matrixT, C,
-                       workinfo, opts);
+        workinfo += larfb_worksize(side, trans, forward, columnwise_storage, V,
+                                   matrixT, C, opts);
     }
 
-    // Additional workspace needed inside the routine
-    workinfo += myWorkinfo;
+    return workinfo;
 }
 
 /** Applies orthogonal matrix op(Q) to a matrix C using a blocked code.
@@ -207,8 +203,7 @@ int unmqr(side_t side,
     // Allocates workspace
     vectorOfBytes localworkdata;
     Workspace work = [&]() {
-        workinfo_t workinfo;
-        unmqr_worksize(side, trans, A, tau, C, workinfo, opts);
+        workinfo_t workinfo = unmqr_worksize(side, trans, A, tau, C, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
 
