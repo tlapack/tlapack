@@ -45,7 +45,7 @@ void run(size_t n)
     real_t normA = tlapack::lange(tlapack::Norm::Fro, A);
 
     // Allocate space for the LU decomposition
-    std::vector<size_t> Piv(n);
+    std::vector<size_t> piv(n);
     std::vector<T> LU_(n * n);
     tlapack::legacyMatrix<T, idx_t, L> LU(n, n, LU_.data(), n);
 
@@ -53,7 +53,7 @@ void run(size_t n)
     tlapack::lacpy(tlapack::dense, A, LU);
 
     // Computing the LU decomposition of A
-    int info = tlapack::getrf(LU, Piv);
+    int info = tlapack::getrf(LU, piv);
     if (info != 0) {
         std::cerr << "Matrix could not be factorized!" << std::endl;
         return;
@@ -76,11 +76,11 @@ void run(size_t n)
                   tlapack::Op::NoTrans, tlapack::Diag::NonUnit, real_t(1), LU,
                   X);
 
-    // X <----- U^{-1}L^{-1}P; swapping columns of X according to Piv
+    // X <----- U^{-1}L^{-1}P; swapping columns of X according to piv
     for (idx_t i = n; i-- > 0;) {
-        if (Piv[i] != i) {
+        if (piv[i] != i) {
             auto vect1 = tlapack::col(X, i);
-            auto vect2 = tlapack::col(X, Piv[i]);
+            auto vect2 = tlapack::col(X, piv[i]);
             tlapack::swap(vect1, vect2);
         }
     }

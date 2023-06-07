@@ -70,13 +70,13 @@ TEMPLATE_TEST_CASE("Inversion of a general m-by-n matrix",
         real_t norma = tlapack::lange(tlapack::Norm::Max, A);
 
         // LU factorize Pivoted A
-        std::vector<idx_t> Piv(n, idx_t(0));
-        getrf(invA, Piv);
+        std::vector<idx_t> piv(n, idx_t(0));
+        getrf(invA, piv);
 
         // run inverse function, this could test any inverse function of choice
         getri_opts_t opts;
         opts.variant = variant;
-        getri(invA, Piv, opts);
+        getri(invA, piv, opts);
 
         // building error matrix E
         std::vector<T> E_;
