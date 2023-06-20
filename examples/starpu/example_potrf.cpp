@@ -76,7 +76,7 @@ int run(idx_t n, idx_t nt, idx_t nb, bool check_error = false)
         double start = starpu_timing_now();
 
         /* call potrf */
-        int info = potrf(upperTriangle, A, opts);
+        int info = potrf(lowerTriangle, A, opts);
 
         // Record end time
         starpu_task_wait_for_all();
@@ -89,13 +89,13 @@ int run(idx_t n, idx_t nt, idx_t nb, bool check_error = false)
             std::cout << "Cholesky ended with info " << info << std::endl;
 
         if (check_error) {
-            // Solve U^H U B = A_init
+            // Solve L L^H B = A_init
             Matrix<T> B(B_, n, n, nt, nt);
             // std::cout << "B = " << B << std::endl;
-            trsm(left_side, upperTriangle, conjTranspose, nonUnit_diagonal, one,
+            trsm(left_side, lowerTriangle, noTranspose, nonUnit_diagonal, one,
                  A, B);
             // std::cout << "B = " << B << std::endl;
-            trsm(left_side, upperTriangle, noTranspose, nonUnit_diagonal, one,
+            trsm(left_side, lowerTriangle, conjTranspose, nonUnit_diagonal, one,
                  A, B);
             std::cout << "B = " << B << std::endl;
         }

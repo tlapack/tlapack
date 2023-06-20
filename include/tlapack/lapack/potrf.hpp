@@ -15,10 +15,16 @@
 #include "tlapack/lapack/potf2.hpp"
 #include "tlapack/lapack/potrf2.hpp"
 #include "tlapack/lapack/potrf_blocked.hpp"
+#include "tlapack/lapack/potrf_blocked_right_looking.hpp"
 
 namespace tlapack {
 
-enum class PotrfVariant : char { Blocked = 'B', Recursive = 'R', Level2 = '2' };
+enum class PotrfVariant : char {
+    Blocked = 'B',
+    Recursive = 'R',
+    Level2 = '2',
+    RightLooking
+};
 
 template <typename idx_t>
 struct potrf_opts_t : public potrf_blocked_opts_t<idx_t> {
@@ -78,7 +84,8 @@ inline int potrf(uplo_t uplo,
     tlapack_check(nrows(A) == ncols(A));
     tlapack_check(opts.variant == PotrfVariant::Blocked ||
                   opts.variant == PotrfVariant::Recursive ||
-                  opts.variant == PotrfVariant::Level2);
+                  opts.variant == PotrfVariant::Level2 ||
+                  opts.variant == PotrfVariant::RightLooking);
 
     // Call variant
     if (opts.variant == PotrfVariant::Blocked)
@@ -87,6 +94,8 @@ inline int potrf(uplo_t uplo,
         return potrf2(uplo, A, opts);
     else if (opts.variant == PotrfVariant::Level2)
         return potf2(uplo, A);
+    else if (opts.variant == PotrfVariant::RightLooking)
+        return potrf_rl(uplo, A, opts);
     else
         return -3;
 }

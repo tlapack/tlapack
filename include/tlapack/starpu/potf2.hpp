@@ -32,7 +32,7 @@ int potf2(uplo_t uplo, starpu::Matrix<T>& A)
     if (nx < 1 || ny < 1 || n < 1) return 0;
 
     // Use blocked algorithm if matrix contains more than one tile
-    if (nx > 1 && ny > 1) {
+    if (nx > 1 || ny > 1) {
         potrf_blocked_opts_t<idx_t> potrf_opts;
         potrf_opts.nb =
             std::min(std::min(A.nblockrows(), A.nblockcols()), n - 1);
