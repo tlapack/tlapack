@@ -35,8 +35,8 @@ namespace tlapack {
  *
  * @ingroup legacy_lapack
  */
-template <typename TA, typename Ttau>
-inline int geqr2(idx_t m, idx_t n, TA* A, idx_t lda, Ttau* tau)
+template <typename TA, typename TT>
+inline int geqr2(idx_t m, idx_t n, TA* A, idx_t lda, TT* tau)
 {
     using internal::colmajor_matrix;
     using internal::vector;

@@ -75,10 +75,10 @@ TEMPLATE_TEST_CASE("LU factorization of a general m-by-n matrix",
         lacpy(Uplo::General, A, A_copy);
 
         real_t norma = tlapack::lange(tlapack::Norm::Max, A);
-        // Initialize Piv vector to all zeros
-        std::vector<idx_t> Piv(k, idx_t(0));
-        // Run getrf and both A and Piv will be update
-        getrf(A, Piv, getrf_opts_t{variant});
+        // Initialize piv vector to all zeros
+        std::vector<idx_t> piv(k, idx_t(0));
+        // Run getrf and both A and piv will be update
+        getrf(A, piv, getrf_opts_t{variant});
 
         // A contains L and U now, then form A <--- LU
         if (m > n) {
@@ -102,11 +102,11 @@ TEMPLATE_TEST_CASE("LU factorization of a general m-by-n matrix",
         else
             lu_mult(A);
 
-        // Now that Piv is updated, we work our way backwards in Piv and switch
+        // Now that piv is updated, we work our way backwards in piv and switch
         // rows of LU
         for (idx_t j = k - idx_t(1); j != idx_t(-1); j--) {
             auto vect1 = tlapack::row(A, j);
-            auto vect2 = tlapack::row(A, Piv[j]);
+            auto vect2 = tlapack::row(A, piv[j]);
             tlapack::swap(vect1, vect2);
         }
 

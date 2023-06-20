@@ -39,8 +39,8 @@ namespace tlapack {
  *
  * @ingroup legacy_lapack
  */
-template <typename TA, typename Ttau>
-inline int ung2r(idx_t m, idx_t n, idx_t k, TA* A, idx_t lda, const Ttau* tau)
+template <typename TA, typename TT>
+inline int ung2r(idx_t m, idx_t n, idx_t k, TA* A, idx_t lda, const TT* tau)
 {
     using internal::colmajor_matrix;
     using internal::vector;
@@ -56,7 +56,7 @@ inline int ung2r(idx_t m, idx_t n, idx_t k, TA* A, idx_t lda, const Ttau* tau)
 
     // Matrix views
     auto A_ = colmajor_matrix<TA>(A, m, n, lda);
-    auto tau_ = vector((Ttau*)tau, std::min<idx_t>(m, n));
+    auto tau_ = vector((TT*)tau, std::min<idx_t>(m, n));
 
     return ung2r(A_, tau_);
 }

@@ -53,13 +53,13 @@ namespace tlapack {
  *
  * @ingroup auxiliary
  */
-template <class matrix_t, class vector_t, class T_t, class Y_t>
+template <class matrix_t, class vector_t, class matrixT_t, class matrixY_t>
 int lahr2(size_type<matrix_t> k,
           size_type<matrix_t> nb,
           matrix_t& A,
           vector_t& tau,
-          T_t& T,
-          Y_t& Y)
+          matrixT_t& T,
+          matrixY_t& Y)
 {
     using TA = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;

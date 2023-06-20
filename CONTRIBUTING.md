@@ -10,6 +10,32 @@ Thank you for investing your precious time to contribute to \<T\>LAPACK! Please 
 
 To format code you are adding or modifying, we suggest using the [git-clang-format](https://github.com/llvm-mirror/clang/blob/master/tools/clang-format/git-clang-format) script that is distributed together with ClangFormat. Use `git-clang-format` to format the code that was modified or added before a commit. You can use `git-clang-format --help` to access all options. Mind that one of the tests in the Continuous Integration checks that the code is properly formatted.
 
+### Naming conventions
+
+#### Template parameters and type aliases
+
+Template parameters and type aliases should be named using the conventions:
+
+1. Use `T` possibly followed by a short identifier (preferrably one uppercase character) to represent a scalar type like `float`, `double`, `int` and `std::complex<float>`. For instance, `TA` and `TB` could represent the types of variables `a` and `b`, or the types of the entries of matrices `A` and `B`.
+2. Use `matrixA_t` and `vectorA_t` to represent the types of matrices and vectors, respectively. Use a short identifier (preferrably one uppercase character) like `A` and `B` between the words `matrix` (por `vector`) and `_t`.
+3. Use `foo_bar_t` to represent the type of the variable `fooBar`. This convention should be used whenever the first and second rules are not clear enough. For instance, `alpha_t` and `beta_t` are used in [gemm](include/tlapack/blas/gemm.hpp) to represent the types of scalars `alpha` and `beta` in the BLAS function `gemm`, while `TA` and `TB` represent the types of the entries of matrices `A` and `B`.
+4. Use `foo_bar_f` to represent the type of the functor `fooBar`. For instance, `abs_f` is the type of the functor `abs` in [lassq.hpp](include/tlapack/lapack/lassq.hpp).
+
+Special cases:
+
+- Use `real_t` to represent the default real type to be used inside a given scope.
+- Use `scalar_t` or `T` to represent the default scalar type to be used inside a given scope. The identifier `T` is preferrable.
+- Use `idx_t` to represent the default index type to be used inside a given scope.
+
+#### Functions
+
+Function arguments should be named using either:
+
+1. a single capital letter if it is a matrix, or
+2. a lower camel case word.
+
+For instance, `fooBar` is a good name for a function argument, while `foo_bar` is not. `A` and `matrixA` are good names for a matrix, while `a` is not.
+
 ### Usage of the `auto` keyword
 
 In C++ all types are evaluated at compile time. The `auto` keyword is used to enable the compiler to deduce the type of a variable automatically. For instance, the instructions
@@ -19,7 +45,7 @@ int m = 1;
 auto n = m + m;
 ```
 
-and 
+and
 
 ```cpp
 int m = 1;
@@ -30,42 +56,42 @@ are equivalent, and deduce the type `int` for `n`. The former is very useful and
 
 1. When the type is known, like in [nrm2](include/tlapack/blas/nrm2.hpp):
 
-    ```cpp
-    const real_t tsml = blue_min<real_t>();
-    ```
+   ```cpp
+   const real_t tsml = blue_min<real_t>();
+   ```
 
-    In this case, the reader does not need to go to the definition of `blue_min` to know the type of `tsml`.
+   In this case, the reader does not need to go to the definition of `blue_min` to know the type of `tsml`.
 
 2. When the type can be deduced using `tlapack::real_type<>`, `tlapack::complex_type<>`, `tlapack::scalar_type<>`, `tlapack::type_t<>`, `tlapack::size_type<>` or any combination of them. For instance, in [gemm](include/tlapack/blas/gemm.hpp):
 
-    ```cpp
-    using TB = type_t<matrixB_t>;
-    using scalar_t = scalar_type<alpha_t,TB>;
+   ```cpp
+   using TB = type_t<matrixB_t>;
+   using scalar_t = scalar_type<alpha_t,TB>;
 
-    const scalar_t alphaTimesblj = alpha*B(l,j);
-    ```
+   const scalar_t alphaTimesblj = alpha*B(l,j);
+   ```
 
-    This design makes it clear the type we obtain after operating with the types. Moreover, it avoids a problem with lazy evaluation. Indeed, consider the following (bad) example:
+   This design makes it clear the type we obtain after operating with the types. Moreover, it avoids a problem with lazy evaluation. Indeed, consider the following (bad) example:
 
-    ```c++
-    using T = mpf_class;
-    T w = 1.0;
-    T x = 2.0;
-    auto y = w + x;
-    T z = y * y;
-    ```
+   ```c++
+   using T = mpf_class;
+   T w = 1.0;
+   T x = 2.0;
+   auto y = w + x;
+   T z = y * y;
+   ```
 
-    where `mpf_class` is the GNU multiprecision floating-point type. The type of `y` is not `mpf_class`, because `mpf_class` resort to lazy evaluation before evaluating mathematical expressions. Thus, `w + x` will be actually computed twice in the last instruction, which is not ideal. That is why we suggest to avoid the usage of `auto` in those situations.
+   where `mpf_class` is the GNU multiprecision floating-point type. The type of `y` is not `mpf_class`, because `mpf_class` resort to lazy evaluation before evaluating mathematical expressions. Thus, `w + x` will be actually computed twice in the last instruction, which is not ideal. That is why we suggest to avoid the usage of `auto` in those situations.
 
 We recommend the usage of `auto` in the following cases:
 
 1. To get the output of
 
-    a. `tlapack::legacy_matrix` and `tlapack::legacy_vector` when writing wrappers to optimized BLAS and LAPACK.
+   a. `tlapack::legacy_matrix` and `tlapack::legacy_vector` when writing wrappers to optimized BLAS and LAPACK.
 
-    b. slicing matrices and vectors using `tlapack::slice`, `tlapack::rows`, `tlapack::col`, etc. See [abstractArray](include/tlapack/plugins/abstractArray.hpp) for more details.
-    
-    c. the functor `tlapack::Create< >(...)`. See [arrayTraits.hpp](include/tlapack/base/arrayTraits.hpp) for more details.
+   b. slicing matrices and vectors using `tlapack::slice`, `tlapack::rows`, `tlapack::col`, etc. See [abstractArray](include/tlapack/plugins/abstractArray.hpp) for more details.
+
+   c. the functor `tlapack::Create< >(...)`. See [arrayTraits.hpp](include/tlapack/base/arrayTraits.hpp) for more details.
 
 2. In the return type of functions like `tlapack::asum`, `tlapack::dot`, `tlapack::nrm2` and `tlapack::lange`. By defining the output as `auto`, we enable overloading of those functions using mixed precision. For instance, one may write a overloading of `tlapack::lange` for matrices `Eigen::MatrixXf` that returns `double`.
 
@@ -86,6 +112,7 @@ We recommend the usage of `auto` in the following cases:
 4. Avoid writing code that depends explicitly on `std::complex<T>` by using `tlapack::real_type<T>`, `tlapack::complex_type<T>` and `tlapack::scalar_type<T>`. Any scalar type `T` supported by \<T\>LAPACK should implement those 3 classes.
 
 > **_NOTE:_** `std::complex` is one way to define complex numbers. It has undesired behavior such as:
+>
 > - `std::abs(std::complex<T>)` may not propagate NaNs. See https://github.com/tlapack/tlapack/issues/134#issue-1364091844.
 > - Operations with `std::complex<T>`, for `T=float,double,long double` are wrappers to operations in C. Other types have their implementation in C++. Because of that, the logic of complex multiplication, division and other operations may change from type to type. See https://github.com/advanpix/mpreal/issues/11.
 
@@ -110,8 +137,9 @@ Consider following the steps below before writing a test for a new routine:
 ### Directions for writing tests
 
 1. Only include the headers you need. This also means:
-    - You should never include `tlapack.hpp` in a test. Instead, include the headers for the routines you are testing. Compilation times may increase significantly if you include `tlapack.hpp` in a test.
-    - If needed, include `testutils.hpp` before including other headers from \<T\>LAPACK. This will make sure that the macros are defined before they are used. Also, it makes sure that the plugins for matrix types are loaded before other headers are included.
+
+   - You should never include `tlapack.hpp` in a test. Instead, include the headers for the routines you are testing. Compilation times may increase significantly if you include `tlapack.hpp` in a test.
+   - If needed, include `testutils.hpp` before including other headers from \<T\>LAPACK. This will make sure that the macros are defined before they are used. Also, it makes sure that the plugins for matrix types are loaded before other headers are included.
 
 2. You should use `using namespace tlapack;` in a test. This will make the code more readable.
 
@@ -121,23 +149,23 @@ Consider following the steps below before writing a test for a new routine:
 
 5. For creating objects inside the tests:
 
-    - If you need to create a matrix, use `tlapack::Create<TestType>(...)`. See [arrayTraits.hpp](include/tlapack/base/arrayTraits.hpp) for more details.
+   - If you need to create a matrix, use `tlapack::Create<TestType>(...)`. See [arrayTraits.hpp](include/tlapack/base/arrayTraits.hpp) for more details.
 
-    - If you need to create a vector there are two options. The first option is to use `tlapack::Create< vector_type<TestType> >(...)`. See [arrayTraits.hpp](include/tlapack/base/arrayTraits.hpp) for more details. The secon optionis to use `std::vector< type_t<TestType> >` or `std::vector< real_type<type_t<TestType>> >`.
+   - If you need to create a vector there are two options. The first option is to use `tlapack::Create< vector_type<TestType> >(...)`. See [arrayTraits.hpp](include/tlapack/base/arrayTraits.hpp) for more details. The secon optionis to use `std::vector< type_t<TestType> >` or `std::vector< real_type<type_t<TestType>> >`.
 
 6. Use the macro `GENERATE()` to create a range of values. For instance, you may use `GENERATE(1,2,3)` to create a range of values `{1,2,3}`. This way you can avoid writing a loop to test a routine for different values of a parameter.
 
 7. Whenever possible, create a `DYNAMIC_SECTION(...)` after all commands `GENERATE()`. Example:
 
-    ```c++
-    const idx_t m = GENERATE(1,5,9);
-    const idx_t n = GENERATE(1,5,9);
-    const Uplo = GENERATE(Uplo::Lower, Uplo::Upper);
+   ```c++
+   const idx_t m = GENERATE(1,5,9);
+   const idx_t n = GENERATE(1,5,9);
+   const Uplo = GENERATE(Uplo::Lower, Uplo::Upper);
 
-    DYNAMIC_SECTION("m = " << m << " n = " << n << " Uplo = " << Uplo) {
-        // test code
-    }
-    ```
+   DYNAMIC_SECTION("m = " << m << " n = " << n << " Uplo = " << Uplo) {
+       // test code
+   }
+   ```
 
 8. Use the macros `INFO()` and `UNSCOPED_INFO()` to print other information about the test.
 
@@ -156,6 +184,7 @@ TO-DO
 ### Updating [tests/blaspp](tests/blaspp) and [tests/lapackpp](tests/lapackpp)
 
 There are two situations in which you may need to update [tests/blaspp](tests/blaspp) and [tests/lapackpp](tests/lapackpp):
+
 1. When you want to enable a test.
 2. When you want to use a new version of those libraries for tests.
 
