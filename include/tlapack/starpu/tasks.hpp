@@ -14,6 +14,18 @@
 #include "tlapack/starpu/codelets.hpp"
 
 namespace tlapack {
+namespace flops {
+    constexpr double gemm(double m, double n, double k)
+    {
+        return 2 * m * n * k;
+    }
+    constexpr double trsm(double m, double n) { return m * m * n; }
+    constexpr double herk(double n, double k) { return n * n * k; }
+    constexpr double chol(double n) { return (n / 3) * n * n; }
+}  // namespace flops
+}  // namespace tlapack
+
+namespace tlapack {
 namespace starpu {
 
     template <class TA, class TB, class TC, class alpha_t, class beta_t>
@@ -57,6 +69,8 @@ namespace starpu {
         task->cl_arg_size = sizeof(args_t);
         task->callback_func = [](void* args) noexcept { delete (args_t*)args; };
         task->callback_arg = (void*)args_ptr;
+        task->flops =
+            flops::gemm(C.m, C.n, (transA == Op::NoTrans ? A.n : A.m));
 
         // Submit task
         const int ret = starpu_task_submit(task);
@@ -104,6 +118,7 @@ namespace starpu {
         task->cl_arg_size = sizeof(args_t);
         task->callback_func = [](void* args) noexcept { delete (args_t*)args; };
         task->callback_arg = (void*)args_ptr;
+        task->flops = flops::herk(C.m, (trans == Op::NoTrans ? A.n : A.m));
 
         // Submit task
         const int ret = starpu_task_submit(task);
@@ -153,6 +168,7 @@ namespace starpu {
         task->cl_arg_size = sizeof(args_t);
         task->callback_func = [](void* args) noexcept { delete (args_t*)args; };
         task->callback_arg = (void*)args_ptr;
+        task->flops = flops::trsm(A.m, ((side == Side::Left) ? B.n : B.m));
 
         // Submit task
         const int ret = starpu_task_submit(task);
@@ -194,6 +210,7 @@ namespace starpu {
         task->cl_arg_size = sizeof(args_t);
         task->callback_func = [](void* args) noexcept { delete (args_t*)args; };
         task->callback_arg = (void*)args_ptr;
+        task->flops = flops::chol(A.m);
 
         if constexpr (use_cusolver) {
             int lwork = 0;
