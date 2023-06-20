@@ -13,6 +13,7 @@
 #include "tlapack/base/utils.hpp"
 #include "tlapack/blas/gemm.hpp"
 #include "tlapack/lapack/gehd2.hpp"
+#include "tlapack/lapack/gehrd.hpp"
 #include "tlapack/lapack/lahqr.hpp"
 #include "tlapack/lapack/lahqr_eig22.hpp"
 #include "tlapack/lapack/larf.hpp"
