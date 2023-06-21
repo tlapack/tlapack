@@ -52,9 +52,9 @@ using std::is_convertible_v;
 using std::is_same_v;
 #else
 template <class T, class U>
-inline constexpr bool is_convertible_v = std::is_convertible<T, U>::value;
+constexpr bool is_convertible_v = std::is_convertible<T, U>::value;
 template <class T, class U>
-inline constexpr bool is_same_v = std::is_same<T, U>::value;
+constexpr bool is_same_v = std::is_same<T, U>::value;
 #endif
 
 //------------------------------------------------------------------------------
@@ -228,8 +228,8 @@ namespace internal {
      */
     template <class matrix_t>
     struct type_trait<matrix_t, enable_if_t<is_matrix<matrix_t>, int>> {
-        using type =
-            typename std::decay<decltype(std::declval<matrix_t>()(0, 0))>::type;
+        using type = typename std::decay<decltype(
+            ((const matrix_t)std::declval<matrix_t>())(0, 0))>::type;
     };
 
     /**
@@ -241,8 +241,8 @@ namespace internal {
      */
     template <class vector_t>
     struct type_trait<vector_t, enable_if_t<is_vector<vector_t>, int>> {
-        using type =
-            typename std::decay<decltype(std::declval<vector_t>()[0])>::type;
+        using type = typename std::decay<decltype(
+            ((const vector_t)std::declval<vector_t>())[0])>::type;
     };
 
     /**
@@ -540,9 +540,11 @@ bool hasnan(const vector_t& x)
  * intermediate stages of the computation.
  * @see https://en.cppreference.com/w/cpp/numeric/complex/abs
  * but it may not propagate NaNs.
+ *
+ * Also, std::abs< mpfr::mpreal > may not propagate Infs.
  */
 template <typename T>
-T abs(const T& x);
+inline T abs(const T& x);
 
 inline float abs(float x) { return std::fabs(x); }
 inline double abs(double x) { return std::fabs(x); }
@@ -552,21 +554,19 @@ template <typename T>
 inline T abs(const std::complex<T>& x)
 {
     // If the default value of ErrorCheck::nan is true then check for NaNs
-    return (ErrorCheck().nan)
-               ? (isnan(x) ? std::numeric_limits<T>::quiet_NaN() : std::abs(x))
-               : std::abs(x);
+    if (ErrorCheck().nan && isnan(x))
+        return std::numeric_limits<T>::quiet_NaN();
+    // If the default value of ErrorCheck::inf is true then check for Infs
+    else if (ErrorCheck().inf && isinf(x))
+        return std::numeric_limits<T>::infinity();
+    else
+        return std::abs(x);
 }
 
 // -----------------------------------------------------------------------------
 /// 1-norm absolute value, |Re(x)| + |Im(x)|
-template <typename real_t>
-inline real_t abs1(const real_t& x)
-{
-    return abs(x);
-}
-
-template <typename real_t>
-inline real_t abs1(const std::complex<real_t>& x)
+template <typename T>
+real_type<T> abs1(const T& x)
 {
     return abs(real(x)) + abs(imag(x));
 }
@@ -646,7 +646,7 @@ namespace internal {
             ((is_matrix<C> || is_vector<C>)
                  ? (allow_optblas<C> &&
                     is_same_v<type_t<C>, typename std::decay<T>::type>)
-                 : std::is_convertible<C, T>::value);
+                 : std::is_constructible<T, C>::value);
     };
 
     template <class C1, class T1, class C2, class T2, class... Ps>
@@ -683,6 +683,7 @@ TLAPACK_OPT_TYPE(float)
 TLAPACK_OPT_TYPE(double)
 TLAPACK_OPT_TYPE(std::complex<float>)
 TLAPACK_OPT_TYPE(std::complex<double>)
+TLAPACK_OPT_TYPE(StrongZero)
 #endif
 #undef TLAPACK_OPT_TYPE
 

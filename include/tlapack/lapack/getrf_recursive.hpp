@@ -85,7 +85,7 @@ int getrf_recursive(matrix_t& A, piv_t& piv)
     // one-row matrices
     if (m == 1) {
         // piv has one element
-        piv[0] = 0;
+        piv[0] = idx_t(0);
         if (A(piv[0], 0) == real_t(0)) {
             // in case which A(0,0) is zero, then we return 1 since in the first
             // iteration we stopped
@@ -105,7 +105,11 @@ int getrf_recursive(matrix_t& A, piv_t& piv)
         if (A(piv[0], 0) == real_t(0)) return 1;
 
         // in this case, we can safely swap since A(piv[0],0) is not zero
-        if (piv[0] != 0) std::swap(A(piv[0], 0), A(0, 0));
+        if (piv[0] != 0) {
+            const T aux = A(piv[0], 0);
+            A(piv[0], 0) = A(0, 0);
+            A(0, 0) = aux;
+        }
 
         // by the previous comment, we can safely scale all elements of 0th
         // column by 1/A(0,0)

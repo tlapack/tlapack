@@ -205,14 +205,13 @@ inline void larfg(direction_t direction,
     tlapack_check_false(direction != Direction::Backward &&
                         direction != Direction::Forward);
 
-    if (direction == Direction::Forward) {
-        auto x = slice(v, pair(1, size(v)));
-        larfg(storeMode, v[0], x, tau);
-    }
-    else {
-        auto x = slice(v, pair(0, size(v) - 1));
-        larfg(storeMode, v[size(v) - 1], x, tau);
-    }
+    const idx_t alpha_idx = (direction == Direction::Forward) ? 0 : size(v) - 1;
+
+    auto x = slice(v, (direction == Direction::Forward) ? pair(1, size(v))
+                                                        : pair(0, size(v) - 1));
+    type_t<vector_t> alpha = v[alpha_idx];
+    larfg(storeMode, alpha, x, tau);
+    v[alpha_idx] = alpha;
 }
 
 }  // namespace tlapack

@@ -85,7 +85,7 @@ int lahqr(bool want_t,
     using pair = pair<idx_t, idx_t>;
 
     // Functor
-    Create<vector_type<matrix_t, matrix_t>> new_vector;
+    Create<vector_type<matrix_t>> new_vector;
 
     // constants
     const real_t zero(0);
@@ -219,9 +219,19 @@ int lahqr(bool want_t,
                 TA sn;
                 // We don't check the error flag here because it should never
                 // fail for real values.
-                lahqr_schur22(A(istart, istart), A(istart, istart + 1),
-                              A(istart + 1, istart), A(istart + 1, istart + 1),
-                              w[istart], w[istart + 1], cs, sn);
+                TA Aii = A(istart, istart);
+                TA Ajj = A(istart + 1, istart + 1);
+                TA Aij = A(istart, istart + 1);
+                TA Aji = A(istart + 1, istart);
+                complex_type<TA> wi = w[istart];
+                complex_type<TA> wj = w[istart + 1];
+                lahqr_schur22(Aii, Aij, Aji, Ajj, wi, wj, cs, sn);
+                A(istart, istart) = Aii;
+                A(istart + 1, istart + 1) = Ajj;
+                A(istart, istart + 1) = Aij;
+                A(istart + 1, istart) = Aji;
+                w[istart] = wi;
+                w[istart + 1] = wj;
                 // Apply the rotations from the normalization to the rest of the
                 // matrix.
                 if (want_t) {
@@ -312,7 +322,9 @@ int lahqr(bool want_t,
                 auto x = slice(v, pair{0, nr});
                 lahqr_shiftcolumn(H, x, s1, s2);
                 auto y = slice(v, pair{1, nr});
-                larfg(columnwise_storage, v[0], y, t1);
+                TA alpha = v[0];
+                larfg(columnwise_storage, alpha, y, t1);
+                v[0] = alpha;
                 if (i > istart) {
                     A(i, i - 1) = A(i, i - 1) * (one - conj(t1));
                 }
@@ -322,7 +334,9 @@ int lahqr(bool want_t,
                 v[1] = A(i + 1, i - 1);
                 if (nr == 3) v[2] = A(i + 2, i - 1);
                 auto x = slice(v, pair{1, nr});
-                larfg(columnwise_storage, v[0], x, t1);
+                TA alpha = v[0];
+                larfg(columnwise_storage, alpha, x, t1);
+                v[0] = alpha;
                 A(i, i - 1) = v[0];
                 A(i + 1, i - 1) = zero;
                 if (nr == 3) A(i + 2, i - 1) = zero;
@@ -588,7 +602,10 @@ int lahqr(bool want_t,
                 if (i > istart) A(i, i - 1) = A(i, i - 1) * cs;
             }
             else {
-                rotg(A(i, i - 1), A(i + 1, i - 1), cs, sn);
+                TA h00 = A(i, i - 1);
+                TA h10 = A(i + 1, i - 1);
+                rotg(h00, h10, cs, sn);
+                A(i, i - 1) = h00;
                 A(i + 1, i - 1) = zero;
             }
 
