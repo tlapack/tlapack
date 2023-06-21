@@ -11,7 +11,6 @@
 #define TLAPACK_GETRF_LV0_HH
 
 #include "tlapack/base/utils.hpp"
-
 namespace tlapack {
 
 /** getrf computes an LU factorization of a general m-by-n matrix A
@@ -21,7 +20,7 @@ namespace tlapack {
  * \[
  *   P A = L U
  * \]
- *  where P is a permutation matrix constructed from our Piv vector, L is lower
+ *  where P is a permutation matrix constructed from our piv vector, L is lower
  * triangular with unit diagonal elements (lower trapezoidal if m > n), and U is
  * upper triangular (upper trapezoidal if m < n).
  *
@@ -34,8 +33,8 @@ namespace tlapack {
  *      On exit, the factors L and U from the factorization A=PLU;
  *      the unit diagonal elements of L are not stored.
  *
- * @param[in,out] Piv is a k-by-1 integer vector where k=min(m,n)
- * and Piv[i]=j where i<=j<=k-1, which means in the i-th iteration of the
+ * @param[in,out] piv is a k-by-1 integer vector where k=min(m,n)
+ * and piv[i]=j where i<=j<=k-1, which means in the i-th iteration of the
  * algorithm, the j-th row needs to be swapped with i
  *
  * @note To construct L and U, one proceeds as in the following steps
@@ -47,8 +46,8 @@ namespace tlapack {
  *
  * @ingroup computational
  */
-template <class matrix_t, class vector_t>
-int getrf_level0(matrix_t& A, vector_t& Piv)
+template <class matrix_t, class piv_t>
+int getrf_level0(matrix_t& A, piv_t& piv)
 {
     using idx_t = size_type<matrix_t>;
     using T = type_t<matrix_t>;
@@ -60,35 +59,36 @@ int getrf_level0(matrix_t& A, vector_t& Piv)
     const idx_t end = std::min<idx_t>(m, n);
 
     // check arguments
-    tlapack_check((idx_t)size(Piv) >= end);
+    tlapack_check((idx_t)size(piv) >= end);
 
     // quick return
     if (m <= 0 || n <= 0) return 0;
 
     for (idx_t j = 0; j < end; j++) {
         // find pivot and swap the row with pivot row
-        Piv[j] = j;
+        piv[j] = j;
         for (idx_t i = j + 1; i < m; i++) {
-            if (abs1(A(i, j)) > abs1(A(Piv[j], j))) Piv[j] = i;
+            if (abs1(A(i, j)) > abs1(A(piv[j], j))) piv[j] = i;
         }
 
         // if nonzero pivot does not exist, return
-        if (A(Piv[j], j) == real_t(0)) {
+        if (A(piv[j], j) == real_t(0)) {
             return j + 1;
         }
 
-        // if the pivot happens to be a Piv[j]>j(Piv[j] not equal to j), then
-        // swap j-th row and Piv[j] row of A
-        if (Piv[j] != j) {
+        // if the pivot happens to be a piv[j]>j(piv[j] not equal to j), then
+        // swap j-th row and piv[j] row of A
+        if (piv[j] != j) {
             for (idx_t i = 0; i < n; i++) {
                 T tmp = A(j, i);
-                A(j, i) = A(Piv[j], i);
-                A(Piv[j], i) = tmp;
+                A(j, i) = A(piv[j], i);
+                A(piv[j], i) = tmp;
             }
         }
 
         // divide below diagonal part of j-th column by the element on the
         // diagonal(A(j,j))
+        // This is a level 0 routine, so we do not use tlapack::rscl.
         for (idx_t i = j + 1; i < m; i++) {
             A(i, j) /= A(j, j);
         }

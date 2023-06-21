@@ -35,18 +35,17 @@ namespace tlapack {
  *
  * @param[in] A n-by-n hermitian matrix.
  *
- * @param[in,out] workinfo
- *      On output, the amount workspace required. It is larger than or equal
- *      to that given on input.
+ * @return workinfo_t The amount workspace required.
  *
  * @ingroup workspace_query
  */
 template <class norm_t, class uplo_t, class matrix_t>
-inline constexpr void lanhe_worksize(norm_t normType,
-                                     uplo_t uplo,
-                                     const matrix_t& A,
-                                     workinfo_t& workinfo)
-{}
+inline constexpr workinfo_t lanhe_worksize(norm_t normType,
+                                           uplo_t uplo,
+                                           const matrix_t& A)
+{
+    return workinfo_t{};
+}
 
 /** Worspace query of lanhe().
  *
@@ -68,25 +67,22 @@ inline constexpr void lanhe_worksize(norm_t normType,
  *
  * @param[in] opts Options.
  *
- * @param[in,out] workinfo
- *      On output, the amount workspace required. It is larger than or equal
- *      to that given on input.
+ * @return workinfo_t The amount workspace required.
  *
  * @ingroup workspace_query
  */
 template <class norm_t, class uplo_t, class matrix_t>
-inline constexpr void lanhe_worksize(norm_t normType,
-                                     uplo_t uplo,
-                                     const matrix_t& A,
-                                     workinfo_t& workinfo,
-                                     const workspace_opts_t<>& opts)
+inline constexpr workinfo_t lanhe_worksize(norm_t normType,
+                                           uplo_t uplo,
+                                           const matrix_t& A,
+                                           const workspace_opts_t<>& opts)
 {
     using T = type_t<matrix_t>;
 
     if (normType == Norm::Inf || normType == Norm::One) {
-        const workinfo_t myWorkinfo(sizeof(T), nrows(A));
-        workinfo.minMax(myWorkinfo);
+        return workinfo_t(sizeof(T), nrows(A));
     }
+    return workinfo_t{};
 }
 
 /** Calculates the norm of a hermitian matrix.
@@ -313,7 +309,7 @@ auto lanhe(norm_t normType,
         vectorOfBytes localworkdata;
         const Workspace work = [&]() {
             workinfo_t workinfo;
-            lanhe_worksize(normType, uplo, A, workinfo, opts);
+            lanhe_worksize(normType, uplo, A, opts);
             return alloc_workspace(localworkdata, workinfo, opts.work);
         }();
         legacyVector<T, idx_t> w(n, work);

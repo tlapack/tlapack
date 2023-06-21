@@ -33,27 +33,25 @@ struct getri_opts_t : public workspace_opts_t<> {
  *
  * @param[in] A n-by-n matrix.
  *
- * @param[in] Piv pivot vector of size at least n.
+ * @param[in] piv pivot vector of size at least n.
  *
  * @param[in] opts Options.
  *      - @c opts.variant:
  *          - UILI = 'D', ///< Method D from doi:10.1137/1.9780898718027
  *          - UXLI = 'C'  ///< Method C from doi:10.1137/1.9780898718027
  *
- * @param[in,out] workinfo
- *      On output, the amount workspace required. It is larger than or equal
- *      to that given on input.
+ * @return workinfo_t The amount workspace required.
  *
  * @ingroup workspace_query
  */
-template <class matrix_t, class vector_t>
-inline constexpr void getri_worksize(const matrix_t& A,
-                                     const vector_t& Piv,
-                                     workinfo_t& workinfo,
-                                     const getri_opts_t& opts = {})
+template <class matrix_t, class piv_t>
+inline constexpr workinfo_t getri_worksize(const matrix_t& A,
+                                           const piv_t& piv,
+                                           const getri_opts_t& opts = {})
 {
-    if (opts.variant == GetriVariant::UXLI)
-        getri_uxli_worksize(A, workinfo, opts);
+    if (opts.variant == GetriVariant::UXLI) return getri_uxli_worksize(A, opts);
+
+    return workinfo_t{};
 }
 
 /** getri computes inverse of a general n-by-n matrix A
@@ -68,7 +66,7 @@ inline constexpr void getri_worksize(const matrix_t& A,
  * of L are not stored. U is stored in the upper triangle of A. On exit, inverse
  * of A is overwritten on A.
  *
- * @param[in] Piv pivot vector of size at least n.
+ * @param[in] piv pivot vector of size at least n.
  *
  * @param[in] opts Options.
  *      - @c opts.variant:
@@ -79,8 +77,8 @@ inline constexpr void getri_worksize(const matrix_t& A,
  *
  * @ingroup computational
  */
-template <class matrix_t, class vector_t>
-int getri(matrix_t& A, const vector_t& Piv, const getri_opts_t& opts = {})
+template <class matrix_t, class piv_t>
+int getri(matrix_t& A, const piv_t& piv, const getri_opts_t& opts = {})
 {
     using idx_t = size_type<matrix_t>;
 
@@ -102,9 +100,9 @@ int getri(matrix_t& A, const vector_t& Piv, const getri_opts_t& opts = {})
 
     // swap columns of X to find A^{-1} since A^{-1}=X P
     for (idx_t j = n; j-- > 0;) {
-        if (Piv[j] != j) {
+        if (piv[j] != j) {
             auto vect1 = tlapack::col(A, j);
-            auto vect2 = tlapack::col(A, Piv[j]);
+            auto vect2 = tlapack::col(A, piv[j]);
             tlapack::swap(vect1, vect2);
         }
     }

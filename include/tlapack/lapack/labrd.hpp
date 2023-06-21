@@ -59,14 +59,18 @@ namespace tlapack {
  *
  * @ingroup auxiliary
  */
-template <class A_t, class vector_t, class r_vector_t, class X_t, class Y_t>
+template <class A_t,
+          class vector_t,
+          class r_vector_t,
+          class X_t,
+          class matrixY_t>
 int labrd(A_t& A,
           r_vector_t& d,
           r_vector_t& e,
           vector_t& tauq,
           vector_t& taup,
           X_t& X,
-          Y_t& Y)
+          matrixY_t& Y)
 {
     using TA = type_t<A_t>;
     using idx_t = size_type<A_t>;

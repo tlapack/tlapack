@@ -82,16 +82,14 @@ struct francis_opts_t : public workspace_opts_t<> {
  *
  * @param[in,out] opts Options.
  *
- * @param[in,out] workinfo
- *      On output, the amount workspace required. It is larger than or equal
- *      to that given on input.
+ * @return workinfo_t The amount workspace required.
  *
  * @ingroup workspace_query
  */
 template <class matrix_t,
           class vector_t,
           enable_if_t<is_complex<type_t<vector_t> >::value, int> = 0>
-void multishift_qr_worksize(
+workinfo_t multishift_qr_worksize(
     bool want_t,
     bool want_z,
     size_type<matrix_t> ilo,
@@ -99,7 +97,6 @@ void multishift_qr_worksize(
     const matrix_t& A,
     const vector_t& w,
     const matrix_t& Z,
-    workinfo_t& workinfo,
     const francis_opts_t<size_type<matrix_t> >& opts = {})
 {
     using idx_t = size_type<matrix_t>;
@@ -109,23 +106,26 @@ void multishift_qr_worksize(
     const idx_t nh = ihi - ilo;
 
     // quick return
-    if (ilo + 1 >= ihi || n < opts.nmin || nh <= 0) return;
+    workinfo_t workinfo;
+    if (ilo + 1 >= ihi || n < opts.nmin || nh <= 0) return workinfo;
 
     {
         const idx_t nw_max = (n - 3) / 3;
 
         idx_t ls, ld;
-        agressive_early_deflation_worksize(want_t, want_z, ilo, ihi, nw_max, A,
-                                           w, Z, ls, ld, workinfo, opts);
+        workinfo = agressive_early_deflation_worksize(
+            want_t, want_z, ilo, ihi, nw_max, A, w, Z, ls, ld, opts);
     }
 
     {
         const idx_t nsr = opts.nshift_recommender(n, nh);
         const auto shifts = slice(w, pair{0, nsr});
 
-        multishift_QR_sweep_worksize(want_t, want_z, ilo, ihi, A, shifts, Z,
-                                     workinfo, opts);
+        workinfo.minMax(multishift_QR_sweep_worksize(want_t, want_z, ilo, ihi,
+                                                     A, shifts, Z, opts));
     }
+
+    return workinfo;
 }
 
 /** multishift_qr computes the eigenvalues and optionally the Schur
@@ -245,9 +245,8 @@ int multishift_qr(bool want_t,
     // Allocates workspace
     vectorOfBytes localworkdata;
     Workspace work = [&]() {
-        workinfo_t workinfo;
-        multishift_qr_worksize(want_t, want_z, ilo, ihi, A, w, Z, workinfo,
-                               opts);
+        workinfo_t workinfo =
+            multishift_qr_worksize(want_t, want_z, ilo, ihi, A, w, Z, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
 

@@ -37,17 +37,14 @@ struct geqlf_opts_t : public workspace_opts_t<> {
  *
  * @param[in] opts Options.
  *
- * @param[in,out] workinfo
- *      On output, the amount workspace required. It is larger than or equal
- *      to that given on input.
+ * @return workinfo_t The amount workspace required.
  *
  * @ingroup workspace_query
  */
 template <typename A_t, typename tau_t>
-inline constexpr void geqlf_worksize(
+inline constexpr workinfo_t geqlf_worksize(
     const A_t& A,
     const tau_t& tau,
-    workinfo_t& workinfo,
     const geqlf_opts_t<size_type<A_t>>& opts = {})
 {
     using idx_t = size_type<A_t>;
@@ -65,12 +62,14 @@ inline constexpr void geqlf_worksize(
     auto A12 = slice(A, range<idx_t>(0, m), range<idx_t>(ib, n));
     auto tauw1 = slice(tau, range<idx_t>(0, ib));
 
-    geql2_worksize(A11, tauw1, workinfo);
-    larfb_worksize(Side::Left, Op::ConjTrans, Direction::Backward,
-                   StoreV::Columnwise, A11, TT1, A12, workinfo);
+    workinfo_t workinfo = geql2_worksize(A11, tauw1);
+    workinfo.minMax(larfb_worksize(Side::Left, Op::ConjTrans,
+                                   Direction::Backward, StoreV::Columnwise, A11,
+                                   TT1, A12));
 
-    workinfo_t workinfo2(sizeof(T) * nb, nb);
-    workinfo += workinfo2;
+    workinfo += workinfo_t(sizeof(T) * nb, nb);
+
+    return workinfo;
 }
 
 /** Computes an RQ factorization of an m-by-n matrix A using
@@ -128,8 +127,7 @@ int geqlf(A_t& A, tau_t& tau, const geqlf_opts_t<size_type<A_t>>& opts = {})
     // Allocate or get workspace
     vectorOfBytes localworkdata;
     Workspace work = [&]() {
-        workinfo_t workinfo;
-        geqlf_worksize(A, tau, workinfo, opts);
+        workinfo_t workinfo = geqlf_worksize(A, tau, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
 

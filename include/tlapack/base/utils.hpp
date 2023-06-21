@@ -76,8 +76,8 @@ inline constexpr real_type<T> imag(const T& x)
  * Usage:
  *
  *     using tlapack::conj;
- *     scalar_t x = ...
- *     scalar_t y = conj( x );
+ *     T x = ...
+ *     T y = conj( x );
  *
  * @param[in] x Real number
  * @return x
@@ -160,10 +160,10 @@ struct MakeScalarTraits<std::complex<real_t>> {
     }
 };
 
-template <typename scalar_t>
-inline scalar_t make_scalar(real_type<scalar_t> re, real_type<scalar_t> im = 0)
+template <typename T>
+inline T make_scalar(real_type<T> re, real_type<T> im = 0)
 {
-    return MakeScalarTraits<scalar_t>::make(re, im);
+    return MakeScalarTraits<T>::make(re, im);
 }
 
 // -----------------------------------------------------------------------------

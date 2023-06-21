@@ -78,6 +78,8 @@ add_executable(test_unm2l test_unm2l.cpp)
 add_executable(test_lauum test_lauum.cpp)
 add_executable(test_potrf test_potrf.cpp)
 add_executable(test_larf test_larf.cpp)
+add_executable( test_rscl test_rscl.cpp )
+add_executable( test_ladiv test_ladiv.cpp )
 
 if(TLAPACK_TEST_EIGEN)
   add_executable(test_eigenplugin test_eigenplugin.cpp)

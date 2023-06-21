@@ -43,20 +43,18 @@ struct ungbr_opts_t : public workspace_opts_t<workT_t> {
  *      reflector H(i), which determines Q, as
  *      returned by gebrd in its array argument tauq.
  *
- * @param[in,out] workinfo
- *      On output, the amount workspace required. It is larger than or equal
- *      to that given on input.
+ * @return workinfo_t The amount workspace required.
  *
  * @param[in] opts Options.
  *
  * @ingroup workspace_query
  */
 template <class matrix_t, class vector_t, class workT_t = void>
-inline constexpr void ungbr_q_worksize(const size_type<matrix_t> k,
-                                       matrix_t& A,
-                                       const vector_t& tau,
-                                       workinfo_t& workinfo,
-                                       const ungbr_opts_t<workT_t>& opts = {})
+inline constexpr workinfo_t ungbr_q_worksize(
+    const size_type<matrix_t> k,
+    matrix_t& A,
+    const vector_t& tau,
+    const ungbr_opts_t<workT_t>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using pair = std::pair<idx_t, idx_t>;
@@ -65,12 +63,12 @@ inline constexpr void ungbr_q_worksize(const size_type<matrix_t> k,
     const idx_t n = ncols(A);
 
     if (m >= k) {
-        ungqr_worksize(A, tau, workinfo, opts);
+        return ungqr_worksize(A, tau, opts);
     }
     else {
         auto A2 = slice(A, pair{0, m - 1}, pair{0, m - 1});
         auto tau2 = slice(tau, pair{0, m - 1});
-        ungqr_worksize(A2, tau2, workinfo, opts);
+        return ungqr_worksize(A2, tau2, opts);
     }
 }
 
@@ -88,20 +86,18 @@ inline constexpr void ungbr_q_worksize(const size_type<matrix_t> k,
  *      reflector G(i), which determines P**H, as
  *      returned by gebrd in its array argument taup.
  *
- * @param[in,out] workinfo
- *      On output, the amount workspace required. It is larger than or equal
- *      to that given on input.
+ * @return workinfo_t The amount workspace required.
  *
  * @param[in] opts Options.
  *
  * @ingroup workspace_query
  */
 template <class matrix_t, class vector_t, class workT_t = void>
-inline constexpr void ungbr_p_worksize(const size_type<matrix_t> k,
-                                       matrix_t& A,
-                                       const vector_t& tau,
-                                       workinfo_t& workinfo,
-                                       const ungbr_opts_t<workT_t>& opts = {})
+inline constexpr workinfo_t ungbr_p_worksize(
+    const size_type<matrix_t> k,
+    matrix_t& A,
+    const vector_t& tau,
+    const ungbr_opts_t<workT_t>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using pair = std::pair<idx_t, idx_t>;
@@ -112,10 +108,10 @@ inline constexpr void ungbr_p_worksize(const size_type<matrix_t> k,
     if (m >= k) {
         auto A2 = slice(A, pair{0, n - 1}, pair{0, n - 1});
         auto tau2 = slice(tau, pair{0, n - 1});
-        unglq_worksize(A2, tau2, workinfo, opts);
+        return unglq_worksize(A2, tau2, opts);
     }
     else {
-        unglq_worksize(A, tau, workinfo, opts);
+        return unglq_worksize(A, tau, opts);
     }
 }
 

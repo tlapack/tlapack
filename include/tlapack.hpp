@@ -86,6 +86,7 @@
 #include "tlapack/lapack/lassq.hpp"
 #include "tlapack/lapack/lauum_recursive.hpp"
 #include "tlapack/lapack/lu_mult.hpp"
+#include "tlapack/lapack/rscl.hpp"
 #include "tlapack/lapack/transpose.hpp"
 
 // SVD

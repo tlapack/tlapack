@@ -35,18 +35,15 @@ struct gebd2_opts_t : public workspace_opts_t<> {
  *
  * @param[in] opts Options.
  *
- * @param[in,out] workinfo
- *      On output, the amount workspace required. It is larger than or equal
- *      to that given on input.
+ * @return workinfo_t The amount workspace required.
  *
  * @ingroup workspace_query
  */
 template <typename matrix_t, class vector_t>
-inline constexpr void gebd2_worksize(const matrix_t& A,
-                                     const vector_t& tauv,
-                                     const vector_t& tauw,
-                                     workinfo_t& workinfo,
-                                     const gebd2_opts_t& opts = {})
+inline constexpr workinfo_t gebd2_worksize(const matrix_t& A,
+                                           const vector_t& tauv,
+                                           const vector_t& tauw,
+                                           const gebd2_opts_t& opts = {})
 {
     using idx_t = size_type<matrix_t>;
 
@@ -54,19 +51,22 @@ inline constexpr void gebd2_worksize(const matrix_t& A,
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
 
+    workinfo_t workinfo;
     if (n > 1) {
         auto A11 = cols(A, range<idx_t>{1, n});
-        larf_worksize(left_side, forward, columnwise_storage, col(A, 0),
-                      tauv[0], A11, workinfo, opts);
+        workinfo = larf_worksize(left_side, forward, columnwise_storage,
+                                 col(A, 0), tauv[0], A11, opts);
 
         if (m > 1) {
             auto B11 = rows(A11, range<idx_t>{1, m});
             auto row0 = slice(A, 0, range<idx_t>{1, n});
 
-            larf_worksize(right_side, forward, rowwise_storage, row0, tauw[0],
-                          B11, workinfo, opts);
+            workinfo.minMax(larf_worksize(right_side, forward, rowwise_storage,
+                                          row0, tauw[0], B11, opts));
         }
     }
+
+    return workinfo;
 }
 
 /** Reduces a complex general m by n matrix A to an upper
@@ -142,8 +142,7 @@ int gebd2(matrix_t& A,
     // Allocates workspace
     vectorOfBytes localworkdata;
     Workspace work = [&]() {
-        workinfo_t workinfo;
-        gebd2_worksize(A, tauv, tauw, workinfo, opts);
+        workinfo_t workinfo = gebd2_worksize(A, tauv, tauw, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
 

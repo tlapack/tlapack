@@ -49,9 +49,7 @@ struct gebrd_opts_t : public workspace_opts_t<> {
  *      The scalar factors of the elementary reflectors which
  *      represent the unitary matrix P.
  *
- * @param[in,out] workinfo
- *      On output, the amount workspace required. It is larger than or equal
- *      to that given on input.
+ * @return workinfo_t The amount workspace required.
  *
  * @param[in] opts Options.
  *      - @c opts.work is used if whenever it has sufficient size.
@@ -60,13 +58,12 @@ struct gebrd_opts_t : public workspace_opts_t<> {
  * @ingroup workspace_query
  */
 template <class matrix_t, class vector_t, class r_vector_t>
-void gebrd_worksize(const matrix_t& A,
-                    r_vector_t& d,
-                    r_vector_t& e,
-                    const vector_t& tauq,
-                    const vector_t& taup,
-                    workinfo_t& workinfo,
-                    const gebrd_opts_t<size_type<matrix_t> >& opts = {})
+workinfo_t gebrd_worksize(const matrix_t& A,
+                          r_vector_t& d,
+                          r_vector_t& e,
+                          const vector_t& tauq,
+                          const vector_t& taup,
+                          const gebrd_opts_t<size_type<matrix_t> >& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using work_t = matrix_type<matrix_t, vector_t>;
@@ -76,8 +73,7 @@ void gebrd_worksize(const matrix_t& A,
     const idx_t n = ncols(A);
     const idx_t nb = min(opts.nb, min(m, n));
 
-    const workinfo_t myWorkinfo(sizeof(T) * (m + n), nb);
-    workinfo.minMax(myWorkinfo);
+    return workinfo_t(sizeof(T) * (m + n), nb);
 }
 
 /** Reduces a general m by n matrix A to an upper
@@ -163,8 +159,7 @@ int gebrd(matrix_t& A,
     // Allocates workspace
     vectorOfBytes localworkdata;
     Workspace work = [&]() {
-        workinfo_t workinfo;
-        gebrd_worksize(A, d, e, tauq, taup, workinfo, opts);
+        workinfo_t workinfo = gebrd_worksize(A, d, e, tauq, taup, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
 
