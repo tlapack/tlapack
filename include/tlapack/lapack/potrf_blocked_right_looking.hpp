@@ -17,16 +17,9 @@
 #include "tlapack/blas/herk.hpp"
 #include "tlapack/blas/trsm.hpp"
 #include "tlapack/lapack/potf2.hpp"
+#include "tlapack/lapack/potrf_blocked.hpp"
 
 namespace tlapack {
-
-template <typename idx_t>
-struct potrf_rl_opts_t : public ec_opts_t {
-    inline constexpr potrf_rl_opts_t(const ec_opts_t& opts = {})
-        : ec_opts_t(opts){};
-
-    idx_t nb = 32;  ///< Block size
-};
 
 /** Computes the Cholesky factorization of a Hermitian
  * positive definite matrix A using a blocked algorithm.
@@ -68,7 +61,7 @@ struct potrf_rl_opts_t : public ec_opts_t {
 template <class uplo_t, class matrix_t>
 int potrf_rl(uplo_t uplo,
              matrix_t& A,
-             const potrf_rl_opts_t<size_type<matrix_t> >& opts = {})
+             const potrf_blocked_opts_t<size_type<matrix_t> >& opts = {})
 {
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;

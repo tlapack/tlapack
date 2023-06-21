@@ -20,7 +20,7 @@ namespace flops {
         return 2 * m * n * k;
     }
     constexpr double trsm(double m, double n) { return m * m * n; }
-    constexpr double herk(double n, double k) { return n * n * k; }
+    constexpr double herk(double n, double k) { return (n + 1) * n * k; }
     constexpr double chol(double n) { return (n / 3) * n * n; }
 }  // namespace flops
 }  // namespace tlapack

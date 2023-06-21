@@ -70,7 +70,7 @@ int run(idx_t n, idx_t nt, idx_t nb, bool check_error = false)
         /* potrf options */
         potrf_opts_t<idx_t> opts;
         opts.nb = nb;
-        opts.variant = PotrfVariant::Blocked;
+        opts.variant = PotrfVariant::RightLooking;
 
         // Record start time
         double start = starpu_timing_now();
