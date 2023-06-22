@@ -16,6 +16,8 @@
 #include <type_traits>
 #include <vector>
 
+#include "tlapack/base/StrongZero.hpp"
+
 // Helpers:
 
 #define TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_2_VALUES(EnumClass, A, B)       \
@@ -66,68 +68,6 @@ namespace internal {
     struct StrongOne {
         inline constexpr operator int() const { return 1; }
         inline constexpr StrongOne(int i = 1) { assert(i == 1); }
-    };
-
-    /**
-     * @brief Auxiliary data type
-     *
-     * Suppose x is of type T. Then:
-     *
-     * 1. T(StrongZero()) is equivalent to T(0).
-     * 2. x *= StrongZero() is equivalent to x = T(0).
-     * 3. x += StrongZero() does not modify x.
-     *
-     * This class satisfies:
-     *
-     *      x * StrongZero() = StrongZero()
-     *      StrongZero() * x = StrongZero()
-     *      x + StrongZero() = x
-     *      StrongZero() + x = x
-     *
-     */
-    struct StrongZero {
-        template <typename T>
-        explicit constexpr operator T() const
-        {
-            return T(0);
-        }
-
-        template <typename T>
-        friend constexpr T& operator*=(T& lhs, const StrongZero&)
-        {
-            lhs = T(0);
-            return lhs;
-        }
-
-        template <typename T>
-        friend constexpr const StrongZero operator*(const StrongZero&, const T&)
-        {
-            return StrongZero();
-        }
-
-        template <typename T>
-        friend constexpr const StrongZero operator*(const T&, const StrongZero&)
-        {
-            return StrongZero();
-        }
-
-        template <typename T>
-        friend constexpr const T& operator+=(const T& lhs, const StrongZero&)
-        {
-            return lhs;
-        }
-
-        template <typename T>
-        friend constexpr const T operator+(const StrongZero&, const T& rhs)
-        {
-            return rhs;
-        }
-
-        template <typename T>
-        friend constexpr const T operator+(const T& lhs, const StrongZero&)
-        {
-            return lhs;
-        }
     };
 }  // namespace internal
 
@@ -282,6 +222,182 @@ struct rowwise_storage_t {
 // Constants
 constexpr columnwise_storage_t columnwise_storage{};
 constexpr rowwise_storage_t rowwise_storage{};
+
+// -----------------------------------------------------------------------------
+// Access policies
+
+/**
+ * @brief Matrix access policies
+ *
+ * They are used:
+ *
+ * (1) on the data structure for a matrix, to state the what pairs (i,j)
+ * return a valid position A(i,j), where A is a m-by-n matrix.
+ *
+ * (2) on the algorithm, to determine the kind of access
+ * required by the algorithm.
+ */
+enum class MatrixAccessPolicy {
+    Dense = 'G',            ///< 0 <= i <= m,   0 <= j <= n.
+    UpperHessenberg = 'H',  ///< 0 <= i <= j+1, 0 <= j <= n.
+    LowerHessenberg = 'h',  ///< 0 <= i <= m,   0 <= j <= i+1.
+    UpperTriangle = 'U',    ///< 0 <= i <= j,   0 <= j <= n.
+    LowerTriangle = 'L',    ///< 0 <= i <= m,   0 <= j <= i.
+    StrictUpper = 'S',      ///< 0 <= i <= j-1, 0 <= j <= n.
+    StrictLower = 's',      ///< 0 <= i <= m,   0 <= j <= i-1.
+};
+
+/**
+ * @brief Dense access.
+ *
+ * Pairs (i,j) such that 0 <= i <= m,   0 <= j <= n     in a m-by-n matrix.
+ *
+ *      x x x x x
+ *      x x x x x
+ *      x x x x x
+ *      x x x x x
+ */
+struct dense_t {
+    constexpr operator Uplo() const { return Uplo::General; }
+    constexpr operator MatrixAccessPolicy() const
+    {
+        return MatrixAccessPolicy::Dense;
+    }
+};
+
+/**
+ * @brief Upper Hessenberg access
+ *
+ * Pairs (i,j) such that 0 <= i <= j+1, 0 <= j <= n     in a m-by-n matrix.
+ *
+ *      x x x x x
+ *      x x x x x
+ *      0 x x x x
+ *      0 0 x x x
+ */
+struct upperHessenberg_t : public dense_t {
+    constexpr operator MatrixAccessPolicy() const
+    {
+        return MatrixAccessPolicy::UpperHessenberg;
+    }
+};
+
+/**
+ * @brief Lower Hessenberg access
+ *
+ * Pairs (i,j) such that 0 <= i <= m,   0 <= j <= i+1   in a m-by-n matrix.
+ *
+ *      x x 0 0 0
+ *      x x x 0 0
+ *      x x x x 0
+ *      x x x x x
+ */
+struct lowerHessenberg_t : public dense_t {
+    constexpr operator MatrixAccessPolicy() const
+    {
+        return MatrixAccessPolicy::LowerHessenberg;
+    }
+};
+
+/**
+ * @brief Upper Triangle access
+ *
+ * Pairs (i,j) such that 0 <= i <= j,   0 <= j <= n     in a m-by-n matrix.
+ *
+ *      x x x x x
+ *      0 x x x x
+ *      0 0 x x x
+ *      0 0 0 x x
+ */
+struct upperTriangle_t : public upperHessenberg_t {
+    constexpr operator Uplo() const { return Uplo::Upper; }
+    constexpr operator MatrixAccessPolicy() const
+    {
+        return MatrixAccessPolicy::UpperTriangle;
+    }
+};
+
+/**
+ * @brief Lower Triangle access
+ *
+ * Pairs (i,j) such that 0 <= i <= m,   0 <= j <= i     in a m-by-n matrix.
+ *
+ *      x 0 0 0 0
+ *      x x 0 0 0
+ *      x x x 0 0
+ *      x x x x 0
+ */
+struct lowerTriangle_t : public lowerHessenberg_t {
+    constexpr operator Uplo() const { return Uplo::Lower; }
+    constexpr operator MatrixAccessPolicy() const
+    {
+        return MatrixAccessPolicy::LowerTriangle;
+    }
+};
+
+/**
+ * @brief Strict Upper Triangle access
+ *
+ * Pairs (i,j) such that 0 <= i <= j-1, 0 <= j <= n     in a m-by-n matrix.
+ *
+ *      0 x x x x
+ *      0 0 x x x
+ *      0 0 0 x x
+ *      0 0 0 0 x
+ */
+struct strictUpper_t : public upperTriangle_t {
+    constexpr operator MatrixAccessPolicy() const
+    {
+        return MatrixAccessPolicy::StrictUpper;
+    }
+};
+
+/**
+ * @brief Strict Lower Triangle access
+ *
+ * Pairs (i,j) such that 0 <= i <= m,   0 <= j <= i-1   in a m-by-n matrix.
+ *
+ *      0 0 0 0 0
+ *      x 0 0 0 0
+ *      x x 0 0 0
+ *      x x x 0 0
+ */
+struct strictLower_t : public lowerTriangle_t {
+    constexpr operator MatrixAccessPolicy() const
+    {
+        return MatrixAccessPolicy::StrictLower;
+    }
+};
+
+/**
+ * @brief Band access
+ *
+ * Pairs (i,j) such that max(0,j-ku) <= i <= min(m,j+kl) in a m-by-n matrix,
+ * where kl is the lower_bandwidth and ku is the upper_bandwidth.
+ *
+ *      x x x 0 0
+ *      x x x x 0
+ *      0 x x x x
+ *      0 0 x x x
+ */
+struct band_t : dense_t {
+    std::size_t lower_bandwidth;  ///< Number of subdiagonals.
+    std::size_t upper_bandwidth;  ///< Number of superdiagonals.
+
+    constexpr band_t(std::size_t kl, std::size_t ku)
+        : lower_bandwidth(kl), upper_bandwidth(ku)
+    {}
+};
+
+// constant expressions
+constexpr dense_t dense = {};
+constexpr upperHessenberg_t upperHessenberg = {};
+constexpr lowerHessenberg_t lowerHessenberg = {};
+constexpr upperTriangle_t upperTriangle = {};
+constexpr lowerTriangle_t lowerTriangle = {};
+constexpr strictUpper_t strictUpper = {};
+constexpr strictLower_t strictLower = {};
+
 }  // namespace tlapack
 
 #undef TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_2_VALUES
@@ -291,61 +407,22 @@ constexpr rowwise_storage_t rowwise_storage{};
 
 namespace tlapack {
 
-// -----------------------------------------------------------------------------
-// Based on C++14 std::common_type implementation from
-// http://www.cplusplus.com/reference/type_traits/std::common_type/
-// Adds promotion of complex types based on the common type of the associated
-// real types. This fixes various cases:
-//
-// std::std::common_type_t< double, complex<float> > is complex<float>  (wrong)
-//        scalar_type< double, complex<float> > is complex<double> (right)
-//
-// std::std::common_type_t< int, complex<long> > is not defined (compile error)
-//        scalar_type< int, complex<long> > is complex<long> (right)
-
-// for zero types
-template <typename... Types>
-struct scalar_type_traits;
-
-/// define scalar_type<> type alias
-template <typename... Types>
-using scalar_type = typename scalar_type_traits<Types...>::type;
-
-// for one type
-template <typename T>
-struct scalar_type_traits<T> {
-    using type = typename std::decay<T>::type;
+template <class T, class>
+struct is_arithmetic {
+    static constexpr bool value = false;
 };
 
-// for two types
-// relies on type of ?: operator being the common type of its two arguments
-template <typename T1, typename T2>
-struct scalar_type_traits<T1, T2> {
-    using type = typename std::decay<decltype(true ? std::declval<T1>()
-                                                   : std::declval<T2>())>::type;
-};
+template <class T>
+inline constexpr bool is_arithmetic_v = is_arithmetic<T, int>::value;
 
-// for either or both complex,
-// find common type of associated real types, then add complex
-template <typename T1, typename T2>
-struct scalar_type_traits<std::complex<T1>, T2> {
-    using type = std::complex<typename std::common_type<T1, T2>::type>;
-};
-
-template <typename T1, typename T2>
-struct scalar_type_traits<T1, std::complex<T2> > {
-    using type = std::complex<typename std::common_type<T1, T2>::type>;
-};
-
-template <typename T1, typename T2>
-struct scalar_type_traits<std::complex<T1>, std::complex<T2> > {
-    using type = std::complex<typename std::common_type<T1, T2>::type>;
-};
-
-// for three or more types
-template <typename T1, typename T2, typename... Types>
-struct scalar_type_traits<T1, T2, Types...> {
-    using type = scalar_type<scalar_type<T1, T2>, Types...>;
+// specialization for standard arithmetic types
+template <class T>
+struct is_arithmetic<
+    T,
+    typename std::enable_if<
+        std::is_arithmetic<typename std::decay<T>::type>::value,
+        int>::type> {
+    static constexpr bool value = true;
 };
 
 // -----------------------------------------------------------------------------
@@ -362,60 +439,153 @@ struct scalar_type_traits<T1, T2, Types...> {
 // complex_type< float >                            is complex<float>
 // complex_type< float, double >                    is complex<double>
 // complex_type< float, double, complex<float> >    is complex<double>
+//
+// Adds promotion of complex types based on the common type of the associated
+// real types. This fixes various cases:
+//
+// std::std::common_type_t< double, complex<float> > is complex<float>  (wrong)
+//        scalar_type< double, complex<float> > is complex<double> (right)
+//
+// std::std::common_type_t< int, complex<long> > is not defined (compile error)
+//        scalar_type< int, complex<long> > is complex<long> (right)
 
-// for zero types
-template <typename... Types>
-struct real_type_traits;
+namespace internal {
+    template <typename... Types>
+    struct real_type_traits;
+
+    template <typename... Types>
+    struct complex_type_traits;
+
+    template <typename... Types>
+    struct scalar_type_traits;
+}  // namespace internal
 
 /// define real_type<> type alias
 template <typename... Types>
-using real_type = typename real_type_traits<Types...>::type;
-
-// for one type
-template <typename T>
-struct real_type_traits<T> {
-    using type = T;
-};
-
-// for one complex type, strip complex
-template <typename T>
-struct real_type_traits<std::complex<T> > {
-    using type = T;
-};
-
-// for two or more types
-template <typename T1, typename... Types>
-struct real_type_traits<T1, Types...> {
-    using type = scalar_type<real_type<T1>, real_type<Types...> >;
-};
-
-// for zero types
-template <typename... Types>
-struct complex_type_traits;
+using real_type = typename internal::real_type_traits<Types..., int>::type;
 
 /// define complex_type<> type alias
 template <typename... Types>
-using complex_type = typename complex_type_traits<Types...>::type;
+using complex_type =
+    typename internal::complex_type_traits<Types..., int>::type;
 
-// for one type
+/// define scalar_type<> type alias
+template <typename... Types>
+using scalar_type = typename internal::scalar_type_traits<Types..., int>::type;
+
+/// True if T is real_type<T>
 template <typename T>
-struct complex_type_traits<T> {
-    using type = std::complex<T>;
+struct is_real {
+    static constexpr bool value =
+        std::is_same_v<real_type<T>, typename std::decay<T>::type>;
 };
 
-// for one complex type, strip complex
+/// True if T is complex_type<T>
 template <typename T>
-struct complex_type_traits<std::complex<T> > {
-    using type = std::complex<T>;
-};
-
-// for two or more types
-template <typename T1, typename... Types>
-struct complex_type_traits<T1, Types...> {
-    using type = scalar_type<complex_type<T1>, complex_type<Types...> >;
+struct is_complex {
+    static constexpr bool value =
+        std::is_same_v<complex_type<T>, typename std::decay<T>::type>;
 };
 
 namespace internal {
+
+    // for one arithmetic type
+    template <typename T>
+    struct real_type_traits<
+        T,
+        std::enable_if_t<is_arithmetic_v<T> && !std::is_const_v<T>, int>> {
+        using type = typename std::decay<T>::type;
+    };
+
+    template <typename T>
+    struct real_type_traits<const T, int> {
+        using type = real_type<T>;
+    };
+
+    // for one complex type, strip complex
+    template <typename T>
+    struct real_type_traits<std::complex<T>, int> {
+        using type = real_type<T>;
+    };
+
+    // pointers and references don't have a real type
+    template <typename T>
+    struct real_type_traits<
+        T,
+        std::enable_if_t<std::is_pointer_v<T> || std::is_reference_v<T>, int>> {
+        using type = void;
+    };
+
+    // for two or more types
+    template <typename T1, typename T2, typename... Types>
+    struct real_type_traits<T1, T2, Types...> {
+        using type =
+            std::common_type_t<typename real_type_traits<T1, int>::type,
+                               typename real_type_traits<T2, Types...>::type>;
+    };
+
+    // for one arithmetic type
+    template <typename T>
+    struct complex_type_traits<
+        T,
+        std::enable_if_t<is_arithmetic_v<T> && !std::is_const_v<T>, int>> {
+        using type = std::complex<real_type<T>>;
+    };
+
+    template <typename T>
+    struct complex_type_traits<const T, int> {
+        using type = complex_type<T>;
+    };
+
+    // for one complex type, strip complex
+    template <typename T>
+    struct complex_type_traits<std::complex<T>, int> {
+        using type = std::complex<real_type<T>>;
+    };
+
+    // pointers and references don't have a complex type
+    template <typename T>
+    struct complex_type_traits<
+        T,
+        std::enable_if_t<std::is_pointer_v<T> || std::is_reference_v<T>, int>> {
+        using type = void;
+    };
+
+    // for two or more types
+    template <typename T1, typename T2, typename... Types>
+    struct complex_type_traits<T1, T2, Types...> {
+        using type =
+            complex_type<typename real_type_traits<T1, T2, Types...>::type>;
+    };
+
+    // for one type
+    template <typename T>
+    struct scalar_type_traits<T, int> : scalar_type_traits<T, T, int> {};
+
+    // for two types, one is complex
+    template <typename T1, typename T2>
+    struct scalar_type_traits<
+        T1,
+        T2,
+        std::enable_if_t<is_complex<T1>::value || is_complex<T2>::value, int>> {
+        using type = complex_type<T1, T2>;
+    };
+
+    // for two types, neither is complex
+    template <typename T1, typename T2>
+    struct scalar_type_traits<
+        T1,
+        T2,
+        std::enable_if_t<is_real<T1>::value && is_real<T2>::value, int>> {
+        using type = real_type<T1, T2>;
+    };
+
+    // for three or more types
+    template <typename T1, typename T2, typename... Types>
+    struct scalar_type_traits<T1, T2, Types...> {
+        using type =
+            typename scalar_type_traits<scalar_type<T1, T2>, Types...>::type;
+    };
 
     /**
      * @brief Data type trait.

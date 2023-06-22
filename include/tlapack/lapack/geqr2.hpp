@@ -26,17 +26,14 @@ namespace tlapack {
  *
  * @param[in] opts Options.
  *
- * @param[in,out] workinfo
- *      On output, the amount workspace required. It is larger than or equal
- *      to that given on input.
+ * @return workinfo_t The amount workspace required.
  *
  * @ingroup workspace_query
  */
-template <TLAPACK_MATRIX matrix_t, TLAPACK_VECTOR vector_t>
-inline constexpr void geqr2_worksize(const matrix_t& A,
-                                     const vector_t& tau,
-                                     workinfo_t& workinfo,
-                                     const workspace_opts_t<>& opts = {})
+template <class matrix_t, class vector_t>
+inline constexpr workinfo_t geqr2_worksize(const matrix_t& A,
+                                           const vector_t& tau,
+                                           const workspace_opts_t<>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
 
@@ -46,9 +43,11 @@ inline constexpr void geqr2_worksize(const matrix_t& A,
 
     if (n > 1 && m > 1) {
         auto C = cols(A, range<idx_t>{1, n});
-        larf_worksize(left_side, forward, columnwise_storage, col(A, 0), tau[0],
-                      C, workinfo, opts);
+        return larf_worksize(left_side, forward, columnwise_storage, col(A, 0),
+                             tau[0], C, opts);
     }
+
+    return workinfo_t{};
 }
 
 /** Computes a QR factorization of a matrix A.
@@ -106,8 +105,7 @@ int geqr2(matrix_t& A, vector_t& tau, const workspace_opts_t<>& opts = {})
     // Allocates workspace
     vectorOfBytes localworkdata;
     Workspace work = [&]() {
-        workinfo_t workinfo;
-        geqr2_worksize(A, tau, workinfo, opts);
+        workinfo_t workinfo = geqr2_worksize(A, tau, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
 

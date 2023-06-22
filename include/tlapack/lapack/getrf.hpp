@@ -29,7 +29,7 @@ struct getrf_opts_t {
  * \[
  *   P A = L U
  * \]
- *  where P is a permutation matrix constructed from our Piv vector, L is lower
+ *  where P is a permutation matrix constructed from our piv vector, L is lower
  * triangular with unit diagonal elements (lower trapezoidal if m > n), and U is
  * upper triangular (upper trapezoidal if m < n).
  *
@@ -40,8 +40,8 @@ struct getrf_opts_t {
  *      On exit, the factors L and U from the factorization A=PLU;
  *      the unit diagonal elements of L are not stored.
  *
- * @param[in,out] Piv is a k-by-1 integer vector where k=min(m,n)
- * and Piv[i]=j where i<=j<=k-1, which means in the i-th iteration of the
+ * @param[in,out] piv is a k-by-1 integer vector where k=min(m,n)
+ * and piv[i]=j where i<=j<=k-1, which means in the i-th iteration of the
  * algorithm, the j-th row needs to be swapped with i
  *
  * @param[in] opts Options.
@@ -58,14 +58,14 @@ struct getrf_opts_t {
  *
  * @ingroup computational
  */
-template <TLAPACK_MATRIX matrix_t, TLAPACK_VECTOR vector_t>
-inline int getrf(matrix_t& A, vector_t& Piv, const getrf_opts_t& opts = {})
+template <class matrix_t, class piv_t>
+inline int getrf(matrix_t& A, piv_t& piv, const getrf_opts_t& opts = {})
 {
     // Call variant
     if (opts.variant == GetrfVariant::Recursive)
-        return getrf_recursive(A, Piv);
+        return getrf_recursive(A, piv);
     else
-        return getrf_level0(A, Piv);
+        return getrf_level0(A, piv);
 }
 
 }  // namespace tlapack

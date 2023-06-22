@@ -46,7 +46,7 @@ TEMPLATE_TEST_CASE("move of eigenvalue block gives correct results",
     idx_t n1 = GENERATE(1, 2);
     idx_t n2 = GENERATE(1, 2);
 
-    if (!is_complex<T>::value || (n1 == 1 && n2 == 1)) {
+    if (is_real<T>::value || (n1 == 1 && n2 == 1)) {
         // ifst and ilst point to the same block, n1 must be equal to n2 for
         // the test to make sense.
         if (ifst == ilst and n1 != n2) n2 = n1;
@@ -83,7 +83,7 @@ TEMPLATE_TEST_CASE("move of eigenvalue block gives correct results",
                 A(ilst, ilst - 1) = rand_helper<T>();
         }
 
-        if (!is_complex<T>::value) {
+        if (is_real<T>::value) {
             // Put a 2x2 block in the middle
             A(5, 4) = rand_helper<T>();
         }

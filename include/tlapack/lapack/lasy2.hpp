@@ -28,8 +28,8 @@ namespace tlapack {
  *
  * @ingroup auxiliary
  */
-template <TLAPACK_MATRIX matrix_t,
-          enable_if_t<!is_complex<type_t<matrix_t> >::value, bool> = true>
+template <typename matrix_t,
+          enable_if_t<is_real<type_t<matrix_t> >::value, bool> = true>
 int lasy2(Op trans_l,
           Op trans_r,
           int isign,

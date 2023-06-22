@@ -50,25 +50,19 @@ namespace tlapack {
  *
  * @ingroup auxiliary
  */
-template <
-    class access_t,
-    TLAPACK_MATRIX matrix_t,
-    class a_type,
-    class b_type,
-    enable_if_t<(
-                    /* Requires: */
-                    !is_complex<a_type>::value && !is_complex<b_type>::value),
-                int> = 0>
-int lascl(access_t accessType,
-          const b_type& b,
-          const a_type& a,
-          const matrix_t& A)
+template <class access_t,
+          class matrix_t,
+          class a_type,
+          class b_type,
+          enable_if_t<(
+                          /* Requires: */
+                          is_real<a_type>::value && is_real<b_type>::value),
+                      int> = 0>
+int lascl(access_t accessType, const b_type& b, const a_type& a, matrix_t& A)
 {
     // data traits
     using idx_t = size_type<matrix_t>;
     using real_t = real_type<a_type, b_type>;
-
-    // using
 
     // constants
     const idx_t m = nrows(A);
@@ -195,18 +189,14 @@ int lascl(access_t accessType,
  *
  * @ingroup auxiliary
  */
-template <
-    TLAPACK_MATRIX matrix_t,
-    class a_type,
-    class b_type,
-    enable_if_t<(
-                    /* Requires: */
-                    !is_complex<a_type>::value && !is_complex<b_type>::value),
-                int> = 0>
-int lascl(band_t accessType,
-          const b_type& b,
-          const a_type& a,
-          const matrix_t& A)
+template <class matrix_t,
+          class a_type,
+          class b_type,
+          enable_if_t<(
+                          /* Requires: */
+                          is_real<a_type>::value && is_real<b_type>::value),
+                      int> = 0>
+int lascl(band_t accessType, const b_type& b, const a_type& a, matrix_t& A)
 {
     // data traits
     using idx_t = size_type<matrix_t>;

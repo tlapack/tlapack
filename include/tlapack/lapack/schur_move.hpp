@@ -61,24 +61,24 @@ int schur_move(bool want_q,
     if (n == 0) return 0;
 
     // Check if ifst points to the middle of a 2x2 block
-    if (!is_complex<T>::value)
+    if (is_real<T>::value)
         if (ifst > 0)
             if (A(ifst, ifst - 1) != zero) ifst = ifst - 1;
 
     // Size of the current block, can be either 1, 2
     idx_t nbf = 1;
-    if (!is_complex<T>::value)
+    if (is_real<T>::value)
         if (ifst < n - 1)
             if (A(ifst + 1, ifst) != zero) nbf = 2;
 
     // Check if ilst points to the middle of a 2x2 block
-    if (!is_complex<T>::value)
+    if (is_real<T>::value)
         if (ilst > 0)
             if (A(ilst, ilst - 1) != zero) ilst = ilst - 1;
 
     // Size of the final block, can be either 1, 2
     idx_t nbl = 1;
-    if (!is_complex<T>::value)
+    if (is_real<T>::value)
         if (ilst < n - 1)
             if (A(ilst + 1, ilst) != zero) nbl = 2;
 
@@ -90,7 +90,7 @@ int schur_move(bool want_q,
         while (here != ilst) {
             // Size of the next eigenvalue block
             idx_t nbnext = 1;
-            if (!is_complex<T>::value)
+            if (is_real<T>::value)
                 if (here + nbf + 1 < n)
                     if (A(here + nbf + 1, here + nbf) != zero) nbnext = 2;
 
@@ -107,7 +107,7 @@ int schur_move(bool want_q,
         while (here != ilst) {
             // Size of the next eigenvalue block
             idx_t nbnext = 1;
-            if (!is_complex<T>::value)
+            if (is_real<T>::value)
                 if (here > 1)
                     if (A(here - 1, here - 2) != zero) nbnext = 2;
 

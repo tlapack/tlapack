@@ -40,22 +40,18 @@ namespace tlapack {
  *
  * @param[in] A m-by-n triangular matrix.
  *
- * @param[in,out] workinfo
- *      On output, the amount workspace required. It is larger than or equal
- *      to that given on input.
+ * @return workinfo_t The amount workspace required.
  *
  * @ingroup workspace_query
  */
-template <TLAPACK_NORM norm_t,
-          TLAPACK_UPLO uplo_t,
-          class diag_t,
-          TLAPACK_MATRIX matrix_t>
-inline constexpr void lantr_worksize(norm_t normType,
-                                     uplo_t uplo,
-                                     diag_t diag,
-                                     const matrix_t& A,
-                                     workinfo_t& workinfo)
-{}
+template <class norm_t, class uplo_t, class diag_t, class matrix_t>
+inline constexpr workinfo_t lantr_worksize(norm_t normType,
+                                           uplo_t uplo,
+                                           diag_t diag,
+                                           const matrix_t& A)
+{
+    return workinfo_t{};
+}
 
 /** Worspace query of lantr().
  *
@@ -82,29 +78,23 @@ inline constexpr void lantr_worksize(norm_t normType,
  *
  * @param[in] opts Options.
  *
- * @param[in,out] workinfo
- *      On output, the amount workspace required. It is larger than or equal
- *      to that given on input.
+ * @return workinfo_t The amount workspace required.
  *
  * @ingroup workspace_query
  */
-template <TLAPACK_NORM norm_t,
-          TLAPACK_UPLO uplo_t,
-          class diag_t,
-          TLAPACK_MATRIX matrix_t>
-inline constexpr void lantr_worksize(norm_t normType,
-                                     uplo_t uplo,
-                                     diag_t diag,
-                                     const matrix_t& A,
-                                     workinfo_t& workinfo,
-                                     const workspace_opts_t<>& opts)
+template <class norm_t, class uplo_t, class diag_t, class matrix_t>
+inline constexpr workinfo_t lantr_worksize(norm_t normType,
+                                           uplo_t uplo,
+                                           diag_t diag,
+                                           const matrix_t& A,
+                                           const workspace_opts_t<>& opts)
 {
     using T = type_t<matrix_t>;
 
     if (normType == Norm::Inf) {
-        const workinfo_t myWorkinfo(sizeof(T), nrows(A));
-        workinfo.minMax(myWorkinfo);
+        return workinfo_t(sizeof(T), nrows(A));
     }
+    return workinfo_t{};
 }
 
 /** Calculates the norm of a symmetric matrix.
@@ -414,7 +404,7 @@ auto lantr(norm_t normType,
         vectorOfBytes localworkdata;
         const Workspace work = [&]() {
             workinfo_t workinfo;
-            lantr_worksize(normType, uplo, diag, A, workinfo, opts);
+            lantr_worksize(normType, uplo, diag, A, opts);
             return alloc_workspace(localworkdata, workinfo, opts.work);
         }();
         legacyVector<T, idx_t> w(n, work);

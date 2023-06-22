@@ -1,5 +1,6 @@
 /// @file gebd2.hpp
 /// @author Yuxin Cai, University of Colorado Denver, USA
+/// @author Thijs Steel, KU Leuven, Belgium
 /// @note Adapted from @see
 /// https://github.com/Reference-LAPACK/lapack/blob/master/SRC/zgebd2.f
 //
@@ -34,18 +35,15 @@ struct gebd2_opts_t : public workspace_opts_t<> {
  *
  * @param[in] opts Options.
  *
- * @param[in,out] workinfo
- *      On output, the amount workspace required. It is larger than or equal
- *      to that given on input.
+ * @return workinfo_t The amount workspace required.
  *
  * @ingroup workspace_query
  */
-template <TLAPACK_MATRIX matrix_t, TLAPACK_VECTOR vector_t>
-inline constexpr void gebd2_worksize(const matrix_t& A,
-                                     const vector_t& tauv,
-                                     const vector_t& tauw,
-                                     workinfo_t& workinfo,
-                                     const gebd2_opts_t& opts = {})
+template <typename matrix_t, class vector_t>
+inline constexpr workinfo_t gebd2_worksize(const matrix_t& A,
+                                           const vector_t& tauv,
+                                           const vector_t& tauw,
+                                           const gebd2_opts_t& opts = {})
 {
     using idx_t = size_type<matrix_t>;
 
@@ -53,19 +51,22 @@ inline constexpr void gebd2_worksize(const matrix_t& A,
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
 
+    workinfo_t workinfo;
     if (n > 1) {
         auto A11 = cols(A, range<idx_t>{1, n});
-        larf_worksize(left_side, forward, columnwise_storage, col(A, 0),
-                      tauv[0], A11, workinfo, opts);
+        workinfo = larf_worksize(left_side, forward, columnwise_storage,
+                                 col(A, 0), tauv[0], A11, opts);
 
         if (m > 1) {
             auto B11 = rows(A11, range<idx_t>{1, m});
             auto row0 = slice(A, 0, range<idx_t>{1, n});
 
-            larf_worksize(right_side, forward, rowwise_storage, row0, tauw[0],
-                          B11, workinfo, opts);
+            workinfo.minMax(larf_worksize(right_side, forward, rowwise_storage,
+                                          row0, tauw[0], B11, opts));
         }
     }
+
+    return workinfo;
 }
 
 /** Reduces a complex general m by n matrix A to an upper
@@ -125,6 +126,7 @@ int gebd2(matrix_t& A,
 {
     using idx_t = size_type<matrix_t>;
     using range = std::pair<idx_t, idx_t>;
+    using T = type_t<matrix_t>;
 
     // constants
     const idx_t m = nrows(A);
@@ -133,7 +135,6 @@ int gebd2(matrix_t& A,
     // check arguments
     tlapack_check_false((idx_t)size(tauv) < std::min<idx_t>(m, n));
     tlapack_check_false((idx_t)size(tauw) < std::min<idx_t>(m, n));
-    tlapack_check(m >= n);  // Only m >= n matrices are supported (yet).
 
     // quick return
     if (n <= 0) return 0;
@@ -141,36 +142,72 @@ int gebd2(matrix_t& A,
     // Allocates workspace
     vectorOfBytes localworkdata;
     Workspace work = [&]() {
-        workinfo_t workinfo;
-        gebd2_worksize(A, tauv, tauw, workinfo, opts);
+        workinfo_t workinfo = gebd2_worksize(A, tauv, tauw, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
 
     // Options to forward
     auto&& larfOpts = workspace_opts_t<>{work};
 
-    for (idx_t j = 0; j < n; ++j) {
-        // Generate elementary reflector H(j) to annihilate A(j+1:m,j)
-        auto v = slice(A, range(j, m), j);
-        larfg(forward, columnwise_storage, v, tauv[j]);
+    if (m >= n) {
+        //
+        // Reduce to upper bidiagonal form
+        //
+        for (idx_t j = 0; j < n; ++j) {
+            // Generate elementary reflector H(j) to annihilate A(j+1:m,j)
+            auto v = slice(A, range(j, m), j);
+            larfg(forward, columnwise_storage, v, tauv[j]);
 
-        // Apply H(j)**H to A(j:m,j+1:n) from the left
-        if (j < n - 1) {
-            auto A11 = slice(A, range(j, m), range(j + 1, n));
-            larf(Side::Left, forward, columnwise_storage, v, conj(tauv[j]), A11,
-                 larfOpts);
+            if (j < n - 1) {
+                // Apply H(j)**H to A(j:m,j+1:n) from the left
+                auto A11 = slice(A, range(j, m), range(j + 1, n));
+                larf(left_side, forward, columnwise_storage, v, conj(tauv[j]),
+                     A11, larfOpts);
+
+                // Generate elementary reflector G(j) to annihilate A(j,j+2:n)
+                auto w = slice(A, j, range(j + 1, n));
+                larfg(forward, rowwise_storage, w, tauw[j]);
+
+                // Apply G(j) to A(j+1:m,j+1:n) from the right
+                if (j < m - 1) {
+                    auto B11 = slice(A, range(j + 1, m), range(j + 1, n));
+                    larf(right_side, forward, rowwise_storage, w, tauw[j], B11,
+                         larfOpts);
+                }
+            }
+            else {
+                tauw[j] = T(0);
+            }
         }
-
-        if (j < n - 1) {
-            // Generate elementary reflector G(j) to annihilate A(j,j+2:n)
-            auto w = slice(A, j, range(j + 1, n));
+    }
+    else {
+        //
+        // Reduce to lower bidiagonal form
+        //
+        for (idx_t j = 0; j < m; ++j) {
+            // Generate elementary reflector G(j) to annihilate A(j,j+1:n)
+            auto w = slice(A, j, range(j, n));
             larfg(forward, rowwise_storage, w, tauw[j]);
 
-            // Apply G(j) to A(j+1:m,j+1:n) from the right
             if (j < m - 1) {
-                auto B11 = slice(A, range(j + 1, m), range(j + 1, n));
-                larf(Side::Right, forward, rowwise_storage, w, tauw[j], B11,
+                // Apply G(j) to A(j+1:m,j:n) from the right
+                auto A11 = slice(A, range(j + 1, m), range(j, n));
+                larf(right_side, forward, rowwise_storage, w, tauw[j], A11,
                      larfOpts);
+
+                // Generate elementary reflector H(j) to annihilate A(j+2:m,j)
+                auto v = slice(A, range(j + 1, m), j);
+                larfg(forward, columnwise_storage, v, tauv[j]);
+
+                // Apply H(j)**H to A(j+1:m,j+1:n) from the left
+                if (j < n - 1) {
+                    auto B11 = slice(A, range(j + 1, m), range(j + 1, n));
+                    larf(left_side, forward, columnwise_storage, v,
+                         conj(tauv[j]), B11, larfOpts);
+                }
+            }
+            else {
+                tauv[j] = T(0);
             }
         }
     }

@@ -41,7 +41,7 @@ namespace tlapack {
  *     the opposite triangle being assumed to be zero:
  *     - Uplo::Lower: A is lower triangular.
  *     - Uplo::Upper: A is upper triangular.
- *     - Uplo::General is illegal (see @ref gemm() instead).
+ *     - Uplo::General is illegal (see gemm() instead).
  *
  * @param[in] trans
  *     The form of $op(A)$:

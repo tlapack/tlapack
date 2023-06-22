@@ -32,19 +32,16 @@ namespace tlapack {
  *
  * @param[in] opts Options.
  *
- * @param[in,out] workinfo
- *      On output, the amount workspace required. It is larger than or equal
- *      to that given on input.
+ * @return workinfo_t The amount workspace required.
  *
  * @ingroup workspace_query
  */
-template <TLAPACK_MATRIX matrix_t, TLAPACK_VECTOR vector_t>
-inline constexpr void gehd2_worksize(size_type<matrix_t> ilo,
-                                     size_type<matrix_t> ihi,
-                                     const matrix_t& A,
-                                     const vector_t& tau,
-                                     workinfo_t& workinfo,
-                                     const workspace_opts_t<>& opts = {})
+template <class matrix_t, class vector_t>
+inline constexpr workinfo_t gehd2_worksize(size_type<matrix_t> ilo,
+                                           size_type<matrix_t> ihi,
+                                           const matrix_t& A,
+                                           const vector_t& tau,
+                                           const workspace_opts_t<>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using pair = pair<idx_t, idx_t>;
@@ -52,17 +49,20 @@ inline constexpr void gehd2_worksize(size_type<matrix_t> ilo,
     // constants
     const idx_t n = ncols(A);
 
+    workinfo_t workinfo;
     if (ilo + 1 < ihi) {
         const auto v = slice(A, pair{ilo + 1, ihi}, ilo);
 
         auto C0 = slice(A, pair{0, ihi}, pair{ilo + 1, ihi});
-        larf_worksize(right_side, forward, columnwise_storage, v, tau[0], C0,
-                      workinfo, opts);
+        workinfo = larf_worksize(right_side, forward, columnwise_storage, v,
+                                 tau[0], C0, opts);
 
         auto C1 = slice(A, pair{ilo + 1, ihi}, pair{ilo + 1, n});
-        larf_worksize(left_side, forward, columnwise_storage, v, tau[0], C1,
-                      workinfo, opts);
+        workinfo.minMax(larf_worksize(left_side, forward, columnwise_storage, v,
+                                      tau[0], C1, opts));
     }
+
+    return workinfo;
 }
 
 /** Reduces a general square matrix to upper Hessenberg form
@@ -129,8 +129,7 @@ int gehd2(size_type<matrix_t> ilo,
     // Allocates workspace
     vectorOfBytes localworkdata;
     Workspace work = [&]() {
-        workinfo_t workinfo;
-        gehd2_worksize(ilo, ihi, A, tau, workinfo, opts);
+        workinfo_t workinfo = gehd2_worksize(ilo, ihi, A, tau, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
 

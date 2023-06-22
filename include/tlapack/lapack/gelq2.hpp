@@ -26,17 +26,14 @@ namespace tlapack {
  *
  * @param[in] opts Options.
  *
- * @param[in,out] workinfo
- *      On output, the amount workspace required. It is larger than or equal
- *      to that given on input.
+ * @return workinfo_t The amount workspace required.
  *
  * @ingroup workspace_query
  */
-template <TLAPACK_MATRIX matrix_t, TLAPACK_VECTOR vector_t>
-inline constexpr void gelq2_worksize(const matrix_t& A,
-                                     const vector_t& tauw,
-                                     workinfo_t& workinfo,
-                                     const workspace_opts_t<>& opts = {})
+template <class matrix_t, class vector_t>
+inline constexpr workinfo_t gelq2_worksize(const matrix_t& A,
+                                           const vector_t& tauw,
+                                           const workspace_opts_t<>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
 
@@ -45,9 +42,10 @@ inline constexpr void gelq2_worksize(const matrix_t& A,
 
     if (m > 1) {
         auto C = rows(A, range<idx_t>{1, m});
-        larf_worksize(right_side, forward, rowwise_storage, row(A, 0), tauw[0],
-                      C, workinfo, opts);
+        return larf_worksize(right_side, forward, rowwise_storage, row(A, 0),
+                             tauw[0], C, opts);
     }
+    return workinfo_t{};
 }
 
 /** Computes an LQ factorization of a complex m-by-n matrix A using
@@ -105,8 +103,7 @@ int gelq2(matrix_t& A, vector_t& tauw, const workspace_opts_t<>& opts = {})
     // Allocates workspace
     vectorOfBytes localworkdata;
     Workspace work = [&]() {
-        workinfo_t workinfo;
-        gelq2_worksize(A, tauw, workinfo, opts);
+        workinfo_t workinfo = gelq2_worksize(A, tauw, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
 

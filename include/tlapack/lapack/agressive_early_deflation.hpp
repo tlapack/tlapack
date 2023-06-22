@@ -13,6 +13,7 @@
 #include "tlapack/base/utils.hpp"
 #include "tlapack/blas/gemm.hpp"
 #include "tlapack/lapack/gehd2.hpp"
+#include "tlapack/lapack/gehrd.hpp"
 #include "tlapack/lapack/lahqr.hpp"
 #include "tlapack/lapack/lahqr_eig22.hpp"
 #include "tlapack/lapack/larf.hpp"
@@ -62,16 +63,14 @@ struct francis_opts_t;
  *
  * @param[in] opts Options.
  *
- * @param[in,out] workinfo
- *      On output, the amount workspace required. It is larger than or equal
- *      to that given on input.
+ * @return workinfo_t The amount workspace required.
  *
  * @ingroup workspace_query
  */
 template <TLAPACK_MATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
           enable_if_t<is_complex<type_t<vector_t> >::value, int> = 0>
-void agressive_early_deflation_worksize(
+workinfo_t agressive_early_deflation_worksize(
     bool want_t,
     bool want_z,
     size_type<matrix_t> ilo,
@@ -82,7 +81,6 @@ void agressive_early_deflation_worksize(
     const matrix_t& Z,
     const size_type<matrix_t>& ns,
     const size_type<matrix_t>& nd,
-    workinfo_t& workinfo,
     const francis_opts_t<size_type<matrix_t> >& opts = {})
 {
     using idx_t = size_type<matrix_t>;
@@ -95,21 +93,24 @@ void agressive_early_deflation_worksize(
     auto TW = slice(A, pair{0, jw}, pair{0, jw});
 
     // quick return
-    if (n < 9 || nw <= 1 || ihi <= 1 + ilo) return;
+    workinfo_t workinfo;
+    if (n < 9 || nw <= 1 || ihi <= 1 + ilo) return workinfo;
 
     if (jw >= opts.nmin) {
         auto s_window = slice(s, pair{0, jw});
         auto V = slice(A, pair{0, jw}, pair{0, jw});
 
-        multishift_qr_worksize(true, true, 0, jw, TW, s_window, V, workinfo,
-                               opts);
+        workinfo.minMax(
+            multishift_qr_worksize(true, true, 0, jw, TW, s_window, V, opts));
     }
 
     if (jw != ihi - ilo) {
         // Hessenberg reduction
         auto tau = slice(A, pair{0, jw}, 0);
-        gehrd_worksize(0, jw, TW, tau, workinfo);
+        workinfo.minMax(gehrd_worksize(0, jw, TW, tau));
     }
+
+    return workinfo;
 }
 
 /** agressive_early_deflation accepts as input an upper Hessenberg matrix
@@ -239,9 +240,8 @@ void agressive_early_deflation(bool want_t,
     // Allocates workspace
     vectorOfBytes localworkdata;
     Workspace work = [&]() {
-        workinfo_t workinfo;
-        agressive_early_deflation_worksize(want_t, want_z, ilo, ihi, nw, A, s,
-                                           Z, ns, nd, workinfo, opts);
+        workinfo_t workinfo = agressive_early_deflation_worksize(
+            want_t, want_z, ilo, ihi, nw, A, s, Z, ns, nd, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
 
@@ -288,7 +288,7 @@ void agressive_early_deflation(bool want_t,
     idx_t ilst = infqr;
     while (ilst < ns) {
         bool bulge = false;
-        if (!is_complex<T>::value)
+        if (is_real<T>::value)
             if (ns > 1)
                 if (TW(ns - 1, ns - 2) != zero) bulge = true;
 
@@ -358,7 +358,7 @@ void agressive_early_deflation(bool want_t,
         while (i1 + 1 < sorting_window_size) {
             // Size of the first block
             idx_t n1 = 1;
-            if (!is_complex<T>::value)
+            if (is_real<T>::value)
                 if (TW(i1 + 1, i1) != zero) n1 = 2;
 
             // Check if there is a next block
@@ -372,7 +372,7 @@ void agressive_early_deflation(bool want_t,
 
             // Size of the second block
             idx_t n2 = 1;
-            if (!is_complex<T>::value)
+            if (is_real<T>::value)
                 if (i2 + 1 < jw)
                     if (TW(i2 + 1, i2) != zero) n2 = 2;
 
@@ -410,7 +410,7 @@ void agressive_early_deflation(bool want_t,
     idx_t i = 0;
     while (i < jw) {
         idx_t n1 = 1;
-        if (!is_complex<T>::value)
+        if (is_real<T>::value)
             if (i + 1 < jw)
                 if (TW(i + 1, i) != zero) n1 = 2;
 

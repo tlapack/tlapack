@@ -42,16 +42,14 @@ namespace tlapack {
  *
  * @param[in] opts Options.
  *
- * @param[in,out] workinfo
- *      On output, the amount workspace required. It is larger than or equal
- *      to that given on input.
+ * @return workinfo_t The amount workspace required.
  *
  * @ingroup workspace_query
  */
 template <TLAPACK_MATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
           enable_if_t<is_complex<type_t<vector_t>>::value, bool> = true>
-inline constexpr void multishift_QR_sweep_worksize(
+inline constexpr workinfo_t multishift_QR_sweep_worksize(
     bool want_t,
     bool want_z,
     size_type<matrix_t> ilo,
@@ -59,13 +57,11 @@ inline constexpr void multishift_QR_sweep_worksize(
     const matrix_t& A,
     const vector_t& s,
     const matrix_t& Z,
-    workinfo_t& workinfo,
     const workspace_opts_t<>& opts = {})
 {
     using T = type_t<matrix_t>;
 
-    const workinfo_t myWorkinfo(sizeof(T) * 3, size(s) / 2);
-    workinfo.minMax(myWorkinfo);
+    return workinfo_t(sizeof(T) * 3, size(s) / 2);
 }
 
 /** multishift_QR_sweep performs a single small-bulge multi-shift QR sweep.
@@ -136,9 +132,8 @@ void multishift_QR_sweep(bool want_t,
     // Allocates workspace
     vectorOfBytes localworkdata;
     const Workspace work = [&]() {
-        workinfo_t workinfo;
-        multishift_QR_sweep_worksize(want_t, want_z, ilo, ihi, A, s, Z,
-                                     workinfo, opts);
+        workinfo_t workinfo = multishift_QR_sweep_worksize(want_t, want_z, ilo,
+                                                           ihi, A, s, Z, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
     auto V = new_matrix(work, 3, size(s) / 2);

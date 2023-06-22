@@ -17,6 +17,7 @@
 #include "tlapack/blas/scal.hpp"
 #include "tlapack/lapack/lapy2.hpp"
 #include "tlapack/lapack/lapy3.hpp"
+#include "tlapack/lapack/rscl.hpp"
 
 namespace tlapack {
 
@@ -96,7 +97,7 @@ void larfg(storage_t storeMode,
 
     if (xnorm > zero || (imag(alpha) != zero)) {
         // First estimate of beta
-        real_t temp = (!is_complex<T>::value)
+        real_t temp = (is_real<T>::value)
                           ? lapy2(real(alpha), xnorm)
                           : lapy3(real(alpha), imag(alpha), xnorm);
         real_t beta = (real(alpha) < zero) ? temp : -temp;
@@ -111,15 +112,14 @@ void larfg(storage_t storeMode,
                 alpha *= rsafemin;
             }
             xnorm = nrm2(x);
-            temp = (!is_complex<T>::value)
-                       ? lapy2(real(alpha), xnorm)
-                       : lapy3(real(alpha), imag(alpha), xnorm);
+            temp = (is_real<T>::value) ? lapy2(real(alpha), xnorm)
+                                       : lapy3(real(alpha), imag(alpha), xnorm);
             beta = (real(alpha) < zero) ? temp : -temp;
         }
 
         // compute tau and y
         tau = (beta - alpha) / beta;
-        scal(one / (alpha - beta), x);
+        rscl(alpha - beta, x);
         if (storeMode == StoreV::Rowwise) tau = conj(tau);
 
         // Scale if needed
@@ -205,14 +205,13 @@ inline void larfg(direction_t direction,
     tlapack_check_false(direction != Direction::Backward &&
                         direction != Direction::Forward);
 
-    if (direction == Direction::Forward) {
-        auto x = slice(v, pair(1, size(v)));
-        larfg(storeMode, v[0], x, tau);
-    }
-    else {
-        auto x = slice(v, pair(0, size(v) - 1));
-        larfg(storeMode, v[size(v) - 1], x, tau);
-    }
+    const idx_t alpha_idx = (direction == Direction::Forward) ? 0 : size(v) - 1;
+
+    auto x = slice(v, (direction == Direction::Forward) ? pair(1, size(v))
+                                                        : pair(0, size(v) - 1));
+    type_t<vector_t> alpha = v[alpha_idx];
+    larfg(storeMode, alpha, x, tau);
+    v[alpha_idx] = alpha;
 }
 
 }  // namespace tlapack

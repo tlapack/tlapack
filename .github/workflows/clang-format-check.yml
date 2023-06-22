@@ -16,6 +16,9 @@ on:
       - '**.h.in'
       - '**.c'
 
+permissions:
+  contents: read
+
 jobs:
   formatting-check:
     name: Formatting Check

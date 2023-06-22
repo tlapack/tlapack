@@ -12,6 +12,7 @@
 #ifndef TLAPACK_LAHQR_SCHUR22_HH
 #define TLAPACK_LAHQR_SCHUR22_HH
 
+#include "tlapack/base/constants.hpp"
 #include "tlapack/base/utils.hpp"
 #include "tlapack/lapack/lapy2.hpp"
 
@@ -47,7 +48,7 @@ namespace tlapack {
  *
  * @ingroup auxiliary
  */
-template <typename T, enable_if_t<!is_complex<T>::value, bool> = true>
+template <typename T, enable_if_t<is_real<T>::value, bool> = true>
 int lahqr_schur22(T& a,
                   T& b,
                   T& c,

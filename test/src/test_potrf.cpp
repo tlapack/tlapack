@@ -41,11 +41,17 @@ TEMPLATE_TEST_CASE(
     Create<matrix_t> new_matrix;
 
     using variant_t = std::pair<PotrfVariant, idx_t>;
-    const variant_t variant = GENERATE((variant_t(PotrfVariant::Blocked, 1)),
-                                       (variant_t(PotrfVariant::Blocked, 2)),
-                                       (variant_t(PotrfVariant::Blocked, 7)),
-                                       (variant_t(PotrfVariant::Blocked, 10)),
-                                       (variant_t(PotrfVariant::Recursive, 0)));
+    const variant_t variant =
+        GENERATE((variant_t(PotrfVariant::Blocked, 1)),
+                 (variant_t(PotrfVariant::Blocked, 2)),
+                 (variant_t(PotrfVariant::Blocked, 7)),
+                 (variant_t(PotrfVariant::Blocked, 10)),
+                 (variant_t(PotrfVariant::RightLooking, 1)),
+                 (variant_t(PotrfVariant::RightLooking, 2)),
+                 (variant_t(PotrfVariant::RightLooking, 7)),
+                 (variant_t(PotrfVariant::RightLooking, 10)),
+                 (variant_t(PotrfVariant::Recursive, 0)),
+                 (variant_t(PotrfVariant::Level2, 0)));
     const idx_t n = GENERATE(10, 19, 30);
     const Uplo uplo = GENERATE(Uplo::Lower, Uplo::Upper);
 
@@ -139,8 +145,10 @@ TEMPLATE_TEST_CASE("Cholesky factorization access valid positions only",
     Create<matrix_t> new_matrix;
 
     using variant_t = std::pair<PotrfVariant, idx_t>;
-    const variant_t variant = GENERATE((variant_t(PotrfVariant::Blocked, 2)),
-                                       (variant_t(PotrfVariant::Recursive, 0)));
+    const variant_t variant =
+        GENERATE((variant_t(PotrfVariant::Blocked, 2)),
+                 (variant_t(PotrfVariant::RightLooking, 2)),
+                 (variant_t(PotrfVariant::Recursive, 0)));
     const idx_t n = GENERATE(10);
     const Uplo uplo = GENERATE(Uplo::Lower, Uplo::Upper);
 

@@ -23,9 +23,9 @@
 
 //------------------------------------------------------------------------------
 template <typename T>
-void run(tlapack::idx_t m, tlapack::idx_t n, tlapack::idx_t k)
+void run(size_t m, size_t n, size_t k)
 {
-    using tlapack::idx_t;
+    using idx_t = size_t;
     using tlapack::min;
     using colmajor_matrix_t =
         tlapack::legacyMatrix<T, idx_t, tlapack::Layout::ColMajor>;
@@ -89,9 +89,9 @@ void run(tlapack::idx_t m, tlapack::idx_t n, tlapack::idx_t k)
         auto start = std::chrono::high_resolution_clock::now();
 
         // C = -1.0*A*B + 1.0*C
-        tlapack::gemm(tlapack::Layout::ColMajor, tlapack::Op::NoTrans,
-                      tlapack::Op::NoTrans, m, n, k, T(-1.0), &A_[0], m, &B_[0],
-                      k, T(1.0), &C_[0], m);
+        tlapack::legacy::gemm(tlapack::Layout::ColMajor, tlapack::Op::NoTrans,
+                              tlapack::Op::NoTrans, m, n, k, T(-1.0), &A_[0], m,
+                              &B_[0], k, T(1.0), &C_[0], m);
 
         // Record end time
         auto end = std::chrono::high_resolution_clock::now();
@@ -106,7 +106,8 @@ void run(tlapack::idx_t m, tlapack::idx_t n, tlapack::idx_t k)
 
     // Output
     std::cout << "Using legacy LAPACK interface:" << std::endl
-              << "||C-AB||_F = " << tlapack::nrm2(n, &C_[0], 1) << std::endl
+              << "||C-AB||_F = " << tlapack::legacy::nrm2(n, &C_[0], 1)
+              << std::endl
               << "time = " << bestTime.count() * 1.0e-6 << " ms" << std::endl;
 
     // Using abstract interface:
@@ -138,7 +139,8 @@ void run(tlapack::idx_t m, tlapack::idx_t n, tlapack::idx_t k)
 
     // Output
     std::cout << "Using abstract interface:" << std::endl
-              << "||C-AB||_F = " << tlapack::nrm2(n, &C_[0], 1) << std::endl
+              << "||C-AB||_F = " << tlapack::legacy::nrm2(n, &C_[0], 1)
+              << std::endl
               << "time = " << bestTime.count() * 1.0e-6 << " ms" << std::endl;
 
     // Using abstract interface with row major layout:
@@ -170,7 +172,8 @@ void run(tlapack::idx_t m, tlapack::idx_t n, tlapack::idx_t k)
 
     // Output
     std::cout << "Using abstract interface with row major layout:" << std::endl
-              << "||C-AB||_F = " << tlapack::nrm2(n, &C_[0], 1) << std::endl
+              << "||C-AB||_F = " << tlapack::legacy::nrm2(n, &C_[0], 1)
+              << std::endl
               << "time = " << bestTime.count() * 1.0e-6 << " ms" << std::endl;
 }
 

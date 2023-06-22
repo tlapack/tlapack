@@ -1,4 +1,4 @@
-/// @file larfg.hpp
+/// @file legacy_api/lapack/larfg.hpp
 /// @author Weslley S Pereira, University of Colorado Denver, USA
 /// @note Adapted from @see
 /// https://github.com/langou/latl/blob/master/include/larfg.h
@@ -15,26 +15,29 @@
 #include "tlapack/lapack/larfg.hpp"
 
 namespace tlapack {
+namespace legacy {
 
-template <typename T>
-void inline larfg(idx_t n, T& alpha, T* x, int_t incx, T& tau)
-{
-    tlapack_expr_with_vector(x_, T, n - 1, x, incx,
-                             return larfg(columnwise_storage, alpha, x_, tau));
-}
+    template <typename T>
+    void inline larfg(idx_t n, T& alpha, T* x, int_t incx, T& tau)
+    {
+        tlapack_expr_with_vector(
+            x_, T, n - 1, x, incx,
+            return larfg(columnwise_storage, alpha, x_, tau));
+    }
 
-/** Generates a elementary Householder reflection.
- *
- * @see larfg( idx_t, T &, T *, int_t, T & )
- *
- * @ingroup legacy_lapack
- */
-template <typename T>
-void inline larfg(idx_t n, T* alpha, T* x, int_t incx, T* tau)
-{
-    larfg(n, *alpha, x, incx, *tau);
-}
+    /** Generates a elementary Householder reflection.
+     *
+     * @see larfg( idx_t, T &, T *, int_t, T & )
+     *
+     * @ingroup legacy_lapack
+     */
+    template <typename T>
+    void inline larfg(idx_t n, T* alpha, T* x, int_t incx, T* tau)
+    {
+        larfg(n, *alpha, x, incx, *tau);
+    }
 
+}  // namespace legacy
 }  // namespace tlapack
 
 #endif  // TLAPACK_LEGACY_LARFG_HH

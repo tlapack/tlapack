@@ -40,24 +40,21 @@ namespace tlapack {
  *
  * @param[in] opts Options.
  *
- * @param[in,out] workinfo
- *      On output, the amount workspace required. It is larger than or equal
- *      to that given on input.
+ * @return workinfo_t The amount workspace required.
  *
  * @ingroup workspace_query
  */
-template <TLAPACK_MATRIX matrixA_t,
-          TLAPACK_MATRIX matrixC_t,
-          TLAPACK_VECTOR tau_t,
-          TLAPACK_SIDE side_t,
-          TLAPACK_OP trans_t>
-inline constexpr void unml2_worksize(side_t side,
-                                     trans_t trans,
-                                     const matrixA_t& A,
-                                     const tau_t& tau,
-                                     const matrixC_t& C,
-                                     workinfo_t& workinfo,
-                                     const workspace_opts_t<>& opts = {})
+template <class matrixA_t,
+          class matrixC_t,
+          class tau_t,
+          class side_t,
+          class trans_t>
+inline constexpr workinfo_t unml2_worksize(side_t side,
+                                           trans_t trans,
+                                           const matrixA_t& A,
+                                           const tau_t& tau,
+                                           const matrixC_t& C,
+                                           const workspace_opts_t<>& opts = {})
 {
     using idx_t = size_type<matrixA_t>;
     using pair = std::pair<idx_t, idx_t>;
@@ -68,7 +65,7 @@ inline constexpr void unml2_worksize(side_t side,
     const idx_t nA = (side == Side::Left) ? m : n;
 
     auto v = slice(A, 0, pair{0, nA});
-    larf_worksize(side, forward, rowwise_storage, v, tau[0], C, workinfo, opts);
+    return larf_worksize(side, forward, rowwise_storage, v, tau[0], C, opts);
 }
 
 /** Applies unitary matrix Q from an LQ factorization to a matrix C.
@@ -126,6 +123,7 @@ int unml2(side_t side,
           matrixC_t& C,
           const workspace_opts_t<>& opts = {})
 {
+    using TA = type_t<matrixA_t>;
     using idx_t = size_type<matrixA_t>;
     using pair = std::pair<idx_t, idx_t>;
 
@@ -139,7 +137,7 @@ int unml2(side_t side,
     tlapack_check_false(side != Side::Left && side != Side::Right);
     tlapack_check_false(trans != Op::NoTrans && trans != Op::Trans &&
                         trans != Op::ConjTrans);
-    tlapack_check_false(trans == Op::Trans && is_complex<matrixA_t>::value);
+    tlapack_check_false(trans == Op::Trans && is_complex<TA>::value);
 
     // quick return
     if ((m == 0) || (n == 0) || (k == 0)) return 0;
@@ -147,8 +145,7 @@ int unml2(side_t side,
     // Allocates workspace
     vectorOfBytes localworkdata;
     Workspace work = [&]() {
-        workinfo_t workinfo;
-        unml2_worksize(side, trans, A, tau, C, workinfo, opts);
+        workinfo_t workinfo = unml2_worksize(side, trans, A, tau, C, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
 

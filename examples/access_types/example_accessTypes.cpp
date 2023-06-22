@@ -66,7 +66,7 @@ int main(int argc, char** argv)
     for (int i = 0; i < m * n; ++i)
         data1[i] = i + 1;
 
-    // Matrix 1
+    std::cout << std::endl << "Matrix1:";
     legacyMatrix<int, size_t, Layout::RowMajor> A1(m, n, &data1[0], n);
     printMatrix(A1);
     std::cout << std::endl;
@@ -76,20 +76,17 @@ int main(int argc, char** argv)
     for (int i = 0; i < m * n; ++i)
         data2[i] = data1[i];
 
-    // Matrix 2
-    legacyMatrix<int, size_t, Layout::RowMajor> A2(m, n, &data2[0], n);
-
-    // Scale all matrix by 3
+    std::cout << std::endl << "Scale Matrix1 by 3:";
     lascl(dense, 1.0, 3.0, A1);
     printMatrix(A1);
     std::cout << std::endl;
 
-    // Scale upper triangle by 1/3
+    std::cout << std::endl << "Scale upper triangle of Matrix1 by 1/3:";
     lascl(upperTriangle, 3.0, 1.0, A1);
     printMatrix(A1);
     std::cout << std::endl;
 
-    // Scale strict lower triangle by 1/3
+    std::cout << std::endl << "Scale strict lower triangle of Matrix1 by 1/3:";
     lascl(strictLower, 3.0, 1.0, A1);
     printMatrix(A1);
     std::cout << std::endl;
@@ -103,51 +100,29 @@ int main(int argc, char** argv)
     std::cout << "Scaling well? " << (goodResult ? "True" : "False")
               << std::endl;
 
-    // Matrix 3
-    legacyBandedMatrix<int> A3(m, m, n / 2, n - n / 2 - 1, &data1[0]);
-    printBandedMatrix(A3);
+    std::cout << std::endl << "Matrix2:";
+    legacyBandedMatrix<int> A2(m, m, n / 2, n - n / 2 - 1, &data1[0]);
+    printBandedMatrix(A2);
     std::cout << std::endl;
 
-    try {
-        lascl(dense, 1.0, 3.0, A3);
-        printBandedMatrix(A3);
-        std::cout << std::endl;
-    }
-    catch (const tlapack::check_error& e) {
-        std::cout << std::endl;
-        std::cout << "Generates access error as predicted" << std::endl;
-        std::cerr << e.what() << std::endl;
-    }
-
-    try {
-        lascl(MatrixAccessPolicy::UpperHessenberg, 1.0, 3.0, A3);
-        printBandedMatrix(A3);
-        std::cout << std::endl;
-    }
-    catch (const tlapack::check_error& e) {
-        std::cout << std::endl;
-        std::cout << "Generates access error as predicted" << std::endl;
-        std::cerr << e.what() << std::endl;
-    }
-
-    // Scale all matrix by 3
-    lascl(band_t(n / 2, n - n / 2 - 1), 1.0, 3.0, A3);
-    printBandedMatrix(A3);
+    std::cout << std::endl << "Scale Matrix2 by 3:";
+    lascl(band_t(n / 2, n - n / 2 - 1), 1.0, 3.0, A2);
+    printBandedMatrix(A2);
     std::cout << std::endl;
 
-    // Scale lower band by 1/3
-    lascl(band_t(n / 2, 0), 3.0, 1.0, A3);
-    printBandedMatrix(A3);
+    std::cout << std::endl << "Scale lower band of Matrix2 by 1/3:";
+    lascl(band_t(n / 2, 0), 3.0, 1.0, A2);
+    printBandedMatrix(A2);
     std::cout << std::endl;
 
-    // Scale main diagonal by 3
-    lascl(band_t(0, 0), 1.0, 3.0, A3);
-    printBandedMatrix(A3);
+    std::cout << std::endl << "Scale main diagonal of Matrix2 by 3:";
+    lascl(band_t(0, 0), 1.0, 3.0, A2);
+    printBandedMatrix(A2);
     std::cout << std::endl;
 
-    // Scale upper band by 1/3
-    lascl(band_t(0, n - n / 2 - 1), 3.0, 1.0, A3);
-    printBandedMatrix(A3);
+    std::cout << std::endl << "Scale upper band of Matrix2 by 1/3:";
+    lascl(band_t(0, n - n / 2 - 1), 3.0, 1.0, A2);
+    printBandedMatrix(A2);
     std::cout << std::endl;
 
     // Test we return to the initial configuration

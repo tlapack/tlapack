@@ -17,7 +17,34 @@
 namespace tlapack {
 
 /**
- * @brief Return $\arg\max_{i=0}^{n-1} \left(|Re(x_i)| + |Im(x_i)|\right)$
+ * Options for iamax.
+ *
+ * Initialize using a lambda function (C++17 or higher):
+ * ```c++
+ * iamax_opts_t opts( [](const T& x) { return my_abs(x); } );
+ * ```
+ * or using a functor:
+ * ```c++
+ * struct abs_f {
+ *    inline constexpr real_type<T> operator()(const T& x) const {
+ *       return my_abs(x);
+ *   }
+ * };
+ * abs_f absf;
+ * iamax_opts_t<abs_f> opts( absf );
+ * ```
+ */
+template <class abs_f>
+struct iamax_opts_t : public ec_opts_t {
+    inline constexpr iamax_opts_t(abs_f absf, const ec_opts_t& opts = {})
+        : ec_opts_t(opts), absf(absf){};
+
+    abs_f absf;  ///< Absolute value function
+                 ///< In reference BLAS, absf(a) := |Re(a)| + |Im(a)|
+};
+
+/**
+ * @brief Return $\arg\max_{i=0}^{n-1} |x_i|$
  *
  * Version with NaN checks.
  * @see iamax_nc( const vector_t& x ) for the version that does not check for
@@ -25,17 +52,21 @@ namespace tlapack {
  *
  * @param[in] x The n-element vector x.
  *
+ * @param[in] absf Absolute value function.
+ *      In reference BLAS, absf(a) := |Re(a)| + |Im(a)|.
+ *      We also use |a| to denote absf(a).
+ *
  * @return In priority order:
  * 1. 0 if n <= 0,
  * 2. the index of the first `NAN` in $x$ if it exists,
  * 3. the index of the first `Infinity` in $x$ if it exists,
  * 4. the Index of the infinity-norm of $x$, $|| x ||_{inf}$,
- *     $\arg\max_{i=0}^{n-1} \left(|Re(x_i)| + |Im(x_i)|\right)$.
+ *     $\arg\max_{i=0}^{n-1} |x_i|$.
  *
  * @ingroup blas1
  */
-template <TLAPACK_VECTOR vector_t>
-size_type<vector_t> iamax_ec(const vector_t& x)
+template <class vector_t, class abs_f>
+size_type<vector_t> iamax_ec(const vector_t& x, abs_f absf)
 {
     // data traits
     using idx_t = size_type<vector_t>;
@@ -49,7 +80,7 @@ size_type<vector_t> iamax_ec(const vector_t& x)
     // quick return
     if (n <= 0) return 0;
 
-    bool scaledsmax = false;  // indicates whether |Re(x_i)| + |Im(x_i)| = Inf
+    bool scaledsmax = false;  // indicates whether |x_i| = Inf
     real_t smax(-1);
     idx_t index = -1;
     idx_t i = 0;
@@ -71,18 +102,18 @@ size_type<vector_t> iamax_ec(const vector_t& x)
             return i;
         }
         else {  // still no Inf found yet
-            if (!is_complex<T>::value) {
-                real_t a = abs1(x[i]);
+            if (is_real<T>::value) {
+                real_t a = absf(x[i]);
                 if (a > smax) {
                     smax = a;
                     index = i;
                 }
             }
-            else if (!scaledsmax) {  // no |Re(x_i)| + |Im(x_i)| = Inf  yet
-                real_t a = abs1(x[i]);
+            else if (!scaledsmax) {  // no |x_i| = Inf  yet
+                real_t a = absf(x[i]);
                 if (isinf(a)) {
                     scaledsmax = true;
-                    smax = abs1(oneFourth * x[i]);
+                    smax = absf(oneFourth * x[i]);
                     index = i;
                 }
                 else if (a > smax) {
@@ -91,7 +122,7 @@ size_type<vector_t> iamax_ec(const vector_t& x)
                 }
             }
             else {  // scaledsmax = true
-                real_t a = abs1(oneFourth * x[i]);
+                real_t a = absf(oneFourth * x[i]);
                 if (a > smax) {
                     smax = a;
                     index = i;
@@ -104,23 +135,27 @@ size_type<vector_t> iamax_ec(const vector_t& x)
 }
 
 /**
- * @brief Return $\arg\max_{i=0}^{n-1} \left(|Re(x_i)| + |Im(x_i)|\right)$
+ * @brief Return $\arg\max_{i=0}^{n-1} |x_i|$
  *
  * Version with no NaN checks.
  * @see iamax_ec( const vector_t& x ) for the version that check for NaNs.
  *
  * @param[in] x The n-element vector x.
  *
+ * @param[in] absf Absolute value function.
+ *      In reference BLAS, absf(a) := |Re(a)| + |Im(a)|
+ *      We also use |a| to denote absf(a).
+ *
  * @return In priority order:
  * 1. 0 if n <= 0,
  * 2. the index of the first `Infinity` in $x$ if it exists,
  * 3. the Index of the infinity-norm of $x$, $|| x ||_{inf}$,
- *     $\arg\max_{i=0}^{n-1} \left(|Re(x_i)| + |Im(x_i)|\right)$.
+ *     $\arg\max_{i=0}^{n-1} |x_i|$.
  *
  * @ingroup blas1
  */
-template <TLAPACK_VECTOR vector_t>
-size_type<vector_t> iamax_nc(const vector_t& x)
+template <class vector_t, class abs_f>
+size_type<vector_t> iamax_nc(const vector_t& x, abs_f absf)
 {
     // data traits
     using idx_t = size_type<vector_t>;
@@ -134,7 +169,7 @@ size_type<vector_t> iamax_nc(const vector_t& x)
     // quick return
     if (n <= 0) return 0;
 
-    bool scaledsmax = false;  // indicates whether |Re(x_i)| + |Im(x_i)| = Inf
+    bool scaledsmax = false;  // indicates whether |x_i| = Inf
     real_t smax(-1);
     idx_t index = -1;
     idx_t i = 0;
@@ -144,18 +179,18 @@ size_type<vector_t> iamax_nc(const vector_t& x)
             return i;
         }
         else {  // still no Inf found yet
-            if (!is_complex<T>::value) {
-                real_t a = abs1(x[i]);
+            if (is_real<T>::value) {
+                real_t a = absf(x[i]);
                 if (a > smax) {
                     smax = a;
                     index = i;
                 }
             }
-            else if (!scaledsmax) {  // no |Re(x_i)| + |Im(x_i)| = Inf  yet
-                real_t a = abs1(x[i]);
+            else if (!scaledsmax) {  // no |x_i| = Inf  yet
+                real_t a = absf(x[i]);
                 if (isinf(a)) {
                     scaledsmax = true;
-                    smax = abs1(oneFourth * x[i]);
+                    smax = absf(oneFourth * x[i]);
                     index = i;
                 }
                 else if (a > smax) {
@@ -164,7 +199,7 @@ size_type<vector_t> iamax_nc(const vector_t& x)
                 }
             }
             else {  // scaledsmax = true
-                real_t a = abs1(oneFourth * x[i]);
+                real_t a = absf(oneFourth * x[i]);
                 if (a > smax) {
                     smax = a;
                     index = i;
@@ -177,29 +212,59 @@ size_type<vector_t> iamax_nc(const vector_t& x)
 }
 
 /**
- * @brief Return $\arg\max_{i=0}^{n-1} \left(|Re(x_i)| + |Im(x_i)|\right)$
+ * @brief Return $\arg\max_{i=0}^{n-1} |x_i|$
  *
- * @see iamax_nc( const vector_t& x ) for the version that does not check for
- * NaNs.
- * @see iamax_ec( const vector_t& x ) for the version that check for NaNs.
+ * @see iamax_nc( const vector_t& x, abs_f absf ) for the version that
+ * does not check for NaNs.
+ * @see iamax_ec( const vector_t& x, abs_f absf ) for the version that
+ * check for NaNs.
  *
  * @param[in] x The n-element vector x.
+ *
  * @param[in] opts Options.
  *      Define the behavior of checks for NaNs.
- *
- * @return In priority order:
- * 1. 0 if n <= 0,
- * 2. the index of the first `NAN` in $x$ if it exists and if `ec.nan == true`,
- * 3. the index of the first `Infinity` in $x$ if it exists,
- * 4. the Index of the infinity-norm of $x$, $|| x ||_{inf}$,
- *     $\arg\max_{i=0}^{n-1} \left(|Re(x_i)| + |Im(x_i)|\right)$.
+ *      Also define the absolute value function.
  *
  * @ingroup blas1
  */
-template <TLAPACK_VECTOR vector_t, disable_if_allow_optblas_t<vector_t> = 0>
-inline size_type<vector_t> iamax(const vector_t& x, const ec_opts_t& opts = {})
+template <class vector_t, class abs_f>
+inline size_type<vector_t> iamax(const vector_t& x,
+                                 const iamax_opts_t<abs_f>& opts)
 {
-    return (opts.ec.nan == true) ? iamax_ec(x) : iamax_nc(x);
+    return (opts.ec.nan == true) ? iamax_ec(x, opts.absf)
+                                 : iamax_nc(x, opts.absf);
+}
+
+/**
+ * @brief Return $\arg\max_{i=0}^{n-1} |x_i|$
+ *
+ * Wrapper to iamax( const vector_t& x, const iamax_opts_t<abs_f>& opts )
+ * with default options, i.e.,
+ *      - Default NaN check controlled by TLAPACK_DEFAULT_NANCHECK
+ *      - Default absolute value function as in Reference BLAS,
+ *          |a| := |Re(a)| + |Im(a)|.
+ *
+ * @param[in] x The n-element vector x.
+ *
+ * @ingroup blas1
+ */
+template <class vector_t, disable_if_allow_optblas_t<vector_t> = 0>
+inline size_type<vector_t> iamax(const vector_t& x)
+{
+    using T = type_t<vector_t>;
+    using real_t = real_type<T>;
+
+#if __cplusplus >= 201703L
+    iamax_opts_t opts([](const T& x) -> real_t { return abs1(x); });
+#else
+    struct abs_f {
+        inline constexpr real_t operator()(const T& x) const { return abs1(x); }
+    };
+    abs_f absf;
+    iamax_opts_t<abs_f> opts(absf);
+#endif
+
+    return iamax(x, opts);
 }
 
 #ifdef USE_LAPACKPP_WRAPPERS

@@ -61,9 +61,7 @@ namespace tlapack {
  *
  * @param[in] opts Options.
  *
- * @param[in,out] workinfo
- *      On output, the amount workspace required. It is larger than or equal
- *      to that given on input.
+ * @return workinfo_t The amount workspace required.
  *
  * @ingroup workspace_query
  */
@@ -75,15 +73,15 @@ template <TLAPACK_MATRIX matrixV_t,
           class direction_t,
           TLAPACK_STOREV storage_t,
           class workW_t = void>
-inline constexpr void larfb_worksize(side_t side,
-                                     trans_t trans,
-                                     direction_t direction,
-                                     storage_t storeMode,
-                                     const matrixV_t& V,
-                                     const matrixT_t& Tmatrix,
-                                     const matrixC_t& C,
-                                     workinfo_t& workinfo,
-                                     const workspace_opts_t<workW_t>& opts = {})
+inline constexpr workinfo_t larfb_worksize(
+    side_t side,
+    trans_t trans,
+    direction_t direction,
+    storage_t storeMode,
+    const matrixV_t& V,
+    const matrixT_t& Tmatrix,
+    const matrixC_t& C,
+    const workspace_opts_t<workW_t>& opts = {})
 {
     using idx_t = size_type<matrixC_t>;
     using matrixW_t =
@@ -109,7 +107,7 @@ inline constexpr void larfb_worksize(side_t side,
         myWorkinfo.n = (side == Side::Left) ? k * n : m * k;
     }
 
-    workinfo.minMax(myWorkinfo);
+    return myWorkinfo;
 }
 
 /** Applies a block reflector $H$ or its conjugate transpose $H^H$ to a
@@ -249,9 +247,8 @@ int larfb(side_t side,
     // Allocates workspace
     vectorOfBytes localworkdata;
     const Workspace work = [&]() {
-        workinfo_t workinfo;
-        larfb_worksize(side, trans, direction, storeMode, V, Tmatrix, C,
-                       workinfo, opts);
+        workinfo_t workinfo = larfb_worksize(side, trans, direction, storeMode,
+                                             V, Tmatrix, C, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
 

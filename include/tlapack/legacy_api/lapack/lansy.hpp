@@ -1,4 +1,4 @@
-/// @file lansy.hpp
+/// @file legacy_api/lapack/lansy.hpp
 /// @author Weslley S Pereira, University of Colorado Denver, USA
 //
 // Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
@@ -14,49 +14,52 @@
 #include "tlapack/lapack/lansy.hpp"
 
 namespace tlapack {
+namespace legacy {
 
-/** Calculates the value of the one norm, Frobenius norm, infinity norm, or
- *element of largest absolute value of a symmetric matrix
- *
- * @return Calculated norm value for the specified type.
- *
- * @param normType Type should be specified as follows:
- *
- *     Norm::Max = maximum absolute value over all elements in A.
- *         Note: this is not a consistent matrix norm.
- *     Norm::One = one norm of the matrix A, the maximum value of the sums of
- *each column. Norm::Inf = the infinity norm of the matrix A, the maximum value
- *of the sum of each row. Norm::Fro = the Frobenius norm of the matrix A. This
- *the square root of the sum of the squares of each element in A.
- *
- * @param uplo Indicates whether the symmetric matrix A is stored as upper
- *triangular or lower triangular. The other triangular part of A is not
- *referenced.
- * @param n Number of columns to be included in the norm. n >= 0
- * @param A symmetric matrix size lda-by-n.
- * @param lda Leading dimension of matrix A.  ldA >= m
- *
- * @ingroup legacy_lapack
- **/
-template <class norm_t, typename TA>
-real_type<TA> lansy(norm_t normType, Uplo uplo, idx_t n, const TA* A, idx_t lda)
-{
-    using internal::colmajor_matrix;
+    /** Calculates the value of the one norm, Frobenius norm, infinity norm, or
+     *element of largest absolute value of a symmetric matrix
+     *
+     * @return Calculated norm value for the specified type.
+     *
+     * @param normType Type should be specified as follows:
+     *
+     *     Norm::Max = maximum absolute value over all elements in A.
+     *         Note: this is not a consistent matrix norm.
+     *     Norm::One = one norm of the matrix A, the maximum value of the sums
+     *of each column. Norm::Inf = the infinity norm of the matrix A, the maximum
+     *value of the sum of each row. Norm::Fro = the Frobenius norm of the matrix
+     *A. This the square root of the sum of the squares of each element in A.
+     *
+     * @param uplo Indicates whether the symmetric matrix A is stored as upper
+     *triangular or lower triangular. The other triangular part of A is not
+     *referenced.
+     * @param n Number of columns to be included in the norm. n >= 0
+     * @param A symmetric matrix size lda-by-n.
+     * @param lda Leading dimension of matrix A.  ldA >= m
+     *
+     * @ingroup legacy_lapack
+     **/
+    template <class norm_t, typename TA>
+    real_type<TA> lansy(
+        norm_t normType, Uplo uplo, idx_t n, const TA* A, idx_t lda)
+    {
+        using internal::create_matrix;
 
-    // check arguments
-    tlapack_check_false(normType != Norm::Fro && normType != Norm::Inf &&
-                        normType != Norm::Max && normType != Norm::One);
-    tlapack_check_false(uplo != Uplo::Lower && uplo != Uplo::Upper);
+        // check arguments
+        tlapack_check_false(normType != Norm::Fro && normType != Norm::Inf &&
+                            normType != Norm::Max && normType != Norm::One);
+        tlapack_check_false(uplo != Uplo::Lower && uplo != Uplo::Upper);
 
-    // quick return
-    if (n == 0) return 0;
+        // quick return
+        if (n == 0) return 0;
 
-    // Matrix views
-    auto A_ = colmajor_matrix<TA>((TA*)A, n, n, lda);
+        // Matrix views
+        auto A_ = create_matrix<TA>((TA*)A, n, n, lda);
 
-    return lansy(normType, uplo, A_);
-}
+        return lansy(normType, uplo, A_);
+    }
 
+}  // namespace legacy
 }  // namespace tlapack
 
 #endif  // TLAPACK_LEGACY_LANSY_HH

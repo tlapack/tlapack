@@ -38,7 +38,17 @@ struct legacyMatrix {
 
     static constexpr Layout layout = L;
 
-    inline constexpr T& operator()(idx_t i, idx_t j) const noexcept
+    inline constexpr const T& operator()(idx_t i, idx_t j) const noexcept
+    {
+        assert(i >= 0);
+        assert(i < m);
+        assert(j >= 0);
+        assert(j < n);
+        return (layout == Layout::ColMajor) ? ptr[i + j * ldim]
+                                            : ptr[i * ldim + j];
+    }
+
+    inline constexpr T& operator()(idx_t i, idx_t j) noexcept
     {
         assert(i >= 0);
         assert(i < m);
@@ -81,7 +91,15 @@ struct legacyVector {
 
     static constexpr Direction direction = D;
 
-    inline constexpr T& operator[](idx_t i) const noexcept
+    inline constexpr const T& operator[](idx_t i) const noexcept
+    {
+        assert(i >= 0);
+        assert(i < n);
+        return (direction == Direction::Forward) ? *(ptr + (i * inc))
+                                                 : *(ptr + ((n - 1) - i) * inc);
+    }
+
+    inline constexpr T& operator[](idx_t i) noexcept
     {
         assert(i >= 0);
         assert(i < n);
@@ -119,7 +137,18 @@ struct legacyBandedMatrix {
      * otherwise it would lack in performance.
      *
      */
-    inline constexpr T& operator()(idx_t i, idx_t j) const noexcept
+    inline constexpr const T& operator()(idx_t i, idx_t j) const noexcept
+    {
+        assert(i >= 0);
+        assert(i < m);
+        assert(j >= 0);
+        assert(j < n);
+        assert(j <= i + ku);
+        assert(i <= j + kl);
+        return ptr[(ku + i) + j * (ku + kl)];
+    }
+
+    inline constexpr T& operator()(idx_t i, idx_t j) noexcept
     {
         assert(i >= 0);
         assert(i < m);

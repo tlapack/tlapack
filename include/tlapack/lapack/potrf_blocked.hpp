@@ -15,13 +15,17 @@
 #include "tlapack/blas/gemm.hpp"
 #include "tlapack/blas/herk.hpp"
 #include "tlapack/blas/trsm.hpp"
-#include "tlapack/lapack/potrf2.hpp"
+#include "tlapack/lapack/potf2.hpp"
 
 namespace tlapack {
 
-// Forward declarations
 template <typename idx_t>
-struct potrf_opts_t;
+struct potrf_blocked_opts_t : public ec_opts_t {
+    inline constexpr potrf_blocked_opts_t(const ec_opts_t& opts = {})
+        : ec_opts_t(opts){};
+
+    idx_t nb = 32;  ///< Block size
+};
 
 /** Computes the Cholesky factorization of a Hermitian
  * positive definite matrix A using a blocked algorithm.
@@ -63,7 +67,7 @@ struct potrf_opts_t;
 template <TLAPACK_UPLO uplo_t, TLAPACK_MATRIX matrix_t>
 int potrf_blocked(uplo_t uplo,
                   matrix_t& A,
-                  const potrf_opts_t<size_type<matrix_t> >& opts = {})
+                  const potrf_blocked_opts_t<size_type<matrix_t> >& opts)
 {
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
@@ -85,8 +89,8 @@ int potrf_blocked(uplo_t uplo,
     if (n <= 0) return 0;
 
     // Unblocked code
-    else if (nb <= 1 || nb >= n)
-        return potrf2(uplo, A);
+    else if (nb >= n)
+        return potf2(uplo, A);
 
     // Blocked code
     else {
@@ -100,7 +104,7 @@ int potrf_blocked(uplo_t uplo,
 
                 herk(uplo, conjTranspose, -one, A1J, one, AJJ);
 
-                int info = potrf2(uplo, AJJ, noErrorCheck);
+                int info = potf2(uplo, AJJ);
                 if (info != 0) {
                     tlapack_error(
                         info + j,
@@ -132,7 +136,7 @@ int potrf_blocked(uplo_t uplo,
 
                 herk(uplo, noTranspose, -one, AJ1, one, AJJ);
 
-                int info = potrf2(uplo, AJJ, noErrorCheck);
+                int info = potf2(uplo, AJJ);
                 if (info != 0) {
                     tlapack_error(
                         info + j,
@@ -164,6 +168,37 @@ int potrf_blocked(uplo_t uplo,
         return 0;
     }
 }
+
+template <class uplo_t,
+          class matrix_t,
+          disable_if_allow_optblas_t<matrix_t> = 0>
+inline int potrf_blocked(uplo_t uplo, matrix_t& A)
+{
+    return potrf_blocked(uplo, A, {});
+}
+
+#ifdef USE_LAPACKPP_WRAPPERS
+
+template <class uplo_t, class matrix_t, enable_if_allow_optblas_t<matrix_t> = 0>
+inline int potrf_blocked(uplo_t uplo, matrix_t& A)
+{
+    // Legacy objects
+    auto A_ = legacy_matrix(A);
+
+    // Constants to forward
+    const auto& n = A_.n;
+
+    if constexpr (layout<matrix_t> == Layout::ColMajor) {
+        return ::lapack::potrf((::blas::Uplo)(Uplo)uplo, n, A_.ptr, A_.ldim);
+    }
+    else {
+        return ::lapack::potrf(
+            ((uplo == Uplo::Lower) ? ::blas::Uplo::Upper : ::blas::Uplo::Lower),
+            n, A_.ptr, A_.ldim);
+    }
+}
+
+#endif
 
 }  // namespace tlapack
 

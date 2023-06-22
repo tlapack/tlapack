@@ -11,6 +11,7 @@
 #ifndef TLAPACK_BLAS_ROTG_HH
 #define TLAPACK_BLAS_ROTG_HH
 
+#include "tlapack/base/constants.hpp"
 #include "tlapack/base/utils.hpp"
 
 namespace tlapack {
@@ -104,8 +105,7 @@ template <typename T,
           disable_if_allow_optblas_t<T> = 0>
 void rotg(T& a, const T& b, real_type<T>& c, T& s)
 {
-    typedef real_type<T> real_t;
-    typedef T scalar_t;
+    using real_t = real_type<T>;
 
     // Constants
     const real_t one(1);
@@ -138,7 +138,7 @@ void rotg(T& a, const T& b, real_type<T>& c, T& s)
             // Use scaled algorithm
             real_t u = min(safmax, max(safmin, g1));
             real_t uu = one / u;
-            scalar_t gs = b * uu;
+            T gs = b * uu;
             real_t g2 = real(gs) * real(gs) + imag(gs) * imag(gs);
             real_t d = sqrt(g2);
             s = conj(gs) / d;
@@ -164,10 +164,10 @@ void rotg(T& a, const T& b, real_type<T>& c, T& s)
             // Use scaled algorithm
             real_t u = min(safmax, max(safmin, f1, g1));
             real_t uu = one / u;
-            scalar_t gs = b * uu;
+            T gs = b * uu;
             real_t g2 = real(gs) * real(gs) + imag(gs) * imag(gs);
             real_t f2, h2, w;
-            scalar_t fs;
+            T fs;
             if (f1 * uu < rtmin) {
                 // a is not well-scaled when scaled by g1.
                 real_t v = min(safmax, max(safmin, f1));
