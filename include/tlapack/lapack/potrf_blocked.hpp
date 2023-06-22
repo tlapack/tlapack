@@ -188,7 +188,14 @@ inline int potrf_blocked(uplo_t uplo, matrix_t& A)
     // Constants to forward
     const auto& n = A_.n;
 
-    return ::lapack::potrf((::blas::Uplo)(Uplo)uplo, n, A_.ptr, A_.ldim);
+    if constexpr (layout<matrix_t> == Layout::ColMajor) {
+        return ::lapack::potrf((::blas::Uplo)(Uplo)uplo, n, A_.ptr, A_.ldim);
+    }
+    else {
+        return ::lapack::potrf(
+            ((uplo == Uplo::Lower) ? ::blas::Uplo::Upper : ::blas::Uplo::Lower),
+            n, A_.ptr, A_.ldim);
+    }
 }
 
 #endif

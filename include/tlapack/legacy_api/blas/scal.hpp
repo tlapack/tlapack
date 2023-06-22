@@ -1,4 +1,4 @@
-/// @file scal.hpp
+/// @file legacy_api/blas/scal.hpp
 /// @author Weslley S Pereira, University of Colorado Denver, USA
 //
 // Copyright (c) 2017-2021, University of Tennessee. All rights reserved.
@@ -16,38 +16,40 @@
 #include "tlapack/legacy_api/base/utils.hpp"
 
 namespace tlapack {
+namespace legacy {
 
-/**
- * Scale vector by constant, $x = \alpha x$.
- *
- * Generic implementation for arbitrary data types.
- *
- * @param[in] n
- *     Number of elements in x. n >= 0.
- *
- * @param[in] alpha
- *     Scalar alpha.
- *
- * @param[in] x
- *     The n-element vector x, in an array of length (n-1)*incx + 1.
- *
- * @param[in] incx
- *     Stride between elements of x. incx > 0.
- *
- * @ingroup legacy_blas
- */
-template <typename TA, typename TX>
-void scal(idx_t n, const TA& alpha, TX* x, int_t incx)
-{
-    tlapack_check_false(incx <= 0);
+    /**
+     * Scale vector by constant, $x = \alpha x$.
+     *
+     * Generic implementation for arbitrary data types.
+     *
+     * @param[in] n
+     *     Number of elements in x. n >= 0.
+     *
+     * @param[in] alpha
+     *     Scalar alpha.
+     *
+     * @param[in] x
+     *     The n-element vector x, in an array of length (n-1)*incx + 1.
+     *
+     * @param[in] incx
+     *     Stride between elements of x. incx > 0.
+     *
+     * @ingroup legacy_blas
+     */
+    template <typename TA, typename TX>
+    void scal(idx_t n, const TA& alpha, TX* x, int_t incx)
+    {
+        tlapack_check_false(incx <= 0);
 
-    // quick return
-    if (n <= 0) return;
+        // quick return
+        if (n <= 0) return;
 
-    tlapack_expr_with_vector_positiveInc(x_, TX, n, x, incx,
-                                         return scal(alpha, x_));
-}
+        tlapack_expr_with_vector_positiveInc(x_, TX, n, x, incx,
+                                             return scal(alpha, x_));
+    }
 
+}  // namespace legacy
 }  // namespace tlapack
 
 #endif  //  #ifndef TLAPACK_LEGACY_SCAL_HH

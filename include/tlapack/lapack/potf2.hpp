@@ -161,7 +161,14 @@ int potf2(uplo_t uplo, matrix_t& A)
     // Constants to forward
     const auto& n = A_.n;
 
-    return ::lapack::potf2((::blas::Uplo)(Uplo)uplo, n, A_.ptr, A_.ldim);
+    if constexpr (layout<matrix_t> == Layout::ColMajor) {
+        return ::lapack::potf2((::blas::Uplo)(Uplo)uplo, n, A_.ptr, A_.ldim);
+    }
+    else {
+        return ::lapack::potf2(
+            ((uplo == Uplo::Lower) ? ::blas::Uplo::Upper : ::blas::Uplo::Lower),
+            n, A_.ptr, A_.ldim);
+    }
 }
 
 #endif
