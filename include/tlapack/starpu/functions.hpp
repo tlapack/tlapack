@@ -60,9 +60,9 @@ namespace starpu {
             // call gemm
             if constexpr (mode == 0) {
                 using T = scalar_type<TC, beta_t>;
-                gemm(Layout::ColMajor, transA, transB, m, n, k, alpha,
-                     (const TA*)A, lda, (const TB*)B, ldb, (T)beta, (TC*)C,
-                     ldc);
+                legacy::gemm(Layout::ColMajor, transA, transB, m, n, k, alpha,
+                             (const TA*)A, lda, (const TB*)B, ldb, (T)beta,
+                             (TC*)C, ldc);
             }
 #ifdef STARPU_USE_CUDA
             else if constexpr (mode == 1) {
@@ -142,8 +142,9 @@ namespace starpu {
 
             // call symm
             using T = scalar_type<TC, beta_t>;
-            symm(Layout::ColMajor, side, uplo, m, n, alpha, (const TA*)A, lda,
-                 (const TB*)B, ldb, (T)beta, (TC*)C, ldc);
+            legacy::symm(Layout::ColMajor, side, uplo, m, n, alpha,
+                         (const TA*)A, lda, (const TB*)B, ldb, (T)beta, (TC*)C,
+                         ldc);
         }
 
         template <class TA,
@@ -177,8 +178,9 @@ namespace starpu {
 
             // call hemm
             using T = scalar_type<TC, beta_t>;
-            hemm(Layout::ColMajor, side, uplo, m, n, alpha, (const TA*)A, lda,
-                 (const TB*)B, ldb, (T)beta, (TC*)C, ldc);
+            legacy::hemm(Layout::ColMajor, side, uplo, m, n, alpha,
+                         (const TA*)A, lda, (const TB*)B, ldb, (T)beta, (TC*)C,
+                         ldc);
         }
 
         template <class TA, class TC, class alpha_t, class beta_t, int mode = 0>
@@ -207,8 +209,8 @@ namespace starpu {
 
             // call syrk
             using T = scalar_type<TC, beta_t>;
-            syrk(Layout::ColMajor, uplo, op, n, k, alpha, (const TA*)A, lda,
-                 (T)beta, (TC*)C, ldc);
+            legacy::syrk(Layout::ColMajor, uplo, op, n, k, alpha, (const TA*)A,
+                         lda, (T)beta, (TC*)C, ldc);
         }
 
         template <class TA, class TC, class alpha_t, class beta_t, int mode = 0>
@@ -238,8 +240,8 @@ namespace starpu {
             // call herk
             if constexpr (mode == 0) {
                 using real_t = real_type<scalar_type<TC, beta_t>>;
-                herk(Layout::ColMajor, uplo, op, n, k, alpha, (const TA*)A, lda,
-                     (real_t)beta, (TC*)C, ldc);
+                legacy::herk(Layout::ColMajor, uplo, op, n, k, alpha,
+                             (const TA*)A, lda, (real_t)beta, (TC*)C, ldc);
             }
 #ifdef STARPU_USE_CUDA
             else if constexpr (mode == 1) {
@@ -316,8 +318,8 @@ namespace starpu {
 
             // call syr2k
             using T = scalar_type<TC, beta_t>;
-            syr2k(Layout::ColMajor, uplo, op, n, k, alpha, (const TA*)A, lda,
-                  (const TB*)B, ldb, (T)beta, (TC*)C, ldc);
+            legacy::syr2k(Layout::ColMajor, uplo, op, n, k, alpha, (const TA*)A,
+                          lda, (const TB*)B, ldb, (T)beta, (TC*)C, ldc);
         }
 
         template <class TA,
@@ -353,8 +355,8 @@ namespace starpu {
 
             // call her2k
             using real_t = real_type<scalar_type<TC, beta_t>>;
-            her2k(Layout::ColMajor, uplo, op, n, k, alpha, (const TA*)A, lda,
-                  (const TB*)B, ldb, (real_t)beta, (TC*)C, ldc);
+            legacy::her2k(Layout::ColMajor, uplo, op, n, k, alpha, (const TA*)A,
+                          lda, (const TB*)B, ldb, (real_t)beta, (TC*)C, ldc);
         }
 
         template <class TA, class TB, class alpha_t, int mode = 0>
@@ -381,8 +383,8 @@ namespace starpu {
             const uintptr_t& B = STARPU_MATRIX_GET_PTR(buffers[1]);
 
             // call trmm
-            trmm(Layout::ColMajor, side, uplo, op, diag, m, n, alpha,
-                 (const TA*)A, lda, (TB*)B, ldb);
+            legacy::trmm(Layout::ColMajor, side, uplo, op, diag, m, n, alpha,
+                         (const TA*)A, lda, (TB*)B, ldb);
         }
 
         template <class TA, class TB, class alpha_t, int mode = 0>
@@ -410,8 +412,8 @@ namespace starpu {
 
             // call trsm
             if constexpr (mode == 0)
-                trsm(Layout::ColMajor, side, uplo, op, diag, m, n, alpha,
-                     (const TA*)A, lda, (TB*)B, ldb);
+                legacy::trsm(Layout::ColMajor, side, uplo, op, diag, m, n,
+                             alpha, (const TA*)A, lda, (TB*)B, ldb);
 #ifdef STARPU_USE_CUDA
             else if constexpr (mode == 1) {
                 using T = scalar_type<TA, TB, alpha_t>;
@@ -482,9 +484,9 @@ namespace starpu {
             // call potrf
             if constexpr (mode == 0) {
                 if constexpr (has_info)
-                    *info = potrf(uplo, n, (T*)A, lda);
+                    *info = legacy::potrf(uplo, n, (T*)A, lda);
                 else
-                    potrf(uplo, n, (T*)A, lda);
+                    legacy::potrf(uplo, n, (T*)A, lda);
             }
 #ifdef STARPU_HAVE_LIBCUSOLVER
             if constexpr (mode == 1) {
