@@ -189,7 +189,7 @@ int lascl(access_t accessType, const b_type& b, const a_type& a, matrix_t& A)
  *
  * @ingroup auxiliary
  */
-template <class matrix_t,
+template <TLAPACK_MATRIX matrix_t,
           class a_type,
           class b_type,
           enable_if_t<(

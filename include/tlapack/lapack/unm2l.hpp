@@ -44,7 +44,7 @@ namespace tlapack {
  *
  * @ingroup workspace_query
  */
-template <class matrixA_t,
+template <TLAPACK_MATRIX matrixA_t,
           class matrixC_t,
           class tau_t,
           class side_t,

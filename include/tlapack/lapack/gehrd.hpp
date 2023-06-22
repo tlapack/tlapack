@@ -51,7 +51,7 @@ struct gehrd_opts_t : public workspace_opts_t<> {
  *
  * @ingroup workspace_query
  */
-template <class matrix_t, class vector_t>
+template <TLAPACK_MATRIX matrix_t, class vector_t>
 workinfo_t gehrd_worksize(size_type<matrix_t> ilo,
                           size_type<matrix_t> ihi,
                           const matrix_t& A,

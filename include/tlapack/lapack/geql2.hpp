@@ -30,7 +30,7 @@ namespace tlapack {
  *
  * @ingroup workspace_query
  */
-template <class matrix_t, class vector_t>
+template <TLAPACK_MATRIX matrix_t, class vector_t>
 inline constexpr workinfo_t geql2_worksize(const matrix_t& A,
                                            const vector_t& tau,
                                            const workspace_opts_t<>& opts = {})

@@ -21,7 +21,7 @@ namespace tlapack {
  *
  * @ingroup auxiliary
  */
-template <class vector_t>
+template <TLAPACK_VECTOR vector_t>
 void conjugate(vector_t& x)
 {
     using idx_t = size_type<vector_t>;

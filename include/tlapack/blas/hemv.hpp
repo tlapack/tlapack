@@ -170,7 +170,7 @@ inline void hemv(Uplo uplo,
  *
  * @ingroup blas2
  */
-template <class matrixA_t, class vectorX_t, class vectorY_t, class alpha_t>
+template <TLAPACK_MATRIX matrixA_t, class vectorX_t, class vectorY_t, class alpha_t>
 inline void hemv(Uplo uplo,
                  const alpha_t& alpha,
                  const matrixA_t& A,

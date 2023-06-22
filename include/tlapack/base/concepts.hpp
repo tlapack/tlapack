@@ -28,24 +28,18 @@ namespace tlapack {
 // entire matrix, i.e. slice, diag, ...
 //
 
-template <typename A_t,
-          typename idx_t = size_type<A_t>,
-          typename T = type_t<A_t>,
-          typename pair_t = std::pair<idx_t, idx_t>>
-concept MatrixConcept = requires(A_t A, idx_t i, idx_t j, pair_t pi, pair_t pj)
+template <typename matrix_t>
+concept MatrixConcept = requires(matrix_t A)
 {
-    {
-        A(i, j)
-    }
-    ->std::convertible_to<T>;
+    A(0, 0);
     {
         nrows(A)
     }
-    ->std::convertible_to<idx_t>;
+    ->std::convertible_to<int>;
     {
         ncols(A)
     }
-    ->std::convertible_to<idx_t>;
+    ->std::convertible_to<int>;
     // row(A, i);
     // col(A, j);
     // rows(A, pi);
@@ -56,20 +50,14 @@ concept MatrixConcept = requires(A_t A, idx_t i, idx_t j, pair_t pi, pair_t pj)
     // slice( A, pi, j );
 };
 
-template <typename V_t,
-          typename idx_t = size_type<V_t>,
-          typename T = type_t<V_t>,
-          typename pair_t = std::pair<idx_t, idx_t>>
-concept VectorConcept = requires(V_t v, idx_t i, pair_t pi)
+template <typename vector_t>
+concept VectorConcept = requires(vector_t v)
 {
-    {
-        v[i]
-    }
-    ->std::convertible_to<T>;
+    v[0];
     {
         size(v)
     }
-    ->std::convertible_to<idx_t>;
+    ->std::convertible_to<int>;
     // slice(v, pi);
 };
 
@@ -115,6 +103,7 @@ concept UploConcept = std::is_convertible<T, Uplo>::value;
     #define TLAPACK_MATRIX class
     #define TLAPACK_VECTOR class
     #define TLAPACK_NUMBER class
+    #define TLAPACK_SIDE class
     #define TLAPACK_DIRECTION class
     #define TLAPACK_OP class
     #define TLAPACK_STOREV class

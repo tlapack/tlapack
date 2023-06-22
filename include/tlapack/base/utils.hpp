@@ -227,7 +227,7 @@ namespace internal {
      *
      * @tparam matrix_t Matrix class.
      */
-    template <class matrix_t>
+    template <TLAPACK_MATRIX matrix_t>
     struct type_trait<matrix_t, enable_if_t<is_matrix<matrix_t>, int>> {
         using type = typename std::decay<decltype(
             ((const matrix_t)std::declval<matrix_t>())(0, 0))>::type;
@@ -240,7 +240,7 @@ namespace internal {
      *
      * @tparam vector_t Vector class.
      */
-    template <class vector_t>
+    template <TLAPACK_VECTOR vector_t>
     struct type_trait<vector_t, enable_if_t<is_vector<vector_t>, int>> {
         using type = typename std::decay<decltype(
             ((const vector_t)std::declval<vector_t>())[0])>::type;
@@ -253,7 +253,7 @@ namespace internal {
      *
      * @tparam matrix_t Matrix class.
      */
-    template <class matrix_t>
+    template <TLAPACK_MATRIX matrix_t>
     struct sizet_trait<matrix_t, enable_if_t<is_matrix<matrix_t>, int>> {
         using type = typename std::decay<decltype(
             nrows(std::declval<matrix_t>()))>::type;
@@ -266,7 +266,7 @@ namespace internal {
      *
      * @tparam vector_t Vector class.
      */
-    template <class vector_t>
+    template <TLAPACK_VECTOR vector_t>
     struct sizet_trait<vector_t, enable_if_t<is_vector<vector_t>, int>> {
         using type =
             typename std::decay<decltype(size(std::declval<vector_t>()))>::type;
@@ -361,7 +361,7 @@ bool hasinf(access_t accessType, const matrix_t& A)
  * Specific implementation for band access types.
  * @see hasinf( access_t accessType, const matrix_t& A ).
  */
-template <class matrix_t>
+template <TLAPACK_MATRIX matrix_t>
 bool hasinf(band_t accessType, const matrix_t& A)
 {
     using idx_t = size_type<matrix_t>;
@@ -386,7 +386,7 @@ bool hasinf(band_t accessType, const matrix_t& A)
  * @return true if x has an infinite entry.
  * @return false if x has no infinite entry.
  */
-template <class vector_t>
+template <TLAPACK_VECTOR vector_t>
 bool hasinf(const vector_t& x)
 {
     using idx_t = size_type<vector_t>;
@@ -494,7 +494,7 @@ bool hasnan(access_t accessType, const matrix_t& A)
  * Specific implementation for band access types.
  * @see hasnan( access_t accessType, const matrix_t& A ).
  */
-template <class matrix_t>
+template <TLAPACK_MATRIX matrix_t>
 bool hasnan(band_t accessType, const matrix_t& A)
 {
     using idx_t = size_type<matrix_t>;
@@ -519,7 +519,7 @@ bool hasnan(band_t accessType, const matrix_t& A)
  * @return true if x has an NaN entry.
  * @return false if x has no NaN entry.
  */
-template <class vector_t>
+template <TLAPACK_VECTOR vector_t>
 bool hasnan(const vector_t& x)
 {
     using idx_t = size_type<vector_t>;

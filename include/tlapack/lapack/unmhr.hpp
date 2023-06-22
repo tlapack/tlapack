@@ -109,7 +109,7 @@ int unmhr(Side side,
  *
  * @ingroup workspace_query
  */
-template <class matrix_t, class vector_t>
+template <TLAPACK_MATRIX matrix_t, class vector_t>
 inline constexpr workinfo_t unmhr_worksize(Side side,
                                            Op trans,
                                            size_type<matrix_t> ilo,

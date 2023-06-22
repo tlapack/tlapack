@@ -16,7 +16,7 @@
 
 namespace tlapack {
 
-template <class vector_t,
+template <TLAPACK_VECTOR vector_t,
           class alpha_t,
           enable_if_t<!is_complex<alpha_t>::value, int> = 0>
 void rscl(const alpha_t& alpha, vector_t& x)
@@ -69,7 +69,7 @@ void rscl(const alpha_t& alpha, vector_t& x)
  *
  * @ingroup auxiliary
  */
-template <class vector_t,
+template <TLAPACK_VECTOR vector_t,
           class alpha_t,
           enable_if_t<is_complex<alpha_t>::value, int> = 0>
 void rscl(const alpha_t& alpha, vector_t& x)

@@ -27,7 +27,7 @@ namespace tlapack {
  *
  * @ingroup workspace_query
  */
-template <class matrix_t>
+template <TLAPACK_MATRIX matrix_t>
 inline constexpr workinfo_t getri_uxli_worksize(
     const matrix_t& A, const workspace_opts_t<>& opts = {})
 {

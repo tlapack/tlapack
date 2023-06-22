@@ -46,7 +46,7 @@ namespace tlapack {
  *
  * @ingroup computational
  */
-template <class matrix_t, class piv_t>
+template <TLAPACK_MATRIX matrix_t, class piv_t>
 int getrf_level0(matrix_t& A, piv_t& piv)
 {
     using idx_t = size_type<matrix_t>;

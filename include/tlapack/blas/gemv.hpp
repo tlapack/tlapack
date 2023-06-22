@@ -208,7 +208,7 @@ inline void gemv(Op trans,
  *
  * @ingroup blas2
  */
-template <class matrixA_t, class vectorX_t, class vectorY_t, class alpha_t>
+template <TLAPACK_MATRIX matrixA_t, class vectorX_t, class vectorY_t, class alpha_t>
 inline void gemv(Op trans,
                  const alpha_t& alpha,
                  const matrixA_t& A,

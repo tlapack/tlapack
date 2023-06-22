@@ -44,7 +44,7 @@ namespace tlapack {
  *
  * @ingroup auxiliary
  */
-template <typename matrix_t,
+template <TLAPACK_MATRIX matrix_t,
           enable_if_t<is_real<type_t<matrix_t>>::value, bool> = true>
 int schur_swap(bool want_q,
                matrix_t& A,

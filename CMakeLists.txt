@@ -4,7 +4,7 @@
 # <T>LAPACK is free software: you can redistribute it and/or modify it under
 # the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.7)
 # VERSION 3.3: IN_LIST for if() operator
 # VERSION 3.7: VERSION_GREATER_EQUAL
 

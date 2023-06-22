@@ -45,7 +45,7 @@ struct ungqr_opts_t : public workspace_opts_t<workT_t> {
  *
  * @ingroup workspace_query
  */
-template <class matrix_t, class vector_t, class workT_t = void>
+template <TLAPACK_MATRIX matrix_t, class vector_t, class workT_t = void>
 inline constexpr workinfo_t ungqr_worksize(
     const matrix_t& A,
     const vector_t& tau,

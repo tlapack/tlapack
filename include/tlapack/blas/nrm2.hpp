@@ -29,7 +29,7 @@ namespace tlapack {
  *
  * @ingroup blas1
  */
-template <class vector_t, disable_if_allow_optblas_t<vector_t> = 0>
+template <TLAPACK_VECTOR vector_t, disable_if_allow_optblas_t<vector_t> = 0>
 inline auto nrm2(const vector_t& x)
 {
     using real_t = real_type<type_t<vector_t> >;

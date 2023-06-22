@@ -249,7 +249,7 @@ inline void syr2k(Uplo uplo,
  *
  * @ingroup blas3
  */
-template <class matrixA_t, class matrixB_t, class matrixC_t, class alpha_t>
+template <TLAPACK_MATRIX matrixA_t, class matrixB_t, class matrixC_t, class alpha_t>
 inline void syr2k(Uplo uplo,
                   Op trans,
                   const alpha_t& alpha,
