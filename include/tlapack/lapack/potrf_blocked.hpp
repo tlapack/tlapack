@@ -179,7 +179,9 @@ inline int potrf_blocked(uplo_t uplo, matrix_t& A)
 
 #ifdef USE_LAPACKPP_WRAPPERS
 
-template <class uplo_t, TLAPACK_MATRIX matrix_t, enable_if_allow_optblas_t<matrix_t> = 0>
+template <class uplo_t,
+          TLAPACK_MATRIX matrix_t,
+          enable_if_allow_optblas_t<matrix_t> = 0>
 inline int potrf_blocked(uplo_t uplo, matrix_t& A)
 {
     // Legacy objects

@@ -262,7 +262,10 @@ inline void symm(Side side,
  *
  * @ingroup blas3
  */
-template <TLAPACK_MATRIX matrixA_t, TLAPACK_MATRIX matrixB_t, TLAPACK_MATRIX matrixC_t, class alpha_t>
+template <TLAPACK_MATRIX matrixA_t,
+          TLAPACK_MATRIX matrixB_t,
+          TLAPACK_MATRIX matrixC_t,
+          class alpha_t>
 inline void symm(Side side,
                  Uplo uplo,
                  const alpha_t& alpha,
