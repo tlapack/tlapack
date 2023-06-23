@@ -11,7 +11,6 @@
 #define TLAPACK_ARRAY_CONCEPTS
 
 #include <cmath>
-#include <concepts>
 #include <cstddef>
 #include <type_traits>
 
@@ -19,6 +18,7 @@
 #include "tlapack/base/types.hpp"
 
 #if __cplusplus >= 202002L
+    #include <concepts>
 
 namespace tlapack {
 
