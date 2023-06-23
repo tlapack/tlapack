@@ -88,7 +88,7 @@ T rand_helper()
  *
  * @ingroup auxiliary
  */
-template <class matrix_t>
+template <TLAPACK_MATRIX matrix_t>
 real_type<type_t<matrix_t>> check_orthogonality(matrix_t& Q, matrix_t& res)
 {
     using idx_t = size_type<matrix_t>;
@@ -124,7 +124,7 @@ real_type<type_t<matrix_t>> check_orthogonality(matrix_t& Q, matrix_t& res)
  *
  * @ingroup auxiliary
  */
-template <class matrix_t>
+template <TLAPACK_MATRIX matrix_t>
 real_type<type_t<matrix_t>> check_orthogonality(matrix_t& Q)
 {
     using T = type_t<matrix_t>;
@@ -152,7 +152,7 @@ real_type<type_t<matrix_t>> check_orthogonality(matrix_t& Q)
  *
  * @ingroup auxiliary
  */
-template <class matrix_t>
+template <TLAPACK_MATRIX matrix_t>
 real_type<type_t<matrix_t>> check_similarity_transform(
     matrix_t& A, matrix_t& Q, matrix_t& B, matrix_t& res, matrix_t& work)
 {
@@ -188,7 +188,7 @@ real_type<type_t<matrix_t>> check_similarity_transform(
  *
  * @ingroup auxiliary
  */
-template <class matrix_t>
+template <TLAPACK_MATRIX matrix_t>
 real_type<type_t<matrix_t>> check_similarity_transform(matrix_t& A,
                                                        matrix_t& Q,
                                                        matrix_t& B)

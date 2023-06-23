@@ -53,7 +53,7 @@ namespace tlapack {
  * @ingroup blas3
  */
 template <TLAPACK_MATRIX matrixA_t,
-          class matrixC_t,
+          TLAPACK_MATRIX matrixC_t,
           class alpha_t,
           class beta_t,
           enable_if_t<(
@@ -257,7 +257,7 @@ inline void herk(Uplo uplo,
  *
  * @ingroup blas3
  */
-template <TLAPACK_MATRIX matrixA_t, class matrixC_t, class alpha_t>
+template <TLAPACK_MATRIX matrixA_t, TLAPACK_MATRIX matrixC_t, class alpha_t>
 inline void herk(
     Uplo uplo, Op trans, const alpha_t& alpha, const matrixA_t& A, matrixC_t& C)
 {

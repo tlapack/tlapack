@@ -39,7 +39,7 @@ struct gebd2_opts_t : public workspace_opts_t<> {
  *
  * @ingroup workspace_query
  */
-template <TLAPACK_MATRIX matrix_t, class vector_t>
+template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
 inline constexpr workinfo_t gebd2_worksize(const matrix_t& A,
                                            const vector_t& tauv,
                                            const vector_t& tauw,
@@ -118,7 +118,7 @@ inline constexpr workinfo_t gebd2_worksize(const matrix_t& A,
  *
  * @ingroup computational
  */
-template <TLAPACK_MATRIX matrix_t, TLAPACK_VECTOR vector_t>
+template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
 int gebd2(matrix_t& A,
           vector_t& tauv,
           vector_t& tauw,

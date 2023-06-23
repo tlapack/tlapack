@@ -51,7 +51,7 @@ namespace tlapack {
  * @ingroup auxiliary
  */
 template <class access_t,
-          class matrix_t,
+          TLAPACK_MATRIX matrix_t,
           class a_type,
           class b_type,
           enable_if_t<(
