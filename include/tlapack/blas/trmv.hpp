@@ -12,6 +12,7 @@
 #define TLAPACK_BLAS_TRMV_HH
 
 #include "tlapack/base/utils.hpp"
+#include "tlapack/lapack/conjugate.hpp"
 
 namespace tlapack {
 
@@ -192,9 +193,15 @@ inline void trmv(
     constexpr Layout L = layout<matrixA_t>;
     const auto& n = A_.n;
 
-    return ::blas::trmv((::blas::Layout)L, (::blas::Uplo)uplo,
-                        (::blas::Op)trans, (::blas::Diag)diag, n, A_.ptr,
-                        A_.ldim, x_.ptr, x_.inc);
+    if (trans != Op::Conj)
+        ::blas::trmv((::blas::Layout)L, (::blas::Uplo)uplo, (::blas::Op)trans,
+                     (::blas::Diag)diag, n, A_.ptr, A_.ldim, x_.ptr, x_.inc);
+    else {
+        conjugate(x);
+        ::blas::trmv((::blas::Layout)L, (::blas::Uplo)uplo, ::blas::Op::NoTrans,
+                     (::blas::Diag)diag, n, A_.ptr, A_.ldim, x_.ptr, x_.inc);
+        conjugate(x);
+    }
 }
 
 #endif

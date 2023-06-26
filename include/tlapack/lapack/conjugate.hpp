@@ -10,7 +10,6 @@
 #ifndef TLAPACK_CONJUGATE_HH
 #define TLAPACK_CONJUGATE_HH
 
-#include "tlapack/base/constants.hpp"
 #include "tlapack/base/utils.hpp"
 
 namespace tlapack {

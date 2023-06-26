@@ -12,6 +12,7 @@
 #define TLAPACK_BLAS_GEMV_HH
 
 #include "tlapack/base/utils.hpp"
+#include "tlapack/lapack/conjugate.hpp"
 
 namespace tlapack {
 
@@ -156,6 +157,8 @@ inline void gemv(Op trans,
                  const beta_t beta,
                  vectorY_t& y)
 {
+    using idx_t = size_type<matrixA_t>;
+
     // Legacy objects
     auto A_ = legacy_matrix(A);
     auto x_ = legacy_vector(x);
@@ -175,9 +178,21 @@ inline void gemv(Op trans,
             -5,
             "Infs and NaNs in y on input will not propagate to y on output");
 
-    return ::blas::gemv((::blas::Layout)L, (::blas::Op)trans, m, n, alpha,
-                        A_.ptr, A_.ldim, x_.ptr, x_.inc, (T)beta, y_.ptr,
-                        y_.inc);
+    if (trans != Op::Conj)
+        ::blas::gemv((::blas::Layout)L, (::blas::Op)trans, m, n, alpha, A_.ptr,
+                     A_.ldim, x_.ptr, x_.inc, (T)beta, y_.ptr, y_.inc);
+    else {
+        T* x2 = const_cast<T*>(x_.ptr);
+        for (idx_t i = 0; i < x_.n; ++i)
+            x2[i * x_.inc] = conj(x2[i * x_.inc]);
+        conjugate(y);
+        ::blas::gemv((::blas::Layout)L, ::blas::Op::NoTrans, m, n, conj(alpha),
+                     A_.ptr, A_.ldim, x_.ptr, x_.inc, conj((T)beta), y_.ptr,
+                     y_.inc);
+        for (idx_t i = 0; i < x_.n; ++i)
+            x2[i * x_.inc] = conj(x2[i * x_.inc]);
+        conjugate(y);
+    }
 }
 
 #endif
