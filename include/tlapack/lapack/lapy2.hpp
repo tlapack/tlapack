@@ -23,8 +23,8 @@ namespace tlapack {
  *
  * @ingroup auxiliary
  */
-template <class TX,
-          class TY,
+template <TLAPACK_REAL TX,
+          TLAPACK_REAL TY,
           enable_if_t<(
                           /* Requires: */
                           is_real<TX>::value && is_real<TY>::value),

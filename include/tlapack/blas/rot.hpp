@@ -34,8 +34,8 @@ namespace tlapack {
  */
 template <TLAPACK_VECTOR vectorX_t,
           TLAPACK_VECTOR vectorY_t,
-          class c_type,
-          class s_type,
+          TLAPACK_REAL c_type,
+          TLAPACK_SCALAR s_type,
           class T = type_t<vectorX_t>,
           disable_if_allow_optblas_t<pair<vectorX_t, T>,
                                      pair<vectorY_t, T>,
@@ -67,8 +67,8 @@ void rot(vectorX_t& x, vectorY_t& y, const c_type& c, const s_type& s)
 
 template <TLAPACK_VECTOR vectorX_t,
           TLAPACK_VECTOR vectorY_t,
-          class c_type,
-          class s_type,
+          TLAPACK_REAL c_type,
+          TLAPACK_SCALAR s_type,
           class T = type_t<vectorX_t>,
           enable_if_allow_optblas_t<pair<vectorX_t, T>,
                                     pair<vectorY_t, T>,

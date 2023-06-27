@@ -106,13 +106,13 @@ namespace concepts {
     };
 
     template <typename T>
-    concept Scalar = requires(T a, T b)
+    concept Scalar = requires(T a)
     {
         // Arithmetic operations
-        a + b;
-        a - b;
-        a* b;
-        a / b;
+        a + a;
+        a - a;
+        a* a;
+        a / a;
 
         // Absolute value
         abs(a);
@@ -143,6 +143,9 @@ namespace concepts {
     };
 
     template <typename T>
+    concept Index = std::convertible_to<T, std::size_t>;
+
+    template <typename T>
     concept Side = std::convertible_to<T, tlapack::Side>;
 
     template <typename T>
@@ -160,6 +163,9 @@ namespace concepts {
     template <typename T>
     concept Uplo = std::convertible_to<T, tlapack::Uplo>;
 
+    template <typename T>
+    concept Diag = std::convertible_to<T, tlapack::Diag>;
+
 }  // namespace concepts
 }  // namespace tlapack
 
@@ -172,6 +178,7 @@ namespace concepts {
     #define TLAPACK_SCALAR concepts::Scalar
     #define TLAPACK_REAL concepts::Real
     #define TLAPACK_COMPLEX concepts::Complex
+    #define TLAPACK_INDEX concepts::Index
 
     #define TLAPACK_SIDE concepts::Side
     #define TLAPACK_DIRECTION concepts::Direction
@@ -179,6 +186,7 @@ namespace concepts {
     #define TLAPACK_STOREV concepts::StoreV
     #define TLAPACK_NORM concepts::Norm
     #define TLAPACK_UPLO concepts::Uplo
+    #define TLAPACK_DIAG concepts::Diag
 #else
     // Concepts are a C++20 feature, so just define them as `class` for earlier
     // versions
@@ -191,6 +199,7 @@ namespace concepts {
     #define TLAPACK_SCALAR class
     #define TLAPACK_REAL class
     #define TLAPACK_COMPLEX class
+    #define TLAPACK_INDEX class
 
     #define TLAPACK_SIDE class
     #define TLAPACK_DIRECTION class
@@ -198,6 +207,7 @@ namespace concepts {
     #define TLAPACK_STOREV class
     #define TLAPACK_NORM class
     #define TLAPACK_UPLO class
+    #define TLAPACK_DIAG class
 
 #endif
 

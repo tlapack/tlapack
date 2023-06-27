@@ -89,8 +89,8 @@ namespace tlapack {
  *
  * @ingroup blas1
  */
-template <typename T,
-          enable_if_t<is_same_v<T, real_type<T> >, int> = 0,
+template <TLAPACK_REAL T,
+          enable_if_t<is_real<T>::value, int> = 0,
           disable_if_allow_optblas_t<T> = 0>
 int rotmg(T& d1, T& d2, T& a, const T& b, T h[4])
 {
@@ -214,8 +214,8 @@ int rotmg(T& d1, T& d2, T& a, const T& b, T h[4])
 
 #ifdef USE_LAPACKPP_WRAPPERS
 
-template <typename T,
-          enable_if_t<is_same_v<T, real_type<T> >, int> = 0,
+template <TLAPACK_REAL T,
+          enable_if_t<is_real<T>::value, int> = 0,
           enable_if_allow_optblas_t<T> = 0>
 inline int rotmg(T& d1, T& d2, T& a, const T b, T h[4])
 {

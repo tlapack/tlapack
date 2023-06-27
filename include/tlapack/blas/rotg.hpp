@@ -196,8 +196,8 @@ void rotg(T& a, const T& b, real_type<T>& c, T& s)
 
 #ifdef USE_LAPACKPP_WRAPPERS
 
-template <typename T,
-          enable_if_t<is_same_v<T, real_type<T> >, int> = 0,
+template <TLAPACK_REAL T,
+          enable_if_t<is_real<T>::value, int> = 0,
           enable_if_allow_optblas_t<T> = 0>
 inline void rotg(T& a, T& b, T& c, T& s)
 {
@@ -220,8 +220,8 @@ inline void rotg(T& a, T& b, T& c, T& s)
         b = one;
 }
 
-template <typename T,
-          enable_if_t<!is_same_v<T, real_type<T> >, int> = 0,
+template <TLAPACK_COMPLEX T,
+          enable_if_t<is_complex<T>::value, int> = 0,
           enable_if_allow_optblas_t<T> = 0>
 inline void rotg(T& a, const T& b, real_type<T>& c, T& s)
 {

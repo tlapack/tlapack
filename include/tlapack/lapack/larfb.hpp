@@ -70,7 +70,7 @@ template <TLAPACK_MATRIX matrixV_t,
           TLAPACK_MATRIX matrixC_t,
           TLAPACK_SIDE side_t,
           TLAPACK_OP trans_t,
-          class direction_t,
+          TLAPACK_DIRECTION direction_t,
           TLAPACK_STOREV storage_t,
           class workW_t = void>
 inline constexpr workinfo_t larfb_worksize(
@@ -195,7 +195,7 @@ template <TLAPACK_MATRIX matrixV_t,
           TLAPACK_MATRIX matrixC_t,
           TLAPACK_SIDE side_t,
           TLAPACK_OP trans_t,
-          class direction_t,
+          TLAPACK_DIRECTION direction_t,
           TLAPACK_STOREV storage_t,
           class workW_t = void>
 int larfb(side_t side,

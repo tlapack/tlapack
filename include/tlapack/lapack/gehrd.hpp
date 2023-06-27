@@ -23,7 +23,7 @@ namespace tlapack {
 /**
  * Options struct for gehrd
  */
-template <class idx_t = size_t>
+template <TLAPACK_INDEX idx_t = size_t>
 struct gehrd_opts_t : public workspace_opts_t<> {
     inline constexpr gehrd_opts_t(const workspace_opts_t<>& opts = {})
         : workspace_opts_t<>(opts){};

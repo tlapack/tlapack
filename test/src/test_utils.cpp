@@ -29,54 +29,6 @@ TEST_CASE("Random generator is consistent if seed is fixed", "[utils]")
     CHECK(gen() == 3641191292);
 }
 
-TEST_CASE("MatrixAccessPolicy can be cast to Uplo", "[utils]")
-{
-    Uplo uplo;
-    MatrixAccessPolicy runtimeAccess;
-
-    uplo = Uplo::Upper;
-    runtimeAccess = MatrixAccessPolicy::UpperTriangle;
-
-    CHECK(uplo == (Uplo)runtimeAccess);
-    CHECK(uplo == upperTriangle);
-    CHECK(uplo == (Uplo)upperTriangle);
-
-    CHECK(runtimeAccess == (MatrixAccessPolicy)uplo);
-    CHECK(runtimeAccess == upperTriangle);
-    CHECK(runtimeAccess == (MatrixAccessPolicy)upperTriangle);
-
-    CHECK(upperTriangle == (Uplo)runtimeAccess);
-    CHECK(upperTriangle == (MatrixAccessPolicy)uplo);
-
-    uplo = Uplo::Lower;
-    runtimeAccess = MatrixAccessPolicy::LowerTriangle;
-
-    CHECK(uplo == (Uplo)runtimeAccess);
-    CHECK(uplo == lowerTriangle);
-    CHECK(uplo == (Uplo)lowerTriangle);
-
-    CHECK(runtimeAccess == (MatrixAccessPolicy)uplo);
-    CHECK(runtimeAccess == lowerTriangle);
-    CHECK(runtimeAccess == (MatrixAccessPolicy)lowerTriangle);
-
-    CHECK(lowerTriangle == (Uplo)runtimeAccess);
-    CHECK(lowerTriangle == (MatrixAccessPolicy)uplo);
-
-    uplo = Uplo::General;
-    runtimeAccess = MatrixAccessPolicy::Dense;
-
-    CHECK(uplo == (Uplo)runtimeAccess);
-    CHECK(uplo == dense);
-    CHECK(uplo == (Uplo)dense);
-
-    CHECK(runtimeAccess == (MatrixAccessPolicy)uplo);
-    CHECK(runtimeAccess == dense);
-    CHECK(runtimeAccess == (MatrixAccessPolicy)dense);
-
-    CHECK(dense == (Uplo)runtimeAccess);
-    CHECK(dense == (MatrixAccessPolicy)uplo);
-}
-
 TEMPLATE_TEST_CASE("is_matrix works", "[utils]", TLAPACK_TYPES_TO_TEST)
 {
     using matrix_t = TestType;

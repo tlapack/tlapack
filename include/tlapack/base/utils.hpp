@@ -276,27 +276,27 @@ namespace internal {
 /**
  * Returns true if and only if A has an infinite entry.
  *
- * @tparam access_t Type of access inside the algorithm.
- *      Either MatrixAccessPolicy or any type that implements
- *          operator MatrixAccessPolicy().
+ * @tparam uplo_t Type of access inside the algorithm.
+ *      Either Uplo or any type that implements
+ *          operator Uplo().
  *
- * @param[in] accessType Determines the entries of A that will be checked.
+ * @param[in] uplo Determines the entries of A that will be checked.
  *      The following access types are allowed:
- *          MatrixAccessPolicy::Dense,
- *          MatrixAccessPolicy::UpperHessenberg,
- *          MatrixAccessPolicy::LowerHessenberg,
- *          MatrixAccessPolicy::UpperTriangle,
- *          MatrixAccessPolicy::LowerTriangle,
- *          MatrixAccessPolicy::StrictUpper,
- *          MatrixAccessPolicy::StrictLower.
+ *          Uplo::General,
+ *          Uplo::UpperHessenberg,
+ *          Uplo::LowerHessenberg,
+ *          Uplo::Upper,
+ *          Uplo::Lower,
+ *          Uplo::StrictUpper,
+ *          Uplo::StrictLower.
  *
  * @param[in] A matrix.
  *
  * @return true if A has an infinite entry.
  * @return false if A has no infinite entry.
  */
-template <class access_t, TLAPACK_MATRIX matrix_t>
-bool hasinf(access_t accessType, const matrix_t& A)
+template <TLAPACK_UPLO uplo_t, TLAPACK_MATRIX matrix_t>
+bool hasinf(uplo_t uplo, const matrix_t& A)
 {
     using idx_t = size_type<matrix_t>;
 
@@ -304,48 +304,43 @@ bool hasinf(access_t accessType, const matrix_t& A)
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
 
-    if ((MatrixAccessPolicy)accessType == MatrixAccessPolicy::UpperHessenberg) {
+    if (uplo == Uplo::UpperHessenberg) {
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = 0; i < ((j < m) ? j + 2 : m); ++i)
                 if (isinf(A(i, j))) return true;
         return false;
     }
-    else if ((MatrixAccessPolicy)accessType ==
-             MatrixAccessPolicy::UpperTriangle) {
+    else if (uplo == Uplo::Upper) {
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = 0; i < ((j < m) ? j + 1 : m); ++i)
                 if (isinf(A(i, j))) return true;
         return false;
     }
-    else if ((MatrixAccessPolicy)accessType ==
-             MatrixAccessPolicy::StrictUpper) {
+    else if (uplo == Uplo::StrictUpper) {
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = 0; i < ((j < m) ? j : m); ++i)
                 if (isinf(A(i, j))) return true;
         return false;
     }
-    else if ((MatrixAccessPolicy)accessType ==
-             MatrixAccessPolicy::LowerHessenberg) {
+    else if (uplo == Uplo::LowerHessenberg) {
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = ((j > 1) ? j - 1 : 0); i < m; ++i)
                 if (isinf(A(i, j))) return true;
         return false;
     }
-    else if ((MatrixAccessPolicy)accessType ==
-             MatrixAccessPolicy::LowerTriangle) {
+    else if (uplo == Uplo::Lower) {
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = j; i < m; ++i)
                 if (isinf(A(i, j))) return true;
         return false;
     }
-    else if ((MatrixAccessPolicy)accessType ==
-             MatrixAccessPolicy::StrictLower) {
+    else if (uplo == Uplo::StrictLower) {
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = j + 1; i < m; ++i)
                 if (isinf(A(i, j))) return true;
         return false;
     }
-    else  // if ( (MatrixAccessPolicy) accessType == MatrixAccessPolicy::Dense )
+    else  // if ( (Uplo) uplo == Uplo::General )
     {
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = 0; i < m; ++i)
@@ -358,7 +353,7 @@ bool hasinf(access_t accessType, const matrix_t& A)
  * Returns true if and only if A has an infinite entry.
  *
  * Specific implementation for band access types.
- * @see hasinf( access_t accessType, const matrix_t& A ).
+ * @see hasinf( uplo_t accessType, const matrix_t& A ).
  */
 template <TLAPACK_MATRIX matrix_t>
 bool hasinf(band_t accessType, const matrix_t& A)
@@ -409,27 +404,27 @@ inline bool isnan(const std::complex<real_t>& x)
 /**
  * Returns true if and only if A has an NaN entry.
  *
- * @tparam access_t Type of access inside the algorithm.
- *      Either MatrixAccessPolicy or any type that implements
- *          operator MatrixAccessPolicy().
+ * @tparam uplo_t Type of access inside the algorithm.
+ *      Either Uplo or any type that implements
+ *          operator Uplo().
  *
- * @param[in] accessType Determines the entries of A that will be checked.
+ * @param[in] uplo Determines the entries of A that will be checked.
  *      The following access types are allowed:
- *          MatrixAccessPolicy::Dense,
- *          MatrixAccessPolicy::UpperHessenberg,
- *          MatrixAccessPolicy::LowerHessenberg,
- *          MatrixAccessPolicy::UpperTriangle,
- *          MatrixAccessPolicy::LowerTriangle,
- *          MatrixAccessPolicy::StrictUpper,
- *          MatrixAccessPolicy::StrictLower.
+ *          Uplo::General,
+ *          Uplo::UpperHessenberg,
+ *          Uplo::LowerHessenberg,
+ *          Uplo::Upper,
+ *          Uplo::Lower,
+ *          Uplo::StrictUpper,
+ *          Uplo::StrictLower.
  *
  * @param[in] A matrix.
  *
  * @return true if A has an NaN entry.
  * @return false if A has no NaN entry.
  */
-template <class access_t, TLAPACK_MATRIX matrix_t>
-bool hasnan(access_t accessType, const matrix_t& A)
+template <TLAPACK_UPLO uplo_t, TLAPACK_MATRIX matrix_t>
+bool hasnan(uplo_t uplo, const matrix_t& A)
 {
     using idx_t = size_type<matrix_t>;
 
@@ -437,48 +432,43 @@ bool hasnan(access_t accessType, const matrix_t& A)
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
 
-    if ((MatrixAccessPolicy)accessType == MatrixAccessPolicy::UpperHessenberg) {
+    if (uplo == Uplo::UpperHessenberg) {
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = 0; i < ((j < m) ? j + 2 : m); ++i)
                 if (isnan(A(i, j))) return true;
         return false;
     }
-    else if ((MatrixAccessPolicy)accessType ==
-             MatrixAccessPolicy::UpperTriangle) {
+    else if (uplo == Uplo::Upper) {
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = 0; i < ((j < m) ? j + 1 : m); ++i)
                 if (isnan(A(i, j))) return true;
         return false;
     }
-    else if ((MatrixAccessPolicy)accessType ==
-             MatrixAccessPolicy::StrictUpper) {
+    else if (uplo == Uplo::StrictUpper) {
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = 0; i < ((j < m) ? j : m); ++i)
                 if (isnan(A(i, j))) return true;
         return false;
     }
-    else if ((MatrixAccessPolicy)accessType ==
-             MatrixAccessPolicy::LowerHessenberg) {
+    else if (uplo == Uplo::LowerHessenberg) {
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = ((j > 1) ? j - 1 : 0); i < m; ++i)
                 if (isnan(A(i, j))) return true;
         return false;
     }
-    else if ((MatrixAccessPolicy)accessType ==
-             MatrixAccessPolicy::LowerTriangle) {
+    else if (uplo == Uplo::Lower) {
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = j; i < m; ++i)
                 if (isnan(A(i, j))) return true;
         return false;
     }
-    else if ((MatrixAccessPolicy)accessType ==
-             MatrixAccessPolicy::StrictLower) {
+    else if (uplo == Uplo::StrictLower) {
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = j + 1; i < m; ++i)
                 if (isnan(A(i, j))) return true;
         return false;
     }
-    else  // if ( (MatrixAccessPolicy) accessType == MatrixAccessPolicy::Dense )
+    else  // if ( (Uplo) uplo == Uplo::General )
     {
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = 0; i < m; ++i)
@@ -491,7 +481,7 @@ bool hasnan(access_t accessType, const matrix_t& A)
  * Returns true if and only if A has an NaN entry.
  *
  * Specific implementation for band access types.
- * @see hasnan( access_t accessType, const matrix_t& A ).
+ * @see hasnan( uplo_t accessType, const matrix_t& A ).
  */
 template <TLAPACK_MATRIX matrix_t>
 bool hasnan(band_t accessType, const matrix_t& A)

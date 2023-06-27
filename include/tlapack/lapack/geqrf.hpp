@@ -21,7 +21,7 @@ namespace tlapack {
 /**
  * Options struct for geqrf
  */
-template <class idx_t = size_t>
+template <TLAPACK_INDEX idx_t = size_t>
 struct geqrf_opts_t : public workspace_opts_t<> {
     inline constexpr geqrf_opts_t(const workspace_opts_t<>& opts = {})
         : workspace_opts_t<>(opts){};
@@ -41,7 +41,7 @@ struct geqrf_opts_t : public workspace_opts_t<> {
  *
  * @ingroup workspace_query
  */
-template <typename A_t, typename tau_t>
+template <TLAPACK_MATRIX A_t, TLAPACK_VECTOR tau_t>
 inline constexpr workinfo_t geqrf_worksize(
     const A_t& A,
     const tau_t& tau,

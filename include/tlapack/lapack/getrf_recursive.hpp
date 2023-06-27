@@ -52,7 +52,7 @@ namespace tlapack {
  *
  * @ingroup computational
  */
-template <TLAPACK_MATRIX matrix_t, class piv_t>
+template <TLAPACK_MATRIX matrix_t, TLAPACK_VECTOR piv_t>
 int getrf_recursive(matrix_t& A, piv_t& piv)
 {
     using idx_t = size_type<matrix_t>;

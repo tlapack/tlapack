@@ -57,8 +57,8 @@ namespace tlapack {
 template <TLAPACK_MATRIX matrixA_t,
           TLAPACK_MATRIX matrixB_t,
           TLAPACK_MATRIX matrixC_t,
-          class alpha_t,
-          class beta_t,
+          TLAPACK_SCALAR alpha_t,
+          TLAPACK_REAL beta_t,
           enable_if_t<(
                           /* Requires: */
                           is_real<beta_t>::value),
@@ -210,8 +210,8 @@ void her2k(Uplo uplo,
 template <TLAPACK_MATRIX matrixA_t,
           TLAPACK_MATRIX matrixB_t,
           TLAPACK_MATRIX matrixC_t,
-          class alpha_t,
-          class beta_t,
+          TLAPACK_SCALAR alpha_t,
+          TLAPACK_REAL beta_t,
           enable_if_t<(
                           /* Requires: */
                           is_real<beta_t>::value),
@@ -295,7 +295,7 @@ inline void her2k(Uplo uplo,
 template <TLAPACK_MATRIX matrixA_t,
           TLAPACK_MATRIX matrixB_t,
           TLAPACK_MATRIX matrixC_t,
-          class alpha_t>
+          TLAPACK_SCALAR alpha_t>
 inline void her2k(Uplo uplo,
                   Op trans,
                   const alpha_t& alpha,

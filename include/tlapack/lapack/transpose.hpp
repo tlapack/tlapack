@@ -13,7 +13,7 @@
 #include "tlapack/base/utils.hpp"
 
 namespace tlapack {
-template <typename idx_t>
+template <TLAPACK_INDEX idx_t>
 struct transpose_opts_t {
     // Optimization parameter. Matrices smaller than nx will not
     // be transposed using recursion. Must be at least 2.s

@@ -77,7 +77,6 @@ namespace blas {
             case Layout::RowMajor: return "row";
             default:               return "";
         }
-        return "";
     }
 
     inline const char* op2str( Op op )
@@ -96,8 +95,8 @@ namespace blas {
             case Uplo::Lower:   return "lower";
             case Uplo::Upper:   return "upper";
             case Uplo::General: return "general";
+            default:            return "";
         }
-        return "";
     }
 
     inline const char* diag2str( Diag diag )

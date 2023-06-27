@@ -24,7 +24,7 @@ namespace tlapack {
  * @ingroup blas1
  */
 template <TLAPACK_VECTOR vector_t,
-          class alpha_t,
+          TLAPACK_SCALAR alpha_t,
           class T = type_t<vector_t>,
           disable_if_allow_optblas_t<pair<alpha_t, T>, pair<vector_t, T> > = 0>
 void scal(const alpha_t& alpha, vector_t& x)
@@ -41,7 +41,7 @@ void scal(const alpha_t& alpha, vector_t& x)
 #ifdef USE_LAPACKPP_WRAPPERS
 
 template <TLAPACK_VECTOR vector_t,
-          class alpha_t,
+          TLAPACK_SCALAR alpha_t,
           class T = type_t<vector_t>,
           enable_if_allow_optblas_t<pair<alpha_t, T>, pair<vector_t, T> > = 0>
 inline void scal(const alpha_t alpha, vector_t& x)

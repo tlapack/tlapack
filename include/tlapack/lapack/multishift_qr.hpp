@@ -23,7 +23,7 @@ namespace tlapack {
 /**
  * Options struct for multishift_qr
  */
-template <class idx_t = size_t>
+template <TLAPACK_INDEX idx_t = size_t>
 struct francis_opts_t : public workspace_opts_t<> {
     inline constexpr francis_opts_t(const workspace_opts_t<>& opts = {})
         : workspace_opts_t<>(opts){};

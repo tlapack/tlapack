@@ -189,7 +189,7 @@ void larfg(storage_t storeMode,
  *
  * @ingroup auxiliary
  */
-template <class direction_t,
+template <TLAPACK_DIRECTION direction_t,
           TLAPACK_STOREV storage_t,
           TLAPACK_VECTOR vector_t,
           enable_if_t<is_convertible_v<direction_t, Direction>, int> = 0>

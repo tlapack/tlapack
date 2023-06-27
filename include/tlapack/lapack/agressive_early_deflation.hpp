@@ -27,7 +27,7 @@
 
 namespace tlapack {
 // Forward declaration
-template <class idx_t>
+template <TLAPACK_INDEX idx_t>
 struct francis_opts_t;
 
 /** Worspace query of agressive_early_deflation().

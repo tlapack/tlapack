@@ -46,9 +46,9 @@ namespace tlapack {
  */
 template <TLAPACK_MATRIX matrixA_t,
           TLAPACK_MATRIX matrixC_t,
-          class tau_t,
-          class side_t,
-          class trans_t>
+          TLAPACK_VECTOR tau_t,
+          TLAPACK_SIDE side_t,
+          TLAPACK_OP trans_t>
 inline constexpr workinfo_t unm2r_worksize(side_t side,
                                            trans_t trans,
                                            const matrixA_t& A,

@@ -58,7 +58,7 @@ namespace tlapack {
  *
  * @ingroup computational
  */
-template <class uplo_t, TLAPACK_MATRIX matrix_t>
+template <TLAPACK_UPLO uplo_t, TLAPACK_MATRIX matrix_t>
 int potrf_rl(uplo_t uplo,
              matrix_t& A,
              const potrf_blocked_opts_t<size_type<matrix_t> >& opts = {})

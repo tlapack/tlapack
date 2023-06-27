@@ -64,7 +64,7 @@ namespace tlapack {
  */
 template <TLAPACK_MATRIX matrixA_t,
           TLAPACK_MATRIX matrixB_t,
-          class alpha_t,
+          TLAPACK_SCALAR alpha_t,
           class T = type_t<matrixB_t>,
           disable_if_allow_optblas_t<pair<matrixA_t, T>,
                                      pair<matrixB_t, T>,
@@ -299,7 +299,7 @@ void trmm(Side side,
 */
 template <TLAPACK_MATRIX matrixA_t,
           TLAPACK_MATRIX matrixB_t,
-          class alpha_t,
+          TLAPACK_SCALAR alpha_t,
           class T = type_t<matrixB_t>,
           enable_if_allow_optblas_t<pair<matrixA_t, T>,
                                     pair<matrixB_t, T>,

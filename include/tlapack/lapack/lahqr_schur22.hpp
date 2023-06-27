@@ -48,7 +48,7 @@ namespace tlapack {
  *
  * @ingroup auxiliary
  */
-template <typename T, enable_if_t<is_real<T>::value, bool> = true>
+template <TLAPACK_REAL T, enable_if_t<is_real<T>::value, bool> = true>
 int lahqr_schur22(T& a,
                   T& b,
                   T& c,
@@ -196,7 +196,7 @@ int lahqr_schur22(T& a,
     return 0;
 }
 
-template <typename T, enable_if_t<is_complex<T>::value, bool> = true>
+template <TLAPACK_COMPLEX T, enable_if_t<is_complex<T>::value, bool> = true>
 int lahqr_schur22(T& a, T& b, T& c, T& d, T& s1, T& s2, real_type<T>& cs, T& sn)
 {
     return -1;

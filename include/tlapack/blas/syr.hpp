@@ -37,7 +37,7 @@ namespace tlapack {
  */
 template <TLAPACK_MATRIX matrixA_t,
           TLAPACK_VECTOR vectorX_t,
-          class alpha_t,
+          TLAPACK_SCALAR alpha_t,
           class T = type_t<matrixA_t>,
           disable_if_allow_optblas_t<pair<alpha_t, T>,
                                      pair<matrixA_t, T>,
@@ -76,7 +76,7 @@ void syr(Uplo uplo, const alpha_t& alpha, const vectorX_t& x, matrixA_t& A)
 
 template <TLAPACK_MATRIX matrixA_t,
           TLAPACK_VECTOR vectorX_t,
-          class alpha_t,
+          TLAPACK_SCALAR alpha_t,
           class T = type_t<matrixA_t>,
           enable_if_allow_optblas_t<pair<alpha_t, T>,
                                     pair<matrixA_t, T>,

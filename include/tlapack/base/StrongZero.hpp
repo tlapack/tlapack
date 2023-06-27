@@ -12,6 +12,7 @@
 #define TLAPACK_BASE_STRONGZERO_HH
 
 #include <cstdint>
+#include <limits>
 
 namespace tlapack {
 
@@ -71,6 +72,12 @@ struct StrongZero {
         return (lhs = T(0));
     }
 
+    template <typename T>
+    friend constexpr T& operator/=(T& lhs, const StrongZero&)
+    {
+        return (lhs = std::numeric_limits<T>::infinity());
+    }
+
     // Arithmetic operators
 
     template <typename T>
@@ -88,7 +95,7 @@ struct StrongZero {
     template <typename T>
     friend constexpr const T operator-(const StrongZero&, const T& rhs)
     {
-        return rhs;
+        return -rhs;
     }
 
     template <typename T>
@@ -98,22 +105,80 @@ struct StrongZero {
     }
 
     template <typename T>
-    friend constexpr const StrongZero operator*(const StrongZero& lhs, const T&)
+    friend constexpr const StrongZero operator*(const StrongZero&, const T&)
     {
-        return lhs;
+        return StrongZero();
     }
 
     template <typename T>
-    friend constexpr const StrongZero operator*(const T&, const StrongZero& rhs)
+    friend constexpr const StrongZero operator*(const T&, const StrongZero&)
     {
-        return rhs;
+        return StrongZero();
+    }
+
+    template <typename T>
+    friend constexpr const StrongZero operator/(const StrongZero&, const T&)
+    {
+        return StrongZero();
+    }
+
+    template <typename T>
+    friend constexpr const T operator/(const T&, const StrongZero&)
+    {
+        return std::numeric_limits<T>::infinity();
     }
 
     // Comparison operators
 
-    constexpr bool operator==(const StrongZero& rhs) const { return true; }
-    constexpr bool operator!=(const StrongZero& rhs) const { return false; }
+    constexpr bool operator==(const StrongZero&) const { return true; }
+    constexpr bool operator!=(const StrongZero&) const { return false; }
+    friend constexpr const bool isinf(const StrongZero&) { return false; }
+    friend constexpr const bool isnan(const StrongZero&) { return false; }
+
+    // Other math functions
+
+    friend constexpr const StrongZero sqrt(const StrongZero&)
+    {
+        return StrongZero();
+    }
+
+    friend constexpr const StrongZero pow(const StrongZero&, double)
+    {
+        return StrongZero();
+    }
+
+    friend constexpr const StrongZero ceil(const StrongZero&)
+    {
+        return StrongZero();
+    }
+
+    friend constexpr const StrongZero floor(const StrongZero&)
+    {
+        return StrongZero();
+    }
 };
+
+// Arithmetic operators
+
+constexpr const StrongZero operator+(const StrongZero&, const StrongZero&)
+{
+    return StrongZero();
+}
+
+constexpr const StrongZero operator-(const StrongZero&, const StrongZero&)
+{
+    return StrongZero();
+}
+
+constexpr const StrongZero operator*(const StrongZero&, const StrongZero&)
+{
+    return StrongZero();
+}
+
+constexpr const float operator/(const StrongZero&, const StrongZero&)
+{
+    return std::numeric_limits<float>::quiet_NaN();
+}
 
 // forward declarations
 template <typename T>

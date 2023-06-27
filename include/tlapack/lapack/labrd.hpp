@@ -59,10 +59,10 @@ namespace tlapack {
  *
  * @ingroup auxiliary
  */
-template <class A_t,
+template <TLAPACK_MATRIX A_t,
           TLAPACK_VECTOR vector_t,
-          class r_vector_t,
-          class X_t,
+          TLAPACK_VECTOR r_vector_t,
+          TLAPACK_MATRIX X_t,
           TLAPACK_MATRIX matrixY_t>
 int labrd(A_t& A,
           r_vector_t& d,
