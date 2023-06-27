@@ -44,7 +44,7 @@ struct getri_opts_t : public workspace_opts_t<> {
  *
  * @ingroup workspace_query
  */
-template <TLAPACK_MATRIX matrix_t, TLAPACK_VECTOR piv_t>
+template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR piv_t>
 inline constexpr workinfo_t getri_worksize(const matrix_t& A,
                                            const piv_t& piv,
                                            const getri_opts_t& opts = {})
@@ -77,7 +77,7 @@ inline constexpr workinfo_t getri_worksize(const matrix_t& A,
  *
  * @ingroup computational
  */
-template <TLAPACK_MATRIX matrix_t, TLAPACK_VECTOR piv_t>
+template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR piv_t>
 int getri(matrix_t& A, const piv_t& piv, const getri_opts_t& opts = {})
 {
     using idx_t = size_type<matrix_t>;

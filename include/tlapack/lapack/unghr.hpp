@@ -39,7 +39,7 @@ namespace tlapack {
  *
  * @ingroup computational
  */
-template <TLAPACK_MATRIX matrix_t, TLAPACK_VECTOR vector_t>
+template <TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
 int unghr(size_type<matrix_t> ilo,
           size_type<matrix_t> ihi,
           matrix_t& A,
@@ -122,7 +122,7 @@ int unghr(size_type<matrix_t> ilo,
  *
  * @ingroup workspace_query
  */
-template <TLAPACK_MATRIX matrix_t, TLAPACK_VECTOR vector_t>
+template <TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
 inline constexpr workinfo_t unghr_worksize(size_type<matrix_t> ilo,
                                            size_type<matrix_t> ihi,
                                            const matrix_t& A,

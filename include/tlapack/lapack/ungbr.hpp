@@ -49,8 +49,8 @@ struct ungbr_opts_t : public workspace_opts_t<workT_t> {
  *
  * @ingroup workspace_query
  */
-template <TLAPACK_MATRIX matrix_t,
-          TLAPACK_VECTOR vector_t,
+template <TLAPACK_SMATRIX matrix_t,
+          TLAPACK_SVECTOR vector_t,
           class workT_t = void>
 inline constexpr workinfo_t ungbr_q_worksize(
     const size_type<matrix_t> k,
@@ -94,8 +94,8 @@ inline constexpr workinfo_t ungbr_q_worksize(
  *
  * @ingroup workspace_query
  */
-template <TLAPACK_MATRIX matrix_t,
-          TLAPACK_VECTOR vector_t,
+template <TLAPACK_SMATRIX matrix_t,
+          TLAPACK_SVECTOR vector_t,
           class workT_t = void>
 inline constexpr workinfo_t ungbr_p_worksize(
     const size_type<matrix_t> k,
@@ -151,8 +151,8 @@ inline constexpr workinfo_t ungbr_p_worksize(
  *
  * @ingroup computational
  */
-template <TLAPACK_MATRIX matrix_t,
-          TLAPACK_VECTOR vector_t,
+template <TLAPACK_SMATRIX matrix_t,
+          TLAPACK_SVECTOR vector_t,
           class workT_t = void>
 int ungbr_q(const size_type<matrix_t> k,
             matrix_t& A,
@@ -231,8 +231,8 @@ int ungbr_q(const size_type<matrix_t> k,
  *
  * @ingroup computational
  */
-template <TLAPACK_MATRIX matrix_t,
-          TLAPACK_VECTOR vector_t,
+template <TLAPACK_SMATRIX matrix_t,
+          TLAPACK_SVECTOR vector_t,
           class workT_t = void>
 int ungbr_p(const size_type<matrix_t> k,
             matrix_t& A,

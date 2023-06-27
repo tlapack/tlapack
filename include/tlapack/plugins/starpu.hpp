@@ -254,6 +254,13 @@ constexpr auto rows(starpu::Matrix<T>& A, SliceSpec&& rows)
                  std::make_tuple(0, A.ncols()));
 }
 
+template <class T>
+constexpr auto diag(starpu::Matrix<T>& A, int diagIdx = 0)
+{
+    throw std::runtime_error("Not implemented");
+    return A;
+}
+
 namespace internal {
 
     template <class TA, class TB>

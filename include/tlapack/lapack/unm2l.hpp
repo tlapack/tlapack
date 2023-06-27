@@ -44,8 +44,8 @@ namespace tlapack {
  *
  * @ingroup workspace_query
  */
-template <TLAPACK_MATRIX matrixA_t,
-          TLAPACK_MATRIX matrixC_t,
+template <TLAPACK_SMATRIX matrixA_t,
+          TLAPACK_SMATRIX matrixC_t,
           TLAPACK_VECTOR tau_t,
           TLAPACK_SIDE side_t,
           TLAPACK_OP trans_t>
@@ -112,8 +112,8 @@ inline constexpr workinfo_t unm2l_worksize(side_t side,
  *
  * @ingroup computational
  */
-template <TLAPACK_MATRIX matrixA_t,
-          TLAPACK_MATRIX matrixC_t,
+template <TLAPACK_SMATRIX matrixA_t,
+          TLAPACK_SMATRIX matrixC_t,
           TLAPACK_VECTOR tau_t,
           TLAPACK_SIDE side_t,
           TLAPACK_OP trans_t>

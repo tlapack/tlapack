@@ -41,7 +41,7 @@ struct gerqf_opts_t : public workspace_opts_t<> {
  *
  * @ingroup workspace_query
  */
-template <TLAPACK_MATRIX A_t, TLAPACK_VECTOR tau_t>
+template <TLAPACK_SMATRIX A_t, TLAPACK_SVECTOR tau_t>
 inline constexpr workinfo_t gerqf_worksize(
     const A_t& A,
     const tau_t& tau,
@@ -110,7 +110,7 @@ inline constexpr workinfo_t gerqf_worksize(
  *
  * @ingroup computational
  */
-template <TLAPACK_MATRIX A_t, TLAPACK_VECTOR tau_t>
+template <TLAPACK_SMATRIX A_t, TLAPACK_SVECTOR tau_t>
 int gerqf(A_t& A, tau_t& tau, const gerqf_opts_t<size_type<A_t>>& opts = {})
 {
     Create<A_t> new_matrix;

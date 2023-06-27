@@ -64,7 +64,7 @@ struct potrf_blocked_opts_t : public ec_opts_t {
  *
  * @ingroup computational
  */
-template <TLAPACK_UPLO uplo_t, TLAPACK_MATRIX matrix_t>
+template <TLAPACK_UPLO uplo_t, TLAPACK_SMATRIX matrix_t>
 int potrf_blocked(uplo_t uplo,
                   matrix_t& A,
                   const potrf_blocked_opts_t<size_type<matrix_t> >& opts)
@@ -170,7 +170,7 @@ int potrf_blocked(uplo_t uplo,
 }
 
 template <TLAPACK_UPLO uplo_t,
-          TLAPACK_MATRIX matrix_t,
+          TLAPACK_SMATRIX matrix_t,
           disable_if_allow_optblas_t<matrix_t> = 0>
 inline int potrf_blocked(uplo_t uplo, matrix_t& A)
 {
@@ -180,7 +180,7 @@ inline int potrf_blocked(uplo_t uplo, matrix_t& A)
 #ifdef USE_LAPACKPP_WRAPPERS
 
 template <TLAPACK_UPLO uplo_t,
-          TLAPACK_MATRIX matrix_t,
+          TLAPACK_SMATRIX matrix_t,
           enable_if_allow_optblas_t<matrix_t> = 0>
 inline int potrf_blocked(uplo_t uplo, matrix_t& A)
 {

@@ -65,9 +65,9 @@ namespace tlapack {
  *
  * @ingroup workspace_query
  */
-template <TLAPACK_MATRIX matrixV_t,
+template <TLAPACK_SMATRIX matrixV_t,
           TLAPACK_MATRIX matrixT_t,
-          TLAPACK_MATRIX matrixC_t,
+          TLAPACK_SMATRIX matrixC_t,
           TLAPACK_SIDE side_t,
           TLAPACK_OP trans_t,
           TLAPACK_DIRECTION direction_t,
@@ -190,9 +190,9 @@ inline constexpr workinfo_t larfb_worksize(
  *
  * @ingroup auxiliary
  */
-template <TLAPACK_MATRIX matrixV_t,
+template <TLAPACK_SMATRIX matrixV_t,
           TLAPACK_MATRIX matrixT_t,
-          TLAPACK_MATRIX matrixC_t,
+          TLAPACK_SMATRIX matrixC_t,
           TLAPACK_SIDE side_t,
           TLAPACK_OP trans_t,
           TLAPACK_DIRECTION direction_t,

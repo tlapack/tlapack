@@ -60,9 +60,9 @@ struct unmqr_opts_t : public workspace_opts_t<workT_t> {
  *
  * @see unmqr
  */
-template <TLAPACK_MATRIX matrixA_t,
-          TLAPACK_MATRIX matrixC_t,
-          TLAPACK_VECTOR tau_t,
+template <TLAPACK_SMATRIX matrixA_t,
+          TLAPACK_SMATRIX matrixC_t,
+          TLAPACK_SVECTOR tau_t,
           TLAPACK_SIDE side_t,
           TLAPACK_OP trans_t,
           class workT_t = void>
@@ -160,9 +160,9 @@ inline constexpr workinfo_t unmqr_worksize(
  *
  * @ingroup computational
  */
-template <TLAPACK_MATRIX matrixA_t,
-          TLAPACK_MATRIX matrixC_t,
-          TLAPACK_VECTOR tau_t,
+template <TLAPACK_SMATRIX matrixA_t,
+          TLAPACK_SMATRIX matrixC_t,
+          TLAPACK_SVECTOR tau_t,
           TLAPACK_SIDE side_t,
           TLAPACK_OP trans_t,
           class workT_t = void>

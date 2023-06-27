@@ -45,8 +45,8 @@ struct ungrq_opts_t : public workspace_opts_t<workT_t> {
  *
  * @ingroup workspace_query
  */
-template <TLAPACK_MATRIX matrix_t,
-          TLAPACK_VECTOR vector_t,
+template <TLAPACK_SMATRIX matrix_t,
+          TLAPACK_SVECTOR vector_t,
           class workT_t = void>
 inline constexpr workinfo_t ungrq_worksize(
     const matrix_t& A,
@@ -108,8 +108,8 @@ inline constexpr workinfo_t ungrq_worksize(
  *
  * @ingroup computational
  */
-template <TLAPACK_MATRIX matrix_t,
-          TLAPACK_VECTOR vector_t,
+template <TLAPACK_SMATRIX matrix_t,
+          TLAPACK_SVECTOR vector_t,
           class workT_t = void>
 int ungrq(matrix_t& A,
           const vector_t& tau,

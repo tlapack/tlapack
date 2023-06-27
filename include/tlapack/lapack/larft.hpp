@@ -86,9 +86,9 @@ namespace tlapack {
  */
 template <TLAPACK_DIRECTION direction_t,
           TLAPACK_STOREV storage_t,
-          TLAPACK_MATRIX matrixV_t,
+          TLAPACK_SMATRIX matrixV_t,
           TLAPACK_VECTOR vector_t,
-          TLAPACK_MATRIX matrixT_t>
+          TLAPACK_SMATRIX matrixT_t>
 int larft(direction_t direction,
           storage_t storeMode,
           const matrixV_t& V,

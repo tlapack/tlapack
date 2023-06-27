@@ -82,7 +82,7 @@ inline constexpr auto slice(const TestUploMatrix<T, idx_t, uplo, layout>& A,
                             SliceSpecCol&& cols) noexcept
 {
     TestUploMatrix<const T, idx_t, uplo, layout> B(
-        slice(legacyMatrix<T, idx_t, layout>(A), rows, cols));
+        slice((const legacyMatrix<T, idx_t, layout>&)A, rows, cols));
     B.modifier = A.modifier + cols.first - rows.first;
     return B;
 }
@@ -91,21 +91,21 @@ inline constexpr auto slice(const TestUploMatrix<T, idx_t, uplo, layout>& A,
 
 template <typename T, class idx_t, Uplo uplo, Layout layout, class SliceSpec>
 inline constexpr auto rows(const TestUploMatrix<T, idx_t, uplo, layout>& A,
-                           SliceSpec&& rows) noexcept
+                           SliceSpec&& slice) noexcept
 {
     TestUploMatrix<const T, idx_t, uplo, layout> B(
-        rows(legacyMatrix<T, idx_t, layout>(A), rows));
-    B.modifier = A.modifier - rows.first;
+        rows((const legacyMatrix<T, idx_t, layout>&)A, slice));
+    B.modifier = A.modifier - slice.first;
     return B;
 }
 
 template <typename T, class idx_t, Uplo uplo, Layout layout, class SliceSpec>
 inline constexpr auto cols(const TestUploMatrix<T, idx_t, uplo, layout>& A,
-                           SliceSpec&& cols) noexcept
+                           SliceSpec&& slice) noexcept
 {
     TestUploMatrix<const T, idx_t, uplo, layout> B(
-        cols(legacyMatrix<T, idx_t, layout>(A), cols));
-    B.modifier = A.modifier + cols.first;
+        cols((const legacyMatrix<T, idx_t, layout>&)A, slice));
+    B.modifier = A.modifier + slice.first;
     return B;
 }
 
@@ -124,8 +124,8 @@ inline constexpr auto slice(TestUploMatrix<T, idx_t, uplo, layout>& A,
                             SliceSpecRow&& rows,
                             SliceSpecCol&& cols) noexcept
 {
-    legacyMatrix<T, idx_t, layout> A_copy(A);
-    TestUploMatrix<T, idx_t, uplo, layout> B(slice(A_copy, rows, cols));
+    TestUploMatrix<T, idx_t, uplo, layout> B(
+        slice((legacyMatrix<T, idx_t, layout>&)A, rows, cols));
     B.modifier = A.modifier + cols.first - rows.first;
     return B;
 }
@@ -134,21 +134,21 @@ inline constexpr auto slice(TestUploMatrix<T, idx_t, uplo, layout>& A,
 
 template <typename T, class idx_t, Uplo uplo, Layout layout, class SliceSpec>
 inline constexpr auto rows(TestUploMatrix<T, idx_t, uplo, layout>& A,
-                           SliceSpec&& rows) noexcept
+                           SliceSpec&& slice) noexcept
 {
-    legacyMatrix<T, idx_t, layout> A_copy(A);
-    TestUploMatrix<T, idx_t, uplo, layout> B(rows(A_copy, rows));
-    B.modifier = A.modifier - rows.first;
+    TestUploMatrix<T, idx_t, uplo, layout> B(
+        rows((legacyMatrix<T, idx_t, layout>&)A, slice));
+    B.modifier = A.modifier - slice.first;
     return B;
 }
 
 template <typename T, class idx_t, Uplo uplo, Layout layout, class SliceSpec>
 inline constexpr auto cols(TestUploMatrix<T, idx_t, uplo, layout>& A,
-                           SliceSpec&& cols) noexcept
+                           SliceSpec&& slice) noexcept
 {
-    legacyMatrix<T, idx_t, layout> A_copy(A);
-    TestUploMatrix<T, idx_t, uplo, layout> B(cols(A_copy, cols));
-    B.modifier = A.modifier + cols.first;
+    TestUploMatrix<T, idx_t, uplo, layout> B(
+        cols((legacyMatrix<T, idx_t, layout>&)A, slice));
+    B.modifier = A.modifier + slice.first;
     return B;
 }
 

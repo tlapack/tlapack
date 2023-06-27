@@ -57,9 +57,9 @@ struct gebrd_opts_t : public workspace_opts_t<> {
  *
  * @ingroup workspace_query
  */
-template <TLAPACK_MATRIX matrix_t,
-          TLAPACK_VECTOR vector_t,
-          TLAPACK_VECTOR r_vector_t>
+template <TLAPACK_SMATRIX matrix_t,
+          TLAPACK_SVECTOR vector_t,
+          TLAPACK_SVECTOR r_vector_t>
 workinfo_t gebrd_worksize(const matrix_t& A,
                           r_vector_t& d,
                           r_vector_t& e,
@@ -133,9 +133,9 @@ workinfo_t gebrd_worksize(const matrix_t& A,
  *
  * @ingroup computational
  */
-template <TLAPACK_MATRIX matrix_t,
-          TLAPACK_VECTOR vector_t,
-          TLAPACK_VECTOR r_vector_t>
+template <TLAPACK_SMATRIX matrix_t,
+          TLAPACK_SVECTOR vector_t,
+          TLAPACK_SVECTOR r_vector_t>
 int gebrd(matrix_t& A,
           r_vector_t& d,
           r_vector_t& e,
