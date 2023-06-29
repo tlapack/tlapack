@@ -406,7 +406,7 @@ jobs:
   build-with-mkl:
     # Use Intel compilers
 
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     env:
       CXX: icpx
       FC: ifx
