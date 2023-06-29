@@ -11,11 +11,9 @@
 #include <catch2/generators/catch_generators.hpp>
 #include <tlapack/base/concepts.hpp>
 
-using namespace tlapack::concepts;
+#if __cplusplus >= 202002L
 
-template <Vector T>
-void test_vector()
-{}
+using namespace tlapack::concepts;
 
 TEST_CASE("Concept Arithmetic works as expected", "[concept]")
 {
@@ -28,6 +26,7 @@ TEST_CASE("Concept Arithmetic works as expected", "[concept]")
 
 TEST_CASE("Concept Vector works as expected", "[concept]")
 {
-    test_vector<std::vector<float>>();
     REQUIRE(Vector<std::vector<float>>);
 }
+
+#endif
