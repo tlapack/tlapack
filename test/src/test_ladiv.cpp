@@ -20,7 +20,7 @@ TEST_CASE("ladiv works properly", "[aux]")
 {
     double a, b, c, d, p, q;
 
-    a = b = c = d = pow(2.0, DBL_MAX_EXP - 1);
+    a = b = c = d = pow(2, DBL_MAX_EXP - 1);
     ladiv(a, b, c, d, p, q);
 
     CHECK(p == 1.0);

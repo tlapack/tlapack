@@ -191,8 +191,6 @@ void agressive_early_deflation(bool want_t,
     using real_t = real_type<T>;
     using idx_t = size_type<matrix_t>;
     using pair = std::pair<idx_t, idx_t>;
-    using std::max;
-    using std::min;
 
     // Constants
     const real_t one(1);

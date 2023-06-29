@@ -58,11 +58,7 @@ int lahqr_schur22(T& a,
                   T& cs,
                   T& sn)
 {
-    using std::copysign;
     using std::log;
-    using std::max;
-    using std::min;
-    using std::pow;
 
     const T zero(0);
     const T half(0.5);
@@ -72,7 +68,7 @@ int lahqr_schur22(T& a,
 
     const T eps = ulp<T>();
     const T safmin = safe_min<T>();
-    const T safmn2 = pow(two, T((int)(log(safmin / eps) / log(two)) / 2));
+    const T safmn2 = pow(2, T((int)(log(safmin / eps) / log(two)) / 2));
     const T safmx2 = one / safmn2;
 
     if (c == zero) {

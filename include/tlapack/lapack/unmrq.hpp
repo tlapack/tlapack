@@ -179,8 +179,6 @@ int unmrq(side_t side,
     using matrixT_t = deduce_work_t<workT_t, matrix_type<matrixA_t, tau_t> >;
 
     using pair = pair<idx_t, idx_t>;
-    using std::max;
-    using std::min;
 
     // Functor
     Create<matrixT_t> new_matrix;

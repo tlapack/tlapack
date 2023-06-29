@@ -68,8 +68,6 @@ int potrf_rl(uplo_t uplo,
     using idx_t = size_type<matrix_t>;
     using pair = pair<idx_t, idx_t>;
 
-    using std::min;
-
     // Constants
     const real_t one(1);
     const idx_t n = nrows(A);

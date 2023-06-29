@@ -74,7 +74,7 @@ namespace concepts {
      *
      * - it must implement the copy assignment operator @c =.
      *
-     * - it must support the math operators @c abs(), @c sqrt(), @c pow(),
+     * - it must support the math operators @c abs(), @c sqrt(), @c pow(int,),
      * @c ceil(), and @c floor(). Those functions must be callable from the
      * namespace @c tlapack.
      *
@@ -110,7 +110,7 @@ namespace concepts {
         // Math functions
         abs(a);
         sqrt(a);
-        pow(a, 0);
+        pow(2, a);
         ceil(a);
         floor(a);
     };
@@ -195,7 +195,7 @@ namespace concepts {
         a = (T &&) a;
 
         // Math functions
-        abs(a);
+        tlapack::abs(a);
     };
 
     /** @interface tlapack::concepts::Vector

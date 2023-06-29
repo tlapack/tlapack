@@ -36,6 +36,8 @@ using std::cos;
 using std::floor;
 using std::isinf;
 using std::isnan;
+using std::max;
+using std::min;
 using std::pair;
 using std::pow;
 using std::sin;
@@ -89,56 +91,6 @@ template <typename T, enable_if_t<is_real<T>::value, int> = 0>
 inline constexpr T conj(const T& x)
 {
     return x;
-}
-
-// -----------------------------------------------------------------------------
-// max that works with different data types
-// and any number of arguments: max( a, b, c, d )
-
-// one argument
-template <typename T>
-inline T max(const T& x)
-{
-    return x;
-}
-
-// two arguments
-template <typename T1, typename T2>
-inline scalar_type<T1, T2> max(const T1& x, const T2& y)
-{
-    return (x >= y ? x : y);
-}
-
-// three or more arguments
-template <typename T1, typename... Types>
-inline scalar_type<T1, Types...> max(const T1& first, const Types&... args)
-{
-    return max(first, max(args...));
-}
-
-// -----------------------------------------------------------------------------
-// min that works with different data types
-// and any number of arguments: min( a, b, c, d )
-
-// one argument
-template <typename T>
-inline T min(const T& x)
-{
-    return x;
-}
-
-// two arguments
-template <typename T1, typename T2>
-inline scalar_type<T1, T2> min(const T1& x, const T2& y)
-{
-    return (x <= y ? x : y);
-}
-
-// three or more arguments
-template <typename T1, typename... Types>
-inline scalar_type<T1, Types...> min(const T1& first, const Types&... args)
-{
-    return min(first, min(args...));
 }
 
 // -----------------------------------------------------------------------------

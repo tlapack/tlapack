@@ -63,7 +63,7 @@ void rotg(T& a, T& b, T& c, T& s)
         b = one;
     }
     else {
-        T scl = min(safmax, max(safmin, anorm, bnorm));
+        T scl = min(safmax, max(safmin, max(anorm, bnorm)));
         T sigma((anorm > bnorm) ? sgn(a) : sgn(b));
         T r = sigma * scl * sqrt((a / scl) * (a / scl) + (b / scl) * (b / scl));
         c = a / r;
@@ -162,7 +162,7 @@ void rotg(T& a, const T& b, real_type<T>& c, T& s)
         }
         else {
             // Use scaled algorithm
-            real_t u = min(safmax, max(safmin, f1, g1));
+            real_t u = min(safmax, max(safmin, max(f1, g1)));
             real_t uu = one / u;
             T gs = b * uu;
             real_t g2 = real(gs) * real(gs) + imag(gs) * imag(gs);

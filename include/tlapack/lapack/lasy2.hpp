@@ -42,7 +42,6 @@ int lasy2(Op trans_l,
 {
     using idx_t = size_type<matrix_t>;
     using T = type_t<matrix_t>;
-    using std::max;
 
     // Functor for creating new matrices of type matrix_t
     Create<matrix_t> new_matrix;

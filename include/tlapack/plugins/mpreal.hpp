@@ -1,4 +1,4 @@
-/// @file mpreal.hpp
+/// @file mpreal.hpp mpfr::mpreal compatibility with tlapack::concepts::Real
 /// @author Weslley S Pereira, University of Colorado Denver, USA
 //
 // Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
@@ -17,10 +17,12 @@
 namespace tlapack {
 
 namespace internal {
+    // mpfr::mpreal is a real type that satisfies tlapack::concepts::Real
     template <>
     struct real_type_traits<mpfr::mpreal, int> {
         using type = mpfr::mpreal;
     };
+    // The complex type of mpfr::mpreal is std::complex<mpfr::mpreal>
     template <>
     struct complex_type_traits<mpfr::mpreal, int> {
         using type = std::complex<mpfr::mpreal>;
@@ -31,7 +33,6 @@ namespace internal {
 template <typename T>
 inline T abs(const T& x);
 
-/// Absolute value
 template <>
 inline mpfr::mpreal abs(const mpfr::mpreal& x)
 {
@@ -47,14 +48,15 @@ inline mpfr::mpreal abs(const mpfr::mpreal& x)
 
 // Forward declaration
 template <typename real_t>
-const int digits();
+inline int digits();
 
-/// Specialization for the mpfr::mpreal datatype
+// Specialization for the mpfr::mpreal datatype
 template <>
-inline const int digits<mpfr::mpreal>()
+inline int digits<mpfr::mpreal>()
 {
     return std::numeric_limits<mpfr::mpreal>::digits();
 }
+
 #endif
 
 }  // namespace tlapack

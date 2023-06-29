@@ -41,7 +41,6 @@ void laset(uplo_t uplo,
            matrix_t& A)
 {
     using idx_t = size_type<matrix_t>;
-    using std::min;
 
     // constants
     const idx_t m = nrows(A);

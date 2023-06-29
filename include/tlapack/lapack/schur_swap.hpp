@@ -56,7 +56,6 @@ int schur_swap(bool want_q,
     using idx_t = size_type<matrix_t>;
     using T = type_t<matrix_t>;
     using pair = pair<idx_t, idx_t>;
-    using std::max;
 
     // Functor for creating new matrices
     Create<matrix_t> new_matrix;

@@ -67,15 +67,6 @@
 
 namespace tlapack {
 
-namespace internal {
-
-    /// Auxiliary data type to vector increments.
-    struct StrongOne {
-        inline constexpr operator int() const { return 1; }
-        inline constexpr StrongOne(int i = 1) { assert(i == 1); }
-    };
-}  // namespace internal
-
 // -----------------------------------------------------------------------------
 // Layouts
 

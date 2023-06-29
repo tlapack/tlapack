@@ -70,7 +70,6 @@ namespace legacy {
     {
         using internal::create_banded_matrix;
         using internal::create_matrix;
-        using std::max;
 
         // check arguments
         tlapack_check_false((matrixtype != MatrixType::General) &&
