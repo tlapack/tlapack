@@ -170,6 +170,29 @@ namespace blas {
         return Format( format );
     }
 
+    // max
+    template <typename T1, typename T2>
+    inline scalar_type<T1, T2> max(const T1& x, const T2& y)
+    {
+        return (x >= y ? x : y);
+    }
+    template <typename T1, typename T2, typename... Types>
+    inline scalar_type<T1, T2, Types...> max(const T1& first, const T2& second, const Types&... args)
+    {
+        return max(first, max(second, args...));
+    }
+
+    // min
+    template <typename T1, typename T2>
+    inline scalar_type<T1, T2> min(const T1& x, const T2& y)
+    {
+        return (x <= y ? x : y);
+    }
+    template <typename T1, typename T2, typename... Types>
+    inline scalar_type<T1, T2, Types...> min(const T1& first, const T2& second, const Types&... args)
+    {
+        return min(first, min(second, args...));
+    }
 }
 
 using blas::uplo2char;
