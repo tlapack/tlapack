@@ -255,10 +255,16 @@ constexpr auto rows(starpu::Matrix<T>& A, SliceSpec&& rows)
 }
 
 template <class T>
+constexpr auto diag(const starpu::Matrix<T>& A, int diagIdx = 0)
+{
+    throw std::runtime_error("Not implemented");
+    return row(A, 0);
+}
+template <class T>
 constexpr auto diag(starpu::Matrix<T>& A, int diagIdx = 0)
 {
     throw std::runtime_error("Not implemented");
-    return A;
+    return row(A, 0);
 }
 
 namespace internal {

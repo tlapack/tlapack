@@ -18,10 +18,16 @@
 
 namespace tlapack {
 
-template <>
-struct is_arithmetic<Eigen::half, int> {
-    static constexpr bool value = true;
-};
+namespace internal {
+    template <>
+    struct real_type_traits<Eigen::half, int> {
+        using type = Eigen::half;
+    };
+    template <>
+    struct complex_type_traits<Eigen::half, int> {
+        using type = std::complex<Eigen::half>;
+    };
+}  // namespace internal
 
 // Forward declarations
 template <typename T>

@@ -114,7 +114,7 @@ int getrf_recursive(matrix_t& A, piv_t& piv)
         // by the previous comment, we can safely scale all elements of 0th
         // column by 1/A(0,0)
         auto l = slice(A, range<idx_t>(1, m), 0);
-        rscl(A(0, 0), l);
+        rscl((T)A(0, 0), l);
 
         return 0;
     }

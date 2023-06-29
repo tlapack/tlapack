@@ -7,8 +7,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef TLAPACK_ARRAY_TRAITS
-#define TLAPACK_ARRAY_TRAITS
+#ifndef TLAPACK_ARRAY_TRAITS_HH
+#define TLAPACK_ARRAY_TRAITS_HH
 
 #include "tlapack/base/types.hpp"
 
@@ -149,13 +149,13 @@ namespace internal {
     struct matrix_type_traits;
 
     /// Matrix type deduction for one type
-    template <class matrix_t>
+    template <typename matrix_t>
     struct matrix_type_traits<matrix_t, int> {
         using type = typename matrix_type_traits<matrix_t, matrix_t, int>::type;
     };
 
     /// Matrix type deduction for three or more types
-    template <class matrixA_t, typename matrixB_t, typename... matrix_t>
+    template <typename matrixA_t, typename matrixB_t, typename... matrix_t>
     struct matrix_type_traits<matrixA_t, matrixB_t, matrix_t...> {
         using type = typename matrix_type_traits<
             typename matrix_type_traits<matrixA_t, matrixB_t, int>::type,
@@ -251,4 +251,4 @@ using vector_type =
 
 }  // namespace tlapack
 
-#endif  // TLAPACK_ARRAY_TRAITS
+#endif  // TLAPACK_ARRAY_TRAITS_HH

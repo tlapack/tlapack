@@ -16,16 +16,20 @@
 
 namespace tlapack {
 
+namespace internal {
+    template <>
+    struct real_type_traits<mpfr::mpreal, int> {
+        using type = mpfr::mpreal;
+    };
+    template <>
+    struct complex_type_traits<mpfr::mpreal, int> {
+        using type = std::complex<mpfr::mpreal>;
+    };
+}  // namespace internal
+
 // Forward declarations
-template <class T, class>
-struct is_arithmetic;
 template <typename T>
 inline T abs(const T& x);
-
-template <>
-struct is_arithmetic<mpfr::mpreal, int> {
-    static constexpr bool value = true;
-};
 
 /// Absolute value
 template <>

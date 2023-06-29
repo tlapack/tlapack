@@ -76,7 +76,7 @@ void run(size_t m, size_t n, size_t k)
         Br(i, i) = B(i, i);
     }
 
-    // 1) Using legacy LAPACK interface:
+    // 1) Using legacy LAPACK API:
 
     bestTime = std::chrono::nanoseconds::max();
     for (int run = 0; run < Nruns; ++run) {
@@ -105,7 +105,7 @@ void run(size_t m, size_t n, size_t k)
     }
 
     // Output
-    std::cout << "Using legacy LAPACK interface:" << std::endl
+    std::cout << "Using legacy LAPACK API:" << std::endl
               << "||C-AB||_F = " << tlapack::legacy::nrm2(n, &C_[0], 1)
               << std::endl
               << "time = " << bestTime.count() * 1.0e-6 << " ms" << std::endl;

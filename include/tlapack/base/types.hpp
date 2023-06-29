@@ -386,24 +386,6 @@ struct band_t {
 
 namespace tlapack {
 
-template <class T, class>
-struct is_arithmetic {
-    static constexpr bool value = false;
-};
-
-template <class T>
-inline constexpr bool is_arithmetic_v = is_arithmetic<T, int>::value;
-
-// specialization for standard arithmetic types
-template <class T>
-struct is_arithmetic<
-    T,
-    typename std::enable_if<
-        std::is_arithmetic<typename std::decay<T>::type>::value,
-        int>::type> {
-    static constexpr bool value = true;
-};
-
 // -----------------------------------------------------------------------------
 // for any combination of types, determine associated real, scalar,
 // and complex types.
@@ -468,11 +450,11 @@ struct is_complex {
 
 namespace internal {
 
-    // for one arithmetic type
+    // for one std arithmetic type
     template <typename T>
     struct real_type_traits<
         T,
-        std::enable_if_t<is_arithmetic_v<T> && !std::is_const_v<T>, int>> {
+        std::enable_if_t<std::is_arithmetic_v<T> && !std::is_const_v<T>, int>> {
         using type = typename std::decay<T>::type;
     };
 
@@ -503,11 +485,11 @@ namespace internal {
                                typename real_type_traits<T2, Types...>::type>;
     };
 
-    // for one arithmetic type
+    // for one std arithmetic type
     template <typename T>
     struct complex_type_traits<
         T,
-        std::enable_if_t<is_arithmetic_v<T> && !std::is_const_v<T>, int>> {
+        std::enable_if_t<std::is_arithmetic_v<T> && !std::is_const_v<T>, int>> {
         using type = std::complex<real_type<T>>;
     };
 

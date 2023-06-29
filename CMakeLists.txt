@@ -44,7 +44,7 @@ include(CMakeDependentOption)
 # Includes BUILD_TESTING option
 include(CTest)
 
-# LAPACK++ interface
+# LAPACK++ wrappers
 option( USE_LAPACKPP_WRAPPERS "Use LAPACK++ wrappers to link with optimized BLAS and LAPACK libraries" OFF )
 
 cmake_dependent_option( BUILD_BLASPP_TESTS   "Build BLAS++ tests. Please inform blaspp_TEST_DIR if BUILD_BLASPP_TESTS=ON"

@@ -14,28 +14,60 @@
 
     #include "tlapack/legacy_api/base/legacyArray.hpp"
 
-    #define tlapack_expr_with_2vectors(x, TX, n, X, incx, ...)       \
-        do {                                                         \
-            using tlapack::legacy::internal::create_vector;          \
-            using tlapack::legacy::internal::create_backward_vector; \
-            if (incx == 1) {                                         \
-                auto x = create_vector((TX*)X, n);                   \
-                tlapack_expr_with_vector(__VA_ARGS__);               \
-            }                                                        \
-            else if (incx == -1) {                                   \
-                auto x = create_backward_vector((TX*)X, n);          \
-                tlapack_expr_with_vector(__VA_ARGS__);               \
-            }                                                        \
-            else if (incx > 1) {                                     \
-                auto x = create_vector((TX*)X, n, incx);             \
-                tlapack_expr_with_vector(__VA_ARGS__);               \
-            }                                                        \
-            else {                                                   \
-                auto x = create_backward_vector((TX*)X, n, -incx);   \
-                tlapack_expr_with_vector(__VA_ARGS__);               \
-            }                                                        \
+    /**
+     * @brief Creates two vector objects and executes an expression with them.
+     *
+     * @param[in] x Name of the first vector to be used in the expression.
+     * @param[in] TX Type of the elements of the first vector.
+     * @param[in] n Number of elements in the first vector.
+     * @param[in] X Pointer to the first element of the first vector.
+     * @param[in] incx Stride between elements of the first vector.
+     * @param[in] y Name of the second vector to be used in the expression.
+     * @param[in] TY Type of the elements of the second vector.
+     * @param[in] m Number of elements in the second vector.
+     * @param[in] Y Pointer to the first element of the second vector.
+     * @param[in] incy Stride between elements of the second vector.
+     * @param[in] expr Expression to be executed.
+     *
+     * @ingroup legacy_api
+     *
+     */
+    #define tlapack_expr_with_2vectors(x, TX, n, X, incx, y, TY, m, Y, incy, \
+                                       expr)                                 \
+        do {                                                                 \
+            using tlapack::legacy::internal::create_vector;                  \
+            using tlapack::legacy::internal::create_backward_vector;         \
+            if (incx == 1) {                                                 \
+                auto x = create_vector((TX*)X, n);                           \
+                tlapack_expr_with_vector(y, TY, m, Y, incy, expr);           \
+            }                                                                \
+            else if (incx == -1) {                                           \
+                auto x = create_backward_vector((TX*)X, n);                  \
+                tlapack_expr_with_vector(y, TY, m, Y, incy, expr);           \
+            }                                                                \
+            else if (incx > 1) {                                             \
+                auto x = create_vector((TX*)X, n, incx);                     \
+                tlapack_expr_with_vector(y, TY, m, Y, incy, expr);           \
+            }                                                                \
+            else {                                                           \
+                auto x = create_backward_vector((TX*)X, n, -incx);           \
+                tlapack_expr_with_vector(y, TY, m, Y, incy, expr);           \
+            }                                                                \
         } while (false)
 
+    /**
+     * @brief Creates a vector object and executes an expression with it.
+     *
+     * @param[in] x Name of the vector to be used in the expression.
+     * @param[in] TX Type of the elements of the vector.
+     * @param[in] n Number of elements in the vector.
+     * @param[in] X Pointer to the first element of the vector.
+     * @param[in] incx Stride between elements of the vector.
+     * @param[in] expr Expression to be executed with the vector.
+     *
+     * @ingroup legacy_api
+     *
+     */
     #define tlapack_expr_with_vector(x, TX, n, X, incx, expr)        \
         do {                                                         \
             using tlapack::legacy::internal::create_vector;          \
@@ -58,6 +90,22 @@
             }                                                        \
         } while (false)
 
+    /**
+     * @brief Creates a vector object and executes an expression with it.
+     *
+     * This macro is used when the stride between elements of the vector is
+     * non-negative.
+     *
+     * @param[in] x Name of the vector to be used in the expression.
+     * @param[in] TX Type of the elements of the vector.
+     * @param[in] n Number of elements in the vector.
+     * @param[in] X Pointer to the first element of the vector.
+     * @param[in] incx Stride between elements of the vector.
+     * @param[in] expr Expression to be executed with the vector.
+     *
+     * @ingroup legacy_api
+     *
+     */
     #define tlapack_expr_with_vector_positiveInc(x, TX, n, X, incx, expr) \
         do {                                                              \
             using tlapack::legacy::internal::create_vector;               \

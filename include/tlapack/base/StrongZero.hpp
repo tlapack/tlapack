@@ -44,6 +44,13 @@ struct StrongZero {
         assert(x == T(0));
     }
 
+    template <typename T, typename U>
+    constexpr StrongZero(const T& x, const U& y)
+    {
+        assert(x == T(0));
+        assert(y == T(0));
+    }
+
     // Conversion operators
 
     template <typename T>
@@ -55,13 +62,13 @@ struct StrongZero {
     // Assignment operators
 
     template <typename T>
-    friend constexpr const T& operator+=(const T& lhs, const StrongZero&)
+    friend constexpr T& operator+=(T& lhs, const StrongZero&)
     {
         return lhs;
     }
 
     template <typename T>
-    friend constexpr const T& operator-=(const T& lhs, const StrongZero&)
+    friend constexpr T& operator-=(T& lhs, const StrongZero&)
     {
         return lhs;
     }
@@ -81,49 +88,49 @@ struct StrongZero {
     // Arithmetic operators
 
     template <typename T>
-    friend constexpr const T operator+(const StrongZero&, const T& rhs)
+    friend constexpr T operator+(const StrongZero&, const T& rhs)
     {
         return rhs;
     }
 
     template <typename T>
-    friend constexpr const T operator+(const T& lhs, const StrongZero&)
+    friend constexpr T operator+(const T& lhs, const StrongZero&)
     {
         return lhs;
     }
 
     template <typename T>
-    friend constexpr const T operator-(const StrongZero&, const T& rhs)
+    friend constexpr T operator-(const StrongZero&, const T& rhs)
     {
         return -rhs;
     }
 
     template <typename T>
-    friend constexpr const T operator-(const T& lhs, const StrongZero&)
+    friend constexpr T operator-(const T& lhs, const StrongZero&)
     {
         return lhs;
     }
 
     template <typename T>
-    friend constexpr const StrongZero operator*(const StrongZero&, const T&)
+    friend constexpr StrongZero operator*(const StrongZero&, const T&)
     {
         return StrongZero();
     }
 
     template <typename T>
-    friend constexpr const StrongZero operator*(const T&, const StrongZero&)
+    friend constexpr StrongZero operator*(const T&, const StrongZero&)
     {
         return StrongZero();
     }
 
     template <typename T>
-    friend constexpr const StrongZero operator/(const StrongZero&, const T&)
+    friend constexpr StrongZero operator/(const StrongZero&, const T&)
     {
         return StrongZero();
     }
 
     template <typename T>
-    friend constexpr const T operator/(const T&, const StrongZero&)
+    friend constexpr T operator/(const T&, const StrongZero&)
     {
         return std::numeric_limits<T>::infinity();
     }
@@ -132,27 +139,25 @@ struct StrongZero {
 
     constexpr bool operator==(const StrongZero&) const { return true; }
     constexpr bool operator!=(const StrongZero&) const { return false; }
-    friend constexpr const bool isinf(const StrongZero&) { return false; }
-    friend constexpr const bool isnan(const StrongZero&) { return false; }
+    constexpr bool operator>(const StrongZero&) const { return false; }
+    constexpr bool operator<(const StrongZero&) const { return false; }
+    constexpr bool operator>=(const StrongZero&) const { return true; }
+    constexpr bool operator<=(const StrongZero&) const { return true; }
+    friend constexpr bool isinf(const StrongZero&) { return false; }
+    friend constexpr bool isnan(const StrongZero&) { return false; }
 
     // Other math functions
 
-    friend constexpr const StrongZero sqrt(const StrongZero&)
+    friend constexpr StrongZero sqrt(const StrongZero&) { return StrongZero(); }
+
+    friend constexpr StrongZero pow(const StrongZero&, double)
     {
         return StrongZero();
     }
 
-    friend constexpr const StrongZero pow(const StrongZero&, double)
-    {
-        return StrongZero();
-    }
+    friend constexpr StrongZero ceil(const StrongZero&) { return StrongZero(); }
 
-    friend constexpr const StrongZero ceil(const StrongZero&)
-    {
-        return StrongZero();
-    }
-
-    friend constexpr const StrongZero floor(const StrongZero&)
+    friend constexpr StrongZero floor(const StrongZero&)
     {
         return StrongZero();
     }
