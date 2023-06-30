@@ -43,11 +43,11 @@ namespace tlapack {
  *
  * @ingroup blas2
  */
-template <class matrixA_t,
-          class vectorX_t,
-          class vectorY_t,
-          class alpha_t,
-          class beta_t,
+template <TLAPACK_MATRIX matrixA_t,
+          TLAPACK_VECTOR vectorX_t,
+          TLAPACK_VECTOR vectorY_t,
+          TLAPACK_SCALAR alpha_t,
+          TLAPACK_SCALAR beta_t,
           class T = type_t<vectorY_t>,
           disable_if_allow_optblas_t<pair<alpha_t, T>,
                                      pair<matrixA_t, T>,
@@ -139,11 +139,11 @@ void gemv(Op trans,
 *
 * @ingroup blas2
 */
-template <class matrixA_t,
-          class vectorX_t,
-          class vectorY_t,
-          class alpha_t,
-          class beta_t,
+template <TLAPACK_MATRIX matrixA_t,
+          TLAPACK_VECTOR vectorX_t,
+          TLAPACK_VECTOR vectorY_t,
+          TLAPACK_SCALAR alpha_t,
+          TLAPACK_SCALAR beta_t,
           class T = type_t<vectorY_t>,
           enable_if_allow_optblas_t<pair<alpha_t, T>,
                                     pair<matrixA_t, T>,
@@ -223,7 +223,10 @@ inline void gemv(Op trans,
  *
  * @ingroup blas2
  */
-template <class matrixA_t, class vectorX_t, class vectorY_t, class alpha_t>
+template <TLAPACK_MATRIX matrixA_t,
+          TLAPACK_VECTOR vectorX_t,
+          TLAPACK_VECTOR vectorY_t,
+          TLAPACK_SCALAR alpha_t>
 inline void gemv(Op trans,
                  const alpha_t& alpha,
                  const matrixA_t& A,

@@ -23,7 +23,7 @@ namespace tlapack {
 /**
  * Options struct for gebrd
  */
-template <class idx_t = size_t>
+template <TLAPACK_INDEX idx_t = size_t>
 struct gebrd_opts_t : public workspace_opts_t<> {
     inline constexpr gebrd_opts_t(const workspace_opts_t<>& opts = {})
         : workspace_opts_t<>(opts){};
@@ -57,7 +57,9 @@ struct gebrd_opts_t : public workspace_opts_t<> {
  *
  * @ingroup workspace_query
  */
-template <class matrix_t, class vector_t, class r_vector_t>
+template <TLAPACK_SMATRIX matrix_t,
+          TLAPACK_SVECTOR vector_t,
+          TLAPACK_SVECTOR r_vector_t>
 workinfo_t gebrd_worksize(const matrix_t& A,
                           r_vector_t& d,
                           r_vector_t& e,
@@ -131,7 +133,9 @@ workinfo_t gebrd_worksize(const matrix_t& A,
  *
  * @ingroup computational
  */
-template <class matrix_t, class vector_t, class r_vector_t>
+template <TLAPACK_SMATRIX matrix_t,
+          TLAPACK_SVECTOR vector_t,
+          TLAPACK_SVECTOR r_vector_t>
 int gebrd(matrix_t& A,
           r_vector_t& d,
           r_vector_t& e,

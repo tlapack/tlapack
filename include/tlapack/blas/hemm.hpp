@@ -49,11 +49,11 @@ namespace tlapack {
  *
  * @ingroup blas3
  */
-template <class matrixA_t,
-          class matrixB_t,
-          class matrixC_t,
-          class alpha_t,
-          class beta_t,
+template <TLAPACK_MATRIX matrixA_t,
+          TLAPACK_MATRIX matrixB_t,
+          TLAPACK_MATRIX matrixC_t,
+          TLAPACK_SCALAR alpha_t,
+          TLAPACK_SCALAR beta_t,
           class T = type_t<matrixC_t>,
           disable_if_allow_optblas_t<pair<matrixA_t, T>,
                                      pair<matrixB_t, T>,
@@ -188,11 +188,11 @@ void hemm(Side side,
 *
 * @ingroup blas3
 */
-template <class matrixA_t,
-          class matrixB_t,
-          class matrixC_t,
-          class alpha_t,
-          class beta_t,
+template <TLAPACK_MATRIX matrixA_t,
+          TLAPACK_MATRIX matrixB_t,
+          TLAPACK_MATRIX matrixC_t,
+          TLAPACK_SCALAR alpha_t,
+          TLAPACK_SCALAR beta_t,
           class T = type_t<matrixC_t>,
           enable_if_allow_optblas_t<pair<matrixA_t, T>,
                                     pair<matrixB_t, T>,
@@ -266,7 +266,10 @@ inline void hemm(Side side,
  *
  * @ingroup blas3
  */
-template <class matrixA_t, class matrixB_t, class matrixC_t, class alpha_t>
+template <TLAPACK_MATRIX matrixA_t,
+          TLAPACK_MATRIX matrixB_t,
+          TLAPACK_MATRIX matrixC_t,
+          TLAPACK_SCALAR alpha_t>
 inline void hemm(Side side,
                  Uplo uplo,
                  const alpha_t& alpha,

@@ -53,7 +53,7 @@ namespace starpu {
          * variable buffers
          *
          * This function is used to perform data operations on MatrixEntry.
-         * The interface is suitable for tasks that are submitted to StarPU.
+         * Used in tasks submitted to StarPU.
          */
         template <class T, class U, internal::Operation op>
         constexpr void data_op_data(void** buffers, void* args) noexcept
@@ -76,7 +76,7 @@ namespace starpu {
          * buffer and a value
          *
          * This function is used to perform data operations on MatrixEntry.
-         * The interface is suitable for tasks that are submitted to StarPU.
+         * Used in tasks submitted to StarPU.
          */
         template <class T, class U, internal::Operation op>
         constexpr void data_op_value(void** buffers, void* args) noexcept
@@ -99,7 +99,7 @@ namespace starpu {
          * entries
          *
          * This function is used to perform data operations on MatrixEntry.
-         * The interface is suitable for tasks that are submitted to StarPU.
+         * Used in tasks submitted to StarPU.
          */
         template <class T, internal::Operation op>
         void matrixentry_op_matrixentry(void** buffers, void* args) noexcept

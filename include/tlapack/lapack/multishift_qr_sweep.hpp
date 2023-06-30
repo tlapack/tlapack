@@ -46,8 +46,8 @@ namespace tlapack {
  *
  * @ingroup workspace_query
  */
-template <class matrix_t,
-          class vector_t,
+template <TLAPACK_SMATRIX matrix_t,
+          TLAPACK_VECTOR vector_t,
           enable_if_t<is_complex<type_t<vector_t>>::value, bool> = true>
 inline constexpr workinfo_t multishift_QR_sweep_worksize(
     bool want_t,
@@ -95,8 +95,8 @@ inline constexpr workinfo_t multishift_QR_sweep_worksize(
  *
  * @ingroup computational
  */
-template <class matrix_t,
-          class vector_t,
+template <TLAPACK_SMATRIX matrix_t,
+          TLAPACK_VECTOR vector_t,
           enable_if_t<is_complex<type_t<vector_t>>::value, bool> = true>
 void multishift_QR_sweep(bool want_t,
                          bool want_z,

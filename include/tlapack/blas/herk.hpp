@@ -52,10 +52,10 @@ namespace tlapack {
  *
  * @ingroup blas3
  */
-template <class matrixA_t,
-          class matrixC_t,
-          class alpha_t,
-          class beta_t,
+template <TLAPACK_MATRIX matrixA_t,
+          TLAPACK_MATRIX matrixC_t,
+          TLAPACK_REAL alpha_t,
+          TLAPACK_REAL beta_t,
           enable_if_t<(
                           /* Requires: */
                           is_real<alpha_t>::value && is_real<beta_t>::value),
@@ -182,10 +182,10 @@ void herk(Uplo uplo,
 *
 * @ingroup blas3
 */
-template <class matrixA_t,
-          class matrixC_t,
-          class alpha_t,
-          class beta_t,
+template <TLAPACK_MATRIX matrixA_t,
+          TLAPACK_MATRIX matrixC_t,
+          TLAPACK_REAL alpha_t,
+          TLAPACK_REAL beta_t,
           class T = type_t<matrixC_t>,
           enable_if_allow_optblas_t<pair<matrixA_t, T>,
                                     pair<matrixC_t, T>,
@@ -257,7 +257,9 @@ inline void herk(Uplo uplo,
  *
  * @ingroup blas3
  */
-template <class matrixA_t, class matrixC_t, class alpha_t>
+template <TLAPACK_MATRIX matrixA_t,
+          TLAPACK_MATRIX matrixC_t,
+          TLAPACK_SCALAR alpha_t>
 inline void herk(
     Uplo uplo, Op trans, const alpha_t& alpha, const matrixA_t& A, matrixC_t& C)
 {

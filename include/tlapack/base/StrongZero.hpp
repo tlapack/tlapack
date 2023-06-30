@@ -12,24 +12,29 @@
 #define TLAPACK_BASE_STRONGZERO_HH
 
 #include <cstdint>
+#include <limits>
 
 namespace tlapack {
 
 /**
- * @brief Auxiliary data type
+ * @brief Strong zero type. Used to enforce the BLAS behavior of ignoring part
+ * of the input when a coefficient is zero.
  *
- * Suppose x is of type T. Then:
+ * @note this type satisfies the concepts: tlapack::concepts::Scalar,
+ * tlapack::concepts::Real, and tlapack::concepts::Complex.
  *
- * 1. T(StrongZero()) is equivalent to T(0).
- * 2. x *= StrongZero() is equivalent to x = T(0).
- * 3. x += StrongZero() does not modify x.
+ * Suppose x is of type T, and z is of type StrongZero. Then:
  *
- * This class satisfies:
- *
- *      x * StrongZero() = StrongZero()
- *      StrongZero() * x = StrongZero()
- *      x + StrongZero() = x
- *      StrongZero() + x = x
+ * 1. z is equivalent to T(0).
+ * 2. x += z and x -= z do not modify x.
+ * 3. x *= z is equivalent to x = T(0).
+ * 4. x /= z is equivalent to setting x to infinity.
+ * 5. x + z, x - z and z + x return x.
+ * 6. x - z returns -x.
+ * 7. x * z and z * x return z.
+ * 8. x / z returns infinity.
+ * 9. z / x returns z.
+ * 10. z * z returns a quiet NaN.
  *
  */
 struct StrongZero {
@@ -43,6 +48,13 @@ struct StrongZero {
         assert(x == T(0));
     }
 
+    template <typename T, typename U>
+    constexpr StrongZero(const T& x, const U& y)
+    {
+        assert(x == T(0));
+        assert(y == T(0));
+    }
+
     // Conversion operators
 
     template <typename T>
@@ -54,71 +66,125 @@ struct StrongZero {
     // Assignment operators
 
     template <typename T>
-    friend constexpr const T& operator+=(const T& lhs, const StrongZero&)
+    friend constexpr T& operator+=(T& lhs, StrongZero)
     {
         return lhs;
     }
 
     template <typename T>
-    friend constexpr const T& operator-=(const T& lhs, const StrongZero&)
+    friend constexpr T& operator-=(T& lhs, StrongZero)
     {
         return lhs;
     }
 
     template <typename T>
-    friend constexpr T& operator*=(T& lhs, const StrongZero&)
+    friend constexpr T& operator*=(T& lhs, StrongZero)
     {
         return (lhs = T(0));
     }
 
+    template <typename T>
+    friend constexpr T& operator/=(T& lhs, StrongZero)
+    {
+        return (lhs = std::numeric_limits<T>::infinity());
+    }
+
     // Arithmetic operators
 
+    friend constexpr StrongZero operator+(StrongZero, StrongZero)
+    {
+        return StrongZero();
+    }
+
     template <typename T>
-    friend constexpr const T operator+(const StrongZero&, const T& rhs)
+    friend constexpr T operator+(StrongZero, const T& rhs)
     {
         return rhs;
     }
 
     template <typename T>
-    friend constexpr const T operator+(const T& lhs, const StrongZero&)
+    friend constexpr T operator+(const T& lhs, StrongZero)
     {
         return lhs;
     }
 
-    template <typename T>
-    friend constexpr const T operator-(const StrongZero&, const T& rhs)
+    friend constexpr StrongZero operator-(StrongZero, StrongZero)
     {
-        return rhs;
+        return StrongZero();
     }
 
     template <typename T>
-    friend constexpr const T operator-(const T& lhs, const StrongZero&)
+    friend constexpr T operator-(StrongZero, const T& rhs)
+    {
+        return -rhs;
+    }
+
+    template <typename T>
+    friend constexpr T operator-(const T& lhs, StrongZero)
     {
         return lhs;
     }
 
-    template <typename T>
-    friend constexpr const StrongZero operator*(const StrongZero& lhs, const T&)
+    friend constexpr StrongZero operator*(StrongZero, StrongZero)
     {
-        return lhs;
+        return StrongZero();
     }
 
     template <typename T>
-    friend constexpr const StrongZero operator*(const T&, const StrongZero& rhs)
+    friend constexpr StrongZero operator*(StrongZero, const T&)
     {
-        return rhs;
+        return StrongZero();
+    }
+
+    template <typename T>
+    friend constexpr StrongZero operator*(const T&, StrongZero)
+    {
+        return StrongZero();
+    }
+
+    friend constexpr float operator/(StrongZero, StrongZero)
+    {
+        return std::numeric_limits<float>::quiet_NaN();
+    }
+
+    template <typename T>
+    friend constexpr StrongZero operator/(StrongZero, const T&)
+    {
+        return StrongZero();
+    }
+
+    template <typename T>
+    friend constexpr T operator/(const T&, StrongZero)
+    {
+        return std::numeric_limits<T>::infinity();
     }
 
     // Comparison operators
 
-    constexpr bool operator==(const StrongZero& rhs) const { return true; }
-    constexpr bool operator!=(const StrongZero& rhs) const { return false; }
+    constexpr bool operator==(StrongZero) const { return true; }
+    constexpr bool operator!=(StrongZero) const { return false; }
+    constexpr bool operator>(StrongZero) const { return false; }
+    constexpr bool operator<(StrongZero) const { return false; }
+    constexpr bool operator>=(StrongZero) const { return true; }
+    constexpr bool operator<=(StrongZero) const { return true; }
+    friend constexpr bool isinf(StrongZero) { return false; }
+    friend constexpr bool isnan(StrongZero) { return false; }
+
+    // Math functions
+
+    friend constexpr StrongZero sqrt(StrongZero) { return StrongZero(); }
+    friend constexpr int pow(int, StrongZero) { return 1; }
+    friend constexpr StrongZero ceil(StrongZero) { return StrongZero(); }
+    friend constexpr StrongZero floor(StrongZero) { return StrongZero(); }
 };
 
 // forward declarations
 template <typename T>
 struct is_complex;
 
+// It is natural to define tlapack::complex_type<StrongZero> is StrongZero.
+// However, for the means of type deduction, StrongZero is considered a real
+// type.
 template <>
 struct is_complex<StrongZero> {
     static constexpr bool value = false;
@@ -140,7 +206,7 @@ namespace internal {
     template <typename T>
     struct real_type_traits<T, StrongZero, int> : real_type_traits<T, int> {};
 
-    // for one StrongZero type, remain StrongZero
+    // tlapack::real_type<StrongZero> is StrongZero
     template <>
     struct real_type_traits<StrongZero, int> {
         using type = StrongZero;
@@ -156,7 +222,7 @@ namespace internal {
     struct complex_type_traits<T, StrongZero, int>
         : complex_type_traits<T, int> {};
 
-    // for one complex type, strip complex
+    // tlapack::complex_type<StrongZero> is StrongZero
     template <>
     struct complex_type_traits<StrongZero, int> {
         using type = StrongZero;

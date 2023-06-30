@@ -23,7 +23,7 @@ namespace tlapack {
 /**
  * Options struct for multishift_qr
  */
-template <class idx_t = size_t>
+template <TLAPACK_INDEX idx_t = size_t>
 struct francis_opts_t : public workspace_opts_t<> {
     inline constexpr francis_opts_t(const workspace_opts_t<>& opts = {})
         : workspace_opts_t<>(opts){};
@@ -86,8 +86,8 @@ struct francis_opts_t : public workspace_opts_t<> {
  *
  * @ingroup workspace_query
  */
-template <class matrix_t,
-          class vector_t,
+template <TLAPACK_SMATRIX matrix_t,
+          TLAPACK_SVECTOR vector_t,
           enable_if_t<is_complex<type_t<vector_t> >::value, int> = 0>
 workinfo_t multishift_qr_worksize(
     bool want_t,
@@ -181,8 +181,8 @@ workinfo_t multishift_qr_worksize(
  *
  * @ingroup computational
  */
-template <class matrix_t,
-          class vector_t,
+template <TLAPACK_SMATRIX matrix_t,
+          TLAPACK_SVECTOR vector_t,
           enable_if_t<is_complex<type_t<vector_t> >::value, int> = 0>
 int multishift_qr(bool want_t,
                   bool want_z,
@@ -448,8 +448,8 @@ int multishift_qr(bool want_t,
     return info;
 }
 
-template <class matrix_t,
-          class vector_t,
+template <TLAPACK_MATRIX matrix_t,
+          TLAPACK_VECTOR vector_t,
           enable_if_t<is_complex<type_t<vector_t> >::value, int> = 0>
 inline int multishift_qr(bool want_t,
                          bool want_z,

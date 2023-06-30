@@ -48,12 +48,12 @@ namespace tlapack {
  *
  * @ingroup workspace_query
  */
-template <class side_t,
-          class storage_t,
-          class vector_t,
-          class tau_t,
-          class vectorC0_t,
-          class matrixC1_t,
+template <TLAPACK_SIDE side_t,
+          TLAPACK_STOREV storage_t,
+          TLAPACK_VECTOR vector_t,
+          TLAPACK_SCALAR tau_t,
+          TLAPACK_VECTOR vectorC0_t,
+          TLAPACK_MATRIX matrixC1_t,
           enable_if_t<is_convertible_v<storage_t, StoreV>, int> = 0>
 inline constexpr workinfo_t larf_worksize(side_t side,
                                           storage_t storeMode,
@@ -130,12 +130,12 @@ inline constexpr workinfo_t larf_worksize(side_t side,
  *
  * @ingroup auxiliary
  */
-template <class side_t,
-          class storage_t,
-          class vector_t,
-          class tau_t,
-          class vectorC0_t,
-          class matrixC1_t,
+template <TLAPACK_SIDE side_t,
+          TLAPACK_STOREV storage_t,
+          TLAPACK_VECTOR vector_t,
+          TLAPACK_SCALAR tau_t,
+          TLAPACK_VECTOR vectorC0_t,
+          TLAPACK_MATRIX matrixC1_t,
           enable_if_t<is_convertible_v<storage_t, StoreV>, int> = 0>
 void larf(side_t side,
           storage_t storeMode,
@@ -274,12 +274,12 @@ void larf(side_t side,
  *
  * @ingroup workspace_query
  */
-template <class side_t,
-          class direction_t,
-          class storage_t,
-          class vector_t,
-          class tau_t,
-          class matrix_t,
+template <TLAPACK_SIDE side_t,
+          TLAPACK_DIRECTION direction_t,
+          TLAPACK_STOREV storage_t,
+          TLAPACK_SVECTOR vector_t,
+          TLAPACK_SCALAR tau_t,
+          TLAPACK_SMATRIX matrix_t,
           enable_if_t<is_convertible_v<direction_t, Direction>, int> = 0>
 inline constexpr workinfo_t larf_worksize(side_t side,
                                           direction_t direction,
@@ -341,12 +341,12 @@ inline constexpr workinfo_t larf_worksize(side_t side,
  *
  * @ingroup auxiliary
  */
-template <class side_t,
-          class direction_t,
-          class storage_t,
-          class vector_t,
-          class tau_t,
-          class matrix_t,
+template <TLAPACK_SIDE side_t,
+          TLAPACK_DIRECTION direction_t,
+          TLAPACK_STOREV storage_t,
+          TLAPACK_SVECTOR vector_t,
+          TLAPACK_SCALAR tau_t,
+          TLAPACK_SMATRIX matrix_t,
           enable_if_t<is_convertible_v<direction_t, Direction>, int> = 0>
 inline void larf(side_t side,
                  direction_t direction,

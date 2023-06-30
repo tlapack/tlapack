@@ -35,9 +35,9 @@ namespace tlapack {
  *
  * @ingroup blas2
  */
-template <class matrixA_t,
-          class vectorX_t,
-          class alpha_t,
+template <TLAPACK_MATRIX matrixA_t,
+          TLAPACK_VECTOR vectorX_t,
+          TLAPACK_SCALAR alpha_t,
           class T = type_t<matrixA_t>,
           disable_if_allow_optblas_t<pair<alpha_t, T>,
                                      pair<matrixA_t, T>,
@@ -74,9 +74,9 @@ void syr(Uplo uplo, const alpha_t& alpha, const vectorX_t& x, matrixA_t& A)
 
 #ifdef USE_LAPACKPP_WRAPPERS
 
-template <class matrixA_t,
-          class vectorX_t,
-          class alpha_t,
+template <TLAPACK_MATRIX matrixA_t,
+          TLAPACK_VECTOR vectorX_t,
+          TLAPACK_SCALAR alpha_t,
           class T = type_t<matrixA_t>,
           enable_if_allow_optblas_t<pair<alpha_t, T>,
                                     pair<matrixA_t, T>,

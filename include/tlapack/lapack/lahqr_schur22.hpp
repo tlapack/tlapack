@@ -48,7 +48,7 @@ namespace tlapack {
  *
  * @ingroup auxiliary
  */
-template <typename T, enable_if_t<is_real<T>::value, bool> = true>
+template <TLAPACK_REAL T, enable_if_t<is_real<T>::value, bool> = true>
 int lahqr_schur22(T& a,
                   T& b,
                   T& c,
@@ -58,11 +58,7 @@ int lahqr_schur22(T& a,
                   T& cs,
                   T& sn)
 {
-    using std::copysign;
     using std::log;
-    using std::max;
-    using std::min;
-    using std::pow;
 
     const T zero(0);
     const T half(0.5);
@@ -72,7 +68,7 @@ int lahqr_schur22(T& a,
 
     const T eps = ulp<T>();
     const T safmin = safe_min<T>();
-    const T safmn2 = pow(two, T((int)(log(safmin / eps) / log(two)) / 2));
+    const T safmn2 = pow(2, T((int)(log(safmin / eps) / log(two)) / 2));
     const T safmx2 = one / safmn2;
 
     if (c == zero) {
@@ -196,7 +192,7 @@ int lahqr_schur22(T& a,
     return 0;
 }
 
-template <typename T, enable_if_t<is_complex<T>::value, bool> = true>
+template <TLAPACK_COMPLEX T, enable_if_t<is_complex<T>::value, bool> = true>
 int lahqr_schur22(T& a, T& b, T& c, T& d, T& s1, T& s2, real_type<T>& cs, T& sn)
 {
     return -1;

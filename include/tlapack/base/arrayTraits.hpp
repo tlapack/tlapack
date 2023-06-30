@@ -7,8 +7,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef TLAPACK_ARRAY_TRAITS
-#define TLAPACK_ARRAY_TRAITS
+#ifndef TLAPACK_ARRAY_TRAITS_HH
+#define TLAPACK_ARRAY_TRAITS_HH
 
 #include "tlapack/base/types.hpp"
 
@@ -251,4 +251,4 @@ using vector_type =
 
 }  // namespace tlapack
 
-#endif  // TLAPACK_ARRAY_TRAITS
+#endif  // TLAPACK_ARRAY_TRAITS_HH

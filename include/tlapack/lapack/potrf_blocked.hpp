@@ -19,7 +19,7 @@
 
 namespace tlapack {
 
-template <typename idx_t>
+template <TLAPACK_INDEX idx_t>
 struct potrf_blocked_opts_t : public ec_opts_t {
     inline constexpr potrf_blocked_opts_t(const ec_opts_t& opts = {})
         : ec_opts_t(opts){};
@@ -64,7 +64,7 @@ struct potrf_blocked_opts_t : public ec_opts_t {
  *
  * @ingroup computational
  */
-template <class uplo_t, class matrix_t>
+template <TLAPACK_UPLO uplo_t, TLAPACK_SMATRIX matrix_t>
 int potrf_blocked(uplo_t uplo,
                   matrix_t& A,
                   const potrf_blocked_opts_t<size_type<matrix_t> >& opts)
@@ -73,8 +73,6 @@ int potrf_blocked(uplo_t uplo,
     using real_t = real_type<T>;
     using idx_t = size_type<matrix_t>;
     using pair = pair<idx_t, idx_t>;
-
-    using std::min;
 
     // Constants
     const real_t one(1);
@@ -169,8 +167,8 @@ int potrf_blocked(uplo_t uplo,
     }
 }
 
-template <class uplo_t,
-          class matrix_t,
+template <TLAPACK_UPLO uplo_t,
+          TLAPACK_SMATRIX matrix_t,
           disable_if_allow_optblas_t<matrix_t> = 0>
 inline int potrf_blocked(uplo_t uplo, matrix_t& A)
 {
@@ -179,7 +177,9 @@ inline int potrf_blocked(uplo_t uplo, matrix_t& A)
 
 #ifdef USE_LAPACKPP_WRAPPERS
 
-template <class uplo_t, class matrix_t, enable_if_allow_optblas_t<matrix_t> = 0>
+template <TLAPACK_UPLO uplo_t,
+          TLAPACK_SMATRIX matrix_t,
+          enable_if_allow_optblas_t<matrix_t> = 0>
 inline int potrf_blocked(uplo_t uplo, matrix_t& A)
 {
     // Legacy objects

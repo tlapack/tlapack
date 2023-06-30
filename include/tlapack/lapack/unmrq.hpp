@@ -60,11 +60,11 @@ struct unmrq_opts_t : public workspace_opts_t<workT_t> {
  *
  * @see unmrq
  */
-template <class matrixA_t,
-          class matrixC_t,
-          class tau_t,
-          class side_t,
-          class trans_t,
+template <TLAPACK_SMATRIX matrixA_t,
+          TLAPACK_SMATRIX matrixC_t,
+          TLAPACK_SVECTOR tau_t,
+          TLAPACK_SIDE side_t,
+          TLAPACK_OP trans_t,
           class workT_t = void>
 inline constexpr workinfo_t unmrq_worksize(
     side_t side,
@@ -161,11 +161,11 @@ inline constexpr workinfo_t unmrq_worksize(
  *
  * @ingroup computational
  */
-template <class matrixA_t,
-          class matrixC_t,
-          class tau_t,
-          class side_t,
-          class trans_t,
+template <TLAPACK_SMATRIX matrixA_t,
+          TLAPACK_SMATRIX matrixC_t,
+          TLAPACK_SVECTOR tau_t,
+          TLAPACK_SIDE side_t,
+          TLAPACK_OP trans_t,
           class workT_t = void>
 int unmrq(side_t side,
           trans_t trans,
@@ -179,8 +179,6 @@ int unmrq(side_t side,
     using matrixT_t = deduce_work_t<workT_t, matrix_type<matrixA_t, tau_t> >;
 
     using pair = pair<idx_t, idx_t>;
-    using std::max;
-    using std::min;
 
     // Functor
     Create<matrixT_t> new_matrix;

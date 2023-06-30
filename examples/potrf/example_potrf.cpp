@@ -96,7 +96,7 @@ void run(idx_t n)
         A(j, j) += n;
     }
 
-    // 1) Using <T>LAPACK interface:
+    // 1) Using <T>LAPACK API:
     {
         std::vector<T> U_(n * n);
         legacyMatrix<T> U(n, n, &U_[0], n);

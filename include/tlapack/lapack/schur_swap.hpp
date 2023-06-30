@@ -44,7 +44,7 @@ namespace tlapack {
  *
  * @ingroup auxiliary
  */
-template <typename matrix_t,
+template <TLAPACK_SMATRIX matrix_t,
           enable_if_t<is_real<type_t<matrix_t>>::value, bool> = true>
 int schur_swap(bool want_q,
                matrix_t& A,
@@ -56,7 +56,6 @@ int schur_swap(bool want_q,
     using idx_t = size_type<matrix_t>;
     using T = type_t<matrix_t>;
     using pair = pair<idx_t, idx_t>;
-    using std::max;
 
     // Functor for creating new matrices
     Create<matrix_t> new_matrix;
@@ -446,7 +445,7 @@ int schur_swap(bool want_q,
  *
  * @ingroup auxiliary
  */
-template <typename matrix_t,
+template <TLAPACK_SMATRIX matrix_t,
           enable_if_t<is_complex<type_t<matrix_t>>::value, bool> = true>
 int schur_swap(bool want_q,
                matrix_t& A,

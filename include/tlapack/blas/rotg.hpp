@@ -33,8 +33,8 @@ namespace tlapack {
  *
  * @ingroup blas1
  */
-template <typename T,
-          enable_if_t<is_same_v<T, real_type<T> >, int> = 0,
+template <TLAPACK_REAL T,
+          enable_if_t<is_real<T>::value, int> = 0,
           disable_if_allow_optblas_t<T> = 0>
 void rotg(T& a, T& b, T& c, T& s)
 {
@@ -63,7 +63,7 @@ void rotg(T& a, T& b, T& c, T& s)
         b = one;
     }
     else {
-        T scl = min(safmax, max(safmin, anorm, bnorm));
+        T scl = min(safmax, max(safmin, max(anorm, bnorm)));
         T sigma((anorm > bnorm) ? sgn(a) : sgn(b));
         T r = sigma * scl * sqrt((a / scl) * (a / scl) + (b / scl) * (b / scl));
         c = a / r;
@@ -100,8 +100,8 @@ void rotg(T& a, T& b, T& c, T& s)
  *
  * @ingroup blas1
  */
-template <typename T,
-          enable_if_t<!is_same_v<T, real_type<T> >, int> = 0,
+template <TLAPACK_COMPLEX T,
+          enable_if_t<is_complex<T>::value, int> = 0,
           disable_if_allow_optblas_t<T> = 0>
 void rotg(T& a, const T& b, real_type<T>& c, T& s)
 {
@@ -162,7 +162,7 @@ void rotg(T& a, const T& b, real_type<T>& c, T& s)
         }
         else {
             // Use scaled algorithm
-            real_t u = min(safmax, max(safmin, f1, g1));
+            real_t u = min(safmax, max(safmin, max(f1, g1)));
             real_t uu = one / u;
             T gs = b * uu;
             real_t g2 = real(gs) * real(gs) + imag(gs) * imag(gs);
@@ -196,8 +196,8 @@ void rotg(T& a, const T& b, real_type<T>& c, T& s)
 
 #ifdef USE_LAPACKPP_WRAPPERS
 
-template <typename T,
-          enable_if_t<is_same_v<T, real_type<T> >, int> = 0,
+template <TLAPACK_REAL T,
+          enable_if_t<is_real<T>::value, int> = 0,
           enable_if_allow_optblas_t<T> = 0>
 inline void rotg(T& a, T& b, T& c, T& s)
 {
@@ -220,8 +220,8 @@ inline void rotg(T& a, T& b, T& c, T& s)
         b = one;
 }
 
-template <typename T,
-          enable_if_t<!is_same_v<T, real_type<T> >, int> = 0,
+template <TLAPACK_COMPLEX T,
+          enable_if_t<is_complex<T>::value, int> = 0,
           enable_if_allow_optblas_t<T> = 0>
 inline void rotg(T& a, const T& b, real_type<T>& c, T& s)
 {

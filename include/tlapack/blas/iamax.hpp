@@ -65,7 +65,7 @@ struct iamax_opts_t : public ec_opts_t {
  *
  * @ingroup blas1
  */
-template <class vector_t, class abs_f>
+template <TLAPACK_VECTOR vector_t, class abs_f>
 size_type<vector_t> iamax_ec(const vector_t& x, abs_f absf)
 {
     // data traits
@@ -154,7 +154,7 @@ size_type<vector_t> iamax_ec(const vector_t& x, abs_f absf)
  *
  * @ingroup blas1
  */
-template <class vector_t, class abs_f>
+template <TLAPACK_VECTOR vector_t, class abs_f>
 size_type<vector_t> iamax_nc(const vector_t& x, abs_f absf)
 {
     // data traits
@@ -227,7 +227,7 @@ size_type<vector_t> iamax_nc(const vector_t& x, abs_f absf)
  *
  * @ingroup blas1
  */
-template <class vector_t, class abs_f>
+template <TLAPACK_VECTOR vector_t, class abs_f>
 inline size_type<vector_t> iamax(const vector_t& x,
                                  const iamax_opts_t<abs_f>& opts)
 {
@@ -248,7 +248,7 @@ inline size_type<vector_t> iamax(const vector_t& x,
  *
  * @ingroup blas1
  */
-template <class vector_t, disable_if_allow_optblas_t<vector_t> = 0>
+template <TLAPACK_VECTOR vector_t, disable_if_allow_optblas_t<vector_t> = 0>
 inline size_type<vector_t> iamax(const vector_t& x)
 {
     using T = type_t<vector_t>;
@@ -269,7 +269,7 @@ inline size_type<vector_t> iamax(const vector_t& x)
 
 #ifdef USE_LAPACKPP_WRAPPERS
 
-template <class vector_t, enable_if_allow_optblas_t<vector_t> = 0>
+template <TLAPACK_VECTOR vector_t, enable_if_allow_optblas_t<vector_t> = 0>
 inline size_type<vector_t> iamax(vector_t const& x)
 {
     // Legacy objects

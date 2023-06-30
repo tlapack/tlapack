@@ -35,7 +35,7 @@ namespace tlapack {
  *
  * @ingroup workspace_query
  */
-template <typename norm_t, typename matrix_t>
+template <TLAPACK_NORM norm_t, TLAPACK_SMATRIX matrix_t>
 inline constexpr workinfo_t lange_worksize(norm_t normType, const matrix_t& A)
 {
     return workinfo_t{};
@@ -61,7 +61,7 @@ inline constexpr workinfo_t lange_worksize(norm_t normType, const matrix_t& A)
  *
  * @ingroup workspace_query
  */
-template <typename norm_t, typename matrix_t>
+template <TLAPACK_NORM norm_t, TLAPACK_MATRIX matrix_t>
 inline constexpr workinfo_t lange_worksize(norm_t normType,
                                            const matrix_t& A,
                                            const workspace_opts_t<>& opts)
@@ -93,7 +93,7 @@ inline constexpr workinfo_t lange_worksize(norm_t normType,
  *
  * @ingroup auxiliary
  */
-template <typename norm_t, typename matrix_t>
+template <TLAPACK_NORM norm_t, TLAPACK_SMATRIX matrix_t>
 auto lange(norm_t normType, const matrix_t& A)
 {
     using T = type_t<matrix_t>;
@@ -186,7 +186,7 @@ auto lange(norm_t normType, const matrix_t& A)
  *
  * @ingroup auxiliary
  */
-template <typename norm_t, typename matrix_t>
+template <TLAPACK_NORM norm_t, TLAPACK_MATRIX matrix_t>
 auto lange(norm_t normType, const matrix_t& A, const workspace_opts_t<>& opts)
 {
     using T = type_t<matrix_t>;

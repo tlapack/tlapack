@@ -44,7 +44,7 @@ namespace tlapack {
  * @ingroup computational
  *
  */
-template <typename uplo_t, typename matrix_t>
+template <TLAPACK_UPLO uplo_t, TLAPACK_SMATRIX matrix_t>
 int trtri_recursive(uplo_t uplo,
                     Diag diag,
                     matrix_t& C,

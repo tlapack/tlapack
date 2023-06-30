@@ -31,7 +31,7 @@ namespace tlapack {
  *
  * @ingroup workspace_query
  */
-template <class matrix_t, class vector_t>
+template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
 inline constexpr workinfo_t ung2r_worksize(const matrix_t& A,
                                            const vector_t& tau,
                                            const workspace_opts_t<>& opts = {})
@@ -72,7 +72,7 @@ inline constexpr workinfo_t ung2r_worksize(const matrix_t& A,
  *
  * @ingroup computational
  */
-template <class matrix_t, class vector_t>
+template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
 int ung2r(matrix_t& A, const vector_t& tau, const workspace_opts_t<>& opts = {})
 {
     using T = type_t<matrix_t>;

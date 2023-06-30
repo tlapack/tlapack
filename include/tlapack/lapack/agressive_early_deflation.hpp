@@ -27,7 +27,7 @@
 
 namespace tlapack {
 // Forward declaration
-template <class idx_t>
+template <TLAPACK_INDEX idx_t>
 struct francis_opts_t;
 
 /** Worspace query of agressive_early_deflation().
@@ -67,8 +67,8 @@ struct francis_opts_t;
  *
  * @ingroup workspace_query
  */
-template <class matrix_t,
-          class vector_t,
+template <TLAPACK_SMATRIX matrix_t,
+          TLAPACK_SVECTOR vector_t,
           enable_if_t<is_complex<type_t<vector_t> >::value, int> = 0>
 workinfo_t agressive_early_deflation_worksize(
     bool want_t,
@@ -172,8 +172,8 @@ workinfo_t agressive_early_deflation_worksize(
  *
  * @ingroup computational
  */
-template <class matrix_t,
-          class vector_t,
+template <TLAPACK_SMATRIX matrix_t,
+          TLAPACK_SVECTOR vector_t,
           enable_if_t<is_complex<type_t<vector_t> >::value, int> = 0>
 void agressive_early_deflation(bool want_t,
                                bool want_z,
@@ -191,8 +191,6 @@ void agressive_early_deflation(bool want_t,
     using real_t = real_type<T>;
     using idx_t = size_type<matrix_t>;
     using pair = std::pair<idx_t, idx_t>;
-    using std::max;
-    using std::min;
 
     // Constants
     const real_t one(1);
@@ -572,8 +570,8 @@ void agressive_early_deflation(bool want_t,
  *
  * @ingroup computational
  */
-template <class matrix_t,
-          class vector_t,
+template <TLAPACK_MATRIX matrix_t,
+          TLAPACK_VECTOR vector_t,
           enable_if_t<is_complex<type_t<vector_t> >::value, int> = 0>
 inline void agressive_early_deflation(bool want_t,
                                       bool want_z,

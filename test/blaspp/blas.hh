@@ -13,14 +13,6 @@
 
 namespace blas {
 
-// using std::min;
-// using std::max;
-
-// using tlapack::real_type;
-// using tlapack::complex_type;
-// using tlapack::scalar_type;
-// using tlapack::is_complex;
-
 using tlapack::Diag;
 using tlapack::Layout;
 using tlapack::Op;

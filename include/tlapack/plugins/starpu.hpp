@@ -17,12 +17,16 @@
 namespace tlapack {
 
 // Forward declarations
-template <typename T, std::enable_if_t<is_real<T>::value, int> = 0>
+template <class T, std::enable_if_t<is_real<T>::value, int> = 0>
 inline constexpr real_type<T> real(const T& x);
-template <typename T, std::enable_if_t<is_real<T>::value, int> = 0>
+template <class T, std::enable_if_t<is_real<T>::value, int> = 0>
 inline constexpr real_type<T> imag(const T& x);
-template <typename T, std::enable_if_t<is_real<T>::value, int> = 0>
+template <class T, std::enable_if_t<is_real<T>::value, int> = 0>
 inline constexpr T conj(const T& x);
+template <class T>
+struct is_real;
+template <class T>
+struct is_complex;
 
 template <class T>
 inline constexpr real_type<T> real(const starpu::MatrixEntry<T>& x)
@@ -49,15 +53,25 @@ inline constexpr real_type<T> abs(const starpu::MatrixEntry<T>& x)
 }
 
 namespace internal {
-    template <typename T>
+    template <class T>
     struct real_type_traits<starpu::MatrixEntry<T>, int> {
         using type = real_type<T>;
     };
-    template <typename T>
+    template <class T>
     struct complex_type_traits<starpu::MatrixEntry<T>, int> {
         using type = complex_type<T>;
     };
 }  // namespace internal
+
+template <class T>
+struct is_real<starpu::MatrixEntry<T>> {
+    static constexpr bool value = is_real<T>::value;
+};
+
+template <class T>
+struct is_complex<starpu::MatrixEntry<T>> {
+    static constexpr bool value = is_complex<T>::value;
+};
 
 }  // namespace tlapack
 
@@ -238,6 +252,19 @@ constexpr auto rows(starpu::Matrix<T>& A, SliceSpec&& rows)
 {
     return slice(A, std::forward<SliceSpec>(rows),
                  std::make_tuple(0, A.ncols()));
+}
+
+template <class T>
+constexpr auto diag(const starpu::Matrix<T>& A, int diagIdx = 0)
+{
+    throw std::runtime_error("Not implemented");
+    return row(A, 0);
+}
+template <class T>
+constexpr auto diag(starpu::Matrix<T>& A, int diagIdx = 0)
+{
+    throw std::runtime_error("Not implemented");
+    return row(A, 0);
 }
 
 namespace internal {

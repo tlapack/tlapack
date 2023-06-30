@@ -12,6 +12,12 @@ cmake_minimum_required(VERSION 3.7)
 # Read project version
 file(READ version.txt version_txt)
 
+#
+# We require C++17 features like if constexpr
+# If possible, compile with C++20 so we can use concepts
+set (CMAKE_CXX_STANDARD_REQUIRED 17)
+set (CMAKE_CXX_STANDARD 20)
+
 #-------------------------------------------------------------------------------
 # <T>LAPACK project
 project(TLAPACK
@@ -38,7 +44,7 @@ include(CMakeDependentOption)
 # Includes BUILD_TESTING option
 include(CTest)
 
-# LAPACK++ interface
+# LAPACK++ wrappers
 option( USE_LAPACKPP_WRAPPERS "Use LAPACK++ wrappers to link with optimized BLAS and LAPACK libraries" OFF )
 
 cmake_dependent_option( BUILD_BLASPP_TESTS   "Build BLAS++ tests. Please inform blaspp_TEST_DIR if BUILD_BLASPP_TESTS=ON"

@@ -58,13 +58,13 @@ namespace tlapack {
  *
  * @ingroup auxiliary
  */
-template <class abs_f, class vector_t, class T = type_t<vector_t> >
+template <class abs_f, TLAPACK_VECTOR vector_t>
 void lassq(const vector_t& x,
-           real_type<T>& scale,
-           real_type<T>& sumsq,
+           real_type<type_t<vector_t>>& scale,
+           real_type<type_t<vector_t>>& sumsq,
            abs_f absF)
 {
-    using real_t = real_type<T>;
+    using real_t = real_type<type_t<vector_t>>;
     using idx_t = size_type<vector_t>;
 
     // constants
@@ -183,9 +183,12 @@ void lassq(const vector_t& x,
  *
  * @ingroup auxiliary
  */
-template <class vector_t, class T = type_t<vector_t> >
-inline void lassq(const vector_t& x, real_type<T>& scale, real_type<T>& sumsq)
+template <TLAPACK_VECTOR vector_t>
+inline void lassq(const vector_t& x,
+                  real_type<type_t<vector_t>>& scale,
+                  real_type<type_t<vector_t>>& sumsq)
 {
+    using T = type_t<vector_t>;
     return lassq(
         x, scale, sumsq,
         // Lambda function that returns the absolute value using tlapack::abs :

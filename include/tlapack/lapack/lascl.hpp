@@ -23,24 +23,24 @@ namespace tlapack {
  * Multiplication of a matrix A by scalar a/b is done without over/underflow as
  * long as the final result $a A/b$ does not over/underflow.
  *
- * @tparam access_t Type of access inside the algorithm.
- *      Either MatrixAccessPolicy or any type that implements
- *          operator MatrixAccessPolicy().
+ * @tparam uplo_t Type of access inside the algorithm.
+ *      Either Uplo or any type that implements
+ *          operator Uplo().
  * @tparam matrix_t Matrix type.
  * @tparam a_type Type of the coefficient a.
  *      a_type cannot be a complex type.
  * @tparam b_type Type of the coefficient b.
  *      b_type cannot be a complex type.
  *
- * @param[in] accessType Determines the entries of A that are scaled by a/b.
+ * @param[in] uplo Determines the entries of A that are scaled by a/b.
  *      The following access types are allowed:
- *          MatrixAccessPolicy::Dense,
- *          MatrixAccessPolicy::UpperHessenberg,
- *          MatrixAccessPolicy::LowerHessenberg,
- *          MatrixAccessPolicy::UpperTriangle,
- *          MatrixAccessPolicy::LowerTriangle,
- *          MatrixAccessPolicy::StrictUpper,
- *          MatrixAccessPolicy::StrictLower.
+ *          Uplo::General,
+ *          Uplo::UpperHessenberg,
+ *          Uplo::LowerHessenberg,
+ *          Uplo::Upper,
+ *          Uplo::Lower,
+ *          Uplo::StrictUpper,
+ *          Uplo::StrictLower.
  *
  * @param[in] b The denominator of the scalar a/b.
  * @param[in] a The numerator of the scalar a/b.
@@ -50,15 +50,15 @@ namespace tlapack {
  *
  * @ingroup auxiliary
  */
-template <class access_t,
-          class matrix_t,
-          class a_type,
-          class b_type,
+template <TLAPACK_UPLO uplo_t,
+          TLAPACK_MATRIX matrix_t,
+          TLAPACK_REAL a_type,
+          TLAPACK_REAL b_type,
           enable_if_t<(
                           /* Requires: */
                           is_real<a_type>::value && is_real<b_type>::value),
                       int> = 0>
-int lascl(access_t accessType, const b_type& b, const a_type& a, matrix_t& A)
+int lascl(uplo_t uplo, const b_type& b, const a_type& a, matrix_t& A)
 {
     // data traits
     using idx_t = size_type<matrix_t>;
@@ -73,13 +73,11 @@ int lascl(access_t accessType, const b_type& b, const a_type& a, matrix_t& A)
     const real_t big = safe_max<real_t>();
 
     // check arguments
-    tlapack_check_false((accessType != MatrixAccessPolicy::Dense) &&
-                        (accessType != MatrixAccessPolicy::UpperHessenberg) &&
-                        (accessType != MatrixAccessPolicy::LowerHessenberg) &&
-                        (accessType != MatrixAccessPolicy::UpperTriangle) &&
-                        (accessType != MatrixAccessPolicy::LowerTriangle) &&
-                        (accessType != MatrixAccessPolicy::StrictUpper) &&
-                        (accessType != MatrixAccessPolicy::StrictLower));
+    tlapack_check_false(
+        (uplo != Uplo::General) && (uplo != Uplo::UpperHessenberg) &&
+        (uplo != Uplo::LowerHessenberg) && (uplo != Uplo::Upper) &&
+        (uplo != Uplo::Lower) && (uplo != Uplo::StrictUpper) &&
+        (uplo != Uplo::StrictLower));
     tlapack_check_false((b == b_type(0)) || isnan(b));
     tlapack_check_false(isnan(a));
 
@@ -130,37 +128,37 @@ int lascl(access_t accessType, const b_type& b, const a_type& a, matrix_t& A)
             }
         }
 
-        if (accessType == MatrixAccessPolicy::UpperHessenberg) {
+        if (uplo == Uplo::UpperHessenberg) {
             for (idx_t j = 0; j < n; ++j)
                 for (idx_t i = 0; i < ((j < m) ? j + 2 : m); ++i)
                     A(i, j) *= c;
         }
-        else if (accessType == MatrixAccessPolicy::UpperTriangle) {
+        else if (uplo == Uplo::Upper) {
             for (idx_t j = 0; j < n; ++j)
                 for (idx_t i = 0; i < ((j < m) ? j + 1 : m); ++i)
                     A(i, j) *= c;
         }
-        else if (accessType == MatrixAccessPolicy::StrictUpper) {
+        else if (uplo == Uplo::StrictUpper) {
             for (idx_t j = 0; j < n; ++j)
                 for (idx_t i = 0; i < ((j < m) ? j : m); ++i)
                     A(i, j) *= c;
         }
-        else if (accessType == MatrixAccessPolicy::LowerHessenberg) {
+        else if (uplo == Uplo::LowerHessenberg) {
             for (idx_t j = 0; j < n; ++j)
                 for (idx_t i = ((j > 1) ? j - 1 : 0); i < m; ++i)
                     A(i, j) *= c;
         }
-        else if (accessType == MatrixAccessPolicy::LowerTriangle) {
+        else if (uplo == Uplo::Lower) {
             for (idx_t j = 0; j < n; ++j)
                 for (idx_t i = j; i < m; ++i)
                     A(i, j) *= c;
         }
-        else if (accessType == MatrixAccessPolicy::StrictLower) {
+        else if (uplo == Uplo::StrictLower) {
             for (idx_t j = 0; j < n; ++j)
                 for (idx_t i = j + 1; i < m; ++i)
                     A(i, j) *= c;
         }
-        else  // if ( accessType == MatrixAccessPolicy::Dense )
+        else  // if ( uplo == Uplo::General )
         {
             for (idx_t j = 0; j < n; ++j)
                 for (idx_t i = 0; i < m; ++i)
@@ -183,15 +181,15 @@ int lascl(access_t accessType, const b_type& b, const a_type& a, matrix_t& A)
  * @param[in,out] A Matrix to be scaled by a/b.
  *
  * @see lascl(
-    access_t accessType,
+    uplo_t uplo,
     const b_type& b, const a_type& a,
     const matrix_t& A )
  *
  * @ingroup auxiliary
  */
-template <class matrix_t,
-          class a_type,
-          class b_type,
+template <TLAPACK_MATRIX matrix_t,
+          TLAPACK_REAL a_type,
+          TLAPACK_REAL b_type,
           enable_if_t<(
                           /* Requires: */
                           is_real<a_type>::value && is_real<b_type>::value),
@@ -201,9 +199,6 @@ int lascl(band_t accessType, const b_type& b, const a_type& a, matrix_t& A)
     // data traits
     using idx_t = size_type<matrix_t>;
     using real_t = real_type<a_type, b_type>;
-
-    // using
-    using std::min;
 
     // constants
     const idx_t m = nrows(A);

@@ -15,7 +15,7 @@
 
 namespace tlapack {
 
-template <typename idx_t>
+template <TLAPACK_INDEX idx_t>
 struct lu_mult_opts_t {
     // Optimization parameter. Matrices smaller than nx will not
     // be multiplied using recursion. Must be at least 1.
@@ -38,7 +38,7 @@ struct lu_mult_opts_t {
  *
  * @ingroup auxiliary
  */
-template <class matrix_t>
+template <TLAPACK_SMATRIX matrix_t>
 void lu_mult(matrix_t& A, const lu_mult_opts_t<size_type<matrix_t>>& opts = {})
 {
     using idx_t = size_type<matrix_t>;

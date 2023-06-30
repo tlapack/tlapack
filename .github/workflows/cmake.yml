@@ -411,6 +411,7 @@ jobs:
       CXX: icpx
       FC: ifx
       CXXFLAGS: "-Wall -pedantic -Wno-unused-variable -Wno-unused-function -Wno-c99-extensions -fp-model=precise"
+      FFLAGS: ""
     steps:
     
     - name: Install the Basics

@@ -43,7 +43,7 @@ namespace tlapack {
  *
  * @ingroup auxiliary
  */
-template <typename matrix_t>
+template <TLAPACK_MATRIX matrix_t>
 int schur_move(bool want_q,
                matrix_t& A,
                matrix_t& Q,

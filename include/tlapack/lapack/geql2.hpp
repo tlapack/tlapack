@@ -30,7 +30,7 @@ namespace tlapack {
  *
  * @ingroup workspace_query
  */
-template <class matrix_t, class vector_t>
+template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
 inline constexpr workinfo_t geql2_worksize(const matrix_t& A,
                                            const vector_t& tau,
                                            const workspace_opts_t<>& opts = {})
@@ -86,7 +86,7 @@ inline constexpr workinfo_t geql2_worksize(const matrix_t& A,
  *
  * @ingroup computational
  */
-template <class matrix_t, class vector_t>
+template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
 int geql2(matrix_t& A, vector_t& tau, const workspace_opts_t<>& opts = {})
 {
     using idx_t = size_type<matrix_t>;

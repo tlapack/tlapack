@@ -28,15 +28,6 @@
         return out << "<Invalid>";                                        \
     }
 
-#define TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_3_VALUES(EnumClass, A, B, C)    \
-    inline std::ostream& operator<<(std::ostream& out, const EnumClass v) \
-    {                                                                     \
-        if (v == EnumClass::A) return out << #A;                          \
-        if (v == EnumClass::B) return out << #B;                          \
-        if (v == EnumClass::C) return out << #C;                          \
-        return out << "<Invalid>";                                        \
-    }
-
 #define TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_4_VALUES(EnumClass, A, B, C, D) \
     inline std::ostream& operator<<(std::ostream& out, const EnumClass v) \
     {                                                                     \
@@ -58,18 +49,23 @@
         return out << "<Invalid>";                                           \
     }
 
+#define TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_7_VALUES(EnumClass, A, B, C, D, E, \
+                                                   F, G)                     \
+    inline std::ostream& operator<<(std::ostream& out, const EnumClass v)    \
+    {                                                                        \
+        if (v == EnumClass::A) return out << #A;                             \
+        if (v == EnumClass::B) return out << #B;                             \
+        if (v == EnumClass::C) return out << #C;                             \
+        if (v == EnumClass::D) return out << #D;                             \
+        if (v == EnumClass::E) return out << #E;                             \
+        if (v == EnumClass::F) return out << #F;                             \
+        if (v == EnumClass::G) return out << #G;                             \
+        return out << "<Invalid>";                                           \
+    }
+
 // Types:
 
 namespace tlapack {
-
-namespace internal {
-
-    /// Auxiliary data type to vector increments.
-    struct StrongOne {
-        inline constexpr operator int() const { return 1; }
-        inline constexpr StrongOne(int i = 1) { assert(i == 1); }
-    };
-}  // namespace internal
 
 // -----------------------------------------------------------------------------
 // Layouts
@@ -89,8 +85,130 @@ TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_4_VALUES(
 // -----------------------------------------------------------------------------
 // Upper or Lower access
 
-enum class Uplo : char { Upper = 'U', Lower = 'L', General = 'G' };
-TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_3_VALUES(Uplo, Upper, Lower, General);
+enum class Uplo : char {
+    General = 'G',          ///< 0 <= i <= m,   0 <= j <= n.
+    Upper = 'U',            ///< 0 <= i <= j,   0 <= j <= n.
+    Lower = 'L',            ///< 0 <= i <= m,   0 <= j <= i.
+    UpperHessenberg = 'H',  ///< 0 <= i <= j+1, 0 <= j <= n.
+    LowerHessenberg = 4,    ///< 0 <= i <= m,   0 <= j <= i+1.
+    StrictUpper = 'S',      ///< 0 <= i <= j-1, 0 <= j <= n.
+    StrictLower = 6,        ///< 0 <= i <= m,   0 <= j <= i-1.
+};
+TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_7_VALUES(Uplo,
+                                           Upper,
+                                           Lower,
+                                           General,
+                                           UpperHessenberg,
+                                           LowerHessenberg,
+                                           StrictUpper,
+                                           StrictLower);
+
+/**
+ * @brief General access.
+ *
+ * Pairs (i,j) such that 0 <= i <= m,   0 <= j <= n     in a m-by-n matrix.
+ *
+ *      x x x x x
+ *      x x x x x
+ *      x x x x x
+ *      x x x x x
+ */
+struct generalAccess_t {
+    constexpr operator Uplo() const { return Uplo::General; }
+};
+
+/**
+ * @brief Upper Triangle access
+ *
+ * Pairs (i,j) such that 0 <= i <= j,   0 <= j <= n     in a m-by-n matrix.
+ *
+ *      x x x x x
+ *      0 x x x x
+ *      0 0 x x x
+ *      0 0 0 x x
+ */
+struct upperTriangle_t {
+    constexpr operator Uplo() const { return Uplo::Upper; }
+};
+
+/**
+ * @brief Lower Triangle access
+ *
+ * Pairs (i,j) such that 0 <= i <= m,   0 <= j <= i     in a m-by-n matrix.
+ *
+ *      x 0 0 0 0
+ *      x x 0 0 0
+ *      x x x 0 0
+ *      x x x x 0
+ */
+struct lowerTriangle_t {
+    constexpr operator Uplo() const { return Uplo::Lower; }
+};
+
+/**
+ * @brief Upper Hessenberg access
+ *
+ * Pairs (i,j) such that 0 <= i <= j+1, 0 <= j <= n     in a m-by-n matrix.
+ *
+ *      x x x x x
+ *      x x x x x
+ *      0 x x x x
+ *      0 0 x x x
+ */
+struct upperHessenberg_t {
+    constexpr operator Uplo() const { return Uplo::UpperHessenberg; }
+};
+
+/**
+ * @brief Lower Hessenberg access
+ *
+ * Pairs (i,j) such that 0 <= i <= m,   0 <= j <= i+1   in a m-by-n matrix.
+ *
+ *      x x 0 0 0
+ *      x x x 0 0
+ *      x x x x 0
+ *      x x x x x
+ */
+struct lowerHessenberg_t {
+    constexpr operator Uplo() const { return Uplo::LowerHessenberg; }
+};
+
+/**
+ * @brief Strict Upper Triangle access
+ *
+ * Pairs (i,j) such that 0 <= i <= j-1, 0 <= j <= n     in a m-by-n matrix.
+ *
+ *      0 x x x x
+ *      0 0 x x x
+ *      0 0 0 x x
+ *      0 0 0 0 x
+ */
+struct strictUpper_t {
+    constexpr operator Uplo() const { return Uplo::StrictUpper; }
+};
+
+/**
+ * @brief Strict Lower Triangle access
+ *
+ * Pairs (i,j) such that 0 <= i <= m,   0 <= j <= i-1   in a m-by-n matrix.
+ *
+ *      0 0 0 0 0
+ *      x 0 0 0 0
+ *      x x 0 0 0
+ *      x x x 0 0
+ */
+struct strictLower_t {
+    constexpr operator Uplo() const { return Uplo::StrictLower; }
+};
+
+// constant expressions
+constexpr generalAccess_t dense = {};
+constexpr upperHessenberg_t upperHessenberg = {};
+constexpr lowerHessenberg_t lowerHessenberg = {};
+constexpr upperTriangle_t upperTriangle = {};
+constexpr lowerTriangle_t lowerTriangle = {};
+constexpr strictUpper_t strictUpper = {};
+constexpr strictLower_t strictLower = {};
 
 // -----------------------------------------------------------------------------
 // Information about the main diagonal
@@ -116,7 +234,7 @@ enum class Op : char {
     NoTrans = 'N',
     Trans = 'T',
     ConjTrans = 'C',
-    Conj = 0  ///< non-transpose conjugate
+    Conj = 3  ///< non-transpose conjugate
 };
 TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_4_VALUES(Op, NoTrans, Trans, ConjTrans, Conj);
 
@@ -170,6 +288,9 @@ struct max_norm_t {
 struct one_norm_t {
     constexpr operator Norm() const { return Norm::One; }
 };
+struct two_norm_t {
+    constexpr operator Norm() const { return Norm::Two; }
+};
 struct inf_norm_t {
     constexpr operator Norm() const { return Norm::Inf; }
 };
@@ -180,6 +301,7 @@ struct frob_norm_t {
 // Constants
 constexpr max_norm_t max_norm = {};
 constexpr one_norm_t one_norm = {};
+constexpr two_norm_t two_norm = {};
 constexpr inf_norm_t inf_norm = {};
 constexpr frob_norm_t frob_norm = {};
 
@@ -224,150 +346,7 @@ constexpr columnwise_storage_t columnwise_storage{};
 constexpr rowwise_storage_t rowwise_storage{};
 
 // -----------------------------------------------------------------------------
-// Access policies
-
-/**
- * @brief Matrix access policies
- *
- * They are used:
- *
- * (1) on the data structure for a matrix, to state the what pairs (i,j)
- * return a valid position A(i,j), where A is a m-by-n matrix.
- *
- * (2) on the algorithm, to determine the kind of access
- * required by the algorithm.
- */
-enum class MatrixAccessPolicy {
-    Dense = 'G',            ///< 0 <= i <= m,   0 <= j <= n.
-    UpperHessenberg = 'H',  ///< 0 <= i <= j+1, 0 <= j <= n.
-    LowerHessenberg = 'h',  ///< 0 <= i <= m,   0 <= j <= i+1.
-    UpperTriangle = 'U',    ///< 0 <= i <= j,   0 <= j <= n.
-    LowerTriangle = 'L',    ///< 0 <= i <= m,   0 <= j <= i.
-    StrictUpper = 'S',      ///< 0 <= i <= j-1, 0 <= j <= n.
-    StrictLower = 's',      ///< 0 <= i <= m,   0 <= j <= i-1.
-};
-
-/**
- * @brief Dense access.
- *
- * Pairs (i,j) such that 0 <= i <= m,   0 <= j <= n     in a m-by-n matrix.
- *
- *      x x x x x
- *      x x x x x
- *      x x x x x
- *      x x x x x
- */
-struct dense_t {
-    constexpr operator Uplo() const { return Uplo::General; }
-    constexpr operator MatrixAccessPolicy() const
-    {
-        return MatrixAccessPolicy::Dense;
-    }
-};
-
-/**
- * @brief Upper Hessenberg access
- *
- * Pairs (i,j) such that 0 <= i <= j+1, 0 <= j <= n     in a m-by-n matrix.
- *
- *      x x x x x
- *      x x x x x
- *      0 x x x x
- *      0 0 x x x
- */
-struct upperHessenberg_t : public dense_t {
-    constexpr operator MatrixAccessPolicy() const
-    {
-        return MatrixAccessPolicy::UpperHessenberg;
-    }
-};
-
-/**
- * @brief Lower Hessenberg access
- *
- * Pairs (i,j) such that 0 <= i <= m,   0 <= j <= i+1   in a m-by-n matrix.
- *
- *      x x 0 0 0
- *      x x x 0 0
- *      x x x x 0
- *      x x x x x
- */
-struct lowerHessenberg_t : public dense_t {
-    constexpr operator MatrixAccessPolicy() const
-    {
-        return MatrixAccessPolicy::LowerHessenberg;
-    }
-};
-
-/**
- * @brief Upper Triangle access
- *
- * Pairs (i,j) such that 0 <= i <= j,   0 <= j <= n     in a m-by-n matrix.
- *
- *      x x x x x
- *      0 x x x x
- *      0 0 x x x
- *      0 0 0 x x
- */
-struct upperTriangle_t : public upperHessenberg_t {
-    constexpr operator Uplo() const { return Uplo::Upper; }
-    constexpr operator MatrixAccessPolicy() const
-    {
-        return MatrixAccessPolicy::UpperTriangle;
-    }
-};
-
-/**
- * @brief Lower Triangle access
- *
- * Pairs (i,j) such that 0 <= i <= m,   0 <= j <= i     in a m-by-n matrix.
- *
- *      x 0 0 0 0
- *      x x 0 0 0
- *      x x x 0 0
- *      x x x x 0
- */
-struct lowerTriangle_t : public lowerHessenberg_t {
-    constexpr operator Uplo() const { return Uplo::Lower; }
-    constexpr operator MatrixAccessPolicy() const
-    {
-        return MatrixAccessPolicy::LowerTriangle;
-    }
-};
-
-/**
- * @brief Strict Upper Triangle access
- *
- * Pairs (i,j) such that 0 <= i <= j-1, 0 <= j <= n     in a m-by-n matrix.
- *
- *      0 x x x x
- *      0 0 x x x
- *      0 0 0 x x
- *      0 0 0 0 x
- */
-struct strictUpper_t : public upperTriangle_t {
-    constexpr operator MatrixAccessPolicy() const
-    {
-        return MatrixAccessPolicy::StrictUpper;
-    }
-};
-
-/**
- * @brief Strict Lower Triangle access
- *
- * Pairs (i,j) such that 0 <= i <= m,   0 <= j <= i-1   in a m-by-n matrix.
- *
- *      0 0 0 0 0
- *      x 0 0 0 0
- *      x x 0 0 0
- *      x x x 0 0
- */
-struct strictLower_t : public lowerTriangle_t {
-    constexpr operator MatrixAccessPolicy() const
-    {
-        return MatrixAccessPolicy::StrictLower;
-    }
-};
+// Band access
 
 /**
  * @brief Band access
@@ -380,7 +359,7 @@ struct strictLower_t : public lowerTriangle_t {
  *      0 x x x x
  *      0 0 x x x
  */
-struct band_t : dense_t {
+struct band_t {
     std::size_t lower_bandwidth;  ///< Number of subdiagonals.
     std::size_t upper_bandwidth;  ///< Number of superdiagonals.
 
@@ -389,41 +368,14 @@ struct band_t : dense_t {
     {}
 };
 
-// constant expressions
-constexpr dense_t dense = {};
-constexpr upperHessenberg_t upperHessenberg = {};
-constexpr lowerHessenberg_t lowerHessenberg = {};
-constexpr upperTriangle_t upperTriangle = {};
-constexpr lowerTriangle_t lowerTriangle = {};
-constexpr strictUpper_t strictUpper = {};
-constexpr strictLower_t strictLower = {};
-
 }  // namespace tlapack
 
 #undef TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_2_VALUES
-#undef TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_3_VALUES
 #undef TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_4_VALUES
 #undef TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_5_VALUES
+#undef TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_7_VALUES
 
 namespace tlapack {
-
-template <class T, class>
-struct is_arithmetic {
-    static constexpr bool value = false;
-};
-
-template <class T>
-inline constexpr bool is_arithmetic_v = is_arithmetic<T, int>::value;
-
-// specialization for standard arithmetic types
-template <class T>
-struct is_arithmetic<
-    T,
-    typename std::enable_if<
-        std::is_arithmetic<typename std::decay<T>::type>::value,
-        int>::type> {
-    static constexpr bool value = true;
-};
 
 // -----------------------------------------------------------------------------
 // for any combination of types, determine associated real, scalar,
@@ -489,11 +441,11 @@ struct is_complex {
 
 namespace internal {
 
-    // for one arithmetic type
+    // for one std arithmetic type
     template <typename T>
     struct real_type_traits<
         T,
-        std::enable_if_t<is_arithmetic_v<T> && !std::is_const_v<T>, int>> {
+        std::enable_if_t<std::is_arithmetic_v<T> && !std::is_const_v<T>, int>> {
         using type = typename std::decay<T>::type;
     };
 
@@ -524,11 +476,11 @@ namespace internal {
                                typename real_type_traits<T2, Types...>::type>;
     };
 
-    // for one arithmetic type
+    // for one std arithmetic type
     template <typename T>
     struct complex_type_traits<
         T,
-        std::enable_if_t<is_arithmetic_v<T> && !std::is_const_v<T>, int>> {
+        std::enable_if_t<std::is_arithmetic_v<T> && !std::is_const_v<T>, int>> {
         using type = std::complex<real_type<T>>;
     };
 

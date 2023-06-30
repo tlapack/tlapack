@@ -21,7 +21,7 @@ namespace tlapack {
 /**
  * Options struct for gelqf
  */
-template <class idx_t = size_t>
+template <TLAPACK_INDEX idx_t = size_t>
 struct gelqf_opts_t : public workspace_opts_t<> {
     inline constexpr gelqf_opts_t(const workspace_opts_t<>& opts = {})
         : workspace_opts_t<>(opts){};
@@ -41,7 +41,7 @@ struct gelqf_opts_t : public workspace_opts_t<> {
  *
  * @ingroup workspace_query
  */
-template <typename A_t, typename tau_t>
+template <TLAPACK_SMATRIX A_t, TLAPACK_SVECTOR tau_t>
 inline constexpr workinfo_t gelqf_worksize(
     const A_t& A,
     const tau_t& tau,
@@ -106,7 +106,7 @@ inline constexpr workinfo_t gelqf_worksize(
  *
  * @ingroup computational
  */
-template <typename A_t, typename tau_t>
+template <TLAPACK_SMATRIX A_t, TLAPACK_SVECTOR tau_t>
 int gelqf(A_t& A, tau_t& tau, const gelqf_opts_t<size_type<A_t>>& opts = {})
 {
     Create<A_t> new_matrix;

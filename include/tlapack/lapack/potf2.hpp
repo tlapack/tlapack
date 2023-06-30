@@ -52,8 +52,8 @@ namespace tlapack {
  *
  * @ingroup computational
  */
-template <class uplo_t,
-          class matrix_t,
+template <TLAPACK_UPLO uplo_t,
+          TLAPACK_SMATRIX matrix_t,
           disable_if_allow_optblas_t<matrix_t> = 0>
 int potf2(uplo_t uplo, matrix_t& A)
 {
@@ -152,7 +152,9 @@ int potf2(uplo_t uplo, matrix_t& A)
 
 #ifdef USE_LAPACKPP_WRAPPERS
 
-template <class uplo_t, class matrix_t, enable_if_allow_optblas_t<matrix_t> = 0>
+template <TLAPACK_UPLO uplo_t,
+          TLAPACK_SMATRIX matrix_t,
+          enable_if_allow_optblas_t<matrix_t> = 0>
 int potf2(uplo_t uplo, matrix_t& A)
 {
     // Legacy objects

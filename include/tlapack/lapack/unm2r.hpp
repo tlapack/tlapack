@@ -44,11 +44,11 @@ namespace tlapack {
  *
  * @ingroup workspace_query
  */
-template <class matrixA_t,
-          class matrixC_t,
-          class tau_t,
-          class side_t,
-          class trans_t>
+template <TLAPACK_SMATRIX matrixA_t,
+          TLAPACK_SMATRIX matrixC_t,
+          TLAPACK_VECTOR tau_t,
+          TLAPACK_SIDE side_t,
+          TLAPACK_OP trans_t>
 inline constexpr workinfo_t unm2r_worksize(side_t side,
                                            trans_t trans,
                                            const matrixA_t& A,
@@ -123,11 +123,11 @@ inline constexpr workinfo_t unm2r_worksize(side_t side,
  *
  * @ingroup computational
  */
-template <class matrixA_t,
-          class matrixC_t,
-          class tau_t,
-          class side_t,
-          class trans_t>
+template <TLAPACK_SMATRIX matrixA_t,
+          TLAPACK_SMATRIX matrixC_t,
+          TLAPACK_VECTOR tau_t,
+          TLAPACK_SIDE side_t,
+          TLAPACK_OP trans_t>
 int unm2r(side_t side,
           trans_t trans,
           const matrixA_t& A,

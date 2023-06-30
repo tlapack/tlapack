@@ -31,7 +31,7 @@ namespace tlapack {
  *
  * @ingroup auxiliary
  */
-template <typename real_t,
+template <TLAPACK_REAL real_t,
           enable_if_t<(
                           /* Requires: */
                           is_real<real_t>::value),
@@ -138,7 +138,7 @@ void ladiv(const real_t& a,
  *
  * @ingroup auxiliary
  */
-template <typename T, enable_if_t<is_complex<T>::value, int> = 0>
+template <TLAPACK_COMPLEX T, enable_if_t<is_complex<T>::value, int> = 0>
 inline T ladiv(const T& x, const T& y)
 {
     real_type<T> zr, zi;

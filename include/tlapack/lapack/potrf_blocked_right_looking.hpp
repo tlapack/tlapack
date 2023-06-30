@@ -58,7 +58,7 @@ namespace tlapack {
  *
  * @ingroup computational
  */
-template <class uplo_t, class matrix_t>
+template <TLAPACK_UPLO uplo_t, TLAPACK_SMATRIX matrix_t>
 int potrf_rl(uplo_t uplo,
              matrix_t& A,
              const potrf_blocked_opts_t<size_type<matrix_t> >& opts = {})
@@ -67,8 +67,6 @@ int potrf_rl(uplo_t uplo,
     using real_t = real_type<T>;
     using idx_t = size_type<matrix_t>;
     using pair = pair<idx_t, idx_t>;
-
-    using std::min;
 
     // Constants
     const real_t one(1);

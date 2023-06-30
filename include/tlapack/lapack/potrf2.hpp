@@ -69,7 +69,7 @@ namespace tlapack {
  *
  * @ingroup computational
  */
-template <class uplo_t, class matrix_t>
+template <TLAPACK_UPLO uplo_t, TLAPACK_SMATRIX matrix_t>
 int potrf2(uplo_t uplo, matrix_t& A, const ec_opts_t& opts = {})
 {
     using T = type_t<matrix_t>;

@@ -39,7 +39,7 @@ namespace tlapack {
  *
  * @ingroup workspace_query
  */
-template <class norm_t, class uplo_t, class matrix_t>
+template <TLAPACK_NORM norm_t, TLAPACK_UPLO uplo_t, TLAPACK_SMATRIX matrix_t>
 inline constexpr workinfo_t lansy_worksize(norm_t normType,
                                            uplo_t uplo,
                                            const matrix_t& A)
@@ -71,7 +71,7 @@ inline constexpr workinfo_t lansy_worksize(norm_t normType,
  *
  * @ingroup workspace_query
  */
-template <class norm_t, class uplo_t, class matrix_t>
+template <TLAPACK_NORM norm_t, TLAPACK_UPLO uplo_t, TLAPACK_MATRIX matrix_t>
 inline constexpr workinfo_t lansy_worksize(norm_t normType,
                                            uplo_t uplo,
                                            const matrix_t& A,
@@ -109,7 +109,7 @@ inline constexpr workinfo_t lansy_worksize(norm_t normType,
  *
  * @ingroup auxiliary
  */
-template <class norm_t, class uplo_t, class matrix_t>
+template <TLAPACK_NORM norm_t, TLAPACK_UPLO uplo_t, TLAPACK_SMATRIX matrix_t>
 auto lansy(norm_t normType, uplo_t uplo, const matrix_t& A)
 {
     using T = type_t<matrix_t>;
@@ -251,7 +251,7 @@ auto lansy(norm_t normType, uplo_t uplo, const matrix_t& A)
  *
  * @ingroup auxiliary
  */
-template <class norm_t, class uplo_t, class matrix_t>
+template <TLAPACK_NORM norm_t, TLAPACK_UPLO uplo_t, TLAPACK_MATRIX matrix_t>
 auto lansy(norm_t normType,
            uplo_t uplo,
            const matrix_t& A,

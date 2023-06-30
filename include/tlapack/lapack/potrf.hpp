@@ -26,7 +26,7 @@ enum class PotrfVariant : char {
     RightLooking
 };
 
-template <typename idx_t>
+template <TLAPACK_INDEX idx_t>
 struct potrf_opts_t : public potrf_blocked_opts_t<idx_t> {
     inline constexpr potrf_opts_t(const ec_opts_t& opts = {})
         : potrf_blocked_opts_t<idx_t>(opts){};
@@ -74,7 +74,7 @@ struct potrf_opts_t : public potrf_blocked_opts_t<idx_t> {
  *
  * @ingroup computational
  */
-template <class uplo_t, class matrix_t>
+template <TLAPACK_UPLO uplo_t, TLAPACK_MATRIX matrix_t>
 inline int potrf(uplo_t uplo,
                  matrix_t& A,
                  const potrf_opts_t<size_type<matrix_t> >& opts = {})

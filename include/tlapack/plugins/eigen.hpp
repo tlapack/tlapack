@@ -18,56 +18,6 @@
 
 namespace tlapack {
 
-template <>
-struct is_arithmetic<Eigen::half, int> {
-    static constexpr bool value = true;
-};
-
-// Forward declarations
-template <typename T>
-T abs(const T& x);
-template <typename T>
-bool isnan(const std::complex<T>& x);
-template <typename T>
-bool isinf(const std::complex<T>& x);
-
-/// Absolute value
-template <>
-inline Eigen::half abs(const Eigen::half& x)
-{
-    return Eigen::half_impl::abs(x);
-}
-
-inline auto pow(int base, const Eigen::half& exp)
-{
-    return pow(Eigen::half(base), exp);
-}
-
-std::complex<Eigen::half> sqrt(const std::complex<Eigen::half>& z)
-{
-    const Eigen::half x = real(z);
-    const Eigen::half y = imag(z);
-    const Eigen::half zero(0);
-    const Eigen::half two(2);
-    const Eigen::half half(0.5);
-
-    if (isnan(z))
-        return std::numeric_limits<Eigen::half>::quiet_NaN();
-    else if (isinf(z))
-        return std::numeric_limits<Eigen::half>::infinity();
-    else if (x == zero) {
-        Eigen::half t = sqrt(half * abs(y));
-        return std::complex<Eigen::half>(t, (y < zero) ? -t : t);
-    }
-    else {
-        Eigen::half t = sqrt(two * (std::abs(z) + abs(x)));
-        Eigen::half u = half * t;
-        return (x > zero)
-                   ? std::complex<Eigen::half>(u, y / t)
-                   : std::complex<Eigen::half>(abs(y) / t, (y < zero) ? -u : u);
-    }
-}
-
 // -----------------------------------------------------------------------------
 // Helpers
 

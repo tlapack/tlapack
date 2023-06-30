@@ -70,7 +70,6 @@ namespace legacy {
     {
         using internal::create_banded_matrix;
         using internal::create_matrix;
-        using std::max;
 
         // check arguments
         tlapack_check_false((matrixtype != MatrixType::General) &&
@@ -120,17 +119,17 @@ namespace legacy {
             auto A_ = create_matrix<T>(A, m, n, lda);
 
             if (matrixtype == MatrixType::General) {
-                return lascl(MatrixAccessPolicy::Dense, b, a, A_);
+                return lascl(Uplo::General, b, a, A_);
             }
             else if (matrixtype == MatrixType::Lower) {
-                return lascl(MatrixAccessPolicy::LowerTriangle, b, a, A_);
+                return lascl(Uplo::Lower, b, a, A_);
             }
             else if (matrixtype == MatrixType::Upper) {
-                return lascl(MatrixAccessPolicy::UpperTriangle, b, a, A_);
+                return lascl(Uplo::Upper, b, a, A_);
             }
             else  // if (matrixtype == MatrixType::Hessenberg)
             {
-                return lascl(MatrixAccessPolicy::UpperHessenberg, b, a, A_);
+                return lascl(Uplo::UpperHessenberg, b, a, A_);
             }
         }
     }

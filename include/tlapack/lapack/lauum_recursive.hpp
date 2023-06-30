@@ -7,8 +7,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef TLAPACK_LAUUM_RECURSIVETLAPACK_
-#define TLAPACK_LAUUM_RECURSIVETLAPACK_
+#ifndef TLAPACK_LAUUM_RECURSIVETLAPACK_HH
+#define TLAPACK_LAUUM_RECURSIVETLAPACK_HH
 
 #include "tlapack/base/utils.hpp"
 #include "tlapack/blas/trmm.hpp"
@@ -41,7 +41,7 @@ namespace tlapack {
  * @todo: implement nx to bail out of recursion before 1-by-1 case
  *
  */
-template <typename matrix_t>
+template <TLAPACK_SMATRIX matrix_t>
 int lauum_recursive(const Uplo& uplo, matrix_t& C)
 
 {
@@ -101,4 +101,4 @@ int lauum_recursive(const Uplo& uplo, matrix_t& C)
 
 }  // namespace tlapack
 
-#endif  // TLAPACK_LAUUM_RECURSIVETLAPACK_
+#endif  // TLAPACK_LAUUM_RECURSIVETLAPACK_HH

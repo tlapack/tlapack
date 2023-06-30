@@ -77,7 +77,6 @@ namespace blas {
             case Layout::RowMajor: return "row";
             default:               return "";
         }
-        return "";
     }
 
     inline const char* op2str( Op op )
@@ -96,8 +95,8 @@ namespace blas {
             case Uplo::Lower:   return "lower";
             case Uplo::Upper:   return "upper";
             case Uplo::General: return "general";
+            default:            return "";
         }
-        return "";
     }
 
     inline const char* diag2str( Diag diag )
@@ -171,6 +170,29 @@ namespace blas {
         return Format( format );
     }
 
+    // max
+    template <typename T1, typename T2>
+    inline scalar_type<T1, T2> max(const T1& x, const T2& y)
+    {
+        return (x >= y ? x : y);
+    }
+    template <typename T1, typename T2, typename... Types>
+    inline scalar_type<T1, T2, Types...> max(const T1& first, const T2& second, const Types&... args)
+    {
+        return max(first, max(second, args...));
+    }
+
+    // min
+    template <typename T1, typename T2>
+    inline scalar_type<T1, T2> min(const T1& x, const T2& y)
+    {
+        return (x <= y ? x : y);
+    }
+    template <typename T1, typename T2, typename... Types>
+    inline scalar_type<T1, T2, Types...> min(const T1& first, const T2& second, const Types&... args)
+    {
+        return min(first, min(second, args...));
+    }
 }
 
 using blas::uplo2char;

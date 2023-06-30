@@ -17,6 +17,7 @@
 #define TLAPACK_PREFERRED_MATRIX_LEGACY
 #ifdef TLAPACK_TEST_EIGEN
     #include <tlapack/plugins/eigen.hpp>
+    #include <tlapack/plugins/eigen_half.hpp>
 #endif
 #ifdef TLAPACK_TEST_MDSPAN
     #include <tlapack/plugins/mdspan.hpp>

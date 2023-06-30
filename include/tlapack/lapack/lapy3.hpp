@@ -28,9 +28,9 @@ namespace tlapack {
  *
  * @ingroup auxiliary
  */
-template <class TX,
-          class TY,
-          class TZ,
+template <TLAPACK_REAL TX,
+          TLAPACK_REAL TY,
+          TLAPACK_REAL TZ,
           enable_if_t<(
                           /* Requires: */
                           is_real<TX>::value && is_real<TY>::value &&
@@ -46,7 +46,7 @@ real_type<TX, TY, TZ> lapy3(const TX& x, const TY& y, const TZ& z)
     const TX xabs = abs(x);
     const TY yabs = abs(y);
     const TZ zabs = abs(z);
-    const real_t w = max(xabs, yabs, zabs);
+    const real_t w = max(xabs, max(yabs, zabs));
 
     return (w == zero)
                // W can be zero for max(0,nan,0)

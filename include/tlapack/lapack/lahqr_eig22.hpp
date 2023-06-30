@@ -30,7 +30,7 @@ namespace tlapack {
  *
  * @ingroup auxiliary
  */
-template <typename T>
+template <TLAPACK_SCALAR T>
 void lahqr_eig22(
     T a00, T a01, T a10, T a11, complex_type<T>& s1, complex_type<T>& s2)
 {

@@ -39,9 +39,9 @@ namespace tlapack {
  *
  * @ingroup blas2
  */
-template <class matrixA_t,
-          class vectorX_t,
-          class alpha_t,
+template <TLAPACK_MATRIX matrixA_t,
+          TLAPACK_VECTOR vectorX_t,
+          TLAPACK_REAL alpha_t,
           enable_if_t<(
                           /* Requires: */
                           is_real<alpha_t>::value),
@@ -86,9 +86,9 @@ void her(Uplo uplo, const alpha_t& alpha, const vectorX_t& x, matrixA_t& A)
 
 #ifdef USE_LAPACKPP_WRAPPERS
 
-template <class matrixA_t,
-          class vectorX_t,
-          class alpha_t,
+template <TLAPACK_MATRIX matrixA_t,
+          TLAPACK_VECTOR vectorX_t,
+          TLAPACK_REAL alpha_t,
           class T = type_t<matrixA_t>,
           enable_if_allow_optblas_t<pair<alpha_t, real_type<T> >,
                                     pair<matrixA_t, T>,
