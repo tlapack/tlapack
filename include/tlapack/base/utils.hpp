@@ -305,7 +305,7 @@ bool hasinf(uplo_t uplo, const matrix_t& A)
  * Returns true if and only if A has an infinite entry.
  *
  * Specific implementation for band access types.
- * @see hasinf( uplo_t accessType, const matrix_t& A ).
+ * @see tlapack::hasinf(uplo_t uplo, const matrix_t& A).
  */
 template <TLAPACK_MATRIX matrix_t>
 bool hasinf(band_t accessType, const matrix_t& A)
@@ -433,7 +433,7 @@ bool hasnan(uplo_t uplo, const matrix_t& A)
  * Returns true if and only if A has an NaN entry.
  *
  * Specific implementation for band access types.
- * @see hasnan( uplo_t accessType, const matrix_t& A ).
+ * @see tlapack::hasnan(uplo_t uplo, const matrix_t& A).
  */
 template <TLAPACK_MATRIX matrix_t>
 bool hasnan(band_t accessType, const matrix_t& A)

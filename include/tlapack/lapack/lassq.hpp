@@ -169,11 +169,10 @@ void lassq(const vector_t& x,
  * \[
  *      scl smsq := \sum_{i = 0}^n |x_i|^2 + scale^2 sumsq.
  * \]
- * @see lassq(
-    const vector_t& x,
-    real_type<T> &scale,
-    real_type<T> &sumsq,
-    abs_f absF ).
+ * @see lassq(const vector_t& x,
+           real_type<type_t<vector_t>>& scale,
+           real_type<type_t<vector_t>>& sumsq,
+           abs_f absF).
  *
  * Specific implementation using
  * \code{.cpp}

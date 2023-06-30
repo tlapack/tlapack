@@ -47,8 +47,8 @@ struct iamax_opts_t : public ec_opts_t {
  * @brief Return $\arg\max_{i=0}^{n-1} |x_i|$
  *
  * Version with NaN checks.
- * @see iamax_nc( const vector_t& x ) for the version that does not check for
- * NaNs.
+ * @see iamax_nc(const vector_t& x, abs_f absf) for the version that does not
+ * check for NaNs.
  *
  * @param[in] x The n-element vector x.
  *
@@ -138,7 +138,8 @@ size_type<vector_t> iamax_ec(const vector_t& x, abs_f absf)
  * @brief Return $\arg\max_{i=0}^{n-1} |x_i|$
  *
  * Version with no NaN checks.
- * @see iamax_ec( const vector_t& x ) for the version that check for NaNs.
+ * @see iamax_ec(const vector_t& x, abs_f absf) for the version that check for
+ * NaNs.
  *
  * @param[in] x The n-element vector x.
  *

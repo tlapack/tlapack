@@ -70,13 +70,15 @@ inline void swap(vectorX_t& x, vectorY_t& y)
 /**
  * Swap vectors, $x <=> y$.
  *
- * @see swap( vectorX_t& x, vectorY_t& y )
+ * @see tlapack::swap(vectorX_t& x, vectorY_t& y)
  *
  * @note This overload avoids unexpected behavior as follows.
  *      Without it, the unspecialized call `swap( x, y )` using arrays with
  *      `std::complex` entries would call `std::swap`, while `swap( x, y )`
  *      using arrays with float or double entries would call `tlapack::swap`.
  *      Use @c tlapack::swap(x,y) instead of @c swap(x,y) .
+ *
+ * @ingroup blas1
  */
 template <TLAPACK_VECTOR vector_t>
 inline void swap(vector_t& x, vector_t& y)
