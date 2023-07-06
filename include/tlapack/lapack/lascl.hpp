@@ -180,10 +180,7 @@ int lascl(uplo_t uplo, const b_type& b, const a_type& a, matrix_t& A)
  * @param[in] a The numerator of the scalar a/b.
  * @param[in,out] A Matrix to be scaled by a/b.
  *
- * @see lascl(
-    uplo_t uplo,
-    const b_type& b, const a_type& a,
-    const matrix_t& A )
+ * @see lascl(uplo_t uplo, const b_type& b, const a_type& a, matrix_t& A)
  *
  * @ingroup auxiliary
  */
