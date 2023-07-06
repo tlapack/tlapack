@@ -600,74 +600,118 @@ namespace concepts {
         ->std::convertible_to<size_type<vector_t>>;
     };
 
-    // // Matrix and vector types that can be created
+    // Matrix and vector types that can be created
 
-    // template <typename array_t>
-    // concept ConstructableArray = requires()
-    // {
-    //     {
-    //         Create<matrix_type<array_t>>()(std::vector<type_t<array_t>>(1),
-    //         2,
-    //                                        3)
-    //     }
-    //     ->Matrix<>;
-    //     {
-    //         Create<vector_type<array_t>>()(std::vector<type_t<array_t>>(1),
-    //         2)
-    //     }
-    //     ->Vector<>;
-    // };
+    /** @interface tlapack::concepts::ConstructableArray
+     * @brief Concept for arrays that implement tlapack::traits::CreateFunctor.
+     *
+     * A constructable array must provide implementations of the functor
+     * tlapack::traits::CreateFunctor for the types
+     * tlapack::matrix_type<array_t> and tlapack::vector_type<array_t>. These
+     * functors must provide the method @c operator()(std::vector<T>&, size_t,
+     * size_t) for matrices and @c operator()(std::vector<T>&, size_t) for
+     * vectors, where T = tlapack::type_t<array_t>. These operators receive a
+     * std::vector of the appropriate type and the dimensions of the array to be
+     * created. The output of the functor is a matrix or vector of type
+     * tlapack::matrix_type<array_t> or tlapack::vector_type<array_t>,
+     * respectively.
+     *
+     * @tparam array_t Matrix or vector type.
+     *
+     * @ingroup concepts
+     */
+    template <typename array_t>
+    concept ConstructableArray = Matrix<matrix_type<array_t>>&&
+        Vector<vector_type<array_t>>&& requires(std::vector<type_t<array_t>>& v)
+    {
+        {
+            Create<matrix_type<array_t>>()(v, 2, 3)
+        }
+        ->Matrix<>;
+        {
+            Create<vector_type<array_t>>()(v, 2)
+        }
+        ->Vector<>;
+    };
 
-    // template <typename matrix_t>
-    // concept ConstructableMatrix =
-    //     Matrix<matrix_t>&& ConstructableArray<matrix_t>&& requires()
-    // {
-    //     {
-    //         Create<matrix_t>()(std::vector<type_t<matrix_t>>(1), 2, 3)
-    //     }
-    //     ->Matrix<>;
-    // };
+    /** @interface tlapack::concepts::ConstructableMatrix
+     * @brief Concept for matrices that implement
+     * tlapack::traits::CreateFunctor.
+     *
+     * A constructable matrix must provide an implementation of the functor
+     * tlapack::traits::CreateFunctor for the type @c matrix_t. This functor
+     * must provide the method @c operator()(std::vector<T>&, size_t, size_t),
+     * where T = tlapack::type_t<matrix_t>. This operator receives a
+     * std::vector of the appropriate type and the dimensions of the matrix to
+     * be created. The output of the functor is a matrix of type @c matrix_t.
+     * Moreover, a constructable matrix must also satisfy the concept
+     * tlapack::concepts::ConstructableArray.
+     *
+     * @tparam matrix_t Matrix type.
+     *
+     * @ingroup concepts
+     */
+    template <typename matrix_t>
+    concept ConstructableMatrix =
+        Matrix<matrix_t>&& ConstructableArray<matrix_t>&& requires(
+            std::vector<type_t<matrix_t>>& v)
+    {
+        {
+            Create<matrix_t>()(v, 2, 3)
+        }
+        ->Matrix<>;
+    };
 
-    // template <typename vector_t>
-    // concept ConstructableVector =
-    //     Vector<vector_t>&& ConstructableVector<vector_t>&& requires()
-    // {
-    //     {
-    //         Create<vector_t>()(std::vector<type_t<vector_t>>(1), 2)
-    //     }
-    //     ->Vector<>;
-    // };
+    /** @interface tlapack::concepts::ConstructableAndSliceableMatrix
+     * @brief Concept for matrices that satisfy
+     * tlapack::concepts::ConstructableMatrix and
+     * tlapack::concepts::SliceableMatrix.
+     *
+     * @tparam matrix_t Matrix type.
+     *
+     * @ingroup concepts
+     */
+    template <typename matrix_t>
+    concept ConstructableAndSliceableMatrix =
+        SliceableMatrix<matrix_t>&& ConstructableMatrix<matrix_t>;
 
-    // // Matrix and vector types that can be created from a workspace
+    /** @interface tlapack::concepts::ConstructableVector
+     * @brief Concept for vectors that implement tlapack::traits::CreateFunctor.
+     *
+     * A constructable vector must provide an implementation of the functor
+     * tlapack::traits::CreateFunctor for the type @c vector_t. This functor
+     * must provide the method @c operator()(std::vector<T>&, size_t), where
+     * T = tlapack::type_t<vector_t>. This operator receives a std::vector of
+     * the appropriate type and the dimensions of the vector to be created. The
+     * output of the functor is a vector of type @c vector_t. Moreover, a
+     * constructable vector must also satisfy the concept
+     * tlapack::concepts::ConstructableArray.
+     *
+     * @tparam matrix_t
+     */
+    template <typename vector_t>
+    concept ConstructableVector =
+        Vector<vector_t>&& ConstructableArray<vector_t>&& requires(
+            std::vector<type_t<vector_t>>& v)
+    {
+        {
+            Create<vector_t>()(v, 2)
+        }
+        ->Vector<>;
+    };
 
-    // template <typename matrix_t>
-    // concept WorkspaceMatrix = Matrix<matrix_t>&& requires(Workspace& work)
-    // {
-    //     {
-    //         Create<matrix_t>()(Workspace(), 2, 3)
-    //     }
-    //     ->Matrix<>;
-    //     {
-    //         Create<matrix_t>()(Workspace(), 2, 3, work)
-    //     }
-    //     ->Matrix<>;
-    // };
-
-    // template <typename vector_t>
-    // concept WorkspaceVector = Vector<vector_t>&& requires(Workspace& work)
-    // {
-    //     {
-    //         Create<vector_t>()(Workspace(), 2)
-    //     }
-    //     ->Vector<>;
-    //     {
-    //         Create<vector_t>()(Workspace(), 2, work)
-    //     }
-    //     ->Vector<>;
-    // };
-
-    // Create<> matrix_type<...> transpose_type<> vector_type<...> real_type<>
-    //     complex_type<>
+    /** @interface tlapack::concepts::ConstructableAndSliceableVector
+     * @brief Concept for vectors that satisfy
+     * tlapack::concepts::ConstructableVector and
+     * tlapack::concepts::SliceableVector.
+     *
+     * @tparam vector_t Vector type.
+     *
+     * @ingroup concepts
+     */
+    template <typename vector_t>
+    concept ConstructableAndSliceableVector =
+        SliceableVector<vector_t>&& ConstructableVector<vector_t>;
 
 }  // namespace concepts
 }  // namespace tlapack
@@ -726,21 +770,19 @@ namespace concepts {
     /// Macro for tlapack::concepts::LegacyVector compatible with C++17.
     #define TLAPACK_LEGACY_VECTOR tlapack::concepts::LegacyVector
 
-    // /// Macro for tlapack::concepts::ConstructableMatrix compatible with
-    // /// C++17.
-    // #define TLAPACK_CONSTRUCTABLE_MATRIX
-    // tlapack::concepts::ConstructableMatrix
+    /// Macro for tlapack::concepts::ConstructableMatrix compatible with C++17.
+    #define TLAPACK_CMATRIX tlapack::concepts::ConstructableMatrix
 
-    // /// Macro for tlapack::concepts::ConstructableVector compatible with
-    // /// C++17.
-    // #define TLAPACK_CONSTRUCTABLE_VECTOR
-    // tlapack::concepts::ConstructableVector
+    /// Macro for tlapack::concepts::ConstructableAndSliceableMatrix compatible
+    /// with C++17.
+    #define TLAPACK_CSMATRIX tlapack::concepts::ConstructableAndSliceableMatrix
 
-    // /// Macro for tlapack::concepts::WorkspaceMatrix compatible with C++17.
-    // #define TLAPACK_WORKSPACE_MATRIX tlapack::concepts::WorkspaceMatrix
+    /// Macro for tlapack::concepts::ConstructableVector compatible with C++17.
+    #define TLAPACK_CVECTOR tlapack::concepts::ConstructableVector
 
-    // /// Macro for tlapack::concepts::WorkspaceVector compatible with C++17.
-    // #define TLAPACK_WORKSPACE_VECTOR tlapack::concepts::WorkspaceVector
+    /// Macro for tlapack::concepts::ConstructableAndSliceableVector compatible
+    /// with C++17.
+    #define TLAPACK_CSVECTOR tlapack::concepts::ConstructableAndSliceableVector
 #else
     // Concepts are a C++20 feature, so just define them as `class` for earlier
     // versions
@@ -767,11 +809,10 @@ namespace concepts {
     #define TLAPACK_LEGACY_MATRIX class
     #define TLAPACK_LEGACY_VECTOR class
 
-    // #define TLAPACK_CONSTRUCTABLE_MATRIX class
-    // #define TLAPACK_CONSTRUCTABLE_VECTOR class
-
-    // #define TLAPACK_WORKSPACE_MATRIX class
-    // #define TLAPACK_WORKSPACE_VECTOR class
+    #define TLAPACK_CMATRIX class
+    #define TLAPACK_CSMATRIX class
+    #define TLAPACK_CVECTOR class
+    #define TLAPACK_CSVECTOR class
 #endif
 
 #endif  // TLAPACK_ARRAY_CONCEPTS_HH
