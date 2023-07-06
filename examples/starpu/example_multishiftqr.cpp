@@ -46,7 +46,7 @@ int run(idx_t n, idx_t nx, bool check_error = false)
     // H is upper Hessenberg
     for (idx_t j = 0; j < n; j++) {
         for (idx_t i = 0; i < min(n, j + 2); i++)
-            if constexpr (is_complex<T>::value)
+            if constexpr (is_complex<T>)
                 H_[i + j * n] = T((float)rand() / (float)RAND_MAX,
                                   (float)rand() / (float)RAND_MAX);
             else

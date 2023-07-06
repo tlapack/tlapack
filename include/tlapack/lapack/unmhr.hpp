@@ -65,13 +65,13 @@ int unmhr(Side side,
           const workspace_opts_t<>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
-    using pair = std::pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
 
-    auto A_s = slice(A, pair{ilo + 1, ihi}, pair{ilo, ihi - 1});
-    auto tau_s = slice(tau, pair{ilo, ihi - 1});
+    auto A_s = slice(A, range{ilo + 1, ihi}, range{ilo, ihi - 1});
+    auto tau_s = slice(tau, range{ilo, ihi - 1});
     auto C_s = (side == Side::Left)
-                   ? slice(C, pair{ilo + 1, ihi}, pair{0, ncols(C)})
-                   : slice(C, pair{0, nrows(C)}, pair{ilo + 1, ihi});
+                   ? slice(C, range{ilo + 1, ihi}, range{0, ncols(C)})
+                   : slice(C, range{0, nrows(C)}, range{ilo + 1, ihi});
 
     unm2r(side, trans, A_s, tau_s, C_s, opts);
 
@@ -120,13 +120,13 @@ inline constexpr workinfo_t unmhr_worksize(Side side,
                                            const workspace_opts_t<>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
-    using pair = std::pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
 
-    auto A_s = slice(A, pair{ilo + 1, ihi}, pair{ilo, ihi - 1});
-    auto tau_s = slice(tau, pair{ilo, ihi - 1});
+    auto A_s = slice(A, range{ilo + 1, ihi}, range{ilo, ihi - 1});
+    auto tau_s = slice(tau, range{ilo, ihi - 1});
     auto C_s = (side == Side::Left)
-                   ? slice(C, pair{ilo + 1, ihi}, pair{0, ncols(C)})
-                   : slice(C, pair{0, nrows(C)}, pair{ilo + 1, ihi});
+                   ? slice(C, range{ilo + 1, ihi}, range{0, ncols(C)})
+                   : slice(C, range{0, nrows(C)}, range{ilo + 1, ihi});
 
     return unm2r_worksize(side, trans, A_s, tau_s, C_s, opts);
 }

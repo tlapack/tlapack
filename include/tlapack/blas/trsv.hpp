@@ -206,8 +206,8 @@ void trsv(Uplo uplo, Op trans, Diag diag, const matrixA_t& A, vectorX_t& x)
 #ifdef USE_LAPACKPP_WRAPPERS
 
 template <
-    TLAPACK_MATRIX matrixA_t,
-    TLAPACK_VECTOR vectorX_t,
+    TLAPACK_LEGACY_MATRIX matrixA_t,
+    TLAPACK_LEGACY_VECTOR vectorX_t,
     class T = type_t<vectorX_t>,
     enable_if_allow_optblas_t<pair<matrixA_t, T>, pair<vectorX_t, T> > = 0>
 inline void trsv(

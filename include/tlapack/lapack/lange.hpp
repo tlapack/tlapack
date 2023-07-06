@@ -217,7 +217,7 @@ auto lange(norm_t normType, const matrix_t& A, const workspace_opts_t<>& opts)
         // the infinite norm.
 
         // Allocates workspace
-        vectorOfBytes localworkdata;
+        VectorOfBytes localworkdata;
         const Workspace work = [&]() {
             workinfo_t workinfo;
             lange_worksize(normType, A, opts);

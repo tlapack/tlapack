@@ -44,7 +44,8 @@ inline auto nrm2(const vector_t& x)
 
 #ifdef USE_LAPACKPP_WRAPPERS
 
-template <TLAPACK_VECTOR vector_t, enable_if_allow_optblas_t<vector_t> = 0>
+template <TLAPACK_LEGACY_VECTOR vector_t,
+          enable_if_allow_optblas_t<vector_t> = 0>
 inline auto nrm2(vector_t const& x)
 {
     // Legacy objects

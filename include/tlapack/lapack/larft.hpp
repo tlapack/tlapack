@@ -102,7 +102,7 @@ int larft(direction_t direction,
     using idx_t = size_type<matrixV_t>;
 
     // using
-    using pair = pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
 
     // constants
     const real_t one(1);
@@ -129,7 +129,7 @@ int larft(direction_t direction,
         // Remaining iterations:
         for (idx_t i = 1; i < k; ++i) {
             // Column vector t := T(0:i,i)
-            auto t = slice(T, pair{0, i}, i);
+            auto t = slice(T, range{0, i}, i);
 
             if (tau[i] == tau_t(0)) {
                 // H(i) =  I
@@ -147,8 +147,8 @@ int larft(direction_t direction,
                     // t := t - tau[i] V(i+1:n,0:i)^H V(i+1:n,i)
                     if (i + 1 < n) {
                         gemv(conjTranspose, -tau[i],
-                             slice(V, pair{i + 1, n}, pair{0, i}),
-                             slice(V, pair{i + 1, n}, i), one, t);
+                             slice(V, range{i + 1, n}, range{0, i}),
+                             slice(V, range{i + 1, n}, i), one, t);
                     }
                 }
                 else {
@@ -158,16 +158,17 @@ int larft(direction_t direction,
 
                     // t := t - tau[i] V(0:i,i:n) V(i,i+1:n)^H
                     if (i + 1 < n) {
-                        auto Ti = slice(T, pair{0, i}, pair{i, i + 1});
+                        auto Ti = slice(T, range{0, i}, range{i, i + 1});
                         gemm(noTranspose, conjTranspose, -tau[i],
-                             slice(V, pair{0, i}, pair{i + 1, n}),
-                             slice(V, pair{i, i + 1}, pair{i + 1, n}), one, Ti);
+                             slice(V, range{0, i}, range{i + 1, n}),
+                             slice(V, range{i, i + 1}, range{i + 1, n}), one,
+                             Ti);
                     }
                 }
 
                 // t := T(0:i,0:i) * t
                 trmv(upperTriangle, noTranspose, nonUnit_diagonal,
-                     slice(T, pair{0, i}, pair{0, i}), t);
+                     slice(T, range{0, i}, range{0, i}), t);
             }
 
             // Update diagonal
@@ -182,7 +183,7 @@ int larft(direction_t direction,
         // Remaining iterations:
         for (idx_t i = k - 2; i != idx_t(-1); --i) {
             // Column vector t := T(0:i,i)
-            auto t = slice(T, pair{i + 1, k}, i);
+            auto t = slice(T, range{i + 1, k}, i);
 
             if (tau[i] == tau_t(0)) {
                 // H(i) =  I
@@ -199,8 +200,8 @@ int larft(direction_t direction,
 
                     // t := t - tau[i] V(0:n-k+i,i+1:k)^H V(0:n-k+i,i)
                     gemv(conjTranspose, -tau[i],
-                         slice(V, pair{0, n - k + i}, pair{i + 1, k}),
-                         slice(V, pair{0, n - k + i}, i), one, t);
+                         slice(V, range{0, n - k + i}, range{i + 1, k}),
+                         slice(V, range{0, n - k + i}, i), one, t);
                 }
                 else {
                     // t := - tau[i] V(i+1:k,n-k+i)
@@ -208,15 +209,16 @@ int larft(direction_t direction,
                         t[j] = -tau[i] * V(j + i + 1, n - k + i);
 
                     // t := t - tau[i] V(i+1:k,0:n-k+i) V(i,0:n-k+i)^H
-                    auto Ti = slice(T, pair{i + 1, k}, pair{i, i + 1});
+                    auto Ti = slice(T, range{i + 1, k}, range{i, i + 1});
                     gemm(noTranspose, conjTranspose, -tau[i],
-                         slice(V, pair{i + 1, k}, pair{0, n - k + i}),
-                         slice(V, pair{i, i + 1}, pair{0, n - k + i}), one, Ti);
+                         slice(V, range{i + 1, k}, range{0, n - k + i}),
+                         slice(V, range{i, i + 1}, range{0, n - k + i}), one,
+                         Ti);
                 }
 
                 // t := T(i+1:k,i+1:k) * t
                 trmv(lowerTriangle, noTranspose, nonUnit_diagonal,
-                     slice(T, pair{i + 1, k}, pair{i + 1, k}), t);
+                     slice(T, range{i + 1, k}, range{i + 1, k}), t);
             }
 
             // Update diagonal

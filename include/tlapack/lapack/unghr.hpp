@@ -49,7 +49,7 @@ int unghr(size_type<matrix_t> ilo,
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
     using idx_t = size_type<matrix_t>;
-    using pair = pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
 
     // constants
     const real_t zero(0);
@@ -94,8 +94,8 @@ int unghr(size_type<matrix_t> ilo,
     // Now that the vectors are shifted, we can call orgqr to generate the
     // matrix orgqr is not yet implemented, so we call org2r instead
     if (nh > 0) {
-        auto A_s = slice(A, pair{ilo + 1, ihi}, pair{ilo + 1, ihi});
-        auto tau_s = slice(tau, pair{ilo, ihi - 1});
+        auto A_s = slice(A, range{ilo + 1, ihi}, range{ilo + 1, ihi});
+        auto tau_s = slice(tau, range{ilo, ihi - 1});
         ung2r(A_s, tau_s, opts);
     }
 
@@ -130,14 +130,14 @@ inline constexpr workinfo_t unghr_worksize(size_type<matrix_t> ilo,
                                            const workspace_opts_t<>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
-    using pair = pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
 
     // constants
     const idx_t nh = (ihi > ilo + 1) ? ihi - 1 - ilo : 0;
 
     if (nh > 0 && ilo + 1 < ihi) {
-        auto A_s = slice(A, pair{ilo + 1, ihi}, pair{ilo + 1, ihi});
-        auto tau_s = slice(tau, pair{ilo, ihi - 1});
+        auto A_s = slice(A, range{ilo + 1, ihi}, range{ilo + 1, ihi});
+        auto tau_s = slice(tau, range{ilo, ihi - 1});
         return ung2r_worksize(A_s, tau_s, opts);
     }
     return workinfo_t{};

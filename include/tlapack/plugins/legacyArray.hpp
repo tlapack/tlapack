@@ -21,51 +21,76 @@ namespace tlapack {
 // -----------------------------------------------------------------------------
 // Helpers
 
-namespace internal {
-    template <typename T, class idx_t, Layout L>
-    std::true_type is_legacy_type_f(const legacyMatrix<T, idx_t, L>*);
+namespace legacy {
+    namespace internal {
+        template <typename T, class idx_t, Layout L>
+        std::true_type is_legacy_type_f(const legacyMatrix<T, idx_t, L>*);
 
-    template <typename T, class idx_t, class int_t, Direction D>
-    std::true_type is_legacy_type_f(const legacyVector<T, idx_t, int_t, D>*);
+        template <typename T, class idx_t, class int_t, Direction D>
+        std::true_type is_legacy_type_f(
+            const legacyVector<T, idx_t, int_t, D>*);
 
-    std::false_type is_legacy_type_f(const void*);
-}  // namespace internal
+        std::false_type is_legacy_type_f(const void*);
+    }  // namespace internal
 
-/// True if T is a legacy array
-/// @see https://stackoverflow.com/a/25223400/5253097
-template <class T>
-constexpr bool is_legacy_type =
-    decltype(internal::is_legacy_type_f(std::declval<T*>()))::value;
+    /// True if T is a legacy array
+    /// @see https://stackoverflow.com/a/25223400/5253097
+    template <class T>
+    constexpr bool is_legacy_type =
+        decltype(internal::is_legacy_type_f(std::declval<T*>()))::value;
+}  // namespace legacy
 
 // -----------------------------------------------------------------------------
 // Data traits
 
-namespace internal {
+namespace traits {
     /// Layout for legacyMatrix
     template <typename T, class idx_t, Layout L>
-    struct LayoutImpl<legacyMatrix<T, idx_t, L>, int> {
-        static constexpr Layout layout = L;
+    struct layout_trait<legacyMatrix<T, idx_t, L>, int> {
+        static constexpr Layout value = L;
     };
 
     /// Layout for legacyVector
     template <typename T, class idx_t, typename int_t, Direction D>
-    struct LayoutImpl<legacyVector<T, idx_t, int_t, D>, int> {
-        static constexpr Layout layout = Layout::Strided;
+    struct layout_trait<legacyVector<T, idx_t, int_t, D>, int> {
+        static constexpr Layout value = Layout::Strided;
     };
 
-    /// Transpose type for legacyMatrix
+    // Matrix type traits
     template <class T, class idx_t>
-    struct TransposeTypeImpl<legacyMatrix<T, idx_t, Layout::ColMajor>, int> {
-        using type = legacyMatrix<T, idx_t, Layout::RowMajor>;
+    struct matrix_type_traits<legacyMatrix<T, idx_t, Layout::ColMajor>, int> {
+        using type = legacyMatrix<T, idx_t, Layout::ColMajor>;
+        using transpose_type = legacyMatrix<T, idx_t, Layout::RowMajor>;
     };
     template <class T, class idx_t>
-    struct TransposeTypeImpl<legacyMatrix<T, idx_t, Layout::RowMajor>, int> {
-        using type = legacyMatrix<T, idx_t, Layout::ColMajor>;
+    struct matrix_type_traits<legacyMatrix<T, idx_t, Layout::RowMajor>, int> {
+        using type = legacyMatrix<T, idx_t, Layout::RowMajor>;
+        using transpose_type = legacyMatrix<T, idx_t, Layout::ColMajor>;
+    };
+
+    template <class T, class idx_t, typename int_t, Direction D>
+    struct real_type_traits<legacyVector<T, idx_t, int_t, D>, int> {
+        using type = legacyVector<real_type<T>, idx_t, int_t, D>;
+    };
+
+    template <typename T, class idx_t, Layout layout>
+    struct real_type_traits<legacyMatrix<T, idx_t, layout>, int> {
+        using type = legacyMatrix<real_type<T>, idx_t, layout>;
+    };
+
+    template <class T, class idx_t, typename int_t, Direction D>
+    struct complex_type_traits<legacyVector<T, idx_t, int_t, D>, int> {
+        using type = legacyVector<complex_type<T>, idx_t, int_t, D>;
+    };
+
+    template <typename T, class idx_t, Layout layout>
+    struct complex_type_traits<legacyMatrix<T, idx_t, layout>, int> {
+        using type = legacyMatrix<complex_type<T>, idx_t, layout>;
     };
 
     /// Create legacyMatrix @see Create
     template <class T, class idx_t, Layout layout>
-    struct CreateImpl<legacyMatrix<T, idx_t, layout>, int> {
+    struct CreateFunctor<legacyMatrix<T, idx_t, layout>, int> {
         using matrix_t = legacyMatrix<T, idx_t, layout>;
 
         inline constexpr auto operator()(std::vector<T>& v,
@@ -108,7 +133,7 @@ namespace internal {
 
     /// Create legacyVector @see Create
     template <class T, class idx_t, typename int_t, Direction D>
-    struct CreateImpl<legacyVector<T, idx_t, int_t, D>, int> {
+    struct CreateFunctor<legacyVector<T, idx_t, int_t, D>, int> {
         using vector_t = legacyVector<T, idx_t, int_t, D>;
 
         inline constexpr auto operator()(std::vector<T>& v, idx_t m) const
@@ -140,27 +165,7 @@ namespace internal {
                        : vector_t(m, (T*)W.data(), W.getLdim() / sizeof(T));
         }
     };
-
-    template <class T, class idx_t, typename int_t, Direction D>
-    struct real_type_traits<legacyVector<T, idx_t, int_t, D>, int> {
-        using type = legacyVector<real_type<T>, idx_t, int_t, D>;
-    };
-
-    template <typename T, class idx_t, Layout layout>
-    struct real_type_traits<legacyMatrix<T, idx_t, layout>, int> {
-        using type = legacyMatrix<real_type<T>, idx_t, layout>;
-    };
-
-    template <class T, class idx_t, typename int_t, Direction D>
-    struct complex_type_traits<legacyVector<T, idx_t, int_t, D>, int> {
-        using type = legacyVector<complex_type<T>, idx_t, int_t, D>;
-    };
-
-    template <typename T, class idx_t, Layout layout>
-    struct complex_type_traits<legacyMatrix<T, idx_t, layout>, int> {
-        using type = legacyMatrix<complex_type<T>, idx_t, layout>;
-    };
-}  // namespace internal
+}  // namespace traits
 
 // -----------------------------------------------------------------------------
 // Data descriptors
@@ -569,7 +574,7 @@ inline constexpr auto slice(legacyVector<T, idx_t, int_t, direction>& v,
 // -----------------------------------------------------------------------------
 // Deduce matrix and vector type from two provided ones
 
-namespace internal {
+namespace traits {
 
 #ifdef TLAPACK_PREFERRED_MATRIX_LEGACY
 
@@ -577,14 +582,16 @@ namespace internal {
         #ifndef TLAPACK_MDSPAN_HH
             #define TLAPACK_USE_PREFERRED_MATRIX_TYPE(T) true
         #else
-            #define TLAPACK_USE_PREFERRED_MATRIX_TYPE(T) !is_mdspan_type<T>
+            #define TLAPACK_USE_PREFERRED_MATRIX_TYPE(T) \
+                !mdspan::is_mdspan_type<T>
         #endif
     #else
         #ifndef TLAPACK_MDSPAN_HH
-            #define TLAPACK_USE_PREFERRED_MATRIX_TYPE(T) !is_eigen_type<T>
+            #define TLAPACK_USE_PREFERRED_MATRIX_TYPE(T) \
+                !eigen::is_eigen_type<T>
         #else
             #define TLAPACK_USE_PREFERRED_MATRIX_TYPE(T) \
-                (!is_eigen_type<T> && !is_mdspan_type<T>)
+                (!eigen::is_eigen_type<T> && !mdspan::is_mdspan_type<T>)
         #endif
     #endif
 
@@ -636,8 +643,8 @@ namespace internal {
     struct matrix_type_traits<
         matrixA_t,
         matrixB_t,
-        typename std::enable_if<is_legacy_type<matrixA_t> &&
-                                    is_legacy_type<matrixB_t>,
+        typename std::enable_if<legacy::is_legacy_type<matrixA_t> &&
+                                    legacy::is_legacy_type<matrixB_t>,
                                 int>::type> {
         using T = scalar_type<type_t<matrixA_t>, type_t<matrixB_t>>;
         using idx_t = size_type<matrixA_t>;
@@ -658,8 +665,8 @@ namespace internal {
     struct vector_type_traits<
         matrixA_t,
         matrixB_t,
-        typename std::enable_if<is_legacy_type<matrixA_t> &&
-                                    is_legacy_type<matrixB_t>,
+        typename std::enable_if<legacy::is_legacy_type<matrixA_t> &&
+                                    legacy::is_legacy_type<matrixB_t>,
                                 int>::type> {
         using T = scalar_type<type_t<matrixA_t>, type_t<matrixB_t>>;
         using idx_t = size_type<matrixA_t>;
@@ -668,7 +675,7 @@ namespace internal {
     };
 
 #endif  // TLAPACK_PREFERRED_MATRIX
-}  // namespace internal
+}  // namespace traits
 
 // -----------------------------------------------------------------------------
 // Cast to Legacy arrays
@@ -677,14 +684,15 @@ template <typename T, class idx_t, Layout layout>
 inline constexpr auto legacy_matrix(
     const legacyMatrix<T, idx_t, layout>& A) noexcept
 {
-    return legacy::matrix<T, idx_t>{layout, A.m, A.n, A.ptr, A.ldim};
+    return legacy::Matrix<T, idx_t>{layout, A.m, A.n, A.ptr, A.ldim};
 }
 
 template <class T, class idx_t, class int_t, Direction direction>
 inline constexpr auto legacy_matrix(
     const legacyVector<T, idx_t, int_t, direction>& v) noexcept
 {
-    return legacy::matrix<T, idx_t>{Layout::ColMajor, 1, v.n, v.ptr, v.inc};
+    return legacy::Matrix<T, idx_t>{Layout::ColMajor, 1, v.n, v.ptr,
+                                    (idx_t)v.inc};
 }
 
 template <typename T, class idx_t, typename int_t, Direction direction>
@@ -694,7 +702,7 @@ inline constexpr auto legacy_vector(
     assert(direction == Direction::Forward || std::is_signed<idx_t>::value ||
            v.inc == 0);
 
-    return legacy::vector<T, idx_t>{
+    return legacy::Vector<T, idx_t>{
         v.n, v.ptr,
         (direction == Direction::Forward) ? idx_t(v.inc) : idx_t(-v.inc)};
 }

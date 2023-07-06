@@ -43,7 +43,7 @@ void lu_mult(matrix_t& A, const lu_mult_opts_t<size_type<matrix_t>>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using T = type_t<matrix_t>;
-    using range = std::pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
     using real_t = real_type<T>;
 
     const idx_t m = nrows(A);

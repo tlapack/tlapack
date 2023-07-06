@@ -23,7 +23,7 @@ int main(int argc, char** argv)
     using namespace tlapack;
     using starpu::Matrix;
     using T = float;
-    using pair = std::pair<size_t, size_t>;
+    using range = pair<size_t, size_t>;
 
     srand(3);
     T u = tlapack::uroundoff<T>();
@@ -104,18 +104,18 @@ int main(int argc, char** argv)
             for (size_t i = 0; i < m; i++)
                 A_[(j + d3) * (m + d1) + (i + d1)] = 10 * i + j + 1;
         Matrix<T> Abig(A_, m + d1, k + d3, r, t);
-        auto A = slice(Abig, pair{d1, m + d1}, pair{d3, k + d3});
+        auto A = slice(Abig, range{d1, m + d1}, range{d3, k + d3});
 
         /* create matrix B */
         for (size_t j = 0; j < n; j++)
             for (size_t i = 0; i < k; i++)
                 B_[(j + d2) * (k + d3) + (i + d3)] = 10 * i + j + 1;
         Matrix<T> Bbig(B_, k + d3, n + d2, t, s);
-        auto B = slice(Bbig, pair{d3, k + d3}, pair{d2, n + d2});
+        auto B = slice(Bbig, range{d3, k + d3}, range{d2, n + d2});
 
         /* create matrix C */
         Matrix<T> Cbig(C_, m + d1, n + d2, r, s);
-        auto C = slice(Cbig, pair{d1, m + d1}, pair{d2, n + d2});
+        auto C = slice(Cbig, range{d1, m + d1}, range{d2, n + d2});
 
         std::cout << "Abig = " << Abig << std::endl;
         std::cout << "A = " << A << std::endl;

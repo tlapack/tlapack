@@ -44,20 +44,20 @@ inline constexpr workinfo_t gehd2_worksize(size_type<matrix_t> ilo,
                                            const workspace_opts_t<>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
-    using pair = pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
 
     // constants
     const idx_t n = ncols(A);
 
     workinfo_t workinfo;
     if (ilo + 1 < ihi) {
-        const auto v = slice(A, pair{ilo + 1, ihi}, ilo);
+        const auto v = slice(A, range{ilo + 1, ihi}, ilo);
 
-        auto C0 = slice(A, pair{0, ihi}, pair{ilo + 1, ihi});
+        auto C0 = slice(A, range{0, ihi}, range{ilo + 1, ihi});
         workinfo = larf_worksize(right_side, forward, columnwise_storage, v,
                                  tau[0], C0, opts);
 
-        auto C1 = slice(A, pair{ilo + 1, ihi}, pair{ilo + 1, n});
+        auto C1 = slice(A, range{ilo + 1, ihi}, range{ilo + 1, n});
         workinfo.minMax(larf_worksize(left_side, forward, columnwise_storage, v,
                                       tau[0], C1, opts));
     }
@@ -114,7 +114,7 @@ int gehd2(size_type<matrix_t> ilo,
           const workspace_opts_t<>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
-    using pair = pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
 
     // constants
     const idx_t n = ncols(A);
@@ -127,7 +127,7 @@ int gehd2(size_type<matrix_t> ilo,
     if (n <= 0) return 0;
 
     // Allocates workspace
-    vectorOfBytes localworkdata;
+    VectorOfBytes localworkdata;
     Workspace work = [&]() {
         workinfo_t workinfo = gehd2_worksize(ilo, ihi, A, tau, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
@@ -138,17 +138,17 @@ int gehd2(size_type<matrix_t> ilo,
 
     for (idx_t i = ilo; i < ihi - 1; ++i) {
         // Define v := A[i+1:ihi,i]
-        auto v = slice(A, pair{i + 1, ihi}, i);
+        auto v = slice(A, range{i + 1, ihi}, i);
 
         // Generate the (i+1)-th elementary Householder reflection on v
         larfg(forward, columnwise_storage, v, tau[i]);
 
         // Apply Householder reflection from the right to A[0:ihi,i+1:ihi]
-        auto C0 = slice(A, pair{0, ihi}, pair{i + 1, ihi});
+        auto C0 = slice(A, range{0, ihi}, range{i + 1, ihi});
         larf(right_side, forward, columnwise_storage, v, tau[i], C0, larfOpts);
 
         // Apply Householder reflection from the left to A[i+1:ihi,i+1:n-1]
-        auto C1 = slice(A, pair{i + 1, ihi}, pair{i + 1, n});
+        auto C1 = slice(A, range{i + 1, ihi}, range{i + 1, n});
         larf(left_side, forward, columnwise_storage, v, conj(tau[i]), C1,
              larfOpts);
     }

@@ -45,7 +45,7 @@ TEMPLATE_TEST_CASE("schur swap gives correct result",
     const idx_t n1 = GENERATE(1, 2);
     const idx_t n2 = GENERATE(1, 2);
 
-    if (is_real<T>::value || (n1 == 1 && n2 == 1)) {
+    if (is_real<T> || (n1 == 1 && n2 == 1)) {
         const real_t eps = uroundoff<real_t>();
         const real_t tol = real_t(1.0e2 * n) * eps;
 

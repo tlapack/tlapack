@@ -29,7 +29,7 @@ namespace tlapack {
  * @ingroup auxiliary
  */
 template <TLAPACK_MATRIX matrix_t,
-          enable_if_t<is_real<type_t<matrix_t> >::value, bool> = true>
+          enable_if_t<is_real<type_t<matrix_t> >, bool> = true>
 int lasy2(Op trans_l,
           Op trans_r,
           int isign,

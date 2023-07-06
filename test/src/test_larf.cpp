@@ -33,7 +33,7 @@ TEMPLATE_TEST_CASE("Generation of Householder reflectors",
     using T = type_t<vector_t>;
     using idx_t = size_type<vector_t>;
     using real_t = real_type<T>;
-    using pair = pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
 
     // Functor
     Create<vector_t> new_vector;
@@ -50,7 +50,7 @@ TEMPLATE_TEST_CASE("Generation of Householder reflectors",
         GENERATE(as<std::string>{}, "direction,v", "alpha,x");
 
     // Skip tests with invalid parameters
-    if (typeAlpha == "Complex" && is_real<T>::value) return;
+    if (typeAlpha == "Complex" && is_real<T>) return;
 
     // Vectors
     std::vector<T> v_;
@@ -104,8 +104,8 @@ TEMPLATE_TEST_CASE("Generation of Householder reflectors",
 
         if (whichLARFG == "alpha,x") {
             auto x =
-                slice(v, (direction == Direction::Forward) ? pair(1, n)
-                                                           : pair(0, n - 1));
+                slice(v, (direction == Direction::Forward) ? range(1, n)
+                                                           : range(0, n - 1));
             larfg(storeMode, v[alphaIdx], x, tau);
         }
         else  // whichLARFG == "direction,v"

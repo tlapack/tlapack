@@ -17,6 +17,7 @@
 #include "tlapack/lapack/gehd2.hpp"
 #include "tlapack/lapack/lahr2.hpp"
 #include "tlapack/lapack/larfb.hpp"
+#include "tlapack/lapack/laset.hpp"
 
 namespace tlapack {
 
@@ -118,7 +119,7 @@ int gehrd(size_type<matrix_t> ilo,
 {
     using idx_t = size_type<matrix_t>;
     using work_t = matrix_type<matrix_t, vector_t>;
-    using pair = pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
     using TA = type_t<matrix_t>;
     using real_t = real_type<TA>;
 
@@ -146,7 +147,7 @@ int gehrd(size_type<matrix_t> ilo,
     if (n <= 0) return 0;
 
     // Allocates workspace
-    vectorOfBytes localworkdata;
+    VectorOfBytes localworkdata;
     Workspace work = [&]() {
         workinfo_t workinfo = gehrd_worksize(ilo, ihi, A, tau, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
@@ -168,36 +169,36 @@ int gehrd(size_type<matrix_t> ilo,
     for (; i + nx < ihi - 1; i = i + nb) {
         const idx_t nb2 = std::min(nb, ihi - i - 1);
 
-        auto V = slice(A, pair{i + 1, ihi}, pair{i, i + nb2});
-        auto A2 = slice(A, pair{0, ihi}, pair{i, ihi});
-        auto tau2 = slice(tau, pair{i, ihi});
-        auto T_s = slice(matrixT, pair{0, nb2}, pair{0, nb2});
-        auto Y_s = slice(Y, pair{0, n}, pair{0, nb2});
+        auto V = slice(A, range{i + 1, ihi}, range{i, i + nb2});
+        auto A2 = slice(A, range{0, ihi}, range{i, ihi});
+        auto tau2 = slice(tau, range{i, ihi});
+        auto T_s = slice(matrixT, range{0, nb2}, range{0, nb2});
+        auto Y_s = slice(Y, range{0, n}, range{0, nb2});
         lahr2(i, nb2, A2, tau2, T_s, Y_s);
         if (i + nb2 < ihi) {
             // Note, this V2 contains the last row of the triangular part
-            auto V2 = slice(V, pair{nb2 - 1, ihi - i - 1}, pair{0, nb2});
+            auto V2 = slice(V, range{nb2 - 1, ihi - i - 1}, range{0, nb2});
 
             // Apply the block reflector H to A(0:ihi,i+nb:ihi) from the right,
             // computing A := A - Y * V**T. The multiplication requires
             // V(nb2-1,nb2-1) to be set to 1.
             const TA ei = V(nb2 - 1, nb2 - 1);
             V(nb2 - 1, nb2 - 1) = one;
-            auto A3 = slice(A, pair{0, ihi}, pair{i + nb2, ihi});
-            auto Y_2 = slice(Y, pair{0, ihi}, pair{0, nb2});
+            auto A3 = slice(A, range{0, ihi}, range{i + nb2, ihi});
+            auto Y_2 = slice(Y, range{0, ihi}, range{0, nb2});
             gemm(Op::NoTrans, Op::ConjTrans, -one, Y_2, V2, one, A3);
             V(nb2 - 1, nb2 - 1) = ei;
         }
         // Apply the block reflector H to A(0:i+1,i+1:i+ib) from the right
-        auto V1 = slice(A, pair{i + 1, i + nb2 + 1}, pair{i, i + nb2});
+        auto V1 = slice(A, range{i + 1, i + nb2 + 1}, range{i, i + nb2});
         trmm(Side::Right, Uplo::Lower, Op::ConjTrans, Diag::Unit, one, V1, Y_s);
         for (idx_t j = 0; j < nb2 - 1; ++j) {
-            auto A4 = slice(A, pair{0, i + 1}, i + j + 1);
-            axpy(-one, slice(Y, pair{0, i + 1}, j), A4);
+            auto A4 = slice(A, range{0, i + 1}, i + j + 1);
+            axpy(-one, slice(Y, range{0, i + 1}, j), A4);
         }
 
         // Apply the block reflector H to A(i+1:ihi,i+nb:n) from the left
-        auto A5 = slice(A, pair{i + 1, ihi}, pair{i + nb2, n});
+        auto A5 = slice(A, range{i + 1, ihi}, range{i + nb2, n});
         larfb(Side::Left, Op::ConjTrans, Direction::Forward, StoreV::Columnwise,
               V, T_s, A5, larfbOpts);
     }

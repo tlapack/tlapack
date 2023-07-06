@@ -105,15 +105,15 @@ namespace legacy {
 
         if (matrixtype == MatrixType::LowerBand) {
             auto A_ = create_banded_matrix<T>(A, m, n, kl, 0);
-            return lascl(band_t(kl, 0), b, a, A_);
+            return lascl(BandAccess(kl, 0), b, a, A_);
         }
         else if (matrixtype == MatrixType::UpperBand) {
             auto A_ = create_banded_matrix<T>(A, m, n, 0, ku);
-            return lascl(band_t(0, ku), b, a, A_);
+            return lascl(BandAccess(0, ku), b, a, A_);
         }
         else if (matrixtype == MatrixType::Band) {
             auto A_ = create_banded_matrix<T>(A, m, n, kl, ku);
-            return lascl(band_t(kl, ku), b, a, A_);
+            return lascl(BandAccess(kl, ku), b, a, A_);
         }
         else {
             auto A_ = create_matrix<T>(A, m, n, lda);

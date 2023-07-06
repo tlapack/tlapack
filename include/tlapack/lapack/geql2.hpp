@@ -36,12 +36,13 @@ inline constexpr workinfo_t geql2_worksize(const matrix_t& A,
                                            const workspace_opts_t<>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
+    using range = pair<idx_t, idx_t>;
 
     // constants
     const idx_t n = ncols(A);
 
     if (n > 1) {
-        auto C = cols(A, range<idx_t>{1, n});
+        auto C = cols(A, range{1, n});
         return larf_worksize(Side::Left, Direction::Backward,
                              StoreV::Columnwise, col(A, 0), tau[0], C, opts);
     }
@@ -90,7 +91,7 @@ template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
 int geql2(matrix_t& A, vector_t& tau, const workspace_opts_t<>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
-    using pair = pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
 
     // constants
     const idx_t m = nrows(A);
@@ -104,7 +105,7 @@ int geql2(matrix_t& A, vector_t& tau, const workspace_opts_t<>& opts = {})
     if (n <= 0) return 0;
 
     // Allocates workspace
-    vectorOfBytes localworkdata;
+    VectorOfBytes localworkdata;
     Workspace work = [&]() {
         workinfo_t workinfo = geql2_worksize(A, tau, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
@@ -117,14 +118,14 @@ int geql2(matrix_t& A, vector_t& tau, const workspace_opts_t<>& opts = {})
         idx_t i = k - 1 - i2;
 
         // Column to be reduced
-        auto v = slice(A, pair{0, m - k + i + 1}, n - k + i);
+        auto v = slice(A, range{0, m - k + i + 1}, n - k + i);
 
         // Generate the (i+1)-th elementary Householder reflection on v
         larfg(Direction::Backward, StoreV::Columnwise, v, tau[i]);
 
         // Apply the reflector to the rest of the matrix
         if (n + i > k) {
-            auto C = slice(A, pair{0, m - k + i + 1}, pair{0, n - k + i});
+            auto C = slice(A, range{0, m - k + i + 1}, range{0, n - k + i});
             larf(Side::Left, Direction::Backward, StoreV::Columnwise, v,
                  conj(tau[i]), C, larfOpts);
         }

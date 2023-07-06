@@ -297,8 +297,8 @@ void trmm(Side side,
 *
 * @ingroup blas3
 */
-template <TLAPACK_MATRIX matrixA_t,
-          TLAPACK_MATRIX matrixB_t,
+template <TLAPACK_LEGACY_MATRIX matrixA_t,
+          TLAPACK_LEGACY_MATRIX matrixB_t,
           TLAPACK_SCALAR alpha_t,
           class T = type_t<matrixB_t>,
           enable_if_allow_optblas_t<pair<matrixA_t, T>,

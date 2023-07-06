@@ -56,7 +56,7 @@ template <TLAPACK_UPLO uplo_t,
           TLAPACK_REAL b_type,
           enable_if_t<(
                           /* Requires: */
-                          is_real<a_type>::value && is_real<b_type>::value),
+                          is_real<a_type> && is_real<b_type>),
                       int> = 0>
 int lascl(uplo_t uplo, const b_type& b, const a_type& a, matrix_t& A)
 {
@@ -189,9 +189,9 @@ template <TLAPACK_MATRIX matrix_t,
           TLAPACK_REAL b_type,
           enable_if_t<(
                           /* Requires: */
-                          is_real<a_type>::value && is_real<b_type>::value),
+                          is_real<a_type> && is_real<b_type>),
                       int> = 0>
-int lascl(band_t accessType, const b_type& b, const a_type& a, matrix_t& A)
+int lascl(BandAccess accessType, const b_type& b, const a_type& a, matrix_t& A)
 {
     // data traits
     using idx_t = size_type<matrix_t>;

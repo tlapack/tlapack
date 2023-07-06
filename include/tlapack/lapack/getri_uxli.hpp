@@ -61,9 +61,10 @@ inline constexpr workinfo_t getri_uxli_worksize(
 template <TLAPACK_SMATRIX matrix_t>
 int getri_uxli(matrix_t& A, const workspace_opts_t<>& opts = {})
 {
-    using work_t = vector_type<matrix_t, matrix_t>;
+    using work_t = vector_type<matrix_t>;
     using idx_t = size_type<matrix_t>;
     using T = type_t<matrix_t>;
+    using range = pair<idx_t, idx_t>;
 
     // Functor
     Create<work_t> new_vector;
@@ -75,7 +76,7 @@ int getri_uxli(matrix_t& A, const workspace_opts_t<>& opts = {})
     const idx_t n = ncols(A);
 
     // Allocates workspace
-    vectorOfBytes localworkdata;
+    VectorOfBytes localworkdata;
     const Workspace work = [&]() {
         workinfo_t workinfo = getri_uxli_worksize(A, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
@@ -92,12 +93,10 @@ int getri_uxli(matrix_t& A, const workspace_opts_t<>& opts = {})
         }
         else {
             // X22, l21, u12 are as in method C Nick Higham
-            auto X22 = tlapack::slice(A, tlapack::range<idx_t>(j + 1, n),
-                                      tlapack::range<idx_t>(j + 1, n));
-            auto l21 = tlapack::slice(A, tlapack::range<idx_t>(j + 1, n), j);
-            auto u12 = tlapack::slice(A, j, tlapack::range<idx_t>(j + 1, n));
-            auto slicework =
-                tlapack::slice(w, tlapack::range<idx_t>(0, n - j - 1));
+            auto X22 = tlapack::slice(A, range(j + 1, n), range(j + 1, n));
+            auto l21 = tlapack::slice(A, range(j + 1, n), j);
+            auto u12 = tlapack::slice(A, j, range(j + 1, n));
+            auto slicework = tlapack::slice(w, range(0, n - j - 1));
 
             // first step of the algorithm, work1 holds x12
             tlapack::gemv(Op::Trans, T(-1) / A(j, j), X22, u12, slicework);

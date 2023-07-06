@@ -54,7 +54,7 @@ int main(int argc, char** argv)
     // Generate a random matrix in a submatrix of A
     for (TLAPACK_SIZE_T j = 0; j < min(k, n); ++j)
         for (TLAPACK_SIZE_T i = 0; i < m; ++i)
-            A(i, j) = ((float)rand()) / RAND_MAX;
+            A(i, j) = ((float)rand()) / ((float)RAND_MAX);
 
     // Set C using A
     for (TLAPACK_SIZE_T j = 0; j < min(k, n); ++j)

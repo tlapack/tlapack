@@ -103,8 +103,11 @@ void run(idx_t n)
 
         // Put garbage on U_
         for (idx_t j = 0; j < n * n; ++j)
-            U_[j] = make_scalar<real_t>(static_cast<float>(0xDEADBEEF),
-                                        static_cast<float>(0xDEADBEEF));
+            if constexpr (is_complex<T>)
+                U_[j] = T(static_cast<float>(0xDEADBEEF),
+                          static_cast<float>(0xDEADBEEF));
+            else
+                U_[j] = T(static_cast<float>(0xDEADBEEF));
 
         // U_ receives the upper part of A
         for (idx_t j = 0; j < n; ++j)
@@ -152,8 +155,11 @@ void run(idx_t n)
 
         // Put garbage on U
         for (idx_t j = 0; j < n * n; ++j)
-            U[j] = make_scalar<real_t>(static_cast<float>(0xDEADBEEF),
-                                       static_cast<float>(0xDEADBEEF));
+            if constexpr (is_complex<T>)
+                U[j] = T(static_cast<float>(0xDEADBEEF),
+                         static_cast<float>(0xDEADBEEF));
+            else
+                U[j] = T(static_cast<float>(0xDEADBEEF));
 
         // U receives the upper part of A
         for (idx_t j = 0; j < n; ++j)

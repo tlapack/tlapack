@@ -141,6 +141,7 @@ auto lantr(norm_t normType, uplo_t uplo, diag_t diag, const matrix_t& A)
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
     using idx_t = size_type<matrix_t>;
+    using range = pair<idx_t, idx_t>;
 
     // constants
     const idx_t m = nrows(A);
@@ -303,25 +304,24 @@ auto lantr(norm_t normType, uplo_t uplo, diag_t diag, const matrix_t& A)
         if (uplo == Uplo::Upper) {
             if (diag == Diag::NonUnit) {
                 for (idx_t j = 0; j < n; ++j)
-                    lassq(slice(A, range<idx_t>(0, std::min(j + 1, m)), j),
-                          scale, sum);
+                    lassq(slice(A, range(0, std::min(j + 1, m)), j), scale,
+                          sum);
             }
             else {
                 sum = real_t(std::min(m, n));
                 for (idx_t j = 1; j < n; ++j)
-                    lassq(slice(A, range<idx_t>(0, std::min(j, m)), j), scale,
-                          sum);
+                    lassq(slice(A, range(0, std::min(j, m)), j), scale, sum);
             }
         }
         else {
             if (diag == Diag::NonUnit) {
                 for (idx_t j = 0; j < std::min(m, n); ++j)
-                    lassq(slice(A, range<idx_t>(j, m), j), scale, sum);
+                    lassq(slice(A, range(j, m), j), scale, sum);
             }
             else {
                 sum = real_t(std::min(m, n));
                 for (idx_t j = 0; j < std::min(m - 1, n); ++j)
-                    lassq(slice(A, range<idx_t>(j + 1, m), j), scale, sum);
+                    lassq(slice(A, range(j + 1, m), j), scale, sum);
             }
         }
         norm = scale * sqrt(sum);
@@ -407,7 +407,7 @@ auto lantr(norm_t normType,
         // the infinite norm.
 
         // Allocates workspace
-        vectorOfBytes localworkdata;
+        VectorOfBytes localworkdata;
         const Workspace work = [&]() {
             workinfo_t workinfo;
             lantr_worksize(normType, uplo, diag, A, opts);

@@ -36,12 +36,13 @@ inline constexpr workinfo_t gelq2_worksize(const matrix_t& A,
                                            const workspace_opts_t<>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
+    using range = pair<idx_t, idx_t>;
 
     // constants
     const idx_t m = nrows(A);
 
     if (m > 1) {
-        auto C = rows(A, range<idx_t>{1, m});
+        auto C = rows(A, range{1, m});
         return larf_worksize(right_side, forward, rowwise_storage, row(A, 0),
                              tauw[0], C, opts);
     }
@@ -90,7 +91,7 @@ template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
 int gelq2(matrix_t& A, vector_t& tauw, const workspace_opts_t<>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
-    using range = std::pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
 
     // constants
     const idx_t m = nrows(A);
@@ -101,7 +102,7 @@ int gelq2(matrix_t& A, vector_t& tauw, const workspace_opts_t<>& opts = {})
     tlapack_check_false((idx_t)size(tauw) < std::min<idx_t>(m, n));
 
     // Allocates workspace
-    vectorOfBytes localworkdata;
+    VectorOfBytes localworkdata;
     Workspace work = [&]() {
         workinfo_t workinfo = gelq2_worksize(A, tauw, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);

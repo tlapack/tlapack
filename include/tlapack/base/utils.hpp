@@ -30,44 +30,27 @@ namespace tlapack {
 
 // -----------------------------------------------------------------------------
 // From std C++
-using std::atan;
 using std::ceil;
-using std::cos;
+using std::enable_if_t;
 using std::floor;
+using std::is_same_v;
 using std::isinf;
 using std::isnan;
 using std::max;
 using std::min;
 using std::pair;
 using std::pow;
-using std::sin;
 using std::sqrt;
-
-template <typename idx_t>
-using range = pair<idx_t, idx_t>;
-using std::enable_if_t;
-
-// -----------------------------------------------------------------------------
-// is_same_v, is_convertible_v are defined in C++17; here's a C++11 definition
-#if __cplusplus >= 201703L
-using std::is_convertible_v;
-using std::is_same_v;
-#else
-template <class T, class U>
-constexpr bool is_convertible_v = std::is_convertible<T, U>::value;
-template <class T, class U>
-constexpr bool is_same_v = std::is_same<T, U>::value;
-#endif
 
 //------------------------------------------------------------------------------
 
-template <typename T, enable_if_t<is_real<T>::value, int> = 0>
+template <typename T, enable_if_t<is_real<T>, int> = 0>
 inline constexpr real_type<T> real(const T& x)
 {
     return x;
 }
 
-template <typename T, enable_if_t<is_real<T>::value, int> = 0>
+template <typename T, enable_if_t<is_real<T>, int> = 0>
 inline constexpr real_type<T> imag(const T& x)
 {
     return real_type<T>(0);
@@ -87,35 +70,10 @@ inline constexpr real_type<T> imag(const T& x)
  * @note C++11 to C++17 returns complex<real_t> instead of real_t. @see
  * std::conj
  */
-template <typename T, enable_if_t<is_real<T>::value, int> = 0>
+template <typename T, enable_if_t<is_real<T>, int> = 0>
 inline constexpr T conj(const T& x)
 {
     return x;
-}
-
-// -----------------------------------------------------------------------------
-// Generate a scalar from real and imaginary parts.
-// For real scalars, the imaginary part is ignored.
-
-// For real scalar types.
-template <typename real_t>
-struct MakeScalarTraits {
-    static inline real_t make(const real_t& re, const real_t& im) { return re; }
-};
-
-// For complex scalar types.
-template <typename real_t>
-struct MakeScalarTraits<std::complex<real_t>> {
-    static inline std::complex<real_t> make(const real_t& re, const real_t& im)
-    {
-        return std::complex<real_t>(re, im);
-    }
-};
-
-template <typename T>
-inline T make_scalar(real_type<T> re, real_type<T> im = 0)
-{
-    return MakeScalarTraits<T>::make(re, im);
 }
 
 // -----------------------------------------------------------------------------
@@ -137,93 +95,63 @@ inline bool isinf(const std::complex<real_t>& x)
 }
 
 namespace internal {
-
-    template <class array_t, typename = int>
+    template <class T, typename = int>
     struct has_operator_parenthesis_with_2_indexes : std::false_type {};
 
-    template <class array_t>
+    template <class T>
     struct has_operator_parenthesis_with_2_indexes<
-        array_t,
-        enable_if_t<!is_same_v<decltype(std::declval<array_t>()(0, 0)), void>,
-                    int>> : std::true_type {};
+        T,
+        enable_if_t<!is_same_v<decltype(std::declval<T>()(0, 0)), void>, int>>
+        : std::true_type {};
 
-    template <class array_t, typename = int>
+    template <class T, typename = int>
     struct has_operator_brackets_with_1_index : std::false_type {};
 
-    template <class array_t>
+    template <class T>
     struct has_operator_brackets_with_1_index<
-        array_t,
-        enable_if_t<!is_same_v<decltype(std::declval<array_t>()[0]), void>,
-                    int>> : std::true_type {};
+        T,
+        enable_if_t<!is_same_v<decltype(std::declval<T>()[0]), void>, int>>
+        : std::true_type {};
 
+    template <class T>
+    constexpr bool is_matrix =
+        has_operator_parenthesis_with_2_indexes<T>::value;
+
+    template <class T>
+    constexpr bool is_vector = has_operator_brackets_with_1_index<T>::value;
 }  // namespace internal
 
-template <class T>
-constexpr bool is_matrix =
-    internal::has_operator_parenthesis_with_2_indexes<T>::value;
-
-template <class T>
-constexpr bool is_vector =
-    !is_matrix<T> && internal::has_operator_brackets_with_1_index<T>::value;
-
-template <class T>
-constexpr bool is_scalar = !is_matrix<T> && !is_vector<T>;
-
-namespace internal {
-
-    /**
-     * @brief Data type trait.
-     *
-     * The data type is defined on @c type_trait<array_t>::type.
-     *
-     * @tparam matrix_t Matrix class.
-     */
+namespace traits {
     template <class matrix_t>
-    struct type_trait<matrix_t, enable_if_t<is_matrix<matrix_t>, int>> {
-        using type = typename std::decay<decltype(
-            ((const matrix_t)std::declval<matrix_t>())(0, 0))>::type;
+    struct entry_type_trait<matrix_t,
+                            enable_if_t<internal::is_matrix<matrix_t> &&
+                                            !internal::is_vector<matrix_t>,
+                                        int>> {
+        using type = std::decay_t<decltype(
+            ((const matrix_t)std::declval<matrix_t>())(0, 0))>;
     };
 
-    /**
-     * @brief Data type trait.
-     *
-     * The data type is defined on @c type_trait<array_t>::type.
-     *
-     * @tparam vector_t Vector class.
-     */
     template <class vector_t>
-    struct type_trait<vector_t, enable_if_t<is_vector<vector_t>, int>> {
-        using type = typename std::decay<decltype(
-            ((const vector_t)std::declval<vector_t>())[0])>::type;
+    struct entry_type_trait<vector_t,
+                            enable_if_t<internal::is_vector<vector_t>, int>> {
+        using type = std::decay_t<decltype(
+            ((const vector_t)std::declval<vector_t>())[0])>;
     };
 
-    /**
-     * @brief Size type trait.
-     *
-     * The size type is defined on @c sizet_trait<array_t>::type.
-     *
-     * @tparam matrix_t Matrix class.
-     */
     template <class matrix_t>
-    struct sizet_trait<matrix_t, enable_if_t<is_matrix<matrix_t>, int>> {
-        using type = typename std::decay<decltype(
-            nrows(std::declval<matrix_t>()))>::type;
+    struct size_type_trait<matrix_t,
+                           enable_if_t<internal::is_matrix<matrix_t> &&
+                                           !internal::is_vector<matrix_t>,
+                                       int>> {
+        using type = std::decay_t<decltype(nrows(std::declval<matrix_t>()))>;
     };
 
-    /**
-     * @brief Size type trait.
-     *
-     * The size type is defined on @c sizet_trait<array_t>::type.
-     *
-     * @tparam vector_t Vector class.
-     */
     template <class vector_t>
-    struct sizet_trait<vector_t, enable_if_t<is_vector<vector_t>, int>> {
-        using type =
-            typename std::decay<decltype(size(std::declval<vector_t>()))>::type;
+    struct size_type_trait<vector_t,
+                           enable_if_t<internal::is_vector<vector_t>, int>> {
+        using type = std::decay_t<decltype(size(std::declval<vector_t>()))>;
     };
-
-}  // namespace internal
+}  // namespace traits
 
 /**
  * Returns true if and only if A has an infinite entry.
@@ -308,7 +236,7 @@ bool hasinf(uplo_t uplo, const matrix_t& A)
  * @see tlapack::hasinf(uplo_t uplo, const matrix_t& A).
  */
 template <TLAPACK_MATRIX matrix_t>
-bool hasinf(band_t accessType, const matrix_t& A)
+bool hasinf(BandAccess accessType, const matrix_t& A)
 {
     using idx_t = size_type<matrix_t>;
 
@@ -436,7 +364,7 @@ bool hasnan(uplo_t uplo, const matrix_t& A)
  * @see tlapack::hasnan(uplo_t uplo, const matrix_t& A).
  */
 template <TLAPACK_MATRIX matrix_t>
-bool hasnan(band_t accessType, const matrix_t& A)
+bool hasnan(BandAccess accessType, const matrix_t& A)
 {
     using idx_t = size_type<matrix_t>;
 
@@ -528,7 +456,8 @@ namespace internal {
     /// Also true if C1 or C2 are strided vectors or scalars
     template <class C1, class C2>
     constexpr bool has_compatible_layout<C1, C2> =
-        is_scalar<C1> || is_scalar<C2> || (layout<C1> == Layout::Strided) ||
+        (!is_matrix<C1> && !is_vector<C1>) ||
+        (!is_matrix<C2> && !is_vector<C2>) || (layout<C1> == Layout::Strided) ||
         (layout<C2> == Layout::Strided) || (layout<C1> == layout<C2>);
 
     /// True if pair C1 and C2 have compatible layouts.
@@ -561,7 +490,8 @@ namespace internal {
     /// True if C is a row- or column-major matrix and the entry type can be
     /// used with optimized BLAS implementations.
     template <class C>
-    struct AllowOptBLASImpl<C, enable_if_t<is_matrix<C>, int>> {
+    struct AllowOptBLASImpl<C,
+                            enable_if_t<is_matrix<C> && !is_vector<C>, int>> {
         static constexpr bool value =
             allow_optblas<type_t<C>> &&
             (layout<C> == Layout::ColMajor || layout<C> == Layout::RowMajor);
@@ -572,7 +502,9 @@ namespace internal {
     template <class C>
     struct AllowOptBLASImpl<C, enable_if_t<is_vector<C>, int>> {
         static constexpr bool value =
-            allow_optblas<type_t<C>> && (layout<C> == Layout::Strided);
+            allow_optblas<type_t<C>> &&
+            (layout<C> == Layout::ColMajor || layout<C> == Layout::RowMajor ||
+             layout<C> == Layout::Strided);
     };
 
     /** A pair of types <C,T> allows optimized BLAS if T allows optimized BLAS
@@ -582,13 +514,18 @@ namespace internal {
      * 2. C is not a matrix or vector, but is convertible to T.
      */
     template <class C, class T>
-    struct AllowOptBLASImpl<pair<C, T>, int> {
+    struct AllowOptBLASImpl<pair<C, T>,
+                            enable_if_t<is_matrix<C> || is_vector<C>, int>> {
         static constexpr bool value =
             allow_optblas<T> &&
-            ((is_matrix<C> || is_vector<C>)
-                 ? (allow_optblas<C> &&
-                    is_same_v<type_t<C>, typename std::decay<T>::type>)
-                 : std::is_constructible<T, C>::value);
+            (allow_optblas<C> &&
+             is_same_v<type_t<C>, typename std::decay<T>::type>);
+    };
+    template <class C, class T>
+    struct AllowOptBLASImpl<pair<C, T>,
+                            enable_if_t<!is_matrix<C> && !is_vector<C>, int>> {
+        static constexpr bool value =
+            allow_optblas<T> && std::is_constructible<T, C>::value;
     };
 
     template <class C1, class T1, class C2, class T2, class... Ps>
@@ -613,10 +550,6 @@ using disable_if_allow_optblas_t =
         struct AllowOptBLASImpl<T, int> {       \
             static constexpr bool value = true; \
         };                                      \
-        template <>                             \
-        struct type_trait<T> {                  \
-            using type = T;                     \
-        };                                      \
     }
 
 /// Optimized types
@@ -640,9 +573,9 @@ TLAPACK_OPT_TYPE(StrongZero)
  *
  * @return Workspace referencing the allocated memory.
  */
-inline Workspace alloc_workspace(vectorOfBytes& v, std::size_t lwork)
+inline Workspace alloc_workspace(VectorOfBytes& v, std::size_t lwork)
 {
-    v = vectorOfBytes(lwork);  // Allocates space in memory
+    v = VectorOfBytes(lwork);  // Allocates space in memory
     return Workspace(v.data(), v.size());
 }
 
@@ -657,7 +590,7 @@ inline Workspace alloc_workspace(vectorOfBytes& v, std::size_t lwork)
  *      1. new allocated memory, if opts_w.size() <= 0.
  *      2. previously allocated memory, if opts_w.size() >= lwork.
  */
-inline Workspace alloc_workspace(vectorOfBytes& v,
+inline Workspace alloc_workspace(VectorOfBytes& v,
                                  const workinfo_t& workinfo,
                                  const Workspace& opts_w = {})
 {
@@ -710,7 +643,7 @@ struct workspace_opts_t {
 
     inline constexpr workspace_opts_t(const Workspace& w) : work(w) {}
 
-    template <class matrix_t>
+    template <TLAPACK_LEGACY_ARRAY matrix_t>
     inline constexpr workspace_opts_t(const matrix_t& A)
         : work(legacy_matrix(A))
     {}

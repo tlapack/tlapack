@@ -48,7 +48,7 @@ namespace tlapack {
  */
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
-          enable_if_t<is_complex<type_t<vector_t>>::value, bool> = true>
+          enable_if_t<is_complex<type_t<vector_t>>, bool> = true>
 inline constexpr workinfo_t multishift_QR_sweep_worksize(
     bool want_t,
     bool want_z,
@@ -97,7 +97,7 @@ inline constexpr workinfo_t multishift_QR_sweep_worksize(
  */
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
-          enable_if_t<is_complex<type_t<vector_t>>::value, bool> = true>
+          enable_if_t<is_complex<type_t<vector_t>>, bool> = true>
 void multishift_QR_sweep(bool want_t,
                          bool want_z,
                          size_type<matrix_t> ilo,
@@ -110,7 +110,7 @@ void multishift_QR_sweep(bool want_t,
     using TA = type_t<matrix_t>;
     using real_t = real_type<TA>;
     using idx_t = size_type<matrix_t>;
-    using pair = std::pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
 
     // Functor
     Create<matrix_t> new_matrix;
@@ -130,7 +130,7 @@ void multishift_QR_sweep(bool want_t,
     }
 
     // Allocates workspace
-    vectorOfBytes localworkdata;
+    VectorOfBytes localworkdata;
     const Workspace work = [&]() {
         workinfo_t workinfo = multishift_QR_sweep_worksize(want_t, want_z, ilo,
                                                            ihi, A, s, Z, opts);
@@ -152,15 +152,15 @@ void multishift_QR_sweep(bool want_t,
     // We use the lower triangular part of A as workspace
 
     // U stores the orthogonal transformations
-    auto U = slice(A, pair{n - n_block_desired, n}, pair{0, n_block_desired});
+    auto U = slice(A, range{n - n_block_desired, n}, range{0, n_block_desired});
 
     // Workspace for horizontal multiplications
-    auto WH = slice(A, pair{n - n_block_desired, n},
-                    pair{n_block_desired, n - n_block_desired - 3});
+    auto WH = slice(A, range{n - n_block_desired, n},
+                    range{n_block_desired, n - n_block_desired - 3});
 
     // Workspace for vertical multiplications
-    auto WV = slice(A, pair{n_block_desired + 3, n - n_block_desired},
-                    pair{0, n_block_desired});
+    auto WV = slice(A, range{n_block_desired + 3, n - n_block_desired},
+                    range{0, n_block_desired});
 
     // i_pos_block points to the start of the block of bulges
     idx_t i_pos_block;
@@ -176,7 +176,7 @@ void multishift_QR_sweep(bool want_t,
         idx_t n_block = std::min(n_block_desired, ihi - ilo);
         idx_t istart_m = ilo;
         idx_t istop_m = ilo + n_block;
-        auto U2 = slice(U, pair{0, n_block}, pair{0, n_block});
+        auto U2 = slice(U, range{0, n_block}, range{0, n_block});
         laset(Uplo::General, zero, one, U2);
 
         for (idx_t i_pos_last = ilo; i_pos_last < ilo + n_block - 2;
@@ -190,7 +190,7 @@ void multishift_QR_sweep(bool want_t,
                 if (i_pos == ilo) {
                     // Introduce bulge
                     TA tau;
-                    auto H = slice(A, pair{ilo, ilo + 3}, pair{ilo, ilo + 3});
+                    auto H = slice(A, range{ilo, ilo + 3}, range{ilo, ilo + 3});
                     lahqr_shiftcolumn(H, v, s[size(s) - 1 - 2 * i_bulge],
                                       s[size(s) - 1 - 2 * i_bulge - 1]);
                     larfg(forward, columnwise_storage, v, tau);
@@ -198,8 +198,8 @@ void multishift_QR_sweep(bool want_t,
                 }
                 else {
                     // Chase bulge down
-                    auto H = slice(A, pair{i_pos - 1, i_pos + 3},
-                                   pair{i_pos - 1, i_pos + 3});
+                    auto H = slice(A, range{i_pos - 1, i_pos + 3},
+                                   range{i_pos - 1, i_pos + 3});
                     move_bulge(H, v, s[size(s) - 1 - 2 * i_bulge],
                                s[size(s) - 1 - 2 * i_bulge - 1]);
                 }
@@ -337,9 +337,9 @@ void multishift_QR_sweep(bool want_t,
             while (i < istop_m) {
                 idx_t iblock = std::min<idx_t>(istop_m - i, ncols(WH));
                 auto A_slice =
-                    slice(A, pair{ilo, ilo + n_block}, pair{i, i + iblock});
-                auto WH_slice =
-                    slice(WH, pair{0, nrows(A_slice)}, pair{0, ncols(A_slice)});
+                    slice(A, range{ilo, ilo + n_block}, range{i, i + iblock});
+                auto WH_slice = slice(WH, range{0, nrows(A_slice)},
+                                      range{0, ncols(A_slice)});
                 gemm(Op::ConjTrans, Op::NoTrans, one, U2, A_slice, WH_slice);
                 lacpy(Uplo::General, WH_slice, A_slice);
                 i = i + iblock;
@@ -351,9 +351,9 @@ void multishift_QR_sweep(bool want_t,
             while (i < ilo) {
                 idx_t iblock = std::min<idx_t>(ilo - i, nrows(WV));
                 auto A_slice =
-                    slice(A, pair{i, i + iblock}, pair{ilo, ilo + n_block});
-                auto WV_slice =
-                    slice(WV, pair{0, nrows(A_slice)}, pair{0, ncols(A_slice)});
+                    slice(A, range{i, i + iblock}, range{ilo, ilo + n_block});
+                auto WV_slice = slice(WV, range{0, nrows(A_slice)},
+                                      range{0, ncols(A_slice)});
                 gemm(Op::NoTrans, Op::NoTrans, one, A_slice, U2, WV_slice);
                 lacpy(Uplo::General, WV_slice, A_slice);
                 i = i + iblock;
@@ -365,9 +365,9 @@ void multishift_QR_sweep(bool want_t,
             while (i < n) {
                 idx_t iblock = std::min<idx_t>(n - i, nrows(WV));
                 auto Z_slice =
-                    slice(Z, pair{i, i + iblock}, pair{ilo, ilo + n_block});
-                auto WV_slice =
-                    slice(WV, pair{0, nrows(Z_slice)}, pair{0, ncols(Z_slice)});
+                    slice(Z, range{i, i + iblock}, range{ilo, ilo + n_block});
+                auto WV_slice = slice(WV, range{0, nrows(Z_slice)},
+                                      range{0, ncols(Z_slice)});
                 gemm(Op::NoTrans, Op::NoTrans, one, Z_slice, U2, WV_slice);
                 lacpy(Uplo::General, WV_slice, Z_slice);
                 i = i + iblock;
@@ -388,7 +388,7 @@ void multishift_QR_sweep(bool want_t,
         // Actual blocksize
         idx_t n_block = n_shifts + n_pos;
 
-        auto U2 = slice(U, pair{0, n_block}, pair{0, n_block});
+        auto U2 = slice(U, range{0, n_block}, range{0, n_block});
         laset(Uplo::General, zero, one, U2);
 
         // Near-the-diagonal bulge chase
@@ -403,8 +403,8 @@ void multishift_QR_sweep(bool want_t,
             for (idx_t i_bulge = 0; i_bulge < n_bulges; ++i_bulge) {
                 idx_t i_pos = i_pos_last - 2 * i_bulge;
                 auto v = col(V, i_bulge);
-                auto H = slice(A, pair{i_pos - 1, i_pos + 3},
-                               pair{i_pos - 1, i_pos + 3});
+                auto H = slice(A, range{i_pos - 1, i_pos + 3},
+                               range{i_pos - 1, i_pos + 3});
                 move_bulge(H, v, s[size(s) - 1 - 2 * i_bulge],
                            s[size(s) - 1 - 2 * i_bulge - 1]);
 
@@ -547,10 +547,10 @@ void multishift_QR_sweep(bool want_t,
             while (i < istop_m) {
                 idx_t iblock = std::min<idx_t>(istop_m - i, ncols(WH));
                 auto A_slice =
-                    slice(A, pair{i_pos_block, i_pos_block + n_block},
-                          pair{i, i + iblock});
-                auto WH_slice =
-                    slice(WH, pair{0, nrows(A_slice)}, pair{0, ncols(A_slice)});
+                    slice(A, range{i_pos_block, i_pos_block + n_block},
+                          range{i, i + iblock});
+                auto WH_slice = slice(WH, range{0, nrows(A_slice)},
+                                      range{0, ncols(A_slice)});
                 gemm(Op::ConjTrans, Op::NoTrans, one, U2, A_slice, WH_slice);
                 lacpy(Uplo::General, WH_slice, A_slice);
                 i = i + iblock;
@@ -561,10 +561,10 @@ void multishift_QR_sweep(bool want_t,
             idx_t i = istart_m;
             while (i < i_pos_block) {
                 idx_t iblock = std::min<idx_t>(i_pos_block - i, nrows(WV));
-                auto A_slice = slice(A, pair{i, i + iblock},
-                                     pair{i_pos_block, i_pos_block + n_block});
-                auto WV_slice =
-                    slice(WV, pair{0, nrows(A_slice)}, pair{0, ncols(A_slice)});
+                auto A_slice = slice(A, range{i, i + iblock},
+                                     range{i_pos_block, i_pos_block + n_block});
+                auto WV_slice = slice(WV, range{0, nrows(A_slice)},
+                                      range{0, ncols(A_slice)});
                 gemm(Op::NoTrans, Op::NoTrans, one, A_slice, U2, WV_slice);
                 lacpy(Uplo::General, WV_slice, A_slice);
                 i = i + iblock;
@@ -575,10 +575,10 @@ void multishift_QR_sweep(bool want_t,
             idx_t i = 0;
             while (i < n) {
                 idx_t iblock = std::min<idx_t>(n - i, nrows(WV));
-                auto Z_slice = slice(Z, pair{i, i + iblock},
-                                     pair{i_pos_block, i_pos_block + n_block});
-                auto WV_slice =
-                    slice(WV, pair{0, nrows(Z_slice)}, pair{0, ncols(Z_slice)});
+                auto Z_slice = slice(Z, range{i, i + iblock},
+                                     range{i_pos_block, i_pos_block + n_block});
+                auto WV_slice = slice(WV, range{0, nrows(Z_slice)},
+                                      range{0, ncols(Z_slice)});
                 gemm(Op::NoTrans, Op::NoTrans, one, Z_slice, U2, WV_slice);
                 lacpy(Uplo::General, WV_slice, Z_slice);
                 i = i + iblock;
@@ -594,7 +594,7 @@ void multishift_QR_sweep(bool want_t,
     {
         idx_t n_block = ihi - i_pos_block;
 
-        auto U2 = slice(U, pair{0, n_block}, pair{0, n_block});
+        auto U2 = slice(U, range{0, n_block}, range{0, n_block});
         laset(Uplo::General, zero, one, U2);
 
         // Near-the-diagonal bulge chase
@@ -614,8 +614,8 @@ void multishift_QR_sweep(bool want_t,
                 if (i_pos == ihi - 2) {
                     // Special case, the bulge is at the bottom, needs a smaller
                     // reflector (order 2)
-                    auto v = slice(V, pair{0, 2}, i_bulge);
-                    auto h = slice(A, pair{i_pos, i_pos + 2}, i_pos - 1);
+                    auto v = slice(V, range{0, 2}, i_bulge);
+                    auto h = slice(A, range{i_pos, i_pos + 2}, i_pos - 1);
                     larfg(forward, columnwise_storage, h, v[0]);
                     v[1] = h[1];
                     h[1] = zero;
@@ -649,8 +649,8 @@ void multishift_QR_sweep(bool want_t,
                 }
                 else {
                     auto v = col(V, i_bulge);
-                    auto H = slice(A, pair{i_pos - 1, i_pos + 3},
-                                   pair{i_pos - 1, i_pos + 3});
+                    auto H = slice(A, range{i_pos - 1, i_pos + 3},
+                                   range{i_pos - 1, i_pos + 3});
                     move_bulge(H, v, s[size(s) - 1 - 2 * i_bulge],
                                s[size(s) - 1 - 2 * i_bulge - 1]);
 
@@ -804,9 +804,9 @@ void multishift_QR_sweep(bool want_t,
             while (i < istop_m) {
                 idx_t iblock = std::min<idx_t>(istop_m - i, ncols(WH));
                 auto A_slice =
-                    slice(A, pair{i_pos_block, ihi}, pair{i, i + iblock});
-                auto WH_slice =
-                    slice(WH, pair{0, nrows(A_slice)}, pair{0, ncols(A_slice)});
+                    slice(A, range{i_pos_block, ihi}, range{i, i + iblock});
+                auto WH_slice = slice(WH, range{0, nrows(A_slice)},
+                                      range{0, ncols(A_slice)});
                 gemm(Op::ConjTrans, Op::NoTrans, one, U2, A_slice, WH_slice);
                 lacpy(Uplo::General, WH_slice, A_slice);
                 i = i + iblock;
@@ -818,9 +818,9 @@ void multishift_QR_sweep(bool want_t,
             while (i < i_pos_block) {
                 idx_t iblock = std::min<idx_t>(i_pos_block - i, nrows(WV));
                 auto A_slice =
-                    slice(A, pair{i, i + iblock}, pair{i_pos_block, ihi});
-                auto WV_slice =
-                    slice(WV, pair{0, nrows(A_slice)}, pair{0, ncols(A_slice)});
+                    slice(A, range{i, i + iblock}, range{i_pos_block, ihi});
+                auto WV_slice = slice(WV, range{0, nrows(A_slice)},
+                                      range{0, ncols(A_slice)});
                 gemm(Op::NoTrans, Op::NoTrans, one, A_slice, U2, WV_slice);
                 lacpy(Uplo::General, WV_slice, A_slice);
                 i = i + iblock;
@@ -832,9 +832,9 @@ void multishift_QR_sweep(bool want_t,
             while (i < n) {
                 idx_t iblock = std::min<idx_t>(n - i, nrows(WV));
                 auto Z_slice =
-                    slice(Z, pair{i, i + iblock}, pair{i_pos_block, ihi});
-                auto WV_slice =
-                    slice(WV, pair{0, nrows(Z_slice)}, pair{0, ncols(Z_slice)});
+                    slice(Z, range{i, i + iblock}, range{i_pos_block, ihi});
+                auto WV_slice = slice(WV, range{0, nrows(Z_slice)},
+                                      range{0, ncols(Z_slice)});
                 gemm(Op::NoTrans, Op::NoTrans, one, Z_slice, U2, WV_slice);
                 lacpy(Uplo::General, WV_slice, Z_slice);
                 i = i + iblock;

@@ -152,8 +152,8 @@ void syrk(Uplo uplo,
 *
 * @ingroup blas3
 */
-template <TLAPACK_MATRIX matrixA_t,
-          TLAPACK_MATRIX matrixC_t,
+template <TLAPACK_LEGACY_MATRIX matrixA_t,
+          TLAPACK_LEGACY_MATRIX matrixC_t,
           TLAPACK_SCALAR alpha_t,
           TLAPACK_SCALAR beta_t,
           class T = type_t<matrixC_t>,

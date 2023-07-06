@@ -27,7 +27,7 @@ template <TLAPACK_REAL TX,
           TLAPACK_REAL TY,
           enable_if_t<(
                           /* Requires: */
-                          is_real<TX>::value && is_real<TY>::value),
+                          is_real<TX> && is_real<TY>),
                       int> = 0>
 real_type<TX, TY> lapy2(const TX& x, const TY& y)
 {

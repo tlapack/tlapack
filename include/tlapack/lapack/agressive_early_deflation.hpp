@@ -69,7 +69,7 @@ struct francis_opts_t;
  */
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_SVECTOR vector_t,
-          enable_if_t<is_complex<type_t<vector_t> >::value, int> = 0>
+          enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
 workinfo_t agressive_early_deflation_worksize(
     bool want_t,
     bool want_z,
@@ -84,21 +84,21 @@ workinfo_t agressive_early_deflation_worksize(
     const francis_opts_t<size_type<matrix_t> >& opts = {})
 {
     using idx_t = size_type<matrix_t>;
-    using pair = std::pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
 
     const idx_t n = ncols(A);
     const idx_t nw_max = (n - 3) / 3;
     const idx_t jw = min(min(nw, ihi - ilo), nw_max);
 
-    auto TW = slice(A, pair{0, jw}, pair{0, jw});
+    auto TW = slice(A, range{0, jw}, range{0, jw});
 
     // quick return
     workinfo_t workinfo;
     if (n < 9 || nw <= 1 || ihi <= 1 + ilo) return workinfo;
 
     if (jw >= opts.nmin) {
-        auto s_window = slice(s, pair{0, jw});
-        auto V = slice(A, pair{0, jw}, pair{0, jw});
+        auto s_window = slice(s, range{0, jw});
+        auto V = slice(A, range{0, jw}, range{0, jw});
 
         workinfo.minMax(
             multishift_qr_worksize(true, true, 0, jw, TW, s_window, V, opts));
@@ -106,7 +106,7 @@ workinfo_t agressive_early_deflation_worksize(
 
     if (jw != ihi - ilo) {
         // Hessenberg reduction
-        auto tau = slice(A, pair{0, jw}, 0);
+        auto tau = slice(A, range{0, jw}, 0);
         workinfo.minMax(gehrd_worksize(0, jw, TW, tau));
     }
 
@@ -174,7 +174,7 @@ workinfo_t agressive_early_deflation_worksize(
  */
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_SVECTOR vector_t,
-          enable_if_t<is_complex<type_t<vector_t> >::value, int> = 0>
+          enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
 void agressive_early_deflation(bool want_t,
                                bool want_z,
                                size_type<matrix_t> ilo,
@@ -190,7 +190,7 @@ void agressive_early_deflation(bool want_t,
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
     using idx_t = size_type<matrix_t>;
-    using pair = std::pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
 
     // Constants
     const real_t one(1);
@@ -236,7 +236,7 @@ void agressive_early_deflation(bool want_t,
     }
 
     // Allocates workspace
-    vectorOfBytes localworkdata;
+    VectorOfBytes localworkdata;
     Workspace work = [&]() {
         workinfo_t workinfo = agressive_early_deflation_worksize(
             want_t, want_z, ilo, ihi, nw, A, s, Z, ns, nd, opts);
@@ -251,18 +251,18 @@ void agressive_early_deflation(bool want_t,
     // We use the lower triangular part of A as workspace
     // TW and WH overlap, but WH is only used after we no longer need
     // TW so it is ok.
-    auto V = slice(A, pair{n - jw, n}, pair{0, jw});
-    auto TW = slice(A, pair{n - jw, n}, pair{jw, 2 * jw});
-    auto WH = slice(A, pair{n - jw, n}, pair{jw, n - jw - 3});
-    auto WV = slice(A, pair{jw + 3, n - jw}, pair{0, jw});
+    auto V = slice(A, range{n - jw, n}, range{0, jw});
+    auto TW = slice(A, range{n - jw, n}, range{jw, 2 * jw});
+    auto WH = slice(A, range{n - jw, n}, range{jw, n - jw - 3});
+    auto WV = slice(A, range{jw + 3, n - jw}, range{0, jw});
 
     // Convert the window to spike-triangular form. i.e. calculate the
     // Schur form of the deflation window.
     // If the QR algorithm fails to convergence, it can still be
     // partially in Schur form. In that case we continue on a smaller
     // window (note the use of infqr later in the code).
-    auto A_window = slice(A, pair{kwtop, ihi}, pair{kwtop, ihi});
-    auto s_window = slice(s, pair{kwtop, ihi});
+    auto A_window = slice(A, range{kwtop, ihi}, range{kwtop, ihi});
+    auto s_window = slice(s, range{kwtop, ihi});
     laset(Uplo::Lower, zero, zero, TW);
     for (idx_t j = 0; j < jw; ++j)
         for (idx_t i = 0; i < std::min(j + 2, jw); ++i)
@@ -286,7 +286,7 @@ void agressive_early_deflation(bool want_t,
     idx_t ilst = infqr;
     while (ilst < ns) {
         bool bulge = false;
-        if (is_real<T>::value)
+        if (is_real<T>)
             if (ns > 1)
                 if (TW(ns - 1, ns - 2) != zero) bulge = true;
 
@@ -356,7 +356,7 @@ void agressive_early_deflation(bool want_t,
         while (i1 + 1 < sorting_window_size) {
             // Size of the first block
             idx_t n1 = 1;
-            if (is_real<T>::value)
+            if (is_real<T>)
                 if (TW(i1 + 1, i1) != zero) n1 = 2;
 
             // Check if there is a next block
@@ -370,7 +370,7 @@ void agressive_early_deflation(bool want_t,
 
             // Size of the second block
             idx_t n2 = 1;
-            if (is_real<T>::value)
+            if (is_real<T>)
                 if (i2 + 1 < jw)
                     if (TW(i2 + 1, i2) != zero) n2 = 2;
 
@@ -408,7 +408,7 @@ void agressive_early_deflation(bool want_t,
     idx_t i = 0;
     while (i < jw) {
         idx_t n1 = 1;
-        if (is_real<T>::value)
+        if (is_real<T>)
             if (i + 1 < jw)
                 if (TW(i + 1, i) != zero) n1 = 2;
 
@@ -425,34 +425,34 @@ void agressive_early_deflation(bool want_t,
         // Reflect spike back
         {
             T tau;
-            auto v = slice(WV, pair{0, ns}, 0);
+            auto v = slice(WV, range{0, ns}, 0);
             for (idx_t i = 0; i < ns; ++i) {
                 v[i] = conj(V(0, i));
             }
             larfg(forward, columnwise_storage, v, tau);
 
-            auto Wv_aux = slice(WV, pair{0, jw}, 1);
+            auto Wv_aux = slice(WV, range{0, jw}, 1);
             workspace_opts_t<> work2(Wv_aux);
 
-            auto TW_slice = slice(TW, pair{0, ns}, pair{0, jw});
+            auto TW_slice = slice(TW, range{0, ns}, range{0, jw});
             larf(Side::Left, forward, columnwise_storage, v, conj(tau),
                  TW_slice, work2);
 
-            auto TW_slice2 = slice(TW, pair{0, jw}, pair{0, ns});
+            auto TW_slice2 = slice(TW, range{0, jw}, range{0, ns});
             larf(Side::Right, forward, columnwise_storage, v, tau, TW_slice2,
                  work2);
 
-            auto V_slice = slice(V, pair{0, jw}, pair{0, ns});
+            auto V_slice = slice(V, range{0, jw}, range{0, ns});
             larf(Side::Right, forward, columnwise_storage, v, tau, V_slice,
                  work2);
         }
 
         // Hessenberg reduction
         {
-            auto tau = slice(WV, pair{0, jw}, 0);
+            auto tau = slice(WV, range{0, jw}, 0);
             gehrd(0, ns, TW, tau, gehrdOpts);
 
-            workspace_opts_t<> work2(slice(WV, pair{0, jw}, 1));
+            workspace_opts_t<> work2(slice(WV, range{0, jw}, 1));
             unmhr(Side::Right, Op::NoTrans, 0, ns, TW, tau, V, work2);
         }
     }
@@ -484,9 +484,9 @@ void agressive_early_deflation(bool want_t,
         idx_t i = ihi;
         while (i < istop_m) {
             idx_t iblock = std::min<idx_t>(istop_m - i, ncols(WH));
-            auto A_slice = slice(A, pair{kwtop, ihi}, pair{i, i + iblock});
+            auto A_slice = slice(A, range{kwtop, ihi}, range{i, i + iblock});
             auto WH_slice =
-                slice(WH, pair{0, nrows(A_slice)}, pair{0, ncols(A_slice)});
+                slice(WH, range{0, nrows(A_slice)}, range{0, ncols(A_slice)});
             gemm(Op::ConjTrans, Op::NoTrans, one, V, A_slice, WH_slice);
             lacpy(Uplo::General, WH_slice, A_slice);
             i = i + iblock;
@@ -497,9 +497,9 @@ void agressive_early_deflation(bool want_t,
         idx_t i = istart_m;
         while (i < kwtop) {
             idx_t iblock = std::min<idx_t>(kwtop - i, nrows(WV));
-            auto A_slice = slice(A, pair{i, i + iblock}, pair{kwtop, ihi});
+            auto A_slice = slice(A, range{i, i + iblock}, range{kwtop, ihi});
             auto WV_slice =
-                slice(WV, pair{0, nrows(A_slice)}, pair{0, ncols(A_slice)});
+                slice(WV, range{0, nrows(A_slice)}, range{0, ncols(A_slice)});
             gemm(Op::NoTrans, Op::NoTrans, one, A_slice, V, WV_slice);
             lacpy(Uplo::General, WV_slice, A_slice);
             i = i + iblock;
@@ -510,9 +510,9 @@ void agressive_early_deflation(bool want_t,
         idx_t i = 0;
         while (i < n) {
             idx_t iblock = std::min<idx_t>(n - i, nrows(WV));
-            auto Z_slice = slice(Z, pair{i, i + iblock}, pair{kwtop, ihi});
+            auto Z_slice = slice(Z, range{i, i + iblock}, range{kwtop, ihi});
             auto WV_slice =
-                slice(WV, pair{0, nrows(Z_slice)}, pair{0, ncols(Z_slice)});
+                slice(WV, range{0, nrows(Z_slice)}, range{0, ncols(Z_slice)});
             gemm(Op::NoTrans, Op::NoTrans, one, Z_slice, V, WV_slice);
             lacpy(Uplo::General, WV_slice, Z_slice);
             i = i + iblock;
@@ -572,7 +572,7 @@ void agressive_early_deflation(bool want_t,
  */
 template <TLAPACK_MATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
-          enable_if_t<is_complex<type_t<vector_t> >::value, int> = 0>
+          enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
 inline void agressive_early_deflation(bool want_t,
                                       bool want_z,
                                       size_type<matrix_t> ilo,

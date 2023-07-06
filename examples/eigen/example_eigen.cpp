@@ -29,7 +29,7 @@
 int main(int argc, char** argv)
 {
     using std::size_t;
-    using pair = std::pair<size_t, size_t>;
+    using range = std::pair<size_t, size_t>;
     using namespace tlapack;
     using Eigen::Matrix;
 
@@ -59,7 +59,7 @@ int main(int argc, char** argv)
     // Compute QR decomposision in place
     geqr2(Q, tau);
     // Copy the upper triangle to R
-    lacpy(upperTriangle, slice(Q, pair{0, n}, pair{0, n}), R);
+    lacpy(upperTriangle, slice(Q, range{0, n}, range{0, n}), R);
     // Generate Q
     ung2r(Q, tau);
 

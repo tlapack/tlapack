@@ -16,25 +16,25 @@
 template <class block_t>
 void test_block()
 {
-    CHECK(tlapack::internal::is_eigen_dense<block_t> == true);
-    CHECK(tlapack::internal::is_eigen_matrix<block_t> == true);
-    CHECK(tlapack::internal::is_eigen_block<block_t> == true);
+    CHECK(tlapack::eigen::internal::is_eigen_dense<block_t> == true);
+    CHECK(tlapack::eigen::internal::is_eigen_matrix<block_t> == true);
+    CHECK(tlapack::eigen::internal::is_eigen_block<block_t> == true);
 }
 
 template <class matrix_t>
 void test_matrix()
 {
-    CHECK(tlapack::internal::is_eigen_dense<matrix_t> == true);
-    CHECK(tlapack::internal::is_eigen_matrix<matrix_t> == true);
-    CHECK(tlapack::internal::is_eigen_block<matrix_t> == false);
+    CHECK(tlapack::eigen::internal::is_eigen_dense<matrix_t> == true);
+    CHECK(tlapack::eigen::internal::is_eigen_matrix<matrix_t> == true);
+    CHECK(tlapack::eigen::internal::is_eigen_block<matrix_t> == false);
 }
 
 template <class map_t>
 void test_map()
 {
-    CHECK(tlapack::internal::is_eigen_dense<map_t> == true);
-    CHECK(tlapack::internal::is_eigen_matrix<map_t> == true);
-    CHECK(tlapack::internal::is_eigen_block<map_t> == false);
+    CHECK(tlapack::eigen::internal::is_eigen_dense<map_t> == true);
+    CHECK(tlapack::eigen::internal::is_eigen_matrix<map_t> == true);
+    CHECK(tlapack::eigen::internal::is_eigen_block<map_t> == false);
 }
 
 template <class matrix_t>
@@ -67,10 +67,11 @@ void test_maps()
 
 TEST_CASE("is_eigen_dense, is_eigen_block and is_eigen_map work", "[plugins]")
 {
-    CHECK(tlapack::internal::is_eigen_dense<int> == false);
-    CHECK(tlapack::internal::is_eigen_dense<float> == false);
-    CHECK(tlapack::internal::is_eigen_dense<std::complex<float>> == false);
-    CHECK(tlapack::internal::is_eigen_dense<std::string> == false);
+    CHECK(tlapack::eigen::internal::is_eigen_dense<int> == false);
+    CHECK(tlapack::eigen::internal::is_eigen_dense<float> == false);
+    CHECK(tlapack::eigen::internal::is_eigen_dense<std::complex<float>> ==
+          false);
+    CHECK(tlapack::eigen::internal::is_eigen_dense<std::string> == false);
 
     using M0 = Eigen::MatrixXd;
     using M1 = Eigen::VectorXd;
@@ -112,7 +113,7 @@ TEST_CASE("legacy_matrix works", "[plugins]")
         Eigen::MatrixXd A2 = A.block<1, 2>(1, 0);
 
         auto B = tlapack::legacy_matrix(A);
-        auto C = tlapack::legacy::matrix<double, Eigen::Index>{
+        auto C = tlapack::legacy::Matrix<double, Eigen::Index>{
             tlapack::layout<Eigen::Matrix2d>, A.rows(), A.cols(), A.data(),
             A.rows()};
         CHECK(B.layout == C.layout);
@@ -122,7 +123,7 @@ TEST_CASE("legacy_matrix works", "[plugins]")
         CHECK(B.ldim == C.ldim);
 
         auto B2 = tlapack::legacy_matrix(A2);
-        auto C2 = tlapack::legacy::matrix<double, Eigen::Index>{
+        auto C2 = tlapack::legacy::Matrix<double, Eigen::Index>{
             tlapack::layout<Eigen::MatrixXd>, A2.rows(), A2.cols(), A2.data(),
             A2.outerStride()};
         CHECK(B2.layout == C2.layout);
@@ -132,7 +133,7 @@ TEST_CASE("legacy_matrix works", "[plugins]")
         CHECK(B2.ldim == C2.ldim);
 
         auto B3 = tlapack::legacy_vector(A2);
-        auto C3 = tlapack::legacy::vector<double, Eigen::Index>{
+        auto C3 = tlapack::legacy::Vector<double, Eigen::Index>{
             A2.size(), A2.data(), A2.innerStride()};
         CHECK(B3.n == C3.n);
         CHECK(B3.ptr == C3.ptr);
@@ -143,7 +144,7 @@ TEST_CASE("legacy_matrix works", "[plugins]")
         A << 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, -1, -2, -3, -4, -5;
 
         auto B = tlapack::legacy_matrix(A);
-        auto C = tlapack::legacy::matrix<float, Eigen::Index>{
+        auto C = tlapack::legacy::Matrix<float, Eigen::Index>{
             tlapack::layout<Eigen::Matrix<float, -1, -1, Eigen::RowMajor>>,
             A.rows(), A.cols(), A.data(), A.outerStride()};
         CHECK(B.layout == C.layout);
@@ -154,7 +155,7 @@ TEST_CASE("legacy_matrix works", "[plugins]")
 
         Eigen::Matrix<float, -1, 1> A2 = A.col(3);
         auto B2 = tlapack::legacy_vector(A2);
-        auto C2 = tlapack::legacy::vector<float, Eigen::Index>{
+        auto C2 = tlapack::legacy::Vector<float, Eigen::Index>{
             A2.size(), A2.data(), A2.innerStride()};
         CHECK(B2.n == C2.n);
         CHECK(B2.ptr == C2.ptr);
@@ -164,20 +165,20 @@ TEST_CASE("legacy_matrix works", "[plugins]")
 
 TEST_CASE("slice works", "[plugins]")
 {
-    using pair = tlapack::range<Eigen::Index>;
+    using range = std::pair<Eigen::Index, Eigen::Index>;
 
     {
         Eigen::Matrix2d A;
         A << 1, 3, 2, 4;
 
-        auto B = tlapack::slice(A, pair{1, 2}, pair{1, 2});
+        auto B = tlapack::slice(A, range{1, 2}, range{1, 2});
         CHECK(B(0, 0) == A(1, 1));
     }
     {
         Eigen::MatrixXd A(2, 2);
         A << 1, 3, 2, 4;
 
-        auto B = tlapack::slice(A, pair{1, 2}, pair{1, 2});
+        auto B = tlapack::slice(A, range{1, 2}, range{1, 2});
         CHECK(B(0, 0) == A(1, 1));
     }
 }

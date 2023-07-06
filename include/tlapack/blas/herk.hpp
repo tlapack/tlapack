@@ -58,7 +58,7 @@ template <TLAPACK_MATRIX matrixA_t,
           TLAPACK_REAL beta_t,
           enable_if_t<(
                           /* Requires: */
-                          is_real<alpha_t>::value && is_real<beta_t>::value),
+                          is_real<alpha_t> && is_real<beta_t>),
                       int> = 0,
           class T = type_t<matrixC_t>,
           disable_if_allow_optblas_t<pair<matrixA_t, T>,
@@ -182,8 +182,8 @@ void herk(Uplo uplo,
 *
 * @ingroup blas3
 */
-template <TLAPACK_MATRIX matrixA_t,
-          TLAPACK_MATRIX matrixC_t,
+template <TLAPACK_LEGACY_MATRIX matrixA_t,
+          TLAPACK_LEGACY_MATRIX matrixC_t,
           TLAPACK_REAL alpha_t,
           TLAPACK_REAL beta_t,
           class T = type_t<matrixC_t>,
