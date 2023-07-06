@@ -42,7 +42,8 @@ auto asum(vector_t const& x)
 
 #ifdef USE_LAPACKPP_WRAPPERS
 
-template <TLAPACK_VECTOR vector_t, enable_if_allow_optblas_t<vector_t> = 0>
+template <TLAPACK_LEGACY_VECTOR vector_t,
+          enable_if_allow_optblas_t<vector_t> = 0>
 inline auto asum(vector_t const& x)
 {
     // Legacy objects

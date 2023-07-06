@@ -97,9 +97,8 @@ void larfg(storage_t storeMode,
 
     if (xnorm > zero || (imag(alpha) != zero)) {
         // First estimate of beta
-        real_t temp = (is_real<T>::value)
-                          ? lapy2(real(alpha), xnorm)
-                          : lapy3(real(alpha), imag(alpha), xnorm);
+        real_t temp = (is_real<T>) ? lapy2(real(alpha), xnorm)
+                                   : lapy3(real(alpha), imag(alpha), xnorm);
         real_t beta = (real(alpha) < zero) ? temp : -temp;
 
         // Scale if needed
@@ -112,8 +111,8 @@ void larfg(storage_t storeMode,
                 alpha *= rsafemin;
             }
             xnorm = nrm2(x);
-            temp = (is_real<T>::value) ? lapy2(real(alpha), xnorm)
-                                       : lapy3(real(alpha), imag(alpha), xnorm);
+            temp = (is_real<T>) ? lapy2(real(alpha), xnorm)
+                                : lapy3(real(alpha), imag(alpha), xnorm);
             beta = (real(alpha) < zero) ? temp : -temp;
         }
 
@@ -192,14 +191,14 @@ void larfg(storage_t storeMode,
 template <TLAPACK_DIRECTION direction_t,
           TLAPACK_STOREV storage_t,
           TLAPACK_VECTOR vector_t,
-          enable_if_t<is_convertible_v<direction_t, Direction>, int> = 0>
+          enable_if_t<std::is_convertible_v<direction_t, Direction>, int> = 0>
 inline void larfg(direction_t direction,
                   storage_t storeMode,
                   vector_t& v,
                   type_t<vector_t>& tau)
 {
     using idx_t = size_type<vector_t>;
-    using pair = pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
 
     // check arguments
     tlapack_check_false(direction != Direction::Backward &&
@@ -207,8 +206,9 @@ inline void larfg(direction_t direction,
 
     const idx_t alpha_idx = (direction == Direction::Forward) ? 0 : size(v) - 1;
 
-    auto x = slice(v, (direction == Direction::Forward) ? pair(1, size(v))
-                                                        : pair(0, size(v) - 1));
+    auto x =
+        slice(v, (direction == Direction::Forward) ? range(1, size(v))
+                                                   : range(0, size(v) - 1));
     type_t<vector_t> alpha = v[alpha_idx];
     larfg(storeMode, alpha, x, tau);
     v[alpha_idx] = alpha;

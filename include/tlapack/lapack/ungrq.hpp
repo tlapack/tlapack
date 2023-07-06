@@ -56,7 +56,7 @@ inline constexpr workinfo_t ungrq_worksize(
     using idx_t = size_type<matrix_t>;
     using matrixT_t = deduce_work_t<workT_t, matrix_type<matrix_t, vector_t> >;
     using T = type_t<matrixT_t>;
-    using pair = std::pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
 
     // Constants
     const idx_t k = size(tau);
@@ -71,8 +71,8 @@ inline constexpr workinfo_t ungrq_worksize(
         const idx_t m = nrows(A);
 
         // Empty matrices
-        const auto V = slice(A, pair{0, nb}, pair{0, m});
-        const auto matrixT = slice(A, pair{0, nb}, pair{0, nb});
+        const auto V = slice(A, range{0, nb}, range{0, m});
+        const auto matrixT = slice(A, range{0, nb}, range{0, nb});
 
         // Internal workspace queries
         workinfo += larfb_worksize(right_side, conjTranspose, backward,
@@ -118,7 +118,7 @@ int ungrq(matrix_t& A,
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
     using idx_t = size_type<matrix_t>;
-    using pair = pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
     using matrixT_t = deduce_work_t<workT_t, matrix_type<matrix_t, vector_t> >;
 
     // Functor
@@ -139,7 +139,7 @@ int ungrq(matrix_t& A,
     if (n <= 0) return 0;
 
     // Allocates workspace
-    vectorOfBytes localworkdata;
+    VectorOfBytes localworkdata;
     Workspace work = [&]() {
         workinfo_t workinfo = ungrq_worksize(A, tau, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
@@ -163,16 +163,17 @@ int ungrq(matrix_t& A,
     for (idx_t i = 0; i < k; i += nb) {
         idx_t ib = min<idx_t>(nb, k - i);
         idx_t ii = m - k + i;
-        const auto taui = slice(tau, pair{i, i + ib});
+        const auto taui = slice(tau, range{i, i + ib});
         // Use block reflector to update most of the matrix
         // We do this first because the reflectors will be destroyed by the
         // unblocked code later.
         if (ii > 0) {
             // Form the triangular factor of the block reflector
             // H = H(i) H(i+1) . . . H(i+ib-1)
-            const auto V = slice(A, pair{ii, ii + ib}, pair{0, n - k + i + ib});
-            auto matrixTi = slice(matrixT, pair{0, ib}, pair{0, ib});
-            auto C = slice(A, pair{0, ii}, pair{0, n - k + i + ib});
+            const auto V =
+                slice(A, range{ii, ii + ib}, range{0, n - k + i + ib});
+            auto matrixTi = slice(matrixT, range{0, ib}, range{0, ib});
+            auto C = slice(A, range{0, ii}, range{0, n - k + i + ib});
 
             larft(backward, rowwise_storage, V, taui, matrixTi);
             larfb(right_side, conjTranspose, backward, rowwise_storage, V,
@@ -180,7 +181,7 @@ int ungrq(matrix_t& A,
         }
         // Use unblocked code to apply H^H to columns 0:n-k+i+ib of current
         // block
-        auto Ai = slice(A, pair{ii, ii + ib}, pair{0, n - k + i + ib});
+        auto Ai = slice(A, range{ii, ii + ib}, range{0, n - k + i + ib});
         ungr2(Ai, taui, larfOpts);
         // Set columns n-k+i+ib:n of current block to zero
         for (idx_t j = n - k + i + ib; j < n; ++j)

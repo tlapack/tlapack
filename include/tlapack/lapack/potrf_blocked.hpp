@@ -72,7 +72,7 @@ int potrf_blocked(uplo_t uplo,
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
     using idx_t = size_type<matrix_t>;
-    using pair = pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
 
     // Constants
     const real_t one(1);
@@ -97,8 +97,8 @@ int potrf_blocked(uplo_t uplo,
                 idx_t jb = min(nb, n - j);
 
                 // Define AJJ and A1J
-                auto AJJ = slice(A, pair{j, j + jb}, pair{j, j + jb});
-                auto A1J = slice(A, pair{0, j}, pair{j, j + jb});
+                auto AJJ = slice(A, range{j, j + jb}, range{j, j + jb});
+                auto A1J = slice(A, range{0, j}, range{j, j + jb});
 
                 herk(uplo, conjTranspose, -one, A1J, one, AJJ);
 
@@ -114,8 +114,8 @@ int potrf_blocked(uplo_t uplo,
 
                 if (j + jb < n) {
                     // Define B and C
-                    auto B = slice(A, pair{0, j}, pair{j + jb, n});
-                    auto C = slice(A, pair{j, j + jb}, pair{j + jb, n});
+                    auto B = slice(A, range{0, j}, range{j + jb, n});
+                    auto C = slice(A, range{j, j + jb}, range{j + jb, n});
 
                     // Compute the current block row
                     gemm(conjTranspose, noTranspose, -one, A1J, B, one, C);
@@ -129,8 +129,8 @@ int potrf_blocked(uplo_t uplo,
                 idx_t jb = min(nb, n - j);
 
                 // Define AJJ and AJ1
-                auto AJJ = slice(A, pair{j, j + jb}, pair{j, j + jb});
-                auto AJ1 = slice(A, pair{j, j + jb}, pair{0, j});
+                auto AJJ = slice(A, range{j, j + jb}, range{j, j + jb});
+                auto AJ1 = slice(A, range{j, j + jb}, range{0, j});
 
                 herk(uplo, noTranspose, -one, AJ1, one, AJJ);
 
@@ -146,8 +146,8 @@ int potrf_blocked(uplo_t uplo,
 
                 if (j + jb < n) {
                     // Define B and C
-                    auto B = slice(A, pair{j + jb, n}, pair{0, j});
-                    auto C = slice(A, pair{j + jb, n}, pair{j, j + jb});
+                    auto B = slice(A, range{j + jb, n}, range{0, j});
+                    auto C = slice(A, range{j + jb, n}, range{j, j + jb});
 
                     // Compute the current block row
                     gemm(noTranspose, conjTranspose, -one, B, AJ1, one, C);
@@ -178,7 +178,7 @@ inline int potrf_blocked(uplo_t uplo, matrix_t& A)
 #ifdef USE_LAPACKPP_WRAPPERS
 
 template <TLAPACK_UPLO uplo_t,
-          TLAPACK_SMATRIX matrix_t,
+          TLAPACK_LEGACY_MATRIX matrix_t,
           enable_if_allow_optblas_t<matrix_t> = 0>
 inline int potrf_blocked(uplo_t uplo, matrix_t& A)
 {

@@ -38,7 +38,7 @@ TEMPLATE_TEST_CASE("bidiagonal reduction is backward stable",
     using matrix_t = TestType;
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
-    using pair = std::pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
     typedef real_type<T> real_t;
 
     // Functor
@@ -109,7 +109,7 @@ TEMPLATE_TEST_CASE("bidiagonal reduction is backward stable",
         // Generate m-by-k unitary matrix Q
         ungbr_opts_t<matrix_t> ungbrOpts;
         ungbrOpts.nb = nb;
-        lacpy(Uplo::Lower, slice(A, pair{0, m}, pair{0, k}), Q);
+        lacpy(Uplo::Lower, slice(A, range{0, m}, range{0, k}), Q);
         ungbr_q(n, Q, tauv, ungbrOpts);
 
         // Test for Q's orthogonality
@@ -118,7 +118,7 @@ TEMPLATE_TEST_CASE("bidiagonal reduction is backward stable",
         auto orth_Q = check_orthogonality(Q, Wq);
         CHECK(orth_Q <= tol);
 
-        lacpy(Uplo::Upper, slice(A, pair{0, k}, pair{0, n}), Z);
+        lacpy(Uplo::Upper, slice(A, range{0, k}, range{0, n}), Z);
         ungbr_p(m, Z, tauw, ungbrOpts);
 
         // Test for Z's orthogonality

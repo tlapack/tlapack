@@ -44,6 +44,7 @@ inline constexpr workinfo_t gelqt_worksize(const matrix_t& A,
                                            const gelqt_opts_t& opts = {})
 {
     using idx_t = size_type<matrix_t>;
+    using range = pair<idx_t, idx_t>;
 
     // constants
     const idx_t m = nrows(A);
@@ -52,8 +53,8 @@ inline constexpr workinfo_t gelqt_worksize(const matrix_t& A,
     const idx_t nb = ncols(TT);
     const idx_t ib = std::min<idx_t>(nb, k);
 
-    auto TT1 = slice(TT, range<idx_t>(0, ib), range<idx_t>(0, ib));
-    auto A11 = rows(A, range<idx_t>(0, ib));
+    auto TT1 = slice(TT, range(0, ib), range(0, ib));
+    auto A11 = rows(A, range(0, ib));
     auto tauw1 = diag(TT1);
 
     return gelq2_worksize(A11, tauw1, opts);
@@ -111,7 +112,7 @@ template <TLAPACK_SMATRIX matrix_t>
 int gelqt(matrix_t& A, matrix_t& TT, const gelqt_opts_t& opts = {})
 {
     using idx_t = size_type<matrix_t>;
-    using range = std::pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
 
     // constants
     const idx_t m = nrows(A);
@@ -123,7 +124,7 @@ int gelqt(matrix_t& A, matrix_t& TT, const gelqt_opts_t& opts = {})
     tlapack_check_false(nrows(TT) < m || ncols(TT) < nb);
 
     // Allocates workspace
-    vectorOfBytes localworkdata;
+    VectorOfBytes localworkdata;
     Workspace work = [&]() {
         workinfo_t workinfo = gelqt_worksize(A, TT, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);

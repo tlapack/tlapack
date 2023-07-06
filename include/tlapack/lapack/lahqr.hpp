@@ -69,8 +69,8 @@ namespace tlapack {
  */
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
-          enable_if_t<is_complex<type_t<vector_t>>::value, bool> = true,
-          enable_if_t<is_real<type_t<matrix_t>>::value, bool> = true>
+          enable_if_t<is_complex<type_t<vector_t>>, bool> = true,
+          enable_if_t<is_real<type_t<matrix_t>>, bool> = true>
 int lahqr(bool want_t,
           bool want_z,
           size_type<matrix_t> ilo,
@@ -82,7 +82,7 @@ int lahqr(bool want_t,
     using TA = type_t<matrix_t>;
     using real_t = real_type<TA>;
     using idx_t = size_type<matrix_t>;
-    using pair = pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
 
     // Functor
     Create<vector_type<matrix_t>> new_vector;
@@ -213,7 +213,7 @@ int lahqr(bool want_t,
                 istart = ilo;
                 continue;
             }
-            if (is_real<TA>::value && istart + 2 == istop) {
+            if (is_real<TA> && istart + 2 == istop) {
                 // 2x2 block, normalize the block
                 real_t cs;
                 TA sn;
@@ -236,13 +236,13 @@ int lahqr(bool want_t,
                 // matrix.
                 if (want_t) {
                     if (istart + 2 < istop_m) {
-                        auto x = slice(A, istart, pair{istart + 2, istop_m});
+                        auto x = slice(A, istart, range{istart + 2, istop_m});
                         auto y =
-                            slice(A, istart + 1, pair{istart + 2, istop_m});
+                            slice(A, istart + 1, range{istart + 2, istop_m});
                         rot(x, y, cs, sn);
                     }
-                    auto x2 = slice(A, pair{istart_m, istart}, istart);
-                    auto y2 = slice(A, pair{istart_m, istart}, istart + 1);
+                    auto x2 = slice(A, range{istart_m, istart}, istart);
+                    auto y2 = slice(A, range{istart_m, istart}, istart + 1);
                     rot(x2, y2, cs, sn);
                 }
                 if (want_z) {
@@ -279,7 +279,7 @@ int lahqr(bool want_t,
         complex_type<real_t> s1;
         complex_type<real_t> s2;
         lahqr_eig22(a00, a01, a10, a11, s1, s2);
-        if ((imag(s1) == zero and imag(s2) == zero) or is_complex<TA>::value) {
+        if ((imag(s1) == zero and imag(s2) == zero) or is_complex<TA>) {
             // The eigenvalues are not complex conjugate, keep only the one
             // closest to A(istop-1, istop-1)
             if (abs1(s1 - A(istop - 1, istop - 1)) <=
@@ -299,7 +299,7 @@ int lahqr(bool want_t,
         idx_t istart2 = istart;
         if (istart + 3 < istop) {
             for (idx_t i = istop - 3; i > istart; --i) {
-                auto H = slice(A, pair{i, i + 3}, pair{i, i + 3});
+                auto H = slice(A, range{i, i + 3}, range{i, i + 3});
                 lahqr_shiftcolumn(H, v, s1, s2);
                 larfg(forward, columnwise_storage, v, t1);
                 v[0] = t1;
@@ -318,10 +318,10 @@ int lahqr(bool want_t,
         for (idx_t i = istart2; i < istop - 1; ++i) {
             const idx_t nr = std::min<idx_t>(3, istop - i);
             if (i == istart2) {
-                auto H = slice(A, pair{i, i + nr}, pair{i, i + nr});
-                auto x = slice(v, pair{0, nr});
+                auto H = slice(A, range{i, i + nr}, range{i, i + nr});
+                auto x = slice(v, range{0, nr});
                 lahqr_shiftcolumn(H, x, s1, s2);
-                auto y = slice(v, pair{1, nr});
+                auto y = slice(v, range{1, nr});
                 TA alpha = v[0];
                 larfg(columnwise_storage, alpha, y, t1);
                 v[0] = alpha;
@@ -333,7 +333,7 @@ int lahqr(bool want_t,
                 v[0] = A(i, i - 1);
                 v[1] = A(i + 1, i - 1);
                 if (nr == 3) v[2] = A(i + 2, i - 1);
-                auto x = slice(v, pair{1, nr});
+                auto x = slice(v, range{1, nr});
                 TA alpha = v[0];
                 larfg(columnwise_storage, alpha, x, t1);
                 v[0] = alpha;
@@ -415,8 +415,8 @@ int lahqr(bool want_t,
  */
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
-          enable_if_t<is_complex<type_t<vector_t>>::value, bool> = true,
-          enable_if_t<is_complex<type_t<matrix_t>>::value, bool> = true>
+          enable_if_t<is_complex<type_t<vector_t>>, bool> = true,
+          enable_if_t<is_complex<type_t<matrix_t>>, bool> = true>
 int lahqr(bool want_t,
           bool want_z,
           size_type<matrix_t> ilo,

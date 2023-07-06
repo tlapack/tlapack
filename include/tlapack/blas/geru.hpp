@@ -66,9 +66,9 @@ void geru(const alpha_t& alpha,
 
 #ifdef USE_LAPACKPP_WRAPPERS
 
-template <TLAPACK_MATRIX matrixA_t,
-          TLAPACK_VECTOR vectorX_t,
-          TLAPACK_VECTOR vectorY_t,
+template <TLAPACK_LEGACY_MATRIX matrixA_t,
+          TLAPACK_LEGACY_VECTOR vectorX_t,
+          TLAPACK_LEGACY_VECTOR vectorY_t,
           TLAPACK_SCALAR alpha_t,
           class T = type_t<matrixA_t>,
           enable_if_allow_optblas_t<pair<alpha_t, T>,

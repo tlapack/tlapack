@@ -46,6 +46,7 @@ inline constexpr workinfo_t gebd2_worksize(const matrix_t& A,
                                            const gebd2_opts_t& opts = {})
 {
     using idx_t = size_type<matrix_t>;
+    using range = pair<idx_t, idx_t>;
 
     // constants
     const idx_t m = nrows(A);
@@ -53,13 +54,13 @@ inline constexpr workinfo_t gebd2_worksize(const matrix_t& A,
 
     workinfo_t workinfo;
     if (n > 1) {
-        auto A11 = cols(A, range<idx_t>{1, n});
+        auto A11 = cols(A, range{1, n});
         workinfo = larf_worksize(left_side, forward, columnwise_storage,
                                  col(A, 0), tauv[0], A11, opts);
 
         if (m > 1) {
-            auto B11 = rows(A11, range<idx_t>{1, m});
-            auto row0 = slice(A, 0, range<idx_t>{1, n});
+            auto B11 = rows(A11, range{1, m});
+            auto row0 = slice(A, 0, range{1, n});
 
             workinfo.minMax(larf_worksize(right_side, forward, rowwise_storage,
                                           row0, tauw[0], B11, opts));
@@ -125,7 +126,7 @@ int gebd2(matrix_t& A,
           const gebd2_opts_t& opts = {})
 {
     using idx_t = size_type<matrix_t>;
-    using range = std::pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
     using T = type_t<matrix_t>;
 
     // constants
@@ -140,7 +141,7 @@ int gebd2(matrix_t& A,
     if (n <= 0) return 0;
 
     // Allocates workspace
-    vectorOfBytes localworkdata;
+    VectorOfBytes localworkdata;
     Workspace work = [&]() {
         workinfo_t workinfo = gebd2_worksize(A, tauv, tauw, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);

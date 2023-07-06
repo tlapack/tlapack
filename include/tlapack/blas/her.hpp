@@ -44,7 +44,7 @@ template <TLAPACK_MATRIX matrixA_t,
           TLAPACK_REAL alpha_t,
           enable_if_t<(
                           /* Requires: */
-                          is_real<alpha_t>::value),
+                          is_real<alpha_t>),
                       int> = 0,
           class T = type_t<matrixA_t>,
           disable_if_allow_optblas_t<pair<alpha_t, real_type<T> >,
@@ -86,8 +86,8 @@ void her(Uplo uplo, const alpha_t& alpha, const vectorX_t& x, matrixA_t& A)
 
 #ifdef USE_LAPACKPP_WRAPPERS
 
-template <TLAPACK_MATRIX matrixA_t,
-          TLAPACK_VECTOR vectorX_t,
+template <TLAPACK_LEGACY_MATRIX matrixA_t,
+          TLAPACK_LEGACY_VECTOR vectorX_t,
           TLAPACK_REAL alpha_t,
           class T = type_t<matrixA_t>,
           enable_if_allow_optblas_t<pair<alpha_t, real_type<T> >,

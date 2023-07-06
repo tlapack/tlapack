@@ -110,8 +110,8 @@ void rotm(vectorX_t& x, vectorY_t& y, const T h[4])
 
 template <
     int flag,
-    TLAPACK_VECTOR vectorX_t,
-    TLAPACK_VECTOR vectorY_t,
+    TLAPACK_LEGACY_VECTOR vectorX_t,
+    TLAPACK_LEGACY_VECTOR vectorY_t,
     enable_if_t<((-2 <= flag) && (flag <= 1)), int> = 0,
     class T = type_t<vectorX_t>,
     enable_if_t<is_same_v<T, real_type<T> >, int> = 0,

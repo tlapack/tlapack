@@ -16,18 +16,20 @@
 
 namespace tlapack {
 
-namespace internal {
+namespace traits {
     // Eigen::half is a real type that satisfies tlapack::concepts::Real
     template <>
     struct real_type_traits<Eigen::half, int> {
         using type = Eigen::half;
+        constexpr static bool is_real = true;
     };
     // The complex type of Eigen::half is std::complex<Eigen::half>
     template <>
     struct complex_type_traits<Eigen::half, int> {
         using type = std::complex<Eigen::half>;
+        constexpr static bool is_complex = false;
     };
-}  // namespace internal
+}  // namespace traits
 
 // Forward declarations
 template <typename T>

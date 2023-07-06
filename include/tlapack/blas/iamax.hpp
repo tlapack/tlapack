@@ -102,7 +102,7 @@ size_type<vector_t> iamax_ec(const vector_t& x, abs_f absf)
             return i;
         }
         else {  // still no Inf found yet
-            if (is_real<T>::value) {
+            if (is_real<T>) {
                 real_t a = absf(x[i]);
                 if (a > smax) {
                     smax = a;
@@ -180,7 +180,7 @@ size_type<vector_t> iamax_nc(const vector_t& x, abs_f absf)
             return i;
         }
         else {  // still no Inf found yet
-            if (is_real<T>::value) {
+            if (is_real<T>) {
                 real_t a = absf(x[i]);
                 if (a > smax) {
                     smax = a;
@@ -270,7 +270,8 @@ inline size_type<vector_t> iamax(const vector_t& x)
 
 #ifdef USE_LAPACKPP_WRAPPERS
 
-template <TLAPACK_VECTOR vector_t, enable_if_allow_optblas_t<vector_t> = 0>
+template <TLAPACK_LEGACY_VECTOR vector_t,
+          enable_if_allow_optblas_t<vector_t> = 0>
 inline size_type<vector_t> iamax(vector_t const& x)
 {
     // Legacy objects

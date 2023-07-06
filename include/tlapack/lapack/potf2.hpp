@@ -60,7 +60,7 @@ int potf2(uplo_t uplo, matrix_t& A)
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
     using idx_t = size_type<matrix_t>;
-    using pair = pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
 
     // Constants
     const real_t one(1);
@@ -77,7 +77,7 @@ int potf2(uplo_t uplo, matrix_t& A)
     if (uplo == Uplo::Upper) {
         // Compute the Cholesky factorization A = U^H * U
         for (idx_t j = 0; j < n; ++j) {
-            auto colj = slice(A, pair{0, j}, j);
+            auto colj = slice(A, range{0, j}, j);
 
             // Compute U(j,j) and test for non-positive-definiteness
             real_t ajj = real(A(j, j)) - real(dot(colj, colj));
@@ -95,8 +95,8 @@ int potf2(uplo_t uplo, matrix_t& A)
 
             // Compute elements j+1:n of row j
             if (j + 1 < n) {
-                auto Ajj = slice(A, pair{0, j}, pair{j + 1, n});
-                auto rowj = slice(A, j, pair{j + 1, n});
+                auto Ajj = slice(A, range{0, j}, range{j + 1, n});
+                auto rowj = slice(A, j, range{j + 1, n});
 
                 // rowj := rowj - conj(colj) * Ajj
                 for (idx_t i = 0; i < j; ++i)
@@ -113,7 +113,7 @@ int potf2(uplo_t uplo, matrix_t& A)
     else {
         // Compute the Cholesky factorization A = L * L^H
         for (idx_t j = 0; j < n; ++j) {
-            auto rowj = slice(A, j, pair{0, j});
+            auto rowj = slice(A, j, range{0, j});
 
             // Compute L(j,j) and test for non-positive-definiteness
             real_t ajj = real(A(j, j)) - real(dot(rowj, rowj));
@@ -131,8 +131,8 @@ int potf2(uplo_t uplo, matrix_t& A)
 
             // Compute elements j+1:n of column j
             if (j + 1 < n) {
-                auto Ajj = slice(A, pair{j + 1, n}, pair{0, j});
-                auto colj = slice(A, pair{j + 1, n}, j);
+                auto Ajj = slice(A, range{j + 1, n}, range{0, j});
+                auto colj = slice(A, range{j + 1, n}, j);
 
                 // colj := colj - Ajj * conj(rowj)
                 for (idx_t i = 0; i < j; ++i)
@@ -153,7 +153,7 @@ int potf2(uplo_t uplo, matrix_t& A)
 #ifdef USE_LAPACKPP_WRAPPERS
 
 template <TLAPACK_UPLO uplo_t,
-          TLAPACK_SMATRIX matrix_t,
+          TLAPACK_LEGACY_MATRIX matrix_t,
           enable_if_allow_optblas_t<matrix_t> = 0>
 int potf2(uplo_t uplo, matrix_t& A)
 {

@@ -65,8 +65,8 @@ void rot(vectorX_t& x, vectorY_t& y, const c_type& c, const s_type& s)
 
 #ifdef USE_LAPACKPP_WRAPPERS
 
-template <TLAPACK_VECTOR vectorX_t,
-          TLAPACK_VECTOR vectorY_t,
+template <TLAPACK_LEGACY_VECTOR vectorX_t,
+          TLAPACK_LEGACY_VECTOR vectorY_t,
           TLAPACK_REAL c_type,
           TLAPACK_SCALAR s_type,
           class T = type_t<vectorX_t>,

@@ -40,7 +40,7 @@ void conjtranspose(matrixA_t& A,
                    const transpose_opts_t<size_type<matrixA_t>>& opts = {})
 {
     using idx_t = size_type<matrixA_t>;
-    using pair = std::pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
 
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
@@ -60,15 +60,15 @@ void conjtranspose(matrixA_t& A,
         const idx_t m1 = m / 2;
         const idx_t n1 = n / 2;
 
-        auto A00 = slice(A, pair(0, m1), pair(0, n1));
-        auto A01 = slice(A, pair(0, m1), pair(n1, n));
-        auto A10 = slice(A, pair(m1, m), pair(0, n1));
-        auto A11 = slice(A, pair(m1, m), pair(n1, n));
+        auto A00 = slice(A, range(0, m1), range(0, n1));
+        auto A01 = slice(A, range(0, m1), range(n1, n));
+        auto A10 = slice(A, range(m1, m), range(0, n1));
+        auto A11 = slice(A, range(m1, m), range(n1, n));
 
-        auto B00 = slice(B, pair(0, n1), pair(0, m1));
-        auto B01 = slice(B, pair(0, n1), pair(m1, m));
-        auto B10 = slice(B, pair(n1, n), pair(0, m1));
-        auto B11 = slice(B, pair(n1, n), pair(m1, m));
+        auto B00 = slice(B, range(0, n1), range(0, m1));
+        auto B01 = slice(B, range(0, n1), range(m1, m));
+        auto B10 = slice(B, range(n1, n), range(0, m1));
+        auto B11 = slice(B, range(n1, n), range(m1, m));
 
         conjtranspose(A00, B00, opts);
         conjtranspose(A01, B10, opts);
@@ -97,7 +97,7 @@ void transpose(matrixA_t& A,
                const transpose_opts_t<size_type<matrixA_t>>& opts = {})
 {
     using idx_t = size_type<matrixA_t>;
-    using pair = std::pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
 
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
@@ -117,15 +117,15 @@ void transpose(matrixA_t& A,
         const idx_t m1 = m / 2;
         const idx_t n1 = n / 2;
 
-        auto A00 = slice(A, pair(0, m1), pair(0, n1));
-        auto A01 = slice(A, pair(0, m1), pair(n1, n));
-        auto A10 = slice(A, pair(m1, m), pair(0, n1));
-        auto A11 = slice(A, pair(m1, m), pair(n1, n));
+        auto A00 = slice(A, range(0, m1), range(0, n1));
+        auto A01 = slice(A, range(0, m1), range(n1, n));
+        auto A10 = slice(A, range(m1, m), range(0, n1));
+        auto A11 = slice(A, range(m1, m), range(n1, n));
 
-        auto B00 = slice(B, pair(0, n1), pair(0, m1));
-        auto B01 = slice(B, pair(0, n1), pair(m1, m));
-        auto B10 = slice(B, pair(n1, n), pair(0, m1));
-        auto B11 = slice(B, pair(n1, n), pair(m1, m));
+        auto B00 = slice(B, range(0, n1), range(0, m1));
+        auto B01 = slice(B, range(0, n1), range(m1, m));
+        auto B10 = slice(B, range(n1, n), range(0, m1));
+        auto B11 = slice(B, range(n1, n), range(m1, m));
 
         transpose(A00, B00, opts);
         transpose(A01, B10, opts);

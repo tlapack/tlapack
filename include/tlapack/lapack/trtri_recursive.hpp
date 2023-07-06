@@ -52,7 +52,7 @@ int trtri_recursive(uplo_t uplo,
 {
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
-    using range = std::pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
     using real_t = real_type<T>;
 
     const idx_t n = nrows(C);

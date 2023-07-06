@@ -75,7 +75,7 @@ int potrf2(uplo_t uplo, matrix_t& A, const ec_opts_t& opts = {})
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
     using idx_t = size_type<matrix_t>;
-    using pair = pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
 
     // Constants
     const real_t one(1);
@@ -110,8 +110,8 @@ int potrf2(uplo_t uplo, matrix_t& A, const ec_opts_t& opts = {})
         const idx_t n1 = n / 2;
 
         // Define A11 and A22
-        auto A11 = slice(A, pair{0, n1}, pair{0, n1});
-        auto A22 = slice(A, pair{n1, n}, pair{n1, n});
+        auto A11 = slice(A, range{0, n1}, range{0, n1});
+        auto A22 = slice(A, range{n1, n}, range{n1, n});
 
         // Factor A11
         int info = potrf2(uplo, A11, noErrorCheck);
@@ -126,7 +126,7 @@ int potrf2(uplo_t uplo, matrix_t& A, const ec_opts_t& opts = {})
 
         if (uplo == Uplo::Upper) {
             // Update and scale A12
-            auto A12 = slice(A, pair{0, n1}, pair{n1, n});
+            auto A12 = slice(A, range{0, n1}, range{n1, n});
             trsm(Side::Left, Uplo::Upper, Op::ConjTrans, Diag::NonUnit, one,
                  A11, A12);
 
@@ -135,7 +135,7 @@ int potrf2(uplo_t uplo, matrix_t& A, const ec_opts_t& opts = {})
         }
         else {
             // Update and scale A21
-            auto A21 = slice(A, pair{n1, n}, pair{0, n1});
+            auto A21 = slice(A, range{n1, n}, range{0, n1});
             trsm(Side::Right, Uplo::Lower, Op::ConjTrans, Diag::NonUnit, one,
                  A11, A21);
 

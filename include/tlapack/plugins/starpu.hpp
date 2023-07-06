@@ -17,16 +17,12 @@
 namespace tlapack {
 
 // Forward declarations
-template <class T, std::enable_if_t<is_real<T>::value, int> = 0>
+template <class T, std::enable_if_t<is_real<T>, int> = 0>
 inline constexpr real_type<T> real(const T& x);
-template <class T, std::enable_if_t<is_real<T>::value, int> = 0>
+template <class T, std::enable_if_t<is_real<T>, int> = 0>
 inline constexpr real_type<T> imag(const T& x);
-template <class T, std::enable_if_t<is_real<T>::value, int> = 0>
+template <class T, std::enable_if_t<is_real<T>, int> = 0>
 inline constexpr T conj(const T& x);
-template <class T>
-struct is_real;
-template <class T>
-struct is_complex;
 
 template <class T>
 inline constexpr real_type<T> real(const starpu::MatrixEntry<T>& x)
@@ -52,26 +48,14 @@ inline constexpr real_type<T> abs(const starpu::MatrixEntry<T>& x)
     return abs(x);
 }
 
-namespace internal {
+namespace traits {
     template <class T>
-    struct real_type_traits<starpu::MatrixEntry<T>, int> {
-        using type = real_type<T>;
-    };
+    struct real_type_traits<starpu::MatrixEntry<T>, int>
+        : public real_type_traits<T, int> {};
     template <class T>
-    struct complex_type_traits<starpu::MatrixEntry<T>, int> {
-        using type = complex_type<T>;
-    };
-}  // namespace internal
-
-template <class T>
-struct is_real<starpu::MatrixEntry<T>> {
-    static constexpr bool value = is_real<T>::value;
-};
-
-template <class T>
-struct is_complex<starpu::MatrixEntry<T>> {
-    static constexpr bool value = is_complex<T>::value;
-};
+    struct complex_type_traits<starpu::MatrixEntry<T>, int>
+        : public complex_type_traits<T, int> {};
+}  // namespace traits
 
 }  // namespace tlapack
 
@@ -267,7 +251,7 @@ constexpr auto diag(starpu::Matrix<T>& A, int diagIdx = 0)
     return row(A, 0);
 }
 
-namespace internal {
+namespace traits {
 
     template <class TA, class TB>
     struct matrix_type_traits<starpu::Matrix<TA>, starpu::Matrix<TB>, int> {
@@ -283,7 +267,7 @@ namespace internal {
 
     /// Create legacyMatrix @see Create
     template <class T>
-    struct CreateImpl<starpu::Matrix<T>, int> {
+    struct CreateFunctor<starpu::Matrix<T>, int> {
         using matrix_t = starpu::Matrix<T>;
 
         inline constexpr auto operator()(std::vector<T>& v,
@@ -341,7 +325,7 @@ namespace internal {
                                                  W.getLdim() / sizeof(T), 1, m);
         }
     };
-}  // namespace internal
+}  // namespace traits
 
 }  // namespace tlapack
 

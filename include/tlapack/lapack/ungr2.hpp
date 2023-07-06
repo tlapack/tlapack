@@ -37,12 +37,13 @@ inline constexpr workinfo_t ungr2_worksize(const matrix_t& A,
                                            const workspace_opts_t<>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
+    using range = pair<idx_t, idx_t>;
 
     // constants
     const idx_t m = nrows(A);
 
     if (m > 1) {
-        auto C = rows(A, range<idx_t>{1, m});
+        auto C = rows(A, range{1, m});
         return larf_worksize(right_side, backward, rowwise_storage, row(A, 0),
                              tau[0], C, opts);
     }
@@ -81,7 +82,7 @@ int ungr2(matrix_t& A, const vector_t& tau, const workspace_opts_t<>& opts = {})
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
     using idx_t = size_type<matrix_t>;
-    using pair = pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
 
     // constants
     const real_t zero(0);
@@ -97,7 +98,7 @@ int ungr2(matrix_t& A, const vector_t& tau, const workspace_opts_t<>& opts = {})
     if (n <= 0) return 0;
 
     // Allocates workspace
-    vectorOfBytes localworkdata;
+    VectorOfBytes localworkdata;
     Workspace work = [&]() {
         workinfo_t workinfo = ungr2_worksize(A, tau, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
@@ -115,11 +116,11 @@ int ungr2(matrix_t& A, const vector_t& tau, const workspace_opts_t<>& opts = {})
 
     for (idx_t i = 0; i < k; ++i) {
         idx_t ii = m - k + i;
-        auto v = slice(A, ii, pair{0, n - k + 1 + i});
-        auto C = slice(A, pair{0, ii}, pair{0, n - k + 1 + i});
+        auto v = slice(A, ii, range{0, n - k + 1 + i});
+        auto C = slice(A, range{0, ii}, range{0, n - k + 1 + i});
         larf(Side::Right, Direction::Backward, StoreV::Rowwise, v, conj(tau[i]),
              C, larfOpts);
-        auto x = slice(A, ii, pair{0, n - k + i});
+        auto x = slice(A, ii, range{0, n - k + i});
         scal(-conj(tau[i]), x);
         A(ii, n - k + i) = one - conj(tau[i]);
 

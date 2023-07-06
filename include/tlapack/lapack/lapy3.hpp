@@ -33,8 +33,7 @@ template <TLAPACK_REAL TX,
           TLAPACK_REAL TZ,
           enable_if_t<(
                           /* Requires: */
-                          is_real<TX>::value && is_real<TY>::value &&
-                          is_real<TZ>::value),
+                          is_real<TX> && is_real<TY> && is_real<TZ>),
                       int> = 0>
 real_type<TX, TY, TZ> lapy3(const TX& x, const TY& y, const TZ& z)
 {

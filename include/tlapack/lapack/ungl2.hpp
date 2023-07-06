@@ -37,12 +37,13 @@ inline constexpr workinfo_t ungl2_worksize(const matrix_t& Q,
                                            const workspace_opts_t<>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
+    using range = pair<idx_t, idx_t>;
 
     // constants
     const idx_t k = nrows(Q);
 
     if (k > 1) {
-        auto C = rows(Q, range<idx_t>{1, k});
+        auto C = rows(Q, range{1, k});
         return larf_worksize(right_side, forward, rowwise_storage, row(Q, 0),
                              tauw[0], C, opts);
     }
@@ -85,7 +86,7 @@ int ungl2(matrix_t& Q,
 {
     using idx_t = size_type<matrix_t>;
     using T = type_t<matrix_t>;
-    using range = std::pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
     using real_t = real_type<T>;
 
     // constants
@@ -100,7 +101,7 @@ int ungl2(matrix_t& Q,
     tlapack_check_false((idx_t)size(tauw) < std::min<idx_t>(m, n));
 
     // Allocates workspace
-    vectorOfBytes localworkdata;
+    VectorOfBytes localworkdata;
     Workspace work = [&]() {
         workinfo_t workinfo = ungl2_worksize(Q, tauw, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);

@@ -145,7 +145,7 @@ int gebrd(matrix_t& A,
 {
     using idx_t = size_type<matrix_t>;
     using work_t = matrix_type<matrix_t, vector_t>;
-    using pair = pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
     using TA = type_t<matrix_t>;
     using real_t = real_type<TA>;
 
@@ -161,7 +161,7 @@ int gebrd(matrix_t& A,
     const idx_t nb = min(opts.nb, k);
 
     // Allocates workspace
-    vectorOfBytes localworkdata;
+    VectorOfBytes localworkdata;
     Workspace work = [&]() {
         workinfo_t workinfo = gebrd_worksize(A, d, e, tauq, taup, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
@@ -182,25 +182,25 @@ int gebrd(matrix_t& A,
         // Reduce rows and columns i:i+ib-1 to bidiagonal form and return
         // the matrices X and Y which are needed to update the unreduced
         // part of the matrix
-        auto A2 = slice(A, pair{i, m}, pair{i, n});
-        auto d2 = slice(d, pair{i, i + ib});
-        auto e2 = slice(e, pair{i, i + ib});
-        auto tauq2 = slice(tauq, pair{i, i + ib});
-        auto taup2 = slice(taup, pair{i, i + ib});
-        auto X2 = slice(X, pair{i, m}, pair{0, ib});
-        auto Y2 = slice(Y, pair{i, n}, pair{0, ib});
+        auto A2 = slice(A, range{i, m}, range{i, n});
+        auto d2 = slice(d, range{i, i + ib});
+        auto e2 = slice(e, range{i, i + ib});
+        auto tauq2 = slice(tauq, range{i, i + ib});
+        auto taup2 = slice(taup, range{i, i + ib});
+        auto X2 = slice(X, range{i, m}, range{0, ib});
+        auto Y2 = slice(Y, range{i, n}, range{0, ib});
         labrd(A2, d2, e2, tauq2, taup2, X2, Y2);
 
         //
         // Update the trailing submatrix A(i+nb:m,i+nb:n), using an update
         // of the form  A := A - V*Y**H - X*U**H
         //
-        auto A3 = slice(A, pair{i + ib, m}, pair{i + ib, n});
-        auto V = slice(A, pair{i + ib, m}, pair{i, i + ib});
-        auto Y3 = slice(Y, pair{i + ib, n}, pair{0, ib});
+        auto A3 = slice(A, range{i + ib, m}, range{i + ib, n});
+        auto V = slice(A, range{i + ib, m}, range{i, i + ib});
+        auto Y3 = slice(Y, range{i + ib, n}, range{0, ib});
         gemm(noTranspose, conjTranspose, -one, V, Y3, one, A3);
-        auto U = slice(A, pair{i, i + ib}, pair{i + ib, n});
-        auto X3 = slice(X, pair{i + ib, m}, pair{0, ib});
+        auto U = slice(A, range{i, i + ib}, range{i + ib, n});
+        auto X3 = slice(X, range{i + ib, m}, range{0, ib});
         gemm(noTranspose, noTranspose, -one, X3, U, one, A3);
 
         //

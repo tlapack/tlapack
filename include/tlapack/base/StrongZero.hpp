@@ -11,6 +11,7 @@
 #ifndef TLAPACK_BASE_STRONGZERO_HH
 #define TLAPACK_BASE_STRONGZERO_HH
 
+#include <cassert>
 #include <cstdint>
 #include <limits>
 
@@ -178,19 +179,7 @@ struct StrongZero {
     friend constexpr StrongZero floor(StrongZero) { return StrongZero(); }
 };
 
-// forward declarations
-template <typename T>
-struct is_complex;
-
-// It is natural to define tlapack::complex_type<StrongZero> is StrongZero.
-// However, for the means of type deduction, StrongZero is considered a real
-// type.
-template <>
-struct is_complex<StrongZero> {
-    static constexpr bool value = false;
-};
-
-namespace internal {
+namespace traits {
 
     // forward declarations
     template <typename... Types>
@@ -210,6 +199,7 @@ namespace internal {
     template <>
     struct real_type_traits<StrongZero, int> {
         using type = StrongZero;
+        constexpr static bool is_real = true;
     };
 
     // for either StrongZero, return the other type
@@ -226,9 +216,54 @@ namespace internal {
     template <>
     struct complex_type_traits<StrongZero, int> {
         using type = StrongZero;
+        constexpr static bool is_complex = false;
     };
-}  // namespace internal
+}  // namespace traits
 
 }  // namespace tlapack
+
+namespace std {
+template <>
+struct numeric_limits<tlapack::StrongZero> : public std::__numeric_limits_base {
+    static constexpr bool is_specialized = true;
+
+    static constexpr tlapack::StrongZero min() noexcept
+    {
+        return tlapack::StrongZero();
+    }
+    static constexpr tlapack::StrongZero max() noexcept
+    {
+        return tlapack::StrongZero();
+    }
+    static constexpr tlapack::StrongZero lowest() noexcept
+    {
+        return tlapack::StrongZero();
+    }
+    static constexpr tlapack::StrongZero epsilon() noexcept
+    {
+        return tlapack::StrongZero();
+    }
+    static constexpr tlapack::StrongZero round_error() noexcept
+    {
+        return tlapack::StrongZero();
+    }
+    static constexpr tlapack::StrongZero infinity() noexcept
+    {
+        return tlapack::StrongZero();
+    }
+    static constexpr tlapack::StrongZero quiet_NaN() noexcept
+    {
+        return tlapack::StrongZero();
+    }
+    static constexpr tlapack::StrongZero signaling_NaN() noexcept
+    {
+        return tlapack::StrongZero();
+    }
+    static constexpr tlapack::StrongZero denorm_min() noexcept
+    {
+        return tlapack::StrongZero();
+    }
+};
+}  // namespace std
 
 #endif  // TLAPACK_BASE_STRONGZERO_HH

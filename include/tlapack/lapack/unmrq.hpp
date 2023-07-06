@@ -77,7 +77,7 @@ inline constexpr workinfo_t unmrq_worksize(
     using idx_t = size_type<matrixC_t>;
     using matrixT_t = deduce_work_t<workT_t, matrix_type<matrixA_t, tau_t> >;
     using T = type_t<matrixT_t>;
-    using pair = std::pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
 
     // Constants
     const idx_t k = size(tau);
@@ -94,8 +94,8 @@ inline constexpr workinfo_t unmrq_worksize(
         const idx_t nA = (side == Side::Left) ? m : n;
 
         // Empty matrices
-        const auto V = slice(A, pair{0, nb}, pair{0, nA});
-        const auto matrixT = slice(A, pair{0, nb}, pair{0, nb});
+        const auto V = slice(A, range{0, nb}, range{0, nA});
+        const auto matrixT = slice(A, range{0, nb}, range{0, nb});
 
         // Internal workspace queries
         workinfo += larfb_worksize(
@@ -178,7 +178,7 @@ int unmrq(side_t side,
     using idx_t = size_type<matrixC_t>;
     using matrixT_t = deduce_work_t<workT_t, matrix_type<matrixA_t, tau_t> >;
 
-    using pair = pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
 
     // Functor
     Create<matrixT_t> new_matrix;
@@ -194,13 +194,13 @@ int unmrq(side_t side,
     tlapack_check_false(side != Side::Left && side != Side::Right);
     tlapack_check_false(trans != Op::NoTrans && trans != Op::Trans &&
                         trans != Op::ConjTrans);
-    tlapack_check_false(trans == Op::Trans && is_complex<TA>::value);
+    tlapack_check_false(trans == Op::Trans && is_complex<TA>);
 
     // quick return
     if ((m == 0) || (n == 0) || (k == 0)) return 0;
 
     // Allocates workspace
-    vectorOfBytes localworkdata;
+    VectorOfBytes localworkdata;
     Workspace work = [&]() {
         workinfo_t workinfo = unmrq_worksize(side, trans, A, tau, C, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
@@ -224,9 +224,9 @@ int unmrq(side_t side,
     // Main loop
     for (idx_t i = i0; i != iN; i += inc) {
         idx_t ib = min<idx_t>(nb, k - i);
-        const auto V = slice(A, pair{i, i + ib}, pair{0, nA - k + i + ib});
-        const auto taui = slice(tau, pair{i, i + ib});
-        auto matrixTi = slice(matrixT, pair{0, ib}, pair{0, ib});
+        const auto V = slice(A, range{i, i + ib}, range{0, nA - k + i + ib});
+        const auto taui = slice(tau, range{i, i + ib});
+        auto matrixTi = slice(matrixT, range{0, ib}, range{0, ib});
 
         // Form the triangular factor of the block reflector
         // $H = H(i) H(i+1) ... H(i+ib-1)$
@@ -234,8 +234,8 @@ int unmrq(side_t side,
 
         // H or H**H is applied to either C[0:m-k+i+1,0:n] or C[0:m,0:n-k+i+1]
         auto Ci = (side == Side::Left)
-                      ? slice(C, pair{0, m - k + i + ib}, pair{0, n})
-                      : slice(C, pair{0, m}, pair{0, n - k + i + ib});
+                      ? slice(C, range{0, m - k + i + ib}, range{0, n})
+                      : slice(C, range{0, m}, range{0, n - k + i + ib});
 
         // Apply H or H**H
         larfb(side, (trans == Op::NoTrans) ? Op::ConjTrans : Op::NoTrans,

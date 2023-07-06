@@ -144,7 +144,7 @@ namespace legacy {
         // check arguments
         tlapack_check_false(side != Side::Left && side != Side::Right);
         tlapack_check_false(trans != Op::NoTrans && trans != Op::ConjTrans &&
-                            ((trans != Op::Trans) || is_complex<TV>::value));
+                            ((trans != Op::Trans) || is_complex<TV>));
         tlapack_check_false(direction != Direction::Backward &&
                             direction != Direction::Forward);
         tlapack_check_false(storev != StoreV::Columnwise &&

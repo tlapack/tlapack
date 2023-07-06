@@ -66,7 +66,7 @@ int potrf_rl(uplo_t uplo,
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
     using idx_t = size_type<matrix_t>;
-    using pair = pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
 
     // Constants
     const real_t one(1);
@@ -91,7 +91,7 @@ int potrf_rl(uplo_t uplo,
                 idx_t jb = min(nb, n - j);
 
                 // Define AJJ
-                auto AJJ = slice(A, pair{j, j + jb}, pair{j, j + jb});
+                auto AJJ = slice(A, range{j, j + jb}, range{j, j + jb});
 
                 int info = potf2(uplo, AJJ);
                 if (info != 0) {
@@ -104,8 +104,8 @@ int potrf_rl(uplo_t uplo,
                 }
 
                 if (j + jb < n) {
-                    auto B = slice(A, pair{j, j + jb}, pair{j + jb, n});
-                    auto C = slice(A, pair{j + jb, n}, pair{j + jb, n});
+                    auto B = slice(A, range{j, j + jb}, range{j + jb, n});
+                    auto C = slice(A, range{j + jb, n}, range{j + jb, n});
 
                     trsm(left_side, uplo, conjTranspose, nonUnit_diagonal, one,
                          AJJ, B);
@@ -118,7 +118,7 @@ int potrf_rl(uplo_t uplo,
                 idx_t jb = min(nb, n - j);
 
                 // Define AJJ
-                auto AJJ = slice(A, pair{j, j + jb}, pair{j, j + jb});
+                auto AJJ = slice(A, range{j, j + jb}, range{j, j + jb});
 
                 int info = potf2(uplo, AJJ);
                 if (info != 0) {
@@ -131,8 +131,8 @@ int potrf_rl(uplo_t uplo,
                 }
 
                 if (j + jb < n) {
-                    auto B = slice(A, pair{j + jb, n}, pair{j, j + jb});
-                    auto C = slice(A, pair{j + jb, n}, pair{j + jb, n});
+                    auto B = slice(A, range{j + jb, n}, range{j, j + jb});
+                    auto C = slice(A, range{j + jb, n}, range{j + jb, n});
 
                     trsm(right_side, uplo, conjTranspose, nonUnit_diagonal, one,
                          AJJ, B);

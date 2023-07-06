@@ -34,7 +34,7 @@ namespace tlapack {
  * @ingroup blas1
  */
 template <TLAPACK_REAL T,
-          enable_if_t<is_real<T>::value, int> = 0,
+          enable_if_t<is_real<T>, int> = 0,
           disable_if_allow_optblas_t<T> = 0>
 void rotg(T& a, T& b, T& c, T& s)
 {
@@ -101,7 +101,7 @@ void rotg(T& a, T& b, T& c, T& s)
  * @ingroup blas1
  */
 template <TLAPACK_COMPLEX T,
-          enable_if_t<is_complex<T>::value, int> = 0,
+          enable_if_t<is_complex<T>, int> = 0,
           disable_if_allow_optblas_t<T> = 0>
 void rotg(T& a, const T& b, real_type<T>& c, T& s)
 {
@@ -197,7 +197,7 @@ void rotg(T& a, const T& b, real_type<T>& c, T& s)
 #ifdef USE_LAPACKPP_WRAPPERS
 
 template <TLAPACK_REAL T,
-          enable_if_t<is_real<T>::value, int> = 0,
+          enable_if_t<is_real<T>, int> = 0,
           enable_if_allow_optblas_t<T> = 0>
 inline void rotg(T& a, T& b, T& c, T& s)
 {
@@ -221,7 +221,7 @@ inline void rotg(T& a, T& b, T& c, T& s)
 }
 
 template <TLAPACK_COMPLEX T,
-          enable_if_t<is_complex<T>::value, int> = 0,
+          enable_if_t<is_complex<T>, int> = 0,
           enable_if_allow_optblas_t<T> = 0>
 inline void rotg(T& a, const T& b, real_type<T>& c, T& s)
 {

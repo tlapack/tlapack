@@ -165,7 +165,7 @@ TEMPLATE_TEST_CASE("Multishift QR",
         idx_t i = ilo;
         while (i < ihi) {
             int nb = 1;
-            if (is_real<T>::value)
+            if (is_real<T>)
                 if (i + 1 < ihi)
                     if (H(i + 1, i) != zero) nb = 2;
 

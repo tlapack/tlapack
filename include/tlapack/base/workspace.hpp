@@ -45,7 +45,7 @@ struct Workspace {
     }
 
     template <class T, class idx_t>
-    inline constexpr Workspace(const legacy::matrix<T, idx_t>& A)
+    inline constexpr Workspace(const legacy::Matrix<T, idx_t>& A)
         : ptr((byte*)A.ptr), ldim(A.ldim * sizeof(T))
     {
         tlapack_check(A.layout == Layout::ColMajor ||

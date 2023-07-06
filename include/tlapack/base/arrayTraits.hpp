@@ -13,7 +13,35 @@
 #include "tlapack/base/types.hpp"
 
 namespace tlapack {
-namespace internal {
+
+using std::enable_if_t;
+using std::is_same_v;
+
+namespace traits {
+
+    /**
+     * @brief Entry type trait.
+     *
+     * The entry type is defined on @c type_trait<array_t>::type.
+     *
+     * @tparam T A matrix or vector class
+     */
+    template <class T, typename = int>
+    struct entry_type_trait {
+        using type = void;
+    };
+
+    /**
+     * @brief Size type trait.
+     *
+     * The size type is defined on @c sizet_trait<array_t>::type.
+     *
+     * @tparam T A matrix or vector class
+     */
+    template <class T, typename = int>
+    struct size_type_trait {
+        using type = std::size_t;
+    };
 
     /**
      * @brief Trait to determine the layout of a given data structure.
@@ -26,8 +54,8 @@ namespace internal {
      * @ingroup abstract_matrix
      */
     template <class array_t, class = int>
-    struct LayoutImpl {
-        static constexpr Layout layout = Layout::Unspecified;
+    struct layout_trait {
+        static constexpr Layout value = Layout::Unspecified;
     };
 
     /**
@@ -38,8 +66,8 @@ namespace internal {
      *
      * @ingroup abstract_matrix
      */
-    template <class matrix_t, class = int>
-    struct TransposeTypeImpl;
+    // template <class matrix_t, class = int>
+    // struct transpose_type_trait;
 
     /**
      * @brief Functor for data creation
@@ -49,7 +77,7 @@ namespace internal {
      * @ingroup abstract_matrix
      */
     template <class matrix_t, class = int>
-    struct CreateImpl {
+    struct CreateFunctor {
         static_assert(false && sizeof(matrix_t),
                       "Must use correct specialization");
 
@@ -148,12 +176,6 @@ namespace internal {
     template <typename... matrix_t>
     struct matrix_type_traits;
 
-    /// Matrix type deduction for one type
-    template <typename matrix_t>
-    struct matrix_type_traits<matrix_t, int> {
-        using type = typename matrix_type_traits<matrix_t, matrix_t, int>::type;
-    };
-
     /// Matrix type deduction for three or more types
     template <typename matrixA_t, typename matrixB_t, typename... matrix_t>
     struct matrix_type_traits<matrixA_t, matrixB_t, matrix_t...> {
@@ -189,15 +211,15 @@ namespace internal {
             typename vector_type_traits<vectorA_t, vectorB_t, int>::type,
             vector_t...>::type;
     };
-}  // namespace internal
+}  // namespace traits
 
-/// @brief Alias for @c internal::LayoutImpl<,int>::layout.
+/// @brief Alias for @c traits::layout_trait<,int>::value.
 /// @ingroup abstract_matrix
 template <class array_t>
-constexpr Layout layout = internal::LayoutImpl<array_t, int>::layout;
+constexpr Layout layout = traits::layout_trait<array_t, int>::value;
 
 /**
- * @brief Alias for @c internal::CreateImpl<,int>.
+ * @brief Alias for @c traits::CreateFunctor<,int>.
  *
  * Usage:
  * @code{.cpp}
@@ -214,12 +236,12 @@ constexpr Layout layout = internal::LayoutImpl<array_t, int>::layout;
  * std::vector<T> A_container; // Empty vector
  * auto A = new_matrix(A_container, m, n); // Initialize A_container if needed
  *
- * tlapack::vectorOfBytes B_container; // Empty vector
+ * tlapack::VectorOfBytes B_container; // Empty vector
  * auto B = new_matrix(
  *  tlapack::alloc_workspace( B_container, m*n*sizeof(T) ),
  *  m, n ); // B_container stores allocated memory
  *
- * tlapack::vectorOfBytes C_container; // Empty vector
+ * tlapack::VectorOfBytes C_container; // Empty vector
  * Workspace W; // Empty workspace
  * auto C = new_matrix(
  *  tlapack::alloc_workspace( C_container, m*n*sizeof(T) ),
@@ -230,24 +252,31 @@ constexpr Layout layout = internal::LayoutImpl<array_t, int>::layout;
  * @ingroup abstract_matrix
  */
 template <class T>
-using Create = internal::CreateImpl<T, int>;
+using Create = traits::CreateFunctor<T, int>;
 
-/// Alias for @c internal::TransposeTypeImpl<,int>::type.
+/// Alias for @c traits::transpose_type_trait<,int>::type.
 /// @ingroup abstract_matrix
 template <class T>
-using transpose_type = typename internal::TransposeTypeImpl<T, int>::type;
+using transpose_type =
+    typename traits::matrix_type_traits<T, int>::transpose_type;
 
-/// Alias for @c internal::matrix_type<,int>::type.
+/// Alias for @c traits::matrix_type<,int>::type.
 /// @ingroup abstract_matrix
 template <typename... matrix_t>
-using matrix_type =
-    typename internal::matrix_type_traits<matrix_t..., int>::type;
+using matrix_type = typename traits::matrix_type_traits<matrix_t..., int>::type;
 
-/// Alias for @c internal::vector_type<,int>::type.
+/// Alias for @c traits::vector_type<,int>::type.
 /// @ingroup abstract_matrix
 template <typename... vector_t>
-using vector_type =
-    typename internal::vector_type_traits<vector_t..., int>::type;
+using vector_type = typename traits::vector_type_traits<vector_t..., int>::type;
+
+/// Entry type of a matrix or vector.
+template <class T>
+using type_t = typename traits::entry_type_trait<T, int>::type;
+
+/// Size type of a matrix or vector.
+template <class T>
+using size_type = typename traits::size_type_trait<T, int>::type;
 
 }  // namespace tlapack
 

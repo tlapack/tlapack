@@ -58,6 +58,7 @@ int getrf_recursive(matrix_t& A, piv_t& piv)
     using idx_t = size_type<matrix_t>;
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
+    using range = pair<idx_t, idx_t>;
 
     // Using the following lines to pass the abs function to iamax
     // TODO: Replace the following lines by a lambda function if we adopt C++17
@@ -113,7 +114,7 @@ int getrf_recursive(matrix_t& A, piv_t& piv)
 
         // by the previous comment, we can safely scale all elements of 0th
         // column by 1/A(0,0)
-        auto l = slice(A, range<idx_t>(1, m), 0);
+        auto l = slice(A, range(1, m), 0);
         rscl((T)A(0, 0), l);
 
         return 0;
@@ -122,8 +123,8 @@ int getrf_recursive(matrix_t& A, piv_t& piv)
     // the case where m<n, we simply slice A into two parts, A0, a square matrix
     // and A1 where A=[A0 , A1]
     else if (m < n) {
-        auto A0 = tlapack::cols(A, tlapack::range<idx_t>(0, m));
-        auto A1 = tlapack::cols(A, tlapack::range<idx_t>(m, n));
+        auto A0 = tlapack::cols(A, range(0, m));
+        auto A1 = tlapack::cols(A, range(m, n));
 
         int info = getrf_recursive(A0, piv);
         if (info != 0) return info;
@@ -147,11 +148,11 @@ int getrf_recursive(matrix_t& A, piv_t& piv)
         idx_t k0 = k / 2;
 
         // in this step, we break A into two matrices, A=[A0 , A1]
-        auto A0 = tlapack::cols(A, tlapack::range<idx_t>(0, k0));
-        auto A1 = tlapack::cols(A, tlapack::range<idx_t>(k0, n));
+        auto A0 = tlapack::cols(A, range(0, k0));
+        auto A1 = tlapack::cols(A, range(k0, n));
 
         // piv0 is the first k0 elements of piv
-        auto piv0 = tlapack::slice(piv, tlapack::range<idx_t>(0, k0));
+        auto piv0 = tlapack::slice(piv, range(0, k0));
 
         // Apply getrf on the left of half of the matrix
         int info = getrf_recursive(A0, piv0);
@@ -167,17 +168,13 @@ int getrf_recursive(matrix_t& A, piv_t& piv)
         }
 
         // partition A into the following four blocks:
-        auto A00 = tlapack::slice(A, tlapack::range<idx_t>(0, k0),
-                                  tlapack::range<idx_t>(0, k0));
-        auto A01 = tlapack::slice(A, tlapack::range<idx_t>(0, k0),
-                                  tlapack::range<idx_t>(k0, n));
-        auto A10 = tlapack::slice(A, tlapack::range<idx_t>(k0, m),
-                                  tlapack::range<idx_t>(0, k0));
-        auto A11 = tlapack::slice(A, tlapack::range<idx_t>(k0, m),
-                                  tlapack::range<idx_t>(k0, n));
+        auto A00 = tlapack::slice(A, range(0, k0), range(0, k0));
+        auto A01 = tlapack::slice(A, range(0, k0), range(k0, n));
+        auto A10 = tlapack::slice(A, range(k0, m), range(0, k0));
+        auto A11 = tlapack::slice(A, range(k0, m), range(k0, n));
 
         // Take piv1 to be the second slice of of piv, meaning piv= [piv0, piv1]
-        auto piv1 = tlapack::slice(piv, tlapack::range<idx_t>(k0, k));
+        auto piv1 = tlapack::slice(piv, range(k0, k));
 
         // Solve the triangular system of equations given by A00 X = A01
         trsm(Side::Left, Uplo::Lower, Op::NoTrans, Diag::Unit, T(1), A00, A01);

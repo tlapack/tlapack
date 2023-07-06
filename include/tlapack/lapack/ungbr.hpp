@@ -59,7 +59,7 @@ inline constexpr workinfo_t ungbr_q_worksize(
     const ungbr_opts_t<workT_t>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
-    using pair = std::pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
 
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
@@ -68,8 +68,8 @@ inline constexpr workinfo_t ungbr_q_worksize(
         return ungqr_worksize(A, tau, opts);
     }
     else {
-        auto A2 = slice(A, pair{0, m - 1}, pair{0, m - 1});
-        auto tau2 = slice(tau, pair{0, m - 1});
+        auto A2 = slice(A, range{0, m - 1}, range{0, m - 1});
+        auto tau2 = slice(tau, range{0, m - 1});
         return ungqr_worksize(A2, tau2, opts);
     }
 }
@@ -104,14 +104,14 @@ inline constexpr workinfo_t ungbr_p_worksize(
     const ungbr_opts_t<workT_t>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
-    using pair = std::pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
 
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
 
     if (m >= k) {
-        auto A2 = slice(A, pair{0, n - 1}, pair{0, n - 1});
-        auto tau2 = slice(tau, pair{0, n - 1});
+        auto A2 = slice(A, range{0, n - 1}, range{0, n - 1});
+        auto tau2 = slice(tau, range{0, n - 1});
         return unglq_worksize(A2, tau2, opts);
     }
     else {
@@ -162,7 +162,7 @@ int ungbr_q(const size_type<matrix_t> k,
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
     using idx_t = size_type<matrix_t>;
-    using pair = pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
 
     // constants
     const real_t zero(0);
@@ -190,8 +190,8 @@ int ungbr_q(const size_type<matrix_t> k,
             A(i, 0) = zero;
         if (m > 1) {
             // Form Q(1:m,1:m)
-            auto A2 = slice(A, pair{1, m}, pair{1, m});
-            auto tau2 = slice(tau, pair{0, m - 1});
+            auto A2 = slice(A, range{1, m}, range{1, m});
+            auto tau2 = slice(tau, range{0, m - 1});
             ungqr(A2, tau2, ungqrOpts);
         }
     }
@@ -242,7 +242,7 @@ int ungbr_p(const size_type<matrix_t> k,
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
     using idx_t = size_type<matrix_t>;
-    using pair = pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
 
     // constants
     const real_t zero(0);
@@ -275,8 +275,8 @@ int ungbr_p(const size_type<matrix_t> k,
             A(0, j) = zero;
         }
         if (n > 1) {
-            auto A2 = slice(A, pair{1, n}, pair{1, n});
-            auto tau2 = slice(tau, pair{0, n - 1});
+            auto A2 = slice(A, range{1, n}, range{1, n});
+            auto tau2 = slice(tau, range{0, n - 1});
             unglq(A2, tau2, unglqOpts);
         }
     }

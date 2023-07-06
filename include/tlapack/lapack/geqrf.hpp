@@ -49,6 +49,7 @@ inline constexpr workinfo_t geqrf_worksize(
 {
     using idx_t = size_type<A_t>;
     using T = type_t<A_t>;
+    using range = pair<idx_t, idx_t>;
 
     // constants
     const idx_t m = nrows(A);
@@ -57,10 +58,10 @@ inline constexpr workinfo_t geqrf_worksize(
     const idx_t nb = opts.nb;
     const idx_t ib = std::min<idx_t>(nb, k);
 
-    auto A11 = cols(A, range<idx_t>(0, ib));
-    auto TT1 = slice(A, range<idx_t>(0, ib), range<idx_t>(0, ib));
-    auto A12 = slice(A, range<idx_t>(0, m), range<idx_t>(ib, n));
-    auto tauw1 = slice(tau, range<idx_t>(0, ib));
+    auto A11 = cols(A, range(0, ib));
+    auto TT1 = slice(A, range(0, ib), range(0, ib));
+    auto A12 = slice(A, range(0, m), range(ib, n));
+    auto tauw1 = slice(tau, range(0, ib));
 
     workinfo_t workinfo = geqr2_worksize(A11, tauw1);
     workinfo.minMax(larfb_worksize(Side::Left, Op::ConjTrans,
@@ -114,7 +115,7 @@ int geqrf(A_t& A, tau_t& tau, const geqrf_opts_t<size_type<A_t>>& opts = {})
     Create<A_t> new_matrix;
 
     using idx_t = size_type<A_t>;
-    using range = std::pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
 
     // constants
     const idx_t m = nrows(A);
@@ -126,7 +127,7 @@ int geqrf(A_t& A, tau_t& tau, const geqrf_opts_t<size_type<A_t>>& opts = {})
     tlapack_check((idx_t)size(tau) >= k);
 
     // Allocate or get workspace
-    vectorOfBytes localworkdata;
+    VectorOfBytes localworkdata;
     Workspace work = [&]() {
         workinfo_t workinfo = geqrf_worksize(A, tau, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);

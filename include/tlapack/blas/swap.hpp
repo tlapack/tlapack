@@ -49,8 +49,8 @@ void swap(vectorX_t& x, vectorY_t& y)
 #ifdef USE_LAPACKPP_WRAPPERS
 
 template <
-    TLAPACK_VECTOR vectorX_t,
-    TLAPACK_VECTOR vectorY_t,
+    TLAPACK_LEGACY_VECTOR vectorX_t,
+    TLAPACK_LEGACY_VECTOR vectorY_t,
     class T = type_t<vectorY_t>,
     enable_if_allow_optblas_t<pair<vectorX_t, T>, pair<vectorY_t, T> > = 0>
 inline void swap(vectorX_t& x, vectorY_t& y)

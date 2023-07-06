@@ -36,12 +36,13 @@ inline constexpr workinfo_t gerq2_worksize(const matrix_t& A,
                                            const workspace_opts_t<>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
+    using range = pair<idx_t, idx_t>;
 
     // constants
     const idx_t n = ncols(A);
 
     if (n > 1) {
-        auto C = cols(A, range<idx_t>{1, n});
+        auto C = cols(A, range{1, n});
         return larf_worksize(Side::Right, Direction::Backward, StoreV::Rowwise,
                              col(A, 0), tau[0], C, opts);
     }
@@ -90,7 +91,7 @@ template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
 int gerq2(matrix_t& A, vector_t& tau, const workspace_opts_t<>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
-    using pair = pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
 
     // constants
     const idx_t m = nrows(A);
@@ -104,7 +105,7 @@ int gerq2(matrix_t& A, vector_t& tau, const workspace_opts_t<>& opts = {})
     if (n <= 0) return 0;
 
     // Allocates workspace
-    vectorOfBytes localworkdata;
+    VectorOfBytes localworkdata;
     Workspace work = [&]() {
         workinfo_t workinfo = gerq2_worksize(A, tau, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
@@ -117,14 +118,14 @@ int gerq2(matrix_t& A, vector_t& tau, const workspace_opts_t<>& opts = {})
         idx_t i = k - 1 - i2;
 
         // Define v := A[m-1-i2,0:n-i2]
-        auto v = slice(A, m - 1 - i2, pair{0, n - i2});
+        auto v = slice(A, m - 1 - i2, range{0, n - i2});
 
         // Generate the (i+1)-th elementary Householder reflection on v
         larfg(Direction::Backward, StoreV::Rowwise, v, tau[i]);
 
         // Apply the reflector to the rest of the matrix
         if (m > i2 + 1) {
-            auto C = slice(A, pair{0, m - 1 - i2}, pair{0, n - i2});
+            auto C = slice(A, range{0, m - 1 - i2}, range{0, n - i2});
             larf(Side::Right, Direction::Backward, StoreV::Rowwise, v, tau[i],
                  C, larfOpts);
         }

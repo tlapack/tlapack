@@ -23,6 +23,7 @@
 #include <tlapack/base/utils.hpp>
 #include <tlapack/blas/gemm.hpp>
 #include <tlapack/blas/herk.hpp>
+#include <tlapack/lapack/lange.hpp>
 #include <tlapack/lapack/lanhe.hpp>
 #include <tlapack/lapack/laset.hpp>
 
@@ -48,13 +49,13 @@ class rand_generator {
     }
 };
 
-template <typename T, enable_if_t<is_real<T>::value, bool> = true>
+template <typename T, enable_if_t<is_real<T>, bool> = true>
 T rand_helper(rand_generator& gen)
 {
     return T(static_cast<float>(gen()) / static_cast<float>(gen.max()));
 }
 
-template <typename T, enable_if_t<is_complex<T>::value, bool> = true>
+template <typename T, enable_if_t<is_complex<T>, bool> = true>
 T rand_helper(rand_generator& gen)
 {
     using real_t = real_type<T>;
@@ -63,13 +64,13 @@ T rand_helper(rand_generator& gen)
     return complex_type<real_t>(r1, r2);
 }
 
-template <typename T, enable_if_t<is_real<T>::value, bool> = true>
+template <typename T, enable_if_t<is_real<T>, bool> = true>
 T rand_helper()
 {
     return T(static_cast<float>(rand()) / static_cast<float>(RAND_MAX));
 }
 
-template <typename T, enable_if_t<is_complex<T>::value, bool> = true>
+template <typename T, enable_if_t<is_complex<T>, bool> = true>
 T rand_helper()
 {
     using real_t = real_type<T>;

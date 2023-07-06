@@ -40,7 +40,7 @@ TEMPLATE_TEST_CASE(
     // Functor
     Create<matrix_t> new_matrix;
 
-    using variant_t = std::pair<PotrfVariant, idx_t>;
+    using variant_t = pair<PotrfVariant, idx_t>;
     const variant_t variant =
         GENERATE((variant_t(PotrfVariant::Blocked, 1)),
                  (variant_t(PotrfVariant::Blocked, 2)),
@@ -144,7 +144,7 @@ TEMPLATE_TEST_CASE("Cholesky factorization access valid positions only",
     // Functor
     Create<matrix_t> new_matrix;
 
-    using variant_t = std::pair<PotrfVariant, idx_t>;
+    using variant_t = pair<PotrfVariant, idx_t>;
     const variant_t variant =
         GENERATE((variant_t(PotrfVariant::Blocked, 2)),
                  (variant_t(PotrfVariant::RightLooking, 2)),

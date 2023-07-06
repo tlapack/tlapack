@@ -106,7 +106,7 @@ namespace legacy {
                             uplo != Uplo::General);
         tlapack_check_false(trans != Op::NoTrans && trans != Op::Trans &&
                             trans != Op::ConjTrans);
-        tlapack_check_false(is_complex<TA>::value && trans == Op::Trans);
+        tlapack_check_false(is_complex<TA> && trans == Op::Trans);
         tlapack_check_false(n < 0);
         tlapack_check_false(k < 0);
         tlapack_check_false(lda < ((layout == Layout::RowMajor)

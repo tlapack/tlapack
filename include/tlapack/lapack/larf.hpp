@@ -54,7 +54,7 @@ template <TLAPACK_SIDE side_t,
           TLAPACK_SCALAR tau_t,
           TLAPACK_VECTOR vectorC0_t,
           TLAPACK_MATRIX matrixC1_t,
-          enable_if_t<is_convertible_v<storage_t, StoreV>, int> = 0>
+          enable_if_t<std::is_convertible_v<storage_t, StoreV>, int> = 0>
 inline constexpr workinfo_t larf_worksize(side_t side,
                                           storage_t storeMode,
                                           vector_t const& x,
@@ -136,7 +136,7 @@ template <TLAPACK_SIDE side_t,
           TLAPACK_SCALAR tau_t,
           TLAPACK_VECTOR vectorC0_t,
           TLAPACK_MATRIX matrixC1_t,
-          enable_if_t<is_convertible_v<storage_t, StoreV>, int> = 0>
+          enable_if_t<std::is_convertible_v<storage_t, StoreV>, int> = 0>
 void larf(side_t side,
           storage_t storeMode,
           vector_t const& x,
@@ -174,7 +174,7 @@ void larf(side_t side,
     }
 
     // Allocates workspace
-    vectorOfBytes localworkdata;
+    VectorOfBytes localworkdata;
     const Workspace work = [&]() {
         workinfo_t workinfo =
             larf_worksize(side, storeMode, x, tau, C0, C1, opts);
@@ -280,7 +280,7 @@ template <TLAPACK_SIDE side_t,
           TLAPACK_SVECTOR vector_t,
           TLAPACK_SCALAR tau_t,
           TLAPACK_SMATRIX matrix_t,
-          enable_if_t<is_convertible_v<direction_t, Direction>, int> = 0>
+          enable_if_t<std::is_convertible_v<direction_t, Direction>, int> = 0>
 inline constexpr workinfo_t larf_worksize(side_t side,
                                           direction_t direction,
                                           storage_t storeMode,
@@ -347,7 +347,7 @@ template <TLAPACK_SIDE side_t,
           TLAPACK_SVECTOR vector_t,
           TLAPACK_SCALAR tau_t,
           TLAPACK_SMATRIX matrix_t,
-          enable_if_t<is_convertible_v<direction_t, Direction>, int> = 0>
+          enable_if_t<std::is_convertible_v<direction_t, Direction>, int> = 0>
 inline void larf(side_t side,
                  direction_t direction,
                  storage_t storeMode,
@@ -357,7 +357,7 @@ inline void larf(side_t side,
                  const workspace_opts_t<>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
-    using pair = pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
 
     // constants
     const idx_t m = nrows(C);
@@ -390,18 +390,18 @@ inline void larf(side_t side,
 
     if (side == Side::Left) {
         auto C0 = (direction == Direction::Forward) ? row(C, 0) : row(C, m - 1);
-        auto C1 = (direction == Direction::Forward) ? rows(C, pair{1, m})
-                                                    : rows(C, pair{0, m - 1});
-        auto x = (direction == Direction::Forward) ? slice(v, pair{1, m})
-                                                   : slice(v, pair{0, m - 1});
+        auto C1 = (direction == Direction::Forward) ? rows(C, range{1, m})
+                                                    : rows(C, range{0, m - 1});
+        auto x = (direction == Direction::Forward) ? slice(v, range{1, m})
+                                                   : slice(v, range{0, m - 1});
         larf(side, storeMode, x, tau, C0, C1, opts);
     }
     else {  // side == Side::Right
         auto C0 = (direction == Direction::Forward) ? col(C, 0) : col(C, n - 1);
-        auto C1 = (direction == Direction::Forward) ? cols(C, pair{1, n})
-                                                    : cols(C, pair{0, n - 1});
-        auto x = (direction == Direction::Forward) ? slice(v, pair{1, n})
-                                                   : slice(v, pair{0, n - 1});
+        auto C1 = (direction == Direction::Forward) ? cols(C, range{1, n})
+                                                    : cols(C, range{0, n - 1});
+        auto x = (direction == Direction::Forward) ? slice(v, range{1, n})
+                                                   : slice(v, range{0, n - 1});
         larf(side, storeMode, x, tau, C0, C1, opts);
     }
 }

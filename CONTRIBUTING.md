@@ -52,7 +52,7 @@ int m = 1;
 int n = m + m;
 ```
 
-are equivalent, and deduce the type `int` for `n`. The former is very useful and allows us to write generic functions and classes templated by other abstract classes. We suggest avoiding the usage of `auto` in the following cases:
+are equivalent, and deduce the type `int` for `n`. We suggest avoiding the usage of `auto` in the following cases:
 
 1. When the type is known, like in [nrm2](include/tlapack/blas/nrm2.hpp):
 
@@ -89,7 +89,7 @@ We recommend the usage of `auto` in the following cases:
 
    a. `tlapack::legacy_matrix` and `tlapack::legacy_vector` when writing wrappers to optimized BLAS and LAPACK.
 
-   b. slicing matrices and vectors using `tlapack::slice`, `tlapack::rows`, `tlapack::col`, etc. See [abstractArray](include/tlapack/plugins/abstractArray.hpp) for more details.
+   b. slicing matrices and vectors using `tlapack::slice`, `tlapack::rows`, `tlapack::col`, etc. See [concepts](include/tlapack/base/concepts.hpp) for more details.
 
    c. the functor `tlapack::Create< >(...)`. See [arrayTraits.hpp](include/tlapack/base/arrayTraits.hpp) for more details.
 

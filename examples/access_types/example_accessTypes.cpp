@@ -106,22 +106,22 @@ int main(int argc, char** argv)
     std::cout << std::endl;
 
     std::cout << std::endl << "Scale Matrix2 by 3:";
-    lascl(band_t(n / 2, n - n / 2 - 1), 1.0, 3.0, A2);
+    lascl(BandAccess(n / 2, n - n / 2 - 1), 1.0, 3.0, A2);
     printBandedMatrix(A2);
     std::cout << std::endl;
 
     std::cout << std::endl << "Scale lower band of Matrix2 by 1/3:";
-    lascl(band_t(n / 2, 0), 3.0, 1.0, A2);
+    lascl(BandAccess(n / 2, 0), 3.0, 1.0, A2);
     printBandedMatrix(A2);
     std::cout << std::endl;
 
     std::cout << std::endl << "Scale main diagonal of Matrix2 by 3:";
-    lascl(band_t(0, 0), 1.0, 3.0, A2);
+    lascl(BandAccess(0, 0), 1.0, 3.0, A2);
     printBandedMatrix(A2);
     std::cout << std::endl;
 
     std::cout << std::endl << "Scale upper band of Matrix2 by 1/3:";
-    lascl(band_t(0, n - n / 2 - 1), 3.0, 1.0, A2);
+    lascl(BandAccess(0, n - n / 2 - 1), 3.0, 1.0, A2);
     printBandedMatrix(A2);
     std::cout << std::endl;
 

@@ -35,6 +35,7 @@ int ul_mult(matrix_t& A)
 {
     using idx_t = size_type<matrix_t>;
     using T = type_t<matrix_t>;
+    using range = pair<idx_t, idx_t>;
 
     // check arguments
     tlapack_check(nrows(A) == ncols(A));
@@ -49,14 +50,10 @@ int ul_mult(matrix_t& A)
     idx_t n0 = n / 2;
 
     // break A into four parts
-    auto A00 = tlapack::slice(A, tlapack::range<idx_t>(0, n0),
-                              tlapack::range<idx_t>(0, n0));
-    auto A10 = tlapack::slice(A, tlapack::range<idx_t>(n0, n),
-                              tlapack::range<idx_t>(0, n0));
-    auto A01 = tlapack::slice(A, tlapack::range<idx_t>(0, n0),
-                              tlapack::range<idx_t>(n0, n));
-    auto A11 = tlapack::slice(A, tlapack::range<idx_t>(n0, n),
-                              tlapack::range<idx_t>(n0, n));
+    auto A00 = tlapack::slice(A, range(0, n0), range(0, n0));
+    auto A10 = tlapack::slice(A, range(n0, n), range(0, n0));
+    auto A01 = tlapack::slice(A, range(0, n0), range(n0, n));
+    auto A11 = tlapack::slice(A, range(n0, n), range(n0, n));
 
     // calculate top left corner
     ul_mult(A00);

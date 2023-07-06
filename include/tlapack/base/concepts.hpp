@@ -11,15 +11,15 @@
 #ifndef TLAPACK_ARRAY_CONCEPTS_HH
 #define TLAPACK_ARRAY_CONCEPTS_HH
 
-#include <cmath>
-#include <cstddef>
-#include <type_traits>
-
-#include "tlapack/base/arrayTraits.hpp"
-#include "tlapack/base/types.hpp"
-
 #if __cplusplus >= 202002L
+    #include <cmath>
     #include <concepts>
+    #include <cstddef>
+    #include <type_traits>
+
+    #include "tlapack/base/arrayTraits.hpp"
+    #include "tlapack/base/types.hpp"
+    #include "tlapack/base/workspace.hpp"
 
 namespace tlapack {
 
@@ -33,6 +33,9 @@ namespace concepts {
     using std::floor;
     using std::isinf;
     using std::isnan;
+    using std::max;
+    using std::min;
+    using std::pair;
     using std::pow;
     using std::sqrt;
 
@@ -81,13 +84,18 @@ namespace concepts {
      * - it must support the boolean functions @c isinf() and @c isnan(), which
      * must be callable from the namespace @c tlapack.
      *
+     * - it must implement the functions @c min(T,T) and @c max(T,T) to decide
+     * the minimum and maximum in a pair of values.
+     *
+     * - it must have a specialization of @c std::numeric_limits<>.
+     *
      * @tparam T Type.
      *
      * @ingroup concepts
      */
     template <typename T>
-    concept Real =
-        Arithmetic<T>&& std::totally_ordered<T>&& requires(const T& a, T& b)
+    concept Real = Arithmetic<T>&& std::totally_ordered<T>&&
+        std::numeric_limits<T>::is_specialized&& requires(const T& a, T& b)
     {
         // Constructors
         T();
@@ -113,6 +121,8 @@ namespace concepts {
         pow(2, a);
         ceil(a);
         floor(a);
+        min(a, b);
+        max(a, b);
     };
 
     /** @interface tlapack::concepts::Complex
@@ -189,10 +199,10 @@ namespace concepts {
      */
     template <typename T>
     concept Scalar = Arithmetic<T>&& std::equality_comparable<T>&&
-        Real<real_type<T>>&& Complex<complex_type<T>>&& requires(T a)
+        Real<real_type<T>>&& Complex<complex_type<T>>&& requires(T&& a)
     {
         // Assignable from a rvalue reference
-        a = (T &&) a;
+        a = std::forward<T>(a);
 
         // Math functions
         tlapack::abs(a);
@@ -208,8 +218,8 @@ namespace concepts {
      * - Entry access using @c vector_t::operator[](idx_t). Entry i of a vector
      * v is accessed using <tt>v[i]</tt>.
      *
-     * - Number of entries using @c tlapack::size(vector_t). This function must
-     * be callable from the namespace @c tlapack.
+     * - Number of entries using @c size(const vector_t&). This function must be
+     * callable from the namespace @c tlapack.
      *
      * @tparam vector_t Vector type.
      *
@@ -232,7 +242,7 @@ namespace concepts {
      * @brief Concept for a vector that can be sliced into subvectors.
      *
      * A sliceable vector is a tlapack::concepts::Vector that can be sliced into
-     * subvectors. A subvector is a light-weigth view of the original vector.
+     * subvectors. A subvector is a light-weight view of the original vector.
      * That means that the value of the entries should not be copied. It also
      * means that any changes in the subvector will automatically reflect a
      * change in the original vector, and vice-versa. Routines in \<T\>LAPACK
@@ -301,7 +311,7 @@ namespace concepts {
      * @brief Concept for a matrix that can be sliced into submatrices.
      *
      * A sliceable matrix is a tlapack::concepts::Matrix that can be sliced into
-     * submatrices. A submatrix is a light-weigth view of the original matrix.
+     * submatrices. A submatrix is a light-weight view of the original matrix.
      * That means that the value of the entries should not be copied. It also
      * means that any changes in the submatrix will automatically reflect a
      * change in the original matrix, and vice-versa. Routines in \<T\>LAPACK
@@ -415,29 +425,249 @@ namespace concepts {
         ->Vector<>;
     };
 
+    /** @interface tlapack::concepts::Index
+     * @brief Concept for index types.
+     *
+     * An index type is an integral type, e.g., int, long, std::size_t, etc.
+     *
+     * @ingroup concepts
+     */
     template <typename T>
     concept Index = std::integral<T>;
 
+    /** @interface tlapack::concepts::Side
+     * @brief Concept for types that represent tlapack::Side.
+     *
+     * @tparam T Type is implicitly and explicitly convertible to tlapack::Side.
+     *
+     * @ingroup concepts
+     */
     template <typename T>
     concept Side = std::convertible_to<T, tlapack::Side>;
 
+    /** @interface tlapack::concepts::Direction
+     * @brief Concept for types that represent tlapack::Direction.
+     *
+     * @tparam T Type is implicitly and explicitly convertible to
+     * tlapack::Direction.
+     *
+     * @ingroup concepts
+     */
     template <typename T>
     concept Direction = std::convertible_to<T, tlapack::Direction>;
 
+    /** @interface tlapack::concepts::Op
+     * @brief Concept for types that represent tlapack::Op.
+     *
+     * @tparam T Type is implicitly and explicitly convertible to tlapack::Op.
+     *
+     * @ingroup concepts
+     */
     template <typename T>
     concept Op = std::convertible_to<T, tlapack::Op>;
 
+    /** @interface tlapack::concepts::StoreV
+     * @brief Concept for types that represent tlapack::StoreV.
+     *
+     * @tparam T Type is implicitly and explicitly convertible to
+     * tlapack::StoreV.
+     *
+     * @ingroup concepts
+     */
     template <typename T>
     concept StoreV = std::convertible_to<T, tlapack::StoreV>;
 
+    /** @interface tlapack::concepts::Norm
+     * @brief Concept for types that represent tlapack::Norm.
+     *
+     * @tparam T Type is implicitly and explicitly convertible to tlapack::Norm.
+     *
+     * @ingroup concepts
+     */
     template <typename T>
     concept Norm = std::convertible_to<T, tlapack::Norm>;
 
+    /** @interface tlapack::concepts::Uplo
+     * @brief Concept for types that represent tlapack::Uplo.
+     *
+     * @tparam T Type is implicitly and explicitly convertible to tlapack::Uplo.
+     *
+     * @ingroup concepts
+     */
     template <typename T>
     concept Uplo = std::convertible_to<T, tlapack::Uplo>;
 
+    /** @interface tlapack::concepts::Diag
+     * @brief Concept for types that represent tlapack::Diag.
+     *
+     * @tparam T Type is implicitly and explicitly convertible to tlapack::Diag.
+     *
+     * @ingroup concepts
+     */
     template <typename T>
     concept Diag = std::convertible_to<T, tlapack::Diag>;
+
+    // Legacy vector and matrix types
+
+    /** @interface tlapack::concepts::LegacyArray
+     * @brief Concept for types that can be converted to a legacy matrix.
+     *
+     * The concept tlapack::concepts::LegacyArray applies to types that can be
+     * converted to tlapack::legacy::Matrix. The conversion is performed by
+     * calling @c legacy_matrix(const T&), which should be callable from the
+     * namespace @c tlapack.
+     *
+     * @tparam T Matrix or Vector type.
+     *
+     * @ingroup concepts
+     */
+    template <typename T>
+    concept LegacyArray = requires(const T& A)
+    {
+        {
+            (legacy_matrix(A)).layout
+        }
+        ->std::convertible_to<tlapack::Layout>;
+        {
+            (legacy_matrix(A)).m
+        }
+        ->std::convertible_to<size_type<T>>;
+        {
+            (legacy_matrix(A)).n
+        }
+        ->std::convertible_to<size_type<T>>;
+        {
+            (legacy_matrix(A)).ptr[0]
+        }
+        ->std::convertible_to<type_t<T>>;
+        {
+            (legacy_matrix(A)).ldim
+        }
+        ->std::convertible_to<size_type<T>>;
+    };
+
+    /** @interface tlapack::concepts::LegacyMatrix
+     * @brief Concept for matrices that can be converted to a legacy matrix.
+     *
+     * A legacy matrix is a matrix that can be converted to
+     * tlapack::legacy::Matrix. The conversion is performed by calling
+     * @c legacy_matrix(const T&), which should be callable from the namespace
+     * @c tlapack. The layout of the matrix, tlapack::layout<matrix_t>, must be
+     * either tlapack::Layout::ColMajor or tlapack::Layout::RowMajor.
+     *
+     * @tparam matrix_t Matrix type.
+     *
+     * @ingroup concepts
+     */
+    template <typename matrix_t>
+    concept LegacyMatrix = Matrix<matrix_t>&& LegacyArray<matrix_t> &&
+                           ((layout<matrix_t> == Layout::ColMajor) ||
+                            (layout<matrix_t> == Layout::RowMajor));
+
+    /** @interface tlapack::concepts::LegacyVector
+     * @brief Concept for vectors that can be converted to a legacy vector.
+     *
+     * A legacy vector is a vector that can be converted to
+     * tlapack::legacy::Vector. The conversion is performed by calling
+     * @c legacy_vector(const T&), which should be callable from the namespace
+     * @c tlapack. The layout of the vector, tlapack::layout<vector_t>, must be
+     * either tlapack::Layout::ColMajor, tlapack::Layout::RowMajor, or
+     * tlapack::Layout::Strided. Moreover, a legacy vector must also satisfy the
+     * concept tlapack::concepts::LegacyArray.
+     *
+     * @tparam vector_t Vector type.
+     *
+     * @ingroup concepts
+     */
+    template <typename vector_t>
+    concept LegacyVector = Vector<vector_t>&& LegacyArray<vector_t> &&
+                           ((layout<vector_t> == Layout::ColMajor) ||
+                            (layout<vector_t> == Layout::RowMajor) ||
+                            (layout<vector_t> == Layout::Strided)) &&
+                           requires(const vector_t& v)
+    {
+        {
+            (legacy_vector(v)).n
+        }
+        ->std::convertible_to<size_type<vector_t>>;
+        {
+            (legacy_vector(v)).ptr[0]
+        }
+        ->std::convertible_to<type_t<vector_t>>;
+        {
+            (legacy_vector(v)).inc
+        }
+        ->std::convertible_to<size_type<vector_t>>;
+    };
+
+    // // Matrix and vector types that can be created
+
+    // template <typename array_t>
+    // concept ConstructableArray = requires()
+    // {
+    //     {
+    //         Create<matrix_type<array_t>>()(std::vector<type_t<array_t>>(1),
+    //         2,
+    //                                        3)
+    //     }
+    //     ->Matrix<>;
+    //     {
+    //         Create<vector_type<array_t>>()(std::vector<type_t<array_t>>(1),
+    //         2)
+    //     }
+    //     ->Vector<>;
+    // };
+
+    // template <typename matrix_t>
+    // concept ConstructableMatrix =
+    //     Matrix<matrix_t>&& ConstructableArray<matrix_t>&& requires()
+    // {
+    //     {
+    //         Create<matrix_t>()(std::vector<type_t<matrix_t>>(1), 2, 3)
+    //     }
+    //     ->Matrix<>;
+    // };
+
+    // template <typename vector_t>
+    // concept ConstructableVector =
+    //     Vector<vector_t>&& ConstructableVector<vector_t>&& requires()
+    // {
+    //     {
+    //         Create<vector_t>()(std::vector<type_t<vector_t>>(1), 2)
+    //     }
+    //     ->Vector<>;
+    // };
+
+    // // Matrix and vector types that can be created from a workspace
+
+    // template <typename matrix_t>
+    // concept WorkspaceMatrix = Matrix<matrix_t>&& requires(Workspace& work)
+    // {
+    //     {
+    //         Create<matrix_t>()(Workspace(), 2, 3)
+    //     }
+    //     ->Matrix<>;
+    //     {
+    //         Create<matrix_t>()(Workspace(), 2, 3, work)
+    //     }
+    //     ->Matrix<>;
+    // };
+
+    // template <typename vector_t>
+    // concept WorkspaceVector = Vector<vector_t>&& requires(Workspace& work)
+    // {
+    //     {
+    //         Create<vector_t>()(Workspace(), 2)
+    //     }
+    //     ->Vector<>;
+    //     {
+    //         Create<vector_t>()(Workspace(), 2, work)
+    //     }
+    //     ->Vector<>;
+    // };
+
+    // Create<> matrix_type<...> transpose_type<> vector_type<...> real_type<>
+    //     complex_type<>
 
 }  // namespace concepts
 }  // namespace tlapack
@@ -486,6 +716,31 @@ namespace concepts {
 
     /// Macro for tlapack::concepts::Diag compatible with C++17.
     #define TLAPACK_DIAG tlapack::concepts::Diag
+
+    /// Macro for tlapack::concepts::LegacyArray compatible with C++17.
+    #define TLAPACK_LEGACY_ARRAY tlapack::concepts::LegacyArray
+
+    /// Macro for tlapack::concepts::LegacyMatrix compatible with C++17.
+    #define TLAPACK_LEGACY_MATRIX tlapack::concepts::LegacyMatrix
+
+    /// Macro for tlapack::concepts::LegacyVector compatible with C++17.
+    #define TLAPACK_LEGACY_VECTOR tlapack::concepts::LegacyVector
+
+    // /// Macro for tlapack::concepts::ConstructableMatrix compatible with
+    // /// C++17.
+    // #define TLAPACK_CONSTRUCTABLE_MATRIX
+    // tlapack::concepts::ConstructableMatrix
+
+    // /// Macro for tlapack::concepts::ConstructableVector compatible with
+    // /// C++17.
+    // #define TLAPACK_CONSTRUCTABLE_VECTOR
+    // tlapack::concepts::ConstructableVector
+
+    // /// Macro for tlapack::concepts::WorkspaceMatrix compatible with C++17.
+    // #define TLAPACK_WORKSPACE_MATRIX tlapack::concepts::WorkspaceMatrix
+
+    // /// Macro for tlapack::concepts::WorkspaceVector compatible with C++17.
+    // #define TLAPACK_WORKSPACE_VECTOR tlapack::concepts::WorkspaceVector
 #else
     // Concepts are a C++20 feature, so just define them as `class` for earlier
     // versions
@@ -508,6 +763,15 @@ namespace concepts {
     #define TLAPACK_UPLO class
     #define TLAPACK_DIAG class
 
+    #define TLAPACK_LEGACY_ARRAY class
+    #define TLAPACK_LEGACY_MATRIX class
+    #define TLAPACK_LEGACY_VECTOR class
+
+    // #define TLAPACK_CONSTRUCTABLE_MATRIX class
+    // #define TLAPACK_CONSTRUCTABLE_VECTOR class
+
+    // #define TLAPACK_WORKSPACE_MATRIX class
+    // #define TLAPACK_WORKSPACE_VECTOR class
 #endif
 
 #endif  // TLAPACK_ARRAY_CONCEPTS_HH

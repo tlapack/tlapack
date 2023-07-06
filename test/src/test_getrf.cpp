@@ -34,6 +34,7 @@ TEMPLATE_TEST_CASE("LU factorization of a general m-by-n matrix",
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
     typedef real_type<T> real_t;  // equivalent to using real_t = real_type<T>;
+    using range = pair<idx_t, idx_t>;
 
     // Functor
     Create<matrix_t> new_matrix;
@@ -82,19 +83,15 @@ TEMPLATE_TEST_CASE("LU factorization of a general m-by-n matrix",
 
         // A contains L and U now, then form A <--- LU
         if (m > n) {
-            auto A0 = tlapack::slice(A, tlapack::range<idx_t>(0, n),
-                                     tlapack::range<idx_t>(0, n));
-            auto A1 = tlapack::slice(A, tlapack::range<idx_t>(n, m),
-                                     tlapack::range<idx_t>(0, n));
+            auto A0 = tlapack::slice(A, range(0, n), range(0, n));
+            auto A1 = tlapack::slice(A, range(n, m), range(0, n));
             trmm(Side::Right, Uplo::Upper, Op::NoTrans, Diag::NonUnit,
                  real_t(1), A0, A1);
             lu_mult(A0);
         }
         else if (m < n) {
-            auto A0 = tlapack::slice(A, tlapack::range<idx_t>(0, m),
-                                     tlapack::range<idx_t>(0, m));
-            auto A1 = tlapack::slice(A, tlapack::range<idx_t>(0, m),
-                                     tlapack::range<idx_t>(m, n));
+            auto A0 = tlapack::slice(A, range(0, m), range(0, m));
+            auto A1 = tlapack::slice(A, range(0, m), range(m, n));
             trmm(Side::Left, Uplo::Lower, Op::NoTrans, Diag::Unit, real_t(1),
                  A0, A1);
             lu_mult(A0);

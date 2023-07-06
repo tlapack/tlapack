@@ -21,75 +21,95 @@ namespace tlapack {
 // -----------------------------------------------------------------------------
 // Helpers
 
-namespace internal {
-    template <class ET, class Exts, class LP, class AP>
-    std::true_type is_mdspan_type_f(
-        const std::experimental::mdspan<ET, Exts, LP, AP>*);
+namespace mdspan {
+    namespace internal {
+        template <class ET, class Exts, class LP, class AP>
+        std::true_type is_mdspan_type_f(
+            const std::experimental::mdspan<ET, Exts, LP, AP>*);
 
-    std::false_type is_mdspan_type_f(const void*);
-}  // namespace internal
+        std::false_type is_mdspan_type_f(const void*);
+    }  // namespace internal
 
-/// True if T is a mdspan array
-/// @see https://stackoverflow.com/a/25223400/5253097
-template <class T>
-constexpr bool is_mdspan_type =
-    decltype(internal::is_mdspan_type_f(std::declval<T*>()))::value;
+    /// True if T is a mdspan array
+    /// @see https://stackoverflow.com/a/25223400/5253097
+    template <class T>
+    constexpr bool is_mdspan_type =
+        decltype(internal::is_mdspan_type_f(std::declval<T*>()))::value;
+}  // namespace mdspan
 
 // -----------------------------------------------------------------------------
 // Data traits
 
-namespace internal {
+namespace traits {
     /// Layout for mdspan
     template <class ET, class Exts, class AP>
-    struct LayoutImpl<
+    struct layout_trait<
         std::experimental::mdspan<ET, Exts, std::experimental::layout_left, AP>,
         std::enable_if_t<Exts::rank() == 2, int>> {
-        static constexpr Layout layout = Layout::ColMajor;
+        static constexpr Layout value = Layout::ColMajor;
     };
     template <class ET, class Exts, class AP>
-    struct LayoutImpl<std::experimental::
-                          mdspan<ET, Exts, std::experimental::layout_right, AP>,
-                      std::enable_if_t<Exts::rank() == 2, int>> {
-        static constexpr Layout layout = Layout::RowMajor;
+    struct layout_trait<
+        std::experimental::
+            mdspan<ET, Exts, std::experimental::layout_right, AP>,
+        std::enable_if_t<Exts::rank() == 2, int>> {
+        static constexpr Layout value = Layout::RowMajor;
     };
     template <class ET, class Exts, class LP, class AP>
-    struct LayoutImpl<
+    struct layout_trait<
         std::experimental::mdspan<ET, Exts, LP, AP>,
         std::enable_if_t<(Exts::rank() == 1) &&
                              LP::template mapping<Exts>::is_always_strided(),
                          int>> {
-        static constexpr Layout layout = Layout::Strided;
+        static constexpr Layout value = Layout::Strided;
     };
 
-    /// Transpose type for legacyMatrix
+    // Matrix type traits
     template <class ET, class Exts, class AP>
-    struct TransposeTypeImpl<
+    struct matrix_type_traits<
         std::experimental::mdspan<ET, Exts, std::experimental::layout_left, AP>,
         int> {
         using type = std::experimental::
+            mdspan<ET, Exts, std::experimental::layout_left, AP>;
+        using transpose_type = std::experimental::
             mdspan<ET, Exts, std::experimental::layout_right, AP>;
     };
     template <class ET, class Exts, class AP>
-    struct TransposeTypeImpl<
+    struct matrix_type_traits<
         std::experimental::
             mdspan<ET, Exts, std::experimental::layout_right, AP>,
         int> {
         using type = std::experimental::
+            mdspan<ET, Exts, std::experimental::layout_right, AP>;
+        using transpose_type = std::experimental::
             mdspan<ET, Exts, std::experimental::layout_left, AP>;
     };
     template <class ET, class Exts, class AP>
-    struct TransposeTypeImpl<
+    struct matrix_type_traits<
         std::experimental::
             mdspan<ET, Exts, std::experimental::layout_stride, AP>,
         int> {
         using type = std::experimental::
             mdspan<ET, Exts, std::experimental::layout_stride, AP>;
+        using transpose_type = std::experimental::
+            mdspan<ET, Exts, std::experimental::layout_stride, AP>;
+    };
+
+    template <class ET, class Exts, class LP, class AP>
+    struct real_type_traits<std::experimental::mdspan<ET, Exts, LP, AP>, int> {
+        using type = std::experimental::mdspan<real_type<ET>, Exts, LP, AP>;
+    };
+
+    template <class ET, class Exts, class LP, class AP>
+    struct complex_type_traits<std::experimental::mdspan<ET, Exts, LP, AP>,
+                               int> {
+        using type = std::experimental::mdspan<complex_type<ET>, Exts, LP, AP>;
     };
 
     /// Create mdspan @see Create
     template <class ET, class Exts, class LP, class AP>
-    struct CreateImpl<std::experimental::mdspan<ET, Exts, LP, AP>,
-                      std::enable_if_t<Exts::rank() == 1, int>> {
+    struct CreateFunctor<std::experimental::mdspan<ET, Exts, LP, AP>,
+                         std::enable_if_t<Exts::rank() == 1, int>> {
         using idx_t =
             typename std::experimental::mdspan<ET, Exts, LP>::size_type;
         using extents_t = std::experimental::dextents<idx_t, 1>;
@@ -146,8 +166,8 @@ namespace internal {
 
     /// Create mdspan @see Create
     template <class ET, class Exts, class LP, class AP>
-    struct CreateImpl<std::experimental::mdspan<ET, Exts, LP, AP>,
-                      std::enable_if_t<Exts::rank() == 2, int>> {
+    struct CreateFunctor<std::experimental::mdspan<ET, Exts, LP, AP>,
+                         std::enable_if_t<Exts::rank() == 2, int>> {
         using idx_t =
             typename std::experimental::mdspan<ET, Exts, LP>::size_type;
         using extents_t = std::experimental::dextents<idx_t, 2>;
@@ -226,18 +246,7 @@ namespace internal {
             return matrix_t((ET*)W.data(), std::move(map));
         }
     };
-
-    template <class ET, class Exts, class LP, class AP>
-    struct real_type_traits<std::experimental::mdspan<ET, Exts, LP, AP>, int> {
-        using type = std::experimental::mdspan<real_type<ET>, Exts, LP, AP>;
-    };
-
-    template <class ET, class Exts, class LP, class AP>
-    struct complex_type_traits<std::experimental::mdspan<ET, Exts, LP, AP>,
-                               int> {
-        using type = std::experimental::mdspan<complex_type<ET>, Exts, LP, AP>;
-    };
-}  // namespace internal
+}  // namespace traits
 
 // -----------------------------------------------------------------------------
 // Data descriptors
@@ -391,7 +400,7 @@ inline constexpr auto diag(const std::experimental::mdspan<ET, Exts, LP, AP>& A,
 // -----------------------------------------------------------------------------
 // Deduce matrix and vector type from two provided ones
 
-namespace internal {
+namespace traits {
 
 #ifdef TLAPACK_PREFERRED_MATRIX_MDSPAN
 
@@ -399,14 +408,16 @@ namespace internal {
         #ifndef TLAPACK_LEGACYARRAY_HH
             #define TLAPACK_USE_PREFERRED_MATRIX_TYPE(T) true
         #else
-            #define TLAPACK_USE_PREFERRED_MATRIX_TYPE(T) !is_legacy_type<T>
+            #define TLAPACK_USE_PREFERRED_MATRIX_TYPE(T) \
+                !legacy::is_legacy_type<T>
         #endif
     #else
         #ifndef TLAPACK_LEGACYARRAY_HH
-            #define TLAPACK_USE_PREFERRED_MATRIX_TYPE(T) !is_eigen_type<T>
+            #define TLAPACK_USE_PREFERRED_MATRIX_TYPE(T) \
+                !eigen::is_eigen_type<T>
         #else
             #define TLAPACK_USE_PREFERRED_MATRIX_TYPE(T) \
-                (!is_eigen_type<T> && !is_legacy_type<T>)
+                (!eigen::is_eigen_type<T> && !legacy::is_legacy_type<T>)
         #endif
     #endif
 
@@ -457,7 +468,8 @@ namespace internal {
         matrixA_t,
         matrixB_t,
         typename std::enable_if<
-            is_mdspan_type<matrixA_t> && is_mdspan_type<matrixB_t> &&
+            mdspan::is_mdspan_type<matrixA_t> &&
+                mdspan::is_mdspan_type<matrixB_t> &&
                 std::is_same<typename matrixA_t::layout_type,
                              typename matrixB_t::layout_type>::value,
             int>::type> {
@@ -473,7 +485,8 @@ namespace internal {
         matrixA_t,
         matrixB_t,
         typename std::enable_if<
-            is_mdspan_type<matrixA_t> && is_mdspan_type<matrixB_t> &&
+            mdspan::is_mdspan_type<matrixA_t> &&
+                mdspan::is_mdspan_type<matrixB_t> &&
                 !std::is_same<typename matrixA_t::layout_type,
                               typename matrixB_t::layout_type>::value,
             int>::type> {
@@ -492,7 +505,8 @@ namespace internal {
         matrixA_t,
         matrixB_t,
         typename std::enable_if<
-            is_mdspan_type<matrixA_t> && is_mdspan_type<matrixB_t> &&
+            mdspan::is_mdspan_type<matrixA_t> &&
+                mdspan::is_mdspan_type<matrixB_t> &&
                 std::is_same<typename matrixA_t::layout_type,
                              typename matrixB_t::layout_type>::value,
             int>::type> {
@@ -511,7 +525,8 @@ namespace internal {
         matrixA_t,
         matrixB_t,
         typename std::enable_if<
-            is_mdspan_type<matrixA_t> && is_mdspan_type<matrixB_t> &&
+            mdspan::is_mdspan_type<matrixA_t> &&
+                mdspan::is_mdspan_type<matrixB_t> &&
                 !std::is_same<typename matrixA_t::layout_type,
                               typename matrixB_t::layout_type>::value,
             int>::type> {
@@ -524,7 +539,7 @@ namespace internal {
     };
 
 #endif  // TLAPACK_PREFERRED_MATRIX
-}  // namespace internal
+}  // namespace traits
 
 // -----------------------------------------------------------------------------
 // Cast to Legacy arrays
@@ -552,7 +567,7 @@ inline constexpr auto legacy_matrix(
     assert((A.stride(0) == 1 && A.stride(1) >= A.extent(0)) ||  // col major
            (A.stride(1) == 1 && A.stride(0) >= A.extent(1)));   // row major
 
-    return legacy::matrix<ET, idx_t>{
+    return legacy::Matrix<ET, idx_t>{
         L, A.extent(0), A.extent(1), A.data(),
         (L == Layout::ColMajor) ? A.stride(1) : A.stride(0)};
 }
@@ -569,7 +584,7 @@ inline constexpr auto legacy_matrix(
 {
     using idx_t =
         typename std::experimental::mdspan<ET, Exts, LP, AP>::size_type;
-    return legacy::matrix<ET, idx_t>{Layout::ColMajor, 1, A.size(), A.data(),
+    return legacy::Matrix<ET, idx_t>{Layout::ColMajor, 1, A.size(), A.data(),
                                      A.stride(0)};
 }
 
@@ -585,7 +600,7 @@ inline constexpr auto legacy_vector(
 {
     using idx_t =
         typename std::experimental::mdspan<ET, Exts, LP, AP>::size_type;
-    return legacy::vector<ET, idx_t>{A.size(), A.data(), A.stride(0)};
+    return legacy::Vector<ET, idx_t>{A.size(), A.data(), A.stride(0)};
 }
 
 }  // namespace tlapack

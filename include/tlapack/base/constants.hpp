@@ -33,7 +33,7 @@ namespace tlapack {
  *
  * @ingroup constants
  */
-template <typename real_t>
+template <TLAPACK_REAL real_t>
 inline constexpr real_t ulp()
 {
     return std::numeric_limits<real_t>::epsilon();
@@ -52,7 +52,7 @@ inline constexpr real_t ulp()
  *
  * @ingroup constants
  */
-template <typename real_t>
+template <TLAPACK_REAL real_t>
 inline constexpr real_t uroundoff()
 {
     return ulp<real_t>() * std::numeric_limits<real_t>::round_error();
@@ -70,7 +70,7 @@ inline int digits()
 /** Safe Minimum such that 1/safe_min() is representable
  * @ingroup constants
  */
-template <typename real_t>
+template <TLAPACK_REAL real_t>
 inline constexpr real_t safe_min()
 {
     constexpr int fradix = std::numeric_limits<real_t>::radix;
@@ -86,7 +86,7 @@ inline constexpr real_t safe_min()
  *
  * @ingroup constants
  */
-template <typename real_t>
+template <TLAPACK_REAL real_t>
 inline constexpr real_t safe_max()
 {
     constexpr int fradix = std::numeric_limits<real_t>::radix;
@@ -99,7 +99,7 @@ inline constexpr real_t safe_max()
 /** Safe Minimum such its square is representable
  * @ingroup constants
  */
-template <typename real_t>
+template <TLAPACK_REAL real_t>
 inline constexpr real_t root_min()
 {
     return sqrt(safe_min<real_t>() / ulp<real_t>());
@@ -108,7 +108,7 @@ inline constexpr real_t root_min()
 /** Safe Maximum such its square is representable
  * @ingroup constants
  */
-template <typename real_t>
+template <TLAPACK_REAL real_t>
 inline constexpr real_t root_max()
 {
     return sqrt(safe_max<real_t>() * ulp<real_t>());
@@ -118,7 +118,7 @@ inline constexpr real_t root_max()
  * @see https://doi.org/10.1145/355769.355771
  * @ingroup constants
  */
-template <typename real_t>
+template <TLAPACK_REAL real_t>
 inline constexpr real_t blue_min()
 {
     const real_t half(0.5);
@@ -132,7 +132,7 @@ inline constexpr real_t blue_min()
  * @see https://doi.org/10.1145/355769.355771
  * @ingroup constants
  */
-template <typename real_t>
+template <TLAPACK_REAL real_t>
 inline constexpr real_t blue_max()
 {
     const real_t half(0.5);
@@ -150,7 +150,7 @@ inline constexpr real_t blue_max()
  *
  * @ingroup constants
  */
-template <typename real_t>
+template <TLAPACK_REAL real_t>
 inline constexpr real_t blue_scalingMin()
 {
     const real_t half(0.5);
@@ -165,7 +165,7 @@ inline constexpr real_t blue_scalingMin()
  * @see https://doi.org/10.1145/355769.355771
  * @ingroup constants
  */
-template <typename real_t>
+template <TLAPACK_REAL real_t>
 inline constexpr real_t blue_scalingMax()
 {
     const real_t half(0.5);

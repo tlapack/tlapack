@@ -16,18 +16,20 @@
 
 namespace tlapack {
 
-namespace internal {
+namespace traits {
     // mpfr::mpreal is a real type that satisfies tlapack::concepts::Real
     template <>
     struct real_type_traits<mpfr::mpreal, int> {
         using type = mpfr::mpreal;
+        constexpr static bool is_real = true;
     };
     // The complex type of mpfr::mpreal is std::complex<mpfr::mpreal>
     template <>
     struct complex_type_traits<mpfr::mpreal, int> {
         using type = std::complex<mpfr::mpreal>;
+        constexpr static bool is_complex = false;
     };
-}  // namespace internal
+}  // namespace traits
 
 // Forward declarations
 template <typename T>

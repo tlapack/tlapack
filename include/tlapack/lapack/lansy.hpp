@@ -115,7 +115,7 @@ auto lansy(norm_t normType, uplo_t uplo, const matrix_t& A)
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
     using idx_t = size_type<matrix_t>;
-    using pair = pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
 
     // constants
     const idx_t n = nrows(A);
@@ -202,11 +202,11 @@ auto lansy(norm_t normType, uplo_t uplo, const matrix_t& A)
         // Sum off-diagonals
         if (uplo == Uplo::Upper) {
             for (idx_t j = 1; j < n; ++j)
-                lassq(slice(A, pair{0, j}, j), scale, ssq);
+                lassq(slice(A, range{0, j}, j), scale, ssq);
         }
         else {
             for (idx_t j = 0; j < n - 1; ++j)
-                lassq(slice(A, pair{j + 1, n}, j), scale, ssq);
+                lassq(slice(A, range{j + 1, n}, j), scale, ssq);
         }
         ssq *= 2;
 
@@ -283,7 +283,7 @@ auto lansy(norm_t normType,
         if (n <= 0) return real_t(0);
 
         // Allocates workspace
-        vectorOfBytes localworkdata;
+        VectorOfBytes localworkdata;
         const Workspace work = [&]() {
             workinfo_t workinfo;
             lansy_worksize(normType, uplo, A, opts);

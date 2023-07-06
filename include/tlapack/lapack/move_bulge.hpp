@@ -43,7 +43,7 @@ void move_bulge(matrix_t& H,
     using real_t = real_type<T>;
 
     using idx_t = size_type<matrix_t>;
-    using pair = std::pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
     const real_t zero(0);
     const real_t eps = ulp<real_t>();
 
@@ -77,7 +77,7 @@ void move_bulge(matrix_t& H,
         // 2-small-subdiagonals trick
         std::vector<T> vt_;
         auto vt = new_vector(vt_, 3);
-        auto H2 = slice(H, pair{1, 4}, pair{1, 4});
+        auto H2 = slice(H, range{1, 4}, range{1, 4});
         lahqr_shiftcolumn(H2, vt, s1, s2);
         larfg(forward, columnwise_storage, vt, tau);
         vt[0] = tau;

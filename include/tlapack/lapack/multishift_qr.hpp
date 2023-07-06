@@ -88,7 +88,7 @@ struct francis_opts_t : public workspace_opts_t<> {
  */
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_SVECTOR vector_t,
-          enable_if_t<is_complex<type_t<vector_t> >::value, int> = 0>
+          enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
 workinfo_t multishift_qr_worksize(
     bool want_t,
     bool want_z,
@@ -100,7 +100,7 @@ workinfo_t multishift_qr_worksize(
     const francis_opts_t<size_type<matrix_t> >& opts = {})
 {
     using idx_t = size_type<matrix_t>;
-    using pair = std::pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
 
     const idx_t n = ncols(A);
     const idx_t nh = ihi - ilo;
@@ -112,14 +112,14 @@ workinfo_t multishift_qr_worksize(
     {
         const idx_t nw_max = (n - 3) / 3;
 
-        idx_t ls, ld;
+        idx_t ls = 0, ld = 0;
         workinfo = agressive_early_deflation_worksize(
             want_t, want_z, ilo, ihi, nw_max, A, w, Z, ls, ld, opts);
     }
 
     {
         const idx_t nsr = opts.nshift_recommender(n, nh);
-        const auto shifts = slice(w, pair{0, nsr});
+        const auto shifts = slice(w, range{0, nsr});
 
         workinfo.minMax(multishift_QR_sweep_worksize(want_t, want_z, ilo, ihi,
                                                      A, shifts, Z, opts));
@@ -183,7 +183,7 @@ workinfo_t multishift_qr_worksize(
  */
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_SVECTOR vector_t,
-          enable_if_t<is_complex<type_t<vector_t> >::value, int> = 0>
+          enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
 int multishift_qr(bool want_t,
                   bool want_z,
                   size_type<matrix_t> ilo,
@@ -196,7 +196,7 @@ int multishift_qr(bool want_t,
     using TA = type_t<matrix_t>;
     using real_t = real_type<TA>;
     using idx_t = size_type<matrix_t>;
-    using pair = std::pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
 
     // constants
     const real_t zero(0);
@@ -243,7 +243,7 @@ int multishift_qr(bool want_t,
     }
 
     // Allocates workspace
-    vectorOfBytes localworkdata;
+    VectorOfBytes localworkdata;
     Workspace work = [&]() {
         workinfo_t workinfo =
             multishift_qr_worksize(want_t, want_z, ilo, ihi, A, w, Z, opts);
@@ -360,9 +360,9 @@ int multishift_qr(bool want_t,
             if (ls < nsr / 2) {
                 // Got nsr/2 or fewer shifts? Then use multi/double shift qr to
                 // get more
-                auto temp = slice(A, pair{n - nsr, n}, pair{0, nsr});
-                auto shifts = slice(w, pair{istop - nsr, istop});
-                auto Z_slice = slice(Z, pair{0, nsr}, pair{0, nsr});
+                auto temp = slice(A, range{n - nsr, n}, range{0, nsr});
+                auto shifts = slice(w, range{istop - nsr, istop});
+                auto Z_slice = slice(Z, range{0, nsr}, range{0, nsr});
                 int ierr = lahqr(false, false, 0, nsr, temp, shifts, Z_slice);
 
                 ns = nsr - ierr;
@@ -420,7 +420,7 @@ int multishift_qr(bool want_t,
 
         // If there are only two shifts and both are real
         // then use only one (helps avoid interference)
-        if (is_real<TA>::value) {
+        if (is_real<TA>) {
             if (ns == 2) {
                 if (imag(w[i_shifts]) == zero) {
                     if (tlapack::abs(real(w[i_shifts]) -
@@ -433,7 +433,7 @@ int multishift_qr(bool want_t,
                 }
             }
         }
-        auto shifts = slice(w, pair{i_shifts, i_shifts + ns});
+        auto shifts = slice(w, range{i_shifts, i_shifts + ns});
 
         n_sweep = n_sweep + 1;
         n_shifts_total = n_shifts_total + ns;
@@ -450,7 +450,7 @@ int multishift_qr(bool want_t,
 
 template <TLAPACK_MATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
-          enable_if_t<is_complex<type_t<vector_t> >::value, int> = 0>
+          enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
 inline int multishift_qr(bool want_t,
                          bool want_z,
                          size_type<matrix_t> ilo,

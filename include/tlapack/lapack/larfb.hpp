@@ -213,7 +213,7 @@ int larfb(side_t side,
     using T = type_t<matrixW_t>;
     using real_t = real_type<T>;
 
-    using pair = pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
 
     // Functor
     Create<matrixW_t> new_matrix;
@@ -228,7 +228,7 @@ int larfb(side_t side,
     tlapack_check_false(side != Side::Left && side != Side::Right);
     tlapack_check_false(
         trans != Op::NoTrans && trans != Op::ConjTrans &&
-        ((trans != Op::Trans) || is_complex<type_t<matrixV_t> >::value));
+        ((trans != Op::Trans) || is_complex<type_t<matrixV_t> >));
     tlapack_check_false(direction != Direction::Backward &&
                         direction != Direction::Forward);
     tlapack_check_false(storeMode != StoreV::Columnwise &&
@@ -245,7 +245,7 @@ int larfb(side_t side,
     if (m <= 0 || n <= 0 || k <= 0) return 0;
 
     // Allocates workspace
-    vectorOfBytes localworkdata;
+    VectorOfBytes localworkdata;
     const Workspace work = [&]() {
         workinfo_t workinfo = larfb_worksize(side, trans, direction, storeMode,
                                              V, Tmatrix, C, opts);
@@ -259,10 +259,10 @@ int larfb(side_t side,
                 // V is an m-by-k matrix
 
                 // Matrix views
-                const auto V1 = rows(V, pair{0, k});
-                const auto V2 = rows(V, pair{k, m});
-                auto C1 = rows(C, pair{0, k});
-                auto C2 = rows(C, pair{k, m});
+                const auto V1 = rows(V, range{0, k});
+                const auto V2 = rows(V, range{k, m});
+                auto C1 = rows(C, range{0, k});
+                auto C2 = rows(C, range{k, m});
                 auto W = new_matrix(work, k, n);
 
                 // W := C1
@@ -290,10 +290,10 @@ int larfb(side_t side,
                 // V is an n-by-k matrix
 
                 // Matrix views
-                const auto V1 = rows(V, pair{0, k});
-                const auto V2 = rows(V, pair{k, n});
-                auto C1 = cols(C, pair{0, k});
-                auto C2 = cols(C, pair{k, n});
+                const auto V1 = rows(V, range{0, k});
+                const auto V2 = rows(V, range{k, n});
+                auto C1 = cols(C, range{0, k});
+                auto C2 = cols(C, range{k, n});
                 auto W = new_matrix(work, m, k);
 
                 // W := C1
@@ -324,10 +324,10 @@ int larfb(side_t side,
                 // V is an m-by-k matrix
 
                 // Matrix views
-                const auto V1 = rows(V, pair{0, m - k});
-                const auto V2 = rows(V, pair{m - k, m});
-                auto C1 = rows(C, pair{0, m - k});
-                auto C2 = rows(C, pair{m - k, m});
+                const auto V1 = rows(V, range{0, m - k});
+                const auto V2 = rows(V, range{m - k, m});
+                auto C1 = rows(C, range{0, m - k});
+                auto C2 = rows(C, range{m - k, m});
                 auto W = new_matrix(work, k, n);
 
                 // W := C2
@@ -355,10 +355,10 @@ int larfb(side_t side,
                 // V is an n-by-k matrix
 
                 // Matrix views
-                const auto V1 = rows(V, pair{0, n - k});
-                const auto V2 = rows(V, pair{n - k, n});
-                auto C1 = cols(C, pair{0, n - k});
-                auto C2 = cols(C, pair{n - k, n});
+                const auto V1 = rows(V, range{0, n - k});
+                const auto V2 = rows(V, range{n - k, n});
+                auto C1 = cols(C, range{0, n - k});
+                auto C2 = cols(C, range{n - k, n});
                 auto W = new_matrix(work, m, k);
 
                 // W := C2
@@ -390,10 +390,10 @@ int larfb(side_t side,
                 // V is an k-by-m matrix
 
                 // Matrix views
-                const auto V1 = cols(V, pair{0, k});
-                const auto V2 = cols(V, pair{k, m});
-                auto C1 = rows(C, pair{0, k});
-                auto C2 = rows(C, pair{k, m});
+                const auto V1 = cols(V, range{0, k});
+                const auto V2 = cols(V, range{k, m});
+                auto C1 = rows(C, range{0, k});
+                auto C2 = rows(C, range{k, m});
                 auto W = new_matrix(work, k, n);
 
                 // W := C1
@@ -421,10 +421,10 @@ int larfb(side_t side,
                 // V is an k-by-n matrix
 
                 // Matrix views
-                const auto V1 = cols(V, pair{0, k});
-                const auto V2 = cols(V, pair{k, n});
-                auto C1 = cols(C, pair{0, k});
-                auto C2 = cols(C, pair{k, n});
+                const auto V1 = cols(V, range{0, k});
+                const auto V2 = cols(V, range{k, n});
+                auto C1 = cols(C, range{0, k});
+                auto C2 = cols(C, range{k, n});
                 auto W = new_matrix(work, m, k);
 
                 // W := C1
@@ -454,10 +454,10 @@ int larfb(side_t side,
                 // V is an k-by-m matrix
 
                 // Matrix views
-                const auto V1 = cols(V, pair{0, m - k});
-                const auto V2 = cols(V, pair{m - k, m});
-                auto C1 = rows(C, pair{0, m - k});
-                auto C2 = rows(C, pair{m - k, m});
+                const auto V1 = cols(V, range{0, m - k});
+                const auto V2 = cols(V, range{m - k, m});
+                auto C1 = rows(C, range{0, m - k});
+                auto C2 = rows(C, range{m - k, m});
                 auto W = new_matrix(work, k, n);
 
                 // W := C2
@@ -485,10 +485,10 @@ int larfb(side_t side,
                 // V is an k-by-n matrix
 
                 // Matrix views
-                const auto V1 = cols(V, pair{0, n - k});
-                const auto V2 = cols(V, pair{n - k, n});
-                auto C1 = cols(C, pair{0, n - k});
-                auto C2 = cols(C, pair{n - k, n});
+                const auto V1 = cols(V, range{0, n - k});
+                const auto V2 = cols(V, range{n - k, n});
+                auto C1 = cols(C, range{0, n - k});
+                auto C2 = cols(C, range{n - k, n});
                 auto W = new_matrix(work, m, k);
 
                 // W := C2
