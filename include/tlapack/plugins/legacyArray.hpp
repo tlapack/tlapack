@@ -67,6 +67,10 @@ namespace traits {
         using type = legacyMatrix<T, idx_t, Layout::RowMajor>;
         using transpose_type = legacyMatrix<T, idx_t, Layout::ColMajor>;
     };
+    template <typename T, class idx_t, typename int_t, Direction D>
+    struct matrix_type_traits<legacyVector<T, idx_t, int_t, D>, int> {
+        using type = legacyMatrix<T, idx_t, Layout::ColMajor>;
+    };
 
     template <class T, class idx_t, typename int_t, Direction D>
     struct real_type_traits<legacyVector<T, idx_t, int_t, D>, int> {

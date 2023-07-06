@@ -69,30 +69,39 @@ namespace traits {
     struct matrix_type_traits<
         std::experimental::mdspan<ET, Exts, std::experimental::layout_left, AP>,
         int> {
+        using idx_t = typename std::experimental::mdspan<ET, Exts>::size_type;
+        using extents_t = std::experimental::dextents<idx_t, 2>;
+
         using type = std::experimental::
-            mdspan<ET, Exts, std::experimental::layout_left, AP>;
+            mdspan<ET, extents_t, std::experimental::layout_left, AP>;
         using transpose_type = std::experimental::
-            mdspan<ET, Exts, std::experimental::layout_right, AP>;
+            mdspan<ET, extents_t, std::experimental::layout_right, AP>;
     };
     template <class ET, class Exts, class AP>
     struct matrix_type_traits<
         std::experimental::
             mdspan<ET, Exts, std::experimental::layout_right, AP>,
         int> {
+        using idx_t = typename std::experimental::mdspan<ET, Exts>::size_type;
+        using extents_t = std::experimental::dextents<idx_t, 2>;
+
         using type = std::experimental::
-            mdspan<ET, Exts, std::experimental::layout_right, AP>;
+            mdspan<ET, extents_t, std::experimental::layout_right, AP>;
         using transpose_type = std::experimental::
-            mdspan<ET, Exts, std::experimental::layout_left, AP>;
+            mdspan<ET, extents_t, std::experimental::layout_left, AP>;
     };
     template <class ET, class Exts, class AP>
     struct matrix_type_traits<
         std::experimental::
             mdspan<ET, Exts, std::experimental::layout_stride, AP>,
         int> {
+        using idx_t = typename std::experimental::mdspan<ET, Exts>::size_type;
+        using extents_t = std::experimental::dextents<idx_t, 2>;
+
         using type = std::experimental::
-            mdspan<ET, Exts, std::experimental::layout_stride, AP>;
+            mdspan<ET, extents_t, std::experimental::layout_stride, AP>;
         using transpose_type = std::experimental::
-            mdspan<ET, Exts, std::experimental::layout_stride, AP>;
+            mdspan<ET, extents_t, std::experimental::layout_stride, AP>;
     };
 
     template <class ET, class Exts, class LP, class AP>
