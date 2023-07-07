@@ -11,6 +11,7 @@
 #define TLAPACK_ARRAY_TRAITS_HH
 
 #include "tlapack/base/types.hpp"
+#include "tlapack/base/workspace.hpp"
 
 namespace tlapack {
 
@@ -22,11 +23,19 @@ namespace traits {
     /**
      * @brief Entry type trait.
      *
-     * The entry type is defined on @c type_trait<array_t>::type.
+     * The entry type is defined on @c type_trait<array_t,int>::type.
+     *
+     * @note This trait does not need to be specialized for each class as
+     * @c utils.hpp already provides a default implementation for matrices and
+     * vectors based on the entry access operator.
+     *
+     * @see tlapack::concepts::Matrix
+     * @see tlapack::concepts::Vector
      *
      * @tparam T A matrix or vector class
+     * @tparam class If this is not an int, then the trait is not defined.
      */
-    template <class T, typename = int>
+    template <class T, class = int>
     struct entry_type_trait {
         using type = void;
     };
@@ -34,11 +43,19 @@ namespace traits {
     /**
      * @brief Size type trait.
      *
-     * The size type is defined on @c sizet_trait<array_t>::type.
+     * The size type is defined on @c sizet_trait<array_t,int>::type.
+     *
+     * @note This trait does not need to be specialized for each class as
+     * @c utils.hpp already provides a default implementation for matrices and
+     * vectors based on the functions @c nrows(T) and @c size(T).
+     *
+     * @see tlapack::concepts::Matrix
+     * @see tlapack::concepts::Vector
      *
      * @tparam T A matrix or vector class
+     * @tparam class If this is not an int, then the trait is not defined.
      */
-    template <class T, typename = int>
+    template <class T, class = int>
     struct size_type_trait {
         using type = std::size_t;
     };
@@ -46,12 +63,12 @@ namespace traits {
     /**
      * @brief Trait to determine the layout of a given data structure.
      *
-     * This is used to verify if optimized routines can be used.
+     * The layout is defined on @c layout_trait<array_t,int>::value.
+     *
+     * This is used to verify if optimized implementations can be used.
      *
      * @tparam array_t Data structure.
      * @tparam class If this is not an int, then the trait is not defined.
-     *
-     * @ingroup abstract_matrix
      */
     template <class array_t, class = int>
     struct layout_trait {
@@ -59,22 +76,13 @@ namespace traits {
     };
 
     /**
-     * @brief Trait to determine the transpose of matrices from class matrix_t.
-     *
-     * @tparam matrix_t Data structure.
-     * @tparam class If this is not an int, then the trait is not defined.
-     *
-     * @ingroup abstract_matrix
-     */
-    // template <class matrix_t, class = int>
-    // struct transpose_type_trait;
-
-    /**
      * @brief Functor for data creation
      *
      * This is a boilerplate. It must be specialized for each class.
+     * See tlapack::Create for examples of usage.
      *
-     * @ingroup abstract_matrix
+     * @tparam matrix_t Data structure.
+     * @tparam class If this is not an int, then the trait is not defined.
      */
     template <class matrix_t, class = int>
     struct CreateFunctor {
@@ -112,7 +120,7 @@ namespace traits {
          *
          * @return The new object
          */
-        template <class idx_t, class Workspace>
+        template <class idx_t>
         inline constexpr auto operator()(const Workspace& W,
                                          idx_t m,
                                          idx_t n,
@@ -133,7 +141,7 @@ namespace traits {
          *
          * @return The new object
          */
-        template <class idx_t, class Workspace>
+        template <class idx_t>
         inline constexpr auto operator()(const Workspace& W,
                                          idx_t m,
                                          Workspace& rW) const
@@ -151,7 +159,7 @@ namespace traits {
          *
          * @return The new object
          */
-        template <class idx_t, class Workspace>
+        template <class idx_t>
         inline constexpr auto operator()(const Workspace& W,
                                          idx_t m,
                                          idx_t n = 1) const
@@ -165,22 +173,24 @@ namespace traits {
     /**
      * @brief Matrix type deduction
      *
-     * The deduction for two types must be implemented elsewhere. For example,
-     * the plugins for LegacyArray, Eigen and mdspan all have their own
+     * The deduction for one and two types must be implemented elsewhere. For
+     * example, the plugins for Eigen and mdspan matrices have their own
      * implementation.
      *
-     * @tparam matrix_t List of matrix types. The last type must be an int.
+     * The deduced type is defined on @c matrix_type_traits<matrix_t...>::type.
+     * The deduced transpose type is defined on
+     * @c matrix_type_traits<matrix_t...>::transpose_type.
      *
-     * @ingroup abstract_matrix
+     * @tparam matrix_t List of matrix types. The last type must be an int.
      */
-    template <typename... matrix_t>
+    template <class... matrix_t>
     struct matrix_type_traits;
 
-    /// Matrix type deduction for three or more types
-    template <typename matrixA_t, typename matrixB_t, typename... matrix_t>
+    // Matrix type deduction for three or more types
+    template <class matrixA_t, class matrixB_t, class... matrix_t>
     struct matrix_type_traits<matrixA_t, matrixB_t, matrix_t...> {
-        using type = typename matrix_type_traits<
-            typename matrix_type_traits<matrixA_t, matrixB_t, int>::type,
+        using type = class matrix_type_traits<
+            class matrix_type_traits<matrixA_t, matrixB_t, int>::type,
             matrix_t...>::type;
     };
 
@@ -188,33 +198,41 @@ namespace traits {
      * @brief Vector type deduction
      *
      * The deduction for two types must be implemented elsewhere. For example,
-     * the plugins for LegacyArray, Eigen and mdspan all have their own
-     * implementation.
+     * the plugins for Eigen and mdspan matrices have their own implementation.
+     *
+     * The deduced type is defined on @c vector_type_traits<vector_t...>::type.
      *
      * @tparam vector_t List of vector types. The last type must be an int.
-     *
-     * @ingroup abstract_matrix
      */
-    template <typename... vector_t>
+    template <class... vector_t>
     struct vector_type_traits;
 
-    /// Vector type deduction for one type
-    template <typename vector_t>
+    // Vector type deduction for one type
+    template <class vector_t>
     struct vector_type_traits<vector_t, int> {
-        using type = typename vector_type_traits<vector_t, vector_t, int>::type;
+        using type = class vector_type_traits<vector_t, vector_t, int>::type;
     };
 
-    /// Vector type deduction for three or more types
-    template <typename vectorA_t, typename vectorB_t, typename... vector_t>
+    // Vector type deduction for three or more types
+    template <class vectorA_t, class vectorB_t, class... vector_t>
     struct vector_type_traits<vectorA_t, vectorB_t, vector_t...> {
-        using type = typename vector_type_traits<
-            typename vector_type_traits<vectorA_t, vectorB_t, int>::type,
+        using type = class vector_type_traits<
+            class vector_type_traits<vectorA_t, vectorB_t, int>::type,
             vector_t...>::type;
     };
 }  // namespace traits
 
-/// @brief Alias for @c traits::layout_trait<,int>::value.
-/// @ingroup abstract_matrix
+// Aliases for the traits:
+
+/// Entry type of a matrix or vector.
+template <class T>
+using type_t = typename traits::entry_type_trait<T, int>::type;
+
+/// Size type of a matrix or vector.
+template <class T>
+using size_type = typename traits::size_type_trait<T, int>::type;
+
+/// Layout of a matrix or vector.
 template <class array_t>
 constexpr Layout layout = traits::layout_trait<array_t, int>::value;
 
@@ -248,35 +266,21 @@ constexpr Layout layout = traits::layout_trait<array_t, int>::value;
  *  m, n, W ); // W receives the updated workspace, i.e., without the space
  * taken by C
  * @endcode
- *
- * @ingroup abstract_matrix
  */
 template <class T>
 using Create = traits::CreateFunctor<T, int>;
 
-/// Alias for @c traits::transpose_type_trait<,int>::type.
-/// @ingroup abstract_matrix
+/// Transpose type deduction for the matrix T
 template <class T>
-using transpose_type =
-    typename traits::matrix_type_traits<T, int>::transpose_type;
+using transpose_type = typename traits::matrix_type_traits<T, int>::transpose_type;
 
-/// Alias for @c traits::matrix_type<,int>::type.
-/// @ingroup abstract_matrix
-template <typename... matrix_t>
+/// Common matrix type deduced from the list of types.
+template <class... matrix_t>
 using matrix_type = typename traits::matrix_type_traits<matrix_t..., int>::type;
 
-/// Alias for @c traits::vector_type<,int>::type.
-/// @ingroup abstract_matrix
-template <typename... vector_t>
+/// Common vector type deduced from the list of types.
+template <class... vector_t>
 using vector_type = typename traits::vector_type_traits<vector_t..., int>::type;
-
-/// Entry type of a matrix or vector.
-template <class T>
-using type_t = typename traits::entry_type_trait<T, int>::type;
-
-/// Size type of a matrix or vector.
-template <class T>
-using size_type = typename traits::size_type_trait<T, int>::type;
 
 }  // namespace tlapack
 

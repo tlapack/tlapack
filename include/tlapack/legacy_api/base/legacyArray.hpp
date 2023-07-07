@@ -73,7 +73,7 @@ namespace legacy {
         template <typename T>
         inline constexpr auto create_backward_vector(T* x, idx_t n)
         {
-            return legacyVector<T, idx_t, ::tlapack::internal::StrongOne,
+            return legacyVector<T, idx_t, tlapack::internal::StrongOne,
                                 Direction::Backward>{n, x};
         }
 

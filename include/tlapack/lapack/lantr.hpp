@@ -12,7 +12,6 @@
 #ifndef TLAPACK_LANTR_HH
 #define TLAPACK_LANTR_HH
 
-#include "tlapack/base/legacyArray.hpp"
 #include "tlapack/lapack/lassq.hpp"
 
 namespace tlapack {
@@ -413,7 +412,7 @@ auto lantr(norm_t normType,
             lantr_worksize(normType, uplo, diag, A, opts);
             return alloc_workspace(localworkdata, workinfo, opts.work);
         }();
-        legacyVector<T, idx_t> w(n, work);
+        auto w = Create<vector_type<matrix_t>>(work, n);
 
         // Norm value
         real_t norm(0);

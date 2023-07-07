@@ -20,6 +20,8 @@
  *
  * @note Only used if TLAPACK_ENABLE_INFCHECK is defined and TLAPACK_NDEBUG
  * is not defined.
+ * 
+ * @ingroup exception
  */
 #ifndef TLAPACK_DEFAULT_INFCHECK
     #define TLAPACK_DEFAULT_INFCHECK true
@@ -31,6 +33,8 @@
  *
  * @note Only used if TLAPACK_ENABLE_NANCHECK is defined and TLAPACK_NDEBUG
  * is not defined.
+ * 
+ * @ingroup exception
  *
  */
 #ifndef TLAPACK_DEFAULT_NANCHECK
@@ -38,10 +42,6 @@
 #endif
 
 namespace tlapack {
-
-using check_error = std::domain_error;
-using internal_error = std::runtime_error;
-
 namespace internal {
 
     /**
@@ -101,9 +101,9 @@ struct ec_opts_t {
      *
      * @ingroup exception
      */
-    #define tlapack_check(cond)                                              \
-        do {                                                                 \
-            if (!static_cast<bool>(cond)) throw tlapack::check_error(#cond); \
+    #define tlapack_check(cond)                                           \
+        do {                                                              \
+            if (!static_cast<bool>(cond)) throw std::domain_error(#cond); \
         } while (false)
 
     /**
@@ -116,9 +116,9 @@ struct ec_opts_t {
      *
      * @ingroup exception
      */
-    #define tlapack_check_false(cond)                                       \
-        do {                                                                \
-            if (static_cast<bool>(cond)) throw tlapack::check_error(#cond); \
+    #define tlapack_check_false(cond)                                    \
+        do {                                                             \
+            if (static_cast<bool>(cond)) throw std::domain_error(#cond); \
         } while (false)
 
 #else  // !defined(TLAPACK_CHECK_INPUT) || defined(TLAPACK_NDEBUG)
@@ -146,7 +146,7 @@ struct ec_opts_t {
      * @ingroup exception
      */
     #define tlapack_error(info, detailedInfo) \
-        throw tlapack::internal_error(        \
+        throw std::runtime_error(             \
             tlapack::internal::error_msg(info, detailedInfo))
 
     /**

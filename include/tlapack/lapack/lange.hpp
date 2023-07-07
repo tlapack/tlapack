@@ -12,7 +12,6 @@
 #ifndef TLAPACK_LANGE_HH
 #define TLAPACK_LANGE_HH
 
-#include "tlapack/base/legacyArray.hpp"
 #include "tlapack/lapack/lassq.hpp"
 
 namespace tlapack {
@@ -223,7 +222,7 @@ auto lange(norm_t normType, const matrix_t& A, const workspace_opts_t<>& opts)
             lange_worksize(normType, A, opts);
             return alloc_workspace(localworkdata, workinfo, opts.work);
         }();
-        legacyVector<T, idx_t> w(m, work);
+        auto w = Create<vector_type<matrix_t>>(work, m);
 
         // Norm value
         real_t norm(0);

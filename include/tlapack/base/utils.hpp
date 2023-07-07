@@ -481,7 +481,6 @@ namespace internal {
 }  // namespace internal
 
 /// Alias for @c internal::AllowOptBLASImpl<,int>::value.
-/// @ingroup abstract_matrix
 template <class... Ts>
 constexpr bool allow_optblas = internal::AllowOptBLASImpl<Ts..., int>::value;
 
