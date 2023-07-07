@@ -633,17 +633,17 @@ using deduce_work_t = typename deduce_work<work_type, work_default>::type;
  *      Behavior defined by each implementation using this option.
  */
 template <class... work_t>
-struct workspace_opts_t {
+struct WorkspaceOpts {
     Workspace work;  ///< Workspace object
 
     // Constructors:
 
-    inline constexpr workspace_opts_t(Workspace&& w = {}) : work(w) {}
+    inline constexpr WorkspaceOpts(Workspace&& w = {}) : work(w) {}
 
-    inline constexpr workspace_opts_t(const Workspace& w) : work(w) {}
+    inline constexpr WorkspaceOpts(const Workspace& w) : work(w) {}
 
     template <TLAPACK_LEGACY_ARRAY matrix_t>
-    inline constexpr workspace_opts_t(const matrix_t& A)
+    inline constexpr WorkspaceOpts(const matrix_t& A)
         : work(legacy_matrix(A))
     {}
 };

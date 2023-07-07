@@ -71,7 +71,7 @@ int run(idx_t n, idx_t nt, idx_t nb, bool check_error = false)
         std::cout << "A = " << A << std::endl;
 
         /* potrf options */
-        potrf_opts_t<idx_t> opts;
+        PotrfOpts<idx_t> opts;
         opts.nb = nb;
         opts.variant = PotrfVariant::RightLooking;
 

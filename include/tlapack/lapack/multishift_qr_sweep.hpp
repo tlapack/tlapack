@@ -57,7 +57,7 @@ inline constexpr workinfo_t multishift_QR_sweep_worksize(
     const matrix_t& A,
     const vector_t& s,
     const matrix_t& Z,
-    const workspace_opts_t<>& opts = {})
+    const WorkspaceOpts<>& opts = {})
 {
     using T = type_t<matrix_t>;
 
@@ -105,7 +105,7 @@ void multishift_QR_sweep(bool want_t,
                          matrix_t& A,
                          const vector_t& s,
                          matrix_t& Z,
-                         const workspace_opts_t<>& opts = {})
+                         const WorkspaceOpts<>& opts = {})
 {
     using TA = type_t<matrix_t>;
     using real_t = real_type<TA>;

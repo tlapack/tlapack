@@ -41,7 +41,7 @@ inline constexpr workinfo_t gehd2_worksize(size_type<matrix_t> ilo,
                                            size_type<matrix_t> ihi,
                                            const matrix_t& A,
                                            const vector_t& tau,
-                                           const workspace_opts_t<>& opts = {})
+                                           const WorkspaceOpts<>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -111,7 +111,7 @@ int gehd2(size_type<matrix_t> ilo,
           size_type<matrix_t> ihi,
           matrix_t& A,
           vector_t& tau,
-          const workspace_opts_t<>& opts = {})
+          const WorkspaceOpts<>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -134,7 +134,7 @@ int gehd2(size_type<matrix_t> ilo,
     }();
 
     // Options to forward
-    auto&& larfOpts = workspace_opts_t<>{work};
+    auto&& larfOpts = WorkspaceOpts<>{work};
 
     for (idx_t i = ilo; i < ihi - 1; ++i) {
         // Define v := A[i+1:ihi,i]

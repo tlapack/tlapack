@@ -33,7 +33,7 @@ namespace tlapack {
 template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
 inline constexpr workinfo_t gelq2_worksize(const matrix_t& A,
                                            const vector_t& tauw,
-                                           const workspace_opts_t<>& opts = {})
+                                           const WorkspaceOpts<>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -88,7 +88,7 @@ inline constexpr workinfo_t gelq2_worksize(const matrix_t& A,
  * @ingroup computational
  */
 template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
-int gelq2(matrix_t& A, vector_t& tauw, const workspace_opts_t<>& opts = {})
+int gelq2(matrix_t& A, vector_t& tauw, const WorkspaceOpts<>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -109,7 +109,7 @@ int gelq2(matrix_t& A, vector_t& tauw, const workspace_opts_t<>& opts = {})
     }();
 
     // Options to forward
-    auto&& larfOpts = workspace_opts_t<>{work};
+    auto&& larfOpts = WorkspaceOpts<>{work};
 
     for (idx_t j = 0; j < k; ++j) {
         // Define w := A(j,j:n)

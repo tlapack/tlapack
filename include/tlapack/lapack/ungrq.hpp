@@ -25,9 +25,9 @@ namespace tlapack {
  * Options struct for ungrq
  */
 template <class workT_t = void>
-struct ungrq_opts_t : public workspace_opts_t<workT_t> {
-    inline constexpr ungrq_opts_t(const workspace_opts_t<workT_t>& opts = {})
-        : workspace_opts_t<workT_t>(opts){};
+struct UngrqOpts : public WorkspaceOpts<workT_t> {
+    inline constexpr UngrqOpts(const WorkspaceOpts<workT_t>& opts = {})
+        : WorkspaceOpts<workT_t>(opts){};
 
     size_type<workT_t> nb = 32;  ///< Block size
 };
@@ -51,7 +51,7 @@ template <TLAPACK_SMATRIX matrix_t,
 inline constexpr workinfo_t ungrq_worksize(
     const matrix_t& A,
     const vector_t& tau,
-    const ungrq_opts_t<workT_t>& opts = {})
+    const UngrqOpts<workT_t>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using matrixT_t = deduce_work_t<workT_t, matrix_type<matrix_t, vector_t> >;
@@ -113,7 +113,7 @@ template <TLAPACK_SMATRIX matrix_t,
           class workT_t = void>
 int ungrq(matrix_t& A,
           const vector_t& tau,
-          const ungrq_opts_t<workT_t>& opts = {})
+          const UngrqOpts<workT_t>& opts = {})
 {
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
@@ -150,8 +150,8 @@ int ungrq(matrix_t& A,
     auto matrixT = new_matrix(work, nb, nb, sparework);
 
     // Options to forward
-    auto&& larfOpts = workspace_opts_t<>{sparework};
-    auto&& larfbOpts = workspace_opts_t<void>{sparework};
+    auto&& larfOpts = WorkspaceOpts<>{sparework};
+    auto&& larfbOpts = WorkspaceOpts<void>{sparework};
 
     // Initialise rows 0:m-k to rows of the unit matrix
     for (idx_t j = 0; j < n; ++j) {

@@ -189,8 +189,8 @@ namespace traits {
     // Matrix type deduction for three or more types
     template <class matrixA_t, class matrixB_t, class... matrix_t>
     struct matrix_type_traits<matrixA_t, matrixB_t, matrix_t...> {
-        using type = class matrix_type_traits<
-            class matrix_type_traits<matrixA_t, matrixB_t, int>::type,
+        using type = typename matrix_type_traits<
+            typename matrix_type_traits<matrixA_t, matrixB_t, int>::type,
             matrix_t...>::type;
     };
 
@@ -210,14 +210,14 @@ namespace traits {
     // Vector type deduction for one type
     template <class vector_t>
     struct vector_type_traits<vector_t, int> {
-        using type = class vector_type_traits<vector_t, vector_t, int>::type;
+        using type = typename vector_type_traits<vector_t, vector_t, int>::type;
     };
 
     // Vector type deduction for three or more types
     template <class vectorA_t, class vectorB_t, class... vector_t>
     struct vector_type_traits<vectorA_t, vectorB_t, vector_t...> {
-        using type = class vector_type_traits<
-            class vector_type_traits<vectorA_t, vectorB_t, int>::type,
+        using type = typename vector_type_traits<
+            typename vector_type_traits<vectorA_t, vectorB_t, int>::type,
             vector_t...>::type;
     };
 }  // namespace traits

@@ -61,7 +61,7 @@ inline constexpr workinfo_t larf_worksize(side_t side,
                                           const tau_t& tau,
                                           const vectorC0_t& C0,
                                           const matrixC1_t& C1,
-                                          const workspace_opts_t<>& opts = {})
+                                          const WorkspaceOpts<>& opts = {})
 {
     using work_t = vector_type<vectorC0_t, matrixC1_t, vector_t>;
     using idx_t = size_type<vectorC0_t>;
@@ -143,7 +143,7 @@ void larf(side_t side,
           const tau_t& tau,
           vectorC0_t& C0,
           matrixC1_t& C1,
-          const workspace_opts_t<>& opts = {})
+          const WorkspaceOpts<>& opts = {})
 {
     // data traits
     using work_t = vector_type<vectorC0_t, matrixC1_t, vector_t>;
@@ -287,7 +287,7 @@ inline constexpr workinfo_t larf_worksize(side_t side,
                                           vector_t const& v,
                                           const tau_t& tau,
                                           const matrix_t& C,
-                                          const workspace_opts_t<>& opts = {})
+                                          const WorkspaceOpts<>& opts = {})
 {
     using work_t = vector_type<matrix_t, vector_t>;
     using idx_t = size_type<matrix_t>;
@@ -354,7 +354,7 @@ inline void larf(side_t side,
                  vector_t const& v,
                  const tau_t& tau,
                  matrix_t& C,
-                 const workspace_opts_t<>& opts = {})
+                 const WorkspaceOpts<>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;

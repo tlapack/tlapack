@@ -54,7 +54,7 @@ inline constexpr workinfo_t unm2r_worksize(side_t side,
                                            const matrixA_t& A,
                                            const tau_t& tau,
                                            const matrixC_t& C,
-                                           const workspace_opts_t<>& opts = {})
+                                           const WorkspaceOpts<>& opts = {})
 {
     using idx_t = size_type<matrixA_t>;
     using range = pair<idx_t, idx_t>;
@@ -133,7 +133,7 @@ int unm2r(side_t side,
           const matrixA_t& A,
           const tau_t& tau,
           matrixC_t& C,
-          const workspace_opts_t<>& opts = {})
+          const WorkspaceOpts<>& opts = {})
 {
     using TA = type_t<matrixA_t>;
     using idx_t = size_type<matrixA_t>;
@@ -162,7 +162,7 @@ int unm2r(side_t side,
     }();
 
     // Options to forward
-    auto&& larfOpts = workspace_opts_t<>{work};
+    auto&& larfOpts = WorkspaceOpts<>{work};
 
     // const expressions
     const bool positiveInc =

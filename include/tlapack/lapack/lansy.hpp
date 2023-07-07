@@ -74,7 +74,7 @@ template <TLAPACK_NORM norm_t, TLAPACK_UPLO uplo_t, TLAPACK_MATRIX matrix_t>
 inline constexpr workinfo_t lansy_worksize(norm_t normType,
                                            uplo_t uplo,
                                            const matrix_t& A,
-                                           const workspace_opts_t<>& opts)
+                                           const WorkspaceOpts<>& opts)
 {
     using T = type_t<matrix_t>;
 
@@ -254,7 +254,7 @@ template <TLAPACK_NORM norm_t, TLAPACK_UPLO uplo_t, TLAPACK_MATRIX matrix_t>
 auto lansy(norm_t normType,
            uplo_t uplo,
            const matrix_t& A,
-           const workspace_opts_t<>& opts)
+           const WorkspaceOpts<>& opts)
 {
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;

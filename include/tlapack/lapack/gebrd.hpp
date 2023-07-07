@@ -24,9 +24,9 @@ namespace tlapack {
  * Options struct for gebrd
  */
 template <TLAPACK_INDEX idx_t = size_t>
-struct gebrd_opts_t : public workspace_opts_t<> {
-    inline constexpr gebrd_opts_t(const workspace_opts_t<>& opts = {})
-        : workspace_opts_t<>(opts){};
+struct GebrdOpts : public WorkspaceOpts<> {
+    inline constexpr GebrdOpts(const WorkspaceOpts<>& opts = {})
+        : WorkspaceOpts<>(opts){};
 
     idx_t nb = 32;  ///< Block size used in the blocked reduction
 };
@@ -65,7 +65,7 @@ workinfo_t gebrd_worksize(const matrix_t& A,
                           r_vector_t& e,
                           const vector_t& tauq,
                           const vector_t& taup,
-                          const gebrd_opts_t<size_type<matrix_t> >& opts = {})
+                          const GebrdOpts<size_type<matrix_t> >& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using work_t = matrix_type<matrix_t, vector_t>;
@@ -141,7 +141,7 @@ int gebrd(matrix_t& A,
           r_vector_t& e,
           vector_t& tauq,
           vector_t& taup,
-          const gebrd_opts_t<size_type<matrix_t> >& opts = {})
+          const GebrdOpts<size_type<matrix_t> >& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using work_t = matrix_type<matrix_t, vector_t>;

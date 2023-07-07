@@ -81,7 +81,7 @@ inline constexpr workinfo_t larfb_worksize(
     const matrixV_t& V,
     const matrixT_t& Tmatrix,
     const matrixC_t& C,
-    const workspace_opts_t<workW_t>& opts = {})
+    const WorkspaceOpts<workW_t>& opts = {})
 {
     using idx_t = size_type<matrixC_t>;
     using matrixW_t =
@@ -205,7 +205,7 @@ int larfb(side_t side,
           const matrixV_t& V,
           const matrixT_t& Tmatrix,
           matrixC_t& C,
-          const workspace_opts_t<workW_t>& opts = {})
+          const WorkspaceOpts<workW_t>& opts = {})
 {
     using idx_t = size_type<matrixC_t>;
     using matrixW_t =

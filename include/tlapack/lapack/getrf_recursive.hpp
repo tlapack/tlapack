@@ -69,7 +69,7 @@ int getrf_recursive(matrix_t& A, piv_t& piv)
         }
     };
     abs_f absf;
-    iamax_opts_t<abs_f> optsIamax(absf);
+    IamaxOpts<abs_f> optsIamax(absf);
 
     // constants
     const idx_t m = nrows(A);

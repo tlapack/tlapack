@@ -161,7 +161,7 @@ void run(int n,
 
         int n_aed, n_sweep, n_shifts_total;
         {
-            francis_opts_t<idx_t> opts;
+            FrancisOpts<idx_t> opts;
 
             multishift_qr(compute_backwardError, compute_backwardError, 0, n,
                           matrixT, tlapack_eig, U, opts);
@@ -291,7 +291,7 @@ void run(int n,
 
         int n_aed, n_sweep, n_shifts_total;
         {
-            francis_opts_t<idx_t> opts;
+            FrancisOpts<idx_t> opts;
 
             multishift_qr(compute_backwardError, compute_backwardError, 0, n,
                           matrixT, tlapack_eig, U, opts);

@@ -22,9 +22,9 @@ namespace tlapack {
  * Options struct for ungbr
  */
 template <class workT_t = void>
-struct ungbr_opts_t : public workspace_opts_t<workT_t> {
-    inline constexpr ungbr_opts_t(const workspace_opts_t<workT_t>& opts = {})
-        : workspace_opts_t<workT_t>(opts){};
+struct UngbrOpts : public WorkspaceOpts<workT_t> {
+    inline constexpr UngbrOpts(const WorkspaceOpts<workT_t>& opts = {})
+        : WorkspaceOpts<workT_t>(opts){};
 
     size_type<workT_t> nb = 32;  ///< Block size
 };
@@ -56,7 +56,7 @@ inline constexpr workinfo_t ungbr_q_worksize(
     const size_type<matrix_t> k,
     matrix_t& A,
     const vector_t& tau,
-    const ungbr_opts_t<workT_t>& opts = {})
+    const UngbrOpts<workT_t>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -101,7 +101,7 @@ inline constexpr workinfo_t ungbr_p_worksize(
     const size_type<matrix_t> k,
     matrix_t& A,
     const vector_t& tau,
-    const ungbr_opts_t<workT_t>& opts = {})
+    const UngbrOpts<workT_t>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -157,7 +157,7 @@ template <TLAPACK_SMATRIX matrix_t,
 int ungbr_q(const size_type<matrix_t> k,
             matrix_t& A,
             const vector_t& tau,
-            const ungbr_opts_t<workT_t>& opts = {})
+            const UngbrOpts<workT_t>& opts = {})
 {
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
@@ -169,7 +169,7 @@ int ungbr_q(const size_type<matrix_t> k,
     const real_t one(1);
     const idx_t m = nrows(A);
 
-    ungqr_opts_t<matrix_t> ungqrOpts;
+    UngqrOpts<matrix_t> ungqrOpts;
     ungqrOpts.nb = opts.nb;
     ungqrOpts.work = opts.work;
     if (m >= k) {
@@ -237,7 +237,7 @@ template <TLAPACK_SMATRIX matrix_t,
 int ungbr_p(const size_type<matrix_t> k,
             matrix_t& A,
             const vector_t& tau,
-            const ungbr_opts_t<workT_t>& opts = {})
+            const UngbrOpts<workT_t>& opts = {})
 {
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
@@ -249,7 +249,7 @@ int ungbr_p(const size_type<matrix_t> k,
     const real_t one(1);
     const idx_t n = ncols(A);
 
-    unglq_opts_t<matrix_t> unglqOpts;
+    UnglqOpts<matrix_t> unglqOpts;
     unglqOpts.nb = opts.nb;
     unglqOpts.work = opts.work;
     //

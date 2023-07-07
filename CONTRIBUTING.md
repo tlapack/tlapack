@@ -32,9 +32,16 @@ Special cases:
 Function arguments should be named using either:
 
 1. a single capital letter if it is a matrix, or
-2. a lower camel case word.
+2. lower camel case style.
 
 For instance, `fooBar` is a good name for a function argument, while `foo_bar` is not. `A` and `matrixA` are good names for a matrix, while `a` is not.
+
+#### Other naming conventions
+
+1. Use upper camel case (Pascal case) style to name: concepts, enumeration classes, and classes with non-static data members.
+2. Namespace variables are named using all-caps snake case.
+3. Traits are named using snake case and have the suffix `_trait` or `_traits`.
+4. Function options are named using upper camel case (Pascal case) style and have the suffix `\uOpts`.
 
 ### Usage of the `auto` keyword
 

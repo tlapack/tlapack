@@ -61,7 +61,7 @@ namespace tlapack {
 template <TLAPACK_UPLO uplo_t, TLAPACK_SMATRIX matrix_t>
 int potrf_rl(uplo_t uplo,
              matrix_t& A,
-             const potrf_blocked_opts_t<size_type<matrix_t> >& opts = {})
+             const BlockedCholeskyOpts<size_type<matrix_t> >& opts = {})
 {
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;

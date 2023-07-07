@@ -240,7 +240,7 @@ void run(size_t n,
                                &n_sweep, &n_shifts_total);
             }
             else {
-                tlapack::francis_opts_t<> opts;
+                tlapack::FrancisOpts<> opts;
                 std::vector<std::complex<real_t>> w(n);
                 info = tlapack::multishift_qr(true, true, 0, n, H, w, Q, opts);
                 n_aed = opts.n_aed;
@@ -249,7 +249,7 @@ void run(size_t n,
             }
         }
         else {
-            tlapack::francis_opts_t<> opts;
+            tlapack::FrancisOpts<> opts;
             std::vector<std::complex<real_t>> w(n);
             info = tlapack::multishift_qr(true, true, 0, n, H, w, Q, opts);
             n_aed = opts.n_aed;

@@ -38,7 +38,7 @@ namespace legacy {
      * 4. the Index of the infinity-norm of $x$, $|| x ||_{inf}$,
      *     $\arg\max_{i=0}^{n-1} \left(|Re(x_i)| + |Im(x_i)|\right)$.
      *
-     * @see iamax( const vector_t& x, const ec_opts_t& opts = {} )
+     * @see iamax( const vector_t& x, const EcOpts& opts = {} )
      *
      * @ingroup legacy_blas
      */

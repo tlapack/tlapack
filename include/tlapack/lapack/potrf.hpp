@@ -27,9 +27,9 @@ enum class PotrfVariant : char {
 };
 
 template <TLAPACK_INDEX idx_t>
-struct potrf_opts_t : public potrf_blocked_opts_t<idx_t> {
-    inline constexpr potrf_opts_t(const ec_opts_t& opts = {})
-        : potrf_blocked_opts_t<idx_t>(opts){};
+struct PotrfOpts : public BlockedCholeskyOpts<idx_t> {
+    inline constexpr PotrfOpts(const EcOpts& opts = {})
+        : BlockedCholeskyOpts<idx_t>(opts){};
 
     PotrfVariant variant = PotrfVariant::Blocked;
 };
@@ -77,7 +77,7 @@ struct potrf_opts_t : public potrf_blocked_opts_t<idx_t> {
 template <TLAPACK_UPLO uplo_t, TLAPACK_MATRIX matrix_t>
 inline int potrf(uplo_t uplo,
                  matrix_t& A,
-                 const potrf_opts_t<size_type<matrix_t> >& opts = {})
+                 const PotrfOpts<size_type<matrix_t> >& opts = {})
 {
     // check arguments
     tlapack_check(uplo == Uplo::Lower || uplo == Uplo::Upper);

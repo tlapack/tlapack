@@ -70,7 +70,7 @@ namespace tlapack {
  * @ingroup computational
  */
 template <TLAPACK_UPLO uplo_t, TLAPACK_SMATRIX matrix_t>
-int potrf2(uplo_t uplo, matrix_t& A, const ec_opts_t& opts = {})
+int potrf2(uplo_t uplo, matrix_t& A, const EcOpts& opts = {})
 {
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;

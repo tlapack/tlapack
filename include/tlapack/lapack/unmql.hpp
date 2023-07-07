@@ -21,9 +21,9 @@ namespace tlapack {
  * Options struct for unmql
  */
 template <class workT_t = void>
-struct unmql_opts_t : public workspace_opts_t<workT_t> {
-    inline constexpr unmql_opts_t(const workspace_opts_t<workT_t>& opts = {})
-        : workspace_opts_t<workT_t>(opts){};
+struct UnmqlOpts : public WorkspaceOpts<workT_t> {
+    inline constexpr UnmqlOpts(const WorkspaceOpts<workT_t>& opts = {})
+        : WorkspaceOpts<workT_t>(opts){};
 
     size_type<workT_t> nb = 32;  ///< Block size
 };
@@ -85,7 +85,7 @@ inline constexpr workinfo_t unmql_worksize(
     const matrixA_t& A,
     const tau_t& tau,
     const matrixC_t& C,
-    const unmql_opts_t<workT_t>& opts = {})
+    const UnmqlOpts<workT_t>& opts = {})
 {
     using idx_t = size_type<matrixC_t>;
     using matrixT_t = deduce_work_t<workT_t, matrix_type<matrixA_t, tau_t> >;
@@ -184,7 +184,7 @@ int unmql(side_t side,
           const matrixA_t& A,
           const tau_t& tau,
           matrixC_t& C,
-          const unmql_opts_t<workT_t>& opts = {})
+          const UnmqlOpts<workT_t>& opts = {})
 {
     using TA = type_t<matrixA_t>;
     using idx_t = size_type<matrixC_t>;
@@ -231,7 +231,7 @@ int unmql(side_t side,
     auto matrixT = new_matrix(work, nb, nb, sparework);
 
     // Options to forward
-    auto&& larfbOpts = workspace_opts_t<void>{sparework};
+    auto&& larfbOpts = WorkspaceOpts<void>{sparework};
 
     // Main loop
     for (idx_t i = i0; i != iN; i += inc) {

@@ -22,9 +22,9 @@ namespace tlapack {
  * Options struct for geqrf
  */
 template <TLAPACK_INDEX idx_t = size_t>
-struct geqrf_opts_t : public workspace_opts_t<> {
-    inline constexpr geqrf_opts_t(const workspace_opts_t<>& opts = {})
-        : workspace_opts_t<>(opts){};
+struct GeqrfOpts : public WorkspaceOpts<> {
+    inline constexpr GeqrfOpts(const WorkspaceOpts<>& opts = {})
+        : WorkspaceOpts<>(opts){};
 
     idx_t nb = 32;  ///< Block size
 };
@@ -45,7 +45,7 @@ template <TLAPACK_SMATRIX A_t, TLAPACK_SVECTOR tau_t>
 inline constexpr workinfo_t geqrf_worksize(
     const A_t& A,
     const tau_t& tau,
-    const geqrf_opts_t<size_type<A_t>>& opts = {})
+    const GeqrfOpts<size_type<A_t>>& opts = {})
 {
     using idx_t = size_type<A_t>;
     using T = type_t<A_t>;
@@ -110,7 +110,7 @@ inline constexpr workinfo_t geqrf_worksize(
  * @ingroup computational
  */
 template <TLAPACK_SMATRIX A_t, TLAPACK_SVECTOR tau_t>
-int geqrf(A_t& A, tau_t& tau, const geqrf_opts_t<size_type<A_t>>& opts = {})
+int geqrf(A_t& A, tau_t& tau, const GeqrfOpts<size_type<A_t>>& opts = {})
 {
     Create<A_t> new_matrix;
 
@@ -137,8 +137,8 @@ int geqrf(A_t& A, tau_t& tau, const geqrf_opts_t<size_type<A_t>>& opts = {})
     auto TT = new_matrix(work, nb, nb, sparework);
 
     // Options to forward
-    auto&& geqr2Opts = workspace_opts_t<>{sparework};
-    auto&& larfbOpts = workspace_opts_t<void>{sparework};
+    auto&& geqr2Opts = WorkspaceOpts<>{sparework};
+    auto&& larfbOpts = WorkspaceOpts<void>{sparework};
 
     // Main computational loop
     for (idx_t j = 0; j < k; j += nb) {

@@ -25,9 +25,9 @@ namespace tlapack {
  * Options struct for gehrd
  */
 template <TLAPACK_INDEX idx_t = size_t>
-struct gehrd_opts_t : public workspace_opts_t<> {
-    inline constexpr gehrd_opts_t(const workspace_opts_t<>& opts = {})
-        : workspace_opts_t<>(opts){};
+struct GehrdOpts : public WorkspaceOpts<> {
+    inline constexpr GehrdOpts(const WorkspaceOpts<>& opts = {})
+        : WorkspaceOpts<>(opts){};
 
     idx_t nb = 32;          ///< Block size used in the blocked reduction
     idx_t nx_switch = 128;  ///< If only nx_switch columns are left, the
@@ -57,7 +57,7 @@ workinfo_t gehrd_worksize(size_type<matrix_t> ilo,
                           size_type<matrix_t> ihi,
                           const matrix_t& A,
                           const vector_t& tau,
-                          const gehrd_opts_t<size_type<matrix_t> >& opts = {})
+                          const GehrdOpts<size_type<matrix_t> >& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using work_t = matrix_type<matrix_t, vector_t>;
@@ -115,7 +115,7 @@ int gehrd(size_type<matrix_t> ilo,
           size_type<matrix_t> ihi,
           matrix_t& A,
           vector_t& tau,
-          const gehrd_opts_t<size_type<matrix_t> >& opts = {})
+          const GehrdOpts<size_type<matrix_t> >& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using work_t = matrix_type<matrix_t, vector_t>;
@@ -154,8 +154,8 @@ int gehrd(size_type<matrix_t> ilo,
     }();
 
     // Options to forward
-    auto&& larfbOpts = workspace_opts_t<transpose_type<work_t> >{work};
-    auto&& gehd2Opts = workspace_opts_t<>{work};
+    auto&& larfbOpts = WorkspaceOpts<transpose_type<work_t> >{work};
+    auto&& gehd2Opts = WorkspaceOpts<>{work};
 
     // Matrix Y
     Workspace workMatrixT;

@@ -34,7 +34,7 @@ namespace tlapack {
 template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
 inline constexpr workinfo_t ungl2_worksize(const matrix_t& Q,
                                            const vector_t& tauw,
-                                           const workspace_opts_t<>& opts = {})
+                                           const WorkspaceOpts<>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -82,7 +82,7 @@ inline constexpr workinfo_t ungl2_worksize(const matrix_t& Q,
 template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
 int ungl2(matrix_t& Q,
           const vector_t& tauw,
-          const workspace_opts_t<>& opts = {})
+          const WorkspaceOpts<>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using T = type_t<matrix_t>;
@@ -108,7 +108,7 @@ int ungl2(matrix_t& Q,
     }();
 
     // Options to forward
-    auto&& larfOpts = workspace_opts_t<>{work};
+    auto&& larfOpts = WorkspaceOpts<>{work};
 
     // Initialise columns t:k-1 to rows of the unit matrix
     if (k > m) {

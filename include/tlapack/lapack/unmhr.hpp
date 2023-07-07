@@ -62,7 +62,7 @@ int unmhr(Side side,
           const matrix_t& A,
           const vector_t& tau,
           matrix_t& C,
-          const workspace_opts_t<>& opts = {})
+          const WorkspaceOpts<>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -117,7 +117,7 @@ inline constexpr workinfo_t unmhr_worksize(Side side,
                                            const matrix_t& A,
                                            const vector_t& tau,
                                            const matrix_t& C,
-                                           const workspace_opts_t<>& opts = {})
+                                           const WorkspaceOpts<>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;

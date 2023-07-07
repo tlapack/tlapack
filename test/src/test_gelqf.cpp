@@ -65,7 +65,7 @@ TEMPLATE_TEST_CASE("LQ factorization of a general m-by-n matrix, blocked",
     std::vector<T> tau(min(m, n));
 
     // Workspace computation:
-    gelqf_opts_t<idx_t> gelqfOpts;
+    GelqfOpts<idx_t> gelqfOpts;
     gelqfOpts.nb = nb;
 
     for (idx_t j = 0; j < n; ++j)

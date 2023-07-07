@@ -79,10 +79,10 @@ constexpr ErrorCheck noErrorCheck = {false, false, false};
  * @brief Options for error checking.
  * @ingroup exception
  */
-struct ec_opts_t {
+struct EcOpts {
     ErrorCheck ec = {};
 
-    inline constexpr ec_opts_t(const ErrorCheck& ec_ = {}) : ec(ec_) {}
+    inline constexpr EcOpts(const ErrorCheck& ec_ = {}) : ec(ec_) {}
 };
 }  // namespace tlapack
 

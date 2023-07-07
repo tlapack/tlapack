@@ -20,9 +20,9 @@
 namespace tlapack {
 
 template <TLAPACK_INDEX idx_t>
-struct potrf_blocked_opts_t : public ec_opts_t {
-    inline constexpr potrf_blocked_opts_t(const ec_opts_t& opts = {})
-        : ec_opts_t(opts){};
+struct BlockedCholeskyOpts : public EcOpts {
+    inline constexpr BlockedCholeskyOpts(const EcOpts& opts = {})
+        : EcOpts(opts){};
 
     idx_t nb = 32;  ///< Block size
 };
@@ -67,7 +67,7 @@ struct potrf_blocked_opts_t : public ec_opts_t {
 template <TLAPACK_UPLO uplo_t, TLAPACK_SMATRIX matrix_t>
 int potrf_blocked(uplo_t uplo,
                   matrix_t& A,
-                  const potrf_blocked_opts_t<size_type<matrix_t> >& opts)
+                  const BlockedCholeskyOpts<size_type<matrix_t> >& opts)
 {
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;

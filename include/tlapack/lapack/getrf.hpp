@@ -19,7 +19,7 @@ namespace tlapack {
 
 enum class GetrfVariant : char { Level0 = '0', Recursive = 'R' };
 
-struct getrf_opts_t {
+struct GetrfOpts {
     GetrfVariant variant = GetrfVariant::Recursive;
 };
 
@@ -59,7 +59,7 @@ struct getrf_opts_t {
  * @ingroup computational
  */
 template <TLAPACK_MATRIX matrix_t, TLAPACK_VECTOR piv_t>
-inline int getrf(matrix_t& A, piv_t& piv, const getrf_opts_t& opts = {})
+inline int getrf(matrix_t& A, piv_t& piv, const GetrfOpts& opts = {})
 {
     // Call variant
     if (opts.variant == GetrfVariant::Recursive)

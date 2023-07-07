@@ -19,9 +19,9 @@
 
 namespace tlapack {
 
-struct gebd2_opts_t : public workspace_opts_t<> {
-    inline constexpr gebd2_opts_t(const workspace_opts_t<>& opts = {})
-        : workspace_opts_t<>(opts){};
+struct Gebd2Opts : public WorkspaceOpts<> {
+    inline constexpr Gebd2Opts(const WorkspaceOpts<>& opts = {})
+        : WorkspaceOpts<>(opts){};
 };
 
 /** Worspace query of gebd2().
@@ -43,7 +43,7 @@ template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
 inline constexpr workinfo_t gebd2_worksize(const matrix_t& A,
                                            const vector_t& tauv,
                                            const vector_t& tauw,
-                                           const gebd2_opts_t& opts = {})
+                                           const Gebd2Opts& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -123,7 +123,7 @@ template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
 int gebd2(matrix_t& A,
           vector_t& tauv,
           vector_t& tauw,
-          const gebd2_opts_t& opts = {})
+          const Gebd2Opts& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -148,7 +148,7 @@ int gebd2(matrix_t& A,
     }();
 
     // Options to forward
-    auto&& larfOpts = workspace_opts_t<>{work};
+    auto&& larfOpts = WorkspaceOpts<>{work};
 
     if (m >= n) {
         //

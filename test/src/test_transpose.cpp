@@ -50,7 +50,7 @@ TEMPLATE_TEST_CASE("Conjugate Transpose gives correct result",
 
     DYNAMIC_SECTION("m = " << m << " n = " << n)
     {
-        transpose_opts_t<idx_t> opts;
+        TransposeOpts<idx_t> opts;
         // Set nx to a small value so that the blocked algorithm gets tested
         // even for small n and m;
         opts.nx = 3;
@@ -93,7 +93,7 @@ TEMPLATE_TEST_CASE("Transpose gives correct result",
 
     DYNAMIC_SECTION("m = " << m << " n = " << n)
     {
-        transpose_opts_t<idx_t> opts;
+        TransposeOpts<idx_t> opts;
         // Set nx to a small value so that the blocked algorithm gets tested
         // even for small n and m;
         opts.nx = 3;

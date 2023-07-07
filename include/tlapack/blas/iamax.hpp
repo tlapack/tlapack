@@ -21,7 +21,7 @@ namespace tlapack {
  *
  * Initialize using a lambda function (C++17 or higher):
  * ```c++
- * iamax_opts_t opts( [](const T& x) { return my_abs(x); } );
+ * IamaxOpts opts( [](const T& x) { return my_abs(x); } );
  * ```
  * or using a functor:
  * ```c++
@@ -31,13 +31,13 @@ namespace tlapack {
  *   }
  * };
  * abs_f absf;
- * iamax_opts_t<abs_f> opts( absf );
+ * IamaxOpts<abs_f> opts( absf );
  * ```
  */
 template <class abs_f>
-struct iamax_opts_t : public ec_opts_t {
-    inline constexpr iamax_opts_t(abs_f absf, const ec_opts_t& opts = {})
-        : ec_opts_t(opts), absf(absf){};
+struct IamaxOpts : public EcOpts {
+    inline constexpr IamaxOpts(abs_f absf, const EcOpts& opts = {})
+        : EcOpts(opts), absf(absf){};
 
     abs_f absf;  ///< Absolute value function
                  ///< In reference BLAS, absf(a) := |Re(a)| + |Im(a)|
@@ -230,7 +230,7 @@ size_type<vector_t> iamax_nc(const vector_t& x, abs_f absf)
  */
 template <TLAPACK_VECTOR vector_t, class abs_f>
 inline size_type<vector_t> iamax(const vector_t& x,
-                                 const iamax_opts_t<abs_f>& opts)
+                                 const IamaxOpts<abs_f>& opts)
 {
     return (opts.ec.nan == true) ? iamax_ec(x, opts.absf)
                                  : iamax_nc(x, opts.absf);
@@ -239,7 +239,7 @@ inline size_type<vector_t> iamax(const vector_t& x,
 /**
  * @brief Return $\arg\max_{i=0}^{n-1} |x_i|$
  *
- * Wrapper to iamax( const vector_t& x, const iamax_opts_t<abs_f>& opts )
+ * Wrapper to iamax( const vector_t& x, const IamaxOpts<abs_f>& opts )
  * with default options, i.e.,
  *      - Default NaN check controlled by TLAPACK_DEFAULT_NANCHECK
  *      - Default absolute value function as in Reference BLAS,
@@ -256,13 +256,13 @@ inline size_type<vector_t> iamax(const vector_t& x)
     using real_t = real_type<T>;
 
 #if __cplusplus >= 201703L
-    iamax_opts_t opts([](const T& x) -> real_t { return abs1(x); });
+    IamaxOpts opts([](const T& x) -> real_t { return abs1(x); });
 #else
     struct abs_f {
         inline constexpr real_t operator()(const T& x) const { return abs1(x); }
     };
     abs_f absf;
-    iamax_opts_t<abs_f> opts(absf);
+    IamaxOpts<abs_f> opts(absf);
 #endif
 
     return iamax(x, opts);
