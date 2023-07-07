@@ -1,4 +1,4 @@
-/// @file legacyArray.hpp
+/// @file LegacyMatrix.hpp
 /// @author Weslley S Pereira, University of Colorado Denver, USA
 /// @author Thijs Steel, KU Leuven, Belgium
 //
@@ -8,20 +8,19 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef TLAPACK_LEGACY_ARRAY_HH
-#define TLAPACK_LEGACY_ARRAY_HH
+#ifndef TLAPACK_LEGACY_MATRIX_HH
+#define TLAPACK_LEGACY_MATRIX_HH
 
 #include <cassert>
 
 #include "tlapack/base/exceptionHandling.hpp"
-#include "tlapack/base/legacyBandedMatrix.hpp"
 #include "tlapack/base/types.hpp"
 
 namespace tlapack {
 
 /** Legacy matrix.
  *
- * legacyMatrix::ldim is assumed to be positive.
+ * LegacyMatrix::ldim is assumed to be positive.
  *
  * @tparam T Floating-point type
  * @tparam idx_t Index type
@@ -32,7 +31,7 @@ template <class T,
           Layout L = Layout::ColMajor,
           std::enable_if_t<(L == Layout::RowMajor) || (L == Layout::ColMajor),
                            int> = 0>
-struct legacyMatrix {
+struct LegacyMatrix {
     idx_t m, n;  ///< Sizes
     T* ptr;      ///< Pointer to array in memory
     idx_t ldim;  ///< Leading dimension
@@ -59,7 +58,7 @@ struct legacyMatrix {
                                             : ptr[i * ldim + j];
     }
 
-    inline constexpr legacyMatrix(idx_t m, idx_t n, T* ptr, idx_t ldim)
+    inline constexpr LegacyMatrix(idx_t m, idx_t n, T* ptr, idx_t ldim)
         : m(m), n(n), ptr(ptr), ldim(ldim)
     {
         tlapack_check(m >= 0);
@@ -67,7 +66,7 @@ struct legacyMatrix {
         tlapack_check(ldim >= ((layout == Layout::ColMajor) ? m : n));
     }
 
-    inline constexpr legacyMatrix(idx_t m, idx_t n, T* ptr)
+    inline constexpr LegacyMatrix(idx_t m, idx_t n, T* ptr)
         : m(m), n(n), ptr(ptr), ldim((layout == Layout::ColMajor) ? m : n)
     {
         tlapack_check(m >= 0);
@@ -75,55 +74,6 @@ struct legacyMatrix {
     }
 };
 
-namespace internal {
-
-    /// Auxiliary data type to vector increments.
-    struct StrongOne {
-        inline constexpr operator int() const { return 1; }
-        inline constexpr StrongOne(int i = 1) { assert(i == 1); }
-    };
-}  // namespace internal
-
-/** Legacy vector.
- *
- * @tparam T Floating-point type
- * @tparam idx_t Index type
- * @tparam D Either Direction::Forward or Direction::Backward
- */
-template <typename T,
-          class idx_t = std::size_t,
-          typename int_t = internal::StrongOne,
-          Direction D = Direction::Forward>
-struct legacyVector {
-    idx_t n;    ///< Size
-    T* ptr;     ///< Pointer to array in memory
-    int_t inc;  ///< Memory increment
-
-    static constexpr Direction direction = D;
-
-    inline constexpr const T& operator[](idx_t i) const noexcept
-    {
-        assert(i >= 0);
-        assert(i < n);
-        return (direction == Direction::Forward) ? *(ptr + (i * inc))
-                                                 : *(ptr + ((n - 1) - i) * inc);
-    }
-
-    inline constexpr T& operator[](idx_t i) noexcept
-    {
-        assert(i >= 0);
-        assert(i < n);
-        return (direction == Direction::Forward) ? *(ptr + (i * inc))
-                                                 : *(ptr + ((n - 1) - i) * inc);
-    }
-
-    inline constexpr legacyVector(idx_t n, T* ptr, int_t inc = 1)
-        : n(n), ptr(ptr), inc(inc)
-    {
-        tlapack_check_false(n < 0);
-    }
-};
-
 }  // namespace tlapack
 
-#endif  // TLAPACK_LEGACY_ARRAY_HH
+#endif  // TLAPACK_LEGACY_MATRIX_HH

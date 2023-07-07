@@ -35,7 +35,7 @@ void run(size_t n)
 
     // Create the n-by-n matrix A
     std::vector<T> A_(n * n);
-    tlapack::legacyMatrix<T, idx_t, L> A(n, n, A_.data(), n);
+    tlapack::LegacyMatrix<T, idx_t, L> A(n, n, A_.data(), n);
 
     // forming A, a random matrix
     for (idx_t j = 0; j < n; ++j)
@@ -47,7 +47,7 @@ void run(size_t n)
     // Allocate space for the LU decomposition
     std::vector<size_t> piv(n);
     std::vector<T> LU_(n * n);
-    tlapack::legacyMatrix<T, idx_t, L> LU(n, n, LU_.data(), n);
+    tlapack::LegacyMatrix<T, idx_t, L> LU(n, n, LU_.data(), n);
 
     // Matrix A is kept unchanged
     tlapack::lacpy(tlapack::dense, A, LU);
@@ -61,7 +61,7 @@ void run(size_t n)
 
     // create X to store invese of A later
     std::vector<T> X_(n * n, T(0));
-    tlapack::legacyMatrix<T, idx_t, L> X(n, n, X_.data(), n);
+    tlapack::LegacyMatrix<T, idx_t, L> X(n, n, X_.data(), n);
 
     // step 0: store Identity on X
     for (size_t i = 0; i < n; i++)
@@ -87,7 +87,7 @@ void run(size_t n)
 
     // create E to store A * X
     std::vector<T> E_(n * n);
-    tlapack::legacyMatrix<T, idx_t, L> E(n, n, E_.data(), n);
+    tlapack::LegacyMatrix<T, idx_t, L> E(n, n, E_.data(), n);
 
     // E <----- A * X - I
     tlapack::gemm(tlapack::Op::NoTrans, tlapack::Op::NoTrans, real_t(1), A, X,

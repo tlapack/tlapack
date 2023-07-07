@@ -28,9 +28,9 @@ void run(size_t m, size_t n, size_t k)
     using idx_t = size_t;
     using tlapack::min;
     using colmajor_matrix_t =
-        tlapack::legacyMatrix<T, idx_t, tlapack::Layout::ColMajor>;
+        tlapack::LegacyMatrix<T, idx_t, tlapack::Layout::ColMajor>;
     using rowmajor_matrix_t =
-        tlapack::legacyMatrix<T, idx_t, tlapack::Layout::RowMajor>;
+        tlapack::LegacyMatrix<T, idx_t, tlapack::Layout::RowMajor>;
 
     // Functors for creating new matrices
     tlapack::Create<colmajor_matrix_t> new_colmajor_matrix;

@@ -1,4 +1,4 @@
-/// @file legacyBandedMatrix.hpp
+/// @file LegacyBandedMatrix.hpp
 /// @author Weslley S Pereira, University of Colorado Denver, USA
 //
 // Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
@@ -13,7 +13,6 @@
 #include <cassert>
 
 #include "tlapack/base/exceptionHandling.hpp"
-#include "tlapack/base/types.hpp"
 
 namespace tlapack {
 
@@ -28,7 +27,7 @@ namespace tlapack {
  * @tparam idx_t Index type
  */
 template <typename T, class idx_t = std::size_t>
-struct legacyBandedMatrix {
+struct LegacyBandedMatrix {
     idx_t m, n, kl, ku;  ///< Sizes
     T* ptr;              ///< Pointer to array in memory
 
@@ -62,7 +61,7 @@ struct legacyBandedMatrix {
         return ptr[(ku + i) + j * (ku + kl)];
     }
 
-    inline constexpr legacyBandedMatrix(
+    inline constexpr LegacyBandedMatrix(
         idx_t m, idx_t n, idx_t kl, idx_t ku, T* ptr)
         : m(m), n(n), kl(kl), ku(ku), ptr(ptr)
     {

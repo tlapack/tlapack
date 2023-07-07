@@ -78,7 +78,7 @@ void run(idx_t n)
 
     // Matrix A
     std::vector<T> A_(n * n);
-    legacyMatrix<T> A(n, n, &A_[0], n);
+    LegacyMatrix<T> A(n, n, &A_[0], n);
 
     // // Flops
     // const real_t nFlops = real_t(n*n*n) / 3;
@@ -99,7 +99,7 @@ void run(idx_t n)
     // 1) Using <T>LAPACK API:
     {
         std::vector<T> U_(n * n);
-        legacyMatrix<T> U(n, n, &U_[0], n);
+        LegacyMatrix<T> U(n, n, &U_[0], n);
 
         // Put garbage on U_
         for (idx_t j = 0; j < n * n; ++j)
@@ -132,7 +132,7 @@ void run(idx_t n)
 
         // Solve U^H U R = A
         std::vector<T> R_(n * n);
-        legacyMatrix<T> R(n, n, &R_[0], n);
+        LegacyMatrix<T> R(n, n, &R_[0], n);
         lacpy(dense, A, R);
         potrs(upperTriangle, U, R);
 
@@ -185,9 +185,9 @@ void run(idx_t n)
 
         // Solve U^H U R = A
         std::vector<T> R_(n * n);
-        legacyMatrix<T> R(n, n, &R_[0], n);
+        LegacyMatrix<T> R(n, n, &R_[0], n);
         lacpy(dense, A, R);
-        potrs(upperTriangle, legacyMatrix<T>(n, n, &U[0], n), R);
+        potrs(upperTriangle, LegacyMatrix<T>(n, n, &U[0], n), R);
 
         // error = ||R-Id||_F / ||Id||_F
         for (idx_t i = 0; i < n; ++i)

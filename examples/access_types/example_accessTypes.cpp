@@ -67,7 +67,7 @@ int main(int argc, char** argv)
         data1[i] = i + 1;
 
     std::cout << std::endl << "Matrix1:";
-    legacyMatrix<int, size_t, Layout::RowMajor> A1(m, n, &data1[0], n);
+    LegacyMatrix<int, size_t, Layout::RowMajor> A1(m, n, &data1[0], n);
     printMatrix(A1);
     std::cout << std::endl;
 
@@ -101,7 +101,7 @@ int main(int argc, char** argv)
               << std::endl;
 
     std::cout << std::endl << "Matrix2:";
-    legacyBandedMatrix<int> A2(m, m, n / 2, n - n / 2 - 1, &data1[0]);
+    LegacyBandedMatrix<int> A2(m, m, n / 2, n - n / 2 - 1, &data1[0]);
     printBandedMatrix(A2);
     std::cout << std::endl;
 

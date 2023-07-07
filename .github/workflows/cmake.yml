@@ -218,7 +218,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      CXXFLAGS: "-Wall -pedantic -Wno-unused-variable -Wno-unused-function -D TLAPACK_TYPES_TO_TEST=\"(legacyMatrix<mpfr::mpreal>), (legacyMatrix<mpfr::mpreal,std::size_t,Layout::RowMajor>)\""
+      CXXFLAGS: "-Wall -pedantic -Wno-unused-variable -Wno-unused-function -D TLAPACK_TYPES_TO_TEST=\"(LegacyMatrix<mpfr::mpreal>), (LegacyMatrix<mpfr::mpreal,std::size_t,Layout::RowMajor>)\""
       
     steps:     
     

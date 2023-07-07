@@ -110,7 +110,7 @@ void run(size_t n,
          bool verbose = false)
 {
     using real_t = tlapack::real_type<T>;
-    using matrix_t = tlapack::legacyMatrix<T>;
+    using matrix_t = tlapack::LegacyMatrix<T>;
     using std::size_t;
 
     constexpr bool use_lapack

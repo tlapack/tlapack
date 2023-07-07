@@ -12,11 +12,8 @@
 
 #include <vector>
 
-#include "tlapack/base/arrayTraits.hpp"
-#include "tlapack/base/workspace.hpp"
-
 #ifndef TLAPACK_USE_MDSPAN
-    #include "tlapack/base/legacyArray.hpp"
+    #include "tlapack/LegacyVector.hpp"
 #else
     #include <experimental/mdspan>
 #endif
@@ -46,7 +43,7 @@ inline constexpr auto slice(const std::vector<T, Allocator>& v,
     assert(rows.second >= 0 && (std::size_t)rows.second <= size(v));
     assert(rows.first <= rows.second);
 #ifndef TLAPACK_USE_MDSPAN
-    return legacyVector<T, std::size_t>(rows.second - rows.first,
+    return LegacyVector<T, std::size_t>(rows.second - rows.first,
                                         (T*)v.data() + rows.first);
 #else
     return std::experimental::mdspan<T, std::experimental::dextents<1> >(

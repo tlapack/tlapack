@@ -92,7 +92,7 @@ void run(size_t n, size_t nw, bool use_fortran)
 {
     using real_t = tlapack::real_type<T>;
     using std::size_t;
-    using matrix_t = tlapack::legacyMatrix<real_t>;
+    using matrix_t = tlapack::LegacyMatrix<real_t>;
 
     constexpr bool use_lapack
 #ifdef USE_LAPACK

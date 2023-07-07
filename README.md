@@ -265,7 +265,7 @@ Please read [CONTRIBUTING.md](https://github.com/tlapack/tlapack/blob/master/CON
   
     1. various precision types: `float`, `double`, `std::complex<float>`, `std::complex<double>` and `Eigen::half`.
   
-    2. various matrix and vector data structures: `tlapack::legacyMatrix`, `Eigen::Matrix` and `std::experimental::mdspan` (the latter from `https://github.com/kokkos/mdspan`). 
+    2. various matrix and vector data structures: `tlapack::LegacyMatrix`, `Eigen::Matrix` and `std::experimental::mdspan` (the latter from `https://github.com/kokkos/mdspan`). 
 
 + Tests from [testBLAS](https://github.com/tlapack/testBLAS) for good conformance with BLAS standards.
 

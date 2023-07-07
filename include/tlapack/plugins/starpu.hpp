@@ -271,7 +271,7 @@ namespace traits {
         using type = starpu::Matrix<T>;
     };
 
-    /// Create legacyMatrix @see Create
+    /// Create starpu::Matrix<T> @see Create
     template <class T>
     struct CreateFunctor<starpu::Matrix<T>, int> {
         using matrix_t = starpu::Matrix<T>;

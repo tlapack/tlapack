@@ -49,7 +49,7 @@ template <typename real_t>
 void run(size_t m, size_t n)
 {
     using std::size_t;
-    using matrix_t = tlapack::legacyMatrix<real_t>;
+    using matrix_t = tlapack::LegacyMatrix<real_t>;
 
     // Functors for creating new matrices
     tlapack::Create<matrix_t> new_matrix;
