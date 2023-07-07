@@ -42,7 +42,7 @@ void copy(const vectorX_t& x, vectorY_t& y)
         y[i] = x[i];
 }
 
-#ifdef USE_LAPACKPP_WRAPPERS
+#ifdef TLAPACK_USE_LAPACKPP
 
 template <
     TLAPACK_LEGACY_VECTOR vectorX_t,

@@ -41,17 +41,16 @@ struct UnglqOpts : public WorkspaceOpts<workT_t> {
  *
  * @param[in] opts Options.
  *
- * @return workinfo_t The amount workspace required.
+ * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
  */
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_SVECTOR vector_t,
           class workT_t = void>
-inline constexpr workinfo_t unglq_worksize(
-    const matrix_t& A,
-    const vector_t& tau,
-    const UnglqOpts<workT_t>& opts = {})
+inline constexpr WorkInfo unglq_worksize(const matrix_t& A,
+                                         const vector_t& tau,
+                                         const UnglqOpts<workT_t>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using matrixT_t = deduce_work_t<workT_t, matrix_type<matrix_t, vector_t> >;
@@ -63,7 +62,7 @@ inline constexpr workinfo_t unglq_worksize(
     const idx_t nb = min<idx_t>(opts.nb, k);
 
     // Local workspace sizes
-    workinfo_t workinfo(nb * sizeof(T), nb);
+    WorkInfo workinfo(nb * sizeof(T), nb);
 
     // larfb:
     {
@@ -75,8 +74,8 @@ inline constexpr workinfo_t unglq_worksize(
         const auto matrixT = slice(A, range{0, nb}, range{0, nb});
 
         // Internal workspace queries
-        workinfo += larfb_worksize(right_side, conjTranspose, forward,
-                                   rowwise_storage, V, matrixT, A, opts);
+        workinfo += larfb_worksize(RIGHT_SIDE, CONJ_TRANS, FORWARD,
+                                   ROWWISE_STORAGE, V, matrixT, A, opts);
     }
 
     return workinfo;
@@ -114,9 +113,7 @@ inline constexpr workinfo_t unglq_worksize(
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_SVECTOR vector_t,
           class workT_t = void>
-int unglq(matrix_t& A,
-          const vector_t& tau,
-          const UnglqOpts<workT_t>& opts = {})
+int unglq(matrix_t& A, const vector_t& tau, const UnglqOpts<workT_t>& opts = {})
 {
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
@@ -144,7 +141,7 @@ int unglq(matrix_t& A,
     // Allocates workspace
     VectorOfBytes localworkdata;
     Workspace work = [&]() {
-        workinfo_t workinfo = unglq_worksize(A, tau, opts);
+        WorkInfo workinfo = unglq_worksize(A, tau, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
 
@@ -178,9 +175,9 @@ int unglq(matrix_t& A,
             auto matrixTi = slice(matrixT, range{0, ib}, range{0, ib});
             auto C = slice(A, range{i + ib, m}, range{i, n});
 
-            larft(forward, rowwise_storage, V, taui, matrixTi);
-            larfb(right_side, conjTranspose, forward, rowwise_storage, V,
-                  matrixTi, C, larfbOpts);
+            larft(FORWARD, ROWWISE_STORAGE, V, taui, matrixTi);
+            larfb(RIGHT_SIDE, CONJ_TRANS, FORWARD, ROWWISE_STORAGE, V, matrixTi,
+                  C, larfbOpts);
         }
         // Use unblocked code to apply H to columns i:n of current block
         auto Ai = slice(A, range{i, i + ib}, range{i, n});

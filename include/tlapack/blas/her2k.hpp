@@ -192,7 +192,7 @@ void her2k(Uplo uplo,
     }
 }
 
-#ifdef USE_LAPACKPP_WRAPPERS
+#ifdef TLAPACK_USE_LAPACKPP
 
 /**
  * Hermitian rank-k update

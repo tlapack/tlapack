@@ -87,8 +87,8 @@ TEMPLATE_TEST_CASE("TRTRI is stable", "[trtri]", TLAPACK_TYPES_TO_TEST)
             for (idx_t i = 0; i < n; ++i)
                 C(i, i) = C(i, i) - T(1);
 
-            real_t normres = lantr(max_norm, uplo, Diag::NonUnit, C) /
-                             (lantr(max_norm, uplo, diag, A));
+            real_t normres = lantr(MAX_NORM, uplo, Diag::NonUnit, C) /
+                             (lantr(MAX_NORM, uplo, diag, A));
             CHECK(normres <= tol);
         }
     }

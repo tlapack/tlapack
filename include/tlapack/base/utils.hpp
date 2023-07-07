@@ -22,7 +22,7 @@
 #include "tlapack/base/types.hpp"
 #include "tlapack/base/workspace.hpp"
 
-#ifdef USE_LAPACKPP_WRAPPERS
+#ifdef TLAPACK_USE_LAPACKPP
     #include "lapack.hh"  // from LAPACK++
 #endif
 
@@ -552,7 +552,7 @@ using disable_if_allow_optblas_t =
     }
 
 /// Optimized types
-#ifdef USE_LAPACKPP_WRAPPERS
+#ifdef TLAPACK_USE_LAPACKPP
 TLAPACK_OPT_TYPE(float)
 TLAPACK_OPT_TYPE(double)
 TLAPACK_OPT_TYPE(std::complex<float>)
@@ -590,7 +590,7 @@ inline Workspace alloc_workspace(VectorOfBytes& v, std::size_t lwork)
  *      2. previously allocated memory, if opts_w.size() >= lwork.
  */
 inline Workspace alloc_workspace(VectorOfBytes& v,
-                                 const workinfo_t& workinfo,
+                                 const WorkInfo& workinfo,
                                  const Workspace& opts_w = {})
 {
     if (opts_w.size() <= 0) {
@@ -643,8 +643,7 @@ struct WorkspaceOpts {
     inline constexpr WorkspaceOpts(const Workspace& w) : work(w) {}
 
     template <TLAPACK_LEGACY_ARRAY matrix_t>
-    inline constexpr WorkspaceOpts(const matrix_t& A)
-        : work(legacy_matrix(A))
+    inline constexpr WorkspaceOpts(const matrix_t& A) : work(legacy_matrix(A))
     {}
 };
 

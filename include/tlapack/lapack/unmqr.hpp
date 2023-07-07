@@ -54,7 +54,7 @@ struct UnmqrOpts : public WorkspaceOpts<workT_t> {
  *      @c opts.work is used if whenever it has sufficient size.
  *      The sufficient size can be obtained through a workspace query.
  *
- * @return workinfo_t The amount workspace required.
+ * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
  *
@@ -66,13 +66,12 @@ template <TLAPACK_SMATRIX matrixA_t,
           TLAPACK_SIDE side_t,
           TLAPACK_OP trans_t,
           class workT_t = void>
-inline constexpr workinfo_t unmqr_worksize(
-    side_t side,
-    trans_t trans,
-    const matrixA_t& A,
-    const tau_t& tau,
-    const matrixC_t& C,
-    const UnmqrOpts<workT_t>& opts = {})
+inline constexpr WorkInfo unmqr_worksize(side_t side,
+                                         trans_t trans,
+                                         const matrixA_t& A,
+                                         const tau_t& tau,
+                                         const matrixC_t& C,
+                                         const UnmqrOpts<workT_t>& opts = {})
 {
     using idx_t = size_type<matrixC_t>;
     using matrixT_t = deduce_work_t<workT_t, matrix_type<matrixA_t, tau_t> >;
@@ -84,7 +83,7 @@ inline constexpr workinfo_t unmqr_worksize(
     const idx_t nb = min<idx_t>(opts.nb, k);
 
     // Local workspace sizes
-    workinfo_t workinfo(nb * sizeof(T), nb);
+    WorkInfo workinfo(nb * sizeof(T), nb);
 
     // larfb:
     {
@@ -98,7 +97,7 @@ inline constexpr workinfo_t unmqr_worksize(
         const auto matrixT = slice(A, range{0, nb}, range{0, nb});
 
         // Internal workspace queries
-        workinfo += larfb_worksize(side, trans, forward, columnwise_storage, V,
+        workinfo += larfb_worksize(side, trans, FORWARD, COLUMNWISE_STORAGE, V,
                                    matrixT, C, opts);
     }
 
@@ -201,7 +200,7 @@ int unmqr(side_t side,
     // Allocates workspace
     VectorOfBytes localworkdata;
     Workspace work = [&]() {
-        workinfo_t workinfo = unmqr_worksize(side, trans, A, tau, C, opts);
+        WorkInfo workinfo = unmqr_worksize(side, trans, A, tau, C, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
 
@@ -229,14 +228,14 @@ int unmqr(side_t side,
 
         // Form the triangular factor of the block reflector
         // $H = H(i) H(i+1) ... H(i+ib-1)$
-        larft(forward, columnwise_storage, V, taui, matrixTi);
+        larft(FORWARD, COLUMNWISE_STORAGE, V, taui, matrixTi);
 
         // H or H**H is applied to either C[i:m,0:n] or C[0:m,i:n]
         auto Ci = (side == Side::Left) ? slice(C, range{i, m}, range{0, n})
                                        : slice(C, range{0, m}, range{i, n});
 
         // Apply H or H**H
-        larfb(side, trans, forward, columnwise_storage, V, matrixTi, Ci,
+        larfb(side, trans, FORWARD, COLUMNWISE_STORAGE, V, matrixTi, Ci,
               larfbOpts);
     }
 

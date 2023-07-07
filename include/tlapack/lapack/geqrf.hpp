@@ -37,15 +37,13 @@ struct GeqrfOpts : public WorkspaceOpts<> {
  *
  * @param[in] opts Options.
  *
- * @return workinfo_t The amount workspace required.
+ * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
  */
 template <TLAPACK_SMATRIX A_t, TLAPACK_SVECTOR tau_t>
-inline constexpr workinfo_t geqrf_worksize(
-    const A_t& A,
-    const tau_t& tau,
-    const GeqrfOpts<size_type<A_t>>& opts = {})
+inline constexpr WorkInfo geqrf_worksize(
+    const A_t& A, const tau_t& tau, const GeqrfOpts<size_type<A_t>>& opts = {})
 {
     using idx_t = size_type<A_t>;
     using T = type_t<A_t>;
@@ -63,12 +61,12 @@ inline constexpr workinfo_t geqrf_worksize(
     auto A12 = slice(A, range(0, m), range(ib, n));
     auto tauw1 = slice(tau, range(0, ib));
 
-    workinfo_t workinfo = geqr2_worksize(A11, tauw1);
+    WorkInfo workinfo = geqr2_worksize(A11, tauw1);
     workinfo.minMax(larfb_worksize(Side::Left, Op::ConjTrans,
                                    Direction::Forward, StoreV::Columnwise, A11,
                                    TT1, A12));
 
-    workinfo += workinfo_t(sizeof(T) * nb, nb);
+    workinfo += WorkInfo(sizeof(T) * nb, nb);
 
     return workinfo;
 }
@@ -129,7 +127,7 @@ int geqrf(A_t& A, tau_t& tau, const GeqrfOpts<size_type<A_t>>& opts = {})
     // Allocate or get workspace
     VectorOfBytes localworkdata;
     Workspace work = [&]() {
-        workinfo_t workinfo = geqrf_worksize(A, tau, opts);
+        WorkInfo workinfo = geqrf_worksize(A, tau, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
 

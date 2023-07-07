@@ -67,7 +67,7 @@ TEMPLATE_TEST_CASE("lu multiplication is backward stable",
             laset(Uplo::Lower, real_t(0), real_t(0), U);
             lacpy(Uplo::Upper, A, U);
 
-            real_t norma = lange(max_norm, A);
+            real_t norma = lange(MAX_NORM, A);
 
             {
                 lu_mult(A);
@@ -76,7 +76,7 @@ TEMPLATE_TEST_CASE("lu multiplication is backward stable",
 
                 gemm(Op::NoTrans, Op::NoTrans, real_t(1), L, U, real_t(-1), A);
 
-                real_t lu_mult_res_norm = lange(max_norm, A) / norma;
+                real_t lu_mult_res_norm = lange(MAX_NORM, A) / norma;
                 CHECK(lu_mult_res_norm <= tol);
             }
         }

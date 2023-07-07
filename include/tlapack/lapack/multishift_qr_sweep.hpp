@@ -42,14 +42,14 @@ namespace tlapack {
  *
  * @param[in] opts Options.
  *
- * @return workinfo_t The amount workspace required.
+ * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
  */
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
           enable_if_t<is_complex<type_t<vector_t>>, bool> = true>
-inline constexpr workinfo_t multishift_QR_sweep_worksize(
+inline constexpr WorkInfo multishift_QR_sweep_worksize(
     bool want_t,
     bool want_z,
     size_type<matrix_t> ilo,
@@ -61,7 +61,7 @@ inline constexpr workinfo_t multishift_QR_sweep_worksize(
 {
     using T = type_t<matrix_t>;
 
-    return workinfo_t(sizeof(T) * 3, size(s) / 2);
+    return WorkInfo(sizeof(T) * 3, size(s) / 2);
 }
 
 /** multishift_QR_sweep performs a single small-bulge multi-shift QR sweep.
@@ -132,8 +132,8 @@ void multishift_QR_sweep(bool want_t,
     // Allocates workspace
     VectorOfBytes localworkdata;
     const Workspace work = [&]() {
-        workinfo_t workinfo = multishift_QR_sweep_worksize(want_t, want_z, ilo,
-                                                           ihi, A, s, Z, opts);
+        WorkInfo workinfo = multishift_QR_sweep_worksize(want_t, want_z, ilo,
+                                                         ihi, A, s, Z, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
     auto V = new_matrix(work, 3, size(s) / 2);
@@ -193,7 +193,7 @@ void multishift_QR_sweep(bool want_t,
                     auto H = slice(A, range{ilo, ilo + 3}, range{ilo, ilo + 3});
                     lahqr_shiftcolumn(H, v, s[size(s) - 1 - 2 * i_bulge],
                                       s[size(s) - 1 - 2 * i_bulge - 1]);
-                    larfg(forward, columnwise_storage, v, tau);
+                    larfg(FORWARD, COLUMNWISE_STORAGE, v, tau);
                     v[0] = tau;
                 }
                 else {
@@ -616,7 +616,7 @@ void multishift_QR_sweep(bool want_t,
                     // reflector (order 2)
                     auto v = slice(V, range{0, 2}, i_bulge);
                     auto h = slice(A, range{i_pos, i_pos + 2}, i_pos - 1);
-                    larfg(forward, columnwise_storage, h, v[0]);
+                    larfg(FORWARD, COLUMNWISE_STORAGE, h, v[0]);
                     v[1] = h[1];
                     h[1] = zero;
 

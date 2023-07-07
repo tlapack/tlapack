@@ -77,17 +77,17 @@ int main(int argc, char** argv)
         data2[i] = data1[i];
 
     std::cout << std::endl << "Scale Matrix1 by 3:";
-    lascl(dense, 1.0, 3.0, A1);
+    lascl(GENERAL, 1.0, 3.0, A1);
     printMatrix(A1);
     std::cout << std::endl;
 
     std::cout << std::endl << "Scale upper triangle of Matrix1 by 1/3:";
-    lascl(upperTriangle, 3.0, 1.0, A1);
+    lascl(UPPER_TRIANGLE, 3.0, 1.0, A1);
     printMatrix(A1);
     std::cout << std::endl;
 
     std::cout << std::endl << "Scale strict lower triangle of Matrix1 by 1/3:";
-    lascl(strictLower, 3.0, 1.0, A1);
+    lascl(STRICT_LOWER, 3.0, 1.0, A1);
     printMatrix(A1);
     std::cout << std::endl;
 

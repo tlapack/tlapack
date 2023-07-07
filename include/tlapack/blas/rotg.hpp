@@ -194,7 +194,7 @@ void rotg(T& a, const T& b, real_type<T>& c, T& s)
     }
 }
 
-#ifdef USE_LAPACKPP_WRAPPERS
+#ifdef TLAPACK_USE_LAPACKPP
 
 template <TLAPACK_REAL T,
           enable_if_t<is_real<T>, int> = 0,

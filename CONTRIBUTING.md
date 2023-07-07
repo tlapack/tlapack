@@ -38,10 +38,19 @@ For instance, `fooBar` is a good name for a function argument, while `foo_bar` i
 
 #### Other naming conventions
 
-1. Use upper camel case (Pascal case) style to name: concepts, enumeration classes, and classes with non-static data members.
-2. Namespace variables are named using all-caps snake case.
-3. Traits are named using snake case and have the suffix `_trait` or `_traits`.
-4. Function options are named using upper camel case (Pascal case) style and have the suffix `\uOpts`.
+1. Use upper camel case (Pascal case) style to name:
+   - concepts, e.g., `tlapack::concepts::LegacyArray`.
+   - enumeration classes, e.g., `tlapack::GetrfVariant`.
+   - classes, e.g., `tlapack::ErrorCheck`.
+2. Namespace variables are named using all-caps snake case, e.g., `tlapack::LOWER_HESSENBERG`.
+3. Functions are named using snake case, e.g., `tlapack::multishift_qr`.
+4. Preprocessor constants are named using all-caps snake case starting with `TLAPACK_`, e.g., `TLAPACK_NDEBUG`.
+5. Preprocessor macros are named using lower snake case starting with `tlapack_`, e.g., `tlapack_check`.
+
+Special cases:
+
+1. Traits are classes named using snake case and have the suffix `_trait` or `_traits`, e.g., `tlapack::traits::entry_type_trait` and `tlapack::traits::matrix_type_traits`.
+2. Classes for optional arguments of functions are named using upper camel case (Pascal case) style and have the suffix `Opts`, e.g., `tlapack::BlockedCholeskyOpts`.
 
 ### Usage of the `auto` keyword
 
@@ -114,7 +123,7 @@ We recommend the usage of `auto` in the following cases:
    ([^\w])_(\w)([, ;/\)\(.\[\]]) # Other identifiers that start with underscore
    ```
 
-3. In internal calls, use compile-time flags instead of runtime flags. For instance, use `tlapack::left_side` instead of `tlapack::Side::Left` and `tlapack::noTranspose` instead of `tlapack::Op::NoTrans`. This practice usually leads to faster code.
+3. In internal calls, use compile-time flags instead of runtime flags. For instance, use `tlapack::left_side` instead of `tlapack::Side::Left` and `tlapack::NO_TRANS` instead of `tlapack::Op::NoTrans`. This practice usually leads to faster code.
 
 4. Avoid writing code that depends explicitly on `std::complex<T>` by using `tlapack::real_type<T>`, `tlapack::complex_type<T>` and `tlapack::scalar_type<T>`. Any scalar type `T` supported by \<T\>LAPACK should implement those 3 classes.
 

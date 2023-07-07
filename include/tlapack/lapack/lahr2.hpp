@@ -138,7 +138,7 @@ int lahr2(size_type<matrix_t> k,
             A(k + i, i - 1) = ei;
         }
         auto v = slice(A, range{k + i + 1, n}, i);
-        larfg(forward, columnwise_storage, v, tau[i]);
+        larfg(FORWARD, COLUMNWISE_STORAGE, v, tau[i]);
 
         // larf has been edited to not require A(k+i,i) = one
         // this is for thread safety. Since we already modified

@@ -27,14 +27,14 @@ namespace tlapack {
  *
  * @param[in] opts Options.
  *
- * @return workinfo_t The amount workspace required.
+ * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
  */
 template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
-inline constexpr workinfo_t ung2l_worksize(const matrix_t& A,
-                                           const vector_t& tau,
-                                           const WorkspaceOpts<>& opts = {})
+inline constexpr WorkInfo ung2l_worksize(const matrix_t& A,
+                                         const vector_t& tau,
+                                         const WorkspaceOpts<>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -47,7 +47,7 @@ inline constexpr workinfo_t ung2l_worksize(const matrix_t& A,
         return larf_worksize(Side::Left, Direction::Backward,
                              StoreV::Columnwise, col(A, 0), tau[0], C, opts);
     }
-    return workinfo_t{};
+    return WorkInfo{};
 }
 
 /**
@@ -100,7 +100,7 @@ int ung2l(matrix_t& A, const vector_t& tau, const WorkspaceOpts<>& opts = {})
     // Allocates workspace
     VectorOfBytes localworkdata;
     Workspace work = [&]() {
-        workinfo_t workinfo = ung2l_worksize(A, tau, opts);
+        WorkInfo workinfo = ung2l_worksize(A, tau, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
 

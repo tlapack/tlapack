@@ -125,7 +125,7 @@ void gemv(Op trans,
     }
 }
 
-#ifdef USE_LAPACKPP_WRAPPERS
+#ifdef TLAPACK_USE_LAPACKPP
 
 /**
  * General matrix-vector multiply.

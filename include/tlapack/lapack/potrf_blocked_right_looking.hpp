@@ -107,9 +107,9 @@ int potrf_rl(uplo_t uplo,
                     auto B = slice(A, range{j, j + jb}, range{j + jb, n});
                     auto C = slice(A, range{j + jb, n}, range{j + jb, n});
 
-                    trsm(left_side, uplo, conjTranspose, nonUnit_diagonal, one,
-                         AJJ, B);
-                    herk(uplo, conjTranspose, -one, B, one, C);
+                    trsm(LEFT_SIDE, uplo, CONJ_TRANS, NON_UNIT_DIAG, one, AJJ,
+                         B);
+                    herk(uplo, CONJ_TRANS, -one, B, one, C);
                 }
             }
         }
@@ -134,9 +134,9 @@ int potrf_rl(uplo_t uplo,
                     auto B = slice(A, range{j + jb, n}, range{j, j + jb});
                     auto C = slice(A, range{j + jb, n}, range{j + jb, n});
 
-                    trsm(right_side, uplo, conjTranspose, nonUnit_diagonal, one,
-                         AJJ, B);
-                    herk(uplo, noTranspose, -one, B, one, C);
+                    trsm(RIGHT_SIDE, uplo, CONJ_TRANS, NON_UNIT_DIAG, one, AJJ,
+                         B);
+                    herk(uplo, NO_TRANS, -one, B, one, C);
                 }
             }
         }

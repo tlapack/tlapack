@@ -48,16 +48,16 @@ struct GehrdOpts : public WorkspaceOpts<> {
  *
  * @param[in] opts Options.
  *
- * @return workinfo_t The amount workspace required.
+ * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
  */
 template <TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
-workinfo_t gehrd_worksize(size_type<matrix_t> ilo,
-                          size_type<matrix_t> ihi,
-                          const matrix_t& A,
-                          const vector_t& tau,
-                          const GehrdOpts<size_type<matrix_t> >& opts = {})
+WorkInfo gehrd_worksize(size_type<matrix_t> ilo,
+                        size_type<matrix_t> ihi,
+                        const matrix_t& A,
+                        const vector_t& tau,
+                        const GehrdOpts<size_type<matrix_t> >& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using work_t = matrix_type<matrix_t, vector_t>;
@@ -66,7 +66,7 @@ workinfo_t gehrd_worksize(size_type<matrix_t> ilo,
     const idx_t n = ncols(A);
     const idx_t nb = std::min(opts.nb, ihi - ilo - 1);
 
-    return workinfo_t(sizeof(T) * (n + nb), nb);
+    return WorkInfo(sizeof(T) * (n + nb), nb);
 }
 
 /** Reduces a general square matrix to upper Hessenberg form
@@ -149,7 +149,7 @@ int gehrd(size_type<matrix_t> ilo,
     // Allocates workspace
     VectorOfBytes localworkdata;
     Workspace work = [&]() {
-        workinfo_t workinfo = gehrd_worksize(ilo, ihi, A, tau, opts);
+        WorkInfo workinfo = gehrd_worksize(ilo, ihi, A, tau, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
 
@@ -160,7 +160,7 @@ int gehrd(size_type<matrix_t> ilo,
     // Matrix Y
     Workspace workMatrixT;
     auto Y = new_matrix(work, n, nb, workMatrixT);
-    laset(dense, zero, zero, Y);
+    laset(GENERAL, zero, zero, Y);
 
     // Matrix T
     auto matrixT = new_matrix(workMatrixT, nb, nb);

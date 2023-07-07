@@ -319,7 +319,7 @@ jobs:
         -D BUILD_C_WRAPPERS=ON
         -D BUILD_Fortran_WRAPPERS=ON
         -D BUILD_CBLAS_WRAPPERS=ON
-        -D USE_LAPACKPP_WRAPPERS=ON
+        -D TLAPACK_USE_LAPACKPP=ON
         -D BUILD_BLASPP_TESTS=ON
         -D blaspp_TEST_DIR=${{env.blaspp_DIR}}/test
         -D BUILD_LAPACKPP_TESTS=ON
@@ -386,7 +386,7 @@ jobs:
         -D BUILD_SHARED_LIBS=ON
         -D BUILD_EXAMPLES=OFF
         -D BUILD_TESTING=OFF
-        -D USE_LAPACKPP_WRAPPERS=ON
+        -D TLAPACK_USE_LAPACKPP=ON
         -D TLAPACK_NDEBUG=ON
 
     - name: Build and Install
@@ -476,7 +476,7 @@ jobs:
         -D BUILD_C_WRAPPERS=ON
         -D BUILD_Fortran_WRAPPERS=ON
         -D BUILD_CBLAS_WRAPPERS=ON
-        -D USE_LAPACKPP_WRAPPERS=ON
+        -D TLAPACK_USE_LAPACKPP=ON
         -D BUILD_BLASPP_TESTS=ON
         -D blaspp_TEST_DIR=${{env.blaspp_DIR}}/test
         -D BUILD_LAPACKPP_TESTS=ON
@@ -562,7 +562,7 @@ jobs:
         -D BUILD_C_WRAPPERS=ON
         -D BUILD_Fortran_WRAPPERS=ON
         -D BUILD_CBLAS_WRAPPERS=ON
-        -D USE_LAPACKPP_WRAPPERS=ON
+        -D TLAPACK_USE_LAPACKPP=ON
         -D BUILD_BLASPP_TESTS=ON
         -D blaspp_TEST_DIR=${{env.blaspp_DIR}}/test
         -D BUILD_LAPACKPP_TESTS=ON
@@ -631,7 +631,7 @@ jobs:
         -D BUILD_C_WRAPPERS=ON
         -D BUILD_Fortran_WRAPPERS=ON
         -D BUILD_CBLAS_WRAPPERS=ON
-        -D USE_LAPACKPP_WRAPPERS=ON
+        -D TLAPACK_USE_LAPACKPP=ON
         -D BUILD_BLASPP_TESTS=ON
         -D blaspp_TEST_DIR=${{env.blaspp_DIR}}/test
         -D BUILD_LAPACKPP_TESTS=ON

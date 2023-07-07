@@ -155,7 +155,7 @@ void syr2k(Uplo uplo,
     }
 }
 
-#ifdef USE_LAPACKPP_WRAPPERS
+#ifdef TLAPACK_USE_LAPACKPP
 
 /**
  * Symmetric rank-k update

@@ -45,7 +45,7 @@ void axpy(const alpha_t& alpha, const vectorX_t& x, vectorY_t& y)
         y[i] += alpha * x[i];
 }
 
-#ifdef USE_LAPACKPP_WRAPPERS
+#ifdef TLAPACK_USE_LAPACKPP
 
 template <TLAPACK_LEGACY_VECTOR vectorX_t,
           TLAPACK_LEGACY_VECTOR vectorY_t,

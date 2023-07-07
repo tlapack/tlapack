@@ -26,14 +26,14 @@ namespace tlapack {
  *
  * @param[in] opts Options.
  *
- * @return workinfo_t The amount workspace required.
+ * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
  */
 template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
-inline constexpr workinfo_t geql2_worksize(const matrix_t& A,
-                                           const vector_t& tau,
-                                           const WorkspaceOpts<>& opts = {})
+inline constexpr WorkInfo geql2_worksize(const matrix_t& A,
+                                         const vector_t& tau,
+                                         const WorkspaceOpts<>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -47,7 +47,7 @@ inline constexpr workinfo_t geql2_worksize(const matrix_t& A,
                              StoreV::Columnwise, col(A, 0), tau[0], C, opts);
     }
 
-    return workinfo_t{};
+    return WorkInfo{};
 }
 
 /** Computes a QL factorization of a matrix A.
@@ -107,7 +107,7 @@ int geql2(matrix_t& A, vector_t& tau, const WorkspaceOpts<>& opts = {})
     // Allocates workspace
     VectorOfBytes localworkdata;
     Workspace work = [&]() {
-        workinfo_t workinfo = geql2_worksize(A, tau, opts);
+        WorkInfo workinfo = geql2_worksize(A, tau, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
 

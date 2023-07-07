@@ -111,7 +111,7 @@ int run(idx_t n, idx_t nx, bool check_error = false)
                 E(j, j) -= one;
 
             // ||Q^H Q - I||_F
-            normQHQ = tlapack::lange(tlapack::frob_norm, E);
+            normQHQ = tlapack::lange(tlapack::FROB_NORM, E);
 
             // E = Q Q^H - I
             herk(Uplo::Upper, Op::NoTrans, (real_t)1.0, Q, E);
@@ -119,7 +119,7 @@ int run(idx_t n, idx_t nx, bool check_error = false)
                 E(j, j) -= one;
 
             // ||Q Q^H - I||_F
-            normQQH = tlapack::lange(tlapack::frob_norm, E);
+            normQQH = tlapack::lange(tlapack::FROB_NORM, E);
 
             // Clean the lower triangular part that was used a workspace
             for (idx_t j = 0; j < n; ++j)
@@ -133,8 +133,8 @@ int run(idx_t n, idx_t nx, bool check_error = false)
             gemm(Op::NoTrans, Op::NoTrans, (real_t)1.0, E, Q, (real_t)-1.0, H);
 
             // ||Q^H H Q - T||_F / ||H||_F
-            errorSimilarityTransform = tlapack::lange(tlapack::frob_norm, H) /
-                                       tlapack::lange(tlapack::frob_norm, A);
+            errorSimilarityTransform = tlapack::lange(tlapack::FROB_NORM, H) /
+                                       tlapack::lange(tlapack::FROB_NORM, A);
         }
 
         std::cout << "H = " << H << std::endl;

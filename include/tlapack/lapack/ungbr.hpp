@@ -43,7 +43,7 @@ struct UngbrOpts : public WorkspaceOpts<workT_t> {
  *      reflector H(i), which determines Q, as
  *      returned by gebrd in its array argument tauq.
  *
- * @return workinfo_t The amount workspace required.
+ * @return WorkInfo The amount workspace required.
  *
  * @param[in] opts Options.
  *
@@ -52,11 +52,10 @@ struct UngbrOpts : public WorkspaceOpts<workT_t> {
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_SVECTOR vector_t,
           class workT_t = void>
-inline constexpr workinfo_t ungbr_q_worksize(
-    const size_type<matrix_t> k,
-    matrix_t& A,
-    const vector_t& tau,
-    const UngbrOpts<workT_t>& opts = {})
+inline constexpr WorkInfo ungbr_q_worksize(const size_type<matrix_t> k,
+                                           matrix_t& A,
+                                           const vector_t& tau,
+                                           const UngbrOpts<workT_t>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -88,7 +87,7 @@ inline constexpr workinfo_t ungbr_q_worksize(
  *      reflector G(i), which determines P**H, as
  *      returned by gebrd in its array argument taup.
  *
- * @return workinfo_t The amount workspace required.
+ * @return WorkInfo The amount workspace required.
  *
  * @param[in] opts Options.
  *
@@ -97,11 +96,10 @@ inline constexpr workinfo_t ungbr_q_worksize(
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_SVECTOR vector_t,
           class workT_t = void>
-inline constexpr workinfo_t ungbr_p_worksize(
-    const size_type<matrix_t> k,
-    matrix_t& A,
-    const vector_t& tau,
-    const UngbrOpts<workT_t>& opts = {})
+inline constexpr WorkInfo ungbr_p_worksize(const size_type<matrix_t> k,
+                                           matrix_t& A,
+                                           const vector_t& tau,
+                                           const UngbrOpts<workT_t>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;

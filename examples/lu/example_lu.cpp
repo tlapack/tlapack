@@ -50,7 +50,7 @@ void run(size_t n)
     tlapack::LegacyMatrix<T, idx_t, L> LU(n, n, LU_.data(), n);
 
     // Matrix A is kept unchanged
-    tlapack::lacpy(tlapack::dense, A, LU);
+    tlapack::lacpy(tlapack::GENERAL, A, LU);
 
     // Computing the LU decomposition of A
     int info = tlapack::getrf(LU, piv);

@@ -203,7 +203,7 @@ void trsv(Uplo uplo, Op trans, Diag diag, const matrixA_t& A, vectorX_t& x)
     }
 }
 
-#ifdef USE_LAPACKPP_WRAPPERS
+#ifdef TLAPACK_USE_LAPACKPP
 
 template <
     TLAPACK_LEGACY_MATRIX matrixA_t,

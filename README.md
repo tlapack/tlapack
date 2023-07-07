@@ -217,7 +217,7 @@ Here are the \<T\>LAPACK specific options and their default values
             int_least32_t, int_least64_t, int_fast8_t, 
             int_fast16_t, int_fast32_t, int_fast64_t, 
             intmax_t, intptr_t, ptrdiff_t
-        NOTE: TLAPACK_INT_T=int64_t if USE_LAPACKPP_WRAPPERS=ON
+        NOTE: TLAPACK_INT_T=int64_t if TLAPACK_USE_LAPACKPP=ON
 
     TLAPACK_NDEBUG                      OFF
 
@@ -233,9 +233,9 @@ Here are the \<T\>LAPACK specific options and their default values
             int_fast16_t, int_fast32_t, int_fast64_t, 
             intmax_t, intptr_t, ptrdiff_t,
             size_t, uint8_t, uint16_t, uint32_t, uint64_t
-        NOTE: TLAPACK_SIZE_T=int64_t if USE_LAPACKPP_WRAPPERS=ON
+        NOTE: TLAPACK_SIZE_T=int64_t if TLAPACK_USE_LAPACKPP=ON
     
-    USE_LAPACKPP_WRAPPERS               OFF
+    TLAPACK_USE_LAPACKPP               OFF
 
         Use LAPACK++ wrappers to link with optimized BLAS and LAPACK libraries.
         Mind that LAPACK++ needs BLAS++.

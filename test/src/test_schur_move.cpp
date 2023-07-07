@@ -104,7 +104,7 @@ TEMPLATE_TEST_CASE("move of eigenvalue block gives correct results",
             auto orth_res_norm = check_orthogonality(Q, res);
             CHECK(orth_res_norm <= tol);
 
-            auto normA = tlapack::lange(tlapack::frob_norm, A);
+            auto normA = tlapack::lange(tlapack::FROB_NORM, A);
             auto simil_res_norm =
                 check_similarity_transform(A_copy, Q, A, res, work);
             CHECK(simil_res_norm <= tol * normA);

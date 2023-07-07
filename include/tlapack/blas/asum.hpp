@@ -40,7 +40,7 @@ auto asum(vector_t const& x)
     return result;
 }
 
-#ifdef USE_LAPACKPP_WRAPPERS
+#ifdef TLAPACK_USE_LAPACKPP
 
 template <TLAPACK_LEGACY_VECTOR vector_t,
           enable_if_allow_optblas_t<vector_t> = 0>

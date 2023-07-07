@@ -159,7 +159,7 @@ void run(size_t n,
             A(i, j) = rand_helper<T>(gen);
 
     // Frobenius norm of A
-    auto normA = tlapack::lange(tlapack::frob_norm, A);
+    auto normA = tlapack::lange(tlapack::FROB_NORM, A);
 
     // Print A
     if (verbose) {
@@ -305,7 +305,7 @@ void run(size_t n,
 
         // Compute ||Q'Q - I||_F
         norm_orth_1 =
-            tlapack::lansy(tlapack::frob_norm, tlapack::Uplo::Upper, work);
+            tlapack::lansy(tlapack::FROB_NORM, tlapack::Uplo::Upper, work);
 
         if (verbose) {
             std::cout << std::endl << "Q'Q-I = ";
@@ -339,7 +339,7 @@ void run(size_t n,
             printMatrix(H);
         }
 
-        norm_repres_1 = tlapack::lange(tlapack::frob_norm, H) / normA;
+        norm_repres_1 = tlapack::lange(tlapack::FROB_NORM, H) / normA;
     }
 
     // 4) Compute Q*AQ (usefull for debugging)

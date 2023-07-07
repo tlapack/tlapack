@@ -84,7 +84,7 @@ void her(Uplo uplo, const alpha_t& alpha, const vectorX_t& x, matrixA_t& A)
     }
 }
 
-#ifdef USE_LAPACKPP_WRAPPERS
+#ifdef TLAPACK_USE_LAPACKPP
 
 template <TLAPACK_LEGACY_MATRIX matrixA_t,
           TLAPACK_LEGACY_VECTOR vectorX_t,

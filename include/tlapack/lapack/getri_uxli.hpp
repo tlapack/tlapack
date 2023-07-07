@@ -23,17 +23,17 @@ namespace tlapack {
  *
  * @param[in] opts Options.
  *
- * @return workinfo_t The amount workspace required.
+ * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
  */
 template <TLAPACK_SMATRIX matrix_t>
-inline constexpr workinfo_t getri_uxli_worksize(
-    const matrix_t& A, const WorkspaceOpts<>& opts = {})
+inline constexpr WorkInfo getri_uxli_worksize(const matrix_t& A,
+                                              const WorkspaceOpts<>& opts = {})
 {
     using T = type_t<matrix_t>;
 
-    return workinfo_t(sizeof(T), ncols(A) - 1);
+    return WorkInfo(sizeof(T), ncols(A) - 1);
 }
 
 /** getri computes inverse of a general n-by-n matrix A
@@ -78,7 +78,7 @@ int getri_uxli(matrix_t& A, const WorkspaceOpts<>& opts = {})
     // Allocates workspace
     VectorOfBytes localworkdata;
     const Workspace work = [&]() {
-        workinfo_t workinfo = getri_uxli_worksize(A, opts);
+        WorkInfo workinfo = getri_uxli_worksize(A, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
     auto w = new_vector(work, n - 1);

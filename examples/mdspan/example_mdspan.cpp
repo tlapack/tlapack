@@ -106,7 +106,7 @@ int main(int argc, char** argv)
 
     std::cout.precision(5);
     std::cout << std::scientific << std::showpos;
-    std::cout << "|| C - Ak B ||_F = " << tlapack::lange(tlapack::frob_norm, C)
+    std::cout << "|| C - Ak B ||_F = " << tlapack::lange(tlapack::FROB_NORM, C)
               << std::endl;
 
     // potrf:
@@ -143,7 +143,7 @@ int main(int argc, char** argv)
     }
 
     // Compute the Cholesky decomposition of U
-    int info = tlapack::potrf(tlapack::upperTriangle, U);
+    int info = tlapack::potrf(tlapack::UPPER_TRIANGLE, U);
 
     std::cout << "Cholesky ended with info " << info << std::endl;
 
@@ -158,7 +158,7 @@ int main(int argc, char** argv)
     // error = ||R-Id||_F
     for (idx_t i = 0; i < k; ++i)
         R(i, i) -= one;
-    T error = tlapack::lange(tlapack::frob_norm, R);
+    T error = tlapack::lange(tlapack::FROB_NORM, R);
 
     std::cout.precision(5);
     std::cout << std::scientific << std::showpos;

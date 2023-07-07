@@ -2,8 +2,8 @@
 
 include( CMakeFindDependencyMacro )
 
-set( USE_LAPACKPP_WRAPPERS "@USE_LAPACKPP_WRAPPERS@" )
-if( USE_LAPACKPP_WRAPPERS )
+set( TLAPACK_USE_LAPACKPP "@TLAPACK_USE_LAPACKPP@" )
+if( TLAPACK_USE_LAPACKPP )
     find_dependency( lapackpp )
 endif()
 

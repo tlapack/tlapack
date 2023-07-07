@@ -114,7 +114,7 @@ real_type<type_t<matrix_t>> check_orthogonality(matrix_t& Q, matrix_t& res)
     }
 
     // Compute ||res||_F
-    return lanhe(frob_norm, Uplo::Upper, res);
+    return lanhe(FROB_NORM, Uplo::Upper, res);
 }
 
 /** Calculates ||Q'*Q - I||_F if m <= n or ||Q*Q' - I||_F otherwise
@@ -176,7 +176,7 @@ real_type<type_t<matrix_t>> check_similarity_transform(
     gemm(Op::NoTrans, Op::NoTrans, (real_t)1.0, work, Q, (real_t)-1.0, res);
 
     // Compute ||res||_F
-    return lange(frob_norm, res);
+    return lange(FROB_NORM, res);
 }
 
 /** Calculates ||Q'*A*Q - B||

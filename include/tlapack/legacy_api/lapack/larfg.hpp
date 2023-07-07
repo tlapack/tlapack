@@ -22,7 +22,7 @@ namespace legacy {
     {
         tlapack_expr_with_vector(
             x_, T, n - 1, x, incx,
-            return larfg(columnwise_storage, alpha, x_, tau));
+            return larfg(COLUMNWISE_STORAGE, alpha, x_, tau));
     }
 
     /** Generates a elementary Householder reflection.

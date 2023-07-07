@@ -97,16 +97,16 @@ int labrd(A_t& A,
             auto A2 = slice(A, range{i, m}, range{0, i});
             auto a21 = slice(A, range{i, m}, i);
             conjugate(y);
-            gemv(noTranspose, -one, A2, y, one, a21);
+            gemv(NO_TRANS, -one, A2, y, one, a21);
             conjugate(y);
 
             auto X2 = slice(X, range{i, m}, range{0, i});
             auto a22 = slice(A, range{0, i}, i);
             auto a23 = slice(A, range{i, m}, i);
-            gemv(noTranspose, -one, X2, a22, one, a23);
+            gemv(NO_TRANS, -one, X2, a22, one, a23);
             // Generate reflection Q(i) to annihilate A(i+1:m,i)
             auto v = slice(A, range{i, m}, i);
-            larfg(forward, columnwise_storage, v, tauq[i]);
+            larfg(FORWARD, COLUMNWISE_STORAGE, v, tauq[i]);
             d[i] = real(A(i, i));
 
             if (i < n - 1) {
@@ -118,20 +118,20 @@ int labrd(A_t& A,
 
                 // y11 = A(i:m,i+1:n)^H * v
                 auto A0 = slice(A, range{i, m}, range{i + 1, n});
-                gemv(conjTranspose, one, A0, v, zero, y11);
+                gemv(CONJ_TRANS, one, A0, v, zero, y11);
                 // t = A(i:m,0:i)^H * v
                 auto A1 = slice(A, range{i, m}, range{0, i});
                 auto t = slice(Y, range{0, i}, i);
-                gemv(conjTranspose, one, A1, v, zero, t);
+                gemv(CONJ_TRANS, one, A1, v, zero, t);
                 // y11 = y11 - Y(i+1:n,0:i) * t
                 auto Y2 = slice(Y, range{i + 1, n}, range{0, i});
-                gemv(noTranspose, -one, Y2, t, one, y11);
+                gemv(NO_TRANS, -one, Y2, t, one, y11);
                 // t = X(i:m,0:i)^H * v
                 auto X2 = slice(X, range{i, m}, range{0, i});
-                gemv(conjTranspose, one, X2, v, zero, t);
+                gemv(CONJ_TRANS, one, X2, v, zero, t);
                 // y11 = y11 - A(0:i,i+1:n)^H * t
                 auto A2 = slice(A, range{0, i}, range{i + 1, n});
-                gemv(conjTranspose, -one, A2, t, one, y11);
+                gemv(CONJ_TRANS, -one, A2, t, one, y11);
                 // y11 = y11 * tauq(i)
                 scal(tauq[i], y11);
 
@@ -148,20 +148,20 @@ int labrd(A_t& A,
                 conjugate(a11);
                 conjugate(s);
                 auto Y3 = slice(Y, range{i + 1, n}, range{0, i + 1});
-                gemv(noTranspose, -one, Y3, s, one, a11);
+                gemv(NO_TRANS, -one, Y3, s, one, a11);
                 conjugate(s);
                 // a11 = a11 - A(0:i,i+1:n)^H * conj(X(i,0:i))
                 auto A3 = slice(A, range{0, i}, range{i + 1, n});
                 auto x = slice(X, i, range{0, i});
                 conjugate(x);
-                gemv(conjTranspose, -one, A3, x, one, a11);
+                gemv(CONJ_TRANS, -one, A3, x, one, a11);
                 conjugate(x);
 
                 //
                 // Generate reflection P(i) to annihilate A(i,i+2:n)
                 //
                 auto w = slice(A, i, range{i + 1, n});
-                larfg(forward, columnwise_storage, w, taup[i]);
+                larfg(FORWARD, COLUMNWISE_STORAGE, w, taup[i]);
                 e[i] = real(A(i, i + 1));
                 A(i, i + 1) = one;
 
@@ -172,21 +172,21 @@ int labrd(A_t& A,
 
                 // x11 = A(i+1:m,i+1:n) * w
                 auto A4 = slice(A, range{i + 1, m}, range{i + 1, n});
-                gemv(noTranspose, one, A4, w, zero, x11);
+                gemv(NO_TRANS, one, A4, w, zero, x11);
                 // t = Y(i+1:n,0:i+1)^H * w
                 auto Y4 = slice(Y, range{i + 1, n}, range{0, i + 1});
                 auto t2 = slice(X, range{0, i + 1}, i);
-                gemv(conjTranspose, one, Y4, w, zero, t2);
+                gemv(CONJ_TRANS, one, Y4, w, zero, t2);
                 // x11 = x11 - A(i+1:m,0:i+1) * t
                 auto A5 = slice(A, range{i + 1, m}, range{0, i + 1});
-                gemv(noTranspose, -one, A5, t2, one, x11);
+                gemv(NO_TRANS, -one, A5, t2, one, x11);
                 // t = A(0:i,i+1:n) * w
                 auto A6 = slice(A, range{0, i}, range{i + 1, n});
                 auto t3 = slice(X, range{0, i}, i);
-                gemv(noTranspose, one, A6, w, zero, t3);
+                gemv(NO_TRANS, one, A6, w, zero, t3);
                 // x11 = x11 - X(i+1:m,0:i) * t
                 auto X4 = slice(X, range{i + 1, m}, range{0, i});
-                gemv(noTranspose, -one, X4, t3, one, x11);
+                gemv(NO_TRANS, -one, X4, t3, one, x11);
                 // x11 = x11 * taup(i)
                 scal(taup[i], x11);
                 conjugate(w);
@@ -204,20 +204,20 @@ int labrd(A_t& A,
             auto a12 = slice(A, i, range{i, n});
             conjugate(s);
             conjugate(a12);
-            gemv(noTranspose, -one, Y2, s, one, a12);
+            gemv(NO_TRANS, -one, Y2, s, one, a12);
             conjugate(s);
 
             auto A2 = slice(A, range{0, i}, range{i, n});
             auto x = slice(X, i, range{0, i});
             conjugate(x);
-            gemv(conjTranspose, -one, A2, x, one, a12);
+            gemv(CONJ_TRANS, -one, A2, x, one, a12);
             conjugate(x);
             //
             // Generate reflection P(i) to annihilate A(i,i+1:n)
             //
             //
             auto w = slice(A, i, range{i, n});
-            larfg(forward, columnwise_storage, w, taup[i]);
+            larfg(FORWARD, COLUMNWISE_STORAGE, w, taup[i]);
             d[i] = real(A(i, i));
             A(i, i) = one;
 
@@ -229,22 +229,22 @@ int labrd(A_t& A,
 
                 // x11 = A(i+1:m,i+1:n) * w
                 auto A4 = slice(A, range{i + 1, m}, range{i, n});
-                gemv(noTranspose, one, A4, w, zero, x11);
+                gemv(NO_TRANS, one, A4, w, zero, x11);
                 if (i > 0) {
                     // t = Y(i:n,0:i)^H * w
                     auto Y4 = slice(Y, range{i, n}, range{0, i});
                     auto t2 = slice(X, range{0, i}, i);
-                    gemv(conjTranspose, one, Y4, w, zero, t2);
+                    gemv(CONJ_TRANS, one, Y4, w, zero, t2);
                     // x11 = x11 - A(i+1:m,0:i) * t
                     auto A5 = slice(A, range{i + 1, m}, range{0, i});
-                    gemv(noTranspose, -one, A5, t2, one, x11);
+                    gemv(NO_TRANS, -one, A5, t2, one, x11);
                     // t = A(0:i,i:n) * w
                     auto A6 = slice(A, range{0, i}, range{i, n});
                     auto t3 = slice(X, range{0, i}, i);
-                    gemv(noTranspose, one, A6, w, zero, t3);
+                    gemv(NO_TRANS, one, A6, w, zero, t3);
                     // x11 = x11 - X(i+1:m,0:i) * t
                     auto X4 = slice(X, range{i + 1, m}, range{0, i});
-                    gemv(noTranspose, -one, X4, t3, one, x11);
+                    gemv(NO_TRANS, -one, X4, t3, one, x11);
                 }
                 // x11 = x11 * taup(i)
                 scal(taup[i], x11);
@@ -255,18 +255,18 @@ int labrd(A_t& A,
                 auto A2 = slice(A, range{i + 1, m}, range{0, i});
                 auto a21 = slice(A, range{i + 1, m}, i);
                 conjugate(y);
-                gemv(noTranspose, -one, A2, y, one, a21);
+                gemv(NO_TRANS, -one, A2, y, one, a21);
                 conjugate(y);
 
                 auto X2 = slice(X, range{i + 1, m}, range{0, i + 1});
                 auto a22 = slice(A, range{0, i + 1}, i);
-                gemv(noTranspose, -one, X2, a22, one, a21);
+                gemv(NO_TRANS, -one, X2, a22, one, a21);
 
                 //
                 // Generate reflection Q(i) to annihilate A(i+2:m,i)
                 //
                 auto v = slice(A, range{i + 1, m}, i);
-                larfg(forward, columnwise_storage, v, tauq[i]);
+                larfg(FORWARD, COLUMNWISE_STORAGE, v, tauq[i]);
                 e[i] = real(A(i + 1, i));
                 A(i + 1, i) = one;
 
@@ -277,21 +277,21 @@ int labrd(A_t& A,
 
                 // y11 = A(i+1:m,i+1:n)^H * v
                 auto A0 = slice(A, range{i + 1, m}, range{i + 1, n});
-                gemv(conjTranspose, one, A0, v, zero, y11);
+                gemv(CONJ_TRANS, one, A0, v, zero, y11);
                 // t = A(i+1:m,0:i)^H * v
                 auto A1 = slice(A, range{i + 1, m}, range{0, i});
                 auto t = slice(Y, range{0, i}, i);
-                gemv(conjTranspose, one, A1, v, zero, t);
+                gemv(CONJ_TRANS, one, A1, v, zero, t);
                 // y11 = y11 - Y(i+1:n,0:i) * t
                 auto Y2 = slice(Y, range{i + 1, n}, range{0, i});
-                gemv(noTranspose, -one, Y2, t, one, y11);
+                gemv(NO_TRANS, -one, Y2, t, one, y11);
                 // t = X(i+1:m,0:i+1)^H * v
                 auto t2 = slice(Y, range{0, i + 1}, i);
                 auto X3 = slice(X, range{i + 1, m}, range{0, i + 1});
-                gemv(conjTranspose, one, X3, v, zero, t2);
+                gemv(CONJ_TRANS, one, X3, v, zero, t2);
                 // y11 = y11 - A(0:i+1,i+1:n)^H * t
                 auto A3 = slice(A, range{0, i + 1}, range{i + 1, n});
-                gemv(conjTranspose, -one, A3, t2, one, y11);
+                gemv(CONJ_TRANS, -one, A3, t2, one, y11);
                 // y11 = y11 * tauq(i)
                 scal(tauq[i], y11);
             }

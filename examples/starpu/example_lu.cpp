@@ -91,7 +91,7 @@ int main(int argc, char** argv)
         Matrix<T> A(A_, m, n, m, n);
 
         /* compute norm of A */
-        const real_type<T> normA = lange(frob_norm, A);
+        const real_type<T> normA = lange(FROB_NORM, A);
 
         /* print matrix A */
         std::cout << "A = " << A << std::endl;
@@ -109,7 +109,7 @@ int main(int argc, char** argv)
         T* Acopy_;
         starpu_malloc((void**)&Acopy_, m * n * sizeof(T));
         Matrix<T> Acopy(Acopy_, m, n, r, s);
-        lacpy(dense, A, Acopy);
+        lacpy(GENERAL, A, Acopy);
 
         /* print matrix Acopy */
         std::cout << "Acopy = " << Acopy << std::endl;
@@ -130,7 +130,7 @@ int main(int argc, char** argv)
         T* L_;
         starpu_malloc((void**)&L_, m * k * sizeof(T));
         Matrix<T> L(L_, m, k, 1, 1);
-        lacpy(lowerTriangle, Acopy, L);
+        lacpy(LOWER_TRIANGLE, Acopy, L);
         for (idx_t i = 0; i < k; ++i)
             L(i, i) = T(1);
         std::cout << "L = " << L << std::endl;
@@ -139,7 +139,7 @@ int main(int argc, char** argv)
         T* U_;
         starpu_malloc((void**)&U_, k * n * sizeof(T));
         Matrix<T> U(U_, k, n, 1, 1);
-        lacpy(upperTriangle, Acopy, U);
+        lacpy(UPPER_TRIANGLE, Acopy, U);
         std::cout << "U = " << U << std::endl;
 
         /* print matrix L*U */
@@ -147,16 +147,15 @@ int main(int argc, char** argv)
             for (idx_t i = 0; i < m; ++i)
                 for (idx_t j = i + 1; j < k; ++j)
                     L(i, j) = T(0);
-            trmm(right_side, upperTriangle, noTranspose, nonUnit_diagonal, 1, U,
-                 L);
-            lacpy(dense, L, Acopy);
+            trmm(RIGHT_SIDE, UPPER_TRIANGLE, NO_TRANS, NON_UNIT_DIAG, 1, U, L);
+            lacpy(GENERAL, L, Acopy);
         }
         else {
             for (idx_t i = 0; i < k; ++i)
                 for (idx_t j = 0; j < i; ++j)
                     U(i, j) = T(0);
-            trmm(left_side, lowerTriangle, noTranspose, unit_diagonal, 1, L, U);
-            lacpy(dense, U, Acopy);
+            trmm(LEFT_SIDE, LOWER_TRIANGLE, NO_TRANS, UNIT_DIAG, 1, L, U);
+            lacpy(GENERAL, U, Acopy);
         }
         std::cout << "L*U = " << Acopy << std::endl;
 
@@ -176,7 +175,7 @@ int main(int argc, char** argv)
             }
         }
         std::cout << "A - LU = " << A << std::endl;
-        std::cout << "||A - LU||/||A|| = " << lange(frob_norm, A) / normA
+        std::cout << "||A - LU||/||A|| = " << lange(FROB_NORM, A) / normA
                   << std::endl;
 
         starpu_free_noflag(L_, m * k * sizeof(T));

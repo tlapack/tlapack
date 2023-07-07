@@ -40,7 +40,7 @@ namespace tlapack {
  *
  * @param[in] opts Options.
  *
- * @return workinfo_t The amount workspace required.
+ * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
  */
@@ -49,12 +49,12 @@ template <TLAPACK_SMATRIX matrixA_t,
           TLAPACK_VECTOR tau_t,
           TLAPACK_SIDE side_t,
           TLAPACK_OP trans_t>
-inline constexpr workinfo_t unm2r_worksize(side_t side,
-                                           trans_t trans,
-                                           const matrixA_t& A,
-                                           const tau_t& tau,
-                                           const matrixC_t& C,
-                                           const WorkspaceOpts<>& opts = {})
+inline constexpr WorkInfo unm2r_worksize(side_t side,
+                                         trans_t trans,
+                                         const matrixA_t& A,
+                                         const tau_t& tau,
+                                         const matrixC_t& C,
+                                         const WorkspaceOpts<>& opts = {})
 {
     using idx_t = size_type<matrixA_t>;
     using range = pair<idx_t, idx_t>;
@@ -65,7 +65,7 @@ inline constexpr workinfo_t unm2r_worksize(side_t side,
     const idx_t nA = (side == Side::Left) ? m : n;
 
     auto v = slice(A, range{0, nA}, 0);
-    return larf_worksize(side, forward, columnwise_storage, v, tau[0], C, opts);
+    return larf_worksize(side, FORWARD, COLUMNWISE_STORAGE, v, tau[0], C, opts);
 }
 
 /** Applies unitary matrix Q to a matrix C.
@@ -157,7 +157,7 @@ int unm2r(side_t side,
     // Allocates workspace
     VectorOfBytes localworkdata;
     Workspace work = [&]() {
-        workinfo_t workinfo = unm2r_worksize(side, trans, A, tau, C, opts);
+        WorkInfo workinfo = unm2r_worksize(side, trans, A, tau, C, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
 
@@ -178,13 +178,13 @@ int unm2r(side_t side,
 
         if (side == Side::Left) {
             auto Ci = rows(C, range{i, m});
-            larf(left_side, forward, columnwise_storage, v,
+            larf(LEFT_SIDE, FORWARD, COLUMNWISE_STORAGE, v,
                  (trans == Op::ConjTrans) ? conj(tau[i]) : tau[i], Ci,
                  larfOpts);
         }
         else {
             auto Ci = cols(C, range{i, n});
-            larf(right_side, forward, columnwise_storage, v,
+            larf(RIGHT_SIDE, FORWARD, COLUMNWISE_STORAGE, v,
                  (trans == Op::ConjTrans) ? conj(tau[i]) : tau[i], Ci,
                  larfOpts);
         }

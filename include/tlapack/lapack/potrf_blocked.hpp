@@ -100,7 +100,7 @@ int potrf_blocked(uplo_t uplo,
                 auto AJJ = slice(A, range{j, j + jb}, range{j, j + jb});
                 auto A1J = slice(A, range{0, j}, range{j, j + jb});
 
-                herk(uplo, conjTranspose, -one, A1J, one, AJJ);
+                herk(uplo, CONJ_TRANS, -one, A1J, one, AJJ);
 
                 int info = potf2(uplo, AJJ);
                 if (info != 0) {
@@ -118,9 +118,9 @@ int potrf_blocked(uplo_t uplo,
                     auto C = slice(A, range{j, j + jb}, range{j + jb, n});
 
                     // Compute the current block row
-                    gemm(conjTranspose, noTranspose, -one, A1J, B, one, C);
-                    trsm(left_side, uplo, conjTranspose, nonUnit_diagonal, one,
-                         AJJ, C);
+                    gemm(CONJ_TRANS, NO_TRANS, -one, A1J, B, one, C);
+                    trsm(LEFT_SIDE, uplo, CONJ_TRANS, NON_UNIT_DIAG, one, AJJ,
+                         C);
                 }
             }
         }
@@ -132,7 +132,7 @@ int potrf_blocked(uplo_t uplo,
                 auto AJJ = slice(A, range{j, j + jb}, range{j, j + jb});
                 auto AJ1 = slice(A, range{j, j + jb}, range{0, j});
 
-                herk(uplo, noTranspose, -one, AJ1, one, AJJ);
+                herk(uplo, NO_TRANS, -one, AJ1, one, AJJ);
 
                 int info = potf2(uplo, AJJ);
                 if (info != 0) {
@@ -150,9 +150,9 @@ int potrf_blocked(uplo_t uplo,
                     auto C = slice(A, range{j + jb, n}, range{j, j + jb});
 
                     // Compute the current block row
-                    gemm(noTranspose, conjTranspose, -one, B, AJ1, one, C);
-                    trsm(right_side, uplo, conjTranspose, nonUnit_diagonal, one,
-                         AJJ, C);
+                    gemm(NO_TRANS, CONJ_TRANS, -one, B, AJ1, one, C);
+                    trsm(RIGHT_SIDE, uplo, CONJ_TRANS, NON_UNIT_DIAG, one, AJJ,
+                         C);
                 }
             }
         }
@@ -175,7 +175,7 @@ inline int potrf_blocked(uplo_t uplo, matrix_t& A)
     return potrf_blocked(uplo, A, {});
 }
 
-#ifdef USE_LAPACKPP_WRAPPERS
+#ifdef TLAPACK_USE_LAPACKPP
 
 template <TLAPACK_UPLO uplo_t,
           TLAPACK_LEGACY_MATRIX matrix_t,

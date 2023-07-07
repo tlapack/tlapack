@@ -106,7 +106,7 @@ void rotm(vectorX_t& x, vectorY_t& y, const T h[4])
     }
 }
 
-#ifdef USE_LAPACKPP_WRAPPERS
+#ifdef TLAPACK_USE_LAPACKPP
 
 template <
     int flag,

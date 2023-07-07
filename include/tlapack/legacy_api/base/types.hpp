@@ -30,9 +30,9 @@
  *      intmax_t, intptr_t, ptrdiff_t,
  *      size_t, uint8_t, uint16_t, uint32_t, uint64_t
  *
- * @note TLAPACK_SIZE_T must be std::int64_t if USE_LAPACKPP_WRAPPERS is defined
+ * @note TLAPACK_SIZE_T must be std::int64_t if TLAPACK_USE_LAPACKPP is defined
  */
-#ifdef USE_LAPACKPP_WRAPPERS
+#ifdef TLAPACK_USE_LAPACKPP
     #ifndef TLAPACK_SIZE_T
         #define TLAPACK_SIZE_T std::int64_t
     #endif
@@ -54,7 +54,7 @@
  *      int_fast16_t, int_fast32_t, int_fast64_t,
  *      intmax_t, intptr_t, ptrdiff_t
  *
- * @note TLAPACK_INT_T must be std::int64_t if USE_LAPACKPP_WRAPPERS is defined
+ * @note TLAPACK_INT_T must be std::int64_t if TLAPACK_USE_LAPACKPP is defined
  */
 #ifndef TLAPACK_INT_T
     #define TLAPACK_INT_T std::int64_t

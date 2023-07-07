@@ -146,7 +146,7 @@ int larft(direction_t direction,
 
                     // t := t - tau[i] V(i+1:n,0:i)^H V(i+1:n,i)
                     if (i + 1 < n) {
-                        gemv(conjTranspose, -tau[i],
+                        gemv(CONJ_TRANS, -tau[i],
                              slice(V, range{i + 1, n}, range{0, i}),
                              slice(V, range{i + 1, n}, i), one, t);
                     }
@@ -159,7 +159,7 @@ int larft(direction_t direction,
                     // t := t - tau[i] V(0:i,i:n) V(i,i+1:n)^H
                     if (i + 1 < n) {
                         auto Ti = slice(T, range{0, i}, range{i, i + 1});
-                        gemm(noTranspose, conjTranspose, -tau[i],
+                        gemm(NO_TRANS, CONJ_TRANS, -tau[i],
                              slice(V, range{0, i}, range{i + 1, n}),
                              slice(V, range{i, i + 1}, range{i + 1, n}), one,
                              Ti);
@@ -167,7 +167,7 @@ int larft(direction_t direction,
                 }
 
                 // t := T(0:i,0:i) * t
-                trmv(upperTriangle, noTranspose, nonUnit_diagonal,
+                trmv(UPPER_TRIANGLE, NO_TRANS, NON_UNIT_DIAG,
                      slice(T, range{0, i}, range{0, i}), t);
             }
 
@@ -199,7 +199,7 @@ int larft(direction_t direction,
                         t[j] = -tau[i] * conj(V(n - k + i, j + i + 1));
 
                     // t := t - tau[i] V(0:n-k+i,i+1:k)^H V(0:n-k+i,i)
-                    gemv(conjTranspose, -tau[i],
+                    gemv(CONJ_TRANS, -tau[i],
                          slice(V, range{0, n - k + i}, range{i + 1, k}),
                          slice(V, range{0, n - k + i}, i), one, t);
                 }
@@ -210,14 +210,14 @@ int larft(direction_t direction,
 
                     // t := t - tau[i] V(i+1:k,0:n-k+i) V(i,0:n-k+i)^H
                     auto Ti = slice(T, range{i + 1, k}, range{i, i + 1});
-                    gemm(noTranspose, conjTranspose, -tau[i],
+                    gemm(NO_TRANS, CONJ_TRANS, -tau[i],
                          slice(V, range{i + 1, k}, range{0, n - k + i}),
                          slice(V, range{i, i + 1}, range{0, n - k + i}), one,
                          Ti);
                 }
 
                 // t := T(i+1:k,i+1:k) * t
-                trmv(lowerTriangle, noTranspose, nonUnit_diagonal,
+                trmv(LOWER_TRIANGLE, NO_TRANS, NON_UNIT_DIAG,
                      slice(T, range{i + 1, k}, range{i + 1, k}), t);
             }
 

@@ -20,7 +20,7 @@
  *
  * @note Only used if TLAPACK_ENABLE_INFCHECK is defined and TLAPACK_NDEBUG
  * is not defined.
- * 
+ *
  * @ingroup exception
  */
 #ifndef TLAPACK_DEFAULT_INFCHECK
@@ -33,7 +33,7 @@
  *
  * @note Only used if TLAPACK_ENABLE_NANCHECK is defined and TLAPACK_NDEBUG
  * is not defined.
- * 
+ *
  * @ingroup exception
  *
  */

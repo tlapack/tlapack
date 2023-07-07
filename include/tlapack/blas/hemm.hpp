@@ -173,7 +173,7 @@ void hemm(Side side,
     }
 }
 
-#ifdef USE_LAPACKPP_WRAPPERS
+#ifdef TLAPACK_USE_LAPACKPP
 
 /**
  * Hermitian matrix-matrix multiply.

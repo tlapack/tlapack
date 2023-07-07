@@ -279,7 +279,7 @@ void trmm(Side side,
     }
 }
 
-#ifdef USE_LAPACKPP_WRAPPERS
+#ifdef TLAPACK_USE_LAPACKPP
 
 /**
  * Triangular matrix-matrix multiply.

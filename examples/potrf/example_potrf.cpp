@@ -117,7 +117,7 @@ void run(idx_t n)
         // Record start time
         auto start = std::chrono::high_resolution_clock::now();
 
-        int info = potrf2(upperTriangle, U);
+        int info = potrf2(UPPER_TRIANGLE, U);
 
         // Record end time
         auto end = std::chrono::high_resolution_clock::now();
@@ -133,13 +133,13 @@ void run(idx_t n)
         // Solve U^H U R = A
         std::vector<T> R_(n * n);
         LegacyMatrix<T> R(n, n, &R_[0], n);
-        lacpy(dense, A, R);
-        potrs(upperTriangle, U, R);
+        lacpy(GENERAL, A, R);
+        potrs(UPPER_TRIANGLE, U, R);
 
         // error = ||R-Id||_F / ||Id||_F
         for (idx_t i = 0; i < n; ++i)
             R(i, i) -= T(1);
-        real_t error = lange(frob_norm, R) / std::sqrt(n);
+        real_t error = lange(FROB_NORM, R) / std::sqrt(n);
 
         // Output
         std::cout << "Using <T>LAPACK:" << std::endl
@@ -186,13 +186,13 @@ void run(idx_t n)
         // Solve U^H U R = A
         std::vector<T> R_(n * n);
         LegacyMatrix<T> R(n, n, &R_[0], n);
-        lacpy(dense, A, R);
-        potrs(upperTriangle, LegacyMatrix<T>(n, n, &U[0], n), R);
+        lacpy(GENERAL, A, R);
+        potrs(UPPER_TRIANGLE, LegacyMatrix<T>(n, n, &U[0], n), R);
 
         // error = ||R-Id||_F / ||Id||_F
         for (idx_t i = 0; i < n; ++i)
             R(i, i) -= T(1);
-        real_t error = lange(frob_norm, R) / std::sqrt(n);
+        real_t error = lange(FROB_NORM, R) / std::sqrt(n);
 
         // Output
         std::cout << "Using LAPACKE:" << std::endl

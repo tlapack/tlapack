@@ -34,16 +34,16 @@ namespace tlapack {
  *
  * @param[in] A n-by-n hermitian matrix.
  *
- * @return workinfo_t The amount workspace required.
+ * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
  */
 template <TLAPACK_NORM norm_t, TLAPACK_UPLO uplo_t, TLAPACK_SMATRIX matrix_t>
-inline constexpr workinfo_t lanhe_worksize(norm_t normType,
-                                           uplo_t uplo,
-                                           const matrix_t& A)
+inline constexpr WorkInfo lanhe_worksize(norm_t normType,
+                                         uplo_t uplo,
+                                         const matrix_t& A)
 {
-    return workinfo_t{};
+    return WorkInfo{};
 }
 
 /** Worspace query of lanhe().
@@ -66,22 +66,22 @@ inline constexpr workinfo_t lanhe_worksize(norm_t normType,
  *
  * @param[in] opts Options.
  *
- * @return workinfo_t The amount workspace required.
+ * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
  */
 template <TLAPACK_NORM norm_t, TLAPACK_UPLO uplo_t, TLAPACK_MATRIX matrix_t>
-inline constexpr workinfo_t lanhe_worksize(norm_t normType,
-                                           uplo_t uplo,
-                                           const matrix_t& A,
-                                           const WorkspaceOpts<>& opts)
+inline constexpr WorkInfo lanhe_worksize(norm_t normType,
+                                         uplo_t uplo,
+                                         const matrix_t& A,
+                                         const WorkspaceOpts<>& opts)
 {
     using T = type_t<matrix_t>;
 
     if (normType == Norm::Inf || normType == Norm::One) {
-        return workinfo_t(sizeof(T), nrows(A));
+        return WorkInfo(sizeof(T), nrows(A));
     }
-    return workinfo_t{};
+    return WorkInfo{};
 }
 
 /** Calculates the norm of a hermitian matrix.
@@ -290,9 +290,9 @@ auto lanhe(norm_t normType,
 
     // quick redirect for max-norm and Frobenius norm
     if (normType == Norm::Max)
-        return lanhe(max_norm, uplo, A);
+        return lanhe(MAX_NORM, uplo, A);
     else if (normType == Norm::Fro)
-        return lanhe(frob_norm, uplo, A);
+        return lanhe(FROB_NORM, uplo, A);
     else {
         // the code below uses a workspace and is meant for column-major layout
         // so as to do one pass on the data in a contiguous way when computing
@@ -307,7 +307,7 @@ auto lanhe(norm_t normType,
         // Allocates workspace
         VectorOfBytes localworkdata;
         const Workspace work = [&]() {
-            workinfo_t workinfo;
+            WorkInfo workinfo;
             lanhe_worksize(normType, uplo, A, opts);
             return alloc_workspace(localworkdata, workinfo, opts.work);
         }();

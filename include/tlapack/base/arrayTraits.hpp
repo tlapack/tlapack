@@ -272,7 +272,8 @@ using Create = traits::CreateFunctor<T, int>;
 
 /// Transpose type deduction for the matrix T
 template <class T>
-using transpose_type = typename traits::matrix_type_traits<T, int>::transpose_type;
+using transpose_type =
+    typename traits::matrix_type_traits<T, int>::transpose_type;
 
 /// Common matrix type deduced from the list of types.
 template <class... matrix_t>

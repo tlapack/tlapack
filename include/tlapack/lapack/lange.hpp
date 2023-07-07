@@ -30,14 +30,14 @@ namespace tlapack {
  *
  * @param[in] A m-by-n matrix.
  *
- * @return workinfo_t The amount workspace required.
+ * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
  */
 template <TLAPACK_NORM norm_t, TLAPACK_SMATRIX matrix_t>
-inline constexpr workinfo_t lange_worksize(norm_t normType, const matrix_t& A)
+inline constexpr WorkInfo lange_worksize(norm_t normType, const matrix_t& A)
 {
-    return workinfo_t{};
+    return WorkInfo{};
 }
 
 /** Worspace query of lange()
@@ -56,22 +56,22 @@ inline constexpr workinfo_t lange_worksize(norm_t normType, const matrix_t& A)
  *
  * @param[in] opts Options.
  *
- * @return workinfo_t The amount workspace required.
+ * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
  */
 template <TLAPACK_NORM norm_t, TLAPACK_MATRIX matrix_t>
-inline constexpr workinfo_t lange_worksize(norm_t normType,
-                                           const matrix_t& A,
-                                           const WorkspaceOpts<>& opts)
+inline constexpr WorkInfo lange_worksize(norm_t normType,
+                                         const matrix_t& A,
+                                         const WorkspaceOpts<>& opts)
 {
     using T = type_t<matrix_t>;
 
     if (normType == Norm::Inf) {
-        return workinfo_t(sizeof(T), nrows(A));
+        return WorkInfo(sizeof(T), nrows(A));
     }
 
-    return workinfo_t{};
+    return WorkInfo{};
 }
 
 /** Calculates the norm of a matrix.
@@ -205,11 +205,11 @@ auto lange(norm_t normType, const matrix_t& A, const WorkspaceOpts<>& opts)
 
     // redirect for max-norm, one-norm and Frobenius norm
     if (normType == Norm::Max)
-        return lange(max_norm, A);
+        return lange(MAX_NORM, A);
     else if (normType == Norm::One)
-        return lange(one_norm, A);
+        return lange(ONE_NORM, A);
     else if (normType == Norm::Fro)
-        return lange(frob_norm, A);
+        return lange(FROB_NORM, A);
     else if (normType == Norm::Inf) {
         // the code below uses a workspace and is meant for column-major layout
         // so as to do one pass on the data in a contiguous way when computing
@@ -218,7 +218,7 @@ auto lange(norm_t normType, const matrix_t& A, const WorkspaceOpts<>& opts)
         // Allocates workspace
         VectorOfBytes localworkdata;
         const Workspace work = [&]() {
-            workinfo_t workinfo;
+            WorkInfo workinfo;
             lange_worksize(normType, A, opts);
             return alloc_workspace(localworkdata, workinfo, opts.work);
         }();

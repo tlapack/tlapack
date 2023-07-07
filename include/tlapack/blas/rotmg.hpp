@@ -212,7 +212,7 @@ int rotmg(T& d1, T& d2, T& a, const T& b, T h[4])
     return flag;
 }
 
-#ifdef USE_LAPACKPP_WRAPPERS
+#ifdef TLAPACK_USE_LAPACKPP
 
 template <TLAPACK_REAL T,
           enable_if_t<is_real<T>, int> = 0,

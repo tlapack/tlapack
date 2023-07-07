@@ -84,7 +84,7 @@ TEMPLATE_TEST_CASE(
             A(j, j) += real_t(n);
         }
 
-        lacpy(dense, A, L);
+        lacpy(GENERAL, A, L);
         real_t normA = tlapack::lanhe(tlapack::Norm::Max, uplo, A);
 
         // Run the Cholesky factorization

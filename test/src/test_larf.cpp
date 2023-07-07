@@ -226,24 +226,24 @@ TEMPLATE_TEST_CASE("Application of Householder reflectors",
         if (side == Side::Left) {
             if (storeMode == StoreV::Columnwise) {
                 v[oneIdx] = one;
-                gemv(conjTranspose, one, C, v, w);
+                gemv(CONJ_TRANS, one, C, v, w);
                 ger(-conj(tau), v, w, C);
             }
             else {
                 vH[oneIdx] = one;
-                gemv(conjTranspose, one, C, vH, w);
+                gemv(CONJ_TRANS, one, C, vH, w);
                 ger(-conj(tau), vH, w, C);
             }
         }
         else {
             if (storeMode == StoreV::Columnwise) {
                 v[oneIdx] = one;
-                gemv(noTranspose, one, C, v, w);
+                gemv(NO_TRANS, one, C, v, w);
                 ger(-conj(tau), w, v, C);
             }
             else {
                 vH[oneIdx] = one;
-                gemv(noTranspose, one, C, vH, w);
+                gemv(NO_TRANS, one, C, vH, w);
                 ger(-conj(tau), w, vH, C);
             }
         }
@@ -254,6 +254,6 @@ TEMPLATE_TEST_CASE("Application of Householder reflectors",
                 C(i, j) -= C0(i, j);
 
         // Check that larf returns the expected matrix
-        CHECK(lange(frob_norm, C) / tol < lange(frob_norm, C0));
+        CHECK(lange(FROB_NORM, C) / tol < lange(FROB_NORM, C0));
     }
 }

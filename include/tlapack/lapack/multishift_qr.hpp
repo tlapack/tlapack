@@ -82,14 +82,14 @@ struct FrancisOpts : public WorkspaceOpts<> {
  *
  * @param[in,out] opts Options.
  *
- * @return workinfo_t The amount workspace required.
+ * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
  */
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_SVECTOR vector_t,
           enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
-workinfo_t multishift_qr_worksize(
+WorkInfo multishift_qr_worksize(
     bool want_t,
     bool want_z,
     size_type<matrix_t> ilo,
@@ -106,7 +106,7 @@ workinfo_t multishift_qr_worksize(
     const idx_t nh = ihi - ilo;
 
     // quick return
-    workinfo_t workinfo;
+    WorkInfo workinfo;
     if (ilo + 1 >= ihi || n < opts.nmin || nh <= 0) return workinfo;
 
     {
@@ -245,7 +245,7 @@ int multishift_qr(bool want_t,
     // Allocates workspace
     VectorOfBytes localworkdata;
     Workspace work = [&]() {
-        workinfo_t workinfo =
+        WorkInfo workinfo =
             multishift_qr_worksize(want_t, want_z, ilo, ihi, A, w, Z, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();

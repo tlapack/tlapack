@@ -63,7 +63,7 @@ void rot(vectorX_t& x, vectorY_t& y, const c_type& c, const s_type& s)
     }
 }
 
-#ifdef USE_LAPACKPP_WRAPPERS
+#ifdef TLAPACK_USE_LAPACKPP
 
 template <TLAPACK_LEGACY_VECTOR vectorX_t,
           TLAPACK_LEGACY_VECTOR vectorY_t,

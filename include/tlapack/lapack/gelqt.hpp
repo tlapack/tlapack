@@ -34,14 +34,14 @@ struct GelqtOpts : public WorkspaceOpts<> {
  *
  * @param[in] opts Options.
  *
- * @return workinfo_t The amount workspace required.
+ * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
  */
 template <TLAPACK_SMATRIX matrix_t>
-inline constexpr workinfo_t gelqt_worksize(const matrix_t& A,
-                                           const matrix_t& TT,
-                                           const GelqtOpts& opts = {})
+inline constexpr WorkInfo gelqt_worksize(const matrix_t& A,
+                                         const matrix_t& TT,
+                                         const GelqtOpts& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -126,7 +126,7 @@ int gelqt(matrix_t& A, matrix_t& TT, const GelqtOpts& opts = {})
     // Allocates workspace
     VectorOfBytes localworkdata;
     Workspace work = [&]() {
-        workinfo_t workinfo = gelqt_worksize(A, TT, opts);
+        WorkInfo workinfo = gelqt_worksize(A, TT, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
 
