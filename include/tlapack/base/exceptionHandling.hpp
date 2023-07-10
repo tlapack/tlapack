@@ -73,7 +73,7 @@ struct ErrorCheck {
  * @brief Options to disable error checking.
  * @ingroup exception
  */
-constexpr ErrorCheck noErrorCheck = {false, false, false};
+constexpr ErrorCheck NO_ERROR_CHECK = {false, false, false};
 
 /**
  * @brief Options for error checking.

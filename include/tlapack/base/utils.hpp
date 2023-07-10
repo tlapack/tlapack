@@ -473,24 +473,25 @@ namespace internal {
      * is not defined.
      */
     template <class... Ts>
-    struct AllowOptBLASImpl {
+    struct allow_optblas_trait {
         static constexpr bool value =
             false;  ///< True if the list of types
                     ///< allows optimized BLAS library.
     };
 }  // namespace internal
 
-/// Alias for @c internal::AllowOptBLASImpl<,int>::value.
+/// Alias for @c internal::allow_optblas_trait<,int>::value.
 template <class... Ts>
-constexpr bool allow_optblas = internal::AllowOptBLASImpl<Ts..., int>::value;
+constexpr bool allow_optblas = internal::allow_optblas_trait<Ts..., int>::value;
 
 namespace internal {
 
     /// True if C is a row- or column-major matrix and the entry type can be
     /// used with optimized BLAS implementations.
     template <class C>
-    struct AllowOptBLASImpl<C,
-                            enable_if_t<is_matrix<C> && !is_vector<C>, int>> {
+    struct allow_optblas_trait<
+        C,
+        enable_if_t<is_matrix<C> && !is_vector<C>, int>> {
         static constexpr bool value =
             allow_optblas<type_t<C>> &&
             (layout<C> == Layout::ColMajor || layout<C> == Layout::RowMajor);
@@ -499,7 +500,7 @@ namespace internal {
     /// True if C is a strided vector and the entry type can be used with
     /// optimized BLAS implementations.
     template <class C>
-    struct AllowOptBLASImpl<C, enable_if_t<is_vector<C>, int>> {
+    struct allow_optblas_trait<C, enable_if_t<is_vector<C>, int>> {
         static constexpr bool value =
             allow_optblas<type_t<C>> &&
             (layout<C> == Layout::ColMajor || layout<C> == Layout::RowMajor ||
@@ -513,25 +514,26 @@ namespace internal {
      * 2. C is not a matrix or vector, but is convertible to T.
      */
     template <class C, class T>
-    struct AllowOptBLASImpl<pair<C, T>,
-                            enable_if_t<is_matrix<C> || is_vector<C>, int>> {
+    struct allow_optblas_trait<pair<C, T>,
+                               enable_if_t<is_matrix<C> || is_vector<C>, int>> {
         static constexpr bool value =
             allow_optblas<T> &&
             (allow_optblas<C> &&
              is_same_v<type_t<C>, typename std::decay<T>::type>);
     };
     template <class C, class T>
-    struct AllowOptBLASImpl<pair<C, T>,
-                            enable_if_t<!is_matrix<C> && !is_vector<C>, int>> {
+    struct allow_optblas_trait<
+        pair<C, T>,
+        enable_if_t<!is_matrix<C> && !is_vector<C>, int>> {
         static constexpr bool value =
             allow_optblas<T> && std::is_constructible<T, C>::value;
     };
 
     template <class C1, class T1, class C2, class T2, class... Ps>
-    struct AllowOptBLASImpl<pair<C1, T1>, pair<C2, T2>, Ps...> {
+    struct allow_optblas_trait<pair<C1, T1>, pair<C2, T2>, Ps...> {
         static constexpr bool value =
-            AllowOptBLASImpl<pair<C1, T1>, int>::value &&
-            AllowOptBLASImpl<pair<C2, T2>, Ps...>::value &&
+            allow_optblas_trait<pair<C1, T1>, int>::value &&
+            allow_optblas_trait<pair<C2, T2>, Ps...>::value &&
             has_compatible_layout<C1, C2, Ps...>;
     };
 }  // namespace internal
@@ -546,7 +548,7 @@ using disable_if_allow_optblas_t =
 #define TLAPACK_OPT_TYPE(T)                     \
     namespace internal {                        \
         template <>                             \
-        struct AllowOptBLASImpl<T, int> {       \
+        struct allow_optblas_trait<T, int> {    \
             static constexpr bool value = true; \
         };                                      \
     }
@@ -605,26 +607,29 @@ inline Workspace alloc_workspace(VectorOfBytes& v,
     }
 }
 
-/** Chooses between a preferrable type `work_type` and a default type
- * `work_default`
- *
- * @c deduce_work<>::type = work_default only if deduce_work is void.
- *
- * @tparam work_type    Preferrable workspace type
- * @tparam work_default Default workspace type
- */
-template <class work_type, class work_default>
-struct deduce_work {
-    using type = work_type;
-};
-template <class work_default>
-struct deduce_work<void, work_default> {
-    using type = work_default;
-};
+namespace internal {
+    /** Chooses between a preferrable type `work_type` and a default type
+     * `work_default`
+     *
+     * @c deduce_work<>::type = work_default only if deduce_work is void.
+     *
+     * @tparam work_type    Preferrable workspace type
+     * @tparam work_default Default workspace type
+     */
+    template <class work_type, class work_default>
+    struct deduce_work {
+        using type = work_type;
+    };
+    template <class work_default>
+    struct deduce_work<void, work_default> {
+        using type = work_default;
+    };
+}  // namespace internal
 
 /// Alias for @c deduce_work<>::type
 template <class work_type, class work_default>
-using deduce_work_t = typename deduce_work<work_type, work_default>::type;
+using deduce_work_t =
+    typename internal::deduce_work<work_type, work_default>::type;
 
 /**
  * @brief Options structure with a Workspace attribute

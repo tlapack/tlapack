@@ -39,18 +39,23 @@ For instance, `fooBar` is a good name for a function argument, while `foo_bar` i
 #### Other naming conventions
 
 1. Use upper camel case (Pascal case) style to name:
-   - concepts, e.g., `tlapack::concepts::LegacyArray`.
-   - enumeration classes, e.g., `tlapack::GetrfVariant`.
-   - classes, e.g., `tlapack::ErrorCheck`.
-2. Namespace variables are named using all-caps snake case, e.g., `tlapack::LOWER_HESSENBERG`.
-3. Functions are named using snake case, e.g., `tlapack::multishift_qr`.
-4. Preprocessor constants are named using all-caps snake case starting with `TLAPACK_`, e.g., `TLAPACK_NDEBUG`.
-5. Preprocessor macros are named using lower snake case starting with `tlapack_`, e.g., `tlapack_check`.
+   - concepts, e.g., `tlapack::concepts::Scalar` and `tlapack::concepts::LegacyArray`.
+   - enumeration classes, e.g., `tlapack::GetrfVariant` and `tlapack::Layout`.
+   - classes with non-static members, e.g., `tlapack::ErrorCheck` and `tlapack::StrongZero`.
+2. Use snake case style to name:
+   - namespaces, e.g., `tlapack` and `tlapack::legacy`.
+   - functions, e.g., `tlapack::multishift_qr` and `tlapack::gemm`.
+   - aliases to fundamental types (see https://en.cppreference.com/w/cpp/language/types), e.g., `tlapack::byte` is an alias to `unsigned char`.
+   - template aliases to fundamental types or classes with only static members, e.g., `tlapack::enable_if_allow_optblas_t`, `tlapack::type_t` and `tlapack::real_type`.
+   - namespace template variables, e.g., `tlapack::layout` and `tlapack::is_real`.
+3. Namespace non-template variables are named using all-caps snake case, e.g., `tlapack::LOWER_HESSENBERG` and `tlapack::LOWER_HESSENBERG`.
+4. Preprocessor constants are named using all-caps snake case starting with `TLAPACK_`, e.g., `TLAPACK_NDEBUG` and `TLAPACK_MATRIX`.
+5. Preprocessor function macros are named using lower snake case starting with `tlapack_`, e.g., `tlapack_check` and `tlapack_warning`.
 
 Special cases:
 
-1. Traits are classes named using snake case and have the suffix `_trait` or `_traits`, e.g., `tlapack::traits::entry_type_trait` and `tlapack::traits::matrix_type_traits`.
-2. Classes for optional arguments of functions are named using upper camel case (Pascal case) style and have the suffix `Opts`, e.g., `tlapack::BlockedCholeskyOpts`.
+1. Traits are classes with only static members and, thus, they are named using snake case. Moreover, they have the suffix `_trait` or `_traits`, e.g., `tlapack::traits::entry_type_trait` and `tlapack::traits::matrix_type_traits`.
+2. Classes for optional arguments of mathematical routines usually have non-static members and, therefore, they are named using upper camel case (Pascal case) style. Moreover, they have the suffix `Opts`, e.g., `tlapack::WorkspaceOpts` and `tlapack::BlockedCholeskyOpts`.
 
 ### Usage of the `auto` keyword
 

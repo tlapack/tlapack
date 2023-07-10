@@ -114,7 +114,7 @@ int potrf2(uplo_t uplo, matrix_t& A, const EcOpts& opts = {})
         auto A22 = slice(A, range{n1, n}, range{n1, n});
 
         // Factor A11
-        int info = potrf2(uplo, A11, noErrorCheck);
+        int info = potrf2(uplo, A11, NO_ERROR_CHECK);
         if (info != 0) {
             tlapack_error_internal(
                 opts.ec, info,
@@ -144,7 +144,7 @@ int potrf2(uplo_t uplo, matrix_t& A, const EcOpts& opts = {})
         }
 
         // Factor A22
-        info = potrf2(uplo, A22, noErrorCheck);
+        info = potrf2(uplo, A22, NO_ERROR_CHECK);
         if (info == 0)
             return 0;
         else {
