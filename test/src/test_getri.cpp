@@ -74,7 +74,7 @@ TEMPLATE_TEST_CASE("Inversion of a general m-by-n matrix",
         getrf(invA, piv);
 
         // run inverse function, this could test any inverse function of choice
-        getri_opts_t opts;
+        GetriOpts opts;
         opts.variant = variant;
         getri(invA, piv, opts);
 

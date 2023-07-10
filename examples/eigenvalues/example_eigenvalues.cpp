@@ -110,7 +110,7 @@ void run(size_t n,
          bool verbose = false)
 {
     using real_t = tlapack::real_type<T>;
-    using matrix_t = tlapack::legacyMatrix<T>;
+    using matrix_t = tlapack::LegacyMatrix<T>;
     using std::size_t;
 
     constexpr bool use_lapack
@@ -159,7 +159,7 @@ void run(size_t n,
             A(i, j) = rand_helper<T>(gen);
 
     // Frobenius norm of A
-    auto normA = tlapack::lange(tlapack::frob_norm, A);
+    auto normA = tlapack::lange(tlapack::FROB_NORM, A);
 
     // Print A
     if (verbose) {
@@ -240,7 +240,7 @@ void run(size_t n,
                                &n_sweep, &n_shifts_total);
             }
             else {
-                tlapack::francis_opts_t<> opts;
+                tlapack::FrancisOpts<> opts;
                 std::vector<std::complex<real_t>> w(n);
                 info = tlapack::multishift_qr(true, true, 0, n, H, w, Q, opts);
                 n_aed = opts.n_aed;
@@ -249,7 +249,7 @@ void run(size_t n,
             }
         }
         else {
-            tlapack::francis_opts_t<> opts;
+            tlapack::FrancisOpts<> opts;
             std::vector<std::complex<real_t>> w(n);
             info = tlapack::multishift_qr(true, true, 0, n, H, w, Q, opts);
             n_aed = opts.n_aed;
@@ -305,7 +305,7 @@ void run(size_t n,
 
         // Compute ||Q'Q - I||_F
         norm_orth_1 =
-            tlapack::lansy(tlapack::frob_norm, tlapack::Uplo::Upper, work);
+            tlapack::lansy(tlapack::FROB_NORM, tlapack::Uplo::Upper, work);
 
         if (verbose) {
             std::cout << std::endl << "Q'Q-I = ";
@@ -339,7 +339,7 @@ void run(size_t n,
             printMatrix(H);
         }
 
-        norm_repres_1 = tlapack::lange(tlapack::frob_norm, H) / normA;
+        norm_repres_1 = tlapack::lange(tlapack::FROB_NORM, H) / normA;
     }
 
     // 4) Compute Q*AQ (usefull for debugging)

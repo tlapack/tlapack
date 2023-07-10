@@ -27,14 +27,14 @@ namespace tlapack {
  *
  * @param[in] opts Options.
  *
- * @return workinfo_t The amount workspace required.
+ * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
  */
 template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
-inline constexpr workinfo_t ungl2_worksize(const matrix_t& Q,
-                                           const vector_t& tauw,
-                                           const workspace_opts_t<>& opts = {})
+inline constexpr WorkInfo ungl2_worksize(const matrix_t& Q,
+                                         const vector_t& tauw,
+                                         const WorkspaceOpts<>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -44,10 +44,10 @@ inline constexpr workinfo_t ungl2_worksize(const matrix_t& Q,
 
     if (k > 1) {
         auto C = rows(Q, range{1, k});
-        return larf_worksize(right_side, forward, rowwise_storage, row(Q, 0),
+        return larf_worksize(RIGHT_SIDE, FORWARD, ROWWISE_STORAGE, row(Q, 0),
                              tauw[0], C, opts);
     }
-    return workinfo_t{};
+    return WorkInfo{};
 }
 
 /**
@@ -80,9 +80,7 @@ inline constexpr workinfo_t ungl2_worksize(const matrix_t& Q,
  * @ingroup computational
  */
 template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
-int ungl2(matrix_t& Q,
-          const vector_t& tauw,
-          const workspace_opts_t<>& opts = {})
+int ungl2(matrix_t& Q, const vector_t& tauw, const WorkspaceOpts<>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using T = type_t<matrix_t>;
@@ -103,12 +101,12 @@ int ungl2(matrix_t& Q,
     // Allocates workspace
     VectorOfBytes localworkdata;
     Workspace work = [&]() {
-        workinfo_t workinfo = ungl2_worksize(Q, tauw, opts);
+        WorkInfo workinfo = ungl2_worksize(Q, tauw, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
 
     // Options to forward
-    auto&& larfOpts = workspace_opts_t<>{work};
+    auto&& larfOpts = WorkspaceOpts<>{work};
 
     // Initialise columns t:k-1 to rows of the unit matrix
     if (k > m) {
@@ -131,7 +129,7 @@ int ungl2(matrix_t& Q,
                 // both conditions are satisfied
 
                 auto Q11 = slice(Q, range(j + 1, k), range(j, n));
-                larf(Side::Right, forward, rowwise_storage, w, conj(tauw[j]),
+                larf(Side::Right, FORWARD, ROWWISE_STORAGE, w, conj(tauw[j]),
                      Q11, larfOpts);
             }
 

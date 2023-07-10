@@ -156,13 +156,12 @@ struct Workspace {
 };
 
 /// @brief Output information in the workspace query
-struct workinfo_t {
+struct WorkInfo {
     size_t m = 0;  ///< Number of rows needed in the Workspace
     size_t n = 0;  ///< Number of columns needed in the Workspace
 
     /// Constructor using sizes
-    inline constexpr workinfo_t(size_t m = 0, size_t n = 0) noexcept
-        : m(m), n(n)
+    inline constexpr WorkInfo(size_t m = 0, size_t n = 0) noexcept : m(m), n(n)
     {}
 
     /// Size needed in the Workspace
@@ -177,7 +176,7 @@ struct workinfo_t {
      *
      * @param[in] workinfo Another specification of work sizes
      */
-    void minMax(const workinfo_t& workinfo) noexcept
+    void minMax(const WorkInfo& workinfo) noexcept
     {
         const size_t m1 = workinfo.m;
         const size_t n1 = workinfo.n;
@@ -209,9 +208,9 @@ struct workinfo_t {
      * memory.
      *
      * @param workinfo The object to be added to *this.
-     * @return constexpr workinfo_t& The modified workinfo.
+     * @return constexpr WorkInfo& The modified workinfo.
      */
-    constexpr workinfo_t& operator+=(const workinfo_t& workinfo) noexcept
+    constexpr WorkInfo& operator+=(const WorkInfo& workinfo) noexcept
     {
         const size_t m1 = workinfo.m;
         const size_t n1 = workinfo.n;

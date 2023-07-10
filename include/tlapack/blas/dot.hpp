@@ -47,7 +47,7 @@ auto dot(const vectorX_t& x, const vectorY_t& y)
     return result;
 }
 
-#ifdef USE_LAPACKPP_WRAPPERS
+#ifdef TLAPACK_USE_LAPACKPP
 
 template <
     TLAPACK_LEGACY_VECTOR vectorX_t,

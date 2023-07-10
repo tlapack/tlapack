@@ -69,7 +69,7 @@ namespace legacy {
      * @see unmqr(
         side_t side, trans_t trans,
         const matrixA_t& A, const tau_t& tau,
-        matrixC_t& C, const unmqr_opts_t<workT_t>& opts = {} )
+        matrixC_t& C, const UnmqrOpts<workT_t>& opts = {} )
      *
      * @ingroup legacy_lapack
      */

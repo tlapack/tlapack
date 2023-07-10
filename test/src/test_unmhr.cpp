@@ -89,9 +89,9 @@ TEMPLATE_TEST_CASE("Result of unmhr matches result from unghr",
 
     DYNAMIC_SECTION("matrix_type = " << matrix_type << " side = " << side
                                      << " op = " << op << " ilo = " << ilo
-                                     << " ihi = " << ihi << " frob_norm")
+                                     << " ihi = " << ihi << " FROB_NORM")
     {
-        real_t c_norm = lange(frob_norm, C);
+        real_t c_norm = lange(FROB_NORM, C);
 
         // Apply the orthogonal factor to C
         unmhr(side, op, ilo, ihi, H, tau, C);
@@ -126,7 +126,7 @@ TEMPLATE_TEST_CASE("Result of unmhr matches result from unghr",
                     C(i, j) = C(i, j) - C_copy(i, j);
         }
 
-        real_t e_norm = lange(frob_norm, C);
+        real_t e_norm = lange(FROB_NORM, C);
 
         CHECK(e_norm <= tol * c_norm);
     }

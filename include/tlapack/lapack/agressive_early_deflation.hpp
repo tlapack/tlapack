@@ -28,7 +28,7 @@
 namespace tlapack {
 // Forward declaration
 template <TLAPACK_INDEX idx_t>
-struct francis_opts_t;
+struct FrancisOpts;
 
 /** Worspace query of agressive_early_deflation().
  *
@@ -63,14 +63,14 @@ struct francis_opts_t;
  *
  * @param[in] opts Options.
  *
- * @return workinfo_t The amount workspace required.
+ * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
  */
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_SVECTOR vector_t,
           enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
-workinfo_t agressive_early_deflation_worksize(
+WorkInfo agressive_early_deflation_worksize(
     bool want_t,
     bool want_z,
     size_type<matrix_t> ilo,
@@ -81,7 +81,7 @@ workinfo_t agressive_early_deflation_worksize(
     const matrix_t& Z,
     const size_type<matrix_t>& ns,
     const size_type<matrix_t>& nd,
-    const francis_opts_t<size_type<matrix_t> >& opts = {})
+    const FrancisOpts<size_type<matrix_t> >& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -93,7 +93,7 @@ workinfo_t agressive_early_deflation_worksize(
     auto TW = slice(A, range{0, jw}, range{0, jw});
 
     // quick return
-    workinfo_t workinfo;
+    WorkInfo workinfo;
     if (n < 9 || nw <= 1 || ihi <= 1 + ilo) return workinfo;
 
     if (jw >= opts.nmin) {
@@ -185,7 +185,7 @@ void agressive_early_deflation(bool want_t,
                                matrix_t& Z,
                                size_type<matrix_t>& ns,
                                size_type<matrix_t>& nd,
-                               francis_opts_t<size_type<matrix_t> >& opts)
+                               FrancisOpts<size_type<matrix_t> >& opts)
 {
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
@@ -238,14 +238,14 @@ void agressive_early_deflation(bool want_t,
     // Allocates workspace
     VectorOfBytes localworkdata;
     Workspace work = [&]() {
-        workinfo_t workinfo = agressive_early_deflation_worksize(
+        WorkInfo workinfo = agressive_early_deflation_worksize(
             want_t, want_z, ilo, ihi, nw, A, s, Z, ns, nd, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
 
     // Options to forward
     opts.work = work;
-    auto&& gehrdOpts = gehrd_opts_t<idx_t>{work};
+    auto&& gehrdOpts = GehrdOpts<idx_t>{work};
 
     // Define workspace matrices
     // We use the lower triangular part of A as workspace
@@ -429,21 +429,21 @@ void agressive_early_deflation(bool want_t,
             for (idx_t i = 0; i < ns; ++i) {
                 v[i] = conj(V(0, i));
             }
-            larfg(forward, columnwise_storage, v, tau);
+            larfg(FORWARD, COLUMNWISE_STORAGE, v, tau);
 
             auto Wv_aux = slice(WV, range{0, jw}, 1);
-            workspace_opts_t<> work2(Wv_aux);
+            WorkspaceOpts<> work2(Wv_aux);
 
             auto TW_slice = slice(TW, range{0, ns}, range{0, jw});
-            larf(Side::Left, forward, columnwise_storage, v, conj(tau),
+            larf(Side::Left, FORWARD, COLUMNWISE_STORAGE, v, conj(tau),
                  TW_slice, work2);
 
             auto TW_slice2 = slice(TW, range{0, jw}, range{0, ns});
-            larf(Side::Right, forward, columnwise_storage, v, tau, TW_slice2,
+            larf(Side::Right, FORWARD, COLUMNWISE_STORAGE, v, tau, TW_slice2,
                  work2);
 
             auto V_slice = slice(V, range{0, jw}, range{0, ns});
-            larf(Side::Right, forward, columnwise_storage, v, tau, V_slice,
+            larf(Side::Right, FORWARD, COLUMNWISE_STORAGE, v, tau, V_slice,
                  work2);
         }
 
@@ -452,7 +452,7 @@ void agressive_early_deflation(bool want_t,
             auto tau = slice(WV, range{0, jw}, 0);
             gehrd(0, ns, TW, tau, gehrdOpts);
 
-            workspace_opts_t<> work2(slice(WV, range{0, jw}, 1));
+            WorkspaceOpts<> work2(slice(WV, range{0, jw}, 1));
             unmhr(Side::Right, Op::NoTrans, 0, ns, TW, tau, V, work2);
         }
     }
@@ -584,7 +584,7 @@ inline void agressive_early_deflation(bool want_t,
                                       size_type<matrix_t>& ns,
                                       size_type<matrix_t>& nd)
 {
-    francis_opts_t<size_type<matrix_t> > opts = {};
+    FrancisOpts<size_type<matrix_t> > opts = {};
     agressive_early_deflation(want_t, want_z, ilo, ihi, nw, A, s, Z, ns, nd,
                               opts);
 }

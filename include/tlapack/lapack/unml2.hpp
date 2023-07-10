@@ -40,7 +40,7 @@ namespace tlapack {
  *
  * @param[in] opts Options.
  *
- * @return workinfo_t The amount workspace required.
+ * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
  */
@@ -49,12 +49,12 @@ template <TLAPACK_SMATRIX matrixA_t,
           TLAPACK_VECTOR tau_t,
           TLAPACK_SIDE side_t,
           TLAPACK_OP trans_t>
-inline constexpr workinfo_t unml2_worksize(side_t side,
-                                           trans_t trans,
-                                           const matrixA_t& A,
-                                           const tau_t& tau,
-                                           const matrixC_t& C,
-                                           const workspace_opts_t<>& opts = {})
+inline constexpr WorkInfo unml2_worksize(side_t side,
+                                         trans_t trans,
+                                         const matrixA_t& A,
+                                         const tau_t& tau,
+                                         const matrixC_t& C,
+                                         const WorkspaceOpts<>& opts = {})
 {
     using idx_t = size_type<matrixA_t>;
     using range = pair<idx_t, idx_t>;
@@ -65,7 +65,7 @@ inline constexpr workinfo_t unml2_worksize(side_t side,
     const idx_t nA = (side == Side::Left) ? m : n;
 
     auto v = slice(A, 0, range{0, nA});
-    return larf_worksize(side, forward, rowwise_storage, v, tau[0], C, opts);
+    return larf_worksize(side, FORWARD, ROWWISE_STORAGE, v, tau[0], C, opts);
 }
 
 /** Applies unitary matrix Q from an LQ factorization to a matrix C.
@@ -121,7 +121,7 @@ int unml2(side_t side,
           const matrixA_t& A,
           const tau_t& tau,
           matrixC_t& C,
-          const workspace_opts_t<>& opts = {})
+          const WorkspaceOpts<>& opts = {})
 {
     using TA = type_t<matrixA_t>;
     using idx_t = size_type<matrixA_t>;
@@ -145,12 +145,12 @@ int unml2(side_t side,
     // Allocates workspace
     VectorOfBytes localworkdata;
     Workspace work = [&]() {
-        workinfo_t workinfo = unml2_worksize(side, trans, A, tau, C, opts);
+        WorkInfo workinfo = unml2_worksize(side, trans, A, tau, C, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
 
     // Options to forward
-    auto&& larfOpts = workspace_opts_t<>{work};
+    auto&& larfOpts = WorkspaceOpts<>{work};
 
     // const expressions
     const bool positiveInc =
@@ -166,12 +166,12 @@ int unml2(side_t side,
 
         if (side == Side::Left) {
             auto Ci = rows(C, range{i, m});
-            larf(left_side, forward, rowwise_storage, v,
+            larf(LEFT_SIDE, FORWARD, ROWWISE_STORAGE, v,
                  (trans == Op::NoTrans) ? conj(tau[i]) : tau[i], Ci, larfOpts);
         }
         else {
             auto Ci = cols(C, range{i, n});
-            larf(right_side, forward, rowwise_storage, v,
+            larf(RIGHT_SIDE, FORWARD, ROWWISE_STORAGE, v,
                  (trans == Op::NoTrans) ? conj(tau[i]) : tau[i], Ci, larfOpts);
         }
     }

@@ -14,7 +14,7 @@
 
 namespace tlapack {
 template <TLAPACK_INDEX idx_t>
-struct transpose_opts_t {
+struct TransposeOpts {
     // Optimization parameter. Matrices smaller than nx will not
     // be transposed using recursion. Must be at least 2.s
     idx_t nx = 16;
@@ -37,7 +37,7 @@ struct transpose_opts_t {
 template <TLAPACK_SMATRIX matrixA_t, TLAPACK_SMATRIX matrixB_t>
 void conjtranspose(matrixA_t& A,
                    matrixB_t& B,
-                   const transpose_opts_t<size_type<matrixA_t>>& opts = {})
+                   const TransposeOpts<size_type<matrixA_t>>& opts = {})
 {
     using idx_t = size_type<matrixA_t>;
     using range = pair<idx_t, idx_t>;
@@ -94,7 +94,7 @@ void conjtranspose(matrixA_t& A,
 template <TLAPACK_SMATRIX matrixA_t, TLAPACK_SMATRIX matrixB_t>
 void transpose(matrixA_t& A,
                matrixB_t& B,
-               const transpose_opts_t<size_type<matrixA_t>>& opts = {})
+               const TransposeOpts<size_type<matrixA_t>>& opts = {})
 {
     using idx_t = size_type<matrixA_t>;
     using range = pair<idx_t, idx_t>;

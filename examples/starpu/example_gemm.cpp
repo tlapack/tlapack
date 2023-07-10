@@ -123,7 +123,7 @@ int main(int argc, char** argv)
         std::cout << "B = " << B << std::endl;
 
         /* GEMM */
-        gemm(noTranspose, noTranspose, T(1), A, B, C);
+        gemm(NO_TRANS, NO_TRANS, T(1), A, B, C);
 
         std::cout << "A = " << A << std::endl;
         std::cout << "B = " << B << std::endl;

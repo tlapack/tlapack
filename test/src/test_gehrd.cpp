@@ -62,7 +62,7 @@ void check_hess_reduction(size_type<matrix_t> ilo,
     auto orth_res_norm = check_orthogonality(Q, res);
     CHECK(orth_res_norm <= tol);
 
-    auto normA = tlapack::lange(tlapack::frob_norm, A);
+    auto normA = tlapack::lange(tlapack::FROB_NORM, A);
     auto simil_res_norm = check_similarity_transform(A, Q, H, res, work);
     CHECK(simil_res_norm <= tol * normA);
 }
@@ -143,7 +143,7 @@ TEMPLATE_TEST_CASE("Hessenberg reduction is backward stable",
             idx_t nb = GENERATE(2, 3);
             INFO("nb = " << nb);
 
-            gehrd_opts_t<idx_t> opts;
+            GehrdOpts<idx_t> opts;
             opts.nb = nb;
             opts.nx_switch = 2;
             tlapack::gehrd(ilo, ihi, H, tau, opts);

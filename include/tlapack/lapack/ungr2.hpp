@@ -27,14 +27,14 @@ namespace tlapack {
  *
  * @param[in] opts Options.
  *
- * @return workinfo_t The amount workspace required.
+ * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
  */
 template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
-inline constexpr workinfo_t ungr2_worksize(const matrix_t& A,
-                                           const vector_t& tau,
-                                           const workspace_opts_t<>& opts = {})
+inline constexpr WorkInfo ungr2_worksize(const matrix_t& A,
+                                         const vector_t& tau,
+                                         const WorkspaceOpts<>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -44,10 +44,10 @@ inline constexpr workinfo_t ungr2_worksize(const matrix_t& A,
 
     if (m > 1) {
         auto C = rows(A, range{1, m});
-        return larf_worksize(right_side, backward, rowwise_storage, row(A, 0),
+        return larf_worksize(RIGHT_SIDE, BACKWARD, ROWWISE_STORAGE, row(A, 0),
                              tau[0], C, opts);
     }
-    return workinfo_t{};
+    return WorkInfo{};
 }
 
 /**
@@ -77,7 +77,7 @@ inline constexpr workinfo_t ungr2_worksize(const matrix_t& A,
  * @ingroup computational
  */
 template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
-int ungr2(matrix_t& A, const vector_t& tau, const workspace_opts_t<>& opts = {})
+int ungr2(matrix_t& A, const vector_t& tau, const WorkspaceOpts<>& opts = {})
 {
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
@@ -100,12 +100,12 @@ int ungr2(matrix_t& A, const vector_t& tau, const workspace_opts_t<>& opts = {})
     // Allocates workspace
     VectorOfBytes localworkdata;
     Workspace work = [&]() {
-        workinfo_t workinfo = ungr2_worksize(A, tau, opts);
+        WorkInfo workinfo = ungr2_worksize(A, tau, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
 
     // Options to forward
-    auto&& larfOpts = workspace_opts_t<>{work};
+    auto&& larfOpts = WorkspaceOpts<>{work};
 
     // Initialise rows 0:m-k to rows of the unit matrix
     for (idx_t j = 0; j < n; ++j) {

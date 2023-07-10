@@ -28,9 +28,9 @@ void run(size_t m, size_t n, size_t k)
     using idx_t = size_t;
     using tlapack::min;
     using colmajor_matrix_t =
-        tlapack::legacyMatrix<T, idx_t, tlapack::Layout::ColMajor>;
+        tlapack::LegacyMatrix<T, idx_t, tlapack::Layout::ColMajor>;
     using rowmajor_matrix_t =
-        tlapack::legacyMatrix<T, idx_t, tlapack::Layout::RowMajor>;
+        tlapack::LegacyMatrix<T, idx_t, tlapack::Layout::RowMajor>;
 
     // Functors for creating new matrices
     tlapack::Create<colmajor_matrix_t> new_colmajor_matrix;
@@ -110,7 +110,7 @@ void run(size_t m, size_t n, size_t k)
               << std::endl
               << "time = " << bestTime.count() * 1.0e-6 << " ms" << std::endl;
 
-    // Using abstract interface:
+    // Using main interface:
 
     bestTime = std::chrono::nanoseconds::max();
     for (int run = 0; run < Nruns; ++run) {
@@ -138,12 +138,12 @@ void run(size_t m, size_t n, size_t k)
     }
 
     // Output
-    std::cout << "Using abstract interface:" << std::endl
+    std::cout << "Using main interface:" << std::endl
               << "||C-AB||_F = " << tlapack::legacy::nrm2(n, &C_[0], 1)
               << std::endl
               << "time = " << bestTime.count() * 1.0e-6 << " ms" << std::endl;
 
-    // Using abstract interface with row major layout:
+    // Using main interface with row major layout:
 
     bestTime = std::chrono::nanoseconds::max();
     for (int run = 0; run < Nruns; ++run) {
@@ -171,7 +171,7 @@ void run(size_t m, size_t n, size_t k)
     }
 
     // Output
-    std::cout << "Using abstract interface with row major layout:" << std::endl
+    std::cout << "Using main interface with row major layout:" << std::endl
               << "||C-AB||_F = " << tlapack::legacy::nrm2(n, &C_[0], 1)
               << std::endl
               << "time = " << bestTime.count() * 1.0e-6 << " ms" << std::endl;

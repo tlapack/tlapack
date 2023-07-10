@@ -26,7 +26,7 @@ namespace starpu {
     namespace internal {
 
         /**
-         * @brief Abstract class for accessing the elements of a matrix
+         * @brief Class for accessing the elements of a tlapack::starpu::Matrix
          *
          * @details This class is used to implement the operator() and
          * operator[] for the Matrix class. It is not intended to be used

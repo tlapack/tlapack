@@ -68,13 +68,13 @@ int potrs(uplo_t uplo, const matrixA_t& A, matrixB_t& B)
 
     if (uplo == Uplo::Upper) {
         // Solve A*X = B where A = U**H *U.
-        trsm(left_side, uplo, conjTranspose, nonUnit_diagonal, one, A, B);
-        trsm(left_side, uplo, noTranspose, nonUnit_diagonal, one, A, B);
+        trsm(LEFT_SIDE, uplo, CONJ_TRANS, NON_UNIT_DIAG, one, A, B);
+        trsm(LEFT_SIDE, uplo, NO_TRANS, NON_UNIT_DIAG, one, A, B);
     }
     else {
         // Solve A*X = B where A = L*L**H.
-        trsm(left_side, uplo, noTranspose, nonUnit_diagonal, one, A, B);
-        trsm(left_side, uplo, conjTranspose, nonUnit_diagonal, one, A, B);
+        trsm(LEFT_SIDE, uplo, NO_TRANS, NON_UNIT_DIAG, one, A, B);
+        trsm(LEFT_SIDE, uplo, CONJ_TRANS, NON_UNIT_DIAG, one, A, B);
     }
     return 0;
 }

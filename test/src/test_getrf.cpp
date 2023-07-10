@@ -79,7 +79,7 @@ TEMPLATE_TEST_CASE("LU factorization of a general m-by-n matrix",
         // Initialize piv vector to all zeros
         std::vector<idx_t> piv(k, idx_t(0));
         // Run getrf and both A and piv will be update
-        getrf(A, piv, getrf_opts_t{variant});
+        getrf(A, piv, GetrfOpts{variant});
 
         // A contains L and U now, then form A <--- LU
         if (m > n) {

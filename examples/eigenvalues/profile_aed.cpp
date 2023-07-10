@@ -92,7 +92,7 @@ void run(size_t n, size_t nw, bool use_fortran)
 {
     using real_t = tlapack::real_type<T>;
     using std::size_t;
-    using matrix_t = tlapack::legacyMatrix<real_t>;
+    using matrix_t = tlapack::LegacyMatrix<real_t>;
 
     constexpr bool use_lapack
 #ifdef USE_LAPACK
@@ -143,7 +143,7 @@ void run(size_t n, size_t nw, bool use_fortran)
             A(i, j) = 0.0;
 
     // Frobenius norm of A
-    auto normA = tlapack::lange(tlapack::frob_norm, A);
+    auto normA = tlapack::lange(tlapack::FROB_NORM, A);
 
     // Copy A to H
     tlapack::lacpy(tlapack::Uplo::General, A, H);
@@ -210,7 +210,7 @@ void run(size_t n, size_t nw, bool use_fortran)
 
         // Compute ||Q'Q - I||_F
         norm_orth_1 =
-            tlapack::lansy(tlapack::frob_norm, tlapack::Uplo::Upper, work);
+            tlapack::lansy(tlapack::FROB_NORM, tlapack::Uplo::Upper, work);
     }
 
     // 3) Compute ||QHQ* - A||_F / ||A||_F
@@ -231,7 +231,7 @@ void run(size_t n, size_t nw, bool use_fortran)
             for (size_t i = 0; i < n; ++i)
                 H(i, j) -= A(i, j);
 
-        norm_repres_1 = tlapack::lange(tlapack::frob_norm, H) / normA;
+        norm_repres_1 = tlapack::lange(tlapack::FROB_NORM, H) / normA;
     }
 
     std::cout << std::endl;

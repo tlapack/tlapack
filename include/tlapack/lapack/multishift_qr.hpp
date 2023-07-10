@@ -24,9 +24,9 @@ namespace tlapack {
  * Options struct for multishift_qr
  */
 template <TLAPACK_INDEX idx_t = size_t>
-struct francis_opts_t : public workspace_opts_t<> {
-    inline constexpr francis_opts_t(const workspace_opts_t<>& opts = {})
-        : workspace_opts_t<>(opts){};
+struct FrancisOpts : public WorkspaceOpts<> {
+    inline constexpr FrancisOpts(const WorkspaceOpts<>& opts = {})
+        : WorkspaceOpts<>(opts){};
 
     // Function that returns the number of shifts to use
     // for a given matrix size
@@ -82,14 +82,14 @@ struct francis_opts_t : public workspace_opts_t<> {
  *
  * @param[in,out] opts Options.
  *
- * @return workinfo_t The amount workspace required.
+ * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
  */
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_SVECTOR vector_t,
           enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
-workinfo_t multishift_qr_worksize(
+WorkInfo multishift_qr_worksize(
     bool want_t,
     bool want_z,
     size_type<matrix_t> ilo,
@@ -97,7 +97,7 @@ workinfo_t multishift_qr_worksize(
     const matrix_t& A,
     const vector_t& w,
     const matrix_t& Z,
-    const francis_opts_t<size_type<matrix_t> >& opts = {})
+    const FrancisOpts<size_type<matrix_t> >& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -106,7 +106,7 @@ workinfo_t multishift_qr_worksize(
     const idx_t nh = ihi - ilo;
 
     // quick return
-    workinfo_t workinfo;
+    WorkInfo workinfo;
     if (ilo + 1 >= ihi || n < opts.nmin || nh <= 0) return workinfo;
 
     {
@@ -191,7 +191,7 @@ int multishift_qr(bool want_t,
                   matrix_t& A,
                   vector_t& w,
                   matrix_t& Z,
-                  francis_opts_t<size_type<matrix_t> >& opts)
+                  FrancisOpts<size_type<matrix_t> >& opts)
 {
     using TA = type_t<matrix_t>;
     using real_t = real_type<TA>;
@@ -245,14 +245,14 @@ int multishift_qr(bool want_t,
     // Allocates workspace
     VectorOfBytes localworkdata;
     Workspace work = [&]() {
-        workinfo_t workinfo =
+        WorkInfo workinfo =
             multishift_qr_worksize(want_t, want_z, ilo, ihi, A, w, Z, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
 
     // Options to forward
     opts.work = work;
-    auto&& mQRsweepOpts = workspace_opts_t<>{work};
+    auto&& mQRsweepOpts = WorkspaceOpts<>{work};
 
     // itmax is the total number of QR iterations allowed.
     // For most matrices, 3 shifts per eigenvalue is enough, so
@@ -459,7 +459,7 @@ inline int multishift_qr(bool want_t,
                          vector_t& w,
                          matrix_t& Z)
 {
-    francis_opts_t<size_type<matrix_t> > opts = {};
+    FrancisOpts<size_type<matrix_t> > opts = {};
     return multishift_qr(want_t, want_z, ilo, ihi, A, w, Z, opts);
 }
 

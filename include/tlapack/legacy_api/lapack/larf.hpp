@@ -51,7 +51,7 @@ namespace legacy {
 
         tlapack_expr_with_vector(
             v_, TV, lenv, v, incv,
-            return larf(side, forward, columnwise_storage, v_, tau, C_));
+            return larf(side, FORWARD, COLUMNWISE_STORAGE, v_, tau, C_));
     }
 
 }  // namespace legacy

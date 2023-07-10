@@ -62,7 +62,7 @@ int unmhr(Side side,
           const matrix_t& A,
           const vector_t& tau,
           matrix_t& C,
-          const workspace_opts_t<>& opts = {})
+          const WorkspaceOpts<>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -105,19 +105,19 @@ int unmhr(Side side,
  *
  * @param[in] opts Options.
  *
- * @return workinfo_t The amount workspace required.
+ * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
  */
 template <TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
-inline constexpr workinfo_t unmhr_worksize(Side side,
-                                           Op trans,
-                                           size_type<matrix_t> ilo,
-                                           size_type<matrix_t> ihi,
-                                           const matrix_t& A,
-                                           const vector_t& tau,
-                                           const matrix_t& C,
-                                           const workspace_opts_t<>& opts = {})
+inline constexpr WorkInfo unmhr_worksize(Side side,
+                                         Op trans,
+                                         size_type<matrix_t> ilo,
+                                         size_type<matrix_t> ihi,
+                                         const matrix_t& A,
+                                         const vector_t& tau,
+                                         const matrix_t& C,
+                                         const WorkspaceOpts<>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;

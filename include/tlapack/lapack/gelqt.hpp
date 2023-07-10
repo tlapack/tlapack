@@ -21,9 +21,9 @@ namespace tlapack {
 /**
  * Options struct for gelqf
  */
-struct gelqt_opts_t : public workspace_opts_t<> {
-    inline constexpr gelqt_opts_t(const workspace_opts_t<>& opts = {})
-        : workspace_opts_t<>(opts){};
+struct GelqtOpts : public WorkspaceOpts<> {
+    inline constexpr GelqtOpts(const WorkspaceOpts<>& opts = {})
+        : WorkspaceOpts<>(opts){};
 };
 
 /** Worspace query of gelqf()
@@ -34,14 +34,14 @@ struct gelqt_opts_t : public workspace_opts_t<> {
  *
  * @param[in] opts Options.
  *
- * @return workinfo_t The amount workspace required.
+ * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
  */
 template <TLAPACK_SMATRIX matrix_t>
-inline constexpr workinfo_t gelqt_worksize(const matrix_t& A,
-                                           const matrix_t& TT,
-                                           const gelqt_opts_t& opts = {})
+inline constexpr WorkInfo gelqt_worksize(const matrix_t& A,
+                                         const matrix_t& TT,
+                                         const GelqtOpts& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -100,7 +100,7 @@ inline constexpr workinfo_t gelqt_worksize(const matrix_t& A,
  *          *
  *          ...
  *      \]
- *      For a good default of nb, see gelqf_opts_t
+ *      For a good default of nb, see GelqfOpts
  *
  * @param[in] opts Options.
  *      - @c opts.work is used if whenever it has sufficient size.
@@ -109,7 +109,7 @@ inline constexpr workinfo_t gelqt_worksize(const matrix_t& A,
  * @ingroup computational
  */
 template <TLAPACK_SMATRIX matrix_t>
-int gelqt(matrix_t& A, matrix_t& TT, const gelqt_opts_t& opts = {})
+int gelqt(matrix_t& A, matrix_t& TT, const GelqtOpts& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -126,12 +126,12 @@ int gelqt(matrix_t& A, matrix_t& TT, const gelqt_opts_t& opts = {})
     // Allocates workspace
     VectorOfBytes localworkdata;
     Workspace work = [&]() {
-        workinfo_t workinfo = gelqt_worksize(A, TT, opts);
+        WorkInfo workinfo = gelqt_worksize(A, TT, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
 
     // Options to forward
-    auto&& gelq2Opts = workspace_opts_t<>{work};
+    auto&& gelq2Opts = WorkspaceOpts<>{work};
 
     for (idx_t j = 0; j < k; j += nb) {
         // Use blocked code initially
@@ -152,7 +152,7 @@ int gelqt(matrix_t& A, matrix_t& TT, const gelqt_opts_t& opts = {})
             // Apply H to A(j+ib:m,j:n) from the right
             auto A12 = slice(A, range(j + ib, m), range(j, n));
 
-            workspace_opts_t<void> work1(
+            WorkspaceOpts<void> work1(
                 slice(TT, range(j + ib, m), range(0, ib)));
             larfb(Side::Right, Op::NoTrans, Direction::Forward, StoreV::Rowwise,
                   A11, TT1, A12, work1);

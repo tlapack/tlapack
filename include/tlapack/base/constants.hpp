@@ -19,11 +19,6 @@ namespace tlapack {
 
 // -----------------------------------------------------------------------------
 // Macros to compute scaling constants
-//
-// @details
-//
-// Anderson E (2017) Algorithm 978: Safe scaling in the level 1 BLAS.
-// ACM Trans Math Softw 44:. https://doi.org/10.1145/3061665
 
 /** Unit in the Last Place
  * \[
@@ -59,6 +54,10 @@ inline constexpr real_t uroundoff()
 }
 
 /** Digits
+ *
+ * Number of digits p in the mantissa.
+ * @see std::numeric_limits<real_t>::digits.
+ *
  * @ingroup constants
  */
 template <typename real_t>
@@ -67,7 +66,11 @@ inline int digits()
     return std::numeric_limits<real_t>::digits;
 }
 
-/** Safe Minimum such that 1/safe_min() is representable
+/** Safe Minimum
+ *
+ * Smallest normal positive power of two such that its inverse (1/safe_min()) is
+ * finite.
+ *
  * @ingroup constants
  */
 template <TLAPACK_REAL real_t>
@@ -80,9 +83,9 @@ inline constexpr real_t safe_min()
     return max(pow(fradix, real_t(expm - 1)), pow(fradix, real_t(1 - expM)));
 }
 
-/** Safe Maximum such that 1/safe_max() is representable
+/** Safe Maximum
  *
- * safe_max() := 1/SAFMIN
+ * safe_max() := 1/safe_min()
  *
  * @ingroup constants
  */
@@ -94,24 +97,6 @@ inline constexpr real_t safe_max()
     constexpr int expM = std::numeric_limits<real_t>::max_exponent;
 
     return min(pow(fradix, real_t(1 - expm)), pow(fradix, real_t(expM - 1)));
-}
-
-/** Safe Minimum such its square is representable
- * @ingroup constants
- */
-template <TLAPACK_REAL real_t>
-inline constexpr real_t root_min()
-{
-    return sqrt(safe_min<real_t>() / ulp<real_t>());
-}
-
-/** Safe Maximum such its square is representable
- * @ingroup constants
- */
-template <TLAPACK_REAL real_t>
-inline constexpr real_t root_max()
-{
-    return sqrt(safe_max<real_t>() * ulp<real_t>());
 }
 
 /** Blue's min constant b for the sum of squares

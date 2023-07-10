@@ -21,9 +21,9 @@ namespace tlapack {
  * Options struct for unmql
  */
 template <class workT_t = void>
-struct unmql_opts_t : public workspace_opts_t<workT_t> {
-    inline constexpr unmql_opts_t(const workspace_opts_t<workT_t>& opts = {})
-        : workspace_opts_t<workT_t>(opts){};
+struct UnmqlOpts : public WorkspaceOpts<workT_t> {
+    inline constexpr UnmqlOpts(const WorkspaceOpts<workT_t>& opts = {})
+        : WorkspaceOpts<workT_t>(opts){};
 
     size_type<workT_t> nb = 32;  ///< Block size
 };
@@ -65,7 +65,7 @@ struct unmql_opts_t : public workspace_opts_t<workT_t> {
  *      - side = Side::Left  & trans = Op::ConjTrans:  $C := C Q^H$;
  *      - side = Side::Right & trans = Op::ConjTrans:  $C := Q^H C$.
  *
- * @return workinfo_t The amount workspace required.
+ * @return WorkInfo The amount workspace required.
  *
  * @param[in] opts Options.
  *      @c opts.work is used if whenever it has sufficient size.
@@ -79,13 +79,12 @@ template <TLAPACK_SMATRIX matrixA_t,
           TLAPACK_SIDE side_t,
           TLAPACK_OP trans_t,
           class workT_t = void>
-inline constexpr workinfo_t unmql_worksize(
-    side_t side,
-    trans_t trans,
-    const matrixA_t& A,
-    const tau_t& tau,
-    const matrixC_t& C,
-    const unmql_opts_t<workT_t>& opts = {})
+inline constexpr WorkInfo unmql_worksize(side_t side,
+                                         trans_t trans,
+                                         const matrixA_t& A,
+                                         const tau_t& tau,
+                                         const matrixC_t& C,
+                                         const UnmqlOpts<workT_t>& opts = {})
 {
     using idx_t = size_type<matrixC_t>;
     using matrixT_t = deduce_work_t<workT_t, matrix_type<matrixA_t, tau_t> >;
@@ -97,7 +96,7 @@ inline constexpr workinfo_t unmql_worksize(
     const idx_t nb = min<idx_t>(opts.nb, k);
 
     // Local workspace sizes
-    workinfo_t workinfo(nb * sizeof(T), nb);
+    WorkInfo workinfo(nb * sizeof(T), nb);
 
     // larfb:
     {
@@ -111,7 +110,7 @@ inline constexpr workinfo_t unmql_worksize(
         const auto matrixT = slice(A, range{0, nb}, range{0, nb});
 
         // Internal workspace queries
-        workinfo += larfb_worksize(side, trans, backward, columnwise_storage, V,
+        workinfo += larfb_worksize(side, trans, BACKWARD, COLUMNWISE_STORAGE, V,
                                    matrixT, C, opts);
     }
 
@@ -184,7 +183,7 @@ int unmql(side_t side,
           const matrixA_t& A,
           const tau_t& tau,
           matrixC_t& C,
-          const unmql_opts_t<workT_t>& opts = {})
+          const UnmqlOpts<workT_t>& opts = {})
 {
     using TA = type_t<matrixA_t>;
     using idx_t = size_type<matrixC_t>;
@@ -214,7 +213,7 @@ int unmql(side_t side,
     // Allocates workspace
     VectorOfBytes localworkdata;
     Workspace work = [&]() {
-        workinfo_t workinfo = unmql_worksize(side, trans, A, tau, C, opts);
+        WorkInfo workinfo = unmql_worksize(side, trans, A, tau, C, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
 
@@ -231,7 +230,7 @@ int unmql(side_t side,
     auto matrixT = new_matrix(work, nb, nb, sparework);
 
     // Options to forward
-    auto&& larfbOpts = workspace_opts_t<void>{sparework};
+    auto&& larfbOpts = WorkspaceOpts<void>{sparework};
 
     // Main loop
     for (idx_t i = i0; i != iN; i += inc) {
@@ -242,7 +241,7 @@ int unmql(side_t side,
 
         // Form the triangular factor of the block reflector
         // $H = H(i) H(i+1) ... H(i+ib-1)$
-        larft(backward, columnwise_storage, V, taui, matrixTi);
+        larft(BACKWARD, COLUMNWISE_STORAGE, V, taui, matrixTi);
 
         // H or H**H is applied to either C[i:m,0:n] or C[0:m,i:n]
         auto Ci = (side == Side::Left)
@@ -250,7 +249,7 @@ int unmql(side_t side,
                       : slice(C, range{0, m}, range{0, n - k + i + ib});
 
         // Apply H or H**H
-        larfb(side, trans, backward, columnwise_storage, V, matrixTi, Ci,
+        larfb(side, trans, BACKWARD, COLUMNWISE_STORAGE, V, matrixTi, Ci,
               larfbOpts);
     }
 

@@ -58,7 +58,7 @@ TEMPLATE_TEST_CASE("LAUUM is stable", "[lauum]", TLAPACK_TYPES_TO_TEST)
         lauum_recursive(uplo, A);
 
         // Calculate residual
-        real_t normC = lantr(max_norm, uplo, Diag::NonUnit, C);
+        real_t normC = lantr(MAX_NORM, uplo, Diag::NonUnit, C);
 
         if (uplo == Uplo::Lower) {
             for (idx_t j = 0; j < n; ++j)
@@ -73,7 +73,7 @@ TEMPLATE_TEST_CASE("LAUUM is stable", "[lauum]", TLAPACK_TYPES_TO_TEST)
             herk(Uplo::Upper, Op::NoTrans, real_t(1), C, real_t(-1), A);
         }
 
-        real_t res = lanhe(max_norm, uplo, A) / normC / normC;
+        real_t res = lanhe(MAX_NORM, uplo, A) / normC / normC;
         CHECK(res <= tol);
     }
 }

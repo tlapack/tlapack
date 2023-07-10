@@ -301,7 +301,7 @@ int lahqr(bool want_t,
             for (idx_t i = istop - 3; i > istart; --i) {
                 auto H = slice(A, range{i, i + 3}, range{i, i + 3});
                 lahqr_shiftcolumn(H, v, s1, s2);
-                larfg(forward, columnwise_storage, v, t1);
+                larfg(FORWARD, COLUMNWISE_STORAGE, v, t1);
                 v[0] = t1;
                 const TA refsum =
                     conj(v[0]) * A(i, i - 1) + conj(v[1]) * A(i + 1, i - 1);
@@ -323,7 +323,7 @@ int lahqr(bool want_t,
                 lahqr_shiftcolumn(H, x, s1, s2);
                 auto y = slice(v, range{1, nr});
                 TA alpha = v[0];
-                larfg(columnwise_storage, alpha, y, t1);
+                larfg(COLUMNWISE_STORAGE, alpha, y, t1);
                 v[0] = alpha;
                 if (i > istart) {
                     A(i, i - 1) = A(i, i - 1) * (one - conj(t1));
@@ -335,7 +335,7 @@ int lahqr(bool want_t,
                 if (nr == 3) v[2] = A(i + 2, i - 1);
                 auto x = slice(v, range{1, nr});
                 TA alpha = v[0];
-                larfg(columnwise_storage, alpha, x, t1);
+                larfg(COLUMNWISE_STORAGE, alpha, x, t1);
                 v[0] = alpha;
                 A(i, i - 1) = v[0];
                 A(i + 1, i - 1) = zero;

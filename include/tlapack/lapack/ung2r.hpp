@@ -27,14 +27,14 @@ namespace tlapack {
  *
  * @param[in] opts Options.
  *
- * @return workinfo_t The amount workspace required.
+ * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
  */
 template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
-inline constexpr workinfo_t ung2r_worksize(const matrix_t& A,
-                                           const vector_t& tau,
-                                           const workspace_opts_t<>& opts = {})
+inline constexpr WorkInfo ung2r_worksize(const matrix_t& A,
+                                         const vector_t& tau,
+                                         const WorkspaceOpts<>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -45,10 +45,10 @@ inline constexpr workinfo_t ung2r_worksize(const matrix_t& A,
 
     if (n > 1 && m > 1) {
         auto C = cols(A, range{1, n});
-        return larf_worksize(left_side, forward, columnwise_storage, col(A, 0),
+        return larf_worksize(LEFT_SIDE, FORWARD, COLUMNWISE_STORAGE, col(A, 0),
                              tau[0], C, opts);
     }
-    return workinfo_t{};
+    return WorkInfo{};
 }
 
 /**
@@ -74,7 +74,7 @@ inline constexpr workinfo_t ung2r_worksize(const matrix_t& A,
  * @ingroup computational
  */
 template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
-int ung2r(matrix_t& A, const vector_t& tau, const workspace_opts_t<>& opts = {})
+int ung2r(matrix_t& A, const vector_t& tau, const WorkspaceOpts<>& opts = {})
 {
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
@@ -97,12 +97,12 @@ int ung2r(matrix_t& A, const vector_t& tau, const workspace_opts_t<>& opts = {})
     // Allocates workspace
     VectorOfBytes localworkdata;
     Workspace work = [&]() {
-        workinfo_t workinfo = ung2r_worksize(A, tau, opts);
+        WorkInfo workinfo = ung2r_worksize(A, tau, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
 
     // Options to forward
-    auto&& larfOpts = workspace_opts_t<>{work};
+    auto&& larfOpts = WorkspaceOpts<>{work};
 
     // Initialise columns k:n-1 to columns of the unit matrix
     for (idx_t j = k; j < min(m, n); ++j) {
@@ -116,7 +116,7 @@ int ung2r(matrix_t& A, const vector_t& tau, const workspace_opts_t<>& opts = {})
         // Define v and C
         auto v = slice(A, range{i, m}, i);
         auto C = slice(A, range{i, m}, range{i + 1, n});
-        larf(left_side, forward, columnwise_storage, v, tau[i], C, larfOpts);
+        larf(LEFT_SIDE, FORWARD, COLUMNWISE_STORAGE, v, tau[i], C, larfOpts);
         auto x = slice(A, range{i + 1, m}, i);
         scal(-tau[i], x);
         A(i, i) = one - tau[i];

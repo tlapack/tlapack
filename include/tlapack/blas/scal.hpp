@@ -38,7 +38,7 @@ void scal(const alpha_t& alpha, vector_t& x)
         x[i] *= alpha;
 }
 
-#ifdef USE_LAPACKPP_WRAPPERS
+#ifdef TLAPACK_USE_LAPACKPP
 
 template <TLAPACK_LEGACY_VECTOR vector_t,
           TLAPACK_SCALAR alpha_t,

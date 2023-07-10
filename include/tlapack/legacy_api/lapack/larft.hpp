@@ -90,9 +90,9 @@ namespace legacy {
      *
      * @ingroup legacy_lapack
      */
-    template <class direction_t, class storeV_t, typename scalar_t>
+    template <class direction_t, class storev_t, typename scalar_t>
     int larft(direction_t direction,
-              storeV_t storev,
+              storev_t storev,
               idx_t n,
               idx_t k,
               const scalar_t* V,

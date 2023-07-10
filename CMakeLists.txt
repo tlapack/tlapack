@@ -45,7 +45,7 @@ include(CMakeDependentOption)
 include(CTest)
 
 # LAPACK++ wrappers
-option( USE_LAPACKPP_WRAPPERS "Use LAPACK++ wrappers to link with optimized BLAS and LAPACK libraries" OFF )
+option( TLAPACK_USE_LAPACKPP "Use LAPACK++ wrappers to link with optimized BLAS and LAPACK libraries" OFF )
 
 cmake_dependent_option( BUILD_BLASPP_TESTS   "Build BLAS++ tests. Please inform blaspp_TEST_DIR if BUILD_BLASPP_TESTS=ON"
   OFF "BUILD_TESTING" # Default value when condition is true
@@ -176,9 +176,9 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 #-------------------------------------------------------------------------------
 # Search for LAPACK++ library if it is needed
-if( USE_LAPACKPP_WRAPPERS )
+if( TLAPACK_USE_LAPACKPP )
   find_package( lapackpp REQUIRED )
-  target_compile_definitions( tlapack INTERFACE USE_LAPACKPP_WRAPPERS )
+  target_compile_definitions( tlapack INTERFACE TLAPACK_USE_LAPACKPP )
   target_link_libraries( tlapack INTERFACE lapackpp )
 endif()
 

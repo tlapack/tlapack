@@ -112,7 +112,7 @@ namespace internal {
      *      x x x x x
      *      x x x x x
      */
-    struct generalAccess_t {
+    struct GeneralAccess {
         constexpr operator Uplo() const { return Uplo::General; }
     };
 
@@ -126,7 +126,7 @@ namespace internal {
      *      0 0 x x x
      *      0 0 0 x x
      */
-    struct upperTriangle_t {
+    struct UpperTriangle {
         constexpr operator Uplo() const { return Uplo::Upper; }
     };
 
@@ -140,7 +140,7 @@ namespace internal {
      *      x x x 0 0
      *      x x x x 0
      */
-    struct lowerTriangle_t {
+    struct LowerTriangle {
         constexpr operator Uplo() const { return Uplo::Lower; }
     };
 
@@ -154,7 +154,7 @@ namespace internal {
      *      0 x x x x
      *      0 0 x x x
      */
-    struct upperHessenberg_t {
+    struct UpperHessenberg {
         constexpr operator Uplo() const { return Uplo::UpperHessenberg; }
     };
 
@@ -168,7 +168,7 @@ namespace internal {
      *      x x x x 0
      *      x x x x x
      */
-    struct lowerHessenberg_t {
+    struct LowerHessenberg {
         constexpr operator Uplo() const { return Uplo::LowerHessenberg; }
     };
 
@@ -182,7 +182,7 @@ namespace internal {
      *      0 0 0 x x
      *      0 0 0 0 x
      */
-    struct strictUpper_t {
+    struct StrictUpper {
         constexpr operator Uplo() const { return Uplo::StrictUpper; }
     };
 
@@ -196,7 +196,7 @@ namespace internal {
      *      x x 0 0 0
      *      x x x 0 0
      */
-    struct strictLower_t {
+    struct StrictLower {
         constexpr operator Uplo() const { return Uplo::StrictLower; }
     };
 }  // namespace internal
@@ -204,19 +204,19 @@ namespace internal {
 // constant expressions for upper/lower access
 
 /// General access
-constexpr internal::generalAccess_t dense = {};
+constexpr internal::GeneralAccess GENERAL = {};
 /// Upper Hessenberg access
-constexpr internal::upperHessenberg_t upperHessenberg = {};
+constexpr internal::UpperHessenberg UPPER_HESSENBERG = {};
 /// Lower Hessenberg access
-constexpr internal::lowerHessenberg_t lowerHessenberg = {};
+constexpr internal::LowerHessenberg LOWER_HESSENBERG = {};
 /// Upper Triangle access
-constexpr internal::upperTriangle_t upperTriangle = {};
+constexpr internal::UpperTriangle UPPER_TRIANGLE = {};
 /// Lower Triangle access
-constexpr internal::lowerTriangle_t lowerTriangle = {};
+constexpr internal::LowerTriangle LOWER_TRIANGLE = {};
 /// Strict Upper Triangle access
-constexpr internal::strictUpper_t strictUpper = {};
+constexpr internal::StrictUpper STRICT_UPPER = {};
 /// Strict Lower Triangle access
-constexpr internal::strictLower_t strictLower = {};
+constexpr internal::StrictLower STRICT_LOWER = {};
 
 // -----------------------------------------------------------------------------
 // Information about the main diagonal
@@ -228,10 +228,10 @@ enum class Diag : char {
 TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_2_VALUES(Diag, NonUnit, Unit)
 
 namespace internal {
-    struct nonUnit_diagonal_t {
+    struct NonUnitDiagonal {
         constexpr operator Diag() const { return Diag::NonUnit; }
     };
-    struct unit_diagonal_t {
+    struct UnitDiagonal {
         constexpr operator Diag() const { return Diag::Unit; }
     };
 }  // namespace internal
@@ -239,9 +239,9 @@ namespace internal {
 // constant expressions about the main diagonal
 
 /// The main diagonal is not assumed to consist of 1's.
-constexpr internal::nonUnit_diagonal_t nonUnit_diagonal = {};
+constexpr internal::NonUnitDiagonal NON_UNIT_DIAG = {};
 /// The main diagonal is assumed to consist of 1's.
-constexpr internal::unit_diagonal_t unit_diagonal = {};
+constexpr internal::UnitDiagonal UNIT_DIAG = {};
 
 // -----------------------------------------------------------------------------
 // Operations over data
@@ -255,13 +255,13 @@ enum class Op : char {
 TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_4_VALUES(Op, NoTrans, Trans, ConjTrans, Conj)
 
 namespace internal {
-    struct noTranspose_t {
+    struct NoTranspose {
         constexpr operator Op() const { return Op::NoTrans; }
     };
-    struct transpose_t {
+    struct Transpose {
         constexpr operator Op() const { return Op::Trans; }
     };
-    struct conjTranspose_t {
+    struct ConjTranspose {
         constexpr operator Op() const { return Op::ConjTrans; }
     };
 }  // namespace internal
@@ -269,11 +269,11 @@ namespace internal {
 // Constant expressions for operations over data
 
 /// no transpose
-constexpr internal::noTranspose_t noTranspose = {};
+constexpr internal::NoTranspose NO_TRANS = {};
 /// transpose
-constexpr internal::transpose_t Transpose = {};
+constexpr internal::Transpose TRANSPOSE = {};
 /// conjugate transpose
-constexpr internal::conjTranspose_t conjTranspose = {};
+constexpr internal::ConjTranspose CONJ_TRANS = {};
 
 // -----------------------------------------------------------------------------
 // Sides
@@ -285,10 +285,10 @@ enum class Side : char {
 TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_2_VALUES(Side, Left, Right)
 
 namespace internal {
-    struct left_side_t {
+    struct LeftSide {
         constexpr operator Side() const { return Side::Left; }
     };
-    struct right_side_t {
+    struct RightSide {
         constexpr operator Side() const { return Side::Right; }
     };
 }  // namespace internal
@@ -296,9 +296,9 @@ namespace internal {
 // Constant expressions for sides
 
 /// left side
-constexpr internal::left_side_t left_side{};
+constexpr internal::LeftSide LEFT_SIDE{};
 /// right side
-constexpr internal::right_side_t right_side{};
+constexpr internal::RightSide RIGHT_SIDE{};
 
 // -----------------------------------------------------------------------------
 // Norm types
@@ -313,19 +313,19 @@ enum class Norm : char {
 TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_5_VALUES(Norm, One, Two, Inf, Fro, Max)
 
 namespace internal {
-    struct max_norm_t {
+    struct MaxNorm {
         constexpr operator Norm() const { return Norm::Max; }
     };
-    struct one_norm_t {
+    struct OneNorm {
         constexpr operator Norm() const { return Norm::One; }
     };
-    struct two_norm_t {
+    struct TwoNorm {
         constexpr operator Norm() const { return Norm::Two; }
     };
-    struct inf_norm_t {
+    struct InfNorm {
         constexpr operator Norm() const { return Norm::Inf; }
     };
-    struct frob_norm_t {
+    struct FrobNorm {
         constexpr operator Norm() const { return Norm::Fro; }
     };
 }  // namespace internal
@@ -333,15 +333,15 @@ namespace internal {
 // Constant expressions for norm types
 
 /// max norm
-constexpr internal::max_norm_t max_norm = {};
+constexpr internal::MaxNorm MAX_NORM = {};
 /// one norm
-constexpr internal::one_norm_t one_norm = {};
+constexpr internal::OneNorm ONE_NORM = {};
 /// two norm
-constexpr internal::two_norm_t two_norm = {};
+constexpr internal::TwoNorm TWO_NORM = {};
 /// infinity norm of matrices
-constexpr internal::inf_norm_t inf_norm = {};
+constexpr internal::InfNorm INF_NORM = {};
 /// Frobenius norm of matrices
-constexpr internal::frob_norm_t frob_norm = {};
+constexpr internal::FrobNorm FROB_NORM = {};
 
 // -----------------------------------------------------------------------------
 // Directions
@@ -353,10 +353,10 @@ enum class Direction : char {
 TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_2_VALUES(Direction, Forward, Backward)
 
 namespace internal {
-    struct forward_t {
+    struct Forward {
         constexpr operator Direction() const { return Direction::Forward; }
     };
-    struct backward_t {
+    struct Backward {
         constexpr operator Direction() const { return Direction::Backward; }
     };
 }  // namespace internal
@@ -364,9 +364,9 @@ namespace internal {
 // Constant expressions for directions
 
 /// Forward direction
-constexpr internal::forward_t forward{};
+constexpr internal::Forward FORWARD{};
 /// Backward direction
-constexpr internal::backward_t backward{};
+constexpr internal::Backward BACKWARD{};
 
 // -----------------------------------------------------------------------------
 // Storage types
@@ -378,10 +378,10 @@ enum class StoreV : char {
 TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_2_VALUES(StoreV, Columnwise, Rowwise)
 
 namespace internal {
-    struct columnwise_storage_t {
+    struct ColumnwiseStorage {
         constexpr operator StoreV() const { return StoreV::Columnwise; }
     };
-    struct rowwise_storage_t {
+    struct RowwiseStorage {
         constexpr operator StoreV() const { return StoreV::Rowwise; }
     };
 }  // namespace internal
@@ -389,9 +389,9 @@ namespace internal {
 // Constant expressions for storage types
 
 /// Columnwise storage
-constexpr internal::columnwise_storage_t columnwise_storage{};
+constexpr internal::ColumnwiseStorage COLUMNWISE_STORAGE{};
 /// Rowwise storage
-constexpr internal::rowwise_storage_t rowwise_storage{};
+constexpr internal::RowwiseStorage ROWWISE_STORAGE{};
 
 // -----------------------------------------------------------------------------
 // Band access

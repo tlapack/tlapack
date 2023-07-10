@@ -39,10 +39,10 @@ TEMPLATE_TEST_CASE("is_matrix works", "[utils]", TLAPACK_TYPES_TO_TEST)
 TEST_CASE("is_matrix and is_vector work", "[utils]")
 {
     CHECK(!internal::is_matrix<std::vector<float> >);
-    CHECK(!internal::is_matrix<legacyVector<float> >);
+    CHECK(!internal::is_matrix<LegacyVector<float> >);
 
     CHECK(internal::is_vector<std::vector<float> >);
-    CHECK(internal::is_vector<legacyVector<float> >);
+    CHECK(internal::is_vector<LegacyVector<float> >);
 
     CHECK(!internal::is_matrix<float>);
     CHECK(!internal::is_matrix<std::complex<double> >);

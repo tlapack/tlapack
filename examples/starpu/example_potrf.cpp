@@ -71,7 +71,7 @@ int run(idx_t n, idx_t nt, idx_t nb, bool check_error = false)
         std::cout << "A = " << A << std::endl;
 
         /* potrf options */
-        potrf_opts_t<idx_t> opts;
+        PotrfOpts<idx_t> opts;
         opts.nb = nb;
         opts.variant = PotrfVariant::RightLooking;
 
@@ -79,7 +79,7 @@ int run(idx_t n, idx_t nt, idx_t nb, bool check_error = false)
         double start = starpu_timing_now();
 
         /* call potrf */
-        int info = potrf(lowerTriangle, A, opts);
+        int info = potrf(LOWER_TRIANGLE, A, opts);
 
         // Record end time
         starpu_task_wait_for_all();
@@ -95,11 +95,10 @@ int run(idx_t n, idx_t nt, idx_t nb, bool check_error = false)
             // Solve L L^H B = A_init
             Matrix<T> B(B_, n, n, nt, nt);
             // std::cout << "B = " << B << std::endl;
-            trsm(left_side, lowerTriangle, noTranspose, nonUnit_diagonal, one,
-                 A, B);
+            trsm(LEFT_SIDE, LOWER_TRIANGLE, NO_TRANS, NON_UNIT_DIAG, one, A, B);
             // std::cout << "B = " << B << std::endl;
-            trsm(left_side, lowerTriangle, conjTranspose, nonUnit_diagonal, one,
-                 A, B);
+            trsm(LEFT_SIDE, LOWER_TRIANGLE, CONJ_TRANS, NON_UNIT_DIAG, one, A,
+                 B);
             std::cout << "B = " << B << std::endl;
         }
 

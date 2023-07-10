@@ -22,9 +22,9 @@ enum class GetriVariant : char {
     UXLI = 'C'   ///< Method C from doi:10.1137/1.9780898718027
 };
 
-struct getri_opts_t : public workspace_opts_t<> {
-    inline constexpr getri_opts_t(const workspace_opts_t<>& opts = {})
-        : workspace_opts_t<>(opts){};
+struct GetriOpts : public WorkspaceOpts<> {
+    inline constexpr GetriOpts(const WorkspaceOpts<>& opts = {})
+        : WorkspaceOpts<>(opts){};
 
     GetriVariant variant = GetriVariant::UILI;
 };
@@ -40,18 +40,18 @@ struct getri_opts_t : public workspace_opts_t<> {
  *          - UILI = 'D', ///< Method D from doi:10.1137/1.9780898718027
  *          - UXLI = 'C'  ///< Method C from doi:10.1137/1.9780898718027
  *
- * @return workinfo_t The amount workspace required.
+ * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
  */
 template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR piv_t>
-inline constexpr workinfo_t getri_worksize(const matrix_t& A,
-                                           const piv_t& piv,
-                                           const getri_opts_t& opts = {})
+inline constexpr WorkInfo getri_worksize(const matrix_t& A,
+                                         const piv_t& piv,
+                                         const GetriOpts& opts = {})
 {
     if (opts.variant == GetriVariant::UXLI) return getri_uxli_worksize(A, opts);
 
-    return workinfo_t{};
+    return WorkInfo{};
 }
 
 /** getri computes inverse of a general n-by-n matrix A
@@ -78,7 +78,7 @@ inline constexpr workinfo_t getri_worksize(const matrix_t& A,
  * @ingroup computational
  */
 template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR piv_t>
-int getri(matrix_t& A, const piv_t& piv, const getri_opts_t& opts = {})
+int getri(matrix_t& A, const piv_t& piv, const GetriOpts& opts = {})
 {
     using idx_t = size_type<matrix_t>;
 

@@ -194,7 +194,7 @@ void gemm(Op transA,
     }
 }
 
-#ifdef USE_LAPACKPP_WRAPPERS
+#ifdef TLAPACK_USE_LAPACKPP
 
 /**
  * General matrix-matrix multiply.

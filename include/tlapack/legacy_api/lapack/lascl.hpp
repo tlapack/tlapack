@@ -57,8 +57,8 @@ namespace legacy {
      *
      * @ingroup legacy_lapack
      */
-    template <class matrixType_t, typename T>
-    int lascl(matrixType_t matrixtype,
+    template <class matrixtype_t, typename T>
+    int lascl(matrixtype_t matrixtype,
               idx_t kl,
               idx_t ku,
               const real_type<T>& b,

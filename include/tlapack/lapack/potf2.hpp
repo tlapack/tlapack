@@ -101,7 +101,7 @@ int potf2(uplo_t uplo, matrix_t& A)
                 // rowj := rowj - conj(colj) * Ajj
                 for (idx_t i = 0; i < j; ++i)
                     colj[i] = conj(colj[i]);
-                gemv(Transpose, -one, Ajj, colj, one, rowj);
+                gemv(TRANSPOSE, -one, Ajj, colj, one, rowj);
                 for (idx_t i = 0; i < j; ++i)
                     colj[i] = conj(colj[i]);
 
@@ -137,7 +137,7 @@ int potf2(uplo_t uplo, matrix_t& A)
                 // colj := colj - Ajj * conj(rowj)
                 for (idx_t i = 0; i < j; ++i)
                     rowj[i] = conj(rowj[i]);
-                gemv(noTranspose, -one, Ajj, rowj, one, colj);
+                gemv(NO_TRANS, -one, Ajj, rowj, one, colj);
                 for (idx_t i = 0; i < j; ++i)
                     rowj[i] = conj(rowj[i]);
 
@@ -150,7 +150,7 @@ int potf2(uplo_t uplo, matrix_t& A)
     return 0;
 }
 
-#ifdef USE_LAPACKPP_WRAPPERS
+#ifdef TLAPACK_USE_LAPACKPP
 
 template <TLAPACK_UPLO uplo_t,
           TLAPACK_LEGACY_MATRIX matrix_t,

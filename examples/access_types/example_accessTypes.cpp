@@ -67,7 +67,7 @@ int main(int argc, char** argv)
         data1[i] = i + 1;
 
     std::cout << std::endl << "Matrix1:";
-    legacyMatrix<int, size_t, Layout::RowMajor> A1(m, n, &data1[0], n);
+    LegacyMatrix<int, size_t, Layout::RowMajor> A1(m, n, &data1[0], n);
     printMatrix(A1);
     std::cout << std::endl;
 
@@ -77,17 +77,17 @@ int main(int argc, char** argv)
         data2[i] = data1[i];
 
     std::cout << std::endl << "Scale Matrix1 by 3:";
-    lascl(dense, 1.0, 3.0, A1);
+    lascl(GENERAL, 1.0, 3.0, A1);
     printMatrix(A1);
     std::cout << std::endl;
 
     std::cout << std::endl << "Scale upper triangle of Matrix1 by 1/3:";
-    lascl(upperTriangle, 3.0, 1.0, A1);
+    lascl(UPPER_TRIANGLE, 3.0, 1.0, A1);
     printMatrix(A1);
     std::cout << std::endl;
 
     std::cout << std::endl << "Scale strict lower triangle of Matrix1 by 1/3:";
-    lascl(strictLower, 3.0, 1.0, A1);
+    lascl(STRICT_LOWER, 3.0, 1.0, A1);
     printMatrix(A1);
     std::cout << std::endl;
 
@@ -101,7 +101,7 @@ int main(int argc, char** argv)
               << std::endl;
 
     std::cout << std::endl << "Matrix2:";
-    legacyBandedMatrix<int> A2(m, m, n / 2, n - n / 2 - 1, &data1[0]);
+    LegacyBandedMatrix<int> A2(m, m, n / 2, n - n / 2 - 1, &data1[0]);
     printBandedMatrix(A2);
     std::cout << std::endl;
 

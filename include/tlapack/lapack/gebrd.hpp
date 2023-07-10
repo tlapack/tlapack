@@ -24,9 +24,9 @@ namespace tlapack {
  * Options struct for gebrd
  */
 template <TLAPACK_INDEX idx_t = size_t>
-struct gebrd_opts_t : public workspace_opts_t<> {
-    inline constexpr gebrd_opts_t(const workspace_opts_t<>& opts = {})
-        : workspace_opts_t<>(opts){};
+struct GebrdOpts : public WorkspaceOpts<> {
+    inline constexpr GebrdOpts(const WorkspaceOpts<>& opts = {})
+        : WorkspaceOpts<>(opts){};
 
     idx_t nb = 32;  ///< Block size used in the blocked reduction
 };
@@ -49,7 +49,7 @@ struct gebrd_opts_t : public workspace_opts_t<> {
  *      The scalar factors of the elementary reflectors which
  *      represent the unitary matrix P.
  *
- * @return workinfo_t The amount workspace required.
+ * @return WorkInfo The amount workspace required.
  *
  * @param[in] opts Options.
  *      - @c opts.work is used if whenever it has sufficient size.
@@ -60,12 +60,12 @@ struct gebrd_opts_t : public workspace_opts_t<> {
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_SVECTOR vector_t,
           TLAPACK_SVECTOR r_vector_t>
-workinfo_t gebrd_worksize(const matrix_t& A,
-                          r_vector_t& d,
-                          r_vector_t& e,
-                          const vector_t& tauq,
-                          const vector_t& taup,
-                          const gebrd_opts_t<size_type<matrix_t> >& opts = {})
+WorkInfo gebrd_worksize(const matrix_t& A,
+                        r_vector_t& d,
+                        r_vector_t& e,
+                        const vector_t& tauq,
+                        const vector_t& taup,
+                        const GebrdOpts<size_type<matrix_t> >& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using work_t = matrix_type<matrix_t, vector_t>;
@@ -75,7 +75,7 @@ workinfo_t gebrd_worksize(const matrix_t& A,
     const idx_t n = ncols(A);
     const idx_t nb = min(opts.nb, min(m, n));
 
-    return workinfo_t(sizeof(T) * (m + n), nb);
+    return WorkInfo(sizeof(T) * (m + n), nb);
 }
 
 /** Reduces a general m by n matrix A to an upper
@@ -141,7 +141,7 @@ int gebrd(matrix_t& A,
           r_vector_t& e,
           vector_t& tauq,
           vector_t& taup,
-          const gebrd_opts_t<size_type<matrix_t> >& opts = {})
+          const GebrdOpts<size_type<matrix_t> >& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using work_t = matrix_type<matrix_t, vector_t>;
@@ -163,19 +163,19 @@ int gebrd(matrix_t& A,
     // Allocates workspace
     VectorOfBytes localworkdata;
     Workspace work = [&]() {
-        workinfo_t workinfo = gebrd_worksize(A, d, e, tauq, taup, opts);
+        WorkInfo workinfo = gebrd_worksize(A, d, e, tauq, taup, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
 
     // Matrix X
     Workspace workMatrixY;
     auto X = new_matrix(work, m, nb, workMatrixY);
-    laset(dense, zero, zero, X);
+    laset(GENERAL, zero, zero, X);
 
     // Matrix Y
     Workspace spareWork;
     auto Y = new_matrix(workMatrixY, n, nb, spareWork);
-    laset(dense, zero, zero, Y);
+    laset(GENERAL, zero, zero, Y);
 
     for (idx_t i = 0; i < k; i = i + nb) {
         idx_t ib = min(nb, k - i);
@@ -198,10 +198,10 @@ int gebrd(matrix_t& A,
         auto A3 = slice(A, range{i + ib, m}, range{i + ib, n});
         auto V = slice(A, range{i + ib, m}, range{i, i + ib});
         auto Y3 = slice(Y, range{i + ib, n}, range{0, ib});
-        gemm(noTranspose, conjTranspose, -one, V, Y3, one, A3);
+        gemm(NO_TRANS, CONJ_TRANS, -one, V, Y3, one, A3);
         auto U = slice(A, range{i, i + ib}, range{i + ib, n});
         auto X3 = slice(X, range{i + ib, m}, range{0, ib});
-        gemm(noTranspose, noTranspose, -one, X3, U, one, A3);
+        gemm(NO_TRANS, NO_TRANS, -one, X3, U, one, A3);
 
         //
         // Copy diagonal and off-diagonal elements of B back into A

@@ -32,16 +32,16 @@ namespace tlapack {
  *
  * @param[in] opts Options.
  *
- * @return workinfo_t The amount workspace required.
+ * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
  */
 template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
-inline constexpr workinfo_t gehd2_worksize(size_type<matrix_t> ilo,
-                                           size_type<matrix_t> ihi,
-                                           const matrix_t& A,
-                                           const vector_t& tau,
-                                           const workspace_opts_t<>& opts = {})
+inline constexpr WorkInfo gehd2_worksize(size_type<matrix_t> ilo,
+                                         size_type<matrix_t> ihi,
+                                         const matrix_t& A,
+                                         const vector_t& tau,
+                                         const WorkspaceOpts<>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -49,16 +49,16 @@ inline constexpr workinfo_t gehd2_worksize(size_type<matrix_t> ilo,
     // constants
     const idx_t n = ncols(A);
 
-    workinfo_t workinfo;
+    WorkInfo workinfo;
     if (ilo + 1 < ihi) {
         const auto v = slice(A, range{ilo + 1, ihi}, ilo);
 
         auto C0 = slice(A, range{0, ihi}, range{ilo + 1, ihi});
-        workinfo = larf_worksize(right_side, forward, columnwise_storage, v,
+        workinfo = larf_worksize(RIGHT_SIDE, FORWARD, COLUMNWISE_STORAGE, v,
                                  tau[0], C0, opts);
 
         auto C1 = slice(A, range{ilo + 1, ihi}, range{ilo + 1, n});
-        workinfo.minMax(larf_worksize(left_side, forward, columnwise_storage, v,
+        workinfo.minMax(larf_worksize(LEFT_SIDE, FORWARD, COLUMNWISE_STORAGE, v,
                                       tau[0], C1, opts));
     }
 
@@ -111,7 +111,7 @@ int gehd2(size_type<matrix_t> ilo,
           size_type<matrix_t> ihi,
           matrix_t& A,
           vector_t& tau,
-          const workspace_opts_t<>& opts = {})
+          const WorkspaceOpts<>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -129,27 +129,27 @@ int gehd2(size_type<matrix_t> ilo,
     // Allocates workspace
     VectorOfBytes localworkdata;
     Workspace work = [&]() {
-        workinfo_t workinfo = gehd2_worksize(ilo, ihi, A, tau, opts);
+        WorkInfo workinfo = gehd2_worksize(ilo, ihi, A, tau, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
 
     // Options to forward
-    auto&& larfOpts = workspace_opts_t<>{work};
+    auto&& larfOpts = WorkspaceOpts<>{work};
 
     for (idx_t i = ilo; i < ihi - 1; ++i) {
         // Define v := A[i+1:ihi,i]
         auto v = slice(A, range{i + 1, ihi}, i);
 
         // Generate the (i+1)-th elementary Householder reflection on v
-        larfg(forward, columnwise_storage, v, tau[i]);
+        larfg(FORWARD, COLUMNWISE_STORAGE, v, tau[i]);
 
         // Apply Householder reflection from the right to A[0:ihi,i+1:ihi]
         auto C0 = slice(A, range{0, ihi}, range{i + 1, ihi});
-        larf(right_side, forward, columnwise_storage, v, tau[i], C0, larfOpts);
+        larf(RIGHT_SIDE, FORWARD, COLUMNWISE_STORAGE, v, tau[i], C0, larfOpts);
 
         // Apply Householder reflection from the left to A[i+1:ihi,i+1:n-1]
         auto C1 = slice(A, range{i + 1, ihi}, range{i + 1, n});
-        larf(left_side, forward, columnwise_storage, v, conj(tau[i]), C1,
+        larf(LEFT_SIDE, FORWARD, COLUMNWISE_STORAGE, v, conj(tau[i]), C1,
              larfOpts);
     }
 

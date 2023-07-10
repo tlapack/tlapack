@@ -25,9 +25,9 @@ namespace tlapack {
  * Options struct for ungrq
  */
 template <class workT_t = void>
-struct ungrq_opts_t : public workspace_opts_t<workT_t> {
-    inline constexpr ungrq_opts_t(const workspace_opts_t<workT_t>& opts = {})
-        : workspace_opts_t<workT_t>(opts){};
+struct UngrqOpts : public WorkspaceOpts<workT_t> {
+    inline constexpr UngrqOpts(const WorkspaceOpts<workT_t>& opts = {})
+        : WorkspaceOpts<workT_t>(opts){};
 
     size_type<workT_t> nb = 32;  ///< Block size
 };
@@ -41,17 +41,16 @@ struct ungrq_opts_t : public workspace_opts_t<workT_t> {
  *
  * @param[in] opts Options.
  *
- * @return workinfo_t The amount workspace required.
+ * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
  */
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_SVECTOR vector_t,
           class workT_t = void>
-inline constexpr workinfo_t ungrq_worksize(
-    const matrix_t& A,
-    const vector_t& tau,
-    const ungrq_opts_t<workT_t>& opts = {})
+inline constexpr WorkInfo ungrq_worksize(const matrix_t& A,
+                                         const vector_t& tau,
+                                         const UngrqOpts<workT_t>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using matrixT_t = deduce_work_t<workT_t, matrix_type<matrix_t, vector_t> >;
@@ -63,7 +62,7 @@ inline constexpr workinfo_t ungrq_worksize(
     const idx_t nb = min<idx_t>(opts.nb, k);
 
     // Local workspace sizes
-    workinfo_t workinfo(nb * sizeof(T), nb);
+    WorkInfo workinfo(nb * sizeof(T), nb);
 
     // larfb:
     {
@@ -75,8 +74,8 @@ inline constexpr workinfo_t ungrq_worksize(
         const auto matrixT = slice(A, range{0, nb}, range{0, nb});
 
         // Internal workspace queries
-        workinfo += larfb_worksize(right_side, conjTranspose, backward,
-                                   rowwise_storage, V, matrixT, A, opts);
+        workinfo += larfb_worksize(RIGHT_SIDE, CONJ_TRANS, BACKWARD,
+                                   ROWWISE_STORAGE, V, matrixT, A, opts);
     }
 
     return workinfo;
@@ -111,9 +110,7 @@ inline constexpr workinfo_t ungrq_worksize(
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_SVECTOR vector_t,
           class workT_t = void>
-int ungrq(matrix_t& A,
-          const vector_t& tau,
-          const ungrq_opts_t<workT_t>& opts = {})
+int ungrq(matrix_t& A, const vector_t& tau, const UngrqOpts<workT_t>& opts = {})
 {
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
@@ -141,7 +138,7 @@ int ungrq(matrix_t& A,
     // Allocates workspace
     VectorOfBytes localworkdata;
     Workspace work = [&]() {
-        workinfo_t workinfo = ungrq_worksize(A, tau, opts);
+        WorkInfo workinfo = ungrq_worksize(A, tau, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
 
@@ -150,8 +147,8 @@ int ungrq(matrix_t& A,
     auto matrixT = new_matrix(work, nb, nb, sparework);
 
     // Options to forward
-    auto&& larfOpts = workspace_opts_t<>{sparework};
-    auto&& larfbOpts = workspace_opts_t<void>{sparework};
+    auto&& larfOpts = WorkspaceOpts<>{sparework};
+    auto&& larfbOpts = WorkspaceOpts<void>{sparework};
 
     // Initialise rows 0:m-k to rows of the unit matrix
     for (idx_t j = 0; j < n; ++j) {
@@ -175,8 +172,8 @@ int ungrq(matrix_t& A,
             auto matrixTi = slice(matrixT, range{0, ib}, range{0, ib});
             auto C = slice(A, range{0, ii}, range{0, n - k + i + ib});
 
-            larft(backward, rowwise_storage, V, taui, matrixTi);
-            larfb(right_side, conjTranspose, backward, rowwise_storage, V,
+            larft(BACKWARD, ROWWISE_STORAGE, V, taui, matrixTi);
+            larfb(RIGHT_SIDE, CONJ_TRANS, BACKWARD, ROWWISE_STORAGE, V,
                   matrixTi, C, larfbOpts);
         }
         // Use unblocked code to apply H^H to columns 0:n-k+i+ib of current

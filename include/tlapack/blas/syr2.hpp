@@ -83,7 +83,7 @@ void syr2(Uplo uplo,
     }
 }
 
-#ifdef USE_LAPACKPP_WRAPPERS
+#ifdef TLAPACK_USE_LAPACKPP
 
 template <TLAPACK_LEGACY_MATRIX matrixA_t,
           TLAPACK_LEGACY_VECTOR vectorX_t,

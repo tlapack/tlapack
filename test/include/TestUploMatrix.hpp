@@ -33,12 +33,12 @@ template <class T,
           class idx_t = std::size_t,
           Uplo uplo = Uplo::Upper,
           Layout L = Layout::ColMajor>
-struct TestUploMatrix : public legacyMatrix<T, idx_t, L> {
+struct TestUploMatrix : public LegacyMatrix<T, idx_t, L> {
     int modifier =
         0;  ///< Modifier to the access region. Enables slicing of the matrix.
 
-    TestUploMatrix(const legacyMatrix<T, idx_t, L>& A)
-        : legacyMatrix<T, idx_t, L>(A)
+    TestUploMatrix(const LegacyMatrix<T, idx_t, L>& A)
+        : LegacyMatrix<T, idx_t, L>(A)
     {}
 
     // Overload of the access operator
@@ -49,7 +49,7 @@ struct TestUploMatrix : public legacyMatrix<T, idx_t, L> {
         else if (uplo == Uplo::Lower)
             assert((int)i >= (int)j + modifier);
 
-        return legacyMatrix<T, idx_t, L>::operator()(i, j);
+        return LegacyMatrix<T, idx_t, L>::operator()(i, j);
     };
 
     // Overload of the access operator
@@ -60,7 +60,7 @@ struct TestUploMatrix : public legacyMatrix<T, idx_t, L> {
         else if (uplo == Uplo::Lower)
             assert((int)i >= (int)j + modifier);
 
-        return legacyMatrix<T, idx_t, L>::operator()(i, j);
+        return LegacyMatrix<T, idx_t, L>::operator()(i, j);
     };
 };
 
@@ -82,7 +82,7 @@ inline constexpr auto slice(const TestUploMatrix<T, idx_t, uplo, layout>& A,
                             SliceSpecCol&& cols) noexcept
 {
     TestUploMatrix<const T, idx_t, uplo, layout> B(
-        slice((const legacyMatrix<T, idx_t, layout>&)A, rows, cols));
+        slice((const LegacyMatrix<T, idx_t, layout>&)A, rows, cols));
     B.modifier = A.modifier + cols.first - rows.first;
     return B;
 }
@@ -94,7 +94,7 @@ inline constexpr auto rows(const TestUploMatrix<T, idx_t, uplo, layout>& A,
                            SliceSpec&& slice) noexcept
 {
     TestUploMatrix<const T, idx_t, uplo, layout> B(
-        rows((const legacyMatrix<T, idx_t, layout>&)A, slice));
+        rows((const LegacyMatrix<T, idx_t, layout>&)A, slice));
     B.modifier = A.modifier - slice.first;
     return B;
 }
@@ -104,7 +104,7 @@ inline constexpr auto cols(const TestUploMatrix<T, idx_t, uplo, layout>& A,
                            SliceSpec&& slice) noexcept
 {
     TestUploMatrix<const T, idx_t, uplo, layout> B(
-        cols((const legacyMatrix<T, idx_t, layout>&)A, slice));
+        cols((const LegacyMatrix<T, idx_t, layout>&)A, slice));
     B.modifier = A.modifier + slice.first;
     return B;
 }
@@ -125,7 +125,7 @@ inline constexpr auto slice(TestUploMatrix<T, idx_t, uplo, layout>& A,
                             SliceSpecCol&& cols) noexcept
 {
     TestUploMatrix<T, idx_t, uplo, layout> B(
-        slice((legacyMatrix<T, idx_t, layout>&)A, rows, cols));
+        slice((LegacyMatrix<T, idx_t, layout>&)A, rows, cols));
     B.modifier = A.modifier + cols.first - rows.first;
     return B;
 }
@@ -137,7 +137,7 @@ inline constexpr auto rows(TestUploMatrix<T, idx_t, uplo, layout>& A,
                            SliceSpec&& slice) noexcept
 {
     TestUploMatrix<T, idx_t, uplo, layout> B(
-        rows((legacyMatrix<T, idx_t, layout>&)A, slice));
+        rows((LegacyMatrix<T, idx_t, layout>&)A, slice));
     B.modifier = A.modifier - slice.first;
     return B;
 }
@@ -147,7 +147,7 @@ inline constexpr auto cols(TestUploMatrix<T, idx_t, uplo, layout>& A,
                            SliceSpec&& slice) noexcept
 {
     TestUploMatrix<T, idx_t, uplo, layout> B(
-        cols((legacyMatrix<T, idx_t, layout>&)A, slice));
+        cols((LegacyMatrix<T, idx_t, layout>&)A, slice));
     B.modifier = A.modifier + slice.first;
     return B;
 }

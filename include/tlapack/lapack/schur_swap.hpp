@@ -146,12 +146,12 @@ int schur_swap(bool want_q,
         T tau1, tau2;
         auto v1 = slice(B, range{0, 3}, 0);
         auto v2 = slice(B, range{1, 3}, 1);
-        larfg(forward, columnwise_storage, v1, tau1);
+        larfg(FORWARD, COLUMNWISE_STORAGE, v1, tau1);
         const T sum = B(0, 1) + v1[1] * B(1, 1) + v1[2] * B(2, 1);
         B(0, 1) = B(0, 1) - sum * tau1;
         B(1, 1) = B(1, 1) - sum * tau1 * v1[1];
         B(2, 1) = B(2, 1) - sum * tau1 * v1[2];
-        larfg(forward, columnwise_storage, v2, tau2);
+        larfg(FORWARD, COLUMNWISE_STORAGE, v2, tau2);
 
         //
         // Apply reflections to A and Q
@@ -214,12 +214,12 @@ int schur_swap(bool want_q,
         T tau1, tau2;
         auto v1 = slice(B, range{0, 3}, 0);
         auto v2 = slice(B, range{1, 3}, 1);
-        larfg(forward, columnwise_storage, v1, tau1);
+        larfg(FORWARD, COLUMNWISE_STORAGE, v1, tau1);
         const T sum = B(0, 1) + v1[1] * B(1, 1) + v1[2] * B(2, 1);
         B(0, 1) = B(0, 1) - sum * tau1;
         B(1, 1) = B(1, 1) - sum * tau1 * v1[1];
         B(2, 1) = B(2, 1) - sum * tau1 * v1[2];
-        larfg(forward, columnwise_storage, v2, tau2);
+        larfg(FORWARD, COLUMNWISE_STORAGE, v2, tau2);
 
         //
         // Apply reflections to A and Q
@@ -294,14 +294,14 @@ int schur_swap(bool want_q,
         T tau1, tau2;
         auto v1 = slice(V, range{0, 4}, 0);
         auto v2 = slice(V, range{1, 4}, 1);
-        larfg(forward, columnwise_storage, v1, tau1);
+        larfg(FORWARD, COLUMNWISE_STORAGE, v1, tau1);
         const T sum =
             V(0, 1) + v1[1] * V(1, 1) + v1[2] * V(2, 1) + v1[3] * V(3, 1);
         V(0, 1) = V(0, 1) - sum * tau1;
         V(1, 1) = V(1, 1) - sum * tau1 * v1[1];
         V(2, 1) = V(2, 1) - sum * tau1 * v1[2];
         V(3, 1) = V(3, 1) - sum * tau1 * v1[3];
-        larfg(forward, columnwise_storage, v2, tau2);
+        larfg(FORWARD, COLUMNWISE_STORAGE, v2, tau2);
 
         // Apply reflections to D to check error
         for (idx_t j = 0; j < 4; ++j) {

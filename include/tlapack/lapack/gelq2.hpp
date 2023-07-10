@@ -26,14 +26,14 @@ namespace tlapack {
  *
  * @param[in] opts Options.
  *
- * @return workinfo_t The amount workspace required.
+ * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
  */
 template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
-inline constexpr workinfo_t gelq2_worksize(const matrix_t& A,
-                                           const vector_t& tauw,
-                                           const workspace_opts_t<>& opts = {})
+inline constexpr WorkInfo gelq2_worksize(const matrix_t& A,
+                                         const vector_t& tauw,
+                                         const WorkspaceOpts<>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -43,10 +43,10 @@ inline constexpr workinfo_t gelq2_worksize(const matrix_t& A,
 
     if (m > 1) {
         auto C = rows(A, range{1, m});
-        return larf_worksize(right_side, forward, rowwise_storage, row(A, 0),
+        return larf_worksize(RIGHT_SIDE, FORWARD, ROWWISE_STORAGE, row(A, 0),
                              tauw[0], C, opts);
     }
-    return workinfo_t{};
+    return WorkInfo{};
 }
 
 /** Computes an LQ factorization of a complex m-by-n matrix A using
@@ -88,7 +88,7 @@ inline constexpr workinfo_t gelq2_worksize(const matrix_t& A,
  * @ingroup computational
  */
 template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
-int gelq2(matrix_t& A, vector_t& tauw, const workspace_opts_t<>& opts = {})
+int gelq2(matrix_t& A, vector_t& tauw, const WorkspaceOpts<>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -104,25 +104,25 @@ int gelq2(matrix_t& A, vector_t& tauw, const workspace_opts_t<>& opts = {})
     // Allocates workspace
     VectorOfBytes localworkdata;
     Workspace work = [&]() {
-        workinfo_t workinfo = gelq2_worksize(A, tauw, opts);
+        WorkInfo workinfo = gelq2_worksize(A, tauw, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
 
     // Options to forward
-    auto&& larfOpts = workspace_opts_t<>{work};
+    auto&& larfOpts = WorkspaceOpts<>{work};
 
     for (idx_t j = 0; j < k; ++j) {
         // Define w := A(j,j:n)
         auto w = slice(A, j, range(j, n));
 
         // Generate elementary reflector H(j) to annihilate A(j,j+1:n)
-        larfg(forward, rowwise_storage, w, tauw[j]);
+        larfg(FORWARD, ROWWISE_STORAGE, w, tauw[j]);
 
         // If either condition is satisfied, Q11 will not be empty
         if (j < k - 1 || k < m) {
             // Apply H(j) to A(j+1:m,j:n) from the right
             auto Q11 = slice(A, range(j + 1, m), range(j, n));
-            larf(Side::Right, forward, rowwise_storage, w, tauw[j], Q11,
+            larf(Side::Right, FORWARD, ROWWISE_STORAGE, w, tauw[j], Q11,
                  larfOpts);
         }
     }

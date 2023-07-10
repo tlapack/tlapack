@@ -27,14 +27,14 @@ namespace tlapack {
  *
  * @param[in] opts Options.
  *
- * @return workinfo_t The amount workspace required.
+ * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
  */
 template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
-inline constexpr workinfo_t ung2l_worksize(const matrix_t& A,
-                                           const vector_t& tau,
-                                           const workspace_opts_t<>& opts = {})
+inline constexpr WorkInfo ung2l_worksize(const matrix_t& A,
+                                         const vector_t& tau,
+                                         const WorkspaceOpts<>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -47,7 +47,7 @@ inline constexpr workinfo_t ung2l_worksize(const matrix_t& A,
         return larf_worksize(Side::Left, Direction::Backward,
                              StoreV::Columnwise, col(A, 0), tau[0], C, opts);
     }
-    return workinfo_t{};
+    return WorkInfo{};
 }
 
 /**
@@ -77,7 +77,7 @@ inline constexpr workinfo_t ung2l_worksize(const matrix_t& A,
  * @ingroup computational
  */
 template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
-int ung2l(matrix_t& A, const vector_t& tau, const workspace_opts_t<>& opts = {})
+int ung2l(matrix_t& A, const vector_t& tau, const WorkspaceOpts<>& opts = {})
 {
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
@@ -100,12 +100,12 @@ int ung2l(matrix_t& A, const vector_t& tau, const workspace_opts_t<>& opts = {})
     // Allocates workspace
     VectorOfBytes localworkdata;
     Workspace work = [&]() {
-        workinfo_t workinfo = ung2l_worksize(A, tau, opts);
+        WorkInfo workinfo = ung2l_worksize(A, tau, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
 
     // Options to forward
-    auto&& larfOpts = workspace_opts_t<>{work};
+    auto&& larfOpts = WorkspaceOpts<>{work};
 
     // Initialise rows 0:m-k to rows of the unit matrix
     for (idx_t j = 0; j < n - k; ++j) {

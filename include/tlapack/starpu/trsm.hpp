@@ -64,7 +64,7 @@ void trsm(Side side,
                             B.tile(nx - ix - 1, iy));
                     }
                     auto C = B.get_tiles(0, 0, nx - ix - 1, ny);
-                    gemm(trans, noTranspose, -alpha,
+                    gemm(trans, NO_TRANS, -alpha,
                          A.get_const_tiles(0, nx - ix - 1, nx - ix - 1, 1),
                          B.get_const_tiles(nx - ix - 1, 0, 1, ny),
                          ((ix == 0) ? alpha : one), C);
@@ -78,7 +78,7 @@ void trsm(Side side,
                             A_.tile(ix, ix), B.tile(ix, iy));
                     }
                     auto C = B.get_tiles(ix + 1, 0, nx - ix - 1, ny);
-                    gemm(trans, noTranspose, -alpha,
+                    gemm(trans, NO_TRANS, -alpha,
                          A.get_const_tiles(ix + 1, ix, nx - ix - 1, 1),
                          B.get_const_tiles(ix, 0, 1, ny),
                          ((ix == 0) ? alpha : one), C);
@@ -99,7 +99,7 @@ void trsm(Side side,
                         //     ((ix == 0) ? alpha : one)), Aii, B_);
                     }
                     auto C = B.get_tiles(ix + 1, 0, nx - ix - 1, ny);
-                    gemm(trans, noTranspose, -alpha,
+                    gemm(trans, NO_TRANS, -alpha,
                          A.get_const_tiles(ix, ix + 1, 1, nx - ix - 1),
                          B.get_const_tiles(ix, 0, 1, ny),
                          ((ix == 0) ? alpha : one), C);
@@ -114,7 +114,7 @@ void trsm(Side side,
                             B.tile(nx - ix - 1, iy));
                     }
                     auto C = B.get_tiles(0, 0, nx - ix - 1, ny);
-                    gemm(trans, noTranspose, -alpha,
+                    gemm(trans, NO_TRANS, -alpha,
                          A.get_const_tiles(nx - ix - 1, 0, 1, nx - ix - 1),
                          B.get_const_tiles(nx - ix - 1, 0, 1, ny),
                          ((ix == 0) ? alpha : one), C);
@@ -132,7 +132,7 @@ void trsm(Side side,
                             A_.tile(iy, iy), B.tile(ix, iy));
                     }
                     auto C = B.get_tiles(0, iy + 1, nx, ny - iy - 1);
-                    gemm(noTranspose, trans, -alpha,
+                    gemm(NO_TRANS, trans, -alpha,
                          B.get_const_tiles(0, iy, nx, 1),
                          A.get_const_tiles(iy, iy + 1, 1, ny - iy - 1),
                          ((iy == 0) ? alpha : one), C);
@@ -147,7 +147,7 @@ void trsm(Side side,
                             B.tile(ix, ny - iy - 1));
                     }
                     auto C = B.get_tiles(0, 0, nx, ny - iy - 1);
-                    gemm(noTranspose, trans, -alpha,
+                    gemm(NO_TRANS, trans, -alpha,
                          B.get_const_tiles(0, ny - iy - 1, nx, 1),
                          A.get_const_tiles(ny - iy - 1, 0, 1, ny - iy - 1),
                          ((iy == 0) ? alpha : one), C);
@@ -164,7 +164,7 @@ void trsm(Side side,
                             B.tile(ix, ny - iy - 1));
                     }
                     auto C = B.get_tiles(0, 0, nx, ny - iy - 1);
-                    gemm(noTranspose, trans, -alpha,
+                    gemm(NO_TRANS, trans, -alpha,
                          B.get_const_tiles(0, ny - iy - 1, nx, 1),
                          A.get_const_tiles(0, ny - iy - 1, ny - iy - 1, 1),
                          ((iy == 0) ? alpha : one), C);
@@ -178,7 +178,7 @@ void trsm(Side side,
                             A_.tile(iy, iy), B.tile(ix, iy));
                     }
                     auto C = B.get_tiles(0, iy + 1, nx, ny - iy - 1);
-                    gemm(noTranspose, trans, -alpha,
+                    gemm(NO_TRANS, trans, -alpha,
                          B.get_const_tiles(0, iy, nx, 1),
                          A.get_const_tiles(iy + 1, iy, ny - iy - 1, 1),
                          ((iy == 0) ? alpha : one), C);

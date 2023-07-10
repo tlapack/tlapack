@@ -22,9 +22,9 @@ namespace tlapack {
  * Options struct for gerqf
  */
 template <TLAPACK_INDEX idx_t = size_t>
-struct gerqf_opts_t : public workspace_opts_t<> {
-    inline constexpr gerqf_opts_t(const workspace_opts_t<>& opts = {})
-        : workspace_opts_t<>(opts){};
+struct GerqfOpts : public WorkspaceOpts<> {
+    inline constexpr GerqfOpts(const WorkspaceOpts<>& opts = {})
+        : WorkspaceOpts<>(opts){};
 
     idx_t nb = 32;  ///< Block size
 };
@@ -37,15 +37,13 @@ struct gerqf_opts_t : public workspace_opts_t<> {
  *
  * @param[in] opts Options.
  *
- * @return workinfo_t The amount workspace required.
+ * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
  */
 template <TLAPACK_SMATRIX A_t, TLAPACK_SVECTOR tau_t>
-inline constexpr workinfo_t gerqf_worksize(
-    const A_t& A,
-    const tau_t& tau,
-    const gerqf_opts_t<size_type<A_t>>& opts = {})
+inline constexpr WorkInfo gerqf_worksize(
+    const A_t& A, const tau_t& tau, const GerqfOpts<size_type<A_t>>& opts = {})
 {
     using idx_t = size_type<A_t>;
     using T = type_t<A_t>;
@@ -63,12 +61,12 @@ inline constexpr workinfo_t gerqf_worksize(
     auto A12 = slice(A, range(ib, m), range(0, n));
     auto tauw1 = slice(tau, range(0, ib));
 
-    workinfo_t workinfo = gerq2_worksize(A11, tauw1);
+    WorkInfo workinfo = gerq2_worksize(A11, tauw1);
     workinfo.minMax(larfb_worksize(Side::Right, Op::NoTrans,
                                    Direction::Backward, StoreV::Rowwise, A11,
                                    TT1, A12));
 
-    workinfo += workinfo_t(sizeof(T) * nb, nb);
+    workinfo += WorkInfo(sizeof(T) * nb, nb);
 
     return workinfo;
 }
@@ -112,7 +110,7 @@ inline constexpr workinfo_t gerqf_worksize(
  * @ingroup computational
  */
 template <TLAPACK_SMATRIX A_t, TLAPACK_SVECTOR tau_t>
-int gerqf(A_t& A, tau_t& tau, const gerqf_opts_t<size_type<A_t>>& opts = {})
+int gerqf(A_t& A, tau_t& tau, const GerqfOpts<size_type<A_t>>& opts = {})
 {
     Create<A_t> new_matrix;
 
@@ -131,7 +129,7 @@ int gerqf(A_t& A, tau_t& tau, const gerqf_opts_t<size_type<A_t>>& opts = {})
     // Allocate or get workspace
     VectorOfBytes localworkdata;
     Workspace work = [&]() {
-        workinfo_t workinfo = gerqf_worksize(A, tau, opts);
+        WorkInfo workinfo = gerqf_worksize(A, tau, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
 
@@ -139,8 +137,8 @@ int gerqf(A_t& A, tau_t& tau, const gerqf_opts_t<size_type<A_t>>& opts = {})
     auto TT = new_matrix(work, nb, nb, sparework);
 
     // Options to forward
-    auto&& gerq2Opts = workspace_opts_t<>{sparework};
-    auto&& larfbOpts = workspace_opts_t<void>{sparework};
+    auto&& gerq2Opts = WorkspaceOpts<>{sparework};
+    auto&& larfbOpts = WorkspaceOpts<void>{sparework};
 
     // Main computational loop
     for (idx_t j2 = 0; j2 < k; j2 += nb) {

@@ -44,7 +44,7 @@ int unghr(size_type<matrix_t> ilo,
           size_type<matrix_t> ihi,
           matrix_t& A,
           const vector_t& tau,
-          const workspace_opts_t<>& opts = {})
+          const WorkspaceOpts<>& opts = {})
 {
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
@@ -118,16 +118,16 @@ int unghr(size_type<matrix_t> ilo,
  *
  * @param[in] opts Options.
  *
- * @return workinfo_t The amount workspace required.
+ * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
  */
 template <TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
-inline constexpr workinfo_t unghr_worksize(size_type<matrix_t> ilo,
-                                           size_type<matrix_t> ihi,
-                                           const matrix_t& A,
-                                           const vector_t& tau,
-                                           const workspace_opts_t<>& opts = {})
+inline constexpr WorkInfo unghr_worksize(size_type<matrix_t> ilo,
+                                         size_type<matrix_t> ihi,
+                                         const matrix_t& A,
+                                         const vector_t& tau,
+                                         const WorkspaceOpts<>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -140,7 +140,7 @@ inline constexpr workinfo_t unghr_worksize(size_type<matrix_t> ilo,
         auto tau_s = slice(tau, range{ilo, ihi - 1});
         return ung2r_worksize(A_s, tau_s, opts);
     }
-    return workinfo_t{};
+    return WorkInfo{};
 }
 
 }  // namespace tlapack

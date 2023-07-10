@@ -12,7 +12,6 @@
 #ifndef TLAPACK_LANSY_HH
 #define TLAPACK_LANSY_HH
 
-#include "tlapack/base/legacyArray.hpp"
 #include "tlapack/lapack/lassq.hpp"
 
 namespace tlapack {
@@ -35,16 +34,16 @@ namespace tlapack {
  *
  * @param[in] A n-by-n symmetric matrix.
  *
- * @return workinfo_t The amount workspace required.
+ * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
  */
 template <TLAPACK_NORM norm_t, TLAPACK_UPLO uplo_t, TLAPACK_SMATRIX matrix_t>
-inline constexpr workinfo_t lansy_worksize(norm_t normType,
-                                           uplo_t uplo,
-                                           const matrix_t& A)
+inline constexpr WorkInfo lansy_worksize(norm_t normType,
+                                         uplo_t uplo,
+                                         const matrix_t& A)
 {
-    return workinfo_t{};
+    return WorkInfo{};
 }
 
 /** Worspace query of lansy().
@@ -67,23 +66,23 @@ inline constexpr workinfo_t lansy_worksize(norm_t normType,
  *
  * @param[in] opts Options.
  *
- * @return workinfo_t The amount workspace required.
+ * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
  */
 template <TLAPACK_NORM norm_t, TLAPACK_UPLO uplo_t, TLAPACK_MATRIX matrix_t>
-inline constexpr workinfo_t lansy_worksize(norm_t normType,
-                                           uplo_t uplo,
-                                           const matrix_t& A,
-                                           const workspace_opts_t<>& opts)
+inline constexpr WorkInfo lansy_worksize(norm_t normType,
+                                         uplo_t uplo,
+                                         const matrix_t& A,
+                                         const WorkspaceOpts<>& opts)
 {
     using T = type_t<matrix_t>;
 
     if (normType == Norm::Inf || normType == Norm::One) {
-        return workinfo_t(sizeof(T), nrows(A));
+        return WorkInfo(sizeof(T), nrows(A));
     }
 
-    return workinfo_t{};
+    return WorkInfo{};
 }
 
 /** Calculates the norm of a symmetric matrix.
@@ -255,7 +254,7 @@ template <TLAPACK_NORM norm_t, TLAPACK_UPLO uplo_t, TLAPACK_MATRIX matrix_t>
 auto lansy(norm_t normType,
            uplo_t uplo,
            const matrix_t& A,
-           const workspace_opts_t<>& opts)
+           const WorkspaceOpts<>& opts)
 {
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
@@ -268,9 +267,9 @@ auto lansy(norm_t normType,
 
     // quick redirect for max-norm and Frobenius norm
     if (normType == Norm::Max)
-        return lansy(max_norm, uplo, A);
+        return lansy(MAX_NORM, uplo, A);
     else if (normType == Norm::Fro)
-        return lansy(frob_norm, uplo, A);
+        return lansy(FROB_NORM, uplo, A);
     else {
         // the code below uses a workspace and is meant for column-major layout
         // so as to do one pass on the data in a contiguous way when computing
@@ -285,11 +284,11 @@ auto lansy(norm_t normType,
         // Allocates workspace
         VectorOfBytes localworkdata;
         const Workspace work = [&]() {
-            workinfo_t workinfo;
+            WorkInfo workinfo;
             lansy_worksize(normType, uplo, A, opts);
             return alloc_workspace(localworkdata, workinfo, opts.work);
         }();
-        legacyVector<T, idx_t> w(n, work);
+        auto w = Create<vector_type<matrix_t>>(work, n);
 
         // Norm value
         real_t norm(0);

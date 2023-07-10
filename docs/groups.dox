@@ -33,11 +33,6 @@
                 library.
 
     ----------------------------------------------------------------------------
-    @defgroup abstract_matrix   Abstract matrix interface
-    @brief      These routines should be implemented for each data structure
-                representing matrices and vectors.
-
-    ----------------------------------------------------------------------------
     @defgroup constants         Scaling constants
 
     ------------------------------------------------------------

@@ -114,7 +114,7 @@ real_type<type_t<matrix_t>> check_orthogonality(matrix_t& Q, matrix_t& res)
     }
 
     // Compute ||res||_F
-    return lanhe(frob_norm, Uplo::Upper, res);
+    return lanhe(FROB_NORM, Uplo::Upper, res);
 }
 
 /** Calculates ||Q'*Q - I||_F if m <= n or ||Q*Q' - I||_F otherwise
@@ -176,7 +176,7 @@ real_type<type_t<matrix_t>> check_similarity_transform(
     gemm(Op::NoTrans, Op::NoTrans, (real_t)1.0, work, Q, (real_t)-1.0, res);
 
     // Compute ||res||_F
-    return lange(frob_norm, res);
+    return lange(FROB_NORM, res);
 }
 
 /** Calculates ||Q'*A*Q - B||
@@ -214,41 +214,41 @@ real_type<type_t<matrix_t>> check_similarity_transform(matrix_t& A,
 // GDB doesn't handle templates well, so we explicitly define some versions of
 // the functions for common template arguments
 //
-void print_matrix_r(const legacyMatrix<float, size_t, Layout::ColMajor>& A);
-void print_matrix_d(const legacyMatrix<double, size_t, Layout::ColMajor>& A);
+void print_matrix_r(const LegacyMatrix<float, size_t, Layout::ColMajor>& A);
+void print_matrix_d(const LegacyMatrix<double, size_t, Layout::ColMajor>& A);
 void print_matrix_c(
-    const legacyMatrix<std::complex<float>, size_t, Layout::ColMajor>& A);
+    const LegacyMatrix<std::complex<float>, size_t, Layout::ColMajor>& A);
 void print_matrix_z(
-    const legacyMatrix<std::complex<double>, size_t, Layout::ColMajor>& A);
+    const LegacyMatrix<std::complex<double>, size_t, Layout::ColMajor>& A);
 void print_rowmajormatrix_r(
-    const legacyMatrix<float, size_t, Layout::RowMajor>& A);
+    const LegacyMatrix<float, size_t, Layout::RowMajor>& A);
 void print_rowmajormatrix_d(
-    const legacyMatrix<double, size_t, Layout::RowMajor>& A);
+    const LegacyMatrix<double, size_t, Layout::RowMajor>& A);
 void print_rowmajormatrix_c(
-    const legacyMatrix<std::complex<float>, size_t, Layout::RowMajor>& A);
+    const LegacyMatrix<std::complex<float>, size_t, Layout::RowMajor>& A);
 void print_rowmajormatrix_z(
-    const legacyMatrix<std::complex<double>, size_t, Layout::RowMajor>& A);
+    const LegacyMatrix<std::complex<double>, size_t, Layout::RowMajor>& A);
 
 //
 // GDB doesn't handle templates well, so we explicitly define some versions of
 // the functions for common template arguments
 //
 std::string visualize_matrix_r(
-    const legacyMatrix<float, size_t, Layout::ColMajor>& A);
+    const LegacyMatrix<float, size_t, Layout::ColMajor>& A);
 std::string visualize_matrix_d(
-    const legacyMatrix<double, size_t, Layout::ColMajor>& A);
+    const LegacyMatrix<double, size_t, Layout::ColMajor>& A);
 std::string visualize_matrix_c(
-    const legacyMatrix<std::complex<float>, size_t, Layout::ColMajor>& A);
+    const LegacyMatrix<std::complex<float>, size_t, Layout::ColMajor>& A);
 std::string visualize_matrix_z(
-    const legacyMatrix<std::complex<double>, size_t, Layout::ColMajor>& A);
+    const LegacyMatrix<std::complex<double>, size_t, Layout::ColMajor>& A);
 std::string visualize_rowmajormatrix_r(
-    const legacyMatrix<float, size_t, Layout::RowMajor>& A);
+    const LegacyMatrix<float, size_t, Layout::RowMajor>& A);
 std::string visualize_rowmajormatrix_d(
-    const legacyMatrix<double, size_t, Layout::RowMajor>& A);
+    const LegacyMatrix<double, size_t, Layout::RowMajor>& A);
 std::string visualize_rowmajormatrix_c(
-    const legacyMatrix<std::complex<float>, size_t, Layout::RowMajor>& A);
+    const LegacyMatrix<std::complex<float>, size_t, Layout::RowMajor>& A);
 std::string visualize_rowmajormatrix_z(
-    const legacyMatrix<std::complex<double>, size_t, Layout::RowMajor>& A);
+    const LegacyMatrix<std::complex<double>, size_t, Layout::RowMajor>& A);
 
 }  // namespace tlapack
 

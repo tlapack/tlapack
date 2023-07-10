@@ -61,7 +61,7 @@ namespace tlapack {
  *
  * @param[in] opts Options.
  *
- * @return workinfo_t The amount workspace required.
+ * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
  */
@@ -73,7 +73,7 @@ template <TLAPACK_SMATRIX matrixV_t,
           TLAPACK_DIRECTION direction_t,
           TLAPACK_STOREV storage_t,
           class workW_t = void>
-inline constexpr workinfo_t larfb_worksize(
+inline constexpr WorkInfo larfb_worksize(
     side_t side,
     trans_t trans,
     direction_t direction,
@@ -81,7 +81,7 @@ inline constexpr workinfo_t larfb_worksize(
     const matrixV_t& V,
     const matrixT_t& Tmatrix,
     const matrixC_t& C,
-    const workspace_opts_t<workW_t>& opts = {})
+    const WorkspaceOpts<workW_t>& opts = {})
 {
     using idx_t = size_type<matrixC_t>;
     using matrixW_t =
@@ -93,7 +93,7 @@ inline constexpr workinfo_t larfb_worksize(
     const idx_t n = ncols(C);
     const idx_t k = nrows(Tmatrix);
 
-    workinfo_t myWorkinfo;
+    WorkInfo myWorkinfo;
     if (layout<matrixW_t> == Layout::RowMajor) {
         myWorkinfo.m = (side == Side::Left) ? k : m;
         myWorkinfo.n = sizeof(T) * ((side == Side::Left) ? n : k);
@@ -205,7 +205,7 @@ int larfb(side_t side,
           const matrixV_t& V,
           const matrixT_t& Tmatrix,
           matrixC_t& C,
-          const workspace_opts_t<workW_t>& opts = {})
+          const WorkspaceOpts<workW_t>& opts = {})
 {
     using idx_t = size_type<matrixC_t>;
     using matrixW_t =
@@ -247,8 +247,8 @@ int larfb(side_t side,
     // Allocates workspace
     VectorOfBytes localworkdata;
     const Workspace work = [&]() {
-        workinfo_t workinfo = larfb_worksize(side, trans, direction, storeMode,
-                                             V, Tmatrix, C, opts);
+        WorkInfo workinfo = larfb_worksize(side, trans, direction, storeMode, V,
+                                           Tmatrix, C, opts);
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
 
@@ -266,7 +266,7 @@ int larfb(side_t side,
                 auto W = new_matrix(work, k, n);
 
                 // W := C1
-                lacpy(dense, C1, W);
+                lacpy(GENERAL, C1, W);
                 // W := V1^H W
                 trmm(side, Uplo::Lower, Op::ConjTrans, Diag::Unit, one, V1, W);
                 if (m > k)
@@ -297,7 +297,7 @@ int larfb(side_t side,
                 auto W = new_matrix(work, m, k);
 
                 // W := C1
-                lacpy(dense, C1, W);
+                lacpy(GENERAL, C1, W);
                 // W := W V1
                 trmm(side, Uplo::Lower, Op::NoTrans, Diag::Unit, one, V1, W);
                 if (n > k)
@@ -331,7 +331,7 @@ int larfb(side_t side,
                 auto W = new_matrix(work, k, n);
 
                 // W := C2
-                lacpy(dense, C2, W);
+                lacpy(GENERAL, C2, W);
                 // W := V2^H W
                 trmm(side, Uplo::Upper, Op::ConjTrans, Diag::Unit, one, V2, W);
                 if (m > k)
@@ -362,7 +362,7 @@ int larfb(side_t side,
                 auto W = new_matrix(work, m, k);
 
                 // W := C2
-                lacpy(dense, C2, W);
+                lacpy(GENERAL, C2, W);
                 // W := W V2
                 trmm(side, Uplo::Upper, Op::NoTrans, Diag::Unit, one, V2, W);
                 if (n > k)
@@ -397,7 +397,7 @@ int larfb(side_t side,
                 auto W = new_matrix(work, k, n);
 
                 // W := C1
-                lacpy(dense, C1, W);
+                lacpy(GENERAL, C1, W);
                 // W := V1 W
                 trmm(side, Uplo::Upper, Op::NoTrans, Diag::Unit, one, V1, W);
                 if (m > k)
@@ -428,7 +428,7 @@ int larfb(side_t side,
                 auto W = new_matrix(work, m, k);
 
                 // W := C1
-                lacpy(dense, C1, W);
+                lacpy(GENERAL, C1, W);
                 // W := W V1^H
                 trmm(side, Uplo::Upper, Op::ConjTrans, Diag::Unit, one, V1, W);
                 if (n > k)
@@ -461,7 +461,7 @@ int larfb(side_t side,
                 auto W = new_matrix(work, k, n);
 
                 // W := C2
-                lacpy(dense, C2, W);
+                lacpy(GENERAL, C2, W);
                 // W := V2 W
                 trmm(side, Uplo::Lower, Op::NoTrans, Diag::Unit, one, V2, W);
                 if (m > k)
@@ -492,7 +492,7 @@ int larfb(side_t side,
                 auto W = new_matrix(work, m, k);
 
                 // W := C2
-                lacpy(dense, C2, W);
+                lacpy(GENERAL, C2, W);
                 // W := W V2^H
                 trmm(side, Uplo::Lower, Op::ConjTrans, Diag::Unit, one, V2, W);
                 if (n > k)
