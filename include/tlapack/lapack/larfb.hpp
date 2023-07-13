@@ -110,6 +110,342 @@ inline constexpr WorkInfo larfb_worksize(
     return myWorkinfo;
 }
 
+template <TLAPACK_SMATRIX matrixV_t,
+          TLAPACK_MATRIX matrixT_t,
+          TLAPACK_SMATRIX matrixC_t,
+          TLAPACK_MATRIX matrixW_t,
+          TLAPACK_OP trans_t,
+          TLAPACK_DIRECTION direction_t,
+          TLAPACK_STOREV storage_t>
+int larfb_left(trans_t trans,
+               direction_t direction,
+               storage_t storeMode,
+               const matrixV_t& V,
+               const matrixT_t& Tmatrix,
+               matrixC_t& C,
+               matrixW_t& W)
+{
+    using idx_t = size_type<matrixC_t>;
+    using T = type_t<matrixW_t>;
+    using real_t = real_type<T>;
+
+    using range = pair<idx_t, idx_t>;
+
+    // constants
+    const real_t one(1);
+    const idx_t m = nrows(C);
+    const idx_t n = ncols(C);
+    const idx_t k = nrows(Tmatrix);
+
+    // check arguments
+    tlapack_check_false(
+        trans != Op::NoTrans && trans != Op::ConjTrans &&
+        ((trans != Op::Trans) || is_complex<type_t<matrixV_t> >));
+    tlapack_check_false(direction != Direction::Backward &&
+                        direction != Direction::Forward);
+    tlapack_check_false(storeMode != StoreV::Columnwise &&
+                        storeMode != StoreV::Rowwise);
+    tlapack_check((storeMode == StoreV::Columnwise)
+                      ? (ncols(V) == k && nrows(V) == m)
+                      : (nrows(V) == k && ncols(V) == m));
+    tlapack_check(nrows(Tmatrix) == ncols(Tmatrix));
+
+    // Quick return
+    if (m <= 0 || n <= 0 || k <= 0) return 0;
+
+    if (storeMode == StoreV::Columnwise) {
+        // V is an m-by-k matrix
+        if (direction == Direction::Forward) {
+            // Matrix views
+            const auto V1 = rows(V, range{0, k});
+            const auto V2 = rows(V, range{k, m});
+            auto C1 = rows(C, range{0, k});
+            auto C2 = rows(C, range{k, m});
+
+            // W := C1
+            lacpy(GENERAL, C1, W);
+            // W := V1^H W
+            trmm(LEFT_SIDE, Uplo::Lower, Op::ConjTrans, Diag::Unit, one, V1, W);
+            if (m > k)
+                // W := W + V2^H C2
+                gemm(Op::ConjTrans, Op::NoTrans, one, V2, C2, one, W);
+            // W := op(Tmatrix) W
+            trmm(LEFT_SIDE, Uplo::Upper, trans, Diag::NonUnit, one, Tmatrix, W);
+            if (m > k)
+                // C2 := C2 - V2 W
+                gemm(Op::NoTrans, Op::NoTrans, -one, V2, W, one, C2);
+            // W := - V1 W
+            trmm(LEFT_SIDE, Uplo::Lower, Op::NoTrans, Diag::Unit, -one, V1, W);
+
+            // C1 := C1 + W
+            for (idx_t j = 0; j < n; ++j)
+                for (idx_t i = 0; i < k; ++i)
+                    C1(i, j) += W(i, j);
+        }
+        else {  // direct == Direction::Backward
+
+            // Matrix views
+            const auto V1 = rows(V, range{0, m - k});
+            const auto V2 = rows(V, range{m - k, m});
+            auto C1 = rows(C, range{0, m - k});
+            auto C2 = rows(C, range{m - k, m});
+
+            // W := C2
+            lacpy(GENERAL, C2, W);
+            // W := V2^H W
+            trmm(LEFT_SIDE, Uplo::Upper, Op::ConjTrans, Diag::Unit, one, V2, W);
+            if (m > k)
+                // W := W + V1^H C1
+                gemm(Op::ConjTrans, Op::NoTrans, one, V1, C1, one, W);
+            // W := op(Tmatrix) W
+            trmm(LEFT_SIDE, Uplo::Lower, trans, Diag::NonUnit, one, Tmatrix, W);
+            if (m > k)
+                // C1 := C1 - V1 W
+                gemm(Op::NoTrans, Op::NoTrans, -one, V1, W, one, C1);
+            // W := - V2 W
+            trmm(LEFT_SIDE, Uplo::Upper, Op::NoTrans, Diag::Unit, -one, V2, W);
+
+            // C2 := C2 + W
+            for (idx_t j = 0; j < n; ++j)
+                for (idx_t i = 0; i < k; ++i)
+                    C2(i, j) += W(i, j);
+        }
+    }
+    else {  // storeV == StoreV::Rowwise
+        // V is an k-by-m matrix
+        if (direction == Direction::Forward) {
+            // Matrix views
+            const auto V1 = cols(V, range{0, k});
+            const auto V2 = cols(V, range{k, m});
+            auto C1 = rows(C, range{0, k});
+            auto C2 = rows(C, range{k, m});
+
+            // W := C1
+            lacpy(GENERAL, C1, W);
+            // W := V1 W
+            trmm(LEFT_SIDE, Uplo::Upper, Op::NoTrans, Diag::Unit, one, V1, W);
+            if (m > k)
+                // W := W + V2 C2
+                gemm(Op::NoTrans, Op::NoTrans, one, V2, C2, one, W);
+            // W := op(Tmatrix) W
+            trmm(LEFT_SIDE, Uplo::Upper, trans, Diag::NonUnit, one, Tmatrix, W);
+            if (m > k)
+                // C2 := C2 - V2^H W
+                gemm(Op::ConjTrans, Op::NoTrans, -one, V2, W, one, C2);
+            // W := - V1^H W
+            trmm(LEFT_SIDE, Uplo::Upper, Op::ConjTrans, Diag::Unit, -one, V1,
+                 W);
+
+            // C1 := C1 - W
+            for (idx_t j = 0; j < n; ++j)
+                for (idx_t i = 0; i < k; ++i)
+                    C1(i, j) += W(i, j);
+        }
+        else {  // direct == Direction::Backward
+
+            // Matrix views
+            const auto V1 = cols(V, range{0, m - k});
+            const auto V2 = cols(V, range{m - k, m});
+            auto C1 = rows(C, range{0, m - k});
+            auto C2 = rows(C, range{m - k, m});
+
+            // W := C2
+            lacpy(GENERAL, C2, W);
+            // W := V2 W
+            trmm(LEFT_SIDE, Uplo::Lower, Op::NoTrans, Diag::Unit, one, V2, W);
+            if (m > k)
+                // W := W + V1 C1
+                gemm(Op::NoTrans, Op::NoTrans, one, V1, C1, one, W);
+            // W := op(Tmatrix) W
+            trmm(LEFT_SIDE, Uplo::Lower, trans, Diag::NonUnit, one, Tmatrix, W);
+            if (m > k)
+                // C1 := C1 - V1^H W
+                gemm(Op::ConjTrans, Op::NoTrans, -one, V1, W, one, C1);
+            // W := - V2^H W
+            trmm(LEFT_SIDE, Uplo::Lower, Op::ConjTrans, Diag::Unit, -one, V2,
+                 W);
+
+            // C2 := C2 + W
+            for (idx_t j = 0; j < n; ++j)
+                for (idx_t i = 0; i < k; ++i)
+                    C2(i, j) += W(i, j);
+        }
+    }
+
+    return 0;
+}
+
+template <TLAPACK_SMATRIX matrixV_t,
+          TLAPACK_MATRIX matrixT_t,
+          TLAPACK_SMATRIX matrixC_t,
+          TLAPACK_MATRIX matrixW_t,
+          TLAPACK_OP trans_t,
+          TLAPACK_DIRECTION direction_t,
+          TLAPACK_STOREV storage_t>
+int larfb_right(trans_t trans,
+                direction_t direction,
+                storage_t storeMode,
+                const matrixV_t& V,
+                const matrixT_t& Tmatrix,
+                matrixC_t& C,
+                matrixW_t& W)
+{
+    using idx_t = size_type<matrixC_t>;
+    using T = type_t<matrixW_t>;
+    using real_t = real_type<T>;
+
+    using range = pair<idx_t, idx_t>;
+
+    // constants
+    const real_t one(1);
+    const idx_t m = nrows(C);
+    const idx_t n = ncols(C);
+    const idx_t k = nrows(Tmatrix);
+
+    // check arguments
+    tlapack_check_false(
+        trans != Op::NoTrans && trans != Op::ConjTrans &&
+        ((trans != Op::Trans) || is_complex<type_t<matrixV_t> >));
+    tlapack_check_false(direction != Direction::Backward &&
+                        direction != Direction::Forward);
+    tlapack_check_false(storeMode != StoreV::Columnwise &&
+                        storeMode != StoreV::Rowwise);
+    tlapack_check((storeMode == StoreV::Columnwise)
+                      ? (ncols(V) == k && nrows(V) == n)
+                      : (nrows(V) == k && ncols(V) == n));
+    tlapack_check(nrows(Tmatrix) == ncols(Tmatrix));
+
+    // Quick return
+    if (m <= 0 || n <= 0 || k <= 0) return 0;
+
+    if (storeMode == StoreV::Columnwise) {
+        // V is an n-by-k matrix
+        if (direction == Direction::Forward) {
+            // Matrix views
+            const auto V1 = rows(V, range{0, k});
+            const auto V2 = rows(V, range{k, n});
+            auto C1 = cols(C, range{0, k});
+            auto C2 = cols(C, range{k, n});
+
+            // W := C1
+            lacpy(GENERAL, C1, W);
+            // W := W V1
+            trmm(RIGHT_SIDE, Uplo::Lower, Op::NoTrans, Diag::Unit, one, V1, W);
+            if (n > k)
+                // W := W + C2 V2
+                gemm(Op::NoTrans, Op::NoTrans, one, C2, V2, one, W);
+            // W := W op(Tmatrix)
+            trmm(Side::Right, Uplo::Upper, trans, Diag::NonUnit, one, Tmatrix,
+                 W);
+            if (n > k)
+                // C2 := C2 - W V2^H
+                gemm(Op::NoTrans, Op::ConjTrans, -one, W, V2, one, C2);
+            // W := - W V1^H
+            trmm(RIGHT_SIDE, Uplo::Lower, Op::ConjTrans, Diag::Unit, -one, V1,
+                 W);
+
+            // C1 := C1 + W
+            for (idx_t j = 0; j < k; ++j)
+                for (idx_t i = 0; i < m; ++i)
+                    C1(i, j) += W(i, j);
+        }
+        else {  // direct == Direction::Backward
+
+            // Matrix views
+            const auto V1 = rows(V, range{0, n - k});
+            const auto V2 = rows(V, range{n - k, n});
+            auto C1 = cols(C, range{0, n - k});
+            auto C2 = cols(C, range{n - k, n});
+
+            // W := C2
+            lacpy(GENERAL, C2, W);
+            // W := W V2
+            trmm(RIGHT_SIDE, Uplo::Upper, Op::NoTrans, Diag::Unit, one, V2, W);
+            if (n > k)
+                // W := W + C1 V1
+                gemm(Op::NoTrans, Op::NoTrans, one, C1, V1, one, W);
+            // W := W op(Tmatrix)
+            trmm(RIGHT_SIDE, Uplo::Lower, trans, Diag::NonUnit, one, Tmatrix,
+                 W);
+            if (n > k)
+                // C1 := C1 - W V1^H
+                gemm(Op::NoTrans, Op::ConjTrans, -one, W, V1, one, C1);
+            // W := - W V2^H
+            trmm(RIGHT_SIDE, Uplo::Upper, Op::ConjTrans, Diag::Unit, -one, V2,
+                 W);
+
+            // C2 := C2 + W
+            for (idx_t j = 0; j < k; ++j)
+                for (idx_t i = 0; i < m; ++i)
+                    C2(i, j) += W(i, j);
+        }
+    }
+    else {  // storeV == StoreV::Rowwise
+        // V is an k-by-n matrix
+        if (direction == Direction::Forward) {
+            // Matrix views
+            const auto V1 = cols(V, range{0, k});
+            const auto V2 = cols(V, range{k, n});
+            auto C1 = cols(C, range{0, k});
+            auto C2 = cols(C, range{k, n});
+
+            // W := C1
+            lacpy(GENERAL, C1, W);
+            // W := W V1^H
+            trmm(RIGHT_SIDE, Uplo::Upper, Op::ConjTrans, Diag::Unit, one, V1,
+                 W);
+            if (n > k)
+                // W := W + C2 V2^H
+                gemm(Op::NoTrans, Op::ConjTrans, one, C2, V2, one, W);
+            // W := W op(Tmatrix)
+            trmm(RIGHT_SIDE, Uplo::Upper, trans, Diag::NonUnit, one, Tmatrix,
+                 W);
+            if (n > k)
+                // C2 := C2 - W V2
+                gemm(Op::NoTrans, Op::NoTrans, -one, W, V2, one, C2);
+            // W := - W V1
+            trmm(RIGHT_SIDE, Uplo::Upper, Op::NoTrans, Diag::Unit, -one, V1, W);
+
+            // C1 := C1 + W
+            for (idx_t j = 0; j < k; ++j)
+                for (idx_t i = 0; i < m; ++i)
+                    C1(i, j) += W(i, j);
+        }
+        else {  // direct == Direction::Backward
+
+            // Matrix views
+            const auto V1 = cols(V, range{0, n - k});
+            const auto V2 = cols(V, range{n - k, n});
+            auto C1 = cols(C, range{0, n - k});
+            auto C2 = cols(C, range{n - k, n});
+
+            // W := C2
+            lacpy(GENERAL, C2, W);
+            // W := W V2^H
+            trmm(RIGHT_SIDE, Uplo::Lower, Op::ConjTrans, Diag::Unit, one, V2,
+                 W);
+            if (n > k)
+                // W := W + C1 V1^H
+                gemm(Op::NoTrans, Op::ConjTrans, one, C1, V1, one, W);
+            // W := W op(Tmatrix)
+            trmm(RIGHT_SIDE, Uplo::Lower, trans, Diag::NonUnit, one, Tmatrix,
+                 W);
+            if (n > k)
+                // C1 := C1 - W V1
+                gemm(Op::NoTrans, Op::NoTrans, -one, W, V1, one, C1);
+            // W := - W V2
+            trmm(RIGHT_SIDE, Uplo::Lower, Op::NoTrans, Diag::Unit, -one, V2, W);
+
+            // C2 := C2 + W
+            for (idx_t j = 0; j < k; ++j)
+                for (idx_t i = 0; i < m; ++i)
+                    C2(i, j) += W(i, j);
+        }
+    }
+
+    return 0;
+}
+
 /** Applies a block reflector $H$ or its conjugate transpose $H^H$ to a
  * m-by-n matrix C, from either the left or the right.
  *
@@ -210,36 +546,17 @@ int larfb(side_t side,
     using idx_t = size_type<matrixC_t>;
     using matrixW_t =
         deduce_work_t<workW_t, matrix_type<matrixV_t, matrixC_t> >;
-    using T = type_t<matrixW_t>;
-    using real_t = real_type<T>;
-
-    using range = pair<idx_t, idx_t>;
 
     // Functor
     Create<matrixW_t> new_matrix;
 
     // constants
-    const real_t one(1);
     const idx_t m = nrows(C);
     const idx_t n = ncols(C);
     const idx_t k = nrows(Tmatrix);
 
     // check arguments
     tlapack_check_false(side != Side::Left && side != Side::Right);
-    tlapack_check_false(
-        trans != Op::NoTrans && trans != Op::ConjTrans &&
-        ((trans != Op::Trans) || is_complex<type_t<matrixV_t> >));
-    tlapack_check_false(direction != Direction::Backward &&
-                        direction != Direction::Forward);
-    tlapack_check_false(storeMode != StoreV::Columnwise &&
-                        storeMode != StoreV::Rowwise);
-    tlapack_check(
-        (storeMode == StoreV::Columnwise)
-            ? ((ncols(V) == k) && (side == Side::Left) ? (nrows(V) == m)
-                                                       : (nrows(V) == n))
-            : ((nrows(V) == k) && (side == Side::Left) ? (ncols(V) == m)
-                                                       : (ncols(V) == n)));
-    tlapack_check(nrows(Tmatrix) == ncols(Tmatrix));
 
     // Quick return
     if (m <= 0 || n <= 0 || k <= 0) return 0;
@@ -252,269 +569,16 @@ int larfb(side_t side,
         return alloc_workspace(localworkdata, workinfo, opts.work);
     }();
 
-    if (storeMode == StoreV::Columnwise) {
-        if (direction == Direction::Forward) {
-            if (side == Side::Left) {
-                // W is an k-by-n matrix
-                // V is an m-by-k matrix
-
-                // Matrix views
-                const auto V1 = rows(V, range{0, k});
-                const auto V2 = rows(V, range{k, m});
-                auto C1 = rows(C, range{0, k});
-                auto C2 = rows(C, range{k, m});
-                auto W = new_matrix(work, k, n);
-
-                // W := C1
-                lacpy(GENERAL, C1, W);
-                // W := V1^H W
-                trmm(side, Uplo::Lower, Op::ConjTrans, Diag::Unit, one, V1, W);
-                if (m > k)
-                    // W := W + V2^H C2
-                    gemm(Op::ConjTrans, Op::NoTrans, one, V2, C2, one, W);
-                // W := op(Tmatrix) W
-                trmm(side, Uplo::Upper, trans, Diag::NonUnit, one, Tmatrix, W);
-                if (m > k)
-                    // C2 := C2 - V2 W
-                    gemm(Op::NoTrans, Op::NoTrans, -one, V2, W, one, C2);
-                // W := - V1 W
-                trmm(side, Uplo::Lower, Op::NoTrans, Diag::Unit, -one, V1, W);
-
-                // C1 := C1 + W
-                for (idx_t j = 0; j < n; ++j)
-                    for (idx_t i = 0; i < k; ++i)
-                        C1(i, j) += W(i, j);
-            }
-            else {  // side == Side::Right
-                // W is an m-by-k matrix
-                // V is an n-by-k matrix
-
-                // Matrix views
-                const auto V1 = rows(V, range{0, k});
-                const auto V2 = rows(V, range{k, n});
-                auto C1 = cols(C, range{0, k});
-                auto C2 = cols(C, range{k, n});
-                auto W = new_matrix(work, m, k);
-
-                // W := C1
-                lacpy(GENERAL, C1, W);
-                // W := W V1
-                trmm(side, Uplo::Lower, Op::NoTrans, Diag::Unit, one, V1, W);
-                if (n > k)
-                    // W := W + C2 V2
-                    gemm(Op::NoTrans, Op::NoTrans, one, C2, V2, one, W);
-                // W := W op(Tmatrix)
-                trmm(Side::Right, Uplo::Upper, trans, Diag::NonUnit, one,
-                     Tmatrix, W);
-                if (n > k)
-                    // C2 := C2 - W V2^H
-                    gemm(Op::NoTrans, Op::ConjTrans, -one, W, V2, one, C2);
-                // W := - W V1^H
-                trmm(side, Uplo::Lower, Op::ConjTrans, Diag::Unit, -one, V1, W);
-
-                // C1 := C1 + W
-                for (idx_t j = 0; j < k; ++j)
-                    for (idx_t i = 0; i < m; ++i)
-                        C1(i, j) += W(i, j);
-            }
-        }
-        else {  // direct == Direction::Backward
-            if (side == Side::Left) {
-                // W is an k-by-n matrix
-                // V is an m-by-k matrix
-
-                // Matrix views
-                const auto V1 = rows(V, range{0, m - k});
-                const auto V2 = rows(V, range{m - k, m});
-                auto C1 = rows(C, range{0, m - k});
-                auto C2 = rows(C, range{m - k, m});
-                auto W = new_matrix(work, k, n);
-
-                // W := C2
-                lacpy(GENERAL, C2, W);
-                // W := V2^H W
-                trmm(side, Uplo::Upper, Op::ConjTrans, Diag::Unit, one, V2, W);
-                if (m > k)
-                    // W := W + V1^H C1
-                    gemm(Op::ConjTrans, Op::NoTrans, one, V1, C1, one, W);
-                // W := op(Tmatrix) W
-                trmm(side, Uplo::Lower, trans, Diag::NonUnit, one, Tmatrix, W);
-                if (m > k)
-                    // C1 := C1 - V1 W
-                    gemm(Op::NoTrans, Op::NoTrans, -one, V1, W, one, C1);
-                // W := - V2 W
-                trmm(side, Uplo::Upper, Op::NoTrans, Diag::Unit, -one, V2, W);
-
-                // C2 := C2 + W
-                for (idx_t j = 0; j < n; ++j)
-                    for (idx_t i = 0; i < k; ++i)
-                        C2(i, j) += W(i, j);
-            }
-            else {  // side == Side::Right
-                // W is an m-by-k matrix
-                // V is an n-by-k matrix
-
-                // Matrix views
-                const auto V1 = rows(V, range{0, n - k});
-                const auto V2 = rows(V, range{n - k, n});
-                auto C1 = cols(C, range{0, n - k});
-                auto C2 = cols(C, range{n - k, n});
-                auto W = new_matrix(work, m, k);
-
-                // W := C2
-                lacpy(GENERAL, C2, W);
-                // W := W V2
-                trmm(side, Uplo::Upper, Op::NoTrans, Diag::Unit, one, V2, W);
-                if (n > k)
-                    // W := W + C1 V1
-                    gemm(Op::NoTrans, Op::NoTrans, one, C1, V1, one, W);
-                // W := W op(Tmatrix)
-                trmm(side, Uplo::Lower, trans, Diag::NonUnit, one, Tmatrix, W);
-                if (n > k)
-                    // C1 := C1 - W V1^H
-                    gemm(Op::NoTrans, Op::ConjTrans, -one, W, V1, one, C1);
-                // W := - W V2^H
-                trmm(side, Uplo::Upper, Op::ConjTrans, Diag::Unit, -one, V2, W);
-
-                // C2 := C2 + W
-                for (idx_t j = 0; j < k; ++j)
-                    for (idx_t i = 0; i < m; ++i)
-                        C2(i, j) += W(i, j);
-            }
-        }
+    if (side == Side::Left) {
+        // W is an k-by-n matrix
+        auto W = new_matrix(work, k, n);
+        return larfb_left(trans, direction, storeMode, V, Tmatrix, C, W);
     }
-    else {  // storeV == StoreV::Rowwise
-        if (direction == Direction::Forward) {
-            if (side == Side::Left) {
-                // W is an k-by-n matrix
-                // V is an k-by-m matrix
-
-                // Matrix views
-                const auto V1 = cols(V, range{0, k});
-                const auto V2 = cols(V, range{k, m});
-                auto C1 = rows(C, range{0, k});
-                auto C2 = rows(C, range{k, m});
-                auto W = new_matrix(work, k, n);
-
-                // W := C1
-                lacpy(GENERAL, C1, W);
-                // W := V1 W
-                trmm(side, Uplo::Upper, Op::NoTrans, Diag::Unit, one, V1, W);
-                if (m > k)
-                    // W := W + V2 C2
-                    gemm(Op::NoTrans, Op::NoTrans, one, V2, C2, one, W);
-                // W := op(Tmatrix) W
-                trmm(side, Uplo::Upper, trans, Diag::NonUnit, one, Tmatrix, W);
-                if (m > k)
-                    // C2 := C2 - V2^H W
-                    gemm(Op::ConjTrans, Op::NoTrans, -one, V2, W, one, C2);
-                // W := - V1^H W
-                trmm(side, Uplo::Upper, Op::ConjTrans, Diag::Unit, -one, V1, W);
-
-                // C1 := C1 - W
-                for (idx_t j = 0; j < n; ++j)
-                    for (idx_t i = 0; i < k; ++i)
-                        C1(i, j) += W(i, j);
-            }
-            else {  // side == Side::Right
-                // W is an m-by-k matrix
-                // V is an k-by-n matrix
-
-                // Matrix views
-                const auto V1 = cols(V, range{0, k});
-                const auto V2 = cols(V, range{k, n});
-                auto C1 = cols(C, range{0, k});
-                auto C2 = cols(C, range{k, n});
-                auto W = new_matrix(work, m, k);
-
-                // W := C1
-                lacpy(GENERAL, C1, W);
-                // W := W V1^H
-                trmm(side, Uplo::Upper, Op::ConjTrans, Diag::Unit, one, V1, W);
-                if (n > k)
-                    // W := W + C2 V2^H
-                    gemm(Op::NoTrans, Op::ConjTrans, one, C2, V2, one, W);
-                // W := W op(Tmatrix)
-                trmm(side, Uplo::Upper, trans, Diag::NonUnit, one, Tmatrix, W);
-                if (n > k)
-                    // C2 := C2 - W V2
-                    gemm(Op::NoTrans, Op::NoTrans, -one, W, V2, one, C2);
-                // W := - W V1
-                trmm(side, Uplo::Upper, Op::NoTrans, Diag::Unit, -one, V1, W);
-
-                // C1 := C1 + W
-                for (idx_t j = 0; j < k; ++j)
-                    for (idx_t i = 0; i < m; ++i)
-                        C1(i, j) += W(i, j);
-            }
-        }
-        else {  // direct == Direction::Backward
-            if (side == Side::Left) {
-                // W is an k-by-n matrix
-                // V is an k-by-m matrix
-
-                // Matrix views
-                const auto V1 = cols(V, range{0, m - k});
-                const auto V2 = cols(V, range{m - k, m});
-                auto C1 = rows(C, range{0, m - k});
-                auto C2 = rows(C, range{m - k, m});
-                auto W = new_matrix(work, k, n);
-
-                // W := C2
-                lacpy(GENERAL, C2, W);
-                // W := V2 W
-                trmm(side, Uplo::Lower, Op::NoTrans, Diag::Unit, one, V2, W);
-                if (m > k)
-                    // W := W + V1 C1
-                    gemm(Op::NoTrans, Op::NoTrans, one, V1, C1, one, W);
-                // W := op(Tmatrix) W
-                trmm(side, Uplo::Lower, trans, Diag::NonUnit, one, Tmatrix, W);
-                if (m > k)
-                    // C1 := C1 - V1^H W
-                    gemm(Op::ConjTrans, Op::NoTrans, -one, V1, W, one, C1);
-                // W := - V2^H W
-                trmm(side, Uplo::Lower, Op::ConjTrans, Diag::Unit, -one, V2, W);
-
-                // C2 := C2 + W
-                for (idx_t j = 0; j < n; ++j)
-                    for (idx_t i = 0; i < k; ++i)
-                        C2(i, j) += W(i, j);
-            }
-            else {  // side == Side::Right
-                // W is an m-by-k matrix
-                // V is an k-by-n matrix
-
-                // Matrix views
-                const auto V1 = cols(V, range{0, n - k});
-                const auto V2 = cols(V, range{n - k, n});
-                auto C1 = cols(C, range{0, n - k});
-                auto C2 = cols(C, range{n - k, n});
-                auto W = new_matrix(work, m, k);
-
-                // W := C2
-                lacpy(GENERAL, C2, W);
-                // W := W V2^H
-                trmm(side, Uplo::Lower, Op::ConjTrans, Diag::Unit, one, V2, W);
-                if (n > k)
-                    // W := W + C1 V1^H
-                    gemm(Op::NoTrans, Op::ConjTrans, one, C1, V1, one, W);
-                // W := W op(Tmatrix)
-                trmm(side, Uplo::Lower, trans, Diag::NonUnit, one, Tmatrix, W);
-                if (n > k)
-                    // C1 := C1 - W V1
-                    gemm(Op::NoTrans, Op::NoTrans, -one, W, V1, one, C1);
-                // W := - W V2
-                trmm(side, Uplo::Lower, Op::NoTrans, Diag::Unit, -one, V2, W);
-
-                // C2 := C2 + W
-                for (idx_t j = 0; j < k; ++j)
-                    for (idx_t i = 0; i < m; ++i)
-                        C2(i, j) += W(i, j);
-            }
-        }
+    else {
+        // W is an m-by-k matrix
+        auto W = new_matrix(work, m, k);
+        return larfb_right(trans, direction, storeMode, V, Tmatrix, C, W);
     }
-
-    return 0;
 }
 
 }  // namespace tlapack

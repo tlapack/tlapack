@@ -431,19 +431,18 @@ void agressive_early_deflation(bool want_t,
             larfg(FORWARD, COLUMNWISE_STORAGE, v, tau);
 
             auto Wv_aux = slice(WV, range{0, jw}, 1);
-            WorkspaceOpts<> work2(Wv_aux);
 
             auto TW_slice = slice(TW, range{0, ns}, range{0, jw});
             larf(Side::Left, FORWARD, COLUMNWISE_STORAGE, v, conj(tau),
-                 TW_slice, work2);
+                 TW_slice, Wv_aux);
 
             auto TW_slice2 = slice(TW, range{0, jw}, range{0, ns});
             larf(Side::Right, FORWARD, COLUMNWISE_STORAGE, v, tau, TW_slice2,
-                 work2);
+                 Wv_aux);
 
             auto V_slice = slice(V, range{0, jw}, range{0, ns});
             larf(Side::Right, FORWARD, COLUMNWISE_STORAGE, v, tau, V_slice,
-                 work2);
+                 Wv_aux);
         }
 
         // Hessenberg reduction
@@ -451,8 +450,8 @@ void agressive_early_deflation(bool want_t,
             auto tau = slice(WV, range{0, jw}, 0);
             gehrd(0, ns, TW, tau, gehrdOpts);
 
-            WorkspaceOpts<> work2(slice(WV, range{0, jw}, 1));
-            unmhr(Side::Right, Op::NoTrans, 0, ns, TW, tau, V, work2);
+            unmhr(Side::Right, Op::NoTrans, 0, ns, TW, tau, V,
+                  WorkspaceOpts<>{slice(WV, range{0, jw}, 1)});
         }
     }
 

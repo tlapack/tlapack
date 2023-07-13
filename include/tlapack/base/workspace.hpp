@@ -183,17 +183,21 @@ struct WorkInfo {
         const size_t s1 = workinfo.size();
         const size_t s = size();
 
-        // Check if the current sizes do not cover the sizes from workinfo
-        if (!((m >= s1 && n >= 1) || (m >= 1 && n >= s1) ||
-              (m >= m1 && n >= n1))) {
+        // Check if the current sizes cover the sizes from workinfo
+        if ((m >= s1 && n >= 1) || (m >= 1 && n >= s1) ||
+            (m >= m1 && n >= n1)) {
+            // Nothing to do
+            return;
+        }
+        else {
             // Check if the sizes from workinfo cover the current sizes
             if ((m1 >= s && n1 >= 1) || (m1 >= 1 && n1 >= s) ||
                 (m1 >= m && n1 >= n)) {
+                // Use the sizes from workinfo
                 m = m1;
                 n = n1;
             }
-            else  // Incompatible workinfo. Use contiguous space the maximum
-                  // size
+            else  // Otherwise, use contiguous space with the maximum size
             {
                 m = std::max(s, s1);
                 n = 1;
