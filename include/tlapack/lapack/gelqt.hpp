@@ -151,11 +151,9 @@ int gelqt(matrix_t& A, matrix_t& TT, const GelqtOpts& opts = {})
         if (j + ib < k) {
             // Apply H to A(j+ib:m,j:n) from the right
             auto A12 = slice(A, range(j + ib, m), range(j, n));
-
-            WorkspaceOpts<void> work1(
-                slice(TT, range(j + ib, m), range(0, ib)));
-            larfb(Side::Right, Op::NoTrans, Direction::Forward, StoreV::Rowwise,
-                  A11, TT1, A12, work1);
+            auto work1 = slice(TT, range(j + ib, m), range(0, ib));
+            larfb_right(Op::NoTrans, Direction::Forward, StoreV::Rowwise, A11,
+                        TT1, A12, work1);
         }
     }
 
