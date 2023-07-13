@@ -247,12 +247,6 @@ constexpr auto diag(starpu::Matrix<T>& A, int diagIdx = 0)
 
 namespace traits {
 
-    template <class T>
-    struct matrix_type_traits<starpu::Matrix<T>, int> {
-        using type = starpu::Matrix<T>;
-        using transpose_type = starpu::Matrix<T>;
-    };
-
     template <class TA, class TB>
     struct matrix_type_traits<starpu::Matrix<TA>, starpu::Matrix<TB>, int> {
         using T = scalar_type<TA, TB>;

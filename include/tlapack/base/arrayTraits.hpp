@@ -178,14 +178,16 @@ namespace traits {
      * example, the plugins for Eigen and mdspan matrices have their own
      * implementation.
      *
-     * The deduced type is defined on @c matrix_type_traits<matrix_t...>::type.
-     * The deduced transpose type is defined on
-     * @c matrix_type_traits<matrix_t...>::transpose_type.
-     *
      * @tparam matrix_t List of matrix types. The last type must be an int.
      */
     template <class... matrix_t>
     struct matrix_type_traits;
+
+    // Matrix type deduction for one type
+    template <class matrix_t>
+    struct matrix_type_traits<matrix_t, int> {
+        using type = typename matrix_type_traits<matrix_t, matrix_t, int>::type;
+    };
 
     // Matrix type deduction for three or more types
     template <class matrixA_t, class matrixB_t, class... matrix_t>
@@ -270,11 +272,6 @@ constexpr Layout layout = traits::layout_trait<array_t, int>::value;
  */
 template <class T>
 using Create = traits::CreateFunctor<T, int>;
-
-/// Transpose type deduction for the matrix T
-template <class T>
-using transpose_type =
-    typename traits::matrix_type_traits<T, int>::transpose_type;
 
 /// Common matrix type deduced from the list of types.
 template <class... matrix_t>

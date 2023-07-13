@@ -92,7 +92,7 @@ inline constexpr WorkInfo lantr_worksize(norm_t normType,
                                          uplo_t uplo,
                                          diag_t diag,
                                          const matrix_t& A,
-                                         const WorkspaceOpts<>& opts)
+                                         const WorkspaceOpts& opts)
 {
     using T = type_t<matrix_t>;
 
@@ -373,7 +373,7 @@ auto lantr(norm_t normType,
            uplo_t uplo,
            diag_t diag,
            const matrix_t& A,
-           const WorkspaceOpts<>& opts)
+           const WorkspaceOpts& opts)
 {
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;

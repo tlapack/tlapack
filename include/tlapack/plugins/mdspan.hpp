@@ -64,46 +64,6 @@ namespace traits {
         static constexpr Layout value = Layout::Strided;
     };
 
-    // Matrix type traits
-    template <class ET, class Exts, class AP>
-    struct matrix_type_traits<
-        std::experimental::mdspan<ET, Exts, std::experimental::layout_left, AP>,
-        int> {
-        using idx_t = typename std::experimental::mdspan<ET, Exts>::size_type;
-        using extents_t = std::experimental::dextents<idx_t, 2>;
-
-        using type = std::experimental::
-            mdspan<ET, extents_t, std::experimental::layout_left, AP>;
-        using transpose_type = std::experimental::
-            mdspan<ET, extents_t, std::experimental::layout_right, AP>;
-    };
-    template <class ET, class Exts, class AP>
-    struct matrix_type_traits<
-        std::experimental::
-            mdspan<ET, Exts, std::experimental::layout_right, AP>,
-        int> {
-        using idx_t = typename std::experimental::mdspan<ET, Exts>::size_type;
-        using extents_t = std::experimental::dextents<idx_t, 2>;
-
-        using type = std::experimental::
-            mdspan<ET, extents_t, std::experimental::layout_right, AP>;
-        using transpose_type = std::experimental::
-            mdspan<ET, extents_t, std::experimental::layout_left, AP>;
-    };
-    template <class ET, class Exts, class AP>
-    struct matrix_type_traits<
-        std::experimental::
-            mdspan<ET, Exts, std::experimental::layout_stride, AP>,
-        int> {
-        using idx_t = typename std::experimental::mdspan<ET, Exts>::size_type;
-        using extents_t = std::experimental::dextents<idx_t, 2>;
-
-        using type = std::experimental::
-            mdspan<ET, extents_t, std::experimental::layout_stride, AP>;
-        using transpose_type = std::experimental::
-            mdspan<ET, extents_t, std::experimental::layout_stride, AP>;
-    };
-
     template <class ET, class Exts, class LP, class AP>
     struct real_type_traits<std::experimental::mdspan<ET, Exts, LP, AP>, int> {
         using type = std::experimental::mdspan<real_type<ET>, Exts, LP, AP>;
@@ -402,6 +362,68 @@ inline constexpr auto diag(const std::experimental::mdspan<ET, Exts, LP, AP>& A,
     return std::experimental::mdspan<ET, extents_t, layout_stride,
                                      typename AP::offset_policy>(
         std::move(ptr), std::move(map), std::move(acc_pol));
+}
+
+// Transpose View
+template <class ET, class Exts, class AP>
+inline constexpr auto transpose_view(
+    const std::experimental::
+        mdspan<ET, Exts, std::experimental::layout_left, AP>& A) noexcept
+{
+    using matrix_t =
+        std::experimental::mdspan<ET, Exts, std::experimental::layout_left, AP>;
+    using idx_t = typename matrix_t::size_type;
+    using extents_t =
+        std::experimental::extents<idx_t, matrix_t::static_extent(1),
+                                   matrix_t::static_extent(0)>;
+
+    using std::experimental::layout_right;
+    using mapping_t = typename layout_right::template mapping<extents_t>;
+
+    mapping_t map(extents_t(A.extent(1), A.extent(0)));
+    return std::experimental::mdspan<ET, extents_t, layout_right, AP>(
+        A.data(), std::move(map));
+}
+template <class ET, class Exts, class AP>
+inline constexpr auto transpose_view(
+    const std::experimental::
+        mdspan<ET, Exts, std::experimental::layout_right, AP>& A) noexcept
+{
+    using matrix_t =
+        std::experimental::mdspan<ET, Exts, std::experimental::layout_right,
+                                  AP>;
+    using idx_t = typename matrix_t::size_type;
+    using extents_t =
+        std::experimental::extents<idx_t, matrix_t::static_extent(1),
+                                   matrix_t::static_extent(0)>;
+
+    using std::experimental::layout_left;
+    using mapping_t = typename layout_left::template mapping<extents_t>;
+
+    mapping_t map(extents_t(A.extent(1), A.extent(0)));
+    return std::experimental::mdspan<ET, extents_t, layout_left, AP>(
+        A.data(), std::move(map));
+}
+template <class ET, class Exts, class AP>
+inline constexpr auto transpose_view(
+    const std::experimental::
+        mdspan<ET, Exts, std::experimental::layout_stride, AP>& A) noexcept
+{
+    using matrix_t =
+        std::experimental::mdspan<ET, Exts, std::experimental::layout_stride,
+                                  AP>;
+    using idx_t = typename matrix_t::size_type;
+    using extents_t =
+        std::experimental::extents<idx_t, matrix_t::static_extent(1),
+                                   matrix_t::static_extent(0)>;
+
+    using std::experimental::layout_stride;
+    using mapping_t = typename layout_stride::template mapping<extents_t>;
+
+    mapping_t map(extents_t(A.extent(1), A.extent(0)),
+                  std::array<idx_t, 2>{A.stride(1), A.stride(0)});
+    return std::experimental::mdspan<ET, extents_t, layout_stride, AP>(
+        A.data(), std::move(map));
 }
 
 #undef isSlice

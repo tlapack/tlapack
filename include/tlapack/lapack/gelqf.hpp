@@ -22,9 +22,9 @@ namespace tlapack {
  * Options struct for gelqf
  */
 template <TLAPACK_INDEX idx_t = size_t>
-struct GelqfOpts : public WorkspaceOpts<> {
-    inline constexpr GelqfOpts(const WorkspaceOpts<>& opts = {})
-        : WorkspaceOpts<>(opts){};
+struct GelqfOpts : public WorkspaceOpts {
+    inline constexpr GelqfOpts(const WorkspaceOpts& opts = {})
+        : WorkspaceOpts(opts){};
 
     idx_t nb = 32;  ///< Block size
 };
@@ -133,8 +133,8 @@ int gelqf(A_t& A, tau_t& tau, const GelqfOpts<size_type<A_t>>& opts = {})
     auto TT = new_matrix(work, nb, nb, sparework);
 
     // Options to forward
-    auto&& gelq2Opts = WorkspaceOpts<>{sparework};
-    auto&& larfbOpts = WorkspaceOpts<void>{sparework};
+    auto&& gelq2Opts = WorkspaceOpts{sparework};
+    auto&& larfbOpts = WorkspaceOpts{sparework};
 
     // Main computational loop
     for (idx_t j = 0; j < k; j += nb) {

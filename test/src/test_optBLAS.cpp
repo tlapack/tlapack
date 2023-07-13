@@ -21,7 +21,7 @@ TEMPLATE_TEST_CASE("has_compatible_layout gives the correct result",
 {
     using T = type_t<TestType>;
     using matrixA_t = TestType;
-    using matrixB_t = transpose_type<TestType>;
+    using matrixB_t = TestType;  // transpose_type<TestType>;
     using vector_t = vector_type<TestType>;
     using namespace tlapack::internal;
 

@@ -29,7 +29,7 @@ namespace tlapack {
  */
 template <TLAPACK_SMATRIX matrix_t>
 inline constexpr WorkInfo getri_uxli_worksize(const matrix_t& A,
-                                              const WorkspaceOpts<>& opts = {})
+                                              const WorkspaceOpts& opts = {})
 {
     using T = type_t<matrix_t>;
 
@@ -59,7 +59,7 @@ inline constexpr WorkInfo getri_uxli_worksize(const matrix_t& A,
  * @ingroup computational
  */
 template <TLAPACK_SMATRIX matrix_t>
-int getri_uxli(matrix_t& A, const WorkspaceOpts<>& opts = {})
+int getri_uxli(matrix_t& A, const WorkspaceOpts& opts = {})
 {
     using work_t = vector_type<matrix_t>;
     using idx_t = size_type<matrix_t>;

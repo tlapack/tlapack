@@ -21,9 +21,9 @@ namespace tlapack {
 /**
  * Options struct for gelqf
  */
-struct GelqtOpts : public WorkspaceOpts<> {
-    inline constexpr GelqtOpts(const WorkspaceOpts<>& opts = {})
-        : WorkspaceOpts<>(opts){};
+struct GelqtOpts : public WorkspaceOpts {
+    inline constexpr GelqtOpts(const WorkspaceOpts& opts = {})
+        : WorkspaceOpts(opts){};
 };
 
 /** Worspace query of gelqf()
@@ -131,7 +131,7 @@ int gelqt(matrix_t& A, matrix_t& TT, const GelqtOpts& opts = {})
     }();
 
     // Options to forward
-    auto&& gelq2Opts = WorkspaceOpts<>{work};
+    auto&& gelq2Opts = WorkspaceOpts{work};
 
     for (idx_t j = 0; j < k; j += nb) {
         // Use blocked code initially

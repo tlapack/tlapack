@@ -85,29 +85,6 @@ namespace traits {
                                           : Layout::ColMajor);
     };
 
-    /// Transpose for Eigen::Matrix
-    template <class matrix_t>
-    struct matrix_type_traits<
-        matrix_t,
-        typename std::enable_if<eigen::internal::is_eigen_matrix<matrix_t>,
-                                int>::type> {
-        using type = Eigen::Matrix<typename matrix_t::Scalar,
-                                   matrix_t::RowsAtCompileTime,
-                                   matrix_t::ColsAtCompileTime,
-                                   (matrix_t::IsRowMajor) ? Eigen::RowMajor
-                                                          : Eigen::ColMajor,
-                                   matrix_t::MaxRowsAtCompileTime,
-                                   matrix_t::MaxColsAtCompileTime>;
-        using transpose_type =
-            Eigen::Matrix<typename matrix_t::Scalar,
-                          matrix_t::ColsAtCompileTime,
-                          matrix_t::RowsAtCompileTime,
-                          (matrix_t::IsRowMajor) ? Eigen::ColMajor
-                                                 : Eigen::RowMajor,
-                          matrix_t::MaxColsAtCompileTime,
-                          matrix_t::MaxRowsAtCompileTime>;
-    };
-
     template <class matrix_t>
     struct real_type_traits<
         matrix_t,
@@ -673,6 +650,50 @@ template <
 inline constexpr auto diag(T& A, int diagIdx = 0) noexcept
 {
     return A.diagonal(diagIdx);
+}
+
+// Transpose view
+template <class matrix_t,
+          typename std::enable_if<(eigen::is_eigen_type<matrix_t> &&
+                                   matrix_t::IsVectorAtCompileTime),
+                                  int>::type = 0>
+inline constexpr auto transpose_view(matrix_t& A) noexcept
+{
+    using T = typename matrix_t::Scalar;
+    using Stride = Eigen::InnerStride<>;
+
+    constexpr int Rows_ = matrix_t::ColsAtCompileTime;
+    constexpr int Cols_ = matrix_t::RowsAtCompileTime;
+
+    using transpose_t = Eigen::Matrix<
+        T, Rows_, Cols_,
+        (matrix_t::IsRowMajor) ? Eigen::ColMajor : Eigen::RowMajor,
+        matrix_t::MaxColsAtCompileTime, matrix_t::MaxRowsAtCompileTime>;
+
+    using map_t = Eigen::Map<transpose_t, Eigen::Unaligned, Stride>;
+
+    return map_t((T*)A.data(), A.size(), Stride(1));
+}
+template <class matrix_t,
+          typename std::enable_if<(eigen::is_eigen_type<matrix_t> &&
+                                   !matrix_t::IsVectorAtCompileTime),
+                                  int>::type = 0>
+inline constexpr auto transpose_view(matrix_t& A) noexcept
+{
+    using T = typename matrix_t::Scalar;
+    using Stride = Eigen::OuterStride<>;
+
+    constexpr int Rows_ = matrix_t::ColsAtCompileTime;
+    constexpr int Cols_ = matrix_t::RowsAtCompileTime;
+
+    using transpose_t = Eigen::Matrix<
+        T, Rows_, Cols_,
+        (matrix_t::IsRowMajor) ? Eigen::ColMajor : Eigen::RowMajor,
+        matrix_t::MaxColsAtCompileTime, matrix_t::MaxRowsAtCompileTime>;
+
+    using map_t = Eigen::Map<transpose_t, Eigen::Unaligned, Stride>;
+
+    return map_t((T*)A.data(), A.cols(), A.rows(), Stride(1));
 }
 
 // -----------------------------------------------------------------------------
