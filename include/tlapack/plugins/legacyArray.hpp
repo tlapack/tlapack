@@ -58,22 +58,6 @@ namespace traits {
         static constexpr Layout value = Layout::Strided;
     };
 
-    // Matrix type traits
-    template <class T, class idx_t>
-    struct matrix_type_traits<LegacyMatrix<T, idx_t, Layout::ColMajor>, int> {
-        using type = LegacyMatrix<T, idx_t, Layout::ColMajor>;
-        using transpose_type = LegacyMatrix<T, idx_t, Layout::RowMajor>;
-    };
-    template <class T, class idx_t>
-    struct matrix_type_traits<LegacyMatrix<T, idx_t, Layout::RowMajor>, int> {
-        using type = LegacyMatrix<T, idx_t, Layout::RowMajor>;
-        using transpose_type = LegacyMatrix<T, idx_t, Layout::ColMajor>;
-    };
-    template <typename T, class idx_t, typename int_t, Direction D>
-    struct matrix_type_traits<LegacyVector<T, idx_t, int_t, D>, int> {
-        using type = LegacyMatrix<T, idx_t, Layout::ColMajor>;
-    };
-
     template <class T, class idx_t, typename int_t, Direction D>
     struct real_type_traits<LegacyVector<T, idx_t, int_t, D>, int> {
         using type = LegacyVector<real_type<T>, idx_t, int_t, D>;
@@ -384,6 +368,22 @@ inline constexpr auto diag(const LegacyMatrix<T, idx_t, layout>& A,
     return LegacyVector<const T, idx_t, idx_t>(n, ptr, A.ldim + 1);
 }
 
+// Transpose view of a LegacyMatrix
+template <typename T, class idx_t>
+inline constexpr auto transpose_view(
+    const LegacyMatrix<T, idx_t, Layout::ColMajor>& A) noexcept
+{
+    return LegacyMatrix<const T, idx_t, Layout::RowMajor>(A.n, A.m, A.ptr,
+                                                          A.ldim);
+}
+template <typename T, class idx_t>
+inline constexpr auto transpose_view(
+    const LegacyMatrix<T, idx_t, Layout::RowMajor>& A) noexcept
+{
+    return LegacyMatrix<const T, idx_t, Layout::ColMajor>(A.n, A.m, A.ptr,
+                                                          A.ldim);
+}
+
 // slice LegacyVector
 template <typename T,
           class idx_t,
@@ -558,6 +558,20 @@ inline constexpr auto diag(LegacyMatrix<T, idx_t, layout>& A,
                              : std::min(A.m, A.n - diagIdx) + (idx_t)diagIdx;
 
     return LegacyVector<T, idx_t, idx_t>(n, ptr, A.ldim + 1);
+}
+
+// Transpose view of a LegacyMatrix
+template <typename T, class idx_t>
+inline constexpr auto transpose_view(
+    LegacyMatrix<T, idx_t, Layout::ColMajor>& A) noexcept
+{
+    return LegacyMatrix<T, idx_t, Layout::RowMajor>(A.n, A.m, A.ptr, A.ldim);
+}
+template <typename T, class idx_t>
+inline constexpr auto transpose_view(
+    LegacyMatrix<T, idx_t, Layout::RowMajor>& A) noexcept
+{
+    return LegacyMatrix<T, idx_t, Layout::ColMajor>(A.n, A.m, A.ptr, A.ldim);
 }
 
 // slice LegacyVector

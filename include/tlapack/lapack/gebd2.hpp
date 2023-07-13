@@ -19,9 +19,9 @@
 
 namespace tlapack {
 
-struct Gebd2Opts : public WorkspaceOpts<> {
-    inline constexpr Gebd2Opts(const WorkspaceOpts<>& opts = {})
-        : WorkspaceOpts<>(opts){};
+struct Gebd2Opts : public WorkspaceOpts {
+    inline constexpr Gebd2Opts(const WorkspaceOpts& opts = {})
+        : WorkspaceOpts(opts){};
 };
 
 /** Worspace query of gebd2().
@@ -148,7 +148,7 @@ int gebd2(matrix_t& A,
     }();
 
     // Options to forward
-    auto&& larfOpts = WorkspaceOpts<>{work};
+    auto&& larfOpts = WorkspaceOpts{work};
 
     if (m >= n) {
         //

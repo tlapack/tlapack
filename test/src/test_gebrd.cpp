@@ -107,7 +107,7 @@ TEMPLATE_TEST_CASE("bidiagonal reduction is backward stable",
         }
 
         // Generate m-by-k unitary matrix Q
-        UngbrOpts<matrix_t> ungbrOpts;
+        UngbrOpts<idx_t> ungbrOpts;
         ungbrOpts.nb = nb;
         lacpy(Uplo::Lower, slice(A, range{0, m}, range{0, k}), Q);
         ungbr_q(n, Q, tauv, ungbrOpts);

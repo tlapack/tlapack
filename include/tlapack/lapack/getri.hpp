@@ -22,9 +22,9 @@ enum class GetriVariant : char {
     UXLI = 'C'   ///< Method C from doi:10.1137/1.9780898718027
 };
 
-struct GetriOpts : public WorkspaceOpts<> {
-    inline constexpr GetriOpts(const WorkspaceOpts<>& opts = {})
-        : WorkspaceOpts<>(opts){};
+struct GetriOpts : public WorkspaceOpts {
+    inline constexpr GetriOpts(const WorkspaceOpts& opts = {})
+        : WorkspaceOpts(opts){};
 
     GetriVariant variant = GetriVariant::UILI;
 };

@@ -33,7 +33,7 @@ namespace tlapack {
 template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
 inline constexpr WorkInfo gerq2_worksize(const matrix_t& A,
                                          const vector_t& tau,
-                                         const WorkspaceOpts<>& opts = {})
+                                         const WorkspaceOpts& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -88,7 +88,7 @@ inline constexpr WorkInfo gerq2_worksize(const matrix_t& A,
  * @ingroup computational
  */
 template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
-int gerq2(matrix_t& A, vector_t& tau, const WorkspaceOpts<>& opts = {})
+int gerq2(matrix_t& A, vector_t& tau, const WorkspaceOpts& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -112,7 +112,7 @@ int gerq2(matrix_t& A, vector_t& tau, const WorkspaceOpts<>& opts = {})
     }();
 
     // Options to forward
-    auto&& larfOpts = WorkspaceOpts<>{work};
+    auto&& larfOpts = WorkspaceOpts{work};
 
     for (idx_t i2 = 0; i2 < k; ++i2) {
         idx_t i = k - 1 - i2;

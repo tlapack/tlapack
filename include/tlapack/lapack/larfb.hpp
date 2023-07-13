@@ -71,21 +71,18 @@ template <TLAPACK_SMATRIX matrixV_t,
           TLAPACK_SIDE side_t,
           TLAPACK_OP trans_t,
           TLAPACK_DIRECTION direction_t,
-          TLAPACK_STOREV storage_t,
-          class workW_t = void>
-inline constexpr WorkInfo larfb_worksize(
-    side_t side,
-    trans_t trans,
-    direction_t direction,
-    storage_t storeMode,
-    const matrixV_t& V,
-    const matrixT_t& Tmatrix,
-    const matrixC_t& C,
-    const WorkspaceOpts<workW_t>& opts = {})
+          TLAPACK_STOREV storage_t>
+inline constexpr WorkInfo larfb_worksize(side_t side,
+                                         trans_t trans,
+                                         direction_t direction,
+                                         storage_t storeMode,
+                                         const matrixV_t& V,
+                                         const matrixT_t& Tmatrix,
+                                         const matrixC_t& C,
+                                         const WorkspaceOpts& opts = {})
 {
     using idx_t = size_type<matrixC_t>;
-    using matrixW_t =
-        deduce_work_t<workW_t, matrix_type<matrixV_t, matrixC_t> >;
+    using matrixW_t = matrix_type<matrixV_t, matrixC_t>;
     using T = type_t<matrixW_t>;
 
     // constants
@@ -93,21 +90,8 @@ inline constexpr WorkInfo larfb_worksize(
     const idx_t n = ncols(C);
     const idx_t k = nrows(Tmatrix);
 
-    WorkInfo myWorkinfo;
-    if (layout<matrixW_t> == Layout::RowMajor) {
-        myWorkinfo.m = (side == Side::Left) ? k : m;
-        myWorkinfo.n = sizeof(T) * ((side == Side::Left) ? n : k);
-    }
-    else if (layout<matrixW_t> == Layout::ColMajor) {
-        myWorkinfo.m = sizeof(T) * ((side == Side::Left) ? k : m);
-        myWorkinfo.n = (side == Side::Left) ? n : k;
-    }
-    else {
-        myWorkinfo.m = sizeof(T);
-        myWorkinfo.n = (side == Side::Left) ? k * n : m * k;
-    }
-
-    return myWorkinfo;
+    return WorkInfo{sizeof(T) * size_t((side == Side::Left) ? k : m),
+                    size_t((side == Side::Left) ? n : k)};
 }
 
 template <TLAPACK_SMATRIX matrixV_t,
@@ -532,8 +516,7 @@ template <TLAPACK_SMATRIX matrixV_t,
           TLAPACK_SIDE side_t,
           TLAPACK_OP trans_t,
           TLAPACK_DIRECTION direction_t,
-          TLAPACK_STOREV storage_t,
-          class workW_t = void>
+          TLAPACK_STOREV storage_t>
 int larfb(side_t side,
           trans_t trans,
           direction_t direction,
@@ -541,11 +524,10 @@ int larfb(side_t side,
           const matrixV_t& V,
           const matrixT_t& Tmatrix,
           matrixC_t& C,
-          const WorkspaceOpts<workW_t>& opts = {})
+          const WorkspaceOpts& opts = {})
 {
     using idx_t = size_type<matrixC_t>;
-    using matrixW_t =
-        deduce_work_t<workW_t, matrix_type<matrixV_t, matrixC_t> >;
+    using matrixW_t = matrix_type<matrixV_t, matrixC_t>;
 
     // Functor
     Create<matrixW_t> new_matrix;
@@ -577,6 +559,61 @@ int larfb(side_t side,
     else {
         // W is an m-by-k matrix
         auto W = new_matrix(work, m, k);
+        return larfb_right(trans, direction, storeMode, V, Tmatrix, C, W);
+    }
+}
+
+template <TLAPACK_SMATRIX matrixV_t,
+          TLAPACK_MATRIX matrixT_t,
+          TLAPACK_SMATRIX matrixC_t,
+          TLAPACK_SIDE side_t,
+          TLAPACK_OP trans_t,
+          TLAPACK_DIRECTION direction_t,
+          TLAPACK_STOREV storage_t>
+int larfb2(side_t side,
+           trans_t trans,
+           direction_t direction,
+           storage_t storeMode,
+           const matrixV_t& V,
+           const matrixT_t& Tmatrix,
+           matrixC_t& C,
+           const WorkspaceOpts& opts = {})
+{
+    using idx_t = size_type<matrixC_t>;
+    using matrixW_t = matrix_type<matrixV_t, matrixC_t>;
+
+    // Functor
+    Create<matrixW_t> new_matrix;
+
+    // constants
+    const idx_t m = nrows(C);
+    const idx_t n = ncols(C);
+    const idx_t k = nrows(Tmatrix);
+
+    // check arguments
+    tlapack_check_false(side != Side::Left && side != Side::Right);
+
+    // Quick return
+    if (m <= 0 || n <= 0 || k <= 0) return 0;
+
+    // Allocates workspace
+    VectorOfBytes localworkdata;
+    const Workspace work = [&]() {
+        WorkInfo workinfo = larfb_worksize(side, trans, direction, storeMode, V,
+                                           Tmatrix, C, opts);
+        return alloc_workspace(localworkdata, workinfo, opts.work);
+    }();
+
+    if (side == Side::Left) {
+        // W is an k-by-n matrix
+        auto Wt = new_matrix(work, n, k);
+        auto W = transpose_view(Wt);
+        return larfb_left(trans, direction, storeMode, V, Tmatrix, C, W);
+    }
+    else {
+        // W is an m-by-k matrix
+        auto Wt = new_matrix(work, n, k);
+        auto W = transpose_view(Wt);
         return larfb_right(trans, direction, storeMode, V, Tmatrix, C, W);
     }
 }

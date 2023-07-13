@@ -44,7 +44,7 @@ int unghr(size_type<matrix_t> ilo,
           size_type<matrix_t> ihi,
           matrix_t& A,
           const vector_t& tau,
-          const WorkspaceOpts<>& opts = {})
+          const WorkspaceOpts& opts = {})
 {
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
@@ -127,7 +127,7 @@ inline constexpr WorkInfo unghr_worksize(size_type<matrix_t> ilo,
                                          size_type<matrix_t> ihi,
                                          const matrix_t& A,
                                          const vector_t& tau,
-                                         const WorkspaceOpts<>& opts = {})
+                                         const WorkspaceOpts& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;

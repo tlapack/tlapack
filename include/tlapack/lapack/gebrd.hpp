@@ -24,9 +24,9 @@ namespace tlapack {
  * Options struct for gebrd
  */
 template <TLAPACK_INDEX idx_t = size_t>
-struct GebrdOpts : public WorkspaceOpts<> {
-    inline constexpr GebrdOpts(const WorkspaceOpts<>& opts = {})
-        : WorkspaceOpts<>(opts){};
+struct GebrdOpts : public WorkspaceOpts {
+    inline constexpr GebrdOpts(const WorkspaceOpts& opts = {})
+        : WorkspaceOpts(opts){};
 
     idx_t nb = 32;  ///< Block size used in the blocked reduction
 };

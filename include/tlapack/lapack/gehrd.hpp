@@ -25,9 +25,9 @@ namespace tlapack {
  * Options struct for gehrd
  */
 template <TLAPACK_INDEX idx_t = size_t>
-struct GehrdOpts : public WorkspaceOpts<> {
-    inline constexpr GehrdOpts(const WorkspaceOpts<>& opts = {})
-        : WorkspaceOpts<>(opts){};
+struct GehrdOpts : public WorkspaceOpts {
+    inline constexpr GehrdOpts(const WorkspaceOpts& opts = {})
+        : WorkspaceOpts(opts){};
 
     idx_t nb = 32;          ///< Block size used in the blocked reduction
     idx_t nx_switch = 128;  ///< If only nx_switch columns are left, the
@@ -154,8 +154,8 @@ int gehrd(size_type<matrix_t> ilo,
     }();
 
     // Options to forward
-    auto&& larfbOpts = WorkspaceOpts<transpose_type<work_t> >{work};
-    auto&& gehd2Opts = WorkspaceOpts<>{work};
+    auto&& larfbOpts = WorkspaceOpts{work};
+    auto&& gehd2Opts = WorkspaceOpts{work};
 
     // Matrix Y
     Workspace workMatrixT;
@@ -199,8 +199,8 @@ int gehrd(size_type<matrix_t> ilo,
 
         // Apply the block reflector H to A(i+1:ihi,i+nb:n) from the left
         auto A5 = slice(A, range{i + 1, ihi}, range{i + nb2, n});
-        larfb(Side::Left, Op::ConjTrans, Direction::Forward, StoreV::Columnwise,
-              V, T_s, A5, larfbOpts);
+        larfb2(Side::Left, Op::ConjTrans, Direction::Forward,
+               StoreV::Columnwise, V, T_s, A5, larfbOpts);
     }
 
     gehd2(i, ihi, A, tau, gehd2Opts);

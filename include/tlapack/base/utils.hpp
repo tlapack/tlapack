@@ -633,11 +633,7 @@ using deduce_work_t =
 
 /**
  * @brief Options structure with a Workspace attribute
- *
- * @tparam work_t Give specialized data type to the workspaces.
- *      Behavior defined by each implementation using this option.
  */
-template <class... work_t>
 struct WorkspaceOpts {
     Workspace work;  ///< Workspace object
 

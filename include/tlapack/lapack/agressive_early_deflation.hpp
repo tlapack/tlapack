@@ -452,7 +452,7 @@ void agressive_early_deflation(bool want_t,
             gehrd(0, ns, TW, tau, gehrdOpts);
 
             unmhr(Side::Right, Op::NoTrans, 0, ns, TW, tau, V,
-                  WorkspaceOpts<>{slice(WV, range{0, jw}, 1)});
+                  WorkspaceOpts{slice(WV, range{0, jw}, 1)});
         }
     }
 

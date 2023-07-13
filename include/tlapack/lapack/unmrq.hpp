@@ -20,12 +20,11 @@ namespace tlapack {
 /**
  * Options struct for unmrq
  */
-template <class workT_t = void>
-struct UnmrqOpts : public WorkspaceOpts<workT_t> {
-    inline constexpr UnmrqOpts(const WorkspaceOpts<workT_t>& opts = {})
-        : WorkspaceOpts<workT_t>(opts){};
+template <TLAPACK_INDEX idx_t = size_t>
+struct UnmrqOpts : public WorkspaceOpts{
+    inline constexpr UnmrqOpts(const WorkspaceOpts& opts = {}) : WorkspaceOpts(opts){};
 
-    size_type<workT_t> nb = 32;  ///< Block size
+    idx_t nb = 32;  ///< Block size
 };
 
 /** Worspace query of unmrq()
@@ -64,17 +63,17 @@ template <TLAPACK_SMATRIX matrixA_t,
           TLAPACK_SMATRIX matrixC_t,
           TLAPACK_SVECTOR tau_t,
           TLAPACK_SIDE side_t,
-          TLAPACK_OP trans_t,
-          class workT_t = void>
-inline constexpr WorkInfo unmrq_worksize(side_t side,
-                                         trans_t trans,
-                                         const matrixA_t& A,
-                                         const tau_t& tau,
-                                         const matrixC_t& C,
-                                         const UnmrqOpts<workT_t>& opts = {})
+          TLAPACK_OP trans_t>
+inline constexpr WorkInfo unmrq_worksize(
+    side_t side,
+    trans_t trans,
+    const matrixA_t& A,
+    const tau_t& tau,
+    const matrixC_t& C,
+    const UnmrqOpts<size_type<matrixC_t>>& opts = {})
 {
     using idx_t = size_type<matrixC_t>;
-    using matrixT_t = deduce_work_t<workT_t, matrix_type<matrixA_t, tau_t> >;
+    using matrixT_t = matrix_type<matrixA_t, tau_t>;
     using T = type_t<matrixT_t>;
     using range = pair<idx_t, idx_t>;
 
@@ -164,18 +163,17 @@ template <TLAPACK_SMATRIX matrixA_t,
           TLAPACK_SMATRIX matrixC_t,
           TLAPACK_SVECTOR tau_t,
           TLAPACK_SIDE side_t,
-          TLAPACK_OP trans_t,
-          class workT_t = void>
+          TLAPACK_OP trans_t>
 int unmrq(side_t side,
           trans_t trans,
           const matrixA_t& A,
           const tau_t& tau,
           matrixC_t& C,
-          const UnmrqOpts<workT_t>& opts = {})
+          const UnmrqOpts<size_type<matrixC_t>>& opts = {})
 {
     using TA = type_t<matrixA_t>;
     using idx_t = size_type<matrixC_t>;
-    using matrixT_t = deduce_work_t<workT_t, matrix_type<matrixA_t, tau_t> >;
+    using matrixT_t = matrix_type<matrixA_t, tau_t>;
 
     using range = pair<idx_t, idx_t>;
 
@@ -218,7 +216,7 @@ int unmrq(side_t side,
     auto matrixT = new_matrix(work, nb, nb, sparework);
 
     // Options to forward
-    auto&& larfbOpts = WorkspaceOpts<void>{sparework};
+    auto&& larfbOpts = WorkspaceOpts{sparework};
 
     // Main loop
     for (idx_t i = i0; i != iN; i += inc) {

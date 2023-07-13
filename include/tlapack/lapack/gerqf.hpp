@@ -22,9 +22,9 @@ namespace tlapack {
  * Options struct for gerqf
  */
 template <TLAPACK_INDEX idx_t = size_t>
-struct GerqfOpts : public WorkspaceOpts<> {
-    inline constexpr GerqfOpts(const WorkspaceOpts<>& opts = {})
-        : WorkspaceOpts<>(opts){};
+struct GerqfOpts : public WorkspaceOpts {
+    inline constexpr GerqfOpts(const WorkspaceOpts& opts = {})
+        : WorkspaceOpts(opts){};
 
     idx_t nb = 32;  ///< Block size
 };
@@ -137,8 +137,8 @@ int gerqf(A_t& A, tau_t& tau, const GerqfOpts<size_type<A_t>>& opts = {})
     auto TT = new_matrix(work, nb, nb, sparework);
 
     // Options to forward
-    auto&& gerq2Opts = WorkspaceOpts<>{sparework};
-    auto&& larfbOpts = WorkspaceOpts<void>{sparework};
+    auto&& gerq2Opts = WorkspaceOpts{sparework};
+    auto&& larfbOpts = WorkspaceOpts{sparework};
 
     // Main computational loop
     for (idx_t j2 = 0; j2 < k; j2 += nb) {

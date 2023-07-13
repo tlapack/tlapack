@@ -24,9 +24,9 @@ namespace tlapack {
  * Options struct for multishift_qr
  */
 template <TLAPACK_INDEX idx_t = size_t>
-struct FrancisOpts : public WorkspaceOpts<> {
-    inline constexpr FrancisOpts(const WorkspaceOpts<>& opts = {})
-        : WorkspaceOpts<>(opts){};
+struct FrancisOpts : public WorkspaceOpts {
+    inline constexpr FrancisOpts(const WorkspaceOpts& opts = {})
+        : WorkspaceOpts(opts){};
 
     // Function that returns the number of shifts to use
     // for a given matrix size
@@ -252,7 +252,7 @@ int multishift_qr(bool want_t,
 
     // Options to forward
     opts.work = work;
-    auto&& mQRsweepOpts = WorkspaceOpts<>{work};
+    auto&& mQRsweepOpts = WorkspaceOpts{work};
 
     // itmax is the total number of QR iterations allowed.
     // For most matrices, 3 shifts per eigenvalue is enough, so

@@ -24,12 +24,11 @@ namespace tlapack {
 /**
  * Options struct for unglq
  */
-template <class workT_t = void>
-struct UnglqOpts : public WorkspaceOpts<workT_t> {
-    inline constexpr UnglqOpts(const WorkspaceOpts<workT_t>& opts = {})
-        : WorkspaceOpts<workT_t>(opts){};
+template <TLAPACK_INDEX idx_t = size_t>
+struct UnglqOpts : public WorkspaceOpts {
+    inline constexpr UnglqOpts(const WorkspaceOpts& opts = {}) : WorkspaceOpts(opts){};
 
-    size_type<workT_t> nb = 32;  ///< Block size
+    idx_t nb = 32;  ///< Block size
 };
 
 /** Worspace query of unglq()
@@ -45,15 +44,14 @@ struct UnglqOpts : public WorkspaceOpts<workT_t> {
  *
  * @ingroup workspace_query
  */
-template <TLAPACK_SMATRIX matrix_t,
-          TLAPACK_SVECTOR vector_t,
-          class workT_t = void>
-inline constexpr WorkInfo unglq_worksize(const matrix_t& A,
-                                         const vector_t& tau,
-                                         const UnglqOpts<workT_t>& opts = {})
+template <TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
+inline constexpr WorkInfo unglq_worksize(
+    const matrix_t& A,
+    const vector_t& tau,
+    const UnglqOpts<size_type<matrix_t>>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
-    using matrixT_t = deduce_work_t<workT_t, matrix_type<matrix_t, vector_t> >;
+    using matrixT_t = matrix_type<matrix_t, vector_t>;
     using T = type_t<matrixT_t>;
     using range = pair<idx_t, idx_t>;
 
@@ -110,16 +108,16 @@ inline constexpr WorkInfo unglq_worksize(const matrix_t& A,
  *
  * @ingroup computational
  */
-template <TLAPACK_SMATRIX matrix_t,
-          TLAPACK_SVECTOR vector_t,
-          class workT_t = void>
-int unglq(matrix_t& A, const vector_t& tau, const UnglqOpts<workT_t>& opts = {})
+template <TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
+int unglq(matrix_t& A,
+          const vector_t& tau,
+          const UnglqOpts<size_type<matrix_t>>& opts = {})
 {
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
-    using matrixT_t = deduce_work_t<workT_t, matrix_type<matrix_t, vector_t> >;
+    using matrixT_t = matrix_type<matrix_t, vector_t>;
 
     // Functor
     Create<matrixT_t> new_matrix;
@@ -150,8 +148,8 @@ int unglq(matrix_t& A, const vector_t& tau, const UnglqOpts<workT_t>& opts = {})
     auto matrixT = new_matrix(work, nb, nb, sparework);
 
     // Options to forward
-    auto&& larfOpts = WorkspaceOpts<>{sparework};
-    auto&& larfbOpts = WorkspaceOpts<void>{sparework};
+    auto&& larfOpts = WorkspaceOpts{sparework};
+    auto&& larfbOpts = WorkspaceOpts{sparework};
 
     // Initialise rows k:m to rows of the unit matrix
     if (m > k) {
