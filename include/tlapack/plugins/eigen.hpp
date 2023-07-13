@@ -129,13 +129,12 @@ namespace traits {
         static constexpr int Options_ =
             (U::IsRowMajor) ? Eigen::RowMajor : Eigen::ColMajor;
 
-        using matrix_t = Eigen::Matrix<T, Rows_, Cols_, Options_>;
-        using map_t = Eigen::Map<matrix_t, Eigen::Unaligned, Stride>;
-
         inline constexpr auto operator()(std::vector<T>& v,
                                          idx_t m,
                                          idx_t n = 1) const
         {
+            using matrix_t = Eigen::Matrix<T, Rows_, Cols_, Options_>;
+
             assert(m >= 0 && n >= 0);
             v.resize(0);
             return matrix_t(m, n);
@@ -146,6 +145,9 @@ namespace traits {
                                          idx_t n,
                                          Workspace& rW) const
         {
+            using matrix_t = Eigen::Matrix<T, Rows_, Cols_, Eigen::ColMajor>;
+            using map_t = Eigen::Map<matrix_t, Eigen::Unaligned, Stride>;
+
             assert(m >= 0 && n >= 0);
 
             if constexpr (Rows_ == 1) {
@@ -166,12 +168,6 @@ namespace traits {
                                ? 1
                                : W.getLdim() / sizeof(T)));
             }
-            else if constexpr (matrix_t::IsRowMajor) {
-                rW = W.extract(n * sizeof(T), m);
-                return map_t(
-                    (T*)W.data(), m, n,
-                    Stride((W.isContiguous()) ? n : W.getLdim() / sizeof(T)));
-            }
             else {
                 rW = W.extract(m * sizeof(T), n);
                 return map_t(
@@ -191,6 +187,9 @@ namespace traits {
                                          idx_t m,
                                          idx_t n = 1) const
         {
+            using matrix_t = Eigen::Matrix<T, Rows_, Cols_, Eigen::ColMajor>;
+            using map_t = Eigen::Map<matrix_t, Eigen::Unaligned, Stride>;
+
             assert(m >= 0 && n >= 0);
 
             if constexpr (Rows_ == 1) {
@@ -210,12 +209,6 @@ namespace traits {
                     Stride((W.isContiguous() || W.getM() == sizeof(T) * m)
                                ? 1
                                : W.getLdim() / sizeof(T)));
-            }
-            else if constexpr (matrix_t::IsRowMajor) {
-                assert(W.contains(n * sizeof(T), m));
-                return map_t(
-                    (T*)W.data(), m, n,
-                    Stride((W.isContiguous()) ? n : W.getLdim() / sizeof(T)));
             }
             else {
                 assert(W.contains(m * sizeof(T), n));

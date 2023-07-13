@@ -128,7 +128,7 @@ We recommend the usage of `auto` in the following cases:
    ([^\w])_(\w)([, ;/\)\(.\[\]]) # Other identifiers that start with underscore
    ```
 
-3. In internal calls, use compile-time flags instead of runtime flags. For instance, use `tlapack::left_side` instead of `tlapack::Side::Left` and `tlapack::NO_TRANS` instead of `tlapack::Op::NoTrans`. This practice usually leads to faster code.
+3. In internal calls, use compile-time flags instead of runtime flags. For instance, use `tlapack::LEFT_SIDE` instead of `tlapack::Side::Left` and `tlapack::NO_TRANS` instead of `tlapack::Op::NoTrans`. This practice usually leads to faster code.
 
 4. Avoid writing code that depends explicitly on `std::complex<T>` by using `tlapack::real_type<T>`, `tlapack::complex_type<T>` and `tlapack::scalar_type<T>`. Any scalar type `T` supported by \<T\>LAPACK should implement those 3 classes.
 

@@ -109,7 +109,7 @@ namespace traits {
         }
 
         /**
-         * @brief Creates a matrix
+         * @brief Creates a column-major matrix from a given workspace
          *
          * @param[in] W
          *      Workspace that references to allocated memory.
@@ -131,30 +131,10 @@ namespace traits {
         }
 
         /**
-         * @brief Creates a vector
+         * @brief Creates a column-major matrix from a given workspace
          *
          * @param[in] W
          *      Workspace that references to allocated memory.
-         * @param[in] m Size of the vector
-         * @param[out] rW
-         *      On exit, receives the updated workspace, i.e., that references
-         *      remaining allocated memory.
-         *
-         * @return The new object
-         */
-        template <class idx_t>
-        inline constexpr auto operator()(const Workspace& W,
-                                         idx_t m,
-                                         Workspace& rW) const
-        {
-            return matrix_t();
-        }
-
-        /**
-         * @brief Creates an object (matrix or vector)
-         *
-         * @param[in] W
-         *      Vector that can be used to reference allocated memory.
          * @param[in] m Number of rows
          * @param[in] n Number of Columns
          *
@@ -163,7 +143,42 @@ namespace traits {
         template <class idx_t>
         inline constexpr auto operator()(const Workspace& W,
                                          idx_t m,
-                                         idx_t n = 1) const
+                                         idx_t n) const
+        {
+            return matrix_t();
+        }
+
+        /**
+         * @brief Creates a strided vector from a given workspace
+         *
+         * @param[in] W
+         *      Workspace that references to allocated memory.
+         * @param[in] n Size of the vector
+         * @param[out] rW
+         *      On exit, receives the updated workspace, i.e., that references
+         *      remaining allocated memory.
+         *
+         * @return The new object
+         */
+        template <class idx_t>
+        inline constexpr auto operator()(const Workspace& W,
+                                         idx_t n,
+                                         Workspace& rW) const
+        {
+            return matrix_t();
+        }
+
+        /**
+         * @brief Creates a strided vector from a given workspace
+         *
+         * @param[in] W
+         *      Workspace that references to allocated memory.
+         * @param[in] n Size of the vector
+         *
+         * @return The new object
+         */
+        template <class idx_t>
+        inline constexpr auto operator()(const Workspace& W, idx_t n) const
         {
             return matrix_t();
         }
