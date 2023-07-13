@@ -22,7 +22,8 @@ namespace tlapack {
  */
 template <TLAPACK_INDEX idx_t = size_t>
 struct UnmqrOpts : public WorkspaceOpts {
-    inline constexpr UnmqrOpts(const WorkspaceOpts& opts = {}) : WorkspaceOpts(opts){};
+    inline constexpr UnmqrOpts(const WorkspaceOpts& opts = {})
+        : WorkspaceOpts(opts){};
 
     idx_t nb = 32;  ///< Block size
 };

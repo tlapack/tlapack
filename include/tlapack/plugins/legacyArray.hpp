@@ -81,12 +81,12 @@ namespace traits {
     /// Create LegacyMatrix @see Create
     template <class T, class idx_t, Layout layout>
     struct CreateFunctor<LegacyMatrix<T, idx_t, layout>, int> {
-        using matrix_t = LegacyMatrix<T, idx_t, layout>;
-
         inline constexpr auto operator()(std::vector<T>& v,
                                          idx_t m,
                                          idx_t n) const
         {
+            using matrix_t = LegacyMatrix<T, idx_t, layout>;
+
             assert(m >= 0 && n >= 0);
             v.resize(m * n);  // Allocates space in memory
             return matrix_t(m, n, v.data());
@@ -97,12 +97,12 @@ namespace traits {
                                          idx_t n,
                                          Workspace& rW) const
         {
+            using matrix_t = LegacyMatrix<T, idx_t, Layout::ColMajor>;
+
             assert(m >= 0 && n >= 0);
-            rW = (layout == Layout::ColMajor) ? W.extract(m * sizeof(T), n)
-                                              : W.extract(n * sizeof(T), m);
+            rW = W.extract(m * sizeof(T), n);
             return (W.isContiguous())
-                       ? matrix_t(m, n,
-                                  (T*)W.data())  // contiguous space in memory
+                       ? matrix_t(m, n, (T*)W.data())
                        : matrix_t(m, n, (T*)W.data(), W.getLdim() / sizeof(T));
         }
 
@@ -110,13 +110,12 @@ namespace traits {
                                          idx_t m,
                                          idx_t n) const
         {
+            using matrix_t = LegacyMatrix<T, idx_t, Layout::ColMajor>;
+
             assert(m >= 0 && n >= 0);
-            tlapack_check((layout == Layout::ColMajor)
-                              ? W.contains(m * sizeof(T), n)
-                              : W.contains(n * sizeof(T), m));
+            tlapack_check(W.contains(m * sizeof(T), n));
             return (W.isContiguous())
-                       ? matrix_t(m, n,
-                                  (T*)W.data())  // contiguous space in memory
+                       ? matrix_t(m, n, (T*)W.data())
                        : matrix_t(m, n, (T*)W.data(), W.getLdim() / sizeof(T));
         }
     };
@@ -140,8 +139,7 @@ namespace traits {
             assert(m >= 0);
             rW = W.extract(sizeof(T), m);
             return (W.isContiguous())
-                       ? vector_t(m,
-                                  (T*)W.data())  // contiguous space in memory
+                       ? vector_t(m, (T*)W.data())
                        : vector_t(m, (T*)W.data(), W.getLdim() / sizeof(T));
         }
 
@@ -150,8 +148,7 @@ namespace traits {
             assert(m >= 0);
             tlapack_check(W.contains(sizeof(T), m));
             return (W.isContiguous())
-                       ? vector_t(m,
-                                  (T*)W.data())  // contiguous space in memory
+                       ? vector_t(m, (T*)W.data())
                        : vector_t(m, (T*)W.data(), W.getLdim() / sizeof(T));
         }
     };

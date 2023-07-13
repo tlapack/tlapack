@@ -25,8 +25,9 @@ namespace tlapack {
  * Options struct for ungqr
  */
 template <TLAPACK_INDEX idx_t = size_t>
-struct UngqrOpts : public WorkspaceOpts{
-    inline constexpr UngqrOpts(const WorkspaceOpts& opts = {}) : WorkspaceOpts(opts){};
+struct UngqrOpts : public WorkspaceOpts {
+    inline constexpr UngqrOpts(const WorkspaceOpts& opts = {})
+        : WorkspaceOpts(opts){};
 
     idx_t nb = 32;  ///< Block size
 };
