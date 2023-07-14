@@ -15,6 +15,9 @@
 
 namespace tlapack {
 
+// C++ standard utils:
+using std::enable_if_t;
+
 // -----------------------------------------------------------------------------
 // for any combination of types, determine associated real, scalar,
 // and complex types.
@@ -49,7 +52,7 @@ namespace traits {
     template <typename T>
     struct real_type_traits<
         T,
-        std::enable_if_t<std::is_arithmetic_v<T> && !std::is_const_v<T>, int>> {
+        enable_if_t<std::is_arithmetic_v<T> && !std::is_const_v<T>, int>> {
         using type = typename std::decay<T>::type;
         constexpr static bool is_real = true;
     };
@@ -69,7 +72,7 @@ namespace traits {
     template <typename T>
     struct real_type_traits<
         T,
-        std::enable_if_t<std::is_pointer_v<T> || std::is_reference_v<T>, int>> {
+        enable_if_t<std::is_pointer_v<T> || std::is_reference_v<T>, int>> {
         using type = void;
         constexpr static bool is_real = false;
     };
@@ -101,7 +104,7 @@ namespace traits {
     template <typename T>
     struct complex_type_traits<
         T,
-        std::enable_if_t<std::is_arithmetic_v<T> && !std::is_const_v<T>, int>> {
+        enable_if_t<std::is_arithmetic_v<T> && !std::is_const_v<T>, int>> {
         using type = std::complex<real_type<T>>;
         constexpr static bool is_complex = false;
     };
@@ -122,7 +125,7 @@ namespace traits {
     template <typename T>
     struct complex_type_traits<
         T,
-        std::enable_if_t<std::is_pointer_v<T> || std::is_reference_v<T>, int>> {
+        enable_if_t<std::is_pointer_v<T> || std::is_reference_v<T>, int>> {
         using type = void;
         constexpr static bool is_complex = false;
     };
@@ -158,16 +161,15 @@ namespace traits {
     struct scalar_type_traits<
         T1,
         T2,
-        std::enable_if_t<is_complex<T1> || is_complex<T2>, int>> {
+        enable_if_t<is_complex<T1> || is_complex<T2>, int>> {
         using type = complex_type<T1, T2>;
     };
 
     // for two types, neither is complex
     template <typename T1, typename T2>
-    struct scalar_type_traits<
-        T1,
-        T2,
-        std::enable_if_t<is_real<T1> && is_real<T2>, int>> {
+    struct scalar_type_traits<T1,
+                              T2,
+                              enable_if_t<is_real<T1> && is_real<T2>, int>> {
         using type = real_type<T1, T2>;
     };
 

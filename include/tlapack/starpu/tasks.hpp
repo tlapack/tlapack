@@ -219,25 +219,25 @@ namespace starpu {
                 const cublasFillMode_t uplo_ = cuda::uplo2cublas(uplo);
                 const int n = starpu_matrix_get_nx(A.handle);
 
-                if constexpr (std::is_same_v<T, float>) {
+                if constexpr (is_same_v<T, float>) {
                     cusolverDnSpotrf_bufferSize(
                         starpu_cusolverDn_get_local_handle(), uplo_, n, nullptr,
                         n, &lwork);
                     lwork *= sizeof(float);
                 }
-                else if constexpr (std::is_same_v<T, double>) {
+                else if constexpr (is_same_v<T, double>) {
                     cusolverDnDpotrf_bufferSize(
                         starpu_cusolverDn_get_local_handle(), uplo_, n, nullptr,
                         n, &lwork);
                     lwork *= sizeof(double);
                 }
-                else if constexpr (std::is_same_v<real_type<T>, float>) {
+                else if constexpr (is_same_v<real_type<T>, float>) {
                     cusolverDnCpotrf_bufferSize(
                         starpu_cusolverDn_get_local_handle(), uplo_, n, nullptr,
                         n, &lwork);
                     lwork *= sizeof(cuFloatComplex);
                 }
-                else if constexpr (std::is_same_v<real_type<T>, double>) {
+                else if constexpr (is_same_v<real_type<T>, double>) {
                     cusolverDnZpotrf_bufferSize(
                         starpu_cusolverDn_get_local_handle(), uplo_, n, nullptr,
                         n, &lwork);

@@ -11,7 +11,6 @@
 #ifndef TLAPACK_BLAS_IAMAX_HH
 #define TLAPACK_BLAS_IAMAX_HH
 
-#include "tlapack/base/constants.hpp"
 #include "tlapack/base/utils.hpp"
 
 namespace tlapack {

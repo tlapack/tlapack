@@ -15,6 +15,11 @@
 #include "tlapack/base/types.hpp"
 
 namespace tlapack {
+
+// C++ standard utils:
+using std::enable_if_t;
+using std::is_same_v;
+
 namespace starpu {
     namespace cuda {
 
@@ -39,11 +44,10 @@ namespace starpu {
 
 #ifdef STARPU_USE_CUDA
         template <class T>
-        struct is_cublas<
-            T,
-            std::enable_if_t<(std::is_same_v<real_type<T>, float> ||
-                              std::is_same_v<real_type<T>, double>),
-                             int>> {
+        struct is_cublas<T,
+                         enable_if_t<(is_same_v<real_type<T>, float> ||
+                                      is_same_v<real_type<T>, double>),
+                                     int>> {
             static constexpr bool value = true;
         };
 

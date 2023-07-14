@@ -240,15 +240,11 @@ namespace starpu {
             return operate_and_assign<internal::Operation::Divide, T>(x);
         }
 
-        // Other math functions
+        // Math functions to satisfy the concept Scalar
 
         constexpr friend real_type<T> abs(const MatrixEntry& x) noexcept
         {
             return abs(T(x));
-        }
-        constexpr friend T sqrt(const MatrixEntry& x) noexcept
-        {
-            return sqrt(T(x));
         }
 
         // Display value in ostream

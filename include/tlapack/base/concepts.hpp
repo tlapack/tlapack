@@ -23,23 +23,22 @@
 
 namespace tlapack {
 
-// Forward declarations
-template <typename T>
-inline T abs(const T& x);
+// C++ standard math functions:
+using std::abs;
+using std::ceil;
+using std::floor;
+using std::isinf;
+using std::isnan;
+using std::log2;
+using std::max;
+using std::min;
+using std::pow;  // We only use pow(int, T), see below in the concept Real.
+using std::sqrt;
+
+// C++ standard types:
+using std::pair;
 
 namespace concepts {
-
-    using std::abs;
-    using std::ceil;
-    using std::floor;
-    using std::isinf;
-    using std::isnan;
-    using std::max;
-    using std::min;
-    using std::pair;
-    using std::pow;
-    using std::sqrt;
-
     /** @interface tlapack::concepts::Arithmetic
      * @brief Concept for a type that supports arithmetic operations.
      *
@@ -79,8 +78,8 @@ namespace concepts {
      * - it must implement the copy assignment operator @c =.
      *
      * - it must support the math operators @c abs(), @c sqrt(), @c pow(int,),
-     * @c ceil(), and @c floor(). Those functions must be callable from the
-     * namespace @c tlapack.
+     * @c log2(), @c ceil(), and @c floor(). Those functions must be callable
+     * from the namespace @c tlapack.
      *
      * - it must support the boolean functions @c isinf() and @c isnan(), which
      * must be callable from the namespace @c tlapack.
@@ -127,6 +126,7 @@ namespace concepts {
         abs(a);
         sqrt(a);
         pow(2, a);
+        log2(a);
         ceil(a);
         floor(a);
         min(a, b);
@@ -257,10 +257,10 @@ namespace concepts {
      * use the following operations to slice a vector:
      *
      * - View of entries i to j, excluding j, a vector v of length n, where 0 <=
-     * i <= j <= n, using the function @c slice(vector_t&, std::pair<idx_t,
-     * idx_t>). The call <tt>slice(v, std::pair{i,j})</tt> returns a vector of
-     * length (j-i) whose type satisfy tlapack::concepts::Vector. This function
-     * must be callable from the namespace @c tlapack.
+     * i <= j <= n, using the function @c slice(vector_t&, pair<idx_t, idx_t>).
+     * The call <tt>slice(v, pair{i,j})</tt> returns a vector of length (j-i)
+     * whose type satisfy tlapack::concepts::Vector. This function must be
+     * callable from the namespace @c tlapack.
      *
      * @tparam vector_t Vector type.
      *
@@ -271,7 +271,7 @@ namespace concepts {
     {
         // Subvector view
         {
-            slice(v, std::pair<int, int>{0, 0})
+            slice(v, pair<int, int>{0, 0})
         }
         ->Vector<>;
     };
@@ -327,18 +327,18 @@ namespace concepts {
      *
      * - Submatrix view A(i:j,k:l) of a m-by-n matrix A(0:m,0:n), where
      * 0 <= i <= j <= m and 0 <= k <= l <= n, using the function
-     * @c slice(matrix_t&, std::pair<idx_t,idx_t>, std::pair<idx_t,idx_t>). The
-     * call <tt>slice(A, std::pair{i,j}, std::pair{k,l})</tt> returns a
+     * @c slice(matrix_t&, pair<idx_t,idx_t>, pair<idx_t,idx_t>). The
+     * call <tt>slice(A, pair{i,j}, pair{k,l})</tt> returns a
      * (j-i)-by-(l-k) matrix whose type satisfy tlapack::concepts::Matrix.
      *
      * - View of rows i to j, excluding j, of a m-by-n matrix A(0:m,0:n), where
      * 0 <= i <= j <= m, using the function @c rows(matrix_t&,
-     * std::pair<idx_t,idx_t>). The call <tt>rows(A, std::pair{i,j})</tt>
-     * returns a (j-i)-by-n matrix whose type satisfy tlapack::concepts::Matrix.
+     * pair<idx_t,idx_t>). The call <tt>rows(A, pair{i,j})</tt> returns a
+     * (j-i)-by-n matrix whose type satisfy tlapack::concepts::Matrix.
      *
      * - View of columns i to j, excluding j, of a m-by-n matrix A(0:m,0:n),
      * where 0 <= i <= j <= n, using the function @c cols(matrix_t&,
-     * std::pair<idx_t,idx_t>). The call <tt>cols(A, std::pair{i,j})</tt>
+     * pair<idx_t,idx_t>). The call <tt>cols(A, pair{i,j})</tt>
      * returns a m-by-(j-i) matrix whose type satisfy tlapack::concepts::Matrix.
      *
      * - View of row i of a m-by-n matrix A(0:m,0:n), where 0 <= i < m, using
@@ -353,14 +353,14 @@ namespace concepts {
      *
      * - View of entries i to j, excluding j, of row k of a m-by-n matrix, where
      * 0 <= i <= j <= n and 0 <= k < m, using the function @c slice(matrix_t&,
-     * idx_t, std::pair<idx_t,idx_t>). The call <tt>slice(A, k, std::pair{i,j})
+     * idx_t, pair<idx_t,idx_t>). The call <tt>slice(A, k, pair{i,j})
      * </tt> returns a vector of length (j-i) whose type satisfy
      * tlapack::concepts::Vector.
      *
      * - View of entries i to j, excluding j, of column k of a m-by-n matrix,
      * where 0 <= i <= j <= m and 0 <= k < n, using the function
-     * @c slice(matrix_t&, std::pair<idx_t,idx_t>, idx_t). The call
-     * <tt>slice(A, std::pair{i,j}, k)</tt> returns a vector of length (j-i)
+     * @c slice(matrix_t&, pair<idx_t,idx_t>, idx_t). The call
+     * <tt>slice(A, pair{i,j}, k)</tt> returns a vector of length (j-i)
      * whose type satisfy tlapack::concepts::Vector.
      *
      * - View of the i-th diagonal of a m-by-n matrix A(0:m,0:n), where -m < i <
@@ -380,19 +380,19 @@ namespace concepts {
     {
         // Submatrix view (matrix)
         {
-            slice(A, std::pair<int, int>{0, 1}, std::pair<int, int>{0, 1})
+            slice(A, pair<int, int>{0, 1}, pair<int, int>{0, 1})
         }
         ->Matrix<>;
 
         // View of multiple rows (matrix)
         {
-            rows(A, std::pair<int, int>{0, 1})
+            rows(A, pair<int, int>{0, 1})
         }
         ->Matrix<>;
 
         // View of multiple columns (matrix)
         {
-            cols(A, std::pair<int, int>{0, 1})
+            cols(A, pair<int, int>{0, 1})
         }
         ->Matrix<>;
 
@@ -410,13 +410,13 @@ namespace concepts {
 
         // View of a slice of a row (vector)
         {
-            slice(A, 0, std::pair<int, int>{0, 1})
+            slice(A, 0, pair<int, int>{0, 1})
         }
         ->Vector<>;
 
         // View of a slice of a column (vector)
         {
-            slice(A, std::pair<int, int>{0, 1}, 0)
+            slice(A, pair<int, int>{0, 1}, 0)
         }
         ->Vector<>;
 

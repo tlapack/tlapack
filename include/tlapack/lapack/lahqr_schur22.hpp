@@ -58,17 +58,14 @@ int lahqr_schur22(T& a,
                   T& cs,
                   T& sn)
 {
-    using std::log;
-
     const T zero(0);
     const T half(0.5);
     const T one(1);
-    const T two(2);
     const T multpl(4);
 
     const T eps = ulp<T>();
     const T safmin = safe_min<T>();
-    const T safmn2 = pow(2, T((int)(log(safmin / eps) / log(two)) / 2));
+    const T safmn2 = pow(2, T((int)(log2(safmin / eps)) / 2));
     const T safmx2 = one / safmn2;
 
     if (c == zero) {

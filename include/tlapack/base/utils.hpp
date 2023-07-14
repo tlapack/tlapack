@@ -28,20 +28,23 @@
 
 namespace tlapack {
 
-// -----------------------------------------------------------------------------
-// From std C++
+// C++ standard utils:
+using std::enable_if_t;
+using std::is_same_v;
+
+// C++ standard math functions:
 using std::abs;
 using std::ceil;
 using std::floor;
 using std::isinf;
 using std::isnan;
+using std::log2;
 using std::max;
 using std::min;
-using std::pow;
+using std::pow;  // We only use pow(int, T), see below in the concept Real.
 using std::sqrt;
 
-using std::enable_if_t;
-using std::is_same_v;
+// C++ standard types:
 using std::pair;
 
 //------------------------------------------------------------------------------
@@ -90,8 +93,8 @@ inline int sgn(const real_t& val)
 
 // -----------------------------------------------------------------------------
 /// isinf for complex numbers
-template <typename real_t>
-inline bool isinf(const std::complex<real_t>& x)
+template <typename T, enable_if_t<is_complex<T>, int> = 0>
+inline bool isinf(const T& x)
 {
     return isinf(real(x)) || isinf(imag(x));
 }
@@ -277,8 +280,8 @@ bool hasinf(const vector_t& x)
 
 // -----------------------------------------------------------------------------
 /// isnan for complex numbers
-template <typename real_t>
-inline bool isnan(const std::complex<real_t>& x)
+template <typename T, enable_if_t<is_complex<T>, int> = 0>
+inline bool isnan(const T& x)
 {
     return isnan(real(x)) || isnan(imag(x));
 }

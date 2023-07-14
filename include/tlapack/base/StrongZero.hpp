@@ -15,6 +15,8 @@
 #include <cstdint>
 #include <limits>
 
+#include "tlapack/base/scalar_type_traits.hpp"
+
 namespace tlapack {
 
 /**
@@ -173,19 +175,18 @@ struct StrongZero {
 
     // Math functions
 
+    friend constexpr StrongZero abs(StrongZero) { return StrongZero(); }
     friend constexpr StrongZero sqrt(StrongZero) { return StrongZero(); }
     friend constexpr int pow(int, StrongZero) { return 1; }
+    friend constexpr float log2(StrongZero)
+    {
+        return -std::numeric_limits<float>::infinity();
+    }
     friend constexpr StrongZero ceil(StrongZero) { return StrongZero(); }
     friend constexpr StrongZero floor(StrongZero) { return StrongZero(); }
 };
 
 namespace traits {
-
-    // forward declarations
-    template <typename... Types>
-    struct real_type_traits;
-    template <typename... Types>
-    struct complex_type_traits;
 
     // for either StrongZero, return the other type
     template <typename T>
