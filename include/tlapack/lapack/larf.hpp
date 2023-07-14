@@ -19,6 +19,62 @@
 
 namespace tlapack {
 
+/** Applies an elementary reflector defined by tau and v to a m-by-n matrix C
+ * decomposed into C0 and C1.
+ * \[
+ *      C_0 = (1-\tau) C_0 - \tau v^H C_1, \\
+ *      C_1 = -\tau v C_0 + (I-\tau vv^H) C_1,
+ * \]
+ * if side = Side::Left, or
+ * \[
+ *      C_0 = (1-\tau) C_0 -\tau C_1 v, \\
+ *      C_1 = -\tau C_0 v^H + C_1 (I-\tau vv^H),
+ * \]
+ * if side = Side::Right.
+ *
+ * The elementary reflector is defined as
+ * \[
+ * H =
+ * \begin{bmatrix}
+ *      1-\tau & -\tau v^H \\
+ *      -\tau v & I-\tau vv^H
+ * \end{bmatrix}
+ * \]
+ *
+ * @tparam side_t Either Side or any class that implements `operator Side()`.
+ *
+ * @param[in] side
+ *     - Side::Left:  apply $H$ from the Left.
+ *     - Side::Right: apply $H$ from the Right.
+ *
+ * @param[in] storeMode
+ *     Indicates how the vectors which define the elementary reflectors are
+ * stored:
+ *     - StoreV::Columnwise.
+ *     - StoreV::Rowwise.
+ *
+ * @param[in] x Vector $v$ if storeMode = StoreV::Columnwise, or
+ *                     $v^H$ if storeMode = StoreV::Rowwise.
+ *
+ * @param[in] tau Value of tau in the representation of H.
+ *
+ * @param[in,out] C0 Vector of size n if side = Side::Left,
+ *                               or m if side = Side::Right.
+ *     On exit, C0 is overwritten by
+ *      - $(1-\tau) C_0 - \tau v^H C_1$ if side = Side::Left, or
+ *      - $(1-\tau) C_0 - \tau C_1 v$ if side = Side::Right.
+ *
+ * @param[in,out] C1 Matrix of size (m-1)-by-n if side = Side::Left,
+ *                               or m-by-(n-1) if side = Side::Right.
+ *     On exit, C1 is overwritten by
+ *     - $-\tau v C_0 + (I-\tau vv^H) C_1$ if side = Side::Left, or
+ *     - $-\tau C_0 v^H + C_1 (I-\tau vv^H)$ if side = Side::Right.
+ *
+ * @param w Workspace vector of size n if side = Side::Left,
+ *                                or m if side = Side::Right.
+ *
+ * @ingroup auxiliary
+ */
 template <TLAPACK_SIDE side_t,
           TLAPACK_STOREV storage_t,
           TLAPACK_VECTOR vector_t,
@@ -171,8 +227,10 @@ inline constexpr WorkInfo larf_worksize(side_t side,
 
     // constants
     const idx_t k = size(C0);
+    const idx_t m = nrows(C1);
+    const idx_t n = ncols(C1);
 
-    return WorkInfo(sizeof(T), k);
+    return (m > 0 && n > 0) ? WorkInfo(sizeof(T), k) : WorkInfo();
 }
 
 /** Applies an elementary reflector defined by tau and v to a m-by-n matrix C
@@ -214,8 +272,8 @@ inline constexpr WorkInfo larf_worksize(side_t side,
  *
  * @param[in] tau Value of tau in the representation of H.
  *
- * @param[in,out] C0 Vector of size m-1 if side = Side::Left,
- *                               or n-1 if side = Side::Right.
+ * @param[in,out] C0 Vector of size n if side = Side::Left,
+ *                               or m if side = Side::Right.
  *     On exit, C0 is overwritten by
  *      - $(1-\tau) C_0 - \tau v^H C_1$ if side = Side::Left, or
  *      - $(1-\tau) C_0 -\tau C_1 v$ if side = Side::Right.
@@ -229,6 +287,14 @@ inline constexpr WorkInfo larf_worksize(side_t side,
  * @param[in] opts Options.
  *      - @c opts.work is used if whenever it has sufficient size.
  *        The sufficient size can be obtained through a workspace query.
+ *
+ * @see larf(side_t side,
+          storage_t storeMode,
+          vector_t const& x,
+          const tau_t& tau,
+          vectorC0_t& C0,
+          matrixC1_t& C1,
+          vectorw_t& w)
  *
  * @ingroup auxiliary
  */
@@ -284,6 +350,46 @@ void larf(side_t side,
     return larf(side, storeMode, x, tau, C0, C1, w);
 }
 
+/** Applies an elementary reflector H to a m-by-n matrix C.
+ *
+ * The elementary reflector H can be applied on either the left or right, with
+ * \[
+ *        H = I - \tau v v^H.
+ * \]
+ * where v = [ 1 x ] if direction == Direction::Forward and
+ *       v = [ x 1 ] if direction == Direction::Backward.
+ *
+ * @tparam side_t Either Side or any class that implements `operator Side()`.
+ *
+ * @param[in] side
+ *     - Side::Left:  apply $H$ from the Left.
+ *     - Side::Right: apply $H$ from the Right.
+ *
+ * @param[in] direction
+ *     v = [ 1 x ] if direction == Direction::Forward and
+ *     v = [ x 1 ] if direction == Direction::Backward.
+ *
+ * @param[in] storeMode
+ *     Indicates how the vectors which define the elementary reflectors are
+ * stored:
+ *     - StoreV::Columnwise.
+ *     - StoreV::Rowwise.
+ *
+ * @param[in] v Vector of size m if side = Side::Left,
+ *                          or n if side = Side::Right.
+ *
+ * @param[in] tau Value of tau in the representation of H.
+ *
+ * @param[in,out] C
+ *     On entry, the m-by-n matrix C.
+ *     On exit, C is overwritten by $H C$ if side = Side::Left,
+ *                               or $C H$ if side = Side::Right.
+ *
+ * @param w Workspace vector of size n if side = Side::Left,
+ *                                or m if side = Side::Right.
+ *
+ * @ingroup auxiliary
+ */
 template <TLAPACK_SIDE side_t,
           TLAPACK_DIRECTION direction_t,
           TLAPACK_STOREV storage_t,
@@ -403,7 +509,8 @@ inline constexpr WorkInfo larf_worksize(side_t side,
     const idx_t m = nrows(C);
     const idx_t n = ncols(C);
 
-    return WorkInfo(sizeof(T), (side == Side::Left) ? n : m);
+    return (m > 0 && n > 0) ? WorkInfo(sizeof(T), (side == Side::Left) ? n : m)
+                            : WorkInfo();
 }
 
 /** Applies an elementary reflector H to a m-by-n matrix C.
@@ -445,6 +552,14 @@ inline constexpr WorkInfo larf_worksize(side_t side,
  *      - @c opts.work is used if whenever it has sufficient size.
  *        The sufficient size can be obtained through a workspace query.
  *
+ * @see larf(side_t side,
+                 direction_t direction,
+                 storage_t storeMode,
+                 vector_t const& v,
+                 const tau_t& tau,
+                 matrix_t& C,
+                 vectorw_t& w)
+ *
  * @ingroup auxiliary
  */
 template <TLAPACK_SIDE side_t,
@@ -462,8 +577,12 @@ inline void larf(side_t side,
                  matrix_t& C,
                  const WorkspaceOpts& opts = {})
 {
+    // data traits
+    using work_t = vector_type<matrix_t, vector_t>;
     using idx_t = size_type<matrix_t>;
-    using range = pair<idx_t, idx_t>;
+
+    // Functor
+    Create<work_t> new_vector;
 
     // constants
     const idx_t m = nrows(C);
@@ -480,36 +599,16 @@ inline void larf(side_t side,
     // quick return
     if (m == 0 || n == 0) return;
 
-    // The following code was changed from:
-    //
-    // if( side == Side::Left ) {
-    //     gemv(Op::ConjTrans, one, C, v, work);
-    //     ger(-tau, v, work, C);
-    // }
-    // else{
-    //     gemv(Op::NoTrans, one, C, v, work);
-    //     ger(-tau, work, v, C);
-    // }
-    //
-    // This is so that v[0] doesn't need to be changed to 1,
-    // which is better for thread safety.
+    // Allocates workspace
+    VectorOfBytes localworkdata;
+    const Workspace work = [&]() {
+        WorkInfo workinfo =
+            larf_worksize(side, direction, storeMode, v, tau, C, opts);
+        return alloc_workspace(localworkdata, workinfo, opts.work);
+    }();
+    auto w = new_vector(work, (side == Side::Left) ? n : m);
 
-    if (side == Side::Left) {
-        auto C0 = (direction == Direction::Forward) ? row(C, 0) : row(C, m - 1);
-        auto C1 = (direction == Direction::Forward) ? rows(C, range{1, m})
-                                                    : rows(C, range{0, m - 1});
-        auto x = (direction == Direction::Forward) ? slice(v, range{1, m})
-                                                   : slice(v, range{0, m - 1});
-        larf(side, storeMode, x, tau, C0, C1, opts);
-    }
-    else {  // side == Side::Right
-        auto C0 = (direction == Direction::Forward) ? col(C, 0) : col(C, n - 1);
-        auto C1 = (direction == Direction::Forward) ? cols(C, range{1, n})
-                                                    : cols(C, range{0, n - 1});
-        auto x = (direction == Direction::Forward) ? slice(v, range{1, n})
-                                                   : slice(v, range{0, n - 1});
-        larf(side, storeMode, x, tau, C0, C1, opts);
-    }
+    return larf(side, direction, storeMode, v, tau, C, w);
 }
 
 }  // namespace tlapack
