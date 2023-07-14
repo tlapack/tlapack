@@ -42,12 +42,6 @@ inline constexpr T conj(const starpu::MatrixEntry<T>& x)
     return conj(T(x));
 }
 
-template <class T>
-inline constexpr real_type<T> abs(const starpu::MatrixEntry<T>& x)
-{
-    return abs(x);
-}
-
 namespace traits {
     template <class T>
     struct real_type_traits<starpu::MatrixEntry<T>, int>

@@ -56,7 +56,7 @@ int getrf_level0(matrix_t& A, piv_t& piv)
     // constants
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
-    const idx_t end = std::min<idx_t>(m, n);
+    const idx_t end = min(m, n);
 
     // check arguments
     tlapack_check((idx_t)size(piv) >= end);

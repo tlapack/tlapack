@@ -126,7 +126,7 @@ int rotmg(T& d1, T& d2, T& a, const T& b, T h[4])
             const T q2 = p2 * b;
             const T q1 = p1 * a;
 
-            if (tlapack::abs(q1) > tlapack::abs(q2)) {
+            if (abs(q1) > abs(q2)) {
                 flag = zero;
                 h[1] = -b / a;
                 h[2] = p2 / p1;
@@ -182,8 +182,7 @@ int rotmg(T& d1, T& d2, T& a, const T& b, T h[4])
             }
 
             if (d2 != zero) {
-                while ((tlapack::abs(d2) <= rgamsq) ||
-                       (tlapack::abs(d2) >= gamsq)) {
+                while ((abs(d2) <= rgamsq) || (abs(d2) >= gamsq)) {
                     if (flag == 0) {
                         h[0] = one;
                         h[3] = one;
@@ -194,7 +193,7 @@ int rotmg(T& d1, T& d2, T& a, const T& b, T h[4])
                         h[2] = one;
                         flag = -1;
                     }
-                    if (tlapack::abs(d2) <= rgamsq) {
+                    if (abs(d2) <= rgamsq) {
                         d2 *= gam * gam;
                         h[1] /= gam;
                         h[3] /= gam;

@@ -187,15 +187,14 @@ int lahqr(bool want_t,
                 // eps*|A(i,i)|*|A(i-1,i-1)| The multiplications might overflow
                 // so we do some scaling first.
                 //
-                real_t ab = std::max(abs1(A(i, i - 1)), abs1(A(i - 1, i)));
-                real_t ba = std::min(abs1(A(i, i - 1)), abs1(A(i - 1, i)));
-                real_t aa =
-                    std::max(abs1(A(i, i)), abs1(A(i, i) - A(i - 1, i - 1)));
-                real_t bb =
-                    std::min(abs1(A(i, i)), abs1(A(i, i) - A(i - 1, i - 1)));
+                const real_t aij = abs1(A(i, i - 1));
+                const real_t aji = abs1(A(i - 1, i));
+                real_t ab = (aij > aji) ? aij : aji;  // Propagates NaNs in aji
+                real_t ba = (aij < aji) ? aij : aji;  // Propagates NaNs in aji
+                real_t aa = max(abs1(A(i, i)), abs1(A(i, i) - A(i - 1, i - 1)));
+                real_t bb = min(abs1(A(i, i)), abs1(A(i, i) - A(i - 1, i - 1)));
                 real_t s = aa + ab;
-                if (ba * (ab / s) <=
-                    std::max(small_num, eps * (bb * (aa / s)))) {
+                if (ba * (ab / s) <= max(small_num, eps * (bb * (aa / s)))) {
                     // A(i,i-1) is negligible, take i as new istart.
                     A(i, i - 1) = zero;
                     istart = i;
@@ -363,7 +362,7 @@ int lahqr(bool want_t,
                     A(i + 2, j) = A(i + 2, j) - sum * t3;
                 }
                 // Apply G from the right to A
-                for (idx_t j = istart_m; j < std::min(i + 4, istop); ++j) {
+                for (idx_t j = istart_m; j < min(i + 4, istop); ++j) {
                     sum = A(j, i) + v2 * A(j, i + 1) + v3 * A(j, i + 2);
                     A(j, i) = A(j, i) - sum * conj(t1);
                     A(j, i + 1) = A(j, i + 1) - sum * conj(t2);
@@ -387,7 +386,7 @@ int lahqr(bool want_t,
                     A(i + 1, j) = A(i + 1, j) - sum * t2;
                 }
                 // Apply G from the right to A
-                for (idx_t j = istart_m; j < std::min(i + 3, istop); ++j) {
+                for (idx_t j = istart_m; j < min(i + 3, istop); ++j) {
                     sum = A(j, i) + v2 * A(j, i + 1);
                     A(j, i) = A(j, i) - sum * conj(t1);
                     A(j, i + 1) = A(j, i + 1) - sum * conj(t2);
@@ -504,10 +503,10 @@ int lahqr(bool want_t,
             real_t tst = abs1(A(i - 1, i - 1)) + abs1(A(i, i));
             if (tst == zero) {
                 if (i >= ilo + 2) {
-                    tst = tst + tlapack::abs(A(i - 1, i - 2));
+                    tst = tst + abs(A(i - 1, i - 2));
                 }
                 if (i < ihi) {
-                    tst = tst + tlapack::abs(A(i + 1, i));
+                    tst = tst + abs(A(i + 1, i));
                 }
             }
             if (abs1(A(i, i - 1)) <= eps * tst) {
@@ -522,15 +521,14 @@ int lahqr(bool want_t,
                 // eps*|A(i,i)|*|A(i-1,i-1)| The multiplications might overflow
                 // so we do some scaling first.
                 //
-                real_t ab = std::max(abs1(A(i, i - 1)), abs1(A(i - 1, i)));
-                real_t ba = std::min(abs1(A(i, i - 1)), abs1(A(i - 1, i)));
-                real_t aa =
-                    std::max(abs1(A(i, i)), abs1(A(i, i) - A(i - 1, i - 1)));
-                real_t bb =
-                    std::min(abs1(A(i, i)), abs1(A(i, i) - A(i - 1, i - 1)));
+                const real_t aij = abs1(A(i, i - 1));
+                const real_t aji = abs1(A(i - 1, i));
+                real_t ab = (aij > aji) ? aij : aji;  // Propagates NaNs in aji
+                real_t ba = (aij < aji) ? aij : aji;  // Propagates NaNs in aji
+                real_t aa = max(abs1(A(i, i)), abs1(A(i, i) - A(i - 1, i - 1)));
+                real_t bb = min(abs1(A(i, i)), abs1(A(i, i) - A(i - 1, i - 1)));
                 real_t s = aa + ab;
-                if (ba * (ab / s) <=
-                    std::max(small_num, eps * (bb * (aa / s)))) {
+                if (ba * (ab / s) <= max(small_num, eps * (bb * (aa / s)))) {
                     // A(i,i-1) is negligible, take i as new istart.
                     A(i, i - 1) = zero;
                     istart = i;
@@ -552,8 +550,8 @@ int lahqr(bool want_t,
         k_defl = k_defl + 1;
         if (k_defl % non_convergence_limit == 0) {
             // Exceptional shift
-            real_t s = tlapack::abs(A(istop - 1, istop - 2));
-            if (istop > ilo + 2) s = s + tlapack::abs(A(istop - 2, istop - 3));
+            real_t s = abs(A(istop - 1, istop - 2));
+            if (istop > ilo + 2) s = s + abs(A(istop - 2, istop - 3));
             a00 = dat1 * s + A(istop - 1, istop - 1);
             a01 = dat2 * s;
             a10 = s;
@@ -616,7 +614,7 @@ int lahqr(bool want_t,
                 A(i, j) = tmp;
             }
             // Apply G**H from the right to A
-            for (idx_t j = istart_m; j < std::min(i + 3, istop); ++j) {
+            for (idx_t j = istart_m; j < min(i + 3, istop); ++j) {
                 TA tmp = cs * A(j, i) + conj(sn) * A(j, i + 1);
                 A(j, i + 1) = -sn * A(j, i) + cs * A(j, i + 1);
                 A(j, i) = tmp;

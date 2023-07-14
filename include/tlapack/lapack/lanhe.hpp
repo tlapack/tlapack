@@ -133,7 +133,7 @@ auto lanhe(norm_t normType, uplo_t uplo, const matrix_t& A)
         if (uplo == Uplo::Upper) {
             for (idx_t j = 0; j < n; ++j) {
                 for (idx_t i = 0; i < j; ++i) {
-                    real_t temp = tlapack::abs(A(i, j));
+                    real_t temp = abs(A(i, j));
 
                     if (temp > norm)
                         norm = temp;
@@ -142,7 +142,7 @@ auto lanhe(norm_t normType, uplo_t uplo, const matrix_t& A)
                     }
                 }
                 {
-                    real_t temp = tlapack::abs(real(A(j, j)));
+                    real_t temp = abs(real(A(j, j)));
 
                     if (temp > norm)
                         norm = temp;
@@ -155,7 +155,7 @@ auto lanhe(norm_t normType, uplo_t uplo, const matrix_t& A)
         else {
             for (idx_t j = 0; j < n; ++j) {
                 {
-                    real_t temp = tlapack::abs(real(A(j, j)));
+                    real_t temp = abs(real(A(j, j)));
 
                     if (temp > norm)
                         norm = temp;
@@ -164,7 +164,7 @@ auto lanhe(norm_t normType, uplo_t uplo, const matrix_t& A)
                     }
                 }
                 for (idx_t i = j + 1; i < n; ++i) {
-                    real_t temp = tlapack::abs(A(i, j));
+                    real_t temp = abs(A(i, j));
 
                     if (temp > norm)
                         norm = temp;
@@ -181,12 +181,12 @@ auto lanhe(norm_t normType, uplo_t uplo, const matrix_t& A)
                 real_t temp(0);
 
                 for (idx_t i = 0; i < j; ++i)
-                    temp += tlapack::abs(A(i, j));
+                    temp += abs(A(i, j));
 
-                temp += tlapack::abs(real(A(j, j)));
+                temp += abs(real(A(j, j)));
 
                 for (idx_t i = j + 1; i < n; ++i)
-                    temp += tlapack::abs(A(j, i));
+                    temp += abs(A(j, i));
 
                 if (temp > norm)
                     norm = temp;
@@ -200,12 +200,12 @@ auto lanhe(norm_t normType, uplo_t uplo, const matrix_t& A)
                 real_t temp(0);
 
                 for (idx_t i = 0; i < j; ++i)
-                    temp += tlapack::abs(A(j, i));
+                    temp += abs(A(j, i));
 
-                temp += tlapack::abs(real(A(j, j)));
+                temp += abs(real(A(j, j)));
 
                 for (idx_t i = j + 1; i < n; ++i)
-                    temp += tlapack::abs(A(i, j));
+                    temp += abs(A(i, j));
 
                 if (temp > norm)
                     norm = temp;
@@ -233,7 +233,7 @@ auto lanhe(norm_t normType, uplo_t uplo, const matrix_t& A)
         // Sum the real part in the diagonal
         lassq(diag(A, 0), scale, ssq,
               // Lambda function to get the absolute value of the real part :
-              [](const T& x) { return tlapack::abs(real(x)); });
+              [](const T& x) { return abs(real(x)); });
 
         // Compute the scaled square root
         norm = scale * sqrt(ssq);
@@ -323,11 +323,11 @@ auto lanhe(norm_t normType,
             for (idx_t j = 0; j < n; ++j) {
                 real_t sum(0);
                 for (idx_t i = 0; i < j; ++i) {
-                    const real_t absa = tlapack::abs(A(i, j));
+                    const real_t absa = abs(A(i, j));
                     sum += absa;
                     w[i] += absa;
                 }
-                w[j] = sum + tlapack::abs(real(A(j, j)));
+                w[j] = sum + abs(real(A(j, j)));
             }
             for (idx_t i = 0; i < n; ++i) {
                 real_t sum = w[i];
@@ -340,9 +340,9 @@ auto lanhe(norm_t normType,
         }
         else {
             for (idx_t j = 0; j < n; ++j) {
-                real_t sum = w[j] + tlapack::abs(real(A(j, j)));
+                real_t sum = w[j] + abs(real(A(j, j)));
                 for (idx_t i = j + 1; i < n; ++i) {
-                    const real_t absa = tlapack::abs(A(i, j));
+                    const real_t absa = abs(A(i, j));
                     sum += absa;
                     w[i] += absa;
                 }

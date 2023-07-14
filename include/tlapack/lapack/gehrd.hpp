@@ -64,7 +64,7 @@ WorkInfo gehrd_worksize(size_type<matrix_t> ilo,
     using T = type_t<work_t>;
 
     const idx_t n = ncols(A);
-    const idx_t nb = std::min(opts.nb, ihi - ilo - 1);
+    const idx_t nb = min(opts.nb, ihi - ilo - 1);
 
     return WorkInfo(sizeof(T) * (n + nb), nb);
 }
@@ -132,10 +132,10 @@ int gehrd(size_type<matrix_t> ilo,
     const idx_t n = ncols(A);
 
     // Blocksize
-    idx_t nb = std::min(opts.nb, ihi - ilo - 1);
+    idx_t nb = min(opts.nb, ihi - ilo - 1);
     // Size of the last block which be handled with unblocked code
     idx_t nx_switch = opts.nx_switch;
-    idx_t nx = std::max(nb, nx_switch);
+    idx_t nx = max(nb, nx_switch);
 
     // check arguments
     tlapack_check_false((ilo < 0) or (ilo >= n));
@@ -167,7 +167,7 @@ int gehrd(size_type<matrix_t> ilo,
 
     idx_t i = ilo;
     for (; i + nx < ihi - 1; i = i + nb) {
-        const idx_t nb2 = std::min(nb, ihi - i - 1);
+        const idx_t nb2 = min(nb, ihi - i - 1);
 
         auto V = slice(A, range{i + 1, ihi}, range{i, i + nb2});
         auto A2 = slice(A, range{0, ihi}, range{i, ihi});

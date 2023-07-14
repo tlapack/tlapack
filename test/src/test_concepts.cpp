@@ -11,9 +11,17 @@
 #include <catch2/generators/catch_generators.hpp>
 #include <tlapack/base/concepts.hpp>
 
+#include "NaNPropagComplex.hpp"
+
 #if __cplusplus >= 202002L
 
 using namespace tlapack::concepts;
+
+template <TLAPACK_COMPLEX T>
+void f(T x)
+{
+    return;
+}
 
 TEST_CASE("Concept Arithmetic works as expected", "[concept]")
 {
@@ -27,6 +35,12 @@ TEST_CASE("Concept Arithmetic works as expected", "[concept]")
 TEST_CASE("Concept Vector works as expected", "[concept]")
 {
     REQUIRE(Vector<std::vector<float>>);
+}
+
+TEST_CASE("Concept Complex works as expected", "[concept]")
+{
+    REQUIRE(Complex<std::complex<float>>);
+    REQUIRE(Complex<tlapack::NaNPropagComplex<float>>);
 }
 
 #endif

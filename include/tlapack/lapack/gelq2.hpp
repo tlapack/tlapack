@@ -99,7 +99,7 @@ int gelq2(matrix_t& A, vector_t& tauw, const WorkspaceOpts<>& opts = {})
     const idx_t k = min(m, n);
 
     // check arguments
-    tlapack_check_false((idx_t)size(tauw) < std::min<idx_t>(m, n));
+    tlapack_check_false((idx_t)size(tauw) < min(m, n));
 
     // Allocates workspace
     VectorOfBytes localworkdata;

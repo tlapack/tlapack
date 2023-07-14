@@ -116,7 +116,7 @@ auto lange(norm_t normType, const matrix_t& A)
     if (normType == Norm::Max) {
         for (idx_t j = 0; j < n; ++j) {
             for (idx_t i = 0; i < m; ++i) {
-                real_t temp = tlapack::abs(A(i, j));
+                real_t temp = abs(A(i, j));
 
                 if (temp > norm)
                     norm = temp;
@@ -130,7 +130,7 @@ auto lange(norm_t normType, const matrix_t& A)
         for (idx_t i = 0; i < m; ++i) {
             real_t sum(0);
             for (idx_t j = 0; j < n; ++j)
-                sum += tlapack::abs(A(i, j));
+                sum += abs(A(i, j));
 
             if (sum > norm)
                 norm = sum;
@@ -143,7 +143,7 @@ auto lange(norm_t normType, const matrix_t& A)
         for (idx_t j = 0; j < n; ++j) {
             real_t sum(0);
             for (idx_t i = 0; i < m; ++i)
-                sum += tlapack::abs(A(i, j));
+                sum += abs(A(i, j));
 
             if (sum > norm)
                 norm = sum;
@@ -228,11 +228,11 @@ auto lange(norm_t normType, const matrix_t& A, const WorkspaceOpts<>& opts)
         real_t norm(0);
 
         for (idx_t i = 0; i < m; ++i)
-            w[i] = tlapack::abs(A(i, 0));
+            w[i] = abs(A(i, 0));
 
         for (idx_t j = 1; j < n; ++j)
             for (idx_t i = 0; i < m; ++i)
-                w[i] += tlapack::abs(A(i, j));
+                w[i] += abs(A(i, j));
 
         for (idx_t i = 0; i < m; ++i) {
             real_t temp = w[i];

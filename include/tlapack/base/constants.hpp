@@ -92,11 +92,7 @@ inline constexpr real_t safe_min()
 template <TLAPACK_REAL real_t>
 inline constexpr real_t safe_max()
 {
-    constexpr int fradix = std::numeric_limits<real_t>::radix;
-    constexpr int expm = std::numeric_limits<real_t>::min_exponent;
-    constexpr int expM = std::numeric_limits<real_t>::max_exponent;
-
-    return min(pow(fradix, real_t(1 - expm)), pow(fradix, real_t(expM - 1)));
+    return real_t(1) / safe_min<real_t>();
 }
 
 /** Blue's min constant b for the sum of squares

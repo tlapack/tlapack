@@ -59,7 +59,7 @@ int unghr(size_type<matrix_t> ilo,
     const idx_t nh = ihi > ilo + 1 ? ihi - 1 - ilo : 0;
 
     // check arguments
-    tlapack_check_false((idx_t)size(tau) < std::min<idx_t>(m, n));
+    tlapack_check_false((idx_t)size(tau) < min(m, n));
 
     // Shift the vectors which define the elementary reflectors one
     // column to the right, and set the first ilo and the last n-ihi

@@ -275,6 +275,7 @@ int schur_swap(bool want_q,
         const T eps = ulp<T>();
         const T small_num = safe_min<T>() / eps;
         T thresh = max(ten * eps * dnorm, small_num);
+        // Note: max() may not propagate NaNs.
 
         std::vector<T> V_;
         auto V = new_matrix(V_, 4, 2);

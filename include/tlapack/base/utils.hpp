@@ -28,19 +28,24 @@
 
 namespace tlapack {
 
-// -----------------------------------------------------------------------------
-// From std C++
-using std::ceil;
+// C++ standard utils:
 using std::enable_if_t;
-using std::floor;
 using std::is_same_v;
+
+// C++ standard math functions:
+using std::abs;
+using std::ceil;
+using std::floor;
 using std::isinf;
 using std::isnan;
+using std::log2;
 using std::max;
 using std::min;
-using std::pair;
-using std::pow;
+using std::pow;  // We only use pow(int, T), see below in the concept Real.
 using std::sqrt;
+
+// C++ standard types:
+using std::pair;
 
 //------------------------------------------------------------------------------
 
@@ -88,8 +93,8 @@ inline int sgn(const real_t& val)
 
 // -----------------------------------------------------------------------------
 /// isinf for complex numbers
-template <typename real_t>
-inline bool isinf(const std::complex<real_t>& x)
+template <typename T, enable_if_t<is_complex<T>, int> = 0>
+inline bool isinf(const T& x)
 {
     return isinf(real(x)) || isinf(imag(x));
 }
@@ -275,8 +280,8 @@ bool hasinf(const vector_t& x)
 
 // -----------------------------------------------------------------------------
 /// isnan for complex numbers
-template <typename real_t>
-inline bool isnan(const std::complex<real_t>& x)
+template <typename T, enable_if_t<is_complex<T>, int> = 0>
+inline bool isnan(const T& x)
 {
     return isnan(real(x)) || isnan(imag(x));
 }
@@ -399,38 +404,6 @@ bool hasnan(const vector_t& x)
     for (idx_t i = 0; i < n; ++i)
         if (isnan(x[i])) return true;
     return false;
-}
-
-// -----------------------------------------------------------------------------
-// Absolute value
-
-/** 2-norm absolute value, sqrt( |Re(x)|^2 + |Im(x)|^2 )
- *
- * Note that std::abs< std::complex > does not overflow or underflow at
- * intermediate stages of the computation.
- * @see https://en.cppreference.com/w/cpp/numeric/complex/abs
- * but it may not propagate NaNs.
- *
- * Also, std::abs< mpfr::mpreal > may not propagate Infs.
- */
-template <typename T>
-inline T abs(const T& x);
-
-inline float abs(float x) { return std::fabs(x); }
-inline double abs(double x) { return std::fabs(x); }
-inline long double abs(long double x) { return std::fabs(x); }
-
-template <typename T>
-inline T abs(const std::complex<T>& x)
-{
-    // If the default value of ErrorCheck::nan is true then check for NaNs
-    if (ErrorCheck().nan && isnan(x))
-        return std::numeric_limits<T>::quiet_NaN();
-    // If the default value of ErrorCheck::inf is true then check for Infs
-    else if (ErrorCheck().inf && isinf(x))
-        return std::numeric_limits<T>::infinity();
-    else
-        return std::abs(x);
 }
 
 // -----------------------------------------------------------------------------

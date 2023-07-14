@@ -47,8 +47,8 @@ void rotg(T& a, T& b, T& c, T& s)
     const T safmax = safe_max<T>();
 
     // Norms
-    const T anorm = tlapack::abs(a);
-    const T bnorm = tlapack::abs(b);
+    const T anorm = abs(a);
+    const T bnorm = abs(b);
 
     // quick return
     if (bnorm == zero) {
@@ -126,7 +126,7 @@ void rotg(T& a, const T& b, real_type<T>& c, T& s)
 
     if (a == zero) {
         c = zero;
-        real_t g1 = max(tlapack::abs(real(b)), tlapack::abs(imag(b)));
+        real_t g1 = max(abs(real(b)), abs(imag(b)));
         if (g1 > rtmin && g1 < rtmax) {
             // Use unscaled algorithm
             real_t g2 = real(b) * real(b) + imag(b) * imag(b);
@@ -146,8 +146,8 @@ void rotg(T& a, const T& b, real_type<T>& c, T& s)
         }
     }
     else {
-        real_t f1 = max(tlapack::abs(real(a)), tlapack::abs(imag(a)));
-        real_t g1 = max(tlapack::abs(real(b)), tlapack::abs(imag(b)));
+        real_t f1 = max(abs(real(a)), abs(imag(a)));
+        real_t g1 = max(abs(real(b)), abs(imag(b)));
         if (f1 > rtmin && f1 < rtmax && g1 > rtmin && g1 < rtmax) {
             // Use unscaled algorithm
             real_t f2 = real(a) * real(a) + imag(a) * imag(a);
@@ -204,8 +204,8 @@ inline void rotg(T& a, T& b, T& c, T& s)
     // Constants
     const T zero = 0;
     const T one = 1;
-    const T anorm = tlapack::abs(a);
-    const T bnorm = tlapack::abs(b);
+    const T anorm = abs(a);
+    const T bnorm = abs(b);
 
     T r;
     ::lapack::lartg(a, b, &c, &s, &r);

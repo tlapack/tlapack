@@ -52,7 +52,7 @@ namespace legacy {
 
         // Matrix views
         auto A_ = create_matrix(A, m, n, lda);
-        auto tau_ = create_vector(tau, std::min(m, n));
+        auto tau_ = create_vector(tau, min(m, n));
 
         return geqr2(A_, tau_);
     }

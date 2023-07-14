@@ -54,7 +54,7 @@ inline constexpr WorkInfo geqlf_worksize(
     const idx_t n = ncols(A);
     const idx_t k = min(m, n);
     const idx_t nb = opts.nb;
-    const idx_t ib = std::min<idx_t>(nb, k);
+    const idx_t ib = min(nb, k);
 
     auto A11 = cols(A, range(0, ib));
     auto TT1 = slice(A, range(0, ib), range(0, ib));
@@ -140,7 +140,7 @@ int geqlf(A_t& A, tau_t& tau, const GeqlfOpts<size_type<A_t>>& opts = {})
     // Main computational loop
     for (idx_t j2 = 0; j2 < k; j2 += nb) {
         idx_t j = n - j2;
-        idx_t ib = std::min<idx_t>(nb, k - j2);
+        idx_t ib = min(nb, k - j2);
 
         // Compute the QR factorization of the current block A(0:m-n+j,j-ib:j)
         auto A11 = slice(A, range(0, m - (n - j)), range(j - ib, j));

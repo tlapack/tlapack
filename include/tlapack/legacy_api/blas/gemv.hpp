@@ -98,7 +98,6 @@ namespace legacy {
               int_t incy)
     {
         using internal::create_matrix;
-        using std::abs;
         using scalar_t = scalar_type<TA, TX, TY>;
 
         // check arguments

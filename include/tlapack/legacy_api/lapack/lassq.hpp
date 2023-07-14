@@ -33,9 +33,9 @@ namespace legacy {
      *    we require:   scale <= sqrt( HUGE ) / ssml       on entry,
      * where
      *    tbig -- upper threshold for values whose square is representable;
-     *    sbig -- scaling constant for big numbers; @see base/constants.hpp
+     *    sbig -- scaling constant for big numbers; @see constants.hpp
      *    tsml -- lower threshold for values whose square is representable;
-     *    ssml -- scaling constant for small numbers; @see base/constants.hpp
+     *    ssml -- scaling constant for small numbers; @see constants.hpp
      * and
      *    TINY*EPS -- tiniest representable number;
      *    HUGE     -- biggest representable number.

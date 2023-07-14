@@ -74,24 +74,24 @@ namespace starpu {
                 const T beta_ = (T)beta;
                 cublasStatus_t status;
 
-                if constexpr (std::is_same_v<T, float>)
+                if constexpr (is_same_v<T, float>)
                     status = cublasSgemm(starpu_cublas_get_local_handle(), opA,
                                          opB, m, n, k, &alpha_, (const float*)A,
                                          lda, (const float*)B, ldb, &beta_,
                                          (float*)C, ldc);
-                else if constexpr (std::is_same_v<T, double>)
+                else if constexpr (is_same_v<T, double>)
                     status = cublasDgemm(
                         starpu_cublas_get_local_handle(), opA, opB, m, n, k,
                         &alpha_, (const double*)A, lda, (const double*)B, ldb,
                         &beta_, (double*)C, ldc);
-                else if constexpr (std::is_same_v<real_type<T>, float>)
+                else if constexpr (is_same_v<real_type<T>, float>)
                     status = cublasCgemm(
                         starpu_cublas_get_local_handle(), opA, opB, m, n, k,
                         (const cuFloatComplex*)&alpha_,
                         (const cuFloatComplex*)A, lda, (const cuFloatComplex*)B,
                         ldb, (const cuFloatComplex*)&beta_, (cuFloatComplex*)C,
                         ldc);
-                else if constexpr (std::is_same_v<real_type<T>, double>)
+                else if constexpr (is_same_v<real_type<T>, double>)
                     status =
                         cublasZgemm(starpu_cublas_get_local_handle(), opA, opB,
                                     m, n, k, (const cuDoubleComplex*)&alpha_,
@@ -254,21 +254,21 @@ namespace starpu {
                 const real_t beta_ = (real_t)beta;
                 cublasStatus_t status;
 
-                if constexpr (std::is_same_v<T, float>)
+                if constexpr (is_same_v<T, float>)
                     status = cublasSsyrk(
                         starpu_cublas_get_local_handle(), uplo_, op_, n, k,
                         &alpha_, (const float*)A, lda, &beta_, (float*)C, ldc);
-                else if constexpr (std::is_same_v<T, double>)
+                else if constexpr (is_same_v<T, double>)
                     status =
                         cublasDsyrk(starpu_cublas_get_local_handle(), uplo_,
                                     op_, n, k, &alpha_, (const double*)A, lda,
                                     &beta_, (double*)C, ldc);
-                else if constexpr (std::is_same_v<real_type<T>, float>)
+                else if constexpr (is_same_v<real_type<T>, float>)
                     status = cublasCherk(starpu_cublas_get_local_handle(),
                                          uplo_, op_, n, k, &alpha_,
                                          (const cuFloatComplex*)A, lda, &beta_,
                                          (cuFloatComplex*)C, ldc);
-                else if constexpr (std::is_same_v<real_type<T>, double>)
+                else if constexpr (is_same_v<real_type<T>, double>)
                     status = cublasZherk(starpu_cublas_get_local_handle(),
                                          uplo_, op_, n, k, &alpha_,
                                          (const cuDoubleComplex*)A, lda, &beta_,
@@ -425,22 +425,22 @@ namespace starpu {
                 const T alpha_ = (T)alpha;
                 cublasStatus_t status;
 
-                if constexpr (std::is_same_v<T, float>)
+                if constexpr (is_same_v<T, float>)
                     status =
                         cublasStrsm(starpu_cublas_get_local_handle(), side_,
                                     uplo_, op_, diag_, m, n, &alpha_,
                                     (const float*)A, lda, (float*)B, ldb);
-                else if constexpr (std::is_same_v<T, double>)
+                else if constexpr (is_same_v<T, double>)
                     status =
                         cublasDtrsm(starpu_cublas_get_local_handle(), side_,
                                     uplo_, op_, diag_, m, n, &alpha_,
                                     (const double*)A, lda, (double*)B, ldb);
-                else if constexpr (std::is_same_v<real_type<T>, float>)
+                else if constexpr (is_same_v<real_type<T>, float>)
                     status = cublasCtrsm(
                         starpu_cublas_get_local_handle(), side_, uplo_, op_,
                         diag_, m, n, (const cuFloatComplex*)&alpha_,
                         (const cuFloatComplex*)A, lda, (cuFloatComplex*)B, ldb);
-                else if constexpr (std::is_same_v<real_type<T>, double>)
+                else if constexpr (is_same_v<real_type<T>, double>)
                     status = cublasZtrsm(starpu_cublas_get_local_handle(),
                                          side_, uplo_, op_, diag_, m, n,
                                          (const cuDoubleComplex*)&alpha_,
@@ -498,21 +498,21 @@ namespace starpu {
                 const cublasFillMode_t uplo_ = cuda::uplo2cublas(uplo);
                 cusolverStatus_t status = CUSOLVER_STATUS_SUCCESS;
 
-                if constexpr (std::is_same_v<T, float>)
+                if constexpr (is_same_v<T, float>)
                     status = cusolverDnSpotrf(
                         starpu_cusolverDn_get_local_handle(), uplo_, n,
                         (float*)A, lda, (float*)w, lwork / sizeof(float), info);
-                else if constexpr (std::is_same_v<T, double>)
+                else if constexpr (is_same_v<T, double>)
                     status =
                         cusolverDnDpotrf(starpu_cusolverDn_get_local_handle(),
                                          uplo_, n, (double*)A, lda, (double*)w,
                                          lwork / sizeof(double), info);
-                else if constexpr (std::is_same_v<real_type<T>, float>)
+                else if constexpr (is_same_v<real_type<T>, float>)
                     status = cusolverDnCpotrf(
                         starpu_cusolverDn_get_local_handle(), uplo_, n,
                         (cuFloatComplex*)A, lda, (cuFloatComplex*)w,
                         lwork / sizeof(cuFloatComplex), info);
-                else if constexpr (std::is_same_v<real_type<T>, double>)
+                else if constexpr (is_same_v<real_type<T>, double>)
                     status = cusolverDnZpotrf(
                         starpu_cusolverDn_get_local_handle(), uplo_, n,
                         (cuDoubleComplex*)A, lda, (cuDoubleComplex*)w,
