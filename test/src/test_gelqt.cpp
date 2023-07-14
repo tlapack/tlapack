@@ -81,7 +81,7 @@ TEMPLATE_TEST_CASE("LQ factorization of a general m-by-n matrix, blocked",
 
             // Build tauw vector from matrix TT
             for (idx_t j = 0; j < min(m, n); j += nb) {
-                idx_t ib = std::min<idx_t>(nb, min(m, n) - j);
+                idx_t ib = min(nb, min(m, n) - j);
 
                 for (idx_t i = 0; i < ib; i++)
                     tauw[i + j] = TT(i + j, i);

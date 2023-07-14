@@ -63,10 +63,7 @@ int getrf_recursive(matrix_t& A, piv_t& piv)
     // Using the following lines to pass the abs function to iamax
     // TODO: Replace the following lines by a lambda function if we adopt C++17
     struct abs_f {
-        inline constexpr real_t operator()(const T& x) const
-        {
-            return tlapack::abs(x);
-        }
+        inline constexpr real_t operator()(const T& x) const { return abs(x); }
     };
     abs_f absf;
     IamaxOpts<abs_f> optsIamax(absf);
@@ -74,7 +71,7 @@ int getrf_recursive(matrix_t& A, piv_t& piv)
     // constants
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
-    const idx_t k = std::min<idx_t>(m, n);
+    const idx_t k = min(m, n);
 
     // check arguments
     tlapack_check((idx_t)size(piv) >= k);

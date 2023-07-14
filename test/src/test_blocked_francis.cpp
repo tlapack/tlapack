@@ -74,7 +74,7 @@ TEMPLATE_TEST_CASE("Multishift QR",
 
     if (matrix_type == "Random") {
         for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = 0; i < std::min(n, j + 2); ++i)
+            for (idx_t i = 0; i < min(n, j + 2); ++i)
                 A(i, j) = rand_helper<T>(gen);
 
         for (idx_t j = 0; j < n; ++j)
@@ -85,7 +85,7 @@ TEMPLATE_TEST_CASE("Multishift QR",
         const real_t large_num = safe_max<real_t>() * ulp<real_t>();
 
         for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = 0; i < std::min(n, j + 2); ++i)
+            for (idx_t i = 0; i < min(n, j + 2); ++i)
                 A(i, j) = large_num;
 
         for (idx_t j = 0; j < n; ++j)
@@ -171,7 +171,7 @@ TEMPLATE_TEST_CASE("Multishift QR",
 
             if (nb == 1) {
                 CHECK(abs1(s[i] - H(i, i)) <=
-                      tol * std::max(real_t(1), abs1(H(i, i))));
+                      tol * max(real_t(1), abs1(H(i, i))));
                 i = i + 1;
             }
             else {
@@ -188,9 +188,8 @@ TEMPLATE_TEST_CASE("Multishift QR",
                     s1 = s2;
                     s2 = swp;
                 }
-                CHECK(abs1(s[i] - s1) <= tol * std::max(real_t(1), abs1(s1)));
-                CHECK(abs1(s[i + 1] - s2) <=
-                      tol * std::max(real_t(1), abs1(s2)));
+                CHECK(abs1(s[i] - s1) <= tol * max(real_t(1), abs1(s1)));
+                CHECK(abs1(s[i + 1] - s2) <= tol * max(real_t(1), abs1(s2)));
                 i = i + 2;
             }
         }

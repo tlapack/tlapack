@@ -134,8 +134,8 @@ int gebd2(matrix_t& A,
     const idx_t n = ncols(A);
 
     // check arguments
-    tlapack_check_false((idx_t)size(tauv) < std::min<idx_t>(m, n));
-    tlapack_check_false((idx_t)size(tauw) < std::min<idx_t>(m, n));
+    tlapack_check_false((idx_t)size(tauv) < min(m, n));
+    tlapack_check_false((idx_t)size(tauw) < min(m, n));
 
     // quick return
     if (n <= 0) return 0;

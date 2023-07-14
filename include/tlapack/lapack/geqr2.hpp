@@ -98,7 +98,7 @@ int geqr2(matrix_t& A, vector_t& tau, const WorkspaceOpts<>& opts = {})
     const idx_t k = std::min<idx_t>(m, n - 1);
 
     // check arguments
-    tlapack_check_false((idx_t)size(tau) < std::min<idx_t>(m, n));
+    tlapack_check_false((idx_t)size(tau) < min(m, n));
 
     // quick return
     if (n <= 0 || m <= 0) return 0;

@@ -30,17 +30,19 @@ namespace tlapack {
 
 // -----------------------------------------------------------------------------
 // From std C++
+using std::abs;
 using std::ceil;
-using std::enable_if_t;
 using std::floor;
-using std::is_same_v;
 using std::isinf;
 using std::isnan;
 using std::max;
 using std::min;
-using std::pair;
 using std::pow;
 using std::sqrt;
+
+using std::enable_if_t;
+using std::is_same_v;
+using std::pair;
 
 //------------------------------------------------------------------------------
 
@@ -399,38 +401,6 @@ bool hasnan(const vector_t& x)
     for (idx_t i = 0; i < n; ++i)
         if (isnan(x[i])) return true;
     return false;
-}
-
-// -----------------------------------------------------------------------------
-// Absolute value
-
-/** 2-norm absolute value, sqrt( |Re(x)|^2 + |Im(x)|^2 )
- *
- * Note that std::abs< std::complex > does not overflow or underflow at
- * intermediate stages of the computation.
- * @see https://en.cppreference.com/w/cpp/numeric/complex/abs
- * but it may not propagate NaNs.
- *
- * Also, std::abs< mpfr::mpreal > may not propagate Infs.
- */
-template <typename T>
-inline T abs(const T& x);
-
-inline float abs(float x) { return std::fabs(x); }
-inline double abs(double x) { return std::fabs(x); }
-inline long double abs(long double x) { return std::fabs(x); }
-
-template <typename T>
-inline T abs(const std::complex<T>& x)
-{
-    // If the default value of ErrorCheck::nan is true then check for NaNs
-    if (ErrorCheck().nan && isnan(x))
-        return std::numeric_limits<T>::quiet_NaN();
-    // If the default value of ErrorCheck::inf is true then check for Infs
-    else if (ErrorCheck().inf && isinf(x))
-        return std::numeric_limits<T>::infinity();
-    else
-        return std::abs(x);
 }
 
 // -----------------------------------------------------------------------------

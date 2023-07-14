@@ -140,7 +140,7 @@ void multishift_QR_sweep(bool want_t,
 
     const idx_t n_block_max = (n - 3) / 3;
     const idx_t n_shifts_max =
-        std::min(ihi - ilo - 1, std::max<idx_t>(2, 3 * (n_block_max / 4)));
+        min(ihi - ilo - 1, std::max<idx_t>(2, 3 * (n_block_max / 4)));
 
     idx_t n_shifts = std::min<idx_t>(size(s), n_shifts_max);
     if (n_shifts % 2 == 1) n_shifts = n_shifts - 1;
@@ -173,7 +173,7 @@ void multishift_QR_sweep(bool want_t,
         // The calculations are initially limited to the window:
         // A(ilo:ilo+n_block,ilo:ilo+n_block) The rest is updated later via
         // level 3 BLAS
-        idx_t n_block = std::min(n_block_desired, ihi - ilo);
+        idx_t n_block = min(n_block_desired, ihi - ilo);
         idx_t istart_m = ilo;
         idx_t istop_m = ilo + n_block;
         auto U2 = slice(U, range{0, n_block}, range{0, n_block});
@@ -182,8 +182,7 @@ void multishift_QR_sweep(bool want_t,
         for (idx_t i_pos_last = ilo; i_pos_last < ilo + n_block - 2;
              ++i_pos_last) {
             // The number of bulges that are in the pencil
-            idx_t n_active_bulges =
-                std::min(n_bulges, ((i_pos_last - ilo) / 2) + 1);
+            idx_t n_active_bulges = min(n_bulges, ((i_pos_last - ilo) / 2) + 1);
             for (idx_t i_bulge = 0; i_bulge < n_active_bulges; ++i_bulge) {
                 idx_t i_pos = i_pos_last - 2 * i_bulge;
                 auto v = col(V, i_bulge);
@@ -246,24 +245,26 @@ void multishift_QR_sweep(bool want_t,
                                 tst1 += abs1(A(i_pos + 3, i_pos));
                         }
                         if (abs1(A(i_pos, i_pos - 1)) <
-                            std::max(small_num, eps * tst1)) {
+                            max(small_num, eps * tst1)) {
+                            const real_t aij = abs1(A(i_pos, i_pos - 1));
+                            const real_t aji = abs1(A(i_pos - 1, i_pos));
                             const real_t ab =
-                                std::max(abs1(A(i_pos, i_pos - 1)),
-                                         abs1(A(i_pos - 1, i_pos)));
+                                (aij > aji) ? aij
+                                            : aji;  // Propagates NaNs in aji
                             const real_t ba =
-                                std::min(abs1(A(i_pos, i_pos - 1)),
-                                         abs1(A(i_pos - 1, i_pos)));
+                                (aij < aji) ? aij
+                                            : aji;  // Propagates NaNs in aji
                             const real_t aa =
-                                std::max(abs1(A(i_pos, i_pos)),
-                                         abs1(A(i_pos, i_pos) -
-                                              A(i_pos - 1, i_pos - 1)));
+                                max(abs1(A(i_pos, i_pos)),
+                                    abs1(A(i_pos, i_pos) -
+                                         A(i_pos - 1, i_pos - 1)));
                             const real_t bb =
-                                std::min(abs1(A(i_pos, i_pos)),
-                                         abs1(A(i_pos, i_pos) -
-                                              A(i_pos - 1, i_pos - 1)));
+                                min(abs1(A(i_pos, i_pos)),
+                                    abs1(A(i_pos, i_pos) -
+                                         A(i_pos - 1, i_pos - 1)));
                             const real_t s = aa + ab;
                             if (ba * (ab / s) <=
-                                std::max(small_num, eps * (bb * (aa / s)))) {
+                                max(small_num, eps * (bb * (aa / s)))) {
                                 A(i_pos, i_pos - 1) = zero;
                             }
                         }
@@ -308,8 +309,8 @@ void multishift_QR_sweep(bool want_t,
                 idx_t i_pos = i_pos_last - 2 * i_bulge;
                 auto v = col(V, i_bulge);
                 idx_t i1 = 0;
-                idx_t i2 = std::min(
-                    nrows(U2), (i_pos_last - ilo) + (i_pos_last - ilo) + 3);
+                idx_t i2 =
+                    min(nrows(U2), (i_pos_last - ilo) + (i_pos_last - ilo) + 3);
                 for (idx_t j = i1; j < i2; ++j) {
                     const TA sum = U2(j, i_pos - ilo) +
                                    v[1] * U2(j, i_pos - ilo + 1) +
@@ -450,24 +451,26 @@ void multishift_QR_sweep(bool want_t,
                                 tst1 += abs1(A(i_pos + 3, i_pos));
                         }
                         if (abs1(A(i_pos, i_pos - 1)) <
-                            std::max(small_num, eps * tst1)) {
+                            max(small_num, eps * tst1)) {
+                            const real_t aij = abs1(A(i_pos, i_pos - 1));
+                            const real_t aji = abs1(A(i_pos - 1, i_pos));
                             const real_t ab =
-                                std::max(abs1(A(i_pos, i_pos - 1)),
-                                         abs1(A(i_pos - 1, i_pos)));
+                                (aij > aji) ? aij
+                                            : aji;  // Propagates NaNs in aji
                             const real_t ba =
-                                std::min(abs1(A(i_pos, i_pos - 1)),
-                                         abs1(A(i_pos - 1, i_pos)));
+                                (aij < aji) ? aij
+                                            : aji;  // Propagates NaNs in aji
                             const real_t aa =
-                                std::max(abs1(A(i_pos, i_pos)),
-                                         abs1(A(i_pos, i_pos) -
-                                              A(i_pos - 1, i_pos - 1)));
+                                max(abs1(A(i_pos, i_pos)),
+                                    abs1(A(i_pos, i_pos) -
+                                         A(i_pos - 1, i_pos - 1)));
                             const real_t bb =
-                                std::min(abs1(A(i_pos, i_pos)),
-                                         abs1(A(i_pos, i_pos) -
-                                              A(i_pos - 1, i_pos - 1)));
+                                min(abs1(A(i_pos, i_pos)),
+                                    abs1(A(i_pos, i_pos) -
+                                         A(i_pos - 1, i_pos - 1)));
                             const real_t s = aa + ab;
                             if (ba * (ab / s) <=
-                                std::max(small_num, eps * (bb * (aa / s)))) {
+                                max(small_num, eps * (bb * (aa / s)))) {
                                 A(i_pos, i_pos - 1) = zero;
                             }
                         }
@@ -514,9 +517,9 @@ void multishift_QR_sweep(bool want_t,
                 idx_t i1 = (i_pos - i_pos_block) -
                            (i_pos_last - i_pos_block - n_shifts + 2);
                 idx_t i2 =
-                    std::min(nrows(U2),
-                             (i_pos_last - i_pos_block) +
-                                 (i_pos_last - i_pos_block - n_shifts + 2) + 3);
+                    min(nrows(U2),
+                        (i_pos_last - i_pos_block) +
+                            (i_pos_last - i_pos_block - n_shifts + 2) + 3);
                 for (idx_t j = i1; j < i2; ++j) {
                     const TA sum = U2(j, i_pos - i_pos_block) +
                                    v[1] * U2(j, i_pos - i_pos_block + 1) +
@@ -700,25 +703,28 @@ void multishift_QR_sweep(bool want_t,
                                     tst1 += abs1(A(i_pos + 3, i_pos));
                             }
                             if (abs1(A(i_pos, i_pos - 1)) <
-                                std::max(small_num, eps * tst1)) {
+                                max(small_num, eps * tst1)) {
+                                const real_t aij = abs1(A(i_pos, i_pos - 1));
+                                const real_t aji = abs1(A(i_pos - 1, i_pos));
                                 const real_t ab =
-                                    std::max(abs1(A(i_pos, i_pos - 1)),
-                                             abs1(A(i_pos - 1, i_pos)));
+                                    (aij > aji)
+                                        ? aij
+                                        : aji;  // Propagates NaNs in aji
                                 const real_t ba =
-                                    std::min(abs1(A(i_pos, i_pos - 1)),
-                                             abs1(A(i_pos - 1, i_pos)));
+                                    (aij < aji)
+                                        ? aij
+                                        : aji;  // Propagates NaNs in aji
                                 const real_t aa =
-                                    std::max(abs1(A(i_pos, i_pos)),
-                                             abs1(A(i_pos, i_pos) -
-                                                  A(i_pos - 1, i_pos - 1)));
+                                    max(abs1(A(i_pos, i_pos)),
+                                        abs1(A(i_pos, i_pos) -
+                                             A(i_pos - 1, i_pos - 1)));
                                 const real_t bb =
-                                    std::min(abs1(A(i_pos, i_pos)),
-                                             abs1(A(i_pos, i_pos) -
-                                                  A(i_pos - 1, i_pos - 1)));
+                                    min(abs1(A(i_pos, i_pos)),
+                                        abs1(A(i_pos, i_pos) -
+                                             A(i_pos - 1, i_pos - 1)));
                                 const real_t s = aa + ab;
                                 if (ba * (ab / s) <=
-                                    std::max(small_num,
-                                             eps * (bb * (aa / s)))) {
+                                    max(small_num, eps * (bb * (aa / s)))) {
                                     A(i_pos, i_pos - 1) = zero;
                                 }
                             }
@@ -737,7 +743,7 @@ void multishift_QR_sweep(bool want_t,
             // {
             //     idx_t i_bulge_start2 = (i_pos_last + 2 > j) ? (i_pos_last + 2
             //     - j) / 2 : 0; i_bulge_start2 =
-            //     std::max(i_bulge_start,i_bulge_start2); for (idx_t i_bulge =
+            //     max(i_bulge_start,i_bulge_start2); for (idx_t i_bulge =
             //     i_bulge_start2; i_bulge < n_bulges; ++i_bulge)
             //     {
             //         idx_t i_pos = i_pos_last - 2 * i_bulge;
@@ -770,9 +776,9 @@ void multishift_QR_sweep(bool want_t,
                 idx_t i1 = (i_pos - i_pos_block) -
                            (i_pos_last - i_pos_block - n_shifts + 2);
                 idx_t i2 =
-                    std::min(nrows(U2),
-                             (i_pos_last - i_pos_block) +
-                                 (i_pos_last - i_pos_block - n_shifts + 2) + 3);
+                    min(nrows(U2),
+                        (i_pos_last - i_pos_block) +
+                            (i_pos_last - i_pos_block - n_shifts + 2) + 3);
                 for (idx_t j = i1; j < i2; ++j) {
                     const TA sum = U2(j, i_pos - i_pos_block) +
                                    v[1] * U2(j, i_pos - i_pos_block + 1) +

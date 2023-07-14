@@ -301,14 +301,14 @@ int multishift_qr(bool want_t,
         // Agressive early deflation
         //
         idx_t nh = istop - istart;
-        idx_t nwupbd = std::min(nh, nw_max);
+        idx_t nwupbd = min(nh, nw_max);
         if (k_defl < non_convergence_limit_window) {
-            nw = std::min(nwupbd, nwr);
+            nw = min(nwupbd, nwr);
         }
         else {
             // There have been no deflations in many iterations
             // Try to vary the deflation window size.
-            nw = std::min(nwupbd, 2 * nw);
+            nw = min(nwupbd, 2 * nw);
         }
         if (nh <= 4) {
             // n >= nmin, so there is always enough space for a 4x4 window
@@ -336,12 +336,12 @@ int multishift_qr(bool want_t,
         // Here, the QR sweep is skipped if many eigenvalues have just been
         // deflated or if the remaining active block is small.
         if (ld > 0 and (100 * ld > nwr * nibble or
-                        (istop - istart) <= std::min(nmin, nw_max))) {
+                        (istop - istart) <= min(nmin, nw_max))) {
             continue;
         }
 
         k_defl = k_defl + 1;
-        idx_t ns = std::min(nh - 1, std::min(ls, nsr));
+        idx_t ns = min(nh - 1, min(ls, nsr));
 
         idx_t i_shifts = istop - ls;
 
@@ -423,10 +423,8 @@ int multishift_qr(bool want_t,
         if (is_real<TA>) {
             if (ns == 2) {
                 if (imag(w[i_shifts]) == zero) {
-                    if (tlapack::abs(real(w[i_shifts]) -
-                                     A(istop - 1, istop - 1)) <
-                        tlapack::abs(real(w[i_shifts + 1]) -
-                                     A(istop - 1, istop - 1)))
+                    if (abs(real(w[i_shifts]) - A(istop - 1, istop - 1)) <
+                        abs(real(w[i_shifts + 1]) - A(istop - 1, istop - 1)))
                         w[i_shifts + 1] = w[i_shifts];
                     else
                         w[i_shifts] = w[i_shifts + 1];

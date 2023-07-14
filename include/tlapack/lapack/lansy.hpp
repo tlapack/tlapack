@@ -134,7 +134,7 @@ auto lansy(norm_t normType, uplo_t uplo, const matrix_t& A)
         if (uplo == Uplo::Upper) {
             for (idx_t j = 0; j < n; ++j) {
                 for (idx_t i = 0; i <= j; ++i) {
-                    real_t temp = tlapack::abs(A(i, j));
+                    real_t temp = abs(A(i, j));
 
                     if (temp > norm)
                         norm = temp;
@@ -147,7 +147,7 @@ auto lansy(norm_t normType, uplo_t uplo, const matrix_t& A)
         else {
             for (idx_t j = 0; j < n; ++j) {
                 for (idx_t i = j; i < n; ++i) {
-                    real_t temp = tlapack::abs(A(i, j));
+                    real_t temp = abs(A(i, j));
 
                     if (temp > norm)
                         norm = temp;
@@ -164,10 +164,10 @@ auto lansy(norm_t normType, uplo_t uplo, const matrix_t& A)
                 real_t temp = 0;
 
                 for (idx_t i = 0; i <= j; ++i)
-                    temp += tlapack::abs(A(i, j));
+                    temp += abs(A(i, j));
 
                 for (idx_t i = j + 1; i < n; ++i)
-                    temp += tlapack::abs(A(j, i));
+                    temp += abs(A(j, i));
 
                 if (temp > norm)
                     norm = temp;
@@ -181,10 +181,10 @@ auto lansy(norm_t normType, uplo_t uplo, const matrix_t& A)
                 real_t temp = 0;
 
                 for (idx_t i = 0; i <= j; ++i)
-                    temp += tlapack::abs(A(j, i));
+                    temp += abs(A(j, i));
 
                 for (idx_t i = j + 1; i < n; ++i)
-                    temp += tlapack::abs(A(i, j));
+                    temp += abs(A(i, j));
 
                 if (temp > norm)
                     norm = temp;
@@ -300,11 +300,11 @@ auto lansy(norm_t normType,
             for (idx_t j = 0; j < n; ++j) {
                 real_t sum(0);
                 for (idx_t i = 0; i < j; ++i) {
-                    const real_t absa = tlapack::abs(A(i, j));
+                    const real_t absa = abs(A(i, j));
                     sum += absa;
                     w[i] += absa;
                 }
-                w[j] = sum + tlapack::abs(A(j, j));
+                w[j] = sum + abs(A(j, j));
             }
             for (idx_t i = 0; i < n; ++i) {
                 real_t sum = w[i];
@@ -317,9 +317,9 @@ auto lansy(norm_t normType,
         }
         else {
             for (idx_t j = 0; j < n; ++j) {
-                real_t sum = w[j] + tlapack::abs(A(j, j));
+                real_t sum = w[j] + abs(A(j, j));
                 for (idx_t i = j + 1; i < n; ++i) {
-                    const real_t absa = tlapack::abs(A(i, j));
+                    const real_t absa = abs(A(i, j));
                     sum += absa;
                     w[i] += absa;
                 }

@@ -57,7 +57,7 @@ namespace legacy {
 
         // Matrix views
         auto A_ = create_matrix<TA>(A, m, n, lda);
-        auto tau_ = create_vector((TT*)tau, std::min<idx_t>(m, n));
+        auto tau_ = create_vector((TT*)tau, min(m, n));
 
         return ung2r(A_, tau_);
     }

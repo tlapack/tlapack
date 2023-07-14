@@ -211,10 +211,9 @@ TEMPLATE_TEST_CASE("reciprocal scaling works on limit cases",
                         if (!isinf(v_scal[i]) && !isnan(v_scal[i])) break;
                     }
                     else {
-                        const real_t rel_bnd = tol * tlapack::abs(v_ref[i]);
-                        const real_t err = tlapack::abs(v_scal[i] - v_ref[i]);
-                        const real_t err_naive =
-                            tlapack::abs(v_naive[i] - v_ref[i]);
+                        const real_t rel_bnd = tol * abs(v_ref[i]);
+                        const real_t err = abs(v_scal[i] - v_ref[i]);
+                        const real_t err_naive = abs(v_naive[i] - v_ref[i]);
 
                         if (rel_bnd > zero || err_naive > zero) {
                             // If either the relative bound or err_naive is
@@ -240,10 +239,9 @@ TEMPLATE_TEST_CASE("reciprocal scaling works on limit cases",
                 }
 
                 if (i != v.size()) {
-                    const real_t rel_bnd = tol * tlapack::abs(v_ref[i]);
-                    const real_t err = tlapack::abs(v_scal[i] - v_ref[i]);
-                    const real_t err_naive =
-                        tlapack::abs(v_naive[i] - v_ref[i]);
+                    const real_t rel_bnd = tol * abs(v_ref[i]);
+                    const real_t err = abs(v_scal[i] - v_ref[i]);
+                    const real_t err_naive = abs(v_naive[i] - v_ref[i]);
                     UNSCOPED_INFO("v[" << i << "] = " << std::scientific
                                        << v[i]);
                     UNSCOPED_INFO("v[" << i << "]/alpha = " << std::scientific

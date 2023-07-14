@@ -233,6 +233,7 @@ void agressive_early_deflation(bool want_t,
             if (kwtop > ilo) A(kwtop, kwtop - 1) = zero;
         }
         return;
+        // Note: The max() above may not propagate a NaN in A(kwtop, kwtop).
     }
 
     // Allocates workspace
@@ -265,7 +266,7 @@ void agressive_early_deflation(bool want_t,
     auto s_window = slice(s, range{kwtop, ihi});
     laset(Uplo::Lower, zero, zero, TW);
     for (idx_t j = 0; j < jw; ++j)
-        for (idx_t i = 0; i < std::min(j + 2, jw); ++i)
+        for (idx_t i = 0; i < min(j + 2, jw); ++i)
             TW(i, j) = A_window(i, j);
     laset(Uplo::General, zero, one, V);
     int infqr;
@@ -306,15 +307,15 @@ void agressive_early_deflation(bool want_t,
                 schur_move(true, TW, V, ifst, ilst);
                 ilst = ilst + 1;
             }
+            // Note: The max() above may not propagate a NaN in TW(ns-1, ns-1).
         }
         else {
             // 2x2 eigenvalue block
-            real_t foo = tlapack::abs(TW(ns - 1, ns - 1)) +
-                         sqrt(tlapack::abs(TW(ns - 1, ns - 2))) *
-                             sqrt(tlapack::abs(TW(ns - 2, ns - 1)));
-            if (foo == zero) foo = tlapack::abs(s_spike);
-            if (max(tlapack::abs(s_spike * V(0, ns - 1)),
-                    tlapack::abs(s_spike * V(0, ns - 2))) <=
+            real_t foo =
+                abs(TW(ns - 1, ns - 1)) +
+                sqrt(abs(TW(ns - 1, ns - 2))) * sqrt(abs(TW(ns - 2, ns - 1)));
+            if (foo == zero) foo = abs(s_spike);
+            if (max(abs(s_spike * V(0, ns - 1)), abs(s_spike * V(0, ns - 2))) <=
                 max<real_t>(small_num, eps * foo)) {
                 // Eigenvalue pair is deflatable
                 ns = ns - 2;
@@ -378,15 +379,13 @@ void agressive_early_deflation(bool want_t,
             if (n1 == 1)
                 ev1 = abs1(TW(i1, i1));
             else
-                ev1 = tlapack::abs(TW(i1, i1)) +
-                      sqrt(tlapack::abs(TW(i1 + 1, i1))) *
-                          sqrt(tlapack::abs(TW(i1, i1 + 1)));
+                ev1 = abs(TW(i1, i1)) +
+                      sqrt(abs(TW(i1 + 1, i1))) * sqrt(abs(TW(i1, i1 + 1)));
             if (n2 == 1)
                 ev2 = abs1(TW(i2, i2));
             else
-                ev2 = tlapack::abs(TW(i2, i2)) +
-                      sqrt(tlapack::abs(TW(i2 + 1, i2))) *
-                          sqrt(tlapack::abs(TW(i2, i2 + 1)));
+                ev2 = abs(TW(i2, i2)) +
+                      sqrt(abs(TW(i2 + 1, i2))) * sqrt(abs(TW(i2, i2 + 1)));
 
             if (ev1 > ev2) {
                 i1 = i2;
@@ -460,7 +459,7 @@ void agressive_early_deflation(bool want_t,
     // Copy the deflation window back into place
     if (kwtop > 0) A(kwtop, kwtop - 1) = s_spike * conj(V(0, 0));
     for (idx_t j = 0; j < jw; ++j)
-        for (idx_t i = 0; i < std::min(j + 2, jw); ++i)
+        for (idx_t i = 0; i < min(j + 2, jw); ++i)
             A(kwtop + i, kwtop + j) = TW(i, j);
 
     // Store number of deflated eigenvalues

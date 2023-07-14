@@ -31,16 +31,6 @@ namespace traits {
     };
 }  // namespace traits
 
-// Forward declarations
-template <typename T>
-inline T abs(const T& x);
-
-template <>
-inline mpfr::mpreal abs(const mpfr::mpreal& x)
-{
-    return mpfr::abs(x);
-}
-
 // Argument-dependent lookup (ADL) will include the remaining functions,
 // e.g., mpfr::sin, mpfr::cos.
 // Including them here may cause ambiguous call of overloaded function.

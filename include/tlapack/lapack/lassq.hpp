@@ -176,7 +176,7 @@ void lassq(const vector_t& x,
  *
  * Specific implementation using
  * \code{.cpp}
- *      absF = []( const T& x ) { return tlapack::abs( x ); }
+ *      absF = []( const T& x ) { return abs( x ); }
  * \endcode
  * where T is the type_t< vector_t >.
  *
@@ -188,10 +188,9 @@ inline void lassq(const vector_t& x,
                   real_type<type_t<vector_t>>& sumsq)
 {
     using T = type_t<vector_t>;
-    return lassq(
-        x, scale, sumsq,
-        // Lambda function that returns the absolute value using tlapack::abs :
-        [](const T& x) { return tlapack::abs(x); });
+    return lassq(x, scale, sumsq,
+                 // Lambda function that returns the absolute value using abs :
+                 [](const T& x) { return abs(x); });
 }
 
 }  // namespace tlapack

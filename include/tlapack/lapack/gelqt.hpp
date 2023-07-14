@@ -51,7 +51,7 @@ inline constexpr WorkInfo gelqt_worksize(const matrix_t& A,
     const idx_t n = ncols(A);
     const idx_t k = min(m, n);
     const idx_t nb = ncols(TT);
-    const idx_t ib = std::min<idx_t>(nb, k);
+    const idx_t ib = min(nb, k);
 
     auto TT1 = slice(TT, range(0, ib), range(0, ib));
     auto A11 = rows(A, range(0, ib));
@@ -135,7 +135,7 @@ int gelqt(matrix_t& A, matrix_t& TT, const GelqtOpts& opts = {})
 
     for (idx_t j = 0; j < k; j += nb) {
         // Use blocked code initially
-        idx_t ib = std::min<idx_t>(nb, k - j);
+        idx_t ib = min(nb, k - j);
 
         // Compute the LQ factorization of the current block A(j:j+ib-1,j:n)
         auto TT1 = slice(TT, range(j, j + ib), range(0, ib));

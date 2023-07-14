@@ -113,7 +113,7 @@ void ladiv(const real_t& a,
     }
 
     // compute the quotient
-    if (tlapack::abs(d) <= tlapack::abs(c)) {
+    if (abs(d) <= abs(c)) {
         sladiv1(aa, bb, cc, dd, p, q);
     }
     else {

@@ -88,7 +88,6 @@ namespace legacy {
               int_t incx)
     {
         using internal::create_matrix;
-        using std::abs;
 
         // check arguments
         tlapack_check_false(layout != Layout::ColMajor &&

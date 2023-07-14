@@ -96,7 +96,7 @@ int ungl2(matrix_t& Q, const vector_t& tauw, const WorkspaceOpts<>& opts = {})
         min(k, m);  // desired number of Householder reflectors to use
 
     // check arguments
-    tlapack_check_false((idx_t)size(tauw) < std::min<idx_t>(m, n));
+    tlapack_check_false((idx_t)size(tauw) < min(m, n));
 
     // Allocates workspace
     VectorOfBytes localworkdata;

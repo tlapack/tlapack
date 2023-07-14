@@ -128,7 +128,7 @@ TEMPLATE_TEST_CASE("Generation of Householder reflectors",
         else {
             CHECK(one <= real(tau));
             CHECK(real(tau) <= two);
-            CHECK(tlapack::abs(tau - one) <= one);
+            CHECK(abs(tau - one) <= one);
         }
 
         const T vHw = dot(v, w);
@@ -144,9 +144,8 @@ TEMPLATE_TEST_CASE("Generation of Householder reflectors",
         }
 
         // Check that larfg returns the expected reflection
-        CHECK(tlapack::abs(real(w[alphaIdx]) - beta) / tol <
-              tlapack::abs(beta));
-        CHECK(tlapack::abs(imag(w[alphaIdx])) / tol < one);
+        CHECK(abs(real(w[alphaIdx]) - beta) / tol < abs(beta));
+        CHECK(abs(imag(w[alphaIdx])) / tol < one);
         w[alphaIdx] = zero;
         CHECK(tlapack::nrm2(w) / tol < one);
     }
@@ -181,7 +180,7 @@ TEMPLATE_TEST_CASE("Application of Householder reflectors",
     {
         // Constants
         const idx_t k = (side == Side::Left) ? m : n;
-        const real_t tol = real_t(4 * std::max(m, n)) * ulp<real_t>();
+        const real_t tol = real_t(4 * max(m, n)) * ulp<real_t>();
         const real_t one(1);
         const idx_t oneIdx = (direction == Direction::Forward) ? 0 : k - 1;
 

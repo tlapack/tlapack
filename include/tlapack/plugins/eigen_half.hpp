@@ -31,20 +31,6 @@ namespace traits {
     };
 }  // namespace traits
 
-// Forward declarations
-template <typename T>
-T abs(const T& x);
-template <typename T>
-bool isnan(const std::complex<T>& x);
-template <typename T>
-bool isinf(const std::complex<T>& x);
-
-template <>
-inline Eigen::half abs(const Eigen::half& x)
-{
-    return Eigen::half_impl::abs(x);
-}
-
 inline Eigen::half pow(int base, const Eigen::half& exp)
 {
     return Eigen::half_impl::pow(Eigen::half(base), exp);
@@ -60,9 +46,9 @@ std::complex<Eigen::half> sqrt(const std::complex<Eigen::half>& z)
     const Eigen::half two(2);
     const Eigen::half half(0.5);
 
-    if (isnan(z))
+    if (isnan(x) || isnan(y))
         return std::numeric_limits<Eigen::half>::quiet_NaN();
-    else if (isinf(z))
+    else if (isinf(x) || isinf(y))
         return std::numeric_limits<Eigen::half>::infinity();
     else if (x == zero) {
         Eigen::half t = sqrt(half * abs(y));

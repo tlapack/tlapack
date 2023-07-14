@@ -29,6 +29,7 @@ inline T abs(const T& x);
 
 namespace concepts {
 
+    using std::abs;
     using std::ceil;
     using std::floor;
     using std::isinf;
@@ -90,6 +91,13 @@ namespace concepts {
      * - it must have a specialization of @c std::numeric_limits<>.
      *
      * @tparam T Type.
+     *
+     * @note Note that the functions @c min() and @c max() may not propagate
+     * NaNs. The implementation in the C++ standard library says nothing about
+     * NaN propagation in @c std::min() and @c std::max() and we follow the same
+     * rule. The C++ documentation shows possible implementations that do not
+     * propagate NaNs. See: https://en.cppreference.com/w/cpp/algorithm/max and
+     * https://en.cppreference.com/w/cpp/algorithm/min.
      *
      * @ingroup concepts
      */
@@ -205,7 +213,7 @@ namespace concepts {
         a = std::forward<T>(a);
 
         // Math functions
-        tlapack::abs(a);
+        abs(a);
     };
 
     /** @interface tlapack::concepts::Vector
