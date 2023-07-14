@@ -665,7 +665,7 @@ inline constexpr auto transpose_view(matrix_t& A) noexcept
 
     using map_t = Eigen::Map<transpose_t, Eigen::Unaligned, Stride>;
 
-    return map_t((T*)A.data(), A.size(), Stride(1));
+    return map_t((T*)A.data(), A.size(), A.innerStride());
 }
 template <class matrix_t,
           typename std::enable_if<(eigen::is_eigen_type<matrix_t> &&
@@ -686,7 +686,7 @@ inline constexpr auto transpose_view(matrix_t& A) noexcept
 
     using map_t = Eigen::Map<transpose_t, Eigen::Unaligned, Stride>;
 
-    return map_t((T*)A.data(), A.cols(), A.rows(), Stride(1));
+    return map_t((T*)A.data(), A.cols(), A.rows(), A.outerStride());
 }
 
 // -----------------------------------------------------------------------------
