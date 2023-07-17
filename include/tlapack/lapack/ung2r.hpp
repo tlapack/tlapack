@@ -102,7 +102,7 @@ int ung2r(matrix_t& A, const vector_t& tau, const WorkspaceOpts& opts = {})
     }();
 
     // Options to forward
-    auto&& larfOpts = WorkspaceOpts{work};
+    const auto& larfOpts = WorkspaceOpts{work};
 
     // Initialise columns k:n-1 to columns of the unit matrix
     for (idx_t j = k; j < min(m, n); ++j) {

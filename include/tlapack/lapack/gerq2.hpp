@@ -112,7 +112,7 @@ int gerq2(matrix_t& A, vector_t& tau, const WorkspaceOpts& opts = {})
     }();
 
     // Options to forward
-    auto&& larfOpts = WorkspaceOpts{work};
+    const auto& larfOpts = WorkspaceOpts{work};
 
     for (idx_t i2 = 0; i2 < k; ++i2) {
         idx_t i = k - 1 - i2;

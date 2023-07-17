@@ -106,7 +106,7 @@ int ungl2(matrix_t& Q, const vector_t& tauw, const WorkspaceOpts& opts = {})
     }();
 
     // Options to forward
-    auto&& larfOpts = WorkspaceOpts{work};
+    const auto& larfOpts = WorkspaceOpts{work};
 
     // Initialise columns t:k-1 to rows of the unit matrix
     if (k > m) {

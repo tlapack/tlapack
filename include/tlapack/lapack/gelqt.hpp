@@ -131,7 +131,7 @@ int gelqt(matrix_t& A, matrix_t& TT, const GelqtOpts& opts = {})
     }();
 
     // Options to forward
-    auto&& gelq2Opts = WorkspaceOpts{work};
+    const auto& gelq2Opts = WorkspaceOpts{work};
 
     for (idx_t j = 0; j < k; j += nb) {
         // Use blocked code initially

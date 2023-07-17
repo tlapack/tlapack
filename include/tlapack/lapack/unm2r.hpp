@@ -162,7 +162,7 @@ int unm2r(side_t side,
     }();
 
     // Options to forward
-    auto&& larfOpts = WorkspaceOpts{work};
+    const auto& larfOpts = WorkspaceOpts{work};
 
     // const expressions
     const bool positiveInc =

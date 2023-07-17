@@ -105,7 +105,7 @@ int ung2l(matrix_t& A, const vector_t& tau, const WorkspaceOpts& opts = {})
     }();
 
     // Options to forward
-    auto&& larfOpts = WorkspaceOpts{work};
+    const auto& larfOpts = WorkspaceOpts{work};
 
     // Initialise rows 0:m-k to rows of the unit matrix
     for (idx_t j = 0; j < n - k; ++j) {

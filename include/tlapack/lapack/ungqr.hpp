@@ -142,8 +142,8 @@ int ungqr(matrix_t& A,
     auto matrixT = new_matrix(work, nb, nb, sparework);
 
     // Options to forward
-    auto&& larfOpts = WorkspaceOpts{sparework};
-    auto&& larfbOpts = WorkspaceOpts{sparework};
+    const auto& larfOpts = WorkspaceOpts{sparework};
+    const auto& larfbOpts = WorkspaceOpts{sparework};
 
     // Initialise columns k:n-1 to columns of the unit matrix
     for (idx_t j = k; j < min(m, n); ++j) {
