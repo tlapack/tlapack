@@ -216,7 +216,7 @@ int unmqr(side_t side,
     auto matrixT = new_matrix(work, nb, nb, sparework);
 
     // Options to forward
-    auto&& larfbOpts = WorkspaceOpts{sparework};
+    const auto& larfbOpts = WorkspaceOpts{sparework};
 
     // Main loop
     for (idx_t i = i0; i != iN; i += inc) {

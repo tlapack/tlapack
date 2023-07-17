@@ -203,7 +203,8 @@ inline constexpr WorkInfo larfb2_worksize(side_t side,
  *     On entry, the m-by-n matrix C.
  *     On exit, C is overwritten by $H C$ or $H^H C$.
  *
- * @param W Workspace matrix of size k-by-n.
+ * @param W Workspace matrix.
+ *      For the workspace size, run larfb_worksize() using tlapack::SIDE_LEFT.
  *
  * @par Further Details
  *
@@ -262,7 +263,7 @@ int larfb_left(trans_t trans,
     // check arguments
     tlapack_check_false(
         trans != Op::NoTrans && trans != Op::ConjTrans &&
-        ((trans != Op::Trans) || is_complex<type_t<matrixV_t> >));
+        ((trans != Op::Trans) || is_complex<type_t<matrixV_t>>));
     tlapack_check_false(direction != Direction::Backward &&
                         direction != Direction::Forward);
     tlapack_check_false(storeMode != StoreV::Columnwise &&
@@ -271,6 +272,7 @@ int larfb_left(trans_t trans,
                       ? (ncols(V) == k && nrows(V) == m)
                       : (nrows(V) == k && ncols(V) == m));
     tlapack_check(nrows(Tmatrix) == ncols(Tmatrix));
+    tlapack_check(nrows(W) == k && ncols(W) == n);
 
     // Quick return
     if (m <= 0 || n <= 0 || k <= 0) return 0;
@@ -431,7 +433,8 @@ int larfb_left(trans_t trans,
  *     On entry, the m-by-n matrix C.
  *     On exit, C is overwritten by $C H$ or $C H^H$.
  *
- * @param W Workspace matrix of size m-by-k.
+ * @param W Workspace matrix.
+ *      For the workspace size, run larfb_worksize() using tlapack::SIDE_RIGHT.
  *
  * @par Further Details
  *
@@ -490,7 +493,7 @@ int larfb_right(trans_t trans,
     // check arguments
     tlapack_check_false(
         trans != Op::NoTrans && trans != Op::ConjTrans &&
-        ((trans != Op::Trans) || is_complex<type_t<matrixV_t> >));
+        ((trans != Op::Trans) || is_complex<type_t<matrixV_t>>));
     tlapack_check_false(direction != Direction::Backward &&
                         direction != Direction::Forward);
     tlapack_check_false(storeMode != StoreV::Columnwise &&
@@ -499,6 +502,7 @@ int larfb_right(trans_t trans,
                       ? (ncols(V) == k && nrows(V) == n)
                       : (nrows(V) == k && ncols(V) == n));
     tlapack_check(nrows(Tmatrix) == ncols(Tmatrix));
+    tlapack_check(nrows(W) == m && ncols(W) == k);
 
     // Quick return
     if (m <= 0 || n <= 0 || k <= 0) return 0;

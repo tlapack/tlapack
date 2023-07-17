@@ -134,8 +134,8 @@ int geqlf(A_t& A, tau_t& tau, const GeqlfOpts<size_type<A_t>>& opts = {})
     auto TT = new_matrix(work, nb, nb, sparework);
 
     // Options to forward
-    auto&& geql2Opts = WorkspaceOpts{sparework};
-    auto&& larfbOpts = WorkspaceOpts{sparework};
+    const auto& geql2Opts = WorkspaceOpts{sparework};
+    const auto& larfbOpts = WorkspaceOpts{sparework};
 
     // Main computational loop
     for (idx_t j2 = 0; j2 < k; j2 += nb) {

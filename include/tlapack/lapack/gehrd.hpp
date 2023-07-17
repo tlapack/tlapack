@@ -154,8 +154,8 @@ int gehrd(size_type<matrix_t> ilo,
     }();
 
     // Options to forward
-    auto&& larfbOpts = WorkspaceOpts{work};
-    auto&& gehd2Opts = WorkspaceOpts{work};
+    const auto& larfbOpts = WorkspaceOpts{work};
+    const auto& gehd2Opts = WorkspaceOpts{work};
 
     // Matrix Y
     Workspace workMatrixT;

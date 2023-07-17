@@ -148,7 +148,7 @@ int gebd2(matrix_t& A,
     }();
 
     // Options to forward
-    auto&& larfOpts = WorkspaceOpts{work};
+    const auto& larfOpts = WorkspaceOpts{work};
 
     if (m >= n) {
         //

@@ -111,7 +111,7 @@ int geqr2(matrix_t& A, vector_t& tau, const WorkspaceOpts& opts = {})
     }();
 
     // Options to forward
-    auto&& larfOpts = WorkspaceOpts{work};
+    const auto& larfOpts = WorkspaceOpts{work};
 
     for (idx_t i = 0; i < k; ++i) {
         // Define v := A[i:m,i]

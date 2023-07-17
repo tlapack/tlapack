@@ -134,7 +134,7 @@ int gehd2(size_type<matrix_t> ilo,
     }();
 
     // Options to forward
-    auto&& larfOpts = WorkspaceOpts{work};
+    const auto& larfOpts = WorkspaceOpts{work};
 
     for (idx_t i = ilo; i < ihi - 1; ++i) {
         // Define v := A[i+1:ihi,i]

@@ -109,7 +109,7 @@ int gelq2(matrix_t& A, vector_t& tauw, const WorkspaceOpts& opts = {})
     }();
 
     // Options to forward
-    auto&& larfOpts = WorkspaceOpts{work};
+    const auto& larfOpts = WorkspaceOpts{work};
 
     for (idx_t j = 0; j < k; ++j) {
         // Define w := A(j,j:n)

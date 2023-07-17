@@ -252,7 +252,7 @@ int multishift_qr(bool want_t,
 
     // Options to forward
     opts.work = work;
-    auto&& mQRsweepOpts = WorkspaceOpts{work};
+    const auto& mQRsweepOpts = WorkspaceOpts{work};
 
     // itmax is the total number of QR iterations allowed.
     // For most matrices, 3 shifts per eigenvalue is enough, so

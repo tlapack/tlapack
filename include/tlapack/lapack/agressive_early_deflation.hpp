@@ -245,7 +245,7 @@ void agressive_early_deflation(bool want_t,
 
     // Options to forward
     opts.work = work;
-    auto&& gehrdOpts = GehrdOpts<idx_t>{work};
+    const auto& gehrdOpts = GehrdOpts<idx_t>{work};
 
     // Define workspace matrices
     // We use the lower triangular part of A as workspace
