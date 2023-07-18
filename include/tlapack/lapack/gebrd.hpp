@@ -24,10 +24,7 @@ namespace tlapack {
  * Options struct for gebrd
  */
 template <TLAPACK_INDEX idx_t = size_t>
-struct GebrdOpts : public WorkspaceOpts {
-    inline constexpr GebrdOpts(const WorkspaceOpts& opts = {})
-        : WorkspaceOpts(opts){};
-
+struct GebrdOpts {
     idx_t nb = 32;  ///< Block size used in the blocked reduction
 };
 
@@ -57,7 +54,8 @@ struct GebrdOpts : public WorkspaceOpts {
  *
  * @ingroup workspace_query
  */
-template <TLAPACK_SMATRIX matrix_t,
+template <class T,
+          TLAPACK_SMATRIX matrix_t,
           TLAPACK_SVECTOR vector_t,
           TLAPACK_SVECTOR r_vector_t>
 WorkInfo gebrd_worksize(const matrix_t& A,
@@ -65,17 +63,19 @@ WorkInfo gebrd_worksize(const matrix_t& A,
                         r_vector_t& e,
                         const vector_t& tauq,
                         const vector_t& taup,
-                        const GebrdOpts<size_type<matrix_t> >& opts = {})
+                        const GebrdOpts<size_type<matrix_t>>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using work_t = matrix_type<matrix_t, vector_t>;
-    using T = type_t<work_t>;
 
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
     const idx_t nb = min(opts.nb, min(m, n));
 
-    return WorkInfo(sizeof(T) * (m + n), nb);
+    if constexpr (is_same_v<T, type_t<work_t>>)
+        return WorkInfo(m + n, nb);
+    else
+        return WorkInfo(0);
 }
 
 /** Reduces a general m by n matrix A to an upper
@@ -141,13 +141,14 @@ int gebrd(matrix_t& A,
           r_vector_t& e,
           vector_t& tauq,
           vector_t& taup,
-          const GebrdOpts<size_type<matrix_t> >& opts = {})
+          const GebrdOpts<size_type<matrix_t>>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using work_t = matrix_type<matrix_t, vector_t>;
     using range = pair<idx_t, idx_t>;
     using TA = type_t<matrix_t>;
     using real_t = real_type<TA>;
+    using T = type_t<work_t>;
 
     // Functor
     Create<work_t> new_matrix;
@@ -161,20 +162,14 @@ int gebrd(matrix_t& A,
     const idx_t nb = min(opts.nb, k);
 
     // Allocates workspace
-    VectorOfBytes localworkdata;
-    Workspace work = [&]() {
-        WorkInfo workinfo = gebrd_worksize(A, d, e, tauq, taup, opts);
-        return alloc_workspace(localworkdata, workinfo, opts.work);
-    }();
+    WorkInfo workinfo = gebrd_worksize<T>(A, d, e, tauq, taup, opts);
+    std::vector<T> work_;
+    auto work = new_matrix(work_, workinfo.m, workinfo.n);
 
-    // Matrix X
-    Workspace workMatrixY;
-    auto X = new_matrix(work, m, nb, workMatrixY);
+    // Matrices X and Y
+    auto X = slice(work, range{0, m}, range{0, nb});
+    auto Y = slice(work, range{m, m + n}, range{0, nb});
     laset(GENERAL, zero, zero, X);
-
-    // Matrix Y
-    Workspace spareWork;
-    auto Y = new_matrix(workMatrixY, n, nb, spareWork);
     laset(GENERAL, zero, zero, Y);
 
     for (idx_t i = 0; i < k; i = i + nb) {

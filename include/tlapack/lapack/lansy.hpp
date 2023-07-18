@@ -38,7 +38,10 @@ namespace tlapack {
  *
  * @ingroup workspace_query
  */
-template <TLAPACK_NORM norm_t, TLAPACK_UPLO uplo_t, TLAPACK_SMATRIX matrix_t>
+template <class T,
+          TLAPACK_NORM norm_t,
+          TLAPACK_UPLO uplo_t,
+          TLAPACK_SMATRIX matrix_t>
 inline constexpr WorkInfo lansy_worksize(norm_t normType,
                                          uplo_t uplo,
                                          const matrix_t& A)
@@ -70,17 +73,17 @@ inline constexpr WorkInfo lansy_worksize(norm_t normType,
  *
  * @ingroup workspace_query
  */
-template <TLAPACK_NORM norm_t, TLAPACK_UPLO uplo_t, TLAPACK_MATRIX matrix_t>
+template <class T,
+          TLAPACK_NORM norm_t,
+          TLAPACK_UPLO uplo_t,
+          TLAPACK_MATRIX matrix_t>
 inline constexpr WorkInfo lansy_worksize(norm_t normType,
                                          uplo_t uplo,
-                                         const matrix_t& A,
-                                         const WorkspaceOpts& opts)
+                                         const matrix_t& A)
 {
-    using T = type_t<matrix_t>;
-
-    if (normType == Norm::Inf || normType == Norm::One) {
-        return WorkInfo(sizeof(T), nrows(A));
-    }
+    if constexpr (is_same_v<T, type_t<matrix_t>>)
+        if (normType == Norm::Inf || normType == Norm::One)
+            return WorkInfo(nrows(A));
 
     return WorkInfo{};
 }
@@ -251,14 +254,12 @@ auto lansy(norm_t normType, uplo_t uplo, const matrix_t& A)
  * @ingroup auxiliary
  */
 template <TLAPACK_NORM norm_t, TLAPACK_UPLO uplo_t, TLAPACK_MATRIX matrix_t>
-auto lansy(norm_t normType,
-           uplo_t uplo,
-           const matrix_t& A,
-           const WorkspaceOpts& opts)
+auto lansy(norm_t normType, uplo_t uplo, const matrix_t& A)
 {
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
     using idx_t = size_type<matrix_t>;
+    using range = pair<idx_t, idx_t>;
 
     // check arguments
     tlapack_check_false(normType != Norm::Fro && normType != Norm::Inf &&
@@ -282,13 +283,10 @@ auto lansy(norm_t normType,
         if (n <= 0) return real_t(0);
 
         // Allocates workspace
-        VectorOfBytes localworkdata;
-        const Workspace work = [&]() {
-            WorkInfo workinfo;
-            lansy_worksize(normType, uplo, A, opts);
-            return alloc_workspace(localworkdata, workinfo, opts.work);
-        }();
-        auto w = Create<vector_type<matrix_t>>(work, n);
+        WorkInfo workinfo = lansy_worksize<T>(normType, uplo, A);
+        std::vector<T> work_;
+        auto work = new_matrix(work_, workinfo.m, workinfo.n);
+        auto w = slice(work, range{0, n}, 0);
 
         // Norm value
         real_t norm(0);

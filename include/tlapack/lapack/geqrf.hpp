@@ -22,10 +22,7 @@ namespace tlapack {
  * Options struct for geqrf
  */
 template <TLAPACK_INDEX idx_t = size_t>
-struct GeqrfOpts : public WorkspaceOpts {
-    inline constexpr GeqrfOpts(const WorkspaceOpts& opts = {})
-        : WorkspaceOpts(opts){};
-
+struct GeqrfOpts {
     idx_t nb = 32;  ///< Block size
 };
 
@@ -41,12 +38,11 @@ struct GeqrfOpts : public WorkspaceOpts {
  *
  * @ingroup workspace_query
  */
-template <TLAPACK_SMATRIX A_t, TLAPACK_SVECTOR tau_t>
+template <class T, TLAPACK_SMATRIX A_t, TLAPACK_SVECTOR tau_t>
 inline constexpr WorkInfo geqrf_worksize(
     const A_t& A, const tau_t& tau, const GeqrfOpts<size_type<A_t>>& opts = {})
 {
     using idx_t = size_type<A_t>;
-    using T = type_t<A_t>;
     using range = pair<idx_t, idx_t>;
 
     // constants
@@ -61,12 +57,12 @@ inline constexpr WorkInfo geqrf_worksize(
     auto A12 = slice(A, range(0, m), range(ib, n));
     auto tauw1 = slice(tau, range(0, ib));
 
-    WorkInfo workinfo = geqr2_worksize(A11, tauw1);
-    workinfo.minMax(larfb_worksize(Side::Left, Op::ConjTrans,
-                                   Direction::Forward, StoreV::Columnwise, A11,
-                                   TT1, A12));
+    WorkInfo workinfo = geqr2_worksize<T>(A11, tauw1);
+    workinfo.minMax(larfb_worksize<T>(Side::Left, Op::ConjTrans,
+                                      Direction::Forward, StoreV::Columnwise,
+                                      A11, TT1, A12));
 
-    workinfo += WorkInfo(sizeof(T) * nb, nb);
+    workinfo += WorkInfo(nb, nb);
 
     return workinfo;
 }
@@ -111,6 +107,7 @@ template <TLAPACK_SMATRIX A_t, TLAPACK_SVECTOR tau_t>
 int geqrf(A_t& A, tau_t& tau, const GeqrfOpts<size_type<A_t>>& opts = {})
 {
     Create<A_t> new_matrix;
+    using T = type_t<A_t>;
 
     using idx_t = size_type<A_t>;
     using range = pair<idx_t, idx_t>;
@@ -125,18 +122,11 @@ int geqrf(A_t& A, tau_t& tau, const GeqrfOpts<size_type<A_t>>& opts = {})
     tlapack_check((idx_t)size(tau) >= k);
 
     // Allocate or get workspace
-    VectorOfBytes localworkdata;
-    Workspace work = [&]() {
-        WorkInfo workinfo = geqrf_worksize(A, tau, opts);
-        return alloc_workspace(localworkdata, workinfo, opts.work);
-    }();
-
-    Workspace sparework;
-    auto TT = new_matrix(work, nb, nb, sparework);
-
-    // Options to forward
-    const auto& geqr2Opts = WorkspaceOpts{sparework};
-    const auto& larfbOpts = WorkspaceOpts{sparework};
+    WorkInfo workinfo = geqrf_worksize<T>(A, tau, opts);
+    std::vector<T> work_;
+    auto work = new_matrix(work_, workinfo.m, workinfo.n);
+    auto TT = slice(work, range{workinfo.m - nb, workinfo.m},
+                    range{workinfo.n - nb, workinfo.n});
 
     // Main computational loop
     for (idx_t j = 0; j < k; j += nb) {
@@ -146,7 +136,7 @@ int geqrf(A_t& A, tau_t& tau, const GeqrfOpts<size_type<A_t>>& opts = {})
         auto A11 = slice(A, range(j, m), range(j, j + ib));
         auto tauw1 = slice(tau, range(j, j + ib));
 
-        geqr2(A11, tauw1, geqr2Opts);
+        geqr2(A11, tauw1, work);
 
         if (j + ib < n) {
             // Form the triangular factor of the block reflector H = H(j)
@@ -157,7 +147,7 @@ int geqrf(A_t& A, tau_t& tau, const GeqrfOpts<size_type<A_t>>& opts = {})
             // Apply H to A(j:m,j+ib:n) from the left
             auto A12 = slice(A, range(j, m), range(j + ib, n));
             larfb(Side::Left, Op::ConjTrans, Direction::Forward,
-                  StoreV::Columnwise, A11, TT1, A12, larfbOpts);
+                  StoreV::Columnwise, A11, TT1, A12, work);
         }
     }
 

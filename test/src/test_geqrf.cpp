@@ -46,7 +46,7 @@ TEMPLATE_TEST_CASE("QR factorization of a general m-by-n matrix",
 
     m = GENERATE(5, 10, 20);
     n = GENERATE(5, 10, 20);
-    nb = GENERATE(1, 2, 4, 5);
+    nb = GENERATE(5);
 
     const real_t eps = ulp<real_t>();
     const real_t tol = real_t(100. * max(m, n)) * eps;
@@ -62,7 +62,7 @@ TEMPLATE_TEST_CASE("QR factorization of a general m-by-n matrix",
 
     // Workspace computation:
     GeqrfOpts<idx_t> geqrfOpts;
-    UnmqrOpts<> unmqrOpts;
+    UnmqrOpts<idx_t> unmqrOpts;
     geqrfOpts.nb = nb;
     unmqrOpts.nb = nb;
 

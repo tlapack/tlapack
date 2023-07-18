@@ -36,12 +36,11 @@ namespace tlapack {
  *
  * @ingroup workspace_query
  */
-template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
+template <class T, TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
 inline constexpr WorkInfo gehd2_worksize(size_type<matrix_t> ilo,
                                          size_type<matrix_t> ihi,
                                          const matrix_t& A,
-                                         const vector_t& tau,
-                                         const WorkspaceOpts& opts = {})
+                                         const vector_t& tau)
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -50,19 +49,60 @@ inline constexpr WorkInfo gehd2_worksize(size_type<matrix_t> ilo,
     const idx_t n = ncols(A);
 
     WorkInfo workinfo;
-    if (ilo + 1 < ihi) {
+    if (ilo + 1 < ihi && n > 0) {
         const auto v = slice(A, range{ilo + 1, ihi}, ilo);
 
         auto C0 = slice(A, range{0, ihi}, range{ilo + 1, ihi});
-        workinfo = larf_worksize(RIGHT_SIDE, FORWARD, COLUMNWISE_STORAGE, v,
-                                 tau[0], C0, opts);
+        workinfo = larf_worksize<T>(RIGHT_SIDE, FORWARD, COLUMNWISE_STORAGE, v,
+                                    tau[0], C0);
 
         auto C1 = slice(A, range{ilo + 1, ihi}, range{ilo + 1, n});
-        workinfo.minMax(larf_worksize(LEFT_SIDE, FORWARD, COLUMNWISE_STORAGE, v,
-                                      tau[0], C1, opts));
+        workinfo.minMax(larf_worksize<T>(LEFT_SIDE, FORWARD, COLUMNWISE_STORAGE,
+                                         v, tau[0], C1));
     }
 
     return workinfo;
+}
+
+template <TLAPACK_SMATRIX matrix_t,
+          TLAPACK_VECTOR vector_t,
+          TLAPACK_SMATRIX work_t>
+int gehd2(size_type<matrix_t> ilo,
+          size_type<matrix_t> ihi,
+          matrix_t& A,
+          vector_t& tau,
+          work_t& work)
+{
+    using idx_t = size_type<matrix_t>;
+    using range = pair<idx_t, idx_t>;
+
+    // constants
+    const idx_t n = ncols(A);
+
+    // check arguments
+    tlapack_check_false(ncols(A) != nrows(A));
+    tlapack_check_false((idx_t)size(tau) < n - 1);
+
+    // quick return
+    if (n <= 0) return 0;
+
+    for (idx_t i = ilo; i < ihi - 1; ++i) {
+        // Define v := A[i+1:ihi,i]
+        auto v = slice(A, range{i + 1, ihi}, i);
+
+        // Generate the (i+1)-th elementary Householder reflection on v
+        larfg(FORWARD, COLUMNWISE_STORAGE, v, tau[i]);
+
+        // Apply Householder reflection from the right to A[0:ihi,i+1:ihi]
+        auto C0 = slice(A, range{0, ihi}, range{i + 1, ihi});
+        larf(RIGHT_SIDE, FORWARD, COLUMNWISE_STORAGE, v, tau[i], C0, work);
+
+        // Apply Householder reflection from the left to A[i+1:ihi,i+1:n-1]
+        auto C1 = slice(A, range{i + 1, ihi}, range{i + 1, n});
+        larf(LEFT_SIDE, FORWARD, COLUMNWISE_STORAGE, v, conj(tau[i]), C1, work);
+    }
+
+    return 0;
 }
 
 /** Reduces a general square matrix to upper Hessenberg form
@@ -110,11 +150,13 @@ template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
 int gehd2(size_type<matrix_t> ilo,
           size_type<matrix_t> ihi,
           matrix_t& A,
-          vector_t& tau,
-          const WorkspaceOpts& opts = {})
+          vector_t& tau)
 {
     using idx_t = size_type<matrix_t>;
-    using range = pair<idx_t, idx_t>;
+    using T = type_t<matrix_t>;
+
+    // functor
+    Create<matrix_t> new_matrix;
 
     // constants
     const idx_t n = ncols(A);
@@ -127,33 +169,11 @@ int gehd2(size_type<matrix_t> ilo,
     if (n <= 0) return 0;
 
     // Allocates workspace
-    VectorOfBytes localworkdata;
-    Workspace work = [&]() {
-        WorkInfo workinfo = gehd2_worksize(ilo, ihi, A, tau, opts);
-        return alloc_workspace(localworkdata, workinfo, opts.work);
-    }();
+    WorkInfo workinfo = gehd2_worksize<T>(ilo, ihi, A, tau);
+    std::vector<T> work_;
+    auto work = new_matrix(work_, workinfo.m, workinfo.n);
 
-    // Options to forward
-    const auto& larfOpts = WorkspaceOpts{work};
-
-    for (idx_t i = ilo; i < ihi - 1; ++i) {
-        // Define v := A[i+1:ihi,i]
-        auto v = slice(A, range{i + 1, ihi}, i);
-
-        // Generate the (i+1)-th elementary Householder reflection on v
-        larfg(FORWARD, COLUMNWISE_STORAGE, v, tau[i]);
-
-        // Apply Householder reflection from the right to A[0:ihi,i+1:ihi]
-        auto C0 = slice(A, range{0, ihi}, range{i + 1, ihi});
-        larf(RIGHT_SIDE, FORWARD, COLUMNWISE_STORAGE, v, tau[i], C0, larfOpts);
-
-        // Apply Householder reflection from the left to A[i+1:ihi,i+1:n-1]
-        auto C1 = slice(A, range{i + 1, ihi}, range{i + 1, n});
-        larf(LEFT_SIDE, FORWARD, COLUMNWISE_STORAGE, v, conj(tau[i]), C1,
-             larfOpts);
-    }
-
-    return 0;
+    return gehd2(ilo, ihi, A, tau, work);
 }
 
 }  // namespace tlapack

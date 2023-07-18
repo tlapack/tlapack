@@ -21,10 +21,7 @@ namespace tlapack {
  * Options struct for unmqr
  */
 template <TLAPACK_INDEX idx_t = size_t>
-struct UnmqrOpts : public WorkspaceOpts {
-    inline constexpr UnmqrOpts(const WorkspaceOpts& opts = {})
-        : WorkspaceOpts(opts){};
-
+struct UnmqrOpts {
     idx_t nb = 32;  ///< Block size
 };
 
@@ -60,7 +57,8 @@ struct UnmqrOpts : public WorkspaceOpts {
  *
  * @see unmqr
  */
-template <TLAPACK_SMATRIX matrixA_t,
+template <class T,
+          TLAPACK_SMATRIX matrixA_t,
           TLAPACK_SMATRIX matrixC_t,
           TLAPACK_SVECTOR tau_t,
           TLAPACK_SIDE side_t,
@@ -75,7 +73,6 @@ inline constexpr WorkInfo unmqr_worksize(
 {
     using idx_t = size_type<matrixC_t>;
     using matrixT_t = matrix_type<matrixA_t, tau_t>;
-    using T = type_t<matrixT_t>;
     using range = pair<idx_t, idx_t>;
 
     // Constants
@@ -83,7 +80,8 @@ inline constexpr WorkInfo unmqr_worksize(
     const idx_t nb = min<idx_t>(opts.nb, k);
 
     // Local workspace sizes
-    WorkInfo workinfo(nb * sizeof(T), nb);
+    WorkInfo workinfo =
+        (is_same_v<T, type_t<matrixT_t>>) ? WorkInfo(nb, nb) : WorkInfo(0);
 
     // larfb:
     {
@@ -97,8 +95,8 @@ inline constexpr WorkInfo unmqr_worksize(
         const auto matrixT = slice(A, range{0, nb}, range{0, nb});
 
         // Internal workspace queries
-        workinfo += larfb_worksize(side, trans, FORWARD, COLUMNWISE_STORAGE, V,
-                                   matrixT, C, opts);
+        workinfo += larfb_worksize<T>(side, trans, FORWARD, COLUMNWISE_STORAGE,
+                                      V, matrixT, C);
     }
 
     return workinfo;
@@ -174,6 +172,7 @@ int unmqr(side_t side,
     using TA = type_t<matrixA_t>;
     using idx_t = size_type<matrixC_t>;
     using matrixT_t = matrix_type<matrixA_t, tau_t>;
+    using T = type_t<matrixT_t>;
 
     using range = pair<idx_t, idx_t>;
 
@@ -197,11 +196,11 @@ int unmqr(side_t side,
     if ((m == 0) || (n == 0) || (k == 0)) return 0;
 
     // Allocates workspace
-    VectorOfBytes localworkdata;
-    Workspace work = [&]() {
-        WorkInfo workinfo = unmqr_worksize(side, trans, A, tau, C, opts);
-        return alloc_workspace(localworkdata, workinfo, opts.work);
-    }();
+    WorkInfo workinfo = unmqr_worksize<T>(side, trans, A, tau, C, opts);
+    std::vector<T> work_;
+    auto work = new_matrix(work_, workinfo.m, workinfo.n);
+    auto matrixT = slice(work, range{workinfo.m - nb, workinfo.m},
+                         range{workinfo.n - nb, workinfo.n});
 
     // Preparing loop indexes
     const bool positiveInc =
@@ -210,13 +209,6 @@ int unmqr(side_t side,
     const idx_t i0 = (positiveInc) ? 0 : ((k - 1) / nb) * nb;
     const idx_t iN = (positiveInc) ? ((k - 1) / nb + 1) * nb : -nb;
     const idx_t inc = (positiveInc) ? nb : -nb;
-
-    // Matrix T and recompute work
-    Workspace sparework;
-    auto matrixT = new_matrix(work, nb, nb, sparework);
-
-    // Options to forward
-    const auto& larfbOpts = WorkspaceOpts{sparework};
 
     // Main loop
     for (idx_t i = i0; i != iN; i += inc) {
@@ -234,8 +226,7 @@ int unmqr(side_t side,
                                        : slice(C, range{0, m}, range{i, n});
 
         // Apply H or H**H
-        larfb(side, trans, FORWARD, COLUMNWISE_STORAGE, V, matrixTi, Ci,
-              larfbOpts);
+        larfb(side, trans, FORWARD, COLUMNWISE_STORAGE, V, matrixTi, Ci, work);
     }
 
     return 0;

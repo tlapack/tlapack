@@ -25,10 +25,7 @@ namespace tlapack {
  * Options struct for ungqr
  */
 template <TLAPACK_INDEX idx_t = size_t>
-struct UngqrOpts : public WorkspaceOpts {
-    inline constexpr UngqrOpts(const WorkspaceOpts& opts = {})
-        : WorkspaceOpts(opts){};
-
+struct UngqrOpts {
     idx_t nb = 32;  ///< Block size
 };
 
@@ -45,7 +42,7 @@ struct UngqrOpts : public WorkspaceOpts {
  *
  * @ingroup workspace_query
  */
-template <TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
+template <class T, TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
 inline constexpr WorkInfo ungqr_worksize(
     const matrix_t& A,
     const vector_t& tau,
@@ -53,7 +50,6 @@ inline constexpr WorkInfo ungqr_worksize(
 {
     using idx_t = size_type<matrix_t>;
     using matrixT_t = matrix_type<matrix_t, vector_t>;
-    using T = type_t<matrixT_t>;
     using range = pair<idx_t, idx_t>;
 
     // Constants
@@ -61,7 +57,8 @@ inline constexpr WorkInfo ungqr_worksize(
     const idx_t nb = min<idx_t>(opts.nb, k);
 
     // Local workspace sizes
-    WorkInfo workinfo(nb * sizeof(T), nb);
+    WorkInfo workinfo =
+        (is_same_v<T, type_t<matrixT_t>>) ? WorkInfo(nb, nb) : WorkInfo(0);
 
     // larfb:
     {
@@ -73,8 +70,8 @@ inline constexpr WorkInfo ungqr_worksize(
         const auto matrixT = slice(A, range{0, nb}, range{0, nb});
 
         // Internal workspace queries
-        workinfo += larfb_worksize(LEFT_SIDE, NO_TRANS, FORWARD,
-                                   COLUMNWISE_STORAGE, V, matrixT, A, opts);
+        workinfo += larfb_worksize<T>(LEFT_SIDE, NO_TRANS, FORWARD,
+                                      COLUMNWISE_STORAGE, V, matrixT, A);
     }
 
     return workinfo;
@@ -131,19 +128,11 @@ int ungqr(matrix_t& A,
     if (n <= 0) return 0;
 
     // Allocates workspace
-    VectorOfBytes localworkdata;
-    Workspace work = [&]() {
-        WorkInfo workinfo = ungqr_worksize(A, tau, opts);
-        return alloc_workspace(localworkdata, workinfo, opts.work);
-    }();
-
-    // Matrix T and recompute work
-    Workspace sparework;
-    auto matrixT = new_matrix(work, nb, nb, sparework);
-
-    // Options to forward
-    const auto& larfOpts = WorkspaceOpts{sparework};
-    const auto& larfbOpts = WorkspaceOpts{sparework};
+    WorkInfo workinfo = ungqr_worksize<T>(A, tau, opts);
+    std::vector<T> work_;
+    auto work = new_matrix(work_, workinfo.m, workinfo.n);
+    auto matrixT = slice(work, range{workinfo.m - nb, workinfo.m},
+                         range{workinfo.n - nb, workinfo.n});
 
     // Initialise columns k:n-1 to columns of the unit matrix
     for (idx_t j = k; j < min(m, n); ++j) {
@@ -167,11 +156,11 @@ int ungqr(matrix_t& A,
 
             larft(FORWARD, COLUMNWISE_STORAGE, V, taui, matrixTi);
             larfb(LEFT_SIDE, NO_TRANS, FORWARD, COLUMNWISE_STORAGE, V, matrixTi,
-                  C, larfbOpts);
+                  C, work);
         }
         // Use unblocked code to apply H to rows i:m of current block
         auto Ai = slice(A, range{i, m}, range{i, i + ib});
-        ung2r(Ai, taui, larfOpts);
+        ung2r(Ai, taui, work);
         // Set rows 0:i-1 of current block to zero
         for (idx_t j = i; j < i + ib; ++j)
             for (idx_t l = 0; l < i; l++)

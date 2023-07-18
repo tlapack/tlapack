@@ -22,10 +22,7 @@ namespace tlapack {
  * Options struct for ungbr
  */
 template <TLAPACK_INDEX idx_t = size_t>
-struct UngbrOpts : public WorkspaceOpts {
-    inline constexpr UngbrOpts(const WorkspaceOpts& opts = {})
-        : WorkspaceOpts(opts){};
-
+struct UngbrOpts {
     idx_t nb = 32;  ///< Block size
 };
 
@@ -49,7 +46,7 @@ struct UngbrOpts : public WorkspaceOpts {
  *
  * @ingroup workspace_query
  */
-template <TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
+template <class T, TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
 inline constexpr WorkInfo ungbr_q_worksize(
     const size_type<matrix_t> k,
     matrix_t& A,
@@ -63,12 +60,12 @@ inline constexpr WorkInfo ungbr_q_worksize(
     const idx_t n = ncols(A);
 
     if (m >= k) {
-        return ungqr_worksize(A, tau, opts);
+        return ungqr_worksize<T>(A, tau, opts);
     }
     else {
         auto A2 = slice(A, range{0, m - 1}, range{0, m - 1});
         auto tau2 = slice(tau, range{0, m - 1});
-        return ungqr_worksize(A2, tau2, opts);
+        return ungqr_worksize<T>(A2, tau2, opts);
     }
 }
 
@@ -92,7 +89,7 @@ inline constexpr WorkInfo ungbr_q_worksize(
  *
  * @ingroup workspace_query
  */
-template <TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
+template <class T, TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
 inline constexpr WorkInfo ungbr_p_worksize(
     const size_type<matrix_t> k,
     matrix_t& A,
@@ -108,10 +105,10 @@ inline constexpr WorkInfo ungbr_p_worksize(
     if (m >= k) {
         auto A2 = slice(A, range{0, n - 1}, range{0, n - 1});
         auto tau2 = slice(tau, range{0, n - 1});
-        return unglq_worksize(A2, tau2, opts);
+        return unglq_worksize<T>(A2, tau2, opts);
     }
     else {
-        return unglq_worksize(A, tau, opts);
+        return unglq_worksize<T>(A, tau, opts);
     }
 }
 
@@ -165,7 +162,6 @@ int ungbr_q(const size_type<matrix_t> k,
 
     UngqrOpts<idx_t> ungqrOpts;
     ungqrOpts.nb = opts.nb;
-    ungqrOpts.work = opts.work;
     if (m >= k) {
         // If m >= k, assume m >= n >= k
         ungqr(A, tau, ungqrOpts);
@@ -243,7 +239,6 @@ int ungbr_p(const size_type<matrix_t> k,
 
     UnglqOpts<idx_t> unglqOpts;
     unglqOpts.nb = opts.nb;
-    unglqOpts.work = opts.work;
     //
     // Form P**H, determined by a call to gebrd to reduce a k-by-n
     // matrix

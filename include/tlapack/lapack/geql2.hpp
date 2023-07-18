@@ -30,10 +30,8 @@ namespace tlapack {
  *
  * @ingroup workspace_query
  */
-template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
-inline constexpr WorkInfo geql2_worksize(const matrix_t& A,
-                                         const vector_t& tau,
-                                         const WorkspaceOpts& opts = {})
+template <class T, TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
+inline constexpr WorkInfo geql2_worksize(const matrix_t& A, const vector_t& tau)
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -43,11 +41,50 @@ inline constexpr WorkInfo geql2_worksize(const matrix_t& A,
 
     if (n > 1) {
         auto C = cols(A, range{1, n});
-        return larf_worksize(Side::Left, Direction::Backward,
-                             StoreV::Columnwise, col(A, 0), tau[0], C, opts);
+        return larf_worksize<T>(Side::Left, Direction::Backward,
+                                StoreV::Columnwise, col(A, 0), tau[0], C);
     }
 
     return WorkInfo{};
+}
+
+template <TLAPACK_SMATRIX matrix_t,
+          TLAPACK_VECTOR vector_t,
+          TLAPACK_SMATRIX work_t>
+int geql2(matrix_t& A, vector_t& tau, work_t& work)
+{
+    using idx_t = size_type<matrix_t>;
+    using range = pair<idx_t, idx_t>;
+
+    // constants
+    const idx_t m = nrows(A);
+    const idx_t n = ncols(A);
+    const idx_t k = std::min<idx_t>(m, n);
+
+    // check arguments
+    tlapack_check_false((idx_t)size(tau) < std::min<idx_t>(m, n));
+
+    // quick return
+    if (n <= 0) return 0;
+
+    for (idx_t i2 = 0; i2 < k; ++i2) {
+        idx_t i = k - 1 - i2;
+
+        // Column to be reduced
+        auto v = slice(A, range{0, m - k + i + 1}, n - k + i);
+
+        // Generate the (i+1)-th elementary Householder reflection on v
+        larfg(Direction::Backward, StoreV::Columnwise, v, tau[i]);
+
+        // Apply the reflector to the rest of the matrix
+        if (n + i > k) {
+            auto C = slice(A, range{0, m - k + i + 1}, range{0, n - k + i});
+            larf(Side::Left, Direction::Backward, StoreV::Columnwise, v,
+                 conj(tau[i]), C, work);
+        }
+    }
+
+    return 0;
 }
 
 /** Computes a QL factorization of a matrix A.
@@ -88,50 +125,31 @@ inline constexpr WorkInfo geql2_worksize(const matrix_t& A,
  * @ingroup computational
  */
 template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
-int geql2(matrix_t& A, vector_t& tau, const WorkspaceOpts& opts = {})
+int geql2(matrix_t& A, vector_t& tau)
 {
     using idx_t = size_type<matrix_t>;
-    using range = pair<idx_t, idx_t>;
+    using T = type_t<matrix_t>;
+
+    // functor
+    Create<matrix_t> new_matrix;
 
     // constants
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
-    const idx_t k = min(m, n);
+    const idx_t k = std::min<idx_t>(m, n);
 
     // check arguments
-    tlapack_check_false((idx_t)size(tau) < min(m, n));
+    tlapack_check_false((idx_t)size(tau) < k);
 
     // quick return
     if (n <= 0) return 0;
 
     // Allocates workspace
-    VectorOfBytes localworkdata;
-    Workspace work = [&]() {
-        WorkInfo workinfo = geql2_worksize(A, tau, opts);
-        return alloc_workspace(localworkdata, workinfo, opts.work);
-    }();
+    WorkInfo workinfo = geql2_worksize<T>(A, tau);
+    std::vector<T> work_;
+    auto work = new_matrix(work_, workinfo.m, workinfo.n);
 
-    // Options to forward
-    const auto& larfOpts = WorkspaceOpts{work};
-
-    for (idx_t i2 = 0; i2 < k; ++i2) {
-        idx_t i = k - 1 - i2;
-
-        // Column to be reduced
-        auto v = slice(A, range{0, m - k + i + 1}, n - k + i);
-
-        // Generate the (i+1)-th elementary Householder reflection on v
-        larfg(Direction::Backward, StoreV::Columnwise, v, tau[i]);
-
-        // Apply the reflector to the rest of the matrix
-        if (n + i > k) {
-            auto C = slice(A, range{0, m - k + i + 1}, range{0, n - k + i});
-            larf(Side::Left, Direction::Backward, StoreV::Columnwise, v,
-                 conj(tau[i]), C, larfOpts);
-        }
-    }
-
-    return 0;
+    return geql2(A, tau, work);
 }
 
 }  // namespace tlapack

@@ -31,10 +31,8 @@ namespace tlapack {
  *
  * @ingroup workspace_query
  */
-template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
-inline constexpr WorkInfo ungr2_worksize(const matrix_t& A,
-                                         const vector_t& tau,
-                                         const WorkspaceOpts& opts = {})
+template <class T, TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
+inline constexpr WorkInfo ungr2_worksize(const matrix_t& A, const vector_t& tau)
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -44,10 +42,58 @@ inline constexpr WorkInfo ungr2_worksize(const matrix_t& A,
 
     if (m > 1) {
         auto C = rows(A, range{1, m});
-        return larf_worksize(RIGHT_SIDE, BACKWARD, ROWWISE_STORAGE, row(A, 0),
-                             tau[0], C, opts);
+        return larf_worksize<T>(RIGHT_SIDE, BACKWARD, ROWWISE_STORAGE,
+                                row(A, 0), tau[0], C);
     }
     return WorkInfo{};
+}
+
+template <TLAPACK_SMATRIX matrix_t,
+          TLAPACK_VECTOR vector_t,
+          TLAPACK_SMATRIX work_t>
+int ungr2(matrix_t& A, const vector_t& tau, work_t& work)
+{
+    using T = type_t<matrix_t>;
+    using real_t = real_type<T>;
+    using idx_t = size_type<matrix_t>;
+    using range = pair<idx_t, idx_t>;
+
+    // constants
+    const real_t zero(0);
+    const real_t one(1);
+    const idx_t m = nrows(A);
+    const idx_t n = ncols(A);
+    const idx_t k = size(tau);
+
+    // check arguments
+    tlapack_check_false(k < 0 || k > n);
+
+    // quick return
+    if (n <= 0) return 0;
+
+    // Initialise rows 0:m-k to rows of the unit matrix
+    for (idx_t j = 0; j < n; ++j) {
+        for (idx_t i = 0; i < m - k; ++i)
+            A(i, j) = zero;
+        if (j + m >= n and j + k <= n) A(m + j - n, j) = one;
+    }
+
+    for (idx_t i = 0; i < k; ++i) {
+        idx_t ii = m - k + i;
+        auto v = slice(A, ii, range{0, n - k + 1 + i});
+        auto C = slice(A, range{0, ii}, range{0, n - k + 1 + i});
+        larf(Side::Right, Direction::Backward, StoreV::Rowwise, v, conj(tau[i]),
+             C, work);
+        auto x = slice(A, ii, range{0, n - k + i});
+        scal(-conj(tau[i]), x);
+        A(ii, n - k + i) = one - conj(tau[i]);
+
+        // Set A( 0:i-1, i ) to zero
+        for (idx_t l = n - k + i + 1; l < n; l++)
+            A(ii, l) = zero;
+    }
+
+    return 0;
 }
 
 /**
@@ -77,12 +123,15 @@ inline constexpr WorkInfo ungr2_worksize(const matrix_t& A,
  * @ingroup computational
  */
 template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
-int ungr2(matrix_t& A, const vector_t& tau, const WorkspaceOpts& opts = {})
+int ungr2(matrix_t& A, const vector_t& tau)
 {
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
+
+    // functor
+    Create<matrix_t> new_matrix;
 
     // constants
     const real_t zero(0);
@@ -98,38 +147,11 @@ int ungr2(matrix_t& A, const vector_t& tau, const WorkspaceOpts& opts = {})
     if (n <= 0) return 0;
 
     // Allocates workspace
-    VectorOfBytes localworkdata;
-    Workspace work = [&]() {
-        WorkInfo workinfo = ungr2_worksize(A, tau, opts);
-        return alloc_workspace(localworkdata, workinfo, opts.work);
-    }();
+    WorkInfo workinfo = ungr2_worksize<T>(A, tau);
+    std::vector<T> work_;
+    auto work = new_matrix(work_, workinfo.m, workinfo.n);
 
-    // Options to forward
-    const auto& larfOpts = WorkspaceOpts{work};
-
-    // Initialise rows 0:m-k to rows of the unit matrix
-    for (idx_t j = 0; j < n; ++j) {
-        for (idx_t i = 0; i < m - k; ++i)
-            A(i, j) = zero;
-        if (j + m >= n and j + k <= n) A(m + j - n, j) = one;
-    }
-
-    for (idx_t i = 0; i < k; ++i) {
-        idx_t ii = m - k + i;
-        auto v = slice(A, ii, range{0, n - k + 1 + i});
-        auto C = slice(A, range{0, ii}, range{0, n - k + 1 + i});
-        larf(Side::Right, Direction::Backward, StoreV::Rowwise, v, conj(tau[i]),
-             C, larfOpts);
-        auto x = slice(A, ii, range{0, n - k + i});
-        scal(-conj(tau[i]), x);
-        A(ii, n - k + i) = one - conj(tau[i]);
-
-        // Set A( 0:i-1, i ) to zero
-        for (idx_t l = n - k + i + 1; l < n; l++)
-            A(ii, l) = zero;
-    }
-
-    return 0;
+    return ungr2(A, tau, work);
 }
 
 }  // namespace tlapack

@@ -158,10 +158,10 @@ struct Workspace {
 /// @brief Output information in the workspace query
 struct WorkInfo {
     size_t m = 0;  ///< Number of rows needed in the Workspace
-    size_t n = 0;  ///< Number of columns needed in the Workspace
+    size_t n = 1;  ///< Number of columns needed in the Workspace
 
     /// Constructor using sizes
-    inline constexpr WorkInfo(size_t m = 0, size_t n = 0) noexcept : m(m), n(n)
+    inline constexpr WorkInfo(size_t m = 0, size_t n = 1) noexcept : m(m), n(n)
     {}
 
     /// Size needed in the Workspace

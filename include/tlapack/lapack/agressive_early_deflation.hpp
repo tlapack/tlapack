@@ -67,7 +67,8 @@ struct FrancisOpts;
  *
  * @ingroup workspace_query
  */
-template <TLAPACK_SMATRIX matrix_t,
+template <class T,
+          TLAPACK_SMATRIX matrix_t,
           TLAPACK_SVECTOR vector_t,
           enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
 WorkInfo agressive_early_deflation_worksize(
@@ -100,14 +101,14 @@ WorkInfo agressive_early_deflation_worksize(
         auto s_window = slice(s, range{0, jw});
         auto V = slice(A, range{0, jw}, range{0, jw});
 
-        workinfo.minMax(
-            multishift_qr_worksize(true, true, 0, jw, TW, s_window, V, opts));
+        workinfo.minMax(multishift_qr_worksize<T>(true, true, 0, jw, TW,
+                                                  s_window, V, opts));
     }
 
     if (jw != ihi - ilo) {
         // Hessenberg reduction
         auto tau = slice(A, range{0, jw}, 0);
-        workinfo.minMax(gehrd_worksize(0, jw, TW, tau));
+        workinfo.minMax(gehrd_worksize<T>(0, jw, TW, tau));
     }
 
     return workinfo;
@@ -192,6 +193,9 @@ void agressive_early_deflation(bool want_t,
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
 
+    // Functors
+    Create<matrix_t> new_matrix;
+
     // Constants
     const real_t one(1);
     const real_t zero(0);
@@ -237,16 +241,10 @@ void agressive_early_deflation(bool want_t,
     }
 
     // Allocates workspace
-    VectorOfBytes localworkdata;
-    Workspace work = [&]() {
-        WorkInfo workinfo = agressive_early_deflation_worksize(
-            want_t, want_z, ilo, ihi, nw, A, s, Z, ns, nd, opts);
-        return alloc_workspace(localworkdata, workinfo, opts.work);
-    }();
-
-    // Options to forward
-    opts.work = work;
-    const auto& gehrdOpts = GehrdOpts<idx_t>{work};
+    WorkInfo workinfo = agressive_early_deflation_worksize<T>(
+        want_t, want_z, ilo, ihi, nw, A, s, Z, ns, nd, opts);
+    std::vector<T> work_;
+    auto work = new_matrix(work_, workinfo.m, workinfo.n);
 
     // Define workspace matrices
     // We use the lower triangular part of A as workspace
@@ -273,7 +271,7 @@ void agressive_early_deflation(bool want_t,
     if (jw < opts.nmin)
         infqr = lahqr(true, true, 0, jw, TW, s_window, V);
     else {
-        infqr = multishift_qr(true, true, 0, jw, TW, s_window, V, opts);
+        infqr = multishift_qr(true, true, 0, jw, TW, s_window, V, work, opts);
         for (idx_t j = 0; j < jw; ++j)
             for (idx_t i = j + 2; i < jw; ++i)
                 TW(i, j) = zero;
@@ -430,7 +428,7 @@ void agressive_early_deflation(bool want_t,
             }
             larfg(FORWARD, COLUMNWISE_STORAGE, v, tau);
 
-            auto Wv_aux = slice(WV, range{0, jw}, 1);
+            auto Wv_aux = slice(WV, range{0, jw}, range{1, 2});
 
             auto TW_slice = slice(TW, range{0, ns}, range{0, jw});
             larf(Side::Left, FORWARD, COLUMNWISE_STORAGE, v, conj(tau),
@@ -448,10 +446,10 @@ void agressive_early_deflation(bool want_t,
         // Hessenberg reduction
         {
             auto tau = slice(WV, range{0, jw}, 0);
-            gehrd(0, ns, TW, tau, gehrdOpts);
+            gehrd(0, ns, TW, tau, work);
 
-            unmhr(Side::Right, Op::NoTrans, 0, ns, TW, tau, V,
-                  WorkspaceOpts{slice(WV, range{0, jw}, 1)});
+            auto w = slice(WV, range{0, jw}, range{1, 2});
+            unmhr(Side::Right, Op::NoTrans, 0, ns, TW, tau, V, w);
         }
     }
 

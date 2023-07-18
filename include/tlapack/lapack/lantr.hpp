@@ -43,7 +43,8 @@ namespace tlapack {
  *
  * @ingroup workspace_query
  */
-template <TLAPACK_NORM norm_t,
+template <class T,
+          TLAPACK_NORM norm_t,
           TLAPACK_UPLO uplo_t,
           TLAPACK_DIAG diag_t,
           TLAPACK_SMATRIX matrix_t>
@@ -84,21 +85,19 @@ inline constexpr WorkInfo lantr_worksize(norm_t normType,
  *
  * @ingroup workspace_query
  */
-template <TLAPACK_NORM norm_t,
+template <class T,
+          TLAPACK_NORM norm_t,
           TLAPACK_UPLO uplo_t,
           TLAPACK_DIAG diag_t,
           TLAPACK_MATRIX matrix_t>
 inline constexpr WorkInfo lantr_worksize(norm_t normType,
                                          uplo_t uplo,
                                          diag_t diag,
-                                         const matrix_t& A,
-                                         const WorkspaceOpts& opts)
+                                         const matrix_t& A)
 {
-    using T = type_t<matrix_t>;
+    if constexpr (is_same_v<T, type_t<matrix_t>>)
+        if (normType == Norm::Inf) return WorkInfo(nrows(A));
 
-    if (normType == Norm::Inf) {
-        return WorkInfo(sizeof(T), nrows(A));
-    }
     return WorkInfo{};
 }
 
@@ -369,15 +368,12 @@ template <TLAPACK_NORM norm_t,
           TLAPACK_UPLO uplo_t,
           TLAPACK_DIAG diag_t,
           TLAPACK_MATRIX matrix_t>
-auto lantr(norm_t normType,
-           uplo_t uplo,
-           diag_t diag,
-           const matrix_t& A,
-           const WorkspaceOpts& opts)
+auto lantr(norm_t normType, uplo_t uplo, diag_t diag, const matrix_t& A)
 {
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
     using idx_t = size_type<matrix_t>;
+    using range = pair<idx_t, idx_t>;
 
     // constants
     const idx_t m = nrows(A);
@@ -405,13 +401,10 @@ auto lantr(norm_t normType,
         // the infinite norm.
 
         // Allocates workspace
-        VectorOfBytes localworkdata;
-        const Workspace work = [&]() {
-            WorkInfo workinfo;
-            lantr_worksize(normType, uplo, diag, A, opts);
-            return alloc_workspace(localworkdata, workinfo, opts.work);
-        }();
-        auto w = Create<vector_type<matrix_t>>(work, n);
+        WorkInfo workinfo = lantr_worksize<T>(normType, uplo, diag, A);
+        std::vector<T> work_;
+        auto work = new_matrix(work_, workinfo.m, workinfo.n);
+        auto w = slice(work, range{0, n}, 0);
 
         // Norm value
         real_t norm(0);

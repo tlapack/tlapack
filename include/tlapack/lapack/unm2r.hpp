@@ -44,7 +44,8 @@ namespace tlapack {
  *
  * @ingroup workspace_query
  */
-template <TLAPACK_SMATRIX matrixA_t,
+template <class T,
+          TLAPACK_SMATRIX matrixA_t,
           TLAPACK_SMATRIX matrixC_t,
           TLAPACK_VECTOR tau_t,
           TLAPACK_SIDE side_t,
@@ -53,8 +54,7 @@ inline constexpr WorkInfo unm2r_worksize(side_t side,
                                          trans_t trans,
                                          const matrixA_t& A,
                                          const tau_t& tau,
-                                         const matrixC_t& C,
-                                         const WorkspaceOpts& opts = {})
+                                         const matrixC_t& C)
 {
     using idx_t = size_type<matrixA_t>;
     using range = pair<idx_t, idx_t>;
@@ -65,7 +65,66 @@ inline constexpr WorkInfo unm2r_worksize(side_t side,
     const idx_t nA = (side == Side::Left) ? m : n;
 
     auto v = slice(A, range{0, nA}, 0);
-    return larf_worksize(side, FORWARD, COLUMNWISE_STORAGE, v, tau[0], C, opts);
+    return larf_worksize<T>(side, FORWARD, COLUMNWISE_STORAGE, v, tau[0], C);
+}
+
+template <TLAPACK_SMATRIX matrixA_t,
+          TLAPACK_SMATRIX matrixC_t,
+          TLAPACK_SMATRIX work_t,
+          TLAPACK_VECTOR tau_t,
+          TLAPACK_SIDE side_t,
+          TLAPACK_OP trans_t>
+int unm2r(side_t side,
+          trans_t trans,
+          const matrixA_t& A,
+          const tau_t& tau,
+          matrixC_t& C,
+          work_t& work)
+{
+    using TA = type_t<matrixA_t>;
+    using idx_t = size_type<matrixA_t>;
+    using range = pair<idx_t, idx_t>;
+
+    // constants
+    const idx_t m = nrows(C);
+    const idx_t n = ncols(C);
+    const idx_t k = size(tau);
+    const idx_t nA = (side == Side::Left) ? m : n;
+
+    // check arguments
+    tlapack_check_false(side != Side::Left && side != Side::Right);
+    tlapack_check_false(trans != Op::NoTrans && trans != Op::Trans &&
+                        trans != Op::ConjTrans);
+    tlapack_check_false(trans == Op::Trans && is_complex<TA>);
+
+    // quick return
+    if ((m == 0) || (n == 0) || (k == 0)) return 0;
+
+    // const expressions
+    const bool positiveInc =
+        (((side == Side::Left) && !(trans == Op::NoTrans)) ||
+         (!(side == Side::Left) && (trans == Op::NoTrans)));
+    const idx_t i0 = (positiveInc) ? 0 : k - 1;
+    const idx_t iN = (positiveInc) ? k : -1;
+    const idx_t inc = (positiveInc) ? 1 : -1;
+
+    // Main loop
+    for (idx_t i = i0; i != iN; i += inc) {
+        auto v = slice(A, range{i, nA}, i);
+
+        if (side == Side::Left) {
+            auto Ci = rows(C, range{i, m});
+            larf(LEFT_SIDE, FORWARD, COLUMNWISE_STORAGE, v,
+                 (trans == Op::ConjTrans) ? conj(tau[i]) : tau[i], Ci, work);
+        }
+        else {
+            auto Ci = cols(C, range{i, n});
+            larf(RIGHT_SIDE, FORWARD, COLUMNWISE_STORAGE, v,
+                 (trans == Op::ConjTrans) ? conj(tau[i]) : tau[i], Ci, work);
+        }
+    }
+
+    return 0;
 }
 
 /** Applies unitary matrix Q to a matrix C.
@@ -132,12 +191,15 @@ int unm2r(side_t side,
           trans_t trans,
           const matrixA_t& A,
           const tau_t& tau,
-          matrixC_t& C,
-          const WorkspaceOpts& opts = {})
+          matrixC_t& C)
 {
     using TA = type_t<matrixA_t>;
     using idx_t = size_type<matrixA_t>;
-    using range = pair<idx_t, idx_t>;
+    using work_t = matrix_type<matrixA_t, matrixC_t>;
+    using T = type_t<work_t>;
+
+    // Functor
+    Create<work_t> new_matrix;
 
     // constants
     const idx_t m = nrows(C);
@@ -155,42 +217,11 @@ int unm2r(side_t side,
     if ((m == 0) || (n == 0) || (k == 0)) return 0;
 
     // Allocates workspace
-    VectorOfBytes localworkdata;
-    Workspace work = [&]() {
-        WorkInfo workinfo = unm2r_worksize(side, trans, A, tau, C, opts);
-        return alloc_workspace(localworkdata, workinfo, opts.work);
-    }();
+    WorkInfo workinfo = unm2r_worksize<T>(side, trans, A, tau, C);
+    std::vector<T> work_;
+    auto work = new_matrix(work_, workinfo.m, workinfo.n);
 
-    // Options to forward
-    const auto& larfOpts = WorkspaceOpts{work};
-
-    // const expressions
-    const bool positiveInc =
-        (((side == Side::Left) && !(trans == Op::NoTrans)) ||
-         (!(side == Side::Left) && (trans == Op::NoTrans)));
-    const idx_t i0 = (positiveInc) ? 0 : k - 1;
-    const idx_t iN = (positiveInc) ? k : -1;
-    const idx_t inc = (positiveInc) ? 1 : -1;
-
-    // Main loop
-    for (idx_t i = i0; i != iN; i += inc) {
-        auto v = slice(A, range{i, nA}, i);
-
-        if (side == Side::Left) {
-            auto Ci = rows(C, range{i, m});
-            larf(LEFT_SIDE, FORWARD, COLUMNWISE_STORAGE, v,
-                 (trans == Op::ConjTrans) ? conj(tau[i]) : tau[i], Ci,
-                 larfOpts);
-        }
-        else {
-            auto Ci = cols(C, range{i, n});
-            larf(RIGHT_SIDE, FORWARD, COLUMNWISE_STORAGE, v,
-                 (trans == Op::ConjTrans) ? conj(tau[i]) : tau[i], Ci,
-                 larfOpts);
-        }
-    }
-
-    return 0;
+    return unm2r(side, trans, A, tau, C, work);
 }
 
 }  // namespace tlapack

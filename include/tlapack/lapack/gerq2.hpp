@@ -30,10 +30,8 @@ namespace tlapack {
  *
  * @ingroup workspace_query
  */
-template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
-inline constexpr WorkInfo gerq2_worksize(const matrix_t& A,
-                                         const vector_t& tau,
-                                         const WorkspaceOpts& opts = {})
+template <class T, TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
+inline constexpr WorkInfo gerq2_worksize(const matrix_t& A, const vector_t& tau)
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -43,11 +41,50 @@ inline constexpr WorkInfo gerq2_worksize(const matrix_t& A,
 
     if (n > 1) {
         auto C = cols(A, range{1, n});
-        return larf_worksize(Side::Right, Direction::Backward, StoreV::Rowwise,
-                             col(A, 0), tau[0], C, opts);
+        return larf_worksize<T>(Side::Right, Direction::Backward,
+                                StoreV::Rowwise, col(A, 0), tau[0], C);
     }
 
     return WorkInfo{};
+}
+
+template <TLAPACK_SMATRIX matrix_t,
+          TLAPACK_VECTOR vector_t,
+          TLAPACK_SMATRIX work_t>
+int gerq2(matrix_t& A, vector_t& tau, work_t& work)
+{
+    using idx_t = size_type<matrix_t>;
+    using range = pair<idx_t, idx_t>;
+
+    // constants
+    const idx_t m = nrows(A);
+    const idx_t n = ncols(A);
+    const idx_t k = std::min<idx_t>(m, n);
+
+    // check arguments
+    tlapack_check_false((idx_t)size(tau) < std::min<idx_t>(m, n));
+
+    // quick return
+    if (n <= 0) return 0;
+
+    for (idx_t i2 = 0; i2 < k; ++i2) {
+        idx_t i = k - 1 - i2;
+
+        // Define v := A[m-1-i2,0:n-i2]
+        auto v = slice(A, m - 1 - i2, range{0, n - i2});
+
+        // Generate the (i+1)-th elementary Householder reflection on v
+        larfg(Direction::Backward, StoreV::Rowwise, v, tau[i]);
+
+        // Apply the reflector to the rest of the matrix
+        if (m > i2 + 1) {
+            auto C = slice(A, range{0, m - 1 - i2}, range{0, n - i2});
+            larf(Side::Right, Direction::Backward, StoreV::Rowwise, v, tau[i],
+                 C, work);
+        }
+    }
+
+    return 0;
 }
 
 /** Computes an RQ factorization of a matrix A.
@@ -88,50 +125,31 @@ inline constexpr WorkInfo gerq2_worksize(const matrix_t& A,
  * @ingroup computational
  */
 template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
-int gerq2(matrix_t& A, vector_t& tau, const WorkspaceOpts& opts = {})
+int gerq2(matrix_t& A, vector_t& tau)
 {
     using idx_t = size_type<matrix_t>;
-    using range = pair<idx_t, idx_t>;
+    using T = type_t<matrix_t>;
+
+    // functor
+    Create<matrix_t> new_matrix;
 
     // constants
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
-    const idx_t k = min(m, n);
+    const idx_t k = std::min<idx_t>(m, n);
 
     // check arguments
-    tlapack_check_false((idx_t)size(tau) < min(m, n));
+    tlapack_check_false((idx_t)size(tau) < k);
 
     // quick return
     if (n <= 0) return 0;
 
     // Allocates workspace
-    VectorOfBytes localworkdata;
-    Workspace work = [&]() {
-        WorkInfo workinfo = gerq2_worksize(A, tau, opts);
-        return alloc_workspace(localworkdata, workinfo, opts.work);
-    }();
+    WorkInfo workinfo = gerq2_worksize<T>(A, tau);
+    std::vector<T> work_;
+    auto work = new_matrix(work_, workinfo.m, workinfo.n);
 
-    // Options to forward
-    const auto& larfOpts = WorkspaceOpts{work};
-
-    for (idx_t i2 = 0; i2 < k; ++i2) {
-        idx_t i = k - 1 - i2;
-
-        // Define v := A[m-1-i2,0:n-i2]
-        auto v = slice(A, m - 1 - i2, range{0, n - i2});
-
-        // Generate the (i+1)-th elementary Householder reflection on v
-        larfg(Direction::Backward, StoreV::Rowwise, v, tau[i]);
-
-        // Apply the reflector to the rest of the matrix
-        if (m > i2 + 1) {
-            auto C = slice(A, range{0, m - 1 - i2}, range{0, n - i2});
-            larf(Side::Right, Direction::Backward, StoreV::Rowwise, v, tau[i],
-                 C, larfOpts);
-        }
-    }
-
-    return 0;
+    return gerq2(A, tau, work);
 }
 
 }  // namespace tlapack

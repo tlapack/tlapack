@@ -44,7 +44,8 @@ namespace tlapack {
  *
  * @ingroup workspace_query
  */
-template <TLAPACK_SMATRIX matrixA_t,
+template <class T,
+          TLAPACK_SMATRIX matrixA_t,
           TLAPACK_SMATRIX matrixC_t,
           TLAPACK_VECTOR tau_t,
           TLAPACK_SIDE side_t,
@@ -53,8 +54,7 @@ inline constexpr WorkInfo unm2l_worksize(side_t side,
                                          trans_t trans,
                                          const matrixA_t& A,
                                          const tau_t& tau,
-                                         const matrixC_t& C,
-                                         const WorkspaceOpts& opts = {})
+                                         const matrixC_t& C)
 {
     using idx_t = size_type<matrixA_t>;
     using range = pair<idx_t, idx_t>;
@@ -65,8 +65,7 @@ inline constexpr WorkInfo unm2l_worksize(side_t side,
     const idx_t nA = (side == Side::Left) ? m : n;
 
     auto v = slice(A, range{0, nA}, 0);
-    return larf_worksize(side, BACKWARD, COLUMNWISE_STORAGE, v, tau[0], C,
-                         opts);
+    return larf_worksize<T>(side, BACKWARD, COLUMNWISE_STORAGE, v, tau[0], C);
 }
 
 /** Applies unitary matrix Q from an QL factorization to a matrix C.
@@ -121,12 +120,14 @@ int unm2l(side_t side,
           trans_t trans,
           const matrixA_t& A,
           const tau_t& tau,
-          matrixC_t& C,
-          const WorkspaceOpts& opts = {})
+          matrixC_t& C)
 {
     using TA = type_t<matrixA_t>;
     using idx_t = size_type<matrixA_t>;
     using range = pair<idx_t, idx_t>;
+
+    // Functors
+    Create<matrixA_t> new_matrix;
 
     // constants
     const idx_t m = nrows(C);
@@ -144,14 +145,9 @@ int unm2l(side_t side,
     if ((m == 0) || (n == 0) || (k == 0)) return 0;
 
     // Allocates workspace
-    VectorOfBytes localworkdata;
-    Workspace work = [&]() {
-        WorkInfo workinfo = unm2l_worksize(side, trans, A, tau, C, opts);
-        return alloc_workspace(localworkdata, workinfo, opts.work);
-    }();
-
-    // Options to forward
-    const auto& larfOpts = WorkspaceOpts{work};
+    WorkInfo workinfo = unm2l_worksize<TA>(side, trans, A, tau, C);
+    std::vector<TA> work_;
+    auto work = new_matrix(work_, workinfo.m, workinfo.n);
 
     // const expressions
     const bool positiveInc =
@@ -168,14 +164,12 @@ int unm2l(side_t side,
         if (side == Side::Left) {
             auto Ci = rows(C, range{0, m - k + i + 1});
             larf(LEFT_SIDE, BACKWARD, COLUMNWISE_STORAGE, v,
-                 (trans == Op::ConjTrans) ? conj(tau[i]) : tau[i], Ci,
-                 larfOpts);
+                 (trans == Op::ConjTrans) ? conj(tau[i]) : tau[i], Ci, work);
         }
         else {
             auto Ci = cols(C, range{0, n - k + i + 1});
             larf(RIGHT_SIDE, BACKWARD, COLUMNWISE_STORAGE, v,
-                 (trans == Op::ConjTrans) ? conj(tau[i]) : tau[i], Ci,
-                 larfOpts);
+                 (trans == Op::ConjTrans) ? conj(tau[i]) : tau[i], Ci, work);
         }
     }
 

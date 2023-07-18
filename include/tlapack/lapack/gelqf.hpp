@@ -22,10 +22,7 @@ namespace tlapack {
  * Options struct for gelqf
  */
 template <TLAPACK_INDEX idx_t = size_t>
-struct GelqfOpts : public WorkspaceOpts {
-    inline constexpr GelqfOpts(const WorkspaceOpts& opts = {})
-        : WorkspaceOpts(opts){};
-
+struct GelqfOpts {
     idx_t nb = 32;  ///< Block size
 };
 
@@ -41,12 +38,11 @@ struct GelqfOpts : public WorkspaceOpts {
  *
  * @ingroup workspace_query
  */
-template <TLAPACK_SMATRIX A_t, TLAPACK_SVECTOR tau_t>
+template <class T, TLAPACK_SMATRIX A_t, TLAPACK_SVECTOR tau_t>
 inline constexpr WorkInfo gelqf_worksize(
     const A_t& A, const tau_t& tau, const GelqfOpts<size_type<A_t>>& opts = {})
 {
     using idx_t = size_type<A_t>;
-    using T = type_t<A_t>;
     using range = pair<idx_t, idx_t>;
 
     // constants
@@ -61,11 +57,12 @@ inline constexpr WorkInfo gelqf_worksize(
     auto A12 = slice(A, range(ib, m), range(0, n));
     auto tauw1 = slice(tau, range(0, ib));
 
-    WorkInfo workinfo = gelq2_worksize(A11, tauw1);
-    workinfo.minMax(larfb_worksize(Side::Right, Op::NoTrans, Direction::Forward,
-                                   StoreV::Rowwise, A11, TT1, A12));
+    WorkInfo workinfo = gelq2_worksize<T>(A11, tauw1);
+    workinfo.minMax(larfb_worksize<T>(Side::Right, Op::NoTrans,
+                                      Direction::Forward, StoreV::Rowwise, A11,
+                                      TT1, A12));
 
-    workinfo += WorkInfo(sizeof(T) * nb, nb);
+    workinfo += WorkInfo(nb, nb);
 
     return workinfo;
 }
@@ -108,6 +105,7 @@ inline constexpr WorkInfo gelqf_worksize(
 template <TLAPACK_SMATRIX A_t, TLAPACK_SVECTOR tau_t>
 int gelqf(A_t& A, tau_t& tau, const GelqfOpts<size_type<A_t>>& opts = {})
 {
+    using T = type_t<A_t>;
     Create<A_t> new_matrix;
 
     using idx_t = size_type<A_t>;
@@ -123,18 +121,11 @@ int gelqf(A_t& A, tau_t& tau, const GelqfOpts<size_type<A_t>>& opts = {})
     tlapack_check((idx_t)size(tau) >= k);
 
     // Allocate or get workspace
-    VectorOfBytes localworkdata;
-    Workspace work = [&]() {
-        WorkInfo workinfo = gelqf_worksize(A, tau, opts);
-        return alloc_workspace(localworkdata, workinfo, opts.work);
-    }();
-
-    Workspace sparework;
-    auto TT = new_matrix(work, nb, nb, sparework);
-
-    // Options to forward
-    const auto& gelq2Opts = WorkspaceOpts{sparework};
-    const auto& larfbOpts = WorkspaceOpts{sparework};
+    WorkInfo workinfo = gelqf_worksize<T>(A, tau, opts);
+    std::vector<T> work_;
+    auto work = new_matrix(work_, workinfo.m, workinfo.n);
+    auto TT = slice(work, range{workinfo.m - nb, workinfo.m},
+                    range{workinfo.n - nb, workinfo.n});
 
     // Main computational loop
     for (idx_t j = 0; j < k; j += nb) {
@@ -144,7 +135,7 @@ int gelqf(A_t& A, tau_t& tau, const GelqfOpts<size_type<A_t>>& opts = {})
         auto A11 = slice(A, range(j, j + ib), range(j, n));
         auto tauw1 = slice(tau, range(j, j + ib));
 
-        gelq2(A11, tauw1, gelq2Opts);
+        gelq2(A11, tauw1, work);
 
         if (j + ib < k) {
             // Form the triangular factor of the block reflector H = H(j)
@@ -154,8 +145,8 @@ int gelqf(A_t& A, tau_t& tau, const GelqfOpts<size_type<A_t>>& opts = {})
 
             // Apply H to A(j+ib:m,j:n) from the right
             auto A12 = slice(A, range(j + ib, m), range(j, n));
-            larfb(Side::Right, Op::NoTrans, Direction::Forward, StoreV::Rowwise,
-                  A11, TT1, A12, larfbOpts);
+            larfb(RIGHT_SIDE, Op::NoTrans, Direction::Forward, StoreV::Rowwise,
+                  A11, TT1, A12, work);
         }
     }
 

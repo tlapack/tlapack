@@ -22,10 +22,7 @@ enum class GetriVariant : char {
     UXLI = 'C'   ///< Method C from doi:10.1137/1.9780898718027
 };
 
-struct GetriOpts : public WorkspaceOpts {
-    inline constexpr GetriOpts(const WorkspaceOpts& opts = {})
-        : WorkspaceOpts(opts){};
-
+struct GetriOpts {
     GetriVariant variant = GetriVariant::UILI;
 };
 
@@ -44,12 +41,13 @@ struct GetriOpts : public WorkspaceOpts {
  *
  * @ingroup workspace_query
  */
-template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR piv_t>
+template <class T, TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR piv_t>
 inline constexpr WorkInfo getri_worksize(const matrix_t& A,
                                          const piv_t& piv,
                                          const GetriOpts& opts = {})
 {
-    if (opts.variant == GetriVariant::UXLI) return getri_uxli_worksize(A, opts);
+    if (opts.variant == GetriVariant::UXLI)
+        return getri_uxli_worksize<T>(A, opts);
 
     return WorkInfo{};
 }
@@ -91,7 +89,7 @@ int getri(matrix_t& A, const piv_t& piv, const GetriOpts& opts = {})
     // Call variant
     int info;
     if (opts.variant == GetriVariant::UXLI)
-        info = getri_uxli(A, opts);
+        info = getri_uxli(A);
     else
         info = getri_uili(A);
 

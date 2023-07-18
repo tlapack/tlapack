@@ -78,7 +78,7 @@ namespace tlapack {
 template <TLAPACK_SIDE side_t,
           TLAPACK_STOREV storage_t,
           TLAPACK_VECTOR vector_t,
-          TLAPACK_VECTOR vectorw_t,
+          TLAPACK_SMATRIX work_t,
           TLAPACK_SCALAR tau_t,
           TLAPACK_VECTOR vectorC0_t,
           TLAPACK_MATRIX matrixC1_t,
@@ -89,12 +89,13 @@ void larf(side_t side,
           const tau_t& tau,
           vectorC0_t& C0,
           matrixC1_t& C1,
-          vectorw_t& w)
+          work_t& work)
 {
     // data traits
     using idx_t = size_type<vectorC0_t>;
-    using T = type_t<vectorw_t>;
+    using T = type_t<work_t>;
     using real_t = real_type<T>;
+    using range = pair<idx_t, idx_t>;
 
     // constants
     const real_t one(1);
@@ -114,6 +115,9 @@ void larf(side_t side,
             C0[i] -= tau * C0[i];
         return;
     }
+
+    // Create vector w
+    auto w = slice(work, range{0, k}, 0);
 
     if (side == Side::Left) {
         if (storeMode == StoreV::Columnwise) {
@@ -206,7 +210,8 @@ void larf(side_t side,
  *
  * @ingroup workspace_query
  */
-template <TLAPACK_SIDE side_t,
+template <class T,
+          TLAPACK_SIDE side_t,
           TLAPACK_STOREV storage_t,
           TLAPACK_VECTOR vector_t,
           TLAPACK_SCALAR tau_t,
@@ -218,19 +223,20 @@ inline constexpr WorkInfo larf_worksize(side_t side,
                                         vector_t const& x,
                                         const tau_t& tau,
                                         const vectorC0_t& C0,
-                                        const matrixC1_t& C1,
-                                        const WorkspaceOpts& opts = {})
+                                        const matrixC1_t& C1)
 {
     using work_t = vector_type<vectorC0_t, matrixC1_t, vector_t>;
     using idx_t = size_type<vectorC0_t>;
-    using T = type_t<work_t>;
 
     // constants
-    const idx_t k = size(C0);
     const idx_t m = nrows(C1);
     const idx_t n = ncols(C1);
 
-    return (m > 0 && n > 0) ? WorkInfo(sizeof(T), k) : WorkInfo();
+    if constexpr (is_same_v<T, type_t<work_t>>)
+        return (m > 0 && n > 0) ? WorkInfo((side == Side::Left) ? n : m)
+                                : WorkInfo(0);
+    else
+        return WorkInfo(0);
 }
 
 /** Applies an elementary reflector defined by tau and v to a m-by-n matrix C
@@ -294,7 +300,7 @@ inline constexpr WorkInfo larf_worksize(side_t side,
           const tau_t& tau,
           vectorC0_t& C0,
           matrixC1_t& C1,
-          vectorw_t& w)
+          work_t& w)
  *
  * @ingroup auxiliary
  */
@@ -310,15 +316,15 @@ void larf(side_t side,
           vector_t const& x,
           const tau_t& tau,
           vectorC0_t& C0,
-          matrixC1_t& C1,
-          const WorkspaceOpts& opts = {})
+          matrixC1_t& C1)
 {
     // data traits
-    using work_t = vector_type<vectorC0_t, matrixC1_t, vector_t>;
+    using work_t = matrix_type<vectorC0_t, matrixC1_t, vector_t>;
     using idx_t = size_type<vectorC0_t>;
+    using T = type_t<work_t>;
 
     // Functor
-    Create<work_t> new_vector;
+    Create<work_t> new_matrix;
 
     // constants
     const idx_t k = size(C0);
@@ -339,15 +345,11 @@ void larf(side_t side,
     }
 
     // Allocates workspace
-    VectorOfBytes localworkdata;
-    const Workspace work = [&]() {
-        WorkInfo workinfo =
-            larf_worksize(side, storeMode, x, tau, C0, C1, opts);
-        return alloc_workspace(localworkdata, workinfo, opts.work);
-    }();
-    auto w = new_vector(work, k);
+    WorkInfo workinfo = larf_worksize<T>(side, storeMode, x, tau, C0, C1);
+    std::vector<T> work_;
+    auto work = new_matrix(work_, workinfo.m, workinfo.n);
 
-    return larf(side, storeMode, x, tau, C0, C1, w);
+    return larf(side, storeMode, x, tau, C0, C1, work);
 }
 
 /** Applies an elementary reflector H to a m-by-n matrix C.
@@ -394,7 +396,7 @@ template <TLAPACK_SIDE side_t,
           TLAPACK_DIRECTION direction_t,
           TLAPACK_STOREV storage_t,
           TLAPACK_SVECTOR vector_t,
-          TLAPACK_VECTOR vectorw_t,
+          TLAPACK_SMATRIX work_t,
           TLAPACK_SCALAR tau_t,
           TLAPACK_SMATRIX matrix_t,
           enable_if_t<std::is_convertible_v<direction_t, Direction>, int> = 0>
@@ -404,7 +406,7 @@ inline void larf(side_t side,
                  vector_t const& v,
                  const tau_t& tau,
                  matrix_t& C,
-                 vectorw_t& w)
+                 work_t& work)
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -444,7 +446,7 @@ inline void larf(side_t side,
                                                     : rows(C, range{0, m - 1});
         auto x = (direction == Direction::Forward) ? slice(v, range{1, m})
                                                    : slice(v, range{0, m - 1});
-        larf(side, storeMode, x, tau, C0, C1, w);
+        larf(side, storeMode, x, tau, C0, C1, work);
     }
     else {  // side == Side::Right
         auto C0 = (direction == Direction::Forward) ? col(C, 0) : col(C, n - 1);
@@ -452,7 +454,7 @@ inline void larf(side_t side,
                                                     : cols(C, range{0, n - 1});
         auto x = (direction == Direction::Forward) ? slice(v, range{1, n})
                                                    : slice(v, range{0, n - 1});
-        larf(side, storeMode, x, tau, C0, C1, w);
+        larf(side, storeMode, x, tau, C0, C1, work);
     }
 }
 
@@ -486,7 +488,8 @@ inline void larf(side_t side,
  *
  * @ingroup workspace_query
  */
-template <TLAPACK_SIDE side_t,
+template <class T,
+          TLAPACK_SIDE side_t,
           TLAPACK_DIRECTION direction_t,
           TLAPACK_STOREV storage_t,
           TLAPACK_SVECTOR vector_t,
@@ -498,19 +501,29 @@ inline constexpr WorkInfo larf_worksize(side_t side,
                                         storage_t storeMode,
                                         vector_t const& v,
                                         const tau_t& tau,
-                                        const matrix_t& C,
-                                        const WorkspaceOpts& opts = {})
+                                        const matrix_t& C)
 {
-    using work_t = vector_type<matrix_t, vector_t>;
     using idx_t = size_type<matrix_t>;
-    using T = type_t<work_t>;
+    using range = pair<idx_t, idx_t>;
 
     // constants
     const idx_t m = nrows(C);
     const idx_t n = ncols(C);
 
-    return (m > 0 && n > 0) ? WorkInfo(sizeof(T), (side == Side::Left) ? n : m)
-                            : WorkInfo();
+    if (side == Side::Left && m > 0) {
+        auto C0 = row(C, 0);
+        auto C1 = rows(C, range{1, m});
+        auto x = slice(v, range{1, m});
+        return larf_worksize<T>(side, storeMode, x, tau, C0, C1);
+    }
+    else if (side == Side::Right && n > 0) {
+        auto C0 = col(C, 0);
+        auto C1 = cols(C, range{1, n});
+        auto x = slice(v, range{1, n});
+        return larf_worksize<T>(side, storeMode, x, tau, C0, C1);
+    }
+    else
+        return WorkInfo(0);
 }
 
 /** Applies an elementary reflector H to a m-by-n matrix C.
@@ -574,15 +587,15 @@ inline void larf(side_t side,
                  storage_t storeMode,
                  vector_t const& v,
                  const tau_t& tau,
-                 matrix_t& C,
-                 const WorkspaceOpts& opts = {})
+                 matrix_t& C)
 {
     // data traits
-    using work_t = vector_type<matrix_t, vector_t>;
+    using work_t = matrix_type<matrix_t, vector_t>;
     using idx_t = size_type<matrix_t>;
+    using T = type_t<work_t>;
 
     // Functor
-    Create<work_t> new_vector;
+    Create<work_t> new_matrix;
 
     // constants
     const idx_t m = nrows(C);
@@ -600,15 +613,11 @@ inline void larf(side_t side,
     if (m == 0 || n == 0) return;
 
     // Allocates workspace
-    VectorOfBytes localworkdata;
-    const Workspace work = [&]() {
-        WorkInfo workinfo =
-            larf_worksize(side, direction, storeMode, v, tau, C, opts);
-        return alloc_workspace(localworkdata, workinfo, opts.work);
-    }();
-    auto w = new_vector(work, (side == Side::Left) ? n : m);
+    WorkInfo workinfo = larf_worksize<T>(side, direction, storeMode, v, tau, C);
+    std::vector<T> work_;
+    auto work = new_matrix(work_, workinfo.m, workinfo.n);
 
-    return larf(side, direction, storeMode, v, tau, C, w);
+    return larf(side, direction, storeMode, v, tau, C, work);
 }
 
 }  // namespace tlapack

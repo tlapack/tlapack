@@ -112,6 +112,7 @@ void run(size_t n,
     using real_t = tlapack::real_type<T>;
     using matrix_t = tlapack::LegacyMatrix<T>;
     using std::size_t;
+    using idx_t = tlapack::size_type<matrix_t>;
 
     constexpr bool use_lapack
 #ifdef USE_LAPACK
@@ -240,7 +241,7 @@ void run(size_t n,
                                &n_sweep, &n_shifts_total);
             }
             else {
-                tlapack::FrancisOpts<> opts;
+                tlapack::FrancisOpts<idx_t> opts;
                 std::vector<std::complex<real_t>> w(n);
                 info = tlapack::multishift_qr(true, true, 0, n, H, w, Q, opts);
                 n_aed = opts.n_aed;
@@ -249,7 +250,7 @@ void run(size_t n,
             }
         }
         else {
-            tlapack::FrancisOpts<> opts;
+            tlapack::FrancisOpts<idx_t> opts;
             std::vector<std::complex<real_t>> w(n);
             info = tlapack::multishift_qr(true, true, 0, n, H, w, Q, opts);
             n_aed = opts.n_aed;

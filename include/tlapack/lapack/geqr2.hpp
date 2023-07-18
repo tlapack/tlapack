@@ -30,10 +30,28 @@ namespace tlapack {
  *
  * @ingroup workspace_query
  */
-template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
-inline constexpr WorkInfo geqr2_worksize(const matrix_t& A,
-                                         const vector_t& tau,
-                                         const WorkspaceOpts& opts = {})
+template <class T, TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
+inline constexpr WorkInfo geqr2_worksize(const matrix_t& A, const vector_t& tau)
+{
+    using idx_t = size_type<matrix_t>;
+    using range = pair<idx_t, idx_t>;
+
+    // constants
+    const idx_t n = ncols(A);
+
+    if (n > 1) {
+        auto C = cols(A, range{1, n});
+        return larf_worksize<T>(LEFT_SIDE, FORWARD, COLUMNWISE_STORAGE,
+                                col(A, 0), tau[0], C);
+    }
+
+    return WorkInfo{};
+}
+
+template <TLAPACK_SMATRIX matrix_t,
+          TLAPACK_VECTOR vector_t,
+          TLAPACK_SMATRIX work_t>
+int geqr2(matrix_t& A, vector_t& tau, work_t& work)
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -41,14 +59,35 @@ inline constexpr WorkInfo geqr2_worksize(const matrix_t& A,
     // constants
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
+    const idx_t k = std::min<idx_t>(m, n - 1);
 
-    if (n > 1 && m > 1) {
-        auto C = cols(A, range{1, n});
-        return larf_worksize(LEFT_SIDE, FORWARD, COLUMNWISE_STORAGE, col(A, 0),
-                             tau[0], C, opts);
+    // check arguments
+    tlapack_check_false((idx_t)size(tau) < std::min<idx_t>(m, n));
+
+    // quick return
+    if (n <= 0 || m <= 0) return 0;
+
+    for (idx_t i = 0; i < k; ++i) {
+        // Define v := A[i:m,i]
+        auto v = slice(A, range{i, m}, i);
+
+        // Generate the (i+1)-th elementary Householder reflection on v
+        larfg(FORWARD, COLUMNWISE_STORAGE, v, tau[i]);
+
+        // Define C := A[i:m,i+1:n]
+        auto C = slice(A, range{i, m}, range{i + 1, n});
+
+        // C := ( I - conj(tau_i) v v^H ) C
+        larf(LEFT_SIDE, FORWARD, COLUMNWISE_STORAGE, v, conj(tau[i]), C, work);
+    }
+    if (n - 1 < m) {
+        // Define v := A[n-1:m,n-1]
+        auto v = slice(A, range{n - 1, m}, n - 1);
+        // Generate the n-th elementary Householder reflection on v
+        larfg(FORWARD, COLUMNWISE_STORAGE, v, tau[n - 1]);
     }
 
-    return WorkInfo{};
+    return 0;
 }
 
 /** Computes a QR factorization of a matrix A.
@@ -87,15 +126,17 @@ inline constexpr WorkInfo geqr2_worksize(const matrix_t& A,
  * @ingroup computational
  */
 template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
-int geqr2(matrix_t& A, vector_t& tau, const WorkspaceOpts& opts = {})
+int geqr2(matrix_t& A, vector_t& tau)
 {
     using idx_t = size_type<matrix_t>;
-    using range = pair<idx_t, idx_t>;
+    using T = type_t<matrix_t>;
+
+    // Functor
+    Create<matrix_t> new_matrix;
 
     // constants
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
-    const idx_t k = std::min<idx_t>(m, n - 1);
 
     // check arguments
     tlapack_check_false((idx_t)size(tau) < min(m, n));
@@ -104,37 +145,11 @@ int geqr2(matrix_t& A, vector_t& tau, const WorkspaceOpts& opts = {})
     if (n <= 0 || m <= 0) return 0;
 
     // Allocates workspace
-    VectorOfBytes localworkdata;
-    Workspace work = [&]() {
-        WorkInfo workinfo = geqr2_worksize(A, tau, opts);
-        return alloc_workspace(localworkdata, workinfo, opts.work);
-    }();
+    WorkInfo workinfo = geqr2_worksize<T>(A, tau);
+    std::vector<T> work_;
+    auto work = new_matrix(work_, workinfo.m, workinfo.n);
 
-    // Options to forward
-    const auto& larfOpts = WorkspaceOpts{work};
-
-    for (idx_t i = 0; i < k; ++i) {
-        // Define v := A[i:m,i]
-        auto v = slice(A, range{i, m}, i);
-
-        // Generate the (i+1)-th elementary Householder reflection on v
-        larfg(FORWARD, COLUMNWISE_STORAGE, v, tau[i]);
-
-        // Define C := A[i:m,i+1:n]
-        auto C = slice(A, range{i, m}, range{i + 1, n});
-
-        // C := ( I - conj(tau_i) v v^H ) C
-        larf(LEFT_SIDE, FORWARD, COLUMNWISE_STORAGE, v, conj(tau[i]), C,
-             larfOpts);
-    }
-    if (n - 1 < m) {
-        // Define v := A[n-1:m,n-1]
-        auto v = slice(A, range{n - 1, m}, n - 1);
-        // Generate the n-th elementary Householder reflection on v
-        larfg(FORWARD, COLUMNWISE_STORAGE, v, tau[n - 1]);
-    }
-
-    return 0;
+    return geqr2(A, tau, work);
 }
 
 }  // namespace tlapack

@@ -44,7 +44,8 @@ namespace tlapack {
  *
  * @ingroup workspace_query
  */
-template <TLAPACK_SMATRIX matrixA_t,
+template <class T,
+          TLAPACK_SMATRIX matrixA_t,
           TLAPACK_SMATRIX matrixC_t,
           TLAPACK_VECTOR tau_t,
           TLAPACK_SIDE side_t,
@@ -53,8 +54,7 @@ inline constexpr WorkInfo unmr2_worksize(side_t side,
                                          trans_t trans,
                                          const matrixA_t& A,
                                          const tau_t& tau,
-                                         const matrixC_t& C,
-                                         const WorkspaceOpts& opts = {})
+                                         const matrixC_t& C)
 {
     using idx_t = size_type<matrixA_t>;
     using range = pair<idx_t, idx_t>;
@@ -65,7 +65,7 @@ inline constexpr WorkInfo unmr2_worksize(side_t side,
     const idx_t nA = (side == Side::Left) ? m : n;
 
     auto v = slice(A, 0, range{0, nA});
-    return larf_worksize(side, BACKWARD, ROWWISE_STORAGE, v, tau[0], C, opts);
+    return larf_worksize<T>(side, BACKWARD, ROWWISE_STORAGE, v, tau[0], C);
 }
 
 /** Applies unitary matrix Q from an RQ factorization to a matrix C.
@@ -120,12 +120,14 @@ int unmr2(side_t side,
           trans_t trans,
           const matrixA_t& A,
           const tau_t& tau,
-          matrixC_t& C,
-          const WorkspaceOpts& opts = {})
+          matrixC_t& C)
 {
     using TA = type_t<matrixA_t>;
     using idx_t = size_type<matrixA_t>;
     using range = pair<idx_t, idx_t>;
+
+    // Functor
+    Create<matrixA_t> new_matrix;
 
     // constants
     const idx_t m = nrows(C);
@@ -143,14 +145,9 @@ int unmr2(side_t side,
     if ((m == 0) || (n == 0) || (k == 0)) return 0;
 
     // Allocates workspace
-    VectorOfBytes localworkdata;
-    Workspace work = [&]() {
-        WorkInfo workinfo = unmr2_worksize(side, trans, A, tau, C, opts);
-        return alloc_workspace(localworkdata, workinfo, opts.work);
-    }();
-
-    // Options to forward
-    const auto& larfOpts = WorkspaceOpts{work};
+    WorkInfo workinfo = unmr2_worksize<TA>(side, trans, A, tau, C);
+    std::vector<TA> work_;
+    auto work = new_matrix(work_, workinfo.m, workinfo.n);
 
     // const expressions
     const bool positiveInc =
@@ -167,12 +164,12 @@ int unmr2(side_t side,
         if (side == Side::Left) {
             auto Ci = rows(C, range{0, m - k + i + 1});
             larf(LEFT_SIDE, BACKWARD, ROWWISE_STORAGE, v,
-                 (trans == Op::NoTrans) ? conj(tau[i]) : tau[i], Ci, larfOpts);
+                 (trans == Op::NoTrans) ? conj(tau[i]) : tau[i], Ci, work);
         }
         else {
             auto Ci = cols(C, range{0, n - k + i + 1});
             larf(RIGHT_SIDE, BACKWARD, ROWWISE_STORAGE, v,
-                 (trans == Op::NoTrans) ? conj(tau[i]) : tau[i], Ci, larfOpts);
+                 (trans == Op::NoTrans) ? conj(tau[i]) : tau[i], Ci, work);
         }
     }
 
