@@ -47,11 +47,10 @@ inline constexpr WorkInfo gelqt_worksize(const matrix_t& A,
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
     const idx_t k = min(m, n);
-    const idx_t nb = ncols(TT);
-    const idx_t ib = min(nb, k);
+    const idx_t nb = min((idx_t)ncols(TT), k);
 
-    auto TT1 = slice(TT, range(0, ib), range(0, ib));
-    auto A11 = rows(A, range(0, ib));
+    auto TT1 = slice(TT, range(0, nb), range(0, nb));
+    auto A11 = rows(A, range(0, nb));
     auto tauw1 = diag(TT1);
 
     return gelq2_worksize<T>(A11, tauw1);

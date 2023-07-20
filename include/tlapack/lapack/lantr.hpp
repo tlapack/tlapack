@@ -53,7 +53,7 @@ inline constexpr WorkInfo lantr_worksize(norm_t normType,
                                          diag_t diag,
                                          const matrix_t& A)
 {
-    return WorkInfo{};
+    return WorkInfo(0);
 }
 
 /** Worspace query of lantr().
@@ -98,7 +98,7 @@ inline constexpr WorkInfo lantr_worksize(norm_t normType,
     if constexpr (is_same_v<T, type_t<matrix_t>>)
         if (normType == Norm::Inf) return WorkInfo(nrows(A));
 
-    return WorkInfo{};
+    return WorkInfo(0);
 }
 
 /** Calculates the norm of a symmetric matrix.

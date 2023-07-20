@@ -49,7 +49,7 @@ inline constexpr WorkInfo getri_worksize(const matrix_t& A,
     if (opts.variant == GetriVariant::UXLI)
         return getri_uxli_worksize<T>(A, opts);
 
-    return WorkInfo{};
+    return WorkInfo(0);
 }
 
 /** getri computes inverse of a general n-by-n matrix A

@@ -53,25 +53,34 @@ inline constexpr WorkInfo ungrq_worksize(
     using range = pair<idx_t, idx_t>;
 
     // Constants
+    const idx_t m = nrows(A);
+    const idx_t n = ncols(A);
     const idx_t k = size(tau);
-    const idx_t nb = min<idx_t>(opts.nb, k);
+    const idx_t nb = min(opts.nb, k);
 
-    // Local workspace sizes
-    WorkInfo workinfo =
-        (is_same_v<T, type_t<matrixT_t>>) ? WorkInfo(nb, nb) : WorkInfo(0);
+    WorkInfo workinfo;
 
     // larfb:
-    {
-        // Constants
-        const idx_t m = nrows(A);
-
+    if (m > nb) {
         // Empty matrices
-        const auto V = slice(A, range{0, nb}, range{0, m});
+        const auto V = slice(A, range{0, nb}, range{0, n});
         const auto matrixT = slice(A, range{0, nb}, range{0, nb});
+        const auto C =
+            slice(A, range{0, (m - k) + ((k - 1) / nb) * nb}, range{0, n});
 
         // Internal workspace queries
-        workinfo += larfb_worksize<T>(RIGHT_SIDE, CONJ_TRANS, BACKWARD,
-                                      ROWWISE_STORAGE, V, matrixT, A);
+        workinfo = larfb_worksize<T>(RIGHT_SIDE, CONJ_TRANS, BACKWARD,
+                                     ROWWISE_STORAGE, V, matrixT, C);
+
+        // Local workspace sizes
+        if (is_same_v<T, type_t<matrixT_t>>) workinfo += WorkInfo(nb, nb);
+    }
+
+    // ungr2:
+    {
+        const auto Ai = slice(A, range{0, nb}, range{0, n});
+        const auto taui = slice(tau, range{0, nb});
+        workinfo.minMax(ungr2_worksize<T>(Ai, taui));
     }
 
     return workinfo;
@@ -135,8 +144,10 @@ int ungrq(matrix_t& A,
     WorkInfo workinfo = ungrq_worksize<T>(A, tau, opts);
     std::vector<T> work_;
     auto work = new_matrix(work_, workinfo.m, workinfo.n);
-    auto matrixT = slice(work, range{workinfo.m - nb, workinfo.m},
-                         range{workinfo.n - nb, workinfo.n});
+
+    auto matrixT = (m > nb) ? slice(work, range{workinfo.m - nb, workinfo.m},
+                                    range{workinfo.n - nb, workinfo.n})
+                            : slice(work, range{0, 0}, range{0, 0});
 
     // Initialise rows 0:m-k to rows of the unit matrix
     for (idx_t j = 0; j < n; ++j) {

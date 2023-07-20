@@ -45,7 +45,7 @@ inline constexpr WorkInfo gelq2_worksize(const matrix_t& A,
         return larf_worksize<T>(RIGHT_SIDE, FORWARD, ROWWISE_STORAGE, row(A, 0),
                                 tauw[0], C);
     }
-    return WorkInfo{};
+    return WorkInfo(0);
 }
 
 template <TLAPACK_SMATRIX matrix_t,

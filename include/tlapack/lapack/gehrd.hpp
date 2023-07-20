@@ -58,15 +58,31 @@ WorkInfo gehrd_worksize(size_type<matrix_t> ilo,
 {
     using idx_t = size_type<matrix_t>;
     using work_t = matrix_type<matrix_t, vector_t>;
+    using range = pair<idx_t, idx_t>;
 
     const idx_t n = ncols(A);
     const idx_t nb = min(opts.nb, ihi - ilo - 1);
 
+    WorkInfo workinfo;
     if constexpr (is_same_v<T, type_t<work_t>>) {
-        if (n > 0) return WorkInfo(n + nb, nb);
+        if (n > 0) {
+            if ((ilo < ihi) && (nx < ihi - ilo - 1))
+                workinfo = WorkInfo(n + nb, nb);
+
+            const auto V = slice(A, range{ilo + 1, ihi}, range{ilo, ilo + nb});
+            const auto T_s = slice(A, range{0, nb}, range{0, nb});
+            const auto A5 = slice(A, range{ilo + 1, ihi}, range{ilo + nb, n});
+
+            workinfo.minMax(larfb_worksize<T>(LEFT_SIDE, Op::ConjTrans,
+                                              Direction::Forward,
+                                              StoreV::Columnwise, V, T_s, A5)
+                                .transpose());
+
+            workinfo.minMax(gehd2_worksize<T>(ilo, ihi, A, tau));
+        }
     }
 
-    return WorkInfo(0);
+    return workinfo;
 }
 
 template <TLAPACK_SMATRIX matrix_t,
@@ -91,7 +107,7 @@ int gehrd(size_type<matrix_t> ilo,
     const idx_t n = ncols(A);
 
     // Blocksize
-    idx_t nb = min(opts.nb, ihi - ilo - 1);
+    idx_t nb = (ilo < ihi) ? min(opts.nb, ihi - ilo - 1) : 0;
     // Size of the last block which be handled with unblocked code
     idx_t nx_switch = opts.nx_switch;
     idx_t nx = max(nb, nx_switch);
@@ -107,8 +123,12 @@ int gehrd(size_type<matrix_t> ilo,
 
     // Matrices W, Y and T
     auto W = transpose_view(work);
-    auto Y = slice(work, range{0, n}, range{0, nb});
-    auto matrixT = slice(work, range{nb, n + nb}, range{0, nb});
+    auto Y = ((ilo < ihi) && (nx < ihi - ilo - 1))
+                 ? slice(work, range{0, n}, range{0, nb})
+                 : slice(work, range{0, 0}, range{0, 0});
+    auto matrixT = ((ilo < ihi) && (nx < ihi - ilo - 1))
+                       ? slice(work, range{n, n + nb}, range{0, nb})
+                       : slice(work, range{0, 0}, range{0, 0});
     laset(GENERAL, zero, zero, Y);
 
     idx_t i = ilo;

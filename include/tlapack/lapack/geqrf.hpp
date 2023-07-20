@@ -44,25 +44,27 @@ inline constexpr WorkInfo geqrf_worksize(
 {
     using idx_t = size_type<A_t>;
     using range = pair<idx_t, idx_t>;
+    using matrixT_t = matrix_type<A_t, tau_t>;
 
     // constants
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
     const idx_t k = min(m, n);
-    const idx_t nb = opts.nb;
-    const idx_t ib = min(nb, k);
+    const idx_t nb = min(opts.nb, k);
 
-    auto A11 = cols(A, range(0, ib));
-    auto TT1 = slice(A, range(0, ib), range(0, ib));
-    auto A12 = slice(A, range(0, m), range(ib, n));
-    auto tauw1 = slice(tau, range(0, ib));
-
+    auto A11 = cols(A, range(0, nb));
+    auto tauw1 = slice(tau, range(0, nb));
     WorkInfo workinfo = geqr2_worksize<T>(A11, tauw1);
-    workinfo.minMax(larfb_worksize<T>(Side::Left, Op::ConjTrans,
-                                      Direction::Forward, StoreV::Columnwise,
-                                      A11, TT1, A12));
 
-    workinfo += WorkInfo(nb, nb);
+    if (n > nb) {
+        auto TT1 = slice(A, range(0, nb), range(0, nb));
+        auto A12 = slice(A, range(0, m), range(nb, n));
+        workinfo.minMax(larfb_worksize<T>(Side::Left, Op::ConjTrans,
+                                          Direction::Forward,
+                                          StoreV::Columnwise, A11, TT1, A12));
+        if constexpr (is_same_v<T, type_t<matrixT_t>>)
+            workinfo += WorkInfo(nb, nb);
+    }
 
     return workinfo;
 }
@@ -116,7 +118,7 @@ int geqrf(A_t& A, tau_t& tau, const GeqrfOpts<size_type<A_t>>& opts = {})
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
     const idx_t k = min(m, n);
-    const idx_t nb = opts.nb;
+    const idx_t nb = min(opts.nb, k);
 
     // check arguments
     tlapack_check((idx_t)size(tau) >= k);
@@ -125,12 +127,14 @@ int geqrf(A_t& A, tau_t& tau, const GeqrfOpts<size_type<A_t>>& opts = {})
     WorkInfo workinfo = geqrf_worksize<T>(A, tau, opts);
     std::vector<T> work_;
     auto work = new_matrix(work_, workinfo.m, workinfo.n);
-    auto TT = slice(work, range{workinfo.m - nb, workinfo.m},
-                    range{workinfo.n - nb, workinfo.n});
+
+    auto TT = (n > nb) ? slice(work, range{workinfo.m - nb, workinfo.m},
+                               range{workinfo.n - nb, workinfo.n})
+                       : slice(work, range{0, 0}, range{0, 0});
 
     // Main computational loop
     for (idx_t j = 0; j < k; j += nb) {
-        idx_t ib = min(nb, k - j);
+        const idx_t ib = min(nb, k - j);
 
         // Compute the QR factorization of the current block A(j:m,j:j+ib)
         auto A11 = slice(A, range(j, m), range(j, j + ib));

@@ -46,7 +46,7 @@ inline constexpr WorkInfo lanhe_worksize(norm_t normType,
                                          uplo_t uplo,
                                          const matrix_t& A)
 {
-    return WorkInfo{};
+    return WorkInfo(0);
 }
 
 /** Worspace query of lanhe().
@@ -85,7 +85,7 @@ inline constexpr WorkInfo lanhe_worksize(norm_t normType,
         if (normType == Norm::Inf || normType == Norm::One)
             return WorkInfo(nrows(A));
 
-    return WorkInfo{};
+    return WorkInfo(0);
 }
 
 /** Calculates the norm of a hermitian matrix.

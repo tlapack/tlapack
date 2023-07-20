@@ -404,6 +404,70 @@ inline constexpr auto transpose_view(
         A.data(), std::move(map));
 }
 
+// Reshape
+template <
+    class ET,
+    class Exts,
+    class LP,
+    class AP,
+    std::enable_if_t<Exts::rank() == 2 &&
+                         (std::is_same_v<LP, std::experimental::layout_right> ||
+                          std::is_same_v<LP, std::experimental::layout_left>),
+                     int> = 0>
+auto reshape(std::experimental::mdspan<ET, Exts, LP, AP>& A,
+             std::size_t m,
+             std::size_t n)
+{
+    using size_type =
+        typename std::experimental::mdspan<ET, Exts, LP, AP>::size_type;
+    using extents_t = std::experimental::dextents<size_type, 2>;
+    using matrix_t = std::experimental::mdspan<ET, extents_t, LP, AP>;
+    using mapping_t = typename LP::template mapping<extents_t>;
+
+    if (m * n != A.size())
+        throw std::invalid_argument(
+            "reshape: new shape must have the same "
+            "number of elements as the original one");
+
+    return matrix_t(A.data(), mapping_t(extents_t(m, n)));
+}
+template <class ET, class Exts, class AP>
+auto reshape(
+    std::experimental::mdspan<ET, Exts, std::experimental::layout_stride, AP>&
+        A,
+    std::size_t m,
+    std::size_t n)
+{
+    using LP = std::experimental::layout_stride;
+    using idx_t =
+        typename std::experimental::mdspan<ET, Exts, LP, AP>::size_type;
+    using extents_t = std::experimental::dextents<idx_t, 2>;
+    using matrix_t = std::experimental::mdspan<ET, extents_t, LP, AP>;
+    using mapping_t = typename LP::template mapping<extents_t>;
+
+    if (m == A.extent(0) && n == A.extent(1))
+        return matrix_t(A.data(), mapping_t(extents_t(m, n),
+                                            std::array<idx_t, 2>{A.stride(0),
+                                                                 A.stride(1)}));
+    else {
+        if (m * n != A.size())
+            throw std::invalid_argument(
+                "reshape: new shape must have the same "
+                "number of elements as the original one");
+        if (!(A.stride(0) == 1 &&
+              (A.stride(1) == A.extent(0) || A.extent(1) <= 1)) &&
+            !(A.stride(1) == 1 &&
+              (A.stride(0) == A.extent(1) || A.extent(0) <= 1)))
+            throw std::invalid_argument(
+                "reshape: data must be contiguous in memory");
+
+        return matrix_t(A.data(), mapping_t(extents_t(m, n),
+                                            (A.stride(0) == 1)
+                                                ? std::array<idx_t, 2>{1, m}
+                                                : std::array<idx_t, 2>{n, 1}));
+    }
+}
+
 #undef isSlice
 
 // -----------------------------------------------------------------------------

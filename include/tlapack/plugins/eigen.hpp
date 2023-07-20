@@ -675,6 +675,7 @@ inline constexpr auto transpose_view(matrix_t& A) noexcept
 {
     using T = typename matrix_t::Scalar;
     using Stride = Eigen::OuterStride<>;
+    assert(A.innerStride() == 1);
 
     constexpr int Rows_ = matrix_t::ColsAtCompileTime;
     constexpr int Cols_ = matrix_t::RowsAtCompileTime;
@@ -687,6 +688,38 @@ inline constexpr auto transpose_view(matrix_t& A) noexcept
     using map_t = Eigen::Map<transpose_t, Eigen::Unaligned, Stride>;
 
     return map_t((T*)A.data(), A.cols(), A.rows(), A.outerStride());
+}
+
+template <
+    class matrix_t,
+    typename std::enable_if<eigen::is_eigen_type<matrix_t>, int>::type = 0>
+auto reshape(matrix_t& A, Eigen::Index m, Eigen::Index n)
+{
+    using T = typename matrix_t::Scalar;
+    using Stride = Eigen::OuterStride<>;
+    assert(A.innerStride() == 1);
+
+    using rmatrix_t = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic,
+                                    (matrix_t::IsRowMajor) ? Eigen::RowMajor
+                                                           : Eigen::ColMajor>;
+    using map_t = Eigen::Map<rmatrix_t, Eigen::Unaligned, Stride>;
+
+    if (m == A.rows() && n == A.cols())
+        return map_t((T*)A.data(), m, n, A.outerStride());
+    else {
+        if (m * n != A.size())
+            throw std::invalid_argument(
+                "reshape: new shape must have the same "
+                "number of elements as the original one");
+        if (!(!matrix_t::IsRowMajor &&
+              (A.outerStride() == A.rows() || A.cols() <= 1)) &&
+            !(matrix_t::IsRowMajor &&
+              (A.outerStride() == A.cols() || A.rows() <= 1)))
+            throw std::invalid_argument(
+                "reshape: data must be contiguous in memory");
+
+        return map_t((T*)A.data(), m, n, (matrix_t::IsRowMajor ? n : m));
+    }
 }
 
 // -----------------------------------------------------------------------------

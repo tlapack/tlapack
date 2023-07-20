@@ -588,6 +588,28 @@ inline constexpr auto slice(LegacyVector<T, idx_t, int_t, direction>& v,
         rows.second - rows.first, &v.ptr[rows.first * v.inc], v.inc);
 }
 
+// Reshape LegacyMatrix
+template <typename T, class idx_t, Layout layout>
+auto reshape(LegacyMatrix<T, idx_t, layout>& A,
+             size_type<LegacyMatrix<T, idx_t>> m,
+             size_type<LegacyMatrix<T, idx_t>> n)
+{
+    if (m == A.m && n == A.n)
+        return A;
+    else {
+        if (m * n != A.m * A.n)
+            throw std::invalid_argument(
+                "reshape: new shape must have the same "
+                "number of elements as the original one");
+        if (!(layout == Layout::ColMajor && (A.ldim == A.m || A.n <= 1)) &&
+            !(layout == Layout::RowMajor && (A.ldim == A.n || A.m <= 1)))
+            throw std::invalid_argument(
+                "reshape: data must be contiguous in memory");
+
+        return LegacyMatrix<T, idx_t, layout>(m, n, &A.ptr[0]);
+    }
+}
+
 // -----------------------------------------------------------------------------
 // Deduce matrix and vector type from two provided ones
 

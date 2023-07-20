@@ -157,8 +157,9 @@ struct Workspace {
 
 /// @brief Output information in the workspace query
 struct WorkInfo {
-    size_t m = 0;  ///< Number of rows needed in the Workspace
-    size_t n = 1;  ///< Number of columns needed in the Workspace
+    size_t m = 0;               ///< Number of rows needed in the Workspace
+    size_t n = 1;               ///< Number of columns needed in the Workspace
+    bool isContiguous = false;  ///< True if the Workspace is contiguous
 
     /// Constructor using sizes
     inline constexpr WorkInfo(size_t m = 0, size_t n = 1) noexcept : m(m), n(n)
@@ -183,25 +184,27 @@ struct WorkInfo {
         const size_t s1 = workinfo.size();
         const size_t s = size();
 
-        // Check if the current sizes cover the sizes from workinfo
-        if ((m >= s1 && n >= 1) || (m >= 1 && n >= s1) ||
-            (m >= m1 && n >= n1)) {
-            // Nothing to do
-            return;
+        // If one of the objects is contiguous, then the result is contiguous
+        if (isContiguous || workinfo.isContiguous) {
+            m = std::max(s, s1);
+            n = 1;
+            isContiguous = true;
         }
+        // Check if the current sizes cover the sizes from workinfo
+        else if (m >= m1 && n >= n1) {
+            // Nothing to do
+        }
+        // Check if the sizes from workinfo cover the current sizes
+        else if (m1 >= m && n1 >= n) {
+            // Use the sizes from workinfo
+            m = m1;
+            n = n1;
+        }
+        // Otherwise, use contiguous space with the maximum size
         else {
-            // Check if the sizes from workinfo cover the current sizes
-            if ((m1 >= s && n1 >= 1) || (m1 >= 1 && n1 >= s) ||
-                (m1 >= m && n1 >= n)) {
-                // Use the sizes from workinfo
-                m = m1;
-                n = n1;
-            }
-            else  // Otherwise, use contiguous space with the maximum size
-            {
-                m = std::max(s, s1);
-                n = 1;
-            }
+            m = std::max(s, s1);
+            n = 1;
+            isContiguous = true;
         }
     }
 
@@ -220,15 +223,11 @@ struct WorkInfo {
         const size_t n1 = workinfo.n;
         const size_t s1 = workinfo.size();
 
-        // If first dimension matches the size of workinfo, increase second
-        // dimension
-        if (m == s1) {
-            n += 1;
-        }
-        // Else, if second dimension matches the size of workinfo, increase
-        // first dimension
-        else if (n == s1) {
-            m += 1;
+        // If one of the objects is contiguous, then the result is contiguous
+        if (isContiguous || workinfo.isContiguous) {
+            m = size() + s1;
+            n = 1;
+            isContiguous = true;
         }
         // Else, if first dimension matches, update second dimension
         else if (m == m1) {
@@ -242,9 +241,12 @@ struct WorkInfo {
         {
             m = size() + workinfo.size();
             n = 1;
+            isContiguous = true;
         }
         return *this;
     }
+
+    constexpr WorkInfo transpose() noexcept { return WorkInfo(n, m); }
 };
 
 }  // namespace tlapack

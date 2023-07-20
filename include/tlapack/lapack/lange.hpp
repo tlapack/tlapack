@@ -37,7 +37,7 @@ namespace tlapack {
 template <class T, TLAPACK_NORM norm_t, TLAPACK_SMATRIX matrix_t>
 inline constexpr WorkInfo lange_worksize(norm_t normType, const matrix_t& A)
 {
-    return WorkInfo{};
+    return WorkInfo(0);
 }
 
 /** Worspace query of lange()
@@ -66,7 +66,7 @@ inline constexpr WorkInfo lange_worksize(norm_t normType, const matrix_t& A)
     if constexpr (is_same_v<T, type_t<matrix_t>>)
         if (normType == Norm::Inf) return WorkInfo(nrows(A));
 
-    return WorkInfo{};
+    return WorkInfo(0);
 }
 
 /** Calculates the norm of a matrix.

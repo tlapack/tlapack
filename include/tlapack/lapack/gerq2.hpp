@@ -37,15 +37,15 @@ inline constexpr WorkInfo gerq2_worksize(const matrix_t& A, const vector_t& tau)
     using range = pair<idx_t, idx_t>;
 
     // constants
-    const idx_t n = ncols(A);
+    const idx_t m = nrows(A);
 
-    if (n > 1) {
-        auto C = cols(A, range{1, n});
+    if (m > 1) {
+        auto C = rows(A, range{1, m});
         return larf_worksize<T>(Side::Right, Direction::Backward,
-                                StoreV::Rowwise, col(A, 0), tau[0], C);
+                                StoreV::Rowwise, row(A, 0), tau[0], C);
     }
 
-    return WorkInfo{};
+    return WorkInfo(0);
 }
 
 template <TLAPACK_SMATRIX matrix_t,

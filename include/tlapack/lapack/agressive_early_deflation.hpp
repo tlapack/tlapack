@@ -95,14 +95,15 @@ WorkInfo agressive_early_deflation_worksize(
 
     // quick return
     WorkInfo workinfo;
+    workinfo.isContiguous = true;
     if (n < 9 || nw <= 1 || ihi <= 1 + ilo) return workinfo;
 
     if (jw >= opts.nmin) {
         auto s_window = slice(s, range{0, jw});
         auto V = slice(A, range{0, jw}, range{0, jw});
 
-        workinfo.minMax(multishift_qr_worksize<T>(true, true, 0, jw, TW,
-                                                  s_window, V, opts));
+        workinfo =
+            multishift_qr_worksize<T>(true, true, 0, jw, TW, s_window, V, opts);
     }
 
     if (jw != ihi - ilo) {
@@ -175,6 +176,7 @@ WorkInfo agressive_early_deflation_worksize(
  */
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_SVECTOR vector_t,
+          TLAPACK_RWORKSPACE work_t,
           enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
 void agressive_early_deflation(bool want_t,
                                bool want_z,
@@ -186,6 +188,7 @@ void agressive_early_deflation(bool want_t,
                                matrix_t& Z,
                                size_type<matrix_t>& ns,
                                size_type<matrix_t>& nd,
+                               work_t& work,
                                FrancisOpts<size_type<matrix_t> >& opts)
 {
     using T = type_t<matrix_t>;
@@ -240,12 +243,6 @@ void agressive_early_deflation(bool want_t,
         // Note: The max() above may not propagate a NaN in A(kwtop, kwtop).
     }
 
-    // Allocates workspace
-    WorkInfo workinfo = agressive_early_deflation_worksize<T>(
-        want_t, want_z, ilo, ihi, nw, A, s, Z, ns, nd, opts);
-    std::vector<T> work_;
-    auto work = new_matrix(work_, workinfo.m, workinfo.n);
-
     // Define workspace matrices
     // We use the lower triangular part of A as workspace
     // TW and WH overlap, but WH is only used after we no longer need
@@ -254,6 +251,21 @@ void agressive_early_deflation(bool want_t,
     auto TW = slice(A, range{n - jw, n}, range{jw, 2 * jw});
     auto WH = slice(A, range{n - jw, n}, range{jw, n - jw - 3});
     auto WV = slice(A, range{jw + 3, n - jw}, range{0, jw});
+
+    // Workspace query for gehrd
+    WorkInfo workinfo;
+    if (jw != ihi - ilo) {
+        // Hessenberg reduction
+        const auto tau = slice(A, range{0, jw}, 0);
+        workinfo = gehrd_worksize<T>(0, jw, TW, tau);
+    }
+
+    // Workspace is contiguous, so slice in one dimension and reshape
+    auto work1 =
+        slice(work, range{0, nrows(work) - workinfo.size()}, range{0, 1});
+    auto work2 = slice(work, range{nrows(work) - workinfo.size(), nrows(work)},
+                       range{0, 1});
+    auto w2 = reshape(work2, workinfo.m, workinfo.n);
 
     // Convert the window to spike-triangular form. i.e. calculate the
     // Schur form of the deflation window.
@@ -271,7 +283,7 @@ void agressive_early_deflation(bool want_t,
     if (jw < opts.nmin)
         infqr = lahqr(true, true, 0, jw, TW, s_window, V);
     else {
-        infqr = multishift_qr(true, true, 0, jw, TW, s_window, V, work, opts);
+        infqr = multishift_qr(true, true, 0, jw, TW, s_window, V, work1, opts);
         for (idx_t j = 0; j < jw; ++j)
             for (idx_t i = j + 2; i < jw; ++i)
                 TW(i, j) = zero;
@@ -446,10 +458,10 @@ void agressive_early_deflation(bool want_t,
         // Hessenberg reduction
         {
             auto tau = slice(WV, range{0, jw}, 0);
-            gehrd(0, ns, TW, tau, work);
+            gehrd(0, ns, TW, tau, w2);
 
-            auto w = slice(WV, range{0, jw}, range{1, 2});
-            unmhr(Side::Right, Op::NoTrans, 0, ns, TW, tau, V, w);
+            auto w3 = slice(WV, range{0, jw}, range{1, 2});
+            unmhr(Side::Right, Op::NoTrans, 0, ns, TW, tau, V, w3);
         }
     }
 
@@ -514,6 +526,212 @@ void agressive_early_deflation(bool want_t,
             i = i + iblock;
         }
     }
+}
+
+/** agressive_early_deflation accepts as input an upper Hessenberg matrix
+ *  H and performs an orthogonal similarity transformation
+ *  designed to detect and deflate fully converged eigenvalues from
+ *  a trailing principal submatrix.  On output H has been over-
+ *  written by a new Hessenberg matrix that is a perturbation of
+ *  an orthogonal similarity transformation of H.  It is to be
+ *  hoped that the final version of H has many zero subdiagonal
+ *  entries.
+ *
+ * @param[in] want_t bool.
+ *      If true, the full Schur factor T will be computed.
+ *
+ * @param[in] want_z bool.
+ *      If true, the Schur vectors Z will be computed.
+ *
+ * @param[in] ilo    integer.
+ *      Either ilo=0 or A(ilo,ilo-1) = 0.
+ *
+ * @param[in] ihi    integer.
+ *      ilo and ihi determine an isolated block in A.
+ *
+ * @param[in] nw    integer.
+ *      Desired window size to perform agressive early deflation on.
+ *      If the matrix is not large enough to provide the scratch space
+ *      or if the isolated block is small, a smaller value may be used.
+ *
+ * @param[in,out] A  n by n matrix.
+ *       Hessenberg matrix on which AED will be performed
+ *
+ * @param[out] s  size n vector.
+ *      On exit, the entries s[ihi-nd-ns:ihi-nd] contain the unconverged
+ *      eigenvalues that can be used a shifts. The entries s[ihi-nd:ihi]
+ *      contain the converged eigenvalues. Entries outside the range
+ *      s[ihi-nw:ihi] are not changed. The converged shifts are stored
+ *      in the same positions as their correspinding diagonal elements
+ *      in A.
+ *
+ * @param[in,out] Z  n by n matrix.
+ *      On entry, the previously calculated Schur factors
+ *      On exit, the orthogonal updates applied to A accumulated
+ *      into Z.
+ *
+ * @param[out] ns    integer.
+ *      Number of eigenvalues available as shifts in s.
+ *
+ * @param[out] nd    integer.
+ *      Number of converged eigenvalues available as shifts in s.
+ *
+ * @ingroup computational
+ */
+template <TLAPACK_MATRIX matrix_t,
+          TLAPACK_VECTOR vector_t,
+          TLAPACK_MATRIX work_t,
+          enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
+inline void agressive_early_deflation(bool want_t,
+                                      bool want_z,
+                                      size_type<matrix_t> ilo,
+                                      size_type<matrix_t> ihi,
+                                      size_type<matrix_t> nw,
+                                      matrix_t& A,
+                                      vector_t& s,
+                                      matrix_t& Z,
+                                      size_type<matrix_t>& ns,
+                                      size_type<matrix_t>& nd,
+                                      work_t& work)
+{
+    FrancisOpts<size_type<matrix_t> > opts = {};
+    agressive_early_deflation(want_t, want_z, ilo, ihi, nw, A, s, Z, ns, nd,
+                              work, opts);
+}
+
+/** agressive_early_deflation accepts as input an upper Hessenberg matrix
+ *  H and performs an orthogonal similarity transformation
+ *  designed to detect and deflate fully converged eigenvalues from
+ *  a trailing principal submatrix.  On output H has been over-
+ *  written by a new Hessenberg matrix that is a perturbation of
+ *  an orthogonal similarity transformation of H.  It is to be
+ *  hoped that the final version of H has many zero subdiagonal
+ *  entries.
+ *
+ * @param[in] want_t bool.
+ *      If true, the full Schur factor T will be computed.
+ *
+ * @param[in] want_z bool.
+ *      If true, the Schur vectors Z will be computed.
+ *
+ * @param[in] ilo    integer.
+ *      Either ilo=0 or A(ilo,ilo-1) = 0.
+ *
+ * @param[in] ihi    integer.
+ *      ilo and ihi determine an isolated block in A.
+ *
+ * @param[in] nw    integer.
+ *      Desired window size to perform agressive early deflation on.
+ *      If the matrix is not large enough to provide the scratch space
+ *      or if the isolated block is small, a smaller value may be used.
+ *
+ * @param[in,out] A  n by n matrix.
+ *       Hessenberg matrix on which AED will be performed
+ *
+ * @param[out] s  size n vector.
+ *      On exit, the entries s[ihi-nd-ns:ihi-nd] contain the unconverged
+ *      eigenvalues that can be used a shifts. The entries s[ihi-nd:ihi]
+ *      contain the converged eigenvalues. Entries outside the range
+ *      s[ihi-nw:ihi] are not changed. The converged shifts are stored
+ *      in the same positions as their correspinding diagonal elements
+ *      in A.
+ *
+ * @param[in,out] Z  n by n matrix.
+ *      On entry, the previously calculated Schur factors
+ *      On exit, the orthogonal updates applied to A accumulated
+ *      into Z.
+ *
+ * @param[out] ns    integer.
+ *      Number of eigenvalues available as shifts in s.
+ *
+ * @param[out] nd    integer.
+ *      Number of converged eigenvalues available as shifts in s.
+ *
+ * @param[in,out] opts Options.
+ *      - @c opts.work is used if whenever it has sufficient size.
+ *        The sufficient size can be obtained through a workspace query.
+ *      - Output parameters
+ *          @c opts.n_aed,
+ *          @c opts.n_sweep and
+ *          @c opts.n_shifts_total
+ *        are updated by the internal call to multishift_qr.
+ *
+ * @ingroup computational
+ */
+template <TLAPACK_MATRIX matrix_t,
+          TLAPACK_VECTOR vector_t,
+          enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
+void agressive_early_deflation(bool want_t,
+                               bool want_z,
+                               size_type<matrix_t> ilo,
+                               size_type<matrix_t> ihi,
+                               size_type<matrix_t> nw,
+                               matrix_t& A,
+                               vector_t& s,
+                               matrix_t& Z,
+                               size_type<matrix_t>& ns,
+                               size_type<matrix_t>& nd,
+                               FrancisOpts<size_type<matrix_t> >& opts)
+{
+    using T = type_t<matrix_t>;
+    using real_t = real_type<T>;
+    using idx_t = size_type<matrix_t>;
+    using range = pair<idx_t, idx_t>;
+
+    // Functors
+    Create<matrix_t> new_matrix;
+
+    // Constants
+    const real_t one(1);
+    const real_t zero(0);
+    const idx_t n = ncols(A);
+    // Because we will use the lower triangular part of A as workspace,
+    // We have a maximum window size
+    const idx_t nw_max = (n - 3) / 3;
+    const real_t eps = ulp<real_t>();
+    const real_t small_num = safe_min<real_t>() * ((real_t)n / ulp<real_t>());
+    // Size of the deflation window
+    const idx_t jw = min(min(nw, ihi - ilo), nw_max);
+    // First row index in the deflation window
+    const idx_t kwtop = ihi - jw;
+
+    // Assertions
+    assert(nrows(A) == n);
+    if (want_z) {
+        assert(ncols(Z) == n);
+        assert(nrows(Z) == n);
+    }
+    assert((idx_t)size(s) == n);
+
+    // s is the value just outside the window. It determines the spike
+    // together with the orthogonal schur factors.
+    T s_spike;
+    if (kwtop == ilo)
+        s_spike = zero;
+    else
+        s_spike = A(kwtop, kwtop - 1);
+
+    if (kwtop + 1 == ihi) {
+        // 1x1 deflation window, not much to do
+        s[kwtop] = A(kwtop, kwtop);
+        ns = 1;
+        nd = 0;
+        if (abs1(s_spike) <= max(small_num, eps * abs1(A(kwtop, kwtop)))) {
+            ns = 0;
+            nd = 1;
+            if (kwtop > ilo) A(kwtop, kwtop - 1) = zero;
+        }
+        return;
+    }
+
+    // Allocates workspace
+    WorkInfo workinfo = agressive_early_deflation_worksize<T>(
+        want_t, want_z, ilo, ihi, nw, A, s, Z, ns, nd, opts);
+    std::vector<T> work_;
+    auto work = new_matrix(work_, workinfo.m, workinfo.n);
+
+    agressive_early_deflation(want_t, want_z, ilo, ihi, nw, A, s, Z, ns, nd,
+                              work, opts);
 }
 
 /** agressive_early_deflation accepts as input an upper Hessenberg matrix

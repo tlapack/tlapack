@@ -45,7 +45,7 @@ inline constexpr WorkInfo geqr2_worksize(const matrix_t& A, const vector_t& tau)
                                 col(A, 0), tau[0], C);
     }
 
-    return WorkInfo{};
+    return WorkInfo(0);
 }
 
 template <TLAPACK_SMATRIX matrix_t,

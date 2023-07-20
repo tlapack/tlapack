@@ -138,7 +138,7 @@ inline constexpr WorkInfo unghr_worksize(size_type<matrix_t> ilo,
         auto tau_s = slice(tau, range{ilo, ihi - 1});
         return ung2r_worksize<T>(A_s, tau_s);
     }
-    return WorkInfo{};
+    return WorkInfo(0);
 }
 
 }  // namespace tlapack

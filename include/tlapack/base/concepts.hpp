@@ -433,6 +433,17 @@ namespace concepts {
         ->Vector<>;
     };
 
+    template <typename matrix_t>
+    concept ReshapableWorkspace =
+        SliceableMatrix<matrix_t>&& requires(matrix_t& A)
+    {
+        // Reshape view (matrix)
+        {
+            reshape(A, 1, 1)
+        }
+        ->SliceableMatrix<>;
+    };
+
     /** @interface tlapack::concepts::Index
      * @brief Concept for index types.
      *
@@ -736,6 +747,9 @@ namespace concepts {
     /// Macro for tlapack::concepts::SliceableVector compatible with C++17.
     #define TLAPACK_SVECTOR tlapack::concepts::SliceableVector
 
+    /// Macro for tlapack::concepts::ReshapableWorkspace compatible with C++17.
+    #define TLAPACK_RWORKSPACE tlapack::concepts::ReshapableWorkspace
+
     /// Macro for tlapack::concepts::Scalar compatible with C++17.
     #define TLAPACK_SCALAR tlapack::concepts::Scalar
 
@@ -799,6 +813,8 @@ namespace concepts {
 
     #define TLAPACK_VECTOR class
     #define TLAPACK_SVECTOR class
+
+    #define TLAPACK_RWORKSPACE class
 
     #define TLAPACK_SCALAR class
     #define TLAPACK_REAL class
