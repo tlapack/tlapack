@@ -261,8 +261,6 @@ void agressive_early_deflation(bool want_t,
     }
 
     // Workspace is contiguous, so slice in one dimension and reshape
-    auto work1 =
-        slice(work, range{0, nrows(work) - workinfo.size()}, range{0, 1});
     auto work2 = slice(work, range{nrows(work) - workinfo.size(), nrows(work)},
                        range{0, 1});
     auto w2 = reshape(work2, workinfo.m, workinfo.n);
@@ -283,7 +281,7 @@ void agressive_early_deflation(bool want_t,
     if (jw < opts.nmin)
         infqr = lahqr(true, true, 0, jw, TW, s_window, V);
     else {
-        infqr = multishift_qr(true, true, 0, jw, TW, s_window, V, work1, opts);
+        infqr = multishift_qr(true, true, 0, jw, TW, s_window, V, work, opts);
         for (idx_t j = 0; j < jw; ++j)
             for (idx_t i = j + 2; i < jw; ++i)
                 TW(i, j) = zero;

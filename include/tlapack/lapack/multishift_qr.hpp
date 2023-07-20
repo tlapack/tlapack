@@ -196,8 +196,6 @@ int multishift_qr(bool want_t,
     }
 
     // Workspace is contiguous, so slice in one dimension and reshape
-    auto work1 =
-        slice(work, range{0, nrows(work) - workinfo.size()}, range{0, 1});
     auto work2 = slice(work, range{nrows(work) - workinfo.size(), nrows(work)},
                        range{0, 1});
     auto w2 = reshape(work2, workinfo.m, workinfo.n);
@@ -278,7 +276,7 @@ int multishift_qr(bool want_t,
         idx_t ls, ld;
         n_aed = n_aed + 1;
         agressive_early_deflation(want_t, want_z, istart, istop, nw, A, w, Z,
-                                  ls, ld, work1, opts);
+                                  ls, ld, work, opts);
 
         istop = istop - ld;
 
