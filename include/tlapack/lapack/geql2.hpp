@@ -59,10 +59,10 @@ int geql2(matrix_t& A, vector_t& tau, work_t& work)
     // constants
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
-    const idx_t k = std::min<idx_t>(m, n);
+    const idx_t k = min(m, n);
 
     // check arguments
-    tlapack_check_false((idx_t)size(tau) < std::min<idx_t>(m, n));
+    tlapack_check_false((idx_t)size(tau) < k);
 
     // quick return
     if (n <= 0) return 0;
@@ -136,7 +136,7 @@ int geql2(matrix_t& A, vector_t& tau)
     // constants
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
-    const idx_t k = std::min<idx_t>(m, n);
+    const idx_t k = min(m, n);
 
     // check arguments
     tlapack_check_false((idx_t)size(tau) < k);

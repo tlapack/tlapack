@@ -61,7 +61,8 @@ WorkInfo gehrd_worksize(size_type<matrix_t> ilo,
     using range = pair<idx_t, idx_t>;
 
     const idx_t n = ncols(A);
-    const idx_t nb = min(opts.nb, ihi - ilo - 1);
+    const idx_t nb = (ilo < ihi) ? min(opts.nb, ihi - ilo - 1) : 0;
+    const idx_t nx = max(nb, opts.nx_switch);
 
     WorkInfo workinfo;
     if constexpr (is_same_v<T, type_t<work_t>>) {

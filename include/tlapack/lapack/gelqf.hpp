@@ -134,7 +134,7 @@ int gelqf(A_t& A, tau_t& tau, const GelqfOpts<size_type<A_t>>& opts = {})
 
     // Main computational loop
     for (idx_t j = 0; j < k; j += nb) {
-        idx_t ib = std::min<idx_t>(nb, k - j);
+        const idx_t ib = min(nb, k - j);
 
         // Compute the LQ factorization of the current block A(j:j+ib-1,j:n)
         auto A11 = slice(A, range(j, j + ib), range(j, n));
