@@ -62,6 +62,32 @@ struct FrancisOpts {
     idx_t nibble = 14;
 };
 
+template <class T,
+          TLAPACK_SMATRIX matrix_t,
+          TLAPACK_SVECTOR vector_t,
+          enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
+WorkInfo multishift_qr_worksize_sweep(
+    bool want_t,
+    bool want_z,
+    size_type<matrix_t> ilo,
+    size_type<matrix_t> ihi,
+    const matrix_t& A,
+    const vector_t& w,
+    const matrix_t& Z,
+    const FrancisOpts<size_type<matrix_t> >& opts = {})
+{
+    using idx_t = size_type<matrix_t>;
+    using range = pair<idx_t, idx_t>;
+
+    const idx_t n = ncols(A);
+    const idx_t nh = ihi - ilo;
+    const idx_t nsr = opts.nshift_recommender(n, nh);
+    const auto shifts = slice(w, range{0, nsr});
+
+    return multishift_QR_sweep_worksize<T>(want_t, want_z, ilo, ihi, A, shifts,
+                                           Z);
+}
+
 /** Worspace query of multishift_qr()
  *
  * @param[in] want_t bool.
@@ -98,15 +124,12 @@ WorkInfo multishift_qr_worksize(
     const FrancisOpts<size_type<matrix_t> >& opts = {})
 {
     using idx_t = size_type<matrix_t>;
-    using range = pair<idx_t, idx_t>;
 
     const idx_t n = ncols(A);
-    const idx_t nh = ihi - ilo;
 
     // quick return
     WorkInfo workinfo;
-    workinfo.isContiguous = true;
-    if (ilo + 1 >= ihi || n < opts.nmin || nh <= 0) return workinfo;
+    if (ilo + 1 >= ihi || n < opts.nmin) return workinfo;
 
     {
         const idx_t nw_max = (n - 3) / 3;
@@ -116,13 +139,8 @@ WorkInfo multishift_qr_worksize(
             want_t, want_z, ilo, ihi, nw_max, A, w, Z, ls, ld, opts);
     }
 
-    {
-        const idx_t nsr = opts.nshift_recommender(n, nh);
-        const auto shifts = slice(w, range{0, nsr});
-
-        workinfo.minMax(multishift_QR_sweep_worksize<T>(want_t, want_z, ilo,
-                                                        ihi, A, shifts, Z));
-    }
+    workinfo.minMax(multishift_qr_worksize_sweep<T>(want_t, want_z, ilo, ihi, A,
+                                                    w, Z, opts));
 
     return workinfo;
 }
@@ -185,20 +203,18 @@ int multishift_qr(bool want_t,
     if (nh <= 0) return 0;
     if (nh == 1) w[ilo] = A(ilo, ilo);
 
-    // Workspace query for multishift_QR_sweep
-    WorkInfo workinfo;
-    {
-        const idx_t nsr = opts.nshift_recommender(n, nh);
-        const auto shifts = slice(w, range{0, nsr});
-
-        workinfo = multishift_QR_sweep_worksize<TA>(want_t, want_z, ilo, ihi, A,
-                                                    shifts, Z);
-    }
-
-    // Workspace is contiguous, so slice in one dimension and reshape
-    auto work2 = slice(work, range{nrows(work) - workinfo.size(), nrows(work)},
-                       range{0, 1});
-    auto w2 = reshape(work2, workinfo.m, workinfo.n);
+    // Workspace may not be in good shape for multishift_QR_sweep,
+    // so reshape, slice and reshape again
+    auto work2 = [&]() {
+        // Workspace query for multishift_QR_sweep
+        WorkInfo workinfo = multishift_qr_worksize_sweep<TA>(
+            want_t, want_z, ilo, ihi, A, w, Z, opts);
+        const idx_t workSize = nrows(work) * ncols(work);
+        auto aux = reshape(work, workSize, 1);
+        auto aux2 = slice(aux, range{workSize - workinfo.size(), workSize},
+                          range{0, 1});
+        return reshape(aux2, workinfo.m, workinfo.n);
+    }();
 
     // Tiny matrices must use lahqr
     if (n < nmin) {
@@ -386,7 +402,7 @@ int multishift_qr(bool want_t,
 
         n_sweep = n_sweep + 1;
         n_shifts_total = n_shifts_total + ns;
-        multishift_QR_sweep(want_t, want_z, istart, istop, A, shifts, Z, w2);
+        multishift_QR_sweep(want_t, want_z, istart, istop, A, shifts, Z, work2);
     }
 
     opts.n_aed = n_aed;

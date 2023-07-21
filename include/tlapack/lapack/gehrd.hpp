@@ -67,18 +67,21 @@ WorkInfo gehrd_worksize(size_type<matrix_t> ilo,
     WorkInfo workinfo;
     if constexpr (is_same_v<T, type_t<work_t>>) {
         if (n > 0) {
-            if ((ilo < ihi) && (nx < ihi - ilo - 1))
+            if ((ilo < ihi) && (nx < ihi - ilo - 1)) {
                 workinfo = WorkInfo(n + nb, nb);
 
-            const auto V = slice(A, range{ilo + 1, ihi}, range{ilo, ilo + nb});
-            const auto T_s = slice(A, range{0, nb}, range{0, nb});
-            const auto A5 = slice(A, range{ilo + 1, ihi}, range{ilo + nb, n});
+                const auto V =
+                    slice(A, range{ilo + 1, ihi}, range{ilo, ilo + nb});
+                const auto T_s = slice(A, range{0, nb}, range{0, nb});
+                const auto A5 =
+                    slice(A, range{ilo + 1, ihi}, range{ilo + nb, n});
 
-            workinfo.minMax(larfb_worksize<T>(LEFT_SIDE, Op::ConjTrans,
-                                              Direction::Forward,
-                                              StoreV::Columnwise, V, T_s, A5)
-                                .transpose());
-
+                workinfo.minMax(larfb_worksize<T>(LEFT_SIDE, Op::ConjTrans,
+                                                  Direction::Forward,
+                                                  StoreV::Columnwise, V, T_s,
+                                                  A5)
+                                    .transpose());
+            }
             workinfo.minMax(gehd2_worksize<T>(ilo, ihi, A, tau));
         }
     }

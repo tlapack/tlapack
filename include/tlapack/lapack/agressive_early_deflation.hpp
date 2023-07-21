@@ -30,6 +30,29 @@ namespace tlapack {
 template <TLAPACK_INDEX idx_t>
 struct FrancisOpts;
 
+template <class T, TLAPACK_SMATRIX matrix_t>
+WorkInfo agressive_early_deflation_worksize_gehrd(size_type<matrix_t> ilo,
+                                                  size_type<matrix_t> ihi,
+                                                  size_type<matrix_t> nw,
+                                                  const matrix_t& A)
+{
+    using idx_t = size_type<matrix_t>;
+    using range = pair<idx_t, idx_t>;
+
+    const idx_t n = ncols(A);
+    const idx_t nw_max = (n - 3) / 3;
+    const idx_t jw = min(min(nw, ihi - ilo), nw_max);
+    const auto TW = slice(A, range{0, jw}, range{0, jw});
+
+    if (jw != ihi - ilo) {
+        // Hessenberg reduction
+        auto tau = slice(A, range{0, jw}, 0);
+        return gehrd_worksize<T>(0, jw, TW, tau);
+    }
+    else
+        return WorkInfo();
+}
+
 /** Worspace query of agressive_early_deflation().
  *
  * @param[in] want_t bool.
@@ -90,27 +113,21 @@ WorkInfo agressive_early_deflation_worksize(
     const idx_t n = ncols(A);
     const idx_t nw_max = (n - 3) / 3;
     const idx_t jw = min(min(nw, ihi - ilo), nw_max);
-
-    auto TW = slice(A, range{0, jw}, range{0, jw});
+    const auto TW = slice(A, range{0, jw}, range{0, jw});
 
     // quick return
     WorkInfo workinfo;
-    workinfo.isContiguous = true;
     if (n < 9 || nw <= 1 || ihi <= 1 + ilo) return workinfo;
 
     if (jw >= opts.nmin) {
-        auto s_window = slice(s, range{0, jw});
-        auto V = slice(A, range{0, jw}, range{0, jw});
-
+        const auto s_window = slice(s, range{0, jw});
+        const auto V = slice(A, range{0, jw}, range{0, jw});
         workinfo =
             multishift_qr_worksize<T>(true, true, 0, jw, TW, s_window, V, opts);
     }
 
-    if (jw != ihi - ilo) {
-        // Hessenberg reduction
-        auto tau = slice(A, range{0, jw}, 0);
-        workinfo.minMax(gehrd_worksize<T>(0, jw, TW, tau));
-    }
+    workinfo.minMax(
+        agressive_early_deflation_worksize_gehrd<T>(ilo, ihi, nw, A));
 
     return workinfo;
 }
@@ -249,18 +266,18 @@ void agressive_early_deflation(bool want_t,
     auto WH = slice(A, range{n - jw, n}, range{jw, n - jw - 3});
     auto WV = slice(A, range{jw + 3, n - jw}, range{0, jw});
 
-    // Workspace query for gehrd
-    WorkInfo workinfo;
-    if (jw != ihi - ilo) {
-        // Hessenberg reduction
-        const auto tau = slice(A, range{0, jw}, 0);
-        workinfo = gehrd_worksize<T>(0, jw, TW, tau);
-    }
-
-    // Workspace is contiguous, so slice in one dimension and reshape
-    auto work2 = slice(work, range{nrows(work) - workinfo.size(), nrows(work)},
-                       range{0, 1});
-    auto w2 = reshape(work2, workinfo.m, workinfo.n);
+    // Workspace may not be in good shape for gehrd,
+    // so reshape, slice and reshape again
+    auto work2 = [&]() {
+        // Workspace query for gehrd
+        WorkInfo workinfo =
+            agressive_early_deflation_worksize_gehrd<T>(ilo, ihi, nw, A);
+        const idx_t workSize = nrows(work) * ncols(work);
+        auto aux = reshape(work, workSize, 1);
+        auto aux2 = slice(aux, range{workSize - workinfo.size(), workSize},
+                          range{0, 1});
+        return reshape(aux2, workinfo.m, workinfo.n);
+    }();
 
     // Convert the window to spike-triangular form. i.e. calculate the
     // Schur form of the deflation window.
@@ -453,10 +470,10 @@ void agressive_early_deflation(bool want_t,
         // Hessenberg reduction
         {
             auto tau = slice(WV, range{0, jw}, 0);
-            gehrd(0, ns, TW, tau, w2);
+            gehrd(0, ns, TW, tau, work2);
 
-            auto w3 = slice(WV, range{0, jw}, range{1, 2});
-            unmhr(Side::Right, Op::NoTrans, 0, ns, TW, tau, V, w3);
+            auto work3 = slice(WV, range{0, jw}, range{1, 2});
+            unmhr(Side::Right, Op::NoTrans, 0, ns, TW, tau, V, work3);
         }
     }
 
