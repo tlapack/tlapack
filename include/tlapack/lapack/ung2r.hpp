@@ -122,17 +122,12 @@ template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
 int ung2r(matrix_t& A, const vector_t& tau)
 {
     using T = type_t<matrix_t>;
-    using real_t = real_type<T>;
     using idx_t = size_type<matrix_t>;
-    using range = pair<idx_t, idx_t>;
 
     // Functor
     Create<matrix_t> new_matrix;
 
     // constants
-    const real_t zero(0);
-    const real_t one(1);
-    const idx_t m = nrows(A);
     const idx_t n = ncols(A);
     const idx_t k = size(tau);
 

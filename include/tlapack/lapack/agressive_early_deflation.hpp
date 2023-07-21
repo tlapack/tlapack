@@ -196,9 +196,6 @@ void agressive_early_deflation(bool want_t,
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
 
-    // Functors
-    Create<matrix_t> new_matrix;
-
     // Constants
     const real_t one(1);
     const real_t zero(0);
@@ -674,13 +671,11 @@ void agressive_early_deflation(bool want_t,
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
     using idx_t = size_type<matrix_t>;
-    using range = pair<idx_t, idx_t>;
 
     // Functors
     Create<matrix_t> new_matrix;
 
     // Constants
-    const real_t one(1);
     const real_t zero(0);
     const idx_t n = ncols(A);
     // Because we will use the lower triangular part of A as workspace,

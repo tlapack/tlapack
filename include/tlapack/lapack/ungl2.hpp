@@ -142,19 +142,14 @@ int ungl2(matrix_t& Q, const vector_t& tauw)
 {
     using idx_t = size_type<matrix_t>;
     using T = type_t<matrix_t>;
-    using range = pair<idx_t, idx_t>;
-    using real_t = real_type<T>;
 
     // functor
     Create<matrix_t> new_matrix;
 
     // constants
-    const idx_t k = nrows(Q);
     const idx_t n = ncols(Q);
     const idx_t m =
         size(tauw);  // maximum number of Householder reflectors to use
-    const idx_t t =
-        min(k, m);  // desired number of Householder reflectors to use
 
     // check arguments
     tlapack_check_false((idx_t)size(tauw) < std::min<idx_t>(m, n));

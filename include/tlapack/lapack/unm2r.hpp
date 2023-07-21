@@ -205,7 +205,6 @@ int unm2r(side_t side,
     const idx_t m = nrows(C);
     const idx_t n = ncols(C);
     const idx_t k = size(tau);
-    const idx_t nA = (side == Side::Left) ? m : n;
 
     // check arguments
     tlapack_check_false(side != Side::Left && side != Side::Right);
