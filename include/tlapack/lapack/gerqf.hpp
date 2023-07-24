@@ -144,7 +144,7 @@ int gerqf(A_t& A, tau_t& tau, const GerqfOpts<size_type<A_t>>& opts = {})
         auto A11 = slice(A, range(j, j + ib), range(0, n - j2));
         auto tauw1 = slice(tau, range(k - j2 - ib, k - j2));
 
-        gerq2(A11, tauw1, workt);
+        gerq2_work(A11, tauw1, workt);
 
         if (j > 0) {
             // Form the triangular factor of the block reflector
@@ -153,8 +153,8 @@ int gerqf(A_t& A, tau_t& tau, const GerqfOpts<size_type<A_t>>& opts = {})
 
             // Apply H to A(0:j,0:n-j2) from the right
             auto A12 = slice(A, range(0, j), range(0, n - j2));
-            larfb(Side::Right, Op::NoTrans, Direction::Backward,
-                  StoreV::Rowwise, A11, TT1, A12, work);
+            larfb_work(Side::Right, Op::NoTrans, Direction::Backward,
+                       StoreV::Rowwise, A11, TT1, A12, work);
         }
     }
 

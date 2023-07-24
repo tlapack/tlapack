@@ -83,13 +83,13 @@ template <TLAPACK_SIDE side_t,
           TLAPACK_VECTOR vectorC0_t,
           TLAPACK_MATRIX matrixC1_t,
           enable_if_t<std::is_convertible_v<storage_t, StoreV>, int> = 0>
-void larf(side_t side,
-          storage_t storeMode,
-          vector_t const& x,
-          const tau_t& tau,
-          vectorC0_t& C0,
-          matrixC1_t& C1,
-          work_t& work)
+void larf_work(side_t side,
+               storage_t storeMode,
+               vector_t const& x,
+               const tau_t& tau,
+               vectorC0_t& C0,
+               matrixC1_t& C1,
+               work_t& work)
 {
     // data traits
     using idx_t = size_type<vectorC0_t>;
@@ -349,7 +349,7 @@ void larf(side_t side,
     std::vector<T> work_;
     auto work = new_matrix(work_, workinfo.m, workinfo.n);
 
-    return larf(side, storeMode, x, tau, C0, C1, work);
+    return larf_work(side, storeMode, x, tau, C0, C1, work);
 }
 
 /** Applies an elementary reflector H to a m-by-n matrix C.
@@ -400,13 +400,13 @@ template <TLAPACK_SIDE side_t,
           TLAPACK_SCALAR tau_t,
           TLAPACK_SMATRIX matrix_t,
           enable_if_t<std::is_convertible_v<direction_t, Direction>, int> = 0>
-inline void larf(side_t side,
-                 direction_t direction,
-                 storage_t storeMode,
-                 vector_t const& v,
-                 const tau_t& tau,
-                 matrix_t& C,
-                 work_t& work)
+inline void larf_work(side_t side,
+                      direction_t direction,
+                      storage_t storeMode,
+                      vector_t const& v,
+                      const tau_t& tau,
+                      matrix_t& C,
+                      work_t& work)
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -446,7 +446,7 @@ inline void larf(side_t side,
                                                     : rows(C, range{0, m - 1});
         auto x = (direction == Direction::Forward) ? slice(v, range{1, m})
                                                    : slice(v, range{0, m - 1});
-        larf(side, storeMode, x, tau, C0, C1, work);
+        larf_work(side, storeMode, x, tau, C0, C1, work);
     }
     else {  // side == Side::Right
         auto C0 = (direction == Direction::Forward) ? col(C, 0) : col(C, n - 1);
@@ -454,7 +454,7 @@ inline void larf(side_t side,
                                                     : cols(C, range{0, n - 1});
         auto x = (direction == Direction::Forward) ? slice(v, range{1, n})
                                                    : slice(v, range{0, n - 1});
-        larf(side, storeMode, x, tau, C0, C1, work);
+        larf_work(side, storeMode, x, tau, C0, C1, work);
     }
 }
 
@@ -617,7 +617,7 @@ inline void larf(side_t side,
     std::vector<T> work_;
     auto work = new_matrix(work_, workinfo.m, workinfo.n);
 
-    return larf(side, direction, storeMode, v, tau, C, work);
+    return larf_work(side, direction, storeMode, v, tau, C, work);
 }
 
 }  // namespace tlapack

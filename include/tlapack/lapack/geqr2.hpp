@@ -51,7 +51,7 @@ inline constexpr WorkInfo geqr2_worksize(const matrix_t& A, const vector_t& tau)
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
           TLAPACK_SMATRIX work_t>
-int geqr2(matrix_t& A, vector_t& tau, work_t& work)
+int geqr2_work(matrix_t& A, vector_t& tau, work_t& work)
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -78,7 +78,8 @@ int geqr2(matrix_t& A, vector_t& tau, work_t& work)
         auto C = slice(A, range{i, m}, range{i + 1, n});
 
         // C := ( I - conj(tau_i) v v^H ) C
-        larf(LEFT_SIDE, FORWARD, COLUMNWISE_STORAGE, v, conj(tau[i]), C, work);
+        larf_work(LEFT_SIDE, FORWARD, COLUMNWISE_STORAGE, v, conj(tau[i]), C,
+                  work);
     }
     if (n - 1 < m) {
         // Define v := A[n-1:m,n-1]
@@ -149,7 +150,7 @@ int geqr2(matrix_t& A, vector_t& tau)
     std::vector<T> work_;
     auto work = new_matrix(work_, workinfo.m, workinfo.n);
 
-    return geqr2(A, tau, work);
+    return geqr2_work(A, tau, work);
 }
 
 }  // namespace tlapack

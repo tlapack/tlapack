@@ -172,13 +172,13 @@ int ungrq(matrix_t& A,
             auto C = slice(A, range{0, ii}, range{0, n - k + i + ib});
 
             larft(BACKWARD, ROWWISE_STORAGE, V, taui, matrixTi);
-            larfb(RIGHT_SIDE, CONJ_TRANS, BACKWARD, ROWWISE_STORAGE, V,
-                  matrixTi, C, work);
+            larfb_work(RIGHT_SIDE, CONJ_TRANS, BACKWARD, ROWWISE_STORAGE, V,
+                       matrixTi, C, work);
         }
         // Use unblocked code to apply H^H to columns 0:n-k+i+ib of current
         // block
         auto Ai = slice(A, range{ii, ii + ib}, range{0, n - k + i + ib});
-        ungr2(Ai, taui, work);
+        ungr2_work(Ai, taui, work);
         // Set columns n-k+i+ib:n of current block to zero
         for (idx_t j = n - k + i + ib; j < n; ++j)
             for (idx_t l = ii; l < ii + ib; l++)

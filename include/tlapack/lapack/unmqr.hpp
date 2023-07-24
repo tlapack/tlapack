@@ -226,7 +226,8 @@ int unmqr(side_t side,
                                        : slice(C, range{0, m}, range{i, n});
 
         // Apply H or H**H
-        larfb(side, trans, FORWARD, COLUMNWISE_STORAGE, V, matrixTi, Ci, work);
+        larfb_work(side, trans, FORWARD, COLUMNWISE_STORAGE, V, matrixTi, Ci,
+                   work);
     }
 
     return 0;

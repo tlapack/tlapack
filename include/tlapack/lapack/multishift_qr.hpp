@@ -149,15 +149,15 @@ template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_SVECTOR vector_t,
           TLAPACK_RWORKSPACE work_t,
           enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
-int multishift_qr(bool want_t,
-                  bool want_z,
-                  size_type<matrix_t> ilo,
-                  size_type<matrix_t> ihi,
-                  matrix_t& A,
-                  vector_t& w,
-                  matrix_t& Z,
-                  work_t& work,
-                  FrancisOpts<size_type<matrix_t> >& opts)
+int multishift_qr_work(bool want_t,
+                       bool want_z,
+                       size_type<matrix_t> ilo,
+                       size_type<matrix_t> ihi,
+                       matrix_t& A,
+                       vector_t& w,
+                       matrix_t& Z,
+                       work_t& work,
+                       FrancisOpts<size_type<matrix_t> >& opts)
 {
     using TA = type_t<matrix_t>;
     using real_t = real_type<TA>;
@@ -291,8 +291,8 @@ int multishift_qr(bool want_t,
 
         idx_t ls, ld;
         n_aed = n_aed + 1;
-        agressive_early_deflation(want_t, want_z, istart, istop, nw, A, w, Z,
-                                  ls, ld, work, opts);
+        agressive_early_deflation_work(want_t, want_z, istart, istop, nw, A, w,
+                                       Z, ls, ld, work, opts);
 
         istop = istop - ld;
 
@@ -402,7 +402,8 @@ int multishift_qr(bool want_t,
 
         n_sweep = n_sweep + 1;
         n_shifts_total = n_shifts_total + ns;
-        multishift_QR_sweep(want_t, want_z, istart, istop, A, shifts, Z, work2);
+        multishift_QR_sweep_work(want_t, want_z, istart, istop, A, shifts, Z,
+                                 work2);
     }
 
     opts.n_aed = n_aed;
@@ -416,17 +417,17 @@ template <TLAPACK_MATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
           TLAPACK_SMATRIX work_t,
           enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
-inline int multishift_qr(bool want_t,
-                         bool want_z,
-                         size_type<matrix_t> ilo,
-                         size_type<matrix_t> ihi,
-                         matrix_t& A,
-                         vector_t& w,
-                         matrix_t& Z,
-                         work_t& work)
+inline int multishift_qr_work(bool want_t,
+                              bool want_z,
+                              size_type<matrix_t> ilo,
+                              size_type<matrix_t> ihi,
+                              matrix_t& A,
+                              vector_t& w,
+                              matrix_t& Z,
+                              work_t& work)
 {
     FrancisOpts<size_type<matrix_t> > opts = {};
-    return multishift_qr(want_t, want_z, ilo, ihi, A, w, Z, work, opts);
+    return multishift_qr_work(want_t, want_z, ilo, ihi, A, w, Z, work, opts);
 }
 
 /** multishift_qr computes the eigenvalues and optionally the Schur
@@ -530,7 +531,7 @@ int multishift_qr(bool want_t,
     std::vector<TA> work_;
     auto work = new_matrix(work_, workinfo.m, workinfo.n);
 
-    return multishift_qr(want_t, want_z, ilo, ihi, A, w, Z, work, opts);
+    return multishift_qr_work(want_t, want_z, ilo, ihi, A, w, Z, work, opts);
 }
 
 template <TLAPACK_MATRIX matrix_t,

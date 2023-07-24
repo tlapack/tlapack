@@ -52,7 +52,7 @@ inline constexpr WorkInfo ungl2_worksize(const matrix_t& Q,
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
           TLAPACK_SMATRIX work_t>
-int ungl2(matrix_t& Q, const vector_t& tauw, work_t& work)
+int ungl2_work(matrix_t& Q, const vector_t& tauw, work_t& work)
 {
     using idx_t = size_type<matrix_t>;
     using T = type_t<matrix_t>;
@@ -91,8 +91,8 @@ int ungl2(matrix_t& Q, const vector_t& tauw, work_t& work)
                 // both conditions are satisfied
 
                 auto Q11 = slice(Q, range(j + 1, k), range(j, n));
-                larf(Side::Right, FORWARD, ROWWISE_STORAGE, w, conj(tauw[j]),
-                     Q11, work);
+                larf_work(Side::Right, FORWARD, ROWWISE_STORAGE, w,
+                          conj(tauw[j]), Q11, work);
             }
 
             scal(-conj(tauw[j]), w);
@@ -159,7 +159,7 @@ int ungl2(matrix_t& Q, const vector_t& tauw)
     std::vector<T> work_;
     auto work = new_matrix(work_, workinfo.m, workinfo.n);
 
-    return ungl2(Q, tauw, work);
+    return ungl2_work(Q, tauw, work);
 }
 }  // namespace tlapack
 #endif  // TLAPACK_UNGL2_HH

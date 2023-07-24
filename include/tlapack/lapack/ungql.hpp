@@ -174,12 +174,12 @@ int ungql(matrix_t& A,
             auto C = slice(A, range{0, m - k + i + ib}, range{0, ii});
 
             larft(BACKWARD, COLUMNWISE_STORAGE, V, taui, matrixTi);
-            larfb(LEFT_SIDE, NO_TRANS, BACKWARD, COLUMNWISE_STORAGE, V,
-                  matrixTi, C, W);
+            larfb_work(LEFT_SIDE, NO_TRANS, BACKWARD, COLUMNWISE_STORAGE, V,
+                       matrixTi, C, W);
         }
         // Use unblocked code to apply H to rows 0:m-k+i+ib of current block
         auto Ai = slice(A, range{0, m - k + i + ib}, range{ii, ii + ib});
-        ung2l(Ai, taui, work);
+        ung2l_work(Ai, taui, work);
         // Set rows m-k+i+ib:m of current block to zero
         for (idx_t j = ii; j < ii + ib; ++j)
             for (idx_t l = m - k + i + ib; l < m; l++)

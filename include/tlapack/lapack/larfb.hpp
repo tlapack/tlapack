@@ -170,14 +170,14 @@ template <TLAPACK_SMATRIX matrixV_t,
           TLAPACK_OP trans_t,
           TLAPACK_DIRECTION direction_t,
           TLAPACK_STOREV storage_t>
-int larfb(side_t side,
-          trans_t trans,
-          direction_t direction,
-          storage_t storeMode,
-          const matrixV_t& V,
-          const matrixT_t& Tmatrix,
-          matrixC_t& C,
-          work_t& work)
+int larfb_work(side_t side,
+               trans_t trans,
+               direction_t direction,
+               storage_t storeMode,
+               const matrixV_t& V,
+               const matrixT_t& Tmatrix,
+               matrixC_t& C,
+               work_t& work)
 {
     using idx_t = size_type<matrixC_t>;
     using T = type_t<work_t>;
@@ -559,7 +559,7 @@ int larfb(side_t side,
     std::vector<T> work_;
     auto work = new_matrix(work_, workinfo.m, workinfo.n);
 
-    return larfb(side, trans, direction, storeMode, V, Tmatrix, C, work);
+    return larfb_work(side, trans, direction, storeMode, V, Tmatrix, C, work);
 }
 
 }  // namespace tlapack

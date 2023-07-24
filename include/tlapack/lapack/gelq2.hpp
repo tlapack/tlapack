@@ -51,7 +51,7 @@ inline constexpr WorkInfo gelq2_worksize(const matrix_t& A,
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
           TLAPACK_SMATRIX work_t>
-int gelq2(matrix_t& A, vector_t& tauw, work_t& work)
+int gelq2_work(matrix_t& A, vector_t& tauw, work_t& work)
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -75,7 +75,8 @@ int gelq2(matrix_t& A, vector_t& tauw, work_t& work)
         if (j < k - 1 || k < m) {
             // Apply H(j) to A(j+1:m,j:n) from the right
             auto Q11 = slice(A, range(j + 1, m), range(j, n));
-            larf(Side::Right, FORWARD, ROWWISE_STORAGE, w, tauw[j], Q11, work);
+            larf_work(Side::Right, FORWARD, ROWWISE_STORAGE, w, tauw[j], Q11,
+                      work);
         }
     }
 
@@ -142,7 +143,7 @@ int gelq2(matrix_t& A, vector_t& tauw)
     std::vector<T> work_;
     auto work = new_matrix(work_, workinfo.m, workinfo.n);
 
-    return gelq2(A, tauw, work);
+    return gelq2_work(A, tauw, work);
 }
 }  // namespace tlapack
 

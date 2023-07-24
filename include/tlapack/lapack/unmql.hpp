@@ -240,7 +240,8 @@ int unmql(side_t side,
                       : slice(C, range{0, m}, range{0, n - k + i + ib});
 
         // Apply H or H**H
-        larfb(side, trans, BACKWARD, COLUMNWISE_STORAGE, V, matrixTi, Ci, work);
+        larfb_work(side, trans, BACKWARD, COLUMNWISE_STORAGE, V, matrixTi, Ci,
+                   work);
     }
 
     return 0;

@@ -140,7 +140,7 @@ int gelqf(A_t& A, tau_t& tau, const GelqfOpts<size_type<A_t>>& opts = {})
         auto A11 = slice(A, range(j, j + ib), range(j, n));
         auto tauw1 = slice(tau, range(j, j + ib));
 
-        gelq2(A11, tauw1, workt);
+        gelq2_work(A11, tauw1, workt);
 
         if (j + ib < m) {
             // Form the triangular factor of the block reflector H = H(j)
@@ -150,8 +150,8 @@ int gelqf(A_t& A, tau_t& tau, const GelqfOpts<size_type<A_t>>& opts = {})
 
             // Apply H to A(j+ib:m,j:n) from the right
             auto A12 = slice(A, range(j + ib, m), range(j, n));
-            larfb(RIGHT_SIDE, Op::NoTrans, Direction::Forward, StoreV::Rowwise,
-                  A11, TT1, A12, work);
+            larfb_work(RIGHT_SIDE, Op::NoTrans, Direction::Forward,
+                       StoreV::Rowwise, A11, TT1, A12, work);
         }
     }
 

@@ -140,7 +140,7 @@ int geqrf(A_t& A, tau_t& tau, const GeqrfOpts<size_type<A_t>>& opts = {})
         auto A11 = slice(A, range(j, m), range(j, j + ib));
         auto tauw1 = slice(tau, range(j, j + ib));
 
-        geqr2(A11, tauw1, work);
+        geqr2_work(A11, tauw1, work);
 
         if (j + ib < n) {
             // Form the triangular factor of the block reflector H = H(j)
@@ -150,8 +150,8 @@ int geqrf(A_t& A, tau_t& tau, const GeqrfOpts<size_type<A_t>>& opts = {})
 
             // Apply H to A(j:m,j+ib:n) from the left
             auto A12 = slice(A, range(j, m), range(j + ib, n));
-            larfb(Side::Left, Op::ConjTrans, Direction::Forward,
-                  StoreV::Columnwise, A11, TT1, A12, work);
+            larfb_work(Side::Left, Op::ConjTrans, Direction::Forward,
+                       StoreV::Columnwise, A11, TT1, A12, work);
         }
     }
 

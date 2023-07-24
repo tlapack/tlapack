@@ -227,8 +227,8 @@ int unmlq(side_t side,
                                        : slice(C, range{0, m}, range{i, n});
 
         // Apply H or H**H
-        larfb(side, (trans == Op::NoTrans) ? Op::ConjTrans : Op::NoTrans,
-              FORWARD, ROWWISE_STORAGE, V, matrixTi, Ci, work);
+        larfb_work(side, (trans == Op::NoTrans) ? Op::ConjTrans : Op::NoTrans,
+                   FORWARD, ROWWISE_STORAGE, V, matrixTi, Ci, work);
     }
 
     return 0;

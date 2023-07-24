@@ -174,12 +174,12 @@ int unglq(matrix_t& A,
             auto C = slice(A, range{i + ib, m}, range{i, n});
 
             larft(FORWARD, ROWWISE_STORAGE, V, taui, matrixTi);
-            larfb(RIGHT_SIDE, CONJ_TRANS, FORWARD, ROWWISE_STORAGE, V, matrixTi,
-                  C, work);
+            larfb_work(RIGHT_SIDE, CONJ_TRANS, FORWARD, ROWWISE_STORAGE, V,
+                       matrixTi, C, work);
         }
         // Use unblocked code to apply H to columns i:n of current block
         auto Ai = slice(A, range{i, i + ib}, range{i, n});
-        ungl2(Ai, taui, work);
+        ungl2_work(Ai, taui, work);
         // Set rows 0:i-1 of current block to zero
         for (idx_t j = 0; j < i; ++j)
             for (idx_t l = i; l < i + ib; l++)

@@ -92,12 +92,12 @@ WorkInfo gehrd_worksize(size_type<matrix_t> ilo,
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_SVECTOR vector_t,
           TLAPACK_SMATRIX work_t>
-int gehrd(size_type<matrix_t> ilo,
-          size_type<matrix_t> ihi,
-          matrix_t& A,
-          vector_t& tau,
-          work_t& work,
-          const GehrdOpts<size_type<matrix_t>>& opts = {})
+int gehrd_work(size_type<matrix_t> ilo,
+               size_type<matrix_t> ihi,
+               matrix_t& A,
+               vector_t& tau,
+               work_t& work,
+               const GehrdOpts<size_type<matrix_t>>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using T = type_t<work_t>;
@@ -169,11 +169,11 @@ int gehrd(size_type<matrix_t> ilo,
 
         // Apply the block reflector H to A(i+1:ihi,i+nb:n) from the left
         auto A5 = slice(A, range{i + 1, ihi}, range{i + nb2, n});
-        larfb(LEFT_SIDE, Op::ConjTrans, Direction::Forward, StoreV::Columnwise,
-              V, T_s, A5, W);
+        larfb_work(LEFT_SIDE, Op::ConjTrans, Direction::Forward,
+                   StoreV::Columnwise, V, T_s, A5, W);
     }
 
-    return gehd2(i, ihi, A, tau, work);
+    return gehd2_work(i, ihi, A, tau, work);
 }
 
 /** Reduces a general square matrix to upper Hessenberg form
@@ -248,7 +248,7 @@ int gehrd(size_type<matrix_t> ilo,
     std::vector<T> work_;
     auto work = new_matrix(work_, workinfo.m, workinfo.n);
 
-    return gehrd(ilo, ihi, A, tau, work, opts);
+    return gehrd_work(ilo, ihi, A, tau, work, opts);
 }
 
 }  // namespace tlapack

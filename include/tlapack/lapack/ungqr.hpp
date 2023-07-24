@@ -166,12 +166,12 @@ int ungqr(matrix_t& A,
             auto C = slice(A, range{i, m}, range{i + ib, n});
 
             larft(FORWARD, COLUMNWISE_STORAGE, V, taui, matrixTi);
-            larfb(LEFT_SIDE, NO_TRANS, FORWARD, COLUMNWISE_STORAGE, V, matrixTi,
-                  C, work);
+            larfb_work(LEFT_SIDE, NO_TRANS, FORWARD, COLUMNWISE_STORAGE, V,
+                       matrixTi, C, work);
         }
         // Use unblocked code to apply H to rows i:m of current block
         auto Ai = slice(A, range{i, m}, range{i, i + ib});
-        ung2r(Ai, taui, work);
+        ung2r_work(Ai, taui, work);
         // Set rows 0:i-1 of current block to zero
         for (idx_t j = i; j < i + ib; ++j)
             for (idx_t l = 0; l < i; l++)

@@ -137,7 +137,7 @@ int gelqt(matrix_t& A, matrix_t& TT, const GelqtOpts& opts = {})
         auto A11 = slice(A, range(j, j + ib), range(j, n));
         auto tauw1 = diag(TT1);
 
-        gelq2(A11, tauw1, work);
+        gelq2_work(A11, tauw1, work);
 
         // Form the triangular factor of the block reflector H = H(j) H(j+1)
         // . . . H(j+ib-1)
@@ -147,8 +147,8 @@ int gelqt(matrix_t& A, matrix_t& TT, const GelqtOpts& opts = {})
             // Apply H to A(j+ib:m,j:n) from the right
             auto A12 = slice(A, range(j + ib, m), range(j, n));
             auto work1 = slice(TT, range(j + ib, m), range(0, ib));
-            larfb(RIGHT_SIDE, Op::NoTrans, Direction::Forward, StoreV::Rowwise,
-                  A11, TT1, A12, work1);
+            larfb_work(RIGHT_SIDE, Op::NoTrans, Direction::Forward,
+                       StoreV::Rowwise, A11, TT1, A12, work1);
         }
     }
 

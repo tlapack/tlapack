@@ -67,11 +67,11 @@ inline constexpr WorkInfo gehd2_worksize(size_type<matrix_t> ilo,
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
           TLAPACK_SMATRIX work_t>
-int gehd2(size_type<matrix_t> ilo,
-          size_type<matrix_t> ihi,
-          matrix_t& A,
-          vector_t& tau,
-          work_t& work)
+int gehd2_work(size_type<matrix_t> ilo,
+               size_type<matrix_t> ihi,
+               matrix_t& A,
+               vector_t& tau,
+               work_t& work)
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -95,11 +95,12 @@ int gehd2(size_type<matrix_t> ilo,
 
         // Apply Householder reflection from the right to A[0:ihi,i+1:ihi]
         auto C0 = slice(A, range{0, ihi}, range{i + 1, ihi});
-        larf(RIGHT_SIDE, FORWARD, COLUMNWISE_STORAGE, v, tau[i], C0, work);
+        larf_work(RIGHT_SIDE, FORWARD, COLUMNWISE_STORAGE, v, tau[i], C0, work);
 
         // Apply Householder reflection from the left to A[i+1:ihi,i+1:n-1]
         auto C1 = slice(A, range{i + 1, ihi}, range{i + 1, n});
-        larf(LEFT_SIDE, FORWARD, COLUMNWISE_STORAGE, v, conj(tau[i]), C1, work);
+        larf_work(LEFT_SIDE, FORWARD, COLUMNWISE_STORAGE, v, conj(tau[i]), C1,
+                  work);
     }
 
     return 0;
@@ -173,7 +174,7 @@ int gehd2(size_type<matrix_t> ilo,
     std::vector<T> work_;
     auto work = new_matrix(work_, workinfo.m, workinfo.n);
 
-    return gehd2(ilo, ihi, A, tau, work);
+    return gehd2_work(ilo, ihi, A, tau, work);
 }
 
 }  // namespace tlapack

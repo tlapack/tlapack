@@ -51,7 +51,7 @@ inline constexpr WorkInfo geql2_worksize(const matrix_t& A, const vector_t& tau)
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
           TLAPACK_SMATRIX work_t>
-int geql2(matrix_t& A, vector_t& tau, work_t& work)
+int geql2_work(matrix_t& A, vector_t& tau, work_t& work)
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -79,8 +79,8 @@ int geql2(matrix_t& A, vector_t& tau, work_t& work)
         // Apply the reflector to the rest of the matrix
         if (n + i > k) {
             auto C = slice(A, range{0, m - k + i + 1}, range{0, n - k + i});
-            larf(Side::Left, Direction::Backward, StoreV::Columnwise, v,
-                 conj(tau[i]), C, work);
+            larf_work(Side::Left, Direction::Backward, StoreV::Columnwise, v,
+                      conj(tau[i]), C, work);
         }
     }
 
@@ -149,7 +149,7 @@ int geql2(matrix_t& A, vector_t& tau)
     std::vector<T> work_;
     auto work = new_matrix(work_, workinfo.m, workinfo.n);
 
-    return geql2(A, tau, work);
+    return geql2_work(A, tau, work);
 }
 
 }  // namespace tlapack

@@ -73,14 +73,14 @@ inline constexpr WorkInfo unmhr_worksize(Side side,
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_SVECTOR vector_t,
           TLAPACK_SMATRIX work_t>
-int unmhr(Side side,
-          Op trans,
-          size_type<matrix_t> ilo,
-          size_type<matrix_t> ihi,
-          const matrix_t& A,
-          const vector_t& tau,
-          matrix_t& C,
-          work_t& work)
+int unmhr_work(Side side,
+               Op trans,
+               size_type<matrix_t> ilo,
+               size_type<matrix_t> ihi,
+               const matrix_t& A,
+               const vector_t& tau,
+               matrix_t& C,
+               work_t& work)
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -91,7 +91,7 @@ int unmhr(Side side,
                    ? slice(C, range{ilo + 1, ihi}, range{0, ncols(C)})
                    : slice(C, range{0, nrows(C)}, range{ilo + 1, ihi});
 
-    return unm2r(side, trans, A_s, tau_s, C_s, work);
+    return unm2r_work(side, trans, A_s, tau_s, C_s, work);
 }
 
 /** Applies unitary matrix Q to a matrix C.
@@ -149,7 +149,7 @@ int unmhr(Side side,
     std::vector<T> work_;
     auto work = new_matrix(work_, workinfo.m, workinfo.n);
 
-    return unmhr(side, trans, ilo, ihi, A, tau, C, work);
+    return unmhr_work(side, trans, ilo, ihi, A, tau, C, work);
 }
 }  // namespace tlapack
 

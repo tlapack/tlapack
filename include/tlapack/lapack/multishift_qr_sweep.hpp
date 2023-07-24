@@ -68,14 +68,14 @@ template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
           TLAPACK_SMATRIX work_t,
           enable_if_t<is_complex<type_t<vector_t>>, bool> = true>
-void multishift_QR_sweep(bool want_t,
-                         bool want_z,
-                         size_type<matrix_t> ilo,
-                         size_type<matrix_t> ihi,
-                         matrix_t& A,
-                         const vector_t& s,
-                         matrix_t& Z,
-                         work_t& work)
+void multishift_QR_sweep_work(bool want_t,
+                              bool want_z,
+                              size_type<matrix_t> ilo,
+                              size_type<matrix_t> ihi,
+                              matrix_t& A,
+                              const vector_t& s,
+                              matrix_t& Z,
+                              work_t& work)
 {
     using TA = type_t<matrix_t>;
     using real_t = real_type<TA>;
@@ -863,7 +863,7 @@ void multishift_QR_sweep(bool want_t,
     std::vector<TA> work_;
     auto work = new_matrix(work_, workinfo.m, workinfo.n);
 
-    multishift_QR_sweep(want_t, want_z, ilo, ihi, A, s, Z, work);
+    multishift_QR_sweep_work(want_t, want_z, ilo, ihi, A, s, Z, work);
 }
 
 }  // namespace tlapack

@@ -163,13 +163,13 @@ int unmr2(side_t side,
 
         if (side == Side::Left) {
             auto Ci = rows(C, range{0, m - k + i + 1});
-            larf(LEFT_SIDE, BACKWARD, ROWWISE_STORAGE, v,
-                 (trans == Op::NoTrans) ? conj(tau[i]) : tau[i], Ci, work);
+            larf_work(LEFT_SIDE, BACKWARD, ROWWISE_STORAGE, v,
+                      (trans == Op::NoTrans) ? conj(tau[i]) : tau[i], Ci, work);
         }
         else {
             auto Ci = cols(C, range{0, n - k + i + 1});
-            larf(RIGHT_SIDE, BACKWARD, ROWWISE_STORAGE, v,
-                 (trans == Op::NoTrans) ? conj(tau[i]) : tau[i], Ci, work);
+            larf_work(RIGHT_SIDE, BACKWARD, ROWWISE_STORAGE, v,
+                      (trans == Op::NoTrans) ? conj(tau[i]) : tau[i], Ci, work);
         }
     }
 

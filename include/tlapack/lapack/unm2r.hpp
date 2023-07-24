@@ -74,12 +74,12 @@ template <TLAPACK_SMATRIX matrixA_t,
           TLAPACK_VECTOR tau_t,
           TLAPACK_SIDE side_t,
           TLAPACK_OP trans_t>
-int unm2r(side_t side,
-          trans_t trans,
-          const matrixA_t& A,
-          const tau_t& tau,
-          matrixC_t& C,
-          work_t& work)
+int unm2r_work(side_t side,
+               trans_t trans,
+               const matrixA_t& A,
+               const tau_t& tau,
+               matrixC_t& C,
+               work_t& work)
 {
     using TA = type_t<matrixA_t>;
     using idx_t = size_type<matrixA_t>;
@@ -114,13 +114,15 @@ int unm2r(side_t side,
 
         if (side == Side::Left) {
             auto Ci = rows(C, range{i, m});
-            larf(LEFT_SIDE, FORWARD, COLUMNWISE_STORAGE, v,
-                 (trans == Op::ConjTrans) ? conj(tau[i]) : tau[i], Ci, work);
+            larf_work(LEFT_SIDE, FORWARD, COLUMNWISE_STORAGE, v,
+                      (trans == Op::ConjTrans) ? conj(tau[i]) : tau[i], Ci,
+                      work);
         }
         else {
             auto Ci = cols(C, range{i, n});
-            larf(RIGHT_SIDE, FORWARD, COLUMNWISE_STORAGE, v,
-                 (trans == Op::ConjTrans) ? conj(tau[i]) : tau[i], Ci, work);
+            larf_work(RIGHT_SIDE, FORWARD, COLUMNWISE_STORAGE, v,
+                      (trans == Op::ConjTrans) ? conj(tau[i]) : tau[i], Ci,
+                      work);
         }
     }
 
@@ -220,7 +222,7 @@ int unm2r(side_t side,
     std::vector<T> work_;
     auto work = new_matrix(work_, workinfo.m, workinfo.n);
 
-    return unm2r(side, trans, A, tau, C, work);
+    return unm2r_work(side, trans, A, tau, C, work);
 }
 
 }  // namespace tlapack

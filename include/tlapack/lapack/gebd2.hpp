@@ -151,8 +151,8 @@ int gebd2(matrix_t& A, vector_t& tauv, vector_t& tauw)
             if (j < n - 1) {
                 // Apply H(j)**H to A(j:m,j+1:n) from the left
                 auto A11 = slice(A, range(j, m), range(j + 1, n));
-                larf(LEFT_SIDE, FORWARD, COLUMNWISE_STORAGE, v, conj(tauv[j]),
-                     A11, work);
+                larf_work(LEFT_SIDE, FORWARD, COLUMNWISE_STORAGE, v,
+                          conj(tauv[j]), A11, work);
 
                 // Generate elementary reflector G(j) to annihilate A(j,j+2:n)
                 auto w = slice(A, j, range(j + 1, n));
@@ -161,8 +161,8 @@ int gebd2(matrix_t& A, vector_t& tauv, vector_t& tauw)
                 // Apply G(j) to A(j+1:m,j+1:n) from the right
                 if (j < m - 1) {
                     auto B11 = slice(A, range(j + 1, m), range(j + 1, n));
-                    larf(RIGHT_SIDE, FORWARD, ROWWISE_STORAGE, w, tauw[j], B11,
-                         work);
+                    larf_work(RIGHT_SIDE, FORWARD, ROWWISE_STORAGE, w, tauw[j],
+                              B11, work);
                 }
             }
             else {
@@ -182,8 +182,8 @@ int gebd2(matrix_t& A, vector_t& tauv, vector_t& tauw)
             if (j < m - 1) {
                 // Apply G(j) to A(j+1:m,j:n) from the right
                 auto A11 = slice(A, range(j + 1, m), range(j, n));
-                larf(RIGHT_SIDE, FORWARD, ROWWISE_STORAGE, w, tauw[j], A11,
-                     work);
+                larf_work(RIGHT_SIDE, FORWARD, ROWWISE_STORAGE, w, tauw[j], A11,
+                          work);
 
                 // Generate elementary reflector H(j) to annihilate A(j+2:m,j)
                 auto v = slice(A, range(j + 1, m), j);
@@ -192,8 +192,8 @@ int gebd2(matrix_t& A, vector_t& tauv, vector_t& tauw)
                 // Apply H(j)**H to A(j+1:m,j+1:n) from the left
                 if (j < n - 1) {
                     auto B11 = slice(A, range(j + 1, m), range(j + 1, n));
-                    larf(LEFT_SIDE, FORWARD, COLUMNWISE_STORAGE, v,
-                         conj(tauv[j]), B11, work);
+                    larf_work(LEFT_SIDE, FORWARD, COLUMNWISE_STORAGE, v,
+                              conj(tauv[j]), B11, work);
                 }
             }
             else {

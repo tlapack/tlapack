@@ -51,7 +51,7 @@ inline constexpr WorkInfo ung2r_worksize(const matrix_t& A, const vector_t& tau)
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
           TLAPACK_SMATRIX work_t>
-int ung2r(matrix_t& A, const vector_t& tau, work_t& work)
+int ung2r_work(matrix_t& A, const vector_t& tau, work_t& work)
 {
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
@@ -83,7 +83,7 @@ int ung2r(matrix_t& A, const vector_t& tau, work_t& work)
         // Define v and C
         auto v = slice(A, range{i, m}, i);
         auto C = slice(A, range{i, m}, range{i + 1, n});
-        larf(LEFT_SIDE, FORWARD, COLUMNWISE_STORAGE, v, tau[i], C, work);
+        larf_work(LEFT_SIDE, FORWARD, COLUMNWISE_STORAGE, v, tau[i], C, work);
         auto x = slice(A, range{i + 1, m}, i);
         scal(-tau[i], x);
         A(i, i) = one - tau[i];
@@ -142,7 +142,7 @@ int ung2r(matrix_t& A, const vector_t& tau)
     std::vector<T> work_;
     auto work = new_matrix(work_, workinfo.m, workinfo.n);
 
-    return ung2r(A, tau, work);
+    return ung2r_work(A, tau, work);
 }
 
 }  // namespace tlapack

@@ -195,18 +195,18 @@ template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_SVECTOR vector_t,
           TLAPACK_RWORKSPACE work_t,
           enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
-void agressive_early_deflation(bool want_t,
-                               bool want_z,
-                               size_type<matrix_t> ilo,
-                               size_type<matrix_t> ihi,
-                               size_type<matrix_t> nw,
-                               matrix_t& A,
-                               vector_t& s,
-                               matrix_t& Z,
-                               size_type<matrix_t>& ns,
-                               size_type<matrix_t>& nd,
-                               work_t& work,
-                               FrancisOpts<size_type<matrix_t> >& opts)
+void agressive_early_deflation_work(bool want_t,
+                                    bool want_z,
+                                    size_type<matrix_t> ilo,
+                                    size_type<matrix_t> ihi,
+                                    size_type<matrix_t> nw,
+                                    matrix_t& A,
+                                    vector_t& s,
+                                    matrix_t& Z,
+                                    size_type<matrix_t>& ns,
+                                    size_type<matrix_t>& nd,
+                                    work_t& work,
+                                    FrancisOpts<size_type<matrix_t> >& opts)
 {
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
@@ -295,7 +295,8 @@ void agressive_early_deflation(bool want_t,
     if (jw < opts.nmin)
         infqr = lahqr(true, true, 0, jw, TW, s_window, V);
     else {
-        infqr = multishift_qr(true, true, 0, jw, TW, s_window, V, work, opts);
+        infqr =
+            multishift_qr_work(true, true, 0, jw, TW, s_window, V, work, opts);
         for (idx_t j = 0; j < jw; ++j)
             for (idx_t i = j + 2; i < jw; ++i)
                 TW(i, j) = zero;
@@ -455,25 +456,25 @@ void agressive_early_deflation(bool want_t,
             auto Wv_aux = slice(WV, range{0, jw}, range{1, 2});
 
             auto TW_slice = slice(TW, range{0, ns}, range{0, jw});
-            larf(Side::Left, FORWARD, COLUMNWISE_STORAGE, v, conj(tau),
-                 TW_slice, Wv_aux);
+            larf_work(Side::Left, FORWARD, COLUMNWISE_STORAGE, v, conj(tau),
+                      TW_slice, Wv_aux);
 
             auto TW_slice2 = slice(TW, range{0, jw}, range{0, ns});
-            larf(Side::Right, FORWARD, COLUMNWISE_STORAGE, v, tau, TW_slice2,
-                 Wv_aux);
+            larf_work(Side::Right, FORWARD, COLUMNWISE_STORAGE, v, tau,
+                      TW_slice2, Wv_aux);
 
             auto V_slice = slice(V, range{0, jw}, range{0, ns});
-            larf(Side::Right, FORWARD, COLUMNWISE_STORAGE, v, tau, V_slice,
-                 Wv_aux);
+            larf_work(Side::Right, FORWARD, COLUMNWISE_STORAGE, v, tau, V_slice,
+                      Wv_aux);
         }
 
         // Hessenberg reduction
         {
             auto tau = slice(WV, range{0, jw}, 0);
-            gehrd(0, ns, TW, tau, work2);
+            gehrd_work(0, ns, TW, tau, work2);
 
             auto work3 = slice(WV, range{0, jw}, range{1, 2});
-            unmhr(Side::Right, Op::NoTrans, 0, ns, TW, tau, V, work3);
+            unmhr_work(Side::Right, Op::NoTrans, 0, ns, TW, tau, V, work3);
         }
     }
 
@@ -594,21 +595,21 @@ template <TLAPACK_MATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
           TLAPACK_MATRIX work_t,
           enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
-inline void agressive_early_deflation(bool want_t,
-                                      bool want_z,
-                                      size_type<matrix_t> ilo,
-                                      size_type<matrix_t> ihi,
-                                      size_type<matrix_t> nw,
-                                      matrix_t& A,
-                                      vector_t& s,
-                                      matrix_t& Z,
-                                      size_type<matrix_t>& ns,
-                                      size_type<matrix_t>& nd,
-                                      work_t& work)
+inline void agressive_early_deflation_work(bool want_t,
+                                           bool want_z,
+                                           size_type<matrix_t> ilo,
+                                           size_type<matrix_t> ihi,
+                                           size_type<matrix_t> nw,
+                                           matrix_t& A,
+                                           vector_t& s,
+                                           matrix_t& Z,
+                                           size_type<matrix_t>& ns,
+                                           size_type<matrix_t>& nd,
+                                           work_t& work)
 {
     FrancisOpts<size_type<matrix_t> > opts = {};
-    agressive_early_deflation(want_t, want_z, ilo, ihi, nw, A, s, Z, ns, nd,
-                              work, opts);
+    agressive_early_deflation_work(want_t, want_z, ilo, ihi, nw, A, s, Z, ns,
+                                   nd, work, opts);
 }
 
 /** agressive_early_deflation accepts as input an upper Hessenberg matrix
@@ -740,8 +741,8 @@ void agressive_early_deflation(bool want_t,
     std::vector<T> work_;
     auto work = new_matrix(work_, workinfo.m, workinfo.n);
 
-    agressive_early_deflation(want_t, want_z, ilo, ihi, nw, A, s, Z, ns, nd,
-                              work, opts);
+    agressive_early_deflation_work(want_t, want_z, ilo, ihi, nw, A, s, Z, ns,
+                                   nd, work, opts);
 }
 
 /** agressive_early_deflation accepts as input an upper Hessenberg matrix
