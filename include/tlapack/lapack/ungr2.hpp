@@ -25,8 +25,6 @@ namespace tlapack {
  * @param[in] tau Real vector of length min(m,n).
  *      The scalar factors of the elementary reflectors.
  *
- * @param[in] opts Options.
- *
  * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
@@ -48,6 +46,30 @@ inline constexpr WorkInfo ungr2_worksize(const matrix_t& A, const vector_t& tau)
     return WorkInfo(0);
 }
 
+/**
+ * @brief Generates an m-by-n matrix Q with orthonormal columns,
+ *        which is defined as the last m rows of a product of k elementary
+ *        reflectors of order n
+ * \[
+ *     Q  =  H_1^H H_2^H ... H_k^H
+ * \]
+ *        The reflectors are stored in the matrix A as returned by gerqf
+ *
+ * @param[in,out] A m-by-n matrix.
+ *      On entry, the (m-k+i)-th row must contain the vector which
+ *      defines the elementary reflector H(i), for i = 1,2,...,k, as
+ *      returned by GERQF in the last k rows of its matrix argument A.
+ *      On exit, the m-by-n matrix $Q$.
+
+ * @param[in] tau Real vector of length min(m,n).
+ *      The scalar factors of the elementary reflectors.
+ *
+ * @param work Workspace. Use the workspace query to determine the size needed.
+ *
+ * @return 0 if success
+ *
+ * @ingroup computational
+ */
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
           TLAPACK_SMATRIX work_t>
@@ -113,10 +135,6 @@ int ungr2_work(matrix_t& A, const vector_t& tau, work_t& work)
 
  * @param[in] tau Real vector of length min(m,n).
  *      The scalar factors of the elementary reflectors.
- *
- * @param[in] opts Options.
- *      @c opts.work is used if whenever it has sufficient size.
- *      The sufficient size can be obtained through a workspace query.
  *
  * @return 0 if success
  *

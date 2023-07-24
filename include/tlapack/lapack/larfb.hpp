@@ -135,6 +135,8 @@ inline constexpr WorkInfo larfb_worksize(side_t side,
  *     On entry, the m-by-n matrix C.
  *     On exit, C is overwritten by $H C$ or $H^H C$ or $C H$ or $C H^H$.
  *
+ * @param work Workspace. Use the workspace query to determine the size needed.
+ *
  * @par Further Details
  *
  * The shape of the matrix V and the storage of the vectors which define

@@ -70,8 +70,6 @@ inline constexpr WorkInfo getri_worksize(const matrix_t& A,
  *      - @c opts.variant:
  *          - UILI = 'D', ///< Method D from doi:10.1137/1.9780898718027
  *          - UXLI = 'C'  ///< Method C from doi:10.1137/1.9780898718027
- *      - @c opts.work is used if whenever it has sufficient size.
- *        Check the correct variant to obtain details.
  *
  * @ingroup computational
  */

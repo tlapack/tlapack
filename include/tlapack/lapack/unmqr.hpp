@@ -48,8 +48,6 @@ struct UnmqrOpts {
  * @param[in] C m-by-n matrix.
  *
  * @param[in] opts Options.
- *      @c opts.work is used if whenever it has sufficient size.
- *      The sufficient size can be obtained through a workspace query.
  *
  * @return WorkInfo The amount workspace required.
  *
@@ -152,8 +150,6 @@ inline constexpr WorkInfo unmqr_worksize(
  *      - side = Side::Right & trans = Op::ConjTrans:  $C := Q^H C$.
  *
  * @param[in] opts Options.
- *      @c opts.work is used if whenever it has sufficient size.
- *      The sufficient size can be obtained through a workspace query.
  *
  * @ingroup computational
  */

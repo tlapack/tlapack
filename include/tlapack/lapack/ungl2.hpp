@@ -25,8 +25,6 @@ namespace tlapack {
  *      tauw(j) must contain the scalar factor of the elementary
  *      reflector H(j), as returned by gelq2.
  *
- * @param[in] opts Options.
- *
  * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
@@ -49,6 +47,33 @@ inline constexpr WorkInfo ungl2_worksize(const matrix_t& Q,
     return WorkInfo(0);
 }
 
+/**
+ * Generates all or part of the unitary matrix Q from an LQ factorization
+ * determined by gelq2 (unblocked algorithm).
+ *
+ * The matrix Q is defined as the first k rows of a product of k elementary
+ * reflectors of order n
+ * \[
+ *          Q = H(k)**H ... H(2)**H H(1)**H
+ * \]
+ * as returned by gelq2 and k <= n.
+ *
+ * @return  0 if success
+ *
+ * @param[in,out] Q k-by-n matrix.
+ *      On entry, the i-th row must contain the vector which defines
+ *      the elementary reflector H(j), for j = 1,2,...,k, as returned
+ *      by gelq2 in the first k rows of its array argument A.
+ *      On exit, the k by n matrix Q.
+ *
+ * @param[in] tauw Complex vector of length min(m,n).
+ *      tauw(j) must contain the scalar factor of the elementary
+ *      reflector H(j), as returned by gelq2.
+ *
+ * @param work Workspace. Use the workspace query to determine the size needed.
+ *
+ * @ingroup computational
+ */
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
           TLAPACK_SMATRIX work_t>
@@ -130,10 +155,6 @@ int ungl2_work(matrix_t& Q, const vector_t& tauw, work_t& work)
  * @param[in] tauw Complex vector of length min(m,n).
  *      tauw(j) must contain the scalar factor of the elementary
  *      reflector H(j), as returned by gelq2.
- *
- * @param[in] opts Options.
- *      @c opts.work is used if whenever it has sufficient size.
- *      The sufficient size can be obtained through a workspace query.
  *
  * @ingroup computational
  */

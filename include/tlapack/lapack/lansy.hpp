@@ -34,8 +34,6 @@ namespace tlapack {
  *
  * @param[in] A n-by-n symmetric matrix.
  *
- * @param[in] opts Options.
- *
  * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
@@ -214,9 +212,7 @@ auto lansy(norm_t normType, uplo_t uplo, const matrix_t& A)
  *
  * @param[in] A n-by-n symmetric matrix.
  *
- * @param[in] opts Options.
- *      - @c opts.work is used if whenever it has sufficient size.
- *        The sufficient size can be obtained through a workspace query.
+ * @param work Workspace. Use the workspace query to determine the size needed.
  *
  * @ingroup auxiliary
  */

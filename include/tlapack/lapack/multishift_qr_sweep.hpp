@@ -40,8 +40,6 @@ namespace tlapack {
  * @param[in] Z  n by n matrix.
  *      On entry, the previously calculated Schur factors.
  *
- * @param[in] opts Options.
- *
  * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
@@ -64,6 +62,35 @@ inline constexpr WorkInfo multishift_QR_sweep_worksize(bool want_t,
         return WorkInfo(0);
 }
 
+/** multishift_QR_sweep performs a single small-bulge multi-shift QR sweep.
+ *
+ * @param[in] want_t bool.
+ *      If true, the full Schur factor T will be computed.
+ *
+ * @param[in] want_z bool.
+ *      If true, the Schur vectors Z will be computed.
+ *
+ * @param[in] ilo    integer.
+ *      Either ilo=0 or A(ilo,ilo-1) = 0.
+ *
+ * @param[in] ihi    integer.
+ *      ilo and ihi determine an isolated block in A.
+ *
+ * @param[in,out] A  n by n matrix.
+ *      Hessenberg matrix on which AED will be performed
+ *
+ * @param[in] s  complex vector.
+ *      Vector containing the shifts to be used during the sweep
+ *
+ * @param[in,out] Z  n by n matrix.
+ *      On entry, the previously calculated Schur factors
+ *      On exit, the orthogonal updates applied to A accumulated
+ *      into Z.
+ *
+ * @param work Workspace. Use the workspace query to determine the size needed.
+ *
+ * @ingroup computational
+ */
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
           TLAPACK_SMATRIX work_t,
@@ -834,10 +861,6 @@ void multishift_QR_sweep_work(bool want_t,
  *      On entry, the previously calculated Schur factors
  *      On exit, the orthogonal updates applied to A accumulated
  *      into Z.
- *
- * @param[in] opts Options.
- *      - @c opts.work is used if whenever it has sufficient size.
- *        The sufficient size can be obtained through a workspace query.
  *
  * @ingroup computational
  */

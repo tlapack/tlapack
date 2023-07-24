@@ -65,8 +65,6 @@ struct UnmqlOpts {
  * @return WorkInfo The amount workspace required.
  *
  * @param[in] opts Options.
- *      @c opts.work is used if whenever it has sufficient size.
- *      The sufficient size can be obtained through a workspace query.
  *
  * @ingroup computational
  */
@@ -165,8 +163,6 @@ inline constexpr WorkInfo unmql_worksize(
  *      - side = Side::Right & trans = Op::ConjTrans:  $C := Q^H C$.
  *
  * @param[in] opts Options.
- *      @c opts.work is used if whenever it has sufficient size.
- *      The sufficient size can be obtained through a workspace query.
  *
  * @ingroup computational
  */

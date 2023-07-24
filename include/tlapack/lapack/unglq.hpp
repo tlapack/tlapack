@@ -109,8 +109,6 @@ inline constexpr WorkInfo unglq_worksize(
  *      reflector H(j), as returned by gelqf.
  *
  * @param[in] opts Options.
- *      @c opts.work is used if whenever it has sufficient size.
- *      The sufficient size can be obtained through a workspace query.
  *
  * @ingroup computational
  */

@@ -33,10 +33,6 @@ namespace tlapack {
  * @param[in] tau Real vector of length n-1.
  *      The scalar factors of the elementary reflectors.
  *
- * @param[in] opts Options.
- *      @c opts.work is used if whenever it has sufficient size.
- *      The sufficient size can be obtained through a workspace query.
- *
  * @ingroup computational
  */
 template <TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
@@ -114,8 +110,6 @@ int unghr(size_type<matrix_t> ilo,
  *
  * @param[in] tau Real vector of length n-1.
  *      The scalar factors of the elementary reflectors.
- *
- * @param[in] opts Options.
  *
  * @return WorkInfo The amount workspace required.
  *

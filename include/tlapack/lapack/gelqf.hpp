@@ -99,8 +99,6 @@ inline constexpr WorkInfo gelqf_worksize(
  *      The scalar factors of the elementary reflectors.
  *
  * @param[in] opts Options.
- *      - @c opts.work is used if whenever it has sufficient size.
- *        The sufficient size can be obtained through a workspace query.
  *
  * @ingroup computational
  */

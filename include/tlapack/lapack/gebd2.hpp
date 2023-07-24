@@ -28,8 +28,6 @@ namespace tlapack {
  *
  * @param tauw Not referenced.
  *
- * @param[in] opts Options.
- *
  * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
@@ -106,10 +104,6 @@ inline constexpr WorkInfo gebd2_worksize(const matrix_t& A,
  * @param[out] tauw Real vector of length min(m,n).
  *      The scalar factors of the elementary reflectors which
  *      represent the unitary matrix Z.
- *
- * @param[in] opts Options.
- *      - @c opts.work is used if whenever it has sufficient size.
- *        The sufficient size can be obtained through a workspace query.
  *
  * @ingroup computational
  */

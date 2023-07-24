@@ -33,8 +33,6 @@ struct LuMultOpts {
  * contain the matrix U. On exit, A contains the product L*U.
  *
  * @param[in] opts Options.
- *      - @c opts.work is used if whenever it has sufficient size.
- *        The sufficient size can be obtained through a workspace query.
  *
  * @ingroup auxiliary
  */

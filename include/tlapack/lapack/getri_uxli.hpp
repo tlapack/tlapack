@@ -21,8 +21,6 @@ namespace tlapack {
  *
  * @param[in] A n-by-n matrix.
  *
- * @param[in] opts Options.
- *
  * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
@@ -51,10 +49,6 @@ inline constexpr WorkInfo getri_uxli_worksize(const matrix_t& A)
  *          L is stored in the lower triangle of A; unit diagonal is not stored.
  *          U is stored in the upper triangle of A.
  *      On exit, inverse of A is overwritten on A.
- *
- * @param[in] opts Options.
- *      - @c opts.work is used if whenever it has sufficient size.
- *        The sufficient size can be obtained through a workspace query.
  *
  * @ingroup computational
  */

@@ -224,6 +224,9 @@ size_type<vector_t> iamax_nc(const vector_t& x, abs_f absf)
  * @param[in] opts Options.
  *      Define the behavior of checks for NaNs.
  *      Also define the absolute value function.
+ *      - Default NaN check controlled by TLAPACK_DEFAULT_NANCHECK
+ *      - Default absolute value function as in Reference BLAS,
+ *          |a| := |Re(a)| + |Im(a)|.
  *
  * @ingroup blas1
  */
@@ -235,19 +238,6 @@ inline size_type<vector_t> iamax(const vector_t& x,
                                  : iamax_nc(x, opts.absf);
 }
 
-/**
- * @brief Return $\arg\max_{i=0}^{n-1} |x_i|$
- *
- * Wrapper to iamax( const vector_t& x, const IamaxOpts<abs_f>& opts )
- * with default options, i.e.,
- *      - Default NaN check controlled by TLAPACK_DEFAULT_NANCHECK
- *      - Default absolute value function as in Reference BLAS,
- *          |a| := |Re(a)| + |Im(a)|.
- *
- * @param[in] x The n-element vector x.
- *
- * @ingroup blas1
- */
 template <TLAPACK_VECTOR vector_t, disable_if_allow_optblas_t<vector_t> = 0>
 inline size_type<vector_t> iamax(const vector_t& x)
 {

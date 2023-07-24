@@ -30,8 +30,6 @@ namespace tlapack {
  *      On entry, the n by n general matrix to be reduced.
  * @param tau Not referenced.
  *
- * @param[in] opts Options.
- *
  * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
@@ -64,6 +62,45 @@ inline constexpr WorkInfo gehd2_worksize(size_type<matrix_t> ilo,
     return workinfo;
 }
 
+/** Reduces a general square matrix to upper Hessenberg form
+ *
+ * The matrix Q is represented as a product of elementary reflectors
+ * \[
+ *          Q = H_ilo H_ilo+1 ... H_ihi,
+ * \]
+ * Each H_i has the form
+ * \[
+ *          H_i = I - tau * v * v',
+ * \]
+ * where tau is a scalar, and v is a vector with
+ * \[
+ *          v[0] = v[1] = ... = v[i] = 0; v[i+1] = 1,
+ * \]
+ * with v[i+2] through v[ihi] stored on exit below the diagonal
+ * in the ith column of A, and tau in tau[i].
+ *
+ * @return  0 if success
+ *
+ * @param[in] ilo integer
+ * @param[in] ihi integer
+ *      It is assumed that A is already upper Hessenberg in columns
+ *      0:ilo and rows ihi:n and is already upper triangular in
+ *      columns ihi+1:n and rows 0:ilo.
+ *      0 <= ilo <= ihi <= max(1,n).
+ * @param[in,out] A n-by-n matrix.
+ *      On entry, the n by n general matrix to be reduced.
+ *      On exit, the upper triangle and the first subdiagonal of A
+ *      are overwritten with the upper Hessenberg matrix H, and the
+ *      elements below the first subdiagonal, with the array TAU,
+ *      represent the orthogonal matrix Q as a product of elementary
+ *      reflectors. See Further Details.
+ * @param[out] tau Real vector of length n-1.
+ *      The scalar factors of the elementary reflectors.
+ *
+ * @param work Workspace. Use the workspace query to determine the size needed.
+ *
+ * @ingroup computational
+ */
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
           TLAPACK_SMATRIX work_t>
@@ -140,10 +177,6 @@ int gehd2_work(size_type<matrix_t> ilo,
  *      reflectors. See Further Details.
  * @param[out] tau Real vector of length n-1.
  *      The scalar factors of the elementary reflectors.
- *
- * @param[in] opts Options.
- *      - @c opts.work is used if whenever it has sufficient size.
- *        The sufficient size can be obtained through a workspace query.
  *
  * @ingroup computational
  */

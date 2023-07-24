@@ -99,8 +99,6 @@ inline constexpr WorkInfo gelqt_worksize(const matrix_t& A,
  *      For a good default of nb, see GelqfOpts
  *
  * @param[in] opts Options.
- *      - @c opts.work is used if whenever it has sufficient size.
- *        The sufficient size can be obtained through a workspace query.
  *
  * @ingroup computational
  */

@@ -24,8 +24,6 @@ namespace tlapack {
  *
  * @param tau Not referenced.
  *
- * @param[in] opts Options.
- *
  * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
@@ -48,6 +46,39 @@ inline constexpr WorkInfo geqr2_worksize(const matrix_t& A, const vector_t& tau)
     return WorkInfo(0);
 }
 
+/** Computes a QR factorization of a matrix A.
+ *
+ * The matrix Q is represented as a product of elementary reflectors
+ * \[
+ *          Q = H_1 H_2 ... H_k,
+ * \]
+ * where k = min(m,n). Each H_i has the form
+ * \[
+ *          H_i = I - tau * v * v',
+ * \]
+ * where tau is a scalar, and v is a vector with
+ * \[
+ *          v[0] = v[1] = ... = v[i-1] = 0; v[i] = 1,
+ * \]
+ * with v[i+1] through v[m-1] stored on exit below the diagonal
+ * in the ith column of A, and tau in tau[i].
+ *
+ * @return  0 if success
+ *
+ * @param[in,out] A m-by-n matrix.
+ *      On exit, the elements on and above the diagonal of the array
+ *      contain the min(m,n)-by-n upper trapezoidal matrix R
+ *      (R is upper triangular if m >= n); the elements below the diagonal,
+ *      with the array tau, represent the unitary matrix Q as a
+ *      product of elementary reflectors.
+ *
+ * @param[out] tau Real vector of length min(m,n).
+ *      The scalar factors of the elementary reflectors.
+ *
+ * @param work Workspace. Use the workspace query to determine the size needed.
+ *
+ * @ingroup computational
+ */
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
           TLAPACK_SMATRIX work_t>
@@ -119,10 +150,6 @@ int geqr2_work(matrix_t& A, vector_t& tau, work_t& work)
  *
  * @param[out] tau Real vector of length min(m,n).
  *      The scalar factors of the elementary reflectors.
- *
- * @param[in] opts Options.
- *      - @c opts.work is used if whenever it has sufficient size.
- *        The sufficient size can be obtained through a workspace query.
  *
  * @ingroup computational
  */

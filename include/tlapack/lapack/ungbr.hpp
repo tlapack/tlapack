@@ -139,8 +139,6 @@ inline constexpr WorkInfo ungbr_p_worksize(
  *      returned by gebrd in its array argument tauq.
  *
  * @param[in] opts Options.
- *      @c opts.work is used if whenever it has sufficient size.
- *      The sufficient size can be obtained through a workspace query.
  *
  * @ingroup computational
  */
@@ -216,8 +214,6 @@ int ungbr_q(const size_type<matrix_t> k,
  *      returned by gebrd in its array argument taup.
  *
  * @param[in] opts Options.
- *      @c opts.work is used if whenever it has sufficient size.
- *      The sufficient size can be obtained through a workspace query.
  *
  * @ingroup computational
  */

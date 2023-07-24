@@ -49,8 +49,6 @@ struct GebrdOpts {
  * @return WorkInfo The amount workspace required.
  *
  * @param[in] opts Options.
- *      - @c opts.work is used if whenever it has sufficient size.
- *        The sufficient size can be obtained through a workspace query.
  *
  * @ingroup workspace_query
  */
@@ -128,8 +126,6 @@ WorkInfo gebrd_worksize(const matrix_t& A,
  *      represent the unitary matrix P.
  *
  * @param[in] opts Options.
- *      - @c opts.work is used if whenever it has sufficient size.
- *        The sufficient size can be obtained through a workspace query.
  *
  * @ingroup computational
  */

@@ -70,8 +70,7 @@ namespace tlapack {
  *     - $-\tau v C_0 + (I-\tau vv^H) C_1$ if side = Side::Left, or
  *     - $-\tau C_0 v^H + C_1 (I-\tau vv^H)$ if side = Side::Right.
  *
- * @param w Workspace vector of size n if side = Side::Left,
- *                                or m if side = Side::Right.
+ * @param work Workspace. Use the workspace query to determine the size needed.
  *
  * @ingroup auxiliary
  */
@@ -204,8 +203,6 @@ void larf_work(side_t side,
  * @param[in] C1
  *     On entry, the m-by-n matrix C.
  *
- * @param[in] opts Options.
- *
  * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
@@ -289,10 +286,6 @@ inline constexpr WorkInfo larf_worksize(side_t side,
  *     On exit, C1 is overwritten by
  *     - $-\tau v C_0 + (I-\tau vv^H) C_1$ if side = Side::Left, or
  *     - $-\tau C_0 v^H + C_1 (I-\tau vv^H)$ if side = Side::Right.
- *
- * @param[in] opts Options.
- *      - @c opts.work is used if whenever it has sufficient size.
- *        The sufficient size can be obtained through a workspace query.
  *
  * @see larf(side_t side,
           storage_t storeMode,
@@ -387,8 +380,7 @@ void larf(side_t side,
  *     On exit, C is overwritten by $H C$ if side = Side::Left,
  *                               or $C H$ if side = Side::Right.
  *
- * @param w Workspace vector of size n if side = Side::Left,
- *                                or m if side = Side::Right.
+ * @param work Workspace. Use the workspace query to determine the size needed.
  *
  * @ingroup auxiliary
  */
@@ -482,8 +474,6 @@ inline void larf_work(side_t side,
  * @param[in] C
  *     On entry, the m-by-n matrix C.
  *
- * @param[in] opts Options.
- *
  * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
@@ -560,10 +550,6 @@ inline constexpr WorkInfo larf_worksize(side_t side,
  *     On entry, the m-by-n matrix C.
  *     On exit, C is overwritten by $H C$ if side = Side::Left,
  *                               or $C H$ if side = Side::Right.
- *
- * @param[in] opts Options.
- *      - @c opts.work is used if whenever it has sufficient size.
- *        The sufficient size can be obtained through a workspace query.
  *
  * @see larf(side_t side,
                  direction_t direction,

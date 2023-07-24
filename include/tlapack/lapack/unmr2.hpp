@@ -38,8 +38,6 @@ namespace tlapack {
  *
  * @param[in] C m-by-n matrix.
  *
- * @param[in] opts Options.
- *
  * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
@@ -104,10 +102,6 @@ inline constexpr WorkInfo unmr2_worksize(side_t side,
  *      - side = Side::Right & trans = Op::NoTrans:    $C := C Q$;
  *      - side = Side::Left  & trans = Op::ConjTrans:  $C := C Q^H$;
  *      - side = Side::Right & trans = Op::ConjTrans:  $C := Q^H C$.
- *
- * @param[in] opts Options.
- *      @c opts.work is used if whenever it has sufficient size.
- *      The sufficient size can be obtained through a workspace query.
  *
  * @ingroup computational
  */
