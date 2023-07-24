@@ -11,7 +11,6 @@
 #define TLAPACK_STARPU_HH
 
 #include "tlapack/base/arrayTraits.hpp"
-#include "tlapack/base/workspace.hpp"
 #include "tlapack/starpu/Matrix.hpp"
 
 namespace tlapack {
@@ -260,10 +259,9 @@ namespace traits {
     };
 
     /// Create starpu::Matrix<T> @see Create
-    template <class T>
-    struct CreateFunctor<starpu::Matrix<T>, int> {
-        using matrix_t = starpu::Matrix<T>;
-
+    template <class U>
+    struct CreateFunctor<starpu::Matrix<U>, int> {
+        template <class T>
         inline constexpr auto operator()(std::vector<T>& v,
                                          starpu::idx_t m,
                                          starpu::idx_t n = 1) const
@@ -271,52 +269,7 @@ namespace traits {
             assert(m >= 0 && n >= 0);
             v.resize(m * n);  // Allocates space in memory
             starpu_memory_pin((void*)v.data(), m * n * sizeof(T));
-            matrix_t W(v.data(), m, n, 1, 1);
-            return W;
-        }
-
-        inline constexpr auto operator()(const Workspace& W,
-                                         starpu::idx_t m,
-                                         starpu::idx_t n,
-                                         Workspace& rW) const
-        {
-            assert(m >= 0 && n >= 0);
-            rW = W.extract(m * sizeof(T), n);
-            return (W.isContiguous()) ? matrix_t((T*)W.data(), m, n, m, n)
-                                      : matrix_t((T*)W.data(), m, n,
-                                                 W.getLdim() / sizeof(T), m, n);
-        }
-
-        inline constexpr auto operator()(const Workspace& W,
-                                         starpu::idx_t m,
-                                         starpu::idx_t n) const
-        {
-            assert(m >= 0 && n >= 0);
-            tlapack_check(W.contains(m * sizeof(T), n));
-            return (W.isContiguous()) ? matrix_t((T*)W.data(), m, n, m, n)
-                                      : matrix_t((T*)W.data(), m, n,
-                                                 W.getLdim() / sizeof(T), m, n);
-        }
-
-        inline constexpr auto operator()(const Workspace& W,
-                                         starpu::idx_t m,
-                                         Workspace& rW) const
-        {
-            assert(m >= 0);
-            rW = W.extract(sizeof(T), m);
-            return (W.isContiguous()) ? matrix_t((T*)W.data(), m, 1, m, 1)
-                                      : matrix_t((T*)W.data(), 1, m,
-                                                 W.getLdim() / sizeof(T), 1, m);
-        }
-
-        inline constexpr auto operator()(const Workspace& W,
-                                         starpu::idx_t m) const
-        {
-            assert(m >= 0);
-            tlapack_check(W.contains(sizeof(T), m));
-            return (W.isContiguous()) ? matrix_t((T*)W.data(), m, 1, m, 1)
-                                      : matrix_t((T*)W.data(), 1, m,
-                                                 W.getLdim() / sizeof(T), 1, m);
+            return starpu::Matrix<T>(v.data(), m, n, 1, 1);
         }
     };
 }  // namespace traits

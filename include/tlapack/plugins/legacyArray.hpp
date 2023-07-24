@@ -16,7 +16,6 @@
 #include "tlapack/LegacyMatrix.hpp"
 #include "tlapack/LegacyVector.hpp"
 #include "tlapack/base/arrayTraits.hpp"
-#include "tlapack/base/workspace.hpp"
 
 namespace tlapack {
 
@@ -79,77 +78,28 @@ namespace traits {
     };
 
     /// Create LegacyMatrix @see Create
-    template <class T, class idx_t, Layout layout>
-    struct CreateFunctor<LegacyMatrix<T, idx_t, layout>, int> {
+    template <class U, class idx_t, Layout layout>
+    struct CreateFunctor<LegacyMatrix<U, idx_t, layout>, int> {
+        template <class T>
         inline constexpr auto operator()(std::vector<T>& v,
                                          idx_t m,
                                          idx_t n) const
         {
-            using matrix_t = LegacyMatrix<T, idx_t, layout>;
-
             assert(m >= 0 && n >= 0);
             v.resize(m * n);  // Allocates space in memory
-            return matrix_t(m, n, v.data());
-        }
-
-        inline constexpr auto operator()(const Workspace& W,
-                                         idx_t m,
-                                         idx_t n,
-                                         Workspace& rW) const
-        {
-            using matrix_t = LegacyMatrix<T, idx_t, Layout::ColMajor>;
-
-            assert(m >= 0 && n >= 0);
-            rW = W.extract(m * sizeof(T), n);
-            return (W.isContiguous())
-                       ? matrix_t(m, n, (T*)W.data())
-                       : matrix_t(m, n, (T*)W.data(), W.getLdim() / sizeof(T));
-        }
-
-        inline constexpr auto operator()(const Workspace& W,
-                                         idx_t m,
-                                         idx_t n) const
-        {
-            using matrix_t = LegacyMatrix<T, idx_t, Layout::ColMajor>;
-
-            assert(m >= 0 && n >= 0);
-            tlapack_check(W.contains(m * sizeof(T), n));
-            return (W.isContiguous())
-                       ? matrix_t(m, n, (T*)W.data())
-                       : matrix_t(m, n, (T*)W.data(), W.getLdim() / sizeof(T));
+            return LegacyMatrix<T, idx_t, layout>(m, n, v.data());
         }
     };
 
     /// Create LegacyVector @see Create
-    template <class T, class idx_t, typename int_t, Direction D>
-    struct CreateFunctor<LegacyVector<T, idx_t, int_t, D>, int> {
-        using vector_t = LegacyVector<T, idx_t, int_t, D>;
-
-        inline constexpr auto operator()(std::vector<T>& v, idx_t m) const
+    template <class U, class idx_t, typename int_t, Direction D>
+    struct CreateFunctor<LegacyVector<U, idx_t, int_t, D>, int> {
+        template <class T>
+        inline constexpr auto operator()(std::vector<T>& v, idx_t n) const
         {
-            assert(m >= 0);
-            v.resize(m);  // Allocates space in memory
-            return vector_t(m, v.data());
-        }
-
-        inline constexpr auto operator()(const Workspace& W,
-                                         idx_t m,
-                                         Workspace& rW) const
-        {
-            assert(m >= 0);
-            rW = W.extract(sizeof(T), m);
-            return (W.isContiguous())
-                       ? vector_t(m, (T*)W.data())
-                       : vector_t(m, (T*)W.data(), W.getLdim() / sizeof(T));
-        }
-
-        inline constexpr auto operator()(const Workspace& W, idx_t m) const
-        {
-            assert(m >= 0);
-            tlapack_check(W.contains(sizeof(T), m));
-            return (W.isContiguous())
-                       ? vector_t(m, (T*)W.data())
-                       : vector_t(m, (T*)W.data(), W.getLdim() / sizeof(T));
+            assert(n >= 0);
+            v.resize(n);  // Allocates space in memory
+            return LegacyVector<T, idx_t, int_t, D>(n, v.data());
         }
     };
 }  // namespace traits
@@ -171,6 +121,13 @@ inline constexpr auto ncols(const LegacyMatrix<T, idx_t, layout>& A)
     return A.n;
 }
 
+// Size of LegacyMatrix
+template <typename T, class idx_t, Layout layout>
+inline constexpr auto size(const LegacyMatrix<T, idx_t, layout>& A)
+{
+    return A.m * A.n;
+}
+
 // Size of LegacyVector
 template <typename T, class idx_t, typename int_t, Direction direction>
 inline constexpr auto size(const LegacyVector<T, idx_t, int_t, direction>& x)
@@ -190,6 +147,13 @@ template <typename T, class idx_t>
 inline constexpr auto ncols(const LegacyBandedMatrix<T, idx_t>& A)
 {
     return A.n;
+}
+
+// Size of LegacyBandedMatrix
+template <typename T, class idx_t>
+inline constexpr auto size(const LegacyBandedMatrix<T, idx_t>& A)
+{
+    return A.m * A.n;
 }
 
 // Lowerband of LegacyBandedMatrix

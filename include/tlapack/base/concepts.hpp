@@ -19,7 +19,6 @@
 
     #include "tlapack/base/arrayTraits.hpp"
     #include "tlapack/base/types.hpp"
-    #include "tlapack/base/workspace.hpp"
 
 namespace tlapack {
 
@@ -286,11 +285,14 @@ namespace concepts {
      * - Entry access using @c matrix_t::operator(idx_t, idx_t). Entry i of a
      * matrix A is accessed using <tt>A(i,j)</tt>.
      *
-     * - Number of rows using a function @c nrows(const matrix_t&). This
-     * function must be callable from the namespace @c tlapack.
+     * - Number of rows using a function @c nrows(const matrix_t&).
      *
-     * - Number of columns using a function @c ncols(const matrix_t&). This
-     * function must be callable from the namespace @c tlapack.
+     * - Number of columns using a function @c ncols(const matrix_t&).
+     *
+     * - Number of entries using a function @c size(const matrix_t&).
+     *
+     * @note The functions @c nrows, @c ncols, and @c size are required to be
+     * callable from the namespace @c tlapack.
      *
      * @tparam matrix_t Matrix type.
      *
@@ -311,6 +313,12 @@ namespace concepts {
         // Number of columns
         {
             ncols(A)
+        }
+        ->std::integral<>;
+
+        // Number of entries
+        {
+            size(A)
         }
         ->std::integral<>;
     };
@@ -433,9 +441,21 @@ namespace concepts {
         ->Vector<>;
     };
 
+    /** @interface tlapack::concepts::ReshapableWorkspace
+     * @brief Concept for a matrix that can be reshaped.
+     *
+     * A reshapable workspace is a tlapack::concepts::Matrix that can be
+     * reshaped into a different matrix. The size of the new matrix must be
+     * compatible with the size of the original matrix, i.e., <tt>size(Aentry)
+     * == size(Anew)</tt>. The operation @c resize(idx_t, idx_t) must be
+     * callable from the namespace @c tlapack.
+     *
+     * @tparam matrix_t Matrix type.
+     *
+     * @ingroup concepts
+     */
     template <typename matrix_t>
-    concept ReshapableWorkspace =
-        SliceableMatrix<matrix_t>&& requires(matrix_t& A)
+    concept ReshapableWorkspace = Matrix<matrix_t>&& requires(matrix_t& A)
     {
         // Reshape view (matrix)
         {

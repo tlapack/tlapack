@@ -14,7 +14,6 @@
 #include <experimental/mdspan>
 
 #include "tlapack/base/arrayTraits.hpp"
-#include "tlapack/base/workspace.hpp"
 
 namespace tlapack {
 
@@ -83,53 +82,12 @@ namespace traits {
             typename std::experimental::mdspan<ET, Exts, LP>::size_type;
         using extents_t = std::experimental::dextents<idx_t, 1>;
 
-        inline constexpr auto operator()(std::vector<ET>& v, idx_t m) const
+        template <class T>
+        inline constexpr auto operator()(std::vector<T>& v, idx_t n) const
         {
-            assert(m >= 0);
-            v.resize(m);  // Allocates space in memory
-            return std::experimental::mdspan<ET, extents_t>(v.data(), m);
-        }
-
-        inline constexpr auto operator()(const Workspace& W,
-                                         idx_t m,
-                                         Workspace& rW) const
-        {
-            using std::array;
-            using std::experimental::layout_stride;
-            using mapping = typename layout_stride::template mapping<extents_t>;
-            using matrix_t =
-                std::experimental::mdspan<ET, extents_t, layout_stride>;
-
-            assert(m >= 0);
-
-            rW = W.extract(sizeof(ET), m);
-            mapping map =
-                (W.isContiguous())
-                    ? mapping(extents_t(m), array<idx_t, 1>{1})
-                    : mapping(extents_t(m),
-                              array<idx_t, 1>{W.getLdim() / sizeof(ET)});
-
-            return matrix_t((ET*)W.data(), std::move(map));
-        }
-
-        inline constexpr auto operator()(const Workspace& W, idx_t m) const
-        {
-            using std::array;
-            using std::experimental::layout_stride;
-            using mapping = typename layout_stride::template mapping<extents_t>;
-            using matrix_t =
-                std::experimental::mdspan<ET, extents_t, layout_stride>;
-
-            assert(m >= 0);
-
-            tlapack_check(W.contains(sizeof(ET), m));
-            mapping map =
-                (W.isContiguous())
-                    ? mapping(extents_t(m), array<idx_t, 1>{1})
-                    : mapping(extents_t(m),
-                              array<idx_t, 1>{W.getLdim() / sizeof(ET)});
-
-            return matrix_t((ET*)W.data(), std::move(map));
+            assert(n >= 0);
+            v.resize(n);  // Allocates space in memory
+            return std::experimental::mdspan<T, extents_t>(v.data(), n);
         }
     };
 
@@ -141,56 +99,14 @@ namespace traits {
             typename std::experimental::mdspan<ET, Exts, LP>::size_type;
         using extents_t = std::experimental::dextents<idx_t, 2>;
 
-        inline constexpr auto operator()(std::vector<ET>& v,
+        template <class T>
+        inline constexpr auto operator()(std::vector<T>& v,
                                          idx_t m,
                                          idx_t n) const
         {
             assert(m >= 0 && n >= 0);
             v.resize(m * n);  // Allocates space in memory
-            return std::experimental::mdspan<ET, extents_t>(v.data(), m, n);
-        }
-
-        inline constexpr auto operator()(const Workspace& W,
-                                         idx_t m,
-                                         idx_t n,
-                                         Workspace& rW) const
-        {
-            using std::array;
-            using std::experimental::layout_stride;
-            using mapping = typename layout_stride::template mapping<extents_t>;
-            using matrix_t =
-                std::experimental::mdspan<ET, extents_t, layout_stride>;
-
-            assert(m >= 0 && n >= 0);
-
-            rW = W.extract(m * sizeof(ET), n);
-            mapping map = mapping(
-                extents_t(m, n),
-                array<idx_t, 2>{
-                    1, (W.isContiguous() ? m : W.getLdim() / sizeof(ET))});
-
-            return matrix_t((ET*)W.data(), std::move(map));
-        }
-
-        inline constexpr auto operator()(const Workspace& W,
-                                         idx_t m,
-                                         idx_t n) const
-        {
-            using std::array;
-            using std::experimental::layout_stride;
-            using mapping = typename layout_stride::template mapping<extents_t>;
-            using matrix_t =
-                std::experimental::mdspan<ET, extents_t, layout_stride, AP>;
-
-            assert(m >= 0 && n >= 0);
-
-            tlapack_check(W.contains(m * sizeof(ET), n));
-            mapping map = mapping(
-                extents_t(m, n),
-                array<idx_t, 2>{
-                    1, (W.isContiguous() ? m : W.getLdim() / sizeof(ET))});
-
-            return matrix_t((ET*)W.data(), std::move(map));
+            return std::experimental::mdspan<T, extents_t>(v.data(), m, n);
         }
     };
 }  // namespace traits

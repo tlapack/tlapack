@@ -14,7 +14,6 @@
 #include <cassert>
 
 #include "tlapack/base/arrayTraits.hpp"
-#include "tlapack/base/workspace.hpp"
 
 namespace tlapack {
 
@@ -116,12 +115,6 @@ namespace traits {
     struct CreateFunctor<
         U,
         typename std::enable_if<eigen::is_eigen_type<U>, int>::type> {
-        using T = typename U::Scalar;
-        using idx_t = Eigen::Index;
-        using Stride = typename std::conditional<U::IsVectorAtCompileTime,
-                                                 Eigen::InnerStride<>,
-                                                 Eigen::OuterStride<>>::type;
-
         static constexpr int Rows_ =
             (U::RowsAtCompileTime == 1) ? 1 : Eigen::Dynamic;
         static constexpr int Cols_ =
@@ -129,93 +122,14 @@ namespace traits {
         static constexpr int Options_ =
             (U::IsRowMajor) ? Eigen::RowMajor : Eigen::ColMajor;
 
+        template <typename T>
         inline constexpr auto operator()(std::vector<T>& v,
-                                         idx_t m,
-                                         idx_t n = 1) const
+                                         Eigen::Index m,
+                                         Eigen::Index n = 1) const
         {
-            using matrix_t = Eigen::Matrix<T, Rows_, Cols_, Options_>;
-
             assert(m >= 0 && n >= 0);
             v.resize(0);
-            return matrix_t(m, n);
-        }
-
-        inline constexpr auto operator()(const Workspace& W,
-                                         idx_t m,
-                                         idx_t n,
-                                         Workspace& rW) const
-        {
-            using matrix_t = Eigen::Matrix<T, Rows_, Cols_, Eigen::ColMajor>;
-            using map_t = Eigen::Map<matrix_t, Eigen::Unaligned, Stride>;
-
-            assert(m >= 0 && n >= 0);
-
-            if constexpr (Rows_ == 1) {
-                assert(m == 1);
-                rW = W.extract(sizeof(T), n);
-                return map_t(
-                    (T*)W.data(), n,
-                    Stride((W.isContiguous() || W.getM() == sizeof(T) * n)
-                               ? 1
-                               : W.getLdim() / sizeof(T)));
-            }
-            else if constexpr (Cols_ == 1) {
-                assert(n == 1);
-                rW = W.extract(sizeof(T), m);
-                return map_t(
-                    (T*)W.data(), m,
-                    Stride((W.isContiguous() || W.getM() == sizeof(T) * m)
-                               ? 1
-                               : W.getLdim() / sizeof(T)));
-            }
-            else {
-                rW = W.extract(m * sizeof(T), n);
-                return map_t(
-                    (T*)W.data(), m, n,
-                    Stride((W.isContiguous()) ? m : W.getLdim() / sizeof(T)));
-            }
-        }
-
-        inline constexpr auto operator()(const Workspace& W,
-                                         idx_t m,
-                                         Workspace& rW) const
-        {
-            return operator()(W, m, 1, rW);
-        }
-
-        inline constexpr auto operator()(const Workspace& W,
-                                         idx_t m,
-                                         idx_t n = 1) const
-        {
-            using matrix_t = Eigen::Matrix<T, Rows_, Cols_, Eigen::ColMajor>;
-            using map_t = Eigen::Map<matrix_t, Eigen::Unaligned, Stride>;
-
-            assert(m >= 0 && n >= 0);
-
-            if constexpr (Rows_ == 1) {
-                assert(m == 1);
-                assert(W.contains(sizeof(T), n));
-                return map_t(
-                    (T*)W.data(), n,
-                    Stride((W.isContiguous() || W.getM() == sizeof(T) * n)
-                               ? 1
-                               : W.getLdim() / sizeof(T)));
-            }
-            else if constexpr (Cols_ == 1) {
-                assert(n == 1);
-                assert(W.contains(sizeof(T), m));
-                return map_t(
-                    (T*)W.data(), m,
-                    Stride((W.isContiguous() || W.getM() == sizeof(T) * m)
-                               ? 1
-                               : W.getLdim() / sizeof(T)));
-            }
-            else {
-                assert(W.contains(m * sizeof(T), n));
-                return map_t(
-                    (T*)W.data(), m, n,
-                    Stride((W.isContiguous()) ? m : W.getLdim() / sizeof(T)));
-            }
+            return Eigen::Matrix<T, Rows_, Cols_, Options_>(m, n);
         }
     };
 }  // namespace traits

@@ -55,7 +55,7 @@ For instance, `fooBar` is a good name for a function argument, while `foo_bar` i
 Special cases:
 
 1. Traits are classes with only static members and, thus, they are named using snake case. Moreover, they have the suffix `_trait` or `_traits`, e.g., `tlapack::traits::entry_type_trait` and `tlapack::traits::matrix_type_traits`.
-2. Classes for optional arguments of mathematical routines usually have non-static members and, therefore, they are named using upper camel case (Pascal case) style. Moreover, they have the suffix `Opts`, e.g., `tlapack::WorkspaceOpts` and `tlapack::BlockedCholeskyOpts`.
+2. Classes for optional arguments of mathematical routines usually have non-static members and, therefore, they are named using upper camel case (Pascal case) style. Moreover, they have the suffix `Opts`, e.g., `tlapack::GeqrfOpts` and `tlapack::BlockedCholeskyOpts`.
 
 ### Usage of the `auto` keyword
 

@@ -11,7 +11,6 @@
 #define TLAPACK_ARRAY_TRAITS_HH
 
 #include "tlapack/base/types.hpp"
-#include "tlapack/base/workspace.hpp"
 
 namespace tlapack {
 
@@ -91,14 +90,15 @@ namespace traits {
                       "Must use correct specialization");
 
         /**
-         * @brief Creates an object (matrix or vector)
+         * @brief Creates a m-by-n matrix with entries of type T
          *
-         * @param[out] v
-         *      Vector that can be used to reference allocated memory.
-         * @param[in] m Number of rows
-         * @param[in] n Number of Columns
+         * @param[in,out] v
+         *          On entry, empty vector with size 0.
+         *          On exit, vector that may contain allocated memory.
+         * @param[in] m Number of rows of the new matrix
+         * @param[in] n Number of columns of the new matrix
          *
-         * @return The new object
+         * @return The new m-by-n matrix
          */
         template <class T, class idx_t>
         inline constexpr auto operator()(std::vector<T>& v,
@@ -109,76 +109,17 @@ namespace traits {
         }
 
         /**
-         * @brief Creates a column-major matrix from a given workspace
+         * @brief Creates a vector of size n with entries of type T
          *
-         * @param[in] W
-         *      Workspace that references to allocated memory.
-         * @param[in] m Number of rows
-         * @param[in] n Number of Columns
-         * @param[out] rW
-         *      On exit, receives the updated workspace, i.e., that references
-         *      remaining allocated memory.
+         * @param[out] v
+         *          On entry, empty vector with size 0.
+         *          On exit, vector that may contain allocated memory.
+         * @param[in] n Size of the new vector
          *
-         * @return The new object
+         * @return The new vector of size n
          */
-        template <class idx_t>
-        inline constexpr auto operator()(const Workspace& W,
-                                         idx_t m,
-                                         idx_t n,
-                                         Workspace& rW) const
-        {
-            return matrix_t();
-        }
-
-        /**
-         * @brief Creates a column-major matrix from a given workspace
-         *
-         * @param[in] W
-         *      Workspace that references to allocated memory.
-         * @param[in] m Number of rows
-         * @param[in] n Number of Columns
-         *
-         * @return The new object
-         */
-        template <class idx_t>
-        inline constexpr auto operator()(const Workspace& W,
-                                         idx_t m,
-                                         idx_t n) const
-        {
-            return matrix_t();
-        }
-
-        /**
-         * @brief Creates a strided vector from a given workspace
-         *
-         * @param[in] W
-         *      Workspace that references to allocated memory.
-         * @param[in] n Size of the vector
-         * @param[out] rW
-         *      On exit, receives the updated workspace, i.e., that references
-         *      remaining allocated memory.
-         *
-         * @return The new object
-         */
-        template <class idx_t>
-        inline constexpr auto operator()(const Workspace& W,
-                                         idx_t n,
-                                         Workspace& rW) const
-        {
-            return matrix_t();
-        }
-
-        /**
-         * @brief Creates a strided vector from a given workspace
-         *
-         * @param[in] W
-         *      Workspace that references to allocated memory.
-         * @param[in] n Size of the vector
-         *
-         * @return The new object
-         */
-        template <class idx_t>
-        inline constexpr auto operator()(const Workspace& W, idx_t n) const
+        template <class T, class idx_t>
+        inline constexpr auto operator()(std::vector<T>& v, idx_t n) const
         {
             return matrix_t();
         }
@@ -271,18 +212,6 @@ constexpr Layout layout = traits::layout_trait<array_t, int>::value;
  *
  * std::vector<T> A_container; // Empty vector
  * auto A = new_matrix(A_container, m, n); // Initialize A_container if needed
- *
- * tlapack::VectorOfBytes B_container; // Empty vector
- * auto B = new_matrix(
- *  tlapack::alloc_workspace( B_container, m*n*sizeof(T) ),
- *  m, n ); // B_container stores allocated memory
- *
- * tlapack::VectorOfBytes C_container; // Empty vector
- * Workspace W; // Empty workspace
- * auto C = new_matrix(
- *  tlapack::alloc_workspace( C_container, m*n*sizeof(T) ),
- *  m, n, W ); // W receives the updated workspace, i.e., without the space
- * taken by C
  * @endcode
  */
 template <class T>
