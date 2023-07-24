@@ -39,46 +39,6 @@ namespace tlapack {
  *
  * @param[in] A m-by-n triangular matrix.
  *
- * @return WorkInfo The amount workspace required.
- *
- * @ingroup workspace_query
- */
-template <class T,
-          TLAPACK_NORM norm_t,
-          TLAPACK_UPLO uplo_t,
-          TLAPACK_DIAG diag_t,
-          TLAPACK_SMATRIX matrix_t>
-inline constexpr WorkInfo lantr_worksize(norm_t normType,
-                                         uplo_t uplo,
-                                         diag_t diag,
-                                         const matrix_t& A)
-{
-    return WorkInfo(0);
-}
-
-/** Worspace query of lantr().
- *
- * @param[in] normType
- *      - Norm::Max: Maximum absolute value over all elements of the matrix.
- *          Note: this is not a consistent matrix norm.
- *      - Norm::One: 1-norm, the maximum value of the absolute sum of each
- * column.
- *      - Norm::Inf: Inf-norm, the maximum value of the absolute sum of each
- * row.
- *      - Norm::Fro: Frobenius norm of the matrix.
- *          Square root of the sum of the square of each entry in the matrix.
- *
- * @param[in] uplo
- *      - Uplo::Upper: A is a upper triangle matrix;
- *      - Uplo::Lower: A is a lower triangle matrix.
- *
- * @param[in] diag
- *     Whether A has a unit or non-unit diagonal:
- *     - Diag::Unit:    A is assumed to be unit triangular.
- *     - Diag::NonUnit: A is not assumed to be unit triangular.
- *
- * @param[in] A m-by-n triangular matrix.
- *
  * @param[in] opts Options.
  *
  * @return WorkInfo The amount workspace required.
@@ -367,8 +327,10 @@ auto lantr(norm_t normType, uplo_t uplo, diag_t diag, const matrix_t& A)
 template <TLAPACK_NORM norm_t,
           TLAPACK_UPLO uplo_t,
           TLAPACK_DIAG diag_t,
-          TLAPACK_MATRIX matrix_t>
-auto lantr(norm_t normType, uplo_t uplo, diag_t diag, const matrix_t& A)
+          TLAPACK_MATRIX matrix_t,
+          TLAPACK_SMATRIX work_t>
+auto lantr(
+    norm_t normType, uplo_t uplo, diag_t diag, const matrix_t& A, work_t& work)
 {
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
@@ -400,10 +362,7 @@ auto lantr(norm_t normType, uplo_t uplo, diag_t diag, const matrix_t& A)
         // so as to do one pass on the data in a contiguous way when computing
         // the infinite norm.
 
-        // Allocates workspace
-        WorkInfo workinfo = lantr_worksize<T>(normType, uplo, diag, A);
-        std::vector<T> work_;
-        auto work = new_matrix(work_, workinfo.m, workinfo.n);
+        // Slice workspace
         auto w = slice(work, range{0, n}, 0);
 
         // Norm value

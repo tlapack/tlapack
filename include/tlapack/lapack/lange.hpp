@@ -30,30 +30,6 @@ namespace tlapack {
  *
  * @param[in] A m-by-n matrix.
  *
- * @return WorkInfo The amount workspace required.
- *
- * @ingroup workspace_query
- */
-template <class T, TLAPACK_NORM norm_t, TLAPACK_SMATRIX matrix_t>
-inline constexpr WorkInfo lange_worksize(norm_t normType, const matrix_t& A)
-{
-    return WorkInfo(0);
-}
-
-/** Worspace query of lange()
- *
- * @param[in] normType
- *      - Norm::Max: Maximum absolute value over all elements of the matrix.
- *          Note: this is not a consistent matrix norm.
- *      - Norm::One: 1-norm, the maximum value of the absolute sum of each
- * column.
- *      - Norm::Inf: Inf-norm, the maximum value of the absolute sum of each
- * row.
- *      - Norm::Fro: Frobenius norm of the matrix.
- *          Square root of the sum of the square of each entry in the matrix.
- *
- * @param[in] A m-by-n matrix.
- *
  * @param[in] opts Options.
  *
  * @return WorkInfo The amount workspace required.
@@ -180,8 +156,8 @@ auto lange(norm_t normType, const matrix_t& A)
  *
  * @ingroup auxiliary
  */
-template <TLAPACK_NORM norm_t, TLAPACK_MATRIX matrix_t>
-auto lange(norm_t normType, const matrix_t& A)
+template <TLAPACK_NORM norm_t, TLAPACK_MATRIX matrix_t, TLAPACK_SMATRIX work_t>
+auto lange(norm_t normType, const matrix_t& A, work_t& work)
 {
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
@@ -211,10 +187,7 @@ auto lange(norm_t normType, const matrix_t& A)
         // so as to do one pass on the data in a contiguous way when computing
         // the infinite norm.
 
-        // Allocates workspace
-        WorkInfo workinfo = lange_worksize<T>(normType, A);
-        std::vector<T> work_;
-        auto work = new_matrix(work_, workinfo.m, workinfo.n);
+        // Slice workspace
         auto w = slice(work, range{0, m}, 0);
 
         // Norm value

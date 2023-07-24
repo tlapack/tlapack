@@ -34,39 +34,6 @@ namespace tlapack {
  *
  * @param[in] A n-by-n symmetric matrix.
  *
- * @return WorkInfo The amount workspace required.
- *
- * @ingroup workspace_query
- */
-template <class T,
-          TLAPACK_NORM norm_t,
-          TLAPACK_UPLO uplo_t,
-          TLAPACK_SMATRIX matrix_t>
-inline constexpr WorkInfo lansy_worksize(norm_t normType,
-                                         uplo_t uplo,
-                                         const matrix_t& A)
-{
-    return WorkInfo(0);
-}
-
-/** Worspace query of lansy().
- *
- * @param[in] normType
- *      - Norm::Max: Maximum absolute value over all elements of the matrix.
- *          Note: this is not a consistent matrix norm.
- *      - Norm::One: 1-norm, the maximum value of the absolute sum of each
- * column.
- *      - Norm::Inf: Inf-norm, the maximum value of the absolute sum of each
- * row.
- *      - Norm::Fro: Frobenius norm of the matrix.
- *          Square root of the sum of the square of each entry in the matrix.
- *
- * @param[in] uplo
- *      - Uplo::Upper: Upper triangle of A is referenced;
- *      - Uplo::Lower: Lower triangle of A is referenced.
- *
- * @param[in] A n-by-n symmetric matrix.
- *
  * @param[in] opts Options.
  *
  * @return WorkInfo The amount workspace required.
@@ -253,8 +220,11 @@ auto lansy(norm_t normType, uplo_t uplo, const matrix_t& A)
  *
  * @ingroup auxiliary
  */
-template <TLAPACK_NORM norm_t, TLAPACK_UPLO uplo_t, TLAPACK_MATRIX matrix_t>
-auto lansy(norm_t normType, uplo_t uplo, const matrix_t& A)
+template <TLAPACK_NORM norm_t,
+          TLAPACK_UPLO uplo_t,
+          TLAPACK_MATRIX matrix_t,
+          TLAPACK_SMATRIX work_t>
+auto lansy(norm_t normType, uplo_t uplo, const matrix_t& A, work_t& work)
 {
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
@@ -282,10 +252,7 @@ auto lansy(norm_t normType, uplo_t uplo, const matrix_t& A)
         // quick return
         if (n <= 0) return real_t(0);
 
-        // Allocates workspace
-        WorkInfo workinfo = lansy_worksize<T>(normType, uplo, A);
-        std::vector<T> work_;
-        auto work = new_matrix(work_, workinfo.m, workinfo.n);
+        // Slice workspace
         auto w = slice(work, range{0, n}, 0);
 
         // Norm value
