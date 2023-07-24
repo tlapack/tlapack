@@ -141,7 +141,6 @@ int ungqr(matrix_t& A,
     auto matrixT = (n > nb) ? slice(work, range{workinfo.m - nb, workinfo.m},
                                     range{workinfo.n - nb, workinfo.n})
                             : slice(work, range{0, 0}, range{0, 0});
-    // auto workt = transpose_view(work);
 
     // Initialise columns k:n-1 to columns of the unit matrix
     for (idx_t j = k; j < min(m, n); ++j) {

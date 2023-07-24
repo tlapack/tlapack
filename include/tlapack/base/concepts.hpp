@@ -441,10 +441,35 @@ namespace concepts {
         ->Vector<>;
     };
 
-    /** @interface tlapack::concepts::ReshapableWorkspace
-     * @brief Concept for a matrix that can be reshaped.
+    // Workspace matrices
+
+    /** @interface tlapack::concepts::Workspace
+     * @brief Concept for a matrix that can be transposed.
      *
-     * A reshapable workspace is a tlapack::concepts::Matrix that can be
+     * A workspace is a tlapack::concepts::SliceableMatrix that can be
+     * transposed. The transpose operation must not involve dynamic memory
+     * allocation, and the resulting transposed matrix is a view for the same
+     * data in the original matrix. The operation @c transpose_view(matrix_t&)
+     * must be callable from the namespace @c tlapack.
+     *
+     * @tparam matrix_t Matrix type.
+     *
+     * @ingroup concepts
+     */
+    template <typename matrix_t>
+    concept Workspace = SliceableMatrix<matrix_t>&& requires(matrix_t& A)
+    {
+        // Transpose view
+        {
+            transpose_view(A)
+        }
+        ->SliceableMatrix<>;
+    };
+
+    /** @interface tlapack::concepts::ReshapableWorkspace
+     * @brief Concept for a workspace that can be reshaped.
+     *
+     * A reshapable workspace is a tlapack::concepts::Workspace that can be
      * reshaped into a different matrix. The size of the new matrix must be
      * compatible with the size of the original matrix, i.e., <tt>size(Aentry)
      * == size(Anew)</tt>. The operation @c resize(idx_t, idx_t) must be
@@ -455,14 +480,16 @@ namespace concepts {
      * @ingroup concepts
      */
     template <typename matrix_t>
-    concept ReshapableWorkspace = Matrix<matrix_t>&& requires(matrix_t& A)
+    concept ReshapableWorkspace = Workspace<matrix_t>&& requires(matrix_t& A)
     {
-        // Reshape view (matrix)
+        // Reshape view
         {
             reshape(A, 1, 1)
         }
-        ->SliceableMatrix<>;
+        ->Workspace<>;
     };
+
+    // Other scalar concepts
 
     /** @interface tlapack::concepts::Index
      * @brief Concept for index types.
@@ -767,6 +794,9 @@ namespace concepts {
     /// Macro for tlapack::concepts::SliceableVector compatible with C++17.
     #define TLAPACK_SVECTOR tlapack::concepts::SliceableVector
 
+    /// Macro for tlapack::concepts::Workspace compatible with C++17.
+    #define TLAPACK_WORKSPACE tlapack::concepts::Workspace
+
     /// Macro for tlapack::concepts::ReshapableWorkspace compatible with C++17.
     #define TLAPACK_RWORKSPACE tlapack::concepts::ReshapableWorkspace
 
@@ -834,6 +864,7 @@ namespace concepts {
     #define TLAPACK_VECTOR class
     #define TLAPACK_SVECTOR class
 
+    #define TLAPACK_WORKSPACE class
     #define TLAPACK_RWORKSPACE class
 
     #define TLAPACK_SCALAR class

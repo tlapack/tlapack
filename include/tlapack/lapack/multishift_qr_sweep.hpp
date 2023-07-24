@@ -93,7 +93,7 @@ inline constexpr WorkInfo multishift_QR_sweep_worksize(bool want_t,
  */
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
-          TLAPACK_SMATRIX work_t,
+          TLAPACK_WORKSPACE work_t,
           enable_if_t<is_complex<type_t<vector_t>>, bool> = true>
 void multishift_QR_sweep_work(bool want_t,
                               bool want_z,

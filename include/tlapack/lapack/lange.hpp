@@ -152,7 +152,9 @@ auto lange(norm_t normType, const matrix_t& A)
  *
  * @ingroup auxiliary
  */
-template <TLAPACK_NORM norm_t, TLAPACK_MATRIX matrix_t, TLAPACK_SMATRIX work_t>
+template <TLAPACK_NORM norm_t,
+          TLAPACK_MATRIX matrix_t,
+          TLAPACK_WORKSPACE work_t>
 auto lange(norm_t normType, const matrix_t& A, work_t& work)
 {
     using T = type_t<matrix_t>;

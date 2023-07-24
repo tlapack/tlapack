@@ -202,15 +202,12 @@ constexpr Layout layout = traits::layout_trait<array_t, int>::value;
  * @code{.cpp}
  * // matrix_t is a predefined type at this point
  *
- * using T = tlapack::type_t<matrix_t>;
- * using idx_t = tlapack::size_type<matrix_t>;
- *
  * tlapack::Create<matrix_t> new_matrix; // Creates the functor
  *
- * idx_t m = 11;
- * idx_t n = 6;
+ * size_t m = 11;
+ * size_t n = 6;
  *
- * std::vector<T> A_container; // Empty vector
+ * std::vector<float> A_container; // Empty vector
  * auto A = new_matrix(A_container, m, n); // Initialize A_container if needed
  * @endcode
  */

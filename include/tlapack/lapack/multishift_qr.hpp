@@ -468,7 +468,7 @@ int multishift_qr_work(bool want_t,
 
 template <TLAPACK_MATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
-          TLAPACK_SMATRIX work_t,
+          TLAPACK_WORKSPACE work_t,
           enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
 inline int multishift_qr_work(bool want_t,
                               bool want_z,

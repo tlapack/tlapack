@@ -324,7 +324,7 @@ template <TLAPACK_NORM norm_t,
           TLAPACK_UPLO uplo_t,
           TLAPACK_DIAG diag_t,
           TLAPACK_MATRIX matrix_t,
-          TLAPACK_SMATRIX work_t>
+          TLAPACK_WORKSPACE work_t>
 auto lantr(
     norm_t normType, uplo_t uplo, diag_t diag, const matrix_t& A, work_t& work)
 {

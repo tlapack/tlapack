@@ -84,7 +84,7 @@ inline constexpr WorkInfo gelq2_worksize(const matrix_t& A,
  */
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
-          TLAPACK_SMATRIX work_t>
+          TLAPACK_WORKSPACE work_t>
 int gelq2_work(matrix_t& A, vector_t& tauw, work_t& work)
 {
     using idx_t = size_type<matrix_t>;

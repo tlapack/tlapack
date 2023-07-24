@@ -104,7 +104,7 @@ inline constexpr WorkInfo unmhr_worksize(Side side,
  */
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_SVECTOR vector_t,
-          TLAPACK_SMATRIX work_t>
+          TLAPACK_WORKSPACE work_t>
 int unmhr_work(Side side,
                Op trans,
                size_type<matrix_t> ilo,

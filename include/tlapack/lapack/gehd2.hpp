@@ -103,7 +103,7 @@ inline constexpr WorkInfo gehd2_worksize(size_type<matrix_t> ilo,
  */
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
-          TLAPACK_SMATRIX work_t>
+          TLAPACK_WORKSPACE work_t>
 int gehd2_work(size_type<matrix_t> ilo,
                size_type<matrix_t> ihi,
                matrix_t& A,

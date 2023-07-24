@@ -121,7 +121,7 @@ inline constexpr WorkInfo unm2r_worksize(side_t side,
  */
 template <TLAPACK_SMATRIX matrixA_t,
           TLAPACK_SMATRIX matrixC_t,
-          TLAPACK_SMATRIX work_t,
+          TLAPACK_WORKSPACE work_t,
           TLAPACK_VECTOR tau_t,
           TLAPACK_SIDE side_t,
           TLAPACK_OP trans_t>

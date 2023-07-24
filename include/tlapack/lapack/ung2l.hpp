@@ -72,7 +72,7 @@ inline constexpr WorkInfo ung2l_worksize(const matrix_t& A, const vector_t& tau)
  */
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
-          TLAPACK_SMATRIX work_t>
+          TLAPACK_WORKSPACE work_t>
 int ung2l_work(matrix_t& A, const vector_t& tau, work_t& work)
 {
     using T = type_t<matrix_t>;
