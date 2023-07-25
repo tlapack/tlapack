@@ -93,7 +93,7 @@ int potrf_rl(uplo_t uplo,
                 // Define AJJ
                 auto AJJ = slice(A, range{j, j + jb}, range{j, j + jb});
 
-                int info = potf2(uplo, AJJ);
+                int info = potf2(UPPER_TRIANGLE, AJJ);
                 if (info != 0) {
                     tlapack_error(
                         info + j,
@@ -107,9 +107,9 @@ int potrf_rl(uplo_t uplo,
                     auto B = slice(A, range{j, j + jb}, range{j + jb, n});
                     auto C = slice(A, range{j + jb, n}, range{j + jb, n});
 
-                    trsm(LEFT_SIDE, uplo, CONJ_TRANS, NON_UNIT_DIAG, one, AJJ,
-                         B);
-                    herk(uplo, CONJ_TRANS, -one, B, one, C);
+                    trsm(LEFT_SIDE, UPPER_TRIANGLE, CONJ_TRANS, NON_UNIT_DIAG,
+                         one, AJJ, B);
+                    herk(UPPER_TRIANGLE, CONJ_TRANS, -one, B, one, C);
                 }
             }
         }
@@ -120,7 +120,7 @@ int potrf_rl(uplo_t uplo,
                 // Define AJJ
                 auto AJJ = slice(A, range{j, j + jb}, range{j, j + jb});
 
-                int info = potf2(uplo, AJJ);
+                int info = potf2(LOWER_TRIANGLE, AJJ);
                 if (info != 0) {
                     tlapack_error(
                         info + j,
@@ -134,9 +134,9 @@ int potrf_rl(uplo_t uplo,
                     auto B = slice(A, range{j + jb, n}, range{j, j + jb});
                     auto C = slice(A, range{j + jb, n}, range{j + jb, n});
 
-                    trsm(RIGHT_SIDE, uplo, CONJ_TRANS, NON_UNIT_DIAG, one, AJJ,
-                         B);
-                    herk(uplo, NO_TRANS, -one, B, one, C);
+                    trsm(RIGHT_SIDE, LOWER_TRIANGLE, CONJ_TRANS, NON_UNIT_DIAG,
+                         one, AJJ, B);
+                    herk(LOWER_TRIANGLE, NO_TRANS, -one, B, one, C);
                 }
             }
         }

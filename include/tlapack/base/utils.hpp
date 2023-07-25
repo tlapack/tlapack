@@ -189,6 +189,11 @@ bool hasinf(uplo_t uplo, const matrix_t& A)
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
 
+    tlapack_check(uplo == Uplo::General || uplo == Uplo::UpperHessenberg ||
+                  uplo == Uplo::LowerHessenberg || uplo == Uplo::Upper ||
+                  uplo == Uplo::Lower || uplo == Uplo::StrictUpper ||
+                  uplo == Uplo::StrictLower);
+
     if (uplo == Uplo::UpperHessenberg) {
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = 0; i < ((j < m) ? j + 2 : m); ++i)
@@ -316,6 +321,11 @@ bool hasnan(uplo_t uplo, const matrix_t& A)
     // constants
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
+
+    tlapack_check(uplo == Uplo::General || uplo == Uplo::UpperHessenberg ||
+                  uplo == Uplo::LowerHessenberg || uplo == Uplo::Upper ||
+                  uplo == Uplo::Lower || uplo == Uplo::StrictUpper ||
+                  uplo == Uplo::StrictLower);
 
     if (uplo == Uplo::UpperHessenberg) {
         for (idx_t j = 0; j < n; ++j)

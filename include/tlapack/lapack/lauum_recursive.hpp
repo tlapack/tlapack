@@ -77,8 +77,8 @@ int lauum_recursive(const Uplo& uplo, matrix_t& C)
             auto C11 = slice(C, range(n0, n), range(n0, n));
 
             lauum_recursive(uplo, C00);
-            herk(Uplo::Lower, Op::ConjTrans, real_t(1), C10, real_t(1), C00);
-            trmm(Side::Left, uplo, Op::ConjTrans, Diag::NonUnit, real_t(1), C11,
+            herk(LOWER_TRIANGLE, CONJ_TRANS, real_t(1), C10, real_t(1), C00);
+            trmm(LEFT_SIDE, uplo, CONJ_TRANS, NON_UNIT_DIAG, real_t(1), C11,
                  C10);
             lauum_recursive(uplo, C11);
         }
@@ -89,10 +89,10 @@ int lauum_recursive(const Uplo& uplo, matrix_t& C)
             auto C11 = slice(C, range(n0, n), range(n0, n));
 
             lauum_recursive(uplo, C00);
-            herk(Uplo::Upper, Op::NoTrans, real_t(1), C01, real_t(1), C00);
-            trmm(Side::Right, uplo, Op::ConjTrans, Diag::NonUnit, real_t(1),
-                 C11, C01);
-            lauum_recursive(Uplo::Upper, C11);
+            herk(UPPER_TRIANGLE, NO_TRANS, real_t(1), C01, real_t(1), C00);
+            trmm(RIGHT_SIDE, uplo, CONJ_TRANS, NON_UNIT_DIAG, real_t(1), C11,
+                 C01);
+            lauum_recursive(UPPER_TRIANGLE, C11);
         }
     }
 

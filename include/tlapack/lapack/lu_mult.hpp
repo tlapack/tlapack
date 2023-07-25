@@ -92,13 +92,13 @@ void lu_mult(matrix_t& A, const LuMultOpts<size_type<matrix_t>>& opts = {})
     lu_mult(A11, opts);
 
     // A11 = A10*A01 + L11*U11
-    gemm(Op::NoTrans, Op::NoTrans, T(1), A10, A01, T(1), A11);
+    gemm(NO_TRANS, NO_TRANS, T(1), A10, A01, T(1), A11);
 
     // A01 = L00*A01
-    trmm(Side::Left, Uplo::Lower, Op::NoTrans, Diag::Unit, real_t(1), A00, A01);
+    trmm(LEFT_SIDE, LOWER_TRIANGLE, NO_TRANS, UNIT_DIAG, real_t(1), A00, A01);
 
     // A10 = A10*U00
-    trmm(Side::Right, Uplo::Upper, Op::NoTrans, Diag::NonUnit, real_t(1), A00,
+    trmm(RIGHT_SIDE, UPPER_TRIANGLE, NO_TRANS, NON_UNIT_DIAG, real_t(1), A00,
          A10);
 
     // A00 = L00*U00

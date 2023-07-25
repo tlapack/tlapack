@@ -264,11 +264,11 @@ void agressive_early_deflation(bool want_t,
     // window (note the use of infqr later in the code).
     auto A_window = slice(A, range{kwtop, ihi}, range{kwtop, ihi});
     auto s_window = slice(s, range{kwtop, ihi});
-    laset(Uplo::Lower, zero, zero, TW);
+    laset(LOWER_TRIANGLE, zero, zero, TW);
     for (idx_t j = 0; j < jw; ++j)
         for (idx_t i = 0; i < min(j + 2, jw); ++i)
             TW(i, j) = A_window(i, j);
-    laset(Uplo::General, zero, one, V);
+    laset(GENERAL, zero, one, V);
     int infqr;
     if (jw < opts.nmin)
         infqr = lahqr(true, true, 0, jw, TW, s_window, V);
@@ -434,15 +434,15 @@ void agressive_early_deflation(bool want_t,
             WorkspaceOpts<> work2(Wv_aux);
 
             auto TW_slice = slice(TW, range{0, ns}, range{0, jw});
-            larf(Side::Left, FORWARD, COLUMNWISE_STORAGE, v, conj(tau),
-                 TW_slice, work2);
+            larf(LEFT_SIDE, FORWARD, COLUMNWISE_STORAGE, v, conj(tau), TW_slice,
+                 work2);
 
             auto TW_slice2 = slice(TW, range{0, jw}, range{0, ns});
-            larf(Side::Right, FORWARD, COLUMNWISE_STORAGE, v, tau, TW_slice2,
+            larf(RIGHT_SIDE, FORWARD, COLUMNWISE_STORAGE, v, tau, TW_slice2,
                  work2);
 
             auto V_slice = slice(V, range{0, jw}, range{0, ns});
-            larf(Side::Right, FORWARD, COLUMNWISE_STORAGE, v, tau, V_slice,
+            larf(RIGHT_SIDE, FORWARD, COLUMNWISE_STORAGE, v, tau, V_slice,
                  work2);
         }
 
@@ -452,7 +452,7 @@ void agressive_early_deflation(bool want_t,
             gehrd(0, ns, TW, tau, gehrdOpts);
 
             WorkspaceOpts<> work2(slice(WV, range{0, jw}, 1));
-            unmhr(Side::Right, Op::NoTrans, 0, ns, TW, tau, V, work2);
+            unmhr(RIGHT_SIDE, NO_TRANS, 0, ns, TW, tau, V, work2);
         }
     }
 
@@ -486,8 +486,8 @@ void agressive_early_deflation(bool want_t,
             auto A_slice = slice(A, range{kwtop, ihi}, range{i, i + iblock});
             auto WH_slice =
                 slice(WH, range{0, nrows(A_slice)}, range{0, ncols(A_slice)});
-            gemm(Op::ConjTrans, Op::NoTrans, one, V, A_slice, WH_slice);
-            lacpy(Uplo::General, WH_slice, A_slice);
+            gemm(CONJ_TRANS, NO_TRANS, one, V, A_slice, WH_slice);
+            lacpy(GENERAL, WH_slice, A_slice);
             i = i + iblock;
         }
     }
@@ -499,8 +499,8 @@ void agressive_early_deflation(bool want_t,
             auto A_slice = slice(A, range{i, i + iblock}, range{kwtop, ihi});
             auto WV_slice =
                 slice(WV, range{0, nrows(A_slice)}, range{0, ncols(A_slice)});
-            gemm(Op::NoTrans, Op::NoTrans, one, A_slice, V, WV_slice);
-            lacpy(Uplo::General, WV_slice, A_slice);
+            gemm(NO_TRANS, NO_TRANS, one, A_slice, V, WV_slice);
+            lacpy(GENERAL, WV_slice, A_slice);
             i = i + iblock;
         }
     }
@@ -512,8 +512,8 @@ void agressive_early_deflation(bool want_t,
             auto Z_slice = slice(Z, range{i, i + iblock}, range{kwtop, ihi});
             auto WV_slice =
                 slice(WV, range{0, nrows(Z_slice)}, range{0, ncols(Z_slice)});
-            gemm(Op::NoTrans, Op::NoTrans, one, Z_slice, V, WV_slice);
-            lacpy(Uplo::General, WV_slice, Z_slice);
+            gemm(NO_TRANS, NO_TRANS, one, Z_slice, V, WV_slice);
+            lacpy(GENERAL, WV_slice, Z_slice);
             i = i + iblock;
         }
     }

@@ -57,14 +57,14 @@ int ul_mult(matrix_t& A)
 
     // calculate top left corner
     ul_mult(A00);
-    tlapack::gemm(Op::NoTrans, Op::NoTrans, T(1), A01, A10, T(1), A00);
+    tlapack::gemm(NO_TRANS, NO_TRANS, T(1), A01, A10, T(1), A00);
 
     // calculate bottom left corner
-    tlapack::trmm(Side::Left, Uplo::Upper, Op::NoTrans, Diag::NonUnit, T(1),
-                  A11, A10);
+    tlapack::trmm(LEFT_SIDE, UPPER_TRIANGLE, NO_TRANS, NON_UNIT_DIAG, T(1), A11,
+                  A10);
 
     // calculate top right
-    tlapack::trmm(Side::Right, Uplo::Lower, Op::NoTrans, Diag::Unit, T(1), A11,
+    tlapack::trmm(RIGHT_SIDE, LOWER_TRIANGLE, NO_TRANS, UNIT_DIAG, T(1), A11,
                   A01);
 
     // calculate bottom right

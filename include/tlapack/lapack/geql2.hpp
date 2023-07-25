@@ -43,8 +43,8 @@ inline constexpr WorkInfo geql2_worksize(const matrix_t& A,
 
     if (n > 1) {
         auto C = cols(A, range{1, n});
-        return larf_worksize(Side::Left, Direction::Backward,
-                             StoreV::Columnwise, col(A, 0), tau[0], C, opts);
+        return larf_worksize(LEFT_SIDE, BACKWARD, COLUMNWISE_STORAGE, col(A, 0),
+                             tau[0], C, opts);
     }
 
     return WorkInfo{};
@@ -121,13 +121,13 @@ int geql2(matrix_t& A, vector_t& tau, const WorkspaceOpts<>& opts = {})
         auto v = slice(A, range{0, m - k + i + 1}, n - k + i);
 
         // Generate the (i+1)-th elementary Householder reflection on v
-        larfg(Direction::Backward, StoreV::Columnwise, v, tau[i]);
+        larfg(BACKWARD, COLUMNWISE_STORAGE, v, tau[i]);
 
         // Apply the reflector to the rest of the matrix
         if (n + i > k) {
             auto C = slice(A, range{0, m - k + i + 1}, range{0, n - k + i});
-            larf(Side::Left, Direction::Backward, StoreV::Columnwise, v,
-                 conj(tau[i]), C, larfOpts);
+            larf(LEFT_SIDE, BACKWARD, COLUMNWISE_STORAGE, v, conj(tau[i]), C,
+                 larfOpts);
         }
     }
 

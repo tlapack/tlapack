@@ -62,8 +62,8 @@ inline constexpr WorkInfo gelqf_worksize(
     auto tauw1 = slice(tau, range(0, ib));
 
     WorkInfo workinfo = gelq2_worksize(A11, tauw1);
-    workinfo.minMax(larfb_worksize(Side::Right, Op::NoTrans, Direction::Forward,
-                                   StoreV::Rowwise, A11, TT1, A12));
+    workinfo.minMax(larfb_worksize(RIGHT_SIDE, NO_TRANS, FORWARD,
+                                   ROWWISE_STORAGE, A11, TT1, A12));
 
     workinfo += WorkInfo(sizeof(T) * nb, nb);
 
@@ -150,12 +150,12 @@ int gelqf(A_t& A, tau_t& tau, const GelqfOpts<size_type<A_t>>& opts = {})
             // Form the triangular factor of the block reflector H = H(j)
             // H(j+1) . . . H(j+ib-1)
             auto TT1 = slice(TT, range(0, ib), range(0, ib));
-            larft(Direction::Forward, StoreV::Rowwise, A11, tauw1, TT1);
+            larft(FORWARD, ROWWISE_STORAGE, A11, tauw1, TT1);
 
             // Apply H to A(j+ib:m,j:n) from the right
             auto A12 = slice(A, range(j + ib, m), range(j, n));
-            larfb(Side::Right, Op::NoTrans, Direction::Forward, StoreV::Rowwise,
-                  A11, TT1, A12, larfbOpts);
+            larfb(RIGHT_SIDE, NO_TRANS, FORWARD, ROWWISE_STORAGE, A11, TT1, A12,
+                  larfbOpts);
         }
     }
 

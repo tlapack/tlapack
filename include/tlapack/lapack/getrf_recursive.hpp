@@ -136,7 +136,7 @@ int getrf_recursive(matrix_t& A, piv_t& piv)
         }
 
         // Solve triangular system A0 X = A1 and update A1
-        trsm(Side::Left, Uplo::Lower, Op::NoTrans, Diag::Unit, T(1), A0, A1);
+        trsm(LEFT_SIDE, LOWER_TRIANGLE, NO_TRANS, UNIT_DIAG, T(1), A0, A1);
 
         return 0;
     }
@@ -174,10 +174,10 @@ int getrf_recursive(matrix_t& A, piv_t& piv)
         auto piv1 = tlapack::slice(piv, range(k0, k));
 
         // Solve the triangular system of equations given by A00 X = A01
-        trsm(Side::Left, Uplo::Lower, Op::NoTrans, Diag::Unit, T(1), A00, A01);
+        trsm(LEFT_SIDE, LOWER_TRIANGLE, NO_TRANS, UNIT_DIAG, T(1), A00, A01);
 
         // A11 <---- A11 - (A10 * A01)
-        gemm(Op::NoTrans, Op::NoTrans, real_t(-1), A10, A01, real_t(1), A11);
+        gemm(NO_TRANS, NO_TRANS, real_t(-1), A10, A01, real_t(1), A11);
 
         // Finding LU factorization of A11 in place
         info = getrf_recursive(A11, piv1);

@@ -268,17 +268,20 @@ int larfb(side_t side,
                 // W := C1
                 lacpy(GENERAL, C1, W);
                 // W := V1^H W
-                trmm(side, Uplo::Lower, Op::ConjTrans, Diag::Unit, one, V1, W);
+                trmm(LEFT_SIDE, LOWER_TRIANGLE, CONJ_TRANS, UNIT_DIAG, one, V1,
+                     W);
                 if (m > k)
                     // W := W + V2^H C2
-                    gemm(Op::ConjTrans, Op::NoTrans, one, V2, C2, one, W);
+                    gemm(CONJ_TRANS, NO_TRANS, one, V2, C2, one, W);
                 // W := op(Tmatrix) W
-                trmm(side, Uplo::Upper, trans, Diag::NonUnit, one, Tmatrix, W);
+                trmm(LEFT_SIDE, UPPER_TRIANGLE, trans, NON_UNIT_DIAG, one,
+                     Tmatrix, W);
                 if (m > k)
                     // C2 := C2 - V2 W
-                    gemm(Op::NoTrans, Op::NoTrans, -one, V2, W, one, C2);
+                    gemm(NO_TRANS, NO_TRANS, -one, V2, W, one, C2);
                 // W := - V1 W
-                trmm(side, Uplo::Lower, Op::NoTrans, Diag::Unit, -one, V1, W);
+                trmm(LEFT_SIDE, LOWER_TRIANGLE, NO_TRANS, UNIT_DIAG, -one, V1,
+                     W);
 
                 // C1 := C1 + W
                 for (idx_t j = 0; j < n; ++j)
@@ -299,18 +302,20 @@ int larfb(side_t side,
                 // W := C1
                 lacpy(GENERAL, C1, W);
                 // W := W V1
-                trmm(side, Uplo::Lower, Op::NoTrans, Diag::Unit, one, V1, W);
+                trmm(RIGHT_SIDE, LOWER_TRIANGLE, NO_TRANS, UNIT_DIAG, one, V1,
+                     W);
                 if (n > k)
                     // W := W + C2 V2
-                    gemm(Op::NoTrans, Op::NoTrans, one, C2, V2, one, W);
+                    gemm(NO_TRANS, NO_TRANS, one, C2, V2, one, W);
                 // W := W op(Tmatrix)
-                trmm(Side::Right, Uplo::Upper, trans, Diag::NonUnit, one,
+                trmm(RIGHT_SIDE, UPPER_TRIANGLE, trans, NON_UNIT_DIAG, one,
                      Tmatrix, W);
                 if (n > k)
                     // C2 := C2 - W V2^H
-                    gemm(Op::NoTrans, Op::ConjTrans, -one, W, V2, one, C2);
+                    gemm(NO_TRANS, CONJ_TRANS, -one, W, V2, one, C2);
                 // W := - W V1^H
-                trmm(side, Uplo::Lower, Op::ConjTrans, Diag::Unit, -one, V1, W);
+                trmm(RIGHT_SIDE, LOWER_TRIANGLE, CONJ_TRANS, UNIT_DIAG, -one,
+                     V1, W);
 
                 // C1 := C1 + W
                 for (idx_t j = 0; j < k; ++j)
@@ -333,17 +338,20 @@ int larfb(side_t side,
                 // W := C2
                 lacpy(GENERAL, C2, W);
                 // W := V2^H W
-                trmm(side, Uplo::Upper, Op::ConjTrans, Diag::Unit, one, V2, W);
+                trmm(LEFT_SIDE, UPPER_TRIANGLE, CONJ_TRANS, UNIT_DIAG, one, V2,
+                     W);
                 if (m > k)
                     // W := W + V1^H C1
-                    gemm(Op::ConjTrans, Op::NoTrans, one, V1, C1, one, W);
+                    gemm(CONJ_TRANS, NO_TRANS, one, V1, C1, one, W);
                 // W := op(Tmatrix) W
-                trmm(side, Uplo::Lower, trans, Diag::NonUnit, one, Tmatrix, W);
+                trmm(LEFT_SIDE, LOWER_TRIANGLE, trans, NON_UNIT_DIAG, one,
+                     Tmatrix, W);
                 if (m > k)
                     // C1 := C1 - V1 W
-                    gemm(Op::NoTrans, Op::NoTrans, -one, V1, W, one, C1);
+                    gemm(NO_TRANS, NO_TRANS, -one, V1, W, one, C1);
                 // W := - V2 W
-                trmm(side, Uplo::Upper, Op::NoTrans, Diag::Unit, -one, V2, W);
+                trmm(LEFT_SIDE, UPPER_TRIANGLE, NO_TRANS, UNIT_DIAG, -one, V2,
+                     W);
 
                 // C2 := C2 + W
                 for (idx_t j = 0; j < n; ++j)
@@ -364,17 +372,20 @@ int larfb(side_t side,
                 // W := C2
                 lacpy(GENERAL, C2, W);
                 // W := W V2
-                trmm(side, Uplo::Upper, Op::NoTrans, Diag::Unit, one, V2, W);
+                trmm(RIGHT_SIDE, UPPER_TRIANGLE, NO_TRANS, UNIT_DIAG, one, V2,
+                     W);
                 if (n > k)
                     // W := W + C1 V1
-                    gemm(Op::NoTrans, Op::NoTrans, one, C1, V1, one, W);
+                    gemm(NO_TRANS, NO_TRANS, one, C1, V1, one, W);
                 // W := W op(Tmatrix)
-                trmm(side, Uplo::Lower, trans, Diag::NonUnit, one, Tmatrix, W);
+                trmm(RIGHT_SIDE, LOWER_TRIANGLE, trans, NON_UNIT_DIAG, one,
+                     Tmatrix, W);
                 if (n > k)
                     // C1 := C1 - W V1^H
-                    gemm(Op::NoTrans, Op::ConjTrans, -one, W, V1, one, C1);
+                    gemm(NO_TRANS, CONJ_TRANS, -one, W, V1, one, C1);
                 // W := - W V2^H
-                trmm(side, Uplo::Upper, Op::ConjTrans, Diag::Unit, -one, V2, W);
+                trmm(RIGHT_SIDE, UPPER_TRIANGLE, CONJ_TRANS, UNIT_DIAG, -one,
+                     V2, W);
 
                 // C2 := C2 + W
                 for (idx_t j = 0; j < k; ++j)
@@ -399,17 +410,20 @@ int larfb(side_t side,
                 // W := C1
                 lacpy(GENERAL, C1, W);
                 // W := V1 W
-                trmm(side, Uplo::Upper, Op::NoTrans, Diag::Unit, one, V1, W);
+                trmm(LEFT_SIDE, UPPER_TRIANGLE, NO_TRANS, UNIT_DIAG, one, V1,
+                     W);
                 if (m > k)
                     // W := W + V2 C2
-                    gemm(Op::NoTrans, Op::NoTrans, one, V2, C2, one, W);
+                    gemm(NO_TRANS, NO_TRANS, one, V2, C2, one, W);
                 // W := op(Tmatrix) W
-                trmm(side, Uplo::Upper, trans, Diag::NonUnit, one, Tmatrix, W);
+                trmm(LEFT_SIDE, UPPER_TRIANGLE, trans, NON_UNIT_DIAG, one,
+                     Tmatrix, W);
                 if (m > k)
                     // C2 := C2 - V2^H W
-                    gemm(Op::ConjTrans, Op::NoTrans, -one, V2, W, one, C2);
+                    gemm(CONJ_TRANS, NO_TRANS, -one, V2, W, one, C2);
                 // W := - V1^H W
-                trmm(side, Uplo::Upper, Op::ConjTrans, Diag::Unit, -one, V1, W);
+                trmm(LEFT_SIDE, UPPER_TRIANGLE, CONJ_TRANS, UNIT_DIAG, -one, V1,
+                     W);
 
                 // C1 := C1 - W
                 for (idx_t j = 0; j < n; ++j)
@@ -430,17 +444,20 @@ int larfb(side_t side,
                 // W := C1
                 lacpy(GENERAL, C1, W);
                 // W := W V1^H
-                trmm(side, Uplo::Upper, Op::ConjTrans, Diag::Unit, one, V1, W);
+                trmm(RIGHT_SIDE, UPPER_TRIANGLE, CONJ_TRANS, UNIT_DIAG, one, V1,
+                     W);
                 if (n > k)
                     // W := W + C2 V2^H
-                    gemm(Op::NoTrans, Op::ConjTrans, one, C2, V2, one, W);
+                    gemm(NO_TRANS, CONJ_TRANS, one, C2, V2, one, W);
                 // W := W op(Tmatrix)
-                trmm(side, Uplo::Upper, trans, Diag::NonUnit, one, Tmatrix, W);
+                trmm(RIGHT_SIDE, UPPER_TRIANGLE, trans, NON_UNIT_DIAG, one,
+                     Tmatrix, W);
                 if (n > k)
                     // C2 := C2 - W V2
-                    gemm(Op::NoTrans, Op::NoTrans, -one, W, V2, one, C2);
+                    gemm(NO_TRANS, NO_TRANS, -one, W, V2, one, C2);
                 // W := - W V1
-                trmm(side, Uplo::Upper, Op::NoTrans, Diag::Unit, -one, V1, W);
+                trmm(RIGHT_SIDE, UPPER_TRIANGLE, NO_TRANS, UNIT_DIAG, -one, V1,
+                     W);
 
                 // C1 := C1 + W
                 for (idx_t j = 0; j < k; ++j)
@@ -463,17 +480,20 @@ int larfb(side_t side,
                 // W := C2
                 lacpy(GENERAL, C2, W);
                 // W := V2 W
-                trmm(side, Uplo::Lower, Op::NoTrans, Diag::Unit, one, V2, W);
+                trmm(LEFT_SIDE, LOWER_TRIANGLE, NO_TRANS, UNIT_DIAG, one, V2,
+                     W);
                 if (m > k)
                     // W := W + V1 C1
-                    gemm(Op::NoTrans, Op::NoTrans, one, V1, C1, one, W);
+                    gemm(NO_TRANS, NO_TRANS, one, V1, C1, one, W);
                 // W := op(Tmatrix) W
-                trmm(side, Uplo::Lower, trans, Diag::NonUnit, one, Tmatrix, W);
+                trmm(LEFT_SIDE, LOWER_TRIANGLE, trans, NON_UNIT_DIAG, one,
+                     Tmatrix, W);
                 if (m > k)
                     // C1 := C1 - V1^H W
-                    gemm(Op::ConjTrans, Op::NoTrans, -one, V1, W, one, C1);
+                    gemm(CONJ_TRANS, NO_TRANS, -one, V1, W, one, C1);
                 // W := - V2^H W
-                trmm(side, Uplo::Lower, Op::ConjTrans, Diag::Unit, -one, V2, W);
+                trmm(LEFT_SIDE, LOWER_TRIANGLE, CONJ_TRANS, UNIT_DIAG, -one, V2,
+                     W);
 
                 // C2 := C2 + W
                 for (idx_t j = 0; j < n; ++j)
@@ -494,17 +514,20 @@ int larfb(side_t side,
                 // W := C2
                 lacpy(GENERAL, C2, W);
                 // W := W V2^H
-                trmm(side, Uplo::Lower, Op::ConjTrans, Diag::Unit, one, V2, W);
+                trmm(RIGHT_SIDE, LOWER_TRIANGLE, CONJ_TRANS, UNIT_DIAG, one, V2,
+                     W);
                 if (n > k)
                     // W := W + C1 V1^H
-                    gemm(Op::NoTrans, Op::ConjTrans, one, C1, V1, one, W);
+                    gemm(NO_TRANS, CONJ_TRANS, one, C1, V1, one, W);
                 // W := W op(Tmatrix)
-                trmm(side, Uplo::Lower, trans, Diag::NonUnit, one, Tmatrix, W);
+                trmm(RIGHT_SIDE, LOWER_TRIANGLE, trans, NON_UNIT_DIAG, one,
+                     Tmatrix, W);
                 if (n > k)
                     // C1 := C1 - W V1
-                    gemm(Op::NoTrans, Op::NoTrans, -one, W, V1, one, C1);
+                    gemm(NO_TRANS, NO_TRANS, -one, W, V1, one, C1);
                 // W := - W V2
-                trmm(side, Uplo::Lower, Op::NoTrans, Diag::Unit, -one, V2, W);
+                trmm(RIGHT_SIDE, LOWER_TRIANGLE, NO_TRANS, UNIT_DIAG, -one, V2,
+                     W);
 
                 // C2 := C2 + W
                 for (idx_t j = 0; j < k; ++j)
