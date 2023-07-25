@@ -44,8 +44,8 @@ inline constexpr WorkInfo ung2l_worksize(const matrix_t& A,
 
     if (n > 1) {
         auto C = cols(A, range{1, n});
-        return larf_worksize(Side::Left, Direction::Backward,
-                             StoreV::Columnwise, col(A, 0), tau[0], C, opts);
+        return larf_worksize(LEFT_SIDE, BACKWARD, COLUMNWISE_STORAGE, col(A, 0),
+                             tau[0], C, opts);
     }
     return WorkInfo{};
 }
@@ -118,8 +118,7 @@ int ung2l(matrix_t& A, const vector_t& tau, const WorkspaceOpts<>& opts = {})
         idx_t ii = n - k + i;
         auto v = slice(A, range{0, m - k + i + 1}, ii);
         auto C = slice(A, range{0, m - k + i + 1}, range{0, ii});
-        larf(Side::Left, Direction::Backward, StoreV::Columnwise, v, tau[i], C,
-             larfOpts);
+        larf(LEFT_SIDE, BACKWARD, COLUMNWISE_STORAGE, v, tau[i], C, larfOpts);
         auto x = slice(A, range{0, m - k + i}, ii);
         scal(-tau[i], x);
         A(m - k + i, ii) = one - tau[i];

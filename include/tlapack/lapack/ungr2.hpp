@@ -118,8 +118,8 @@ int ungr2(matrix_t& A, const vector_t& tau, const WorkspaceOpts<>& opts = {})
         idx_t ii = m - k + i;
         auto v = slice(A, ii, range{0, n - k + 1 + i});
         auto C = slice(A, range{0, ii}, range{0, n - k + 1 + i});
-        larf(Side::Right, Direction::Backward, StoreV::Rowwise, v, conj(tau[i]),
-             C, larfOpts);
+        larf(RIGHT_SIDE, BACKWARD, ROWWISE_STORAGE, v, conj(tau[i]), C,
+             larfOpts);
         auto x = slice(A, ii, range{0, n - k + i});
         scal(-conj(tau[i]), x);
         A(ii, n - k + i) = one - conj(tau[i]);

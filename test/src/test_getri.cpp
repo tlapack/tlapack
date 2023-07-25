@@ -64,10 +64,10 @@ TEMPLATE_TEST_CASE("Inversion of a general m-by-n matrix",
             }
 
         // make a deep copy A
-        lacpy(Uplo::General, A, invA);
+        lacpy(GENERAL, A, invA);
 
         // calculate norm of A for later use in relative error
-        real_t norma = tlapack::lange(tlapack::Norm::Max, A);
+        real_t norma = tlapack::lange(tlapack::MAX_NORM, A);
 
         // LU factorize Pivoted A
         std::vector<idx_t> piv(n, idx_t(0));
@@ -83,25 +83,25 @@ TEMPLATE_TEST_CASE("Inversion of a general m-by-n matrix",
         auto E = new_matrix(E_, n, n);
 
         // E <----- inv(A)*A - I
-        gemm(Op::NoTrans, Op::NoTrans, real_t(1), A, invA, E);
+        gemm(NO_TRANS, NO_TRANS, real_t(1), A, invA, E);
         for (idx_t i = 0; i < n; i++)
             E(i, i) -= real_t(1);
 
         // error is  || inv(A)*A - I || / ( ||A|| * ||inv(A)|| )
-        real_t error = tlapack::lange(tlapack::Norm::Max, E) /
-                       (norma * tlapack::lange(tlapack::Norm::Max, invA));
+        real_t error = tlapack::lange(tlapack::MAX_NORM, E) /
+                       (norma * tlapack::lange(tlapack::MAX_NORM, invA));
 
         UNSCOPED_INFO("|| inv(A)*A - I || / ( ||A|| * ||inv(A)|| )");
         CHECK(error / tol <= real_t(1));  // tests if error<=tol
 
         // E <----- A*inv(A) - I
-        gemm(Op::NoTrans, Op::NoTrans, real_t(1), invA, A, E);
+        gemm(NO_TRANS, NO_TRANS, real_t(1), invA, A, E);
         for (idx_t i = 0; i < n; i++)
             E(i, i) -= real_t(1);
 
         // error is  || A*inv(A) - I || / ( ||A|| * ||inv(A)|| )
-        error = tlapack::lange(tlapack::Norm::Max, E) /
-                (norma * tlapack::lange(tlapack::Norm::Max, invA));
+        error = tlapack::lange(tlapack::MAX_NORM, E) /
+                (norma * tlapack::lange(tlapack::MAX_NORM, invA));
 
         UNSCOPED_INFO("|| A*inv(A) - I || / ( ||A|| * ||inv(A)|| )");
         CHECK(error / tol <= real_t(1));  // tests if error<=tol

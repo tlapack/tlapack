@@ -64,7 +64,7 @@ TEMPLATE_TEST_CASE("QR factorization of a general m-by-n matrix",
         for (idx_t i = 0; i < m; ++i)
             A(i, j) = rand_helper<T>();
 
-    lacpy(Uplo::General, A, A_copy);
+    lacpy(GENERAL, A, A_copy);
 
     DYNAMIC_SECTION("m = " << m << " n = " << n)
     {
@@ -73,7 +73,7 @@ TEMPLATE_TEST_CASE("QR factorization of a general m-by-n matrix",
         // Q is sliced down to the desired size of output Q (m-by-k).
         // It stores the desired number of Householder reflectors that UNG2R
         // will use.
-        lacpy(Uplo::General, slice(A, range(0, m), range(0, k)), Q);
+        lacpy(GENERAL, slice(A, range(0, m), range(0, k)), Q);
 
         ung2r(Q, tau);
 
@@ -85,13 +85,13 @@ TEMPLATE_TEST_CASE("QR factorization of a general m-by-n matrix",
         // R is sliced from A after
         std::vector<T> R_;
         auto R = new_matrix(R_, k, n);
-        laset(Uplo::Lower, zero, zero, R);
-        lacpy(Uplo::Upper, slice(A, range(0, k), range(0, n)), R);
+        laset(LOWER_TRIANGLE, zero, zero, R);
+        lacpy(UPPER_TRIANGLE, slice(A, range(0, k), range(0, n)), R);
 
         // Test A = Q * R
-        gemm(Op::NoTrans, Op::NoTrans, real_t(1.), Q, R, real_t(-1.), A_copy);
+        gemm(NO_TRANS, NO_TRANS, real_t(1.), Q, R, real_t(-1.), A_copy);
 
-        real_t repres = tlapack::lange(tlapack::Norm::Max, A_copy);
+        real_t repres = tlapack::lange(tlapack::MAX_NORM, A_copy);
         CHECK(repres <= tol);
     }
 }

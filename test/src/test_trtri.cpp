@@ -82,12 +82,12 @@ TEMPLATE_TEST_CASE("TRTRI is stable", "[trtri]", TLAPACK_TYPES_TO_TEST)
             // TRMM with X starting as the inverse of C and leaving as the
             // identity. This checks that the inverse is correct. Note: it would
             // be nice to have a ``upper * upper`` MM function to do this
-            trmm(Side::Left, uplo, Op::NoTrans, diag, T(1), A, C);
+            trmm(LEFT_SIDE, uplo, NO_TRANS, diag, T(1), A, C);
 
             for (idx_t i = 0; i < n; ++i)
                 C(i, i) = C(i, i) - T(1);
 
-            real_t normres = lantr(MAX_NORM, uplo, Diag::NonUnit, C) /
+            real_t normres = lantr(MAX_NORM, uplo, NON_UNIT_DIAG, C) /
                              (lantr(MAX_NORM, uplo, diag, A));
             CHECK(normres <= tol);
         }

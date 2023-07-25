@@ -119,17 +119,17 @@ namespace legacy {
             auto A_ = create_matrix<T>(A, m, n, lda);
 
             if (matrixtype == MatrixType::General) {
-                return lascl(Uplo::General, b, a, A_);
+                return lascl(GENERAL, b, a, A_);
             }
             else if (matrixtype == MatrixType::Lower) {
-                return lascl(Uplo::Lower, b, a, A_);
+                return lascl(LOWER_TRIANGLE, b, a, A_);
             }
             else if (matrixtype == MatrixType::Upper) {
-                return lascl(Uplo::Upper, b, a, A_);
+                return lascl(UPPER_TRIANGLE, b, a, A_);
             }
             else  // if (matrixtype == MatrixType::Hessenberg)
             {
-                return lascl(Uplo::UpperHessenberg, b, a, A_);
+                return lascl(UPPER_HESSENBERG, b, a, A_);
             }
         }
     }

@@ -116,9 +116,9 @@ TEMPLATE_TEST_CASE("Multishift QR",
         for (idx_t j = 0; j < i; ++j)
             A(i, j) = (T)0.0;
 
-    lacpy(Uplo::General, A, H);
+    lacpy(GENERAL, A, H);
     std::vector<complex_t> s(n);
-    laset(Uplo::General, zero, one, Q);
+    laset(GENERAL, zero, one, Q);
 
     idx_t ns = GENERATE(4, 2);
     idx_t nw = GENERATE(4, 2);

@@ -61,11 +61,11 @@ TEMPLATE_TEST_CASE("lu multiplication is backward stable",
                 for (idx_t i = 0; i < n; ++i)
                     A(i, j) = rand_helper<T>();
 
-            lacpy(Uplo::Lower, A, L);
-            laset(Uplo::Upper, real_t(0), real_t(1), L);
+            lacpy(LOWER_TRIANGLE, A, L);
+            laset(UPPER_TRIANGLE, real_t(0), real_t(1), L);
 
-            laset(Uplo::Lower, real_t(0), real_t(0), U);
-            lacpy(Uplo::Upper, A, U);
+            laset(LOWER_TRIANGLE, real_t(0), real_t(0), U);
+            lacpy(UPPER_TRIANGLE, A, U);
 
             real_t norma = lange(MAX_NORM, A);
 
@@ -74,7 +74,7 @@ TEMPLATE_TEST_CASE("lu multiplication is backward stable",
 
                 // Calculate residual
 
-                gemm(Op::NoTrans, Op::NoTrans, real_t(1), L, U, real_t(-1), A);
+                gemm(NO_TRANS, NO_TRANS, real_t(1), L, U, real_t(-1), A);
 
                 real_t lu_mult_res_norm = lange(MAX_NORM, A) / norma;
                 CHECK(lu_mult_res_norm <= tol);

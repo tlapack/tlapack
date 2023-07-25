@@ -100,9 +100,9 @@ int potrf_blocked(uplo_t uplo,
                 auto AJJ = slice(A, range{j, j + jb}, range{j, j + jb});
                 auto A1J = slice(A, range{0, j}, range{j, j + jb});
 
-                herk(uplo, CONJ_TRANS, -one, A1J, one, AJJ);
+                herk(UPPER_TRIANGLE, CONJ_TRANS, -one, A1J, one, AJJ);
 
-                int info = potf2(uplo, AJJ);
+                int info = potf2(UPPER_TRIANGLE, AJJ);
                 if (info != 0) {
                     tlapack_error(
                         info + j,
@@ -119,8 +119,8 @@ int potrf_blocked(uplo_t uplo,
 
                     // Compute the current block row
                     gemm(CONJ_TRANS, NO_TRANS, -one, A1J, B, one, C);
-                    trsm(LEFT_SIDE, uplo, CONJ_TRANS, NON_UNIT_DIAG, one, AJJ,
-                         C);
+                    trsm(LEFT_SIDE, UPPER_TRIANGLE, CONJ_TRANS, NON_UNIT_DIAG,
+                         one, AJJ, C);
                 }
             }
         }
@@ -132,9 +132,9 @@ int potrf_blocked(uplo_t uplo,
                 auto AJJ = slice(A, range{j, j + jb}, range{j, j + jb});
                 auto AJ1 = slice(A, range{j, j + jb}, range{0, j});
 
-                herk(uplo, NO_TRANS, -one, AJ1, one, AJJ);
+                herk(LOWER_TRIANGLE, NO_TRANS, -one, AJ1, one, AJJ);
 
-                int info = potf2(uplo, AJJ);
+                int info = potf2(LOWER_TRIANGLE, AJJ);
                 if (info != 0) {
                     tlapack_error(
                         info + j,
@@ -151,8 +151,8 @@ int potrf_blocked(uplo_t uplo,
 
                     // Compute the current block row
                     gemm(NO_TRANS, CONJ_TRANS, -one, B, AJ1, one, C);
-                    trsm(RIGHT_SIDE, uplo, CONJ_TRANS, NON_UNIT_DIAG, one, AJJ,
-                         C);
+                    trsm(RIGHT_SIDE, LOWER_TRIANGLE, CONJ_TRANS, NON_UNIT_DIAG,
+                         one, AJJ, C);
                 }
             }
         }

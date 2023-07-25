@@ -83,13 +83,13 @@ namespace legacy {
                       idx_t ldb)
     {
         if (matrixtype == MatrixType::Upper) {
-            lacpy(Uplo::Upper, m, n, A, lda, B, ldb);
+            lacpy(UPPER_TRIANGLE, m, n, A, lda, B, ldb);
         }
         else if (matrixtype == MatrixType::Lower) {
-            lacpy(Uplo::Lower, m, n, A, lda, B, ldb);
+            lacpy(LOWER_TRIANGLE, m, n, A, lda, B, ldb);
         }
         else {
-            lacpy(Uplo::General, m, n, A, lda, B, ldb);
+            lacpy(GENERAL, m, n, A, lda, B, ldb);
         }
     }
 

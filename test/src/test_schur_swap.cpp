@@ -68,8 +68,8 @@ TEMPLATE_TEST_CASE("schur swap gives correct result",
         if (n1 == 2) A(j + 1, j) = rand_helper<T>();
         if (n2 == 2) A(j + n1 + 1, j + n1) = rand_helper<T>();
 
-        lacpy(Uplo::General, A, A_copy);
-        laset(Uplo::General, zero, one, Q);
+        lacpy(GENERAL, A, A_copy);
+        laset(GENERAL, zero, one, Q);
 
         DYNAMIC_SECTION("j = " << j << " n1 = " << n1 << " n2 =" << n2)
         {

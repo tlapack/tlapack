@@ -269,8 +269,8 @@ int schur_swap(bool want_q,
         auto D = new_matrix(D_, 4, 4);
 
         auto AD_slice = slice(A, range{j0, j0 + 4}, range{j0, j0 + 4});
-        lacpy(Uplo::General, AD_slice, D);
-        auto dnorm = lange(Norm::Max, D);
+        lacpy(GENERAL, AD_slice, D);
+        auto dnorm = lange(MAX_NORM, D);
 
         const T eps = ulp<T>();
         const T small_num = safe_min<T>() / eps;
@@ -284,7 +284,7 @@ int schur_swap(bool want_q,
         auto TR = slice(D, range{2, 4}, range{2, 4});
         auto B = slice(D, range{0, 2}, range{2, 4});
         T scale, xnorm;
-        lasy2(Op::NoTrans, Op::NoTrans, -1, TL, TR, B, scale, X, xnorm);
+        lasy2(NO_TRANS, NO_TRANS, -1, TL, TR, B, scale, X, xnorm);
 
         V(2, 0) = -scale;
         V(2, 1) = zero;

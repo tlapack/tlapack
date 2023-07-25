@@ -88,8 +88,8 @@ TEMPLATE_TEST_CASE("move of eigenvalue block gives correct results",
             A(5, 4) = rand_helper<T>();
         }
 
-        lacpy(Uplo::General, A, A_copy);
-        laset(Uplo::General, zero, one, Q);
+        lacpy(GENERAL, A, A_copy);
+        laset(GENERAL, zero, one, Q);
 
         DYNAMIC_SECTION("ifst = " << ifst << " n1 = " << n1
                                   << " ilst = " << ilst << " n2 =" << n2)

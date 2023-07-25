@@ -62,9 +62,8 @@ inline constexpr WorkInfo geqlf_worksize(
     auto tauw1 = slice(tau, range(0, ib));
 
     WorkInfo workinfo = geql2_worksize(A11, tauw1);
-    workinfo.minMax(larfb_worksize(Side::Left, Op::ConjTrans,
-                                   Direction::Backward, StoreV::Columnwise, A11,
-                                   TT1, A12));
+    workinfo.minMax(larfb_worksize(LEFT_SIDE, CONJ_TRANS, BACKWARD,
+                                   COLUMNWISE_STORAGE, A11, TT1, A12));
 
     workinfo += WorkInfo(sizeof(T) * nb, nb);
 
@@ -151,12 +150,12 @@ int geqlf(A_t& A, tau_t& tau, const GeqlfOpts<size_type<A_t>>& opts = {})
         if (j > ib) {
             // Form the triangular factor of the block reflector
             auto TT1 = slice(TT, range(0, ib), range(0, ib));
-            larft(Direction::Backward, StoreV::Columnwise, A11, tauw1, TT1);
+            larft(BACKWARD, COLUMNWISE_STORAGE, A11, tauw1, TT1);
 
             // Apply H to A(0:m-n+j,0:j-ib) from the left
             auto A12 = slice(A, range(0, m - (n - j)), range(0, j - ib));
-            larfb(Side::Left, Op::ConjTrans, Direction::Backward,
-                  StoreV::Columnwise, A11, TT1, A12, larfbOpts);
+            larfb(LEFT_SIDE, CONJ_TRANS, BACKWARD, COLUMNWISE_STORAGE, A11, TT1,
+                  A12, larfbOpts);
         }
     }
 

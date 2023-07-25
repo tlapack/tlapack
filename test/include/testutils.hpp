@@ -23,6 +23,7 @@
 #include <tlapack/base/utils.hpp>
 #include <tlapack/blas/gemm.hpp>
 #include <tlapack/blas/herk.hpp>
+#include <tlapack/lapack/lacpy.hpp>
 #include <tlapack/lapack/lange.hpp>
 #include <tlapack/lapack/lanhe.hpp>
 #include <tlapack/lapack/laset.hpp>
@@ -103,18 +104,18 @@ real_type<type_t<matrix_t>> check_orthogonality(matrix_t& Q, matrix_t& res)
     tlapack_check(nrows(res) == min(m, n));
 
     // res = I
-    laset(Uplo::Upper, (T)0.0, (T)1.0, res);
+    laset(UPPER_TRIANGLE, (T)0.0, (T)1.0, res);
     if (n <= m) {
         // res = Q'Q - I
-        herk(Uplo::Upper, Op::ConjTrans, (real_t)1.0, Q, (real_t)-1.0, res);
+        herk(UPPER_TRIANGLE, CONJ_TRANS, (real_t)1.0, Q, (real_t)-1.0, res);
     }
     else {
         // res = QQ' - I
-        herk(Uplo::Upper, Op::NoTrans, (real_t)1.0, Q, (real_t)-1.0, res);
+        herk(UPPER_TRIANGLE, NO_TRANS, (real_t)1.0, Q, (real_t)-1.0, res);
     }
 
     // Compute ||res||_F
-    return lanhe(FROB_NORM, Uplo::Upper, res);
+    return lanhe(FROB_NORM, UPPER_TRIANGLE, res);
 }
 
 /** Calculates ||Q'*Q - I||_F if m <= n or ||Q*Q' - I||_F otherwise
@@ -171,9 +172,9 @@ real_type<type_t<matrix_t>> check_similarity_transform(
     tlapack_check(nrows(A) == nrows(work));
 
     // res = Q'*A*Q - B
-    lacpy(Uplo::General, B, res);
-    gemm(Op::ConjTrans, Op::NoTrans, (real_t)1.0, Q, A, work);
-    gemm(Op::NoTrans, Op::NoTrans, (real_t)1.0, work, Q, (real_t)-1.0, res);
+    lacpy(GENERAL, B, res);
+    gemm(CONJ_TRANS, NO_TRANS, (real_t)1.0, Q, A, work);
+    gemm(NO_TRANS, NO_TRANS, (real_t)1.0, work, Q, (real_t)-1.0, res);
 
     // Compute ||res||_F
     return lange(FROB_NORM, res);

@@ -75,8 +75,8 @@ TEMPLATE_TEST_CASE("bidiagonal reduction is backward stable",
         for (idx_t i = 0; i < m; ++i)
             A(i, j) = rand_helper<T>();
 
-    lacpy(Uplo::General, A, A_copy);
-    real_t normA = lange(Norm::Max, A);
+    lacpy(GENERAL, A, A_copy);
+    real_t normA = lange(MAX_NORM, A);
 
     DYNAMIC_SECTION("m = " << m << " n = " << n << " nb = " << nb)
     {
@@ -87,7 +87,7 @@ TEMPLATE_TEST_CASE("bidiagonal reduction is backward stable",
         // Get bidiagonal B
         std::vector<T> B_;
         auto B = new_matrix(B_, k, k);
-        laset(Uplo::General, zero, zero, B);
+        laset(GENERAL, zero, zero, B);
 
         if (m >= n) {
             // copy upper bidiagonal matrix
@@ -109,7 +109,7 @@ TEMPLATE_TEST_CASE("bidiagonal reduction is backward stable",
         // Generate m-by-k unitary matrix Q
         UngbrOpts<matrix_t> ungbrOpts;
         ungbrOpts.nb = nb;
-        lacpy(Uplo::Lower, slice(A, range{0, m}, range{0, k}), Q);
+        lacpy(LOWER_TRIANGLE, slice(A, range{0, m}, range{0, k}), Q);
         ungbr_q(n, Q, tauv, ungbrOpts);
 
         // Test for Q's orthogonality
@@ -118,7 +118,7 @@ TEMPLATE_TEST_CASE("bidiagonal reduction is backward stable",
         auto orth_Q = check_orthogonality(Q, Wq);
         CHECK(orth_Q <= tol);
 
-        lacpy(Uplo::Upper, slice(A, range{0, k}, range{0, n}), Z);
+        lacpy(UPPER_TRIANGLE, slice(A, range{0, k}, range{0, n}), Z);
         ungbr_p(m, Z, tauw, ungbrOpts);
 
         // Test for Z's orthogonality
@@ -130,10 +130,10 @@ TEMPLATE_TEST_CASE("bidiagonal reduction is backward stable",
         // Test Q * B * Z^H = A
         std::vector<T> K_;
         auto K = new_matrix(K_, m, k);
-        laset(Uplo::General, zero, zero, K);
-        gemm(Op::NoTrans, Op::NoTrans, real_t(1.), Q, B, real_t(0), K);
-        gemm(Op::NoTrans, Op::NoTrans, real_t(1.), K, Z, real_t(-1.), A_copy);
-        real_t repres = lange(Norm::Max, A_copy);
+        laset(GENERAL, zero, zero, K);
+        gemm(NO_TRANS, NO_TRANS, real_t(1.), Q, B, real_t(0), K);
+        gemm(NO_TRANS, NO_TRANS, real_t(1.), K, Z, real_t(-1.), A_copy);
+        real_t repres = lange(MAX_NORM, A_copy);
         CHECK(repres <= tol * normA);
     }
 }

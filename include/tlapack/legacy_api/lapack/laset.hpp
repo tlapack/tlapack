@@ -83,13 +83,13 @@ namespace legacy {
                       idx_t lda)
     {
         if (matrixtype == MatrixType::Upper) {
-            laset(Uplo::Upper, m, n, alpha, beta, A, lda);
+            laset(UPPER_TRIANGLE, m, n, alpha, beta, A, lda);
         }
         else if (matrixtype == MatrixType::Lower) {
-            laset(Uplo::Lower, m, n, alpha, beta, A, lda);
+            laset(LOWER_TRIANGLE, m, n, alpha, beta, A, lda);
         }
         else {
-            laset(Uplo::General, m, n, alpha, beta, A, lda);
+            laset(GENERAL, m, n, alpha, beta, A, lda);
         }
     }
 
