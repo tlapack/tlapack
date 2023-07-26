@@ -21,9 +21,8 @@ namespace tlapack {
 /**
  * Options struct for gerqf
  */
-template <TLAPACK_INDEX idx_t = size_t>
 struct GerqfOpts {
-    idx_t nb = 32;  ///< Block size
+    size_t nb = 32;  ///< Block size
 };
 
 /** Worspace query of gerqf()
@@ -39,8 +38,9 @@ struct GerqfOpts {
  * @ingroup workspace_query
  */
 template <class T, TLAPACK_SMATRIX A_t, TLAPACK_SVECTOR tau_t>
-inline constexpr WorkInfo gerqf_worksize(
-    const A_t& A, const tau_t& tau, const GerqfOpts<size_type<A_t>>& opts = {})
+inline constexpr WorkInfo gerqf_worksize(const A_t& A,
+                                         const tau_t& tau,
+                                         const GerqfOpts& opts = {})
 {
     using idx_t = size_type<A_t>;
     using range = pair<idx_t, idx_t>;
@@ -50,7 +50,7 @@ inline constexpr WorkInfo gerqf_worksize(
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
     const idx_t k = min(m, n);
-    const idx_t nb = min(opts.nb, k);
+    const idx_t nb = min((idx_t)opts.nb, k);
 
     auto A11 = rows(A, range(0, nb));
     auto tauw1 = slice(tau, range(0, nb));
@@ -105,7 +105,7 @@ inline constexpr WorkInfo gerqf_worksize(
  * @ingroup computational
  */
 template <TLAPACK_SMATRIX A_t, TLAPACK_SVECTOR tau_t>
-int gerqf(A_t& A, tau_t& tau, const GerqfOpts<size_type<A_t>>& opts = {})
+int gerqf(A_t& A, tau_t& tau, const GerqfOpts& opts = {})
 {
     Create<A_t> new_matrix;
     using T = type_t<A_t>;
@@ -117,7 +117,7 @@ int gerqf(A_t& A, tau_t& tau, const GerqfOpts<size_type<A_t>>& opts = {})
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
     const idx_t k = min(m, n);
-    const idx_t nb = min(opts.nb, k);
+    const idx_t nb = min((idx_t)opts.nb, k);
 
     // check arguments
     tlapack_check((idx_t)size(tau) >= k);

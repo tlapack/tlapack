@@ -66,7 +66,7 @@ int getrf_recursive(matrix_t& A, piv_t& piv)
         inline constexpr real_t operator()(const T& x) const { return abs(x); }
     };
     abs_f absf;
-    IamaxOpts<abs_f> optsIamax(absf);
+    IamaxOpts optsIamax(absf);
 
     // constants
     const idx_t m = nrows(A);

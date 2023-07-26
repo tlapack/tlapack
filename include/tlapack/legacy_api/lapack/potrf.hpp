@@ -18,9 +18,7 @@ namespace legacy {
     /** Computes the Cholesky factorization of a Hermitian
      * positive definite matrix A using a blocked algorithm.
      *
-     * @see potrf( uplo_t uplo, matrix_t& A, const PotrfOpts<
-     * size_type<matrix_t>
-     * >& opts = {} )
+     * @see potrf( uplo_t uplo, matrix_t& A, const PotrfOpts& opts = {} )
      *
      * @ingroup legacy_lapack
      */

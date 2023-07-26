@@ -127,7 +127,7 @@ TEMPLATE_TEST_CASE("Multishift QR",
                                 << ilo << " ihi = " << ihi << " ns = " << ns
                                 << " nw = " << nw << " seed = " << seed)
     {
-        FrancisOpts<idx_t> opts;
+        FrancisOpts opts;
         opts.nshift_recommender = [ns](idx_t n, idx_t nh) -> idx_t {
             return ns;
         };

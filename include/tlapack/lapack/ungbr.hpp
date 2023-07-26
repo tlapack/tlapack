@@ -21,9 +21,8 @@ namespace tlapack {
 /**
  * Options struct for ungbr
  */
-template <TLAPACK_INDEX idx_t = size_t>
 struct UngbrOpts {
-    idx_t nb = 32;  ///< Block size
+    size_t nb = 32;  ///< Block size
 };
 
 /** Worspace query of ungbr_q()
@@ -47,11 +46,10 @@ struct UngbrOpts {
  * @ingroup workspace_query
  */
 template <class T, TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
-inline constexpr WorkInfo ungbr_q_worksize(
-    const size_type<matrix_t> k,
-    matrix_t& A,
-    const vector_t& tau,
-    const UngbrOpts<size_type<matrix_t>>& opts = {})
+inline constexpr WorkInfo ungbr_q_worksize(const size_type<matrix_t> k,
+                                           matrix_t& A,
+                                           const vector_t& tau,
+                                           const UngbrOpts& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -90,11 +88,10 @@ inline constexpr WorkInfo ungbr_q_worksize(
  * @ingroup workspace_query
  */
 template <class T, TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
-inline constexpr WorkInfo ungbr_p_worksize(
-    const size_type<matrix_t> k,
-    matrix_t& A,
-    const vector_t& tau,
-    const UngbrOpts<size_type<matrix_t>>& opts = {})
+inline constexpr WorkInfo ungbr_p_worksize(const size_type<matrix_t> k,
+                                           matrix_t& A,
+                                           const vector_t& tau,
+                                           const UngbrOpts& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -146,7 +143,7 @@ template <TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
 int ungbr_q(const size_type<matrix_t> k,
             matrix_t& A,
             const vector_t& tau,
-            const UngbrOpts<size_type<matrix_t>>& opts = {})
+            const UngbrOpts& opts = {})
 {
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
@@ -158,7 +155,7 @@ int ungbr_q(const size_type<matrix_t> k,
     const real_t one(1);
     const idx_t m = nrows(A);
 
-    UngqrOpts<idx_t> ungqrOpts;
+    UngqrOpts ungqrOpts;
     ungqrOpts.nb = opts.nb;
     if (m >= k) {
         // If m >= k, assume m >= n >= k
@@ -221,7 +218,7 @@ template <TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
 int ungbr_p(const size_type<matrix_t> k,
             matrix_t& A,
             const vector_t& tau,
-            const UngbrOpts<size_type<matrix_t>>& opts = {})
+            const UngbrOpts& opts = {})
 {
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
@@ -233,7 +230,7 @@ int ungbr_p(const size_type<matrix_t> k,
     const real_t one(1);
     const idx_t n = ncols(A);
 
-    UnglqOpts<idx_t> unglqOpts;
+    UnglqOpts unglqOpts;
     unglqOpts.nb = opts.nb;
     //
     // Form P**H, determined by a call to gebrd to reduce a k-by-n

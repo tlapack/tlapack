@@ -23,16 +23,15 @@ namespace tlapack {
 /**
  * Options struct for multishift_qr
  */
-template <TLAPACK_INDEX idx_t = size_t>
 struct FrancisOpts {
     // Function that returns the number of shifts to use
     // for a given matrix size
-    std::function<idx_t(idx_t, idx_t)> nshift_recommender =
-        [](idx_t n, idx_t nh) -> idx_t {
+    std::function<size_t(size_t, size_t)> nshift_recommender =
+        [](size_t n, size_t nh) -> size_t {
         if (n < 30) return 2;
         if (n < 60) return 4;
         if (n < 150) return 10;
-        if (n < 590) return idx_t(n / log2(n));
+        if (n < 590) return size_t(n / log2(n));
         if (n < 3000) return 64;
         if (n < 6000) return 128;
         return 256;
@@ -40,12 +39,12 @@ struct FrancisOpts {
 
     // Function that returns the number of shifts to use
     // for a given matrix size
-    std::function<idx_t(idx_t, idx_t)> deflation_window_recommender =
-        [](idx_t n, idx_t nh) -> idx_t {
+    std::function<size_t(size_t, size_t)> deflation_window_recommender =
+        [](size_t n, size_t nh) -> size_t {
         if (n < 30) return 2;
         if (n < 60) return 4;
         if (n < 150) return 10;
-        if (n < 590) return idx_t(n / log2(n));
+        if (n < 590) return size_t(n / log2(n));
         if (n < 3000) return 96;
         if (n < 6000) return 192;
         return 384;
@@ -57,24 +56,23 @@ struct FrancisOpts {
     int n_sweep = 0;
     int n_shifts_total = 0;
     // Threshold to switch between blocked and unblocked code
-    idx_t nmin = 75;
+    size_t nmin = 75;
     // Threshold of percent of AED window that must converge to skip a sweep
-    idx_t nibble = 14;
+    size_t nibble = 14;
 };
 
 template <class T,
           TLAPACK_SMATRIX matrix_t,
           TLAPACK_SVECTOR vector_t,
           enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
-WorkInfo multishift_qr_worksize_sweep(
-    bool want_t,
-    bool want_z,
-    size_type<matrix_t> ilo,
-    size_type<matrix_t> ihi,
-    const matrix_t& A,
-    const vector_t& w,
-    const matrix_t& Z,
-    const FrancisOpts<size_type<matrix_t> >& opts = {})
+WorkInfo multishift_qr_worksize_sweep(bool want_t,
+                                      bool want_z,
+                                      size_type<matrix_t> ilo,
+                                      size_type<matrix_t> ihi,
+                                      const matrix_t& A,
+                                      const vector_t& w,
+                                      const matrix_t& Z,
+                                      const FrancisOpts& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -113,15 +111,14 @@ template <class T,
           TLAPACK_SMATRIX matrix_t,
           TLAPACK_SVECTOR vector_t,
           enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
-WorkInfo multishift_qr_worksize(
-    bool want_t,
-    bool want_z,
-    size_type<matrix_t> ilo,
-    size_type<matrix_t> ihi,
-    const matrix_t& A,
-    const vector_t& w,
-    const matrix_t& Z,
-    const FrancisOpts<size_type<matrix_t> >& opts = {})
+WorkInfo multishift_qr_worksize(bool want_t,
+                                bool want_z,
+                                size_type<matrix_t> ilo,
+                                size_type<matrix_t> ihi,
+                                const matrix_t& A,
+                                const vector_t& w,
+                                const matrix_t& Z,
+                                const FrancisOpts& opts = {})
 {
     using idx_t = size_type<matrix_t>;
 
@@ -129,7 +126,7 @@ WorkInfo multishift_qr_worksize(
 
     // quick return
     WorkInfo workinfo;
-    if (ilo + 1 >= ihi || n < opts.nmin) return workinfo;
+    if (ilo + 1 >= ihi || n < (idx_t)opts.nmin) return workinfo;
 
     {
         const idx_t nw_max = (n - 3) / 3;
@@ -210,7 +207,7 @@ int multishift_qr_work(bool want_t,
                        vector_t& w,
                        matrix_t& Z,
                        work_t& work,
-                       FrancisOpts<size_type<matrix_t> >& opts)
+                       FrancisOpts& opts)
 {
     using TA = type_t<matrix_t>;
     using real_t = real_type<TA>;
@@ -479,7 +476,7 @@ inline int multishift_qr_work(bool want_t,
                               matrix_t& Z,
                               work_t& work)
 {
-    FrancisOpts<size_type<matrix_t> > opts = {};
+    FrancisOpts opts = {};
     return multishift_qr_work(want_t, want_z, ilo, ihi, A, w, Z, work, opts);
 }
 
@@ -544,7 +541,7 @@ int multishift_qr(bool want_t,
                   matrix_t& A,
                   vector_t& w,
                   matrix_t& Z,
-                  FrancisOpts<size_type<matrix_t> >& opts)
+                  FrancisOpts& opts)
 {
     using TA = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
@@ -596,7 +593,7 @@ inline int multishift_qr(bool want_t,
                          vector_t& w,
                          matrix_t& Z)
 {
-    FrancisOpts<size_type<matrix_t> > opts = {};
+    FrancisOpts opts = {};
     return multishift_qr(want_t, want_z, ilo, ihi, A, w, Z, opts);
 }
 

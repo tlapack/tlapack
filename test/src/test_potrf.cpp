@@ -88,7 +88,7 @@ TEMPLATE_TEST_CASE(
         real_t normA = tlapack::lanhe(tlapack::MAX_NORM, uplo, A);
 
         // Run the Cholesky factorization
-        PotrfOpts<idx_t> opts;
+        PotrfOpts opts;
         opts.variant = variant.first;
         opts.nb = variant.second;
         int info = potrf(uplo, L, opts);
@@ -173,7 +173,7 @@ TEMPLATE_TEST_CASE("Cholesky factorization access valid positions only",
         }
 
         // Run the Cholesky factorization
-        PotrfOpts<idx_t> opts;
+        PotrfOpts opts;
         opts.variant = variant.first;
         opts.nb = variant.second;
         if (uplo == Uplo::Lower) {

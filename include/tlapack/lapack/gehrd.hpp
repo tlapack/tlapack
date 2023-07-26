@@ -24,11 +24,10 @@ namespace tlapack {
 /**
  * Options struct for gehrd
  */
-template <TLAPACK_INDEX idx_t = size_t>
 struct GehrdOpts {
-    idx_t nb = 32;          ///< Block size used in the blocked reduction
-    idx_t nx_switch = 128;  ///< If only nx_switch columns are left, the
-                            ///< algorithm will use unblocked code
+    size_t nb = 32;          ///< Block size used in the blocked reduction
+    size_t nx_switch = 128;  ///< If only nx_switch columns are left, the
+                             ///< algorithm will use unblocked code
 };
 
 /** Worspace query of gehrd()
@@ -54,15 +53,15 @@ WorkInfo gehrd_worksize(size_type<matrix_t> ilo,
                         size_type<matrix_t> ihi,
                         const matrix_t& A,
                         const vector_t& tau,
-                        const GehrdOpts<size_type<matrix_t>>& opts = {})
+                        const GehrdOpts& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using work_t = matrix_type<matrix_t, vector_t>;
     using range = pair<idx_t, idx_t>;
 
     const idx_t n = ncols(A);
-    const idx_t nb = (ilo < ihi) ? min(opts.nb, ihi - ilo - 1) : 0;
-    const idx_t nx = max(nb, opts.nx_switch);
+    const idx_t nb = (ilo < ihi) ? min<idx_t>(opts.nb, ihi - ilo - 1) : 0;
+    const idx_t nx = max<idx_t>(nb, opts.nx_switch);
 
     WorkInfo workinfo;
     if constexpr (is_same_v<T, type_t<work_t>>) {
@@ -137,7 +136,7 @@ int gehrd_work(size_type<matrix_t> ilo,
                matrix_t& A,
                vector_t& tau,
                work_t& work,
-               const GehrdOpts<size_type<matrix_t>>& opts = {})
+               const GehrdOpts& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using T = type_t<work_t>;
@@ -151,7 +150,7 @@ int gehrd_work(size_type<matrix_t> ilo,
     const idx_t n = ncols(A);
 
     // Blocksize
-    idx_t nb = (ilo < ihi) ? min(opts.nb, ihi - ilo - 1) : 0;
+    idx_t nb = (ilo < ihi) ? min<idx_t>(opts.nb, ihi - ilo - 1) : 0;
     // Size of the last block which be handled with unblocked code
     idx_t nx_switch = opts.nx_switch;
     idx_t nx = max(nb, nx_switch);
@@ -260,7 +259,7 @@ int gehrd(size_type<matrix_t> ilo,
           size_type<matrix_t> ihi,
           matrix_t& A,
           vector_t& tau,
-          const GehrdOpts<size_type<matrix_t>>& opts = {})
+          const GehrdOpts& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using work_t = matrix_type<matrix_t, vector_t>;

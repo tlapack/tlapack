@@ -61,7 +61,7 @@ TEMPLATE_TEST_CASE("QL factorization of a general m-by-n matrix",
     auto Q = new_matrix(Q_, m, k);
 
     std::vector<T> tau(k);
-    GeqlfOpts<idx_t> geqlfOpts;
+    GeqlfOpts geqlfOpts;
     geqlfOpts.nb = nb;
 
     for (idx_t j = 0; j < n; ++j)

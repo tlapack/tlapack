@@ -80,7 +80,7 @@ TEMPLATE_TEST_CASE("bidiagonal reduction is backward stable",
 
     DYNAMIC_SECTION("m = " << m << " n = " << n << " nb = " << nb)
     {
-        GebrdOpts<idx_t> gebrdOpts;
+        GebrdOpts gebrdOpts;
         gebrdOpts.nb = nb;
         gebrd(A, d, e, tauv, tauw, gebrdOpts);
 
@@ -107,7 +107,7 @@ TEMPLATE_TEST_CASE("bidiagonal reduction is backward stable",
         }
 
         // Generate m-by-k unitary matrix Q
-        UngbrOpts<idx_t> ungbrOpts;
+        UngbrOpts ungbrOpts;
         ungbrOpts.nb = nb;
         lacpy(LOWER_TRIANGLE, slice(A, range{0, m}, range{0, k}), Q);
         ungbr_q(n, Q, tauv, ungbrOpts);
