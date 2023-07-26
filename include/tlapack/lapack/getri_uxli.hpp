@@ -91,7 +91,7 @@ int getri_uxli(matrix_t& A)
             auto slicework = tlapack::slice(w, range(0, n - j - 1));
 
             // first step of the algorithm, work1 holds x12
-            tlapack::gemv(Op::Trans, T(-1) / A(j, j), X22, u12, slicework);
+            tlapack::gemv(TRANSPOSE, T(-1) / A(j, j), X22, u12, slicework);
 
             // second line of the algorithm, work2 holds x21
             A(j, j) = (T(1) / A(j, j)) - tlapack::dotu(l21, slicework);
@@ -100,7 +100,7 @@ int getri_uxli(matrix_t& A)
             tlapack::copy(slicework, u12);
 
             // third line of the algorithm
-            tlapack::gemv(Op::NoTrans, T(-1), X22, l21, slicework);
+            tlapack::gemv(NO_TRANS, T(-1), X22, l21, slicework);
 
             // update l21
             tlapack::copy(slicework, l21);

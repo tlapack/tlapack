@@ -99,11 +99,11 @@ TEMPLATE_TEST_CASE("Multiply m-by-n matrix with orthogonal QL factor",
 
         std::vector<T> Cq_;
         auto Cq = new_matrix(Cq_, mc, nc);
-        laset(Uplo::General, T(0.), T(0.), Cq);
+        laset(GENERAL, T(0.), T(0.), Cq);
         if (side == Side::Left)
-            gemm(trans, Op::NoTrans, T(1.), Q, C, T(0.), Cq);
+            gemm(trans, NO_TRANS, T(1.), Q, C, T(0.), Cq);
         else
-            gemm(Op::NoTrans, trans, T(1.), C, Q, T(0.), Cq);
+            gemm(NO_TRANS, trans, T(1.), C, Q, T(0.), Cq);
 
         // Run the routine we are testing
         unm2l(side, trans, cols(A, range(n - k, n)), tau, C);
@@ -112,7 +112,7 @@ TEMPLATE_TEST_CASE("Multiply m-by-n matrix with orthogonal QL factor",
         for (idx_t j = 0; j < nc; ++j)
             for (idx_t i = 0; i < mc; ++i)
                 C(i, j) -= Cq(i, j);
-        real_t repres = lange(Norm::Max, C);
+        real_t repres = lange(MAX_NORM, C);
         CHECK(repres <= tol);
     }
 }

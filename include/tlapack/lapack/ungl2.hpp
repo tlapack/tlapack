@@ -116,7 +116,7 @@ int ungl2_work(matrix_t& Q, const vector_t& tauw, work_t& work)
                 // both conditions are satisfied
 
                 auto Q11 = slice(Q, range(j + 1, k), range(j, n));
-                larf_work(Side::Right, FORWARD, ROWWISE_STORAGE, w,
+                larf_work(RIGHT_SIDE, FORWARD, ROWWISE_STORAGE, w,
                           conj(tauw[j]), Q11, work);
             }
 

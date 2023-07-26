@@ -91,9 +91,9 @@ TEMPLATE_TEST_CASE("Double shift QR",
         for (idx_t j = 0; j < i; ++j)
             A(i, j) = (T)0.0;
 
-    tlapack::lacpy(Uplo::General, A, H);
+    lacpy(GENERAL, A, H);
     std::vector<complex_t> s(n);
-    laset(Uplo::General, zero, one, Q);
+    laset(GENERAL, zero, one, Q);
 
     DYNAMIC_SECTION("matrix = " << matrix_type << " n = " << n
                                 << " ilo = " << ilo << " ihi = " << ihi)

@@ -50,7 +50,7 @@ void check_hess_reduction(size_type<matrix_t> ilo,
     auto work = new_matrix(work_, n, n);
 
     // Generate orthogonal matrix Q
-    tlapack::lacpy(Uplo::General, H, Q);
+    tlapack::lacpy(GENERAL, H, Q);
     tlapack::unghr(ilo, ihi, Q, tau);
 
     // Remove junk from lower half of H
@@ -126,7 +126,7 @@ TEMPLATE_TEST_CASE("Hessenberg reduction is backward stable",
     for (idx_t i = ihi; i < n; ++i)
         for (idx_t j = 0; j < i; ++j)
             A(i, j) = (T)0.0;
-    tlapack::lacpy(Uplo::General, A, H);
+    tlapack::lacpy(GENERAL, A, H);
 
     DYNAMIC_SECTION("matrix = " << matrix_type << " n = " << n
                                 << " ilo = " << ilo << " ihi = " << ihi)

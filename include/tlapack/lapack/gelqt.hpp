@@ -139,14 +139,14 @@ int gelqt(matrix_t& A, matrix_t& TT, const GelqtOpts& opts = {})
 
         // Form the triangular factor of the block reflector H = H(j) H(j+1)
         // . . . H(j+ib-1)
-        larft(Direction::Forward, StoreV::Rowwise, A11, tauw1, TT1);
+        larft(FORWARD, ROWWISE_STORAGE, A11, tauw1, TT1);
 
         if (j + ib < k) {
             // Apply H to A(j+ib:m,j:n) from the right
             auto A12 = slice(A, range(j + ib, m), range(j, n));
             auto work1 = slice(TT, range(j + ib, m), range(0, ib));
-            larfb_work(RIGHT_SIDE, Op::NoTrans, Direction::Forward,
-                       StoreV::Rowwise, A11, TT1, A12, work1);
+            larfb_work(RIGHT_SIDE, NO_TRANS, FORWARD, ROWWISE_STORAGE, A11, TT1,
+                       A12, work1);
         }
     }
 

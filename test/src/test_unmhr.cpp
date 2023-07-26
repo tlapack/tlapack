@@ -74,7 +74,7 @@ TEMPLATE_TEST_CASE("Result of unmhr matches result from unghr",
             for (idx_t i = 0; i < m; ++i)
                 C(i, j) = rand_helper<T>();
     }
-    lacpy(Uplo::General, C, C_copy);
+    lacpy(GENERAL, C, C_copy);
 
     // Make sure ilo and ihi correspond to the actual matrix
     for (idx_t j = 0; j < ilo; ++j)
@@ -105,7 +105,7 @@ TEMPLATE_TEST_CASE("Result of unmhr matches result from unghr",
             auto C_copy_s =
                 slice(C_copy, range{ilo + 1, ihi}, range{0, ncols(C)});
             auto C_s = slice(C, range{ilo + 1, ihi}, range{0, ncols(C)});
-            gemm(op, Op::NoTrans, one, Q, C_copy_s, -one, C_s);
+            gemm(op, NO_TRANS, one, Q, C_copy_s, -one, C_s);
             for (idx_t i = 0; i < ilo + 1; ++i)
                 for (idx_t j = 0; j < ncols(C); ++j)
                     C(i, j) = C(i, j) - C_copy(i, j);
@@ -117,7 +117,7 @@ TEMPLATE_TEST_CASE("Result of unmhr matches result from unghr",
             auto C_copy_s =
                 slice(C_copy, range{0, nrows(C)}, range{ilo + 1, ihi});
             auto C_s = slice(C, range{0, nrows(C)}, range{ilo + 1, ihi});
-            gemm(Op::NoTrans, op, one, C_copy_s, Q, -one, C_s);
+            gemm(NO_TRANS, op, one, C_copy_s, Q, -one, C_s);
             for (idx_t j = 0; j < ilo + 1; ++j)
                 for (idx_t i = 0; i < nrows(C); ++i)
                     C(i, j) = C(i, j) - C_copy(i, j);

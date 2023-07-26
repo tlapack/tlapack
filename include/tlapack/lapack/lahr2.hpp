@@ -20,6 +20,7 @@
 #include "tlapack/blas/scal.hpp"
 #include "tlapack/blas/trmm.hpp"
 #include "tlapack/blas/trmv.hpp"
+#include "tlapack/lapack/lacpy.hpp"
 #include "tlapack/lapack/larfg.hpp"
 
 namespace tlapack {
@@ -93,7 +94,7 @@ int lahr2(size_type<matrix_t> k,
             auto b = slice(A, range{k + 1, n}, i);
             for (idx_t j = 0; j < i; ++j)
                 Vti[j] = conj(Vti[j]);
-            gemv(Op::NoTrans, -one, Y2, Vti, one, b);
+            gemv(NO_TRANS, -one, Y2, Vti, one, b);
             for (idx_t j = 0; j < i; ++j)
                 Vti[j] = conj(Vti[j]);
             //
@@ -115,24 +116,24 @@ int lahr2(size_type<matrix_t> k,
             //
             auto w = slice(T, range{0, i}, nb - 1);
             copy(b1, w);
-            trmv(Uplo::Lower, Op::ConjTrans, Diag::Unit, V1, w);
+            trmv(LOWER_TRIANGLE, CONJ_TRANS, UNIT_DIAG, V1, w);
             //
             // w := w + V2**T * b2
             //
-            gemv(Op::ConjTrans, one, V2, b2, one, w);
+            gemv(CONJ_TRANS, one, V2, b2, one, w);
             //
             // w := T**T * w
             //
             auto T2 = slice(T, range{0, i}, range{0, i});
-            trmv(Uplo::Upper, Op::ConjTrans, Diag::NonUnit, T2, w);
+            trmv(UPPER_TRIANGLE, CONJ_TRANS, NON_UNIT_DIAG, T2, w);
             //
             // b2 := b2 - V2*w
             //
-            gemv(Op::NoTrans, -one, V2, w, one, b2);
+            gemv(NO_TRANS, -one, V2, w, one, b2);
             //
             // b1 := b1 - V1*w
             //
-            trmv(Uplo::Lower, Op::NoTrans, Diag::Unit, V1, w);
+            trmv(LOWER_TRIANGLE, NO_TRANS, UNIT_DIAG, V1, w);
             axpy(-one, w, b1);
 
             A(k + i, i - 1) = ei;
@@ -150,19 +151,19 @@ int lahr2(size_type<matrix_t> k,
         //
         auto A2 = slice(A, range{k + 1, n}, range{i + 1, n - k});
         auto y = slice(Y, range{k + 1, n}, i);
-        gemv(Op::NoTrans, one, A2, v, y);
+        gemv(NO_TRANS, one, A2, v, y);
         auto t = slice(T, range{0, i}, i);
         auto A3 = slice(A, range{k + i + 1, n}, range{0, i});
-        gemv(Op::ConjTrans, one, A3, v, t);
+        gemv(CONJ_TRANS, one, A3, v, t);
         auto Y2 = slice(Y, range{k + 1, n}, range{0, i});
-        gemv(Op::NoTrans, -one, Y2, t, one, y);
+        gemv(NO_TRANS, -one, Y2, t, one, y);
         scal(tau[i], y);
         //
         // Compute T(0:I+1,I)
         //
         scal(-tau[i], t);
         auto T2 = slice(T, range{0, i}, range{0, i});
-        trmv(Uplo::Upper, Op::NoTrans, Diag::NonUnit, T2, t);
+        trmv(UPPER_TRIANGLE, NO_TRANS, NON_UNIT_DIAG, T2, t);
         T(i, i) = tau[i];
     }
     A(k + nb, nb - 1) = ei;
@@ -171,16 +172,16 @@ int lahr2(size_type<matrix_t> k,
     //
     auto A4 = slice(A, range{0, k + 1}, range{1, nb + 1});
     auto Y3 = slice(Y, range{0, k + 1}, range{0, nb});
-    lacpy(Uplo::General, A4, Y3);
+    lacpy(GENERAL, A4, Y3);
     auto V1 = slice(A, range{k + 1, k + nb + 1}, range{0, nb});
     auto Y1 = slice(Y, range{0, k + 1}, range{0, nb});
-    trmm(Side::Right, Uplo::Lower, Op::NoTrans, Diag::Unit, one, V1, Y1);
+    trmm(RIGHT_SIDE, LOWER_TRIANGLE, NO_TRANS, UNIT_DIAG, one, V1, Y1);
     if (k + nb + 1 < n) {
         auto A5 = slice(A, range{0, k + 1}, range{nb + 1, n - k});
         auto V2 = slice(A, range{k + nb + 1, n}, range{0, nb});
-        gemm(Op::NoTrans, Op::NoTrans, one, A5, V2, one, Y1);
+        gemm(NO_TRANS, NO_TRANS, one, A5, V2, one, Y1);
     }
-    trmm(Side::Right, Uplo::Upper, Op::NoTrans, Diag::NonUnit, one, T, Y1);
+    trmm(RIGHT_SIDE, UPPER_TRIANGLE, NO_TRANS, NON_UNIT_DIAG, one, T, Y1);
 
     return 0;
 }

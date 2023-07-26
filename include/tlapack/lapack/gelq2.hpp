@@ -109,7 +109,7 @@ int gelq2_work(matrix_t& A, vector_t& tauw, work_t& work)
         if (j < k - 1 || k < m) {
             // Apply H(j) to A(j+1:m,j:n) from the right
             auto Q11 = slice(A, range(j + 1, m), range(j, n));
-            larf_work(Side::Right, FORWARD, ROWWISE_STORAGE, w, tauw[j], Q11,
+            larf_work(RIGHT_SIDE, FORWARD, ROWWISE_STORAGE, w, tauw[j], Q11,
                       work);
         }
     }

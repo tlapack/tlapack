@@ -123,7 +123,7 @@ void larf_work(side_t side,
             // w := C0^H + C1^H*x
             for (idx_t i = 0; i < k; ++i)
                 w[i] = conj(C0[i]);
-            gemv(Op::ConjTrans, one, C1, x, one, w);
+            gemv(CONJ_TRANS, one, C1, x, one, w);
 
             // C1 := C1 - tau*x*w^H
             ger(-tau, x, w, C1);
@@ -136,7 +136,7 @@ void larf_work(side_t side,
             // w := C0^t + C1^t*x
             for (idx_t i = 0; i < k; ++i)
                 w[i] = C0[i];
-            gemv(Op::Trans, one, C1, x, one, w);
+            gemv(TRANSPOSE, one, C1, x, one, w);
 
             // C1 := C1 - tau*conj(x)*w^t
             for (idx_t j = 0; j < n; ++j)
@@ -153,7 +153,7 @@ void larf_work(side_t side,
             // w := C0 + C1*x
             for (idx_t i = 0; i < k; ++i)
                 w[i] = C0[i];
-            gemv(Op::NoTrans, one, C1, x, one, w);
+            gemv(NO_TRANS, one, C1, x, one, w);
 
             // C1 := C1 - tau*w*x^H
             ger(-tau, w, x, C1);
@@ -421,11 +421,11 @@ inline void larf_work(side_t side,
     // The following code was changed from:
     //
     // if( side == Side::Left ) {
-    //     gemv(Op::ConjTrans, one, C, v, work);
+    //     gemv(CONJ_TRANS, one, C, v, work);
     //     ger(-tau, v, work, C);
     // }
     // else{
-    //     gemv(Op::NoTrans, one, C, v, work);
+    //     gemv(NO_TRANS, one, C, v, work);
     //     ger(-tau, work, v, C);
     // }
     //
@@ -438,7 +438,7 @@ inline void larf_work(side_t side,
                                                     : rows(C, range{0, m - 1});
         auto x = (direction == Direction::Forward) ? slice(v, range{1, m})
                                                    : slice(v, range{0, m - 1});
-        larf_work(side, storeMode, x, tau, C0, C1, work);
+        larf_work(LEFT_SIDE, storeMode, x, tau, C0, C1, work);
     }
     else {  // side == Side::Right
         auto C0 = (direction == Direction::Forward) ? col(C, 0) : col(C, n - 1);
@@ -446,7 +446,7 @@ inline void larf_work(side_t side,
                                                     : cols(C, range{0, n - 1});
         auto x = (direction == Direction::Forward) ? slice(v, range{1, n})
                                                    : slice(v, range{0, n - 1});
-        larf_work(side, storeMode, x, tau, C0, C1, work);
+        larf_work(RIGHT_SIDE, storeMode, x, tau, C0, C1, work);
     }
 }
 
@@ -504,13 +504,13 @@ inline constexpr WorkInfo larf_worksize(side_t side,
         auto C0 = row(C, 0);
         auto C1 = rows(C, range{1, m});
         auto x = slice(v, range{1, m});
-        return larf_worksize<T>(side, storeMode, x, tau, C0, C1);
+        return larf_worksize<T>(LEFT_SIDE, storeMode, x, tau, C0, C1);
     }
     else if (side == Side::Right && n > 0) {
         auto C0 = col(C, 0);
         auto C1 = cols(C, range{1, n});
         auto x = slice(v, range{1, n});
-        return larf_worksize<T>(side, storeMode, x, tau, C0, C1);
+        return larf_worksize<T>(RIGHT_SIDE, storeMode, x, tau, C0, C1);
     }
     else
         return WorkInfo(0);

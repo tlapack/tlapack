@@ -68,24 +68,24 @@ TEMPLATE_TEST_CASE("QR factorization of a general m-by-n matrix",
         for (idx_t i = 0; i < m; ++i)
             A(i, j) = rand_helper<T>();
 
-    lacpy(Uplo::General, A, A_copy);
-    real_t anorm = tlapack::lange(tlapack::Norm::Max, A_copy);
+    lacpy(GENERAL, A, A_copy);
+    real_t anorm = tlapack::lange(tlapack::MAX_NORM, A_copy);
 
     DYNAMIC_SECTION("m = " << m << " n = " << n << " nb = " << nb)
     {
         geqrf(A, tau, geqrfOpts);
 
         // Copy upper triangular part of A to R
-        laset(Uplo::Lower, zero, zero, R);
-        lacpy(Uplo::Upper, slice(A, range(0, m), range(0, n)), R);
+        laset(LOWER_TRIANGLE, zero, zero, R);
+        lacpy(UPPER_TRIANGLE, slice(A, range(0, m), range(0, n)), R);
 
         // Test A == Q * R
-        unmqr(Side::Left, Op::NoTrans, A, tau, R, unmqrOpts);
+        unmqr(LEFT_SIDE, NO_TRANS, A, tau, R, unmqrOpts);
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = 0; i < m; ++i)
                 A_copy(i, j) -= R(i, j);
 
-        real_t repres = tlapack::lange(tlapack::Norm::Max, A_copy);
+        real_t repres = tlapack::lange(tlapack::MAX_NORM, A_copy);
         CHECK(repres <= tol * anorm);
     }
 }

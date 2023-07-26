@@ -39,8 +39,8 @@ inline constexpr WorkInfo gerq2_worksize(const matrix_t& A, const vector_t& tau)
 
     if (m > 1) {
         auto C = rows(A, range{1, m});
-        return larf_worksize<T>(Side::Right, Direction::Backward,
-                                StoreV::Rowwise, row(A, 0), tau[0], C);
+        return larf_worksize<T>(RIGHT_SIDE, BACKWARD, ROWWISE_STORAGE,
+                                row(A, 0), tau[0], C);
     }
 
     return WorkInfo(0);
@@ -107,13 +107,13 @@ int gerq2_work(matrix_t& A, vector_t& tau, work_t& work)
         auto v = slice(A, m - 1 - i2, range{0, n - i2});
 
         // Generate the (i+1)-th elementary Householder reflection on v
-        larfg(Direction::Backward, StoreV::Rowwise, v, tau[i]);
+        larfg(BACKWARD, ROWWISE_STORAGE, v, tau[i]);
 
         // Apply the reflector to the rest of the matrix
         if (m > i2 + 1) {
             auto C = slice(A, range{0, m - 1 - i2}, range{0, n - i2});
-            larf_work(Side::Right, Direction::Backward, StoreV::Rowwise, v,
-                      tau[i], C, work);
+            larf_work(RIGHT_SIDE, BACKWARD, ROWWISE_STORAGE, v, tau[i], C,
+                      work);
         }
     }
 

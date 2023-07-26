@@ -165,7 +165,7 @@ void multishift_QR_sweep_work(bool want_t,
         idx_t istart_m = ilo;
         idx_t istop_m = ilo + n_block;
         auto U2 = slice(U, range{0, n_block}, range{0, n_block});
-        laset(Uplo::General, zero, one, U2);
+        laset(GENERAL, zero, one, U2);
 
         for (idx_t i_pos_last = ilo; i_pos_last < ilo + n_block - 2;
              ++i_pos_last) {
@@ -329,8 +329,8 @@ void multishift_QR_sweep_work(bool want_t,
                     slice(A, range{ilo, ilo + n_block}, range{i, i + iblock});
                 auto WH_slice = slice(WH, range{0, nrows(A_slice)},
                                       range{0, ncols(A_slice)});
-                gemm(Op::ConjTrans, Op::NoTrans, one, U2, A_slice, WH_slice);
-                lacpy(Uplo::General, WH_slice, A_slice);
+                gemm(CONJ_TRANS, NO_TRANS, one, U2, A_slice, WH_slice);
+                lacpy(GENERAL, WH_slice, A_slice);
                 i = i + iblock;
             }
         }
@@ -343,8 +343,8 @@ void multishift_QR_sweep_work(bool want_t,
                     slice(A, range{i, i + iblock}, range{ilo, ilo + n_block});
                 auto WV_slice = slice(WV, range{0, nrows(A_slice)},
                                       range{0, ncols(A_slice)});
-                gemm(Op::NoTrans, Op::NoTrans, one, A_slice, U2, WV_slice);
-                lacpy(Uplo::General, WV_slice, A_slice);
+                gemm(NO_TRANS, NO_TRANS, one, A_slice, U2, WV_slice);
+                lacpy(GENERAL, WV_slice, A_slice);
                 i = i + iblock;
             }
         }
@@ -357,8 +357,8 @@ void multishift_QR_sweep_work(bool want_t,
                     slice(Z, range{i, i + iblock}, range{ilo, ilo + n_block});
                 auto WV_slice = slice(WV, range{0, nrows(Z_slice)},
                                       range{0, ncols(Z_slice)});
-                gemm(Op::NoTrans, Op::NoTrans, one, Z_slice, U2, WV_slice);
-                lacpy(Uplo::General, WV_slice, Z_slice);
+                gemm(NO_TRANS, NO_TRANS, one, Z_slice, U2, WV_slice);
+                lacpy(GENERAL, WV_slice, Z_slice);
                 i = i + iblock;
             }
         }
@@ -378,7 +378,7 @@ void multishift_QR_sweep_work(bool want_t,
         idx_t n_block = n_shifts + n_pos;
 
         auto U2 = slice(U, range{0, n_block}, range{0, n_block});
-        laset(Uplo::General, zero, one, U2);
+        laset(GENERAL, zero, one, U2);
 
         // Near-the-diagonal bulge chase
         // The calculations are initially limited to the window:
@@ -542,8 +542,8 @@ void multishift_QR_sweep_work(bool want_t,
                           range{i, i + iblock});
                 auto WH_slice = slice(WH, range{0, nrows(A_slice)},
                                       range{0, ncols(A_slice)});
-                gemm(Op::ConjTrans, Op::NoTrans, one, U2, A_slice, WH_slice);
-                lacpy(Uplo::General, WH_slice, A_slice);
+                gemm(CONJ_TRANS, NO_TRANS, one, U2, A_slice, WH_slice);
+                lacpy(GENERAL, WH_slice, A_slice);
                 i = i + iblock;
             }
         }
@@ -556,8 +556,8 @@ void multishift_QR_sweep_work(bool want_t,
                                      range{i_pos_block, i_pos_block + n_block});
                 auto WV_slice = slice(WV, range{0, nrows(A_slice)},
                                       range{0, ncols(A_slice)});
-                gemm(Op::NoTrans, Op::NoTrans, one, A_slice, U2, WV_slice);
-                lacpy(Uplo::General, WV_slice, A_slice);
+                gemm(NO_TRANS, NO_TRANS, one, A_slice, U2, WV_slice);
+                lacpy(GENERAL, WV_slice, A_slice);
                 i = i + iblock;
             }
         }
@@ -570,8 +570,8 @@ void multishift_QR_sweep_work(bool want_t,
                                      range{i_pos_block, i_pos_block + n_block});
                 auto WV_slice = slice(WV, range{0, nrows(Z_slice)},
                                       range{0, ncols(Z_slice)});
-                gemm(Op::NoTrans, Op::NoTrans, one, Z_slice, U2, WV_slice);
-                lacpy(Uplo::General, WV_slice, Z_slice);
+                gemm(NO_TRANS, NO_TRANS, one, Z_slice, U2, WV_slice);
+                lacpy(GENERAL, WV_slice, Z_slice);
                 i = i + iblock;
             }
         }
@@ -586,7 +586,7 @@ void multishift_QR_sweep_work(bool want_t,
         idx_t n_block = ihi - i_pos_block;
 
         auto U2 = slice(U, range{0, n_block}, range{0, n_block});
-        laset(Uplo::General, zero, one, U2);
+        laset(GENERAL, zero, one, U2);
 
         // Near-the-diagonal bulge chase
         // The calculations are initially limited to the window:
@@ -801,8 +801,8 @@ void multishift_QR_sweep_work(bool want_t,
                     slice(A, range{i_pos_block, ihi}, range{i, i + iblock});
                 auto WH_slice = slice(WH, range{0, nrows(A_slice)},
                                       range{0, ncols(A_slice)});
-                gemm(Op::ConjTrans, Op::NoTrans, one, U2, A_slice, WH_slice);
-                lacpy(Uplo::General, WH_slice, A_slice);
+                gemm(CONJ_TRANS, NO_TRANS, one, U2, A_slice, WH_slice);
+                lacpy(GENERAL, WH_slice, A_slice);
                 i = i + iblock;
             }
         }
@@ -815,8 +815,8 @@ void multishift_QR_sweep_work(bool want_t,
                     slice(A, range{i, i + iblock}, range{i_pos_block, ihi});
                 auto WV_slice = slice(WV, range{0, nrows(A_slice)},
                                       range{0, ncols(A_slice)});
-                gemm(Op::NoTrans, Op::NoTrans, one, A_slice, U2, WV_slice);
-                lacpy(Uplo::General, WV_slice, A_slice);
+                gemm(NO_TRANS, NO_TRANS, one, A_slice, U2, WV_slice);
+                lacpy(GENERAL, WV_slice, A_slice);
                 i = i + iblock;
             }
         }
@@ -829,8 +829,8 @@ void multishift_QR_sweep_work(bool want_t,
                     slice(Z, range{i, i + iblock}, range{i_pos_block, ihi});
                 auto WV_slice = slice(WV, range{0, nrows(Z_slice)},
                                       range{0, ncols(Z_slice)});
-                gemm(Op::NoTrans, Op::NoTrans, one, Z_slice, U2, WV_slice);
-                lacpy(Uplo::General, WV_slice, Z_slice);
+                gemm(NO_TRANS, NO_TRANS, one, Z_slice, U2, WV_slice);
+                lacpy(GENERAL, WV_slice, Z_slice);
                 i = i + iblock;
             }
         }

@@ -70,14 +70,14 @@ TEMPLATE_TEST_CASE("sylvester solver gives correct result",
     real_t sign(1);
 
     // Calculate op(TL)*X + ISGN*X*op(TR)
-    gemm(trans_l, Op::NoTrans, one, TL, X_exact, B);
-    gemm(Op::NoTrans, trans_r, sign, X_exact, TR, one, B);
+    gemm(trans_l, NO_TRANS, one, TL, X_exact, B);
+    gemm(NO_TRANS, trans_r, sign, X_exact, TR, one, B);
 
     DYNAMIC_SECTION("n1 = " << n1 << " n2 =" << n2)
     {
         // Solve sylvester equation
         T scale(0), xnorm;
-        lasy2(Op::NoTrans, Op::NoTrans, 1, TL, TR, B, scale, X, xnorm);
+        lasy2(NO_TRANS, NO_TRANS, 1, TL, TR, B, scale, X, xnorm);
 
         // Check that X_exact == X
         for (idx_t i = 0; i < n1; ++i)

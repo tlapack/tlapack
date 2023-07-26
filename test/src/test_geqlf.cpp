@@ -68,7 +68,7 @@ TEMPLATE_TEST_CASE("QL factorization of a general m-by-n matrix",
         for (idx_t i = 0; i < m; ++i)
             A(i, j) = rand_helper<T>();
 
-    lacpy(Uplo::General, A, A_copy);
+    lacpy(GENERAL, A, A_copy);
 
     DYNAMIC_SECTION("m = " << m << " n = " << n)
     {
@@ -76,7 +76,7 @@ TEMPLATE_TEST_CASE("QL factorization of a general m-by-n matrix",
         geqlf(A, tau, geqlfOpts);
 
         // Generate Q
-        lacpy(Uplo::General, slice(A, range(0, m), range(n - k, n)), Q);
+        lacpy(GENERAL, slice(A, range(0, m), range(n - k, n)), Q);
         ung2l(Q, tau);
 
         // Check orthogonality of Q
@@ -95,12 +95,12 @@ TEMPLATE_TEST_CASE("QL factorization of a general m-by-n matrix",
         // Test A_copy = Q * L
         std::vector<T> A2_;
         auto A2 = new_matrix(A2_, k, n);
-        gemm(Op::ConjTrans, Op::NoTrans, real_t(1.), Q, A_copy, A2);
+        gemm(CONJ_TRANS, NO_TRANS, real_t(1.), Q, A_copy, A2);
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = 0; i < k; ++i)
                 A2(i, j) -= L(i, j);
 
-        real_t repres = lange(Norm::Max, A2);
+        real_t repres = lange(MAX_NORM, A2);
         CHECK(repres <= tol);
     }
 }

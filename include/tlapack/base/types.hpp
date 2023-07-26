@@ -264,6 +264,9 @@ namespace internal {
     struct ConjTranspose {
         constexpr operator Op() const { return Op::ConjTrans; }
     };
+    struct Conjugate {
+        constexpr operator Op() const { return Op::Conj; }
+    };
 }  // namespace internal
 
 // Constant expressions for operations over data
@@ -274,6 +277,8 @@ constexpr internal::NoTranspose NO_TRANS = {};
 constexpr internal::Transpose TRANSPOSE = {};
 /// conjugate transpose
 constexpr internal::ConjTranspose CONJ_TRANS = {};
+/// non-transpose conjugate
+constexpr internal::Conjugate CONJUGATE = {};
 
 // -----------------------------------------------------------------------------
 // Sides

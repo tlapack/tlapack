@@ -67,8 +67,8 @@ TEMPLATE_TEST_CASE("LU factorization of a general m-by-n matrix, blocked",
             }
 
         // We will make a deep copy A
-        lacpy(Uplo::General, A, A_copy);
-        real_t norma = tlapack::lange(tlapack::Norm::Max, A);
+        lacpy(GENERAL, A, A_copy);
+        real_t norma = tlapack::lange(tlapack::MAX_NORM, A);
 
         // Put diagonal and super-diagonal of A into U and sub-diagonal in L
         std::vector<T> L_;
@@ -97,9 +97,9 @@ TEMPLATE_TEST_CASE("LU factorization of a general m-by-n matrix, blocked",
         ul_mult(A);
 
         // store UL-A ---> A
-        gemm(Op::NoTrans, Op::NoTrans, T(1), U, L, T(-1), A);
+        gemm(NO_TRANS, NO_TRANS, T(1), U, L, T(-1), A);
 
-        real_t error1 = tlapack::lange(tlapack::Norm::Max, A) / norma;
+        real_t error1 = tlapack::lange(tlapack::MAX_NORM, A) / norma;
         CHECK(error1 / tol <= real_t(1));
     }
 }

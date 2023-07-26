@@ -127,20 +127,20 @@ int potrf2(uplo_t uplo, matrix_t& A, const EcOpts& opts = {})
         if (uplo == Uplo::Upper) {
             // Update and scale A12
             auto A12 = slice(A, range{0, n1}, range{n1, n});
-            trsm(Side::Left, Uplo::Upper, Op::ConjTrans, Diag::NonUnit, one,
-                 A11, A12);
+            trsm(LEFT_SIDE, Uplo::Upper, CONJ_TRANS, NON_UNIT_DIAG, one, A11,
+                 A12);
 
             // Update A22
-            herk(uplo, Op::ConjTrans, -one, A12, one, A22);
+            herk(UPPER_TRIANGLE, CONJ_TRANS, -one, A12, one, A22);
         }
         else {
             // Update and scale A21
             auto A21 = slice(A, range{n1, n}, range{0, n1});
-            trsm(Side::Right, Uplo::Lower, Op::ConjTrans, Diag::NonUnit, one,
-                 A11, A21);
+            trsm(RIGHT_SIDE, Uplo::Lower, CONJ_TRANS, NON_UNIT_DIAG, one, A11,
+                 A21);
 
             // Update A22
-            herk(uplo, Op::NoTrans, -one, A21, one, A22);
+            herk(LOWER_TRIANGLE, NO_TRANS, -one, A21, one, A22);
         }
 
         // Factor A22

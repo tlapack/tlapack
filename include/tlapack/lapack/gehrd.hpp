@@ -76,10 +76,9 @@ WorkInfo gehrd_worksize(size_type<matrix_t> ilo,
                 const auto A5 =
                     slice(A, range{ilo + 1, ihi}, range{ilo + nb, n});
 
-                workinfo.minMax(larfb_worksize<T>(LEFT_SIDE, Op::ConjTrans,
-                                                  Direction::Forward,
-                                                  StoreV::Columnwise, V, T_s,
-                                                  A5)
+                workinfo.minMax(larfb_worksize<T>(LEFT_SIDE, CONJ_TRANS,
+                                                  FORWARD, COLUMNWISE_STORAGE,
+                                                  V, T_s, A5)
                                     .transpose());
             }
             workinfo.minMax(gehd2_worksize<T>(ilo, ihi, A, tau));
@@ -197,12 +196,12 @@ int gehrd_work(size_type<matrix_t> ilo,
             V(nb2 - 1, nb2 - 1) = one;
             auto A3 = slice(A, range{0, ihi}, range{i + nb2, ihi});
             auto Y_2 = slice(Y, range{0, ihi}, range{0, nb2});
-            gemm(Op::NoTrans, Op::ConjTrans, -one, Y_2, V2, one, A3);
+            gemm(NO_TRANS, CONJ_TRANS, -one, Y_2, V2, one, A3);
             V(nb2 - 1, nb2 - 1) = ei;
         }
         // Apply the block reflector H to A(0:i+1,i+1:i+ib) from the right
         auto V1 = slice(A, range{i + 1, i + nb2 + 1}, range{i, i + nb2});
-        trmm(Side::Right, Uplo::Lower, Op::ConjTrans, Diag::Unit, one, V1, Y_s);
+        trmm(RIGHT_SIDE, LOWER_TRIANGLE, CONJ_TRANS, UNIT_DIAG, one, V1, Y_s);
         for (idx_t j = 0; j < nb2 - 1; ++j) {
             auto A4 = slice(A, range{0, i + 1}, i + j + 1);
             axpy(-one, slice(Y, range{0, i + 1}, j), A4);
@@ -210,8 +209,8 @@ int gehrd_work(size_type<matrix_t> ilo,
 
         // Apply the block reflector H to A(i+1:ihi,i+nb:n) from the left
         auto A5 = slice(A, range{i + 1, ihi}, range{i + nb2, n});
-        larfb_work(LEFT_SIDE, Op::ConjTrans, Direction::Forward,
-                   StoreV::Columnwise, V, T_s, A5, W);
+        larfb_work(LEFT_SIDE, CONJ_TRANS, FORWARD, COLUMNWISE_STORAGE, V, T_s,
+                   A5, W);
     }
 
     return gehd2_work(i, ihi, A, tau, work);
