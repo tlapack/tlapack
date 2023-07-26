@@ -14,7 +14,6 @@
 #include <experimental/mdspan>
 
 #include "tlapack/base/arrayTraits.hpp"
-#include "tlapack/base/workspace.hpp"
 
 namespace tlapack {
 
@@ -64,46 +63,6 @@ namespace traits {
         static constexpr Layout value = Layout::Strided;
     };
 
-    // Matrix type traits
-    template <class ET, class Exts, class AP>
-    struct matrix_type_traits<
-        std::experimental::mdspan<ET, Exts, std::experimental::layout_left, AP>,
-        int> {
-        using idx_t = typename std::experimental::mdspan<ET, Exts>::size_type;
-        using extents_t = std::experimental::dextents<idx_t, 2>;
-
-        using type = std::experimental::
-            mdspan<ET, extents_t, std::experimental::layout_left, AP>;
-        using transpose_type = std::experimental::
-            mdspan<ET, extents_t, std::experimental::layout_right, AP>;
-    };
-    template <class ET, class Exts, class AP>
-    struct matrix_type_traits<
-        std::experimental::
-            mdspan<ET, Exts, std::experimental::layout_right, AP>,
-        int> {
-        using idx_t = typename std::experimental::mdspan<ET, Exts>::size_type;
-        using extents_t = std::experimental::dextents<idx_t, 2>;
-
-        using type = std::experimental::
-            mdspan<ET, extents_t, std::experimental::layout_right, AP>;
-        using transpose_type = std::experimental::
-            mdspan<ET, extents_t, std::experimental::layout_left, AP>;
-    };
-    template <class ET, class Exts, class AP>
-    struct matrix_type_traits<
-        std::experimental::
-            mdspan<ET, Exts, std::experimental::layout_stride, AP>,
-        int> {
-        using idx_t = typename std::experimental::mdspan<ET, Exts>::size_type;
-        using extents_t = std::experimental::dextents<idx_t, 2>;
-
-        using type = std::experimental::
-            mdspan<ET, extents_t, std::experimental::layout_stride, AP>;
-        using transpose_type = std::experimental::
-            mdspan<ET, extents_t, std::experimental::layout_stride, AP>;
-    };
-
     template <class ET, class Exts, class LP, class AP>
     struct real_type_traits<std::experimental::mdspan<ET, Exts, LP, AP>, int> {
         using type = std::experimental::mdspan<real_type<ET>, Exts, LP, AP>;
@@ -123,53 +82,12 @@ namespace traits {
             typename std::experimental::mdspan<ET, Exts, LP>::size_type;
         using extents_t = std::experimental::dextents<idx_t, 1>;
 
-        inline constexpr auto operator()(std::vector<ET>& v, idx_t m) const
+        template <class T>
+        inline constexpr auto operator()(std::vector<T>& v, idx_t n) const
         {
-            assert(m >= 0);
-            v.resize(m);  // Allocates space in memory
-            return std::experimental::mdspan<ET, extents_t>(v.data(), m);
-        }
-
-        inline constexpr auto operator()(const Workspace& W,
-                                         idx_t m,
-                                         Workspace& rW) const
-        {
-            using std::array;
-            using std::experimental::layout_stride;
-            using mapping = typename layout_stride::template mapping<extents_t>;
-            using matrix_t =
-                std::experimental::mdspan<ET, extents_t, layout_stride>;
-
-            assert(m >= 0);
-
-            rW = W.extract(sizeof(ET), m);
-            mapping map =
-                (W.isContiguous())
-                    ? mapping(extents_t(m), array<idx_t, 1>{1})
-                    : mapping(extents_t(m),
-                              array<idx_t, 1>{W.getLdim() / sizeof(ET)});
-
-            return matrix_t((ET*)W.data(), std::move(map));
-        }
-
-        inline constexpr auto operator()(const Workspace& W, idx_t m) const
-        {
-            using std::array;
-            using std::experimental::layout_stride;
-            using mapping = typename layout_stride::template mapping<extents_t>;
-            using matrix_t =
-                std::experimental::mdspan<ET, extents_t, layout_stride>;
-
-            assert(m >= 0);
-
-            tlapack_check(W.contains(sizeof(ET), m));
-            mapping map =
-                (W.isContiguous())
-                    ? mapping(extents_t(m), array<idx_t, 1>{1})
-                    : mapping(extents_t(m),
-                              array<idx_t, 1>{W.getLdim() / sizeof(ET)});
-
-            return matrix_t((ET*)W.data(), std::move(map));
+            assert(n >= 0);
+            v.resize(n);  // Allocates space in memory
+            return std::experimental::mdspan<T, extents_t>(v.data(), n);
         }
     };
 
@@ -181,78 +99,14 @@ namespace traits {
             typename std::experimental::mdspan<ET, Exts, LP>::size_type;
         using extents_t = std::experimental::dextents<idx_t, 2>;
 
-        inline constexpr auto operator()(std::vector<ET>& v,
+        template <class T>
+        inline constexpr auto operator()(std::vector<T>& v,
                                          idx_t m,
                                          idx_t n) const
         {
             assert(m >= 0 && n >= 0);
             v.resize(m * n);  // Allocates space in memory
-            return std::experimental::mdspan<ET, extents_t>(v.data(), m, n);
-        }
-
-        inline constexpr auto operator()(const Workspace& W,
-                                         idx_t m,
-                                         idx_t n,
-                                         Workspace& rW) const
-        {
-            using std::array;
-            using std::experimental::layout_stride;
-            using mapping = typename layout_stride::template mapping<extents_t>;
-            using matrix_t =
-                std::experimental::mdspan<ET, extents_t, layout_stride>;
-
-            assert(m >= 0 && n >= 0);
-
-            // Variables to be forwarded to the returned matrix
-            array<idx_t, 2> strides = [&](Workspace& rW) {
-                if (W.isContiguous()) {
-                    rW = W.extract(m * sizeof(ET), n);
-                    return array<idx_t, 2>{1, m};
-                }
-                else if (W.getM() >= m * sizeof(ET) && W.getN() >= n) {
-                    rW = W.extract(m * sizeof(ET), n);
-                    return array<idx_t, 2>{1, W.getLdim() / sizeof(ET)};
-                }
-                else {
-                    rW = W.extract(n * sizeof(ET), m);
-                    return array<idx_t, 2>{W.getLdim() / sizeof(ET), 1};
-                }
-            }(rW);
-            mapping map = mapping(extents_t(m, n), std::move(strides));
-
-            return matrix_t((ET*)W.data(), std::move(map));
-        }
-
-        inline constexpr auto operator()(const Workspace& W,
-                                         idx_t m,
-                                         idx_t n) const
-        {
-            using std::array;
-            using std::experimental::layout_stride;
-            using mapping = typename layout_stride::template mapping<extents_t>;
-            using matrix_t =
-                std::experimental::mdspan<ET, extents_t, layout_stride, AP>;
-
-            assert(m >= 0 && n >= 0);
-
-            // Variables to be forwarded to the returned matrix
-            array<idx_t, 2> strides = [&]() {
-                if (W.isContiguous()) {
-                    tlapack_check(W.contains(m * sizeof(ET), n));
-                    return array<idx_t, 2>{1, m};
-                }
-                else if (W.getM() >= m * sizeof(ET) && W.getN() >= n) {
-                    tlapack_check(W.contains(m * sizeof(ET), n));
-                    return array<idx_t, 2>{1, W.getLdim() / sizeof(ET)};
-                }
-                else {
-                    tlapack_check(W.contains(n * sizeof(ET), m));
-                    return array<idx_t, 2>{W.getLdim() / sizeof(ET), 1};
-                }
-            }();
-            mapping map = mapping(extents_t(m, n), std::move(strides));
-
-            return matrix_t((ET*)W.data(), std::move(map));
+            return std::experimental::mdspan<T, extents_t>(v.data(), m, n);
         }
     };
 }  // namespace traits
@@ -402,6 +256,132 @@ inline constexpr auto diag(const std::experimental::mdspan<ET, Exts, LP, AP>& A,
     return std::experimental::mdspan<ET, extents_t, layout_stride,
                                      typename AP::offset_policy>(
         std::move(ptr), std::move(map), std::move(acc_pol));
+}
+
+// Transpose View
+template <class ET, class Exts, class AP>
+inline constexpr auto transpose_view(
+    const std::experimental::
+        mdspan<ET, Exts, std::experimental::layout_left, AP>& A) noexcept
+{
+    using matrix_t =
+        std::experimental::mdspan<ET, Exts, std::experimental::layout_left, AP>;
+    using idx_t = typename matrix_t::size_type;
+    using extents_t =
+        std::experimental::extents<idx_t, matrix_t::static_extent(1),
+                                   matrix_t::static_extent(0)>;
+
+    using std::experimental::layout_right;
+    using mapping_t = typename layout_right::template mapping<extents_t>;
+
+    mapping_t map(extents_t(A.extent(1), A.extent(0)));
+    return std::experimental::mdspan<ET, extents_t, layout_right, AP>(
+        A.data(), std::move(map));
+}
+template <class ET, class Exts, class AP>
+inline constexpr auto transpose_view(
+    const std::experimental::
+        mdspan<ET, Exts, std::experimental::layout_right, AP>& A) noexcept
+{
+    using matrix_t =
+        std::experimental::mdspan<ET, Exts, std::experimental::layout_right,
+                                  AP>;
+    using idx_t = typename matrix_t::size_type;
+    using extents_t =
+        std::experimental::extents<idx_t, matrix_t::static_extent(1),
+                                   matrix_t::static_extent(0)>;
+
+    using std::experimental::layout_left;
+    using mapping_t = typename layout_left::template mapping<extents_t>;
+
+    mapping_t map(extents_t(A.extent(1), A.extent(0)));
+    return std::experimental::mdspan<ET, extents_t, layout_left, AP>(
+        A.data(), std::move(map));
+}
+template <class ET, class Exts, class AP>
+inline constexpr auto transpose_view(
+    const std::experimental::
+        mdspan<ET, Exts, std::experimental::layout_stride, AP>& A) noexcept
+{
+    using matrix_t =
+        std::experimental::mdspan<ET, Exts, std::experimental::layout_stride,
+                                  AP>;
+    using idx_t = typename matrix_t::size_type;
+    using extents_t =
+        std::experimental::extents<idx_t, matrix_t::static_extent(1),
+                                   matrix_t::static_extent(0)>;
+
+    using std::experimental::layout_stride;
+    using mapping_t = typename layout_stride::template mapping<extents_t>;
+
+    mapping_t map(extents_t(A.extent(1), A.extent(0)),
+                  std::array<idx_t, 2>{A.stride(1), A.stride(0)});
+    return std::experimental::mdspan<ET, extents_t, layout_stride, AP>(
+        A.data(), std::move(map));
+}
+
+// Reshape
+template <
+    class ET,
+    class Exts,
+    class LP,
+    class AP,
+    std::enable_if_t<Exts::rank() == 2 &&
+                         (std::is_same_v<LP, std::experimental::layout_right> ||
+                          std::is_same_v<LP, std::experimental::layout_left>),
+                     int> = 0>
+auto reshape(std::experimental::mdspan<ET, Exts, LP, AP>& A,
+             std::size_t m,
+             std::size_t n)
+{
+    using size_type =
+        typename std::experimental::mdspan<ET, Exts, LP, AP>::size_type;
+    using extents_t = std::experimental::dextents<size_type, 2>;
+    using matrix_t = std::experimental::mdspan<ET, extents_t, LP, AP>;
+    using mapping_t = typename LP::template mapping<extents_t>;
+
+    if (m * n != A.size())
+        throw std::invalid_argument(
+            "reshape: new shape must have the same "
+            "number of elements as the original one");
+
+    return matrix_t(A.data(), mapping_t(extents_t(m, n)));
+}
+template <class ET, class Exts, class AP>
+auto reshape(
+    std::experimental::mdspan<ET, Exts, std::experimental::layout_stride, AP>&
+        A,
+    std::size_t m,
+    std::size_t n)
+{
+    using LP = std::experimental::layout_stride;
+    using idx_t =
+        typename std::experimental::mdspan<ET, Exts, LP, AP>::size_type;
+    using extents_t = std::experimental::dextents<idx_t, 2>;
+    using matrix_t = std::experimental::mdspan<ET, extents_t, LP, AP>;
+    using mapping_t = typename LP::template mapping<extents_t>;
+
+    if (m == A.extent(0) && n == A.extent(1))
+        return matrix_t(A.data(), mapping_t(extents_t(m, n),
+                                            std::array<idx_t, 2>{A.stride(0),
+                                                                 A.stride(1)}));
+    else {
+        if (m * n != A.size())
+            throw std::invalid_argument(
+                "reshape: new shape must have the same "
+                "number of elements as the original one");
+        if (!(A.stride(0) == 1 &&
+              (A.stride(1) == A.extent(0) || A.extent(1) <= 1)) &&
+            !(A.stride(1) == 1 &&
+              (A.stride(0) == A.extent(1) || A.extent(0) <= 1)))
+            throw std::invalid_argument(
+                "reshape: data must be contiguous in memory");
+
+        return matrix_t(A.data(), mapping_t(extents_t(m, n),
+                                            (A.stride(0) == 1)
+                                                ? std::array<idx_t, 2>{1, m}
+                                                : std::array<idx_t, 2>{n, 1}));
+    }
 }
 
 #undef isSlice

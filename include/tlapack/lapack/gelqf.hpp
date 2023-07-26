@@ -22,10 +22,7 @@ namespace tlapack {
  * Options struct for gelqf
  */
 template <TLAPACK_INDEX idx_t = size_t>
-struct GelqfOpts : public WorkspaceOpts<> {
-    inline constexpr GelqfOpts(const WorkspaceOpts<>& opts = {})
-        : WorkspaceOpts<>(opts){};
-
+struct GelqfOpts {
     idx_t nb = 32;  ///< Block size
 };
 
@@ -41,31 +38,32 @@ struct GelqfOpts : public WorkspaceOpts<> {
  *
  * @ingroup workspace_query
  */
-template <TLAPACK_SMATRIX A_t, TLAPACK_SVECTOR tau_t>
+template <class T, TLAPACK_SMATRIX A_t, TLAPACK_SVECTOR tau_t>
 inline constexpr WorkInfo gelqf_worksize(
     const A_t& A, const tau_t& tau, const GelqfOpts<size_type<A_t>>& opts = {})
 {
     using idx_t = size_type<A_t>;
-    using T = type_t<A_t>;
     using range = pair<idx_t, idx_t>;
+    using matrixT_t = matrix_type<A_t, tau_t>;
 
     // constants
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
     const idx_t k = min(m, n);
-    const idx_t nb = opts.nb;
-    const idx_t ib = min(nb, k);
+    const idx_t nb = min(opts.nb, k);
 
-    auto A11 = rows(A, range(0, ib));
-    auto TT1 = slice(A, range(0, ib), range(0, ib));
-    auto A12 = slice(A, range(ib, m), range(0, n));
-    auto tauw1 = slice(tau, range(0, ib));
+    auto A11 = rows(A, range(0, nb));
+    auto tauw1 = slice(tau, range(0, nb));
+    WorkInfo workinfo = gelq2_worksize<T>(A11, tauw1).transpose();
 
-    WorkInfo workinfo = gelq2_worksize(A11, tauw1);
-    workinfo.minMax(larfb_worksize(RIGHT_SIDE, NO_TRANS, FORWARD,
-                                   ROWWISE_STORAGE, A11, TT1, A12));
-
-    workinfo += WorkInfo(sizeof(T) * nb, nb);
+    if (m > nb) {
+        auto TT1 = slice(A, range(0, nb), range(0, nb));
+        auto A12 = slice(A, range(nb, m), range(0, n));
+        workinfo.minMax(larfb_worksize<T>(RIGHT_SIDE, NO_TRANS, FORWARD,
+                                          ROWWISE_STORAGE, A11, TT1, A12));
+        if constexpr (is_same_v<T, type_t<matrixT_t>>)
+            workinfo += WorkInfo(nb, nb);
+    }
 
     return workinfo;
 }
@@ -100,14 +98,13 @@ inline constexpr WorkInfo gelqf_worksize(
  *      The scalar factors of the elementary reflectors.
  *
  * @param[in] opts Options.
- *      - @c opts.work is used if whenever it has sufficient size.
- *        The sufficient size can be obtained through a workspace query.
  *
  * @ingroup computational
  */
 template <TLAPACK_SMATRIX A_t, TLAPACK_SVECTOR tau_t>
 int gelqf(A_t& A, tau_t& tau, const GelqfOpts<size_type<A_t>>& opts = {})
 {
+    using T = type_t<A_t>;
     Create<A_t> new_matrix;
 
     using idx_t = size_type<A_t>;
@@ -117,36 +114,32 @@ int gelqf(A_t& A, tau_t& tau, const GelqfOpts<size_type<A_t>>& opts = {})
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
     const idx_t k = min(m, n);
-    const idx_t nb = opts.nb;
+    const idx_t nb = min(opts.nb, k);
 
     // check arguments
     tlapack_check((idx_t)size(tau) >= k);
 
     // Allocate or get workspace
-    VectorOfBytes localworkdata;
-    Workspace work = [&]() {
-        WorkInfo workinfo = gelqf_worksize(A, tau, opts);
-        return alloc_workspace(localworkdata, workinfo, opts.work);
-    }();
+    WorkInfo workinfo = gelqf_worksize<T>(A, tau, opts);
+    std::vector<T> work_;
+    auto work = new_matrix(work_, workinfo.m, workinfo.n);
 
-    Workspace sparework;
-    auto TT = new_matrix(work, nb, nb, sparework);
-
-    // Options to forward
-    auto&& gelq2Opts = WorkspaceOpts<>{sparework};
-    auto&& larfbOpts = WorkspaceOpts<void>{sparework};
+    auto workt = transpose_view(work);
+    auto TT = (m > nb) ? slice(work, range{workinfo.m - nb, workinfo.m},
+                               range{workinfo.n - nb, workinfo.n})
+                       : slice(work, range{0, 0}, range{0, 0});
 
     // Main computational loop
     for (idx_t j = 0; j < k; j += nb) {
-        idx_t ib = min(nb, k - j);
+        const idx_t ib = min(nb, k - j);
 
         // Compute the LQ factorization of the current block A(j:j+ib-1,j:n)
         auto A11 = slice(A, range(j, j + ib), range(j, n));
         auto tauw1 = slice(tau, range(j, j + ib));
 
-        gelq2(A11, tauw1, gelq2Opts);
+        gelq2_work(A11, tauw1, workt);
 
-        if (j + ib < k) {
+        if (j + ib < m) {
             // Form the triangular factor of the block reflector H = H(j)
             // H(j+1) . . . H(j+ib-1)
             auto TT1 = slice(TT, range(0, ib), range(0, ib));
@@ -154,8 +147,8 @@ int gelqf(A_t& A, tau_t& tau, const GelqfOpts<size_type<A_t>>& opts = {})
 
             // Apply H to A(j+ib:m,j:n) from the right
             auto A12 = slice(A, range(j + ib, m), range(j, n));
-            larfb(RIGHT_SIDE, NO_TRANS, FORWARD, ROWWISE_STORAGE, A11, TT1, A12,
-                  larfbOpts);
+            larfb_work(RIGHT_SIDE, NO_TRANS, FORWARD, ROWWISE_STORAGE, A11, TT1,
+                       A12, work);
         }
     }
 

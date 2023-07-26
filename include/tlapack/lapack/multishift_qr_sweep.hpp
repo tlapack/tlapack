@@ -40,28 +40,26 @@ namespace tlapack {
  * @param[in] Z  n by n matrix.
  *      On entry, the previously calculated Schur factors.
  *
- * @param[in] opts Options.
- *
  * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
  */
-template <TLAPACK_SMATRIX matrix_t,
+template <class T,
+          TLAPACK_SMATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
           enable_if_t<is_complex<type_t<vector_t>>, bool> = true>
-inline constexpr WorkInfo multishift_QR_sweep_worksize(
-    bool want_t,
-    bool want_z,
-    size_type<matrix_t> ilo,
-    size_type<matrix_t> ihi,
-    const matrix_t& A,
-    const vector_t& s,
-    const matrix_t& Z,
-    const WorkspaceOpts<>& opts = {})
+inline constexpr WorkInfo multishift_QR_sweep_worksize(bool want_t,
+                                                       bool want_z,
+                                                       size_type<matrix_t> ilo,
+                                                       size_type<matrix_t> ihi,
+                                                       const matrix_t& A,
+                                                       const vector_t& s,
+                                                       const matrix_t& Z)
 {
-    using T = type_t<matrix_t>;
-
-    return WorkInfo(sizeof(T) * 3, size(s) / 2);
+    if constexpr (is_same_v<T, type_t<matrix_t>>)
+        return WorkInfo(3, size(s) / 2);
+    else
+        return WorkInfo(0);
 }
 
 /** multishift_QR_sweep performs a single small-bulge multi-shift QR sweep.
@@ -89,31 +87,27 @@ inline constexpr WorkInfo multishift_QR_sweep_worksize(
  *      On exit, the orthogonal updates applied to A accumulated
  *      into Z.
  *
- * @param[in] opts Options.
- *      - @c opts.work is used if whenever it has sufficient size.
- *        The sufficient size can be obtained through a workspace query.
+ * @param work Workspace. Use the workspace query to determine the size needed.
  *
  * @ingroup computational
  */
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
+          TLAPACK_WORKSPACE work_t,
           enable_if_t<is_complex<type_t<vector_t>>, bool> = true>
-void multishift_QR_sweep(bool want_t,
-                         bool want_z,
-                         size_type<matrix_t> ilo,
-                         size_type<matrix_t> ihi,
-                         matrix_t& A,
-                         const vector_t& s,
-                         matrix_t& Z,
-                         const WorkspaceOpts<>& opts = {})
+void multishift_QR_sweep_work(bool want_t,
+                              bool want_z,
+                              size_type<matrix_t> ilo,
+                              size_type<matrix_t> ihi,
+                              matrix_t& A,
+                              const vector_t& s,
+                              matrix_t& Z,
+                              work_t& work)
 {
     using TA = type_t<matrix_t>;
     using real_t = real_type<TA>;
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
-
-    // Functor
-    Create<matrix_t> new_matrix;
 
     const real_t one(1);
     const real_t zero(0);
@@ -129,14 +123,8 @@ void multishift_QR_sweep(bool want_t,
         assert(nrows(Z) == n);
     }
 
-    // Allocates workspace
-    VectorOfBytes localworkdata;
-    const Workspace work = [&]() {
-        WorkInfo workinfo = multishift_QR_sweep_worksize(want_t, want_z, ilo,
-                                                         ihi, A, s, Z, opts);
-        return alloc_workspace(localworkdata, workinfo, opts.work);
-    }();
-    auto V = new_matrix(work, 3, size(s) / 2);
+    // Workspace matrix
+    auto V = slice(work, range{0, 3}, range{0, size(s) / 2});
 
     const idx_t n_block_max = (n - 3) / 3;
     const idx_t n_shifts_max =
@@ -847,6 +835,58 @@ void multishift_QR_sweep(bool want_t,
             }
         }
     }
+}
+
+/** multishift_QR_sweep performs a single small-bulge multi-shift QR sweep.
+ *
+ * @param[in] want_t bool.
+ *      If true, the full Schur factor T will be computed.
+ *
+ * @param[in] want_z bool.
+ *      If true, the Schur vectors Z will be computed.
+ *
+ * @param[in] ilo    integer.
+ *      Either ilo=0 or A(ilo,ilo-1) = 0.
+ *
+ * @param[in] ihi    integer.
+ *      ilo and ihi determine an isolated block in A.
+ *
+ * @param[in,out] A  n by n matrix.
+ *      Hessenberg matrix on which AED will be performed
+ *
+ * @param[in] s  complex vector.
+ *      Vector containing the shifts to be used during the sweep
+ *
+ * @param[in,out] Z  n by n matrix.
+ *      On entry, the previously calculated Schur factors
+ *      On exit, the orthogonal updates applied to A accumulated
+ *      into Z.
+ *
+ * @ingroup computational
+ */
+template <TLAPACK_SMATRIX matrix_t,
+          TLAPACK_VECTOR vector_t,
+          enable_if_t<is_complex<type_t<vector_t>>, bool> = true>
+void multishift_QR_sweep(bool want_t,
+                         bool want_z,
+                         size_type<matrix_t> ilo,
+                         size_type<matrix_t> ihi,
+                         matrix_t& A,
+                         const vector_t& s,
+                         matrix_t& Z)
+{
+    using TA = type_t<matrix_t>;
+
+    // Functor
+    Create<matrix_t> new_matrix;
+
+    // Allocates workspace
+    WorkInfo workinfo =
+        multishift_QR_sweep_worksize<TA>(want_t, want_z, ilo, ihi, A, s, Z);
+    std::vector<TA> work_;
+    auto work = new_matrix(work_, workinfo.m, workinfo.n);
+
+    multishift_QR_sweep_work(want_t, want_z, ilo, ihi, A, s, Z, work);
 }
 
 }  // namespace tlapack

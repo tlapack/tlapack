@@ -43,63 +43,20 @@ namespace tlapack {
  *
  * @ingroup workspace_query
  */
-template <TLAPACK_NORM norm_t,
-          TLAPACK_UPLO uplo_t,
-          TLAPACK_DIAG diag_t,
-          TLAPACK_SMATRIX matrix_t>
-inline constexpr WorkInfo lantr_worksize(norm_t normType,
-                                         uplo_t uplo,
-                                         diag_t diag,
-                                         const matrix_t& A)
-{
-    return WorkInfo{};
-}
-
-/** Worspace query of lantr().
- *
- * @param[in] normType
- *      - Norm::Max: Maximum absolute value over all elements of the matrix.
- *          Note: this is not a consistent matrix norm.
- *      - Norm::One: 1-norm, the maximum value of the absolute sum of each
- * column.
- *      - Norm::Inf: Inf-norm, the maximum value of the absolute sum of each
- * row.
- *      - Norm::Fro: Frobenius norm of the matrix.
- *          Square root of the sum of the square of each entry in the matrix.
- *
- * @param[in] uplo
- *      - Uplo::Upper: A is a upper triangle matrix;
- *      - Uplo::Lower: A is a lower triangle matrix.
- *
- * @param[in] diag
- *     Whether A has a unit or non-unit diagonal:
- *     - Diag::Unit:    A is assumed to be unit triangular.
- *     - Diag::NonUnit: A is not assumed to be unit triangular.
- *
- * @param[in] A m-by-n triangular matrix.
- *
- * @param[in] opts Options.
- *
- * @return WorkInfo The amount workspace required.
- *
- * @ingroup workspace_query
- */
-template <TLAPACK_NORM norm_t,
+template <class T,
+          TLAPACK_NORM norm_t,
           TLAPACK_UPLO uplo_t,
           TLAPACK_DIAG diag_t,
           TLAPACK_MATRIX matrix_t>
 inline constexpr WorkInfo lantr_worksize(norm_t normType,
                                          uplo_t uplo,
                                          diag_t diag,
-                                         const matrix_t& A,
-                                         const WorkspaceOpts<>& opts)
+                                         const matrix_t& A)
 {
-    using T = type_t<matrix_t>;
+    if constexpr (is_same_v<T, type_t<matrix_t>>)
+        if (normType == Norm::Inf) return WorkInfo(nrows(A));
 
-    if (normType == Norm::Inf) {
-        return WorkInfo(sizeof(T), nrows(A));
-    }
-    return WorkInfo{};
+    return WorkInfo(0);
 }
 
 /** Calculates the norm of a symmetric matrix.
@@ -359,25 +316,22 @@ auto lantr(norm_t normType, uplo_t uplo, diag_t diag, const matrix_t& A)
  *
  * @param[in] A m-by-n triangular matrix.
  *
- * @param[in] opts Options.
- *      - @c opts.work is used if whenever it has sufficient size.
- *        The sufficient size can be obtained through a workspace query.
+ * @param work Workspace. Use the workspace query to determine the size needed.
  *
  * @ingroup auxiliary
  */
 template <TLAPACK_NORM norm_t,
           TLAPACK_UPLO uplo_t,
           TLAPACK_DIAG diag_t,
-          TLAPACK_MATRIX matrix_t>
-auto lantr(norm_t normType,
-           uplo_t uplo,
-           diag_t diag,
-           const matrix_t& A,
-           const WorkspaceOpts<>& opts)
+          TLAPACK_MATRIX matrix_t,
+          TLAPACK_WORKSPACE work_t>
+auto lantr(
+    norm_t normType, uplo_t uplo, diag_t diag, const matrix_t& A, work_t& work)
 {
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
     using idx_t = size_type<matrix_t>;
+    using range = pair<idx_t, idx_t>;
 
     // constants
     const idx_t m = nrows(A);
@@ -404,14 +358,8 @@ auto lantr(norm_t normType,
         // so as to do one pass on the data in a contiguous way when computing
         // the infinite norm.
 
-        // Allocates workspace
-        VectorOfBytes localworkdata;
-        const Workspace work = [&]() {
-            WorkInfo workinfo;
-            lantr_worksize(normType, uplo, diag, A, opts);
-            return alloc_workspace(localworkdata, workinfo, opts.work);
-        }();
-        auto w = Create<vector_type<matrix_t>>(work, n);
+        // Slice workspace
+        auto w = slice(work, range{0, n}, 0);
 
         // Norm value
         real_t norm(0);

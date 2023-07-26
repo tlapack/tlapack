@@ -14,7 +14,6 @@
 #include <cassert>
 
 #include "tlapack/base/arrayTraits.hpp"
-#include "tlapack/base/workspace.hpp"
 
 namespace tlapack {
 
@@ -85,29 +84,6 @@ namespace traits {
                                           : Layout::ColMajor);
     };
 
-    /// Transpose for Eigen::Matrix
-    template <class matrix_t>
-    struct matrix_type_traits<
-        matrix_t,
-        typename std::enable_if<eigen::internal::is_eigen_matrix<matrix_t>,
-                                int>::type> {
-        using type = Eigen::Matrix<typename matrix_t::Scalar,
-                                   matrix_t::RowsAtCompileTime,
-                                   matrix_t::ColsAtCompileTime,
-                                   (matrix_t::IsRowMajor) ? Eigen::RowMajor
-                                                          : Eigen::ColMajor,
-                                   matrix_t::MaxRowsAtCompileTime,
-                                   matrix_t::MaxColsAtCompileTime>;
-        using transpose_type =
-            Eigen::Matrix<typename matrix_t::Scalar,
-                          matrix_t::ColsAtCompileTime,
-                          matrix_t::RowsAtCompileTime,
-                          (matrix_t::IsRowMajor) ? Eigen::ColMajor
-                                                 : Eigen::RowMajor,
-                          matrix_t::MaxColsAtCompileTime,
-                          matrix_t::MaxRowsAtCompileTime>;
-    };
-
     template <class matrix_t>
     struct real_type_traits<
         matrix_t,
@@ -139,12 +115,6 @@ namespace traits {
     struct CreateFunctor<
         U,
         typename std::enable_if<eigen::is_eigen_type<U>, int>::type> {
-        using T = typename U::Scalar;
-        using idx_t = Eigen::Index;
-        using Stride = typename std::conditional<U::IsVectorAtCompileTime,
-                                                 Eigen::InnerStride<>,
-                                                 Eigen::OuterStride<>>::type;
-
         static constexpr int Rows_ =
             (U::RowsAtCompileTime == 1) ? 1 : Eigen::Dynamic;
         static constexpr int Cols_ =
@@ -152,100 +122,14 @@ namespace traits {
         static constexpr int Options_ =
             (U::IsRowMajor) ? Eigen::RowMajor : Eigen::ColMajor;
 
-        using matrix_t = Eigen::Matrix<T, Rows_, Cols_, Options_>;
-        using map_t = Eigen::Map<matrix_t, Eigen::Unaligned, Stride>;
-
+        template <typename T>
         inline constexpr auto operator()(std::vector<T>& v,
-                                         idx_t m,
-                                         idx_t n = 1) const
+                                         Eigen::Index m,
+                                         Eigen::Index n = 1) const
         {
             assert(m >= 0 && n >= 0);
             v.resize(0);
-            return matrix_t(m, n);
-        }
-
-        inline constexpr auto operator()(const Workspace& W,
-                                         idx_t m,
-                                         idx_t n,
-                                         Workspace& rW) const
-        {
-            assert(m >= 0 && n >= 0);
-
-            if constexpr (Rows_ == 1) {
-                assert(m == 1);
-                rW = W.extract(sizeof(T), n);
-                return map_t(
-                    (T*)W.data(), n,
-                    Stride((W.isContiguous() || W.getM() == sizeof(T) * n)
-                               ? 1
-                               : W.getLdim() / sizeof(T)));
-            }
-            else if constexpr (Cols_ == 1) {
-                assert(n == 1);
-                rW = W.extract(sizeof(T), m);
-                return map_t(
-                    (T*)W.data(), m,
-                    Stride((W.isContiguous() || W.getM() == sizeof(T) * m)
-                               ? 1
-                               : W.getLdim() / sizeof(T)));
-            }
-            else if constexpr (matrix_t::IsRowMajor) {
-                rW = W.extract(n * sizeof(T), m);
-                return map_t(
-                    (T*)W.data(), m, n,
-                    Stride((W.isContiguous()) ? n : W.getLdim() / sizeof(T)));
-            }
-            else {
-                rW = W.extract(m * sizeof(T), n);
-                return map_t(
-                    (T*)W.data(), m, n,
-                    Stride((W.isContiguous()) ? m : W.getLdim() / sizeof(T)));
-            }
-        }
-
-        inline constexpr auto operator()(const Workspace& W,
-                                         idx_t m,
-                                         Workspace& rW) const
-        {
-            return operator()(W, m, 1, rW);
-        }
-
-        inline constexpr auto operator()(const Workspace& W,
-                                         idx_t m,
-                                         idx_t n = 1) const
-        {
-            assert(m >= 0 && n >= 0);
-
-            if constexpr (Rows_ == 1) {
-                assert(m == 1);
-                assert(W.contains(sizeof(T), n));
-                return map_t(
-                    (T*)W.data(), n,
-                    Stride((W.isContiguous() || W.getM() == sizeof(T) * n)
-                               ? 1
-                               : W.getLdim() / sizeof(T)));
-            }
-            else if constexpr (Cols_ == 1) {
-                assert(n == 1);
-                assert(W.contains(sizeof(T), m));
-                return map_t(
-                    (T*)W.data(), m,
-                    Stride((W.isContiguous() || W.getM() == sizeof(T) * m)
-                               ? 1
-                               : W.getLdim() / sizeof(T)));
-            }
-            else if constexpr (matrix_t::IsRowMajor) {
-                assert(W.contains(n * sizeof(T), m));
-                return map_t(
-                    (T*)W.data(), m, n,
-                    Stride((W.isContiguous()) ? n : W.getLdim() / sizeof(T)));
-            }
-            else {
-                assert(W.contains(m * sizeof(T), n));
-                return map_t(
-                    (T*)W.data(), m, n,
-                    Stride((W.isContiguous()) ? m : W.getLdim() / sizeof(T)));
-            }
+            return Eigen::Matrix<T, Rows_, Cols_, Options_>(m, n);
         }
     };
 }  // namespace traits
@@ -673,6 +557,83 @@ template <
 inline constexpr auto diag(T& A, int diagIdx = 0) noexcept
 {
     return A.diagonal(diagIdx);
+}
+
+// Transpose view
+template <class matrix_t,
+          typename std::enable_if<(eigen::is_eigen_type<matrix_t> &&
+                                   matrix_t::IsVectorAtCompileTime),
+                                  int>::type = 0>
+inline constexpr auto transpose_view(matrix_t& A) noexcept
+{
+    using T = typename matrix_t::Scalar;
+    using Stride = Eigen::InnerStride<>;
+
+    constexpr int Rows_ = matrix_t::ColsAtCompileTime;
+    constexpr int Cols_ = matrix_t::RowsAtCompileTime;
+
+    using transpose_t = Eigen::Matrix<
+        T, Rows_, Cols_,
+        (matrix_t::IsRowMajor) ? Eigen::ColMajor : Eigen::RowMajor,
+        matrix_t::MaxColsAtCompileTime, matrix_t::MaxRowsAtCompileTime>;
+
+    using map_t = Eigen::Map<transpose_t, Eigen::Unaligned, Stride>;
+
+    return map_t((T*)A.data(), A.size(), A.innerStride());
+}
+template <class matrix_t,
+          typename std::enable_if<(eigen::is_eigen_type<matrix_t> &&
+                                   !matrix_t::IsVectorAtCompileTime),
+                                  int>::type = 0>
+inline constexpr auto transpose_view(matrix_t& A) noexcept
+{
+    using T = typename matrix_t::Scalar;
+    using Stride = Eigen::OuterStride<>;
+    assert(A.innerStride() == 1);
+
+    constexpr int Rows_ = matrix_t::ColsAtCompileTime;
+    constexpr int Cols_ = matrix_t::RowsAtCompileTime;
+
+    using transpose_t = Eigen::Matrix<
+        T, Rows_, Cols_,
+        (matrix_t::IsRowMajor) ? Eigen::ColMajor : Eigen::RowMajor,
+        matrix_t::MaxColsAtCompileTime, matrix_t::MaxRowsAtCompileTime>;
+
+    using map_t = Eigen::Map<transpose_t, Eigen::Unaligned, Stride>;
+
+    return map_t((T*)A.data(), A.cols(), A.rows(), A.outerStride());
+}
+
+template <
+    class matrix_t,
+    typename std::enable_if<eigen::is_eigen_type<matrix_t>, int>::type = 0>
+auto reshape(matrix_t& A, Eigen::Index m, Eigen::Index n)
+{
+    using T = typename matrix_t::Scalar;
+    using Stride = Eigen::OuterStride<>;
+    assert(A.innerStride() == 1);
+
+    using rmatrix_t = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic,
+                                    (matrix_t::IsRowMajor) ? Eigen::RowMajor
+                                                           : Eigen::ColMajor>;
+    using map_t = Eigen::Map<rmatrix_t, Eigen::Unaligned, Stride>;
+
+    if (m == A.rows() && n == A.cols())
+        return map_t((T*)A.data(), m, n, A.outerStride());
+    else {
+        if (m * n != A.size())
+            throw std::invalid_argument(
+                "reshape: new shape must have the same "
+                "number of elements as the original one");
+        if (!(!matrix_t::IsRowMajor &&
+              (A.outerStride() == A.rows() || A.cols() <= 1)) &&
+            !(matrix_t::IsRowMajor &&
+              (A.outerStride() == A.cols() || A.rows() <= 1)))
+            throw std::invalid_argument(
+                "reshape: data must be contiguous in memory");
+
+        return map_t((T*)A.data(), m, n, (matrix_t::IsRowMajor ? n : m));
+    }
 }
 
 // -----------------------------------------------------------------------------

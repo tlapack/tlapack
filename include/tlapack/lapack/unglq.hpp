@@ -24,12 +24,9 @@ namespace tlapack {
 /**
  * Options struct for unglq
  */
-template <class workT_t = void>
-struct UnglqOpts : public WorkspaceOpts<workT_t> {
-    inline constexpr UnglqOpts(const WorkspaceOpts<workT_t>& opts = {})
-        : WorkspaceOpts<workT_t>(opts){};
-
-    size_type<workT_t> nb = 32;  ///< Block size
+template <TLAPACK_INDEX idx_t = size_t>
+struct UnglqOpts {
+    idx_t nb = 32;  ///< Block size
 };
 
 /** Worspace query of unglq()
@@ -45,37 +42,44 @@ struct UnglqOpts : public WorkspaceOpts<workT_t> {
  *
  * @ingroup workspace_query
  */
-template <TLAPACK_SMATRIX matrix_t,
-          TLAPACK_SVECTOR vector_t,
-          class workT_t = void>
-inline constexpr WorkInfo unglq_worksize(const matrix_t& A,
-                                         const vector_t& tau,
-                                         const UnglqOpts<workT_t>& opts = {})
+template <class T, TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
+inline constexpr WorkInfo unglq_worksize(
+    const matrix_t& A,
+    const vector_t& tau,
+    const UnglqOpts<size_type<matrix_t>>& opts = {})
 {
     using idx_t = size_type<matrix_t>;
-    using matrixT_t = deduce_work_t<workT_t, matrix_type<matrix_t, vector_t> >;
-    using T = type_t<matrixT_t>;
+    using matrixT_t = matrix_type<matrix_t, vector_t>;
     using range = pair<idx_t, idx_t>;
 
     // Constants
+    const idx_t m = nrows(A);
+    const idx_t n = ncols(A);
     const idx_t k = size(tau);
-    const idx_t nb = min<idx_t>(opts.nb, k);
+    const idx_t nb = min(opts.nb, k);
 
-    // Local workspace sizes
-    WorkInfo workinfo(nb * sizeof(T), nb);
+    WorkInfo workinfo;
 
     // larfb:
-    {
-        // Constants
-        const idx_t m = nrows(A);
-
+    if (nb < m) {
         // Empty matrices
-        const auto V = slice(A, range{0, nb}, range{0, m});
+        const auto V = slice(A, range{0, nb}, range{0, n});
         const auto matrixT = slice(A, range{0, nb}, range{0, nb});
+        const auto C = slice(A, range{nb, m}, range{0, n});
 
         // Internal workspace queries
-        workinfo += larfb_worksize(RIGHT_SIDE, CONJ_TRANS, FORWARD,
-                                   ROWWISE_STORAGE, V, matrixT, A, opts);
+        workinfo = larfb_worksize<T>(RIGHT_SIDE, CONJ_TRANS, FORWARD,
+                                     ROWWISE_STORAGE, V, matrixT, C);
+
+        // Local workspace sizes
+        if (is_same_v<T, type_t<matrixT_t>>) workinfo += WorkInfo(nb, nb);
+    }
+
+    // ungl2:
+    {
+        const auto Ai = slice(A, range{0, nb}, range{0, n});
+        const auto taui = slice(tau, range{0, nb});
+        workinfo.minMax(ungl2_worksize<T>(Ai, taui));
     }
 
     return workinfo;
@@ -105,21 +109,19 @@ inline constexpr WorkInfo unglq_worksize(const matrix_t& A,
  *      reflector H(j), as returned by gelqf.
  *
  * @param[in] opts Options.
- *      @c opts.work is used if whenever it has sufficient size.
- *      The sufficient size can be obtained through a workspace query.
  *
  * @ingroup computational
  */
-template <TLAPACK_SMATRIX matrix_t,
-          TLAPACK_SVECTOR vector_t,
-          class workT_t = void>
-int unglq(matrix_t& A, const vector_t& tau, const UnglqOpts<workT_t>& opts = {})
+template <TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
+int unglq(matrix_t& A,
+          const vector_t& tau,
+          const UnglqOpts<size_type<matrix_t>>& opts = {})
 {
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
-    using matrixT_t = deduce_work_t<workT_t, matrix_type<matrix_t, vector_t> >;
+    using matrixT_t = matrix_type<matrix_t, vector_t>;
 
     // Functor
     Create<matrixT_t> new_matrix;
@@ -130,7 +132,7 @@ int unglq(matrix_t& A, const vector_t& tau, const UnglqOpts<workT_t>& opts = {})
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
     const idx_t k = size(tau);
-    const idx_t nb = min<idx_t>(opts.nb, k);
+    const idx_t nb = min(opts.nb, k);
 
     // check arguments
     tlapack_check_false(k > n);
@@ -139,19 +141,13 @@ int unglq(matrix_t& A, const vector_t& tau, const UnglqOpts<workT_t>& opts = {})
     if (n <= 0) return 0;
 
     // Allocates workspace
-    VectorOfBytes localworkdata;
-    Workspace work = [&]() {
-        WorkInfo workinfo = unglq_worksize(A, tau, opts);
-        return alloc_workspace(localworkdata, workinfo, opts.work);
-    }();
+    WorkInfo workinfo = unglq_worksize<T>(A, tau, opts);
+    std::vector<T> work_;
+    auto work = new_matrix(work_, workinfo.m, workinfo.n);
 
-    // Matrix T and recompute work
-    Workspace sparework;
-    auto matrixT = new_matrix(work, nb, nb, sparework);
-
-    // Options to forward
-    auto&& larfOpts = WorkspaceOpts<>{sparework};
-    auto&& larfbOpts = WorkspaceOpts<void>{sparework};
+    auto matrixT = (m > nb) ? slice(work, range{workinfo.m - nb, workinfo.m},
+                                    range{workinfo.n - nb, workinfo.n})
+                            : slice(work, range{0, 0}, range{0, 0});
 
     // Initialise rows k:m to rows of the unit matrix
     if (m > k) {
@@ -176,12 +172,12 @@ int unglq(matrix_t& A, const vector_t& tau, const UnglqOpts<workT_t>& opts = {})
             auto C = slice(A, range{i + ib, m}, range{i, n});
 
             larft(FORWARD, ROWWISE_STORAGE, V, taui, matrixTi);
-            larfb(RIGHT_SIDE, CONJ_TRANS, FORWARD, ROWWISE_STORAGE, V, matrixTi,
-                  C, larfbOpts);
+            larfb_work(RIGHT_SIDE, CONJ_TRANS, FORWARD, ROWWISE_STORAGE, V,
+                       matrixTi, C, work);
         }
         // Use unblocked code to apply H to columns i:n of current block
         auto Ai = slice(A, range{i, i + ib}, range{i, n});
-        ungl2(Ai, taui, larfOpts);
+        ungl2_work(Ai, taui, work);
         // Set rows 0:i-1 of current block to zero
         for (idx_t j = 0; j < i; ++j)
             for (idx_t l = i; l < i + ib; l++)

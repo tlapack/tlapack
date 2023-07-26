@@ -38,50 +38,19 @@ namespace tlapack {
  *
  * @ingroup workspace_query
  */
-template <TLAPACK_NORM norm_t, TLAPACK_UPLO uplo_t, TLAPACK_SMATRIX matrix_t>
+template <class T,
+          TLAPACK_NORM norm_t,
+          TLAPACK_UPLO uplo_t,
+          TLAPACK_MATRIX matrix_t>
 inline constexpr WorkInfo lanhe_worksize(norm_t normType,
                                          uplo_t uplo,
                                          const matrix_t& A)
 {
-    return WorkInfo{};
-}
+    if constexpr (is_same_v<T, type_t<matrix_t>>)
+        if (normType == Norm::Inf || normType == Norm::One)
+            return WorkInfo(nrows(A));
 
-/** Worspace query of lanhe().
- *
- * @param[in] normType
- *      - Norm::Max: Maximum absolute value over all elements of the matrix.
- *          Note: this is not a consistent matrix norm.
- *      - Norm::One: 1-norm, the maximum value of the absolute sum of each
- * column.
- *      - Norm::Inf: Inf-norm, the maximum value of the absolute sum of each
- * row.
- *      - Norm::Fro: Frobenius norm of the matrix.
- *          Square root of the sum of the square of each entry in the matrix.
- *
- * @param[in] uplo
- *      - Uplo::Upper: Upper triangle of A is referenced;
- *      - Uplo::Lower: Lower triangle of A is referenced.
- *
- * @param[in] A n-by-n hermitian matrix.
- *
- * @param[in] opts Options.
- *
- * @return WorkInfo The amount workspace required.
- *
- * @ingroup workspace_query
- */
-template <TLAPACK_NORM norm_t, TLAPACK_UPLO uplo_t, TLAPACK_MATRIX matrix_t>
-inline constexpr WorkInfo lanhe_worksize(norm_t normType,
-                                         uplo_t uplo,
-                                         const matrix_t& A,
-                                         const WorkspaceOpts<>& opts)
-{
-    using T = type_t<matrix_t>;
-
-    if (normType == Norm::Inf || normType == Norm::One) {
-        return WorkInfo(sizeof(T), nrows(A));
-    }
-    return WorkInfo{};
+    return WorkInfo(0);
 }
 
 /** Calculates the norm of a hermitian matrix.
@@ -267,21 +236,20 @@ auto lanhe(norm_t normType, uplo_t uplo, const matrix_t& A)
  *
  * @param[in] A n-by-n hermitian matrix.
  *
- * @param[in] opts Options.
- *      - @c opts.work is used if whenever it has sufficient size.
- *        The sufficient size can be obtained through a workspace query.
+ * @param work Workspace. Use the workspace query to determine the size needed.
  *
  * @ingroup auxiliary
  */
-template <TLAPACK_NORM norm_t, TLAPACK_UPLO uplo_t, TLAPACK_MATRIX matrix_t>
-auto lanhe(norm_t normType,
-           uplo_t uplo,
-           const matrix_t& A,
-           const WorkspaceOpts<>& opts)
+template <TLAPACK_NORM norm_t,
+          TLAPACK_UPLO uplo_t,
+          TLAPACK_MATRIX matrix_t,
+          TLAPACK_WORKSPACE work_t>
+auto lanhe(norm_t normType, uplo_t uplo, const matrix_t& A, work_t& work)
 {
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
     using idx_t = size_type<matrix_t>;
+    using range = pair<idx_t, idx_t>;
 
     // check arguments
     tlapack_check_false(normType != Norm::Fro && normType != Norm::Inf &&
@@ -304,14 +272,8 @@ auto lanhe(norm_t normType,
         // quick return
         if (n <= 0) return real_t(0);
 
-        // Allocates workspace
-        VectorOfBytes localworkdata;
-        const Workspace work = [&]() {
-            WorkInfo workinfo;
-            lanhe_worksize(normType, uplo, A, opts);
-            return alloc_workspace(localworkdata, workinfo, opts.work);
-        }();
-        auto w = Create<vector_type<matrix_t>>(work, n);
+        // Slice workspace
+        auto w = slice(work, range{0, n}, 0);
 
         // Norm value
         real_t norm(0);

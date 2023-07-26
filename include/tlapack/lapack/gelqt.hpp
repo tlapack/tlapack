@@ -21,10 +21,7 @@ namespace tlapack {
 /**
  * Options struct for gelqf
  */
-struct GelqtOpts : public WorkspaceOpts<> {
-    inline constexpr GelqtOpts(const WorkspaceOpts<>& opts = {})
-        : WorkspaceOpts<>(opts){};
-};
+struct GelqtOpts {};
 
 /** Worspace query of gelqf()
  *
@@ -38,7 +35,7 @@ struct GelqtOpts : public WorkspaceOpts<> {
  *
  * @ingroup workspace_query
  */
-template <TLAPACK_SMATRIX matrix_t>
+template <class T, TLAPACK_SMATRIX matrix_t>
 inline constexpr WorkInfo gelqt_worksize(const matrix_t& A,
                                          const matrix_t& TT,
                                          const GelqtOpts& opts = {})
@@ -50,14 +47,13 @@ inline constexpr WorkInfo gelqt_worksize(const matrix_t& A,
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
     const idx_t k = min(m, n);
-    const idx_t nb = ncols(TT);
-    const idx_t ib = min(nb, k);
+    const idx_t nb = min((idx_t)ncols(TT), k);
 
-    auto TT1 = slice(TT, range(0, ib), range(0, ib));
-    auto A11 = rows(A, range(0, ib));
+    auto TT1 = slice(TT, range(0, nb), range(0, nb));
+    auto A11 = rows(A, range(0, nb));
     auto tauw1 = diag(TT1);
 
-    return gelq2_worksize(A11, tauw1, opts);
+    return gelq2_worksize<T>(A11, tauw1);
 }
 
 /** Computes an LQ factorization of a complex m-by-n matrix A using
@@ -103,8 +99,6 @@ inline constexpr WorkInfo gelqt_worksize(const matrix_t& A,
  *      For a good default of nb, see GelqfOpts
  *
  * @param[in] opts Options.
- *      - @c opts.work is used if whenever it has sufficient size.
- *        The sufficient size can be obtained through a workspace query.
  *
  * @ingroup computational
  */
@@ -113,6 +107,10 @@ int gelqt(matrix_t& A, matrix_t& TT, const GelqtOpts& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
+    using T = type_t<matrix_t>;
+
+    // functors
+    Create<matrix_t> new_matrix;
 
     // constants
     const idx_t m = nrows(A);
@@ -124,14 +122,9 @@ int gelqt(matrix_t& A, matrix_t& TT, const GelqtOpts& opts = {})
     tlapack_check_false(nrows(TT) < m || ncols(TT) < nb);
 
     // Allocates workspace
-    VectorOfBytes localworkdata;
-    Workspace work = [&]() {
-        WorkInfo workinfo = gelqt_worksize(A, TT, opts);
-        return alloc_workspace(localworkdata, workinfo, opts.work);
-    }();
-
-    // Options to forward
-    auto&& gelq2Opts = WorkspaceOpts<>{work};
+    WorkInfo workinfo = gelqt_worksize<T>(A, TT, opts);
+    std::vector<T> work_;
+    auto work = new_matrix(work_, workinfo.m, workinfo.n);
 
     for (idx_t j = 0; j < k; j += nb) {
         // Use blocked code initially
@@ -142,7 +135,7 @@ int gelqt(matrix_t& A, matrix_t& TT, const GelqtOpts& opts = {})
         auto A11 = slice(A, range(j, j + ib), range(j, n));
         auto tauw1 = diag(TT1);
 
-        gelq2(A11, tauw1, gelq2Opts);
+        gelq2_work(A11, tauw1, work);
 
         // Form the triangular factor of the block reflector H = H(j) H(j+1)
         // . . . H(j+ib-1)
@@ -151,11 +144,9 @@ int gelqt(matrix_t& A, matrix_t& TT, const GelqtOpts& opts = {})
         if (j + ib < k) {
             // Apply H to A(j+ib:m,j:n) from the right
             auto A12 = slice(A, range(j + ib, m), range(j, n));
-
-            WorkspaceOpts<void> work1(
-                slice(TT, range(j + ib, m), range(0, ib)));
-            larfb(RIGHT_SIDE, NO_TRANS, FORWARD, ROWWISE_STORAGE, A11, TT1, A12,
-                  work1);
+            auto work1 = slice(TT, range(j + ib, m), range(0, ib));
+            larfb_work(RIGHT_SIDE, NO_TRANS, FORWARD, ROWWISE_STORAGE, A11, TT1,
+                       A12, work1);
         }
     }
 

@@ -22,10 +22,7 @@ namespace tlapack {
  * Options struct for geqrf
  */
 template <TLAPACK_INDEX idx_t = size_t>
-struct GeqrfOpts : public WorkspaceOpts<> {
-    inline constexpr GeqrfOpts(const WorkspaceOpts<>& opts = {})
-        : WorkspaceOpts<>(opts){};
-
+struct GeqrfOpts {
     idx_t nb = 32;  ///< Block size
 };
 
@@ -41,31 +38,32 @@ struct GeqrfOpts : public WorkspaceOpts<> {
  *
  * @ingroup workspace_query
  */
-template <TLAPACK_SMATRIX A_t, TLAPACK_SVECTOR tau_t>
+template <class T, TLAPACK_SMATRIX A_t, TLAPACK_SVECTOR tau_t>
 inline constexpr WorkInfo geqrf_worksize(
     const A_t& A, const tau_t& tau, const GeqrfOpts<size_type<A_t>>& opts = {})
 {
     using idx_t = size_type<A_t>;
-    using T = type_t<A_t>;
     using range = pair<idx_t, idx_t>;
+    using matrixT_t = matrix_type<A_t, tau_t>;
 
     // constants
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
     const idx_t k = min(m, n);
-    const idx_t nb = opts.nb;
-    const idx_t ib = min(nb, k);
+    const idx_t nb = min(opts.nb, k);
 
-    auto A11 = cols(A, range(0, ib));
-    auto TT1 = slice(A, range(0, ib), range(0, ib));
-    auto A12 = slice(A, range(0, m), range(ib, n));
-    auto tauw1 = slice(tau, range(0, ib));
+    auto A11 = cols(A, range(0, nb));
+    auto tauw1 = slice(tau, range(0, nb));
+    WorkInfo workinfo = geqr2_worksize<T>(A11, tauw1);
 
-    WorkInfo workinfo = geqr2_worksize(A11, tauw1);
-    workinfo.minMax(larfb_worksize(LEFT_SIDE, CONJ_TRANS, FORWARD,
-                                   COLUMNWISE_STORAGE, A11, TT1, A12));
-
-    workinfo += WorkInfo(sizeof(T) * nb, nb);
+    if (n > nb) {
+        auto TT1 = slice(A, range(0, nb), range(0, nb));
+        auto A12 = slice(A, range(0, m), range(nb, n));
+        workinfo.minMax(larfb_worksize<T>(LEFT_SIDE, CONJ_TRANS, FORWARD,
+                                          COLUMNWISE_STORAGE, A11, TT1, A12));
+        if constexpr (is_same_v<T, type_t<matrixT_t>>)
+            workinfo += WorkInfo(nb, nb);
+    }
 
     return workinfo;
 }
@@ -101,8 +99,6 @@ inline constexpr WorkInfo geqrf_worksize(
  *      The scalar factors of the elementary reflectors.
  *
  * @param[in] opts Options.
- *      - @c opts.work is used if whenever it has sufficient size.
- *        The sufficient size can be obtained through a workspace query.
  *
  * @ingroup computational
  */
@@ -110,6 +106,7 @@ template <TLAPACK_SMATRIX A_t, TLAPACK_SVECTOR tau_t>
 int geqrf(A_t& A, tau_t& tau, const GeqrfOpts<size_type<A_t>>& opts = {})
 {
     Create<A_t> new_matrix;
+    using T = type_t<A_t>;
 
     using idx_t = size_type<A_t>;
     using range = pair<idx_t, idx_t>;
@@ -118,34 +115,29 @@ int geqrf(A_t& A, tau_t& tau, const GeqrfOpts<size_type<A_t>>& opts = {})
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
     const idx_t k = min(m, n);
-    const idx_t nb = opts.nb;
+    const idx_t nb = min(opts.nb, k);
 
     // check arguments
     tlapack_check((idx_t)size(tau) >= k);
 
     // Allocate or get workspace
-    VectorOfBytes localworkdata;
-    Workspace work = [&]() {
-        WorkInfo workinfo = geqrf_worksize(A, tau, opts);
-        return alloc_workspace(localworkdata, workinfo, opts.work);
-    }();
+    WorkInfo workinfo = geqrf_worksize<T>(A, tau, opts);
+    std::vector<T> work_;
+    auto work = new_matrix(work_, workinfo.m, workinfo.n);
 
-    Workspace sparework;
-    auto TT = new_matrix(work, nb, nb, sparework);
-
-    // Options to forward
-    auto&& geqr2Opts = WorkspaceOpts<>{sparework};
-    auto&& larfbOpts = WorkspaceOpts<void>{sparework};
+    auto TT = (n > nb) ? slice(work, range{workinfo.m - nb, workinfo.m},
+                               range{workinfo.n - nb, workinfo.n})
+                       : slice(work, range{0, 0}, range{0, 0});
 
     // Main computational loop
     for (idx_t j = 0; j < k; j += nb) {
-        idx_t ib = min(nb, k - j);
+        const idx_t ib = min(nb, k - j);
 
         // Compute the QR factorization of the current block A(j:m,j:j+ib)
         auto A11 = slice(A, range(j, m), range(j, j + ib));
         auto tauw1 = slice(tau, range(j, j + ib));
 
-        geqr2(A11, tauw1, geqr2Opts);
+        geqr2_work(A11, tauw1, work);
 
         if (j + ib < n) {
             // Form the triangular factor of the block reflector H = H(j)
@@ -155,8 +147,8 @@ int geqrf(A_t& A, tau_t& tau, const GeqrfOpts<size_type<A_t>>& opts = {})
 
             // Apply H to A(j:m,j+ib:n) from the left
             auto A12 = slice(A, range(j, m), range(j + ib, n));
-            larfb(LEFT_SIDE, CONJ_TRANS, FORWARD, COLUMNWISE_STORAGE, A11, TT1,
-                  A12, larfbOpts);
+            larfb_work(LEFT_SIDE, CONJ_TRANS, FORWARD, COLUMNWISE_STORAGE, A11,
+                       TT1, A12, work);
         }
     }
 

@@ -21,19 +21,17 @@ namespace tlapack {
  *
  * @param[in] A n-by-n matrix.
  *
- * @param[in] opts Options.
- *
  * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
  */
-template <TLAPACK_SMATRIX matrix_t>
-inline constexpr WorkInfo getri_uxli_worksize(const matrix_t& A,
-                                              const WorkspaceOpts<>& opts = {})
+template <class T, TLAPACK_SMATRIX matrix_t>
+inline constexpr WorkInfo getri_uxli_worksize(const matrix_t& A)
 {
-    using T = type_t<matrix_t>;
-
-    return WorkInfo(sizeof(T), ncols(A) - 1);
+    if constexpr (is_same_v<T, type_t<matrix_t>>)
+        return WorkInfo(ncols(A) - 1);
+    else
+        return WorkInfo(0);
 }
 
 /** getri computes inverse of a general n-by-n matrix A
@@ -52,22 +50,18 @@ inline constexpr WorkInfo getri_uxli_worksize(const matrix_t& A,
  *          U is stored in the upper triangle of A.
  *      On exit, inverse of A is overwritten on A.
  *
- * @param[in] opts Options.
- *      - @c opts.work is used if whenever it has sufficient size.
- *        The sufficient size can be obtained through a workspace query.
- *
  * @ingroup computational
  */
 template <TLAPACK_SMATRIX matrix_t>
-int getri_uxli(matrix_t& A, const WorkspaceOpts<>& opts = {})
+int getri_uxli(matrix_t& A)
 {
-    using work_t = vector_type<matrix_t>;
+    using work_t = matrix_type<matrix_t>;
     using idx_t = size_type<matrix_t>;
     using T = type_t<matrix_t>;
     using range = pair<idx_t, idx_t>;
 
     // Functor
-    Create<work_t> new_vector;
+    Create<work_t> new_matrix;
 
     // check arguments
     tlapack_check(nrows(A) == ncols(A));
@@ -76,12 +70,10 @@ int getri_uxli(matrix_t& A, const WorkspaceOpts<>& opts = {})
     const idx_t n = ncols(A);
 
     // Allocates workspace
-    VectorOfBytes localworkdata;
-    const Workspace work = [&]() {
-        WorkInfo workinfo = getri_uxli_worksize(A, opts);
-        return alloc_workspace(localworkdata, workinfo, opts.work);
-    }();
-    auto w = new_vector(work, n - 1);
+    WorkInfo workinfo = getri_uxli_worksize<T>(A);
+    std::vector<T> work_;
+    auto work = new_matrix(work_, workinfo.m, workinfo.n);
+    auto w = slice(work, range{0, n - 1}, 0);
 
     // A has L and U in it, we will create X such that UXL=A in place of
     for (idx_t j = n - idx_t(1); j != idx_t(-1); j--) {

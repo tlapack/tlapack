@@ -49,8 +49,8 @@ namespace tlapack {
  * @param[in,out] A n-by-n matrix.
  * @param[out] tau Real vector of length n-1.
  *      The scalar factors of the elementary reflectors.
- * @param[in,out] T nb-by-nb matrix.
- * @param[in,out] Y n-by-nb matrix.
+ * @param[out] T nb-by-nb matrix.
+ * @param[out] Y n-by-nb matrix.
  *
  * @ingroup auxiliary
  */

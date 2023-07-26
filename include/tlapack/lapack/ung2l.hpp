@@ -25,16 +25,12 @@ namespace tlapack {
  * @param[in] tau Real vector of length min(m,n).
  *      The scalar factors of the elementary reflectors.
  *
- * @param[in] opts Options.
- *
  * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
  */
-template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
-inline constexpr WorkInfo ung2l_worksize(const matrix_t& A,
-                                         const vector_t& tau,
-                                         const WorkspaceOpts<>& opts = {})
+template <class T, TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
+inline constexpr WorkInfo ung2l_worksize(const matrix_t& A, const vector_t& tau)
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -44,10 +40,10 @@ inline constexpr WorkInfo ung2l_worksize(const matrix_t& A,
 
     if (n > 1) {
         auto C = cols(A, range{1, n});
-        return larf_worksize(LEFT_SIDE, BACKWARD, COLUMNWISE_STORAGE, col(A, 0),
-                             tau[0], C, opts);
+        return larf_worksize<T>(LEFT_SIDE, BACKWARD, COLUMNWISE_STORAGE,
+                                col(A, 0), tau[0], C);
     }
-    return WorkInfo{};
+    return WorkInfo(0);
 }
 
 /**
@@ -68,16 +64,16 @@ inline constexpr WorkInfo ung2l_worksize(const matrix_t& A,
  * @param[in] tau Real vector of length min(m,n).
  *      The scalar factors of the elementary reflectors.
  *
- * @param[in] opts Options.
- *      @c opts.work is used if whenever it has sufficient size.
- *      The sufficient size can be obtained through a workspace query.
+ * @param work Workspace. Use the workspace query to determine the size needed.
  *
  * @return 0 if success
  *
  * @ingroup computational
  */
-template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
-int ung2l(matrix_t& A, const vector_t& tau, const WorkspaceOpts<>& opts = {})
+template <TLAPACK_SMATRIX matrix_t,
+          TLAPACK_VECTOR vector_t,
+          TLAPACK_WORKSPACE work_t>
+int ung2l_work(matrix_t& A, const vector_t& tau, work_t& work)
 {
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
@@ -97,16 +93,6 @@ int ung2l(matrix_t& A, const vector_t& tau, const WorkspaceOpts<>& opts = {})
     // quick return
     if (n <= 0) return 0;
 
-    // Allocates workspace
-    VectorOfBytes localworkdata;
-    Workspace work = [&]() {
-        WorkInfo workinfo = ung2l_worksize(A, tau, opts);
-        return alloc_workspace(localworkdata, workinfo, opts.work);
-    }();
-
-    // Options to forward
-    auto&& larfOpts = WorkspaceOpts<>{work};
-
     // Initialise rows 0:m-k to rows of the unit matrix
     for (idx_t j = 0; j < n - k; ++j) {
         for (idx_t i = 0; i < m; ++i)
@@ -118,7 +104,7 @@ int ung2l(matrix_t& A, const vector_t& tau, const WorkspaceOpts<>& opts = {})
         idx_t ii = n - k + i;
         auto v = slice(A, range{0, m - k + i + 1}, ii);
         auto C = slice(A, range{0, m - k + i + 1}, range{0, ii});
-        larf(LEFT_SIDE, BACKWARD, COLUMNWISE_STORAGE, v, tau[i], C, larfOpts);
+        larf_work(LEFT_SIDE, BACKWARD, COLUMNWISE_STORAGE, v, tau[i], C, work);
         auto x = slice(A, range{0, m - k + i}, ii);
         scal(-tau[i], x);
         A(m - k + i, ii) = one - tau[i];
@@ -129,6 +115,55 @@ int ung2l(matrix_t& A, const vector_t& tau, const WorkspaceOpts<>& opts = {})
     }
 
     return 0;
+}
+
+/**
+ * @brief Generates an m-by-n matrix Q with orthonormal columns,
+ *        which is defined as the last n columns of a product of k elementary
+ *        reflectors of order m
+ * \[
+ *     Q  =  H_k ... H_2 H_1
+ * \]
+ *        The reflectors are stored in the matrix A as returned by geqlf
+ *
+ * @param[in,out] A m-by-n matrix.
+ *      On entry, the (n+k-i)-th column must contains the vector which defines
+ the
+ *      elementary reflector $H_i$, for $i=0,1,...,k-1$, as returned by geqlf.
+ *      On exit, the m-by-n matrix $Q$.
+
+ * @param[in] tau Real vector of length min(m,n).
+ *      The scalar factors of the elementary reflectors.
+ *
+ * @return 0 if success
+ *
+ * @ingroup computational
+ */
+template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
+int ung2l(matrix_t& A, const vector_t& tau)
+{
+    using T = type_t<matrix_t>;
+    using idx_t = size_type<matrix_t>;
+
+    // functor
+    Create<matrix_t> new_matrix;
+
+    // constants
+    const idx_t n = ncols(A);
+    const idx_t k = size(tau);
+
+    // check arguments
+    tlapack_check_false(k < 0 || k > n);
+
+    // quick return
+    if (n <= 0) return 0;
+
+    // Allocates workspace
+    WorkInfo workinfo = ung2l_worksize<T>(A, tau);
+    std::vector<T> work_;
+    auto work = new_matrix(work_, workinfo.m, workinfo.n);
+
+    return ung2l_work(A, tau, work);
 }
 
 }  // namespace tlapack

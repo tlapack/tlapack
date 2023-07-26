@@ -33,18 +33,13 @@ namespace tlapack {
  * @param[in] tau Real vector of length n-1.
  *      The scalar factors of the elementary reflectors.
  *
- * @param[in] opts Options.
- *      @c opts.work is used if whenever it has sufficient size.
- *      The sufficient size can be obtained through a workspace query.
- *
  * @ingroup computational
  */
 template <TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
 int unghr(size_type<matrix_t> ilo,
           size_type<matrix_t> ihi,
           matrix_t& A,
-          const vector_t& tau,
-          const WorkspaceOpts<>& opts = {})
+          const vector_t& tau)
 {
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
@@ -96,7 +91,7 @@ int unghr(size_type<matrix_t> ilo,
     if (nh > 0) {
         auto A_s = slice(A, range{ilo + 1, ihi}, range{ilo + 1, ihi});
         auto tau_s = slice(tau, range{ilo, ihi - 1});
-        ung2r(A_s, tau_s, opts);
+        ung2r(A_s, tau_s);
     }
 
     return 0;
@@ -116,18 +111,15 @@ int unghr(size_type<matrix_t> ilo,
  * @param[in] tau Real vector of length n-1.
  *      The scalar factors of the elementary reflectors.
  *
- * @param[in] opts Options.
- *
  * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
  */
-template <TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
+template <class T, TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
 inline constexpr WorkInfo unghr_worksize(size_type<matrix_t> ilo,
                                          size_type<matrix_t> ihi,
                                          const matrix_t& A,
-                                         const vector_t& tau,
-                                         const WorkspaceOpts<>& opts = {})
+                                         const vector_t& tau)
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -138,9 +130,9 @@ inline constexpr WorkInfo unghr_worksize(size_type<matrix_t> ilo,
     if (nh > 0 && ilo + 1 < ihi) {
         auto A_s = slice(A, range{ilo + 1, ihi}, range{ilo + 1, ihi});
         auto tau_s = slice(tau, range{ilo, ihi - 1});
-        return ung2r_worksize(A_s, tau_s, opts);
+        return ung2r_worksize<T>(A_s, tau_s);
     }
-    return WorkInfo{};
+    return WorkInfo(0);
 }
 
 }  // namespace tlapack

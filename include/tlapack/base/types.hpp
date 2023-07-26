@@ -428,14 +428,6 @@ struct BandAccess {
 };
 
 // -----------------------------------------------------------------------------
-// Workspace
-
-/// Byte type
-using byte = unsigned char;
-/// Vector of bytes. May use a specialized allocator in future
-using VectorOfBytes = std::vector<byte, std::allocator<byte>>;
-
-// -----------------------------------------------------------------------------
 // Legacy matrix and vector structures
 
 namespace legacy {
