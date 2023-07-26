@@ -13,11 +13,10 @@
 #include "tlapack/base/utils.hpp"
 
 namespace tlapack {
-template <TLAPACK_INDEX idx_t>
 struct TransposeOpts {
     // Optimization parameter. Matrices smaller than nx will not
     // be transposed using recursion. Must be at least 2.s
-    idx_t nx = 16;
+    size_t nx = 16;
 };
 
 /**
@@ -35,9 +34,7 @@ struct TransposeOpts {
  * @ingroup auxiliary
  */
 template <TLAPACK_SMATRIX matrixA_t, TLAPACK_SMATRIX matrixB_t>
-void conjtranspose(matrixA_t& A,
-                   matrixB_t& B,
-                   const TransposeOpts<size_type<matrixA_t>>& opts = {})
+void conjtranspose(matrixA_t& A, matrixB_t& B, const TransposeOpts& opts = {})
 {
     using idx_t = size_type<matrixA_t>;
     using range = pair<idx_t, idx_t>;
@@ -49,7 +46,7 @@ void conjtranspose(matrixA_t& A,
     tlapack_check(n == nrows(B));
     tlapack_check(opts.nx >= 2);
 
-    if (min(m, n) <= opts.nx) {
+    if (min(m, n) <= (idx_t)opts.nx) {
         // The matrix is small, use direct method and end recursion
         for (idx_t i = 0; i < m; ++i)
             for (idx_t j = 0; j < n; ++j)
@@ -92,9 +89,7 @@ void conjtranspose(matrixA_t& A,
  * @ingroup auxiliary
  */
 template <TLAPACK_SMATRIX matrixA_t, TLAPACK_SMATRIX matrixB_t>
-void transpose(matrixA_t& A,
-               matrixB_t& B,
-               const TransposeOpts<size_type<matrixA_t>>& opts = {})
+void transpose(matrixA_t& A, matrixB_t& B, const TransposeOpts& opts = {})
 {
     using idx_t = size_type<matrixA_t>;
     using range = pair<idx_t, idx_t>;
@@ -106,7 +101,7 @@ void transpose(matrixA_t& A,
     tlapack_check(n == nrows(B));
     tlapack_check(opts.nx >= 2);
 
-    if (min(m, n) <= opts.nx) {
+    if (min(m, n) <= (idx_t)opts.nx) {
         // The matrix is small, use direct method and end recursion
         for (idx_t i = 0; i < m; ++i)
             for (idx_t j = 0; j < n; ++j)

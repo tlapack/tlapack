@@ -33,7 +33,7 @@ int potf2(uplo_t uplo, starpu::Matrix<T>& A)
 
     // Use blocked algorithm if matrix contains more than one tile
     if (nx > 1 || ny > 1) {
-        BlockedCholeskyOpts<idx_t> potrf_opts;
+        BlockedCholeskyOpts potrf_opts;
         potrf_opts.nb = min(min(A.nblockrows(), A.nblockcols()), n - 1);
         return potrf_blocked(uplo, A, potrf_opts);
     }

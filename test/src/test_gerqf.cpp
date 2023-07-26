@@ -61,7 +61,7 @@ TEMPLATE_TEST_CASE("RQ factorization of a general m-by-n matrix",
     auto Q = new_matrix(Q_, k, n);
 
     std::vector<T> tau(min(m, n));
-    GerqfOpts<idx_t> gerqfOpts;
+    GerqfOpts gerqfOpts;
     gerqfOpts.nb = nb;
 
     for (idx_t j = 0; j < n; ++j)

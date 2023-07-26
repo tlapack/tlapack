@@ -143,7 +143,7 @@ TEMPLATE_TEST_CASE("Hessenberg reduction is backward stable",
             idx_t nb = GENERATE(2, 3);
             INFO("nb = " << nb);
 
-            GehrdOpts<idx_t> opts;
+            GehrdOpts opts;
             opts.nb = nb;
             opts.nx_switch = 2;
             tlapack::gehrd(ilo, ihi, H, tau, opts);

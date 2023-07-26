@@ -92,7 +92,7 @@ TEMPLATE_TEST_CASE("Multiply m-by-n matrix with orthogonal LQ factor",
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = 0; i < k; ++i)
                 Q(i, j) = A(i, j);
-        UnglqOpts<idx_t> unglqOpts;
+        UnglqOpts unglqOpts;
         unglqOpts.nb = nb;
         unglq(Q, tau, unglqOpts);
 
@@ -110,7 +110,7 @@ TEMPLATE_TEST_CASE("Multiply m-by-n matrix with orthogonal LQ factor",
             gemm(NO_TRANS, trans, T(1.), C, Q, T(0.), Cq);
 
         // Run the routine we are testing
-        UnmlqOpts<idx_t> unmlqOpts;
+        UnmlqOpts unmlqOpts;
         unmlqOpts.nb = nb;
         unmlq(side, trans, rows(A, range(0, k)), tau, C, unmlqOpts);
 

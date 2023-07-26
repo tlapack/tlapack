@@ -27,7 +27,6 @@
 
 namespace tlapack {
 // Forward declaration
-template <TLAPACK_INDEX idx_t>
 struct FrancisOpts;
 
 template <class T, TLAPACK_SMATRIX matrix_t>
@@ -94,18 +93,17 @@ template <class T,
           TLAPACK_SMATRIX matrix_t,
           TLAPACK_SVECTOR vector_t,
           enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
-WorkInfo agressive_early_deflation_worksize(
-    bool want_t,
-    bool want_z,
-    size_type<matrix_t> ilo,
-    size_type<matrix_t> ihi,
-    size_type<matrix_t> nw,
-    const matrix_t& A,
-    const vector_t& s,
-    const matrix_t& Z,
-    const size_type<matrix_t>& ns,
-    const size_type<matrix_t>& nd,
-    const FrancisOpts<size_type<matrix_t> >& opts = {})
+WorkInfo agressive_early_deflation_worksize(bool want_t,
+                                            bool want_z,
+                                            size_type<matrix_t> ilo,
+                                            size_type<matrix_t> ihi,
+                                            size_type<matrix_t> nw,
+                                            const matrix_t& A,
+                                            const vector_t& s,
+                                            const matrix_t& Z,
+                                            const size_type<matrix_t>& ns,
+                                            const size_type<matrix_t>& nd,
+                                            const FrancisOpts& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -119,7 +117,7 @@ WorkInfo agressive_early_deflation_worksize(
     WorkInfo workinfo;
     if (n < 9 || nw <= 1 || ihi <= 1 + ilo) return workinfo;
 
-    if (jw >= opts.nmin) {
+    if (jw >= (idx_t)opts.nmin) {
         const auto s_window = slice(s, range{0, jw});
         const auto V = slice(A, range{0, jw}, range{0, jw});
         workinfo =
@@ -206,7 +204,7 @@ void agressive_early_deflation_work(bool want_t,
                                     size_type<matrix_t>& ns,
                                     size_type<matrix_t>& nd,
                                     work_t& work,
-                                    FrancisOpts<size_type<matrix_t> >& opts)
+                                    FrancisOpts& opts)
 {
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
@@ -292,7 +290,7 @@ void agressive_early_deflation_work(bool want_t,
             TW(i, j) = A_window(i, j);
     laset(GENERAL, zero, one, V);
     int infqr;
-    if (jw < opts.nmin)
+    if (jw < (idx_t)opts.nmin)
         infqr = lahqr(true, true, 0, jw, TW, s_window, V);
     else {
         infqr =
@@ -557,7 +555,7 @@ inline void agressive_early_deflation_work(bool want_t,
                                            size_type<matrix_t>& nd,
                                            work_t& work)
 {
-    FrancisOpts<size_type<matrix_t> > opts = {};
+    FrancisOpts opts = {};
     agressive_early_deflation_work(want_t, want_z, ilo, ihi, nw, A, s, Z, ns,
                                    nd, work, opts);
 }
@@ -632,7 +630,7 @@ void agressive_early_deflation(bool want_t,
                                matrix_t& Z,
                                size_type<matrix_t>& ns,
                                size_type<matrix_t>& nd,
-                               FrancisOpts<size_type<matrix_t> >& opts)
+                               FrancisOpts& opts)
 {
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
@@ -707,7 +705,7 @@ inline void agressive_early_deflation(bool want_t,
                                       size_type<matrix_t>& ns,
                                       size_type<matrix_t>& nd)
 {
-    FrancisOpts<size_type<matrix_t> > opts = {};
+    FrancisOpts opts = {};
     agressive_early_deflation(want_t, want_z, ilo, ihi, nw, A, s, Z, ns, nd,
                               opts);
 }

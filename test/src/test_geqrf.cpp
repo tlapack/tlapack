@@ -59,8 +59,8 @@ TEMPLATE_TEST_CASE("QR factorization of a general m-by-n matrix",
     auto R = new_matrix(R_, m, n);
 
     std::vector<T> tau(min(m, n));
-    GeqrfOpts<idx_t> geqrfOpts;
-    UnmqrOpts<idx_t> unmqrOpts;
+    GeqrfOpts geqrfOpts;
+    UnmqrOpts unmqrOpts;
     geqrfOpts.nb = nb;
     unmqrOpts.nb = nb;
 

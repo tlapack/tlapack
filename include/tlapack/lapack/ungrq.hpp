@@ -24,9 +24,8 @@ namespace tlapack {
 /**
  * Options struct for ungrq
  */
-template <TLAPACK_INDEX idx_t = size_t>
 struct UngrqOpts {
-    idx_t nb = 32;  ///< Block size
+    size_t nb = 32;  ///< Block size
 };
 
 /** Worspace query of ungrq()
@@ -43,10 +42,9 @@ struct UngrqOpts {
  * @ingroup workspace_query
  */
 template <class T, TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
-inline constexpr WorkInfo ungrq_worksize(
-    const matrix_t& A,
-    const vector_t& tau,
-    const UngrqOpts<size_type<matrix_t>>& opts = {})
+inline constexpr WorkInfo ungrq_worksize(const matrix_t& A,
+                                         const vector_t& tau,
+                                         const UngrqOpts& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using matrixT_t = matrix_type<matrix_t, vector_t>;
@@ -56,7 +54,7 @@ inline constexpr WorkInfo ungrq_worksize(
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
     const idx_t k = size(tau);
-    const idx_t nb = min(opts.nb, k);
+    const idx_t nb = min((idx_t)opts.nb, k);
 
     WorkInfo workinfo;
 
@@ -111,9 +109,7 @@ inline constexpr WorkInfo ungrq_worksize(
  * @ingroup computational
  */
 template <TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
-int ungrq(matrix_t& A,
-          const vector_t& tau,
-          const UngrqOpts<size_type<matrix_t>>& opts = {})
+int ungrq(matrix_t& A, const vector_t& tau, const UngrqOpts& opts = {})
 {
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;

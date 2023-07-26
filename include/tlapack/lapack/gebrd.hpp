@@ -23,9 +23,8 @@ namespace tlapack {
 /**
  * Options struct for gebrd
  */
-template <TLAPACK_INDEX idx_t = size_t>
 struct GebrdOpts {
-    idx_t nb = 32;  ///< Block size used in the blocked reduction
+    size_t nb = 32;  ///< Block size used in the blocked reduction
 };
 
 /** Worspace query of gebrd()
@@ -61,14 +60,14 @@ WorkInfo gebrd_worksize(const matrix_t& A,
                         r_vector_t& e,
                         const vector_t& tauq,
                         const vector_t& taup,
-                        const GebrdOpts<size_type<matrix_t>>& opts = {})
+                        const GebrdOpts& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using work_t = matrix_type<matrix_t, vector_t>;
 
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
-    const idx_t nb = min(opts.nb, min(m, n));
+    const idx_t nb = min((idx_t)opts.nb, min(m, n));
 
     if constexpr (is_same_v<T, type_t<work_t>>)
         return WorkInfo(m + n, nb);
@@ -137,7 +136,7 @@ int gebrd(matrix_t& A,
           r_vector_t& e,
           vector_t& tauq,
           vector_t& taup,
-          const GebrdOpts<size_type<matrix_t>>& opts = {})
+          const GebrdOpts& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using work_t = matrix_type<matrix_t, vector_t>;
@@ -155,7 +154,7 @@ int gebrd(matrix_t& A,
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
     const idx_t k = min(m, n);
-    const idx_t nb = min(opts.nb, k);
+    const idx_t nb = min((idx_t)opts.nb, k);
 
     // Allocates workspace
     WorkInfo workinfo = gebrd_worksize<T>(A, d, e, tauq, taup, opts);

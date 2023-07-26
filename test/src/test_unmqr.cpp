@@ -92,7 +92,7 @@ TEMPLATE_TEST_CASE("Multiply m-by-n matrix with orthogonal QR factor",
         for (idx_t j = 0; j < k; ++j)
             for (idx_t i = 0; i < m; ++i)
                 Q(i, j) = A(i, j);
-        UngqrOpts<idx_t> ungqrOpts;
+        UngqrOpts ungqrOpts;
         ungqrOpts.nb = nb;
         ungqr(Q, tau, ungqrOpts);
 
@@ -105,7 +105,7 @@ TEMPLATE_TEST_CASE("Multiply m-by-n matrix with orthogonal QR factor",
             gemm(NO_TRANS, trans, T(1.), C, Q, T(0.), Cq);
 
         // Run the routine we are testing
-        UnmqrOpts<idx_t> unmqrOpts;
+        UnmqrOpts unmqrOpts;
         unmqrOpts.nb = nb;
         unmqr(side, trans, cols(A, range(0, k)), tau, C, unmqrOpts);
 

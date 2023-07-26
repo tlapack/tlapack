@@ -18,27 +18,19 @@
 #include "tlapack/lapack/larft.hpp"
 
 namespace tlapack {
-/**
- * Options struct for gelqf
- */
-struct GelqtOpts {};
 
-/** Worspace query of gelqf()
+/** Worspace query of gelqt()
  *
  * @param[in] A m-by-n matrix.
  *
  * @param TT m-by-nb matrix.
- *
- * @param[in] opts Options.
  *
  * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
  */
 template <class T, TLAPACK_SMATRIX matrix_t>
-inline constexpr WorkInfo gelqt_worksize(const matrix_t& A,
-                                         const matrix_t& TT,
-                                         const GelqtOpts& opts = {})
+inline constexpr WorkInfo gelqt_worksize(const matrix_t& A, const matrix_t& TT)
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -98,12 +90,10 @@ inline constexpr WorkInfo gelqt_worksize(const matrix_t& A,
  *      \]
  *      For a good default of nb, see GelqfOpts
  *
- * @param[in] opts Options.
- *
  * @ingroup computational
  */
 template <TLAPACK_SMATRIX matrix_t>
-int gelqt(matrix_t& A, matrix_t& TT, const GelqtOpts& opts = {})
+int gelqt(matrix_t& A, matrix_t& TT)
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -122,7 +112,7 @@ int gelqt(matrix_t& A, matrix_t& TT, const GelqtOpts& opts = {})
     tlapack_check_false(nrows(TT) < m || ncols(TT) < nb);
 
     // Allocates workspace
-    WorkInfo workinfo = gelqt_worksize<T>(A, TT, opts);
+    WorkInfo workinfo = gelqt_worksize<T>(A, TT);
     std::vector<T> work_;
     auto work = new_matrix(work_, workinfo.m, workinfo.n);
 
