@@ -65,8 +65,6 @@ TEMPLATE_TEST_CASE("bidiagonal reduction is backward stable",
     std::vector<T> Z_;
     auto Z = new_matrix(Z_, k, n);
 
-    std::vector<real_t> d(k);
-    std::vector<real_t> e(k);
     std::vector<T> tauv(k);
     std::vector<T> tauw(k);
 
@@ -82,7 +80,7 @@ TEMPLATE_TEST_CASE("bidiagonal reduction is backward stable",
     {
         GebrdOpts gebrdOpts;
         gebrdOpts.nb = nb;
-        gebrd(A, d, e, tauv, tauw, gebrdOpts);
+        gebrd(A, tauv, tauw, gebrdOpts);
 
         // Get bidiagonal B
         std::vector<T> B_;
