@@ -1,6 +1,7 @@
-/// @file test_gebrd.cpp
+/// @file test_bidiag.cpp
+/// @author Yuxin Cai, University of Colorado Denver, USA
 /// @author Thijs Steel, KU Leuven, Belgium
-/// @brief Test GEBRD
+/// @brief Test bidiagonal reduction
 //
 // Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
@@ -21,11 +22,8 @@
 
 // Other routines
 #include <tlapack/blas/gemm.hpp>
-#include <tlapack/lapack/gebd2.hpp>
-#include <tlapack/lapack/gebrd.hpp>
-#include <tlapack/lapack/ung2r.hpp>
+#include <tlapack/lapack/bidiag.hpp>
 #include <tlapack/lapack/ungbr.hpp>
-#include <tlapack/lapack/ungl2.hpp>
 
 using namespace tlapack;
 
@@ -44,15 +42,14 @@ TEMPLATE_TEST_CASE("bidiagonal reduction is backward stable",
     // Functor
     Create<matrix_t> new_matrix;
 
-    const real_t zero(0);
-
-    idx_t m, n, nb;
-
-    m = GENERATE(1, 4, 5, 10, 15);
-    n = GENERATE(1, 4, 5, 10, 12);
-    nb = GENERATE(1, 2, 5);
-    idx_t k = min(m, n);
-
+    using variant_t = pair<BidiagVariant, idx_t>;
+    const variant_t variant = GENERATE((variant_t(BidiagVariant::Blocked, 1)),
+                                       (variant_t(BidiagVariant::Blocked, 2)),
+                                       (variant_t(BidiagVariant::Blocked, 5)),
+                                       (variant_t(BidiagVariant::Level2, 1)));
+    const idx_t m = GENERATE(1, 4, 5, 10, 15);
+    const idx_t n = GENERATE(1, 4, 5, 10, 12);
+    const idx_t k = min(m, n);
     const real_t eps = ulp<real_t>();
     const real_t tol = real_t(10. * max(m, n)) * eps;
 
@@ -76,16 +73,18 @@ TEMPLATE_TEST_CASE("bidiagonal reduction is backward stable",
     lacpy(GENERAL, A, A_copy);
     real_t normA = lange(MAX_NORM, A);
 
-    DYNAMIC_SECTION("m = " << m << " n = " << n << " nb = " << nb)
+    DYNAMIC_SECTION("m = " << m << " n = " << n << " variant = "
+                           << (char)variant.first << " nb = " << variant.second)
     {
-        GebrdOpts gebrdOpts;
-        gebrdOpts.nb = nb;
-        gebrd(A, tauv, tauw, gebrdOpts);
+        BidiagOpts bidiagOpts;
+        bidiagOpts.variant = variant.first;
+        bidiagOpts.nb = variant.second;
+        bidiag(A, tauv, tauw, bidiagOpts);
 
         // Get bidiagonal B
         std::vector<T> B_;
         auto B = new_matrix(B_, k, k);
-        laset(GENERAL, zero, zero, B);
+        laset(GENERAL, real_t(0), real_t(0), B);
 
         if (m >= n) {
             // copy upper bidiagonal matrix
@@ -106,7 +105,7 @@ TEMPLATE_TEST_CASE("bidiagonal reduction is backward stable",
 
         // Generate m-by-k unitary matrix Q
         UngbrOpts ungbrOpts;
-        ungbrOpts.nb = nb;
+        ungbrOpts.nb = variant.second;
         lacpy(LOWER_TRIANGLE, slice(A, range{0, m}, range{0, k}), Q);
         ungbr_q(n, Q, tauv, ungbrOpts);
 
@@ -128,8 +127,7 @@ TEMPLATE_TEST_CASE("bidiagonal reduction is backward stable",
         // Test Q * B * Z^H = A
         std::vector<T> K_;
         auto K = new_matrix(K_, m, k);
-        laset(GENERAL, zero, zero, K);
-        gemm(NO_TRANS, NO_TRANS, real_t(1.), Q, B, real_t(0), K);
+        gemm(NO_TRANS, NO_TRANS, real_t(1.), Q, B, K);
         gemm(NO_TRANS, NO_TRANS, real_t(1.), K, Z, real_t(-1.), A_copy);
         real_t repres = lange(MAX_NORM, A_copy);
         CHECK(repres <= tol * normA);

@@ -62,12 +62,11 @@ inline constexpr WorkInfo gebd2_worksize(const matrix_t& A,
     return workinfo;
 }
 
-/** Reduces a complex general m by n matrix A to an upper
+/** Reduces a general m by n matrix A to an upper
  *  real bidiagonal form B by a unitary transformation:
  * \[
- *          Q**H * A * Z = B,
+ *          Q**H * A * Z = B.
  * \]
- *  where m >= n.
  *
  * The matrices Q and Z are represented as products of elementary
  * reflectors:
@@ -89,13 +88,19 @@ inline constexpr WorkInfo gebd2_worksize(const matrix_t& A,
  *
  * @param[in,out] A m-by-n matrix.
  *      On entry, the m by n general matrix to be reduced.
- *      On exit, if m >= n, the diagonal and the first superdiagonal
- *      are overwritten with the upper bidiagonal matrix B; the
- *      elements below the diagonal, with the array tauv, represent
- *      the unitary matrix Q as a product of elementary reflectors,
- *      and the elements above the first superdiagonal, with the array
- *      tauw, represent the unitary matrix Z as a product of elementary
- *      reflectors.
+ *      - if m >= n, the diagonal and the first superdiagonal
+ *        are overwritten with the upper bidiagonal matrix B; the
+ *        elements below the diagonal, with the array tauv, represent
+ *        the unitary matrix Q as a product of elementary reflectors,
+ *        and the elements above the first superdiagonal, with the array
+ *        tauw, represent the unitary matrix Z as a product of elementary
+ *        reflectors.
+ *      - if m < n, the diagonal and the first superdiagonal
+ *        are overwritten with the lower bidiagonal matrix B; the
+ *        elements below the first subdiagonal, with the array tauv, represent
+ *        the unitary matrix Q as a product of elementary reflectors,
+ *        and the elements above the diagonal, with the array tauw, represent
+ *        the unitary matrix Z as a product of elementary reflectors.
  *
  * @param[out] tauv Real vector of length min(m,n).
  *      The scalar factors of the elementary reflectors which

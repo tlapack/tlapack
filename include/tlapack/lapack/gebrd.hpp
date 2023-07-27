@@ -89,19 +89,26 @@ WorkInfo gebrd_worksize(const matrix_t& A,
  *
  * @param[in,out] A m-by-n matrix.
  *      On entry, the m by n general matrix to be reduced.
- *      On exit, if m >= n, the diagonal and the first superdiagonal
- *      are overwritten with the upper bidiagonal matrix B; the
- *      elements below the diagonal, with the array tauv, represent
- *      the unitary matrix Q as a product of elementary reflectors,
- *      and the elements above the first superdiagonal, with the array
- *      tauw, represent the unitary matrix P as a product of elementary
- *      reflectors.
+ *      On exit,
+ *      - if m >= n, the diagonal and the first superdiagonal
+ *        are overwritten with the upper bidiagonal matrix B; the
+ *        elements below the diagonal, with the array tauv, represent
+ *        the unitary matrix Q as a product of elementary reflectors,
+ *        and the elements above the first superdiagonal, with the array
+ *        tauw, represent the unitary matrix P as a product of elementary
+ *        reflectors.
+ *      - if m < n, the diagonal and the first superdiagonal
+ *        are overwritten with the lower bidiagonal matrix B; the
+ *        elements below the first subdiagonal, with the array tauv, represent
+ *        the unitary matrix Q as a product of elementary reflectors,
+ *        and the elements above the diagonal, with the array tauw, represent
+ *        the unitary matrix P as a product of elementary reflectors.
  *
- * @param[out] tauq vector of length min(m,n).
+ * @param[out] tauv vector of length min(m,n).
  *      The scalar factors of the elementary reflectors which
  *      represent the unitary matrix Q.
  *
- * @param[out] taup vector of length min(m,n).
+ * @param[out] tauw vector of length min(m,n).
  *      The scalar factors of the elementary reflectors which
  *      represent the unitary matrix P.
  *
@@ -111,8 +118,8 @@ WorkInfo gebrd_worksize(const matrix_t& A,
  */
 template <TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
 int gebrd(matrix_t& A,
-          vector_t& tauq,
-          vector_t& taup,
+          vector_t& tauv,
+          vector_t& tauw,
           const GebrdOpts& opts = {})
 {
     using idx_t = size_type<matrix_t>;
@@ -134,7 +141,7 @@ int gebrd(matrix_t& A,
     const idx_t nb = min((idx_t)opts.nb, k);
 
     // Allocates workspace
-    WorkInfo workinfo = gebrd_worksize<T>(A, tauq, taup, opts);
+    WorkInfo workinfo = gebrd_worksize<T>(A, tauv, tauw, opts);
     std::vector<T> work_;
     auto work = new_matrix(work_, workinfo.m, workinfo.n);
 
@@ -150,11 +157,11 @@ int gebrd(matrix_t& A,
         // the matrices X and Y which are needed to update the unreduced
         // part of the matrix
         auto A2 = slice(A, range{i, m}, range{i, n});
-        auto tauq2 = slice(tauq, range{i, i + ib});
-        auto taup2 = slice(taup, range{i, i + ib});
+        auto tauq = slice(tauv, range{i, i + ib});
+        auto taup = slice(tauw, range{i, i + ib});
         auto X2 = slice(X, range{i, m}, range{0, ib});
         auto Y2 = slice(Y, range{i, n}, range{0, ib});
-        labrd(A2, tauq2, taup2, X2, Y2);
+        labrd(A2, tauq, taup, X2, Y2);
 
         //
         // Update the trailing submatrix A(i+nb:m,i+nb:n), using an update
