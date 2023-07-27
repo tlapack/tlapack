@@ -12,6 +12,7 @@
 
 #include "tlapack/base/utils.hpp"
 #include "tlapack/blas/gemm.hpp"
+#include "tlapack/lapack/FrancisOpts.hpp"
 #include "tlapack/lapack/gehd2.hpp"
 #include "tlapack/lapack/gehrd.hpp"
 #include "tlapack/lapack/lahqr.hpp"
@@ -26,8 +27,6 @@
 #include "tlapack/lapack/unmhr.hpp"
 
 namespace tlapack {
-// Forward declaration
-struct FrancisOpts;
 
 template <class T, TLAPACK_SMATRIX matrix_t>
 WorkInfo agressive_early_deflation_worksize_gehrd(size_type<matrix_t> ilo,
