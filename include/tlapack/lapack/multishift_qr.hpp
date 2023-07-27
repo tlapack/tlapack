@@ -12,54 +12,12 @@
 #ifndef TLAPACK_MULTISHIFT_QR_HH
 #define TLAPACK_MULTISHIFT_QR_HH
 
-#include <functional>
-
 #include "tlapack/base/utils.hpp"
+#include "tlapack/lapack/FrancisOpts.hpp"
 #include "tlapack/lapack/agressive_early_deflation.hpp"
 #include "tlapack/lapack/multishift_qr_sweep.hpp"
 
 namespace tlapack {
-
-/**
- * Options struct for multishift_qr
- */
-struct FrancisOpts {
-    // Function that returns the number of shifts to use
-    // for a given matrix size
-    std::function<size_t(size_t, size_t)> nshift_recommender =
-        [](size_t n, size_t nh) -> size_t {
-        if (n < 30) return 2;
-        if (n < 60) return 4;
-        if (n < 150) return 10;
-        if (n < 590) return size_t(n / log2(n));
-        if (n < 3000) return 64;
-        if (n < 6000) return 128;
-        return 256;
-    };
-
-    // Function that returns the number of shifts to use
-    // for a given matrix size
-    std::function<size_t(size_t, size_t)> deflation_window_recommender =
-        [](size_t n, size_t nh) -> size_t {
-        if (n < 30) return 2;
-        if (n < 60) return 4;
-        if (n < 150) return 10;
-        if (n < 590) return size_t(n / log2(n));
-        if (n < 3000) return 96;
-        if (n < 6000) return 192;
-        return 384;
-    };
-
-    // On exit of the routine. Stores the number of times AED and sweep were
-    // called And the total number of shifts used.
-    int n_aed = 0;
-    int n_sweep = 0;
-    int n_shifts_total = 0;
-    // Threshold to switch between blocked and unblocked code
-    size_t nmin = 75;
-    // Threshold of percent of AED window that must converge to skip a sweep
-    size_t nibble = 14;
-};
 
 template <class T,
           TLAPACK_SMATRIX matrix_t,
