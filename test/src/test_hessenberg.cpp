@@ -1,4 +1,4 @@
-/// @file test_gehrd.cpp
+/// @file test_hessenberg.cpp
 /// @author Thijs Steel, KU Leuven, Belgium
 /// @brief Test hessenberg reduction
 //
@@ -19,7 +19,7 @@
 #include <tlapack/lapack/lange.hpp>
 
 // Other routines
-#include <tlapack/lapack/gehrd.hpp>
+#include <tlapack/lapack/hessenberg.hpp>
 #include <tlapack/lapack/unghr.hpp>
 
 using namespace tlapack;
@@ -81,6 +81,11 @@ TEMPLATE_TEST_CASE("Hessenberg reduction is backward stable",
     // Functor
     Create<matrix_t> new_matrix;
 
+    using variant_t = pair<HessenbergVariant, idx_t>;
+    const variant_t variant =
+        GENERATE((variant_t(HessenbergVariant::Blocked, 2)),
+                 (variant_t(HessenbergVariant::Blocked, 3)),
+                 (variant_t(HessenbergVariant::Level2, 1)));
     const std::string matrix_type = GENERATE("Near overflow", "Random");
     const idx_t n = GENERATE(1, 2, 3, 5, 10);
     const idx_t ilo_offset = GENERATE(0, 1);
@@ -129,26 +134,15 @@ TEMPLATE_TEST_CASE("Hessenberg reduction is backward stable",
     tlapack::lacpy(GENERAL, A, H);
 
     DYNAMIC_SECTION("matrix = " << matrix_type << " n = " << n
-                                << " ilo = " << ilo << " ihi = " << ihi)
+                                << " ilo = " << ilo << " ihi = " << ihi
+                                << " variant = " << (char)variant.first
+                                << " nb = " << variant.second)
     {
-        SECTION("GEHD2")
-        {
-            tlapack::gehd2(ilo, ihi, H, tau);
+        HessenbergOpts opts;
+        opts.nb = variant.second;
+        opts.nx_switch = 2;
+        hessenberg(ilo, ihi, H, tau, opts);
 
-            check_hess_reduction(ilo, ihi, H, tau, A);
-        }
-
-        SECTION("GEHRD")
-        {
-            idx_t nb = GENERATE(2, 3);
-            INFO("nb = " << nb);
-
-            GehrdOpts opts;
-            opts.nb = nb;
-            opts.nx_switch = 2;
-            tlapack::gehrd(ilo, ihi, H, tau, opts);
-
-            check_hess_reduction(ilo, ihi, H, tau, A);
-        }
+        check_hess_reduction(ilo, ihi, H, tau, A);
     }
 }

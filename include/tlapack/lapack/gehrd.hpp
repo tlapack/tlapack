@@ -40,7 +40,7 @@ struct GehrdOpts {
  *      0 <= ilo <= ihi <= max(1,n).
  * @param[in] A n-by-n matrix.
  *      On entry, the n by n general matrix to be reduced.
- * @param tau Not referenced.
+ * @param tau Vector of length n-1.
  *
  * @param[in] opts Options.
  *
