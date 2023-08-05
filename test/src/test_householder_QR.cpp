@@ -18,8 +18,8 @@
 #include <tlapack/lapack/lange.hpp>
 
 // Other routines
+#include <tlapack/lapack/gen_householder_q.hpp>
 #include <tlapack/lapack/householder_qr.hpp>
-#include <tlapack/lapack/ungqr.hpp>
 #include <tlapack/lapack/unmqr.hpp>
 
 using namespace tlapack;
@@ -86,9 +86,17 @@ TEMPLATE_TEST_CASE("QR factorization of a general m-by-n matrix",
         qrOpts.nb = nb;
         householder_qr(A, tau, qrOpts);
 
-        // Copy upper triangular part of A to R
+        // Copy A to Q and R
+        lacpy(LOWER_TRIANGLE, slice(A, range(0, m), range(0, k)), Q);
         laset(LOWER_TRIANGLE, real_t(0), real_t(0), R);
         lacpy(UPPER_TRIANGLE, A, R);
+
+        // Test Q is unitary
+        GenHouseholderQOpts ungqOpts;
+        ungqOpts.nb = nb;
+        gen_householder_q(FORWARD, COLUMNWISE_STORAGE, Q, tau, ungqOpts);
+        auto orth_Q = check_orthogonality(Q);
+        CHECK(orth_Q <= tol);
 
         // Test A == Q * R
         UnmqrOpts unmqrOpts;
@@ -99,13 +107,5 @@ TEMPLATE_TEST_CASE("QR factorization of a general m-by-n matrix",
                 A_copy(i, j) -= R(i, j);
         real_t repres = lange(MAX_NORM, A_copy);
         CHECK(repres <= tol * anorm);
-
-        // Test Q is unitary
-        UngqrOpts ungqrOpts;
-        ungqrOpts.nb = nb;
-        lacpy(LOWER_TRIANGLE, slice(A, range(0, m), range(0, k)), Q);
-        ungqr(Q, tau, ungqrOpts);
-        auto orth_Q = check_orthogonality(Q);
-        CHECK(orth_Q <= tol);
     }
 }

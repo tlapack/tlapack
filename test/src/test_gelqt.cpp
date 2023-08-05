@@ -92,7 +92,7 @@ TEMPLATE_TEST_CASE("LQ factorization of a general m-by-n matrix, blocked",
             // will use.
             lacpy(GENERAL, slice(A, range(0, min(m, k)), range(0, n)), Q);
 
-            ungl2(Q, tauw);
+            ungl2(Q, slice(tauw, range(0, min(m, k))));
 
             // Wq is the identity matrix to check the orthogonality of Q
             std::vector<T> Wq_;
