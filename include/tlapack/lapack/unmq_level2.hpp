@@ -211,8 +211,9 @@ int unmq_level2_work(side_t side,
 
     // check arguments
     tlapack_check_false(side != Side::Left && side != Side::Right);
-    tlapack_check_false(trans != Op::NoTrans && trans != Op::ConjTrans &&
-                        ((trans != Op::Trans) || is_complex<type_t<matrixV_t>>));
+    tlapack_check_false(
+        trans != Op::NoTrans && trans != Op::ConjTrans &&
+        ((trans != Op::Trans) || is_complex<type_t<matrixV_t>>));
     tlapack_check_false(direction != Direction::Backward &&
                         direction != Direction::Forward);
     tlapack_check((storeMode == StoreV::Columnwise)

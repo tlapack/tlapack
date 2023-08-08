@@ -31,11 +31,8 @@ struct UngqOpts {
  *
  * @param[in] direction
  *     Indicates how Q is formed from a product of elementary reflectors.
- *     - Direction::Forward:  $op(Q) = H_1 H_2 ... H_k$.
- *     - Direction::Backward: $op(Q) = H_k ... H_2 H_1$.
- *     The operator $op(Q)$ is defined as
- *     - $op(Q) = Q$ if storeMode = StoreV::Columnwise, and
- *     - $op(Q) = Q^H$ if storeMode = StoreV::Rowwise.
+ *     - Direction::Forward:  $Q = H_1 H_2 ... H_k$.
+ *     - Direction::Backward: $Q = H_k ... H_2 H_1$.
  *
  * @param[in] storeMode
  *     Indicates how the vectors which define the elementary reflectors are
