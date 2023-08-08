@@ -19,8 +19,8 @@
 
 // Other routines
 #include <tlapack/lapack/gen_householder_q.hpp>
+#include <tlapack/lapack/householder_q_mul.hpp>
 #include <tlapack/lapack/householder_qr.hpp>
-#include <tlapack/lapack/unmqr.hpp>
 
 using namespace tlapack;
 
@@ -92,16 +92,15 @@ TEMPLATE_TEST_CASE("QR factorization of a general m-by-n matrix",
         lacpy(UPPER_TRIANGLE, A, R);
 
         // Test Q is unitary
-        GenHouseholderQOpts ungqOpts;
-        ungqOpts.nb = nb;
-        gen_householder_q(FORWARD, COLUMNWISE_STORAGE, Q, tau, ungqOpts);
+        gen_householder_q(FORWARD, COLUMNWISE_STORAGE, Q, tau,
+                          GenHouseholderQOpts{(size_t)nb});
         auto orth_Q = check_orthogonality(Q);
         CHECK(orth_Q <= tol);
 
         // Test A == Q * R
-        UnmqrOpts unmqrOpts;
-        unmqrOpts.nb = nb;
-        unmqr(LEFT_SIDE, NO_TRANS, A, tau, R, unmqrOpts);
+        const auto V = slice(A, range(0, m), range(0, k));
+        householder_q_mul(LEFT_SIDE, NO_TRANS, FORWARD, COLUMNWISE_STORAGE, V,
+                          tau, R, HouseholderQMulOpts{(size_t)nb});
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = 0; i < m; ++i)
                 A_copy(i, j) -= R(i, j);

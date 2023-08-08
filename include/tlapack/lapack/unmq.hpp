@@ -76,14 +76,14 @@ template <class T,
           TLAPACK_OP trans_t,
           TLAPACK_DIRECTION direction_t,
           TLAPACK_STOREV storage_t>
-inline constexpr WorkInfo unmq_worksize(side_t side,
-                                        trans_t trans,
-                                        direction_t direction,
-                                        storage_t storeMode,
-                                        const matrixV_t& V,
-                                        const vector_t& tau,
-                                        const matrixC_t& C,
-                                        const UnmqOpts& opts = {})
+constexpr WorkInfo unmq_worksize(side_t side,
+                                 trans_t trans,
+                                 direction_t direction,
+                                 storage_t storeMode,
+                                 const matrixV_t& V,
+                                 const vector_t& tau,
+                                 const matrixC_t& C,
+                                 const UnmqOpts& opts = {})
 {
     using idx_t = size_type<matrixC_t>;
     using matrixT_t = matrix_type<matrixV_t, vector_t>;
@@ -137,7 +137,6 @@ int unmq(side_t side,
          matrixC_t& C,
          const UnmqOpts& opts = {})
 {
-    using TV = type_t<matrixV_t>;
     using idx_t = size_type<matrixC_t>;
     using range = pair<idx_t, idx_t>;
     using matrixT_t = matrix_type<matrixV_t, vector_t>;
@@ -204,8 +203,8 @@ int unmq(side_t side,
             // H or H**H is applied to either C[i:m,0:n] or C[0:m,i:n]
             auto Ci = (side == Side::Left) ? slice(C, rangev, range{0, n})
                                            : slice(C, range{0, m}, rangev);
-            larfb_work(side, trans, direction, COLUMNWISE_STORAGE, Vi,
-                       matrixTi, Ci, work);
+            larfb_work(side, trans, direction, COLUMNWISE_STORAGE, Vi, matrixTi,
+                       Ci, work);
         }
     }
     else {

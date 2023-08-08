@@ -141,8 +141,8 @@ int unm2l(side_t side,
     std::vector<TA> work_;
     auto work = new_matrix(work_, workinfo.m, workinfo.n);
 
-    return unmq_level2_work(side, trans, BACKWARD, COLUMNWISE_STORAGE, A, tau, C,
-                            work);
+    return unmq_level2_work(side, trans, BACKWARD, COLUMNWISE_STORAGE, A, tau,
+                            C, work);
 
     return 0;
 }

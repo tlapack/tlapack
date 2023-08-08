@@ -44,11 +44,11 @@ template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
           TLAPACK_DIRECTION direction_t,
           TLAPACK_STOREV storage_t>
-int gen_householder_q(direction_t direction,
-                      storage_t storeMode,
-                      matrix_t& A,
-                      const vector_t& tau,
-                      const GenHouseholderQOpts& opts = {})
+inline int gen_householder_q(direction_t direction,
+                             storage_t storeMode,
+                             matrix_t& A,
+                             const vector_t& tau,
+                             const GenHouseholderQOpts& opts = {})
 {
     if (opts.variant == GenHouseholderQVariant::Level2)
         return ungq_level2(direction, storeMode, A, tau);
