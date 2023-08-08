@@ -13,7 +13,7 @@
 #define TLAPACK_UNM2R_HH
 
 #include "tlapack/base/utils.hpp"
-#include "tlapack/lapack/larf.hpp"
+#include "tlapack/lapack/unmq_level2.hpp"
 
 namespace tlapack {
 
@@ -132,52 +132,8 @@ int unm2r_work(side_t side,
                matrixC_t& C,
                work_t& work)
 {
-    using TA = type_t<matrixA_t>;
-    using idx_t = size_type<matrixA_t>;
-    using range = pair<idx_t, idx_t>;
-
-    // constants
-    const idx_t m = nrows(C);
-    const idx_t n = ncols(C);
-    const idx_t k = size(tau);
-    const idx_t nA = (side == Side::Left) ? m : n;
-
-    // check arguments
-    tlapack_check_false(side != Side::Left && side != Side::Right);
-    tlapack_check_false(trans != Op::NoTrans && trans != Op::Trans &&
-                        trans != Op::ConjTrans);
-    tlapack_check_false(trans == Op::Trans && is_complex<TA>);
-
-    // quick return
-    if ((m == 0) || (n == 0) || (k == 0)) return 0;
-
-    // const expressions
-    const bool positiveInc =
-        (((side == Side::Left) && !(trans == Op::NoTrans)) ||
-         (!(side == Side::Left) && (trans == Op::NoTrans)));
-    const idx_t i0 = (positiveInc) ? 0 : k - 1;
-    const idx_t iN = (positiveInc) ? k : -1;
-    const idx_t inc = (positiveInc) ? 1 : -1;
-
-    // Main loop
-    for (idx_t i = i0; i != iN; i += inc) {
-        auto v = slice(A, range{i, nA}, i);
-
-        if (side == Side::Left) {
-            auto Ci = rows(C, range{i, m});
-            larf_work(LEFT_SIDE, FORWARD, COLUMNWISE_STORAGE, v,
-                      (trans == Op::ConjTrans) ? conj(tau[i]) : tau[i], Ci,
-                      work);
-        }
-        else {
-            auto Ci = cols(C, range{i, n});
-            larf_work(RIGHT_SIDE, FORWARD, COLUMNWISE_STORAGE, v,
-                      (trans == Op::ConjTrans) ? conj(tau[i]) : tau[i], Ci,
-                      work);
-        }
-    }
-
-    return 0;
+    return unmq_level2_work(side, trans, FORWARD, COLUMNWISE_STORAGE, A, tau, C,
+                            work);
 }
 
 /** Applies unitary matrix Q to a matrix C.

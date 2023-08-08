@@ -41,7 +41,6 @@ namespace tlapack {
  * stored:
  *     - StoreV::Columnwise.
  *     - StoreV::Rowwise.
- *     See Further Details.
  *
  * @param[in] V
  *     - If storeMode = StoreV::Columnwise:

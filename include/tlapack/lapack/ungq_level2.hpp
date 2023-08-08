@@ -25,11 +25,8 @@ namespace tlapack {
  *
  * @param[in] direction
  *     Indicates how Q is formed from a product of elementary reflectors.
- *     - Direction::Forward:  $op(Q) = H_1 H_2 ... H_k$.
- *     - Direction::Backward: $op(Q) = H_k ... H_2 H_1$.
- *     The operator $op(Q)$ is defined as
- *     - $op(Q) = Q$ if storeMode = StoreV::Columnwise, and
- *     - $op(Q) = Q^H$ if storeMode = StoreV::Rowwise.
+ *     - Direction::Forward:  $Q = H_1 H_2 ... H_k$.
+ *     - Direction::Backward: $Q = H_k ... H_2 H_1$.
  *
  * @param[in] storeMode
  *     Indicates how the vectors which define the elementary reflectors are
@@ -82,11 +79,8 @@ inline constexpr WorkInfo ungq_level2_worksize(direction_t direction,
  *
  * @param[in] direction
  *     Indicates how Q is formed from a product of elementary reflectors.
- *     - Direction::Forward:  $op(Q) = H_1 H_2 ... H_k$.
- *     - Direction::Backward: $op(Q) = H_k ... H_2 H_1$.
- *     The operator $op(Q)$ is defined as
- *     - $op(Q) = Q$ if storeMode = StoreV::Columnwise, and
- *     - $op(Q) = Q^H$ if storeMode = StoreV::Rowwise.
+ *     - Direction::Forward:  $Q = H_1 H_2 ... H_k$.
+ *     - Direction::Backward: $Q = H_k ... H_2 H_1$.
  *
  * @param[in] storeMode
  *     Indicates how the vectors which define the elementary reflectors are
@@ -166,6 +160,8 @@ int ungq_level2_work(direction_t direction,
     const idx_t k = size(tau);
 
     // check arguments
+    tlapack_check_false(direction != Direction::Backward &&
+                        direction != Direction::Forward);
     tlapack_check((storeMode == StoreV::Columnwise) ? (m >= n && n >= k)
                                                     : (n >= m && m >= k));
 
@@ -285,11 +281,8 @@ int ungq_level2_work(direction_t direction,
  *
  * @param[in] direction
  *     Indicates how Q is formed from a product of elementary reflectors.
- *     - Direction::Forward:  $op(Q) = H_1 H_2 ... H_k$.
- *     - Direction::Backward: $op(Q) = H_k ... H_2 H_1$.
- *     The operator $op(Q)$ is defined as
- *     - $op(Q) = Q$ if storeMode = StoreV::Columnwise, and
- *     - $op(Q) = Q^H$ if storeMode = StoreV::Rowwise.
+ *     - Direction::Forward:  $Q = H_1 H_2 ... H_k$.
+ *     - Direction::Backward: $Q = H_k ... H_2 H_1$.
  *
  * @param[in] storeMode
  *     Indicates how the vectors which define the elementary reflectors are

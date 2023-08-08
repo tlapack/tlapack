@@ -127,7 +127,7 @@ inline constexpr WorkInfo ungq_worksize(direction_t direction,
 
 /**
  * @copydoc ungq_level2()
- * 
+ *
  * Blocked algorithm.
  *
  * @param[in] opts Options.
@@ -162,6 +162,8 @@ int ungq(direction_t direction,
     const idx_t nb = min((idx_t)opts.nb, k);
 
     // check arguments
+    tlapack_check_false(direction != Direction::Backward &&
+                        direction != Direction::Forward);
     tlapack_check((storeMode == StoreV::Columnwise) ? (m >= n && n >= k)
                                                     : (n >= m && m >= k));
 
