@@ -30,7 +30,7 @@ namespace starpu {
                             void* child_interface,
                             struct starpu_data_filter* f,
                             STARPU_ATTRIBUTE_UNUSED unsigned id,
-                            STARPU_ATTRIBUTE_UNUSED unsigned nparts)
+                            STARPU_ATTRIBUTE_UNUSED unsigned nparts) noexcept
     {
         struct starpu_matrix_interface* matrix_father =
             (struct starpu_matrix_interface*)father_interface;
@@ -83,7 +83,7 @@ namespace starpu {
                               void* child_interface,
                               struct starpu_data_filter* f,
                               unsigned id,
-                              STARPU_ATTRIBUTE_UNUSED unsigned nparts)
+                              STARPU_ATTRIBUTE_UNUSED unsigned nparts) noexcept
     {
         struct starpu_data_filter f_tile {
             .filter_arg_ptr = (void*)((idx_t*)f->filter_arg_ptr + 4 * id),
@@ -107,7 +107,7 @@ namespace starpu {
         void* child_interface,
         STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter* f,
         unsigned id,
-        unsigned nparts)
+        unsigned nparts) noexcept
     {
         struct starpu_matrix_interface* matrix_father =
             (struct starpu_matrix_interface*)father_interface;
@@ -156,7 +156,7 @@ namespace starpu {
                             void* child_interface,
                             struct starpu_data_filter* f,
                             unsigned id,
-                            unsigned nparts)
+                            unsigned nparts) noexcept
     {
         struct starpu_matrix_interface* matrix_father =
             (struct starpu_matrix_interface*)father_interface;

@@ -113,7 +113,7 @@ namespace internal {
      *      x x x x x
      */
     struct GeneralAccess {
-        constexpr operator Uplo() const { return Uplo::General; }
+        constexpr operator Uplo() const noexcept { return Uplo::General; }
     };
 
     /**
@@ -127,7 +127,7 @@ namespace internal {
      *      0 0 0 x x
      */
     struct UpperTriangle {
-        constexpr operator Uplo() const { return Uplo::Upper; }
+        constexpr operator Uplo() const noexcept { return Uplo::Upper; }
     };
 
     /**
@@ -141,7 +141,7 @@ namespace internal {
      *      x x x x 0
      */
     struct LowerTriangle {
-        constexpr operator Uplo() const { return Uplo::Lower; }
+        constexpr operator Uplo() const noexcept { return Uplo::Lower; }
     };
 
     /**
@@ -155,7 +155,10 @@ namespace internal {
      *      0 0 x x x
      */
     struct UpperHessenberg {
-        constexpr operator Uplo() const { return Uplo::UpperHessenberg; }
+        constexpr operator Uplo() const noexcept
+        {
+            return Uplo::UpperHessenberg;
+        }
     };
 
     /**
@@ -169,7 +172,10 @@ namespace internal {
      *      x x x x x
      */
     struct LowerHessenberg {
-        constexpr operator Uplo() const { return Uplo::LowerHessenberg; }
+        constexpr operator Uplo() const noexcept
+        {
+            return Uplo::LowerHessenberg;
+        }
     };
 
     /**
@@ -183,7 +189,7 @@ namespace internal {
      *      0 0 0 0 x
      */
     struct StrictUpper {
-        constexpr operator Uplo() const { return Uplo::StrictUpper; }
+        constexpr operator Uplo() const noexcept { return Uplo::StrictUpper; }
     };
 
     /**
@@ -197,7 +203,7 @@ namespace internal {
      *      x x x 0 0
      */
     struct StrictLower {
-        constexpr operator Uplo() const { return Uplo::StrictLower; }
+        constexpr operator Uplo() const noexcept { return Uplo::StrictLower; }
     };
 }  // namespace internal
 
@@ -229,10 +235,10 @@ TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_2_VALUES(Diag, NonUnit, Unit)
 
 namespace internal {
     struct NonUnitDiagonal {
-        constexpr operator Diag() const { return Diag::NonUnit; }
+        constexpr operator Diag() const noexcept { return Diag::NonUnit; }
     };
     struct UnitDiagonal {
-        constexpr operator Diag() const { return Diag::Unit; }
+        constexpr operator Diag() const noexcept { return Diag::Unit; }
     };
 }  // namespace internal
 
@@ -256,16 +262,16 @@ TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_4_VALUES(Op, NoTrans, Trans, ConjTrans, Conj)
 
 namespace internal {
     struct NoTranspose {
-        constexpr operator Op() const { return Op::NoTrans; }
+        constexpr operator Op() const noexcept { return Op::NoTrans; }
     };
     struct Transpose {
-        constexpr operator Op() const { return Op::Trans; }
+        constexpr operator Op() const noexcept { return Op::Trans; }
     };
     struct ConjTranspose {
-        constexpr operator Op() const { return Op::ConjTrans; }
+        constexpr operator Op() const noexcept { return Op::ConjTrans; }
     };
     struct Conjugate {
-        constexpr operator Op() const { return Op::Conj; }
+        constexpr operator Op() const noexcept { return Op::Conj; }
     };
 }  // namespace internal
 
@@ -291,10 +297,10 @@ TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_2_VALUES(Side, Left, Right)
 
 namespace internal {
     struct LeftSide {
-        constexpr operator Side() const { return Side::Left; }
+        constexpr operator Side() const noexcept { return Side::Left; }
     };
     struct RightSide {
-        constexpr operator Side() const { return Side::Right; }
+        constexpr operator Side() const noexcept { return Side::Right; }
     };
 }  // namespace internal
 
@@ -319,19 +325,19 @@ TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_5_VALUES(Norm, One, Two, Inf, Fro, Max)
 
 namespace internal {
     struct MaxNorm {
-        constexpr operator Norm() const { return Norm::Max; }
+        constexpr operator Norm() const noexcept { return Norm::Max; }
     };
     struct OneNorm {
-        constexpr operator Norm() const { return Norm::One; }
+        constexpr operator Norm() const noexcept { return Norm::One; }
     };
     struct TwoNorm {
-        constexpr operator Norm() const { return Norm::Two; }
+        constexpr operator Norm() const noexcept { return Norm::Two; }
     };
     struct InfNorm {
-        constexpr operator Norm() const { return Norm::Inf; }
+        constexpr operator Norm() const noexcept { return Norm::Inf; }
     };
     struct FrobNorm {
-        constexpr operator Norm() const { return Norm::Fro; }
+        constexpr operator Norm() const noexcept { return Norm::Fro; }
     };
 }  // namespace internal
 
@@ -359,10 +365,16 @@ TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_2_VALUES(Direction, Forward, Backward)
 
 namespace internal {
     struct Forward {
-        constexpr operator Direction() const { return Direction::Forward; }
+        constexpr operator Direction() const noexcept
+        {
+            return Direction::Forward;
+        }
     };
     struct Backward {
-        constexpr operator Direction() const { return Direction::Backward; }
+        constexpr operator Direction() const noexcept
+        {
+            return Direction::Backward;
+        }
     };
 }  // namespace internal
 
@@ -384,10 +396,13 @@ TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_2_VALUES(StoreV, Columnwise, Rowwise)
 
 namespace internal {
     struct ColumnwiseStorage {
-        constexpr operator StoreV() const { return StoreV::Columnwise; }
+        constexpr operator StoreV() const noexcept
+        {
+            return StoreV::Columnwise;
+        }
     };
     struct RowwiseStorage {
-        constexpr operator StoreV() const { return StoreV::Rowwise; }
+        constexpr operator StoreV() const noexcept { return StoreV::Rowwise; }
     };
 }  // namespace internal
 
@@ -415,16 +430,6 @@ constexpr internal::RowwiseStorage ROWWISE_STORAGE{};
 struct BandAccess {
     std::size_t lower_bandwidth;  ///< Number of subdiagonals.
     std::size_t upper_bandwidth;  ///< Number of superdiagonals.
-
-    /**
-     * @brief Construct a new Band Access object
-     *
-     * @param kl Number of subdiagonals.
-     * @param ku Number of superdiagonals.
-     */
-    constexpr BandAccess(std::size_t kl, std::size_t ku)
-        : lower_bandwidth(kl), upper_bandwidth(ku)
-    {}
 };
 
 // -----------------------------------------------------------------------------

@@ -46,22 +46,22 @@ struct StrongZero {
     constexpr StrongZero() {}
 
     template <typename T>
-    constexpr StrongZero(const T& x)
+    constexpr StrongZero(const T& x) noexcept
     {
         assert(x == T(0));
     }
 
     template <typename T, typename U>
-    constexpr StrongZero(const T& x, const U& y)
+    constexpr StrongZero(const T& x, const U& y) noexcept
     {
         assert(x == T(0));
-        assert(y == T(0));
+        assert(y == U(0));
     }
 
     // Conversion operators
 
     template <typename T>
-    explicit constexpr operator T() const
+    explicit constexpr operator T() const noexcept
     {
         return T(0);
     }
@@ -69,121 +69,137 @@ struct StrongZero {
     // Assignment operators
 
     template <typename T>
-    friend constexpr T& operator+=(T& lhs, StrongZero)
+    friend constexpr T& operator+=(T& lhs, StrongZero) noexcept
     {
         return lhs;
     }
 
     template <typename T>
-    friend constexpr T& operator-=(T& lhs, StrongZero)
+    friend constexpr T& operator-=(T& lhs, StrongZero) noexcept
     {
         return lhs;
     }
 
     template <typename T>
-    friend constexpr T& operator*=(T& lhs, StrongZero)
+    friend constexpr T& operator*=(T& lhs, StrongZero) noexcept
     {
         return (lhs = T(0));
     }
 
     template <typename T>
-    friend constexpr T& operator/=(T& lhs, StrongZero)
+    friend constexpr T& operator/=(T& lhs, StrongZero) noexcept
     {
         return (lhs = std::numeric_limits<T>::infinity());
     }
 
     // Arithmetic operators
 
-    friend constexpr StrongZero operator+(StrongZero, StrongZero)
+    friend constexpr StrongZero operator+(StrongZero, StrongZero) noexcept
     {
         return StrongZero();
     }
 
     template <typename T>
-    friend constexpr T operator+(StrongZero, const T& rhs)
+    friend constexpr T operator+(StrongZero, const T& rhs) noexcept
     {
         return rhs;
     }
 
     template <typename T>
-    friend constexpr T operator+(const T& lhs, StrongZero)
+    friend constexpr T operator+(const T& lhs, StrongZero) noexcept
     {
         return lhs;
     }
 
-    friend constexpr StrongZero operator-(StrongZero, StrongZero)
+    friend constexpr StrongZero operator-(StrongZero, StrongZero) noexcept
     {
         return StrongZero();
     }
 
     template <typename T>
-    friend constexpr T operator-(StrongZero, const T& rhs)
+    friend constexpr T operator-(StrongZero, const T& rhs) noexcept
     {
         return -rhs;
     }
 
     template <typename T>
-    friend constexpr T operator-(const T& lhs, StrongZero)
+    friend constexpr T operator-(const T& lhs, StrongZero) noexcept
     {
         return lhs;
     }
 
-    friend constexpr StrongZero operator*(StrongZero, StrongZero)
+    friend constexpr StrongZero operator*(StrongZero, StrongZero) noexcept
     {
         return StrongZero();
     }
 
     template <typename T>
-    friend constexpr StrongZero operator*(StrongZero, const T&)
+    friend constexpr StrongZero operator*(StrongZero, const T&) noexcept
     {
         return StrongZero();
     }
 
     template <typename T>
-    friend constexpr StrongZero operator*(const T&, StrongZero)
+    friend constexpr StrongZero operator*(const T&, StrongZero) noexcept
     {
         return StrongZero();
     }
 
-    friend constexpr float operator/(StrongZero, StrongZero)
+    friend constexpr float operator/(StrongZero, StrongZero) noexcept
     {
         return std::numeric_limits<float>::quiet_NaN();
     }
 
     template <typename T>
-    friend constexpr StrongZero operator/(StrongZero, const T&)
+    friend constexpr StrongZero operator/(StrongZero, const T&) noexcept
     {
         return StrongZero();
     }
 
     template <typename T>
-    friend constexpr T operator/(const T&, StrongZero)
+    friend constexpr T operator/(const T&, StrongZero) noexcept
     {
         return std::numeric_limits<T>::infinity();
     }
 
+    // Change of sign
+
+    constexpr StrongZero operator-() const noexcept { return StrongZero(); }
+
     // Comparison operators
 
-    constexpr bool operator==(StrongZero) const { return true; }
-    constexpr bool operator!=(StrongZero) const { return false; }
-    constexpr bool operator>(StrongZero) const { return false; }
-    constexpr bool operator<(StrongZero) const { return false; }
-    constexpr bool operator>=(StrongZero) const { return true; }
-    constexpr bool operator<=(StrongZero) const { return true; }
-    friend constexpr bool isinf(StrongZero) { return false; }
-    friend constexpr bool isnan(StrongZero) { return false; }
+    constexpr bool operator==(StrongZero) const noexcept { return true; }
+    constexpr bool operator!=(StrongZero) const noexcept { return false; }
+    constexpr bool operator>(StrongZero) const noexcept { return false; }
+    constexpr bool operator<(StrongZero) const noexcept { return false; }
+    constexpr bool operator>=(StrongZero) const noexcept { return true; }
+    constexpr bool operator<=(StrongZero) const noexcept { return true; }
+    friend constexpr bool isinf(StrongZero) noexcept { return false; }
+    friend constexpr bool isnan(StrongZero) noexcept { return false; }
 
     // Math functions
 
-    friend constexpr StrongZero abs(StrongZero) { return StrongZero(); }
-    friend constexpr StrongZero sqrt(StrongZero) { return StrongZero(); }
-    friend constexpr int pow(int, StrongZero) { return 1; }
-    friend constexpr float log2(StrongZero)
+    friend constexpr StrongZero abs(StrongZero) noexcept
+    {
+        return StrongZero();
+    }
+    friend constexpr StrongZero sqrt(StrongZero) noexcept
+    {
+        return StrongZero();
+    }
+    friend constexpr int pow(int, StrongZero) noexcept { return 1; }
+    friend constexpr float log2(StrongZero) noexcept
     {
         return -std::numeric_limits<float>::infinity();
     }
-    friend constexpr StrongZero ceil(StrongZero) { return StrongZero(); }
-    friend constexpr StrongZero floor(StrongZero) { return StrongZero(); }
+    friend constexpr StrongZero ceil(StrongZero) noexcept
+    {
+        return StrongZero();
+    }
+    friend constexpr StrongZero floor(StrongZero) noexcept
+    {
+        return StrongZero();
+    }
 };
 
 namespace traits {

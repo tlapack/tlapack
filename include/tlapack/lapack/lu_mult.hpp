@@ -51,7 +51,7 @@ void lu_mult(matrix_t& A, const LuMultOpts& opts = {})
     // quick return
     if (n == 0) return;
 
-    if (n <= opts.nx) {  // Matrix is small, use for loops instead of recursion
+    if (n <= (idx_t)opts.nx) {  // Matrix is small, do not use recursion
         for (idx_t i2 = n; i2 > 0; --i2) {
             idx_t i = i2 - 1;
             for (idx_t j2 = n; j2 > 0; --j2) {

@@ -148,19 +148,19 @@ template <
                      int> = 0
 #endif
     >
-inline constexpr auto size(const Eigen::EigenBase<Derived>& x)
+inline constexpr auto size(const Eigen::EigenBase<Derived>& x) noexcept
 {
     return x.size();
 }
 // Number of rows
 template <class T>
-inline constexpr auto nrows(const Eigen::EigenBase<T>& x)
+inline constexpr auto nrows(const Eigen::EigenBase<T>& x) noexcept
 {
     return x.rows();
 }
 // Number of columns
 template <class T>
-inline constexpr auto ncols(const Eigen::EigenBase<T>& x)
+inline constexpr auto ncols(const Eigen::EigenBase<T>& x) noexcept
 {
     return x.cols();
 }
@@ -607,7 +607,7 @@ inline constexpr auto transpose_view(matrix_t& A) noexcept
 template <
     class matrix_t,
     typename std::enable_if<eigen::is_eigen_type<matrix_t>, int>::type = 0>
-auto reshape(matrix_t& A, Eigen::Index m, Eigen::Index n)
+auto reshape(matrix_t& A, Eigen::Index m, Eigen::Index n) noexcept
 {
     using T = typename matrix_t::Scalar;
     using Stride = Eigen::OuterStride<>;
@@ -621,17 +621,14 @@ auto reshape(matrix_t& A, Eigen::Index m, Eigen::Index n)
     if (m == A.rows() && n == A.cols())
         return map_t((T*)A.data(), m, n, A.outerStride());
     else {
-        if (m * n != A.size())
-            throw std::invalid_argument(
-                "reshape: new shape must have the same "
-                "number of elements as the original one");
-        if (!(!matrix_t::IsRowMajor &&
-              (A.outerStride() == A.rows() || A.cols() <= 1)) &&
-            !(matrix_t::IsRowMajor &&
-              (A.outerStride() == A.cols() || A.rows() <= 1)))
-            throw std::invalid_argument(
-                "reshape: data must be contiguous in memory");
-
+        assert((m * n == A.size()) &&
+               "reshape: new shape must have the same "
+               "number of elements as the original one");
+        assert(((!matrix_t::IsRowMajor &&
+                 (A.outerStride() == A.rows() || A.cols() <= 1)) ||
+                (matrix_t::IsRowMajor &&
+                 (A.outerStride() == A.cols() || A.rows() <= 1))) &&
+               "reshape: data must be contiguous in memory");
         return map_t((T*)A.data(), m, n, (matrix_t::IsRowMajor ? n : m));
     }
 }

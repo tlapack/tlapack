@@ -103,7 +103,7 @@ struct WorkInfo {
         return *this;
     }
 
-    constexpr WorkInfo transpose() noexcept { return WorkInfo(n, m); }
+    constexpr WorkInfo transpose() const noexcept { return WorkInfo(n, m); }
 };
 
 }  // namespace tlapack

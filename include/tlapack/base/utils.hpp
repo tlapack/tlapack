@@ -50,13 +50,13 @@ using std::pair;
 //------------------------------------------------------------------------------
 
 template <typename T, enable_if_t<is_real<T>, int> = 0>
-inline constexpr real_type<T> real(const T& x)
+inline constexpr real_type<T> real(const T& x) noexcept
 {
     return x;
 }
 
 template <typename T, enable_if_t<is_real<T>, int> = 0>
-inline constexpr real_type<T> imag(const T& x)
+inline constexpr real_type<T> imag(const T& x) noexcept
 {
     return real_type<T>(0);
 }
@@ -76,7 +76,7 @@ inline constexpr real_type<T> imag(const T& x)
  * std::conj
  */
 template <typename T, enable_if_t<is_real<T>, int> = 0>
-inline constexpr T conj(const T& x)
+inline constexpr T conj(const T& x) noexcept
 {
     return x;
 }
@@ -86,7 +86,7 @@ inline constexpr T conj(const T& x)
 /// @see Source: https://stackoverflow.com/a/4609795/5253097
 ///
 template <typename real_t>
-inline int sgn(const real_t& val)
+constexpr int sgn(const real_t& val)
 {
     return (real_t(0) < val) - (val < real_t(0));
 }
@@ -94,7 +94,7 @@ inline int sgn(const real_t& val)
 // -----------------------------------------------------------------------------
 /// isinf for complex numbers
 template <typename T, enable_if_t<is_complex<T>, int> = 0>
-inline bool isinf(const T& x)
+constexpr bool isinf(const T& x) noexcept
 {
     return isinf(real(x)) || isinf(imag(x));
 }
@@ -246,7 +246,7 @@ bool hasinf(uplo_t uplo, const matrix_t& A)
  * @see tlapack::hasinf(uplo_t uplo, const matrix_t& A).
  */
 template <TLAPACK_MATRIX matrix_t>
-bool hasinf(BandAccess accessType, const matrix_t& A)
+bool hasinf(BandAccess accessType, const matrix_t& A) noexcept
 {
     using idx_t = size_type<matrix_t>;
 
@@ -271,7 +271,7 @@ bool hasinf(BandAccess accessType, const matrix_t& A)
  * @return false if x has no infinite entry.
  */
 template <TLAPACK_VECTOR vector_t>
-bool hasinf(const vector_t& x)
+bool hasinf(const vector_t& x) noexcept
 {
     using idx_t = size_type<vector_t>;
 
@@ -286,7 +286,7 @@ bool hasinf(const vector_t& x)
 // -----------------------------------------------------------------------------
 /// isnan for complex numbers
 template <typename T, enable_if_t<is_complex<T>, int> = 0>
-inline bool isnan(const T& x)
+constexpr bool isnan(const T& x) noexcept
 {
     return isnan(real(x)) || isnan(imag(x));
 }
@@ -379,7 +379,7 @@ bool hasnan(uplo_t uplo, const matrix_t& A)
  * @see tlapack::hasnan(uplo_t uplo, const matrix_t& A).
  */
 template <TLAPACK_MATRIX matrix_t>
-bool hasnan(BandAccess accessType, const matrix_t& A)
+bool hasnan(BandAccess accessType, const matrix_t& A) noexcept
 {
     using idx_t = size_type<matrix_t>;
 
@@ -404,7 +404,7 @@ bool hasnan(BandAccess accessType, const matrix_t& A)
  * @return false if x has no NaN entry.
  */
 template <TLAPACK_VECTOR vector_t>
-bool hasnan(const vector_t& x)
+bool hasnan(const vector_t& x) noexcept
 {
     using idx_t = size_type<vector_t>;
 

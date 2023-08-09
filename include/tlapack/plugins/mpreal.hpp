@@ -40,11 +40,11 @@ namespace traits {
 
 // Forward declaration
 template <typename real_t>
-inline int digits();
+inline int digits() noexcept;
 
 // Specialization for the mpfr::mpreal datatype
 template <>
-inline int digits<mpfr::mpreal>()
+inline int digits<mpfr::mpreal>() noexcept
 {
     return std::numeric_limits<mpfr::mpreal>::digits();
 }
