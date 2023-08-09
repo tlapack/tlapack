@@ -98,6 +98,8 @@ WorkInfo qr_iteration_worksize(bool want_t,
  *      On entry, the previously calculated Schur factors
  *      On exit, the orthogonal updates applied to A are accumulated
  *      into Z.
+ * @param[in] opts Options.
+ *      - @c opts.variant: Variant of the algorithm to use.
  */
 template <TLAPACK_MATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
