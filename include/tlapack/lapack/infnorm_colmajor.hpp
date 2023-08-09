@@ -32,7 +32,7 @@ inline constexpr WorkInfo infnorm_colmajor_worksize(const matrix_t& A)
  *
  * Code optimized for the infinity norm on column-major layouts using a
  * workspace of size at least m, where m is the number of rows of A.
- * 
+ *
  * @see lange() for the generic implementation that does not use workspaces.
  *
  * @param[in] A m-by-n matrix.
@@ -86,7 +86,7 @@ auto infnorm_colmajor_work(const matrix_t& A, work_t& work)
  *
  * Code optimized for the infinity norm on column-major layouts using a
  * workspace of size at least m, where m is the number of rows of A.
- * 
+ *
  * @see lange() for the generic implementation that does not use workspaces.
  *
  * @param[in] A m-by-n matrix.
