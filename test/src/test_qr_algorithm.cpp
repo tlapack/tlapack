@@ -1,6 +1,7 @@
-/// @file test_unblocked_francis.cpp
+/// @file test_qr_algorithm.cpp
 /// @author Thijs Steel, KU Leuven, Belgium
-/// @brief Test double shift QR algorithm.
+/// @author Weslley S Pereira, University of Colorado Denver, USA
+/// @brief Test QR algorithms.
 //
 // Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
@@ -20,12 +21,13 @@
 #include <tlapack/lapack/laset.hpp>
 
 // Other routines
-#include <tlapack/lapack/lahqr.hpp>
+#include <tlapack/lapack/gehrd.hpp>
+#include <tlapack/lapack/qr_iteration.hpp>
 
 using namespace tlapack;
 
-TEMPLATE_TEST_CASE("Double shift QR",
-                   "[eigenvalues][doubleshift_qr]",
+TEMPLATE_TEST_CASE("QR algorithm",
+                   "[eigenvalues][doubleshift_qr][multishift_qr]",
                    TLAPACK_TYPES_TO_TEST)
 {
     srand(1);
@@ -39,20 +41,44 @@ TEMPLATE_TEST_CASE("Double shift QR",
     // Functor
     Create<matrix_t> new_matrix;
 
-    const T zero(0);
-    const T one(1);
-
     using test_tuple_t = std::tuple<std::string, idx_t>;
     const test_tuple_t test_tuple = GENERATE(
         (test_tuple_t("Near overflow", 4)), (test_tuple_t("Near overflow", 10)),
-        (test_tuple_t("Random", 0)), (test_tuple_t("Random", 1)),
-        (test_tuple_t("Random", 2)), (test_tuple_t("Random", 5)),
-        (test_tuple_t("Random", 10)), (test_tuple_t("Random", 15)));
+        (test_tuple_t("Large Random", 100)), (test_tuple_t("Random", 0)),
+        (test_tuple_t("Random", 1)), (test_tuple_t("Random", 2)),
+        (test_tuple_t("Random", 5)), (test_tuple_t("Random", 10)),
+        (test_tuple_t("Random", 15)), (test_tuple_t("Random", 20)),
+        (test_tuple_t("Random", 30)));
+    const int seed = GENERATE(2, 3);
+
+    using variant_t = std::tuple<QRIterationVariant, idx_t, idx_t>;
+    const variant_t variant =
+        GENERATE((variant_t(QRIterationVariant::DoubleShift, 0, 0)),
+                 (variant_t(QRIterationVariant::MultiShift, 4, 4)),
+                 (variant_t(QRIterationVariant::MultiShift, 4, 2)),
+                 (variant_t(QRIterationVariant::MultiShift, 2, 4)),
+                 (variant_t(QRIterationVariant::MultiShift, 2, 2)));
 
     const std::string matrix_type = std::get<0>(test_tuple);
     const idx_t n = std::get<1>(test_tuple);
     const idx_t ilo = 0;
     const idx_t ihi = n;
+    const real_t zero(0);
+    const real_t one(1);
+    const idx_t ns = std::get<1>(variant);
+    const idx_t nw = std::get<2>(variant);
+
+    // Only run the large random test once
+    if (matrix_type == "Large Random" && seed != 2) return;
+
+    // Only run the large random if we are testing multishift qr
+    if (matrix_type == "Large Random" &&
+        std::get<0>(variant) != QRIterationVariant::MultiShift)
+        return;
+
+    // Random number generator
+    rand_generator gen;
+    gen.seed(seed);
 
     // Define the matrices
     std::vector<T> A_;
@@ -65,19 +91,34 @@ TEMPLATE_TEST_CASE("Double shift QR",
     if (matrix_type == "Random") {
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = 0; i < min(n, j + 2); ++i)
-                A(i, j) = rand_helper<T>();
+                A(i, j) = rand_helper<T>(gen);
 
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = j + 2; i < n; ++i)
                 A(i, j) = zero;
     }
     if (matrix_type == "Near overflow") {
-        const real_t large_num = safe_max<real_t>() * uroundoff<real_t>();
+        const real_t large_num = safe_max<real_t>() * ulp<real_t>();
 
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = 0; i < min(n, j + 2); ++i)
                 A(i, j) = large_num;
 
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = j + 2; i < n; ++i)
+                A(i, j) = zero;
+    }
+    if (matrix_type == "Large Random") {
+        // Generate full matrix
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = 0; i < n; ++i)
+                A(i, j) = rand_helper<T>(gen);
+
+        // Hessenberg factorization
+        std::vector<T> tau(n);
+        gehrd(0, n, A, tau);
+
+        // Throw away reflectors
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = j + 2; i < n; ++i)
                 A(i, j) = zero;
@@ -95,12 +136,28 @@ TEMPLATE_TEST_CASE("Double shift QR",
     std::vector<complex_t> s(n);
     laset(GENERAL, zero, one, Q);
 
-    DYNAMIC_SECTION("matrix = " << matrix_type << " n = " << n
-                                << " ilo = " << ilo << " ihi = " << ihi)
+    DYNAMIC_SECTION("matrix = " << matrix_type << " n = " << n << " ilo = "
+                                << ilo << " ihi = " << ihi << " ns = " << ns
+                                << " nw = " << nw << " seed = " << seed
+                                << " variant = " << (char)std::get<0>(variant))
     {
-        int ierr = lahqr(true, true, ilo, ihi, H, s, Q);
+        QRIterationOpts opts;
+        opts.variant = std::get<0>(variant);
+        opts.nshift_recommender = [ns](idx_t n, idx_t nh) -> idx_t {
+            return ns;
+        };
+        opts.deflation_window_recommender = [nw](idx_t n, idx_t nh) -> idx_t {
+            return nw;
+        };
+        opts.nmin = 15;
 
-        REQUIRE(ierr == 0);
+        int ierr = qr_iteration(true, true, ilo, ihi, H, s, Q, opts);
+        CHECK(ierr == 0);
+
+        // Clean the lower triangular part that was used a workspace
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = j + 2; i < n; ++i)
+                H(i, j) = zero;
 
         const real_t eps = uroundoff<real_t>();
         const real_t tol = real_t(n * 1.0e2) * eps;
