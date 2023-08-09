@@ -41,7 +41,6 @@ set(TLAPACK_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/test")
 
 # Testers
-add_executable(test_blocked_francis test_blocked_francis.cpp)
 add_executable(test_lasy2 test_lasy2.cpp)
 add_executable(test_schur_move test_schur_move.cpp)
 add_executable(test_transpose test_transpose.cpp)
