@@ -56,13 +56,13 @@ template <TLAPACK_SMATRIX matrixV_t,
           TLAPACK_DIRECTION direction_t,
           TLAPACK_STOREV storage_t>
 inline int householder_q_mul(side_t side,
-                      trans_t trans,
-                      direction_t direction,
-                      storage_t storeMode,
-                      const matrixV_t& V,
-                      const vector_t& tau,
-                      matrixC_t& C,
-                      const HouseholderQMulOpts& opts = {})
+                             trans_t trans,
+                             direction_t direction,
+                             storage_t storeMode,
+                             const matrixV_t& V,
+                             const vector_t& tau,
+                             matrixC_t& C,
+                             const HouseholderQMulOpts& opts = {})
 {
     if (opts.variant == HouseholderQMulVariant::Level2)
         return unmq_level2(side, trans, direction, storeMode, V, tau, C);
