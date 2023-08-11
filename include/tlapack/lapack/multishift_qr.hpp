@@ -14,7 +14,7 @@
 
 #include "tlapack/base/utils.hpp"
 #include "tlapack/lapack/FrancisOpts.hpp"
-#include "tlapack/lapack/agressive_early_deflation.hpp"
+#include "tlapack/lapack/aggressive_early_deflation.hpp"
 #include "tlapack/lapack/multishift_qr_sweep.hpp"
 
 namespace tlapack {
@@ -90,7 +90,7 @@ WorkInfo multishift_qr_worksize(bool want_t,
         const idx_t nw_max = (n - 3) / 3;
 
         idx_t ls = 0, ld = 0;
-        workinfo = agressive_early_deflation_worksize<T>(
+        workinfo = aggressive_early_deflation_worksize<T>(
             want_t, want_z, ilo, ihi, nw_max, A, w, Z, ls, ld, opts);
     }
 
@@ -299,8 +299,8 @@ int multishift_qr_work(bool want_t,
 
         idx_t ls, ld;
         n_aed = n_aed + 1;
-        agressive_early_deflation_work(want_t, want_z, istart, istop, nw, A, w,
-                                       Z, ls, ld, work, opts);
+        aggressive_early_deflation_work(want_t, want_z, istart, istop, nw, A, w,
+                                        Z, ls, ld, work, opts);
 
         istop = istop - ld;
 

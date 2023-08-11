@@ -167,14 +167,14 @@ void run(size_t n, size_t nw, bool use_fortran)
             }
             else {
                 std::vector<std::complex<real_t>> w(n);
-                tlapack::agressive_early_deflation(true, true, 0, n, nw, H, w,
-                                                   Q, ls, ld);
+                tlapack::aggressive_early_deflation(true, true, 0, n, nw, H, w,
+                                                    Q, ls, ld);
             }
         }
         else {
             std::vector<std::complex<real_t>> w(n);
-            tlapack::agressive_early_deflation(true, true, 0, n, nw, H, w, Q,
-                                               ls, ld);
+            tlapack::aggressive_early_deflation(true, true, 0, n, nw, H, w, Q,
+                                                ls, ld);
         }
     }
     // Record end time
@@ -260,9 +260,9 @@ int main(int argc, char** argv)
         std::cout << "Usage: " << argv[0] << " [n] [nw] [use_lapack]"
                   << std::endl;
         std::cout << "n: matrix size" << std::endl;
-        std::cout
-            << "nw: Desired window size to perform agressive early deflation on"
-            << std::endl;
+        std::cout << "nw: Desired window size to perform aggressive early "
+                     "deflation on"
+                  << std::endl;
         std::cout << "use_lapack: 1 (true) or 0 (false), use lapack or not"
                   << std::endl;
         return 1;

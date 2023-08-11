@@ -1,4 +1,4 @@
-/// @file agressive_early_deflation.hpp
+/// @file aggressive_early_deflation.hpp
 /// @author Thijs Steel, KU Leuven, Belgium
 //
 // Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
@@ -29,10 +29,10 @@
 namespace tlapack {
 
 template <class T, TLAPACK_SMATRIX matrix_t>
-WorkInfo agressive_early_deflation_worksize_gehrd(size_type<matrix_t> ilo,
-                                                  size_type<matrix_t> ihi,
-                                                  size_type<matrix_t> nw,
-                                                  const matrix_t& A)
+WorkInfo aggressive_early_deflation_worksize_gehrd(size_type<matrix_t> ilo,
+                                                   size_type<matrix_t> ihi,
+                                                   size_type<matrix_t> nw,
+                                                   const matrix_t& A)
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -51,7 +51,7 @@ WorkInfo agressive_early_deflation_worksize_gehrd(size_type<matrix_t> ilo,
         return WorkInfo();
 }
 
-/** Worspace query of agressive_early_deflation().
+/** Worspace query of aggressive_early_deflation().
  *
  * @param[in] want_t bool.
  *      If true, the full Schur factor T will be computed.
@@ -66,7 +66,7 @@ WorkInfo agressive_early_deflation_worksize_gehrd(size_type<matrix_t> ilo,
  *      ilo and ihi determine an isolated block in A.
  *
  * @param[in] nw    integer.
- *      Desired window size to perform agressive early deflation on.
+ *      Desired window size to perform aggressive early deflation on.
  *      If the matrix is not large enough to provide the scratch space
  *      or if the isolated block is small, a smaller value may be used.
  *
@@ -92,17 +92,17 @@ template <class T,
           TLAPACK_SMATRIX matrix_t,
           TLAPACK_SVECTOR vector_t,
           enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
-WorkInfo agressive_early_deflation_worksize(bool want_t,
-                                            bool want_z,
-                                            size_type<matrix_t> ilo,
-                                            size_type<matrix_t> ihi,
-                                            size_type<matrix_t> nw,
-                                            const matrix_t& A,
-                                            const vector_t& s,
-                                            const matrix_t& Z,
-                                            const size_type<matrix_t>& ns,
-                                            const size_type<matrix_t>& nd,
-                                            const FrancisOpts& opts = {})
+WorkInfo aggressive_early_deflation_worksize(bool want_t,
+                                             bool want_z,
+                                             size_type<matrix_t> ilo,
+                                             size_type<matrix_t> ihi,
+                                             size_type<matrix_t> nw,
+                                             const matrix_t& A,
+                                             const vector_t& s,
+                                             const matrix_t& Z,
+                                             const size_type<matrix_t>& ns,
+                                             const size_type<matrix_t>& nd,
+                                             const FrancisOpts& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -124,12 +124,12 @@ WorkInfo agressive_early_deflation_worksize(bool want_t,
     }
 
     workinfo.minMax(
-        agressive_early_deflation_worksize_gehrd<T>(ilo, ihi, nw, A));
+        aggressive_early_deflation_worksize_gehrd<T>(ilo, ihi, nw, A));
 
     return workinfo;
 }
 
-/** agressive_early_deflation accepts as input an upper Hessenberg matrix
+/** aggressive_early_deflation accepts as input an upper Hessenberg matrix
  *  H and performs an orthogonal similarity transformation
  *  designed to detect and deflate fully converged eigenvalues from
  *  a trailing principal submatrix.  On output H has been over-
@@ -151,7 +151,7 @@ WorkInfo agressive_early_deflation_worksize(bool want_t,
  *      ilo and ihi determine an isolated block in A.
  *
  * @param[in] nw    integer.
- *      Desired window size to perform agressive early deflation on.
+ *      Desired window size to perform aggressive early deflation on.
  *      If the matrix is not large enough to provide the scratch space
  *      or if the isolated block is small, a smaller value may be used.
  *
@@ -192,18 +192,18 @@ template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_SVECTOR vector_t,
           TLAPACK_RWORKSPACE work_t,
           enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
-void agressive_early_deflation_work(bool want_t,
-                                    bool want_z,
-                                    size_type<matrix_t> ilo,
-                                    size_type<matrix_t> ihi,
-                                    size_type<matrix_t> nw,
-                                    matrix_t& A,
-                                    vector_t& s,
-                                    matrix_t& Z,
-                                    size_type<matrix_t>& ns,
-                                    size_type<matrix_t>& nd,
-                                    work_t& work,
-                                    FrancisOpts& opts)
+void aggressive_early_deflation_work(bool want_t,
+                                     bool want_z,
+                                     size_type<matrix_t> ilo,
+                                     size_type<matrix_t> ihi,
+                                     size_type<matrix_t> nw,
+                                     matrix_t& A,
+                                     vector_t& s,
+                                     matrix_t& Z,
+                                     size_type<matrix_t>& ns,
+                                     size_type<matrix_t>& nd,
+                                     work_t& work,
+                                     FrancisOpts& opts)
 {
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
@@ -268,7 +268,7 @@ void agressive_early_deflation_work(bool want_t,
     auto work2 = [&]() {
         // Workspace query for gehrd
         WorkInfo workinfo =
-            agressive_early_deflation_worksize_gehrd<T>(ilo, ihi, nw, A);
+            aggressive_early_deflation_worksize_gehrd<T>(ilo, ihi, nw, A);
         const idx_t workSize = nrows(work) * ncols(work);
         auto aux = reshape(work, workSize, 1);
         auto aux2 = slice(aux, range{workSize - workinfo.size(), workSize},
@@ -542,24 +542,24 @@ template <TLAPACK_MATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
           TLAPACK_MATRIX work_t,
           enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
-inline void agressive_early_deflation_work(bool want_t,
-                                           bool want_z,
-                                           size_type<matrix_t> ilo,
-                                           size_type<matrix_t> ihi,
-                                           size_type<matrix_t> nw,
-                                           matrix_t& A,
-                                           vector_t& s,
-                                           matrix_t& Z,
-                                           size_type<matrix_t>& ns,
-                                           size_type<matrix_t>& nd,
-                                           work_t& work)
+inline void aggressive_early_deflation_work(bool want_t,
+                                            bool want_z,
+                                            size_type<matrix_t> ilo,
+                                            size_type<matrix_t> ihi,
+                                            size_type<matrix_t> nw,
+                                            matrix_t& A,
+                                            vector_t& s,
+                                            matrix_t& Z,
+                                            size_type<matrix_t>& ns,
+                                            size_type<matrix_t>& nd,
+                                            work_t& work)
 {
     FrancisOpts opts = {};
-    agressive_early_deflation_work(want_t, want_z, ilo, ihi, nw, A, s, Z, ns,
-                                   nd, work, opts);
+    aggressive_early_deflation_work(want_t, want_z, ilo, ihi, nw, A, s, Z, ns,
+                                    nd, work, opts);
 }
 
-/** agressive_early_deflation accepts as input an upper Hessenberg matrix
+/** aggressive_early_deflation accepts as input an upper Hessenberg matrix
  *  H and performs an orthogonal similarity transformation
  *  designed to detect and deflate fully converged eigenvalues from
  *  a trailing principal submatrix.  On output H has been over-
@@ -581,7 +581,7 @@ inline void agressive_early_deflation_work(bool want_t,
  *      ilo and ihi determine an isolated block in A.
  *
  * @param[in] nw    integer.
- *      Desired window size to perform agressive early deflation on.
+ *      Desired window size to perform aggressive early deflation on.
  *      If the matrix is not large enough to provide the scratch space
  *      or if the isolated block is small, a smaller value may be used.
  *
@@ -619,17 +619,17 @@ inline void agressive_early_deflation_work(bool want_t,
 template <TLAPACK_MATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
           enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
-void agressive_early_deflation(bool want_t,
-                               bool want_z,
-                               size_type<matrix_t> ilo,
-                               size_type<matrix_t> ihi,
-                               size_type<matrix_t> nw,
-                               matrix_t& A,
-                               vector_t& s,
-                               matrix_t& Z,
-                               size_type<matrix_t>& ns,
-                               size_type<matrix_t>& nd,
-                               FrancisOpts& opts)
+void aggressive_early_deflation(bool want_t,
+                                bool want_z,
+                                size_type<matrix_t> ilo,
+                                size_type<matrix_t> ihi,
+                                size_type<matrix_t> nw,
+                                matrix_t& A,
+                                vector_t& s,
+                                matrix_t& Z,
+                                size_type<matrix_t>& ns,
+                                size_type<matrix_t>& nd,
+                                FrancisOpts& opts)
 {
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
@@ -681,32 +681,32 @@ void agressive_early_deflation(bool want_t,
     }
 
     // Allocates workspace
-    WorkInfo workinfo = agressive_early_deflation_worksize<T>(
+    WorkInfo workinfo = aggressive_early_deflation_worksize<T>(
         want_t, want_z, ilo, ihi, nw, A, s, Z, ns, nd, opts);
     std::vector<T> work_;
     auto work = new_matrix(work_, workinfo.m, workinfo.n);
 
-    agressive_early_deflation_work(want_t, want_z, ilo, ihi, nw, A, s, Z, ns,
-                                   nd, work, opts);
+    aggressive_early_deflation_work(want_t, want_z, ilo, ihi, nw, A, s, Z, ns,
+                                    nd, work, opts);
 }
 
 template <TLAPACK_MATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
           enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
-inline void agressive_early_deflation(bool want_t,
-                                      bool want_z,
-                                      size_type<matrix_t> ilo,
-                                      size_type<matrix_t> ihi,
-                                      size_type<matrix_t> nw,
-                                      matrix_t& A,
-                                      vector_t& s,
-                                      matrix_t& Z,
-                                      size_type<matrix_t>& ns,
-                                      size_type<matrix_t>& nd)
+inline void aggressive_early_deflation(bool want_t,
+                                       bool want_z,
+                                       size_type<matrix_t> ilo,
+                                       size_type<matrix_t> ihi,
+                                       size_type<matrix_t> nw,
+                                       matrix_t& A,
+                                       vector_t& s,
+                                       matrix_t& Z,
+                                       size_type<matrix_t>& ns,
+                                       size_type<matrix_t>& nd)
 {
     FrancisOpts opts = {};
-    agressive_early_deflation(want_t, want_z, ilo, ihi, nw, A, s, Z, ns, nd,
-                              opts);
+    aggressive_early_deflation(want_t, want_z, ilo, ihi, nw, A, s, Z, ns, nd,
+                               opts);
 }
 
 }  // namespace tlapack
