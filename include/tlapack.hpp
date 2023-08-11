@@ -123,7 +123,7 @@
 // Nonsymmetric standard eigenvalue routines
 // ----------------
 
-#include "tlapack/lapack/agressive_early_deflation.hpp"
+#include "tlapack/lapack/aggressive_early_deflation.hpp"
 #include "tlapack/lapack/gehd2.hpp"
 #include "tlapack/lapack/gehrd.hpp"
 #include "tlapack/lapack/lahqr.hpp"
