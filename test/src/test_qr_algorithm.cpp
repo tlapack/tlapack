@@ -1,6 +1,7 @@
-/// @file test_blocked_francis.cpp
+/// @file test_qr_algorithm.cpp
 /// @author Thijs Steel, KU Leuven, Belgium
-/// @brief Test multishift QR algorithm.
+/// @author Weslley S Pereira, University of Colorado Denver, USA
+/// @brief Test QR algorithms.
 //
 // Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
@@ -21,14 +22,16 @@
 
 // Other routines
 #include <tlapack/lapack/gehrd.hpp>
-#include <tlapack/lapack/multishift_qr.hpp>
+#include <tlapack/lapack/qr_iteration.hpp>
 
 using namespace tlapack;
 
-TEMPLATE_TEST_CASE("Multishift QR",
-                   "[eigenvalues][multishift_qr]",
+TEMPLATE_TEST_CASE("QR algorithm",
+                   "[eigenvalues][doubleshift_qr][multishift_qr]",
                    TLAPACK_TYPES_TO_TEST)
 {
+    srand(1);
+
     using matrix_t = TestType;
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
@@ -40,25 +43,38 @@ TEMPLATE_TEST_CASE("Multishift QR",
 
     using test_tuple_t = std::tuple<std::string, idx_t>;
     const test_tuple_t test_tuple = GENERATE(
-        (test_tuple_t("Large Random", 100)), (test_tuple_t("Random", 15)),
-        (test_tuple_t("Random", 20)), (test_tuple_t("Random", 30)));
-    // The near overflow tests are disabled untill a bug in rotg is fixed
-    // const std::string matrix_type = GENERATE(as<std::string>{}, "Large
-    // Random", "Near overflow", "Random");
+        (test_tuple_t("Near overflow", 4)), (test_tuple_t("Near overflow", 10)),
+        (test_tuple_t("Large Random", 100)), (test_tuple_t("Random", 0)),
+        (test_tuple_t("Random", 1)), (test_tuple_t("Random", 2)),
+        (test_tuple_t("Random", 5)), (test_tuple_t("Random", 10)),
+        (test_tuple_t("Random", 15)), (test_tuple_t("Random", 20)),
+        (test_tuple_t("Random", 30)));
+    const int seed = GENERATE(2, 3);
+
+    using variant_t = std::tuple<QRIterationVariant, idx_t, idx_t>;
+    const variant_t variant =
+        GENERATE((variant_t(QRIterationVariant::DoubleShift, 0, 0)),
+                 (variant_t(QRIterationVariant::MultiShift, 4, 4)),
+                 (variant_t(QRIterationVariant::MultiShift, 4, 2)),
+                 (variant_t(QRIterationVariant::MultiShift, 2, 4)),
+                 (variant_t(QRIterationVariant::MultiShift, 2, 2)));
 
     const std::string matrix_type = std::get<0>(test_tuple);
     const idx_t n = std::get<1>(test_tuple);
-
-    const int seed = GENERATE(2, 3, 4, 5, 6, 7, 8, 9, 10);
-
-    // Only run the large random test once
-    if (matrix_type == "Large Random" && seed != 2) return;
-
-    // Constants
     const idx_t ilo = 0;
     const idx_t ihi = n;
     const real_t zero(0);
     const real_t one(1);
+    const idx_t ns = std::get<1>(variant);
+    const idx_t nw = std::get<2>(variant);
+
+    // Only run the large random test once
+    if (matrix_type == "Large Random" && seed != 2) return;
+
+    // Only run the large random if we are testing multishift qr
+    if (matrix_type == "Large Random" &&
+        std::get<0>(variant) != QRIterationVariant::MultiShift)
+        return;
 
     // Random number generator
     rand_generator gen;
@@ -120,14 +136,13 @@ TEMPLATE_TEST_CASE("Multishift QR",
     std::vector<complex_t> s(n);
     laset(GENERAL, zero, one, Q);
 
-    idx_t ns = GENERATE(4, 2);
-    idx_t nw = GENERATE(4, 2);
-
     DYNAMIC_SECTION("matrix = " << matrix_type << " n = " << n << " ilo = "
                                 << ilo << " ihi = " << ihi << " ns = " << ns
-                                << " nw = " << nw << " seed = " << seed)
+                                << " nw = " << nw << " seed = " << seed
+                                << " variant = " << (char)std::get<0>(variant))
     {
-        FrancisOpts opts;
+        QRIterationOpts opts;
+        opts.variant = std::get<0>(variant);
         opts.nshift_recommender = [ns](idx_t n, idx_t nh) -> idx_t {
             return ns;
         };
@@ -136,8 +151,7 @@ TEMPLATE_TEST_CASE("Multishift QR",
         };
         opts.nmin = 15;
 
-        int ierr = multishift_qr(true, true, ilo, ihi, H, s, Q, opts);
-
+        int ierr = qr_iteration(true, true, ilo, ihi, H, s, Q, opts);
         CHECK(ierr == 0);
 
         // Clean the lower triangular part that was used a workspace

@@ -13,7 +13,7 @@
 #define TLAPACK_UNM2L_HH
 
 #include "tlapack/base/utils.hpp"
-#include "tlapack/lapack/larf.hpp"
+#include "tlapack/lapack/unmq_level2.hpp"
 
 namespace tlapack {
 
@@ -118,7 +118,6 @@ int unm2l(side_t side,
 {
     using TA = type_t<matrixA_t>;
     using idx_t = size_type<matrixA_t>;
-    using range = pair<idx_t, idx_t>;
 
     // Functors
     Create<matrixA_t> new_matrix;
@@ -127,7 +126,6 @@ int unm2l(side_t side,
     const idx_t m = nrows(C);
     const idx_t n = ncols(C);
     const idx_t k = size(tau);
-    const idx_t nA = (side == Side::Left) ? m : n;
 
     // check arguments
     tlapack_check_false(side != Side::Left && side != Side::Right);
@@ -143,31 +141,8 @@ int unm2l(side_t side,
     std::vector<TA> work_;
     auto work = new_matrix(work_, workinfo.m, workinfo.n);
 
-    // const expressions
-    const bool positiveInc =
-        (((side == Side::Left) && (trans == Op::NoTrans)) ||
-         (!(side == Side::Left) && !(trans == Op::NoTrans)));
-    const idx_t i0 = (positiveInc) ? 0 : k - 1;
-    const idx_t iN = (positiveInc) ? k : -1;
-    const idx_t inc = (positiveInc) ? 1 : -1;
-
-    // Main loop
-    for (idx_t i = i0; i != iN; i += inc) {
-        auto v = slice(A, range{0, nA - k + i + 1}, i);
-
-        if (side == Side::Left) {
-            auto Ci = rows(C, range{0, m - k + i + 1});
-            larf_work(LEFT_SIDE, BACKWARD, COLUMNWISE_STORAGE, v,
-                      (trans == Op::ConjTrans) ? conj(tau[i]) : tau[i], Ci,
-                      work);
-        }
-        else {
-            auto Ci = cols(C, range{0, n - k + i + 1});
-            larf_work(RIGHT_SIDE, BACKWARD, COLUMNWISE_STORAGE, v,
-                      (trans == Op::ConjTrans) ? conj(tau[i]) : tau[i], Ci,
-                      work);
-        }
-    }
+    return unmq_level2_work(side, trans, BACKWARD, COLUMNWISE_STORAGE, A, tau,
+                            C, work);
 
     return 0;
 }

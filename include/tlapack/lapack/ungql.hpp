@@ -17,7 +17,7 @@
 #include "tlapack/lapack/larf.hpp"
 #include "tlapack/lapack/larfb.hpp"
 #include "tlapack/lapack/larft.hpp"
-#include "tlapack/lapack/ung2l.hpp"
+#include "tlapack/lapack/ungq.hpp"
 
 namespace tlapack {
 
@@ -27,62 +27,6 @@ namespace tlapack {
 struct UngqlOpts {
     size_t nb = 32;  ///< Block size
 };
-
-/** Worspace query of ungql()
- *
- * @param[in] A m-by-n matrix.
-
- * @param[in] tau Real vector of length min(m,n).
- *      The scalar factors of the elementary reflectors.
- *
- * @param[in] opts Options.
- *
- * @return WorkInfo The amount workspace required.
- *
- * @ingroup workspace_query
- */
-template <class T, TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
-inline constexpr WorkInfo ungql_worksize(const matrix_t& A,
-                                         const vector_t& tau,
-                                         const UngqlOpts& opts = {})
-{
-    using idx_t = size_type<matrix_t>;
-    using matrixT_t = matrix_type<matrix_t, vector_t>;
-    using range = pair<idx_t, idx_t>;
-
-    // Constants
-    const idx_t m = nrows(A);
-    const idx_t n = ncols(A);
-    const idx_t k = size(tau);
-    const idx_t nb = min((idx_t)opts.nb, k);
-
-    WorkInfo workinfo;
-
-    // larfb:
-    if (n > nb) {
-        // Empty matrices
-        const auto V = slice(A, range{0, m}, range{0, nb});
-        const auto matrixT = slice(A, range{0, nb}, range{0, nb});
-        const auto C =
-            slice(A, range{0, m}, range{0, (n - k) + ((k - 1) / nb) * nb});
-
-        // Internal workspace queries
-        workinfo = larfb_worksize<T>(LEFT_SIDE, NO_TRANS, BACKWARD,
-                                     COLUMNWISE_STORAGE, V, matrixT, C);
-
-        // Local workspace sizes
-        if (is_same_v<T, type_t<matrixT_t>>) workinfo += WorkInfo(nb, nb);
-    }
-
-    // ung2l:
-    {
-        const auto Ai = slice(A, range{0, m}, range{0, nb});
-        const auto taui = slice(tau, range{0, nb});
-        workinfo.minMax(ung2l_worksize<T>(Ai, taui));
-    }
-
-    return workinfo;
-}
 
 /**
  * @brief Generates an m-by-n matrix Q with orthonormal columns,
@@ -110,77 +54,7 @@ inline constexpr WorkInfo ungql_worksize(const matrix_t& A,
 template <TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
 int ungql(matrix_t& A, const vector_t& tau, const UngqlOpts& opts = {})
 {
-    using T = type_t<matrix_t>;
-    using real_t = real_type<T>;
-    using idx_t = size_type<matrix_t>;
-    using range = pair<idx_t, idx_t>;
-    using matrixT_t = matrix_type<matrix_t, vector_t>;
-
-    // Functor
-    Create<matrixT_t> new_matrix;
-
-    // constants
-    const real_t zero(0);
-    const real_t one(1);
-    const idx_t m = nrows(A);
-    const idx_t n = ncols(A);
-    const idx_t k = size(tau);
-    const idx_t nb = min((idx_t)opts.nb, k);
-
-    // check arguments
-    tlapack_check_false(k > n);
-
-    // quick return
-    if (n <= 0) return 0;
-
-    // Allocates workspace
-    WorkInfo workinfo = ungql_worksize<T>(A, tau, opts);
-    std::vector<T> work_;
-    auto work = new_matrix(work_, workinfo.m, workinfo.n);
-
-    auto matrixT = (n > nb) ? slice(work, range{workinfo.m - nb, workinfo.m},
-                                    range{workinfo.n - nb, workinfo.n})
-                            : slice(work, range{0, 0}, range{0, 0});
-    auto W = (n > nb) ? slice(work, range{workinfo.m - nb, workinfo.m},
-                              range{0, workinfo.n - nb})
-                      : slice(work, range{0, 0}, range{0, 0});
-
-    // Initialise rows 0:m-k to rows of the unit matrix
-    for (idx_t j = 0; j < n - k; ++j) {
-        for (idx_t i = 0; i < m; ++i)
-            A(i, j) = zero;
-        A(m - n + j, j) = one;
-    }
-
-    for (idx_t i = 0; i < k; i += nb) {
-        idx_t ib = min<idx_t>(nb, k - i);
-        idx_t ii = n - k + i;
-        const auto taui = slice(tau, range{i, i + ib});
-        // Use block reflector to update most of the matrix
-        // We do this first because the reflectors will be destroyed by the
-        // unblocked code later.
-        if (ii > 0) {
-            // Form the triangular factor of the block reflector
-            // H = H(i) H(i+1) . . . H(i+ib-1)
-            const auto V =
-                slice(A, range{0, m - k + i + ib}, range{ii, ii + ib});
-            auto matrixTi = slice(matrixT, range{0, ib}, range{0, ib});
-            auto C = slice(A, range{0, m - k + i + ib}, range{0, ii});
-
-            larft(BACKWARD, COLUMNWISE_STORAGE, V, taui, matrixTi);
-            larfb_work(LEFT_SIDE, NO_TRANS, BACKWARD, COLUMNWISE_STORAGE, V,
-                       matrixTi, C, W);
-        }
-        // Use unblocked code to apply H to rows 0:m-k+i+ib of current block
-        auto Ai = slice(A, range{0, m - k + i + ib}, range{ii, ii + ib});
-        ung2l_work(Ai, taui, work);
-        // Set rows m-k+i+ib:m of current block to zero
-        for (idx_t j = ii; j < ii + ib; ++j)
-            for (idx_t l = m - k + i + ib; l < m; l++)
-                A(l, j) = zero;
-    }
-
-    return 0;
+    return ungq(BACKWARD, COLUMNWISE_STORAGE, A, tau, UngqOpts{opts.nb});
 }
 
 }  // namespace tlapack

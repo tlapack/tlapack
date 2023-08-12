@@ -13,7 +13,7 @@
 #define TLAPACK_UNGL2_HH
 
 #include "tlapack/base/utils.hpp"
-#include "tlapack/lapack/larf.hpp"
+#include "tlapack/lapack/ungq_level2.hpp"
 
 namespace tlapack {
 
@@ -79,58 +79,7 @@ template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_WORKSPACE work_t>
 int ungl2_work(matrix_t& Q, const vector_t& tauw, work_t& work)
 {
-    using idx_t = size_type<matrix_t>;
-    using T = type_t<matrix_t>;
-    using range = pair<idx_t, idx_t>;
-    using real_t = real_type<T>;
-
-    // constants
-    const idx_t k = nrows(Q);
-    const idx_t n = ncols(Q);
-    const idx_t m =
-        size(tauw);  // maximum number of Householder reflectors to use
-    const idx_t t =
-        min(k, m);  // desired number of Householder reflectors to use
-
-    // check arguments
-    tlapack_check_false((idx_t)size(tauw) < min(m, n));
-
-    // Initialise columns t:k-1 to rows of the unit matrix
-    if (k > m) {
-        for (idx_t j = 0; j < n; ++j) {
-            for (idx_t i = t; i < k; ++i)
-                Q(i, j) = real_t(0);
-            if (j < k && j > t - 1) Q(j, j) = real_t(1);
-        }
-    }
-
-    for (idx_t j = t - 1; j != idx_t(-1); --j) {
-        // Apply H(j)**H to Q(j:k,j:n) from the right
-        if (j + 1 < n) {
-            auto w = slice(Q, j, range(j, n));
-
-            // Apply to the Q11 below the w
-            if ((k > m && j + 1 == t) || (j + 1 < t)) {
-                // When k > m, we need to start from the (t-1)th row of w and
-                // apply to Q(j+1:k,j:n) This procedure is only used once when
-                // both conditions are satisfied
-
-                auto Q11 = slice(Q, range(j + 1, k), range(j, n));
-                larf_work(RIGHT_SIDE, FORWARD, ROWWISE_STORAGE, w,
-                          conj(tauw[j]), Q11, work);
-            }
-
-            scal(-conj(tauw[j]), w);
-        }
-
-        Q(j, j) = real_t(1.) - conj(tauw[j]);
-
-        // Set Q(j,0:j-1) to zero
-        for (idx_t l = 0; l < j; l++)
-            Q(j, l) = real_t(0);
-    }
-
-    return 0;
+    return ungq_level2_work(FORWARD, ROWWISE_STORAGE, Q, tauw, work);
 }
 
 /**

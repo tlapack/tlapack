@@ -14,7 +14,7 @@
 
 #include "tlapack/base/utils.hpp"
 #include "tlapack/blas/scal.hpp"
-#include "tlapack/lapack/larf.hpp"
+#include "tlapack/lapack/ungq_level2.hpp"
 
 namespace tlapack {
 
@@ -71,47 +71,7 @@ template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_WORKSPACE work_t>
 int ung2r_work(matrix_t& A, const vector_t& tau, work_t& work)
 {
-    using T = type_t<matrix_t>;
-    using real_t = real_type<T>;
-    using idx_t = size_type<matrix_t>;
-    using range = pair<idx_t, idx_t>;
-
-    // constants
-    const real_t zero(0);
-    const real_t one(1);
-    const idx_t m = nrows(A);
-    const idx_t n = ncols(A);
-    const idx_t k = size(tau);
-
-    // check arguments
-    tlapack_check_false(k > n);
-
-    // quick return
-    if (n <= 0) return 0;
-
-    // Initialise columns k:n-1 to columns of the unit matrix
-    for (idx_t j = k; j < min(m, n); ++j) {
-        for (idx_t l = 0; l < m; ++l)
-            A(l, j) = zero;
-        A(j, j) = one;
-    }
-
-    for (idx_t i = k - 1; i != idx_t(-1); --i) {
-        // Apply $H_{i+1}$ to $A( i:m-1, i:n-1 )$ from the left
-        // Define v and C
-        auto v = slice(A, range{i, m}, i);
-        auto C = slice(A, range{i, m}, range{i + 1, n});
-        larf_work(LEFT_SIDE, FORWARD, COLUMNWISE_STORAGE, v, tau[i], C, work);
-        auto x = slice(A, range{i + 1, m}, i);
-        scal(-tau[i], x);
-        A(i, i) = one - tau[i];
-
-        // Set A( 0:i-1, i ) to zero
-        for (idx_t l = 0; l < i; l++)
-            A(l, i) = zero;
-    }
-
-    return 0;
+    return ungq_level2_work(FORWARD, COLUMNWISE_STORAGE, A, tau, work);
 }
 
 /**

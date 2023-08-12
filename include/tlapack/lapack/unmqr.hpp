@@ -12,8 +12,7 @@
 #define TLAPACK_UNMQR_HH
 
 #include "tlapack/base/utils.hpp"
-#include "tlapack/lapack/larfb.hpp"
-#include "tlapack/lapack/larft.hpp"
+#include "tlapack/lapack/unmq.hpp"
 
 namespace tlapack {
 
@@ -163,68 +162,8 @@ int unmqr(side_t side,
           matrixC_t& C,
           const UnmqrOpts& opts = {})
 {
-    using TA = type_t<matrixA_t>;
-    using idx_t = size_type<matrixC_t>;
-    using matrixT_t = matrix_type<matrixA_t, tau_t>;
-    using T = type_t<matrixT_t>;
-
-    using range = pair<idx_t, idx_t>;
-
-    // Functor
-    Create<matrixT_t> new_matrix;
-
-    // Constants
-    const idx_t m = nrows(C);
-    const idx_t n = ncols(C);
-    const idx_t k = size(tau);
-    const idx_t nA = (side == Side::Left) ? m : n;
-    const idx_t nb = min<idx_t>(opts.nb, k);
-
-    // check arguments
-    tlapack_check_false(side != Side::Left && side != Side::Right);
-    tlapack_check_false(trans != Op::NoTrans && trans != Op::Trans &&
-                        trans != Op::ConjTrans);
-    tlapack_check_false(trans == Op::Trans && is_complex<TA>);
-
-    // quick return
-    if ((m == 0) || (n == 0) || (k == 0)) return 0;
-
-    // Allocates workspace
-    WorkInfo workinfo = unmqr_worksize<T>(side, trans, A, tau, C, opts);
-    std::vector<T> work_;
-    auto work = new_matrix(work_, workinfo.m, workinfo.n);
-    auto matrixT = slice(work, range{workinfo.m - nb, workinfo.m},
-                         range{workinfo.n - nb, workinfo.n});
-
-    // Preparing loop indexes
-    const bool positiveInc =
-        (((side == Side::Left) && !(trans == Op::NoTrans)) ||
-         (!(side == Side::Left) && (trans == Op::NoTrans)));
-    const idx_t i0 = (positiveInc) ? 0 : ((k - 1) / nb) * nb;
-    const idx_t iN = (positiveInc) ? ((k - 1) / nb + 1) * nb : -nb;
-    const idx_t inc = (positiveInc) ? nb : -nb;
-
-    // Main loop
-    for (idx_t i = i0; i != iN; i += inc) {
-        idx_t ib = min<idx_t>(nb, k - i);
-        const auto V = slice(A, range{i, nA}, range{i, i + ib});
-        const auto taui = slice(tau, range{i, i + ib});
-        auto matrixTi = slice(matrixT, range{0, ib}, range{0, ib});
-
-        // Form the triangular factor of the block reflector
-        // $H = H(i) H(i+1) ... H(i+ib-1)$
-        larft(FORWARD, COLUMNWISE_STORAGE, V, taui, matrixTi);
-
-        // H or H**H is applied to either C[i:m,0:n] or C[0:m,i:n]
-        auto Ci = (side == Side::Left) ? slice(C, range{i, m}, range{0, n})
-                                       : slice(C, range{0, m}, range{i, n});
-
-        // Apply H or H**H
-        larfb_work(side, trans, FORWARD, COLUMNWISE_STORAGE, V, matrixTi, Ci,
-                   work);
-    }
-
-    return 0;
+    return unmq(side, trans, FORWARD, COLUMNWISE_STORAGE, A, tau, C,
+                UnmqOpts{opts.nb});
 }
 
 }  // namespace tlapack

@@ -13,7 +13,7 @@
 #define TLAPACK_UNGR2_HH
 
 #include "tlapack/base/utils.hpp"
-#include "tlapack/lapack/larf.hpp"
+#include "tlapack/lapack/ungq_level2.hpp"
 
 namespace tlapack {
 
@@ -75,47 +75,7 @@ template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_WORKSPACE work_t>
 int ungr2_work(matrix_t& A, const vector_t& tau, work_t& work)
 {
-    using T = type_t<matrix_t>;
-    using real_t = real_type<T>;
-    using idx_t = size_type<matrix_t>;
-    using range = pair<idx_t, idx_t>;
-
-    // constants
-    const real_t zero(0);
-    const real_t one(1);
-    const idx_t m = nrows(A);
-    const idx_t n = ncols(A);
-    const idx_t k = size(tau);
-
-    // check arguments
-    tlapack_check_false(k < 0 || k > n);
-
-    // quick return
-    if (n <= 0) return 0;
-
-    // Initialise rows 0:m-k to rows of the unit matrix
-    for (idx_t j = 0; j < n; ++j) {
-        for (idx_t i = 0; i < m - k; ++i)
-            A(i, j) = zero;
-        if (j + m >= n and j + k <= n) A(m + j - n, j) = one;
-    }
-
-    for (idx_t i = 0; i < k; ++i) {
-        idx_t ii = m - k + i;
-        auto v = slice(A, ii, range{0, n - k + 1 + i});
-        auto C = slice(A, range{0, ii}, range{0, n - k + 1 + i});
-        larf_work(RIGHT_SIDE, BACKWARD, ROWWISE_STORAGE, v, conj(tau[i]), C,
-                  work);
-        auto x = slice(A, ii, range{0, n - k + i});
-        scal(-conj(tau[i]), x);
-        A(ii, n - k + i) = one - conj(tau[i]);
-
-        // Set A( 0:i-1, i ) to zero
-        for (idx_t l = n - k + i + 1; l < n; l++)
-            A(ii, l) = zero;
-    }
-
-    return 0;
+    return ungq_level2_work(BACKWARD, ROWWISE_STORAGE, A, tau, work);
 }
 
 /**
