@@ -12,11 +12,7 @@
 
 #include <vector>
 
-#ifndef TLAPACK_USE_MDSPAN
-    #include "tlapack/LegacyVector.hpp"
-#else
-    #include <experimental/mdspan>
-#endif
+#include "tlapack/LegacyVector.hpp"
 
 namespace tlapack {
 
@@ -42,13 +38,9 @@ inline constexpr auto slice(const std::vector<T, Allocator>& v,
            rows.first == rows.second);
     assert(rows.second >= 0 && (std::size_t)rows.second <= size(v));
     assert(rows.first <= rows.second);
-#ifndef TLAPACK_USE_MDSPAN
+
     return LegacyVector<T, std::size_t>(rows.second - rows.first,
                                         (T*)v.data() + rows.first);
-#else
-    return std::experimental::mdspan<T, std::experimental::dextents<1> >(
-        (T*)v.data() + rows.first, (std::size_t)(rows.second - rows.first));
-#endif
 }
 
 }  // namespace tlapack
