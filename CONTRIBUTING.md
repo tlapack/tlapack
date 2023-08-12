@@ -116,6 +116,14 @@ We recommend the usage of `auto` in the following cases:
 
 2. In the return type of functions like `tlapack::asum`, `tlapack::dot`, `tlapack::nrm2` and `tlapack::lange`. By defining the output as `auto`, we enable overloading of those functions using mixed precision. For instance, one may write a overloading of `tlapack::lange` for matrices `Eigen::MatrixXf` that returns `double`.
 
+### assert vs check
+
+- `assert()`: Used on checks related to the logic of an algorithm. The assertion is supposed to check that the logic is correct, and so they are active only on debug mode. The function `assert()` does nothing if the `NDEBUG` flag is defined. Some examples of usage in \<T\>LAPACK are:
+  - check the range of (i,j) before access A(i,j) in the legacy classes for matrices and vectors.
+  - check if `x` is zero when calling the constructor `StrongZero(x)`.
+  
+- `tlapack_check()`: Used on checks related to the validity of an input of a function. It is enabled if TLAPACK_CHECK_INPUT is defined and TLAPACK_NDEBUG is not. Also used to test the input parameters when creating new legacy matrices and vectors, see `LegacyMatrix.hpp`. THe reason to use `tlapack_check()` instead of assert for matrix and vector creation is to be in the same page as LAPACK. LAPACK routines check the dimensions `m`, `n` and `ldim` the same way it checks other input parameters. `tlapack_check_false(cond)` is the same as `tlapack_check(!cond)`.
+
 ### Good practices when writing code inside the library
 
 1. Declare real-valued constants using real types. For instance, use `const real_type<T> zero(0)` instead of `const T zero(0)`. This is because the type `T` may be a complex type, and the constant `zero` is real. Avoid constants like `const real_type<T> rzero(0)` and `const T czero(0)` in the same function, because it is confusing.

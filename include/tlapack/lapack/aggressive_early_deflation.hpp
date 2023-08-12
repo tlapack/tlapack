@@ -224,13 +224,13 @@ void aggressive_early_deflation_work(bool want_t,
     // First row index in the deflation window
     const idx_t kwtop = ihi - jw;
 
-    // Assertions
-    assert(nrows(A) == n);
+    // check arguments
+    tlapack_check(nrows(A) == n);
     if (want_z) {
-        assert(ncols(Z) == n);
-        assert(nrows(Z) == n);
+        tlapack_check(ncols(Z) == n);
+        tlapack_check(nrows(Z) == n);
     }
-    assert((idx_t)size(s) == n);
+    tlapack_check((idx_t)size(s) == n);
 
     // s is the value just outside the window. It determines the spike
     // together with the orthogonal schur factors.
@@ -651,13 +651,13 @@ void aggressive_early_deflation(bool want_t,
     // First row index in the deflation window
     const idx_t kwtop = ihi - jw;
 
-    // Assertions
-    assert(nrows(A) == n);
+    // check arguments
+    tlapack_check(nrows(A) == n);
     if (want_z) {
-        assert(ncols(Z) == n);
-        assert(nrows(Z) == n);
+        tlapack_check(ncols(Z) == n);
+        tlapack_check(nrows(Z) == n);
     }
-    assert((idx_t)size(s) == n);
+    tlapack_check((idx_t)size(s) == n);
 
     // s is the value just outside the window. It determines the spike
     // together with the orthogonal schur factors.

@@ -17,26 +17,26 @@ namespace tlapack {
 
 // Forward declarations
 template <class T, std::enable_if_t<is_real<T>, int> = 0>
-inline constexpr real_type<T> real(const T& x);
+inline constexpr real_type<T> real(const T& x) noexcept;
 template <class T, std::enable_if_t<is_real<T>, int> = 0>
-inline constexpr real_type<T> imag(const T& x);
+inline constexpr real_type<T> imag(const T& x) noexcept;
 template <class T, std::enable_if_t<is_real<T>, int> = 0>
-inline constexpr T conj(const T& x);
+inline constexpr T conj(const T& x) noexcept;
 
 template <class T>
-inline constexpr real_type<T> real(const starpu::MatrixEntry<T>& x)
+inline constexpr real_type<T> real(const starpu::MatrixEntry<T>& x) noexcept
 {
     return real(T(x));
 }
 
 template <class T>
-inline constexpr real_type<T> imag(const starpu::MatrixEntry<T>& x)
+inline constexpr real_type<T> imag(const starpu::MatrixEntry<T>& x) noexcept
 {
     return imag(T(x));
 }
 
 template <class T>
-inline constexpr T conj(const starpu::MatrixEntry<T>& x)
+inline constexpr T conj(const starpu::MatrixEntry<T>& x) noexcept
 {
     return conj(T(x));
 }
@@ -59,19 +59,19 @@ namespace tlapack {
 
 // Number of rows
 template <class T>
-constexpr auto nrows(const starpu::Matrix<T>& A)
+constexpr auto nrows(const starpu::Matrix<T>& A) noexcept
 {
     return A.nrows();
 }
 // Number of columns
 template <class T>
-constexpr auto ncols(const starpu::Matrix<T>& A)
+constexpr auto ncols(const starpu::Matrix<T>& A) noexcept
 {
     return A.ncols();
 }
 // Size
 template <class T>
-constexpr auto size(const starpu::Matrix<T>& A)
+constexpr auto size(const starpu::Matrix<T>& A) noexcept
 {
     return A.nrows() * A.ncols();
 }
@@ -91,7 +91,7 @@ template <
                             int>::type = 0>
 constexpr auto slice(const starpu::Matrix<T>& A,
                      SliceSpecRow&& rows,
-                     SliceSpecCol&& cols)
+                     SliceSpecCol&& cols) noexcept
 {
     using starpu::idx_t;
 
@@ -110,7 +110,7 @@ template <
                             int>::type = 0>
 constexpr auto slice(starpu::Matrix<T>& A,
                      SliceSpecRow&& rows,
-                     SliceSpecCol&& cols)
+                     SliceSpecCol&& cols) noexcept
 {
     using starpu::idx_t;
 
@@ -127,7 +127,7 @@ constexpr auto slice(starpu::Matrix<T>& A,
 template <class T, class SliceSpec>
 constexpr auto slice(const starpu::Matrix<T>& v,
                      SliceSpec&& range,
-                     starpu::idx_t colIdx)
+                     starpu::idx_t colIdx) noexcept
 {
     return slice(v, std::forward<SliceSpec>(range),
                  std::make_tuple(colIdx, colIdx + 1));
@@ -135,7 +135,7 @@ constexpr auto slice(const starpu::Matrix<T>& v,
 template <class T, class SliceSpec>
 constexpr auto slice(starpu::Matrix<T>& v,
                      SliceSpec&& range,
-                     starpu::idx_t colIdx)
+                     starpu::idx_t colIdx) noexcept
 {
     return slice(v, std::forward<SliceSpec>(range),
                  std::make_tuple(colIdx, colIdx + 1));
@@ -144,7 +144,7 @@ constexpr auto slice(starpu::Matrix<T>& v,
 template <class T, class SliceSpec>
 constexpr auto slice(const starpu::Matrix<T>& v,
                      starpu::idx_t rowIdx,
-                     SliceSpec&& range)
+                     SliceSpec&& range) noexcept
 {
     return slice(v, std::make_tuple(rowIdx, rowIdx + 1),
                  std::forward<SliceSpec>(range));
@@ -152,14 +152,14 @@ constexpr auto slice(const starpu::Matrix<T>& v,
 template <class T, class SliceSpec>
 constexpr auto slice(starpu::Matrix<T>& v,
                      starpu::idx_t rowIdx,
-                     SliceSpec&& range)
+                     SliceSpec&& range) noexcept
 {
     return slice(v, std::make_tuple(rowIdx, rowIdx + 1),
                  std::forward<SliceSpec>(range));
 }
 
 template <class T, class SliceSpec>
-constexpr auto slice(const starpu::Matrix<T>& v, SliceSpec&& range)
+constexpr auto slice(const starpu::Matrix<T>& v, SliceSpec&& range) noexcept
 {
     assert((v.nrows() <= 1 || v.ncols() <= 1) && "Matrix is not a vector");
 
@@ -169,7 +169,7 @@ constexpr auto slice(const starpu::Matrix<T>& v, SliceSpec&& range)
         return slice(v, std::make_tuple(0, 1), std::forward<SliceSpec>(range));
 }
 template <class T, class SliceSpec>
-constexpr auto slice(starpu::Matrix<T>& v, SliceSpec&& range)
+constexpr auto slice(starpu::Matrix<T>& v, SliceSpec&& range) noexcept
 {
     assert((v.nrows() <= 1 || v.ncols() <= 1) && "Matrix is not a vector");
 
@@ -180,52 +180,52 @@ constexpr auto slice(starpu::Matrix<T>& v, SliceSpec&& range)
 }
 
 template <class T>
-constexpr auto col(const starpu::Matrix<T>& A, starpu::idx_t colIdx)
+constexpr auto col(const starpu::Matrix<T>& A, starpu::idx_t colIdx) noexcept
 {
     return slice(A, std::make_tuple(0, A.nrows()),
                  std::make_tuple(colIdx, colIdx + 1));
 }
 template <class T>
-constexpr auto col(starpu::Matrix<T>& A, starpu::idx_t colIdx)
+constexpr auto col(starpu::Matrix<T>& A, starpu::idx_t colIdx) noexcept
 {
     return slice(A, std::make_tuple(0, A.nrows()),
                  std::make_tuple(colIdx, colIdx + 1));
 }
 
 template <class T, class SliceSpec>
-constexpr auto cols(const starpu::Matrix<T>& A, SliceSpec&& cols)
+constexpr auto cols(const starpu::Matrix<T>& A, SliceSpec&& cols) noexcept
 {
     return slice(A, std::make_tuple(0, A.nrows()),
                  std::forward<SliceSpec>(cols));
 }
 template <class T, class SliceSpec>
-constexpr auto cols(starpu::Matrix<T>& A, SliceSpec&& cols)
+constexpr auto cols(starpu::Matrix<T>& A, SliceSpec&& cols) noexcept
 {
     return slice(A, std::make_tuple(0, A.nrows()),
                  std::forward<SliceSpec>(cols));
 }
 
 template <class T>
-constexpr auto row(const starpu::Matrix<T>& A, starpu::idx_t rowIdx)
+constexpr auto row(const starpu::Matrix<T>& A, starpu::idx_t rowIdx) noexcept
 {
     return slice(A, std::make_tuple(rowIdx, rowIdx + 1),
                  std::make_tuple(0, A.ncols()));
 }
 template <class T>
-constexpr auto row(starpu::Matrix<T>& A, starpu::idx_t rowIdx)
+constexpr auto row(starpu::Matrix<T>& A, starpu::idx_t rowIdx) noexcept
 {
     return slice(A, std::make_tuple(rowIdx, rowIdx + 1),
                  std::make_tuple(0, A.ncols()));
 }
 
 template <class T, class SliceSpec>
-constexpr auto rows(const starpu::Matrix<T>& A, SliceSpec&& rows)
+constexpr auto rows(const starpu::Matrix<T>& A, SliceSpec&& rows) noexcept
 {
     return slice(A, std::forward<SliceSpec>(rows),
                  std::make_tuple(0, A.ncols()));
 }
 template <class T, class SliceSpec>
-constexpr auto rows(starpu::Matrix<T>& A, SliceSpec&& rows)
+constexpr auto rows(starpu::Matrix<T>& A, SliceSpec&& rows) noexcept
 {
     return slice(A, std::forward<SliceSpec>(rows),
                  std::make_tuple(0, A.ncols()));

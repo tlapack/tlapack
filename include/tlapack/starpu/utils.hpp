@@ -64,7 +64,7 @@ namespace starpu {
                                           std::is_constructible_v<T, T1>;
         };
 
-        inline cublasOperation_t op2cublas(Op op)
+        inline cublasOperation_t op2cublas(Op op) noexcept
         {
             switch (op) {
                 case Op::NoTrans:
@@ -76,11 +76,11 @@ namespace starpu {
                 case Op::Conj:
                     return CUBLAS_OP_CONJG;
                 default:
-                    throw std::invalid_argument("Invalid value for Op");
+                    return cublasOperation_t(-1);
             }
         }
 
-        inline cublasFillMode_t uplo2cublas(Uplo uplo)
+        inline cublasFillMode_t uplo2cublas(Uplo uplo) noexcept
         {
             switch (uplo) {
                 case Uplo::Upper:
@@ -88,11 +88,11 @@ namespace starpu {
                 case Uplo::Lower:
                     return CUBLAS_FILL_MODE_LOWER;
                 default:
-                    throw std::invalid_argument("Invalid value for Uplo");
+                    return cublasFillMode_t(-1);
             }
         }
 
-        inline cublasDiagType_t diag2cublas(Diag diag)
+        inline cublasDiagType_t diag2cublas(Diag diag) noexcept
         {
             switch (diag) {
                 case Diag::NonUnit:
@@ -100,11 +100,11 @@ namespace starpu {
                 case Diag::Unit:
                     return CUBLAS_DIAG_UNIT;
                 default:
-                    throw std::invalid_argument("Invalid value for Diag");
+                    return cublasDiagType_t(-1);
             }
         }
 
-        inline cublasSideMode_t side2cublas(Side side)
+        inline cublasSideMode_t side2cublas(Side side) noexcept
         {
             switch (side) {
                 case Side::Left:
@@ -112,7 +112,7 @@ namespace starpu {
                 case Side::Right:
                     return CUBLAS_SIDE_RIGHT;
                 default:
-                    throw std::invalid_argument("Invalid value for Side");
+                    return cublasSideMode_t(-1);
             }
         }
 #endif

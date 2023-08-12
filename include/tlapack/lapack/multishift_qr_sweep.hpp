@@ -115,12 +115,12 @@ void multishift_QR_sweep_work(bool want_t,
     const real_t eps = ulp<real_t>();
     const real_t small_num = safe_min<real_t>() * ((real_t)n / eps);
 
-    // Assertions
-    assert(n >= 12);
-    assert(nrows(A) == n);
+    // check arguments
+    tlapack_check(n >= 12);
+    tlapack_check(nrows(A) == n);
     if (want_z) {
-        assert(ncols(Z) == n);
-        assert(nrows(Z) == n);
+        tlapack_check(ncols(Z) == n);
+        tlapack_check(nrows(Z) == n);
     }
 
     // Workspace matrix

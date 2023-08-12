@@ -25,7 +25,7 @@ namespace tlapack {
 
 // Size
 template <class T, class Allocator>
-inline constexpr auto size(const std::vector<T, Allocator>& x)
+inline constexpr auto size(const std::vector<T, Allocator>& x) noexcept
 {
     return x.size();
 }
@@ -36,7 +36,7 @@ inline constexpr auto size(const std::vector<T, Allocator>& x)
 // slice
 template <class T, class Allocator, class SliceSpec>
 inline constexpr auto slice(const std::vector<T, Allocator>& v,
-                            SliceSpec&& rows)
+                            SliceSpec&& rows) noexcept
 {
     assert((rows.first >= 0 && (std::size_t)rows.first < size(v)) ||
            rows.first == rows.second);

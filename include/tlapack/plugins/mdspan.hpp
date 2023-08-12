@@ -332,7 +332,7 @@ template <
                      int> = 0>
 auto reshape(std::experimental::mdspan<ET, Exts, LP, AP>& A,
              std::size_t m,
-             std::size_t n)
+             std::size_t n) noexcept
 {
     using size_type =
         typename std::experimental::mdspan<ET, Exts, LP, AP>::size_type;
@@ -340,10 +340,9 @@ auto reshape(std::experimental::mdspan<ET, Exts, LP, AP>& A,
     using matrix_t = std::experimental::mdspan<ET, extents_t, LP, AP>;
     using mapping_t = typename LP::template mapping<extents_t>;
 
-    if (m * n != A.size())
-        throw std::invalid_argument(
-            "reshape: new shape must have the same "
-            "number of elements as the original one");
+    assert((m * n == A.size()) &&
+           "reshape: new shape must have the same "
+           "number of elements as the original one");
 
     return matrix_t(A.data(), mapping_t(extents_t(m, n)));
 }
@@ -352,7 +351,7 @@ auto reshape(
     std::experimental::mdspan<ET, Exts, std::experimental::layout_stride, AP>&
         A,
     std::size_t m,
-    std::size_t n)
+    std::size_t n) noexcept
 {
     using LP = std::experimental::layout_stride;
     using idx_t =
@@ -366,16 +365,14 @@ auto reshape(
                                             std::array<idx_t, 2>{A.stride(0),
                                                                  A.stride(1)}));
     else {
-        if (m * n != A.size())
-            throw std::invalid_argument(
-                "reshape: new shape must have the same "
-                "number of elements as the original one");
-        if (!(A.stride(0) == 1 &&
-              (A.stride(1) == A.extent(0) || A.extent(1) <= 1)) &&
-            !(A.stride(1) == 1 &&
-              (A.stride(0) == A.extent(1) || A.extent(0) <= 1)))
-            throw std::invalid_argument(
-                "reshape: data must be contiguous in memory");
+        assert((m * n == A.size()) &&
+               "reshape: new shape must have the same "
+               "number of elements as the original one");
+        assert(((A.stride(0) == 1 &&
+                 (A.stride(1) == A.extent(0) || A.extent(1) <= 1)) ||
+                (A.stride(1) == 1 &&
+                 (A.stride(0) == A.extent(1) || A.extent(0) <= 1))) &&
+               "reshape: data must be contiguous in memory");
 
         return matrix_t(A.data(), mapping_t(extents_t(m, n),
                                             (A.stride(0) == 1)

@@ -109,63 +109,64 @@ namespace traits {
 
 // Number of rows of LegacyMatrix
 template <typename T, class idx_t, Layout layout>
-inline constexpr auto nrows(const LegacyMatrix<T, idx_t, layout>& A)
+inline constexpr auto nrows(const LegacyMatrix<T, idx_t, layout>& A) noexcept
 {
     return A.m;
 }
 
 // Number of columns of LegacyMatrix
 template <typename T, class idx_t, Layout layout>
-inline constexpr auto ncols(const LegacyMatrix<T, idx_t, layout>& A)
+inline constexpr auto ncols(const LegacyMatrix<T, idx_t, layout>& A) noexcept
 {
     return A.n;
 }
 
 // Size of LegacyMatrix
 template <typename T, class idx_t, Layout layout>
-inline constexpr auto size(const LegacyMatrix<T, idx_t, layout>& A)
+inline constexpr auto size(const LegacyMatrix<T, idx_t, layout>& A) noexcept
 {
     return A.m * A.n;
 }
 
 // Size of LegacyVector
 template <typename T, class idx_t, typename int_t, Direction direction>
-inline constexpr auto size(const LegacyVector<T, idx_t, int_t, direction>& x)
+inline constexpr auto size(
+    const LegacyVector<T, idx_t, int_t, direction>& x) noexcept
 {
     return x.n;
 }
 
 // Number of rows of LegacyBandedMatrix
 template <typename T, class idx_t>
-inline constexpr auto nrows(const LegacyBandedMatrix<T, idx_t>& A)
+inline constexpr auto nrows(const LegacyBandedMatrix<T, idx_t>& A) noexcept
 {
     return A.m;
 }
 
 // Number of columns of LegacyBandedMatrix
 template <typename T, class idx_t>
-inline constexpr auto ncols(const LegacyBandedMatrix<T, idx_t>& A)
+inline constexpr auto ncols(const LegacyBandedMatrix<T, idx_t>& A) noexcept
 {
     return A.n;
 }
 
 // Size of LegacyBandedMatrix
 template <typename T, class idx_t>
-inline constexpr auto size(const LegacyBandedMatrix<T, idx_t>& A)
+inline constexpr auto size(const LegacyBandedMatrix<T, idx_t>& A) noexcept
 {
     return A.m * A.n;
 }
 
 // Lowerband of LegacyBandedMatrix
 template <typename T, class idx_t>
-inline constexpr auto lowerband(const LegacyBandedMatrix<T, idx_t>& A)
+inline constexpr auto lowerband(const LegacyBandedMatrix<T, idx_t>& A) noexcept
 {
     return A.kl;
 }
 
 // Upperband of LegacyBandedMatrix
 template <typename T, class idx_t>
-inline constexpr auto upperband(const LegacyBandedMatrix<T, idx_t>& A)
+inline constexpr auto upperband(const LegacyBandedMatrix<T, idx_t>& A) noexcept
 {
     return A.ku;
 }
@@ -556,20 +557,17 @@ inline constexpr auto slice(LegacyVector<T, idx_t, int_t, direction>& v,
 template <typename T, class idx_t, Layout layout>
 auto reshape(LegacyMatrix<T, idx_t, layout>& A,
              size_type<LegacyMatrix<T, idx_t>> m,
-             size_type<LegacyMatrix<T, idx_t>> n)
+             size_type<LegacyMatrix<T, idx_t>> n) noexcept
 {
     if (m == A.m && n == A.n)
         return A;
     else {
-        if (m * n != A.m * A.n)
-            throw std::invalid_argument(
-                "reshape: new shape must have the same "
-                "number of elements as the original one");
-        if (!(layout == Layout::ColMajor && (A.ldim == A.m || A.n <= 1)) &&
-            !(layout == Layout::RowMajor && (A.ldim == A.n || A.m <= 1)))
-            throw std::invalid_argument(
-                "reshape: data must be contiguous in memory");
-
+        assert((m * n == A.m * A.n) &&
+               "reshape: new shape must have the same "
+               "number of elements as the original one");
+        assert(((layout == Layout::ColMajor && (A.ldim == A.m || A.n <= 1)) ||
+                (layout == Layout::RowMajor && (A.ldim == A.n || A.m <= 1))) &&
+               "reshape: data must be contiguous in memory");
         return LegacyMatrix<T, idx_t, layout>(m, n, &A.ptr[0]);
     }
 }

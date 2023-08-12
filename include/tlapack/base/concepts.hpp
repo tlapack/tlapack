@@ -43,7 +43,8 @@ namespace concepts {
      *
      * An arithmetic type must implement the operators @c +, @c -, @c *, and
      * @c /,, with constant operands, and @c =, @c +=, @c -=, @c *=, and @c /=
-     * with a constant second operand.
+     * with a constant second operand. It must also implement the unary operator
+     * @c - for the change of sign.
      *
      * @tparam T Type.
      *
@@ -52,11 +53,12 @@ namespace concepts {
     template <typename T>
     concept Arithmetic = requires(const T& a, const T& b, T& c)
     {
-        // Arithmetic operations
+        // Arithmetic and assignment operations
         c = a + b;
         c = a - b;
         c = a * b;
         c = a / b;
+        c = -a;
 
         // Arithmetic operations with assignment
         c += a;
