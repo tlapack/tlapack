@@ -33,6 +33,12 @@ if(TLAPACK_TEST_MPFR)
   target_compile_definitions(testutils PUBLIC TLAPACK_TEST_MPFR)
 endif()
 
+if(TLAPACK_TEST_QUAD)
+  if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+    target_compile_definitions(testutils PUBLIC TLAPACK_TEST_QUAD)
+  endif()
+endif()
+
 # Use this library on all tests
 link_libraries(testutils)
 

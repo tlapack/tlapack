@@ -246,6 +246,7 @@ jobs:
         -D BUILD_TESTING=ON
         -D BUILD_testBLAS_TESTS=OFF
         -D TLAPACK_TEST_MPFR=ON
+        -D TLAPACK_TEST_QUAD=ON
 
     - name: Build <T>LAPACK
       run: cmake --build build --config ${{env.BUILD_TYPE}}

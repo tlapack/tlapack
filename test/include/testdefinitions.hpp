@@ -30,6 +30,10 @@
     #include <tlapack/plugins/mpreal.hpp>
 #endif
 
+#ifdef TLAPACK_TEST_QUAD
+    #include <tlapack/plugins/gnuquad.hpp>
+#endif
+
 //
 // The matrix types that will be tested for routines
 // that only accept real matrices
@@ -47,6 +51,13 @@
             , LegacyMatrix<mpfr::mpreal>
     #else
         #define TLAPACK_LEGACY_REAL_TYPES_TO_TEST_WITH_MPREAL
+    #endif
+
+    #ifdef TLAPACK_TEST_QUAD
+        #define TLAPACK_LEGACY_REAL_TYPES_TO_TEST_WITH_QUAD \
+            , LegacyMatrix<__float128>
+    #else
+        #define TLAPACK_LEGACY_REAL_TYPES_TO_TEST_WITH_QUAD
     #endif
 
     #ifdef TLAPACK_TEST_EIGEN
@@ -76,7 +87,8 @@
         TLAPACK_LEGACY_REAL_TYPES_TO_TEST             \
         TLAPACK_LEGACY_REAL_TYPES_TO_TEST_WITH_MPREAL \
         TLAPACK_EIGEN_REAL_TYPES_TO_TEST              \
-        TLAPACK_MDSPAN_REAL_TYPES_TO_TEST
+        TLAPACK_MDSPAN_REAL_TYPES_TO_TEST             \
+        TLAPACK_LEGACY_REAL_TYPES_TO_TEST_WITH_QUAD
 #endif
 
 //
