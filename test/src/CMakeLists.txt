@@ -36,6 +36,8 @@ endif()
 if(TLAPACK_TEST_QUAD)
   if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
     target_compile_definitions(testutils PUBLIC TLAPACK_TEST_QUAD)
+    target_compile_options(testutils PUBLIC -fext-numeric-literals)
+    target_link_libraries(testutils PUBLIC -lquadmath)
   endif()
 endif()
 
