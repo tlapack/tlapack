@@ -29,7 +29,7 @@ namespace tlapack {
  * @ingroup constants
  */
 template <TLAPACK_REAL real_t>
-inline constexpr real_t ulp() noexcept
+constexpr real_t ulp() noexcept
 {
     return std::numeric_limits<real_t>::epsilon();
 }
@@ -48,7 +48,7 @@ inline constexpr real_t ulp() noexcept
  * @ingroup constants
  */
 template <TLAPACK_REAL real_t>
-inline constexpr real_t uroundoff() noexcept
+constexpr real_t uroundoff() noexcept
 {
     return ulp<real_t>() * std::numeric_limits<real_t>::round_error();
 }
@@ -61,7 +61,7 @@ inline constexpr real_t uroundoff() noexcept
  * @ingroup constants
  */
 template <typename real_t>
-inline int digits() noexcept
+int digits() noexcept
 {
     return std::numeric_limits<real_t>::digits;
 }
@@ -74,7 +74,7 @@ inline int digits() noexcept
  * @ingroup constants
  */
 template <TLAPACK_REAL real_t>
-inline constexpr real_t safe_min() noexcept
+constexpr real_t safe_min() noexcept
 {
     constexpr int fradix = std::numeric_limits<real_t>::radix;
     constexpr int expm = std::numeric_limits<real_t>::min_exponent;
@@ -90,7 +90,7 @@ inline constexpr real_t safe_min() noexcept
  * @ingroup constants
  */
 template <TLAPACK_REAL real_t>
-inline constexpr real_t safe_max() noexcept
+constexpr real_t safe_max() noexcept
 {
     return real_t(1) / safe_min<real_t>();
 }
@@ -100,7 +100,7 @@ inline constexpr real_t safe_max() noexcept
  * @ingroup constants
  */
 template <TLAPACK_REAL real_t>
-inline constexpr real_t blue_min() noexcept
+constexpr real_t blue_min() noexcept
 {
     const real_t half(0.5);
     constexpr int fradix = std::numeric_limits<real_t>::radix;
@@ -114,7 +114,7 @@ inline constexpr real_t blue_min() noexcept
  * @ingroup constants
  */
 template <TLAPACK_REAL real_t>
-inline constexpr real_t blue_max() noexcept
+constexpr real_t blue_max() noexcept
 {
     const real_t half(0.5);
     constexpr int fradix = std::numeric_limits<real_t>::radix;
@@ -132,7 +132,7 @@ inline constexpr real_t blue_max() noexcept
  * @ingroup constants
  */
 template <TLAPACK_REAL real_t>
-inline constexpr real_t blue_scalingMin() noexcept
+constexpr real_t blue_scalingMin() noexcept
 {
     const real_t half(0.5);
     constexpr int fradix = std::numeric_limits<real_t>::radix;
@@ -147,7 +147,7 @@ inline constexpr real_t blue_scalingMin() noexcept
  * @ingroup constants
  */
 template <TLAPACK_REAL real_t>
-inline constexpr real_t blue_scalingMax() noexcept
+constexpr real_t blue_scalingMax() noexcept
 {
     const real_t half(0.5);
     constexpr int fradix = std::numeric_limits<real_t>::radix;

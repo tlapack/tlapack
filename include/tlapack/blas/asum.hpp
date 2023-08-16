@@ -44,7 +44,7 @@ auto asum(vector_t const& x)
 
 template <TLAPACK_LEGACY_VECTOR vector_t,
           enable_if_allow_optblas_t<vector_t> = 0>
-inline auto asum(vector_t const& x)
+auto asum(vector_t const& x)
 {
     // Legacy objects
     auto x_ = legacy_vector(x);

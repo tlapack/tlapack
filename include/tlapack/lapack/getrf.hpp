@@ -59,7 +59,7 @@ struct GetrfOpts {
  * @ingroup computational
  */
 template <TLAPACK_MATRIX matrix_t, TLAPACK_VECTOR piv_t>
-inline int getrf(matrix_t& A, piv_t& piv, const GetrfOpts& opts = {})
+int getrf(matrix_t& A, piv_t& piv, const GetrfOpts& opts = {})
 {
     // Call variant
     if (opts.variant == GetrfVariant::Recursive)

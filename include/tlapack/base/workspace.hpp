@@ -19,11 +19,10 @@ struct WorkInfo {
     bool isContiguous = false;  ///< True if the Workspace is contiguous
 
     /// Constructor using sizes
-    inline constexpr WorkInfo(size_t m = 0, size_t n = 1) noexcept : m(m), n(n)
-    {}
+    constexpr WorkInfo(size_t m = 0, size_t n = 1) noexcept : m(m), n(n) {}
 
     /// Size needed in the Workspace
-    inline constexpr size_t size() const noexcept { return m * n; }
+    constexpr size_t size() const noexcept { return m * n; }
 
     /**
      * @brief Set the current object to a state that

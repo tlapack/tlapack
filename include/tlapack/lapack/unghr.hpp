@@ -116,10 +116,10 @@ int unghr(size_type<matrix_t> ilo,
  * @ingroup workspace_query
  */
 template <class T, TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
-inline constexpr WorkInfo unghr_worksize(size_type<matrix_t> ilo,
-                                         size_type<matrix_t> ihi,
-                                         const matrix_t& A,
-                                         const vector_t& tau)
+constexpr WorkInfo unghr_worksize(size_type<matrix_t> ilo,
+                                  size_type<matrix_t> ihi,
+                                  const matrix_t& A,
+                                  const vector_t& tau)
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;

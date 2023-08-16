@@ -74,13 +74,13 @@ namespace legacy {
      * @ingroup legacy_lapack
      */
     template <typename TA>
-    void inline laset(MatrixType matrixtype,
-                      idx_t m,
-                      idx_t n,
-                      TA alpha,
-                      TA beta,
-                      TA* A,
-                      idx_t lda)
+    void laset(MatrixType matrixtype,
+               idx_t m,
+               idx_t n,
+               TA alpha,
+               TA beta,
+               TA* A,
+               idx_t lda)
     {
         if (matrixtype == MatrixType::Upper) {
             laset(UPPER_TRIANGLE, m, n, alpha, beta, A, lda);

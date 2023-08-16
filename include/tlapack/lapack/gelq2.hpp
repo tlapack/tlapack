@@ -29,8 +29,7 @@ namespace tlapack {
  * @ingroup workspace_query
  */
 template <class T, TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
-inline constexpr WorkInfo gelq2_worksize(const matrix_t& A,
-                                         const vector_t& tauw)
+constexpr WorkInfo gelq2_worksize(const matrix_t& A, const vector_t& tauw)
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;

@@ -161,12 +161,12 @@ template <TLAPACK_LEGACY_MATRIX matrixA_t,
                                     pair<matrixC_t, T>,
                                     pair<alpha_t, T>,
                                     pair<beta_t, T> > = 0>
-inline void syrk(Uplo uplo,
-                 Op trans,
-                 const alpha_t alpha,
-                 const matrixA_t& A,
-                 const beta_t beta,
-                 matrixC_t& C)
+void syrk(Uplo uplo,
+          Op trans,
+          const alpha_t alpha,
+          const matrixA_t& A,
+          const beta_t beta,
+          matrixC_t& C)
 {
     // Legacy objects
     auto A_ = legacy_matrix(A);
@@ -227,7 +227,7 @@ inline void syrk(Uplo uplo,
 template <TLAPACK_MATRIX matrixA_t,
           TLAPACK_MATRIX matrixC_t,
           TLAPACK_SCALAR alpha_t>
-inline void syrk(
+void syrk(
     Uplo uplo, Op trans, const alpha_t& alpha, const matrixA_t& A, matrixC_t& C)
 {
     return syrk(uplo, trans, alpha, A, StrongZero(), C);

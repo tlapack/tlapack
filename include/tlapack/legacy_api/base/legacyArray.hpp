@@ -18,60 +18,57 @@ namespace legacy {
     namespace internal {
 
         template <typename T>
-        inline constexpr auto create_matrix(T* A, idx_t m, idx_t n, idx_t lda)
+        constexpr auto create_matrix(T* A, idx_t m, idx_t n, idx_t lda)
         {
             return LegacyMatrix<T, idx_t, Layout::ColMajor>{m, n, A, lda};
         }
 
         template <typename T>
-        inline constexpr auto create_matrix(T* A, idx_t m, idx_t n)
+        constexpr auto create_matrix(T* A, idx_t m, idx_t n)
         {
             return LegacyMatrix<T, idx_t, Layout::ColMajor>{m, n, A, m};
         }
 
         template <typename T>
-        inline constexpr auto create_rowmajor_matrix(T* A,
-                                                     idx_t m,
-                                                     idx_t n,
-                                                     idx_t lda)
+        constexpr auto create_rowmajor_matrix(T* A, idx_t m, idx_t n, idx_t lda)
         {
             return LegacyMatrix<T, idx_t, Layout::RowMajor>{m, n, A, lda};
         }
 
         template <typename T>
-        inline constexpr auto create_rowmajor_matrix(T* A, idx_t m, idx_t n)
+        constexpr auto create_rowmajor_matrix(T* A, idx_t m, idx_t n)
         {
             return LegacyMatrix<T, idx_t, Layout::RowMajor>{m, n, A, n};
         }
 
         template <typename T>
-        inline constexpr auto create_banded_matrix(
+        constexpr auto create_banded_matrix(
             T* A, idx_t m, idx_t n, idx_t kl, idx_t ku)
         {
             return LegacyBandedMatrix<T, idx_t>{m, n, kl, ku, A};
         }
 
         template <typename T, typename int_t>
-        inline constexpr auto create_vector(T* x, idx_t n, int_t inc)
+        constexpr auto create_vector(T* x, idx_t n, int_t inc)
         {
             return LegacyVector<T, idx_t, int_t>{n, x, inc};
         }
 
         template <typename T>
-        inline constexpr auto create_vector(T* x, idx_t n)
+        constexpr auto create_vector(T* x, idx_t n)
         {
             return LegacyVector<T, idx_t>{n, x};
         }
 
         template <typename T, typename int_t>
-        inline constexpr auto create_backward_vector(T* x, idx_t n, int_t inc)
+        constexpr auto create_backward_vector(T* x, idx_t n, int_t inc)
         {
             return LegacyVector<T, idx_t, int_t, Direction::Backward>{n, x,
                                                                       inc};
         }
 
         template <typename T>
-        inline constexpr auto create_backward_vector(T* x, idx_t n)
+        constexpr auto create_backward_vector(T* x, idx_t n)
         {
             return LegacyVector<T, idx_t, tlapack::internal::StrongOne,
                                 Direction::Backward>{n, x};

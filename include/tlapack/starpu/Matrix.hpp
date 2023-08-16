@@ -262,7 +262,7 @@ namespace starpu {
          *
          * @return Number of rows in the matrix
          */
-        constexpr idx_t nrows() const noexcept
+        constexpr idx_t nrows() const noexcept override
         {
             const idx_t mb = nblockrows();
             if (nx == 1) return lastRows;
@@ -275,7 +275,7 @@ namespace starpu {
          *
          * @return Number of columns in the matrix
          */
-        constexpr idx_t ncols() const noexcept
+        constexpr idx_t ncols() const noexcept override
         {
             const idx_t nb = nblockcols();
             if (ny <= 1) return lastCols;

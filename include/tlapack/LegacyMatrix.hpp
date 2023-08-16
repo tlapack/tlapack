@@ -38,7 +38,7 @@ struct LegacyMatrix {
 
     static constexpr Layout layout = L;
 
-    inline constexpr const T& operator()(idx_t i, idx_t j) const noexcept
+    constexpr const T& operator()(idx_t i, idx_t j) const noexcept
     {
         assert(i >= 0);
         assert(i < m);
@@ -48,7 +48,7 @@ struct LegacyMatrix {
                                             : ptr[i * ldim + j];
     }
 
-    inline constexpr T& operator()(idx_t i, idx_t j) noexcept
+    constexpr T& operator()(idx_t i, idx_t j) noexcept
     {
         assert(i >= 0);
         assert(i < m);
@@ -58,7 +58,7 @@ struct LegacyMatrix {
                                             : ptr[i * ldim + j];
     }
 
-    inline constexpr LegacyMatrix(idx_t m, idx_t n, T* ptr, idx_t ldim)
+    constexpr LegacyMatrix(idx_t m, idx_t n, T* ptr, idx_t ldim)
         : m(m), n(n), ptr(ptr), ldim(ldim)
     {
         tlapack_check(m >= 0);
@@ -66,7 +66,7 @@ struct LegacyMatrix {
         tlapack_check(ldim >= ((layout == Layout::ColMajor) ? m : n));
     }
 
-    inline constexpr LegacyMatrix(idx_t m, idx_t n, T* ptr)
+    constexpr LegacyMatrix(idx_t m, idx_t n, T* ptr)
         : m(m), n(n), ptr(ptr), ldim((layout == Layout::ColMajor) ? m : n)
     {
         tlapack_check(m >= 0);

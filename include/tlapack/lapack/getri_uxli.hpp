@@ -26,7 +26,7 @@ namespace tlapack {
  * @ingroup workspace_query
  */
 template <class T, TLAPACK_SMATRIX matrix_t>
-inline constexpr WorkInfo getri_uxli_worksize(const matrix_t& A)
+constexpr WorkInfo getri_uxli_worksize(const matrix_t& A)
 {
     if constexpr (is_same_v<T, type_t<matrix_t>>)
         return WorkInfo(ncols(A) - 1);

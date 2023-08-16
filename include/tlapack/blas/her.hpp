@@ -93,10 +93,7 @@ template <TLAPACK_LEGACY_MATRIX matrixA_t,
           enable_if_allow_optblas_t<pair<alpha_t, real_type<T> >,
                                     pair<matrixA_t, T>,
                                     pair<vectorX_t, T> > = 0>
-inline void her(Uplo uplo,
-                const alpha_t alpha,
-                const vectorX_t& x,
-                matrixA_t& A)
+void her(Uplo uplo, const alpha_t alpha, const vectorX_t& x, matrixA_t& A)
 {
     // Legacy objects
     auto A_ = legacy_matrix(A);

@@ -27,8 +27,7 @@ enum class PotrfVariant : char {
 };
 
 struct PotrfOpts : public BlockedCholeskyOpts {
-    inline constexpr PotrfOpts(const EcOpts& opts = {})
-        : BlockedCholeskyOpts(opts){};
+    constexpr PotrfOpts(const EcOpts& opts = {}) : BlockedCholeskyOpts(opts){};
 
     PotrfVariant variant = PotrfVariant::Blocked;
 };
@@ -74,7 +73,7 @@ struct PotrfOpts : public BlockedCholeskyOpts {
  * @ingroup computational
  */
 template <TLAPACK_UPLO uplo_t, TLAPACK_MATRIX matrix_t>
-inline int potrf(uplo_t uplo, matrix_t& A, const PotrfOpts& opts = {})
+int potrf(uplo_t uplo, matrix_t& A, const PotrfOpts& opts = {})
 {
     // check arguments
     tlapack_check(uplo == Uplo::Lower || uplo == Uplo::Upper);

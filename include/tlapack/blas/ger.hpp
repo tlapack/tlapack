@@ -74,10 +74,10 @@ template <TLAPACK_LEGACY_MATRIX matrixA_t,
                                     pair<matrixA_t, T>,
                                     pair<vectorX_t, T>,
                                     pair<vectorY_t, T> > = 0>
-inline void ger(const alpha_t alpha,
-                const vectorX_t& x,
-                const vectorY_t& y,
-                matrixA_t& A)
+void ger(const alpha_t alpha,
+         const vectorX_t& x,
+         const vectorY_t& y,
+         matrixA_t& A)
 {
     // Legacy objects
     auto A_ = legacy_matrix(A);

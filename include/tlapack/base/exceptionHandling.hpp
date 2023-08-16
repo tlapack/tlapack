@@ -82,7 +82,7 @@ constexpr ErrorCheck NO_ERROR_CHECK = {false, false, false};
 struct EcOpts {
     ErrorCheck ec = {};
 
-    inline constexpr EcOpts(const ErrorCheck& ec_ = {}) : ec(ec_) {}
+    constexpr EcOpts(const ErrorCheck& ec_ = {}) : ec(ec_) {}
 };
 }  // namespace tlapack
 

@@ -112,12 +112,12 @@ template <TLAPACK_LEGACY_MATRIX matrixA_t,
                                     pair<vectorX_t, T>,
                                     pair<vectorY_t, T>,
                                     pair<beta_t, T> > = 0>
-inline void symv(Uplo uplo,
-                 const alpha_t alpha,
-                 const matrixA_t& A,
-                 const vectorX_t& x,
-                 const beta_t beta,
-                 vectorY_t& y)
+void symv(Uplo uplo,
+          const alpha_t alpha,
+          const matrixA_t& A,
+          const vectorX_t& x,
+          const beta_t beta,
+          vectorY_t& y)
 {
     // Legacy objects
     auto A_ = legacy_matrix(A);
@@ -168,11 +168,11 @@ template <TLAPACK_MATRIX matrixA_t,
           TLAPACK_VECTOR vectorX_t,
           TLAPACK_VECTOR vectorY_t,
           TLAPACK_SCALAR alpha_t>
-inline void symv(Uplo uplo,
-                 const alpha_t& alpha,
-                 const matrixA_t& A,
-                 const vectorX_t& x,
-                 vectorY_t& y)
+void symv(Uplo uplo,
+          const alpha_t& alpha,
+          const matrixA_t& A,
+          const vectorX_t& x,
+          vectorY_t& y)
 {
     return symv(uplo, alpha, A, x, StrongZero(), y);
 }

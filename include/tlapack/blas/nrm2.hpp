@@ -30,7 +30,7 @@ namespace tlapack {
  * @ingroup blas1
  */
 template <TLAPACK_VECTOR vector_t, disable_if_allow_optblas_t<vector_t> = 0>
-inline auto nrm2(const vector_t& x)
+auto nrm2(const vector_t& x)
 {
     using real_t = real_type<type_t<vector_t> >;
 
@@ -46,7 +46,7 @@ inline auto nrm2(const vector_t& x)
 
 template <TLAPACK_LEGACY_VECTOR vector_t,
           enable_if_allow_optblas_t<vector_t> = 0>
-inline auto nrm2(vector_t const& x)
+auto nrm2(vector_t const& x)
 {
     // Legacy objects
     auto x_ = legacy_vector(x);

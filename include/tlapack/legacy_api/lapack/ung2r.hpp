@@ -41,7 +41,7 @@ namespace legacy {
      * @ingroup legacy_lapack
      */
     template <typename TA, typename TT>
-    inline int ung2r(idx_t m, idx_t n, idx_t k, TA* A, idx_t lda, const TT* tau)
+    int ung2r(idx_t m, idx_t n, idx_t k, TA* A, idx_t lda, const TT* tau)
     {
         using internal::create_matrix;
         using internal::create_vector;

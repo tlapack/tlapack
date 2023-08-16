@@ -20,8 +20,7 @@
 namespace tlapack {
 
 struct BlockedCholeskyOpts : public EcOpts {
-    inline constexpr BlockedCholeskyOpts(const EcOpts& opts = {})
-        : EcOpts(opts){};
+    constexpr BlockedCholeskyOpts(const EcOpts& opts = {}) : EcOpts(opts){};
 
     size_t nb = 32;  ///< Block size
 };
@@ -167,7 +166,7 @@ int potrf_blocked(uplo_t uplo, matrix_t& A, const BlockedCholeskyOpts& opts)
 template <TLAPACK_UPLO uplo_t,
           TLAPACK_SMATRIX matrix_t,
           disable_if_allow_optblas_t<matrix_t> = 0>
-inline int potrf_blocked(uplo_t uplo, matrix_t& A)
+int potrf_blocked(uplo_t uplo, matrix_t& A)
 {
     return potrf_blocked(uplo, A, {});
 }
@@ -177,7 +176,7 @@ inline int potrf_blocked(uplo_t uplo, matrix_t& A)
 template <TLAPACK_UPLO uplo_t,
           TLAPACK_LEGACY_MATRIX matrix_t,
           enable_if_allow_optblas_t<matrix_t> = 0>
-inline int potrf_blocked(uplo_t uplo, matrix_t& A)
+int potrf_blocked(uplo_t uplo, matrix_t& A)
 {
     // Legacy objects
     auto A_ = legacy_matrix(A);

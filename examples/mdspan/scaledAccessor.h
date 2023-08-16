@@ -17,10 +17,10 @@ struct scaled_accessor {
     using scalar_type = scalar_t;
     using scalar_ptr = scalar_t*;
 
-    inline constexpr scaled_accessor() noexcept
+    constexpr scaled_accessor() noexcept
     : scale_( 1 ) { };
 
-    inline constexpr scaled_accessor( const scalar_t& scale ) noexcept
+    constexpr scaled_accessor( const scalar_t& scale ) noexcept
     : scale_( scale ) { };
 
     template< class OtherElementType, class otherScalar_t,
@@ -34,18 +34,18 @@ struct scaled_accessor {
                 scalar_ptr >
         ), bool > = true
     >
-    inline constexpr scaled_accessor( scaled_accessor<OtherElementType, otherScalar_t> ) noexcept {}
+    constexpr scaled_accessor( scaled_accessor<OtherElementType, otherScalar_t> ) noexcept {}
 
-    inline constexpr pointer
+    constexpr pointer
     offset( pointer p, std::size_t i ) const noexcept {
         return p + i;
     }
 
-    inline constexpr auto access(pointer p, std::size_t i) const noexcept {
+    constexpr auto access(pointer p, std::size_t i) const noexcept {
         return scale_ * p[i];
     }
 
-    inline constexpr scalar_type scale() const noexcept {
+    constexpr scalar_type scale() const noexcept {
         return scale_;
     }
 

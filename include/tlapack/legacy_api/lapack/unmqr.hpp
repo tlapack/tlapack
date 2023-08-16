@@ -74,16 +74,16 @@ namespace legacy {
      * @ingroup legacy_lapack
      */
     template <class side_t, class trans_t, typename TA, typename TC>
-    inline int unmqr(side_t side,
-                     trans_t trans,
-                     idx_t m,
-                     idx_t n,
-                     idx_t k,
-                     TA const* A,
-                     idx_t lda,
-                     TA const* tau,
-                     TC* C,
-                     idx_t ldc)
+    int unmqr(side_t side,
+              trans_t trans,
+              idx_t m,
+              idx_t n,
+              idx_t k,
+              TA const* A,
+              idx_t lda,
+              TA const* tau,
+              TC* C,
+              idx_t ldc)
     {
         using internal::create_matrix;
         using internal::create_vector;

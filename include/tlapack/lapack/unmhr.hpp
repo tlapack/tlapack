@@ -48,13 +48,13 @@ namespace tlapack {
  * @ingroup workspace_query
  */
 template <class T, TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
-inline constexpr WorkInfo unmhr_worksize(Side side,
-                                         Op trans,
-                                         size_type<matrix_t> ilo,
-                                         size_type<matrix_t> ihi,
-                                         const matrix_t& A,
-                                         const vector_t& tau,
-                                         const matrix_t& C)
+constexpr WorkInfo unmhr_worksize(Side side,
+                                  Op trans,
+                                  size_type<matrix_t> ilo,
+                                  size_type<matrix_t> ihi,
+                                  const matrix_t& A,
+                                  const vector_t& tau,
+                                  const matrix_t& C)
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;

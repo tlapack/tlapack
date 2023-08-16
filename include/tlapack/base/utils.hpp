@@ -50,13 +50,13 @@ using std::pair;
 //------------------------------------------------------------------------------
 
 template <typename T, enable_if_t<is_real<T>, int> = 0>
-inline constexpr real_type<T> real(const T& x) noexcept
+constexpr real_type<T> real(const T& x) noexcept
 {
     return x;
 }
 
 template <typename T, enable_if_t<is_real<T>, int> = 0>
-inline constexpr real_type<T> imag(const T& x) noexcept
+constexpr real_type<T> imag(const T& x) noexcept
 {
     return real_type<T>(0);
 }
@@ -76,7 +76,7 @@ inline constexpr real_type<T> imag(const T& x) noexcept
  * std::conj
  */
 template <typename T, enable_if_t<is_real<T>, int> = 0>
-inline constexpr T conj(const T& x) noexcept
+constexpr T conj(const T& x) noexcept
 {
     return x;
 }

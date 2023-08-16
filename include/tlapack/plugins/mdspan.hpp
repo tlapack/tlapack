@@ -83,7 +83,7 @@ namespace traits {
         using extents_t = std::experimental::dextents<idx_t, 1>;
 
         template <class T>
-        inline constexpr auto operator()(std::vector<T>& v, idx_t n) const
+        constexpr auto operator()(std::vector<T>& v, idx_t n) const
         {
             assert(n >= 0);
             v.resize(n);  // Allocates space in memory
@@ -100,9 +100,7 @@ namespace traits {
         using extents_t = std::experimental::dextents<idx_t, 2>;
 
         template <class T>
-        inline constexpr auto operator()(std::vector<T>& v,
-                                         idx_t m,
-                                         idx_t n) const
+        constexpr auto operator()(std::vector<T>& v, idx_t m, idx_t n) const
         {
             assert(m >= 0 && n >= 0);
             v.resize(m * n);  // Allocates space in memory
@@ -116,21 +114,19 @@ namespace traits {
 
 // Size
 template <class ET, class Exts, class LP, class AP>
-inline constexpr auto size(const std::experimental::mdspan<ET, Exts, LP, AP>& x)
+constexpr auto size(const std::experimental::mdspan<ET, Exts, LP, AP>& x)
 {
     return x.size();
 }
 // Number of rows
 template <class ET, class Exts, class LP, class AP>
-inline constexpr auto nrows(
-    const std::experimental::mdspan<ET, Exts, LP, AP>& x)
+constexpr auto nrows(const std::experimental::mdspan<ET, Exts, LP, AP>& x)
 {
     return x.extent(0);
 }
 // Number of columns
 template <class ET, class Exts, class LP, class AP>
-inline constexpr auto ncols(
-    const std::experimental::mdspan<ET, Exts, LP, AP>& x)
+constexpr auto ncols(const std::experimental::mdspan<ET, Exts, LP, AP>& x)
 {
     return x.extent(1);
 }
@@ -150,10 +146,9 @@ template <
     class SliceSpecRow,
     class SliceSpecCol,
     std::enable_if_t<isSlice(SliceSpecRow) || isSlice(SliceSpecCol), int> = 0>
-inline constexpr auto slice(
-    const std::experimental::mdspan<ET, Exts, LP, AP>& A,
-    SliceSpecRow&& rows,
-    SliceSpecCol&& cols) noexcept
+constexpr auto slice(const std::experimental::mdspan<ET, Exts, LP, AP>& A,
+                     SliceSpecRow&& rows,
+                     SliceSpecCol&& cols) noexcept
 {
     return std::experimental::submdspan(A, std::forward<SliceSpecRow>(rows),
                                         std::forward<SliceSpecCol>(cols));
@@ -166,8 +161,8 @@ template <class ET,
           class AP,
           class SliceSpec,
           std::enable_if_t<isSlice(SliceSpec), int> = 0>
-inline constexpr auto rows(const std::experimental::mdspan<ET, Exts, LP, AP>& A,
-                           SliceSpec&& rows) noexcept
+constexpr auto rows(const std::experimental::mdspan<ET, Exts, LP, AP>& A,
+                    SliceSpec&& rows) noexcept
 {
     return std::experimental::submdspan(A, std::forward<SliceSpec>(rows),
                                         std::experimental::full_extent);
@@ -175,8 +170,8 @@ inline constexpr auto rows(const std::experimental::mdspan<ET, Exts, LP, AP>& A,
 
 // Row
 template <class ET, class Exts, class LP, class AP>
-inline constexpr auto row(const std::experimental::mdspan<ET, Exts, LP, AP>& A,
-                          std::size_t rowIdx) noexcept
+constexpr auto row(const std::experimental::mdspan<ET, Exts, LP, AP>& A,
+                   std::size_t rowIdx) noexcept
 {
     return std::experimental::submdspan(A, rowIdx,
                                         std::experimental::full_extent);
@@ -189,8 +184,8 @@ template <class ET,
           class AP,
           class SliceSpec,
           std::enable_if_t<isSlice(SliceSpec), int> = 0>
-inline constexpr auto cols(const std::experimental::mdspan<ET, Exts, LP, AP>& A,
-                           SliceSpec&& cols) noexcept
+constexpr auto cols(const std::experimental::mdspan<ET, Exts, LP, AP>& A,
+                    SliceSpec&& cols) noexcept
 {
     return std::experimental::submdspan(A, std::experimental::full_extent,
                                         std::forward<SliceSpec>(cols));
@@ -198,8 +193,8 @@ inline constexpr auto cols(const std::experimental::mdspan<ET, Exts, LP, AP>& A,
 
 // Column
 template <class ET, class Exts, class LP, class AP>
-inline constexpr auto col(const std::experimental::mdspan<ET, Exts, LP, AP>& A,
-                          std::size_t colIdx) noexcept
+constexpr auto col(const std::experimental::mdspan<ET, Exts, LP, AP>& A,
+                   std::size_t colIdx) noexcept
 {
     return std::experimental::submdspan(A, std::experimental::full_extent,
                                         colIdx);
@@ -212,9 +207,8 @@ template <class ET,
           class AP,
           class SliceSpec,
           std::enable_if_t<isSlice(SliceSpec) && (Exts::rank() == 1), int> = 0>
-inline constexpr auto slice(
-    const std::experimental::mdspan<ET, Exts, LP, AP>& v,
-    SliceSpec&& rows) noexcept
+constexpr auto slice(const std::experimental::mdspan<ET, Exts, LP, AP>& v,
+                     SliceSpec&& rows) noexcept
 {
     return std::experimental::submdspan(v, std::forward<SliceSpec>(rows));
 }
@@ -228,8 +222,8 @@ template <class ET,
               /* Requires: */
               LP::template mapping<Exts>::is_always_strided(),
               bool> = true>
-inline constexpr auto diag(const std::experimental::mdspan<ET, Exts, LP, AP>& A,
-                           int diagIdx = 0)
+constexpr auto diag(const std::experimental::mdspan<ET, Exts, LP, AP>& A,
+                    int diagIdx = 0)
 {
     using std::array;
     using std::min;
@@ -260,7 +254,7 @@ inline constexpr auto diag(const std::experimental::mdspan<ET, Exts, LP, AP>& A,
 
 // Transpose View
 template <class ET, class Exts, class AP>
-inline constexpr auto transpose_view(
+constexpr auto transpose_view(
     const std::experimental::
         mdspan<ET, Exts, std::experimental::layout_left, AP>& A) noexcept
 {
@@ -279,7 +273,7 @@ inline constexpr auto transpose_view(
         A.data(), std::move(map));
 }
 template <class ET, class Exts, class AP>
-inline constexpr auto transpose_view(
+constexpr auto transpose_view(
     const std::experimental::
         mdspan<ET, Exts, std::experimental::layout_right, AP>& A) noexcept
 {
@@ -299,7 +293,7 @@ inline constexpr auto transpose_view(
         A.data(), std::move(map));
 }
 template <class ET, class Exts, class AP>
-inline constexpr auto transpose_view(
+constexpr auto transpose_view(
     const std::experimental::
         mdspan<ET, Exts, std::experimental::layout_stride, AP>& A) noexcept
 {
@@ -537,7 +531,7 @@ template <class ET,
           std::enable_if_t<Exts::rank() == 2 &&
                                LP::template mapping<Exts>::is_always_strided(),
                            int> = 0>
-inline constexpr auto legacy_matrix(
+constexpr auto legacy_matrix(
     const std::experimental::mdspan<ET, Exts, LP, AP>& A) noexcept
 {
     using idx_t =
@@ -565,7 +559,7 @@ template <class ET,
           std::enable_if_t<Exts::rank() == 1 &&
                                LP::template mapping<Exts>::is_always_strided(),
                            int> = 0>
-inline constexpr auto legacy_matrix(
+constexpr auto legacy_matrix(
     const std::experimental::mdspan<ET, Exts, LP, AP>& A) noexcept
 {
     using idx_t =
@@ -581,7 +575,7 @@ template <class ET,
           std::enable_if_t<Exts::rank() == 1 &&
                                LP::template mapping<Exts>::is_always_strided(),
                            int> = 0>
-inline constexpr auto legacy_vector(
+constexpr auto legacy_vector(
     const std::experimental::mdspan<ET, Exts, LP, AP>& A) noexcept
 {
     using idx_t =

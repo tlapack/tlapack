@@ -31,7 +31,7 @@ namespace traits {
     };
 }  // namespace traits
 
-inline Eigen::half pow(int base, const Eigen::half& exp)
+Eigen::half pow(int base, const Eigen::half& exp)
 {
     return Eigen::half_impl::pow(Eigen::half(base), exp);
 }

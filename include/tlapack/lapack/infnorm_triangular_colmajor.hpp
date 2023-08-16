@@ -35,8 +35,9 @@ template <class T,
           TLAPACK_UPLO uplo_t,
           TLAPACK_DIAG diag_t,
           TLAPACK_MATRIX matrix_t>
-inline constexpr WorkInfo infnorm_triangular_colmajor_worksize(
-    uplo_t uplo, diag_t diag, const matrix_t& A)
+constexpr WorkInfo infnorm_triangular_colmajor_worksize(uplo_t uplo,
+                                                        diag_t diag,
+                                                        const matrix_t& A)
 {
     return WorkInfo(nrows(A));
 }

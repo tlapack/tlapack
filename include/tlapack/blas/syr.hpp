@@ -81,10 +81,7 @@ template <TLAPACK_LEGACY_MATRIX matrixA_t,
           enable_if_allow_optblas_t<pair<alpha_t, T>,
                                     pair<matrixA_t, T>,
                                     pair<vectorX_t, T> > = 0>
-inline void syr(Uplo uplo,
-                const alpha_t alpha,
-                const vectorX_t& x,
-                matrixA_t& A)
+void syr(Uplo uplo, const alpha_t alpha, const vectorX_t& x, matrixA_t& A)
 {
     // Legacy objects
     auto A_ = legacy_matrix(A);

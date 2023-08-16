@@ -123,9 +123,9 @@ namespace traits {
             (U::IsRowMajor) ? Eigen::RowMajor : Eigen::ColMajor;
 
         template <typename T>
-        inline constexpr auto operator()(std::vector<T>& v,
-                                         Eigen::Index m,
-                                         Eigen::Index n = 1) const
+        constexpr auto operator()(std::vector<T>& v,
+                                  Eigen::Index m,
+                                  Eigen::Index n = 1) const
         {
             assert(m >= 0 && n >= 0);
             v.resize(0);
@@ -148,19 +148,19 @@ template <
                      int> = 0
 #endif
     >
-inline constexpr auto size(const Eigen::EigenBase<Derived>& x) noexcept
+constexpr auto size(const Eigen::EigenBase<Derived>& x) noexcept
 {
     return x.size();
 }
 // Number of rows
 template <class T>
-inline constexpr auto nrows(const Eigen::EigenBase<T>& x) noexcept
+constexpr auto nrows(const Eigen::EigenBase<T>& x) noexcept
 {
     return x.rows();
 }
 // Number of columns
 template <class T>
-inline constexpr auto ncols(const Eigen::EigenBase<T>& x) noexcept
+constexpr auto ncols(const Eigen::EigenBase<T>& x) noexcept
 {
     return x.cols();
 }
@@ -193,9 +193,7 @@ template <
                                 eigen::is_eigen_type<T> &&
                                 !eigen::internal::is_eigen_block<T>,
                             int>::type = 0>
-inline constexpr auto slice(T& A,
-                            SliceSpecRow&& rows,
-                            SliceSpecCol&& cols) noexcept
+constexpr auto slice(T& A, SliceSpecRow&& rows, SliceSpecCol&& cols) noexcept
 {
     return A.block(rows.first, cols.first, rows.second - rows.first,
                    cols.second - cols.first);
@@ -206,9 +204,7 @@ template <class T,
           typename std::enable_if<eigen::is_eigen_type<T> &&
                                       !eigen::internal::is_eigen_block<T>,
                                   int>::type = 0>
-inline constexpr auto slice(T& A,
-                            Eigen::Index rowIdx,
-                            SliceSpecCol&& cols) noexcept
+constexpr auto slice(T& A, Eigen::Index rowIdx, SliceSpecCol&& cols) noexcept
 {
     return A.row(rowIdx).segment(cols.first, cols.second - cols.first);
 }
@@ -218,9 +214,7 @@ template <class T,
           typename std::enable_if<eigen::is_eigen_type<T> &&
                                       !eigen::internal::is_eigen_block<T>,
                                   int>::type = 0>
-inline constexpr auto slice(T& A,
-                            SliceSpecRow&& rows,
-                            Eigen::Index colIdx) noexcept
+constexpr auto slice(T& A, SliceSpecRow&& rows, Eigen::Index colIdx) noexcept
 {
     return A.col(colIdx).segment(rows.first, rows.second - rows.first);
 }
@@ -230,7 +224,7 @@ template <class T,
           typename std::enable_if<eigen::is_eigen_type<T> &&
                                       !eigen::internal::is_eigen_block<T>,
                                   int>::type = 0>
-inline constexpr auto slice(T& x, SliceSpec&& range) noexcept
+constexpr auto slice(T& x, SliceSpec&& range) noexcept
 {
     return x.segment(range.first, range.second - range.first);
 }
@@ -240,7 +234,7 @@ template <class T,
           typename std::enable_if<eigen::is_eigen_type<T> &&
                                       !eigen::internal::is_eigen_block<T>,
                                   int>::type = 0>
-inline constexpr auto rows(T& A, SliceSpec&& rows) noexcept
+constexpr auto rows(T& A, SliceSpec&& rows) noexcept
 {
     return A.middleRows(rows.first, rows.second - rows.first);
 }
@@ -249,7 +243,7 @@ template <class T,
           typename std::enable_if<eigen::is_eigen_type<T> &&
                                       !eigen::internal::is_eigen_block<T>,
                                   int>::type = 0>
-inline constexpr auto row(T& A, Eigen::Index rowIdx) noexcept
+constexpr auto row(T& A, Eigen::Index rowIdx) noexcept
 {
     return A.row(rowIdx);
 }
@@ -259,7 +253,7 @@ template <class T,
           typename std::enable_if<eigen::is_eigen_type<T> &&
                                       !eigen::internal::is_eigen_block<T>,
                                   int>::type = 0>
-inline constexpr auto cols(T& A, SliceSpec&& cols) noexcept
+constexpr auto cols(T& A, SliceSpec&& cols) noexcept
 {
     return A.middleCols(cols.first, cols.second - cols.first);
 }
@@ -268,7 +262,7 @@ template <class T,
           typename std::enable_if<eigen::is_eigen_type<T> &&
                                       !eigen::internal::is_eigen_block<T>,
                                   int>::type = 0>
-inline constexpr auto col(T& A, Eigen::Index colIdx) noexcept
+constexpr auto col(T& A, Eigen::Index colIdx) noexcept
 {
     return A.col(colIdx);
 }
@@ -284,10 +278,9 @@ template <
     class SliceSpecCol,
     typename std::enable_if<isSlice(SliceSpecRow) && isSlice(SliceSpecCol),
                             int>::type = 0>
-inline constexpr auto slice(
-    Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>& A,
-    SliceSpecRow&& rows,
-    SliceSpecCol&& cols) noexcept
+constexpr auto slice(Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>& A,
+                     SliceSpecRow&& rows,
+                     SliceSpecCol&& cols) noexcept
 {
     assert(rows.second <= A.rows());
     assert(cols.second <= A.cols());
@@ -303,10 +296,9 @@ template <class XprType,
           int BlockCols,
           bool InnerPanel,
           typename SliceSpecCol>
-inline constexpr auto slice(
-    Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>& A,
-    Eigen::Index rowIdx,
-    SliceSpecCol&& cols) noexcept
+constexpr auto slice(Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>& A,
+                     Eigen::Index rowIdx,
+                     SliceSpecCol&& cols) noexcept
 {
     assert(rowIdx < A.rows());
     assert(cols.second <= A.cols());
@@ -321,10 +313,9 @@ template <class XprType,
           int BlockCols,
           bool InnerPanel,
           typename SliceSpecRow>
-inline constexpr auto slice(
-    Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>& A,
-    SliceSpecRow&& rows,
-    Eigen::Index colIdx) noexcept
+constexpr auto slice(Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>& A,
+                     SliceSpecRow&& rows,
+                     Eigen::Index colIdx) noexcept
 {
     assert(rows.second <= A.rows());
     assert(colIdx < A.cols());
@@ -335,8 +326,8 @@ inline constexpr auto slice(
 }
 
 template <class XprType, int BlockRows, bool InnerPanel, typename SliceSpec>
-inline constexpr auto slice(Eigen::Block<XprType, BlockRows, 1, InnerPanel>& x,
-                            SliceSpec&& range) noexcept
+constexpr auto slice(Eigen::Block<XprType, BlockRows, 1, InnerPanel>& x,
+                     SliceSpec&& range) noexcept
 {
     assert(range.second <= x.size());
 
@@ -346,8 +337,8 @@ inline constexpr auto slice(Eigen::Block<XprType, BlockRows, 1, InnerPanel>& x,
 }
 
 template <class XprType, int BlockCols, bool InnerPanel, typename SliceSpec>
-inline constexpr auto slice(Eigen::Block<XprType, 1, BlockCols, InnerPanel>& x,
-                            SliceSpec&& range) noexcept
+constexpr auto slice(Eigen::Block<XprType, 1, BlockCols, InnerPanel>& x,
+                     SliceSpec&& range) noexcept
 {
     assert(range.second <= x.size());
 
@@ -361,9 +352,8 @@ template <class XprType,
           int BlockCols,
           bool InnerPanel,
           typename SliceSpec>
-inline constexpr auto rows(
-    Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>& A,
-    SliceSpec&& rows) noexcept
+constexpr auto rows(Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>& A,
+                    SliceSpec&& rows) noexcept
 {
     assert(rows.second <= A.rows());
 
@@ -373,9 +363,8 @@ inline constexpr auto rows(
 }
 
 template <class XprType, int BlockRows, int BlockCols, bool InnerPanel>
-inline constexpr auto row(
-    Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>& A,
-    Eigen::Index rowIdx) noexcept
+constexpr auto row(Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>& A,
+                   Eigen::Index rowIdx) noexcept
 {
     assert(rowIdx < A.rows());
 
@@ -388,9 +377,8 @@ template <class XprType,
           int BlockCols,
           bool InnerPanel,
           typename SliceSpec>
-inline constexpr auto cols(
-    Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>& A,
-    SliceSpec&& cols) noexcept
+constexpr auto cols(Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>& A,
+                    SliceSpec&& cols) noexcept
 {
     assert(cols.second <= A.cols());
 
@@ -400,9 +388,8 @@ inline constexpr auto cols(
 }
 
 template <class XprType, int BlockRows, int BlockCols, bool InnerPanel>
-inline constexpr auto col(
-    Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>& A,
-    Eigen::Index colIdx) noexcept
+constexpr auto col(Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>& A,
+                   Eigen::Index colIdx) noexcept
 {
     assert(colIdx < A.cols());
 
@@ -419,7 +406,7 @@ template <
     class SliceSpecCol,
     typename std::enable_if<isSlice(SliceSpecRow) && isSlice(SliceSpecCol),
                             int>::type = 0>
-inline constexpr auto slice(
+constexpr auto slice(
     const Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>& A,
     SliceSpecRow&& rows,
     SliceSpecCol&& cols) noexcept
@@ -439,7 +426,7 @@ template <class XprType,
           int BlockCols,
           bool InnerPanel,
           typename SliceSpecCol>
-inline constexpr auto slice(
+constexpr auto slice(
     const Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>& A,
     Eigen::Index rowIdx,
     SliceSpecCol&& cols) noexcept
@@ -457,7 +444,7 @@ template <class XprType,
           int BlockCols,
           bool InnerPanel,
           typename SliceSpecRow>
-inline constexpr auto slice(
+constexpr auto slice(
     const Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>& A,
     SliceSpecRow&& rows,
     Eigen::Index colIdx) noexcept
@@ -471,9 +458,8 @@ inline constexpr auto slice(
 }
 
 template <class XprType, int BlockRows, bool InnerPanel, typename SliceSpec>
-inline constexpr auto slice(
-    const Eigen::Block<XprType, BlockRows, 1, InnerPanel>& x,
-    SliceSpec&& range) noexcept
+constexpr auto slice(const Eigen::Block<XprType, BlockRows, 1, InnerPanel>& x,
+                     SliceSpec&& range) noexcept
 {
     assert(range.second <= x.size());
 
@@ -483,9 +469,8 @@ inline constexpr auto slice(
 }
 
 template <class XprType, int BlockCols, bool InnerPanel, typename SliceSpec>
-inline constexpr auto slice(
-    const Eigen::Block<XprType, 1, BlockCols, InnerPanel>& x,
-    SliceSpec&& range) noexcept
+constexpr auto slice(const Eigen::Block<XprType, 1, BlockCols, InnerPanel>& x,
+                     SliceSpec&& range) noexcept
 {
     assert(range.second <= x.size());
 
@@ -499,7 +484,7 @@ template <class XprType,
           int BlockCols,
           bool InnerPanel,
           typename SliceSpec>
-inline constexpr auto rows(
+constexpr auto rows(
     const Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>& A,
     SliceSpec&& rows) noexcept
 {
@@ -511,7 +496,7 @@ inline constexpr auto rows(
 }
 
 template <class XprType, int BlockRows, int BlockCols, bool InnerPanel>
-inline constexpr auto row(
+constexpr auto row(
     const Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>& A,
     Eigen::Index rowIdx) noexcept
 {
@@ -526,7 +511,7 @@ template <class XprType,
           int BlockCols,
           bool InnerPanel,
           typename SliceSpec>
-inline constexpr auto cols(
+constexpr auto cols(
     const Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>& A,
     SliceSpec&& cols) noexcept
 {
@@ -538,7 +523,7 @@ inline constexpr auto cols(
 }
 
 template <class XprType, int BlockRows, int BlockCols, bool InnerPanel>
-inline constexpr auto col(
+constexpr auto col(
     const Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>& A,
     Eigen::Index colIdx) noexcept
 {
@@ -554,7 +539,7 @@ inline constexpr auto col(
 template <
     class T,
     typename std::enable_if<eigen::internal::is_eigen_matrix<T>, int>::type = 0>
-inline constexpr auto diag(T& A, int diagIdx = 0) noexcept
+constexpr auto diag(T& A, int diagIdx = 0) noexcept
 {
     return A.diagonal(diagIdx);
 }
@@ -564,7 +549,7 @@ template <class matrix_t,
           typename std::enable_if<(eigen::is_eigen_type<matrix_t> &&
                                    matrix_t::IsVectorAtCompileTime),
                                   int>::type = 0>
-inline constexpr auto transpose_view(matrix_t& A) noexcept
+constexpr auto transpose_view(matrix_t& A) noexcept
 {
     using T = typename matrix_t::Scalar;
     using Stride = Eigen::InnerStride<>;
@@ -585,7 +570,7 @@ template <class matrix_t,
           typename std::enable_if<(eigen::is_eigen_type<matrix_t> &&
                                    !matrix_t::IsVectorAtCompileTime),
                                   int>::type = 0>
-inline constexpr auto transpose_view(matrix_t& A) noexcept
+constexpr auto transpose_view(matrix_t& A) noexcept
 {
     using T = typename matrix_t::Scalar;
     using Stride = Eigen::OuterStride<>;
@@ -728,7 +713,7 @@ namespace traits {
 // Cast to Legacy arrays
 
 template <class T, int Rows, int Cols, int Options, int MaxRows, int MaxCols>
-inline constexpr auto legacy_matrix(
+constexpr auto legacy_matrix(
     const Eigen::Matrix<T, Rows, Cols, Options, MaxRows, MaxCols>& A) noexcept
 {
     using matrix_t = Eigen::Matrix<T, Rows, Cols, Options, MaxRows, MaxCols>;
@@ -745,7 +730,7 @@ inline constexpr auto legacy_matrix(
 }
 
 template <class Derived>
-inline constexpr auto legacy_matrix(
+constexpr auto legacy_matrix(
     const Eigen::MapBase<Derived, Eigen::ReadOnlyAccessors>& A) noexcept
 {
     using T = typename Derived::Scalar;
@@ -767,7 +752,7 @@ inline constexpr auto legacy_matrix(
 }
 
 template <class T, int Rows, int Cols, int Options, int MaxRows, int MaxCols>
-inline constexpr auto legacy_vector(
+constexpr auto legacy_vector(
     const Eigen::Matrix<T, Rows, Cols, Options, MaxRows, MaxCols>& A) noexcept
 {
     using matrix_t = Eigen::Matrix<T, Rows, Cols, Options, MaxRows, MaxCols>;
@@ -784,7 +769,7 @@ inline constexpr auto legacy_vector(
 }
 
 template <class Derived>
-inline constexpr auto legacy_vector(
+constexpr auto legacy_vector(
     const Eigen::MapBase<Derived, Eigen::ReadOnlyAccessors>& A) noexcept
 {
     using T = typename Derived::Scalar;

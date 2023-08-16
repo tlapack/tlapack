@@ -38,9 +38,9 @@ struct GeqlfOpts {
  * @ingroup workspace_query
  */
 template <class T, TLAPACK_SMATRIX A_t, TLAPACK_SVECTOR tau_t>
-inline constexpr WorkInfo geqlf_worksize(const A_t& A,
-                                         const tau_t& tau,
-                                         const GeqlfOpts& opts = {})
+constexpr WorkInfo geqlf_worksize(const A_t& A,
+                                  const tau_t& tau,
+                                  const GeqlfOpts& opts = {})
 {
     using idx_t = size_type<A_t>;
     using range = pair<idx_t, idx_t>;

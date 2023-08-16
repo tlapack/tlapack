@@ -46,10 +46,10 @@ struct UngbrOpts {
  * @ingroup workspace_query
  */
 template <class T, TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
-inline constexpr WorkInfo ungbr_q_worksize(const size_type<matrix_t> k,
-                                           matrix_t& A,
-                                           const vector_t& tau,
-                                           const UngbrOpts& opts = {})
+constexpr WorkInfo ungbr_q_worksize(const size_type<matrix_t> k,
+                                    matrix_t& A,
+                                    const vector_t& tau,
+                                    const UngbrOpts& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -88,10 +88,10 @@ inline constexpr WorkInfo ungbr_q_worksize(const size_type<matrix_t> k,
  * @ingroup workspace_query
  */
 template <class T, TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
-inline constexpr WorkInfo ungbr_p_worksize(const size_type<matrix_t> k,
-                                           matrix_t& A,
-                                           const vector_t& tau,
-                                           const UngbrOpts& opts = {})
+constexpr WorkInfo ungbr_p_worksize(const size_type<matrix_t> k,
+                                    matrix_t& A,
+                                    const vector_t& tau,
+                                    const UngbrOpts& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;

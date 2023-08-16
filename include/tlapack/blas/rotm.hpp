@@ -116,7 +116,7 @@ template <
     class T = type_t<vectorX_t>,
     enable_if_t<is_same_v<T, real_type<T> >, int> = 0,
     enable_if_allow_optblas_t<pair<vectorX_t, T>, pair<vectorY_t, T> > = 0>
-inline void rotm(vectorX_t& x, vectorY_t& y, const T h[4])
+void rotm(vectorX_t& x, vectorY_t& y, const T h[4])
 {
     // Legacy objects
     auto x_ = legacy_vector(x);

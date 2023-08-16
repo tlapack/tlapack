@@ -23,7 +23,7 @@ namespace tlapack {
  * @ingroup workspace_query
  */
 template <class T, TLAPACK_MATRIX matrix_t>
-inline constexpr WorkInfo infnorm_colmajor_worksize(const matrix_t& A)
+constexpr WorkInfo infnorm_colmajor_worksize(const matrix_t& A)
 {
     return WorkInfo(nrows(A));
 }

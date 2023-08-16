@@ -25,7 +25,7 @@ namespace tlapack {
  * or using a functor:
  * ```c++
  * struct abs_f {
- *    inline constexpr real_type<T> operator()(const T& x) const {
+ *    constexpr real_type<T> operator()(const T& x) const {
  *       return my_abs(x);
  *   }
  * };
@@ -35,7 +35,7 @@ namespace tlapack {
  */
 template <class abs_f>
 struct IamaxOpts : public EcOpts {
-    inline constexpr IamaxOpts(abs_f absf, const EcOpts& opts = {})
+    constexpr IamaxOpts(abs_f absf, const EcOpts& opts = {})
         : EcOpts(opts), absf(absf){};
 
     abs_f absf;  ///< Absolute value function
@@ -231,15 +231,14 @@ size_type<vector_t> iamax_nc(const vector_t& x, abs_f absf)
  * @ingroup blas1
  */
 template <TLAPACK_VECTOR vector_t, class abs_f>
-inline size_type<vector_t> iamax(const vector_t& x,
-                                 const IamaxOpts<abs_f>& opts)
+size_type<vector_t> iamax(const vector_t& x, const IamaxOpts<abs_f>& opts)
 {
     return (opts.ec.nan == true) ? iamax_ec(x, opts.absf)
                                  : iamax_nc(x, opts.absf);
 }
 
 template <TLAPACK_VECTOR vector_t, disable_if_allow_optblas_t<vector_t> = 0>
-inline size_type<vector_t> iamax(const vector_t& x)
+size_type<vector_t> iamax(const vector_t& x)
 {
     using T = type_t<vector_t>;
     using real_t = real_type<T>;
@@ -248,7 +247,7 @@ inline size_type<vector_t> iamax(const vector_t& x)
     IamaxOpts opts([](const T& x) -> real_t { return abs1(x); });
 #else
     struct abs_f {
-        inline constexpr real_t operator()(const T& x) const { return abs1(x); }
+        constexpr real_t operator()(const T& x) const { return abs1(x); }
     };
     abs_f absf;
     IamaxOpts<abs_f> opts(absf);
@@ -261,7 +260,7 @@ inline size_type<vector_t> iamax(const vector_t& x)
 
 template <TLAPACK_LEGACY_VECTOR vector_t,
           enable_if_allow_optblas_t<vector_t> = 0>
-inline size_type<vector_t> iamax(vector_t const& x)
+size_type<vector_t> iamax(vector_t const& x)
 {
     // Legacy objects
     auto x_ = legacy_vector(x);

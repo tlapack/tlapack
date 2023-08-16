@@ -48,11 +48,11 @@ template <class T,
           TLAPACK_VECTOR tau_t,
           TLAPACK_SIDE side_t,
           TLAPACK_OP trans_t>
-inline constexpr WorkInfo unml2_worksize(side_t side,
-                                         trans_t trans,
-                                         const matrixA_t& A,
-                                         const tau_t& tau,
-                                         const matrixC_t& C)
+constexpr WorkInfo unml2_worksize(side_t side,
+                                  trans_t trans,
+                                  const matrixA_t& A,
+                                  const tau_t& tau,
+                                  const matrixC_t& C)
 {
     using idx_t = size_type<matrixA_t>;
     using range = pair<idx_t, idx_t>;

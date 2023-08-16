@@ -425,14 +425,14 @@ template <TLAPACK_MATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
           TLAPACK_WORKSPACE work_t,
           enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
-inline int multishift_qr_work(bool want_t,
-                              bool want_z,
-                              size_type<matrix_t> ilo,
-                              size_type<matrix_t> ihi,
-                              matrix_t& A,
-                              vector_t& w,
-                              matrix_t& Z,
-                              work_t& work)
+int multishift_qr_work(bool want_t,
+                       bool want_z,
+                       size_type<matrix_t> ilo,
+                       size_type<matrix_t> ihi,
+                       matrix_t& A,
+                       vector_t& w,
+                       matrix_t& Z,
+                       work_t& work)
 {
     FrancisOpts opts = {};
     return multishift_qr_work(want_t, want_z, ilo, ihi, A, w, Z, work, opts);
@@ -543,13 +543,13 @@ int multishift_qr(bool want_t,
 template <TLAPACK_MATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
           enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
-inline int multishift_qr(bool want_t,
-                         bool want_z,
-                         size_type<matrix_t> ilo,
-                         size_type<matrix_t> ihi,
-                         matrix_t& A,
-                         vector_t& w,
-                         matrix_t& Z)
+int multishift_qr(bool want_t,
+                  bool want_z,
+                  size_type<matrix_t> ilo,
+                  size_type<matrix_t> ihi,
+                  matrix_t& A,
+                  vector_t& w,
+                  matrix_t& Z)
 {
     FrancisOpts opts = {};
     return multishift_qr(want_t, want_z, ilo, ihi, A, w, Z, opts);

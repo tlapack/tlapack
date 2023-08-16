@@ -42,7 +42,7 @@ struct TestUploMatrix : public LegacyMatrix<T, idx_t, L> {
     {}
 
     // Overload of the access operator
-    inline constexpr const T& operator()(idx_t i, idx_t j) const noexcept
+    constexpr const T& operator()(idx_t i, idx_t j) const noexcept
     {
         if (uplo == Uplo::Upper)
             assert((int)i <= (int)j + modifier);
@@ -53,7 +53,7 @@ struct TestUploMatrix : public LegacyMatrix<T, idx_t, L> {
     };
 
     // Overload of the access operator
-    inline constexpr T& operator()(idx_t i, idx_t j) noexcept
+    constexpr T& operator()(idx_t i, idx_t j) noexcept
     {
         if (uplo == Uplo::Upper)
             assert((int)i <= (int)j + modifier);
@@ -77,9 +77,9 @@ template <
     class SliceSpecCol,
     typename std::enable_if<isSlice(SliceSpecRow) && isSlice(SliceSpecCol),
                             int>::type = 0>
-inline constexpr auto slice(const TestUploMatrix<T, idx_t, uplo, layout>& A,
-                            SliceSpecRow&& rows,
-                            SliceSpecCol&& cols) noexcept
+constexpr auto slice(const TestUploMatrix<T, idx_t, uplo, layout>& A,
+                     SliceSpecRow&& rows,
+                     SliceSpecCol&& cols) noexcept
 {
     TestUploMatrix<const T, idx_t, uplo, layout> B(
         slice((const LegacyMatrix<T, idx_t, layout>&)A, rows, cols));
@@ -90,8 +90,8 @@ inline constexpr auto slice(const TestUploMatrix<T, idx_t, uplo, layout>& A,
 #undef isSlice
 
 template <typename T, class idx_t, Uplo uplo, Layout layout, class SliceSpec>
-inline constexpr auto rows(const TestUploMatrix<T, idx_t, uplo, layout>& A,
-                           SliceSpec&& slice) noexcept
+constexpr auto rows(const TestUploMatrix<T, idx_t, uplo, layout>& A,
+                    SliceSpec&& slice) noexcept
 {
     TestUploMatrix<const T, idx_t, uplo, layout> B(
         rows((const LegacyMatrix<T, idx_t, layout>&)A, slice));
@@ -100,8 +100,8 @@ inline constexpr auto rows(const TestUploMatrix<T, idx_t, uplo, layout>& A,
 }
 
 template <typename T, class idx_t, Uplo uplo, Layout layout, class SliceSpec>
-inline constexpr auto cols(const TestUploMatrix<T, idx_t, uplo, layout>& A,
-                           SliceSpec&& slice) noexcept
+constexpr auto cols(const TestUploMatrix<T, idx_t, uplo, layout>& A,
+                    SliceSpec&& slice) noexcept
 {
     TestUploMatrix<const T, idx_t, uplo, layout> B(
         cols((const LegacyMatrix<T, idx_t, layout>&)A, slice));
@@ -120,9 +120,9 @@ template <
     class SliceSpecCol,
     typename std::enable_if<isSlice(SliceSpecRow) && isSlice(SliceSpecCol),
                             int>::type = 0>
-inline constexpr auto slice(TestUploMatrix<T, idx_t, uplo, layout>& A,
-                            SliceSpecRow&& rows,
-                            SliceSpecCol&& cols) noexcept
+constexpr auto slice(TestUploMatrix<T, idx_t, uplo, layout>& A,
+                     SliceSpecRow&& rows,
+                     SliceSpecCol&& cols) noexcept
 {
     TestUploMatrix<T, idx_t, uplo, layout> B(
         slice((LegacyMatrix<T, idx_t, layout>&)A, rows, cols));
@@ -133,8 +133,8 @@ inline constexpr auto slice(TestUploMatrix<T, idx_t, uplo, layout>& A,
 #undef isSlice
 
 template <typename T, class idx_t, Uplo uplo, Layout layout, class SliceSpec>
-inline constexpr auto rows(TestUploMatrix<T, idx_t, uplo, layout>& A,
-                           SliceSpec&& slice) noexcept
+constexpr auto rows(TestUploMatrix<T, idx_t, uplo, layout>& A,
+                    SliceSpec&& slice) noexcept
 {
     TestUploMatrix<T, idx_t, uplo, layout> B(
         rows((LegacyMatrix<T, idx_t, layout>&)A, slice));
@@ -143,8 +143,8 @@ inline constexpr auto rows(TestUploMatrix<T, idx_t, uplo, layout>& A,
 }
 
 template <typename T, class idx_t, Uplo uplo, Layout layout, class SliceSpec>
-inline constexpr auto cols(TestUploMatrix<T, idx_t, uplo, layout>& A,
-                           SliceSpec&& slice) noexcept
+constexpr auto cols(TestUploMatrix<T, idx_t, uplo, layout>& A,
+                    SliceSpec&& slice) noexcept
 {
     TestUploMatrix<T, idx_t, uplo, layout> B(
         cols((LegacyMatrix<T, idx_t, layout>&)A, slice));

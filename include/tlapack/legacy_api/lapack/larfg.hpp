@@ -18,7 +18,7 @@ namespace tlapack {
 namespace legacy {
 
     template <typename T>
-    void inline larfg(idx_t n, T& alpha, T* x, int_t incx, T& tau)
+    void larfg(idx_t n, T& alpha, T* x, int_t incx, T& tau)
     {
         tlapack_expr_with_vector(
             x_, T, n - 1, x, incx,
@@ -32,7 +32,7 @@ namespace legacy {
      * @ingroup legacy_lapack
      */
     template <typename T>
-    void inline larfg(idx_t n, T* alpha, T* x, int_t incx, T* tau)
+    void larfg(idx_t n, T* alpha, T* x, int_t incx, T* tau)
     {
         larfg(n, *alpha, x, incx, *tau);
     }

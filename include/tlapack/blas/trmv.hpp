@@ -182,8 +182,7 @@ template <
     TLAPACK_LEGACY_VECTOR vectorX_t,
     class T = type_t<vectorX_t>,
     enable_if_allow_optblas_t<pair<matrixA_t, T>, pair<vectorX_t, T> > = 0>
-inline void trmv(
-    Uplo uplo, Op trans, Diag diag, const matrixA_t& A, vectorX_t& x)
+void trmv(Uplo uplo, Op trans, Diag diag, const matrixA_t& A, vectorX_t& x)
 {
     // Legacy objects
     auto A_ = legacy_matrix(A);

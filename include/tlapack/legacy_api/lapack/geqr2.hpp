@@ -37,7 +37,7 @@ namespace legacy {
      * @ingroup legacy_lapack
      */
     template <typename TA, typename TT>
-    inline int geqr2(idx_t m, idx_t n, TA* A, idx_t lda, TT* tau)
+    int geqr2(idx_t m, idx_t n, TA* A, idx_t lda, TT* tau)
     {
         using internal::create_matrix;
         using internal::create_vector;
