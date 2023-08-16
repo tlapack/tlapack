@@ -120,18 +120,20 @@ TEMPLATE_TEST_CASE("QR, RQ, QL, LQ factorization of a general m-by-n matrix",
             lacpy(UPPER_TRIANGLE, A, R);
 
             // Test Q is unitary
+            GenHouseholderQOpts qOpts;
+            qOpts.nb = nb;
             gen_householder_q(FORWARD, COLUMNWISE_STORAGE, Q,
-                              slice(tau, range(0, min(nv, k))),
-                              GenHouseholderQOpts{(size_t)nb});
+                              slice(tau, range(0, min(nv, k))), qOpts);
             auto orth_Q = check_orthogonality(Q);
             CHECK(orth_Q <= tol);
 
             // Test A == Q * R if nv >= k
             if (nv >= k) {
+                HouseholderQMulOpts qmulOpts;
+                qmulOpts.nb = nb;
                 auto V = slice(A, range(0, m), range(0, k));
                 householder_q_mul(LEFT_SIDE, NO_TRANS, FORWARD,
-                                  COLUMNWISE_STORAGE, V, tau, R,
-                                  HouseholderQMulOpts{(size_t)nb});
+                                  COLUMNWISE_STORAGE, V, tau, R, qmulOpts);
                 for (idx_t j = 0; j < n; ++j)
                     for (idx_t i = 0; i < m; ++i)
                         R(i, j) = A_copy(i, j) - R(i, j);
@@ -195,19 +197,21 @@ TEMPLATE_TEST_CASE("QR, RQ, QL, LQ factorization of a general m-by-n matrix",
             }
 
             // Test Q is unitary
+            GenHouseholderQOpts qOpts;
+            qOpts.nb = nb;
             gen_householder_q(BACKWARD, COLUMNWISE_STORAGE, Q,
-                              slice(tau, range(k - min(nv, k), k)),
-                              GenHouseholderQOpts{(size_t)nb});
+                              slice(tau, range(k - min(nv, k), k)), qOpts);
             auto orth_Q = check_orthogonality(Q);
             CHECK(orth_Q <= tol);
 
             // Test A == Q * L if nv >= k
             if (nv >= k) {
+                HouseholderQMulOpts qmulOpts;
+                qmulOpts.nb = nb;
                 const auto V = slice(A, range(0, m),
                                      (m > n) ? range(0, n) : range(n - m, n));
                 householder_q_mul(LEFT_SIDE, NO_TRANS, BACKWARD,
-                                  COLUMNWISE_STORAGE, V, tau, L,
-                                  HouseholderQMulOpts{(size_t)nb});
+                                  COLUMNWISE_STORAGE, V, tau, L, qmulOpts);
                 for (idx_t j = 0; j < n; ++j)
                     for (idx_t i = 0; i < m; ++i)
                         L(i, j) = A_copy(i, j) - L(i, j);
@@ -242,18 +246,20 @@ TEMPLATE_TEST_CASE("QR, RQ, QL, LQ factorization of a general m-by-n matrix",
             lacpy(LOWER_TRIANGLE, A, L);
 
             // Test Q is unitary
+            GenHouseholderQOpts qOpts;
+            qOpts.nb = nb;
             gen_householder_q(FORWARD, ROWWISE_STORAGE, Q,
-                              slice(tau, range(0, min(nv, k))),
-                              GenHouseholderQOpts{(size_t)nb});
+                              slice(tau, range(0, min(nv, k))), qOpts);
             auto orth_Q = check_orthogonality(Q);
             CHECK(orth_Q <= tol);
 
             // Test A == L * Q
             if (nv >= k) {
+                HouseholderQMulOpts qmulOpts;
+                qmulOpts.nb = nb;
                 const auto V = slice(A, range(0, k), range(0, n));
                 householder_q_mul(RIGHT_SIDE, NO_TRANS, FORWARD,
-                                  ROWWISE_STORAGE, V, tau, L,
-                                  HouseholderQMulOpts{(size_t)nb});
+                                  ROWWISE_STORAGE, V, tau, L, qmulOpts);
                 for (idx_t j = 0; j < n; ++j)
                     for (idx_t i = 0; i < m; ++i)
                         L(i, j) = A_copy(i, j) - L(i, j);
@@ -317,19 +323,21 @@ TEMPLATE_TEST_CASE("QR, RQ, QL, LQ factorization of a general m-by-n matrix",
             }
 
             // Test Q is unitary
+            GenHouseholderQOpts qOpts;
+            qOpts.nb = nb;
             gen_householder_q(BACKWARD, ROWWISE_STORAGE, Q,
-                              slice(tau, range(k - min(nv, k), k)),
-                              GenHouseholderQOpts{(size_t)nb});
+                              slice(tau, range(k - min(nv, k), k)), qOpts);
             auto orth_Q = check_orthogonality(Q);
             CHECK(orth_Q <= tol);
 
             // Test A == R * Q if nv >= k
             if (nv >= k) {
+                HouseholderQMulOpts qmulOpts;
+                qmulOpts.nb = nb;
                 const auto V = slice(A, (n > m) ? range(0, m) : range(m - n, m),
                                      range(0, n));
                 householder_q_mul(RIGHT_SIDE, NO_TRANS, BACKWARD,
-                                  ROWWISE_STORAGE, V, tau, R,
-                                  HouseholderQMulOpts{(size_t)nb});
+                                  ROWWISE_STORAGE, V, tau, R, qmulOpts);
                 for (idx_t j = 0; j < n; ++j)
                     for (idx_t i = 0; i < m; ++i)
                         R(i, j) = A_copy(i, j) - R(i, j);
