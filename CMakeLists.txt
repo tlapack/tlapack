@@ -87,10 +87,6 @@ option( BUILD_C_WRAPPERS       "Build and install C wrappers (WIP)" OFF )
 option( BUILD_CBLAS_WRAPPERS   "Build and install CBLAS wrappers (WIP)" OFF )
 option( BUILD_Fortran_WRAPPERS "Build and install Fortran wrappers (WIP)" OFF )
 
-# Use of mdspan instead of the <T>LAPACK legacy arrays
-option( TLAPACK_USE_MDSPAN "Use mdspan for the legacy wrappers" OFF )
-mark_as_advanced( FORCE TLAPACK_USE_MDSPAN )
-
 # Enable disable error checks
 option( TLAPACK_NDEBUG "Disable all error checks" OFF )
 
@@ -180,19 +176,6 @@ if( TLAPACK_USE_LAPACKPP )
   find_package( lapackpp REQUIRED )
   target_compile_definitions( tlapack INTERFACE TLAPACK_USE_LAPACKPP )
   target_link_libraries( tlapack INTERFACE lapackpp )
-endif()
-
-#-------------------------------------------------------------------------------
-# Load mdspan if needed
-if( TLAPACK_USE_MDSPAN )
-  include( "${TLAPACK_SOURCE_DIR}/cmake/FetchPackage.cmake" )
-  FetchPackage( "mdspan" "https://github.com/kokkos/mdspan.git" "stable" )
-  if( mdspan_FOUND )
-    target_compile_definitions( tlapack INTERFACE TLAPACK_USE_MDSPAN )
-    target_link_libraries( tlapack INTERFACE std::mdspan )
-  else()
-    message( STATUS "Legacy wrappers will use legacy arrays instead of mdspan" )
-  endif()
 endif()
 
 #-------------------------------------------------------------------------------
