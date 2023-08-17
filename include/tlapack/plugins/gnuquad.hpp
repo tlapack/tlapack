@@ -118,7 +118,7 @@ struct numeric_limits<__float128> {
     static constexpr float_round_style round_style = round_to_nearest;
 };
 
-ostream& operator<<(ostream& out, const __float128& x)
+inline ostream& operator<<(ostream& out, const __float128& x)
 {
     char buf[128];
     quadmath_snprintf(buf, 128, "%+-#*.20Qe", x);
