@@ -152,8 +152,8 @@ namespace concepts {
      * latter returns a complex type of the same type as the input. Those
      * functions must be callable from the namespace @c tlapack.
      *
-     * - it must support the math function @c abs(). This function must be
-     * callable from the namespace @c tlapack.
+     * - it must support the math functions @c abs() and @c sqrt(). These
+     * functions must be callable from the namespace @c tlapack.
      *
      * @tparam T Type.
      *
@@ -187,6 +187,7 @@ namespace concepts {
 
         // Math functions
         abs(a);
+        sqrt(a);
     };
 
     /** @interface tlapack::concepts::Scalar
@@ -199,8 +200,8 @@ namespace concepts {
      *
      * - it must be move assignable.
      *
-     * - it must support the math function @c abs(). This function must be
-     * callable from the namespace @c tlapack.
+     * - it must support the math functions @c abs() and @c sqrt(). These
+     * functions must be callable from the namespace @c tlapack.
      *
      * @tparam T Scalar type.
      *
@@ -215,6 +216,7 @@ namespace concepts {
 
         // Math functions
         abs(a);
+        sqrt(a);
     };
 
     /** @interface tlapack::concepts::Vector

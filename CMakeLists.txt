@@ -81,6 +81,7 @@ option( TLAPACK_BUILD_SINGLE_TESTER "Build one additional executable that contai
 option( TLAPACK_TEST_EIGEN "Add Eigen matrices to the types to test" OFF )
 option( TLAPACK_TEST_MDSPAN "Add mdspan matrices to the types to test" OFF )
 option( TLAPACK_TEST_MPFR "Add GNU multiprecision type to test" OFF )
+option( TLAPACK_TEST_QUAD "Add a quad-precision type to test" OFF )
 
 # Wrappers to <T>LAPACK
 option( BUILD_C_WRAPPERS       "Build and install C wrappers (WIP)" OFF )
