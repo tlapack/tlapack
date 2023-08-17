@@ -48,17 +48,19 @@ namespace starpu {
         template <class T, class U, internal::Operation op>
         constexpr void data_op_data(void** buffers, void* args) noexcept
         {
-            T* x = (T*)STARPU_VARIABLE_GET_PTR(buffers[0]);
+            T& x = *((T*)STARPU_VARIABLE_GET_PTR(buffers[0]));
+            const U& y = *((U*)STARPU_VARIABLE_GET_PTR(buffers[1]));
+
             if constexpr (op == internal::Operation::Assign)
-                *x = *((U*)STARPU_VARIABLE_GET_PTR(buffers[1]));
+                x = y;
             else if constexpr (op == internal::Operation::Add)
-                *x += *((U*)STARPU_VARIABLE_GET_PTR(buffers[1]));
+                x += y;
             else if constexpr (op == internal::Operation::Subtract)
-                *x -= *((U*)STARPU_VARIABLE_GET_PTR(buffers[1]));
+                x -= y;
             else if constexpr (op == internal::Operation::Multiply)
-                *x *= *((U*)STARPU_VARIABLE_GET_PTR(buffers[1]));
+                x *= y;
             else if constexpr (op == internal::Operation::Divide)
-                *x /= *((U*)STARPU_VARIABLE_GET_PTR(buffers[1]));
+                x /= y;
         }
 
         /**
@@ -71,17 +73,19 @@ namespace starpu {
         template <class T, class U, internal::Operation op>
         constexpr void data_op_value(void** buffers, void* args) noexcept
         {
-            T* x = (T*)STARPU_VARIABLE_GET_PTR(buffers[0]);
+            T& x = *((T*)STARPU_VARIABLE_GET_PTR(buffers[0]));
+            const U& y = *((U*)args);
+
             if constexpr (op == internal::Operation::Assign)
-                *x = *((U*)args);
+                x = y;
             else if constexpr (op == internal::Operation::Add)
-                *x += *((U*)args);
+                x += y;
             else if constexpr (op == internal::Operation::Subtract)
-                *x -= *((U*)args);
+                x -= y;
             else if constexpr (op == internal::Operation::Multiply)
-                *x *= *((U*)args);
+                x *= y;
             else if constexpr (op == internal::Operation::Divide)
-                *x /= *((U*)args);
+                x /= y;
         }
 
         /**
