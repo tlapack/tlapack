@@ -23,14 +23,14 @@ template <class T,
           TLAPACK_SMATRIX matrix_t,
           TLAPACK_SVECTOR vector_t,
           enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
-WorkInfo multishift_qr_worksize_sweep(bool want_t,
-                                      bool want_z,
-                                      size_type<matrix_t> ilo,
-                                      size_type<matrix_t> ihi,
-                                      const matrix_t& A,
-                                      const vector_t& w,
-                                      const matrix_t& Z,
-                                      const FrancisOpts& opts = {})
+constexpr WorkInfo multishift_qr_worksize_sweep(bool want_t,
+                                                bool want_z,
+                                                size_type<matrix_t> ilo,
+                                                size_type<matrix_t> ihi,
+                                                const matrix_t& A,
+                                                const vector_t& w,
+                                                const matrix_t& Z,
+                                                const FrancisOpts& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -38,7 +38,7 @@ WorkInfo multishift_qr_worksize_sweep(bool want_t,
     const idx_t n = ncols(A);
     const idx_t nh = ihi - ilo;
     const idx_t nsr = opts.nshift_recommender(n, nh);
-    const auto shifts = slice(w, range{0, nsr});
+    auto&& shifts = slice(w, range{0, nsr});
 
     return multishift_QR_sweep_worksize<T>(want_t, want_z, ilo, ihi, A, shifts,
                                            Z);
@@ -89,9 +89,8 @@ WorkInfo multishift_qr_worksize(bool want_t,
     {
         const idx_t nw_max = (n - 3) / 3;
 
-        idx_t ls = 0, ld = 0;
         workinfo = aggressive_early_deflation_worksize<T>(
-            want_t, want_z, ilo, ihi, nw_max, A, w, Z, ls, ld, opts);
+            want_t, want_z, ilo, ihi, nw_max, A, w, Z, 0, 0, opts);
     }
 
     workinfo.minMax(multishift_qr_worksize_sweep<T>(want_t, want_z, ilo, ihi, A,

@@ -92,7 +92,8 @@ namespace starpu {
          * Used in tasks submitted to StarPU.
          */
         template <class T, internal::Operation op>
-        void matrixentry_op_matrixentry(void** buffers, void* args) noexcept
+        constexpr void matrixentry_op_matrixentry(void** buffers,
+                                                  void* args) noexcept
         {
             using args_t = std::tuple<idx_t, idx_t, idx_t, idx_t>;
 

@@ -46,13 +46,13 @@ constexpr WorkInfo gebd2_worksize(const matrix_t& A,
 
     WorkInfo workinfo;
     if (n > 1) {
-        auto A11 = cols(A, range{1, n});
+        auto&& A11 = cols(A, range{1, n});
         workinfo = larf_worksize<T>(LEFT_SIDE, FORWARD, COLUMNWISE_STORAGE,
                                     col(A, 0), tauv[0], A11);
 
         if (m > 1) {
-            auto B11 = rows(A11, range{1, m});
-            auto row0 = slice(A, 0, range{1, n});
+            auto&& B11 = rows(A11, range{1, m});
+            auto&& row0 = slice(A, 0, range{1, n});
 
             workinfo.minMax(larf_worksize<T>(
                 RIGHT_SIDE, FORWARD, ROWWISE_STORAGE, row0, tauw[0], B11));

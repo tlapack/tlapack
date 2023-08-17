@@ -38,7 +38,7 @@ constexpr WorkInfo geqr2_worksize(const matrix_t& A, const vector_t& tau)
     const idx_t n = ncols(A);
 
     if (n > 1) {
-        auto C = cols(A, range{1, n});
+        auto&& C = cols(A, range{1, n});
         return larf_worksize<T>(LEFT_SIDE, FORWARD, COLUMNWISE_STORAGE,
                                 col(A, 0), tau[0], C);
     }

@@ -501,15 +501,15 @@ constexpr WorkInfo larf_worksize(side_t side,
     const idx_t n = ncols(C);
 
     if (side == Side::Left && m > 0) {
-        auto C0 = row(C, 0);
-        auto C1 = rows(C, range{1, m});
-        auto x = slice(v, range{1, m});
+        auto&& C0 = row(C, 0);
+        auto&& C1 = rows(C, range{1, m});
+        auto&& x = slice(v, range{1, m});
         return larf_worksize<T>(LEFT_SIDE, storeMode, x, tau, C0, C1);
     }
     else if (side == Side::Right && n > 0) {
-        auto C0 = col(C, 0);
-        auto C1 = cols(C, range{1, n});
-        auto x = slice(v, range{1, n});
+        auto&& C0 = col(C, 0);
+        auto&& C1 = cols(C, range{1, n});
+        auto&& x = slice(v, range{1, n});
         return larf_worksize<T>(RIGHT_SIDE, storeMode, x, tau, C0, C1);
     }
     else

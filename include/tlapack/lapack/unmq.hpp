@@ -100,10 +100,10 @@ constexpr WorkInfo unmq_worksize(side_t side,
     WorkInfo workinfo =
         (is_same_v<T, type_t<matrixT_t>>) ? WorkInfo(nb, nb) : WorkInfo(0);
 
-    const auto Vi = (storeMode == StoreV::Columnwise)
-                        ? slice(V, range{0, nQ}, range{0, nb})
-                        : slice(V, range{0, nb}, range{0, nQ});
-    const auto matrixTi = slice(V, range{0, nb}, range{0, nb});
+    auto&& Vi = (storeMode == StoreV::Columnwise)
+                    ? slice(V, range{0, nQ}, range{0, nb})
+                    : slice(V, range{0, nb}, range{0, nQ});
+    auto&& matrixTi = slice(V, range{0, nb}, range{0, nb});
 
     // larfb:
     workinfo += larfb_worksize<T>(side, NO_TRANS, direction, storeMode, Vi,

@@ -419,7 +419,7 @@ bool hasnan(const vector_t& x) noexcept
 // -----------------------------------------------------------------------------
 /// 1-norm absolute value, |Re(x)| + |Im(x)|
 template <typename T>
-real_type<T> abs1(const T& x)
+constexpr real_type<T> abs1(const T& x)
 {
     return abs(real(x)) + abs(imag(x));
 }

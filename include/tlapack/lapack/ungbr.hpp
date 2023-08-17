@@ -61,8 +61,8 @@ constexpr WorkInfo ungbr_q_worksize(const size_type<matrix_t> k,
         return ungqr_worksize<T>(A, tau, opts);
     }
     else {
-        auto A2 = slice(A, range{0, m - 1}, range{0, m - 1});
-        auto tau2 = slice(tau, range{0, m - 1});
+        auto&& A2 = slice(A, range{0, m - 1}, range{0, m - 1});
+        auto&& tau2 = slice(tau, range{0, m - 1});
         return ungqr_worksize<T>(A2, tau2, opts);
     }
 }
@@ -100,8 +100,8 @@ constexpr WorkInfo ungbr_p_worksize(const size_type<matrix_t> k,
     const idx_t n = ncols(A);
 
     if (m >= k) {
-        auto A2 = slice(A, range{0, n - 1}, range{0, n - 1});
-        auto tau2 = slice(tau, range{0, n - 1});
+        auto&& A2 = slice(A, range{0, n - 1}, range{0, n - 1});
+        auto&& tau2 = slice(tau, range{0, n - 1});
         return unglq_worksize<T>(A2, tau2, opts);
     }
     else {

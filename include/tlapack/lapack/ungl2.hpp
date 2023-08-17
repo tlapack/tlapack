@@ -39,7 +39,7 @@ constexpr WorkInfo ungl2_worksize(const matrix_t& Q, const vector_t& tauw)
     const idx_t k = nrows(Q);
 
     if (k > 1) {
-        auto C = rows(Q, range{1, k});
+        auto&& C = rows(Q, range{1, k});
         return larf_worksize<T>(RIGHT_SIDE, FORWARD, ROWWISE_STORAGE, row(Q, 0),
                                 tauw[0], C);
     }

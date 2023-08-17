@@ -62,7 +62,7 @@ constexpr WorkInfo unmr2_worksize(side_t side,
     const idx_t n = ncols(C);
     const idx_t nA = (side == Side::Left) ? m : n;
 
-    auto v = slice(A, 0, range{0, nA});
+    auto&& v = slice(A, 0, range{0, nA});
     return larf_worksize<T>(side, BACKWARD, ROWWISE_STORAGE, v, tau[0], C);
 }
 

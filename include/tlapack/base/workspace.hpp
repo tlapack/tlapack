@@ -33,10 +33,10 @@ struct WorkInfo {
      *
      * @param[in] workinfo Another specification of work sizes
      */
-    void minMax(const WorkInfo& workinfo) noexcept
+    constexpr void minMax(const WorkInfo& workinfo) noexcept
     {
-        const size_t m1 = workinfo.m;
-        const size_t n1 = workinfo.n;
+        const size_t& m1 = workinfo.m;
+        const size_t& n1 = workinfo.n;
         const size_t s1 = workinfo.size();
         const size_t s = size();
 
@@ -75,8 +75,8 @@ struct WorkInfo {
      */
     constexpr WorkInfo& operator+=(const WorkInfo& workinfo) noexcept
     {
-        const size_t m1 = workinfo.m;
-        const size_t n1 = workinfo.n;
+        const size_t& m1 = workinfo.m;
+        const size_t& n1 = workinfo.n;
         const size_t s1 = workinfo.size();
 
         // If one of the objects is contiguous, then the result is contiguous

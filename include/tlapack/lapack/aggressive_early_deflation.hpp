@@ -29,10 +29,11 @@
 namespace tlapack {
 
 template <class T, TLAPACK_SMATRIX matrix_t>
-WorkInfo aggressive_early_deflation_worksize_gehrd(size_type<matrix_t> ilo,
-                                                   size_type<matrix_t> ihi,
-                                                   size_type<matrix_t> nw,
-                                                   const matrix_t& A)
+constexpr WorkInfo aggressive_early_deflation_worksize_gehrd(
+    size_type<matrix_t> ilo,
+    size_type<matrix_t> ihi,
+    size_type<matrix_t> nw,
+    const matrix_t& A)
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -40,11 +41,11 @@ WorkInfo aggressive_early_deflation_worksize_gehrd(size_type<matrix_t> ilo,
     const idx_t n = ncols(A);
     const idx_t nw_max = (n - 3) / 3;
     const idx_t jw = min(min(nw, ihi - ilo), nw_max);
-    const auto TW = slice(A, range{0, jw}, range{0, jw});
 
     if (jw != ihi - ilo) {
         // Hessenberg reduction
-        auto tau = slice(A, range{0, jw}, 0);
+        auto&& TW = slice(A, range{0, jw}, range{0, jw});
+        auto&& tau = slice(A, range{0, jw}, 0);
         return gehrd_worksize<T>(0, jw, TW, tau);
     }
     else
@@ -110,15 +111,15 @@ WorkInfo aggressive_early_deflation_worksize(bool want_t,
     const idx_t n = ncols(A);
     const idx_t nw_max = (n - 3) / 3;
     const idx_t jw = min(min(nw, ihi - ilo), nw_max);
-    const auto TW = slice(A, range{0, jw}, range{0, jw});
 
     // quick return
     WorkInfo workinfo;
     if (n < 9 || nw <= 1 || ihi <= 1 + ilo) return workinfo;
 
     if (jw >= (idx_t)opts.nmin) {
-        const auto s_window = slice(s, range{0, jw});
-        const auto V = slice(A, range{0, jw}, range{0, jw});
+        auto&& TW = slice(A, range{0, jw}, range{0, jw});
+        auto&& s_window = slice(s, range{0, jw});
+        auto&& V = slice(A, range{0, jw}, range{0, jw});
         workinfo =
             multishift_qr_worksize<T>(true, true, 0, jw, TW, s_window, V, opts);
     }

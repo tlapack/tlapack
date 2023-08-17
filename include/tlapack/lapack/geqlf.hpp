@@ -52,13 +52,13 @@ constexpr WorkInfo geqlf_worksize(const A_t& A,
     const idx_t k = min(m, n);
     const idx_t nb = min((idx_t)opts.nb, k);
 
-    auto A11 = cols(A, range(0, nb));
-    auto tauw1 = slice(tau, range(0, nb));
+    auto&& A11 = cols(A, range(0, nb));
+    auto&& tauw1 = slice(tau, range(0, nb));
     WorkInfo workinfo = geql2_worksize<T>(A11, tauw1);
 
     if (n > nb) {
-        auto TT1 = slice(A, range(0, nb), range(0, nb));
-        auto A12 = slice(A, range(0, m), range(nb, n));
+        auto&& TT1 = slice(A, range(0, nb), range(0, nb));
+        auto&& A12 = slice(A, range(0, m), range(nb, n));
         workinfo.minMax(larfb_worksize<T>(LEFT_SIDE, CONJ_TRANS, BACKWARD,
                                           COLUMNWISE_STORAGE, A11, TT1, A12));
         if constexpr (is_same_v<T, type_t<matrixT_t>>)

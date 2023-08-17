@@ -86,8 +86,8 @@ constexpr WorkInfo unmqr_worksize(side_t side,
         const idx_t nA = (side == Side::Left) ? m : n;
 
         // Empty matrices
-        const auto V = slice(A, range{0, nA}, range{0, nb});
-        const auto matrixT = slice(A, range{0, nb}, range{0, nb});
+        auto&& V = slice(A, range{0, nA}, range{0, nb});
+        auto&& matrixT = slice(A, range{0, nb}, range{0, nb});
 
         // Internal workspace queries
         workinfo += larfb_worksize<T>(side, trans, FORWARD, COLUMNWISE_STORAGE,

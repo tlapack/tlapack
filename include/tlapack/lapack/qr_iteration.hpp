@@ -47,14 +47,14 @@ template <class T,
           TLAPACK_MATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
           enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
-WorkInfo qr_iteration_worksize(bool want_t,
-                               bool want_z,
-                               size_type<matrix_t> ilo,
-                               size_type<matrix_t> ihi,
-                               const matrix_t& A,
-                               const vector_t& w,
-                               const matrix_t& Z,
-                               const QRIterationOpts& opts = {})
+constexpr WorkInfo qr_iteration_worksize(bool want_t,
+                                         bool want_z,
+                                         size_type<matrix_t> ilo,
+                                         size_type<matrix_t> ihi,
+                                         const matrix_t& A,
+                                         const vector_t& w,
+                                         const matrix_t& Z,
+                                         const QRIterationOpts& opts = {})
 {
     // Call variant
     if (opts.variant == QRIterationVariant::MultiShift)

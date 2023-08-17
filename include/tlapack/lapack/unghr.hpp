@@ -128,8 +128,8 @@ constexpr WorkInfo unghr_worksize(size_type<matrix_t> ilo,
     const idx_t nh = (ihi > ilo + 1) ? ihi - 1 - ilo : 0;
 
     if (nh > 0 && ilo + 1 < ihi) {
-        auto A_s = slice(A, range{ilo + 1, ihi}, range{ilo + 1, ihi});
-        auto tau_s = slice(tau, range{ilo, ihi - 1});
+        auto&& A_s = slice(A, range{ilo + 1, ihi}, range{ilo + 1, ihi});
+        auto&& tau_s = slice(tau, range{ilo, ihi - 1});
         return ung2r_worksize<T>(A_s, tau_s);
     }
     return WorkInfo(0);

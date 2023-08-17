@@ -105,10 +105,10 @@ constexpr WorkInfo bidiag_worksize(const matrix_t& A,
  * @ingroup computational
  */
 template <TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
-constexpr int bidiag(matrix_t& A,
-                     vector_t& tauv,
-                     vector_t& tauw,
-                     const BidiagOpts& opts = {})
+int bidiag(matrix_t& A,
+           vector_t& tauv,
+           vector_t& tauw,
+           const BidiagOpts& opts = {})
 {
     // Call variant
     if (opts.variant == BidiagVariant::Level2)

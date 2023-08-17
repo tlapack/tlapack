@@ -59,11 +59,11 @@ constexpr WorkInfo unmhr_worksize(Side side,
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
 
-    auto A_s = slice(A, range{ilo + 1, ihi}, range{ilo, ihi - 1});
-    auto tau_s = slice(tau, range{ilo, ihi - 1});
-    auto C_s = (side == Side::Left)
-                   ? slice(C, range{ilo + 1, ihi}, range{0, ncols(C)})
-                   : slice(C, range{0, nrows(C)}, range{ilo + 1, ihi});
+    auto&& A_s = slice(A, range{ilo + 1, ihi}, range{ilo, ihi - 1});
+    auto&& tau_s = slice(tau, range{ilo, ihi - 1});
+    auto&& C_s = (side == Side::Left)
+                     ? slice(C, range{ilo + 1, ihi}, range{0, ncols(C)})
+                     : slice(C, range{0, nrows(C)}, range{ilo + 1, ihi});
 
     return unm2r_worksize<T>(side, trans, A_s, tau_s, C_s);
 }

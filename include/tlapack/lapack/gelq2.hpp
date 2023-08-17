@@ -38,7 +38,7 @@ constexpr WorkInfo gelq2_worksize(const matrix_t& A, const vector_t& tauw)
     const idx_t m = nrows(A);
 
     if (m > 1) {
-        auto C = rows(A, range{1, m});
+        auto&& C = rows(A, range{1, m});
         return larf_worksize<T>(RIGHT_SIDE, FORWARD, ROWWISE_STORAGE, row(A, 0),
                                 tauw[0], C);
     }

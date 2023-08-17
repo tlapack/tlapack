@@ -91,11 +91,11 @@ constexpr WorkInfo hessenberg_worksize(size_type<matrix_t> ilo,
  * @ingroup computational
  */
 template <TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
-constexpr int hessenberg(size_type<matrix_t> ilo,
-                         size_type<matrix_t> ihi,
-                         matrix_t& A,
-                         vector_t& tau,
-                         const HessenbergOpts& opts = {})
+int hessenberg(size_type<matrix_t> ilo,
+               size_type<matrix_t> ihi,
+               matrix_t& A,
+               vector_t& tau,
+               const HessenbergOpts& opts = {})
 {
     // Call variant
     if (opts.variant == HessenbergVariant::Level2)

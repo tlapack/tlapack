@@ -62,7 +62,7 @@ constexpr WorkInfo unm2l_worksize(side_t side,
     const idx_t n = ncols(C);
     const idx_t nA = (side == Side::Left) ? m : n;
 
-    auto v = slice(A, range{0, nA}, 0);
+    auto&& v = slice(A, range{0, nA}, 0);
     return larf_worksize<T>(side, BACKWARD, COLUMNWISE_STORAGE, v, tau[0], C);
 }
 
