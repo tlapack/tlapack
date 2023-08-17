@@ -48,22 +48,22 @@ namespace tlapack {
  * @ingroup workspace_query
  */
 template <class T, TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
-inline constexpr WorkInfo unmhr_worksize(Side side,
-                                         Op trans,
-                                         size_type<matrix_t> ilo,
-                                         size_type<matrix_t> ihi,
-                                         const matrix_t& A,
-                                         const vector_t& tau,
-                                         const matrix_t& C)
+constexpr WorkInfo unmhr_worksize(Side side,
+                                  Op trans,
+                                  size_type<matrix_t> ilo,
+                                  size_type<matrix_t> ihi,
+                                  const matrix_t& A,
+                                  const vector_t& tau,
+                                  const matrix_t& C)
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
 
-    auto A_s = slice(A, range{ilo + 1, ihi}, range{ilo, ihi - 1});
-    auto tau_s = slice(tau, range{ilo, ihi - 1});
-    auto C_s = (side == Side::Left)
-                   ? slice(C, range{ilo + 1, ihi}, range{0, ncols(C)})
-                   : slice(C, range{0, nrows(C)}, range{ilo + 1, ihi});
+    auto&& A_s = slice(A, range{ilo + 1, ihi}, range{ilo, ihi - 1});
+    auto&& tau_s = slice(tau, range{ilo, ihi - 1});
+    auto&& C_s = (side == Side::Left)
+                     ? slice(C, range{ilo + 1, ihi}, range{0, ncols(C)})
+                     : slice(C, range{0, nrows(C)}, range{ilo + 1, ihi});
 
     return unm2r_worksize<T>(side, trans, A_s, tau_s, C_s);
 }

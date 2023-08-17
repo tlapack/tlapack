@@ -23,7 +23,7 @@ namespace legacy {
      * @ingroup legacy_lapack
      */
     template <class uplo_t, typename T>
-    inline int potrf(uplo_t uplo, idx_t n, T* A, idx_t lda)
+    int potrf(uplo_t uplo, idx_t n, T* A, idx_t lda)
     {
         using internal::create_matrix;
 

@@ -50,7 +50,7 @@ namespace legacy {
      * @ingroup legacy_blas
      */
     template <typename T>
-    inline void rotg(T* a, T* b, real_type<T>* c, T* s)
+    void rotg(T* a, T* b, real_type<T>* c, T* s)
     {
         return ::tlapack::rotg(*a, *b, *c, *s);
     }

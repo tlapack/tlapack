@@ -49,7 +49,7 @@ template <
     TLAPACK_LEGACY_VECTOR vectorY_t,
     class T = type_t<vectorY_t>,
     enable_if_allow_optblas_t<pair<vectorX_t, T>, pair<vectorY_t, T> > = 0>
-inline void copy(const vectorX_t& x, vectorY_t& y)
+void copy(const vectorX_t& x, vectorY_t& y)
 {
     // Legacy objects
     auto x_ = legacy_vector(x);

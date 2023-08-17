@@ -74,7 +74,7 @@ template <TLAPACK_LEGACY_VECTOR vectorX_t,
                                     pair<vectorY_t, T>,
                                     pair<c_type, real_type<T> >,
                                     pair<s_type, real_type<T> > > = 0>
-inline void rot(vectorX_t& x, vectorY_t& y, const c_type c, const s_type s)
+void rot(vectorX_t& x, vectorY_t& y, const c_type c, const s_type s)
 {
     // Legacy objects
     auto x_ = legacy_vector(x);

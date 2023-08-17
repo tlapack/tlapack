@@ -192,10 +192,10 @@ template <TLAPACK_DIRECTION direction_t,
           TLAPACK_STOREV storage_t,
           TLAPACK_VECTOR vector_t,
           enable_if_t<std::is_convertible_v<direction_t, Direction>, int> = 0>
-inline void larfg(direction_t direction,
-                  storage_t storeMode,
-                  vector_t& v,
-                  type_t<vector_t>& tau)
+void larfg(direction_t direction,
+           storage_t storeMode,
+           vector_t& v,
+           type_t<vector_t>& tau)
 {
     using idx_t = size_type<vector_t>;
     using range = pair<idx_t, idx_t>;

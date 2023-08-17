@@ -216,7 +216,7 @@ int rotmg(T& d1, T& d2, T& a, const T& b, T h[4])
 template <TLAPACK_REAL T,
           enable_if_t<is_real<T>, int> = 0,
           enable_if_allow_optblas_t<T> = 0>
-inline int rotmg(T& d1, T& d2, T& a, const T b, T h[4])
+int rotmg(T& d1, T& d2, T& a, const T b, T h[4])
 {
     T param[5];
     ::blas::rotmg(&d1, &d2, &a, b, param);

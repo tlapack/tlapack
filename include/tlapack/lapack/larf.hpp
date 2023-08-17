@@ -215,12 +215,12 @@ template <class T,
           TLAPACK_VECTOR vectorC0_t,
           TLAPACK_MATRIX matrixC1_t,
           enable_if_t<std::is_convertible_v<storage_t, StoreV>, int> = 0>
-inline constexpr WorkInfo larf_worksize(side_t side,
-                                        storage_t storeMode,
-                                        vector_t const& x,
-                                        const tau_t& tau,
-                                        const vectorC0_t& C0,
-                                        const matrixC1_t& C1)
+constexpr WorkInfo larf_worksize(side_t side,
+                                 storage_t storeMode,
+                                 vector_t const& x,
+                                 const tau_t& tau,
+                                 const vectorC0_t& C0,
+                                 const matrixC1_t& C1)
 {
     using work_t = vector_type<vectorC0_t, matrixC1_t, vector_t>;
     using idx_t = size_type<vectorC0_t>;
@@ -392,13 +392,13 @@ template <TLAPACK_SIDE side_t,
           TLAPACK_SCALAR tau_t,
           TLAPACK_SMATRIX matrix_t,
           enable_if_t<std::is_convertible_v<direction_t, Direction>, int> = 0>
-inline void larf_work(side_t side,
-                      direction_t direction,
-                      storage_t storeMode,
-                      vector_t const& v,
-                      const tau_t& tau,
-                      matrix_t& C,
-                      work_t& work)
+void larf_work(side_t side,
+               direction_t direction,
+               storage_t storeMode,
+               vector_t const& v,
+               const tau_t& tau,
+               matrix_t& C,
+               work_t& work)
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -486,12 +486,12 @@ template <class T,
           TLAPACK_SCALAR tau_t,
           TLAPACK_SMATRIX matrix_t,
           enable_if_t<std::is_convertible_v<direction_t, Direction>, int> = 0>
-inline constexpr WorkInfo larf_worksize(side_t side,
-                                        direction_t direction,
-                                        storage_t storeMode,
-                                        vector_t const& v,
-                                        const tau_t& tau,
-                                        const matrix_t& C)
+constexpr WorkInfo larf_worksize(side_t side,
+                                 direction_t direction,
+                                 storage_t storeMode,
+                                 vector_t const& v,
+                                 const tau_t& tau,
+                                 const matrix_t& C)
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -501,15 +501,15 @@ inline constexpr WorkInfo larf_worksize(side_t side,
     const idx_t n = ncols(C);
 
     if (side == Side::Left && m > 0) {
-        auto C0 = row(C, 0);
-        auto C1 = rows(C, range{1, m});
-        auto x = slice(v, range{1, m});
+        auto&& C0 = row(C, 0);
+        auto&& C1 = rows(C, range{1, m});
+        auto&& x = slice(v, range{1, m});
         return larf_worksize<T>(LEFT_SIDE, storeMode, x, tau, C0, C1);
     }
     else if (side == Side::Right && n > 0) {
-        auto C0 = col(C, 0);
-        auto C1 = cols(C, range{1, n});
-        auto x = slice(v, range{1, n});
+        auto&& C0 = col(C, 0);
+        auto&& C1 = cols(C, range{1, n});
+        auto&& x = slice(v, range{1, n});
         return larf_worksize<T>(RIGHT_SIDE, storeMode, x, tau, C0, C1);
     }
     else
@@ -568,12 +568,12 @@ template <TLAPACK_SIDE side_t,
           TLAPACK_SCALAR tau_t,
           TLAPACK_SMATRIX matrix_t,
           enable_if_t<std::is_convertible_v<direction_t, Direction>, int> = 0>
-inline void larf(side_t side,
-                 direction_t direction,
-                 storage_t storeMode,
-                 vector_t const& v,
-                 const tau_t& tau,
-                 matrix_t& C)
+void larf(side_t side,
+          direction_t direction,
+          storage_t storeMode,
+          vector_t const& v,
+          const tau_t& tau,
+          matrix_t& C)
 {
     // data traits
     using work_t = matrix_type<matrix_t, vector_t>;

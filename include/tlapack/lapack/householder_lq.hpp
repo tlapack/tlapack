@@ -81,9 +81,9 @@ constexpr WorkInfo householder_lq_worksize(const matrix_t& A,
  * @ingroup computational
  */
 template <TLAPACK_MATRIX matrix_t, TLAPACK_VECTOR vector_t>
-constexpr int householder_lq(matrix_t& A,
-                             vector_t& tau,
-                             const HouseholderLQOpts& opts = {})
+int householder_lq(matrix_t& A,
+                   vector_t& tau,
+                   const HouseholderLQOpts& opts = {})
 {
     // Call variant
     if (opts.variant == HouseholderLQVariant::Level2)

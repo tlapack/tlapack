@@ -29,10 +29,11 @@
 namespace tlapack {
 
 template <class T, TLAPACK_SMATRIX matrix_t>
-WorkInfo aggressive_early_deflation_worksize_gehrd(size_type<matrix_t> ilo,
-                                                   size_type<matrix_t> ihi,
-                                                   size_type<matrix_t> nw,
-                                                   const matrix_t& A)
+constexpr WorkInfo aggressive_early_deflation_worksize_gehrd(
+    size_type<matrix_t> ilo,
+    size_type<matrix_t> ihi,
+    size_type<matrix_t> nw,
+    const matrix_t& A)
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -40,11 +41,11 @@ WorkInfo aggressive_early_deflation_worksize_gehrd(size_type<matrix_t> ilo,
     const idx_t n = ncols(A);
     const idx_t nw_max = (n - 3) / 3;
     const idx_t jw = min(min(nw, ihi - ilo), nw_max);
-    const auto TW = slice(A, range{0, jw}, range{0, jw});
 
     if (jw != ihi - ilo) {
         // Hessenberg reduction
-        auto tau = slice(A, range{0, jw}, 0);
+        auto&& TW = slice(A, range{0, jw}, range{0, jw});
+        auto&& tau = slice(A, range{0, jw}, 0);
         return gehrd_worksize<T>(0, jw, TW, tau);
     }
     else
@@ -110,15 +111,15 @@ WorkInfo aggressive_early_deflation_worksize(bool want_t,
     const idx_t n = ncols(A);
     const idx_t nw_max = (n - 3) / 3;
     const idx_t jw = min(min(nw, ihi - ilo), nw_max);
-    const auto TW = slice(A, range{0, jw}, range{0, jw});
 
     // quick return
     WorkInfo workinfo;
     if (n < 9 || nw <= 1 || ihi <= 1 + ilo) return workinfo;
 
     if (jw >= (idx_t)opts.nmin) {
-        const auto s_window = slice(s, range{0, jw});
-        const auto V = slice(A, range{0, jw}, range{0, jw});
+        auto&& TW = slice(A, range{0, jw}, range{0, jw});
+        auto&& s_window = slice(s, range{0, jw});
+        auto&& V = slice(A, range{0, jw}, range{0, jw});
         workinfo =
             multishift_qr_worksize<T>(true, true, 0, jw, TW, s_window, V, opts);
     }
@@ -218,7 +219,7 @@ void aggressive_early_deflation_work(bool want_t,
     // We have a maximum window size
     const idx_t nw_max = (n - 3) / 3;
     const real_t eps = ulp<real_t>();
-    const real_t small_num = safe_min<real_t>() * ((real_t)n / ulp<real_t>());
+    const real_t small_num = safe_min<real_t>() * ((real_t)n / eps);
     // Size of the deflation window
     const idx_t jw = min(min(nw, ihi - ilo), nw_max);
     // First row index in the deflation window
@@ -542,17 +543,17 @@ template <TLAPACK_MATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
           TLAPACK_MATRIX work_t,
           enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
-inline void aggressive_early_deflation_work(bool want_t,
-                                            bool want_z,
-                                            size_type<matrix_t> ilo,
-                                            size_type<matrix_t> ihi,
-                                            size_type<matrix_t> nw,
-                                            matrix_t& A,
-                                            vector_t& s,
-                                            matrix_t& Z,
-                                            size_type<matrix_t>& ns,
-                                            size_type<matrix_t>& nd,
-                                            work_t& work)
+void aggressive_early_deflation_work(bool want_t,
+                                     bool want_z,
+                                     size_type<matrix_t> ilo,
+                                     size_type<matrix_t> ihi,
+                                     size_type<matrix_t> nw,
+                                     matrix_t& A,
+                                     vector_t& s,
+                                     matrix_t& Z,
+                                     size_type<matrix_t>& ns,
+                                     size_type<matrix_t>& nd,
+                                     work_t& work)
 {
     FrancisOpts opts = {};
     aggressive_early_deflation_work(want_t, want_z, ilo, ihi, nw, A, s, Z, ns,
@@ -645,7 +646,7 @@ void aggressive_early_deflation(bool want_t,
     // We have a maximum window size
     const idx_t nw_max = (n - 3) / 3;
     const real_t eps = ulp<real_t>();
-    const real_t small_num = safe_min<real_t>() * ((real_t)n / ulp<real_t>());
+    const real_t small_num = safe_min<real_t>() * ((real_t)n / eps);
     // Size of the deflation window
     const idx_t jw = min(min(nw, ihi - ilo), nw_max);
     // First row index in the deflation window
@@ -693,16 +694,16 @@ void aggressive_early_deflation(bool want_t,
 template <TLAPACK_MATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
           enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
-inline void aggressive_early_deflation(bool want_t,
-                                       bool want_z,
-                                       size_type<matrix_t> ilo,
-                                       size_type<matrix_t> ihi,
-                                       size_type<matrix_t> nw,
-                                       matrix_t& A,
-                                       vector_t& s,
-                                       matrix_t& Z,
-                                       size_type<matrix_t>& ns,
-                                       size_type<matrix_t>& nd)
+void aggressive_early_deflation(bool want_t,
+                                bool want_z,
+                                size_type<matrix_t> ilo,
+                                size_type<matrix_t> ihi,
+                                size_type<matrix_t> nw,
+                                matrix_t& A,
+                                vector_t& s,
+                                matrix_t& Z,
+                                size_type<matrix_t>& ns,
+                                size_type<matrix_t>& nd)
 {
     FrancisOpts opts = {};
     aggressive_early_deflation(want_t, want_z, ilo, ihi, nw, A, s, Z, ns, nd,

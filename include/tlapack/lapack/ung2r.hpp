@@ -30,7 +30,7 @@ namespace tlapack {
  * @ingroup workspace_query
  */
 template <class T, TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
-inline constexpr WorkInfo ung2r_worksize(const matrix_t& A, const vector_t& tau)
+constexpr WorkInfo ung2r_worksize(const matrix_t& A, const vector_t& tau)
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -39,7 +39,7 @@ inline constexpr WorkInfo ung2r_worksize(const matrix_t& A, const vector_t& tau)
     const idx_t n = ncols(A);
 
     if (n > 1) {
-        auto C = cols(A, range{1, n});
+        auto&& C = cols(A, range{1, n});
         return larf_worksize<T>(LEFT_SIDE, FORWARD, COLUMNWISE_STORAGE,
                                 col(A, 0), tau[0], C);
     }

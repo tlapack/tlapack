@@ -59,12 +59,12 @@ template <class T,
           TLAPACK_SVECTOR tau_t,
           TLAPACK_SIDE side_t,
           TLAPACK_OP trans_t>
-inline constexpr WorkInfo unmlq_worksize(side_t side,
-                                         trans_t trans,
-                                         const matrixA_t& A,
-                                         const tau_t& tau,
-                                         const matrixC_t& C,
-                                         const UnmlqOpts& opts = {})
+constexpr WorkInfo unmlq_worksize(side_t side,
+                                  trans_t trans,
+                                  const matrixA_t& A,
+                                  const tau_t& tau,
+                                  const matrixC_t& C,
+                                  const UnmlqOpts& opts = {})
 {
     using idx_t = size_type<matrixC_t>;
     using matrixT_t = matrix_type<matrixA_t, tau_t>;
@@ -86,8 +86,8 @@ inline constexpr WorkInfo unmlq_worksize(side_t side,
         const idx_t nA = (side == Side::Left) ? m : n;
 
         // Empty matrices
-        const auto V = slice(A, range{0, nb}, range{0, nA});
-        const auto matrixT = slice(A, range{0, nb}, range{0, nb});
+        auto&& V = slice(A, range{0, nb}, range{0, nA});
+        auto&& matrixT = slice(A, range{0, nb}, range{0, nb});
 
         // Internal workspace queries
         workinfo += larfb_worksize<T>(

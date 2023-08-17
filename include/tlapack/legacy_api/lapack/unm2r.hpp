@@ -49,16 +49,16 @@ namespace legacy {
      * @ingroup legacy_lapack
      */
     template <class side_t, class trans_t, typename TA, typename TC>
-    inline int unm2r(side_t side,
-                     trans_t trans,
-                     idx_t m,
-                     idx_t n,
-                     idx_t k,
-                     TA* A,
-                     idx_t lda,
-                     const real_type<TA, TC>* tau,
-                     TC* C,
-                     idx_t ldc)
+    int unm2r(side_t side,
+              trans_t trans,
+              idx_t m,
+              idx_t n,
+              idx_t k,
+              TA* A,
+              idx_t lda,
+              const real_type<TA, TC>* tau,
+              TC* C,
+              idx_t ldc)
     {
         using internal::create_matrix;
         using internal::create_vector;

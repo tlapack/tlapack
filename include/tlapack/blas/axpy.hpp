@@ -54,7 +54,7 @@ template <TLAPACK_LEGACY_VECTOR vectorX_t,
           enable_if_allow_optblas_t<pair<alpha_t, T>,
                                     pair<vectorX_t, T>,
                                     pair<vectorY_t, T> > = 0>
-inline void axpy(const alpha_t alpha, const vectorX_t& x, vectorY_t& y)
+void axpy(const alpha_t alpha, const vectorX_t& x, vectorY_t& y)
 {
     // Legacy objects
     auto x_ = legacy_vector(x);

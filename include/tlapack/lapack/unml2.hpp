@@ -48,11 +48,11 @@ template <class T,
           TLAPACK_VECTOR tau_t,
           TLAPACK_SIDE side_t,
           TLAPACK_OP trans_t>
-inline constexpr WorkInfo unml2_worksize(side_t side,
-                                         trans_t trans,
-                                         const matrixA_t& A,
-                                         const tau_t& tau,
-                                         const matrixC_t& C)
+constexpr WorkInfo unml2_worksize(side_t side,
+                                  trans_t trans,
+                                  const matrixA_t& A,
+                                  const tau_t& tau,
+                                  const matrixC_t& C)
 {
     using idx_t = size_type<matrixA_t>;
     using range = pair<idx_t, idx_t>;
@@ -62,7 +62,7 @@ inline constexpr WorkInfo unml2_worksize(side_t side,
     const idx_t n = ncols(C);
     const idx_t nA = (side == Side::Left) ? m : n;
 
-    auto v = slice(A, 0, range{0, nA});
+    auto&& v = slice(A, 0, range{0, nA});
     return larf_worksize<T>(side, FORWARD, ROWWISE_STORAGE, v, tau[0], C);
 }
 

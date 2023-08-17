@@ -38,9 +38,9 @@ struct GerqfOpts {
  * @ingroup workspace_query
  */
 template <class T, TLAPACK_SMATRIX A_t, TLAPACK_SVECTOR tau_t>
-inline constexpr WorkInfo gerqf_worksize(const A_t& A,
-                                         const tau_t& tau,
-                                         const GerqfOpts& opts = {})
+constexpr WorkInfo gerqf_worksize(const A_t& A,
+                                  const tau_t& tau,
+                                  const GerqfOpts& opts = {})
 {
     using idx_t = size_type<A_t>;
     using range = pair<idx_t, idx_t>;
@@ -52,13 +52,13 @@ inline constexpr WorkInfo gerqf_worksize(const A_t& A,
     const idx_t k = min(m, n);
     const idx_t nb = min((idx_t)opts.nb, k);
 
-    auto A11 = rows(A, range(0, nb));
-    auto tauw1 = slice(tau, range(0, nb));
+    auto&& A11 = rows(A, range(0, nb));
+    auto&& tauw1 = slice(tau, range(0, nb));
     WorkInfo workinfo = gerq2_worksize<T>(A11, tauw1).transpose();
 
     if (m > nb) {
-        auto TT1 = slice(A, range(0, nb), range(0, nb));
-        auto A12 = slice(A, range(nb, m), range(0, n));
+        auto&& TT1 = slice(A, range(0, nb), range(0, nb));
+        auto&& A12 = slice(A, range(nb, m), range(0, n));
         workinfo.minMax(larfb_worksize<T>(RIGHT_SIDE, NO_TRANS, BACKWARD,
                                           ROWWISE_STORAGE, A11, TT1, A12));
         if constexpr (is_same_v<T, type_t<matrixT_t>>)

@@ -17,26 +17,26 @@ namespace tlapack {
 
 // Forward declarations
 template <class T, std::enable_if_t<is_real<T>, int> = 0>
-inline constexpr real_type<T> real(const T& x) noexcept;
+constexpr real_type<T> real(const T& x) noexcept;
 template <class T, std::enable_if_t<is_real<T>, int> = 0>
-inline constexpr real_type<T> imag(const T& x) noexcept;
+constexpr real_type<T> imag(const T& x) noexcept;
 template <class T, std::enable_if_t<is_real<T>, int> = 0>
-inline constexpr T conj(const T& x) noexcept;
+constexpr T conj(const T& x) noexcept;
 
 template <class T>
-inline constexpr real_type<T> real(const starpu::MatrixEntry<T>& x) noexcept
+constexpr real_type<T> real(const starpu::MatrixEntry<T>& x) noexcept
 {
     return real(T(x));
 }
 
 template <class T>
-inline constexpr real_type<T> imag(const starpu::MatrixEntry<T>& x) noexcept
+constexpr real_type<T> imag(const starpu::MatrixEntry<T>& x) noexcept
 {
     return imag(T(x));
 }
 
 template <class T>
-inline constexpr T conj(const starpu::MatrixEntry<T>& x) noexcept
+constexpr T conj(const starpu::MatrixEntry<T>& x) noexcept
 {
     return conj(T(x));
 }
@@ -262,9 +262,9 @@ namespace traits {
     template <class U>
     struct CreateFunctor<starpu::Matrix<U>, int> {
         template <class T>
-        inline constexpr auto operator()(std::vector<T>& v,
-                                         starpu::idx_t m,
-                                         starpu::idx_t n = 1) const
+        constexpr auto operator()(std::vector<T>& v,
+                                  starpu::idx_t m,
+                                  starpu::idx_t n = 1) const
         {
             assert(m >= 0 && n >= 0);
             v.resize(m * n);  // Allocates space in memory

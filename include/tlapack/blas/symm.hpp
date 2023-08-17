@@ -197,13 +197,13 @@ template <TLAPACK_LEGACY_MATRIX matrixA_t,
                                     pair<matrixC_t, T>,
                                     pair<alpha_t, T>,
                                     pair<beta_t, T> > = 0>
-inline void symm(Side side,
-                 Uplo uplo,
-                 const alpha_t alpha,
-                 const matrixA_t& A,
-                 const matrixB_t& B,
-                 const beta_t beta,
-                 matrixC_t& C)
+void symm(Side side,
+          Uplo uplo,
+          const alpha_t alpha,
+          const matrixA_t& A,
+          const matrixB_t& B,
+          const beta_t beta,
+          matrixC_t& C)
 {
     // Legacy objects
     auto A_ = legacy_matrix(A);
@@ -266,12 +266,12 @@ template <TLAPACK_MATRIX matrixA_t,
           TLAPACK_MATRIX matrixB_t,
           TLAPACK_MATRIX matrixC_t,
           TLAPACK_SCALAR alpha_t>
-inline void symm(Side side,
-                 Uplo uplo,
-                 const alpha_t& alpha,
-                 const matrixA_t& A,
-                 const matrixB_t& B,
-                 matrixC_t& C)
+void symm(Side side,
+          Uplo uplo,
+          const alpha_t& alpha,
+          const matrixA_t& A,
+          const matrixB_t& B,
+          matrixC_t& C)
 {
     return symm(side, uplo, alpha, A, B, StrongZero(), C);
 }

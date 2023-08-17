@@ -56,11 +56,11 @@ template <class T,
           TLAPACK_SVECTOR vector_t,
           TLAPACK_DIRECTION direction_t,
           TLAPACK_STOREV storage_t>
-inline constexpr WorkInfo ungq_worksize(direction_t direction,
-                                        storage_t storeMode,
-                                        const matrix_t& A,
-                                        const vector_t& tau,
-                                        const UngqOpts& opts = {})
+constexpr WorkInfo ungq_worksize(direction_t direction,
+                                 storage_t storeMode,
+                                 const matrix_t& A,
+                                 const vector_t& tau,
+                                 const UngqOpts& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using matrixT_t = matrix_type<matrix_t, vector_t>;
@@ -73,19 +73,19 @@ inline constexpr WorkInfo ungq_worksize(direction_t direction,
     const idx_t nb = min((idx_t)opts.nb, k);
 
     WorkInfo workinfo;
-    const auto V = (storeMode == StoreV::Columnwise)
-                       ? slice(A, range{0, m}, range{0, nb})
-                       : slice(A, range{0, nb}, range{0, n});
+    auto&& V = (storeMode == StoreV::Columnwise)
+                   ? slice(A, range{0, m}, range{0, nb})
+                   : slice(A, range{0, nb}, range{0, n});
 
     if (storeMode == StoreV::Columnwise) {
         // larfb:
         if (nb < n) {
             // Empty matrices
-            const auto matrixT = slice(A, range{0, nb}, range{0, nb});
-            const auto C = slice(A, range{0, m},
-                                 (direction == Direction::Forward)
-                                     ? range{nb, n}
-                                     : range{0, (n - k) + ((k - 1) / nb) * nb});
+            auto&& matrixT = slice(A, range{0, nb}, range{0, nb});
+            auto&& C = slice(A, range{0, m},
+                             (direction == Direction::Forward)
+                                 ? range{nb, n}
+                                 : range{0, (n - k) + ((k - 1) / nb) * nb});
 
             // Internal workspace queries
             workinfo = larfb_worksize<T>(LEFT_SIDE, NO_TRANS, direction,
@@ -99,12 +99,12 @@ inline constexpr WorkInfo ungq_worksize(direction_t direction,
         // larfb:
         if (nb < m) {
             // Empty matrices
-            const auto matrixT = slice(A, range{0, nb}, range{0, nb});
-            const auto C = slice(A,
-                                 (direction == Direction::Forward)
-                                     ? range{nb, m}
-                                     : range{0, (m - k) + ((k - 1) / nb) * nb},
-                                 range{0, n});
+            auto&& matrixT = slice(A, range{0, nb}, range{0, nb});
+            auto&& C = slice(A,
+                             (direction == Direction::Forward)
+                                 ? range{nb, m}
+                                 : range{0, (m - k) + ((k - 1) / nb) * nb},
+                             range{0, n});
 
             // Internal workspace queries
             workinfo = larfb_worksize<T>(RIGHT_SIDE, CONJ_TRANS, direction,
@@ -116,7 +116,7 @@ inline constexpr WorkInfo ungq_worksize(direction_t direction,
     }
 
     // ungq_level2:
-    const auto taui = slice(tau, range{0, nb});
+    auto&& taui = slice(tau, range{0, nb});
     workinfo.minMax(ungq_level2_worksize<T>(direction, storeMode, V, taui));
 
     return workinfo;

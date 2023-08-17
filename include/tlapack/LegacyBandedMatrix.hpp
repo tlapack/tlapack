@@ -39,7 +39,7 @@ struct LegacyBandedMatrix {
      * otherwise it would lack in performance.
      *
      */
-    inline constexpr const T& operator()(idx_t i, idx_t j) const noexcept
+    constexpr const T& operator()(idx_t i, idx_t j) const noexcept
     {
         assert(i >= 0);
         assert(i < m);
@@ -50,7 +50,7 @@ struct LegacyBandedMatrix {
         return ptr[(ku + i) + j * (ku + kl)];
     }
 
-    inline constexpr T& operator()(idx_t i, idx_t j) noexcept
+    constexpr T& operator()(idx_t i, idx_t j) noexcept
     {
         assert(i >= 0);
         assert(i < m);
@@ -61,8 +61,7 @@ struct LegacyBandedMatrix {
         return ptr[(ku + i) + j * (ku + kl)];
     }
 
-    inline constexpr LegacyBandedMatrix(
-        idx_t m, idx_t n, idx_t kl, idx_t ku, T* ptr)
+    constexpr LegacyBandedMatrix(idx_t m, idx_t n, idx_t kl, idx_t ku, T* ptr)
         : m(m), n(n), kl(kl), ku(ku), ptr(ptr)
     {
         tlapack_check(m >= 0);

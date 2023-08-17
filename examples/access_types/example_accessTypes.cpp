@@ -25,7 +25,7 @@ using namespace tlapack;
 //------------------------------------------------------------------------------
 /// Print matrix A in the standard output
 template <typename matrix_t>
-inline void printMatrix(const matrix_t& A)
+void printMatrix(const matrix_t& A)
 {
     using idx_t = size_type<matrix_t>;
     const idx_t m = nrows(A);
@@ -41,7 +41,7 @@ inline void printMatrix(const matrix_t& A)
 //------------------------------------------------------------------------------
 /// Print banded matrix A in the standard output
 template <typename matrix_t>
-inline void printBandedMatrix(const matrix_t& A)
+void printBandedMatrix(const matrix_t& A)
 {
     using idx_t = size_type<matrix_t>;
     const idx_t m = nrows(A);

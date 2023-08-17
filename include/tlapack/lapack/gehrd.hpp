@@ -49,11 +49,11 @@ struct GehrdOpts {
  * @ingroup workspace_query
  */
 template <class T, TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
-WorkInfo gehrd_worksize(size_type<matrix_t> ilo,
-                        size_type<matrix_t> ihi,
-                        const matrix_t& A,
-                        const vector_t& tau,
-                        const GehrdOpts& opts = {})
+constexpr WorkInfo gehrd_worksize(size_type<matrix_t> ilo,
+                                  size_type<matrix_t> ihi,
+                                  const matrix_t& A,
+                                  const vector_t& tau,
+                                  const GehrdOpts& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using work_t = matrix_type<matrix_t, vector_t>;
@@ -69,11 +69,9 @@ WorkInfo gehrd_worksize(size_type<matrix_t> ilo,
             if ((ilo < ihi) && (nx < ihi - ilo - 1)) {
                 workinfo = WorkInfo(n + nb, nb);
 
-                const auto V =
-                    slice(A, range{ilo + 1, ihi}, range{ilo, ilo + nb});
-                const auto T_s = slice(A, range{0, nb}, range{0, nb});
-                const auto A5 =
-                    slice(A, range{ilo + 1, ihi}, range{ilo + nb, n});
+                auto&& V = slice(A, range{ilo + 1, ihi}, range{ilo, ilo + nb});
+                auto&& T_s = slice(A, range{0, nb}, range{0, nb});
+                auto&& A5 = slice(A, range{ilo + 1, ihi}, range{ilo + nb, n});
 
                 workinfo.minMax(larfb_worksize<T>(LEFT_SIDE, CONJ_TRANS,
                                                   FORWARD, COLUMNWISE_STORAGE,

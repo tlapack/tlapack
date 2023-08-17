@@ -42,9 +42,9 @@ struct GetriOpts {
  * @ingroup workspace_query
  */
 template <class T, TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR piv_t>
-inline constexpr WorkInfo getri_worksize(const matrix_t& A,
-                                         const piv_t& piv,
-                                         const GetriOpts& opts = {})
+constexpr WorkInfo getri_worksize(const matrix_t& A,
+                                  const piv_t& piv,
+                                  const GetriOpts& opts = {})
 {
     if (opts.variant == GetriVariant::UXLI)
         return getri_uxli_worksize<T>(A, opts);

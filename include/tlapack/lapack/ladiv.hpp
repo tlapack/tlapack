@@ -139,7 +139,7 @@ void ladiv(const real_t& a,
  * @ingroup auxiliary
  */
 template <TLAPACK_COMPLEX T, enable_if_t<is_complex<T>, int> = 0>
-inline T ladiv(const T& x, const T& y)
+T ladiv(const T& x, const T& y)
 {
     real_type<T> zr, zi;
     ladiv(real(x), imag(x), real(y), imag(y), zr, zi);

@@ -116,12 +116,11 @@ We recommend the usage of `auto` in the following cases:
 
 2. In the return type of functions like `tlapack::asum`, `tlapack::dot`, `tlapack::nrm2` and `tlapack::lange`. By defining the output as `auto`, we enable overloading of those functions using mixed precision. For instance, one may write a overloading of `tlapack::lange` for matrices `Eigen::MatrixXf` that returns `double`.
 
-### assert vs check
+### assert() vs tlapack_check()
 
 - `assert()`: Used on checks related to the logic of an algorithm. The assertion is supposed to check that the logic is correct, and so they are active only on debug mode. The function `assert()` does nothing if the `NDEBUG` flag is defined. Some examples of usage in \<T\>LAPACK are:
   - check the range of (i,j) before access A(i,j) in the legacy classes for matrices and vectors.
   - check if `x` is zero when calling the constructor `StrongZero(x)`.
-  
 - `tlapack_check()`: Used on checks related to the validity of an input of a function. It is enabled if TLAPACK_CHECK_INPUT is defined and TLAPACK_NDEBUG is not. Also used to test the input parameters when creating new legacy matrices and vectors, see `LegacyMatrix.hpp`. THe reason to use `tlapack_check()` instead of assert for matrix and vector creation is to be in the same page as LAPACK. LAPACK routines check the dimensions `m`, `n` and `ldim` the same way it checks other input parameters. `tlapack_check_false(cond)` is the same as `tlapack_check(!cond)`.
 
 ### Good practices when writing code inside the library
@@ -139,6 +138,13 @@ We recommend the usage of `auto` in the following cases:
 3. In internal calls, use compile-time flags instead of runtime flags. For instance, use `tlapack::LEFT_SIDE` instead of `tlapack::Side::Left` and `tlapack::NO_TRANS` instead of `tlapack::Op::NoTrans`. This practice usually leads to faster code.
 
 4. Avoid writing code that depends explicitly on `std::complex<T>` by using `tlapack::real_type<T>`, `tlapack::complex_type<T>` and `tlapack::scalar_type<T>`. Any scalar type `T` supported by \<T\>LAPACK should implement those 3 classes.
+
+5. Use the `constexpr` specifier for:
+
+   - Utility functions like `safe_max()`, `abs1()` and `WorkInfo::minMax()`.
+   - Non-recursive workspace queries.
+
+6. Use the `inline` specifier on non-template functions implemented on header files. Mind the compilers make the final decision about inlining or not a function, so use it carefully when the objective is performance gain. See https://en.cppreference.com/w/cpp/language/inline. The use of the inline specifier may change the priority for inlining a function by the compiler. It is worth noticing that forcing the inline may lead to large executables, which is specially bad when the library is already based on templates.
 
 > **_NOTE:_** `std::complex` is one way to define complex numbers. It has undesired behavior such as:
 >

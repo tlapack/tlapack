@@ -19,11 +19,10 @@ struct WorkInfo {
     bool isContiguous = false;  ///< True if the Workspace is contiguous
 
     /// Constructor using sizes
-    inline constexpr WorkInfo(size_t m = 0, size_t n = 1) noexcept : m(m), n(n)
-    {}
+    constexpr WorkInfo(size_t m = 0, size_t n = 1) noexcept : m(m), n(n) {}
 
     /// Size needed in the Workspace
-    inline constexpr size_t size() const noexcept { return m * n; }
+    constexpr size_t size() const noexcept { return m * n; }
 
     /**
      * @brief Set the current object to a state that
@@ -34,10 +33,10 @@ struct WorkInfo {
      *
      * @param[in] workinfo Another specification of work sizes
      */
-    void minMax(const WorkInfo& workinfo) noexcept
+    constexpr void minMax(const WorkInfo& workinfo) noexcept
     {
-        const size_t m1 = workinfo.m;
-        const size_t n1 = workinfo.n;
+        const size_t& m1 = workinfo.m;
+        const size_t& n1 = workinfo.n;
         const size_t s1 = workinfo.size();
         const size_t s = size();
 
@@ -76,8 +75,8 @@ struct WorkInfo {
      */
     constexpr WorkInfo& operator+=(const WorkInfo& workinfo) noexcept
     {
-        const size_t m1 = workinfo.m;
-        const size_t n1 = workinfo.n;
+        const size_t& m1 = workinfo.m;
+        const size_t& n1 = workinfo.n;
         const size_t s1 = workinfo.size();
 
         // If one of the objects is contiguous, then the result is contiguous

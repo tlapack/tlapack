@@ -37,7 +37,7 @@ namespace legacy {
      * @ingroup legacy_blas
      */
     template <typename T>
-    inline real_type<T> asum(idx_t n, T const* x, int_t incx)
+    real_type<T> asum(idx_t n, T const* x, int_t incx)
     {
         tlapack_check_false(incx <= 0);
 

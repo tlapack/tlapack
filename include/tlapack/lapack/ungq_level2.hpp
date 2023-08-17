@@ -48,10 +48,10 @@ template <class T,
           TLAPACK_SVECTOR vector_t,
           TLAPACK_DIRECTION direction_t,
           TLAPACK_STOREV storage_t>
-inline constexpr WorkInfo ungq_level2_worksize(direction_t direction,
-                                               storage_t storeMode,
-                                               const matrix_t& A,
-                                               const vector_t& tau)
+constexpr WorkInfo ungq_level2_worksize(direction_t direction,
+                                        storage_t storeMode,
+                                        const matrix_t& A,
+                                        const vector_t& tau)
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;

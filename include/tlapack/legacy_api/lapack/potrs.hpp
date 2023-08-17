@@ -22,13 +22,13 @@ namespace legacy {
      * @ingroup legacy_lapack
      */
     template <class uplo_t, typename T>
-    inline int potrs(uplo_t uplo,
-                     idx_t n,
-                     idx_t nrhs,
-                     const T* A,
-                     idx_t lda,
-                     T* B,
-                     idx_t ldb)
+    int potrs(uplo_t uplo,
+              idx_t n,
+              idx_t nrhs,
+              const T* A,
+              idx_t lda,
+              T* B,
+              idx_t ldb)
     {
         using internal::create_matrix;
 

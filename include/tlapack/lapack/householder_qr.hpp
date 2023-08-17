@@ -81,9 +81,9 @@ constexpr WorkInfo householder_qr_worksize(const matrix_t& A,
  * @ingroup computational
  */
 template <TLAPACK_MATRIX matrix_t, TLAPACK_VECTOR vector_t>
-constexpr int householder_qr(matrix_t& A,
-                             vector_t& tau,
-                             const HouseholderQROpts& opts = {})
+int householder_qr(matrix_t& A,
+                   vector_t& tau,
+                   const HouseholderQROpts& opts = {})
 {
     // Call variant
     if (opts.variant == HouseholderQRVariant::Level2)

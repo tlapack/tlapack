@@ -70,13 +70,13 @@ template <class T,
           TLAPACK_OP trans_t,
           TLAPACK_DIRECTION direction_t,
           TLAPACK_STOREV storage_t>
-inline constexpr WorkInfo larfb_worksize(side_t side,
-                                         trans_t trans,
-                                         direction_t direction,
-                                         storage_t storeMode,
-                                         const matrixV_t& V,
-                                         const matrixT_t& Tmatrix,
-                                         const matrixC_t& C)
+constexpr WorkInfo larfb_worksize(side_t side,
+                                  trans_t trans,
+                                  direction_t direction,
+                                  storage_t storeMode,
+                                  const matrixV_t& V,
+                                  const matrixT_t& Tmatrix,
+                                  const matrixC_t& C)
 {
     using idx_t = size_type<matrixC_t>;
     using matrixW_t = matrix_type<matrixV_t, matrixC_t>;

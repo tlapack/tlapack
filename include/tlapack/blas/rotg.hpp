@@ -199,7 +199,7 @@ void rotg(T& a, const T& b, real_type<T>& c, T& s)
 template <TLAPACK_REAL T,
           enable_if_t<is_real<T>, int> = 0,
           enable_if_allow_optblas_t<T> = 0>
-inline void rotg(T& a, T& b, T& c, T& s)
+void rotg(T& a, T& b, T& c, T& s)
 {
     // Constants
     const T zero = 0;
@@ -223,7 +223,7 @@ inline void rotg(T& a, T& b, T& c, T& s)
 template <TLAPACK_COMPLEX T,
           enable_if_t<is_complex<T>, int> = 0,
           enable_if_allow_optblas_t<T> = 0>
-inline void rotg(T& a, const T& b, real_type<T>& c, T& s)
+void rotg(T& a, const T& b, real_type<T>& c, T& s)
 {
     T r;
     ::lapack::lartg(a, b, &c, &s, &r);

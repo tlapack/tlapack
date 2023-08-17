@@ -31,7 +31,7 @@
 //------------------------------------------------------------------------------
 /// Print matrix A in the standard output
 template <typename matrix_t>
-inline void printMatrix(const matrix_t& A)
+void printMatrix(const matrix_t& A)
 {
     using idx_t = tlapack::size_type<matrix_t>;
     const idx_t m = tlapack::nrows(A);

@@ -53,7 +53,7 @@ template <
     TLAPACK_LEGACY_VECTOR vectorY_t,
     class T = type_t<vectorY_t>,
     enable_if_allow_optblas_t<pair<vectorX_t, T>, pair<vectorY_t, T> > = 0>
-inline void swap(vectorX_t& x, vectorY_t& y)
+void swap(vectorX_t& x, vectorY_t& y)
 {
     // Legacy objects
     auto x_ = legacy_vector(x);
@@ -81,7 +81,7 @@ inline void swap(vectorX_t& x, vectorY_t& y)
  * @ingroup blas1
  */
 template <TLAPACK_VECTOR vector_t>
-inline void swap(vector_t& x, vector_t& y)
+void swap(vector_t& x, vector_t& y)
 {
     return swap<vector_t, vector_t>(x, y);
 }

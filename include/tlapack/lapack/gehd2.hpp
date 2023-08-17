@@ -35,10 +35,10 @@ namespace tlapack {
  * @ingroup workspace_query
  */
 template <class T, TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
-inline constexpr WorkInfo gehd2_worksize(size_type<matrix_t> ilo,
-                                         size_type<matrix_t> ihi,
-                                         const matrix_t& A,
-                                         const vector_t& tau)
+constexpr WorkInfo gehd2_worksize(size_type<matrix_t> ilo,
+                                  size_type<matrix_t> ihi,
+                                  const matrix_t& A,
+                                  const vector_t& tau)
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -48,13 +48,13 @@ inline constexpr WorkInfo gehd2_worksize(size_type<matrix_t> ilo,
 
     WorkInfo workinfo;
     if (ilo + 1 < ihi && n > 0) {
-        const auto v = slice(A, range{ilo + 1, ihi}, ilo);
+        auto&& v = slice(A, range{ilo + 1, ihi}, ilo);
 
-        auto C0 = slice(A, range{0, ihi}, range{ilo + 1, ihi});
+        auto&& C0 = slice(A, range{0, ihi}, range{ilo + 1, ihi});
         workinfo = larf_worksize<T>(RIGHT_SIDE, FORWARD, COLUMNWISE_STORAGE, v,
                                     tau[0], C0);
 
-        auto C1 = slice(A, range{ilo + 1, ihi}, range{ilo + 1, n});
+        auto&& C1 = slice(A, range{ilo + 1, ihi}, range{ilo + 1, n});
         workinfo.minMax(larf_worksize<T>(LEFT_SIDE, FORWARD, COLUMNWISE_STORAGE,
                                          v, tau[0], C1));
     }

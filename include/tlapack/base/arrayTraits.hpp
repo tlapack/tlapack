@@ -101,9 +101,7 @@ namespace traits {
          * @return The new m-by-n matrix
          */
         template <class T, class idx_t>
-        inline constexpr auto operator()(std::vector<T>& v,
-                                         idx_t m,
-                                         idx_t n = 1) const
+        constexpr auto operator()(std::vector<T>& v, idx_t m, idx_t n = 1) const
         {
             return matrix_t();
         }
@@ -119,7 +117,7 @@ namespace traits {
          * @return The new vector of size n
          */
         template <class T, class idx_t>
-        inline constexpr auto operator()(std::vector<T>& v, idx_t n) const
+        constexpr auto operator()(std::vector<T>& v, idx_t n) const
         {
             return matrix_t();
         }

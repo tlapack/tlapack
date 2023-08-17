@@ -44,10 +44,10 @@ struct GebrdOpts {
  * @ingroup workspace_query
  */
 template <class T, TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
-WorkInfo gebrd_worksize(const matrix_t& A,
-                        const vector_t& tauq,
-                        const vector_t& taup,
-                        const GebrdOpts& opts = {})
+constexpr WorkInfo gebrd_worksize(const matrix_t& A,
+                                  const vector_t& tauq,
+                                  const vector_t& taup,
+                                  const GebrdOpts& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using work_t = matrix_type<matrix_t, vector_t>;

@@ -39,7 +39,7 @@ namespace legacy {
      * @ingroup legacy_lapack
      **/
     template <class norm_t, typename TA>
-    inline real_type<TA> lange(
+    real_type<TA> lange(
         norm_t normType, idx_t m, idx_t n, const TA* A, idx_t lda)
     {
         using internal::create_matrix;

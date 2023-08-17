@@ -21,8 +21,8 @@ namespace tlapack {
 namespace internal {
     /// Auxiliary data type to vector increments.
     struct StrongOne {
-        inline constexpr operator int() const { return 1; }
-        inline constexpr StrongOne(int i = 1) { assert(i == 1); }
+        constexpr operator int() const { return 1; }
+        constexpr StrongOne(int i = 1) { assert(i == 1); }
     };
 }  // namespace internal
 
@@ -46,7 +46,7 @@ struct LegacyVector {
 
     static constexpr Direction direction = D;
 
-    inline constexpr const T& operator[](idx_t i) const noexcept
+    constexpr const T& operator[](idx_t i) const noexcept
     {
         assert(i >= 0);
         assert(i < n);
@@ -54,7 +54,7 @@ struct LegacyVector {
                                                  : *(ptr + ((n - 1) - i) * inc);
     }
 
-    inline constexpr T& operator[](idx_t i) noexcept
+    constexpr T& operator[](idx_t i) noexcept
     {
         assert(i >= 0);
         assert(i < n);
@@ -62,7 +62,7 @@ struct LegacyVector {
                                                  : *(ptr + ((n - 1) - i) * inc);
     }
 
-    inline constexpr LegacyVector(idx_t n, T* ptr, int_t inc = 1)
+    constexpr LegacyVector(idx_t n, T* ptr, int_t inc = 1)
         : n(n), ptr(ptr), inc(inc)
     {
         tlapack_check_false(n < 0);

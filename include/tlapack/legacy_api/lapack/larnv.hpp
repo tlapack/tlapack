@@ -46,7 +46,7 @@ namespace legacy {
      * @ingroup legacy_lapack
      */
     template <typename T>
-    inline void larnv(idx_t idist, idx_t* iseed, idx_t n, T* x)
+    void larnv(idx_t idist, idx_t* iseed, idx_t n, T* x)
     {
         using internal::create_vector;
 

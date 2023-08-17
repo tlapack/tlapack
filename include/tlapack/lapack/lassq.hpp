@@ -183,9 +183,9 @@ void lassq(const vector_t& x,
  * @ingroup auxiliary
  */
 template <TLAPACK_VECTOR vector_t>
-inline void lassq(const vector_t& x,
-                  real_type<type_t<vector_t>>& scale,
-                  real_type<type_t<vector_t>>& sumsq)
+void lassq(const vector_t& x,
+           real_type<type_t<vector_t>>& scale,
+           real_type<type_t<vector_t>>& sumsq)
 {
     using T = type_t<vector_t>;
     return lassq(x, scale, sumsq,

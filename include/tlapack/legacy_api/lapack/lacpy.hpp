@@ -74,13 +74,13 @@ namespace legacy {
      * @ingroup legacy_lapack
      */
     template <typename TA, typename TB>
-    void inline lacpy(MatrixType matrixtype,
-                      idx_t m,
-                      idx_t n,
-                      const TA* A,
-                      idx_t lda,
-                      TB* B,
-                      idx_t ldb)
+    void lacpy(MatrixType matrixtype,
+               idx_t m,
+               idx_t n,
+               const TA* A,
+               idx_t lda,
+               TB* B,
+               idx_t ldb)
     {
         if (matrixtype == MatrixType::Upper) {
             lacpy(UPPER_TRIANGLE, m, n, A, lda, B, ldb);
