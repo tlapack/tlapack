@@ -15,30 +15,31 @@
 
 namespace tlapack {
 
-// Forward declarations
-template <class T, std::enable_if_t<is_real<T>, int> = 0>
-constexpr real_type<T> real(const T& x) noexcept;
-template <class T, std::enable_if_t<is_real<T>, int> = 0>
-constexpr real_type<T> imag(const T& x) noexcept;
-template <class T, std::enable_if_t<is_real<T>, int> = 0>
-constexpr T conj(const T& x) noexcept;
-
 template <class T>
 constexpr real_type<T> real(const starpu::MatrixEntry<T>& x) noexcept
 {
-    return real(T(x));
+    if constexpr (is_complex<T>)
+        return real(T(x));
+    else
+        return real_type<T>(T(x));
 }
 
 template <class T>
 constexpr real_type<T> imag(const starpu::MatrixEntry<T>& x) noexcept
 {
-    return imag(T(x));
+    if constexpr (is_complex<T>)
+        return imag(T(x));
+    else
+        return real_type<T>(0);
 }
 
 template <class T>
 constexpr T conj(const starpu::MatrixEntry<T>& x) noexcept
 {
-    return conj(T(x));
+    if constexpr (is_complex<T>)
+        return conj(T(x));
+    else
+        return T(x);
 }
 
 namespace traits {

@@ -52,7 +52,7 @@ using std::pair;
 template <typename T, enable_if_t<is_real<T>, int> = 0>
 constexpr real_type<T> real(const T& x) noexcept
 {
-    return x;
+    return real_type<T>(x);
 }
 
 template <typename T, enable_if_t<is_real<T>, int> = 0>

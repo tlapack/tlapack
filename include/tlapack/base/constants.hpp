@@ -76,9 +76,9 @@ int digits() noexcept
 template <TLAPACK_REAL real_t>
 constexpr real_t safe_min() noexcept
 {
-    const int& fradix = std::numeric_limits<real_t>::radix;
-    const int& expm = std::numeric_limits<real_t>::min_exponent;
-    const int& expM = std::numeric_limits<real_t>::max_exponent;
+    const int fradix = std::numeric_limits<real_t>::radix;
+    const int expm = std::numeric_limits<real_t>::min_exponent;
+    const int expM = std::numeric_limits<real_t>::max_exponent;
 
     return max(pow(fradix, real_t(expm - 1)), pow(fradix, real_t(1 - expM)));
 }
@@ -103,8 +103,8 @@ template <TLAPACK_REAL real_t>
 constexpr real_t blue_min() noexcept
 {
     const real_t half(0.5);
-    const int& fradix = std::numeric_limits<real_t>::radix;
-    const int& expm = std::numeric_limits<real_t>::min_exponent;
+    const int fradix = std::numeric_limits<real_t>::radix;
+    const int expm = std::numeric_limits<real_t>::min_exponent;
 
     return pow(fradix, ceil(half * real_t(expm - 1)));
 }
@@ -117,8 +117,8 @@ template <TLAPACK_REAL real_t>
 constexpr real_t blue_max() noexcept
 {
     const real_t half(0.5);
-    const int& fradix = std::numeric_limits<real_t>::radix;
-    const int& expM = std::numeric_limits<real_t>::max_exponent;
+    const int fradix = std::numeric_limits<real_t>::radix;
+    const int expM = std::numeric_limits<real_t>::max_exponent;
     const int t = digits<real_t>();
 
     return pow(fradix, floor(half * real_t(expM - t + 1)));
@@ -135,8 +135,8 @@ template <TLAPACK_REAL real_t>
 constexpr real_t blue_scalingMin() noexcept
 {
     const real_t half(0.5);
-    const int& fradix = std::numeric_limits<real_t>::radix;
-    const int& expm = std::numeric_limits<real_t>::min_exponent;
+    const int fradix = std::numeric_limits<real_t>::radix;
+    const int expm = std::numeric_limits<real_t>::min_exponent;
     const int t = digits<real_t>();
 
     return pow(fradix, -floor(half * real_t(expm - t)));
@@ -150,8 +150,8 @@ template <TLAPACK_REAL real_t>
 constexpr real_t blue_scalingMax() noexcept
 {
     const real_t half(0.5);
-    const int& fradix = std::numeric_limits<real_t>::radix;
-    const int& expM = std::numeric_limits<real_t>::max_exponent;
+    const int fradix = std::numeric_limits<real_t>::radix;
+    const int expM = std::numeric_limits<real_t>::max_exponent;
     const int t = digits<real_t>();
 
     return pow(fradix, -ceil(half * real_t(expM + t - 1)));
