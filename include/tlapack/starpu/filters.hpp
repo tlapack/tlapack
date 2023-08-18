@@ -37,11 +37,11 @@ namespace starpu {
         struct starpu_matrix_interface* matrix_child =
             (struct starpu_matrix_interface*)child_interface;
 
-        idx_t* aux = (idx_t*)(f->filter_arg_ptr);
-        idx_t row0 = aux[0];
-        idx_t col0 = aux[1];
-        idx_t nrows = aux[2];
-        idx_t ncols = aux[3];
+        const idx_t* aux = (const idx_t*)(f->filter_arg_ptr);
+        const idx_t row0 = aux[0];
+        const idx_t col0 = aux[1];
+        const idx_t nrows = aux[2];
+        const idx_t ncols = aux[3];
 
         matrix_child->id = matrix_father->id;
         matrix_child->elemsize = matrix_father->elemsize;

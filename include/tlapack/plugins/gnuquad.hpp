@@ -55,12 +55,12 @@ inline complex<__float128> sqrt(complex<__float128> z)
     const __float128 half(0.5);
 
     if (x == zero) {
-        __float128 t = sqrt(half * abs(y));
+        const __float128 t = sqrt(half * abs(y));
         return complex<__float128>(t, (y < zero) ? -t : t);
     }
     else {
-        __float128 t = sqrt(two * (abs(z) + abs(x)));
-        __float128 u = half * t;
+        const __float128 t = sqrt(two * (abs(z) + abs(x)));
+        const __float128 u = half * t;
         return (x > zero)
                    ? complex<__float128>(u, y / t)
                    : complex<__float128>(abs(y) / t, (y < zero) ? -u : u);
