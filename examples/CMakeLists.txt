@@ -107,6 +107,15 @@ if( Eigen3_FOUND )
       "${CMAKE_CURRENT_BINARY_DIR}/performance_eigen/performance_tlapack${CMAKE_EXECUTABLE_SUFFIX}"
       && echo ""
   )
+  # add the example create_float_library
+  add_subdirectory( create_float_library )
+  add_custom_command(
+    OUTPUT run-all-examples-cmd APPEND
+    COMMAND
+      echo "- example_create_float_library ----------------" &&
+      "${CMAKE_CURRENT_BINARY_DIR}/create_float_library/example_create_float_library${CMAKE_EXECUTABLE_SUFFIX}"
+      && echo ""
+  )
 else()
   mark_as_advanced( FORCE Eigen3_DIR )
 endif()

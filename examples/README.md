@@ -35,3 +35,7 @@ This is the list of examples and brief descriptions:
 - [eigen](eigen/README.md)
 
   Compare the QR factorization from Eigen and \<T\>LAPACK. We use Eigen::Matrix as the data structure.
+
+- [create_float_library](create_float_library/README.md)
+
+  Create a static library with single precision from the \<T\>LAPACK library.
