@@ -86,7 +86,7 @@ int main(int argc, char** argv)
         T* A_;
         starpu_malloc((void**)&A_, m * n * sizeof(T));
         for (idx_t i = 0; i < m * n; i++) {
-            A_[i] = T((float)rand() / RAND_MAX);
+            A_[i] = T((float)rand() / (float)RAND_MAX);
         }
         Matrix<T> A(A_, m, n, m, n);
 

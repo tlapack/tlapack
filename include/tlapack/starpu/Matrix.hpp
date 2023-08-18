@@ -179,7 +179,7 @@ namespace starpu {
         {}
 
         /// Create a submatrix from a handle and a grid
-        constexpr Matrix(std::shared_ptr<starpu_data_handle_t> pHandle,
+        constexpr Matrix(const std::shared_ptr<starpu_data_handle_t>& pHandle,
                          idx_t ix,
                          idx_t iy,
                          idx_t nx,
