@@ -27,7 +27,7 @@ cmake --build build # build step
 
 You will find the executable inside the `build` directory.
 
-2. Using `make` on the same directory of [example_geqr2.cpp](example_geqr2.cpp). In this case, you should edit `make.inc` to set the \<T\>LAPACK include and library directories. After a successful build, the executable will be in the current directory.
+2. Using `make` on the same directory of [example_geqr2.cpp](example_geqr2.cpp). In this case, you may need to edit `make.inc` to set the environment variables needed by [Makefile](Makefile). After a successful build, the executable will be in the current directory.
 
 ## Run
 
