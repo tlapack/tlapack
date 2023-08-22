@@ -32,21 +32,24 @@ TEST_CASE("Random generator is consistent if seed is fixed", "[utils]")
 TEMPLATE_TEST_CASE("is_matrix works", "[utils]", TLAPACK_TYPES_TO_TEST)
 {
     using matrix_t = TestType;
+    using namespace tlapack::traits::internal;
 
-    CHECK(internal::is_matrix<matrix_t>);
+    CHECK(is_matrix<matrix_t>);
 }
 
 TEST_CASE("is_matrix and is_vector work", "[utils]")
 {
-    CHECK(!internal::is_matrix<std::vector<float> >);
-    CHECK(!internal::is_matrix<LegacyVector<float> >);
+    using namespace tlapack::traits::internal;
 
-    CHECK(internal::is_vector<std::vector<float> >);
-    CHECK(internal::is_vector<LegacyVector<float> >);
+    CHECK(!is_matrix<std::vector<float> >);
+    CHECK(!is_matrix<LegacyVector<float> >);
 
-    CHECK(!internal::is_matrix<float>);
-    CHECK(!internal::is_matrix<std::complex<double> >);
+    CHECK(is_vector<std::vector<float> >);
+    CHECK(is_vector<LegacyVector<float> >);
 
-    CHECK(!internal::is_vector<float>);
-    CHECK(!internal::is_vector<std::complex<double> >);
+    CHECK(!is_matrix<float>);
+    CHECK(!is_matrix<std::complex<double> >);
+
+    CHECK(!is_vector<float>);
+    CHECK(!is_vector<std::complex<double> >);
 }

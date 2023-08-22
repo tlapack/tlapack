@@ -153,12 +153,6 @@ int potrf_blocked(uplo_t uplo, matrix_t& A, const BlockedCholeskyOpts& opts)
             }
         }
 
-        // Report infs and nans on the output
-        tlapack_warn_nans_in_matrix(opts.ec, uplo, A, n + 1,
-                                    "The factorization has some nans.");
-        tlapack_warn_infs_in_matrix(opts.ec, uplo, A, n + 1,
-                                    "The factorization has some infs.");
-
         return 0;
     }
 }

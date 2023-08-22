@@ -75,9 +75,9 @@ int trtri_recursive(uplo_t uplo,
                 return 0;
             }
             else {
-                tlapack_error_internal(opts.ec, 1,
-                                       "A diagonal of entry of triangular "
-                                       "matrix is exactly zero.");
+                tlapack_error_if(opts.ec.internal, 1,
+                                 "A diagonal of entry of triangular "
+                                 "matrix is exactly zero.");
                 return 1;
             }
         }
@@ -96,18 +96,18 @@ int trtri_recursive(uplo_t uplo,
             int info = trtri_recursive(LOWER_TRIANGLE, diag, C00, opts);
 
             if (info != 0) {
-                tlapack_error_internal(opts.ec, info,
-                                       "A diagonal of entry of triangular "
-                                       "matrix is exactly zero.");
+                tlapack_error_if(opts.ec.internal, info,
+                                 "A diagonal of entry of triangular "
+                                 "matrix is exactly zero.");
                 return info;
             }
             info = trtri_recursive(LOWER_TRIANGLE, diag, C11, opts);
             if (info == 0)
                 return 0;
             else {
-                tlapack_error_internal(opts.ec, info + n0,
-                                       "A diagonal of entry of triangular "
-                                       "matrix is exactly zero.");
+                tlapack_error_if(opts.ec.internal, info + n0,
+                                 "A diagonal of entry of triangular "
+                                 "matrix is exactly zero.");
                 return info + n0;
             }
 
@@ -128,18 +128,18 @@ int trtri_recursive(uplo_t uplo,
             trsm(RIGHT_SIDE, UPPER_TRIANGLE, NO_TRANS, diag, T(+1), C11, C01);
             int info = trtri_recursive(UPPER_TRIANGLE, diag, C00, opts);
             if (info != 0) {
-                tlapack_error_internal(opts.ec, info,
-                                       "A diagonal of entry of triangular "
-                                       "matrix is exactly zero.");
+                tlapack_error_if(opts.ec.internal, info,
+                                 "A diagonal of entry of triangular "
+                                 "matrix is exactly zero.");
                 return info;
             }
             info = trtri_recursive(UPPER_TRIANGLE, diag, C11, opts);
             if (info == 0)
                 return 0;
             else {
-                tlapack_error_internal(opts.ec, info + n0,
-                                       "A diagonal of entry of triangular "
-                                       "matrix is exactly zero.");
+                tlapack_error_if(opts.ec.internal, info + n0,
+                                 "A diagonal of entry of triangular "
+                                 "matrix is exactly zero.");
                 return info + n0;
             }
 
