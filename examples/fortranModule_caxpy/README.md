@@ -21,7 +21,7 @@ cmake --build build # build step
 
 You will find the executable inside the `build` directory.
 
-2. Using `make` on the same directory of [example_fortranModule_caxpy.f90](example_fortranModule_caxpy.f90). In this case, you should edit `make.inc` to set the \<T\>LAPACK include and library directories. After a successful build, the executable will be in the current directory.
+2. Using `make` on the same directory of [example_fortranModule_caxpy.f90](example_fortranModule_caxpy.f90). In this case, you may need to edit `make.inc` to set the environment variables needed by [Makefile](Makefile). After a successful build, the executable will be in the current directory.
 
 ** Note that the module file `tlapack.mod` is installed in the root of the \<T\>LAPACK include directory. This file is mandatory for both builds. If the module was not correctly installed, one may compile it using the following rules
 

@@ -1,8 +1,6 @@
-#-------------------------------------------------------------------------------
-# <T>LAPACK library
 tlapack_inc = /usr/local/include
-tlapack_lib = /usr/local/lib
+eigen_inc   = /usr/local/include/eigen3
 
-CXXFLAGS = -I$(tlapack_inc) -Wall -pedantic -std=c++17 -D USE_LAPACK
+CXXFLAGS = -I$(tlapack_inc) -I$(eigen_inc)
 FFLAGS = 
-LDFLAGS  = -L$(tlapack_lib) -llapack -lblas -lm -lgfortran
+LDFLAGS  = -llapack -lblas -lm -lgfortran

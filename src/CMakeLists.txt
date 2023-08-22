@@ -55,7 +55,7 @@ endif()
 # Library: libtlapack_c
 if( BUILD_C_WRAPPERS OR BUILD_Fortran_WRAPPERS )
   add_library( tlapack_c tlapack_cwrappers.cpp )
-  target_link_libraries( tlapack_c PRIVATE tlapack )
+  target_link_libraries( tlapack_c PUBLIC tlapack )
   set_target_properties( tlapack_c PROPERTIES LINKER_LANGUAGE C )
 
   set( TLAPACK_DEFINES "" )
@@ -81,7 +81,7 @@ endif()
 # Library: libtlapack_cblas
 if( BUILD_CBLAS_WRAPPERS )
   add_library( tlapack_cblas tlapack_cwrappers.cpp )
-  target_link_libraries( tlapack_cblas PRIVATE tlapack )
+  target_link_libraries( tlapack_cblas PUBLIC tlapack )
   set_target_properties( tlapack_c PROPERTIES LINKER_LANGUAGE C )
   target_compile_definitions( tlapack_cblas PRIVATE BUILD_CBLAS )
   

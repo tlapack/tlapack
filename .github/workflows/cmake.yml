@@ -655,8 +655,8 @@ jobs:
     
     env:
       CXX: clang++
-      CXXFLAGS: "-Wall -Wpedantic -Wno-unused-variable -Wno-unused-function -std=c++17 -I/usr/local/include/eigen3"
-      FFLAGS: "-I/usr/local/include/tlapack/fortran"
+      CXXFLAGS: "-Wall -Wpedantic -Wno-unused-variable -Wno-unused-function -std=c++17"
+      FFLAGS: "-fcheck=all"
 
     runs-on: ubuntu-latest
     steps:
@@ -715,13 +715,15 @@ jobs:
       run: |
         directory=("access_types" "create_float_library" "cwrapper_gemm" "eigen" "eigenvalues" "fortranModule_caxpy" "fortranWrapper_ssymm" "gemm" "geqr2" "mdspan" "performance_eigen")
         exec=("example_accessTypes" "example_create_float_library" "example_cwrapper_gemm" "example_eigen" "example_eigenvalues" "example_fortranModule_caxpy" "example_fortranWrapper_ssymm" "example_gemm" "example_geqr2" "example_mdspan" "performance_tlapack")
-        ldflags=("" "" "-ltlapack_c -Wl,-rpath=/usr/local/lib" "" "-llapack -lblas -lm -lgfortran" "-ltlapack_fortran -ltlapack_c -Wl,-rpath=/usr/local/lib -lgfortran -lstdc++" "-ltlapack_fortran -ltlapack_c -Wl,-rpath=/usr/local/lib -lgfortran -lstdc++" "" "" "" "")
+        ldflags=("" "" "-ltlapack_c -Wl,-rpath=/usr/local/lib" "" "-llapack -lblas -lm -lgfortran" "-ltlapack_fortran -ltlapack_c -Wl,-rpath=/usr/local/lib -lgfortran" "-ltlapack_fortran -ltlapack_c -Wl,-rpath=/usr/local/lib -lgfortran" "" "" "" "")
+        export CXXFLAGS="${{env.CXXFLAGS}} -I/usr/local/include/eigen3"
+        export FFLAGS="${{env.FFLAGS}} -I/usr/local/include/tlapack/fortran"
+        export LD="clang++"
         for i in ${!directory[@]}; do
           cd ${{github.workspace}}/examples/${directory[$i]}
           echo "-----------------------------------"
           pwd
           echo "-----------------------------------"
-          export LD="clang++"
           export LDFLAGS=${ldflags[$i]}
           rm -rf make.inc
           make
