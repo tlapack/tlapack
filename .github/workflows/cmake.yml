@@ -83,7 +83,7 @@ jobs:
         sudo apt install -y gfortran
 
     - name: Install ninja-build tool
-      uses: seanmiddleditch/gha-setup-ninja@v3
+      uses: seanmiddleditch/gha-setup-ninja@16b940825621068d98711680b6c3ff92201f8fc0 # v3
 
     - name: Install LAPACKE on Ubuntu
       if: ${{ matrix.os == 'ubuntu-latest' }}
@@ -233,7 +233,7 @@ jobs:
         sudo apt install -y cmake
 
     - name: Install ninja-build tool
-      uses: seanmiddleditch/gha-setup-ninja@v3
+      uses: seanmiddleditch/gha-setup-ninja@16b940825621068d98711680b6c3ff92201f8fc0 # v3
 
     - name: Install MPFR C++
       run: sudo apt install -y libmpfrc++-dev
@@ -283,7 +283,7 @@ jobs:
         sudo apt install -y gfortran
 
     - name: Install ninja-build tool
-      uses: seanmiddleditch/gha-setup-ninja@v3
+      uses: seanmiddleditch/gha-setup-ninja@16b940825621068d98711680b6c3ff92201f8fc0 # v3
 
     - name: Install LAPACKE on Ubuntu
       run: sudo apt install -y liblapacke-dev
@@ -360,7 +360,7 @@ jobs:
         sudo apt install -y liblapack-dev
 
     - name: Install ninja-build tool
-      uses: seanmiddleditch/gha-setup-ninja@v3
+      uses: seanmiddleditch/gha-setup-ninja@16b940825621068d98711680b6c3ff92201f8fc0 # v3
 
     - name: Checkout BLAS++ and LAPACK++
       run: |
@@ -442,7 +442,7 @@ jobs:
       uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
 
     - name: Install ninja-build tool
-      uses: seanmiddleditch/gha-setup-ninja@v3
+      uses: seanmiddleditch/gha-setup-ninja@16b940825621068d98711680b6c3ff92201f8fc0 # v3
 
     - name: Setup Intel oneAPI environment
       run: |
@@ -518,7 +518,7 @@ jobs:
         sudo apt install -y gfortran
 
     - name: Install ninja-build tool
-      uses: seanmiddleditch/gha-setup-ninja@v3
+      uses: seanmiddleditch/gha-setup-ninja@16b940825621068d98711680b6c3ff92201f8fc0 # v3
 
     - name: Install BLIS
       run: sudo apt install -y libblis-dev
@@ -599,7 +599,7 @@ jobs:
         sudo apt install -y gfortran
 
     - name: Install ninja-build tool
-      uses: seanmiddleditch/gha-setup-ninja@v3
+      uses: seanmiddleditch/gha-setup-ninja@16b940825621068d98711680b6c3ff92201f8fc0 # v3
 
     - name: Install LAPACK and LAPACKE on Ubuntu
       run: sudo apt install -y liblapack-dev liblapacke-dev
@@ -667,7 +667,7 @@ jobs:
       uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
 
     - name: Install ninja-build tool
-      uses: seanmiddleditch/gha-setup-ninja@v3
+      uses: seanmiddleditch/gha-setup-ninja@16b940825621068d98711680b6c3ff92201f8fc0 # v3
     
     - name: Install the Basics
       run: |
@@ -785,7 +785,7 @@ jobs:
         make install
 
     - name: Install ninja-build tool
-      uses: seanmiddleditch/gha-setup-ninja@v3
+      uses: seanmiddleditch/gha-setup-ninja@16b940825621068d98711680b6c3ff92201f8fc0 # v3
 
     - name: Configure <T>LAPACK
       run: >
