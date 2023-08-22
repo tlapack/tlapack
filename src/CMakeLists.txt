@@ -55,7 +55,8 @@ endif()
 # Library: libtlapack_c
 if( BUILD_C_WRAPPERS OR BUILD_Fortran_WRAPPERS )
   add_library( tlapack_c tlapack_cwrappers.cpp )
-  target_link_libraries( tlapack_c PUBLIC tlapack )
+  target_link_libraries( tlapack_c PRIVATE tlapack )
+  set_target_properties( tlapack_c PROPERTIES LINKER_LANGUAGE C )
 
   set( TLAPACK_DEFINES "" )
   if( NOT TLAPACK_SIZE_T STREQUAL "" )
@@ -80,7 +81,8 @@ endif()
 # Library: libtlapack_cblas
 if( BUILD_CBLAS_WRAPPERS )
   add_library( tlapack_cblas tlapack_cwrappers.cpp )
-  target_link_libraries( tlapack_cblas PUBLIC tlapack )
+  target_link_libraries( tlapack_cblas PRIVATE tlapack )
+  set_target_properties( tlapack_c PROPERTIES LINKER_LANGUAGE C )
   target_compile_definitions( tlapack_cblas PRIVATE BUILD_CBLAS )
   
   set( TLAPACK_CBLAS_DEFINES "" )
@@ -157,7 +159,7 @@ if( BUILD_Fortran_WRAPPERS )
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_Fortran_MODULE_DIRECTORY}>
     $<INSTALL_INTERFACE:include/tlapack/fortran> )
-  target_link_libraries( tlapack_fortran PUBLIC tlapack_c )
+  target_link_libraries( tlapack_fortran INTERFACE tlapack_c )
 
   list( APPEND installable_libs tlapack_fortran )
   list( APPEND installable_mods ${CMAKE_Fortran_MODULE_DIRECTORY}/tlapack.mod )
