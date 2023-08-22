@@ -2,32 +2,34 @@ name: CMake
 
 on:
   pull_request:
-    paths-ignore:
-    - '.github/workflows/deploy_pages.yml'
-    - '.github/workflows/doxygen.yml'
-    - '.github/workflows/clang-format-check.yml'
-    - '.gitattributes'
-    - '.gitignore'
-    - '.gitmodules'
-    - 'docs/**'
-    - 'LICENSE'
-    - 'version.txt'
-    - '**.md'
+    paths:
+    - '.github/workflows/cmake.yml'
+    - 'cmake/**'
+    - 'config/**'
+    - 'examples/**'
+    - 'include/**'
+    - 'src/**'
+    - 'test/**'
+    - 'README.md'
+    - 'test/include/**'
+    - 'test/src/**'
+    - '!**.md'
 
   push:
     branches:
     - master
-    paths-ignore:
-    - '.github/workflows/deploy_pages.yml'
-    - '.github/workflows/doxygen.yml'
-    - '.github/workflows/clang-format-check.yml'
-    - '.gitattributes'
-    - '.gitignore'
-    - '.gitmodules'
-    - 'docs/**'
-    - 'LICENSE'
-    - 'version.txt'
-    - '**.md'
+    paths:
+    - '.github/workflows/cmake.yml'
+    - 'cmake/**'
+    - 'config/**'
+    - 'examples/**'
+    - 'include/**'
+    - 'src/**'
+    - 'test/**'
+    - 'README.md'
+    - 'test/include/**'
+    - 'test/src/**'
+    - '!**.md'
 
 permissions:
   contents: read
@@ -71,7 +73,7 @@ jobs:
     steps:
     
     - name: Checkout <T>LAPACK
-      uses: actions/checkout@v3
+      uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
     
     - name: Install the Basics
       if: ${{ matrix.os == 'ubuntu-latest' }}
@@ -223,7 +225,7 @@ jobs:
     steps:     
     
     - name: Checkout <T>LAPACK
-      uses: actions/checkout@v3
+      uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
     
     - name: Install the Basics
       run: |
@@ -272,7 +274,7 @@ jobs:
     steps:
     
     - name: Checkout <T>LAPACK
-      uses: actions/checkout@v3
+      uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
     
     - name: Install the Basics
       run: |
@@ -349,7 +351,7 @@ jobs:
     steps:
     
     - name: Checkout <T>LAPACK
-      uses: actions/checkout@v3
+      uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
     
     - name: Install the Basics
       run: |
@@ -437,7 +439,7 @@ jobs:
       run: sudo apt install -y intel-oneapi-compiler-fortran intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic intel-oneapi-mkl
     
     - name: Checkout <T>LAPACK
-      uses: actions/checkout@v3
+      uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
 
     - name: Install ninja-build tool
       uses: seanmiddleditch/gha-setup-ninja@v3
@@ -507,7 +509,7 @@ jobs:
     steps:
     
     - name: Checkout <T>LAPACK
-      uses: actions/checkout@v3
+      uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
     
     - name: Install the Basics
       run: |
@@ -588,7 +590,7 @@ jobs:
     steps:
     
     - name: Checkout <T>LAPACK
-      uses: actions/checkout@v3
+      uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
     
     - name: Install the Basics
       run: |
@@ -662,7 +664,7 @@ jobs:
     steps:
     
     - name: Checkout <T>LAPACK
-      uses: actions/checkout@v3
+      uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
 
     - name: Install ninja-build tool
       uses: seanmiddleditch/gha-setup-ninja@v3
@@ -759,7 +761,7 @@ jobs:
     steps:
     
     - name: Checkout <T>LAPACK
-      uses: actions/checkout@v3
+      uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
     
     - name: Install the Basics
       run: |
