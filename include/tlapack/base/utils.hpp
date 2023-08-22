@@ -48,32 +48,45 @@ using std::sqrt;
 using std::pair;
 
 //------------------------------------------------------------------------------
+// Extends std::real(), std::imag(), std::conj() to real numbers
 
+/** Extends std::real() to real datatypes.
+ *
+ * @param[in] x Real number
+ * @return x
+ *
+ * @note std::real() is already defined for real numbers in C++. However,
+ * we want a more general definition that works for any real type, not only
+ * for the built-in types.
+ */
 template <typename T, enable_if_t<is_real<T>, int> = 0>
 constexpr real_type<T> real(const T& x) noexcept
 {
     return real_type<T>(x);
 }
 
+/** Extends std::imag() to real datatypes.
+ *
+ * @param[in] x Real number
+ * @return 0
+ *
+ * @note std::imag() is already defined for real numbers in C++. However,
+ * we want a more general definition that works for any real type, not only
+ * for the built-in types.
+ */
 template <typename T, enable_if_t<is_real<T>, int> = 0>
 constexpr real_type<T> imag(const T& x) noexcept
 {
     return real_type<T>(0);
 }
 
-/** Extend conj to real datatypes.
- *
- * Usage:
- *
- *     using tlapack::conj;
- *     T x = ...
- *     T y = conj( x );
+/** Extends std::conj() to real datatypes.
  *
  * @param[in] x Real number
  * @return x
  *
- * @note C++11 to C++17 returns complex<real_t> instead of real_t. @see
- * std::conj
+ * @note std::conj() is already defined for real numbers in C++. However, the
+ * return type is complex<real_t> instead of real_t.
  */
 template <typename T, enable_if_t<is_real<T>, int> = 0>
 constexpr T conj(const T& x) noexcept
@@ -84,47 +97,71 @@ constexpr T conj(const T& x) noexcept
 // -----------------------------------------------------------------------------
 /// Type-safe sgn function
 /// @see Source: https://stackoverflow.com/a/4609795/5253097
-///
-template <typename real_t>
-constexpr int sgn(const real_t& val)
+template <typename T, enable_if_t<is_real<T>, int> = 0>
+constexpr int sgn(const T& val)
 {
-    return (real_t(0) < val) - (val < real_t(0));
+    return (T(0) < val) - (val < T(0));
 }
 
 // -----------------------------------------------------------------------------
-/// isinf for complex numbers
+/// Extends std::isinf() to complex numbers
 template <typename T, enable_if_t<is_complex<T>, int> = 0>
 constexpr bool isinf(const T& x) noexcept
 {
     return isinf(real(x)) || isinf(imag(x));
 }
 
-namespace internal {
-    template <class T, typename = int>
-    struct has_operator_parenthesis_with_2_indexes : std::false_type {};
+// -----------------------------------------------------------------------------
+/// Extends std::isnan() to complex numbers
+template <typename T, enable_if_t<is_complex<T>, int> = 0>
+constexpr bool isnan(const T& x) noexcept
+{
+    return isnan(real(x)) || isnan(imag(x));
+}
 
-    template <class T>
-    struct has_operator_parenthesis_with_2_indexes<
-        T,
-        enable_if_t<!is_same_v<decltype(std::declval<T>()(0, 0)), void>, int>>
-        : std::true_type {};
+// -----------------------------------------------------------------------------
+/// 1-norm absolute value, |Re(x)| + |Im(x)|
+template <typename T>
+constexpr real_type<T> abs1(const T& x)
+{
+    return abs(real(x)) + abs(imag(x));
+}
 
-    template <class T, typename = int>
-    struct has_operator_brackets_with_1_index : std::false_type {};
+// -----------------------------------------------------------------------------
+// Internal traits: is_matrix and is_vector
 
-    template <class T>
-    struct has_operator_brackets_with_1_index<
-        T,
-        enable_if_t<!is_same_v<decltype(std::declval<T>()[0]), void>, int>>
-        : std::true_type {};
+namespace traits {
+    namespace internal {
+        template <class T, typename = int>
+        struct has_operator_parenthesis_with_2_indexes : std::false_type {};
 
-    template <class T>
-    constexpr bool is_matrix =
-        has_operator_parenthesis_with_2_indexes<T>::value;
+        template <class T>
+        struct has_operator_parenthesis_with_2_indexes<
+            T,
+            enable_if_t<!is_same_v<decltype(std::declval<T>()(0, 0)), void>,
+                        int>> : std::true_type {};
 
-    template <class T>
-    constexpr bool is_vector = has_operator_brackets_with_1_index<T>::value;
-}  // namespace internal
+        template <class T, typename = int>
+        struct has_operator_brackets_with_1_index : std::false_type {};
+
+        template <class T>
+        struct has_operator_brackets_with_1_index<
+            T,
+            enable_if_t<!is_same_v<decltype(std::declval<T>()[0]), void>, int>>
+            : std::true_type {};
+
+        template <class T>
+        constexpr bool is_matrix =
+            has_operator_parenthesis_with_2_indexes<T>::value;
+
+        template <class T>
+        constexpr bool is_vector = has_operator_brackets_with_1_index<T>::value;
+    }  // namespace internal
+}  // namespace traits
+
+// -----------------------------------------------------------------------------
+// Specialization of traits::entry_type_trait and traits::size_type_trait
+// matrices and vectors
 
 namespace traits {
     template <class matrix_t>
@@ -158,358 +195,81 @@ namespace traits {
     };
 }  // namespace traits
 
-/**
- * Returns true if and only if A has an infinite entry.
- *
- * @tparam uplo_t Type of access inside the algorithm.
- *      Either Uplo or any type that implements
- *          operator Uplo().
- *
- * @param[in] uplo Determines the entries of A that will be checked.
- *      The following access types are allowed:
- *          Uplo::General,
- *          Uplo::UpperHessenberg,
- *          Uplo::LowerHessenberg,
- *          Uplo::Upper,
- *          Uplo::Lower,
- *          Uplo::StrictUpper,
- *          Uplo::StrictLower.
- *
- * @param[in] A matrix.
- *
- * @return true if A has an infinite entry.
- * @return false if A has no infinite entry.
- */
-template <TLAPACK_UPLO uplo_t, TLAPACK_MATRIX matrix_t>
-bool hasinf(uplo_t uplo, const matrix_t& A)
-{
-    using idx_t = size_type<matrix_t>;
-
-    // constants
-    const idx_t m = nrows(A);
-    const idx_t n = ncols(A);
-
-    tlapack_check(uplo == Uplo::General || uplo == Uplo::UpperHessenberg ||
-                  uplo == Uplo::LowerHessenberg || uplo == Uplo::Upper ||
-                  uplo == Uplo::Lower || uplo == Uplo::StrictUpper ||
-                  uplo == Uplo::StrictLower);
-
-    if (uplo == Uplo::UpperHessenberg) {
-        for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = 0; i < ((j < m) ? j + 2 : m); ++i)
-                if (isinf(A(i, j))) return true;
-        return false;
-    }
-    else if (uplo == Uplo::Upper) {
-        for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = 0; i < ((j < m) ? j + 1 : m); ++i)
-                if (isinf(A(i, j))) return true;
-        return false;
-    }
-    else if (uplo == Uplo::StrictUpper) {
-        for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = 0; i < ((j < m) ? j : m); ++i)
-                if (isinf(A(i, j))) return true;
-        return false;
-    }
-    else if (uplo == Uplo::LowerHessenberg) {
-        for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = ((j > 1) ? j - 1 : 0); i < m; ++i)
-                if (isinf(A(i, j))) return true;
-        return false;
-    }
-    else if (uplo == Uplo::Lower) {
-        for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = j; i < m; ++i)
-                if (isinf(A(i, j))) return true;
-        return false;
-    }
-    else if (uplo == Uplo::StrictLower) {
-        for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = j + 1; i < m; ++i)
-                if (isinf(A(i, j))) return true;
-        return false;
-    }
-    else  // if ( (Uplo) uplo == Uplo::General )
-    {
-        for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = 0; i < m; ++i)
-                if (isinf(A(i, j))) return true;
-        return false;
-    }
-}
-
-/**
- * Returns true if and only if A has an infinite entry.
- *
- * Specific implementation for band access types.
- * @see tlapack::hasinf(uplo_t uplo, const matrix_t& A).
- */
-template <TLAPACK_MATRIX matrix_t>
-bool hasinf(BandAccess accessType, const matrix_t& A) noexcept
-{
-    using idx_t = size_type<matrix_t>;
-
-    // constants
-    const idx_t m = nrows(A);
-    const idx_t n = ncols(A);
-    const idx_t kl = accessType.lower_bandwidth;
-    const idx_t ku = accessType.upper_bandwidth;
-
-    for (idx_t j = 0; j < n; ++j)
-        for (idx_t i = ((j >= ku) ? (j - ku) : 0); i < min(m, j + kl + 1); ++i)
-            if (isinf(A(i, j))) return true;
-    return false;
-}
-
-/**
- * Returns true if and only if x has an infinite entry.
- *
- * @param[in] x vector.
- *
- * @return true if x has an infinite entry.
- * @return false if x has no infinite entry.
- */
-template <TLAPACK_VECTOR vector_t>
-bool hasinf(const vector_t& x) noexcept
-{
-    using idx_t = size_type<vector_t>;
-
-    // constants
-    const idx_t n = size(x);
-
-    for (idx_t i = 0; i < n; ++i)
-        if (isinf(x[i])) return true;
-    return false;
-}
-
 // -----------------------------------------------------------------------------
-/// isnan for complex numbers
-template <typename T, enable_if_t<is_complex<T>, int> = 0>
-constexpr bool isnan(const T& x) noexcept
-{
-    return isnan(real(x)) || isnan(imag(x));
-}
+// Optimized BLAS traits
+//
+// allow_optblas<>, enable_if_allow_optblas_t<>, disable_if_allow_optblas_t<>
 
-/**
- * Returns true if and only if A has an NaN entry.
- *
- * @tparam uplo_t Type of access inside the algorithm.
- *      Either Uplo or any type that implements
- *          operator Uplo().
- *
- * @param[in] uplo Determines the entries of A that will be checked.
- *      The following access types are allowed:
- *          Uplo::General,
- *          Uplo::UpperHessenberg,
- *          Uplo::LowerHessenberg,
- *          Uplo::Upper,
- *          Uplo::Lower,
- *          Uplo::StrictUpper,
- *          Uplo::StrictLower.
- *
- * @param[in] A matrix.
- *
- * @return true if A has an NaN entry.
- * @return false if A has no NaN entry.
- */
-template <TLAPACK_UPLO uplo_t, TLAPACK_MATRIX matrix_t>
-bool hasnan(uplo_t uplo, const matrix_t& A)
-{
-    using idx_t = size_type<matrix_t>;
+namespace traits {
 
-    // constants
-    const idx_t m = nrows(A);
-    const idx_t n = ncols(A);
+    namespace internal {
+        /// True if C1, C2, Cs... have all compatible layouts. False otherwise.
+        template <class C1, class C2, class... Cs>
+        constexpr bool has_compatible_layout =
+            (has_compatible_layout<C1, C2> &&
+             has_compatible_layout<C1, Cs...> &&
+             has_compatible_layout<C2, Cs...>);
 
-    tlapack_check(uplo == Uplo::General || uplo == Uplo::UpperHessenberg ||
-                  uplo == Uplo::LowerHessenberg || uplo == Uplo::Upper ||
-                  uplo == Uplo::Lower || uplo == Uplo::StrictUpper ||
-                  uplo == Uplo::StrictLower);
+        // True if C1 and C2 are matrices with same layout.
+        // Also true if C1 or C2 are strided vectors or scalars
+        template <class C1, class C2>
+        constexpr bool has_compatible_layout<C1, C2> =
+            (!is_matrix<C1> && !is_vector<C1>) ||
+            (!is_matrix<C2> && !is_vector<C2>) ||
+            (layout<C1> == Layout::Strided) ||
+            (layout<C2> == Layout::Strided) || (layout<C1> == layout<C2>);
 
-    if (uplo == Uplo::UpperHessenberg) {
-        for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = 0; i < ((j < m) ? j + 2 : m); ++i)
-                if (isnan(A(i, j))) return true;
-        return false;
-    }
-    else if (uplo == Uplo::Upper) {
-        for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = 0; i < ((j < m) ? j + 1 : m); ++i)
-                if (isnan(A(i, j))) return true;
-        return false;
-    }
-    else if (uplo == Uplo::StrictUpper) {
-        for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = 0; i < ((j < m) ? j : m); ++i)
-                if (isnan(A(i, j))) return true;
-        return false;
-    }
-    else if (uplo == Uplo::LowerHessenberg) {
-        for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = ((j > 1) ? j - 1 : 0); i < m; ++i)
-                if (isnan(A(i, j))) return true;
-        return false;
-    }
-    else if (uplo == Uplo::Lower) {
-        for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = j; i < m; ++i)
-                if (isnan(A(i, j))) return true;
-        return false;
-    }
-    else if (uplo == Uplo::StrictLower) {
-        for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = j + 1; i < m; ++i)
-                if (isnan(A(i, j))) return true;
-        return false;
-    }
-    else  // if ( (Uplo) uplo == Uplo::General )
-    {
-        for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = 0; i < m; ++i)
-                if (isnan(A(i, j))) return true;
-        return false;
-    }
-}
+        // True if C1 and C2 have compatible layouts.
+        template <class C1, class T1, class C2, class T2>
+        constexpr bool has_compatible_layout<pair<C1, T1>, pair<C2, T2>> =
+            has_compatible_layout<C1, C2>;
+    }  // namespace internal
 
-/**
- * Returns true if and only if A has an NaN entry.
- *
- * Specific implementation for band access types.
- * @see tlapack::hasnan(uplo_t uplo, const matrix_t& A).
- */
-template <TLAPACK_MATRIX matrix_t>
-bool hasnan(BandAccess accessType, const matrix_t& A) noexcept
-{
-    using idx_t = size_type<matrix_t>;
+    /// Trait to determine if the list @c Types allows optimization.
+    template <class... Types>
+    struct allow_optblas_trait : std::false_type {};
 
-    // constants
-    const idx_t m = nrows(A);
-    const idx_t n = ncols(A);
-    const idx_t kl = accessType.lower_bandwidth;
-    const idx_t ku = accessType.upper_bandwidth;
-
-    for (idx_t j = 0; j < n; ++j)
-        for (idx_t i = ((j >= ku) ? (j - ku) : 0); i < min(m, j + kl + 1); ++i)
-            if (isnan(A(i, j))) return true;
-    return false;
-}
-
-/**
- * Returns true if and only if x has an NaN entry.
- *
- * @param[in] x vector.
- *
- * @return true if x has an NaN entry.
- * @return false if x has no NaN entry.
- */
-template <TLAPACK_VECTOR vector_t>
-bool hasnan(const vector_t& x) noexcept
-{
-    using idx_t = size_type<vector_t>;
-
-    // constants
-    const idx_t n = size(x);
-
-    for (idx_t i = 0; i < n; ++i)
-        if (isnan(x[i])) return true;
-    return false;
-}
-
-// -----------------------------------------------------------------------------
-/// 1-norm absolute value, |Re(x)| + |Im(x)|
-template <typename T>
-constexpr real_type<T> abs1(const T& x)
-{
-    return abs(real(x)) + abs(imag(x));
-}
-
-// -----------------------------------------------------------------------------
-/// Optimized BLAS
-
-namespace internal {
-
-    /// True if C1, C2, Cs... have all compatible layouts. False otherwise.
-    template <class C1, class C2, class... Cs>
-    constexpr bool has_compatible_layout = (has_compatible_layout<C1, C2> &&
-                                            has_compatible_layout<C1, Cs...> &&
-                                            has_compatible_layout<C2, Cs...>);
-
-    /// True if C1 and C2 are matrices with same layout.
-    /// Also true if C1 or C2 are strided vectors or scalars
-    template <class C1, class C2>
-    constexpr bool has_compatible_layout<C1, C2> =
-        (!is_matrix<C1> && !is_vector<C1>) ||
-        (!is_matrix<C2> && !is_vector<C2>) || (layout<C1> == Layout::Strided) ||
-        (layout<C2> == Layout::Strided) || (layout<C1> == layout<C2>);
-
-    /// True if pair C1 and C2 have compatible layouts.
-    template <class C1, class T1, class C2, class T2>
-    constexpr bool has_compatible_layout<pair<C1, T1>, pair<C2, T2>> =
-        has_compatible_layout<C1, C2>;
-
-    /**
-     * @brief Trait to determine if a given list of data allows optimization
-     * using a optimized BLAS library.
-     *
-     * @tparam Ts If the last class in this list is not an int, then the trait
-     * is not defined.
-     */
-    template <class... Ts>
-    struct allow_optblas_trait {
-        static constexpr bool value =
-            false;  ///< True if the list of types
-                    ///< allows optimized BLAS library.
-    };
-}  // namespace internal
-
-/// Alias for @c internal::allow_optblas_trait<,int>::value.
-template <class... Ts>
-constexpr bool allow_optblas = internal::allow_optblas_trait<Ts..., int>::value;
-
-namespace internal {
-
-    /// True if C is a row- or column-major matrix and the entry type can be
-    /// used with optimized BLAS implementations.
+    // True if C is a row- or column-major matrix and the entry type can be
+    // used with optimized BLAS implementations.
     template <class C>
     struct allow_optblas_trait<
         C,
-        enable_if_t<is_matrix<C> && !is_vector<C>, int>> {
+        enable_if_t<internal::is_matrix<C> && !internal::is_vector<C>, int>> {
         static constexpr bool value =
-            allow_optblas<type_t<C>> &&
+            allow_optblas_trait<type_t<C>>::value &&
             (layout<C> == Layout::ColMajor || layout<C> == Layout::RowMajor);
     };
 
-    /// True if C is a strided vector and the entry type can be used with
-    /// optimized BLAS implementations.
+    // True if C is a strided vector and the entry type can be used with
+    // optimized BLAS implementations.
     template <class C>
-    struct allow_optblas_trait<C, enable_if_t<is_vector<C>, int>> {
+    struct allow_optblas_trait<C, enable_if_t<internal::is_vector<C>, int>> {
         static constexpr bool value =
-            allow_optblas<type_t<C>> &&
+            allow_optblas_trait<type_t<C>>::value &&
             (layout<C> == Layout::ColMajor || layout<C> == Layout::RowMajor ||
              layout<C> == Layout::Strided);
     };
 
-    /** A pair of types <C,T> allows optimized BLAS if T allows optimized BLAS
-     * and one of the followings happens:
-     * 1. C is a matrix or vector that allows optimized BLAS and the entry type
-     * is the same as T.
-     * 2. C is not a matrix or vector, but is convertible to T.
-     */
+    // A pair of types <C,T> allows optimized BLAS if T allows optimized BLAS
+    // and one of the followings happens:
+    // 1. C is a matrix or vector that allows optimized BLAS and the entry type
+    // is the same as T.
+    // 2. C is not a matrix or vector, but is convertible to T.
     template <class C, class T>
-    struct allow_optblas_trait<pair<C, T>,
-                               enable_if_t<is_matrix<C> || is_vector<C>, int>> {
+    struct allow_optblas_trait<
+        pair<C, T>,
+        enable_if_t<internal::is_matrix<C> || internal::is_vector<C>, int>> {
         static constexpr bool value =
-            allow_optblas<T> &&
-            (allow_optblas<C> &&
+            allow_optblas_trait<T>::value &&
+            (allow_optblas_trait<C>::value &&
              is_same_v<type_t<C>, typename std::decay<T>::type>);
     };
     template <class C, class T>
     struct allow_optblas_trait<
         pair<C, T>,
-        enable_if_t<!is_matrix<C> && !is_vector<C>, int>> {
+        enable_if_t<!internal::is_matrix<C> && !internal::is_vector<C>, int>> {
         static constexpr bool value =
-            allow_optblas<T> && std::is_constructible<T, C>::value;
+            allow_optblas_trait<T>::value && std::is_constructible<T, C>::value;
     };
 
     template <class C1, class T1, class C2, class T2, class... Ps>
@@ -517,34 +277,37 @@ namespace internal {
         static constexpr bool value =
             allow_optblas_trait<pair<C1, T1>, int>::value &&
             allow_optblas_trait<pair<C2, T2>, Ps...>::value &&
-            has_compatible_layout<C1, C2, Ps...>;
+            internal::has_compatible_layout<C1, C2, Ps...>;
     };
-}  // namespace internal
+}  // namespace traits
 
+/// True if the list of types allows optimized BLAS library.
+template <class... Ts>
+constexpr bool allow_optblas = traits::allow_optblas_trait<Ts..., int>::value;
+
+/// Enable if the list of types allows optimized BLAS library.
 template <class T1, class... Ts>
 using enable_if_allow_optblas_t = enable_if_t<(allow_optblas<T1, Ts...>), int>;
 
+/// Disable if the list of types allows optimized BLAS library.
 template <class T1, class... Ts>
 using disable_if_allow_optblas_t =
     enable_if_t<(!allow_optblas<T1, Ts...>), int>;
 
-#define TLAPACK_OPT_TYPE(T)                     \
-    namespace internal {                        \
-        template <>                             \
-        struct allow_optblas_trait<T, int> {    \
-            static constexpr bool value = true; \
-        };                                      \
-    }
-
-/// Optimized types
 #ifdef TLAPACK_USE_LAPACKPP
-TLAPACK_OPT_TYPE(float)
-TLAPACK_OPT_TYPE(double)
-TLAPACK_OPT_TYPE(std::complex<float>)
-TLAPACK_OPT_TYPE(std::complex<double>)
-TLAPACK_OPT_TYPE(StrongZero)
-#endif
-#undef TLAPACK_OPT_TYPE
+namespace traits {
+    template <>
+    struct allow_optblas_trait<float, int> : std::true_type {};
+    template <>
+    struct allow_optblas_trait<double, int> : std::true_type {};
+    template <>
+    struct allow_optblas_trait<std::complex<float>, int> : std::true_type {};
+    template <>
+    struct allow_optblas_trait<std::complex<double>, int> : std::true_type {};
+    template <>
+    struct allow_optblas_trait<StrongZero, int> : std::true_type {};
+}  // namespace traits
+#endif  // TLAPACK_USE_LAPACKPP
 
 }  // namespace tlapack
 

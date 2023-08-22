@@ -97,8 +97,8 @@ int potrf2(uplo_t uplo, matrix_t& A, const EcOpts& opts = {})
             return 0;
         }
         else {
-            tlapack_error_internal(
-                opts.ec, 1,
+            tlapack_error_if(
+                opts.ec.internal, 1,
                 "The leading minor of order 1 is not positive definite,"
                 " and the factorization could not be completed.");
             return 1;
@@ -116,8 +116,8 @@ int potrf2(uplo_t uplo, matrix_t& A, const EcOpts& opts = {})
         // Factor A11
         int info = potrf2(uplo, A11, NO_ERROR_CHECK);
         if (info != 0) {
-            tlapack_error_internal(
-                opts.ec, info,
+            tlapack_error_if(
+                opts.ec.internal, info,
                 "The leading minor of the reported order is not positive "
                 "definite,"
                 " and the factorization could not be completed.");
@@ -148,8 +148,8 @@ int potrf2(uplo_t uplo, matrix_t& A, const EcOpts& opts = {})
         if (info == 0)
             return 0;
         else {
-            tlapack_error_internal(
-                opts.ec, info + n1,
+            tlapack_error_if(
+                opts.ec.internal, info + n1,
                 "The leading minor of the reported order is not positive "
                 "definite,"
                 " and the factorization could not be completed.");
