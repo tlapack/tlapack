@@ -246,7 +246,8 @@ endif()
 set_target_properties( ${installable_libs}
 PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib" )
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+    INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib" )
 
 #-------------------------------------------------------------------------------
 # Install

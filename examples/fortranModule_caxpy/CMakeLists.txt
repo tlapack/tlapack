@@ -6,7 +6,7 @@
 
 cmake_minimum_required(VERSION 3.1)
 
-project( fortranModule_caxpy C CXX Fortran )
+project( fortranModule_caxpy C Fortran )
 
 # Load <T>LAPACK
 if( NOT TARGET tlapack_fortran )
