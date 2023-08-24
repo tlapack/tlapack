@@ -1,4 +1,5 @@
 # \<T\>LAPACK
+
 C++ Template Linear Algebra PACKage
 
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://github.com/tlapack/tlapack/blob/master/LICENSE)
@@ -16,78 +17,85 @@ First things to know about \<T\>LAPACK:
 
 \<T\>LAPACK provides:
 
-+ Precision-neutral function template implementation
+- Precision-neutral function template implementation
 
-*Supported in part by [NSF ACI 2004850](http://www.nsf.gov/awardsearch/showAward?AWD_ID=2004850).*
+_Supported in part by [NSF ACI 2004850](http://www.nsf.gov/awardsearch/showAward?AWD_ID=2004850)._
 
 ## Current functionality
 
 \<T\>LAPACK is a work in progress (WIP) project. This is a list of the current functionality:
 
-+ [x] BLAS
-    + [x] Level 1, except SDSDOT.
-    + [x] Level 2, except the routines for banded and packed formats (xGBMV, xHBMV, xHPMV, xSBMV, xSPMV, xTBMV, xTPMV, xTBSV, xTPSV, xHPR, xHPR2, xSPR, xSPR2).
-    + [x] Level 3.
-+ [ ] Linear solvers
-    + [ ] Safe scaling triangular solve
-    + [ ] Safe scaling solver for Sylvester equations
-+ [ ] Matrix factorizations
-    + [x] Cholesky
-        + Recursive
-        + Blocked
-    + [ ] Fully pivoted QR
-    + [ ] Fully pivoted RQ
-    + [ ] Fully pivoted LQ
-    + [ ] Fully pivoted QL
-    + [x] Hessenberg reduction
-        + Level-2
-        + Blocked
-    + [x] Householder QR
-        + Level-2
-    + [ ] Householder RQ
-    + [x] Householder LQ
-        + Level-2
-        + Blocked
-    + [ ] Householder QL
-    + [x] Householder bidiagonalization
-        + Level-2
-    + [x] LU with partial pivoting
-        + Level-0
-        + Recursive
-+ [ ] Matrix inversion
-    + [x] General matrix
-        + Method C from §14.3.3 in <a href="#1">[1]</a>
-        + Method D from §14.3.4 in <a href="#1">[1]</a>
-    + [ ] Hermitian positive definite
-    + [x] Triangular matrix
-        + Recursive
-+ [x] Norms of general, hermitian, symmetric and triangular matrices
-    + [x] 1-norm
-    + [x] Infinity-norm
-    + [x] Frobenius-norm
-+ [ ] Nonsymmetric Eigenvalue Problem
-    + [x] Schur decomposition
-        + Double-shift implicit QR
-        + Multishift implicit QR with Aggressive Early Deflation (AED)
-    + [ ] Eigenvector computation
-    + [ ] Swap eigenvalues in Schur form
-    + [ ] Generalized Schur problem
-    + [ ] Generalized eigenvalue problem
-+ [ ] Symmetric Eigenvalue Problem
-    + [ ] Tridiagonal reduction
-    + [ ] Schur decomposition
-    + [ ] Eigenvector computation
-+ [ ] Singular Value Decomposition (SVD)
-    + [ ] Standard singular value problem
-    + [ ] Generalized singular value problem
-+ [ ] Linear least squares
-    + [ ] Using QR factorization
-    + [ ] Using SVD
-+ [x] Additional kernels
-    + [x] Order 1 and 2 Sylvester equation solver
-    + [x] In-place upper times lower triangular matrix multiplication for general and hermitian matrices
-    + [x] In-place lower times upper triangular matrix multiplication
-    + [x] In-place transpose of a matrix
+- [x] BLAS
+  - [x] Level 1, except SDSDOT.
+  - [x] Level 2, except the routines for banded and packed formats (xGBMV, xHBMV, xHPMV, xSBMV, xSPMV, xTBMV, xTPMV, xTBSV, xTPSV, xHPR, xHPR2, xSPR, xSPR2).
+  - [x] Level 3.
+- [ ] Linear solvers
+  - [ ] Safe scaling triangular solve
+  - [ ] Safe scaling solver for Sylvester equations
+- [ ] Matrix factorizations
+  - [x] Cholesky
+    - Recursive
+    - Blocked
+  - [ ] Fully pivoted QR
+  - [ ] Fully pivoted RQ
+  - [ ] Fully pivoted LQ
+  - [ ] Fully pivoted QL
+  - [x] Hessenberg reduction
+    - Level-2
+    - Blocked
+  - [x] Householder QR
+    - Level-2
+    - Blocked
+  - [x] Householder RQ
+    - Level-2
+    - Blocked
+  - [x] Householder LQ
+    - Level-2
+    - Blocked
+  - [x] Householder QL
+    - Level-2
+    - Blocked
+  - [x] Householder bidiagonalization
+    - Level-2
+    - Blocked
+  - [x] LU with partial pivoting
+    - Level-0
+    - Recursive
+- [ ] Matrix inversion
+  - [x] General matrix
+    - Method C from §14.3.3 in <a href="#1">[1]</a>
+    - Method D from §14.3.4 in <a href="#1">[1]</a>
+  - [ ] Hermitian positive definite
+  - [x] Triangular matrix
+    - Recursive
+- [x] Norms of general, hermitian, symmetric and triangular matrices
+  - [x] 1-norm
+  - [x] Infinity-norm
+  - [x] Frobenius-norm
+  - [x] Max-norm
+- [ ] Nonsymmetric Eigenvalue Problem
+  - [x] Schur decomposition
+    - Double-shift implicit QR
+    - Multishift implicit QR with Aggressive Early Deflation (AED)
+  - [ ] Eigenvector computation
+  - [ ] Swap eigenvalues in Schur form
+  - [ ] Generalized Schur problem
+  - [ ] Generalized eigenvalue problem
+- [ ] Symmetric Eigenvalue Problem
+  - [ ] Tridiagonal reduction
+  - [ ] Schur decomposition
+  - [ ] Eigenvector computation
+- [ ] Singular Value Decomposition (SVD)
+  - [ ] Standard singular value problem
+  - [ ] Generalized singular value problem
+- [ ] Linear least squares
+  - [ ] Using QR factorization
+  - [ ] Using SVD
+- [x] Additional kernels
+  - [x] Order 1 and 2 Sylvester equation solver
+  - [x] In-place upper times lower triangular matrix multiplication for general and hermitian matrices
+  - [x] In-place lower times upper triangular matrix multiplication
+  - [x] In-place transpose of a matrix
 
 The complete documentation and implementation for the routines that are available are listed in the [API documentation](https://tlapack.github.io/tlapack/).
 
@@ -127,7 +135,7 @@ The Fortran and C wrappers to \<T\>LAPACK also use, among others,
     FC                  Fortran compiler
     FFLAGS              Fortran compiler flags
 
-* [This page](https://cmake.org/cmake/help/latest/manual/cmake-env-variables.7.html) lists the environment variables that have special meaning to CMake.
+- [This page](https://cmake.org/cmake/help/latest/manual/cmake-env-variables.7.html) lists the environment variables that have special meaning to CMake.
 
 It is also possible to pass variables to CMake during the configuration step using the `-D` flag.
 The following example builds \<T\>LAPACK in debug mode inside the directory `build`
@@ -138,23 +146,23 @@ cmake -B build -DCMAKE_BUILD_TYPE=Debug .
 cmake --build build
 ```
 
-* [This page](https://cmake.org/cmake/help/latest/manual/cmake-variables.7.html) documents variables that are provided by CMake or have meaning to CMake when set by project code.
+- [This page](https://cmake.org/cmake/help/latest/manual/cmake-variables.7.html) documents variables that are provided by CMake or have meaning to CMake when set by project code.
 
 ### \<T\>LAPACK options
 
 Here are the \<T\>LAPACK specific options and their default values
 
     # Option                            # Default
-    
+
     BUILD_BLASPP_TESTS                  OFF
 
         Use BLAS++ tests to test <T>LAPACK templates.
         REQUIRES: BUILD_TESTING=ON
 
     BUILD_EXAMPLES                      ON
-        
+
         Build examples
-    
+
     BUILD_LAPACKPP_TESTS                OFF
 
         Use LAPACK++ tests to test <T>LAPACK templates.
@@ -164,21 +172,21 @@ Here are the \<T\>LAPACK specific options and their default values
 
         Build testBLAS tests.
         REQUIRES: BUILD_TESTING=ON
-    
+
     BUILD_TESTING                       ON
-    
+
         Build the testing tree
-        
+
     BUILD_C_WRAPPERS                          OFF
-    
+
         Build and install C wrappers (Work In Progress)
 
     BUILD_CBLAS_WRAPPERS                      OFF
-    
+
         Build and install CBLAS wrappers (Work In Progress)
-        
+
     BUILD_Fortran_WRAPPERS                    OFF
-    
+
         Build and install Fortran wrappers (Work In Progress)
 
     TLAPACK_CHECK_INPUT                 ON
@@ -207,35 +215,35 @@ Here are the \<T\>LAPACK specific options and their default values
 
         Enable check for NaNs as specified in the documentation of each routine.
         REQUIRES: TLAPACK_NDEBUG=OFF
-    
+
     TLAPACK_INT_T                       int64_t
-    
+
         Type of all non size-related integers in libtlapack_c, libtlapack_cblas, libtlapack_fortran, and in the routines of the legacy API. It is the type
         used for the array increments, e.g., incx and incy.
         Supported types:
             int, short, long, long long, int8_t, int16_t,
             int32_t, int64_t, int_least8_t, int_least16_t,
-            int_least32_t, int_least64_t, int_fast8_t, 
-            int_fast16_t, int_fast32_t, int_fast64_t, 
+            int_least32_t, int_least64_t, int_fast8_t,
+            int_fast16_t, int_fast32_t, int_fast64_t,
             intmax_t, intptr_t, ptrdiff_t
         NOTE: TLAPACK_INT_T=int64_t if TLAPACK_USE_LAPACKPP=ON
 
     TLAPACK_NDEBUG                      OFF
 
         Disable all error checks.
-    
+
     TLAPACK_SIZE_T                      size_t
-    
+
         Type of all size-related integers in libtlapack_c, libtlapack_cblas, libtlapack_fortran, and in the routines of the legacy API.
         Supported types:
             int, short, long, long long, int8_t, int16_t,
             int32_t, int64_t, int_least8_t, int_least16_t,
-            int_least32_t, int_least64_t, int_fast8_t, 
-            int_fast16_t, int_fast32_t, int_fast64_t, 
+            int_least32_t, int_least64_t, int_fast8_t,
+            int_fast16_t, int_fast32_t, int_fast64_t,
             intmax_t, intptr_t, ptrdiff_t,
             size_t, uint8_t, uint16_t, uint32_t, uint64_t
         NOTE: TLAPACK_SIZE_T=int64_t if TLAPACK_USE_LAPACKPP=ON
-    
+
     TLAPACK_USE_LAPACKPP               OFF
 
         Use LAPACK++ wrappers to link with optimized BLAS and LAPACK libraries.
@@ -249,39 +257,46 @@ Here are the \<T\>LAPACK specific options and their default values
 \<T\>LAPACK currently depends on the following projects:
 
 | Project                            | Version       | When                                                 |
-|------------------------------------|---------------|------------------------------------------------------|
-| cmake                              | >= v3.14      | Always                                               |
+| ---------------------------------- | ------------- | ---------------------------------------------------- |
+| CMake                              | >= v3.14      | Always                                               |
 | ClangFormat                        | 10            | Always                                               |
 | Catch2                             | >= 3.0.1      | `BUILD_TESTING=ON`                                   |
 | Git                                | -             | `BUILD_BLASPP_TESTS=ON  OR  BUILD_LAPACKPP_TESTS=ON` |
 | github.com/icl-utk-edu/testsweeper | >= 2021.04.00 | `BUILD_BLASPP_TESTS=ON  OR  BUILD_LAPACKPP_TESTS=ON` |
 | LAPACK                             | >= 3.9.0      | `BUILD_BLASPP_TESTS=ON  OR  BUILD_LAPACKPP_TESTS=ON` |
-| BLAS++ tests                       | 2023.06.00    | `BUILD_BLASPP_TESTS=ON`                              |
-| LAPACK++ tests                     | 2022.07.00    | `BUILD_LAPACKPP_TESTS=ON`                            |
+| ICL BLAS++ test suite              | 2023.06.00    | `BUILD_BLASPP_TESTS=ON`                              |
+| ICL LAPACK++ test suite            | 2022.07.00    | `BUILD_LAPACKPP_TESTS=ON`                            |
 | LAPACKE                            | >= 3.9.0      | `BUILD_LAPACKPP_TESTS=ON`                            |
 | github.com/tlapack/testBLAS        | Latest        | `BUILD_testBLAS_TESTS=ON`                            |
+
+Note that:
+
+- The CMake build system is prepared to download Catch2 and testsweeper whenever they are not available in the system.
+- ICL BLAS++ and LAPACK++ test suites and testBLAS are Git submodules of \<T\>LAPACK. The are downloaded and built when the corresponding options are set to `ON`.
 
 \<T\>LAPACK may also use the following projects when available:
 
 | Project       | Version tested   | When                                         |
-|---------------|------------------|----------------------------------------------|
+| ------------- | ---------------- | -------------------------------------------- |
 | ICL BLAS++    | 2023.06.00       | `TLAPACK_USE_LAPACKPP=ON`                    |
 | ICL LAPACK++  | 2023.06.00       | `TLAPACK_USE_LAPACKPP=ON`                    |
-| kokkos mdspan | 0.6.0            | `TLAPACK_TEST_MDSPAN=ON` or in some examples |
-| eigen         | commit: 2873916f | `TLAPACK_TEST_EIGEN=ON` or in some examples  |
+| kokkos mdspan | 0.4.0            | `TLAPACK_TEST_MDSPAN=ON` or in some examples |
+| Eigen         | commit: 2873916f | `TLAPACK_TEST_EIGEN=ON` or in some examples  |
 | GNU MPFR C++  | Latest in APT    | `TLAPACK_TEST_MPFR=ON` or in some examples   |
 | GNU libquad   | Latest in APT    | `TLAPACK_TEST_QUAD=ON`                       |
 | StarPU        | 1.4.1            | Running StarPU examples                      |
 
 We also continuously test \<T\>LAPACK with optimized BLAS and LAPACK implementations: OpenBLAS, Intel MKL, Flame BLIS, LAPACK, Netlib BLAS.
 
+> **_NOTE:_** \<T\>LAPACK supports Eigen v3.4.0 after applying the patch [9210e71f](https://gitlab.com/libeigen/eigen/-/commit/9210e71fb378a0f1542272506dc2759b6c147237). This commit fixes an ADL conflict between `Eigen::internal::size()` and `std::size()`.
+
 ## Documentation
 
 The documentation of \<T\>LAPACK is generated using Doxygen. The documentation is available online at https://tlapack.github.io/tlapack. Alternatively, you can generate the documentation in your local machine. To do so, follow the steps below:
 
-+ Install Doxygen in your local machine. See the [Doxygen installation page](https://www.doxygen.nl/download.html) for more details.
+- Install Doxygen in your local machine. See the [Doxygen installation page](https://www.doxygen.nl/download.html) for more details.
 
-+ In the top directory of \<T\>LAPACK, run `doxygen docs/Doxyfile` to generate the \<T\>LAPACK documentation via Doxygen in your local machine.
+- In the top directory of \<T\>LAPACK, run `doxygen docs/Doxyfile` to generate the \<T\>LAPACK documentation via Doxygen in your local machine.
 
 Additional information about the software can be found in the [Wiki pages of the project](https://github.com/tlapack/tlapack/wiki).
 
@@ -293,15 +308,15 @@ Please read [CONTRIBUTING.md](https://github.com/tlapack/tlapack/blob/master/CON
 
 \<T\>LAPACK is continuously tested on Ubuntu, MacOS and Windows using GNU compilers. See the latest test results in the [Github Actions](https://github.com/tlapack/tlapack/actions/workflows/cmake.yml) webpage for \<T\>LAPACK. The tests split into three categories:
 
-+ Test routines in [test/src](test/src) using
-  
-    1. various precision types: `float`, `double`, `std::complex<float>`, `std::complex<double>` and `Eigen::half`.
-  
-    2. various matrix and vector data structures: `tlapack::LegacyMatrix`, `Eigen::Matrix` and `std::experimental::mdspan` (the latter from `https://github.com/kokkos/mdspan`). 
+- Test routines in [test/src](test/src) using
 
-+ Tests from [testBLAS](https://github.com/tlapack/testBLAS) for good conformance with BLAS standards.
+  1. various precision types: `float`, `double`, `std::complex<float>`, `std::complex<double>` and `Eigen::half`.
 
-+ [BLAS++ testers](https://github.com/icl-utk-edu/blaspp/tree/master/test) and [LAPACK++ testers](https://github.com/icl-utk-edu/lapackpp/tree/master/test) for measuring performance and accuracy compared to LAPACKE.
+  2. various matrix and vector data structures: `tlapack::LegacyMatrix`, `Eigen::Matrix` and `std::experimental::mdspan` (the latter from `https://github.com/kokkos/mdspan`).
+
+- Tests from [testBLAS](https://github.com/tlapack/testBLAS) for good conformance with BLAS standards.
+
+- [BLAS++ testers](https://github.com/icl-utk-edu/blaspp/tree/master/test) and [LAPACK++ testers](https://github.com/icl-utk-edu/lapackpp/tree/master/test) for measuring performance and accuracy compared to LAPACKE.
 
 To test \<T\>LAPACK, build with `BUILD_TESTING=ON`. Then, run `ctest` inside the build directory.
 
