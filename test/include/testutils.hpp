@@ -28,6 +28,85 @@
 #include <tlapack/lapack/lanhe.hpp>
 #include <tlapack/lapack/laset.hpp>
 
+#ifndef TLAPACK_BUILD_STANDALONE_TESTS
+    #include <catch2/catch_template_test_macros.hpp>
+    #include <catch2/generators/catch_generators.hpp>
+#else
+    #include <cstdio>
+    #include <iostream>
+    #include <tuple>
+
+namespace tlapack {
+namespace catch2 {
+
+    template <class T>
+    T return_scanf(T...)
+    {
+        if constexpr (std::is_integral<T>::value) {
+            int arg;
+            int info = std::scanf("%d", &arg);
+            assert(info == 1);
+            return T(arg);
+        }
+        else if constexpr (std::is_enum<T>::value) {
+            char str[2];
+            int info = std::scanf("%s", &str);
+            assert(info == 1);
+            return T(str[0]);
+        }
+        else if constexpr (std::is_same<T, std::string>::value) {
+            char str[30];
+            int info = std::scanf("%s", &str);
+            assert(info == 1);
+            return T(std::string(str));
+        }
+        else {
+            return {};
+        }
+    }
+    template <class T, class U>
+    pair<T, U> return_scanf(pair<T, U>...)
+    {
+        const T x = return_scanf(T());
+        const U y = return_scanf(U());
+        return pair<T, U>(x, y);
+    }
+    template <class... Ts>
+    std::tuple<Ts...> return_scanf(std::tuple<Ts...>...)
+    {
+        std::tuple<Ts...> t;
+        constexpr size_t N = std::tuple_size<std::tuple<Ts...>>::value;
+        for (size_t i = 0; i < N; ++i) {
+            std::get<i>(t) = return_scanf(std::get<i>(std::tuple<Ts...>()));
+        }
+        return t;
+    }
+}  // namespace catch2
+}  // namespace tlapack
+
+    #define TEST_CASE(TITLE, TAGS) int main(const int argc, const char* argv[])
+
+    #define TEMPLATE_TEST_CASE(TITLE, TAGS, ...)                           \
+        using TestType =                                                   \
+            typename std::tuple_element<0, std::tuple<__VA_ARGS__>>::type; \
+        int main(const int argc, const char* argv[])
+
+    #define GENERATE(...) tlapack::catch2::return_scanf(__VA_ARGS__)
+
+    #define DYNAMIC_SECTION(...) std::cout << __VA_ARGS__ << std::endl;
+
+    #define REQUIRE(cond)          \
+        std::cout << #cond << ": " \
+                  << (static_cast<bool>(cond) ? "true" : "false") << std::endl
+
+    #define CHECK(cond)            \
+        std::cout << #cond << ": " \
+                  << (static_cast<bool>(cond) ? "true" : "false") << std::endl
+
+    #define INFO(...) std::cout << __VA_ARGS__ << std::endl;
+    #define UNSCOPED_INFO(...) std::cout << __VA_ARGS__ << std::endl;
+#endif
+
 namespace tlapack {
 
 class rand_generator {

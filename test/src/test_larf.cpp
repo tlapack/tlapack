@@ -7,9 +7,6 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#include <catch2/catch_template_test_macros.hpp>
-#include <catch2/generators/catch_generators.hpp>
-
 // Test utilities and definitions (must come before <T>LAPACK headers)
 #include "testutils.hpp"
 
@@ -43,11 +40,9 @@ TEMPLATE_TEST_CASE("Generation of Householder reflectors",
     const Direction direction =
         GENERATE(Direction::Forward, Direction::Backward);
     const StoreV storeMode = GENERATE(StoreV::Columnwise, StoreV::Rowwise);
-    const std::string initialX = GENERATE(as<std::string>{}, "Zeros", "Random");
-    const std::string typeAlpha =
-        GENERATE(as<std::string>{}, "Real", "Complex");
-    const std::string whichLARFG =
-        GENERATE(as<std::string>{}, "direction,v", "alpha,x");
+    const std::string initialX = GENERATE("Zeros", "Random");
+    const std::string typeAlpha = GENERATE("Real", "Complex");
+    const std::string whichLARFG = GENERATE("direction,v", "alpha,x");
 
     // Skip tests with invalid parameters
     if (typeAlpha == "Complex" && is_real<T>) return;

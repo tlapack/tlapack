@@ -109,3 +109,13 @@ foreach(target ${DIRECTORY_BUILDSYSTEM_TARGETS})
   endif()
   catch_discover_tests(${target})
 endforeach()
+
+# Now, build tests as standalone executable without using Catch2
+
+foreach(target ${DIRECTORY_BUILDSYSTEM_TARGETS})
+  if(NOT target MATCHES "^test_")
+    continue()
+  endif()
+  add_executable( standalone_${target} ${target}.cpp )
+  target_compile_definitions(standalone_${target} PUBLIC TLAPACK_BUILD_STANDALONE_TESTS)
+endforeach()
