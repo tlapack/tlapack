@@ -10,9 +10,7 @@ on:
     - 'include/**'
     - 'src/**'
     - 'test/**'
-    - 'README.md'
-    - 'test/include/**'
-    - 'test/src/**'
+    - 'CMakelists.txt'
     - '!**.md'
 
   push:
@@ -26,9 +24,7 @@ on:
     - 'include/**'
     - 'src/**'
     - 'test/**'
-    - 'README.md'
-    - 'test/include/**'
-    - 'test/src/**'
+    - 'CMakelists.txt'
     - '!**.md'
 
 permissions:
