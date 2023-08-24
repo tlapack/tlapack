@@ -20,8 +20,8 @@ target_link_libraries( example_lu PRIVATE tlapack )
 #-------------------------------------------------------------------------------
 # Search for MPFR library
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
-find_package( MPFR 2.3.1 )
-find_package( GMP  4.2.1 )
+find_package( MPFR 2.3.1 QUIET )
+find_package( GMP  4.2.1 QUIET )
 if( MPFR_FOUND AND GMP_FOUND )
 
   target_compile_definitions( example_lu PRIVATE USE_MPFR )

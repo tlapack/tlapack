@@ -7,14 +7,30 @@
 # Add the CMake directory for custom CMake modules
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake)
 
-find_package( blaspp REQUIRED )
-find_package( LAPACK REQUIRED )
-find_package( LAPACKE REQUIRED )
-find_package( lapackpp REQUIRED )
+find_package( LAPACK 3.9.0 REQUIRED )
+find_package( LAPACKE 3.9.0 REQUIRED )
+find_package( Git REQUIRED )
 
+# Download lapackpp/test at lapackpp-src/test
+file(MAKE_DIRECTORY "lapackpp-src")
+execute_process(COMMAND ${GIT_EXECUTABLE} init --quiet
+                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/lapackpp-src)
+execute_process(COMMAND ${GIT_EXECUTABLE} reset --hard --quiet
+                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/lapackpp-src)
+execute_process(COMMAND ${GIT_EXECUTABLE} remote add origin ${lapackpp_git_repo}
+                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/lapackpp-src
+                ERROR_QUIET)
+execute_process(COMMAND ${GIT_EXECUTABLE} config core.sparseCheckout true
+                COMMAND ${GIT_EXECUTABLE} sparse-checkout set test
+                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/lapackpp-src)
+execute_process(COMMAND ${GIT_EXECUTABLE} fetch --quiet origin master
+                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/lapackpp-src)
+execute_process(COMMAND ${GIT_EXECUTABLE} checkout --quiet ${lapackpp_git_tag}
+                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/lapackpp-src)
+message(STATUS "lapackpp/test downloaded and checked out to ${lapackpp_git_tag}")
+
+set( lapackpp_TEST_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lapackpp-src/test" )
 if( EXISTS "${lapackpp_TEST_DIR}/test.cc" )
-
-  FetchPackage( "testsweeper" "https://bitbucket.org/icl/testsweeper" "2021.04.00" )
 
   set( lapackpp_tester )
   add_executable(
@@ -195,8 +211,8 @@ if( EXISTS "${lapackpp_TEST_DIR}/test.cc" )
   )
   target_link_libraries(
     lapackpp_tester
-    ${LAPACK_LIBRARIES}
     ${LAPACKE_LIBRARIES}
+    ${LAPACK_LIBRARIES}
   )
 
   target_include_directories( lapackpp_tester PRIVATE
@@ -204,7 +220,7 @@ if( EXISTS "${lapackpp_TEST_DIR}/test.cc" )
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${lapackpp_TEST_DIR}
     ${LAPACKE_INCLUDE_DIRS} )
-  target_compile_definitions( lapackpp_tester PRIVATE ${lapackpp_defines} ${blaspp_defines} "-DLAPACK_FORTRAN_ADD_" )
+  target_compile_definitions( lapackpp_tester PRIVATE "LAPACK_FORTRAN_ADD_" )
 
   # Copy run_tests script to build directory.
   add_custom_command(

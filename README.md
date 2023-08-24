@@ -148,7 +148,7 @@ Here are the \<T\>LAPACK specific options and their default values
     
     BUILD_BLASPP_TESTS                  OFF
 
-        Build BLAS++ tests. If enabled, please inform the path with the test sources of BLAS++ in the CMake variable blaspp_TEST_DIR.
+        Use BLAS++ tests to test <T>LAPACK templates.
         REQUIRES: BUILD_TESTING=ON
 
     BUILD_EXAMPLES                      ON
@@ -157,7 +157,7 @@ Here are the \<T\>LAPACK specific options and their default values
     
     BUILD_LAPACKPP_TESTS                OFF
 
-        Build LAPACK++ tests. If enabled, please inform the path with the test sources of LAPACK++ in the CMake variable lapackpp_TEST_DIR.
+        Use LAPACK++ tests to test <T>LAPACK templates.
         REQUIRES: BUILD_TESTING=ON
 
     BUILD_testBLAS_TESTS                ON
@@ -243,6 +243,37 @@ Here are the \<T\>LAPACK specific options and their default values
         Branches compatible with <T>LAPACK:
             https://bitbucket.org/weslleyspereira/blaspp/branch/tlapack
             https://bitbucket.org/weslleyspereira/lapackpp/branch/tlapack
+
+## Dependencies on other projects
+
+\<T\>LAPACK currently depends on the following projects:
+
+| Project                            | Version       | When                                                 |
+|------------------------------------|---------------|------------------------------------------------------|
+| cmake                              | >= v3.14      | Always                                               |
+| ClangFormat                        | 10            | Always                                               |
+| Catch2                             | >= 3.0.1      | `BUILD_TESTING=ON`                                   |
+| Git                                | -             | `BUILD_BLASPP_TESTS=ON  OR  BUILD_LAPACKPP_TESTS=ON` |
+| github.com/icl-utk-edu/testsweeper | >= 2021.04.00 | `BUILD_BLASPP_TESTS=ON  OR  BUILD_LAPACKPP_TESTS=ON` |
+| LAPACK                             | >= 3.9.0      | `BUILD_BLASPP_TESTS=ON  OR  BUILD_LAPACKPP_TESTS=ON` |
+| BLAS++ tests                       | 2023.06.00    | `BUILD_BLASPP_TESTS=ON`                              |
+| LAPACK++ tests                     | 2022.07.00    | `BUILD_LAPACKPP_TESTS=ON`                            |
+| LAPACKE                            | >= 3.9.0      | `BUILD_LAPACKPP_TESTS=ON`                            |
+| github.com/tlapack/testBLAS        | Latest        | `BUILD_testBLAS_TESTS=ON`                            |
+
+\<T\>LAPACK may also use the following projects when available:
+
+| Project       | Version tested   | When                                         |
+|---------------|------------------|----------------------------------------------|
+| ICL BLAS++    | 2023.06.00       | `TLAPACK_USE_LAPACKPP=ON`                    |
+| ICL LAPACK++  | 2023.06.00       | `TLAPACK_USE_LAPACKPP=ON`                    |
+| kokkos mdspan | 0.6.0            | `TLAPACK_TEST_MDSPAN=ON` or in some examples |
+| eigen         | commit: 2873916f | `TLAPACK_TEST_EIGEN=ON` or in some examples  |
+| GNU MPFR C++  | Latest in APT    | `TLAPACK_TEST_MPFR=ON` or in some examples   |
+| GNU libquad   | Latest in APT    | `TLAPACK_TEST_QUAD=ON`                       |
+| StarPU        | 1.4.1            | Running StarPU examples                      |
+
+We also continuously test \<T\>LAPACK with optimized BLAS and LAPACK implementations: OpenBLAS, Intel MKL, Flame BLIS, LAPACK, Netlib BLAS.
 
 ## Documentation
 
