@@ -10,9 +10,7 @@ on:
     - 'include/**'
     - 'src/**'
     - 'test/**'
-    - 'README.md'
-    - 'test/include/**'
-    - 'test/src/**'
+    - 'CMakelists.txt'
     - '!**.md'
 
   push:
@@ -26,9 +24,7 @@ on:
     - 'include/**'
     - 'src/**'
     - 'test/**'
-    - 'README.md'
-    - 'test/include/**'
-    - 'test/src/**'
+    - 'CMakelists.txt'
     - '!**.md'
 
 permissions:
@@ -75,71 +71,85 @@ jobs:
     - name: Checkout <T>LAPACK
       uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
     
+    - name: Checkout Catch2
+      uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      with:
+        repository: catchorg/Catch2
+        ref: 6e79e682b726f524310d55dec8ddac4e9c52fb5f # v3.4.0
+        path: Catch2
+    
+    - name: Checkout BLAS++
+      if: ${{ matrix.os == 'ubuntu-latest' }}
+      uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      with:
+        repository: icl-utk-edu/blaspp
+        ref: 34a24d103c039abdc634837af45433c44b3e90a7 # v2023.06.00
+        path: blaspp
+    
+    - name: Checkout LAPACK++
+      if: ${{ matrix.os == 'ubuntu-latest' }}
+      uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      with:
+        repository: icl-utk-edu/lapackpp
+        ref: 229e5007e605ee77769d086530401937fca85c8b # v2023.06.00
+        path: lapackpp
+
+    - name: Checkout mdspan
+      if: ${{ matrix.os == 'ubuntu-latest' }}
+      uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      with:
+        repository: kokkos/mdspan
+        ref: cc9aaea9a7d36c3163523a0e36fab85bba985a66 # v0.4.0
+        path: mdspan
+
+    - name: Checkout Eigen
+      if: ${{ matrix.os == 'ubuntu-latest' }}
+      run: |
+        git clone https://gitlab.com/libeigen/eigen.git
+        cd eigen
+        git checkout 2873916f1ca24e3282bf6e0150545d34a16b5224 # master in Aug 21, 2023
+
+    - name: Install ninja-build tool
+      uses: seanmiddleditch/gha-setup-ninja@16b940825621068d98711680b6c3ff92201f8fc0 # v3
+    
     - name: Install the Basics
       if: ${{ matrix.os == 'ubuntu-latest' }}
       run: |
         sudo apt update
         sudo apt install -y cmake
         sudo apt install -y gfortran
-
-    - name: Install ninja-build tool
-      uses: seanmiddleditch/gha-setup-ninja@16b940825621068d98711680b6c3ff92201f8fc0 # v3
-
-    - name: Install LAPACKE on Ubuntu
-      if: ${{ matrix.os == 'ubuntu-latest' }}
-      run: sudo apt install -y liblapacke-dev
+        sudo apt install -y liblapacke-dev
 
     - name: Build and install Catch2
       if: ${{ matrix.os != 'macos-11' }}
+      working-directory: ${{env.Catch2_DIR}}
       run: |
-        git clone https://github.com/catchorg/Catch2.git
-        cd Catch2
-        git checkout v3.0.1
         cmake -B build -G Ninja -H. -DBUILD_TESTING=OFF -DCMAKE_INSTALL_PREFIX="${{env.Catch2_DIR}}/build"
         cmake --build build --target install
 
     - name: Build and install Catch2 on MacOS
       if: ${{ matrix.os == 'macos-11' }}
+      working-directory: ${{env.Catch2_DIR}}
       env:
         LDFLAGS: "-lstdc++"
       run: |
-        git clone https://github.com/catchorg/Catch2.git
-        cd Catch2
-        git checkout v3.0.1
         cmake -B build -G Ninja -DCMAKE_CXX_COMPILER="gcc-11" -H. -DBUILD_TESTING=OFF -DCMAKE_INSTALL_PREFIX="${{env.Catch2_DIR}}/build"
         cmake --build build --target install
-
-    - name: Checkout BLAS++ and LAPACK++
-      if: ${{ matrix.os == 'ubuntu-latest' }}
-      run: |
-        git clone https://bitbucket.org/weslleyspereira/blaspp "${{env.blaspp_DIR}}"
-        git clone https://bitbucket.org/weslleyspereira/lapackpp "${{env.lapackpp_DIR}}"
 
     - name: Configure BLAS++
       if: ${{ matrix.os == 'ubuntu-latest' }}
       working-directory: ${{env.blaspp_DIR}}
-      run: |
-        git checkout tlapack
-        cmake -B build -G Ninja
+      run: cmake -B build -G Ninja
 
     - name: Configure LAPACK++
       if: ${{ matrix.os == 'ubuntu-latest' }}
       working-directory: ${{env.lapackpp_DIR}}
-      run: |
-        git checkout tlapack
-        cmake -B build -G Ninja -D blaspp_DIR="${{env.blaspp_DIR}}/build"
-
-    - name: Checkout mdspan and Eigen on Ubuntu
-      if: ${{ matrix.os == 'ubuntu-latest' }}
-      run: |
-        git clone https://github.com/kokkos/mdspan.git "${{env.mdspan_DIR}}"
-        git clone https://gitlab.com/libeigen/eigen.git "${{env.eigen_DIR}}"
+      run: cmake -B build -G Ninja -D blaspp_DIR="${{env.blaspp_DIR}}/build"
 
     - name: Build and install Eigen on Ubuntu
       if: ${{ matrix.os == 'ubuntu-latest' }}
       working-directory: ${{env.eigen_DIR}}
       run: |
-        git checkout master
         cmake -B build -G Ninja -DCMAKE_INSTALL_PREFIX="${{env.eigen_DIR}}"
         cmake --build build --target install
 
@@ -147,7 +157,6 @@ jobs:
       if: ${{ matrix.os == 'ubuntu-latest' }}
       working-directory: ${{env.mdspan_DIR}}
       run: |
-        git checkout mdspan-0.4.0
         cmake -B build -G Ninja -DCMAKE_INSTALL_PREFIX="${{env.mdspan_DIR}}"
         cmake --build build --target install
         
@@ -160,10 +169,8 @@ jobs:
         -D TLAPACK_TEST_EIGEN=ON
         -D TLAPACK_TEST_MDSPAN=ON
         -D blaspp_DIR="${{env.blaspp_DIR}}/build"
-        -D blaspp_TEST_DIR="${{env.blaspp_DIR}}/test"
         -D BUILD_LAPACKPP_TESTS=ON
         -D lapackpp_DIR="${{env.lapackpp_DIR}}/build"
-        -D lapackpp_TEST_DIR="${{env.lapackpp_DIR}}/test"
         -D Catch2_DIR="${{env.Catch2_CMAKE_DIR}}"
 
     - name: Specific configurations for CMake on MacOS
@@ -226,17 +233,15 @@ jobs:
     
     - name: Checkout <T>LAPACK
       uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+
+    - name: Install ninja-build tool
+      uses: seanmiddleditch/gha-setup-ninja@16b940825621068d98711680b6c3ff92201f8fc0 # v3
     
     - name: Install the Basics
       run: |
         sudo apt update
         sudo apt install -y cmake
-
-    - name: Install ninja-build tool
-      uses: seanmiddleditch/gha-setup-ninja@16b940825621068d98711680b6c3ff92201f8fc0 # v3
-
-    - name: Install MPFR C++
-      run: sudo apt install -y libmpfrc++-dev
+        sudo apt install -y libmpfrc++-dev
 
     - name: Configure CMake for <T>LAPACK
       run: >
@@ -276,37 +281,40 @@ jobs:
     - name: Checkout <T>LAPACK
       uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
     
+    - name: Checkout BLAS++
+      uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      with:
+        repository: icl-utk-edu/blaspp
+        ref: 34a24d103c039abdc634837af45433c44b3e90a7 # v2023.06.00
+        path: blaspp
+    
+    - name: Checkout LAPACK++
+      uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      with:
+        repository: icl-utk-edu/lapackpp
+        ref: 229e5007e605ee77769d086530401937fca85c8b # v2023.06.00
+        path: lapackpp
+
+    - name: Install ninja-build tool
+      uses: seanmiddleditch/gha-setup-ninja@16b940825621068d98711680b6c3ff92201f8fc0 # v3
+    
     - name: Install the Basics
       run: |
         sudo apt update
         sudo apt install -y cmake
         sudo apt install -y gfortran
-
-    - name: Install ninja-build tool
-      uses: seanmiddleditch/gha-setup-ninja@16b940825621068d98711680b6c3ff92201f8fc0 # v3
-
-    - name: Install LAPACKE on Ubuntu
-      run: sudo apt install -y liblapacke-dev
-
-    - name: Install OpenBLAS
-      run: sudo apt install -y libopenblas-dev
-
-    - name: Checkout BLAS++ and LAPACK++
-      run: |
-        git clone https://bitbucket.org/weslleyspereira/blaspp ${{env.blaspp_DIR}}
-        git clone https://bitbucket.org/weslleyspereira/lapackpp ${{env.lapackpp_DIR}}
+        sudo apt install -y liblapacke-dev
+        sudo apt install -y libopenblas-dev
 
     - name: Build and install BLAS++
       working-directory: ${{env.blaspp_DIR}}
       run: |
-        git checkout tlapack
         cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBLA_VENDOR=OpenBLAS -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.blaspp_DIR}}
         cmake --build build --target install
 
     - name: Build and install LAPACK++
       working-directory: ${{env.lapackpp_DIR}}
       run: |
-        git checkout tlapack
         cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBLA_VENDOR=OpenBLAS -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.lapackpp_DIR}} -D CMAKE_CXX_FLAGS="${{env.CXXFLAGS}} -D LAPACK_FORTRAN_ADD_"
         cmake --build build --target install
 
@@ -324,9 +332,7 @@ jobs:
         -D BUILD_CBLAS_WRAPPERS=ON
         -D TLAPACK_USE_LAPACKPP=ON
         -D BUILD_BLASPP_TESTS=ON
-        -D blaspp_TEST_DIR=${{env.blaspp_DIR}}/test
         -D BUILD_LAPACKPP_TESTS=ON
-        -D lapackpp_TEST_DIR=${{env.lapackpp_DIR}}/test
 
     - name: Build <T>LAPACK
       run: cmake --build build --config ${{env.BUILD_TYPE}}
@@ -353,31 +359,38 @@ jobs:
     - name: Checkout <T>LAPACK
       uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
     
+    - name: Checkout BLAS++
+      uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      with:
+        repository: icl-utk-edu/blaspp
+        ref: 34a24d103c039abdc634837af45433c44b3e90a7 # v2023.06.00
+        path: blaspp
+    
+    - name: Checkout LAPACK++
+      uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      with:
+        repository: icl-utk-edu/lapackpp
+        ref: 229e5007e605ee77769d086530401937fca85c8b # v2023.06.00
+        path: lapackpp
+
+    - name: Install ninja-build tool
+      uses: seanmiddleditch/gha-setup-ninja@16b940825621068d98711680b6c3ff92201f8fc0 # v3
+    
     - name: Install the Basics
       run: |
         sudo apt update
         sudo apt install -y cmake
         sudo apt install -y liblapack-dev
 
-    - name: Install ninja-build tool
-      uses: seanmiddleditch/gha-setup-ninja@16b940825621068d98711680b6c3ff92201f8fc0 # v3
-
-    - name: Checkout BLAS++ and LAPACK++
-      run: |
-        git clone https://bitbucket.org/weslleyspereira/blaspp ${{env.blaspp_DIR}}
-        git clone https://bitbucket.org/weslleyspereira/lapackpp ${{env.lapackpp_DIR}}
-
     - name: Build and install BLAS++
       working-directory: ${{env.blaspp_DIR}}
       run: |
-        git checkout tlapack
         cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.blaspp_DIR}}
         cmake --build build --target install
 
     - name: Build and install LAPACK++
       working-directory: ${{env.lapackpp_DIR}}
       run: |
-        git checkout tlapack
         cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.lapackpp_DIR}}
         cmake --build build --target install
 
@@ -417,13 +430,25 @@ jobs:
       FFLAGS: ""
     steps:
     
-    - name: Install the Basics
-      run: |
-        sudo apt update
-        sudo apt install -y cmake
+    - name: Checkout <T>LAPACK
+      uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+    
+    - name: Checkout BLAS++
+      uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      with:
+        repository: icl-utk-edu/blaspp
+        ref: 34a24d103c039abdc634837af45433c44b3e90a7 # v2023.06.00
+        path: blaspp
+    
+    - name: Checkout LAPACK++
+      uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      with:
+        repository: icl-utk-edu/lapackpp
+        ref: 229e5007e605ee77769d086530401937fca85c8b # v2023.06.00
+        path: lapackpp
 
-    - name: Install LAPACKE on Ubuntu
-      run: sudo apt install -y liblapacke-dev
+    - name: Install ninja-build tool
+      uses: seanmiddleditch/gha-setup-ninja@16b940825621068d98711680b6c3ff92201f8fc0 # v3
 
     - name: Intel Apt repository
       timeout-minutes: 1
@@ -433,38 +458,28 @@ jobs:
         # add signed entry to apt sources and configure the APT client to use Intel repository:
         echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" | sudo tee /etc/apt/sources.list.d/oneAPI.list
         sudo apt update
-        
-    - name: Install Intel oneAPI
-      timeout-minutes: 5
-      run: sudo apt install -y intel-oneapi-compiler-fortran intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic intel-oneapi-mkl
     
-    - name: Checkout <T>LAPACK
-      uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
-
-    - name: Install ninja-build tool
-      uses: seanmiddleditch/gha-setup-ninja@16b940825621068d98711680b6c3ff92201f8fc0 # v3
+    - name: Install the Basics
+      run: |
+        sudo apt update
+        sudo apt install -y cmake
+        sudo apt install -y liblapacke-dev
+        sudo apt install -y intel-oneapi-compiler-fortran intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic intel-oneapi-mkl
 
     - name: Setup Intel oneAPI environment
       run: |
         source /opt/intel/oneapi/setvars.sh
         printenv >> $GITHUB_ENV
 
-    - name: Checkout BLAS++ and LAPACK++
-      run: |
-        git clone https://bitbucket.org/weslleyspereira/blaspp ${{env.blaspp_DIR}}
-        git clone https://bitbucket.org/weslleyspereira/lapackpp ${{env.lapackpp_DIR}}
-
     - name: Build and install BLAS++
       working-directory: ${{env.blaspp_DIR}}
       run: |
-        git checkout tlapack
         cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.blaspp_DIR}}
         cmake --build build --target install
 
     - name: Build and install LAPACK++
       working-directory: ${{env.lapackpp_DIR}}
       run: |
-        git checkout tlapack
         cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.lapackpp_DIR}}
         cmake --build build --target install
 
@@ -481,9 +496,7 @@ jobs:
         -D BUILD_CBLAS_WRAPPERS=ON
         -D TLAPACK_USE_LAPACKPP=ON
         -D BUILD_BLASPP_TESTS=ON
-        -D blaspp_TEST_DIR=${{env.blaspp_DIR}}/test
         -D BUILD_LAPACKPP_TESTS=ON
-        -D lapackpp_TEST_DIR=${{env.lapackpp_DIR}}/test
 
     - name: Build <T>LAPACK
       run: cmake --build build --config ${{env.BUILD_TYPE}}
@@ -511,21 +524,36 @@ jobs:
     - name: Checkout <T>LAPACK
       uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
     
+    - name: Checkout BLAS++
+      uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      with:
+        repository: icl-utk-edu/blaspp
+        ref: 34a24d103c039abdc634837af45433c44b3e90a7 # v2023.06.00
+        path: blaspp
+    
+    - name: Checkout LAPACK++
+      uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      with:
+        repository: icl-utk-edu/lapackpp
+        ref: 229e5007e605ee77769d086530401937fca85c8b # v2023.06.00
+        path: lapackpp
+
+    - name: Checkout LAPACK
+      uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      with:
+        repository: Reference-LAPACK/lapack
+        ref: 7866626840f5d5e7e27f027a55182da8b3303872 # v3.11.0
+        path: lapack
+
+    - name: Install ninja-build tool
+      uses: seanmiddleditch/gha-setup-ninja@16b940825621068d98711680b6c3ff92201f8fc0 # v3
+    
     - name: Install the Basics
       run: |
         sudo apt update
         sudo apt install -y cmake
         sudo apt install -y gfortran
-
-    - name: Install ninja-build tool
-      uses: seanmiddleditch/gha-setup-ninja@16b940825621068d98711680b6c3ff92201f8fc0 # v3
-
-    - name: Install BLIS
-      run: sudo apt install -y libblis-dev
-
-    - name: Checkout LAPACK
-      run: |
-        git clone https://github.com/Reference-LAPACK/lapack.git ${{env.lapack_DIR}}
+        sudo apt install -y libblis-dev
 
     - name: Build and install LAPACK
       working-directory: ${{env.lapack_DIR}}
@@ -533,22 +561,15 @@ jobs:
         cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -D CMAKE_INSTALL_PREFIX=${{env.lapack_DIR}} -D USE_OPTIMIZED_BLAS=ON -D BLA_VENDOR=FLAME -D LAPACKE=ON -D CBLAS=ON
         cmake --build build --target install
 
-    - name: Checkout BLAS++ and LAPACK++
-      run: |
-        git clone https://bitbucket.org/weslleyspereira/blaspp ${{env.blaspp_DIR}}
-        git clone https://bitbucket.org/weslleyspereira/lapackpp ${{env.lapackpp_DIR}}
-
     - name: Build and install BLAS++
       working-directory: ${{env.blaspp_DIR}}
       run: |
-        git checkout tlapack
         cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBLA_VENDOR=FLAME -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.blaspp_DIR}}
         cmake --build build --target install
 
     - name: Build and install LAPACK++
       working-directory: ${{env.lapackpp_DIR}}
       run: |
-        git checkout tlapack
         cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.lapackpp_DIR}} -D CMAKE_CXX_FLAGS="${{env.CXXFLAGS}} -D LAPACK_FORTRAN_ADD_" -D LAPACK_LIBRARIES="${{env.lapack_DIR}}/lib/liblapack.a;-lgfortran"
         cmake --build build --target install
 
@@ -567,9 +588,7 @@ jobs:
         -D BUILD_CBLAS_WRAPPERS=ON
         -D TLAPACK_USE_LAPACKPP=ON
         -D BUILD_BLASPP_TESTS=ON
-        -D blaspp_TEST_DIR=${{env.blaspp_DIR}}/test
         -D BUILD_LAPACKPP_TESTS=ON
-        -D lapackpp_TEST_DIR=${{env.lapackpp_DIR}}/test
 
     - name: Build <T>LAPACK
       run: cmake --build build --config ${{env.BUILD_TYPE}}
@@ -592,34 +611,39 @@ jobs:
     - name: Checkout <T>LAPACK
       uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
     
+    - name: Checkout BLAS++
+      uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      with:
+        repository: icl-utk-edu/blaspp
+        ref: 34a24d103c039abdc634837af45433c44b3e90a7 # v2023.06.00
+        path: blaspp
+    
+    - name: Checkout LAPACK++
+      uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      with:
+        repository: icl-utk-edu/lapackpp
+        ref: 229e5007e605ee77769d086530401937fca85c8b # v2023.06.00
+        path: lapackpp
+
+    - name: Install ninja-build tool
+      uses: seanmiddleditch/gha-setup-ninja@16b940825621068d98711680b6c3ff92201f8fc0 # v3
+    
     - name: Install the Basics
       run: |
         sudo apt update
         sudo apt install -y cmake
         sudo apt install -y gfortran
-
-    - name: Install ninja-build tool
-      uses: seanmiddleditch/gha-setup-ninja@16b940825621068d98711680b6c3ff92201f8fc0 # v3
-
-    - name: Install LAPACK and LAPACKE on Ubuntu
-      run: sudo apt install -y liblapack-dev liblapacke-dev
-
-    - name: Checkout BLAS++ and LAPACK++
-      run: |
-        git clone https://bitbucket.org/weslleyspereira/blaspp ${{env.blaspp_DIR}}
-        git clone https://bitbucket.org/weslleyspereira/lapackpp ${{env.lapackpp_DIR}}
+        sudo apt install -y liblapack-dev liblapacke-dev
 
     - name: Build and install BLAS++
       working-directory: ${{env.blaspp_DIR}}
       run: |
-        git checkout tlapack
         cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=Debug -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.blaspp_DIR}}
         cmake --build build --target install
 
     - name: Build and install LAPACK++
       working-directory: ${{env.lapackpp_DIR}}
       run: |
-        git checkout tlapack
         cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=Debug -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.lapackpp_DIR}}
         cmake --build build --target install
 
@@ -636,9 +660,7 @@ jobs:
         -D BUILD_CBLAS_WRAPPERS=ON
         -D TLAPACK_USE_LAPACKPP=ON
         -D BUILD_BLASPP_TESTS=ON
-        -D blaspp_TEST_DIR=${{env.blaspp_DIR}}/test
         -D BUILD_LAPACKPP_TESTS=ON
-        -D lapackpp_TEST_DIR=${{env.lapackpp_DIR}}/test
 
     - name: Build <T>LAPACK
       run: cmake --build build --config Debug
@@ -666,6 +688,19 @@ jobs:
     - name: Checkout <T>LAPACK
       uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
 
+    - name: Checkout mdspan
+      uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      with:
+        repository: kokkos/mdspan
+        ref: cc9aaea9a7d36c3163523a0e36fab85bba985a66 # v0.4.0
+        path: mdspan
+
+    - name: Checkout Eigen
+      run: |
+        git clone https://gitlab.com/libeigen/eigen.git
+        cd eigen
+        git checkout 2873916f1ca24e3282bf6e0150545d34a16b5224 # master in Aug 21, 2023
+
     - name: Install ninja-build tool
       uses: seanmiddleditch/gha-setup-ninja@16b940825621068d98711680b6c3ff92201f8fc0 # v3
     
@@ -677,22 +712,15 @@ jobs:
         sudo apt install -y gfortran
         sudo apt install -y libblas-dev liblapack-dev liblapacke-dev
 
-    - name: Checkout mdspan and Eigen on Ubuntu
-      run: |
-        git clone https://github.com/kokkos/mdspan.git "${{env.mdspan_DIR}}"
-        git clone https://gitlab.com/libeigen/eigen.git "${{env.eigen_DIR}}"
-
     - name: Build and install Eigen on Ubuntu
       working-directory: ${{env.eigen_DIR}}
       run: |
-        git checkout master
         cmake -B build -G Ninja
         sudo cmake --build build --target install
 
     - name: Build and install mdspan on Ubuntu
       working-directory: ${{env.mdspan_DIR}}
       run: |
-        git checkout mdspan-0.4.0
         cmake -B build -G Ninja
         sudo cmake --build build --target install
 
@@ -762,6 +790,16 @@ jobs:
     
     - name: Checkout <T>LAPACK
       uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+
+    - name: Checkout StarPU
+      uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      with:
+        repository: starpu-runtime/starpu
+        ref: 87155272bc43821a89ae62ba0f6b55a105ccba4c # v1.4.1
+        path: starpu
+
+    - name: Install ninja-build tool
+      uses: seanmiddleditch/gha-setup-ninja@16b940825621068d98711680b6c3ff92201f8fc0 # v3
     
     - name: Install the Basics
       run: |
@@ -769,23 +807,16 @@ jobs:
         sudo apt install -y cmake
         sudo apt install -y gfortran
         sudo apt install -y pkg-config
-
-    - name: Install LAPACKE on Ubuntu
-      run: sudo apt install -y liblapacke-dev
+        sudo apt install -y liblapacke-dev
+        sudo apt install -y libtool-bin libhwloc-dev g++ libudev-dev
 
     - name: Build and install StarPU on Ubuntu
+      working-directory: ${{env.starpu_DIR}}
       run: |
-        sudo apt install -y libtool-bin libhwloc-dev g++ libudev-dev
-        git clone https://gitlab.inria.fr/starpu/starpu.git
-        cd starpu
         ./autogen.sh
         ./configure --prefix="${{env.starpu_DIR}}/build"
-        make clean
         make
         make install
-
-    - name: Install ninja-build tool
-      uses: seanmiddleditch/gha-setup-ninja@16b940825621068d98711680b6c3ff92201f8fc0 # v3
 
     - name: Configure <T>LAPACK
       run: >
