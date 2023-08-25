@@ -16,6 +16,9 @@
 // Definitions
 #include "testdefinitions.hpp"
 
+// Matrix market
+#include "MatrixMarket.hpp"
+
 // Plugin for debug
 #include <tlapack/plugins/debugutils.hpp>
 
@@ -35,7 +38,6 @@
     /// Skip the current test
     #define SKIP_TEST return
 #else
-    #include <cstdio>
     #include <iostream>
     #include <tuple>
 
@@ -56,26 +58,21 @@
 namespace tlapack {
 namespace catch2 {
 
+    std::string return_scanf(const char*);
+    std::string return_scanf(std::string);
+
     template <class T>
     T return_scanf(T)
     {
         if constexpr (std::is_integral<T>::value) {
-            int arg;
-            int info = std::scanf("%d", &arg);
-            assert(info == 1);
-            return T(arg);
+            T arg;
+            std::cin >> arg;
+            return arg;
         }
         else if constexpr (std::is_enum<T>::value) {
-            char str[2];
-            int info = std::scanf("%s", str);
-            assert(info == 1);
-            return T(str[0]);
-        }
-        else if constexpr (std::is_same<T, std::string>::value) {
-            char str[30];
-            int info = std::scanf("%s", str);
-            assert(info == 1);
-            return std::string(str);
+            char c;
+            std::cin >> c;
+            return T(c);
         }
 
         std::abort();
@@ -137,56 +134,6 @@ namespace catch2 {
 #endif
 
 namespace tlapack {
-
-class rand_generator {
-   private:
-    const uint64_t a = 6364136223846793005;
-    const uint64_t c = 1442695040888963407;
-    uint64_t state = 1302;
-
-   public:
-    uint32_t min() { return 0; }
-
-    uint32_t max() { return UINT32_MAX; }
-
-    void seed(uint64_t s) { state = s; }
-
-    uint32_t operator()()
-    {
-        state = state * a + c;
-        return state >> 32;
-    }
-};
-
-template <typename T, enable_if_t<is_real<T>, bool> = true>
-T rand_helper(rand_generator& gen)
-{
-    return T(static_cast<float>(gen()) / static_cast<float>(gen.max()));
-}
-
-template <typename T, enable_if_t<is_complex<T>, bool> = true>
-T rand_helper(rand_generator& gen)
-{
-    using real_t = real_type<T>;
-    real_t r1(static_cast<float>(gen()) / static_cast<float>(gen.max()));
-    real_t r2(static_cast<float>(gen()) / static_cast<float>(gen.max()));
-    return complex_type<real_t>(r1, r2);
-}
-
-template <typename T, enable_if_t<is_real<T>, bool> = true>
-T rand_helper()
-{
-    return T(static_cast<float>(rand()) / static_cast<float>(RAND_MAX));
-}
-
-template <typename T, enable_if_t<is_complex<T>, bool> = true>
-T rand_helper()
-{
-    using real_t = real_type<T>;
-    real_t r1(static_cast<float>(rand()) / static_cast<float>(RAND_MAX));
-    real_t r2(static_cast<float>(rand()) / static_cast<float>(RAND_MAX));
-    return complex_type<real_t>(r1, r2);
-}
 
 /** Calculates res = Q'*Q - I if m <= n or res = Q*Q' otherwise
  *  Also computes the frobenius norm of res.

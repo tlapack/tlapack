@@ -2,6 +2,16 @@
 
 namespace tlapack {
 
+namespace catch2 {
+    std::string return_scanf(const char*)
+    {
+        std::string str;
+        std::cin >> str;
+        return str;
+    }
+    std::string return_scanf(std::string) { return return_scanf(""); }
+}  // namespace catch2
+
 //
 // GDB doesn't handle templates well, so we explicitly define some versions of
 // the functions for common template arguments

@@ -219,6 +219,11 @@ jobs:
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
       run: ctest -C ${{env.BUILD_TYPE}} --output-on-failure
 
+    - name: Run some standalone tests
+      if: ${{ matrix.os == 'ubuntu-latest' }}
+      working-directory: ${{github.workspace}}
+      run: ./build/test/src/standalone_test_hessenberg < test/src/input/test_hessenberg_float_1.in
+
     - name: Install
       run: cmake --build build --target install
 
