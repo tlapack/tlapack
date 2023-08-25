@@ -164,7 +164,6 @@ jobs:
       if: ${{ matrix.os == 'ubuntu-latest' }}
       run: >
         cmake -B build -G Ninja
-        -D BUILD_TESTING=ON
         -D BUILD_BLASPP_TESTS=ON
         -D TLAPACK_TEST_EIGEN=ON
         -D TLAPACK_TEST_MDSPAN=ON
@@ -200,6 +199,7 @@ jobs:
         -D BUILD_SHARED_LIBS=ON
         -D BUILD_EXAMPLES=ON
         -D BUILD_TESTING=ON
+        -D BUILD_STANDALONE_TESTS=ON
         -D BUILD_C_WRAPPERS=ON
         -D BUILD_Fortran_WRAPPERS=ON
         -D BUILD_CBLAS_WRAPPERS=ON
@@ -251,6 +251,7 @@ jobs:
         -D BUILD_SHARED_LIBS=ON
         -D BUILD_EXAMPLES=ON
         -D BUILD_TESTING=ON
+        -D BUILD_STANDALONE_TESTS=ON
         -D BUILD_testBLAS_TESTS=OFF
         -D TLAPACK_TEST_MPFR=ON
         -D TLAPACK_TEST_QUAD=ON
@@ -327,6 +328,7 @@ jobs:
         -D BUILD_SHARED_LIBS=ON
         -D BUILD_EXAMPLES=ON
         -D BUILD_TESTING=ON
+        -D BUILD_STANDALONE_TESTS=ON
         -D BUILD_C_WRAPPERS=ON
         -D BUILD_Fortran_WRAPPERS=ON
         -D BUILD_CBLAS_WRAPPERS=ON
@@ -491,6 +493,7 @@ jobs:
         -D BUILD_SHARED_LIBS=ON
         -D BUILD_EXAMPLES=ON
         -D BUILD_TESTING=ON
+        -D BUILD_STANDALONE_TESTS=ON
         -D BUILD_C_WRAPPERS=ON
         -D BUILD_Fortran_WRAPPERS=ON
         -D BUILD_CBLAS_WRAPPERS=ON
@@ -583,6 +586,7 @@ jobs:
         -D BUILD_SHARED_LIBS=ON
         -D BUILD_EXAMPLES=ON
         -D BUILD_TESTING=ON
+        -D BUILD_STANDALONE_TESTS=ON
         -D BUILD_C_WRAPPERS=ON
         -D BUILD_Fortran_WRAPPERS=ON
         -D BUILD_CBLAS_WRAPPERS=ON
@@ -655,6 +659,7 @@ jobs:
         -D BUILD_SHARED_LIBS=ON
         -D BUILD_EXAMPLES=ON
         -D BUILD_TESTING=ON
+        -D BUILD_STANDALONE_TESTS=ON
         -D BUILD_C_WRAPPERS=ON
         -D BUILD_Fortran_WRAPPERS=ON
         -D BUILD_CBLAS_WRAPPERS=ON

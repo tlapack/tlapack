@@ -168,6 +168,13 @@ Here are the \<T\>LAPACK specific options and their default values
         Use LAPACK++ tests to test <T>LAPACK templates.
         REQUIRES: BUILD_TESTING=ON
 
+    BUILD_STANDALONE_TESTS              OFF
+
+        Build tests as standalone executables in addition to tests for CTest.
+        The executables are installed in the test directory.
+        The executables do not use Catch2.
+        REQUIRES: BUILD_TESTING=ON
+
     BUILD_testBLAS_TESTS                ON
 
         Build testBLAS tests.

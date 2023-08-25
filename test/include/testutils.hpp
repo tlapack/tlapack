@@ -57,7 +57,7 @@ namespace tlapack {
 namespace catch2 {
 
     template <class T>
-    T return_scanf(T...)
+    T return_scanf(T)
     {
         if constexpr (std::is_integral<T>::value) {
             int arg;
@@ -75,21 +75,22 @@ namespace catch2 {
             char str[30];
             int info = std::scanf("%s", str);
             assert(info == 1);
-            return T(std::string(str));
+            return std::string(str);
         }
-        else {
-            return {};
-        }
+
+        std::abort();
+        std::cout << "Include more cases here!\n";
+        return {};
     }
     template <class T, class U>
-    pair<T, U> return_scanf(pair<T, U>...)
+    pair<T, U> return_scanf(pair<T, U>)
     {
         const T x = return_scanf(T());
         const U y = return_scanf(U());
         return pair<T, U>(x, y);
     }
     template <class... Ts>
-    std::tuple<Ts...> return_scanf(std::tuple<Ts...>...)
+    std::tuple<Ts...> return_scanf(std::tuple<Ts...>)
     {
         std::tuple<Ts...> t;
         constexpr size_t N = std::tuple_size<std::tuple<Ts...>>::value;
@@ -105,7 +106,10 @@ namespace catch2 {
             std::get<4>(t) = return_scanf(std::get<4>(std::tuple<Ts...>()));
         if constexpr (N > 5)
             std::get<5>(t) = return_scanf(std::get<5>(std::tuple<Ts...>()));
-        if constexpr (N > 6) static_assert(N <= 6, "Include more cases here");
+        if constexpr (N > 6) {
+            std::abort();
+            std::cout << "Include more cases here!\n";
+        }
         return t;
     }
 }  // namespace catch2
@@ -115,7 +119,8 @@ namespace catch2 {
         using TestType = DEPAREN(GET_FIRST_ARG(__VA_ARGS__)); \
         int main(const int argc, const char* argv[])
 
-    #define GENERATE(...) tlapack::catch2::return_scanf(__VA_ARGS__)
+    #define GENERATE(...) \
+        tlapack::catch2::return_scanf(GET_FIRST_ARG(__VA_ARGS__))
 
     #define DYNAMIC_SECTION(...) std::cout << __VA_ARGS__ << std::endl;
 
