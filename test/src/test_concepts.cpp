@@ -7,8 +7,10 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#include <tlapack/base/concepts.hpp>
+// Test utilities and definitions (must come before <T>LAPACK headers)
+#include "testutils.hpp"
 
+// Load NaNPropagComplex
 #include "NaNPropagComplex.hpp"
 
 #if __cplusplus >= 202002L

@@ -13,14 +13,6 @@
 #ifndef TLAPACK_TESTDEFINITIONS_HH
 #define TLAPACK_TESTDEFINITIONS_HH
 
-#ifndef TLAPACK_BUILD_STANDALONE_TESTS
-    // Add parentheses to avoid macro expansion in Catch2
-    #define TLAPACK_ESC(...) (__VA_ARGS__)
-#else
-    // Remove parentheses for first class deduction in standalone tests
-    #define TLAPACK_ESC(...) __VA_ARGS__
-#endif
-
 // clang-format off
 #define TLAPACK_PREFERRED_MATRIX_LEGACY
 #ifdef TLAPACK_TEST_EIGEN
@@ -48,11 +40,11 @@
 //
 #ifndef TLAPACK_REAL_TYPES_TO_TEST
 
-    #define TLAPACK_LEGACY_REAL_TYPES_TO_TEST                                 \
-        TLAPACK_ESC(LegacyMatrix<float, std::size_t, Layout::ColMajor>),      \
-            TLAPACK_ESC(LegacyMatrix<double, std::size_t, Layout::ColMajor>), \
-            TLAPACK_ESC(LegacyMatrix<float, std::size_t, Layout::RowMajor>),  \
-            TLAPACK_ESC(LegacyMatrix<double, std::size_t, Layout::RowMajor>)
+    #define TLAPACK_LEGACY_REAL_TYPES_TO_TEST                      \
+        (LegacyMatrix<float, std::size_t, Layout::ColMajor>),      \
+            (LegacyMatrix<double, std::size_t, Layout::ColMajor>), \
+            (LegacyMatrix<float, std::size_t, Layout::RowMajor>),  \
+            (LegacyMatrix<double, std::size_t, Layout::RowMajor>)
 
     #ifdef TLAPACK_TEST_MPFR
         #define TLAPACK_LEGACY_REAL_TYPES_TO_TEST_WITH_MPREAL \
@@ -69,27 +61,24 @@
     #endif
 
     #ifdef TLAPACK_TEST_EIGEN
-        #define TLAPACK_EIGEN_REAL_TYPES_TO_TEST                             \
-            , Eigen::MatrixXf, Eigen::MatrixXd,                              \
-                TLAPACK_ESC(Eigen::Matrix<float, Eigen::Dynamic,             \
-                                          Eigen::Dynamic, Eigen::RowMajor>), \
-                TLAPACK_ESC(Eigen::Matrix<Eigen::half, Eigen::Dynamic,       \
-                                          Eigen::Dynamic>)
+        #define TLAPACK_EIGEN_REAL_TYPES_TO_TEST                      \
+            , Eigen::MatrixXf, Eigen::MatrixXd,                       \
+                (Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, \
+                               Eigen::RowMajor>),                     \
+                (Eigen::Matrix<Eigen::half, Eigen::Dynamic, Eigen::Dynamic>)
     #else
         #define TLAPACK_EIGEN_REAL_TYPES_TO_TEST
     #endif
 
     #ifdef TLAPACK_TEST_MDSPAN
-        #define TLAPACK_MDSPAN_REAL_TYPES_TO_TEST                           \
-            ,                                                               \
-                TLAPACK_ESC(                                                \
-                    std::experimental::mdspan<                              \
-                        float, std::experimental::dextents<std::size_t, 2>, \
-                        std::experimental::layout_left>),                   \
-                TLAPACK_ESC(                                                \
-                    std::experimental::mdspan<                              \
-                        float, std::experimental::dextents<std::size_t, 2>, \
-                        std::experimental::layout_right>)
+        #define TLAPACK_MDSPAN_REAL_TYPES_TO_TEST                       \
+            ,                                                           \
+                (std::experimental::mdspan<                             \
+                    float, std::experimental::dextents<std::size_t, 2>, \
+                    std::experimental::layout_left>),                   \
+                (std::experimental::mdspan<                             \
+                    float, std::experimental::dextents<std::size_t, 2>, \
+                    std::experimental::layout_right>)
     #else
         #define TLAPACK_MDSPAN_REAL_TYPES_TO_TEST
     #endif
@@ -109,22 +98,22 @@
 #ifndef TLAPACK_COMPLEX_TYPES_TO_TEST
 
     #ifndef TLAPACK_LEGACY_COMPLEX_TYPES_TO_TEST
-        #define TLAPACK_LEGACY_COMPLEX_TYPES_TO_TEST                        \
-            TLAPACK_ESC(LegacyMatrix<std::complex<float>, std::size_t,      \
-                                     Layout::ColMajor>),                    \
-                TLAPACK_ESC(LegacyMatrix<std::complex<double>, std::size_t, \
-                                         Layout::ColMajor>),                \
-                TLAPACK_ESC(LegacyMatrix<std::complex<float>, std::size_t,  \
-                                         Layout::RowMajor>),                \
-                TLAPACK_ESC(LegacyMatrix<std::complex<double>, std::size_t, \
-                                         Layout::RowMajor>)
+        #define TLAPACK_LEGACY_COMPLEX_TYPES_TO_TEST             \
+            (LegacyMatrix<std::complex<float>, std::size_t,      \
+                          Layout::ColMajor>),                    \
+                (LegacyMatrix<std::complex<double>, std::size_t, \
+                              Layout::ColMajor>),                \
+                (LegacyMatrix<std::complex<float>, std::size_t,  \
+                              Layout::RowMajor>),                \
+                (LegacyMatrix<std::complex<double>, std::size_t, \
+                              Layout::RowMajor>)
     #endif
 
     #ifdef TLAPACK_TEST_EIGEN
-        #define TLAPACK_EIGEN_COMPLEX_TYPES_TO_TEST                            \
-            , Eigen::MatrixXcf, Eigen::MatrixXcd,                              \
-                TLAPACK_ESC(Eigen::Matrix<std::complex<float>, Eigen::Dynamic, \
-                                          Eigen::Dynamic, Eigen::RowMajor>)
+        #define TLAPACK_EIGEN_COMPLEX_TYPES_TO_TEST                 \
+            , Eigen::MatrixXcf, Eigen::MatrixXcd,                   \
+                (Eigen::Matrix<std::complex<float>, Eigen::Dynamic, \
+                               Eigen::Dynamic, Eigen::RowMajor>)
     #else
         #define TLAPACK_EIGEN_COMPLEX_TYPES_TO_TEST
     #endif

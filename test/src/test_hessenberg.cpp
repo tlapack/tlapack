@@ -92,7 +92,7 @@ TEMPLATE_TEST_CASE("Hessenberg reduction is backward stable",
     // when n = 5 and ilo_offset = 0 and ihi_offset = 0
     if (matrix_type == "Near overflow" && n != 5 && ilo_offset != 0 &&
         ihi_offset != 0)
-        return;
+        SKIP_TEST;
 
     // Constants
     const idx_t ilo = n > 1 ? ilo_offset : 0;

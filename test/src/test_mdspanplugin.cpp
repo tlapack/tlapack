@@ -8,7 +8,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#include <tlapack/base/utils.hpp>
+// Test utilities and definitions (must come before <T>LAPACK headers)
+#include "testutils.hpp"
 
 #undef I  // I is defined in complex.h and generates a conflict with templates
 // in Catch2

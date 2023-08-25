@@ -31,10 +31,27 @@
 #ifndef TLAPACK_BUILD_STANDALONE_TESTS
     #include <catch2/catch_template_test_macros.hpp>
     #include <catch2/generators/catch_generators.hpp>
+
+    /// Skip the current test
+    #define SKIP_TEST return
 #else
     #include <cstdio>
     #include <iostream>
     #include <tuple>
+
+    /// Skip the current test
+    #define SKIP_TEST return 0
+
+    // Get first argument of a variadic macro
+    #define GET_FIRST_ARG(arg1, ...) arg1
+
+    // Below, it is a solution found in
+    // https://stackoverflow.com/a/62984543/5253097
+    #define DEPAREN(X) ESC(ISH X)
+    #define ISH(...) ISH __VA_ARGS__
+    #define ESC(...) ESC_(__VA_ARGS__)
+    #define ESC_(...) VAN##__VA_ARGS__
+    #define VANISH
 
 namespace tlapack {
 namespace catch2 {
@@ -50,13 +67,13 @@ namespace catch2 {
         }
         else if constexpr (std::is_enum<T>::value) {
             char str[2];
-            int info = std::scanf("%s", &str);
+            int info = std::scanf("%s", str);
             assert(info == 1);
             return T(str[0]);
         }
         else if constexpr (std::is_same<T, std::string>::value) {
             char str[30];
-            int info = std::scanf("%s", &str);
+            int info = std::scanf("%s", str);
             assert(info == 1);
             return T(std::string(str));
         }
@@ -76,19 +93,26 @@ namespace catch2 {
     {
         std::tuple<Ts...> t;
         constexpr size_t N = std::tuple_size<std::tuple<Ts...>>::value;
-        for (size_t i = 0; i < N; ++i) {
-            std::get<i>(t) = return_scanf(std::get<i>(std::tuple<Ts...>()));
-        }
+        if constexpr (N > 0)
+            std::get<0>(t) = return_scanf(std::get<0>(std::tuple<Ts...>()));
+        if constexpr (N > 1)
+            std::get<1>(t) = return_scanf(std::get<1>(std::tuple<Ts...>()));
+        if constexpr (N > 2)
+            std::get<2>(t) = return_scanf(std::get<2>(std::tuple<Ts...>()));
+        if constexpr (N > 3)
+            std::get<3>(t) = return_scanf(std::get<3>(std::tuple<Ts...>()));
+        if constexpr (N > 4)
+            std::get<4>(t) = return_scanf(std::get<4>(std::tuple<Ts...>()));
+        if constexpr (N > 5)
+            std::get<5>(t) = return_scanf(std::get<5>(std::tuple<Ts...>()));
+        if constexpr (N > 6) static_assert(N <= 6, "Include more cases here");
         return t;
     }
 }  // namespace catch2
 }  // namespace tlapack
 
-    #define TEST_CASE(TITLE, TAGS) int main(const int argc, const char* argv[])
-
-    #define TEMPLATE_TEST_CASE(TITLE, TAGS, ...)                           \
-        using TestType =                                                   \
-            typename std::tuple_element<0, std::tuple<__VA_ARGS__>>::type; \
+    #define TEMPLATE_TEST_CASE(TITLE, TAGS, ...)              \
+        using TestType = DEPAREN(GET_FIRST_ARG(__VA_ARGS__)); \
         int main(const int argc, const char* argv[])
 
     #define GENERATE(...) tlapack::catch2::return_scanf(__VA_ARGS__)

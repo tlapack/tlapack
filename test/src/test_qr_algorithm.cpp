@@ -66,12 +66,12 @@ TEMPLATE_TEST_CASE("QR algorithm",
     const idx_t nw = std::get<2>(variant);
 
     // Only run the large random test once
-    if (matrix_type == "Large Random" && seed != 2) return;
+    if (matrix_type == "Large Random" && seed != 2) SKIP_TEST;
 
     // Only run the large random if we are testing multishift qr
     if (matrix_type == "Large Random" &&
         std::get<0>(variant) != QRIterationVariant::MultiShift)
-        return;
+        SKIP_TEST;
 
     // Random number generator
     rand_generator gen;
