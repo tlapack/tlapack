@@ -31,14 +31,14 @@ namespace traits {
     };
 }  // namespace traits
 
-Eigen::half pow(int base, const Eigen::half& exp)
+inline Eigen::half pow(int base, const Eigen::half& exp)
 {
     return Eigen::half_impl::pow(Eigen::half(base), exp);
 }
 
 // Reimplementation of std::sqrt for Eigen::half. See the discussion at
 // https://github.com/gcc-mirror/gcc/pull/84
-std::complex<Eigen::half> sqrt(const std::complex<Eigen::half>& z)
+inline std::complex<Eigen::half> sqrt(const std::complex<Eigen::half>& z)
 {
     const Eigen::half x = real(z);
     const Eigen::half y = imag(z);
