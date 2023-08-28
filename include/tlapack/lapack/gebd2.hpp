@@ -62,9 +62,9 @@ constexpr WorkInfo gebd2_worksize(const matrix_t& A,
     return workinfo;
 }
 
-/** @copydoc gebd2()
- *
+/** @copybrief gebd2()
  * Workspace is provided as an argument.
+ * @copydetails gebd2()
  *
  * @param work Workspace. Use the workspace query to determine the size needed.
  *

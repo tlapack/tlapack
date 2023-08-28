@@ -48,9 +48,9 @@ constexpr WorkInfo gelqt_worksize(const matrix_t& A, const matrix_t& TT)
     return gelq2_worksize<T>(A11, tauw1);
 }
 
-/** @copydoc gelqt()
- *
+/** @copybrief gelqt()
  * Workspace is provided as an argument.
+ * @copydetails gelqt()
  *
  * @param work Workspace. Use the workspace query to determine the size needed.
  *

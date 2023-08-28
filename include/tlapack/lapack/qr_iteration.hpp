@@ -67,9 +67,9 @@ constexpr WorkInfo qr_iteration_worksize(bool want_t,
         return WorkInfo(0);
 }
 
-/** @copydoc qr_iteration()
- *
+/** @copybrief qr_iteration()
  * Workspace is provided as an argument.
+ * @copydetails qr_iteration()
  *
  * @param work Workspace. Use the workspace query to determine the size needed.
  *

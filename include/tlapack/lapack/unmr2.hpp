@@ -127,12 +127,6 @@ int unmr2(side_t side,
     const idx_t n = ncols(C);
     const idx_t k = size(tau);
 
-    // check arguments
-    tlapack_check_false(side != Side::Left && side != Side::Right);
-    tlapack_check_false(trans != Op::NoTrans && trans != Op::Trans &&
-                        trans != Op::ConjTrans);
-    tlapack_check_false(trans == Op::Trans && is_complex<TA>);
-
     // quick return
     if ((m == 0) || (n == 0) || (k == 0)) return 0;
 

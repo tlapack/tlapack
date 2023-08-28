@@ -68,9 +68,9 @@ constexpr WorkInfo gerqf_worksize(const A_t& A,
     return workinfo;
 }
 
-/** @copydoc gerqf()
- *
+/** @copybrief gerqf()
  * Workspace is provided as an argument.
+ * @copydetails gerqf()
  *
  * @param work Workspace. Use the workspace query to determine the size needed.
  *

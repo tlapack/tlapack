@@ -61,9 +61,9 @@ constexpr WorkInfo gen_householder_q_worksize(
 }
 
 /**
- * @copydoc gen_householder_q()
- *
+ * @copybrief gen_householder_q()
  * Workspace is provided as an argument.
+ * @copydetails gen_householder_q()
  *
  * @param work Workspace. Use the workspace query to determine the size needed.
  *

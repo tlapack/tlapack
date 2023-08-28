@@ -111,10 +111,6 @@ int ungr2(matrix_t& A, const vector_t& tau)
 
     // constants
     const idx_t n = ncols(A);
-    const idx_t k = size(tau);
-
-    // check arguments
-    tlapack_check_false(k < 0 || k > n);
 
     // quick return
     if (n <= 0) return 0;

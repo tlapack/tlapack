@@ -52,9 +52,9 @@ constexpr WorkInfo bidiag_worksize(const matrix_t& A,
         return gebrd_worksize<T>(A, tauv, tauw, opts);
 }
 
-/** @copydoc bidiag()
- *
+/** @copybrief bidiag()
  * Workspace is provided as an argument.
+ * @copydetails bidiag()
  *
  * @param work Workspace. Use the workspace query to determine the size needed.
  *

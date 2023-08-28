@@ -112,9 +112,9 @@ constexpr WorkInfo ungbr_p_worksize(const size_type<matrix_t> k,
     }
 }
 
-/** @copydoc ungbr_q()
- *
+/** @copybrief ungbr_q()
  * Workspace is provided as an argument.
+ * @copydetails ungbr_q()
  *
  * @param work Workspace. Use the workspace query to determine the size needed.
  *
@@ -217,9 +217,9 @@ int ungbr_q(const size_type<matrix_t> k,
     return ungbr_q_work(k, A, tau, work, opts);
 }
 
-/** @copydoc ungbr_p()
- *
+/** @copybrief ungbr_p()
  * Workspace is provided as an argument.
+ * @copydetails ungbr_p()
  *
  * @param work Workspace. Use the workspace query to determine the size needed.
  *

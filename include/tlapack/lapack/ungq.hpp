@@ -122,9 +122,9 @@ constexpr WorkInfo ungq_worksize(direction_t direction,
     return workinfo;
 }
 
-/** @copydoc ungq()
- *
+/** @copybrief ungq()
  * Workspace is provided as an argument.
+ * @copydetails ungq()
  *
  * @param work Workspace. Use the workspace query to determine the size needed.
  *

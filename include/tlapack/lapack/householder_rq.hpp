@@ -49,9 +49,9 @@ constexpr WorkInfo householder_rq_worksize(const matrix_t& A,
         return gerqf_worksize<T>(A, tau, opts);
 }
 
-/** @copydoc householder_rq()
- *
+/** @copybrief householder_rq()
  * Workspace is provided as an argument.
+ * @copydetails householder_rq()
  *
  * @param work Workspace. Use the workspace query to determine the size needed.
  *

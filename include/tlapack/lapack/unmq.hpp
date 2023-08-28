@@ -112,9 +112,9 @@ constexpr WorkInfo unmq_worksize(side_t side,
     return workinfo;
 }
 
-/** @copydoc unmq()
- *
+/** @copybrief unmq()
  * Workspace is provided as an argument.
+ * @copydetails unmq()
  *
  * @param work Workspace. Use the workspace query to determine the size needed.
  *

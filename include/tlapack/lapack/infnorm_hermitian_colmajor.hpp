@@ -33,18 +33,9 @@ constexpr WorkInfo infnorm_hermitian_colmajor_worksize(uplo_t uplo,
     return WorkInfo(nrows(A));
 }
 
-/** Calculates the infinity norm of a column-major hermitian matrix.
- *
- * Code optimized for the infinity norm on column-major layouts using a
- * workspace of size at least m, where m is the number of rows of A.
- *
- * @see lanhe() for the generic implementation that does not use workspaces.
- *
- * @param[in] uplo
- *      - Uplo::Upper: Upper triangle of A is referenced;
- *      - Uplo::Lower: Lower triangle of A is referenced.
- *
- * @param[in] A n-by-n matrix.
+/** @copybrief infnorm_hermitian_colmajor()
+ * Workspace is provided as an argument.
+ * @copydetails infnorm_hermitian_colmajor()
  *
  * @param work Workspace. Use the workspace query to determine the size needed.
  *

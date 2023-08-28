@@ -109,19 +109,10 @@ int ungl2_work(matrix_t& Q, const vector_t& tauw, work_t& work)
 template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
 int ungl2(matrix_t& Q, const vector_t& tauw)
 {
-    using idx_t = size_type<matrix_t>;
     using T = type_t<matrix_t>;
 
     // functor
     Create<matrix_t> new_matrix;
-
-    // constants
-    const idx_t n = ncols(Q);
-    const idx_t m =
-        size(tauw);  // maximum number of Householder reflectors to use
-
-    // check arguments
-    tlapack_check_false((idx_t)size(tauw) < min(m, n));
 
     // Allocates workspace
     WorkInfo workinfo = ungl2_worksize<T>(Q, tauw);

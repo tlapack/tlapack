@@ -34,9 +34,9 @@ constexpr WorkInfo getri_uxli_worksize(const matrix_t& A)
         return WorkInfo(0);
 }
 
-/** @copydoc getri_uxli()
- *
+/** @copybrief getri_uxli()
  * Workspace is provided as an argument.
+ * @copydetails getri_uxli()
  *
  * @param work Workspace. Use the workspace query to determine the size needed.
  *

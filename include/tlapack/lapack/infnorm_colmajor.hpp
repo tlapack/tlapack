@@ -28,14 +28,9 @@ constexpr WorkInfo infnorm_colmajor_worksize(const matrix_t& A)
     return WorkInfo(nrows(A));
 }
 
-/** Calculates the infinity norm of a column-major matrix.
- *
- * Code optimized for the infinity norm on column-major layouts using a
- * workspace of size at least m, where m is the number of rows of A.
- *
- * @see lange() for the generic implementation that does not use workspaces.
- *
- * @param[in] A m-by-n matrix.
+/** @copybrief infnorm_colmajor()
+ * Workspace is provided as an argument.
+ * @copydetails infnorm_colmajor()
  *
  * @param work Workspace. Use the workspace query to determine the size needed.
  *

@@ -95,9 +95,9 @@ constexpr WorkInfo householder_q_mul_worksize(
                                 opts);
 }
 
-/** @copydoc householder_q_mul()
- *
+/** @copybrief householder_q_mul()
  * Workspace is provided as an argument.
+ * @copydetails householder_q_mul()
  *
  * @param work Workspace. Use the workspace query to determine the size needed.
  *

@@ -55,9 +55,9 @@ constexpr WorkInfo unghr_worksize(size_type<matrix_t> ilo,
     return WorkInfo(0);
 }
 
-/** @copydoc unghr()
- *
+/** @copybrief unghr()
  * Workspace is provided as an argument.
+ * @copydetails unghr()
  *
  * @param work Workspace. Use the workspace query to determine the size needed.
  *

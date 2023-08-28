@@ -53,9 +53,9 @@ constexpr WorkInfo hessenberg_worksize(size_type<matrix_t> ilo,
         return gehrd_worksize<T>(ilo, ihi, A, tau, opts);
 }
 
-/** @copydoc hessenberg()
- *
+/** @copybrief hessenberg()
  * Workspace is provided as an argument.
+ * @copydetails hessenberg()
  *
  * @param work Workspace. Use the workspace query to determine the size needed.
  *

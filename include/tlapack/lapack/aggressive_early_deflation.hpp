@@ -153,9 +153,9 @@ WorkInfo aggressive_early_deflation_worksize(bool want_t,
     return workinfo;
 }
 
-/** @copydoc aggressive_early_deflation()
- *
+/** @copybrief aggressive_early_deflation()
  * Workspace is provided as an argument.
+ * @copydetails aggressive_early_deflation()
  *
  * @param work Workspace. Use the workspace query to determine the size needed.
  *
@@ -638,14 +638,6 @@ void aggressive_early_deflation(bool want_t,
     const idx_t jw = min(min(nw, ihi - ilo), nw_max);
     // First row index in the deflation window
     const idx_t kwtop = ihi - jw;
-
-    // check arguments
-    tlapack_check(nrows(A) == n);
-    if (want_z) {
-        tlapack_check(ncols(Z) == n);
-        tlapack_check(nrows(Z) == n);
-    }
-    tlapack_check((idx_t)size(s) == n);
 
     // s is the value just outside the window. It determines the spike
     // together with the orthogonal schur factors.
