@@ -156,7 +156,7 @@ int unmhr_work(Side side,
  *      - side = Side::Left  & trans = Op::ConjTrans:  $C := C Q^H$;
  *      - side = Side::Right & trans = Op::ConjTrans:  $C := Q^H C$.
  *
- * @ingroup computational
+ * @ingroup alloc_workspace
  */
 template <TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
 int unmhr(Side side,

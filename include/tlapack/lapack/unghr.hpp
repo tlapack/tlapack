@@ -13,11 +13,11 @@
 #define TLAPACK_UNGHR_HH
 
 #include "tlapack/base/utils.hpp"
-#include "tlapack/lapack/ung2r.hpp"
+#include "tlapack/lapack/ungq.hpp"
 
 namespace tlapack {
 
-/** Generates a m-by-n matrix Q with orthogonal columns.
+/** Worspace query of unghr()
  *
  * @param[in] ilo integer
  * @param[in] ihi integer
@@ -26,20 +26,51 @@ namespace tlapack {
  *      matrix except in the submatrix Q(ilo+1:ihi,ilo+1:ihi).
  *      0 <= ilo <= ihi <= max(1,n).
  *
- * @param[in,out] A m-by-n matrix.
- *      On entry, the vectors which define the elementary reflectors.
- *      On exit, the m-by-n matrix Q.
+ * @param[in] A m-by-n matrix.
  *
  * @param[in] tau Real vector of length n-1.
  *      The scalar factors of the elementary reflectors.
  *
+ * @return WorkInfo The amount workspace required.
+ *
+ * @ingroup workspace_query
+ */
+template <class T, TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
+constexpr WorkInfo unghr_worksize(size_type<matrix_t> ilo,
+                                  size_type<matrix_t> ihi,
+                                  const matrix_t& A,
+                                  const vector_t& tau)
+{
+    using idx_t = size_type<matrix_t>;
+    using range = pair<idx_t, idx_t>;
+
+    // constants
+    const idx_t nh = (ihi > ilo + 1) ? ihi - 1 - ilo : 0;
+
+    if (nh > 0 && ilo + 1 < ihi) {
+        auto&& A_s = slice(A, range{ilo + 1, ihi}, range{ilo + 1, ihi});
+        auto&& tau_s = slice(tau, range{ilo, ihi - 1});
+        return ungq_worksize<T>(FORWARD, COLUMNWISE_STORAGE, A_s, tau_s);
+    }
+    return WorkInfo(0);
+}
+
+/** @copydoc unghr()
+ *
+ * Workspace is provided as an argument.
+ *
+ * @param work Workspace. Use the workspace query to determine the size needed.
+ *
  * @ingroup computational
  */
-template <TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
-int unghr(size_type<matrix_t> ilo,
-          size_type<matrix_t> ihi,
-          matrix_t& A,
-          const vector_t& tau)
+template <TLAPACK_SMATRIX matrix_t,
+          TLAPACK_SVECTOR vector_t,
+          TLAPACK_WORKSPACE work_t>
+int unghr_work(size_type<matrix_t> ilo,
+               size_type<matrix_t> ihi,
+               matrix_t& A,
+               const vector_t& tau,
+               work_t& work)
 {
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
@@ -91,13 +122,14 @@ int unghr(size_type<matrix_t> ilo,
     if (nh > 0) {
         auto A_s = slice(A, range{ilo + 1, ihi}, range{ilo + 1, ihi});
         auto tau_s = slice(tau, range{ilo, ihi - 1});
-        ung2r(A_s, tau_s);
+        return ungq_work(FORWARD, COLUMNWISE_STORAGE, A_s, tau_s, work);
     }
-
-    return 0;
+    else {
+        return 0;
+    }
 }
 
-/** Worspace query of unghr()
+/** Generates a m-by-n matrix Q with orthogonal columns.
  *
  * @param[in] ilo integer
  * @param[in] ihi integer
@@ -106,33 +138,32 @@ int unghr(size_type<matrix_t> ilo,
  *      matrix except in the submatrix Q(ilo+1:ihi,ilo+1:ihi).
  *      0 <= ilo <= ihi <= max(1,n).
  *
- * @param[in] A m-by-n matrix.
+ * @param[in,out] A m-by-n matrix.
+ *      On entry, the vectors which define the elementary reflectors.
+ *      On exit, the m-by-n matrix Q.
  *
  * @param[in] tau Real vector of length n-1.
  *      The scalar factors of the elementary reflectors.
  *
- * @return WorkInfo The amount workspace required.
- *
- * @ingroup workspace_query
+ * @ingroup variant_interface
  */
-template <class T, TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
-constexpr WorkInfo unghr_worksize(size_type<matrix_t> ilo,
-                                  size_type<matrix_t> ihi,
-                                  const matrix_t& A,
-                                  const vector_t& tau)
+template <TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
+int unghr(size_type<matrix_t> ilo,
+          size_type<matrix_t> ihi,
+          matrix_t& A,
+          const vector_t& tau)
 {
-    using idx_t = size_type<matrix_t>;
-    using range = pair<idx_t, idx_t>;
+    using T = type_t<matrix_t>;
 
-    // constants
-    const idx_t nh = (ihi > ilo + 1) ? ihi - 1 - ilo : 0;
+    // Functor
+    Create<matrix_t> new_matrix;
 
-    if (nh > 0 && ilo + 1 < ihi) {
-        auto&& A_s = slice(A, range{ilo + 1, ihi}, range{ilo + 1, ihi});
-        auto&& tau_s = slice(tau, range{ilo, ihi - 1});
-        return ung2r_worksize<T>(A_s, tau_s);
-    }
-    return WorkInfo(0);
+    // Allocates workspace
+    WorkInfo workinfo = unghr_worksize<T>(ilo, ihi, A, tau);
+    std::vector<T> work_;
+    auto work = new_matrix(work_, workinfo.m, workinfo.n);
+
+    return unghr_work(ilo, ihi, A, tau, work);
 }
 
 }  // namespace tlapack

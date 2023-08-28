@@ -185,7 +185,7 @@ int unm2r_work(side_t side,
  *      - side = Side::Left  & trans = Op::ConjTrans:  $C := C Q^H$;
  *      - side = Side::Right & trans = Op::ConjTrans:  $C := Q^H C$.
  *
- * @ingroup computational
+ * @ingroup alloc_workspace
  */
 template <TLAPACK_SMATRIX matrixA_t,
           TLAPACK_SMATRIX matrixC_t,

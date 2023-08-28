@@ -178,7 +178,7 @@ int gehd2_work(size_type<matrix_t> ilo,
  * @param[out] tau Real vector of length n-1.
  *      The scalar factors of the elementary reflectors.
  *
- * @ingroup computational
+ * @ingroup alloc_workspace
  */
 template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
 int gehd2(size_type<matrix_t> ilo,

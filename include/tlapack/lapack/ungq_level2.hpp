@@ -310,7 +310,7 @@ int ungq_level2_work(direction_t direction,
  *
  * @return 0 if success.
  *
- * @ingroup computational
+ * @ingroup alloc_workspace
  */
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_SVECTOR vector_t,

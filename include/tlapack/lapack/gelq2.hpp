@@ -148,7 +148,7 @@ int gelq2_work(matrix_t& A, vector_t& tauw, work_t& work)
  * @param[out] tauw Complex vector of length min(m,n).
  *      The scalar factors of the elementary reflectors.
  *
- * @ingroup computational
+ * @ingroup alloc_workspace
  */
 template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
 int gelq2(matrix_t& A, vector_t& tauw)

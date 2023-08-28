@@ -16,8 +16,10 @@
 
 namespace tlapack {
 
+/// @brief Variants of the algorithm to compute the RQ factorization.
 enum class HouseholderRQVariant : char { Level2 = '2', Blocked = 'B' };
 
+/// @brief Options struct for householder_rq()
 struct HouseholderRQOpts : public GerqfOpts {
     HouseholderRQVariant variant = HouseholderRQVariant::Blocked;
 };
@@ -45,6 +47,29 @@ constexpr WorkInfo householder_rq_worksize(const matrix_t& A,
         return gerq2_worksize<T>(A, tau);
     else
         return gerqf_worksize<T>(A, tau, opts);
+}
+
+/** @copydoc householder_rq()
+ *
+ * Workspace is provided as an argument.
+ *
+ * @param work Workspace. Use the workspace query to determine the size needed.
+ *
+ * @ingroup variant_interface
+ */
+template <TLAPACK_MATRIX matrix_t,
+          TLAPACK_VECTOR vector_t,
+          TLAPACK_WORKSPACE workspace_t>
+int householder_rq_work(matrix_t& A,
+                        vector_t& tau,
+                        workspace_t& work,
+                        const HouseholderRQOpts& opts = {})
+{
+    // Call variant
+    if (opts.variant == HouseholderRQVariant::Level2)
+        return gerq2_work(A, tau, work);
+    else
+        return gerqf_work(A, tau, work, opts);
 }
 
 /** Computes a RQ factorization of an m-by-n matrix A.
@@ -79,7 +104,7 @@ constexpr WorkInfo householder_rq_worksize(const matrix_t& A,
  *
  * @param[in] opts Options.
  *
- * @ingroup computational
+ * @ingroup variant_interface
  */
 template <TLAPACK_MATRIX matrix_t, TLAPACK_VECTOR vector_t>
 int householder_rq(matrix_t& A,

@@ -68,6 +68,59 @@ constexpr WorkInfo geqlf_worksize(const A_t& A,
     return workinfo;
 }
 
+/** @copydoc geqlf()
+ *
+ * Workspace is provided as an argument.
+ *
+ * @param work Workspace. Use the workspace query to determine the size needed.
+ *
+ * @ingroup computational
+ */
+template <TLAPACK_SMATRIX A_t, TLAPACK_SVECTOR tau_t, TLAPACK_WORKSPACE work_t>
+int geqlf_work(A_t& A, tau_t& tau, work_t& work, const GeqlfOpts& opts = {})
+{
+    using idx_t = size_type<A_t>;
+    using range = pair<idx_t, idx_t>;
+
+    // constants
+    const idx_t m = nrows(A);
+    const idx_t n = ncols(A);
+    const idx_t k = min(m, n);
+    const idx_t nb = min((idx_t)opts.nb, k);
+
+    // check arguments
+    tlapack_check((idx_t)size(tau) >= k);
+
+    auto TT = (n > nb) ? slice(work, range{nrows(work) - nb, nrows(work)},
+                               range{ncols(work) - nb, ncols(work)})
+                       : slice(work, range{0, 0}, range{0, 0});
+
+    // Main computational loop
+    for (idx_t j2 = 0; j2 < k; j2 += nb) {
+        idx_t j = n - j2;
+        idx_t ib = min(nb, k - j2);
+
+        // Compute the QR factorization of the current block A(0:m-n+j,j-ib:j)
+        auto A11 = slice(A, range(0, m - (n - j)), range(j - ib, j));
+        auto tauw1 = slice(tau, range(k - (n - j) - ib, k - (n - j)));
+
+        geql2_work(A11, tauw1, work);
+
+        if (j > ib) {
+            // Form the triangular factor of the block reflector
+            auto TT1 = slice(TT, range(0, ib), range(0, ib));
+            larft(BACKWARD, COLUMNWISE_STORAGE, A11, tauw1, TT1);
+
+            // Apply H to A(0:m-n+j,0:j-ib) from the left
+            auto A12 = slice(A, range(0, m - (n - j)), range(0, j - ib));
+            larfb_work(LEFT_SIDE, CONJ_TRANS, BACKWARD, COLUMNWISE_STORAGE, A11,
+                       TT1, A12, work);
+        }
+    }
+
+    return 0;
+}
+
 /** Computes an RQ factorization of an m-by-n matrix A using
  *  a blocked algorithm.
  *
@@ -99,7 +152,7 @@ constexpr WorkInfo geqlf_worksize(const A_t& A,
  *
  * @param[in] opts Options.
  *
- * @ingroup computational
+ * @ingroup alloc_workspace
  */
 template <TLAPACK_SMATRIX A_t, TLAPACK_SVECTOR tau_t>
 int geqlf(A_t& A, tau_t& tau, const GeqlfOpts& opts = {})
@@ -107,51 +160,12 @@ int geqlf(A_t& A, tau_t& tau, const GeqlfOpts& opts = {})
     Create<A_t> new_matrix;
     using T = type_t<A_t>;
 
-    using idx_t = size_type<A_t>;
-    using range = pair<idx_t, idx_t>;
-
-    // constants
-    const idx_t m = nrows(A);
-    const idx_t n = ncols(A);
-    const idx_t k = min(m, n);
-    const idx_t nb = min((idx_t)opts.nb, k);
-
-    // check arguments
-    tlapack_check((idx_t)size(tau) >= k);
-
     // Allocate or get workspace
     WorkInfo workinfo = geqlf_worksize<T>(A, tau, opts);
     std::vector<T> work_;
     auto work = new_matrix(work_, workinfo.m, workinfo.n);
 
-    auto TT = (n > nb) ? slice(work, range{workinfo.m - nb, workinfo.m},
-                               range{workinfo.n - nb, workinfo.n})
-                       : slice(work, range{0, 0}, range{0, 0});
-
-    // Main computational loop
-    for (idx_t j2 = 0; j2 < k; j2 += nb) {
-        idx_t j = n - j2;
-        idx_t ib = min(nb, k - j2);
-
-        // Compute the QR factorization of the current block A(0:m-n+j,j-ib:j)
-        auto A11 = slice(A, range(0, m - (n - j)), range(j - ib, j));
-        auto tauw1 = slice(tau, range(k - (n - j) - ib, k - (n - j)));
-
-        geql2_work(A11, tauw1, work);
-
-        if (j > ib) {
-            // Form the triangular factor of the block reflector
-            auto TT1 = slice(TT, range(0, ib), range(0, ib));
-            larft(BACKWARD, COLUMNWISE_STORAGE, A11, tauw1, TT1);
-
-            // Apply H to A(0:m-n+j,0:j-ib) from the left
-            auto A12 = slice(A, range(0, m - (n - j)), range(0, j - ib));
-            larfb_work(LEFT_SIDE, CONJ_TRANS, BACKWARD, COLUMNWISE_STORAGE, A11,
-                       TT1, A12, work);
-        }
-    }
-
-    return 0;
+    return geqlf_work(A, tau, work, opts);
 }
 }  // namespace tlapack
 #endif  // TLAPACK_GEQLF_HH

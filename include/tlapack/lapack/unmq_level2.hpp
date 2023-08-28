@@ -337,7 +337,7 @@ int unmq_level2_work(side_t side,
  *
  * @return 0 if success.
  *
- * @ingroup computational
+ * @ingroup alloc_workspace
  */
 template <TLAPACK_SMATRIX matrixV_t,
           TLAPACK_SMATRIX matrixC_t,

@@ -151,7 +151,7 @@ int gerq2_work(matrix_t& A, vector_t& tau, work_t& work)
  * @param[out] tau Real vector of length min(m,n).
  *      The scalar factors of the elementary reflectors.
  *
- * @ingroup computational
+ * @ingroup alloc_workspace
  */
 template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
 int gerq2(matrix_t& A, vector_t& tau)

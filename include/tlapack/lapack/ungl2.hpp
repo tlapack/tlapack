@@ -104,7 +104,7 @@ int ungl2_work(matrix_t& Q, const vector_t& tauw, work_t& work)
  *      tauw(j) must contain the scalar factor of the elementary
  *      reflector H(j), as returned by gelq2.
  *
- * @ingroup computational
+ * @ingroup alloc_workspace
  */
 template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
 int ungl2(matrix_t& Q, const vector_t& tauw)

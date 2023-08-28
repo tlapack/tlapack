@@ -62,65 +62,22 @@ constexpr WorkInfo gebd2_worksize(const matrix_t& A,
     return workinfo;
 }
 
-/** Reduces a general m by n matrix A to an upper
- *  real bidiagonal form B by a unitary transformation:
- * \[
- *          Q**H * A * Z = B.
- * \]
+/** @copydoc gebd2()
  *
- * The matrices Q and Z are represented as products of elementary
- * reflectors:
+ * Workspace is provided as an argument.
  *
- * If m >= n,
- * \[
- *          Q = H(1) H(2) . . . H(n)  and  Z = G(1) G(2) . . . G(n-1)
- * \]
- * Each H(i) and G(i) has the form:
- * \[
- *          H(j) = I - tauv * v * v**H  and G(j) = I - tauw * w * w**H
- * \]
- * where tauv and tauw are complex scalars, and v and w are complex
- * vectors; v(1:j-1) = 0, v(j) = 1, and v(j+1:m) is stored on exit in
- * A(j+1:m,j); w(1:j) = 0, w(j+1) = 1, and w(j+2:n) is stored on exit in
- * A(j,i+2:n); tauv is stored in tauv(j) and tauw in tauw(j).
- *
- * @return  0 if success
- *
- * @param[in,out] A m-by-n matrix.
- *      On entry, the m by n general matrix to be reduced.
- *      - if m >= n, the diagonal and the first superdiagonal
- *        are overwritten with the upper bidiagonal matrix B; the
- *        elements below the diagonal, with the array tauv, represent
- *        the unitary matrix Q as a product of elementary reflectors,
- *        and the elements above the first superdiagonal, with the array
- *        tauw, represent the unitary matrix Z as a product of elementary
- *        reflectors.
- *      - if m < n, the diagonal and the first superdiagonal
- *        are overwritten with the lower bidiagonal matrix B; the
- *        elements below the first subdiagonal, with the array tauv, represent
- *        the unitary matrix Q as a product of elementary reflectors,
- *        and the elements above the diagonal, with the array tauw, represent
- *        the unitary matrix Z as a product of elementary reflectors.
- *
- * @param[out] tauv Real vector of length min(m,n).
- *      The scalar factors of the elementary reflectors which
- *      represent the unitary matrix Q.
- *
- * @param[out] tauw Real vector of length min(m,n).
- *      The scalar factors of the elementary reflectors which
- *      represent the unitary matrix Z.
+ * @param work Workspace. Use the workspace query to determine the size needed.
  *
  * @ingroup computational
  */
-template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
-int gebd2(matrix_t& A, vector_t& tauv, vector_t& tauw)
+template <TLAPACK_SMATRIX matrix_t,
+          TLAPACK_VECTOR vector_t,
+          TLAPACK_WORKSPACE work_t>
+int gebd2_work(matrix_t& A, vector_t& tauv, vector_t& tauw, work_t& work)
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
     using T = type_t<matrix_t>;
-
-    // Functors
-    Create<matrix_t> new_matrix;
 
     // constants
     const idx_t m = nrows(A);
@@ -132,11 +89,6 @@ int gebd2(matrix_t& A, vector_t& tauv, vector_t& tauw)
 
     // quick return
     if (n <= 0) return 0;
-
-    // Allocates workspace
-    WorkInfo workinfo = gebd2_worksize<T>(A, tauv, tauw);
-    std::vector<T> work_;
-    auto work = new_matrix(work_, workinfo.m, workinfo.n);
 
     if (m >= n) {
         //
@@ -203,6 +155,80 @@ int gebd2(matrix_t& A, vector_t& tauv, vector_t& tauw)
 
     return 0;
 }
+
+/** Reduces a general m by n matrix A to an upper
+ *  real bidiagonal form B by a unitary transformation:
+ * \[
+ *          Q**H * A * Z = B.
+ * \]
+ *
+ * The matrices Q and Z are represented as products of elementary
+ * reflectors:
+ *
+ * If m >= n,
+ * \[
+ *          Q = H(1) H(2) . . . H(n)  and  Z = G(1) G(2) . . . G(n-1)
+ * \]
+ * Each H(i) and G(i) has the form:
+ * \[
+ *          H(j) = I - tauv * v * v**H  and G(j) = I - tauw * w * w**H
+ * \]
+ * where tauv and tauw are complex scalars, and v and w are complex
+ * vectors; v(1:j-1) = 0, v(j) = 1, and v(j+1:m) is stored on exit in
+ * A(j+1:m,j); w(1:j) = 0, w(j+1) = 1, and w(j+2:n) is stored on exit in
+ * A(j,i+2:n); tauv is stored in tauv(j) and tauw in tauw(j).
+ *
+ * @return  0 if success
+ *
+ * @param[in,out] A m-by-n matrix.
+ *      On entry, the m by n general matrix to be reduced.
+ *      - if m >= n, the diagonal and the first superdiagonal
+ *        are overwritten with the upper bidiagonal matrix B; the
+ *        elements below the diagonal, with the array tauv, represent
+ *        the unitary matrix Q as a product of elementary reflectors,
+ *        and the elements above the first superdiagonal, with the array
+ *        tauw, represent the unitary matrix Z as a product of elementary
+ *        reflectors.
+ *      - if m < n, the diagonal and the first superdiagonal
+ *        are overwritten with the lower bidiagonal matrix B; the
+ *        elements below the first subdiagonal, with the array tauv, represent
+ *        the unitary matrix Q as a product of elementary reflectors,
+ *        and the elements above the diagonal, with the array tauw, represent
+ *        the unitary matrix Z as a product of elementary reflectors.
+ *
+ * @param[out] tauv Real vector of length min(m,n).
+ *      The scalar factors of the elementary reflectors which
+ *      represent the unitary matrix Q.
+ *
+ * @param[out] tauw Real vector of length min(m,n).
+ *      The scalar factors of the elementary reflectors which
+ *      represent the unitary matrix Z.
+ *
+ * @ingroup alloc_workspace
+ */
+template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
+int gebd2(matrix_t& A, vector_t& tauv, vector_t& tauw)
+{
+    using idx_t = size_type<matrix_t>;
+    using T = type_t<matrix_t>;
+
+    // Functors
+    Create<matrix_t> new_matrix;
+
+    // constants
+    const idx_t n = ncols(A);
+
+    // quick return
+    if (n <= 0) return 0;
+
+    // Allocates workspace
+    WorkInfo workinfo = gebd2_worksize<T>(A, tauv, tauw);
+    std::vector<T> work_;
+    auto work = new_matrix(work_, workinfo.m, workinfo.n);
+
+    return gebd2_work(A, tauv, tauw, work);
+}
+
 }  // namespace tlapack
 
 #endif  // TLAPACK_GEBD2_HH

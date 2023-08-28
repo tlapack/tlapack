@@ -16,8 +16,10 @@
 
 namespace tlapack {
 
+/// @brief Variants of the algorithm to compute the QL factorization.
 enum class HouseholderQLVariant : char { Level2 = '2', Blocked = 'B' };
 
+/// @brief Options struct for householder_ql()
 struct HouseholderQLOpts : public GeqlfOpts {
     HouseholderQLVariant variant = HouseholderQLVariant::Blocked;
 };
@@ -45,6 +47,29 @@ constexpr WorkInfo householder_ql_worksize(const matrix_t& A,
         return geql2_worksize<T>(A, tau);
     else
         return geqlf_worksize<T>(A, tau, opts);
+}
+
+/** @copydoc householder_ql()
+ *
+ * Workspace is provided as an argument.
+ *
+ * @param work Workspace. Use the workspace query to determine the size needed.
+ *
+ * @ingroup variant_interface
+ */
+template <TLAPACK_MATRIX matrix_t,
+          TLAPACK_VECTOR vector_t,
+          TLAPACK_WORKSPACE work_t>
+int householder_ql_work(matrix_t& A,
+                        vector_t& tau,
+                        work_t& work,
+                        const HouseholderQLOpts& opts = {})
+{
+    // Call variant
+    if (opts.variant == HouseholderQLVariant::Level2)
+        return geql2_work(A, tau, work);
+    else
+        return geqlf_work(A, tau, work, opts);
 }
 
 /** Computes a QL factorization of an m-by-n matrix A.
@@ -79,7 +104,7 @@ constexpr WorkInfo householder_ql_worksize(const matrix_t& A,
  *
  * @param[in] opts Options.
  *
- * @ingroup computational
+ * @ingroup variant_interface
  */
 template <TLAPACK_MATRIX matrix_t, TLAPACK_VECTOR vector_t>
 int householder_ql(matrix_t& A,

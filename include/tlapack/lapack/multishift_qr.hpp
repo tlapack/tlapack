@@ -420,6 +420,17 @@ int multishift_qr_work(bool want_t,
     return info;
 }
 
+/** @overload int multishift_qr_work(   bool want_t,
+                                        bool want_z,
+                                        size_type<matrix_t> ilo,
+                                        size_type<matrix_t> ihi,
+                                        matrix_t& A,
+                                        vector_t& w,
+                                        matrix_t& Z,
+                                        work_t& work,
+                                        FrancisOpts& opts)
+ * @ingroup computational
+ */
 template <TLAPACK_MATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
           TLAPACK_WORKSPACE work_t,
@@ -486,7 +497,7 @@ int multishift_qr_work(bool want_t,
  *          @c opts.n_shifts_total
  *      are updated inside the routine.
  *
- * @ingroup computational
+ * @ingroup alloc_workspace
  */
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_SVECTOR vector_t,
@@ -539,6 +550,16 @@ int multishift_qr(bool want_t,
     return multishift_qr_work(want_t, want_z, ilo, ihi, A, w, Z, work, opts);
 }
 
+/** @overload int multishift_qr(bool want_t,
+                                bool want_z,
+                                size_type<matrix_t> ilo,
+                                size_type<matrix_t> ihi,
+                                matrix_t& A,
+                                vector_t& w,
+                                matrix_t& Z,
+                                FrancisOpts& opts)
+ * @ingroup alloc_workspace
+ */
 template <TLAPACK_MATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
           enable_if_t<is_complex<type_t<vector_t> >, int> = 0>

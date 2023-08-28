@@ -16,8 +16,11 @@
 
 namespace tlapack {
 
+/// @brief Variants of the algorithm to reduce a matrix to upper Hessenberg
+/// form.
 enum class HessenbergVariant : char { Level2 = '2', Blocked = 'B' };
 
+/// @brief Options struct for hessenberg()
 struct HessenbergOpts : public GehrdOpts {
     HessenbergVariant variant = HessenbergVariant::Blocked;
 };
@@ -34,7 +37,7 @@ struct HessenbergOpts : public GehrdOpts {
  *
  * @return WorkInfo The amount workspace required.
  *
- * @ingroup computational
+ * @ingroup workspace_query
  */
 template <class T, TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
 constexpr WorkInfo hessenberg_worksize(size_type<matrix_t> ilo,
@@ -48,6 +51,31 @@ constexpr WorkInfo hessenberg_worksize(size_type<matrix_t> ilo,
         return gehd2_worksize<T>(ilo, ihi, A, tau);
     else
         return gehrd_worksize<T>(ilo, ihi, A, tau, opts);
+}
+
+/** @copydoc hessenberg()
+ *
+ * Workspace is provided as an argument.
+ *
+ * @param work Workspace. Use the workspace query to determine the size needed.
+ *
+ * @ingroup variant_interface
+ */
+template <TLAPACK_SMATRIX matrix_t,
+          TLAPACK_SVECTOR vector_t,
+          TLAPACK_WORKSPACE work_t>
+int hessenberg_work(size_type<matrix_t> ilo,
+                    size_type<matrix_t> ihi,
+                    matrix_t& A,
+                    vector_t& tau,
+                    work_t& work,
+                    const HessenbergOpts& opts = {})
+{
+    // Call variant
+    if (opts.variant == HessenbergVariant::Level2)
+        return gehd2_work(ilo, ihi, A, tau, work);
+    else
+        return gehrd_work(ilo, ihi, A, tau, work, opts);
 }
 
 /** Reduces a general square matrix to upper Hessenberg form
@@ -88,7 +116,7 @@ constexpr WorkInfo hessenberg_worksize(size_type<matrix_t> ilo,
  * @param[in] opts Options.
  *      - @c opts.variant: Variant of the algorithm to use.
  *
- * @ingroup computational
+ * @ingroup variant_interface
  */
 template <TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
 int hessenberg(size_type<matrix_t> ilo,

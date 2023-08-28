@@ -122,33 +122,30 @@ constexpr WorkInfo ungq_worksize(direction_t direction,
     return workinfo;
 }
 
-/**
- * @copydoc ungq_level2()
+/** @copydoc ungq()
  *
- * Blocked algorithm.
+ * Workspace is provided as an argument.
  *
- * @param[in] opts Options.
+ * @param work Workspace. Use the workspace query to determine the size needed.
  *
  * @ingroup computational
  */
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_SVECTOR vector_t,
           TLAPACK_DIRECTION direction_t,
-          TLAPACK_STOREV storage_t>
-int ungq(direction_t direction,
-         storage_t storeMode,
-         matrix_t& A,
-         const vector_t& tau,
-         const UngqOpts& opts = {})
+          TLAPACK_STOREV storage_t,
+          TLAPACK_WORKSPACE work_t>
+int ungq_work(direction_t direction,
+              storage_t storeMode,
+              matrix_t& A,
+              const vector_t& tau,
+              work_t& work,
+              const UngqOpts& opts = {})
 {
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
-    using matrixT_t = matrix_type<matrix_t, vector_t>;
-
-    // Functor
-    Create<matrixT_t> new_matrix;
 
     // constants
     const real_t zero(0);
@@ -167,13 +164,9 @@ int ungq(direction_t direction,
     // quick return
     if (m <= 0 || n <= 0) return 0;
 
-    // Allocates workspace
-    WorkInfo workinfo = ungq_worksize<T>(direction, storeMode, A, tau, opts);
-    std::vector<T> work_;
-    auto work = new_matrix(work_, workinfo.m, workinfo.n);
     auto matrixT = (min(m, n) > nb)
-                       ? slice(work, range{workinfo.m - nb, workinfo.m},
-                               range{workinfo.n - nb, workinfo.n})
+                       ? slice(work, range{nrows(work) - nb, nrows(work)},
+                               range{ncols(work) - nb, ncols(work)})
                        : slice(work, range{0, 0}, range{0, 0});
 
     if (storeMode == StoreV::Columnwise) {
@@ -312,7 +305,78 @@ int ungq(direction_t direction,
     }
 
     return 0;
-}  // namespace tlapack
+}
+
+/**
+ * @brief Generates a matrix Q that is the product of elementary reflectors.
+ * Blocked algorithm.
+ *
+ * @param[in] direction
+ *     Indicates how Q is formed from a product of elementary reflectors.
+ *     - Direction::Forward:  $Q = H_1 H_2 ... H_k$.
+ *     - Direction::Backward: $Q = H_k ... H_2 H_1$.
+ *
+ * @param[in] storeMode
+ *     Indicates how the vectors which define the elementary reflectors are
+ * stored:
+ *     - StoreV::Columnwise.
+ *     - StoreV::Rowwise.
+ *     @see ungq_level2_work().
+ *
+ * @param[in,out] A m-by-n matrix.
+ *      On entry,
+ *      - If storeMode = StoreV::Columnwise:
+ *        - if direction = Direction::Forward, the m-by-k matrix V in the first
+ *          k columns;
+ *        - if direction = Direction::Backward, the m-by-k matrix V in the last
+ *          k columns.
+ *      - If storeMode = StoreV::Rowwise:
+ *        - if direction = Direction::Forward, the k-by-n matrix V in the first
+ *          k rows;
+ *        - if direction = Direction::Backward, the k-by-n matrix V in the last
+ *          k rows.
+ *      On exit, the m-by-n matrix Q.
+ *
+ * @param[in] tau Vector of length k.
+ *      Scalar factors of the elementary reflectors.
+ *
+ * @param[in] opts Options.
+ *
+ * @return 0 if success.
+ *
+ * @ingroup alloc_workspace
+ */
+template <TLAPACK_SMATRIX matrix_t,
+          TLAPACK_SVECTOR vector_t,
+          TLAPACK_DIRECTION direction_t,
+          TLAPACK_STOREV storage_t>
+int ungq(direction_t direction,
+         storage_t storeMode,
+         matrix_t& A,
+         const vector_t& tau,
+         const UngqOpts& opts = {})
+{
+    using T = type_t<matrix_t>;
+    using idx_t = size_type<matrix_t>;
+    using matrixT_t = matrix_type<matrix_t, vector_t>;
+
+    // Functor
+    Create<matrixT_t> new_matrix;
+
+    // constants
+    const idx_t m = nrows(A);
+    const idx_t n = ncols(A);
+
+    // quick return
+    if (m <= 0 || n <= 0) return 0;
+
+    // Allocates workspace
+    WorkInfo workinfo = ungq_worksize<T>(direction, storeMode, A, tau, opts);
+    std::vector<T> work_;
+    auto work = new_matrix(work_, workinfo.m, workinfo.n);
+
+    return ungq_work(direction, storeMode, A, tau, work, opts);
+}
 
 }  // namespace tlapack
 

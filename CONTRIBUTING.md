@@ -94,7 +94,7 @@ are equivalent, and deduce the type `int` for `n`. We suggest avoiding the usage
 
    This design makes it clear the type we obtain after operating with the types. Moreover, it avoids a problem with lazy evaluation. Indeed, consider the following (bad) example:
 
-   ```c++
+   ```cpp
    using T = mpf_class;
    T w = 1.0;
    T x = 2.0;
@@ -192,7 +192,7 @@ Consider following the steps below before writing a test for a new routine:
 
 7. Whenever possible, create a `DYNAMIC_SECTION(...)` after all commands `GENERATE()`. Example:
 
-   ```c++
+   ```cpp
    const idx_t m = GENERATE(1,5,9);
    const idx_t n = GENERATE(1,5,9);
    const Uplo = GENERATE(Uplo::Lower, Uplo::Upper);

@@ -16,8 +16,10 @@
 
 namespace tlapack {
 
+/// @brief Variant of the bidiagonal reduction algorithm.
 enum class BidiagVariant : char { Level2 = '2', Blocked = 'B' };
 
+/// @brief Options struct for bidiag()
 struct BidiagOpts : public GebrdOpts {
     BidiagVariant variant = BidiagVariant::Blocked;
 };
@@ -48,6 +50,30 @@ constexpr WorkInfo bidiag_worksize(const matrix_t& A,
         return gebd2_worksize<T>(A, tauv, tauw);
     else
         return gebrd_worksize<T>(A, tauv, tauw, opts);
+}
+
+/** @copydoc bidiag()
+ *
+ * Workspace is provided as an argument.
+ *
+ * @param work Workspace. Use the workspace query to determine the size needed.
+ *
+ * @ingroup variant_interface
+ */
+template <TLAPACK_SMATRIX matrix_t,
+          TLAPACK_SVECTOR vector_t,
+          TLAPACK_WORKSPACE work_t>
+int bidiag_work(matrix_t& A,
+                vector_t& tauv,
+                vector_t& tauw,
+                work_t& work,
+                const BidiagOpts& opts = {})
+{
+    // Call variant
+    if (opts.variant == BidiagVariant::Level2)
+        return gebd2_work(A, tauv, tauw, work);
+    else
+        return gebrd_work(A, tauv, tauw, work, opts);
 }
 
 /** Reduces a general m by n matrix A to an upper
@@ -102,7 +128,7 @@ constexpr WorkInfo bidiag_worksize(const matrix_t& A,
  * @param[in] opts Options.
  *      - @c opts.variant: Variant of the algorithm to use.
  *
- * @ingroup computational
+ * @ingroup variant_interface
  */
 template <TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
 int bidiag(matrix_t& A,

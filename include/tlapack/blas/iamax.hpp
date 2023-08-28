@@ -19,11 +19,11 @@ namespace tlapack {
  * Options for iamax.
  *
  * Initialize using a lambda function (C++17 or higher):
- * ```c++
+ * ```cpp
  * IamaxOpts opts( [](const T& x) { return my_abs(x); } );
  * ```
  * or using a functor:
- * ```c++
+ * ```cpp
  * struct abs_f {
  *    constexpr real_type<T> operator()(const T& x) const {
  *       return my_abs(x);
@@ -237,23 +237,17 @@ size_type<vector_t> iamax(const vector_t& x, const IamaxOpts<abs_f>& opts)
                                  : iamax_nc(x, opts.absf);
 }
 
+/** @overload size_type<vector_t> iamax(const vector_t& x,
+ *                                      const IamaxOpts<abs_f>& opts)
+ * @ingroup blas1
+ */
 template <TLAPACK_VECTOR vector_t, disable_if_allow_optblas_t<vector_t> = 0>
 size_type<vector_t> iamax(const vector_t& x)
 {
     using T = type_t<vector_t>;
     using real_t = real_type<T>;
 
-#if __cplusplus >= 201703L
-    IamaxOpts opts([](const T& x) -> real_t { return abs1(x); });
-#else
-    struct abs_f {
-        constexpr real_t operator()(const T& x) const { return abs1(x); }
-    };
-    abs_f absf;
-    IamaxOpts<abs_f> opts(absf);
-#endif
-
-    return iamax(x, opts);
+    return iamax(x, IamaxOpts([](const T& x) -> real_t { return abs1(x); }));
 }
 
 #ifdef TLAPACK_USE_LAPACKPP

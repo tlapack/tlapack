@@ -98,7 +98,7 @@ int ungr2_work(matrix_t& A, const vector_t& tau, work_t& work)
  *
  * @return 0 if success
  *
- * @ingroup computational
+ * @ingroup alloc_workspace
  */
 template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
 int ungr2(matrix_t& A, const vector_t& tau)

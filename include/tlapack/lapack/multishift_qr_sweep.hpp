@@ -862,7 +862,7 @@ void multishift_QR_sweep_work(bool want_t,
  *      On exit, the orthogonal updates applied to A accumulated
  *      into Z.
  *
- * @ingroup computational
+ * @ingroup alloc_workspace
  */
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_VECTOR vector_t,

@@ -68,6 +68,60 @@ constexpr WorkInfo gerqf_worksize(const A_t& A,
     return workinfo;
 }
 
+/** @copydoc gerqf()
+ *
+ * Workspace is provided as an argument.
+ *
+ * @param work Workspace. Use the workspace query to determine the size needed.
+ *
+ * @ingroup computational
+ */
+template <TLAPACK_SMATRIX A_t, TLAPACK_SVECTOR tau_t, TLAPACK_WORKSPACE work_t>
+int gerqf_work(A_t& A, tau_t& tau, work_t& work, const GerqfOpts& opts = {})
+{
+    using idx_t = size_type<A_t>;
+    using range = pair<idx_t, idx_t>;
+
+    // constants
+    const idx_t m = nrows(A);
+    const idx_t n = ncols(A);
+    const idx_t k = min(m, n);
+    const idx_t nb = min((idx_t)opts.nb, k);
+
+    // check arguments
+    tlapack_check((idx_t)size(tau) >= k);
+
+    auto workt = transpose_view(work);
+    auto TT = (m > nb) ? slice(work, range{nrows(work) - nb, nrows(work)},
+                               range{ncols(work) - nb, ncols(work)})
+                       : slice(work, range{0, 0}, range{0, 0});
+
+    // Main computational loop
+    for (idx_t j2 = 0; j2 < k; j2 += nb) {
+        const idx_t ib = min(nb, k - j2);
+        const idx_t j = m - j2 - ib;
+
+        // Compute the RQ factorization of the current block A(j:j+ib,0:n-j2)
+        auto A11 = slice(A, range(j, j + ib), range(0, n - j2));
+        auto tauw1 = slice(tau, range(k - j2 - ib, k - j2));
+
+        gerq2_work(A11, tauw1, workt);
+
+        if (j > 0) {
+            // Form the triangular factor of the block reflector
+            auto TT1 = slice(TT, range(0, ib), range(0, ib));
+            larft(BACKWARD, ROWWISE_STORAGE, A11, tauw1, TT1);
+
+            // Apply H to A(0:j,0:n-j2) from the right
+            auto A12 = slice(A, range(0, j), range(0, n - j2));
+            larfb_work(RIGHT_SIDE, NO_TRANS, BACKWARD, ROWWISE_STORAGE, A11,
+                       TT1, A12, work);
+        }
+    }
+
+    return 0;
+}
+
 /** Computes an RQ factorization of an m-by-n matrix A using
  *  a blocked algorithm.
  *
@@ -102,7 +156,7 @@ constexpr WorkInfo gerqf_worksize(const A_t& A,
  *
  * @param[in] opts Options.
  *
- * @ingroup computational
+ * @ingroup alloc_workspace
  */
 template <TLAPACK_SMATRIX A_t, TLAPACK_SVECTOR tau_t>
 int gerqf(A_t& A, tau_t& tau, const GerqfOpts& opts = {})
@@ -110,52 +164,12 @@ int gerqf(A_t& A, tau_t& tau, const GerqfOpts& opts = {})
     Create<A_t> new_matrix;
     using T = type_t<A_t>;
 
-    using idx_t = size_type<A_t>;
-    using range = pair<idx_t, idx_t>;
-
-    // constants
-    const idx_t m = nrows(A);
-    const idx_t n = ncols(A);
-    const idx_t k = min(m, n);
-    const idx_t nb = min((idx_t)opts.nb, k);
-
-    // check arguments
-    tlapack_check((idx_t)size(tau) >= k);
-
     // Allocate or get workspace
     WorkInfo workinfo = gerqf_worksize<T>(A, tau, opts);
     std::vector<T> work_;
     auto work = new_matrix(work_, workinfo.m, workinfo.n);
 
-    auto workt = transpose_view(work);
-    auto TT = (m > nb) ? slice(work, range{workinfo.m - nb, workinfo.m},
-                               range{workinfo.n - nb, workinfo.n})
-                       : slice(work, range{0, 0}, range{0, 0});
-
-    // Main computational loop
-    for (idx_t j2 = 0; j2 < k; j2 += nb) {
-        const idx_t ib = min(nb, k - j2);
-        const idx_t j = m - j2 - ib;
-
-        // Compute the RQ factorization of the current block A(j:j+ib,0:n-j2)
-        auto A11 = slice(A, range(j, j + ib), range(0, n - j2));
-        auto tauw1 = slice(tau, range(k - j2 - ib, k - j2));
-
-        gerq2_work(A11, tauw1, workt);
-
-        if (j > 0) {
-            // Form the triangular factor of the block reflector
-            auto TT1 = slice(TT, range(0, ib), range(0, ib));
-            larft(BACKWARD, ROWWISE_STORAGE, A11, tauw1, TT1);
-
-            // Apply H to A(0:j,0:n-j2) from the right
-            auto A12 = slice(A, range(0, j), range(0, n - j2));
-            larfb_work(RIGHT_SIDE, NO_TRANS, BACKWARD, ROWWISE_STORAGE, A11,
-                       TT1, A12, work);
-        }
-    }
-
-    return 0;
+    return gerqf_work(A, tau, work, opts);
 }
 }  // namespace tlapack
 #endif  // TLAPACK_GERQF_HH
