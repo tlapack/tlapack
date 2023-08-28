@@ -39,12 +39,12 @@ namespace tlapack {
  *
  * @ingroup blas2
  */
-template <class matrixA_t,
-          class vectorX_t,
-          class alpha_t,
+template <TLAPACK_MATRIX matrixA_t,
+          TLAPACK_VECTOR vectorX_t,
+          TLAPACK_REAL alpha_t,
           enable_if_t<(
                           /* Requires: */
-                          !is_complex<alpha_t>::value),
+                          is_real<alpha_t>),
                       int> = 0,
           class T = type_t<matrixA_t>,
           disable_if_allow_optblas_t<pair<alpha_t, real_type<T> >,
@@ -84,19 +84,16 @@ void her(Uplo uplo, const alpha_t& alpha, const vectorX_t& x, matrixA_t& A)
     }
 }
 
-#ifdef USE_LAPACKPP_WRAPPERS
+#ifdef TLAPACK_USE_LAPACKPP
 
-template <class matrixA_t,
-          class vectorX_t,
-          class alpha_t,
+template <TLAPACK_LEGACY_MATRIX matrixA_t,
+          TLAPACK_LEGACY_VECTOR vectorX_t,
+          TLAPACK_REAL alpha_t,
           class T = type_t<matrixA_t>,
           enable_if_allow_optblas_t<pair<alpha_t, real_type<T> >,
                                     pair<matrixA_t, T>,
                                     pair<vectorX_t, T> > = 0>
-inline void her(Uplo uplo,
-                const alpha_t alpha,
-                const vectorX_t& x,
-                matrixA_t& A)
+void her(Uplo uplo, const alpha_t alpha, const vectorX_t& x, matrixA_t& A)
 {
     // Legacy objects
     auto A_ = legacy_matrix(A);

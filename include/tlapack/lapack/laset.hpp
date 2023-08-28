@@ -34,14 +34,13 @@ namespace tlapack {
  *
  * @ingroup auxiliary
  */
-template <class uplo_t, class matrix_t>
+template <TLAPACK_UPLO uplo_t, TLAPACK_MATRIX matrix_t>
 void laset(uplo_t uplo,
            const type_t<matrix_t>& alpha,
            const type_t<matrix_t>& beta,
            matrix_t& A)
 {
     using idx_t = size_type<matrix_t>;
-    using std::min;
 
     // constants
     const idx_t m = nrows(A);

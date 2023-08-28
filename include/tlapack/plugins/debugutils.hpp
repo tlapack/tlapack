@@ -25,7 +25,7 @@ namespace tlapack {
  *
  * @param A m by n matrix
  */
-template <typename matrix_t>
+template <TLAPACK_MATRIX matrix_t>
 void print_matrix(const matrix_t& A)
 {
     using idx_t = size_type<matrix_t>;
@@ -47,14 +47,14 @@ void print_matrix(const matrix_t& A)
  *
  * @param A m by n matrix
  */
-template <typename matrix_t>
+template <TLAPACK_MATRIX matrix_t>
 std::string visualize_matrix_text(const matrix_t& A)
 {
     using idx_t = size_type<matrix_t>;
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
 
-    const int width = is_complex<type_t<matrix_t>>::value ? 25 : 10;
+    const int width = is_complex<type_t<matrix_t>> ? 25 : 10;
 
     std::stringstream stream;
     stream << "{ \"kind\":{ \"text\": true },\"text\": \"";
@@ -85,7 +85,7 @@ std::string visualize_matrix_text(const matrix_t& A)
  *
  * @param A m by n matrix
  */
-template <typename matrix_t>
+template <TLAPACK_MATRIX matrix_t>
 std::string visualize_matrix_table(const matrix_t& A)
 {
     using idx_t = size_type<matrix_t>;
@@ -129,7 +129,7 @@ std::string visualize_matrix_table(const matrix_t& A)
  *
  * @param A m by n matrix
  */
-template <typename matrix_t>
+template <TLAPACK_MATRIX matrix_t>
 std::string visualize_matrix(const matrix_t& A)
 {
     using idx_t = size_type<matrix_t>;

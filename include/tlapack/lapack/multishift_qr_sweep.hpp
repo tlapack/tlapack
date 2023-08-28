@@ -40,32 +40,26 @@ namespace tlapack {
  * @param[in] Z  n by n matrix.
  *      On entry, the previously calculated Schur factors.
  *
- * @param[in] opts Options.
- *
- * @param[in,out] workinfo
- *      On output, the amount workspace required. It is larger than or equal
- *      to that given on input.
+ * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
  */
-template <class matrix_t,
-          class vector_t,
-          enable_if_t<is_complex<type_t<vector_t>>::value, bool> = true>
-inline constexpr void multishift_QR_sweep_worksize(
-    bool want_t,
-    bool want_z,
-    size_type<matrix_t> ilo,
-    size_type<matrix_t> ihi,
-    const matrix_t& A,
-    const vector_t& s,
-    const matrix_t& Z,
-    workinfo_t& workinfo,
-    const workspace_opts_t<>& opts = {})
+template <class T,
+          TLAPACK_SMATRIX matrix_t,
+          TLAPACK_VECTOR vector_t,
+          enable_if_t<is_complex<type_t<vector_t>>, bool> = true>
+constexpr WorkInfo multishift_QR_sweep_worksize(bool want_t,
+                                                bool want_z,
+                                                size_type<matrix_t> ilo,
+                                                size_type<matrix_t> ihi,
+                                                const matrix_t& A,
+                                                const vector_t& s,
+                                                const matrix_t& Z)
 {
-    using T = type_t<matrix_t>;
-
-    const workinfo_t myWorkinfo(sizeof(T) * 3, size(s) / 2);
-    workinfo.minMax(myWorkinfo);
+    if constexpr (is_same_v<T, type_t<matrix_t>>)
+        return WorkInfo(3, size(s) / 2);
+    else
+        return WorkInfo(0);
 }
 
 /** multishift_QR_sweep performs a single small-bulge multi-shift QR sweep.
@@ -93,31 +87,27 @@ inline constexpr void multishift_QR_sweep_worksize(
  *      On exit, the orthogonal updates applied to A accumulated
  *      into Z.
  *
- * @param[in] opts Options.
- *      - @c opts.work is used if whenever it has sufficient size.
- *        The sufficient size can be obtained through a workspace query.
+ * @param work Workspace. Use the workspace query to determine the size needed.
  *
  * @ingroup computational
  */
-template <class matrix_t,
-          class vector_t,
-          enable_if_t<is_complex<type_t<vector_t>>::value, bool> = true>
-void multishift_QR_sweep(bool want_t,
-                         bool want_z,
-                         size_type<matrix_t> ilo,
-                         size_type<matrix_t> ihi,
-                         matrix_t& A,
-                         const vector_t& s,
-                         matrix_t& Z,
-                         const workspace_opts_t<>& opts = {})
+template <TLAPACK_SMATRIX matrix_t,
+          TLAPACK_VECTOR vector_t,
+          TLAPACK_WORKSPACE work_t,
+          enable_if_t<is_complex<type_t<vector_t>>, bool> = true>
+void multishift_QR_sweep_work(bool want_t,
+                              bool want_z,
+                              size_type<matrix_t> ilo,
+                              size_type<matrix_t> ihi,
+                              matrix_t& A,
+                              const vector_t& s,
+                              matrix_t& Z,
+                              work_t& work)
 {
     using TA = type_t<matrix_t>;
     using real_t = real_type<TA>;
     using idx_t = size_type<matrix_t>;
-    using pair = std::pair<idx_t, idx_t>;
-
-    // Functor
-    Create<matrix_t> new_matrix;
+    using range = pair<idx_t, idx_t>;
 
     const real_t one(1);
     const real_t zero(0);
@@ -125,27 +115,20 @@ void multishift_QR_sweep(bool want_t,
     const real_t eps = ulp<real_t>();
     const real_t small_num = safe_min<real_t>() * ((real_t)n / eps);
 
-    // Assertions
-    assert(n >= 12);
-    assert(nrows(A) == n);
+    // check arguments
+    tlapack_check(n >= 12);
+    tlapack_check(nrows(A) == n);
     if (want_z) {
-        assert(ncols(Z) == n);
-        assert(nrows(Z) == n);
+        tlapack_check(ncols(Z) == n);
+        tlapack_check(nrows(Z) == n);
     }
 
-    // Allocates workspace
-    vectorOfBytes localworkdata;
-    const Workspace work = [&]() {
-        workinfo_t workinfo;
-        multishift_QR_sweep_worksize(want_t, want_z, ilo, ihi, A, s, Z,
-                                     workinfo, opts);
-        return alloc_workspace(localworkdata, workinfo, opts.work);
-    }();
-    auto V = new_matrix(work, 3, size(s) / 2);
+    // Workspace matrix
+    auto V = slice(work, range{0, 3}, range{0, size(s) / 2});
 
     const idx_t n_block_max = (n - 3) / 3;
     const idx_t n_shifts_max =
-        std::min(ihi - ilo - 1, std::max<idx_t>(2, 3 * (n_block_max / 4)));
+        min(ihi - ilo - 1, std::max<idx_t>(2, 3 * (n_block_max / 4)));
 
     idx_t n_shifts = std::min<idx_t>(size(s), n_shifts_max);
     if (n_shifts % 2 == 1) n_shifts = n_shifts - 1;
@@ -157,15 +140,15 @@ void multishift_QR_sweep(bool want_t,
     // We use the lower triangular part of A as workspace
 
     // U stores the orthogonal transformations
-    auto U = slice(A, pair{n - n_block_desired, n}, pair{0, n_block_desired});
+    auto U = slice(A, range{n - n_block_desired, n}, range{0, n_block_desired});
 
     // Workspace for horizontal multiplications
-    auto WH = slice(A, pair{n - n_block_desired, n},
-                    pair{n_block_desired, n - n_block_desired - 3});
+    auto WH = slice(A, range{n - n_block_desired, n},
+                    range{n_block_desired, n - n_block_desired - 3});
 
     // Workspace for vertical multiplications
-    auto WV = slice(A, pair{n_block_desired + 3, n - n_block_desired},
-                    pair{0, n_block_desired});
+    auto WV = slice(A, range{n_block_desired + 3, n - n_block_desired},
+                    range{0, n_block_desired});
 
     // i_pos_block points to the start of the block of bulges
     idx_t i_pos_block;
@@ -178,33 +161,32 @@ void multishift_QR_sweep(bool want_t,
         // The calculations are initially limited to the window:
         // A(ilo:ilo+n_block,ilo:ilo+n_block) The rest is updated later via
         // level 3 BLAS
-        idx_t n_block = std::min(n_block_desired, ihi - ilo);
+        idx_t n_block = min(n_block_desired, ihi - ilo);
         idx_t istart_m = ilo;
         idx_t istop_m = ilo + n_block;
-        auto U2 = slice(U, pair{0, n_block}, pair{0, n_block});
-        laset(Uplo::General, zero, one, U2);
+        auto U2 = slice(U, range{0, n_block}, range{0, n_block});
+        laset(GENERAL, zero, one, U2);
 
         for (idx_t i_pos_last = ilo; i_pos_last < ilo + n_block - 2;
              ++i_pos_last) {
             // The number of bulges that are in the pencil
-            idx_t n_active_bulges =
-                std::min(n_bulges, ((i_pos_last - ilo) / 2) + 1);
+            idx_t n_active_bulges = min(n_bulges, ((i_pos_last - ilo) / 2) + 1);
             for (idx_t i_bulge = 0; i_bulge < n_active_bulges; ++i_bulge) {
                 idx_t i_pos = i_pos_last - 2 * i_bulge;
                 auto v = col(V, i_bulge);
                 if (i_pos == ilo) {
                     // Introduce bulge
                     TA tau;
-                    auto H = slice(A, pair{ilo, ilo + 3}, pair{ilo, ilo + 3});
+                    auto H = slice(A, range{ilo, ilo + 3}, range{ilo, ilo + 3});
                     lahqr_shiftcolumn(H, v, s[size(s) - 1 - 2 * i_bulge],
                                       s[size(s) - 1 - 2 * i_bulge - 1]);
-                    larfg(forward, columnwise_storage, v, tau);
+                    larfg(FORWARD, COLUMNWISE_STORAGE, v, tau);
                     v[0] = tau;
                 }
                 else {
                     // Chase bulge down
-                    auto H = slice(A, pair{i_pos - 1, i_pos + 3},
-                                   pair{i_pos - 1, i_pos + 3});
+                    auto H = slice(A, range{i_pos - 1, i_pos + 3},
+                                   range{i_pos - 1, i_pos + 3});
                     move_bulge(H, v, s[size(s) - 1 - 2 * i_bulge],
                                s[size(s) - 1 - 2 * i_bulge - 1]);
                 }
@@ -251,24 +233,26 @@ void multishift_QR_sweep(bool want_t,
                                 tst1 += abs1(A(i_pos + 3, i_pos));
                         }
                         if (abs1(A(i_pos, i_pos - 1)) <
-                            std::max(small_num, eps * tst1)) {
+                            max(small_num, eps * tst1)) {
+                            const real_t aij = abs1(A(i_pos, i_pos - 1));
+                            const real_t aji = abs1(A(i_pos - 1, i_pos));
                             const real_t ab =
-                                std::max(abs1(A(i_pos, i_pos - 1)),
-                                         abs1(A(i_pos - 1, i_pos)));
+                                (aij > aji) ? aij
+                                            : aji;  // Propagates NaNs in aji
                             const real_t ba =
-                                std::min(abs1(A(i_pos, i_pos - 1)),
-                                         abs1(A(i_pos - 1, i_pos)));
+                                (aij < aji) ? aij
+                                            : aji;  // Propagates NaNs in aji
                             const real_t aa =
-                                std::max(abs1(A(i_pos, i_pos)),
-                                         abs1(A(i_pos, i_pos) -
-                                              A(i_pos - 1, i_pos - 1)));
+                                max(abs1(A(i_pos, i_pos)),
+                                    abs1(A(i_pos, i_pos) -
+                                         A(i_pos - 1, i_pos - 1)));
                             const real_t bb =
-                                std::min(abs1(A(i_pos, i_pos)),
-                                         abs1(A(i_pos, i_pos) -
-                                              A(i_pos - 1, i_pos - 1)));
+                                min(abs1(A(i_pos, i_pos)),
+                                    abs1(A(i_pos, i_pos) -
+                                         A(i_pos - 1, i_pos - 1)));
                             const real_t s = aa + ab;
                             if (ba * (ab / s) <=
-                                std::max(small_num, eps * (bb * (aa / s)))) {
+                                max(small_num, eps * (bb * (aa / s)))) {
                                 A(i_pos, i_pos - 1) = zero;
                             }
                         }
@@ -313,8 +297,8 @@ void multishift_QR_sweep(bool want_t,
                 idx_t i_pos = i_pos_last - 2 * i_bulge;
                 auto v = col(V, i_bulge);
                 idx_t i1 = 0;
-                idx_t i2 = std::min(
-                    nrows(U2), (i_pos_last - ilo) + (i_pos_last - ilo) + 3);
+                idx_t i2 =
+                    min(nrows(U2), (i_pos_last - ilo) + (i_pos_last - ilo) + 3);
                 for (idx_t j = i1; j < i2; ++j) {
                     const TA sum = U2(j, i_pos - ilo) +
                                    v[1] * U2(j, i_pos - ilo + 1) +
@@ -342,11 +326,11 @@ void multishift_QR_sweep(bool want_t,
             while (i < istop_m) {
                 idx_t iblock = std::min<idx_t>(istop_m - i, ncols(WH));
                 auto A_slice =
-                    slice(A, pair{ilo, ilo + n_block}, pair{i, i + iblock});
-                auto WH_slice =
-                    slice(WH, pair{0, nrows(A_slice)}, pair{0, ncols(A_slice)});
-                gemm(Op::ConjTrans, Op::NoTrans, one, U2, A_slice, WH_slice);
-                lacpy(Uplo::General, WH_slice, A_slice);
+                    slice(A, range{ilo, ilo + n_block}, range{i, i + iblock});
+                auto WH_slice = slice(WH, range{0, nrows(A_slice)},
+                                      range{0, ncols(A_slice)});
+                gemm(CONJ_TRANS, NO_TRANS, one, U2, A_slice, WH_slice);
+                lacpy(GENERAL, WH_slice, A_slice);
                 i = i + iblock;
             }
         }
@@ -356,11 +340,11 @@ void multishift_QR_sweep(bool want_t,
             while (i < ilo) {
                 idx_t iblock = std::min<idx_t>(ilo - i, nrows(WV));
                 auto A_slice =
-                    slice(A, pair{i, i + iblock}, pair{ilo, ilo + n_block});
-                auto WV_slice =
-                    slice(WV, pair{0, nrows(A_slice)}, pair{0, ncols(A_slice)});
-                gemm(Op::NoTrans, Op::NoTrans, one, A_slice, U2, WV_slice);
-                lacpy(Uplo::General, WV_slice, A_slice);
+                    slice(A, range{i, i + iblock}, range{ilo, ilo + n_block});
+                auto WV_slice = slice(WV, range{0, nrows(A_slice)},
+                                      range{0, ncols(A_slice)});
+                gemm(NO_TRANS, NO_TRANS, one, A_slice, U2, WV_slice);
+                lacpy(GENERAL, WV_slice, A_slice);
                 i = i + iblock;
             }
         }
@@ -370,11 +354,11 @@ void multishift_QR_sweep(bool want_t,
             while (i < n) {
                 idx_t iblock = std::min<idx_t>(n - i, nrows(WV));
                 auto Z_slice =
-                    slice(Z, pair{i, i + iblock}, pair{ilo, ilo + n_block});
-                auto WV_slice =
-                    slice(WV, pair{0, nrows(Z_slice)}, pair{0, ncols(Z_slice)});
-                gemm(Op::NoTrans, Op::NoTrans, one, Z_slice, U2, WV_slice);
-                lacpy(Uplo::General, WV_slice, Z_slice);
+                    slice(Z, range{i, i + iblock}, range{ilo, ilo + n_block});
+                auto WV_slice = slice(WV, range{0, nrows(Z_slice)},
+                                      range{0, ncols(Z_slice)});
+                gemm(NO_TRANS, NO_TRANS, one, Z_slice, U2, WV_slice);
+                lacpy(GENERAL, WV_slice, Z_slice);
                 i = i + iblock;
             }
         }
@@ -393,8 +377,8 @@ void multishift_QR_sweep(bool want_t,
         // Actual blocksize
         idx_t n_block = n_shifts + n_pos;
 
-        auto U2 = slice(U, pair{0, n_block}, pair{0, n_block});
-        laset(Uplo::General, zero, one, U2);
+        auto U2 = slice(U, range{0, n_block}, range{0, n_block});
+        laset(GENERAL, zero, one, U2);
 
         // Near-the-diagonal bulge chase
         // The calculations are initially limited to the window:
@@ -408,8 +392,8 @@ void multishift_QR_sweep(bool want_t,
             for (idx_t i_bulge = 0; i_bulge < n_bulges; ++i_bulge) {
                 idx_t i_pos = i_pos_last - 2 * i_bulge;
                 auto v = col(V, i_bulge);
-                auto H = slice(A, pair{i_pos - 1, i_pos + 3},
-                               pair{i_pos - 1, i_pos + 3});
+                auto H = slice(A, range{i_pos - 1, i_pos + 3},
+                               range{i_pos - 1, i_pos + 3});
                 move_bulge(H, v, s[size(s) - 1 - 2 * i_bulge],
                            s[size(s) - 1 - 2 * i_bulge - 1]);
 
@@ -455,24 +439,26 @@ void multishift_QR_sweep(bool want_t,
                                 tst1 += abs1(A(i_pos + 3, i_pos));
                         }
                         if (abs1(A(i_pos, i_pos - 1)) <
-                            std::max(small_num, eps * tst1)) {
+                            max(small_num, eps * tst1)) {
+                            const real_t aij = abs1(A(i_pos, i_pos - 1));
+                            const real_t aji = abs1(A(i_pos - 1, i_pos));
                             const real_t ab =
-                                std::max(abs1(A(i_pos, i_pos - 1)),
-                                         abs1(A(i_pos - 1, i_pos)));
+                                (aij > aji) ? aij
+                                            : aji;  // Propagates NaNs in aji
                             const real_t ba =
-                                std::min(abs1(A(i_pos, i_pos - 1)),
-                                         abs1(A(i_pos - 1, i_pos)));
+                                (aij < aji) ? aij
+                                            : aji;  // Propagates NaNs in aji
                             const real_t aa =
-                                std::max(abs1(A(i_pos, i_pos)),
-                                         abs1(A(i_pos, i_pos) -
-                                              A(i_pos - 1, i_pos - 1)));
+                                max(abs1(A(i_pos, i_pos)),
+                                    abs1(A(i_pos, i_pos) -
+                                         A(i_pos - 1, i_pos - 1)));
                             const real_t bb =
-                                std::min(abs1(A(i_pos, i_pos)),
-                                         abs1(A(i_pos, i_pos) -
-                                              A(i_pos - 1, i_pos - 1)));
+                                min(abs1(A(i_pos, i_pos)),
+                                    abs1(A(i_pos, i_pos) -
+                                         A(i_pos - 1, i_pos - 1)));
                             const real_t s = aa + ab;
                             if (ba * (ab / s) <=
-                                std::max(small_num, eps * (bb * (aa / s)))) {
+                                max(small_num, eps * (bb * (aa / s)))) {
                                 A(i_pos, i_pos - 1) = zero;
                             }
                         }
@@ -519,9 +505,9 @@ void multishift_QR_sweep(bool want_t,
                 idx_t i1 = (i_pos - i_pos_block) -
                            (i_pos_last - i_pos_block - n_shifts + 2);
                 idx_t i2 =
-                    std::min(nrows(U2),
-                             (i_pos_last - i_pos_block) +
-                                 (i_pos_last - i_pos_block - n_shifts + 2) + 3);
+                    min(nrows(U2),
+                        (i_pos_last - i_pos_block) +
+                            (i_pos_last - i_pos_block - n_shifts + 2) + 3);
                 for (idx_t j = i1; j < i2; ++j) {
                     const TA sum = U2(j, i_pos - i_pos_block) +
                                    v[1] * U2(j, i_pos - i_pos_block + 1) +
@@ -552,12 +538,12 @@ void multishift_QR_sweep(bool want_t,
             while (i < istop_m) {
                 idx_t iblock = std::min<idx_t>(istop_m - i, ncols(WH));
                 auto A_slice =
-                    slice(A, pair{i_pos_block, i_pos_block + n_block},
-                          pair{i, i + iblock});
-                auto WH_slice =
-                    slice(WH, pair{0, nrows(A_slice)}, pair{0, ncols(A_slice)});
-                gemm(Op::ConjTrans, Op::NoTrans, one, U2, A_slice, WH_slice);
-                lacpy(Uplo::General, WH_slice, A_slice);
+                    slice(A, range{i_pos_block, i_pos_block + n_block},
+                          range{i, i + iblock});
+                auto WH_slice = slice(WH, range{0, nrows(A_slice)},
+                                      range{0, ncols(A_slice)});
+                gemm(CONJ_TRANS, NO_TRANS, one, U2, A_slice, WH_slice);
+                lacpy(GENERAL, WH_slice, A_slice);
                 i = i + iblock;
             }
         }
@@ -566,12 +552,12 @@ void multishift_QR_sweep(bool want_t,
             idx_t i = istart_m;
             while (i < i_pos_block) {
                 idx_t iblock = std::min<idx_t>(i_pos_block - i, nrows(WV));
-                auto A_slice = slice(A, pair{i, i + iblock},
-                                     pair{i_pos_block, i_pos_block + n_block});
-                auto WV_slice =
-                    slice(WV, pair{0, nrows(A_slice)}, pair{0, ncols(A_slice)});
-                gemm(Op::NoTrans, Op::NoTrans, one, A_slice, U2, WV_slice);
-                lacpy(Uplo::General, WV_slice, A_slice);
+                auto A_slice = slice(A, range{i, i + iblock},
+                                     range{i_pos_block, i_pos_block + n_block});
+                auto WV_slice = slice(WV, range{0, nrows(A_slice)},
+                                      range{0, ncols(A_slice)});
+                gemm(NO_TRANS, NO_TRANS, one, A_slice, U2, WV_slice);
+                lacpy(GENERAL, WV_slice, A_slice);
                 i = i + iblock;
             }
         }
@@ -580,12 +566,12 @@ void multishift_QR_sweep(bool want_t,
             idx_t i = 0;
             while (i < n) {
                 idx_t iblock = std::min<idx_t>(n - i, nrows(WV));
-                auto Z_slice = slice(Z, pair{i, i + iblock},
-                                     pair{i_pos_block, i_pos_block + n_block});
-                auto WV_slice =
-                    slice(WV, pair{0, nrows(Z_slice)}, pair{0, ncols(Z_slice)});
-                gemm(Op::NoTrans, Op::NoTrans, one, Z_slice, U2, WV_slice);
-                lacpy(Uplo::General, WV_slice, Z_slice);
+                auto Z_slice = slice(Z, range{i, i + iblock},
+                                     range{i_pos_block, i_pos_block + n_block});
+                auto WV_slice = slice(WV, range{0, nrows(Z_slice)},
+                                      range{0, ncols(Z_slice)});
+                gemm(NO_TRANS, NO_TRANS, one, Z_slice, U2, WV_slice);
+                lacpy(GENERAL, WV_slice, Z_slice);
                 i = i + iblock;
             }
         }
@@ -599,8 +585,8 @@ void multishift_QR_sweep(bool want_t,
     {
         idx_t n_block = ihi - i_pos_block;
 
-        auto U2 = slice(U, pair{0, n_block}, pair{0, n_block});
-        laset(Uplo::General, zero, one, U2);
+        auto U2 = slice(U, range{0, n_block}, range{0, n_block});
+        laset(GENERAL, zero, one, U2);
 
         // Near-the-diagonal bulge chase
         // The calculations are initially limited to the window:
@@ -619,9 +605,9 @@ void multishift_QR_sweep(bool want_t,
                 if (i_pos == ihi - 2) {
                     // Special case, the bulge is at the bottom, needs a smaller
                     // reflector (order 2)
-                    auto v = slice(V, pair{0, 2}, i_bulge);
-                    auto h = slice(A, pair{i_pos, i_pos + 2}, i_pos - 1);
-                    larfg(forward, columnwise_storage, h, v[0]);
+                    auto v = slice(V, range{0, 2}, i_bulge);
+                    auto h = slice(A, range{i_pos, i_pos + 2}, i_pos - 1);
+                    larfg(FORWARD, COLUMNWISE_STORAGE, h, v[0]);
                     v[1] = h[1];
                     h[1] = zero;
 
@@ -654,8 +640,8 @@ void multishift_QR_sweep(bool want_t,
                 }
                 else {
                     auto v = col(V, i_bulge);
-                    auto H = slice(A, pair{i_pos - 1, i_pos + 3},
-                                   pair{i_pos - 1, i_pos + 3});
+                    auto H = slice(A, range{i_pos - 1, i_pos + 3},
+                                   range{i_pos - 1, i_pos + 3});
                     move_bulge(H, v, s[size(s) - 1 - 2 * i_bulge],
                                s[size(s) - 1 - 2 * i_bulge - 1]);
 
@@ -705,25 +691,28 @@ void multishift_QR_sweep(bool want_t,
                                     tst1 += abs1(A(i_pos + 3, i_pos));
                             }
                             if (abs1(A(i_pos, i_pos - 1)) <
-                                std::max(small_num, eps * tst1)) {
+                                max(small_num, eps * tst1)) {
+                                const real_t aij = abs1(A(i_pos, i_pos - 1));
+                                const real_t aji = abs1(A(i_pos - 1, i_pos));
                                 const real_t ab =
-                                    std::max(abs1(A(i_pos, i_pos - 1)),
-                                             abs1(A(i_pos - 1, i_pos)));
+                                    (aij > aji)
+                                        ? aij
+                                        : aji;  // Propagates NaNs in aji
                                 const real_t ba =
-                                    std::min(abs1(A(i_pos, i_pos - 1)),
-                                             abs1(A(i_pos - 1, i_pos)));
+                                    (aij < aji)
+                                        ? aij
+                                        : aji;  // Propagates NaNs in aji
                                 const real_t aa =
-                                    std::max(abs1(A(i_pos, i_pos)),
-                                             abs1(A(i_pos, i_pos) -
-                                                  A(i_pos - 1, i_pos - 1)));
+                                    max(abs1(A(i_pos, i_pos)),
+                                        abs1(A(i_pos, i_pos) -
+                                             A(i_pos - 1, i_pos - 1)));
                                 const real_t bb =
-                                    std::min(abs1(A(i_pos, i_pos)),
-                                             abs1(A(i_pos, i_pos) -
-                                                  A(i_pos - 1, i_pos - 1)));
+                                    min(abs1(A(i_pos, i_pos)),
+                                        abs1(A(i_pos, i_pos) -
+                                             A(i_pos - 1, i_pos - 1)));
                                 const real_t s = aa + ab;
                                 if (ba * (ab / s) <=
-                                    std::max(small_num,
-                                             eps * (bb * (aa / s)))) {
+                                    max(small_num, eps * (bb * (aa / s)))) {
                                     A(i_pos, i_pos - 1) = zero;
                                 }
                             }
@@ -742,7 +731,7 @@ void multishift_QR_sweep(bool want_t,
             // {
             //     idx_t i_bulge_start2 = (i_pos_last + 2 > j) ? (i_pos_last + 2
             //     - j) / 2 : 0; i_bulge_start2 =
-            //     std::max(i_bulge_start,i_bulge_start2); for (idx_t i_bulge =
+            //     max(i_bulge_start,i_bulge_start2); for (idx_t i_bulge =
             //     i_bulge_start2; i_bulge < n_bulges; ++i_bulge)
             //     {
             //         idx_t i_pos = i_pos_last - 2 * i_bulge;
@@ -775,9 +764,9 @@ void multishift_QR_sweep(bool want_t,
                 idx_t i1 = (i_pos - i_pos_block) -
                            (i_pos_last - i_pos_block - n_shifts + 2);
                 idx_t i2 =
-                    std::min(nrows(U2),
-                             (i_pos_last - i_pos_block) +
-                                 (i_pos_last - i_pos_block - n_shifts + 2) + 3);
+                    min(nrows(U2),
+                        (i_pos_last - i_pos_block) +
+                            (i_pos_last - i_pos_block - n_shifts + 2) + 3);
                 for (idx_t j = i1; j < i2; ++j) {
                     const TA sum = U2(j, i_pos - i_pos_block) +
                                    v[1] * U2(j, i_pos - i_pos_block + 1) +
@@ -809,11 +798,11 @@ void multishift_QR_sweep(bool want_t,
             while (i < istop_m) {
                 idx_t iblock = std::min<idx_t>(istop_m - i, ncols(WH));
                 auto A_slice =
-                    slice(A, pair{i_pos_block, ihi}, pair{i, i + iblock});
-                auto WH_slice =
-                    slice(WH, pair{0, nrows(A_slice)}, pair{0, ncols(A_slice)});
-                gemm(Op::ConjTrans, Op::NoTrans, one, U2, A_slice, WH_slice);
-                lacpy(Uplo::General, WH_slice, A_slice);
+                    slice(A, range{i_pos_block, ihi}, range{i, i + iblock});
+                auto WH_slice = slice(WH, range{0, nrows(A_slice)},
+                                      range{0, ncols(A_slice)});
+                gemm(CONJ_TRANS, NO_TRANS, one, U2, A_slice, WH_slice);
+                lacpy(GENERAL, WH_slice, A_slice);
                 i = i + iblock;
             }
         }
@@ -823,11 +812,11 @@ void multishift_QR_sweep(bool want_t,
             while (i < i_pos_block) {
                 idx_t iblock = std::min<idx_t>(i_pos_block - i, nrows(WV));
                 auto A_slice =
-                    slice(A, pair{i, i + iblock}, pair{i_pos_block, ihi});
-                auto WV_slice =
-                    slice(WV, pair{0, nrows(A_slice)}, pair{0, ncols(A_slice)});
-                gemm(Op::NoTrans, Op::NoTrans, one, A_slice, U2, WV_slice);
-                lacpy(Uplo::General, WV_slice, A_slice);
+                    slice(A, range{i, i + iblock}, range{i_pos_block, ihi});
+                auto WV_slice = slice(WV, range{0, nrows(A_slice)},
+                                      range{0, ncols(A_slice)});
+                gemm(NO_TRANS, NO_TRANS, one, A_slice, U2, WV_slice);
+                lacpy(GENERAL, WV_slice, A_slice);
                 i = i + iblock;
             }
         }
@@ -837,15 +826,67 @@ void multishift_QR_sweep(bool want_t,
             while (i < n) {
                 idx_t iblock = std::min<idx_t>(n - i, nrows(WV));
                 auto Z_slice =
-                    slice(Z, pair{i, i + iblock}, pair{i_pos_block, ihi});
-                auto WV_slice =
-                    slice(WV, pair{0, nrows(Z_slice)}, pair{0, ncols(Z_slice)});
-                gemm(Op::NoTrans, Op::NoTrans, one, Z_slice, U2, WV_slice);
-                lacpy(Uplo::General, WV_slice, Z_slice);
+                    slice(Z, range{i, i + iblock}, range{i_pos_block, ihi});
+                auto WV_slice = slice(WV, range{0, nrows(Z_slice)},
+                                      range{0, ncols(Z_slice)});
+                gemm(NO_TRANS, NO_TRANS, one, Z_slice, U2, WV_slice);
+                lacpy(GENERAL, WV_slice, Z_slice);
                 i = i + iblock;
             }
         }
     }
+}
+
+/** multishift_QR_sweep performs a single small-bulge multi-shift QR sweep.
+ *
+ * @param[in] want_t bool.
+ *      If true, the full Schur factor T will be computed.
+ *
+ * @param[in] want_z bool.
+ *      If true, the Schur vectors Z will be computed.
+ *
+ * @param[in] ilo    integer.
+ *      Either ilo=0 or A(ilo,ilo-1) = 0.
+ *
+ * @param[in] ihi    integer.
+ *      ilo and ihi determine an isolated block in A.
+ *
+ * @param[in,out] A  n by n matrix.
+ *      Hessenberg matrix on which AED will be performed
+ *
+ * @param[in] s  complex vector.
+ *      Vector containing the shifts to be used during the sweep
+ *
+ * @param[in,out] Z  n by n matrix.
+ *      On entry, the previously calculated Schur factors
+ *      On exit, the orthogonal updates applied to A accumulated
+ *      into Z.
+ *
+ * @ingroup computational
+ */
+template <TLAPACK_SMATRIX matrix_t,
+          TLAPACK_VECTOR vector_t,
+          enable_if_t<is_complex<type_t<vector_t>>, bool> = true>
+void multishift_QR_sweep(bool want_t,
+                         bool want_z,
+                         size_type<matrix_t> ilo,
+                         size_type<matrix_t> ihi,
+                         matrix_t& A,
+                         const vector_t& s,
+                         matrix_t& Z)
+{
+    using TA = type_t<matrix_t>;
+
+    // Functor
+    Create<matrix_t> new_matrix;
+
+    // Allocates workspace
+    WorkInfo workinfo =
+        multishift_QR_sweep_worksize<TA>(want_t, want_z, ilo, ihi, A, s, Z);
+    std::vector<TA> work_;
+    auto work = new_matrix(work_, workinfo.m, workinfo.n);
+
+    multishift_QR_sweep_work(want_t, want_z, ilo, ihi, A, s, Z, work);
 }
 
 }  // namespace tlapack

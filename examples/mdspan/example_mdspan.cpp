@@ -35,7 +35,7 @@ int main(int argc, char** argv)
     using std::experimental::submdspan;
 
     using idx_t = std::size_t;
-    using pair = std::pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
 
     using my_dextents = dextents<idx_t, 2>;
     using TiledMapping = typename TiledLayout::template mapping<my_dextents>;
@@ -56,7 +56,7 @@ int main(int argc, char** argv)
     mdspan<T, my_dextents, layout_stride> A(
         A_, strideMapping(my_dextents(n, n), std::array<idx_t, 2>{1, lda}));
     // Column Major Matrix Ak with the first k columns of A
-    auto Ak = submdspan(A, pair{0, n}, pair{0, k});
+    auto Ak = submdspan(A, range{0, n}, range{0, k});
     // Tiled Matrix B with the last k*n elements of A_
     mdspan<T, my_dextents, TiledLayout> B(
         &A(n * (lda - k), 0),
@@ -106,7 +106,7 @@ int main(int argc, char** argv)
 
     std::cout.precision(5);
     std::cout << std::scientific << std::showpos;
-    std::cout << "|| C - Ak B ||_F = " << tlapack::lange(tlapack::frob_norm, C)
+    std::cout << "|| C - Ak B ||_F = " << tlapack::lange(tlapack::FROB_NORM, C)
               << std::endl;
 
     // potrf:
@@ -117,8 +117,8 @@ int main(int argc, char** argv)
             A_[i + j * lda] = T(static_cast<float>(0xDEADBEEF));
 
     // Column Major Matrices U and Asym as submatrices of A
-    auto U = submdspan(A, pair{0, k}, pair{0, k});
-    auto Asym = submdspan(A, pair{0, k}, pair{k, 2 * k});
+    auto U = submdspan(A, range{0, k}, range{0, k});
+    auto Asym = submdspan(A, range{0, k}, range{k, 2 * k});
 
     // Fill Asym with random entries
     for (idx_t j = 0; j < k; ++j) {
@@ -143,12 +143,12 @@ int main(int argc, char** argv)
     }
 
     // Compute the Cholesky decomposition of U
-    int info = tlapack::potrf(tlapack::upperTriangle, U);
+    int info = tlapack::potrf(tlapack::UPPER_TRIANGLE, U);
 
     std::cout << "Cholesky ended with info " << info << std::endl;
 
     // Solve U^H U R = A
-    auto R = submdspan(A, pair{k, 2 * k}, pair{0, k});
+    auto R = submdspan(A, range{k, 2 * k}, range{0, k});
     for (idx_t j = 0; j < k; ++j)
         for (idx_t i = 0; i < k; ++i)
             R(i, j) = Asym(i, j);
@@ -158,7 +158,7 @@ int main(int argc, char** argv)
     // error = ||R-Id||_F
     for (idx_t i = 0; i < k; ++i)
         R(i, i) -= one;
-    T error = tlapack::lange(tlapack::frob_norm, R);
+    T error = tlapack::lange(tlapack::FROB_NORM, R);
 
     std::cout.precision(5);
     std::cout << std::scientific << std::showpos;

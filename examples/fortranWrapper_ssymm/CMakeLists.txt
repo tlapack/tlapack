@@ -6,7 +6,7 @@
 
 cmake_minimum_required(VERSION 3.1)
 
-project( fortranWrapper_ssymm C CXX Fortran )
+project( fortranWrapper_ssymm C Fortran )
 
 # Load <T>LAPACK
 if( NOT TARGET tlapack_fortran )

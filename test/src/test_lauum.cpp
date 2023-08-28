@@ -51,29 +51,29 @@ TEMPLATE_TEST_CASE("LAUUM is stable", "[lauum]", TLAPACK_TYPES_TO_TEST)
         for (idx_t i = 0; i < n; ++i)
             A(i, j) = rand_helper<T>();
 
-    lacpy(Uplo::General, A, C);
+    lacpy(GENERAL, A, C);
 
     DYNAMIC_SECTION("n = " << n << " uplo = " << uplo)
     {
         lauum_recursive(uplo, A);
 
         // Calculate residual
-        real_t normC = lantr(max_norm, uplo, Diag::NonUnit, C);
+        real_t normC = lantr(MAX_NORM, uplo, NON_UNIT_DIAG, C);
 
         if (uplo == Uplo::Lower) {
             for (idx_t j = 0; j < n; ++j)
                 for (idx_t i = 0; i < j; ++i)
                     C(i, j) = T(0.);
-            herk(Uplo::Lower, Op::ConjTrans, real_t(1), C, real_t(-1), A);
+            herk(LOWER_TRIANGLE, CONJ_TRANS, real_t(1), C, real_t(-1), A);
         }
         else {
             for (idx_t j = 0; j < n; ++j)
                 for (idx_t i = j + 1; i < n; ++i)
                     C(i, j) = T(0.);
-            herk(Uplo::Upper, Op::NoTrans, real_t(1), C, real_t(-1), A);
+            herk(UPPER_TRIANGLE, NO_TRANS, real_t(1), C, real_t(-1), A);
         }
 
-        real_t res = lanhe(max_norm, uplo, A) / normC / normC;
+        real_t res = lanhe(MAX_NORM, uplo, A) / normC / normC;
         CHECK(res <= tol);
     }
 }

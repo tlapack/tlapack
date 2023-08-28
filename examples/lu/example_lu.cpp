@@ -35,7 +35,7 @@ void run(size_t n)
 
     // Create the n-by-n matrix A
     std::vector<T> A_(n * n);
-    tlapack::legacyMatrix<T, idx_t, L> A(n, n, A_.data(), n);
+    tlapack::LegacyMatrix<T, idx_t, L> A(n, n, A_.data(), n);
 
     // forming A, a random matrix
     for (idx_t j = 0; j < n; ++j)
@@ -45,15 +45,15 @@ void run(size_t n)
     real_t normA = tlapack::lange(tlapack::Norm::Fro, A);
 
     // Allocate space for the LU decomposition
-    std::vector<size_t> Piv(n);
+    std::vector<size_t> piv(n);
     std::vector<T> LU_(n * n);
-    tlapack::legacyMatrix<T, idx_t, L> LU(n, n, LU_.data(), n);
+    tlapack::LegacyMatrix<T, idx_t, L> LU(n, n, LU_.data(), n);
 
     // Matrix A is kept unchanged
-    tlapack::lacpy(tlapack::dense, A, LU);
+    tlapack::lacpy(tlapack::GENERAL, A, LU);
 
     // Computing the LU decomposition of A
-    int info = tlapack::getrf(LU, Piv);
+    int info = tlapack::getrf(LU, piv);
     if (info != 0) {
         std::cerr << "Matrix could not be factorized!" << std::endl;
         return;
@@ -61,7 +61,7 @@ void run(size_t n)
 
     // create X to store invese of A later
     std::vector<T> X_(n * n, T(0));
-    tlapack::legacyMatrix<T, idx_t, L> X(n, n, X_.data(), n);
+    tlapack::LegacyMatrix<T, idx_t, L> X(n, n, X_.data(), n);
 
     // step 0: store Identity on X
     for (size_t i = 0; i < n; i++)
@@ -76,18 +76,18 @@ void run(size_t n)
                   tlapack::Op::NoTrans, tlapack::Diag::NonUnit, real_t(1), LU,
                   X);
 
-    // X <----- U^{-1}L^{-1}P; swapping columns of X according to Piv
+    // X <----- U^{-1}L^{-1}P; swapping columns of X according to piv
     for (idx_t i = n; i-- > 0;) {
-        if (Piv[i] != i) {
+        if (piv[i] != i) {
             auto vect1 = tlapack::col(X, i);
-            auto vect2 = tlapack::col(X, Piv[i]);
+            auto vect2 = tlapack::col(X, piv[i]);
             tlapack::swap(vect1, vect2);
         }
     }
 
     // create E to store A * X
     std::vector<T> E_(n * n);
-    tlapack::legacyMatrix<T, idx_t, L> E(n, n, E_.data(), n);
+    tlapack::LegacyMatrix<T, idx_t, L> E(n, n, E_.data(), n);
 
     // E <----- A * X - I
     tlapack::gemm(tlapack::Op::NoTrans, tlapack::Op::NoTrans, real_t(1), A, X,

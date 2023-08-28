@@ -20,7 +20,32 @@
 
 namespace blas {
 
-    using namespace tlapack;
+    using tlapack::real_type;
+    using tlapack::complex_type;
+    using tlapack::scalar_type;
+
+    using tlapack::Layout;
+    using tlapack::Op;
+    using tlapack::Uplo;
+    using tlapack::Diag;
+    using tlapack::Side;
+
+    using tlapack::real;
+    using tlapack::imag;
+    using tlapack::conj;
+
+    //------------------------------------------------------------------------------
+    /// True if T is std::complex<T2> for some type T2.
+    template <typename T>
+    struct is_complex:
+        std::integral_constant<bool, false>
+    {};
+
+    // specialize for std::complex
+    template <typename T>
+    struct is_complex< std::complex<T> >:
+        std::integral_constant<bool, true>
+    {};
 
     // Empty structure since <T>LAPACK is not defining device BLAS
     struct Queue
@@ -77,7 +102,6 @@ namespace blas {
             case Layout::RowMajor: return "row";
             default:               return "";
         }
-        return "";
     }
 
     inline const char* op2str( Op op )
@@ -96,8 +120,8 @@ namespace blas {
             case Uplo::Lower:   return "lower";
             case Uplo::Upper:   return "upper";
             case Uplo::General: return "general";
+            default:            return "";
         }
-        return "";
     }
 
     inline const char* diag2str( Diag diag )
@@ -171,6 +195,29 @@ namespace blas {
         return Format( format );
     }
 
+    // max
+    template <typename T1, typename T2>
+    inline scalar_type<T1, T2> max(const T1& x, const T2& y)
+    {
+        return (x >= y ? x : y);
+    }
+    template <typename T1, typename T2, typename... Types>
+    inline scalar_type<T1, T2, Types...> max(const T1& first, const T2& second, const Types&... args)
+    {
+        return max(first, max(second, args...));
+    }
+
+    // min
+    template <typename T1, typename T2>
+    inline scalar_type<T1, T2> min(const T1& x, const T2& y)
+    {
+        return (x <= y ? x : y);
+    }
+    template <typename T1, typename T2, typename... Types>
+    inline scalar_type<T1, T2, Types...> min(const T1& first, const T2& second, const Types&... args)
+    {
+        return min(first, min(second, args...));
+    }
 }
 
 using blas::uplo2char;

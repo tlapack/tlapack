@@ -19,11 +19,6 @@ namespace tlapack {
 
 // -----------------------------------------------------------------------------
 // Macros to compute scaling constants
-//
-// @details
-//
-// Anderson E (2017) Algorithm 978: Safe scaling in the level 1 BLAS.
-// ACM Trans Math Softw 44:. https://doi.org/10.1145/3061665
 
 /** Unit in the Last Place
  * \[
@@ -33,8 +28,8 @@ namespace tlapack {
  *
  * @ingroup constants
  */
-template <typename real_t>
-inline constexpr real_t ulp()
+template <TLAPACK_REAL real_t>
+constexpr real_t ulp() noexcept
 {
     return std::numeric_limits<real_t>::epsilon();
 }
@@ -52,78 +47,64 @@ inline constexpr real_t ulp()
  *
  * @ingroup constants
  */
-template <typename real_t>
-inline constexpr real_t uroundoff()
+template <TLAPACK_REAL real_t>
+constexpr real_t uroundoff() noexcept
 {
     return ulp<real_t>() * std::numeric_limits<real_t>::round_error();
 }
 
 /** Digits
+ *
+ * Number of digits p in the mantissa.
+ * @see std::numeric_limits<real_t>::digits.
+ *
  * @ingroup constants
  */
 template <typename real_t>
-inline const int digits()
+int digits() noexcept
 {
     return std::numeric_limits<real_t>::digits;
 }
 
-/** Safe Minimum such that 1/safe_min() is representable
+/** Safe Minimum
+ *
+ * Smallest normal positive power of two such that its inverse (1/safe_min()) is
+ * finite.
+ *
  * @ingroup constants
  */
-template <typename real_t>
-inline constexpr real_t safe_min()
+template <TLAPACK_REAL real_t>
+constexpr real_t safe_min() noexcept
 {
-    constexpr int fradix = std::numeric_limits<real_t>::radix;
-    constexpr int expm = std::numeric_limits<real_t>::min_exponent;
-    constexpr int expM = std::numeric_limits<real_t>::max_exponent;
+    const int fradix = std::numeric_limits<real_t>::radix;
+    const int expm = std::numeric_limits<real_t>::min_exponent;
+    const int expM = std::numeric_limits<real_t>::max_exponent;
 
     return max(pow(fradix, real_t(expm - 1)), pow(fradix, real_t(1 - expM)));
 }
 
-/** Safe Maximum such that 1/safe_max() is representable
+/** Safe Maximum
  *
- * safe_max() := 1/SAFMIN
+ * safe_max() := 1/safe_min()
  *
  * @ingroup constants
  */
-template <typename real_t>
-inline constexpr real_t safe_max()
+template <TLAPACK_REAL real_t>
+constexpr real_t safe_max() noexcept
 {
-    constexpr int fradix = std::numeric_limits<real_t>::radix;
-    constexpr int expm = std::numeric_limits<real_t>::min_exponent;
-    constexpr int expM = std::numeric_limits<real_t>::max_exponent;
-
-    return min(pow(fradix, real_t(1 - expm)), pow(fradix, real_t(expM - 1)));
-}
-
-/** Safe Minimum such its square is representable
- * @ingroup constants
- */
-template <typename real_t>
-inline constexpr real_t root_min()
-{
-    return sqrt(safe_min<real_t>() / ulp<real_t>());
-}
-
-/** Safe Maximum such its square is representable
- * @ingroup constants
- */
-template <typename real_t>
-inline constexpr real_t root_max()
-{
-    return sqrt(safe_max<real_t>() * ulp<real_t>());
+    return real_t(1) / safe_min<real_t>();
 }
 
 /** Blue's min constant b for the sum of squares
  * @see https://doi.org/10.1145/355769.355771
  * @ingroup constants
  */
-template <typename real_t>
-inline constexpr real_t blue_min()
+template <TLAPACK_REAL real_t>
+constexpr real_t blue_min() noexcept
 {
     const real_t half(0.5);
-    constexpr int fradix = std::numeric_limits<real_t>::radix;
-    constexpr int expm = std::numeric_limits<real_t>::min_exponent;
+    const int fradix = std::numeric_limits<real_t>::radix;
+    const int expm = std::numeric_limits<real_t>::min_exponent;
 
     return pow(fradix, ceil(half * real_t(expm - 1)));
 }
@@ -132,12 +113,12 @@ inline constexpr real_t blue_min()
  * @see https://doi.org/10.1145/355769.355771
  * @ingroup constants
  */
-template <typename real_t>
-inline constexpr real_t blue_max()
+template <TLAPACK_REAL real_t>
+constexpr real_t blue_max() noexcept
 {
     const real_t half(0.5);
-    constexpr int fradix = std::numeric_limits<real_t>::radix;
-    constexpr int expM = std::numeric_limits<real_t>::max_exponent;
+    const int fradix = std::numeric_limits<real_t>::radix;
+    const int expM = std::numeric_limits<real_t>::max_exponent;
     const int t = digits<real_t>();
 
     return pow(fradix, floor(half * real_t(expM - t + 1)));
@@ -150,12 +131,12 @@ inline constexpr real_t blue_max()
  *
  * @ingroup constants
  */
-template <typename real_t>
-inline constexpr real_t blue_scalingMin()
+template <TLAPACK_REAL real_t>
+constexpr real_t blue_scalingMin() noexcept
 {
     const real_t half(0.5);
-    constexpr int fradix = std::numeric_limits<real_t>::radix;
-    constexpr int expm = std::numeric_limits<real_t>::min_exponent;
+    const int fradix = std::numeric_limits<real_t>::radix;
+    const int expm = std::numeric_limits<real_t>::min_exponent;
     const int t = digits<real_t>();
 
     return pow(fradix, -floor(half * real_t(expm - t)));
@@ -165,12 +146,12 @@ inline constexpr real_t blue_scalingMin()
  * @see https://doi.org/10.1145/355769.355771
  * @ingroup constants
  */
-template <typename real_t>
-inline constexpr real_t blue_scalingMax()
+template <TLAPACK_REAL real_t>
+constexpr real_t blue_scalingMax() noexcept
 {
     const real_t half(0.5);
-    constexpr int fradix = std::numeric_limits<real_t>::radix;
-    constexpr int expM = std::numeric_limits<real_t>::max_exponent;
+    const int fradix = std::numeric_limits<real_t>::radix;
+    const int expM = std::numeric_limits<real_t>::max_exponent;
     const int t = digits<real_t>();
 
     return pow(fradix, -ceil(half * real_t(expM + t - 1)));

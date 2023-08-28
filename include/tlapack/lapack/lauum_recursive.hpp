@@ -7,8 +7,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef TLAPACK_LAUUM_RECURSIVETLAPACK_
-#define TLAPACK_LAUUM_RECURSIVETLAPACK_
+#ifndef TLAPACK_LAUUM_RECURSIVETLAPACK_HH
+#define TLAPACK_LAUUM_RECURSIVETLAPACK_HH
 
 #include "tlapack/base/utils.hpp"
 #include "tlapack/blas/trmm.hpp"
@@ -41,7 +41,7 @@ namespace tlapack {
  * @todo: implement nx to bail out of recursion before 1-by-1 case
  *
  */
-template <typename matrix_t>
+template <TLAPACK_SMATRIX matrix_t>
 int lauum_recursive(const Uplo& uplo, matrix_t& C)
 
 {
@@ -49,7 +49,7 @@ int lauum_recursive(const Uplo& uplo, matrix_t& C)
 
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
-    using range = std::pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
     using real_t = real_type<T>;
 
     const idx_t n = nrows(C);
@@ -77,8 +77,8 @@ int lauum_recursive(const Uplo& uplo, matrix_t& C)
             auto C11 = slice(C, range(n0, n), range(n0, n));
 
             lauum_recursive(uplo, C00);
-            herk(Uplo::Lower, Op::ConjTrans, real_t(1), C10, real_t(1), C00);
-            trmm(Side::Left, uplo, Op::ConjTrans, Diag::NonUnit, real_t(1), C11,
+            herk(LOWER_TRIANGLE, CONJ_TRANS, real_t(1), C10, real_t(1), C00);
+            trmm(LEFT_SIDE, uplo, CONJ_TRANS, NON_UNIT_DIAG, real_t(1), C11,
                  C10);
             lauum_recursive(uplo, C11);
         }
@@ -89,10 +89,10 @@ int lauum_recursive(const Uplo& uplo, matrix_t& C)
             auto C11 = slice(C, range(n0, n), range(n0, n));
 
             lauum_recursive(uplo, C00);
-            herk(Uplo::Upper, Op::NoTrans, real_t(1), C01, real_t(1), C00);
-            trmm(Side::Right, uplo, Op::ConjTrans, Diag::NonUnit, real_t(1),
-                 C11, C01);
-            lauum_recursive(Uplo::Upper, C11);
+            herk(UPPER_TRIANGLE, NO_TRANS, real_t(1), C01, real_t(1), C00);
+            trmm(RIGHT_SIDE, uplo, CONJ_TRANS, NON_UNIT_DIAG, real_t(1), C11,
+                 C01);
+            lauum_recursive(UPPER_TRIANGLE, C11);
         }
     }
 
@@ -101,4 +101,4 @@ int lauum_recursive(const Uplo& uplo, matrix_t& C)
 
 }  // namespace tlapack
 
-#endif  // TLAPACK_LAUUM_RECURSIVETLAPACK_
+#endif  // TLAPACK_LAUUM_RECURSIVETLAPACK_HH

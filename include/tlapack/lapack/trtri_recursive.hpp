@@ -44,15 +44,15 @@ namespace tlapack {
  * @ingroup computational
  *
  */
-template <typename uplo_t, typename matrix_t>
+template <TLAPACK_UPLO uplo_t, TLAPACK_SMATRIX matrix_t>
 int trtri_recursive(uplo_t uplo,
                     Diag diag,
                     matrix_t& C,
-                    const ec_opts_t& opts = {})
+                    const EcOpts& opts = {})
 {
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
-    using range = std::pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
     using real_t = real_type<T>;
 
     const idx_t n = nrows(C);
@@ -75,9 +75,9 @@ int trtri_recursive(uplo_t uplo,
                 return 0;
             }
             else {
-                tlapack_error_internal(opts.ec, 1,
-                                       "A diagonal of entry of triangular "
-                                       "matrix is exactly zero.");
+                tlapack_error_if(opts.ec.internal, 1,
+                                 "A diagonal of entry of triangular "
+                                 "matrix is exactly zero.");
                 return 1;
             }
         }
@@ -91,55 +91,55 @@ int trtri_recursive(uplo_t uplo,
             auto C10 = slice(C, range(n0, n), range(0, n0));
             auto C11 = slice(C, range(n0, n), range(n0, n));
 
-            trsm(Side::Right, Uplo::Lower, Op::NoTrans, diag, T(-1), C00, C10);
-            trsm(Side::Left, Uplo::Lower, Op::NoTrans, diag, T(+1), C11, C10);
-            int info = trtri_recursive(Uplo::Lower, diag, C00, opts);
+            trsm(RIGHT_SIDE, LOWER_TRIANGLE, NO_TRANS, diag, T(-1), C00, C10);
+            trsm(LEFT_SIDE, LOWER_TRIANGLE, NO_TRANS, diag, T(+1), C11, C10);
+            int info = trtri_recursive(LOWER_TRIANGLE, diag, C00, opts);
 
             if (info != 0) {
-                tlapack_error_internal(opts.ec, info,
-                                       "A diagonal of entry of triangular "
-                                       "matrix is exactly zero.");
+                tlapack_error_if(opts.ec.internal, info,
+                                 "A diagonal of entry of triangular "
+                                 "matrix is exactly zero.");
                 return info;
             }
-            info = trtri_recursive(Uplo::Lower, diag, C11, opts);
+            info = trtri_recursive(LOWER_TRIANGLE, diag, C11, opts);
             if (info == 0)
                 return 0;
             else {
-                tlapack_error_internal(opts.ec, info + n0,
-                                       "A diagonal of entry of triangular "
-                                       "matrix is exactly zero.");
+                tlapack_error_if(opts.ec.internal, info + n0,
+                                 "A diagonal of entry of triangular "
+                                 "matrix is exactly zero.");
                 return info + n0;
             }
 
             // there are two variants, the code below also works
 
-            // trtri_recursive( Uplo::Lower, C00);
-            // trtri_recursive( Uplo::Lower, C11);
-            // trmm(Side::Right, Uplo::Lower, Op::NoTrans, Diag::NonUnit, T(-1),
-            // C00, C10); trmm(Side::Left, Uplo::Lower, Op::NoTrans,
-            // Diag::NonUnit, T(+1), C11, C10);
+            // trtri_recursive( LOWER_TRIANGLE, C00);
+            // trtri_recursive( LOWER_TRIANGLE, C11);
+            // trmm(RIGHT_SIDE, LOWER_TRIANGLE, NO_TRANS, NON_UNIT_DIAG, T(-1),
+            // C00, C10); trmm(LEFT_SIDE, LOWER_TRIANGLE, NO_TRANS,
+            // NON_UNIT_DIAG, T(+1), C11, C10);
         }
         else {
             auto C00 = slice(C, range(0, n0), range(0, n0));
             auto C01 = slice(C, range(0, n0), range(n0, n));
             auto C11 = slice(C, range(n0, n), range(n0, n));
 
-            trsm(Side::Left, Uplo::Upper, Op::NoTrans, diag, T(-1), C00, C01);
-            trsm(Side::Right, Uplo::Upper, Op::NoTrans, diag, T(+1), C11, C01);
-            int info = trtri_recursive(Uplo::Upper, diag, C00, opts);
+            trsm(LEFT_SIDE, UPPER_TRIANGLE, NO_TRANS, diag, T(-1), C00, C01);
+            trsm(RIGHT_SIDE, UPPER_TRIANGLE, NO_TRANS, diag, T(+1), C11, C01);
+            int info = trtri_recursive(UPPER_TRIANGLE, diag, C00, opts);
             if (info != 0) {
-                tlapack_error_internal(opts.ec, info,
-                                       "A diagonal of entry of triangular "
-                                       "matrix is exactly zero.");
+                tlapack_error_if(opts.ec.internal, info,
+                                 "A diagonal of entry of triangular "
+                                 "matrix is exactly zero.");
                 return info;
             }
-            info = trtri_recursive(Uplo::Upper, diag, C11, opts);
+            info = trtri_recursive(UPPER_TRIANGLE, diag, C11, opts);
             if (info == 0)
                 return 0;
             else {
-                tlapack_error_internal(opts.ec, info + n0,
-                                       "A diagonal of entry of triangular "
-                                       "matrix is exactly zero.");
+                tlapack_error_if(opts.ec.internal, info + n0,
+                                 "A diagonal of entry of triangular "
+                                 "matrix is exactly zero.");
                 return info + n0;
             }
 
@@ -147,9 +147,9 @@ int trtri_recursive(uplo_t uplo,
 
             // trtri_recursive( C00, Uplo::Upper);
             // trtri_recursive( C11, Uplo::Upper);
-            // trmm(Side::Left, Uplo::Upper, Op::NoTrans, Diag::NonUnit, T(-1),
-            // C00, C01); trmm(Side::Right, Uplo::Upper, Op::NoTrans,
-            // Diag::NonUnit, T(+1), C11, C01);
+            // trmm(LEFT_SIDE, UPPER_TRIANGLE, NO_TRANS, NON_UNIT_DIAG, T(-1),
+            // C00, C01); trmm(RIGHT_SIDE, UPPER_TRIANGLE, NO_TRANS,
+            // NON_UNIT_DIAG, T(+1), C11, C01);
         }
     }
 }

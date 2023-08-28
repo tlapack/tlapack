@@ -16,7 +16,7 @@
 #undef assert_throw
 #define assert_throw( expr, exception_type ) ((void)0)
 
-#undef USE_LAPACKPP_WRAPPERS // Disable BLAS++ wrappers
+#undef TLAPACK_USE_LAPACKPP // Disable BLAS++ wrappers
 #define TLAPACK_ERROR_NDEBUG // Don't test corner cases
 
 #endif        //  #ifndef BLAS_DEFINES_H

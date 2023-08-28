@@ -45,7 +45,7 @@ TEMPLATE_TEST_CASE("schur swap gives correct result",
     const idx_t n1 = GENERATE(1, 2);
     const idx_t n2 = GENERATE(1, 2);
 
-    if (!is_complex<T>::value || (n1 == 1 && n2 == 1)) {
+    if (is_real<T> || (n1 == 1 && n2 == 1)) {
         const real_t eps = uroundoff<real_t>();
         const real_t tol = real_t(1.0e2 * n) * eps;
 
@@ -68,8 +68,8 @@ TEMPLATE_TEST_CASE("schur swap gives correct result",
         if (n1 == 2) A(j + 1, j) = rand_helper<T>();
         if (n2 == 2) A(j + n1 + 1, j + n1) = rand_helper<T>();
 
-        lacpy(Uplo::General, A, A_copy);
-        laset(Uplo::General, zero, one, Q);
+        lacpy(GENERAL, A, A_copy);
+        laset(GENERAL, zero, one, Q);
 
         DYNAMIC_SECTION("j = " << j << " n1 = " << n1 << " n2 =" << n2)
         {
@@ -83,7 +83,7 @@ TEMPLATE_TEST_CASE("schur swap gives correct result",
             auto orth_res_norm = check_orthogonality(Q, res);
             CHECK(orth_res_norm <= tol);
 
-            auto normA = tlapack::lange(tlapack::frob_norm, A);
+            auto normA = tlapack::lange(tlapack::FROB_NORM, A);
             auto simil_res_norm =
                 check_similarity_transform(A_copy, Q, A, res, work);
             CHECK(simil_res_norm <= tol * normA);

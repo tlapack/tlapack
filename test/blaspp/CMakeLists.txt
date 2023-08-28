@@ -4,14 +4,30 @@
 # <T>LAPACK is free software: you can redistribute it and/or modify it under
 # the terms of the BSD 3-Clause license. See the accompanying LICENSE file
 
-find_package( blaspp REQUIRED )
-find_package( LAPACK REQUIRED )
+find_package( LAPACK 3.9.0 REQUIRED )
+find_package( Git REQUIRED )
 
+# Download blaspp/test at blaspp-src/test
+file(MAKE_DIRECTORY "blaspp-src")
+execute_process(COMMAND ${GIT_EXECUTABLE} init --quiet
+                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/blaspp-src)
+execute_process(COMMAND ${GIT_EXECUTABLE} reset --hard --quiet
+                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/blaspp-src)
+execute_process(COMMAND ${GIT_EXECUTABLE} remote add origin ${blaspp_git_repo}
+                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/blaspp-src
+                ERROR_QUIET)
+execute_process(COMMAND ${GIT_EXECUTABLE} config core.sparseCheckout true
+                COMMAND ${GIT_EXECUTABLE} sparse-checkout set test
+                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/blaspp-src)
+execute_process(COMMAND ${GIT_EXECUTABLE} fetch --quiet origin master
+                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/blaspp-src)
+execute_process(COMMAND ${GIT_EXECUTABLE} checkout --quiet ${blaspp_git_tag}
+                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/blaspp-src)
+message(STATUS "blaspp/test downloaded and checked out to ${blaspp_git_tag}")
+
+set( blaspp_TEST_DIR "${CMAKE_CURRENT_SOURCE_DIR}/blaspp-src/test" )
 if( EXISTS "${blaspp_TEST_DIR}/test.cc" )
 
-  FetchPackage( "testsweeper" "https://bitbucket.org/icl/testsweeper" "2021.04.00" )
-
-  set( blaspp_tester )
   add_executable(
     blaspp_tester
     test.cpp
@@ -62,11 +78,9 @@ if( EXISTS "${blaspp_TEST_DIR}/test.cc" )
   target_link_libraries(
     blaspp_tester
     ${LAPACK_LIBRARIES}
-    ${blaspp_libraries}
   )
 
   target_include_directories( blaspp_tester PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${blaspp_TEST_DIR} )
-  target_compile_definitions( blaspp_tester PRIVATE ${blaspp_defines} )
 
   # Copy run_tests script to build directory.
   add_custom_command(

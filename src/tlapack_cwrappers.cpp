@@ -127,25 +127,27 @@ extern "C" {
 #define _sasum BLAS_FUNCTION(sasum)
 float _sasum(blas_idx_t n, float const* x, blas_int_t incx)
 {
-    return tlapack::asum<float>(n, x, incx);
+    return tlapack::legacy::asum<float>(n, x, incx);
 }
 
 #define _dasum BLAS_FUNCTION(dasum)
 double _dasum(blas_idx_t n, double const* x, blas_int_t incx)
 {
-    return tlapack::asum<double>(n, x, incx);
+    return tlapack::legacy::asum<double>(n, x, incx);
 }
 
 #define _casum BLAS_FUNCTION(casum)
 float _casum(blas_idx_t n, complexFloat const* x, blas_int_t incx)
 {
-    return tlapack::asum<tlapack_complexFloat>(n, tlapack_cteC(x), incx);
+    return tlapack::legacy::asum<tlapack_complexFloat>(n, tlapack_cteC(x),
+                                                       incx);
 }
 
 #define _zasum BLAS_FUNCTION(zasum)
 double _zasum(blas_idx_t n, complexDouble const* x, blas_int_t incx)
 {
-    return tlapack::asum<tlapack_complexDouble>(n, tlapack_cteZ(x), incx);
+    return tlapack::legacy::asum<tlapack_complexDouble>(n, tlapack_cteZ(x),
+                                                        incx);
 }
 
 #define _saxpy BLAS_FUNCTION(saxpy)
@@ -156,7 +158,7 @@ void _saxpy(blas_idx_t n,
             float* y,
             blas_int_t incy)
 {
-    return tlapack::axpy<float, float>(n, alpha, x, incx, y, incy);
+    return tlapack::legacy::axpy<float, float>(n, alpha, x, incx, y, incy);
 }
 
 #define _daxpy BLAS_FUNCTION(daxpy)
@@ -167,7 +169,7 @@ void _daxpy(blas_idx_t n,
             double* y,
             blas_int_t incy)
 {
-    return tlapack::axpy<double, double>(n, alpha, x, incx, y, incy);
+    return tlapack::legacy::axpy<double, double>(n, alpha, x, incx, y, incy);
 }
 
 #define _caxpy BLAS_FUNCTION(caxpy)
@@ -178,7 +180,7 @@ void _caxpy(blas_idx_t n,
             complexFloat* y,
             blas_int_t incy)
 {
-    return tlapack::axpy<tlapack_complexFloat, tlapack_complexFloat>(
+    return tlapack::legacy::axpy<tlapack_complexFloat, tlapack_complexFloat>(
         n, *tlapack_C(&alpha), tlapack_cteC(x), incx, tlapack_C(y), incy);
 }
 
@@ -190,7 +192,7 @@ void _zaxpy(blas_idx_t n,
             complexDouble* y,
             blas_int_t incy)
 {
-    return tlapack::axpy<tlapack_complexDouble, tlapack_complexDouble>(
+    return tlapack::legacy::axpy<tlapack_complexDouble, tlapack_complexDouble>(
         n, *tlapack_Z(&alpha), tlapack_cteZ(x), incx, tlapack_Z(y), incy);
 }
 
@@ -198,14 +200,14 @@ void _zaxpy(blas_idx_t n,
 void _scopy(
     blas_idx_t n, float const* x, blas_int_t incx, float* y, blas_int_t incy)
 {
-    return tlapack::copy<float, float>(n, x, incx, y, incy);
+    return tlapack::legacy::copy<float, float>(n, x, incx, y, incy);
 }
 
 #define _dcopy BLAS_FUNCTION(dcopy)
 void _dcopy(
     blas_idx_t n, double const* x, blas_int_t incx, double* y, blas_int_t incy)
 {
-    return tlapack::copy<double, double>(n, x, incx, y, incy);
+    return tlapack::legacy::copy<double, double>(n, x, incx, y, incy);
 }
 
 #define _ccopy BLAS_FUNCTION(ccopy)
@@ -215,7 +217,7 @@ void _ccopy(blas_idx_t n,
             complexFloat* y,
             blas_int_t incy)
 {
-    return tlapack::copy<tlapack_complexFloat, tlapack_complexFloat>(
+    return tlapack::legacy::copy<tlapack_complexFloat, tlapack_complexFloat>(
         n, tlapack_cteC(x), incx, tlapack_C(y), incy);
 }
 
@@ -226,7 +228,7 @@ void _zcopy(blas_idx_t n,
             complexDouble* y,
             blas_int_t incy)
 {
-    return tlapack::copy<tlapack_complexDouble, tlapack_complexDouble>(
+    return tlapack::legacy::copy<tlapack_complexDouble, tlapack_complexDouble>(
         n, tlapack_cteZ(x), incx, tlapack_Z(y), incy);
 }
 
@@ -237,7 +239,7 @@ float _sdot(blas_idx_t n,
             float const* y,
             blas_int_t incy)
 {
-    return tlapack::dot<float, float>(n, x, incx, y, incy);
+    return tlapack::legacy::dot<float, float>(n, x, incx, y, incy);
 }
 
 #define _ddot BLAS_FUNCTION(ddot)
@@ -247,7 +249,7 @@ double _ddot(blas_idx_t n,
              double const* y,
              blas_int_t incy)
 {
-    return tlapack::dot<double, double>(n, x, incx, y, incy);
+    return tlapack::legacy::dot<double, double>(n, x, incx, y, incy);
 }
 
 #define _cdot BLAS_FUNCTION(cdot)
@@ -258,7 +260,7 @@ complexFloat _cdot(blas_idx_t n,
                    blas_int_t incy)
 {
     tlapack_complexFloat c =
-        tlapack::dot<tlapack_complexFloat, tlapack_complexFloat>(
+        tlapack::legacy::dot<tlapack_complexFloat, tlapack_complexFloat>(
             n, tlapack_cteC(x), incx, tlapack_cteC(y), incy);
     return *reinterpret_cast<complexFloat*>(&c);
 }
@@ -271,7 +273,7 @@ complexDouble _zdot(blas_idx_t n,
                     blas_int_t incy)
 {
     tlapack_complexDouble z =
-        tlapack::dot<tlapack_complexDouble, tlapack_complexDouble>(
+        tlapack::legacy::dot<tlapack_complexDouble, tlapack_complexDouble>(
             n, tlapack_cteZ(x), incx, tlapack_cteZ(y), incy);
     return *reinterpret_cast<complexDouble*>(&z);
 }
@@ -283,7 +285,7 @@ float _sdotu(blas_idx_t n,
              float const* y,
              blas_int_t incy)
 {
-    return tlapack::dotu<float, float>(n, x, incx, y, incy);
+    return tlapack::legacy::dotu<float, float>(n, x, incx, y, incy);
 }
 
 #define _ddotu BLAS_FUNCTION(ddotu)
@@ -293,7 +295,7 @@ double _ddotu(blas_idx_t n,
               double const* y,
               blas_int_t incy)
 {
-    return tlapack::dotu<double, double>(n, x, incx, y, incy);
+    return tlapack::legacy::dotu<double, double>(n, x, incx, y, incy);
 }
 
 #define _cdotu BLAS_FUNCTION(cdotu)
@@ -304,7 +306,7 @@ complexFloat _cdotu(blas_idx_t n,
                     blas_int_t incy)
 {
     tlapack_complexFloat c =
-        tlapack::dotu<tlapack_complexFloat, tlapack_complexFloat>(
+        tlapack::legacy::dotu<tlapack_complexFloat, tlapack_complexFloat>(
             n, tlapack_cteC(x), incx, tlapack_cteC(y), incy);
     return *reinterpret_cast<complexFloat*>(&c);
 }
@@ -317,7 +319,7 @@ complexDouble _zdotu(blas_idx_t n,
                      blas_int_t incy)
 {
     tlapack_complexDouble z =
-        tlapack::dotu<tlapack_complexDouble, tlapack_complexDouble>(
+        tlapack::legacy::dotu<tlapack_complexDouble, tlapack_complexDouble>(
             n, tlapack_cteZ(x), incx, tlapack_cteZ(y), incy);
     return *reinterpret_cast<complexDouble*>(&z);
 }
@@ -325,51 +327,53 @@ complexDouble _zdotu(blas_idx_t n,
 #define _isamax BLAS_FUNCTION(isamax)
 blas_iamax_t _isamax(blas_idx_t n, float const* x, blas_int_t incx)
 {
-    return (blas_iamax_t)tlapack::iamax<float>(n, x, incx);
+    return (blas_iamax_t)tlapack::legacy::iamax<float>(n, x, incx);
 }
 
 #define _idamax BLAS_FUNCTION(idamax)
 blas_iamax_t _idamax(blas_idx_t n, double const* x, blas_int_t incx)
 {
-    return (blas_iamax_t)tlapack::iamax<double>(n, x, incx);
+    return (blas_iamax_t)tlapack::legacy::iamax<double>(n, x, incx);
 }
 
 #define _icamax BLAS_FUNCTION(icamax)
 blas_iamax_t _icamax(blas_idx_t n, complexFloat const* x, blas_int_t incx)
 {
-    return (blas_iamax_t)tlapack::iamax<tlapack_complexFloat>(
+    return (blas_iamax_t)tlapack::legacy::iamax<tlapack_complexFloat>(
         n, tlapack_cteC(x), incx);
 }
 
 #define _izamax BLAS_FUNCTION(izamax)
 blas_iamax_t _izamax(blas_idx_t n, complexDouble const* x, blas_int_t incx)
 {
-    return (blas_iamax_t)tlapack::iamax<tlapack_complexDouble>(
+    return (blas_iamax_t)tlapack::legacy::iamax<tlapack_complexDouble>(
         n, tlapack_cteZ(x), incx);
 }
 
 #define _snrm2 BLAS_FUNCTION(snrm2)
 float _snrm2(blas_idx_t n, float const* x, blas_int_t incx)
 {
-    return tlapack::nrm2<float>(n, x, incx);
+    return tlapack::legacy::nrm2<float>(n, x, incx);
 }
 
 #define _dnrm2 BLAS_FUNCTION(dnrm2)
 double _dnrm2(blas_idx_t n, double const* x, blas_int_t incx)
 {
-    return tlapack::nrm2<double>(n, x, incx);
+    return tlapack::legacy::nrm2<double>(n, x, incx);
 }
 
 #define _cnrm2 BLAS_FUNCTION(cnrm2)
 float _cnrm2(blas_idx_t n, complexFloat const* x, blas_int_t incx)
 {
-    return tlapack::nrm2<tlapack_complexFloat>(n, tlapack_cteC(x), incx);
+    return tlapack::legacy::nrm2<tlapack_complexFloat>(n, tlapack_cteC(x),
+                                                       incx);
 }
 
 #define _znrm2 BLAS_FUNCTION(znrm2)
 double _znrm2(blas_idx_t n, complexDouble const* x, blas_int_t incx)
 {
-    return tlapack::nrm2<tlapack_complexDouble>(n, tlapack_cteZ(x), incx);
+    return tlapack::legacy::nrm2<tlapack_complexDouble>(n, tlapack_cteZ(x),
+                                                        incx);
 }
 
 #define _srot BLAS_FUNCTION(srot)
@@ -381,7 +385,7 @@ void _srot(blas_idx_t n,
            float c,
            float s)
 {
-    return tlapack::rot<float, float>(n, x, incx, y, incy, c, s);
+    return tlapack::legacy::rot<float, float>(n, x, incx, y, incy, c, s);
 }
 
 #define _drot BLAS_FUNCTION(drot)
@@ -393,7 +397,7 @@ void _drot(blas_idx_t n,
            double c,
            double s)
 {
-    return tlapack::rot<double, double>(n, x, incx, y, incy, c, s);
+    return tlapack::legacy::rot<double, double>(n, x, incx, y, incy, c, s);
 }
 
 #define _csrot BLAS_FUNCTION(csrot)
@@ -405,7 +409,8 @@ void _csrot(blas_idx_t n,
             float c,
             float s)
 {
-    return tlapack::rot(n, tlapack_C(x), incx, tlapack_C(y), incy, c, s);
+    return tlapack::legacy::rot(n, tlapack_C(x), incx, tlapack_C(y), incy, c,
+                                s);
 }
 
 #define _zdrot BLAS_FUNCTION(zdrot)
@@ -417,7 +422,8 @@ void _zdrot(blas_idx_t n,
             double c,
             double s)
 {
-    return tlapack::rot(n, tlapack_Z(x), incx, tlapack_Z(y), incy, c, s);
+    return tlapack::legacy::rot(n, tlapack_Z(x), incx, tlapack_Z(y), incy, c,
+                                s);
 }
 
 #define _crot BLAS_FUNCTION(crot)
@@ -429,7 +435,7 @@ void _crot(blas_idx_t n,
            float c,
            complexFloat s)
 {
-    return tlapack::rot<tlapack_complexFloat, tlapack_complexFloat>(
+    return tlapack::legacy::rot<tlapack_complexFloat, tlapack_complexFloat>(
         n, tlapack_C(x), incx, tlapack_C(y), incy, c, *tlapack_C(&s));
 }
 
@@ -442,20 +448,20 @@ void _zrot(blas_idx_t n,
            double c,
            complexDouble s)
 {
-    return tlapack::rot<tlapack_complexDouble, tlapack_complexDouble>(
+    return tlapack::legacy::rot<tlapack_complexDouble, tlapack_complexDouble>(
         n, tlapack_Z(x), incx, tlapack_Z(y), incy, c, *tlapack_Z(&s));
 }
 
 #define _srotg BLAS_FUNCTION(srotg)
 void _srotg(float* a, float* b, float* c, float* s)
 {
-    return tlapack::rotg<float>(*a, *b, *c, *s);
+    return tlapack::legacy::rotg<float>(a, b, c, s);
 }
 
 #define _drotg BLAS_FUNCTION(drotg)
 void _drotg(double* a, double* b, double* c, double* s)
 {
-    return tlapack::rotg<double>(*a, *b, *c, *s);
+    return tlapack::legacy::rotg<double>(a, b, c, s);
 }
 
 #define _crotg BLAS_FUNCTION(crotg)
@@ -480,7 +486,7 @@ void _srotm(blas_idx_t n,
             blas_int_t incy,
             float const* param)
 {
-    return tlapack::rotm<float, float>(n, x, incx, y, incy, param);
+    return tlapack::legacy::rotm<float, float>(n, x, incx, y, incy, param);
 }
 
 #define _drotm BLAS_FUNCTION(drotm)
@@ -491,38 +497,38 @@ void _drotm(blas_idx_t n,
             blas_int_t incy,
             double const* param)
 {
-    return tlapack::rotm<double, double>(n, x, incx, y, incy, param);
+    return tlapack::legacy::rotm<double, double>(n, x, incx, y, incy, param);
 }
 
 #define _srotmg BLAS_FUNCTION(srotmg)
 void _srotmg(float* d1, float* d2, float* a, float b, float* param)
 {
-    return tlapack::rotmg<float>(d1, d2, a, b, param);
+    return tlapack::legacy::rotmg<float>(d1, d2, a, b, param);
 }
 
 #define _drotmg BLAS_FUNCTION(drotmg)
 void _drotmg(double* d1, double* d2, double* a, double b, double* param)
 {
-    return tlapack::rotmg<double>(d1, d2, a, b, param);
+    return tlapack::legacy::rotmg<double>(d1, d2, a, b, param);
 }
 
 #define _sscal BLAS_FUNCTION(sscal)
 void _sscal(blas_idx_t n, float alpha, float* x, blas_int_t incx)
 {
-    return tlapack::scal<float>(n, alpha, x, incx);
+    return tlapack::legacy::scal<float>(n, alpha, x, incx);
 }
 
 #define _dscal BLAS_FUNCTION(dscal)
 void _dscal(blas_idx_t n, double alpha, double* x, blas_int_t incx)
 {
-    return tlapack::scal<double>(n, alpha, x, incx);
+    return tlapack::legacy::scal<double>(n, alpha, x, incx);
 }
 
 #define _cscal BLAS_FUNCTION(cscal)
 void _cscal(blas_idx_t n, complexFloat alpha, complexFloat* x, blas_int_t incx)
 {
-    return tlapack::scal<tlapack_complexFloat>(n, *tlapack_C(&alpha),
-                                               tlapack_C(x), incx);
+    return tlapack::legacy::scal<tlapack_complexFloat>(n, *tlapack_C(&alpha),
+                                                       tlapack_C(x), incx);
 }
 
 #define _zscal BLAS_FUNCTION(zscal)
@@ -531,21 +537,21 @@ void _zscal(blas_idx_t n,
             complexDouble* x,
             blas_int_t incx)
 {
-    return tlapack::scal<tlapack_complexDouble>(n, *tlapack_Z(&alpha),
-                                                tlapack_Z(x), incx);
+    return tlapack::legacy::scal<tlapack_complexDouble>(n, *tlapack_Z(&alpha),
+                                                        tlapack_Z(x), incx);
 }
 
 #define _sswap BLAS_FUNCTION(sswap)
 void _sswap(blas_idx_t n, float* x, blas_int_t incx, float* y, blas_int_t incy)
 {
-    return tlapack::swap<float, float>(n, x, incx, y, incy);
+    return tlapack::legacy::swap<float, float>(n, x, incx, y, incy);
 }
 
 #define _dswap BLAS_FUNCTION(dswap)
 void _dswap(
     blas_idx_t n, double* x, blas_int_t incx, double* y, blas_int_t incy)
 {
-    return tlapack::swap<double, double>(n, x, incx, y, incy);
+    return tlapack::legacy::swap<double, double>(n, x, incx, y, incy);
 }
 
 #define _cswap BLAS_FUNCTION(cswap)
@@ -555,7 +561,7 @@ void _cswap(blas_idx_t n,
             complexFloat* y,
             blas_int_t incy)
 {
-    return tlapack::swap<tlapack_complexFloat, tlapack_complexFloat>(
+    return tlapack::legacy::swap<tlapack_complexFloat, tlapack_complexFloat>(
         n, tlapack_C(x), incx, tlapack_C(y), incy);
 }
 
@@ -566,7 +572,7 @@ void _zswap(blas_idx_t n,
             complexDouble* y,
             blas_int_t incy)
 {
-    return tlapack::swap<tlapack_complexDouble, tlapack_complexDouble>(
+    return tlapack::legacy::swap<tlapack_complexDouble, tlapack_complexDouble>(
         n, tlapack_Z(x), incx, tlapack_Z(y), incy);
 }
 
@@ -584,9 +590,9 @@ void _sgemv(Layout layout,
             float* y,
             blas_int_t incy)
 {
-    return tlapack::gemv<float, float, float>(toTLAPACKlayout(layout),
-                                              toTLAPACKop(trans), m, n, alpha,
-                                              A, lda, x, incx, beta, y, incy);
+    return tlapack::legacy::gemv<float, float, float>(
+        toTLAPACKlayout(layout), toTLAPACKop(trans), m, n, alpha, A, lda, x,
+        incx, beta, y, incy);
 }
 
 #define _dgemv BLAS_FUNCTION(dgemv)
@@ -603,7 +609,7 @@ void _dgemv(Layout layout,
             double* y,
             blas_int_t incy)
 {
-    return tlapack::gemv<double, double, double>(
+    return tlapack::legacy::gemv<double, double, double>(
         toTLAPACKlayout(layout), toTLAPACKop(trans), m, n, alpha, A, lda, x,
         incx, beta, y, incy);
 }
@@ -622,8 +628,8 @@ void _cgemv(Layout layout,
             complexFloat* y,
             blas_int_t incy)
 {
-    return tlapack::gemv<tlapack_complexFloat, tlapack_complexFloat,
-                         tlapack_complexFloat>(
+    return tlapack::legacy::gemv<tlapack_complexFloat, tlapack_complexFloat,
+                                 tlapack_complexFloat>(
         toTLAPACKlayout(layout), toTLAPACKop(trans), m, n, *tlapack_C(&alpha),
         tlapack_cteC(A), lda, tlapack_cteC(x), incx, *tlapack_C(&beta),
         tlapack_C(y), incy);
@@ -643,8 +649,8 @@ void _zgemv(Layout layout,
             complexDouble* y,
             blas_int_t incy)
 {
-    return tlapack::gemv<tlapack_complexDouble, tlapack_complexDouble,
-                         tlapack_complexDouble>(
+    return tlapack::legacy::gemv<tlapack_complexDouble, tlapack_complexDouble,
+                                 tlapack_complexDouble>(
         toTLAPACKlayout(layout), toTLAPACKop(trans), m, n, *tlapack_Z(&alpha),
         tlapack_cteZ(A), lda, tlapack_cteZ(x), incx, *tlapack_Z(&beta),
         tlapack_Z(y), incy);
@@ -662,8 +668,8 @@ void _sger(Layout layout,
            float* A,
            blas_idx_t lda)
 {
-    return tlapack::ger<float, float, float>(toTLAPACKlayout(layout), m, n,
-                                             alpha, x, incx, y, incy, A, lda);
+    return tlapack::legacy::ger<float, float, float>(
+        toTLAPACKlayout(layout), m, n, alpha, x, incx, y, incy, A, lda);
 }
 
 #define _dger BLAS_FUNCTION(dger)
@@ -678,7 +684,7 @@ void _dger(Layout layout,
            double* A,
            blas_idx_t lda)
 {
-    return tlapack::ger<double, double, double>(
+    return tlapack::legacy::ger<double, double, double>(
         toTLAPACKlayout(layout), m, n, alpha, x, incx, y, incy, A, lda);
 }
 
@@ -694,8 +700,8 @@ void _cger(Layout layout,
            complexFloat* A,
            blas_idx_t lda)
 {
-    return tlapack::ger<tlapack_complexFloat, tlapack_complexFloat,
-                        tlapack_complexFloat>(
+    return tlapack::legacy::ger<tlapack_complexFloat, tlapack_complexFloat,
+                                tlapack_complexFloat>(
         toTLAPACKlayout(layout), m, n, *tlapack_C(&alpha), tlapack_cteC(x),
         incx, tlapack_cteC(y), incy, tlapack_C(A), lda);
 }
@@ -712,8 +718,8 @@ void _zger(Layout layout,
            complexDouble* A,
            blas_idx_t lda)
 {
-    return tlapack::ger<tlapack_complexDouble, tlapack_complexDouble,
-                        tlapack_complexDouble>(
+    return tlapack::legacy::ger<tlapack_complexDouble, tlapack_complexDouble,
+                                tlapack_complexDouble>(
         toTLAPACKlayout(layout), m, n, *tlapack_Z(&alpha), tlapack_cteZ(x),
         incx, tlapack_cteZ(y), incy, tlapack_Z(A), lda);
 }
@@ -730,8 +736,8 @@ void _sgeru(Layout layout,
             float* A,
             blas_idx_t lda)
 {
-    return tlapack::geru<float, float, float>(toTLAPACKlayout(layout), m, n,
-                                              alpha, x, incx, y, incy, A, lda);
+    return tlapack::legacy::geru<float, float, float>(
+        toTLAPACKlayout(layout), m, n, alpha, x, incx, y, incy, A, lda);
 }
 
 #define _dgeru BLAS_FUNCTION(dgeru)
@@ -746,7 +752,7 @@ void _dgeru(Layout layout,
             double* A,
             blas_idx_t lda)
 {
-    return tlapack::geru<double, double, double>(
+    return tlapack::legacy::geru<double, double, double>(
         toTLAPACKlayout(layout), m, n, alpha, x, incx, y, incy, A, lda);
 }
 
@@ -762,8 +768,8 @@ void _cgeru(Layout layout,
             complexFloat* A,
             blas_idx_t lda)
 {
-    return tlapack::geru<tlapack_complexFloat, tlapack_complexFloat,
-                         tlapack_complexFloat>(
+    return tlapack::legacy::geru<tlapack_complexFloat, tlapack_complexFloat,
+                                 tlapack_complexFloat>(
         toTLAPACKlayout(layout), m, n, *tlapack_C(&alpha), tlapack_cteC(x),
         incx, tlapack_cteC(y), incy, tlapack_C(A), lda);
 }
@@ -780,8 +786,8 @@ void _zgeru(Layout layout,
             complexDouble* A,
             blas_idx_t lda)
 {
-    return tlapack::geru<tlapack_complexDouble, tlapack_complexDouble,
-                         tlapack_complexDouble>(
+    return tlapack::legacy::geru<tlapack_complexDouble, tlapack_complexDouble,
+                                 tlapack_complexDouble>(
         toTLAPACKlayout(layout), m, n, *tlapack_Z(&alpha), tlapack_cteZ(x),
         incx, tlapack_cteZ(y), incy, tlapack_Z(A), lda);
 }
@@ -799,9 +805,9 @@ void _shemv(Layout layout,
             float* y,
             blas_int_t incy)
 {
-    return tlapack::hemv<float, float, float>(toTLAPACKlayout(layout),
-                                              toTLAPACKuplo(uplo), n, alpha, A,
-                                              lda, x, incx, beta, y, incy);
+    return tlapack::legacy::hemv<float, float, float>(
+        toTLAPACKlayout(layout), toTLAPACKuplo(uplo), n, alpha, A, lda, x, incx,
+        beta, y, incy);
 }
 
 #define _dhemv BLAS_FUNCTION(dhemv)
@@ -817,7 +823,7 @@ void _dhemv(Layout layout,
             double* y,
             blas_int_t incy)
 {
-    return tlapack::hemv<double, double, double>(
+    return tlapack::legacy::hemv<double, double, double>(
         toTLAPACKlayout(layout), toTLAPACKuplo(uplo), n, alpha, A, lda, x, incx,
         beta, y, incy);
 }
@@ -835,8 +841,8 @@ void _chemv(Layout layout,
             complexFloat* y,
             blas_int_t incy)
 {
-    return tlapack::hemv<tlapack_complexFloat, tlapack_complexFloat,
-                         tlapack_complexFloat>(
+    return tlapack::legacy::hemv<tlapack_complexFloat, tlapack_complexFloat,
+                                 tlapack_complexFloat>(
         toTLAPACKlayout(layout), toTLAPACKuplo(uplo), n, *tlapack_C(&alpha),
         tlapack_cteC(A), lda, tlapack_cteC(x), incx, *tlapack_C(&beta),
         tlapack_C(y), incy);
@@ -855,8 +861,8 @@ void _zhemv(Layout layout,
             complexDouble* y,
             blas_int_t incy)
 {
-    return tlapack::hemv<tlapack_complexDouble, tlapack_complexDouble,
-                         tlapack_complexDouble>(
+    return tlapack::legacy::hemv<tlapack_complexDouble, tlapack_complexDouble,
+                                 tlapack_complexDouble>(
         toTLAPACKlayout(layout), toTLAPACKuplo(uplo), n, *tlapack_Z(&alpha),
         tlapack_cteZ(A), lda, tlapack_cteZ(x), incx, *tlapack_Z(&beta),
         tlapack_Z(y), incy);
@@ -872,9 +878,9 @@ void _sher(Layout layout,
            float* A,
            blas_idx_t lda)
 {
-    return tlapack::her<float, float>(toTLAPACKlayout(layout),
-                                      toTLAPACKuplo(uplo), n, alpha, x, incx, A,
-                                      lda);
+    return tlapack::legacy::her<float, float>(toTLAPACKlayout(layout),
+                                              toTLAPACKuplo(uplo), n, alpha, x,
+                                              incx, A, lda);
 }
 
 #define _dher BLAS_FUNCTION(dher)
@@ -887,9 +893,9 @@ void _dher(Layout layout,
            double* A,
            blas_idx_t lda)
 {
-    return tlapack::her<double, double>(toTLAPACKlayout(layout),
-                                        toTLAPACKuplo(uplo), n, alpha, x, incx,
-                                        A, lda);
+    return tlapack::legacy::her<double, double>(toTLAPACKlayout(layout),
+                                                toTLAPACKuplo(uplo), n, alpha,
+                                                x, incx, A, lda);
 }
 
 #define _cher BLAS_FUNCTION(cher)
@@ -902,7 +908,7 @@ void _cher(Layout layout,
            complexFloat* A,
            blas_idx_t lda)
 {
-    return tlapack::her<tlapack_complexFloat, tlapack_complexFloat>(
+    return tlapack::legacy::her<tlapack_complexFloat, tlapack_complexFloat>(
         toTLAPACKlayout(layout), toTLAPACKuplo(uplo), n, alpha, tlapack_cteC(x),
         incx, tlapack_C(A), lda);
 }
@@ -917,7 +923,7 @@ void _zher(Layout layout,
            complexDouble* A,
            blas_idx_t lda)
 {
-    return tlapack::her<tlapack_complexDouble, tlapack_complexDouble>(
+    return tlapack::legacy::her<tlapack_complexDouble, tlapack_complexDouble>(
         toTLAPACKlayout(layout), toTLAPACKuplo(uplo), n, alpha, tlapack_cteZ(x),
         incx, tlapack_Z(A), lda);
 }
@@ -934,9 +940,9 @@ void _sher2(Layout layout,
             float* A,
             blas_idx_t lda)
 {
-    return tlapack::her2<float, float, float>(toTLAPACKlayout(layout),
-                                              toTLAPACKuplo(uplo), n, alpha, x,
-                                              incx, y, incy, A, lda);
+    return tlapack::legacy::her2<float, float, float>(
+        toTLAPACKlayout(layout), toTLAPACKuplo(uplo), n, alpha, x, incx, y,
+        incy, A, lda);
 }
 
 #define _dher2 BLAS_FUNCTION(dher2)
@@ -951,9 +957,9 @@ void _dher2(Layout layout,
             double* A,
             blas_idx_t lda)
 {
-    return tlapack::her2<double, double, double>(toTLAPACKlayout(layout),
-                                                 toTLAPACKuplo(uplo), n, alpha,
-                                                 x, incx, y, incy, A, lda);
+    return tlapack::legacy::her2<double, double, double>(
+        toTLAPACKlayout(layout), toTLAPACKuplo(uplo), n, alpha, x, incx, y,
+        incy, A, lda);
 }
 
 #define _cher2 BLAS_FUNCTION(cher2)
@@ -968,8 +974,8 @@ void _cher2(Layout layout,
             complexFloat* A,
             blas_idx_t lda)
 {
-    return tlapack::her2<tlapack_complexFloat, tlapack_complexFloat,
-                         tlapack_complexFloat>(
+    return tlapack::legacy::her2<tlapack_complexFloat, tlapack_complexFloat,
+                                 tlapack_complexFloat>(
         toTLAPACKlayout(layout), toTLAPACKuplo(uplo), n, *tlapack_C(&alpha),
         tlapack_cteC(x), incx, tlapack_cteC(y), incy, tlapack_C(A), lda);
 }
@@ -986,8 +992,8 @@ void _zher2(Layout layout,
             complexDouble* A,
             blas_idx_t lda)
 {
-    return tlapack::her2<tlapack_complexDouble, tlapack_complexDouble,
-                         tlapack_complexDouble>(
+    return tlapack::legacy::her2<tlapack_complexDouble, tlapack_complexDouble,
+                                 tlapack_complexDouble>(
         toTLAPACKlayout(layout), toTLAPACKuplo(uplo), n, *tlapack_Z(&alpha),
         tlapack_cteZ(x), incx, tlapack_cteZ(y), incy, tlapack_Z(A), lda);
 }
@@ -1005,9 +1011,9 @@ void _ssymv(Layout layout,
             float* y,
             blas_int_t incy)
 {
-    return tlapack::symv<float, float, float>(toTLAPACKlayout(layout),
-                                              toTLAPACKuplo(uplo), n, alpha, A,
-                                              lda, x, incx, beta, y, incy);
+    return tlapack::legacy::symv<float, float, float>(
+        toTLAPACKlayout(layout), toTLAPACKuplo(uplo), n, alpha, A, lda, x, incx,
+        beta, y, incy);
 }
 
 #define _dsymv BLAS_FUNCTION(dsymv)
@@ -1023,7 +1029,7 @@ void _dsymv(Layout layout,
             double* y,
             blas_int_t incy)
 {
-    return tlapack::symv<double, double, double>(
+    return tlapack::legacy::symv<double, double, double>(
         toTLAPACKlayout(layout), toTLAPACKuplo(uplo), n, alpha, A, lda, x, incx,
         beta, y, incy);
 }
@@ -1041,8 +1047,8 @@ void _csymv(Layout layout,
             complexFloat* y,
             blas_int_t incy)
 {
-    return tlapack::symv<tlapack_complexFloat, tlapack_complexFloat,
-                         tlapack_complexFloat>(
+    return tlapack::legacy::symv<tlapack_complexFloat, tlapack_complexFloat,
+                                 tlapack_complexFloat>(
         toTLAPACKlayout(layout), toTLAPACKuplo(uplo), n, *tlapack_C(&alpha),
         tlapack_cteC(A), lda, tlapack_cteC(x), incx, *tlapack_C(&beta),
         tlapack_C(y), incy);
@@ -1061,8 +1067,8 @@ void _zsymv(Layout layout,
             complexDouble* y,
             blas_int_t incy)
 {
-    return tlapack::symv<tlapack_complexDouble, tlapack_complexDouble,
-                         tlapack_complexDouble>(
+    return tlapack::legacy::symv<tlapack_complexDouble, tlapack_complexDouble,
+                                 tlapack_complexDouble>(
         toTLAPACKlayout(layout), toTLAPACKuplo(uplo), n, *tlapack_Z(&alpha),
         tlapack_cteZ(A), lda, tlapack_cteZ(x), incx, *tlapack_Z(&beta),
         tlapack_Z(y), incy);
@@ -1078,9 +1084,9 @@ void _ssyr(Layout layout,
            float* A,
            blas_idx_t lda)
 {
-    return tlapack::syr<float, float>(toTLAPACKlayout(layout),
-                                      toTLAPACKuplo(uplo), n, alpha, x, incx, A,
-                                      lda);
+    return tlapack::legacy::syr<float, float>(toTLAPACKlayout(layout),
+                                              toTLAPACKuplo(uplo), n, alpha, x,
+                                              incx, A, lda);
 }
 
 #define _dsyr BLAS_FUNCTION(dsyr)
@@ -1093,9 +1099,9 @@ void _dsyr(Layout layout,
            double* A,
            blas_idx_t lda)
 {
-    return tlapack::syr<double, double>(toTLAPACKlayout(layout),
-                                        toTLAPACKuplo(uplo), n, alpha, x, incx,
-                                        A, lda);
+    return tlapack::legacy::syr<double, double>(toTLAPACKlayout(layout),
+                                                toTLAPACKuplo(uplo), n, alpha,
+                                                x, incx, A, lda);
 }
 
 #define _ssyr2 BLAS_FUNCTION(ssyr2)
@@ -1110,9 +1116,9 @@ void _ssyr2(Layout layout,
             float* A,
             blas_idx_t lda)
 {
-    return tlapack::syr2<float, float, float>(toTLAPACKlayout(layout),
-                                              toTLAPACKuplo(uplo), n, alpha, x,
-                                              incx, y, incy, A, lda);
+    return tlapack::legacy::syr2<float, float, float>(
+        toTLAPACKlayout(layout), toTLAPACKuplo(uplo), n, alpha, x, incx, y,
+        incy, A, lda);
 }
 
 #define _dsyr2 BLAS_FUNCTION(dsyr2)
@@ -1127,9 +1133,9 @@ void _dsyr2(Layout layout,
             double* A,
             blas_idx_t lda)
 {
-    return tlapack::syr2<double, double, double>(toTLAPACKlayout(layout),
-                                                 toTLAPACKuplo(uplo), n, alpha,
-                                                 x, incx, y, incy, A, lda);
+    return tlapack::legacy::syr2<double, double, double>(
+        toTLAPACKlayout(layout), toTLAPACKuplo(uplo), n, alpha, x, incx, y,
+        incy, A, lda);
 }
 
 #define _csyr2 BLAS_FUNCTION(csyr2)
@@ -1144,8 +1150,8 @@ void _csyr2(Layout layout,
             complexFloat* A,
             blas_idx_t lda)
 {
-    return tlapack::syr2<tlapack_complexFloat, tlapack_complexFloat,
-                         tlapack_complexFloat>(
+    return tlapack::legacy::syr2<tlapack_complexFloat, tlapack_complexFloat,
+                                 tlapack_complexFloat>(
         toTLAPACKlayout(layout), toTLAPACKuplo(uplo), n, *tlapack_C(&alpha),
         tlapack_cteC(x), incx, tlapack_cteC(y), incy, tlapack_C(A), lda);
 }
@@ -1162,8 +1168,8 @@ void _zsyr2(Layout layout,
             complexDouble* A,
             blas_idx_t lda)
 {
-    return tlapack::syr2<tlapack_complexDouble, tlapack_complexDouble,
-                         tlapack_complexDouble>(
+    return tlapack::legacy::syr2<tlapack_complexDouble, tlapack_complexDouble,
+                                 tlapack_complexDouble>(
         toTLAPACKlayout(layout), toTLAPACKuplo(uplo), n, *tlapack_Z(&alpha),
         tlapack_cteZ(x), incx, tlapack_cteZ(y), incy, tlapack_Z(A), lda);
 }
@@ -1179,9 +1185,9 @@ void _strmv(Layout layout,
             float* x,
             blas_int_t incx)
 {
-    return tlapack::trmv<float, float>(toTLAPACKlayout(layout),
-                                       toTLAPACKuplo(uplo), toTLAPACKop(trans),
-                                       toTLAPACKdiag(diag), n, A, lda, x, incx);
+    return tlapack::legacy::trmv<float, float>(
+        toTLAPACKlayout(layout), toTLAPACKuplo(uplo), toTLAPACKop(trans),
+        toTLAPACKdiag(diag), n, A, lda, x, incx);
 }
 
 #define _dtrmv BLAS_FUNCTION(dtrmv)
@@ -1195,7 +1201,7 @@ void _dtrmv(Layout layout,
             double* x,
             blas_int_t incx)
 {
-    return tlapack::trmv<double, double>(
+    return tlapack::legacy::trmv<double, double>(
         toTLAPACKlayout(layout), toTLAPACKuplo(uplo), toTLAPACKop(trans),
         toTLAPACKdiag(diag), n, A, lda, x, incx);
 }
@@ -1211,7 +1217,7 @@ void _ctrmv(Layout layout,
             complexFloat* x,
             blas_int_t incx)
 {
-    return tlapack::trmv<tlapack_complexFloat, tlapack_complexFloat>(
+    return tlapack::legacy::trmv<tlapack_complexFloat, tlapack_complexFloat>(
         toTLAPACKlayout(layout), toTLAPACKuplo(uplo), toTLAPACKop(trans),
         toTLAPACKdiag(diag), n, tlapack_cteC(A), lda, tlapack_C(x), incx);
 }
@@ -1227,7 +1233,7 @@ void _ztrmv(Layout layout,
             complexDouble* x,
             blas_int_t incx)
 {
-    return tlapack::trmv<tlapack_complexDouble, tlapack_complexDouble>(
+    return tlapack::legacy::trmv<tlapack_complexDouble, tlapack_complexDouble>(
         toTLAPACKlayout(layout), toTLAPACKuplo(uplo), toTLAPACKop(trans),
         toTLAPACKdiag(diag), n, tlapack_cteZ(A), lda, tlapack_Z(x), incx);
 }
@@ -1243,9 +1249,9 @@ void _strsv(Layout layout,
             float* x,
             blas_int_t incx)
 {
-    return tlapack::trsv<float, float>(toTLAPACKlayout(layout),
-                                       toTLAPACKuplo(uplo), toTLAPACKop(trans),
-                                       toTLAPACKdiag(diag), n, A, lda, x, incx);
+    return tlapack::legacy::trsv<float, float>(
+        toTLAPACKlayout(layout), toTLAPACKuplo(uplo), toTLAPACKop(trans),
+        toTLAPACKdiag(diag), n, A, lda, x, incx);
 }
 
 #define _dtrsv BLAS_FUNCTION(dtrsv)
@@ -1259,7 +1265,7 @@ void _dtrsv(Layout layout,
             double* x,
             blas_int_t incx)
 {
-    return tlapack::trsv<double, double>(
+    return tlapack::legacy::trsv<double, double>(
         toTLAPACKlayout(layout), toTLAPACKuplo(uplo), toTLAPACKop(trans),
         toTLAPACKdiag(diag), n, A, lda, x, incx);
 }
@@ -1275,7 +1281,7 @@ void _ctrsv(Layout layout,
             complexFloat* x,
             blas_int_t incx)
 {
-    return tlapack::trsv<tlapack_complexFloat, tlapack_complexFloat>(
+    return tlapack::legacy::trsv<tlapack_complexFloat, tlapack_complexFloat>(
         toTLAPACKlayout(layout), toTLAPACKuplo(uplo), toTLAPACKop(trans),
         toTLAPACKdiag(diag), n, tlapack_cteC(A), lda, tlapack_C(x), incx);
 }
@@ -1291,7 +1297,7 @@ void _ztrsv(Layout layout,
             complexDouble* x,
             blas_int_t incx)
 {
-    return tlapack::trsv<tlapack_complexDouble, tlapack_complexDouble>(
+    return tlapack::legacy::trsv<tlapack_complexDouble, tlapack_complexDouble>(
         toTLAPACKlayout(layout), toTLAPACKuplo(uplo), toTLAPACKop(trans),
         toTLAPACKdiag(diag), n, tlapack_cteZ(A), lda, tlapack_Z(x), incx);
 }
@@ -1312,9 +1318,9 @@ void _sgemm(Layout layout,
             float* C,
             blas_idx_t ldc)
 {
-    return tlapack::gemm(toTLAPACKlayout(layout), (tlapack::Op)transA,
-                         (tlapack::Op)transB, m, n, k, alpha, A, lda, B, ldb,
-                         beta, C, ldc);
+    return tlapack::legacy::gemm(toTLAPACKlayout(layout), toTLAPACKop(transA),
+                                 toTLAPACKop(transB), m, n, k, alpha, A, lda, B,
+                                 ldb, beta, C, ldc);
 }
 
 #define _dgemm BLAS_FUNCTION(dgemm)
@@ -1333,9 +1339,9 @@ void _dgemm(Layout layout,
             double* C,
             blas_idx_t ldc)
 {
-    return tlapack::gemm(toTLAPACKlayout(layout), (tlapack::Op)transA,
-                         (tlapack::Op)transB, m, n, k, alpha, A, lda, B, ldb,
-                         beta, C, ldc);
+    return tlapack::legacy::gemm(toTLAPACKlayout(layout), toTLAPACKop(transA),
+                                 toTLAPACKop(transB), m, n, k, alpha, A, lda, B,
+                                 ldb, beta, C, ldc);
 }
 
 #define _cgemm BLAS_FUNCTION(cgemm)
@@ -1354,10 +1360,10 @@ void _cgemm(Layout layout,
             complexFloat* C,
             blas_idx_t ldc)
 {
-    return tlapack::gemm(toTLAPACKlayout(layout), (tlapack::Op)transA,
-                         (tlapack::Op)transB, m, n, k, *tlapack_C(&alpha),
-                         tlapack_cteC(A), lda, tlapack_cteC(B), ldb,
-                         *tlapack_C(&beta), tlapack_C(C), ldc);
+    return tlapack::legacy::gemm(
+        toTLAPACKlayout(layout), toTLAPACKop(transA), toTLAPACKop(transB), m, n,
+        k, *tlapack_C(&alpha), tlapack_cteC(A), lda, tlapack_cteC(B), ldb,
+        *tlapack_C(&beta), tlapack_C(C), ldc);
 }
 
 #define _zgemm BLAS_FUNCTION(zgemm)
@@ -1376,10 +1382,10 @@ void _zgemm(Layout layout,
             complexDouble* C,
             blas_idx_t ldc)
 {
-    return tlapack::gemm(toTLAPACKlayout(layout), (tlapack::Op)transA,
-                         (tlapack::Op)transB, m, n, k, *tlapack_Z(&alpha),
-                         tlapack_cteZ(A), lda, tlapack_cteZ(B), ldb,
-                         *tlapack_Z(&beta), tlapack_Z(C), ldc);
+    return tlapack::legacy::gemm(
+        toTLAPACKlayout(layout), toTLAPACKop(transA), toTLAPACKop(transB), m, n,
+        k, *tlapack_Z(&alpha), tlapack_cteZ(A), lda, tlapack_cteZ(B), ldb,
+        *tlapack_Z(&beta), tlapack_Z(C), ldc);
 }
 
 #define _shemm BLAS_FUNCTION(shemm)
@@ -1397,7 +1403,7 @@ void _shemm(Layout layout,
             float* C,
             blas_idx_t ldc)
 {
-    return tlapack::hemm<float, float, float>(
+    return tlapack::legacy::hemm<float, float, float>(
         toTLAPACKlayout(layout), toTLAPACKside(side), toTLAPACKuplo(uplo), m, n,
         alpha, A, lda, B, ldb, beta, C, ldc);
 }
@@ -1417,7 +1423,7 @@ void _dhemm(Layout layout,
             double* C,
             blas_idx_t ldc)
 {
-    return tlapack::hemm<double, double, double>(
+    return tlapack::legacy::hemm<double, double, double>(
         toTLAPACKlayout(layout), toTLAPACKside(side), toTLAPACKuplo(uplo), m, n,
         alpha, A, lda, B, ldb, beta, C, ldc);
 }
@@ -1437,8 +1443,8 @@ void _chemm(Layout layout,
             complexFloat* C,
             blas_idx_t ldc)
 {
-    return tlapack::hemm<tlapack_complexFloat, tlapack_complexFloat,
-                         tlapack_complexFloat>(
+    return tlapack::legacy::hemm<tlapack_complexFloat, tlapack_complexFloat,
+                                 tlapack_complexFloat>(
         toTLAPACKlayout(layout), toTLAPACKside(side), toTLAPACKuplo(uplo), m, n,
         *tlapack_C(&alpha), tlapack_cteC(A), lda, tlapack_cteC(B), ldb,
         *tlapack_C(&beta), tlapack_C(C), ldc);
@@ -1459,8 +1465,8 @@ void _zhemm(Layout layout,
             complexDouble* C,
             blas_idx_t ldc)
 {
-    return tlapack::hemm<tlapack_complexDouble, tlapack_complexDouble,
-                         tlapack_complexDouble>(
+    return tlapack::legacy::hemm<tlapack_complexDouble, tlapack_complexDouble,
+                                 tlapack_complexDouble>(
         toTLAPACKlayout(layout), toTLAPACKside(side), toTLAPACKuplo(uplo), m, n,
         *tlapack_Z(&alpha), tlapack_cteZ(A), lda, tlapack_cteZ(B), ldb,
         *tlapack_Z(&beta), tlapack_Z(C), ldc);
@@ -1481,7 +1487,7 @@ void _sher2k(Layout layout,
              float* C,
              blas_idx_t ldc)
 {
-    return tlapack::her2k<float, float, float>(
+    return tlapack::legacy::her2k<float, float, float>(
         toTLAPACKlayout(layout), toTLAPACKuplo(uplo), toTLAPACKop(trans), n, k,
         alpha, A, lda, B, ldb, beta, C, ldc);
 }
@@ -1501,7 +1507,7 @@ void _dher2k(Layout layout,
              double* C,
              blas_idx_t ldc)
 {
-    return tlapack::her2k<double, double, double>(
+    return tlapack::legacy::her2k<double, double, double>(
         toTLAPACKlayout(layout), toTLAPACKuplo(uplo), toTLAPACKop(trans), n, k,
         alpha, A, lda, B, ldb, beta, C, ldc);
 }
@@ -1521,8 +1527,8 @@ void _cher2k(Layout layout,
              complexFloat* C,
              blas_idx_t ldc)
 {
-    return tlapack::her2k<tlapack_complexFloat, tlapack_complexFloat,
-                          tlapack_complexFloat>(
+    return tlapack::legacy::her2k<tlapack_complexFloat, tlapack_complexFloat,
+                                  tlapack_complexFloat>(
         toTLAPACKlayout(layout), toTLAPACKuplo(uplo), toTLAPACKop(trans), n, k,
         *tlapack_C(&alpha), tlapack_cteC(A), lda, tlapack_cteC(B), ldb, beta,
         tlapack_C(C), ldc);
@@ -1543,8 +1549,8 @@ void _zher2k(Layout layout,
              complexDouble* C,
              blas_idx_t ldc)
 {
-    return tlapack::her2k<tlapack_complexDouble, tlapack_complexDouble,
-                          tlapack_complexDouble>(
+    return tlapack::legacy::her2k<tlapack_complexDouble, tlapack_complexDouble,
+                                  tlapack_complexDouble>(
         toTLAPACKlayout(layout), toTLAPACKuplo(uplo), toTLAPACKop(trans), n, k,
         *tlapack_Z(&alpha), tlapack_cteZ(A), lda, tlapack_cteZ(B), ldb, beta,
         tlapack_Z(C), ldc);
@@ -1563,8 +1569,9 @@ void _sherk(Layout layout,
             float* C,
             blas_idx_t ldc)
 {
-    return tlapack::herk(toTLAPACKlayout(layout), toTLAPACKuplo(uplo),
-                         toTLAPACKop(trans), n, k, alpha, A, lda, beta, C, ldc);
+    return tlapack::legacy::herk(toTLAPACKlayout(layout), toTLAPACKuplo(uplo),
+                                 toTLAPACKop(trans), n, k, alpha, A, lda, beta,
+                                 C, ldc);
 }
 
 #define _dherk BLAS_FUNCTION(dherk)
@@ -1580,8 +1587,9 @@ void _dherk(Layout layout,
             double* C,
             blas_idx_t ldc)
 {
-    return tlapack::herk(toTLAPACKlayout(layout), toTLAPACKuplo(uplo),
-                         toTLAPACKop(trans), n, k, alpha, A, lda, beta, C, ldc);
+    return tlapack::legacy::herk(toTLAPACKlayout(layout), toTLAPACKuplo(uplo),
+                                 toTLAPACKop(trans), n, k, alpha, A, lda, beta,
+                                 C, ldc);
 }
 
 #define _cherk BLAS_FUNCTION(cherk)
@@ -1597,9 +1605,9 @@ void _cherk(Layout layout,
             complexFloat* C,
             blas_idx_t ldc)
 {
-    return tlapack::herk(toTLAPACKlayout(layout), toTLAPACKuplo(uplo),
-                         toTLAPACKop(trans), n, k, alpha, tlapack_cteC(A), lda,
-                         beta, tlapack_C(C), ldc);
+    return tlapack::legacy::herk(toTLAPACKlayout(layout), toTLAPACKuplo(uplo),
+                                 toTLAPACKop(trans), n, k, alpha,
+                                 tlapack_cteC(A), lda, beta, tlapack_C(C), ldc);
 }
 
 #define _zherk BLAS_FUNCTION(zherk)
@@ -1615,9 +1623,9 @@ void _zherk(Layout layout,
             complexDouble* C,
             blas_idx_t ldc)
 {
-    return tlapack::herk(toTLAPACKlayout(layout), toTLAPACKuplo(uplo),
-                         toTLAPACKop(trans), n, k, alpha, tlapack_cteZ(A), lda,
-                         beta, tlapack_Z(C), ldc);
+    return tlapack::legacy::herk(toTLAPACKlayout(layout), toTLAPACKuplo(uplo),
+                                 toTLAPACKop(trans), n, k, alpha,
+                                 tlapack_cteZ(A), lda, beta, tlapack_Z(C), ldc);
 }
 
 #define _ssymm BLAS_FUNCTION(ssymm)
@@ -1635,7 +1643,7 @@ void _ssymm(Layout layout,
             float* C,
             blas_idx_t ldc)
 {
-    return tlapack::symm<float, float, float>(
+    return tlapack::legacy::symm<float, float, float>(
         toTLAPACKlayout(layout), toTLAPACKside(side), toTLAPACKuplo(uplo), m, n,
         alpha, A, lda, B, ldb, beta, C, ldc);
 }
@@ -1655,7 +1663,7 @@ void _dsymm(Layout layout,
             double* C,
             blas_idx_t ldc)
 {
-    return tlapack::symm<double, double, double>(
+    return tlapack::legacy::symm<double, double, double>(
         toTLAPACKlayout(layout), toTLAPACKside(side), toTLAPACKuplo(uplo), m, n,
         alpha, A, lda, B, ldb, beta, C, ldc);
 }
@@ -1675,8 +1683,8 @@ void _csymm(Layout layout,
             complexFloat* C,
             blas_idx_t ldc)
 {
-    return tlapack::symm<tlapack_complexFloat, tlapack_complexFloat,
-                         tlapack_complexFloat>(
+    return tlapack::legacy::symm<tlapack_complexFloat, tlapack_complexFloat,
+                                 tlapack_complexFloat>(
         toTLAPACKlayout(layout), toTLAPACKside(side), toTLAPACKuplo(uplo), m, n,
         *tlapack_C(&alpha), tlapack_cteC(A), lda, tlapack_cteC(B), ldb,
         *tlapack_C(&beta), tlapack_C(C), ldc);
@@ -1697,8 +1705,8 @@ void _zsymm(Layout layout,
             complexDouble* C,
             blas_idx_t ldc)
 {
-    return tlapack::symm<tlapack_complexDouble, tlapack_complexDouble,
-                         tlapack_complexDouble>(
+    return tlapack::legacy::symm<tlapack_complexDouble, tlapack_complexDouble,
+                                 tlapack_complexDouble>(
         toTLAPACKlayout(layout), toTLAPACKside(side), toTLAPACKuplo(uplo), m, n,
         *tlapack_Z(&alpha), tlapack_cteZ(A), lda, tlapack_cteZ(B), ldb,
         *tlapack_Z(&beta), tlapack_Z(C), ldc);
@@ -1719,7 +1727,7 @@ void _ssyr2k(Layout layout,
              float* C,
              blas_idx_t ldc)
 {
-    return tlapack::syr2k<float, float, float>(
+    return tlapack::legacy::syr2k<float, float, float>(
         toTLAPACKlayout(layout), toTLAPACKuplo(uplo), toTLAPACKop(trans), n, k,
         alpha, A, lda, B, ldb, beta, C, ldc);
 }
@@ -1739,7 +1747,7 @@ void _dsyr2k(Layout layout,
              double* C,
              blas_idx_t ldc)
 {
-    return tlapack::syr2k<double, double, double>(
+    return tlapack::legacy::syr2k<double, double, double>(
         toTLAPACKlayout(layout), toTLAPACKuplo(uplo), toTLAPACKop(trans), n, k,
         alpha, A, lda, B, ldb, beta, C, ldc);
 }
@@ -1759,8 +1767,8 @@ void _csyr2k(Layout layout,
              complexFloat* C,
              blas_idx_t ldc)
 {
-    return tlapack::syr2k<tlapack_complexFloat, tlapack_complexFloat,
-                          tlapack_complexFloat>(
+    return tlapack::legacy::syr2k<tlapack_complexFloat, tlapack_complexFloat,
+                                  tlapack_complexFloat>(
         toTLAPACKlayout(layout), toTLAPACKuplo(uplo), toTLAPACKop(trans), n, k,
         *tlapack_C(&alpha), tlapack_cteC(A), lda, tlapack_cteC(B), ldb,
         *tlapack_C(&beta), tlapack_C(C), ldc);
@@ -1781,8 +1789,8 @@ void _zsyr2k(Layout layout,
              complexDouble* C,
              blas_idx_t ldc)
 {
-    return tlapack::syr2k<tlapack_complexDouble, tlapack_complexDouble,
-                          tlapack_complexDouble>(
+    return tlapack::legacy::syr2k<tlapack_complexDouble, tlapack_complexDouble,
+                                  tlapack_complexDouble>(
         toTLAPACKlayout(layout), toTLAPACKuplo(uplo), toTLAPACKop(trans), n, k,
         *tlapack_Z(&alpha), tlapack_cteZ(A), lda, tlapack_cteZ(B), ldb,
         *tlapack_Z(&beta), tlapack_Z(C), ldc);
@@ -1801,8 +1809,9 @@ void _ssyrk(Layout layout,
             float* C,
             blas_idx_t ldc)
 {
-    return tlapack::syrk(toTLAPACKlayout(layout), toTLAPACKuplo(uplo),
-                         toTLAPACKop(trans), n, k, alpha, A, lda, beta, C, ldc);
+    return tlapack::legacy::syrk(toTLAPACKlayout(layout), toTLAPACKuplo(uplo),
+                                 toTLAPACKop(trans), n, k, alpha, A, lda, beta,
+                                 C, ldc);
 }
 
 #define _dsyrk BLAS_FUNCTION(dsyrk)
@@ -1818,8 +1827,9 @@ void _dsyrk(Layout layout,
             double* C,
             blas_idx_t ldc)
 {
-    return tlapack::syrk(toTLAPACKlayout(layout), toTLAPACKuplo(uplo),
-                         toTLAPACKop(trans), n, k, alpha, A, lda, beta, C, ldc);
+    return tlapack::legacy::syrk(toTLAPACKlayout(layout), toTLAPACKuplo(uplo),
+                                 toTLAPACKop(trans), n, k, alpha, A, lda, beta,
+                                 C, ldc);
 }
 
 #define _csyrk BLAS_FUNCTION(csyrk)
@@ -1835,10 +1845,10 @@ void _csyrk(Layout layout,
             complexFloat* C,
             blas_idx_t ldc)
 {
-    return tlapack::syrk(toTLAPACKlayout(layout), toTLAPACKuplo(uplo),
-                         toTLAPACKop(trans), n, k, *tlapack_C(&alpha),
-                         tlapack_cteC(A), lda, *tlapack_C(&beta), tlapack_C(C),
-                         ldc);
+    return tlapack::legacy::syrk(toTLAPACKlayout(layout), toTLAPACKuplo(uplo),
+                                 toTLAPACKop(trans), n, k, *tlapack_C(&alpha),
+                                 tlapack_cteC(A), lda, *tlapack_C(&beta),
+                                 tlapack_C(C), ldc);
 }
 
 #define _zsyrk BLAS_FUNCTION(zsyrk)
@@ -1854,10 +1864,10 @@ void _zsyrk(Layout layout,
             complexDouble* C,
             blas_idx_t ldc)
 {
-    return tlapack::syrk(toTLAPACKlayout(layout), toTLAPACKuplo(uplo),
-                         toTLAPACKop(trans), n, k, *tlapack_Z(&alpha),
-                         tlapack_cteZ(A), lda, *tlapack_Z(&beta), tlapack_Z(C),
-                         ldc);
+    return tlapack::legacy::syrk(toTLAPACKlayout(layout), toTLAPACKuplo(uplo),
+                                 toTLAPACKop(trans), n, k, *tlapack_Z(&alpha),
+                                 tlapack_cteZ(A), lda, *tlapack_Z(&beta),
+                                 tlapack_Z(C), ldc);
 }
 
 #define _strmm BLAS_FUNCTION(strmm)
@@ -1874,7 +1884,7 @@ void _strmm(Layout layout,
             float* B,
             blas_idx_t ldb)
 {
-    return tlapack::trmm<float, float>(
+    return tlapack::legacy::trmm<float, float>(
         toTLAPACKlayout(layout), toTLAPACKside(side), toTLAPACKuplo(uplo),
         toTLAPACKop(trans), toTLAPACKdiag(diag), m, n, alpha, A, lda, B, ldb);
 }
@@ -1893,7 +1903,7 @@ void _dtrmm(Layout layout,
             double* B,
             blas_idx_t ldb)
 {
-    return tlapack::trmm<double, double>(
+    return tlapack::legacy::trmm<double, double>(
         toTLAPACKlayout(layout), toTLAPACKside(side), toTLAPACKuplo(uplo),
         toTLAPACKop(trans), toTLAPACKdiag(diag), m, n, alpha, A, lda, B, ldb);
 }
@@ -1912,7 +1922,7 @@ void _ctrmm(Layout layout,
             complexFloat* B,
             blas_idx_t ldb)
 {
-    return tlapack::trmm<tlapack_complexFloat, tlapack_complexFloat>(
+    return tlapack::legacy::trmm<tlapack_complexFloat, tlapack_complexFloat>(
         toTLAPACKlayout(layout), toTLAPACKside(side), toTLAPACKuplo(uplo),
         toTLAPACKop(trans), toTLAPACKdiag(diag), m, n, *tlapack_C(&alpha),
         tlapack_cteC(A), lda, tlapack_C(B), ldb);
@@ -1932,7 +1942,7 @@ void _ztrmm(Layout layout,
             complexDouble* B,
             blas_idx_t ldb)
 {
-    return tlapack::trmm<tlapack_complexDouble, tlapack_complexDouble>(
+    return tlapack::legacy::trmm<tlapack_complexDouble, tlapack_complexDouble>(
         toTLAPACKlayout(layout), toTLAPACKside(side), toTLAPACKuplo(uplo),
         toTLAPACKop(trans), toTLAPACKdiag(diag), m, n, *tlapack_Z(&alpha),
         tlapack_cteZ(A), lda, tlapack_Z(B), ldb);
@@ -1952,9 +1962,9 @@ void _strsm(Layout layout,
             float* B,
             blas_idx_t ldb)
 {
-    return tlapack::trsm(toTLAPACKlayout(layout), toTLAPACKside(side),
-                         toTLAPACKuplo(uplo), toTLAPACKop(trans),
-                         toTLAPACKdiag(diag), m, n, alpha, A, lda, B, ldb);
+    return tlapack::legacy::trsm(
+        toTLAPACKlayout(layout), toTLAPACKside(side), toTLAPACKuplo(uplo),
+        toTLAPACKop(trans), toTLAPACKdiag(diag), m, n, alpha, A, lda, B, ldb);
 }
 
 #define _dtrsm BLAS_FUNCTION(dtrsm)
@@ -1971,9 +1981,9 @@ void _dtrsm(Layout layout,
             double* B,
             blas_idx_t ldb)
 {
-    return tlapack::trsm(toTLAPACKlayout(layout), toTLAPACKside(side),
-                         toTLAPACKuplo(uplo), toTLAPACKop(trans),
-                         toTLAPACKdiag(diag), m, n, alpha, A, lda, B, ldb);
+    return tlapack::legacy::trsm(
+        toTLAPACKlayout(layout), toTLAPACKside(side), toTLAPACKuplo(uplo),
+        toTLAPACKop(trans), toTLAPACKdiag(diag), m, n, alpha, A, lda, B, ldb);
 }
 
 #define _ctrsm BLAS_FUNCTION(ctrsm)
@@ -1990,10 +2000,10 @@ void _ctrsm(Layout layout,
             complexFloat* B,
             blas_idx_t ldb)
 {
-    return tlapack::trsm(toTLAPACKlayout(layout), toTLAPACKside(side),
-                         toTLAPACKuplo(uplo), toTLAPACKop(trans),
-                         toTLAPACKdiag(diag), m, n, *tlapack_C(&alpha),
-                         tlapack_cteC(A), lda, tlapack_C(B), ldb);
+    return tlapack::legacy::trsm(toTLAPACKlayout(layout), toTLAPACKside(side),
+                                 toTLAPACKuplo(uplo), toTLAPACKop(trans),
+                                 toTLAPACKdiag(diag), m, n, *tlapack_C(&alpha),
+                                 tlapack_cteC(A), lda, tlapack_C(B), ldb);
 }
 
 #define _ztrsm BLAS_FUNCTION(ztrsm)
@@ -2010,10 +2020,10 @@ void _ztrsm(Layout layout,
             complexDouble* B,
             blas_idx_t ldb)
 {
-    return tlapack::trsm(toTLAPACKlayout(layout), toTLAPACKside(side),
-                         toTLAPACKuplo(uplo), toTLAPACKop(trans),
-                         toTLAPACKdiag(diag), m, n, *tlapack_Z(&alpha),
-                         tlapack_cteZ(A), lda, tlapack_Z(B), ldb);
+    return tlapack::legacy::trsm(toTLAPACKlayout(layout), toTLAPACKside(side),
+                                 toTLAPACKuplo(uplo), toTLAPACKop(trans),
+                                 toTLAPACKdiag(diag), m, n, *tlapack_Z(&alpha),
+                                 tlapack_cteZ(A), lda, tlapack_Z(B), ldb);
 }
 
 }  // extern "C"

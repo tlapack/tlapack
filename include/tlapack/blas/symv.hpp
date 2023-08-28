@@ -37,11 +37,11 @@ namespace tlapack {
  *
  * @ingroup blas2
  */
-template <class matrixA_t,
-          class vectorX_t,
-          class vectorY_t,
-          class alpha_t,
-          class beta_t,
+template <TLAPACK_MATRIX matrixA_t,
+          TLAPACK_VECTOR vectorX_t,
+          TLAPACK_VECTOR vectorY_t,
+          TLAPACK_SCALAR alpha_t,
+          TLAPACK_SCALAR beta_t,
           class T = type_t<vectorY_t>,
           disable_if_allow_optblas_t<pair<matrixA_t, T>,
                                      pair<vectorX_t, T>,
@@ -100,6 +100,49 @@ void symv(Uplo uplo,
     }
 }
 
+#ifdef TLAPACK_USE_LAPACKPP
+
+template <TLAPACK_LEGACY_MATRIX matrixA_t,
+          TLAPACK_LEGACY_VECTOR vectorX_t,
+          TLAPACK_LEGACY_VECTOR vectorY_t,
+          TLAPACK_SCALAR alpha_t,
+          TLAPACK_SCALAR beta_t,
+          class T = type_t<vectorY_t>,
+          enable_if_allow_optblas_t<pair<matrixA_t, T>,
+                                    pair<vectorX_t, T>,
+                                    pair<vectorY_t, T>,
+                                    pair<beta_t, T> > = 0>
+void symv(Uplo uplo,
+          const alpha_t alpha,
+          const matrixA_t& A,
+          const vectorX_t& x,
+          const beta_t beta,
+          vectorY_t& y)
+{
+    // Legacy objects
+    auto A_ = legacy_matrix(A);
+    auto x_ = legacy_vector(x);
+    auto y_ = legacy_vector(y);
+
+    // Constants to forward
+    constexpr Layout L = layout<matrixA_t>;
+    const auto& n = A_.n;
+
+    // Warnings for NaNs and Infs
+    if (alpha == alpha_t(0))
+        tlapack_warning(
+            -2, "Infs and NaNs in A or x will not propagate to y on output");
+    if (beta == beta_t(0) && !is_same_v<beta_t, StrongZero>)
+        tlapack_warning(
+            -5,
+            "Infs and NaNs in y on input will not propagate to y on output");
+
+    return ::blas::symv((::blas::Layout)L, (::blas::Uplo)uplo, n, alpha, A_.ptr,
+                        A_.ldim, x_.ptr, x_.inc, (T)beta, y_.ptr, y_.inc);
+}
+
+#endif
+
 /**
  * Symmetric matrix-vector multiply:
  * \[
@@ -121,97 +164,18 @@ void symv(Uplo uplo,
  *
  * @ingroup blas2
  */
-template <class matrixA_t,
-          class vectorX_t,
-          class vectorY_t,
-          class alpha_t,
-          class T = type_t<vectorY_t>,
-          disable_if_allow_optblas_t<pair<matrixA_t, T>,
-                                     pair<vectorX_t, T>,
-                                     pair<vectorY_t, T> > = 0>
-inline void symv(Uplo uplo,
-                 const alpha_t& alpha,
-                 const matrixA_t& A,
-                 const vectorX_t& x,
-                 vectorY_t& y)
+template <TLAPACK_MATRIX matrixA_t,
+          TLAPACK_VECTOR vectorX_t,
+          TLAPACK_VECTOR vectorY_t,
+          TLAPACK_SCALAR alpha_t>
+void symv(Uplo uplo,
+          const alpha_t& alpha,
+          const matrixA_t& A,
+          const vectorX_t& x,
+          vectorY_t& y)
 {
-    return symv(uplo, alpha, A, x, internal::StrongZero(), y);
+    return symv(uplo, alpha, A, x, StrongZero(), y);
 }
-
-#ifdef USE_LAPACKPP_WRAPPERS
-
-template <class matrixA_t,
-          class vectorX_t,
-          class vectorY_t,
-          class alpha_t,
-          class beta_t,
-          class T = type_t<vectorY_t>,
-          enable_if_allow_optblas_t<pair<matrixA_t, T>,
-                                    pair<vectorX_t, T>,
-                                    pair<vectorY_t, T>,
-                                    pair<beta_t, T> > = 0>
-inline void symv(Uplo uplo,
-                 const alpha_t alpha,
-                 const matrixA_t& A,
-                 const vectorX_t& x,
-                 const beta_t beta,
-                 vectorY_t& y)
-{
-    // Legacy objects
-    auto A_ = legacy_matrix(A);
-    auto x_ = legacy_vector(x);
-    auto y_ = legacy_vector(y);
-
-    // Constants to forward
-    constexpr Layout L = layout<matrixA_t>;
-    const auto& n = A_.n;
-
-    // Warnings for NaNs and Infs
-    if (alpha == alpha_t(0))
-        tlapack_warning(
-            -2, "Infs and NaNs in A or x will not propagate to y on output");
-    if (beta == beta_t(0))
-        tlapack_warning(
-            -5,
-            "Infs and NaNs in y on input will not propagate to y on output");
-
-    return ::blas::symv((::blas::Layout)L, (::blas::Uplo)uplo, n, alpha, A_.ptr,
-                        A_.ldim, x_.ptr, x_.inc, beta, y_.ptr, y_.inc);
-}
-
-template <class matrixA_t,
-          class vectorX_t,
-          class vectorY_t,
-          class alpha_t,
-          class T = type_t<vectorY_t>,
-          enable_if_allow_optblas_t<pair<matrixA_t, T>,
-                                    pair<vectorX_t, T>,
-                                    pair<vectorY_t, T> > = 0>
-inline void symv(Uplo uplo,
-                 const alpha_t alpha,
-                 const matrixA_t& A,
-                 const vectorX_t& x,
-                 vectorY_t& y)
-{
-    // Legacy objects
-    auto A_ = legacy_matrix(A);
-    auto x_ = legacy_vector(x);
-    auto y_ = legacy_vector(y);
-
-    // Constants to forward
-    constexpr Layout L = layout<matrixA_t>;
-    const auto& n = A_.n;
-
-    // Warnings for NaNs and Infs
-    if (alpha == alpha_t(0))
-        tlapack_warning(
-            -2, "Infs and NaNs in A or x will not propagate to y on output");
-
-    return ::blas::symv((::blas::Layout)L, (::blas::Uplo)uplo, n, alpha, A_.ptr,
-                        A_.ldim, x_.ptr, x_.inc, T(0), y_.ptr, y_.inc);
-}
-
-#endif
 
 }  // namespace tlapack
 

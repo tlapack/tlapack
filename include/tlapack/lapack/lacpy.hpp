@@ -32,7 +32,9 @@ namespace tlapack {
  *
  * @ingroup auxiliary
  */
-template <class uplo_t, class matrixA_t, class matrixB_t>
+template <TLAPACK_UPLO uplo_t,
+          TLAPACK_MATRIX matrixA_t,
+          TLAPACK_MATRIX matrixB_t>
 void lacpy(uplo_t uplo, const matrixA_t& A, matrixB_t& B)
 {
     // data traits
@@ -49,14 +51,14 @@ void lacpy(uplo_t uplo, const matrixA_t& A, matrixB_t& B)
     if (uplo == Uplo::Upper) {
         // Set the strictly upper triangular or trapezoidal part of B
         for (idx_t j = 0; j < n; ++j) {
-            const idx_t M = std::min(m, j + 1);
+            const idx_t M = min(m, j + 1);
             for (idx_t i = 0; i < M; ++i)
                 B(i, j) = A(i, j);
         }
     }
     else if (uplo == Uplo::Lower) {
         // Set the strictly lower triangular or trapezoidal part of B
-        const idx_t N = std::min(m, n);
+        const idx_t N = min(m, n);
         for (idx_t j = 0; j < N; ++j)
             for (idx_t i = j; i < m; ++i)
                 B(i, j) = A(i, j);

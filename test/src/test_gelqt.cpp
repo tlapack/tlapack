@@ -34,7 +34,7 @@ TEMPLATE_TEST_CASE("LQ factorization of a general m-by-n matrix, blocked",
     using matrix_t = TestType;
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
-    using range = std::pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
     typedef real_type<T> real_t;
 
     // Functor
@@ -69,7 +69,7 @@ TEMPLATE_TEST_CASE("LQ factorization of a general m-by-n matrix, blocked",
         for (idx_t i = 0; i < m; ++i)
             A(i, j) = rand_helper<T>();
 
-    lacpy(Uplo::General, A, A_copy);
+    lacpy(GENERAL, A, A_copy);
 
     if (k <= n)  // k must be less than or equal to n, because we cannot get a Q
                  // bigger than n-by-n
@@ -81,7 +81,7 @@ TEMPLATE_TEST_CASE("LQ factorization of a general m-by-n matrix, blocked",
 
             // Build tauw vector from matrix TT
             for (idx_t j = 0; j < min(m, n); j += nb) {
-                idx_t ib = std::min<idx_t>(nb, min(m, n) - j);
+                idx_t ib = min(nb, min(m, n) - j);
 
                 for (idx_t i = 0; i < ib; i++)
                     tauw[i + j] = TT(i + j, i);
@@ -90,9 +90,9 @@ TEMPLATE_TEST_CASE("LQ factorization of a general m-by-n matrix, blocked",
             // Q is sliced down to the desired size of output Q (k-by-n).
             // It stores the desired number of Householder reflectors that UNGL2
             // will use.
-            lacpy(Uplo::General, slice(A, range(0, min(m, k)), range(0, n)), Q);
+            lacpy(GENERAL, slice(A, range(0, min(m, k)), range(0, n)), Q);
 
-            ungl2(Q, tauw);
+            ungl2(Q, slice(tauw, range(0, min(m, k))));
 
             // Wq is the identity matrix to check the orthogonality of Q
             std::vector<T> Wq_;
@@ -103,21 +103,22 @@ TEMPLATE_TEST_CASE("LQ factorization of a general m-by-n matrix, blocked",
             // L is sliced from A after GELQ2
             std::vector<T> L_;
             auto L = new_matrix(L_, min(k, m), k);
-            laset(Uplo::Upper, zero, zero, L);
-            lacpy(Uplo::Lower, slice(A, range(0, min(m, k)), range(0, k)), L);
+            laset(UPPER_TRIANGLE, zero, zero, L);
+            lacpy(LOWER_TRIANGLE, slice(A, range(0, min(m, k)), range(0, k)),
+                  L);
 
             // R stores the product of L and Q
             std::vector<T> R_;
             auto R = new_matrix(R_, min(k, m), n);
 
             // Test A = L * Q
-            gemm(Op::NoTrans, Op::NoTrans, real_t(1.), L, Q, R);
+            gemm(NO_TRANS, NO_TRANS, real_t(1.), L, Q, R);
             for (idx_t j = 0; j < n; ++j)
                 for (idx_t i = 0; i < min(m, k); ++i)
                     A_copy(i, j) -= R(i, j);
 
             real_t repres =
-                tlapack::lange(tlapack::Norm::Max,
+                tlapack::lange(tlapack::MAX_NORM,
                                slice(A_copy, range(0, min(m, k)), range(0, n)));
             CHECK(repres <= tol);
         }

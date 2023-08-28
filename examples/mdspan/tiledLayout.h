@@ -119,7 +119,7 @@ struct TiledLayout {
         static constexpr bool is_always_strided() noexcept { return false; }
         constexpr bool is_strided() const noexcept { return false; }
 
-        inline constexpr Extents
+        constexpr Extents
         extents() const noexcept {
             return extents_;
         };

@@ -35,7 +35,7 @@ TEMPLATE_TEST_CASE("Result of unmhr matches result from unghr",
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
     using real_t = real_type<T>;
-    using pair = std::pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
 
     // Functor
     Create<matrix_t> new_matrix;
@@ -74,7 +74,7 @@ TEMPLATE_TEST_CASE("Result of unmhr matches result from unghr",
             for (idx_t i = 0; i < m; ++i)
                 C(i, j) = rand_helper<T>();
     }
-    lacpy(Uplo::General, C, C_copy);
+    lacpy(GENERAL, C, C_copy);
 
     // Make sure ilo and ihi correspond to the actual matrix
     for (idx_t j = 0; j < ilo; ++j)
@@ -89,9 +89,9 @@ TEMPLATE_TEST_CASE("Result of unmhr matches result from unghr",
 
     DYNAMIC_SECTION("matrix_type = " << matrix_type << " side = " << side
                                      << " op = " << op << " ilo = " << ilo
-                                     << " ihi = " << ihi << " frob_norm")
+                                     << " ihi = " << ihi << " FROB_NORM")
     {
-        real_t c_norm = lange(frob_norm, C);
+        real_t c_norm = lange(FROB_NORM, C);
 
         // Apply the orthogonal factor to C
         unmhr(side, op, ilo, ihi, H, tau, C);
@@ -100,12 +100,12 @@ TEMPLATE_TEST_CASE("Result of unmhr matches result from unghr",
         unghr(ilo, ihi, H, tau);
 
         // Multiply C_copy with the orthogonal factor
-        auto Q = slice(H, pair{ilo + 1, ihi}, pair{ilo + 1, ihi});
+        auto Q = slice(H, range{ilo + 1, ihi}, range{ilo + 1, ihi});
         if (side == Side::Left) {
             auto C_copy_s =
-                slice(C_copy, pair{ilo + 1, ihi}, pair{0, ncols(C)});
-            auto C_s = slice(C, pair{ilo + 1, ihi}, pair{0, ncols(C)});
-            gemm(op, Op::NoTrans, one, Q, C_copy_s, -one, C_s);
+                slice(C_copy, range{ilo + 1, ihi}, range{0, ncols(C)});
+            auto C_s = slice(C, range{ilo + 1, ihi}, range{0, ncols(C)});
+            gemm(op, NO_TRANS, one, Q, C_copy_s, -one, C_s);
             for (idx_t i = 0; i < ilo + 1; ++i)
                 for (idx_t j = 0; j < ncols(C); ++j)
                     C(i, j) = C(i, j) - C_copy(i, j);
@@ -115,9 +115,9 @@ TEMPLATE_TEST_CASE("Result of unmhr matches result from unghr",
         }
         else {
             auto C_copy_s =
-                slice(C_copy, pair{0, nrows(C)}, pair{ilo + 1, ihi});
-            auto C_s = slice(C, pair{0, nrows(C)}, pair{ilo + 1, ihi});
-            gemm(Op::NoTrans, op, one, C_copy_s, Q, -one, C_s);
+                slice(C_copy, range{0, nrows(C)}, range{ilo + 1, ihi});
+            auto C_s = slice(C, range{0, nrows(C)}, range{ilo + 1, ihi});
+            gemm(NO_TRANS, op, one, C_copy_s, Q, -one, C_s);
             for (idx_t j = 0; j < ilo + 1; ++j)
                 for (idx_t i = 0; i < nrows(C); ++i)
                     C(i, j) = C(i, j) - C_copy(i, j);
@@ -126,7 +126,7 @@ TEMPLATE_TEST_CASE("Result of unmhr matches result from unghr",
                     C(i, j) = C(i, j) - C_copy(i, j);
         }
 
-        real_t e_norm = lange(frob_norm, C);
+        real_t e_norm = lange(FROB_NORM, C);
 
         CHECK(e_norm <= tol * c_norm);
     }

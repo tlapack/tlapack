@@ -34,6 +34,7 @@ TEMPLATE_TEST_CASE("LU factorization of a general m-by-n matrix",
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
     typedef real_type<T> real_t;  // equivalent to using real_t = real_type<T>;
+    using range = pair<idx_t, idx_t>;
 
     // Functor
     Create<matrix_t> new_matrix;
@@ -72,41 +73,37 @@ TEMPLATE_TEST_CASE("LU factorization of a general m-by-n matrix",
         // We intend to test A=LU, however, since after calling getrf, A will be
         // udpated then to test A=LU, we'll make a deep copy of A prior to
         // calling getrf
-        lacpy(Uplo::General, A, A_copy);
+        lacpy(GENERAL, A, A_copy);
 
-        real_t norma = tlapack::lange(tlapack::Norm::Max, A);
-        // Initialize Piv vector to all zeros
-        std::vector<idx_t> Piv(k, idx_t(0));
-        // Run getrf and both A and Piv will be update
-        getrf(A, Piv, getrf_opts_t{variant});
+        real_t norma = tlapack::lange(tlapack::MAX_NORM, A);
+        // Initialize piv vector to all zeros
+        std::vector<idx_t> piv(k, idx_t(0));
+        // Run getrf and both A and piv will be update
+        getrf(A, piv, GetrfOpts{variant});
 
         // A contains L and U now, then form A <--- LU
         if (m > n) {
-            auto A0 = tlapack::slice(A, tlapack::range<idx_t>(0, n),
-                                     tlapack::range<idx_t>(0, n));
-            auto A1 = tlapack::slice(A, tlapack::range<idx_t>(n, m),
-                                     tlapack::range<idx_t>(0, n));
-            trmm(Side::Right, Uplo::Upper, Op::NoTrans, Diag::NonUnit,
-                 real_t(1), A0, A1);
+            auto A0 = tlapack::slice(A, range(0, n), range(0, n));
+            auto A1 = tlapack::slice(A, range(n, m), range(0, n));
+            trmm(RIGHT_SIDE, UPPER_TRIANGLE, NO_TRANS, NON_UNIT_DIAG, real_t(1),
+                 A0, A1);
             lu_mult(A0);
         }
         else if (m < n) {
-            auto A0 = tlapack::slice(A, tlapack::range<idx_t>(0, m),
-                                     tlapack::range<idx_t>(0, m));
-            auto A1 = tlapack::slice(A, tlapack::range<idx_t>(0, m),
-                                     tlapack::range<idx_t>(m, n));
-            trmm(Side::Left, Uplo::Lower, Op::NoTrans, Diag::Unit, real_t(1),
-                 A0, A1);
+            auto A0 = tlapack::slice(A, range(0, m), range(0, m));
+            auto A1 = tlapack::slice(A, range(0, m), range(m, n));
+            trmm(LEFT_SIDE, LOWER_TRIANGLE, NO_TRANS, UNIT_DIAG, real_t(1), A0,
+                 A1);
             lu_mult(A0);
         }
         else
             lu_mult(A);
 
-        // Now that Piv is updated, we work our way backwards in Piv and switch
+        // Now that piv is updated, we work our way backwards in piv and switch
         // rows of LU
         for (idx_t j = k - idx_t(1); j != idx_t(-1); j--) {
             auto vect1 = tlapack::row(A, j);
-            auto vect2 = tlapack::row(A, Piv[j]);
+            auto vect2 = tlapack::row(A, piv[j]);
             tlapack::swap(vect1, vect2);
         }
 
@@ -116,7 +113,7 @@ TEMPLATE_TEST_CASE("LU factorization of a general m-by-n matrix",
                 A(i, j) -= A_copy(i, j);
 
         // Check for relative error: norm(A-LU)/norm(A)
-        real_t error = tlapack::lange(tlapack::Norm::Max, A) / norma;
+        real_t error = tlapack::lange(tlapack::MAX_NORM, A) / norma;
         CHECK(error <= tol);
     }
 }

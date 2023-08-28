@@ -1,8 +1,5 @@
-#-------------------------------------------------------------------------------
-# <T>LAPACK library
-tlapack_inc = /home/weslleyp/tlapack-test/include
-tlapack_lib = /home/weslleyp/tlapack-test/lib
-eigen_inc   = /home/weslleyp/storage/eigen
+tlapack_inc = /usr/local/include
+eigen_inc   = /usr/local/include/eigen3
 
-CXXFLAGS = -g -I$(tlapack_inc) -I$(eigen_inc) -Wall -pedantic
+CXXFLAGS = -I$(tlapack_inc) -I$(eigen_inc)
 LDFLAGS  = 

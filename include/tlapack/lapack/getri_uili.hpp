@@ -35,18 +35,18 @@ namespace tlapack {
  *
  * @ingroup computational
  */
-template <class matrix_t>
+template <TLAPACK_MATRIX matrix_t>
 int getri_uili(matrix_t& A)
 {
     // check arguments
     tlapack_check(nrows(A) == ncols(A));
 
     // Invert the upper part of A; U
-    int info = trtri_recursive(Uplo::Upper, Diag::NonUnit, A);
+    int info = trtri_recursive(UPPER_TRIANGLE, NON_UNIT_DIAG, A);
     if (info != 0) return info;
 
     // Invert the lower part of A; L which has 1 on the diagonal
-    trtri_recursive(Uplo::Lower, Diag::Unit, A);
+    trtri_recursive(LOWER_TRIANGLE, UNIT_DIAG, A);
 
     // multiply U^{-1} and L^{-1} in place using ul_mult
     ul_mult(A);

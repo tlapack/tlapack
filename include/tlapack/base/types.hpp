@@ -11,10 +11,10 @@
 #ifndef TLAPACK_TYPES_HH
 #define TLAPACK_TYPES_HH
 
-#include <cassert>
-#include <complex>
-#include <type_traits>
 #include <vector>
+
+#include "tlapack/base/StrongZero.hpp"
+#include "tlapack/base/scalar_type_traits.hpp"
 
 // Helpers:
 
@@ -23,15 +23,6 @@
     {                                                                     \
         if (v == EnumClass::A) return out << #A;                          \
         if (v == EnumClass::B) return out << #B;                          \
-        return out << "<Invalid>";                                        \
-    }
-
-#define TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_3_VALUES(EnumClass, A, B, C)    \
-    inline std::ostream& operator<<(std::ostream& out, const EnumClass v) \
-    {                                                                     \
-        if (v == EnumClass::A) return out << #A;                          \
-        if (v == EnumClass::B) return out << #B;                          \
-        if (v == EnumClass::C) return out << #C;                          \
         return out << "<Invalid>";                                        \
     }
 
@@ -56,80 +47,23 @@
         return out << "<Invalid>";                                           \
     }
 
+#define TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_7_VALUES(EnumClass, A, B, C, D, E, \
+                                                   F, G)                     \
+    inline std::ostream& operator<<(std::ostream& out, const EnumClass v)    \
+    {                                                                        \
+        if (v == EnumClass::A) return out << #A;                             \
+        if (v == EnumClass::B) return out << #B;                             \
+        if (v == EnumClass::C) return out << #C;                             \
+        if (v == EnumClass::D) return out << #D;                             \
+        if (v == EnumClass::E) return out << #E;                             \
+        if (v == EnumClass::F) return out << #F;                             \
+        if (v == EnumClass::G) return out << #G;                             \
+        return out << "<Invalid>";                                           \
+    }
+
 // Types:
 
 namespace tlapack {
-
-namespace internal {
-
-    /// Auxiliary data type to vector increments.
-    struct StrongOne {
-        inline constexpr operator int() const { return 1; }
-        inline constexpr StrongOne(int i = 1) { assert(i == 1); }
-    };
-
-    /**
-     * @brief Auxiliary data type
-     *
-     * Suppose x is of type T. Then:
-     *
-     * 1. T(StrongZero()) is equivalent to T(0).
-     * 2. x *= StrongZero() is equivalent to x = T(0).
-     * 3. x += StrongZero() does not modify x.
-     *
-     * This class satisfies:
-     *
-     *      x * StrongZero() = StrongZero()
-     *      StrongZero() * x = StrongZero()
-     *      x + StrongZero() = x
-     *      StrongZero() + x = x
-     *
-     */
-    struct StrongZero {
-        template <typename T>
-        explicit constexpr operator T() const
-        {
-            return T(0);
-        }
-
-        template <typename T>
-        friend constexpr T& operator*=(T& lhs, const StrongZero&)
-        {
-            lhs = T(0);
-            return lhs;
-        }
-
-        template <typename T>
-        friend constexpr const StrongZero operator*(const StrongZero&, const T&)
-        {
-            return StrongZero();
-        }
-
-        template <typename T>
-        friend constexpr const StrongZero operator*(const T&, const StrongZero&)
-        {
-            return StrongZero();
-        }
-
-        template <typename T>
-        friend constexpr const T& operator+=(const T& lhs, const StrongZero&)
-        {
-            return lhs;
-        }
-
-        template <typename T>
-        friend constexpr const T operator+(const StrongZero&, const T& rhs)
-        {
-            return rhs;
-        }
-
-        template <typename T>
-        friend constexpr const T operator+(const T& lhs, const StrongZero&)
-        {
-            return lhs;
-        }
-    };
-}  // namespace internal
 
 // -----------------------------------------------------------------------------
 // Layouts
@@ -144,327 +78,364 @@ enum class Layout : char {
     Unspecified = 0  ///< Used on all other data structures.
 };
 TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_4_VALUES(
-    Layout, Unspecified, ColMajor, RowMajor, Strided);
+    Layout, Unspecified, ColMajor, RowMajor, Strided)
 
 // -----------------------------------------------------------------------------
 // Upper or Lower access
 
-enum class Uplo : char { Upper = 'U', Lower = 'L', General = 'G' };
-TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_3_VALUES(Uplo, Upper, Lower, General);
+enum class Uplo : char {
+    General = 'G',          ///< 0 <= i <= m,   0 <= j <= n.
+    Upper = 'U',            ///< 0 <= i <= j,   0 <= j <= n.
+    Lower = 'L',            ///< 0 <= i <= m,   0 <= j <= i.
+    UpperHessenberg = 'H',  ///< 0 <= i <= j+1, 0 <= j <= n.
+    LowerHessenberg = 4,    ///< 0 <= i <= m,   0 <= j <= i+1.
+    StrictUpper = 'S',      ///< 0 <= i <= j-1, 0 <= j <= n.
+    StrictLower = 6,        ///< 0 <= i <= m,   0 <= j <= i-1.
+};
+TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_7_VALUES(Uplo,
+                                           Upper,
+                                           Lower,
+                                           General,
+                                           UpperHessenberg,
+                                           LowerHessenberg,
+                                           StrictUpper,
+                                           StrictLower)
+
+namespace internal {
+    /**
+     * @brief General access.
+     *
+     * Pairs (i,j) such that 0 <= i <= m,   0 <= j <= n     in a m-by-n matrix.
+     *
+     *      x x x x x
+     *      x x x x x
+     *      x x x x x
+     *      x x x x x
+     */
+    struct GeneralAccess {
+        constexpr operator Uplo() const noexcept { return Uplo::General; }
+    };
+
+    /**
+     * @brief Upper Triangle access
+     *
+     * Pairs (i,j) such that 0 <= i <= j,   0 <= j <= n     in a m-by-n matrix.
+     *
+     *      x x x x x
+     *      0 x x x x
+     *      0 0 x x x
+     *      0 0 0 x x
+     */
+    struct UpperTriangle {
+        constexpr operator Uplo() const noexcept { return Uplo::Upper; }
+    };
+
+    /**
+     * @brief Lower Triangle access
+     *
+     * Pairs (i,j) such that 0 <= i <= m,   0 <= j <= i     in a m-by-n matrix.
+     *
+     *      x 0 0 0 0
+     *      x x 0 0 0
+     *      x x x 0 0
+     *      x x x x 0
+     */
+    struct LowerTriangle {
+        constexpr operator Uplo() const noexcept { return Uplo::Lower; }
+    };
+
+    /**
+     * @brief Upper Hessenberg access
+     *
+     * Pairs (i,j) such that 0 <= i <= j+1, 0 <= j <= n     in a m-by-n matrix.
+     *
+     *      x x x x x
+     *      x x x x x
+     *      0 x x x x
+     *      0 0 x x x
+     */
+    struct UpperHessenberg {
+        constexpr operator Uplo() const noexcept
+        {
+            return Uplo::UpperHessenberg;
+        }
+    };
+
+    /**
+     * @brief Lower Hessenberg access
+     *
+     * Pairs (i,j) such that 0 <= i <= m,   0 <= j <= i+1   in a m-by-n matrix.
+     *
+     *      x x 0 0 0
+     *      x x x 0 0
+     *      x x x x 0
+     *      x x x x x
+     */
+    struct LowerHessenberg {
+        constexpr operator Uplo() const noexcept
+        {
+            return Uplo::LowerHessenberg;
+        }
+    };
+
+    /**
+     * @brief Strict Upper Triangle access
+     *
+     * Pairs (i,j) such that 0 <= i <= j-1, 0 <= j <= n     in a m-by-n matrix.
+     *
+     *      0 x x x x
+     *      0 0 x x x
+     *      0 0 0 x x
+     *      0 0 0 0 x
+     */
+    struct StrictUpper {
+        constexpr operator Uplo() const noexcept { return Uplo::StrictUpper; }
+    };
+
+    /**
+     * @brief Strict Lower Triangle access
+     *
+     * Pairs (i,j) such that 0 <= i <= m,   0 <= j <= i-1   in a m-by-n matrix.
+     *
+     *      0 0 0 0 0
+     *      x 0 0 0 0
+     *      x x 0 0 0
+     *      x x x 0 0
+     */
+    struct StrictLower {
+        constexpr operator Uplo() const noexcept { return Uplo::StrictLower; }
+    };
+}  // namespace internal
+
+// constant expressions for upper/lower access
+
+/// General access
+constexpr internal::GeneralAccess GENERAL = {};
+/// Upper Hessenberg access
+constexpr internal::UpperHessenberg UPPER_HESSENBERG = {};
+/// Lower Hessenberg access
+constexpr internal::LowerHessenberg LOWER_HESSENBERG = {};
+/// Upper Triangle access
+constexpr internal::UpperTriangle UPPER_TRIANGLE = {};
+/// Lower Triangle access
+constexpr internal::LowerTriangle LOWER_TRIANGLE = {};
+/// Strict Upper Triangle access
+constexpr internal::StrictUpper STRICT_UPPER = {};
+/// Strict Lower Triangle access
+constexpr internal::StrictLower STRICT_LOWER = {};
 
 // -----------------------------------------------------------------------------
 // Information about the main diagonal
 
-enum class Diag : char { NonUnit = 'N', Unit = 'U' };
-TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_2_VALUES(Diag, NonUnit, Unit);
-
-struct nonUnit_diagonal_t {
-    constexpr operator Diag() const { return Diag::NonUnit; }
+enum class Diag : char {
+    NonUnit = 'N',  ///< The main diagonal is not assumed to consist of 1's.
+    Unit = 'U'      ///< The main diagonal is assumed to consist of 1's.
 };
-struct unit_diagonal_t {
-    constexpr operator Diag() const { return Diag::Unit; }
-};
+TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_2_VALUES(Diag, NonUnit, Unit)
 
-// constants
-constexpr nonUnit_diagonal_t nonUnit_diagonal = {};
-constexpr unit_diagonal_t unit_diagonal = {};
+namespace internal {
+    struct NonUnitDiagonal {
+        constexpr operator Diag() const noexcept { return Diag::NonUnit; }
+    };
+    struct UnitDiagonal {
+        constexpr operator Diag() const noexcept { return Diag::Unit; }
+    };
+}  // namespace internal
+
+// constant expressions about the main diagonal
+
+/// The main diagonal is not assumed to consist of 1's.
+constexpr internal::NonUnitDiagonal NON_UNIT_DIAG = {};
+/// The main diagonal is assumed to consist of 1's.
+constexpr internal::UnitDiagonal UNIT_DIAG = {};
 
 // -----------------------------------------------------------------------------
 // Operations over data
 
 enum class Op : char {
-    NoTrans = 'N',
-    Trans = 'T',
-    ConjTrans = 'C',
-    Conj = 0  ///< non-transpose conjugate
+    NoTrans = 'N',    ///< no transpose
+    Trans = 'T',      ///< transpose
+    ConjTrans = 'C',  ///< conjugate transpose
+    Conj = 3          ///< non-transpose conjugate
 };
-TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_4_VALUES(Op, NoTrans, Trans, ConjTrans, Conj);
+TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_4_VALUES(Op, NoTrans, Trans, ConjTrans, Conj)
 
-struct noTranspose_t {
-    constexpr operator Op() const { return Op::NoTrans; }
-};
-struct transpose_t {
-    constexpr operator Op() const { return Op::Trans; }
-};
-struct conjTranspose_t {
-    constexpr operator Op() const { return Op::ConjTrans; }
-};
+namespace internal {
+    struct NoTranspose {
+        constexpr operator Op() const noexcept { return Op::NoTrans; }
+    };
+    struct Transpose {
+        constexpr operator Op() const noexcept { return Op::Trans; }
+    };
+    struct ConjTranspose {
+        constexpr operator Op() const noexcept { return Op::ConjTrans; }
+    };
+    struct Conjugate {
+        constexpr operator Op() const noexcept { return Op::Conj; }
+    };
+}  // namespace internal
 
-// Constants
-constexpr noTranspose_t noTranspose = {};
-constexpr transpose_t Transpose = {};
-constexpr conjTranspose_t conjTranspose = {};
+// Constant expressions for operations over data
+
+/// no transpose
+constexpr internal::NoTranspose NO_TRANS = {};
+/// transpose
+constexpr internal::Transpose TRANSPOSE = {};
+/// conjugate transpose
+constexpr internal::ConjTranspose CONJ_TRANS = {};
+/// non-transpose conjugate
+constexpr internal::Conjugate CONJUGATE = {};
 
 // -----------------------------------------------------------------------------
 // Sides
 
-enum class Side : char { Left = 'L', Right = 'R' };
-TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_2_VALUES(Side, Left, Right);
-
-struct left_side_t {
-    constexpr operator Side() const { return Side::Left; }
+enum class Side : char {
+    Left = 'L',  ///< left side
+    Right = 'R'  ///< right side
 };
-struct right_side_t {
-    constexpr operator Side() const { return Side::Right; }
-};
+TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_2_VALUES(Side, Left, Right)
 
-// Constants
-constexpr left_side_t left_side{};
-constexpr right_side_t right_side{};
+namespace internal {
+    struct LeftSide {
+        constexpr operator Side() const noexcept { return Side::Left; }
+    };
+    struct RightSide {
+        constexpr operator Side() const noexcept { return Side::Right; }
+    };
+}  // namespace internal
+
+// Constant expressions for sides
+
+/// left side
+constexpr internal::LeftSide LEFT_SIDE{};
+/// right side
+constexpr internal::RightSide RIGHT_SIDE{};
 
 // -----------------------------------------------------------------------------
 // Norm types
 
 enum class Norm : char {
-    One = '1',  // or 'O'
-    Two = '2',
-    Inf = 'I',
-    Fro = 'F',  // or 'E'
-    Max = 'M',
+    One = '1',  ///< one norm
+    Two = '2',  ///< two norm
+    Inf = 'I',  ///< infinity norm of matrices
+    Fro = 'F',  ///< Frobenius norm of matrices
+    Max = 'M',  ///< max norm
 };
-TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_5_VALUES(Norm, One, Two, Inf, Fro, Max);
+TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_5_VALUES(Norm, One, Two, Inf, Fro, Max)
 
-struct max_norm_t {
-    constexpr operator Norm() const { return Norm::Max; }
-};
-struct one_norm_t {
-    constexpr operator Norm() const { return Norm::One; }
-};
-struct inf_norm_t {
-    constexpr operator Norm() const { return Norm::Inf; }
-};
-struct frob_norm_t {
-    constexpr operator Norm() const { return Norm::Fro; }
-};
+namespace internal {
+    struct MaxNorm {
+        constexpr operator Norm() const noexcept { return Norm::Max; }
+    };
+    struct OneNorm {
+        constexpr operator Norm() const noexcept { return Norm::One; }
+    };
+    struct TwoNorm {
+        constexpr operator Norm() const noexcept { return Norm::Two; }
+    };
+    struct InfNorm {
+        constexpr operator Norm() const noexcept { return Norm::Inf; }
+    };
+    struct FrobNorm {
+        constexpr operator Norm() const noexcept { return Norm::Fro; }
+    };
+}  // namespace internal
 
-// Constants
-constexpr max_norm_t max_norm = {};
-constexpr one_norm_t one_norm = {};
-constexpr inf_norm_t inf_norm = {};
-constexpr frob_norm_t frob_norm = {};
+// Constant expressions for norm types
+
+/// max norm
+constexpr internal::MaxNorm MAX_NORM = {};
+/// one norm
+constexpr internal::OneNorm ONE_NORM = {};
+/// two norm
+constexpr internal::TwoNorm TWO_NORM = {};
+/// infinity norm of matrices
+constexpr internal::InfNorm INF_NORM = {};
+/// Frobenius norm of matrices
+constexpr internal::FrobNorm FROB_NORM = {};
 
 // -----------------------------------------------------------------------------
 // Directions
 
 enum class Direction : char {
-    Forward = 'F',
-    Backward = 'B',
+    Forward = 'F',   ///< Forward direction
+    Backward = 'B',  ///< Backward direction
 };
-TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_2_VALUES(Direction, Forward, Backward);
+TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_2_VALUES(Direction, Forward, Backward)
 
-struct forward_t {
-    constexpr operator Direction() const { return Direction::Forward; }
-};
-struct backward_t {
-    constexpr operator Direction() const { return Direction::Backward; }
-};
+namespace internal {
+    struct Forward {
+        constexpr operator Direction() const noexcept
+        {
+            return Direction::Forward;
+        }
+    };
+    struct Backward {
+        constexpr operator Direction() const noexcept
+        {
+            return Direction::Backward;
+        }
+    };
+}  // namespace internal
 
-// Constants
-constexpr forward_t forward{};
-constexpr backward_t backward{};
+// Constant expressions for directions
+
+/// Forward direction
+constexpr internal::Forward FORWARD{};
+/// Backward direction
+constexpr internal::Backward BACKWARD{};
 
 // -----------------------------------------------------------------------------
 // Storage types
 
 enum class StoreV : char {
-    Columnwise = 'C',
-    Rowwise = 'R',
+    Columnwise = 'C',  ///< Columnwise storage
+    Rowwise = 'R',     ///< Rowwise storage
 };
-TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_2_VALUES(StoreV, Columnwise, Rowwise);
-
-struct columnwise_storage_t {
-    constexpr operator StoreV() const { return StoreV::Columnwise; }
-};
-struct rowwise_storage_t {
-    constexpr operator StoreV() const { return StoreV::Rowwise; }
-};
-
-// Constants
-constexpr columnwise_storage_t columnwise_storage{};
-constexpr rowwise_storage_t rowwise_storage{};
-}  // namespace tlapack
-
-#undef TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_2_VALUES
-#undef TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_3_VALUES
-#undef TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_4_VALUES
-#undef TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_5_VALUES
-
-namespace tlapack {
-
-// -----------------------------------------------------------------------------
-// Based on C++14 std::common_type implementation from
-// http://www.cplusplus.com/reference/type_traits/std::common_type/
-// Adds promotion of complex types based on the common type of the associated
-// real types. This fixes various cases:
-//
-// std::std::common_type_t< double, complex<float> > is complex<float>  (wrong)
-//        scalar_type< double, complex<float> > is complex<double> (right)
-//
-// std::std::common_type_t< int, complex<long> > is not defined (compile error)
-//        scalar_type< int, complex<long> > is complex<long> (right)
-
-// for zero types
-template <typename... Types>
-struct scalar_type_traits;
-
-/// define scalar_type<> type alias
-template <typename... Types>
-using scalar_type = typename scalar_type_traits<Types...>::type;
-
-// for one type
-template <typename T>
-struct scalar_type_traits<T> {
-    using type = typename std::decay<T>::type;
-};
-
-// for two types
-// relies on type of ?: operator being the common type of its two arguments
-template <typename T1, typename T2>
-struct scalar_type_traits<T1, T2> {
-    using type = typename std::decay<decltype(true ? std::declval<T1>()
-                                                   : std::declval<T2>())>::type;
-};
-
-// for either or both complex,
-// find common type of associated real types, then add complex
-template <typename T1, typename T2>
-struct scalar_type_traits<std::complex<T1>, T2> {
-    using type = std::complex<typename std::common_type<T1, T2>::type>;
-};
-
-template <typename T1, typename T2>
-struct scalar_type_traits<T1, std::complex<T2> > {
-    using type = std::complex<typename std::common_type<T1, T2>::type>;
-};
-
-template <typename T1, typename T2>
-struct scalar_type_traits<std::complex<T1>, std::complex<T2> > {
-    using type = std::complex<typename std::common_type<T1, T2>::type>;
-};
-
-// for three or more types
-template <typename T1, typename T2, typename... Types>
-struct scalar_type_traits<T1, T2, Types...> {
-    using type = scalar_type<scalar_type<T1, T2>, Types...>;
-};
-
-// -----------------------------------------------------------------------------
-// for any combination of types, determine associated real, scalar,
-// and complex types.
-//
-// real_type< float >                               is float
-// real_type< float, double, complex<float> >       is double
-//
-// scalar_type< float >                             is float
-// scalar_type< float, complex<float> >             is complex<float>
-// scalar_type< float, double, complex<float> >     is complex<double>
-//
-// complex_type< float >                            is complex<float>
-// complex_type< float, double >                    is complex<double>
-// complex_type< float, double, complex<float> >    is complex<double>
-
-// for zero types
-template <typename... Types>
-struct real_type_traits;
-
-/// define real_type<> type alias
-template <typename... Types>
-using real_type = typename real_type_traits<Types...>::type;
-
-// for one type
-template <typename T>
-struct real_type_traits<T> {
-    using type = T;
-};
-
-// for one complex type, strip complex
-template <typename T>
-struct real_type_traits<std::complex<T> > {
-    using type = T;
-};
-
-// for two or more types
-template <typename T1, typename... Types>
-struct real_type_traits<T1, Types...> {
-    using type = scalar_type<real_type<T1>, real_type<Types...> >;
-};
-
-// for zero types
-template <typename... Types>
-struct complex_type_traits;
-
-/// define complex_type<> type alias
-template <typename... Types>
-using complex_type = typename complex_type_traits<Types...>::type;
-
-// for one type
-template <typename T>
-struct complex_type_traits<T> {
-    using type = std::complex<T>;
-};
-
-// for one complex type, strip complex
-template <typename T>
-struct complex_type_traits<std::complex<T> > {
-    using type = std::complex<T>;
-};
-
-// for two or more types
-template <typename T1, typename... Types>
-struct complex_type_traits<T1, Types...> {
-    using type = scalar_type<complex_type<T1>, complex_type<Types...> >;
-};
+TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_2_VALUES(StoreV, Columnwise, Rowwise)
 
 namespace internal {
-
-    /**
-     * @brief Data type trait.
-     *
-     * The data type is defined on @c type_trait<array_t>::type.
-     *
-     * @tparam T A non-array class.
-     */
-    template <class T, typename = int>
-    struct type_trait {
-        using type = void;
+    struct ColumnwiseStorage {
+        constexpr operator StoreV() const noexcept
+        {
+            return StoreV::Columnwise;
+        }
     };
-
-    /**
-     * @brief Size type trait.
-     *
-     * The size type is defined on @c sizet_trait<array_t>::type.
-     *
-     * @tparam T A non-array class.
-     */
-    template <class T, typename = int>
-    struct sizet_trait {
-        using type = std::size_t;
+    struct RowwiseStorage {
+        constexpr operator StoreV() const noexcept { return StoreV::Rowwise; }
     };
-
 }  // namespace internal
 
-/// Alias for @c type_trait<>::type.
-template <class array_t>
-using type_t = typename internal::type_trait<array_t>::type;
+// Constant expressions for storage types
 
-/// Alias for @c sizet_trait<>::type.
-template <class array_t>
-using size_type = typename internal::sizet_trait<array_t>::type;
+/// Columnwise storage
+constexpr internal::ColumnwiseStorage COLUMNWISE_STORAGE{};
+/// Rowwise storage
+constexpr internal::RowwiseStorage ROWWISE_STORAGE{};
 
-// Workspace
+// -----------------------------------------------------------------------------
+// Band access
 
-/// Byte type
-using byte = unsigned char;
-/// Byte allocator
-using byteAlloc = std::allocator<byte>;
-/// Vector of bytes. May use a specialized allocator in future
-using vectorOfBytes = std::vector<byte, byteAlloc>;
+/**
+ * @brief Band access
+ *
+ * Pairs (i,j) such that max(0,j-ku) <= i <= min(m,j+kl) in a m-by-n matrix,
+ * where kl is the lower_bandwidth and ku is the upper_bandwidth.
+ *
+ *      x x x 0 0
+ *      x x x x 0
+ *      0 x x x x
+ *      0 0 x x x
+ */
+struct BandAccess {
+    std::size_t lower_bandwidth;  ///< Number of subdiagonals.
+    std::size_t upper_bandwidth;  ///< Number of superdiagonals.
+};
 
 // -----------------------------------------------------------------------------
 // Legacy matrix and vector structures
 
 namespace legacy {
-
     /**
      * @brief Describes a row- or column-major matrix
      *
@@ -472,7 +443,7 @@ namespace legacy {
      * @tparam idx_t Integer type of the size attributes.
      */
     template <class T, class idx_t>
-    struct matrix {
+    struct Matrix {
         Layout layout;
         idx_t m;
         idx_t n;
@@ -487,14 +458,17 @@ namespace legacy {
      * @tparam idx_t Integer type of the size attributes.
      */
     template <class T, class idx_t>
-    struct vector {
+    struct Vector {
         idx_t n;
         T* ptr;
         idx_t inc;
     };
-
 }  // namespace legacy
-
 }  // namespace tlapack
+
+#undef TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_2_VALUES
+#undef TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_4_VALUES
+#undef TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_5_VALUES
+#undef TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_7_VALUES
 
 #endif  // TLAPACK_TYPES_HH

@@ -15,13 +15,15 @@
 #include "tlapack/blas/gemm.hpp"
 #include "tlapack/blas/herk.hpp"
 #include "tlapack/blas/trsm.hpp"
-#include "tlapack/lapack/potrf2.hpp"
+#include "tlapack/lapack/potf2.hpp"
 
 namespace tlapack {
 
-// Forward declarations
-template <typename idx_t>
-struct potrf_opts_t;
+struct BlockedCholeskyOpts : public EcOpts {
+    constexpr BlockedCholeskyOpts(const EcOpts& opts = {}) : EcOpts(opts){};
+
+    size_t nb = 32;  ///< Block size
+};
 
 /** Computes the Cholesky factorization of a Hermitian
  * positive definite matrix A using a blocked algorithm.
@@ -60,17 +62,13 @@ struct potrf_opts_t;
  *
  * @ingroup computational
  */
-template <class uplo_t, class matrix_t>
-int potrf_blocked(uplo_t uplo,
-                  matrix_t& A,
-                  const potrf_opts_t<size_type<matrix_t> >& opts = {})
+template <TLAPACK_UPLO uplo_t, TLAPACK_SMATRIX matrix_t>
+int potrf_blocked(uplo_t uplo, matrix_t& A, const BlockedCholeskyOpts& opts)
 {
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
     using idx_t = size_type<matrix_t>;
-    using pair = pair<idx_t, idx_t>;
-
-    using std::min;
+    using range = pair<idx_t, idx_t>;
 
     // Constants
     const real_t one(1);
@@ -85,8 +83,8 @@ int potrf_blocked(uplo_t uplo,
     if (n <= 0) return 0;
 
     // Unblocked code
-    else if (nb <= 1 || nb >= n)
-        return potrf2(uplo, A);
+    else if (nb >= n)
+        return potf2(uplo, A);
 
     // Blocked code
     else {
@@ -95,12 +93,12 @@ int potrf_blocked(uplo_t uplo,
                 idx_t jb = min(nb, n - j);
 
                 // Define AJJ and A1J
-                auto AJJ = slice(A, pair{j, j + jb}, pair{j, j + jb});
-                auto A1J = slice(A, pair{0, j}, pair{j, j + jb});
+                auto AJJ = slice(A, range{j, j + jb}, range{j, j + jb});
+                auto A1J = slice(A, range{0, j}, range{j, j + jb});
 
-                herk(uplo, conjTranspose, -one, A1J, one, AJJ);
+                herk(UPPER_TRIANGLE, CONJ_TRANS, -one, A1J, one, AJJ);
 
-                int info = potrf2(uplo, AJJ, noErrorCheck);
+                int info = potf2(UPPER_TRIANGLE, AJJ);
                 if (info != 0) {
                     tlapack_error(
                         info + j,
@@ -112,13 +110,13 @@ int potrf_blocked(uplo_t uplo,
 
                 if (j + jb < n) {
                     // Define B and C
-                    auto B = slice(A, pair{0, j}, pair{j + jb, n});
-                    auto C = slice(A, pair{j, j + jb}, pair{j + jb, n});
+                    auto B = slice(A, range{0, j}, range{j + jb, n});
+                    auto C = slice(A, range{j, j + jb}, range{j + jb, n});
 
                     // Compute the current block row
-                    gemm(conjTranspose, noTranspose, -one, A1J, B, one, C);
-                    trsm(left_side, uplo, conjTranspose, nonUnit_diagonal, one,
-                         AJJ, C);
+                    gemm(CONJ_TRANS, NO_TRANS, -one, A1J, B, one, C);
+                    trsm(LEFT_SIDE, UPPER_TRIANGLE, CONJ_TRANS, NON_UNIT_DIAG,
+                         one, AJJ, C);
                 }
             }
         }
@@ -127,12 +125,12 @@ int potrf_blocked(uplo_t uplo,
                 idx_t jb = min(nb, n - j);
 
                 // Define AJJ and AJ1
-                auto AJJ = slice(A, pair{j, j + jb}, pair{j, j + jb});
-                auto AJ1 = slice(A, pair{j, j + jb}, pair{0, j});
+                auto AJJ = slice(A, range{j, j + jb}, range{j, j + jb});
+                auto AJ1 = slice(A, range{j, j + jb}, range{0, j});
 
-                herk(uplo, noTranspose, -one, AJ1, one, AJJ);
+                herk(LOWER_TRIANGLE, NO_TRANS, -one, AJ1, one, AJJ);
 
-                int info = potrf2(uplo, AJJ, noErrorCheck);
+                int info = potf2(LOWER_TRIANGLE, AJJ);
                 if (info != 0) {
                     tlapack_error(
                         info + j,
@@ -144,26 +142,53 @@ int potrf_blocked(uplo_t uplo,
 
                 if (j + jb < n) {
                     // Define B and C
-                    auto B = slice(A, pair{j + jb, n}, pair{0, j});
-                    auto C = slice(A, pair{j + jb, n}, pair{j, j + jb});
+                    auto B = slice(A, range{j + jb, n}, range{0, j});
+                    auto C = slice(A, range{j + jb, n}, range{j, j + jb});
 
                     // Compute the current block row
-                    gemm(noTranspose, conjTranspose, -one, B, AJ1, one, C);
-                    trsm(right_side, uplo, conjTranspose, nonUnit_diagonal, one,
-                         AJJ, C);
+                    gemm(NO_TRANS, CONJ_TRANS, -one, B, AJ1, one, C);
+                    trsm(RIGHT_SIDE, LOWER_TRIANGLE, CONJ_TRANS, NON_UNIT_DIAG,
+                         one, AJJ, C);
                 }
             }
         }
 
-        // Report infs and nans on the output
-        tlapack_warn_nans_in_matrix(opts.ec, uplo, A, n + 1,
-                                    "The factorization has some nans.");
-        tlapack_warn_infs_in_matrix(opts.ec, uplo, A, n + 1,
-                                    "The factorization has some infs.");
-
         return 0;
     }
 }
+
+template <TLAPACK_UPLO uplo_t,
+          TLAPACK_SMATRIX matrix_t,
+          disable_if_allow_optblas_t<matrix_t> = 0>
+int potrf_blocked(uplo_t uplo, matrix_t& A)
+{
+    return potrf_blocked(uplo, A, {});
+}
+
+#ifdef TLAPACK_USE_LAPACKPP
+
+template <TLAPACK_UPLO uplo_t,
+          TLAPACK_LEGACY_MATRIX matrix_t,
+          enable_if_allow_optblas_t<matrix_t> = 0>
+int potrf_blocked(uplo_t uplo, matrix_t& A)
+{
+    // Legacy objects
+    auto A_ = legacy_matrix(A);
+
+    // Constants to forward
+    const auto& n = A_.n;
+
+    if constexpr (layout<matrix_t> == Layout::ColMajor) {
+        return ::lapack::potrf((::blas::Uplo)(Uplo)uplo, n, A_.ptr, A_.ldim);
+    }
+    else {
+        return ::lapack::potrf(
+            ((uplo == Uplo::Lower) ? ::blas::Uplo::Upper : ::blas::Uplo::Lower),
+            n, A_.ptr, A_.ldim);
+    }
+}
+
+#endif
 
 }  // namespace tlapack
 

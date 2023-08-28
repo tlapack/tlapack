@@ -14,32 +14,20 @@
 
 #include "tlapack/base/utils.hpp"
 #include "tlapack/blas/gemm.hpp"
-#include "tlapack/lapack/gebd2.hpp"
 #include "tlapack/lapack/labrd.hpp"
-#include "tlapack/lapack/larfb.hpp"
 
 namespace tlapack {
 
 /**
  * Options struct for gebrd
  */
-template <class idx_t = size_t>
-struct gebrd_opts_t : public workspace_opts_t<> {
-    inline constexpr gebrd_opts_t(const workspace_opts_t<>& opts = {})
-        : workspace_opts_t<>(opts){};
-
-    idx_t nb = 32;  ///< Block size used in the blocked reduction
+struct GebrdOpts {
+    size_t nb = 32;  ///< Block size used in the blocked reduction
 };
 
 /** Worspace query of gebrd()
  *
  * @param[in,out] A m-by-n matrix.
- *
- * @param[out] d Real vector of length min(m,n).
- *      Diagonal elements of B
- *
- * @param[out] e Real vector of length min(m,n).
- *      Off-diagonal elements of B
  *
  * @param[out] tauq vector of length min(m,n).
  *      The scalar factors of the elementary reflectors which
@@ -49,35 +37,29 @@ struct gebrd_opts_t : public workspace_opts_t<> {
  *      The scalar factors of the elementary reflectors which
  *      represent the unitary matrix P.
  *
- * @param[in,out] workinfo
- *      On output, the amount workspace required. It is larger than or equal
- *      to that given on input.
+ * @return WorkInfo The amount workspace required.
  *
  * @param[in] opts Options.
- *      - @c opts.work is used if whenever it has sufficient size.
- *        The sufficient size can be obtained through a workspace query.
  *
  * @ingroup workspace_query
  */
-template <class A_t, class d_t, class e_t, class tauq_t, class taup_t>
-void gebrd_worksize(const A_t& A,
-                    const d_t& d,
-                    const e_t& e,
-                    const tauq_t& tauq,
-                    const taup_t& taup,
-                    workinfo_t& workinfo,
-                    const gebrd_opts_t<size_type<A_t> >& opts = {})
+template <class T, TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
+constexpr WorkInfo gebrd_worksize(const matrix_t& A,
+                                  const vector_t& tauq,
+                                  const vector_t& taup,
+                                  const GebrdOpts& opts = {})
 {
-    using idx_t = size_type<A_t>;
-    using work_t = matrix_type<A_t>;
-    using T = type_t<work_t>;
+    using idx_t = size_type<matrix_t>;
+    using work_t = matrix_type<matrix_t, vector_t>;
 
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
-    const idx_t nb = min(opts.nb, min(m, n));
+    const idx_t nb = min((idx_t)opts.nb, min(m, n));
 
-    const workinfo_t myWorkinfo(sizeof(T) * (m + n), nb);
-    workinfo.minMax(myWorkinfo);
+    if constexpr (is_same_v<T, type_t<work_t>>)
+        return WorkInfo(m + n, nb);
+    else
+        return WorkInfo(0);
 }
 
 /** Reduces a general m by n matrix A to an upper
@@ -107,47 +89,45 @@ void gebrd_worksize(const A_t& A,
  *
  * @param[in,out] A m-by-n matrix.
  *      On entry, the m by n general matrix to be reduced.
- *      On exit, if m >= n, the diagonal and the first superdiagonal
- *      are overwritten with the upper bidiagonal matrix B; the
- *      elements below the diagonal, with the array tauv, represent
- *      the unitary matrix Q as a product of elementary reflectors,
- *      and the elements above the first superdiagonal, with the array
- *      tauw, represent the unitary matrix P as a product of elementary
- *      reflectors.
+ *      On exit,
+ *      - if m >= n, the diagonal and the first superdiagonal
+ *        are overwritten with the upper bidiagonal matrix B; the
+ *        elements below the diagonal, with the array tauv, represent
+ *        the unitary matrix Q as a product of elementary reflectors,
+ *        and the elements above the first superdiagonal, with the array
+ *        tauw, represent the unitary matrix P as a product of elementary
+ *        reflectors.
+ *      - if m < n, the diagonal and the first superdiagonal
+ *        are overwritten with the lower bidiagonal matrix B; the
+ *        elements below the first subdiagonal, with the array tauv, represent
+ *        the unitary matrix Q as a product of elementary reflectors,
+ *        and the elements above the diagonal, with the array tauw, represent
+ *        the unitary matrix P as a product of elementary reflectors.
  *
- * @param[out] d Real vector of length min(m,n).
- *      Diagonal elements of B
- *
- * @param[out] e Real vector of length min(m,n).
- *      Off-diagonal elements of B
- *
- * @param[out] tauq vector of length min(m,n).
+ * @param[out] tauv vector of length min(m,n).
  *      The scalar factors of the elementary reflectors which
  *      represent the unitary matrix Q.
  *
- * @param[out] taup vector of length min(m,n).
+ * @param[out] tauw vector of length min(m,n).
  *      The scalar factors of the elementary reflectors which
  *      represent the unitary matrix P.
  *
  * @param[in] opts Options.
- *      - @c opts.work is used if whenever it has sufficient size.
- *        The sufficient size can be obtained through a workspace query.
  *
  * @ingroup computational
  */
-template <class A_t, class d_t, class e_t, class tauq_t, class taup_t>
-int gebrd(A_t& A,
-          d_t& d,
-          e_t& e,
-          tauq_t& tauq,
-          taup_t& taup,
-          const gebrd_opts_t<size_type<A_t> >& opts = {})
+template <TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
+int gebrd(matrix_t& A,
+          vector_t& tauv,
+          vector_t& tauw,
+          const GebrdOpts& opts = {})
 {
-    using idx_t = size_type<A_t>;
-    using work_t = matrix_type<A_t>;
-    using pair = pair<idx_t, idx_t>;
-    using TA = type_t<A_t>;
+    using idx_t = size_type<matrix_t>;
+    using work_t = matrix_type<matrix_t, vector_t>;
+    using range = pair<idx_t, idx_t>;
+    using TA = type_t<matrix_t>;
     using real_t = real_type<TA>;
+    using T = type_t<work_t>;
 
     // Functor
     Create<work_t> new_matrix;
@@ -158,68 +138,59 @@ int gebrd(A_t& A,
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
     const idx_t k = min(m, n);
-    const idx_t nb = min(opts.nb, k);
+    const idx_t nb = min((idx_t)opts.nb, k);
 
     // Allocates workspace
-    vectorOfBytes localworkdata;
-    Workspace work = [&]() {
-        workinfo_t workinfo;
-        gebrd_worksize(A, d, e, tauq, taup, workinfo, opts);
-        return alloc_workspace(localworkdata, workinfo, opts.work);
-    }();
+    WorkInfo workinfo = gebrd_worksize<T>(A, tauv, tauw, opts);
+    std::vector<T> work_;
+    auto work = new_matrix(work_, workinfo.m, workinfo.n);
 
-    // Matrix X
-    Workspace workMatrixY;
-    auto X = new_matrix(work, m, nb, workMatrixY);
-    laset(dense, zero, zero, X);
-
-    // Matrix Y
-    Workspace spareWork;
-    auto Y = new_matrix(workMatrixY, n, nb, spareWork);
-    laset(dense, zero, zero, Y);
+    // Matrices X and Y
+    auto X = slice(work, range{0, m}, range{0, nb});
+    auto Y = slice(work, range{m, m + n}, range{0, nb});
+    laset(GENERAL, zero, zero, X);
+    laset(GENERAL, zero, zero, Y);
 
     for (idx_t i = 0; i < k; i = i + nb) {
         idx_t ib = min(nb, k - i);
         // Reduce rows and columns i:i+ib-1 to bidiagonal form and return
         // the matrices X and Y which are needed to update the unreduced
         // part of the matrix
-        auto A2 = slice(A, pair{i, m}, pair{i, n});
-        auto d2 = slice(d, pair{i, i + ib});
-        auto e2 = slice(e, pair{i, i + ib});
-        auto tauq2 = slice(tauq, pair{i, i + ib});
-        auto taup2 = slice(taup, pair{i, i + ib});
-        auto X2 = slice(X, pair{i, m}, pair{0, ib});
-        auto Y2 = slice(Y, pair{i, n}, pair{0, ib});
-        labrd(A2, d2, e2, tauq2, taup2, X2, Y2);
+        auto A2 = slice(A, range{i, m}, range{i, n});
+        auto tauq = slice(tauv, range{i, i + ib});
+        auto taup = slice(tauw, range{i, i + ib});
+        auto X2 = slice(X, range{i, m}, range{0, ib});
+        auto Y2 = slice(Y, range{i, n}, range{0, ib});
+        labrd(A2, tauq, taup, X2, Y2);
 
         //
         // Update the trailing submatrix A(i+nb:m,i+nb:n), using an update
         // of the form  A := A - V*Y**H - X*U**H
         //
-        auto A3 = slice(A, pair{i + ib, m}, pair{i + ib, n});
-        auto V = slice(A, pair{i + ib, m}, pair{i, i + ib});
-        auto Y3 = slice(Y, pair{i + ib, n}, pair{0, ib});
-        gemm(noTranspose, conjTranspose, -one, V, Y3, one, A3);
-        auto U = slice(A, pair{i, i + ib}, pair{i + ib, n});
-        auto X3 = slice(X, pair{i + ib, m}, pair{0, ib});
-        gemm(noTranspose, noTranspose, -one, X3, U, one, A3);
+        if (i + ib < m && i + ib < n) {
+            real_t e;
+            auto A3 = slice(A, range{i + ib, m}, range{i + ib, n});
 
-        //
-        // Copy diagonal and off-diagonal elements of B back into A
-        //
-        if (m >= n) {
-            // copy upper bidiagonal matrix
-            for (idx_t j = i; j < i + ib; ++j) {
-                A(j, j) = d[j];
-                if (j + 1 < n) A(j, j + 1) = e[j];
+            if (m >= n) {
+                e = real(A(i + ib - 1, i + ib));
+                A(i + ib - 1, i + ib) = one;
             }
-        }
-        else {
-            // copy lower bidiagonal matrix
-            for (idx_t j = i; j < i + ib; ++j) {
-                A(j, j) = d[j];
-                if (j + 1 < m) A(j + 1, j) = e[j];
+            else {
+                e = real(A(i + ib, i + ib - 1));
+                A(i + ib, i + ib - 1) = one;
             }
+
+            auto V = slice(A, range{i + ib, m}, range{i, i + ib});
+            auto Y3 = slice(Y, range{i + ib, n}, range{0, ib});
+            gemm(NO_TRANS, CONJ_TRANS, -one, V, Y3, one, A3);
+            auto U = slice(A, range{i, i + ib}, range{i + ib, n});
+            auto X3 = slice(X, range{i + ib, m}, range{0, ib});
+            gemm(NO_TRANS, NO_TRANS, -one, X3, U, one, A3);
+
+            if (m >= n)
+                A(i + ib - 1, i + ib) = e;
+            else
+                A(i + ib, i + ib - 1) = e;
         }
     }
 

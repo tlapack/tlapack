@@ -30,7 +30,7 @@
 //------------------------------------------------------------------------------
 /// Print matrix A in the standard output
 template <typename matrix_t>
-inline void printMatrix(const matrix_t& A)
+void printMatrix(const matrix_t& A)
 {
     using idx_t = tlapack::size_type<matrix_t>;
     const idx_t m = tlapack::nrows(A);
@@ -43,19 +43,92 @@ inline void printMatrix(const matrix_t& A)
     }
 }
 
+class rand_generator {
+   private:
+    const uint64_t a = 6364136223846793005;
+    const uint64_t c = 1442695040888963407;
+    uint64_t state = 1302;
+
+   public:
+    uint32_t min() { return 0; }
+
+    uint32_t max() { return UINT32_MAX; }
+
+    void seed(uint64_t s) { state = s; }
+
+    uint32_t operator()()
+    {
+        state = state * a + c;
+        return state >> 32;
+    }
+};
+
+template <typename T>
+T rand_helper(rand_generator& gen)
+{
+    return static_cast<T>(gen()) / static_cast<T>(gen.max());
+}
+
+extern "C" {
+void fortran_slaqr0(const bool* wantt,
+                    const bool* wantz,
+                    const int* n,
+                    const int* ilo,
+                    const int* ihi,
+                    float* H,
+                    const int* ldh,
+                    float* wr,
+                    float* wi,
+                    float* Z,
+                    const int* ldz,
+                    int* info,
+                    int* n_aed,
+                    int* n_sweep,
+                    int* n_shifts);
+void fortran_sgehrd(const int* n,
+                    const int* ilo,
+                    const int* ihi,
+                    float* H,
+                    const int* ldh,
+                    float* tau,
+                    int* info);
+void fortran_sorghr(const int* n,
+                    const int* ilo,
+                    const int* ihi,
+                    float* H,
+                    const int* ldh,
+                    float* tau,
+                    int* info);
+}
+
 //------------------------------------------------------------------------------
 template <typename T>
-void run(size_t n)
+void run(size_t n,
+         int seed,
+         bool use_fortran_gehrd_unghr = false,
+         bool use_fortran_hqr = false,
+         bool verbose = false)
 {
     using real_t = tlapack::real_type<T>;
-    using matrix_t = tlapack::legacyMatrix<T>;
+    using matrix_t = tlapack::LegacyMatrix<T>;
     using std::size_t;
+
+    constexpr bool use_lapack
+#ifdef USE_LAPACK
+        = std::is_same_v<T, float>;
+#else
+        = false;
+#endif
 
     // Functor for creating new matrices of type matrix_t
     tlapack::Create<matrix_t> new_matrix;
 
-    // Turn it off if m or n are large
-    bool verbose = false;
+    rand_generator gen;
+    gen.seed(seed);
+
+    // Constants
+    int one = 1, len = n;
+    bool yes = true;
 
     // Arrays
     std::vector<T> tau(n);
@@ -83,10 +156,10 @@ void run(size_t n)
     // Generate a random matrix in A
     for (size_t j = 0; j < n; ++j)
         for (size_t i = 0; i < n; ++i)
-            A(i, j) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+            A(i, j) = rand_helper<T>(gen);
 
     // Frobenius norm of A
-    auto normA = tlapack::lange(tlapack::frob_norm, A);
+    auto normA = tlapack::lange(tlapack::FROB_NORM, A);
 
     // Print A
     if (verbose) {
@@ -103,8 +176,18 @@ void run(size_t n)
     auto startQHQ = std::chrono::high_resolution_clock::now();
     {
         // Hessenberg factorization
-        int err = tlapack::gehrd(0, n, Q, tau);
-        tlapack_check_false(err);
+        int info;
+        if constexpr (use_lapack) {
+            if (use_fortran_gehrd_unghr)
+                fortran_sgehrd(&len, &one, &len, Q.ptr, &len, tau.data(),
+                               &info);
+            else
+                info = tlapack::gehrd(0, n, Q, tau);
+        }
+        else
+            info = tlapack::gehrd(0, n, Q, tau);
+        if (info != 0)
+            std::cout << "gehrd ended with info " << info << std::endl;
     }
     // Record end time
     auto endQHQ = std::chrono::high_resolution_clock::now();
@@ -118,8 +201,18 @@ void run(size_t n)
     auto startQ = std::chrono::high_resolution_clock::now();
     {
         // Generate Q = H_1 H_2 ... H_n
-        int err = tlapack::unghr(0, n, Q, tau);
-        tlapack_check_false(err);
+        int info;
+        if constexpr (use_lapack) {
+            if (use_fortran_gehrd_unghr)
+                fortran_sorghr(&len, &one, &len, Q.ptr, &len, tau.data(),
+                               &info);
+            else
+                info = tlapack::unghr(0, n, Q, tau);
+        }
+        else
+            info = tlapack::unghr(0, n, Q, tau);
+        if (info != 0)
+            std::cout << "unghr ended with info " << info << std::endl;
     }
     // Record end time
     auto endQ = std::chrono::high_resolution_clock::now();
@@ -130,15 +223,45 @@ void run(size_t n)
             H(i, j) = 0.0;
 
     // Record start time
+    int info = 0;
+    int n_aed = 0;
+    int n_sweep = 0;
+    int n_shifts_total = 0;
     auto startSchur = std::chrono::high_resolution_clock::now();
     {
         // Shur factorization
-        std::vector<std::complex<real_t>> w(n);
-        int err = tlapack::multishift_qr(true, true, 0, n, H, w, Q);
-        tlapack_check_false(err);
+
+        if constexpr (use_lapack) {
+            if (use_fortran_hqr) {
+                std::vector<T> wr(n);
+                std::vector<T> wi(n);
+                fortran_slaqr0(&yes, &yes, &len, &one, &len, H.ptr, &len,
+                               wr.data(), wi.data(), Q.ptr, &len, &info, &n_aed,
+                               &n_sweep, &n_shifts_total);
+            }
+            else {
+                tlapack::FrancisOpts opts;
+                std::vector<std::complex<real_t>> w(n);
+                info = tlapack::multishift_qr(true, true, 0, n, H, w, Q, opts);
+                n_aed = opts.n_aed;
+                n_sweep = opts.n_sweep;
+                n_shifts_total = opts.n_shifts_total;
+            }
+        }
+        else {
+            tlapack::FrancisOpts opts;
+            std::vector<std::complex<real_t>> w(n);
+            info = tlapack::multishift_qr(true, true, 0, n, H, w, Q, opts);
+            n_aed = opts.n_aed;
+            n_sweep = opts.n_sweep;
+            n_shifts_total = opts.n_shifts_total;
+        }
     }
     // Record end time
     auto endSchur = std::chrono::high_resolution_clock::now();
+
+    if (info != 0)
+        std::cout << "multishift_qr ended with info " << info << std::endl;
 
     // Remove junk from lower half of H
     for (size_t j = 0; j < n; ++j)
@@ -182,7 +305,7 @@ void run(size_t n)
 
         // Compute ||Q'Q - I||_F
         norm_orth_1 =
-            tlapack::lansy(tlapack::frob_norm, tlapack::Uplo::Upper, work);
+            tlapack::lansy(tlapack::FROB_NORM, tlapack::Uplo::Upper, work);
 
         if (verbose) {
             std::cout << std::endl << "Q'Q-I = ";
@@ -216,7 +339,7 @@ void run(size_t n)
             printMatrix(H);
         }
 
-        norm_repres_1 = tlapack::lange(tlapack::frob_norm, H) / normA;
+        norm_repres_1 = tlapack::lange(tlapack::FROB_NORM, H) / normA;
     }
 
     // 4) Compute Q*AQ (usefull for debugging)
@@ -252,45 +375,76 @@ void run(size_t n)
     std::cout << "QR time = " << elapsedSchur.count() * 1.0e-9 << " s"
               << std::endl;
     std::cout << "||QHQ* - A||_F/||A||_F  = " << norm_repres_1
-              << ",        ||Q'Q - I||_F  = " << norm_orth_1;
+              << ",        ||Q'Q - I||_F  = " << norm_orth_1 << std::endl;
+    std::cout << "AED calls   " << n_aed << std::endl
+              << "Sweep calls " << n_sweep << std::endl
+              << "Shifts used " << n_shifts_total << std::endl;
     std::cout << std::endl;
 }
 
 //------------------------------------------------------------------------------
 int main(int argc, char** argv)
 {
-    int n;
+    int n, seed;
+    bool use_fortran_gehrd_unghr;
+    bool use_fortran_hqr;
+    bool verbose;
 
     // Default arguments
-    n = (argc < 2) ? 100 : atoi(argv[1]);
+    n = (argc <= 1) ? 100 : atoi(argv[1]);
+    seed = (argc <= 2) ? 1302 : atoi(argv[2]);
+    use_fortran_gehrd_unghr = (argc <= 3) ? false : atoi(argv[3]);
+    use_fortran_hqr = (argc <= 4) ? false : atoi(argv[4]);
+    verbose = (argc <= 5) ? false : atoi(argv[5]);
 
-    srand(3);  // Init random seed
+    // Usage
+    if (argc > 6) {
+        std::cout << "Usage: " << argv[0]
+                  << " [n] [seed] [use_fortran_gehrd_unghr] [use_fortran_hqr] "
+                     "[verbose]"
+                  << std::endl
+                  << "  n: matrix size (default: 100)" << std::endl
+                  << "  seed: random seed (default: 1302)" << std::endl
+                  << "  use_fortran_gehrd_unghr: use fortran gehrd/unghr "
+                     "(default: false (0))"
+                  << std::endl
+                  << "  use_fortran_hqr: use fortran hqr (default: false "
+                     "(0))"
+                  << std::endl
+                  << "  verbose: verbose output (default: false (0))"
+                  << std::endl;
+        return 1;
+    }
 
     std::cout.precision(5);
     std::cout << std::scientific << std::showpos;
 
     printf("run< float >( %d )", n);
-    run<float>(n);
+    run<float>(n, seed, use_fortran_gehrd_unghr, use_fortran_hqr, verbose);
     printf("-----------------------\n");
 
     printf("run< std::complex<float>  >( %d )", n);
-    run<std::complex<float>>(n);
+    run<std::complex<float>>(n, seed, use_fortran_gehrd_unghr, use_fortran_hqr,
+                             verbose);
     printf("-----------------------\n");
 
     printf("run< double >( %d )", n);
-    run<double>(n);
+    run<double>(n, seed, use_fortran_gehrd_unghr, use_fortran_hqr, verbose);
     printf("-----------------------\n");
 
     printf("run< std::complex<double>  >( %d )", n);
-    run<std::complex<double>>(n);
+    run<std::complex<double>>(n, seed, use_fortran_gehrd_unghr, use_fortran_hqr,
+                              verbose);
     printf("-----------------------\n");
 
     printf("run< long double >( %d )", n);
-    run<long double>(n);
+    run<long double>(n, seed, use_fortran_gehrd_unghr, use_fortran_hqr,
+                     verbose);
     printf("-----------------------\n");
 
     printf("run< std::complex<long double>  >( %d )", n);
-    run<std::complex<long double>>(n);
+    run<std::complex<long double>>(n, seed, use_fortran_gehrd_unghr,
+                                   use_fortran_hqr, verbose);
     printf("-----------------------\n");
 
     return 0;

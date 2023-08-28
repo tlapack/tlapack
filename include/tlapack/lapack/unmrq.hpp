@@ -12,20 +12,15 @@
 #define TLAPACK_UNMRQ_HH
 
 #include "tlapack/base/utils.hpp"
-#include "tlapack/lapack/larfb.hpp"
-#include "tlapack/lapack/larft.hpp"
+#include "tlapack/lapack/unmq.hpp"
 
 namespace tlapack {
 
 /**
  * Options struct for unmrq
  */
-template <class workT_t = void>
-struct unmrq_opts_t : public workspace_opts_t<workT_t> {
-    inline constexpr unmrq_opts_t(const workspace_opts_t<workT_t>& opts = {})
-        : workspace_opts_t<workT_t>(opts){};
-
-    size_type<workT_t> nb = 32;  ///< Block size
+struct UnmrqOpts {
+    size_t nb = 32;  ///< Block size
 };
 
 /** Worspace query of unmrq()
@@ -51,42 +46,37 @@ struct unmrq_opts_t : public workspace_opts_t<workT_t> {
  * @param[in] C m-by-n matrix.
  *
  * @param[in] opts Options.
- *      @c opts.work is used if whenever it has sufficient size.
- *      The sufficient size can be obtained through a workspace query.
  *
- * @param[in,out] workinfo
- *      On output, the amount workspace required. It is larger than or equal
- *      to that given on input.
+ * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
  *
  * @see unmrq
  */
-template <class matrixA_t,
-          class matrixC_t,
-          class tau_t,
-          class side_t,
-          class trans_t,
-          class workT_t = void>
-inline constexpr void unmrq_worksize(side_t side,
-                                     trans_t trans,
-                                     const matrixA_t& A,
-                                     const tau_t& tau,
-                                     const matrixC_t& C,
-                                     workinfo_t& workinfo,
-                                     const unmrq_opts_t<workT_t>& opts = {})
+template <class T,
+          TLAPACK_SMATRIX matrixA_t,
+          TLAPACK_SMATRIX matrixC_t,
+          TLAPACK_SVECTOR tau_t,
+          TLAPACK_SIDE side_t,
+          TLAPACK_OP trans_t>
+constexpr WorkInfo unmrq_worksize(side_t side,
+                                  trans_t trans,
+                                  const matrixA_t& A,
+                                  const tau_t& tau,
+                                  const matrixC_t& C,
+                                  const UnmrqOpts& opts = {})
 {
     using idx_t = size_type<matrixC_t>;
-    using matrixT_t = deduce_work_t<workT_t, matrix_type<matrixA_t, tau_t> >;
-    using T = type_t<matrixT_t>;
-    using pair = std::pair<idx_t, idx_t>;
+    using matrixT_t = matrix_type<matrixA_t, tau_t>;
+    using range = pair<idx_t, idx_t>;
 
     // Constants
     const idx_t k = size(tau);
     const idx_t nb = min<idx_t>(opts.nb, k);
 
     // Local workspace sizes
-    const workinfo_t myWorkinfo(nb * sizeof(T), nb);
+    WorkInfo workinfo =
+        (is_same_v<T, type_t<matrixT_t>>) ? WorkInfo(nb, nb) : WorkInfo(0);
 
     // larfb:
     {
@@ -96,17 +86,16 @@ inline constexpr void unmrq_worksize(side_t side,
         const idx_t nA = (side == Side::Left) ? m : n;
 
         // Empty matrices
-        const auto V = slice(A, pair{0, nb}, pair{0, nA});
-        const auto matrixT = slice(A, pair{0, nb}, pair{0, nb});
+        auto&& V = slice(A, range{0, nb}, range{0, nA});
+        auto&& matrixT = slice(A, range{0, nb}, range{0, nb});
 
         // Internal workspace queries
-        larfb_worksize(
+        workinfo += larfb_worksize<T>(
             side, (trans == Op::NoTrans) ? Op::ConjTrans : Op::NoTrans,
-            backward, rowwise_storage, V, matrixT, C, workinfo, opts);
+            BACKWARD, ROWWISE_STORAGE, V, matrixT, C);
     }
 
-    // Additional workspace needed inside the routine
-    workinfo += myWorkinfo;
+    return workinfo;
 }
 
 /** Applies orthogonal matrix op(Q) to a matrix C using a blocked code.
@@ -159,95 +148,23 @@ inline constexpr void unmrq_worksize(side_t side,
  *      - side = Side::Right & trans = Op::ConjTrans:  $C := Q^H C$.
  *
  * @param[in] opts Options.
- *      @c opts.work is used if whenever it has sufficient size.
- *      The sufficient size can be obtained through a workspace query.
  *
  * @ingroup computational
  */
-template <class matrixA_t,
-          class matrixC_t,
-          class tau_t,
-          class side_t,
-          class trans_t,
-          class workT_t = void>
+template <TLAPACK_SMATRIX matrixA_t,
+          TLAPACK_SMATRIX matrixC_t,
+          TLAPACK_SVECTOR tau_t,
+          TLAPACK_SIDE side_t,
+          TLAPACK_OP trans_t>
 int unmrq(side_t side,
           trans_t trans,
           const matrixA_t& A,
           const tau_t& tau,
           matrixC_t& C,
-          const unmrq_opts_t<workT_t>& opts = {})
+          const UnmrqOpts& opts = {})
 {
-    using idx_t = size_type<matrixC_t>;
-    using matrixT_t = deduce_work_t<workT_t, matrix_type<matrixA_t, tau_t> >;
-
-    using pair = pair<idx_t, idx_t>;
-    using std::max;
-    using std::min;
-
-    // Functor
-    Create<matrixT_t> new_matrix;
-
-    // Constants
-    const idx_t m = nrows(C);
-    const idx_t n = ncols(C);
-    const idx_t k = size(tau);
-    const idx_t nA = (side == Side::Left) ? m : n;
-    const idx_t nb = min<idx_t>(opts.nb, k);
-
-    // check arguments
-    tlapack_check_false(side != Side::Left && side != Side::Right);
-    tlapack_check_false(trans != Op::NoTrans && trans != Op::Trans &&
-                        trans != Op::ConjTrans);
-    tlapack_check_false(trans == Op::Trans && is_complex<matrixA_t>::value);
-
-    // quick return
-    if ((m == 0) || (n == 0) || (k == 0)) return 0;
-
-    // Allocates workspace
-    vectorOfBytes localworkdata;
-    Workspace work = [&]() {
-        workinfo_t workinfo;
-        unmrq_worksize(side, trans, A, tau, C, workinfo, opts);
-        return alloc_workspace(localworkdata, workinfo, opts.work);
-    }();
-
-    // Preparing loop indexes
-    const bool positiveInc =
-        (((side == Side::Left) && !(trans == Op::NoTrans)) ||
-         (!(side == Side::Left) && (trans == Op::NoTrans)));
-    const idx_t i0 = (positiveInc) ? 0 : ((k - 1) / nb) * nb;
-    const idx_t iN = (positiveInc) ? ((k - 1) / nb + 1) * nb : -nb;
-    const idx_t inc = (positiveInc) ? nb : -nb;
-
-    // Matrix T and recompute work
-    Workspace sparework;
-    auto matrixT = new_matrix(work, nb, nb, sparework);
-
-    // Options to forward
-    auto&& larfbOpts = workspace_opts_t<void>{sparework};
-
-    // Main loop
-    for (idx_t i = i0; i != iN; i += inc) {
-        idx_t ib = min<idx_t>(nb, k - i);
-        const auto V = slice(A, pair{i, i + ib}, pair{0, nA - k + i + ib});
-        const auto taui = slice(tau, pair{i, i + ib});
-        auto matrixTi = slice(matrixT, pair{0, ib}, pair{0, ib});
-
-        // Form the triangular factor of the block reflector
-        // $H = H(i) H(i+1) ... H(i+ib-1)$
-        larft(backward, rowwise_storage, V, taui, matrixTi);
-
-        // H or H**H is applied to either C[0:m-k+i+1,0:n] or C[0:m,0:n-k+i+1]
-        auto Ci = (side == Side::Left)
-                      ? slice(C, pair{0, m - k + i + ib}, pair{0, n})
-                      : slice(C, pair{0, m}, pair{0, n - k + i + ib});
-
-        // Apply H or H**H
-        larfb(side, (trans == Op::NoTrans) ? Op::ConjTrans : Op::NoTrans,
-              backward, rowwise_storage, V, matrixTi, Ci, larfbOpts);
-    }
-
-    return 0;
+    return unmq(side, trans, BACKWARD, ROWWISE_STORAGE, A, tau, C,
+                UnmqOpts{opts.nb});
 }
 
 }  // namespace tlapack

@@ -4,13 +4,43 @@
 # <T>LAPACK is free software: you can redistribute it and/or modify it under
 # the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-cmake_minimum_required(VERSION 3.7)
+cmake_minimum_required(VERSION 3.14)
 # VERSION 3.3: IN_LIST for if() operator
 # VERSION 3.7: VERSION_GREATER_EQUAL
+# VERSION 3.11: FetchContent_Declare
+# VERSION 3.14: FetchContent_MakeAvailable
+
+#-------------------------------------------------------------------------------
+# Dependencies on other projects
+include(FetchContent)
+
+FetchContent_Declare(
+  testsweeper
+  GIT_REPOSITORY https://github.com/icl-utk-edu/testsweeper
+  GIT_TAG        2ad5d291c7b988c235499210b0edfb6de4e94d5b # v2023.06.00
+)
+
+FetchContent_Declare(
+  Catch2
+  GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+  GIT_TAG        6e79e682b726f524310d55dec8ddac4e9c52fb5f # v3.4.0
+)
+
+set( blaspp_git_repo   "https://github.com/icl-utk-edu/blaspp.git"   )
+set( blaspp_git_tag    "34a24d103c039abdc634837af45433c44b3e90a7"    ) # v2023.06.00
+set( lapackpp_git_repo "https://github.com/icl-utk-edu/lapackpp.git" )
+set( lapackpp_git_tag  "471d922525a18ddf9fcbfd3156b8855000a69552"    ) # v2022.07.00
+mark_as_advanced( FORCE blaspp_git_repo blaspp_git_tag lapackpp_git_repo lapackpp_git_tag )
 
 #-------------------------------------------------------------------------------
 # Read project version
 file(READ version.txt version_txt)
+
+#
+# We require C++17 features like if constexpr
+# If possible, compile with C++20 so we can use concepts
+set (CMAKE_CXX_STANDARD_REQUIRED 17)
+set (CMAKE_CXX_STANDARD 20)
 
 #-------------------------------------------------------------------------------
 # <T>LAPACK project
@@ -38,34 +68,18 @@ include(CMakeDependentOption)
 # Includes BUILD_TESTING option
 include(CTest)
 
-# LAPACK++ interface
-option( USE_LAPACKPP_WRAPPERS "Use LAPACK++ wrappers to link with optimized BLAS and LAPACK libraries" OFF )
+# LAPACK++ wrappers
+option( TLAPACK_USE_LAPACKPP "Use LAPACK++ wrappers to link with optimized BLAS and LAPACK libraries" OFF )
 
-cmake_dependent_option( BUILD_BLASPP_TESTS   "Build BLAS++ tests. Please inform blaspp_TEST_DIR if BUILD_BLASPP_TESTS=ON"
+cmake_dependent_option( BUILD_BLASPP_TESTS   "Use BLAS++ tests to test <T>LAPACK templates"
   OFF "BUILD_TESTING" # Default value when condition is true
   OFF # Value when condition is false 
 )
 
-cmake_dependent_option( BUILD_LAPACKPP_TESTS "Build LAPACK++ tests. Please inform lapackpp_TEST_DIR if BUILD_LAPACKPP_TESTS=ON"
+cmake_dependent_option( BUILD_LAPACKPP_TESTS "Use LAPACK++ tests to test <T>LAPACK templates"
   OFF "BUILD_TESTING" # Default value when condition is true
   OFF # Value when condition is false
 )
-
-# TODO: Try to search this path automatically
-set( blaspp_TEST_DIR "" CACHE STRING "Directory with the BLAS++ tests" )
-if( NOT BUILD_BLASPP_TESTS )
-  mark_as_advanced( FORCE blaspp_TEST_DIR )
-else()
-  mark_as_advanced( CLEAR blaspp_TEST_DIR )
-endif()
-
-# TODO: Try to search this path automatically
-set( lapackpp_TEST_DIR "" CACHE STRING "Directory with the LAPACK++ tests" )
-if( NOT BUILD_LAPACKPP_TESTS )
-  mark_as_advanced( FORCE lapackpp_TEST_DIR )
-else()
-  mark_as_advanced( CLEAR lapackpp_TEST_DIR )
-endif()
 
 # Examples
 option( BUILD_EXAMPLES "Build examples" ON  )
@@ -75,15 +89,12 @@ option( TLAPACK_BUILD_SINGLE_TESTER "Build one additional executable that contai
 option( TLAPACK_TEST_EIGEN "Add Eigen matrices to the types to test" OFF )
 option( TLAPACK_TEST_MDSPAN "Add mdspan matrices to the types to test" OFF )
 option( TLAPACK_TEST_MPFR "Add GNU multiprecision type to test" OFF )
+option( TLAPACK_TEST_QUAD "Add a quad-precision type to test" OFF )
 
 # Wrappers to <T>LAPACK
 option( BUILD_C_WRAPPERS       "Build and install C wrappers (WIP)" OFF )
 option( BUILD_CBLAS_WRAPPERS   "Build and install CBLAS wrappers (WIP)" OFF )
 option( BUILD_Fortran_WRAPPERS "Build and install Fortran wrappers (WIP)" OFF )
-
-# Use of mdspan instead of the <T>LAPACK legacy arrays
-option( TLAPACK_USE_MDSPAN "Use mdspan for the legacy wrappers" OFF )
-mark_as_advanced( FORCE TLAPACK_USE_MDSPAN )
 
 # Enable disable error checks
 option( TLAPACK_NDEBUG "Disable all error checks" OFF )
@@ -170,23 +181,10 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 #-------------------------------------------------------------------------------
 # Search for LAPACK++ library if it is needed
-if( USE_LAPACKPP_WRAPPERS )
-  find_package( lapackpp REQUIRED )
-  target_compile_definitions( tlapack INTERFACE USE_LAPACKPP_WRAPPERS )
+if( TLAPACK_USE_LAPACKPP )
+  find_package( lapackpp 2022.07.00 REQUIRED )
+  target_compile_definitions( tlapack INTERFACE TLAPACK_USE_LAPACKPP )
   target_link_libraries( tlapack INTERFACE lapackpp )
-endif()
-
-#-------------------------------------------------------------------------------
-# Load mdspan if needed
-if( TLAPACK_USE_MDSPAN )
-  include( "${TLAPACK_SOURCE_DIR}/cmake/FetchPackage.cmake" )
-  FetchPackage( "mdspan" "https://github.com/kokkos/mdspan.git" "stable" )
-  if( mdspan_FOUND )
-    target_compile_definitions( tlapack INTERFACE TLAPACK_USE_MDSPAN )
-    target_link_libraries( tlapack INTERFACE std::mdspan )
-  else()
-    message( STATUS "Legacy wrappers will use legacy arrays instead of mdspan" )
-  endif()
 endif()
 
 #-------------------------------------------------------------------------------
@@ -205,25 +203,26 @@ if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git" AND CLANG_FORMAT_FOUND)
   message(STATUS "ClangFormat found: ${CLANG_FORMAT_EXECUTABLE} (version ${CLANG_FORMAT_VERSION})")
   if( ${CLANG_FORMAT_MAJOR_VERSION} NOT EQUAL 10 )
     message( WARNING "Please use ClangFormat version 10" )
+  else()
+    add_custom_target( format-all-hpp-cpp-files
+      COMMAND
+        ${GIT_EXECUTABLE} ls-tree -r HEAD --name-only |
+        grep -E '\(config/|examples/|include/|src/|test/include/|test/src/\).*\\.\(hpp|cpp|h.in|c\)$$' |
+        xargs ${CLANG_FORMAT_EXECUTABLE} -i -style=file
+        > format-all-hpp-cpp-files.log
+        2> format-all-hpp-cpp-files.err
+      WORKING_DIRECTORY ${TLAPACK_SOURCE_DIR}
+    )
+    add_custom_target( check-format-of-hpp-cpp-files
+      COMMAND
+        ${GIT_EXECUTABLE} ls-tree -r HEAD --name-only |
+        grep -E '\(config/|examples/|include/|src/|test/include/|test/src/\).*\\.\(hpp|cpp|h.in|c\)$$' |
+        xargs ${CLANG_FORMAT_EXECUTABLE} -i -style=file --dry-run
+        > format-all-hpp-cpp-files.log
+        2> format-all-hpp-cpp-files.err
+      WORKING_DIRECTORY ${TLAPACK_SOURCE_DIR}
+    )
   endif()
-  add_custom_target( format-all-hpp-cpp-files
-    COMMAND
-      ${GIT_EXECUTABLE} ls-tree -r HEAD --name-only |
-      grep -E '\(config/|examples/|include/|src/|test/include/|test/src/\).*\\.\(hpp|cpp|h.in|c\)$$' |
-      xargs ${CLANG_FORMAT_EXECUTABLE} -i -style=file
-      > format-all-hpp-cpp-files.log
-      2> format-all-hpp-cpp-files.err
-    WORKING_DIRECTORY ${TLAPACK_SOURCE_DIR}
-  )
-  add_custom_target( check-format-of-hpp-cpp-files
-    COMMAND
-      ${GIT_EXECUTABLE} ls-tree -r HEAD --name-only |
-      grep -E '\(config/|examples/|include/|src/|test/include/|test/src/\).*\\.\(hpp|cpp|h.in|c\)$$' |
-      xargs ${CLANG_FORMAT_EXECUTABLE} -i -style=file --dry-run
-      > format-all-hpp-cpp-files.log
-      2> format-all-hpp-cpp-files.err
-    WORKING_DIRECTORY ${TLAPACK_SOURCE_DIR}
-  )
 endif()
 
 #-------------------------------------------------------------------------------
@@ -256,7 +255,8 @@ endif()
 set_target_properties( ${installable_libs}
 PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib" )
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+    INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib" )
 
 #-------------------------------------------------------------------------------
 # Install

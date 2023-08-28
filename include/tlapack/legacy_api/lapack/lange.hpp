@@ -1,4 +1,4 @@
-/// @file lange.hpp
+/// @file legacy_api/lapack/lange.hpp
 /// @author Weslley S Pereira, University of Colorado Denver, USA
 /// @note Adapted from @see
 /// https://github.com/langou/latl/blob/master/include/lange.h
@@ -15,47 +15,49 @@
 #include "tlapack/lapack/lange.hpp"
 
 namespace tlapack {
+namespace legacy {
 
-/** Calculates the value of the one norm, Frobenius norm, infinity norm, or
- *element of largest absolute value
- *
- * @return Calculated norm value for the specified type.
- *
- * @param normType Type should be specified as follows:
- *
- *     Norm::Max = maximum absolute value over all elements in A.
- *         Note: this is not a consistent matrix norm.
- *     Norm::One = one norm of the matrix A, the maximum value of the sums of
- *each column. Norm::Inf = the infinity norm of the matrix A, the maximum value
- *of the sum of each row. Norm::Fro = the Frobenius norm of the matrix A. This
- *the square root of the sum of the squares of each element in A.
- *
- * @param m Number of rows to be included in the norm. m >= 0
- * @param n Number of columns to be included in the norm. n >= 0
- * @param A matrix size m-by-n.
- * @param lda Column length of the matrix A.  ldA >= m
- *
- * @ingroup legacy_lapack
- **/
-template <class norm_t, typename TA>
-inline real_type<TA> lange(
-    norm_t normType, idx_t m, idx_t n, const TA* A, idx_t lda)
-{
-    using internal::colmajor_matrix;
+    /** Calculates the value of the one norm, Frobenius norm, infinity norm, or
+     *element of largest absolute value
+     *
+     * @return Calculated norm value for the specified type.
+     *
+     * @param normType Type should be specified as follows:
+     *
+     *     Norm::Max = maximum absolute value over all elements in A.
+     *         Note: this is not a consistent matrix norm.
+     *     Norm::One = one norm of the matrix A, the maximum value of the sums
+     *of each column. Norm::Inf = the infinity norm of the matrix A, the maximum
+     *value of the sum of each row. Norm::Fro = the Frobenius norm of the matrix
+     *A. This the square root of the sum of the squares of each element in A.
+     *
+     * @param m Number of rows to be included in the norm. m >= 0
+     * @param n Number of columns to be included in the norm. n >= 0
+     * @param A matrix size m-by-n.
+     * @param lda Column length of the matrix A.  ldA >= m
+     *
+     * @ingroup legacy_lapack
+     **/
+    template <class norm_t, typename TA>
+    real_type<TA> lange(
+        norm_t normType, idx_t m, idx_t n, const TA* A, idx_t lda)
+    {
+        using internal::create_matrix;
 
-    // check arguments
-    tlapack_check_false(normType != Norm::Fro && normType != Norm::Inf &&
-                        normType != Norm::Max && normType != Norm::One);
+        // check arguments
+        tlapack_check_false(normType != Norm::Fro && normType != Norm::Inf &&
+                            normType != Norm::Max && normType != Norm::One);
 
-    // quick return
-    if (m == 0 || n == 0) return 0;
+        // quick return
+        if (m == 0 || n == 0) return 0;
 
-    // Views
-    auto A_ = colmajor_matrix<TA>((TA*)A, m, n, lda);
+        // Views
+        auto A_ = create_matrix<TA>((TA*)A, m, n, lda);
 
-    return lange(normType, A_);
-}
+        return lange(normType, A_);
+    }
 
+}  // namespace legacy
 }  // namespace tlapack
 
 #endif  // TLAPACK_LEGACY_LANGE_HH

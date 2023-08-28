@@ -28,19 +28,19 @@
     @defgroup exception         Exception handling
 
     ----------------------------------------------------------------------------
-    @defgroup abstract_matrix   Abstract matrix interface
-    @brief      These routines should be implemented for each data structure
-                representing matrices and vectors.
+    @defgroup concepts   Concepts
+    @brief      Concepts that are extensively used in the routines of this
+                library.
 
     ----------------------------------------------------------------------------
     @defgroup constants         Scaling constants
 
     ------------------------------------------------------------
-    @defgroup legacy            Legacy interface
+    @defgroup legacy            Legacy API
     @brief      Interface in C++ that use raw pointers for arrays arguments.
                 These routines are wrappers to the higher-level C++ abstraction.
     @{
-        @defgroup legacy_blas   Legacy BLAS interface.
-        @defgroup legacy_lapack Legacy LAPACK interface.
+        @defgroup legacy_blas   Legacy BLAS API.
+        @defgroup legacy_lapack Legacy LAPACK API.
     @}
 */

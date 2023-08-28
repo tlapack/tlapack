@@ -40,12 +40,18 @@ TEMPLATE_TEST_CASE(
     // Functor
     Create<matrix_t> new_matrix;
 
-    using variant_t = std::pair<PotrfVariant, idx_t>;
-    const variant_t variant = GENERATE((variant_t(PotrfVariant::Blocked, 1)),
-                                       (variant_t(PotrfVariant::Blocked, 2)),
-                                       (variant_t(PotrfVariant::Blocked, 7)),
-                                       (variant_t(PotrfVariant::Blocked, 10)),
-                                       (variant_t(PotrfVariant::Recursive, 0)));
+    using variant_t = pair<PotrfVariant, idx_t>;
+    const variant_t variant =
+        GENERATE((variant_t(PotrfVariant::Blocked, 1)),
+                 (variant_t(PotrfVariant::Blocked, 2)),
+                 (variant_t(PotrfVariant::Blocked, 7)),
+                 (variant_t(PotrfVariant::Blocked, 10)),
+                 (variant_t(PotrfVariant::RightLooking, 1)),
+                 (variant_t(PotrfVariant::RightLooking, 2)),
+                 (variant_t(PotrfVariant::RightLooking, 7)),
+                 (variant_t(PotrfVariant::RightLooking, 10)),
+                 (variant_t(PotrfVariant::Recursive, 0)),
+                 (variant_t(PotrfVariant::Level2, 0)));
     const idx_t n = GENERATE(10, 19, 30);
     const Uplo uplo = GENERATE(Uplo::Lower, Uplo::Upper);
 
@@ -78,11 +84,11 @@ TEMPLATE_TEST_CASE(
             A(j, j) += real_t(n);
         }
 
-        lacpy(dense, A, L);
-        real_t normA = tlapack::lanhe(tlapack::Norm::Max, uplo, A);
+        lacpy(GENERAL, A, L);
+        real_t normA = tlapack::lanhe(tlapack::MAX_NORM, uplo, A);
 
         // Run the Cholesky factorization
-        potrf_opts_t<idx_t> opts;
+        PotrfOpts opts;
         opts.variant = variant.first;
         opts.nb = variant.second;
         int info = potrf(uplo, L, opts);
@@ -103,11 +109,11 @@ TEMPLATE_TEST_CASE(
 
         // Compute E = L*L^H or E = L^H*L
         if (uplo == Uplo::Lower)
-            trmm(Side::Left, Uplo::Lower, Op::NoTrans, Diag::NonUnit, real_t(1),
+            trmm(LEFT_SIDE, LOWER_TRIANGLE, NO_TRANS, NON_UNIT_DIAG, real_t(1),
                  L, E);
         else
-            trmm(Side::Right, Uplo::Upper, Op::NoTrans, Diag::NonUnit,
-                 real_t(1), L, E);
+            trmm(RIGHT_SIDE, UPPER_TRIANGLE, NO_TRANS, NON_UNIT_DIAG, real_t(1),
+                 L, E);
 
         // Check that the factorization is correct
         for (idx_t i = 0; i < n; i++)
@@ -119,7 +125,7 @@ TEMPLATE_TEST_CASE(
             }
 
         // Check for relative error: norm(A-cholesky(A))/norm(A)
-        real_t error = tlapack::lanhe(tlapack::Norm::Max, uplo, E) / normA;
+        real_t error = tlapack::lanhe(tlapack::MAX_NORM, uplo, E) / normA;
         CHECK(error <= tol);
     }
 }
@@ -138,9 +144,11 @@ TEMPLATE_TEST_CASE("Cholesky factorization access valid positions only",
     // Functor
     Create<matrix_t> new_matrix;
 
-    using variant_t = std::pair<PotrfVariant, idx_t>;
-    const variant_t variant = GENERATE((variant_t(PotrfVariant::Blocked, 2)),
-                                       (variant_t(PotrfVariant::Recursive, 0)));
+    using variant_t = pair<PotrfVariant, idx_t>;
+    const variant_t variant =
+        GENERATE((variant_t(PotrfVariant::Blocked, 2)),
+                 (variant_t(PotrfVariant::RightLooking, 2)),
+                 (variant_t(PotrfVariant::Recursive, 0)));
     const idx_t n = GENERATE(10);
     const Uplo uplo = GENERATE(Uplo::Lower, Uplo::Upper);
 
@@ -165,7 +173,7 @@ TEMPLATE_TEST_CASE("Cholesky factorization access valid positions only",
         }
 
         // Run the Cholesky factorization
-        potrf_opts_t<idx_t> opts;
+        PotrfOpts opts;
         opts.variant = variant.first;
         opts.nb = variant.second;
         if (uplo == Uplo::Lower) {

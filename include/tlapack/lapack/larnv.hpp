@@ -40,8 +40,8 @@ namespace tlapack {
  *
  * @ingroup auxiliary
  */
-template <int idist, class vector_t, class Sseq>
-void larnv(Sseq& iseed, vector_t& x)
+template <int idist, TLAPACK_VECTOR vector_t, class iseed_t>
+void larnv(iseed_t& iseed, vector_t& x)
 {
     using idx_t = size_type<vector_t>;
     using T = type_t<vector_t>;
@@ -49,56 +49,54 @@ void larnv(Sseq& iseed, vector_t& x)
 
     // Constants
     const idx_t n = size(x);
-    const real_t one(1);
-    const real_t eight(8);
-    const real_t twopi = eight * atan(one);
+    const double twopi(8 * std::atan(1.0));
 
     // Initialize the Mersenne Twister generator
     std::random_device device;
     std::mt19937 generator(device());
     generator.seed(iseed);
 
-    if (idist == 1) {
-        std::uniform_real_distribution<real_t> d1(0, 1);
+    if constexpr (idist == 1) {
+        std::uniform_real_distribution<> d1(0, 1);
         for (idx_t i = 0; i < n; ++i) {
-            if (is_complex<T>::value)
-                x[i] = make_scalar<T>(d1(generator), d1(generator));
+            if constexpr (is_complex<T>)
+                x[i] = T(real_t(d1(generator)), real_t(d1(generator)));
             else
-                x[i] = d1(generator);
+                x[i] = T(d1(generator));
         }
     }
-    else if (idist == 2) {
-        std::uniform_real_distribution<real_t> d2(-1, 1);
+    else if constexpr (idist == 2) {
+        std::uniform_real_distribution<> d2(-1, 1);
         for (idx_t i = 0; i < n; ++i) {
-            if (is_complex<T>::value)
-                x[i] = make_scalar<T>(d2(generator), d2(generator));
+            if constexpr (is_complex<T>)
+                x[i] = T(real_t(d2(generator)), real_t(d2(generator)));
             else
-                x[i] = d2(generator);
+                x[i] = T(d2(generator));
         }
     }
-    else if (idist == 3) {
-        std::normal_distribution<real_t> d3(0, 1);
+    else if constexpr (idist == 3) {
+        std::normal_distribution<> d3(0, 1);
         for (idx_t i = 0; i < n; ++i) {
-            if (is_complex<T>::value)
-                x[i] = make_scalar<T>(d3(generator), d3(generator));
+            if constexpr (is_complex<T>)
+                x[i] = T(real_t(d3(generator)), real_t(d3(generator)));
             else
-                x[i] = d3(generator);
+                x[i] = T(d3(generator));
         }
     }
-    else if (is_complex<T>::value) {
-        if (idist == 4) {
-            std::uniform_real_distribution<real_t> d4(0, 1);
+    else if constexpr (is_complex<T>) {
+        if constexpr (idist == 4) {
+            std::uniform_real_distribution<> d4(0, 1);
             for (idx_t i = 0; i < n; ++i) {
-                real_t r = sqrt(d4(generator));
-                real_t theta = twopi * d4(generator);
-                x[i] = make_scalar<T>(r * cos(theta), r * sin(theta));
+                double r = sqrt(d4(generator));
+                double theta = twopi * d4(generator);
+                x[i] = T(r * cos(theta), r * sin(theta));
             }
         }
-        else if (idist == 5) {
-            std::uniform_real_distribution<real_t> d5(0, 1);
+        else if constexpr (idist == 5) {
+            std::uniform_real_distribution<> d5(0, 1);
             for (idx_t i = 0; i < n; ++i) {
-                real_t theta = twopi * d5(generator);
-                x[i] = make_scalar<T>(cos(theta), sin(theta));
+                double theta = twopi * d5(generator);
+                x[i] = T(real_t(cos(theta)), real_t(sin(theta)));
             }
         }
     }

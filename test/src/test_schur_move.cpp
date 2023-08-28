@@ -46,7 +46,7 @@ TEMPLATE_TEST_CASE("move of eigenvalue block gives correct results",
     idx_t n1 = GENERATE(1, 2);
     idx_t n2 = GENERATE(1, 2);
 
-    if (!is_complex<T>::value || (n1 == 1 && n2 == 1)) {
+    if (is_real<T> || (n1 == 1 && n2 == 1)) {
         // ifst and ilst point to the same block, n1 must be equal to n2 for
         // the test to make sense.
         if (ifst == ilst and n1 != n2) n2 = n1;
@@ -83,13 +83,13 @@ TEMPLATE_TEST_CASE("move of eigenvalue block gives correct results",
                 A(ilst, ilst - 1) = rand_helper<T>();
         }
 
-        if (!is_complex<T>::value) {
+        if (is_real<T>) {
             // Put a 2x2 block in the middle
             A(5, 4) = rand_helper<T>();
         }
 
-        lacpy(Uplo::General, A, A_copy);
-        laset(Uplo::General, zero, one, Q);
+        lacpy(GENERAL, A, A_copy);
+        laset(GENERAL, zero, one, Q);
 
         DYNAMIC_SECTION("ifst = " << ifst << " n1 = " << n1
                                   << " ilst = " << ilst << " n2 =" << n2)
@@ -104,7 +104,7 @@ TEMPLATE_TEST_CASE("move of eigenvalue block gives correct results",
             auto orth_res_norm = check_orthogonality(Q, res);
             CHECK(orth_res_norm <= tol);
 
-            auto normA = tlapack::lange(tlapack::frob_norm, A);
+            auto normA = tlapack::lange(tlapack::FROB_NORM, A);
             auto simil_res_norm =
                 check_similarity_transform(A_copy, Q, A, res, work);
             CHECK(simil_res_norm <= tol * normA);

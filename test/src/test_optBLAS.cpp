@@ -21,9 +21,9 @@ TEMPLATE_TEST_CASE("has_compatible_layout gives the correct result",
 {
     using T = type_t<TestType>;
     using matrixA_t = TestType;
-    using matrixB_t = transpose_type<TestType>;
+    using matrixB_t = decltype(transpose_view(std::declval<const matrixA_t>()));
     using vector_t = vector_type<TestType>;
-    using namespace tlapack::internal;
+    using namespace tlapack::traits::internal;
 
     CHECK(has_compatible_layout<T, T>);
     CHECK(has_compatible_layout<T, T, T>);

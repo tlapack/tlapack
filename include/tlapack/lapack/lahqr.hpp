@@ -67,10 +67,10 @@ namespace tlapack {
  *
  * @ingroup auxiliary
  */
-template <class matrix_t,
-          class vector_t,
-          enable_if_t<is_complex<type_t<vector_t>>::value, bool> = true,
-          enable_if_t<!is_complex<type_t<matrix_t>>::value, bool> = true>
+template <TLAPACK_CSMATRIX matrix_t,
+          TLAPACK_VECTOR vector_t,
+          enable_if_t<is_complex<type_t<vector_t>>, bool> = true,
+          enable_if_t<is_real<type_t<matrix_t>>, bool> = true>
 int lahqr(bool want_t,
           bool want_z,
           size_type<matrix_t> ilo,
@@ -82,10 +82,10 @@ int lahqr(bool want_t,
     using TA = type_t<matrix_t>;
     using real_t = real_type<TA>;
     using idx_t = size_type<matrix_t>;
-    using pair = pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
 
     // Functor
-    Create<vector_type<matrix_t, matrix_t>> new_vector;
+    Create<vector_type<matrix_t>> new_vector;
 
     // constants
     const real_t zero(0);
@@ -187,15 +187,14 @@ int lahqr(bool want_t,
                 // eps*|A(i,i)|*|A(i-1,i-1)| The multiplications might overflow
                 // so we do some scaling first.
                 //
-                real_t ab = std::max(abs1(A(i, i - 1)), abs1(A(i - 1, i)));
-                real_t ba = std::min(abs1(A(i, i - 1)), abs1(A(i - 1, i)));
-                real_t aa =
-                    std::max(abs1(A(i, i)), abs1(A(i, i) - A(i - 1, i - 1)));
-                real_t bb =
-                    std::min(abs1(A(i, i)), abs1(A(i, i) - A(i - 1, i - 1)));
+                const real_t aij = abs1(A(i, i - 1));
+                const real_t aji = abs1(A(i - 1, i));
+                real_t ab = (aij > aji) ? aij : aji;  // Propagates NaNs in aji
+                real_t ba = (aij < aji) ? aij : aji;  // Propagates NaNs in aji
+                real_t aa = max(abs1(A(i, i)), abs1(A(i, i) - A(i - 1, i - 1)));
+                real_t bb = min(abs1(A(i, i)), abs1(A(i, i) - A(i - 1, i - 1)));
                 real_t s = aa + ab;
-                if (ba * (ab / s) <=
-                    std::max(small_num, eps * (bb * (aa / s)))) {
+                if (ba * (ab / s) <= max(small_num, eps * (bb * (aa / s)))) {
                     // A(i,i-1) is negligible, take i as new istart.
                     A(i, i - 1) = zero;
                     istart = i;
@@ -213,26 +212,36 @@ int lahqr(bool want_t,
                 istart = ilo;
                 continue;
             }
-            if (!is_complex<TA>::value && istart + 2 == istop) {
+            if (is_real<TA> && istart + 2 == istop) {
                 // 2x2 block, normalize the block
                 real_t cs;
                 TA sn;
                 // We don't check the error flag here because it should never
                 // fail for real values.
-                lahqr_schur22(A(istart, istart), A(istart, istart + 1),
-                              A(istart + 1, istart), A(istart + 1, istart + 1),
-                              w[istart], w[istart + 1], cs, sn);
+                TA Aii = A(istart, istart);
+                TA Ajj = A(istart + 1, istart + 1);
+                TA Aij = A(istart, istart + 1);
+                TA Aji = A(istart + 1, istart);
+                complex_type<TA> wi = w[istart];
+                complex_type<TA> wj = w[istart + 1];
+                lahqr_schur22(Aii, Aij, Aji, Ajj, wi, wj, cs, sn);
+                A(istart, istart) = Aii;
+                A(istart + 1, istart + 1) = Ajj;
+                A(istart, istart + 1) = Aij;
+                A(istart + 1, istart) = Aji;
+                w[istart] = wi;
+                w[istart + 1] = wj;
                 // Apply the rotations from the normalization to the rest of the
                 // matrix.
                 if (want_t) {
                     if (istart + 2 < istop_m) {
-                        auto x = slice(A, istart, pair{istart + 2, istop_m});
+                        auto x = slice(A, istart, range{istart + 2, istop_m});
                         auto y =
-                            slice(A, istart + 1, pair{istart + 2, istop_m});
+                            slice(A, istart + 1, range{istart + 2, istop_m});
                         rot(x, y, cs, sn);
                     }
-                    auto x2 = slice(A, pair{istart_m, istart}, istart);
-                    auto y2 = slice(A, pair{istart_m, istart}, istart + 1);
+                    auto x2 = slice(A, range{istart_m, istart}, istart);
+                    auto y2 = slice(A, range{istart_m, istart}, istart + 1);
                     rot(x2, y2, cs, sn);
                 }
                 if (want_z) {
@@ -269,7 +278,7 @@ int lahqr(bool want_t,
         complex_type<real_t> s1;
         complex_type<real_t> s2;
         lahqr_eig22(a00, a01, a10, a11, s1, s2);
-        if ((imag(s1) == zero and imag(s2) == zero) or is_complex<TA>::value) {
+        if ((imag(s1) == zero and imag(s2) == zero) or is_complex<TA>) {
             // The eigenvalues are not complex conjugate, keep only the one
             // closest to A(istop-1, istop-1)
             if (abs1(s1 - A(istop - 1, istop - 1)) <=
@@ -289,9 +298,9 @@ int lahqr(bool want_t,
         idx_t istart2 = istart;
         if (istart + 3 < istop) {
             for (idx_t i = istop - 3; i > istart; --i) {
-                auto H = slice(A, pair{i, i + 3}, pair{i, i + 3});
+                auto H = slice(A, range{i, i + 3}, range{i, i + 3});
                 lahqr_shiftcolumn(H, v, s1, s2);
-                larfg(forward, columnwise_storage, v, t1);
+                larfg(FORWARD, COLUMNWISE_STORAGE, v, t1);
                 v[0] = t1;
                 const TA refsum =
                     conj(v[0]) * A(i, i - 1) + conj(v[1]) * A(i + 1, i - 1);
@@ -308,11 +317,13 @@ int lahqr(bool want_t,
         for (idx_t i = istart2; i < istop - 1; ++i) {
             const idx_t nr = std::min<idx_t>(3, istop - i);
             if (i == istart2) {
-                auto H = slice(A, pair{i, i + nr}, pair{i, i + nr});
-                auto x = slice(v, pair{0, nr});
+                auto H = slice(A, range{i, i + nr}, range{i, i + nr});
+                auto x = slice(v, range{0, nr});
                 lahqr_shiftcolumn(H, x, s1, s2);
-                auto y = slice(v, pair{1, nr});
-                larfg(columnwise_storage, v[0], y, t1);
+                auto y = slice(v, range{1, nr});
+                TA alpha = v[0];
+                larfg(COLUMNWISE_STORAGE, alpha, y, t1);
+                v[0] = alpha;
                 if (i > istart) {
                     A(i, i - 1) = A(i, i - 1) * (one - conj(t1));
                 }
@@ -321,8 +332,10 @@ int lahqr(bool want_t,
                 v[0] = A(i, i - 1);
                 v[1] = A(i + 1, i - 1);
                 if (nr == 3) v[2] = A(i + 2, i - 1);
-                auto x = slice(v, pair{1, nr});
-                larfg(columnwise_storage, v[0], x, t1);
+                auto x = slice(v, range{1, nr});
+                TA alpha = v[0];
+                larfg(COLUMNWISE_STORAGE, alpha, x, t1);
+                v[0] = alpha;
                 A(i, i - 1) = v[0];
                 A(i + 1, i - 1) = zero;
                 if (nr == 3) A(i + 2, i - 1) = zero;
@@ -349,7 +362,7 @@ int lahqr(bool want_t,
                     A(i + 2, j) = A(i + 2, j) - sum * t3;
                 }
                 // Apply G from the right to A
-                for (idx_t j = istart_m; j < std::min(i + 4, istop); ++j) {
+                for (idx_t j = istart_m; j < min(i + 4, istop); ++j) {
                     sum = A(j, i) + v2 * A(j, i + 1) + v3 * A(j, i + 2);
                     A(j, i) = A(j, i) - sum * conj(t1);
                     A(j, i + 1) = A(j, i + 1) - sum * conj(t2);
@@ -373,7 +386,7 @@ int lahqr(bool want_t,
                     A(i + 1, j) = A(i + 1, j) - sum * t2;
                 }
                 // Apply G from the right to A
-                for (idx_t j = istart_m; j < std::min(i + 3, istop); ++j) {
+                for (idx_t j = istart_m; j < min(i + 3, istop); ++j) {
                     sum = A(j, i) + v2 * A(j, i + 1);
                     A(j, i) = A(j, i) - sum * conj(t1);
                     A(j, i + 1) = A(j, i + 1) - sum * conj(t2);
@@ -399,10 +412,10 @@ int lahqr(bool want_t,
  *
  * Implementation for complex matrices.
  */
-template <class matrix_t,
-          class vector_t,
-          enable_if_t<is_complex<type_t<vector_t>>::value, bool> = true,
-          enable_if_t<is_complex<type_t<matrix_t>>::value, bool> = true>
+template <TLAPACK_CSMATRIX matrix_t,
+          TLAPACK_VECTOR vector_t,
+          enable_if_t<is_complex<type_t<vector_t>>, bool> = true,
+          enable_if_t<is_complex<type_t<matrix_t>>, bool> = true>
 int lahqr(bool want_t,
           bool want_z,
           size_type<matrix_t> ilo,
@@ -490,10 +503,10 @@ int lahqr(bool want_t,
             real_t tst = abs1(A(i - 1, i - 1)) + abs1(A(i, i));
             if (tst == zero) {
                 if (i >= ilo + 2) {
-                    tst = tst + tlapack::abs(A(i - 1, i - 2));
+                    tst = tst + abs(A(i - 1, i - 2));
                 }
                 if (i < ihi) {
-                    tst = tst + tlapack::abs(A(i + 1, i));
+                    tst = tst + abs(A(i + 1, i));
                 }
             }
             if (abs1(A(i, i - 1)) <= eps * tst) {
@@ -508,15 +521,14 @@ int lahqr(bool want_t,
                 // eps*|A(i,i)|*|A(i-1,i-1)| The multiplications might overflow
                 // so we do some scaling first.
                 //
-                real_t ab = std::max(abs1(A(i, i - 1)), abs1(A(i - 1, i)));
-                real_t ba = std::min(abs1(A(i, i - 1)), abs1(A(i - 1, i)));
-                real_t aa =
-                    std::max(abs1(A(i, i)), abs1(A(i, i) - A(i - 1, i - 1)));
-                real_t bb =
-                    std::min(abs1(A(i, i)), abs1(A(i, i) - A(i - 1, i - 1)));
+                const real_t aij = abs1(A(i, i - 1));
+                const real_t aji = abs1(A(i - 1, i));
+                real_t ab = (aij > aji) ? aij : aji;  // Propagates NaNs in aji
+                real_t ba = (aij < aji) ? aij : aji;  // Propagates NaNs in aji
+                real_t aa = max(abs1(A(i, i)), abs1(A(i, i) - A(i - 1, i - 1)));
+                real_t bb = min(abs1(A(i, i)), abs1(A(i, i) - A(i - 1, i - 1)));
                 real_t s = aa + ab;
-                if (ba * (ab / s) <=
-                    std::max(small_num, eps * (bb * (aa / s)))) {
+                if (ba * (ab / s) <= max(small_num, eps * (bb * (aa / s)))) {
                     // A(i,i-1) is negligible, take i as new istart.
                     A(i, i - 1) = zero;
                     istart = i;
@@ -538,8 +550,8 @@ int lahqr(bool want_t,
         k_defl = k_defl + 1;
         if (k_defl % non_convergence_limit == 0) {
             // Exceptional shift
-            real_t s = tlapack::abs(A(istop - 1, istop - 2));
-            if (istop > ilo + 2) s = s + tlapack::abs(A(istop - 2, istop - 3));
+            real_t s = abs(A(istop - 1, istop - 2));
+            if (istop > ilo + 2) s = s + abs(A(istop - 2, istop - 3));
             a00 = dat1 * s + A(istop - 1, istop - 1);
             a01 = dat2 * s;
             a10 = s;
@@ -588,7 +600,10 @@ int lahqr(bool want_t,
                 if (i > istart) A(i, i - 1) = A(i, i - 1) * cs;
             }
             else {
-                rotg(A(i, i - 1), A(i + 1, i - 1), cs, sn);
+                TA h00 = A(i, i - 1);
+                TA h10 = A(i + 1, i - 1);
+                rotg(h00, h10, cs, sn);
+                A(i, i - 1) = h00;
                 A(i + 1, i - 1) = zero;
             }
 
@@ -599,7 +614,7 @@ int lahqr(bool want_t,
                 A(i, j) = tmp;
             }
             // Apply G**H from the right to A
-            for (idx_t j = istart_m; j < std::min(i + 3, istop); ++j) {
+            for (idx_t j = istart_m; j < min(i + 3, istop); ++j) {
                 TA tmp = cs * A(j, i) + conj(sn) * A(j, i + 1);
                 A(j, i + 1) = -sn * A(j, i) + cs * A(j, i + 1);
                 A(j, i) = tmp;

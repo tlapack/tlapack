@@ -31,7 +31,7 @@
 //------------------------------------------------------------------------------
 /// Print matrix A in the standard output
 template <typename matrix_t>
-inline void printMatrix(const matrix_t& A)
+void printMatrix(const matrix_t& A)
 {
     using idx_t = tlapack::size_type<matrix_t>;
     const idx_t m = tlapack::nrows(A);
@@ -49,7 +49,7 @@ template <typename real_t>
 void run(size_t m, size_t n)
 {
     using std::size_t;
-    using matrix_t = tlapack::legacyMatrix<real_t>;
+    using matrix_t = tlapack::LegacyMatrix<real_t>;
 
     // Functors for creating new matrices
     tlapack::Create<matrix_t> new_matrix;
@@ -86,7 +86,7 @@ void run(size_t m, size_t n)
             A(i, j) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
 
     // Frobenius norm of A
-    auto normA = tlapack::lange(tlapack::frob_norm, A);
+    auto normA = tlapack::lange(tlapack::FROB_NORM, A);
 
     // Print A
     if (verbose) {
@@ -95,7 +95,7 @@ void run(size_t m, size_t n)
     }
 
     // Copy A to Q
-    tlapack::lacpy(tlapack::dense, A, Q);
+    tlapack::lacpy(tlapack::GENERAL, A, Q);
 
     // 1) Compute A = QR (Stored in the matrix Q)
 
@@ -106,7 +106,7 @@ void run(size_t m, size_t n)
         tlapack::geqr2(Q, tau);
 
         // Save the R matrix
-        tlapack::lacpy(tlapack::upperTriangle, Q, R);
+        tlapack::lacpy(tlapack::UPPER_TRIANGLE, Q, R);
 
         // Generates Q = H_1 H_2 ... H_n
         tlapack::ung2r(Q, tau);
@@ -144,14 +144,14 @@ void run(size_t m, size_t n)
                 work(i, j) = static_cast<float>(0xABADBABE);
 
         // work receives the identity n*n
-        tlapack::laset(tlapack::upperTriangle, 0.0, 1.0, work);
+        tlapack::laset(tlapack::UPPER_TRIANGLE, 0.0, 1.0, work);
         // work receives Q'Q - I
         tlapack::syrk(tlapack::Uplo::Upper, tlapack::Op::Trans, 1.0, Q, -1.0,
                       work);
 
         // Compute ||Q'Q - I||_F
         norm_orth_1 =
-            tlapack::lansy(tlapack::frob_norm, tlapack::upperTriangle, work);
+            tlapack::lansy(tlapack::FROB_NORM, tlapack::UPPER_TRIANGLE, work);
 
         if (verbose) {
             std::cout << std::endl << "Q'Q-I = ";
@@ -169,7 +169,7 @@ void run(size_t m, size_t n)
                 work(i, j) = static_cast<float>(0xABADBABE);
 
         // Copy Q to work
-        tlapack::lacpy(tlapack::dense, Q, work);
+        tlapack::lacpy(tlapack::GENERAL, Q, work);
 
         tlapack::trmm(tlapack::Side::Right, tlapack::Uplo::Upper,
                       tlapack::Op::NoTrans, tlapack::Diag::NonUnit, 1.0, R,
@@ -179,7 +179,7 @@ void run(size_t m, size_t n)
             for (size_t i = 0; i < m; ++i)
                 work(i, j) -= A(i, j);
 
-        norm_repres_1 = tlapack::lange(tlapack::frob_norm, work) / normA;
+        norm_repres_1 = tlapack::lange(tlapack::FROB_NORM, work) / normA;
     }
 
     // *) Output

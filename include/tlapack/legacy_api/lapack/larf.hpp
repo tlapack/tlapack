@@ -1,4 +1,4 @@
-/// @file larf.hpp
+/// @file legacy_api/lapack/larf.hpp
 /// @author Weslley S Pereira, University of Colorado Denver, USA
 /// @note Adapted from @see
 /// https://github.com/langou/latl/blob/master/include/larf.h
@@ -15,44 +15,46 @@
 #include "tlapack/lapack/larf.hpp"
 
 namespace tlapack {
+namespace legacy {
 
-/** Applies an elementary reflector H to a m-by-n matrix C.
- *
- * @see larf( Side side, idx_t m, idx_t n, TV const *v, int_t incv, scalar_type<
- * TV, TC , TW > tau, TC *C, idx_t ldC, TW *work )
- *
- * @ingroup legacy_lapack
- */
-template <class side_t, typename TV, typename TC>
-inline void larf(side_t side,
-                 idx_t m,
-                 idx_t n,
-                 TV const* v,
-                 int_t incv,
-                 scalar_type<TV, TC> tau,
-                 TC* C,
-                 idx_t ldC)
-{
-    using internal::colmajor_matrix;
+    /** Applies an elementary reflector H to a m-by-n matrix C.
+     *
+     * @see larf( Side side, idx_t m, idx_t n, TV const *v, int_t incv,
+     * scalar_type< TV, TC , TW > tau, TC *C, idx_t ldC, TW *work )
+     *
+     * @ingroup legacy_lapack
+     */
+    template <class side_t, typename TV, typename TC>
+    void larf(side_t side,
+              idx_t m,
+              idx_t n,
+              TV const* v,
+              int_t incv,
+              scalar_type<TV, TC> tau,
+              TC* C,
+              idx_t ldC)
+    {
+        using internal::create_matrix;
 
-    // check arguments
-    tlapack_check_false(side != Side::Left && side != Side::Right);
-    tlapack_check_false(m < 0);
-    tlapack_check_false(n < 0);
-    tlapack_check_false(incv == 0);
-    tlapack_check_false(ldC < m);
+        // check arguments
+        tlapack_check_false(side != Side::Left && side != Side::Right);
+        tlapack_check_false(m < 0);
+        tlapack_check_false(n < 0);
+        tlapack_check_false(incv == 0);
+        tlapack_check_false(ldC < m);
 
-    // Initialize indexes
-    idx_t lenv = ((side == Side::Left) ? m : n);
+        // Initialize indexes
+        idx_t lenv = ((side == Side::Left) ? m : n);
 
-    // Matrix views
-    auto C_ = colmajor_matrix<TC>(C, m, n, ldC);
+        // Matrix views
+        auto C_ = create_matrix<TC>(C, m, n, ldC);
 
-    tlapack_expr_with_vector(
-        v_, TV, lenv, v, incv,
-        return larf(side, forward, columnwise_storage, v_, tau, C_));
-}
+        tlapack_expr_with_vector(
+            v_, TV, lenv, v, incv,
+            return larf(side, FORWARD, COLUMNWISE_STORAGE, v_, tau, C_));
+    }
 
+}  // namespace legacy
 }  // namespace tlapack
 
 #endif  // TLAPACK_LEGACY_LARF_HH

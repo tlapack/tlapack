@@ -89,8 +89,8 @@ namespace tlapack {
  *
  * @ingroup blas1
  */
-template <typename T,
-          enable_if_t<is_same_v<T, real_type<T> >, int> = 0,
+template <TLAPACK_REAL T,
+          enable_if_t<is_real<T>, int> = 0,
           disable_if_allow_optblas_t<T> = 0>
 int rotmg(T& d1, T& d2, T& a, const T& b, T h[4])
 {
@@ -126,7 +126,7 @@ int rotmg(T& d1, T& d2, T& a, const T& b, T h[4])
             const T q2 = p2 * b;
             const T q1 = p1 * a;
 
-            if (tlapack::abs(q1) > tlapack::abs(q2)) {
+            if (abs(q1) > abs(q2)) {
                 flag = zero;
                 h[1] = -b / a;
                 h[2] = p2 / p1;
@@ -182,8 +182,7 @@ int rotmg(T& d1, T& d2, T& a, const T& b, T h[4])
             }
 
             if (d2 != zero) {
-                while ((tlapack::abs(d2) <= rgamsq) ||
-                       (tlapack::abs(d2) >= gamsq)) {
+                while ((abs(d2) <= rgamsq) || (abs(d2) >= gamsq)) {
                     if (flag == 0) {
                         h[0] = one;
                         h[3] = one;
@@ -194,7 +193,7 @@ int rotmg(T& d1, T& d2, T& a, const T& b, T h[4])
                         h[2] = one;
                         flag = -1;
                     }
-                    if (tlapack::abs(d2) <= rgamsq) {
+                    if (abs(d2) <= rgamsq) {
                         d2 *= gam * gam;
                         h[1] /= gam;
                         h[3] /= gam;
@@ -212,12 +211,12 @@ int rotmg(T& d1, T& d2, T& a, const T& b, T h[4])
     return flag;
 }
 
-#ifdef USE_LAPACKPP_WRAPPERS
+#ifdef TLAPACK_USE_LAPACKPP
 
-template <typename T,
-          enable_if_t<is_same_v<T, real_type<T> >, int> = 0,
+template <TLAPACK_REAL T,
+          enable_if_t<is_real<T>, int> = 0,
           enable_if_allow_optblas_t<T> = 0>
-inline int rotmg(T& d1, T& d2, T& a, const T b, T h[4])
+int rotmg(T& d1, T& d2, T& a, const T b, T h[4])
 {
     T param[5];
     ::blas::rotmg(&d1, &d2, &a, b, param);

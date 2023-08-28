@@ -2,14 +2,9 @@
 
 include( CMakeFindDependencyMacro )
 
-set( USE_LAPACKPP_WRAPPERS "@USE_LAPACKPP_WRAPPERS@" )
-if( USE_LAPACKPP_WRAPPERS )
+set( TLAPACK_USE_LAPACKPP "@TLAPACK_USE_LAPACKPP@" )
+if( TLAPACK_USE_LAPACKPP )
     find_dependency( lapackpp )
-endif()
-
-set( TLAPACK_USE_MDSPAN "@TLAPACK_USE_MDSPAN@" )
-if( TLAPACK_USE_MDSPAN )
-    find_dependency( mdspan )
 endif()
 
 include( "${CMAKE_CURRENT_LIST_DIR}/tlapackTargets.cmake" )

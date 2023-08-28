@@ -7,305 +7,117 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef TLAPACK_ARRAY_TRAITS
-#define TLAPACK_ARRAY_TRAITS
+#ifndef TLAPACK_ARRAY_TRAITS_HH
+#define TLAPACK_ARRAY_TRAITS_HH
 
 #include "tlapack/base/types.hpp"
 
 namespace tlapack {
 
-// -----------------------------------------------------------------------------
-// Access policies
+// C++ standard utils:
+using std::enable_if_t;
+using std::is_same_v;
 
-/**
- * @brief Matrix access policies
- *
- * They are used:
- *
- * (1) on the data structure for a matrix, to state the what pairs (i,j)
- * return a valid position A(i,j), where A is a m-by-n matrix.
- *
- * (2) on the algorithm, to determine the kind of access
- * required by the algorithm.
- */
-enum class MatrixAccessPolicy {
-    Dense = 'G',            ///< 0 <= i <= m,   0 <= j <= n.
-    UpperHessenberg = 'H',  ///< 0 <= i <= j+1, 0 <= j <= n.
-    LowerHessenberg = 'h',  ///< 0 <= i <= m,   0 <= j <= i+1.
-    UpperTriangle = 'U',    ///< 0 <= i <= j,   0 <= j <= n.
-    LowerTriangle = 'L',    ///< 0 <= i <= m,   0 <= j <= i.
-    StrictUpper = 'S',      ///< 0 <= i <= j-1, 0 <= j <= n.
-    StrictLower = 's',      ///< 0 <= i <= m,   0 <= j <= i-1.
-};
+namespace traits {
 
-/**
- * @brief Dense access.
- *
- * Pairs (i,j) such that 0 <= i <= m,   0 <= j <= n     in a m-by-n matrix.
- *
- *      x x x x x
- *      x x x x x
- *      x x x x x
- *      x x x x x
- */
-struct dense_t {
-    constexpr operator Uplo() const { return Uplo::General; }
-    constexpr operator MatrixAccessPolicy() const
-    {
-        return MatrixAccessPolicy::Dense;
-    }
-};
+    /**
+     * @brief Entry type trait.
+     *
+     * The entry type is defined on @c type_trait<array_t,int>::type.
+     *
+     * @note This trait does not need to be specialized for each class as
+     * @c utils.hpp already provides a default implementation for matrices and
+     * vectors based on the entry access operator.
+     *
+     * @see tlapack::concepts::Matrix
+     * @see tlapack::concepts::Vector
+     *
+     * @tparam T A matrix or vector class
+     * @tparam class If this is not an int, then the trait is not defined.
+     */
+    template <class T, class = int>
+    struct entry_type_trait {
+        using type = void;
+    };
 
-/**
- * @brief Upper Hessenberg access
- *
- * Pairs (i,j) such that 0 <= i <= j+1, 0 <= j <= n     in a m-by-n matrix.
- *
- *      x x x x x
- *      x x x x x
- *      0 x x x x
- *      0 0 x x x
- */
-struct upperHessenberg_t : public dense_t {
-    constexpr operator MatrixAccessPolicy() const
-    {
-        return MatrixAccessPolicy::UpperHessenberg;
-    }
-};
-
-/**
- * @brief Lower Hessenberg access
- *
- * Pairs (i,j) such that 0 <= i <= m,   0 <= j <= i+1   in a m-by-n matrix.
- *
- *      x x 0 0 0
- *      x x x 0 0
- *      x x x x 0
- *      x x x x x
- */
-struct lowerHessenberg_t : public dense_t {
-    constexpr operator MatrixAccessPolicy() const
-    {
-        return MatrixAccessPolicy::LowerHessenberg;
-    }
-};
-
-/**
- * @brief Upper Triangle access
- *
- * Pairs (i,j) such that 0 <= i <= j,   0 <= j <= n     in a m-by-n matrix.
- *
- *      x x x x x
- *      0 x x x x
- *      0 0 x x x
- *      0 0 0 x x
- */
-struct upperTriangle_t : public upperHessenberg_t {
-    constexpr operator Uplo() const { return Uplo::Upper; }
-    constexpr operator MatrixAccessPolicy() const
-    {
-        return MatrixAccessPolicy::UpperTriangle;
-    }
-};
-
-/**
- * @brief Lower Triangle access
- *
- * Pairs (i,j) such that 0 <= i <= m,   0 <= j <= i     in a m-by-n matrix.
- *
- *      x 0 0 0 0
- *      x x 0 0 0
- *      x x x 0 0
- *      x x x x 0
- */
-struct lowerTriangle_t : public lowerHessenberg_t {
-    constexpr operator Uplo() const { return Uplo::Lower; }
-    constexpr operator MatrixAccessPolicy() const
-    {
-        return MatrixAccessPolicy::LowerTriangle;
-    }
-};
-
-/**
- * @brief Strict Upper Triangle access
- *
- * Pairs (i,j) such that 0 <= i <= j-1, 0 <= j <= n     in a m-by-n matrix.
- *
- *      0 x x x x
- *      0 0 x x x
- *      0 0 0 x x
- *      0 0 0 0 x
- */
-struct strictUpper_t : public upperTriangle_t {
-    constexpr operator MatrixAccessPolicy() const
-    {
-        return MatrixAccessPolicy::StrictUpper;
-    }
-};
-
-/**
- * @brief Strict Lower Triangle access
- *
- * Pairs (i,j) such that 0 <= i <= m,   0 <= j <= i-1   in a m-by-n matrix.
- *
- *      0 0 0 0 0
- *      x 0 0 0 0
- *      x x 0 0 0
- *      x x x 0 0
- */
-struct strictLower_t : public lowerTriangle_t {
-    constexpr operator MatrixAccessPolicy() const
-    {
-        return MatrixAccessPolicy::StrictLower;
-    }
-};
-
-/**
- * @brief Band access
- *
- * Pairs (i,j) such that max(0,j-ku) <= i <= min(m,j+kl) in a m-by-n matrix,
- * where kl is the lower_bandwidth and ku is the upper_bandwidth.
- *
- *      x x x 0 0
- *      x x x x 0
- *      0 x x x x
- *      0 0 x x x
- */
-struct band_t : dense_t {
-    std::size_t lower_bandwidth;  ///< Number of subdiagonals.
-    std::size_t upper_bandwidth;  ///< Number of superdiagonals.
-
-    constexpr band_t(std::size_t kl, std::size_t ku)
-        : lower_bandwidth(kl), upper_bandwidth(ku)
-    {}
-};
-
-// constant expressions
-constexpr dense_t dense = {};
-constexpr upperHessenberg_t upperHessenberg = {};
-constexpr lowerHessenberg_t lowerHessenberg = {};
-constexpr upperTriangle_t upperTriangle = {};
-constexpr lowerTriangle_t lowerTriangle = {};
-constexpr strictUpper_t strictUpper = {};
-constexpr strictLower_t strictLower = {};
-
-// -----------------------------------------------------------------------------
-// Data traits
-
-namespace internal {
+    /**
+     * @brief Size type trait.
+     *
+     * The size type is defined on @c sizet_trait<array_t,int>::type.
+     *
+     * @note This trait does not need to be specialized for each class as
+     * @c utils.hpp already provides a default implementation for matrices and
+     * vectors based on the functions @c nrows(T) and @c size(T).
+     *
+     * @see tlapack::concepts::Matrix
+     * @see tlapack::concepts::Vector
+     *
+     * @tparam T A matrix or vector class
+     * @tparam class If this is not an int, then the trait is not defined.
+     */
+    template <class T, class = int>
+    struct size_type_trait {
+        using type = std::size_t;
+    };
 
     /**
      * @brief Trait to determine the layout of a given data structure.
      *
-     * This is used to verify if optimized routines can be used.
+     * The layout is defined on @c layout_trait<array_t,int>::value.
+     *
+     * This is used to verify if optimized implementations can be used.
      *
      * @tparam array_t Data structure.
      * @tparam class If this is not an int, then the trait is not defined.
-     *
-     * @ingroup abstract_matrix
      */
     template <class array_t, class = int>
-    struct LayoutImpl {
-        static constexpr Layout layout = Layout::Unspecified;
+    struct layout_trait {
+        static constexpr Layout value = Layout::Unspecified;
     };
-
-    /**
-     * @brief Trait to determine the transpose of matrices from class matrix_t.
-     *
-     * @tparam matrix_t Data structure.
-     * @tparam class If this is not an int, then the trait is not defined.
-     *
-     * @ingroup abstract_matrix
-     */
-    template <class matrix_t, class = int>
-    struct TransposeTypeImpl;
 
     /**
      * @brief Functor for data creation
      *
      * This is a boilerplate. It must be specialized for each class.
+     * See tlapack::Create for examples of usage.
      *
-     * @ingroup abstract_matrix
+     * @tparam matrix_t Data structure.
+     * @tparam class If this is not an int, then the trait is not defined.
      */
     template <class matrix_t, class = int>
-    struct CreateImpl {
+    struct CreateFunctor {
         static_assert(false && sizeof(matrix_t),
                       "Must use correct specialization");
 
         /**
-         * @brief Creates an object (matrix or vector)
+         * @brief Creates a m-by-n matrix with entries of type T
          *
-         * @param[out] v
-         *      Vector that can be used to reference allocated memory.
-         * @param[in] m Number of rows
-         * @param[in] n Number of Columns
+         * @param[in,out] v
+         *          On entry, empty vector with size 0.
+         *          On exit, vector that may contain allocated memory.
+         * @param[in] m Number of rows of the new matrix
+         * @param[in] n Number of columns of the new matrix
          *
-         * @return The new object
+         * @return The new m-by-n matrix
          */
         template <class T, class idx_t>
-        inline constexpr auto operator()(std::vector<T>& v,
-                                         idx_t m,
-                                         idx_t n = 1) const
+        constexpr auto operator()(std::vector<T>& v, idx_t m, idx_t n = 1) const
         {
             return matrix_t();
         }
 
         /**
-         * @brief Creates a matrix
+         * @brief Creates a vector of size n with entries of type T
          *
-         * @param[in] W
-         *      Workspace that references to allocated memory.
-         * @param[in] m Number of rows
-         * @param[in] n Number of Columns
-         * @param[out] rW
-         *      On exit, receives the updated workspace, i.e., that references
-         *      remaining allocated memory.
+         * @param[out] v
+         *          On entry, empty vector with size 0.
+         *          On exit, vector that may contain allocated memory.
+         * @param[in] n Size of the new vector
          *
-         * @return The new object
+         * @return The new vector of size n
          */
-        template <class idx_t, class Workspace>
-        inline constexpr auto operator()(const Workspace& W,
-                                         idx_t m,
-                                         idx_t n,
-                                         Workspace& rW) const
-        {
-            return matrix_t();
-        }
-
-        /**
-         * @brief Creates a vector
-         *
-         * @param[in] W
-         *      Workspace that references to allocated memory.
-         * @param[in] m Size of the vector
-         * @param[out] rW
-         *      On exit, receives the updated workspace, i.e., that references
-         *      remaining allocated memory.
-         *
-         * @return The new object
-         */
-        template <class idx_t, class Workspace>
-        inline constexpr auto operator()(const Workspace& W,
-                                         idx_t m,
-                                         Workspace& rW) const
-        {
-            return matrix_t();
-        }
-
-        /**
-         * @brief Creates an object (matrix or vector)
-         *
-         * @param[in] W
-         *      Vector that can be used to reference allocated memory.
-         * @param[in] m Number of rows
-         * @param[in] n Number of Columns
-         *
-         * @return The new object
-         */
-        template <class idx_t, class Workspace>
-        inline constexpr auto operator()(const Workspace& W,
-                                         idx_t m,
-                                         idx_t n = 1) const
+        template <class T, class idx_t>
+        constexpr auto operator()(std::vector<T>& v, idx_t n) const
         {
             return matrix_t();
         }
@@ -316,25 +128,23 @@ namespace internal {
     /**
      * @brief Matrix type deduction
      *
-     * The deduction for two types must be implemented elsewhere. For example,
-     * the plugins for LegacyArray, Eigen and mdspan all have their own
+     * The deduction for one and two types must be implemented elsewhere. For
+     * example, the plugins for Eigen and mdspan matrices have their own
      * implementation.
      *
      * @tparam matrix_t List of matrix types. The last type must be an int.
-     *
-     * @ingroup abstract_matrix
      */
-    template <typename... matrix_t>
+    template <class... matrix_t>
     struct matrix_type_traits;
 
-    /// Matrix type deduction for one type
-    template <typename matrix_t>
+    // Matrix type deduction for one type
+    template <class matrix_t>
     struct matrix_type_traits<matrix_t, int> {
         using type = typename matrix_type_traits<matrix_t, matrix_t, int>::type;
     };
 
-    /// Matrix type deduction for three or more types
-    template <typename matrixA_t, typename matrixB_t, typename... matrix_t>
+    // Matrix type deduction for three or more types
+    template <class matrixA_t, class matrixB_t, class... matrix_t>
     struct matrix_type_traits<matrixA_t, matrixB_t, matrix_t...> {
         using type = typename matrix_type_traits<
             typename matrix_type_traits<matrixA_t, matrixB_t, int>::type,
@@ -345,89 +155,71 @@ namespace internal {
      * @brief Vector type deduction
      *
      * The deduction for two types must be implemented elsewhere. For example,
-     * the plugins for LegacyArray, Eigen and mdspan all have their own
-     * implementation.
+     * the plugins for Eigen and mdspan matrices have their own implementation.
+     *
+     * The deduced type is defined on @c vector_type_traits<vector_t...>::type.
      *
      * @tparam vector_t List of vector types. The last type must be an int.
-     *
-     * @ingroup abstract_matrix
      */
-    template <typename... vector_t>
+    template <class... vector_t>
     struct vector_type_traits;
 
-    /// Vector type deduction for one type
-    template <typename vector_t>
+    // Vector type deduction for one type
+    template <class vector_t>
     struct vector_type_traits<vector_t, int> {
         using type = typename vector_type_traits<vector_t, vector_t, int>::type;
     };
 
-    /// Vector type deduction for three or more types
-    template <typename vectorA_t, typename vectorB_t, typename... vector_t>
+    // Vector type deduction for three or more types
+    template <class vectorA_t, class vectorB_t, class... vector_t>
     struct vector_type_traits<vectorA_t, vectorB_t, vector_t...> {
         using type = typename vector_type_traits<
             typename vector_type_traits<vectorA_t, vectorB_t, int>::type,
             vector_t...>::type;
     };
-}  // namespace internal
+}  // namespace traits
 
-/// @brief Alias for @c internal::LayoutImpl<,int>::layout.
-/// @ingroup abstract_matrix
+// Aliases for the traits:
+
+/// Entry type of a matrix or vector.
+template <class T>
+using type_t = typename traits::entry_type_trait<T, int>::type;
+
+/// Size type of a matrix or vector.
+template <class T>
+using size_type = typename traits::size_type_trait<T, int>::type;
+
+/// Layout of a matrix or vector.
 template <class array_t>
-constexpr Layout layout = internal::LayoutImpl<array_t, int>::layout;
+constexpr Layout layout = traits::layout_trait<array_t, int>::value;
 
 /**
- * @brief Alias for @c internal::CreateImpl<,int>.
+ * @brief Alias for @c traits::CreateFunctor<,int>.
  *
  * Usage:
  * @code{.cpp}
  * // matrix_t is a predefined type at this point
  *
- * using T = tlapack::type_t<matrix_t>;
- * using idx_t = tlapack::size_type<matrix_t>;
- *
  * tlapack::Create<matrix_t> new_matrix; // Creates the functor
  *
- * idx_t m = 11;
- * idx_t n = 6;
+ * size_t m = 11;
+ * size_t n = 6;
  *
- * std::vector<T> A_container; // Empty vector
+ * std::vector<float> A_container; // Empty vector
  * auto A = new_matrix(A_container, m, n); // Initialize A_container if needed
- *
- * tlapack::vectorOfBytes B_container; // Empty vector
- * auto B = new_matrix(
- *  tlapack::alloc_workspace( B_container, m*n*sizeof(T) ),
- *  m, n ); // B_container stores allocated memory
- *
- * tlapack::vectorOfBytes C_container; // Empty vector
- * Workspace W; // Empty workspace
- * auto C = new_matrix(
- *  tlapack::alloc_workspace( C_container, m*n*sizeof(T) ),
- *  m, n, W ); // W receives the updated workspace, i.e., without the space
- * taken by C
  * @endcode
- *
- * @ingroup abstract_matrix
  */
 template <class T>
-using Create = internal::CreateImpl<T, int>;
+using Create = traits::CreateFunctor<T, int>;
 
-/// Alias for @c internal::TransposeTypeImpl<,int>::type.
-/// @ingroup abstract_matrix
-template <class T>
-using transpose_type = typename internal::TransposeTypeImpl<T, int>::type;
+/// Common matrix type deduced from the list of types.
+template <class... matrix_t>
+using matrix_type = typename traits::matrix_type_traits<matrix_t..., int>::type;
 
-/// Alias for @c internal::matrix_type<,int>::type.
-/// @ingroup abstract_matrix
-template <typename... matrix_t>
-using matrix_type =
-    typename internal::matrix_type_traits<matrix_t..., int>::type;
-
-/// Alias for @c internal::vector_type<,int>::type.
-/// @ingroup abstract_matrix
-template <typename... vector_t>
-using vector_type =
-    typename internal::vector_type_traits<vector_t..., int>::type;
+/// Common vector type deduced from the list of types.
+template <class... vector_t>
+using vector_type = typename traits::vector_type_traits<vector_t..., int>::type;
 
 }  // namespace tlapack
 
-#endif  // TLAPACK_ARRAY_TRAITS
+#endif  // TLAPACK_ARRAY_TRAITS_HH

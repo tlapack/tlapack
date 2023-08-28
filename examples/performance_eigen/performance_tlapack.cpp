@@ -72,7 +72,7 @@ void run(int n,
             // the condition of the eigenvector matrix
             Eigen::Matrix<T, -1, 1> d2(n);
             for (int i = 0; i < n; ++i)
-                d2[i] = std::pow(2.0, i % matrix_type);
+                d2[i] = std::pow(2, i % matrix_type);
 
             // Q1 and Q2 are random unitary matrices
             Eigen::Matrix<T, -1, -1> Q1(n, n);
@@ -161,7 +161,7 @@ void run(int n,
 
         int n_aed, n_sweep, n_shifts_total;
         {
-            francis_opts_t<idx_t> opts;
+            FrancisOpts opts;
 
             multishift_qr(compute_backwardError, compute_backwardError, 0, n,
                           matrixT, tlapack_eig, U, opts);
@@ -291,7 +291,7 @@ void run(int n,
 
         int n_aed, n_sweep, n_shifts_total;
         {
-            francis_opts_t<idx_t> opts;
+            FrancisOpts opts;
 
             multishift_qr(compute_backwardError, compute_backwardError, 0, n,
                           matrixT, tlapack_eig, U, opts);

@@ -13,11 +13,10 @@
 #include "tlapack/base/utils.hpp"
 
 namespace tlapack {
-template <typename idx_t>
-struct transpose_opts_t {
+struct TransposeOpts {
     // Optimization parameter. Matrices smaller than nx will not
     // be transposed using recursion. Must be at least 2.s
-    idx_t nx = 16;
+    size_t nx = 16;
 };
 
 /**
@@ -34,13 +33,11 @@ struct transpose_opts_t {
  *
  * @ingroup auxiliary
  */
-template <class matrixA_t, class matrixB_t>
-void conjtranspose(matrixA_t& A,
-                   matrixB_t& B,
-                   const transpose_opts_t<size_type<matrixA_t>>& opts = {})
+template <TLAPACK_SMATRIX matrixA_t, TLAPACK_SMATRIX matrixB_t>
+void conjtranspose(matrixA_t& A, matrixB_t& B, const TransposeOpts& opts = {})
 {
     using idx_t = size_type<matrixA_t>;
-    using pair = std::pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
 
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
@@ -49,7 +46,7 @@ void conjtranspose(matrixA_t& A,
     tlapack_check(n == nrows(B));
     tlapack_check(opts.nx >= 2);
 
-    if (min(m, n) <= opts.nx) {
+    if (min(m, n) <= (idx_t)opts.nx) {
         // The matrix is small, use direct method and end recursion
         for (idx_t i = 0; i < m; ++i)
             for (idx_t j = 0; j < n; ++j)
@@ -60,15 +57,15 @@ void conjtranspose(matrixA_t& A,
         const idx_t m1 = m / 2;
         const idx_t n1 = n / 2;
 
-        auto A00 = slice(A, pair(0, m1), pair(0, n1));
-        auto A01 = slice(A, pair(0, m1), pair(n1, n));
-        auto A10 = slice(A, pair(m1, m), pair(0, n1));
-        auto A11 = slice(A, pair(m1, m), pair(n1, n));
+        auto A00 = slice(A, range(0, m1), range(0, n1));
+        auto A01 = slice(A, range(0, m1), range(n1, n));
+        auto A10 = slice(A, range(m1, m), range(0, n1));
+        auto A11 = slice(A, range(m1, m), range(n1, n));
 
-        auto B00 = slice(B, pair(0, n1), pair(0, m1));
-        auto B01 = slice(B, pair(0, n1), pair(m1, m));
-        auto B10 = slice(B, pair(n1, n), pair(0, m1));
-        auto B11 = slice(B, pair(n1, n), pair(m1, m));
+        auto B00 = slice(B, range(0, n1), range(0, m1));
+        auto B01 = slice(B, range(0, n1), range(m1, m));
+        auto B10 = slice(B, range(n1, n), range(0, m1));
+        auto B11 = slice(B, range(n1, n), range(m1, m));
 
         conjtranspose(A00, B00, opts);
         conjtranspose(A01, B10, opts);
@@ -91,13 +88,11 @@ void conjtranspose(matrixA_t& A,
  *
  * @ingroup auxiliary
  */
-template <class matrixA_t, class matrixB_t>
-void transpose(matrixA_t& A,
-               matrixB_t& B,
-               const transpose_opts_t<size_type<matrixA_t>>& opts = {})
+template <TLAPACK_SMATRIX matrixA_t, TLAPACK_SMATRIX matrixB_t>
+void transpose(matrixA_t& A, matrixB_t& B, const TransposeOpts& opts = {})
 {
     using idx_t = size_type<matrixA_t>;
-    using pair = std::pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
 
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
@@ -106,7 +101,7 @@ void transpose(matrixA_t& A,
     tlapack_check(n == nrows(B));
     tlapack_check(opts.nx >= 2);
 
-    if (min(m, n) <= opts.nx) {
+    if (min(m, n) <= (idx_t)opts.nx) {
         // The matrix is small, use direct method and end recursion
         for (idx_t i = 0; i < m; ++i)
             for (idx_t j = 0; j < n; ++j)
@@ -117,15 +112,15 @@ void transpose(matrixA_t& A,
         const idx_t m1 = m / 2;
         const idx_t n1 = n / 2;
 
-        auto A00 = slice(A, pair(0, m1), pair(0, n1));
-        auto A01 = slice(A, pair(0, m1), pair(n1, n));
-        auto A10 = slice(A, pair(m1, m), pair(0, n1));
-        auto A11 = slice(A, pair(m1, m), pair(n1, n));
+        auto A00 = slice(A, range(0, m1), range(0, n1));
+        auto A01 = slice(A, range(0, m1), range(n1, n));
+        auto A10 = slice(A, range(m1, m), range(0, n1));
+        auto A11 = slice(A, range(m1, m), range(n1, n));
 
-        auto B00 = slice(B, pair(0, n1), pair(0, m1));
-        auto B01 = slice(B, pair(0, n1), pair(m1, m));
-        auto B10 = slice(B, pair(n1, n), pair(0, m1));
-        auto B11 = slice(B, pair(n1, n), pair(m1, m));
+        auto B00 = slice(B, range(0, n1), range(0, m1));
+        auto B01 = slice(B, range(0, n1), range(m1, m));
+        auto B10 = slice(B, range(n1, n), range(0, m1));
+        auto B11 = slice(B, range(n1, n), range(m1, m));
 
         transpose(A00, B00, opts);
         transpose(A01, B10, opts);

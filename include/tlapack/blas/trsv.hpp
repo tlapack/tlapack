@@ -12,6 +12,7 @@
 #define TLAPACK_BLAS_TRSV_HH
 
 #include "tlapack/base/utils.hpp"
+#include "tlapack/lapack/conjugate.hpp"
 
 namespace tlapack {
 
@@ -56,8 +57,8 @@ namespace tlapack {
  * @ingroup blas2
  */
 template <
-    class matrixA_t,
-    class vectorX_t,
+    TLAPACK_MATRIX matrixA_t,
+    TLAPACK_VECTOR vectorX_t,
     class T = type_t<vectorX_t>,
     disable_if_allow_optblas_t<pair<matrixA_t, T>, pair<vectorX_t, T> > = 0>
 void trsv(Uplo uplo, Op trans, Diag diag, const matrixA_t& A, vectorX_t& x)
@@ -202,15 +203,14 @@ void trsv(Uplo uplo, Op trans, Diag diag, const matrixA_t& A, vectorX_t& x)
     }
 }
 
-#ifdef USE_LAPACKPP_WRAPPERS
+#ifdef TLAPACK_USE_LAPACKPP
 
 template <
-    class matrixA_t,
-    class vectorX_t,
+    TLAPACK_LEGACY_MATRIX matrixA_t,
+    TLAPACK_LEGACY_VECTOR vectorX_t,
     class T = type_t<vectorX_t>,
     enable_if_allow_optblas_t<pair<matrixA_t, T>, pair<vectorX_t, T> > = 0>
-inline void trsv(
-    Uplo uplo, Op trans, Diag diag, const matrixA_t& A, vectorX_t& x)
+void trsv(Uplo uplo, Op trans, Diag diag, const matrixA_t& A, vectorX_t& x)
 {
     // Legacy objects
     auto A_ = legacy_matrix(A);
@@ -220,9 +220,15 @@ inline void trsv(
     constexpr Layout L = layout<matrixA_t>;
     const auto& n = A_.n;
 
-    return ::blas::trsv((::blas::Layout)L, (::blas::Uplo)uplo,
-                        (::blas::Op)trans, (::blas::Diag)diag, n, A_.ptr,
-                        A_.ldim, x_.ptr, x_.inc);
+    if (trans != Op::Conj)
+        ::blas::trsv((::blas::Layout)L, (::blas::Uplo)uplo, (::blas::Op)trans,
+                     (::blas::Diag)diag, n, A_.ptr, A_.ldim, x_.ptr, x_.inc);
+    else {
+        conjugate(x);
+        ::blas::trsv((::blas::Layout)L, (::blas::Uplo)uplo, ::blas::Op::NoTrans,
+                     (::blas::Diag)diag, n, A_.ptr, A_.ldim, x_.ptr, x_.inc);
+        conjugate(x);
+    }
 }
 
 #endif

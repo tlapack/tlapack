@@ -15,11 +15,10 @@
 
 namespace tlapack {
 
-template <typename idx_t>
-struct lu_mult_opts_t {
+struct LuMultOpts {
     // Optimization parameter. Matrices smaller than nx will not
     // be multiplied using recursion. Must be at least 1.
-    idx_t nx = 1;
+    size_t nx = 1;
 };
 
 /**
@@ -33,17 +32,15 @@ struct lu_mult_opts_t {
  * contain the matrix U. On exit, A contains the product L*U.
  *
  * @param[in] opts Options.
- *      - @c opts.work is used if whenever it has sufficient size.
- *        The sufficient size can be obtained through a workspace query.
  *
  * @ingroup auxiliary
  */
-template <class matrix_t>
-void lu_mult(matrix_t& A, const lu_mult_opts_t<size_type<matrix_t>>& opts = {})
+template <TLAPACK_SMATRIX matrix_t>
+void lu_mult(matrix_t& A, const LuMultOpts& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using T = type_t<matrix_t>;
-    using range = std::pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
     using real_t = real_type<T>;
 
     const idx_t m = nrows(A);
@@ -54,7 +51,7 @@ void lu_mult(matrix_t& A, const lu_mult_opts_t<size_type<matrix_t>>& opts = {})
     // quick return
     if (n == 0) return;
 
-    if (n <= opts.nx) {  // Matrix is small, use for loops instead of recursion
+    if (n <= (idx_t)opts.nx) {  // Matrix is small, do not use recursion
         for (idx_t i2 = n; i2 > 0; --i2) {
             idx_t i = i2 - 1;
             for (idx_t j2 = n; j2 > 0; --j2) {
@@ -92,13 +89,13 @@ void lu_mult(matrix_t& A, const lu_mult_opts_t<size_type<matrix_t>>& opts = {})
     lu_mult(A11, opts);
 
     // A11 = A10*A01 + L11*U11
-    gemm(Op::NoTrans, Op::NoTrans, T(1), A10, A01, T(1), A11);
+    gemm(NO_TRANS, NO_TRANS, T(1), A10, A01, T(1), A11);
 
     // A01 = L00*A01
-    trmm(Side::Left, Uplo::Lower, Op::NoTrans, Diag::Unit, real_t(1), A00, A01);
+    trmm(LEFT_SIDE, LOWER_TRIANGLE, NO_TRANS, UNIT_DIAG, real_t(1), A00, A01);
 
     // A10 = A10*U00
-    trmm(Side::Right, Uplo::Upper, Op::NoTrans, Diag::NonUnit, real_t(1), A00,
+    trmm(RIGHT_SIDE, UPPER_TRIANGLE, NO_TRANS, NON_UNIT_DIAG, real_t(1), A00,
          A10);
 
     // A00 = L00*U00

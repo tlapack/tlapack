@@ -36,7 +36,7 @@ TEST_CASE("STD layouts work as expected", "[plugins]")
     using tlapack::slice;
 
     using idx_t = std::size_t;
-    using pair = std::pair<idx_t, idx_t>;
+    using range = std::pair<idx_t, idx_t>;
 
     using my_dextents = dextents<idx_t, 2>;
 
@@ -55,27 +55,28 @@ TEST_CASE("STD layouts work as expected", "[plugins]")
 
     SECTION("Slicing a mdspan sometimes turns the layout into Unspecified")
     {
-        CHECK(layout<decltype(slice(A, pair{0, 1}, pair{0, 1}))> ==
+        CHECK(layout<decltype(slice(A, range{0, 1}, range{0, 1}))> ==
               Layout::Unspecified);
-        CHECK(layout<decltype(slice(B, pair{0, 1}, pair{0, 1}))> ==
+        CHECK(layout<decltype(slice(B, range{0, 1}, range{0, 1}))> ==
               Layout::Unspecified);
-        CHECK(layout<decltype(slice(C, pair{0, 1}, pair{0, 1}))> ==
+        CHECK(layout<decltype(slice(C, range{0, 1}, range{0, 1}))> ==
               Layout::Unspecified);
 
         SECTION("layout_left (Column-major contiguous data)")
         {
-            CHECK(layout<decltype(slice(A, pair{0, nrows(A)}, pair{0, 1}))> ==
+            CHECK(layout<decltype(slice(A, range{0, nrows(A)}, range{0, 1}))> ==
                   Layout::Unspecified);
-            CHECK(layout<decltype(slice(A, pair{0, nrows(A)}, 1))> ==
+            CHECK(layout<decltype(slice(A, range{0, nrows(A)}, 1))> ==
                   Layout::Strided);
-            CHECK(layout<decltype(slice(A, pair{0, 1}, pair{0, ncols(A)}))> ==
+            CHECK(layout<decltype(slice(A, range{0, 1}, range{0, ncols(A)}))> ==
                   Layout::Unspecified);
-            CHECK(layout<decltype(slice(A, 1, pair{0, ncols(A)}))> ==
+            CHECK(layout<decltype(slice(A, 1, range{0, ncols(A)}))> ==
                   Layout::Strided);
 
-            CHECK(layout<decltype(cols(A, pair{0, 1}))> == Layout::ColMajor);
+            CHECK(layout<decltype(cols(A, range{0, 1}))> == Layout::ColMajor);
             CHECK(layout<decltype(col(A, 1))> == Layout::Strided);
-            CHECK(layout<decltype(rows(A, pair{0, 1}))> == Layout::Unspecified);
+            CHECK(layout<decltype(rows(A, range{0, 1}))> ==
+                  Layout::Unspecified);
             CHECK(layout<decltype(row(A, 1))> == Layout::Strided);
         }
     }

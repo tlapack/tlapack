@@ -33,7 +33,7 @@ namespace tlapack {
  *
  * @ingroup auxiliary
  */
-template <class matrix_t, class vector_t>
+template <TLAPACK_SMATRIX matrix_t, TLAPACK_CVECTOR vector_t>
 void move_bulge(matrix_t& H,
                 vector_t& v,
                 complex_type<type_t<matrix_t>> s1,
@@ -43,7 +43,7 @@ void move_bulge(matrix_t& H,
     using real_t = real_type<T>;
 
     using idx_t = size_type<matrix_t>;
-    using pair = std::pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
     const real_t zero(0);
     const real_t eps = ulp<real_t>();
 
@@ -61,7 +61,7 @@ void move_bulge(matrix_t& H,
     v[0] = H(1, 0);
     v[1] = H(2, 0);
     v[2] = H(3, 0);
-    larfg(forward, columnwise_storage, v, tau);
+    larfg(FORWARD, COLUMNWISE_STORAGE, v, tau);
     beta = v[0];
     v[0] = tau;
 
@@ -77,9 +77,9 @@ void move_bulge(matrix_t& H,
         // 2-small-subdiagonals trick
         std::vector<T> vt_;
         auto vt = new_vector(vt_, 3);
-        auto H2 = slice(H, pair{1, 4}, pair{1, 4});
+        auto H2 = slice(H, range{1, 4}, range{1, 4});
         lahqr_shiftcolumn(H2, vt, s1, s2);
-        larfg(forward, columnwise_storage, vt, tau);
+        larfg(FORWARD, COLUMNWISE_STORAGE, vt, tau);
         vt[0] = tau;
 
         refsum = conj(vt[0]) * H(1, 0) + conj(vt[1]) * H(2, 0);

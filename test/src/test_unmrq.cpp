@@ -36,7 +36,7 @@ TEMPLATE_TEST_CASE("Multiply m-by-n matrix with orthogonal RQ factor",
     using matrix_t = TestType;
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
-    using range = std::pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
     typedef real_type<T> real_t;
 
     // Functor
@@ -92,7 +92,7 @@ TEMPLATE_TEST_CASE("Multiply m-by-n matrix with orthogonal RQ factor",
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = 0; i < k; ++i)
                 Q(n - k + i, j) = A(m - k + i, j);
-        ungrq_opts_t<> ungrqOpts;
+        UngrqOpts ungrqOpts;
         ungrqOpts.nb = nb;
         ungrq(Q, tau, ungrqOpts);
 
@@ -104,14 +104,14 @@ TEMPLATE_TEST_CASE("Multiply m-by-n matrix with orthogonal RQ factor",
 
         std::vector<T> Cq_;
         auto Cq = new_matrix(Cq_, mc, nc);
-        laset(Uplo::General, T(0.), T(0.), Cq);
+        laset(GENERAL, T(0.), T(0.), Cq);
         if (side == Side::Left)
-            gemm(trans, Op::NoTrans, T(1.), Q, C, T(0.), Cq);
+            gemm(trans, NO_TRANS, T(1.), Q, C, T(0.), Cq);
         else
-            gemm(Op::NoTrans, trans, T(1.), C, Q, T(0.), Cq);
+            gemm(NO_TRANS, trans, T(1.), C, Q, T(0.), Cq);
 
         // Run the routine we are testing
-        unmrq_opts_t<> unmrqOpts;
+        UnmrqOpts unmrqOpts;
         unmrqOpts.nb = nb;
         unmrq(side, trans, rows(A, range(m - k, m)), tau, C, unmrqOpts);
 
@@ -119,7 +119,7 @@ TEMPLATE_TEST_CASE("Multiply m-by-n matrix with orthogonal RQ factor",
         for (idx_t j = 0; j < nc; ++j)
             for (idx_t i = 0; i < mc; ++i)
                 C(i, j) -= Cq(i, j);
-        real_t repres = lange(Norm::Max, C);
+        real_t repres = lange(MAX_NORM, C);
         CHECK(repres <= tol);
     }
 }

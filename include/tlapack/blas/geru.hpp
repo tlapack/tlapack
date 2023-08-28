@@ -31,10 +31,10 @@ namespace tlapack {
  *
  * @ingroup blas2
  */
-template <class matrixA_t,
-          class vectorX_t,
-          class vectorY_t,
-          class alpha_t,
+template <TLAPACK_MATRIX matrixA_t,
+          TLAPACK_VECTOR vectorX_t,
+          TLAPACK_VECTOR vectorY_t,
+          TLAPACK_SCALAR alpha_t,
           class T = type_t<matrixA_t>,
           disable_if_allow_optblas_t<pair<alpha_t, T>,
                                      pair<matrixA_t, T>,
@@ -64,21 +64,21 @@ void geru(const alpha_t& alpha,
     }
 }
 
-#ifdef USE_LAPACKPP_WRAPPERS
+#ifdef TLAPACK_USE_LAPACKPP
 
-template <class matrixA_t,
-          class vectorX_t,
-          class vectorY_t,
-          class alpha_t,
+template <TLAPACK_LEGACY_MATRIX matrixA_t,
+          TLAPACK_LEGACY_VECTOR vectorX_t,
+          TLAPACK_LEGACY_VECTOR vectorY_t,
+          TLAPACK_SCALAR alpha_t,
           class T = type_t<matrixA_t>,
           enable_if_allow_optblas_t<pair<alpha_t, T>,
                                     pair<matrixA_t, T>,
                                     pair<vectorX_t, T>,
                                     pair<vectorY_t, T> > = 0>
-inline void geru(const alpha_t alpha,
-                 const vectorX_t& x,
-                 const vectorY_t& y,
-                 matrixA_t& A)
+void geru(const alpha_t alpha,
+          const vectorX_t& x,
+          const vectorY_t& y,
+          matrixA_t& A)
 {
     // Legacy objects
     auto A_ = legacy_matrix(A);

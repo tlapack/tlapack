@@ -12,7 +12,58 @@
 #include "tlapack/legacy_api/blas.hpp"
 
 namespace blas {
-    using namespace tlapack;
-}
 
-#endif // BLAS_HH
+using tlapack::Diag;
+using tlapack::Layout;
+using tlapack::Op;
+using tlapack::Side;
+using tlapack::Uplo;
+
+// =============================================================================
+// Level 1 BLAS template implementations
+
+using tlapack::legacy::asum;
+using tlapack::legacy::axpy;
+using tlapack::legacy::copy;
+using tlapack::legacy::dot;
+using tlapack::legacy::dotu;
+using tlapack::legacy::iamax;
+using tlapack::legacy::nrm2;
+using tlapack::legacy::rot;
+using tlapack::legacy::rotg;
+using tlapack::legacy::rotm;
+using tlapack::legacy::rotmg;
+using tlapack::legacy::scal;
+using tlapack::legacy::swap;
+
+// =============================================================================
+// Level 2 BLAS template implementations
+
+using tlapack::legacy::gemv;
+using tlapack::legacy::ger;
+using tlapack::legacy::geru;
+using tlapack::legacy::hemv;
+using tlapack::legacy::her;
+using tlapack::legacy::her2;
+using tlapack::legacy::symv;
+using tlapack::legacy::syr;
+using tlapack::legacy::syr2;
+using tlapack::legacy::trmv;
+using tlapack::legacy::trsv;
+
+// =============================================================================
+// Level 3 BLAS template implementations
+
+using tlapack::legacy::gemm;
+using tlapack::legacy::hemm;
+using tlapack::legacy::her2k;
+using tlapack::legacy::herk;
+using tlapack::legacy::symm;
+using tlapack::legacy::syr2k;
+using tlapack::legacy::syrk;
+using tlapack::legacy::trmm;
+using tlapack::legacy::trsm;
+
+}  // namespace blas
+
+#endif  // BLAS_HH

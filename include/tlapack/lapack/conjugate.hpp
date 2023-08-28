@@ -10,7 +10,6 @@
 #ifndef TLAPACK_CONJUGATE_HH
 #define TLAPACK_CONJUGATE_HH
 
-#include "tlapack/base/constants.hpp"
 #include "tlapack/base/utils.hpp"
 
 namespace tlapack {
@@ -21,7 +20,7 @@ namespace tlapack {
  *
  * @ingroup auxiliary
  */
-template <class vector_t>
+template <TLAPACK_VECTOR vector_t>
 void conjugate(vector_t& x)
 {
     using idx_t = size_type<vector_t>;

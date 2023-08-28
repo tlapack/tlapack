@@ -69,13 +69,13 @@ namespace tlapack {
  *
  * @ingroup computational
  */
-template <class uplo_t, class matrix_t>
-int potrf2(uplo_t uplo, matrix_t& A, const ec_opts_t& opts = {})
+template <TLAPACK_UPLO uplo_t, TLAPACK_SMATRIX matrix_t>
+int potrf2(uplo_t uplo, matrix_t& A, const EcOpts& opts = {})
 {
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
     using idx_t = size_type<matrix_t>;
-    using pair = pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
 
     // Constants
     const real_t one(1);
@@ -97,8 +97,8 @@ int potrf2(uplo_t uplo, matrix_t& A, const ec_opts_t& opts = {})
             return 0;
         }
         else {
-            tlapack_error_internal(
-                opts.ec, 1,
+            tlapack_error_if(
+                opts.ec.internal, 1,
                 "The leading minor of order 1 is not positive definite,"
                 " and the factorization could not be completed.");
             return 1;
@@ -110,14 +110,14 @@ int potrf2(uplo_t uplo, matrix_t& A, const ec_opts_t& opts = {})
         const idx_t n1 = n / 2;
 
         // Define A11 and A22
-        auto A11 = slice(A, pair{0, n1}, pair{0, n1});
-        auto A22 = slice(A, pair{n1, n}, pair{n1, n});
+        auto A11 = slice(A, range{0, n1}, range{0, n1});
+        auto A22 = slice(A, range{n1, n}, range{n1, n});
 
         // Factor A11
-        int info = potrf2(uplo, A11, noErrorCheck);
+        int info = potrf2(uplo, A11, NO_ERROR_CHECK);
         if (info != 0) {
-            tlapack_error_internal(
-                opts.ec, info,
+            tlapack_error_if(
+                opts.ec.internal, info,
                 "The leading minor of the reported order is not positive "
                 "definite,"
                 " and the factorization could not be completed.");
@@ -126,30 +126,30 @@ int potrf2(uplo_t uplo, matrix_t& A, const ec_opts_t& opts = {})
 
         if (uplo == Uplo::Upper) {
             // Update and scale A12
-            auto A12 = slice(A, pair{0, n1}, pair{n1, n});
-            trsm(Side::Left, Uplo::Upper, Op::ConjTrans, Diag::NonUnit, one,
-                 A11, A12);
+            auto A12 = slice(A, range{0, n1}, range{n1, n});
+            trsm(LEFT_SIDE, Uplo::Upper, CONJ_TRANS, NON_UNIT_DIAG, one, A11,
+                 A12);
 
             // Update A22
-            herk(uplo, Op::ConjTrans, -one, A12, one, A22);
+            herk(UPPER_TRIANGLE, CONJ_TRANS, -one, A12, one, A22);
         }
         else {
             // Update and scale A21
-            auto A21 = slice(A, pair{n1, n}, pair{0, n1});
-            trsm(Side::Right, Uplo::Lower, Op::ConjTrans, Diag::NonUnit, one,
-                 A11, A21);
+            auto A21 = slice(A, range{n1, n}, range{0, n1});
+            trsm(RIGHT_SIDE, Uplo::Lower, CONJ_TRANS, NON_UNIT_DIAG, one, A11,
+                 A21);
 
             // Update A22
-            herk(uplo, Op::NoTrans, -one, A21, one, A22);
+            herk(LOWER_TRIANGLE, NO_TRANS, -one, A21, one, A22);
         }
 
         // Factor A22
-        info = potrf2(uplo, A22, noErrorCheck);
+        info = potrf2(uplo, A22, NO_ERROR_CHECK);
         if (info == 0)
             return 0;
         else {
-            tlapack_error_internal(
-                opts.ec, info + n1,
+            tlapack_error_if(
+                opts.ec.internal, info + n1,
                 "The leading minor of the reported order is not positive "
                 "definite,"
                 " and the factorization could not be completed.");

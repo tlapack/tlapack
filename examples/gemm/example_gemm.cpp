@@ -23,14 +23,14 @@
 
 //------------------------------------------------------------------------------
 template <typename T>
-void run(tlapack::idx_t m, tlapack::idx_t n, tlapack::idx_t k)
+void run(size_t m, size_t n, size_t k)
 {
-    using tlapack::idx_t;
+    using idx_t = size_t;
     using tlapack::min;
     using colmajor_matrix_t =
-        tlapack::legacyMatrix<T, idx_t, tlapack::Layout::ColMajor>;
+        tlapack::LegacyMatrix<T, idx_t, tlapack::Layout::ColMajor>;
     using rowmajor_matrix_t =
-        tlapack::legacyMatrix<T, idx_t, tlapack::Layout::RowMajor>;
+        tlapack::LegacyMatrix<T, idx_t, tlapack::Layout::RowMajor>;
 
     // Functors for creating new matrices
     tlapack::Create<colmajor_matrix_t> new_colmajor_matrix;
@@ -76,7 +76,7 @@ void run(tlapack::idx_t m, tlapack::idx_t n, tlapack::idx_t k)
         Br(i, i) = B(i, i);
     }
 
-    // 1) Using legacy LAPACK interface:
+    // 1) Using legacy LAPACK API:
 
     bestTime = std::chrono::nanoseconds::max();
     for (int run = 0; run < Nruns; ++run) {
@@ -89,9 +89,9 @@ void run(tlapack::idx_t m, tlapack::idx_t n, tlapack::idx_t k)
         auto start = std::chrono::high_resolution_clock::now();
 
         // C = -1.0*A*B + 1.0*C
-        tlapack::gemm(tlapack::Layout::ColMajor, tlapack::Op::NoTrans,
-                      tlapack::Op::NoTrans, m, n, k, T(-1.0), &A_[0], m, &B_[0],
-                      k, T(1.0), &C_[0], m);
+        tlapack::legacy::gemm(tlapack::Layout::ColMajor, tlapack::Op::NoTrans,
+                              tlapack::Op::NoTrans, m, n, k, T(-1.0), &A_[0], m,
+                              &B_[0], k, T(1.0), &C_[0], m);
 
         // Record end time
         auto end = std::chrono::high_resolution_clock::now();
@@ -105,11 +105,12 @@ void run(tlapack::idx_t m, tlapack::idx_t n, tlapack::idx_t k)
     }
 
     // Output
-    std::cout << "Using legacy LAPACK interface:" << std::endl
-              << "||C-AB||_F = " << tlapack::nrm2(n, &C_[0], 1) << std::endl
+    std::cout << "Using legacy LAPACK API:" << std::endl
+              << "||C-AB||_F = " << tlapack::legacy::nrm2(n, &C_[0], 1)
+              << std::endl
               << "time = " << bestTime.count() * 1.0e-6 << " ms" << std::endl;
 
-    // Using abstract interface:
+    // Using main interface:
 
     bestTime = std::chrono::nanoseconds::max();
     for (int run = 0; run < Nruns; ++run) {
@@ -137,11 +138,12 @@ void run(tlapack::idx_t m, tlapack::idx_t n, tlapack::idx_t k)
     }
 
     // Output
-    std::cout << "Using abstract interface:" << std::endl
-              << "||C-AB||_F = " << tlapack::nrm2(n, &C_[0], 1) << std::endl
+    std::cout << "Using main interface:" << std::endl
+              << "||C-AB||_F = " << tlapack::legacy::nrm2(n, &C_[0], 1)
+              << std::endl
               << "time = " << bestTime.count() * 1.0e-6 << " ms" << std::endl;
 
-    // Using abstract interface with row major layout:
+    // Using main interface with row major layout:
 
     bestTime = std::chrono::nanoseconds::max();
     for (int run = 0; run < Nruns; ++run) {
@@ -169,8 +171,9 @@ void run(tlapack::idx_t m, tlapack::idx_t n, tlapack::idx_t k)
     }
 
     // Output
-    std::cout << "Using abstract interface with row major layout:" << std::endl
-              << "||C-AB||_F = " << tlapack::nrm2(n, &C_[0], 1) << std::endl
+    std::cout << "Using main interface with row major layout:" << std::endl
+              << "||C-AB||_F = " << tlapack::legacy::nrm2(n, &C_[0], 1)
+              << std::endl
               << "time = " << bestTime.count() * 1.0e-6 << " ms" << std::endl;
 }
 

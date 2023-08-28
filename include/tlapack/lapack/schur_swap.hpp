@@ -44,8 +44,8 @@ namespace tlapack {
  *
  * @ingroup auxiliary
  */
-template <typename matrix_t,
-          enable_if_t<!is_complex<type_t<matrix_t>>::value, bool> = true>
+template <TLAPACK_CSMATRIX matrix_t,
+          enable_if_t<is_real<type_t<matrix_t>>, bool> = true>
 int schur_swap(bool want_q,
                matrix_t& A,
                matrix_t& Q,
@@ -55,8 +55,7 @@ int schur_swap(bool want_q,
 {
     using idx_t = size_type<matrix_t>;
     using T = type_t<matrix_t>;
-    using pair = pair<idx_t, idx_t>;
-    using std::max;
+    using range = pair<idx_t, idx_t>;
 
     // Functor for creating new matrices
     Create<matrix_t> new_matrix;
@@ -113,14 +112,14 @@ int schur_swap(bool want_q,
 
         // Apply transformation from the left
         if (j2 < n) {
-            auto row1 = slice(A, j0, pair{j2, n});
-            auto row2 = slice(A, j1, pair{j2, n});
+            auto row1 = slice(A, j0, range{j2, n});
+            auto row2 = slice(A, j1, range{j2, n});
             rot(row1, row2, cs, sn);
         }
         // Apply transformation from the right
         if (j0 > 0) {
-            auto col1 = slice(A, pair{0, j0}, j0);
-            auto col2 = slice(A, pair{0, j0}, j1);
+            auto col1 = slice(A, range{0, j0}, j0);
+            auto col2 = slice(A, range{0, j0}, j1);
             rot(col1, col2, cs, sn);
         }
         if (want_q) {
@@ -145,14 +144,14 @@ int schur_swap(bool want_q,
 
         // Make B upper triangular
         T tau1, tau2;
-        auto v1 = slice(B, pair{0, 3}, 0);
-        auto v2 = slice(B, pair{1, 3}, 1);
-        larfg(forward, columnwise_storage, v1, tau1);
+        auto v1 = slice(B, range{0, 3}, 0);
+        auto v2 = slice(B, range{1, 3}, 1);
+        larfg(FORWARD, COLUMNWISE_STORAGE, v1, tau1);
         const T sum = B(0, 1) + v1[1] * B(1, 1) + v1[2] * B(2, 1);
         B(0, 1) = B(0, 1) - sum * tau1;
         B(1, 1) = B(1, 1) - sum * tau1 * v1[1];
         B(2, 1) = B(2, 1) - sum * tau1 * v1[2];
-        larfg(forward, columnwise_storage, v2, tau2);
+        larfg(FORWARD, COLUMNWISE_STORAGE, v2, tau2);
 
         //
         // Apply reflections to A and Q
@@ -213,14 +212,14 @@ int schur_swap(bool want_q,
 
         // Make B upper triangular
         T tau1, tau2;
-        auto v1 = slice(B, pair{0, 3}, 0);
-        auto v2 = slice(B, pair{1, 3}, 1);
-        larfg(forward, columnwise_storage, v1, tau1);
+        auto v1 = slice(B, range{0, 3}, 0);
+        auto v2 = slice(B, range{1, 3}, 1);
+        larfg(FORWARD, COLUMNWISE_STORAGE, v1, tau1);
         const T sum = B(0, 1) + v1[1] * B(1, 1) + v1[2] * B(2, 1);
         B(0, 1) = B(0, 1) - sum * tau1;
         B(1, 1) = B(1, 1) - sum * tau1 * v1[1];
         B(2, 1) = B(2, 1) - sum * tau1 * v1[2];
-        larfg(forward, columnwise_storage, v2, tau2);
+        larfg(FORWARD, COLUMNWISE_STORAGE, v2, tau2);
 
         //
         // Apply reflections to A and Q
@@ -269,22 +268,23 @@ int schur_swap(bool want_q,
         std::vector<T> D_;
         auto D = new_matrix(D_, 4, 4);
 
-        auto AD_slice = slice(A, pair{j0, j0 + 4}, pair{j0, j0 + 4});
-        lacpy(Uplo::General, AD_slice, D);
-        auto dnorm = lange(Norm::Max, D);
+        auto AD_slice = slice(A, range{j0, j0 + 4}, range{j0, j0 + 4});
+        lacpy(GENERAL, AD_slice, D);
+        auto dnorm = lange(MAX_NORM, D);
 
         const T eps = ulp<T>();
         const T small_num = safe_min<T>() / eps;
         T thresh = max(ten * eps * dnorm, small_num);
+        // Note: max() may not propagate NaNs.
 
         std::vector<T> V_;
         auto V = new_matrix(V_, 4, 2);
-        auto X = slice(V, pair{0, 2}, pair{0, 2});
-        auto TL = slice(D, pair{0, 2}, pair{0, 2});
-        auto TR = slice(D, pair{2, 4}, pair{2, 4});
-        auto B = slice(D, pair{0, 2}, pair{2, 4});
+        auto X = slice(V, range{0, 2}, range{0, 2});
+        auto TL = slice(D, range{0, 2}, range{0, 2});
+        auto TR = slice(D, range{2, 4}, range{2, 4});
+        auto B = slice(D, range{0, 2}, range{2, 4});
         T scale, xnorm;
-        lasy2(Op::NoTrans, Op::NoTrans, -1, TL, TR, B, scale, X, xnorm);
+        lasy2(NO_TRANS, NO_TRANS, -1, TL, TR, B, scale, X, xnorm);
 
         V(2, 0) = -scale;
         V(2, 1) = zero;
@@ -293,16 +293,16 @@ int schur_swap(bool want_q,
 
         // Make V upper triangular
         T tau1, tau2;
-        auto v1 = slice(V, pair{0, 4}, 0);
-        auto v2 = slice(V, pair{1, 4}, 1);
-        larfg(forward, columnwise_storage, v1, tau1);
+        auto v1 = slice(V, range{0, 4}, 0);
+        auto v2 = slice(V, range{1, 4}, 1);
+        larfg(FORWARD, COLUMNWISE_STORAGE, v1, tau1);
         const T sum =
             V(0, 1) + v1[1] * V(1, 1) + v1[2] * V(2, 1) + v1[3] * V(3, 1);
         V(0, 1) = V(0, 1) - sum * tau1;
         V(1, 1) = V(1, 1) - sum * tau1 * v1[1];
         V(2, 1) = V(2, 1) - sum * tau1 * v1[2];
         V(3, 1) = V(3, 1) - sum * tau1 * v1[3];
-        larfg(forward, columnwise_storage, v2, tau2);
+        larfg(FORWARD, COLUMNWISE_STORAGE, v2, tau2);
 
         // Apply reflections to D to check error
         for (idx_t j = 0; j < 4; ++j) {
@@ -394,14 +394,14 @@ int schur_swap(bool want_q,
         lahqr_schur22(A(j0, j0), A(j0, j1), A(j1, j0), A(j1, j1), s1, s2, cs,
                       sn);  // Apply transformation from the left
         if (j2 < n) {
-            auto row1 = slice(A, j0, pair{j2, n});
-            auto row2 = slice(A, j1, pair{j2, n});
+            auto row1 = slice(A, j0, range{j2, n});
+            auto row2 = slice(A, j1, range{j2, n});
             rot(row1, row2, cs, sn);
         }
         // Apply transformation from the right
         if (j0 > 0) {
-            auto col1 = slice(A, pair{0, j0}, j0);
-            auto col2 = slice(A, pair{0, j0}, j1);
+            auto col1 = slice(A, range{0, j0}, j0);
+            auto col2 = slice(A, range{0, j0}, j1);
             rot(col1, col2, cs, sn);
         }
         if (want_q) {
@@ -420,14 +420,14 @@ int schur_swap(bool want_q,
                       A(j1_2, j1_2), s1, s2, cs,
                       sn);  // Apply transformation from the left
         if (j0_2 + 2 < n) {
-            auto row1 = slice(A, j0_2, pair{j0_2 + 2, n});
-            auto row2 = slice(A, j1_2, pair{j0_2 + 2, n});
+            auto row1 = slice(A, j0_2, range{j0_2 + 2, n});
+            auto row2 = slice(A, j1_2, range{j0_2 + 2, n});
             rot(row1, row2, cs, sn);
         }
         // Apply transformation from the right
         if (j0_2 > 0) {
-            auto col1 = slice(A, pair{0, j0_2}, j0_2);
-            auto col2 = slice(A, pair{0, j0_2}, j1_2);
+            auto col1 = slice(A, range{0, j0_2}, j0_2);
+            auto col2 = slice(A, range{0, j0_2}, j1_2);
             rot(col1, col2, cs, sn);
         }
         if (want_q) {
@@ -446,8 +446,8 @@ int schur_swap(bool want_q,
  *
  * @ingroup auxiliary
  */
-template <typename matrix_t,
-          enable_if_t<is_complex<type_t<matrix_t>>::value, bool> = true>
+template <TLAPACK_CSMATRIX matrix_t,
+          enable_if_t<is_complex<type_t<matrix_t>>, bool> = true>
 int schur_swap(bool want_q,
                matrix_t& A,
                matrix_t& Q,
@@ -458,7 +458,7 @@ int schur_swap(bool want_q,
     using idx_t = size_type<matrix_t>;
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
-    using pair = pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
 
     const idx_t n = ncols(A);
 
@@ -491,14 +491,14 @@ int schur_swap(bool want_q,
 
     // Apply transformation from the left
     if (j2 < n) {
-        auto row1 = slice(A, j0, pair{j2, n});
-        auto row2 = slice(A, j1, pair{j2, n});
+        auto row1 = slice(A, j0, range{j2, n});
+        auto row2 = slice(A, j1, range{j2, n});
         rot(row1, row2, cs, sn);
     }
     // Apply transformation from the right
     if (j0 > 0) {
-        auto col1 = slice(A, pair{0, j0}, j0);
-        auto col2 = slice(A, pair{0, j0}, j1);
+        auto col1 = slice(A, range{0, j0}, j0);
+        auto col2 = slice(A, range{0, j0}, j1);
         rot(col1, col2, cs, conj(sn));
     }
     if (want_q) {

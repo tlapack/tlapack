@@ -23,6 +23,8 @@
 #include <tlapack/base/utils.hpp>
 #include <tlapack/blas/gemm.hpp>
 #include <tlapack/blas/herk.hpp>
+#include <tlapack/lapack/lacpy.hpp>
+#include <tlapack/lapack/lange.hpp>
 #include <tlapack/lapack/lanhe.hpp>
 #include <tlapack/lapack/laset.hpp>
 
@@ -48,13 +50,13 @@ class rand_generator {
     }
 };
 
-template <typename T, enable_if_t<!is_complex<T>::value, bool> = true>
+template <typename T, enable_if_t<is_real<T>, bool> = true>
 T rand_helper(rand_generator& gen)
 {
     return T(static_cast<float>(gen()) / static_cast<float>(gen.max()));
 }
 
-template <typename T, enable_if_t<is_complex<T>::value, bool> = true>
+template <typename T, enable_if_t<is_complex<T>, bool> = true>
 T rand_helper(rand_generator& gen)
 {
     using real_t = real_type<T>;
@@ -63,13 +65,13 @@ T rand_helper(rand_generator& gen)
     return complex_type<real_t>(r1, r2);
 }
 
-template <typename T, enable_if_t<!is_complex<T>::value, bool> = true>
+template <typename T, enable_if_t<is_real<T>, bool> = true>
 T rand_helper()
 {
     return T(static_cast<float>(rand()) / static_cast<float>(RAND_MAX));
 }
 
-template <typename T, enable_if_t<is_complex<T>::value, bool> = true>
+template <typename T, enable_if_t<is_complex<T>, bool> = true>
 T rand_helper()
 {
     using real_t = real_type<T>;
@@ -88,7 +90,7 @@ T rand_helper()
  *
  * @ingroup auxiliary
  */
-template <class matrix_t>
+template <TLAPACK_MATRIX matrix_t>
 real_type<type_t<matrix_t>> check_orthogonality(matrix_t& Q, matrix_t& res)
 {
     using idx_t = size_type<matrix_t>;
@@ -102,18 +104,18 @@ real_type<type_t<matrix_t>> check_orthogonality(matrix_t& Q, matrix_t& res)
     tlapack_check(nrows(res) == min(m, n));
 
     // res = I
-    laset(Uplo::Upper, (T)0.0, (T)1.0, res);
+    laset(UPPER_TRIANGLE, (T)0.0, (T)1.0, res);
     if (n <= m) {
         // res = Q'Q - I
-        herk(Uplo::Upper, Op::ConjTrans, (real_t)1.0, Q, (real_t)-1.0, res);
+        herk(UPPER_TRIANGLE, CONJ_TRANS, (real_t)1.0, Q, (real_t)-1.0, res);
     }
     else {
         // res = QQ' - I
-        herk(Uplo::Upper, Op::NoTrans, (real_t)1.0, Q, (real_t)-1.0, res);
+        herk(UPPER_TRIANGLE, NO_TRANS, (real_t)1.0, Q, (real_t)-1.0, res);
     }
 
     // Compute ||res||_F
-    return lanhe(frob_norm, Uplo::Upper, res);
+    return lanhe(FROB_NORM, UPPER_TRIANGLE, res);
 }
 
 /** Calculates ||Q'*Q - I||_F if m <= n or ||Q*Q' - I||_F otherwise
@@ -124,7 +126,7 @@ real_type<type_t<matrix_t>> check_orthogonality(matrix_t& Q, matrix_t& res)
  *
  * @ingroup auxiliary
  */
-template <class matrix_t>
+template <TLAPACK_MATRIX matrix_t>
 real_type<type_t<matrix_t>> check_orthogonality(matrix_t& Q)
 {
     using T = type_t<matrix_t>;
@@ -152,7 +154,7 @@ real_type<type_t<matrix_t>> check_orthogonality(matrix_t& Q)
  *
  * @ingroup auxiliary
  */
-template <class matrix_t>
+template <TLAPACK_MATRIX matrix_t>
 real_type<type_t<matrix_t>> check_similarity_transform(
     matrix_t& A, matrix_t& Q, matrix_t& B, matrix_t& res, matrix_t& work)
 {
@@ -170,12 +172,12 @@ real_type<type_t<matrix_t>> check_similarity_transform(
     tlapack_check(nrows(A) == nrows(work));
 
     // res = Q'*A*Q - B
-    lacpy(Uplo::General, B, res);
-    gemm(Op::ConjTrans, Op::NoTrans, (real_t)1.0, Q, A, work);
-    gemm(Op::NoTrans, Op::NoTrans, (real_t)1.0, work, Q, (real_t)-1.0, res);
+    lacpy(GENERAL, B, res);
+    gemm(CONJ_TRANS, NO_TRANS, (real_t)1.0, Q, A, work);
+    gemm(NO_TRANS, NO_TRANS, (real_t)1.0, work, Q, (real_t)-1.0, res);
 
     // Compute ||res||_F
-    return lange(frob_norm, res);
+    return lange(FROB_NORM, res);
 }
 
 /** Calculates ||Q'*A*Q - B||
@@ -188,7 +190,7 @@ real_type<type_t<matrix_t>> check_similarity_transform(
  *
  * @ingroup auxiliary
  */
-template <class matrix_t>
+template <TLAPACK_MATRIX matrix_t>
 real_type<type_t<matrix_t>> check_similarity_transform(matrix_t& A,
                                                        matrix_t& Q,
                                                        matrix_t& B)
@@ -213,41 +215,41 @@ real_type<type_t<matrix_t>> check_similarity_transform(matrix_t& A,
 // GDB doesn't handle templates well, so we explicitly define some versions of
 // the functions for common template arguments
 //
-void print_matrix_r(const legacyMatrix<float, size_t, Layout::ColMajor>& A);
-void print_matrix_d(const legacyMatrix<double, size_t, Layout::ColMajor>& A);
+void print_matrix_r(const LegacyMatrix<float, size_t, Layout::ColMajor>& A);
+void print_matrix_d(const LegacyMatrix<double, size_t, Layout::ColMajor>& A);
 void print_matrix_c(
-    const legacyMatrix<std::complex<float>, size_t, Layout::ColMajor>& A);
+    const LegacyMatrix<std::complex<float>, size_t, Layout::ColMajor>& A);
 void print_matrix_z(
-    const legacyMatrix<std::complex<double>, size_t, Layout::ColMajor>& A);
+    const LegacyMatrix<std::complex<double>, size_t, Layout::ColMajor>& A);
 void print_rowmajormatrix_r(
-    const legacyMatrix<float, size_t, Layout::RowMajor>& A);
+    const LegacyMatrix<float, size_t, Layout::RowMajor>& A);
 void print_rowmajormatrix_d(
-    const legacyMatrix<double, size_t, Layout::RowMajor>& A);
+    const LegacyMatrix<double, size_t, Layout::RowMajor>& A);
 void print_rowmajormatrix_c(
-    const legacyMatrix<std::complex<float>, size_t, Layout::RowMajor>& A);
+    const LegacyMatrix<std::complex<float>, size_t, Layout::RowMajor>& A);
 void print_rowmajormatrix_z(
-    const legacyMatrix<std::complex<double>, size_t, Layout::RowMajor>& A);
+    const LegacyMatrix<std::complex<double>, size_t, Layout::RowMajor>& A);
 
 //
 // GDB doesn't handle templates well, so we explicitly define some versions of
 // the functions for common template arguments
 //
 std::string visualize_matrix_r(
-    const legacyMatrix<float, size_t, Layout::ColMajor>& A);
+    const LegacyMatrix<float, size_t, Layout::ColMajor>& A);
 std::string visualize_matrix_d(
-    const legacyMatrix<double, size_t, Layout::ColMajor>& A);
+    const LegacyMatrix<double, size_t, Layout::ColMajor>& A);
 std::string visualize_matrix_c(
-    const legacyMatrix<std::complex<float>, size_t, Layout::ColMajor>& A);
+    const LegacyMatrix<std::complex<float>, size_t, Layout::ColMajor>& A);
 std::string visualize_matrix_z(
-    const legacyMatrix<std::complex<double>, size_t, Layout::ColMajor>& A);
+    const LegacyMatrix<std::complex<double>, size_t, Layout::ColMajor>& A);
 std::string visualize_rowmajormatrix_r(
-    const legacyMatrix<float, size_t, Layout::RowMajor>& A);
+    const LegacyMatrix<float, size_t, Layout::RowMajor>& A);
 std::string visualize_rowmajormatrix_d(
-    const legacyMatrix<double, size_t, Layout::RowMajor>& A);
+    const LegacyMatrix<double, size_t, Layout::RowMajor>& A);
 std::string visualize_rowmajormatrix_c(
-    const legacyMatrix<std::complex<float>, size_t, Layout::RowMajor>& A);
+    const LegacyMatrix<std::complex<float>, size_t, Layout::RowMajor>& A);
 std::string visualize_rowmajormatrix_z(
-    const legacyMatrix<std::complex<double>, size_t, Layout::RowMajor>& A);
+    const LegacyMatrix<std::complex<double>, size_t, Layout::RowMajor>& A);
 
 }  // namespace tlapack
 

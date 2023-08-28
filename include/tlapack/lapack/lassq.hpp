@@ -32,9 +32,9 @@ namespace tlapack {
  *    we require:   scale <= sqrt( HUGE ) / ssml       on entry,
  * where
  *    tbig -- upper threshold for values whose square is representable;
- *    sbig -- scaling constant for big numbers; @see base/constants.hpp
+ *    sbig -- scaling constant for big numbers; @see constants.hpp
  *    tsml -- lower threshold for values whose square is representable;
- *    ssml -- scaling constant for small numbers; @see base/constants.hpp
+ *    ssml -- scaling constant for small numbers; @see constants.hpp
  * and
  *    TINY*EPS -- tiniest representable number;
  *    HUGE     -- biggest representable number.
@@ -58,13 +58,13 @@ namespace tlapack {
  *
  * @ingroup auxiliary
  */
-template <class abs_f, class vector_t, class T = type_t<vector_t> >
+template <class abs_f, TLAPACK_VECTOR vector_t>
 void lassq(const vector_t& x,
-           real_type<T>& scale,
-           real_type<T>& sumsq,
+           real_type<type_t<vector_t>>& scale,
+           real_type<type_t<vector_t>>& sumsq,
            abs_f absF)
 {
-    using real_t = real_type<T>;
+    using real_t = real_type<type_t<vector_t>>;
     using idx_t = size_type<vector_t>;
 
     // constants
@@ -169,27 +169,28 @@ void lassq(const vector_t& x,
  * \[
  *      scl smsq := \sum_{i = 0}^n |x_i|^2 + scale^2 sumsq.
  * \]
- * @see lassq(
-    const vector_t& x,
-    real_type<T> &scale,
-    real_type<T> &sumsq,
-    abs_f absF ).
+ * @see lassq(const vector_t& x,
+           real_type<type_t<vector_t>>& scale,
+           real_type<type_t<vector_t>>& sumsq,
+           abs_f absF).
  *
  * Specific implementation using
  * \code{.cpp}
- *      absF = []( const T& x ) { return tlapack::abs( x ); }
+ *      absF = []( const T& x ) { return abs( x ); }
  * \endcode
  * where T is the type_t< vector_t >.
  *
  * @ingroup auxiliary
  */
-template <class vector_t, class T = type_t<vector_t> >
-inline void lassq(const vector_t& x, real_type<T>& scale, real_type<T>& sumsq)
+template <TLAPACK_VECTOR vector_t>
+void lassq(const vector_t& x,
+           real_type<type_t<vector_t>>& scale,
+           real_type<type_t<vector_t>>& sumsq)
 {
-    return lassq(
-        x, scale, sumsq,
-        // Lambda function that returns the absolute value using tlapack::abs :
-        [](const T& x) { return tlapack::abs(x); });
+    using T = type_t<vector_t>;
+    return lassq(x, scale, sumsq,
+                 // Lambda function that returns the absolute value using abs :
+                 [](const T& x) { return abs(x); });
 }
 
 }  // namespace tlapack

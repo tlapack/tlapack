@@ -33,23 +33,18 @@ namespace tlapack {
  * @param[in] tau Real vector of length n-1.
  *      The scalar factors of the elementary reflectors.
  *
- * @param[in] opts Options.
- *      @c opts.work is used if whenever it has sufficient size.
- *      The sufficient size can be obtained through a workspace query.
- *
  * @ingroup computational
  */
-template <class matrix_t, class vector_t>
+template <TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
 int unghr(size_type<matrix_t> ilo,
           size_type<matrix_t> ihi,
           matrix_t& A,
-          const vector_t& tau,
-          const workspace_opts_t<>& opts = {})
+          const vector_t& tau)
 {
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
     using idx_t = size_type<matrix_t>;
-    using pair = pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
 
     // constants
     const real_t zero(0);
@@ -59,7 +54,7 @@ int unghr(size_type<matrix_t> ilo,
     const idx_t nh = ihi > ilo + 1 ? ihi - 1 - ilo : 0;
 
     // check arguments
-    tlapack_check_false((idx_t)size(tau) < std::min<idx_t>(m, n));
+    tlapack_check_false((idx_t)size(tau) < min(m, n));
 
     // Shift the vectors which define the elementary reflectors one
     // column to the right, and set the first ilo and the last n-ihi
@@ -94,9 +89,9 @@ int unghr(size_type<matrix_t> ilo,
     // Now that the vectors are shifted, we can call orgqr to generate the
     // matrix orgqr is not yet implemented, so we call org2r instead
     if (nh > 0) {
-        auto A_s = slice(A, pair{ilo + 1, ihi}, pair{ilo + 1, ihi});
-        auto tau_s = slice(tau, pair{ilo, ihi - 1});
-        ung2r(A_s, tau_s, opts);
+        auto A_s = slice(A, range{ilo + 1, ihi}, range{ilo + 1, ihi});
+        auto tau_s = slice(tau, range{ilo, ihi - 1});
+        ung2r(A_s, tau_s);
     }
 
     return 0;
@@ -116,33 +111,28 @@ int unghr(size_type<matrix_t> ilo,
  * @param[in] tau Real vector of length n-1.
  *      The scalar factors of the elementary reflectors.
  *
- * @param[in] opts Options.
- *
- * @param[in,out] workinfo
- *      On output, the amount workspace required. It is larger than or equal
- *      to that given on input.
+ * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
  */
-template <class matrix_t, class vector_t>
-inline constexpr void unghr_worksize(size_type<matrix_t> ilo,
-                                     size_type<matrix_t> ihi,
-                                     const matrix_t& A,
-                                     const vector_t& tau,
-                                     workinfo_t& workinfo,
-                                     const workspace_opts_t<>& opts = {})
+template <class T, TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
+constexpr WorkInfo unghr_worksize(size_type<matrix_t> ilo,
+                                  size_type<matrix_t> ihi,
+                                  const matrix_t& A,
+                                  const vector_t& tau)
 {
     using idx_t = size_type<matrix_t>;
-    using pair = pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
 
     // constants
     const idx_t nh = (ihi > ilo + 1) ? ihi - 1 - ilo : 0;
 
     if (nh > 0 && ilo + 1 < ihi) {
-        auto A_s = slice(A, pair{ilo + 1, ihi}, pair{ilo + 1, ihi});
-        auto tau_s = slice(tau, pair{ilo, ihi - 1});
-        ung2r_worksize(A_s, tau_s, workinfo, opts);
+        auto&& A_s = slice(A, range{ilo + 1, ihi}, range{ilo + 1, ihi});
+        auto&& tau_s = slice(tau, range{ilo, ihi - 1});
+        return ung2r_worksize<T>(A_s, tau_s);
     }
+    return WorkInfo(0);
 }
 
 }  // namespace tlapack

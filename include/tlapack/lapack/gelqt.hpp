@@ -18,48 +18,34 @@
 #include "tlapack/lapack/larft.hpp"
 
 namespace tlapack {
-/**
- * Options struct for gelqf
- */
-struct gelqt_opts_t : public workspace_opts_t<> {
-    inline constexpr gelqt_opts_t(const workspace_opts_t<>& opts = {})
-        : workspace_opts_t<>(opts){};
-};
 
-/** Worspace query of gelqf()
+/** Worspace query of gelqt()
  *
  * @param[in] A m-by-n matrix.
  *
  * @param TT m-by-nb matrix.
  *
- * @param[in] opts Options.
- *
- * @param[in,out] workinfo
- *      On output, the amount workspace required. It is larger than or equal
- *      to that given on input.
+ * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
  */
-template <typename matrix_t>
-inline constexpr void gelqt_worksize(const matrix_t& A,
-                                     const matrix_t& TT,
-                                     workinfo_t& workinfo,
-                                     const gelqt_opts_t& opts = {})
+template <class T, TLAPACK_SMATRIX matrix_t>
+constexpr WorkInfo gelqt_worksize(const matrix_t& A, const matrix_t& TT)
 {
     using idx_t = size_type<matrix_t>;
+    using range = pair<idx_t, idx_t>;
 
     // constants
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
     const idx_t k = min(m, n);
-    const idx_t nb = ncols(TT);
-    const idx_t ib = std::min<idx_t>(nb, k);
+    const idx_t nb = min((idx_t)ncols(TT), k);
 
-    auto TT1 = slice(TT, range<idx_t>(0, ib), range<idx_t>(0, ib));
-    auto A11 = rows(A, range<idx_t>(0, ib));
-    auto tauw1 = diag(TT1);
+    auto&& TT1 = slice(TT, range(0, nb), range(0, nb));
+    auto&& A11 = rows(A, range(0, nb));
+    auto&& tauw1 = diag(TT1);
 
-    gelq2_worksize(A11, tauw1, workinfo, opts);
+    return gelq2_worksize<T>(A11, tauw1);
 }
 
 /** Computes an LQ factorization of a complex m-by-n matrix A using
@@ -102,19 +88,19 @@ inline constexpr void gelqt_worksize(const matrix_t& A,
  *          *
  *          ...
  *      \]
- *      For a good default of nb, see gelqf_opts_t
- *
- * @param[in] opts Options.
- *      - @c opts.work is used if whenever it has sufficient size.
- *        The sufficient size can be obtained through a workspace query.
+ *      For a good default of nb, see GelqfOpts
  *
  * @ingroup computational
  */
-template <typename matrix_t>
-int gelqt(matrix_t& A, matrix_t& TT, const gelqt_opts_t& opts = {})
+template <TLAPACK_SMATRIX matrix_t>
+int gelqt(matrix_t& A, matrix_t& TT)
 {
     using idx_t = size_type<matrix_t>;
-    using range = std::pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
+    using T = type_t<matrix_t>;
+
+    // functors
+    Create<matrix_t> new_matrix;
 
     // constants
     const idx_t m = nrows(A);
@@ -126,39 +112,31 @@ int gelqt(matrix_t& A, matrix_t& TT, const gelqt_opts_t& opts = {})
     tlapack_check_false(nrows(TT) < m || ncols(TT) < nb);
 
     // Allocates workspace
-    vectorOfBytes localworkdata;
-    Workspace work = [&]() {
-        workinfo_t workinfo;
-        gelqt_worksize(A, TT, workinfo, opts);
-        return alloc_workspace(localworkdata, workinfo, opts.work);
-    }();
-
-    // Options to forward
-    auto&& gelq2Opts = workspace_opts_t<>{work};
+    WorkInfo workinfo = gelqt_worksize<T>(A, TT);
+    std::vector<T> work_;
+    auto work = new_matrix(work_, workinfo.m, workinfo.n);
 
     for (idx_t j = 0; j < k; j += nb) {
         // Use blocked code initially
-        idx_t ib = std::min<idx_t>(nb, k - j);
+        idx_t ib = min(nb, k - j);
 
         // Compute the LQ factorization of the current block A(j:j+ib-1,j:n)
         auto TT1 = slice(TT, range(j, j + ib), range(0, ib));
         auto A11 = slice(A, range(j, j + ib), range(j, n));
         auto tauw1 = diag(TT1);
 
-        gelq2(A11, tauw1, gelq2Opts);
+        gelq2_work(A11, tauw1, work);
 
         // Form the triangular factor of the block reflector H = H(j) H(j+1)
         // . . . H(j+ib-1)
-        larft(Direction::Forward, StoreV::Rowwise, A11, tauw1, TT1);
+        larft(FORWARD, ROWWISE_STORAGE, A11, tauw1, TT1);
 
         if (j + ib < k) {
             // Apply H to A(j+ib:m,j:n) from the right
             auto A12 = slice(A, range(j + ib, m), range(j, n));
-
-            workspace_opts_t<void> work1(
-                slice(TT, range(j + ib, m), range(0, ib)));
-            larfb(Side::Right, Op::NoTrans, Direction::Forward, StoreV::Rowwise,
-                  A11, TT1, A12, work1);
+            auto work1 = slice(TT, range(j + ib, m), range(0, ib));
+            larfb_work(RIGHT_SIDE, NO_TRANS, FORWARD, ROWWISE_STORAGE, A11, TT1,
+                       A12, work1);
         }
     }
 

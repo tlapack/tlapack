@@ -14,7 +14,7 @@
 
 #include "tlapack/base/utils.hpp"
 #include "tlapack/blas/scal.hpp"
-#include "tlapack/lapack/larf.hpp"
+#include "tlapack/lapack/ungq_level2.hpp"
 
 namespace tlapack {
 
@@ -25,31 +25,25 @@ namespace tlapack {
  * @param[in] tau Real vector of length min(m,n).
  *      The scalar factors of the elementary reflectors.
  *
- * @param[in] opts Options.
- *
- * @param[in,out] workinfo
- *      On output, the amount workspace required. It is larger than or equal
- *      to that given on input.
+ * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
  */
-template <class matrix_t, class vector_t>
-inline constexpr void ung2r_worksize(const matrix_t& A,
-                                     const vector_t& tau,
-                                     workinfo_t& workinfo,
-                                     const workspace_opts_t<>& opts = {})
+template <class T, TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
+constexpr WorkInfo ung2r_worksize(const matrix_t& A, const vector_t& tau)
 {
     using idx_t = size_type<matrix_t>;
+    using range = pair<idx_t, idx_t>;
 
     // constants
-    const idx_t m = nrows(A);
     const idx_t n = ncols(A);
 
-    if (n > 1 && m > 1) {
-        auto C = cols(A, range<idx_t>{1, n});
-        larf_worksize(left_side, forward, columnwise_storage, col(A, 0), tau[0],
-                      C, workinfo, opts);
+    if (n > 1) {
+        auto&& C = cols(A, range{1, n});
+        return larf_worksize<T>(LEFT_SIDE, FORWARD, COLUMNWISE_STORAGE,
+                                col(A, 0), tau[0], C);
     }
+    return WorkInfo(0);
 }
 
 /**
@@ -66,26 +60,48 @@ inline constexpr void ung2r_worksize(const matrix_t& A,
  * @param[in] tau Real vector of length min(m,n).
  *      The scalar factors of the elementary reflectors.
  *
- * @param[in] opts Options.
- *      @c opts.work is used if whenever it has sufficient size.
- *      The sufficient size can be obtained through a workspace query.
+ * @param work Workspace. Use the workspace query to determine the size needed.
  *
  * @return 0 if success
  *
  * @ingroup computational
  */
-template <class matrix_t, class vector_t>
-int ung2r(matrix_t& A, const vector_t& tau, const workspace_opts_t<>& opts = {})
+template <TLAPACK_SMATRIX matrix_t,
+          TLAPACK_VECTOR vector_t,
+          TLAPACK_WORKSPACE work_t>
+int ung2r_work(matrix_t& A, const vector_t& tau, work_t& work)
+{
+    return ungq_level2_work(FORWARD, COLUMNWISE_STORAGE, A, tau, work);
+}
+
+/**
+ * @brief Generates a matrix Q with orthogonal columns.
+ * \[
+ *     Q  =  H_1 H_2 ... H_k
+ * \]
+ *
+ * @param[in,out] A m-by-n matrix.
+ *      On entry, the i-th column must contains the vector which defines the
+ *      elementary reflector $H_i$, for $i=0,1,...,k-1$, as returned by geqrf.
+ *      On exit, the m-by-n matrix $Q$.
+
+ * @param[in] tau Real vector of length min(m,n).
+ *      The scalar factors of the elementary reflectors.
+ *
+ * @return 0 if success
+ *
+ * @ingroup computational
+ */
+template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
+int ung2r(matrix_t& A, const vector_t& tau)
 {
     using T = type_t<matrix_t>;
-    using real_t = real_type<T>;
     using idx_t = size_type<matrix_t>;
-    using pair = pair<idx_t, idx_t>;
+
+    // Functor
+    Create<matrix_t> new_matrix;
 
     // constants
-    const real_t zero(0);
-    const real_t one(1);
-    const idx_t m = nrows(A);
     const idx_t n = ncols(A);
     const idx_t k = size(tau);
 
@@ -96,39 +112,11 @@ int ung2r(matrix_t& A, const vector_t& tau, const workspace_opts_t<>& opts = {})
     if (n <= 0) return 0;
 
     // Allocates workspace
-    vectorOfBytes localworkdata;
-    Workspace work = [&]() {
-        workinfo_t workinfo;
-        ung2r_worksize(A, tau, workinfo, opts);
-        return alloc_workspace(localworkdata, workinfo, opts.work);
-    }();
+    WorkInfo workinfo = ung2r_worksize<T>(A, tau);
+    std::vector<T> work_;
+    auto work = new_matrix(work_, workinfo.m, workinfo.n);
 
-    // Options to forward
-    auto&& larfOpts = workspace_opts_t<>{work};
-
-    // Initialise columns k:n-1 to columns of the unit matrix
-    for (idx_t j = k; j < min(m, n); ++j) {
-        for (idx_t l = 0; l < m; ++l)
-            A(l, j) = zero;
-        A(j, j) = one;
-    }
-
-    for (idx_t i = k - 1; i != idx_t(-1); --i) {
-        // Apply $H_{i+1}$ to $A( i:m-1, i:n-1 )$ from the left
-        // Define v and C
-        auto v = slice(A, pair{i, m}, i);
-        auto C = slice(A, pair{i, m}, pair{i + 1, n});
-        larf(left_side, forward, columnwise_storage, v, tau[i], C, larfOpts);
-        auto x = slice(A, pair{i + 1, m}, i);
-        scal(-tau[i], x);
-        A(i, i) = one - tau[i];
-
-        // Set A( 0:i-1, i ) to zero
-        for (idx_t l = 0; l < i; l++)
-            A(l, i) = zero;
-    }
-
-    return 0;
+    return ung2r_work(A, tau, work);
 }
 
 }  // namespace tlapack

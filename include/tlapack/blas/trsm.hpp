@@ -66,9 +66,9 @@ namespace tlapack {
  *
  * @ingroup blas3
  */
-template <class matrixA_t,
-          class matrixB_t,
-          class alpha_t,
+template <TLAPACK_MATRIX matrixA_t,
+          TLAPACK_MATRIX matrixB_t,
+          TLAPACK_SCALAR alpha_t,
           class T = type_t<matrixB_t>,
           disable_if_allow_optblas_t<pair<matrixA_t, T>,
                                      pair<matrixB_t, T>,
@@ -265,22 +265,22 @@ void trsm(Side side,
     }
 }
 
-#ifdef USE_LAPACKPP_WRAPPERS
+#ifdef TLAPACK_USE_LAPACKPP
 
-template <class matrixA_t,
-          class matrixB_t,
-          class alpha_t,
+template <TLAPACK_LEGACY_MATRIX matrixA_t,
+          TLAPACK_LEGACY_MATRIX matrixB_t,
+          TLAPACK_SCALAR alpha_t,
           class T = type_t<matrixB_t>,
           enable_if_allow_optblas_t<pair<matrixA_t, T>,
                                     pair<matrixB_t, T>,
                                     pair<alpha_t, T> > = 0>
-inline void trsm(Side side,
-                 Uplo uplo,
-                 Op trans,
-                 Diag diag,
-                 const alpha_t alpha,
-                 const matrixA_t& A,
-                 matrixB_t& B)
+void trsm(Side side,
+          Uplo uplo,
+          Op trans,
+          Diag diag,
+          const alpha_t alpha,
+          const matrixA_t& A,
+          matrixB_t& B)
 {
     // Legacy objects
     auto A_ = legacy_matrix(A);

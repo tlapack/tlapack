@@ -21,12 +21,8 @@ namespace tlapack {
 /**
  * Options struct for ungbr
  */
-template <class workT_t = void>
-struct ungbr_opts_t : public workspace_opts_t<workT_t> {
-    inline constexpr ungbr_opts_t(const workspace_opts_t<workT_t>& opts = {})
-        : workspace_opts_t<workT_t>(opts){};
-
-    size_type<workT_t> nb = 32;  ///< Block size
+struct UngbrOpts {
+    size_t nb = 32;  ///< Block size
 };
 
 /** Worspace query of ungbr_q()
@@ -43,36 +39,30 @@ struct ungbr_opts_t : public workspace_opts_t<workT_t> {
  *      reflector H(i), which determines Q, as
  *      returned by gebrd in its array argument tauq.
  *
- * @param[in,out] workinfo
- *      On output, the amount workspace required. It is larger than or equal
- *      to that given on input.
+ * @return WorkInfo The amount workspace required.
  *
  * @param[in] opts Options.
  *
  * @ingroup workspace_query
  */
-template <class matrix_t, class vector_t, class workT_t = void>
-inline constexpr void ungbr_q_worksize(const size_type<matrix_t> k,
-                                       matrix_t& A,
-                                       const vector_t& tau,
-                                       workinfo_t& workinfo,
-                                       const ungbr_opts_t<workT_t>& opts = {})
+template <class T, TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
+constexpr WorkInfo ungbr_q_worksize(const size_type<matrix_t> k,
+                                    matrix_t& A,
+                                    const vector_t& tau,
+                                    const UngbrOpts& opts = {})
 {
     using idx_t = size_type<matrix_t>;
-    using pair = std::pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
 
     const idx_t m = nrows(A);
 
-    ungqr_opts_t<matrix_t> ungqrOpts;
-    ungqrOpts.nb = opts.nb;
-    ungqrOpts.work = opts.work;
     if (m >= k) {
-        ungqr_worksize(A, tau, workinfo, ungqrOpts);
+        return ungqr_worksize<T>(A, tau, opts);
     }
     else {
-        auto A2 = slice(A, pair{0, m - 1}, pair{0, m - 1});
-        auto tau2 = slice(tau, pair{0, m - 1});
-        ungqr_worksize(A2, tau2, workinfo, ungqrOpts);
+        auto&& A2 = slice(A, range{0, m - 1}, range{0, m - 1});
+        auto&& tau2 = slice(tau, range{0, m - 1});
+        return ungqr_worksize<T>(A2, tau2, opts);
     }
 }
 
@@ -90,36 +80,30 @@ inline constexpr void ungbr_q_worksize(const size_type<matrix_t> k,
  *      reflector G(i), which determines P**H, as
  *      returned by gebrd in its array argument taup.
  *
- * @param[in,out] workinfo
- *      On output, the amount workspace required. It is larger than or equal
- *      to that given on input.
+ * @return WorkInfo The amount workspace required.
  *
  * @param[in] opts Options.
  *
  * @ingroup workspace_query
  */
-template <class matrix_t, class vector_t, class workT_t = void>
-inline constexpr void ungbr_p_worksize(const size_type<matrix_t> k,
-                                       matrix_t& A,
-                                       const vector_t& tau,
-                                       workinfo_t& workinfo,
-                                       const ungbr_opts_t<workT_t>& opts = {})
+template <class T, TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
+constexpr WorkInfo ungbr_p_worksize(const size_type<matrix_t> k,
+                                    matrix_t& A,
+                                    const vector_t& tau,
+                                    const UngbrOpts& opts = {})
 {
     using idx_t = size_type<matrix_t>;
-    using pair = std::pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
 
     const idx_t n = ncols(A);
 
-    unglq_opts_t<matrix_t> unglqOpts;
-    unglqOpts.nb = opts.nb;
-    unglqOpts.work = opts.work;
-    if (k < n) {
-        unglq_worksize(A, tau, workinfo, unglqOpts);
+    if (m >= k) {
+        auto&& A2 = slice(A, range{0, n - 1}, range{0, n - 1});
+        auto&& tau2 = slice(tau, range{0, n - 1});
+        return unglq_worksize<T>(A2, tau2, opts);
     }
     else {
-        auto A2 = slice(A, pair{0, n - 1}, pair{0, n - 1});
-        auto tau2 = slice(tau, pair{0, n - 1});
-        unglq_worksize(A2, tau2, workinfo, unglqOpts);
+        return unglq_worksize<T>(A, tau, opts);
     }
 }
 
@@ -150,38 +134,27 @@ inline constexpr void ungbr_p_worksize(const size_type<matrix_t> k,
  *      returned by gebrd in its array argument tauq.
  *
  * @param[in] opts Options.
- *      @c opts.work is used if whenever it has sufficient size.
- *      The sufficient size can be obtained through a workspace query.
  *
  * @ingroup computational
  */
-template <class matrix_t, class vector_t, class workT_t = void>
+template <TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
 int ungbr_q(const size_type<matrix_t> k,
             matrix_t& A,
             const vector_t& tau,
-            const ungbr_opts_t<workT_t>& opts = {})
+            const UngbrOpts& opts = {})
 {
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
     using idx_t = size_type<matrix_t>;
-    using pair = pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
 
     // constants
     const real_t zero(0);
     const real_t one(1);
     const idx_t m = nrows(A);
 
-    // Allocates workspace
-    vectorOfBytes localworkdata;
-    Workspace work = [&]() {
-        workinfo_t workinfo;
-        ungbr_q_worksize(k, A, tau, workinfo, opts);
-        return alloc_workspace(localworkdata, workinfo, opts.work);
-    }();
-
-    ungqr_opts_t<matrix_t> ungqrOpts;
+    UngqrOpts ungqrOpts;
     ungqrOpts.nb = opts.nb;
-    ungqrOpts.work = work;
     if (m >= k) {
         // If m >= k, assume m >= n >= k
         ungqr(A, tau, ungqrOpts);
@@ -200,8 +173,8 @@ int ungbr_q(const size_type<matrix_t> k,
             A(i, 0) = zero;
         if (m > 1) {
             // Form Q(1:m,1:m)
-            auto A2 = slice(A, pair{1, m}, pair{1, m});
-            auto tau2 = slice(tau, pair{0, m - 1});
+            auto A2 = slice(A, range{1, m}, range{1, m});
+            auto tau2 = slice(tau, range{0, m - 1});
             ungqr(A2, tau2, ungqrOpts);
         }
     }
@@ -236,38 +209,27 @@ int ungbr_q(const size_type<matrix_t> k,
  *      returned by gebrd in its array argument taup.
  *
  * @param[in] opts Options.
- *      @c opts.work is used if whenever it has sufficient size.
- *      The sufficient size can be obtained through a workspace query.
  *
  * @ingroup computational
  */
-template <class matrix_t, class vector_t, class workT_t = void>
+template <TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
 int ungbr_p(const size_type<matrix_t> k,
             matrix_t& A,
             const vector_t& tau,
-            const ungbr_opts_t<workT_t>& opts = {})
+            const UngbrOpts& opts = {})
 {
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
     using idx_t = size_type<matrix_t>;
-    using pair = pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
 
     // constants
     const real_t zero(0);
     const real_t one(1);
     const idx_t n = ncols(A);
 
-    // Allocates workspace
-    vectorOfBytes localworkdata;
-    Workspace work = [&]() {
-        workinfo_t workinfo;
-        ungbr_p_worksize(k, A, tau, workinfo, opts);
-        return alloc_workspace(localworkdata, workinfo, opts.work);
-    }();
-
-    unglq_opts_t<matrix_t> unglqOpts;
+    UnglqOpts unglqOpts;
     unglqOpts.nb = opts.nb;
-    unglqOpts.work = work;
     //
     // Form P**H, determined by a call to gebrd to reduce a k-by-n
     // matrix
@@ -291,8 +253,8 @@ int ungbr_p(const size_type<matrix_t> k,
             A(0, j) = zero;
         }
         if (n > 1) {
-            auto A2 = slice(A, pair{1, n}, pair{1, n});
-            auto tau2 = slice(tau, pair{0, n - 1});
+            auto A2 = slice(A, range{1, n}, range{1, n});
+            auto tau2 = slice(tau, range{0, n - 1});
             unglq(A2, tau2, unglqOpts);
         }
     }

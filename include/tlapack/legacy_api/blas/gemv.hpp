@@ -1,4 +1,4 @@
-/// @file gemv.hpp
+/// @file legacy_api/blas/gemv.hpp
 /// @author Weslley S Pereira, University of Colorado Denver, USA
 //
 // Copyright (c) 2017-2021, University of Tennessee. All rights reserved.
@@ -16,159 +16,163 @@
 #include "tlapack/legacy_api/base/utils.hpp"
 
 namespace tlapack {
+namespace legacy {
 
-/**
- * General matrix-vector multiply:
- * \[
- *     y = \alpha op(A) x + \beta y,
- * \]
- * where $op(A)$ is one of
- *     $op(A) = A$,
- *     $op(A) = A^T$, or
- *     $op(A) = A^H$,
- * alpha and beta are scalars, x and y are vectors,
- * and A is an m-by-n matrix.
- *
- * Generic implementation for arbitrary data types.
- *
- * @param[in] layout
- *     Matrix storage, Layout::ColMajor or Layout::RowMajor.
- *
- * @param[in] trans
- *     The operation to be performed:
- *     - Op::NoTrans:   $y = \alpha A   x + \beta y$,
- *     - Op::Trans:     $y = \alpha A^T x + \beta y$,
- *     - Op::ConjTrans: $y = \alpha A^H x + \beta y$.
- *
- * @param[in] m
- *     Number of rows of the matrix A. m >= 0.
- *
- * @param[in] n
- *     Number of columns of the matrix A. n >= 0.
- *
- * @param[in] alpha
- *     Scalar alpha. If alpha is zero, A and x are not accessed.
- *
- * @param[in] A
- *     The m-by-n matrix A, stored in an lda-by-n array [RowMajor: m-by-lda].
- *
- * @param[in] lda
- *     Leading dimension of A. lda >= max(1, m) [RowMajor: lda >= max(1, n)].
- *
- * @param[in] x
- *     - If trans = NoTrans:
- *       the n-element vector x, in an array of length (n-1)*abs(incx) + 1.
- *     - Otherwise:
- *       the m-element vector x, in an array of length (m-1)*abs(incx) + 1.
- *
- * @param[in] incx
- *     Stride between elements of x. incx must not be zero.
- *     If incx < 0, uses elements of x in reverse order: x(n-1), ..., x(0).
- *
- * @param[in] beta
- *     Scalar beta. If beta is zero, y need not be set on input.
- *
- * @param[in,out] y
- *     - If trans = NoTrans:
- *       the m-element vector y, in an array of length (m-1)*abs(incy) + 1.
- *     - Otherwise:
- *       the n-element vector y, in an array of length (n-1)*abs(incy) + 1.
- *
- * @param[in] incy
- *     Stride between elements of y. incy must not be zero.
- *     If incy < 0, uses elements of y in reverse order: y(n-1), ..., y(0).
- *
- * @ingroup legacy_blas
- */
-template <typename TA, typename TX, typename TY>
-void gemv(Layout layout,
-          Op trans,
-          idx_t m,
-          idx_t n,
-          scalar_type<TA, TX, TY> alpha,
-          TA const* A,
-          idx_t lda,
-          TX const* x,
-          int_t incx,
-          scalar_type<TA, TX, TY> beta,
-          TY* y,
-          int_t incy)
-{
-    using internal::colmajor_matrix;
-    using std::abs;
-    using scalar_t = scalar_type<TA, TX, TY>;
+    /**
+     * General matrix-vector multiply:
+     * \[
+     *     y = \alpha op(A) x + \beta y,
+     * \]
+     * where $op(A)$ is one of
+     *     $op(A) = A$,
+     *     $op(A) = A^T$, or
+     *     $op(A) = A^H$,
+     * alpha and beta are scalars, x and y are vectors,
+     * and A is an m-by-n matrix.
+     *
+     * Generic implementation for arbitrary data types.
+     *
+     * @param[in] layout
+     *     Matrix storage, Layout::ColMajor or Layout::RowMajor.
+     *
+     * @param[in] trans
+     *     The operation to be performed:
+     *     - Op::NoTrans:   $y = \alpha A   x + \beta y$,
+     *     - Op::Trans:     $y = \alpha A^T x + \beta y$,
+     *     - Op::ConjTrans: $y = \alpha A^H x + \beta y$.
+     *
+     * @param[in] m
+     *     Number of rows of the matrix A. m >= 0.
+     *
+     * @param[in] n
+     *     Number of columns of the matrix A. n >= 0.
+     *
+     * @param[in] alpha
+     *     Scalar alpha. If alpha is zero, A and x are not accessed.
+     *
+     * @param[in] A
+     *     The m-by-n matrix A, stored in an lda-by-n array [RowMajor:
+     * m-by-lda].
+     *
+     * @param[in] lda
+     *     Leading dimension of A. lda >= max(1, m) [RowMajor: lda >= max(1,
+     * n)].
+     *
+     * @param[in] x
+     *     - If trans = NoTrans:
+     *       the n-element vector x, in an array of length (n-1)*abs(incx) + 1.
+     *     - Otherwise:
+     *       the m-element vector x, in an array of length (m-1)*abs(incx) + 1.
+     *
+     * @param[in] incx
+     *     Stride between elements of x. incx must not be zero.
+     *     If incx < 0, uses elements of x in reverse order: x(n-1), ..., x(0).
+     *
+     * @param[in] beta
+     *     Scalar beta. If beta is zero, y need not be set on input.
+     *
+     * @param[in,out] y
+     *     - If trans = NoTrans:
+     *       the m-element vector y, in an array of length (m-1)*abs(incy) + 1.
+     *     - Otherwise:
+     *       the n-element vector y, in an array of length (n-1)*abs(incy) + 1.
+     *
+     * @param[in] incy
+     *     Stride between elements of y. incy must not be zero.
+     *     If incy < 0, uses elements of y in reverse order: y(n-1), ..., y(0).
+     *
+     * @ingroup legacy_blas
+     */
+    template <typename TA, typename TX, typename TY>
+    void gemv(Layout layout,
+              Op trans,
+              idx_t m,
+              idx_t n,
+              scalar_type<TA, TX, TY> alpha,
+              TA const* A,
+              idx_t lda,
+              TX const* x,
+              int_t incx,
+              scalar_type<TA, TX, TY> beta,
+              TY* y,
+              int_t incy)
+    {
+        using internal::create_matrix;
+        using scalar_t = scalar_type<TA, TX, TY>;
 
-    // check arguments
-    tlapack_check_false(layout != Layout::ColMajor &&
-                        layout != Layout::RowMajor);
-    tlapack_check_false(trans != Op::NoTrans && trans != Op::Trans &&
-                        trans != Op::ConjTrans);
-    tlapack_check_false(m < 0);
-    tlapack_check_false(n < 0);
-    tlapack_check_false(lda < ((layout == Layout::ColMajor) ? m : n));
-    tlapack_check_false(incx == 0);
-    tlapack_check_false(incy == 0);
+        // check arguments
+        tlapack_check_false(layout != Layout::ColMajor &&
+                            layout != Layout::RowMajor);
+        tlapack_check_false(trans != Op::NoTrans && trans != Op::Trans &&
+                            trans != Op::ConjTrans);
+        tlapack_check_false(m < 0);
+        tlapack_check_false(n < 0);
+        tlapack_check_false(lda < ((layout == Layout::ColMajor) ? m : n));
+        tlapack_check_false(incx == 0);
+        tlapack_check_false(incy == 0);
 
-    // quick return
-    if (m == 0 || n == 0 || ((alpha == scalar_t(0)) && (beta == scalar_t(1))))
-        return;
+        // quick return
+        if (m == 0 || n == 0 ||
+            ((alpha == scalar_t(0)) && (beta == scalar_t(1))))
+            return;
 
-    // Transpose if Row Major
-    bool doConj = false;
-    if (layout == Layout::RowMajor) {
-        // A => A^T; A^T => A; A^H => A & doConj
-        std::swap(m, n);
-        if (trans == Op::NoTrans)
-            trans = Op::Trans;
+        // Transpose if Row Major
+        bool doConj = false;
+        if (layout == Layout::RowMajor) {
+            // A => A^T; A^T => A; A^H => A & doConj
+            std::swap(m, n);
+            if (trans == Op::NoTrans)
+                trans = Op::Trans;
+            else {
+                if (trans == Op::ConjTrans) doConj = true;
+                trans = Op::NoTrans;
+            }
+        }
+
+        // Initialize indexes
+        const idx_t lenx = ((trans == Op::NoTrans) ? n : m);
+        const idx_t leny = ((trans == Op::NoTrans) ? m : n);
+
+        // Conjugate if A is row-major and initially trans is Op::ConjTrans
+        if (doConj) {
+            TX* x2 = const_cast<TX*>(x);
+            for (idx_t i = 0; i < lenx; ++i)
+                x2[i * abs(incx)] = conj(x2[i * abs(incx)]);
+            for (idx_t i = 0; i < leny; ++i)
+                y[i * abs(incy)] = conj(y[i * abs(incy)]);
+        }
+
+        // Matrix views
+        const auto A_ = create_matrix<TA>((TA*)A, m, n, lda);
+
+        if (alpha == scalar_t(0)) {
+            tlapack_expr_with_vector(
+                y_, TY, leny, y, incy,
+                if (beta == scalar_t(0)) for (idx_t i = 0; i < leny; ++i)
+                    y_[i] = TY(0);
+                else for (idx_t i = 0; i < leny; ++i) y_[i] *=
+                (doConj) ? conj(beta) : beta);
+        }
         else {
-            if (trans == Op::ConjTrans) doConj = true;
-            trans = Op::NoTrans;
+            tlapack_expr_with_2vectors(
+                x_, TX, lenx, x, incx, y_, TY, leny, y, incy,
+                if (beta == scalar_t(0))
+                    gemv(trans, (doConj) ? conj(alpha) : alpha, A_, x_, y_);
+                else gemv(trans, (doConj) ? conj(alpha) : alpha, A_, x_,
+                          (doConj) ? conj(beta) : beta, y_));
+        }
+
+        // Conjugate if A is row-major and initially trans is Op::ConjTrans
+        if (doConj) {
+            TX* x2 = const_cast<TX*>(x);
+            for (idx_t i = 0; i < lenx; ++i)
+                x2[i * abs(incx)] = conj(x2[i * abs(incx)]);
+            for (idx_t i = 0; i < leny; ++i)
+                y[i * abs(incy)] = conj(y[i * abs(incy)]);
         }
     }
 
-    // Initialize indexes
-    const idx_t lenx = ((trans == Op::NoTrans) ? n : m);
-    const idx_t leny = ((trans == Op::NoTrans) ? m : n);
-
-    // Conjugate if A is row-major and initially trans is Op::ConjTrans
-    if (doConj) {
-        TX* x2 = const_cast<TX*>(x);
-        for (idx_t i = 0; i < lenx; ++i)
-            x2[i * abs(incx)] = conj(x2[i * abs(incx)]);
-        for (idx_t i = 0; i < leny; ++i)
-            y[i * abs(incy)] = conj(y[i * abs(incy)]);
-    }
-
-    // Matrix views
-    const auto A_ = colmajor_matrix<TA>((TA*)A, m, n, lda);
-
-    if (alpha == scalar_t(0)) {
-        tlapack_expr_with_vector(
-            y_, TY, leny, y, incy,
-            if (beta == scalar_t(0)) for (idx_t i = 0; i < leny; ++i) y_[i] =
-                TY(0);
-            else for (idx_t i = 0; i < leny; ++i) y_[i] *=
-            (doConj) ? conj(beta) : beta);
-    }
-    else {
-        tlapack_expr_with_2vectors(
-            x_, TX, lenx, x, incx, y_, TY, leny, y, incy,
-            if (beta == scalar_t(0))
-                gemv(trans, (doConj) ? conj(alpha) : alpha, A_, x_, y_);
-            else gemv(trans, (doConj) ? conj(alpha) : alpha, A_, x_,
-                      (doConj) ? conj(beta) : beta, y_));
-    }
-
-    // Conjugate if A is row-major and initially trans is Op::ConjTrans
-    if (doConj) {
-        TX* x2 = const_cast<TX*>(x);
-        for (idx_t i = 0; i < lenx; ++i)
-            x2[i * abs(incx)] = conj(x2[i * abs(incx)]);
-        for (idx_t i = 0; i < leny; ++i)
-            y[i * abs(incy)] = conj(y[i * abs(incy)]);
-    }
-}
-
+}  // namespace legacy
 }  // namespace tlapack
 
 #endif  //  #ifndef TLAPACK_LEGACY_GEMV_HH

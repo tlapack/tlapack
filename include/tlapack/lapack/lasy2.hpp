@@ -28,8 +28,8 @@ namespace tlapack {
  *
  * @ingroup auxiliary
  */
-template <typename matrix_t,
-          enable_if_t<!is_complex<type_t<matrix_t> >::value, bool> = true>
+template <TLAPACK_MATRIX matrix_t,
+          enable_if_t<is_real<type_t<matrix_t> >, bool> = true>
 int lasy2(Op trans_l,
           Op trans_r,
           int isign,
@@ -42,7 +42,6 @@ int lasy2(Op trans_l,
 {
     using idx_t = size_type<matrix_t>;
     using T = type_t<matrix_t>;
-    using std::max;
 
     // Functor for creating new matrices of type matrix_t
     Create<matrix_t> new_matrix;

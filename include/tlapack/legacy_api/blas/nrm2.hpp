@@ -1,4 +1,4 @@
-/// @file nrm2.hpp
+/// @file legacy_api/blas/nrm2.hpp
 /// @author Weslley S Pereira, University of Colorado Denver, USA
 ///
 /// Anderson E. (2017)
@@ -21,35 +21,38 @@
 #include "tlapack/legacy_api/base/utils.hpp"
 
 namespace tlapack {
+namespace legacy {
 
-/**
- * @return 2-norm of vector,
- *     $|| x ||_2 = (\sum_{i=0}^{n-1} |x_i|^2)^{1/2}$.
- *
- * Generic implementation for arbitrary data types.
- *
- * @param[in] n
- *     Number of elements in x. n >= 0.
- *
- * @param[in] x
- *     The n-element vector x, in an array of length (n-1)*incx + 1.
- *
- * @param[in] incx
- *     Stride between elements of x. incx > 0.
- *
- * @ingroup legacy_blas
- */
-template <typename T>
-real_type<T> nrm2(idx_t n, T const* x, int_t incx)
-{
-    tlapack_check_false(incx <= 0);
+    /**
+     * @return 2-norm of vector,
+     *     $|| x ||_2 = (\sum_{i=0}^{n-1} |x_i|^2)^{1/2}$.
+     *
+     * Generic implementation for arbitrary data types.
+     *
+     * @param[in] n
+     *     Number of elements in x. n >= 0.
+     *
+     * @param[in] x
+     *     The n-element vector x, in an array of length (n-1)*incx + 1.
+     *
+     * @param[in] incx
+     *     Stride between elements of x. incx > 0.
+     *
+     * @ingroup legacy_blas
+     */
+    template <typename T>
+    real_type<T> nrm2(idx_t n, T const* x, int_t incx)
+    {
+        tlapack_check_false(incx <= 0);
 
-    // quick return
-    if (n <= 0) return 0;
+        // quick return
+        if (n <= 0) return 0;
 
-    tlapack_expr_with_vector_positiveInc(x_, T, n, x, incx, return nrm2(x_));
-}
+        tlapack_expr_with_vector_positiveInc(x_, T, n, x, incx,
+                                             return nrm2(x_));
+    }
 
+}  // namespace legacy
 }  // namespace tlapack
 
 #endif  // #ifndef TLAPACK_LEGACY_NRM2_HH

@@ -1,4 +1,4 @@
-/// @file mpreal.hpp
+/// @file mpreal.hpp mpfr::mpreal compatibility with tlapack::concepts::Real
 /// @author Weslley S Pereira, University of Colorado Denver, USA
 //
 // Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
@@ -12,43 +12,24 @@
 
 #include <mpreal.h>
 
-#include <complex>
+#include "tlapack/base/types.hpp"
 
 namespace tlapack {
 
-// Forward declarations
-template <typename T>
-T abs(const T& x);
-template <typename T>
-bool isnan(const std::complex<T>& x);
-template <typename T>
-bool isinf(const std::complex<T>& x);
-
-/// Absolute value
-template <>
-inline mpfr::mpreal abs(const mpfr::mpreal& x)
-{
-    return mpfr::abs(x);
-}
-
-/// 2-norm absolute value, sqrt( |Re(x)|^2 + |Im(x)|^2 )
-///
-/// Note that std::abs< std::complex > does not overflow or underflow at
-/// intermediate stages of the computation.
-/// @see https://en.cppreference.com/w/cpp/numeric/complex/abs
-/// but it may not propagate NaNs.
-///
-/// Also, std::abs< mpfr::mpreal > may not propagate Infs.
-///
-inline mpfr::mpreal abs(const std::complex<mpfr::mpreal>& x)
-{
-    if (isnan(x))
-        return std::numeric_limits<mpfr::mpreal>::quiet_NaN();
-    else if (isinf(x))
-        return std::numeric_limits<mpfr::mpreal>::infinity();
-    else
-        return std::abs(x);
-}
+namespace traits {
+    // mpfr::mpreal is a real type that satisfies tlapack::concepts::Real
+    template <>
+    struct real_type_traits<mpfr::mpreal, int> {
+        using type = mpfr::mpreal;
+        constexpr static bool is_real = true;
+    };
+    // The complex type of mpfr::mpreal is std::complex<mpfr::mpreal>
+    template <>
+    struct complex_type_traits<mpfr::mpreal, int> {
+        using type = std::complex<mpfr::mpreal>;
+        constexpr static bool is_complex = false;
+    };
+}  // namespace traits
 
 // Argument-dependent lookup (ADL) will include the remaining functions,
 // e.g., mpfr::sin, mpfr::cos.
@@ -59,14 +40,15 @@ inline mpfr::mpreal abs(const std::complex<mpfr::mpreal>& x)
 
 // Forward declaration
 template <typename real_t>
-const int digits();
+int digits() noexcept;
 
-/// Specialization for the mpfr::mpreal datatype
+// Specialization for the mpfr::mpreal datatype
 template <>
-inline const int digits<mpfr::mpreal>()
+int digits<mpfr::mpreal>() noexcept
 {
     return std::numeric_limits<mpfr::mpreal>::digits();
 }
+
 #endif
 
 }  // namespace tlapack

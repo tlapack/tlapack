@@ -24,8 +24,8 @@ namespace tlapack {
  * @ingroup blas1
  */
 template <
-    class vectorX_t,
-    class vectorY_t,
+    TLAPACK_VECTOR vectorX_t,
+    TLAPACK_VECTOR vectorY_t,
     class T = type_t<vectorY_t>,
     disable_if_allow_optblas_t<pair<vectorX_t, T>, pair<vectorY_t, T> > = 0>
 void swap(vectorX_t& x, vectorY_t& y)
@@ -46,14 +46,14 @@ void swap(vectorX_t& x, vectorY_t& y)
     }
 }
 
-#ifdef USE_LAPACKPP_WRAPPERS
+#ifdef TLAPACK_USE_LAPACKPP
 
 template <
-    class vectorX_t,
-    class vectorY_t,
+    TLAPACK_LEGACY_VECTOR vectorX_t,
+    TLAPACK_LEGACY_VECTOR vectorY_t,
     class T = type_t<vectorY_t>,
     enable_if_allow_optblas_t<pair<vectorX_t, T>, pair<vectorY_t, T> > = 0>
-inline void swap(vectorX_t& x, vectorY_t& y)
+void swap(vectorX_t& x, vectorY_t& y)
 {
     // Legacy objects
     auto x_ = legacy_vector(x);
@@ -70,16 +70,18 @@ inline void swap(vectorX_t& x, vectorY_t& y)
 /**
  * Swap vectors, $x <=> y$.
  *
- * @see swap( vectorX_t& x, vectorY_t& y )
+ * @see tlapack::swap(vectorX_t& x, vectorY_t& y)
  *
  * @note This overload avoids unexpected behavior as follows.
  *      Without it, the unspecialized call `swap( x, y )` using arrays with
  *      `std::complex` entries would call `std::swap`, while `swap( x, y )`
  *      using arrays with float or double entries would call `tlapack::swap`.
  *      Use @c tlapack::swap(x,y) instead of @c swap(x,y) .
+ *
+ * @ingroup blas1
  */
-template <class vector_t>
-inline void swap(vector_t& x, vector_t& y)
+template <TLAPACK_VECTOR vector_t>
+void swap(vector_t& x, vector_t& y)
 {
     return swap<vector_t, vector_t>(x, y);
 }

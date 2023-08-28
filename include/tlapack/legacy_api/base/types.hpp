@@ -1,4 +1,4 @@
-/// @file types.hpp
+/// @file legacy_api/base/types.hpp
 /// @author Weslley S Pereira, University of Colorado Denver, USA
 //
 // Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
@@ -18,7 +18,21 @@
 #include <cstddef>  // Defines std::size_t
 #include <cstdint>  // Defines std::int64_t
 
-#ifdef USE_LAPACKPP_WRAPPERS
+/** @def TLAPACK_SIZE_T
+ * @brief Type of all size-related integers in libtlapack_c, libtlapack_cblas,
+ * libtlapack_fortran, and in the routines of the legacy API.
+ *
+ * Supported types:
+ *      int, short, long, long long, int8_t, int16_t,
+ *      int32_t, int64_t, int_least8_t, int_least16_t,
+ *      int_least32_t, int_least64_t, int_fast8_t,
+ *      int_fast16_t, int_fast32_t, int_fast64_t,
+ *      intmax_t, intptr_t, ptrdiff_t,
+ *      size_t, uint8_t, uint16_t, uint32_t, uint64_t
+ *
+ * @note TLAPACK_SIZE_T must be std::int64_t if TLAPACK_USE_LAPACKPP is defined
+ */
+#ifdef TLAPACK_USE_LAPACKPP
     #ifndef TLAPACK_SIZE_T
         #define TLAPACK_SIZE_T std::int64_t
     #endif
@@ -28,155 +42,44 @@
     #endif
 #endif
 
+/** @def TLAPACK_INT_T
+ * @brief Type of all non size-related integers in libtlapack_c,
+ * libtlapack_cblas, libtlapack_fortran, and in the routines of the legacy API.
+ * It is the type used for the array increments, e.g., incx and incy.
+ *
+ * Supported types:
+ *      int, short, long, long long, int8_t, int16_t,
+ *      int32_t, int64_t, int_least8_t, int_least16_t,
+ *      int_least32_t, int_least64_t, int_fast8_t,
+ *      int_fast16_t, int_fast32_t, int_fast64_t,
+ *      intmax_t, intptr_t, ptrdiff_t
+ *
+ * @note TLAPACK_INT_T must be std::int64_t if TLAPACK_USE_LAPACKPP is defined
+ */
 #ifndef TLAPACK_INT_T
     #define TLAPACK_INT_T std::int64_t
 #endif
 // -----------------------------------------------------------------------------
 
 namespace tlapack {
+namespace legacy {
 
-using idx_t = TLAPACK_SIZE_T;
-using int_t = TLAPACK_INT_T;
+    using idx_t = TLAPACK_SIZE_T;
+    using int_t = TLAPACK_INT_T;
 
-// -----------------------------------------------------------------------------
-enum class Sides {
-    Left = 'L',
-    L = 'L',
-    Right = 'R',
-    R = 'R',
-    Both = 'B',
-    B = 'B'
-};
+    // -----------------------------------------------------------------------------
+    // lascl
+    enum class MatrixType {
+        General = 'G',
+        Lower = 'L',
+        Upper = 'U',
+        Hessenberg = 'H',
+        LowerBand = 'B',
+        UpperBand = 'Q',
+        Band = 'Z',
+    };
 
-// -----------------------------------------------------------------------------
-// Job for computing eigenvectors and singular vectors
-// # needs custom map
-enum class Job {
-    NoVec = 'N',
-    Vec = 'V',  // geev, syev, ...
-    UpdateVec =
-        'U',  // gghrd#, hbtrd, hgeqz#, hseqr#, ... (many compq or compz)
-
-    AllVec = 'A',        // gesvd, gesdd, gejsv#
-    SomeVec = 'S',       // gesvd, gesdd, gejsv#, gesvj#
-    OverwriteVec = 'O',  // gesvd, gesdd
-
-    CompactVec = 'P',  // bdsdc
-    SomeVecTol = 'C',  // gesvj
-    VecJacobi = 'J',   // gejsv
-    Workspace = 'W',   // gejsv
-};
-
-// -----------------------------------------------------------------------------
-// hseqr
-enum class JobSchur {
-    Eigenvalues = 'E',
-    Schur = 'S',
-};
-
-// -----------------------------------------------------------------------------
-// gees
-// todo: generic yes/no
-enum class Sort {
-    NotSorted = 'N',
-    Sorted = 'S',
-};
-
-// -----------------------------------------------------------------------------
-// syevx
-enum class Range {
-    All = 'A',
-    Value = 'V',
-    Index = 'I',
-};
-
-// -----------------------------------------------------------------------------
-enum class Vect {
-    Q = 'Q',     // orgbr, ormbr
-    P = 'P',     // orgbr, ormbr
-    None = 'N',  // orgbr, ormbr, gbbrd
-    Both = 'B',  // orgbr, ormbr, gbbrd
-};
-
-// -----------------------------------------------------------------------------
-// lascl
-enum class MatrixType {
-    General = 'G',
-    Lower = 'L',
-    Upper = 'U',
-    Hessenberg = 'H',
-    LowerBand = 'B',
-    UpperBand = 'Q',
-    Band = 'Z',
-};
-
-// -----------------------------------------------------------------------------
-// trevc
-enum class HowMany {
-    All = 'A',
-    Backtransform = 'B',
-    Select = 'S',
-};
-
-// -----------------------------------------------------------------------------
-// *svx, *rfsx
-enum class Equed {
-    None = 'N',
-    Row = 'R',
-    Col = 'C',
-    Both = 'B',
-    Yes = 'Y',  // porfsx
-};
-
-// -----------------------------------------------------------------------------
-// *svx
-// todo: what's good name for this?
-enum class Factored {
-    Factored = 'F',
-    NotFactored = 'N',
-    Equilibrate = 'E',
-};
-
-// -----------------------------------------------------------------------------
-// geesx, trsen
-enum class Sense {
-    None = 'N',
-    Eigenvalues = 'E',
-    Subspace = 'V',
-    Both = 'B',
-};
-
-// -----------------------------------------------------------------------------
-// disna
-enum class JobCond {
-    EigenVec = 'E',
-    LeftSingularVec = 'L',
-    RightSingularVec = 'R',
-};
-
-// -----------------------------------------------------------------------------
-// {ge,gg}{bak,bal}
-enum class Balance {
-    None = 'N',
-    Permute = 'P',
-    Scale = 'S',
-    Both = 'B',
-};
-
-// -----------------------------------------------------------------------------
-// stebz, larrd, stein docs
-enum class Order {
-    Block = 'B',
-    Entire = 'E',
-};
-
-// -----------------------------------------------------------------------------
-// check_ortho (LAPACK testing zunt01)
-enum class RowCol {
-    Col = 'C',
-    Row = 'R',
-};
-
+}  // namespace legacy
 }  // namespace tlapack
 
 #endif  // TLAPACK_LEGACY_TYPES_HH

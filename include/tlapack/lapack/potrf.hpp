@@ -12,19 +12,22 @@
 #define TLAPACK_POTRF_HH
 
 #include "tlapack/base/utils.hpp"
+#include "tlapack/lapack/potf2.hpp"
 #include "tlapack/lapack/potrf2.hpp"
 #include "tlapack/lapack/potrf_blocked.hpp"
+#include "tlapack/lapack/potrf_blocked_right_looking.hpp"
 
 namespace tlapack {
 
-enum class PotrfVariant : char { Blocked = 'B', Recursive = 'R' };
+enum class PotrfVariant : char {
+    Blocked = 'B',
+    Recursive = 'R',
+    Level2 = '2',
+    RightLooking
+};
 
-template <typename idx_t>
-struct potrf_opts_t : public ec_opts_t {
-    inline constexpr potrf_opts_t(const ec_opts_t& opts = {})
-        : ec_opts_t(opts){};
-
-    idx_t nb = 32;  ///< Block size
+struct PotrfOpts : public BlockedCholeskyOpts {
+    constexpr PotrfOpts(const EcOpts& opts = {}) : BlockedCholeskyOpts(opts){};
 
     PotrfVariant variant = PotrfVariant::Blocked;
 };
@@ -69,22 +72,28 @@ struct potrf_opts_t : public ec_opts_t {
  *
  * @ingroup computational
  */
-template <class uplo_t, class matrix_t>
-inline int potrf(uplo_t uplo,
-                 matrix_t& A,
-                 const potrf_opts_t<size_type<matrix_t> >& opts = {})
+template <TLAPACK_UPLO uplo_t, TLAPACK_MATRIX matrix_t>
+int potrf(uplo_t uplo, matrix_t& A, const PotrfOpts& opts = {})
 {
     // check arguments
     tlapack_check(uplo == Uplo::Lower || uplo == Uplo::Upper);
     tlapack_check(nrows(A) == ncols(A));
     tlapack_check(opts.variant == PotrfVariant::Blocked ||
-                  opts.variant == PotrfVariant::Recursive);
+                  opts.variant == PotrfVariant::Recursive ||
+                  opts.variant == PotrfVariant::Level2 ||
+                  opts.variant == PotrfVariant::RightLooking);
 
     // Call variant
     if (opts.variant == PotrfVariant::Blocked)
         return potrf_blocked(uplo, A, opts);
-    else  // if( opts.variant == PotrfVariant::Recursive )
+    else if (opts.variant == PotrfVariant::Recursive)
         return potrf2(uplo, A, opts);
+    else if (opts.variant == PotrfVariant::Level2)
+        return potf2(uplo, A);
+    else if (opts.variant == PotrfVariant::RightLooking)
+        return potrf_rl(uplo, A, opts);
+    else
+        return -3;
 }
 
 }  // namespace tlapack

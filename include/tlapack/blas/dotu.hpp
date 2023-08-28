@@ -25,8 +25,8 @@ namespace tlapack {
  * @ingroup blas1
  */
 template <
-    class vectorX_t,
-    class vectorY_t,
+    TLAPACK_VECTOR vectorX_t,
+    TLAPACK_VECTOR vectorY_t,
     class T = type_t<vectorY_t>,
     disable_if_allow_optblas_t<pair<vectorX_t, T>, pair<vectorY_t, T> > = 0>
 auto dotu(const vectorX_t& x, const vectorY_t& y)
@@ -47,14 +47,14 @@ auto dotu(const vectorX_t& x, const vectorY_t& y)
     return result;
 }
 
-#ifdef USE_LAPACKPP_WRAPPERS
+#ifdef TLAPACK_USE_LAPACKPP
 
 template <
-    class vectorX_t,
-    class vectorY_t,
+    TLAPACK_LEGACY_VECTOR vectorX_t,
+    TLAPACK_LEGACY_VECTOR vectorY_t,
     class T = type_t<vectorY_t>,
     enable_if_allow_optblas_t<pair<vectorX_t, T>, pair<vectorY_t, T> > = 0>
-inline auto dotu(const vectorX_t& x, const vectorY_t& y)
+auto dotu(const vectorX_t& x, const vectorY_t& y)
 {
     // Legacy objects
     auto x_ = legacy_vector(x);
