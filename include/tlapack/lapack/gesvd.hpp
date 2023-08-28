@@ -25,11 +25,7 @@ namespace tlapack {
 /**
  * Options struct for gesvd
  */
-template <class idx_t = size_t>
-struct gesvd_opts_t : public workspace_opts_t<> {
-    inline constexpr gesvd_opts_t(const workspace_opts_t<>& opts = {})
-        : workspace_opts_t<>(opts){};
-
+struct GesvdOpts {
     // If either max(m,n)/min(m,n) is larger than shapethresh, a QR
     // factorization is used before
     float shapethresh = 1.6;
@@ -58,51 +54,46 @@ struct gesvd_opts_t : public workspace_opts_t<> {
  *
  * @ingroup workspace_query
  */
-template <class matrix_t, class r_vector_t>
-workinfo_t gesvd_worksize(bool want_u,
-                          bool want_vt,
-                          matrix_t& A,
-                          r_vector_t& s,
-                          matrix_t& U,
-                          matrix_t& Vt,
-                          const gesvd_opts_t<size_type<matrix_t> >& opts = {})
+template <TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR r_vector_t>
+constexpr WorkInfo gesvd_worksize(bool want_u,
+                                  bool want_vt,
+                                  matrix_t& A,
+                                  r_vector_t& s,
+                                  matrix_t& U,
+                                  matrix_t& Vt,
+                                  const GesvdOpts& opts = {})
 {
     using idx_t = size_type<matrix_t>;
-    using work_t = matrix_type<matrix_t, r_vector_t>;
-    using T = type_t<work_t>;
-    using pair = std::pair<idx_t, idx_t>;
+    // using pair = std::pair<idx_t, idx_t>;
 
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
     const idx_t k = min(m, n);
 
-    workinfo_t myWorkinfo(sizeof(T) * min(m, n), 3);
+    WorkInfo workinfo(k, 3);
 
-    workinfo_t extraworkinfo;
+    // if (m >= n) {
+    //     auto tau = slice(A, 0, pair{0, k});
+    //     workinfo += gebrd_worksize(A, tau, tau);
+    //     if (want_u) {
+    //         workinfo += ungbr_q_worksize(k, n, U, tau);
+    //     }
+    //     if (want_vt) {
+    //         workinfo += ungbr_p_worksize(k, m, Vt, tau);
+    //     }
+    // }
+    // else {
+    //     auto tau = slice(A, pair{0, k}, 0);
+    //     workinfo += gebrd_worksize(A, tau, tau);
+    //     if (want_u) {
+    //         workinfo += ungbr_q_worksize(k, n, U, tau);
+    //     }
+    //     if (want_vt) {
+    //         workinfo += ungbr_p_worksize(k, m, Vt, tau);
+    //     }
+    // }
 
-    if (m >= n) {
-        auto tau = slice(A, 0, pair{0, k});
-        gebrd_worksize(A, s, s, tau, tau, extraworkinfo);
-        if (want_u) {
-            ungbr_q_worksize(n, U, tau, extraworkinfo);
-        }
-        if (want_vt) {
-            ungbr_p_worksize(m, Vt, tau, extraworkinfo);
-        }
-    }
-    else {
-        auto tau = slice(A, pair{0, k}, 0);
-        gebrd_worksize(A, s, s, tau, tau, extraworkinfo);
-        if (want_u) {
-            ungbr_q_worksize(n, U, tau, extraworkinfo);
-        }
-        if (want_vt) {
-            ungbr_p_worksize(m, Vt, tau, extraworkinfo);
-        }
-    }
-
-    myWorkinfo += extraworkinfo;
-    return myWorkinfo;
+    return workinfo;
 }
 
 /**
@@ -139,14 +130,14 @@ workinfo_t gesvd_worksize(bool want_u,
  *
  * @ingroup computational
  */
-template <class matrix_t, class r_vector_t>
+template <TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR r_vector_t>
 int gesvd(bool want_u,
           bool want_vt,
           matrix_t& A,
           r_vector_t& s,
           matrix_t& U,
           matrix_t& Vt,
-          const gesvd_opts_t<size_type<matrix_t> >& opts = {})
+          const GesvdOpts& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using work_t = matrix_type<matrix_t>;
@@ -163,38 +154,45 @@ int gesvd(bool want_u,
     const idx_t k = min(m, n);
 
     // Allocates workspace
-    vectorOfBytes localworkdata;
-    Workspace work = [&]() {
-        workinfo_t workinfo =
-            gesvd_worksize(want_u, want_vt, A, s, U, Vt, opts);
-        return alloc_workspace(localworkdata, workinfo, opts.work);
-    }();
+    WorkInfo workinfo = gesvd_worksize(want_u, want_vt, A, s, U, Vt, opts);
+    std::vector<T> work_;
+    auto work = new_matrix(work_, workinfo.m, workinfo.n);
 
-    Workspace sparework;
-    auto workMatrix = new_matrix(work, k, 3, sparework);
+    auto tauv = col(work, 1);
+    auto tauw = col(work, 2);
+
+    gebrd(A, tauv, tauw, GebrdOpts{});
 
     // For now, we use a locally allocated vector, because I don't know how to
     // make a real_t vector wrapper of the correct type.
     std::vector<real_t> e(k);
-    // auto e = col(workMatrix, 0);
-    auto tauv = col(workMatrix, 1);
-    auto tauw = col(workMatrix, 2);
+    // auto e = col(work, 0);
 
-    auto&& gebrdOpts = gebrd_opts_t<>{sparework};
-    gebrd(A, s, e, tauv, tauw, gebrdOpts);
+    if (m >= n) {
+        // copy upper bidiagonal matrix
+        for (idx_t i = 0; i < k; ++i) {
+            s[i] = real(A(i, i));
+            if (i + 1 < n) e[i] = real(A(i, i + 1));
+        }
+    }
+    else {
+        // copy lower bidiagonal matrix
+        for (idx_t i = 0; i < k; ++i) {
+            s[i] = real(A(i, i));
+            if (i + 1 < m) e[i] = real(A(i + 1, i));
+        }
+    }
 
     if (want_u) {
-        auto ungbrOpts = ungbr_opts_t<matrix_t>{sparework};
         auto Ui = slice(U, pair{0, m}, pair{0, k});
         lacpy(Uplo::Lower, slice(A, pair{0, m}, pair{0, k}), Ui);
-        ungbr_q(n, U, tauv, ungbrOpts);
+        ungbr_q(n, U, tauv, UngbrOpts{});
     }
 
     if (want_vt) {
-        auto ungbrOpts = ungbr_opts_t<matrix_t>{sparework};
         auto Vti = slice(Vt, pair{0, k}, pair{0, n});
         lacpy(Uplo::Upper, slice(A, pair{0, k}, pair{0, n}), Vti);
-        ungbr_p(m, Vt, tauw, ungbrOpts);
+        ungbr_p(m, Vt, tauw, UngbrOpts{});
     }
 
     Uplo uplo = (m >= n) ? Uplo::Upper : Uplo::Lower;

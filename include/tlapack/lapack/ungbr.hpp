@@ -95,6 +95,7 @@ constexpr WorkInfo ungbr_p_worksize(const size_type<matrix_t> k,
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
 
+    const idx_t m = nrows(A);
     const idx_t n = ncols(A);
 
     if (m >= k) {

@@ -52,7 +52,7 @@ namespace tlapack {
  *
  * @ingroup auxiliary
  */
-template <typename T, enable_if_t<!is_complex<T>::value, bool> = true>
+template <typename T, enable_if_t<!is_complex<T>, bool> = true>
 void svd22(const T& f,
            const T& g,
            const T& h,
