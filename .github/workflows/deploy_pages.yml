@@ -40,26 +40,17 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@f156874f8191504dae5b037505266ed5dda6c382 # v3.0.6
 
-      - name: Checkout Doxygen
-        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
-        with:
-          repository: doxygen/doxygen
-          ref: c2fe5c3e4986974eb2a97608b24086683502f07f # v1.9.8
-          path: doxygen
-
       - name: Install Basic Dependencies
         run: |
           sudo apt update
           sudo apt install -y cmake graphviz
 
       - name: Install Doxygen
-        working-directory: doxygen
         run: |
-          mkdir build
-          cd build
-          cmake -G "Unix Makefiles" ..
-          make
-          sudo make install
+          wget https://www.doxygen.nl/files/doxygen-1.9.8.linux.bin.tar.gz
+          tar -xzf doxygen-1.9.8.linux.bin.tar.gz
+          cd doxygen-1.9.8
+          sudo mv bin/* /usr/local/bin
 
       - name: Prepare the documentation
         run: |
