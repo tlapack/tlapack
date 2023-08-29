@@ -35,7 +35,6 @@ TEMPLATE_TEST_CASE(
     TLAPACK_TYPES_TO_TEST,
     TESTUPLO_TYPES_TO_TEST)
 {
-    srand(1);
     using matrix_t = TestType;
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
@@ -43,6 +42,9 @@ TEMPLATE_TEST_CASE(
 
     // Functor
     Create<matrix_t> new_matrix;
+
+    // MatrixMarket reader
+    MatrixMarket mm;
 
     using variant_t = pair<PotrfVariant, idx_t>;
     const variant_t variant =
@@ -75,18 +77,10 @@ TEMPLATE_TEST_CASE(
         std::vector<T> E_;
         auto E = new_matrix(E_, n, n);
 
-        // Update A with random numbers
-        for (idx_t j = 0; j < n; ++j) {
-            for (idx_t i = 0; i < n; ++i) {
-                if (uplo == Uplo::Lower && i >= j)
-                    A(i, j) = rand_helper<T>();
-                else if (uplo == Uplo::Upper && i <= j)
-                    A(i, j) = rand_helper<T>();
-                else
-                    A(i, j) = real_t(0xCAFEBABE);
-            }
+        // Update A with random numbers, and make it positive definite
+        mm.random(uplo, A);
+        for (idx_t j = 0; j < n; ++j)
             A(j, j) += real_t(n);
-        }
 
         lacpy(GENERAL, A, L);
         real_t normA = tlapack::lanhe(tlapack::MAX_NORM, uplo, A);

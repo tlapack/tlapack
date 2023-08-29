@@ -21,8 +21,6 @@ TEMPLATE_TEST_CASE("sylvester solver gives correct result",
                    "[sylvester]",
                    TLAPACK_REAL_TYPES_TO_TEST)
 {
-    srand(1);
-
     using matrix_t = TestType;
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
@@ -30,6 +28,9 @@ TEMPLATE_TEST_CASE("sylvester solver gives correct result",
 
     // Functor
     Create<matrix_t> new_matrix;
+
+    // MatrixMarket reader
+    MatrixMarket mm;
 
     const T one(1);
     idx_t n1 = GENERATE(1, 2);
@@ -49,17 +50,9 @@ TEMPLATE_TEST_CASE("sylvester solver gives correct result",
     std::vector<T> X_exact_;
     auto X_exact = new_matrix(X_exact_, n1, n2);
 
-    for (idx_t i = 0; i < n1; ++i)
-        for (idx_t j = 0; j < n1; ++j)
-            TL(i, j) = rand_helper<T>();
-
-    for (idx_t i = 0; i < n2; ++i)
-        for (idx_t j = 0; j < n2; ++j)
-            TR(i, j) = rand_helper<T>();
-
-    for (idx_t i = 0; i < n1; ++i)
-        for (idx_t j = 0; j < n2; ++j)
-            X_exact(i, j) = rand_helper<T>();
+    mm.random(TL);
+    mm.random(TR);
+    mm.random(X_exact);
 
     Op trans_l = Op::NoTrans;
     Op trans_r = Op::NoTrans;

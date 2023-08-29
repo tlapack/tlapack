@@ -26,8 +26,6 @@ TEMPLATE_TEST_CASE("Result of unmhr matches result from unghr",
                    "[eigenvalues][hessenberg]",
                    TLAPACK_TYPES_TO_TEST)
 {
-    srand(1);
-
     using matrix_t = TestType;
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
@@ -36,6 +34,9 @@ TEMPLATE_TEST_CASE("Result of unmhr matches result from unghr",
 
     // Functor
     Create<matrix_t> new_matrix;
+
+    // MatrixMarket reader
+    MatrixMarket mm;
 
     const std::string matrix_type = "Random";
     Side side = GENERATE(Side::Left, Side::Right);
@@ -62,14 +63,10 @@ TEMPLATE_TEST_CASE("Result of unmhr matches result from unghr",
 
     if (matrix_type == "Random") {
         // Generate a random matrix in H
-        for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = 0; i < n; ++i)
-                H(i, j) = rand_helper<T>();
+        mm.random(H);
 
         // Generate a random matrix in C
-        for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = 0; i < m; ++i)
-                C(i, j) = rand_helper<T>();
+        mm.random(C);
     }
     lacpy(GENERAL, C, C_copy);
 

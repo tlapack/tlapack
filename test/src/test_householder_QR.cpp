@@ -29,8 +29,6 @@ TEMPLATE_TEST_CASE("QR, RQ, QL, LQ factorization of a general m-by-n matrix",
                    "[qr][qrf]",
                    TLAPACK_TYPES_TO_TEST)
 {
-    srand(1);
-
     using matrix_t = TestType;
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
@@ -39,6 +37,9 @@ TEMPLATE_TEST_CASE("QR, RQ, QL, LQ factorization of a general m-by-n matrix",
 
     // Functor
     Create<matrix_t> new_matrix;
+
+    // MatrixMarket reader
+    MatrixMarket mm;
 
     // Generate test case
     using variant_t = pair<HouseholderQRVariant, idx_t>;
@@ -86,9 +87,7 @@ TEMPLATE_TEST_CASE("QR, RQ, QL, LQ factorization of a general m-by-n matrix",
     std::vector<T> tau(k);
 
     // Generate random test case
-    for (idx_t j = 0; j < n; ++j)
-        for (idx_t i = 0; i < m; ++i)
-            A(i, j) = rand_helper<T>();
+    mm.random(A);
 
     // Copy A to A_copy
     lacpy(GENERAL, A, A_copy);

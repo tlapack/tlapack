@@ -20,14 +20,15 @@ TEMPLATE_TEST_CASE("Conjugate Transpose gives correct result",
                    "[util]",
                    TLAPACK_TYPES_TO_TEST)
 {
-    srand(1);
-
     using matrix_t = TestType;
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
 
     // Functor
     Create<matrix_t> new_matrix;
+
+    // MatrixMarket reader
+    MatrixMarket mm;
 
     // Generate n
     idx_t n = GENERATE(1, 2, 3, 5, 10);
@@ -41,9 +42,7 @@ TEMPLATE_TEST_CASE("Conjugate Transpose gives correct result",
     auto B = new_matrix(B_, n, m);
 
     // Generate a random matrix in A
-    for (idx_t j = 0; j < n; ++j)
-        for (idx_t i = 0; i < m; ++i)
-            A(i, j) = rand_helper<T>();
+    mm.random(A);
 
     DYNAMIC_SECTION("m = " << m << " n = " << n)
     {
@@ -63,14 +62,15 @@ TEMPLATE_TEST_CASE("Transpose gives correct result",
                    "[util]",
                    TLAPACK_TYPES_TO_TEST)
 {
-    srand(1);
-
     using matrix_t = TestType;
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
 
     // Functor
     Create<matrix_t> new_matrix;
+
+    // MatrixMarket reader
+    MatrixMarket mm;
 
     // Generate n
     idx_t n = GENERATE(1, 2, 3, 5, 10);
@@ -84,9 +84,7 @@ TEMPLATE_TEST_CASE("Transpose gives correct result",
     auto B = new_matrix(B_, n, m);
 
     // Generate a random matrix in A
-    for (idx_t j = 0; j < n; ++j)
-        for (idx_t i = 0; i < m; ++i)
-            A(i, j) = rand_helper<T>();
+    mm.random(A);
 
     DYNAMIC_SECTION("m = " << m << " n = " << n)
     {

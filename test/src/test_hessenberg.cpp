@@ -34,6 +34,9 @@ void check_hess_reduction(size_type<matrix_t> ilo,
     // Functor
     Create<matrix_t> new_matrix;
 
+    // MatrixMarket reader
+    MatrixMarket mm;
+
     idx_t n = ncols(A);
 
     const real_type<T> eps = uroundoff<real_type<T>>();
@@ -68,8 +71,6 @@ TEMPLATE_TEST_CASE("Hessenberg reduction is backward stable",
                    "[eigenvalues][hessenberg]",
                    TLAPACK_TYPES_TO_TEST)
 {
-    srand(1);
-
     using matrix_t = TestType;
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;

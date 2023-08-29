@@ -28,8 +28,6 @@ TEMPLATE_TEST_CASE("Multiply m-by-n matrix with orthogonal LQ factor",
                    "[unml2]",
                    TLAPACK_TYPES_TO_TEST)
 {
-    srand(1);
-
     using matrix_t = TestType;
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
@@ -38,6 +36,9 @@ TEMPLATE_TEST_CASE("Multiply m-by-n matrix with orthogonal LQ factor",
 
     // Functor
     Create<matrix_t> new_matrix;
+
+    // MatrixMarket reader
+    MatrixMarket mm;
 
     idx_t m = GENERATE(5, 10);
     idx_t n = GENERATE(1, 5, 10);
@@ -69,13 +70,8 @@ TEMPLATE_TEST_CASE("Multiply m-by-n matrix with orthogonal LQ factor",
 
     std::vector<T> tau(k);
 
-    for (idx_t j = 0; j < n; ++j)
-        for (idx_t i = 0; i < m; ++i)
-            A(i, j) = rand_helper<T>();
-
-    for (idx_t j = 0; j < nc; ++j)
-        for (idx_t i = 0; i < mc; ++i)
-            C(i, j) = rand_helper<T>();
+    mm.random(A);
+    mm.random(C);
 
     DYNAMIC_SECTION("m = " << m << " n = " << n << " side = " << side
                            << " trans = " << trans << " k2 = " << k2)

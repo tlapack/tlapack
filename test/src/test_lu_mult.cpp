@@ -25,8 +25,6 @@ TEMPLATE_TEST_CASE("lu multiplication is backward stable",
                    "[lu check][lu][qrt]",
                    TLAPACK_TYPES_TO_TEST)
 {
-    srand(1);
-
     using matrix_t = TestType;
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
@@ -34,6 +32,9 @@ TEMPLATE_TEST_CASE("lu multiplication is backward stable",
 
     // Functor
     Create<matrix_t> new_matrix;
+
+    // MatrixMarket reader
+    MatrixMarket mm;
 
     idx_t n, nx;
 
@@ -54,9 +55,7 @@ TEMPLATE_TEST_CASE("lu multiplication is backward stable",
             auto A = new_matrix(A_, n, n);
 
             // Generate n-by-n random matrix
-            for (idx_t j = 0; j < n; ++j)
-                for (idx_t i = 0; i < n; ++i)
-                    A(i, j) = rand_helper<T>();
+            mm.random(A);
 
             lacpy(LOWER_TRIANGLE, A, L);
             laset(UPPER_TRIANGLE, real_t(0), real_t(1), L);

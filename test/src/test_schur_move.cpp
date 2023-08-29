@@ -24,8 +24,6 @@ TEMPLATE_TEST_CASE("move of eigenvalue block gives correct results",
                    "[eigenvalues]",
                    TLAPACK_TYPES_TO_TEST)
 {
-    srand(1);
-
     using matrix_t = TestType;
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
@@ -33,6 +31,9 @@ TEMPLATE_TEST_CASE("move of eigenvalue block gives correct results",
 
     // Functor
     Create<matrix_t> new_matrix;
+
+    // MatrixMarket reader
+    MatrixMarket mm;
 
     const T zero(0);
     const T one(1);
@@ -59,10 +60,9 @@ TEMPLATE_TEST_CASE("move of eigenvalue block gives correct results",
         auto A_copy = new_matrix(A_copy_, n, n);
 
         // Generate random matrix in Schur form
-        for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = 0; i < n; ++i)
-                A(i, j) = rand_helper<T>();
+        mm.random(A);
 
+        // Zero out the lower triangular part
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = j + 1; i < n; ++i)
                 A(i, j) = zero;
