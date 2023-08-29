@@ -5,7 +5,9 @@ C++ Template Linear Algebra PACKage
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://github.com/tlapack/tlapack/blob/master/LICENSE)
 [![Continuous Testing](https://github.com/tlapack/tlapack/actions/workflows/cmake.yml/badge.svg?branch=master)](https://github.com/tlapack/tlapack/actions/workflows/cmake.yml)
 [![Doxygen](https://github.com/tlapack/tlapack/actions/workflows/doxygen.yml/badge.svg?branch=master)](https://github.com/tlapack/tlapack/actions/workflows/doxygen.yml)
+[![ClangFormat](https://github.com/tlapack/tlapack/actions/workflows/clang-format-check.yml/badge.svg)](https://github.com/tlapack/tlapack/actions/workflows/clang-format-check.yml)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/tlapack/tlapack/badge)](https://securityscorecards.dev/viewer/?uri=github.com/tlapack/tlapack)
+[![CodeQL](https://github.com/tlapack/tlapack/actions/workflows/codeql.yml/badge.svg?branch=master)](https://github.com/tlapack/tlapack/actions/workflows/codeql.yml)
 
 ## About
 
