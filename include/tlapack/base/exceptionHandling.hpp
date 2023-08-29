@@ -18,9 +18,6 @@
  * @brief Default behavior of checks for Infs. Checks can be
  * activated/deactivated at runtime
  *
- * @note Only used if TLAPACK_ENABLE_INFCHECK is defined and TLAPACK_NDEBUG
- * is not defined.
- *
  * @ingroup exception
  */
 #ifndef TLAPACK_DEFAULT_INFCHECK
@@ -30,9 +27,6 @@
 /** @def TLAPACK_DEFAULT_NANCHECK
  * @brief Default behavior of checks for NaNs. Checks can be
  * activated/deactivated at runtime
- *
- * @note Only used if TLAPACK_ENABLE_NANCHECK is defined and TLAPACK_NDEBUG
- * is not defined.
  *
  * @ingroup exception
  *

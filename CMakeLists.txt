@@ -46,6 +46,7 @@ set (CMAKE_CXX_STANDARD 20)
 # <T>LAPACK project
 project(TLAPACK
   VERSION ${version_txt}
+  DESCRIPTION "C++ Template Linear Algebra PACKage"
   LANGUAGES CXX)
 message(STATUS "<T>LAPACK version " ${PROJECT_VERSION})
 
