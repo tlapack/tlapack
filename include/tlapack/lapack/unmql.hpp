@@ -64,7 +64,7 @@ struct UnmqlOpts {
  *
  * @param[in] opts Options.
  *
- * @ingroup computational
+ * @ingroup workspace_query
  */
 template <class T,
           TLAPACK_SMATRIX matrixA_t,

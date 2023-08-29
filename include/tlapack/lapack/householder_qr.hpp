@@ -16,8 +16,10 @@
 
 namespace tlapack {
 
+/// @brief Variants of the algorithm to compute the QR factorization.
 enum class HouseholderQRVariant : char { Level2 = '2', Blocked = 'B' };
 
+/// @brief Options struct for householder_qr()
 struct HouseholderQROpts : public GeqrfOpts {
     HouseholderQRVariant variant = HouseholderQRVariant::Blocked;
 };
@@ -45,6 +47,29 @@ constexpr WorkInfo householder_qr_worksize(const matrix_t& A,
         return geqr2_worksize<T>(A, tau);
     else
         return geqrf_worksize<T>(A, tau, opts);
+}
+
+/** @copybrief householder_qr()
+ * Workspace is provided as an argument.
+ * @copydetails householder_qr()
+ *
+ * @param work Workspace. Use the workspace query to determine the size needed.
+ *
+ * @ingroup variant_interface
+ */
+template <TLAPACK_MATRIX matrix_t,
+          TLAPACK_VECTOR vector_t,
+          TLAPACK_WORKSPACE workspace_t>
+int householder_qr_work(matrix_t& A,
+                        vector_t& tau,
+                        workspace_t& work,
+                        const HouseholderQROpts& opts = {})
+{
+    // Call variant
+    if (opts.variant == HouseholderQRVariant::Level2)
+        return geqr2_work(A, tau, work);
+    else
+        return geqrf_work(A, tau, work, opts);
 }
 
 /** Computes a QR factorization of an m-by-n matrix A.
@@ -78,7 +103,7 @@ constexpr WorkInfo householder_qr_worksize(const matrix_t& A,
  *
  * @param[in] opts Options.
  *
- * @ingroup computational
+ * @ingroup variant_interface
  */
 template <TLAPACK_MATRIX matrix_t, TLAPACK_VECTOR vector_t>
 int householder_qr(matrix_t& A,

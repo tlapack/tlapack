@@ -19,7 +19,7 @@
 namespace tlapack {
 
 /**
- * Options struct for gebrd
+ * Options struct for gebrd()
  */
 struct GebrdOpts {
     size_t nb = 32;  ///< Block size used in the blocked reduction
@@ -60,6 +60,88 @@ constexpr WorkInfo gebrd_worksize(const matrix_t& A,
         return WorkInfo(m + n, nb);
     else
         return WorkInfo(0);
+}
+
+/** @copybrief gebrd()
+ * Workspace is provided as an argument.
+ * @copydetails gebrd()
+ *
+ * @param work Workspace. Use the workspace query to determine the size needed.
+ *
+ * @ingroup computational
+ */
+template <TLAPACK_SMATRIX matrix_t,
+          TLAPACK_SVECTOR vector_t,
+          TLAPACK_WORKSPACE work_t>
+int gebrd_work(matrix_t& A,
+               vector_t& tauv,
+               vector_t& tauw,
+               work_t& work,
+               const GebrdOpts& opts = {})
+{
+    using idx_t = size_type<matrix_t>;
+    using range = pair<idx_t, idx_t>;
+    using TA = type_t<matrix_t>;
+    using real_t = real_type<TA>;
+
+    // constants
+    const real_t one(1);
+    const type_t<work_t> zero(0);
+    const idx_t m = nrows(A);
+    const idx_t n = ncols(A);
+    const idx_t k = min(m, n);
+    const idx_t nb = min((idx_t)opts.nb, k);
+
+    // Matrices X and Y
+    auto X = slice(work, range{0, m}, range{0, nb});
+    auto Y = slice(work, range{m, m + n}, range{0, nb});
+    laset(GENERAL, zero, zero, X);
+    laset(GENERAL, zero, zero, Y);
+
+    for (idx_t i = 0; i < k; i = i + nb) {
+        idx_t ib = min(nb, k - i);
+        // Reduce rows and columns i:i+ib-1 to bidiagonal form and return
+        // the matrices X and Y which are needed to update the unreduced
+        // part of the matrix
+        auto A2 = slice(A, range{i, m}, range{i, n});
+        auto tauq = slice(tauv, range{i, i + ib});
+        auto taup = slice(tauw, range{i, i + ib});
+        auto X2 = slice(X, range{i, m}, range{0, ib});
+        auto Y2 = slice(Y, range{i, n}, range{0, ib});
+        labrd(A2, tauq, taup, X2, Y2);
+
+        //
+        // Update the trailing submatrix A(i+nb:m,i+nb:n), using an update
+        // of the form  A := A - V*Y**H - X*U**H
+        //
+        if (i + ib < m && i + ib < n) {
+            real_t e;
+            auto A3 = slice(A, range{i + ib, m}, range{i + ib, n});
+
+            if (m >= n) {
+                e = real(A(i + ib - 1, i + ib));
+                A(i + ib - 1, i + ib) = one;
+            }
+            else {
+                e = real(A(i + ib, i + ib - 1));
+                A(i + ib, i + ib - 1) = one;
+            }
+
+            auto V = slice(A, range{i + ib, m}, range{i, i + ib});
+            auto Y3 = slice(Y, range{i + ib, n}, range{0, ib});
+            gemm(NO_TRANS, CONJ_TRANS, -one, V, Y3, one, A3);
+            auto U = slice(A, range{i, i + ib}, range{i + ib, n});
+            auto X3 = slice(X, range{i + ib, m}, range{0, ib});
+            gemm(NO_TRANS, NO_TRANS, -one, X3, U, one, A3);
+
+            if (m >= n)
+                A(i + ib - 1, i + ib) = e;
+            else
+                A(i + ib, i + ib - 1) = e;
+        }
+    }
+
+    return 0;
 }
 
 /** Reduces a general m by n matrix A to an upper
@@ -114,7 +196,7 @@ constexpr WorkInfo gebrd_worksize(const matrix_t& A,
  *
  * @param[in] opts Options.
  *
- * @ingroup computational
+ * @ingroup alloc_workspace
  */
 template <TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
 int gebrd(matrix_t& A,
@@ -122,79 +204,18 @@ int gebrd(matrix_t& A,
           vector_t& tauw,
           const GebrdOpts& opts = {})
 {
-    using idx_t = size_type<matrix_t>;
     using work_t = matrix_type<matrix_t, vector_t>;
-    using range = pair<idx_t, idx_t>;
-    using TA = type_t<matrix_t>;
-    using real_t = real_type<TA>;
     using T = type_t<work_t>;
 
     // Functor
     Create<work_t> new_matrix;
-
-    // constants
-    const real_t one(1);
-    const type_t<work_t> zero(0);
-    const idx_t m = nrows(A);
-    const idx_t n = ncols(A);
-    const idx_t k = min(m, n);
-    const idx_t nb = min((idx_t)opts.nb, k);
 
     // Allocates workspace
     WorkInfo workinfo = gebrd_worksize<T>(A, tauv, tauw, opts);
     std::vector<T> work_;
     auto work = new_matrix(work_, workinfo.m, workinfo.n);
 
-    // Matrices X and Y
-    auto X = slice(work, range{0, m}, range{0, nb});
-    auto Y = slice(work, range{m, m + n}, range{0, nb});
-    laset(GENERAL, zero, zero, X);
-    laset(GENERAL, zero, zero, Y);
-
-    for (idx_t i = 0; i < k; i = i + nb) {
-        idx_t ib = min(nb, k - i);
-        // Reduce rows and columns i:i+ib-1 to bidiagonal form and return
-        // the matrices X and Y which are needed to update the unreduced
-        // part of the matrix
-        auto A2 = slice(A, range{i, m}, range{i, n});
-        auto tauq = slice(tauv, range{i, i + ib});
-        auto taup = slice(tauw, range{i, i + ib});
-        auto X2 = slice(X, range{i, m}, range{0, ib});
-        auto Y2 = slice(Y, range{i, n}, range{0, ib});
-        labrd(A2, tauq, taup, X2, Y2);
-
-        //
-        // Update the trailing submatrix A(i+nb:m,i+nb:n), using an update
-        // of the form  A := A - V*Y**H - X*U**H
-        //
-        if (i + ib < m && i + ib < n) {
-            real_t e;
-            auto A3 = slice(A, range{i + ib, m}, range{i + ib, n});
-
-            if (m >= n) {
-                e = real(A(i + ib - 1, i + ib));
-                A(i + ib - 1, i + ib) = one;
-            }
-            else {
-                e = real(A(i + ib, i + ib - 1));
-                A(i + ib, i + ib - 1) = one;
-            }
-
-            auto V = slice(A, range{i + ib, m}, range{i, i + ib});
-            auto Y3 = slice(Y, range{i + ib, n}, range{0, ib});
-            gemm(NO_TRANS, CONJ_TRANS, -one, V, Y3, one, A3);
-            auto U = slice(A, range{i, i + ib}, range{i + ib, n});
-            auto X3 = slice(X, range{i + ib, m}, range{0, ib});
-            gemm(NO_TRANS, NO_TRANS, -one, X3, U, one, A3);
-
-            if (m >= n)
-                A(i + ib - 1, i + ib) = e;
-            else
-                A(i + ib, i + ib - 1) = e;
-        }
-    }
-
-    return 0;
+    return gebrd_work(A, tauv, tauw, work, opts);
 }
 
 }  // namespace tlapack

@@ -35,6 +35,8 @@ namespace tlapack {
  *
  * @return true if A has an NaN entry.
  * @return false if A has no NaN entry.
+ *
+ * @ingroup exception
  */
 template <TLAPACK_UPLO uplo_t, TLAPACK_MATRIX matrix_t>
 bool hasnan(uplo_t uplo, const matrix_t& A)
@@ -100,6 +102,8 @@ bool hasnan(uplo_t uplo, const matrix_t& A)
  *
  * Specific implementation for band access types.
  * @see tlapack::hasnan(uplo_t uplo, const matrix_t& A).
+ *
+ * @ingroup exception
  */
 template <TLAPACK_MATRIX matrix_t>
 bool hasnan(BandAccess accessType, const matrix_t& A) noexcept
@@ -125,6 +129,8 @@ bool hasnan(BandAccess accessType, const matrix_t& A) noexcept
  *
  * @return true if x has an NaN entry.
  * @return false if x has no NaN entry.
+ *
+ * @ingroup exception
  */
 template <TLAPACK_VECTOR vector_t>
 bool hasnan(const vector_t& x) noexcept

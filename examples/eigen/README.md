@@ -2,7 +2,7 @@
 
 In this example, we compute the QR factorization of an Eigen::Matrix using \<T\>LAPACK. We then compare with the QR factorization using only Eigen routines.
 
-```C++
+```cpp
     // Input data
     Eigen::Matrix<float, m, n> A {
         { 1,  2,  3},

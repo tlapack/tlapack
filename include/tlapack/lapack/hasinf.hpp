@@ -35,6 +35,8 @@ namespace tlapack {
  *
  * @return true if A has an infinite entry.
  * @return false if A has no infinite entry.
+ *
+ * @ingroup exception
  */
 template <TLAPACK_UPLO uplo_t, TLAPACK_MATRIX matrix_t>
 bool hasinf(uplo_t uplo, const matrix_t& A)
@@ -100,6 +102,8 @@ bool hasinf(uplo_t uplo, const matrix_t& A)
  *
  * Specific implementation for band access types.
  * @see tlapack::hasinf(uplo_t uplo, const matrix_t& A).
+ *
+ * @ingroup exception
  */
 template <TLAPACK_MATRIX matrix_t>
 bool hasinf(BandAccess accessType, const matrix_t& A) noexcept
@@ -125,6 +129,8 @@ bool hasinf(BandAccess accessType, const matrix_t& A) noexcept
  *
  * @return true if x has an infinite entry.
  * @return false if x has no infinite entry.
+ *
+ * @ingroup exception
  */
 template <TLAPACK_VECTOR vector_t>
 bool hasinf(const vector_t& x) noexcept

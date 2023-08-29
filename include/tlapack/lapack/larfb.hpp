@@ -92,74 +92,11 @@ constexpr WorkInfo larfb_worksize(side_t side,
         return WorkInfo(0);
 }
 
-/** Applies a block reflector $H$ or its conjugate transpose $H^H$ to a
- * m-by-n matrix C, from either the left or the right.
- *
- * @param[in] side
- *     - Side::Left:  apply $H$ or $H^H$ from the Left.
- *     - Side::Right: apply $H$ or $H^H$ from the Right.
- *
- * @param[in] trans
- *     - Op::NoTrans:   apply $H  $ (No transpose).
- *     - Op::Trans:     apply $H^T$ (Transpose, only allowed if the type of H is
- * Real).
- *     - Op::ConjTrans: apply $H^H$ (Conjugate transpose).
- *
- * @param[in] direction
- *     Indicates how H is formed from a product of elementary reflectors.
- *     - Direction::Forward:  $H = H(1) H(2) ... H(k)$.
- *     - Direction::Backward: $H = H(k) ... H(2) H(1)$.
- *
- * @param[in] storeMode
- *     Indicates how the vectors which define the elementary reflectors are
- * stored:
- *     - StoreV::Columnwise.
- *     - StoreV::Rowwise.
- *     See Further Details.
- *
- * @param[in] V
- *     - If storeMode = StoreV::Columnwise:
- *       - if side = Side::Left,  the m-by-k matrix V;
- *       - if side = Side::Right, the n-by-k matrix V.
- *     - If storeMode = StoreV::Rowwise:
- *       - if side = Side::Left,  the k-by-m matrix V;
- *       - if side = Side::Right, the k-by-n matrix V.
- *
- * @param[in] Tmatrix
- *     The k-by-k matrix T.
- *     The triangular k-by-k matrix T in the representation of the block
- * reflector.
- *
- * @param[in,out] C
- *     On entry, the m-by-n matrix C.
- *     On exit, C is overwritten by $H C$ or $H^H C$ or $C H$ or $C H^H$.
+/** @copybrief larfb()
+ * Workspace is provided as an argument.
+ * @copydetails larfb()
  *
  * @param work Workspace. Use the workspace query to determine the size needed.
- *
- * @par Further Details
- *
- * The shape of the matrix V and the storage of the vectors which define
- * the H(i) is best illustrated by the following example with n = 5 and
- * k = 3. The elements equal to 1 are not stored. The rest of the
- * array is not used.
- *
- *     direction = Forward and          direction = Forward and
- *     storeMode = Columnwise:             storeMode = Rowwise:
- *
- *     V = (  1       )                 V = (  1 v1 v1 v1 v1 )
- *         ( v1  1    )                     (     1 v2 v2 v2 )
- *         ( v1 v2  1 )                     (        1 v3 v3 )
- *         ( v1 v2 v3 )
- *         ( v1 v2 v3 )
- *
- *     direction = Backward and         direction = Backward and
- *     storeMode = Columnwise:             storeMode = Rowwise:
- *
- *     V = ( v1 v2 v3 )                 V = ( v1 v1  1       )
- *         ( v1 v2 v3 )                     ( v2 v2 v2  1    )
- *         (  1 v2 v3 )                     ( v3 v3 v3 v3  1 )
- *         (     1 v3 )
- *         (        1 )
  *
  * @ingroup auxiliary
  */
@@ -541,6 +478,31 @@ int larfb_work(side_t side,
  * @param[in,out] C
  *     On entry, the m-by-n matrix C.
  *     On exit, C is overwritten by $H C$ or $H^H C$ or $C H$ or $C H^H$.
+ *
+ * @par Further Details
+ *
+ * The shape of the matrix V and the storage of the vectors which define
+ * the H(i) is best illustrated by the following example with n = 5 and
+ * k = 3. The elements equal to 1 are not stored. The rest of the
+ * array is not used.
+ *
+ *     direction = Forward and          direction = Forward and
+ *     storeMode = Columnwise:             storeMode = Rowwise:
+ *
+ *     V = (  1       )                 V = (  1 v1 v1 v1 v1 )
+ *         ( v1  1    )                     (     1 v2 v2 v2 )
+ *         ( v1 v2  1 )                     (        1 v3 v3 )
+ *         ( v1 v2 v3 )
+ *         ( v1 v2 v3 )
+ *
+ *     direction = Backward and         direction = Backward and
+ *     storeMode = Columnwise:             storeMode = Rowwise:
+ *
+ *     V = ( v1 v2 v3 )                 V = ( v1 v1  1       )
+ *         ( v1 v2 v3 )                     ( v2 v2 v2  1    )
+ *         (  1 v2 v3 )                     ( v3 v3 v3 v3  1 )
+ *         (     1 v3 )
+ *         (        1 )
  *
  * @ingroup auxiliary
  */

@@ -15,9 +15,10 @@
 
 namespace tlapack {
 
+/// @brief Options struct for lu_mult()
 struct LuMultOpts {
-    // Optimization parameter. Matrices smaller than nx will not
-    // be multiplied using recursion. Must be at least 1.
+    /// Optimization parameter. Matrices smaller than nx will not
+    /// be multiplied using recursion. Must be at least 1.
     size_t nx = 1;
 };
 
