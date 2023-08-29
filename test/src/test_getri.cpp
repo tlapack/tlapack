@@ -9,9 +9,6 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#include <catch2/catch_template_test_macros.hpp>
-#include <catch2/generators/catch_generators.hpp>
-
 // Test utilities and definitions (must come before <T>LAPACK headers)
 #include "testutils.hpp"
 
@@ -30,7 +27,6 @@ TEMPLATE_TEST_CASE("Inversion of a general m-by-n matrix",
                    "[getri]",
                    TLAPACK_TYPES_TO_TEST)
 {
-    srand(1);
     using matrix_t = TestType;
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
@@ -38,6 +34,9 @@ TEMPLATE_TEST_CASE("Inversion of a general m-by-n matrix",
 
     // Functor
     Create<matrix_t> new_matrix;
+
+    // MatrixMarket reader
+    MatrixMarket mm;
 
     // n represent no. rows and columns of the square matrices we will
     // performing tests on
@@ -58,10 +57,7 @@ TEMPLATE_TEST_CASE("Inversion of a general m-by-n matrix",
         auto invA = new_matrix(invA_, n, n);
 
         // forming A, a random matrix
-        for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = 0; i < n; ++i) {
-                A(i, j) = rand_helper<T>();
-            }
+        mm.random(A);
 
         // make a deep copy A
         lacpy(GENERAL, A, invA);

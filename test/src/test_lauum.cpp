@@ -8,9 +8,6 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#include <catch2/catch_template_test_macros.hpp>
-#include <catch2/generators/catch_generators.hpp>
-
 // Test utilities and definitions (must come before <T>LAPACK headers)
 #include "testutils.hpp"
 
@@ -25,8 +22,6 @@ using namespace tlapack;
 
 TEMPLATE_TEST_CASE("LAUUM is stable", "[lauum]", TLAPACK_TYPES_TO_TEST)
 {
-    srand(1);
-
     using matrix_t = TestType;
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
@@ -34,6 +29,9 @@ TEMPLATE_TEST_CASE("LAUUM is stable", "[lauum]", TLAPACK_TYPES_TO_TEST)
 
     // Functor
     Create<matrix_t> new_matrix;
+
+    // MatrixMarket reader
+    MatrixMarket mm;
 
     Uplo uplo = GENERATE(Uplo::Lower, Uplo::Upper);
     idx_t n = GENERATE(1, 2, 6, 9);
@@ -47,9 +45,7 @@ TEMPLATE_TEST_CASE("LAUUM is stable", "[lauum]", TLAPACK_TYPES_TO_TEST)
     auto C = new_matrix(C_, n, n);
 
     // Generate random matrix
-    for (idx_t j = 0; j < n; ++j)
-        for (idx_t i = 0; i < n; ++i)
-            A(i, j) = rand_helper<T>();
+    mm.random(A);
 
     lacpy(GENERAL, A, C);
 

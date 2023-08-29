@@ -175,6 +175,11 @@ cmake_dependent_option( BUILD_testBLAS_TESTS "Build testBLAS tests"
   OFF # Value when condition is false 
 )
 
+cmake_dependent_option( BUILD_STANDALONE_TESTS "Build tests as standalone executables in addition to tests for CTest"
+  OFF "BUILD_TESTING" # Default value when condition is true
+  OFF # Value when condition is false 
+)
+
 #-------------------------------------------------------------------------------
 # Modules
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")

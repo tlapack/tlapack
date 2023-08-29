@@ -7,10 +7,10 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#include <catch2/catch_template_test_macros.hpp>
-#include <catch2/generators/catch_generators.hpp>
-#include <tlapack/base/concepts.hpp>
+// Test utilities and definitions (must come before <T>LAPACK headers)
+#include "testutils.hpp"
 
+// Load NaNPropagComplex
 #include "NaNPropagComplex.hpp"
 
 #if __cplusplus >= 202002L

@@ -126,6 +126,14 @@ inline ostream& operator<<(ostream& out, const __float128& x)
     return out;
 }
 
+inline istream& operator>>(istream& in, __float128& x)
+{
+    char buf[128];
+    in >> buf;
+    x = strtoflt128(buf, nullptr);
+    return in;
+}
+
 }  // namespace std
 
 #endif

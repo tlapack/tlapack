@@ -9,9 +9,6 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#include <catch2/catch_template_test_macros.hpp>
-#include <catch2/generators/catch_generators.hpp>
-
 // Test utilities and definitions (must come before <T>LAPACK headers)
 #include "testutils.hpp"
 
@@ -31,8 +28,6 @@ TEMPLATE_TEST_CASE("bidiagonal reduction is backward stable",
                    "[bidiagonal][svd]",
                    TLAPACK_TYPES_TO_TEST)
 {
-    srand(1);
-
     using matrix_t = TestType;
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
@@ -41,6 +36,9 @@ TEMPLATE_TEST_CASE("bidiagonal reduction is backward stable",
 
     // Functor
     Create<matrix_t> new_matrix;
+
+    // MatrixMarket reader
+    MatrixMarket mm;
 
     using variant_t = pair<BidiagVariant, idx_t>;
     const variant_t variant = GENERATE((variant_t(BidiagVariant::Blocked, 1)),
@@ -66,9 +64,7 @@ TEMPLATE_TEST_CASE("bidiagonal reduction is backward stable",
     std::vector<T> tauw(k);
 
     // Generate random m-by-n matrix
-    for (idx_t j = 0; j < n; ++j)
-        for (idx_t i = 0; i < m; ++i)
-            A(i, j) = rand_helper<T>();
+    mm.random(A);
 
     lacpy(GENERAL, A, A_copy);
     real_t normA = lange(MAX_NORM, A);

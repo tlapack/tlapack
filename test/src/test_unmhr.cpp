@@ -8,9 +8,6 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#include <catch2/catch_template_test_macros.hpp>
-#include <catch2/generators/catch_generators.hpp>
-
 // Test utilities and definitions (must come before <T>LAPACK headers)
 #include "testutils.hpp"
 
@@ -29,8 +26,6 @@ TEMPLATE_TEST_CASE("Result of unmhr matches result from unghr",
                    "[eigenvalues][hessenberg]",
                    TLAPACK_TYPES_TO_TEST)
 {
-    srand(1);
-
     using matrix_t = TestType;
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
@@ -40,7 +35,10 @@ TEMPLATE_TEST_CASE("Result of unmhr matches result from unghr",
     // Functor
     Create<matrix_t> new_matrix;
 
-    const std::string matrix_type = GENERATE(as<std::string>{}, "Random");
+    // MatrixMarket reader
+    MatrixMarket mm;
+
+    const std::string matrix_type = "Random";
     Side side = GENERATE(Side::Left, Side::Right);
     Op op = GENERATE(Op::NoTrans, Op::ConjTrans);
 
@@ -65,14 +63,10 @@ TEMPLATE_TEST_CASE("Result of unmhr matches result from unghr",
 
     if (matrix_type == "Random") {
         // Generate a random matrix in H
-        for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = 0; i < n; ++i)
-                H(i, j) = rand_helper<T>();
+        mm.random(H);
 
         // Generate a random matrix in C
-        for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = 0; i < m; ++i)
-                C(i, j) = rand_helper<T>();
+        mm.random(C);
     }
     lacpy(GENERAL, C, C_copy);
 

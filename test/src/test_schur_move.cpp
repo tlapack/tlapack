@@ -8,9 +8,6 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#include <catch2/catch_template_test_macros.hpp>
-#include <catch2/generators/catch_generators.hpp>
-
 // Test utilities and definitions (must come before <T>LAPACK headers)
 #include "testutils.hpp"
 
@@ -27,8 +24,6 @@ TEMPLATE_TEST_CASE("move of eigenvalue block gives correct results",
                    "[eigenvalues]",
                    TLAPACK_TYPES_TO_TEST)
 {
-    srand(1);
-
     using matrix_t = TestType;
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
@@ -36,6 +31,9 @@ TEMPLATE_TEST_CASE("move of eigenvalue block gives correct results",
 
     // Functor
     Create<matrix_t> new_matrix;
+
+    // MatrixMarket reader
+    MatrixMarket mm;
 
     const T zero(0);
     const T one(1);
@@ -62,10 +60,9 @@ TEMPLATE_TEST_CASE("move of eigenvalue block gives correct results",
         auto A_copy = new_matrix(A_copy_, n, n);
 
         // Generate random matrix in Schur form
-        for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = 0; i < n; ++i)
-                A(i, j) = rand_helper<T>();
+        mm.random(A);
 
+        // Zero out the lower triangular part
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = j + 1; i < n; ++i)
                 A(i, j) = zero;

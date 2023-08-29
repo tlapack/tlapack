@@ -164,7 +164,6 @@ jobs:
       if: ${{ matrix.os == 'ubuntu-latest' }}
       run: >
         cmake -B build -G Ninja
-        -D BUILD_TESTING=ON
         -D BUILD_BLASPP_TESTS=ON
         -D TLAPACK_TEST_EIGEN=ON
         -D TLAPACK_TEST_MDSPAN=ON
@@ -200,6 +199,7 @@ jobs:
         -D BUILD_SHARED_LIBS=ON
         -D BUILD_EXAMPLES=ON
         -D BUILD_TESTING=ON
+        -D BUILD_STANDALONE_TESTS=ON
         -D BUILD_C_WRAPPERS=ON
         -D BUILD_Fortran_WRAPPERS=ON
         -D BUILD_CBLAS_WRAPPERS=ON
@@ -218,6 +218,11 @@ jobs:
       # Execute tests defined by the CMake configuration.  
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
       run: ctest -C ${{env.BUILD_TYPE}} --output-on-failure
+
+    - name: Run some standalone tests
+      if: ${{ matrix.os == 'ubuntu-latest' }}
+      working-directory: ${{github.workspace}}
+      run: ./build/test/src/standalone_test_hessenberg < test/src/input/test_hessenberg_float_1.in
 
     - name: Install
       run: cmake --build build --target install
@@ -251,6 +256,7 @@ jobs:
         -D BUILD_SHARED_LIBS=ON
         -D BUILD_EXAMPLES=ON
         -D BUILD_TESTING=ON
+        -D BUILD_STANDALONE_TESTS=ON
         -D BUILD_testBLAS_TESTS=OFF
         -D TLAPACK_TEST_MPFR=ON
         -D TLAPACK_TEST_QUAD=ON
@@ -327,6 +333,7 @@ jobs:
         -D BUILD_SHARED_LIBS=ON
         -D BUILD_EXAMPLES=ON
         -D BUILD_TESTING=ON
+        -D BUILD_STANDALONE_TESTS=ON
         -D BUILD_C_WRAPPERS=ON
         -D BUILD_Fortran_WRAPPERS=ON
         -D BUILD_CBLAS_WRAPPERS=ON
@@ -491,6 +498,7 @@ jobs:
         -D BUILD_SHARED_LIBS=ON
         -D BUILD_EXAMPLES=ON
         -D BUILD_TESTING=ON
+        -D BUILD_STANDALONE_TESTS=ON
         -D BUILD_C_WRAPPERS=ON
         -D BUILD_Fortran_WRAPPERS=ON
         -D BUILD_CBLAS_WRAPPERS=ON
@@ -583,6 +591,7 @@ jobs:
         -D BUILD_SHARED_LIBS=ON
         -D BUILD_EXAMPLES=ON
         -D BUILD_TESTING=ON
+        -D BUILD_STANDALONE_TESTS=ON
         -D BUILD_C_WRAPPERS=ON
         -D BUILD_Fortran_WRAPPERS=ON
         -D BUILD_CBLAS_WRAPPERS=ON
@@ -655,6 +664,7 @@ jobs:
         -D BUILD_SHARED_LIBS=ON
         -D BUILD_EXAMPLES=ON
         -D BUILD_TESTING=ON
+        -D BUILD_STANDALONE_TESTS=ON
         -D BUILD_C_WRAPPERS=ON
         -D BUILD_Fortran_WRAPPERS=ON
         -D BUILD_CBLAS_WRAPPERS=ON

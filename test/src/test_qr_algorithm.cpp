@@ -9,9 +9,6 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#include <catch2/catch_template_test_macros.hpp>
-#include <catch2/generators/catch_generators.hpp>
-
 // Test utilities and definitions (must come before <T>LAPACK headers)
 #include "testutils.hpp"
 
@@ -30,8 +27,6 @@ TEMPLATE_TEST_CASE("QR algorithm",
                    "[eigenvalues][doubleshift_qr][multishift_qr]",
                    TLAPACK_TYPES_TO_TEST)
 {
-    srand(1);
-
     using matrix_t = TestType;
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
@@ -40,6 +35,9 @@ TEMPLATE_TEST_CASE("QR algorithm",
 
     // Functor
     Create<matrix_t> new_matrix;
+
+    // MatrixMarket reader
+    MatrixMarket mm;
 
     using test_tuple_t = std::tuple<std::string, idx_t>;
     const test_tuple_t test_tuple = GENERATE(
@@ -69,12 +67,12 @@ TEMPLATE_TEST_CASE("QR algorithm",
     const idx_t nw = std::get<2>(variant);
 
     // Only run the large random test once
-    if (matrix_type == "Large Random" && seed != 2) return;
+    if (matrix_type == "Large Random" && seed != 2) SKIP_TEST;
 
     // Only run the large random if we are testing multishift qr
     if (matrix_type == "Large Random" &&
         std::get<0>(variant) != QRIterationVariant::MultiShift)
-        return;
+        SKIP_TEST;
 
     // Random number generator
     rand_generator gen;
@@ -89,40 +87,25 @@ TEMPLATE_TEST_CASE("QR algorithm",
     auto Q = new_matrix(Q_, n, n);
 
     if (matrix_type == "Random") {
-        for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = 0; i < min(n, j + 2); ++i)
-                A(i, j) = rand_helper<T>(gen);
-
-        for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = j + 2; i < n; ++i)
-                A(i, j) = zero;
+        mm.hessenberg(A);
     }
     if (matrix_type == "Near overflow") {
         const real_t large_num = safe_max<real_t>() * ulp<real_t>();
-
-        for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = 0; i < min(n, j + 2); ++i)
-                A(i, j) = large_num;
-
-        for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = j + 2; i < n; ++i)
-                A(i, j) = zero;
+        mm.single_value(A, large_num);
     }
     if (matrix_type == "Large Random") {
         // Generate full matrix
-        for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = 0; i < n; ++i)
-                A(i, j) = rand_helper<T>(gen);
+        mm.random(A);
 
         // Hessenberg factorization
         std::vector<T> tau(n);
         gehrd(0, n, A, tau);
-
-        // Throw away reflectors
-        for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = j + 2; i < n; ++i)
-                A(i, j) = zero;
     }
+
+    // Throw away reflectors
+    for (idx_t j = 0; j < n; ++j)
+        for (idx_t i = j + 2; i < n; ++i)
+            A(i, j) = zero;
 
     // Make sure ilo and ihi correspond to the actual matrix
     for (idx_t j = 0; j < ilo; ++j)

@@ -16,6 +16,9 @@
 // Definitions
 #include "testdefinitions.hpp"
 
+// Matrix market
+#include "MatrixMarket.hpp"
+
 // Plugin for debug
 #include <tlapack/plugins/debugutils.hpp>
 
@@ -28,57 +31,109 @@
 #include <tlapack/lapack/lanhe.hpp>
 #include <tlapack/lapack/laset.hpp>
 
+#ifndef TLAPACK_BUILD_STANDALONE_TESTS
+    #include <catch2/catch_template_test_macros.hpp>
+    #include <catch2/generators/catch_generators.hpp>
+
+    /// Skip the current test
+    #define SKIP_TEST return
+#else
+    #include <iostream>
+    #include <tuple>
+
+    /// Skip the current test
+    #define SKIP_TEST return 0
+
+    // Get first argument of a variadic macro
+    #define GET_FIRST_ARG(arg1, ...) arg1
+
+    // Below, it is a solution found in
+    // https://stackoverflow.com/a/62984543/5253097
+    #define DEPAREN(X) ESC(ISH X)
+    #define ISH(...) ISH __VA_ARGS__
+    #define ESC(...) ESC_(__VA_ARGS__)
+    #define ESC_(...) VAN##__VA_ARGS__
+    #define VANISH
+
 namespace tlapack {
+namespace catch2 {
 
-class rand_generator {
-   private:
-    const uint64_t a = 6364136223846793005;
-    const uint64_t c = 1442695040888963407;
-    uint64_t state = 1302;
+    std::string return_scanf(const char*);
+    std::string return_scanf(std::string);
 
-   public:
-    uint32_t min() { return 0; }
-
-    uint32_t max() { return UINT32_MAX; }
-
-    void seed(uint64_t s) { state = s; }
-
-    uint32_t operator()()
+    template <class T>
+    T return_scanf(T)
     {
-        state = state * a + c;
-        return state >> 32;
+        if constexpr (std::is_integral<T>::value) {
+            T arg;
+            std::cin >> arg;
+            return arg;
+        }
+        else if constexpr (std::is_enum<T>::value) {
+            char c;
+            std::cin >> c;
+            return T(c);
+        }
+
+        std::abort();
+        std::cout << "Include more cases here!\n";
+        return {};
     }
-};
+    template <class T, class U>
+    pair<T, U> return_scanf(pair<T, U>)
+    {
+        const T x = return_scanf(T());
+        const U y = return_scanf(U());
+        return pair<T, U>(x, y);
+    }
+    template <class... Ts>
+    std::tuple<Ts...> return_scanf(std::tuple<Ts...>)
+    {
+        std::tuple<Ts...> t;
+        constexpr size_t N = std::tuple_size<std::tuple<Ts...>>::value;
+        if constexpr (N > 0)
+            std::get<0>(t) = return_scanf(std::get<0>(std::tuple<Ts...>()));
+        if constexpr (N > 1)
+            std::get<1>(t) = return_scanf(std::get<1>(std::tuple<Ts...>()));
+        if constexpr (N > 2)
+            std::get<2>(t) = return_scanf(std::get<2>(std::tuple<Ts...>()));
+        if constexpr (N > 3)
+            std::get<3>(t) = return_scanf(std::get<3>(std::tuple<Ts...>()));
+        if constexpr (N > 4)
+            std::get<4>(t) = return_scanf(std::get<4>(std::tuple<Ts...>()));
+        if constexpr (N > 5)
+            std::get<5>(t) = return_scanf(std::get<5>(std::tuple<Ts...>()));
+        if constexpr (N > 6) {
+            std::abort();
+            std::cout << "Include more cases here!\n";
+        }
+        return t;
+    }
+}  // namespace catch2
+}  // namespace tlapack
 
-template <typename T, enable_if_t<is_real<T>, bool> = true>
-T rand_helper(rand_generator& gen)
-{
-    return T(static_cast<float>(gen()) / static_cast<float>(gen.max()));
-}
+    #define TEMPLATE_TEST_CASE(TITLE, TAGS, ...)              \
+        using TestType = DEPAREN(GET_FIRST_ARG(__VA_ARGS__)); \
+        int main(const int argc, const char* argv[])
 
-template <typename T, enable_if_t<is_complex<T>, bool> = true>
-T rand_helper(rand_generator& gen)
-{
-    using real_t = real_type<T>;
-    real_t r1(static_cast<float>(gen()) / static_cast<float>(gen.max()));
-    real_t r2(static_cast<float>(gen()) / static_cast<float>(gen.max()));
-    return complex_type<real_t>(r1, r2);
-}
+    #define GENERATE(...) \
+        tlapack::catch2::return_scanf(GET_FIRST_ARG(__VA_ARGS__))
 
-template <typename T, enable_if_t<is_real<T>, bool> = true>
-T rand_helper()
-{
-    return T(static_cast<float>(rand()) / static_cast<float>(RAND_MAX));
-}
+    #define DYNAMIC_SECTION(...) std::cout << __VA_ARGS__ << std::endl;
 
-template <typename T, enable_if_t<is_complex<T>, bool> = true>
-T rand_helper()
-{
-    using real_t = real_type<T>;
-    real_t r1(static_cast<float>(rand()) / static_cast<float>(RAND_MAX));
-    real_t r2(static_cast<float>(rand()) / static_cast<float>(RAND_MAX));
-    return complex_type<real_t>(r1, r2);
-}
+    #define REQUIRE(cond)          \
+        std::cout << #cond << ": " \
+                  << (static_cast<bool>(cond) ? "true" : "false") << std::endl
+
+    #define CHECK(cond)            \
+        std::cout << #cond << ": " \
+                  << (static_cast<bool>(cond) ? "true" : "false") << std::endl
+
+    #define INFO(...) std::cout << __VA_ARGS__ << std::endl;
+    #define UNSCOPED_INFO(...) std::cout << __VA_ARGS__ << std::endl;
+#endif
+
+namespace tlapack {
 
 /** Calculates res = Q'*Q - I if m <= n or res = Q*Q' otherwise
  *  Also computes the frobenius norm of res.
