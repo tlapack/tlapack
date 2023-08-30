@@ -50,20 +50,18 @@ jobs:
           wget https://www.doxygen.nl/files/doxygen-1.9.8.linux.bin.tar.gz
           tar -xzf doxygen-1.9.8.linux.bin.tar.gz
           cd doxygen-1.9.8
-          sudo mv bin/* /usr/local/bin
-
-      - name: Prepare the documentation
-        run: |
-          cmake -B build -D BUILD_TESTING=OFF -D BUILD_EXAMPLES=OFF
+          sudo make install
 
       - name: Generate the documentation
-        run: doxygen docs/Doxyfile
+        run: |
+          cmake -B build
+          cmake --build build --target doxygen
       
       - name: Upload artifact
         uses: actions/upload-pages-artifact@a753861a5debcf57bf8b404356158c8e1e33150c # v2.0.0
         with:
           # Upload docs/html
-          path: 'docs/html'
+          path: 'build/docs/html'
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@9dbe3824824f8a1377b8e298bafde1a50ede43e5 # v2.0.4
