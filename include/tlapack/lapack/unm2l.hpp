@@ -103,7 +103,7 @@ constexpr WorkInfo unm2l_worksize(side_t side,
  *      - side = Side::Left  & trans = Op::ConjTrans:  $C := C Q^H$;
  *      - side = Side::Right & trans = Op::ConjTrans:  $C := Q^H C$.
  *
- * @ingroup computational
+ * @ingroup alloc_workspace
  */
 template <TLAPACK_SMATRIX matrixA_t,
           TLAPACK_SMATRIX matrixC_t,
@@ -126,12 +126,6 @@ int unm2l(side_t side,
     const idx_t m = nrows(C);
     const idx_t n = ncols(C);
     const idx_t k = size(tau);
-
-    // check arguments
-    tlapack_check_false(side != Side::Left && side != Side::Right);
-    tlapack_check_false(trans != Op::NoTrans && trans != Op::Trans &&
-                        trans != Op::ConjTrans);
-    tlapack_check_false(trans == Op::Trans && is_complex<TA>);
 
     // quick return
     if ((m == 0) || (n == 0) || (k == 0)) return 0;

@@ -17,11 +17,13 @@
 
 namespace tlapack {
 
+/// @brief Variants of the algorithm to compute the inverse of a matrix.
 enum class GetriVariant : char {
     UILI = 'D',  ///< Method D from doi:10.1137/1.9780898718027
     UXLI = 'C'   ///< Method C from doi:10.1137/1.9780898718027
 };
 
+/// @brief Options struct for getri()
 struct GetriOpts {
     GetriVariant variant = GetriVariant::UILI;
 };
@@ -52,6 +54,49 @@ constexpr WorkInfo getri_worksize(const matrix_t& A,
     return WorkInfo(0);
 }
 
+/** @copybrief getri()
+ * Workspace is provided as an argument.
+ * @copydetails getri()
+ *
+ * @param work Workspace. Use the workspace query to determine the size needed.
+ *
+ * @ingroup variant_interface
+ */
+template <TLAPACK_SMATRIX matrix_t,
+          TLAPACK_VECTOR piv_t,
+          TLAPACK_WORKSPACE work_t>
+int getri_work(matrix_t& A,
+               const piv_t& piv,
+               work_t& work,
+               const GetriOpts& opts = {})
+{
+    using idx_t = size_type<matrix_t>;
+
+    // Constants
+    const idx_t n = ncols(A);
+
+    // Call variant
+    int info;
+    if (opts.variant == GetriVariant::UXLI)
+        info = getri_uxli_work(A, work);
+    else
+        info = getri_uili(A);
+
+    // Return is matrix is not invertible
+    if (info != 0) return info;
+
+    // swap columns of X to find A^{-1} since A^{-1}=X P
+    for (idx_t j = n; j-- > 0;) {
+        if (piv[j] != j) {
+            auto vect1 = tlapack::col(A, j);
+            auto vect2 = tlapack::col(A, piv[j]);
+            tlapack::swap(vect1, vect2);
+        }
+    }
+
+    return 0;
+}
+
 /** getri computes inverse of a general n-by-n matrix A
  *
  * @return = 0: successful exit
@@ -71,15 +116,12 @@ constexpr WorkInfo getri_worksize(const matrix_t& A,
  *          - UILI = 'D', ///< Method D from doi:10.1137/1.9780898718027
  *          - UXLI = 'C'  ///< Method C from doi:10.1137/1.9780898718027
  *
- * @ingroup computational
+ * @ingroup variant_interface
  */
 template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR piv_t>
 int getri(matrix_t& A, const piv_t& piv, const GetriOpts& opts = {})
 {
     using idx_t = size_type<matrix_t>;
-
-    // check arguments
-    tlapack_check(nrows(A) == ncols(A));
 
     // Constants
     const idx_t n = ncols(A);
@@ -104,8 +146,7 @@ int getri(matrix_t& A, const piv_t& piv, const GetriOpts& opts = {})
     }
 
     return 0;
-
-}  // getri
+}
 
 }  // namespace tlapack
 

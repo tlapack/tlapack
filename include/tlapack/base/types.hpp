@@ -16,53 +16,6 @@
 #include "tlapack/base/StrongZero.hpp"
 #include "tlapack/base/scalar_type_traits.hpp"
 
-// Helpers:
-
-#define TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_2_VALUES(EnumClass, A, B)       \
-    inline std::ostream& operator<<(std::ostream& out, const EnumClass v) \
-    {                                                                     \
-        if (v == EnumClass::A) return out << #A;                          \
-        if (v == EnumClass::B) return out << #B;                          \
-        return out << "<Invalid>";                                        \
-    }
-
-#define TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_4_VALUES(EnumClass, A, B, C, D) \
-    inline std::ostream& operator<<(std::ostream& out, const EnumClass v) \
-    {                                                                     \
-        if (v == EnumClass::A) return out << #A;                          \
-        if (v == EnumClass::B) return out << #B;                          \
-        if (v == EnumClass::C) return out << #C;                          \
-        if (v == EnumClass::D) return out << #D;                          \
-        return out << "<Invalid>";                                        \
-    }
-
-#define TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_5_VALUES(EnumClass, A, B, C, D, E) \
-    inline std::ostream& operator<<(std::ostream& out, const EnumClass v)    \
-    {                                                                        \
-        if (v == EnumClass::A) return out << #A;                             \
-        if (v == EnumClass::B) return out << #B;                             \
-        if (v == EnumClass::C) return out << #C;                             \
-        if (v == EnumClass::D) return out << #D;                             \
-        if (v == EnumClass::E) return out << #E;                             \
-        return out << "<Invalid>";                                           \
-    }
-
-#define TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_7_VALUES(EnumClass, A, B, C, D, E, \
-                                                   F, G)                     \
-    inline std::ostream& operator<<(std::ostream& out, const EnumClass v)    \
-    {                                                                        \
-        if (v == EnumClass::A) return out << #A;                             \
-        if (v == EnumClass::B) return out << #B;                             \
-        if (v == EnumClass::C) return out << #C;                             \
-        if (v == EnumClass::D) return out << #D;                             \
-        if (v == EnumClass::E) return out << #E;                             \
-        if (v == EnumClass::F) return out << #F;                             \
-        if (v == EnumClass::G) return out << #G;                             \
-        return out << "<Invalid>";                                           \
-    }
-
-// Types:
-
 namespace tlapack {
 
 // -----------------------------------------------------------------------------
@@ -77,8 +30,14 @@ enum class Layout : char {
                      ///< is at ptr + i*ldim + j.
     Unspecified = 0  ///< Used on all other data structures.
 };
-TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_4_VALUES(
-    Layout, Unspecified, ColMajor, RowMajor, Strided)
+inline std::ostream& operator<<(std::ostream& out, const Layout v)
+{
+    if (v == Layout::Unspecified) return out << "Unspecified";
+    if (v == Layout::ColMajor) return out << "ColMajor";
+    if (v == Layout::RowMajor) return out << "RowMajor";
+    if (v == Layout::Strided) return out << "Strided";
+    return out << "<Invalid>";
+}
 
 // -----------------------------------------------------------------------------
 // Upper or Lower access
@@ -92,14 +51,17 @@ enum class Uplo : char {
     StrictUpper = 'S',      ///< 0 <= i <= j-1, 0 <= j <= n.
     StrictLower = 6,        ///< 0 <= i <= m,   0 <= j <= i-1.
 };
-TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_7_VALUES(Uplo,
-                                           Upper,
-                                           Lower,
-                                           General,
-                                           UpperHessenberg,
-                                           LowerHessenberg,
-                                           StrictUpper,
-                                           StrictLower)
+inline std::ostream& operator<<(std::ostream& out, const Uplo v)
+{
+    if (v == Uplo::Upper) return out << "Upper";
+    if (v == Uplo::Lower) return out << "Lower";
+    if (v == Uplo::General) return out << "General";
+    if (v == Uplo::UpperHessenberg) return out << "UpperHessenberg";
+    if (v == Uplo::LowerHessenberg) return out << "LowerHessenberg";
+    if (v == Uplo::StrictUpper) return out << "StrictUpper";
+    if (v == Uplo::StrictLower) return out << "StrictLower";
+    return out << "<Invalid>";
+}
 
 namespace internal {
     /**
@@ -231,7 +193,12 @@ enum class Diag : char {
     NonUnit = 'N',  ///< The main diagonal is not assumed to consist of 1's.
     Unit = 'U'      ///< The main diagonal is assumed to consist of 1's.
 };
-TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_2_VALUES(Diag, NonUnit, Unit)
+inline std::ostream& operator<<(std::ostream& out, const Diag v)
+{
+    if (v == Diag::NonUnit) return out << "NonUnit";
+    if (v == Diag::Unit) return out << "Unit";
+    return out << "<Invalid>";
+}
 
 namespace internal {
     struct NonUnitDiagonal {
@@ -258,7 +225,14 @@ enum class Op : char {
     ConjTrans = 'C',  ///< conjugate transpose
     Conj = 3          ///< non-transpose conjugate
 };
-TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_4_VALUES(Op, NoTrans, Trans, ConjTrans, Conj)
+inline std::ostream& operator<<(std::ostream& out, const Op v)
+{
+    if (v == Op::NoTrans) return out << "NoTrans";
+    if (v == Op::Trans) return out << "Trans";
+    if (v == Op::ConjTrans) return out << "ConjTrans";
+    if (v == Op::Conj) return out << "Conj";
+    return out << "<Invalid>";
+}
 
 namespace internal {
     struct NoTranspose {
@@ -293,7 +267,12 @@ enum class Side : char {
     Left = 'L',  ///< left side
     Right = 'R'  ///< right side
 };
-TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_2_VALUES(Side, Left, Right)
+inline std::ostream& operator<<(std::ostream& out, const Side v)
+{
+    if (v == Side::Left) return out << "Left";
+    if (v == Side::Right) return out << "Right";
+    return out << "<Invalid>";
+}
 
 namespace internal {
     struct LeftSide {
@@ -321,7 +300,15 @@ enum class Norm : char {
     Fro = 'F',  ///< Frobenius norm of matrices
     Max = 'M',  ///< max norm
 };
-TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_5_VALUES(Norm, One, Two, Inf, Fro, Max)
+inline std::ostream& operator<<(std::ostream& out, const Norm v)
+{
+    if (v == Norm::One) return out << "One";
+    if (v == Norm::Two) return out << "Two";
+    if (v == Norm::Inf) return out << "Inf";
+    if (v == Norm::Fro) return out << "Fro";
+    if (v == Norm::Max) return out << "Max";
+    return out << "<Invalid>";
+}
 
 namespace internal {
     struct MaxNorm {
@@ -361,7 +348,12 @@ enum class Direction : char {
     Forward = 'F',   ///< Forward direction
     Backward = 'B',  ///< Backward direction
 };
-TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_2_VALUES(Direction, Forward, Backward)
+inline std::ostream& operator<<(std::ostream& out, const Direction v)
+{
+    if (v == Direction::Forward) return out << "Forward";
+    if (v == Direction::Backward) return out << "Backward";
+    return out << "<Invalid>";
+}
 
 namespace internal {
     struct Forward {
@@ -392,7 +384,12 @@ enum class StoreV : char {
     Columnwise = 'C',  ///< Columnwise storage
     Rowwise = 'R',     ///< Rowwise storage
 };
-TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_2_VALUES(StoreV, Columnwise, Rowwise)
+inline std::ostream& operator<<(std::ostream& out, const StoreV v)
+{
+    if (v == StoreV::Columnwise) return out << "Columnwise";
+    if (v == StoreV::Rowwise) return out << "Rowwise";
+    return out << "<Invalid>";
+}
 
 namespace internal {
     struct ColumnwiseStorage {
@@ -465,10 +462,5 @@ namespace legacy {
     };
 }  // namespace legacy
 }  // namespace tlapack
-
-#undef TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_2_VALUES
-#undef TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_4_VALUES
-#undef TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_5_VALUES
-#undef TLAPACK_DEF_OSTREAM_FOR_ENUM_WITH_7_VALUES
 
 #endif  // TLAPACK_TYPES_HH

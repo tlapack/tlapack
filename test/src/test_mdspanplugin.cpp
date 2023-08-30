@@ -8,9 +8,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#include <catch2/catch_template_test_macros.hpp>
-#include <catch2/generators/catch_generators.hpp>
-#include <tlapack/base/utils.hpp>
+// Test utilities and definitions (must come before <T>LAPACK headers)
+#include "testutils.hpp"
 
 #undef I  // I is defined in complex.h and generates a conflict with templates
 // in Catch2

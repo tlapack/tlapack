@@ -8,8 +8,7 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#include <catch2/catch_template_test_macros.hpp>
-#include <catch2/generators/catch_generators.hpp>
+#include "TestUploMatrix.hpp"
 
 // Test utilities and definitions (must come before <T>LAPACK headers)
 #include "testutils.hpp"
@@ -22,16 +21,20 @@
 #include <tlapack/blas/trmm.hpp>
 #include <tlapack/lapack/potrf.hpp>
 
-#include "TestUploMatrix.hpp"
-
 using namespace tlapack;
+
+#define TESTUPLO_TYPES_TO_TEST                                          \
+    (TestUploMatrix<float, size_t, Uplo::Lower, Layout::ColMajor>),     \
+        (TestUploMatrix<float, size_t, Uplo::Upper, Layout::ColMajor>), \
+        (TestUploMatrix<float, size_t, Uplo::Lower, Layout::RowMajor>), \
+        (TestUploMatrix<float, size_t, Uplo::Upper, Layout::RowMajor>)
 
 TEMPLATE_TEST_CASE(
     "Cholesky factorization of a Hermitian positive-definite matrix",
     "[potrf]",
-    TLAPACK_TYPES_TO_TEST)
+    TLAPACK_TYPES_TO_TEST,
+    TESTUPLO_TYPES_TO_TEST)
 {
-    srand(1);
     using matrix_t = TestType;
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
@@ -39,6 +42,9 @@ TEMPLATE_TEST_CASE(
 
     // Functor
     Create<matrix_t> new_matrix;
+
+    // MatrixMarket reader
+    MatrixMarket mm;
 
     using variant_t = pair<PotrfVariant, idx_t>;
     const variant_t variant =
@@ -71,18 +77,10 @@ TEMPLATE_TEST_CASE(
         std::vector<T> E_;
         auto E = new_matrix(E_, n, n);
 
-        // Update A with random numbers
-        for (idx_t j = 0; j < n; ++j) {
-            for (idx_t i = 0; i < n; ++i) {
-                if (uplo == Uplo::Lower && i >= j)
-                    A(i, j) = rand_helper<T>();
-                else if (uplo == Uplo::Upper && i <= j)
-                    A(i, j) = rand_helper<T>();
-                else
-                    A(i, j) = real_t(0xCAFEBABE);
-            }
+        // Update A with random numbers, and make it positive definite
+        mm.random(uplo, A);
+        for (idx_t j = 0; j < n; ++j)
             A(j, j) += real_t(n);
-        }
 
         lacpy(GENERAL, A, L);
         real_t normA = tlapack::lanhe(tlapack::MAX_NORM, uplo, A);
@@ -127,66 +125,5 @@ TEMPLATE_TEST_CASE(
         // Check for relative error: norm(A-cholesky(A))/norm(A)
         real_t error = tlapack::lanhe(tlapack::MAX_NORM, uplo, E) / normA;
         CHECK(error <= tol);
-    }
-}
-
-TEMPLATE_TEST_CASE("Cholesky factorization access valid positions only",
-                   "[potrf]",
-                   TLAPACK_LEGACY_REAL_TYPES_TO_TEST)
-{
-    srand(1);
-    using matrix_t = TestType;
-    using T = type_t<matrix_t>;
-    using idx_t = size_type<matrix_t>;
-    using real_t = real_type<T>;
-    const Layout L = layout<matrix_t>;
-
-    // Functor
-    Create<matrix_t> new_matrix;
-
-    using variant_t = pair<PotrfVariant, idx_t>;
-    const variant_t variant =
-        GENERATE((variant_t(PotrfVariant::Blocked, 2)),
-                 (variant_t(PotrfVariant::RightLooking, 2)),
-                 (variant_t(PotrfVariant::Recursive, 0)));
-    const idx_t n = GENERATE(10);
-    const Uplo uplo = GENERATE(Uplo::Lower, Uplo::Upper);
-
-    DYNAMIC_SECTION("n = " << n << " uplo = " << uplo << " variant = "
-                           << (char)variant.first << " nb = " << variant.second)
-    {
-        // Create matrices
-        std::vector<T> A_;
-        auto A = new_matrix(A_, n, n);
-
-        // Update A with random numbers
-        for (idx_t j = 0; j < n; ++j) {
-            for (idx_t i = 0; i < n; ++i) {
-                if (uplo == Uplo::Lower && i >= j)
-                    A(i, j) = rand_helper<T>();
-                else if (uplo == Uplo::Upper && i <= j)
-                    A(i, j) = rand_helper<T>();
-                else
-                    A(i, j) = real_t(0xCAFEBABE);
-            }
-            A(j, j) += real_t(n);
-        }
-
-        // Run the Cholesky factorization
-        PotrfOpts opts;
-        opts.variant = variant.first;
-        opts.nb = variant.second;
-        if (uplo == Uplo::Lower) {
-            TestUploMatrix<T, idx_t, Uplo::Lower, L> testA(A);
-
-            int info = potrf(uplo, testA, opts);
-            REQUIRE(info == 0);
-        }
-        else {
-            TestUploMatrix<T, idx_t, Uplo::Upper, L> testA(A);
-
-            int info = potrf(uplo, testA, opts);
-            REQUIRE(info == 0);
-        }
     }
 }

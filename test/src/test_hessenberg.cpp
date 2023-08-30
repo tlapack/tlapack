@@ -8,9 +8,6 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#include <catch2/catch_template_test_macros.hpp>
-#include <catch2/generators/catch_generators.hpp>
-
 // Test utilities and definitions (must come before <T>LAPACK headers)
 #include "testutils.hpp"
 
@@ -36,6 +33,9 @@ void check_hess_reduction(size_type<matrix_t> ilo,
 
     // Functor
     Create<matrix_t> new_matrix;
+
+    // MatrixMarket reader
+    MatrixMarket mm;
 
     idx_t n = ncols(A);
 
@@ -71,8 +71,6 @@ TEMPLATE_TEST_CASE("Hessenberg reduction is backward stable",
                    "[eigenvalues][hessenberg]",
                    TLAPACK_TYPES_TO_TEST)
 {
-    srand(1);
-
     using matrix_t = TestType;
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
@@ -81,27 +79,28 @@ TEMPLATE_TEST_CASE("Hessenberg reduction is backward stable",
     // Functor
     Create<matrix_t> new_matrix;
 
+    // MatrixMarket reader
+    MatrixMarket mm;
+
     using variant_t = pair<HessenbergVariant, idx_t>;
     const variant_t variant =
         GENERATE((variant_t(HessenbergVariant::Blocked, 2)),
                  (variant_t(HessenbergVariant::Blocked, 3)),
                  (variant_t(HessenbergVariant::Level2, 1)));
-    const std::string matrix_type = GENERATE("Near overflow", "Random");
+    const std::string matrix_type = GENERATE("Near_overflow", "Random");
     const idx_t n = GENERATE(1, 2, 3, 5, 10);
     const idx_t ilo_offset = GENERATE(0, 1);
     const idx_t ihi_offset = GENERATE(0, 1);
 
     // Only runs the near overflow case
     // when n = 5 and ilo_offset = 0 and ihi_offset = 0
-    if (matrix_type == "Near overflow" && n != 5 && ilo_offset != 0 &&
+    if (matrix_type == "Near_overflow" && n != 5 && ilo_offset != 0 &&
         ihi_offset != 0)
-        return;
+        SKIP_TEST;
 
     // Constants
     const idx_t ilo = n > 1 ? ilo_offset : 0;
     const idx_t ihi = n > 1 + ilo_offset ? n - ihi_offset : n;
-
-    rand_generator gen;
 
     // Define the matrices and vectors
     std::vector<T> A_;
@@ -111,17 +110,14 @@ TEMPLATE_TEST_CASE("Hessenberg reduction is backward stable",
     std::vector<T> tau(n);
 
     if (matrix_type == "Random") {
-        // Generate a random matrix in A
-        for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = 0; i < n; ++i)
-                A(i, j) = rand_helper<T>(gen);
+        mm.random(A);
     }
-    if (matrix_type == "Near overflow") {
+    else if (matrix_type == "Near_overflow") {
         const real_t large_num = safe_max<real_t>() * uroundoff<real_t>();
-
-        for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = 0; i < n; ++i)
-                A(i, j) = large_num;
+        mm.single_value(A, large_num);
+    }
+    else if (matrix_type == "stdin") {
+        mm.colmajor_read(A, std::cin);
     }
 
     // Make sure ilo and ihi correspond to the actual matrix

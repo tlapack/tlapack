@@ -68,6 +68,59 @@ constexpr WorkInfo geqrf_worksize(const A_t& A,
     return workinfo;
 }
 
+/** @copybrief geqrf()
+ * Workspace is provided as an argument.
+ * @copydetails geqrf()
+ *
+ * @param work Workspace. Use the workspace query to determine the size needed.
+ *
+ * @ingroup computational
+ */
+template <TLAPACK_SMATRIX A_t, TLAPACK_SVECTOR tau_t, TLAPACK_WORKSPACE work_t>
+int geqrf_work(A_t& A, tau_t& tau, work_t& work, const GeqrfOpts& opts = {})
+{
+    using idx_t = size_type<A_t>;
+    using range = pair<idx_t, idx_t>;
+
+    // constants
+    const idx_t m = nrows(A);
+    const idx_t n = ncols(A);
+    const idx_t k = min(m, n);
+    const idx_t nb = min((idx_t)opts.nb, k);
+
+    // check arguments
+    tlapack_check((idx_t)size(tau) >= k);
+
+    auto TT = (n > nb) ? slice(work, range{nrows(work) - nb, nrows(work)},
+                               range{ncols(work) - nb, ncols(work)})
+                       : slice(work, range{0, 0}, range{0, 0});
+
+    // Main computational loop
+    for (idx_t j = 0; j < k; j += nb) {
+        const idx_t ib = min(nb, k - j);
+
+        // Compute the QR factorization of the current block A(j:m,j:j+ib)
+        auto A11 = slice(A, range(j, m), range(j, j + ib));
+        auto tauw1 = slice(tau, range(j, j + ib));
+
+        geqr2_work(A11, tauw1, work);
+
+        if (j + ib < n) {
+            // Form the triangular factor of the block reflector H = H(j)
+            // H(j+1) . . . H(j+ib-1)
+            auto TT1 = slice(TT, range(0, ib), range(0, ib));
+            larft(FORWARD, COLUMNWISE_STORAGE, A11, tauw1, TT1);
+
+            // Apply H to A(j:m,j+ib:n) from the left
+            auto A12 = slice(A, range(j, m), range(j + ib, n));
+            larfb_work(LEFT_SIDE, CONJ_TRANS, FORWARD, COLUMNWISE_STORAGE, A11,
+                       TT1, A12, work);
+        }
+    }
+
+    return 0;
+}
+
 /** Computes a QR factorization of an m-by-n matrix A using
  *  a blocked algorithm.
  *
@@ -100,7 +153,7 @@ constexpr WorkInfo geqrf_worksize(const A_t& A,
  *
  * @param[in] opts Options.
  *
- * @ingroup computational
+ * @ingroup alloc_workspace
  */
 template <TLAPACK_SMATRIX A_t, TLAPACK_SVECTOR tau_t>
 int geqrf(A_t& A, tau_t& tau, const GeqrfOpts& opts = {})
@@ -108,51 +161,12 @@ int geqrf(A_t& A, tau_t& tau, const GeqrfOpts& opts = {})
     Create<A_t> new_matrix;
     using T = type_t<A_t>;
 
-    using idx_t = size_type<A_t>;
-    using range = pair<idx_t, idx_t>;
-
-    // constants
-    const idx_t m = nrows(A);
-    const idx_t n = ncols(A);
-    const idx_t k = min(m, n);
-    const idx_t nb = min((idx_t)opts.nb, k);
-
-    // check arguments
-    tlapack_check((idx_t)size(tau) >= k);
-
     // Allocate or get workspace
     WorkInfo workinfo = geqrf_worksize<T>(A, tau, opts);
     std::vector<T> work_;
     auto work = new_matrix(work_, workinfo.m, workinfo.n);
 
-    auto TT = (n > nb) ? slice(work, range{workinfo.m - nb, workinfo.m},
-                               range{workinfo.n - nb, workinfo.n})
-                       : slice(work, range{0, 0}, range{0, 0});
-
-    // Main computational loop
-    for (idx_t j = 0; j < k; j += nb) {
-        const idx_t ib = min(nb, k - j);
-
-        // Compute the QR factorization of the current block A(j:m,j:j+ib)
-        auto A11 = slice(A, range(j, m), range(j, j + ib));
-        auto tauw1 = slice(tau, range(j, j + ib));
-
-        geqr2_work(A11, tauw1, work);
-
-        if (j + ib < n) {
-            // Form the triangular factor of the block reflector H = H(j)
-            // H(j+1) . . . H(j+ib-1)
-            auto TT1 = slice(TT, range(0, ib), range(0, ib));
-            larft(FORWARD, COLUMNWISE_STORAGE, A11, tauw1, TT1);
-
-            // Apply H to A(j:m,j+ib:n) from the left
-            auto A12 = slice(A, range(j, m), range(j + ib, n));
-            larfb_work(LEFT_SIDE, CONJ_TRANS, FORWARD, COLUMNWISE_STORAGE, A11,
-                       TT1, A12, work);
-        }
-    }
-
-    return 0;
+    return geqrf_work(A, tau, work, opts);
 }
 }  // namespace tlapack
 #endif  // TLAPACK_GEQRF_HH

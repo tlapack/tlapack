@@ -74,65 +74,11 @@ constexpr WorkInfo ungq_level2_worksize(direction_t direction,
     }
 }
 
-/**
- * @brief Generates a matrix Q that is the product of elementary reflectors.
- *
- * @param[in] direction
- *     Indicates how Q is formed from a product of elementary reflectors.
- *     - Direction::Forward:  $Q = H_1 H_2 ... H_k$.
- *     - Direction::Backward: $Q = H_k ... H_2 H_1$.
- *
- * @param[in] storeMode
- *     Indicates how the vectors which define the elementary reflectors are
- * stored:
- *     - StoreV::Columnwise.
- *     - StoreV::Rowwise.
- *     See Further Details.
- *
- * @param[in,out] A m-by-n matrix.
- *      On entry,
- *      - If storeMode = StoreV::Columnwise:
- *        - if direction = Direction::Forward, the m-by-k matrix V in the first
- *          k columns;
- *        - if direction = Direction::Backward, the m-by-k matrix V in the last
- *          k columns.
- *      - If storeMode = StoreV::Rowwise:
- *        - if direction = Direction::Forward, the k-by-n matrix V in the first
- *          k rows;
- *        - if direction = Direction::Backward, the k-by-n matrix V in the last
- *          k rows.
- *      On exit, the m-by-n matrix Q.
- *
- * @param[in] tau Vector of length k.
- *      Scalar factors of the elementary reflectors.
+/** @copybrief ungq_level2()
+ * Workspace is provided as an argument.
+ * @copydetails ungq_level2()
  *
  * @param work Workspace. Use the workspace query to determine the size needed.
- *
- * @return 0 if success.
- *
- * @par Further Details
- *
- * The shape of the matrix V and the storage of the vectors which define the
- * $H_i$ is best illustrated by the following example with k = 3. The elements
- * equal to 1 are not accessed. The rest of the matrix is not used.
- *
- *     direction = Forward and          direction = Forward and
- *     storeMode = Columnwise:             storeMode = Rowwise:
- *
- *     V = (  1       )                 V = (  1 v1 v1 v1 v1 )
- *         ( v1  1    )                     (     1 v2 v2 v2 )
- *         ( v1 v2  1 )                     (        1 v3 v3 )
- *         ( v1 v2 v3 )
- *         ( v1 v2 v3 )
- *
- *     direction = Backward and         direction = Backward and
- *     storeMode = Columnwise:             storeMode = Rowwise:
- *
- *     V = ( v1 v2 v3 )                 V = ( v1 v1  1       )
- *         ( v1 v2 v3 )                     ( v2 v2 v2  1    )
- *         (  1 v2 v3 )                     ( v3 v3 v3 v3  1 )
- *         (     1 v3 )
- *         (        1 )
  *
  * @ingroup computational
  */
@@ -310,7 +256,31 @@ int ungq_level2_work(direction_t direction,
  *
  * @return 0 if success.
  *
- * @ingroup computational
+ * @par Further Details
+ *
+ * The shape of the matrix V and the storage of the vectors which define the
+ * $H_i$ is best illustrated by the following example with k = 3. The elements
+ * equal to 1 are not accessed. The rest of the matrix is not used.
+ *
+ *     direction = Forward and          direction = Forward and
+ *     storeMode = Columnwise:             storeMode = Rowwise:
+ *
+ *     V = (  1       )                 V = (  1 v1 v1 v1 v1 )
+ *         ( v1  1    )                     (     1 v2 v2 v2 )
+ *         ( v1 v2  1 )                     (        1 v3 v3 )
+ *         ( v1 v2 v3 )
+ *         ( v1 v2 v3 )
+ *
+ *     direction = Backward and         direction = Backward and
+ *     storeMode = Columnwise:             storeMode = Rowwise:
+ *
+ *     V = ( v1 v2 v3 )                 V = ( v1 v1  1       )
+ *         ( v1 v2 v3 )                     ( v2 v2 v2  1    )
+ *         (  1 v2 v3 )                     ( v3 v3 v3 v3  1 )
+ *         (     1 v3 )
+ *         (        1 )
+ *
+ * @ingroup alloc_workspace
  */
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_SVECTOR vector_t,

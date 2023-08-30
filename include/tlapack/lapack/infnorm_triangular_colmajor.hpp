@@ -42,23 +42,9 @@ constexpr WorkInfo infnorm_triangular_colmajor_worksize(uplo_t uplo,
     return WorkInfo(nrows(A));
 }
 
-/** Calculates the infinity norm of a column-major triangular matrix.
- *
- * Code optimized for the infinity norm on column-major layouts using a
- * workspace of size at least m, where m is the number of rows of A.
- *
- * @see lantr() for the generic implementation that does not use workspaces.
- *
- * @param[in] uplo
- *      - Uplo::Upper: Upper triangle of A is referenced;
- *      - Uplo::Lower: Lower triangle of A is referenced.
- *
- * @param[in] diag
- *     Whether A has a unit or non-unit diagonal:
- *     - Diag::Unit:    A is assumed to be unit triangular.
- *     - Diag::NonUnit: A is not assumed to be unit triangular.
- *
- * @param[in] A m-by-n matrix.
+/** @copybrief infnorm_triangular_colmajor()
+ * Workspace is provided as an argument.
+ * @copydetails infnorm_triangular_colmajor()
  *
  * @param work Workspace. Use the workspace query to determine the size needed.
  *

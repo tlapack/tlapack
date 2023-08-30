@@ -65,38 +65,13 @@ constexpr WorkInfo unmhr_worksize(Side side,
                      ? slice(C, range{ilo + 1, ihi}, range{0, ncols(C)})
                      : slice(C, range{0, nrows(C)}, range{ilo + 1, ihi});
 
-    return unm2r_worksize<T>(side, trans, A_s, tau_s, C_s);
+    return unmq_level2_worksize<T>(side, trans, FORWARD, COLUMNWISE_STORAGE,
+                                   A_s, tau_s, C_s);
 }
 
-/** Applies unitary matrix Q to a matrix C.
- *
- * @param[in] side Specifies which side op(Q) is to be applied.
- *      - Side::Left:  C := op(Q) C;
- *      - Side::Right: C := C op(Q).
- *
- * @param[in] trans The operation $op(Q)$ to be used:
- *      - Op::NoTrans:      $op(Q) = Q$;
- *      - Op::ConjTrans:    $op(Q) = Q^H$.
- *      Op::Trans is a valid value if the data type of A is real. In this case,
- *      the algorithm treats Op::Trans as Op::ConjTrans.
- *
- * @param[in] ilo integer
- * @param[in] ihi integer
- *      ilo and ihi must have the same values as in the
- *      previous call to gehrd. Q is equal to the unit
- *      matrix except in the submatrix Q(ilo+1:ihi,ilo+1:ihi).
- *      0 <= ilo <= ihi <= max(1,n).
- * @param[in] A n-by-n matrix
- *      Matrix containing orthogonal vectors, as returned by gehrd
- * @param[in] tau Vector of length n-1
- *      Contains the scalar factors of the elementary reflectors.
- *
- * @param[in,out] C m-by-n matrix.
- *      On exit, C is replaced by one of the following:
- *      - side = Side::Left  & trans = Op::NoTrans:    $C := Q C$;
- *      - side = Side::Right & trans = Op::NoTrans:    $C := C Q$;
- *      - side = Side::Left  & trans = Op::ConjTrans:  $C := C Q^H$;
- *      - side = Side::Right & trans = Op::ConjTrans:  $C := Q^H C$.
+/** @copybrief unmhr()
+ * Workspace is provided as an argument.
+ * @copydetails unmhr()
  *
  * @param work Workspace. Use the workspace query to determine the size needed.
  *
@@ -123,7 +98,8 @@ int unmhr_work(Side side,
                    ? slice(C, range{ilo + 1, ihi}, range{0, ncols(C)})
                    : slice(C, range{0, nrows(C)}, range{ilo + 1, ihi});
 
-    return unm2r_work(side, trans, A_s, tau_s, C_s, work);
+    return unmq_level2_work(side, trans, FORWARD, COLUMNWISE_STORAGE, A_s,
+                            tau_s, C_s, work);
 }
 
 /** Applies unitary matrix Q to a matrix C.
@@ -156,7 +132,7 @@ int unmhr_work(Side side,
  *      - side = Side::Left  & trans = Op::ConjTrans:  $C := C Q^H$;
  *      - side = Side::Right & trans = Op::ConjTrans:  $C := Q^H C$.
  *
- * @ingroup computational
+ * @ingroup alloc_workspace
  */
 template <TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR vector_t>
 int unmhr(Side side,

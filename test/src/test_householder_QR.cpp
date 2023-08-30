@@ -8,9 +8,6 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#include <catch2/catch_template_test_macros.hpp>
-#include <catch2/generators/catch_generators.hpp>
-
 // Test utilities and definitions (must come before <T>LAPACK headers)
 #include "testutils.hpp"
 
@@ -32,8 +29,6 @@ TEMPLATE_TEST_CASE("QR, RQ, QL, LQ factorization of a general m-by-n matrix",
                    "[qr][qrf]",
                    TLAPACK_TYPES_TO_TEST)
 {
-    srand(1);
-
     using matrix_t = TestType;
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
@@ -42,6 +37,9 @@ TEMPLATE_TEST_CASE("QR, RQ, QL, LQ factorization of a general m-by-n matrix",
 
     // Functor
     Create<matrix_t> new_matrix;
+
+    // MatrixMarket reader
+    MatrixMarket mm;
 
     // Generate test case
     using variant_t = pair<HouseholderQRVariant, idx_t>;
@@ -89,9 +87,7 @@ TEMPLATE_TEST_CASE("QR, RQ, QL, LQ factorization of a general m-by-n matrix",
     std::vector<T> tau(k);
 
     // Generate random test case
-    for (idx_t j = 0; j < n; ++j)
-        for (idx_t i = 0; i < m; ++i)
-            A(i, j) = rand_helper<T>();
+    mm.random(A);
 
     // Copy A to A_copy
     lacpy(GENERAL, A, A_copy);

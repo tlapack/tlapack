@@ -16,8 +16,11 @@
 
 namespace tlapack {
 
+/// @brief Variant of the algorithm that performs QR iterations on an upper
+/// Hessenberg matrix.
 enum class QRIterationVariant : char { MultiShift = 'M', DoubleShift = 'D' };
 
+/// @brief Options struct for qr_iteration()
 struct QRIterationOpts : public FrancisOpts {
     QRIterationVariant variant = QRIterationVariant::MultiShift;
 };
@@ -64,6 +67,36 @@ constexpr WorkInfo qr_iteration_worksize(bool want_t,
         return WorkInfo(0);
 }
 
+/** @copybrief qr_iteration()
+ * Workspace is provided as an argument.
+ * @copydetails qr_iteration()
+ *
+ * @param work Workspace. Use the workspace query to determine the size needed.
+ *
+ * @ingroup variant_interface
+ */
+template <TLAPACK_MATRIX matrix_t,
+          TLAPACK_VECTOR vector_t,
+          TLAPACK_WORKSPACE work_t,
+          enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
+int qr_iteration_work(bool want_t,
+                      bool want_z,
+                      size_type<matrix_t> ilo,
+                      size_type<matrix_t> ihi,
+                      matrix_t& A,
+                      vector_t& w,
+                      matrix_t& Z,
+                      work_t& work,
+                      QRIterationOpts& opts)
+{
+    // Call variant
+    if (opts.variant == QRIterationVariant::MultiShift)
+        return multishift_qr_work(want_t, want_z, ilo, ihi, A, w, Z, work,
+                                  opts);
+    else
+        return lahqr(want_t, want_z, ilo, ihi, A, w, Z);
+}
+
 /**
  * @brief Computes the eigenvalues and optionally the Schur
  *  factorization of an upper Hessenberg matrix.
@@ -100,6 +133,8 @@ constexpr WorkInfo qr_iteration_worksize(bool want_t,
  *      into Z.
  * @param[in] opts Options.
  *      - @c opts.variant: Variant of the algorithm to use.
+ *
+ * @ingroup variant_interface
  */
 template <TLAPACK_MATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
@@ -116,24 +151,6 @@ int qr_iteration(bool want_t,
     // Call variant
     if (opts.variant == QRIterationVariant::MultiShift)
         return multishift_qr(want_t, want_z, ilo, ihi, A, w, Z, opts);
-    else
-        return lahqr(want_t, want_z, ilo, ihi, A, w, Z);
-}
-
-template <TLAPACK_MATRIX matrix_t,
-          TLAPACK_VECTOR vector_t,
-          enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
-int qr_iteration(bool want_t,
-                 bool want_z,
-                 size_type<matrix_t> ilo,
-                 size_type<matrix_t> ihi,
-                 matrix_t& A,
-                 vector_t& w,
-                 matrix_t& Z)
-{
-    // Call variant
-    if (QRIterationOpts().variant == QRIterationVariant::MultiShift)
-        return multishift_qr(want_t, want_z, ilo, ihi, A, w, Z);
     else
         return lahqr(want_t, want_z, ilo, ihi, A, w, Z);
 }

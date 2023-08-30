@@ -19,6 +19,7 @@
 
 namespace tlapack {
 
+/// @brief Variants of the algorithm to compute the Cholesky factorization.
 enum class PotrfVariant : char {
     Blocked = 'B',
     Recursive = 'R',
@@ -26,6 +27,7 @@ enum class PotrfVariant : char {
     RightLooking
 };
 
+/// @brief Options struct for potrf()
 struct PotrfOpts : public BlockedCholeskyOpts {
     constexpr PotrfOpts(const EcOpts& opts = {}) : BlockedCholeskyOpts(opts){};
 
@@ -70,7 +72,7 @@ struct PotrfOpts : public BlockedCholeskyOpts {
  * @return i, 0 < i <= n, if the leading minor of order i is not
  *      positive definite, and the factorization could not be completed.
  *
- * @ingroup computational
+ * @ingroup variant_interface
  */
 template <TLAPACK_UPLO uplo_t, TLAPACK_MATRIX matrix_t>
 int potrf(uplo_t uplo, matrix_t& A, const PotrfOpts& opts = {})

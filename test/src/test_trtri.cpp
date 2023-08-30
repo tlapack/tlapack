@@ -8,9 +8,6 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#include <catch2/catch_template_test_macros.hpp>
-#include <catch2/generators/catch_generators.hpp>
-
 // Test utilities and definitions (must come before <T>LAPACK headers)
 #include "testutils.hpp"
 
@@ -26,8 +23,6 @@ using namespace tlapack;
 
 TEMPLATE_TEST_CASE("TRTRI is stable", "[trtri]", TLAPACK_TYPES_TO_TEST)
 {
-    srand(1);
-
     using matrix_t = TestType;
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
@@ -35,6 +30,9 @@ TEMPLATE_TEST_CASE("TRTRI is stable", "[trtri]", TLAPACK_TYPES_TO_TEST)
 
     // Functor
     Create<matrix_t> new_matrix;
+
+    // MatrixMarket reader
+    MatrixMarket mm;
 
     Uplo uplo = GENERATE(Uplo::Lower, Uplo::Upper);
     Diag diag = GENERATE(Diag::Unit, Diag::NonUnit);
@@ -51,13 +49,15 @@ TEMPLATE_TEST_CASE("TRTRI is stable", "[trtri]", TLAPACK_TYPES_TO_TEST)
         auto C = new_matrix(C_, n, n);
 
         // Generate random matrix in Schur form
-        for (idx_t j = 0; j < n; ++j) {
-            for (idx_t i = 0; i < n; ++i)
-                A(i, j) = rand_helper<T>();
+        mm.random(A);
 
-            if (diag == Diag::NonUnit)
+        // Make sure the matrix is invertible
+        if (diag == Diag::NonUnit) {
+            for (idx_t j = 0; j < n; ++j)
                 A(j, j) += real_t(n);
-            else
+        }
+        else {
+            for (idx_t j = 0; j < n; ++j)
                 A(j, j) = real_t(1);
         }
 

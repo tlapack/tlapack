@@ -34,46 +34,26 @@ constexpr WorkInfo getri_uxli_worksize(const matrix_t& A)
         return WorkInfo(0);
 }
 
-/** getri computes inverse of a general n-by-n matrix A
- *  by solving for X in the following equation
- * \[
- *   U X L = I
- * \]
+/** @copybrief getri_uxli()
+ * Workspace is provided as an argument.
+ * @copydetails getri_uxli()
  *
- * @return = 0: successful exit
- * @return = i+1: if U(i,i) is exactly zero.  The triangular
- *          matrix is singular and its inverse can not be computed.
- *
- * @param[in,out] A n-by-n matrix.
- *      On entry, the factors L and U from the factorization P A = L U.
- *          L is stored in the lower triangle of A; unit diagonal is not stored.
- *          U is stored in the upper triangle of A.
- *      On exit, inverse of A is overwritten on A.
+ * @param work Workspace. Use the workspace query to determine the size needed.
  *
  * @ingroup computational
  */
-template <TLAPACK_SMATRIX matrix_t>
-int getri_uxli(matrix_t& A)
+template <TLAPACK_SMATRIX matrix_t, TLAPACK_WORKSPACE work_t>
+int getri_uxli_work(matrix_t& A, work_t& work)
 {
-    using work_t = matrix_type<matrix_t>;
     using idx_t = size_type<matrix_t>;
     using T = type_t<matrix_t>;
     using range = pair<idx_t, idx_t>;
-
-    // Functor
-    Create<work_t> new_matrix;
 
     // check arguments
     tlapack_check(nrows(A) == ncols(A));
 
     // constant n, number of rows and also columns of A
     const idx_t n = ncols(A);
-
-    // Allocates workspace
-    WorkInfo workinfo = getri_uxli_worksize<T>(A);
-    std::vector<T> work_;
-    auto work = new_matrix(work_, workinfo.m, workinfo.n);
-    auto w = slice(work, range{0, n - 1}, 0);
 
     // A has L and U in it, we will create X such that UXL=A in place of
     for (idx_t j = n - idx_t(1); j != idx_t(-1); j--) {
@@ -88,7 +68,7 @@ int getri_uxli(matrix_t& A)
             auto X22 = tlapack::slice(A, range(j + 1, n), range(j + 1, n));
             auto l21 = tlapack::slice(A, range(j + 1, n), j);
             auto u12 = tlapack::slice(A, j, range(j + 1, n));
-            auto slicework = tlapack::slice(w, range(0, n - j - 1));
+            auto slicework = tlapack::slice(work, range(0, n - j - 1), 0);
 
             // first step of the algorithm, work1 holds x12
             tlapack::gemv(TRANSPOSE, T(-1) / A(j, j), X22, u12, slicework);
@@ -108,7 +88,40 @@ int getri_uxli(matrix_t& A)
     }
 
     return 0;
+}  // getri_uxli
 
+/** getri computes inverse of a general n-by-n matrix A
+ *  by solving for X in the following equation
+ * \[
+ *   U X L = I
+ * \]
+ *
+ * @return = 0: successful exit
+ * @return = i+1: if U(i,i) is exactly zero.  The triangular
+ *          matrix is singular and its inverse can not be computed.
+ *
+ * @param[in,out] A n-by-n matrix.
+ *      On entry, the factors L and U from the factorization P A = L U.
+ *          L is stored in the lower triangle of A; unit diagonal is not stored.
+ *          U is stored in the upper triangle of A.
+ *      On exit, inverse of A is overwritten on A.
+ *
+ * @ingroup alloc_workspace
+ */
+template <TLAPACK_SMATRIX matrix_t>
+int getri_uxli(matrix_t& A)
+{
+    using T = type_t<matrix_t>;
+
+    // Functor
+    Create<matrix_t> new_matrix;
+
+    // Allocates workspace
+    WorkInfo workinfo = getri_uxli_worksize<T>(A);
+    std::vector<T> work_;
+    auto work = new_matrix(work_, workinfo.m, workinfo.n);
+
+    return getri_uxli_work(A, work);
 }  // getri_uxli
 
 }  // namespace tlapack

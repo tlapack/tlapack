@@ -64,6 +64,27 @@ struct TestUploMatrix : public LegacyMatrix<T, idx_t, L> {
     };
 };
 
+// -----------------------------------------------------------------------------
+// Data traits
+
+namespace traits {
+    template <typename T, class idx_t, Uplo uplo, Layout L>
+    struct layout_trait<TestUploMatrix<T, idx_t, uplo, L>, int>
+        : layout_trait<LegacyMatrix<T, idx_t, L>, int> {};
+
+    template <typename T, class idx_t, Uplo uplo, Layout L>
+    struct real_type_traits<TestUploMatrix<T, idx_t, uplo, L>, int>
+        : real_type_traits<LegacyMatrix<T, idx_t, L>, int> {};
+
+    template <typename T, class idx_t, Uplo uplo, Layout L>
+    struct complex_type_traits<TestUploMatrix<T, idx_t, uplo, L>, int>
+        : complex_type_traits<LegacyMatrix<T, idx_t, L>, int> {};
+
+    template <class T, class idx_t, Uplo uplo, Layout L>
+    struct CreateFunctor<TestUploMatrix<T, idx_t, uplo, L>, int>
+        : CreateFunctor<LegacyMatrix<T, idx_t, L>, int> {};
+}  // namespace traits
+
 // Block access specialization for TestUploMatrix
 
 #define isSlice(SliceSpec) !std::is_convertible<SliceSpec, idx_t>::value

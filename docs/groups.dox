@@ -17,12 +17,28 @@
     
     ----------------------------------------------------------------------------
     @defgroup computational     Computational routines
+    @brief      All other computational routines that are not part of the BLAS.
+    
+    ----------------------------------------------------------------------------
+    @defgroup alloc_workspace   Computational routines with automatic workspace allocation
+    @brief      Wrappers that allocate workspace and call the corresponding
+                computational routine.
     
     ----------------------------------------------------------------------------
     @defgroup workspace_query   Workspace queries
+    @brief      Workspace queries for routines that require a temporary
+                workspace to perform their computations. Mind that workspaces
+                are optional. If not provided, the routine will allocate
+                temporary memory internally.
 
     ----------------------------------------------------------------------------
     @defgroup auxiliary Auxiliary routines
+    @brief      Auxiliary routines that are used by the computational routines.
+    
+    ----------------------------------------------------------------------------
+    @defgroup variant_interface Wrappers to variants of the computational routines
+    @brief      Wrappers that receive a parameter to select a variant of the
+                computational routine.
 
     ----------------------------------------------------------------------------
     @defgroup exception         Exception handling

@@ -65,4 +65,12 @@ inline std::complex<Eigen::half> sqrt(const std::complex<Eigen::half>& z)
 
 }  // namespace tlapack
 
+inline std::istream& operator>>(std::istream& is, Eigen::half& x)
+{
+    float f;
+    is >> f;
+    x = Eigen::half(f);
+    return is;
+}
+
 #endif  // TLAPACK_EIGEN_HALF_HH

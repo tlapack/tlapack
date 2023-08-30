@@ -48,6 +48,56 @@ constexpr WorkInfo gelqt_worksize(const matrix_t& A, const matrix_t& TT)
     return gelq2_worksize<T>(A11, tauw1);
 }
 
+/** @copybrief gelqt()
+ * Workspace is provided as an argument.
+ * @copydetails gelqt()
+ *
+ * @param work Workspace. Use the workspace query to determine the size needed.
+ *
+ * @ingroup computational
+ */
+template <TLAPACK_SMATRIX matrix_t, TLAPACK_WORKSPACE work_t>
+int gelqt_work(matrix_t& A, matrix_t& TT, work_t& work)
+{
+    using idx_t = size_type<matrix_t>;
+    using range = pair<idx_t, idx_t>;
+
+    // constants
+    const idx_t m = nrows(A);
+    const idx_t n = ncols(A);
+    const idx_t k = min(m, n);
+    const idx_t nb = ncols(TT);
+
+    // check arguments
+    tlapack_check_false(nrows(TT) < m || ncols(TT) < nb);
+
+    for (idx_t j = 0; j < k; j += nb) {
+        // Use blocked code initially
+        idx_t ib = min(nb, k - j);
+
+        // Compute the LQ factorization of the current block A(j:j+ib-1,j:n)
+        auto TT1 = slice(TT, range(j, j + ib), range(0, ib));
+        auto A11 = slice(A, range(j, j + ib), range(j, n));
+        auto tauw1 = diag(TT1);
+
+        gelq2_work(A11, tauw1, work);
+
+        // Form the triangular factor of the block reflector H = H(j) H(j+1)
+        // . . . H(j+ib-1)
+        larft(FORWARD, ROWWISE_STORAGE, A11, tauw1, TT1);
+
+        if (j + ib < k) {
+            // Apply H to A(j+ib:m,j:n) from the right
+            auto A12 = slice(A, range(j + ib, m), range(j, n));
+            auto work1 = slice(TT, range(j + ib, m), range(0, ib));
+            larfb_work(RIGHT_SIDE, NO_TRANS, FORWARD, ROWWISE_STORAGE, A11, TT1,
+                       A12, work1);
+        }
+    }
+
+    return 0;
+}
+
 /** Computes an LQ factorization of a complex m-by-n matrix A using
  *  a blocked algorithm. Stores the triangular factors for later use.
  *
@@ -90,57 +140,22 @@ constexpr WorkInfo gelqt_worksize(const matrix_t& A, const matrix_t& TT)
  *      \]
  *      For a good default of nb, see GelqfOpts
  *
- * @ingroup computational
+ * @ingroup alloc_workspace
  */
 template <TLAPACK_SMATRIX matrix_t>
 int gelqt(matrix_t& A, matrix_t& TT)
 {
-    using idx_t = size_type<matrix_t>;
-    using range = pair<idx_t, idx_t>;
     using T = type_t<matrix_t>;
 
     // functors
     Create<matrix_t> new_matrix;
-
-    // constants
-    const idx_t m = nrows(A);
-    const idx_t n = ncols(A);
-    const idx_t k = min(m, n);
-    const idx_t nb = ncols(TT);
-
-    // check arguments
-    tlapack_check_false(nrows(TT) < m || ncols(TT) < nb);
 
     // Allocates workspace
     WorkInfo workinfo = gelqt_worksize<T>(A, TT);
     std::vector<T> work_;
     auto work = new_matrix(work_, workinfo.m, workinfo.n);
 
-    for (idx_t j = 0; j < k; j += nb) {
-        // Use blocked code initially
-        idx_t ib = min(nb, k - j);
-
-        // Compute the LQ factorization of the current block A(j:j+ib-1,j:n)
-        auto TT1 = slice(TT, range(j, j + ib), range(0, ib));
-        auto A11 = slice(A, range(j, j + ib), range(j, n));
-        auto tauw1 = diag(TT1);
-
-        gelq2_work(A11, tauw1, work);
-
-        // Form the triangular factor of the block reflector H = H(j) H(j+1)
-        // . . . H(j+ib-1)
-        larft(FORWARD, ROWWISE_STORAGE, A11, tauw1, TT1);
-
-        if (j + ib < k) {
-            // Apply H to A(j+ib:m,j:n) from the right
-            auto A12 = slice(A, range(j + ib, m), range(j, n));
-            auto work1 = slice(TT, range(j + ib, m), range(0, ib));
-            larfb_work(RIGHT_SIDE, NO_TRANS, FORWARD, ROWWISE_STORAGE, A11, TT1,
-                       A12, work1);
-        }
-    }
-
-    return 0;
+    return gelqt_work(A, TT, work);
 }
 }  // namespace tlapack
 #endif  // TLAPACK_GELQT_HH

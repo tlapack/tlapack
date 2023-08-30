@@ -17,8 +17,10 @@
 
 namespace tlapack {
 
+/// @brief Variants of the algorithm to compute the LU factorization.
 enum class GetrfVariant : char { Level0 = '0', Recursive = 'R' };
 
+/// @brief Options struct for getrf()
 struct GetrfOpts {
     GetrfVariant variant = GetrfVariant::Recursive;
 };
@@ -56,7 +58,7 @@ struct GetrfOpts {
  *      3. below the diagonal of A will be copied to L
  *      4. On and above the diagonal of A will be copied to U
  *
- * @ingroup computational
+ * @ingroup variant_interface
  */
 template <TLAPACK_MATRIX matrix_t, TLAPACK_VECTOR piv_t>
 int getrf(matrix_t& A, piv_t& piv, const GetrfOpts& opts = {})

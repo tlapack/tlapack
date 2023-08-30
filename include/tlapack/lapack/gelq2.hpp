@@ -45,37 +45,9 @@ constexpr WorkInfo gelq2_worksize(const matrix_t& A, const vector_t& tauw)
     return WorkInfo(0);
 }
 
-/** Computes an LQ factorization of a complex m-by-n matrix A using
- *  an unblocked algorithm.
- *
- * The matrix Q is represented as a product of elementary reflectors.
- * \[
- *          Q = H(k)**H ... H(2)**H H(1)**H,
- * \]
- * where k = min(m,n). Each H(j) has the form
- * \[
- *          H(j) = I - tauw * w * w**H
- * \]
- * where tauw is a complex scalar, and w is a complex vector with
- * \[
- *          w[0] = w[1] = ... = w[j-1] = 0; w[j] = 1,
- * \]
- * with w[j+1]**H through w[n]**H is stored on exit
- * in the jth row of A, and tauw in tauw[j].
- *
- *
- *
- * @return  0 if success
- *
- * @param[in,out] A m-by-n matrix.
- *      On exit, the elements on and below the diagonal of the array
- *      contain the m by min(m,n) lower trapezoidal matrix L (L is
- *      lower triangular if m <= n); the elements above the diagonal,
- *      with the array tauw, represent the unitary matrix Q as a
- *      product of elementary reflectors.
- *
- * @param[out] tauw Complex vector of length min(m,n).
- *      The scalar factors of the elementary reflectors.
+/** @copybrief gelq2()
+ * Workspace is provided as an argument.
+ * @copydetails gelq2()
  *
  * @param work Workspace. Use the workspace query to determine the size needed.
  *
@@ -148,24 +120,15 @@ int gelq2_work(matrix_t& A, vector_t& tauw, work_t& work)
  * @param[out] tauw Complex vector of length min(m,n).
  *      The scalar factors of the elementary reflectors.
  *
- * @ingroup computational
+ * @ingroup alloc_workspace
  */
 template <TLAPACK_SMATRIX matrix_t, TLAPACK_VECTOR vector_t>
 int gelq2(matrix_t& A, vector_t& tauw)
 {
-    using idx_t = size_type<matrix_t>;
     using T = type_t<matrix_t>;
 
     // functor
     Create<matrix_t> new_matrix;
-
-    // constants
-    const idx_t m = nrows(A);
-    const idx_t n = ncols(A);
-    const idx_t k = min(m, n);
-
-    // check arguments
-    tlapack_check_false((idx_t)size(tauw) < k);
 
     // Allocates workspace
     WorkInfo workinfo = gelq2_worksize<T>(A, tauw);

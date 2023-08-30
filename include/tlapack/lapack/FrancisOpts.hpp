@@ -16,11 +16,11 @@
 namespace tlapack {
 
 /**
- * Options struct for multishift_qr
+ * Options struct for multishift_qr().
  */
 struct FrancisOpts {
-    // Function that returns the number of shifts to use
-    // for a given matrix size
+    /// Function that returns the number of shifts to use
+    /// for a given matrix size
     std::function<size_t(size_t, size_t)> nshift_recommender =
         [](size_t n, size_t nh) -> size_t {
         if (n < 30) return 2;
@@ -32,8 +32,8 @@ struct FrancisOpts {
         return 256;
     };
 
-    // Function that returns the number of shifts to use
-    // for a given matrix size
+    /// Function that returns the number of shifts to use
+    /// for a given matrix size
     std::function<size_t(size_t, size_t)> deflation_window_recommender =
         [](size_t n, size_t nh) -> size_t {
         if (n < 30) return 2;
@@ -47,12 +47,13 @@ struct FrancisOpts {
 
     // On exit of the routine. Stores the number of times AED and sweep were
     // called And the total number of shifts used.
-    int n_aed = 0;
-    int n_sweep = 0;
-    int n_shifts_total = 0;
-    // Threshold to switch between blocked and unblocked code
+    int n_aed = 0;           ///< number of times AED was called
+    int n_sweep = 0;         ///< number of sweeps used
+    int n_shifts_total = 0;  ///< total number of shifts used
+
+    /// Threshold to switch between blocked and unblocked code
     size_t nmin = 75;
-    // Threshold of percent of AED window that must converge to skip a sweep
+    /// Threshold of percent of AED window that must converge to skip a sweep
     size_t nibble = 14;
 };
 

@@ -46,6 +46,7 @@ set (CMAKE_CXX_STANDARD 20)
 # <T>LAPACK project
 project(TLAPACK
   VERSION ${version_txt}
+  DESCRIPTION "C++ Template Linear Algebra PACKage"
   LANGUAGES CXX)
 message(STATUS "<T>LAPACK version " ${PROJECT_VERSION})
 
@@ -172,6 +173,11 @@ endif()
 
 cmake_dependent_option( BUILD_testBLAS_TESTS "Build testBLAS tests"
   ON "BUILD_TESTING" # Default value when condition is true
+  OFF # Value when condition is false 
+)
+
+cmake_dependent_option( BUILD_STANDALONE_TESTS "Build tests as standalone executables in addition to tests for CTest"
+  OFF "BUILD_TESTING" # Default value when condition is true
   OFF # Value when condition is false 
 )
 
