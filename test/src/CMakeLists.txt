@@ -115,8 +115,8 @@ endforeach()
 
 if( BUILD_STANDALONE_TESTS)
   # Now, build tests as standalone executable without using Catch2
-
   foreach(target ${DIRECTORY_BUILDSYSTEM_TARGETS})
+    # Tests with multiple test cases cannot be built as standalone so skip them
     if(NOT target MATCHES "^test_")
       continue()
     elseif(target MATCHES "test_eigenplugin")
@@ -134,6 +134,8 @@ if( BUILD_STANDALONE_TESTS)
     elseif(target MATCHES "test_ladiv")
       continue()
     elseif(target MATCHES "test_transpose")
+      continue()
+    elseif(target MATCHES "test_gesvd")
       continue()
     endif()
     add_executable( standalone_${target} ${target}.cpp )
