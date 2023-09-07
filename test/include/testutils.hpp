@@ -266,6 +266,85 @@ real_type<type_t<matrix_t>> check_similarity_transform(matrix_t& A,
     return check_similarity_transform(A, Q, B, res, work);
 }
 
+/** Calculates res = Q'*A*Z - B and the frobenius norm of res
+ *
+ * @return frobenius norm of res
+ *
+ * @param[in] A n by n matrix
+ * @param[in] Q n by n unitary matrix
+ * @param[in] Z n by n unitary matrix
+ * @param[in] B n by n matrix
+ * @param[out] res n by n matrix as defined above
+ * @param[out] work n by n workspace matrix
+ *
+ * @ingroup auxiliary
+ */
+template <TLAPACK_MATRIX matrix_t>
+real_type<type_t<matrix_t>> check_generalized_similarity_transform(
+    matrix_t& A,
+    matrix_t& Q,
+    matrix_t& Z,
+    matrix_t& B,
+    matrix_t& res,
+    matrix_t& work)
+{
+    using T = type_t<matrix_t>;
+    using real_t = real_type<T>;
+
+    tlapack_check(nrows(A) == ncols(A));
+    tlapack_check(nrows(Q) == ncols(Q));
+    tlapack_check(nrows(Z) == ncols(Z));
+    tlapack_check(nrows(B) == ncols(B));
+    tlapack_check(nrows(res) == ncols(res));
+    tlapack_check(nrows(work) == ncols(work));
+    tlapack_check(nrows(A) == nrows(Q));
+    tlapack_check(nrows(A) == nrows(Z));
+    tlapack_check(nrows(A) == nrows(B));
+    tlapack_check(nrows(A) == nrows(res));
+    tlapack_check(nrows(A) == nrows(work));
+
+    // res = Q'*A*Q - B
+    lacpy(GENERAL, B, res);
+    gemm(CONJ_TRANS, NO_TRANS, (real_t)1.0, Q, A, work);
+    gemm(NO_TRANS, NO_TRANS, (real_t)1.0, work, Z, (real_t)-1.0, res);
+
+    // Compute ||res||_F
+    return lange(FROB_NORM, res);
+}
+
+/** Calculates ||Q'*A*Z - B||
+ *
+ * @return frobenius norm of res
+ *
+ * @param[in] A n by n matrix
+ * @param[in] Q n by n unitary matrix
+ * @param[in] Z n by n unitary matrix
+ * @param[in] B n by n matrix
+ *
+ * @ingroup auxiliary
+ */
+template <TLAPACK_MATRIX matrix_t>
+real_type<type_t<matrix_t>> check_generalized_similarity_transform(matrix_t& A,
+                                                                   matrix_t& Q,
+                                                                   matrix_t& Z,
+                                                                   matrix_t& B)
+{
+    using T = type_t<matrix_t>;
+    using idx_t = size_type<matrix_t>;
+
+    // Functor
+    Create<matrix_t> new_matrix;
+
+    const idx_t n = ncols(A);
+
+    std::vector<T> res_;
+    auto res = new_matrix(res_, n, n);
+    std::vector<T> work_;
+    auto work = new_matrix(work_, n, n);
+
+    return check_similarity_transform(A, Q, Z, B, res, work);
+}
+
 //
 // GDB doesn't handle templates well, so we explicitly define some versions of
 // the functions for common template arguments
