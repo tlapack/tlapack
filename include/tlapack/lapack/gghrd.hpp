@@ -79,7 +79,7 @@ int gghrd(bool wantq,
     // Zero out lower triangle of B
     for (idx_t j = 0; j < n; ++j)
         for (idx_t i = j + 1; i < n; ++i)
-            B(i, j) = 0;
+            B(i, j) = (T)0;
 
     for (idx_t j = ilo; j < ilo + 1; ++j) {
         // Apply sequence of rotations
@@ -90,40 +90,40 @@ int gghrd(bool wantq,
             real_type<T> c;
             T s;
             rotg(A(i - 1, j), A(i, j), c, s);
-            A(i, j) = 0;
+            A(i, j) = (T)0;
             {
-                auto a1 = slice(A, i - 1, range{j + 1, n});
-                auto a2 = slice(A, i, range{j + 1, n});
+                auto a1 = slice(A, i - 1, range(j + 1, n));
+                auto a2 = slice(A, i, range(j + 1, n));
                 rot(a1, a2, c, s);
             }
             {
-                auto b1 = slice(B, i - 1, range{i - 1, n});
-                auto b2 = slice(B, i, range{i - 1, n});
+                auto b1 = slice(B, i - 1, range(i - 1, n));
+                auto b2 = slice(B, i, range(i - 1, n));
                 rot(b1, b2, c, s);
             }
             if (wantq) {
-                auto q1 = slice(Q, range{0, n}, i - 1);
-                auto q2 = slice(Q, range{0, n}, i);
+                auto q1 = slice(Q, range(0, n), i - 1);
+                auto q2 = slice(Q, range(0, n), i);
                 rot(q1, q2, c, conj(s));
             }
             //
             // The previous step introduced fill-in in B, remove it now
             //
             rotg(B(i, i), B(i, i - 1), c, s);
-            B(i, i - 1) = 0;
+            B(i, i - 1) = (T)0;
             {
-                auto a1 = slice(A, range{0, ihi}, i);
-                auto a2 = slice(A, range{0, ihi}, i - 1);
+                auto a1 = slice(A, range(0, ihi), i);
+                auto a2 = slice(A, range(0, ihi), i - 1);
                 rot(a1, a2, c, s);
             }
             {
-                auto b1 = slice(B, range{0, i}, i);
-                auto b2 = slice(B, range{0, i}, i - 1);
+                auto b1 = slice(B, range(0, i), i);
+                auto b2 = slice(B, range(0, i), i - 1);
                 rot(b1, b2, c, s);
             }
             if (wantz) {
-                auto z1 = slice(Z, range{0, n}, i);
-                auto z2 = slice(Z, range{0, n}, i - 1);
+                auto z1 = slice(Z, range(0, n), i);
+                auto z2 = slice(Z, range(0, n), i - 1);
                 rot(z1, z2, c, s);
             }
         }
