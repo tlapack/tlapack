@@ -128,7 +128,6 @@ int unm2r(side_t side,
           const tau_t& tau,
           matrixC_t& C)
 {
-    using TA = type_t<matrixA_t>;
     using idx_t = size_type<matrixA_t>;
     using work_t = matrix_type<matrixA_t, matrixC_t>;
     using T = type_t<work_t>;
