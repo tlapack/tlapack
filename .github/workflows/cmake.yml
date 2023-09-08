@@ -689,7 +689,7 @@ jobs:
     
     env:
       CXX: clang++
-      CXXFLAGS: "-Wall -Wpedantic -Wno-unused-variable -Wno-unused-function"
+      CXXFLAGS: "-Wall -Wpedantic -Wno-unused-variable -Wno-unused-function -std=c++17"
       FFLAGS: "-fcheck=all"
 
     runs-on: ubuntu-latest
