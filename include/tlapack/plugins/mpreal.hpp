@@ -44,7 +44,7 @@ int digits() noexcept;
 
 // Specialization for the mpfr::mpreal datatype
 template <>
-int digits<mpfr::mpreal>() noexcept
+inline int digits<mpfr::mpreal>() noexcept
 {
     return std::numeric_limits<mpfr::mpreal>::digits();
 }
