@@ -147,7 +147,7 @@ int rot_sequence(
         else {  // Direction::Backward
             if (side == Side::Left) {
                 for (idx_t j = 0; j < n; ++j) {
-                    for (idx_t i = 0; i < k - 1; ++i) {
+                    for (idx_t i = 0; i < k; ++i) {
                         T temp = c[i] * A(i, j) + s[i] * A(i + 1, j);
                         A(i + 1, j) =
                             -conj(s[i]) * A(i, j) + c[i] * A(i + 1, j);
@@ -156,7 +156,7 @@ int rot_sequence(
                 }
             }
             else {  // Side::Right
-                // for (idx_t i = 0; i < k - 1; ++i) {
+                // for (idx_t i = 0; i < k; ++i) {
                 //     for (idx_t j = 0; j < m; ++j) {
                 //         T temp = c[i] * A(j, i) + conj(s[i]) * A(j, i + 1);
                 //         A(j, i + 1) = -s[i] * A(j, i) + c[i] * A(j, i + 1);
@@ -166,7 +166,7 @@ int rot_sequence(
 
                 // Manual unrolling of loop, applying 3 rotations at a time
                 // This allows some parts of the vector to remain in register
-                idx_t ii = k - (k % 3) - 3;
+                idx_t ii = k - (k % 3);
                 for (idx_t i = 0; i + 1 < ii; i = i + 3) {
                     for (idx_t j = 0; j < m; ++j) {
                         T temp = A(j, i);
@@ -190,7 +190,7 @@ int rot_sequence(
                 }
                 // If the amount of rotations is not divisible by 3, apply the
                 // final ones one by one
-                for (idx_t i = ii; i < k - 1; ++i) {
+                for (idx_t i = ii; i < k; ++i) {
                     for (idx_t j = 0; j < m; ++j) {
                         T temp = c[i] * A(j, i) + conj(s[i]) * A(j, i + 1);
                         A(j, i + 1) = -s[i] * A(j, i) + c[i] * A(j, i + 1);
@@ -226,7 +226,7 @@ int rot_sequence(
         }
         else {
             if (side == Side::Left) {
-                for (idx_t i = 0; i < k - 1; ++i) {
+                for (idx_t i = 0; i < k; ++i) {
                     for (idx_t j = 0; j < n; ++j) {
                         T temp = c[i] * A(i, j) + s[i] * A(i + 1, j);
                         A(i + 1, j) =
@@ -237,7 +237,7 @@ int rot_sequence(
             }
             else {
                 for (idx_t j = 0; j < m; ++j) {
-                    for (idx_t i = 0; i < k - 1; ++i) {
+                    for (idx_t i = 0; i < k; ++i) {
                         T temp = c[i] * A(j, i) + conj(s[i]) * A(j, i + 1);
                         A(j, i + 1) = -s[i] * A(j, i) + c[i] * A(j, i + 1);
                         A(j, i) = temp;

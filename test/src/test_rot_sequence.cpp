@@ -66,14 +66,14 @@ int rot_sequence_unoptimized(
     }
     else {
         if (side == Side::Left) {
-            for (idx_t i = 0; i < k - 1; ++i) {
+            for (idx_t i = 0; i < k; ++i) {
                 auto a1 = row(A, i);
                 auto a2 = row(A, i + 1);
                 rot(a1, a2, c[i], s[i]);
             }
         }
         else {
-            for (idx_t i = 0; i < k - 1; ++i) {
+            for (idx_t i = 0; i < k; ++i) {
                 auto a1 = col(A, i);
                 auto a2 = col(A, i + 1);
                 rot(a1, a2, c[i], conj(s[i]));
@@ -103,8 +103,8 @@ TEMPLATE_TEST_CASE("Application of rotation sequence is accurate",
     const Side side = GENERATE(Side::Left, Side::Right);
     const Direction direction =
         GENERATE(Direction::Forward, Direction::Backward);
-    const idx_t n = GENERATE(1, 2, 3, 5, 10, 13);
-    const idx_t m = GENERATE(1, 2, 3, 5, 10, 13);
+    const idx_t n = GENERATE(1, 2, 3, 4, 5, 10, 13);
+    const idx_t m = GENERATE(1, 2, 3, 4, 5, 10, 13);
 
     const idx_t k = (side == Side::Left) ? m - 1 : n - 1;
 
