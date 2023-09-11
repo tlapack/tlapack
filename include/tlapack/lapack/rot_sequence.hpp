@@ -156,13 +156,6 @@ int rot_sequence(
                 }
             }
             else {  // Side::Right
-                // for (idx_t i = 0; i < k; ++i) {
-                //     for (idx_t j = 0; j < m; ++j) {
-                //         T temp = c[i] * A(j, i) + conj(s[i]) * A(j, i + 1);
-                //         A(j, i + 1) = -s[i] * A(j, i) + c[i] * A(j, i + 1);
-                //         A(j, i) = temp;
-                //     }
-                // }
 
                 // Manual unrolling of loop, applying 3 rotations at a time
                 // This allows some parts of the vector to remain in register
@@ -203,7 +196,34 @@ int rot_sequence(
     else {
         if (direction == Direction::Forward) {
             if (side == Side::Left) {
-                for (idx_t i2 = k; i2 > 0; --i2) {
+                // Manual unrolling of loop, applying 3 rotations at a time
+                // This allows some parts of the vector to remain in register
+                idx_t ii = k % 3;
+                for (idx_t i2 = k; i2 > ii; i2 = i2 - 3) {
+                    idx_t i = i2 - 1;
+
+                    for (idx_t j = 0; j < n; ++j) {
+                        T temp = A(i + 1, j);
+                        T temp0 = A(i, j);
+                        T temp1 = A(i - 1, j);
+
+                        // Apply first rotation
+                        A(i + 1, j) = -conj(s[i]) * temp0 + c[i] * temp;
+                        temp0 = c[i] * temp0 + s[i] * temp;
+
+                        // Apply second rotation
+                        A(i, j) = -conj(s[i - 1]) * temp1 + c[i - 1] * temp0;
+                        temp1 = c[i - 1] * temp1 + s[i - 1] * temp0;
+
+                        // Apply third rotation
+                        A(i - 1, j) =
+                            -conj(s[i - 2]) * A(i - 2, j) + c[i - 2] * temp1;
+                        A(i - 2, j) = c[i - 2] * A(i - 2, j) + s[i - 2] * temp1;
+                    }
+                }
+                // If the amount of rotations is not divisible by 3, apply the
+                // final ones one by one
+                for (idx_t i2 = ii; i2 > 0; --i2) {
                     idx_t i = i2 - 1;
                     for (idx_t j = 0; j < n; ++j) {
                         T temp = c[i] * A(i, j) + s[i] * A(i + 1, j);
@@ -226,7 +246,32 @@ int rot_sequence(
         }
         else {
             if (side == Side::Left) {
-                for (idx_t i = 0; i < k; ++i) {
+                // Manual unrolling of loop, applying 3 rotations at a time
+                // This allows some parts of the vector to remain in register
+                idx_t ii = k - (k % 3);
+                for (idx_t i = 0; i + 1 < ii; i = i + 3) {
+                    for (idx_t j = 0; j < n; ++j) {
+                        T temp = A(i, j);
+                        T temp0 = A(i + 1, j);
+                        T temp1 = A(i + 2, j);
+
+                        // Apply first rotation
+                        A(i, j) = c[i] * temp + s[i] * temp0;
+                        temp0 = -conj(s[i]) * temp + c[i] * temp0;
+
+                        // Apply second rotation
+                        A(i + 1, j) = c[i + 1] * temp0 + s[i + 1] * temp1;
+                        temp1 = -conj(s[i + 1]) * temp0 + c[i + 1] * temp1;
+
+                        // Apply third rotation
+                        A(i + 2, j) = c[i + 2] * temp1 + s[i + 2] * A(i + 3, j);
+                        A(i + 3, j) =
+                            -conj(s[i + 2]) * temp1 + c[i + 2] * A(i + 3, j);
+                    }
+                }
+                // If the amount of rotations is not divisible by 3, apply the
+                // final ones one by one
+                for (idx_t i = ii; i < k; ++i) {
                     for (idx_t j = 0; j < n; ++j) {
                         T temp = c[i] * A(i, j) + s[i] * A(i + 1, j);
                         A(i + 1, j) =
