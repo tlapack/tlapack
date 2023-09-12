@@ -10,12 +10,13 @@
 // clang-format off
 #define TLAPACK_PREFERRED_MATRIX_EIGEN // In case matrices need to be created
 #include <tlapack/plugins/mdspan.hpp>
+#include <tlapack/plugins/legacyArray.hpp>
 #include <tlapack/plugins/eigen.hpp>
 // clang-format on
 
 #include <tlapack/blas/trmm.hpp>
 #include <tlapack/blas/syr.hpp>
-#include <tlapack/lapack/potrf.hpp>
+#include <tlapack/lapack/getrf.hpp>
 
 // If C++23 is not available, use std::mdspan from kokkos
 #if __cplusplus < 202300L
@@ -33,6 +34,8 @@ int main()
     auto A = std::mdspan(A_.data(), 100, 100);
     auto B = Eigen::MatrixXd::Random(100, 100).eval();
     auto v = std::vector<double>(100);
+    auto piv_ = std::vector<int>(100);
+    auto piv = LegacyVector<int>(100, piv_.data());
 
     // Fill A and v with random values
     for (auto& x : A_)
@@ -43,17 +46,10 @@ int main()
     // Mix up values in B
     trmm(LEFT_SIDE, LOWER_TRIANGLE, NO_TRANS, NON_UNIT_DIAG, 1.0, A, B);
     syr(UPPER_TRIANGLE, 1.0, v, B);
-    B = B / B.maxCoeff();
 
-    // Make A and B positive definite
-    for (int i = 0; i < 100; ++i) {
-        A(i, i) += 100;
-        B(i, i) += 100;
-    }
-
-    // Compute the Cholesky factorization of A and B
-    int infoA = potrf(UPPER_TRIANGLE, A);
-    int infoB = potrf(UPPER_TRIANGLE, B);
+    // Compute the LU factorization of A and B
+    int infoA = getrf(A, piv);
+    int infoB = getrf(B, piv);
 
     return infoA + infoB;
 }
