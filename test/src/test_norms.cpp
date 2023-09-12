@@ -48,7 +48,7 @@ TEMPLATE_TEST_CASE("Blue's constants work when computing norms",
     auto A = new_matrix(A_, n, n);
 
     // Tolerance
-    const real_t tol = real_t(n + 1) * u;
+    const real_t tol = u;
 
     DYNAMIC_SECTION("lange, n = " << n)
     {

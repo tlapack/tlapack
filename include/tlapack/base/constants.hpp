@@ -125,6 +125,7 @@ constexpr real_t blue_max() noexcept
 }
 
 /** Blue's scaling constant for numbers smaller than b
+ * @see https://doi.org/10.1145/355769.355771
  *
  * @details Modification introduced in @see https://doi.org/10.1145/3061665
  *          to scale denormalized numbers correctly.
