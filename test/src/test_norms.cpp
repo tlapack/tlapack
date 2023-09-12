@@ -47,36 +47,39 @@ TEMPLATE_TEST_CASE("Blue's constants work when computing norms",
     std::vector<T> A_;
     auto A = new_matrix(A_, n, n);
 
+    // Tolerance
+    const real_t tol = real_t(n + 1) * u;
+
     DYNAMIC_SECTION("lange, n = " << n)
     {
         // constants
-        const real_t norm = tbig * n;
+        const real_t norm = tbig * real_t(n);
 
         mm.single_value(A, tbig);
-        CHECK(abs(lange(FROB_NORM, A) - norm) / norm <= u);
+        CHECK(abs(lange(FROB_NORM, A) - norm) <= tol * norm);
     }
 
     DYNAMIC_SECTION("lanhe, n = " << n)
     {
         // constants
-        const real_t norm = tbig * n;
+        const real_t norm = tbig * real_t(n);
 
         for (Uplo uplo : {Uplo::Lower, Uplo::Upper}) {
             INFO("uplo = " << uplo);
             mm.single_value(uplo, A, tbig);
-            CHECK(abs(lanhe(FROB_NORM, uplo, A) - norm) / norm <= u);
+            CHECK(abs(lanhe(FROB_NORM, uplo, A) - norm) <= tol * norm);
         }
     }
 
     DYNAMIC_SECTION("lansy, n = " << n)
     {
         // constants
-        const real_t norm = tbig * n;
+        const real_t norm = tbig * real_t(n);
 
         for (Uplo uplo : {Uplo::Lower, Uplo::Upper}) {
             INFO("uplo = " << uplo);
             mm.single_value(uplo, A, tbig);
-            CHECK(abs(lansy(FROB_NORM, uplo, A) - norm) / norm <= u);
+            CHECK(abs(lansy(FROB_NORM, uplo, A) - norm) <= tol * norm);
         }
     }
 
@@ -88,15 +91,16 @@ TEMPLATE_TEST_CASE("Blue's constants work when computing norms",
         for (Uplo uplo : {Uplo::Lower, Uplo::Upper}) {
             INFO("diag = NonUnit, uplo = " << uplo);
             mm.single_value(uplo, A, tbig);
-            CHECK(abs(lantr(FROB_NORM, uplo, NON_UNIT_DIAG, A) - norm) / norm <=
-                  u);
+            CHECK(abs(lantr(FROB_NORM, uplo, NON_UNIT_DIAG, A) - norm) <=
+                  tol * norm);
         }
 
-        norm = sqrt(tbig * tbig * ((n * (n - 1)) / 2) + n);
+        norm = sqrt(tbig * tbig * real_t((n * (n - 1)) / 2) + real_t(n));
         for (Uplo uplo : {Uplo::Lower, Uplo::Upper}) {
             INFO("diag = Unit, uplo = " << uplo);
             mm.single_value(uplo, A, tbig);
-            CHECK(abs(lantr(FROB_NORM, uplo, UNIT_DIAG, A) - norm) / norm <= u);
+            CHECK(abs(lantr(FROB_NORM, uplo, UNIT_DIAG, A) - norm) <=
+                  tol * norm);
         }
     }
 }

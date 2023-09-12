@@ -92,7 +92,7 @@ auto lansy(norm_t normType, uplo_t uplo, const matrix_t& A)
     else if (normType == Norm::One || normType == Norm::Inf) {
         if (uplo == Uplo::Upper) {
             for (idx_t j = 0; j < n; ++j) {
-                real_t temp = 0;
+                real_t temp(0);
 
                 for (idx_t i = 0; i <= j; ++i)
                     temp += abs(A(i, j));
@@ -109,7 +109,7 @@ auto lansy(norm_t normType, uplo_t uplo, const matrix_t& A)
         }
         else {
             for (idx_t j = 0; j < n; ++j) {
-                real_t temp = 0;
+                real_t temp(0);
 
                 for (idx_t i = 0; i <= j; ++i)
                     temp += abs(A(j, i));
@@ -138,7 +138,7 @@ auto lansy(norm_t normType, uplo_t uplo, const matrix_t& A)
             for (idx_t j = 0; j < n - 1; ++j)
                 lassq(slice(A, range{j + 1, n}, j), scale, ssq);
         }
-        ssq *= 2;
+        ssq *= real_t(2);
 
         // Sum diagonal
         lassq(diag(A, 0), scale, ssq);
