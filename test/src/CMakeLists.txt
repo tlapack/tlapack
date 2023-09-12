@@ -86,6 +86,7 @@ add_executable(test_larf test_larf.cpp)
 add_executable( test_rscl test_rscl.cpp )
 add_executable( test_ladiv test_ladiv.cpp )
 add_executable(test_concepts test_concepts.cpp)
+add_executable(test_norms test_norms.cpp)
 
 if(TLAPACK_TEST_EIGEN)
   add_executable(test_eigenplugin test_eigenplugin.cpp)
