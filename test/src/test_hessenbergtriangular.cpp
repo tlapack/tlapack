@@ -1,6 +1,6 @@
 /// @file test_hessenbergtriangular.cpp
 /// @author Thijs Steel, KU Leuven, Belgium
-/// @brief Test hessenberg reduction
+/// @brief Test hessenberg triangular reduction
 //
 // Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
