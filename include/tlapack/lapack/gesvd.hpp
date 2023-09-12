@@ -161,6 +161,7 @@ int gesvd(bool want_u,
     auto tauv = col(work, 1);
     auto tauw = col(work, 2);
 
+    // TODO: update to _work version
     gebrd(A, tauv, tauw, GebrdOpts{});
 
     // For now, we use a locally allocated vector, because I don't know how to
@@ -186,12 +187,14 @@ int gesvd(bool want_u,
     if (want_u) {
         auto Ui = slice(U, pair{0, m}, pair{0, k});
         lacpy(Uplo::Lower, slice(A, pair{0, m}, pair{0, k}), Ui);
+        // TODO: update to _work version
         ungbr_q(n, U, tauv, UngbrOpts{});
     }
 
     if (want_vt) {
         auto Vti = slice(Vt, pair{0, k}, pair{0, n});
         lacpy(Uplo::Upper, slice(A, pair{0, k}, pair{0, n}), Vti);
+        // TODO: update to _work version
         ungbr_p(m, Vt, tauw, UngbrOpts{});
     }
 

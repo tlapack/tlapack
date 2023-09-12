@@ -16,8 +16,6 @@
 
 namespace tlapack {
 
-using mpfr::abs;
-
 namespace traits {
     // mpfr::mpreal is a real type that satisfies tlapack::concepts::Real
     template <>
