@@ -5,7 +5,7 @@ We provide a few examples to show how to use \<T\>LAPACK. Each example has its o
 This is the list of examples and brief descriptions:
 
 - [geqr2](geqr2/README.md)
-  
+
   Compute the QR factorization of a matrix filled with random numbers.
 
 - [gemm](gemm/README.md)
@@ -39,3 +39,7 @@ This is the list of examples and brief descriptions:
 - [create_float_library](create_float_library/README.md)
 
   Create a static library with single precision from the \<T\>LAPACK library.
+
+- [interoperability](interoperability/README.md)
+
+  Use \<T\>LAPACK with different data structures: std::mdspan, std::vector and Eigen::Matrix.

@@ -186,3 +186,20 @@ if (PkgConfig_FOUND)
     )
   endif()
 endif()
+
+# add the example interoperability
+find_package( mdspan QUIET )
+find_package( Eigen3 QUIET )
+if( mdspan_FOUND AND Eigen3_FOUND )
+  add_subdirectory( interoperability )
+  add_custom_command(
+    OUTPUT run-all-examples-cmd APPEND
+    COMMAND
+      echo "- example_interoperability ----------------" &&
+      "${CMAKE_CURRENT_BINARY_DIR}/interoperability/example_interoperability${CMAKE_EXECUTABLE_SUFFIX}"
+      && echo ""
+  )
+else()
+  mark_as_advanced( FORCE mdspan_DIR )
+  mark_as_advanced( FORCE Eigen3_DIR )
+endif()
