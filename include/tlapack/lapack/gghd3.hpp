@@ -73,7 +73,15 @@ int gghd3(bool wantq,
     const idx_t nh = ihi - ilo - 1;
 
     // check arguments
-    tlapack_check_false(ncols(A) != nrows(A));
+    tlapack_check(ilo >= 0 && ilo < n);
+    tlapack_check(ihi > ilo && ihi <= n);
+    tlapack_check(n == nrows(A));
+    tlapack_check(n == ncols(B));
+    tlapack_check(n == nrows(B));
+    tlapack_check(n == ncols(Q));
+    tlapack_check(n == nrows(Q));
+    tlapack_check(n == ncols(Z));
+    tlapack_check(n == nrows(Z));
 
     // Zero out lower triangle of B
     for (idx_t j = 0; j < n; ++j)
