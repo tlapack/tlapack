@@ -156,11 +156,10 @@ int gghd3(bool wantq,
             auto Qt2 = slice(Qt, range(0, nblst), range(0, nblst));
             laset(GENERAL, (T)0, (T)1, Qt2);
 
-            // TODO: account for nonzero structure when accumulating matrices
             for (idx_t jb = 0; jb < nnb; ++jb) {
                 for (idx_t i = nblst - 1; i > jb; --i) {
-                    auto q1 = col(Qt2, i - 1);
-                    auto q2 = col(Qt2, i);
+                    auto q1 = slice(Qt2, range(i - 1 - jb, nblst), i - 1);
+                    auto q2 = slice(Qt2, range(i - 1 - jb, nblst), i);
                     rot(q1, q2, Cl(j - ilo + nnb * n2nb + i - 1, jb),
                         conj(Sl(j - ilo + nnb * n2nb + i - 1, jb)));
                 }
@@ -186,11 +185,11 @@ int gghd3(bool wantq,
         for (idx_t ib = n2nb - 1; ib != (idx_t)-1; ib--) {
             auto Qt2 = slice(Qt, range(0, 2 * nnb), range(0, 2 * nnb));
             laset(GENERAL, (T)0, (T)1, Qt2);
-            // TODO: account for nonzero structure when accumulating matrices
             for (idx_t jb = 0; jb < nnb; ++jb) {
                 for (idx_t i = nnb + jb; i > jb; --i) {
-                    auto q1 = col(Qt2, i - 1);
-                    auto q2 = col(Qt2, i);
+                    auto q1 =
+                        slice(Qt2, range(i - 1 - jb, nnb + jb + 1), i - 1);
+                    auto q2 = slice(Qt2, range(i - 1 - jb, nnb + jb + 1), i);
                     rot(q1, q2, Cl(j - ilo + ib * nnb + i - 1, jb),
                         conj(Sl(j - ilo + ib * nnb + i - 1, jb)));
                 }
@@ -228,11 +227,10 @@ int gghd3(bool wantq,
             auto Qt2 = slice(Qt, range(0, nblst), range(0, nblst));
             laset(GENERAL, (T)0, (T)1, Qt2);
 
-            // TODO: account for nonzero structure when accumulating matrices
             for (idx_t jb = 0; jb < nnb; ++jb) {
                 for (idx_t i = nblst - 1; i > jb; --i) {
-                    auto q1 = col(Qt2, i - 1);
-                    auto q2 = col(Qt2, i);
+                    auto q1 = slice(Qt2, range(i - 1 - jb, nblst), i - 1);
+                    auto q2 = slice(Qt2, range(i - 1 - jb, nblst), i);
                     rot(q1, q2, Cr(j - ilo + nnb * n2nb + i - 1, jb),
                         conj(Sr(j - ilo + nnb * n2nb + i - 1, jb)));
                 }
@@ -257,11 +255,11 @@ int gghd3(bool wantq,
         for (idx_t ib = n2nb - 1; ib != (idx_t)-1; ib--) {
             auto Qt2 = slice(Qt, range(0, 2 * nnb), range(0, 2 * nnb));
             laset(GENERAL, (T)0, (T)1, Qt2);
-            // TODO: account for nonzero structure when accumulating matrices
             for (idx_t jb = 0; jb < nnb; ++jb) {
                 for (idx_t i = nnb + jb; i > jb; --i) {
-                    auto q1 = col(Qt2, i - 1);
-                    auto q2 = col(Qt2, i);
+                    auto q1 =
+                        slice(Qt2, range(i - 1 - jb, nnb + jb + 1), i - 1);
+                    auto q2 = slice(Qt2, range(i - 1 - jb, nnb + jb + 1), i);
                     rot(q1, q2, Cr(j - ilo + ib * nnb + i - 1, jb),
                         conj(Sr(j - ilo + ib * nnb + i - 1, jb)));
                 }
