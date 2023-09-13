@@ -31,21 +31,6 @@ struct Gghd3Opts {
  *  Hessenberg form using unitary transformations, where A is a general matrix
  *  and B is upper triangular.
  *
- * The matrix Q is represented as a product of elementary reflectors
- * \[
- *          Q = H_ilo H_ilo+1 ... H_ihi,
- * \]
- * Each H_i has the form
- * \[
- *          H_i = I - tau * v * v',
- * \]
- * where tau is a scalar, and v is a vector with
- * \[
- *          v[0] = v[1] = ... = v[i] = 0; v[i+1] = 1,
- * \]
- * with v[i+2] through v[ihi] stored on exit below the diagonal
- * in the ith column of A, and tau in tau[i].
- *
  * @return  0 if success
  *
  * @param[in] wantq boolean
@@ -108,8 +93,19 @@ int gghd3(bool wantq,
     std::vector<T> Sr_;
     auto Sr = new_matrix(Sr_, nh - 1, nb);
 
+    std::vector<T> Qt_;
+    auto Qt = new_matrix(Qt_, 2 * nb, 2 * nb);
+    std::vector<T> C_;
+    auto C = new_matrix(C_, 2 * nb, n);
+    auto D = new_matrix(C_, n, 2 * nb);
+
     for (idx_t j = ilo; j + 2 < ihi; j = j + nb) {
+        // Number of columns to be reduced
         idx_t nnb = std::min<idx_t>(nb, ihi - 2 - j);
+        // Number of 2*nnb x 2*nnb orthogonal factors
+        idx_t n2nb = (ihi - j - 2) / nnb - 1;
+        // Size of the last orthogonal factor
+        idx_t nblst = ihi - j - 1 - n2nb * nnb;
 
         //
         // Reduce panel j:j+nb
@@ -150,31 +146,91 @@ int gghd3(bool wantq,
         }
 
         //
+        // Accumulate the rotations into unitary matrices and use those to
+        // apply the rotations efficiently.
+        //
+        {
+            //
+            // Last block is treated separately
+            //
+            auto Qt2 = slice(Qt, range(0, nblst), range(0, nblst));
+            laset(GENERAL, (T)0, (T)1, Qt2);
+
+            // TODO: account for nonzero structure when accumulating matrices
+            for (idx_t jb = 0; jb < nnb; ++jb) {
+                for (idx_t i = nblst - 1; i > jb; --i) {
+                    auto q1 = col(Qt2, i - 1);
+                    auto q2 = col(Qt2, i);
+                    rot(q1, q2, Cl(j - ilo + nnb * n2nb + i - 1, jb),
+                        conj(Sl(j - ilo + nnb * n2nb + i - 1, jb)));
+                }
+            }
+
+            auto A2 = slice(A, range(ihi - nblst, ihi), range(j + nnb, n));
+            auto C2 = slice(C, range(0, nblst), range(j + nnb, n));
+            gemm(CONJ_TRANS, NO_TRANS, (T)1, Qt2, A2, C2);
+            lacpy(GENERAL, C2, A2);
+
+            if (ihi < n) {
+                auto B2 = slice(B, range(ihi - nblst, ihi), range(ihi, n));
+                auto C3 = slice(C, range(0, nblst), range(ihi, n));
+                gemm(CONJ_TRANS, NO_TRANS, (T)1, Qt2, B2, C3);
+                lacpy(GENERAL, C3, B2);
+            }
+
+            auto Q2 = cols(Q, range(ihi - nblst, ihi));
+            auto D2 = cols(D, range(0, nblst));
+            gemm(NO_TRANS, NO_TRANS, (T)1, Q2, Qt2, D2);
+            lacpy(GENERAL, D2, Q2);
+        }
+        for (idx_t ib = n2nb - 1; ib != (idx_t)-1; ib--) {
+            auto Qt2 = slice(Qt, range(0, 2 * nnb), range(0, 2 * nnb));
+            laset(GENERAL, (T)0, (T)1, Qt2);
+            for (idx_t jb = 0; jb < nnb; ++jb) {
+                for (idx_t i = nnb + jb; i > jb; --i) {
+                    auto q1 = col(Qt2, i - 1);
+                    auto q2 = col(Qt2, i);
+                    rot(q1, q2, Cl(j - ilo + ib * nnb + i - 1, jb),
+                        conj(Sl(j - ilo + ib * nnb + i - 1, jb)));
+                }
+            }
+
+            auto A2 =
+                slice(A, range(j + 1 + nnb * ib, j + 1 + nnb * ib + 2 * nnb),
+                      range(j + nnb, n));
+            auto C2 = slice(C, range(0, 2 * nnb), range(j + nnb, n));
+            gemm(CONJ_TRANS, NO_TRANS, (T)1, Qt2, A2, C2);
+            lacpy(GENERAL, C2, A2);
+
+            if (ihi < n) {
+                auto B2 = slice(
+                    B, range(j + 1 + nnb * ib, j + 1 + nnb * ib + 2 * nnb),
+                    range(ihi, n));
+                auto C3 = slice(C, range(0, 2 * nnb), range(ihi, n));
+                gemm(CONJ_TRANS, NO_TRANS, (T)1, Qt2, B2, C3);
+                lacpy(GENERAL, C3, B2);
+            }
+
+            auto Q2 =
+                cols(Q, range(j + 1 + nnb * ib, j + 1 + nnb * ib + 2 * nnb));
+            auto D2 = cols(D, range(0, 2 * nnb));
+            gemm(NO_TRANS, NO_TRANS, (T)1, Q2, Qt2, D2);
+            lacpy(GENERAL, D2, Q2);
+        }
+
+        //
         // This loop applies the rotations to the rest of the matrices
         // This should be optimized using BLAS
         //
         for (idx_t jb = 0; jb < nnb; ++jb) {
-            auto clv = slice(Cl, range(j - ilo + jb, ihi - ilo - 2), jb);
-            auto slv = slice(Sl, range(j - ilo + jb, ihi - ilo - 2), jb);
             auto crv = slice(Cr, range(j - ilo + jb, ihi - ilo - 2), jb);
             auto srv = slice(Sr, range(j - ilo + jb, ihi - ilo - 2), jb);
-
-            auto A2 = slice(A, range(j + jb + 1, ihi), range(j + nnb, n));
-            rot_sequence(LEFT_SIDE, FORWARD, clv, slv, A2);
-
-            if (ihi < n) {
-                auto B4 = slice(B, range(j + jb + 1, ihi), range(ihi, n));
-                rot_sequence(LEFT_SIDE, FORWARD, clv, slv, B4);
-            }
             if (j > 0) {
                 auto A4 = slice(A, range(0, j), range(j + jb + 1, ihi));
                 rot_sequence(RIGHT_SIDE, FORWARD, crv, srv, A4);
                 auto B4 = slice(B, range(0, j), range(j + jb + 1, ihi));
                 rot_sequence(RIGHT_SIDE, FORWARD, crv, srv, B4);
             }
-            // Apply rotations to Q
-            auto Q2 = cols(Q, range(j + jb + 1, ihi));
-            rot_sequence(RIGHT_SIDE, FORWARD, clv, slv, Q2);
             // Apply rotations to Z
             auto Z2 = cols(Z, range(j + jb + 1, ihi));
             rot_sequence(RIGHT_SIDE, FORWARD, crv, srv, Z2);
