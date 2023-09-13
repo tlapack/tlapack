@@ -146,7 +146,7 @@ int gghd3(bool wantq,
         }
 
         //
-        // Accumulate the rotations into unitary matrices and use those to
+        // Accumulate the left rotations into unitary matrices and use those to
         // apply the rotations efficiently.
         //
         {
@@ -186,6 +186,7 @@ int gghd3(bool wantq,
         for (idx_t ib = n2nb - 1; ib != (idx_t)-1; ib--) {
             auto Qt2 = slice(Qt, range(0, 2 * nnb), range(0, 2 * nnb));
             laset(GENERAL, (T)0, (T)1, Qt2);
+            // TODO: account for nonzero structure when accumulating matrices
             for (idx_t jb = 0; jb < nnb; ++jb) {
                 for (idx_t i = nnb + jb; i > jb; --i) {
                     auto q1 = col(Qt2, i - 1);
@@ -219,21 +220,73 @@ int gghd3(bool wantq,
         }
 
         //
-        // This loop applies the rotations to the rest of the matrices
-        // This should be optimized using BLAS
+        // Accumulate the right rotations into unitary matrices and use those to
+        // apply the rotations efficiently.
         //
-        for (idx_t jb = 0; jb < nnb; ++jb) {
-            auto crv = slice(Cr, range(j - ilo + jb, ihi - ilo - 2), jb);
-            auto srv = slice(Sr, range(j - ilo + jb, ihi - ilo - 2), jb);
-            if (j > 0) {
-                auto A4 = slice(A, range(0, j), range(j + jb + 1, ihi));
-                rot_sequence(RIGHT_SIDE, FORWARD, crv, srv, A4);
-                auto B4 = slice(B, range(0, j), range(j + jb + 1, ihi));
-                rot_sequence(RIGHT_SIDE, FORWARD, crv, srv, B4);
+        {
+            // Last block is treated separately
+            auto Qt2 = slice(Qt, range(0, nblst), range(0, nblst));
+            laset(GENERAL, (T)0, (T)1, Qt2);
+
+            // TODO: account for nonzero structure when accumulating matrices
+            for (idx_t jb = 0; jb < nnb; ++jb) {
+                for (idx_t i = nblst - 1; i > jb; --i) {
+                    auto q1 = col(Qt2, i - 1);
+                    auto q2 = col(Qt2, i);
+                    rot(q1, q2, Cr(j - ilo + nnb * n2nb + i - 1, jb),
+                        conj(Sr(j - ilo + nnb * n2nb + i - 1, jb)));
+                }
             }
-            // Apply rotations to Z
-            auto Z2 = cols(Z, range(j + jb + 1, ihi));
-            rot_sequence(RIGHT_SIDE, FORWARD, crv, srv, Z2);
+
+            if (j > 0) {
+                auto A2 = slice(A, range(0, j), range(ihi - nblst, ihi));
+                auto D2 = slice(D, range(0, j), range(0, nblst));
+                gemm(NO_TRANS, NO_TRANS, (T)1, A2, Qt2, D2);
+                lacpy(GENERAL, D2, A2);
+
+                auto B2 = slice(B, range(0, j), range(ihi - nblst, ihi));
+                gemm(NO_TRANS, NO_TRANS, (T)1, B2, Qt2, D2);
+                lacpy(GENERAL, D2, B2);
+            }
+
+            auto Z2 = cols(Z, range(ihi - nblst, ihi));
+            auto D2 = cols(D, range(0, nblst));
+            gemm(NO_TRANS, NO_TRANS, (T)1, Z2, Qt2, D2);
+            lacpy(GENERAL, D2, Z2);
+        }
+        for (idx_t ib = n2nb - 1; ib != (idx_t)-1; ib--) {
+            auto Qt2 = slice(Qt, range(0, 2 * nnb), range(0, 2 * nnb));
+            laset(GENERAL, (T)0, (T)1, Qt2);
+            // TODO: account for nonzero structure when accumulating matrices
+            for (idx_t jb = 0; jb < nnb; ++jb) {
+                for (idx_t i = nnb + jb; i > jb; --i) {
+                    auto q1 = col(Qt2, i - 1);
+                    auto q2 = col(Qt2, i);
+                    rot(q1, q2, Cr(j - ilo + ib * nnb + i - 1, jb),
+                        conj(Sr(j - ilo + ib * nnb + i - 1, jb)));
+                }
+            }
+
+            if (j > 0) {
+                auto A2 =
+                    slice(A, range(0, j),
+                          range(j + 1 + nnb * ib, j + 1 + nnb * ib + 2 * nnb));
+                auto D2 = slice(D, range(0, j), range(0, 2 * nnb));
+                gemm(NO_TRANS, NO_TRANS, (T)1, A2, Qt2, D2);
+                lacpy(GENERAL, D2, A2);
+
+                auto B2 =
+                    slice(B, range(0, j),
+                          range(j + 1 + nnb * ib, j + 1 + nnb * ib + 2 * nnb));
+                gemm(NO_TRANS, NO_TRANS, (T)1, B2, Qt2, D2);
+                lacpy(GENERAL, D2, B2);
+            }
+
+            auto Z2 =
+                cols(Z, range(j + 1 + nnb * ib, j + 1 + nnb * ib + 2 * nnb));
+            auto D2 = cols(D, range(0, 2 * nnb));
+            gemm(NO_TRANS, NO_TRANS, (T)1, Z2, Qt2, D2);
+            lacpy(GENERAL, D2, Z2);
         }
     }
 
