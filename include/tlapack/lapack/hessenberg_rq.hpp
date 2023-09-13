@@ -46,7 +46,7 @@ int hessenberg_rq(H_t& H, C_t& c, S_t& s)
     if (k < 1) return 0;
 
     for (idx_t i = n - 1; i > 0; --i) {
-        // Generate rotation to reduce
+        // Generate rotation to reduce H(i, i-1)
         rotg(H(i, i), H(i, i - 1), c[i - 1], s[i - 1]);
         s[i - 1] = -s[i - 1];
         H(i, i - 1) = (T)0;
