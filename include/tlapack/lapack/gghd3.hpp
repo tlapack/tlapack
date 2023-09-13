@@ -41,6 +41,7 @@ struct Gghd3Opts {
  * @param[in,out] B n-by-n matrix.
  * @param[in,out] Q n-by-n matrix.
  * @param[in,out] Z n-by-n matrix.
+ * @param[in] opts Options.
  *
  * @ingroup computational
  */

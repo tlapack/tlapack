@@ -81,7 +81,7 @@ int gghrd(bool wantq,
         for (idx_t i = j + 1; i < n; ++i)
             B(i, j) = (T)0;
 
-    for (idx_t j = ilo; j < ilo + 1; ++j) {
+    for (idx_t j = ilo; j + 2 < ihi; ++j) {
         // Apply sequence of rotations
         for (idx_t i = ihi - 1; i > j + 1; --i) {
             //
