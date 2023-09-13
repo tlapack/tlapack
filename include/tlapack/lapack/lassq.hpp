@@ -24,7 +24,7 @@ namespace tlapack {
  * \[
  *      scl smsq := \sum_{i = 0}^n |x_i|^2 + scale^2 sumsq,
  * \]
- * The value of  sumsq  is assumed to be non-negative.
+ * scale and sumsq are assumed to be non-negative.
  *
  * @param[in] x Vector of size n.
  *
@@ -105,13 +105,8 @@ void lassq(const vector_t& x,
         real_t ax = scale * sqrt(sumsq);
         if (ax > tbig) {
             if (scale > one) {
-                const real_t s = scale * sbig;  // sbig < s <= sbig * HUGE
-                if (s < tsml)
-                    // sbig < s < tsml
-                    abig += s * (s * sumsq);
-                else
-                    // tsml <= s <= tbig
-                    abig += (s * s) * sumsq;
+                scale *= sbig;
+                abig += scale * (scale * sumsq);
             }
             else {
                 // sumsq > tbig^2 => (sbig * (sbig * sumsq)) is representable
@@ -121,13 +116,8 @@ void lassq(const vector_t& x,
         else if (ax < tsml) {
             if (abig == zero) {
                 if (scale < one) {
-                    const real_t s = scale * ssml;  // ssml * TINY <= s < ssml
-                    if (s > tbig)
-                        // tbig < s < ssml
-                        asml += s * (s * sumsq);
-                    else
-                        // tsml <= s <= tbig
-                        asml += (s * s) * sumsq;
+                    scale *= ssml;
+                    asml += scale * (scale * sumsq);
                 }
                 else {
                     // sumsq < tsml^2 => (ssml * (ssml * sumsq)) is
@@ -137,10 +127,7 @@ void lassq(const vector_t& x,
             }
         }
         else {
-            if (scale > tbig || scale < tsml)
-                amed += scale * (scale * sumsq);
-            else
-                amed += (scale * scale) * sumsq;
+            amed += scale * (scale * sumsq);
         }
     }
 

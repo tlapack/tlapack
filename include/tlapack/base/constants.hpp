@@ -80,7 +80,7 @@ constexpr real_t safe_min() noexcept
     const int expm = std::numeric_limits<real_t>::min_exponent;
     const int expM = std::numeric_limits<real_t>::max_exponent;
 
-    return max(pow(fradix, real_t(expm - 1)), pow(fradix, real_t(1 - expM)));
+    return pow(fradix, real_t(max(expm - 1, 1 - expM)));
 }
 
 /** Safe Maximum
