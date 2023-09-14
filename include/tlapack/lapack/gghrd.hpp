@@ -22,21 +22,6 @@ namespace tlapack {
  *  Hessenberg form using unitary transformations, where A is a general matrix
  *  and B is upper triangular.
  *
- * The matrix Q is represented as a product of elementary reflectors
- * \[
- *          Q = H_ilo H_ilo+1 ... H_ihi,
- * \]
- * Each H_i has the form
- * \[
- *          H_i = I - tau * v * v',
- * \]
- * where tau is a scalar, and v is a vector with
- * \[
- *          v[0] = v[1] = ... = v[i] = 0; v[i+1] = 1,
- * \]
- * with v[i+2] through v[ihi] stored on exit below the diagonal
- * in the ith column of A, and tau in tau[i].
- *
  * @return  0 if success
  *
  * @param[in] wantq boolean
@@ -71,7 +56,15 @@ int gghrd(bool wantq,
     const idx_t n = ncols(A);
 
     // check arguments
-    tlapack_check_false(ncols(A) != nrows(A));
+    tlapack_check(ilo >= 0 && ilo < n);
+    tlapack_check(ihi > ilo && ihi <= n);
+    tlapack_check(n == nrows(A));
+    tlapack_check(n == ncols(B));
+    tlapack_check(n == nrows(B));
+    tlapack_check(n == ncols(Q));
+    tlapack_check(n == nrows(Q));
+    tlapack_check(n == ncols(Z));
+    tlapack_check(n == nrows(Z));
 
     // quick return
     if (n <= 1) return 0;
@@ -81,7 +74,7 @@ int gghrd(bool wantq,
         for (idx_t i = j + 1; i < n; ++i)
             B(i, j) = (T)0;
 
-    for (idx_t j = ilo; j < ilo + 1; ++j) {
+    for (idx_t j = ilo; j + 2 < ihi; ++j) {
         // Apply sequence of rotations
         for (idx_t i = ihi - 1; i > j + 1; --i) {
             //
