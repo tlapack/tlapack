@@ -61,13 +61,7 @@ int getrf_recursive(matrix_t& A, piv_t& piv)
     using range = pair<idx_t, idx_t>;
 
     // Using the following lines to pass the abs function to iamax
-    /// @todo: Replace the following lines by a lambda function if we adopt
-    /// C++17
-    struct abs_f {
-        constexpr real_t operator()(const T& x) const { return abs(x); }
-    };
-    abs_f absf;
-    IamaxOpts optsIamax(absf);
+    IamaxOpts optsIamax([](const T& x) -> real_t { return abs(x); });
 
     // constants
     const idx_t m = nrows(A);
