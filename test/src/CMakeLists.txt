@@ -38,6 +38,8 @@ if(TLAPACK_TEST_QUAD)
     target_compile_definitions(testutils PUBLIC TLAPACK_TEST_QUAD)
     target_compile_options(testutils PUBLIC -fext-numeric-literals)
     target_link_libraries(testutils PUBLIC -lquadmath)
+  else()
+    message(WARNING "Quad precision tests are only supported with GCC. You are using ${CMAKE_CXX_COMPILER_ID}")
   endif()
 endif()
 

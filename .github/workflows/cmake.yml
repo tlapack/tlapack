@@ -167,9 +167,7 @@ jobs:
         -D BUILD_BLASPP_TESTS=ON
         -D TLAPACK_TEST_EIGEN=ON
         -D TLAPACK_TEST_MDSPAN=ON
-        -D blaspp_DIR="${{env.blaspp_DIR}}/build"
         -D BUILD_LAPACKPP_TESTS=ON
-        -D lapackpp_DIR="${{env.lapackpp_DIR}}/build"
         -D Catch2_DIR="${{env.Catch2_CMAKE_DIR}}"
 
     - name: Specific configurations for CMake on MacOS
@@ -227,12 +225,12 @@ jobs:
     - name: Install
       run: cmake --build build --target install
 
-  build-with-mpfr:
+  build-with-mpfr-and-float128:
     # Use GNU compilers
 
     runs-on: ubuntu-latest
     env:
-      CXXFLAGS: "-Wall -pedantic -Wno-unused-variable -Wno-unused-function -D TLAPACK_TYPES_TO_TEST=\"(LegacyMatrix<mpfr::mpreal>), (LegacyMatrix<mpfr::mpreal,std::size_t,Layout::RowMajor>)\""
+      CXXFLAGS: "-Wall -pedantic -Wno-unused-variable -Wno-unused-function -D TLAPACK_REAL_TYPES_TO_TEST=\"(LegacyMatrix<mpfr::mpreal>), (LegacyMatrix<mpfr::mpreal,std::size_t,Layout::RowMajor>), (LegacyMatrix<__float128>), (LegacyMatrix<__float128,std::size_t,Layout::RowMajor>)\" -D TLAPACK_TYPES_TO_TEST=\"(LegacyMatrix<mpfr::mpreal>), (LegacyMatrix<mpfr::mpreal,std::size_t,Layout::RowMajor>), (LegacyMatrix<__float128>), (LegacyMatrix<__float128,std::size_t,Layout::RowMajor>)\""
       
     steps:     
     
