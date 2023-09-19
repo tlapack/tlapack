@@ -551,17 +551,21 @@ constexpr auto slice(LegacyVector<T, idx_t, int_t, direction>& v,
 template <typename T, class idx_t, Layout layout>
 auto reshape(LegacyMatrix<T, idx_t, layout>& A,
              size_type<LegacyMatrix<T, idx_t>> m,
-             size_type<LegacyMatrix<T, idx_t>> n) noexcept
+             size_type<LegacyMatrix<T, idx_t>> n)
 {
-    if (m == A.m && n == A.n)
-        return A;
+    const bool is_contiguous =
+        (layout == Layout::ColMajor && (A.ldim == A.m || A.n <= 1)) ||
+        (layout == Layout::RowMajor && (A.ldim == A.n || A.m <= 1));
+
+    if ((m <= A.m && n <= A.n) || m * n == 0)
+        return LegacyMatrix<T, idx_t, layout>(m, n, &A.ptr[0], A.ldim);
     else {
-        assert((m * n == A.m * A.n) &&
-               "reshape: new shape must have the same "
-               "number of elements as the original one");
-        assert(((layout == Layout::ColMajor && (A.ldim == A.m || A.n <= 1)) ||
-                (layout == Layout::RowMajor && (A.ldim == A.n || A.m <= 1))) &&
-               "reshape: data must be contiguous in memory");
+        if (m * n > A.m * A.n)
+            throw std::domain_error(
+                "reshape: new size is larger than current size");
+        if (!is_contiguous)
+            throw std::domain_error(
+                "reshape: cannot reshape a non-contiguous matrix");
         return LegacyMatrix<T, idx_t, layout>(m, n, &A.ptr[0]);
     }
 }

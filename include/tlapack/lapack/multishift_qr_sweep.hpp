@@ -102,8 +102,10 @@ void multishift_QR_sweep_work(bool want_t,
         tlapack_check(nrows(Z) == n);
     }
 
-    // Workspace matrix
-    auto V = slice(work, range{0, 3}, range{0, size(s) / 2});
+    // Reshape workspace
+    WorkInfo workinfo =
+        multishift_QR_sweep_worksize<TA>(want_t, want_z, ilo, ihi, A, s, Z);
+    auto V = reshape(work, workinfo.m, workinfo.n);
 
     const idx_t n_block_max = (n - 3) / 3;
     const idx_t n_shifts_max =

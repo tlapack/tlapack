@@ -448,13 +448,16 @@ namespace concepts {
     // Workspace matrices
 
     /** @interface tlapack::concepts::Workspace
-     * @brief Concept for a matrix that can be transposed.
+     * @brief Concept for a matrix that can be transposed and reshaped.
      *
      * A workspace is a tlapack::concepts::SliceableMatrix that can be
-     * transposed. The transpose operation must not involve dynamic memory
-     * allocation, and the resulting transposed matrix is a view for the same
-     * data in the original matrix. The operation @c transpose_view(matrix_t&)
-     * must be callable from the namespace @c tlapack.
+     * transposed and reshaped. The transpose operation must not involve dynamic
+     * memory allocation, and the resulting transposed matrix is a view for the
+     * same data in the original matrix. When reshaping, the size of the new
+     * matrix must be compatible with the size of the original matrix, i.e.,
+     * <tt>size(Aentry) == size(Anew)</tt>. The operations
+     * @c transpose_view(matrix_t&) and @c resize(idx_t, idx_t) must be callable
+     * from the namespace @c tlapack.
      *
      * @tparam matrix_t Matrix type.
      *
@@ -468,29 +471,12 @@ namespace concepts {
             transpose_view(A)
         }
         ->SliceableMatrix<>;
-    };
 
-    /** @interface tlapack::concepts::ReshapableWorkspace
-     * @brief Concept for a workspace that can be reshaped.
-     *
-     * A reshapable workspace is a tlapack::concepts::Workspace that can be
-     * reshaped into a different matrix. The size of the new matrix must be
-     * compatible with the size of the original matrix, i.e., <tt>size(Aentry)
-     * == size(Anew)</tt>. The operation @c resize(idx_t, idx_t) must be
-     * callable from the namespace @c tlapack.
-     *
-     * @tparam matrix_t Matrix type.
-     *
-     * @ingroup concepts
-     */
-    template <typename matrix_t>
-    concept ReshapableWorkspace = Workspace<matrix_t>&& requires(matrix_t& A)
-    {
         // Reshape view
         {
             reshape(A, 1, 1)
         }
-        ->Workspace<>;
+        ->SliceableMatrix<>;
     };
 
     // Other scalar concepts
@@ -801,9 +787,6 @@ namespace concepts {
     /// Macro for tlapack::concepts::Workspace compatible with C++17.
     #define TLAPACK_WORKSPACE tlapack::concepts::Workspace
 
-    /// Macro for tlapack::concepts::ReshapableWorkspace compatible with C++17.
-    #define TLAPACK_RWORKSPACE tlapack::concepts::ReshapableWorkspace
-
     /// Macro for tlapack::concepts::Scalar compatible with C++17.
     #define TLAPACK_SCALAR tlapack::concepts::Scalar
 
@@ -869,7 +852,6 @@ namespace concepts {
     #define TLAPACK_SVECTOR class
 
     #define TLAPACK_WORKSPACE class
-    #define TLAPACK_RWORKSPACE class
 
     #define TLAPACK_SCALAR class
     #define TLAPACK_REAL class

@@ -236,20 +236,6 @@ void aggressive_early_deflation_work(bool want_t,
     auto WH = slice(A, range{n - jw, n}, range{jw, n - jw - 3});
     auto WV = slice(A, range{jw + 3, n - jw}, range{0, jw});
 
-    // Workspace may not be in good shape for gehrd,
-    // so reshape, slice and reshape again
-    auto work2 = [&]() {
-        // Workspace query for gehrd
-        WorkInfo workinfo =
-            internal::aggressive_early_deflation_worksize_gehrd<T>(ilo, ihi, nw,
-                                                                   A);
-        const idx_t workSize = nrows(work) * ncols(work);
-        auto aux = reshape(work, workSize, 1);
-        auto aux2 = slice(aux, range{workSize - workinfo.size(), workSize},
-                          range{0, 1});
-        return reshape(aux2, workinfo.m, workinfo.n);
-    }();
-
     // Convert the window to spike-triangular form. i.e. calculate the
     // Schur form of the deflation window.
     // If the QR algorithm fails to convergence, it can still be
@@ -442,10 +428,10 @@ void aggressive_early_deflation_work(bool want_t,
         // Hessenberg reduction
         {
             auto tau = slice(WV, range{0, jw}, 0);
-            gehrd_work(0, ns, TW, tau, work2);
+            gehrd_work(0, ns, TW, tau, work);
 
-            auto work3 = slice(WV, range{0, jw}, range{1, 2});
-            unmhr_work(RIGHT_SIDE, NO_TRANS, 0, ns, TW, tau, V, work3);
+            auto work2 = slice(WV, range{0, jw}, range{1, 2});
+            unmhr_work(RIGHT_SIDE, NO_TRANS, 0, ns, TW, tau, V, work2);
         }
     }
 

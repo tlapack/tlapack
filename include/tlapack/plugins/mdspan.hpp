@@ -326,7 +326,7 @@ template <
                      int> = 0>
 auto reshape(std::experimental::mdspan<ET, Exts, LP, AP>& A,
              std::size_t m,
-             std::size_t n) noexcept
+             std::size_t n)
 {
     using size_type =
         typename std::experimental::mdspan<ET, Exts, LP, AP>::size_type;
@@ -334,9 +334,9 @@ auto reshape(std::experimental::mdspan<ET, Exts, LP, AP>& A,
     using matrix_t = std::experimental::mdspan<ET, extents_t, LP, AP>;
     using mapping_t = typename LP::template mapping<extents_t>;
 
-    assert((m * n == A.size()) &&
-           "reshape: new shape must have the same "
-           "number of elements as the original one");
+    if (m * n > A.size())
+        throw std::domain_error(
+            "reshape: new size is larger than current size");
 
     return matrix_t(A.data(), mapping_t(extents_t(m, n)));
 }
@@ -345,7 +345,7 @@ auto reshape(
     std::experimental::mdspan<ET, Exts, std::experimental::layout_stride, AP>&
         A,
     std::size_t m,
-    std::size_t n) noexcept
+    std::size_t n)
 {
     using LP = std::experimental::layout_stride;
     using idx_t =
@@ -354,19 +354,22 @@ auto reshape(
     using matrix_t = std::experimental::mdspan<ET, extents_t, LP, AP>;
     using mapping_t = typename LP::template mapping<extents_t>;
 
-    if (m == A.extent(0) && n == A.extent(1))
+    const bool is_contiguous =
+        (A.stride(0) == 1 &&
+         (A.stride(1) == A.extent(0) || A.extent(1) <= 1)) ||
+        (A.stride(1) == 1 && (A.stride(0) == A.extent(1) || A.extent(0) <= 1));
+
+    if ((m <= A.extent(0) && n <= A.extent(1)) || m * n == 0)
         return matrix_t(A.data(), mapping_t(extents_t(m, n),
                                             std::array<idx_t, 2>{A.stride(0),
                                                                  A.stride(1)}));
     else {
-        assert((m * n == A.size()) &&
-               "reshape: new shape must have the same "
-               "number of elements as the original one");
-        assert(((A.stride(0) == 1 &&
-                 (A.stride(1) == A.extent(0) || A.extent(1) <= 1)) ||
-                (A.stride(1) == 1 &&
-                 (A.stride(0) == A.extent(1) || A.extent(0) <= 1))) &&
-               "reshape: data must be contiguous in memory");
+        if (m * n > A.size())
+            throw std::domain_error(
+                "reshape: new size is larger than current size");
+        if (!is_contiguous)
+            throw std::domain_error(
+                "reshape: cannot reshape a non-contiguous matrix");
 
         return matrix_t(A.data(), mapping_t(extents_t(m, n),
                                             (A.stride(0) == 1)

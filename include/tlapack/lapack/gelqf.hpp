@@ -79,6 +79,7 @@ constexpr WorkInfo gelqf_worksize(const A_t& A,
 template <TLAPACK_SMATRIX A_t, TLAPACK_SVECTOR tau_t, TLAPACK_WORKSPACE work_t>
 int gelqf_work(A_t& A, tau_t& tau, work_t& work, const GelqfOpts& opts = {})
 {
+    using T = type_t<A_t>;
     using idx_t = size_type<A_t>;
     using range = pair<idx_t, idx_t>;
 
@@ -91,10 +92,18 @@ int gelqf_work(A_t& A, tau_t& tau, work_t& work, const GelqfOpts& opts = {})
     // check arguments
     tlapack_check((idx_t)size(tau) >= k);
 
-    auto workt = transpose_view(work);
-    auto TT = (m > nb) ? slice(work, range{nrows(work) - nb, nrows(work)},
-                               range{ncols(work) - nb, ncols(work)})
-                       : slice(work, range{0, 0}, range{0, 0});
+    // Reshape workspace
+    WorkInfo workinfo = gelqf_worksize<T>(A, tau, opts);
+    auto W = reshape(work, workinfo.m, workinfo.n);
+
+    // Matrices Wt, W1 and TT
+    auto Wt = transpose_view(W);
+    auto TT = (m > nb) ? slice(W, range{0, nb}, range{0, nb})
+                       : slice(W, range{0, 0}, range{0, 0});
+    auto W1 = (m > nb)
+                  ? ((nrows(W) >= m) ? slice(W, range{nb, m}, range{0, nb})
+                                     : slice(W, range{0, nb}, range{nb, m}))
+                  : slice(W, range{0, 0}, range{0, 0});
 
     // Main computational loop
     for (idx_t j = 0; j < k; j += nb) {
@@ -104,7 +113,7 @@ int gelqf_work(A_t& A, tau_t& tau, work_t& work, const GelqfOpts& opts = {})
         auto A11 = slice(A, range(j, j + ib), range(j, n));
         auto tauw1 = slice(tau, range(j, j + ib));
 
-        gelq2_work(A11, tauw1, workt);
+        gelq2_work(A11, tauw1, Wt);
 
         if (j + ib < m) {
             // Form the triangular factor of the block reflector H = H(j)
@@ -115,7 +124,7 @@ int gelqf_work(A_t& A, tau_t& tau, work_t& work, const GelqfOpts& opts = {})
             // Apply H to A(j+ib:m,j:n) from the right
             auto A12 = slice(A, range(j + ib, m), range(j, n));
             larfb_work(RIGHT_SIDE, NO_TRANS, FORWARD, ROWWISE_STORAGE, A11, TT1,
-                       A12, work);
+                       A12, W1);
         }
     }
 

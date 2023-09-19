@@ -604,10 +604,12 @@ constexpr auto transpose_view(matrix_t& A) noexcept
     return map_t((T*)A.data(), A.cols(), A.rows(), A.outerStride());
 }
 
-template <
-    class matrix_t,
-    typename std::enable_if<eigen::is_eigen_type<matrix_t>, int>::type = 0>
-auto reshape(matrix_t& A, Eigen::Index m, Eigen::Index n) noexcept
+// Reshape view
+template <class matrix_t,
+          typename std::enable_if<(eigen::is_eigen_type<matrix_t> &&
+                                   !matrix_t::IsVectorAtCompileTime),
+                                  int>::type = 0>
+auto reshape(matrix_t& A, Eigen::Index m, Eigen::Index n)
 {
     using T = typename matrix_t::Scalar;
     using Stride = Eigen::OuterStride<>;
@@ -618,17 +620,19 @@ auto reshape(matrix_t& A, Eigen::Index m, Eigen::Index n) noexcept
                                                            : Eigen::ColMajor>;
     using map_t = Eigen::Map<rmatrix_t, Eigen::Unaligned, Stride>;
 
-    if (m == A.rows() && n == A.cols())
+    const bool is_contiguous =
+        matrix_t::IsRowMajor ? (A.outerStride() == A.cols() || A.rows() <= 1)
+                             : (A.outerStride() == A.rows() || A.cols() <= 1);
+
+    if ((m <= A.rows() && n <= A.cols()) || m * n == 0)
         return map_t((T*)A.data(), m, n, A.outerStride());
     else {
-        assert((m * n == A.size()) &&
-               "reshape: new shape must have the same "
-               "number of elements as the original one");
-        assert(((!matrix_t::IsRowMajor &&
-                 (A.outerStride() == A.rows() || A.cols() <= 1)) ||
-                (matrix_t::IsRowMajor &&
-                 (A.outerStride() == A.cols() || A.rows() <= 1))) &&
-               "reshape: data must be contiguous in memory");
+        if (m * n > A.size())
+            throw std::domain_error(
+                "reshape: new size is larger than current size");
+        if (!is_contiguous)
+            throw std::domain_error(
+                "reshape: cannot reshape a non-contiguous matrix");
         return map_t((T*)A.data(), m, n, (matrix_t::IsRowMajor ? n : m));
     }
 }
