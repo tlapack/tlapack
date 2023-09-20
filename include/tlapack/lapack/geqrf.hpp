@@ -79,6 +79,7 @@ constexpr WorkInfo geqrf_worksize(const A_t& A,
 template <TLAPACK_SMATRIX A_t, TLAPACK_SVECTOR tau_t, TLAPACK_WORKSPACE work_t>
 int geqrf_work(A_t& A, tau_t& tau, work_t& work, const GeqrfOpts& opts = {})
 {
+    using T = type_t<A_t>;
     using idx_t = size_type<A_t>;
     using range = pair<idx_t, idx_t>;
 
@@ -91,9 +92,17 @@ int geqrf_work(A_t& A, tau_t& tau, work_t& work, const GeqrfOpts& opts = {})
     // check arguments
     tlapack_check((idx_t)size(tau) >= k);
 
-    auto TT = (n > nb) ? slice(work, range{nrows(work) - nb, nrows(work)},
-                               range{ncols(work) - nb, ncols(work)})
-                       : slice(work, range{0, 0}, range{0, 0});
+    // Reshape workspace
+    WorkInfo workinfo = geqrf_worksize<T>(A, tau, opts);
+    auto W = reshape(work, workinfo.m, workinfo.n);
+
+    // Matrices W1 and TT
+    auto TT = (n > nb) ? slice(W, range{0, nb}, range{0, nb})
+                       : slice(W, range{0, 0}, range{0, 0});
+    auto W1 = (n > nb) ? (((idx_t)workinfo.n == nb)
+                              ? slice(W, range{nb, workinfo.m}, range{0, nb})
+                              : slice(W, range{0, nb}, range{nb, workinfo.n}))
+                       : slice(W, range{0, 0}, range{0, 0});
 
     // Main computational loop
     for (idx_t j = 0; j < k; j += nb) {
@@ -114,7 +123,7 @@ int geqrf_work(A_t& A, tau_t& tau, work_t& work, const GeqrfOpts& opts = {})
             // Apply H to A(j:m,j+ib:n) from the left
             auto A12 = slice(A, range(j, m), range(j + ib, n));
             larfb_work(LEFT_SIDE, CONJ_TRANS, FORWARD, COLUMNWISE_STORAGE, A11,
-                       TT1, A12, work);
+                       TT1, A12, W1);
         }
     }
 

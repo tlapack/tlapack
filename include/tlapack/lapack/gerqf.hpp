@@ -79,6 +79,7 @@ constexpr WorkInfo gerqf_worksize(const A_t& A,
 template <TLAPACK_SMATRIX A_t, TLAPACK_SVECTOR tau_t, TLAPACK_WORKSPACE work_t>
 int gerqf_work(A_t& A, tau_t& tau, work_t& work, const GerqfOpts& opts = {})
 {
+    using T = type_t<A_t>;
     using idx_t = size_type<A_t>;
     using range = pair<idx_t, idx_t>;
 
@@ -91,10 +92,18 @@ int gerqf_work(A_t& A, tau_t& tau, work_t& work, const GerqfOpts& opts = {})
     // check arguments
     tlapack_check((idx_t)size(tau) >= k);
 
-    auto workt = transpose_view(work);
-    auto TT = (m > nb) ? slice(work, range{nrows(work) - nb, nrows(work)},
-                               range{ncols(work) - nb, ncols(work)})
-                       : slice(work, range{0, 0}, range{0, 0});
+    // Reshape workspace
+    WorkInfo workinfo = gerqf_worksize<T>(A, tau, opts);
+    auto W = reshape(work, workinfo.m, workinfo.n);
+
+    // Matrices Wt, W1 and TT
+    auto Wt = transpose_view(W);
+    auto TT = (m > nb) ? slice(W, range{0, nb}, range{0, nb})
+                       : slice(W, range{0, 0}, range{0, 0});
+    auto W1 = (m > nb) ? (((idx_t)workinfo.n == nb)
+                              ? slice(W, range{nb, workinfo.m}, range{0, nb})
+                              : slice(W, range{0, nb}, range{nb, workinfo.n}))
+                       : slice(W, range{0, 0}, range{0, 0});
 
     // Main computational loop
     for (idx_t j2 = 0; j2 < k; j2 += nb) {
@@ -105,7 +114,7 @@ int gerqf_work(A_t& A, tau_t& tau, work_t& work, const GerqfOpts& opts = {})
         auto A11 = slice(A, range(j, j + ib), range(0, n - j2));
         auto tauw1 = slice(tau, range(k - j2 - ib, k - j2));
 
-        gerq2_work(A11, tauw1, workt);
+        gerq2_work(A11, tauw1, Wt);
 
         if (j > 0) {
             // Form the triangular factor of the block reflector
@@ -115,7 +124,7 @@ int gerqf_work(A_t& A, tau_t& tau, work_t& work, const GerqfOpts& opts = {})
             // Apply H to A(0:j,0:n-j2) from the right
             auto A12 = slice(A, range(0, j), range(0, n - j2));
             larfb_work(RIGHT_SIDE, NO_TRANS, BACKWARD, ROWWISE_STORAGE, A11,
-                       TT1, A12, work);
+                       TT1, A12, W1);
         }
     }
 

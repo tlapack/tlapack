@@ -90,10 +90,10 @@ constexpr WorkInfo unmq_worksize(side_t side,
     using range = pair<idx_t, idx_t>;
 
     // Constants
-    const idx_t m = nrows(V);
-    const idx_t n = ncols(V);
-    const idx_t nQ = (side == Side::Left) ? m : n;
+    const idx_t m = nrows(C);
+    const idx_t n = ncols(C);
     const idx_t k = size(tau);
+    const idx_t nQ = (side == Side::Left) ? m : n;
     const idx_t nb = min((idx_t)opts.nb, k);
 
     // Local workspace sizes
@@ -139,6 +139,8 @@ int unmq_work(side_t side,
               const UnmqOpts& opts = {})
 {
     using idx_t = size_type<matrixC_t>;
+    using matrixT_t = matrix_type<matrixV_t, vector_t>;
+    using T = type_t<matrixT_t>;
     using range = pair<idx_t, idx_t>;
 
     // constants
@@ -162,8 +164,16 @@ int unmq_work(side_t side,
     // quick return
     if (m <= 0 || n <= 0 || k <= 0) return 0;
 
-    auto matrixT = slice(work, range{nrows(work) - nb, nrows(work)},
-                         range{ncols(work) - nb, ncols(work)});
+    // Reshape workspace
+    WorkInfo workinfo =
+        unmq_worksize<T>(side, trans, direction, storeMode, V, tau, C, opts);
+    auto W = reshape(work, workinfo.m, workinfo.n);
+
+    // Matrices W1 and matrixT
+    auto matrixT = slice(W, range{0, nb}, range{0, nb});
+    auto W1 = ((idx_t)workinfo.n == nb)
+                  ? slice(W, range{nb, workinfo.m}, range{0, nb})
+                  : slice(W, range{0, nb}, range{nb, workinfo.n});
 
     // const expressions
     const bool positiveIncLeft =
@@ -195,7 +205,7 @@ int unmq_work(side_t side,
             auto Ci = (side == Side::Left) ? slice(C, rangev, range{0, n})
                                            : slice(C, range{0, m}, rangev);
             larfb_work(side, trans, direction, COLUMNWISE_STORAGE, Vi, matrixTi,
-                       Ci, work);
+                       Ci, W1);
         }
     }
     else {
@@ -216,7 +226,7 @@ int unmq_work(side_t side,
                                            : slice(C, range{0, m}, rangev);
             larfb_work(side,
                        (trans == Op::NoTrans) ? Op::ConjTrans : Op::NoTrans,
-                       direction, ROWWISE_STORAGE, Vi, matrixTi, Ci, work);
+                       direction, ROWWISE_STORAGE, Vi, matrixTi, Ci, W1);
         }
     }
 

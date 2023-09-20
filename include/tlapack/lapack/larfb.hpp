@@ -149,6 +149,11 @@ int larfb_work(side_t side,
     // Quick return
     if (m <= 0 || n <= 0 || k <= 0) return 0;
 
+    // Reshape workspace
+    WorkInfo workinfo =
+        larfb_worksize<T>(side, trans, direction, storeMode, V, Tmatrix, C);
+    auto W = reshape(work, workinfo.m, workinfo.n);
+
     if (storeMode == StoreV::Columnwise) {
         if (direction == Direction::Forward) {
             if (side == Side::Left) {
@@ -160,7 +165,6 @@ int larfb_work(side_t side,
                 const auto V2 = rows(V, range{k, m});
                 auto C1 = rows(C, range{0, k});
                 auto C2 = rows(C, range{k, m});
-                auto W = slice(work, range{0, k}, range{0, n});
 
                 // W := C1
                 lacpy(GENERAL, C1, W);
@@ -194,7 +198,6 @@ int larfb_work(side_t side,
                 const auto V2 = rows(V, range{k, n});
                 auto C1 = cols(C, range{0, k});
                 auto C2 = cols(C, range{k, n});
-                auto W = slice(work, range{0, m}, range{0, k});
 
                 // W := C1
                 lacpy(GENERAL, C1, W);
@@ -230,7 +233,6 @@ int larfb_work(side_t side,
                 const auto V2 = rows(V, range{m - k, m});
                 auto C1 = rows(C, range{0, m - k});
                 auto C2 = rows(C, range{m - k, m});
-                auto W = slice(work, range{0, k}, range{0, n});
 
                 // W := C2
                 lacpy(GENERAL, C2, W);
@@ -264,7 +266,6 @@ int larfb_work(side_t side,
                 const auto V2 = rows(V, range{n - k, n});
                 auto C1 = cols(C, range{0, n - k});
                 auto C2 = cols(C, range{n - k, n});
-                auto W = slice(work, range{0, m}, range{0, k});
 
                 // W := C2
                 lacpy(GENERAL, C2, W);
@@ -302,7 +303,6 @@ int larfb_work(side_t side,
                 const auto V2 = cols(V, range{k, m});
                 auto C1 = rows(C, range{0, k});
                 auto C2 = rows(C, range{k, m});
-                auto W = slice(work, range{0, k}, range{0, n});
 
                 // W := C1
                 lacpy(GENERAL, C1, W);
@@ -336,7 +336,6 @@ int larfb_work(side_t side,
                 const auto V2 = cols(V, range{k, n});
                 auto C1 = cols(C, range{0, k});
                 auto C2 = cols(C, range{k, n});
-                auto W = slice(work, range{0, m}, range{0, k});
 
                 // W := C1
                 lacpy(GENERAL, C1, W);
@@ -372,7 +371,6 @@ int larfb_work(side_t side,
                 const auto V2 = cols(V, range{m - k, m});
                 auto C1 = rows(C, range{0, m - k});
                 auto C2 = rows(C, range{m - k, m});
-                auto W = slice(work, range{0, k}, range{0, n});
 
                 // W := C2
                 lacpy(GENERAL, C2, W);
@@ -406,7 +404,6 @@ int larfb_work(side_t side,
                 const auto V2 = cols(V, range{n - k, n});
                 auto C1 = cols(C, range{0, n - k});
                 auto C2 = cols(C, range{n - k, n});
-                auto W = slice(work, range{0, m}, range{0, k});
 
                 // W := C2
                 lacpy(GENERAL, C2, W);

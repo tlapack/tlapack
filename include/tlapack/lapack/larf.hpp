@@ -78,8 +78,10 @@ void larf_work(side_t side,
         return;
     }
 
-    // Create vector w
-    auto w = slice(work, range{0, k}, 0);
+    // Reshape workspace and extract w
+    WorkInfo workinfo = larf_worksize<T>(side, storeMode, x, tau, C0, C1);
+    auto W = reshape(work, workinfo.m, workinfo.n);
+    auto w = slice(W, range{0, k}, 0);
 
     if (side == Side::Left) {
         if (storeMode == StoreV::Columnwise) {

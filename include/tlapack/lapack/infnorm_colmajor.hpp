@@ -51,8 +51,10 @@ auto infnorm_colmajor_work(const matrix_t& A, work_t& work)
     // quick return
     if (m == 0 || n == 0) return real_t(0);
 
-    // Slice workspace
-    auto w = slice(work, range{0, m}, 0);
+    // Reshape workspace and extract w
+    WorkInfo workinfo = infnorm_colmajor_worksize<T>(A);
+    auto W = reshape(work, workinfo.m, workinfo.n);
+    auto w = slice(W, range{0, m}, 0);
 
     // Norm value
     real_t norm(0);

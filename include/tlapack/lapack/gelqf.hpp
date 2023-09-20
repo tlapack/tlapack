@@ -100,10 +100,10 @@ int gelqf_work(A_t& A, tau_t& tau, work_t& work, const GelqfOpts& opts = {})
     auto Wt = transpose_view(W);
     auto TT = (m > nb) ? slice(W, range{0, nb}, range{0, nb})
                        : slice(W, range{0, 0}, range{0, 0});
-    auto W1 = (m > nb)
-                  ? ((nrows(W) >= m) ? slice(W, range{nb, m}, range{0, nb})
-                                     : slice(W, range{0, nb}, range{nb, m}))
-                  : slice(W, range{0, 0}, range{0, 0});
+    auto W1 = (m > nb) ? (((idx_t)workinfo.n == nb)
+                              ? slice(W, range{nb, workinfo.m}, range{0, nb})
+                              : slice(W, range{0, nb}, range{nb, workinfo.n}))
+                       : slice(W, range{0, 0}, range{0, 0});
 
     // Main computational loop
     for (idx_t j = 0; j < k; j += nb) {

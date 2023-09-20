@@ -52,6 +52,10 @@ int getri_uxli_work(matrix_t& A, work_t& work)
     // check arguments
     tlapack_check(nrows(A) == ncols(A));
 
+    // Reshape workspace
+    WorkInfo workinfo = getri_uxli_worksize<T>(A);
+    auto W = reshape(work, workinfo.m, workinfo.n);
+
     // constant n, number of rows and also columns of A
     const idx_t n = ncols(A);
 
@@ -68,22 +72,22 @@ int getri_uxli_work(matrix_t& A, work_t& work)
             auto X22 = tlapack::slice(A, range(j + 1, n), range(j + 1, n));
             auto l21 = tlapack::slice(A, range(j + 1, n), j);
             auto u12 = tlapack::slice(A, j, range(j + 1, n));
-            auto slicework = tlapack::slice(work, range(0, n - j - 1), 0);
+            auto w = tlapack::slice(W, range(0, n - j - 1), 0);
 
-            // first step of the algorithm, work1 holds x12
-            tlapack::gemv(TRANSPOSE, T(-1) / A(j, j), X22, u12, slicework);
+            // first step of the algorithm, w holds x12
+            tlapack::gemv(TRANSPOSE, T(-1) / A(j, j), X22, u12, w);
 
-            // second line of the algorithm, work2 holds x21
-            A(j, j) = (T(1) / A(j, j)) - tlapack::dotu(l21, slicework);
+            // second line of the algorithm, update A(j, j)
+            A(j, j) = (T(1) / A(j, j)) - tlapack::dotu(l21, w);
 
-            // u12 updated, slicework available for use again
-            tlapack::copy(slicework, u12);
+            // u12 updated, w available for use again
+            tlapack::copy(w, u12);
 
             // third line of the algorithm
-            tlapack::gemv(NO_TRANS, T(-1), X22, l21, slicework);
+            tlapack::gemv(NO_TRANS, T(-1), X22, l21, w);
 
             // update l21
-            tlapack::copy(slicework, l21);
+            tlapack::copy(w, l21);
         }
     }
 
