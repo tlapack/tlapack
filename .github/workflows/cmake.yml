@@ -69,13 +69,6 @@ jobs:
           - build-type: Release
             shared: ON
             cpp-version: 17
-          - os: windows-latest
-            shared: ON
-        include:
-          - os: windows-latest
-            build-type: Release
-            shared: OFF
-            cpp-version: 20
     
     steps:
     
@@ -98,7 +91,6 @@ jobs:
         git checkout 2873916f1ca24e3282bf6e0150545d34a16b5224 # master in Aug 21, 2023
 
     - name: Install ninja-build tool
-      if: ${{ matrix.os != 'windows-latest' }}
       uses: seanmiddleditch/gha-setup-ninja@16b940825621068d98711680b6c3ff92201f8fc0 # v3
     
     - name: Install the Basics
@@ -131,6 +123,8 @@ jobs:
         -D TLAPACK_TEST_EIGEN=ON
         -D TLAPACK_TEST_MDSPAN=ON
         -D TLAPACK_TEST_MPFR=ON
+        -D TLAPACK_TEST_QUAD=ON
+        -D CMAKE_CXX_STANDARD=${{matrix.cpp-version}}
         
     - name: Specific configurations for CMake on Ubuntu in Release mode
       if: ${{ matrix.os == 'ubuntu-latest' && matrix.build-type == 'Release' }}
@@ -144,12 +138,16 @@ jobs:
       env:
         CXX: "g++-11"
         FC: "gfortran-11"
-      run: cmake -B build -G Ninja
+      run: >
+        cmake -B build -G Ninja
+        -D TLAPACK_TEST_QUAD=ON
+        -D CMAKE_CXX_STANDARD=${{matrix.cpp-version}}
 
     - name: Specific configurations for CMake on Windows
       if: ${{ matrix.os == 'windows-latest' }}
       run: >
-        cmake -B build -G "MinGW Makefiles"
+        cmake -B build -G Ninja
+        -D CMAKE_EXE_LINKER_FLAGS="-Wl,--allow-multiple-definition"
 
     - name: Configure CMake on all platforms
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
@@ -165,18 +163,10 @@ jobs:
         -D BUILD_C_WRAPPERS=ON
         -D BUILD_Fortran_WRAPPERS=ON
         -D BUILD_CBLAS_WRAPPERS=ON
-        -D CMAKE_CXX_STANDARD=${{matrix.cpp-version}}
-        -D TLAPACK_TEST_QUAD=ON
 
     - name: Build
-      if: ${{ matrix.os != 'windows-latest' }}
       # Build your program with the given configuration
       run: cmake --build build --config ${{matrix.build-type}}
-
-    - name: Build
-      if: ${{ matrix.os == 'windows-latest' }}
-      # Build your program with the given configuration
-      run: cmake --build build --config ${{matrix.build-type}} -j 2
 
     - name: Run all examples
       # Mind that the job won't fail with only this step fails
