@@ -40,8 +40,6 @@ env:
   lapackpp_DIR: "${{github.workspace}}/lapackpp"
   mdspan_DIR: "${{github.workspace}}/mdspan"
   eigen_DIR: "${{github.workspace}}/eigen"
-  Catch2_DIR: "${{github.workspace}}/Catch2"
-  Catch2_CMAKE_DIR: "${{github.workspace}}/Catch2/build/lib/cmake/Catch2"
 
 defaults:
   run:
@@ -76,14 +74,6 @@ jobs:
     
     - name: Checkout <T>LAPACK
       uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
-    
-    - name: Checkout Catch2 on Windows
-      if: ${{ matrix.os == 'windows-latest' }}
-      uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
-      with:
-        repository: catchorg/Catch2
-        ref: 6e79e682b726f524310d55dec8ddac4e9c52fb5f # v3.4.0
-        path: Catch2
 
     - name: Checkout mdspan
       if: ${{ matrix.os == 'ubuntu-latest' }}
@@ -101,6 +91,7 @@ jobs:
         git checkout 2873916f1ca24e3282bf6e0150545d34a16b5224 # master in Aug 21, 2023
 
     - name: Install ninja-build tool
+      if: ${{ matrix.os != 'windows-latest' }}
       uses: seanmiddleditch/gha-setup-ninja@16b940825621068d98711680b6c3ff92201f8fc0 # v3
     
     - name: Install the Basics
@@ -111,13 +102,6 @@ jobs:
         sudo apt install -y gfortran
         sudo apt install -y liblapacke-dev
         sudo apt install -y libmpfrc++-dev
-
-    - name: Build and install Catch2 on Windows
-      if: ${{ matrix.os == 'windows-latest' }}
-      working-directory: ${{env.Catch2_DIR}}
-      run: |
-        cmake -B build -G Ninja -H. -DBUILD_TESTING=OFF -DCMAKE_INSTALL_PREFIX="${{env.Catch2_DIR}}/build"
-        cmake --build build --target install
 
     - name: Build and install Eigen on Ubuntu
       if: ${{ matrix.os == 'ubuntu-latest' }}
@@ -158,15 +142,14 @@ jobs:
     - name: Specific configurations for CMake on Windows
       if: ${{ matrix.os == 'windows-latest' }}
       run: >
-        cmake -B build -G Ninja
+        cmake -B build -G "MinGW Makefiles"
         -D CMAKE_EXE_LINKER_FLAGS="-Wl,--allow-multiple-definition"
-        -D Catch2_DIR="${{env.Catch2_CMAKE_DIR}}"
 
     - name: Configure CMake on all platforms
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
       run: >
-        cmake -B build -G Ninja
+        cmake -B build
         -D CMAKE_BUILD_TYPE=${{matrix.build-type}}
         -D CMAKE_INSTALL_PREFIX="${{github.workspace}}/tlapack_install"
         -D BUILD_SHARED_LIBS=${{matrix.shared}}
