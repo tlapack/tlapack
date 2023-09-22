@@ -575,21 +575,25 @@ auto reshape(LegacyMatrix<T, idx_t, layout>& A,
                 : matrix_t(1, size - new_size, &A.ptr[0] + new_size));
     }
     else {
-        if (m == A.m) {
-            return std::make_pair(
-                matrix_t(m, n, &A.ptr[0], A.ldim),
-                matrix_t(
-                    m, A.n - n,
-                    &A.ptr[0] + ((layout == Layout::ColMajor) ? n * A.ldim : n),
-                    A.ldim));
+        if (m == A.m || n == 0) {
+            if constexpr (layout == Layout::ColMajor)
+                return std::make_pair(
+                    matrix_t(m, n, &A.ptr[0], A.ldim),
+                    matrix_t(A.m, A.n - n, &A.ptr[0] + n * A.ldim, A.ldim));
+            else
+                return std::make_pair(
+                    matrix_t(m, n, &A.ptr[0], A.ldim),
+                    matrix_t(A.m, A.n - n, &A.ptr[0] + n, A.ldim));
         }
-        else if (n == A.n) {
-            return std::make_pair(
-                matrix_t(m, n, &A.ptr[0], A.ldim),
-                matrix_t(
-                    A.m - m, n,
-                    &A.ptr[0] + ((layout == Layout::ColMajor) ? m : m * A.ldim),
-                    A.ldim));
+        else if (n == A.n || m == 0) {
+            if constexpr (layout == Layout::ColMajor)
+                return std::make_pair(
+                    matrix_t(m, n, &A.ptr[0], A.ldim),
+                    matrix_t(A.m - m, A.n, &A.ptr[0] + m, A.ldim));
+            else
+                return std::make_pair(
+                    matrix_t(m, n, &A.ptr[0], A.ldim),
+                    matrix_t(A.m - m, A.n, &A.ptr[0] + m * A.ldim, A.ldim));
         }
         else {
             throw std::domain_error(
@@ -624,7 +628,10 @@ auto reshape(LegacyMatrix<T, idx_t, layout>& A,
                                   : matrix_t(1, size - n, &A.ptr[0] + n));
     }
     else {
-        if (n == A.m) {
+        if (n == 0) {
+            return std::make_pair(vector_t(0, &A.ptr[0]), A);
+        }
+        else if (n == A.m) {
             if constexpr (layout == Layout::ColMajor)
                 return std::make_pair(
                     vector_t(n, &A.ptr[0], 1),
@@ -662,13 +669,12 @@ auto reshape(LegacyVector<T, idx_t, int_t, direction>& v,
     using vector_t = LegacyVector<T, idx_t, int_t, direction>;
 
     // constants
-    const idx_t size = v.n;
     const idx_t new_size = m * n;
-    const idx_t s = size - new_size;
-    const bool is_contiguous = (v.inc == 1) || (size <= 1);
+    const idx_t s = v.n - new_size;
+    const bool is_contiguous = (v.inc == 1) || (v.n <= 1);
 
     // Check arguments
-    if (new_size > size)
+    if (new_size > v.n)
         throw std::domain_error("New size is larger than current size");
     if (!is_contiguous && m > 1)
         throw std::domain_error(
@@ -679,8 +685,7 @@ auto reshape(LegacyVector<T, idx_t, int_t, direction>& v,
                               vector_t(s, &v.ptr[0] + new_size));
     }
     else {
-        assert(m == 1);
-        return std::make_pair(matrix_t(1, n, &v.ptr[0], v.inc),
+        return std::make_pair(matrix_t(m, n, &v.ptr[0], v.inc),
                               vector_t(s, &v.ptr[0] + new_size * v.inc, v.inc));
     }
 }

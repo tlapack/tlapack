@@ -79,7 +79,6 @@ constexpr WorkInfo geqlf_worksize(const A_t& A,
 template <TLAPACK_SMATRIX A_t, TLAPACK_SVECTOR tau_t, TLAPACK_WORKSPACE work_t>
 int geqlf_work(A_t& A, tau_t& tau, work_t& work, const GeqlfOpts& opts = {})
 {
-    using T = type_t<A_t>;
     using idx_t = size_type<A_t>;
     using range = pair<idx_t, idx_t>;
 

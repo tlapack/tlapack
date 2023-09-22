@@ -140,7 +140,6 @@ int unmq_work(side_t side,
 {
     using idx_t = size_type<matrixC_t>;
     using matrixT_t = matrix_type<matrixV_t, vector_t>;
-    using T = type_t<matrixT_t>;
     using range = pair<idx_t, idx_t>;
 
     // constants
