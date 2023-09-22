@@ -128,18 +128,14 @@ int gehrd_work(size_type<matrix_t> ilo,
     // quick return
     if (n <= 0) return 0;
 
-    // Reshape workspace
-    WorkInfo workinfo = gehrd_worksize<T>(ilo, ihi, A, tau, opts);
-    auto W = reshape(work, workinfo.m, workinfo.n);
-
     // Matrices Y and T
-    auto Y = ((ilo < ihi) && (nx < ihi - ilo - 1))
-                 ? slice(W, range{0, n}, range{0, nb})
-                 : slice(W, range{0, 0}, range{0, 0});
+    auto [Y, work2] = ((ilo < ihi) && (nx < ihi - ilo - 1))
+                          ? reshape(work, n, nb)
+                          : reshape(work, 0, 0);
     auto Yt = transpose_view(Y);
-    auto matrixT = ((ilo < ihi) && (nx < ihi - ilo - 1))
-                       ? slice(W, range{n, n + nb}, range{0, nb})
-                       : slice(W, range{0, 0}, range{0, 0});
+    auto [matrixT, work3] = ((ilo < ihi) && (nx < ihi - ilo - 1))
+                                ? reshape(work2, nb, nb)
+                                : reshape(work2, 0, 0);
     laset(GENERAL, zero, zero, Y);
 
     idx_t i = ilo;

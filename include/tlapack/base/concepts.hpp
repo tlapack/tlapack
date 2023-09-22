@@ -447,6 +447,11 @@ namespace concepts {
 
     // Workspace matrices
 
+    template <typename pair_t>
+    concept PairOfSliceableMatrices =
+        SliceableMatrix<typename pair_t::first_type>&&
+            SliceableMatrix<typename pair_t::second_type>;
+
     /** @interface tlapack::concepts::Workspace
      * @brief Concept for a matrix that can be transposed and reshaped.
      *
@@ -476,7 +481,7 @@ namespace concepts {
         {
             reshape(A, 1, 1)
         }
-        ->SliceableMatrix<>;
+        ->PairOfSliceableMatrices<>;
     };
 
     // Other scalar concepts

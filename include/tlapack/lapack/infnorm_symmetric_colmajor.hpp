@@ -62,10 +62,8 @@ auto infnorm_symmetric_colmajor_work(uplo_t uplo,
     // quick return
     if (n <= 0) return real_t(0);
 
-    // Reshape workspace and extract w
-    WorkInfo workinfo = infnorm_symmetric_colmajor_worksize<T>(A);
-    auto W = reshape(work, workinfo.m, workinfo.n);
-    auto w = slice(W, range{0, n}, 0);
+    // Vector w
+    auto [w, work1] = reshape(work, n);
 
     // Norm value
     real_t norm(0);

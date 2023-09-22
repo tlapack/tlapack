@@ -92,17 +92,8 @@ int geqrf_work(A_t& A, tau_t& tau, work_t& work, const GeqrfOpts& opts = {})
     // check arguments
     tlapack_check((idx_t)size(tau) >= k);
 
-    // Reshape workspace
-    WorkInfo workinfo = geqrf_worksize<T>(A, tau, opts);
-    auto W = reshape(work, workinfo.m, workinfo.n);
-
-    // Matrices W1 and TT
-    auto TT = (n > nb) ? slice(W, range{0, nb}, range{0, nb})
-                       : slice(W, range{0, 0}, range{0, 0});
-    auto W1 = (n > nb) ? (((idx_t)workinfo.n == nb)
-                              ? slice(W, range{nb, workinfo.m}, range{0, nb})
-                              : slice(W, range{0, nb}, range{nb, workinfo.n}))
-                       : slice(W, range{0, 0}, range{0, 0});
+    // Matrix TT
+    auto [TT, work2] = (n > nb) ? reshape(work, nb, nb) : reshape(work, 0, 0);
 
     // Main computational loop
     for (idx_t j = 0; j < k; j += nb) {
@@ -123,7 +114,7 @@ int geqrf_work(A_t& A, tau_t& tau, work_t& work, const GeqrfOpts& opts = {})
             // Apply H to A(j:m,j+ib:n) from the left
             auto A12 = slice(A, range(j, m), range(j + ib, n));
             larfb_work(LEFT_SIDE, CONJ_TRANS, FORWARD, COLUMNWISE_STORAGE, A11,
-                       TT1, A12, W1);
+                       TT1, A12, work2);
         }
     }
 

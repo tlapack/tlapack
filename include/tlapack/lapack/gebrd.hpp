@@ -92,13 +92,9 @@ int gebrd_work(matrix_t& A,
     const idx_t k = min(m, n);
     const idx_t nb = min((idx_t)opts.nb, k);
 
-    // Reshape workspace
-    WorkInfo workinfo = gebrd_worksize<T>(A, tauv, tauw, opts);
-    auto W = reshape(work, workinfo.m, workinfo.n);
-
     // Matrices X and Y
-    auto X = slice(W, range{0, m}, range{0, nb});
-    auto Y = slice(W, range{m, m + n}, range{0, nb});
+    auto [X, work2] = reshape(work, m, nb);
+    auto [Y, work3] = reshape(work2, n, nb);
     laset(GENERAL, T(0), T(0), X);
     laset(GENERAL, T(0), T(0), Y);
 

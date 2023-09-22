@@ -149,10 +149,8 @@ int larfb_work(side_t side,
     // Quick return
     if (m <= 0 || n <= 0 || k <= 0) return 0;
 
-    // Reshape workspace
-    WorkInfo workinfo =
-        larfb_worksize<T>(side, trans, direction, storeMode, V, Tmatrix, C);
-    auto W = reshape(work, workinfo.m, workinfo.n);
+    // Matrix W
+    auto [W, work1] = (side == Side::Left) ? reshape(work, k, n) : reshape(work, m, k);
 
     if (storeMode == StoreV::Columnwise) {
         if (direction == Direction::Forward) {

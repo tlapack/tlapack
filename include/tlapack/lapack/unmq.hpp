@@ -164,16 +164,8 @@ int unmq_work(side_t side,
     // quick return
     if (m <= 0 || n <= 0 || k <= 0) return 0;
 
-    // Reshape workspace
-    WorkInfo workinfo =
-        unmq_worksize<T>(side, trans, direction, storeMode, V, tau, C, opts);
-    auto W = reshape(work, workinfo.m, workinfo.n);
-
-    // Matrices W1 and matrixT
-    auto matrixT = slice(W, range{0, nb}, range{0, nb});
-    auto W1 = ((idx_t)workinfo.n == nb)
-                  ? slice(W, range{nb, workinfo.m}, range{0, nb})
-                  : slice(W, range{0, nb}, range{nb, workinfo.n});
+    // Matrix matrixT
+    auto [matrixT, work1] = reshape(work, nb, nb);
 
     // const expressions
     const bool positiveIncLeft =
@@ -205,7 +197,7 @@ int unmq_work(side_t side,
             auto Ci = (side == Side::Left) ? slice(C, rangev, range{0, n})
                                            : slice(C, range{0, m}, rangev);
             larfb_work(side, trans, direction, COLUMNWISE_STORAGE, Vi, matrixTi,
-                       Ci, W1);
+                       Ci, work1);
         }
     }
     else {
@@ -226,7 +218,7 @@ int unmq_work(side_t side,
                                            : slice(C, range{0, m}, rangev);
             larfb_work(side,
                        (trans == Op::NoTrans) ? Op::ConjTrans : Op::NoTrans,
-                       direction, ROWWISE_STORAGE, Vi, matrixTi, Ci, W1);
+                       direction, ROWWISE_STORAGE, Vi, matrixTi, Ci, work1);
         }
     }
 

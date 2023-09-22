@@ -329,16 +329,23 @@ auto reshape(std::experimental::mdspan<ET, Exts, LP, AP>& A,
              std::size_t n)
 {
     using size_type =
-        typename std::experimental::mdspan<ET, Exts, LP, AP>::size_type;
+        typename std::experimental::mdspan<ET, Exts, LP>::size_type;
     using extents_t = std::experimental::dextents<size_type, 2>;
-    using matrix_t = std::experimental::mdspan<ET, extents_t, LP, AP>;
+    using matrix_t = std::experimental::mdspan<ET, extents_t, LP>;
     using mapping_t = typename LP::template mapping<extents_t>;
 
-    if (m * n > A.size())
-        throw std::domain_error(
-            "reshape: new size is larger than current size");
+    const size_type size = A.extent(0) * A.extent(1);
+    const size_type new_size = m * n;
 
-    return matrix_t(A.data(), mapping_t(extents_t(m, n)));
+    if (new_size > size)
+        throw std::domain_error("New size is larger than current size");
+
+    return std::make_pair(
+        matrix_t(A.data(), mapping_t(extents_t(m, n))),
+        matrix_t(A.data(),
+                 mapping_t(std::is_same_v<LP, std::experimental::layout_left>
+                               ? extents_t(size - new_size, 1)
+                               : extents_t(1, size - new_size))));
 }
 template <class ET, class Exts, class AP>
 auto reshape(
@@ -348,33 +355,84 @@ auto reshape(
     std::size_t n)
 {
     using LP = std::experimental::layout_stride;
-    using idx_t =
-        typename std::experimental::mdspan<ET, Exts, LP, AP>::size_type;
+    using idx_t = typename std::experimental::mdspan<ET, Exts, LP>::size_type;
     using extents_t = std::experimental::dextents<idx_t, 2>;
-    using matrix_t = std::experimental::mdspan<ET, extents_t, LP, AP>;
+    using matrix_t = std::experimental::mdspan<ET, extents_t, LP>;
     using mapping_t = typename LP::template mapping<extents_t>;
 
+    const idx_t size = A.extent(0) * A.extent(1);
+    const idx_t new_size = m * n;
     const bool is_contiguous =
         (A.stride(0) == 1 &&
          (A.stride(1) == A.extent(0) || A.extent(1) <= 1)) ||
         (A.stride(1) == 1 && (A.stride(0) == A.extent(1) || A.extent(0) <= 1));
 
-    if ((m <= A.extent(0) && n <= A.extent(1)) || m * n == 0)
-        return matrix_t(A.data(), mapping_t(extents_t(m, n),
-                                            std::array<idx_t, 2>{A.stride(0),
-                                                                 A.stride(1)}));
-    else {
-        if (m * n > A.size())
-            throw std::domain_error(
-                "reshape: new size is larger than current size");
-        if (!is_contiguous)
-            throw std::domain_error(
-                "reshape: cannot reshape a non-contiguous matrix");
+    if (new_size == 0) {
+        return std::make_pair(
+            matrix_t(A.data(),
+                     mapping_t(extents_t(m, n),
+                               std::array<idx_t, 2>{A.stride(0), A.stride(1)})),
+            A);
+    }
+    else if (is_contiguous) {
+        if (new_size > size)
+            throw std::domain_error("New size is larger than current size");
 
-        return matrix_t(A.data(), mapping_t(extents_t(m, n),
-                                            (A.stride(0) == 1)
-                                                ? std::array<idx_t, 2>{1, m}
-                                                : std::array<idx_t, 2>{n, 1}));
+        if (A.stride(0) == 1)
+            return std::make_pair(
+                matrix_t(A.data(), mapping_t(extents_t(m, n),
+                                             std::array<idx_t, 2>{1, m})),
+                matrix_t(A.data() + new_size,
+                         mapping_t(extents_t(size - new_size, 1),
+                                   std::array<idx_t, 2>{1, size - new_size})));
+        else
+            return std::make_pair(
+                matrix_t(A.data(), mapping_t(extents_t(m, n),
+                                             std::array<idx_t, 2>{n, 1})),
+                matrix_t(A.data() + new_size,
+                         mapping_t(extents_t(1, size - new_size),
+                                   std::array<idx_t, 2>{size - new_size, 1})));
+    }
+    else if (m == A.extent(0)) {
+        if (A.stride(0) == 1)
+            return std::make_pair(
+                matrix_t(A.data(),
+                         mapping_t(extents_t(m, n),
+                                   std::array<idx_t, 2>{1, A.stride(1)})),
+                matrix_t(A.data() + n * A.stride(1),
+                         mapping_t(extents_t(m, n - A.extent(1)),
+                                   std::array<idx_t, 2>{1, A.stride(1)})));
+        else
+            return std::make_pair(
+                matrix_t(A.data(),
+                         mapping_t(extents_t(m, n),
+                                   std::array<idx_t, 2>{A.stride(0), 1})),
+                matrix_t(A.data() + n,
+                         mapping_t(extents_t(m, n - A.extent(1)),
+                                   std::array<idx_t, 2>{A.stride(0), 1})));
+    }
+    else if (n == A.extent(1)) {
+        if (A.stride(0) == 1)
+            return std::make_pair(
+                matrix_t(A.data(),
+                         mapping_t(extents_t(m, n),
+                                   std::array<idx_t, 2>{1, A.stride(1)})),
+                matrix_t(A.data() + m,
+                         mapping_t(extents_t(m - A.extent(0), n),
+                                   std::array<idx_t, 2>{1, A.stride(1)})));
+        else
+            return std::make_pair(
+                matrix_t(A.data(),
+                         mapping_t(extents_t(m, n),
+                                   std::array<idx_t, 2>{A.stride(0), 1})),
+                matrix_t(A.data() + m * A.stride(0),
+                         mapping_t(extents_t(m - A.extent(0), n),
+                                   std::array<idx_t, 2>{A.stride(0), 1})));
+    }
+    else {
+        throw std::domain_error(
+            "Cannot reshape to non-contiguous matrix if the number of rows and "
+            "columns are different.");
     }
 }
 
