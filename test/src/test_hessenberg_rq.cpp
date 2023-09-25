@@ -99,6 +99,7 @@ TEMPLATE_TEST_CASE("RQ of Hessenberg matrix is accurate",
 
     // MatrixMarket reader
     MatrixMarket mm;
+    rand_generator gen;
 
     const idx_t n = GENERATE(2, 3, 4, 5, 10, 13);
 
@@ -112,24 +113,33 @@ TEMPLATE_TEST_CASE("RQ of Hessenberg matrix is accurate",
     auto H = new_matrix(H_, n, n);
     std::vector<T> R_;
     auto R = new_matrix(R_, n, n);
-    std::vector<real_t> c(k);
-    std::vector<T> s(k);
+    std::vector<real_t> cl(k);
+    std::vector<T> sl(k);
+    std::vector<real_t> cr(k);
+    std::vector<T> sr(k);
 
-    mm.hessenberg(H);
+    mm.random(H);
     for (idx_t j = 0; j < n; ++j) {
-        for (idx_t i = j + 2; i < n; ++i) {
+        for (idx_t i = j + 1; i < n; ++i) {
             H(i, j) = (T)0;
         }
+    }
+
+    for (idx_t i = 0; i < k; ++i) {
+        T t1 = rand_helper<T>(gen);
+        T t2 = rand_helper<T>(gen);
+        rotg(t1, t2, cl[i], sl[i]);
     }
 
     tlapack::lacpy(GENERAL, H, R);
 
     DYNAMIC_SECTION(" n = " << n)
     {
-        hessenberg_rq(R, c, s);
+        hessenberg_rq(R, cl, sl, cr, sr);
 
         // Check backward error
-        rot_sequence_unoptimized(RIGHT_SIDE, FORWARD, c, s, H);
+        rot_sequence_unoptimized(LEFT_SIDE, FORWARD, cl, sl, H);
+        rot_sequence_unoptimized(RIGHT_SIDE, FORWARD, cr, sr, H);
         real_t hnorm = lange(MAX_NORM, H);
         for (idx_t j = 0; j < n; ++j) {
             for (idx_t i = 0; i < n; ++i) {

@@ -137,16 +137,14 @@ int gghd3(bool wantq,
                      Sl(i - ilo - 2, jb));
                 A(i, j + jb) = (T)0;
             }
+
+            // Apply rotations to B and remove fill-in
+            auto B2 = slice(B, range(j + jb + 1, ihi), range(j + jb + 1, ihi));
             auto clv = slice(Cl, range(j - ilo + jb, ihi - ilo - 2), jb);
             auto slv = slice(Sl, range(j - ilo + jb, ihi - ilo - 2), jb);
-            // Apply rotations to B
-            auto B2 = slice(B, range(j + jb + 1, ihi), range(j + jb + 1, ihi));
-            rot_sequence(LEFT_SIDE, FORWARD, clv, slv, B2);
-
-            // Remove fill-in from B
             auto crv = slice(Cr, range(j - ilo + jb, ihi - ilo - 2), jb);
             auto srv = slice(Sr, range(j - ilo + jb, ihi - ilo - 2), jb);
-            hessenberg_rq(B2, crv, srv);
+            hessenberg_rq(B2, clv, slv, crv, srv);
             auto B3 = slice(B, range(j, j + jb + 1), range(j + jb + 1, ihi));
             rot_sequence(RIGHT_SIDE, FORWARD, crv, srv, B3);
             // Apply rotations to A
