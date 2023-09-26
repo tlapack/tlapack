@@ -46,7 +46,7 @@ int lahqz_shiftcolumn(const matrix_t& A,
                       complex_type<type_t<matrix_t>> s1,
                       complex_type<type_t<matrix_t>> s2,
                       real_type<type_t<matrix_t>> beta1,
-                      real_type<type_t<matrix_t>> beta1)
+                      real_type<type_t<matrix_t>> beta2)
 {
     // Using
     using idx_t = size_type<matrix_t>;
@@ -136,7 +136,7 @@ int lahqz_shiftcolumn(const matrix_t& A,
                       complex_type<type_t<matrix_t>> s1,
                       complex_type<type_t<matrix_t>> s2,
                       real_type<type_t<matrix_t>> beta1,
-                      real_type<type_t<matrix_t>> beta1)
+                      real_type<type_t<matrix_t>> beta2)
 {
     // Using
     using idx_t = size_type<matrix_t>;
@@ -144,7 +144,7 @@ int lahqz_shiftcolumn(const matrix_t& A,
     using real_t = real_type<T>;
 
     // Constants
-    const idx_t n = ncols(H);
+    const idx_t n = ncols(A);
     const T zero(0);
     const real_t safmin = safe_min<real_t>();
     const real_t safmax = safe_max<real_t>();

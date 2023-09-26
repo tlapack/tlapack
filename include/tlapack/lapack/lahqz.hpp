@@ -16,6 +16,7 @@
 #include "tlapack/blas/rot.hpp"
 #include "tlapack/blas/rotg.hpp"
 #include "tlapack/lapack/lahqz_eig22.hpp"
+#include "tlapack/lapack/lahqz_shiftcolumn.hpp"
 
 namespace tlapack {
 
@@ -49,9 +50,8 @@ namespace tlapack {
  * @ingroup auxiliary
  */
 template <TLAPACK_CSMATRIX matrix_t,
-          TLAPACK_VECTOR vector_t,
-          enable_if_t<is_complex<type_t<vector_t>>, bool> = true,
-          enable_if_t<is_real<type_t<matrix_t>>, bool> = true>
+          TLAPACK_VECTOR alpha_t,
+          TLAPACK_VECTOR beta_t>
 int lahqz(bool want_s,
           bool want_q,
           bool want_z,
@@ -59,8 +59,8 @@ int lahqz(bool want_s,
           size_type<matrix_t> ihi,
           matrix_t& A,
           matrix_t& B,
-          vector_t& alpha,
-          vector_t& beta,
+          alpha_t& alpha,
+          beta_t& beta,
           matrix_t& Q,
           matrix_t& Z)
 {
@@ -191,7 +191,7 @@ int lahqz(bool want_s,
                     abs1(B(i, i) * A(i - 1, i - 1) - A(i, i) * B(i - 1, i - 1));
                 const real_t aij = abs1(A(i, i - 1));
                 real_t ab = max(abs1(A(i, i - 1)), tst1);
-                real_t ab = min(abs1(A(i, i - 1)), tst1);
+                real_t ba = min(abs1(A(i, i - 1)), tst1);
                 real_t aa = max(abs1(A(i, i)), tst2);
                 real_t bb = min(abs1(A(i, i)), tst2);
                 real_t s = aa + ab;
@@ -241,10 +241,10 @@ int lahqz(bool want_s,
         }
         else {
             // Wilkinson shift
-            auto A22 = slice(A, range(istop - 2, istop - 1),
-                             range(istop - 2, istop - 1));
-            auto B22 = slice(B, range(istop - 2, istop - 1),
-                             range(istop - 2, istop - 1));
+            auto A22 =
+                slice(A, range(istop - 2, istop), range(istop - 2, istop));
+            auto B22 =
+                slice(B, range(istop - 2, istop), range(istop - 2, istop));
             lahqz_eig22(A22, B22, shift1, shift2, beta1, beta2);
             if ((imag(shift1) == zero and imag(shift2) == zero) or
                 is_complex<TA>) {
@@ -270,6 +270,8 @@ int lahqz(bool want_s,
         // whether we can introduce that shift somewhere else in the subblock.
         TA t1;
         idx_t istart2 = istart;
+        std::vector<TA> v_;
+        auto v = new_vector(v_, 3);
         // TODO
 
         // All the preparations are done, we can apply an implicit QZ iteration
@@ -286,7 +288,7 @@ int lahqz(bool want_s,
                 lahqz_shiftcolumn(H, T, x, shift1, shift2, beta1, beta2);
 
                 if (nr == 3) rotg(x[1], x[2], c1, s1);
-                rotg(x[1], x[2], c2, s2);
+                rotg(x[0], x[1], c2, s2);
 
                 if (i > istart) {
                     // TODO
@@ -352,14 +354,14 @@ int lahqz(bool want_s,
 
             // Apply rotation from the right
             if (nr == 3) {
-                auto b1 = slice(B, range{istart_m, i}, i);
-                auto b2 = slice(B, range{istart_m, i}, i + 1);
-                auto b3 = slice(B, range{istart_m, i}, i + 2);
+                auto b1 = slice(B, range{istart_m, i + 1}, i);
+                auto b2 = slice(B, range{istart_m, i + 1}, i + 1);
+                auto b3 = slice(B, range{istart_m, i + 1}, i + 2);
                 rot(b2, b3, c1, conj(s1));
                 rot(b1, b2, c2, conj(s2));
-                auto a1 = slice(A, range{istart_m, i + 2}, i);
-                auto a2 = slice(A, range{istart_m, i + 2}, i + 1);
-                auto a3 = slice(A, range{istart_m, i + 2}, i + 2);
+                auto a1 = slice(A, range{istart_m, min(i + 4, ihi)}, i);
+                auto a2 = slice(A, range{istart_m, min(i + 4, ihi)}, i + 1);
+                auto a3 = slice(A, range{istart_m, min(i + 4, ihi)}, i + 2);
                 rot(a2, a3, c1, conj(s1));
                 rot(a1, a2, c2, conj(s2));
                 if (want_z) {
@@ -371,11 +373,11 @@ int lahqz(bool want_s,
                 }
             }
             else {
-                auto b1 = slice(B, range{istart_m, i}, i);
-                auto b2 = slice(B, range{istart_m, i}, i + 1);
+                auto b1 = slice(B, range{istart_m, i + 1}, i);
+                auto b2 = slice(B, range{istart_m, i + 1}, i + 1);
                 rot(b1, b2, c2, conj(s2));
-                auto a1 = slice(A, range{istart_m, i + 2}, i);
-                auto a2 = slice(A, range{istart_m, i + 2}, i + 1);
+                auto a1 = slice(A, range{istart_m, min(i + 4, ihi)}, i);
+                auto a2 = slice(A, range{istart_m, min(i + 4, ihi)}, i + 1);
                 rot(a1, a2, c2, conj(s2));
                 if (want_z) {
                     auto z1 = col(Z, i);
