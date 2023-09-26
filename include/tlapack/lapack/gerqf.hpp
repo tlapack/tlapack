@@ -54,7 +54,7 @@ constexpr WorkInfo gerqf_worksize(const A_t& A,
 
     auto&& A11 = rows(A, range(0, nb));
     auto&& tauw1 = slice(tau, range(0, nb));
-    WorkInfo workinfo = gerq2_worksize<T>(A11, tauw1).transpose();
+    WorkInfo workinfo = gerq2_worksize<T>(A11, tauw1);
 
     if (m > nb) {
         auto&& TT1 = slice(A, range(0, nb), range(0, nb));

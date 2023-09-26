@@ -17,9 +17,13 @@ struct WorkInfo {
     size_t m = 0;               ///< Number of rows needed in the Workspace
     size_t n = 1;               ///< Number of columns needed in the Workspace
     bool isContiguous = false;  ///< True if the Workspace is contiguous
+    bool isVector;  ///< True if the Workspace is a vector at compile time
 
     /// Constructor using sizes
-    constexpr WorkInfo(size_t m = 0, size_t n = 1) noexcept : m(m), n(n) {}
+    constexpr WorkInfo(size_t m, size_t n) noexcept
+        : m(m), n(n), isVector(false)
+    {}
+    constexpr WorkInfo(size_t s = 0) noexcept : m(s), isVector(true) {}
 
     /// Size needed in the Workspace
     constexpr size_t size() const noexcept { return m * n; }
@@ -40,27 +44,47 @@ struct WorkInfo {
         const size_t s1 = workinfo.size();
         const size_t s = size();
 
-        // If one of the objects is contiguous, then the result is contiguous
-        if (isContiguous || workinfo.isContiguous) {
-            m = std::max(s, s1);
-            n = 1;
-            isContiguous = true;
+        if (s1 == 0) {
+            // Do nothing
         }
-        // Check if the current sizes cover the sizes from workinfo
-        else if (m >= m1 && n >= n1) {
-            // Nothing to do
-        }
-        // Check if the sizes from workinfo cover the current sizes
-        else if (m1 >= m && n1 >= n) {
-            // Use the sizes from workinfo
+        else if (s == 0) {
+            // Copy workinfo
             m = m1;
             n = n1;
+            isContiguous = workinfo.isContiguous;
+            isVector = workinfo.isVector;
         }
-        // Otherwise, use contiguous space with the maximum size
         else {
-            m = std::max(s, s1);
-            n = 1;
-            isContiguous = true;
+            if (isContiguous || workinfo.isContiguous) {
+                // If one of the objects is contiguous, then the result is
+                // contiguous
+                m = std::max(s, s1);
+                n = 1;
+                isContiguous = true;
+            }
+            else if ((m >= m1 && n >= n1) ||
+                     (workinfo.isVector && (m >= n1 && n >= m1))) {
+                // Current shape cover workinfo's shape, nothing to be done.
+                // If workinfo represents a vector, then we also check if the
+                // vector fits transposed. In such a case, nothing to be done.
+            }
+            else if ((m1 >= m && n1 >= n) ||
+                     (isVector && (m1 >= n && n1 >= m))) {
+                // Same as above, but for the opposite case. THerefore, use the
+                // sizes from workinfo.
+                m = m1;
+                n = n1;
+            }
+            else {
+                // Workspaces are incompatible, use simple solution: contiguous
+                // space in memory
+                m = std::max(s, s1);
+                n = 1;
+                isContiguous = true;
+            }
+
+            // Update isVector
+            isVector = isVector && workinfo.isVector;
         }
     }
 
@@ -78,31 +102,69 @@ struct WorkInfo {
         const size_t& m1 = workinfo.m;
         const size_t& n1 = workinfo.n;
         const size_t s1 = workinfo.size();
+        const size_t s = size();
 
-        // If one of the objects is contiguous, then the result is contiguous
-        if (isContiguous || workinfo.isContiguous) {
-            m = size() + s1;
-            n = 1;
-            isContiguous = true;
+        if (s1 == 0) {
+            // Do nothing
         }
-        // Else, if first dimension matches, update second dimension
-        else if (m == m1) {
-            n += n1;
+        else if (s == 0) {
+            // Copy workinfo
+            m = m1;
+            n = n1;
+            isContiguous = workinfo.isContiguous;
+            isVector = workinfo.isVector;
         }
-        // Else, if second dimension matches, update first dimension
-        else if (n == n1) {
-            m += m1;
+        else {
+            if (isContiguous || workinfo.isContiguous) {
+                // One of the objects is contiguous, then the result is
+                // contiguous
+                m = s + s1;
+                n = 1;
+                isContiguous = true;
+            }
+            else if (n == n1) {
+                // Second dimension matches, update first dimension
+                m += m1;
+            }
+            else if (m == m1) {
+                // First dimension matches, update second dimension
+                n += n1;
+            }
+            else if (workinfo.isVector && (n == m1)) {
+                // Second dimension matches the first dimension of workinfo and
+                // workinfo is a vector. Therefore, the result is *this with
+                // one additional row.
+                m += 1;
+            }
+            else if (isVector && (m == n1)) {
+                // First dimension matches the second dimension of workinfo and
+                // *this is a vector. Therefore, the result is workinfo with
+                // one additional row.
+                m = m1 + 1;
+                n = n1;
+            }
+            else {
+                // Sizes do not match. Simple solution: contiguous space in
+                // memory
+                m = s + s1;
+                n = 1;
+                isContiguous = true;
+            }
+
+            // Update isVector
+            isVector = isVector && workinfo.isVector;
         }
-        else  // Sizes do not match. Simple solution: contiguous space in memory
-        {
-            m = size() + workinfo.size();
-            n = 1;
-            isContiguous = true;
-        }
+
         return *this;
     }
 
-    constexpr WorkInfo transpose() const noexcept { return WorkInfo(n, m); }
+    constexpr WorkInfo transpose() const noexcept
+    {
+        if (size() == 0 || isVector)
+            return *this;
+        else
+            return WorkInfo(n, m);
+    }
 };
 
 }  // namespace tlapack
