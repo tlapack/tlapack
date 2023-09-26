@@ -91,9 +91,8 @@ int gerqf_work(A_t& A, tau_t& tau, work_t& work, const GerqfOpts& opts = {})
     // check arguments
     tlapack_check((idx_t)size(tau) >= k);
 
-    // Matrix TT and workspace workt
+    // Matrix TT
     auto [TT, work2] = (m > nb) ? reshape(work, nb, nb) : reshape(work, 0, 0);
-    auto workt = transpose_view(work);
 
     // Main computational loop
     for (idx_t j2 = 0; j2 < k; j2 += nb) {
@@ -104,7 +103,7 @@ int gerqf_work(A_t& A, tau_t& tau, work_t& work, const GerqfOpts& opts = {})
         auto A11 = slice(A, range(j, j + ib), range(0, n - j2));
         auto tauw1 = slice(tau, range(k - j2 - ib, k - j2));
 
-        gerq2_work(A11, tauw1, workt);
+        gerq2_work(A11, tauw1, work);
 
         if (j > 0) {
             // Form the triangular factor of the block reflector

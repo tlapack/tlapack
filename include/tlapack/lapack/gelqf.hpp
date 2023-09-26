@@ -91,9 +91,8 @@ int gelqf_work(A_t& A, tau_t& tau, work_t& work, const GelqfOpts& opts = {})
     // check arguments
     tlapack_check((idx_t)size(tau) >= k);
 
-    // Matrix TT and workspace workt
+    // Matrix TT
     auto [TT, work2] = (m > nb) ? reshape(work, nb, nb) : reshape(work, 0, 0);
-    auto workt = transpose_view(work);
 
     // Main computational loop
     for (idx_t j = 0; j < k; j += nb) {
@@ -103,7 +102,7 @@ int gelqf_work(A_t& A, tau_t& tau, work_t& work, const GelqfOpts& opts = {})
         auto A11 = slice(A, range(j, j + ib), range(j, n));
         auto tauw1 = slice(tau, range(j, j + ib));
 
-        gelq2_work(A11, tauw1, workt);
+        gelq2_work(A11, tauw1, work);
 
         if (j + ib < m) {
             // Form the triangular factor of the block reflector H = H(j)

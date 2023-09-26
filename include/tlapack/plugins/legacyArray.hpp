@@ -575,32 +575,17 @@ auto reshape(LegacyMatrix<T, idx_t, layout>& A,
                 : matrix_t(1, size - new_size, &A.ptr[0] + new_size));
     }
     else {
-        if (m == A.m || n == 0) {
-            if constexpr (layout == Layout::ColMajor)
-                return std::make_pair(
-                    matrix_t(m, n, &A.ptr[0], A.ldim),
-                    matrix_t(A.m, A.n - n, &A.ptr[0] + n * A.ldim, A.ldim));
-            else
-                return std::make_pair(
-                    matrix_t(m, n, &A.ptr[0], A.ldim),
-                    matrix_t(A.m, A.n - n, &A.ptr[0] + n, A.ldim));
-        }
-        else if (n == A.n || m == 0) {
-            if constexpr (layout == Layout::ColMajor)
-                return std::make_pair(
-                    matrix_t(m, n, &A.ptr[0], A.ldim),
-                    matrix_t(A.m - m, A.n, &A.ptr[0] + m, A.ldim));
-            else
-                return std::make_pair(
-                    matrix_t(m, n, &A.ptr[0], A.ldim),
-                    matrix_t(A.m - m, A.n, &A.ptr[0] + m * A.ldim, A.ldim));
-        }
-        else {
+        if (m == A.m || n == 0)
+            return std::make_pair(cols(A, std::pair{0, n}),
+                                  cols(A, std::pair{n, A.n}));
+        else if (n == A.n || m == 0)
+            return std::make_pair(rows(A, std::pair{0, m}),
+                                  rows(A, std::pair{m, A.m}));
+        else
             throw std::domain_error(
                 "Cannot reshape to non-contiguous matrix into a matrix if both "
                 "the number of rows and columns are different from the new "
                 "ones.");
-        }
     }
 }
 template <typename T, class idx_t, Layout layout>
