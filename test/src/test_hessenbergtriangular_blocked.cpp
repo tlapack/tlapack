@@ -1,4 +1,4 @@
-/// @file test_hessenbergtriangular.cpp
+/// @file test_hessenbergtriangular_blocked.cpp
 /// @author Thijs Steel, KU Leuven, Belgium
 /// @brief Test hessenberg triangular reduction
 //
@@ -18,7 +18,7 @@
 
 // Other routines
 #include <tlapack/lapack/geqrf.hpp>
-#include <tlapack/lapack/gghrd.hpp>
+#include <tlapack/lapack/gghd3.hpp>
 #include <tlapack/lapack/ungqr.hpp>
 #include <tlapack/lapack/unmqr.hpp>
 
@@ -40,8 +40,9 @@ TEMPLATE_TEST_CASE(
     // MatrixMarket reader
     MatrixMarket mm;
 
-    const std::string matrix_type = GENERATE("Near_overflow", "Random");
+    const std::string matrix_type = GENERATE("Random", "Near_overflow");
     const idx_t n = GENERATE(1, 2, 3, 5, 10);
+    const idx_t nb = GENERATE(1, 2, 3);
     const idx_t ilo_offset = GENERATE(0, 1);
     const idx_t ihi_offset = GENERATE(0, 1);
 
@@ -112,10 +113,12 @@ TEMPLATE_TEST_CASE(
     ungqr(Q, tau);
     laset(GENERAL, (TA)0, (TA)1, Z);
 
-    DYNAMIC_SECTION("matrix = " << matrix_type << " n = " << n
-                                << " ilo = " << ilo << " ihi = " << ihi)
+    DYNAMIC_SECTION("matrix = " << matrix_type << " n = " << n << " ilo = "
+                                << ilo << " ihi = " << ihi << " nb = " << nb)
     {
-        gghrd(true, true, ilo, ihi, H, T, Q, Z);
+        Gghd3Opts opts;
+        opts.nb = nb;
+        gghd3(true, true, ilo, ihi, H, T, Q, Z, opts);
 
         // Check orthogonality
         auto orth_Q = check_orthogonality(Q);

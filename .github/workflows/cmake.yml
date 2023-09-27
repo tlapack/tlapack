@@ -80,10 +80,11 @@ jobs:
     steps:
     
     - name: Checkout <T>LAPACK
-      uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+      uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
     
     - name: Checkout Catch2 on Windows
-      uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+      if: ${{ matrix.os == 'windows-latest' }}
+      uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
       with:
         repository: catchorg/Catch2
         ref: 6e79e682b726f524310d55dec8ddac4e9c52fb5f # v3.4.0
@@ -91,7 +92,7 @@ jobs:
 
     - name: Checkout mdspan
       if: ${{ matrix.os == 'ubuntu-latest' }}
-      uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+      uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
       with:
         repository: kokkos/mdspan
         ref: cc9aaea9a7d36c3163523a0e36fab85bba985a66 # v0.4.0
@@ -215,17 +216,17 @@ jobs:
     steps:
     
     - name: Checkout <T>LAPACK
-      uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+      uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
     
     - name: Checkout BLAS++
-      uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+      uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
       with:
         repository: icl-utk-edu/blaspp
         ref: 34a24d103c039abdc634837af45433c44b3e90a7 # v2023.06.00
         path: blaspp
     
     - name: Checkout LAPACK++
-      uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+      uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
       with:
         repository: icl-utk-edu/lapackpp
         ref: 229e5007e605ee77769d086530401937fca85c8b # v2023.06.00
@@ -293,17 +294,17 @@ jobs:
     steps:
     
     - name: Checkout <T>LAPACK
-      uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+      uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
     
     - name: Checkout BLAS++
-      uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+      uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
       with:
         repository: icl-utk-edu/blaspp
         ref: 34a24d103c039abdc634837af45433c44b3e90a7 # v2023.06.00
         path: blaspp
     
     - name: Checkout LAPACK++
-      uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+      uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
       with:
         repository: icl-utk-edu/lapackpp
         ref: 229e5007e605ee77769d086530401937fca85c8b # v2023.06.00
@@ -366,17 +367,17 @@ jobs:
     steps:
     
     - name: Checkout <T>LAPACK
-      uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+      uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
     
     - name: Checkout BLAS++
-      uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+      uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
       with:
         repository: icl-utk-edu/blaspp
         ref: 34a24d103c039abdc634837af45433c44b3e90a7 # v2023.06.00
         path: blaspp
     
     - name: Checkout LAPACK++
-      uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+      uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
       with:
         repository: icl-utk-edu/lapackpp
         ref: 229e5007e605ee77769d086530401937fca85c8b # v2023.06.00
@@ -457,24 +458,24 @@ jobs:
     steps:
     
     - name: Checkout <T>LAPACK
-      uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+      uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
     
     - name: Checkout BLAS++
-      uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+      uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
       with:
         repository: icl-utk-edu/blaspp
         ref: 34a24d103c039abdc634837af45433c44b3e90a7 # v2023.06.00
         path: blaspp
     
     - name: Checkout LAPACK++
-      uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+      uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
       with:
         repository: icl-utk-edu/lapackpp
         ref: 229e5007e605ee77769d086530401937fca85c8b # v2023.06.00
         path: lapackpp
 
     - name: Checkout LAPACK
-      uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+      uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
       with:
         repository: Reference-LAPACK/lapack
         ref: 7866626840f5d5e7e27f027a55182da8b3303872 # v3.11.0
@@ -544,17 +545,17 @@ jobs:
     steps:
     
     - name: Checkout <T>LAPACK
-      uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+      uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
     
     - name: Checkout BLAS++
-      uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+      uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
       with:
         repository: icl-utk-edu/blaspp
         ref: 34a24d103c039abdc634837af45433c44b3e90a7 # v2023.06.00
         path: blaspp
     
     - name: Checkout LAPACK++
-      uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+      uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
       with:
         repository: icl-utk-edu/lapackpp
         ref: 229e5007e605ee77769d086530401937fca85c8b # v2023.06.00
@@ -621,10 +622,10 @@ jobs:
     steps:
     
     - name: Checkout <T>LAPACK
-      uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+      uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
 
     - name: Checkout mdspan
-      uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+      uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
       with:
         repository: kokkos/mdspan
         ref: cc9aaea9a7d36c3163523a0e36fab85bba985a66 # v0.4.0
@@ -724,10 +725,10 @@ jobs:
     steps:
     
     - name: Checkout <T>LAPACK
-      uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+      uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
 
     - name: Checkout StarPU
-      uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+      uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
       with:
         repository: starpu-runtime/starpu
         ref: 87155272bc43821a89ae62ba0f6b55a105ccba4c # v1.4.1
