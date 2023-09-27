@@ -17,8 +17,10 @@
 #include <tlapack/lapack/laset.hpp>
 
 // Other routines
+#include <tlapack/lapack/geqrf.hpp>
 #include <tlapack/lapack/gghrd.hpp>
 #include <tlapack/lapack/lahqz.hpp>
+#include <tlapack/lapack/unmqr.hpp>
 
 using namespace tlapack;
 
@@ -40,12 +42,13 @@ TEMPLATE_TEST_CASE("QZ algorithm",
     MatrixMarket mm;
 
     using test_tuple_t = std::tuple<std::string, idx_t>;
-    const test_tuple_t test_tuple =
-        GENERATE((test_tuple_t("Large Random", 100)),
-                 (test_tuple_t("Random", 0)), (test_tuple_t("Random", 1)),
-                 (test_tuple_t("Random", 2)), (test_tuple_t("Random", 5)),
-                 (test_tuple_t("Random", 10)), (test_tuple_t("Random", 15)),
-                 (test_tuple_t("Random", 20)), (test_tuple_t("Random", 30)));
+    const test_tuple_t test_tuple = GENERATE(
+        (test_tuple_t("Large Random", 100)), (test_tuple_t("Random", 0)),
+        (test_tuple_t("Random", 1)), (test_tuple_t("Random", 2)),
+        (test_tuple_t("Random", 5)), (test_tuple_t("Random", 10)),
+        (test_tuple_t("Random", 15)), (test_tuple_t("Random", 20)),
+        (test_tuple_t("Random", 30)), (test_tuple_t("Infinite", 10)),
+        (test_tuple_t("Infinite", 20)));
     const int seed = GENERATE(2, 3);
 
     const std::string matrix_type = std::get<0>(test_tuple);
@@ -74,28 +77,29 @@ TEMPLATE_TEST_CASE("QZ algorithm",
 
     if (matrix_type == "Random") {
         mm.hessenberg(A);
-        mm.hessenberg(B);
+        mm.random(Uplo::Upper, B);
     }
-    // if (matrix_type == "Near overflow") {
-    //     const real_t large_num = safe_max<real_t>() * ulp<real_t>();
-    //     mm.single_value(A, large_num);
-    // }
-    // if (matrix_type == "Large Random") {
-    //     // Generate full matrix
-    //     mm.random(A);
-
-    //     // Hessenberg factorization
-    //     std::vector<T> tau(n);
-    //     gehrd(0, n, A, tau);
-    // }
-
-    // Clear out subdiagonal
-    for (idx_t j = 0; j < n; ++j)
-        for (idx_t i = j + 2; i < n; ++i)
-            A(i, j) = zero;
-    for (idx_t j = 0; j < n; ++j)
-        for (idx_t i = j + 1; i < n; ++i)
-            B(i, j) = zero;
+    if (matrix_type == "Large Random") {
+        // Generate full matrix
+        mm.random(A);
+        mm.random(B);
+        // Hessenberg triangular factorization
+        std::vector<TA> tau(n);
+        geqrf(B, tau);
+        unmqr(LEFT_SIDE, CONJ_TRANS, B, tau, A);
+        gghrd(false, false, ilo, ihi, A, B, Q, Z);
+    }
+    if (matrix_type == "Infinite") {
+        // Generate pencil with infinite eigenvalues
+        mm.hessenberg(A);
+        mm.random(Uplo::Upper, B);
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = j + 1; i < n; ++i)
+                B(i, j) = zero;
+        if (n > 4) B(4, 4) = zero;
+        if (n > 7) B(7, 7) = zero;
+        if (n > 14) B(14, 14) = zero;
+    }
 
     // Make sure ilo and ihi correspond to the actual matrix
     for (idx_t j = 0; j < ilo; ++j)
@@ -104,6 +108,14 @@ TEMPLATE_TEST_CASE("QZ algorithm",
     for (idx_t i = ihi; i < n; ++i)
         for (idx_t j = 0; j < i; ++j)
             A(i, j) = (TA)0.0;
+
+    // Clear out subdiagonal
+    for (idx_t j = 0; j < n; ++j)
+        for (idx_t i = j + 2; i < n; ++i)
+            A(i, j) = zero;
+    for (idx_t j = 0; j < n; ++j)
+        for (idx_t i = j + 1; i < n; ++i)
+            B(i, j) = zero;
 
     lacpy(GENERAL, A, H);
     lacpy(GENERAL, B, T);

@@ -121,6 +121,10 @@ int lahqz(bool want_s,
     // that we can treat this subblock separately.
     idx_t istart = ilo;
 
+    // Norm of B, used for checking infinite eigenvalues
+    const real_t bnorm =
+        lange(FROB_NORM, slice(B, range(ilo, ihi), range(ilo, ihi)));
+
     for (idx_t iter = 0; iter <= itmax; ++iter) {
         if (iter == itmax) {
             // The QZ algorithm failed to converge, return with error.
@@ -204,8 +208,79 @@ int lahqz(bool want_s,
             }
         }
 
-        // TODO: deflate infinite eigenvalues
+        // check for infinite eigenvalues
+        for (idx_t i = istart; i < istop; ++i) {
+            if (abs1(B(i, i)) <= max(small_num, eps * bnorm)) {
+                // B(i,i) is negligible, so B is singular, i.e. (A,B) has an
+                // infinite eigenvalue. Move it to the top to be deflated
+                B(i, i) = zero;
 
+                real_t c;
+                TA s;
+                for (idx_t j = i; j > istart; j--) {
+                    rotg(B(j - 1, j), B(j - 1, j - 1), c, s);
+                    B(j - 1, j - 1) = zero;
+                    // Apply rotation from the right
+                    {
+                        auto b1 = slice(B, range(istart_m, j - 1), j);
+                        auto b2 = slice(B, range(istart_m, j - 1), j - 1);
+                        rot(b1, b2, c, s);
+
+                        auto a1 = slice(A, range(istart_m, min(j + 2, n)), j);
+                        auto a2 =
+                            slice(A, range(istart_m, min(j + 2, n)), j - 1);
+                        rot(a1, a2, c, s);
+
+                        if (want_z) {
+                            auto z1 = col(Z, j);
+                            auto z2 = col(Z, j - 1);
+                            rot(z1, z2, c, s);
+                        }
+                    }
+                    // Remove fill-in in A
+                    if (j < istop - 1) {
+                        rotg(A(j, j - 1), A(j + 1, j - 1), c, s);
+                        A(j + 1, j - 1) = zero;
+
+                        auto a1 = slice(A, j, range(j, istop_m));
+                        auto a2 = slice(A, j + 1, range(j, istop_m));
+                        rot(a1, a2, c, s);
+                        auto b1 = slice(B, j, range(j + 1, istop_m));
+                        auto b2 = slice(B, j + 1, range(j + 1, istop_m));
+                        rot(b1, b2, c, s);
+
+                        if (want_q) {
+                            auto q1 = col(Q, j);
+                            auto q2 = col(Q, j + 1);
+                            rot(q1, q2, c, conj(s));
+                        }
+                    }
+                }
+
+                if (istart + 1 < istop) {
+                    rotg(A(istart, istart), A(istart + 1, istart), c, s);
+                    A(istart + 1, istart) = zero;
+
+                    auto a1 = slice(A, istart, range(istart + 1, istop_m));
+                    auto a2 = slice(A, istart + 1, range(istart + 1, istop_m));
+                    rot(a1, a2, c, s);
+                    auto b1 = slice(B, istart, range(istart + 1, istop_m));
+                    auto b2 = slice(B, istart + 1, range(istart + 1, istop_m));
+                    rot(b1, b2, c, s);
+
+                    if (want_q) {
+                        auto q1 = col(Q, istart);
+                        auto q2 = col(Q, istart + 1);
+                        rot(q1, q2, c, conj(s));
+                    }
+                }
+                alpha[istart] = A(istart, istart);
+                beta[istart] = zero;
+                istart = istart + 1;
+            }
+        }
+
+        if (istart == istop) continue;
         // Check if 1x1 block has split offsafe_min
         if (istart + 1 == istop) {
             k_defl = 0;
