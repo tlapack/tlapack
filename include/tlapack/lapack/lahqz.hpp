@@ -389,7 +389,25 @@ int lahqz(bool want_s,
         idx_t istart2 = istart;
         std::vector<TA> v_;
         auto v = new_vector(v_, 3);
-        // TODO
+        if (istart + 3 < istop) {
+            for (idx_t i = istop - 3; i > istart; --i) {
+                auto H = slice(A, range{i, i + 3}, range{i, i + 3});
+                auto T = slice(B, range{i, i + 3}, range{i, i + 3});
+                lahqz_shiftcolumn(H, T, v, shift1, shift2, beta1, beta2);
+
+                real_t c1, c2;
+                TA s1, s2;
+                rotg(v[1], v[2], c1, s1);
+                rotg(v[0], v[1], c2, s2);
+
+                if (abs1(-conj(s2) * A(i, i - 1)) <
+                    eps * (abs1(A(i, i - 1)) + abs1(A(i, i + 1)) +
+                           abs1(A(i + 1, i + 2)))) {
+                    istart2 = i;
+                    break;
+                }
+            }
+        }
 
         // All the preparations are done, we can apply an implicit QZ iteration
         for (idx_t i = istart2; i < istop - 1; ++i) {
@@ -408,8 +426,7 @@ int lahqz(bool want_s,
                 rotg(x[0], x[1], c2, s2);
 
                 if (i > istart) {
-                    // TODO
-                    // A(i, i - 1) = A(i, i - 1) * (one - conj(t1));
+                    A(i, i - 1) = A(i, i - 1) * c2;
                 }
             }
             else {
