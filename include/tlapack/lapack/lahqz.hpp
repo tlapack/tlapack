@@ -125,6 +125,9 @@ int lahqz(bool want_s,
     const real_t bnorm =
         lange(FROB_NORM, slice(B, range(ilo, ihi), range(ilo, ihi)));
 
+    // Used to calculate the exceptional shift
+    TA eshift = 0.;
+
     for (idx_t iter = 0; iter <= itmax; ++iter) {
         if (iter == itmax) {
             // The QZ algorithm failed to converge, return with error.
@@ -281,7 +284,7 @@ int lahqz(bool want_s,
         }
 
         if (istart == istop) continue;
-        // Check if 1x1 block has split offsafe_min
+        // Check if 1x1 block has split off
         if (istart + 1 == istop) {
             k_defl = 0;
             // Normalize the block, make sure B(istart, istart) is real and
@@ -359,7 +362,15 @@ int lahqz(bool want_s,
         TA beta2;
         if (k_defl % non_convergence_limit == 0) {
             // Exceptional shift
-            // TODO!
+            if (k_defl % 2 * non_convergence_limit == 0 or istop < 2)
+                eshift += A(istop - 1, istop - 1) / B(istop - 1, istop - 1);
+            else
+                eshift += A(istop - 2, istop - 2) / B(istop - 2, istop - 2);
+
+            shift1 = eshift;
+            shift2 = eshift;
+            beta1 = one;
+            beta2 = one;
         }
         else {
             // Wilkinson shift
@@ -368,22 +379,6 @@ int lahqz(bool want_s,
             auto B22 =
                 slice(B, range(istop - 2, istop), range(istop - 2, istop));
             lahqz_eig22(A22, B22, shift1, shift2, beta1, beta2);
-            if ((imag(shift1) == zero and imag(shift2) == zero) or
-                is_complex<TA>) {
-                // The eigenvalues are not complex conjugate, keep only the one
-                // closest to A(istop-1, istop-1)
-                if (abs1(B(istop - 1, istop - 1) * shift1 -
-                         beta1 * A(istop - 1, istop - 1)) <=
-                    abs1(B(istop - 1, istop - 1) * shift2 -
-                         beta2 * A(istop - 1, istop - 1))) {
-                    shift2 = shift1;
-                    beta2 = beta1;
-                }
-                else {
-                    shift1 = shift2;
-                    beta1 = beta2;
-                }
-            }
         }
 
         // We have already checked whether the subblock has split.
