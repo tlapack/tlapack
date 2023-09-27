@@ -52,8 +52,8 @@ void lahqz_eig22(const A_t& A,
     x11 = x11 - u01 * x10;
 
     // Calculate eigenvalues of X
-    beta1 = 1.;
-    beta2 = 1.;
+    beta1 = (T)1.;
+    beta2 = (T)1.;
     lahqr_eig22(x00, x01, x10, x11, alpha1, alpha2);
 }
 

@@ -126,7 +126,7 @@ int lahqz(bool want_s,
         lange(FROB_NORM, slice(B, range(ilo, ihi), range(ilo, ihi)));
 
     // Used to calculate the exceptional shift
-    TA eshift = 0.;
+    TA eshift = (TA)0.;
 
     for (idx_t iter = 0; iter <= itmax; ++iter) {
         if (iter == itmax) {
@@ -475,7 +475,7 @@ int lahqz(bool want_s,
             if (nr == 3) {
                 rotg(B(i + 2, i + 2), B(i + 2, i + 1), c1, s1);
                 s1 = -s1;
-                B(i + 2, i + 1) = 0.;
+                B(i + 2, i + 1) = (TA)0.;
                 // Also apply the rotation to the 2 elements above so that
                 // we can calculate the next rotation
                 auto temp = c1 * B(i + 1, i + 1) + conj(s1) * B(i + 1, i + 2);
@@ -484,7 +484,7 @@ int lahqz(bool want_s,
             }
             rotg(B(i + 1, i + 1), B(i + 1, i), c2, s2);
             s2 = -s2;
-            B(i + 1, i) = 0.;
+            B(i + 1, i) = (TA)0.;
 
             // Apply rotation from the right
             if (nr == 3) {
