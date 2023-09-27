@@ -12,6 +12,8 @@
 #ifndef TLAPACK_LAHQZ_HH
 #define TLAPACK_LAHQZ_HH
 
+#include <tlapack/lapack/lange.hpp>
+
 #include "tlapack/base/utils.hpp"
 #include "tlapack/blas/rot.hpp"
 #include "tlapack/blas/rotg.hpp"
@@ -129,6 +131,10 @@ int lahqz(bool want_s,
     // Used to calculate the exceptional shift
     TA eshift = (TA)0.;
 
+    // Local workspace
+    std::vector<TA> v_;
+    auto v = new_vector(v_, 3);
+
     for (idx_t iter = 0; iter <= itmax; ++iter) {
         if (iter == itmax) {
             // The QZ algorithm failed to converge, return with error.
@@ -197,7 +203,6 @@ int lahqz(bool want_s,
                     abs1(B(i, i) * A(i - 1, i) - A(i, i) * B(i - 1, i));
                 const real_t tst2 =
                     abs1(B(i, i) * A(i - 1, i - 1) - A(i, i) * B(i - 1, i - 1));
-                const real_t aij = abs1(A(i, i - 1));
                 real_t ab = max(abs1(A(i, i - 1)), tst1);
                 real_t ba = min(abs1(A(i, i - 1)), tst1);
                 real_t aa = max(abs1(A(i, i)), tst2);
@@ -388,8 +393,6 @@ int lahqz(bool want_s,
         // whether we can introduce that shift somewhere else in the subblock.
         TA t1;
         idx_t istart2 = istart;
-        std::vector<TA> v_;
-        auto v = new_vector(v_, 3);
         if (istart + 3 < istop) {
             for (idx_t i = istop - 3; i > istart; --i) {
                 auto H = slice(A, range{i, i + 3}, range{i, i + 3});
@@ -410,7 +413,8 @@ int lahqz(bool want_s,
             }
         }
 
-        // All the preparations are done, we can apply an implicit QZ iteration
+        // All the preparations are done, we can apply an implicit QZ
+        // iteration
         for (idx_t i = istart2; i < istop - 1; ++i) {
             const idx_t nr = std::min<idx_t>(3, istop - i);
             real_t c1, c2;
@@ -440,22 +444,25 @@ int lahqz(bool want_s,
             }
             // Apply rotations from the left
             if (nr == 3) {
-                auto a1 = slice(A, i, range{i, istop_m});
-                auto a2 = slice(A, i + 1, range{i, istop_m});
-                auto a3 = slice(A, i + 2, range{i, istop_m});
-                rot(a2, a3, c1, s1);
-                rot(a1, a2, c2, s2);
-                auto b1 = slice(B, i, range{i, istop_m});
-                auto b2 = slice(B, i + 1, range{i, istop_m});
-                auto b3 = slice(B, i + 2, range{i, istop_m});
-                rot(b2, b3, c1, s1);
-                rot(b1, b2, c2, s2);
+                for (idx_t j = i; j < istop_m; ++j) {
+                    auto temp = c1 * A(i + 1, j) + s1 * A(i + 2, j);
+                    A(i + 2, j) = -conj(s1) * A(i + 1, j) + c1 * A(i + 2, j);
+                    A(i + 1, j) = -conj(s2) * A(i, j) + c2 * temp;
+                    A(i, j) = c2 * A(i, j) + s2 * temp;
+                }
+                for (idx_t j = i; j < istop_m; ++j) {
+                    auto temp = c1 * B(i + 1, j) + s1 * B(i + 2, j);
+                    B(i + 2, j) = -conj(s1) * B(i + 1, j) + c1 * B(i + 2, j);
+                    B(i + 1, j) = -conj(s2) * B(i, j) + c2 * temp;
+                    B(i, j) = c2 * B(i, j) + s2 * temp;
+                }
                 if (want_q) {
-                    auto q1 = col(Q, i);
-                    auto q2 = col(Q, i + 1);
-                    auto q3 = col(Q, i + 2);
-                    rot(q2, q3, c1, conj(s1));
-                    rot(q1, q2, c2, conj(s2));
+                    for (idx_t j = 0; j < n; ++j) {
+                        auto temp = c1 * Q(j, i + 1) + conj(s1) * Q(j, i + 2);
+                        Q(j, i + 2) = -s1 * Q(j, i + 1) + c1 * Q(j, i + 2);
+                        Q(j, i + 1) = -s2 * Q(j, i) + c2 * temp;
+                        Q(j, i) = c2 * Q(j, i) + conj(s2) * temp;
+                    }
                 }
             }
             else {
@@ -489,22 +496,25 @@ int lahqz(bool want_s,
 
             // Apply rotation from the right
             if (nr == 3) {
-                auto b1 = slice(B, range{istart_m, i + 1}, i);
-                auto b2 = slice(B, range{istart_m, i + 1}, i + 1);
-                auto b3 = slice(B, range{istart_m, i + 1}, i + 2);
-                rot(b2, b3, c1, conj(s1));
-                rot(b1, b2, c2, conj(s2));
-                auto a1 = slice(A, range{istart_m, min(i + 4, ihi)}, i);
-                auto a2 = slice(A, range{istart_m, min(i + 4, ihi)}, i + 1);
-                auto a3 = slice(A, range{istart_m, min(i + 4, ihi)}, i + 2);
-                rot(a2, a3, c1, conj(s1));
-                rot(a1, a2, c2, conj(s2));
+                for (idx_t j = istart_m; j < i + 1; ++j) {
+                    auto temp = c1 * B(j, i + 1) + conj(s1) * B(j, i + 2);
+                    B(j, i + 2) = -s1 * B(j, i + 1) + c1 * B(j, i + 2);
+                    B(j, i + 1) = -s2 * B(j, i) + c2 * temp;
+                    B(j, i) = c2 * B(j, i) + conj(s2) * temp;
+                }
+                for (idx_t j = istart_m; j < min(i + 4, ihi); ++j) {
+                    auto temp = c1 * A(j, i + 1) + conj(s1) * A(j, i + 2);
+                    A(j, i + 2) = -s1 * A(j, i + 1) + c1 * A(j, i + 2);
+                    A(j, i + 1) = -s2 * A(j, i) + c2 * temp;
+                    A(j, i) = c2 * A(j, i) + conj(s2) * temp;
+                }
                 if (want_z) {
-                    auto z1 = col(Z, i);
-                    auto z2 = col(Z, i + 1);
-                    auto z3 = col(Z, i + 2);
-                    rot(z2, z3, c1, conj(s1));
-                    rot(z1, z2, c2, conj(s2));
+                    for (idx_t j = 0; j < n; ++j) {
+                        auto temp = c1 * Z(j, i + 1) + conj(s1) * Z(j, i + 2);
+                        Z(j, i + 2) = -s1 * Z(j, i + 1) + c1 * Z(j, i + 2);
+                        Z(j, i + 1) = -s2 * Z(j, i) + c2 * temp;
+                        Z(j, i) = c2 * Z(j, i) + conj(s2) * temp;
+                    }
                 }
             }
             else {
