@@ -42,6 +42,7 @@ namespace tlapack {
  *      The matrix A is assumed to be already quasi-triangular in rows and
  *      columns ihi:n.
  * @param[in,out] A  n by n matrix.
+ * @param[in,out] B  n by n matrix.
  * @param[out] alpha  size n vector.
  * @param[out] beta  size n vector.
  * @param[in,out] Q  n by n matrix.

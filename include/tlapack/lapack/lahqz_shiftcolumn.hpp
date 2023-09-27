@@ -34,6 +34,10 @@ namespace tlapack {
  *      The scalar s1 as in the formula above
  * @param[in] s2
  *      The scalar s2 as in the formula above
+ * @param[in] beta1
+ *      The scalar beta1 as in the formula above
+ * @param[in] beta2
+ *      The scalar beta2 as in the formula above
  *
  * @ingroup auxiliary
  */
@@ -45,8 +49,8 @@ int lahqz_shiftcolumn(const matrix_t& A,
                       vector_t& v,
                       complex_type<type_t<matrix_t>> s1,
                       complex_type<type_t<matrix_t>> s2,
-                      real_type<type_t<matrix_t>> beta1,
-                      real_type<type_t<matrix_t>> beta2)
+                      type_t<matrix_t> beta1,
+                      type_t<matrix_t> beta2)
 {
     // Using
     using idx_t = size_type<matrix_t>;
@@ -124,6 +128,10 @@ int lahqz_shiftcolumn(const matrix_t& A,
  *      The scalar s1 as in the formula above
  * @param[in] s2
  *      The scalar s2 as in the formula above
+ * @param[in] beta1
+ *      The scalar beta1 as in the formula above
+ * @param[in] beta2
+ *      The scalar beta2 as in the formula above
  *
  * @ingroup auxiliary
  */
