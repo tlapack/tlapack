@@ -25,8 +25,8 @@ namespace tlapack {
  * @param[in] B 2x2 upper triangular matrix
  * @param[out] alpha1 complex number
  * @param[out] alpha2 complex number
- * @param[out] beta1 real number
- * @param[out] beta2 real number
+ * @param[out] beta1 number
+ * @param[out] beta2 number
  *                On exit, (alpha1, beta1), (alpha2, beta2) are the generalized
  *                eigenvalues of the pencil (A,B)
  *
@@ -34,10 +34,10 @@ namespace tlapack {
 template <TLAPACK_MATRIX A_t, TLAPACK_MATRIX B_t, TLAPACK_SCALAR T>
 void lahqz_eig22(const A_t& A,
                  const B_t& B,
-                 T& alpha1,
-                 T& alpha2,
-                 real_type<T>& beta1,
-                 real_type<T>& beta2)
+                 complex_type<T>& alpha1,
+                 complex_type<T>& alpha2,
+                 T& beta1,
+                 T& beta2)
 {
     // Aliases
     using real_t = real_type<T>;

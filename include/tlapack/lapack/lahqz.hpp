@@ -25,9 +25,9 @@ namespace tlapack {
  *  using the single/double-shift implicit QZ algorithm.
  *
  * @return  0 if success
- * @return  i if the QR algorithm failed to compute all the eigenvalues
+ * @return  i if the QZ algorithm failed to compute all the eigenvalues
  *            in a total of 30 iterations per eigenvalue. elements
- *            i:ihi of w contain those eigenvalues which have been
+ *            i:ihi of alpha and beta contain those eigenvalues which have been
  *            successfully computed.
  *
  * @param[in] want_s bool.
@@ -126,10 +126,10 @@ int lahqz(bool want_s,
             // The QZ algorithm failed to converge, return with error.
             tlapack_error(
                 istop,
-                "The QR algorithm failed to compute all the eigenvalues"
+                "The QZ algorithm failed to compute all the eigenvalues"
                 " in a total of 30 iterations per eigenvalue. Elements"
-                " i:ihi of w contain those eigenvalues which have been"
-                " successfully computed.");
+                " i:ihi of alpha and beta contain those eigenvalues which have "
+                "been successfully computed.");
             return istop;
         }
 
@@ -206,20 +206,67 @@ int lahqz(bool want_s,
 
         // TODO: deflate infinite eigenvalues
 
-        if (istart + 2 >= istop) {
-            if (istart + 1 == istop) {
-                // 1x1 block
-                k_defl = 0;
-                alpha[istart] = A(istart, istart);
-                beta[istart] = B(istart, istart);
-                istop = istart;
-                istart = ilo;
-                continue;
-            }
+        // Check if 1x1 block has split offsafe_min
+        if (istart + 1 == istop) {
+            k_defl = 0;
+            // Normalize the block, make sure B(istart, istart) is real and
+            // positive
             if constexpr (is_real<TA>) {
-                if (istart + 2 == istop) {
-                    // 2x2 block, normalize the block
-                    // TODO!
+                if (B(istart, istart) < 0.) {
+                    for (idx_t i = istart_m; i <= istart; ++i) {
+                        B(i, istart) = -B(i, istart);
+                        A(i, istart) = -A(i, istart);
+                    }
+                    if (want_z) {
+                        for (idx_t i = 0; i < n; ++i) {
+                            Z(i, istart) = -Z(i, istart);
+                        }
+                    }
+                }
+            }
+            else {
+                real_t absB = abs(B(istart, istart));
+                if (absB > small_num and (imag(B(istart, istart)) != zero or
+                                          real(B(istart, istart)) < zero)) {
+                    TA scal = conj(B(istart, istart) / absB);
+                    for (idx_t i = istart_m; i <= istart; ++i) {
+                        B(i, istart) = scal * B(i, istart);
+                        A(i, istart) = scal * A(i, istart);
+                    }
+                    if (want_z) {
+                        for (idx_t i = 0; i < n; ++i) {
+                            Z(i, istart) = scal * Z(i, istart);
+                        }
+                    }
+                    B(istart, istart) = absB;
+                }
+                else {
+                    B(istart, istart) = zero;
+                }
+            }
+            alpha[istart] = A(istart, istart);
+            beta[istart] = B(istart, istart);
+            istop = istart;
+            istart = ilo;
+            continue;
+        }
+        // Check if 2x2 block has split off
+        if constexpr (is_real<TA>) {
+            if (istart + 2 == istop) {
+                // 2x2 block, normalize the block
+                auto A22 = slice(A, range(istart, istop), range(istart, istop));
+                auto B22 = slice(B, range(istart, istop), range(istart, istop));
+                lahqz_eig22(A22, B22, alpha[istart], alpha[istart + 1],
+                            beta[istart], beta[istart + 1]);
+                // Only split off the block if the eigenvalues are imaginary
+                if (imag(alpha[istart]) != zero) {
+                    // Standardize, that is, rotate so that
+                    //     ( B11  0  )
+                    // B = (         ) with B11 non-negative
+                    //     (  0  B22 )
+
+                    // TODO: this depends on lasv2, so we need to merge the
+                    // SVD PR first.
                     k_defl = 0;
                     istop = istart;
                     istart = ilo;
@@ -233,8 +280,8 @@ int lahqz(bool want_s,
 
         complex_type<real_t> shift1;
         complex_type<real_t> shift2;
-        real_t beta1;
-        real_t beta2;
+        TA beta1;
+        TA beta2;
         if (k_defl % non_convergence_limit == 0) {
             // Exceptional shift
             // TODO!

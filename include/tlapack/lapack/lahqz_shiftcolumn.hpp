@@ -135,8 +135,8 @@ int lahqz_shiftcolumn(const matrix_t& A,
                       vector_t& v,
                       complex_type<type_t<matrix_t>> s1,
                       complex_type<type_t<matrix_t>> s2,
-                      real_type<type_t<matrix_t>> beta1,
-                      real_type<type_t<matrix_t>> beta2)
+                      type_t<matrix_t> beta1,
+                      type_t<matrix_t> beta2)
 {
     // Using
     using idx_t = size_type<matrix_t>;

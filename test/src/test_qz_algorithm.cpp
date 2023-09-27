@@ -31,6 +31,7 @@ TEMPLATE_TEST_CASE("QZ algorithm",
     using idx_t = size_type<matrix_t>;
     using real_t = real_type<TA>;
     using complex_t = complex_type<real_t>;
+    using range = pair<idx_t, idx_t>;
 
     // Functor
     Create<matrix_t> new_matrix;
@@ -119,9 +120,9 @@ TEMPLATE_TEST_CASE("QZ algorithm",
         CHECK(ierr == 0);
 
         // Clean the lower triangular part that was used a workspace
-        // for (idx_t j = 0; j < n; ++j)
-        //     for (idx_t i = j + 2; i < n; ++i)
-        //         H(i, j) = zero;
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = j + 2; i < n; ++i)
+                H(i, j) = zero;
 
         const real_t eps = uroundoff<real_t>();
         const real_t tol = real_t(n * 1.0e2) * eps;
@@ -145,41 +146,47 @@ TEMPLATE_TEST_CASE("QZ algorithm",
             check_generalized_similarity_transform(B, Q, Z, T, res, work);
         CHECK(normB_res <= tol * normB);
 
-        // auto normA = tlapack::lange(tlapack::FROB_NORM, A);
-        // auto simil_res_norm = check_similarity_transform(A, Q, H, res, work);
-        // CHECK(simil_res_norm <= tol * normA);
+        // Check that the eigenvalues match with the diagonal elements
+        // TODO: also check normalization!
+        idx_t i = ilo;
+        while (i < ihi) {
+            int nb = 1;
+            if (is_real<TA>)
+                if (i + 1 < ihi)
+                    if (H(i + 1, i) != zero) nb = 2;
 
-        // // Check that the eigenvalues match with the diagonal elements
-        // idx_t i = ilo;
-        // while (i < ihi) {
-        //     int nb = 1;
-        //     if (is_real<TA>)
-        //         if (i + 1 < ihi)
-        //             if (H(i + 1, i) != zero) nb = 2;
+            if (nb == 1) {
+                CHECK(abs1(alpha[i] - H(i, i)) <=
+                      tol * max(real_t(1), abs1(H(i, i))));
+                CHECK(abs1(beta[i] - T(i, i)) <=
+                      tol * max(real_t(1), abs1(T(i, i))));
+                i = i + 1;
+            }
+            else {
+                TA beta1, beta2;
+                complex_t alpha1, alpha2;
+                auto H22 = slice(H, range(i, i + 2), range(i, i + 2));
+                auto T22 = slice(T, range(i, i + 2), range(i, i + 2));
+                lahqz_eig22(H22, T22, alpha1, alpha2, beta1, beta2);
+                if (abs1(alpha1 - alpha[i]) > abs1(alpha2 - alpha[i])) {
+                    auto swp1 = alpha1;
+                    alpha1 = alpha2;
+                    alpha2 = swp1;
 
-        //     if (nb == 1) {
-        //         CHECK(abs1(s[i] - H(i, i)) <=
-        //               tol * max(real_t(1), abs1(H(i, i))));
-        //         i = i + 1;
-        //     }
-        //     else {
-        //         TA a11, a12, a21, a22, sn;
-        //         real_t cs;
-        //         a11 = H(i, i);
-        //         a12 = H(i, i + 1);
-        //         a21 = H(i + 1, i);
-        //         a22 = H(i + 1, i + 1);
-        //         complex_t s1, s2, swp;
-        //         lahqr_schur22(a11, a12, a21, a22, s1, s2, cs, sn);
-        //         if (abs1(s1 - s[i]) > abs1(s2 - s[i])) {
-        //             swp = s1;
-        //             s1 = s2;
-        //             s2 = swp;
-        //         }
-        //         CHECK(abs1(s[i] - s1) <= tol * max(real_t(1), abs1(s1)));
-        //         CHECK(abs1(s[i + 1] - s2) <= tol * max(real_t(1), abs1(s2)));
-        //         i = i + 2;
-        //     }
-        // }
+                    auto swp2 = beta1;
+                    beta1 = beta2;
+                    beta2 = swp2;
+                }
+                CHECK(abs1(alpha[i] - alpha1) <=
+                      tol * max(real_t(1), abs1(alpha1)));
+                CHECK(abs1(beta[i] - beta1) <=
+                      tol * max(real_t(1), abs1(beta1)));
+                CHECK(abs1(alpha[i + 1] - alpha2) <=
+                      tol * max(real_t(1), abs1(alpha2)));
+                CHECK(abs1(beta[i + 1] - beta2) <=
+                      tol * max(real_t(1), abs1(beta2)));
+                i = i + 2;
+            }
+        }
     }
 }
