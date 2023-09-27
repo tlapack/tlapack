@@ -264,8 +264,8 @@ int multishift_qr_work(bool want_t,
         // reason to expect that many eigenvalues will deflate without it.
         // Here, the QR sweep is skipped if many eigenvalues have just been
         // deflated or if the remaining active block is small.
-        if (ld > 0 and (100 * ld > nwr * nibble or
-                        (istop - istart) <= min(nmin, nw_max))) {
+        if (ld > 0 and
+            (100 * ld > nwr * nibble or istop <= istart + min(nmin, nw_max))) {
             continue;
         }
 
@@ -277,7 +277,8 @@ int multishift_qr_work(bool want_t,
         if (k_defl % non_convergence_limit_shift == 0) {
             ns = nsr;
             for (idx_t i = i_shifts; i < istop - 1; i = i + 2) {
-                real_t ss = abs1(A(i, i - 1)) + abs1(A(i - 1, i - 2));
+                real_t ss = abs1(A(i, i - 1));
+                if (i > 1) ss += abs1(A(i - 1, i - 2));
                 TA aa = dat1 * ss + A(i, i);
                 TA bb = ss;
                 TA cc = dat2 * ss;

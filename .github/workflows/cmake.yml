@@ -40,8 +40,6 @@ env:
   lapackpp_DIR: "${{github.workspace}}/lapackpp"
   mdspan_DIR: "${{github.workspace}}/mdspan"
   eigen_DIR: "${{github.workspace}}/eigen"
-  Catch2_DIR: "${{github.workspace}}/Catch2"
-  Catch2_CMAKE_DIR: "${{github.workspace}}/Catch2/build/lib/cmake/Catch2"
 
 defaults:
   run:
@@ -58,41 +56,29 @@ jobs:
     # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
     runs-on: ${{ matrix.os }}
 
-    env:
-      CXXFLAGS: "-Wall -pedantic -Wno-unused-variable -Wno-unused-function -D TEST_REAL_TYPES=\"float, double, long double\" -D TEST_CPLX_TYPES=\"std::complex<float>, std::complex<double>, std::complex<long double>\""
-
     strategy:
       fail-fast: false
       matrix:
-        os: [ macos-11, windows-latest, ubuntu-latest ]
+        os: [ macos-latest, ubuntu-latest ]
+        build-type: [ Release, Debug ]
+        shared: [ ON, OFF ]
+        cpp-version: [ 17, 20 ]
+        exclude:
+          - build-type: Release
+            shared: OFF
+          - build-type: Release
+            shared: ON
+            cpp-version: 17
+        include:
+          - os: windows-latest
+            build-type: Release
+            shared: OFF
+            cpp-version: 20
     
     steps:
     
     - name: Checkout <T>LAPACK
       uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
-    
-    - name: Checkout Catch2
-      uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
-      with:
-        repository: catchorg/Catch2
-        ref: 6e79e682b726f524310d55dec8ddac4e9c52fb5f # v3.4.0
-        path: Catch2
-    
-    - name: Checkout BLAS++
-      if: ${{ matrix.os == 'ubuntu-latest' }}
-      uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
-      with:
-        repository: icl-utk-edu/blaspp
-        ref: 34a24d103c039abdc634837af45433c44b3e90a7 # v2023.06.00
-        path: blaspp
-    
-    - name: Checkout LAPACK++
-      if: ${{ matrix.os == 'ubuntu-latest' }}
-      uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
-      with:
-        repository: icl-utk-edu/lapackpp
-        ref: 229e5007e605ee77769d086530401937fca85c8b # v2023.06.00
-        path: lapackpp
 
     - name: Checkout mdspan
       if: ${{ matrix.os == 'ubuntu-latest' }}
@@ -119,82 +105,63 @@ jobs:
         sudo apt install -y cmake
         sudo apt install -y gfortran
         sudo apt install -y liblapacke-dev
-
-    - name: Build and install Catch2
-      if: ${{ matrix.os != 'macos-11' }}
-      working-directory: ${{env.Catch2_DIR}}
-      run: |
-        cmake -B build -G Ninja -H. -DBUILD_TESTING=OFF -DCMAKE_INSTALL_PREFIX="${{env.Catch2_DIR}}/build"
-        cmake --build build --target install
-
-    - name: Build and install Catch2 on MacOS
-      if: ${{ matrix.os == 'macos-11' }}
-      working-directory: ${{env.Catch2_DIR}}
-      env:
-        LDFLAGS: "-lstdc++"
-      run: |
-        cmake -B build -G Ninja -DCMAKE_CXX_COMPILER="gcc-11" -H. -DBUILD_TESTING=OFF -DCMAKE_INSTALL_PREFIX="${{env.Catch2_DIR}}/build"
-        cmake --build build --target install
-
-    - name: Configure BLAS++
-      if: ${{ matrix.os == 'ubuntu-latest' }}
-      working-directory: ${{env.blaspp_DIR}}
-      run: cmake -B build -G Ninja
-
-    - name: Configure LAPACK++
-      if: ${{ matrix.os == 'ubuntu-latest' }}
-      working-directory: ${{env.lapackpp_DIR}}
-      run: cmake -B build -G Ninja -D blaspp_DIR="${{env.blaspp_DIR}}/build"
+        sudo apt install -y libmpfrc++-dev
 
     - name: Build and install Eigen on Ubuntu
       if: ${{ matrix.os == 'ubuntu-latest' }}
       working-directory: ${{env.eigen_DIR}}
       run: |
-        cmake -B build -G Ninja -DCMAKE_INSTALL_PREFIX="${{env.eigen_DIR}}"
-        cmake --build build --target install
+        cmake -B build -G Ninja
+        sudo cmake --build build --target install
 
     - name: Build and install mdspan on Ubuntu
       if: ${{ matrix.os == 'ubuntu-latest' }}
       working-directory: ${{env.mdspan_DIR}}
       run: |
-        cmake -B build -G Ninja -DCMAKE_INSTALL_PREFIX="${{env.mdspan_DIR}}"
-        cmake --build build --target install
+        cmake -B build -G Ninja
+        sudo cmake --build build --target install
         
     - name: Specific configurations for CMake on Ubuntu
       if: ${{ matrix.os == 'ubuntu-latest' }}
       run: >
         cmake -B build -G Ninja
-        -D BUILD_BLASPP_TESTS=ON
         -D TLAPACK_TEST_EIGEN=ON
         -D TLAPACK_TEST_MDSPAN=ON
-        -D BUILD_LAPACKPP_TESTS=ON
-        -D Catch2_DIR="${{env.Catch2_CMAKE_DIR}}"
-
-    - name: Specific configurations for CMake on MacOS
-      if: ${{ matrix.os == 'macos-11' }}
-      env:
-        LDFLAGS: "-lstdc++"
+        -D TLAPACK_TEST_MPFR=ON
+        -D TLAPACK_TEST_QUAD=ON
+        -D CMAKE_CXX_STANDARD=${{matrix.cpp-version}}
+        
+    - name: Specific configurations for CMake on Ubuntu in Release mode
+      if: ${{ matrix.os == 'ubuntu-latest' && matrix.build-type == 'Release' }}
       run: >
         cmake -B build -G Ninja
-        -DCMAKE_CXX_COMPILER="gcc-11"
-        -DCMAKE_Fortran_COMPILER="gfortran-11"
-        -D Catch2_DIR="${{env.Catch2_CMAKE_DIR}}"
+        -D BUILD_BLASPP_TESTS=ON
+        -D BUILD_LAPACKPP_TESTS=ON
+
+    - name: Specific configurations for CMake on MacOS
+      if: ${{ matrix.os == 'macos-latest' }}
+      env:
+        CXX: "g++-11"
+        FC: "gfortran-11"
+      run: >
+        cmake -B build -G Ninja
+        -D TLAPACK_TEST_QUAD=ON
+        -D CMAKE_CXX_STANDARD=${{matrix.cpp-version}}
 
     - name: Specific configurations for CMake on Windows
       if: ${{ matrix.os == 'windows-latest' }}
       run: >
         cmake -B build -G Ninja
         -D CMAKE_EXE_LINKER_FLAGS="-Wl,--allow-multiple-definition"
-        -D Catch2_DIR="${{env.Catch2_CMAKE_DIR}}"
 
     - name: Configure CMake on all platforms
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
       run: >
-        cmake -B build -G Ninja
-        -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+        cmake -B build
+        -D CMAKE_BUILD_TYPE=${{matrix.build-type}}
         -D CMAKE_INSTALL_PREFIX="${{github.workspace}}/tlapack_install"
-        -D BUILD_SHARED_LIBS=ON
+        -D BUILD_SHARED_LIBS=${{matrix.shared}}
         -D BUILD_EXAMPLES=ON
         -D BUILD_TESTING=ON
         -D BUILD_STANDALONE_TESTS=ON
@@ -204,7 +171,7 @@ jobs:
 
     - name: Build
       # Build your program with the given configuration
-      run: cmake --build build --config ${{env.BUILD_TYPE}}
+      run: cmake --build build --config ${{matrix.build-type}}
 
     - name: Run all examples
       # Mind that the job won't fail with only this step fails
@@ -218,60 +185,8 @@ jobs:
       run: ctest -C ${{env.BUILD_TYPE}} --output-on-failure
 
     - name: Run some standalone tests
-      if: ${{ matrix.os == 'ubuntu-latest' }}
       working-directory: ${{github.workspace}}
       run: ./build/test/src/standalone_test_hessenberg < test/src/input/test_hessenberg_float_1.in
-
-    - name: Install
-      run: cmake --build build --target install
-
-  build-with-mpfr-and-float128:
-    # Use GNU compilers
-
-    runs-on: ubuntu-latest
-    env:
-      CXXFLAGS: "-Wall -pedantic -Wno-unused-variable -Wno-unused-function -D TLAPACK_REAL_TYPES_TO_TEST=\"(LegacyMatrix<mpfr::mpreal>), (LegacyMatrix<mpfr::mpreal,std::size_t,Layout::RowMajor>), (LegacyMatrix<__float128>), (LegacyMatrix<__float128,std::size_t,Layout::RowMajor>)\" -D TLAPACK_TYPES_TO_TEST=\"(LegacyMatrix<mpfr::mpreal>), (LegacyMatrix<mpfr::mpreal,std::size_t,Layout::RowMajor>), (LegacyMatrix<__float128>), (LegacyMatrix<__float128,std::size_t,Layout::RowMajor>)\""
-      
-    steps:     
-    
-    - name: Checkout <T>LAPACK
-      uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
-
-    - name: Install ninja-build tool
-      uses: seanmiddleditch/gha-setup-ninja@16b940825621068d98711680b6c3ff92201f8fc0 # v3
-    
-    - name: Install the Basics
-      run: |
-        sudo apt update
-        sudo apt install -y cmake
-        sudo apt install -y libmpfrc++-dev
-
-    - name: Configure CMake for <T>LAPACK
-      run: >
-        cmake -B build -G Ninja
-        -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} 
-        -D CMAKE_INSTALL_PREFIX=${{github.workspace}}/tlapack_install
-        -D BUILD_SHARED_LIBS=ON
-        -D BUILD_EXAMPLES=ON
-        -D BUILD_TESTING=ON
-        -D BUILD_STANDALONE_TESTS=ON
-        -D BUILD_testBLAS_TESTS=OFF
-        -D TLAPACK_TEST_MPFR=ON
-        -D TLAPACK_TEST_QUAD=ON
-
-    - name: Build <T>LAPACK
-      run: cmake --build build --config ${{env.BUILD_TYPE}}
-
-    - name: Run all examples
-      # Mind that the job won't fail with only this step fails
-      continue-on-error: true
-      run: cmake --build build --target run-all-examples
-
-    - name: Run tests
-      working-directory: ${{github.workspace}}/build
-      # Execute tests defined by the CMake configuration.  
-      # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
-      run: ctest -C ${{env.BUILD_TYPE}} --output-on-failure
 
     - name: Install
       run: cmake --build build --target install
@@ -326,7 +241,6 @@ jobs:
       run: >
         cmake -B build -G Ninja
         -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
-        -D CMAKE_INSTALL_PREFIX=${{github.workspace}}/tlapack_install
         -D CMAKE_CXX_FLAGS="${{env.CXXFLAGS}} -D LAPACK_FORTRAN_ADD_"
         -D BUILD_SHARED_LIBS=ON
         -D BUILD_EXAMPLES=ON
@@ -349,7 +263,7 @@ jobs:
       run: ctest -C ${{env.BUILD_TYPE}} --output-on-failure
 
     - name: Install
-      run: cmake --build build --target install
+      run: sudo cmake --build build --target install
 
   build-test-performance:
     # Use GNU compilers
@@ -403,7 +317,6 @@ jobs:
       run: >
         cmake -B build -G Ninja
         -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
-        -D CMAKE_INSTALL_PREFIX=${{github.workspace}}/tlapack_install
         -D BUILD_SHARED_LIBS=ON
         -D BUILD_EXAMPLES=OFF
         -D BUILD_TESTING=OFF
@@ -412,7 +325,7 @@ jobs:
 
     - name: Build and Install
       # Build your program with the given configuration
-      run: cmake --build build --config ${{env.BUILD_TYPE}}  --target install
+      run: sudo cmake --build build --config ${{env.BUILD_TYPE}}  --target install
 
     - name: Install LAPACKE on Ubuntu
       run: sudo apt install -y liblapacke-dev
@@ -420,7 +333,7 @@ jobs:
     - name: Build and run example comparing performance
       working-directory: ${{github.workspace}}/examples/potrf
       run: |
-        cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -D CMAKE_PREFIX_PATH=${{github.workspace}}/tlapack_install
+        cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
         cmake --build build --target all
         ./build/example_potrf
 
@@ -492,7 +405,6 @@ jobs:
       run: >
         cmake -B build -G Ninja
         -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
-        -D CMAKE_INSTALL_PREFIX=${{github.workspace}}/tlapack_install
         -D BUILD_SHARED_LIBS=ON
         -D BUILD_EXAMPLES=ON
         -D BUILD_TESTING=ON
@@ -514,7 +426,7 @@ jobs:
       run: ctest -C ${{env.BUILD_TYPE}} --output-on-failure
 
     - name: Install
-      run: cmake --build build --target install
+      run: sudo cmake --build build --target install
 
   build-with-blis:
     # Use GNU compilers
@@ -583,7 +495,6 @@ jobs:
       run: >
         cmake -B build -G Ninja
         -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
-        -D CMAKE_INSTALL_PREFIX=${{github.workspace}}/tlapack_install
         -D CMAKE_PREFIX_PATH="${{env.lapack_DIR}}"
         -D CMAKE_CXX_FLAGS="${{env.CXXFLAGS}} -D LAPACK_FORTRAN_ADD_"
         -D BUILD_SHARED_LIBS=ON
@@ -607,7 +518,7 @@ jobs:
       run: ctest -C ${{env.BUILD_TYPE}} --output-on-failure
 
     - name: Install
-      run: cmake --build build --target install
+      run: sudo cmake --build build --target install
 
   build-in-debug-mode:
     # Use GNU compilers
@@ -658,7 +569,6 @@ jobs:
       run: >
         cmake -B build -G Ninja
         -D CMAKE_BUILD_TYPE=Debug
-        -D CMAKE_INSTALL_PREFIX=${{github.workspace}}/tlapack_install
         -D BUILD_SHARED_LIBS=ON
         -D BUILD_EXAMPLES=ON
         -D BUILD_TESTING=ON
@@ -680,7 +590,7 @@ jobs:
       run: ctest -C Debug --output-on-failure
 
     - name: Install
-      run: cmake --build build --target install
+      run: sudo cmake --build build --target install
 
   build-examples-separately:
     # Use clang and GNU compilers
@@ -830,17 +740,16 @@ jobs:
       run: >
         cmake -B build -G Ninja
         -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
-        -D CMAKE_INSTALL_PREFIX="${{github.workspace}}/tlapack_install"
         -D BUILD_EXAMPLES=OFF
         -D BUILD_TESTING=OFF
 
     - name: Install <T>LAPACK
-      run: cmake --build build --config ${{env.BUILD_TYPE}} --target install
+      run: sudo cmake --build build --config ${{env.BUILD_TYPE}} --target install
 
     - name: Build examples with StarPU
       working-directory: ${{github.workspace}}/examples/starpu
       run: |
-        cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -D CMAKE_PREFIX_PATH=${{github.workspace}}/tlapack_install
+        cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
         cmake --build build --target all
 
     - name: Run example LU

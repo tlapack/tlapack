@@ -49,7 +49,7 @@ TEST_CASE("Concept SliceableMatrix works as expected", "[concept]")
     using matrix_t = Eigen::Matrix<std::complex<float>, -1, -1, 1, -1, -1>;
     REQUIRE(SliceableMatrix<matrix_t>);
 
-    matrix_t A;
+    matrix_t A(2, 2);
     auto B =
         tlapack::slice(A, std::pair<int, int>{0, 1}, std::pair<int, int>{0, 1});
     REQUIRE(Matrix<decltype(B)>);

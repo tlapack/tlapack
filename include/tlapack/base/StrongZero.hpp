@@ -241,7 +241,7 @@ namespace traits {
 
 namespace std {
 template <>
-struct numeric_limits<tlapack::StrongZero> : public std::__numeric_limits_base {
+struct numeric_limits<tlapack::StrongZero> {
     static constexpr bool is_specialized = true;
 
     static constexpr tlapack::StrongZero min() noexcept
