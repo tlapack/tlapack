@@ -10,6 +10,8 @@
 #ifndef TLAPACK_FRANCIS_OPTS_HH
 #define TLAPACK_FRANCIS_OPTS_HH
 
+#include "tlapack/base/utils.hpp"
+
 #include <cmath>
 #include <functional>
 
@@ -56,6 +58,68 @@ struct FrancisOpts {
     /// Threshold of percent of AED window that must converge to skip a sweep
     size_t nibble = 14;
 };
+
+// Forward declarations:
+
+template <class T,
+          TLAPACK_SMATRIX matrix_t,
+          TLAPACK_SVECTOR vector_t,
+          enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
+WorkInfo multishift_qr_worksize(bool want_t,
+                                bool want_z,
+                                size_type<matrix_t> ilo,
+                                size_type<matrix_t> ihi,
+                                const matrix_t& A,
+                                const vector_t& w,
+                                const matrix_t& Z,
+                                const FrancisOpts& opts = {});
+
+template <TLAPACK_SMATRIX matrix_t,
+          TLAPACK_SVECTOR vector_t,
+          TLAPACK_RWORKSPACE work_t,
+          enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
+int multishift_qr_work(bool want_t,
+                       bool want_z,
+                       size_type<matrix_t> ilo,
+                       size_type<matrix_t> ihi,
+                       matrix_t& A,
+                       vector_t& w,
+                       matrix_t& Z,
+                       work_t& work,
+                       FrancisOpts& opts);
+
+template <class T,
+          TLAPACK_SMATRIX matrix_t,
+          TLAPACK_SVECTOR vector_t,
+          enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
+WorkInfo aggressive_early_deflation_worksize(bool want_t,
+                                             bool want_z,
+                                             size_type<matrix_t> ilo,
+                                             size_type<matrix_t> ihi,
+                                             size_type<matrix_t> nw,
+                                             const matrix_t& A,
+                                             const vector_t& s,
+                                             const matrix_t& Z,
+                                             const size_type<matrix_t>& ns,
+                                             const size_type<matrix_t>& nd,
+                                             const FrancisOpts& opts = {});
+
+template <TLAPACK_SMATRIX matrix_t,
+          TLAPACK_SVECTOR vector_t,
+          TLAPACK_RWORKSPACE work_t,
+          enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
+void aggressive_early_deflation_work(bool want_t,
+                                     bool want_z,
+                                     size_type<matrix_t> ilo,
+                                     size_type<matrix_t> ihi,
+                                     size_type<matrix_t> nw,
+                                     matrix_t& A,
+                                     vector_t& s,
+                                     matrix_t& Z,
+                                     size_type<matrix_t>& ns,
+                                     size_type<matrix_t>& nd,
+                                     work_t& work,
+                                     FrancisOpts& opts);
 
 }  // namespace tlapack
 

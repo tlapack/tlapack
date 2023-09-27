@@ -41,10 +41,6 @@ env:
   mdspan_DIR: "${{github.workspace}}/mdspan"
   eigen_DIR: "${{github.workspace}}/eigen"
 
-defaults:
-  run:
-    shell: bash
-
 jobs:
 
   build-all-os:
@@ -70,10 +66,10 @@ jobs:
             shared: ON
             cpp-version: 17
         include:
-          - os: windows-latest
+          - os: windows-2019
             build-type: Release
             shared: OFF
-            cpp-version: 20
+            cpp-version: 17
     
     steps:
     
@@ -129,7 +125,6 @@ jobs:
         -D TLAPACK_TEST_MDSPAN=ON
         -D TLAPACK_TEST_MPFR=ON
         -D TLAPACK_TEST_QUAD=ON
-        -D CMAKE_CXX_STANDARD=${{matrix.cpp-version}}
         
     - name: Specific configurations for CMake on Ubuntu in Release mode
       if: ${{ matrix.os == 'ubuntu-latest' && matrix.build-type == 'Release' }}
@@ -140,19 +135,20 @@ jobs:
 
     - name: Specific configurations for CMake on MacOS
       if: ${{ matrix.os == 'macos-latest' }}
-      env:
-        CXX: "g++-11"
-        FC: "gfortran-11"
       run: >
         cmake -B build -G Ninja
+        -D CMAKE_C_COMPILER="gcc-11"
+        -D CMAKE_CXX_COMPILER="g++-11"
+        -D CMAKE_Fortran_COMPILER="gfortran-11"
         -D TLAPACK_TEST_QUAD=ON
-        -D CMAKE_CXX_STANDARD=${{matrix.cpp-version}}
 
-    - name: Specific configurations for CMake on Windows
-      if: ${{ matrix.os == 'windows-latest' }}
+    - name: Specific configurations for CMake on MacOS
+      if: ${{ matrix.os == 'windows-2019' }}
       run: >
         cmake -B build -G Ninja
-        -D CMAKE_EXE_LINKER_FLAGS="-Wl,--allow-multiple-definition"
+        -D CMAKE_C_COMPILER="gcc"
+        -D CMAKE_CXX_COMPILER="g++"
+        -D CMAKE_Fortran_COMPILER="gfortran"
 
     - name: Configure CMake on all platforms
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
@@ -161,6 +157,7 @@ jobs:
         cmake -B build
         -D CMAKE_BUILD_TYPE=${{matrix.build-type}}
         -D CMAKE_INSTALL_PREFIX="${{github.workspace}}/tlapack_install"
+        -D CMAKE_CXX_STANDARD=${{matrix.cpp-version}}
         -D BUILD_SHARED_LIBS=${{matrix.shared}}
         -D BUILD_EXAMPLES=ON
         -D BUILD_TESTING=ON
@@ -185,8 +182,14 @@ jobs:
       run: ctest -C ${{env.BUILD_TYPE}} --output-on-failure
 
     - name: Run some standalone tests
+      if: ${{ matrix.os != 'windows-2019' }}
       working-directory: ${{github.workspace}}
       run: ./build/test/src/standalone_test_hessenberg < test/src/input/test_hessenberg_float_1.in
+
+    - name: Run some standalone tests on Windows
+      if: ${{ matrix.os == 'windows-2019' }}
+      working-directory: ${{github.workspace}}
+      run: Get-Content test/src/input/test_hessenberg_float_1.in | ./build/test/src/standalone_test_hessenberg
 
     - name: Install
       run: cmake --build build --target install
@@ -520,7 +523,7 @@ jobs:
     - name: Install
       run: sudo cmake --build build --target install
 
-  build-in-debug-mode:
+  build-in-debug-mode-with-lapackpp:
     # Use GNU compilers
 
     runs-on: ubuntu-latest
