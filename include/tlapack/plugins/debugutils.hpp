@@ -141,6 +141,40 @@ std::string visualize_matrix(const matrix_t& A)
         return visualize_matrix_table(A);
 }
 
+/**
+ * @brief Constructs a json string representing the vector
+ *        for use with vscode-debug-visualizer
+ *
+ * @return String containing JSON representation of v
+ *
+ * @param v size n vector
+ */
+template <TLAPACK_VECTOR vector_t>
+std::string visualize_vector(const vector_t& v)
+{
+    using idx_t = size_type<vector_t>;
+    const idx_t n = size(v);
+
+    const int width = is_complex<type_t<vector_t>> ? 25 : 10;
+
+    std::stringstream stream;
+    stream << "{ \"kind\":{ \"text\": true },\"text\": \"";
+
+    // Col indices
+    for (idx_t i = 0; i < n; ++i)
+        stream << std::setw(width) << i << " ";
+    stream << "\\n";
+
+    // Add the matrix values
+    for (idx_t i = 0; i < n; ++i)
+        stream << std::setw(width) << std::setprecision(3) << v[i] << " ";
+    stream << "\\n";
+
+    stream << "\"}";
+
+    return stream.str();
+}
+
 }  // namespace tlapack
 
 #endif  // TLAPACK_DEBUG_UTILS_HH
