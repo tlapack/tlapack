@@ -104,17 +104,6 @@ std::string visualize_rowmajormatrix_z(
 {
     return visualize_matrix(A);
 }
-std::string visualize_matrix_half(
-    const Eigen::Matrix<Eigen::half, Eigen::Dynamic, Eigen::Dynamic>& A)
-{
-    return visualize_matrix(A);
-}
-std::string visualize_matrix_chalf(
-    const Eigen::
-        Matrix<std::complex<Eigen::half>, Eigen::Dynamic, Eigen::Dynamic>& A)
-{
-    return visualize_matrix(A);
-}
 
 std::string visualize_vector_r(const std::vector<float>& v)
 {
@@ -132,6 +121,7 @@ std::string visualize_vector_z(const std::vector<std::complex<double>>& v)
 {
     return visualize_vector(v);
 }
+#ifdef TLAPACK_TEST_EIGEN
 std::string visualize_vector_half(const std::vector<Eigen::half>& v)
 {
     return visualize_vector(v);
@@ -141,5 +131,17 @@ std::string visualize_vector_chalf(
 {
     return visualize_vector(v);
 }
+std::string visualize_matrix_half(
+    const Eigen::Matrix<Eigen::half, Eigen::Dynamic, Eigen::Dynamic>& A)
+{
+    return visualize_matrix(A);
+}
+std::string visualize_matrix_chalf(
+    const Eigen::
+        Matrix<std::complex<Eigen::half>, Eigen::Dynamic, Eigen::Dynamic>& A)
+{
+    return visualize_matrix(A);
+}
+#endif
 
 }  // namespace tlapack
