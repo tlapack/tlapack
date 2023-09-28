@@ -81,8 +81,6 @@ int lahqz(bool want_s,
     const real_t eps = ulp<real_t>();
     const real_t small_num = safe_min<real_t>();
     const idx_t non_convergence_limit = 10;
-    const real_t dat1(0.75);
-    const real_t dat2(-0.4375);
 
     const idx_t n = ncols(A);
     const idx_t nh = ihi - ilo;
@@ -391,7 +389,6 @@ int lahqz(bool want_s,
         // If it has split, we can introduce any shift at the top of the new
         // subblock. Now that we know the specific shift, we can also check
         // whether we can introduce that shift somewhere else in the subblock.
-        TA t1;
         idx_t istart2 = istart;
         if (istart + 3 < istop) {
             for (idx_t i = istop - 3; i > istart; --i) {
