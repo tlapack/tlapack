@@ -118,7 +118,7 @@ struct numeric_limits<__float128> {
 inline ostream& operator<<(ostream& out, const __float128& x)
 {
     char buf[128];
-    quadmath_snprintf(buf, 128, "%+-#*.20Qe", x);
+    quadmath_snprintf(buf, sizeof buf, "%+-#*.20Qe", x);
     out << buf;
     return out;
 }

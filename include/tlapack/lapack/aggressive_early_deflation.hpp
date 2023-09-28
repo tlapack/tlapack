@@ -115,7 +115,7 @@ namespace internal {
 template <class T,
           TLAPACK_SMATRIX matrix_t,
           TLAPACK_SVECTOR vector_t,
-          enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
+          enable_if_t<is_complex<type_t<vector_t>>, int>>
 WorkInfo aggressive_early_deflation_worksize(bool want_t,
                                              bool want_z,
                                              size_type<matrix_t> ilo,
@@ -126,7 +126,7 @@ WorkInfo aggressive_early_deflation_worksize(bool want_t,
                                              const matrix_t& Z,
                                              const size_type<matrix_t>& ns,
                                              const size_type<matrix_t>& nd,
-                                             const FrancisOpts& opts = {})
+                                             const FrancisOpts& opts)
 {
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
@@ -164,7 +164,7 @@ WorkInfo aggressive_early_deflation_worksize(bool want_t,
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_SVECTOR vector_t,
           TLAPACK_RWORKSPACE work_t,
-          enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
+          enable_if_t<is_complex<type_t<vector_t>>, int>>
 void aggressive_early_deflation_work(bool want_t,
                                      bool want_z,
                                      size_type<matrix_t> ilo,
@@ -529,7 +529,7 @@ void aggressive_early_deflation_work(bool want_t,
 template <TLAPACK_MATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
           TLAPACK_MATRIX work_t,
-          enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
+          enable_if_t<is_complex<type_t<vector_t>>, int> = 0>
 void aggressive_early_deflation_work(bool want_t,
                                      bool want_z,
                                      size_type<matrix_t> ilo,
@@ -606,7 +606,7 @@ void aggressive_early_deflation_work(bool want_t,
  */
 template <TLAPACK_MATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
-          enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
+          enable_if_t<is_complex<type_t<vector_t>>, int> = 0>
 void aggressive_early_deflation(bool want_t,
                                 bool want_z,
                                 size_type<matrix_t> ilo,
@@ -685,7 +685,7 @@ void aggressive_early_deflation(bool want_t,
  */
 template <TLAPACK_MATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
-          enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
+          enable_if_t<is_complex<type_t<vector_t>>, int> = 0>
 void aggressive_early_deflation(bool want_t,
                                 bool want_z,
                                 size_type<matrix_t> ilo,
