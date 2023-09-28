@@ -287,7 +287,11 @@ int lahqz(bool want_s,
             }
         }
 
-        if (istart == istop) continue;
+        if (istart == istop) {
+            istop = istop - 1;
+            istart = ilo;
+            continue;
+        }
         // Check if 1x1 block has split off
         if (istart + 1 == istop) {
             k_defl = 0;
