@@ -71,9 +71,9 @@ template <>
 struct numeric_limits<__float128> {
     static constexpr bool is_specialized = true;
 
-    static constexpr __float128 min() noexcept { return FLT128_MIN; }
-    static constexpr __float128 max() noexcept { return FLT128_MAX; }
-    static constexpr __float128 lowest() noexcept { return -FLT128_MAX; }
+    static constexpr __float128 min() noexcept;
+    static constexpr __float128 max() noexcept;
+    static constexpr __float128 lowest() noexcept;
 
     static constexpr int digits = FLT128_MANT_DIG;
     static constexpr int digits10 = FLT128_DIG;
@@ -84,7 +84,7 @@ struct numeric_limits<__float128> {
     static constexpr bool is_exact = false;
 
     static constexpr int radix = 2;
-    static constexpr __float128 epsilon() noexcept { return FLT128_EPSILON; }
+    static constexpr __float128 epsilon() noexcept;
     static constexpr __float128 round_error() noexcept { return 0.5F; }
 
     static constexpr int min_exponent = FLT128_MIN_EXP;
@@ -104,10 +104,7 @@ struct numeric_limits<__float128> {
     }
     static __float128 quiet_NaN() noexcept { return nanq(""); }
     // static constexpr __float128 signaling_NaN() noexcept {}
-    static constexpr __float128 denorm_min() noexcept
-    {
-        return FLT128_DENORM_MIN;
-    }
+    static constexpr __float128 denorm_min() noexcept;
 
     // static constexpr bool is_iec559 = ;
     static constexpr bool is_bounded = true;
@@ -132,6 +129,31 @@ inline istream& operator>>(istream& in, __float128& x)
     in >> buf;
     x = strtoflt128(buf, nullptr);
     return in;
+}
+
+#ifdef __GNUC__
+    #pragma GCC system_header
+#endif
+
+constexpr __float128 numeric_limits<__float128>::min() noexcept
+{
+    return FLT128_MIN;
+}
+constexpr __float128 numeric_limits<__float128>::max() noexcept
+{
+    return FLT128_MAX;
+}
+constexpr __float128 numeric_limits<__float128>::lowest() noexcept
+{
+    return -FLT128_MAX;
+}
+constexpr __float128 numeric_limits<__float128>::epsilon() noexcept
+{
+    return FLT128_EPSILON;
+}
+constexpr __float128 numeric_limits<__float128>::denorm_min() noexcept
+{
+    return FLT128_DENORM_MIN;
 }
 
 }  // namespace std
