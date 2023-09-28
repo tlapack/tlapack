@@ -10,10 +10,10 @@
 #ifndef TLAPACK_FRANCIS_OPTS_HH
 #define TLAPACK_FRANCIS_OPTS_HH
 
-#include "tlapack/base/utils.hpp"
-
 #include <cmath>
 #include <functional>
+
+#include "tlapack/base/utils.hpp"
 
 namespace tlapack {
 

@@ -22,7 +22,7 @@ namespace tlapack {
 template <class T,
           TLAPACK_SMATRIX matrix_t,
           TLAPACK_SVECTOR vector_t,
-          enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
+          enable_if_t<is_complex<type_t<vector_t>>, int> = 0>
 constexpr WorkInfo multishift_qr_worksize_sweep(bool want_t,
                                                 bool want_z,
                                                 size_type<matrix_t> ilo,
@@ -68,7 +68,7 @@ constexpr WorkInfo multishift_qr_worksize_sweep(bool want_t,
 template <class T,
           TLAPACK_SMATRIX matrix_t,
           TLAPACK_SVECTOR vector_t,
-          enable_if_t<is_complex<type_t<vector_t> >, int>>
+          enable_if_t<is_complex<type_t<vector_t>>, int>>
 WorkInfo multishift_qr_worksize(bool want_t,
                                 bool want_z,
                                 size_type<matrix_t> ilo,
@@ -110,7 +110,7 @@ WorkInfo multishift_qr_worksize(bool want_t,
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_SVECTOR vector_t,
           TLAPACK_RWORKSPACE work_t,
-          enable_if_t<is_complex<type_t<vector_t> >, int>>
+          enable_if_t<is_complex<type_t<vector_t>>, int>>
 int multishift_qr_work(bool want_t,
                        bool want_z,
                        size_type<matrix_t> ilo,
@@ -390,7 +390,7 @@ int multishift_qr_work(bool want_t,
 template <TLAPACK_MATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
           TLAPACK_WORKSPACE work_t,
-          enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
+          enable_if_t<is_complex<type_t<vector_t>>, int> = 0>
 int multishift_qr_work(bool want_t,
                        bool want_z,
                        size_type<matrix_t> ilo,
@@ -457,7 +457,7 @@ int multishift_qr_work(bool want_t,
  */
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_SVECTOR vector_t,
-          enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
+          enable_if_t<is_complex<type_t<vector_t>>, int> = 0>
 int multishift_qr(bool want_t,
                   bool want_z,
                   size_type<matrix_t> ilo,
@@ -511,7 +511,7 @@ int multishift_qr(bool want_t,
  */
 template <TLAPACK_MATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
-          enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
+          enable_if_t<is_complex<type_t<vector_t>>, int> = 0>
 int multishift_qr(bool want_t,
                   bool want_z,
                   size_type<matrix_t> ilo,
