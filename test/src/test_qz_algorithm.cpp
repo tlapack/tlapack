@@ -137,7 +137,7 @@ TEMPLATE_TEST_CASE("QZ algorithm",
                 H(i, j) = zero;
 
         const real_t eps = uroundoff<real_t>();
-        const real_t tol = real_t(n * 1.0e3) * eps;
+        const real_t tol = real_t(n * 1.0e2) * eps;
 
         std::vector<TA> res_;
         auto res = new_matrix(res_, n, n);
