@@ -105,7 +105,7 @@ TEMPLATE_TEST_CASE(
     tlapack::lacpy(GENERAL, A, H);
     tlapack::lacpy(GENERAL, B, T);
 
-    // RQ factorization of B
+    // QR factorization of B
     geqrf(T, tau);
     unmqr(LEFT_SIDE, CONJ_TRANS, T, tau, H);
     tlapack::lacpy(GENERAL, T, Q);

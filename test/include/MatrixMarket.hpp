@@ -243,7 +243,6 @@ struct MatrixMarket {
                 A(i, j) = val;
     }
 
-   private:
     rand_generator gen;
 };
 
