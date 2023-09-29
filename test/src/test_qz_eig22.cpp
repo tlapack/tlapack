@@ -34,7 +34,7 @@ TEMPLATE_TEST_CASE("check that lahqz_eig22 gives correct eigenvalues",
     Create<complex_type<matrix_t>> new_complex_matrix;
 
     // MatrixMarket reader
-    u_int64_t seed = GENERATE(1, 2, 3, 4, 5, 6);
+    uint64_t seed = GENERATE(1, 2, 3, 4, 5, 6);
     MatrixMarket mm;
     mm.gen.seed(seed);
 
