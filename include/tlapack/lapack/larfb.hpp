@@ -150,7 +150,8 @@ int larfb_work(side_t side,
     if (m <= 0 || n <= 0 || k <= 0) return 0;
 
     // Matrix W
-    auto [W, work1] = (side == Side::Left) ? reshape(work, k, n) : reshape(work, m, k);
+    auto [W, work1] =
+        (side == Side::Left) ? reshape(work, k, n) : reshape(work, m, k);
 
     if (storeMode == StoreV::Columnwise) {
         if (direction == Direction::Forward) {
