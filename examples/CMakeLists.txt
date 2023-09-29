@@ -161,12 +161,12 @@ endif()
 
 # add the example daxpy using the Fortran wrapper
 if( BUILD_Fortran_WRAPPERS )
-  add_subdirectory( fortranWrapper_ssymm )
+  add_subdirectory( fortranModule_ssymm )
   add_custom_command(
     OUTPUT run-all-examples-cmd APPEND
     COMMAND
-      echo "- fortranWrapper_ssymm ----------------" &&
-      "${CMAKE_CURRENT_BINARY_DIR}/fortranWrapper_ssymm/example_fortranWrapper_ssymm${CMAKE_EXECUTABLE_SUFFIX}"
+      echo "- fortranModule_ssymm ----------------" &&
+      "${CMAKE_CURRENT_BINARY_DIR}/fortranModule_ssymm/example_fortranModule_ssymm${CMAKE_EXECUTABLE_SUFFIX}"
       && echo ""
   )
 endif()

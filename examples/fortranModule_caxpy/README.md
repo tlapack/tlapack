@@ -23,20 +23,6 @@ You will find the executable inside the `build` directory.
 
 2. Using `make` on the same directory of [example_fortranModule_caxpy.f90](example_fortranModule_caxpy.f90). In this case, you may need to edit `make.inc` to set the environment variables needed by [Makefile](Makefile). After a successful build, the executable will be in the current directory.
 
-** Note that the module file `tlapack.mod` is installed in the root of the \<T\>LAPACK include directory. This file is mandatory for both builds. If the module was not correctly installed, one may compile it using the following rules
-
-```Makefile
-.o.mod:
-    @true
-tblas.o: $(tlapack_inc)/tlapack.f90 constants.mod
-    $(FC) $(FFLAGS) -c -o $@ $<
-	rm -f constants.mod constants.o
-constants.o: $(tlapack_inc)/blas/constants.f90
-    $(FC) $(FFLAGS) -c -o $@ $<
-```
-
-in [Makefile](Makefile). In this case, replace `$(tlapack_inc)/tlapack.mod` with `tlapack.mod` also in [Makefile](Makefile).
-
 ## Run
 
 You can run the executable from the command line. The program expects no argument from the input.

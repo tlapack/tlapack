@@ -147,10 +147,7 @@ if( BUILD_Fortran_WRAPPERS )
 
   add_library( tlapack_fortran
     tlapack.f90
-    base/constants.f90
-    blas/axpy.f90
-    blas/symm.f90
-    blas/nrm2.f90 )
+    base/constants.f90 )
   target_include_directories( tlapack_fortran
   PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}

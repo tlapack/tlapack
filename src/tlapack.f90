@@ -61,6 +61,18 @@ contains
         call zaxpy_( n, alpha, c_loc(x), incx, c_loc(y), incy )
     end subroutine
 
+    function snrm2 ( n, x, incx )
+    implicit none
+        integer, parameter :: wp = sp
+    
+        integer(blas_size) :: n
+        integer(blas_int)  :: incx
+        real(wp), target   :: x(*)
+        real(wp)           :: snrm2
+    
+        snrm2 = snrm2_( n, c_loc(x), incx )
+    end function
+
     subroutine ssymm ( &
         layout, side, uplo, m, n, alpha, A, lda, B, ldb, beta, C, ldc )
     implicit none
@@ -69,7 +81,7 @@ contains
         character          :: layout, side, uplo
         integer(blas_size) :: m, n, lda, ldb, ldc
         real(wp)           :: alpha, beta
-        real(wp), target   :: A, B, C
+        real(wp), target   :: A(*), B(*), C(*)
     
         character(c_char) :: c_layout, c_side, c_uplo
         c_layout = layout
