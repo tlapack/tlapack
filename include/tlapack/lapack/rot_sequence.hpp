@@ -90,8 +90,8 @@ int rot_sequence(
     const idx_t k = (side == Side::Left) ? m - 1 : n - 1;
 
     // Check dimensions
-    tlapack_check(size(c) == k);
-    tlapack_check(size(s) == k);
+    tlapack_check((idx_t)size(c) == k);
+    tlapack_check((idx_t)size(s) == k);
 
     // quick return
     if (k < 1) return 0;

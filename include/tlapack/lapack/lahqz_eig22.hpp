@@ -39,9 +39,6 @@ void lahqz_eig22(const A_t& A,
                  T& beta1,
                  T& beta2)
 {
-    // Aliases
-    using real_t = real_type<T>;
-
     // Calculate X = AB^{-1}
     auto x00 = A(0, 0) / B(0, 0);
     auto x01 = A(0, 1) / B(1, 1);
