@@ -142,7 +142,7 @@ jobs:
         -D CMAKE_Fortran_COMPILER="gfortran-11"
         -D TLAPACK_TEST_QUAD=ON
 
-    - name: Specific configurations for CMake on MacOS
+    - name: Specific configurations for CMake on Windows
       if: ${{ matrix.os == 'windows-2019' }}
       run: >
         cmake -B build -G Ninja
@@ -171,8 +171,6 @@ jobs:
       run: cmake --build build --config ${{matrix.build-type}}
 
     - name: Run all examples
-      # Mind that the job won't fail with only this step fails
-      continue-on-error: true
       run: cmake --build build --target run-all-examples
 
     - name: Run tests
@@ -254,16 +252,33 @@ jobs:
         -D BUILD_CBLAS_WRAPPERS=ON
         -D TLAPACK_USE_LAPACKPP=ON
         -D BUILD_BLASPP_TESTS=ON
-        -D BUILD_LAPACKPP_TESTS=ON
+        -D BUILD_LAPACKPP_TESTS=OFF
+        -D BUILD_testBLAS_TESTS=OFF
 
     - name: Build <T>LAPACK
       run: cmake --build build --config ${{env.BUILD_TYPE}}
 
-    # Mind that the job won't fail if only this step fails
     - name: Run tests
       working-directory: ${{github.workspace}}/build
-      continue-on-error: true
       run: ctest -C ${{env.BUILD_TYPE}} --output-on-failure
+
+    # Mind that the job won't fail if only this step fails
+    - name: Build and run LAPACK++ tests
+      working-directory: ${{github.workspace}}/build
+      continue-on-error: true
+      run: |
+        cmake -B build -D BUILD_LAPACKPP_TESTS=ON
+        cmake --build build --config ${{env.BUILD_TYPE}}
+        ctest -C ${{env.BUILD_TYPE}} -R lapackpp_test --output-on-failure
+
+    # Mind that the job won't fail if only this step fails
+    - name: Build and run testBLAS tests
+      working-directory: ${{github.workspace}}/build/test/testBLAS
+      continue-on-error: true
+      run: |
+        cmake -B build -D BUILD_testBLAS_TESTS=ON
+        cmake --build build --config ${{env.BUILD_TYPE}}
+        ./tester
 
     - name: Install
       run: sudo cmake --build build --target install
@@ -417,16 +432,33 @@ jobs:
         -D BUILD_CBLAS_WRAPPERS=ON
         -D TLAPACK_USE_LAPACKPP=ON
         -D BUILD_BLASPP_TESTS=ON
-        -D BUILD_LAPACKPP_TESTS=ON
+        -D BUILD_LAPACKPP_TESTS=OFF
+        -D BUILD_testBLAS_TESTS=OFF
 
     - name: Build <T>LAPACK
       run: cmake --build build --config ${{env.BUILD_TYPE}}
 
-    # Mind that the job won't fail if only this step fails
     - name: Run tests
       working-directory: ${{github.workspace}}/build
-      continue-on-error: true
       run: ctest -C ${{env.BUILD_TYPE}} --output-on-failure
+
+    # Mind that the job won't fail if only this step fails
+    - name: Build and run LAPACK++ tests
+      working-directory: ${{github.workspace}}/build
+      continue-on-error: true
+      run: |
+        cmake -B build -D BUILD_LAPACKPP_TESTS=ON
+        cmake --build build --config ${{env.BUILD_TYPE}}
+        ctest -C ${{env.BUILD_TYPE}} -R lapackpp_test --output-on-failure
+
+    # Mind that the job won't fail if only this step fails
+    - name: Build and run testBLAS tests
+      working-directory: ${{github.workspace}}/build/test/testBLAS
+      continue-on-error: true
+      run: |
+        cmake -B build -D BUILD_testBLAS_TESTS=ON
+        cmake --build build --config ${{env.BUILD_TYPE}}
+        ./tester
 
     - name: Install
       run: sudo cmake --build build --target install
@@ -509,16 +541,33 @@ jobs:
         -D BUILD_CBLAS_WRAPPERS=ON
         -D TLAPACK_USE_LAPACKPP=ON
         -D BUILD_BLASPP_TESTS=ON
-        -D BUILD_LAPACKPP_TESTS=ON
+        -D BUILD_LAPACKPP_TESTS=OFF
+        -D BUILD_testBLAS_TESTS=OFF
 
     - name: Build <T>LAPACK
       run: cmake --build build --config ${{env.BUILD_TYPE}}
 
-    # Mind that the job won't fail if only this step fails
     - name: Run tests
       working-directory: ${{github.workspace}}/build
-      continue-on-error: true
       run: ctest -C ${{env.BUILD_TYPE}} --output-on-failure
+
+    # Mind that the job won't fail if only this step fails
+    - name: Build and run LAPACK++ tests
+      working-directory: ${{github.workspace}}/build
+      continue-on-error: true
+      run: |
+        cmake -B build -D BUILD_LAPACKPP_TESTS=ON
+        cmake --build build --config ${{env.BUILD_TYPE}}
+        ctest -C ${{env.BUILD_TYPE}} -R lapackpp_test --output-on-failure
+
+    # Mind that the job won't fail if only this step fails
+    - name: Build and run testBLAS tests
+      working-directory: ${{github.workspace}}/build/test/testBLAS
+      continue-on-error: true
+      run: |
+        cmake -B build -D BUILD_testBLAS_TESTS=ON
+        cmake --build build --config ${{env.BUILD_TYPE}}
+        ./tester
 
     - name: Install
       run: sudo cmake --build build --target install
@@ -582,15 +631,23 @@ jobs:
         -D TLAPACK_USE_LAPACKPP=ON
         -D BUILD_BLASPP_TESTS=ON
         -D BUILD_LAPACKPP_TESTS=ON
+        -D BUILD_testBLAS_TESTS=OFF
 
     - name: Build <T>LAPACK
       run: cmake --build build --config Debug
 
-    # Mind that the job won't fail if only this step fails
     - name: Run tests
       working-directory: ${{github.workspace}}/build
-      continue-on-error: true
       run: ctest -C Debug --output-on-failure
+
+    # Mind that the job won't fail if only this step fails
+    - name: Build and run testBLAS tests
+      working-directory: ${{github.workspace}}/build/test/testBLAS
+      continue-on-error: true
+      run: |
+        cmake -B build -D BUILD_testBLAS_TESTS=ON
+        cmake --build build --config ${{env.BUILD_TYPE}}
+        ./tester
 
     - name: Install
       run: sudo cmake --build build --target install
