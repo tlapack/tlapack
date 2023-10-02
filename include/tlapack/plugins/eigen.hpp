@@ -55,6 +55,11 @@ namespace eigen {
         constexpr bool is_eigen_block =
             decltype(is_eigen_block_f(std::declval<T*>()))::value;
 
+        template <class>
+        struct isStdComplex : public std::false_type {};
+        template <class T>
+        struct isStdComplex<std::complex<T>> : public std::true_type {};
+
     }  // namespace internal
 
     /// True if T is derived from Eigen::DenseBase
@@ -139,15 +144,25 @@ namespace traits {
 
 // Size
 template <
-    class Derived
+    class T,
+    int Rows,
+    int Cols,
+    int Options,
+    int MaxRows,
+    int MaxCols
 #if __cplusplus >= 201703L
     // Avoids conflict with std::size
     ,
-    std::enable_if_t<!std::is_same_v<complex_type<typename Derived::Scalar>,
-                                     typename Derived::Scalar>,
+    std::enable_if_t<!(eigen::internal::isStdComplex<std::decay_t<T>>::value),
                      int> = 0
 #endif
     >
+constexpr auto size(
+    const Eigen::Matrix<T, Rows, Cols, Options, MaxRows, MaxCols>& x) noexcept
+{
+    return x.size();
+}
+template <class Derived>
 constexpr auto size(const Eigen::EigenBase<Derived>& x) noexcept
 {
     return x.size();

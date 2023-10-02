@@ -43,4 +43,25 @@ TEST_CASE("Concept Complex works as expected", "[concept]")
     REQUIRE(Complex<tlapack::NaNPropagComplex<float>>);
 }
 
+TEST_CASE("Concept SliceableMatrix works as expected", "[concept]")
+{
+    #ifdef TLAPACK_TEST_EIGEN
+    using matrix_t = Eigen::Matrix<std::complex<float>, -1, -1, 1, -1, -1>;
+    REQUIRE(SliceableMatrix<matrix_t>);
+
+    matrix_t A(2, 2);
+    auto B =
+        tlapack::slice(A, std::pair<int, int>{0, 1}, std::pair<int, int>{0, 1});
+    REQUIRE(Matrix<decltype(B)>);
+
+    B(0, 0);
+    auto m = tlapack::nrows(B);
+    auto n = tlapack::ncols(B);
+    auto s = tlapack::size(B);
+    REQUIRE(std::integral<decltype(m)>);
+    REQUIRE(std::integral<decltype(n)>);
+    REQUIRE(std::integral<decltype(s)>);
+    #endif
+}
+
 #endif

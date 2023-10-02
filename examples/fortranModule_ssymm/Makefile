@@ -3,9 +3,9 @@
 #-------------------------------------------------------------------------------
 # Executables
 
-all: example_fortranWrapper_ssymm
+all: example_fortranModule_ssymm
 
-example_fortranWrapper_ssymm: example_fortranWrapper_ssymm.o
+example_fortranModule_ssymm: example_fortranModule_ssymm.o
 	$(LD) $(FFLAGS) -o $@ $< $(LDFLAGS)
 
 #-------------------------------------------------------------------------------
@@ -13,9 +13,9 @@ example_fortranWrapper_ssymm: example_fortranWrapper_ssymm.o
 
 .PHONY: all
 
-example_fortranWrapper_ssymm.o: example_fortranWrapper_ssymm.f90
+example_fortranModule_ssymm.o: example_fortranModule_ssymm.f90
 	$(FC) $(FFLAGS) -c -o $@ $<
 
 clean:
 	rm -f *.o
-	rm -f example_fortranWrapper_ssymm
+	rm -f example_fortranModule_ssymm

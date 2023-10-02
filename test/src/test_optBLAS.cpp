@@ -23,6 +23,7 @@ TEMPLATE_TEST_CASE("has_compatible_layout gives the correct result",
     using vector_t = vector_type<TestType>;
     using namespace tlapack::traits::internal;
 
+    CHECK(layout<T> == Layout::Unspecified);
     CHECK(has_compatible_layout<T, T>);
     CHECK(has_compatible_layout<T, T, T>);
     CHECK(has_compatible_layout<matrixA_t, T>);
@@ -32,13 +33,13 @@ TEMPLATE_TEST_CASE("has_compatible_layout gives the correct result",
     CHECK(has_compatible_layout<vector_t, T>);
     CHECK(has_compatible_layout<T, vector_t>);
 
+    CHECK(layout<matrixA_t> != layout<matrixB_t>);
     CHECK(has_compatible_layout<matrixA_t, matrixA_t>);
     CHECK(!has_compatible_layout<matrixA_t, matrixB_t>);
     CHECK(has_compatible_layout<matrixB_t, matrixB_t>);
     CHECK(!has_compatible_layout<matrixB_t, matrixA_t>);
 
     CHECK(layout<vector_t> == Layout::Strided);
-    CHECK(layout<matrixA_t> != layout<matrixB_t>);
     CHECK(has_compatible_layout<matrixA_t, vector_t>);
     CHECK(has_compatible_layout<vector_t, matrixA_t>);
     CHECK(has_compatible_layout<matrixB_t, vector_t>);
@@ -60,6 +61,9 @@ TEST_CASE("allow_optblas does not allow bool, int, long int, char", "[optBLAS]")
     CHECK(!allow_optblas<int>);
     CHECK(!allow_optblas<long double>);
     CHECK(!allow_optblas<char>);
+
+    CHECK(!allow_optblas<float*>);
+    CHECK(!allow_optblas<float&>);
 }
 
 // TEMPLATE_TEST_CASE("legacy_matrix() exists", "[utils]",

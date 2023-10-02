@@ -22,7 +22,7 @@ namespace tlapack {
 template <class T,
           TLAPACK_SMATRIX matrix_t,
           TLAPACK_SVECTOR vector_t,
-          enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
+          enable_if_t<is_complex<type_t<vector_t>>, int> = 0>
 constexpr WorkInfo multishift_qr_worksize_sweep(bool want_t,
                                                 bool want_z,
                                                 size_type<matrix_t> ilo,
@@ -68,7 +68,7 @@ constexpr WorkInfo multishift_qr_worksize_sweep(bool want_t,
 template <class T,
           TLAPACK_SMATRIX matrix_t,
           TLAPACK_SVECTOR vector_t,
-          enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
+          enable_if_t<is_complex<type_t<vector_t>>, int>>
 WorkInfo multishift_qr_worksize(bool want_t,
                                 bool want_z,
                                 size_type<matrix_t> ilo,
@@ -76,7 +76,7 @@ WorkInfo multishift_qr_worksize(bool want_t,
                                 const matrix_t& A,
                                 const vector_t& w,
                                 const matrix_t& Z,
-                                const FrancisOpts& opts = {})
+                                const FrancisOpts& opts)
 {
     using idx_t = size_type<matrix_t>;
 
@@ -110,7 +110,7 @@ WorkInfo multishift_qr_worksize(bool want_t,
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_SVECTOR vector_t,
           TLAPACK_RWORKSPACE work_t,
-          enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
+          enable_if_t<is_complex<type_t<vector_t>>, int>>
 int multishift_qr_work(bool want_t,
                        bool want_z,
                        size_type<matrix_t> ilo,
@@ -264,8 +264,8 @@ int multishift_qr_work(bool want_t,
         // reason to expect that many eigenvalues will deflate without it.
         // Here, the QR sweep is skipped if many eigenvalues have just been
         // deflated or if the remaining active block is small.
-        if (ld > 0 and (100 * ld > nwr * nibble or
-                        (istop - istart) <= min(nmin, nw_max))) {
+        if (ld > 0 and
+            (100 * ld > nwr * nibble or istop <= istart + min(nmin, nw_max))) {
             continue;
         }
 
@@ -277,7 +277,8 @@ int multishift_qr_work(bool want_t,
         if (k_defl % non_convergence_limit_shift == 0) {
             ns = nsr;
             for (idx_t i = i_shifts; i < istop - 1; i = i + 2) {
-                real_t ss = abs1(A(i, i - 1)) + abs1(A(i - 1, i - 2));
+                real_t ss = abs1(A(i, i - 1));
+                if (i > 1) ss += abs1(A(i - 1, i - 2));
                 TA aa = dat1 * ss + A(i, i);
                 TA bb = ss;
                 TA cc = dat2 * ss;
@@ -389,7 +390,7 @@ int multishift_qr_work(bool want_t,
 template <TLAPACK_MATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
           TLAPACK_WORKSPACE work_t,
-          enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
+          enable_if_t<is_complex<type_t<vector_t>>, int> = 0>
 int multishift_qr_work(bool want_t,
                        bool want_z,
                        size_type<matrix_t> ilo,
@@ -456,7 +457,7 @@ int multishift_qr_work(bool want_t,
  */
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_SVECTOR vector_t,
-          enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
+          enable_if_t<is_complex<type_t<vector_t>>, int> = 0>
 int multishift_qr(bool want_t,
                   bool want_z,
                   size_type<matrix_t> ilo,
@@ -510,7 +511,7 @@ int multishift_qr(bool want_t,
  */
 template <TLAPACK_MATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
-          enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
+          enable_if_t<is_complex<type_t<vector_t>>, int> = 0>
 int multishift_qr(bool want_t,
                   bool want_z,
                   size_type<matrix_t> ilo,

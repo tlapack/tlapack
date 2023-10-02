@@ -4,11 +4,12 @@
 # <T>LAPACK is free software: you can redistribute it and/or modify it under
 # the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.19)
 # VERSION 3.3: IN_LIST for if() operator
 # VERSION 3.7: VERSION_GREATER_EQUAL
 # VERSION 3.11: FetchContent_Declare
 # VERSION 3.14: FetchContent_MakeAvailable
+# VERSION 3.19: Version range
 
 #-------------------------------------------------------------------------------
 # Dependencies on other projects
@@ -188,7 +189,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 #-------------------------------------------------------------------------------
 # Search for LAPACK++ library if it is needed
 if( TLAPACK_USE_LAPACKPP )
-  find_package( lapackpp 2022.07.00 REQUIRED )
+  find_package( lapackpp 2023.01.00...2023.08.25 REQUIRED )
   target_compile_definitions( tlapack INTERFACE TLAPACK_USE_LAPACKPP )
   target_link_libraries( tlapack INTERFACE lapackpp )
 endif()

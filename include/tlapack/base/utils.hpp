@@ -236,7 +236,7 @@ namespace traits {
         C,
         enable_if_t<internal::is_matrix<C> && !internal::is_vector<C>, int>> {
         static constexpr bool value =
-            allow_optblas_trait<type_t<C>>::value &&
+            allow_optblas_trait<type_t<C>, int>::value &&
             (layout<C> == Layout::ColMajor || layout<C> == Layout::RowMajor);
     };
 
@@ -245,7 +245,7 @@ namespace traits {
     template <class C>
     struct allow_optblas_trait<C, enable_if_t<internal::is_vector<C>, int>> {
         static constexpr bool value =
-            allow_optblas_trait<type_t<C>>::value &&
+            allow_optblas_trait<type_t<C>, int>::value &&
             (layout<C> == Layout::ColMajor || layout<C> == Layout::RowMajor ||
              layout<C> == Layout::Strided);
     };
@@ -260,16 +260,16 @@ namespace traits {
         pair<C, T>,
         enable_if_t<internal::is_matrix<C> || internal::is_vector<C>, int>> {
         static constexpr bool value =
-            allow_optblas_trait<T>::value &&
-            (allow_optblas_trait<C>::value &&
+            allow_optblas_trait<T, int>::value &&
+            (allow_optblas_trait<C, int>::value &&
              is_same_v<type_t<C>, typename std::decay<T>::type>);
     };
     template <class C, class T>
     struct allow_optblas_trait<
         pair<C, T>,
         enable_if_t<!internal::is_matrix<C> && !internal::is_vector<C>, int>> {
-        static constexpr bool value =
-            allow_optblas_trait<T>::value && std::is_constructible<T, C>::value;
+        static constexpr bool value = allow_optblas_trait<T, int>::value &&
+                                      std::is_constructible<T, C>::value;
     };
 
     template <class C1, class T1, class C2, class T2, class... Ps>

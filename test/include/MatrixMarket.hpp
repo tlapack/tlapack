@@ -282,7 +282,6 @@ struct MatrixMarket {
         }
     }
 
-   private:
     rand_generator gen;
 };
 
