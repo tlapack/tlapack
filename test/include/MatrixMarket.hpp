@@ -243,6 +243,45 @@ struct MatrixMarket {
                 A(i, j) = val;
     }
 
+    /**
+     * @brief Generate an upper- or lower-triangular matrix with a single value
+     * in all entries.
+     *
+     * Put a single garbage value float(0xCAFEBABE) in the opposite triangle.
+     *
+     * @param[in] uplo Upper or lower triangular.
+     * @param[out] A Matrix.
+     * @param[in] val Value.
+     */
+    template <TLAPACK_UPLO uplo_t, TLAPACK_MATRIX matrix_t>
+    void single_value(uplo_t uplo,
+                      matrix_t& A,
+                      const type_t<matrix_t>& val) const
+    {
+        using T = type_t<matrix_t>;
+        using idx_t = size_type<matrix_t>;
+
+        const idx_t m = nrows(A);
+        const idx_t n = ncols(A);
+
+        if (uplo == Uplo::Upper) {
+            for (idx_t j = 0; j < n; ++j)
+                for (idx_t i = 0; i < m; ++i)
+                    if (i <= j)
+                        A(i, j) = val;
+                    else
+                        A(i, j) = T(float(0xCAFEBABE));
+        }
+        else {
+            for (idx_t j = 0; j < n; ++j)
+                for (idx_t i = 0; i < m; ++i)
+                    if (i >= j)
+                        A(i, j) = val;
+                    else
+                        A(i, j) = T(float(0xCAFEBABE));
+        }
+    }
+
     rand_generator gen;
 };
 

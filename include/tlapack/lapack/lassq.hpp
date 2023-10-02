@@ -24,20 +24,7 @@ namespace tlapack {
  * \[
  *      scl smsq := \sum_{i = 0}^n |x_i|^2 + scale^2 sumsq,
  * \]
- * The value of  sumsq  is assumed to be non-negative.
- *
- * If (scale * sqrt( sumsq )) > tbig on entry then
- *    we require:   scale >= sqrt( TINY*EPS ) / sbig   on entry,
- * and if 0 < (scale * sqrt( sumsq )) < tsml on entry then
- *    we require:   scale <= sqrt( HUGE ) / ssml       on entry,
- * where
- *    tbig -- upper threshold for values whose square is representable;
- *    sbig -- scaling constant for big numbers; @see constants.hpp
- *    tsml -- lower threshold for values whose square is representable;
- *    ssml -- scaling constant for small numbers; @see constants.hpp
- * and
- *    TINY*EPS -- tiniest representable number;
- *    HUGE     -- biggest representable number.
+ * scale and sumsq are assumed to be non-negative.
  *
  * @param[in] x Vector of size n.
  *
@@ -116,13 +103,32 @@ void lassq(const vector_t& x,
     // Put the existing sum of squares into one of the accumulators
     if (sumsq > zero) {
         real_t ax = scale * sqrt(sumsq);
-        if (ax > tbig)
-            abig += ((scale * sbig) * (scale * sbig)) * sumsq;
-        else if (ax < tsml) {
-            if (abig == zero) asml += ((scale * ssml) * (scale * ssml)) * sumsq;
+        if (ax > tbig) {
+            if (scale > one) {
+                scale *= sbig;
+                abig += scale * (scale * sumsq);
+            }
+            else {
+                // sumsq > tbig^2 => (sbig * (sbig * sumsq)) is representable
+                abig += scale * (scale * (sbig * (sbig * sumsq)));
+            }
         }
-        else
-            amed += (scale * scale) * sumsq;
+        else if (ax < tsml) {
+            if (abig == zero) {
+                if (scale < one) {
+                    scale *= ssml;
+                    asml += scale * (scale * sumsq);
+                }
+                else {
+                    // sumsq < tsml^2 => (ssml * (ssml * sumsq)) is
+                    // representable
+                    asml += scale * (scale * (ssml * (ssml * sumsq)));
+                }
+            }
+        }
+        else {
+            amed += scale * (scale * sumsq);
+        }
     }
 
     // Combine abig and amed or amed and asml if

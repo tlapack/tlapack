@@ -92,6 +92,7 @@ add_executable( test_rscl test_rscl.cpp )
 add_executable( test_ladiv test_ladiv.cpp )
 add_executable( test_rot_sequence test_rot_sequence.cpp testutils.cpp)
 add_executable(test_concepts test_concepts.cpp)
+add_executable(test_norms test_norms.cpp)
 add_executable(test_qz_eig22 test_qz_eig22.cpp testutils.cpp)
 add_executable(test_qz_algorithm test_qz_algorithm.cpp testutils.cpp)
 
