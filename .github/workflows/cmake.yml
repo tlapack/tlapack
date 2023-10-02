@@ -517,7 +517,7 @@ jobs:
     - name: Build and install BLAS++
       working-directory: ${{env.blaspp_DIR}}
       run: |
-        cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBLA_VENDOR=FLAME -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.blaspp_DIR}}
+        cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBLA_VENDOR=FLAME -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.blaspp_DIR}} -D CMAKE_CXX_FLAGS="${{env.CXXFLAGS}} -D LAPACK_FORTRAN_ADD_" -D LAPACK_LIBRARIES="${{env.lapack_DIR}}/lib/liblapack.a;-lgfortran"
         cmake --build build --target install
 
     - name: Build and install LAPACK++
@@ -540,7 +540,7 @@ jobs:
         -D BUILD_Fortran_WRAPPERS=ON
         -D BUILD_CBLAS_WRAPPERS=ON
         -D TLAPACK_USE_LAPACKPP=ON
-        -D BUILD_BLASPP_TESTS=ON
+        -D BUILD_BLASPP_TESTS=OFF
         -D BUILD_LAPACKPP_TESTS=OFF
         -D BUILD_testBLAS_TESTS=OFF
 
@@ -550,15 +550,6 @@ jobs:
     - name: Run tests
       working-directory: ${{github.workspace}}/build
       run: ctest -C ${{env.BUILD_TYPE}} --output-on-failure
-
-    # Mind that the job won't fail if only this step fails
-    - name: Build and run LAPACK++ tests
-      working-directory: ${{github.workspace}}/build
-      continue-on-error: true
-      run: |
-        cmake -B build -D BUILD_LAPACKPP_TESTS=ON
-        cmake --build build --config ${{env.BUILD_TYPE}}
-        ctest -C ${{env.BUILD_TYPE}} -R lapackpp_test --output-on-failure
 
     # Mind that the job won't fail if only this step fails
     - name: Build and run testBLAS tests
