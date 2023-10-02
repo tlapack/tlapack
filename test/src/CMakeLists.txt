@@ -8,7 +8,8 @@
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../include")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
-# Common libraries
+# Library testutils
+
 add_library(testutils testutils.cpp)
 target_link_libraries(testutils PUBLIC Catch2::Catch2WithMain)
 target_link_libraries(testutils PUBLIC tlapack)
@@ -43,22 +44,16 @@ if(TLAPACK_TEST_QUAD)
   endif()
 endif()
 
-# Use this library on all tests
-link_libraries(testutils)
-
-# Set the directory where to put testers
-set(TLAPACK_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/test")
-
 # Testers
+
 add_executable(test_lasy2 test_lasy2.cpp)
 add_executable(test_schur_move test_schur_move.cpp)
 add_executable(test_transpose test_transpose.cpp)
 add_executable(test_unmhr test_unmhr.cpp)
 add_executable(test_hessenberg test_hessenberg.cpp)
-add_executable(test_hessenbergtriangular test_hessenbergtriangular.cpp testutils.cpp)
-add_executable(test_hessenbergtriangular_blocked test_hessenbergtriangular_blocked.cpp testutils.cpp)
-add_executable(test_hessenberg_rq test_hessenberg_rq.cpp testutils.cpp)
+add_executable(test_hessenbergtriangular test_hessenbergtriangular.cpp)
+add_executable(test_hessenbergtriangular_blocked test_hessenbergtriangular_blocked.cpp)
+add_executable(test_hessenberg_rq test_hessenberg_rq.cpp)
 add_executable(test_optBLAS test_optBLAS.cpp)
 add_executable(test_schur_swap test_schur_swap.cpp)
 add_executable(test_qr_algorithm test_qr_algorithm.cpp)
@@ -93,11 +88,11 @@ add_executable(test_larf test_larf.cpp)
 add_executable(test_gesvd test_gesvd.cpp)
 add_executable( test_rscl test_rscl.cpp )
 add_executable( test_ladiv test_ladiv.cpp )
-add_executable( test_rot_sequence test_rot_sequence.cpp testutils.cpp)
+add_executable( test_rot_sequence test_rot_sequence.cpp)
 add_executable(test_concepts test_concepts.cpp)
 add_executable(test_norms test_norms.cpp)
-add_executable(test_qz_eig22 test_qz_eig22.cpp testutils.cpp)
-add_executable(test_qz_algorithm test_qz_algorithm.cpp testutils.cpp)
+add_executable(test_qz_eig22 test_qz_eig22.cpp)
+add_executable(test_qz_algorithm test_qz_algorithm.cpp)
 
 if(TLAPACK_TEST_EIGEN)
   add_executable(test_eigenplugin test_eigenplugin.cpp)
@@ -107,18 +102,19 @@ if(TLAPACK_TEST_MDSPAN)
   add_executable(test_mdspanplugin test_mdspanplugin.cpp)
 endif()
 
-# Reset the output directory
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${TLAPACK_RUNTIME_OUTPUT_DIRECTORY}")
-
 # Add tests to CTest
 include(Catch)
 
+# Get all targets in the directory
 get_property(DIRECTORY_BUILDSYSTEM_TARGETS DIRECTORY PROPERTY BUILDSYSTEM_TARGETS)
 
+# Configure testers
 foreach(target ${DIRECTORY_BUILDSYSTEM_TARGETS})
   if(NOT target MATCHES "^test_")
     continue()
   endif()
+  target_link_libraries(${target} PRIVATE testutils)
+  set_target_properties(${target} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/test")
   catch_discover_tests(${target})
 endforeach()
 
@@ -148,7 +144,8 @@ if( BUILD_STANDALONE_TESTS)
       continue()
     endif()
     add_executable( standalone_${target} ${target}.cpp )
-    target_compile_definitions(standalone_${target} PUBLIC TLAPACK_BUILD_STANDALONE_TESTS)
+    target_link_libraries( standalone_${target} PRIVATE testutils )
+    target_compile_definitions(standalone_${target} PRIVATE TLAPACK_BUILD_STANDALONE_TESTS)
   endforeach()
 
 endif()
