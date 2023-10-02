@@ -142,7 +142,7 @@ jobs:
         -D CMAKE_Fortran_COMPILER="gfortran-11"
         -D TLAPACK_TEST_QUAD=ON
 
-    - name: Specific configurations for CMake on MacOS
+    - name: Specific configurations for CMake on Windows
       if: ${{ matrix.os == 'windows-2019' }}
       run: >
         cmake -B build -G Ninja
@@ -171,8 +171,6 @@ jobs:
       run: cmake --build build --config ${{matrix.build-type}}
 
     - name: Run all examples
-      # Mind that the job won't fail with only this step fails
-      continue-on-error: true
       run: cmake --build build --target run-all-examples
 
     - name: Run tests
@@ -254,16 +252,33 @@ jobs:
         -D BUILD_CBLAS_WRAPPERS=ON
         -D TLAPACK_USE_LAPACKPP=ON
         -D BUILD_BLASPP_TESTS=ON
-        -D BUILD_LAPACKPP_TESTS=ON
+        -D BUILD_LAPACKPP_TESTS=OFF
+        -D BUILD_testBLAS_TESTS=OFF
 
     - name: Build <T>LAPACK
       run: cmake --build build --config ${{env.BUILD_TYPE}}
 
-    # Mind that the job won't fail if only this step fails
     - name: Run tests
       working-directory: ${{github.workspace}}/build
-      continue-on-error: true
       run: ctest -C ${{env.BUILD_TYPE}} --output-on-failure
+
+    # Mind that the job won't fail if only this step fails
+    - name: Build and run LAPACK++ tests
+      working-directory: ${{github.workspace}}/build
+      continue-on-error: true
+      run: |
+        cmake -B build -D BUILD_LAPACKPP_TESTS=ON
+        cmake --build build --config ${{env.BUILD_TYPE}}
+        ctest -C ${{env.BUILD_TYPE}} -R lapackpp_test --output-on-failure
+
+    # Mind that the job won't fail if only this step fails
+    - name: Build and run testBLAS tests
+      working-directory: ${{github.workspace}}/build/test/testBLAS
+      continue-on-error: true
+      run: |
+        cmake -B build -D BUILD_testBLAS_TESTS=ON
+        cmake --build build --config ${{env.BUILD_TYPE}}
+        ./tester
 
     - name: Install
       run: sudo cmake --build build --target install
@@ -417,16 +432,33 @@ jobs:
         -D BUILD_CBLAS_WRAPPERS=ON
         -D TLAPACK_USE_LAPACKPP=ON
         -D BUILD_BLASPP_TESTS=ON
-        -D BUILD_LAPACKPP_TESTS=ON
+        -D BUILD_LAPACKPP_TESTS=OFF
+        -D BUILD_testBLAS_TESTS=OFF
 
     - name: Build <T>LAPACK
       run: cmake --build build --config ${{env.BUILD_TYPE}}
 
-    # Mind that the job won't fail if only this step fails
     - name: Run tests
       working-directory: ${{github.workspace}}/build
-      continue-on-error: true
       run: ctest -C ${{env.BUILD_TYPE}} --output-on-failure
+
+    # Mind that the job won't fail if only this step fails
+    - name: Build and run LAPACK++ tests
+      working-directory: ${{github.workspace}}/build
+      continue-on-error: true
+      run: |
+        cmake -B build -D BUILD_LAPACKPP_TESTS=ON
+        cmake --build build --config ${{env.BUILD_TYPE}}
+        ctest -C ${{env.BUILD_TYPE}} -R lapackpp_test --output-on-failure
+
+    # Mind that the job won't fail if only this step fails
+    - name: Build and run testBLAS tests
+      working-directory: ${{github.workspace}}/build/test/testBLAS
+      continue-on-error: true
+      run: |
+        cmake -B build -D BUILD_testBLAS_TESTS=ON
+        cmake --build build --config ${{env.BUILD_TYPE}}
+        ./tester
 
     - name: Install
       run: sudo cmake --build build --target install
@@ -485,7 +517,7 @@ jobs:
     - name: Build and install BLAS++
       working-directory: ${{env.blaspp_DIR}}
       run: |
-        cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBLA_VENDOR=FLAME -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.blaspp_DIR}}
+        cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBLA_VENDOR=FLAME -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.blaspp_DIR}} -D CMAKE_CXX_FLAGS="${{env.CXXFLAGS}} -D LAPACK_FORTRAN_ADD_" -D LAPACK_LIBRARIES="${{env.lapack_DIR}}/lib/liblapack.a;-lgfortran"
         cmake --build build --target install
 
     - name: Build and install LAPACK++
@@ -508,17 +540,25 @@ jobs:
         -D BUILD_Fortran_WRAPPERS=ON
         -D BUILD_CBLAS_WRAPPERS=ON
         -D TLAPACK_USE_LAPACKPP=ON
-        -D BUILD_BLASPP_TESTS=ON
-        -D BUILD_LAPACKPP_TESTS=ON
+        -D BUILD_BLASPP_TESTS=OFF
+        -D BUILD_LAPACKPP_TESTS=OFF
+        -D BUILD_testBLAS_TESTS=OFF
 
     - name: Build <T>LAPACK
       run: cmake --build build --config ${{env.BUILD_TYPE}}
 
-    # Mind that the job won't fail if only this step fails
     - name: Run tests
       working-directory: ${{github.workspace}}/build
-      continue-on-error: true
       run: ctest -C ${{env.BUILD_TYPE}} --output-on-failure
+
+    # Mind that the job won't fail if only this step fails
+    - name: Build and run testBLAS tests
+      working-directory: ${{github.workspace}}/build/test/testBLAS
+      continue-on-error: true
+      run: |
+        cmake -B build -D BUILD_testBLAS_TESTS=ON
+        cmake --build build --config ${{env.BUILD_TYPE}}
+        ./tester
 
     - name: Install
       run: sudo cmake --build build --target install
@@ -582,15 +622,23 @@ jobs:
         -D TLAPACK_USE_LAPACKPP=ON
         -D BUILD_BLASPP_TESTS=ON
         -D BUILD_LAPACKPP_TESTS=ON
+        -D BUILD_testBLAS_TESTS=OFF
 
     - name: Build <T>LAPACK
       run: cmake --build build --config Debug
 
-    # Mind that the job won't fail if only this step fails
     - name: Run tests
       working-directory: ${{github.workspace}}/build
-      continue-on-error: true
       run: ctest -C Debug --output-on-failure
+
+    # Mind that the job won't fail if only this step fails
+    - name: Build and run testBLAS tests
+      working-directory: ${{github.workspace}}/build/test/testBLAS
+      continue-on-error: true
+      run: |
+        cmake -B build -D BUILD_testBLAS_TESTS=ON
+        cmake --build build --config ${{env.BUILD_TYPE}}
+        ./tester
 
     - name: Install
       run: sudo cmake --build build --target install
@@ -664,8 +712,8 @@ jobs:
 
     - name: Build and run example access_types using Makefile
       run: |
-        directory=("access_types" "create_float_library" "cwrapper_gemm" "eigen" "eigenvalues" "fortranModule_caxpy" "fortranWrapper_ssymm" "gemm" "geqr2" "mdspan" "performance_eigen")
-        exec=("example_accessTypes" "example_create_float_library" "example_cwrapper_gemm" "example_eigen" "example_eigenvalues" "example_fortranModule_caxpy" "example_fortranWrapper_ssymm" "example_gemm" "example_geqr2" "example_mdspan" "performance_tlapack")
+        directory=("access_types" "create_float_library" "cwrapper_gemm" "eigen" "eigenvalues" "fortranModule_caxpy" "fortranModule_ssymm" "gemm" "geqr2" "mdspan" "performance_eigen")
+        exec=("example_accessTypes" "example_create_float_library" "example_cwrapper_gemm" "example_eigen" "example_eigenvalues" "example_fortranModule_caxpy" "example_fortranModule_ssymm" "example_gemm" "example_geqr2" "example_mdspan" "performance_tlapack")
         ldflags=("" "" "-ltlapack_c -Wl,-rpath=/usr/local/lib" "" "-llapack -lblas -lm -lgfortran" "-ltlapack_fortran -ltlapack_c -Wl,-rpath=/usr/local/lib -lgfortran" "-ltlapack_fortran -ltlapack_c -Wl,-rpath=/usr/local/lib -lgfortran" "" "" "" "")
         export CXXFLAGS="${{env.CXXFLAGS}} -I/usr/local/include/eigen3"
         export FFLAGS="${{env.FFLAGS}} -I/usr/local/include/tlapack/fortran"
@@ -685,8 +733,8 @@ jobs:
 
     - name: Build and run examples using CMake
       run: |
-        directory=("access_types" "cpp_visualizer" "create_float_library" "cwrapper_gemm" "eigen" "eigenvalues" "fortranModule_caxpy" "fortranWrapper_ssymm" "gemm" "geqr2" "lu" "mdspan" "performance_eigen" "potrf")
-        exec=("example_accessTypes" "cpp_visualizer_example" "example_create_float_library" "example_cwrapper_gemm" "example_eigen" "example_eigenvalues" "example_fortranModule_caxpy" "example_fortranWrapper_ssymm" "example_gemm" "example_geqr2" "example_lu" "example_mdspan" "performance_tlapack" "example_potrf")
+        directory=("access_types" "cpp_visualizer" "create_float_library" "cwrapper_gemm" "eigen" "eigenvalues" "fortranModule_caxpy" "fortranModule_ssymm" "gemm" "geqr2" "lu" "mdspan" "performance_eigen" "potrf")
+        exec=("example_accessTypes" "cpp_visualizer_example" "example_create_float_library" "example_cwrapper_gemm" "example_eigen" "example_eigenvalues" "example_fortranModule_caxpy" "example_fortranModule_ssymm" "example_gemm" "example_geqr2" "example_lu" "example_mdspan" "performance_tlapack" "example_potrf")
         for i in ${!directory[@]}; do
           cd ${{github.workspace}}/examples/${directory[$i]}
           echo "-----------------------------------"

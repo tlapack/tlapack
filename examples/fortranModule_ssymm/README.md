@@ -1,4 +1,4 @@
-# Example: fortranWrapper_ssymm
+# Example: fortranModule_ssymm
 
 In this example, we compute _C - AB_ using matrices A, B and C.
 
@@ -22,7 +22,7 @@ cmake --build build # build step
 
 You will find the executable inside the `build` directory.
 
-2. Using `make` on the same directory of [example_fortranWrapper_ssymm.f90](example_fortranWrapper_ssymm.f90). In this case, you may need to edit `make.inc` to set the environment variables needed by [Makefile](Makefile). After a successful build, the executable will be in the current directory.
+2. Using `make` on the same directory of [example_fortranModule_ssymm.f90](example_fortranModule_ssymm.f90). In this case, you may need to edit `make.inc` to set the environment variables needed by [Makefile](Makefile). After a successful build, the executable will be in the current directory.
 
 ## Run
 
@@ -30,4 +30,4 @@ You can run the executable from the command line. The program expects no argumen
 
 ---
 
-[Examples](../README.md#fortranWrapper_ssymm)
+[Examples](../README.md#fortranModule_ssymm)

@@ -1,4 +1,4 @@
-!> @file example_fortranWrapper_ssymm.f90 
+!> @file example_fortranModule_ssymm.f90 
 !! @author Weslley S Pereira, University of Colorado Denver, USA
 !
 ! Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
@@ -7,8 +7,8 @@
 ! <T>LAPACK is free software: you can redistribute it and/or modify it under
 ! the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-program example_fortranWrapper_ssymm
-use constants
+program example_fortranModule_ssymm
+use tlapack
 implicit none
 
     ! Constants
@@ -25,9 +25,7 @@ implicit none
     ! Error measurements
     real(sp) :: errorF
 
-    ! External functions
-    external :: ssymm
-    real(sp), external :: snrm2
+    ! Intrinsic functions
     intrinsic :: random_number, min
     
     ! Initialize A with random numbers
