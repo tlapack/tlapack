@@ -50,7 +50,7 @@ using std::pair;
 // -----------------------------------------------------------------------------
 // Utility function for squaring a number to avoid using pow for everything
 template <typename T>
-inline constexpr T square(const T& x)
+constexpr T square(const T& x)
 {
     return x * x;
 }
@@ -177,15 +177,15 @@ namespace traits {
                             enable_if_t<internal::is_matrix<matrix_t> &&
                                             !internal::is_vector<matrix_t>,
                                         int>> {
-        using type = std::decay_t<decltype(
-            ((const matrix_t)std::declval<matrix_t>())(0, 0))>;
+        using type = std::decay_t<decltype((
+            (const matrix_t)std::declval<matrix_t>())(0, 0))>;
     };
 
     template <class vector_t>
     struct entry_type_trait<vector_t,
                             enable_if_t<internal::is_vector<vector_t>, int>> {
-        using type = std::decay_t<decltype(
-            ((const vector_t)std::declval<vector_t>())[0])>;
+        using type = std::decay_t<decltype((
+            (const vector_t)std::declval<vector_t>())[0])>;
     };
 
     template <class matrix_t>
