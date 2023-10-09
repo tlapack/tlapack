@@ -351,7 +351,7 @@ int lahqz(bool want_s,
                     // B = (         ) with B11 non-negative
                     //     (  0  B22 )
 
-                    // TODO: this depends on lasv2, so we need to merge the
+                    /// @todo: this depends on lasv2, so we need to merge the
                     // SVD PR first.
                     k_defl = 0;
                     istop = istart;

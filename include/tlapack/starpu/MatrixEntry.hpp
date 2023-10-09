@@ -33,7 +33,7 @@ namespace starpu {
         /// Return an empty starpu_codelet struct
         constexpr struct starpu_codelet codelet_init() noexcept
         {
-            /// TODO: Check that this is correctly initializing values to 0 and
+            /// @todo: Check that this is correctly initializing values to 0 and
             /// NULL
             return {};
         }

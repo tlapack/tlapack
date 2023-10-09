@@ -105,7 +105,7 @@ int potf2(uplo_t uplo, matrix_t& A)
                 for (idx_t i = 0; i < j; ++i)
                     colj[i] = conj(colj[i]);
 
-                /// TODO: replace by rscl when available
+                //// @todo: replace by rscl when available
                 scal(one / ajj, rowj);
             }
         }
@@ -141,7 +141,7 @@ int potf2(uplo_t uplo, matrix_t& A)
                 for (idx_t i = 0; i < j; ++i)
                     rowj[i] = conj(rowj[i]);
 
-                /// TODO: replace by rscl when available
+                //// @todo: replace by rscl when available
                 scal(one / ajj, colj);
             }
         }

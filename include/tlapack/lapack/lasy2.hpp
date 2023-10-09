@@ -80,7 +80,7 @@ int lasy2(Op trans_l,
         return info;
     }
     if ((n1 == 2 and n2 == 1) or (n1 == 1 and n2 == 2)) {
-        // TODO
+        /// @todo
         return -1;
     }
     if (n1 == 2 and n2 == 2) {

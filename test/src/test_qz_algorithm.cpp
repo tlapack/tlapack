@@ -159,7 +159,7 @@ TEMPLATE_TEST_CASE("QZ algorithm",
         CHECK(normB_res <= tol * normB);
 
         // Check that the eigenvalues match with the diagonal elements
-        // TODO: also check normalization!
+        /// @todo: also check normalization!
         idx_t i = ilo;
         while (i < ihi) {
             int nb = 1;
