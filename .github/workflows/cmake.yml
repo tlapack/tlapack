@@ -92,7 +92,7 @@ jobs:
         git checkout 2873916f1ca24e3282bf6e0150545d34a16b5224 # master in Aug 21, 2023
 
     - name: Install ninja-build tool
-      uses: seanmiddleditch/gha-setup-ninja@16b940825621068d98711680b6c3ff92201f8fc0 # v3
+      uses: seanmiddleditch/gha-setup-ninja@8b297075da4cd2a5f1fd21fe011b499edf06e9d2 # v4
     
     - name: Install the Basics
       if: ${{ matrix.os == 'ubuntu-latest' }}
@@ -216,7 +216,7 @@ jobs:
         path: lapackpp
 
     - name: Install ninja-build tool
-      uses: seanmiddleditch/gha-setup-ninja@16b940825621068d98711680b6c3ff92201f8fc0 # v3
+      uses: seanmiddleditch/gha-setup-ninja@8b297075da4cd2a5f1fd21fe011b499edf06e9d2 # v4
     
     - name: Install the Basics
       run: |
@@ -311,7 +311,7 @@ jobs:
         path: lapackpp
 
     - name: Install ninja-build tool
-      uses: seanmiddleditch/gha-setup-ninja@16b940825621068d98711680b6c3ff92201f8fc0 # v3
+      uses: seanmiddleditch/gha-setup-ninja@8b297075da4cd2a5f1fd21fe011b499edf06e9d2 # v4
     
     - name: Install the Basics
       run: |
@@ -384,7 +384,7 @@ jobs:
         path: lapackpp
 
     - name: Install ninja-build tool
-      uses: seanmiddleditch/gha-setup-ninja@16b940825621068d98711680b6c3ff92201f8fc0 # v3
+      uses: seanmiddleditch/gha-setup-ninja@8b297075da4cd2a5f1fd21fe011b499edf06e9d2 # v4
 
     - name: Intel Apt repository
       timeout-minutes: 1
@@ -499,7 +499,7 @@ jobs:
         path: lapack
 
     - name: Install ninja-build tool
-      uses: seanmiddleditch/gha-setup-ninja@16b940825621068d98711680b6c3ff92201f8fc0 # v3
+      uses: seanmiddleditch/gha-setup-ninja@8b297075da4cd2a5f1fd21fe011b499edf06e9d2 # v4
     
     - name: Install the Basics
       run: |
@@ -587,7 +587,7 @@ jobs:
         path: lapackpp
 
     - name: Install ninja-build tool
-      uses: seanmiddleditch/gha-setup-ninja@16b940825621068d98711680b6c3ff92201f8fc0 # v3
+      uses: seanmiddleditch/gha-setup-ninja@8b297075da4cd2a5f1fd21fe011b499edf06e9d2 # v4
     
     - name: Install the Basics
       run: |
@@ -671,7 +671,7 @@ jobs:
         git checkout 2873916f1ca24e3282bf6e0150545d34a16b5224 # master in Aug 21, 2023
 
     - name: Install ninja-build tool
-      uses: seanmiddleditch/gha-setup-ninja@16b940825621068d98711680b6c3ff92201f8fc0 # v3
+      uses: seanmiddleditch/gha-setup-ninja@8b297075da4cd2a5f1fd21fe011b499edf06e9d2 # v4
     
     - name: Install the Basics
       run: |
@@ -768,7 +768,7 @@ jobs:
         path: starpu
 
     - name: Install ninja-build tool
-      uses: seanmiddleditch/gha-setup-ninja@16b940825621068d98711680b6c3ff92201f8fc0 # v3
+      uses: seanmiddleditch/gha-setup-ninja@8b297075da4cd2a5f1fd21fe011b499edf06e9d2 # v4
     
     - name: Install the Basics
       run: |
