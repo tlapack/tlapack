@@ -47,6 +47,14 @@ using std::sqrt;
 // C++ standard types:
 using std::pair;
 
+// -----------------------------------------------------------------------------
+// Utility function for squaring a number to avoid using pow for everything
+template <typename T>
+constexpr T square(const T& x)
+{
+    return x * x;
+}
+
 //------------------------------------------------------------------------------
 // Extends std::real(), std::imag(), std::conj() to real numbers
 
