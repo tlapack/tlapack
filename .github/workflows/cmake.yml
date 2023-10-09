@@ -262,23 +262,27 @@ jobs:
       working-directory: ${{github.workspace}}/build
       run: ctest -C ${{env.BUILD_TYPE}} --output-on-failure
 
-    # Mind that the job won't fail if only this step fails
-    - name: Build and run LAPACK++ tests
-      working-directory: ${{github.workspace}}/build
-      continue-on-error: true
+    - name: Build LAPACK++ tests
       run: |
         cmake -B build -D BUILD_LAPACKPP_TESTS=ON
         cmake --build build --config ${{env.BUILD_TYPE}}
-        ctest -C ${{env.BUILD_TYPE}} -R lapackpp_test --output-on-failure
 
     # Mind that the job won't fail if only this step fails
-    - name: Build and run testBLAS tests
-      working-directory: ${{github.workspace}}/build/test/testBLAS
+    - name: Run LAPACK++ tests
+      working-directory: ${{github.workspace}}/build
       continue-on-error: true
+      run: ctest -C ${{env.BUILD_TYPE}} -R lapackpp_test --output-on-failure
+
+    - name: Build testBLAS tests
       run: |
         cmake -B build -D BUILD_testBLAS_TESTS=ON
         cmake --build build --config ${{env.BUILD_TYPE}}
-        ./tester
+
+    # Mind that the job won't fail if only this step fails
+    - name: Run testBLAS tests
+      working-directory: ${{github.workspace}}/build/test/testBLAS
+      continue-on-error: true
+      run: ./tester
 
     - name: Install
       run: sudo cmake --build build --target install
@@ -442,23 +446,27 @@ jobs:
       working-directory: ${{github.workspace}}/build
       run: ctest -C ${{env.BUILD_TYPE}} --output-on-failure
 
-    # Mind that the job won't fail if only this step fails
-    - name: Build and run LAPACK++ tests
-      working-directory: ${{github.workspace}}/build
-      continue-on-error: true
+    - name: Build LAPACK++ tests
       run: |
         cmake -B build -D BUILD_LAPACKPP_TESTS=ON
         cmake --build build --config ${{env.BUILD_TYPE}}
-        ctest -C ${{env.BUILD_TYPE}} -R lapackpp_test --output-on-failure
 
     # Mind that the job won't fail if only this step fails
-    - name: Build and run testBLAS tests
-      working-directory: ${{github.workspace}}/build/test/testBLAS
+    - name: Run LAPACK++ tests
+      working-directory: ${{github.workspace}}/build
       continue-on-error: true
+      run: ctest -C ${{env.BUILD_TYPE}} -R lapackpp_test --output-on-failure
+
+    - name: Build testBLAS tests
       run: |
         cmake -B build -D BUILD_testBLAS_TESTS=ON
         cmake --build build --config ${{env.BUILD_TYPE}}
-        ./tester
+
+    # Mind that the job won't fail if only this step fails
+    - name: Run testBLAS tests
+      working-directory: ${{github.workspace}}/build/test/testBLAS
+      continue-on-error: true
+      run: ./tester
 
     - name: Install
       run: sudo cmake --build build --target install
@@ -551,14 +559,16 @@ jobs:
       working-directory: ${{github.workspace}}/build
       run: ctest -C ${{env.BUILD_TYPE}} --output-on-failure
 
-    # Mind that the job won't fail if only this step fails
-    - name: Build and run testBLAS tests
-      working-directory: ${{github.workspace}}/build/test/testBLAS
-      continue-on-error: true
+    - name: Build testBLAS tests
       run: |
         cmake -B build -D BUILD_testBLAS_TESTS=ON
         cmake --build build --config ${{env.BUILD_TYPE}}
-        ./tester
+
+    # Mind that the job won't fail if only this step fails
+    - name: Run testBLAS tests
+      working-directory: ${{github.workspace}}/build/test/testBLAS
+      continue-on-error: true
+      run: ./tester
 
     - name: Install
       run: sudo cmake --build build --target install
@@ -631,14 +641,16 @@ jobs:
       working-directory: ${{github.workspace}}/build
       run: ctest -C Debug --output-on-failure
 
-    # Mind that the job won't fail if only this step fails
-    - name: Build and run testBLAS tests
-      working-directory: ${{github.workspace}}/build/test/testBLAS
-      continue-on-error: true
+    - name: Build testBLAS tests
       run: |
         cmake -B build -D BUILD_testBLAS_TESTS=ON
         cmake --build build --config ${{env.BUILD_TYPE}}
-        ./tester
+
+    # Mind that the job won't fail if only this step fails
+    - name: Run testBLAS tests
+      working-directory: ${{github.workspace}}/build/test/testBLAS
+      continue-on-error: true
+      run: ./tester
 
     - name: Install
       run: sudo cmake --build build --target install
