@@ -226,3 +226,14 @@ There are two situations in which you may need to update [tests/blaspp](tests/bl
 ### Running Github Actions locally
 
 You can run the Github Actions locally using [act](https://github.com/nektos/act). This is useful for debugging the Github Actions workflow.
+
+### Using `@todo` to mark incomplete code
+
+You can use `@todo` to mark incomplete code. For instance, some code may work for all precisions but not for complex numbers. Then, you could warn in the code: `Implement the complex version of this code`. It is good to do it in a proper manner, so that it is easy to find all the TO-DO's in the code. We suggest using the following:
+
+```cpp
+/// @todo: Implement the complex version of this code
+(Some code goes here)
+```
+
+Using the triple slash `///` with tag `@todo` will make sure that the reminder is visible in the Doxygen documentation.
