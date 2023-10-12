@@ -82,14 +82,14 @@ _Supported in part by [NSF ACI 2004850](http://www.nsf.gov/awardsearch/showAward
     - Multishift implicit QR with Aggressive Early Deflation (AED)
   - [ ] Eigenvector computation
   - [ ] Swap eigenvalues in Schur form
-  - [ ] Generalized Schur problem
-  - [ ] Generalized eigenvalue problem
+  - [x] Generalized Schur problem
+  - [x] Generalized eigenvalue problem
 - [ ] Symmetric Eigenvalue Problem
   - [ ] Tridiagonal reduction
   - [ ] Schur decomposition
   - [ ] Eigenvector computation
 - [ ] Singular Value Decomposition (SVD)
-  - [ ] Standard singular value problem
+  - [x] Standard singular value problem
   - [ ] Generalized singular value problem
 - [ ] Linear least squares
   - [ ] Using QR factorization
