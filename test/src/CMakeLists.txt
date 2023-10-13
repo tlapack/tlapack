@@ -98,6 +98,7 @@ add_executable(test_concepts test_concepts.cpp)
 add_executable(test_norms test_norms.cpp)
 add_executable(test_qz_eig22 test_qz_eig22.cpp testutils.cpp)
 add_executable(test_qz_algorithm test_qz_algorithm.cpp testutils.cpp)
+add_executable(test_inv_house test_inv_house.cpp testutils.cpp)
 
 if(TLAPACK_TEST_EIGEN)
   add_executable(test_eigenplugin test_eigenplugin.cpp)
