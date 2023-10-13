@@ -20,6 +20,7 @@
 #include "tlapack/lapack/inv_house3.hpp"
 #include "tlapack/lapack/lahqz_eig22.hpp"
 #include "tlapack/lapack/lahqz_shiftcolumn.hpp"
+#include "tlapack/lapack/svd22.hpp"
 
 namespace tlapack {
 
@@ -351,9 +352,53 @@ int lahqz(bool want_s,
                     //     ( B11  0  )
                     // B = (         ) with B11 non-negative
                     //     (  0  B22 )
+                    TA ssmin, ssmax, csl, snl, csr, snr;
+                    svd22(B22(0, 0), B22(0, 1), B22(1, 1), ssmin, ssmax, csl,
+                          snl, csr, snr);
 
-                    /// @todo: this depends on lasv2, so we need to merge the
-                    // SVD PR first.
+                    if (ssmax < (TA)0) {
+                        csr = -csr;
+                        snr = -snr;
+                        ssmin = -ssmin;
+                        ssmax = -ssmax;
+                    }
+
+                    B22(0, 0) = ssmax;
+                    B22(1, 1) = ssmin;
+                    B22(0, 1) = (TA)0;
+
+                    // Apply rotations to A
+                    auto a1l = slice(A, istart, range(istart, istop_m));
+                    auto a2l = slice(A, istart + 1, range(istart, istop_m));
+                    rot(a1l, a2l, csl, snl);
+                    auto a1r = slice(A, range(istart_m, istop), istart);
+                    auto a2r = slice(A, range(istart_m, istop), istart + 1);
+                    rot(a1r, a2r, csr, snr);
+                    // Apply rotations to B
+                    if (istart + 2 < n) {
+                        auto b1l = slice(B, istart, range(istart + 2, istop_m));
+                        auto b2l =
+                            slice(B, istart + 1, range(istart + 2, istop_m));
+                        rot(b1l, b2l, csl, snl);
+                    }
+                    auto b1r = slice(B, range(istart_m, istart), istart);
+                    auto b2r = slice(B, range(istart_m, istart), istart + 1);
+                    rot(b1r, b2r, csr, snr);
+
+                    // Apply rotation to Q
+                    if (want_q) {
+                        auto q1 = col(Q, istart);
+                        auto q2 = col(Q, istart + 1);
+                        rot(q1, q2, csl, snl);
+                    }
+
+                    // Apply rotation to Z
+                    if (want_z) {
+                        auto z1 = col(Z, istart);
+                        auto z2 = col(Z, istart + 1);
+                        rot(z1, z2, csr, snr);
+                    }
+
                     k_defl = 0;
                     istop = istart;
                     istart = ilo;

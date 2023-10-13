@@ -57,7 +57,11 @@ void inv_house3(const matrix_t& A, vector_t& v, type_t<vector_t>& tau)
     real_t temp2 = max<real_t>(abs1(A(2, 1)), abs1(A(2, 2)));
 
     if (temp1 < safemin and temp2 < safemin) {
-        // TODO
+        v[0] = (T)0;
+        v[1] = (T)1;
+        v[2] = (T)0;
+        larfg(FORWARD, COLUMNWISE_STORAGE, v, tau);
+        return;
     }
     if (temp1 >= temp2) {
         a11 = A(1, 1);
@@ -95,7 +99,11 @@ void inv_house3(const matrix_t& A, vector_t& v, type_t<vector_t>& tau)
     // Solve upper triangular system
     real_t scale = (real_t)1;
     if (abs1(u22) < safemin) {
-        // TODO
+        v[0] = (T)0;
+        v[1] = (T)1;
+        v[2] = -u12 / u11;
+        larfg(FORWARD, COLUMNWISE_STORAGE, v, tau);
+        return;
     }
     if (abs1(u22) < abs1(v[2])) scale = abs1(u22 / v[2]);
     if (abs1(u11) < abs1(v[1])) scale = min(scale, abs1(u11 / v[1]));
