@@ -418,7 +418,6 @@ int multishift_qr_work(bool want_t,
  *
  *
  * @return  0 if success
- * @return -i if the ith argument is invalid
  * @return  i if the QR algorithm failed to compute all the eigenvalues
  *            elements i:ihi of w contain those eigenvalues which have been
  *            successfully computed.
