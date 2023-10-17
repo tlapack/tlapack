@@ -184,7 +184,7 @@ void multishift_QZ_sweep(bool want_t,
             for (idx_t i = 0; i < n_block - 3 - 2 * i_bulge; ++i) {
                 // Remove fill-in from B using an inverse reflector
                 {
-                    auto T = slice(B2, range{i, i + 3}, range{i, i + 3});
+                    auto T = slice(B2, range{i + 1, i + 3}, range{i, i + 3});
                     inv_house3(T, v, t1);
                 }
 
@@ -394,7 +394,7 @@ void multishift_QZ_sweep(bool want_t,
             for (idx_t i = i2; i < i2 + n_pos; ++i) {
                 // Remove fill-in from B using an inverse reflector
                 {
-                    auto T = slice(B2, range{i, i + 3}, range{i, i + 3});
+                    auto T = slice(B2, range{i + 1, i + 3}, range{i, i + 3});
                     inv_house3(T, v, t1);
                 }
 
@@ -600,7 +600,7 @@ void multishift_QZ_sweep(bool want_t,
             for (idx_t i = i2; i < n_block - 1; ++i) {
                 // Remove fill-in from B using an inverse reflector
                 if (i + 2 < n_block) {
-                    auto T = slice(B2, range{i, i + 3}, range{i, i + 3});
+                    auto T = slice(B2, range{i + 1, i + 3}, range{i, i + 3});
                     inv_house3(T, v, t1);
 
                     // Apply the reflector

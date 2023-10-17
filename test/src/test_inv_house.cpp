@@ -40,7 +40,6 @@ TEMPLATE_TEST_CASE("Inverse householder calculation is correct",
     MatrixMarket mm;
     const int seed = GENERATE(2, 3, 4, 5, 6, 7, 8, 9);
 
-    const idx_t n = 3;
     const real_t zero(0);
     const real_t one(1);
     const real_t tol = 5 * ulp<real_t>();
@@ -50,8 +49,8 @@ TEMPLATE_TEST_CASE("Inverse householder calculation is correct",
 
     // Define the matrices
     std::vector<TA> A_;
-    auto A = new_matrix(A_, n, n);
-    std::vector<TA> v(n);
+    auto A = new_matrix(A_, 2, 3);
+    std::vector<TA> v(3);
 
     mm.random(A);
 
@@ -65,7 +64,7 @@ TEMPLATE_TEST_CASE("Inverse householder calculation is correct",
 
         auto anorm = lange(MAX_NORM, A);
 
+        CHECK(abs(A(0, 0)) <= tol * anorm);
         CHECK(abs(A(1, 0)) <= tol * anorm);
-        CHECK(abs(A(2, 0)) <= tol * anorm);
     }
 }

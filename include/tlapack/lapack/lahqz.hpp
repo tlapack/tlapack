@@ -524,7 +524,7 @@ int lahqz(bool want_s,
             }
 
             // Remove fill-in from B using an inverse reflector
-            auto T = slice(B, range{i, i + 3}, range{i, i + 3});
+            auto T = slice(B, range{i + 1, i + 3}, range{i, i + 3});
             inv_house3(T, v, t1);
 
             // The following code applies the reflector we have just calculated.

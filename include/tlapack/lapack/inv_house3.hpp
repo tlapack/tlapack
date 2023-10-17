@@ -16,12 +16,12 @@
 namespace tlapack {
 
 /** @brief Inv_house calculates a reflector to reduce
- * the first column in a 3x3 matrix from the right to a unit vector. Note that
+ * the first column in a 2x3 matrix A from the right to zero. Note that
  * this is special because a reflector applied from the right would usually
  * reduce a row, not a column. This is known as an inverse reflector.
  *
  * We need to solve the system
- * A x = e_1
+ * A x = 0
  * If we then calculate a reflector that reduces x:
  * H x = alpha e_1,
  * then H is the reflector that we were looking for.
@@ -34,7 +34,7 @@ namespace tlapack {
  *
  * We solve this system of equations using fully pivoted LU
  *
- * @param[in] A 3x3 matrix.
+ * @param[in] A 2x3 matrix.
  * @param[out] v vector of size 3
  * @param[out] tau
  *
@@ -53,8 +53,8 @@ void inv_house3(const matrix_t& A, vector_t& v, type_t<vector_t>& tau)
     T a11, a12, a21, a22;
 
     // Swap rows if necessary
-    real_t temp1 = max<real_t>(abs1(A(1, 1)), abs1(A(1, 2)));
-    real_t temp2 = max<real_t>(abs1(A(2, 1)), abs1(A(2, 2)));
+    real_t temp1 = max<real_t>(abs1(A(0, 1)), abs1(A(0, 2)));
+    real_t temp2 = max<real_t>(abs1(A(1, 1)), abs1(A(1, 2)));
 
     if (temp1 < safemin and temp2 < safemin) {
         v[0] = (T)0;
@@ -64,20 +64,20 @@ void inv_house3(const matrix_t& A, vector_t& v, type_t<vector_t>& tau)
         return;
     }
     if (temp1 >= temp2) {
-        a11 = A(1, 1);
-        a12 = A(1, 2);
-        a21 = A(2, 1);
-        a22 = A(2, 2);
-        v[1] = -A(1, 0);
-        v[2] = -A(2, 0);
-    }
-    else {
-        a11 = A(2, 1);
-        a12 = A(2, 2);
+        a11 = A(0, 1);
+        a12 = A(0, 2);
         a21 = A(1, 1);
         a22 = A(1, 2);
-        v[1] = -A(2, 0);
+        v[1] = -A(0, 0);
         v[2] = -A(1, 0);
+    }
+    else {
+        a11 = A(1, 1);
+        a12 = A(1, 2);
+        a21 = A(0, 1);
+        a22 = A(0, 2);
+        v[1] = -A(1, 0);
+        v[2] = -A(0, 0);
     }
 
     // Swap columns if necessary
