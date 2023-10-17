@@ -16,7 +16,7 @@
 namespace tlapack {
 
 /** @brief Inv_house calculates a reflector to reduce
- * a the first column in a 3x3 matrix from the right to a unit vector. Note that
+ * the first column in a 3x3 matrix from the right to a unit vector. Note that
  * this is special because a reflector applied from the right would usually
  * reduce a row, not a column. This is known as an inverse reflector.
  *
