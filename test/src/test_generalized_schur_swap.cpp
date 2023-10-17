@@ -40,7 +40,7 @@ TEMPLATE_TEST_CASE("generalized schur swap gives correct result",
     idx_t n = 10;
 
     const idx_t j = GENERATE(0, 1, 6);
-    const idx_t n1 = GENERATE(1);
+    const idx_t n1 = GENERATE(1, 2);
     const idx_t n2 = GENERATE(1);
 
     if (is_real<T> || (n1 == 1 && n2 == 1)) {
