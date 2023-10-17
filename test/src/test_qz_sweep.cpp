@@ -104,10 +104,10 @@ TEMPLATE_TEST_CASE("QZ sweep is backward stable",
 
         // Clean the lower triangular part that was used a workspace
         for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = j + 3; i < n; ++i)
+            for (idx_t i = j + 4; i < n; ++i)
                 H(i, j) = zero;
         for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = j + 3; i < n; ++i)
+            for (idx_t i = j + 4; i < n; ++i)
                 T(i, j) = zero;
 
         const real_t eps = uroundoff<real_t>();
