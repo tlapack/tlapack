@@ -175,7 +175,88 @@ int generalized_schur_swap(bool want_q,
         // Swap 1-by-1 block with 2-by-2 block
         //
 
-        // TODO
+        std::vector<T> H_;
+        auto H = new_matrix(H_, 2, 3);
+        std::vector<T> v(3);
+
+        complex_type<T> alpha1, alpha2;
+        T beta1, beta2;
+
+        auto A1 = slice(A, range(j1, j3), range(j1, j3));
+        auto B1 = slice(B, range(j1, j3), range(j1, j3));
+        lahqz_eig22(A1, B1, alpha1, alpha2, beta1, beta2);
+        auto a00 = A(j0, j0);
+        auto b00 = B(j0, j0);
+
+        bool use_b = abs(b00 * alpha1) > abs(beta1 * a00);
+
+        H(0, 0) = b00 * A(j2, j1) - a00 * B(j2, j1);
+        H(0, 1) = b00 * A(j1, j1) - a00 * B(j1, j1);
+        H(0, 2) = b00 * A(j0, j1) - a00 * B(j0, j1);
+        H(1, 0) = b00 * A(j2, j2) - a00 * B(j2, j2);
+        H(1, 1) = b00 * A(j1, j2) - a00 * B(j1, j2);
+        H(1, 2) = b00 * A(j0, j2) - a00 * B(j0, j2);
+
+        T tau;
+        inv_house3(H, v, tau);
+
+        // Apply update from the left
+        for (idx_t j = j0; j < n; ++j) {
+            T sum = A(j2, j) + v[1] * A(j1, j) + v[2] * A(j0, j);
+            A(j2, j) = A(j2, j) - sum * tau;
+            A(j1, j) = A(j1, j) - sum * tau * v[1];
+            A(j0, j) = A(j0, j) - sum * tau * v[2];
+        }
+        for (idx_t j = j0; j < n; ++j) {
+            T sum = B(j2, j) + v[1] * B(j1, j) + v[2] * B(j0, j);
+            B(j2, j) = B(j2, j) - sum * tau;
+            B(j1, j) = B(j1, j) - sum * tau * v[1];
+            B(j0, j) = B(j0, j) - sum * tau * v[2];
+        }
+        for (idx_t j = 0; j < n; ++j) {
+            T sum = Q(j, j2) + v[1] * Q(j, j1) + v[2] * Q(j, j0);
+            Q(j, j2) = Q(j, j2) - sum * tau;
+            Q(j, j1) = Q(j, j1) - sum * tau * v[1];
+            Q(j, j0) = Q(j, j0) - sum * tau * v[2];
+        }
+
+        if (use_b) {
+            v[0] = B(j2, j2);
+            v[1] = B(j2, j1);
+            v[2] = B(j2, j0);
+        }
+        else {
+            v[0] = A(j2, j2);
+            v[1] = A(j2, j1);
+            v[2] = A(j2, j0);
+        }
+
+        larfg(FORWARD, COLUMNWISE_STORAGE, v, tau);
+
+        // Apply update from the right
+        for (idx_t j = 0; j < j3; ++j) {
+            T sum = A(j, j2) + v[1] * A(j, j1) + v[2] * A(j, j0);
+            A(j, j2) = A(j, j2) - sum * tau;
+            A(j, j1) = A(j, j1) - sum * tau * v[1];
+            A(j, j0) = A(j, j0) - sum * tau * v[2];
+        }
+        for (idx_t j = 0; j < j3; ++j) {
+            T sum = B(j, j2) + v[1] * B(j, j1) + v[2] * B(j, j0);
+            B(j, j2) = B(j, j2) - sum * tau;
+            B(j, j1) = B(j, j1) - sum * tau * v[1];
+            B(j, j0) = B(j, j0) - sum * tau * v[2];
+        }
+        for (idx_t j = 0; j < n; ++j) {
+            T sum = Z(j, j2) + v[1] * Z(j, j1) + v[2] * Z(j, j0);
+            Z(j, j2) = Z(j, j2) - sum * tau;
+            Z(j, j1) = Z(j, j1) - sum * tau * v[1];
+            Z(j, j0) = Z(j, j0) - sum * tau * v[2];
+        }
+
+        A(j2, j0) = (T)0;
+        A(j2, j1) = (T)0;
+        B(j2, j0) = (T)0;
+        B(j2, j1) = (T)0;
     }
     if (n1 == 2 and n2 == 1) {
         //
