@@ -1,7 +1,7 @@
 /// @file generalized_schur_swap.hpp
 /// @author Thijs Steel, KU Leuven, Belgium
 /// Adapted from @see
-/// https://github.com/Reference-LAPACK/lapack/tree/master/SRC/dlaexc.f
+/// https://github.com/Reference-LAPACK/lapack/tree/master/SRC/dtgex2.f
 //
 // Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
@@ -16,10 +16,13 @@
 #include "tlapack/blas/rot.hpp"
 #include "tlapack/blas/rotg.hpp"
 #include "tlapack/blas/swap.hpp"
+#include "tlapack/blas/trsv.hpp"
+#include "tlapack/lapack/getrf.hpp"
 #include "tlapack/lapack/inv_house3.hpp"
 #include "tlapack/lapack/lahqz_eig22.hpp"
 #include "tlapack/lapack/lange.hpp"
 #include "tlapack/lapack/larfg.hpp"
+#include "tlapack/lapack/svd22.hpp"
 
 namespace tlapack {
 
@@ -348,8 +351,190 @@ int generalized_schur_swap(bool want_q,
         //
         // Swap 2-by-2 block with 2-by-2 block
         //
+        std::vector<T> M_;
+        auto M = new_matrix(M_, 8, 8);
+        std::vector<T> x(8);
+        std::vector<idx_t> piv(8);
 
-        // TODO
+        for (idx_t j = 0; j < 8; ++j)
+            for (idx_t i = 0; i < 8; ++i)
+                M(i, j) = (T)0;
+
+        // Construct matrix with kronecker structure
+        // I (x) A00
+        M(0, 0) = A(j0, j0);
+        M(0, 1) = A(j0, j1);
+        M(1, 0) = A(j1, j0);
+        M(1, 1) = A(j1, j1);
+        M(2, 2) = A(j0, j0);
+        M(2, 3) = A(j0, j1);
+        M(3, 2) = A(j1, j0);
+        M(3, 3) = A(j1, j1);
+        // I (x) B00
+        M(4, 0) = B(j0, j0);
+        M(4, 1) = B(j0, j1);
+        M(5, 0) = B(j1, j0);
+        M(5, 1) = B(j1, j1);
+        M(6, 2) = B(j0, j0);
+        M(6, 3) = B(j0, j1);
+        M(7, 2) = B(j1, j0);
+        M(7, 3) = B(j1, j1);
+        // A11T (x) I
+        M(0, 4) = -A(j2, j2);
+        M(0, 5) = -A(j3, j2);
+        M(1, 6) = -A(j2, j2);
+        M(1, 7) = -A(j3, j2);
+        M(2, 4) = -A(j2, j3);
+        M(2, 5) = -A(j3, j3);
+        M(3, 6) = -A(j2, j3);
+        M(3, 7) = -A(j3, j3);
+        // B11T (x) I
+        M(4, 4) = -B(j2, j2);
+        M(4, 5) = -B(j3, j2);
+        M(5, 6) = -B(j2, j2);
+        M(5, 7) = -B(j3, j2);
+        M(6, 4) = -B(j2, j3);
+        M(6, 5) = -B(j3, j3);
+        M(7, 6) = -B(j2, j3);
+        M(7, 7) = -B(j3, j3);
+        // RHS
+        x[0] = A(j0, j2);
+        x[1] = A(j1, j2);
+        x[2] = A(j0, j3);
+        x[3] = A(j1, j3);
+        x[4] = B(j0, j2);
+        x[5] = B(j1, j2);
+        x[6] = B(j0, j3);
+        x[7] = B(j1, j3);
+        // LU of M
+        int ierr = getrf(M, piv);
+        if (ierr != 0) return 1;
+        // Apply pivot to rhs
+        for (idx_t i = 0; i < 8; ++i) {
+            if (i != piv[i]) std::swap(x[i], x[piv[i]]);
+        }
+        // Solve Ly = rhs
+        trsv(LOWER_TRIANGLE, NO_TRANS, UNIT_DIAG, M, x);
+        // Solve Ux = y
+        trsv(UPPER_TRIANGLE, NO_TRANS, NON_UNIT_DIAG, M, x);
+
+        // Find Q so that
+        //       [ -x[0] -x[2] ]   [ *  * ]
+        //  Q^T  [ -x[1] -x[3] ] = [ *  * ]
+        //       [ 1     0     ]   [ 0  0 ]
+        //       [ 0     1     ]   [ 0  0 ]
+
+        // Rotation to make X upper triangular
+        T cxl1, sxl1;
+        rotg(x[0], x[1], cxl1, sxl1);
+        x[1] = (T)0;
+        T rottemp = cxl1 * x[2] + sxl1 * x[3];
+        x[3] = -sxl1 * x[2] + cxl1 * x[3];
+        x[2] = rottemp;
+        // SVD of (upper triangular) X
+        T cxl2, sxl2, cxr, sxr, ssx1, ssx2;
+        svd22(x[0], x[2], x[3], ssx2, ssx1, cxl2, sxl2, cxr, sxr);
+        // Fuse left rotations
+        T cxl, sxl;
+        cxl = cxl1 * cxl2 - sxl1 * sxl2;
+        sxl = cxl2 * sxl1 + sxl2 * cxl1;
+        // Rotations based on the singular values
+        ssx1 = -ssx1;
+        ssx2 = -ssx2;
+        T temp = (T)1;
+        T cx1, sx1, cx2, sx2;
+        rotg(ssx1, temp, cx1, sx1);
+        temp = (T)1;
+        rotg(ssx2, temp, cx2, sx2);
+
+        // Find Z so that
+        //       [ 1     0     ]   [ 0  0 ]
+        //  Z^T  [ 0     1     ] = [ 0  0 ]
+        //       [ x[4]  x[6]  ]   [ *  * ]
+        //       [ x[5]  x[7]  ]   [ *  * ]
+
+        // Rotation to make Y^T upper triangular
+        T cyl1, syl1;
+        rotg(x[4], x[5], cyl1, syl1);
+        x[5] = (T)0;
+        rottemp = cyl1 * x[6] + syl1 * x[7];
+        x[7] = -syl1 * x[6] + cyl1 * x[7];
+        x[6] = rottemp;
+        // SVD of (upper triangular) Y
+        T cyl2, syl2, cyr, syr, ssy1, ssy2;
+        svd22(x[4], x[6], x[7], ssy2, ssy1, cyl2, syl2, cyr, syr);
+        // Fuse left rotations
+        T cyl, syl;
+        cyl = cyl1 * cyl2 - syl1 * syl2;
+        syl = cyl2 * syl1 + syl2 * cyl1;
+        // Rotations based on the singular values
+        temp = (T)1;
+        T cy1, sy1, cy2, sy2;
+        rotg(ssy1, temp, cy1, sy1);
+        temp = (T)1;
+        rotg(ssy2, temp, cy2, sy2);
+
+        // Apply rotations from the left
+        {
+            auto a0 = slice(A, j0, range(j0, n));
+            auto a1 = slice(A, j1, range(j0, n));
+            auto a2 = slice(A, j2, range(j0, n));
+            auto a3 = slice(A, j3, range(j0, n));
+            rot(a0, a1, cyr, syr);
+            rot(a2, a3, cyl, syl);
+            rot(a2, a0, cy1, sy1);
+            rot(a3, a1, cy2, sy2);
+
+            auto b0 = slice(B, j0, range(j0, n));
+            auto b1 = slice(B, j1, range(j0, n));
+            auto b2 = slice(B, j2, range(j0, n));
+            auto b3 = slice(B, j3, range(j0, n));
+            rot(b0, b1, cyr, syr);
+            rot(b2, b3, cyl, syl);
+            rot(b2, b0, cy1, sy1);
+            rot(b3, b1, cy2, sy2);
+
+            auto q0 = col(Q, j0);
+            auto q1 = col(Q, j1);
+            auto q2 = col(Q, j2);
+            auto q3 = col(Q, j3);
+            rot(q0, q1, cyr, syr);
+            rot(q2, q3, cyl, syl);
+            rot(q2, q0, cy1, sy1);
+            rot(q3, q1, cy2, sy2);
+        }
+
+        // Apply rotations from the right
+        {
+            auto a0 = slice(A, range(0, j3 + 1), j0);
+            auto a1 = slice(A, range(0, j3 + 1), j1);
+            auto a2 = slice(A, range(0, j3 + 1), j2);
+            auto a3 = slice(A, range(0, j3 + 1), j3);
+            rot(a0, a1, cxl, sxl);
+            rot(a2, a3, cxr, sxr);
+            rot(a0, a2, cx1, sx1);
+            rot(a1, a3, cx2, sx2);
+
+            auto b0 = slice(B, range(0, j3 + 1), j0);
+            auto b1 = slice(B, range(0, j3 + 1), j1);
+            auto b2 = slice(B, range(0, j3 + 1), j2);
+            auto b3 = slice(B, range(0, j3 + 1), j3);
+            rot(b0, b1, cxl, sxl);
+            rot(b2, b3, cxr, sxr);
+            rot(b0, b2, cx1, sx1);
+            rot(b1, b3, cx2, sx2);
+
+            auto z0 = col(Z, j0);
+            auto z1 = col(Z, j1);
+            auto z2 = col(Z, j2);
+            auto z3 = col(Z, j3);
+            rot(z0, z1, cxl, sxl);
+            rot(z2, z3, cxr, sxr);
+            rot(z0, z2, cx1, sx1);
+            rot(z1, z3, cx2, sx2);
+        }
+
+        // TODO: check backward error
     }
 
     // Standardize the 2x2 Schur blocks (if any)
