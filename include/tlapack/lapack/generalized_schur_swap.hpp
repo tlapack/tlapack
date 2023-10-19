@@ -596,11 +596,69 @@ int generalized_schur_swap(bool want_q,
             rot(z0, z2, cx1, sx1);
             rot(z1, z3, cx2, sx2);
         }
+
+        // Set relevant parts to zero
+        A(j2, j0) = (T)0;
+        A(j3, j0) = (T)0;
+        A(j2, j1) = (T)0;
+        A(j3, j1) = (T)0;
+        B(j2, j0) = (T)0;
+        B(j3, j0) = (T)0;
+        B(j2, j1) = (T)0;
+        B(j3, j1) = (T)0;
     }
 
     // Standardize the 2x2 Schur blocks (if any)
     if (n2 == 2) {
-        // TODO
+        // Make B upper triangular
+        T cl1, sl1;
+        rotg(B(j0, j0), B(j1, j0), cl1, sl1);
+        B(j1, j0) = (T)0;
+        {
+            auto b1 = slice(B, j0, range(j1, j2));
+            auto b2 = slice(B, j1, range(j1, j2));
+            rot(b1, b2, cl1, sl1);
+        }
+        // Standard form
+        T ssmin, ssmax, cl2, sl2, cr, sr;
+        svd22(B(j0, j0), B(j0, j1), B(j1, j1), ssmin, ssmax, cl2, sl2, cr, sr);
+        if (ssmax < (T)0) {
+            cr = -cr;
+            sr = -sr;
+            ssmin = -ssmin;
+            ssmax = -ssmax;
+        }
+        B(j0, j0) = ssmax;
+        B(j1, j1) = ssmin;
+        B(j0, j1) = (T)0;
+        // Fuse left rotations
+        T cl, sl;
+        cl = cl1 * cl2 - sl1 * sl2;
+        sl = cl2 * sl1 + sl2 * cl1;
+        // Apply left rotation
+        {
+            auto a1 = slice(A, j0, range(j0, n));
+            auto a2 = slice(A, j1, range(j0, n));
+            rot(a1, a2, cl, sl);
+            auto b1 = slice(B, j0, range(j2, n));
+            auto b2 = slice(B, j1, range(j2, n));
+            rot(b1, b2, cl, sl);
+            auto q0 = col(Q, j0);
+            auto q1 = col(Q, j1);
+            rot(q0, q1, cl, sl);
+        }
+        // Apply right rotation
+        {
+            auto a1 = slice(A, range(0, j2), j0);
+            auto a2 = slice(A, range(0, j2), j1);
+            rot(a1, a2, cr, sr);
+            auto b1 = slice(B, range(0, j0), j0);
+            auto b2 = slice(B, range(0, j0), j1);
+            rot(b1, b2, cr, sr);
+            auto z0 = col(Z, j0);
+            auto z1 = col(Z, j1);
+            rot(z0, z1, cr, sr);
+        }
     }
     if (n1 == 2) {
         // TODO
