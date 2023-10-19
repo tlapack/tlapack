@@ -82,7 +82,9 @@ TEMPLATE_TEST_CASE("generalized schur swap gives correct result",
 
         DYNAMIC_SECTION("j = " << j << " n1 = " << n1 << " n2 =" << n2)
         {
-            generalized_schur_swap(true, true, A, B, Q, Z, j, n1, n2);
+            int ierr =
+                generalized_schur_swap(true, true, A, B, Q, Z, j, n1, n2);
+            CHECK(ierr == 0);
             // Calculate residuals
 
             std::vector<T> res_;

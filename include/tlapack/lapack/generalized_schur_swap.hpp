@@ -418,9 +418,9 @@ int generalized_schur_swap(bool want_q,
         // Solve Ux = y
         trsv(UPPER_TRIANGLE, NO_TRANS, NON_UNIT_DIAG, M, x);
 
-        // Find Q so that
+        // Find Zc so that
         //       [ -x[0] -x[2] ]   [ *  * ]
-        //  Q^T  [ -x[1] -x[3] ] = [ *  * ]
+        //  Zc^T  [ -x[1] -x[3] ] = [ *  * ]
         //       [ 1     0     ]   [ 0  0 ]
         //       [ 0     1     ]   [ 0  0 ]
 
@@ -447,9 +447,9 @@ int generalized_schur_swap(bool want_q,
         temp = (T)1;
         rotg(ssx2, temp, cx2, sx2);
 
-        // Find Z so that
+        // Find Qc so that
         //       [ 1     0     ]   [ 0  0 ]
-        //  Z^T  [ 0     1     ] = [ 0  0 ]
+        //  Qc^T  [ 0     1     ] = [ 0  0 ]
         //       [ x[4]  x[6]  ]   [ *  * ]
         //       [ x[5]  x[7]  ]   [ *  * ]
 
@@ -473,6 +473,69 @@ int generalized_schur_swap(bool want_q,
         rotg(ssy1, temp, cy1, sy1);
         temp = (T)1;
         rotg(ssy2, temp, cy2, sy2);
+
+        // Perform the swap on a local matrix and check the error
+        std::vector<T> AA_;
+        auto AA = new_matrix(AA_, 4, 4);
+        std::vector<T> BB_;
+        auto BB = new_matrix(BB_, 4, 4);
+
+        lacpy(GENERAL, slice(A, range(j0, j3 + 1), range(j0, j3 + 1)), AA);
+        lacpy(GENERAL, slice(B, range(j0, j3 + 1), range(j0, j3 + 1)), BB);
+
+        auto norma = lange(FROB_NORM, AA);
+        auto normb = lange(FROB_NORM, BB);
+
+        // Apply rotations from the left to local matrices
+        {
+            auto a0 = row(AA, 0);
+            auto a1 = row(AA, 1);
+            auto a2 = row(AA, 2);
+            auto a3 = row(AA, 3);
+            rot(a0, a1, cyr, syr);
+            rot(a2, a3, cyl, syl);
+            rot(a2, a0, cy1, sy1);
+            rot(a3, a1, cy2, sy2);
+
+            auto b0 = row(BB, 0);
+            auto b1 = row(BB, 1);
+            auto b2 = row(BB, 2);
+            auto b3 = row(BB, 3);
+            rot(b0, b1, cyr, syr);
+            rot(b2, b3, cyl, syl);
+            rot(b2, b0, cy1, sy1);
+            rot(b3, b1, cy2, sy2);
+        }
+        // Apply rotations from the right to local matrices
+        {
+            auto a0 = col(AA, 0);
+            auto a1 = col(AA, 1);
+            auto a2 = col(AA, 2);
+            auto a3 = col(AA, 3);
+            rot(a0, a1, cxl, sxl);
+            rot(a2, a3, cxr, sxr);
+            rot(a0, a2, cx1, sx1);
+            rot(a1, a3, cx2, sx2);
+
+            auto b0 = col(BB, 0);
+            auto b1 = col(BB, 1);
+            auto b2 = col(BB, 2);
+            auto b3 = col(BB, 3);
+            rot(b0, b1, cxl, sxl);
+            rot(b2, b3, cxr, sxr);
+            rot(b0, b2, cx1, sx1);
+            rot(b1, b3, cx2, sx2);
+        }
+
+        // Weak stability test
+        auto enorma = lange(FROB_NORM, slice(AA, range(2, 4), range(0, 2)));
+        auto enormb = lange(FROB_NORM, slice(BB, range(2, 4), range(0, 2)));
+        const T eps = ulp<T>();
+        const T small_num = safe_min<T>();
+        if (enorma > max((T)20 * norma * eps, small_num)) return 1;
+        if (enormb > max((T)20 * normb * eps, small_num)) return 1;
+
+        // TODO: strong stability test
 
         // Apply rotations from the left
         {
@@ -533,8 +596,6 @@ int generalized_schur_swap(bool want_q,
             rot(z0, z2, cx1, sx1);
             rot(z1, z3, cx2, sx2);
         }
-
-        // TODO: check backward error
     }
 
     // Standardize the 2x2 Schur blocks (if any)
