@@ -661,7 +661,56 @@ int generalized_schur_swap(bool want_q,
         }
     }
     if (n1 == 2) {
-        // TODO
+        // Make B upper triangular
+        T cl1, sl1;
+        rotg(B(j0 + n2, j0 + n2), B(j1 + n2, j0 + n2), cl1, sl1);
+        B(j1 + n2, j0 + n2) = (T)0;
+        {
+            auto b1 = slice(B, j0 + n2, range(j1 + n2, j2 + n2));
+            auto b2 = slice(B, j1 + n2, range(j1 + n2, j2 + n2));
+            rot(b1, b2, cl1, sl1);
+        }
+        // Standard form
+        T ssmin, ssmax, cl2, sl2, cr, sr;
+        svd22(B(j0 + n2, j0 + n2), B(j0 + n2, j1 + n2), B(j1 + n2, j1 + n2),
+              ssmin, ssmax, cl2, sl2, cr, sr);
+        if (ssmax < (T)0) {
+            cr = -cr;
+            sr = -sr;
+            ssmin = -ssmin;
+            ssmax = -ssmax;
+        }
+        B(j0 + n2, j0 + n2) = ssmax;
+        B(j1 + n2, j1 + n2) = ssmin;
+        B(j0 + n2, j1 + n2) = (T)0;
+        // Fuse left rotations
+        T cl, sl;
+        cl = cl1 * cl2 - sl1 * sl2;
+        sl = cl2 * sl1 + sl2 * cl1;
+        // Apply left rotation
+        {
+            auto a1 = slice(A, j0 + n2, range(j0 + n2, n));
+            auto a2 = slice(A, j1 + n2, range(j0 + n2, n));
+            rot(a1, a2, cl, sl);
+            auto b1 = slice(B, j0 + n2, range(j2 + n2, n));
+            auto b2 = slice(B, j1 + n2, range(j2 + n2, n));
+            rot(b1, b2, cl, sl);
+            auto q0 = col(Q, j0 + n2);
+            auto q1 = col(Q, j1 + n2);
+            rot(q0, q1, cl, sl);
+        }
+        // Apply right rotation
+        {
+            auto a1 = slice(A, range(0, j2 + n2), j0 + n2);
+            auto a2 = slice(A, range(0, j2 + n2), j1 + n2);
+            rot(a1, a2, cr, sr);
+            auto b1 = slice(B, range(0, j0 + n2), j0 + n2);
+            auto b2 = slice(B, range(0, j0 + n2), j1 + n2);
+            rot(b1, b2, cr, sr);
+            auto z0 = col(Z, j0 + n2);
+            auto z1 = col(Z, j1 + n2);
+            rot(z0, z1, cr, sr);
+        }
     }
 
     return 0;
