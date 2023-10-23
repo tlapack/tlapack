@@ -12,10 +12,7 @@
 #ifndef TLAPACK_GESVD_HH
 #define TLAPACK_GESVD_HH
 
-#include <optional>
-
 #include "tlapack/base/utils.hpp"
-#include "tlapack/blas/gemm.hpp"
 #include "tlapack/lapack/gebrd.hpp"
 #include "tlapack/lapack/svd_qr.hpp"
 #include "tlapack/lapack/ungbr.hpp"
@@ -26,75 +23,10 @@ namespace tlapack {
  * Options struct for gesvd
  */
 struct GesvdOpts {
-    // If either max(m,n)/min(m,n) is larger than shapethresh, a QR
-    // factorization is used before
+    /// @todo If either max(m,n)/min(m,n) is larger than shapethresh, a QR
+    /// factorization is used before
     float shapethresh = 1.6;
 };
-
-/** Worspace query of gesvd()
- *
- * @return The amount of workspace required.
- *
- * @param[in] want_u bool
- *
- * @param[in] want_vt bool
- *
- * @param[in,out] A m-by-n matrix.
- *
- * @param[out] s vector of length min(m,n).
- *      The singular values of A, sorted so that S(i) >= S(i+1).
- *
- * @param[in,out] U m-by-m matrix.
- *
- * @param[in,out] Vt n-by-n matrix.
- *
- * @param[in] opts Options.
- *      - @c opts.work is used if whenever it has sufficient size.
- *        The sufficient size can be obtained through a workspace query.
- *
- * @ingroup workspace_query
- */
-template <TLAPACK_SMATRIX matrix_t, TLAPACK_SVECTOR r_vector_t>
-constexpr WorkInfo gesvd_worksize(bool want_u,
-                                  bool want_vt,
-                                  matrix_t& A,
-                                  r_vector_t& s,
-                                  matrix_t& U,
-                                  matrix_t& Vt,
-                                  const GesvdOpts& opts = {})
-{
-    using idx_t = size_type<matrix_t>;
-    // using pair = std::pair<idx_t, idx_t>;
-
-    const idx_t m = nrows(A);
-    const idx_t n = ncols(A);
-    const idx_t k = min(m, n);
-
-    WorkInfo workinfo(k, 3);
-
-    // if (m >= n) {
-    //     auto tau = slice(A, 0, pair{0, k});
-    //     workinfo += gebrd_worksize(A, tau, tau);
-    //     if (want_u) {
-    //         workinfo += ungbr_q_worksize(k, n, U, tau);
-    //     }
-    //     if (want_vt) {
-    //         workinfo += ungbr_p_worksize(k, m, Vt, tau);
-    //     }
-    // }
-    // else {
-    //     auto tau = slice(A, pair{0, k}, 0);
-    //     workinfo += gebrd_worksize(A, tau, tau);
-    //     if (want_u) {
-    //         workinfo += ungbr_q_worksize(k, n, U, tau);
-    //     }
-    //     if (want_vt) {
-    //         workinfo += ungbr_p_worksize(k, m, Vt, tau);
-    //     }
-    // }
-
-    return workinfo;
-}
 
 /**
  * Computes the singular values and, optionally, the right and/or
@@ -106,8 +38,8 @@ constexpr WorkInfo gesvd_worksize(bool want_u,
  * right singular vectors. Depending on the dimensions of U and Vt,
  * either the reduced or full unitary factors are determined.
  *
- * NOTE: the LAPACK function GESVD also allows returning either U or Vt
- * inside of A. I'm not sure how to design the interface to allow this.
+ * @note There is no option to return U or Vt in A. This functionality is
+ * present in zgesvd in Reference LAPACK.
  *
  * @return  0 if success
  *
@@ -140,34 +72,27 @@ int gesvd(bool want_u,
           const GesvdOpts& opts = {})
 {
     using idx_t = size_type<matrix_t>;
-    using work_t = matrix_type<matrix_t>;
-    using pair = pair<idx_t, idx_t>;
-    using T = type_t<matrix_t>;
-    using real_t = real_type<T>;
+    using range = pair<idx_t, idx_t>;
 
-    // Functor
-    Create<work_t> new_matrix;
+    // Functors
+    Create<vector_type<matrix_t>> new_vector;
+    Create<vector_type<r_vector_t>> new_rvector;
 
     // constants
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
     const idx_t k = min(m, n);
+    const Uplo uplo = (m >= n) ? Uplo::Upper : Uplo::Lower;
 
-    // Allocates workspace
-    WorkInfo workinfo = gesvd_worksize(want_u, want_vt, A, s, U, Vt, opts);
-    std::vector<T> work_;
-    auto work = new_matrix(work_, workinfo.m, workinfo.n);
+    // Allocate vectors
+    std::vector<type_t<matrix_t>> tauv_, tauw_;
+    auto tauv = new_vector(tauv_, k);
+    auto tauw = new_vector(tauw_, k);
+    std::vector<type_t<r_vector_t>> e_;
+    auto e = new_rvector(e_, k);
 
-    auto tauv = col(work, 1);
-    auto tauw = col(work, 2);
-
-    /// @todo: update to _work version
-    gebrd(A, tauv, tauw, GebrdOpts{});
-
-    // For now, we use a locally allocated vector, because I don't know how to
-    // make a real_t vector wrapper of the correct type.
-    std::vector<real_t> e(k);
-    // auto e = col(work, 0);
+    // Reduce A to bidiagonal form
+    gebrd(A, tauv, tauw);
 
     if (m >= n) {
         // copy upper bidiagonal matrix
@@ -185,24 +110,18 @@ int gesvd(bool want_u,
     }
 
     if (want_u) {
-        auto Ui = slice(U, pair{0, m}, pair{0, k});
-        lacpy(Uplo::Lower, slice(A, pair{0, m}, pair{0, k}), Ui);
-        /// @todo: update to _work version
-        ungbr_q(n, U, tauv, UngbrOpts{});
+        auto Ui = slice(U, range{0, m}, range{0, k});
+        lacpy(Uplo::Lower, slice(A, range{0, m}, range{0, k}), Ui);
+        ungbr_q(n, U, tauv);
     }
 
     if (want_vt) {
-        auto Vti = slice(Vt, pair{0, k}, pair{0, n});
-        lacpy(Uplo::Upper, slice(A, pair{0, k}, pair{0, n}), Vti);
-        /// @todo: update to _work version
-        ungbr_p(m, Vt, tauw, UngbrOpts{});
+        auto Vti = slice(Vt, range{0, k}, range{0, n});
+        lacpy(Uplo::Upper, slice(A, range{0, k}, range{0, n}), Vti);
+        ungbr_p(m, Vt, tauw);
     }
 
-    Uplo uplo = (m >= n) ? Uplo::Upper : Uplo::Lower;
-
-    int ierr = svd_qr(uplo, want_u, want_vt, s, e, U, Vt);
-
-    return ierr;
+    return svd_qr(uplo, want_u, want_vt, s, e, U, Vt);
 }
 
 }  // namespace tlapack
