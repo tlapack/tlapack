@@ -93,62 +93,59 @@ TEMPLATE_TEST_CASE("Concept Workspace works as expected",
         CHECK_THROWS(tlapack::reshape(A, 15));
 
         // Reshapes contiguous data
-        if constexpr (tlapack::legacy::is_legacy_type<matrix_t>) {
-            const bool is_contiguous = (A.m * A.n <= 1) ||
-                                       (A.layout == tlapack::Layout::ColMajor &&
-                                        (A.ldim == A.m || A.n <= 1)) ||
-                                       (A.layout == tlapack::Layout::RowMajor &&
-                                        (A.ldim == A.n || A.m <= 1));
-            if (is_contiguous) {
-                auto [B, w0] = tlapack::reshape(A, 4, 3);
+        {
+            auto [B, w0] = tlapack::reshape(A, 4, 3);
+            REQUIRE(Workspace<decltype(w0)>);
+            auto [C, w1] = tlapack::reshape(A, 3, 3);
+            REQUIRE(Workspace<decltype(w1)>);
+            auto [D, w2] = tlapack::reshape(A, 2, 4);
+            REQUIRE(Workspace<decltype(w2)>);
+            auto [E, w3] = tlapack::reshape(A, 10);
+            REQUIRE(Workspace<decltype(w3)>);
+        }
+
+        // Reshapes non-contiguous matrix
+        {
+            auto A0 = tlapack::slice(A, std::pair{0, 2}, std::pair{0, 3});
+            auto [B, w0] = tlapack::reshape(A0, 2, 2);
+            REQUIRE(Workspace<decltype(w0)>);
+            auto [C, w1] = tlapack::reshape(A0, 1, 3);
+            REQUIRE(Workspace<decltype(w1)>);
+            auto [d, w2] = tlapack::reshape(A0, 2);
+            REQUIRE(Workspace<decltype(w2)>);
+            auto [e, w3] = tlapack::reshape(A0, 3);
+            REQUIRE(Workspace<decltype(w3)>);
+        }
+
+        // Reshapes non-contiguous vector
+        {
+            auto A0 = tlapack::slice(A, std::pair{0, 3}, 0);
+            auto A1 = tlapack::slice(A, 0, std::pair{0, 4});
+            try {
+                auto [B, w0] = tlapack::reshape(A0, 3, 1);
                 REQUIRE(Workspace<decltype(w0)>);
-                auto [C, w1] = tlapack::reshape(A, 3, 3);
+                auto [C, w1] = tlapack::reshape(A0, 2, 1);
                 REQUIRE(Workspace<decltype(w1)>);
-                auto [D, w2] = tlapack::reshape(A, 2, 4);
+                auto [D, w2] = tlapack::reshape(A1, 1, 4);
                 REQUIRE(Workspace<decltype(w2)>);
-                auto [E, w3] = tlapack::reshape(A, 10);
+                auto [E, w3] = tlapack::reshape(A1, 1, 2);
                 REQUIRE(Workspace<decltype(w3)>);
             }
-        }
-    #ifdef TLAPACK_TEST_EIGEN
-        else if constexpr (tlapack::eigen::is_eigen_type<matrix_t>) {
-            const bool is_contiguous =
-                (A.size() <= 1) ||
-                (matrix_t::IsRowMajor
-                     ? (A.outerStride() == A.cols() || A.rows() <= 1)
-                     : (A.outerStride() == A.rows() || A.cols() <= 1));
-            if (is_contiguous) {
-                auto [B, w0] = tlapack::reshape(A, 4, 3);
+            catch (...) {
+                auto [B, w0] = tlapack::reshape(A0, 1, 3);
                 REQUIRE(Workspace<decltype(w0)>);
-                auto [C, w1] = tlapack::reshape(A, 3, 3);
+                auto [C, w1] = tlapack::reshape(A0, 1, 2);
                 REQUIRE(Workspace<decltype(w1)>);
-                auto [D, w2] = tlapack::reshape(A, 2, 4);
+                auto [D, w2] = tlapack::reshape(A1, 4, 1);
                 REQUIRE(Workspace<decltype(w2)>);
-                auto [E, w3] = tlapack::reshape(A, 10);
+                auto [E, w3] = tlapack::reshape(A1, 2, 1);
                 REQUIRE(Workspace<decltype(w3)>);
             }
+            auto [f, w4] = tlapack::reshape(A0, 2);
+            REQUIRE(Workspace<decltype(w4)>);
+            auto [g, w5] = tlapack::reshape(A1, 3);
+            REQUIRE(Workspace<decltype(w5)>);
         }
-    #endif
-    #ifdef TLAPACK_TEST_MDSPAN
-        else if constexpr (tlapack::mdspan::is_mdspan_type<matrix_t>) {
-            const bool is_contiguous =
-                (A.size() <= 1) ||
-                (A.stride(0) == 1 &&
-                 (A.stride(1) == A.extent(0) || A.extent(1) <= 1)) ||
-                (A.stride(1) == 1 &&
-                 (A.stride(0) == A.extent(1) || A.extent(0) <= 1));
-            if (is_contiguous) {
-                auto [B, w0] = tlapack::reshape(A, 4, 3);
-                REQUIRE(Workspace<decltype(w0)>);
-                auto [C, w1] = tlapack::reshape(A, 3, 3);
-                REQUIRE(Workspace<decltype(w1)>);
-                auto [D, w2] = tlapack::reshape(A, 2, 4);
-                REQUIRE(Workspace<decltype(w2)>);
-                auto [E, w3] = tlapack::reshape(A, 10);
-                REQUIRE(Workspace<decltype(w3)>);
-            }
-        }
-    #endif
     }
 
     {
@@ -167,49 +164,16 @@ TEMPLATE_TEST_CASE("Concept Workspace works as expected",
         CHECK_THROWS(tlapack::reshape(v, 1, 12));
 
         // Reshapes contiguous data successfully
-        if constexpr (tlapack::legacy::is_legacy_type<matrix_t>) {
-            const bool is_contiguous = (v.inc == 1) || (v.n <= 1);
-            if (is_contiguous) {
-                auto [b, w0] = tlapack::reshape(v, 4, 2);
-                REQUIRE(Workspace<decltype(w0)>);
-                auto [c, w1] = tlapack::reshape(v, 8, 1);
-                REQUIRE(Workspace<decltype(w1)>);
-                auto [d, w2] = tlapack::reshape(v, 1, 8);
-                REQUIRE(Workspace<decltype(w2)>);
-                auto [e, w3] = tlapack::reshape(v, 7);
-                REQUIRE(Workspace<decltype(w3)>);
-            }
+        {
+            auto [b, w0] = tlapack::reshape(v, 4, 2);
+            REQUIRE(Workspace<decltype(w0)>);
+            auto [c, w1] = tlapack::reshape(v, 8, 1);
+            REQUIRE(Workspace<decltype(w1)>);
+            auto [d, w2] = tlapack::reshape(v, 1, 8);
+            REQUIRE(Workspace<decltype(w2)>);
+            auto [e, w3] = tlapack::reshape(v, 7);
+            REQUIRE(Workspace<decltype(w3)>);
         }
-    #ifdef TLAPACK_TEST_EIGEN
-        else if constexpr (tlapack::eigen::is_eigen_type<matrix_t>) {
-            const bool is_contiguous = (v.size() <= 1 || v.innerStride() == 1);
-            if (is_contiguous) {
-                auto [b, w0] = tlapack::reshape(v, 4, 2);
-                REQUIRE(Workspace<decltype(w0)>);
-                auto [c, w1] = tlapack::reshape(v, 8, 1);
-                REQUIRE(Workspace<decltype(w1)>);
-                auto [d, w2] = tlapack::reshape(v, 1, 8);
-                REQUIRE(Workspace<decltype(w2)>);
-                auto [e, w3] = tlapack::reshape(v, 7);
-                REQUIRE(Workspace<decltype(w3)>);
-            }
-        }
-    #endif
-    #ifdef TLAPACK_TEST_MDSPAN
-        else if constexpr (tlapack::mdspan::is_mdspan_type<matrix_t>) {
-            const bool is_contiguous = (v.size() <= 1 || v.stride(0) == 1);
-            if (is_contiguous) {
-                auto [b, w0] = tlapack::reshape(v, 4, 2);
-                REQUIRE(Workspace<decltype(w0)>);
-                auto [c, w1] = tlapack::reshape(v, 8, 1);
-                REQUIRE(Workspace<decltype(w1)>);
-                auto [d, w2] = tlapack::reshape(v, 1, 8);
-                REQUIRE(Workspace<decltype(w2)>);
-                auto [e, w3] = tlapack::reshape(v, 7);
-                REQUIRE(Workspace<decltype(w3)>);
-            }
-        }
-    #endif
     }
 }
 
