@@ -237,3 +237,15 @@ You can use `@todo` to mark incomplete code. For instance, some code may work fo
 ```
 
 Using the triple slash `///` with tag `@todo` will make sure that the reminder is visible in the Doxygen documentation.
+
+### Return types of \<T\>LAPACK routines
+
+\<T\>LAPACK routines have three types of return:
+
+1. Routines that return `void`. The void return is reserved for BLAS routines that do not return a value, e.g., `tlapack::scal()` and `tlapack::gemm()`, and for some auxiliary routines like `tlapack::lassq()` and `tlapack::larf()`. Those routines are not supposed to fail and do not need to signal invalid outputs, so they do not return an error code. They could still throw an exception if the input is invalid. See flag `TLAPACK_CHECK_INPUT` in [README.md](README.md#tlapack-options) for more details.
+
+2. Routine that return a value. Those routines are supposed to return a value, e.g., `tlapack::iamax()` and `tlapack::lange()`. The return value is the result of the routine as explained in its documentation. 
+
+3. Routines that return an integer. Those routines are supposed to return an error code, e.g., `tlapack::getrf()` and `tlapack::potrf()`. A zero return means that the routine was successful. A non-zero return means that the routine failed to execute and that the output parameters are not valid. The documentation of each routine should specify the significance of each error code.
+
+A routine that fits in the categories 2 and 3, i.e., returns a value and may signal invalid outputs, should have those invalid outputs explicitly in its documentation. For instance, a return 0 in `tlapack::iamax()` will be used to both (1) signal that the input vector is empty and (2) signal that there is a `NAN` at the first position of the input vector.

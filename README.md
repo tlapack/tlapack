@@ -316,7 +316,7 @@ Please read [CONTRIBUTING.md](https://github.com/tlapack/tlapack/blob/master/CON
 
 ## Testing
 
-\<T\>LAPACK is continuously tested on Ubuntu, MacOS and Windows using GNU compilers. See the latest test results in the [Github Actions](https://github.com/tlapack/tlapack/actions/workflows/cmake.yml) webpage for \<T\>LAPACK. The tests split into three categories:
+\<T\>LAPACK is continuously tested on Ubuntu, MacOS and Windows using GNU compilers. See the latest test results in the [Github Actions](https://github.com/tlapack/tlapack/actions) webpage for \<T\>LAPACK. The tests split into three categories:
 
 - Test routines in [test/src](test/src) using
 

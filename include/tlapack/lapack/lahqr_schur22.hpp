@@ -23,14 +23,6 @@ namespace tlapack {
  *  A = [a b] = [cs -sn] [aa bb] [ cs sn]
  *      [c d]   [sn  cs] [cc dd] [-sn cs]
  *
- * This routine is designed for real matrices.
- * If the template T is complex, it returns with error
- * and does nothing. (This is so we don't need c++17's static if
- * but still keep the code somewhat clean).
- *
- * @return 0 if the template T is real
- * @return -1 if the template T is complex
- *
  * @param[in,out] a scalar, A(0,0).
  * @param[in,out] b scalar, A(0,1).
  * @param[in,out] c scalar, A(1,0).
@@ -48,15 +40,15 @@ namespace tlapack {
  *
  * @ingroup auxiliary
  */
-template <TLAPACK_REAL T, enable_if_t<is_real<T>, bool> = true>
-int lahqr_schur22(T& a,
-                  T& b,
-                  T& c,
-                  T& d,
-                  complex_type<T>& s1,
-                  complex_type<T>& s2,
-                  T& cs,
-                  T& sn)
+template <TLAPACK_REAL T>
+void lahqr_schur22(T& a,
+                   T& b,
+                   T& c,
+                   T& d,
+                   complex_type<T>& s1,
+                   complex_type<T>& s2,
+                   T& cs,
+                   T& sn)
 {
     const T zero(0);
     const T half(0.5);
@@ -186,13 +178,6 @@ int lahqr_schur22(T& a,
         s1 = a;
         s2 = d;
     }
-    return 0;
-}
-
-template <TLAPACK_COMPLEX T, enable_if_t<is_complex<T>, bool> = true>
-int lahqr_schur22(T& a, T& b, T& c, T& d, T& s1, T& s2, real_type<T>& cs, T& sn)
-{
-    return -1;
 }
 
 }  // namespace tlapack

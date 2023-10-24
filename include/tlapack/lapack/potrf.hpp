@@ -92,10 +92,8 @@ int potrf(uplo_t uplo, matrix_t& A, const PotrfOpts& opts = {})
         return potrf2(uplo, A, opts);
     else if (opts.variant == PotrfVariant::Level2)
         return potf2(uplo, A);
-    else if (opts.variant == PotrfVariant::RightLooking)
-        return potrf_rl(uplo, A, opts);
     else
-        return -3;
+        return potrf_rl(uplo, A, opts);
 }
 
 }  // namespace tlapack
