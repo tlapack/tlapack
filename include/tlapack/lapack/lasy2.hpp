@@ -25,9 +25,9 @@ namespace tlapack {
  *
  *  where TL is N1 by N1, TR is N2 by N2, B is N1 by N2, and ISGN = 1 or
  *  -1.  op(T) = T or T**T, where T**T denotes the transpose of T.
- * 
+ *
  * @note Sets <tt>scale = 1</tt> and <tt>xnorm = 0</tt> if N1 = N2 = 0.
- * 
+ *
  * @todo Implement for n1=2 and n2=1 or n1=1 and n2=2.
  *
  * @ingroup auxiliary
