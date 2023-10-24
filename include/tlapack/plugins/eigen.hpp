@@ -791,9 +791,9 @@ auto reshape(vector_t& v, Eigen::Index n)
     if (n > v.size())
         throw std::domain_error("New size is larger than current size");
 
-    return std::make_pair(
-        map_t((T*)v.data(), n, stride),
-        map_t((T*)v.data() + n * stride, v.size() - n, stride));
+    return std::make_pair(map_t((T*)v.data(), n, Eigen::InnerStride<>(stride)),
+                          map_t((T*)v.data() + n * stride, v.size() - n,
+                                Eigen::InnerStride<>(stride)));
 }
 
 // -----------------------------------------------------------------------------
