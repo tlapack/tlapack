@@ -482,15 +482,17 @@ namespace concepts {
      * @brief Concept for a workspace.
      *
      * A workspace is a type that can be reshaped. The reshape operation returns
-     * a @c std::pair of two objects: a matrix (or vector) and a remaining
-     * workspace. The matrix (or vector) uses the raw in the original workspace
-     * and has the requested shape. The remaining workspace stores all the data
-     * that was not needed in the reshape. Thus, the shape of the matrix (or
-     * vector) does not need to match the shape of the original workspace. For
-     * instance, if @c work has size 50, the call @c reshape(work, 10, 2)
-     * returns a pair of a 10-by-2 matrix and a workspace of size 30. The matrix
-     * uses 20 entries of the original workspace, and the remaining 30 entries
-     * are stored in the remaining workspace. In a similar example, the call
+     * a @c std::pair of two objects: a matrix (or vector) and an object that
+     * holds the remaining workspace. The type, layout and other properties of
+     * the returned matrix (or vector) are defined by the reshape operation and,
+     * therefore, each object type has should have its own implementation of
+     * that functionality. Since the remaining workspace is returned, the shape
+     * of the matrix (or vector) does not need to match the size of the original
+     * workspace. For instance, if an object @c work has size 50, the call @c
+     * reshape(work, 10, 2) returns a pair of a 10-by-2 matrix and a workspace
+     * of size 30. The matrix uses 20 entries of the original workspace, and the
+     * remaining 30 entries are stored in the remaining workspace. In a similar
+     * example, the call
      * @c reshape(work, 35) returns a pair of a vector of size 35 and a
      * workspace of size 15. The operations
      * @c reshape(T&, size_t) and @c reshape(T&, size_t, size_t) must be

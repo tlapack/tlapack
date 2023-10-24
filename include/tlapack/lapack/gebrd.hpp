@@ -82,11 +82,11 @@ int gebrd_work(matrix_t& A,
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
     using TA = type_t<matrix_t>;
-    using T = type_t<work_t>;
     using real_t = real_type<TA>;
 
     // constants
     const real_t one(1);
+    const type_t<work_t> zero(0);
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
     const idx_t k = min(m, n);
@@ -95,8 +95,8 @@ int gebrd_work(matrix_t& A,
     // Matrices X and Y
     auto [X, work2] = reshape(work, m, nb);
     auto [Y, work3] = reshape(work2, n, nb);
-    laset(GENERAL, T(0), T(0), X);
-    laset(GENERAL, T(0), T(0), Y);
+    laset(GENERAL, zero, zero, X);
+    laset(GENERAL, zero, zero, Y);
 
     for (idx_t i = 0; i < k; i = i + nb) {
         idx_t ib = min(nb, k - i);

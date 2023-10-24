@@ -678,6 +678,10 @@ template <typename T, class idx_t, typename int_t, Direction direction>
 auto reshape(LegacyVector<T, idx_t, int_t, direction>& v,
              size_type<LegacyMatrix<T, idx_t>> n)
 {
+    // Check arguments
+    if (n > v.n)
+        throw std::domain_error("New size is larger than current size");
+
     return std::make_pair(slice(v, std::pair{0, n}),
                           slice(v, std::pair{n, v.n}));
 }

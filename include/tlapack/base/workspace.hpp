@@ -17,7 +17,6 @@ struct WorkInfo {
     size_t m = 0;               ///< Number of rows needed in the Workspace
     size_t n = 1;               ///< Number of columns needed in the Workspace
     bool isContiguous = false;  ///< True if the Workspace is contiguous
-    bool isVector;  ///< True if the Workspace is a vector at compile time
 
     /// Constructor using sizes
     constexpr WorkInfo(size_t m, size_t n) noexcept
@@ -165,6 +164,9 @@ struct WorkInfo {
         else
             return WorkInfo(n, m);
     }
+
+   protected:
+    bool isVector;  ///< True if the Workspace is a vector at compile time
 };
 
 }  // namespace tlapack
