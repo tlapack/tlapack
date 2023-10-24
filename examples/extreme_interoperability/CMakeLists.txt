@@ -6,7 +6,7 @@
 
 cmake_minimum_required(VERSION 3.1)
 
-project( interoperability CXX )
+project( extreme_interoperability CXX )
 
 # Load <T>LAPACK
 if( NOT TARGET tlapack )

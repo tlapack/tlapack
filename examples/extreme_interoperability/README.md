@@ -1,4 +1,4 @@
-# Example: interoperability
+# Example: Extreme interoperability
 
 In this example, we show how \<T\>LAPACK routines are prepared to handle input matrices and vectors of different classes. This example shows how to use `std::mdspan`, `std::vector`, `Eigen::Matrix` and `tlapack::LegacyVector` classes seamlessly with routines like [tlapack::syr](../../include/blas/syr.hpp), [tlapack::trmm](../../include/blas/trmm.hpp) and [tlapack::getrf](../../include/lapack/potrf.hpp).
 

@@ -40,6 +40,6 @@ This is the list of examples and brief descriptions:
 
   Create a static library with single precision from the \<T\>LAPACK library.
 
-- [interoperability](interoperability/README.md)
+- [extreme_interoperability](extreme_interoperability/README.md)
 
   Use \<T\>LAPACK with different data structures: std::mdspan, std::vector and Eigen::Matrix.
