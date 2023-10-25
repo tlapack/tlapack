@@ -11,7 +11,9 @@
 #define TLAPACK_MDSPAN_HH
 
 #include <cassert>
-#include <experimental/mdspan>
+#include <experimental/mdspan>  // Use mdspan from
+                                // https://github.com/kokkos/mdspan because we
+                                // need the `submdspan` functionality
 
 #include "tlapack/base/arrayTraits.hpp"
 
