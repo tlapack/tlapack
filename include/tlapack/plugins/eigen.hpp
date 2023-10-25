@@ -562,27 +562,6 @@ constexpr auto diag(T& A, int diagIdx = 0) noexcept
 // Transpose view
 template <class matrix_t,
           typename std::enable_if<(eigen::is_eigen_type<matrix_t> &&
-                                   matrix_t::IsVectorAtCompileTime),
-                                  int>::type = 0>
-constexpr auto transpose_view(matrix_t& A) noexcept
-{
-    using T = typename matrix_t::Scalar;
-    using Stride = Eigen::InnerStride<>;
-
-    constexpr int Rows_ = matrix_t::ColsAtCompileTime;
-    constexpr int Cols_ = matrix_t::RowsAtCompileTime;
-
-    using transpose_t = Eigen::Matrix<
-        T, Rows_, Cols_,
-        (matrix_t::IsRowMajor) ? Eigen::ColMajor : Eigen::RowMajor,
-        matrix_t::MaxColsAtCompileTime, matrix_t::MaxRowsAtCompileTime>;
-
-    using map_t = Eigen::Map<transpose_t, Eigen::Unaligned, Stride>;
-
-    return map_t((T*)A.data(), A.size(), A.innerStride());
-}
-template <class matrix_t,
-          typename std::enable_if<(eigen::is_eigen_type<matrix_t> &&
                                    !matrix_t::IsVectorAtCompileTime),
                                   int>::type = 0>
 constexpr auto transpose_view(matrix_t& A) noexcept
@@ -604,33 +583,217 @@ constexpr auto transpose_view(matrix_t& A) noexcept
     return map_t((T*)A.data(), A.cols(), A.rows(), A.outerStride());
 }
 
-template <
-    class matrix_t,
-    typename std::enable_if<eigen::is_eigen_type<matrix_t>, int>::type = 0>
-auto reshape(matrix_t& A, Eigen::Index m, Eigen::Index n) noexcept
+// Reshape view into matrices
+template <class matrix_t,
+          typename std::enable_if<(eigen::is_eigen_type<matrix_t> &&
+                                   !matrix_t::IsVectorAtCompileTime),
+                                  int>::type = 0>
+auto reshape(matrix_t& A, Eigen::Index m, Eigen::Index n)
 {
+    using idx_t = Eigen::Index;
     using T = typename matrix_t::Scalar;
-    using Stride = Eigen::OuterStride<>;
-    assert(A.innerStride() == 1);
+    using newm_t =
+        Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic,
+                      matrix_t::IsRowMajor ? Eigen::RowMajor : Eigen::ColMajor>;
+    using map_t = Eigen::Map<newm_t, Eigen::Unaligned, Eigen::OuterStride<>>;
 
-    using rmatrix_t = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic,
-                                    (matrix_t::IsRowMajor) ? Eigen::RowMajor
-                                                           : Eigen::ColMajor>;
-    using map_t = Eigen::Map<rmatrix_t, Eigen::Unaligned, Stride>;
+    // constants
+    const idx_t size = A.size();
+    const idx_t new_size = m * n;
+    const idx_t stride = A.outerStride();
+    const bool is_contiguous =
+        (size <= 1) ||
+        (matrix_t::IsRowMajor ? (stride == A.cols() || A.rows() <= 1)
+                              : (stride == A.rows() || A.cols() <= 1));
 
-    if (m == A.rows() && n == A.cols())
-        return map_t((T*)A.data(), m, n, A.outerStride());
-    else {
-        assert((m * n == A.size()) &&
-               "reshape: new shape must have the same "
-               "number of elements as the original one");
-        assert(((!matrix_t::IsRowMajor &&
-                 (A.outerStride() == A.rows() || A.cols() <= 1)) ||
-                (matrix_t::IsRowMajor &&
-                 (A.outerStride() == A.cols() || A.rows() <= 1))) &&
-               "reshape: data must be contiguous in memory");
-        return map_t((T*)A.data(), m, n, (matrix_t::IsRowMajor ? n : m));
+    // Check arguments
+    if (new_size > size)
+        throw std::domain_error("New size is larger than current size");
+    if (A.innerStride() != 1)
+        throw std::domain_error(
+            "Reshaping is not available for matrices with inner stride "
+            "different than 1.");
+
+    if (is_contiguous) {
+        const idx_t s = size - new_size;
+        if constexpr (matrix_t::IsRowMajor)
+            return std::make_pair(map_t((T*)A.data(), m, n, n),
+                                  map_t((T*)A.data() + new_size, 1, s, s));
+        else
+            return std::make_pair(map_t((T*)A.data(), m, n, m),
+                                  map_t((T*)A.data() + new_size, s, 1, s));
     }
+    else {
+        if (m == A.rows() || n == 0) {
+            return std::make_pair(
+                map_t((T*)A.data(), m, n, stride),
+                map_t((T*)A.data() + (matrix_t::IsRowMajor ? n : n * stride),
+                      A.rows(), A.cols() - n, stride));
+        }
+        else if (n == A.cols() || m == 0) {
+            return std::make_pair(
+                map_t((T*)A.data(), m, n, stride),
+                map_t((T*)A.data() + (matrix_t::IsRowMajor ? m * stride : m),
+                      A.rows() - m, A.cols(), stride));
+        }
+        else {
+            throw std::domain_error(
+                "Cannot reshape to non-contiguous matrix if both the number of "
+                "rows and columns are different.");
+        }
+    }
+}
+template <class vector_t,
+          typename std::enable_if<(eigen::is_eigen_type<vector_t> &&
+                                   vector_t::IsVectorAtCompileTime),
+                                  int>::type = 0>
+auto reshape(vector_t& v, Eigen::Index m, Eigen::Index n)
+{
+    using idx_t = Eigen::Index;
+    constexpr idx_t Rows_ = vector_t::IsRowMajor ? 1 : Eigen::Dynamic;
+    constexpr idx_t Cols_ = vector_t::IsRowMajor ? Eigen::Dynamic : 1;
+
+    using T = typename vector_t::Scalar;
+    using newm_t = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic,
+                                 (vector_t::IsRowMajor) ? Eigen::RowMajor
+                                                        : Eigen::ColMajor>;
+    using newv_t = Eigen::Matrix<T, Rows_, Cols_,
+                                 (vector_t::IsRowMajor) ? Eigen::RowMajor
+                                                        : Eigen::ColMajor>;
+    using map0_t = Eigen::Map<newm_t, Eigen::Unaligned, Eigen::OuterStride<>>;
+    using map1_t = Eigen::Map<newv_t, Eigen::Unaligned, Eigen::InnerStride<>>;
+
+    // constants
+    const idx_t size = v.size();
+    const idx_t new_size = m * n;
+    const idx_t s = size - new_size;
+    const idx_t stride = v.innerStride();
+    const bool is_contiguous = (size <= 1 || stride == 1);
+
+    // Check arguments
+    if (new_size > size)
+        throw std::domain_error("New size is larger than current size");
+    if (!is_contiguous && (newm_t::IsRowMajor ? (n > 1) : (m > 1)))
+        throw std::domain_error(
+            "New sizes are not compatible with the current vector.");
+
+    if (is_contiguous) {
+        return std::make_pair(
+            map0_t((T*)v.data(), m, n, (newm_t::IsRowMajor) ? n : m),
+            map1_t((T*)v.data() + new_size, s, Eigen::InnerStride<>(1)));
+    }
+    else {
+        return std::make_pair(map0_t((T*)v.data(), m, n, stride),
+                              map1_t((T*)v.data() + new_size * stride, s,
+                                     Eigen::InnerStride<>(stride)));
+    }
+}
+
+// Reshape view into vectors
+template <class matrix_t,
+          typename std::enable_if<(eigen::is_eigen_type<matrix_t> &&
+                                   !matrix_t::IsVectorAtCompileTime),
+                                  int>::type = 0>
+auto reshape(matrix_t& A, Eigen::Index n)
+{
+    using idx_t = Eigen::Index;
+    constexpr idx_t Rows_ = matrix_t::IsRowMajor ? 1 : Eigen::Dynamic;
+    constexpr idx_t Cols_ = matrix_t::IsRowMajor ? Eigen::Dynamic : 1;
+
+    using T = typename matrix_t::Scalar;
+    using newm_t =
+        Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic,
+                      matrix_t::IsRowMajor ? Eigen::RowMajor : Eigen::ColMajor>;
+    using newv_t =
+        Eigen::Matrix<T, Rows_, Cols_,
+                      matrix_t::IsRowMajor ? Eigen::RowMajor : Eigen::ColMajor>;
+    using map0_t = Eigen::Map<newv_t, Eigen::Unaligned, Eigen::InnerStride<>>;
+    using map1_t = Eigen::Map<newm_t, Eigen::Unaligned, Eigen::OuterStride<>>;
+
+    // constants
+    const idx_t size = A.size();
+    const idx_t stride = A.outerStride();
+    const bool is_contiguous =
+        (size <= 1) ||
+        (matrix_t::IsRowMajor ? (stride == A.cols() || A.rows() <= 1)
+                              : (stride == A.rows() || A.cols() <= 1));
+
+    // Check arguments
+    if (n > size)
+        throw std::domain_error("New size is larger than current size");
+    if (A.innerStride() != 1)
+        throw std::domain_error(
+            "Reshaping is not available for matrices with inner stride "
+            "different than 1.");
+
+    if (is_contiguous) {
+        const idx_t s = size - n;
+        return std::make_pair(map0_t((T*)A.data(), n, Eigen::InnerStride<>(1)),
+                              (matrix_t::IsRowMajor)
+                                  ? map1_t((T*)A.data() + n, 1, s, s)
+                                  : map1_t((T*)A.data() + n, s, 1, s));
+    }
+    else {
+        if (n == 0) {
+            return std::make_pair(
+                map0_t((T*)A.data(), 0, Eigen::InnerStride<>(1)),
+                map1_t((T*)A.data(), A.rows(), A.cols(), stride));
+        }
+        else if (n == A.rows()) {
+            if constexpr (matrix_t::IsRowMajor)
+                return std::make_pair(
+                    map0_t((T*)A.data(), n, Eigen::InnerStride<>(stride)),
+                    map1_t((T*)A.data() + 1, A.rows(), A.cols() - 1, stride));
+            else
+                return std::make_pair(
+                    map0_t((T*)A.data(), n, Eigen::InnerStride<>(1)),
+                    map1_t((T*)A.data() + stride, A.rows(), A.cols() - 1,
+                           stride));
+        }
+        else if (n == A.cols()) {
+            if constexpr (matrix_t::IsRowMajor)
+                return std::make_pair(
+                    map0_t((T*)A.data(), n, Eigen::InnerStride<>(1)),
+                    map1_t((T*)A.data() + stride, A.rows() - 1, A.cols(),
+                           stride));
+            else
+                return std::make_pair(
+                    map0_t((T*)A.data(), n, Eigen::InnerStride<>(stride)),
+                    map1_t((T*)A.data() + 1, A.rows() - 1, A.cols(), stride));
+        }
+        else {
+            throw std::domain_error(
+                "Cannot reshape to non-contiguous matrix into a vector if the "
+                "new size is different from the number of rows and columns.");
+        }
+    }
+}
+template <class vector_t,
+          typename std::enable_if<(eigen::is_eigen_type<vector_t> &&
+                                   vector_t::IsVectorAtCompileTime),
+                                  int>::type = 0>
+auto reshape(vector_t& v, Eigen::Index n)
+{
+    using idx_t = Eigen::Index;
+    constexpr idx_t Rows_ = vector_t::IsRowMajor ? 1 : Eigen::Dynamic;
+    constexpr idx_t Cols_ = vector_t::IsRowMajor ? Eigen::Dynamic : 1;
+
+    using T = typename vector_t::Scalar;
+    using newv_t =
+        Eigen::Matrix<T, Rows_, Cols_,
+                      vector_t::IsRowMajor ? Eigen::RowMajor : Eigen::ColMajor>;
+    using map_t = Eigen::Map<newv_t, Eigen::Unaligned, Eigen::InnerStride<>>;
+
+    // constants
+    const idx_t stride = v.innerStride();
+
+    // Check arguments
+    if (n > v.size())
+        throw std::domain_error("New size is larger than current size");
+
+    return std::make_pair(map_t((T*)v.data(), n, Eigen::InnerStride<>(stride)),
+                          map_t((T*)v.data() + n * stride, v.size() - n,
+                                Eigen::InnerStride<>(stride)));
 }
 
 // -----------------------------------------------------------------------------

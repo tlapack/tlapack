@@ -164,10 +164,9 @@ int ungq_work(direction_t direction,
     // quick return
     if (m <= 0 || n <= 0) return 0;
 
-    auto matrixT = (min(m, n) > nb)
-                       ? slice(work, range{nrows(work) - nb, nrows(work)},
-                               range{ncols(work) - nb, ncols(work)})
-                       : slice(work, range{0, 0}, range{0, 0});
+    // Matrix matrixT
+    auto [matrixT, work1] =
+        (min(m, n) > nb) ? reshape(work, nb, nb) : reshape(work, 0, 0);
 
     if (storeMode == StoreV::Columnwise) {
         if (direction == Direction::Forward) {
@@ -190,7 +189,7 @@ int ungq_work(direction_t direction,
 
                     larft(FORWARD, COLUMNWISE_STORAGE, V, tauj, matrixTj);
                     larfb_work(LEFT_SIDE, NO_TRANS, FORWARD, COLUMNWISE_STORAGE,
-                               V, matrixTj, C, work);
+                               V, matrixTj, C, work1);
                 }
 
                 // Apply block reflector to A( 0:m, j:j+ib )$ from the left
@@ -225,7 +224,7 @@ int ungq_work(direction_t direction,
 
                     larft(BACKWARD, COLUMNWISE_STORAGE, V, tauj, matrixTj);
                     larfb_work(LEFT_SIDE, NO_TRANS, BACKWARD,
-                               COLUMNWISE_STORAGE, V, matrixTj, C, work);
+                               COLUMNWISE_STORAGE, V, matrixTj, C, work1);
                 }
 
                 // Apply block reflector to A( 0:m, jj:jj+ib )$ from the left
@@ -257,7 +256,7 @@ int ungq_work(direction_t direction,
 
                     larft(FORWARD, ROWWISE_STORAGE, V, taui, matrixTi);
                     larfb_work(RIGHT_SIDE, CONJ_TRANS, FORWARD, ROWWISE_STORAGE,
-                               V, matrixTi, C, work);
+                               V, matrixTi, C, work1);
                 }
 
                 // Apply block reflector to A( i:i+ib, 0:n )$ from the right
@@ -292,7 +291,7 @@ int ungq_work(direction_t direction,
 
                     larft(BACKWARD, ROWWISE_STORAGE, V, taui, matrixTi);
                     larfb_work(RIGHT_SIDE, CONJ_TRANS, BACKWARD,
-                               ROWWISE_STORAGE, V, matrixTi, C, work);
+                               ROWWISE_STORAGE, V, matrixTi, C, work1);
                 }
 
                 // Apply block reflector to A( ii:ii+ib, 0:n )$ from the left

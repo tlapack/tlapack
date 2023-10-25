@@ -551,19 +551,139 @@ constexpr auto slice(LegacyVector<T, idx_t, int_t, direction>& v,
 template <typename T, class idx_t, Layout layout>
 auto reshape(LegacyMatrix<T, idx_t, layout>& A,
              size_type<LegacyMatrix<T, idx_t>> m,
-             size_type<LegacyMatrix<T, idx_t>> n) noexcept
+             size_type<LegacyMatrix<T, idx_t>> n)
 {
-    if (m == A.m && n == A.n)
-        return A;
-    else {
-        assert((m * n == A.m * A.n) &&
-               "reshape: new shape must have the same "
-               "number of elements as the original one");
-        assert(((layout == Layout::ColMajor && (A.ldim == A.m || A.n <= 1)) ||
-                (layout == Layout::RowMajor && (A.ldim == A.n || A.m <= 1))) &&
-               "reshape: data must be contiguous in memory");
-        return LegacyMatrix<T, idx_t, layout>(m, n, &A.ptr[0]);
+    using matrix_t = LegacyMatrix<T, idx_t, layout>;
+
+    // constants
+    const idx_t size = A.m * A.n;
+    const idx_t new_size = m * n;
+    const bool is_contiguous =
+        (size <= 1) ||
+        (layout == Layout::ColMajor && (A.ldim == A.m || A.n <= 1)) ||
+        (layout == Layout::RowMajor && (A.ldim == A.n || A.m <= 1));
+
+    // Check arguments
+    if (new_size > size)
+        throw std::domain_error("New size is larger than current size");
+
+    if (is_contiguous) {
+        return std::make_pair(
+            matrix_t(m, n, &A.ptr[0]),
+            (layout == Layout::ColMajor)
+                ? matrix_t(size - new_size, 1, &A.ptr[0] + new_size)
+                : matrix_t(1, size - new_size, &A.ptr[0] + new_size));
     }
+    else {
+        if (m == A.m || n == 0)
+            return std::make_pair(cols(A, std::pair{0, n}),
+                                  cols(A, std::pair{n, A.n}));
+        else if (n == A.n || m == 0)
+            return std::make_pair(rows(A, std::pair{0, m}),
+                                  rows(A, std::pair{m, A.m}));
+        else
+            throw std::domain_error(
+                "Cannot reshape to non-contiguous matrix into a matrix if both "
+                "the number of rows and columns are different from the new "
+                "ones.");
+    }
+}
+template <typename T, class idx_t, Layout layout>
+auto reshape(LegacyMatrix<T, idx_t, layout>& A,
+             size_type<LegacyMatrix<T, idx_t>> n)
+{
+    using vector_t = LegacyVector<T, idx_t, idx_t>;
+    using matrix_t = LegacyMatrix<T, idx_t, layout>;
+
+    // constants
+    const idx_t size = A.m * A.n;
+    const bool is_contiguous =
+        (size <= 1) ||
+        (layout == Layout::ColMajor && (A.ldim == A.m || A.n <= 1)) ||
+        (layout == Layout::RowMajor && (A.ldim == A.n || A.m <= 1));
+
+    // Check arguments
+    if (n > size)
+        throw std::domain_error("New size is larger than current size");
+
+    if (is_contiguous) {
+        return std::make_pair(vector_t(n, &A.ptr[0]),
+                              (layout == Layout::ColMajor)
+                                  ? matrix_t(size - n, 1, &A.ptr[0] + n)
+                                  : matrix_t(1, size - n, &A.ptr[0] + n));
+    }
+    else {
+        if (n == 0) {
+            return std::make_pair(vector_t(0, &A.ptr[0]), A);
+        }
+        else if (n == A.m) {
+            if constexpr (layout == Layout::ColMajor)
+                return std::make_pair(
+                    vector_t(n, &A.ptr[0], 1),
+                    matrix_t(A.m, A.n - 1, &A.ptr[0] + A.ldim, A.ldim));
+            else
+                return std::make_pair(
+                    vector_t(n, &A.ptr[0], A.ldim),
+                    matrix_t(A.m, A.n - 1, &A.ptr[0] + 1, A.ldim));
+        }
+        else if (n == A.n) {
+            if constexpr (layout == Layout::ColMajor)
+                return std::make_pair(
+                    vector_t(n, &A.ptr[0], A.ldim),
+                    matrix_t(A.m - 1, A.n, &A.ptr[0] + 1, A.ldim));
+            else
+                return std::make_pair(
+                    vector_t(n, &A.ptr[0], 1),
+                    matrix_t(A.m - 1, A.n, &A.ptr[0] + A.ldim, A.ldim));
+        }
+        else {
+            throw std::domain_error(
+                "Cannot reshape to non-contiguous matrix into a vector if the "
+                "new size is different from the number of rows and columns.");
+        }
+    }
+}
+
+// Reshape LegacyVector
+template <typename T, class idx_t, typename int_t, Direction direction>
+auto reshape(LegacyVector<T, idx_t, int_t, direction>& v,
+             size_type<LegacyMatrix<T, idx_t>> m,
+             size_type<LegacyMatrix<T, idx_t>> n)
+{
+    using matrix_t = LegacyMatrix<T, idx_t, Layout::ColMajor>;
+    using vector_t = LegacyVector<T, idx_t, int_t, direction>;
+
+    // constants
+    const idx_t new_size = m * n;
+    const idx_t s = v.n - new_size;
+    const bool is_contiguous = (v.inc == 1) || (v.n <= 1);
+
+    // Check arguments
+    if (new_size > v.n)
+        throw std::domain_error("New size is larger than current size");
+    if (!is_contiguous && m > 1)
+        throw std::domain_error(
+            "New sizes are not compatible with the current vector.");
+
+    if (is_contiguous) {
+        return std::make_pair(matrix_t(m, n, &v.ptr[0]),
+                              vector_t(s, &v.ptr[0] + new_size));
+    }
+    else {
+        return std::make_pair(matrix_t(m, n, &v.ptr[0], v.inc),
+                              vector_t(s, &v.ptr[0] + new_size * v.inc, v.inc));
+    }
+}
+template <typename T, class idx_t, typename int_t, Direction direction>
+auto reshape(LegacyVector<T, idx_t, int_t, direction>& v,
+             size_type<LegacyMatrix<T, idx_t>> n)
+{
+    // Check arguments
+    if (n > v.n)
+        throw std::domain_error("New size is larger than current size");
+
+    return std::make_pair(slice(v, std::pair{0, n}),
+                          slice(v, std::pair{n, v.n}));
 }
 
 // -----------------------------------------------------------------------------

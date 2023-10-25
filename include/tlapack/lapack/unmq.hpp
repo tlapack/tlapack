@@ -90,10 +90,10 @@ constexpr WorkInfo unmq_worksize(side_t side,
     using range = pair<idx_t, idx_t>;
 
     // Constants
-    const idx_t m = nrows(V);
-    const idx_t n = ncols(V);
-    const idx_t nQ = (side == Side::Left) ? m : n;
+    const idx_t m = nrows(C);
+    const idx_t n = ncols(C);
     const idx_t k = size(tau);
+    const idx_t nQ = (side == Side::Left) ? m : n;
     const idx_t nb = min((idx_t)opts.nb, k);
 
     // Local workspace sizes
@@ -162,8 +162,8 @@ int unmq_work(side_t side,
     // quick return
     if (m <= 0 || n <= 0 || k <= 0) return 0;
 
-    auto matrixT = slice(work, range{nrows(work) - nb, nrows(work)},
-                         range{ncols(work) - nb, ncols(work)});
+    // Matrix matrixT
+    auto [matrixT, work1] = reshape(work, nb, nb);
 
     // const expressions
     const bool positiveIncLeft =
@@ -195,7 +195,7 @@ int unmq_work(side_t side,
             auto Ci = (side == Side::Left) ? slice(C, rangev, range{0, n})
                                            : slice(C, range{0, m}, rangev);
             larfb_work(side, trans, direction, COLUMNWISE_STORAGE, Vi, matrixTi,
-                       Ci, work);
+                       Ci, work1);
         }
     }
     else {
@@ -216,7 +216,7 @@ int unmq_work(side_t side,
                                            : slice(C, range{0, m}, rangev);
             larfb_work(side,
                        (trans == Op::NoTrans) ? Op::ConjTrans : Op::NoTrans,
-                       direction, ROWWISE_STORAGE, Vi, matrixTi, Ci, work);
+                       direction, ROWWISE_STORAGE, Vi, matrixTi, Ci, work1);
         }
     }
 

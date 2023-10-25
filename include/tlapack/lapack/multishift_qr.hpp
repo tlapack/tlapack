@@ -109,7 +109,7 @@ WorkInfo multishift_qr_worksize(bool want_t,
  */
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_SVECTOR vector_t,
-          TLAPACK_RWORKSPACE work_t,
+          TLAPACK_WORKSPACE work_t,
           enable_if_t<is_complex<type_t<vector_t>>, int>>
 int multishift_qr_work(bool want_t,
                        bool want_z,
@@ -164,19 +164,6 @@ int multishift_qr_work(bool want_t,
     // quick return
     if (nh <= 0) return 0;
     if (nh == 1) w[ilo] = A(ilo, ilo);
-
-    // Workspace may not be in good shape for multishift_QR_sweep,
-    // so reshape, slice and reshape again
-    auto work2 = [&]() {
-        // Workspace query for multishift_QR_sweep
-        WorkInfo workinfo = multishift_qr_worksize_sweep<TA>(
-            want_t, want_z, ilo, ihi, A, w, Z, opts);
-        const idx_t workSize = nrows(work) * ncols(work);
-        auto aux = reshape(work, workSize, 1);
-        auto aux2 = slice(aux, range{workSize - workinfo.size(), workSize},
-                          range{0, 1});
-        return reshape(aux2, workinfo.m, workinfo.n);
-    }();
 
     // Tiny matrices must use lahqr
     if (n < nmin) {
@@ -366,7 +353,7 @@ int multishift_qr_work(bool want_t,
         n_sweep = n_sweep + 1;
         n_shifts_total = n_shifts_total + ns;
         multishift_QR_sweep_work(want_t, want_z, istart, istop, A, shifts, Z,
-                                 work2);
+                                 work);
     }
 
     opts.n_aed = n_aed;

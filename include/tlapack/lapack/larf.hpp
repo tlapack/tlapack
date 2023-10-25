@@ -57,7 +57,6 @@ void larf_work(side_t side,
     using idx_t = size_type<vectorC0_t>;
     using T = type_t<work_t>;
     using real_t = real_type<T>;
-    using range = pair<idx_t, idx_t>;
 
     // constants
     const real_t one(1);
@@ -78,8 +77,8 @@ void larf_work(side_t side,
         return;
     }
 
-    // Create vector w
-    auto w = slice(work, range{0, k}, 0);
+    // Vector w
+    auto [w, work1] = reshape(work, k);
 
     if (side == Side::Left) {
         if (storeMode == StoreV::Columnwise) {

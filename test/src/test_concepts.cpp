@@ -64,4 +64,117 @@ TEST_CASE("Concept SliceableMatrix works as expected", "[concept]")
     #endif
 }
 
+TEMPLATE_TEST_CASE("Concept Workspace works as expected",
+                   "[concept]",
+                   TLAPACK_TYPES_TO_TEST)
+{
+    using matrix_t = TestType;
+    using vector_t = tlapack::vector_type<matrix_t>;
+    using T = tlapack::type_t<matrix_t>;
+    using idx_t = tlapack::size_type<matrix_t>;
+
+    // Functor
+    tlapack::Create<matrix_t> new_matrix;
+    tlapack::Create<vector_t> new_vector;
+
+    {
+        std::vector<T> A_;
+        auto A = new_matrix(A_, 3, 4);
+
+        // Reshapes into matrices and vectors
+        auto [B, w] = tlapack::reshape(A, 1, 1);
+        REQUIRE(Workspace<decltype(w)>);
+        auto [c, w2] = tlapack::reshape(w, 1);
+        REQUIRE(Workspace<decltype(w2)>);
+
+        // Raise an exception if the size is larger than the original
+        CHECK_THROWS(tlapack::reshape(A, 4, 4));
+        CHECK_THROWS(tlapack::reshape(A, 15, 1));
+        CHECK_THROWS(tlapack::reshape(A, 15));
+
+        // Reshapes contiguous data
+        {
+            auto [B, w0] = tlapack::reshape(A, 4, 3);
+            REQUIRE(Workspace<decltype(w0)>);
+            auto [C, w1] = tlapack::reshape(A, 3, 3);
+            REQUIRE(Workspace<decltype(w1)>);
+            auto [D, w2] = tlapack::reshape(A, 2, 4);
+            REQUIRE(Workspace<decltype(w2)>);
+            auto [E, w3] = tlapack::reshape(A, 10);
+            REQUIRE(Workspace<decltype(w3)>);
+        }
+
+        // Reshapes non-contiguous matrix
+        {
+            auto A0 = tlapack::slice(A, std::pair{0, 2}, std::pair{0, 3});
+            auto [B, w0] = tlapack::reshape(A0, 2, 2);
+            REQUIRE(Workspace<decltype(w0)>);
+            auto [C, w1] = tlapack::reshape(A0, 1, 3);
+            REQUIRE(Workspace<decltype(w1)>);
+            auto [d, w2] = tlapack::reshape(A0, 2);
+            REQUIRE(Workspace<decltype(w2)>);
+            auto [e, w3] = tlapack::reshape(A0, 3);
+            REQUIRE(Workspace<decltype(w3)>);
+        }
+
+        // Reshapes non-contiguous vector
+        {
+            auto A0 = tlapack::slice(A, std::pair{0, 3}, 0);
+            auto A1 = tlapack::slice(A, 0, std::pair{0, 4});
+            try {
+                auto [B, w0] = tlapack::reshape(A0, 3, 1);
+                REQUIRE(Workspace<decltype(w0)>);
+                auto [C, w1] = tlapack::reshape(A0, 2, 1);
+                REQUIRE(Workspace<decltype(w1)>);
+                auto [D, w2] = tlapack::reshape(A1, 1, 4);
+                REQUIRE(Workspace<decltype(w2)>);
+                auto [E, w3] = tlapack::reshape(A1, 1, 2);
+                REQUIRE(Workspace<decltype(w3)>);
+            }
+            catch (...) {
+                auto [B, w0] = tlapack::reshape(A0, 1, 3);
+                REQUIRE(Workspace<decltype(w0)>);
+                auto [C, w1] = tlapack::reshape(A0, 1, 2);
+                REQUIRE(Workspace<decltype(w1)>);
+                auto [D, w2] = tlapack::reshape(A1, 4, 1);
+                REQUIRE(Workspace<decltype(w2)>);
+                auto [E, w3] = tlapack::reshape(A1, 2, 1);
+                REQUIRE(Workspace<decltype(w3)>);
+            }
+            auto [f, w4] = tlapack::reshape(A0, 2);
+            REQUIRE(Workspace<decltype(w4)>);
+            auto [g, w5] = tlapack::reshape(A1, 3);
+            REQUIRE(Workspace<decltype(w5)>);
+        }
+    }
+
+    {
+        std::vector<T> v_;
+        auto v = new_vector(v_, 10);
+
+        // Reshapes into matrices and vectors
+        auto [B, w] = tlapack::reshape(v, 1, 1);
+        REQUIRE(Workspace<decltype(w)>);
+        auto [c, w2] = tlapack::reshape(w, 1);
+        REQUIRE(Workspace<decltype(w2)>);
+
+        // Raise an exception if the size is larger than the original
+        CHECK_THROWS(tlapack::reshape(v, 11));
+        CHECK_THROWS(tlapack::reshape(v, 5, 3));
+        CHECK_THROWS(tlapack::reshape(v, 1, 12));
+
+        // Reshapes contiguous data successfully
+        {
+            auto [b, w0] = tlapack::reshape(v, 4, 2);
+            REQUIRE(Workspace<decltype(w0)>);
+            auto [c, w1] = tlapack::reshape(v, 8, 1);
+            REQUIRE(Workspace<decltype(w1)>);
+            auto [d, w2] = tlapack::reshape(v, 1, 8);
+            REQUIRE(Workspace<decltype(w2)>);
+            auto [e, w3] = tlapack::reshape(v, 7);
+            REQUIRE(Workspace<decltype(w3)>);
+        }
+    }
+}
+
 #endif

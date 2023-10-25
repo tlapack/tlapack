@@ -91,9 +91,8 @@ int geqlf_work(A_t& A, tau_t& tau, work_t& work, const GeqlfOpts& opts = {})
     // check arguments
     tlapack_check((idx_t)size(tau) >= k);
 
-    auto TT = (n > nb) ? slice(work, range{nrows(work) - nb, nrows(work)},
-                               range{ncols(work) - nb, ncols(work)})
-                       : slice(work, range{0, 0}, range{0, 0});
+    // Matrix TT
+    auto [TT, work2] = (n > nb) ? reshape(work, nb, nb) : reshape(work, 0, 0);
 
     // Main computational loop
     for (idx_t j2 = 0; j2 < k; j2 += nb) {
@@ -114,7 +113,7 @@ int geqlf_work(A_t& A, tau_t& tau, work_t& work, const GeqlfOpts& opts = {})
             // Apply H to A(0:m-n+j,0:j-ib) from the left
             auto A12 = slice(A, range(0, m - (n - j)), range(0, j - ib));
             larfb_work(LEFT_SIDE, CONJ_TRANS, BACKWARD, COLUMNWISE_STORAGE, A11,
-                       TT1, A12, work);
+                       TT1, A12, work2);
         }
     }
 
