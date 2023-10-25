@@ -137,6 +137,25 @@ namespace traits {
             return Eigen::Matrix<T, Rows_, Cols_, Options_>(m, n);
         }
     };
+
+    /// Create Eigen::Matrix @see CreateStatic
+    template <typename U, int m, int n>
+    struct CreateStaticFunctor<
+        U,
+        m,
+        n,
+        typename std::enable_if<eigen::is_eigen_type<U>, int>::type> {
+        static constexpr int Options_ =
+            (U::IsRowMajor) ? Eigen::RowMajor : Eigen::ColMajor;
+        static_assert(m >= 0 && n >= -1);
+
+        template <typename T>
+        constexpr auto operator()(T* v) const
+        {
+            constexpr int Cols_ = (n == -1) ? 1 : n;
+            return Eigen::Matrix<T, m, Cols_, Options_, m, Cols_>();
+        }
+    };
 }  // namespace traits
 
 // -----------------------------------------------------------------------------

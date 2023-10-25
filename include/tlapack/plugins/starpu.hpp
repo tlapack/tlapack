@@ -273,6 +273,20 @@ namespace traits {
             return starpu::Matrix<T>(v.data(), m, n, 1, 1);
         }
     };
+
+    /// Create starpu::Matrix<T> @see CreateStatic
+    template <class U, int m, int n>
+    struct CreateStaticFunctor<starpu::Matrix<U>, m, n, int> {
+        static_assert(m >= 0 && n >= -1);
+
+        template <class T>
+        constexpr auto operator()(T* v) const
+        {
+            constexpr int Cols_ = (n == -1) ? 1 : n;
+            starpu_memory_pin(v, m * Cols_ * sizeof(T));
+            return starpu::Matrix<T>(v, m, Cols_, 1, 1);
+        }
+    };
 }  // namespace traits
 
 }  // namespace tlapack

@@ -93,6 +93,24 @@ namespace traits {
         }
     };
 
+    /// Create mdspan @see CreateStatic
+    template <class ET, class Exts, class LP, class AP, int n>
+    struct CreateStaticFunctor<std::experimental::mdspan<ET, Exts, LP, AP>,
+                               n,
+                               -1,
+                               std::enable_if_t<Exts::rank() == 1, int>> {
+        static_assert(n >= 0);
+        using idx_t =
+            typename std::experimental::mdspan<ET, Exts, LP>::size_type;
+        using extents_t = std::experimental::extents<idx_t, n>;
+
+        template <typename T>
+        constexpr auto operator()(T* v) const
+        {
+            return std::experimental::mdspan<T, extents_t>(v);
+        }
+    };
+
     /// Create mdspan @see Create
     template <class ET, class Exts, class LP, class AP>
     struct CreateFunctor<std::experimental::mdspan<ET, Exts, LP, AP>,
@@ -107,6 +125,24 @@ namespace traits {
             assert(m >= 0 && n >= 0);
             v.resize(m * n);  // Allocates space in memory
             return std::experimental::mdspan<T, extents_t>(v.data(), m, n);
+        }
+    };
+
+    /// Create mdspan @see CreateStatic
+    template <class ET, class Exts, class LP, class AP, int m, int n>
+    struct CreateStaticFunctor<std::experimental::mdspan<ET, Exts, LP, AP>,
+                               m,
+                               n,
+                               std::enable_if_t<Exts::rank() == 2, int>> {
+        static_assert(m >= 0 && n >= 0);
+        using idx_t =
+            typename std::experimental::mdspan<ET, Exts, LP>::size_type;
+        using extents_t = std::experimental::extents<idx_t, m, n>;
+
+        template <typename T>
+        constexpr auto operator()(T* v) const
+        {
+            return std::experimental::mdspan<T, extents_t>(v);
         }
     };
 }  // namespace traits
