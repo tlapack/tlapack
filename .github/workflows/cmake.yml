@@ -282,7 +282,7 @@ jobs:
     - name: Run testBLAS tests
       working-directory: ${{github.workspace}}/build/test/testBLAS
       continue-on-error: true
-      run: ./tester -r Automake
+      run: ./testBLAS -r Automake
 
     - name: Install
       run: sudo cmake --build build --target install
@@ -466,7 +466,7 @@ jobs:
     - name: Run testBLAS tests
       working-directory: ${{github.workspace}}/build/test/testBLAS
       continue-on-error: true
-      run: ./tester -r Automake
+      run: ./testBLAS -r Automake
 
     - name: Install
       run: sudo cmake --build build --target install
@@ -568,7 +568,7 @@ jobs:
     - name: Run testBLAS tests
       working-directory: ${{github.workspace}}/build/test/testBLAS
       continue-on-error: true
-      run: ./tester -r Automake
+      run: ./testBLAS -r Automake
 
     - name: Install
       run: sudo cmake --build build --target install
@@ -650,7 +650,7 @@ jobs:
     - name: Run testBLAS tests
       working-directory: ${{github.workspace}}/build/test/testBLAS
       continue-on-error: true
-      run: ./tester -r Automake
+      run: ./testBLAS -r Automake
 
     - name: Install
       run: sudo cmake --build build --target install
