@@ -184,7 +184,7 @@ constexpr WorkInfo larf_worksize(side_t side,
                                  const vectorC0_t& C0,
                                  const matrixC1_t& C1)
 {
-    using work_t = vector_type<vectorC0_t, matrixC1_t, vector_t>;
+    using work_t = matrix_type<vectorC0_t, matrixC1_t, vector_t>;
     using idx_t = size_type<vectorC0_t>;
 
     // constants

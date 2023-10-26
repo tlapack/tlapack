@@ -86,7 +86,7 @@ constexpr WorkInfo unmq_worksize(side_t side,
                                  const UnmqOpts& opts = {})
 {
     using idx_t = size_type<matrixC_t>;
-    using matrixT_t = matrix_type<matrixV_t, vector_t>;
+    using work_t = matrix_type<matrixV_t, vector_t>;
     using range = pair<idx_t, idx_t>;
 
     // Constants
@@ -98,7 +98,7 @@ constexpr WorkInfo unmq_worksize(side_t side,
 
     // Local workspace sizes
     WorkInfo workinfo =
-        (is_same_v<T, type_t<matrixT_t>>) ? WorkInfo(nb, nb) : WorkInfo(0);
+        (is_same_v<T, type_t<work_t>>) ? WorkInfo(nb, nb) : WorkInfo(0);
 
     auto&& Vi = (storeMode == StoreV::Columnwise)
                     ? slice(V, range{0, nQ}, range{0, nb})
@@ -289,11 +289,11 @@ int unmq(side_t side,
          const UnmqOpts& opts = {})
 {
     using idx_t = size_type<matrixC_t>;
-    using matrixT_t = matrix_type<matrixV_t, vector_t>;
-    using T = type_t<matrixT_t>;
+    using work_t = matrix_type<matrixV_t, vector_t>;
+    using T = type_t<work_t>;
 
     // Functor
-    Create<matrixT_t> new_matrix;
+    Create<work_t> new_matrix;
 
     // constants
     const idx_t m = nrows(C);
