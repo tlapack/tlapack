@@ -102,6 +102,7 @@ add_executable(test_inv_house test_inv_house.cpp testutils.cpp)
 add_executable(test_qz_sweep test_qz_sweep.cpp testutils.cpp)
 add_executable(test_generalized_schur_swap test_generalized_schur_swap.cpp testutils.cpp)
 add_executable(test_generalized_schur_move test_generalized_schur_move.cpp testutils.cpp)
+add_executable(test_generalized_aed test_generalized_aed.cpp testutils.cpp)
 
 if(TLAPACK_TEST_EIGEN)
   add_executable(test_eigenplugin test_eigenplugin.cpp)

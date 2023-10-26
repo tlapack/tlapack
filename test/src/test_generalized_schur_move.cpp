@@ -107,7 +107,8 @@ TEMPLATE_TEST_CASE("move of generalized eigenvalue block gives correct results",
                 generalized_schur_move(true, true, A, B, Q, Z, ifst, ilst);
             // Note, we explicitly do not test for ierr = 0, because we also
             // want to have some failing examples. The routine should be able to
-            // partially move these. CHECK(ierr == 0);
+            // partially move these.
+            // CHECK(ierr == 0);
 
             std::vector<T> res_;
             auto res = new_matrix(res_, n, n);
