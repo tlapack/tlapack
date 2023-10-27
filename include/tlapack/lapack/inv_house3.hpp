@@ -46,8 +46,6 @@ void inv_house3(const matrix_t& A, vector_t& v, type_t<vector_t>& tau)
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
 
-    using idx_t = size_type<matrix_t>;
-
     const real_t safemin = safe_min<real_t>();
 
     T a11, a12, a21, a22;

@@ -30,8 +30,6 @@ TEMPLATE_TEST_CASE("Inverse householder calculation is correct",
     using TA = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
     using real_t = real_type<TA>;
-    using complex_t = complex_type<real_t>;
-    using range = pair<idx_t, idx_t>;
 
     // Functor
     Create<matrix_t> new_matrix;

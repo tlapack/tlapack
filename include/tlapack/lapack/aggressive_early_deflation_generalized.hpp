@@ -20,6 +20,7 @@
 #include "tlapack/lapack/larf.hpp"
 #include "tlapack/lapack/larfg.hpp"
 #include "tlapack/lapack/laset.hpp"
+#include "tlapack/lapack/multishift_qz.hpp"
 
 namespace tlapack {
 

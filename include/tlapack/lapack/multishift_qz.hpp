@@ -15,6 +15,8 @@
 #include "tlapack/base/utils.hpp"
 #include "tlapack/lapack/FrancisOpts.hpp"
 #include "tlapack/lapack/aggressive_early_deflation_generalized.hpp"
+#include "tlapack/lapack/lahqr_eig22.hpp"
+#include "tlapack/lapack/lahqz.hpp"
 #include "tlapack/lapack/multishift_qz_sweep.hpp"
 
 namespace tlapack {
