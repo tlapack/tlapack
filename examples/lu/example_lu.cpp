@@ -28,6 +28,7 @@
 #include <iostream>
 #include <vector>
 
+
 //------------------------------------------------------------------------------
 template <class T, tlapack::Layout L>
 void run(size_t n)
@@ -107,6 +108,7 @@ void run(size_t n)
 //------------------------------------------------------------------------------
 int main(int argc, char** argv)
 {
+    typedef ml_dtypes::float8_e4m3fn float8e4m3fn;
     int n;
     const tlapack::Layout L = tlapack::Layout::ColMajor;
 
@@ -123,7 +125,7 @@ int main(int argc, char** argv)
     printf("-----------------------\n");
 
     printf("run< float8e4m3fn, L >( %d )\n", n);
-    run<tlapack::float8e4m3fn , L>(n);
+    run<float8e4m3fn , L>(n);
     printf("-----------------------\n");
 
     printf("run< double, L >( %d )\n", n);

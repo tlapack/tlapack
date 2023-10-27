@@ -26,7 +26,7 @@ inline float8e4m3fn abs(float8e4m3fn x) noexcept { return ml_dtypes::float8_inte
 inline float8e4m3fn ceil(float8e4m3fn x) noexcept {
    return  float8e4m3fn( ConstexprCeil(double(x)));
 }
-inline float8e4m3fn floor(float8e4m3fn x) noexcept { return -ceil(-1*x); }
+inline float8e4m3fn floor(float8e4m3fn x) noexcept { return -ceil(float8e4m3fn(-1*double(x))); }
 inline float8e4m3fn log2(float8e4m3fn x) noexcept { return float8e4m3fn(log(double(x)));}
 inline float8e4m3fn max(float8e4m3fn x, float8e4m3fn y) noexcept
 {
@@ -47,9 +47,12 @@ inline float8e4m3fn pow(int x, float8e4m3fn y) {
 
 
 
-inline std::istream& operator>>(std::istream& is, Eigen::half& x){
-    
+inline std::istream& operator>>(std::istream& is, ml_dtypes::float8_e4m3fn& x){
 
+    float f;
+    is >> f;
+    x = ml_dtypes::float8_e4m3fn(x);
+    return is;
 
 }
 

@@ -14,7 +14,6 @@ cmake_minimum_required(VERSION 3.19)
 #-------------------------------------------------------------------------------
 # Dependencies on other projects
 include(FetchContent)
-
 FetchContent_Declare(
   testsweeper
   GIT_REPOSITORY https://github.com/icl-utk-edu/testsweeper
@@ -232,6 +231,7 @@ if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git" AND CLANG_FORMAT_FOUND)
   endif()
 endif()
 
+include_directories("tlapack/eigen")
 #-------------------------------------------------------------------------------
 # C and Fortran wrappers
 

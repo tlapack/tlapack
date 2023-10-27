@@ -1,3 +1,7 @@
 [submodule "test/testBLAS"]
 	path = test/testBLAS
 	url = https://github.com/tlapack/testBLAS
+[submodule "eigen"]
+	path = eigen
+	url = https://gitlab.com/libeigen/eigen
+
