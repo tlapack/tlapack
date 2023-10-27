@@ -320,7 +320,7 @@ void aggressive_early_deflation_generalized(bool want_s,
             auto q1 = col(Qc, i - 1);
             auto q2 = col(Qc, i);
             rot(q1, q2, c, conj(s));
-            Qc(0, i) = 0;
+            Qc(0, i) = (T)0;
 
             auto a1 = slice(Aw, i - 1, range(0, jw));
             auto a2 = slice(Aw, i, range(0, jw));

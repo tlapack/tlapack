@@ -74,7 +74,6 @@ int generalized_schur_swap(bool want_q,
 
     const idx_t n = ncols(A);
     const T zero(0);
-    const T ten(10);
 
     tlapack_check(nrows(A) == n);
     tlapack_check(nrows(Q) == n);

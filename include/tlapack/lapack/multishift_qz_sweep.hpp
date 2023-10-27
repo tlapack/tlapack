@@ -83,9 +83,6 @@ void multishift_QZ_sweep(bool want_t,
     const real_t eps = ulp<real_t>();
     const real_t small_num = safe_min<real_t>() * ((real_t)n / eps);
 
-    // Functor
-    Create<matrix_t> new_matrix;
-
     // Define workspace matrices
     // We use the lower triangular part of A and B as workspace
     const idx_t n_block_max = (n - 3) / 3;

@@ -93,7 +93,7 @@ TEMPLATE_TEST_CASE("QZ sweep is backward stable",
     laset(GENERAL, zero, one, Z);
 
     for (idx_t i = 0; i < ns; i++) {
-        alpha[i] = (complex_t)i;
+        alpha[i] = ((complex_t)(TA)i);
         beta[i] = (TA)1.0;
     }
 
