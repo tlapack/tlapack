@@ -46,8 +46,9 @@ TEMPLATE_TEST_CASE("QZ sweep is backward stable",
 
     const idx_t n = GENERATE(12, 30);
     const idx_t ns = GENERATE(2, 4, 6);
-    const idx_t ilo = 0;
-    const idx_t ihi = n;
+    const idx_t ilo = GENERATE(0, 1);
+    const idx_t ihioff = GENERATE(0, 1);
+    const idx_t ihi = n - ihioff;
     const real_t zero(0);
     const real_t one(1);
 

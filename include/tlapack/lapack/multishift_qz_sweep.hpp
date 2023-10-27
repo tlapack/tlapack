@@ -767,7 +767,7 @@ void multishift_QZ_sweep(bool want_t,
             while (i < istop_m) {
                 idx_t iblock = std::min<idx_t>(istop_m - i, ncols(WH));
                 auto A_slice =
-                    slice(A, range{i_pos_block + 1, i_pos_block + 1 + n_block},
+                    slice(A, range{i_pos_block, i_pos_block + n_block},
                           range{i, i + iblock});
                 auto WH_slice = slice(WH, range{0, nrows(A_slice)},
                                       range{0, ncols(A_slice)});
@@ -795,7 +795,7 @@ void multishift_QZ_sweep(bool want_t,
             while (i < istop_m) {
                 idx_t iblock = std::min<idx_t>(istop_m - i, ncols(WH));
                 auto B_slice =
-                    slice(B, range{i_pos_block + 1, i_pos_block + 1 + n_block},
+                    slice(B, range{i_pos_block, i_pos_block + n_block},
                           range{i, i + iblock});
                 auto WH_slice = slice(WH, range{0, nrows(B_slice)},
                                       range{0, ncols(B_slice)});
