@@ -211,22 +211,26 @@ void aggressive_early_deflation_generalized(bool want_t,
         return;
     }
 
-    // // Recalculate the eigenvalues
-    // idx_t i = 0;
-    // while (i < jw) {
-    //     idx_t n1 = 1;
-    //     if (is_real<T>)
-    //         if (i + 1 < jw)
-    //             if (TW(i + 1, i) != zero) n1 = 2;
+    // Recalculate the eigenvalues
+    idx_t i = 0;
+    while (i < jw) {
+        idx_t n1 = 1;
+        if (is_real<T>)
+            if (i + 1 < jw)
+                if (Aw(i + 1, i) != zero) n1 = 2;
 
-    //     if (n1 == 1)
-    //         s[kwtop + i] = TW(i, i);
-    //     else
-    //         lahqr_eig22(TW(i, i), TW(i, i + 1), TW(i + 1, i), TW(i + 1, i +
-    //         1),
-    //                     s[kwtop + i], s[kwtop + i + 1]);
-    //     i = i + n1;
-    // }
+        if (n1 == 1) {
+            alpha[kwtop + i] = Aw(i, i);
+            beta[kwtop + i] = Bw(i, i);
+        }
+        else {
+            auto A22 = slice(Aw, range(i, i + 2), range(i, i + 2));
+            auto B22 = slice(Bw, range(i, i + 2), range(i, i + 2));
+            lahqz_eig22(A22, B22, alpha[kwtop + i], alpha[kwtop + i + 1],
+                        beta[kwtop + i], beta[kwtop + i + 1]);
+        }
+        i = i + n1;
+    }
 
     // Reduce A back to Hessenberg form (if neccesary)
     if (s_spike != zero) {
