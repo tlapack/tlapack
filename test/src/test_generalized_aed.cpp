@@ -83,8 +83,10 @@ TEMPLATE_TEST_CASE("AED is backward stable",
     DYNAMIC_SECTION("n = " << n << "nw = " << nw)
     {
         idx_t ns, nd;
+        FrancisOpts opts;
         aggressive_early_deflation_generalized(true, true, true, ilo, ihi, nw,
-                                               A, B, alpha, beta, Q, Z, ns, nd);
+                                               A, B, alpha, beta, Q, Z, ns, nd,
+                                               opts);
 
         // Clean the lower triangular part that was used a workspace
         for (idx_t j = 0; j < n; ++j)

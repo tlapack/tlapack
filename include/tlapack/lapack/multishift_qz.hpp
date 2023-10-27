@@ -427,7 +427,7 @@ int multishift_qz(bool want_t,
         n_aed = n_aed + 1;
         aggressive_early_deflation_generalized(want_t, want_q, want_z, istart,
                                                istop, nw, A, B, alpha, beta, Q,
-                                               Z, ls, ld);
+                                               Z, ls, ld, opts);
 
         istop = istop - ld;
 
@@ -448,7 +448,8 @@ int multishift_qz(bool want_t,
         idx_t i_shifts = istop - ls;
 
         if (k_defl % non_convergence_limit_shift == 0) {
-            // TODO: change this to an appropriate shift for QZ
+            // This exceptional shift closely resembles the QR exceptional shift
+            // This is nice for easy maintenance, but is not guaranteed to work.
             ns = nsr;
             for (idx_t i = i_shifts; i < istop - 1; i = i + 2) {
                 real_t ss = abs1(A(i, i - 1));
@@ -463,13 +464,6 @@ int multishift_qz(bool want_t,
             }
         }
         else {
-            if (ls < nsr / 2) {
-                // Got nsr/2 or fewer shifts? Then use multi/double shift qr to
-                // get more
-                // Not implemented yet
-                assert(false);
-            }
-
             // Sort the shifts (helps a little)
             // Bubble sort keeps complex conjugate pairs together
             bool sorted = false;

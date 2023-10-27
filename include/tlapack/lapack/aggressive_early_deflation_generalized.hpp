@@ -45,7 +45,8 @@ void aggressive_early_deflation_generalized(bool want_t,
                                             matrix_t& Q,
                                             matrix_t& Z,
                                             size_type<matrix_t>& ns,
-                                            size_type<matrix_t>& nd)
+                                            size_type<matrix_t>& nd,
+                                            FrancisOpts& opts)
 {
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
@@ -134,8 +135,17 @@ void aggressive_early_deflation_generalized(bool want_t,
     laset(GENERAL, zero, one, Qc);
     laset(GENERAL, zero, one, Zc);
     int infqz;
-    infqz = lahqz(true, true, true, 0, jw, Aw, Bw, alpha_window, beta_window,
-                  Qc, Zc);
+    if (jw < (idx_t)opts.nmin) {
+        infqz = lahqz(true, true, true, 0, jw, Aw, Bw, alpha_window,
+                      beta_window, Qc, Zc);
+    }
+    else {
+        infqz = multishift_qz(true, true, true, 0, jw, Aw, Bw, alpha_window,
+                              beta_window, Qc, Zc, opts);
+        for (idx_t j = 0; j < jw; ++j)
+            for (idx_t i = j + 2; i < jw; ++i)
+                Aw(i, j) = zero;
+    }
 
     // TODO: use multishift_qz recursively
     // if (jw < (idx_t)opts.nmin)
