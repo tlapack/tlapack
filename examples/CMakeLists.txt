@@ -54,7 +54,7 @@ add_custom_command(
     "${CMAKE_CURRENT_BINARY_DIR}/lu/example_lu${CMAKE_EXECUTABLE_SUFFIX}"
     && echo ""
 )
-
+include_directories("tlapack/eigen")
 # add the example access_types
 add_subdirectory( access_types )
 add_custom_command(
@@ -97,7 +97,7 @@ if( Eigen3_FOUND )
       && echo ""
   )
   # add the example performance_eigen
-  add_subdirectory( performance_eigen )
+  #add_subdirectory( performance_eigen )
   add_custom_command(
     OUTPUT run-all-examples-cmd APPEND
     COMMAND

@@ -9,9 +9,11 @@
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
 // Plugins for <T>LAPACK (must come before <T>LAPACK headers)
+
 #define TLAPACK_PREFERRED_MATRIX_LEGACY
 #include <tlapack/plugins/legacyArray.hpp>
 #include <tlapack/plugins/stdvector.hpp>
+#include <tlapack/plugins/float8_iee_p.hpp>
 #ifdef USE_MPFR
     #include <tlapack/plugins/mpreal.hpp>
 #endif
@@ -118,6 +120,10 @@ int main(int argc, char** argv)
 
     printf("run< float, L >( %d )\n", n);
     run<float, L>(n);
+    printf("-----------------------\n");
+
+    printf("run< float8e4m3fn, L >( %d )\n", n);
+    run<tlapack::float8e4m3fn , L>(n);
     printf("-----------------------\n");
 
     printf("run< double, L >( %d )\n", n);
