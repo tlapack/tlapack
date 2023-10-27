@@ -23,16 +23,80 @@
 
 namespace tlapack {
 
-/** @copybrief aggressive_early_deflation()
- * Workspace is provided as an argument.
- * @copydetails aggressive_early_deflation()
+/** @brief aggressive_early_deflation_generalized accepts as input an upper
+ * Hessenberg pencil (A,B) and performs a unitary similarity transformation
+ *  designed to detect and deflate fully converged eigenvalues from
+ *  a trailing principal subpencil.  On output (A,B) has been over-
+ *  written by a new perturbation that is a perturbation of
+ *  an orthogonal similarity transformation of (A,B). It is to be
+ *  hoped that the final version of (A,B) has many zero subdiagonal
+ *  entries.
+ *
+ * @param[in] want_s bool.
+ *      If true, the full Schur factors (H,T) will be computed.
+ *
+ * @param[in] want_q bool.
+ *      If true, the Schur vectors Q will be computed.
+ *
+ * @param[in] want_z bool.
+ *      If true, the Schur vectors Z will be computed.
+ *
+ * @param[in] ilo    integer.
+ *      Either ilo=0 or A(ilo,ilo-1) = 0.
+ *
+ * @param[in] ihi    integer.
+ *      ilo and ihi determine an isolated block in A.
+ *
+ * @param[in] nw    integer.
+ *      Desired window size to perform aggressive early deflation on.
+ *      If the matrix is not large enough to provide the scratch space
+ *      or if the isolated block is small, a smaller value may be used.
+ *
+ * @param[in,out] A  n by n matrix.
+ *       Hessenberg matrix on which AED will be performed
+ *
+ * @param[in,out] B  n by n matrix.
+ *       Upper triangular matrix on which AED will be performed
+ *
+ * @param[out] alpha  size n vector.
+ *
+ * @param[out] beta  size n vector.
+ *      On exit, the entries (alpha,beta)[ihi-nd-ns:ihi-nd] contain the
+ *      unconverged eigenvalues that can be used a shifts. The entries
+ *      (alpha,beta)[ihi-nd:ihi] contain the converged eigenvalues. Entries
+ *      outside the range [ihi-nw:ihi] are not changed. The converged shifts are
+ *      stored in the same positions as their correspinding diagonal elements in
+ *      A.
+ *
+ * @param[in,out] Q  n by n matrix.
+ *      On entry, the previously calculated Schur factors
+ *      On exit, the left orthogonal updates applied to (A,B) accumulated
+ *      into Q.
+ *
+ * @param[in,out] Z  n by n matrix.
+ *      On entry, the previously calculated Schur factors
+ *      On exit, the right orthogonal updates applied to (A,B) accumulated
+ *      into Z.
+ *
+ * @param[out] ns    integer.
+ *      Number of eigenvalues available as shifts in s.
+ *
+ * @param[out] nd    integer.
+ *      Number of converged eigenvalues available as shifts in s.
+ *
+ * @param[in,out] opts Options.
+ *      - Output parameters
+ *          @c opts.n_aed,
+ *          @c opts.n_sweep and
+ *          @c opts.n_shifts_total
+ *        are updated by the internal call to multishift_qr.
  *
  * @ingroup computational
  */
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_SVECTOR alpha_t,
           TLAPACK_SVECTOR beta_t>
-void aggressive_early_deflation_generalized(bool want_t,
+void aggressive_early_deflation_generalized(bool want_s,
                                             bool want_q,
                                             bool want_z,
                                             size_type<matrix_t> ilo,
@@ -307,7 +371,7 @@ void aggressive_early_deflation_generalized(bool want_t,
     // Update rest of the matrix using matrix matrix multiplication
     //
     idx_t istart_m, istop_m;
-    if (want_t) {
+    if (want_s) {
         istart_m = 0;
         istop_m = n;
     }

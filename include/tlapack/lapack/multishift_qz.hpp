@@ -19,18 +19,47 @@
 
 namespace tlapack {
 
-/** @copybrief multishift_qr()
- * Workspace is provided as an argument.
- * @copydetails multishift_qr()
+/** multishift_qz computes the eigenvalues of a matrix pair (H,T),
+ *  where H is an upper Hessenberg matrix and T is upper triangular,
+ *  using the multishift QZ algorithm with AED.
  *
- * @param work Workspace. Use the workspace query to determine the size needed.
+ * @return  0 if success
+ * @return  i if the QZ algorithm failed to compute all the eigenvalues
+ *            in a total of 30 iterations per eigenvalue. elements
+ *            i:ihi of alpha and beta contain those eigenvalues which have been
+ *            successfully computed.
  *
- * @ingroup computational
+ * @param[in] want_s bool.
+ *      If true, the full Schur form will be computed.
+ * @param[in] want_q bool.
+ *      If true, the Schur vectors Q will be computed.
+ * @param[in] want_z bool.
+ *      If true, the Schur vectors Z will be computed.
+ * @param[in] ilo    integer.
+ *      Either ilo=0 or A(ilo,ilo-1) = 0.
+ * @param[in] ihi    integer.
+ *      The matrix A is assumed to be already quasi-triangular in rows and
+ *      columns ihi:n.
+ * @param[in,out] A  n by n matrix.
+ *
+ * @param[in,out] B  n by n matrix.
+ *
+ * @param[out] alpha  size n vector.
+ *
+ * @param[out] beta  size n vector.
+ *
+ * @param[in,out] Q  n by n matrix.
+ *
+ * @param[in,out] Z  n by n matrix.
+ *
+ * @param[in,out] opts Options.
+ *
+ * @ingroup auxiliary
  */
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_SVECTOR alpha_t,
           TLAPACK_SVECTOR beta_t>
-int multishift_qz(bool want_t,
+int multishift_qz(bool want_s,
                   bool want_q,
                   bool want_z,
                   size_type<matrix_t> ilo,
@@ -101,7 +130,7 @@ int multishift_qz(bool want_t,
 
     // Tiny matrices must use lahqz
     if (n < nmin) {
-        return lahqz(want_t, want_q, want_z, ilo, ihi, A, B, alpha, beta, Q, Z);
+        return lahqz(want_s, want_q, want_z, ilo, ihi, A, B, alpha, beta, Q, Z);
     }
 
     // itmax is the total number of QR iterations allowed.
@@ -150,7 +179,7 @@ int multishift_qz(bool want_t,
         // Find active block
         idx_t istart_m;
         idx_t istop_m;
-        if (!want_t) {
+        if (!want_s) {
             istart_m = istart;
             istop_m = istop;
         }
@@ -425,7 +454,7 @@ int multishift_qz(bool want_t,
 
         idx_t ls, ld;
         n_aed = n_aed + 1;
-        aggressive_early_deflation_generalized(want_t, want_q, want_z, istart,
+        aggressive_early_deflation_generalized(want_s, want_q, want_z, istart,
                                                istop, nw, A, B, alpha, beta, Q,
                                                Z, ls, ld, opts);
 
@@ -532,7 +561,7 @@ int multishift_qz(bool want_t,
 
         n_sweep = n_sweep + 1;
         n_shifts_total = n_shifts_total + ns;
-        multishift_QZ_sweep(want_t, want_q, want_z, istart, istop, A, B,
+        multishift_QZ_sweep(want_s, want_q, want_z, istart, istop, A, B,
                             alpha_shifts, beta_shifts, Q, Z);
     }
 
