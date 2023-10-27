@@ -40,7 +40,7 @@ TEMPLATE_TEST_CASE("Inverse householder calculation is correct",
 
     const real_t zero(0);
     const real_t one(1);
-    const real_t tol = 5 * ulp<real_t>();
+    const real_t tol = (real_t)5 * ulp<real_t>();
 
     // Seed random number generator
     mm.gen.seed(seed);
