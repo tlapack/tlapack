@@ -722,6 +722,22 @@ jobs:
     - name: Install
       run: sudo cmake --build build --target install
 
+    - name: Build and run examples using CMake
+      run: |
+        directory=("access_types" "cpp_visualizer" "create_float_library" "cwrapper_gemm" "eigen" "eigenvalues" "fortranModule_caxpy" "fortranModule_ssymm" "gemm" "geqr2" "lu" "mdspan" "performance_eigen" "potrf" "extreme_interoperability")
+        exec=("example_accessTypes" "cpp_visualizer_example" "example_create_float_library" "example_cwrapper_gemm" "example_eigen" "example_eigenvalues" "example_fortranModule_caxpy" "example_fortranModule_ssymm" "example_gemm" "example_geqr2" "example_lu" "example_mdspan" "performance_tlapack" "example_potrf" "example_interoperability")
+        for i in ${!directory[@]}; do
+          cd ${{github.workspace}}/examples/${directory[$i]}
+          echo "-----------------------------------"
+          pwd
+          echo "-----------------------------------"
+          cmake -B build -G Ninja
+          cmake --build build --config Debug
+          echo "./build/${exec[$i]}"
+          ./build/${exec[$i]}
+          echo "-----------------------------------"
+        done
+
     - name: Build and run example access_types using Makefile
       run: |
         directory=("access_types" "create_float_library" "cwrapper_gemm" "eigen" "eigenvalues" "fortranModule_caxpy" "fortranModule_ssymm" "gemm" "geqr2" "mdspan" "performance_eigen" "extreme_interoperability")
@@ -740,22 +756,6 @@ jobs:
           make
           echo "./${exec[$i]}"
           ./${exec[$i]}
-          echo "-----------------------------------"
-        done
-
-    - name: Build and run examples using CMake
-      run: |
-        directory=("access_types" "cpp_visualizer" "create_float_library" "cwrapper_gemm" "eigen" "eigenvalues" "fortranModule_caxpy" "fortranModule_ssymm" "gemm" "geqr2" "lu" "mdspan" "performance_eigen" "potrf" "extreme_interoperability")
-        exec=("example_accessTypes" "cpp_visualizer_example" "example_create_float_library" "example_cwrapper_gemm" "example_eigen" "example_eigenvalues" "example_fortranModule_caxpy" "example_fortranModule_ssymm" "example_gemm" "example_geqr2" "example_lu" "example_mdspan" "performance_tlapack" "example_potrf" "example_interoperability")
-        for i in ${!directory[@]}; do
-          cd ${{github.workspace}}/examples/${directory[$i]}
-          echo "-----------------------------------"
-          pwd
-          echo "-----------------------------------"
-          cmake -B build -G Ninja
-          cmake --build build --config Debug
-          echo "./build/${exec[$i]}"
-          ./build/${exec[$i]}
           echo "-----------------------------------"
         done
 
