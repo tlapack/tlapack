@@ -724,9 +724,10 @@ jobs:
 
     - name: Build and run example access_types using Makefile
       run: |
+        ldconfig -p | grep libgfortran
         directory=("access_types" "create_float_library" "cwrapper_gemm" "eigen" "eigenvalues" "fortranModule_caxpy" "fortranModule_ssymm" "gemm" "geqr2" "mdspan" "performance_eigen" "extreme_interoperability")
         exec=("example_accessTypes" "example_create_float_library" "example_cwrapper_gemm" "example_eigen" "example_eigenvalues" "example_fortranModule_caxpy" "example_fortranModule_ssymm" "example_gemm" "example_geqr2" "example_mdspan" "performance_tlapack" "example_interoperability")
-        ldflags=("" "" "-ltlapack_c -Wl,-rpath=/usr/local/lib" "" "-llapack -lblas -lm -lgfortran" "-ltlapack_fortran -ltlapack_c -Wl,-rpath=/usr/local/lib -lgfortran" "-ltlapack_fortran -ltlapack_c -Wl,-rpath=/usr/local/lib -lgfortran" "" "" "" "")
+        ldflags=("" "" "-ltlapack_c -Wl,-rpath=/usr/local/lib" "" "-llapack -lblas -lm /lib/x86_64-linux-gnu/libgfortran.so.5" "-ltlapack_fortran -ltlapack_c -Wl,-rpath=/usr/local/lib /lib/x86_64-linux-gnu/libgfortran.so.5" "-ltlapack_fortran -ltlapack_c -Wl,-rpath=/usr/local/lib /lib/x86_64-linux-gnu/libgfortran.so.5" "" "" "" "")
         export CXXFLAGS="${{env.CXXFLAGS}} -I/usr/local/include/eigen3"
         export FFLAGS="${{env.FFLAGS}} -I/usr/local/include/tlapack/fortran"
         export LD="clang++"
