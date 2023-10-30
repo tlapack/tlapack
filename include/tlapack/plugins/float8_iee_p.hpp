@@ -13,6 +13,7 @@
 #include "tlapack/base/types.hpp"
 
 using namespace std;
+using namespace ml_dtypes::float8_internal;
 
 namespace tlapack {
     namespace traits {
@@ -21,7 +22,6 @@ namespace tlapack {
             using type = ml_dtypes::float8_internal::float8_e4m3fn;
             constexpr static bool is_real = true;
         };
-        // The complex type of Eigen::half is std::complex<Eigen::half>
         template <>
         struct complex_type_traits<ml_dtypes::float8_internal::float8_e4m3fn, int> {
             using type = std::complex<ml_dtypes::float8_internal::float8_e4m3fn>;
@@ -42,10 +42,7 @@ namespace tlapack {
         return x_trunc < x ? x_trunc + 1.0 : x_trunc;
     }
     typedef ml_dtypes::float8_internal::float8_e4m3fn float8e4m3fn;
-    inline float8e4m3fn abs(float8e4m3fn x) noexcept
-    {
-        return ml_dtypes::float8_internal::float8_e4m3fn::FromRep(x.rep() & 0b0'1111'111);
-    }
+
     inline float8e4m3fn ceil(float8e4m3fn x) noexcept
     {
         return float8e4m3fn(ConstexprCeil(double(x)));
@@ -74,8 +71,17 @@ namespace tlapack {
     {
         return float8e4m3fn(std::pow(float(x), float(y)));
     }
+    inline bool isinf(float8e4m3fn x){
+        return ml_dtypes::float8_internal::isinf(x);
+    }
+   
+
+}
+
+    
 
   // namespace tlapack
+
 
 inline std::istream& operator>>(std::istream& is, ml_dtypes::float8_e4m3fn& x)
 {
@@ -85,4 +91,4 @@ inline std::istream& operator>>(std::istream& is, ml_dtypes::float8_e4m3fn& x)
     return is;
 }
 
-}  // namespace std
+  // namespace std

@@ -135,6 +135,11 @@ class float8_base {
   }
 
   EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Derived
+  operator=(const Derived& other) const {
+    return Derived{float{other}};
+  }
+
+  EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Derived
   operator-(const Derived& other) const {
     return Derived{float{derived()} - float{other}};
   }
@@ -263,10 +268,15 @@ class float8_e4m3fn : public float8_base<float8_e4m3fn> {
   using Base::Base;
 
  public:
+  EIGEN_DEVICE_FUNC float8_e4m3fn(const float& f)
+      : float8_e4m3fn(ConvertFrom(f)) {}
   explicit EIGEN_DEVICE_FUNC float8_e4m3fn(const float8_e5m2& f8)
       : float8_e4m3fn(ConvertFrom(f8)) {}
   explicit EIGEN_DEVICE_FUNC float8_e4m3fn(const float8_e4m3b11fnuz& f8)
       : float8_e4m3fn(ConvertFrom(f8)) {}
+  
+  
+      
 };
 
 class float8_e4m3b11fnuz : public float8_base<float8_e4m3b11fnuz> {
