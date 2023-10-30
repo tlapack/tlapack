@@ -86,7 +86,6 @@ _Supported in part by [NSF ACI 2004850](http://www.nsf.gov/awardsearch/showAward
   - [x] Generalized eigenvalue problem
 - [ ] Symmetric Eigenvalue Problem
   - [ ] Tridiagonal reduction
-  - [ ] Schur decomposition
   - [ ] Eigenvector computation
 - [ ] Singular Value Decomposition (SVD)
   - [x] Standard singular value problem
