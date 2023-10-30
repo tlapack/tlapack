@@ -702,18 +702,34 @@ namespace concepts {
     // Matrix and vector types that can be created
 
     /** @interface tlapack::concepts::ConstructableArray
-     * @brief Concept for arrays that implement tlapack::traits::CreateFunctor.
+     * @brief Concept for arrays that implement tlapack::traits::CreateFunctor
+     * and tlapack::traits::CreateStaticFunctor.
      *
-     * A constructable array must provide implementations of the functor
-     * tlapack::traits::CreateFunctor for the types
-     * tlapack::matrix_type<array_t> and tlapack::vector_type<array_t>. These
-     * functors must provide the method @c operator()(std::vector<T>&, size_t,
-     * size_t) for matrices and @c operator()(std::vector<T>&, size_t) for
-     * vectors, where T = tlapack::type_t<array_t>. These operators receive a
-     * std::vector of the appropriate type and the dimensions of the array to be
-     * created. The output of the functor is a matrix or vector of type
-     * tlapack::matrix_type<array_t> or tlapack::vector_type<array_t>,
-     * respectively.
+     * A constructable array must provide implementations of the functors
+     * tlapack::traits::CreateFunctor and tlapack::traits::CreateStaticFunctor
+     * for the types tlapack::matrix_type<array_t> and
+     * tlapack::vector_type<array_t>.
+     *
+     * - @c tlapack::traits::CreateFunctor<tlapack::matrix_type<array_t>, int>
+     * must provide the method @c operator()(std::vector<T>&, idx_t, idx_t),
+     * where T = tlapack::type_t<array_t> and idx_t =
+     * tlapack::size_type<array_t>. The output of the functor satisfies the
+     * concept tlapack::concepts::Matrix.
+     *
+     * - @c tlapack::traits::CreateFunctor<tlapack::vector_type<array_t>, int>
+     * must provide the method @c operator()(std::vector<T>&, idx_t), where T =
+     * tlapack::type_t<array_t> and idx_t = tlapack::size_type<array_t>. The
+     * output of the functor satisfies the concept tlapack::concepts::Vector.
+     *
+     * - @c tlapack::traits::CreateStaticFunctor<tlapack::matrix_type<array_t>,
+     * m, n, int> must provide the method @c operator()(T*), where T =
+     * tlapack::type_t<array_t>. The output of the functor satisfies the concept
+     * tlapack::concepts::Matrix.
+     *
+     * - @c tlapack::traits::CreateStaticFunctor<tlapack::vector_type<array_t>,
+     * n, int> must provide the method @c operator()(T*), where T =
+     * tlapack::type_t<array_t>. The output of the functor satisfies the concept
+     * tlapack::concepts::Vector.
      *
      * @tparam array_t Matrix or vector type.
      *
@@ -721,7 +737,8 @@ namespace concepts {
      */
     template <typename array_t>
     concept ConstructableArray = Matrix<matrix_type<array_t>>&&
-        Vector<vector_type<array_t>>&& requires(std::vector<type_t<array_t>>& v)
+        Vector<vector_type<array_t>>&& requires(std::vector<type_t<array_t>>& v,
+                                                type_t<array_t>* ptr)
     {
         {
             Create<matrix_type<array_t>>()(v, 2, 3)
@@ -731,18 +748,33 @@ namespace concepts {
             Create<vector_type<array_t>>()(v, 2)
         }
         ->Vector<>;
+        {
+            CreateStatic<matrix_type<array_t>, 5, 6>()(ptr)
+        }
+        ->Matrix<>;
+        {
+            CreateStatic<vector_type<array_t>, 5>()(ptr)
+        }
+        ->Vector<>;
     };
 
     /** @interface tlapack::concepts::ConstructableMatrix
      * @brief Concept for matrices that implement
-     * tlapack::traits::CreateFunctor.
+     * tlapack::traits::CreateFunctor and tlapack::traits::CreateStaticFunctor.
      *
-     * A constructable matrix must provide an implementation of the functor
-     * tlapack::traits::CreateFunctor for the type @c matrix_t. This functor
-     * must provide the method @c operator()(std::vector<T>&, size_t, size_t),
-     * where T = tlapack::type_t<matrix_t>. This operator receives a
-     * std::vector of the appropriate type and the dimensions of the matrix to
-     * be created. The output of the functor is a matrix of type @c matrix_t.
+     * A constructable matrix must provide an implementation of the functors
+     * tlapack::traits::CreateFunctor and tlapack::traits::CreateStaticFunctor
+     * for the type @c matrix_t. The outputs of the functors satisfy the concept
+     * tlapack::concepts::Matrix.
+     *
+     * - @c tlapack::traits::CreateFunctor<matrix_t, int> must provide the
+     * method @c operator()(std::vector<T>&, idx_t, idx_t), where T =
+     * tlapack::type_t<matrix_t> and idx_t = tlapack::size_type<matrix_t>.
+     *
+     * - @c tlapack::traits::CreateStaticFunctor<matrix_t, m, n, int> must
+     * provide the method @c operator()(T*), where T =
+     * tlapack::type_t<matrix_t>.
+     *
      * Moreover, a constructable matrix must also satisfy the concept
      * tlapack::concepts::ConstructableArray.
      *
@@ -753,10 +785,14 @@ namespace concepts {
     template <typename matrix_t>
     concept ConstructableMatrix =
         Matrix<matrix_t>&& ConstructableArray<matrix_t>&& requires(
-            std::vector<type_t<matrix_t>>& v)
+            std::vector<type_t<matrix_t>>& v, type_t<matrix_t>* ptr)
     {
         {
             Create<matrix_t>()(v, 2, 3)
+        }
+        ->Matrix<>;
+        {
+            CreateStatic<matrix_t, 5, 6>()(ptr)
         }
         ->Matrix<>;
     };
@@ -775,26 +811,39 @@ namespace concepts {
         SliceableMatrix<matrix_t>&& ConstructableMatrix<matrix_t>;
 
     /** @interface tlapack::concepts::ConstructableVector
-     * @brief Concept for vectors that implement tlapack::traits::CreateFunctor.
+     * @brief Concept for vectors that implement tlapack::traits::CreateFunctor
+     * and tlapack::traits::CreateStaticFunctor.
      *
-     * A constructable vector must provide an implementation of the functor
-     * tlapack::traits::CreateFunctor for the type @c vector_t. This functor
-     * must provide the method @c operator()(std::vector<T>&, size_t), where
-     * T = tlapack::type_t<vector_t>. This operator receives a std::vector of
-     * the appropriate type and the dimensions of the vector to be created. The
-     * output of the functor is a vector of type @c vector_t. Moreover, a
-     * constructable vector must also satisfy the concept
+     * A constructable vector must provide an implementation of the functors
+     * tlapack::traits::CreateFunctor and tlapack::traits::CreateStaticFunctor
+     * for the type @c vector_t. The output of the functor satisfies the concept
+     * tlapack::concepts::Vector.
+     *
+     * - @c tlapack::traits::CreateFunctor<vector_t, int> must provide the
+     * method @c operator()(std::vector<T>&, idx_t), where T =
+     * tlapack::type_t<vector_t> and idx_t = tlapack::size_type<vector_t>.
+     *
+     * - @c tlapack::traits::CreateStaticFunctor<vector_t, n, int> must provide
+     * the method @c operator()(T*), where T = tlapack::type_t<vector_t>.
+     *
+     * Moreover, a constructable vector must also satisfy the concept
      * tlapack::concepts::ConstructableArray.
      *
-     * @tparam matrix_t
+     * @tparam vector_t Vector type.
+     *
+     * @ingroup concepts
      */
     template <typename vector_t>
     concept ConstructableVector =
         Vector<vector_t>&& ConstructableArray<vector_t>&& requires(
-            std::vector<type_t<vector_t>>& v)
+            std::vector<type_t<vector_t>>& v, type_t<vector_t>* ptr)
     {
         {
             Create<vector_t>()(v, 2)
+        }
+        ->Vector<>;
+        {
+            CreateStatic<vector_t, 5>()(ptr)
         }
         ->Vector<>;
     };

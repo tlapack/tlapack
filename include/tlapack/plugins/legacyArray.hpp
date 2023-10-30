@@ -89,6 +89,18 @@ namespace traits {
         }
     };
 
+    /// Create LegacyMatrix @see CreateStatic
+    template <class U, class idx_t, Layout layout, int m, int n>
+    struct CreateStaticFunctor<LegacyMatrix<U, idx_t, layout>, m, n, int> {
+        static_assert(m >= 0 && n >= 0);
+
+        template <typename T>
+        constexpr auto operator()(T* v) const
+        {
+            return LegacyMatrix<T, idx_t, layout>(m, n, v);
+        }
+    };
+
     /// Create LegacyVector @see Create
     template <class U, class idx_t, typename int_t, Direction D>
     struct CreateFunctor<LegacyVector<U, idx_t, int_t, D>, int> {
@@ -98,6 +110,18 @@ namespace traits {
             assert(n >= 0);
             v.resize(n);  // Allocates space in memory
             return LegacyVector<T, idx_t, int_t, D>(n, v.data());
+        }
+    };
+
+    /// Create LegacyVector @see CreateStatic
+    template <class U, class idx_t, typename int_t, Direction D, int n>
+    struct CreateStaticFunctor<LegacyVector<U, idx_t, int_t, D>, n, -1, int> {
+        static_assert(n >= 0);
+
+        template <typename T>
+        constexpr auto operator()(T* v) const
+        {
+            return LegacyVector<T, idx_t>(n, v);
         }
     };
 }  // namespace traits

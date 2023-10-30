@@ -84,7 +84,7 @@ int lahqr(bool want_t,
     using range = pair<idx_t, idx_t>;
 
     // Functor
-    Create<vector_type<matrix_t>> new_vector;
+    CreateStatic<vector_type<matrix_t>, 3> new_3_vector;
 
     // constants
     const real_t zero(0);
@@ -292,8 +292,8 @@ int lahqr(bool want_t,
         // If it has split, we can introduce any shift at the top of the new
         // subblock. Now that we know the specific shift, we can also check
         // whether we can introduce that shift somewhere else in the subblock.
-        std::vector<TA> v_;
-        auto v = new_vector(v_, 3);
+        TA v_[3];
+        auto v = new_3_vector(v_);
         TA t1;
         idx_t istart2 = istart;
         if (istart + 3 < istop) {
