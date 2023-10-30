@@ -44,7 +44,7 @@ constexpr WorkInfo geqrf_worksize(const A_t& A,
 {
     using idx_t = size_type<A_t>;
     using range = pair<idx_t, idx_t>;
-    using matrixT_t = matrix_type<A_t, tau_t>;
+    using work_t = matrix_type<A_t, tau_t>;
 
     // constants
     const idx_t m = nrows(A);
@@ -61,7 +61,7 @@ constexpr WorkInfo geqrf_worksize(const A_t& A,
         auto&& A12 = slice(A, range(0, m), range(nb, n));
         workinfo.minMax(larfb_worksize<T>(LEFT_SIDE, CONJ_TRANS, FORWARD,
                                           COLUMNWISE_STORAGE, A11, TT1, A12));
-        if constexpr (is_same_v<T, type_t<matrixT_t>>)
+        if constexpr (is_same_v<T, type_t<work_t>>)
             workinfo += WorkInfo(nb, nb);
     }
 
@@ -157,8 +157,9 @@ int geqrf_work(A_t& A, tau_t& tau, work_t& work, const GeqrfOpts& opts = {})
 template <TLAPACK_SMATRIX A_t, TLAPACK_SVECTOR tau_t>
 int geqrf(A_t& A, tau_t& tau, const GeqrfOpts& opts = {})
 {
-    Create<A_t> new_matrix;
-    using T = type_t<A_t>;
+    using work_t = matrix_type<A_t, tau_t>;
+    using T = type_t<work_t>;
+    Create<work_t> new_matrix;
 
     // Allocate or get workspace
     WorkInfo workinfo = geqrf_worksize<T>(A, tau, opts);
