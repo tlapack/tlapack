@@ -26,6 +26,15 @@ limitations under the License.
 #include <ostream>
 #include <type_traits>
 #include <utility>
+#include <math.h>
+#include "float8.h"
+#include <complex>
+#include <limits>
+#include <ostream>
+#include <type_traits>
+#include "tlapack/base/types.hpp"
+#include "tlapack/base/scalar_type_traits.hpp"
+#include "../../../eigen/Eigen/Core"
 
 #ifdef __has_include
 # if __has_include(<version>)
@@ -934,6 +943,7 @@ struct numeric_limits<ml_dtypes::float8_internal::float8_ieee_p<p>>
 
 }  // namespace std
 
+
 namespace ml_dtypes {
 namespace float8_internal {
 
@@ -1011,6 +1021,7 @@ std::ostream& operator<<(std::ostream& os, const float8_base<Float8>& f8) {
   os << static_cast<float>(f8.derived());
   return os;
 }
+
 
 //==============================================================================
 // Inline conversion routines between float8 and other types.
