@@ -34,9 +34,6 @@ void check_hess_reduction(size_type<matrix_t> ilo,
     // Functor
     Create<matrix_t> new_matrix;
 
-    // MatrixMarket reader
-    MatrixMarket mm;
-
     idx_t n = ncols(A);
 
     const real_type<T> eps = uroundoff<real_type<T>>();
