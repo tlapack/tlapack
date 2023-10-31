@@ -46,6 +46,7 @@ void run(size_t n)
             A(i, j) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
         }
     real_t normA = tlapack::lange(tlapack::Norm::Fro, A);
+    std::cout << "matrix is" << A(0,0) << std::endl;
 
     // Allocate space for the LU decomposition
     std::vector<size_t> piv(n);
@@ -113,8 +114,8 @@ int main(int argc, char** argv)
     const tlapack::Layout L = tlapack::Layout::ColMajor;
 
     // Default arguments
-    n = (argc < 2) ? 100 : atoi(argv[1]);
-
+    //n = (argc < 2) ? 100 : atoi(argv[1]);
+    n = 5;
     srand(3);  // Init random seed
 
     std::cout.precision(5);
