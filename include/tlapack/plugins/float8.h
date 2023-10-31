@@ -274,7 +274,17 @@ class float8_e4m3fn : public float8_base<float8_e4m3fn> {
       : float8_e4m3fn(ConvertFrom(f8)) {}
   explicit EIGEN_DEVICE_FUNC float8_e4m3fn(const float8_e4m3b11fnuz& f8)
       : float8_e4m3fn(ConvertFrom(f8)) {}
+  enum Ordering : int8_t {
+    kLess = -1,
+    kEquivalent = 0,
+    kGreater = 1,
+    kUnordered = 2,
+  };
+  constexpr bool operator==(const float8_e4m3fn& other) const {
+    return Compare(derived(), other) == Ordering::kEquivalent;
+  }
   
+
   
       
 };

@@ -57,11 +57,11 @@ namespace tlapack {
     }
     inline float8e4m3fn max(float8e4m3fn x, float8e4m3fn y) noexcept
     {
-        return float8e4m3fn((double(x) > double(y)) ? x : y);
+        return x > y ? x : y;
     }
     inline float8e4m3fn min(float8e4m3fn x, float8e4m3fn y) noexcept
     {
-        return float8e4m3fn((double(x) > double(y)) ? y : x);
+        return x > y ? y : x;
     }
     inline float8e4m3fn sqrt(float8e4m3fn x) noexcept
     {
@@ -71,14 +71,14 @@ namespace tlapack {
     {
         return float8e4m3fn(std::pow(float(x), float(y)));
     }
-    inline bool isinf(float8e4m3fn x){
+    inline bool isinf(float8e4m3fn x)
+    {
         return ml_dtypes::float8_internal::isinf(x);
     }
-   
+  }
 
-}
 
-    
+
 
   // namespace tlapack
 
