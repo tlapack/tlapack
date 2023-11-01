@@ -115,10 +115,15 @@ or build the [current development distribution](https://github.com/Kitware/CMake
 \<T\>LAPACK can be build following the standard CMake recipe
 
 ```sh
-mkdir build
+cmake -B build .      # configuration step
+cmake --build build   # build step
+```
+
+To install \<T\>LAPACK in your system, use
+
+```sh
 cmake -B build -D CMAKE_INSTALL_PREFIX=/path/to/install . # configuration step
-cmake --build build                  # build step
-cmake --build build --target install # install step
+cmake --build build --target install                      # install step
 ```
 
 ### CMake options
@@ -297,7 +302,8 @@ Note that:
 
 We also continuously test \<T\>LAPACK with optimized BLAS and LAPACK implementations: OpenBLAS, Intel MKL, Flame BLIS, LAPACK, Netlib BLAS.
 
-> **_NOTE:_** \<T\>LAPACK supports Eigen v3.4.0 after applying the patch [9210e71f](https://gitlab.com/libeigen/eigen/-/commit/9210e71fb378a0f1542272506dc2759b6c147237). This commit fixes an ADL conflict between `Eigen::internal::size()` and `std::size()`.
+> [!NOTE]
+> \<T\>LAPACK supports Eigen v3.4.0 after applying the patch [9210e71f](https://gitlab.com/libeigen/eigen/-/commit/9210e71fb378a0f1542272506dc2759b6c147237). This commit fixes an ADL conflict between `Eigen::internal::size()` and `std::size()`.
 
 ## Documentation
 
