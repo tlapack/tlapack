@@ -12,9 +12,39 @@
 
 #include <vector>
 
+#include "tlapack/LegacyMatrix.hpp"
 #include "tlapack/LegacyVector.hpp"
+#include "tlapack/base/arrayTraits.hpp"
 
 namespace tlapack {
+
+namespace traits {
+    namespace internal {
+        template <typename>
+        struct is_std_vector : std::false_type {};
+
+        template <typename T, typename A>
+        struct is_std_vector<std::vector<T, A>> : std::true_type {};
+    }  // namespace internal
+
+    template <typename T>
+    inline constexpr bool is_stdvector_type = internal::is_std_vector<T>::value;
+
+    // for two types
+    // should be especialized for every new matrix class
+    template <typename T, typename A, typename U, typename B>
+    struct vector_type_traits<std::vector<T, A>, std::vector<U, B>, int> {
+        using type = LegacyVector<scalar_type<T, U>, std::size_t>;
+    };
+
+    // for two types
+    // should be especialized for every new vector class
+    template <typename T, typename A, typename U, typename B>
+    struct matrix_type_traits<std::vector<T, A>, std::vector<U, B>, int> {
+        using type =
+            LegacyMatrix<scalar_type<T, U>, std::size_t, Layout::ColMajor>;
+    };
+}  // namespace traits
 
 // -----------------------------------------------------------------------------
 // blas functions to access std::vector properties

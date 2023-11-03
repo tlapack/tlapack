@@ -20,7 +20,7 @@ namespace tlapack {
 // -----------------------------------------------------------------------------
 // Helpers
 
-namespace eigen {
+namespace traits {
     namespace internal {
         // Auxiliary constexpr routines
 
@@ -67,7 +67,7 @@ namespace eigen {
     template <class T>
     constexpr bool is_eigen_type = internal::is_eigen_dense<T>;
 
-}  // namespace eigen
+}  // namespace traits
 
 // -----------------------------------------------------------------------------
 // Data traits
@@ -78,7 +78,7 @@ namespace traits {
     template <class matrix_t>
     struct layout_trait<
         matrix_t,
-        typename std::enable_if<eigen::is_eigen_type<matrix_t> &&
+        typename std::enable_if<is_eigen_type<matrix_t> &&
                                     (matrix_t::InnerStrideAtCompileTime == 1 ||
                                      matrix_t::OuterStrideAtCompileTime == 1),
                                 int>::type> {
@@ -92,7 +92,7 @@ namespace traits {
     template <class matrix_t>
     struct real_type_traits<
         matrix_t,
-        typename std::enable_if<eigen::is_eigen_type<matrix_t>, int>::type> {
+        typename std::enable_if<is_eigen_type<matrix_t>, int>::type> {
         using type = Eigen::Matrix<real_type<typename matrix_t::Scalar>,
                                    matrix_t::RowsAtCompileTime,
                                    matrix_t::ColsAtCompileTime,
@@ -105,7 +105,7 @@ namespace traits {
     template <class matrix_t>
     struct complex_type_traits<
         matrix_t,
-        typename std::enable_if<eigen::is_eigen_type<matrix_t>, int>::type> {
+        typename std::enable_if<is_eigen_type<matrix_t>, int>::type> {
         using type = Eigen::Matrix<complex_type<typename matrix_t::Scalar>,
                                    matrix_t::RowsAtCompileTime,
                                    matrix_t::ColsAtCompileTime,
@@ -117,9 +117,8 @@ namespace traits {
 
     /// Create Eigen::Matrix, @see Create
     template <typename U>
-    struct CreateFunctor<
-        U,
-        typename std::enable_if<eigen::is_eigen_type<U>, int>::type> {
+    struct CreateFunctor<U,
+                         typename std::enable_if<is_eigen_type<U>, int>::type> {
         static constexpr int Rows_ =
             (U::RowsAtCompileTime == 1) ? 1 : Eigen::Dynamic;
         static constexpr int Cols_ =
@@ -144,7 +143,7 @@ namespace traits {
         U,
         m,
         n,
-        typename std::enable_if<eigen::is_eigen_type<U>, int>::type> {
+        typename std::enable_if<is_eigen_type<U>, int>::type> {
         static constexpr int Options_ =
             (U::IsRowMajor) ? Eigen::RowMajor : Eigen::ColMajor;
         static_assert(m >= 0 && n >= -1);
@@ -172,7 +171,7 @@ template <
 #if __cplusplus >= 201703L
     // Avoids conflict with std::size
     ,
-    std::enable_if_t<!(eigen::internal::isStdComplex<std::decay_t<T>>::value),
+    std::enable_if_t<!(traits::internal::isStdComplex<std::decay_t<T>>::value),
                      int> = 0
 #endif
     >
@@ -224,8 +223,8 @@ template <
     class SliceSpecRow,
     class SliceSpecCol,
     typename std::enable_if<isSlice(SliceSpecRow) && isSlice(SliceSpecCol) &&
-                                eigen::is_eigen_type<T> &&
-                                !eigen::internal::is_eigen_block<T>,
+                                traits::is_eigen_type<T> &&
+                                !traits::internal::is_eigen_block<T>,
                             int>::type = 0>
 constexpr auto slice(T& A, SliceSpecRow&& rows, SliceSpecCol&& cols) noexcept
 {
@@ -235,8 +234,8 @@ constexpr auto slice(T& A, SliceSpecRow&& rows, SliceSpecCol&& cols) noexcept
 
 template <class T,
           typename SliceSpecCol,
-          typename std::enable_if<eigen::is_eigen_type<T> &&
-                                      !eigen::internal::is_eigen_block<T>,
+          typename std::enable_if<traits::is_eigen_type<T> &&
+                                      !traits::internal::is_eigen_block<T>,
                                   int>::type = 0>
 constexpr auto slice(T& A, Eigen::Index rowIdx, SliceSpecCol&& cols) noexcept
 {
@@ -245,8 +244,8 @@ constexpr auto slice(T& A, Eigen::Index rowIdx, SliceSpecCol&& cols) noexcept
 
 template <class T,
           typename SliceSpecRow,
-          typename std::enable_if<eigen::is_eigen_type<T> &&
-                                      !eigen::internal::is_eigen_block<T>,
+          typename std::enable_if<traits::is_eigen_type<T> &&
+                                      !traits::internal::is_eigen_block<T>,
                                   int>::type = 0>
 constexpr auto slice(T& A, SliceSpecRow&& rows, Eigen::Index colIdx) noexcept
 {
@@ -255,8 +254,8 @@ constexpr auto slice(T& A, SliceSpecRow&& rows, Eigen::Index colIdx) noexcept
 
 template <class T,
           typename SliceSpec,
-          typename std::enable_if<eigen::is_eigen_type<T> &&
-                                      !eigen::internal::is_eigen_block<T>,
+          typename std::enable_if<traits::is_eigen_type<T> &&
+                                      !traits::internal::is_eigen_block<T>,
                                   int>::type = 0>
 constexpr auto slice(T& x, SliceSpec&& range) noexcept
 {
@@ -265,8 +264,8 @@ constexpr auto slice(T& x, SliceSpec&& range) noexcept
 
 template <class T,
           typename SliceSpec,
-          typename std::enable_if<eigen::is_eigen_type<T> &&
-                                      !eigen::internal::is_eigen_block<T>,
+          typename std::enable_if<traits::is_eigen_type<T> &&
+                                      !traits::internal::is_eigen_block<T>,
                                   int>::type = 0>
 constexpr auto rows(T& A, SliceSpec&& rows) noexcept
 {
@@ -274,8 +273,8 @@ constexpr auto rows(T& A, SliceSpec&& rows) noexcept
 }
 
 template <class T,
-          typename std::enable_if<eigen::is_eigen_type<T> &&
-                                      !eigen::internal::is_eigen_block<T>,
+          typename std::enable_if<traits::is_eigen_type<T> &&
+                                      !traits::internal::is_eigen_block<T>,
                                   int>::type = 0>
 constexpr auto row(T& A, Eigen::Index rowIdx) noexcept
 {
@@ -284,8 +283,8 @@ constexpr auto row(T& A, Eigen::Index rowIdx) noexcept
 
 template <class T,
           typename SliceSpec,
-          typename std::enable_if<eigen::is_eigen_type<T> &&
-                                      !eigen::internal::is_eigen_block<T>,
+          typename std::enable_if<traits::is_eigen_type<T> &&
+                                      !traits::internal::is_eigen_block<T>,
                                   int>::type = 0>
 constexpr auto cols(T& A, SliceSpec&& cols) noexcept
 {
@@ -293,8 +292,8 @@ constexpr auto cols(T& A, SliceSpec&& cols) noexcept
 }
 
 template <class T,
-          typename std::enable_if<eigen::is_eigen_type<T> &&
-                                      !eigen::internal::is_eigen_block<T>,
+          typename std::enable_if<traits::is_eigen_type<T> &&
+                                      !traits::internal::is_eigen_block<T>,
                                   int>::type = 0>
 constexpr auto col(T& A, Eigen::Index colIdx) noexcept
 {
@@ -570,9 +569,9 @@ constexpr auto col(
 #undef isSlice
 
 /// Get the Diagonal of an Eigen Matrix
-template <
-    class T,
-    typename std::enable_if<eigen::internal::is_eigen_matrix<T>, int>::type = 0>
+template <class T,
+          typename std::enable_if<traits::internal::is_eigen_matrix<T>,
+                                  int>::type = 0>
 constexpr auto diag(T& A, int diagIdx = 0) noexcept
 {
     return A.diagonal(diagIdx);
@@ -580,7 +579,7 @@ constexpr auto diag(T& A, int diagIdx = 0) noexcept
 
 // Transpose view
 template <class matrix_t,
-          typename std::enable_if<(eigen::is_eigen_type<matrix_t> &&
+          typename std::enable_if<(traits::is_eigen_type<matrix_t> &&
                                    !matrix_t::IsVectorAtCompileTime),
                                   int>::type = 0>
 constexpr auto transpose_view(matrix_t& A) noexcept
@@ -604,7 +603,7 @@ constexpr auto transpose_view(matrix_t& A) noexcept
 
 // Reshape view into matrices
 template <class matrix_t,
-          typename std::enable_if<(eigen::is_eigen_type<matrix_t> &&
+          typename std::enable_if<(traits::is_eigen_type<matrix_t> &&
                                    !matrix_t::IsVectorAtCompileTime),
                                   int>::type = 0>
 auto reshape(matrix_t& A, Eigen::Index m, Eigen::Index n)
@@ -663,7 +662,7 @@ auto reshape(matrix_t& A, Eigen::Index m, Eigen::Index n)
     }
 }
 template <class vector_t,
-          typename std::enable_if<(eigen::is_eigen_type<vector_t> &&
+          typename std::enable_if<(traits::is_eigen_type<vector_t> &&
                                    vector_t::IsVectorAtCompileTime),
                                   int>::type = 0>
 auto reshape(vector_t& v, Eigen::Index m, Eigen::Index n)
@@ -710,7 +709,7 @@ auto reshape(vector_t& v, Eigen::Index m, Eigen::Index n)
 
 // Reshape view into vectors
 template <class matrix_t,
-          typename std::enable_if<(eigen::is_eigen_type<matrix_t> &&
+          typename std::enable_if<(traits::is_eigen_type<matrix_t> &&
                                    !matrix_t::IsVectorAtCompileTime),
                                   int>::type = 0>
 auto reshape(matrix_t& A, Eigen::Index n)
@@ -788,7 +787,7 @@ auto reshape(matrix_t& A, Eigen::Index n)
     }
 }
 template <class vector_t,
-          typename std::enable_if<(eigen::is_eigen_type<vector_t> &&
+          typename std::enable_if<(traits::is_eigen_type<vector_t> &&
                                    vector_t::IsVectorAtCompileTime),
                                   int>::type = 0>
 auto reshape(vector_t& v, Eigen::Index n)
@@ -820,24 +819,18 @@ auto reshape(vector_t& v, Eigen::Index n)
 
 namespace traits {
 
-#ifdef TLAPACK_PREFERRED_MATRIX_EIGEN
-
-    #ifndef TLAPACK_LEGACY_HH
-        #ifndef TLAPACK_MDSPAN_HH
-            #define TLAPACK_USE_PREFERRED_MATRIX_TYPE(T) true
-        #else
-            #define TLAPACK_USE_PREFERRED_MATRIX_TYPE(T) \
-                !mdspan::is_mdspan_type<T>
-        #endif
-    #else
-        #ifndef TLAPACK_MDSPAN_HH
-            #define TLAPACK_USE_PREFERRED_MATRIX_TYPE(T) \
-                !legacy::is_legacy_type<T>
-        #else
-            #define TLAPACK_USE_PREFERRED_MATRIX_TYPE(T) \
-                (!legacy::is_legacy_type<T> && !mdspan::is_mdspan_type<T>)
-        #endif
-    #endif
+    template <typename T>
+    constexpr bool cast_to_eigen_type = is_eigen_type<T>
+#ifdef TLAPACK_LEGACY_HH
+                                        || is_legacy_type<T>
+#endif
+#ifdef TLAPACK_MDSPAN_HH
+                                        || is_mdspan_type<T>
+#endif
+#ifdef TLAPACK_STDVECTOR_HH
+                                        || is_stdvector_type<T>
+#endif
+        ;
 
     // for two types
     // should be especialized for every new matrix class
@@ -845,10 +838,11 @@ namespace traits {
     struct matrix_type_traits<
         matrixA_t,
         matrixB_t,
-        typename std::enable_if<TLAPACK_USE_PREFERRED_MATRIX_TYPE(matrixA_t) ||
-                                    TLAPACK_USE_PREFERRED_MATRIX_TYPE(
-                                        matrixB_t),
-                                int>::type> {
+        typename std::enable_if<
+            ((is_eigen_type<matrixA_t> ||
+              is_eigen_type<matrixB_t>)&&cast_to_eigen_type<matrixA_t> &&
+             cast_to_eigen_type<matrixB_t>),
+            int>::type> {
         using T = scalar_type<type_t<matrixA_t>, type_t<matrixB_t>>;
 
         static constexpr Layout LA = layout<matrixA_t>;
@@ -867,43 +861,15 @@ namespace traits {
     struct vector_type_traits<
         vecA_t,
         vecB_t,
-        typename std::enable_if<TLAPACK_USE_PREFERRED_MATRIX_TYPE(vecA_t) ||
-                                    TLAPACK_USE_PREFERRED_MATRIX_TYPE(vecB_t),
-                                int>::type> {
+        typename std::enable_if<
+            ((is_eigen_type<vecA_t> ||
+              is_eigen_type<vecB_t>)&&cast_to_eigen_type<vecA_t> &&
+             cast_to_eigen_type<vecB_t>),
+            int>::type> {
         using T = scalar_type<type_t<vecA_t>, type_t<vecB_t>>;
         using type = Eigen::Matrix<T, Eigen::Dynamic, 1>;
     };
 
-#else
-
-    template <class matrixA_t, class matrixB_t>
-    struct matrix_type_traits<
-        matrixA_t,
-        matrixB_t,
-        typename std::enable_if<eigen::is_eigen_type<matrixA_t> &&
-                                    eigen::is_eigen_type<matrixB_t>,
-                                int>::type> {
-        using T =
-            scalar_type<typename matrixA_t::Scalar, typename matrixB_t::Scalar>;
-        static constexpr int Options_ =
-            (matrixA_t::IsRowMajor && matrixB_t::IsRowMajor) ? Eigen::RowMajor
-                                                             : Eigen::ColMajor;
-
-        using type = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Options_>;
-    };
-
-    template <typename vecA_t, typename vecB_t>
-    struct vector_type_traits<
-        vecA_t,
-        vecB_t,
-        typename std::enable_if<eigen::is_eigen_type<vecA_t> &&
-                                    eigen::is_eigen_type<vecB_t>,
-                                int>::type> {
-        using T = scalar_type<typename vecA_t::Scalar, typename vecB_t::Scalar>;
-        using type = Eigen::Matrix<T, Eigen::Dynamic, 1>;
-    };
-
-#endif  // TLAPACK_PREFERRED_MATRIX
 }  // namespace traits
 
 // -----------------------------------------------------------------------------
@@ -934,9 +900,9 @@ constexpr auto legacy_matrix(
     using idx_t = Eigen::Index;
 
     if constexpr (Derived::IsVectorAtCompileTime) {
-        assert(
-            A.outerStride() == 1 ||
-            (A.innerStride() == 1 && eigen::internal::is_eigen_block<Derived>));
+        assert(A.outerStride() == 1 ||
+               (A.innerStride() == 1 &&
+                traits::internal::is_eigen_block<Derived>));
         return legacy::Matrix<T, idx_t>{Layout::ColMajor, 1, A.size(),
                                         (T*)A.data(), A.innerStride()};
     }
@@ -973,9 +939,9 @@ constexpr auto legacy_vector(
     using idx_t = Eigen::Index;
 
     if constexpr (Derived::IsVectorAtCompileTime) {
-        assert(
-            A.outerStride() == 1 ||
-            (A.innerStride() == 1 && eigen::internal::is_eigen_block<Derived>));
+        assert(A.outerStride() == 1 ||
+               (A.innerStride() == 1 &&
+                traits::internal::is_eigen_block<Derived>));
         return legacy::Vector<T, idx_t>{A.size(), (T*)A.data(),
                                         A.innerStride()};
     }

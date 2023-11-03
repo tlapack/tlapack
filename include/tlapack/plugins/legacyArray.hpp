@@ -22,7 +22,7 @@ namespace tlapack {
 // -----------------------------------------------------------------------------
 // Helpers
 
-namespace legacy {
+namespace traits {
     namespace internal {
         template <typename T, class idx_t, Layout L>
         std::true_type is_legacy_type_f(const LegacyMatrix<T, idx_t, L>*);
@@ -39,7 +39,7 @@ namespace legacy {
     template <class T>
     constexpr bool is_legacy_type =
         decltype(internal::is_legacy_type_f(std::declval<T*>()))::value;
-}  // namespace legacy
+}  // namespace traits
 
 // -----------------------------------------------------------------------------
 // Data traits
@@ -715,24 +715,18 @@ auto reshape(LegacyVector<T, idx_t, int_t, direction>& v,
 
 namespace traits {
 
-#ifdef TLAPACK_PREFERRED_MATRIX_LEGACY
-
-    #ifndef TLAPACK_EIGEN_HH
-        #ifndef TLAPACK_MDSPAN_HH
-            #define TLAPACK_USE_PREFERRED_MATRIX_TYPE(T) true
-        #else
-            #define TLAPACK_USE_PREFERRED_MATRIX_TYPE(T) \
-                !mdspan::is_mdspan_type<T>
-        #endif
-    #else
-        #ifndef TLAPACK_MDSPAN_HH
-            #define TLAPACK_USE_PREFERRED_MATRIX_TYPE(T) \
-                !eigen::is_eigen_type<T>
-        #else
-            #define TLAPACK_USE_PREFERRED_MATRIX_TYPE(T) \
-                (!eigen::is_eigen_type<T> && !mdspan::is_mdspan_type<T>)
-        #endif
-    #endif
+    template <typename T>
+    constexpr bool cast_to_legacy_type = is_legacy_type<T>
+#ifdef TLAPACK_EIGEN_HH
+                                         || is_eigen_type<T>
+#endif
+#ifdef TLAPACK_MDSPAN_HH
+                                         || is_mdspan_type<T>
+#endif
+#ifdef TLAPACK_STDVECTOR_HH
+                                         || is_stdvector_type<T>
+#endif
+        ;
 
     // for two types
     // should be especialized for every new matrix class
@@ -740,10 +734,11 @@ namespace traits {
     struct matrix_type_traits<
         matrixA_t,
         matrixB_t,
-        typename std::enable_if<TLAPACK_USE_PREFERRED_MATRIX_TYPE(matrixA_t) ||
-                                    TLAPACK_USE_PREFERRED_MATRIX_TYPE(
-                                        matrixB_t),
-                                int>::type> {
+        typename std::enable_if<
+            ((is_legacy_type<matrixA_t> ||
+              is_legacy_type<matrixB_t>)&&cast_to_legacy_type<matrixA_t> &&
+             cast_to_legacy_type<matrixB_t>),
+            int>::type> {
         using T = scalar_type<type_t<matrixA_t>, type_t<matrixB_t>>;
         using idx_t = size_type<matrixA_t>;
 
@@ -763,57 +758,17 @@ namespace traits {
     struct vector_type_traits<
         vecA_t,
         vecB_t,
-        typename std::enable_if<TLAPACK_USE_PREFERRED_MATRIX_TYPE(vecA_t) ||
-                                    TLAPACK_USE_PREFERRED_MATRIX_TYPE(vecB_t),
-                                int>::type> {
+        typename std::enable_if<
+            ((is_legacy_type<vecA_t> ||
+              is_legacy_type<vecB_t>)&&cast_to_legacy_type<vecA_t> &&
+             cast_to_legacy_type<vecB_t>),
+            int>::type> {
         using T = scalar_type<type_t<vecA_t>, type_t<vecB_t>>;
         using idx_t = size_type<vecA_t>;
 
         using type = LegacyVector<T, idx_t, idx_t>;
     };
 
-    #undef TLAPACK_USE_PREFERRED_MATRIX_TYPE
-
-#else
-
-    // for two types
-    // should be especialized for every new matrix class
-    template <class matrixA_t, class matrixB_t>
-    struct matrix_type_traits<
-        matrixA_t,
-        matrixB_t,
-        typename std::enable_if<legacy::is_legacy_type<matrixA_t> &&
-                                    legacy::is_legacy_type<matrixB_t>,
-                                int>::type> {
-        using T = scalar_type<type_t<matrixA_t>, type_t<matrixB_t>>;
-        using idx_t = size_type<matrixA_t>;
-
-        static constexpr Layout LA = layout<matrixA_t>;
-        static constexpr Layout LB = layout<matrixB_t>;
-        static constexpr Layout L =
-            ((LA == Layout::RowMajor) && (LB == Layout::RowMajor))
-                ? Layout::RowMajor
-                : Layout::ColMajor;
-
-        using type = LegacyMatrix<T, idx_t, L>;
-    };
-
-    // for two types
-    // should be especialized for every new vector class
-    template <class matrixA_t, class matrixB_t>
-    struct vector_type_traits<
-        matrixA_t,
-        matrixB_t,
-        typename std::enable_if<legacy::is_legacy_type<matrixA_t> &&
-                                    legacy::is_legacy_type<matrixB_t>,
-                                int>::type> {
-        using T = scalar_type<type_t<matrixA_t>, type_t<matrixB_t>>;
-        using idx_t = size_type<matrixA_t>;
-
-        using type = LegacyVector<T, idx_t, idx_t>;
-    };
-
-#endif  // TLAPACK_PREFERRED_MATRIX
 }  // namespace traits
 
 // -----------------------------------------------------------------------------
