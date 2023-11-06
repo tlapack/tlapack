@@ -138,8 +138,9 @@ namespace concepts {
      * @brief Concept for complex scalar types.
      *
      * A complex type is a type that supports arithmetic and comparison
-     * operations. Real and imaginary parts have the same type, and this must
-     * satisfy the concept tlapack::concepts::Real. Moreover,
+     * operations. Real and imaginary parts have the same type, and they must
+     * satisfy the concept tlapack::concepts::Real. The type @c real_type<T>
+     * must also satisfy the concept tlapack::concepts::Real. Moreover,
      *
      * - it must be constructible from two real values. It must also be
      * constructible from a default constructor that takes no arguments.
@@ -232,6 +233,21 @@ namespace concepts {
      * - Number of entries using @c size(const vector_t&). This function must be
      * callable from the namespace @c tlapack.
      *
+     * Moreover, there must exist a specialization of the traits
+     * @c tlapack::traits::matrix_type and @c tlapack::traits::vector_type for
+     * the type @c vector_t. Namely, we should have the specializations:
+     *
+     * - @c tlapack::traits::matrix_type_traits<vector_t,vector_t,int>, with a
+     * member @c type that satisfies the concept tlapack::concepts::Matrix.
+     *
+     * - @c tlapack::traits::vector_type_traits<vector_t,vector_t,int>, with a
+     * member @c type that satisfies the concept tlapack::concepts::Vector.
+     *
+     * Optionally, the vector type can also implement:
+     *
+     * - @c tlapack::traits::layout_trait<vector_t,int>, with a member @c value
+     * that satisfies the concept tlapack::concepts::Layout.
+     *
      * @tparam vector_t Vector type.
      *
      * @ingroup concepts
@@ -297,6 +313,21 @@ namespace concepts {
      *
      * @note The functions @c nrows, @c ncols, and @c size are required to be
      * callable from the namespace @c tlapack.
+     *
+     * Moreover, there must exist a specialization of the traits
+     * @c tlapack::traits::matrix_type and @c tlapack::traits::vector_type for
+     * the type @c matrix_t. Namely, we should have the specializations:
+     *
+     * - @c tlapack::traits::matrix_type_traits<matrix_t,matrix_t>, with a
+     * member @c type that satisfies the concept tlapack::concepts::Matrix.
+     *
+     * - @c tlapack::traits::vector_type_traits<matrix_t,matrix_t>, with a
+     * member @c type that satisfies the concept tlapack::concepts::Vector.
+     *
+     * Optionally, the vector type can also implement:
+     *
+     * - @c tlapack::traits::layout_trait<matrix_t,int>, with a member @c value
+     * that satisfies the concept tlapack::concepts::Layout.
      *
      * @tparam matrix_t Matrix type.
      *
@@ -471,12 +502,14 @@ namespace concepts {
 
     // Workspace matrices
 
-    template <typename pair_t>
-    concept PairOfTransposableMatrixAndOther =
-        TransposableMatrix<typename pair_t::first_type>;
+    namespace internal {
+        template <typename pair_t>
+        concept PairOfTransposableMatrixAndOther =
+            TransposableMatrix<typename pair_t::first_type>;
 
-    template <typename pair_t>
-    concept PairOfVectorAndOther = Vector<typename pair_t::first_type>;
+        template <typename pair_t>
+        concept PairOfVectorAndOther = Vector<typename pair_t::first_type>;
+    }  // namespace internal
 
     /** @interface tlapack::concepts::Workspace
      * @brief Concept for a workspace.
@@ -513,13 +546,13 @@ namespace concepts {
         {
             reshape(work, 0, 0)
         }
-        ->PairOfTransposableMatrixAndOther<>;
+        ->internal::PairOfTransposableMatrixAndOther<>;
 
         // Reshape into a vector
         {
             reshape(work, 0)
         }
-        ->PairOfVectorAndOther<>;
+        ->internal::PairOfVectorAndOther<>;
     };
 
     // Other scalar concepts

@@ -23,7 +23,8 @@ namespace traits {
     /**
      * @brief Entry type trait.
      *
-     * The entry type is defined on @c type_trait<array_t,int>::type.
+     * The entry type is defined on @c type_trait<array_t,int>::type. Use the
+     * tlapack::type_t alias instead.
      *
      * @note This trait does not need to be specialized for each class as
      * @c utils.hpp already provides a default implementation for matrices and
@@ -43,7 +44,8 @@ namespace traits {
     /**
      * @brief Size type trait.
      *
-     * The size type is defined on @c sizet_trait<array_t,int>::type.
+     * The size type is defined on @c sizet_trait<array_t,int>::type. Use the
+     * tlapack::size_type alias instead.
      *
      * @note This trait does not need to be specialized for each class as
      * @c utils.hpp already provides a default implementation for matrices and
@@ -63,9 +65,8 @@ namespace traits {
     /**
      * @brief Trait to determine the layout of a given data structure.
      *
-     * The layout is defined on @c layout_trait<array_t,int>::value.
-     *
-     * This is used to verify if optimized implementations can be used.
+     * The layout is defined on @c layout_trait<array_t,int>::value. Use the
+     * tlapack::layout alias instead.
      *
      * @tparam array_t Data structure.
      * @tparam class If this is not an int, then the trait is not defined.
@@ -166,7 +167,8 @@ namespace traits {
      *
      * The deduction for one and two types must be implemented elsewhere. For
      * example, the plugins for Eigen and mdspan matrices have their own
-     * implementation.
+     * implementation. The deduction for three or more types is implemented
+     * here. Use tlapack::matrix_type alias to get the deduced type.
      *
      * @tparam matrix_t List of matrix types. The last type must be an int.
      */
@@ -192,8 +194,8 @@ namespace traits {
      *
      * The deduction for two types must be implemented elsewhere. For example,
      * the plugins for Eigen and mdspan matrices have their own implementation.
-     *
-     * The deduced type is defined on @c vector_type_traits<vector_t...>::type.
+     * The deduction for three or more types is implemented here. Use
+     * tlapack::vector_type alias to get the deduced type.
      *
      * @tparam vector_t List of vector types. The last type must be an int.
      */
