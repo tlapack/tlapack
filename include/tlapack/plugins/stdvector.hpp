@@ -12,8 +12,27 @@
 
 #include <vector>
 
-#include "tlapack/LegacyMatrix.hpp"
-#include "tlapack/LegacyVector.hpp"
+#if __cplusplus >= 202002L
+    #include <span>
+#else
+namespace std {
+template <typename T>
+class span {
+    T* ptr_;
+    std::size_t len_;
+
+   public:
+    template <class It>
+    constexpr span(It first, std::size_t count) : ptr_(&(*first)), len_(count)
+    {}
+    constexpr T& operator[](std::size_t idx) const { return ptr_[idx]; }
+
+    constexpr std::size_t size() const noexcept { return len_; }
+    constexpr T* data() const noexcept { return ptr_; }
+};
+}  // namespace std
+#endif
+
 #include "tlapack/base/arrayTraits.hpp"
 
 namespace tlapack {
@@ -25,25 +44,13 @@ namespace traits {
 
         template <typename T, typename A>
         struct is_std_vector<std::vector<T, A>> : std::true_type {};
+
+        template <typename T>
+        struct is_std_vector<std::span<T>> : std::true_type {};
     }  // namespace internal
 
     template <typename T>
     inline constexpr bool is_stdvector_type = internal::is_std_vector<T>::value;
-
-    // for two types
-    // should be especialized for every new matrix class
-    template <typename T, typename A, typename U, typename B>
-    struct vector_type_traits<std::vector<T, A>, std::vector<U, B>, int> {
-        using type = LegacyVector<scalar_type<T, U>, std::size_t>;
-    };
-
-    // for two types
-    // should be especialized for every new vector class
-    template <typename T, typename A, typename U, typename B>
-    struct matrix_type_traits<std::vector<T, A>, std::vector<U, B>, int> {
-        using type =
-            LegacyMatrix<scalar_type<T, U>, std::size_t, Layout::ColMajor>;
-    };
 }  // namespace traits
 
 // -----------------------------------------------------------------------------
@@ -55,22 +62,28 @@ constexpr auto size(const std::vector<T, Allocator>& x) noexcept
 {
     return x.size();
 }
+template <class T>
+constexpr auto size(const std::span<T>& x) noexcept
+{
+    return x.size();
+}
 
 // -----------------------------------------------------------------------------
 // blas functions to access std::vector block operations
 
 // slice
-template <class T, class Allocator, class SliceSpec>
-constexpr auto slice(const std::vector<T, Allocator>& v,
-                     SliceSpec&& rows) noexcept
+template <class vec_t,
+          class SliceSpec,
+          std::enable_if_t<traits::is_stdvector_type<vec_t>, int> = 0>
+constexpr auto slice(const vec_t& v, SliceSpec&& rows) noexcept
 {
     assert((rows.first >= 0 && (std::size_t)rows.first < size(v)) ||
            rows.first == rows.second);
     assert(rows.second >= 0 && (std::size_t)rows.second <= size(v));
     assert(rows.first <= rows.second);
 
-    return LegacyVector<T, std::size_t>(rows.second - rows.first,
-                                        (T*)v.data() + rows.first);
+    using T = type_t<vec_t>;
+    return std::span<T>((T*)v.data() + rows.first, rows.second - rows.first);
 }
 
 }  // namespace tlapack

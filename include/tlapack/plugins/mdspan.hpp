@@ -16,6 +16,7 @@
                                 // need the `submdspan` functionality
 
 #include "tlapack/base/arrayTraits.hpp"
+#include "tlapack/plugins/stdvector.hpp"
 
 namespace tlapack {
 
@@ -652,15 +653,13 @@ auto reshape(
 namespace traits {
 
     template <typename T>
-    constexpr bool cast_to_mdspan_type = is_mdspan_type<T>
+    constexpr bool cast_to_mdspan_type =
+        is_mdspan_type<T> || is_stdvector_type<T>
 #ifdef TLAPACK_EIGEN_HH
-                                         || is_eigen_type<T>
+        || is_eigen_type<T>
 #endif
-#ifdef TLAPACK_LEGACY_HH
-                                         || is_legacy_type<T>
-#endif
-#ifdef TLAPACK_STDVECTOR_HH
-                                         || is_stdvector_type<T>
+#ifdef TLAPACK_LEGACYARRAY_HH
+        || is_legacy_type<T>
 #endif
         ;
 
@@ -747,6 +746,36 @@ namespace traits {
         using type = std::experimental::
             mdspan<T, extents_t, std::experimental::layout_stride>;
     };
+
+#if !defined(TLAPACK_EIGEN_HH) && !defined(TLAPACK_LEGACYARRAY_HH)
+    template <class vecA_t, class vecB_t>
+    struct matrix_type_traits<
+        vecA_t,
+        vecB_t,
+        std::enable_if_t<traits::is_stdvector_type<vecA_t> &&
+                             traits::is_stdvector_type<vecB_t>,
+                         int>> {
+        using T = scalar_type<type_t<vecA_t>, type_t<vecB_t>>;
+        using extents_t = std::experimental::dextents<std::size_t, 2>;
+
+        using type = std::experimental::
+            mdspan<T, extents_t, std::experimental::layout_left>;
+    };
+
+    template <class vecA_t, class vecB_t>
+    struct vector_type_traits<
+        vecA_t,
+        vecB_t,
+        std::enable_if_t<traits::is_stdvector_type<vecA_t> &&
+                             traits::is_stdvector_type<vecB_t>,
+                         int>> {
+        using T = scalar_type<type_t<vecA_t>, type_t<vecB_t>>;
+        using extents_t = std::experimental::dextents<std::size_t, 1>;
+
+        using type = std::experimental::
+            mdspan<T, extents_t, std::experimental::layout_left>;
+    };
+#endif
 
 }  // namespace traits
 

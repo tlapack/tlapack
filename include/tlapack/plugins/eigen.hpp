@@ -14,6 +14,7 @@
 #include <cassert>
 
 #include "tlapack/base/arrayTraits.hpp"
+#include "tlapack/plugins/stdvector.hpp"
 
 namespace tlapack {
 
@@ -820,15 +821,12 @@ auto reshape(vector_t& v, Eigen::Index n)
 namespace traits {
 
     template <typename T>
-    constexpr bool cast_to_eigen_type = is_eigen_type<T>
-#ifdef TLAPACK_LEGACY_HH
+    constexpr bool cast_to_eigen_type = is_eigen_type<T> || is_stdvector_type<T>
+#ifdef TLAPACK_LEGACYARRAY_HH
                                         || is_legacy_type<T>
 #endif
 #ifdef TLAPACK_MDSPAN_HH
                                         || is_mdspan_type<T>
-#endif
-#ifdef TLAPACK_STDVECTOR_HH
-                                        || is_stdvector_type<T>
 #endif
         ;
 
@@ -869,6 +867,30 @@ namespace traits {
         using T = scalar_type<type_t<vecA_t>, type_t<vecB_t>>;
         using type = Eigen::Matrix<T, Eigen::Dynamic, 1>;
     };
+
+#if !defined(TLAPACK_MDSPAN_HH) && !defined(TLAPACK_LEGACYARRAY_HH)
+    template <class vecA_t, class vecB_t>
+    struct matrix_type_traits<
+        vecA_t,
+        vecB_t,
+        std::enable_if_t<traits::is_stdvector_type<vecA_t> &&
+                             traits::is_stdvector_type<vecB_t>,
+                         int>> {
+        using T = scalar_type<type_t<vecA_t>, type_t<vecB_t>>;
+        using type = Eigen::Matrix<T, Eigen::Dynamic, 1, Eigen::ColMajor>;
+    };
+
+    template <class vecA_t, class vecB_t>
+    struct vector_type_traits<
+        vecA_t,
+        vecB_t,
+        std::enable_if_t<traits::is_stdvector_type<vecA_t> &&
+                             traits::is_stdvector_type<vecB_t>,
+                         int>> {
+        using T = scalar_type<type_t<vecA_t>, type_t<vecB_t>>;
+        using type = Eigen::Matrix<T, Eigen::Dynamic, 1, Eigen::ColMajor>;
+    };
+#endif
 
 }  // namespace traits
 

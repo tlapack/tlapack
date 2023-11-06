@@ -8,10 +8,7 @@
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
 // Plugins for <T>LAPACK (must come before <T>LAPACK headers)
-// clang-format off
-#include <tlapack/plugins/stdvector.hpp>
 #include <tlapack/plugins/legacyArray.hpp>
-// clang-format on
 
 // <T>LAPACK
 #include <tlapack/blas/syrk.hpp>

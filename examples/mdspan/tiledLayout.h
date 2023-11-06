@@ -36,8 +36,6 @@
 struct TiledLayout {
     template <class Extents>
     struct mapping {
-        static_assert(Extents::rank() == 2, "TiledLayout is a 2D layout");
-
         // for convenience
         using size_type = typename Extents::size_type;
 

@@ -16,6 +16,7 @@
 #include "tlapack/LegacyMatrix.hpp"
 #include "tlapack/LegacyVector.hpp"
 #include "tlapack/base/arrayTraits.hpp"
+#include "tlapack/plugins/stdvector.hpp"
 
 namespace tlapack {
 
@@ -716,15 +717,13 @@ auto reshape(LegacyVector<T, idx_t, int_t, direction>& v,
 namespace traits {
 
     template <typename T>
-    constexpr bool cast_to_legacy_type = is_legacy_type<T>
+    constexpr bool cast_to_legacy_type =
+        is_legacy_type<T> || is_stdvector_type<T>
 #ifdef TLAPACK_EIGEN_HH
-                                         || is_eigen_type<T>
+        || is_eigen_type<T>
 #endif
 #ifdef TLAPACK_MDSPAN_HH
-                                         || is_mdspan_type<T>
-#endif
-#ifdef TLAPACK_STDVECTOR_HH
-                                         || is_stdvector_type<T>
+        || is_mdspan_type<T>
 #endif
         ;
 
@@ -768,6 +767,30 @@ namespace traits {
 
         using type = LegacyVector<T, idx_t, idx_t>;
     };
+
+#if !defined(TLAPACK_EIGEN_HH) && !defined(TLAPACK_MDSPAN_HH)
+    template <class vecA_t, class vecB_t>
+    struct matrix_type_traits<
+        vecA_t,
+        vecB_t,
+        std::enable_if_t<traits::is_stdvector_type<vecA_t> &&
+                             traits::is_stdvector_type<vecB_t>,
+                         int>> {
+        using T = scalar_type<type_t<vecA_t>, type_t<vecB_t>>;
+        using type = LegacyMatrix<T>;
+    };
+
+    template <class vecA_t, class vecB_t>
+    struct vector_type_traits<
+        vecA_t,
+        vecB_t,
+        std::enable_if_t<traits::is_stdvector_type<vecA_t> &&
+                             traits::is_stdvector_type<vecB_t>,
+                         int>> {
+        using T = scalar_type<type_t<vecA_t>, type_t<vecB_t>>;
+        using type = LegacyVector<T>;
+    };
+#endif
 
 }  // namespace traits
 

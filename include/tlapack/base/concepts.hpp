@@ -233,20 +233,16 @@ namespace concepts {
      * - Number of entries using @c size(const vector_t&). This function must be
      * callable from the namespace @c tlapack.
      *
-     * Moreover, there must exist a specialization of the traits
-     * @c tlapack::traits::matrix_type and @c tlapack::traits::vector_type for
-     * the type @c vector_t. Namely, we should have the specializations:
+     * Optionally, the vector type can also implement:
+     *
+     * - @c tlapack::traits::layout_trait<vector_t,int>, with a member @c value
+     * that satisfies the concept tlapack::concepts::Layout.
      *
      * - @c tlapack::traits::matrix_type_traits<vector_t,vector_t,int>, with a
      * member @c type that satisfies the concept tlapack::concepts::Matrix.
      *
      * - @c tlapack::traits::vector_type_traits<vector_t,vector_t,int>, with a
      * member @c type that satisfies the concept tlapack::concepts::Vector.
-     *
-     * Optionally, the vector type can also implement:
-     *
-     * - @c tlapack::traits::layout_trait<vector_t,int>, with a member @c value
-     * that satisfies the concept tlapack::concepts::Layout.
      *
      * @tparam vector_t Vector type.
      *
@@ -314,20 +310,16 @@ namespace concepts {
      * @note The functions @c nrows, @c ncols, and @c size are required to be
      * callable from the namespace @c tlapack.
      *
-     * Moreover, there must exist a specialization of the traits
-     * @c tlapack::traits::matrix_type and @c tlapack::traits::vector_type for
-     * the type @c matrix_t. Namely, we should have the specializations:
+     * Optionally, the matrix type can also implement:
+     *
+     * - @c tlapack::traits::layout_trait<matrix_t,int>, with a member @c value
+     * that satisfies the concept tlapack::concepts::Layout.
      *
      * - @c tlapack::traits::matrix_type_traits<matrix_t,matrix_t>, with a
      * member @c type that satisfies the concept tlapack::concepts::Matrix.
      *
      * - @c tlapack::traits::vector_type_traits<matrix_t,matrix_t>, with a
      * member @c type that satisfies the concept tlapack::concepts::Vector.
-     *
-     * Optionally, the vector type can also implement:
-     *
-     * - @c tlapack::traits::layout_trait<matrix_t,int>, with a member @c value
-     * that satisfies the concept tlapack::concepts::Layout.
      *
      * @tparam matrix_t Matrix type.
      *
