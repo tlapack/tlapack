@@ -601,10 +601,10 @@ auto reshape(LegacyMatrix<T, idx_t, layout>& A,
     }
     else {
         if (m == A.m || n == 0)
-            return std::make_pair(cols(A, std::pair{0, n}),
+            return std::make_pair(cols(A, std::pair{(idx_t)0, n}),
                                   cols(A, std::pair{n, A.n}));
         else if (n == A.n || m == 0)
-            return std::make_pair(rows(A, std::pair{0, m}),
+            return std::make_pair(rows(A, std::pair{(idx_t)0, m}),
                                   rows(A, std::pair{m, A.m}));
         else
             throw std::domain_error(
@@ -707,7 +707,7 @@ auto reshape(LegacyVector<T, idx_t, int_t, direction>& v,
     if (n > v.n)
         throw std::domain_error("New size is larger than current size");
 
-    return std::make_pair(slice(v, std::pair{0, n}),
+    return std::make_pair(slice(v, std::pair{(idx_t)0, n}),
                           slice(v, std::pair{n, v.n}));
 }
 
