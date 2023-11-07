@@ -77,11 +77,58 @@ namespace tlapack {
     }
   }
 
+// e5m2
+namespace tlapack {
+    namespace traits {
+        template <>
+        struct real_type_traits<ml_dtypes::float8_internal::float8_e5m2, int> {
+            using type = ml_dtypes::float8_internal::float8_e5m2;
+            constexpr static bool is_real = true;
+        };
+        template <>
+        struct complex_type_traits<ml_dtypes::float8_internal::float8_e5m2, int> {
+            using type = std::complex<ml_dtypes::float8_internal::float8_e5m2>;
+            constexpr static bool is_complex = false;
+        };
+    }  // namespace traits
 
+    typedef ml_dtypes::float8_internal::float8_e5m2 float8e5m2;
 
+    inline float8e5m2 ceil(float8e5m2 x) noexcept
+    {
+        return float8e5m2(ConstexprCeil(double(x)));
+    }
+    inline float8e5m2 floor(float8e5m2 x) noexcept
+    {
+        return -ceil(float8e5m2(-1 * double(x)));
+    }
+    inline float8e5m2 log2(float8e5m2 x) noexcept
+    {
+        return float8e5m2(log(double(x)));
+    }
+    inline float8e5m2 max(float8e5m2 x, float8e5m2 y) noexcept
+    {
+        return x > y ? x : y;
+    }
+    inline float8e5m2 min(float8e5m2 x, float8e5m2 y) noexcept
+    {
+        return x > y ? y : x;
+    }
+    inline float8e5m2 sqrt(float8e5m2 x) noexcept
+    {
+        return float8e5m2(std::sqrt(double(x)));
+    }
+    inline float8e5m2 pow(int x, float8e5m2 y)
+    {
+        return float8e5m2(std::pow(float(x), float(y)));
+    }
+    inline bool isinf(float8e5m2 x)
+    {
+        return ml_dtypes::float8_internal::isinf(x);
+    }
+  }
 
   // namespace tlapack
-
 
 inline std::istream& operator>>(std::istream& is, ml_dtypes::float8_e4m3fn& x)
 {
@@ -90,5 +137,14 @@ inline std::istream& operator>>(std::istream& is, ml_dtypes::float8_e4m3fn& x)
     x = ml_dtypes::float8_e4m3fn(x);
     return is;
 }
+
+inline std::istream& operator>>(std::istream& is, ml_dtypes::float8_e5m2& x)
+{
+    float f;
+    is >> f;
+    x = ml_dtypes::float8_e5m2(x);
+    return is;
+}
+
 
   // namespace std
