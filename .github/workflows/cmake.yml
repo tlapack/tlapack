@@ -74,11 +74,11 @@ jobs:
     steps:
     
     - name: Checkout <T>LAPACK
-      uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
     - name: Checkout mdspan
       if: ${{ matrix.os == 'ubuntu-latest' }}
-      uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       with:
         repository: kokkos/mdspan
         ref: cc9aaea9a7d36c3163523a0e36fab85bba985a66 # v0.4.0
@@ -199,17 +199,17 @@ jobs:
     steps:
     
     - name: Checkout <T>LAPACK
-      uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
     
     - name: Checkout BLAS++
-      uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       with:
         repository: icl-utk-edu/blaspp
         ref: 34a24d103c039abdc634837af45433c44b3e90a7 # v2023.06.00
         path: blaspp
     
     - name: Checkout LAPACK++
-      uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       with:
         repository: icl-utk-edu/lapackpp
         ref: 229e5007e605ee77769d086530401937fca85c8b # v2023.06.00
@@ -251,7 +251,6 @@ jobs:
         -D BUILD_Fortran_WRAPPERS=ON
         -D BUILD_CBLAS_WRAPPERS=ON
         -D TLAPACK_USE_LAPACKPP=ON
-        -D BUILD_BLASPP_TESTS=ON
         -D BUILD_LAPACKPP_TESTS=OFF
         -D BUILD_testBLAS_TESTS=OFF
 
@@ -282,7 +281,7 @@ jobs:
     - name: Run testBLAS tests
       working-directory: ${{github.workspace}}/build/test/testBLAS
       continue-on-error: true
-      run: ./tester -r Automake
+      run: ./testBLAS -r Automake
 
     - name: Install
       run: sudo cmake --build build --target install
@@ -298,17 +297,17 @@ jobs:
     steps:
     
     - name: Checkout <T>LAPACK
-      uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
     
     - name: Checkout BLAS++
-      uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       with:
         repository: icl-utk-edu/blaspp
         ref: 34a24d103c039abdc634837af45433c44b3e90a7 # v2023.06.00
         path: blaspp
     
     - name: Checkout LAPACK++
-      uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       with:
         repository: icl-utk-edu/lapackpp
         ref: 229e5007e605ee77769d086530401937fca85c8b # v2023.06.00
@@ -371,17 +370,17 @@ jobs:
     steps:
     
     - name: Checkout <T>LAPACK
-      uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
     
     - name: Checkout BLAS++
-      uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       with:
         repository: icl-utk-edu/blaspp
         ref: 34a24d103c039abdc634837af45433c44b3e90a7 # v2023.06.00
         path: blaspp
     
     - name: Checkout LAPACK++
-      uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       with:
         repository: icl-utk-edu/lapackpp
         ref: 229e5007e605ee77769d086530401937fca85c8b # v2023.06.00
@@ -435,7 +434,6 @@ jobs:
         -D BUILD_Fortran_WRAPPERS=ON
         -D BUILD_CBLAS_WRAPPERS=ON
         -D TLAPACK_USE_LAPACKPP=ON
-        -D BUILD_BLASPP_TESTS=ON
         -D BUILD_LAPACKPP_TESTS=OFF
         -D BUILD_testBLAS_TESTS=OFF
 
@@ -466,7 +464,7 @@ jobs:
     - name: Run testBLAS tests
       working-directory: ${{github.workspace}}/build/test/testBLAS
       continue-on-error: true
-      run: ./tester -r Automake
+      run: ./testBLAS -r Automake
 
     - name: Install
       run: sudo cmake --build build --target install
@@ -483,24 +481,24 @@ jobs:
     steps:
     
     - name: Checkout <T>LAPACK
-      uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
     
     - name: Checkout BLAS++
-      uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       with:
         repository: icl-utk-edu/blaspp
         ref: 34a24d103c039abdc634837af45433c44b3e90a7 # v2023.06.00
         path: blaspp
     
     - name: Checkout LAPACK++
-      uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       with:
         repository: icl-utk-edu/lapackpp
         ref: 229e5007e605ee77769d086530401937fca85c8b # v2023.06.00
         path: lapackpp
 
     - name: Checkout LAPACK
-      uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       with:
         repository: Reference-LAPACK/lapack
         ref: 7866626840f5d5e7e27f027a55182da8b3303872 # v3.11.0
@@ -548,7 +546,6 @@ jobs:
         -D BUILD_Fortran_WRAPPERS=ON
         -D BUILD_CBLAS_WRAPPERS=ON
         -D TLAPACK_USE_LAPACKPP=ON
-        -D BUILD_BLASPP_TESTS=OFF
         -D BUILD_LAPACKPP_TESTS=OFF
         -D BUILD_testBLAS_TESTS=OFF
 
@@ -568,7 +565,7 @@ jobs:
     - name: Run testBLAS tests
       working-directory: ${{github.workspace}}/build/test/testBLAS
       continue-on-error: true
-      run: ./tester -r Automake
+      run: ./testBLAS -r Automake
 
     - name: Install
       run: sudo cmake --build build --target install
@@ -580,17 +577,17 @@ jobs:
     steps:
     
     - name: Checkout <T>LAPACK
-      uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
     
     - name: Checkout BLAS++
-      uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       with:
         repository: icl-utk-edu/blaspp
         ref: 34a24d103c039abdc634837af45433c44b3e90a7 # v2023.06.00
         path: blaspp
     
     - name: Checkout LAPACK++
-      uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       with:
         repository: icl-utk-edu/lapackpp
         ref: 229e5007e605ee77769d086530401937fca85c8b # v2023.06.00
@@ -650,7 +647,7 @@ jobs:
     - name: Run testBLAS tests
       working-directory: ${{github.workspace}}/build/test/testBLAS
       continue-on-error: true
-      run: ./tester -r Automake
+      run: ./testBLAS -r Automake
 
     - name: Install
       run: sudo cmake --build build --target install
@@ -667,10 +664,10 @@ jobs:
     steps:
     
     - name: Checkout <T>LAPACK
-      uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
     - name: Checkout mdspan
-      uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       with:
         repository: kokkos/mdspan
         ref: cc9aaea9a7d36c3163523a0e36fab85bba985a66 # v0.4.0
@@ -722,11 +719,28 @@ jobs:
     - name: Install
       run: sudo cmake --build build --target install
 
+    - name: Build and run examples using CMake
+      run: |
+        directory=("access_types" "cpp_visualizer" "create_float_library" "cwrapper_gemm" "eigen" "eigenvalues" "fortranModule_caxpy" "fortranModule_ssymm" "gemm" "geqr2" "lu" "mdspan" "performance_eigen" "potrf" "extreme_interoperability")
+        exec=("example_accessTypes" "cpp_visualizer_example" "example_create_float_library" "example_cwrapper_gemm" "example_eigen" "example_eigenvalues" "example_fortranModule_caxpy" "example_fortranModule_ssymm" "example_gemm" "example_geqr2" "example_lu" "example_mdspan" "performance_tlapack" "example_potrf" "example_interoperability")
+        for i in ${!directory[@]}; do
+          cd ${{github.workspace}}/examples/${directory[$i]}
+          echo "-----------------------------------"
+          pwd
+          echo "-----------------------------------"
+          cmake -B build -G Ninja
+          cmake --build build --config Debug
+          echo "./build/${exec[$i]}"
+          ./build/${exec[$i]}
+          echo "-----------------------------------"
+        done
+
     - name: Build and run example access_types using Makefile
       run: |
-        directory=("access_types" "create_float_library" "cwrapper_gemm" "eigen" "eigenvalues" "fortranModule_caxpy" "fortranModule_ssymm" "gemm" "geqr2" "mdspan" "performance_eigen")
-        exec=("example_accessTypes" "example_create_float_library" "example_cwrapper_gemm" "example_eigen" "example_eigenvalues" "example_fortranModule_caxpy" "example_fortranModule_ssymm" "example_gemm" "example_geqr2" "example_mdspan" "performance_tlapack")
-        ldflags=("" "" "-ltlapack_c -Wl,-rpath=/usr/local/lib" "" "-llapack -lblas -lm -lgfortran" "-ltlapack_fortran -ltlapack_c -Wl,-rpath=/usr/local/lib -lgfortran" "-ltlapack_fortran -ltlapack_c -Wl,-rpath=/usr/local/lib -lgfortran" "" "" "" "")
+        ldconfig -p | grep libgfortran
+        directory=("access_types" "create_float_library" "cwrapper_gemm" "eigen" "eigenvalues" "fortranModule_caxpy" "fortranModule_ssymm" "gemm" "geqr2" "mdspan" "performance_eigen" "extreme_interoperability")
+        exec=("example_accessTypes" "example_create_float_library" "example_cwrapper_gemm" "example_eigen" "example_eigenvalues" "example_fortranModule_caxpy" "example_fortranModule_ssymm" "example_gemm" "example_geqr2" "example_mdspan" "performance_tlapack" "example_interoperability")
+        ldflags=("" "" "-ltlapack_c -Wl,-rpath=/usr/local/lib" "" "-llapack -lblas -lm /lib/x86_64-linux-gnu/libgfortran.so.5" "-ltlapack_fortran -ltlapack_c -Wl,-rpath=/usr/local/lib /lib/x86_64-linux-gnu/libgfortran.so.5" "-ltlapack_fortran -ltlapack_c -Wl,-rpath=/usr/local/lib /lib/x86_64-linux-gnu/libgfortran.so.5" "" "" "" "")
         export CXXFLAGS="${{env.CXXFLAGS}} -I/usr/local/include/eigen3"
         export FFLAGS="${{env.FFLAGS}} -I/usr/local/include/tlapack/fortran"
         export LD="clang++"
@@ -743,22 +757,6 @@ jobs:
           echo "-----------------------------------"
         done
 
-    - name: Build and run examples using CMake
-      run: |
-        directory=("access_types" "cpp_visualizer" "create_float_library" "cwrapper_gemm" "eigen" "eigenvalues" "fortranModule_caxpy" "fortranModule_ssymm" "gemm" "geqr2" "lu" "mdspan" "performance_eigen" "potrf")
-        exec=("example_accessTypes" "cpp_visualizer_example" "example_create_float_library" "example_cwrapper_gemm" "example_eigen" "example_eigenvalues" "example_fortranModule_caxpy" "example_fortranModule_ssymm" "example_gemm" "example_geqr2" "example_lu" "example_mdspan" "performance_tlapack" "example_potrf")
-        for i in ${!directory[@]}; do
-          cd ${{github.workspace}}/examples/${directory[$i]}
-          echo "-----------------------------------"
-          pwd
-          echo "-----------------------------------"
-          cmake -B build -G Ninja
-          cmake --build build --config Debug
-          echo "./build/${exec[$i]}"
-          ./build/${exec[$i]}
-          echo "-----------------------------------"
-        done
-
   build-with-starpu:
     # Use GNU compilers
     
@@ -770,10 +768,10 @@ jobs:
     steps:
     
     - name: Checkout <T>LAPACK
-      uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
     - name: Checkout StarPU
-      uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       with:
         repository: starpu-runtime/starpu
         ref: 87155272bc43821a89ae62ba0f6b55a105ccba4c # v1.4.1

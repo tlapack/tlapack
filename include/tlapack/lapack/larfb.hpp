@@ -79,14 +79,14 @@ constexpr WorkInfo larfb_worksize(side_t side,
                                   const matrixC_t& C)
 {
     using idx_t = size_type<matrixC_t>;
-    using matrixW_t = matrix_type<matrixV_t, matrixC_t>;
+    using work_t = matrix_type<matrixV_t, matrixC_t>;
 
     // constants
     const idx_t m = nrows(C);
     const idx_t n = ncols(C);
     const idx_t k = nrows(Tmatrix);
 
-    if constexpr (is_same_v<T, type_t<matrixW_t>>)
+    if constexpr (is_same_v<T, type_t<work_t>>)
         return (side == Side::Left) ? WorkInfo(k, n) : WorkInfo(m, k);
     else
         return WorkInfo(0);
@@ -149,6 +149,10 @@ int larfb_work(side_t side,
     // Quick return
     if (m <= 0 || n <= 0 || k <= 0) return 0;
 
+    // Matrix W
+    auto [W, work1] =
+        (side == Side::Left) ? reshape(work, k, n) : reshape(work, m, k);
+
     if (storeMode == StoreV::Columnwise) {
         if (direction == Direction::Forward) {
             if (side == Side::Left) {
@@ -160,7 +164,6 @@ int larfb_work(side_t side,
                 const auto V2 = rows(V, range{k, m});
                 auto C1 = rows(C, range{0, k});
                 auto C2 = rows(C, range{k, m});
-                auto W = slice(work, range{0, k}, range{0, n});
 
                 // W := C1
                 lacpy(GENERAL, C1, W);
@@ -194,7 +197,6 @@ int larfb_work(side_t side,
                 const auto V2 = rows(V, range{k, n});
                 auto C1 = cols(C, range{0, k});
                 auto C2 = cols(C, range{k, n});
-                auto W = slice(work, range{0, m}, range{0, k});
 
                 // W := C1
                 lacpy(GENERAL, C1, W);
@@ -230,7 +232,6 @@ int larfb_work(side_t side,
                 const auto V2 = rows(V, range{m - k, m});
                 auto C1 = rows(C, range{0, m - k});
                 auto C2 = rows(C, range{m - k, m});
-                auto W = slice(work, range{0, k}, range{0, n});
 
                 // W := C2
                 lacpy(GENERAL, C2, W);
@@ -264,7 +265,6 @@ int larfb_work(side_t side,
                 const auto V2 = rows(V, range{n - k, n});
                 auto C1 = cols(C, range{0, n - k});
                 auto C2 = cols(C, range{n - k, n});
-                auto W = slice(work, range{0, m}, range{0, k});
 
                 // W := C2
                 lacpy(GENERAL, C2, W);
@@ -302,7 +302,6 @@ int larfb_work(side_t side,
                 const auto V2 = cols(V, range{k, m});
                 auto C1 = rows(C, range{0, k});
                 auto C2 = rows(C, range{k, m});
-                auto W = slice(work, range{0, k}, range{0, n});
 
                 // W := C1
                 lacpy(GENERAL, C1, W);
@@ -336,7 +335,6 @@ int larfb_work(side_t side,
                 const auto V2 = cols(V, range{k, n});
                 auto C1 = cols(C, range{0, k});
                 auto C2 = cols(C, range{k, n});
-                auto W = slice(work, range{0, m}, range{0, k});
 
                 // W := C1
                 lacpy(GENERAL, C1, W);
@@ -372,7 +370,6 @@ int larfb_work(side_t side,
                 const auto V2 = cols(V, range{m - k, m});
                 auto C1 = rows(C, range{0, m - k});
                 auto C2 = rows(C, range{m - k, m});
-                auto W = slice(work, range{0, k}, range{0, n});
 
                 // W := C2
                 lacpy(GENERAL, C2, W);
@@ -406,7 +403,6 @@ int larfb_work(side_t side,
                 const auto V2 = cols(V, range{n - k, n});
                 auto C1 = cols(C, range{0, n - k});
                 auto C2 = cols(C, range{n - k, n});
-                auto W = slice(work, range{0, m}, range{0, k});
 
                 // W := C2
                 lacpy(GENERAL, C2, W);
@@ -522,11 +518,11 @@ int larfb(side_t side,
           matrixC_t& C)
 {
     using idx_t = size_type<matrixC_t>;
-    using matrixW_t = matrix_type<matrixV_t, matrixC_t>;
-    using T = type_t<matrixW_t>;
+    using work_t = matrix_type<matrixV_t, matrixC_t>;
+    using T = type_t<work_t>;
 
     // Functor
-    Create<matrixW_t> new_matrix;
+    Create<work_t> new_matrix;
 
     // constants
     const idx_t m = nrows(C);

@@ -47,7 +47,7 @@ void move_bulge(matrix_t& H,
     const real_t zero(0);
     const real_t eps = ulp<real_t>();
 
-    Create<vector_t> new_vector;
+    CreateStatic<vector_t, 3> new_3_vector;
 
     // Perform delayed update of row below the bulge
     // Assumes the first two elements of the row are zero
@@ -75,8 +75,8 @@ void move_bulge(matrix_t& H,
     else {
         // The bulge has collapsed, attempt to reintroduce using
         // 2-small-subdiagonals trick
-        std::vector<T> vt_;
-        auto vt = new_vector(vt_, 3);
+        T vt_[3];
+        auto vt = new_3_vector(vt_);
         auto H2 = slice(H, range{1, 4}, range{1, 4});
         lahqr_shiftcolumn(H2, vt, s1, s2);
         larfg(FORWARD, COLUMNWISE_STORAGE, vt, tau);

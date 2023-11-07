@@ -41,6 +41,15 @@ namespace tlapack {
  *
  * @ingroup auxiliary
  */
+template <TLAPACK_MATRIX matrix_t, TLAPACK_VECTOR vector_t, bool>
+int lahqz_shiftcolumn(const matrix_t& A,
+                      const matrix_t& B,
+                      vector_t& v,
+                      complex_type<type_t<matrix_t>> s1,
+                      complex_type<type_t<matrix_t>> s2,
+                      type_t<matrix_t> beta1,
+                      type_t<matrix_t> beta2);
+
 template <TLAPACK_MATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
           enable_if_t<is_real<type_t<matrix_t>>, bool> = true>
@@ -110,31 +119,6 @@ int lahqz_shiftcolumn(const matrix_t& A,
     return 0;
 }
 
-/** Given a 2-by-2 or 3-by-3 matrix pencil (A,B), lahqz_shiftcolumn
- *  calculates a multiple of the product:
- *  (beta2*A - s2*B)*B^(-1)*(beta1*A - s1*B)*B^(-1)*e1
- *
- *  This is used to introduce shifts in the QZ algorithm
- *
- * @return  0 if success
- *
- * @param[in] A 2x2 or 3x3 matrix.
- *      The matrix A as in the formula above.
- * @param[in] B 2x2 or 3x3 matrix.
- *      The matrix B as in the formula above.
- * @param[out] v vector of size 2 or 3
- *      On exit, a multiple of the product
- * @param[in] s1
- *      The scalar s1 as in the formula above
- * @param[in] s2
- *      The scalar s2 as in the formula above
- * @param[in] beta1
- *      The scalar beta1 as in the formula above
- * @param[in] beta2
- *      The scalar beta2 as in the formula above
- *
- * @ingroup auxiliary
- */
 template <TLAPACK_MATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
           enable_if_t<is_complex<type_t<matrix_t>>, bool> = true>

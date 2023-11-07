@@ -9,9 +9,7 @@
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
 // Plugins for <T>LAPACK (must come before <T>LAPACK headers)
-#define TLAPACK_PREFERRED_MATRIX_LEGACY
 #include <tlapack/plugins/legacyArray.hpp>
-#include <tlapack/plugins/stdvector.hpp>
 #ifdef USE_MPFR
     #include <tlapack/plugins/mpreal.hpp>
 #endif
