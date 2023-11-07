@@ -93,8 +93,8 @@ int gebrd_work(matrix_t& A,
     const idx_t nb = min((idx_t)opts.nb, k);
 
     // Matrices X and Y
-    auto X = slice(work, range{0, m}, range{0, nb});
-    auto Y = slice(work, range{m, m + n}, range{0, nb});
+    auto [X, work2] = reshape(work, m, nb);
+    auto [Y, work3] = reshape(work2, n, nb);
     laset(GENERAL, zero, zero, X);
     laset(GENERAL, zero, zero, Y);
 

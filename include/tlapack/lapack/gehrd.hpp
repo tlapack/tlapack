@@ -115,10 +115,9 @@ int gehrd_work(size_type<matrix_t> ilo,
     const idx_t n = ncols(A);
 
     // Blocksize
-    idx_t nb = (ilo < ihi) ? min<idx_t>(opts.nb, ihi - ilo - 1) : 0;
+    const idx_t nb = (ilo < ihi) ? min<idx_t>(opts.nb, ihi - ilo - 1) : 0;
     // Size of the last block which be handled with unblocked code
-    idx_t nx_switch = opts.nx_switch;
-    idx_t nx = max(nb, nx_switch);
+    const idx_t nx = max(nb, (idx_t)opts.nx_switch);
 
     // check arguments
     tlapack_check_false((ilo < 0) or (ilo >= n));
@@ -129,14 +128,14 @@ int gehrd_work(size_type<matrix_t> ilo,
     // quick return
     if (n <= 0) return 0;
 
-    // Matrices W, Y and T
-    auto W = transpose_view(work);
-    auto Y = ((ilo < ihi) && (nx < ihi - ilo - 1))
-                 ? slice(work, range{0, n}, range{0, nb})
-                 : slice(work, range{0, 0}, range{0, 0});
-    auto matrixT = ((ilo < ihi) && (nx < ihi - ilo - 1))
-                       ? slice(work, range{n, n + nb}, range{0, nb})
-                       : slice(work, range{0, 0}, range{0, 0});
+    // Matrices Y and T
+    auto [Y, work2] = ((ilo < ihi) && (nx < ihi - ilo - 1))
+                          ? reshape(work, n, nb)
+                          : reshape(work, 0, 0);
+    auto Yt = transpose_view(Y);
+    auto [matrixT, work3] = ((ilo < ihi) && (nx < ihi - ilo - 1))
+                                ? reshape(work2, nb, nb)
+                                : reshape(work2, 0, 0);
     laset(GENERAL, zero, zero, Y);
 
     idx_t i = ilo;
@@ -174,7 +173,7 @@ int gehrd_work(size_type<matrix_t> ilo,
         // Apply the block reflector H to A(i+1:ihi,i+nb:n) from the left
         auto A5 = slice(A, range{i + 1, ihi}, range{i + nb2, n});
         larfb_work(LEFT_SIDE, CONJ_TRANS, FORWARD, COLUMNWISE_STORAGE, V, T_s,
-                   A5, W);
+                   A5, Yt);
     }
 
     return gehd2_work(i, ihi, A, tau, work);

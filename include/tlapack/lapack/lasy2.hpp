@@ -26,25 +26,34 @@ namespace tlapack {
  *  where TL is N1 by N1, TR is N2 by N2, B is N1 by N2, and ISGN = 1 or
  *  -1.  op(T) = T or T**T, where T**T denotes the transpose of T.
  *
+ * @note Sets <tt>scale = 1</tt> and <tt>xnorm = 0</tt> if N1 = N2 = 0.
+ *
+ * @todo Implement for n1=2 and n2=1 or n1=1 and n2=2.
+ *
  * @ingroup auxiliary
  */
-template <TLAPACK_MATRIX matrix_t,
-          enable_if_t<is_real<type_t<matrix_t> >, bool> = true>
+template <
+    TLAPACK_MATRIX matrixX_t,
+    TLAPACK_MATRIX matrixT_t,
+    TLAPACK_MATRIX matrixB_t,
+    enable_if_t<is_real<type_t<matrixX_t>> && is_real<type_t<matrixT_t>> &&
+                    is_real<type_t<matrixB_t>>,
+                bool> = true>
 int lasy2(Op trans_l,
           Op trans_r,
           int isign,
-          const matrix_t& TL,
-          const matrix_t& TR,
-          const matrix_t& B,
-          type_t<matrix_t>& scale,
-          matrix_t& X,
-          type_t<matrix_t>& xnorm)
+          const matrixT_t& TL,
+          const matrixT_t& TR,
+          const matrixB_t& B,
+          type_t<matrixX_t>& scale,
+          matrixX_t& X,
+          type_t<matrixX_t>& xnorm)
 {
-    using idx_t = size_type<matrix_t>;
-    using T = type_t<matrix_t>;
+    using idx_t = size_type<matrixX_t>;
+    using T = type_t<matrixX_t>;
 
     // Functor for creating new matrices of type matrix_t
-    Create<matrix_t> new_matrix;
+    CreateStatic<matrixX_t, 4, 4> new_4by4_matrix;
 
     const idx_t n1 = ncols(TL);
     const idx_t n2 = ncols(TR);
@@ -58,6 +67,8 @@ int lasy2(Op trans_l,
     tlapack_check(isign == -1 or isign == 1);
 
     // Quick return
+    scale = one;
+    xnorm = zero;
     if (n1 == 0 or n2 == 0) return 0;
 
     T sgn(isign);
@@ -80,16 +91,18 @@ int lasy2(Op trans_l,
         return info;
     }
     if ((n1 == 2 and n2 == 1) or (n1 == 1 and n2 == 2)) {
-        /// @todo
+        tlapack_error(-1,
+                      "lasy2: not implemented for n1=2 and n2=1 or n1=1 and "
+                      "n2=2");
         return -1;
     }
     if (n1 == 2 and n2 == 2) {
         // 2x2 blocks, build a 4x4 matrix
-        std::vector<T> btmp(4);
-        std::vector<T> tmp(4);
-        std::vector<T> T16_;
-        auto T16 = new_matrix(T16_, 4, 4);
-        std::vector<idx_t> jpiv(4);
+        T btmp[4];
+        T tmp[4];
+        T T16_[4 * 4];
+        auto T16 = new_4by4_matrix(T16_);
+        idx_t jpiv[4];
 
         T smin = max(max(abs(TR(0, 0)), abs(TR(0, 1))),
                      max(abs(TR(1, 0)), abs(TR(1, 1))));

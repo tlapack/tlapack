@@ -162,7 +162,7 @@ TEMPLATE_TEST_CASE("QR algorithm",
         idx_t i = ilo;
         while (i < ihi) {
             int nb = 1;
-            if (is_real<T>)
+            if constexpr (is_real<T>)
                 if (i + 1 < ihi)
                     if (H(i + 1, i) != zero) nb = 2;
 
@@ -179,7 +179,8 @@ TEMPLATE_TEST_CASE("QR algorithm",
                 a21 = H(i + 1, i);
                 a22 = H(i + 1, i + 1);
                 complex_t s1, s2, swp;
-                lahqr_schur22(a11, a12, a21, a22, s1, s2, cs, sn);
+                if constexpr (is_real<T>)
+                    lahqr_schur22(a11, a12, a21, a22, s1, s2, cs, sn);
                 if (abs1(s1 - s[i]) > abs1(s2 - s[i])) {
                     swp = s1;
                     s1 = s2;

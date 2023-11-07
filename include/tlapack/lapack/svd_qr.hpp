@@ -12,10 +12,7 @@
 #ifndef TLAPACK_SVD_QR_HH
 #define TLAPACK_SVD_QR_HH
 
-#include <algorithm>
-
 #include "tlapack/base/utils.hpp"
-#include "tlapack/blas/gemm.hpp"
 #include "tlapack/blas/iamax.hpp"
 #include "tlapack/blas/lartg.hpp"
 #include "tlapack/blas/rot.hpp"
@@ -23,7 +20,6 @@
 #include "tlapack/lapack/gebrd.hpp"
 #include "tlapack/lapack/singularvalues22.hpp"
 #include "tlapack/lapack/svd22.hpp"
-#include "tlapack/lapack/ungbr.hpp"
 
 namespace tlapack {
 
@@ -95,7 +91,7 @@ int svd_qr(Uplo uplo,
            matrix_t& Vt)
 {
     using idx_t = size_type<matrix_t>;
-    using pair = pair<idx_t, idx_t>;
+    using range = pair<idx_t, idx_t>;
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
 
@@ -454,7 +450,7 @@ int svd_qr(Uplo uplo,
 
     // Sort the singular values into decreasing order.
     for (idx_t i = 0; i < n - 1; ++i) {
-        auto d2 = slice(d, pair{i, n});
+        auto d2 = slice(d, range{i, n});
         idx_t imax = i + iamax(d2);
         if (imax != i) {
             std::swap(d[imax], d[i]);

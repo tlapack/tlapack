@@ -73,7 +73,7 @@ int lahqz(bool want_s,
     using range = pair<idx_t, idx_t>;
 
     // Functor
-    Create<vector_type<matrix_t>> new_vector;
+    CreateStatic<vector_type<matrix_t>, 3> new_3_vector;
 
     // constants
     const real_t zero(0);
@@ -130,8 +130,8 @@ int lahqz(bool want_s,
     TA eshift = (TA)0.;
 
     // Local workspace
-    std::vector<TA> v_;
-    auto v = new_vector(v_, 3);
+    TA v_[3];
+    auto v = new_3_vector(v_);
 
     for (idx_t iter = 0; iter <= itmax; ++iter) {
         if (iter == itmax) {

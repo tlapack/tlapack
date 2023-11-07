@@ -44,7 +44,29 @@ using std::enable_if_t;
 
 // Real type traits
 namespace traits {
-    /// Traits for the list of types @c Types
+    /** Real type traits for the list of types @c Types.
+     *
+     * The deduced common real type is defined on
+     * @c real_type_traits<Types...>::type. For a single type @c T, the trait
+     * also defines a static boolean @c is_real that is true if @c T is a real
+     * type. Use the aliases tlapack::real_type and tlapack::is_real instead.
+     *
+     * Rules when a single type @c T is given:
+     *
+     * - If @c T is a non-const non-complex std arithmetic type, then the
+     * deduced type is the decayed type of @c T.
+     * - If @c T is a std complex type, then the deduced type is the decayed
+     * type of the real part of @c T.
+     * - If @c T is a const type, then the deduced type is the same as the one
+     * of the non-const version.
+     * - If @c T is a pointer or reference, then the deduced type is void. This
+     * is to avoid accidental promotion of pointers and references.
+     *
+     * For two or more types, use @c std::common_type_t to deduce the common
+     * type using recursive calls.
+     *
+     * @tparam Types A list of types
+     */
     template <typename... Types>
     struct real_type_traits;
 
@@ -96,7 +118,29 @@ constexpr bool is_real = traits::real_type_traits<T, int>::is_real;
 
 // Complex type traits
 namespace traits {
-    /// Traits for the list of types @c Types
+    /** Complex type traits for the list of types @c Types.
+     *
+     * The deduced common complex type is defined on
+     * @c complex_type_traits<Types...>::type. For a single type @c T, the trait
+     * also defines a static boolean @c is_complex that is true if @c T is a
+     * complex type. Use the aliases tlapack::complex_type and
+     * tlapack::is_complex instead.
+     *
+     * Rules when a single type @c T is given:
+     *
+     * - If @c T is a non-const non-complex std arithmetic type or a std complex
+     * type, then the deduced type is the std complex type of @c
+     * tlapack::real_type<T>.
+     * - If @c T is a const type, then the deduced type is the same as the one
+     * of the non-const version.
+     * - If @c T is a pointer or reference, then the deduced type is void. This
+     * is to avoid accidental promotion of pointers and references.
+     *
+     * For two or more types, the deduced type is the complex type of
+     * @c tlapack::real_type_traits<Types...>::type.
+     *
+     * @tparam Types A list of types
+     */
     template <typename... Types>
     struct complex_type_traits;
 
@@ -148,7 +192,26 @@ template <typename T>
 constexpr bool is_complex = traits::complex_type_traits<T, int>::is_complex;
 
 namespace traits {
-
+    /** Common scalar type deduced from the list of types @c Types.
+     *
+     * The deduced common scalar type is defined on
+     * @c scalar_type_traits<Types...>::type. Use the alias tlapack::scalar_type
+     * to get the deduced type.
+     *
+     * Rules:
+     *
+     * - For one type, the deduced type is the same the type deduced for the
+     * pair of types @c T and @c T.
+     * - For two types, if one of them is a complex type, then the deduced type
+     * is the same type deduced by @c tlapack::complex_type.
+     * - For two types, if both are real types, then the deduced type is the
+     * same type deduced by @c tlapack::real_type.
+     * - For three or more types, use a recursive call to deduce the common
+     * scalar type of the first two types, and then recursively deduce the
+     * common scalar type of the result and the remaining types.
+     *
+     * @tparam Types
+     */
     template <typename... Types>
     struct scalar_type_traits;
 

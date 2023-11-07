@@ -13,7 +13,6 @@
 #define TLAPACK_SVD22_HH
 
 #include "tlapack/base/utils.hpp"
-#include "tlapack/lapack/lapy2.hpp"
 
 namespace tlapack {
 
