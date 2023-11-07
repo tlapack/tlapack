@@ -282,6 +282,33 @@ struct MatrixMarket {
         }
     }
 
+    /**
+     * @brief Generate a Cauchy matrix.
+     *
+     * The Cauchy matrix is defined by:
+     * A_{ij} = 1 / (x[i] + y[j])
+     *
+     * @param[out] A Matrix.
+     * @param[in] x First vector.
+     * @param[in] y Optional vector of y values. If not provided, y = x.
+     */
+    template <TLAPACK_MATRIX matrix_t>
+    void generateCauchy(matrix_t& A, 
+                        const std::vector<type_t<matrix_t>>& x, 
+                        const std::vector<type_t<matrix_t>>& y) 
+    {
+        using T = type_t<matrix_t>;
+        using idx_t = size_type<matrix_t>;
+
+        const idx_t m = x.size();
+        const idx_t n = y.size();
+
+        for (idx_t i = 0; i < m; ++i) {
+            for (idx_t j = 0; j < n; ++j) {
+                A(i, j) = T(1) / (x[i] + y[j]);
+            }
+        }
+    }
     rand_generator gen;
 };
 
