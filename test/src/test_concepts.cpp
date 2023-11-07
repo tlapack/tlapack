@@ -71,7 +71,6 @@ TEMPLATE_TEST_CASE("Concept Workspace works as expected",
     using matrix_t = TestType;
     using vector_t = tlapack::vector_type<matrix_t>;
     using T = tlapack::type_t<matrix_t>;
-    using idx_t = tlapack::size_type<matrix_t>;
 
     static_assert(Workspace<matrix_t>);
     static_assert(Workspace<vector_t>);
@@ -188,7 +187,6 @@ TEMPLATE_TEST_CASE(
     using matrix_t = TestType;
     using vector_t = tlapack::vector_type<matrix_t>;
     using T = tlapack::type_t<matrix_t>;
-    using idx_t = tlapack::size_type<matrix_t>;
 
     #define M 5
     #define N 2

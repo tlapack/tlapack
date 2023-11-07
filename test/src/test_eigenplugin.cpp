@@ -14,25 +14,25 @@
 template <class block_t>
 void test_block()
 {
-    CHECK(tlapack::eigen::internal::is_eigen_dense<block_t> == true);
-    CHECK(tlapack::eigen::internal::is_eigen_matrix<block_t> == true);
-    CHECK(tlapack::eigen::internal::is_eigen_block<block_t> == true);
+    CHECK(tlapack::traits::internal::is_eigen_dense<block_t> == true);
+    CHECK(tlapack::traits::internal::is_eigen_matrix<block_t> == true);
+    CHECK(tlapack::traits::internal::is_eigen_block<block_t> == true);
 }
 
 template <class matrix_t>
 void test_matrix()
 {
-    CHECK(tlapack::eigen::internal::is_eigen_dense<matrix_t> == true);
-    CHECK(tlapack::eigen::internal::is_eigen_matrix<matrix_t> == true);
-    CHECK(tlapack::eigen::internal::is_eigen_block<matrix_t> == false);
+    CHECK(tlapack::traits::internal::is_eigen_dense<matrix_t> == true);
+    CHECK(tlapack::traits::internal::is_eigen_matrix<matrix_t> == true);
+    CHECK(tlapack::traits::internal::is_eigen_block<matrix_t> == false);
 }
 
 template <class map_t>
 void test_map()
 {
-    CHECK(tlapack::eigen::internal::is_eigen_dense<map_t> == true);
-    CHECK(tlapack::eigen::internal::is_eigen_matrix<map_t> == true);
-    CHECK(tlapack::eigen::internal::is_eigen_block<map_t> == false);
+    CHECK(tlapack::traits::internal::is_eigen_dense<map_t> == true);
+    CHECK(tlapack::traits::internal::is_eigen_matrix<map_t> == true);
+    CHECK(tlapack::traits::internal::is_eigen_block<map_t> == false);
 }
 
 template <class matrix_t>
@@ -65,11 +65,11 @@ void test_maps()
 
 TEST_CASE("is_eigen_dense, is_eigen_block and is_eigen_map work", "[plugins]")
 {
-    CHECK(tlapack::eigen::internal::is_eigen_dense<int> == false);
-    CHECK(tlapack::eigen::internal::is_eigen_dense<float> == false);
-    CHECK(tlapack::eigen::internal::is_eigen_dense<std::complex<float>> ==
+    CHECK(tlapack::traits::internal::is_eigen_dense<int> == false);
+    CHECK(tlapack::traits::internal::is_eigen_dense<float> == false);
+    CHECK(tlapack::traits::internal::is_eigen_dense<std::complex<float>> ==
           false);
-    CHECK(tlapack::eigen::internal::is_eigen_dense<std::string> == false);
+    CHECK(tlapack::traits::internal::is_eigen_dense<std::string> == false);
 
     using M0 = Eigen::MatrixXd;
     using M1 = Eigen::VectorXd;
