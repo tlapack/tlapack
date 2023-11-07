@@ -4,6 +4,8 @@ Thank you for investing your precious time to contribute to \<T\>LAPACK! Please 
 
 ## Code style
 
+In this section we describe the code style used in \<T\>LAPACK. We also describe the naming conventions used in the library. We suggest following the same style and conventions when contributing to \<T\>LAPACK.
+
 ### Automatic code formatting
 
 \<T\>LAPACK uses [ClangFormat](https://clang.llvm.org/docs/ClangFormat.html) (version 10) to enforce a consistent code style. The configuration file is located at [`.clang-format`](.clang-format). The code style is based on the [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html) and the differences are marked in the configuration file. You should never modify the [`.clang-format`](.clang-format) file in \<T\>LAPACK, unless this is the reason behind your pull request.
@@ -11,6 +13,19 @@ Thank you for investing your precious time to contribute to \<T\>LAPACK! Please 
 To format code you are adding or modifying, we suggest using the [git-clang-format](https://github.com/llvm-mirror/clang/blob/master/tools/clang-format/git-clang-format) script that is distributed together with ClangFormat. Use `git-clang-format` to format the code that was modified or added before a commit. You can use `git-clang-format --help` to access all options. Mind that one of the tests in the Continuous Integration checks that the code is properly formatted.
 
 ### Naming conventions
+
+#### General rules
+
+1. Avoid any identifiers starting with underscores even if not followed by Uppercase. This is aligned to [17.4.3.1.2 C++ global names](https://timsong-cpp.github.io/cppwp/n3337/global.names).
+
+> [!NOTE]
+> You may use the following regular expression to find relevant identifiers that start with underscore in VS Code:
+>
+> ```diff
+> __(.*)__                      # Identifiers limited by double underscore
+> ([^\w|])_([A-Z])              # Start with underscore then uppercase letter
+> ([^\w])_(\w)([, ;/\)\(.\[\]]) # Other identifiers that start with underscore
+> ```
 
 #### Template parameters and type aliases
 
@@ -36,6 +51,12 @@ Function arguments should be named using either:
 
 For instance, `fooBar` is a good name for a function argument, while `foo_bar` is not. `A` and `matrixA` are good names for a matrix, while `a` is not.
 
+#### Local variables and constants
+
+There is no strict rule for naming local variables. However, we suggest:
+
+1. Declare real-valued constants using real types. For instance, use `const real_type<T> zero(0)` instead of `const T zero(0)`. This is because the type `T` may be a complex type, and the constant `zero` is real. Avoid constants like `const real_type<T> rzero(0)` and `const T czero(0)` in the same function, because it is confusing.
+
 #### Other naming conventions
 
 1. Use upper camel case (Pascal case) style to name:
@@ -57,6 +78,22 @@ Special cases:
 1. Traits are classes with only static members and, thus, they are named using snake case. Moreover, they have the suffix `_trait` or `_traits`, e.g., `tlapack::traits::entry_type_trait` and `tlapack::traits::matrix_type_traits`.
 2. Classes for optional arguments of mathematical routines usually have non-static members and, therefore, they are named using upper camel case (Pascal case) style. Moreover, they have the suffix `Opts`, e.g., `tlapack::GeqrfOpts` and `tlapack::BlockedCholeskyOpts`.
 
+## Writing code in the include and src directories
+
+This section describes the guidelines for writing code in the [include](include) and [src](src) directories.
+
+### Return types of computational routines
+
+\<T\>LAPACK routines have three types of return:
+
+1. Routines that return `void`. The void return is reserved for BLAS routines that do not return a value, e.g., `tlapack::scal()` and `tlapack::gemm()`, and for some auxiliary routines like `tlapack::lassq()` and `tlapack::larf()`. Those routines are not supposed to fail and do not need to signal invalid outputs, so they do not return an error code. They could still throw an exception if the input is invalid. See flag `TLAPACK_CHECK_INPUT` in [README.md](README.md#tlapack-options) for more details.
+
+2. Routine that return a value. Those routines are supposed to return a value, e.g., `tlapack::iamax()` and `tlapack::lange()`. The return value is the result of the routine as explained in its documentation.
+
+3. Routines that return an integer. Those routines are supposed to return an error code, e.g., `tlapack::getrf()` and `tlapack::potrf()`. A zero return means that the routine was successful. A non-zero return means that the routine failed to execute and that the output parameters are not valid. The documentation of each routine should specify the significance of each error code.
+
+A routine that fits in the categories 2 and 3, i.e., returns a value and may signal invalid outputs, should have those invalid outputs explicitly in its documentation. For instance, a return 0 in `tlapack::iamax()` will be used to both (1) signal that the input vector is empty and (2) signal that there is a `NAN` at the first position of the input vector.
+
 ### Usage of the `auto` keyword
 
 In C++ all types are evaluated at compile time. The `auto` keyword is used to enable the compiler to deduce the type of a variable automatically. For instance, the instructions
@@ -75,7 +112,7 @@ int n = m + m;
 
 are equivalent, and deduce the type `int` for `n`. We suggest avoiding the usage of `auto` in the following cases:
 
-1. When the type is known, like in [nrm2](include/tlapack/blas/nrm2.hpp):
+1. When the type is known, like in [lassq](include/tlapack/lapack/lassq.hpp):
 
    ```cpp
    const real_t tsml = blue_min<real_t>();
@@ -88,7 +125,6 @@ are equivalent, and deduce the type `int` for `n`. We suggest avoiding the usage
    ```cpp
    using TB = type_t<matrixB_t>;
    using scalar_t = scalar_type<alpha_t,TB>;
-
    const scalar_t alphaTimesblj = alpha*B(l,j);
    ```
 
@@ -108,11 +144,11 @@ We recommend the usage of `auto` in the following cases:
 
 1. To get the output of
 
-   a. `tlapack::legacy_matrix` and `tlapack::legacy_vector` when writing wrappers to optimized BLAS and LAPACK.
+   a. `tlapack::legacy_matrix(...)` and `tlapack::legacy_vector(...)` when writing wrappers to optimized BLAS and LAPACK.
 
-   b. slicing matrices and vectors using `tlapack::slice`, `tlapack::rows`, `tlapack::col`, etc. See [concepts](include/tlapack/base/concepts.hpp) for more details.
+   b. slicing matrices and vectors using `tlapack::slice(...)`, `tlapack::rows(...)`, `tlapack::col(...)`, etc. See [concepts](include/tlapack/base/concepts.hpp) for more details.
 
-   c. the functor `tlapack::Create< >(...)`. See [arrayTraits.hpp](include/tlapack/base/arrayTraits.hpp) for more details.
+   c. the functor `tlapack::Create< >(...)(...)`. See [arrayTraits.hpp](include/tlapack/base/arrayTraits.hpp) for more details.
 
 2. In the return type of functions like `tlapack::asum`, `tlapack::dot`, `tlapack::nrm2` and `tlapack::lange`. By defining the output as `auto`, we enable overloading of those functions using mixed precision. For instance, one may write a overloading of `tlapack::lange` for matrices `Eigen::MatrixXf` that returns `double`.
 
@@ -123,33 +159,64 @@ We recommend the usage of `auto` in the following cases:
   - check if `x` is zero when calling the constructor `StrongZero(x)`.
 - `tlapack_check()`: Used on checks related to the validity of an input of a function. It is enabled if TLAPACK_CHECK_INPUT is defined and TLAPACK_NDEBUG is not. Also used to test the input parameters when creating new legacy matrices and vectors, see `LegacyMatrix.hpp`. THe reason to use `tlapack_check()` instead of assert for matrix and vector creation is to be in the same page as LAPACK. LAPACK routines check the dimensions `m`, `n` and `ldim` the same way it checks other input parameters. `tlapack_check_false(cond)` is the same as `tlapack_check(!cond)`.
 
-### Good practices when writing code inside the library
+### Usage of `constexpr`
 
-1. Declare real-valued constants using real types. For instance, use `const real_type<T> zero(0)` instead of `const T zero(0)`. This is because the type `T` may be a complex type, and the constant `zero` is real. Avoid constants like `const real_type<T> rzero(0)` and `const T czero(0)` in the same function, because it is confusing.
+Use the `constexpr` specifier for:
 
-2. Avoid any identifiers starting with underscores even if not followed by Uppercase. This is aligned to [17.4.3.1.2 C++ global names](https://timsong-cpp.github.io/cppwp/n3337/global.names). You may use the following regular expression to find relevant identifiers that start with underscore in VS Code:
+- Utility functions like `safe_max()`, `abs1()` and `WorkInfo::minMax()`.
+- Non-recursive workspace queries.
+- Constructors and destructors with simple implementation.
 
-   ```diff
-   __(.*)__                      # Identifiers limited by double underscore
-   ([^\w|])_([A-Z])              # Start with underscore then uppercase letter
-   ([^\w])_(\w)([, ;/\)\(.\[\]]) # Other identifiers that start with underscore
-   ```
+### Usage of `inline`
 
-3. In internal calls, use compile-time flags instead of runtime flags. For instance, use `tlapack::LEFT_SIDE` instead of `tlapack::Side::Left` and `tlapack::NO_TRANS` instead of `tlapack::Op::NoTrans`. This practice usually leads to faster code.
+Use the `inline` specifier on non-template functions implemented on header files. Mind the compilers make the final decision about inlining or not a function, so use it carefully when the objective is performance gain. See https://en.cppreference.com/w/cpp/language/inline. The use of the inline specifier may change the priority for inlining a function by the compiler. It is worth noticing that forcing the inline may lead to large executables, which is specially bad when the library is already based on templates.
 
-4. Avoid writing code that depends explicitly on `std::complex<T>` by using `tlapack::real_type<T>`, `tlapack::complex_type<T>` and `tlapack::scalar_type<T>`. Any scalar type `T` supported by \<T\>LAPACK should implement those 3 classes.
+### Good practices
 
-5. Use the `constexpr` specifier for:
+1. In internal calls, use compile-time flags instead of runtime flags. For instance, use `tlapack::LEFT_SIDE` instead of `tlapack::Side::Left` and `tlapack::NO_TRANS` instead of `tlapack::Op::NoTrans`. This practice usually leads to faster code.
 
-   - Utility functions like `safe_max()`, `abs1()` and `WorkInfo::minMax()`.
-   - Non-recursive workspace queries.
+2. Avoid writing code that depends explicitly on `std::complex<T>` by using `tlapack::real_type<T>`, `tlapack::complex_type<T>` and `tlapack::scalar_type<T>`. Any scalar type `T` supported by \<T\>LAPACK should implement those 3 classes.
 
-6. Use the `inline` specifier on non-template functions implemented on header files. Mind the compilers make the final decision about inlining or not a function, so use it carefully when the objective is performance gain. See https://en.cppreference.com/w/cpp/language/inline. The use of the inline specifier may change the priority for inlining a function by the compiler. It is worth noticing that forcing the inline may lead to large executables, which is specially bad when the library is already based on templates.
-
-> **_NOTE:_** `std::complex` is one way to define complex numbers. It has undesired behavior such as:
+> [!NOTE]
+> `std::complex` is one way to define complex numbers. It has undesired behavior such as:
 >
 > - `std::abs(std::complex<T>)` may not propagate NaNs. See https://github.com/tlapack/tlapack/issues/134#issue-1364091844.
 > - Operations with `std::complex<T>`, for `T=float,double,long double` are wrappers to operations in C. Other types have their implementation in C++. Because of that, the logic of complex multiplication, division and other operations may change from type to type. See https://github.com/advanpix/mpreal/issues/11.
+
+## Writing examples
+
+Examples show how to use \<T\>LAPACK. They are located in the [examples](examples) directory. We use [CMake](https://cmake.org/) and [GNU Make](https://www.gnu.org/software/make/) to build the examples. The examples are built by default when you build \<T\>LAPACK. You can disable the examples by setting the CMake variable `BUILD_EXAMPLES` to `OFF`.
+
+### Adding a new example
+
+Before adding an example, please take a look at the current examples in [examples](examples). You may find an example that is similar to the one you want to add. If that is the case, you can copy the example and modify it.
+
+To add a new example, you need to:
+
+1. Create a new directory in [examples](examples) with the name of the example, `examples/<new_example>`.
+
+2. Create a file `examples/<new_example>/CMakeLists.txt` that contains a new project. Each example must be prepared to be compiled together with \<T\>LAPACK or separately. Because of that, we suggest this file contains the following:
+
+   ```cmake
+   # Load <T>LAPACK
+   if( NOT TARGET tlapack )
+     find_package( tlapack REQUIRED )
+   endif()
+   ```
+
+3. Add a `README.md` file to the directory of the example. This file should contain a description of the example and instructions on how to compile and run it.
+
+4. In `examples/CMakeLists.txt`, add the following:
+
+   ```cmake
+   add_subdirectory( my_fl_type )
+   ```
+
+   This will make sure that the example is compiled when you build \<T\>LAPACK with the option `BUILD_EXAMPLES` set to `ON`.
+
+5. In `examples/README.md`, add a link to the `README.md` file of the example.
+
+6. Additionally, it is recommended that you create a `Makefile` in the directory of the example. This way, your example could be built by a broader audience, including people that are used to use GNU Make and are not familiarized with CMake.
 
 ## Writing tests
 
@@ -186,7 +253,7 @@ Consider following the steps below before writing a test for a new routine:
 
    - If you need to create a matrix, use `tlapack::Create<TestType>(...)`. See [arrayTraits.hpp](include/tlapack/base/arrayTraits.hpp) for more details.
 
-   - If you need to create a vector there are two options. The first option is to use `tlapack::Create< vector_type<TestType> >(...)`. See [arrayTraits.hpp](include/tlapack/base/arrayTraits.hpp) for more details. The secon optionis to use `std::vector< type_t<TestType> >` or `std::vector< real_type<type_t<TestType>> >`.
+   - If you need to create a vector there are two options. The first option is to use `tlapack::Create< vector_type<TestType> >(...)`. See [arrayTraits.hpp](include/tlapack/base/arrayTraits.hpp) for more details. The second option is to use `std::vector< type_t<TestType> >` or `std::vector< real_type<type_t<TestType>> >`.
 
 6. Use the macro `GENERATE()` to create a range of values. For instance, you may use `GENERATE(1,2,3)` to create a range of values `{1,2,3}`. This way you can avoid writing a loop to test a routine for different values of a parameter.
 
@@ -212,7 +279,91 @@ Consider following the steps below before writing a test for a new routine:
 
 \<T\>LAPACK uses the following TAGs for tests:
 
-TO-DO
+> [bidiagonal][svd][concept][plugins][lqf][getrf][getri][auxiliary][hessenberg][eigenvalues][generalized eigenvalues][hessenbergtriangular][qr][qrf][aux][larfg][larf][sylvester][lauum][lu check][lu][qrt][norm][optBLAS][potrf][doubleshift_qr][multishift_qr][generalizedeigenvalues][rscl][qr-svd][util][trtri][ul_mul][unm2l][unm2r][unml2][unmlq][unmql][unmqr][unmr2][unmrq][utils]
+
+## Writing documentation
+
+\<T\>LAPACK uses Doxygen to generate documentation. The documentation is generated automatically by Github Actions and is available at [tlapack.github.io/tlapack](https://tlapack.github.io/tlapack/). The documentation can be also generated locally by running `cmake --target doxygen` in the build directory and, in this case, you can access the documentation at `<build-dir>/doc/html/index.html`. For directions on how to write documentation using Doxygen, see [www.doxygen.nl/manual/index.html](https://www.doxygen.nl/manual/index.html).
+
+For documentation in C/C++:
+
+1. Use `///` for documentation of files and brief documentation of functions, classes, etc.
+2. Use `///<` for inline documentation after members of classes, structs, etc.
+3. Use `/** ... */` for detailed documentation of functions, classes, etc.
+4. Use `@param`, `@return`, `@note`, etc., for special comments, instead of `\param`, `\return`, `\note`, etc.
+
+### Documentation of files
+
+Each file should have the same Copyright information, and this should not be used with Doxygen comments. The text in C/C++ files should be:
+
+```cpp
+// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
+//
+// This file is part of <T>LAPACK.
+// <T>LAPACK is free software: you can redistribute it and/or modify it under
+// the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
+```
+
+Every CMake and Python file should contain the same text at the top, with `#` instead of `//`.
+Every Fortran file should contain the same text at the top, with `!` instead of `//`.
+
+In addition, the header of all C, C++ and Fortran files should contain the following information as Doxygen comments:
+
+- The name of the file using `@file`.
+- The author(s) of the file and contact information using `@author`.
+- Any other information that is relevant to the file.
+
+### Documentation of functions
+
+The documentation of functions should contain the following information:
+
+- A brief description of the function using `@brief`. The `@brief` tag is optional if this description is the first line of the documentation.
+- A detailed description of the function.
+- A list of parameters using `@param`. Each parameter should be documented using `@param[in]`, `@param[out]` or `@param[in,out]`. Workspaces should be documented using `@param`.
+- A description of the return value using `@return`. In case the function returns `void` or if the return value is an error code that should always be zero, the `@return` tag is optional.
+- The group the function belongs to using `@ingroup`. The group should be one of the groups defined in [groups.dox](docs/groups.dox).
+
+The doxygen documentation is prepared to translate LaTeX formulas. For instance, you can write `$\alpha$` to get the Greek letter alpha or
+
+```c++
+/**
+ * \[
+ *     C := \alpha op(A) \times op(B) + \beta C,
+ * \]
+ */
+```
+
+to get the formula for the matrix-matrix multiplication. We strongly suggest using LaTeX formulas in the documentation of \<T\>LAPACK.
+
+### Documentation of classes and structs
+
+The documentation of classes and structs follows the same rules as the documentation of functions with respect to the brief description and detailed description. In addition,
+
+- The documentation should contain a list of template parameters using `@tparam`.
+- Each member of the class or struct should be documented. Functions should follow the rules for the documentation of functions, although, in most cases, there will be no need to associate a group to the function.
+
+### Documentation of concepts
+
+Concepts are documented as Doxygen interfaces, i.e., using the tag `@interface`. They should contain a brief and, possibly, a detailed description. They should also contain a list of template parameters using `@tparam`. All concepts should belong to the Dpoxygen group `concepts`.
+
+### Documentation of namespaces
+
+We currently do not document namespaces.
+
+### Documentation of macros
+
+Function-like macros should be documented as functions. Object-like macros should be documented with a brief description and a detailed description when it makes sense. Macros should belong to a Doxygen group so that they can be easily found in the documentation. See all groups defined in [groups.dox](docs/groups.dox).
+
+### Using `@todo` to mark incomplete code
+
+You can use `@todo` to mark incomplete code. For instance, some code may work for all precisions but not for complex numbers. Then, you could warn in the code: `Implement the complex version of this code`. It is good to do it in a proper manner, so that it is easy to find all the TO-DO's in the code. We suggest using the following:
+
+```cpp
+/// @todo: Implement the complex version of this code
+(Some code goes here)
+```
+
+Using the triple slash `///` with tag `@todo` will make sure that the reminder is visible in the Doxygen documentation.
 
 ## Other topics
 
@@ -226,14 +377,3 @@ There are two situations in which you may need to update [tests/blaspp](tests/bl
 ### Running Github Actions locally
 
 You can run the Github Actions locally using [act](https://github.com/nektos/act). This is useful for debugging the Github Actions workflow.
-
-### Using `@todo` to mark incomplete code
-
-You can use `@todo` to mark incomplete code. For instance, some code may work for all precisions but not for complex numbers. Then, you could warn in the code: `Implement the complex version of this code`. It is good to do it in a proper manner, so that it is easy to find all the TO-DO's in the code. We suggest using the following:
-
-```cpp
-/// @todo: Implement the complex version of this code
-(Some code goes here)
-```
-
-Using the triple slash `///` with tag `@todo` will make sure that the reminder is visible in the Doxygen documentation.

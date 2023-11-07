@@ -138,8 +138,9 @@ namespace concepts {
      * @brief Concept for complex scalar types.
      *
      * A complex type is a type that supports arithmetic and comparison
-     * operations. Real and imaginary parts have the same type, and this must
-     * satisfy the concept tlapack::concepts::Real. Moreover,
+     * operations. Real and imaginary parts have the same type, and they must
+     * satisfy the concept tlapack::concepts::Real. The type @c real_type<T>
+     * must also satisfy the concept tlapack::concepts::Real. Moreover,
      *
      * - it must be constructible from two real values. It must also be
      * constructible from a default constructor that takes no arguments.
@@ -232,6 +233,17 @@ namespace concepts {
      * - Number of entries using @c size(const vector_t&). This function must be
      * callable from the namespace @c tlapack.
      *
+     * Optionally, the vector type can also implement:
+     *
+     * - @c tlapack::traits::layout_trait<vector_t,int>, with a member @c value
+     * that satisfies the concept tlapack::concepts::Layout.
+     *
+     * - @c tlapack::traits::matrix_type_traits<vector_t,vector_t,int>, with a
+     * member @c type that satisfies the concept tlapack::concepts::Matrix.
+     *
+     * - @c tlapack::traits::vector_type_traits<vector_t,vector_t,int>, with a
+     * member @c type that satisfies the concept tlapack::concepts::Vector.
+     *
      * @tparam vector_t Vector type.
      *
      * @ingroup concepts
@@ -260,10 +272,11 @@ namespace concepts {
      * use the following operations to slice a vector:
      *
      * - View of entries i to j, excluding j, a vector v of length n, where 0 <=
-     * i <= j <= n, using the function @c slice(vector_t&, pair<idx_t, idx_t>).
-     * The call <tt>slice(v, pair{i,j})</tt> returns a vector of length (j-i)
-     * whose type satisfy tlapack::concepts::Vector. This function must be
-     * callable from the namespace @c tlapack.
+     * i <= j <= n, using the function @c slice(vector_t&, pair_t&&), where
+     * @c pair_t is a @c std::pair of two types satisfying
+     * tlapack::concepts::Index. The call <tt>slice(v, pair{i,j})</tt> returns a
+     * vector of length (j-i) whose type satisfy tlapack::concepts::Vector. This
+     * function must be callable from the namespace @c tlapack.
      *
      * @tparam vector_t Vector type.
      *
@@ -274,7 +287,7 @@ namespace concepts {
     {
         // Subvector view
         {
-            slice(v, pair<int, int>{0, 0})
+            slice(v, pair{0, 0})
         }
         ->Vector<>;
     };
@@ -297,6 +310,17 @@ namespace concepts {
      *
      * @note The functions @c nrows, @c ncols, and @c size are required to be
      * callable from the namespace @c tlapack.
+     *
+     * Optionally, the matrix type can also implement:
+     *
+     * - @c tlapack::traits::layout_trait<matrix_t,int>, with a member @c value
+     * that satisfies the concept tlapack::concepts::Layout.
+     *
+     * - @c tlapack::traits::matrix_type_traits<matrix_t,matrix_t>, with a
+     * member @c type that satisfies the concept tlapack::concepts::Matrix.
+     *
+     * - @c tlapack::traits::vector_type_traits<matrix_t,matrix_t>, with a
+     * member @c type that satisfies the concept tlapack::concepts::Vector.
      *
      * @tparam matrix_t Matrix type.
      *
@@ -339,19 +363,19 @@ namespace concepts {
      *
      * - Submatrix view A(i:j,k:l) of a m-by-n matrix A(0:m,0:n), where
      * 0 <= i <= j <= m and 0 <= k <= l <= n, using the function
-     * @c slice(matrix_t&, pair<idx_t,idx_t>, pair<idx_t,idx_t>). The
-     * call <tt>slice(A, pair{i,j}, pair{k,l})</tt> returns a
-     * (j-i)-by-(l-k) matrix whose type satisfy tlapack::concepts::Matrix.
+     * @c slice(matrix_t&, pair_t&&, pair_t&&). The call
+     * <tt>slice(A, pair{i,j}, pair{k,l})</tt> returns a (j-i)-by-(l-k) matrix
+     * whose type satisfy tlapack::concepts::Matrix.
      *
      * - View of rows i to j, excluding j, of a m-by-n matrix A(0:m,0:n), where
-     * 0 <= i <= j <= m, using the function @c rows(matrix_t&,
-     * pair<idx_t,idx_t>). The call <tt>rows(A, pair{i,j})</tt> returns a
-     * (j-i)-by-n matrix whose type satisfy tlapack::concepts::Matrix.
+     * 0 <= i <= j <= m, using the function @c rows(matrix_t&, pair). The call
+     * <tt>rows(A, pair{i,j})</tt> returns a (j-i)-by-n matrix whose type
+     * satisfy tlapack::concepts::Matrix.
      *
      * - View of columns i to j, excluding j, of a m-by-n matrix A(0:m,0:n),
-     * where 0 <= i <= j <= n, using the function @c cols(matrix_t&,
-     * pair<idx_t,idx_t>). The call <tt>cols(A, pair{i,j})</tt>
-     * returns a m-by-(j-i) matrix whose type satisfy tlapack::concepts::Matrix.
+     * where 0 <= i <= j <= n, using the function @c cols(matrix_t&, pair). The
+     * call <tt>cols(A, pair{i,j})</tt> returns a m-by-(j-i) matrix whose type
+     * satisfy tlapack::concepts::Matrix.
      *
      * - View of row i of a m-by-n matrix A(0:m,0:n), where 0 <= i < m, using
      * the function @c row(matrix_t&, idx_t). The call <tt>row(A, i)</tt>
@@ -365,15 +389,14 @@ namespace concepts {
      *
      * - View of entries i to j, excluding j, of row k of a m-by-n matrix, where
      * 0 <= i <= j <= n and 0 <= k < m, using the function @c slice(matrix_t&,
-     * idx_t, pair<idx_t,idx_t>). The call <tt>slice(A, k, pair{i,j})
-     * </tt> returns a vector of length (j-i) whose type satisfy
-     * tlapack::concepts::Vector.
+     * idx_t, pair). The call <tt>slice(A, k, pair{i,j})</tt> returns a vector
+     * of length (j-i) whose type satisfy tlapack::concepts::Vector.
      *
      * - View of entries i to j, excluding j, of column k of a m-by-n matrix,
      * where 0 <= i <= j <= m and 0 <= k < n, using the function
-     * @c slice(matrix_t&, pair<idx_t,idx_t>, idx_t). The call
-     * <tt>slice(A, pair{i,j}, k)</tt> returns a vector of length (j-i)
-     * whose type satisfy tlapack::concepts::Vector.
+     * @c slice(matrix_t&, pair, idx_t). The call
+     * <tt>slice(A, pair{i,j}, k)</tt> returns a vector of length (j-i) whose
+     * type satisfy tlapack::concepts::Vector.
      *
      * - View of the i-th diagonal of a m-by-n matrix A(0:m,0:n), where -m < i <
      * n, using the function @c diag(matrix_t&, idx_t = 0). The call
@@ -382,6 +405,9 @@ namespace concepts {
      *
      * @note The functions @c slice, @c rows, @c cols, @c row, @c col, and
      * @c diag are required to be callable from the namespace @c tlapack.
+     *
+     * @note @c pair_t is a @c std::pair of two types satisfying
+     * tlapack::concepts::Index.
      *
      * @tparam matrix_t Matrix type.
      *
@@ -392,19 +418,19 @@ namespace concepts {
     {
         // Submatrix view (matrix)
         {
-            slice(A, pair<int, int>{0, 1}, pair<int, int>{0, 1})
+            slice(A, pair{0, 1}, pair{0, 1})
         }
         ->Matrix<>;
 
         // View of multiple rows (matrix)
         {
-            rows(A, pair<int, int>{0, 1})
+            rows(A, pair{0, 1})
         }
         ->Matrix<>;
 
         // View of multiple columns (matrix)
         {
-            cols(A, pair<int, int>{0, 1})
+            cols(A, pair{0, 1})
         }
         ->Matrix<>;
 
@@ -422,13 +448,13 @@ namespace concepts {
 
         // View of a slice of a row (vector)
         {
-            slice(A, 0, pair<int, int>{0, 1})
+            slice(A, 0, pair{0, 1})
         }
         ->Vector<>;
 
         // View of a slice of a column (vector)
         {
-            slice(A, pair<int, int>{0, 1}, 0)
+            slice(A, pair{0, 1}, 0)
         }
         ->Vector<>;
 
@@ -445,52 +471,83 @@ namespace concepts {
         ->Vector<>;
     };
 
-    // Workspace matrices
-
-    /** @interface tlapack::concepts::Workspace
+    /** @interface tlapack::concepts::TransposableMatrix
      * @brief Concept for a matrix that can be transposed.
      *
-     * A workspace is a tlapack::concepts::SliceableMatrix that can be
-     * transposed. The transpose operation must not involve dynamic memory
-     * allocation, and the resulting transposed matrix is a view for the same
-     * data in the original matrix. The operation @c transpose_view(matrix_t&)
-     * must be callable from the namespace @c tlapack.
+     * A transposable matrix is a tlapack::concepts::Matrix that can be
+     * transposed. Ideally, the transpose operation must not involve dynamic
+     * memory allocation, so that the resulting transposed matrix is a view for
+     * the same data in the original matrix. The operation
+     * @c transpose_view(matrix_t&) must be callable from the namespace
+     * @c tlapack.
      *
      * @tparam matrix_t Matrix type.
      *
      * @ingroup concepts
      */
     template <typename matrix_t>
-    concept Workspace = SliceableMatrix<matrix_t>&& requires(matrix_t& A)
+    concept TransposableMatrix = Matrix<matrix_t>&& requires(const matrix_t& A)
     {
         // Transpose view
         {
             transpose_view(A)
         }
-        ->SliceableMatrix<>;
+        ->Matrix<>;
     };
 
-    /** @interface tlapack::concepts::ReshapableWorkspace
-     * @brief Concept for a workspace that can be reshaped.
+    // Workspace matrices
+
+    namespace internal {
+        template <typename pair_t>
+        concept PairOfTransposableMatrixAndOther =
+            TransposableMatrix<typename pair_t::first_type>;
+
+        template <typename pair_t>
+        concept PairOfVectorAndOther = Vector<typename pair_t::first_type>;
+    }  // namespace internal
+
+    /** @interface tlapack::concepts::Workspace
+     * @brief Concept for a workspace.
      *
-     * A reshapable workspace is a tlapack::concepts::Workspace that can be
-     * reshaped into a different matrix. The size of the new matrix must be
-     * compatible with the size of the original matrix, i.e., <tt>size(Aentry)
-     * == size(Anew)</tt>. The operation @c resize(idx_t, idx_t) must be
+     * A workspace is a type that can be reshaped. The reshape operation returns
+     * a @c std::pair of two objects: a matrix (or vector) and an object that
+     * holds the remaining workspace. The type, layout and other properties of
+     * the returned matrix (or vector) are defined by the reshape operation and,
+     * therefore, each object type has should have its own implementation of
+     * that functionality. Since the remaining workspace is returned, the shape
+     * of the matrix (or vector) does not need to match the size of the original
+     * workspace. For instance, if an object @c work has size 50, the call @c
+     * reshape(work, 10, 2) returns a pair of a 10-by-2 matrix and a workspace
+     * of size 30. The matrix uses 20 entries of the original workspace, and the
+     * remaining 30 entries are stored in the remaining workspace. In a similar
+     * example, the call
+     * @c reshape(work, 35) returns a pair of a vector of size 35 and a
+     * workspace of size 15. The operations
+     * @c reshape(T&, size_t) and @c reshape(T&, size_t, size_t) must be
      * callable from the namespace @c tlapack.
      *
-     * @tparam matrix_t Matrix type.
+     * @note We require that the matrix returned in
+     * @c reshape(T&, size_t, size_t) satisfies the concept
+     * tlapack::concepts::TransposableMatrix.
+     *
+     * @tparam work_t Workspace type.
      *
      * @ingroup concepts
      */
-    template <typename matrix_t>
-    concept ReshapableWorkspace = Workspace<matrix_t>&& requires(matrix_t& A)
+    template <typename work_t>
+    concept Workspace = requires(work_t& work)
     {
-        // Reshape view
+        // Reshape into a matrix
         {
-            reshape(A, 1, 1)
+            reshape(work, 0, 0)
         }
-        ->Workspace<>;
+        ->internal::PairOfTransposableMatrixAndOther<>;
+
+        // Reshape into a vector
+        {
+            reshape(work, 0)
+        }
+        ->internal::PairOfVectorAndOther<>;
     };
 
     // Other scalar concepts
@@ -673,18 +730,34 @@ namespace concepts {
     // Matrix and vector types that can be created
 
     /** @interface tlapack::concepts::ConstructableArray
-     * @brief Concept for arrays that implement tlapack::traits::CreateFunctor.
+     * @brief Concept for arrays that implement tlapack::traits::CreateFunctor
+     * and tlapack::traits::CreateStaticFunctor.
      *
-     * A constructable array must provide implementations of the functor
-     * tlapack::traits::CreateFunctor for the types
-     * tlapack::matrix_type<array_t> and tlapack::vector_type<array_t>. These
-     * functors must provide the method @c operator()(std::vector<T>&, size_t,
-     * size_t) for matrices and @c operator()(std::vector<T>&, size_t) for
-     * vectors, where T = tlapack::type_t<array_t>. These operators receive a
-     * std::vector of the appropriate type and the dimensions of the array to be
-     * created. The output of the functor is a matrix or vector of type
-     * tlapack::matrix_type<array_t> or tlapack::vector_type<array_t>,
-     * respectively.
+     * A constructable array must provide implementations of the functors
+     * tlapack::traits::CreateFunctor and tlapack::traits::CreateStaticFunctor
+     * for the types tlapack::matrix_type<array_t> and
+     * tlapack::vector_type<array_t>.
+     *
+     * - @c tlapack::traits::CreateFunctor<tlapack::matrix_type<array_t>, int>
+     * must provide the method @c operator()(std::vector<T>&, idx_t, idx_t),
+     * where T = tlapack::type_t<array_t> and idx_t =
+     * tlapack::size_type<array_t>. The output of the functor satisfies the
+     * concept tlapack::concepts::Matrix.
+     *
+     * - @c tlapack::traits::CreateFunctor<tlapack::vector_type<array_t>, int>
+     * must provide the method @c operator()(std::vector<T>&, idx_t), where T =
+     * tlapack::type_t<array_t> and idx_t = tlapack::size_type<array_t>. The
+     * output of the functor satisfies the concept tlapack::concepts::Vector.
+     *
+     * - @c tlapack::traits::CreateStaticFunctor<tlapack::matrix_type<array_t>,
+     * m, n, int> must provide the method @c operator()(T*), where T =
+     * tlapack::type_t<array_t>. The output of the functor satisfies the concept
+     * tlapack::concepts::Matrix.
+     *
+     * - @c tlapack::traits::CreateStaticFunctor<tlapack::vector_type<array_t>,
+     * n, int> must provide the method @c operator()(T*), where T =
+     * tlapack::type_t<array_t>. The output of the functor satisfies the concept
+     * tlapack::concepts::Vector.
      *
      * @tparam array_t Matrix or vector type.
      *
@@ -692,7 +765,8 @@ namespace concepts {
      */
     template <typename array_t>
     concept ConstructableArray = Matrix<matrix_type<array_t>>&&
-        Vector<vector_type<array_t>>&& requires(std::vector<type_t<array_t>>& v)
+        Vector<vector_type<array_t>>&& requires(std::vector<type_t<array_t>>& v,
+                                                type_t<array_t>* ptr)
     {
         {
             Create<matrix_type<array_t>>()(v, 2, 3)
@@ -702,18 +776,33 @@ namespace concepts {
             Create<vector_type<array_t>>()(v, 2)
         }
         ->Vector<>;
+        {
+            CreateStatic<matrix_type<array_t>, 5, 6>()(ptr)
+        }
+        ->Matrix<>;
+        {
+            CreateStatic<vector_type<array_t>, 5>()(ptr)
+        }
+        ->Vector<>;
     };
 
     /** @interface tlapack::concepts::ConstructableMatrix
      * @brief Concept for matrices that implement
-     * tlapack::traits::CreateFunctor.
+     * tlapack::traits::CreateFunctor and tlapack::traits::CreateStaticFunctor.
      *
-     * A constructable matrix must provide an implementation of the functor
-     * tlapack::traits::CreateFunctor for the type @c matrix_t. This functor
-     * must provide the method @c operator()(std::vector<T>&, size_t, size_t),
-     * where T = tlapack::type_t<matrix_t>. This operator receives a
-     * std::vector of the appropriate type and the dimensions of the matrix to
-     * be created. The output of the functor is a matrix of type @c matrix_t.
+     * A constructable matrix must provide an implementation of the functors
+     * tlapack::traits::CreateFunctor and tlapack::traits::CreateStaticFunctor
+     * for the type @c matrix_t. The outputs of the functors satisfy the concept
+     * tlapack::concepts::Matrix.
+     *
+     * - @c tlapack::traits::CreateFunctor<matrix_t, int> must provide the
+     * method @c operator()(std::vector<T>&, idx_t, idx_t), where T =
+     * tlapack::type_t<matrix_t> and idx_t = tlapack::size_type<matrix_t>.
+     *
+     * - @c tlapack::traits::CreateStaticFunctor<matrix_t, m, n, int> must
+     * provide the method @c operator()(T*), where T =
+     * tlapack::type_t<matrix_t>.
+     *
      * Moreover, a constructable matrix must also satisfy the concept
      * tlapack::concepts::ConstructableArray.
      *
@@ -724,10 +813,14 @@ namespace concepts {
     template <typename matrix_t>
     concept ConstructableMatrix =
         Matrix<matrix_t>&& ConstructableArray<matrix_t>&& requires(
-            std::vector<type_t<matrix_t>>& v)
+            std::vector<type_t<matrix_t>>& v, type_t<matrix_t>* ptr)
     {
         {
             Create<matrix_t>()(v, 2, 3)
+        }
+        ->Matrix<>;
+        {
+            CreateStatic<matrix_t, 5, 6>()(ptr)
         }
         ->Matrix<>;
     };
@@ -746,26 +839,39 @@ namespace concepts {
         SliceableMatrix<matrix_t>&& ConstructableMatrix<matrix_t>;
 
     /** @interface tlapack::concepts::ConstructableVector
-     * @brief Concept for vectors that implement tlapack::traits::CreateFunctor.
+     * @brief Concept for vectors that implement tlapack::traits::CreateFunctor
+     * and tlapack::traits::CreateStaticFunctor.
      *
-     * A constructable vector must provide an implementation of the functor
-     * tlapack::traits::CreateFunctor for the type @c vector_t. This functor
-     * must provide the method @c operator()(std::vector<T>&, size_t), where
-     * T = tlapack::type_t<vector_t>. This operator receives a std::vector of
-     * the appropriate type and the dimensions of the vector to be created. The
-     * output of the functor is a vector of type @c vector_t. Moreover, a
-     * constructable vector must also satisfy the concept
+     * A constructable vector must provide an implementation of the functors
+     * tlapack::traits::CreateFunctor and tlapack::traits::CreateStaticFunctor
+     * for the type @c vector_t. The output of the functor satisfies the concept
+     * tlapack::concepts::Vector.
+     *
+     * - @c tlapack::traits::CreateFunctor<vector_t, int> must provide the
+     * method @c operator()(std::vector<T>&, idx_t), where T =
+     * tlapack::type_t<vector_t> and idx_t = tlapack::size_type<vector_t>.
+     *
+     * - @c tlapack::traits::CreateStaticFunctor<vector_t, n, int> must provide
+     * the method @c operator()(T*), where T = tlapack::type_t<vector_t>.
+     *
+     * Moreover, a constructable vector must also satisfy the concept
      * tlapack::concepts::ConstructableArray.
      *
-     * @tparam matrix_t
+     * @tparam vector_t Vector type.
+     *
+     * @ingroup concepts
      */
     template <typename vector_t>
     concept ConstructableVector =
         Vector<vector_t>&& ConstructableArray<vector_t>&& requires(
-            std::vector<type_t<vector_t>>& v)
+            std::vector<type_t<vector_t>>& v, type_t<vector_t>* ptr)
     {
         {
             Create<vector_t>()(v, 2)
+        }
+        ->Vector<>;
+        {
+            CreateStatic<vector_t, 5>()(ptr)
         }
         ->Vector<>;
     };
@@ -792,6 +898,10 @@ namespace concepts {
     /// Macro for tlapack::concepts::SliceableMatrix compatible with C++17.
     #define TLAPACK_SMATRIX tlapack::concepts::SliceableMatrix
 
+    /// Macro for tlapack::concepts::SliceableTransposeMatrix compatible with
+    /// C++17.
+    #define TLAPACK_STMATRIX tlapack::concepts::SliceableTransposeMatrix
+
     /// Macro for tlapack::concepts::Vector compatible with C++17.
     #define TLAPACK_VECTOR tlapack::concepts::Vector
 
@@ -800,9 +910,6 @@ namespace concepts {
 
     /// Macro for tlapack::concepts::Workspace compatible with C++17.
     #define TLAPACK_WORKSPACE tlapack::concepts::Workspace
-
-    /// Macro for tlapack::concepts::ReshapableWorkspace compatible with C++17.
-    #define TLAPACK_RWORKSPACE tlapack::concepts::ReshapableWorkspace
 
     /// Macro for tlapack::concepts::Scalar compatible with C++17.
     #define TLAPACK_SCALAR tlapack::concepts::Scalar
@@ -864,12 +971,12 @@ namespace concepts {
     // versions
     #define TLAPACK_MATRIX class
     #define TLAPACK_SMATRIX class
+    #define TLAPACK_STMATRIX class
 
     #define TLAPACK_VECTOR class
     #define TLAPACK_SVECTOR class
 
     #define TLAPACK_WORKSPACE class
-    #define TLAPACK_RWORKSPACE class
 
     #define TLAPACK_SCALAR class
     #define TLAPACK_REAL class

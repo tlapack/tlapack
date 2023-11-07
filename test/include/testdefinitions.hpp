@@ -13,18 +13,16 @@
 #ifndef TLAPACK_TESTDEFINITIONS_HH
 #define TLAPACK_TESTDEFINITIONS_HH
 
-// clang-format off
-#define TLAPACK_PREFERRED_MATRIX_LEGACY
+#include <tlapack/plugins/legacyArray.hpp>
+
 #ifdef TLAPACK_TEST_EIGEN
     #include <tlapack/plugins/eigen.hpp>
     #include <tlapack/plugins/eigen_half.hpp>
 #endif
+
 #ifdef TLAPACK_TEST_MDSPAN
     #include <tlapack/plugins/mdspan.hpp>
 #endif
-#include <tlapack/plugins/stdvector.hpp>
-#include <tlapack/plugins/legacyArray.hpp>
-// clang-format on
 
 #ifdef TLAPACK_TEST_MPFR
     #include <tlapack/plugins/mpreal.hpp>
@@ -40,22 +38,38 @@
 //
 #ifndef TLAPACK_REAL_TYPES_TO_TEST
 
-    #define TLAPACK_LEGACY_REAL_TYPES_TO_TEST                      \
-        (LegacyMatrix<float, std::size_t, Layout::ColMajor>),      \
-            (LegacyMatrix<double, std::size_t, Layout::ColMajor>), \
-            (LegacyMatrix<float, std::size_t, Layout::RowMajor>),  \
-            (LegacyMatrix<double, std::size_t, Layout::RowMajor>)
+    #ifndef TLAPACK_LEGACY_REAL_TYPES_TO_TEST
+        #define TLAPACK_LEGACY_REAL_TYPES_TO_TEST                   \
+            (tlapack::LegacyMatrix<float, std::size_t,              \
+                                   tlapack::Layout::ColMajor>),     \
+                (tlapack::LegacyMatrix<double, std::size_t,         \
+                                       tlapack::Layout::ColMajor>), \
+                (tlapack::LegacyMatrix<float, std::size_t,          \
+                                       tlapack::Layout::RowMajor>), \
+                (tlapack::LegacyMatrix<double, std::size_t,         \
+                                       tlapack::Layout::RowMajor>)
+template class tlapack::
+    LegacyMatrix<float, std::size_t, tlapack::Layout::ColMajor>;
+template class tlapack::
+    LegacyMatrix<double, std::size_t, tlapack::Layout::ColMajor>;
+template class tlapack::
+    LegacyMatrix<float, std::size_t, tlapack::Layout::RowMajor>;
+template class tlapack::
+    LegacyMatrix<double, std::size_t, tlapack::Layout::RowMajor>;
+    #endif
 
     #ifdef TLAPACK_TEST_MPFR
         #define TLAPACK_LEGACY_REAL_TYPES_TO_TEST_WITH_MPREAL \
-            , LegacyMatrix<mpfr::mpreal>
+            , tlapack::LegacyMatrix<mpfr::mpreal>
+template class tlapack::LegacyMatrix<mpfr::mpreal>;
     #else
         #define TLAPACK_LEGACY_REAL_TYPES_TO_TEST_WITH_MPREAL
     #endif
 
     #ifdef TLAPACK_TEST_QUAD
         #define TLAPACK_LEGACY_REAL_TYPES_TO_TEST_WITH_QUAD \
-            , LegacyMatrix<__float128>
+            , tlapack::LegacyMatrix<__float128>
+template class tlapack::LegacyMatrix<__float128>;
     #else
         #define TLAPACK_LEGACY_REAL_TYPES_TO_TEST_WITH_QUAD
     #endif
@@ -79,6 +93,14 @@
                 (std::experimental::mdspan<                             \
                     float, std::experimental::dextents<std::size_t, 2>, \
                     std::experimental::layout_right>)
+template class std::experimental::mdspan<
+    float,
+    std::experimental::dextents<std::size_t, 2>,
+    std::experimental::layout_left>;
+template class std::experimental::mdspan<
+    float,
+    std::experimental::dextents<std::size_t, 2>,
+    std::experimental::layout_right>;
     #else
         #define TLAPACK_MDSPAN_REAL_TYPES_TO_TEST
     #endif
@@ -98,15 +120,23 @@
 #ifndef TLAPACK_COMPLEX_TYPES_TO_TEST
 
     #ifndef TLAPACK_LEGACY_COMPLEX_TYPES_TO_TEST
-        #define TLAPACK_LEGACY_COMPLEX_TYPES_TO_TEST             \
-            (LegacyMatrix<std::complex<float>, std::size_t,      \
-                          Layout::ColMajor>),                    \
-                (LegacyMatrix<std::complex<double>, std::size_t, \
-                              Layout::ColMajor>),                \
-                (LegacyMatrix<std::complex<float>, std::size_t,  \
-                              Layout::RowMajor>),                \
-                (LegacyMatrix<std::complex<double>, std::size_t, \
-                              Layout::RowMajor>)
+        #define TLAPACK_LEGACY_COMPLEX_TYPES_TO_TEST                      \
+            (tlapack::LegacyMatrix<std::complex<float>, std::size_t,      \
+                                   tlapack::Layout::ColMajor>),           \
+                (tlapack::LegacyMatrix<std::complex<double>, std::size_t, \
+                                       tlapack::Layout::ColMajor>),       \
+                (tlapack::LegacyMatrix<std::complex<float>, std::size_t,  \
+                                       tlapack::Layout::RowMajor>),       \
+                (tlapack::LegacyMatrix<std::complex<double>, std::size_t, \
+                                       tlapack::Layout::RowMajor>)
+template class tlapack::
+    LegacyMatrix<std::complex<float>, std::size_t, tlapack::Layout::ColMajor>;
+template class tlapack::
+    LegacyMatrix<std::complex<double>, std::size_t, tlapack::Layout::ColMajor>;
+template class tlapack::
+    LegacyMatrix<std::complex<float>, std::size_t, tlapack::Layout::RowMajor>;
+template class tlapack::
+    LegacyMatrix<std::complex<double>, std::size_t, tlapack::Layout::RowMajor>;
     #endif
 
     #ifdef TLAPACK_TEST_EIGEN

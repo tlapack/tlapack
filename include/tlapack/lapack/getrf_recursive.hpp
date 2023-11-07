@@ -61,13 +61,7 @@ int getrf_recursive(matrix_t& A, piv_t& piv)
     using range = pair<idx_t, idx_t>;
 
     // Using the following lines to pass the abs function to iamax
-    /// @todo: Replace the following lines by a lambda function if we adopt
-    /// C++17
-    struct abs_f {
-        constexpr real_t operator()(const T& x) const { return abs(x); }
-    };
-    abs_f absf;
-    IamaxOpts optsIamax(absf);
+    IamaxOpts optsIamax([](const T& x) -> real_t { return abs(x); });
 
     // constants
     const idx_t m = nrows(A);
@@ -129,7 +123,7 @@ int getrf_recursive(matrix_t& A, piv_t& piv)
 
         // swap the rows of A1 according to piv
         for (idx_t j = 0; j < k; j++) {
-            if (piv[j] != j) {
+            if ((idx_t)piv[j] != j) {
                 auto vect1 = tlapack::row(A1, j);
                 auto vect2 = tlapack::row(A1, piv[j]);
                 tlapack::swap(vect1, vect2);
@@ -158,7 +152,7 @@ int getrf_recursive(matrix_t& A, piv_t& piv)
 
         // swap the rows of A1
         for (idx_t j = 0; j < k0; j++) {
-            if (piv0[j] != j) {
+            if ((idx_t)piv0[j] != j) {
                 auto vect1 = tlapack::row(A1, j);
                 auto vect2 = tlapack::row(A1, piv0[j]);
                 tlapack::swap(vect1, vect2);
@@ -187,7 +181,7 @@ int getrf_recursive(matrix_t& A, piv_t& piv)
         // swap the rows of A10 according to the swapped rows of A11 by refering
         // to piv1
         for (idx_t j = 0; j < k - k0; j++) {
-            if (piv1[j] != j) {
+            if ((idx_t)piv1[j] != j) {
                 auto vect1 = tlapack::row(A10, j);
                 auto vect2 = tlapack::row(A10, piv1[j]);
                 tlapack::swap(vect1, vect2);

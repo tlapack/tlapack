@@ -53,7 +53,7 @@ void syr(Uplo uplo, const alpha_t& alpha, const vectorX_t& x, matrixA_t& A)
 
     // check arguments
     tlapack_check_false(uplo != Uplo::Lower && uplo != Uplo::Upper);
-    tlapack_check_false(size(x) != n);
+    tlapack_check_false((idx_t)size(x) != n);
     tlapack_check_false(ncols(A) != n);
 
     if (uplo == Uplo::Upper) {

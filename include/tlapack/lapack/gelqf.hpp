@@ -44,7 +44,7 @@ constexpr WorkInfo gelqf_worksize(const A_t& A,
 {
     using idx_t = size_type<A_t>;
     using range = pair<idx_t, idx_t>;
-    using matrixT_t = matrix_type<A_t, tau_t>;
+    using work_t = matrix_type<A_t, tau_t>;
 
     // constants
     const idx_t m = nrows(A);
@@ -54,14 +54,14 @@ constexpr WorkInfo gelqf_worksize(const A_t& A,
 
     auto&& A11 = rows(A, range(0, nb));
     auto&& tauw1 = slice(tau, range(0, nb));
-    WorkInfo workinfo = gelq2_worksize<T>(A11, tauw1).transpose();
+    WorkInfo workinfo = gelq2_worksize<T>(A11, tauw1);
 
     if (m > nb) {
         auto&& TT1 = slice(A, range(0, nb), range(0, nb));
         auto&& A12 = slice(A, range(nb, m), range(0, n));
         workinfo.minMax(larfb_worksize<T>(RIGHT_SIDE, NO_TRANS, FORWARD,
                                           ROWWISE_STORAGE, A11, TT1, A12));
-        if constexpr (is_same_v<T, type_t<matrixT_t>>)
+        if constexpr (is_same_v<T, type_t<work_t>>)
             workinfo += WorkInfo(nb, nb);
     }
 
@@ -91,10 +91,8 @@ int gelqf_work(A_t& A, tau_t& tau, work_t& work, const GelqfOpts& opts = {})
     // check arguments
     tlapack_check((idx_t)size(tau) >= k);
 
-    auto workt = transpose_view(work);
-    auto TT = (m > nb) ? slice(work, range{nrows(work) - nb, nrows(work)},
-                               range{ncols(work) - nb, ncols(work)})
-                       : slice(work, range{0, 0}, range{0, 0});
+    // Matrix TT
+    auto [TT, work2] = (m > nb) ? reshape(work, nb, nb) : reshape(work, 0, 0);
 
     // Main computational loop
     for (idx_t j = 0; j < k; j += nb) {
@@ -104,7 +102,7 @@ int gelqf_work(A_t& A, tau_t& tau, work_t& work, const GelqfOpts& opts = {})
         auto A11 = slice(A, range(j, j + ib), range(j, n));
         auto tauw1 = slice(tau, range(j, j + ib));
 
-        gelq2_work(A11, tauw1, workt);
+        gelq2_work(A11, tauw1, work);
 
         if (j + ib < m) {
             // Form the triangular factor of the block reflector H = H(j)
@@ -115,7 +113,7 @@ int gelqf_work(A_t& A, tau_t& tau, work_t& work, const GelqfOpts& opts = {})
             // Apply H to A(j+ib:m,j:n) from the right
             auto A12 = slice(A, range(j + ib, m), range(j, n));
             larfb_work(RIGHT_SIDE, NO_TRANS, FORWARD, ROWWISE_STORAGE, A11, TT1,
-                       A12, work);
+                       A12, work2);
         }
     }
 
@@ -158,8 +156,9 @@ int gelqf_work(A_t& A, tau_t& tau, work_t& work, const GelqfOpts& opts = {})
 template <TLAPACK_SMATRIX A_t, TLAPACK_SVECTOR tau_t>
 int gelqf(A_t& A, tau_t& tau, const GelqfOpts& opts = {})
 {
-    using T = type_t<A_t>;
-    Create<A_t> new_matrix;
+    using work_t = matrix_type<A_t, tau_t>;
+    using T = type_t<work_t>;
+    Create<work_t> new_matrix;
 
     // Allocate or get workspace
     WorkInfo workinfo = gelqf_worksize<T>(A, tau, opts);

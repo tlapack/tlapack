@@ -23,7 +23,8 @@ namespace traits {
     /**
      * @brief Entry type trait.
      *
-     * The entry type is defined on @c type_trait<array_t,int>::type.
+     * The entry type is defined on @c type_trait<array_t,int>::type. Use the
+     * tlapack::type_t alias instead.
      *
      * @note This trait does not need to be specialized for each class as
      * @c utils.hpp already provides a default implementation for matrices and
@@ -43,7 +44,8 @@ namespace traits {
     /**
      * @brief Size type trait.
      *
-     * The size type is defined on @c sizet_trait<array_t,int>::type.
+     * The size type is defined on @c sizet_trait<array_t,int>::type. Use the
+     * tlapack::size_type alias instead.
      *
      * @note This trait does not need to be specialized for each class as
      * @c utils.hpp already provides a default implementation for matrices and
@@ -63,9 +65,8 @@ namespace traits {
     /**
      * @brief Trait to determine the layout of a given data structure.
      *
-     * The layout is defined on @c layout_trait<array_t,int>::value.
-     *
-     * This is used to verify if optimized implementations can be used.
+     * The layout is defined on @c layout_trait<array_t,int>::value. Use the
+     * tlapack::layout alias instead.
      *
      * @tparam array_t Data structure.
      * @tparam class If this is not an int, then the trait is not defined.
@@ -123,6 +124,42 @@ namespace traits {
         }
     };
 
+    /**
+     * @brief Functor for data creation with static size
+     *
+     * This is a boilerplate. It must be specialized for each class.
+     * See tlapack::Create for examples of usage.
+     *
+     * @tparam matrix_t Data structure.
+     * @tparam m Number of rows of the new matrix or number of elements of the
+     * new vector. m >= 0.
+     * @tparam n Number of columns of the new matrix. If n == -1 then the
+     * functor creates a vector of size @c m. Otherwise, n >= 0.
+     * @tparam class If this is not an int, then the trait is not defined.
+     */
+    template <class matrix_t, int m, int n, class = int>
+    struct CreateStaticFunctor {
+        static_assert(false && sizeof(matrix_t),
+                      "Must use correct specialization");
+        static_assert(m >= 0 && n >= -1);
+
+        /**
+         * @brief Creates a m-by-n matrix or, if n == -1, a vector of size m
+         *
+         * @tparam T Entry type.
+         *
+         * @param[in] v Pointer to the memory that may be used to store the
+         * matrix or vector.
+         *
+         * @return The new m-by-n matrix or vector of size m
+         */
+        template <typename T>
+        constexpr auto operator()(T* v) const
+        {
+            return matrix_t();
+        }
+    };
+
     // Matrix and vector type deduction:
 
     /**
@@ -130,7 +167,8 @@ namespace traits {
      *
      * The deduction for one and two types must be implemented elsewhere. For
      * example, the plugins for Eigen and mdspan matrices have their own
-     * implementation.
+     * implementation. The deduction for three or more types is implemented
+     * here. Use tlapack::matrix_type alias to get the deduced type.
      *
      * @tparam matrix_t List of matrix types. The last type must be an int.
      */
@@ -156,8 +194,8 @@ namespace traits {
      *
      * The deduction for two types must be implemented elsewhere. For example,
      * the plugins for Eigen and mdspan matrices have their own implementation.
-     *
-     * The deduced type is defined on @c vector_type_traits<vector_t...>::type.
+     * The deduction for three or more types is implemented here. Use
+     * tlapack::vector_type alias to get the deduced type.
      *
      * @tparam vector_t List of vector types. The last type must be an int.
      */
@@ -211,6 +249,28 @@ constexpr Layout layout = traits::layout_trait<array_t, int>::value;
  */
 template <class T>
 using Create = traits::CreateFunctor<T, int>;
+
+/**
+ * @brief Alias for @c traits::CreateStaticFunctor<,int>.
+ *
+ * Usage:
+ * @code{.cpp}
+ * // matrix_t and vector_t are predefined types at this point
+ *
+ * constexpr size_t M = 8;
+ * constexpr size_t N = 6;
+ * tlapack::CreateStatic<matrix_t, M, N> new_MbyN_matrix; // Creates the functor
+ * tlapack::CreateStatic<vector_t, N> new_N_vector; // Creates the functor
+ *
+ * float A_container[M * N]; // Array of size M * N
+ * auto A = new_MbyN_matrix(A_container);
+ *
+ * double B_container[N]; // Array of size N
+ * auto B = new_N_vector(B_container);
+ * @endcode
+ */
+template <class T, int m, int n = -1>
+using CreateStatic = traits::CreateStaticFunctor<T, m, n, int>;
 
 /// Common matrix type deduced from the list of types.
 template <class... matrix_t>
