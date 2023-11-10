@@ -310,57 +310,61 @@ struct MatrixMarket {
         }
     }
 
-/**
- * @brief Generate an Inverse Cauchy matrix.
- *
- * The Cauchy matrix is defined by:
- * A_{ij} = 1 / (x[i] + y[j])
- * 
- * The inverse of a Cauchy matrix is defined here:
- * https://proofwiki.org/wiki/Inverse_of_Cauchy_Matrix 
- *
- * @param[out] A Matrix to store the inverse Cauchy matrix.
- * @param[in] x First vector.
- * @param[in] y Second vector.
- */
-template <TLAPACK_MATRIX matrix_t>
-void generateInverseCauchy(matrix_t& A, 
-                           const std::vector<type_t<matrix_t>>& x, 
-                           const std::vector<type_t<matrix_t>>& y) 
-{
-    using T = type_t<matrix_t>;
-    using idx_t = size_type<matrix_t>;
+    /**
+     * @brief Generate an Inverse Cauchy matrix.
+     *
+     * The inverse of a Cauchy matrix is defined by a specific formula.
+     * See: https://proofwiki.org/wiki/Inverse_of_Cauchy_Matrix
+     *
+     * @param[out] A Matrix to store the inverse Cauchy matrix.
+     * @param[in] x First vector.
+     * @param[in] y Second vector. If not provided, y = x.
+     * @return True if the inverse was successfully generated, false otherwise.
+     */
+    template <TLAPACK_MATRIX matrix_t>
+    bool generateInverseCauchy(matrix_t& A, 
+                               const std::vector<type_t<matrix_t>>& x, 
+                               const std::vector<type_t<matrix_t>>& y = {}) 
+    {
+        using T = type_t<matrix_t>;
+        using idx_t = size_type<matrix_t>;
 
-    const idx_t n = x.size();
+        const std::vector<T>& y_ref = y.empty() ? x : y; // Use x if y is not provided
+        const idx_t n = x.size();
 
-    // Ensure A is resized to the correct dimensions
-    A.resize(n, n);
-
-    for (idx_t i = 0; i < n; ++i) {
-        for (idx_t j = 0; j < n; ++j) {
-            T numerator = 1;
-            T denominator = (x[j] + y[i]);
-
-            // Calculate the product terms for the numerator
-            for (idx_t k = 0; k < n; ++k) {
-                numerator *= (x[j] + y[k]) * (x[k] + y[i]);
-            }
-
-            // Calculate the product terms for the denominator
-            for (idx_t k = 0; k < n; ++k) {
-                if (k != j) {
-                    denominator *= (x[j] - x[k]);
-                }
-                if (k != i) {
-                    denominator *= (y[i] - y[k]);
-                }
-            }
-
-            // Compute the element of the inverse matrix
-            A(i, j) = numerator / denominator;
+        if (n != y_ref.size()) {
+            // The lengths of x and y must be equal to generate a Cauchy matrix
+            return false;
         }
+
+        // Assuming A is already initialized and has the proper dimensions
+        for (idx_t i = 0; i < n; ++i) {
+            for (idx_t j = 0; j < n; ++j) {
+                T numerator = 1;
+                T denominator = (x[j] + y_ref[i]);
+
+                // Calculate the product terms for the numerator
+                for (idx_t k = 0; k < n; ++k) {
+                    numerator *= (x[j] + y_ref[k]) * (x[k] + y_ref[i]);
+                }
+
+                // Calculate the product terms for the denominator
+                for (idx_t k = 0; k < n; ++k) {
+                    if (k != j) {
+                        denominator *= (x[j] - x[k]);
+                    }
+                    if (k != i) {
+                        denominator *= (y_ref[i] - y_ref[k]);
+                    }
+                }
+
+                // Compute the element of the inverse matrix
+                A(i, j) = numerator / denominator;
+            }
+        }
+
+        return true;
     }
-}
 
     rand_generator gen;
 };
