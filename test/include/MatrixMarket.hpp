@@ -309,6 +309,59 @@ struct MatrixMarket {
             }
         }
     }
+
+/**
+ * @brief Generate an Inverse Cauchy matrix.
+ *
+ * The Cauchy matrix is defined by:
+ * A_{ij} = 1 / (x[i] + y[j])
+ * 
+ * The inverse of a Cauchy matrix is defined here:
+ * https://proofwiki.org/wiki/Inverse_of_Cauchy_Matrix 
+ *
+ * @param[out] A Matrix to store the inverse Cauchy matrix.
+ * @param[in] x First vector.
+ * @param[in] y Second vector.
+ */
+template <TLAPACK_MATRIX matrix_t>
+void generateInverseCauchy(matrix_t& A, 
+                           const std::vector<type_t<matrix_t>>& x, 
+                           const std::vector<type_t<matrix_t>>& y) 
+{
+    using T = type_t<matrix_t>;
+    using idx_t = size_type<matrix_t>;
+
+    const idx_t n = x.size();
+
+    // Ensure A is resized to the correct dimensions
+    A.resize(n, n);
+
+    for (idx_t i = 0; i < n; ++i) {
+        for (idx_t j = 0; j < n; ++j) {
+            T numerator = 1;
+            T denominator = (x[j] + y[i]);
+
+            // Calculate the product terms for the numerator
+            for (idx_t k = 0; k < n; ++k) {
+                numerator *= (x[j] + y[k]) * (x[k] + y[i]);
+            }
+
+            // Calculate the product terms for the denominator
+            for (idx_t k = 0; k < n; ++k) {
+                if (k != j) {
+                    denominator *= (x[j] - x[k]);
+                }
+                if (k != i) {
+                    denominator *= (y[i] - y[k]);
+                }
+            }
+
+            // Compute the element of the inverse matrix
+            A(i, j) = numerator / denominator;
+        }
+    }
+}
+
     rand_generator gen;
 };
 
