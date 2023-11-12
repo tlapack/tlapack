@@ -1,4 +1,4 @@
-/// @file test_schur_swap.cpp
+/// @file test_generalized_schur_swap.cpp
 /// @author Thijs Steel, KU Leuven, Belgium
 /// @brief Test moving of multiple blocks in generalized schur form
 //
@@ -16,12 +16,12 @@
 #include <tlapack/lapack/lange.hpp>
 
 // Other routines
-#include <tlapack/lapack/schur_move.hpp>
+#include <tlapack/lapack/generalized_schur_move.hpp>
 
 using namespace tlapack;
 
-TEMPLATE_TEST_CASE("move of eigenvalue block gives correct results",
-                   "[eigenvalues]",
+TEMPLATE_TEST_CASE("move of generalized eigenvalue block gives correct results",
+                   "[generalized eigenvalues]",
                    TLAPACK_TYPES_TO_TEST)
 {
     using matrix_t = TestType;
@@ -54,18 +54,28 @@ TEMPLATE_TEST_CASE("move of eigenvalue block gives correct results",
 
         std::vector<T> A_;
         auto A = new_matrix(A_, n, n);
+        std::vector<T> B_;
+        auto B = new_matrix(B_, n, n);
         std::vector<T> Q_;
         auto Q = new_matrix(Q_, n, n);
+        std::vector<T> Z_;
+        auto Z = new_matrix(Z_, n, n);
         std::vector<T> A_copy_;
         auto A_copy = new_matrix(A_copy_, n, n);
+        std::vector<T> B_copy_;
+        auto B_copy = new_matrix(B_copy_, n, n);
 
-        // Generate random matrix in Schur form
+        // Generate random pencil in generalized Schur form
         mm.random(A);
+        mm.random(B);
 
         // Zero out the lower triangular part
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = j + 1; i < n; ++i)
                 A(i, j) = zero;
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = j + 1; i < n; ++i)
+                B(i, j) = zero;
 
         if (n1 == 2) {
             if (ifst < n - 1)
@@ -86,25 +96,44 @@ TEMPLATE_TEST_CASE("move of eigenvalue block gives correct results",
         }
 
         lacpy(GENERAL, A, A_copy);
+        lacpy(GENERAL, B, B_copy);
         laset(GENERAL, zero, one, Q);
+        laset(GENERAL, zero, one, Z);
 
         DYNAMIC_SECTION("ifst = " << ifst << " n1 = " << n1
                                   << " ilst = " << ilst << " n2 =" << n2)
         {
-            schur_move(true, A, Q, ifst, ilst);
-            // Calculate residuals
+            int ierr =
+                generalized_schur_move(true, true, A, B, Q, Z, ifst, ilst);
+            // Note, we explicitly do not test for ierr = 0, because we also
+            // want to have some failing examples. The routine should be able to
+            // partially move these.
+            // CHECK(ierr == 0);
 
             std::vector<T> res_;
             auto res = new_matrix(res_, n, n);
             std::vector<T> work_;
             auto work = new_matrix(work_, n, n);
-            auto orth_res_norm = check_orthogonality(Q, res);
-            CHECK(orth_res_norm <= tol);
 
-            auto normA = tlapack::lange(tlapack::FROB_NORM, A);
-            auto simil_res_norm =
-                check_similarity_transform(A_copy, Q, A, res, work);
-            CHECK(simil_res_norm <= tol * normA);
+            // Calculate residuals
+            auto orth_res_norm_q = check_orthogonality(Q, res);
+            CHECK(orth_res_norm_q <= tol);
+
+            auto orth_res_norm_z = check_orthogonality(Z, res);
+            CHECK(orth_res_norm_z <= tol);
+
+            auto normA = tlapack::lange(tlapack::FROB_NORM, A_copy);
+            auto normA_res = check_generalized_similarity_transform(
+                A_copy, Q, Z, A, res, work);
+            CHECK(normA_res <= tol * normA);
+
+            auto normB = tlapack::lange(tlapack::FROB_NORM, B_copy);
+            auto normB_res = check_generalized_similarity_transform(
+                B_copy, Q, Z, B, res, work);
+            CHECK(normB_res <= tol * normB);
+
+            // Check that the eigenvalues have actually been moved
+            // TODO
         }
     }
 }

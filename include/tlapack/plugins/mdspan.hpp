@@ -16,13 +16,14 @@
                                 // need the `submdspan` functionality
 
 #include "tlapack/base/arrayTraits.hpp"
+#include "tlapack/plugins/stdvector.hpp"
 
 namespace tlapack {
 
 // -----------------------------------------------------------------------------
 // Helpers
 
-namespace mdspan {
+namespace traits {
     namespace internal {
         template <class ET, class Exts, class LP, class AP>
         std::true_type is_mdspan_type_f(
@@ -36,7 +37,7 @@ namespace mdspan {
     template <class T>
     constexpr bool is_mdspan_type =
         decltype(internal::is_mdspan_type_f(std::declval<T*>()))::value;
-}  // namespace mdspan
+}  // namespace traits
 
 // -----------------------------------------------------------------------------
 // Data traits
@@ -651,64 +652,16 @@ auto reshape(
 
 namespace traits {
 
-#ifdef TLAPACK_PREFERRED_MATRIX_MDSPAN
-
-    #ifndef TLAPACK_EIGEN_HH
-        #ifndef TLAPACK_LEGACYARRAY_HH
-            #define TLAPACK_USE_PREFERRED_MATRIX_TYPE(T) true
-        #else
-            #define TLAPACK_USE_PREFERRED_MATRIX_TYPE(T) \
-                !legacy::is_legacy_type<T>
-        #endif
-    #else
-        #ifndef TLAPACK_LEGACYARRAY_HH
-            #define TLAPACK_USE_PREFERRED_MATRIX_TYPE(T) \
-                !eigen::is_eigen_type<T>
-        #else
-            #define TLAPACK_USE_PREFERRED_MATRIX_TYPE(T) \
-                (!eigen::is_eigen_type<T> && !legacy::is_legacy_type<T>)
-        #endif
-    #endif
-
-    // for two types
-    // should be especialized for every new matrix class
-    template <class matrixA_t, typename matrixB_t>
-    struct matrix_type_traits<
-        matrixA_t,
-        matrixB_t,
-        typename std::enable_if<TLAPACK_USE_PREFERRED_MATRIX_TYPE(matrixA_t) ||
-                                    TLAPACK_USE_PREFERRED_MATRIX_TYPE(
-                                        matrixB_t),
-                                int>::type> {
-        using T = scalar_type<type_t<matrixA_t>, type_t<matrixB_t>>;
-        using idx_t = size_type<matrixA_t>;
-        using extents_t = std::experimental::dextents<idx_t, 2>;
-
-        using type = std::experimental::
-            mdspan<T, extents_t, std::experimental::layout_stride>;
-    };
-
-    // for two types
-    // should be especialized for every new vector class
-    template <class matrixA_t, typename matrixB_t>
-    struct vector_type_traits<
-        matrixA_t,
-        matrixB_t,
-        typename std::enable_if<TLAPACK_USE_PREFERRED_MATRIX_TYPE(matrixA_t) ||
-                                    TLAPACK_USE_PREFERRED_MATRIX_TYPE(
-                                        matrixB_t),
-                                int>::type> {
-        using T = scalar_type<type_t<matrixA_t>, type_t<matrixB_t>>;
-        using idx_t = size_type<matrixA_t>;
-        using extents_t = std::experimental::dextents<idx_t, 1>;
-
-        using type = std::experimental::
-            mdspan<T, extents_t, std::experimental::layout_stride>;
-    };
-
-    #undef TLAPACK_USE_PREFERRED_MATRIX_TYPE
-
-#else
+    template <typename T>
+    constexpr bool cast_to_mdspan_type =
+        is_mdspan_type<T> || is_stdvector_type<T>
+#ifdef TLAPACK_EIGEN_HH
+        || is_eigen_type<T>
+#endif
+#ifdef TLAPACK_LEGACYARRAY_HH
+        || is_legacy_type<T>
+#endif
+        ;
 
     // for two types
     // should be especialized for every new matrix class
@@ -716,12 +669,10 @@ namespace traits {
     struct matrix_type_traits<
         matrixA_t,
         matrixB_t,
-        typename std::enable_if<
-            mdspan::is_mdspan_type<matrixA_t> &&
-                mdspan::is_mdspan_type<matrixB_t> &&
-                std::is_same<typename matrixA_t::layout_type,
-                             typename matrixB_t::layout_type>::value,
-            int>::type> {
+        typename std::enable_if<is_mdspan_type<matrixA_t> &&
+                                    is_mdspan_type<matrixB_t> &&
+                                    (layout<matrixA_t> == layout<matrixB_t>),
+                                int>::type> {
         using T = scalar_type<type_t<matrixA_t>, type_t<matrixB_t>>;
         using idx_t = size_type<matrixA_t>;
         using extents_t = std::experimental::dextents<idx_t, 2>;
@@ -734,10 +685,17 @@ namespace traits {
         matrixA_t,
         matrixB_t,
         typename std::enable_if<
-            mdspan::is_mdspan_type<matrixA_t> &&
-                mdspan::is_mdspan_type<matrixB_t> &&
-                !std::is_same<typename matrixA_t::layout_type,
-                              typename matrixB_t::layout_type>::value,
+
+            (is_mdspan_type<matrixA_t> && is_mdspan_type<matrixB_t> &&
+             !(layout<matrixA_t> == layout<matrixB_t>))
+
+                ||
+
+                ((is_mdspan_type<matrixA_t> || is_mdspan_type<matrixB_t>)&&(
+                     !is_mdspan_type<matrixA_t> ||
+                     !is_mdspan_type<
+                         matrixB_t>)&&cast_to_mdspan_type<matrixA_t> &&
+                 cast_to_mdspan_type<matrixB_t>),
             int>::type> {
         using T = scalar_type<type_t<matrixA_t>, type_t<matrixB_t>>;
         using idx_t = size_type<matrixA_t>;
@@ -753,12 +711,10 @@ namespace traits {
     struct vector_type_traits<
         matrixA_t,
         matrixB_t,
-        typename std::enable_if<
-            mdspan::is_mdspan_type<matrixA_t> &&
-                mdspan::is_mdspan_type<matrixB_t> &&
-                std::is_same<typename matrixA_t::layout_type,
-                             typename matrixB_t::layout_type>::value,
-            int>::type> {
+        typename std::enable_if<is_mdspan_type<matrixA_t> &&
+                                    is_mdspan_type<matrixB_t> &&
+                                    (layout<matrixA_t> == layout<matrixB_t>),
+                                int>::type> {
         using T = scalar_type<type_t<matrixA_t>, type_t<matrixB_t>>;
         using idx_t = size_type<matrixA_t>;
         using extents_t = std::experimental::dextents<idx_t, 1>;
@@ -766,18 +722,22 @@ namespace traits {
         using type = std::experimental::
             mdspan<T, extents_t, typename matrixA_t::layout_type>;
     };
-
-    // for two types
-    // should be especialized for every new vector class
     template <class matrixA_t, class matrixB_t>
     struct vector_type_traits<
         matrixA_t,
         matrixB_t,
         typename std::enable_if<
-            mdspan::is_mdspan_type<matrixA_t> &&
-                mdspan::is_mdspan_type<matrixB_t> &&
-                !std::is_same<typename matrixA_t::layout_type,
-                              typename matrixB_t::layout_type>::value,
+
+            (is_mdspan_type<matrixA_t> && is_mdspan_type<matrixB_t> &&
+             !(layout<matrixA_t> == layout<matrixB_t>))
+
+                ||
+
+                ((is_mdspan_type<matrixA_t> || is_mdspan_type<matrixB_t>)&&(
+                     !is_mdspan_type<matrixA_t> ||
+                     !is_mdspan_type<
+                         matrixB_t>)&&cast_to_mdspan_type<matrixA_t> &&
+                 cast_to_mdspan_type<matrixB_t>),
             int>::type> {
         using T = scalar_type<type_t<matrixA_t>, type_t<matrixB_t>>;
         using idx_t = size_type<matrixA_t>;
@@ -787,7 +747,36 @@ namespace traits {
             mdspan<T, extents_t, std::experimental::layout_stride>;
     };
 
-#endif  // TLAPACK_PREFERRED_MATRIX
+#if !defined(TLAPACK_EIGEN_HH) && !defined(TLAPACK_LEGACYARRAY_HH)
+    template <class vecA_t, class vecB_t>
+    struct matrix_type_traits<
+        vecA_t,
+        vecB_t,
+        std::enable_if_t<traits::is_stdvector_type<vecA_t> &&
+                             traits::is_stdvector_type<vecB_t>,
+                         int>> {
+        using T = scalar_type<type_t<vecA_t>, type_t<vecB_t>>;
+        using extents_t = std::experimental::dextents<std::size_t, 2>;
+
+        using type = std::experimental::
+            mdspan<T, extents_t, std::experimental::layout_left>;
+    };
+
+    template <class vecA_t, class vecB_t>
+    struct vector_type_traits<
+        vecA_t,
+        vecB_t,
+        std::enable_if_t<traits::is_stdvector_type<vecA_t> &&
+                             traits::is_stdvector_type<vecB_t>,
+                         int>> {
+        using T = scalar_type<type_t<vecA_t>, type_t<vecB_t>>;
+        using extents_t = std::experimental::dextents<std::size_t, 1>;
+
+        using type = std::experimental::
+            mdspan<T, extents_t, std::experimental::layout_left>;
+    };
+#endif
+
 }  // namespace traits
 
 // -----------------------------------------------------------------------------

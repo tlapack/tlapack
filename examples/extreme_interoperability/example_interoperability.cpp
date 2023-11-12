@@ -8,7 +8,6 @@
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
 // clang-format off
-#define TLAPACK_PREFERRED_MATRIX_EIGEN // In case matrices need to be created
 #include <tlapack/plugins/mdspan.hpp>
 #include <tlapack/plugins/legacyArray.hpp>
 #include <tlapack/plugins/eigen.hpp>

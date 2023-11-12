@@ -1,7 +1,7 @@
-/// @file lahqz.hpp
+/// @file multishift_qz.hpp
 /// @author Thijs Steel, KU Leuven, Belgium
 /// Adapted from @see
-/// https://github.com/Reference-LAPACK/lapack/tree/master/SRC/dhgeqz.f
+/// https://github.com/Reference-LAPACK/lapack/tree/master/SRC/dlaqz0.f
 //
 // Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //
@@ -9,24 +9,21 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef TLAPACK_LAHQZ_HH
-#define TLAPACK_LAHQZ_HH
-
-#include <tlapack/lapack/lange.hpp>
+#ifndef TLAPACK_MULTISHIFT_QZ_HH
+#define TLAPACK_MULTISHIFT_QZ_HH
 
 #include "tlapack/base/utils.hpp"
-#include "tlapack/blas/rot.hpp"
-#include "tlapack/blas/rotg.hpp"
-#include "tlapack/lapack/inv_house3.hpp"
-#include "tlapack/lapack/lahqz_eig22.hpp"
-#include "tlapack/lapack/lahqz_shiftcolumn.hpp"
-#include "tlapack/lapack/svd22.hpp"
+#include "tlapack/lapack/FrancisOpts.hpp"
+#include "tlapack/lapack/aggressive_early_deflation_generalized.hpp"
+#include "tlapack/lapack/lahqr_eig22.hpp"
+#include "tlapack/lapack/lahqz.hpp"
+#include "tlapack/lapack/multishift_qz_sweep.hpp"
 
 namespace tlapack {
 
-/** lahqz computes the eigenvalues of a matrix pair (H,T),
+/** multishift_qz computes the eigenvalues of a matrix pair (H,T),
  *  where H is an upper Hessenberg matrix and T is upper triangular,
- *  using the single/double-shift implicit QZ algorithm.
+ *  using the multishift QZ algorithm with AED.
  *
  * @return  0 if success
  * @return  i if the QZ algorithm failed to compute all the eigenvalues
@@ -46,46 +43,72 @@ namespace tlapack {
  *      The matrix A is assumed to be already quasi-triangular in rows and
  *      columns ihi:n.
  * @param[in,out] A  n by n matrix.
+ *
  * @param[in,out] B  n by n matrix.
+ *
  * @param[out] alpha  size n vector.
+ *
  * @param[out] beta  size n vector.
+ *
  * @param[in,out] Q  n by n matrix.
+ *
  * @param[in,out] Z  n by n matrix.
+ *
+ * @param[in,out] opts Options.
  *
  * @ingroup auxiliary
  */
-template <TLAPACK_CSMATRIX matrix_t,
-          TLAPACK_VECTOR alpha_t,
-          TLAPACK_VECTOR beta_t>
-int lahqz(bool want_s,
-          bool want_q,
-          bool want_z,
-          size_type<matrix_t> ilo,
-          size_type<matrix_t> ihi,
-          matrix_t& A,
-          matrix_t& B,
-          alpha_t& alpha,
-          beta_t& beta,
-          matrix_t& Q,
-          matrix_t& Z)
+template <TLAPACK_SMATRIX matrix_t,
+          TLAPACK_SVECTOR alpha_t,
+          TLAPACK_SVECTOR beta_t>
+int multishift_qz(bool want_s,
+                  bool want_q,
+                  bool want_z,
+                  size_type<matrix_t> ilo,
+                  size_type<matrix_t> ihi,
+                  matrix_t& A,
+                  matrix_t& B,
+                  alpha_t& alpha,
+                  beta_t& beta,
+                  matrix_t& Q,
+                  matrix_t& Z,
+                  FrancisOpts& opts)
 {
     using TA = type_t<matrix_t>;
     using real_t = real_type<TA>;
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
 
-    // Functor
-    CreateStatic<vector_type<matrix_t>, 3> new_3_vector;
-
     // constants
     const real_t zero(0);
-    const real_t one(1);
-    const real_t eps = ulp<real_t>();
-    const real_t small_num = safe_min<real_t>();
-    const idx_t non_convergence_limit = 10;
+    const idx_t non_convergence_limit_window = 5;
+    const idx_t non_convergence_limit_shift = 6;
+    const real_t dat1(0.75);
+    const real_t dat2(-0.4375);
 
     const idx_t n = ncols(A);
     const idx_t nh = ihi - ilo;
+
+    // This routine uses the space below the subdiagonal as workspace
+    // For small matrices, this is not enough
+    // if n < nmin, the matrix will be passed to lahqr
+    const idx_t nmin = opts.nmin;
+
+    // Recommended number of shifts
+    const idx_t nsr = opts.nshift_recommender(n, nh);
+
+    // Recommended deflation window size
+    const idx_t nwr = opts.deflation_window_recommender(n, nh);
+    const idx_t nw_max = (n - 3) / 3;
+
+    const idx_t nibble = opts.nibble;
+
+    const real_t eps = ulp<real_t>();
+    const real_t small_num = safe_min<real_t>();
+
+    int n_aed = 0;
+    int n_sweep = 0;
+    int n_shifts_total = 0;
 
     // check arguments
     tlapack_check_false(n != nrows(A));
@@ -93,11 +116,11 @@ int lahqz(bool want_s,
     tlapack_check_false(n != nrows(B));
     tlapack_check_false((idx_t)size(alpha) != n);
     tlapack_check_false((idx_t)size(beta) != n);
-    if (want_q) {
-        tlapack_check_false((n != ncols(Q)) or (n != nrows(Q)));
-    }
     if (want_z) {
         tlapack_check_false((n != ncols(Z)) or (n != nrows(Z)));
+    }
+    if (want_q) {
+        tlapack_check_false((n != ncols(Q)) or (n != nrows(Q)));
     }
 
     // quick return
@@ -105,6 +128,11 @@ int lahqz(bool want_s,
     if (nh == 1) {
         alpha[ilo] = A(ilo, ilo);
         beta[ilo] = B(ilo, ilo);
+    }
+
+    // Tiny matrices must use lahqz
+    if (n < nmin) {
+        return lahqz(want_s, want_q, want_z, ilo, ihi, A, B, alpha, beta, Q, Z);
     }
 
     // itmax is the total number of QR iterations allowed.
@@ -119,44 +147,38 @@ int lahqz(bool want_s,
     // As more and more eigenvalues converge, it eventually
     // becomes ilo+1 and the loop ends.
     idx_t istop = ihi;
-    // istart is the start of the active subblock. Either
-    // istart = ilo, or H(istart, istart-1) = 0. This means
-    // that we can treat this subblock separately.
-    idx_t istart = ilo;
+
+    int info = 0;
 
     // Norm of B, used for checking infinite eigenvalues
     const real_t bnorm =
         lange(FROB_NORM, slice(B, range(ilo, ihi), range(ilo, ihi)));
 
-    // Used to calculate the exceptional shift
-    TA eshift = (TA)0.;
-
-    // Local workspace
-    TA v_[3];
-    auto v = new_3_vector(v_);
+    // nw is the deflation window size
+    idx_t nw;
 
     for (idx_t iter = 0; iter <= itmax; ++iter) {
         if (iter == itmax) {
             // The QZ algorithm failed to converge, return with error.
-            tlapack_error(
-                istop,
-                "The QZ algorithm failed to compute all the eigenvalues"
-                " in a total of 30 iterations per eigenvalue. Elements"
-                " i:ihi of alpha and beta contain those eigenvalues which have "
-                "been successfully computed.");
-            return istop;
+            info = istop;
+            break;
         }
 
-        if (istart + 1 >= istop) {
-            if (istart + 1 == istop) {
-                alpha[istart] = A(istart, istart);
-                beta[istart] = B(istart, istart);
+        if (ilo + 1 >= istop) {
+            if (ilo + 1 == istop) {
+                alpha[ilo] = A(ilo, ilo);
+                beta[ilo] = B(ilo, ilo);
             }
             // All eigenvalues have been found, exit and return 0.
             break;
         }
 
-        // Determine range to apply rotations
+        // istart is the start of the active subblock. Either
+        // istart = ilo, or H(istart, istart-1) = 0. This means
+        // that we can treat this subblock separately.
+        idx_t istart = ilo;
+
+        // Find active block
         idx_t istart_m;
         idx_t istop_m;
         if (!want_s) {
@@ -407,229 +429,151 @@ int lahqz(bool want_s,
             }
         }
 
-        // Determine shift
-        k_defl = k_defl + 1;
-
-        complex_type<real_t> shift1;
-        complex_type<real_t> shift2;
-        TA beta1;
-        TA beta2;
-        if (k_defl % non_convergence_limit == 0) {
-            // Exceptional shift
-            if (k_defl % 2 * non_convergence_limit == 0 or istop < 2)
-                eshift += A(istop - 1, istop - 1) / B(istop - 1, istop - 1);
-            else
-                eshift += A(istop - 2, istop - 2) / B(istop - 2, istop - 2);
-
-            shift1 = eshift;
-            shift2 = eshift;
-            beta1 = one;
-            beta2 = one;
+        //
+        // Agressive early deflation
+        //
+        idx_t nh = istop - istart;
+        idx_t nwupbd = min(nh, nw_max);
+        if (k_defl < non_convergence_limit_window) {
+            nw = min(nwupbd, nwr);
         }
         else {
-            // Wilkinson shift
-            auto A22 =
-                slice(A, range(istop - 2, istop), range(istop - 2, istop));
-            auto B22 =
-                slice(B, range(istop - 2, istop), range(istop - 2, istop));
-            lahqz_eig22(A22, B22, shift1, shift2, beta1, beta2);
+            // There have been no deflations in many iterations
+            // Try to vary the deflation window size.
+            nw = min(nwupbd, 2 * nw);
+        }
+        if (nh <= 4) {
+            // n >= nmin, so there is always enough space for a 4x4 window
+            nw = nh;
+        }
+        if (nw < nw_max) {
+            if (nw + 1 >= nh) nw = nh;
+            idx_t kwtop = istop - nw;
+            if (kwtop > istart + 2)
+                if (abs1(A(kwtop, kwtop - 1)) > abs1(A(kwtop - 1, kwtop - 2)))
+                    nw = nw + 1;
         }
 
-        // We have already checked whether the subblock has split.
-        // If it has split, we can introduce any shift at the top of the new
-        // subblock. Now that we know the specific shift, we can also check
-        // whether we can introduce that shift somewhere else in the subblock.
-        idx_t istart2 = istart;
-        TA t1;
-        if (istart + 3 < istop) {
-            for (idx_t i = istop - 3; i > istart; --i) {
-                auto H = slice(A, range{i, i + 3}, range{i, i + 3});
-                auto T = slice(B, range{i, i + 3}, range{i, i + 3});
-                lahqz_shiftcolumn(H, T, v, shift1, shift2, beta1, beta2);
-                larfg(FORWARD, COLUMNWISE_STORAGE, v, t1);
-                v[0] = t1;
-                const TA refsum =
-                    conj(v[0]) * A(i, i - 1) + conj(v[1]) * A(i + 1, i - 1);
-                if (abs1(A(i + 1, i - 1) - refsum * v[1]) +
-                        abs1(refsum * v[2]) <=
-                    eps * (abs1(A(i, i - 1)) + abs1(A(i, i + 1)) +
-                           abs1(A(i + 1, i + 2)))) {
-                    istart2 = i;
-                    break;
-                }
-            }
+        idx_t ls, ld;
+        n_aed = n_aed + 1;
+        aggressive_early_deflation_generalized(want_s, want_q, want_z, istart,
+                                               istop, nw, A, B, alpha, beta, Q,
+                                               Z, ls, ld, opts);
+
+        istop = istop - ld;
+
+        if (ld > 0) k_defl = 0;
+
+        // Skip an expensive QR sweep if there is a (partly heuristic)
+        // reason to expect that many eigenvalues will deflate without it.
+        // Here, the QR sweep is skipped if many eigenvalues have just been
+        // deflated or if the remaining active block is small.
+        if (ld > 0 and
+            (100 * ld > nwr * nibble or istop <= istart + min(nmin, nw_max))) {
+            continue;
         }
 
-        // All the preparations are done, we can apply an implicit QZ
-        // iteration
-        for (idx_t i = istart2; i < istop - 2; ++i) {
-            if (i == istart2) {
-                // This is the first iteration, calculate a reflector to
-                // introduce the shift
-                auto H = slice(A, range{i, i + 3}, range{i, i + 3});
-                auto T = slice(B, range{i, i + 3}, range{i, i + 3});
-                lahqz_shiftcolumn(H, T, v, shift1, shift2, beta1, beta2);
-                larfg(FORWARD, COLUMNWISE_STORAGE, v, t1);
-                if (i > istart) {
-                    A(i, i - 1) = A(i, i - 1) * (one - conj(t1));
-                }
-            }
-            else {
-                // Calculate a reflector to move the bulge one position
-                v[0] = A(i, i - 1);
-                v[1] = A(i + 1, i - 1);
-                v[2] = A(i + 2, i - 1);
-                larfg(FORWARD, COLUMNWISE_STORAGE, v, t1);
-                A(i, i - 1) = v[0];
-                A(i + 1, i - 1) = zero;
-                A(i + 2, i - 1) = zero;
-            }
+        k_defl = k_defl + 1;
+        idx_t ns = min(nh - 1, min(ls, nsr));
 
-            // The following code applies the reflector we have just calculated.
-            // We write this out instead of using larf because a direct loop is
-            // more efficient for small reflectors.
-            {
-                t1 = conj(t1);
-                const TA v2 = v[1];
-                const TA t2 = t1 * v2;
-                const TA v3 = v[2];
-                const TA t3 = t1 * v[2];
-                TA sum;
+        idx_t i_shifts = istop - ls;
 
-                // Apply reflector from the left to A
-                for (idx_t j = i; j < istop_m; ++j) {
-                    sum = A(i, j) + conj(v2) * A(i + 1, j) +
-                          conj(v3) * A(i + 2, j);
-                    A(i, j) = A(i, j) - sum * t1;
-                    A(i + 1, j) = A(i + 1, j) - sum * t2;
-                    A(i + 2, j) = A(i + 2, j) - sum * t3;
-                }
-                // Apply reflector from the left to B
-                for (idx_t j = i; j < istop_m; ++j) {
-                    sum = B(i, j) + conj(v2) * B(i + 1, j) +
-                          conj(v3) * B(i + 2, j);
-                    B(i, j) = B(i, j) - sum * t1;
-                    B(i + 1, j) = B(i + 1, j) - sum * t2;
-                    B(i + 2, j) = B(i + 2, j) - sum * t3;
-                }
-                if (want_q) {
-                    // Apply reflector to Q from the right
-                    for (idx_t j = 0; j < n; ++j) {
-                        sum = Q(j, i) + v2 * Q(j, i + 1) + v3 * Q(j, i + 2);
-                        Q(j, i) = Q(j, i) - sum * conj(t1);
-                        Q(j, i + 1) = Q(j, i + 1) - sum * conj(t2);
-                        Q(j, i + 2) = Q(j, i + 2) - sum * conj(t3);
+        if (k_defl % non_convergence_limit_shift == 0) {
+            // This exceptional shift closely resembles the QR exceptional shift
+            // This is nice for easy maintenance, but is not guaranteed to work.
+            ns = nsr;
+            for (idx_t i = i_shifts; i < istop - 1; i = i + 2) {
+                real_t ss = abs1(A(i, i - 1));
+                if (i > 1) ss += abs1(A(i - 1, i - 2));
+                TA aa = dat1 * ss + A(i, i);
+                TA bb = ss;
+                TA cc = dat2 * ss;
+                TA dd = aa;
+                lahqr_eig22(aa, bb, cc, dd, alpha[i], alpha[i + 1]);
+                beta[i] = (TA)1;
+                beta[i + 1] = (TA)1;
+            }
+        }
+        else {
+            // Sort the shifts (helps a little)
+            // Bubble sort keeps complex conjugate pairs together
+            bool sorted = false;
+            idx_t k = istop;
+            while (!sorted && k > i_shifts) {
+                sorted = true;
+                for (idx_t i = i_shifts; i < k - 1; ++i) {
+                    if (abs1(alpha[i] * beta[i + 1]) <
+                        abs1(alpha[i + 1] * beta[i])) {
+                        sorted = false;
+                        const type_t<alpha_t> tmp = alpha[i];
+                        alpha[i] = alpha[i + 1];
+                        alpha[i + 1] = tmp;
+                        const type_t<beta_t> tmp2 = beta[i];
+                        beta[i] = beta[i + 1];
+                        beta[i + 1] = tmp2;
                     }
                 }
+                --k;
             }
 
-            // Remove fill-in from B using an inverse reflector
-            auto T = slice(B, range{i + 1, i + 3}, range{i, i + 3});
-            inv_house3(T, v, t1);
-
-            // The following code applies the reflector we have just calculated.
-            // We write this out instead of using larf because a direct loop is
-            // more efficient for small reflectors.
-            {
-                t1 = conj(t1);
-                const TA v2 = v[1];
-                const TA t2 = t1 * v2;
-                const TA v3 = v[2];
-                const TA t3 = t1 * v[2];
-                TA sum;
-
-                // Apply reflector from the right to B
-                for (idx_t j = istart_m; j < i + 3; ++j) {
-                    sum = B(j, i) + v2 * B(j, i + 1) + v3 * B(j, i + 2);
-                    B(j, i) = B(j, i) - sum * conj(t1);
-                    B(j, i + 1) = B(j, i + 1) - sum * conj(t2);
-                    B(j, i + 2) = B(j, i + 2) - sum * conj(t3);
+            // Shuffle shifts into pairs of real shifts
+            // and pairs of complex conjugate shifts
+            // assuming complex conjugate shifts are
+            // already adjacent to one another. (Yes,
+            // they are.)
+            for (idx_t i = istop - 1; i > i_shifts + 1; i = i - 2) {
+                if (imag(alpha[i]) != -imag(alpha[i - 1])) {
+                    const type_t<alpha_t> tmp = alpha[i];
+                    alpha[i] = alpha[i - 1];
+                    alpha[i - 1] = alpha[i - 2];
+                    alpha[i - 2] = tmp;
+                    const type_t<beta_t> tmp2 = beta[i];
+                    beta[i] = beta[i - 1];
+                    beta[i - 1] = beta[i - 2];
+                    beta[i - 2] = tmp2;
                 }
-                B(i + 1, i) = (TA)0;
-                B(i + 2, i) = (TA)0;
-                // Apply reflector from the right to A
-                for (idx_t j = istart_m; j < min(i + 4, istop); ++j) {
-                    sum = A(j, i) + v2 * A(j, i + 1) + v3 * A(j, i + 2);
-                    A(j, i) = A(j, i) - sum * conj(t1);
-                    A(j, i + 1) = A(j, i + 1) - sum * conj(t2);
-                    A(j, i + 2) = A(j, i + 2) - sum * conj(t3);
-                }
-                if (want_z) {
-                    // Apply reflector to Z from the right
-                    for (idx_t j = 0; j < n; ++j) {
-                        sum = Z(j, i) + v2 * Z(j, i + 1) + v3 * Z(j, i + 2);
-                        Z(j, i) = Z(j, i) - sum * conj(t1);
-                        Z(j, i + 1) = Z(j, i + 1) - sum * conj(t2);
-                        Z(j, i + 2) = Z(j, i + 2) - sum * conj(t3);
+            }
+
+            // Since we shuffled the shifts, we will only drop
+            // Real shifts
+            if (ns % 2 == 1) ns = ns - 1;
+            i_shifts = istop - ns;
+        }
+
+        // If there are only two shifts and both are real
+        // then use only one (helps avoid interference)
+        if (is_real<TA>) {
+            if (ns == 2) {
+                if (imag(alpha[i_shifts]) == zero) {
+                    if (abs(real(alpha[i_shifts]) - A(istop - 1, istop - 1)) <
+                        abs(real(alpha[i_shifts + 1]) -
+                            A(istop - 1, istop - 1))) {
+                        alpha[i_shifts + 1] = alpha[i_shifts];
+                        beta[i_shifts + 1] = beta[i_shifts];
+                    }
+                    else {
+                        alpha[i_shifts] = alpha[i_shifts + 1];
+                        beta[i_shifts] = beta[i_shifts + 1];
                     }
                 }
             }
         }
-        // Handle the final 2x2 block separately using a 2x2 rotation instead
-        // of a 3x3 reflector.
-        {
-            idx_t i = istop - 2;
+        auto alpha_shifts = slice(alpha, range{i_shifts, i_shifts + ns});
+        auto beta_shifts = slice(beta, range{i_shifts, i_shifts + ns});
 
-            real_t c2;
-            TA s2;
-
-            if (i == istart2) {
-                auto H = slice(A, range{i, i + 2}, range{i, i + 2});
-                auto T = slice(B, range{i, i + 2}, range{i, i + 2});
-                auto x = slice(v, range{0, 2});
-                lahqz_shiftcolumn(H, T, x, shift1, shift2, beta1, beta2);
-
-                rotg(x[0], x[1], c2, s2);
-
-                if (i > istart) {
-                    A(i, i - 1) = A(i, i - 1) * c2;
-                }
-            }
-            else {
-                rotg(A(i, i - 1), A(i + 1, i - 1), c2, s2);
-                A(i + 1, i - 1) = zero;
-            }
-
-            // Apply rotation from the left
-            {
-                auto a1 = slice(A, i, range{i, istop_m});
-                auto a2 = slice(A, i + 1, range{i, istop_m});
-                rot(a1, a2, c2, s2);
-                auto b1 = slice(B, i, range{i, istop_m});
-                auto b2 = slice(B, i + 1, range{i, istop_m});
-                rot(b1, b2, c2, s2);
-                if (want_q) {
-                    auto q1 = col(Q, i);
-                    auto q2 = col(Q, i + 1);
-                    rot(q1, q2, c2, conj(s2));
-                }
-            }
-
-            // Remove fill-in from B
-            rotg(B(i + 1, i + 1), B(i + 1, i), c2, s2);
-            s2 = -s2;
-            B(i + 1, i) = (TA)0.;
-
-            // Apply rotation from the right
-            {
-                auto b1 = slice(B, range{istart_m, i + 1}, i);
-                auto b2 = slice(B, range{istart_m, i + 1}, i + 1);
-                rot(b1, b2, c2, conj(s2));
-                auto a1 = slice(A, range{istart_m, min(i + 4, ihi)}, i);
-                auto a2 = slice(A, range{istart_m, min(i + 4, ihi)}, i + 1);
-                rot(a1, a2, c2, conj(s2));
-                if (want_z) {
-                    auto z1 = col(Z, i);
-                    auto z2 = col(Z, i + 1);
-                    rot(z1, z2, c2, conj(s2));
-                }
-            }
-        }
+        n_sweep = n_sweep + 1;
+        n_shifts_total = n_shifts_total + ns;
+        multishift_QZ_sweep(want_s, want_q, want_z, istart, istop, A, B,
+                            alpha_shifts, beta_shifts, Q, Z);
     }
 
-    return 0;
+    opts.n_aed = n_aed;
+    opts.n_shifts_total = n_shifts_total;
+    opts.n_sweep = n_sweep;
+
+    return info;
 }
 
 }  // namespace tlapack
 
-#endif  // TLAPACK_LAHQZ_HH
+#endif  // TLAPACK_MULTISHIFT_QZ_HH
