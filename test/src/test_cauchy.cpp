@@ -58,7 +58,7 @@ TEMPLATE_TEST_CASE("Cauchy matrix properties",
         for (idx_t i = 0; i < n; ++i)
         {
             x[i] = (T)(i+1);
-            y[i] = (T)(i/2+2);
+            y[i] = (T)((i+1+n));
         }
 
         // Initialize and compute C using the explicit formula
