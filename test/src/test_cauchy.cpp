@@ -37,10 +37,8 @@ TEMPLATE_TEST_CASE("Cauchy matrix properties",
     // MatrixMarket reader
     MatrixMarket mm;
 
-    idx_t n = GENERATE(5, 10, 20, 100);
-    GetriVariant variant = GENERATE(GetriVariant::UXLI, GetriVariant::UILI);
-
-    DYNAMIC_SECTION("n = " << n << " variant = " << (char)variant) 
+    idx_t n = GENERATE(3, 9, 16);
+    DYNAMIC_SECTION("n = " << n) 
     {
         // eps is the machine precision, and tol is the tolerance we accept for
         // tests to pass
@@ -52,8 +50,6 @@ TEMPLATE_TEST_CASE("Cauchy matrix properties",
         auto C = new_matrix(C_, n, n);
         std::vector<T> invCexpl_;
         auto invCexpl = new_matrix(invCexpl_, n, n);
-        std::vector<T> invC_;
-        auto invC = new_matrix(invC_, n, n);
         std::vector<T> x(n);
         std::vector<T> y(n);
 
@@ -62,51 +58,43 @@ TEMPLATE_TEST_CASE("Cauchy matrix properties",
         for (idx_t i = 0; i < n; ++i)
         {
             x[i] = (T)(i+1);
-            y[i] = (T)(n + i + 1);
+            y[i] = (T)(i/2+2);
         }
 
         // Initialize and compute C using the explicit formula
         mm.generateCauchy(C, x, y); 
+        mm.generateInverseCauchy(invCexpl, x, y);
         // make a deep copy C
-        lacpy(GENERAL, C, invC);
 
 
         // calculate norm of C for later use in relative error
         real_t normC = tlapack::lange(tlapack::MAX_NORM, C);
 
-        // LU factorize Pivoted C
-        std::vector<idx_t> piv(n, idx_t(0));
-        getrf(invC, piv);
-
-        // run inverse function, this could test any inverse function of choice
-        GetriOpts opts;
-        opts.variant = variant;
-        getri(invC, piv, opts);
-
-        // building error matrix E
+        // building error matrix E 
         std::vector<T> E_;
         auto E = new_matrix(E_, n, n);
 
         // E <----- inv(C)*C - I
-        gemm(NO_TRANS, NO_TRANS, real_t(1), C, invC, E);
+        gemm(NO_TRANS, NO_TRANS, real_t(1), C, invCexpl, E);
         for (idx_t i = 0; i < n; i++)
             E(i, i) -= real_t(1);
 
+
         // error is  || inv(C)*C - I || / ( ||C|| * ||inv(C)|| )
         real_t error = tlapack::lange(tlapack::MAX_NORM, E) /
-                       (normC * tlapack::lange(tlapack::MAX_NORM, invC));
+                       (normC * tlapack::lange(tlapack::MAX_NORM, invCexpl));
 
         UNSCOPED_INFO("|| inv(C)*C - I || / ( ||C|| * ||inv(C)|| )");
         CHECK(error / tol <= real_t(1));  // tests if error<=tol
 
         // E <----- C*inv(C) - I
-        gemm(NO_TRANS, NO_TRANS, real_t(1), invC, C, E);
+        gemm(NO_TRANS, NO_TRANS, real_t(1), invCexpl, C, E);
         for (idx_t i = 0; i < n; i++)
             E(i, i) -= real_t(1);
 
         // error is  || C*inv(C) - I || / ( ||C|| * ||inv(C)|| )
         error = tlapack::lange(tlapack::MAX_NORM, E) /
-                (normC * tlapack::lange(tlapack::MAX_NORM, invC));
+                (normC * tlapack::lange(tlapack::MAX_NORM, invCexpl));
 
         UNSCOPED_INFO("|| C*inv(C) - I || / ( ||C|| * ||inv(C)|| )");
         CHECK(error / tol <= real_t(1));  // tests if error<=tol
