@@ -77,6 +77,70 @@ namespace tlapack {
     }
   }
 
+/*
+// e4m3fnuz
+  namespace tlapack {
+    namespace traits {
+        template <>
+        struct real_type_traits<ml_dtypes::float8_internal::float8_e4m3fnuz, int> {
+            using type = ml_dtypes::float8_internal::float8_e4m3fnuz;
+            constexpr static bool is_real = true;
+        };
+        template <>
+        struct complex_type_traits<ml_dtypes::float8_internal::float8_e4m3fnuz, int> {
+            using type = std::complex<ml_dtypes::float8_internal::float8_e4m3fnuz>;
+            constexpr static bool is_complex = false;
+        };
+    }  // namespace traits
+
+    constexpr double ConstexprAbs(double x) { return x < 0.0 ? -x : x; }
+    constexpr double ConstexprCeil(double x)
+    {
+        constexpr double kIntegerThreshold =
+            uint64_t{1} << (std::numeric_limits<double>::digits - 1);
+        // Too big or NaN inputs get returned unchanged.
+        if (!(ConstexprAbs(x) < kIntegerThreshold)) {
+            return x;
+        }
+        const double x_trunc = static_cast<double>(static_cast<int64_t>(x));
+        return x_trunc < x ? x_trunc + 1.0 : x_trunc;
+    }
+    typedef ml_dtypes::float8_internal::float8_e4m3fnuz float8e4m3fnuz;
+
+    inline float8e4m3fnuz ceil(float8e4m3fnuz x) noexcept
+    {
+        return float8e4m3fnuz(ConstexprCeil(double(x)));
+    }
+    inline float8e4m3fnuz floor(float8e4m3fnuz x) noexcept
+    {
+        return -ceil(float8e4m3fnuz(-1 * double(x)));
+    }
+    inline float8e4m3fnuz log2(float8e4m3fnuz x) noexcept
+    {
+        return float8e4m3fnuz(log(double(x)));
+    }
+    inline float8e4m3fnuz max(float8e4m3fnuz x, float8e4m3fnuz y) noexcept
+    {
+        return x > y ? x : y;
+    }
+    inline float8e4m3fnuz min(float8e4m3fnuz x, float8e4m3fnuz y) noexcept
+    {
+        return x > y ? y : x;
+    }
+    inline float8e4m3fnuz sqrt(float8e4m3fnuz x) noexcept
+    {
+        return float8e4m3fnuz(std::sqrt(double(x)));
+    }
+    inline float8e4m3fnuz pow(int x, float8e4m3fnuz y)
+    {
+        return float8e4m3fnuz(std::pow(float(x), float(y)));
+    }
+    inline bool isinf(float8e4m3fnuz x)
+    {
+        return ml_dtypes::float8_internal::isinf(x);
+    }
+  }*/
+
 // e5m2
 namespace tlapack {
     namespace traits {
@@ -137,6 +201,14 @@ inline std::istream& operator>>(std::istream& is, ml_dtypes::float8_e4m3fn& x)
     x = ml_dtypes::float8_e4m3fn(x);
     return is;
 }
+/*
+inline std::istream& operator>>(std::istream& is, ml_dtypes::float8_e4m3fnuz& x)
+{
+    float f;
+    is >> f;
+    x = ml_dtypes::float8_e4m3fnuz(x);
+    return is;
+}*/
 
 inline std::istream& operator>>(std::istream& is, ml_dtypes::float8_e5m2& x)
 {

@@ -116,7 +116,7 @@ int main(int argc, char** argv)
 
     // Default arguments
     //n = (argc < 2) ? 100 : atoi(argv[1]);
-    n = 5;
+    n = 100;
     srand(3);  // Init random seed
 
     std::cout.precision(5);
@@ -131,7 +131,7 @@ int main(int argc, char** argv)
     printf("-----------------------\n");
 
     printf("run< float8e5m2, L >( %d )\n", n);
-    run<float8e4m3fn , L>(n);
+    run<float8e5m2 , L>(n);
     printf("-----------------------\n");
 
     printf("run< double, L >( %d )\n", n);
