@@ -114,6 +114,7 @@
 
 #include "tlapack/lapack/potrf.hpp"
 #include "tlapack/lapack/potrs.hpp"
+#include "tlapack/lapack/pttrf.hpp"
 
 // Sylver equation routines
 // ----------------
