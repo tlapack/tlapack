@@ -362,11 +362,6 @@ jobs:
     # Use Intel compilers
 
     runs-on: ubuntu-latest
-    env:
-      CXX: icpx
-      FC: ifx
-      CXXFLAGS: "-Wall -pedantic -Wno-unused-variable -Wno-unused-function -Wno-c99-extensions -fp-model=precise"
-      FFLAGS: ""
     steps:
     
     - name: Checkout <T>LAPACK
@@ -403,7 +398,7 @@ jobs:
         sudo apt update
         sudo apt install -y cmake
         sudo apt install -y liblapacke-dev
-        sudo apt install -y intel-oneapi-compiler-fortran intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic intel-oneapi-mkl
+        sudo apt install -y intel-oneapi-mkl
 
     - name: Setup Intel oneAPI environment
       run: |
