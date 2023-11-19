@@ -114,6 +114,7 @@ void run(size_t n)
 int main(int argc, char** argv)
 {
     typedef ml_dtypes::float8_e4m3fn float8e4m3fn;
+    typedef ml_dtypes::float8_e5m2 float8e5m2;
     int n;
     const tlapack::Layout L = tlapack::Layout::ColMajor;
 

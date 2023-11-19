@@ -385,8 +385,8 @@ class float8_e5m2 : public float8_base<float8_e5m2> {
   using Base::Base;
 
  public:
-  explicit EIGEN_DEVICE_FUNC float8_e5m2(float8_e4m3fn f8)
-      : float8_e5m2(ConvertFrom(f8)) {}
+  EIGEN_DEVICE_FUNC float8_e5m2(const float& f)
+      : float8_e5m2(ConvertFrom(f)) {}
   explicit EIGEN_DEVICE_FUNC float8_e5m2(float8_e4m3fnuz f8)
       : float8_e5m2(ConvertFrom(f8)) {}
   explicit EIGEN_DEVICE_FUNC float8_e5m2(float8_e4m3b11fnuz f8)
@@ -396,6 +396,16 @@ class float8_e5m2 : public float8_base<float8_e5m2> {
   template <int p>
   explicit EIGEN_DEVICE_FUNC float8_e5m2(float8_ieee_p<p> f8)
       : float8_e5m2(ConvertFrom(f8)) {}
+
+  enum Ordering : int8_t { //may fix issues
+    kLess = -1,
+    kEquivalent = 0,
+    kGreater = 1,
+    kUnordered = 2,
+  };
+  constexpr bool operator==(const float8_e5m2& other) const {
+    return Compare(derived(), other) == Ordering::kEquivalent;
+  }
 };
 
 class float8_e5m2fnuz : public float8_base<float8_e5m2fnuz> {
