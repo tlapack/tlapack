@@ -75,6 +75,145 @@ namespace tlapack {
     {
         return ml_dtypes::float8_internal::isinf(x);
     }
+
+    typedef ml_dtypes::float8_internal::float8_e5m2fnuz float8e5m2fnuz;
+
+    inline float8e5m2fnuz ceil(float8e5m2fnuz x) noexcept
+    {
+        return float8e5m2fnuz(ConstexprCeil(double(x)));
+    }
+    inline float8e5m2fnuz floor(float8e5m2fnuz x) noexcept
+    {
+        return -ceil(float8e5m2fnuz(-1 * double(x)));
+    }
+    inline float8e5m2fnuz log2(float8e5m2fnuz x) noexcept
+    {
+        return float8e5m2fnuz(log(double(x)));
+    }
+    inline float8e5m2fnuz max(float8e5m2fnuz x, float8e5m2fnuz y) noexcept
+    {
+        return x > y ? x : y;
+    }
+    inline float8e5m2fnuz min(float8e5m2fnuz x, float8e5m2fnuz y) noexcept
+    {
+        return x > y ? y : x;
+    }
+    inline float8e5m2fnuz sqrt(float8e5m2fnuz x) noexcept
+    {
+        return float8e5m2fnuz(std::sqrt(double(x)));
+    }
+    inline float8e5m2fnuz pow(int x, float8e5m2fnuz y)
+    {
+        return float8e5m2fnuz(std::pow(float(x), float(y)));
+    }
+    inline bool isinf(float8e5m2fnuz x)
+    {
+        return ml_dtypes::float8_internal::isinf(x);
+    }
+    typedef ml_dtypes::float8_internal::float8_e4m3fn float8e5m2fnuz;
+
+    inline float8e5m2fnuz ceil(float8e5m2fnuz x) noexcept
+    {
+        return float8e5m2fnuz(ConstexprCeil(double(x)));
+    }
+    inline float8e5m2fnuz floor(float8e5m2fnuz x) noexcept
+    {
+        return -ceil(float8e5m2fnuz(-1 * double(x)));
+    }
+    inline float8e5m2fnuz log2(float8e5m2fnuz x) noexcept
+    {
+        return float8e5m2fnuz(log(double(x)));
+    }
+    inline float8e5m2fnuz max(float8e5m2fnuz x, float8e5m2fnuz y) noexcept
+    {
+        return x > y ? x : y;
+    }
+    inline float8e5m2fnuz min(float8e5m2fnuz x, float8e5m2fnuz y) noexcept
+    {
+        return x > y ? y : x;
+    }
+    inline float8e5m2fnuz sqrt(float8e5m2fnuz x) noexcept
+    {
+        return float8e5m2fnuz(std::sqrt(double(x)));
+    }
+    inline float8e5m2fnuz pow(int x, float8e5m2fnuz y)
+    {
+        return float8e5m2fnuz(std::pow(float(x), float(y)));
+    }
+    inline bool isinf(float8e5m2fnuz x)
+    {
+        return ml_dtypes::float8_internal::isinf(x);
+    }
+    
+    typedef ml_dtypes::float8_internal::float8_e4m3b11 float8e4m3b11;
+
+    inline float8e4m3b11 ceil(float8e4m3b11 x) noexcept
+    {
+        return float8e4m3b11(ConstexprCeil(double(x)));
+    }
+    inline float8e4m3b11 floor(float8e4m3b11 x) noexcept
+    {
+        return -ceil(float8e4m3b11(-1 * double(x)));
+    }
+    inline float8e4m3b11 log2(float8e4m3b11 x) noexcept
+    {
+        return float8e4m3b11(log(double(x)));
+    }
+    inline float8e4m3b11 max(float8e4m3b11 x, float8e4m3b11 y) noexcept
+    {
+        return x > y ? x : y;
+    }
+    inline float8e4m3b11 min(float8e4m3b11 x, float8e4m3b11 y) noexcept
+    {
+        return x > y ? y : x;
+    }
+    inline float8e4m3b11 sqrt(float8e4m3b11 x) noexcept
+    {
+        return float8e4m3b11(std::sqrt(double(x)));
+    }
+    inline float8e4m3b11 pow(int x, float8e4m3b11 y)
+    {
+        return float8e4m3b11(std::pow(float(x), float(y)));
+    }
+    inline bool isinf(float8e4m3b11 x)
+    {
+        return ml_dtypes::float8_internal::isinf(x);
+    }
+    typedef ml_dtypes::float8_internal::float8_e4m3fn float8e5m2fnuz;
+
+    inline float8e5m2fnuz ceil(float8e5m2fnuz x) noexcept
+    {
+        return float8e5m2fnuz(ConstexprCeil(double(x)));
+    }
+    inline float8e5m2fnuz floor(float8e5m2fnuz x) noexcept
+    {
+        return -ceil(float8e5m2fnuz(-1 * double(x)));
+    }
+    inline float8e5m2fnuz log2(float8e5m2fnuz x) noexcept
+    {
+        return float8e5m2fnuz(log(double(x)));
+    }
+    inline float8e5m2fnuz max(float8e5m2fnuz x, float8e5m2fnuz y) noexcept
+    {
+        return x > y ? x : y;
+    }
+    inline float8e5m2fnuz min(float8e5m2fnuz x, float8e5m2fnuz y) noexcept
+    {
+        return x > y ? y : x;
+    }
+    inline float8e5m2fnuz sqrt(float8e5m2fnuz x) noexcept
+    {
+        return float8e5m2fnuz(std::sqrt(double(x)));
+    }
+    inline float8e5m2fnuz pow(int x, float8e5m2fnuz y)
+    {
+        return float8e5m2fnuz(std::pow(float(x), float(y)));
+    }
+    inline bool isinf(float8e5m2fnuz x)
+    {
+        return ml_dtypes::float8_internal::isinf(x);
+    }
+    
   }
 
 
@@ -88,6 +227,14 @@ inline std::istream& operator>>(std::istream& is, ml_dtypes::float8_e4m3fn& x)
     float f;
     is >> f;
     x = ml_dtypes::float8_e4m3fn(x);
+    return is;
+}
+
+inline std::istream& operator>>(std::istream& is, ml_dtypes::float8_e5m2fnuz& x)
+{
+    float f;
+    is >> f;
+    x = ml_dtypes::float8_e5m2fnuz(x);
     return is;
 }
 

@@ -75,4 +75,14 @@ inline std::istream& operator>>(std::istream& is, Eigen::half& x)
     return is;
 }
 
+inline Eigen::half operator*=(Eigen::half& a, Eigen::half& b){
+    a = a * b;
+    return a;
+}
+
+inline Eigen::half operator+=(Eigen::half& a, Eigen::half& b){
+    a = a + b;
+    return a;
+}
+
 #endif  // TLAPACK_EIGEN_HALF_HH

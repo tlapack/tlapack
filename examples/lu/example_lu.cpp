@@ -23,6 +23,7 @@
 #include <tlapack/lapack/getrf.hpp>
 #include <tlapack/lapack/lacpy.hpp>
 #include <tlapack/lapack/lange.hpp>
+#include "../../eigen/Eigen/Core"
 
 // C++ headers
 #include <iostream>
@@ -44,6 +45,7 @@ void run(size_t n)
     for (idx_t j = 0; j < n; ++j)
         for (idx_t i = 0; i < n; ++i) {
             A(i, j) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+            //A(i,j) = static_cast<float>(i == j ? 1:0);   --added this as a sanity check
         }
     real_t normA = tlapack::lange(tlapack::Norm::Fro, A);
     std::cout << "matrix is" << A(0,0) << std::endl;
@@ -101,8 +103,10 @@ void run(size_t n)
 
     // error1 is  || E || / ||A||
     real_t error = tlapack::lange(tlapack::Norm::Fro, E) / normA;
-
-    // Output
+    real_t cond_A = normA* tlapack::lange(tlapack::Norm::Fro, X);
+    // Output "
+    std::cout << "||A||_F = " << normA << std::endl;
+    std::cout << " k(A) = " << cond_A << std::endl;
     std::cout << "||inv(A)*A - I||_F / ||A||_F = " << error << std::endl;
 }
 
@@ -115,7 +119,7 @@ int main(int argc, char** argv)
 
     // Default arguments
     //n = (argc < 2) ? 100 : atoi(argv[1]);
-    n = 5;
+    n = 100;
     srand(3);  // Init random seed
 
     std::cout.precision(5);
@@ -125,8 +129,32 @@ int main(int argc, char** argv)
     run<float, L>(n);
     printf("-----------------------\n");
 
+    // printf("run< float, L >( %d )\n", n);]
+    // run<Eigen::half, L>(n);
+    // printf("-----------------------\n");
+
+    //-------------------------------------------
+    //print out machine epsilon
+    //print out rounding mode
+    //get to know semantics of current floats
+    //print out norm of A ---done
+    //condition number ---done
+    //accumulation in different precisions?
+    //look at mixed precision for sgemm and trsm
+    //------------------------------------------
+
+
     printf("run< float8e4m3fn, L >( %d )\n", n);
     run<float8e4m3fn , L>(n);
+    printf("-----------------------\n");
+
+    printf("run< float8e4m3fn, L >( %d )\n", n);
+    run<Eigen::half , L>(n);
+    printf("-----------------------\n");
+
+
+     printf("run< float8e4m3fn, L >( %d )\n", n);
+    run<Eigen::bfloat16 , L>(n);
     printf("-----------------------\n");
 
     printf("run< double, L >( %d )\n", n);

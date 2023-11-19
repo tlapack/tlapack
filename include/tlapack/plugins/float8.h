@@ -58,6 +58,7 @@ class float8_e4m3fnuz;
 class float8_e4m3b11fnuz;
 class float8_e5m2;
 class float8_e5m2fnuz;
+class float8_e6m1;    //need to impleent this
 template <int p> class float8_ieee_p;
 
 template <typename Derived>
@@ -574,7 +575,7 @@ struct numeric_limits_float8_base {
       std::denorm_present;
   static inline constexpr const bool has_denorm_loss = false;
   static inline constexpr const std::float_round_style round_style =
-      std::round_to_nearest;
+      std::round_indeterminate;
   static inline constexpr const bool is_bounded = true;
   static inline constexpr const bool is_modulo = false;
   static inline constexpr const int radix = std::numeric_limits<float>::radix;
@@ -633,10 +634,10 @@ struct numeric_limits_float8_e4m3fn : public numeric_limits_float8_base {
   }
   // NaN.
   static constexpr float8_e4m3fn quiet_NaN() {
-    return float8_e4m3fn::FromRep(0b0'1111'111);
+    return float8_e4m3fn::FromRep(0b1'0000'000);
   }
   static constexpr float8_e4m3fn signaling_NaN() {
-    return float8_e4m3fn::FromRep(0b0'1111'111);
+    return float8_e4m3fn::FromRep(0b1'0000'000);
   }
   // 1.0 * 2^(-7 - 3 + 1) = 1.0 * 2^-9 = 0.001953125
   static constexpr float8_e4m3fn denorm_min() {
@@ -689,7 +690,7 @@ struct numeric_limits_float8_e4m3b11fnuz : public numeric_limits_float8_base {
     return float8_e4m3b11fnuz::FromRep((-1 + kExponentBias) << kMantissaBits);
   }
   static constexpr float8_e4m3b11fnuz infinity() {
-    return float8_e4m3b11fnuz::FromRep(0b1'0000'000);
+    return float8_e4m3b11fnuz::FromRep(0b0'1111'111);
   }
   // NaN.
   static constexpr float8_e4m3b11fnuz quiet_NaN() {
@@ -1132,6 +1133,82 @@ constexpr inline Bits RoundBitsToNearestEven(Bits bits, int roundoff) {
                   : ((bits >> roundoff) & 1) + (Bits{1} << (roundoff - 1)) - 1;
   return bits + bias;
 }
+
+template <typename Bits>
+inline Bits RoundAbsUp(Bits bits, int roundoff) {
+  // Round bits up
+  //if we have bit pattern FFF...FLRTT...T, where RTT...T is to be rounded,
+  //we'll just chop off RTT...T and add 1
+  return (bits >> roundoff) + Bits{(int)(((Bits{1} << roundoff) - 1) == Bits{0})};
+}
+
+template <typename Bits>
+inline Bits RoundAbsDown(Bits bits, int roundoff) {
+  // Round bits up
+  //if we have bit pattern FFF...FLRTT...T, where RTT...T is to be rounded,
+  //we'll just chop off RTT...T 
+  return bits >> roundoff;
+}
+
+float8_e4m3fn RoundToZero(float f) {
+  //round f towards zero. So if f is positive call Round absbitsdown, if negative round absbitsup
+  union {
+  float f;
+  int rep;
+} floaty_int;
+  floaty_int.f = f;
+  int rep = floaty_int.rep;
+  int is_neg = rep >> 31;
+  //get exponent of  float by shifting 23 bits to right
+  int exp = (rep >> 23) & 0x7FF;
+  if(exp >= numeric_limits_float8_e4m3fn::max_exponent) return numeric_limits_float8_e4m3fn::infinity();
+  // adjust exponent based on bias
+  int bias = numeric_limits_float8_e4m3fn::max_exponent + 15;
+  int new_bias = 0;
+
+  //if is_neg, roundbits up else round down
+  union {
+  float f;
+  int rep;
+} inty_float;
+  if(is_neg) return ml_dtypes::float8_e4m3fn::FromRep(1 << 7  + new_bias + RoundAbsDown<int>(rep & 0x7FFFFF, 23 - 3));
+  else return ml_dtypes::float8_e4m3fn::FromRep(new_bias + RoundAbsUp<int>(rep & 0x7FFFFF, 23 - 3));
+
+}
+
+float8_e4m3fn RoundAwayFromZero(float f) {
+   //round f towards zero. So if f is positive call Round absbitsdown, if negative round absbitsup
+  union {
+  float f;
+  int rep;
+} floaty_int;
+  floaty_int.f = f;
+  int rep = floaty_int.rep;
+    //get exponent of  float by shifting 23 bits to right
+  int exp = (rep >> 23) & 0x7FF;
+  if(exp >= numeric_limits_float8_e4m3fn::max_exponent) return numeric_limits_float8_e4m3fn::infinity();
+  // adjust exponent based on bias
+  int bias = numeric_limits_float8_e4m3fn::max_exponent + 15;
+  int new_bias = 0;
+  int is_neg = rep >> 31;
+  //if is_neg, roundbits up else round down
+  union {
+  float f;
+  int rep;
+} inty_float;
+if(is_neg) return ml_dtypes::float8_e4m3fn::FromRep(1 << 7  + new_bias + RoundAbsUp<int>(rep & 0x7FFFFF, 23 - 3));
+  else return ml_dtypes::float8_e4m3fn::FromRep(new_bias + RoundAbsDown<int>(rep & 0x7FFFFF, 23 - 3));
+}
+
+float8_e4m3fn Stochastic_Round(float f) {
+  float8_e4m3fn RA = RoundAwayFromZero(f);
+  float8_e4m3fn RZ = RoundToZero(f);
+  float samp = (float)rand()/(float) RAND_MAX;
+  float q = (f - float(RZ))/(float(RA) - float(RZ));
+  if(samp >= q) return RZ;
+  else return RA;
+}
+
 
 #if (defined(__cpp_lib_bitops) && __cpp_lib_bitops >= 201907L)
 using std::countl_zero;
@@ -1598,5 +1675,19 @@ EIGEN_DEVICE_FUNC inline bool isfinite_impl(const ml_dtypes::float8_ieee_p<p>& x
 
 }  // namespace internal
 }  // namespace Eigen
+
+
+//adding namespace tlapack rounding functions for mixed precision approaches
+
+namespace tlapack {
+  template<class T, class U>
+  U round_to_higher_prec(T number){
+    return U(number);
+  }
+  template<>
+  Eigen::half round_to_higher_prec<Eigen::half, float8e4m3fn>(float8e4m3fn h){
+    return Eigen::half(h);
+  }
+}
 
 #endif  // ML_DTYPES_FLOAT8_H_
