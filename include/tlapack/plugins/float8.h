@@ -385,8 +385,10 @@ class float8_e5m2 : public float8_base<float8_e5m2> {
   using Base::Base;
 
  public:
-  EIGEN_DEVICE_FUNC float8_e5m2(const float& f)
+ EIGEN_DEVICE_FUNC float8_e5m2(const float& f)
       : float8_e5m2(ConvertFrom(f)) {}
+  explicit EIGEN_DEVICE_FUNC float8_e5m2(float8_e4m3fn f8)
+      : float8_e5m2(ConvertFrom(f8)) {}
   explicit EIGEN_DEVICE_FUNC float8_e5m2(float8_e4m3fnuz f8)
       : float8_e5m2(ConvertFrom(f8)) {}
   explicit EIGEN_DEVICE_FUNC float8_e5m2(float8_e4m3b11fnuz f8)
@@ -396,8 +398,7 @@ class float8_e5m2 : public float8_base<float8_e5m2> {
   template <int p>
   explicit EIGEN_DEVICE_FUNC float8_e5m2(float8_ieee_p<p> f8)
       : float8_e5m2(ConvertFrom(f8)) {}
-
-  enum Ordering : int8_t { //may fix issues
+  enum Ordering : int8_t {
     kLess = -1,
     kEquivalent = 0,
     kGreater = 1,
@@ -1145,79 +1146,17 @@ constexpr inline Bits RoundBitsToNearestEven(Bits bits, int roundoff) {
 }
 
 template <typename Bits>
-inline Bits RoundAbsUp(Bits bits, int roundoff) {
-  // Round bits up
-  //if we have bit pattern FFF...FLRTT...T, where RTT...T is to be rounded,
-  //we'll just chop off RTT...T and add 1
-  return (bits >> roundoff) + Bits{(int)(((Bits{1} << roundoff) - 1) == Bits{0})};
+inline Bits Stochastic_Round(Bits bits, int roundoff) {
+  //given pattern FFF...FLRTT...T,rounds stochastically by generating random bits
+  // corresponding to  RTT...T and adding the genned number.
+  //Then we truncate the mantissa
+  int samp = rand();
+  Bits to_add = Bits{samp & ((Bits{1} << (roundoff - 1)) - 1)};
+  Bits to_ret = bits + to_add;
+  return to_ret;
 }
 
-template <typename Bits>
-inline Bits RoundAbsDown(Bits bits, int roundoff) {
-  // Round bits up
-  //if we have bit pattern FFF...FLRTT...T, where RTT...T is to be rounded,
-  //we'll just chop off RTT...T 
-  return bits >> roundoff;
-}
 
-float8_e4m3fn RoundToZero(float f) {
-  //round f towards zero. So if f is positive call Round absbitsdown, if negative round absbitsup
-  union {
-  float f;
-  int rep;
-} floaty_int;
-  floaty_int.f = f;
-  int rep = floaty_int.rep;
-  int is_neg = rep >> 31;
-  //get exponent of  float by shifting 23 bits to right
-  int exp = (rep >> 23) & 0x7FF;
-  if(exp >= numeric_limits_float8_e4m3fn::max_exponent) return numeric_limits_float8_e4m3fn::infinity();
-  // adjust exponent based on bias
-  int bias = numeric_limits_float8_e4m3fn::max_exponent + 15;
-  int new_bias = 0;
-
-  //if is_neg, roundbits up else round down
-  union {
-  float f;
-  int rep;
-} inty_float;
-  if(is_neg) return ml_dtypes::float8_e4m3fn::FromRep(1 << 7  + new_bias + RoundAbsDown<int>(rep & 0x7FFFFF, 23 - 3));
-  else return ml_dtypes::float8_e4m3fn::FromRep(new_bias + RoundAbsUp<int>(rep & 0x7FFFFF, 23 - 3));
-
-}
-
-float8_e4m3fn RoundAwayFromZero(float f) {
-   //round f towards zero. So if f is positive call Round absbitsdown, if negative round absbitsup
-  union {
-  float f;
-  int rep;
-} floaty_int;
-  floaty_int.f = f;
-  int rep = floaty_int.rep;
-    //get exponent of  float by shifting 23 bits to right
-  int exp = (rep >> 23) & 0x7FF;
-  if(exp >= numeric_limits_float8_e4m3fn::max_exponent) return numeric_limits_float8_e4m3fn::infinity();
-  // adjust exponent based on bias
-  int bias = numeric_limits_float8_e4m3fn::max_exponent + 15;
-  int new_bias = 0;
-  int is_neg = rep >> 31;
-  //if is_neg, roundbits up else round down
-  union {
-  float f;
-  int rep;
-} inty_float;
-if(is_neg) return ml_dtypes::float8_e4m3fn::FromRep(1 << 7  + new_bias + RoundAbsUp<int>(rep & 0x7FFFFF, 23 - 3));
-  else return ml_dtypes::float8_e4m3fn::FromRep(new_bias + RoundAbsDown<int>(rep & 0x7FFFFF, 23 - 3));
-}
-
-float8_e4m3fn Stochastic_Round(float f) {
-  float8_e4m3fn RA = RoundAwayFromZero(f);
-  float8_e4m3fn RZ = RoundToZero(f);
-  float samp = (float)rand()/(float) RAND_MAX;
-  float q = (f - float(RZ))/(float(RA) - float(RZ));
-  if(samp >= q) return RZ;
-  else return RA;
-}
 
 
 #if (defined(__cpp_lib_bitops) && __cpp_lib_bitops >= 201907L)
@@ -1323,8 +1262,7 @@ struct ConvertImpl<From, To, kSaturate, kTruncate,
                            : Eigen::NumTraits<To>::infinity();
     }
     if (Eigen::numext::isnan(from)) {
-      return from_sign_bit ? -Eigen::NumTraits<To>::quiet_NaN()
-                           : Eigen::NumTraits<To>::quiet_NaN();
+      return Eigen::NumTraits<To>::quiet_NaN();
     }
     if (from_bits == 0) {
       return from_sign_bit ? -To{} : To{};
@@ -1364,7 +1302,11 @@ struct ConvertImpl<From, To, kSaturate, kTruncate,
           bits <<= kDigitShift;
         } else {
           if constexpr (!kTruncate) {
+            #ifdef STOCHASTIC_MODE
+            bits = Stochastic_Round(bits, -kDigitShift);
+            #else
             bits = RoundBitsToNearestEven(bits, -kDigitShift);
+            #endif
           }
           bits >>= -kDigitShift;
         }
@@ -1398,8 +1340,13 @@ struct ConvertImpl<From, To, kSaturate, kTruncate,
             // otherwise the lower precision bits may already be lost.  There is
             // an edge-case where rounding to a normalized value would normally
             // round down, but for a subnormal, we need to round up.
+             #ifdef STOCHASTIC_MODE
             rounded_from_bits =
-                RoundBitsToNearestEven(rounded_from_bits, exponent_shift);
+                  Stochastic_Round(rounded_from_bits, exponent_shift);
+            #else
+            rounded_from_bits =
+                  RoundBitsToNearestEven(rounded_from_bits, exponent_shift);
+            #endif
           }
           bits = (rounded_from_bits >> exponent_shift);
         }
@@ -1413,7 +1360,11 @@ struct ConvertImpl<From, To, kSaturate, kTruncate,
     WideBits rounded_from_bits = from_bits;
     if constexpr (kDigitShift < 0) {
       if constexpr (!kTruncate) {
+        #ifdef STOCHASTIC_MODE
+        rounded_from_bits = Stochastic_Round(from_bits, -kDigitShift);
+        #else
         rounded_from_bits = RoundBitsToNearestEven(from_bits, -kDigitShift);
+        #endif
       }
       // Zero-out tail bits.
       rounded_from_bits &= ~((WideBits{1} << (-kDigitShift)) - 1);
@@ -1483,7 +1434,11 @@ struct ConvertImpl<Eigen::half, float8_e5m2, kSaturate, kTruncate> {
     }
 
     if constexpr (!kTruncate) {
+      #ifdef STOCHASTIC_MODE
+      from_bits = Stochastic_Round(from_bits, 8);
+      #else
       from_bits = RoundBitsToNearestEven(from_bits, 8);
+      #endif
       // Rounding can cause an overflow to infinity. Clamp to the largest finite
       // value if saturation is requested.
       if constexpr (kSaturate) {
@@ -1694,10 +1649,7 @@ namespace tlapack {
   U round_to_higher_prec(T number){
     return U(number);
   }
-  template<>
-  Eigen::half round_to_higher_prec<Eigen::half, float8e4m3fn>(float8e4m3fn h){
-    return Eigen::half(h);
-  }
+  
 }
 
 #endif  // ML_DTYPES_FLOAT8_H_

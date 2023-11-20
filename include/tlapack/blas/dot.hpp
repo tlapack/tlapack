@@ -13,6 +13,7 @@
 
 #include "tlapack/base/utils.hpp"
 
+
 namespace tlapack {
 
 /**
@@ -33,19 +34,22 @@ auto dot(const vectorX_t& x, const vectorY_t& y)
 {
     using return_t = scalar_type<type_t<vectorX_t>, type_t<vectorY_t> >;
     using idx_t = size_type<vectorX_t>;
-
     // constants
     const idx_t n = size(x);
+    
 
     // check arguments
     tlapack_check_false(size(y) != n);
 
     return_t result(0);
+
     for (idx_t i = 0; i < n; ++i)
-        result += conj(x[i]) * y[i];
+        result += (conj(x[i])) * (y[i]);
 
     return result;
 }
+
+
 
 #ifdef TLAPACK_USE_LAPACKPP
 
@@ -67,6 +71,61 @@ auto dot(const vectorX_t& x, const vectorY_t& y)
 }
 
 #endif
+
+
+#ifdef TLAPACK_FP16_8BIT_TESTING
+ template <
+    TLAPACK_VECTOR vectorX_t,
+    TLAPACK_VECTOR vectorY_t,
+    class T = type_t<vectorY_t>,
+    disable_if_allow_optblas_t<pair<vectorX_t, T>, pair<vectorY_t, T> > = 0>
+auto dot(const vectorX_t& x, const vectorY_t& y)
+{
+    using return_t = scalar_type<type_t<vectorX_t>, type_t<vectorY_t> >;
+    using idx_t = size_type<vectorX_t>;
+    // constants
+    const idx_t n = size(x);
+    
+
+    // check arguments
+    tlapack_check_false(size(y) != n);
+
+    Eigen::half result = Eigen::half(0);
+
+    for (idx_t i = 0; i < n; ++i)
+        result += Eigen::half(conj(x[i])) * Eigen::half(y[i]);
+
+    return T(result);
+}
+
+#endif
+
+#ifdef TLAPACK_BF16_8BIT_TESTING
+template <
+    TLAPACK_VECTOR vectorX_t,
+    TLAPACK_VECTOR vectorY_t,
+    class T = type_t<vectorY_t>,
+    disable_if_allow_optblas_t<pair<vectorX_t, T>, pair<vectorY_t, T> > = 0>
+auto dot(const vectorX_t& x, const vectorY_t& y)
+{
+    using return_t = scalar_type<type_t<vectorX_t>, type_t<vectorY_t> >;
+    using idx_t = size_type<vectorX_t>;
+    // constants
+    const idx_t n = size(x);
+    
+
+    // check arguments
+    tlapack_check_false(size(y) != n);
+
+    Eigen::bfloat16 result = Eigen::half(0);
+
+    for (idx_t i = 0; i < n; ++i)
+        result += Eigen::bfloat16(conj(x[i])) * Eigen::bfloat16(y[i]);
+
+    return T(result);
+}
+#endif
+
 
 }  // namespace tlapack
 

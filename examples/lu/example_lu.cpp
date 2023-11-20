@@ -32,7 +32,7 @@
 
 //------------------------------------------------------------------------------
 template <class T, tlapack::Layout L>
-void run(size_t n)
+void run(size_t n, T scale)
 {
     using real_t = tlapack::real_type<T>;
     using idx_t = size_t;
@@ -44,7 +44,8 @@ void run(size_t n)
     // forming A, a random matrix
     for (idx_t j = 0; j < n; ++j)
         for (idx_t i = 0; i < n; ++i) {
-            A(i, j) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+            A(i, j) = (static_cast<float>(rand()) / static_cast<float>(RAND_MAX));
+            A(i,j) = A(i,j) * scale;
             //A(i,j) = static_cast<float>(i == j ? 1:0);   --added this as a sanity check
         }
     real_t normA = tlapack::lange(tlapack::Norm::Fro, A);
@@ -121,13 +122,14 @@ int main(int argc, char** argv)
     // Default arguments
     //n = (argc < 2) ? 100 : atoi(argv[1]);
     n = 100;
+   
     srand(3);  // Init random seed
 
     std::cout.precision(5);
     std::cout << std::scientific << std::showpos;
 
     printf("run< float, L >( %d )\n", n);
-    run<float, L>(n);
+    run<float, L>(n, 1);
     printf("-----------------------\n");
 
     // printf("run< float, L >( %d )\n", n);]
@@ -146,39 +148,44 @@ int main(int argc, char** argv)
 
 
     printf("run< float8e4m3fn, L >( %d )\n", n);
-    run<float8e4m3fn , L>(n);
+    run<float8e4m3fn , L>(n, ml_dtypes::float8_internal::numeric_limits_float8_e4m3fn::max());
     printf("-----------------------\n");
 
-    printf("run< float8e4m3fn, L >( %d )\n", n);
-    run<Eigen::half , L>(n);
+     printf("run< float8e5m2, L >( %d )\n", n);
+    run<float8e5m2 , L>(n, ml_dtypes::float8_internal::numeric_limits_float8_e5m2::max());
     printf("-----------------------\n");
 
+    // printf("run< float8e4m3fn, L >( %d )\n", n);
+    // run<Eigen::half , L>(n);
+    // printf("-----------------------\n");
 
-     printf("run< float8e4m3fn, L >( %d )\n", n);
-    run<Eigen::bfloat16 , L>(n);
-    printf("-----------------------\n");
+
+    //  printf("run< float8e4m3fn, L >( %d )\n", n);
+    // run<Eigen::bfloat16 , L>(n);
+    // printf("-----------------------\n");
 
     printf("run< double, L >( %d )\n", n);
-    run<double, L>(n);
+    run<double, L>(n, 1);
     printf("-----------------------\n");
 
     printf("run< complex<float>, L >( %d )\n", n);
-    run<std::complex<float>, L>(n);
+    run<std::complex<float>, L>(n, 1);
     printf("-----------------------\n");
 
     printf("run< complex<double>, L >( %d )\n", n);
-    run<std::complex<double>, L>(n);
+    run<std::complex<double>, L>(n, 1);
     printf("-----------------------\n");
 
 #ifdef USE_MPFR
     printf("run< mpfr::mpreal, L >( %d )\n", n);
-    run<mpfr::mpreal, L>(n);
+    run<mpfr::mpreal, L>(n, 1);
     printf("-----------------------\n");
 
     printf("run< complex<mpfr::mpreal>, L >( %d )\n", n);
-    run<std::complex<mpfr::mpreal>, L>(n);
+    run<std::complex<mpfr::mpreal>, L>(n, mpfr::mpreal(1.0));
     printf("-----------------------\n");
 #endif
+    
 
     return 0;
 }
