@@ -292,8 +292,8 @@ Note that:
 
 | Project       | Version tested   | When                                         |
 | ------------- | ---------------- | -------------------------------------------- |
-| ICL BLAS++    | 2023.06.00       | `TLAPACK_USE_LAPACKPP=ON`                    |
-| ICL LAPACK++  | 2023.06.00       | `TLAPACK_USE_LAPACKPP=ON`                    |
+| ICL BLAS++    | 2023.11.05       | `TLAPACK_USE_LAPACKPP=ON`                    |
+| ICL LAPACK++  | 2023.11.05       | `TLAPACK_USE_LAPACKPP=ON`                    |
 | kokkos mdspan | 0.4.0            | `TLAPACK_TEST_MDSPAN=ON` or in some examples |
 | Eigen         | commit: 2873916f | `TLAPACK_TEST_EIGEN=ON` or in some examples  |
 | GNU MPFR C++  | Latest in APT    | `TLAPACK_TEST_MPFR=ON` or in some examples   |
