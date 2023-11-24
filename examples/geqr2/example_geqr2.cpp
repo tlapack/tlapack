@@ -12,6 +12,7 @@
 #include <tlapack/plugins/legacyArray.hpp>
 #include <tlapack/plugins/stdvector.hpp>
 
+
 // <T>LAPACK
 #include <tlapack/blas/syrk.hpp>
 #include <tlapack/blas/trmm.hpp>
@@ -21,6 +22,7 @@
 #include <tlapack/lapack/lansy.hpp>
 #include <tlapack/lapack/laset.hpp>
 #include <tlapack/lapack/ung2r.hpp>
+#include <tlapack/plugins/float8_iee_p.hpp>
 
 // C++ headers
 #include <chrono>  // for high_resolution_clock
@@ -48,6 +50,7 @@ void printMatrix(const matrix_t& A)
 template <typename real_t>
 void run(size_t m, size_t n)
 {
+    using namespace tlapack; 
     using std::size_t;
     using matrix_t = tlapack::LegacyMatrix<real_t>;
 
@@ -81,9 +84,10 @@ void run(size_t m, size_t n)
     }
 
     // Generate a random matrix in A
-    for (size_t j = 0; j < n; ++j)
+    for (size_t j = 0; j < n; ++j){
         for (size_t i = 0; i < m; ++i)
             A(i, j) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+    }
 
     // Frobenius norm of A
     auto normA = tlapack::lange(tlapack::FROB_NORM, A);
@@ -146,7 +150,7 @@ void run(size_t m, size_t n)
         // work receives the identity n*n
         tlapack::laset(tlapack::UPPER_TRIANGLE, 0.0, 1.0, work);
         // work receives Q'Q - I
-        tlapack::syrk(tlapack::Uplo::Upper, tlapack::Op::Trans, 1.0, Q, -1.0,
+        tlapack::syrk(tlapack::Uplo::Upper, tlapack::Op::Trans, real_t{1.0}, Q, real_t{-1.0},
                       work);
 
         // Compute ||Q'Q - I||_F
@@ -172,7 +176,7 @@ void run(size_t m, size_t n)
         tlapack::lacpy(tlapack::GENERAL, Q, work);
 
         tlapack::trmm(tlapack::Side::Right, tlapack::Uplo::Upper,
-                      tlapack::Op::NoTrans, tlapack::Diag::NonUnit, 1.0, R,
+                      tlapack::Op::NoTrans, tlapack::Diag::NonUnit, real_t{1.0}, R,
                       work);
 
         for (size_t j = 0; j < n; ++j)
@@ -191,11 +195,14 @@ void run(size_t m, size_t n)
     std::cout << "||QR - A||_F/||A||_F  = " << norm_repres_1
               << ",        ||Q'Q - I||_F  = " << norm_orth_1;
     std::cout << std::endl;
+    
 }
 
 //------------------------------------------------------------------------------
 int main(int argc, char** argv)
 {
+    typedef ml_dtypes::float8_e4m3fn float8e4m3fn;
+    typedef ml_dtypes::float8_e5m2 float8e5m2;
     int m, n;
 
     // Default arguments
@@ -206,6 +213,14 @@ int main(int argc, char** argv)
 
     std::cout.precision(5);
     std::cout << std::scientific << std::showpos;
+
+     printf("run< float8e4m3fn, L >( %d )\n", n);
+    run<float8e4m3fn>(m, n);    
+    printf("-----------------------\n");
+
+    //  printf("run< float8e5m2, L >( %d )\n", n);
+    // run<float8e5m2>(m, n);    
+    // printf("-----------------------\n");
 
     printf("run< float  >( %d, %d )", m, n);
     run<float>(m, n);

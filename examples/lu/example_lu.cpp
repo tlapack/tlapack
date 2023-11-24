@@ -44,8 +44,8 @@ void run(size_t n, T scale)
     // forming A, a random matrix
     for (idx_t j = 0; j < n; ++j)
         for (idx_t i = 0; i < n; ++i) {
-            A(i, j) = (static_cast<float>(rand()) / static_cast<float>(RAND_MAX));
-            A(i,j) = A(i,j) * scale;
+            A(i, j) = (static_cast<float>(rand() - (RAND_MAX - 1)/2) / static_cast<float>((RAND_MAX - 1)/2));
+            //A(i,j) = A(i,j)*scale;
             //A(i,j) = static_cast<float>(i == j ? 1:0);   --added this as a sanity check
         }
     real_t normA = tlapack::lange(tlapack::Norm::Fro, A);
@@ -76,11 +76,11 @@ void run(size_t n, T scale)
 
     // step1: solve L Y = I
     tlapack::trsm(tlapack::Side::Left, tlapack::Uplo::Lower,
-                  tlapack::Op::NoTrans, tlapack::Diag::Unit, real_t(1), LU, X);
+                  tlapack::Op::NoTrans, tlapack::Diag::Unit, T(1), LU, X);
 
     // step2: solve U X = Y
     tlapack::trsm(tlapack::Side::Left, tlapack::Uplo::Upper,
-                  tlapack::Op::NoTrans, tlapack::Diag::NonUnit, real_t(1), LU,
+                  tlapack::Op::NoTrans, tlapack::Diag::NonUnit, T(1), LU,
                   X);
 
     // X <----- U^{-1}L^{-1}P; swapping columns of X according to piv
@@ -103,7 +103,7 @@ void run(size_t n, T scale)
         E(i, i) -= real_t(1);
 
     // error1 is  || E || / ||A||
-    real_t error = tlapack::lange(tlapack::Norm::Fro, E) / normA;
+    real_t error = tlapack::lange(tlapack::Norm::Fro, E) ;
     real_t cond_A = normA* tlapack::lange(tlapack::Norm::Fro, X);
     // Output "
     std::cout << "||A||_F = " << normA << std::endl;
@@ -121,19 +121,19 @@ int main(int argc, char** argv)
 
     // Default arguments
     //n = (argc < 2) ? 100 : atoi(argv[1]);
-    n = 100;
+    n = 200;
    
-    srand(3);  // Init random seed
+    srand(100);  // Init random seed
 
     std::cout.precision(5);
     std::cout << std::scientific << std::showpos;
 
     printf("run< float, L >( %d )\n", n);
-    run<float, L>(n, 1);
+    run<float, L>(n, 0.05);
     printf("-----------------------\n");
 
-    // printf("run< float, L >( %d )\n", n);]
-    // run<Eigen::half, L>(n);
+    // printf("run< float, L >( %d )\n", n);
+    // run<Eigen::half, L>(n, Eigen::half{1});
     // printf("-----------------------\n");
 
     //-------------------------------------------
@@ -168,23 +168,23 @@ int main(int argc, char** argv)
     run<double, L>(n, 1);
     printf("-----------------------\n");
 
-    printf("run< complex<float>, L >( %d )\n", n);
-    run<std::complex<float>, L>(n, 1);
-    printf("-----------------------\n");
+    // printf("run< complex<float>, L >( %d )\n", n);
+    // run<std::complex<float>, L>(n, 1);
+    // printf("-----------------------\n");
 
-    printf("run< complex<double>, L >( %d )\n", n);
-    run<std::complex<double>, L>(n, 1);
-    printf("-----------------------\n");
+    // printf("run< complex<double>, L >( %d )\n", n);
+    // run<std::complex<double>, L>(n, 1);
+    // printf("-----------------------\n");
 
-#ifdef USE_MPFR
-    printf("run< mpfr::mpreal, L >( %d )\n", n);
-    run<mpfr::mpreal, L>(n, 1);
-    printf("-----------------------\n");
+// #ifdef USE_MPFR
+//     printf("run< mpfr::mpreal, L >( %d )\n", n);
+//     run<mpfr::mpreal, L>(n, 1);
+//     printf("-----------------------\n");
 
-    printf("run< complex<mpfr::mpreal>, L >( %d )\n", n);
-    run<std::complex<mpfr::mpreal>, L>(n, mpfr::mpreal(1.0));
-    printf("-----------------------\n");
-#endif
+//     printf("run< complex<mpfr::mpreal>, L >( %d )\n", n);
+//     run<std::complex<mpfr::mpreal>, L>(n, mpfr::mpreal(1.0));
+//     printf("-----------------------\n");
+// #endif
     
 
     return 0;

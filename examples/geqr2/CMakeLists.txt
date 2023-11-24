@@ -7,7 +7,8 @@
 cmake_minimum_required(VERSION 3.5)
 
 project( geqr2 CXX )
-
+set(CMAKE_PREFIX_PATH "~/Documents/tlapack/")
+set(CMAKE_CXX_STANDARD 20)
 # Load <T>LAPACK
 if( NOT TARGET tlapack )
   find_package( tlapack REQUIRED )

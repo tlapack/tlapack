@@ -82,6 +82,7 @@ int getrf_recursive(matrix_t& A, piv_t& piv)
         if (A(piv[0], 0) == real_t(0)) {
             // in case which A(0,0) is zero, then we return 1 since in the first
             // iteration we stopped
+            
             return 1;
         }
 
@@ -92,6 +93,7 @@ int getrf_recursive(matrix_t& A, piv_t& piv)
     else if (n == 1) {
         // when n==1, piv has one element, piv[0] needs to be swapped by the
         // first row
+        
         piv[0] = iamax(col(A, 0), optsIamax);
 
         // in the following case all elements are zero, and we return 1
@@ -172,7 +174,7 @@ int getrf_recursive(matrix_t& A, piv_t& piv)
         trsm(LEFT_SIDE, LOWER_TRIANGLE, NO_TRANS, UNIT_DIAG, T(1), A00, A01);
 
         // A11 <---- A11 - (A10 * A01)
-        gemm(NO_TRANS, NO_TRANS, real_t(-1), A10, A01, real_t(1), A11);
+        gemm(NO_TRANS, NO_TRANS, T(-1), A10, A01, T(1), A11);
 
         // Finding LU factorization of A11 in place
         info = getrf_recursive(A11, piv1);

@@ -32,7 +32,12 @@ namespace traits {
         constexpr static bool is_complex = false;
     };
 }  // namespace traits
-
+inline Eigen::half real(Eigen::half& a){
+    return a;
+}
+inline Eigen::half imag(Eigen::half& a){
+    return Eigen::half{0};
+}
 inline Eigen::half pow(int base, const Eigen::half& exp)
 {
     return Eigen::half_impl::pow(Eigen::half(base), exp);

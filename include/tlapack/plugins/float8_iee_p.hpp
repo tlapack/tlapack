@@ -49,7 +49,7 @@ namespace tlapack {
     }
     inline float8e4m3fn floor(float8e4m3fn x) noexcept
     {
-        return -ceil(float8e4m3fn(-1 * double(x)));
+        return float8e4m3fn(-ConstexprCeil(-1 * double(x)));
     }
     inline float8e4m3fn log2(float8e4m3fn x) noexcept
     {

@@ -15,6 +15,7 @@ limitations under the License.
 
 #ifndef ML_DTYPES_FLOAT8_H_
 #define ML_DTYPES_FLOAT8_H_
+#define STOCHASTIC_MODE
 
 // 8-bit Floating Point Interchange Format, as described by
 //   https://arxiv.org/abs/2209.05433
@@ -284,6 +285,8 @@ class float8_e4m3fn : public float8_base<float8_e4m3fn> {
   constexpr bool operator==(const float8_e4m3fn& other) const {
     return Compare(derived(), other) == Ordering::kEquivalent;
   }
+  
+
   
 
   
@@ -615,7 +618,7 @@ struct numeric_limits_float8_e4m3fn : public numeric_limits_float8_base {
   static inline constexpr const int max_exponent10 =
       MaxExponent10FromMaxExponentAndDigits(max_exponent, digits);
   static inline constexpr const bool is_iec559 = false;
-  static inline constexpr const bool has_infinity = false;
+  static inline constexpr const bool has_infinity = true;
   static inline constexpr const bool has_signaling_NaN = false;
   // NOLINTEND
 
@@ -786,9 +789,9 @@ struct numeric_limits_float8_e5m2 : public numeric_limits_float8_base {
   static inline constexpr const int max_exponent = 0b11111 - kExponentBias;
   static inline constexpr const int max_exponent10 =
       MaxExponent10FromMaxExponentAndDigits(max_exponent, digits);
-  static inline constexpr const bool is_iec559 = true;
+  static inline constexpr const bool is_iec559 = false;
   static inline constexpr const bool has_infinity = true;
-  static inline constexpr const bool has_signaling_NaN = true;
+  static inline constexpr const bool has_signaling_NaN = false;
   // NOLINTEND
 
   // 1.0 * 2^(0b00001 - 15) = 1.0 * 2^-14 = 0.00006103515625
