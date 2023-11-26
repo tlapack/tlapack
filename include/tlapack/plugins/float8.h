@@ -1153,9 +1153,10 @@ inline Bits Stochastic_Round(Bits bits, int roundoff) {
   //given pattern FFF...FLRTT...T,rounds stochastically by generating random bits
   // corresponding to  RTT...T and adding the genned number.
   //Then we truncate the mantissa
-  int samp = rand();
-  Bits to_add = Bits{samp & ((Bits{1} << (roundoff - 1)) - 1)};
-  Bits to_ret = bits + to_add;
+  int samp = rand(); // Generate a random integer
+  Bits complement = (Bits{1} << (roundoff - 1)) - 1;
+  Bits to_add = static_cast<Bits>(samp & complement); // Avoid narrowing conversion
+  Bits to_ret = bits + to_add; // Add random bits to the input bits
   return to_ret;
 }
 
@@ -1653,6 +1654,11 @@ namespace tlapack {
     return U(number);
   }
   
+}
+
+template<class T>
+T T(std::complex<T> a){
+  return real<T>(a);
 }
 
 #endif  // ML_DTYPES_FLOAT8_H_

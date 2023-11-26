@@ -29,21 +29,49 @@ namespace tlapack {
         };
     }  // namespace traits
 
-    constexpr double ConstexprAbs(double x) { return x < 0.0 ? -x : x; }
-    constexpr double ConstexprCeil(double x)
-    {
-        constexpr double kIntegerThreshold =
-            uint64_t{1} << (std::numeric_limits<double>::digits - 1);
-        // Too big or NaN inputs get returned unchanged.
-        if (!(ConstexprAbs(x) < kIntegerThreshold)) {
-            return x;
-        }
-        const double x_trunc = static_cast<double>(static_cast<int64_t>(x));
-        return x_trunc < x ? x_trunc + 1.0 : x_trunc;
-    }
-    typedef ml_dtypes::float8_internal::float8_e4m3fn float8e4m3fn;
+  }
 
-    inline float8e4m3fn ceil(float8e4m3fn x) noexcept
+namespace tlapack {
+    namespace traits {
+        template <>
+        struct real_type_traits<ml_dtypes::float8_internal::float8_e5m2, int> {
+            using type = ml_dtypes::float8_internal::float8_e5m2;
+            constexpr static bool is_real = true;
+        };
+        template <>
+        struct complex_type_traits<ml_dtypes::float8_internal::float8_e5m2, int> {
+            using type = std::complex<ml_dtypes::float8_internal::float8_e5m2>;
+            constexpr static bool is_complex = false;
+        };
+    }  // namespace traits
+
+    
+  }
+
+  // namespace tlapack
+
+inline std::istream& operator>>(std::istream& is, ml_dtypes::float8_e4m3fn& x)
+{
+    float f;
+    is >> f;
+    x = ml_dtypes::float8_e4m3fn(x);
+    return is;
+}
+
+inline std::istream& operator>>(std::istream& is, ml_dtypes::float8_e5m2& x)
+{
+    float f;
+    is >> f;
+    x = ml_dtypes::float8_e5m2(x);
+    return is;
+}
+
+  // namespace std
+
+  namespace ml_dtypes{
+    namespace float8_internal {
+        typedef float8_e4m3fn float8e4m3fn;
+        inline float8e4m3fn ceil(float8e4m3fn x) noexcept
     {
         return float8e4m3fn(ConstexprCeil(double(x)));
     }
@@ -75,22 +103,6 @@ namespace tlapack {
     {
         return ml_dtypes::float8_internal::isinf(x);
     }
-  }
-
-namespace tlapack {
-    namespace traits {
-        template <>
-        struct real_type_traits<ml_dtypes::float8_internal::float8_e5m2, int> {
-            using type = ml_dtypes::float8_internal::float8_e5m2;
-            constexpr static bool is_real = true;
-        };
-        template <>
-        struct complex_type_traits<ml_dtypes::float8_internal::float8_e5m2, int> {
-            using type = std::complex<ml_dtypes::float8_internal::float8_e5m2>;
-            constexpr static bool is_complex = false;
-        };
-    }  // namespace traits
-
     typedef ml_dtypes::float8_internal::float8_e5m2 float8e5m2;
 
     inline float8e5m2 ceil(float8e5m2 x) noexcept
@@ -125,25 +137,5 @@ namespace tlapack {
     {
         return ml_dtypes::float8_internal::isinf(x);
     }
-  }
-
-  // namespace tlapack
-
-inline std::istream& operator>>(std::istream& is, ml_dtypes::float8_e4m3fn& x)
-{
-    float f;
-    is >> f;
-    x = ml_dtypes::float8_e4m3fn(x);
-    return is;
-}
-
-inline std::istream& operator>>(std::istream& is, ml_dtypes::float8_e5m2& x)
-{
-    float f;
-    is >> f;
-    x = ml_dtypes::float8_e5m2(x);
-    return is;
-}
-
-
-  // namespace std
+    }
+    }

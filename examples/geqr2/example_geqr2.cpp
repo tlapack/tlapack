@@ -206,8 +206,8 @@ int main(int argc, char** argv)
     int m, n;
 
     // Default arguments
-    m = (argc < 2) ? 7 : atoi(argv[1]);
-    n = (argc < 3) ? 5 : atoi(argv[2]);
+    m = (argc < 2) ? 100 : atoi(argv[1]);
+    n = (argc < 3) ? 100 : atoi(argv[2]);
 
     srand(3);  // Init random seed
 
