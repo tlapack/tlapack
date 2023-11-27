@@ -1656,9 +1656,5 @@ namespace tlapack {
   
 }
 
-template<class T>
-T T(std::complex<T> a){
-  return real<T>(a);
-}
 
 #endif  // ML_DTYPES_FLOAT8_H_

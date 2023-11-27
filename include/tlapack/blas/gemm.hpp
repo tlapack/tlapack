@@ -101,9 +101,9 @@ void gemm(Op transA,
                 for (idx_t i = 0; i < m; ++i)
                     MixedMat_[m*j + i] *= float(beta);
                 for (idx_t l = 0; l < k; ++l) {
-                    const float alphaTimesblj = float(alpha) * float(B(l, j));
+                    const scalar_t alphaTimesblj = alpha * B(l, j);
                     for (idx_t i = 0; i < m; ++i)
-                        MixedMat_[m*j + i] += float(A(i, l)) * alphaTimesblj;
+                        MixedMat_[m*j + i] += float(A(i, l) * alphaTimesblj);
                 }
             }
             for(int i = 0; i < m; i++){
