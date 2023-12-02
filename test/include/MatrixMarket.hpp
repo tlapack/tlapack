@@ -366,6 +366,123 @@ struct MatrixMarket {
         return true;
     }
 
+
+    // /**
+    //  * @brief Generate a block tridiagonal Manteuffel matrix M.
+    //  *
+    //  * Each block on the diagonal is a tridiagonal matrix with 4's on the main diagonal and -1's on the off diagonals.
+    //  * The blocks above and below the diagonal blocks are identity matrices scaled by -1.
+    //  *
+    //  * @param[out] M Matrix to be filled.
+    //  * @param[in] n The size of the block matrix (n x n blocks, each block is n x n).
+    //  */ 
+    // template <TLAPACK_MATRIX matrix_t>
+    // void generateM_manteuffel(matrix_t& M, const type_t<matrix_t>& n) {
+    //     // Full size of the matrix is n * n
+    //     using T = type_t<matrix_t>;
+    //     using idx_t = size_type<matrix_t>;
+        
+    //     for (idx_t i = 0; i < n; ++i) {
+    //         for (idx_t j = 0; j < n; ++j) {
+    //             idx_t idx = i * n + j;
+    //             M[idx][idx] = 4; // Main diagonal of a block
+                
+    //             if (j > 0) {
+    //                 M[idx][idx - 1] = -1; // Sub-diagonal of a block
+    //             }
+    //             if (j < n - 1) {
+    //                 M[idx][idx + 1] = -1; // Super-diagonal of a block
+    //             }
+    //             if (i > 0) {
+    //                 M[idx - n][idx] = -1; // Lower off-diagonal block
+    //             }
+    //             if (i < n - 1) {
+    //                 M[idx + n][idx] = -1; // Upper off-diagonal block
+    //             }
+    //         }
+    //     }
+    // }
+
+    // /**
+    //  * @brief Generate a block tridiagonal Manteuffel matrix N.
+    //  *
+    //  * Each block on the diagonal has 0's on the main diagonal and 1's on the super-diagonal and -1's on the sub-diagonal.
+    //  * The blocks above the diagonal are identity matrices, and the blocks below are identity matrices scaled by -1.
+    //  *
+    //  * @param[out] N Matrix to be filled.
+    //  * @param[in] n The size of the block matrix (n x n blocks, each block is n x n).
+    //  *using T = type_t<matrix_t>;
+    //  *using idx_t = size_type<matrix_t>;
+
+    //     const idx_t m = nrows(A);
+    //     const idx_t n = ncols(A);
+
+    //     for (idx_t j = 0; j < n; ++j)
+    //         for (idx_t i = 0; i < m; ++i)
+    //             A(i, j) = T(1) / T(i + j + 1);
+    //  * 
+    //  */
+    // template <TLAPACK_MATRIX matrix_t>
+    // void generateN_manteuffel(matrix_t& N, const type_t<matrix_t>& n) {
+    //     // Full size of the matrix is n * n 
+    //     using T = type_t<matrix_t>;
+    //     using idx_t = size_type<matrix_t>;
+
+    //     for (idx_t i = 0; i < n; ++i) {
+    //         for (idx_t j = 0; j < n; ++j) {
+    //             // Index in the full matrix
+    //             idx_t idx = i * n + j;
+
+    //             if (j < n - 1) {
+    //                 N[idx][idx + 1] = 1; // Super-diagonal of a block
+    //             }
+    //             if (j > 0) {
+    //                 N[idx][idx - 1] = -1; // Sub-diagonal of a block
+    //             }
+    //             if (i < n - 1) {
+    //                 N[idx][idx + n] = 1; // Upper off-diagonal block
+    //             }
+    //             if (i > 0) {
+    //                 N[idx - n][idx] = -1; // Lower off-diagonal block
+    //             }
+    //         }
+    //     }
+    // }
+
+    // // Assume that generateM_manteuffel and generateN_manteuffel are defined as given before.
+
+    // /**
+    //  * @brief Generate the complete Manteuffel matrix A.
+    //  *
+    //  * The Manteuffel matrix A is defined by the formula:
+    //  * A = (1 / h^2) * M + (beta / (2 * h)) * N
+    //  *
+    //  * @param[out] A Matrix to be filled.
+    //  * @param[in] n The size of the block matrix (n x n blocks, each block is n x n).
+    //  * @param[in] h The scaling factor for the matrix.
+    //  * @param[in] beta The parameter for the matrix.
+    //  * matrix_t& M, const type_t<matrix_t>& n
+    //  */
+    // template <TLAPACK_MATRIX matrix_t>
+    // void generateManteuffel(matrix_t& A, 
+    //                         const type_t<matrix_t>& n, 
+    //                         const type_t<matrix_t>& h, 
+    //                         const type_t<matrix_t>& beta) {
+    //     // Generate M and N Manteuffel matrices
+    //     using T = type_t<matrix_t>;
+    //     using idx_t = size_type<matrix_t>;
+    //     const full_size = n * n;
+    //     generateM_manteuffel(M, n);
+    //     generateN_manteuffel(N, n);
+
+    //     // Compute the Manteuffel matrix A
+    //     for (idx_t i = 0; i < full_size; ++i) {
+    //         for (idx_t j = 0; j < full_size; ++j) {
+    //             A[i][j] = (1 / (h * h)) * M[i][j] + (beta / (2 * h)) * N[i][j];
+    //         }
+    //     }
+    // }
+
     rand_generator gen;
 };
 
