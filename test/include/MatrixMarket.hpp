@@ -367,42 +367,41 @@ struct MatrixMarket {
     }
 
 
-    // /**
-    //  * @brief Generate a block tridiagonal Manteuffel matrix M.
-    //  *
-    //  * Each block on the diagonal is a tridiagonal matrix with 4's on the main diagonal and -1's on the off diagonals.
-    //  * The blocks above and below the diagonal blocks are identity matrices scaled by -1.
-    //  *
-    //  * @param[out] M Matrix to be filled.
-    //  * @param[in] n The size of the block matrix (n x n blocks, each block is n x n).
-    //  */ 
-    // template <TLAPACK_MATRIX matrix_t>
-    // void generateM_manteuffel(matrix_t& M, const type_t<matrix_t>& n) {
-    //     // Full size of the matrix is n * n
-    //     using T = type_t<matrix_t>;
-    //     using idx_t = size_type<matrix_t>;
-        
-    //     for (idx_t i = 0; i < n; ++i) {
-    //         for (idx_t j = 0; j < n; ++j) {
-    //             idx_t idx = i * n + j;
-    //             M[idx][idx] = 4; // Main diagonal of a block
-                
-    //             if (j > 0) {
-    //                 M[idx][idx - 1] = -1; // Sub-diagonal of a block
-    //             }
-    //             if (j < n - 1) {
-    //                 M[idx][idx + 1] = -1; // Super-diagonal of a block
-    //             }
-    //             if (i > 0) {
-    //                 M[idx - n][idx] = -1; // Lower off-diagonal block
-    //             }
-    //             if (i < n - 1) {
-    //                 M[idx + n][idx] = -1; // Upper off-diagonal block
-    //             }
-    //         }
-    //     }
-    // }
+/**
+ * @brief Generate a block tridiagonal Manteuffel matrix.
+ *
+ * Each block on the diagonal is a tridiagonal matrix with 4's on the main diagonal and -1's on the off diagonals.
+ * The blocks above and below the diagonal blocks are identity matrices scaled by -1.
+ *
+ * @param[out] M Matrix n*n- by -n*n of zeros.
+ * @param[in] n The size of the block matrix (n x n blocks, each block is n x n).
+ */ 
+template <TLAPACK_MATRIX matrix_t>
+void generateM_manteuffel(matrix_t& M, const size_type<matrix_t>& n) {
+    using T = type_t<matrix_t>;
+    using idx_t = size_type<matrix_t>;
 
+    for (idx_t i = 0; i < n; ++i) {
+        
+        for (idx_t j = 0; j < n; ++j) {
+            idx_t idx = i * n + j;
+            M(idx, idx) = 4; // Main diagonal of a block
+
+            if (j > 0) {
+                M(idx, idx - 1) = -1; // Sub-diagonal of a block
+            }
+            if (j < n - 1) {
+                M(idx, idx + 1) = -1; // Super-diagonal of a block
+            }
+            if (i > 0) {
+                M(idx - n, idx) = -1; // Lower off-diagonal block
+            }
+            if (i < n - 1) {
+                M(idx + n, idx) = -1; // Upper off-diagonal block
+            }
+        }
+    }
+}
     // /**
     //  * @brief Generate a block tridiagonal Manteuffel matrix N.
     //  *
