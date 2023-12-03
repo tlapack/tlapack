@@ -45,7 +45,7 @@ if(TLAPACK_TEST_QUAD)
 endif()
 
 # Testers
-
+add_executable(test_alex test_alex.cpp)
 add_executable(test_lasy2 test_lasy2.cpp)
 add_executable(test_schur_move test_schur_move.cpp)
 add_executable(test_transpose test_transpose.cpp)
@@ -125,6 +125,8 @@ if( BUILD_STANDALONE_TESTS)
     if(NOT target MATCHES "^test_")
       continue()
     elseif(target MATCHES "test_eigenplugin")
+      continue()
+    elseif(target MATCHES "test_alex")
       continue()
     elseif(target MATCHES "test_mdspanplugin")
       continue()
