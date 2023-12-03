@@ -13,6 +13,7 @@
 #define TLAPACK_MATRIXMARKET_HH
 
 #include <tlapack/base/utils.hpp>
+#include <tlapack/lapack/geqrf.hpp>
 
 namespace tlapack {
 
@@ -280,6 +281,94 @@ struct MatrixMarket {
                     else
                         A(i, j) = T(float(0xCAFEBABE));
         }
+    }
+
+    /**
+     * @brief Generate a random square dense matrix close to overflow.
+     *
+     * @param[out] A Matrix.
+     */
+    template <TLAPACK_MATRIX matrix_t>
+    void close_to_overflow(matrix_t& A, const type_t<matrix_t>& log10_cond)
+    {
+        using T = type_t<matrix_t>;
+        using idx_t = size_type<matrix_t>;
+
+        const idx_t n = ncols(A);
+
+        // Generate two random matrices U1 and U2
+        Create<matrix_t> new_matrix;
+        std::vector<T> U1_;
+        auto U1 = new_matrix(U1_, n, n);
+        std::vector<T> U2_;
+        auto U2 = new_matrix(U2_, n, n);
+
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = 0; i < n; ++i)
+            {
+                U1(i, j) = rand_helper<T>(gen);
+                U2(i, j) = rand_helper<T>(gen);
+            };
+
+        // Print matrix
+
+        // Perform QR factorization to obtain two random orthogonal matrices
+        std::vector<T> tau1(n);
+        for (idx_t i = 0; i < n; ++i)
+            tau1[i] = T(1); 
+        geqr2(U1, tau1);
+
+        std::vector<T> tau2(n);
+        for (idx_t i = 0; i < n; ++i)
+            tau2[i] = T(1); 
+        geqr2(U2, tau2);
+        
+        // Q1 and Q2 are now stored in the lower diagonal of U1 and U2
+
+        std::vector<T> Q1_;
+        auto Q1 = new_matrix(Q1_, n, n);
+        std::vector<T> Q2_;
+        auto Q2 = new_matrix(Q2_, n, n);
+
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = 0; i < n; ++i)
+            {
+                if (i == j)
+                {
+                    Q1(i, j) = T(1);
+                    Q2(i, j) = T(1);
+                }
+                else if (i > j)
+                {
+                    Q1(i, j) = U1(i, j);
+                    Q2(i, j) = U2(i, j);
+                }
+                else
+                {
+                    Q1(i, j) = T(0);
+                    Q2(i, j) = T(0);
+                }
+            };
+
+        // Check orthogonality
+        std::vector<T> I_;
+        auto I = new_matrix(I_, n, n);
+        gemm(Op::NoTrans, Op::ConjTrans, T(1), Q1, Q1, T(0), I);
+        gemm(Op::NoTrans, Op::ConjTrans, T(1), Q2, Q2, T(0), I);
+
+        // Print I indexwise
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = 0; i < n; ++i)
+            {
+                if (i == j)
+                    std::cout << I(i, j) << " ";
+            };
+
+
+        // Generate random values for matrix A
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = 0; i < n; ++i)
+                A(i, j) = rand_helper<T>(gen);
     }
 
     rand_generator gen;
