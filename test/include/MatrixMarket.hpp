@@ -244,6 +244,43 @@ struct MatrixMarket {
                 A(i, j) = val;
     }
 
+
+    /**
+     * @brief Generate a binomial matrix.
+     *
+     * The binomial matrix is a multiple of an involutory matrix.
+     *
+     * @param[out] A Matrix.
+     * @param[in] n Size of the matrix.
+     */
+    template <TLAPACK_MATRIX matrix_t>
+    // Function to calculate binomial coefficients
+    int binomialCoeff(const type_t<matrix_t>& n, const type_t<matrix_t>& k) {
+        using idx_t = size_type<matrix_t>;
+        if (k > n - k) k = n - k;
+        idx_t res = 1;
+        for (idx_t i = 0; i < k; ++i) {
+            res *= (n - i);
+            res /= (i + 1);
+        }
+        return res;
+    }
+
+// Template function to generate a binomial matrix
+template <TLAPACK_MATRIX matrix_t>
+void binomialMatrix(matrix_t& A, const type_t<matrix_t>& k) {
+// A.resize(n, std::vector<T>(n, 0));
+using idx_t = size_type<matrix_t>;
+for (idx_t i = 0; i < n; ++i) {
+    for (idx_t j = 0; j <= i; ++j) {
+        A(i, j) = binomialCoeff(i, j);
+        if (j != i) {
+            A(j, i) = A(i, j); // Symmetric entry
+        }
+    }
+}
+}
+
     /**
      * @brief Generate an upper- or lower-triangular matrix with a single value
      * in all entries.
