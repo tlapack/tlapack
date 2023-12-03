@@ -20,8 +20,12 @@
 #include <tlapack/lapack/getrf.hpp>
 #include <tlapack/lapack/getri.hpp>
 
+// Other routines
+#include <tlapack/lapack/gehrd.hpp>
+#include <tlapack/lapack/qr_iteration.hpp>
+
+
 using namespace tlapack;
-#include <vector>
 #include <cmath>
 
 // Define pi
@@ -34,6 +38,9 @@ TEMPLATE_TEST_CASE("Manteuffel matrix properties",
     using matrix_t = TestType;
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
+    using real_t = real_type<T>;
+    using complex_t = complex_type<real_t>;
+
     typedef real_type<T> real_t;  // equivalent to using real_t = real_type<T>;
 
     
@@ -44,9 +51,9 @@ TEMPLATE_TEST_CASE("Manteuffel matrix properties",
     // MatrixMarket reader
     MatrixMarket mm;
 
-    idx_t n = GENERATE(3, 5);
+    idx_t n = GENERATE(3, 5, 7, 11);
     idx_t m = n * n;
-    real_t beta = GENERATE(1, 2);
+    real_t beta = GENERATE(1, 2, 3, 9);
     real_t h = 1.0;
     real_t L = h*(n+1);
 
@@ -60,18 +67,18 @@ TEMPLATE_TEST_CASE("Manteuffel matrix properties",
 
         // Define the matrices and constants
         std::vector<T> M_;
-        // Initialize matrix A which is n*n- by -n*n
-        auto M = new_matrix(M_, n*n, n*n);
+        // Initialize matrix A which is m- by -m
+        auto M = new_matrix(M_, m, m);
         
         // Define the matrices and constants
         std::vector<T> N_;
-        // Initialize matrix A which is n*n- by -n*n
-        auto N = new_matrix(N_, n*n, n*n);
+        // Initialize matrix A which is m- by -m
+        auto N = new_matrix(N_, m, m);
         
         // Define the matrices and constants
         std::vector<T> A_;
-        // Initialize matrix A which is n*n- by -n*n
-        auto A = new_matrix(A_, n*n, n*n);
+        // Initialize matrix A which is m- by -m
+        auto A = new_matrix(A_, m, m);
         
 
         // Initialize and compute C using the explicit formula
@@ -82,22 +89,83 @@ TEMPLATE_TEST_CASE("Manteuffel matrix properties",
 
  
         // compute eigenvalues of A
-        std::vector<T> evals(n*n);
+        std::vector<complex_t> evals(m);
+        std::complex<double> c(2, 0);
+        // std::complex<double> term(0, 0);
         idx_t i = 0;
 
+        #include <cmath>
         for (idx_t k = 0; k < n; ++k) {
             for (idx_t j = 0; j < n; ++j) {
-                double cos_j = std::cos((j+1) * pi / L);
-                double cos_k = std::cos((k+1) * pi / L);
-                double term = std::sqrt(1.0 - std::pow(beta / 2.0, 2.0)) * (cos_j + cos_k);
-                evals[i] = 2 * (2 - term);
+                std::complex<double> beta_complex = beta; 
+                std::complex<double> cos_j = std::cos((j+1) * pi / L);
+                std::complex<double> cos_k = std::cos((k+1) * pi / L);
+                std::complex<double> argument = 1.0 - std::pow(beta_complex / 2.0, 2.0);
+                std::complex<double> term = std::sqrt(argument) * (cos_j + cos_k);
+                evals[i] = c * (c - term);
                 i++;
             }
         }
-
-       // calculate norm of C for later use in relative error
-        real_t normA = tlapack::lange(tlapack::MAX_NORM, A);
         
+        // Define tau for Hessenberg reduction
+        std::vector<T> tau((m)-1);
+        const real_t zero(0);
+        const idx_t ilo = 0;
+        const idx_t ihi = m;
+
+
+        // Compute Hessenberg form of A
+        int gerr = gehrd(0, m, A, tau);
+        CHECK(gerr == 0);
+
+        // Throw away reflectors
+        for (idx_t j = 0; j < m; ++j)
+            for (idx_t i = j + 2; i < m; ++i)
+                A(i, j) = zero;
+
+        // Make sure ilo and ihi correspond to the actual matrix
+        for (idx_t j = 0; j < ilo; ++j)
+            for (idx_t i = j + 1; i < m; ++i)
+                A(i, j) = (T)0.0;
+        
+        for (idx_t i = ihi; i < m; ++i)
+            for (idx_t j = 0; j < i; ++j)
+                A(i, j) = (T)0.0;
+
+
+        // Define Q
+        std::vector<T> Q_;
+        auto Q = new_matrix(Q_, m, m);
+        
+        // Define w, which is vector of eigenvalues
+        std::vector<complex_t> w(m);
+
+        using variant_t = std::tuple<QRIterationVariant, idx_t, idx_t>;
+        const variant_t variant = variant_t(QRIterationVariant::DoubleShift, 0, 0);
+
+        QRIterationOpts opts;
+        opts.variant = std::get<0>(variant);
+
+        int ierr = qr_iteration(false, false, ilo, ihi, A, w, Q, opts);
+        CHECK(ierr == 0);
+
+        // Sort the eigenvalues
+        std::sort(evals.begin(), evals.end(), [](const complex_t& a, const complex_t& b) {
+            return std::abs(a) < std::abs(b);
+        });
+        std::sort(w.begin(), w.end(), [](const complex_t& a, const complex_t& b) {
+            return std::abs(a) < std::abs(b);
+        });
+
+        // Compute the residual
+        real_t residual = 0.0;
+        for (idx_t i = 0; i < m; ++i) {
+            residual += std::pow(std::abs(w[i]) - std::abs(evals[i]), 2.0);
+        }
+        residual = std::sqrt(residual);
+        
+        CHECK(residual/m < tol );
+
 
     }
 }
