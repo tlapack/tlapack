@@ -14,6 +14,7 @@
 
 #include <tlapack/base/utils.hpp>
 #include <tlapack/lapack/geqrf.hpp>
+#include <tlapack/lapack/ung2r.hpp>
 
 namespace tlapack {
 
@@ -271,6 +272,7 @@ template <TLAPACK_MATRIX matrix_t>
 void binomialMatrix(matrix_t& A, const type_t<matrix_t>& k) {
 // A.resize(n, std::vector<T>(n, 0));
 using idx_t = size_type<matrix_t>;
+const idx_t n = ncols(A);
 for (idx_t i = 0; i < n; ++i) {
     for (idx_t j = 0; j <= i; ++j) {
         A(i, j) = binomialCoeff(i, j);
@@ -332,7 +334,7 @@ for (idx_t i = 0; i < n; ++i) {
         using idx_t = size_type<matrix_t>;
 
         const idx_t n = ncols(A);
-
+        
         // Generate two random matrices U1 and U2
         Create<matrix_t> new_matrix;
         std::vector<T> U1_;
@@ -347,65 +349,33 @@ for (idx_t i = 0; i < n; ++i) {
                 U2(i, j) = rand_helper<T>(gen);
             };
 
-        // Print matrix
-
         // Perform QR factorization to obtain two random orthogonal matrices
         std::vector<T> tau1(n);
-        for (idx_t i = 0; i < n; ++i)
-            tau1[i] = T(1); 
         geqr2(U1, tau1);
 
         std::vector<T> tau2(n);
-        for (idx_t i = 0; i < n; ++i)
-            tau2[i] = T(1); 
         geqr2(U2, tau2);
-        
-        // Q1 and Q2 are now stored in the lower diagonal of U1 and U2
 
-        std::vector<T> Q1_;
-        auto Q1 = new_matrix(Q1_, n, n);
-        std::vector<T> Q2_;
-        auto Q2 = new_matrix(Q2_, n, n);
+        // Get the orthonormal matrices
+        ung2r(U1, tau1);
+        ung2r(U2, tau2);
+
+        // Generate a diagonal matrix with diag(10^linspace(0, log10_cond, n)))
+        std::vector<T> D_;
+        auto D = new_matrix(D_, n, n);
 
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = 0; i < n; ++i)
             {
                 if (i == j)
-                {
-                    Q1(i, j) = T(1);
-                    Q2(i, j) = T(1);
-                }
-                else if (i > j)
-                {
-                    Q1(i, j) = U1(i, j);
-                    Q2(i, j) = U2(i, j);
-                }
+                    D(i, j) = pow(T(10), T(log10_cond) * T(i) / T(n));
                 else
-                {
-                    Q1(i, j) = T(0);
-                    Q2(i, j) = T(0);
-                }
+                    D(i, j) = T(0);
             };
 
-        // Check orthogonality
-        std::vector<T> I_;
-        auto I = new_matrix(I_, n, n);
-        gemm(Op::NoTrans, Op::ConjTrans, T(1), Q1, Q1, T(0), I);
-        gemm(Op::NoTrans, Op::ConjTrans, T(1), Q2, Q2, T(0), I);
-
-        // Print I indexwise
-        for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = 0; i < n; ++i)
-            {
-                if (i == j)
-                    std::cout << I(i, j) << " ";
-            };
-
-
-        // Generate random values for matrix A
-        for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = 0; i < n; ++i)
-                A(i, j) = rand_helper<T>(gen);
+        // Set A = U1 * D * U2^H
+        gemm(Op::NoTrans, Op::NoTrans, T(1), U1, D, A);
+        gemm(Op::NoTrans, Op::ConjTrans, T(1), A, U2, A);
     }
 
     rand_generator gen;
