@@ -103,6 +103,7 @@ void trsm(Side side,
             MixedMat_[m*j + i] = float(B(i,j));
         }
     }
+    bool on = true;
     if (side == Side::Left) {
         using scalar_t = scalar_type<alpha_t, TB>;
         if (trans == Op::NoTrans) {
@@ -113,7 +114,7 @@ void trsm(Side side,
                     for (idx_t k = m - 1; k != idx_t(-1); --k) {
                         if (diag == Diag::NonUnit) MixedMat_[m*j + k] /= float(A(k, k));
                         for (idx_t i = 0; i < k; ++i)
-                            MixedMat_[m*j + i] -= float(A(i, k)) * MixedMat_[m*j + k];
+                            MixedMat_[m*j + i] = ssub(MixedMat_[m*j + i],float(A(i, k)) * MixedMat_[m*j + k],on);
                     }
                 }
                 for(int i = 0; i < m; i++){
@@ -129,7 +130,7 @@ void trsm(Side side,
                     for (idx_t k = 0; k < m; ++k) {
                         if (diag == Diag::NonUnit) MixedMat_[m*j + k] /= float(A(k, k));
                         for (idx_t i = k + 1; i < m; ++i)
-                            MixedMat_[m*j + i] -= float(A(i, k)) * MixedMat_[m*j + k];
+                            MixedMat_[m*j + i] = ssub(MixedMat_[m*j + i],float(A(i, k)) * MixedMat_[m*j + k],on);
                     }
                 }
                 for(int i = 0; i < m; i++){

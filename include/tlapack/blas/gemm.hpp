@@ -13,6 +13,7 @@
 
 #include "tlapack/base/utils.hpp"
 
+
 namespace tlapack {
 
 /**
@@ -92,6 +93,7 @@ void gemm(Op transA,
             MixedMat_[m*j + i] = float(C(i,j));
         }
     }
+    bool on = true;
     if (transA == Op::NoTrans) {
         using scalar_t = scalar_type<alpha_t, TB>;
 
@@ -103,7 +105,7 @@ void gemm(Op transA,
                 for (idx_t l = 0; l < k; ++l) {
                     const scalar_t alphaTimesblj = alpha * B(l, j);
                     for (idx_t i = 0; i < m; ++i)
-                        MixedMat_[m*j + i] += float(A(i, l) * alphaTimesblj);
+                        MixedMat_[m*j + i] = sadd(MixedMat_[m*j + i],float(A(i, l) * alphaTimesblj),on);
                 }
             }
             for(int i = 0; i < m; i++){

@@ -20,6 +20,7 @@
 
 // <T>LAPACK
 #include <tlapack/blas/trsm.hpp>
+#include <tlapack/blas/trmm.hpp>
 #include <tlapack/lapack/getrf.hpp>
 #include <tlapack/lapack/lacpy.hpp>
 #include <tlapack/lapack/lange.hpp>
@@ -41,30 +42,44 @@ void run(size_t n, T scale)
     std::vector<T> A_(n * n);
     tlapack::LegacyMatrix<T, idx_t, L> A(n, n, A_.data(), n);
 
+    std::vector<float> FG_(n * n);
+    tlapack::LegacyMatrix<float, idx_t, L> FG(n, n, FG_.data(), n);
+
     // forming A, a random matrix
     for (idx_t j = 0; j < n; ++j)
         for (idx_t i = 0; i < n; ++i) {
-            A(i, j) = (static_cast<float>(rand() - (RAND_MAX - 1)/2) / static_cast<float>((RAND_MAX - 1)/2));
-            //A(i,j) = A(i,j)*scale;
+            FG(i, j) = float(-1 + 2*(rand()%2))*(1000*static_cast<float>(rand()) / (static_cast<float>(RAND_MAX)));            //A(i,j) = A(i,j)*scale;
             //A(i,j) = static_cast<float>(i == j ? 1:0);   --added this as a sanity check
         }
-    real_t normA = tlapack::lange(tlapack::Norm::Fro, A);
-    std::cout << "matrix is" << A(0,0) << std::endl;
+    float normA = tlapack::lange(tlapack::Norm::Inf, FG);
+    for (size_t j = 0; j < n; ++j){
+        for (size_t i = 0; i < n; ++i){
+            A(i,j) = static_cast<real_t>(sqrt(float(scale)*0.125)*FG(i,j)/normA);
+        }
+     }
+   
+   
 
     // Allocate space for the LU decomposition
     std::vector<size_t> piv(n);
+
     std::vector<T> LU_(n * n);
     tlapack::LegacyMatrix<T, idx_t, L> LU(n, n, LU_.data(), n);
 
+   
     // Matrix A is kept unchanged
     tlapack::lacpy(tlapack::GENERAL, A, LU);
 
+     
+
     // Computing the LU decomposition of A
     int info = tlapack::getrf(LU, piv);
+
     if (info != 0) {
         std::cerr << "Matrix could not be factorized!" << std::endl;
         return;
     }
+    
 
     // create X to store invese of A later
     std::vector<T> X_(n * n, T(0));
@@ -74,40 +89,45 @@ void run(size_t n, T scale)
     for (size_t i = 0; i < n; i++)
         X(i, i) = real_t(1);
 
-    // step1: solve L Y = I
-    tlapack::trsm(tlapack::Side::Left, tlapack::Uplo::Lower,
-                  tlapack::Op::NoTrans, tlapack::Diag::Unit, T(1), LU, X);
-
-    // step2: solve U X = Y
-    tlapack::trsm(tlapack::Side::Left, tlapack::Uplo::Upper,
+    
+    tlapack::trmm(tlapack::Side::Left, tlapack::Uplo::Upper,
                   tlapack::Op::NoTrans, tlapack::Diag::NonUnit, T(1), LU,
                   X);
+
+    tlapack::trmm(tlapack::Side::Left, tlapack::Uplo::Lower,
+                  tlapack::Op::NoTrans, tlapack::Diag::Unit, T(1), LU, X);
+
+   
 
     // X <----- U^{-1}L^{-1}P; swapping columns of X according to piv
     for (idx_t i = n; i-- > 0;) {
         if (piv[i] != i) {
-            auto vect1 = tlapack::col(X, i);
-            auto vect2 = tlapack::col(X, piv[i]);
+            auto vect1 = tlapack::row(X, i);
+            auto vect2 = tlapack::row(X, piv[i]);
             tlapack::swap(vect1, vect2);
         }
     }
 
-    // create E to store A * X
+    //create E to store A * X
     std::vector<T> E_(n * n);
     tlapack::LegacyMatrix<T, idx_t, L> E(n, n, E_.data(), n);
+     for (size_t j = 0; j < n; ++j){
+        for (size_t i = 0; i < n; ++i)
+            E(i,j) = (normA*float(X(i,j))/sqrt(float(scale)*0.125)) - FG(i,j);
+     }
 
-    // E <----- A * X - I
-    tlapack::gemm(tlapack::Op::NoTrans, tlapack::Op::NoTrans, real_t(1), A, X,
-                  E);
-    for (size_t i = 0; i < n; i++)
-        E(i, i) -= real_t(1);
+    // // E <----- A * X - I
+    // // tlapack::gemm(tlapack::Op::NoTrans, tlapack::Op::NoTrans, real_t(1), A, X,
+    // //               E);
+    // for (size_t i = 0; i < n; i++)
+    //     E(i, i) -= real_t(1);
 
-    // error1 is  || E || / ||A||
+    // error1 is  || X - A || / ||A||
     real_t error = tlapack::lange(tlapack::Norm::Fro, E) ;
-    real_t cond_A = normA* tlapack::lange(tlapack::Norm::Fro, X);
+    //real_t cond_A = normA* tlapack::lange(tlapack::Norm::Fro, X);
     // Output "
     std::cout << "||A||_F = " << normA << std::endl;
-    std::cout << " k(A) = " << cond_A << std::endl;
+    //std::cout << " k(A) = " << cond_A << std::endl;
     std::cout << "||inv(A)*A - I||_F / ||A||_F = " << error << std::endl;
 }
 
@@ -121,7 +141,7 @@ int main(int argc, char** argv)
 
     // Default arguments
     //n = (argc < 2) ? 100 : atoi(argv[1]);
-    n = 200;
+    n = 50;
    
     srand(100);  // Init random seed
 
@@ -148,7 +168,7 @@ int main(int argc, char** argv)
 
 
     printf("run< float8e4m3fn, L >( %d )\n", n);
-    run<float8e4m3fn , L>(n, ml_dtypes::float8_internal::numeric_limits_float8_e4m3fn::max());
+    run<float8e5m2 , L>(n, ml_dtypes::float8_internal::numeric_limits_float8_e5m2::max());
     printf("-----------------------\n");
 
      printf("run< float8e5m2, L >( %d )\n", n);
@@ -160,8 +180,8 @@ int main(int argc, char** argv)
     // printf("-----------------------\n");
 
 
-    //  printf("run< float8e4m3fn, L >( %d )\n", n);
-    // run<Eigen::bfloat16 , L>(n);
+    //  printf("run<bfloat, L >( %d )\n", n);
+    // run<Eigen::half, L>(n, Eigen::half{1});
     // printf("-----------------------\n");
 
     printf("run< double, L >( %d )\n", n);

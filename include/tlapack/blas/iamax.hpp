@@ -66,7 +66,8 @@ struct IamaxOpts : public EcOpts {
  */
 template <TLAPACK_VECTOR vector_t, class abs_f>
 size_type<vector_t> iamax_ec(const vector_t& x, abs_f absf)
-{
+{   
+
     // data traits
     using idx_t = size_type<vector_t>;
     using T = type_t<vector_t>;
@@ -78,12 +79,12 @@ size_type<vector_t> iamax_ec(const vector_t& x, abs_f absf)
 
     // quick return
     if (n <= 0) return 0;
-
     bool scaledsmax = false;  // indicates whether |x_i| = Inf
     real_t smax(-1);
     idx_t index = -1;
     idx_t i = 0;
     for (; i < n; ++i) {
+
         if (isnan(x[i])) {
             // return when first NaN found
             return i;
@@ -102,10 +103,12 @@ size_type<vector_t> iamax_ec(const vector_t& x, abs_f absf)
         }
         else {  // still no Inf found yet
             if (is_real<T>) {
+               
                 real_t a = absf(x[i]);
                 if (a > smax) {
                     smax = a;
                     index = i;
+
                 }
             }
             else if (!scaledsmax) {  // no |x_i| = Inf  yet
@@ -233,6 +236,7 @@ size_type<vector_t> iamax_nc(const vector_t& x, abs_f absf)
 template <TLAPACK_VECTOR vector_t, class abs_f>
 size_type<vector_t> iamax(const vector_t& x, const IamaxOpts<abs_f>& opts)
 {
+
     return (opts.ec.nan == true) ? iamax_ec(x, opts.absf)
                                  : iamax_nc(x, opts.absf);
 }

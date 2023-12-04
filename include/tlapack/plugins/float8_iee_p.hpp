@@ -67,7 +67,7 @@ inline std::istream& operator>>(std::istream& is, ml_dtypes::float8_e5m2& x)
 }
 
   // namespace std
-
+using namespace tlapack;
   namespace ml_dtypes{
     namespace float8_internal {
         typedef float8_e4m3fn float8e4m3fn;
@@ -92,16 +92,12 @@ inline std::istream& operator>>(std::istream& is, ml_dtypes::float8_e5m2& x)
         return x > y ? y : x;
     }
     inline float8e4m3fn sqrt(float8e4m3fn x) noexcept
-    {
+    { 
         return float8e4m3fn(std::sqrt(double(x)));
     }
     inline float8e4m3fn pow(int x, float8e4m3fn y)
     {
         return float8e4m3fn(std::pow(float(x), float(y)));
-    }
-    inline bool isinf(float8e4m3fn x)
-    {
-        return ml_dtypes::float8_internal::isinf(x);
     }
     typedef ml_dtypes::float8_internal::float8_e5m2 float8e5m2;
 
@@ -111,7 +107,7 @@ inline std::istream& operator>>(std::istream& is, ml_dtypes::float8_e5m2& x)
     }
     inline float8e5m2 floor(float8e5m2 x) noexcept
     {
-        return -ceil(float8e5m2(-1 * double(x)));
+        return float8e5m2(-ConstexprCeil(-1 * double(x)));
     }
     inline float8e5m2 log2(float8e5m2 x) noexcept
     {
@@ -133,9 +129,8 @@ inline std::istream& operator>>(std::istream& is, ml_dtypes::float8_e5m2& x)
     {
         return float8e5m2(std::pow(float(x), float(y)));
     }
-    inline bool isinf(float8e5m2 x)
-    {
-        return ml_dtypes::float8_internal::isinf(x);
+   
     }
     }
-    }
+
+

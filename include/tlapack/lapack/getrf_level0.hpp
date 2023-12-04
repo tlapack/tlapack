@@ -49,6 +49,8 @@ namespace tlapack {
 template <TLAPACK_MATRIX matrix_t, TLAPACK_VECTOR piv_t>
 int getrf_level0(matrix_t& A, piv_t& piv)
 {
+     
+
     using idx_t = size_type<matrix_t>;
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;

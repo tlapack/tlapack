@@ -58,7 +58,8 @@ template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
           TLAPACK_WORKSPACE work_t>
 int geqr2_work(matrix_t& A, vector_t& tau, work_t& work)
-{
+{   
+    using namespace std;
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
 
@@ -72,7 +73,14 @@ int geqr2_work(matrix_t& A, vector_t& tau, work_t& work)
 
     // quick return
     if (n <= 0 || m <= 0) return 0;
-
+    #ifdef TESTSCALING
+    // int count = 0;          //parameter to set for how often we scale the matrix
+    // vector<float> SM_(n, 1.0);
+    // auto ScalMat = new_matrix(SM_, n, n);   //diagonal matrix that we'll multiply to the right of our matrix so that we end up with QRD instead of QR
+    // for(int i = 0 ; i < n; i++){
+    //     ScalMat(i,i) = 1;
+    // }
+    #endif
     for (idx_t i = 0; i < k; ++i) {
         // Define v := A[i:m,i]
         auto v = slice(A, range{i, m}, i);
@@ -82,7 +90,10 @@ int geqr2_work(matrix_t& A, vector_t& tau, work_t& work)
 
         // Define C := A[i:m,i+1:n]
         auto C = slice(A, range{i, m}, range{i + 1, n});
+        #ifdef TESTSCALING
+        // diagscal()
 
+        #endif
         // C := ( I - conj(tau_i) v v^H ) C
         larf_work(LEFT_SIDE, FORWARD, COLUMNWISE_STORAGE, v, conj(tau[i]), C,
                   work);

@@ -67,7 +67,6 @@ int getrf_recursive(matrix_t& A, piv_t& piv)
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
     const idx_t k = min(m, n);
-
     // check arguments
     tlapack_check((idx_t)size(piv) >= k);
 
@@ -93,7 +92,7 @@ int getrf_recursive(matrix_t& A, piv_t& piv)
     else if (n == 1) {
         // when n==1, piv has one element, piv[0] needs to be swapped by the
         // first row
-        
+
         piv[0] = iamax(col(A, 0), optsIamax);
 
         // in the following case all elements are zero, and we return 1

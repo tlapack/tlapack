@@ -53,7 +53,7 @@ void lassq(const vector_t& x,
 {
     using real_t = real_type<type_t<vector_t>>;
     using idx_t = size_type<vector_t>;
-
+    
     // constants
     const idx_t n = size(x);
 

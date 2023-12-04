@@ -15,7 +15,7 @@
 #include <limits>
 #include <type_traits>
 #include <utility>
-
+#include "tlapack/plugins/stochastic_ops.hpp"
 #include "tlapack/base/arrayTraits.hpp"
 #include "tlapack/base/concepts.hpp"
 #include "tlapack/base/exceptionHandling.hpp"

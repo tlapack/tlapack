@@ -63,6 +63,7 @@ struct GetrfOpts {
 template <TLAPACK_MATRIX matrix_t, TLAPACK_VECTOR piv_t>
 int getrf(matrix_t& A, piv_t& piv, const GetrfOpts& opts = {})
 {
+    
     // Call variant
     if (opts.variant == GetrfVariant::Recursive)
         return getrf_recursive(A, piv);

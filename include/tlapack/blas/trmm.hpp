@@ -95,19 +95,31 @@ void trmm(Side side,
     tlapack_check_false(nrows(A) != ncols(A));
     tlapack_check_false(nrows(A) != ((side == Side::Left) ? m : n));
 
+     std::vector<float> _Mixed(m*n);
+    for (int i = 0; i < m ; i++){
+        for (int j = 0; j < n ; j++){
+        _Mixed[j*m + i] = float(B(i,j));
+    }
+    }
+    bool on = true;
     if (side == Side::Left) {
         if (trans == Op::NoTrans) {
             using scalar_t = scalar_type<alpha_t, TB>;
             if (uplo == Uplo::Upper) {
                 for (idx_t j = 0; j < n; ++j) {
                     for (idx_t k = 0; k < m; ++k) {
-                        const scalar_t alphaBkj = alpha * B(k, j);
+                        const float alphaBkj = float(alpha) * _Mixed[j*m + k];
                         for (idx_t i = 0; i < k; ++i)
-                            B(i, j) += A(i, k) * alphaBkj;
-                        B(k, j) = (diag == Diag::NonUnit) ? A(k, k) * alphaBkj
-                                                          : alphaBkj;
+                            _Mixed[j*m + i] = sadd(_Mixed[j*m + i],float(float(A(i, k)) * alphaBkj),on);
+                        _Mixed[j*m + k] = (diag == Diag::NonUnit) ? float(A(k, k) * alphaBkj)
+                                                          : float(alphaBkj);
                     }
                 }
+                for (int i = 0; i < m ; i++){
+        for (int j = 0; j < n ; j++){
+        B(i,j) = TB(_Mixed[j*m + i]);
+    }
+    }
             }
             else {  // uplo == Uplo::Lower
                 for (idx_t j = 0; j < n; ++j) {
@@ -185,13 +197,18 @@ void trmm(Side side,
                         const scalar_t alphaAjj =
                             (diag == Diag::NonUnit) ? alpha * A(j, j) : alpha;
                         for (idx_t i = 0; i < m; ++i)
-                            B(i, j) *= alphaAjj;
+                            _Mixed[j*m + i]  *= float(alphaAjj);
                     }
                     for (idx_t k = 0; k < j; ++k) {
                         const scalar_t alphaAkj = alpha * A(k, j);
                         for (idx_t i = 0; i < m; ++i)
-                            B(i, j) += B(i, k) * alphaAkj;
+                            _Mixed[j*m + i]  += float(_Mixed[k*m + i]  * float(alphaAkj));
                     }
+                }
+                for (int i = 0; i < m ; i++){
+        for (int j = 0; j < n ; j++){
+         B(i,j) = TB(_Mixed[j*m + i]);
+    }
                 }
             }
             else {  // uplo == Uplo::Lower
