@@ -62,8 +62,8 @@ TEMPLATE_TEST_CASE("Cauchy matrix properties",
 
         for (idx_t i = 0; i < n; ++i)
         {
-            x[i] = (T)(i+1);
-            y[i] = (T)((i+1+n));
+            x[i] = (T)(i+0.1);
+            y[i] = (T)((i+0.1+n));
         }
 
         // Initialize and compute C using the explicit formula
@@ -133,6 +133,29 @@ TEMPLATE_TEST_CASE("Cauchy matrix properties",
 
         UNSCOPED_INFO("|| inv(C)*C - I || / ( ||C|| * ||inv(C)|| )");
         CHECK(error3 / tol <= real_t(1));  // tests if error<=tol
+
+        idx_t n_ = x.size();
+        T numerator = 1;   // Initialize numerator before the loop
+        T denominator = 1; // Initialize denominator before the loop
+        T determinant = 0; // Initialize determinant before the loop
+
+        // Calculate the numerator as the product of differences
+        for (idx_t i = 0; i < n_; ++i) {
+            for (idx_t j = i + 1; j < n_; ++j) {
+                numerator *= (x[j] - x[i]) * (y[j] - y[i]);
+            }
+        }
+
+        // Calculate the denominator as the product of sums
+        for (idx_t i = 0; i < n_; ++i) {
+            for (idx_t j = 0; j < n_; ++j) {
+                denominator *= (x[i] + y[j]);
+            }
+        }
+
+        determinant = numerator / denominator;
+
+        const real_t eeeeps = ulp<real_t>();
     }
 }
 
