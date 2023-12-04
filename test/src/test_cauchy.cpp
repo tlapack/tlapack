@@ -37,7 +37,7 @@ TEMPLATE_TEST_CASE("Cauchy matrix properties",
     // MatrixMarket reader
     MatrixMarket mm;
 
-    idx_t n = GENERATE(3, 9);
+    idx_t n = GENERATE(3, 6, 9);
     GetriVariant variant = GENERATE(GetriVariant::UXLI, GetriVariant::UILI);
 
     DYNAMIC_SECTION("n = " << n << " variant = " << (char)variant) 
@@ -63,7 +63,7 @@ TEMPLATE_TEST_CASE("Cauchy matrix properties",
         for (idx_t i = 0; i < n; ++i)
         {
             x[i] = (T)(i+0.1);
-            y[i] = (T)((i+0.1+n));
+            y[i] = (T)((i-0.1+1));
         }
 
         // Initialize and compute C using the explicit formula
@@ -134,7 +134,9 @@ TEMPLATE_TEST_CASE("Cauchy matrix properties",
         UNSCOPED_INFO("|| inv(C)*C - I || / ( ||C|| * ||inv(C)|| )");
         CHECK(error3 / tol <= real_t(1));  // tests if error<=tol
 
-        idx_t n_ = x.size();
+        if (n < 7)
+        {
+            idx_t n_ = x.size();
         T numerator = 1;   // Initialize numerator before the loop
         T denominator = 1; // Initialize denominator before the loop
         T determinant = 0; // Initialize determinant before the loop
@@ -156,6 +158,9 @@ TEMPLATE_TEST_CASE("Cauchy matrix properties",
         determinant = numerator / denominator;
 
         const real_t eeeeps = ulp<real_t>();
+            
+        }
+        
     }
 }
 
