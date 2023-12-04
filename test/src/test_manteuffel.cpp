@@ -1,4 +1,4 @@
-/// @file test_cauchy.cpp
+/// @file test_manteuffel.cpp
 /// @author Aslak Djupskås
 /// @brief Test Manteuffel eigenvalues 
 //
