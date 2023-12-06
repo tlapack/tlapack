@@ -356,7 +356,6 @@ for (idx_t i = 0; i < n; ++i) {
         // Perform QR factorization to obtain two random orthogonal matrices
         std::vector<T> tau1(n);
         geqr2(U1, tau1);
-
         std::vector<T> tau2(n);
         geqr2(U2, tau2);
 
@@ -376,10 +375,12 @@ for (idx_t i = 0; i < n; ++i) {
                 else
                     D(i, j) = T(0);
             };
-          
+        
         // Set A = U1 * D * U2^H
-        gemm(Op::NoTrans, Op::NoTrans, T(1), U1, D, A);
-        gemm(Op::NoTrans, Op::ConjTrans, T(1), A, U2, A);
+        std::vector<T> U1D_;
+        auto U1D = new_matrix(U1D_, n, n);
+        gemm(Op::NoTrans, Op::NoTrans, T(1), U1, D, U1D);
+        gemm(Op::NoTrans, Op::ConjTrans, T(1), U1D, U2, A);
 
         // Scale the rows and columns of A
         for (idx_t j = 0; j < n; ++j)
