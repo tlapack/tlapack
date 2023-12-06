@@ -205,14 +205,14 @@ jobs:
       uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       with:
         repository: icl-utk-edu/blaspp
-        ref: 34a24d103c039abdc634837af45433c44b3e90a7 # v2023.06.00
+        ref: 3c47832f5162b5215b2164c21c4132544c65563d # v2023.11.05
         path: blaspp
     
     - name: Checkout LAPACK++
       uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       with:
         repository: icl-utk-edu/lapackpp
-        ref: 229e5007e605ee77769d086530401937fca85c8b # v2023.06.00
+        ref: e3aa0156b873d1e1349d083d7e5b66cfbdf9fb08 # v2023.11.05
         path: lapackpp
 
     - name: Install ninja-build tool
@@ -303,14 +303,14 @@ jobs:
       uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       with:
         repository: icl-utk-edu/blaspp
-        ref: 34a24d103c039abdc634837af45433c44b3e90a7 # v2023.06.00
+        ref: 3c47832f5162b5215b2164c21c4132544c65563d # v2023.11.05
         path: blaspp
     
     - name: Checkout LAPACK++
       uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       with:
         repository: icl-utk-edu/lapackpp
-        ref: 229e5007e605ee77769d086530401937fca85c8b # v2023.06.00
+        ref: e3aa0156b873d1e1349d083d7e5b66cfbdf9fb08 # v2023.11.05
         path: lapackpp
 
     - name: Install ninja-build tool
@@ -362,11 +362,6 @@ jobs:
     # Use Intel compilers
 
     runs-on: ubuntu-latest
-    env:
-      CXX: icpx
-      FC: ifx
-      CXXFLAGS: "-Wall -pedantic -Wno-unused-variable -Wno-unused-function -Wno-c99-extensions -fp-model=precise"
-      FFLAGS: ""
     steps:
     
     - name: Checkout <T>LAPACK
@@ -376,14 +371,14 @@ jobs:
       uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       with:
         repository: icl-utk-edu/blaspp
-        ref: 34a24d103c039abdc634837af45433c44b3e90a7 # v2023.06.00
+        ref: 3c47832f5162b5215b2164c21c4132544c65563d # v2023.11.05
         path: blaspp
     
     - name: Checkout LAPACK++
       uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       with:
         repository: icl-utk-edu/lapackpp
-        ref: 229e5007e605ee77769d086530401937fca85c8b # v2023.06.00
+        ref: e3aa0156b873d1e1349d083d7e5b66cfbdf9fb08 # v2023.11.05
         path: lapackpp
 
     - name: Install ninja-build tool
@@ -403,7 +398,7 @@ jobs:
         sudo apt update
         sudo apt install -y cmake
         sudo apt install -y liblapacke-dev
-        sudo apt install -y intel-oneapi-compiler-fortran intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic intel-oneapi-mkl
+        sudo apt install -y intel-oneapi-mkl
 
     - name: Setup Intel oneAPI environment
       run: |
@@ -487,14 +482,14 @@ jobs:
       uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       with:
         repository: icl-utk-edu/blaspp
-        ref: 34a24d103c039abdc634837af45433c44b3e90a7 # v2023.06.00
+        ref: 3c47832f5162b5215b2164c21c4132544c65563d # v2023.11.05
         path: blaspp
     
     - name: Checkout LAPACK++
       uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       with:
         repository: icl-utk-edu/lapackpp
-        ref: 229e5007e605ee77769d086530401937fca85c8b # v2023.06.00
+        ref: 993b8cbdcad582496c3f56535c48eaca23dc1f16 # v2023.11.05+
         path: lapackpp
 
     - name: Checkout LAPACK
@@ -523,13 +518,13 @@ jobs:
     - name: Build and install BLAS++
       working-directory: ${{env.blaspp_DIR}}
       run: |
-        cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBLA_VENDOR=FLAME -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.blaspp_DIR}} -D CMAKE_CXX_FLAGS="${{env.CXXFLAGS}} -D LAPACK_FORTRAN_ADD_" -D LAPACK_LIBRARIES="${{env.lapack_DIR}}/lib/liblapack.a;-lgfortran"
+        cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBLA_VENDOR=FLAME -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.blaspp_DIR}} -D CMAKE_CXX_FLAGS="${{env.CXXFLAGS}} -D LAPACK_FORTRAN_ADD_" -D LAPACK_LIBRARIES="${{env.lapack_DIR}}/lib/liblapack.a;-lm;-lgfortran"
         cmake --build build --target install
 
     - name: Build and install LAPACK++
       working-directory: ${{env.lapackpp_DIR}}
       run: |
-        cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.lapackpp_DIR}} -D CMAKE_CXX_FLAGS="${{env.CXXFLAGS}} -D LAPACK_FORTRAN_ADD_" -D LAPACK_LIBRARIES="${{env.lapack_DIR}}/lib/liblapack.a;-lgfortran"
+        cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.lapackpp_DIR}} -D CMAKE_CXX_FLAGS="${{env.CXXFLAGS}} -D LAPACK_FORTRAN_ADD_" -D LAPACK_LIBRARIES="${{env.lapack_DIR}}/lib/liblapack.a;-lm;-lgfortran" -D CMAKE_MESSAGE_LOG_LEVEL=TRACE
         cmake --build build --target install
 
     - name: Configure CMake for <T>LAPACK
@@ -583,14 +578,14 @@ jobs:
       uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       with:
         repository: icl-utk-edu/blaspp
-        ref: 34a24d103c039abdc634837af45433c44b3e90a7 # v2023.06.00
+        ref: 3c47832f5162b5215b2164c21c4132544c65563d # v2023.11.05
         path: blaspp
     
     - name: Checkout LAPACK++
       uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       with:
         repository: icl-utk-edu/lapackpp
-        ref: 229e5007e605ee77769d086530401937fca85c8b # v2023.06.00
+        ref: e3aa0156b873d1e1349d083d7e5b66cfbdf9fb08 # v2023.11.05
         path: lapackpp
 
     - name: Install ninja-build tool
