@@ -328,7 +328,11 @@ for (idx_t i = 0; i < n; ++i) {
      * @param[out] A Matrix.
      */
     template <TLAPACK_MATRIX matrix_t>
-    void close_to_overflow(matrix_t& A, const type_t<matrix_t>& log10_cond)
+    void close_to_overflow(matrix_t& A, const type_t<matrix_t>& log10_cond, 
+                            const type_t<matrix_t>& log10_row_from, 
+                            const type_t<matrix_t>& log10_row_to,
+                            const type_t<matrix_t>& log10_col_from, 
+                            const type_t<matrix_t>& log10_col_to)
     {
         using T = type_t<matrix_t>;
         using idx_t = size_type<matrix_t>;
@@ -368,14 +372,22 @@ for (idx_t i = 0; i < n; ++i) {
             for (idx_t i = 0; i < n; ++i)
             {
                 if (i == j)
-                    D(i, j) = pow(T(10), T(log10_cond) * T(i) / T(n));
+                    D(i, j) = pow(10, log10_cond * T(i) / T(n-1));
                 else
                     D(i, j) = T(0);
             };
-
+          
         // Set A = U1 * D * U2^H
         gemm(Op::NoTrans, Op::NoTrans, T(1), U1, D, A);
         gemm(Op::NoTrans, Op::ConjTrans, T(1), A, U2, A);
+
+        // Scale the rows and columns of A
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = 0; i < n; ++i)
+            {
+                A(i, j) = A(i, j) * pow(T(10), T(log10_row_from) + T(log10_row_to - log10_row_from) * T(i) / T(n-1));
+                A(i, j) = A(i, j) * pow(T(10), T(log10_col_from) + T(log10_col_to - log10_col_from) * T(j) / T(n-1));
+            };
     }
 
     rand_generator gen;
