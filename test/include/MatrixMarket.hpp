@@ -245,7 +245,6 @@ struct MatrixMarket {
                 A(i, j) = val;
     }
 
-
     /**
      * @brief Generate a binomial matrix.
      *
@@ -256,7 +255,8 @@ struct MatrixMarket {
      */
     template <TLAPACK_MATRIX matrix_t>
     // Function to calculate binomial coefficients
-    int binomialCoeff(const type_t<matrix_t>& n, const type_t<matrix_t>& k) {
+    int binomialCoeff(const type_t<matrix_t>& n, const type_t<matrix_t>& k)
+    {
         using idx_t = size_type<matrix_t>;
         if (k > n - k) k = n - k;
         idx_t res = 1;
@@ -267,21 +267,22 @@ struct MatrixMarket {
         return res;
     }
 
-// Template function to generate a binomial matrix
-template <TLAPACK_MATRIX matrix_t>
-void binomialMatrix(matrix_t& A, const type_t<matrix_t>& k) {
-// A.resize(n, std::vector<T>(n, 0));
-using idx_t = size_type<matrix_t>;
-const idx_t n = ncols(A);
-for (idx_t i = 0; i < n; ++i) {
-    for (idx_t j = 0; j <= i; ++j) {
-        A(i, j) = binomialCoeff(i, j);
-        if (j != i) {
-            A(j, i) = A(i, j); // Symmetric entry
+    // Template function to generate a binomial matrix
+    template <TLAPACK_MATRIX matrix_t>
+    void binomialMatrix(matrix_t& A, const type_t<matrix_t>& k)
+    {
+        // A.resize(n, std::vector<T>(n, 0));
+        using idx_t = size_type<matrix_t>;
+        const idx_t n = ncols(A);
+        for (idx_t i = 0; i < n; ++i) {
+            for (idx_t j = 0; j <= i; ++j) {
+                A(i, j) = binomialCoeff(i, j);
+                if (j != i) {
+                    A(j, i) = A(i, j);  // Symmetric entry
+                }
+            }
         }
     }
-}
-}
 
     /**
      * @brief Generate an upper- or lower-triangular matrix with a single value
@@ -323,9 +324,11 @@ for (idx_t i = 0; i < n; ++i) {
     }
 
     /**
-     * @brief Generate a random square dense matrix with specified condition number.
+     * @brief Generate a random square dense matrix with specified condition
+     * number.
      *
-     * @param[in] log10_cond Base-10 logarithm of the condition number. Cond(A) = 10^log10_cond.
+     * @param[in] log10_cond Base-10 logarithm of the condition number. Cond(A)
+     * = 10^log10_cond.
      * @param[out] A Matrix.
      */
     template <TLAPACK_MATRIX matrix_t>
@@ -344,8 +347,7 @@ for (idx_t i = 0; i < n; ++i) {
         auto U2 = new_matrix(U2_, n, n);
 
         for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = 0; i < n; ++i)
-            {
+            for (idx_t i = 0; i < n; ++i) {
                 U1(i, j) = rand_helper<T>(gen);
                 U2(i, j) = rand_helper<T>(gen);
             };
@@ -365,8 +367,7 @@ for (idx_t i = 0; i < n; ++i) {
         auto D = new_matrix(D_, n, n);
 
         for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = 0; i < n; ++i)
-            {
+            for (idx_t i = 0; i < n; ++i) {
                 if (i == j)
                     D(i, j) = pow(10, log10_cond * T(i) / T(n - 1));
                 else
@@ -381,17 +382,23 @@ for (idx_t i = 0; i < n; ++i) {
     }
 
     /**
-     * @brief Create a random matrix with a specified condition number, and scale the rows and columns.
+     * @brief Create a random matrix with a specified condition number, and
+     * scale the rows and columns.
      *
-     * @param[in] log10_cond Base-10 logarithm of the condition number. cond(A) = 10^log10_cond.
-     * @param[in] log10_row_from Base-10 logarithm of the starting row scaling factor.
-     * @param[in] log10_row_to Base-10 logarithm of the ending row scaling factor.
-     * @param[in] log10_col_from Base-10 logarithm of the starting column scaling factor.
-     * @param[in] log10_col_to Base-10 logarithm of the ending column scaling factor.
+     * @param[in] log10_cond Base-10 logarithm of the condition number. cond(A)
+     * = 10^log10_cond.
+     * @param[in] log10_row_from Base-10 logarithm of the starting row scaling
+     * factor.
+     * @param[in] log10_row_to Base-10 logarithm of the ending row scaling
+     * factor.
+     * @param[in] log10_col_from Base-10 logarithm of the starting column
+     * scaling factor.
+     * @param[in] log10_col_to Base-10 logarithm of the ending column scaling
+     * factor.
      * @param[in,out] A Matrix to be scaled.
      */
     template <TLAPACK_MATRIX matrix_t>
-    void random_cond_scaled(matrix_t& A, 
+    void random_cond_scaled(matrix_t& A,
                             const type_t<matrix_t>& log10_cond,
                             const type_t<matrix_t>& log10_row_from,
                             const type_t<matrix_t>& log10_row_to,
@@ -407,10 +414,15 @@ for (idx_t i = 0; i < n; ++i) {
 
         // Scale the rows and columns of A
         for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = 0; i < n; ++i)
-            {
-                A(i, j) = A(i, j) * pow(T(10), T(log10_row_from) + T(log10_row_to - log10_row_from) * T(i) / T(n - 1));
-                A(i, j) = A(i, j) * pow(T(10), T(log10_col_from) + T(log10_col_to - log10_col_from) * T(j) / T(n - 1));
+            for (idx_t i = 0; i < n; ++i) {
+                A(i, j) =
+                    A(i, j) * pow(T(10), T(log10_row_from) +
+                                             T(log10_row_to - log10_row_from) *
+                                                 T(i) / T(n - 1));
+                A(i, j) =
+                    A(i, j) * pow(T(10), T(log10_col_from) +
+                                             T(log10_col_to - log10_col_from) *
+                                                 T(j) / T(n - 1));
             };
     }
 
