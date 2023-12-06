@@ -80,13 +80,52 @@ int stevd(char jobz, idx_t n, vector_t& d, vector_t& e, matrix_t& z,
         info = 0;
     } else {
         // Actual computation.
-        // (Note: Implement the divide and conquer algorithm here)
+        // Implement the divide and conquer algorithm here
+
+        // 1. If jobz = 'V', transform the matrix to tridiagonal form.
+        // 2. Split the matrix into two smaller matrices.
+        // 3. For each smaller matrix:
+        //    a. If it's small enough, use the SVD or nonsymmetric eigenvalue solver to compute the eigenvalues.
+        //    b. If it's still too large, split it again and repeat the process.
+        // 4. Combine the eigenvalues from the smaller matrices to get the eigenvalues of the original matrix.
+        // 5. If jobz = 'V', compute the eigenvectors.
+        // 6. If jobz = 'V', back transform the eigenvectors to the original matrix.
+        // 7. Return the eigenvalues and eigenvectors.
 
         // Dummy implementation:
-        info = 0;
+        // Actual computation.
+        if (lwork != -1 && liwork != -1) {
+            // Check if the matrix is small enough to use SVD or nonsymmetric eigenvalue solver
+            if (n <= some_threshold) {
+                // Use SVD or nonsymmetric eigenvalue solver
+                // svd_or_nonsym_eig_solver(d, e, z, work, iwork);
+            } else {
+                // Divide the matrix into two smaller matrices
+                idx_t m = n / 2;
+                vector_t d1(d.begin(), d.begin() + m);
+                vector_t e1(e.begin(), e.begin() + m);
+                vector_t d2(d.begin() + m, d.end());
+                vector_t e2(e.begin() + m, e.end());
+
+                // Recursively compute the eigenvalues of the two smaller matrices
+                stevd(jobz, m, d1, e1, z, ldz, work, lwork, iwork, liwork, info);
+                stevd(jobz, n - m, d2, e2, z, ldz, work, lwork, iwork, liwork, info);
+
+                // Combine the eigenvalues from the smaller matrices
+                // combine_eigenvalues(d, d1, d2);
+            }
+
+            // If jobz = 'V', compute the eigenvectors
+            if (jobz == 'V') {
+                // compute_eigenvectors(z, work, iwork);
+            }
+
+            info = 0;
+        }
     }
     return info;
 }
+
 
 } // namespace tlapack
 
