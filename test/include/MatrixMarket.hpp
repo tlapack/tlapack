@@ -323,22 +323,19 @@ for (idx_t i = 0; i < n; ++i) {
     }
 
     /**
-     * @brief Generate a random square dense matrix close to overflow.
+     * @brief Generate a random square dense matrix with specified condition number.
      *
+     * @param[in] log10_cond Base-10 logarithm of the condition number. Cond(A) = 10^log10_cond.
      * @param[out] A Matrix.
      */
     template <TLAPACK_MATRIX matrix_t>
-    void close_to_overflow(matrix_t& A, const type_t<matrix_t>& log10_cond, 
-                            const type_t<matrix_t>& log10_row_from, 
-                            const type_t<matrix_t>& log10_row_to,
-                            const type_t<matrix_t>& log10_col_from, 
-                            const type_t<matrix_t>& log10_col_to)
+    void random_cond(matrix_t& A, const type_t<matrix_t>& log10_cond)
     {
         using T = type_t<matrix_t>;
         using idx_t = size_type<matrix_t>;
 
         const idx_t n = ncols(A);
-        
+
         // Generate two random matrices U1 and U2
         Create<matrix_t> new_matrix;
         std::vector<T> U1_;
@@ -371,23 +368,49 @@ for (idx_t i = 0; i < n; ++i) {
             for (idx_t i = 0; i < n; ++i)
             {
                 if (i == j)
-                    D(i, j) = pow(10, log10_cond * T(i) / T(n-1));
+                    D(i, j) = pow(10, log10_cond * T(i) / T(n - 1));
                 else
                     D(i, j) = T(0);
             };
-        
+
         // Set A = U1 * D * U2^H
         std::vector<T> U1D_;
         auto U1D = new_matrix(U1D_, n, n);
         gemm(Op::NoTrans, Op::NoTrans, T(1), U1, D, U1D);
         gemm(Op::NoTrans, Op::ConjTrans, T(1), U1D, U2, A);
+    }
+
+    /**
+     * @brief Create a random matrix with a specified condition number, and scale the rows and columns.
+     *
+     * @param[in] log10_cond Base-10 logarithm of the condition number. cond(A) = 10^log10_cond.
+     * @param[in] log10_row_from Base-10 logarithm of the starting row scaling factor.
+     * @param[in] log10_row_to Base-10 logarithm of the ending row scaling factor.
+     * @param[in] log10_col_from Base-10 logarithm of the starting column scaling factor.
+     * @param[in] log10_col_to Base-10 logarithm of the ending column scaling factor.
+     * @param[in,out] A Matrix to be scaled.
+     */
+    template <TLAPACK_MATRIX matrix_t>
+    void random_cond_scaled(matrix_t& A, 
+                            const type_t<matrix_t>& log10_cond,
+                            const type_t<matrix_t>& log10_row_from,
+                            const type_t<matrix_t>& log10_row_to,
+                            const type_t<matrix_t>& log10_col_from,
+                            const type_t<matrix_t>& log10_col_to)
+    {
+        using T = type_t<matrix_t>;
+        using idx_t = size_type<matrix_t>;
+
+        const idx_t n = ncols(A);
+        MatrixMarket mm;
+        mm.random_cond(A, log10_cond);
 
         // Scale the rows and columns of A
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = 0; i < n; ++i)
             {
-                A(i, j) = A(i, j) * pow(T(10), T(log10_row_from) + T(log10_row_to - log10_row_from) * T(i) / T(n-1));
-                A(i, j) = A(i, j) * pow(T(10), T(log10_col_from) + T(log10_col_to - log10_col_from) * T(j) / T(n-1));
+                A(i, j) = A(i, j) * pow(T(10), T(log10_row_from) + T(log10_row_to - log10_row_from) * T(i) / T(n - 1));
+                A(i, j) = A(i, j) * pow(T(10), T(log10_col_from) + T(log10_col_to - log10_col_from) * T(j) / T(n - 1));
             };
     }
 
