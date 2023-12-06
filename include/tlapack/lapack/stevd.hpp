@@ -12,6 +12,7 @@
 
 #include "tlapack/base/constants.hpp"
 #include "tlapack/base/utils.hpp"
+#include "tlapack/lapack/gesvd.hpp"
 
 namespace tlapack {
 
@@ -58,6 +59,18 @@ template <TLAPACK_MATRIX matrix_t,
           TLAPACK_VECTOR vector_t,
           TLAPACK_VECTOR work_t,
           TLAPACK_IVECTOR iwork_t>
+void combine_eigenvalues(vector_t& d, const vector_t& d1, const vector_t& d2) {
+    // TODO: Implement the actual logic to combine the eigenvalues
+    std::copy(d1.begin(), d1.end(), d.begin());
+    std::copy(d2.begin(), d2.end(), d.begin() + d1.size());
+}
+
+// This function computes the eigenvectors
+template <TLAPACK_MATRIX matrix_t, TLAPACK_VECTOR work_t, TLAPACK_IVECTOR iwork_t>
+void compute_eigenvectors(matrix_t& z, work_t& work, iwork_t& iwork) {
+    // TODO: Implement the actual logic to compute the eigenvectors
+}
+
 int stevd(char jobz, idx_t n, vector_t& d, vector_t& e, matrix_t& z,
           idx_t ldz, work_t& work, idx_t lwork,
           iwork_t& iwork, idx_t liwork, int& info)
@@ -98,7 +111,7 @@ int stevd(char jobz, idx_t n, vector_t& d, vector_t& e, matrix_t& z,
             // Check if the matrix is small enough to use SVD or nonsymmetric eigenvalue solver
             if (n <= some_threshold) {
                 // Use SVD or nonsymmetric eigenvalue solver
-                // svd_or_nonsym_eig_solver(d, e, z, work, iwork);
+                gesvd(d, e, z, work, iwork);
             } else {
                 // Divide the matrix into two smaller matrices
                 idx_t m = n / 2;
@@ -112,15 +125,17 @@ int stevd(char jobz, idx_t n, vector_t& d, vector_t& e, matrix_t& z,
                 stevd(jobz, n - m, d2, e2, z, ldz, work, lwork, iwork, liwork, info);
 
                 // Combine the eigenvalues from the smaller matrices
-                // combine_eigenvalues(d, d1, d2);
+                combine_eigenvalues(d, d1, d2);
             }
 
             // If jobz = 'V', compute the eigenvectors
             if (jobz == 'V') {
-                // compute_eigenvectors(z, work, iwork);
+                compute_eigenvectors(z, work, iwork);
             }
 
             info = 0;
+
+
         }
     }
     return info;
