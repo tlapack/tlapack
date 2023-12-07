@@ -80,6 +80,7 @@ void gemv(Op trans,
 
     // quick return
     if (m == 0 || n == 0) return;
+    #ifdef MIXED_PREC
     std::vector<float> _Mixed(m);
     for (int i = 0; i < m ; i++){
         _Mixed[i] = float(y[i]);
@@ -88,9 +89,11 @@ void gemv(Op trans,
     // form y := beta*y
     for (idx_t i = 0; i < m; ++i)
         _Mixed[i] *= float(beta);
+    #endif
 
     if (trans == Op::NoTrans) {
         // form y += alpha * A * x
+        #ifdef MIXED_PREC
         for (idx_t j = 0; j < n; ++j) {
             const scalar_type<alpha_t, TX> tmp = alpha * x[j];
             for (idx_t i = 0; i < m; ++i) {
@@ -99,8 +102,18 @@ void gemv(Op trans,
         }
         for (int i = 0; i < m ; i++){
         y[i] = TA(_Mixed[i]);
+        }
+        #else
+        for (idx_t j = 0; j < n; ++j) {
+            const scalar_type<alpha_t, TX> tmp = alpha * x[j];
+            for (idx_t i = 0; i < m; ++i) {
+                y[i] += tmp * A(i, j);
+            }
+        }
+        #endif
+
     }
-    }
+    
     else if (trans == Op::Conj) {
         // form y += alpha * conj( A ) * x
         for (idx_t j = 0; j < n; ++j) {

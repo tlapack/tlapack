@@ -10,6 +10,7 @@
 
 #ifndef TLAPACK_BLAS_GEMM_HH
 #define TLAPACK_BLAS_GEMM_HH
+#define MIXED_PREC
 
 #include "tlapack/base/utils.hpp"
 
@@ -87,18 +88,20 @@ void gemm(Op transA,
     tlapack_check_false(
         (idx_t)((transB == Op::NoTrans) ? nrows(B) : ncols(B)) != k);
 
+    #ifdef MIXED_PREC
     std::vector<float> MixedMat_(m * n);
     for(int i = 0; i < m; i++){
         for(int j = 0; j < n; j++){
             MixedMat_[m*j + i] = float(C(i,j));
         }
     }
+    #endif
     bool on = true;
     if (transA == Op::NoTrans) {
         using scalar_t = scalar_type<alpha_t, TB>;
 
         if (transB == Op::NoTrans) {
-            
+            #ifdef MIXED_PREC
             for (idx_t j = 0; j < n; ++j) {
                 for (idx_t i = 0; i < m; ++i)
                     MixedMat_[m*j + i] *= float(beta);
@@ -113,6 +116,18 @@ void gemm(Op transA,
                     C(i,j) = TA(MixedMat_[m*j + i]);
                 }
             }
+            #else
+            for (idx_t j = 0; j < n; ++j) {
+                for (idx_t i = 0; i < m; ++i)
+                    C(i, j) *= beta;
+                for (idx_t l = 0; l < k; ++l) {
+                    const scalar_t alphaTimesblj = alpha * B(l, j);
+                    for (idx_t i = 0; i < m; ++i)
+                        C(i, j) += A(i, l) * alphaTimesblj;
+                }
+            }
+
+            #endif
 
         }
         else if (transB == Op::Trans) {

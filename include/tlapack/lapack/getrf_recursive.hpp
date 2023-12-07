@@ -96,8 +96,10 @@ int getrf_recursive(matrix_t& A, piv_t& piv)
         piv[0] = iamax(col(A, 0), optsIamax);
 
         // in the following case all elements are zero, and we return 1
-        if (A(piv[0], 0) == real_t(0)) return 1;
+        if (A(piv[0], 0) == real_t(0)) {
+            return 1; 
 
+        }
         // in this case, we can safely swap since A(piv[0],0) is not zero
         if (piv[0] != 0) {
             const T aux = A(piv[0], 0);
@@ -174,6 +176,8 @@ int getrf_recursive(matrix_t& A, piv_t& piv)
 
         // A11 <---- A11 - (A10 * A01)
         gemm(NO_TRANS, NO_TRANS, T(-1), A10, A01, T(1), A11);
+
+        
 
         // Finding LU factorization of A11 in place
         info = getrf_recursive(A11, piv1);

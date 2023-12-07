@@ -89,19 +89,19 @@ double run(size_t m, size_t n, real_t scale)
     // Generate a random matrix in A
     for (size_t j = 0; j < n; ++j){
         for (size_t i = 0; i < m; ++i){
-            if (i % 2==0)
-            FG(i, j) = 100000*float(-1 + 2*(rand()%2))*(static_cast<float>(rand()) / (static_cast<float>(RAND_MAX)));
-            else 
+            // if (i % 2==0)
+            // FG(i, j) = 100000*float(-1 + 2*(rand()%2))*(static_cast<float>(rand()) / (static_cast<float>(RAND_MAX)));
+            // else 
             FG(i, j) = float(-1 + 2*(rand()%2))*(static_cast<float>(rand()) / (static_cast<float>(RAND_MAX)));
             sums[i] += abs(FG(i,j));
         }
     }
 
     // Frobenius norm of A
-    float normA = tlapack::lange(tlapack::ONE_NORM, FG);
+    float normA = tlapack::lange(tlapack::MAX_NORM, FG);
     for(int k = 0; k < n; k++){
-        //Scal_[k] = sqrt(float(scale)*0.125)/(normA*sums[k]);
-        Scal_[k] = sqrt(float(scale)*0.125)/normA;
+        Scal_[k] = sqrt(float(scale)*0.125)/(normA*sums[k]);
+        //Scal_[k] = sqrt(float(scale)*0.125)/normA;
     }
     
     std::cout << normA;
@@ -132,6 +132,7 @@ double run(size_t m, size_t n, real_t scale)
 
         // Generates Q = H_1 H_2 ... H_n
         tlapack::ung2r(Q, tau);
+        //compute Q in 32 bits
     }
     // Record end time
     auto endQR = std::chrono::high_resolution_clock::now();
@@ -173,7 +174,7 @@ double run(size_t m, size_t n, real_t scale)
 
         // Compute ||Q'Q - I||_F
         norm_orth_1 =
-            double(tlapack::lansy(tlapack::FROB_NORM, tlapack::UPPER_TRIANGLE, work));
+            double(tlapack::lansy(tlapack::MAX_NORM, tlapack::UPPER_TRIANGLE, work));
 
         if (verbose) {
             std::cout << std::endl << "Q'Q-I = ";
@@ -204,7 +205,7 @@ double run(size_t m, size_t n, real_t scale)
             for (size_t i = 0; i < m; ++i)
                 FE(i, j) = float(work(i,j))/Scal_[j] - FG(i, j);
 
-        norm_repres_1 = double(tlapack::lange(tlapack::FROB_NORM, FE)) / double(normA);
+        norm_repres_1 = double(tlapack::lange(tlapack::MAX_NORM, FE)) / double(normA);
     }
 
     // *) Output

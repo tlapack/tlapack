@@ -10,7 +10,7 @@
 
 #ifndef TLAPACK_BLAS_TRSM_HH
 #define TLAPACK_BLAS_TRSM_HH
-
+#define MIXED_PREC
 #include "tlapack/base/utils.hpp"
 
 namespace tlapack {
@@ -97,17 +97,20 @@ void trsm(Side side,
     tlapack_check_false(diag != Diag::NonUnit && diag != Diag::Unit);
     tlapack_check_false(nrows(A) != ncols(A));
     tlapack_check_false(nrows(A) != ((side == Side::Left) ? m : n));
+    #ifdef MIXED_PREC
     std::vector<float> MixedMat_(m * n);
     for(int i = 0; i < m; i++){
         for(int j = 0; j < n; j++){
             MixedMat_[m*j + i] = float(B(i,j));
         }
     }
+    #endif
     bool on = true;
     if (side == Side::Left) {
         using scalar_t = scalar_type<alpha_t, TB>;
         if (trans == Op::NoTrans) {
             if (uplo == Uplo::Upper) {
+                #ifdef MIXED_PREC
                 for (idx_t j = 0; j < n; ++j) {
                     for (idx_t i = 0; i < m; ++i)
                         MixedMat_[m*j + i] *= float(alpha);
@@ -122,8 +125,21 @@ void trsm(Side side,
                         B(i,j) = TB(MixedMat_[m*j + i]) ;
                     }
                 }
+                #else
+                for (idx_t j = 0; j < n; ++j) {
+                    for (idx_t i = 0; i < m; ++i)
+                        B(i, j) *= alpha;
+                    for (idx_t k = m - 1; k != idx_t(-1); --k) {
+                        if (diag == Diag::NonUnit) B(k, j) /= A(k, k);
+                        for (idx_t i = 0; i < k; ++i)
+                            B(i, j) -= A(i, k) * B(k, j);
+                    }
+                }
+                #endif
+
             }
             else {  // uplo == Uplo::Lower
+            #ifdef MIXED_PREC
                 for (idx_t j = 0; j < n; ++j) {
                     for (idx_t i = 0; i < m; ++i)
                         MixedMat_[m*j + i] *= float(alpha);
@@ -138,6 +154,17 @@ void trsm(Side side,
                         B(i,j) = TB(MixedMat_[m*j + i]) ;
                     }
                 }
+            #else
+             for (idx_t j = 0; j < n; ++j) {
+                    for (idx_t i = 0; i < m; ++i)
+                        B(i, j) *= alpha;
+                    for (idx_t k = 0; k < m; ++k) {
+                        if (diag == Diag::NonUnit) B(k, j) /= A(k, k);
+                        for (idx_t i = k + 1; i < m; ++i)
+                            B(i, j) -= A(i, k) * B(k, j);
+                    }
+                }
+            #endif
             }
         }
         else if (trans == Op::Trans) {
