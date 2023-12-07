@@ -42,8 +42,10 @@ TEMPLATE_TEST_CASE("Inversion of a general m-by-n matrix",
     // performing tests on
     idx_t n = GENERATE(5, 10, 20, 100);
     GetriVariant variant = GENERATE(GetriVariant::UXLI, GetriVariant::UILI);
+    const std::string matrix_type = GENERATE("Random", "Near overflow");
 
-    DYNAMIC_SECTION("n = " << n << " variant = " << (char)variant)
+    DYNAMIC_SECTION("n = " << n << " variant = " << (char)variant << " matrix_type = "
+                           << matrix_type)
     {
         // eps is the machine precision, and tol is the tolerance we accept for
         // tests to pass
@@ -56,8 +58,12 @@ TEMPLATE_TEST_CASE("Inversion of a general m-by-n matrix",
         std::vector<T> invA_;
         auto invA = new_matrix(invA_, n, n);
 
-        // forming A, a random matrix
-        mm.random(A);
+        // forming A
+        if (matrix_type == "Near overflow")
+            mm.random_cond_scaled(A, T(1), T(0), T(0), T(0), T(36));
+        else
+            mm.random(A);
+        
 
         // make a deep copy A
         lacpy(GENERAL, A, invA);

@@ -42,11 +42,15 @@ TEMPLATE_TEST_CASE("LU factorization of a general m-by-n matrix",
     // respectively
     idx_t m = GENERATE(10, 20, 30);
     idx_t n = GENERATE(10, 20, 30);
+
+    const std::string matrix_type = GENERATE("Random", "Near overflow");
+
     GetrfVariant variant =
         GENERATE(GetrfVariant::Level0, GetrfVariant::Recursive);
 
-    DYNAMIC_SECTION("m = " << m << " n = " << n
-                           << " variant = " << (char)variant)
+    DYNAMIC_SECTION("m = " << m << " n = " << n 
+                    << " variant = " << (char)variant 
+                    << " matrix_type = " << matrix_type)
     {
         idx_t k = min<idx_t>(m, n);
 
@@ -62,7 +66,10 @@ TEMPLATE_TEST_CASE("LU factorization of a general m-by-n matrix",
         auto A_copy = new_matrix(A_copy_, m, n);
 
         // Update A with random numbers
-        mm.random(A);
+        if (matrix_type == "Random")
+            mm.random(A);
+        else if (matrix_type == "Near overflow")
+            mm.random_cond_scaled(A, T(1), T(0), T(0), T(-37), T(37));
 
         // We will make a deep copy A
         // We intend to test A=LU, however, since after calling getrf, A will be

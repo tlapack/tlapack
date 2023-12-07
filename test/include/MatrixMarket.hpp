@@ -366,14 +366,14 @@ struct MatrixMarket {
         ung2r(U1, tau1);
         ung2r(U2, tau2);
 
-        // Generate a diagonal matrix with diag(10^linspace(0, log10_cond, n)))
+        // Generate a diagonal matrix with diag(10^linspace(log10_cond, 0, n)))
         std::vector<T> D_;
         auto D = new_matrix(D_, m, n);
 
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = 0; i < m; ++i) {
                 if (i == j)
-                    D(i, j) = pow(10, log10_cond * T(i) / T(k - 1));
+                    D(i, j) = pow(10, log10_cond * (T(k - 1) - T(i)) / T(k - 1));
                 else
                     D(i, j) = T(0);
             };
