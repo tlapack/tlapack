@@ -245,22 +245,24 @@ struct MatrixMarket {
                 A(i, j) = val;
     }
 
-    /**
-     * @brief Generate a binomial matrix.
-     *
-     * The binomial matrix is a multiple of an involutory matrix.
-     *
-     * @param[out] A Matrix.
-     * @param[in] n Size of the matrix.
-     */
-    #include <iostream>
-    #include <vector>
+/**
+ * @brief Generate a binomial matrix.
+ *
+ * The binomial matrix is a multiple of an involutory matrix.
+ *
+ * @param[out] A Matrix.
+ * @param[in] n Size of the matrix.
+ */
+#include <iostream>
+#include <vector>
 
     // Function for calculating the binomial coefficient C(n, k)
-    unsigned long long binomialCoeff(int n, int k) {
+    unsigned long long binomialCoeff(int n, int k)
+    {
         if (k == 0 || k == n) {
             return 1;
-        } else {
+        }
+        else {
             return binomialCoeff(n - 1, k - 1) + binomialCoeff(n - 1, k);
         }
     }
@@ -322,8 +324,8 @@ struct MatrixMarket {
     }
 
     /**
-     * @brief Generate a random square dense matrix with specified condition
-     * number.
+     * @brief Generate a random dense matrix with specified condition number (if
+     * square).
      *
      * @param[in] log10_cond Base-10 logarithm of the condition number. Cond(A)
      * = 10^log10_cond.
@@ -335,23 +337,27 @@ struct MatrixMarket {
         using T = type_t<matrix_t>;
         using idx_t = size_type<matrix_t>;
 
+        const idx_t m = nrows(A);
         const idx_t n = ncols(A);
+        const idx_t k = min<idx_t>(m, n);
 
         // Generate two random matrices U1 and U2
         Create<matrix_t> new_matrix;
         std::vector<T> U1_;
-        auto U1 = new_matrix(U1_, n, n);
+        auto U1 = new_matrix(U1_, m, m);
         std::vector<T> U2_;
         auto U2 = new_matrix(U2_, n, n);
 
-        for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = 0; i < n; ++i) {
+        for (idx_t j = 0; j < m; ++j)
+            for (idx_t i = 0; i < m; ++i)
                 U1(i, j) = rand_helper<T>(gen);
+
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = 0; i < n; ++i)
                 U2(i, j) = rand_helper<T>(gen);
-            };
 
         // Perform QR factorization to obtain two random orthogonal matrices
-        std::vector<T> tau1(n);
+        std::vector<T> tau1(m);
         geqr2(U1, tau1);
         std::vector<T> tau2(n);
         geqr2(U2, tau2);
@@ -362,19 +368,19 @@ struct MatrixMarket {
 
         // Generate a diagonal matrix with diag(10^linspace(0, log10_cond, n)))
         std::vector<T> D_;
-        auto D = new_matrix(D_, n, n);
+        auto D = new_matrix(D_, m, n);
 
         for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = 0; i < n; ++i) {
+            for (idx_t i = 0; i < m; ++i) {
                 if (i == j)
-                    D(i, j) = pow(10, log10_cond * T(i) / T(n - 1));
+                    D(i, j) = pow(10, log10_cond * T(i) / T(k - 1));
                 else
                     D(i, j) = T(0);
             };
 
         // Set A = U1 * D * U2^H
         std::vector<T> U1D_;
-        auto U1D = new_matrix(U1D_, n, n);
+        auto U1D = new_matrix(U1D_, m, n);
         gemm(Op::NoTrans, Op::NoTrans, T(1), U1, D, U1D);
         gemm(Op::NoTrans, Op::ConjTrans, T(1), U1D, U2, A);
     }
@@ -406,21 +412,21 @@ struct MatrixMarket {
         using T = type_t<matrix_t>;
         using idx_t = size_type<matrix_t>;
 
+        const idx_t m = nrows(A);
         const idx_t n = ncols(A);
         MatrixMarket mm;
         mm.random_cond(A, log10_cond);
 
         // Scale the rows and columns of A
         for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = 0; i < n; ++i) {
-                A(i, j) =
-                    A(i, j) * pow(T(10), T(log10_row_from) +
-                                             T(log10_row_to - log10_row_from) *
-                                                 T(i) / T(n - 1));
-                A(i, j) =
-                    A(i, j) * pow(T(10), T(log10_col_from) +
-                                             T(log10_col_to - log10_col_from) *
-                                                 T(j) / T(n - 1));
+            for (idx_t i = 0; i < m; ++i) {
+                A(i, j) = A(i, j) *
+                          pow(T(10), T(log10_row_from) +
+                                         T(log10_row_to - log10_row_from) *
+                                             T(i) / T(m - 1)) *
+                          pow(T(10), T(log10_col_from) +
+                                         T(log10_col_to - log10_col_from) *
+                                             T(j) / T(n - 1));
             };
     }
 
