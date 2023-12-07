@@ -70,7 +70,7 @@ TEMPLATE_TEST_CASE("Cauchy matrix properties",
         mm.generateCauchy(C, x, y); 
         mm.generateInverseCauchy(invCexpl, x, y);
   
-        // make a deep copy A
+        // make a deep copy C
         lacpy(GENERAL, C, invC);
 
 
@@ -134,6 +134,8 @@ TEMPLATE_TEST_CASE("Cauchy matrix properties",
         UNSCOPED_INFO("|| inv(C)*C - I || / ( ||C|| * ||inv(C)|| )");
         CHECK(error3 / tol <= real_t(1));  // tests if error<=tol
 
+        // This is the explicit formula for the determinant of a Cauchy matrix
+        // However, it is not tested , just calculated.
         if (n < 7)
         {
             idx_t n_ = x.size();

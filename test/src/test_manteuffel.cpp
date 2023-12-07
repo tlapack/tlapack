@@ -82,7 +82,6 @@ TEMPLATE_TEST_CASE("Manteuffel matrix properties",
         
 
         // Initialize and compute C using the explicit formula
-        // mm.generateManteuffel(A, n, 1, beta);
         mm.generateM_manteuffel(M, n);
         mm.generateN_manteuffel(N, n);
         mm.generateManteuffel(A, M, N, n, h, beta);
@@ -91,7 +90,7 @@ TEMPLATE_TEST_CASE("Manteuffel matrix properties",
         // compute eigenvalues of A
         std::vector<complex_t> evals(m);
         std::complex<double> c(2, 0);
-        // std::complex<double> term(0, 0);
+
         idx_t i = 0;
 
         #include <cmath>
@@ -123,16 +122,6 @@ TEMPLATE_TEST_CASE("Manteuffel matrix properties",
             for (idx_t i = j + 2; i < m; ++i)
                 A(i, j) = zero;
 
-        // Make sure ilo and ihi correspond to the actual matrix
-        for (idx_t j = 0; j < ilo; ++j)
-            for (idx_t i = j + 1; i < m; ++i)
-                A(i, j) = (T)0.0;
-        
-        for (idx_t i = ihi; i < m; ++i)
-            for (idx_t j = 0; j < i; ++j)
-                A(i, j) = (T)0.0;
-
-
         // Define Q
         std::vector<T> Q_;
         auto Q = new_matrix(Q_, m, m);
@@ -149,23 +138,40 @@ TEMPLATE_TEST_CASE("Manteuffel matrix properties",
         int ierr = qr_iteration(false, false, ilo, ihi, A, w, Q, opts);
         CHECK(ierr == 0);
 
-        // Sort the eigenvalues
-        std::sort(evals.begin(), evals.end(), [](const complex_t& a, const complex_t& b) {
-            return std::abs(a) < std::abs(b);
-        });
-        std::sort(w.begin(), w.end(), [](const complex_t& a, const complex_t& b) {
-            return std::abs(a) < std::abs(b);
-        });
+        // If the eigenvalues are real, sort them by their real values only
+        if (beta == 1 || beta == 2) {
+            std::sort(evals.begin(), evals.end(), [](const complex_t& a, const complex_t& b) {
+                return a.real() < b.real();
+            });
+            std::sort(w.begin(), w.end(), [](const complex_t& a, const complex_t& b) {
+                return a.real() < b.real();
+            });
+        
+        // If the eigenvalues are complex, sort them by their imaginary parts first, then real parts
+        } else {
+            std::sort(evals.begin(), evals.end(), [](const complex_t& a, const complex_t& b) {
+                return (a.imag() < b.imag()) || (a.imag() == b.imag() && a.real() < b.real());
+            });
+            std::sort(w.begin(), w.end(), [](const complex_t& a, const complex_t& b) {
+                return (a.imag() < b.imag()) || (a.imag() == b.imag() && a.real() < b.real());
+            });
+        }
 
         // Compute the residual
         real_t residual = 0.0;
         for (idx_t i = 0; i < m; ++i) {
-            residual += std::pow(std::abs(w[i]) - std::abs(evals[i]), 2.0);
+            residual += std::pow(std::abs(w[i] - evals[i]), 2.0);
         }
         residual = std::sqrt(residual);
         
-        CHECK(residual/m < tol );
+        // Compute the Frobenius norm 
+        real_t norm = 0.0;
+        for (idx_t i = 0; i < m; ++i) {
+            norm += std::pow(std::abs(evals[i]), 2.0);
+        }
 
-
+        norm = std::sqrt(norm);
+        // Compute the forward error
+        CHECK(residual/norm < tol );
     }
 }
