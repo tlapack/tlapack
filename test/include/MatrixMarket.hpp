@@ -358,7 +358,7 @@ struct MatrixMarket {
                     }
                 }
 
-                // Compute the element of the inverse matrix
+                // Compute the element of the inverse Cauchy matrix
                 A(i, j) = numerator / denominator;
             }
         }
@@ -388,10 +388,10 @@ struct MatrixMarket {
                 M(idx, idx) = 4; // Main diagonal of a block
 
                 if (j > 0) {
-                    M(idx, idx - 1) = -1; // Sub-diagonal of a block
+                    M(idx, idx - 1) = -1; // Sub-diagonal
                 }
                 if (j < n - 1) {
-                    M(idx, idx + 1) = -1; // Super-diagonal of a block
+                    M(idx, idx + 1) = -1; // Super-diagonal
                 }
                 if (i > 0) {
                     M(idx - n, idx) = -1; // Lower off-diagonal block
@@ -405,8 +405,9 @@ struct MatrixMarket {
     /**
      * @brief Generate a block tridiagonal Manteuffel matrix.
      *
-     * Each block on the diagonal is a tridiagonal matrix with 4's on the main diagonal and -1's on the off diagonals.
-     * The blocks above and below the diagonal blocks are identity matrices scaled by -1.
+     * Each block on the diagonal is a tridiagonal matrix with 0's on the main diagonal and -1's on the off diagonals.
+     * The blocks above the diagonal blocks are the identity matrix
+     * The blocks below the diagonal blocks are identity matrix scaled by -1.
      *
      * @param[out] N Matrix n*n- by -n*n of zeros.
      * @param[in] n The size of the block matrix (n x n blocks, each block is n x n).
@@ -420,13 +421,12 @@ struct MatrixMarket {
             
             for (idx_t j = 0; j < n; ++j) {
                 idx_t idx = i * n + j;
-                // M(idx, idx) = 4; // Main diagonal of a block
 
                 if (j > 0) {
-                    N(idx, idx - 1) = 1; // Sub-diagonal of a block
+                    N(idx, idx - 1) = 1; // Sub-diagonal 
                 }
                 if (j < n - 1) {
-                    N(idx, idx + 1) = -1; // Super-diagonal of a block
+                    N(idx, idx + 1) = -1; // Super-diagonal
                 }
                 if (i > 0) {
                     N(idx - n, idx) = -1; // Lower off-diagonal block
@@ -460,7 +460,9 @@ struct MatrixMarket {
                             const type_t<matrix_t>& beta) {
         using T = type_t<matrix_t>;
         using idx_t = size_type<matrix_t>;
-        const idx_t m = n * n; // Number of rows and columns of the Manteuffel matrix
+        
+        // Number of rows and columns of the Manteuffel matrix
+        const idx_t m = n * n; 
 
         // Compute the Manteuffel matrix A
         for (idx_t i = 0; i < m; ++i) {
