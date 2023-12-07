@@ -253,18 +253,16 @@ struct MatrixMarket {
      * @param[out] A Matrix.
      * @param[in] n Size of the matrix.
      */
-    template <TLAPACK_MATRIX matrix_t>
-    // Function to calculate binomial coefficients
-    int binomialCoeff(const type_t<matrix_t>& n, const type_t<matrix_t>& k)
-    {
-        using idx_t = size_type<matrix_t>;
-        if (k > n - k) k = n - k;
-        idx_t res = 1;
-        for (idx_t i = 0; i < k; ++i) {
-            res *= (n - i);
-            res /= (i + 1);
+    #include <iostream>
+    #include <vector>
+
+    // Function for calculating the binomial coefficient C(n, k)
+    unsigned long long binomialCoeff(int n, int k) {
+        if (k == 0 || k == n) {
+            return 1;
+        } else {
+            return binomialCoeff(n - 1, k - 1) + binomialCoeff(n - 1, k);
         }
-        return res;
     }
 
     // Template function to generate a binomial matrix

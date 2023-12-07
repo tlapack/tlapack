@@ -1,97 +1,70 @@
-// Test utilities and definitions (must come before <T>LAPACK headers)
-#include "testutils.hpp"
-
-// Auxiliary routines
-#include <tlapack/lapack/lacpy.hpp>
-#include <tlapack/lapack/lange.hpp>
-
-// Other routines
-#include <tlapack/blas/gemm.hpp>
-#include <tlapack/lapack/getrf.hpp>
-#include <tlapack/lapack/getri.hpp>
-
+#include <iostream>
+#include <vector>
+#include <cmath>
+#include <testutils.hpp>
 using namespace tlapack;
 
-TEMPLATE_TEST_CASE("Cauchy matrix properties",
-                   "[getri][cauchy]", 
-                   TLAPACK_TYPES_TO_TEST) 
+    // using matrix_t = TestType;
+    // using T = type_t<matrix_t>;
+    // using idx_t = size_type<matrix_t>;
+
+    // Function for calculating the binomial coefficient C(n, k)
+    unsigned long long binomialCoeff(int n, int k) {
+        if (k == 0 || k == n) {
+            return 1;
+        } else {
+            return binomialCoeff(n - 1, k - 1) + binomialCoeff(n - 1, k);
+        }
+    }
+
+    // Function for checking whether a matrix is a binomial matrix
+    template <typename T>
+    bool isBinomialMatrix(const std::vector<std::vector<T>>& A, double tol = 1e-10) {
+        int n = A.size();
+
+        // Check whether A is identical to its inverse value, taking the tolerance into account
+        for (int i = 0; i < n; ++i) {
+            for (int j = 0; j < n; ++j) {
+                T expected_value = static_cast<T>(binomialCoeff(n - 1, j) * binomialCoeff(n - 1, i - 1));
+                if (std::abs(A[i][j] - expected_value) > tol) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+TEMPLATE_TEST_CASE("is_eigen_dense, is_eigen_block and is_eigen_map work", "[plugins]", TLAPACK_TYPES_TO_TEST)
 {
-    using matrix_t = TestType;
-    using T = type_t<matrix_t>;
-    using idx_t = size_type<matrix_t>;
-    typedef real_type<T> real_t;  // equivalent to using real_t = real_type<T>;
+    int n = GENERATE(3, 5, 7, 9, 11);
 
-    // Functor
-    Create<matrix_t> new_matrix;
+    DYNAMIC_SECTION("n = " <<n)
+    {
+    std::vector<std::vector<int>> binomial_matrix_result;
+    // ... Populate binomial_matrix_result with BinomialMatrix function
 
-    // MatrixMarket reader
-    MatrixMarket mm;
+    // Check whether the matrix created is a binomial matrix
+    bool is_binomial = isBinomialMatrix(binomial_matrix_result, 1e-10);
 
-// Function to check if a matrix is involutory
-template <typename T>
-bool isInvolutory(const std::vector<std::vector<T>>& B) {
-    size_t n = B.size();
-    T identityScaleFactor = pow(2, n - 1);
-
-    // Calculate B^2
-    std::vector<std::vector<T>> result(n, std::vector<T>(n, 0));
-    for (size_t i = 0; i < n; ++i) {
-        for (size_t j = 0; j < n; ++j) {
-            for (size_t k = 0; k < n; ++k) {
-                result[i][j] += B[i][k] * B[k][j];
-            }
-            if (i == j) {
-                result[i][j] /= identityScaleFactor; // Scale the diagonal
-            }
-        }
+    std::cout << "Dimension n = " << n << std::endl;
+    std::cout << "Is Binomialmatrix: " << (is_binomial ? "true" : "false") << std::endl;
+    std::cout << "------------------------------" << std::endl;
+    CHECK(is_binomial);
     }
-
-    // Check if B^2 is close to the identity matrix
-    for (size_t i = 0; i < n; ++i) {
-        for (size_t j = 0; j < n; ++j) {
-            if ((i == j && std::abs(result[i][j] - 1.0) > 1e-6) || (i != j && std::abs(result[i][j]) > 1e-6)) {
-                return false;
-            }
-        }
-    }
-
-    return true;
-}}
-
-int main() {
-    size_t n = 4; // Change the value of n as needed
-
-    // Generate binomial matrix
-    std::vector<std::vector<double>> A;
-    binomialMatrix(A, n);
-
-    // Print the binomial matrix A
-    std::cout << "Binomial Matrix A:" << std::endl;
-    for (const auto& row : A) {
-        for (double entry : row) {
-            std::cout << entry << " ";
-        }
-        std::cout << std::endl;
-    }
-
-    // Scale A by 2^((1-n)/2) to get B
-    double scaleFactor = pow(2, (1 - n) / 2.0);
-    std::vector<std::vector<double>> B = A; // Copy A to B
-    for (size_t i = 0; i < n; ++i) {
-        for (size_t j = 0; j < n; ++j) {
-            B[i][j] *= scaleFactor;
-        }
-    }
-
-    // Check if B is involutory
-    bool isInvolutoryMatrix = isInvolutory(B);
-
-    // Print the result
-    if (isInvolutoryMatrix) {
-        std::cout << "Matrix B = A * 2^((1-n)/2) is involutory." << std::endl;
-    } else {
-        std::cout << "Matrix B = A * 2^((1-n)/2) is not involutory." << std::endl;
-    }
-
-    return 0;
 }
+// int main() {
+//     // Test für verschiedene Dimensionen n
+//     for (int n = 2; n <= 9; ++n) {
+//         std::vector<std::vector<int>> binomial_matrix_result;
+//         // ... Populate binomial_matrix_result with BinomialMatrix function
+
+//         // Überprüfen, ob die erstellte Matrix eine Binomialmatrix ist
+//         bool is_binomial = isBinomialMatrix(binomial_matrix_result, 1e-10);
+
+//         std::cout << "Dimension n = " << n << std::endl;
+//         std::cout << "Ist Binomialmatrix: " << (is_binomial ? "true" : "false") << std::endl;
+//         std::cout << "------------------------------" << std::endl;
+//         CHECK(is_binomial);
+//     }
+
+//     return 0;
+// }
