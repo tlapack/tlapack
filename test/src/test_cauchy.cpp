@@ -127,7 +127,7 @@ TEMPLATE_TEST_CASE("Cauchy matrix properties",
             for(idx_t j = 0; j < n; j++) 
                 E3(i, j) = invC(i, j) - invCexpl(i, j);
             
-        // error is  || inv(C)*C - I || / ( ||C|| * ||inv(C)|| )
+        // error is  || inv(C) - inv(C_explicit) || / ( ||inv(C_explicit)|| * ||inv(C)|| )
         real_t error3 = tlapack::lange(tlapack::MAX_NORM, E3) /
                        (tlapack::lange(tlapack::MAX_NORM, invCexpl) * tlapack::lange(tlapack::MAX_NORM, invC));
 
@@ -138,7 +138,7 @@ TEMPLATE_TEST_CASE("Cauchy matrix properties",
         // However, it is not tested , just calculated.
         if (n < 7)
         {
-            idx_t n_ = x.size();
+        idx_t n_ = x.size();
         T numerator = 1;   // Initialize numerator before the loop
         T denominator = 1; // Initialize denominator before the loop
         T determinant = 0; // Initialize determinant before the loop

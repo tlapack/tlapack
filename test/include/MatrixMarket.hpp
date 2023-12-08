@@ -447,7 +447,7 @@ struct MatrixMarket {
      * @param[out] A n*n by n*n matrix of zeros.
      * @param[in] M n*n- by -n*n M_Manteuffel matrix.
      * @param[in] N n*n- by -n*n N_Manteuffel matrix.
-     * @param[in] n The size of the block matrix (n x n blocks, each block is n x n).
+     * @param[in] m size matrix (n x n blocks, each block is n x n).
      * @param[in] h The scaling factor for the matrix.
      * @param[in] beta The parameter for scaling the matrix.
      */
@@ -455,15 +455,12 @@ struct MatrixMarket {
     void generateManteuffel(matrix_t& A, 
                             const matrix_t& M,
                             const matrix_t& N,
-                            const size_type<matrix_t>& n, 
+                            const size_type<matrix_t>& m, 
                             const type_t<matrix_t>& h, 
                             const type_t<matrix_t>& beta) {
         using T = type_t<matrix_t>;
         using idx_t = size_type<matrix_t>;
         
-        // Number of rows and columns of the Manteuffel matrix
-        const idx_t m = n * n; 
-
         // Compute the Manteuffel matrix A
         for (idx_t i = 0; i < m; ++i) {
             for (idx_t j = 0; j < m; ++j) {
