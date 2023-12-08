@@ -37,7 +37,7 @@ TEMPLATE_TEST_CASE("Cauchy matrix properties",
     // MatrixMarket reader
     MatrixMarket mm;
 
-    idx_t n = GENERATE(3, 6, 9);
+    idx_t n = GENERATE(3, 9, 15, 50, 100);
     GetriVariant variant = GENERATE(GetriVariant::UXLI, GetriVariant::UILI);
 
     DYNAMIC_SECTION("n = " << n << " variant = " << (char)variant) 
@@ -132,6 +132,11 @@ TEMPLATE_TEST_CASE("Cauchy matrix properties",
                        (tlapack::lange(tlapack::MAX_NORM, invCexpl) * tlapack::lange(tlapack::MAX_NORM, invC));
 
         UNSCOPED_INFO("|| inv(C)*C - I || / ( ||C|| * ||inv(C)|| )");
+
+        // std::cout <<  "Error = " << error3  << "Precision: " << safe_max<real_t>() << std::endl; 
+        // std::cout << "tol = " << tol << "eps = " << n << std::endl;
+        // std::cout << std::endl;
+
         CHECK(error3 / tol <= real_t(1));  // tests if error<=tol
 
         // This is the explicit formula for the determinant of a Cauchy matrix
