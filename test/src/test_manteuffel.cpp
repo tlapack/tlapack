@@ -51,9 +51,9 @@ TEMPLATE_TEST_CASE("Manteuffel matrix properties",
     // MatrixMarket reader
     MatrixMarket mm;
 
-    idx_t n = GENERATE(3, 5, 7, 11);
+    idx_t n = GENERATE(7, 25, 50);
     idx_t m = n * n;
-    real_t beta = GENERATE(1, 2, 3, 9);
+    real_t beta = GENERATE(1, 2, 3, 5, 7, 9);
     real_t h = 1.0;
     real_t L = h*(n+1);
 
@@ -84,14 +84,15 @@ TEMPLATE_TEST_CASE("Manteuffel matrix properties",
         // Initialize and compute C using the explicit formula
         mm.generateM_manteuffel(M, n);
         mm.generateN_manteuffel(N, n);
-        mm.generateManteuffel(A, M, N, n, h, beta);
+        mm.generateManteuffel(A, M, N, m, h, beta);
 
  
+        idx_t i = 0;
         // compute eigenvalues of A
         std::vector<complex_t> evals(m);
         std::complex<double> c(2, 0);
 
-        idx_t i = 0;
+        
 
         #include <cmath>
         for (idx_t k = 0; k < n; ++k) {
@@ -107,7 +108,7 @@ TEMPLATE_TEST_CASE("Manteuffel matrix properties",
         }
         
         // Define tau for Hessenberg reduction
-        std::vector<T> tau((m)-1);
+        std::vector<T> tau((m));
         const real_t zero(0);
         const idx_t ilo = 0;
         const idx_t ihi = m;
@@ -139,7 +140,7 @@ TEMPLATE_TEST_CASE("Manteuffel matrix properties",
         CHECK(ierr == 0);
 
         // If the eigenvalues are real, sort them by their real values only
-        if (beta == 1 || beta == 2) {
+        if (beta == 1 || beta == 2 || beta == 0.5) {
             std::sort(evals.begin(), evals.end(), [](const complex_t& a, const complex_t& b) {
                 return a.real() < b.real();
             });
@@ -171,6 +172,13 @@ TEMPLATE_TEST_CASE("Manteuffel matrix properties",
         }
 
         norm = std::sqrt(norm);
+        // std::cout << safe_max<real_t>() << std::endl;
+        // Print the residual/norm, beta, and safe_max<real_t>(), 
+        std::cout <<  "Error = " << residual/norm << "beta =  " << beta << "Precision: " << safe_max<real_t>() << std::endl; 
+        // print tol and eps
+        std::cout << "tol = " << tol << "eps = " << eps << std::endl;
+        // print new line
+        std::cout << std::endl;
         // Compute the forward error
         CHECK(residual/norm < tol );
     }
