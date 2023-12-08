@@ -140,7 +140,7 @@ TEMPLATE_TEST_CASE("Manteuffel matrix properties",
         CHECK(ierr == 0);
 
         // If the eigenvalues are real, sort them by their real values only
-        if (beta == 1 || beta == 2 || beta == 0.5) {
+        if (beta <= 2) {
             std::sort(evals.begin(), evals.end(), [](const complex_t& a, const complex_t& b) {
                 return a.real() < b.real();
             });
@@ -172,13 +172,11 @@ TEMPLATE_TEST_CASE("Manteuffel matrix properties",
         }
 
         norm = std::sqrt(norm);
-        // std::cout << safe_max<real_t>() << std::endl;
-        // Print the residual/norm, beta, and safe_max<real_t>(), 
-        std::cout <<  "Error = " << residual/norm << "beta =  " << beta << "Precision: " << safe_max<real_t>() << std::endl; 
-        // print tol and eps
-        std::cout << "tol = " << tol << "eps = " << eps << std::endl;
-        // print new line
-        std::cout << std::endl;
+
+        // std::cout <<  "Error = " << residual/norm << "beta =  " << beta << "Precision: " << safe_max<real_t>() << std::endl; 
+        // std::cout << "tol = " << tol << "eps = " << eps << std::endl;
+        // std::cout << std::endl;
+
         // Compute the forward error
         CHECK(residual/norm < tol );
     }
