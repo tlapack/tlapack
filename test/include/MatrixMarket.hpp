@@ -324,11 +324,36 @@ struct MatrixMarket {
     }
 
     /**
-     * @brief Generate a random dense matrix with specified condition number (if
-     * square).
+     * @brief Generate a random square orthogonal matrix.
+     *
+     * @param[out] A Matrix.
+     */
+    template <TLAPACK_MATRIX matrix_t>
+    void random_orth(matrix_t& A)
+    {
+        using T = type_t<matrix_t>;
+        using idx_t = size_type<matrix_t>;
+        Create<matrix_t> new_matrix;
+
+        const idx_t n = ncols(A);
+
+        std::vector <T> U_;
+        auto U = new_matrix(U_, n, n);
+
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = 0; i < n; ++i)
+                A(i, j) = rand_helper<T>(gen);
+        
+        std::vector<T> tau(n);
+        geqr2(A, tau);
+        ung2r(A, tau);
+    }
+
+    /**
+     * @brief Generate a random dense matrix with specified condition number.
      *
      * @param[in] log10_cond Base-10 logarithm of the condition number. Cond(A)
-     * = 10^log10_cond.
+     * = 10^log10_cond. Expecting log10_cond >= 0.
      * @param[out] A Matrix.
      */
     template <TLAPACK_MATRIX matrix_t>
@@ -341,30 +366,16 @@ struct MatrixMarket {
         const idx_t n = ncols(A);
         const idx_t k = min<idx_t>(m, n);
 
-        // Generate two random matrices U1 and U2
+        // Generate two orthogonal matrices U and V
         Create<matrix_t> new_matrix;
-        std::vector<T> U1_;
-        auto U1 = new_matrix(U1_, m, m);
-        std::vector<T> U2_;
-        auto U2 = new_matrix(U2_, n, n);
+        std::vector<T> U_;
+        auto U = new_matrix(U_, m, m);
+        std::vector<T> V_;
+        auto V = new_matrix(V_, n, n);
 
-        for (idx_t j = 0; j < m; ++j)
-            for (idx_t i = 0; i < m; ++i)
-                U1(i, j) = rand_helper<T>(gen);
-
-        for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = 0; i < n; ++i)
-                U2(i, j) = rand_helper<T>(gen);
-
-        // Perform QR factorization to obtain two random orthogonal matrices
-        std::vector<T> tau1(m);
-        geqr2(U1, tau1);
-        std::vector<T> tau2(n);
-        geqr2(U2, tau2);
-
-        // Get the orthonormal matrices
-        ung2r(U1, tau1);
-        ung2r(U2, tau2);
+        MatrixMarket mm;
+        mm.random_orth(U);
+        mm.random_orth(V);
 
         // Generate a diagonal matrix with diag(10^linspace(log10_cond, 0, n)))
         std::vector<T> D_;
@@ -378,11 +389,11 @@ struct MatrixMarket {
                     D(i, j) = T(0);
             };
 
-        // Set A = U1 * D * U2^H
-        std::vector<T> U1D_;
-        auto U1D = new_matrix(U1D_, m, n);
-        gemm(Op::NoTrans, Op::NoTrans, T(1), U1, D, U1D);
-        gemm(Op::NoTrans, Op::ConjTrans, T(1), U1D, U2, A);
+        // Set A = U * D * V^H
+        std::vector<T> UD_;
+        auto UD = new_matrix(UD_, m, n);
+        gemm(Op::NoTrans, Op::NoTrans, T(1), U, D, UD);
+        gemm(Op::NoTrans, Op::ConjTrans, T(1), UD, V, A);
     }
 
     /**
@@ -390,7 +401,7 @@ struct MatrixMarket {
      * scale the rows and columns.
      *
      * @param[in] log10_cond Base-10 logarithm of the condition number. cond(A)
-     * = 10^log10_cond.
+     * = 10^log10_cond. Expecting log10_cond >= 0.
      * @param[in] log10_row_from Base-10 logarithm of the starting row scaling
      * factor.
      * @param[in] log10_row_to Base-10 logarithm of the ending row scaling
