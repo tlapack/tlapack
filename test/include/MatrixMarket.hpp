@@ -337,13 +337,11 @@ struct MatrixMarket {
 
         const idx_t n = ncols(A);
 
-        std::vector <T> U_;
-        auto U = new_matrix(U_, n, n);
-
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = 0; i < n; ++i)
                 A(i, j) = rand_helper<T>(gen);
         
+        // Setting A = Q from the QR factorization of A
         std::vector<T> tau(n);
         geqr2(A, tau);
         ung2r(A, tau);
