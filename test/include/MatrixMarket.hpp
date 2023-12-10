@@ -333,7 +333,6 @@ struct MatrixMarket {
     {
         using T = type_t<matrix_t>;
         using idx_t = size_type<matrix_t>;
-        Create<matrix_t> new_matrix;
 
         const idx_t n = ncols(A);
 
