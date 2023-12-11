@@ -18,7 +18,7 @@
 namespace tlapack {
 
 /** schur_move reorders the Schur factorization of a matrix
- *  S = Q*A*Q**H, so that the diagonal element of T with row index IFST
+ *  S = Q*A*Q**H, so that the diagonal element of S with row index IFST
  *  is moved to row ILST.
  *
  *

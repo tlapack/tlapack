@@ -36,7 +36,6 @@ namespace tlapack {
  *
  *
  * @return  0 if success
- * @return -i if the ith argument is invalid
  * @return  i if the QR algorithm failed to compute all the eigenvalues
  *            in a total of 30 iterations per eigenvalue. elements
  *            i:ihi of w contain those eigenvalues which have been
@@ -85,7 +84,7 @@ int lahqr(bool want_t,
     using range = pair<idx_t, idx_t>;
 
     // Functor
-    Create<vector_type<matrix_t>> new_vector;
+    CreateStatic<vector_type<matrix_t>, 3> new_3_vector;
 
     // constants
     const real_t zero(0);
@@ -212,47 +211,48 @@ int lahqr(bool want_t,
                 istart = ilo;
                 continue;
             }
-            if (is_real<TA> && istart + 2 == istop) {
-                // 2x2 block, normalize the block
-                real_t cs;
-                TA sn;
-                // We don't check the error flag here because it should never
-                // fail for real values.
-                TA Aii = A(istart, istart);
-                TA Ajj = A(istart + 1, istart + 1);
-                TA Aij = A(istart, istart + 1);
-                TA Aji = A(istart + 1, istart);
-                complex_type<TA> wi = w[istart];
-                complex_type<TA> wj = w[istart + 1];
-                lahqr_schur22(Aii, Aij, Aji, Ajj, wi, wj, cs, sn);
-                A(istart, istart) = Aii;
-                A(istart + 1, istart + 1) = Ajj;
-                A(istart, istart + 1) = Aij;
-                A(istart + 1, istart) = Aji;
-                w[istart] = wi;
-                w[istart + 1] = wj;
-                // Apply the rotations from the normalization to the rest of the
-                // matrix.
-                if (want_t) {
-                    if (istart + 2 < istop_m) {
-                        auto x = slice(A, istart, range{istart + 2, istop_m});
-                        auto y =
-                            slice(A, istart + 1, range{istart + 2, istop_m});
+            if constexpr (is_real<TA>) {
+                if (istart + 2 == istop) {
+                    // 2x2 block, normalize the block
+                    real_t cs;
+                    TA sn;
+                    TA Aii = A(istart, istart);
+                    TA Ajj = A(istart + 1, istart + 1);
+                    TA Aij = A(istart, istart + 1);
+                    TA Aji = A(istart + 1, istart);
+                    complex_type<TA> wi = w[istart];
+                    complex_type<TA> wj = w[istart + 1];
+                    lahqr_schur22(Aii, Aij, Aji, Ajj, wi, wj, cs, sn);
+                    A(istart, istart) = Aii;
+                    A(istart + 1, istart + 1) = Ajj;
+                    A(istart, istart + 1) = Aij;
+                    A(istart + 1, istart) = Aji;
+                    w[istart] = wi;
+                    w[istart + 1] = wj;
+                    // Apply the rotations from the normalization to the rest of
+                    // the matrix.
+                    if (want_t) {
+                        if (istart + 2 < istop_m) {
+                            auto x =
+                                slice(A, istart, range{istart + 2, istop_m});
+                            auto y = slice(A, istart + 1,
+                                           range{istart + 2, istop_m});
+                            rot(x, y, cs, sn);
+                        }
+                        auto x2 = slice(A, range{istart_m, istart}, istart);
+                        auto y2 = slice(A, range{istart_m, istart}, istart + 1);
+                        rot(x2, y2, cs, sn);
+                    }
+                    if (want_z) {
+                        auto x = col(Z, istart);
+                        auto y = col(Z, istart + 1);
                         rot(x, y, cs, sn);
                     }
-                    auto x2 = slice(A, range{istart_m, istart}, istart);
-                    auto y2 = slice(A, range{istart_m, istart}, istart + 1);
-                    rot(x2, y2, cs, sn);
+                    k_defl = 0;
+                    istop = istart;
+                    istart = ilo;
+                    continue;
                 }
-                if (want_z) {
-                    auto x = col(Z, istart);
-                    auto y = col(Z, istart + 1);
-                    rot(x, y, cs, sn);
-                }
-                k_defl = 0;
-                istop = istart;
-                istart = ilo;
-                continue;
             }
         }
 
@@ -292,8 +292,8 @@ int lahqr(bool want_t,
         // If it has split, we can introduce any shift at the top of the new
         // subblock. Now that we know the specific shift, we can also check
         // whether we can introduce that shift somewhere else in the subblock.
-        std::vector<TA> v_;
-        auto v = new_vector(v_, 3);
+        TA v_[3];
+        auto v = new_3_vector(v_);
         TA t1;
         idx_t istart2 = istart;
         if (istart + 3 < istop) {

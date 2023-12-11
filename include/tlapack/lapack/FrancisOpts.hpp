@@ -76,7 +76,7 @@ WorkInfo multishift_qr_worksize(bool want_t,
 
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_SVECTOR vector_t,
-          TLAPACK_RWORKSPACE work_t,
+          TLAPACK_WORKSPACE work_t,
           enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
 int multishift_qr_work(bool want_t,
                        bool want_z,
@@ -106,7 +106,7 @@ WorkInfo aggressive_early_deflation_worksize(bool want_t,
 
 template <TLAPACK_SMATRIX matrix_t,
           TLAPACK_SVECTOR vector_t,
-          TLAPACK_RWORKSPACE work_t,
+          TLAPACK_WORKSPACE work_t,
           enable_if_t<is_complex<type_t<vector_t> >, int> = 0>
 void aggressive_early_deflation_work(bool want_t,
                                      bool want_z,

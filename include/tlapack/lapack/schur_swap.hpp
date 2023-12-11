@@ -58,7 +58,9 @@ int schur_swap(bool want_q,
     using range = pair<idx_t, idx_t>;
 
     // Functor for creating new matrices
-    Create<matrix_t> new_matrix;
+    CreateStatic<matrix_t, 3, 2> new_3by2_matrix;
+    CreateStatic<matrix_t, 4, 4> new_4by4_matrix;
+    CreateStatic<matrix_t, 4, 2> new_4by2_matrix;
 
     const idx_t n = ncols(A);
     const T zero(0);
@@ -133,8 +135,8 @@ int schur_swap(bool want_q,
         // Swap 1-by-1 block with 2-by-2 block
         //
 
-        std::vector<T> B_;
-        auto B = new_matrix(B_, 3, 2);
+        T B_[3 * 2];
+        auto B = new_3by2_matrix(B_);
         B(0, 0) = A(j0, j1);
         B(1, 0) = A(j1, j1) - A(j0, j0);
         B(2, 0) = A(j2, j1);
@@ -201,8 +203,8 @@ int schur_swap(bool want_q,
         // Swap 2-by-2 block with 1-by-1 block
         //
 
-        std::vector<T> B_;
-        auto B = new_matrix(B_, 3, 2);
+        T B_[3 * 2];
+        auto B = new_3by2_matrix(B_);
         B(0, 0) = A(j1, j2);
         B(1, 0) = A(j1, j1) - A(j2, j2);
         B(2, 0) = A(j1, j0);
@@ -265,8 +267,8 @@ int schur_swap(bool want_q,
         A(j2, j0) = zero;
     }
     if (n1 == 2 and n2 == 2) {
-        std::vector<T> D_;
-        auto D = new_matrix(D_, 4, 4);
+        T D_[4 * 4];
+        auto D = new_4by4_matrix(D_);
 
         auto AD_slice = slice(A, range{j0, j0 + 4}, range{j0, j0 + 4});
         lacpy(GENERAL, AD_slice, D);
@@ -277,8 +279,8 @@ int schur_swap(bool want_q,
         T thresh = max(ten * eps * dnorm, small_num);
         // Note: max() may not propagate NaNs.
 
-        std::vector<T> V_;
-        auto V = new_matrix(V_, 4, 2);
+        T V_[4 * 2];
+        auto V = new_4by2_matrix(V_);
         auto X = slice(V, range{0, 2}, range{0, 2});
         auto TL = slice(D, range{0, 2}, range{0, 2});
         auto TR = slice(D, range{2, 4}, range{2, 4});

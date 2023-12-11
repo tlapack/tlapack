@@ -1,6 +1,6 @@
 /// @file test_schur_swap.cpp
 /// @author Thijs Steel, KU Leuven, Belgium
-/// @brief Test 1x1 and 2x2 sylvester solver
+/// @brief Test moving of multiple blocks in generalized schur form
 //
 // Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
 //

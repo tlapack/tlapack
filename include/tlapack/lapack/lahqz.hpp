@@ -17,8 +17,10 @@
 #include "tlapack/base/utils.hpp"
 #include "tlapack/blas/rot.hpp"
 #include "tlapack/blas/rotg.hpp"
+#include "tlapack/lapack/inv_house3.hpp"
 #include "tlapack/lapack/lahqz_eig22.hpp"
 #include "tlapack/lapack/lahqz_shiftcolumn.hpp"
+#include "tlapack/lapack/svd22.hpp"
 
 namespace tlapack {
 
@@ -73,7 +75,7 @@ int lahqz(bool want_s,
     using range = pair<idx_t, idx_t>;
 
     // Functor
-    Create<vector_type<matrix_t>> new_vector;
+    CreateStatic<vector_type<matrix_t>, 3> new_3_vector;
 
     // constants
     const real_t zero(0);
@@ -130,8 +132,8 @@ int lahqz(bool want_s,
     TA eshift = (TA)0.;
 
     // Local workspace
-    std::vector<TA> v_;
-    auto v = new_vector(v_, 3);
+    TA v_[3];
+    auto v = new_3_vector(v_);
 
     for (idx_t iter = 0; iter <= itmax; ++iter) {
         if (iter == itmax) {
@@ -350,9 +352,53 @@ int lahqz(bool want_s,
                     //     ( B11  0  )
                     // B = (         ) with B11 non-negative
                     //     (  0  B22 )
+                    TA ssmin, ssmax, csl, snl, csr, snr;
+                    svd22(B22(0, 0), B22(0, 1), B22(1, 1), ssmin, ssmax, csl,
+                          snl, csr, snr);
 
-                    /// @todo: this depends on lasv2, so we need to merge the
-                    // SVD PR first.
+                    if (ssmax < (TA)0) {
+                        csr = -csr;
+                        snr = -snr;
+                        ssmin = -ssmin;
+                        ssmax = -ssmax;
+                    }
+
+                    B22(0, 0) = ssmax;
+                    B22(1, 1) = ssmin;
+                    B22(0, 1) = (TA)0;
+
+                    // Apply rotations to A
+                    auto a1l = slice(A, istart, range(istart, istop_m));
+                    auto a2l = slice(A, istart + 1, range(istart, istop_m));
+                    rot(a1l, a2l, csl, snl);
+                    auto a1r = slice(A, range(istart_m, istop), istart);
+                    auto a2r = slice(A, range(istart_m, istop), istart + 1);
+                    rot(a1r, a2r, csr, snr);
+                    // Apply rotations to B
+                    if (istart + 2 < n) {
+                        auto b1l = slice(B, istart, range(istart + 2, istop_m));
+                        auto b2l =
+                            slice(B, istart + 1, range(istart + 2, istop_m));
+                        rot(b1l, b2l, csl, snl);
+                    }
+                    auto b1r = slice(B, range(istart_m, istart), istart);
+                    auto b2r = slice(B, range(istart_m, istart), istart + 1);
+                    rot(b1r, b2r, csr, snr);
+
+                    // Apply rotation to Q
+                    if (want_q) {
+                        auto q1 = col(Q, istart);
+                        auto q2 = col(Q, istart + 1);
+                        rot(q1, q2, csl, snl);
+                    }
+
+                    // Apply rotation to Z
+                    if (want_z) {
+                        auto z1 = col(Z, istart);
+                        auto z2 = col(Z, istart + 1);
+                        rot(z1, z2, csr, snr);
+                    }
+
                     k_defl = 0;
                     istop = istart;
                     istart = ilo;
@@ -394,18 +440,18 @@ int lahqz(bool want_s,
         // subblock. Now that we know the specific shift, we can also check
         // whether we can introduce that shift somewhere else in the subblock.
         idx_t istart2 = istart;
+        TA t1;
         if (istart + 3 < istop) {
             for (idx_t i = istop - 3; i > istart; --i) {
                 auto H = slice(A, range{i, i + 3}, range{i, i + 3});
                 auto T = slice(B, range{i, i + 3}, range{i, i + 3});
                 lahqz_shiftcolumn(H, T, v, shift1, shift2, beta1, beta2);
-
-                real_t c1, c2;
-                TA s1, s2;
-                rotg(v[1], v[2], c1, s1);
-                rotg(v[0], v[1], c2, s2);
-
-                if (abs1(-conj(s2) * A(i, i - 1)) <
+                larfg(FORWARD, COLUMNWISE_STORAGE, v, t1);
+                v[0] = t1;
+                const TA refsum =
+                    conj(v[0]) * A(i, i - 1) + conj(v[1]) * A(i + 1, i - 1);
+                if (abs1(A(i + 1, i - 1) - refsum * v[1]) +
+                        abs1(refsum * v[2]) <=
                     eps * (abs1(A(i, i - 1)) + abs1(A(i, i + 1)) +
                            abs1(A(i + 1, i + 2)))) {
                     istart2 = i;
@@ -416,19 +462,123 @@ int lahqz(bool want_s,
 
         // All the preparations are done, we can apply an implicit QZ
         // iteration
-        for (idx_t i = istart2; i < istop - 1; ++i) {
-            const idx_t nr = std::min<idx_t>(3, istop - i);
-            real_t c1, c2;
-            TA s1, s2;
-
-            // Calculate rotations from the left
+        for (idx_t i = istart2; i < istop - 2; ++i) {
             if (i == istart2) {
-                auto H = slice(A, range{i, i + nr}, range{i, i + nr});
-                auto T = slice(B, range{i, i + nr}, range{i, i + nr});
-                auto x = slice(v, range{0, nr});
+                // This is the first iteration, calculate a reflector to
+                // introduce the shift
+                auto H = slice(A, range{i, i + 3}, range{i, i + 3});
+                auto T = slice(B, range{i, i + 3}, range{i, i + 3});
+                lahqz_shiftcolumn(H, T, v, shift1, shift2, beta1, beta2);
+                larfg(FORWARD, COLUMNWISE_STORAGE, v, t1);
+                if (i > istart) {
+                    A(i, i - 1) = A(i, i - 1) * (one - conj(t1));
+                }
+            }
+            else {
+                // Calculate a reflector to move the bulge one position
+                v[0] = A(i, i - 1);
+                v[1] = A(i + 1, i - 1);
+                v[2] = A(i + 2, i - 1);
+                larfg(FORWARD, COLUMNWISE_STORAGE, v, t1);
+                A(i, i - 1) = v[0];
+                A(i + 1, i - 1) = zero;
+                A(i + 2, i - 1) = zero;
+            }
+
+            // The following code applies the reflector we have just calculated.
+            // We write this out instead of using larf because a direct loop is
+            // more efficient for small reflectors.
+            {
+                t1 = conj(t1);
+                const TA v2 = v[1];
+                const TA t2 = t1 * v2;
+                const TA v3 = v[2];
+                const TA t3 = t1 * v[2];
+                TA sum;
+
+                // Apply reflector from the left to A
+                for (idx_t j = i; j < istop_m; ++j) {
+                    sum = A(i, j) + conj(v2) * A(i + 1, j) +
+                          conj(v3) * A(i + 2, j);
+                    A(i, j) = A(i, j) - sum * t1;
+                    A(i + 1, j) = A(i + 1, j) - sum * t2;
+                    A(i + 2, j) = A(i + 2, j) - sum * t3;
+                }
+                // Apply reflector from the left to B
+                for (idx_t j = i; j < istop_m; ++j) {
+                    sum = B(i, j) + conj(v2) * B(i + 1, j) +
+                          conj(v3) * B(i + 2, j);
+                    B(i, j) = B(i, j) - sum * t1;
+                    B(i + 1, j) = B(i + 1, j) - sum * t2;
+                    B(i + 2, j) = B(i + 2, j) - sum * t3;
+                }
+                if (want_q) {
+                    // Apply reflector to Q from the right
+                    for (idx_t j = 0; j < n; ++j) {
+                        sum = Q(j, i) + v2 * Q(j, i + 1) + v3 * Q(j, i + 2);
+                        Q(j, i) = Q(j, i) - sum * conj(t1);
+                        Q(j, i + 1) = Q(j, i + 1) - sum * conj(t2);
+                        Q(j, i + 2) = Q(j, i + 2) - sum * conj(t3);
+                    }
+                }
+            }
+
+            // Remove fill-in from B using an inverse reflector
+            auto T = slice(B, range{i + 1, i + 3}, range{i, i + 3});
+            inv_house3(T, v, t1);
+
+            // The following code applies the reflector we have just calculated.
+            // We write this out instead of using larf because a direct loop is
+            // more efficient for small reflectors.
+            {
+                t1 = conj(t1);
+                const TA v2 = v[1];
+                const TA t2 = t1 * v2;
+                const TA v3 = v[2];
+                const TA t3 = t1 * v[2];
+                TA sum;
+
+                // Apply reflector from the right to B
+                for (idx_t j = istart_m; j < i + 3; ++j) {
+                    sum = B(j, i) + v2 * B(j, i + 1) + v3 * B(j, i + 2);
+                    B(j, i) = B(j, i) - sum * conj(t1);
+                    B(j, i + 1) = B(j, i + 1) - sum * conj(t2);
+                    B(j, i + 2) = B(j, i + 2) - sum * conj(t3);
+                }
+                B(i + 1, i) = (TA)0;
+                B(i + 2, i) = (TA)0;
+                // Apply reflector from the right to A
+                for (idx_t j = istart_m; j < min(i + 4, istop); ++j) {
+                    sum = A(j, i) + v2 * A(j, i + 1) + v3 * A(j, i + 2);
+                    A(j, i) = A(j, i) - sum * conj(t1);
+                    A(j, i + 1) = A(j, i + 1) - sum * conj(t2);
+                    A(j, i + 2) = A(j, i + 2) - sum * conj(t3);
+                }
+                if (want_z) {
+                    // Apply reflector to Z from the right
+                    for (idx_t j = 0; j < n; ++j) {
+                        sum = Z(j, i) + v2 * Z(j, i + 1) + v3 * Z(j, i + 2);
+                        Z(j, i) = Z(j, i) - sum * conj(t1);
+                        Z(j, i + 1) = Z(j, i + 1) - sum * conj(t2);
+                        Z(j, i + 2) = Z(j, i + 2) - sum * conj(t3);
+                    }
+                }
+            }
+        }
+        // Handle the final 2x2 block separately using a 2x2 rotation instead
+        // of a 3x3 reflector.
+        {
+            idx_t i = istop - 2;
+
+            real_t c2;
+            TA s2;
+
+            if (i == istart2) {
+                auto H = slice(A, range{i, i + 2}, range{i, i + 2});
+                auto T = slice(B, range{i, i + 2}, range{i, i + 2});
+                auto x = slice(v, range{0, 2});
                 lahqz_shiftcolumn(H, T, x, shift1, shift2, beta1, beta2);
 
-                if (nr == 3) rotg(x[1], x[2], c1, s1);
                 rotg(x[0], x[1], c2, s2);
 
                 if (i > istart) {
@@ -436,37 +586,12 @@ int lahqz(bool want_s,
                 }
             }
             else {
-                if (nr == 3) {
-                    rotg(A(i + 1, i - 1), A(i + 2, i - 1), c1, s1);
-                    A(i + 2, i - 1) = zero;
-                }
                 rotg(A(i, i - 1), A(i + 1, i - 1), c2, s2);
                 A(i + 1, i - 1) = zero;
             }
-            // Apply rotations from the left
-            if (nr == 3) {
-                for (idx_t j = i; j < istop_m; ++j) {
-                    auto temp = c1 * A(i + 1, j) + s1 * A(i + 2, j);
-                    A(i + 2, j) = -conj(s1) * A(i + 1, j) + c1 * A(i + 2, j);
-                    A(i + 1, j) = -conj(s2) * A(i, j) + c2 * temp;
-                    A(i, j) = c2 * A(i, j) + s2 * temp;
-                }
-                for (idx_t j = i; j < istop_m; ++j) {
-                    auto temp = c1 * B(i + 1, j) + s1 * B(i + 2, j);
-                    B(i + 2, j) = -conj(s1) * B(i + 1, j) + c1 * B(i + 2, j);
-                    B(i + 1, j) = -conj(s2) * B(i, j) + c2 * temp;
-                    B(i, j) = c2 * B(i, j) + s2 * temp;
-                }
-                if (want_q) {
-                    for (idx_t j = 0; j < n; ++j) {
-                        auto temp = c1 * Q(j, i + 1) + conj(s1) * Q(j, i + 2);
-                        Q(j, i + 2) = -s1 * Q(j, i + 1) + c1 * Q(j, i + 2);
-                        Q(j, i + 1) = -s2 * Q(j, i) + c2 * temp;
-                        Q(j, i) = c2 * Q(j, i) + conj(s2) * temp;
-                    }
-                }
-            }
-            else {
+
+            // Apply rotation from the left
+            {
                 auto a1 = slice(A, i, range{i, istop_m});
                 auto a2 = slice(A, i + 1, range{i, istop_m});
                 rot(a1, a2, c2, s2);
@@ -481,44 +606,12 @@ int lahqz(bool want_s,
             }
 
             // Remove fill-in from B
-            if (nr == 3) {
-                rotg(B(i + 2, i + 2), B(i + 2, i + 1), c1, s1);
-                s1 = -s1;
-                B(i + 2, i + 1) = (TA)0.;
-                // Also apply the rotation to the 2 elements above so that
-                // we can calculate the next rotation
-                auto temp = c1 * B(i + 1, i + 1) + conj(s1) * B(i + 1, i + 2);
-                B(i + 1, i + 2) = -s1 * B(i + 1, i + 1) + c1 * B(i + 1, i + 2);
-                B(i + 1, i + 1) = temp;
-            }
             rotg(B(i + 1, i + 1), B(i + 1, i), c2, s2);
             s2 = -s2;
             B(i + 1, i) = (TA)0.;
 
             // Apply rotation from the right
-            if (nr == 3) {
-                for (idx_t j = istart_m; j < i + 1; ++j) {
-                    auto temp = c1 * B(j, i + 1) + conj(s1) * B(j, i + 2);
-                    B(j, i + 2) = -s1 * B(j, i + 1) + c1 * B(j, i + 2);
-                    B(j, i + 1) = -s2 * B(j, i) + c2 * temp;
-                    B(j, i) = c2 * B(j, i) + conj(s2) * temp;
-                }
-                for (idx_t j = istart_m; j < min(i + 4, ihi); ++j) {
-                    auto temp = c1 * A(j, i + 1) + conj(s1) * A(j, i + 2);
-                    A(j, i + 2) = -s1 * A(j, i + 1) + c1 * A(j, i + 2);
-                    A(j, i + 1) = -s2 * A(j, i) + c2 * temp;
-                    A(j, i) = c2 * A(j, i) + conj(s2) * temp;
-                }
-                if (want_z) {
-                    for (idx_t j = 0; j < n; ++j) {
-                        auto temp = c1 * Z(j, i + 1) + conj(s1) * Z(j, i + 2);
-                        Z(j, i + 2) = -s1 * Z(j, i + 1) + c1 * Z(j, i + 2);
-                        Z(j, i + 1) = -s2 * Z(j, i) + c2 * temp;
-                        Z(j, i) = c2 * Z(j, i) + conj(s2) * temp;
-                    }
-                }
-            }
-            else {
+            {
                 auto b1 = slice(B, range{istart_m, i + 1}, i);
                 auto b2 = slice(B, range{istart_m, i + 1}, i + 1);
                 rot(b1, b2, c2, conj(s2));

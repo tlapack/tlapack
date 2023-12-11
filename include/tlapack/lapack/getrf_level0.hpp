@@ -78,7 +78,7 @@ int getrf_level0(matrix_t& A, piv_t& piv)
 
         // if the pivot happens to be a piv[j]>j(piv[j] not equal to j), then
         // swap j-th row and piv[j] row of A
-        if (piv[j] != j) {
+        if ((idx_t)piv[j] != j) {
             for (idx_t i = 0; i < n; i++) {
                 T tmp = A(j, i);
                 A(j, i) = A(piv[j], i);

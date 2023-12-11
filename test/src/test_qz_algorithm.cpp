@@ -145,8 +145,11 @@ TEMPLATE_TEST_CASE("QZ algorithm",
         auto work = new_matrix(work_, n, n);
 
         // Calculate residuals
-        auto orth_res_norm = check_orthogonality(Q, res);
-        CHECK(orth_res_norm <= tol);
+        auto orth_res_norm_q = check_orthogonality(Q, res);
+        CHECK(orth_res_norm_q <= tol);
+
+        auto orth_res_norm_z = check_orthogonality(Z, res);
+        CHECK(orth_res_norm_z <= tol);
 
         auto normA = tlapack::lange(tlapack::FROB_NORM, A);
         auto normA_res =
