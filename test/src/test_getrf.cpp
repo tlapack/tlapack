@@ -68,7 +68,9 @@ TEMPLATE_TEST_CASE("LU factorization of a general m-by-n matrix",
         // Update A with random numbers
         if (matrix_type == "Random")
             mm.random(A);
-        else if (matrix_type == "Near overflow")
+        else if (matrix_type == "Near overflow" && eps < pow(10, -10))
+            mm.random_cond_scaled(A, T(1), T(0), T(0), T(-307), T(307));
+        else if (matrix_type == "Near overflow" && eps >= pow(10, -10))
             mm.random_cond_scaled(A, T(1), T(0), T(0), T(-37), T(37));
 
         // We will make a deep copy A

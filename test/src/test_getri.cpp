@@ -59,11 +59,12 @@ TEMPLATE_TEST_CASE("Inversion of a general m-by-n matrix",
         auto invA = new_matrix(invA_, n, n);
 
         // forming A
-        if (matrix_type == "Near overflow")
-            mm.random_cond_scaled(A, T(1), T(0), T(0), T(0), T(36));
-        else
+        if (matrix_type == "Random")
             mm.random(A);
-        
+        else if (matrix_type == "Near overflow" && eps < pow(10, -10))
+            mm.random_cond_scaled(A, T(1), T(0), T(0), T(0), T(307));
+        else if (matrix_type == "Near overflow" && eps >= pow(10, -10))
+            mm.random_cond_scaled(A, T(1), T(0), T(0), T(0), T(37));
 
         // make a deep copy A
         lacpy(GENERAL, A, invA);
