@@ -438,6 +438,194 @@ struct MatrixMarket {
             };
     }
 
+    /**
+     * @brief Generate a Cauchy matrix.
+     *
+     * The Cauchy matrix is defined by:
+     * A_{ij} = 1 / (x[i] + y[j])
+     *
+     * @param[out] A Matrix.
+     * @param[in] x First vector.
+     * @param[in] y Optional vector of y values. If not provided, y = x.
+     */
+    template <TLAPACK_MATRIX matrix_t>
+    void generateCauchy(matrix_t& A, 
+                        const std::vector<type_t<matrix_t>>& x, 
+                        const std::vector<type_t<matrix_t>>& y) 
+    {
+        using T = type_t<matrix_t>;
+        using idx_t = size_type<matrix_t>;
+
+        const idx_t m = x.size();
+        const idx_t n = y.size();
+
+        for (idx_t i = 0; i < m; ++i) {
+            for (idx_t j = 0; j < n; ++j) {
+                A(i, j) = T(1) / (x[i] + y[j]);
+            }
+        }
+    }
+
+    /**
+     * @brief Generate an Inverse Cauchy matrix.
+     *
+     * The inverse of a Cauchy matrix is defined by a specific formula.
+     * See: https://proofwiki.org/wiki/Inverse_of_Cauchy_Matrix
+     *
+     * @param[out] A Matrix to store the inverse Cauchy matrix.
+     * @param[in] x First vector.
+     * @param[in] y Second vector. If not provided, y = x.
+     * @return True if the inverse was successfully generated, false otherwise.
+     */
+    template <TLAPACK_MATRIX matrix_t>
+    bool generateInverseCauchy(matrix_t& A, 
+                               const std::vector<type_t<matrix_t>>& x, 
+                               const std::vector<type_t<matrix_t>>& y = {}) 
+    {
+        using T = type_t<matrix_t>;
+        using idx_t = size_type<matrix_t>;
+
+        const std::vector<T>& y_ref = y.empty() ? x : y; // Use x if y is not provided
+        const idx_t n = x.size();
+
+        if (n != y_ref.size()) {
+            // The lengths of x and y must be equal to generate a Cauchy matrix
+            return false;
+        }
+
+        // Assuming A is already initialized and has the proper dimensions
+        for (idx_t i = 0; i < n; ++i) {
+            for (idx_t j = 0; j < n; ++j) {
+                T numerator = 1;
+                T denominator = (x[j] + y_ref[i]);
+
+                // Calculate the product terms for the numerator
+                for (idx_t k = 0; k < n; ++k) {
+                    numerator *= (x[j] + y_ref[k]) * (x[k] + y_ref[i]);
+                }
+
+                // Calculate the product terms for the denominator
+                for (idx_t k = 0; k < n; ++k) {
+                    if (k != j) {
+                        denominator *= (x[j] - x[k]);
+                    }
+                    if (k != i) {
+                        denominator *= (y_ref[i] - y_ref[k]);
+                    }
+                }
+
+                // Compute the element of the inverse Cauchy matrix
+                A(i, j) = numerator / denominator;
+            }
+        }
+
+        return true;
+    }
+
+
+    /**
+     * @brief Generate a block tridiagonal Manteuffel matrix.
+     *
+     * Each block on the diagonal is a tridiagonal matrix with 4's on the main diagonal and -1's on the off diagonals.
+     * The blocks above and below the diagonal blocks are identity matrices scaled by -1.
+     *
+     * @param[out] M Matrix n*n- by -n*n of zeros.
+     * @param[in] n The size of the block matrix (n x n blocks, each block is n x n).
+     */ 
+    template <TLAPACK_MATRIX matrix_t>
+    void generateM_manteuffel(matrix_t& M, const size_type<matrix_t>& n) {
+        using T = type_t<matrix_t>;
+        using idx_t = size_type<matrix_t>;
+
+        for (idx_t i = 0; i < n; ++i) {
+            
+            for (idx_t j = 0; j < n; ++j) {
+                idx_t idx = i * n + j;
+                M(idx, idx) = 4; // Main diagonal of a block
+
+                if (j > 0) {
+                    M(idx, idx - 1) = -1; // Sub-diagonal
+                }
+                if (j < n - 1) {
+                    M(idx, idx + 1) = -1; // Super-diagonal
+                }
+                if (i > 0) {
+                    M(idx - n, idx) = -1; // Lower off-diagonal block
+                }
+                if (i < n - 1) {
+                    M(idx + n, idx) = -1; // Upper off-diagonal block
+                }
+            }
+        }
+    }
+    /**
+     * @brief Generate a block tridiagonal Manteuffel matrix.
+     *
+     * Each block on the diagonal is a tridiagonal matrix with 0's on the main diagonal and -1's on the off diagonals.
+     * The blocks above the diagonal blocks are the identity matrix
+     * The blocks below the diagonal blocks are identity matrix scaled by -1.
+     *
+     * @param[out] N Matrix n*n- by -n*n of zeros.
+     * @param[in] n The size of the block matrix (n x n blocks, each block is n x n).
+     */ 
+    template <TLAPACK_MATRIX matrix_t>
+    void generateN_manteuffel(matrix_t& N, const size_type<matrix_t>& n) {
+        using T = type_t<matrix_t>;
+        using idx_t = size_type<matrix_t>;
+
+        for (idx_t i = 0; i < n; ++i) {
+            
+            for (idx_t j = 0; j < n; ++j) {
+                idx_t idx = i * n + j;
+
+                if (j > 0) {
+                    N(idx, idx - 1) = 1; // Sub-diagonal 
+                }
+                if (j < n - 1) {
+                    N(idx, idx + 1) = -1; // Super-diagonal
+                }
+                if (i > 0) {
+                    N(idx - n, idx) = -1; // Lower off-diagonal block
+                }
+                if (i < n - 1) {
+                    N(idx + n, idx) = 1; // Upper off-diagonal block
+                }
+            }
+        }
+    }
+
+    /**
+     * @brief Generate the complete Manteuffel matrix A.
+     *
+     * The Manteuffel matrix A is defined by the formula:
+     * A = (1 / h^2) * M + (beta / (2 * h)) * N
+     *
+     * @param[out] A n*n by n*n matrix of zeros.
+     * @param[in] M n*n- by -n*n M_Manteuffel matrix.
+     * @param[in] N n*n- by -n*n N_Manteuffel matrix.
+     * @param[in] m size matrix (n x n blocks, each block is n x n).
+     * @param[in] h The scaling factor for the matrix.
+     * @param[in] beta The parameter for scaling the matrix.
+     */
+    template <TLAPACK_MATRIX matrix_t>
+    void generateManteuffel(matrix_t& A, 
+                            const matrix_t& M,
+                            const matrix_t& N,
+                            const size_type<matrix_t>& m, 
+                            const type_t<matrix_t>& h, 
+                            const type_t<matrix_t>& beta) {
+        using T = type_t<matrix_t>;
+        using idx_t = size_type<matrix_t>;
+        
+        // Compute the Manteuffel matrix A
+        for (idx_t i = 0; i < m; ++i) {
+            for (idx_t j = 0; j < m; ++j) {
+                A(i, j) = (T(1) / (h * h)) * M(i, j) + (beta / (T(2) * h)) * N(i, j); 
+            }
+        }
+    }
+
+
     rand_generator gen;
 };
 
