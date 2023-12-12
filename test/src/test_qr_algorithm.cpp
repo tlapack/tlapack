@@ -65,6 +65,7 @@ TEMPLATE_TEST_CASE("QR algorithm",
     const real_t one(1);
     const idx_t ns = std::get<1>(variant);
     const idx_t nw = std::get<2>(variant);
+    const real_t eps = ulp<real_t>();
 
     // Only run the large random test once
     if (matrix_type == "Large Random" && seed != 2) SKIP_TEST;
@@ -89,9 +90,19 @@ TEMPLATE_TEST_CASE("QR algorithm",
     if (matrix_type == "Random") {
         mm.hessenberg(A);
     }
-    if (matrix_type == "Near overflow") {
-        const real_t large_num = safe_max<real_t>() * ulp<real_t>();
-        mm.single_value(A, large_num);
+    if (matrix_type == "Near overflow" && eps < pow(10, -10)) {
+        mm.random_cond_scaled(A, T(1), T(0), T(0), T(-307), T(307));
+
+        // Hessenberg factorization
+        std::vector<T> tau(n);
+        gehrd(0, n, A, tau);
+    }
+    if (matrix_type == "Near overflow" && eps >= pow(10, -10)) {
+        mm.random_cond_scaled(A, T(1), T(0), T(0), T(-37), T(37));
+
+        // Hessenberg factorization
+        std::vector<T> tau(n);
+        gehrd(0, n, A, tau);
     }
     if (matrix_type == "Large Random") {
         // Generate full matrix
