@@ -100,7 +100,6 @@ add_executable(test_generalized_schur_swap test_generalized_schur_swap.cpp)
 add_executable(test_generalized_schur_move test_generalized_schur_move.cpp)
 add_executable(test_generalized_aed test_generalized_aed.cpp)
 add_executable(test_multishift_qz test_multishift_qz.cpp)
-add_executable(test_binomial test_binomial.cpp)
 add_executable(test_cauchy test_cauchy.cpp)
 add_executable(test_manteuffel test_manteuffel.cpp)
 
