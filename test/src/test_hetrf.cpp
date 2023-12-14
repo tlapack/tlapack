@@ -1,4 +1,4 @@
-/// @file test_sytrf.cpp Test the Bunch-Kaufman factorization of a symmetric
+/// @file test_hetrf.cpp Test the Bunch-Kaufman factorization of a symmetric
 /// matrix
 
 /// @author Hugh M Kadhem, University of California Berkeley, USA
@@ -19,7 +19,7 @@
 #include <tlapack/lapack/lansy.hpp>
 
 // Other routines
-#include <tlapack/lapack/sytrf.hpp>
+#include <tlapack/lapack/hetrf.hpp>
 
 using namespace tlapack;
 
@@ -27,12 +27,14 @@ template <TLAPACK_UPLO uplo_t, TLAPACK_MATRIX matrix_t, TLAPACK_VECTOR ipiv_t>
 void ldlmul(const uplo_t& uplo,
             const matrix_t& L,
             const ipiv_t& ipiv,
-            matrix_t& E);
+            matrix_t& E,
+            const bool hermitian);
 template <TLAPACK_UPLO uplo_t, TLAPACK_MATRIX matrix_t, TLAPACK_VECTOR ipiv_t>
 void ldlmul(const uplo_t& uplo,
             const matrix_t& L,
             const ipiv_t& ipiv,
-            matrix_t&& E);
+            matrix_t&& E,
+            const bool hermitian);
 
 #define TESTUPLO_TYPES_TO_TEST                                          \
     (TestUploMatrix<float, size_t, Uplo::Lower, Layout::ColMajor>),     \
@@ -41,7 +43,7 @@ void ldlmul(const uplo_t& uplo,
         (TestUploMatrix<float, size_t, Uplo::Upper, Layout::RowMajor>)
 
 TEMPLATE_TEST_CASE("Bunch-Kaufman factorization of a symmetric matrix",
-                   "[sytrf]",
+                   "[hetrf]",
                    TLAPACK_TYPES_TO_TEST,
                    TESTUPLO_TYPES_TO_TEST)
 {
@@ -58,16 +60,18 @@ TEMPLATE_TEST_CASE("Bunch-Kaufman factorization of a symmetric matrix",
     // MatrixMarket reader
     MatrixMarket mm;
 
-    using variant_t = pair<SytrfVariant, idx_t>;
-    const variant_t variant = GENERATE((variant_t(SytrfVariant::Blocked, 2)),
-                                       (variant_t(SytrfVariant::Blocked, 3)),
-                                       (variant_t(SytrfVariant::Blocked, 7)),
-                                       (variant_t(SytrfVariant::Blocked, 10)));
+    using variant_t = pair<HetrfVariant, idx_t>;
+    const variant_t variant = GENERATE((variant_t(HetrfVariant::Blocked, 2)),
+                                       (variant_t(HetrfVariant::Blocked, 3)),
+                                       (variant_t(HetrfVariant::Blocked, 7)),
+                                       (variant_t(HetrfVariant::Blocked, 10)));
     const idx_t n = GENERATE(10, 19, 30);
     const Uplo uplo = GENERATE(Uplo::Lower, Uplo::Upper);
+    const Op invariant = GENERATE(Op::Trans, Op::ConjTrans);
 
     DYNAMIC_SECTION("n = " << n << " uplo = " << uplo << " variant = "
-                           << (char)variant.first << " nb = " << variant.second)
+                           << (char)variant.first << " nb = " << variant.second
+                           << " invariant = " << (char)invariant)
     {
         // eps is the machine precision, and tol is the tolerance we accept for
         // tests to pass
@@ -86,27 +90,33 @@ TEMPLATE_TEST_CASE("Bunch-Kaufman factorization of a symmetric matrix",
 
         // Update A with random numbers
         mm.random(uplo, A);
+        if (invariant == Op::ConjTrans) {
+            // Hermitian matrix so diagonal should be real.
+            for (int i = 0; i < n; ++i)
+                A(i, i) = real(A(i, i));
+        }
 
         lacpy(uplo, A, L);
         real_t normA = tlapack::lansy(tlapack::MAX_NORM, uplo, A);
 
         // Run the LDL factorization
-        SytrfOpts opts;
+        HetrfOpts opts;
         opts.variant = variant.first;
         opts.nb = variant.second;
-        int info = sytrf(uplo, L, ipiv, opts);
+        opts.invariant = invariant;
+        int info = hetrf(uplo, L, ipiv, opts);
 
         // Check that the factorization was successful
         REQUIRE(info == 0);
 
         // Initialize E with L * D * L**T
-        ldlmul(uplo, L, ipiv, E);
+        ldlmul(uplo, L, ipiv, E, (invariant == Op::ConjTrans));
 
         // Check that the factorization is correct
         for (int i = 0; i < n; ++i) {
             for (int j = 0; j < n; ++j) {
-                if ((uplo == Uplo::Upper && (i <= j)) ||
-                    (uplo == Uplo::Lower && (i >= j)))
+                if (((uplo == Uplo::Upper) && (i <= j)) ||
+                    ((uplo == Uplo::Lower) && (i >= j)))
                     E(i, j) -= A(i, j);
             }
         }
@@ -123,13 +133,15 @@ template <TLAPACK_UPLO uplo_t, TLAPACK_MATRIX matrix_t, TLAPACK_VECTOR ipiv_t>
 void ldlmul(const uplo_t& uplo,
             const matrix_t& L,
             const ipiv_t& ipiv,
-            matrix_t& E)
+            matrix_t& E,
+            const bool hermitian)
 {
+    using T = type_t<matrix_t>;
     const auto n = ncols(L);
     const bool upper = uplo == Uplo::Upper;
     for (int i = 0; i < n; ++i)
         for (int j = 0; j < n; ++j)
-            E(i, j) = 0;
+            E(i, j) = T(0);
     // The upper/lower unitriangular factor is stored as a sequence of
     // transformations P(0)L(0)...P(i)L(i)...P(n-2)L(n-2). Each L(i) has s_i
     // non-identity columns, where s_i is 1 or 2. Each P(i) is a transposition.
@@ -141,18 +153,18 @@ void ldlmul(const uplo_t& uplo,
     for (int j = 0; j < n; ++j) {
         // j is the index of the output column being computed.
         // We start by setting it to the standard basis vector e_j.
-        E(j, j) = 1;
-        // We multiply it through the factors L(i)^TP(i) in reverse.
+        E(j, j) = T(1);
+        // We multiply it through the factors L(i)^op P(i) in reverse.
         for (int i_ = 0; i_ < n; ++i_) {
-            // i_ is the sequence index, and i is the index to the first column
-            // of L(i_).
+            // i_ is the sequence index, and i is the index to the first
+            // column/row of L(i_).
             int i = upper ? n - 1 - i_ : i_;
             // s and piv are the indices to the columns that will be swapped by
             // P(i_).
             int s = i;
             int piv = ipiv[i];
             if (piv < 0) {
-                piv = -piv;
+                piv = -piv - 1;
                 s += upper ? -1 : 1;
                 ++i_;
             }
@@ -160,11 +172,13 @@ void ldlmul(const uplo_t& uplo,
             if (upper)
                 for (; i >= s; --i)
                     for (int k = 0; k < s; ++k)
-                        E(i, j) += L(k, i) * E(k, j);
+                        E(i, j) +=
+                            (hermitian ? conj(L(k, i)) : L(k, i)) * E(k, j);
             else
                 for (; i <= s; ++i)
                     for (int k = s + 1; k < n; ++k)
-                        E(i, j) += L(k, i) * E(k, j);
+                        E(i, j) +=
+                            (hermitian ? conj(L(k, i)) : L(k, i)) * E(k, j);
         }
         // Multiply the column through the diagonal factor D.
         for (int i = 0; i < n; ++i) {
@@ -174,13 +188,21 @@ void ldlmul(const uplo_t& uplo,
                 E(i, j) *= L(i, i);
             }
             else {
-                // D(i,i) is a 2x2 symmetric block stored in the trailing 2x2
-                // lower triangle block at L(i,i).
-                auto D21 = upper ? L(i, i + 1) : L(i + 1, i);
-                auto x = L(i, i) * E(i, j) + D21 * E(i + 1, j);
-                auto y = D21 * E(i, j) + L(i + 1, i + 1) * E(i + 1, j);
-                E(i, j) = x;
-                E(i + 1, j) = y;
+                // D(i,i) is a 2x2 symmetric/hermitian block stored in the
+                // trailing 2x2 upper/lower triangle block at L(i,i).
+                T D12, D21;
+                if (upper) {
+                    D12 = L(i, i + 1);
+                    D21 = hermitian ? conj(D12) : D12;
+                }
+                else {
+                    D21 = L(i + 1, i);
+                    D12 = hermitian ? conj(D21) : D21;
+                }
+                T x1 = L(i, i) * E(i, j) + D12 * E(i + 1, j);
+                T x2 = D21 * E(i, j) + L(i + 1, i + 1) * E(i + 1, j);
+                E(i, j) = x1;
+                E(i + 1, j) = x2;
                 ++i;
             }
         }
@@ -191,7 +213,7 @@ void ldlmul(const uplo_t& uplo,
             int s = i;
             int piv = ipiv[i];
             if (piv < 0) {
-                piv = -piv;
+                piv = -piv - 1;
                 i += upper ? 1 : -1;
                 --i_;
             }
@@ -214,7 +236,8 @@ template <TLAPACK_UPLO uplo_t, TLAPACK_MATRIX matrix_t, TLAPACK_VECTOR ipiv_t>
 void ldlmul(const uplo_t& uplo,
             const matrix_t& L,
             const ipiv_t& ipiv,
-            matrix_t&& E)
+            matrix_t&& E,
+            const bool hermitian)
 {
-    return ldlmul(uplo, L, ipiv, E);
+    return ldlmul(uplo, L, ipiv, E, hermitian);
 }

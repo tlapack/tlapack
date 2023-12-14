@@ -1,5 +1,5 @@
-/// @file sytrf.hpp Computes the Bunch-Kaufman factorization of a symmetric
-/// matrix A.
+/// @file hetrf.hpp Computes the Bunch-Kaufman factorization of a symmetric
+/// or Hermitian matrix A.
 /// @author Hugh M Kadhem, University of California Berkeley, USA
 //
 // Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
@@ -8,29 +8,29 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef TLAPACK_SYTRF_HH
-#define TLAPACK_SYTRF_HH
+#ifndef TLAPACK_HETRF_HH
+#define TLAPACK_HETRF_HH
 
 #include "tlapack/base/utils.hpp"
-#include "tlapack/lapack/sytrf_blocked.hpp"
+#include "tlapack/lapack/hetrf_blocked.hpp"
 
 namespace tlapack {
 
 /// @brief Variants of the algorithm to compute the Bunch-Kaufman factorization.
-enum class SytrfVariant : char {
+enum class HetrfVariant : char {
     Blocked = 'B'  // blocked Bunch-Kaufman with diagonal pivoting
 };
 
-/// @brief Options struct for sytrf()
-struct SytrfOpts : public BlockedLDLOpts {
-    constexpr SytrfOpts(const EcOpts& opts = {}) : BlockedLDLOpts(opts){};
+/// @brief Options struct for hetrf()
+struct HetrfOpts : public BlockedLDLOpts {
+    constexpr HetrfOpts(const EcOpts& opts = {}) : BlockedLDLOpts(opts){};
 
-    SytrfVariant variant = SytrfVariant::Blocked;
+    HetrfVariant variant = HetrfVariant::Blocked;
 };
 
-/** @copybrief sytrf()
+/** @copybrief hetrf()
  * Workspace is provided as an argument.
- * @copydetails sytrf()
+ * @copydetails hetrf()
  *
  * @param work Workspace. Use the workspace query to determine the size needed.
  *
@@ -40,31 +40,36 @@ template <TLAPACK_UPLO uplo_t,
           TLAPACK_MATRIX matrix_t,
           TLAPACK_VECTOR ipiv_t,
           TLAPACK_WORKSPACE work_t>
-int sytrf_work(uplo_t uplo,
+int hetrf_work(uplo_t uplo,
                matrix_t& A,
                ipiv_t& ipiv,
                work_t& work,
-               const SytrfOpts& opts = {})
+               const HetrfOpts& opts = {})
 {
     // check arguments
     tlapack_check(uplo == Uplo::Lower || uplo == Uplo::Upper);
     tlapack_check(nrows(A) == ncols(A));
-    tlapack_check(opts.variant == SytrfVariant::Blocked);
+    tlapack_check(opts.invariant == Op::Trans ||
+                  opts.invariant == Op::ConjTrans);
+    tlapack_check(opts.variant == HetrfVariant::Blocked);
     // Call variant
-    if (opts.variant == SytrfVariant::Blocked)
-        return sytrf_blocked_work(uplo, A, ipiv, work, opts);
+    if (opts.variant == HetrfVariant::Blocked)
+        return hetrf_blocked_work(uplo, A, ipiv, work, opts);
     else
         return 0;
 }
 
-/** Computes the Bunch-Kaufman factorization of a symmetric matrix A.
+/** Computes the Bunch-Kaufman factorization of a symmetric or Hermitian
+ * matrix A.
  *
  * The factorization has the form
- *      $A = U D U^T,$ if uplo = Upper, or
- *      $A = L D L^T,$ if uplo = Lower,
+ *      $A = U D U^{op},$ if uplo = Upper, or
+ *      $A = L D L^{op},$ if uplo = Lower,
  * where U resp. L is a product of permutations and upper resp. lower
  * unit-triangular matrices, and D is symmetric block-diagonal with blocks of
  * size 1 or 2.
+ * If opts.invariant = Op::Trans then op=T,
+ * and if opts.invariant = Op::ConjTrans then op=H.
  *
  * If uplo =Upper, then
  * $$U = \prod_{i=n-1}^1 P_iU_i,$$
@@ -104,11 +109,12 @@ int sytrf_work(uplo_t uplo,
  * @param[out] ipiv
  *      - On successful exit, if $P_i$ is a rank 1 pivot, then $ipiv[i]$ is the
  *      index it transposes with $i$; if $P_i$ is a rank 2 pivot,
- *      then $-ipiv[i] = -ipiv[i \pm 1]$ is the index it transposes with $i \pm 1$,
- *      where the increment is positive for uplo=Upper and negative for uplo=Lower.
+ *      then $-ipiv[i] = -ipiv[i \pm 1]$ = -piv-1 where piv  is the index it
+ * transposes with $i \pm 1$, where the increment is positive for uplo=Upper and
+ * negative for uplo=Lower.
  *
  * @param[in] opts Options.
- *      Define the behavior of checks for NaNs, and nb for sytrf_blocked.
+ *      Define the behavior of checks for NaNs, and nb for hetrf_blocked.
  *      - variant:
  *          - Blocked = 'B'
  *
@@ -121,19 +127,21 @@ int sytrf_work(uplo_t uplo,
  * @ingroup variant_interface
  */
 template <TLAPACK_UPLO uplo_t, TLAPACK_MATRIX matrix_t, TLAPACK_VECTOR ipiv_t>
-int sytrf(uplo_t uplo, matrix_t& A, ipiv_t& ipiv, const SytrfOpts& opts = {})
+int hetrf(uplo_t uplo, matrix_t& A, ipiv_t& ipiv, const HetrfOpts& opts = {})
 {
     // check arguments
     tlapack_check(uplo == Uplo::Lower || uplo == Uplo::Upper);
     tlapack_check(nrows(A) == ncols(A));
-    tlapack_check(opts.variant == SytrfVariant::Blocked);
+    tlapack_check(opts.invariant == Op::Trans ||
+                  opts.invariant == Op::ConjTrans);
+    tlapack_check(opts.variant == HetrfVariant::Blocked);
     // Call variant
-    if (opts.variant == SytrfVariant::Blocked)
-        return sytrf_blocked(uplo, A, ipiv, opts);
+    if (opts.variant == HetrfVariant::Blocked)
+        return hetrf_blocked(uplo, A, ipiv, opts);
     else
         return 0;
 }
 
 }  // namespace tlapack
 
-#endif  // TLAPACK_SYTRF_HH
+#endif  // TLAPACK_HETRF_HH

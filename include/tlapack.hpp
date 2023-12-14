@@ -119,7 +119,7 @@
 // Solution of symmetric systems
 // ----------------
 
-#include "tlapack/lapack/sytrf.hpp"
+#include "tlapack/lapack/hetrf.hpp"
 
 // Sylver equation routines
 // ----------------
