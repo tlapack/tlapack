@@ -10,10 +10,12 @@
 
 // Plugins for <T>LAPACK (must come before <T>LAPACK headers)
 
+
 #define TLAPACK_PREFERRED_MATRIX_LEGACY
 #include <tlapack/plugins/legacyArray.hpp>
 #include <tlapack/plugins/stdvector.hpp>
 #include <tlapack/plugins/float8_iee_p.hpp>
+
 #ifdef USE_MPFR
     #include <tlapack/plugins/mpreal.hpp>
 #endif

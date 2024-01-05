@@ -79,14 +79,14 @@ constexpr WorkInfo larfb_worksize(side_t side,
                                   const matrixC_t& C)
 {
     using idx_t = size_type<matrixC_t>;
-    using matrixW_t = matrix_type<matrixV_t, matrixC_t>;
+    using work_t = matrix_type<matrixV_t, matrixC_t>;
 
     // constants
     const idx_t m = nrows(C);
     const idx_t n = ncols(C);
     const idx_t k = nrows(Tmatrix);
 
-    if constexpr (is_same_v<T, type_t<matrixW_t>>)
+    if constexpr (is_same_v<T, type_t<work_t>>)
         return (side == Side::Left) ? WorkInfo(k, n) : WorkInfo(m, k);
     else
         return WorkInfo(0);
@@ -518,11 +518,11 @@ int larfb(side_t side,
           matrixC_t& C)
 {
     using idx_t = size_type<matrixC_t>;
-    using matrixW_t = matrix_type<matrixV_t, matrixC_t>;
-    using T = type_t<matrixW_t>;
+    using work_t = matrix_type<matrixV_t, matrixC_t>;
+    using T = type_t<work_t>;
 
     // Functor
-    Create<matrixW_t> new_matrix;
+    Create<work_t> new_matrix;
 
     // constants
     const idx_t m = nrows(C);

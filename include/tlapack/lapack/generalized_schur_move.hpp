@@ -1,4 +1,4 @@
-/// @file schur_move.hpp
+/// @file generalized_schur_move.hpp
 /// @author Thijs Steel, KU Leuven, Belgium
 /// Adapted from @see
 /// https://github.com/Reference-LAPACK/lapack/tree/master/SRC/dtrexc.f
@@ -9,31 +9,37 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef TLAPACK_SCHUR_MOVE_HH
-#define TLAPACK_SCHUR_MOVE_HH
+#ifndef TLAPACK_GENERALIZED_SCHUR_MOVE_HH
+#define TLAPACK_GENERALIZED_SCHUR_MOVE_HH
 
 #include "tlapack/base/utils.hpp"
-#include "tlapack/lapack/schur_swap.hpp"
+#include "tlapack/lapack/generalized_schur_swap.hpp"
 
 namespace tlapack {
 
-/** schur_move reorders the Schur factorization of a matrix
- *  S = Q*A*Q**H, so that the diagonal element of S with row index IFST
- *  is moved to row ILST.
+/** generalized_schur_move reorders the generalized Schur factorization of a
+ *  pencil ( S, T ) = Q(A,B)Z**H so that the diagonal elements of (S,T) with row
+ *  index IFST are moved to row ILST.
  *
  *
  * @return  0 if success
  * @return  1 two adjacent blocks were too close to swap (the problem
-              is very ill-conditioned); T may have been partially
+              is very ill-conditioned); the pencil may have been partially
               reordered, and ILST points to the first row of the
               current position of the block being moved.
  *
  * @param[in]     want_q bool
  *                Whether or not to apply the transformations to Q
+ * @param[in]     want_z bool
+ *                Whether or not to apply the transformations to Q
  * @param[in,out] A n-by-n matrix.
  *                Must be in Schur form
+ * @param[in,out] B n-by-n matrix.
+ *                Must be in Schur form
  * @param[in,out] Q n-by-n matrix.
- *                Orthogonal matrix, not referenced if want_q is false
+ *                unitary matrix, not referenced if want_q is false
+ * @param[in,out] Z n-by-n matrix.
+ *                unitary matrix, not referenced if want_q is false
  * @param[in,out] ifst integer
  *                Initial row index of the eigenvalue block
  * @param[in,out] ilst integer
@@ -44,11 +50,14 @@ namespace tlapack {
  * @ingroup auxiliary
  */
 template <TLAPACK_MATRIX matrix_t>
-int schur_move(bool want_q,
-               matrix_t& A,
-               matrix_t& Q,
-               size_type<matrix_t>& ifst,
-               size_type<matrix_t>& ilst)
+int generalized_schur_move(bool want_q,
+                           bool want_z,
+                           matrix_t& A,
+                           matrix_t& B,
+                           matrix_t& Q,
+                           matrix_t& Z,
+                           size_type<matrix_t>& ifst,
+                           size_type<matrix_t>& ilst)
 {
     using idx_t = size_type<matrix_t>;
     using T = type_t<matrix_t>;
@@ -94,7 +103,8 @@ int schur_move(bool want_q,
                 if (here + nbf + 1 < n)
                     if (A(here + nbf + 1, here + nbf) != zero) nbnext = 2;
 
-            int ierr = schur_swap(want_q, A, Q, here, nbf, nbnext);
+            int ierr = generalized_schur_swap(want_q, want_z, A, B, Q, Z, here,
+                                              nbf, nbnext);
             if (ierr) {
                 // The swap failed, return with error
                 ilst = here;
@@ -111,7 +121,8 @@ int schur_move(bool want_q,
                 if (here > 1)
                     if (A(here - 1, here - 2) != zero) nbnext = 2;
 
-            int ierr = schur_swap(want_q, A, Q, here - nbnext, nbnext, nbf);
+            int ierr = generalized_schur_swap(want_q, want_z, A, B, Q, Z,
+                                              here - nbnext, nbnext, nbf);
             if (ierr) {
                 // The swap failed, return with error
                 ilst = here;
@@ -126,4 +137,4 @@ int schur_move(bool want_q,
 
 }  // namespace tlapack
 
-#endif  // TLAPACK_SCHUR_MOVE_HH
+#endif  // TLAPACK_GENERALIZED_SCHUR_MOVE_HH

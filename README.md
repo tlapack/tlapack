@@ -82,14 +82,13 @@ _Supported in part by [NSF ACI 2004850](http://www.nsf.gov/awardsearch/showAward
     - Multishift implicit QR with Aggressive Early Deflation (AED)
   - [ ] Eigenvector computation
   - [ ] Swap eigenvalues in Schur form
-  - [ ] Generalized Schur problem
-  - [ ] Generalized eigenvalue problem
+  - [x] Generalized Schur problem
+  - [x] Generalized eigenvalue problem
 - [ ] Symmetric Eigenvalue Problem
   - [ ] Tridiagonal reduction
-  - [ ] Schur decomposition
   - [ ] Eigenvector computation
 - [ ] Singular Value Decomposition (SVD)
-  - [ ] Standard singular value problem
+  - [x] Standard singular value problem
   - [ ] Generalized singular value problem
 - [ ] Linear least squares
   - [ ] Using QR factorization
@@ -116,10 +115,15 @@ or build the [current development distribution](https://github.com/Kitware/CMake
 \<T\>LAPACK can be build following the standard CMake recipe
 
 ```sh
-mkdir build
+cmake -B build .      # configuration step
+cmake --build build   # build step
+```
+
+To install \<T\>LAPACK in your system, use
+
+```sh
 cmake -B build -D CMAKE_INSTALL_PREFIX=/path/to/install . # configuration step
-cmake --build build                  # build step
-cmake --build build --target install # install step
+cmake --build build --target install                      # install step
 ```
 
 ### CMake options
@@ -288,8 +292,8 @@ Note that:
 
 | Project       | Version tested   | When                                         |
 | ------------- | ---------------- | -------------------------------------------- |
-| ICL BLAS++    | 2023.06.00       | `TLAPACK_USE_LAPACKPP=ON`                    |
-| ICL LAPACK++  | 2023.06.00       | `TLAPACK_USE_LAPACKPP=ON`                    |
+| ICL BLAS++    | 2023.11.05       | `TLAPACK_USE_LAPACKPP=ON`                    |
+| ICL LAPACK++  | 2023.11.05       | `TLAPACK_USE_LAPACKPP=ON`                    |
 | kokkos mdspan | 0.4.0            | `TLAPACK_TEST_MDSPAN=ON` or in some examples |
 | Eigen         | commit: 2873916f | `TLAPACK_TEST_EIGEN=ON` or in some examples  |
 | GNU MPFR C++  | Latest in APT    | `TLAPACK_TEST_MPFR=ON` or in some examples   |
@@ -298,7 +302,8 @@ Note that:
 
 We also continuously test \<T\>LAPACK with optimized BLAS and LAPACK implementations: OpenBLAS, Intel MKL, Flame BLIS, LAPACK, Netlib BLAS.
 
-> **_NOTE:_** \<T\>LAPACK supports Eigen v3.4.0 after applying the patch [9210e71f](https://gitlab.com/libeigen/eigen/-/commit/9210e71fb378a0f1542272506dc2759b6c147237). This commit fixes an ADL conflict between `Eigen::internal::size()` and `std::size()`.
+> [!NOTE]
+> \<T\>LAPACK supports Eigen v3.4.0 after applying the patch [9210e71f](https://gitlab.com/libeigen/eigen/-/commit/9210e71fb378a0f1542272506dc2759b6c147237). This commit fixes an ADL conflict between `Eigen::internal::size()` and `std::size()`.
 
 ## Documentation
 

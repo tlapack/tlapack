@@ -19,7 +19,7 @@
 // Other routines
 #include <tlapack/lapack/geqrf.hpp>
 #include <tlapack/lapack/gghrd.hpp>
-#include <tlapack/lapack/lahqz.hpp>
+#include <tlapack/lapack/multishift_qz.hpp>
 #include <tlapack/lapack/unmqr.hpp>
 
 using namespace tlapack;
@@ -128,13 +128,20 @@ TEMPLATE_TEST_CASE("QZ algorithm",
                                 << " ilo = " << ilo << " ihi = " << ihi
                                 << " seed = " << seed)
     {
-        int ierr = lahqz(true, true, true, ilo, ihi, H, T, alpha, beta, Q, Z);
+        FrancisOpts opts;
+        opts.nmin = 15;
+
+        int ierr = multishift_qz(true, true, true, ilo, ihi, H, T, alpha, beta,
+                                 Q, Z, opts);
         CHECK(ierr == 0);
 
         // Clean the lower triangular part that was used a workspace
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = j + 2; i < n; ++i)
                 H(i, j) = zero;
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = j + 1; i < n; ++i)
+                T(i, j) = zero;
 
         const real_t eps = uroundoff<real_t>();
         const real_t tol = real_t(n * 1.0e2) * eps;
@@ -162,7 +169,7 @@ TEMPLATE_TEST_CASE("QZ algorithm",
         CHECK(normB_res <= tol * normB);
 
         // Check that the eigenvalues match with the diagonal elements
-        /// @todo: also check normalization!
+        // @todo : also check normalization
         idx_t i = ilo;
         while (i < ihi) {
             int nb = 1;

@@ -63,7 +63,7 @@ constexpr WorkInfo ungq_worksize(direction_t direction,
                                  const UngqOpts& opts = {})
 {
     using idx_t = size_type<matrix_t>;
-    using matrixT_t = matrix_type<matrix_t, vector_t>;
+    using work_t = matrix_type<matrix_t, vector_t>;
     using range = pair<idx_t, idx_t>;
 
     // Constants
@@ -92,7 +92,7 @@ constexpr WorkInfo ungq_worksize(direction_t direction,
                                          COLUMNWISE_STORAGE, V, matrixT, C);
 
             // Local workspace sizes
-            if (is_same_v<T, type_t<matrixT_t>>) workinfo += WorkInfo(nb, nb);
+            if (is_same_v<T, type_t<work_t>>) workinfo += WorkInfo(nb, nb);
         }
     }
     else {
@@ -111,7 +111,7 @@ constexpr WorkInfo ungq_worksize(direction_t direction,
                                          ROWWISE_STORAGE, V, matrixT, C);
 
             // Local workspace sizes
-            if (is_same_v<T, type_t<matrixT_t>>) workinfo += WorkInfo(nb, nb);
+            if (is_same_v<T, type_t<work_t>>) workinfo += WorkInfo(nb, nb);
         }
     }
 
@@ -357,10 +357,10 @@ int ungq(direction_t direction,
 {
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
-    using matrixT_t = matrix_type<matrix_t, vector_t>;
+    using work_t = matrix_type<matrix_t, vector_t>;
 
     // Functor
-    Create<matrixT_t> new_matrix;
+    Create<work_t> new_matrix;
 
     // constants
     const idx_t m = nrows(A);

@@ -188,7 +188,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 #-------------------------------------------------------------------------------
 # Search for LAPACK++ library if it is needed
 if( TLAPACK_USE_LAPACKPP )
-  find_package( lapackpp 2023.01.00...2023.08.25 REQUIRED )
+  find_package( lapackpp 2023.01.00 REQUIRED )
   target_compile_definitions( tlapack INTERFACE TLAPACK_USE_LAPACKPP )
   target_link_libraries( tlapack INTERFACE lapackpp )
 endif()
