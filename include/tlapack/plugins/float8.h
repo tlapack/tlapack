@@ -15,7 +15,8 @@ limitations under the License.
 
 #ifndef ML_DTYPES_FLOAT8_H_
 #define ML_DTYPES_FLOAT8_H_
-//#define STOCHASTIC_MODE
+#define STOCHASTIC_ROUND
+//#define STOCHASTIC_ARITH            //uncomment this for stochastic rounding for all 8-bit arithmetic operations
 
 // 8-bit Floating Point Interchange Format, as described by
 //   https://arxiv.org/abs/2209.05433
@@ -130,30 +131,37 @@ class float8_base {
   template <typename To, bool kSaturate = false, bool kTruncate = false>
   static inline EIGEN_DEVICE_FUNC To ConvertTo(const Derived& from);
 
+  template <bool kSaturate = false, bool kTruncate = false>
+  static inline EIGEN_DEVICE_FUNC double ConvertTo(const Derived& from);
+
+   template <bool kSaturate = false, bool kTruncate = false>
+  static inline EIGEN_DEVICE_FUNC Derived ConvertFrom(const double& from);
+
+
   // Operators via float32.
   EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Derived
   operator+(const Derived& other) const {
-    return Derived{float{derived()} + float{other}};
+    return Derived{double{derived()} + double{other}};
   }
 
   EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Derived
   operator=(const Derived& other) const {
-    return Derived{float{other}};
+    return Derived{double{other}};
   }
 
   EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Derived
   operator-(const Derived& other) const {
-    return Derived{float{derived()} - float{other}};
+    return Derived{double{derived()} - double{other}};
   }
 
   EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Derived
   operator*(const Derived& other) const {
-    return Derived{float{derived()} * float{other}};
+    return Derived{double{derived()} * double{other}};
   }
 
   EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Derived
   operator/(const Derived& other) const {
-    return Derived{float{derived()} / float{other}};
+    return Derived{double{derived()} / double{other}};
   }
 
   constexpr bool operator==(const Derived& other) const {
@@ -1268,7 +1276,7 @@ inline Bits Stochastic_Round(Bits bits, int roundoff) {
   //Then we truncate the mantissa
   int samp = rand(); // Generate a random integer
   Bits complement = (Bits{1} << (roundoff - 1)) - 1;
-  Bits to_add = static_cast<Bits>(samp & complement); // Avoid narrowing conversion
+  Bits to_add = static_cast<Bits>(samp & complement); 
   Bits to_ret = bits + to_add; // Add random bits to the input bits
   return to_ret;
 }
@@ -1366,7 +1374,7 @@ struct ConvertImpl<From, To, kSaturate, kTruncate,
   static constexpr int kExponentOffset = kToExponentBias - kFromExponentBias;
   static constexpr int kDigitShift = kToMantissaBits - kFromMantissaBits;
 
-  static EIGEN_DEVICE_FUNC inline To run(const From& from) {
+  static EIGEN_DEVICE_FUNC inline To run(const From& from, bool stochastic) {
     // Shift bits to destination type, without sign bit.
     const bool from_sign_bit =
         Eigen::numext::bit_cast<FromBits>(from) >> (kFromBits - 1);
@@ -1419,11 +1427,11 @@ struct ConvertImpl<From, To, kSaturate, kTruncate,
           bits <<= kDigitShift;
         } else {
           if constexpr (!kTruncate) {
-            #ifdef STOCHASTIC_MODE
-            bits = Stochastic_Round(bits, -kDigitShift);
-            #else
-            bits = RoundBitsToNearestEven(bits, -kDigitShift);
-            #endif
+            
+            if(stochastic) {bits = Stochastic_Round(bits, -kDigitShift); }
+            
+            else {bits = RoundBitsToNearestEven(bits, -kDigitShift); }
+            
           }
           bits >>= -kDigitShift;
         }
@@ -1457,13 +1465,13 @@ struct ConvertImpl<From, To, kSaturate, kTruncate,
             // otherwise the lower precision bits may already be lost.  There is
             // an edge-case where rounding to a normalized value would normally
             // round down, but for a subnormal, we need to round up.
-             #ifdef STOCHASTIC_MODE
+             if(stochastic){
             rounded_from_bits =
                   Stochastic_Round(rounded_from_bits, exponent_shift);
-            #else
+             } else {
             rounded_from_bits =
                   RoundBitsToNearestEven(rounded_from_bits, exponent_shift);
-            #endif
+             }
           }
           bits = (rounded_from_bits >> exponent_shift);
         }
@@ -1477,11 +1485,11 @@ struct ConvertImpl<From, To, kSaturate, kTruncate,
     WideBits rounded_from_bits = from_bits;
     if constexpr (kDigitShift < 0) {
       if constexpr (!kTruncate) {
-        #ifdef STOCHASTIC_MODE
+        if(stochastic) {
         rounded_from_bits = Stochastic_Round(from_bits, -kDigitShift);
-        #else
+        } else {
         rounded_from_bits = RoundBitsToNearestEven(from_bits, -kDigitShift);
-        #endif
+        }
       }
       // Zero-out tail bits.
       rounded_from_bits &= ~((WideBits{1} << (-kDigitShift)) - 1);
@@ -1522,15 +1530,20 @@ struct ConvertImpl<From, To, kSaturate, kTruncate,
     // Insert sign bit.
     return from_sign_bit ? -to : to;
   }
+
+  
 };
 
 // Saturation has no impact when casting e4m3 to e5m2.
 template <bool kTruncate>
 struct ConvertImpl<float8_e4m3fn, float8_e5m2, true, kTruncate> {
   static EIGEN_DEVICE_FUNC inline float8_e5m2 run(const float8_e4m3fn& from) {
-    return ConvertImpl<float8_e4m3fn, float8_e5m2, false, kTruncate>::run(from);
+    return ConvertImpl<float8_e4m3fn, float8_e5m2, false, kTruncate>::run(from, true);
   }
 };
+
+
+
 
 template <bool kSaturate, bool kTruncate>
 struct ConvertImpl<Eigen::half, float8_e5m2, kSaturate, kTruncate> {
@@ -1551,7 +1564,7 @@ struct ConvertImpl<Eigen::half, float8_e5m2, kSaturate, kTruncate> {
     }
 
     if constexpr (!kTruncate) {
-      #ifdef STOCHASTIC_MODE
+      #ifdef STOCHASTIC_ROUND
       from_bits = Stochastic_Round(from_bits, 8);
       #else
       from_bits = RoundBitsToNearestEven(from_bits, 8);
@@ -1591,14 +1604,49 @@ struct ConvertImpl<float8_e5m2, Eigen::half, kSaturate, kTruncate> {
 template <typename Derived>
 template <bool kSaturate, bool kTruncate, typename From>
 EIGEN_DEVICE_FUNC Derived float8_base<Derived>::ConvertFrom(const From& from) {
-  return ConvertImpl<From, Derived, kSaturate, kTruncate>::run(from);
+  #ifdef STOCHASTIC_ROUND
+  return ConvertImpl<From, Derived, kSaturate, kTruncate>::run(from, true);
+  #else
+  return ConvertImpl<From, Derived, kSaturate, kTruncate>::run(from, false);
+  #endif
 }
 
 template <typename Derived>
 template <typename To, bool kSaturate, bool kTruncate>
 EIGEN_DEVICE_FUNC To float8_base<Derived>::ConvertTo(const Derived& from) {
-  return ConvertImpl<Derived, To, kSaturate, kTruncate>::run(from);
+   #ifdef STOCHASTIC_ROUND
+  return ConvertImpl<Derived, To, kSaturate, kTruncate>::run(from, true);
+  #else 
+  return ConvertImpl<Derived, To, kSaturate, kTruncate>::run(from, false);
+  #endif
+
 }
+
+template <typename Derived>
+template <bool kSaturate, bool kTruncate>
+EIGEN_DEVICE_FUNC double float8_base<Derived>::ConvertTo(const Derived& from) {
+  #ifdef STOCHASTIC_ARITH
+  return ConvertImpl<Derived, double, kSaturate, kTruncate>::run(from, true);
+  #else 
+  return ConvertImpl<Derived, double, kSaturate, kTruncate>::run(from, false);
+  #endif
+
+
+}
+
+template <typename Derived>
+template <bool kSaturate, bool kTruncate>
+EIGEN_DEVICE_FUNC Derived float8_base<Derived>::ConvertFrom(const double& from) {
+  #ifdef STOCHASTIC_ARITH
+  return ConvertImpl<double, Derived, kSaturate, kTruncate>::run(from, true);
+  #else
+  return ConvertImpl<double, Derived, kSaturate, kTruncate>::run(from, false);
+  #endif
+
+}
+
+
+
 
 }  // namespace float8_internal
 

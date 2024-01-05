@@ -10,10 +10,12 @@ project( geqr2 CXX )
 set(CMAKE_PREFIX_PATH "~/Documents/tlapack/")
 set(CMAKE_CXX_STANDARD 20)
 # Load <T>LAPACK
+
 if( NOT TARGET tlapack )
   find_package( tlapack REQUIRED )
 endif()
-
+find_package(OpenCV REQUIRED)
 # add the example geqr2
 add_executable( example_geqr2 example_geqr2.cpp )
-target_link_libraries( example_geqr2 PRIVATE tlapack )
+target_link_libraries( example_geqr2 PRIVATE tlapack ${OpenCV_LIBS})
+target_include_directories(example_geqr2 PRIVATE ${OpenCV_INCLUDE_DIRS})

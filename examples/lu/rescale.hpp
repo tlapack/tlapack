@@ -19,12 +19,4 @@
 #include <iostream>
 #include <vector>
 
-template<class T>
-void rescale(matrix_t& A, matrix_t& S){
-     auto A00 = tlapack::slice(A, range(0, k0), range(0, k0));
-     auto A01 = tlapack::slice(A, range(0, k0), range(k0, n));
-     auto A10 = tlapack::slice(A, range(k0, m), range(0, k0));
-     auto A11 = tlapack::slice(A, range(k0, m), range(k0, n));
 
-
-}

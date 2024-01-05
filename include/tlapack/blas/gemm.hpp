@@ -96,12 +96,12 @@ void gemm(Op transA,
         }
     }
     #endif
-    bool on = true;
+    bool on = false;
     if (transA == Op::NoTrans) {
         using scalar_t = scalar_type<alpha_t, TB>;
 
         if (transB == Op::NoTrans) {
-            #ifdef MIXED_PREC
+            //#ifndef MIXED_PREC
             for (idx_t j = 0; j < n; ++j) {
                 for (idx_t i = 0; i < m; ++i)
                     MixedMat_[m*j + i] *= float(beta);
@@ -116,18 +116,18 @@ void gemm(Op transA,
                     C(i,j) = TA(MixedMat_[m*j + i]);
                 }
             }
-            #else
-            for (idx_t j = 0; j < n; ++j) {
-                for (idx_t i = 0; i < m; ++i)
-                    C(i, j) *= beta;
-                for (idx_t l = 0; l < k; ++l) {
-                    const scalar_t alphaTimesblj = alpha * B(l, j);
-                    for (idx_t i = 0; i < m; ++i)
-                        C(i, j) += A(i, l) * alphaTimesblj;
-                }
-            }
+            // #else
+            // for (idx_t j = 0; j < n; ++j) {
+            //     for (idx_t i = 0; i < m; ++i)
+            //         C(i, j) *= beta;
+            //     for (idx_t l = 0; l < k; ++l) {
+            //         const scalar_t alphaTimesblj = alpha * B(l, j);
+            //         for (idx_t i = 0; i < m; ++i)
+            //             C(i, j) += A(i, l) * alphaTimesblj;
+            //     }
+            // }
 
-            #endif
+            // #endif
 
         }
         else if (transB == Op::Trans) {

@@ -164,6 +164,7 @@ int svd_qr(Uplo uplo,
     for (idx_t iter = 0; iter <= itmax; ++iter) {
         if (iter == itmax) {
             // The QR algorithm failed to converge, return with error.
+            std::cout << "too many iters" << std::endl ;
             return istop;
         }
 

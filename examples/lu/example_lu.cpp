@@ -30,7 +30,19 @@
 #include <iostream>
 #include <vector>
 
+template <typename matrix_t>
+void printMatrix(const matrix_t& A)
+{
+    using idx_t = tlapack::size_type<matrix_t>;
+    const idx_t m = tlapack::nrows(A);
+    const idx_t n = tlapack::ncols(A);
 
+    for (idx_t i = 0; i < m; ++i) {
+        std::cout << std::endl;
+        for (idx_t j = 0; j < n; ++j)
+            std::cout << A(i, j) << " ";
+    }
+}
 //------------------------------------------------------------------------------
 template <class T, tlapack::Layout L>
 void run(size_t n, T scale)
@@ -62,10 +74,25 @@ void run(size_t n, T scale)
     std::vector<float> FG_(n * n);
     tlapack::LegacyMatrix<float, idx_t, L> FG(n, n, FG_.data(), n);
 
+    // std::vector<float> R1_;
+    // auto R1 = new_matrix(R1_, m, n);
+    // std::vector<float> R2_;
+    // auto R2 = new_matrix(R2_, m, n);
+    // for(int j = 0; j < n; ++j){
+    //     for(int i = 0; i < m; ++i){
+    //         R1(i,j) = (static_cast<float>(rand()));
+    //         R2(i,j) = (static_cast<float>(rand()));
+    //     }
+    // }
+    //  tlapack::geqr2(R1, tau_buffer);
+    // tlapack::ung2r(R1, tau_buffer);
+    //  tlapack::geqr2(R2, tau_buffer);
+    // tlapack::ung2r(R2, tau_buffer);
+
     // forming A, a random matrix
     for (idx_t j = 0; j < n; ++j)
         for (idx_t i = 0; i < n; ++i) {
-            FG(i, j) = 10000*float(-1 + 2*(rand()%2))*(static_cast<float>(rand()) / (static_cast<float>(RAND_MAX)));            //A(i,j) = A(i,j)*scale;
+            FG(i, j) = float(scale)*float(-1 + 2*(rand()%2))*(static_cast<float>(rand()) / (static_cast<float>(RAND_MAX)));            //A(i,j) = A(i,j)*scale;
             //A(i,j) = static_cast<float>(i == j ? 1:0);   --added this as a sanity check
         }
     int count = 0;
@@ -93,6 +120,10 @@ void run(size_t n, T scale)
         count++;
         if(abs(maxR - 1) < 1 || abs(maxS - 1) < 1 || count > 50) break;
         }
+
+        //next we need to scale by a parameter theta
+        float maxA = tlapack::lange(tlapack::Norm::Max, FG);
+
         
         float normA = tlapack::lange(tlapack::Norm::Inf, FG);
 
@@ -103,6 +134,7 @@ void run(size_t n, T scale)
             A(i,j) = static_cast<real_t>(FG(i,j));
         }
      }
+     //printMatrix(A);
    
    
     // Allocate space for the LU decomposition
@@ -121,7 +153,13 @@ void run(size_t n, T scale)
     tlapack::lacpy(tlapack::GENERAL, FG, LU_float);
 
      
+    int infotoo = tlapack::getrf(LU_float, piv_float);
 
+
+    if (infotoo != 0) {
+        std::cerr << "Matrix could not be factorized in f32 as well!" << std::endl;
+        return;
+    }
     // Computing the LU decomposition of A
     int info = tlapack::getrf(LU, piv);
 
@@ -131,13 +169,7 @@ void run(size_t n, T scale)
         return;
     }
 
-    info = tlapack::getrf(LU_float, piv_float);
-
-
-    if (info != 0) {
-        std::cerr << "Matrix could not be factorized in f32 as well!" << std::endl;
-        return;
-    }
+    
     
 
     // create X to store invese of A later
@@ -182,12 +214,22 @@ void run(size_t n, T scale)
     std::vector<float> Ef_(n * n);
     tlapack::LegacyMatrix<float, idx_t, L> Ef(n, n, Ef_.data(), n);
      for (size_t j = 0; j < n; ++j){
-        for (size_t i = 0; i < n; ++i)
-            if(j < n/2 || i < n/2){
+        for (size_t i = 0; i < n; ++i){
+            
                 E(i,j) = (float(X(i,j))) - FG(i,j);
                 Ef(i,j) = float(LU(i,j)) - LU_float(i,j);
-            }
+        }
+            
      }
+             //printMatrix(Ef);
+           
+
+    //  bool verbose = true;
+    //  if (verbose) {
+    //     std::cout << std::endl << "A = ";
+    //     printMatrix(E);
+    //     printMatrix(Ef);
+    // }
 
     // // E <----- A * X - I
     // // tlapack::gemm(tlapack::Op::NoTrans, tlapack::Op::NoTrans, real_t(1), A, X,
@@ -216,16 +258,16 @@ int main(int argc, char** argv)
 
     // Default arguments
     //n = (argc < 2) ? 100 : atoi(argv[1]);
-    n = 300;
+    n = 500;
    
       // Init random seed
     srand(100);
-    std::cout.precision(5);
+    std::cout.precision(4);
     std::cout << std::scientific << std::showpos;
 
-    printf("run< float, L >( %d )\n", n);
-    run<float, L>(n, 1.0);
-    printf("-----------------------\n");
+    // printf("run< float, L >( %d )\n", n);
+    // run<float, L>(n, 1.0);
+    // printf("-----------------------\n");
 
     // printf("run< float, L >( %d )\n", n);
     // run<Eigen::half, L>(n, Eigen::half{1});

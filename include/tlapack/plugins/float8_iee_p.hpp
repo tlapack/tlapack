@@ -48,6 +48,24 @@ namespace tlapack {
     
   }
 
+namespace tlapack {
+    namespace traits {
+        template <>
+        struct real_type_traits<ml_dtypes::float8_internal::float8_e3m4, int> {
+            using type = ml_dtypes::float8_internal::float8_e3m4;
+            constexpr static bool is_real = true;
+        };
+        template <>
+        struct complex_type_traits<ml_dtypes::float8_internal::float8_e3m4, int> {
+            using type = std::complex<ml_dtypes::float8_internal::float8_e3m4>;
+            constexpr static bool is_complex = false;
+        };
+    }  // namespace traits
+
+    
+  }
+
+
   // namespace tlapack
 
 inline std::istream& operator>>(std::istream& is, ml_dtypes::float8_e4m3fn& x)
@@ -63,6 +81,14 @@ inline std::istream& operator>>(std::istream& is, ml_dtypes::float8_e5m2& x)
     float f;
     is >> f;
     x = ml_dtypes::float8_e5m2(x);
+    return is;
+}
+
+inline std::istream& operator>>(std::istream& is, ml_dtypes::float8_e3m4& x)
+{
+    float f;
+    is >> f;
+    x = ml_dtypes::float8_e3m4(x);
     return is;
 }
 
@@ -97,10 +123,11 @@ using namespace tlapack;
     }
     inline float8e4m3fn pow(int x, float8e4m3fn y)
     {
-        return float8e4m3fn(std::pow(float(x), float(y)));
+        return float8e4m3fn(std::pow(double(x), double(y)));
     }
-    typedef ml_dtypes::float8_internal::float8_e5m2 float8e5m2;
 
+    // e5m2
+    typedef float8_e5m2 float8e5m2;
     inline float8e5m2 ceil(float8e5m2 x) noexcept
     {
         return float8e5m2(ConstexprCeil(double(x)));
@@ -127,10 +154,40 @@ using namespace tlapack;
     }
     inline float8e5m2 pow(int x, float8e5m2 y)
     {
-        return float8e5m2(std::pow(float(x), float(y)));
+        return float8e5m2(std::pow(double(x), double(y)));
+    }
+
+    // e3m4
+    typedef float8_e3m4 float8e3m4;
+    inline float8e3m4 ceil(float8e3m4 x) noexcept
+    {
+        return float8e3m4(ConstexprCeil(double(x)));
+    }
+    inline float8e3m4 floor(float8e3m4 x) noexcept
+    {
+        return float8e3m4(-ConstexprCeil(-1 * double(x)));
+    }
+    inline float8e3m4 log2(float8e3m4 x) noexcept
+    {
+        return float8e3m4(log(double(x)));
+    }
+    inline float8e3m4 max(float8e3m4 x, float8e3m4 y) noexcept
+    {
+        return x > y ? x : y;
+    }
+    inline float8e3m4 min(float8e3m4 x, float8e3m4 y) noexcept
+    {
+        return x > y ? y : x;
+    }
+    inline float8e3m4 sqrt(float8e3m4 x) noexcept
+    {
+        return float8e3m4(std::sqrt(double(x)));
+    }
+    inline float8e3m4 pow(int x, float8e3m4 y)
+    {
+        return float8e3m4(std::pow(double(x), double(y)));
     }
    
     }
     }
-
 

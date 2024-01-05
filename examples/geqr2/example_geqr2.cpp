@@ -12,10 +12,14 @@
 #include <tlapack/plugins/legacyArray.hpp>
 #include <tlapack/plugins/stdvector.hpp>
 
+#include <opencv2/opencv.hpp>
+
 
 // <T>LAPACK
 #include <tlapack/blas/syrk.hpp>
+#include <tlapack/lapack/gesvd.hpp>
 #include <tlapack/blas/trmm.hpp>
+#include <tlapack/blas/gemm.hpp>
 #include <tlapack/lapack/geqr2.hpp>
 #include <tlapack/lapack/lacpy.hpp>
 #include <tlapack/lapack/lange.hpp>
@@ -33,6 +37,25 @@
 //------------------------------------------------------------------------------
 /// Print matrix A in the standard output
 template <typename matrix_t>
+void displayHeatMap(const matrix_t &A, int n) {
+    // Assuming m and n are the dimensions of OFef
+
+    // Convert OFef to a grayscale image
+    cv::Mat heatMap(n, n, CV_32FC1);
+    for (size_t i = 0; i < n; ++i) {
+        for (size_t j = 0; j < n; ++j) {
+            heatMap.at<float>(i, j) = A(i,j);
+        }
+    }
+
+    // Normalize the values for visualization purposes
+    cv::normalize(heatMap, heatMap, 0, 255, cv::NORM_MINMAX);
+
+    // Display the heat map
+    cv::imshow("Heat Map", heatMap);
+    cv::waitKey(0);
+}
+template <typename matrix_t>
 void printMatrix(const matrix_t& A)
 {
     using idx_t = tlapack::size_type<matrix_t>;
@@ -48,7 +71,7 @@ void printMatrix(const matrix_t& A)
 
 //------------------------------------------------------------------------------
 template <typename real_t>
-double run(size_t m, size_t n, real_t scale)
+double run(size_t m, size_t n, real_t scale, float cond)
 {
     using std::size_t;
     using matrix_t = tlapack::LegacyMatrix<real_t>;
@@ -61,8 +84,27 @@ double run(size_t m, size_t n, real_t scale)
 
     // Arrays
     std::vector<real_t> tau(n);
+    std::vector<float> tau_f(n);
+    std::vector<float> tau_buffer(n);
 
     // Matrices
+    std::vector<float> R1_;
+    auto R1 = new_matrix(R1_, m, n);
+    std::vector<float> R2_;
+    auto R2 = new_matrix(R2_, m, n);
+    for(int j = 0; j < n; ++j){
+        for(int i = 0; i < m; ++i){
+            R1(i,j) = (static_cast<float>(rand()));
+            R2(i,j) = (static_cast<float>(rand()));
+        }
+    }
+    //take QR of R1 and R2 to get orthogonal matrices U and V^T
+    tlapack::geqr2(R1, tau_buffer);
+    tlapack::ung2r(R1, tau_buffer);
+     tlapack::geqr2(R2, tau_buffer);
+    tlapack::ung2r(R2, tau_buffer);
+
+   
     std::vector<float> FG_;
     auto FG = new_matrix(FG_, m, n);
     std::vector<real_t> A_;
@@ -71,6 +113,13 @@ double run(size_t m, size_t n, real_t scale)
     auto R = new_matrix(R_, n, n);
     std::vector<real_t> Q_;
     auto Q = new_matrix(Q_, m, n);
+    std::vector<float> Rf_;
+    auto Rf = new_matrix(Rf_, n, n);
+    std::vector<float> Qf_;
+    auto Qf = new_matrix(Qf_, n, n);
+    std::vector<float> iA_;
+    auto iA = new_matrix(iA_, m, n);
+
     std::vector<float> Scal_(n,0.0);
     std::vector<float> sums(n,0.0);
 
@@ -79,32 +128,65 @@ double run(size_t m, size_t n, real_t scale)
         for (size_t i = 0; i < m; ++i) {
             A(i, j) = static_cast<float>(0xDEADBEEF);
             Q(i, j) = static_cast<float>(0xCAFED00D);
+            Qf(i, j) = static_cast<float>(0xCAFED00D);
         }
         for (size_t i = 0; i < n; ++i) {
             R(i, j) = static_cast<float>(0xFEE1DEAD);
+            Rf(i, j) = static_cast<float>(0xFEE1DEAD);
         }
         tau[j] = static_cast<float>(0xFFBADD11);
+        tau_f[j] = static_cast<float>(0xFFBADD11);
     }
 
-    // Generate a random matrix in A
+    // Generate a random matrix in A and take it's svd. Then linearly interpolate singular values from desired condition number to 1
     for (size_t j = 0; j < n; ++j){
-        for (size_t i = 0; i < m; ++i){
-            // if (i % 2==0)
-            // FG(i, j) = 100000*float(-1 + 2*(rand()%2))*(static_cast<float>(rand()) / (static_cast<float>(RAND_MAX)));
-            // else 
-            FG(i, j) = float(-1 + 2*(rand()%2))*(static_cast<float>(rand()) / (static_cast<float>(RAND_MAX)));
-            sums[i] += abs(FG(i,j));
+        for (size_t i = 0; i <= j; ++i){
+        if(i<=j+1)
+         FG(i, j) = (static_cast<float>(rand()));
+           
+        }
+    }
+    
+    
+    std::vector<float> iS_(n*m, 0.0);
+    auto iS = new_matrix(iS_, m, n);
+    
+    //now that we have the SVD, we either scale the rows of Vt or columns of U by the linearly interpolated singular values
+    for(int i = 0; i < n; i++){
+        iS(i,i) = float(1/(cond - (n - 1- i)*(cond- 1)/(n-1)));
+    }
+    //printMatrix(iS);
+    std::cout << std::endl;
+    //now call gemm
+    tlapack::gemm(tlapack::NO_TRANS,tlapack::NO_TRANS,1.0, iS, R1,0, iA);
+    tlapack::gemm(tlapack::NO_TRANS,tlapack::NO_TRANS,1.0, R2, iA,0, FG);
+
+    for(int i = 0; i < m; i++){
+        for( int j = 0; j < n; j++){
+            sums[j] += abs(FG(i,j));
         }
     }
 
+    
+
+    
+    //once that's done, call gemm and use the new matrix
+
+    
+
+    
+    
+   
     // Frobenius norm of A
-    float normA = tlapack::lange(tlapack::MAX_NORM, FG);
+    float normA = tlapack::lange(tlapack::INF_NORM, FG);
+    
     for(int k = 0; k < n; k++){
-        Scal_[k] = sqrt(float(scale)*0.125)/(normA*sums[k]);
+        Scal_[k] = sqrt(float(scale)*0.125)/sums[k];
         //Scal_[k] = sqrt(float(scale)*0.125)/normA;
+        //Scal_[k] = 1;
     }
     
-    std::cout << normA;
+    //std::cout << normA;
      for (size_t j = 0; j < n; ++j){
         for (size_t i = 0; i < m; ++i){
             A(i,j) = static_cast<real_t>(FG(i,j)*Scal_[j]);
@@ -118,6 +200,7 @@ double run(size_t m, size_t n, real_t scale)
 
     // Copy A to Q
     tlapack::lacpy(tlapack::GENERAL, A, Q);
+    tlapack::lacpy(tlapack::GENERAL, FG, Qf);
 
     // 1) Compute A = QR (Stored in the matrix Q)
 
@@ -126,12 +209,15 @@ double run(size_t m, size_t n, real_t scale)
     {
         // QR factorization
         tlapack::geqr2(Q, tau);
+         tlapack::geqr2(Qf, tau_f);
 
         // Save the R matrix
         tlapack::lacpy(tlapack::UPPER_TRIANGLE, Q, R);
+        tlapack::lacpy(tlapack::UPPER_TRIANGLE, Qf, Rf);
 
         // Generates Q = H_1 H_2 ... H_n
         tlapack::ung2r(Q, tau);
+        tlapack::ung2r(Qf, tau_f);
         //compute Q in 32 bits
     }
     // Record end time
@@ -148,14 +234,10 @@ double run(size_t m, size_t n, real_t scale)
         (elapsedQR.count() * 1.0e-9);
 
     // Print Q and R
-    if (verbose) {
-        std::cout << std::endl << "Q = ";
-        printMatrix(Q);
-        std::cout << std::endl << "R = ";
-        printMatrix(R);
-    }
+   
 
     double norm_orth_1, norm_repres_1;
+    double norm_repres_2, norm_repres_3;
 
     // 2) Compute ||Q'Q - I||_F
 
@@ -174,7 +256,7 @@ double run(size_t m, size_t n, real_t scale)
 
         // Compute ||Q'Q - I||_F
         norm_orth_1 =
-            double(tlapack::lansy(tlapack::MAX_NORM, tlapack::UPPER_TRIANGLE, work));
+            double(tlapack::lansy(tlapack::INF_NORM, tlapack::UPPER_TRIANGLE, work));
 
         if (verbose) {
             std::cout << std::endl << "Q'Q-I = ";
@@ -200,23 +282,53 @@ double run(size_t m, size_t n, real_t scale)
         
         std::vector<float> FE_;
         auto FE = new_matrix(FE_, m, n);
-        
-        for (size_t j = 0; j < n; ++j)
-            for (size_t i = 0; i < m; ++i)
-                FE(i, j) = float(work(i,j))/Scal_[j] - FG(i, j);
+        std::vector<float> FEf_;
+        auto FEf = new_matrix(FE_, m, n);
+        std::vector<float> oFEf_;
+        auto oFEf = new_matrix(oFEf_, m, n);
+        for(int i = 0; i < m; i++){
+            for(int j = 0; j < i; j++){
+                R(i,j)  =0;
+                Rf(i,j) = 0;
+            }
+        }
 
-        norm_repres_1 = double(tlapack::lange(tlapack::MAX_NORM, FE)) / double(normA);
+
+
+        for (size_t j = 0; j < n; ++j)
+            for (size_t i = 0; i < m; ++i){
+                FE(i, j) = float(work(i,j))/Scal_[j] - FG(i, j);
+                FEf(i, j) = Qf(i,j) - float(Q(i,j));
+                oFEf(i, j) = Rf(i,j) - float(R(i,j))/Scal_[j];
+            }
+         if (verbose) {
+        std::cout << std::endl << "Q = ";
+        printMatrix(Q);
+        std::cout << std::endl << "FEf = ";
+        printMatrix(FEf);
+        std::cout << std::endl << "R = ";
+        printMatrix(R);
+        std::cout << std::endl << "oFEf = ";
+        printMatrix(oFEf);std::cout << std::endl;
+    }
+
+        norm_repres_1 = double(tlapack::lange(tlapack::TWO_NORM, FE))/normA ;
+        norm_repres_2 = double(tlapack::lange(tlapack::MAX_NORM, FEf));
+        norm_repres_3 = double(tlapack::lange(tlapack::MAX_NORM, oFEf));
+        //printMatrix(oFEf);
     }
 
     // *) Output
 
-    std::cout << std::endl;
-    std::cout << "time = " << elapsedQR.count() * 1.0e-6 << " ms"
-              << ",   GFlop/sec = " << flopsQR * 1.0e-9;
-    std::cout << std::endl;
-    std::cout << "||QR - A||_F/||A||_F  = " << norm_repres_1
-              << ",        ||Q'Q - I||_F  = " << norm_orth_1;
-    std::cout << std::endl;
+    // std::cout << std::endl;
+    // std::cout << "time = " << elapsedQR.count() * 1.0e-6 << " ms"
+    //           << ",   GFlop/sec = " << flopsQR * 1.0e-9;
+    // std::cout << std::endl;
+    // std::cout << "||QR - A||_F/||A||_F  = " << norm_repres_1
+    //           << ",        ||Q'Q - I||_F  = " << norm_orth_1 << std::endl;
+    // std::cout << "error in Q wrt float version " <<  norm_repres_2 << std::endl;
+    // std::cout << "error in R wrt float version " <<  norm_repres_3 << std::endl;
+    // std::cout << std::endl;
     //std::cout << float(R(10,10)) << std::endl;
  
     
@@ -234,33 +346,36 @@ int main(int argc, char** argv)
     int m, n;
 
     // Default arguments
-    m = (argc < 2) ? 300 : atoi(argv[1]);
-    n = (argc < 3) ? 300 : atoi(argv[2]);
+    m = (argc < 2) ? 10 : atoi(argv[1]);
+    n = (argc < 3) ?  10 : atoi(argv[2]);
     double err1 = 0;
+    double er3 = 0;
     double err2 = 0;
     for (int i = 0; i < 1; i++){
-    srand(10);  // Init random seed
+    srand(100);  // Init random seed
 
     // std::cout.precision(5);
     // std::cout << std::scientific << std::showpos;
 
-     printf("run< float8e4m3fn, L >( %d )\n", n);
+     //printf("run< float8e4m3fn, L >( %d )\n", n);
      std::cout << "epsilon" << ml_dtypes::float8_internal::numeric_limits_float8_e4m3fn::epsilon() << std::endl;
-    err1 += run<float8e4m3fn>(m, n, ml_dtypes::float8_internal::numeric_limits_float8_e4m3fn::max());    
+    err1 += run<float8e4m3fn>(m, n, ml_dtypes::float8_internal::numeric_limits_float8_e4m3fn::max(), 1000000000.0);    
     // printf("-----------------------\n");
 
-     printf("run< float8e5m2, L >( %d )\n", n);
-          std::cout << "epsilon" << ml_dtypes::float8_internal::numeric_limits_float8_e5m2::epsilon() << std::endl;
+     //printf("run< float8e5m2, L >( %d )\n", n);
+    std::cout << "epsilon" << ml_dtypes::float8_internal::numeric_limits_float8_e5m2::epsilon() << std::endl;
+    
+    err2 += run<float8e5m2>(m, n, ml_dtypes::float8_internal::numeric_limits_float8_e5m2::max(), 100000000000.0);  
 
-    err2 += run<float8e5m2>(m, n, ml_dtypes::float8_internal::numeric_limits_float8_e5m2::max());    
+    //er3 +=   run<float>(m,n,1.0);
     }
     //run<Eigen::half>(m,n,Eigen::half{1});
     // printf("-----------------------\n");
 
     // printf("run< float  >( %d, %d )", m, n);
 
-    // run<float>(m, n, 1.0);
-    // printf("-----------------------\n");
+    er3 += run<float>(m, n, 1.0, 10000.0);
+    printf("-----------------------\n");
 
     // printf("run< double >( %d, %d )", m, n);
     // run<double>(m, n);
@@ -269,8 +384,12 @@ int main(int argc, char** argv)
     // printf("run< long double >( %d, %d )", m, n);
     // run<long double>(m, n);
     // printf("-----------------------\n");
+    
     std::cout << err1 << std::endl;
     std::cout << err2 << std::endl;
+    std::cout << er3 << std::endl;
+    //std::cout << er3 << std::endl;
+    //std::cout << float(ml_dtypes::float8_internal::numeric_limits_float8_e4m3fn::infinity()) <<std::endl;
     
     
 
