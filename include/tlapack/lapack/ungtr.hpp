@@ -11,53 +11,10 @@
 #define TLAPACK_UNGTR_HH
 
 #include "tlapack/base/utils.hpp"
-#include "tlapack/lapack/ung2l.hpp"
-#include "tlapack/lapack/ung2r.hpp"
+#include "tlapack/lapack/ungql.hpp"
+#include "tlapack/lapack/ungqr.hpp"
 
 namespace tlapack {
-
-/**
- * @brief Workspace query for ungtr().
- *
- * @tparam uplo_t Either Uplo or any class that implements `operator Uplo()`.
- *
- * @param[in] uplo
- *      - Uplo::Upper:   Upper triangle of Q contains elementary reflectors;
- *      - Uplo::Lower:   Lower triangle of Q contains elementary reflectors;
- *
- * @param[in] Q n-by-n matrix.
- *
- * @param[in] tau Vector of length k.
- *     The scalar factors of the elementary reflectors.
- *
- * @param[in] opts Options.
- *
- * @param[in,out] workinfo
- *      On output, the amount workspace required. It is larger than or equal
- *      to that given on input.
- *
- * @ingroup workspace_query
- */
-template <class matrix_t, class vector_t, class uplo_t>
-constexpr WorkInfo ungtr_worksize(uplo_t uplo,
-                                  const matrix_t& Q,
-                                  const vector_t& tau)
-{
-    using idx_t = size_type<matrix_t>;
-    using pair = pair<idx_t, idx_t>;
-
-    // constants
-    const idx_t n = ncols(Q);
-
-    if (uplo == Uplo::Lower) {
-        auto Qrefl = slice(Q, pair(1, n), pair(1, n));
-        return ung2r_worksize(size(tau), Qrefl, tau);
-    }
-    else {
-        auto Qrefl = slice(Q, pair(0, n - 1), pair(0, n - 1));
-        return ung2l_worksize(Qrefl, tau);
-    }
-}
 
 /**
  * @brief Generates a real orthogonal matrix Q which is defined as the product
@@ -76,10 +33,6 @@ constexpr WorkInfo ungtr_worksize(uplo_t uplo,
  *
  * @param[in] tau Vector of length k.
  *     The scalar factors of the elementary reflectors.
- *
- * @param[in] opts Options.
- *      @c opts.work is used if whenever it has sufficient size.
- *      The sufficient size can be obtained through a workspace query.
  *
  * @return 0 if success
  *
@@ -119,7 +72,7 @@ int ungtr(uplo_t uplo, matrix_t& Q, const vector_t& tau)
         // Compute the Q part that use the reflectors
         auto Qrefl = slice(Q, pair(1, n), pair(1, n));
         // Todo: use workspace
-        return ung2r(Qrefl, tau);
+        return ungqr(Qrefl, tau);
     }
     else {
         // Move the reflectors in Q
@@ -137,7 +90,7 @@ int ungtr(uplo_t uplo, matrix_t& Q, const vector_t& tau)
         // Compute the Q part that use the reflectors
         auto Qrefl = slice(Q, pair(0, n - 1), pair(0, n - 1));
         // Todo: use workspace
-        return ung2l(Qrefl, tau);
+        return ungql(Qrefl, tau);
     }
 }
 
