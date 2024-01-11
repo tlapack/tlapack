@@ -100,7 +100,7 @@ add_executable(test_generalized_schur_swap test_generalized_schur_swap.cpp)
 add_executable(test_generalized_schur_move test_generalized_schur_move.cpp)
 add_executable(test_generalized_aed test_generalized_aed.cpp)
 add_executable(test_multishift_qz test_multishift_qz.cpp)
-add_executable(test_hetd2 test_hetd2.cpp)
+add_executable(test_hetd2 test_hetd2.cpp testutils.cpp)
 
 if(TLAPACK_TEST_EIGEN)
   add_executable(test_eigenplugin test_eigenplugin.cpp)

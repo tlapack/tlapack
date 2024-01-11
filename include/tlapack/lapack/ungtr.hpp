@@ -98,11 +98,16 @@ int ungtr(uplo_t uplo, matrix_t& Q, const vector_t& tau)
     const real_t one(1);
     const real_t zero(0);
 
+    // Quick return if possible
+    if (n == 0) return 0;
+
     if (uplo == Uplo::Lower) {
         // Move the reflectors in Q
-        for (idx_t j = n - 2; j != idx_t(0); --j)
+        for (idx_t j2 = n - 1; j2 > 1; --j2) {
+            idx_t j = j2 - 1;
             for (idx_t i = j + 1; i < n; ++i)
                 Q(i, j) = Q(i, j - 1);
+        }
 
         // Complete Q with the identity
         for (idx_t i = 1; i < n; ++i) {

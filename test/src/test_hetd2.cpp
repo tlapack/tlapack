@@ -42,7 +42,7 @@ TEMPLATE_TEST_CASE("Tridiagnolization of a symmetric matrix works",
     Create<matrix_t> new_matrix;
 
     // Generators
-    idx_t n = GENERATE(6, 13, 29);
+    idx_t n = GENERATE(1, 2, 6, 13, 29);
     const Uplo uplo = GENERATE(Uplo::Lower, Uplo::Upper);
 
     DYNAMIC_SECTION("n = " << n << " uplo = " << uplo)
@@ -115,13 +115,19 @@ TEMPLATE_TEST_CASE("Tridiagnolization of a symmetric matrix works",
             auto R = new_matrix(R_, n, n);
 
             // Compute R = QB
-            for (idx_t i = 0; i < n; ++i) {
-                R(i, 0) = Q(i, 0) * D[0] + Q(i, 1) * E[0];
-                for (idx_t j = 1; j < n - 1; ++j) {
-                    R(i, j) = Q(i, j - 1) * E[j - 1] + Q(i, j) * D[j] +
-                              Q(i, j + 1) * E[j];
+            if (n == 1) {
+                R(0, 0) = Q(0, 0) * D[0];
+            }
+            else {
+                for (idx_t i = 0; i < n; ++i) {
+                    R(i, 0) = Q(i, 0) * D[0] + Q(i, 1) * E[0];
+                    for (idx_t j = 1; j < n - 1; ++j) {
+                        R(i, j) = Q(i, j - 1) * E[j - 1] + Q(i, j) * D[j] +
+                                  Q(i, j + 1) * E[j];
+                    }
+                    R(i, n - 1) =
+                        Q(i, n - 2) * E[n - 2] + Q(i, n - 1) * D[n - 1];
                 }
-                R(i, n - 1) = Q(i, n - 2) * E[n - 2] + Q(i, n - 1) * D[n - 1];
             }
 
             // Make A hermitian
