@@ -38,12 +38,12 @@ namespace tlapack {
  *
  * @ingroup computational
  */
-template <class matrix_t, class vector_t, class uplo_t>
-int ungtr(uplo_t uplo, matrix_t& Q, const vector_t& tau)
+template <TLAPACK_SMATRIX Q_t, TLAPACK_SVECTOR tau_t, class uplo_t>
+int ungtr(uplo_t uplo, Q_t& Q, const tau_t& tau)
 {
-    using T = type_t<matrix_t>;
+    using T = type_t<Q_t>;
     using real_t = real_type<T>;
-    using idx_t = size_type<matrix_t>;
+    using idx_t = size_type<Q_t>;
     using pair = pair<idx_t, idx_t>;
 
     // constants

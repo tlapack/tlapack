@@ -43,12 +43,12 @@ namespace tlapack {
  *
  * @ingroup computational
  */
-template <class matrix_t, class vector_t, class uplo_t>
-int hetd2(uplo_t uplo, matrix_t& A, vector_t& tau)
+template <TLAPACK_SMATRIX A_t, TLAPACK_SVECTOR tau_t, class uplo_t>
+int hetd2(uplo_t uplo, A_t& A, tau_t& tau)
 {
-    using T = type_t<matrix_t>;
+    using T = type_t<A_t>;
     using real_t = real_type<T>;
-    using idx_t = size_type<matrix_t>;
+    using idx_t = size_type<A_t>;
     using pair = pair<idx_t, idx_t>;
 
     // constants
