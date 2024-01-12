@@ -14,6 +14,7 @@
 // Other routines
 #include <tlapack/blas/rotg.hpp>
 #include <tlapack/lapack/lae2.hpp>
+#include <tlapack/lapack/lapy2.hpp>
 #include <tlapack/lapack/singularvalues22.hpp>
 
 using namespace tlapack;
@@ -43,7 +44,7 @@ TEMPLATE_TEST_CASE("check that lae2 gives correct eigenvalues",
         // Compute eigenvalues
         T s1, s2;
         lae2(a, b, c, s1, s2);
-        T Anorm = hypot(hypot(a, b), hypot(b, c));
+        T Anorm = lapy2(lapy2(a, b), lapy2(b, c));
 
         // Check first eigenvalue
         // We check that the matrix B = A - s1 * I is singular

@@ -104,6 +104,7 @@ add_executable(test_hetd2 test_hetd2.cpp testutils.cpp)
 add_executable(test_rot_sequence3 test_rot_sequence3.cpp testutils.cpp)
 add_executable(test_lae2 test_lae2.cpp)
 add_executable(test_laev2 test_laev2.cpp)
+add_executable(test_steqr test_steqr.cpp testutils.cpp)
 
 if(TLAPACK_TEST_EIGEN)
   add_executable(test_eigenplugin test_eigenplugin.cpp)
