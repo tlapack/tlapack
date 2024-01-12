@@ -72,9 +72,9 @@ TEMPLATE_TEST_CASE("steqr is backward stable",
 
         // Check that singular values are sorted in ascending
         // order
-        // for (idx_t i = 0; i < n - 1; ++i) {
-        //     CHECK(d[i] <= d[i + 1]);
-        // }
+        for (idx_t i = 0; i < n - 1; ++i) {
+            CHECK(d[i] <= d[i + 1]);
+        }
 
         // Test for Q's orthogonality
         std::vector<T> Wq_;

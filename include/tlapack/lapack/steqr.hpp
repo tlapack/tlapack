@@ -231,6 +231,32 @@ int steqr(bool want_z, d_t& d, e_t& e, matrix_t& Z)
         }
     }
 
+    // Order eigenvalues and eigenvectors
+    if (!want_z) {
+        // Use quick sort
+        // TODO: implement quick sort
+    }
+    else {
+        // Use selection sort to minize swaps of eigenvectors
+        for (idx_t i = 0; i < n - 1; ++i) {
+            idx_t k = i;
+            real_t p = d[i];
+            for (idx_t j = i + 1; j < n; ++j) {
+                if (d[j] < p) {
+                    k = j;
+                    p = d[j];
+                }
+            }
+            if (k != i) {
+                d[k] = d[i];
+                d[i] = p;
+                auto z1 = col(Z, i);
+                auto z2 = col(Z, k);
+                swap(z1, z2);
+            }
+        }
+    }
+
     return 0;
 }
 
