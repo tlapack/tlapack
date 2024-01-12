@@ -1,4 +1,4 @@
-/// @file test_lae2.cpp Test the solution of 2x2 symmetric eigenvalue
+/// @file test_laev2.cpp Test the solution of 2x2 symmetric eigenvalue
 /// problems
 /// @author Thijs Steel, KU Leuven, Belgium
 //
@@ -14,11 +14,12 @@
 // Other routines
 #include <tlapack/blas/rotg.hpp>
 #include <tlapack/lapack/lae2.hpp>
+#include <tlapack/lapack/laev2.hpp>
 #include <tlapack/lapack/singularvalues22.hpp>
 
 using namespace tlapack;
 
-TEMPLATE_TEST_CASE("check that lae2 gives correct eigenvalues",
+TEMPLATE_TEST_CASE("check that laev2 gives correct eigenvalues",
                    "[symmetriceigenvalues]",
                    float,
                    double)
@@ -41,9 +42,21 @@ TEMPLATE_TEST_CASE("check that lae2 gives correct eigenvalues",
         T c = rand_helper<T>(gen);
 
         // Compute eigenvalues
-        T s1, s2;
-        lae2(a, b, c, s1, s2);
+        T s1, s2, cs, sn;
+        laev2(a, b, c, s1, s2, cs, sn);
         T Anorm = hypot(hypot(a, b), hypot(b, c));
+
+        // Check backward error
+        {
+            // Calculate B = [cs -sn; sn cs] * [s1 0; 0 s2] * [cs sn; -sn cs]
+            T b11 = cs * cs * s1 + sn * sn * s2;
+            T b12 = cs * sn * (s1 - s2);
+            T b22 = sn * sn * s1 + cs * cs * s2;
+
+            CHECK(abs(b11 - a) <= 1.0e1 * eps * Anorm);
+            CHECK(abs(b12 - b) <= 1.0e1 * eps * Anorm);
+            CHECK(abs(b22 - c) <= 1.0e1 * eps * Anorm);
+        }
 
         // Check first eigenvalue
         // We check that the matrix B = A - s1 * I is singular
@@ -86,6 +99,7 @@ TEMPLATE_TEST_CASE("check that lae2 gives correct eigenvalues",
             // Calculate singular values of B
             T ssmin, ssmax;
             singularvalues22(b11, b12, b22, ssmin, ssmax);
+            T Anorm = hypot(hypot(a, b), hypot(b, c));
 
             // Check that ssmin is small enough
             CHECK(ssmin <= 1.0e1 * eps * Anorm);
