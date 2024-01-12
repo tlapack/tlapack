@@ -29,8 +29,8 @@ template <TLAPACK_MATRIX matrix_t>
 void print_matrix(const matrix_t& A)
 {
     using idx_t = size_type<matrix_t>;
-    const idx_t m = nrows(A);
-    const idx_t n = ncols(A);
+    const idx_t m = std::min<idx_t>(100, nrows(A));
+    const idx_t n = std::min<idx_t>(100, ncols(A));
 
     for (idx_t i = 0; i < m; ++i) {
         std::cout << std::endl;
@@ -51,8 +51,8 @@ template <TLAPACK_MATRIX matrix_t>
 std::string visualize_matrix_text(const matrix_t& A)
 {
     using idx_t = size_type<matrix_t>;
-    const idx_t m = nrows(A);
-    const idx_t n = ncols(A);
+    const idx_t m = std::min<idx_t>(100, nrows(A));
+    const idx_t n = std::min<idx_t>(100, ncols(A));
 
     const int width = is_complex<type_t<matrix_t>> ? 25 : 10;
 
@@ -89,8 +89,8 @@ template <TLAPACK_MATRIX matrix_t>
 std::string visualize_matrix_table(const matrix_t& A)
 {
     using idx_t = size_type<matrix_t>;
-    const idx_t m = nrows(A);
-    const idx_t n = ncols(A);
+    const idx_t m = std::min<idx_t>(100, nrows(A));
+    const idx_t n = std::min<idx_t>(100, ncols(A));
 
     std::stringstream stream;
     stream << "{ \"kind\":{ \"plotly\": true },\"data\":[{";
