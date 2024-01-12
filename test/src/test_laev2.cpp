@@ -15,6 +15,7 @@
 #include <tlapack/blas/rotg.hpp>
 #include <tlapack/lapack/lae2.hpp>
 #include <tlapack/lapack/laev2.hpp>
+#include <tlapack/lapack/lapy2.hpp>
 #include <tlapack/lapack/singularvalues22.hpp>
 
 using namespace tlapack;
@@ -44,7 +45,7 @@ TEMPLATE_TEST_CASE("check that laev2 gives correct eigenvalues",
         // Compute eigenvalues
         T s1, s2, cs, sn;
         laev2(a, b, c, s1, s2, cs, sn);
-        T Anorm = hypot(hypot(a, b), hypot(b, c));
+        T Anorm = lapy2(lapy2(a, b), lapy2(b, c));
 
         // Check backward error
         {
@@ -99,7 +100,6 @@ TEMPLATE_TEST_CASE("check that laev2 gives correct eigenvalues",
             // Calculate singular values of B
             T ssmin, ssmax;
             singularvalues22(b11, b12, b22, ssmin, ssmax);
-            T Anorm = hypot(hypot(a, b), hypot(b, c));
 
             // Check that ssmin is small enough
             CHECK(ssmin <= 1.0e1 * eps * Anorm);
