@@ -252,7 +252,7 @@ int steqr(bool want_z, d_t& d, e_t& e, matrix_t& Z)
                 d[i] = p;
                 auto z1 = col(Z, i);
                 auto z2 = col(Z, k);
-                swap(z1, z2);
+                tlapack::swap(z1, z2);
             }
         }
     }
