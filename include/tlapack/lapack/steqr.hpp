@@ -58,7 +58,6 @@ template <TLAPACK_SMATRIX matrix_t,
 int steqr(bool want_z, d_t& d, e_t& e, matrix_t& Z)
 {
     using idx_t = size_type<matrix_t>;
-    using range = pair<idx_t, idx_t>;
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
 
@@ -160,15 +159,14 @@ int steqr(bool want_z, d_t& d, e_t& e, matrix_t& Z)
         istart_old = istart;
         istop_old = istop;
 
-        // if (forwarddirection) {
-        if (false) {
+        if (forwarddirection) {
             // QR iteration
 
             // Form shift using last 2x2 block of the active matrix
             real_t p = d[istop - 1];
             real_t g = (d[istop - 2] - p) / (two * e[istop - 2]);
             real_t r = lapy2(g, one);
-            g = d[istart] - p + e[istop - 2] / (g + (sgn(g) * r));
+            g = d[istart] - p + e[istop - 2] / (real_t)(g + (sgn(g) * r));
 
             real_t s = one;
             real_t c = one;
@@ -202,7 +200,7 @@ int steqr(bool want_z, d_t& d, e_t& e, matrix_t& Z)
             real_t p = d[istart];
             real_t g = (d[istart + 1] - p) / (two * e[istart]);
             real_t r = lapy2(g, one);
-            g = d[istop - 1] - p + e[istart] / (g + (sgn(g) * r));
+            g = d[istop - 1] - p + e[istart] / (real_t)(g + (sgn(g) * r));
 
             real_t s = one;
             real_t c = one;
