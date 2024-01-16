@@ -337,19 +337,71 @@ void rot_sequence3(
                         }
                     }
                     // Pipeline phase
-                    for (idx_t j = l - 1; j < n - 1; ++j) {
-                        for (idx_t i = 0, g = j; i < l; ++i, --g) {
+                    for (idx_t j = l - 1; j + 1 < n - 1; j += 2) {
+                        for (idx_t i = 0, g = j; i + 1 < l; i += 2, g -= 2) {
                             for (idx_t i1 = ib; i1 < ib2; ++i1) {
+                                //
+                                // Apply first rotation
+                                //
+
+                                // A(i1,g) after first rotation
+                                T temp1 = C(g, i) * A(i1, g) +
+                                          conj(S(g, i)) * A(i1, g + 1);
+                                // A(i1,g+1) after first rotation
+                                T temp2 = -S(g, i) * A(i1, g) +
+                                          C(g, i) * A(i1, g + 1);
+
+                                //
+                                // Apply second rotation
+                                //
+
+                                // A(i1,g+1) after second rotation
+                                T temp3 = C(g + 1, i) * temp2 +
+                                          conj(S(g + 1, i)) * A(i1, g + 2);
+                                A(i1, g + 2) = -S(g + 1, i) * temp2 +
+                                               C(g + 1, i) * A(i1, g + 2);
+
+                                //
+                                // Apply third rotation
+                                //
+
+                                // A(i1,g) after third rotation
+                                T temp4 = -S(g - 1, i + 1) * A(i1, g - 1) +
+                                          C(g - 1, i + 1) * temp1;
+                                A(i1, g - 1) = C(g - 1, i + 1) * A(i1, g - 1) +
+                                               conj(S(g - 1, i + 1)) * temp1;
+
+                                // Apply fourth rotation
+                                A(i1, g) = C(g, i + 1) * temp4 +
+                                           conj(S(g, i + 1)) * temp3;
+                                A(i1, g + 1) =
+                                    -S(g, i + 1) * temp4 + C(g, i + 1) * temp3;
+                            }
+                        }
+                        if (l % 2 == 1) {
+                            // Apply two more rotations that could not be fused
+                            idx_t i = l - 1;
+                            idx_t g = j - (l - 1);
+
+                            for (idx_t i1 = ib; i1 < ib2; ++i1) {
+                                // Apply first rotation
                                 T temp = C(g, i) * A(i1, g) +
                                          conj(S(g, i)) * A(i1, g + 1);
                                 A(i1, g + 1) = -S(g, i) * A(i1, g) +
                                                C(g, i) * A(i1, g + 1);
                                 A(i1, g) = temp;
+
+                                // Apply second rotation
+                                T temp2 = C(g + 1, i) * A(i1, g + 1) +
+                                          conj(S(g + 1, i)) * A(i1, g + 2);
+                                A(i1, g + 2) = -S(g + 1, i) * A(i1, g + 1) +
+                                               C(g + 1, i) * A(i1, g + 2);
+                                A(i1, g + 1) = temp2;
                             }
                         }
                     }
                     // Shutdown phase
-                    for (idx_t j = 1; j < l; ++j) {
+                    for (idx_t j = ((n - l + 1) % 2); j < l; ++j) {
                         for (idx_t i = j, g = n - 2; i < l; ++i, --g) {
                             for (idx_t i1 = ib; i1 < ib2; ++i1) {
                                 T temp = C(g, i) * A(i1, g) +
