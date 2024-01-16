@@ -526,7 +526,6 @@ void rot_sequence3(
         }
     }
     else {
-        // Matrix is not col-major, optimize for row-major
         if (side == Side::Left) {
             if (direction == Direction::Forward) {
                 // Left side, forward direction
@@ -536,8 +535,8 @@ void rot_sequence3(
                     // Startup phase
                     for (idx_t j = 0; j < l - 1; ++j) {
                         for (idx_t i = 0, g2 = j; i < j + 1; ++i, --g2) {
+                            idx_t g = m - 2 - g2;
                             for (idx_t i1 = 0; i1 < n; ++i1) {
-                                idx_t g = m - 2 - g2;
                                 T temp =
                                     C(g, i) * A(g, i1) + S(g, i) * A(g + 1, i1);
                                 A(g + 1, i1) = -conj(S(g, i)) * A(g, i1) +
@@ -547,23 +546,78 @@ void rot_sequence3(
                         }
                     }
                     // Pipeline phase
-                    for (idx_t j = l - 1; j < m - 1; ++j) {
-                        for (idx_t i = 0, g2 = j; i < l; ++i, --g2) {
+                    for (idx_t j = l - 1; j + 1 < m - 1; j += 2) {
+                        for (idx_t i = 0, g2 = j; i + 1 < l; i += 2, g2 -= 2) {
+                            idx_t g = m - 2 - g2;
                             for (idx_t i1 = ib; i1 < ib2; ++i1) {
-                                idx_t g = m - 2 - g2;
+                                //
+                                // Apply first rotation
+                                //
+
+                                // A(g,i1) after first rotation
+                                T temp1 =
+                                    C(g, i) * A(g, i1) + S(g, i) * A(g + 1, i1);
+                                // A(g+1,i1) after first rotation
+                                T temp2 = -conj(S(g, i)) * A(g, i1) +
+                                          C(g, i) * A(g + 1, i1);
+
+                                //
+                                // Apply second rotation
+                                //
+
+                                // A(g,i1) after second rotation
+                                T temp3 = -conj(S(g - 1, i)) * A(g - 1, i1) +
+                                          C(g - 1, i) * temp1;
+                                A(g - 1, i1) = C(g - 1, i) * A(g - 1, i1) +
+                                               S(g - 1, i) * temp1;
+
+                                //
+                                // Apply third rotation
+                                //
+
+                                // A(g+1,i1) after third rotation
+                                T temp4 = C(g + 1, i + 1) * temp2 +
+                                          S(g + 1, i + 1) * A(g + 2, i1);
+                                A(g + 2, i1) = -conj(S(g + 1, i + 1)) * temp2 +
+                                               C(g + 1, i + 1) * A(g + 2, i1);
+
+                                // Apply fourth rotation
+                                A(g, i1) =
+                                    C(g, i + 1) * temp3 + S(g, i + 1) * temp4;
+                                A(g + 1, i1) = -conj(S(g, i + 1)) * temp3 +
+                                               C(g, i + 1) * temp4;
+                            }
+                        }
+
+                        if (l % 2 == 1) {
+                            // Apply two more rotations that could not be
+                            // fused
+                            idx_t i = l - 1;
+                            idx_t g2 = j - (l - 1);
+                            idx_t g = m - 2 - g2;
+
+                            for (idx_t i1 = ib; i1 < ib2; ++i1) {
+                                // Apply first rotation
                                 T temp =
                                     C(g, i) * A(g, i1) + S(g, i) * A(g + 1, i1);
                                 A(g + 1, i1) = -conj(S(g, i)) * A(g, i1) +
                                                C(g, i) * A(g + 1, i1);
                                 A(g, i1) = temp;
+
+                                // Apply second rotation
+                                T temp2 = C(g - 1, i) * A(g - 1, i1) +
+                                          S(g - 1, i) * A(g, i1);
+                                A(g, i1) = -conj(S(g - 1, i)) * A(g - 1, i1) +
+                                           C(g - 1, i) * A(g, i1);
+                                A(g - 1, i1) = temp2;
                             }
                         }
                     }
                     // Shutdown phase
-                    for (idx_t j = 1; j < l; ++j) {
+                    for (idx_t j = ((m - l + 1) % 2); j < l; ++j) {
                         for (idx_t i = j, g2 = m - 2; i < l; ++i, --g2) {
+                            idx_t g = m - 2 - g2;
                             for (idx_t i1 = ib; i1 < ib2; ++i1) {
-                                idx_t g = m - 2 - g2;
                                 T temp =
                                     C(g, i) * A(g, i1) + S(g, i) * A(g + 1, i1);
                                 A(g + 1, i1) = -conj(S(g, i)) * A(g, i1) +
@@ -592,19 +646,75 @@ void rot_sequence3(
                         }
                     }
                     // Pipeline phase
-                    for (idx_t j = l - 1; j < m - 1; ++j) {
-                        for (idx_t i = 0, g = j; i < l; ++i, --g) {
+                    for (idx_t j = l - 1; j + 1 < m - 1; j += 2) {
+                        for (idx_t i = 0, g = j; i + 1 < l; i += 2, g -= 2) {
                             for (idx_t i1 = ib; i1 < ib2; ++i1) {
+                                //
+                                // Apply first rotation
+                                //
+
+                                // A(g,i1) after first rotation
+                                T temp1 =
+                                    C(g, i) * A(g, i1) + S(g, i) * A(g + 1, i1);
+                                // A(g+1,i1) after first rotation
+                                T temp2 = -conj(S(g, i)) * A(g, i1) +
+                                          C(g, i) * A(g + 1, i1);
+
+                                //
+                                // Apply second rotation
+                                //
+
+                                // A(g+1,i1) after second rotation
+                                T temp3 = C(g + 1, i) * temp2 +
+                                          S(g + 1, i) * A(g + 2, i1);
+                                A(g + 2, i1) = -conj(S(g + 1, i)) * temp2 +
+                                               C(g + 1, i) * A(g + 2, i1);
+
+                                //
+                                // Apply third rotation
+                                //
+
+                                // A(g,i1) after third rotation
+                                T temp4 =
+                                    -conj(S(g - 1, i + 1)) * A(g - 1, i1) +
+                                    C(g - 1, i + 1) * temp1;
+                                A(g - 1, i1) = C(g - 1, i + 1) * A(g - 1, i1) +
+                                               S(g - 1, i + 1) * temp1;
+
+                                // Apply fourth rotation
+                                A(g, i1) =
+                                    C(g, i + 1) * temp4 + S(g, i + 1) * temp3;
+                                A(g + 1, i1) = -conj(S(g, i + 1)) * temp4 +
+                                               C(g, i + 1) * temp3;
+                            }
+                        }
+
+                        if (l % 2 == 1) {
+                            // Apply two more rotations that could not be
+                            // fused
+                            idx_t i = l - 1;
+                            idx_t g = j - (l - 1);
+
+                            for (idx_t i1 = ib; i1 < ib2; ++i1) {
+                                // Apply first rotation
                                 T temp =
                                     C(g, i) * A(g, i1) + S(g, i) * A(g + 1, i1);
                                 A(g + 1, i1) = -conj(S(g, i)) * A(g, i1) +
                                                C(g, i) * A(g + 1, i1);
                                 A(g, i1) = temp;
+
+                                // Apply second rotation
+                                T temp2 = C(g + 1, i) * A(g + 1, i1) +
+                                          S(g + 1, i) * A(g + 2, i1);
+                                A(g + 2, i1) =
+                                    -conj(S(g + 1, i)) * A(g + 1, i1) +
+                                    C(g + 1, i) * A(g + 2, i1);
+                                A(g + 1, i1) = temp2;
                             }
                         }
                     }
                     // Shutdown phase
-                    for (idx_t j = 1; j < l; ++j) {
+                    for (idx_t j = ((m - l + 1) % 2); j < l; ++j) {
                         for (idx_t i = j, g = m - 2; i < l; ++i, --g) {
                             for (idx_t i1 = ib; i1 < ib2; ++i1) {
                                 T temp =
@@ -639,20 +749,75 @@ void rot_sequence3(
                     }
                     // Pipeline phase
                     for (idx_t i1 = ib; i1 < ib2; ++i1) {
-                        for (idx_t j = l - 1; j < n - 1; ++j) {
-                            for (idx_t i = 0, g2 = j; i < l; ++i, --g2) {
+                        for (idx_t j = l - 1; j + 1 < n - 1; j += 2) {
+                            for (idx_t i = 0, g2 = j; i + 1 < l;
+                                 i += 2, g2 -= 2) {
                                 idx_t g = n - 2 - g2;
+                                //
+                                // Apply first rotation
+                                //
+
+                                // A(i1,g) after first rotation
+                                T temp1 = C(g, i) * A(i1, g) +
+                                          conj(S(g, i)) * A(i1, g + 1);
+                                // A(i1,g+1) after first rotation
+                                T temp2 = -S(g, i) * A(i1, g) +
+                                          C(g, i) * A(i1, g + 1);
+
+                                //
+                                // Apply second rotation
+                                //
+
+                                // A(i1,g) after second rotation
+                                T temp3 = -S(g - 1, i) * A(i1, g - 1) +
+                                          C(g - 1, i) * temp1;
+                                A(i1, g - 1) = C(g - 1, i) * A(i1, g - 1) +
+                                               conj(S(g - 1, i)) * temp1;
+                                //
+                                // Apply third rotation
+                                //
+
+                                // A(i1,g+1) after third rotation
+                                T temp4 = C(g + 1, i + 1) * temp2 +
+                                          conj(S(g + 1, i + 1)) * A(i1, g + 2);
+                                A(i1, g + 2) = -S(g + 1, i + 1) * temp2 +
+                                               C(g + 1, i + 1) * A(i1, g + 2);
+
+                                //
+                                // Apply fourth rotation
+                                //
+
+                                A(i1, g) = C(g, i + 1) * temp3 +
+                                           conj(S(g, i + 1)) * temp4;
+                                A(i1, g + 1) =
+                                    -S(g, i + 1) * temp3 + C(g, i + 1) * temp4;
+                            }
+                            if (l % 2 == 1) {
+                                // Apply two more rotations that could not be
+                                // fused
+                                idx_t i = l - 1;
+                                idx_t g2 = j - (l - 1);
+                                idx_t g = n - 2 - g2;
+
+                                // Apply first rotation
                                 T temp = C(g, i) * A(i1, g) +
                                          conj(S(g, i)) * A(i1, g + 1);
                                 A(i1, g + 1) = -S(g, i) * A(i1, g) +
                                                C(g, i) * A(i1, g + 1);
                                 A(i1, g) = temp;
+
+                                // Apply second rotation
+                                T temp2 = C(g - 1, i) * A(i1, g - 1) +
+                                          conj(S(g - 1, i)) * A(i1, g);
+                                A(i1, g) = -S(g - 1, i) * A(i1, g - 1) +
+                                           C(g - 1, i) * A(i1, g);
+                                A(i1, g - 1) = temp2;
                             }
                         }
                     }
                     // Shutdown phase
                     for (idx_t i1 = ib; i1 < ib2; ++i1) {
-                        for (idx_t j = 1; j < l; ++j) {
+                        for (idx_t j = ((n - l + 1) % 2); j < l; ++j) {
                             for (idx_t i = j, g2 = n - 2; i < l; ++i, --g2) {
                                 idx_t g = n - 2 - g2;
                                 T temp = C(g, i) * A(i1, g) +
@@ -684,19 +849,71 @@ void rot_sequence3(
                     }
                     // Pipeline phase
                     for (idx_t i1 = ib; i1 < ib2; ++i1) {
-                        for (idx_t j = l - 1; j < n - 1; ++j) {
-                            for (idx_t i = 0, g = j; i < l; ++i, --g) {
+                        for (idx_t j = l - 1; j + 1 < n - 1; j += 2) {
+                            for (idx_t i = 0, g = j; i + 1 < l;
+                                 i += 2, g -= 2) {
+                                //
+                                // Apply first rotation
+                                //
+
+                                // A(i1,g) after first rotation
+                                T temp1 = C(g, i) * A(i1, g) +
+                                          conj(S(g, i)) * A(i1, g + 1);
+                                // A(i1,g+1) after first rotation
+                                T temp2 = -S(g, i) * A(i1, g) +
+                                          C(g, i) * A(i1, g + 1);
+
+                                //
+                                // Apply second rotation
+                                //
+
+                                // A(i1,g+1) after second rotation
+                                T temp3 = C(g + 1, i) * temp2 +
+                                          conj(S(g + 1, i)) * A(i1, g + 2);
+                                A(i1, g + 2) = -S(g + 1, i) * temp2 +
+                                               C(g + 1, i) * A(i1, g + 2);
+
+                                //
+                                // Apply third rotation
+                                //
+
+                                // A(i1,g) after third rotation
+                                T temp4 = -S(g - 1, i + 1) * A(i1, g - 1) +
+                                          C(g - 1, i + 1) * temp1;
+                                A(i1, g - 1) = C(g - 1, i + 1) * A(i1, g - 1) +
+                                               conj(S(g - 1, i + 1)) * temp1;
+
+                                // Apply fourth rotation
+                                A(i1, g) = C(g, i + 1) * temp4 +
+                                           conj(S(g, i + 1)) * temp3;
+                                A(i1, g + 1) =
+                                    -S(g, i + 1) * temp4 + C(g, i + 1) * temp3;
+                            }
+                            if (l % 2 == 1) {
+                                // Apply two more rotations that could not be
+                                // fused
+                                idx_t i = l - 1;
+                                idx_t g = j - (l - 1);
+
+                                // Apply first rotation
                                 T temp = C(g, i) * A(i1, g) +
                                          conj(S(g, i)) * A(i1, g + 1);
                                 A(i1, g + 1) = -S(g, i) * A(i1, g) +
                                                C(g, i) * A(i1, g + 1);
                                 A(i1, g) = temp;
+
+                                // Apply second rotation
+                                T temp2 = C(g + 1, i) * A(i1, g + 1) +
+                                          conj(S(g + 1, i)) * A(i1, g + 2);
+                                A(i1, g + 2) = -S(g + 1, i) * A(i1, g + 1) +
+                                               C(g + 1, i) * A(i1, g + 2);
+                                A(i1, g + 1) = temp2;
                             }
                         }
                     }
                     // Shutdown phase
                     for (idx_t i1 = ib; i1 < ib2; ++i1) {
-                        for (idx_t j = 1; j < l; ++j) {
+                        for (idx_t j = ((n - l + 1) % 2); j < l; ++j) {
                             for (idx_t i = j, g = n - 2; i < l; ++i, --g) {
                                 T temp = C(g, i) * A(i1, g) +
                                          conj(S(g, i)) * A(i1, g + 1);
@@ -710,7 +927,7 @@ void rot_sequence3(
             }
         }
     }
-}
+}  // namespace tlapack
 
 }  // namespace tlapack
 
