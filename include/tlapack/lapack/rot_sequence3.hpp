@@ -61,8 +61,6 @@ namespace tlapack {
  * parameter. If l is large, it may be better to call this routine multiple
  * times.
  *
- * @return  0 if success
- *
  * @param[in] side
  *      Specifies whether the plane rotation matrix P is applied to A
  *      on the left or the right
@@ -112,35 +110,100 @@ void rot_sequence3(
     // quick return
     if (k < 1 or l < 1) return;
 
-    // If there is only one sequence, then use rot_sequence
-    if (l == 1) {
-        auto c = col(C, 0);
-        auto s = col(S, 0);
-        rot_sequence(side, direction, c, s, A);
+    // If the dimensions don't allow for effective pipelining,
+    // then apply the rotations using rot_sequence
+    if (l == 1 or k < l) {
+        for (idx_t j = 0; j < l; ++j) {
+            auto c = col(C, j);
+            auto s = col(S, j);
+            rot_sequence(side, direction, c, s, A);
+        }
         return;
     }
 
     // Apply rotations
-    if (side == Side::Left) {
-        if (direction == Direction::Forward) {
-            // Number of blocks
-            const idx_t n_blocks = (k + l - 1) / l + 1;
-
-            // Apply the rotations in blocks
-            for (idx_t jb = 0; jb < n; jb += nb) {
-                for (idx_t b = n_blocks; b > 0; --b) {
-                    for (idx_t h = 0; h < l; h++) {
-                        for (idx_t i2 = std::min((b - 1) * l + h, k);
-                             i2 > std::max<idx_t>((b - 1) * l + h, l) - l;
-                             --i2) {
-                            idx_t i = i2 - 1;
-                            for (idx_t j = jb; j < std::min<idx_t>(n, jb + nb);
-                                 ++j) {
+    if constexpr (layout<A_t> == Layout::ColMajor) {
+        if (side == Side::Left) {
+            if (direction == Direction::Forward) {
+                for (idx_t ib = 0; ib < n; ib += nb) {
+                    idx_t ib2 = std::min(ib + nb, n);
+                    // Startup phase
+                    for (idx_t i1 = 0; i1 < n; ++i1) {
+                        for (idx_t j = 0; j < l - 1; ++j) {
+                            for (idx_t i = 0, g2 = j; i < j + 1; ++i, --g2) {
+                                idx_t g = m - 2 - g2;
                                 T temp =
-                                    C(i, h) * A(i, j) + S(i, h) * A(i + 1, j);
-                                A(i + 1, j) = -conj(S(i, h)) * A(i, j) +
-                                              C(i, h) * A(i + 1, j);
-                                A(i, j) = temp;
+                                    C(g, i) * A(g, i1) + S(g, i) * A(g + 1, i1);
+                                A(g + 1, i1) = -conj(S(g, i)) * A(g, i1) +
+                                               C(g, i) * A(g + 1, i1);
+                                A(g, i1) = temp;
+                            }
+                        }
+                    }
+                    // Pipeline phase
+                    for (idx_t i1 = ib; i1 < ib2; ++i1) {
+                        for (idx_t j = l - 1; j < m - 1; ++j) {
+                            for (idx_t i = 0, g2 = j; i < l; ++i, --g2) {
+                                idx_t g = m - 2 - g2;
+                                T temp =
+                                    C(g, i) * A(g, i1) + S(g, i) * A(g + 1, i1);
+                                A(g + 1, i1) = -conj(S(g, i)) * A(g, i1) +
+                                               C(g, i) * A(g + 1, i1);
+                                A(g, i1) = temp;
+                            }
+                        }
+                    }
+                    // Shutdown phase
+                    for (idx_t i1 = ib; i1 < ib2; ++i1) {
+                        for (idx_t j = 1; j < l; ++j) {
+                            for (idx_t i = j, g2 = m - 2; i < l; ++i, --g2) {
+                                idx_t g = m - 2 - g2;
+                                T temp =
+                                    C(g, i) * A(g, i1) + S(g, i) * A(g + 1, i1);
+                                A(g + 1, i1) = -conj(S(g, i)) * A(g, i1) +
+                                               C(g, i) * A(g + 1, i1);
+                                A(g, i1) = temp;
+                            }
+                        }
+                    }
+                }
+            }
+            else {
+                for (idx_t ib = 0; ib < n; ib += nb) {
+                    idx_t ib2 = std::min(ib + nb, n);
+                    // Startup phase
+                    for (idx_t i1 = ib; i1 < ib2; ++i1) {
+                        for (idx_t j = 0; j < l - 1; ++j) {
+                            for (idx_t i = 0, g = j; i < j + 1; ++i, --g) {
+                                T temp =
+                                    C(g, i) * A(g, i1) + S(g, i) * A(g + 1, i1);
+                                A(g + 1, i1) = -conj(S(g, i)) * A(g, i1) +
+                                               C(g, i) * A(g + 1, i1);
+                                A(g, i1) = temp;
+                            }
+                        }
+                    }
+                    // Pipeline phase
+                    for (idx_t i1 = ib; i1 < ib2; ++i1) {
+                        for (idx_t j = l - 1; j < m - 1; ++j) {
+                            for (idx_t i = 0, g = j; i < l; ++i, --g) {
+                                T temp =
+                                    C(g, i) * A(g, i1) + S(g, i) * A(g + 1, i1);
+                                A(g + 1, i1) = -conj(S(g, i)) * A(g, i1) +
+                                               C(g, i) * A(g + 1, i1);
+                                A(g, i1) = temp;
+                            }
+                        }
+                    }
+                    // Shutdown phase
+                    for (idx_t i1 = ib; i1 < ib2; ++i1) {
+                        for (idx_t j = 1; j < l; ++j) {
+                            for (idx_t i = j, g = m - 2; i < l; ++i, --g) {
+                                T temp =
+                                    C(g, i) * A(g, i1) + S(g, i) * A(g + 1, i1);
+                                A(g + 1, i1) = -conj(S(g, i)) * A(g, i1) +
+                                               C(g, i) * A(g + 1, i1);
+                                A(g, i1) = temp;
                             }
                         }
                     }
@@ -148,22 +211,86 @@ void rot_sequence3(
             }
         }
         else {
-            // Number of blocks
-            const idx_t n_blocks = (k + l - 1) / l + 1;
-
-            // Apply the rotations in blocks
-            for (idx_t jb = 0; jb < n; jb += nb) {
-                for (idx_t b = 1; b <= n_blocks; ++b) {
-                    for (idx_t h = 0; h < l; h++) {
-                        for (idx_t i = std::max<idx_t>(b * l - h, l) - l;
-                             i < std::min(b * l - h, k); ++i) {
-                            for (idx_t j = jb; j < std::min<idx_t>(n, jb + nb);
-                                 ++j) {
-                                T temp =
-                                    C(i, h) * A(i, j) + S(i, h) * A(i + 1, j);
-                                A(i + 1, j) = -conj(S(i, h)) * A(i, j) +
-                                              C(i, h) * A(i + 1, j);
-                                A(i, j) = temp;
+            if (direction == Direction::Forward) {
+                for (idx_t ib = 0; ib < m; ib += nb) {
+                    idx_t ib2 = std::min(ib + nb, m);
+                    // Startup phase
+                    for (idx_t j = 0; j < l - 1; ++j) {
+                        for (idx_t i = 0, g2 = j; i < j + 1; ++i, --g2) {
+                            idx_t g = n - 2 - g2;
+                            for (idx_t i1 = ib; i1 < ib2; ++i1) {
+                                T temp = C(g, i) * A(i1, g) +
+                                         conj(S(g, i)) * A(i1, g + 1);
+                                A(i1, g + 1) = -S(g, i) * A(i1, g) +
+                                               C(g, i) * A(i1, g + 1);
+                                A(i1, g) = temp;
+                            }
+                        }
+                    }
+                    // Pipeline phase
+                    for (idx_t j = l - 1; j < n - 1; ++j) {
+                        for (idx_t i = 0, g2 = j; i < l; ++i, --g2) {
+                            idx_t g = n - 2 - g2;
+                            for (idx_t i1 = ib; i1 < ib2; ++i1) {
+                                T temp = C(g, i) * A(i1, g) +
+                                         conj(S(g, i)) * A(i1, g + 1);
+                                A(i1, g + 1) = -S(g, i) * A(i1, g) +
+                                               C(g, i) * A(i1, g + 1);
+                                A(i1, g) = temp;
+                            }
+                        }
+                    }
+                    // Shutdown phase
+                    for (idx_t j = 1; j < l; ++j) {
+                        for (idx_t i = j, g2 = n - 2; i < l; ++i, --g2) {
+                            idx_t g = n - 2 - g2;
+                            for (idx_t i1 = ib; i1 < ib2; ++i1) {
+                                T temp = C(g, i) * A(i1, g) +
+                                         conj(S(g, i)) * A(i1, g + 1);
+                                A(i1, g + 1) = -S(g, i) * A(i1, g) +
+                                               C(g, i) * A(i1, g + 1);
+                                A(i1, g) = temp;
+                            }
+                        }
+                    }
+                }
+            }
+            else {
+                for (idx_t ib = 0; ib < m; ib += nb) {
+                    idx_t ib2 = std::min(ib + nb, m);
+                    // Startup phase
+                    for (idx_t j = 0; j < l - 1; ++j) {
+                        for (idx_t i = 0, g = j; i < j + 1; ++i, --g) {
+                            for (idx_t i1 = ib; i1 < ib2; ++i1) {
+                                T temp = C(g, i) * A(i1, g) +
+                                         conj(S(g, i)) * A(i1, g + 1);
+                                A(i1, g + 1) = -S(g, i) * A(i1, g) +
+                                               C(g, i) * A(i1, g + 1);
+                                A(i1, g) = temp;
+                            }
+                        }
+                    }
+                    // Pipeline phase
+                    for (idx_t j = l - 1; j < n - 1; ++j) {
+                        for (idx_t i = 0, g = j; i < l; ++i, --g) {
+                            for (idx_t i1 = ib; i1 < ib2; ++i1) {
+                                T temp = C(g, i) * A(i1, g) +
+                                         conj(S(g, i)) * A(i1, g + 1);
+                                A(i1, g + 1) = -S(g, i) * A(i1, g) +
+                                               C(g, i) * A(i1, g + 1);
+                                A(i1, g) = temp;
+                            }
+                        }
+                    }
+                    // Shutdown phase
+                    for (idx_t j = 1; j < l; ++j) {
+                        for (idx_t i = j, g = n - 2; i < l; ++i, --g) {
+                            for (idx_t i1 = ib; i1 < ib2; ++i1) {
+                                T temp = C(g, i) * A(i1, g) +
+                                         conj(S(g, i)) * A(i1, g + 1);
+                                A(i1, g + 1) = -S(g, i) * A(i1, g) +
+                                               C(g, i) * A(i1, g + 1);
+                                A(i1, g) = temp;
                             }
                         }
                     }
@@ -172,25 +299,88 @@ void rot_sequence3(
         }
     }
     else {
-        if (direction == Direction::Forward) {
-            // Number of blocks
-            const idx_t n_blocks = (k + l - 1) / l + 1;
-
-            // Apply the rotations in blocks
-            for (idx_t jb = 0; jb < m; jb += nb) {
-                for (idx_t b = n_blocks; b > 0; --b) {
-                    for (idx_t h = 0; h < l; h++) {
-                        for (idx_t i2 = std::min((b - 1) * l + h, k);
-                             i2 > std::max<idx_t>((b - 1) * l + h, l) - l;
-                             --i2) {
-                            idx_t i = i2 - 1;
-                            for (idx_t j = jb; j < std::min<idx_t>(m, jb + nb);
-                                 ++j) {
-                                T temp = C(i, h) * A(j, i) +
-                                         conj(S(i, h)) * A(j, i + 1);
-                                A(j, i + 1) =
-                                    -S(i, h) * A(j, i) + C(i, h) * A(j, i + 1);
-                                A(j, i) = temp;
+        // Matrix is not col-major, optimize for row-major
+        if (side == Side::Left) {
+            if (direction == Direction::Forward) {
+                for (idx_t ib = 0; ib < n; ib += nb) {
+                    idx_t ib2 = std::min(ib + nb, n);
+                    // Startup phase
+                    for (idx_t j = 0; j < l - 1; ++j) {
+                        for (idx_t i = 0, g2 = j; i < j + 1; ++i, --g2) {
+                            for (idx_t i1 = 0; i1 < n; ++i1) {
+                                idx_t g = m - 2 - g2;
+                                T temp =
+                                    C(g, i) * A(g, i1) + S(g, i) * A(g + 1, i1);
+                                A(g + 1, i1) = -conj(S(g, i)) * A(g, i1) +
+                                               C(g, i) * A(g + 1, i1);
+                                A(g, i1) = temp;
+                            }
+                        }
+                    }
+                    // Pipeline phase
+                    for (idx_t j = l - 1; j < m - 1; ++j) {
+                        for (idx_t i = 0, g2 = j; i < l; ++i, --g2) {
+                            for (idx_t i1 = ib; i1 < ib2; ++i1) {
+                                idx_t g = m - 2 - g2;
+                                T temp =
+                                    C(g, i) * A(g, i1) + S(g, i) * A(g + 1, i1);
+                                A(g + 1, i1) = -conj(S(g, i)) * A(g, i1) +
+                                               C(g, i) * A(g + 1, i1);
+                                A(g, i1) = temp;
+                            }
+                        }
+                    }
+                    // Shutdown phase
+                    for (idx_t j = 1; j < l; ++j) {
+                        for (idx_t i = j, g2 = m - 2; i < l; ++i, --g2) {
+                            for (idx_t i1 = ib; i1 < ib2; ++i1) {
+                                idx_t g = m - 2 - g2;
+                                T temp =
+                                    C(g, i) * A(g, i1) + S(g, i) * A(g + 1, i1);
+                                A(g + 1, i1) = -conj(S(g, i)) * A(g, i1) +
+                                               C(g, i) * A(g + 1, i1);
+                                A(g, i1) = temp;
+                            }
+                        }
+                    }
+                }
+            }
+            else {
+                for (idx_t ib = 0; ib < n; ib += nb) {
+                    idx_t ib2 = std::min(ib + nb, n);
+                    // Startup phase
+                    for (idx_t j = 0; j < l - 1; ++j) {
+                        for (idx_t i = 0, g = j; i < j + 1; ++i, --g) {
+                            for (idx_t i1 = ib; i1 < ib2; ++i1) {
+                                T temp =
+                                    C(g, i) * A(g, i1) + S(g, i) * A(g + 1, i1);
+                                A(g + 1, i1) = -conj(S(g, i)) * A(g, i1) +
+                                               C(g, i) * A(g + 1, i1);
+                                A(g, i1) = temp;
+                            }
+                        }
+                    }
+                    // Pipeline phase
+                    for (idx_t j = l - 1; j < m - 1; ++j) {
+                        for (idx_t i = 0, g = j; i < l; ++i, --g) {
+                            for (idx_t i1 = ib; i1 < ib2; ++i1) {
+                                T temp =
+                                    C(g, i) * A(g, i1) + S(g, i) * A(g + 1, i1);
+                                A(g + 1, i1) = -conj(S(g, i)) * A(g, i1) +
+                                               C(g, i) * A(g + 1, i1);
+                                A(g, i1) = temp;
+                            }
+                        }
+                    }
+                    // Shutdown phase
+                    for (idx_t j = 1; j < l; ++j) {
+                        for (idx_t i = j, g = m - 2; i < l; ++i, --g) {
+                            for (idx_t i1 = ib; i1 < ib2; ++i1) {
+                                T temp =
+                                    C(g, i) * A(g, i1) + S(g, i) * A(g + 1, i1);
+                                A(g + 1, i1) = -conj(S(g, i)) * A(g, i1) +
+                                               C(g, i) * A(g + 1, i1);
+                                A(g, i1) = temp;
                             }
                         }
                     }
@@ -198,22 +388,86 @@ void rot_sequence3(
             }
         }
         else {
-            // Number of blocks
-            const idx_t n_blocks = (k + l - 1) / l + 1;
-
-            // Apply the rotations in blocks
-            for (idx_t jb = 0; jb < m; jb += nb) {
-                for (idx_t b = 1; b <= n_blocks; ++b) {
-                    for (idx_t h = 0; h < l; h++) {
-                        for (idx_t i = std::max<idx_t>(b * l - h, l) - l;
-                             i < std::min(b * l - h, k); ++i) {
-                            for (idx_t j = jb; j < std::min<idx_t>(m, jb + nb);
-                                 ++j) {
-                                T temp = C(i, h) * A(j, i) +
-                                         conj(S(i, h)) * A(j, i + 1);
-                                A(j, i + 1) =
-                                    -S(i, h) * A(j, i) + C(i, h) * A(j, i + 1);
-                                A(j, i) = temp;
+            if (direction == Direction::Forward) {
+                for (idx_t ib = 0; ib < m; ib += nb) {
+                    idx_t ib2 = std::min(ib + nb, m);
+                    // Startup phase
+                    for (idx_t i1 = ib; i1 < ib2; ++i1) {
+                        for (idx_t j = 0; j < l - 1; ++j) {
+                            for (idx_t i = 0, g2 = j; i < j + 1; ++i, --g2) {
+                                idx_t g = n - 2 - g2;
+                                T temp = C(g, i) * A(i1, g) +
+                                         conj(S(g, i)) * A(i1, g + 1);
+                                A(i1, g + 1) = -S(g, i) * A(i1, g) +
+                                               C(g, i) * A(i1, g + 1);
+                                A(i1, g) = temp;
+                            }
+                        }
+                    }
+                    // Pipeline phase
+                    for (idx_t i1 = ib; i1 < ib2; ++i1) {
+                        for (idx_t j = l - 1; j < n - 1; ++j) {
+                            for (idx_t i = 0, g2 = j; i < l; ++i, --g2) {
+                                idx_t g = n - 2 - g2;
+                                T temp = C(g, i) * A(i1, g) +
+                                         conj(S(g, i)) * A(i1, g + 1);
+                                A(i1, g + 1) = -S(g, i) * A(i1, g) +
+                                               C(g, i) * A(i1, g + 1);
+                                A(i1, g) = temp;
+                            }
+                        }
+                    }
+                    // Shutdown phase
+                    for (idx_t i1 = ib; i1 < ib2; ++i1) {
+                        for (idx_t j = 1; j < l; ++j) {
+                            for (idx_t i = j, g2 = n - 2; i < l; ++i, --g2) {
+                                idx_t g = n - 2 - g2;
+                                T temp = C(g, i) * A(i1, g) +
+                                         conj(S(g, i)) * A(i1, g + 1);
+                                A(i1, g + 1) = -S(g, i) * A(i1, g) +
+                                               C(g, i) * A(i1, g + 1);
+                                A(i1, g) = temp;
+                            }
+                        }
+                    }
+                }
+            }
+            else {
+                for (idx_t ib = 0; ib < m; ib += nb) {
+                    idx_t ib2 = std::min(ib + nb, m);
+                    // Startup phase
+                    for (idx_t i1 = ib; i1 < ib2; ++i1) {
+                        for (idx_t j = 0; j < l - 1; ++j) {
+                            for (idx_t i = 0, g = j; i < j + 1; ++i, --g) {
+                                T temp = C(g, i) * A(i1, g) +
+                                         conj(S(g, i)) * A(i1, g + 1);
+                                A(i1, g + 1) = -S(g, i) * A(i1, g) +
+                                               C(g, i) * A(i1, g + 1);
+                                A(i1, g) = temp;
+                            }
+                        }
+                    }
+                    // Pipeline phase
+                    for (idx_t i1 = ib; i1 < ib2; ++i1) {
+                        for (idx_t j = l - 1; j < n - 1; ++j) {
+                            for (idx_t i = 0, g = j; i < l; ++i, --g) {
+                                T temp = C(g, i) * A(i1, g) +
+                                         conj(S(g, i)) * A(i1, g + 1);
+                                A(i1, g + 1) = -S(g, i) * A(i1, g) +
+                                               C(g, i) * A(i1, g + 1);
+                                A(i1, g) = temp;
+                            }
+                        }
+                    }
+                    // Shutdown phase
+                    for (idx_t i1 = ib; i1 < ib2; ++i1) {
+                        for (idx_t j = 1; j < l; ++j) {
+                            for (idx_t i = j, g = n - 2; i < l; ++i, --g) {
+                                T temp = C(g, i) * A(i1, g) +
+                                         conj(S(g, i)) * A(i1, g + 1);
+                                A(i1, g + 1) = -S(g, i) * A(i1, g) +
+                                               C(g, i) * A(i1, g + 1);
+                                A(i1, g) = temp;
                             }
                         }
                     }
