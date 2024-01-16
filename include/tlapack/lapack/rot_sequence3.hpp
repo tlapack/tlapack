@@ -128,6 +128,7 @@ void rot_sequence3(
     if constexpr (layout<A_t> == Layout::ColMajor) {
         if (side == Side::Left) {
             if (direction == Direction::Forward) {
+                // Left side, forward direction
 #pragma omp parallel for
                 for (idx_t ib = 0; ib < n; ib += nb) {
                     idx_t ib2 = std::min(ib + nb, n);
@@ -173,6 +174,7 @@ void rot_sequence3(
                 }
             }
             else {
+                // Left side, backward direction
 #pragma omp parallel for
                 for (idx_t ib = 0; ib < n; ib += nb) {
                     idx_t ib2 = std::min(ib + nb, n);
@@ -217,6 +219,7 @@ void rot_sequence3(
         }
         else {
             if (direction == Direction::Forward) {
+                // Right side, forward direction
 #pragma omp parallel for
                 for (idx_t ib = 0; ib < m; ib += nb) {
                     idx_t ib2 = std::min(ib + nb, m);
@@ -234,20 +237,75 @@ void rot_sequence3(
                         }
                     }
                     // Pipeline phase
-                    for (idx_t j = l - 1; j < n - 1; ++j) {
-                        for (idx_t i = 0, g2 = j; i < l; ++i, --g2) {
+                    for (idx_t j = l - 1; j + 1 < n - 1; j += 2) {
+                        for (idx_t i = 0, g2 = j; i + 1 < l; i += 2, g2 -= 2) {
                             idx_t g = n - 2 - g2;
                             for (idx_t i1 = ib; i1 < ib2; ++i1) {
+                                //
+                                // Apply first rotation
+                                //
+
+                                // A(i1,g) after first rotation
+                                T temp1 = C(g, i) * A(i1, g) +
+                                          conj(S(g, i)) * A(i1, g + 1);
+                                // A(i1,g+1) after first rotation
+                                T temp2 = -S(g, i) * A(i1, g) +
+                                          C(g, i) * A(i1, g + 1);
+
+                                //
+                                // Apply second rotation
+                                //
+
+                                // A(i1,g) after second rotation
+                                T temp3 = -S(g - 1, i) * A(i1, g - 1) +
+                                          C(g - 1, i) * temp1;
+                                A(i1, g - 1) = C(g - 1, i) * A(i1, g - 1) +
+                                               conj(S(g - 1, i)) * temp1;
+                                //
+                                // Apply third rotation
+                                //
+
+                                // A(i1,g+1) after third rotation
+                                T temp4 = C(g + 1, i + 1) * temp2 +
+                                          conj(S(g + 1, i + 1)) * A(i1, g + 2);
+                                A(i1, g + 2) = -S(g + 1, i + 1) * temp2 +
+                                               C(g + 1, i + 1) * A(i1, g + 2);
+
+                                //
+                                // Apply fourth rotation
+                                //
+
+                                A(i1, g) = C(g, i + 1) * temp3 +
+                                           conj(S(g, i + 1)) * temp4;
+                                A(i1, g + 1) =
+                                    -S(g, i + 1) * temp3 + C(g, i + 1) * temp4;
+                            }
+                        }
+                        if (l % 2 == 1) {
+                            // Apply two more rotations that could not be fused
+                            idx_t i = l - 1;
+                            idx_t g2 = j - (l - 1);
+                            idx_t g = n - 2 - g2;
+
+                            for (idx_t i1 = ib; i1 < ib2; ++i1) {
+                                // Apply first rotation
                                 T temp = C(g, i) * A(i1, g) +
                                          conj(S(g, i)) * A(i1, g + 1);
                                 A(i1, g + 1) = -S(g, i) * A(i1, g) +
                                                C(g, i) * A(i1, g + 1);
                                 A(i1, g) = temp;
+
+                                // Apply second rotation
+                                T temp2 = C(g - 1, i) * A(i1, g - 1) +
+                                          conj(S(g - 1, i)) * A(i1, g);
+                                A(i1, g) = -S(g - 1, i) * A(i1, g - 1) +
+                                           C(g - 1, i) * A(i1, g);
+                                A(i1, g - 1) = temp2;
                             }
                         }
                     }
                     // Shutdown phase
-                    for (idx_t j = 1; j < l; ++j) {
+                    for (idx_t j = ((n - l + 1) % 2); j < l; ++j) {
                         for (idx_t i = j, g2 = n - 2; i < l; ++i, --g2) {
                             idx_t g = n - 2 - g2;
                             for (idx_t i1 = ib; i1 < ib2; ++i1) {
@@ -262,6 +320,7 @@ void rot_sequence3(
                 }
             }
             else {
+                // Right side, backward direction
 #pragma omp parallel for
                 for (idx_t ib = 0; ib < m; ib += nb) {
                     idx_t ib2 = std::min(ib + nb, m);
@@ -309,6 +368,7 @@ void rot_sequence3(
         // Matrix is not col-major, optimize for row-major
         if (side == Side::Left) {
             if (direction == Direction::Forward) {
+                // Left side, forward direction
 #pragma omp parallel for
                 for (idx_t ib = 0; ib < n; ib += nb) {
                     idx_t ib2 = std::min(ib + nb, n);
@@ -354,6 +414,7 @@ void rot_sequence3(
                 }
             }
             else {
+                // Left side, backward direction
 #pragma omp parallel for
                 for (idx_t ib = 0; ib < n; ib += nb) {
                     idx_t ib2 = std::min(ib + nb, n);
@@ -398,6 +459,7 @@ void rot_sequence3(
         }
         else {
             if (direction == Direction::Forward) {
+                // Right side, forward direction
 #pragma omp parallel for
                 for (idx_t ib = 0; ib < m; ib += nb) {
                     idx_t ib2 = std::min(ib + nb, m);
@@ -443,6 +505,7 @@ void rot_sequence3(
                 }
             }
             else {
+                // Right side, backward direction
 #pragma omp parallel for
                 for (idx_t ib = 0; ib < m; ib += nb) {
                     idx_t ib2 = std::min(ib + nb, m);
