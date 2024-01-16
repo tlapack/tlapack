@@ -61,6 +61,9 @@ namespace tlapack {
  * parameter. If l is large, it may be better to call this routine multiple
  * times.
  *
+ * Reference: "Restructuring the Tridiagonal and Bidiagonal QR algorithms for
+ * Performance" F. G. Van Zee, R. A. Van de Geijn, G. Quintana-Orti
+ *
  * @param[in] side
  *      Specifies whether the plane rotation matrix P is applied to A
  *      on the left or the right
