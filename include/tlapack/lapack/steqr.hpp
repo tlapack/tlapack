@@ -65,7 +65,6 @@ int steqr(bool want_z, d_t& d, e_t& e, matrix_t& Z)
     const real_t two(2);
     const real_t one(1);
     const real_t zero(0);
-    const real_t three(3);
     const idx_t n = size(d);
 
     // Quick return if possible
@@ -79,9 +78,6 @@ int steqr(bool want_z, d_t& d, e_t& e, matrix_t& Z)
     const real_t eps = ulp<real_t>();
     const real_t eps2 = square(eps);
     const real_t safmin = safe_min<real_t>();
-    const real_t safmax = one / safmin;
-    const real_t ssfmax = sqrt(safmax) / three;
-    const real_t ssfmin = sqrt(safmin) / eps2;
 
     // Compute the eigenvalues and eigenvectors of the tridiagonal
     // matrix.
