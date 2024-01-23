@@ -129,6 +129,7 @@ add_executable(test_trevc3 test_trevc3.cpp testutils.cpp )
 add_executable(test_trevc_protect test_trevc_protect.cpp testutils.cpp )
 add_executable(test_trevc_protect2x2 test_trevc_protect2x2.cpp testutils.cpp )
 add_executable(test_rot_kernel test_rot_kernel.cpp testutils.cpp)
+add_executable(test_steqr3 test_steqr3.cpp testutils.cpp)
 
 if(TLAPACK_TEST_EIGEN)
   add_executable(test_eigenplugin test_eigenplugin.cpp)
