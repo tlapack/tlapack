@@ -20,8 +20,16 @@
 #include "tlapack/lapack/lae2.hpp"
 #include "tlapack/lapack/laev2.hpp"
 #include "tlapack/lapack/lapy2.hpp"
+#include "tlapack/lapack/rot_sequence3.hpp"
 
 namespace tlapack {
+
+/**
+ * Options struct for steqr3
+ */
+struct Steqr3Opts {
+    size_t nb = 32;  ///< Block size
+};
 
 /**
  * STEQR3 computes all eigenvalues and, optionally, eigenvectors of a
@@ -58,12 +66,14 @@ template <TLAPACK_SMATRIX matrix_t,
           class e_t,
           enable_if_t<is_same_v<type_t<d_t>, real_type<type_t<d_t>>>, int> = 0,
           enable_if_t<is_same_v<type_t<e_t>, real_type<type_t<e_t>>>, int> = 0>
-int steqr3(bool want_z, d_t& d, e_t& e, matrix_t& Z)
+int steqr3(
+    bool want_z, d_t& d, e_t& e, matrix_t& Z, const Steqr3Opts& opts = {})
 {
     using idx_t = size_type<matrix_t>;
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
     using real_matrix_t = real_type<matrix_t>;
+    using range = std::pair<idx_t, idx_t>;
 
     // constants
     const real_t two(2);
@@ -72,7 +82,7 @@ int steqr3(bool want_z, d_t& d, e_t& e, matrix_t& Z)
     const idx_t n = size(d);
 
     // Amount of rotation sequence to generate before applying it.
-    const idx_t nb = 64;
+    const idx_t nb = opts.nb;
 
     // Quick return if possible
     if (n == 0) return 0;
@@ -98,9 +108,7 @@ int steqr3(bool want_z, d_t& d, e_t& e, matrix_t& Z)
     idx_t istart_old = -1;
     idx_t istop_old = -1;
 
-    // Keep track of position where the currect block starts and ends
-    idx_t istart_block = istart;
-    idx_t istop_block = istop;
+    // Keep track of the delayed rotation sequences
     idx_t i_block = 0;
 
     // Allocate matrices for storing rotations
@@ -125,6 +133,54 @@ int steqr3(bool want_z, d_t& d, e_t& e, matrix_t& Z)
 
     // Main loop
     for (idx_t iter = 0; iter < itmax; iter++) {
+        if (want_z and (i_block >= nb or iter == itmax or istop <= 1)) {
+            idx_t i_block2 = min<idx_t>(i_block + 1, nb);
+
+            // Find smallest index where rotation is not identity
+            idx_t i_start_block = n - 1;
+            for (idx_t i = 0; i < i_block2; ++i) {
+                for (idx_t j = 0; j < i_start_block; ++j)
+                    if (C(0, i) != one or S(0, i) != zero) {
+                        i_start_block = j;
+                        break;
+                    }
+            }
+
+            // Find largest index where rotation is not identity
+            idx_t i_stop_block = 0;
+            for (idx_t i = 0; i < i_block2; ++i) {
+                for (idx_t j2 = n - 1; j2 > i_stop_block; --j2) {
+                    idx_t j = j2 - 1;
+                    if (C(j, i) != one or S(j, i) != zero) {
+                        i_stop_block = j;
+                        break;
+                    }
+                }
+            }
+
+            auto C2 = slice(C, range{i_start_block, i_stop_block + 1},
+                            range{0, i_block2});
+            auto S2 = slice(S, range{i_start_block, i_stop_block + 1},
+                            range{0, i_block2});
+
+            auto Z2 =
+                slice(Z, range{0, n}, range{i_start_block, i_stop_block + 2});
+
+            rot_sequence3(
+                RIGHT_SIDE,
+                forwarddirection ? Direction::Backward : Direction::Forward, C2,
+                S2, Z2);
+            // Reset block
+            i_block = 0;
+
+            // Initialize C and S to identity rotations
+            for (idx_t j = 0; j < nb; ++j) {
+                for (idx_t i = 0; i < n - 1; ++i) {
+                    C(i, j) = one;
+                    S(i, j) = zero;
+                }
+            }
+        }
         if (iter == itmax) {
             // The QR algorithm failed to converge, return with error.
             return istop;
@@ -159,9 +215,12 @@ int steqr3(bool want_z, d_t& d, e_t& e, matrix_t& Z)
                 real_t cs, sn;
                 laev2(d[istart], e[istart], d[istart + 1], s1, s2, cs, sn);
 
-                auto z1 = col(Z, istart);
-                auto z2 = col(Z, istart + 1);
-                rot(z1, z2, cs, sn);
+                // Store rotation
+                C(istart, i_block) = cs;
+                S(istart, i_block) = sn;
+                // Normally, we would increment i_block here, but we do not
+                // because the block has been deflated and should not interfere
+                // with the next sequence.
             }
             else {
                 lae2(d[istart], e[istart], d[istart + 1], s1, s2);
@@ -210,9 +269,9 @@ int steqr3(bool want_z, d_t& d, e_t& e, matrix_t& Z)
                 g = c * r - b;
                 // If eigenvalues are desired, then apply rotations
                 if (want_z) {
-                    auto z1 = col(Z, i);
-                    auto z2 = col(Z, i + 1);
-                    rot(z1, z2, c, s);
+                    // Store rotation for later
+                    C(i, i_block) = c;
+                    S(i, i_block) = s;
                 }
             }
             d[istop - 1] = d[istop - 1] - p;
@@ -244,14 +303,15 @@ int steqr3(bool want_z, d_t& d, e_t& e, matrix_t& Z)
                 g = c * r - b;
                 // If eigenvalues are desired, then apply rotations
                 if (want_z) {
-                    auto z1 = col(Z, i);
-                    auto z2 = col(Z, i - 1);
-                    rot(z1, z2, c, s);
+                    // Store rotation for later
+                    C(i - 1, i_block) = c;
+                    S(i - 1, i_block) = s;
                 }
             }
             d[istart] = d[istart] - p;
             e[istart] = g;
         }
+        i_block++;
     }
 
     // Order eigenvalues and eigenvectors

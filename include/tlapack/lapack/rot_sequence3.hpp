@@ -13,6 +13,7 @@
 #include "tlapack/base/utils.hpp"
 #include "tlapack/blas/rot.hpp"
 #include "tlapack/lapack/rot_kernel.hpp"
+#include "tlapack/lapack/rot_sequence.hpp"
 
 namespace tlapack {
 
