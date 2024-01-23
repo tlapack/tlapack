@@ -31,8 +31,8 @@ permissions:
   contents: read
 
 env:
-  CFLAGS: "-Wall -pedantic -Wno-unused-variable -Wno-unused-function"
-  CXXFLAGS: "-Wall -pedantic -Wno-unused-variable -Wno-unused-function"
+  CFLAGS: "-Wall -pedantic -Wno-unused-variable -Wno-unused-function -Wl,--no-as-needed"
+  CXXFLAGS: "-Wall -pedantic -Wno-unused-variable -Wno-unused-function -Wl,--no-as-needed"
   FFLAGS: "-fimplicit-none -fcheck=all"
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
