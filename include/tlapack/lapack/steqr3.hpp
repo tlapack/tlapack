@@ -12,6 +12,8 @@
 #ifndef TLAPACK_STEQR3_HH
 #define TLAPACK_STEQR3_HH
 
+#include <chrono>  // for high_resolution_clock
+
 #include "tlapack/base/utils.hpp"
 #include "tlapack/blas/iamax.hpp"
 #include "tlapack/blas/lartg.hpp"
@@ -129,7 +131,7 @@ int steqr3(
     // If true, chase bulges from top to bottom
     // If false chase bulges from bottom to top
     // This variable is reevaluated for every new subblock
-    bool forwarddirection = false;
+    bool forwarddirection = d[0] > d[n - 1];
 
     // Main loop
     for (idx_t iter = 0; iter < itmax; iter++) {
@@ -167,6 +169,14 @@ int steqr3(
                 auto Z2 = slice(Z, range{0, n},
                                 range{i_start_block, i_stop_block + 2});
 
+                //
+                // Note: hardcoding the direction here significantly increases
+                // performance. Maybe some inlining is happening?
+                // Anyway... very annoying.
+                //
+
+                // rot_sequence3(RIGHT_SIDE, Direction::Forward, C2, S2, Z2);
+                // rot_sequence3(RIGHT_SIDE, Direction::Backward, C2, S2, Z2);
                 rot_sequence3(
                     RIGHT_SIDE,
                     forwarddirection ? Direction::Backward : Direction::Forward,
@@ -236,11 +246,75 @@ int steqr3(
             continue;
         }
 
-        // Choose betwwen QL and QR iteration
+        // Choose between QL and QR iteration
         if (istart >= istop_old or istop <= istart_old) {
-            // forwarddirection = abs(d[istart]) > abs(d[istop - 1]);
-            // For now, we only support forward direction
-            forwarddirection = false;
+            bool forwarddirection_new;
+            // We prefer to keep the current direction, because switching
+            // direction forces us to apply the rotations in the block, which
+            // may be inefficient if the block is small.
+            if (forwarddirection) {
+                forwarddirection_new =
+                    100. * abs(d[istart]) > abs(d[istop - 1]);
+            }
+            else {
+                forwarddirection_new =
+                    abs(d[istart]) > 100. * abs(d[istop - 1]);
+            }
+
+            if (forwarddirection_new != forwarddirection) {
+                // idx_t i_block2 = min<idx_t>(i_block + 1, nb);
+                // std::cout << "switching direction" << std::endl;
+
+                // // Find smallest index where rotation is not identity
+                // idx_t i_start_block = n - 1;
+                // for (idx_t i = 0; i < i_block2; ++i) {
+                //     for (idx_t j = 0; j < i_start_block; ++j)
+                //         if (C(j, i) != one or S(j, i) != zero) {
+                //             i_start_block = j;
+                //             break;
+                //         }
+                // }
+
+                // // Find largest index where rotation is not identity
+                // idx_t i_stop_block = 0;
+                // for (idx_t i = 0; i < i_block2; ++i) {
+                //     for (idx_t j2 = n - 1; j2 > i_stop_block; --j2) {
+                //         idx_t j = j2 - 1;
+                //         if (C(j, i) != one or S(j, i) != zero) {
+                //             i_stop_block = j;
+                //             break;
+                //         }
+                //     }
+                // }
+
+                // if (i_start_block < i_stop_block + 1) {
+                //     auto C2 = slice(C, range{i_start_block, i_stop_block +
+                //     1},
+                //                     range{0, i_block2});
+                //     auto S2 = slice(S, range{i_start_block, i_stop_block +
+                //     1},
+                //                     range{0, i_block2});
+
+                //     auto Z2 = slice(Z, range{0, n},
+                //                     range{i_start_block, i_stop_block + 2});
+
+                //     rot_sequence3(RIGHT_SIDE,
+                //                   forwarddirection ? Direction::Backward
+                //                                    : Direction::Forward,
+                //                   C2, S2, Z2);
+                // }
+                // // Reset block
+                // i_block = 0;
+
+                // // Initialize C and S to identity rotations
+                // for (idx_t j = 0; j < nb; ++j) {
+                //     for (idx_t i = 0; i < n - 1; ++i) {
+                //         C(i, j) = one;
+                //         S(i, j) = zero;
+                //     }
+                // }
+            }
+            forwarddirection = forwarddirection_new;
         }
         istart_old = istart;
         istop_old = istop;
