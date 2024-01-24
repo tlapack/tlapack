@@ -28,7 +28,7 @@ namespace tlapack {
  * Options struct for steqr3
  */
 struct Steqr3Opts {
-    size_t nb = 32;  ///< Block size
+    size_t nb = 64;  ///< Block size
 };
 
 /**
@@ -129,7 +129,7 @@ int steqr3(
     // If true, chase bulges from top to bottom
     // If false chase bulges from bottom to top
     // This variable is reevaluated for every new subblock
-    bool forwarddirection = true;
+    bool forwarddirection = false;
 
     // Main loop
     for (idx_t iter = 0; iter < itmax; iter++) {
@@ -140,7 +140,7 @@ int steqr3(
             idx_t i_start_block = n - 1;
             for (idx_t i = 0; i < i_block2; ++i) {
                 for (idx_t j = 0; j < i_start_block; ++j)
-                    if (C(0, i) != one or S(0, i) != zero) {
+                    if (C(j, i) != one or S(j, i) != zero) {
                         i_start_block = j;
                         break;
                     }
@@ -158,18 +158,20 @@ int steqr3(
                 }
             }
 
-            auto C2 = slice(C, range{i_start_block, i_stop_block + 1},
-                            range{0, i_block2});
-            auto S2 = slice(S, range{i_start_block, i_stop_block + 1},
-                            range{0, i_block2});
+            if (i_start_block < i_stop_block + 1) {
+                auto C2 = slice(C, range{i_start_block, i_stop_block + 1},
+                                range{0, i_block2});
+                auto S2 = slice(S, range{i_start_block, i_stop_block + 1},
+                                range{0, i_block2});
 
-            auto Z2 =
-                slice(Z, range{0, n}, range{i_start_block, i_stop_block + 2});
+                auto Z2 = slice(Z, range{0, n},
+                                range{i_start_block, i_stop_block + 2});
 
-            rot_sequence3(
-                RIGHT_SIDE,
-                forwarddirection ? Direction::Backward : Direction::Forward, C2,
-                S2, Z2);
+                rot_sequence3(
+                    RIGHT_SIDE,
+                    forwarddirection ? Direction::Backward : Direction::Forward,
+                    C2, S2, Z2);
+            }
             // Reset block
             i_block = 0;
 
@@ -238,7 +240,7 @@ int steqr3(
         if (istart >= istop_old or istop <= istart_old) {
             // forwarddirection = abs(d[istart]) > abs(d[istop - 1]);
             // For now, we only support forward direction
-            forwarddirection = true;
+            forwarddirection = false;
         }
         istart_old = istart;
         istop_old = istop;
@@ -305,7 +307,7 @@ int steqr3(
                 if (want_z) {
                     // Store rotation for later
                     C(i - 1, i_block) = c;
-                    S(i - 1, i_block) = s;
+                    S(i - 1, i_block) = -s;
                 }
             }
             d[istart] = d[istart] - p;
