@@ -21,6 +21,7 @@
 #include "tlapack/lapack/laev2.hpp"
 #include "tlapack/lapack/lapy2.hpp"
 #include "tlapack/lapack/lasrt.hpp"
+#include "tlapack/lapack/rot_sequence.hpp"
 
 namespace tlapack {
 
@@ -78,6 +79,7 @@ int steqr(bool want_z, d_t& d, e_t& e, matrix_t& Z)
     using idx_t = size_type<matrix_t>;
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
+    using range = std::pair<idx_t, idx_t>;
 
     // constants
     const real_t two(2);
@@ -110,6 +112,12 @@ int steqr(bool want_z, d_t& d, e_t& e, matrix_t& Z)
     // If false, chase bulges from bottom to top
     // This variable is reevaluated for every new subblock
     bool forwarddirection = true;
+
+    // TODO: add scaling
+
+    // Use workspace for these vectors
+    std::vector<real_t> c_vec(n - 1);
+    std::vector<real_t> s_vec(n - 1);
 
     // Main loop
     for (idx_t iter = 0; iter < itmax; iter++) {
@@ -194,15 +202,20 @@ int steqr(bool want_z, d_t& d, e_t& e, matrix_t& Z)
                 p = s * r;
                 d[i] = g + p;
                 g = c * r - b;
-                // If eigenvalues are desired, then apply rotations
                 if (want_z) {
-                    auto z1 = col(Z, i);
-                    auto z2 = col(Z, i + 1);
-                    rot(z1, z2, c, s);
+                    // Save rotations for later
+                    c_vec[i] = c;
+                    s_vec[i] = s;
                 }
             }
             d[istop - 1] = d[istop - 1] - p;
             e[istop - 2] = g;
+            if (want_z) {
+                auto c_vec2 = slice(c_vec, range{istart, istop - 1});
+                auto s_vec2 = slice(s_vec, range{istart, istop - 1});
+                auto Z2 = slice(Z, range{0, n}, range{istart, istop});
+                rot_sequence(RIGHT_SIDE, BACKWARD, c_vec2, s_vec2, Z2);
+            }
         }
         else {
             // QL iteration
@@ -230,13 +243,19 @@ int steqr(bool want_z, d_t& d, e_t& e, matrix_t& Z)
                 g = c * r - b;
                 // If eigenvalues are desired, then apply rotations
                 if (want_z) {
-                    auto z1 = col(Z, i);
-                    auto z2 = col(Z, i - 1);
-                    rot(z1, z2, c, s);
+                    // Save rotations for later
+                    c_vec[i - 1] = c;
+                    s_vec[i - 1] = -s;
                 }
             }
             d[istart] = d[istart] - p;
             e[istart] = g;
+            if (want_z) {
+                auto c_vec2 = slice(c_vec, range{istart, istop - 1});
+                auto s_vec2 = slice(s_vec, range{istart, istop - 1});
+                auto Z2 = slice(Z, range{0, n}, range{istart, istop});
+                rot_sequence(RIGHT_SIDE, FORWARD, c_vec2, s_vec2, Z2);
+            }
         }
     }
 
