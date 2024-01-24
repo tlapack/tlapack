@@ -156,7 +156,7 @@ int steqr(bool want_z, d_t& d, e_t& e, matrix_t& Z)
             continue;
         }
 
-        // Choose betwwen QL and QR iteration
+        // Choose between QL and QR iteration
         if (istart >= istop_old or istop <= istart_old) {
             forwarddirection = abs(d[istart]) > abs(d[istop - 1]);
         }
