@@ -47,7 +47,7 @@ int rot_sequence_unoptimized(
     // quick return
     if (k < 1) return 0;
 
-    if (direction == Direction::Forward) {
+    if (direction == Direction::Backward) {
         if (side == Side::Left) {
             for (idx_t i2 = k; i2 > 0; --i2) {
                 idx_t i = i2 - 1;
