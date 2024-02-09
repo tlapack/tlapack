@@ -282,7 +282,7 @@ void rot_fuse2x1(const idx_t n,
  * @param[in,out] x1  Pointer to the first vector.
  * @param[in,out] x2  Pointer to the second vector.
  * @param[in,out] x3  Pointer to the third vector.
- * @param[in,out] x3  Pointer to the fourth vector.
+ * @param[in,out] x4  Pointer to the fourth vector.
  * @param[in]     c1  The cosine of the first rotation.
  * @param[in]     s1  The sine of the first rotation.
  * @param[in]     c2  The cosine of the second rotation.
