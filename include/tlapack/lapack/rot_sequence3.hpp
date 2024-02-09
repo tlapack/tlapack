@@ -12,8 +12,101 @@
 
 #include "tlapack/base/utils.hpp"
 #include "tlapack/blas/rot.hpp"
+#include "tlapack/lapack/rot_kernel.hpp"
 
 namespace tlapack {
+
+template <TLAPACK_SMATRIX C_t,
+          TLAPACK_SMATRIX S_t,
+          TLAPACK_SMATRIX A_t,
+          typename idx_t>
+void rot_sequence_forward_left(const idx_t m,
+                               const idx_t n,
+                               const idx_t k,
+                               const C_t& C,
+                               const S_t& S,
+                               A_t& A)
+{
+    using T = type_t<A_t>;
+    tlapack_check((idx_t)ncols(S) == k);
+    tlapack_check((idx_t)ncols(C) == k);
+    tlapack_check((idx_t)nrows(S) + 1 == m);
+    tlapack_check((idx_t)nrows(C) + 1 == m);
+    tlapack_check((idx_t)nrows(A) == m);
+    tlapack_check((idx_t)ncols(A) == n);
+
+    // Number of values that fit in a cache line
+    // We assume cache lines are 64 bytes
+    const idx_t nt = 64 / sizeof(T);
+    // Leading dimension of A_pack, normally equal to n, but we make it a
+    // multiple of nt so that each row of A_pack is aligned to a 64-byte
+    // boundary.
+    const idx_t ld_pack = ((n - 1 + nt) / nt) * nt;
+    // Number of rows to pack
+    const idx_t np = k + 1;
+    // Array to store k + 1 aligned rows of A
+    // Note: regardless of the layout of A, A_pack is always row-major
+    // This is because we need the rows to be stored contiguously in memory
+    // to be able to apply the rotations efficiently
+    alignas(64) T A_pack[np * ld_pack];
+
+    // Copy the first k + 1 rows of A to A_pack
+    for (idx_t i = 0; i < np; ++i) {
+        for (idx_t j = 0; j < n; ++j) {
+            A_pack[i * ld_pack + j] = A(i, j);
+        }
+    }
+    // i_pack points to the "first" row of A_pack
+    idx_t i_pack = 0;
+
+    // Startup phase, apply the upper left triangle of C and S
+    for (idx_t j = 0; j + 1 < k; ++j) {
+        for (idx_t i = 0, g = j; i < j + 1; ++i, --g) {
+            rot_nofuse(n, &A_pack[g * ld_pack], &A_pack[(g + 1) * ld_pack],
+                       C(g, i), S(g, i));
+        }
+    }
+
+    // Pipeline phase
+    for (idx_t j = k - 1; j < m - 1; j++) {
+        for (idx_t i = 0, g = j, g2 = k - 1; i < k; ++i, --g, --g2) {
+            rot_nofuse(n, &A_pack[((i_pack + g2) % np) * ld_pack],
+                       &A_pack[((i_pack + g2 + 1) % np) * ld_pack], C(g, i),
+                       S(g, i));
+        }
+        // row i_pack is finished, store it
+        for (idx_t i = 0; i < n; i++) {
+            A(j - (k - 1), i) = A_pack[i + i_pack * ld_pack];
+        }
+        if (j + 2 < m) {
+            // Pack next row and update i_pack
+            for (idx_t i = 0; i < n; i++) {
+                A_pack[i + i_pack * ld_pack] = A(j + 2, i);
+            }
+            i_pack = (i_pack + 1) % np;
+        }
+    }
+
+    // Shutdown phase
+    for (idx_t j = 1; j < k; ++j) {
+        for (idx_t i = j, g = m - 2, g2 = k - 1; i < k; ++i, --g, --g2) {
+            // auto a1 = A_packed.column((i_pack + k - 1 - (i - j)) % (k + 1));
+            // auto a2 = A_packed.column((i_pack + k - (i - j)) % (k + 1));
+            rot_nofuse(n, &A_pack[((i_pack + g2) % np) * ld_pack],
+                       &A_pack[((i_pack + g2 + 1) % np) * ld_pack], C(g, i),
+                       S(g, i));
+        }
+        // Row i_pack + j in the packed matrix is finished, store it
+        for (idx_t i = 0; i < n; i++) {
+            A(m - k - 1 + j, i) = A_pack[i + ((i_pack + j) % np) * ld_pack];
+        }
+    }
+
+    // Store the last column of the packed matrix
+    for (idx_t i = 0; i < n; i++) {
+        A(m - 1, i) = A_pack[i + ((i_pack + k) % np) * ld_pack];
+    }
+}
 
 /** Applies a sequence of plane rotations to an (m-by-n) matrix
  *
@@ -94,6 +187,7 @@ void rot_sequence3(
 {
     using T = type_t<A_t>;
     using idx_t = size_type<A_t>;
+    using range = pair<idx_t, idx_t>;
 
     // constants
     const idx_t m = nrows(A);
@@ -103,6 +197,7 @@ void rot_sequence3(
 
     // Blocking parameter
     const idx_t nb = 256;
+    const idx_t nb_l = 128;
 
     // Check dimensions
     tlapack_check((idx_t)ncols(S) == l);
@@ -124,11 +219,28 @@ void rot_sequence3(
         return;
     }
 
+    if (side == Side::Left) {
+        if (direction == Direction::Forward) {
+            for (idx_t ib = 0; ib < n; ib += nb) {
+                idx_t ib2 = std::min(ib + nb, n);
+                auto A2 = rows(A, range(ib, ib2));
+                for (idx_t il = 0; il < l; il += nb_l) {
+                    idx_t il2 = std::min(il + nb_l, l);
+                    auto C2 = cols(C, range(il, il2));
+                    auto S2 = cols(S, range(il, il2));
+                    rot_sequence_forward_left(m, ib2 - ib, il2 - il, C2, S2,
+                                              A2);
+                }
+            }
+            return;
+        }
+    }
+
     // Apply rotations
     if constexpr (layout<A_t> == Layout::ColMajor) {
         if (side == Side::Left) {
             if (direction == Direction::Backward) {
-                // Left side, forward direction
+                // Left side, backward direction
                 for (idx_t ib = 0; ib < n; ib += nb) {
                     idx_t ib2 = std::min(ib + nb, n);
                     // Startup phase
