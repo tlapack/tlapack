@@ -129,7 +129,6 @@ void rot_sequence3(
         if (side == Side::Left) {
             if (direction == Direction::Backward) {
                 // Left side, forward direction
-#pragma omp parallel for
                 for (idx_t ib = 0; ib < n; ib += nb) {
                     idx_t ib2 = std::min(ib + nb, n);
                     // Startup phase
@@ -229,7 +228,6 @@ void rot_sequence3(
             }
             else {
                 // Left side, backward direction
-#pragma omp parallel for
                 for (idx_t ib = 0; ib < n; ib += nb) {
                     idx_t ib2 = std::min(ib + nb, n);
                     // Startup phase
@@ -329,7 +327,6 @@ void rot_sequence3(
         else {
             if (direction == Direction::Backward) {
                 // Right side, forward direction
-#pragma omp parallel for
                 for (idx_t ib = 0; ib < m; ib += nb) {
                     idx_t ib2 = std::min(ib + nb, m);
                     // Startup phase
@@ -430,7 +427,6 @@ void rot_sequence3(
             }
             else {
                 // Right side, backward direction
-#pragma omp parallel for
                 for (idx_t ib = 0; ib < m; ib += nb) {
                     idx_t ib2 = std::min(ib + nb, m);
                     // Startup phase
@@ -529,7 +525,6 @@ void rot_sequence3(
         if (side == Side::Left) {
             if (direction == Direction::Backward) {
                 // Left side, forward direction
-#pragma omp parallel for
                 for (idx_t ib = 0; ib < n; ib += nb) {
                     idx_t ib2 = std::min(ib + nb, n);
                     // Startup phase
@@ -630,7 +625,6 @@ void rot_sequence3(
             }
             else {
                 // Left side, backward direction
-#pragma omp parallel for
                 for (idx_t ib = 0; ib < n; ib += nb) {
                     idx_t ib2 = std::min(ib + nb, n);
                     // Startup phase
@@ -731,7 +725,6 @@ void rot_sequence3(
         else {
             if (direction == Direction::Backward) {
                 // Right side, forward direction
-#pragma omp parallel for
                 for (idx_t ib = 0; ib < m; ib += nb) {
                     idx_t ib2 = std::min(ib + nb, m);
                     // Startup phase
@@ -832,7 +825,6 @@ void rot_sequence3(
             }
             else {
                 // Right side, backward direction
-#pragma omp parallel for
                 for (idx_t ib = 0; ib < m; ib += nb) {
                     idx_t ib2 = std::min(ib + nb, m);
                     // Startup phase
