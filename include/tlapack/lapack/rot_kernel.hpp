@@ -59,8 +59,8 @@ void rot_nofuse(
     double* x2_ptr = x2;
 
     idx_t i = 0;
-    for (; i < n - 3; i += 4) {
-        // Load the vectors x1, x2, x3
+    for (; i + 3 < n; i += 4) {
+        // Load the vectors x1, x2
         __m256d x1_v = _mm256_loadu_pd(x1_ptr);
         __m256d x2_v = _mm256_loadu_pd(x2_ptr);
 
@@ -128,7 +128,7 @@ void rot_fuse2x1(const idx_t n,
                  double* x2,
                  double* x3,
                  const double c1,
-                 const double s2,
+                 const double s1,
                  const double c2,
                  const double s2)
 {
@@ -145,7 +145,7 @@ void rot_fuse2x1(const idx_t n,
     double* x3_ptr = &x3[0];
 
     idx_t i = 0;
-    for (; i < n - 3; i += 4) {
+    for (; i + 3 < n; i += 4) {
         // Load the vectors x1, x2, x3
         __m256d x1_v = _mm256_loadu_pd(x1_ptr);
         __m256d x2_v = _mm256_loadu_pd(x2_ptr);
@@ -193,8 +193,14 @@ void rot_fuse2x1(const idx_t n,
  * @param[in]     s2  The sine of the second rotation.
  */
 template <typename X_t, typename C_t, typename S_t, typename idx_t>
-void rot_fuse1x2(
-    idx_t n, X_t* x1, X_t* x2, X_t* x3, C_t c1, S_t s1, C_t c2, S_t s2)
+void rot_fuse1x2(const idx_t n,
+                 X_t* x1,
+                 X_t* x2,
+                 X_t* x3,
+                 const C_t c1,
+                 const S_t s1,
+                 const C_t c2,
+                 const S_t s2)
 {
     for (idx_t i = 0; i < n; ++i) {
         X_t x2_g1 = c1 * x2[i] + s1 * x3[i];
@@ -214,12 +220,12 @@ void rot_fuse1x2(
  * @note This is a specialization of rot_fuse1x2 for AVX2.
  */
 template <typename idx_t>
-void rot_fuse2x1(const idx_t n,
+void rot_fuse1x2(const idx_t n,
                  double* x1,
                  double* x2,
                  double* x3,
                  const double c1,
-                 const double s2,
+                 const double s1,
                  const double c2,
                  const double s2)
 {
@@ -236,7 +242,7 @@ void rot_fuse2x1(const idx_t n,
     double* x3_ptr = &x3[0];
 
     idx_t i = 0;
-    for (; i < n - 3; i += 4) {
+    for (; i + 3 < n; i += 4) {
         // Load the vectors x1, x2, x3
         __m256d x1_v = _mm256_loadu_pd(x1_ptr);
         __m256d x2_v = _mm256_loadu_pd(x2_ptr);
@@ -293,19 +299,19 @@ void rot_fuse2x1(const idx_t n,
  * @param[in]     s4  The sine of the fourth rotation.
  */
 template <typename X_t, typename C_t, typename S_t, typename idx_t>
-void rot_fuse2x2(idx_t n,
+void rot_fuse2x2(const idx_t n,
                  X_t* x1,
                  X_t* x2,
                  X_t* x3,
                  X_t* x4,
-                 C_t c1,
-                 S_t s1,
-                 C_t c2,
-                 S_t s2,
-                 C_t c3,
-                 S_t s3,
-                 C_t c4,
-                 S_t s4)
+                 const C_t c1,
+                 const S_t s1,
+                 const C_t c2,
+                 const S_t s2,
+                 const C_t c3,
+                 const S_t s3,
+                 const C_t c4,
+                 const S_t s4)
 {
     for (idx_t i = 0; i < n; ++i) {
         X_t x2_g1 = c1 * x2[i] + s1 * x3[i];
@@ -324,19 +330,24 @@ void rot_fuse2x2(idx_t n,
     #include <immintrin.h>
 
 /**
- * @copydoc rot_fuse1x2
+ * @copydoc rot_fuse2x2
  *
- * @note This is a specialization of rot_fuse1x2 for AVX2.
+ * @note This is a specialization of rot_fuse2x2 for AVX2.
  */
 template <typename idx_t>
-void rot_fuse2x1(const idx_t n,
+void rot_fuse2x2(const idx_t n,
                  double* x1,
                  double* x2,
                  double* x3,
+                 double* x4,
                  const double c1,
-                 const double s2,
+                 const double s1,
                  const double c2,
-                 const double s2)
+                 const double s2,
+                 const double c3,
+                 const double s3,
+                 const double c4,
+                 const double s4)
 {
     // Load the Givens coefficients into SIMD registers
     // the same coefficients are used for all elements of the vectors
@@ -356,7 +367,7 @@ void rot_fuse2x1(const idx_t n,
     double* x4_ptr = &x4[0];
 
     idx_t i = 0;
-    for (; i < n - 3; i += 4) {
+    for (; i + 3 < n; i += 4) {
         // Load the vectors x1, x2, x3, x4
         __m256d x1_v = _mm256_loadu_pd(x1_ptr);
         __m256d x2_v = _mm256_loadu_pd(x2_ptr);
