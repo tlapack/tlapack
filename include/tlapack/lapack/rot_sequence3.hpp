@@ -127,7 +127,7 @@ void rot_sequence3(
     // Apply rotations
     if constexpr (layout<A_t> == Layout::ColMajor) {
         if (side == Side::Left) {
-            if (direction == Direction::Forward) {
+            if (direction == Direction::Backward) {
                 // Left side, forward direction
 #pragma omp parallel for
                 for (idx_t ib = 0; ib < n; ib += nb) {
@@ -327,7 +327,7 @@ void rot_sequence3(
             }
         }
         else {
-            if (direction == Direction::Forward) {
+            if (direction == Direction::Backward) {
                 // Right side, forward direction
 #pragma omp parallel for
                 for (idx_t ib = 0; ib < m; ib += nb) {
@@ -527,7 +527,7 @@ void rot_sequence3(
     }
     else {
         if (side == Side::Left) {
-            if (direction == Direction::Forward) {
+            if (direction == Direction::Backward) {
                 // Left side, forward direction
 #pragma omp parallel for
                 for (idx_t ib = 0; ib < n; ib += nb) {
@@ -729,7 +729,7 @@ void rot_sequence3(
             }
         }
         else {
-            if (direction == Direction::Forward) {
+            if (direction == Direction::Backward) {
                 // Right side, forward direction
 #pragma omp parallel for
                 for (idx_t ib = 0; ib < m; ib += nb) {

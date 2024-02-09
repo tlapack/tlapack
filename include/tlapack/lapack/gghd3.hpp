@@ -146,10 +146,10 @@ int gghd3(bool wantq,
             auto srv = slice(Sr, range(j - ilo + jb, ihi - ilo - 2), jb);
             hessenberg_rq(B2, clv, slv, crv, srv);
             auto B3 = slice(B, range(j, j + jb + 1), range(j + jb + 1, ihi));
-            rot_sequence(RIGHT_SIDE, FORWARD, crv, srv, B3);
+            rot_sequence(RIGHT_SIDE, BACKWARD, crv, srv, B3);
             // Apply rotations to A
             auto A2 = slice(A, range(j, ihi), range(j + jb + 1, ihi));
-            rot_sequence(RIGHT_SIDE, FORWARD, crv, srv, A2);
+            rot_sequence(RIGHT_SIDE, BACKWARD, crv, srv, A2);
         }
 
         //
