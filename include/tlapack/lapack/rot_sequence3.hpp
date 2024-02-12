@@ -294,48 +294,72 @@ void rot_sequence_backward_right(const idx_t m,
         }
     }
     // i_pack points to the "first" column of A_pack
+    idx_t i_pack2 = n - np;
     idx_t i_pack = 0;
 
     // Startup phase, apply the lower left triangle of C and S
     for (idx_t j = 0; j + 1 < k; ++j) {
         for (idx_t i = 0, g = n - 2 - j; i < j + 1; ++i, ++g) {
-            auto a1 = col(A, g);
-            auto a2 = col(A, g + 1);
-            rot(a1, a2, C(g, i), conj(S(g, i)));
-        }
-    }
-
-    // Startup phase, apply the lower left triangle of C and S
-    for (idx_t j = 0; j + 1 < k; ++j) {
-        for (idx_t i = 0, g = n - 2 - j; i < j + 1; ++i, ++g) {
-            auto a1 = col(A, g);
-            auto a2 = col(A, g + 1);
-            rot(a1, a2, C(g, i), conj(S(g, i)));
+            T* a1 = &A_pack[((g - i_pack2) % np) * ld_pack];
+            T* a2 = &A_pack[((g + 1 - i_pack2) % np) * ld_pack];
+            rot_nofuse(m, a1, a2, C(g, i), conj(S(g, i)));
         }
     }
 
     // Pipeline phase
     for (idx_t j = k - 1; j + 1 < n - 1; j += 2) {
         for (idx_t i = 0, g = n - 2 - j; i + 1 < k; i += 2, g += 2) {
-            auto a1 = col(A, g - 1);
-            auto a2 = col(A, g);
-            auto a3 = col(A, g + 1);
-            auto a4 = col(A, g + 2);
-            rot(a2, a3, C(g, i), conj(S(g, i)));
-            rot(a1, a2, C(g - 1, i), conj(S(g - 1, i)));
-            rot(a3, a4, C(g + 1, i + 1), conj(S(g + 1, i + 1)));
-            rot(a2, a3, C(g, i + 1), conj(S(g, i + 1)));
+            T* a1 = &A_pack[((i_pack + g - 1 - i_pack2) % np) * ld_pack];
+            T* a2 = &A_pack[((i_pack + g - i_pack2) % np) * ld_pack];
+            T* a3 = &A_pack[((i_pack + g + 1 - i_pack2) % np) * ld_pack];
+            T* a4 = &A_pack[((i_pack + g + 2 - i_pack2) % np) * ld_pack];
+
+            // rot_nofuse(m, a2, a3, C(g, i), conj(S(g, i)));
+            // rot_nofuse(m, a1, a2, C(g - 1, i), conj(S(g - 1, i)));
+            // rot_nofuse(m, a3, a4, C(g + 1, i + 1), conj(S(g + 1, i + 1)));
+            // rot_nofuse(m, a2, a3, C(g, i + 1), conj(S(g, i + 1)));
+
+            rot_fuse2x2(m, a1, a2, a3, a4, C(g, i), conj(S(g, i)), C(g - 1, i),
+                        conj(S(g - 1, i)), C(g + 1, i + 1),
+                        conj(S(g + 1, i + 1)), C(g, i + 1), conj(S(g, i + 1)));
         }
         if (k % 2 == 1) {
             // k is odd, so there are two more rotations to apply
             idx_t i = k - 1;
             idx_t g = n - 2 - j + i;
 
-            auto a1 = col(A, g - 1);
-            auto a2 = col(A, g);
-            auto a3 = col(A, g + 1);
-            rot(a2, a3, C(g, i), conj(S(g, i)));
-            rot(a1, a2, C(g - 1, i), conj(S(g - 1, i)));
+            T* a1 = &A_pack[((i_pack + g - 1 - i_pack2) % np) * ld_pack];
+            T* a2 = &A_pack[((i_pack + g - i_pack2) % np) * ld_pack];
+            T* a3 = &A_pack[((i_pack + g + 1 - i_pack2) % np) * ld_pack];
+
+            rot_fuse1x2(m, a1, a2, a3, C(g, i), conj(S(g, i)), C(g - 1, i),
+                        conj(S(g - 1, i)));
+        }
+        // columns i_pack+np-2 and i_pack+np-1 are finished, copy them back to A
+        for (idx_t i = 0; i < m; i++) {
+            A(i, i_pack2 + np - 2) =
+                A_pack[i + ((i_pack + np - 2) % np) * ld_pack];
+            A(i, i_pack2 + np - 1) =
+                A_pack[i + ((i_pack + np - 1) % np) * ld_pack];
+        }
+        // Pack next columns and update i_pack
+        if (i_pack2 > 1) {
+            for (idx_t i = 0; i < m; i++) {
+                A_pack[i + ((i_pack + np - 2) % np) * ld_pack] =
+                    A(i, i_pack2 - 2);
+                A_pack[i + ((i_pack + np - 1) % np) * ld_pack] =
+                    A(i, i_pack2 - 1);
+            }
+            i_pack2 -= 2;
+            i_pack = (i_pack + np - 2) % np;
+        }
+        else if (i_pack2 > 0) {
+            for (idx_t i = 0; i < m; i++) {
+                A_pack[i + ((i_pack + np - 1) % np) * ld_pack] =
+                    A(i, i_pack2 - 1);
+            }
+            i_pack2--;
+            i_pack = (i_pack + np - 1) % np;
         }
     }
 
@@ -345,6 +369,22 @@ void rot_sequence_backward_right(const idx_t m,
             auto a1 = col(A, g);
             auto a2 = col(A, g + 1);
             rot(a1, a2, C(g, i), conj(S(g, i)));
+        }
+
+        for (idx_t i = j, g = 0; i < k; ++i, ++g) {
+            T* a1 = &A_pack[((i_pack + g - i_pack2) % np) * ld_pack];
+            T* a2 = &A_pack[((i_pack + g + 1 - i_pack2) % np) * ld_pack];
+            rot_nofuse(m, a1, a2, C(g, i), conj(S(g, i)));
+        }
+    }
+
+    // By now, i_pack2 should point to the start of the matrix.
+    assert(i_pack2 == 0);
+
+    // Store last few columns
+    for (idx_t j = 0; j < np; ++j) {
+        for (idx_t i = 0; i < m; ++i) {
+            A(i, j) = A_pack[i + ((i_pack + j - i_pack2) % np) * ld_pack];
         }
     }
 }
