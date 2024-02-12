@@ -252,6 +252,103 @@ void rot_sequence_forward_right(const idx_t m,
     }
 }
 
+template <TLAPACK_SMATRIX C_t,
+          TLAPACK_SMATRIX S_t,
+          TLAPACK_SMATRIX A_t,
+          typename idx_t>
+void rot_sequence_backward_right(const idx_t m,
+                                 const idx_t n,
+                                 const idx_t k,
+                                 const C_t& C,
+                                 const S_t& S,
+                                 A_t& A)
+{
+    using T = type_t<A_t>;
+    tlapack_check((idx_t)ncols(S) == k);
+    tlapack_check((idx_t)ncols(C) == k);
+    tlapack_check((idx_t)nrows(S) + 1 == n);
+    tlapack_check((idx_t)nrows(C) + 1 == n);
+    tlapack_check((idx_t)nrows(A) == m);
+    tlapack_check((idx_t)ncols(A) == n);
+    tlapack_check(n > k + 1);
+
+    // Number of values that fit in a cache line
+    // We assume cache lines are 64 bytes
+    const idx_t nt = 64 / sizeof(T);
+    // Leading dimension of A_pack, normally equal to m, but we make it a
+    // multiple of nt so that each row of A_pack is aligned to a 64-byte
+    // boundary.
+    const idx_t ld_pack = ((m - 1 + nt) / nt) * nt;
+    // Number of columns to pack
+    const idx_t np = k + 2;
+    // Array to store np aligned columns of A
+    // Note: regardless of the layout of A, A_pack is always column-major
+    // This is because we need the columns to be stored contiguously in memory
+    // to be able to apply the rotations efficiently
+    alignas(64) T A_pack[np * ld_pack];
+
+    // Copy the last np columns of A to A_pack
+    for (idx_t j = 0; j < np; ++j) {
+        for (idx_t i = 0; i < m; ++i) {
+            A_pack[i + j * ld_pack] = A(i, n - np + j);
+        }
+    }
+    // i_pack points to the "first" column of A_pack
+    idx_t i_pack = 0;
+
+    // Startup phase, apply the lower left triangle of C and S
+    for (idx_t j = 0; j + 1 < k; ++j) {
+        for (idx_t i = 0, g = n - 2 - j; i < j + 1; ++i, ++g) {
+            auto a1 = col(A, g);
+            auto a2 = col(A, g + 1);
+            rot(a1, a2, C(g, i), conj(S(g, i)));
+        }
+    }
+
+    // Startup phase, apply the lower left triangle of C and S
+    for (idx_t j = 0; j + 1 < k; ++j) {
+        for (idx_t i = 0, g = n - 2 - j; i < j + 1; ++i, ++g) {
+            auto a1 = col(A, g);
+            auto a2 = col(A, g + 1);
+            rot(a1, a2, C(g, i), conj(S(g, i)));
+        }
+    }
+
+    // Pipeline phase
+    for (idx_t j = k - 1; j + 1 < n - 1; j += 2) {
+        for (idx_t i = 0, g = n - 2 - j; i + 1 < k; i += 2, g += 2) {
+            auto a1 = col(A, g - 1);
+            auto a2 = col(A, g);
+            auto a3 = col(A, g + 1);
+            auto a4 = col(A, g + 2);
+            rot(a2, a3, C(g, i), conj(S(g, i)));
+            rot(a1, a2, C(g - 1, i), conj(S(g - 1, i)));
+            rot(a3, a4, C(g + 1, i + 1), conj(S(g + 1, i + 1)));
+            rot(a2, a3, C(g, i + 1), conj(S(g, i + 1)));
+        }
+        if (k % 2 == 1) {
+            // k is odd, so there are two more rotations to apply
+            idx_t i = k - 1;
+            idx_t g = n - 2 - j + i;
+
+            auto a1 = col(A, g - 1);
+            auto a2 = col(A, g);
+            auto a3 = col(A, g + 1);
+            rot(a2, a3, C(g, i), conj(S(g, i)));
+            rot(a1, a2, C(g - 1, i), conj(S(g - 1, i)));
+        }
+    }
+
+    // Shutdown phase
+    for (idx_t j = (n - k + 1) % 2; j < k; ++j) {
+        for (idx_t i = j, g = 0; i < k; ++i, ++g) {
+            auto a1 = col(A, g);
+            auto a2 = col(A, g + 1);
+            rot(a1, a2, C(g, i), conj(S(g, i)));
+        }
+    }
+}
+
 /** Applies a sequence of plane rotations to an (m-by-n) matrix
  *
  * When side = Side::Left, the transformation takes the form
@@ -388,6 +485,25 @@ void rot_sequence3(
                     auto S2 = cols(S, range(il, il2));
                     rot_sequence_forward_right(ib2 - ib, n, il2 - il, C2, S2,
                                                A2);
+                }
+            }
+            return;
+        }
+    }
+    else {
+        if (side == Side::Left) {
+            // TODO
+        }
+        else {
+            for (idx_t ib = 0; ib < m; ib += nb) {
+                idx_t ib2 = std::min(ib + nb, m);
+                auto A2 = rows(A, range(ib, ib2));
+                for (idx_t il = 0; il < l; il += nb_l) {
+                    idx_t il2 = std::min(il + nb_l, l);
+                    auto C2 = cols(C, range(il, il2));
+                    auto S2 = cols(S, range(il, il2));
+                    rot_sequence_backward_right(ib2 - ib, n, il2 - il, C2, S2,
+                                                A2);
                 }
             }
             return;
