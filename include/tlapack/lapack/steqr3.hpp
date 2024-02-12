@@ -168,18 +168,9 @@ int steqr3(
 
                 auto Z2 = slice(Z, range{0, n},
                                 range{i_start_block, i_stop_block + 2});
-
-                //
-                // Note: hardcoding the direction here significantly increases
-                // performance. Maybe some inlining is happening?
-                // Anyway... very annoying.
-                //
-
-                // rot_sequence3(RIGHT_SIDE, Direction::Forward, C2, S2, Z2);
-                // rot_sequence3(RIGHT_SIDE, Direction::Backward, C2, S2, Z2);
                 rot_sequence3(
                     RIGHT_SIDE,
-                    forwarddirection ? Direction::Backward : Direction::Forward,
+                    forwarddirection ? Direction::Forward : Direction::Backward,
                     C2, S2, Z2);
             }
             // Reset block
@@ -253,8 +244,7 @@ int steqr3(
             // direction forces us to apply the rotations in the block, which
             // may be inefficient if the block is small.
             if (forwarddirection) {
-                forwarddirection_new =
-                    100. * abs(d[istart]) > abs(d[istop - 1]);
+                forwarddirection_new = 10. * abs(d[istart]) > abs(d[istop - 1]);
             }
             else {
                 forwarddirection_new =
@@ -262,57 +252,54 @@ int steqr3(
             }
 
             if (forwarddirection_new != forwarddirection) {
-                // idx_t i_block2 = min<idx_t>(i_block + 1, nb);
-                // std::cout << "switching direction" << std::endl;
+                idx_t i_block2 = min<idx_t>(i_block + 1, nb);
 
-                // // Find smallest index where rotation is not identity
-                // idx_t i_start_block = n - 1;
-                // for (idx_t i = 0; i < i_block2; ++i) {
-                //     for (idx_t j = 0; j < i_start_block; ++j)
-                //         if (C(j, i) != one or S(j, i) != zero) {
-                //             i_start_block = j;
-                //             break;
-                //         }
-                // }
+                // Find smallest index where rotation is not identity
+                idx_t i_start_block = n - 1;
+                for (idx_t i = 0; i < i_block2; ++i) {
+                    for (idx_t j = 0; j < i_start_block; ++j)
+                        if (C(j, i) != one or S(j, i) != zero) {
+                            i_start_block = j;
+                            break;
+                        }
+                }
 
-                // // Find largest index where rotation is not identity
-                // idx_t i_stop_block = 0;
-                // for (idx_t i = 0; i < i_block2; ++i) {
-                //     for (idx_t j2 = n - 1; j2 > i_stop_block; --j2) {
-                //         idx_t j = j2 - 1;
-                //         if (C(j, i) != one or S(j, i) != zero) {
-                //             i_stop_block = j;
-                //             break;
-                //         }
-                //     }
-                // }
+                // Find largest index where rotation is not identity
+                idx_t i_stop_block = 0;
+                for (idx_t i = 0; i < i_block2; ++i) {
+                    for (idx_t j2 = n - 1; j2 > i_stop_block; --j2) {
+                        idx_t j = j2 - 1;
+                        if (C(j, i) != one or S(j, i) != zero) {
+                            i_stop_block = j;
+                            break;
+                        }
+                    }
+                }
 
-                // if (i_start_block < i_stop_block + 1) {
-                //     auto C2 = slice(C, range{i_start_block, i_stop_block +
-                //     1},
-                //                     range{0, i_block2});
-                //     auto S2 = slice(S, range{i_start_block, i_stop_block +
-                //     1},
-                //                     range{0, i_block2});
+                if (i_start_block < i_stop_block + 1) {
+                    auto C2 = slice(C, range{i_start_block, i_stop_block + 1},
+                                    range{0, i_block2});
+                    auto S2 = slice(S, range{i_start_block, i_stop_block + 1},
+                                    range{0, i_block2});
 
-                //     auto Z2 = slice(Z, range{0, n},
-                //                     range{i_start_block, i_stop_block + 2});
+                    auto Z2 = slice(Z, range{0, n},
+                                    range{i_start_block, i_stop_block + 2});
 
-                //     rot_sequence3(RIGHT_SIDE,
-                //                   forwarddirection ? Direction::Backward
-                //                                    : Direction::Forward,
-                //                   C2, S2, Z2);
-                // }
-                // // Reset block
-                // i_block = 0;
+                    rot_sequence3(RIGHT_SIDE,
+                                  forwarddirection ? Direction::Forward
+                                                   : Direction::Backward,
+                                  C2, S2, Z2);
+                }
+                // Reset block
+                i_block = 0;
 
-                // // Initialize C and S to identity rotations
-                // for (idx_t j = 0; j < nb; ++j) {
-                //     for (idx_t i = 0; i < n - 1; ++i) {
-                //         C(i, j) = one;
-                //         S(i, j) = zero;
-                //     }
-                // }
+                // Initialize C and S to identity rotations
+                for (idx_t j = 0; j < nb; ++j) {
+                    for (idx_t i = 0; i < n - 1; ++i) {
+                        C(i, j) = one;
+                        S(i, j) = zero;
+                    }
+                }
             }
             forwarddirection = forwarddirection_new;
         }

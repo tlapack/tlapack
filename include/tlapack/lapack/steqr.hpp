@@ -214,7 +214,7 @@ int steqr(bool want_z, d_t& d, e_t& e, matrix_t& Z)
                 auto c_vec2 = slice(c_vec, range{istart, istop - 1});
                 auto s_vec2 = slice(s_vec, range{istart, istop - 1});
                 auto Z2 = slice(Z, range{0, n}, range{istart, istop});
-                rot_sequence(RIGHT_SIDE, BACKWARD, c_vec2, s_vec2, Z2);
+                rot_sequence(RIGHT_SIDE, FORWARD, c_vec2, s_vec2, Z2);
             }
         }
         else {
@@ -254,7 +254,7 @@ int steqr(bool want_z, d_t& d, e_t& e, matrix_t& Z)
                 auto c_vec2 = slice(c_vec, range{istart, istop - 1});
                 auto s_vec2 = slice(s_vec, range{istart, istop - 1});
                 auto Z2 = slice(Z, range{0, n}, range{istart, istop});
-                rot_sequence(RIGHT_SIDE, FORWARD, c_vec2, s_vec2, Z2);
+                rot_sequence(RIGHT_SIDE, BACKWARD, c_vec2, s_vec2, Z2);
             }
         }
     }
