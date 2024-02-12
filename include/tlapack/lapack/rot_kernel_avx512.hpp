@@ -21,8 +21,8 @@ void rot_nofuse(
     // Load the Givens coefficients into SIMD registers
     // the same coefficients are used for all elements of the vectors
     // so we broadcast them to all elements of the SIMD registers
-    __m512 c_v = _mm512_set1_ps(&c);
-    __m512 s_v = _mm512_set1_ps(&s);
+    __m512 c_v = _mm512_set1_ps(c);
+    __m512 s_v = _mm512_set1_ps(s);
 
     float* x1_ptr = x1;
     float* x2_ptr = x2;
@@ -65,8 +65,8 @@ void rot_nofuse(
     // Load the Givens coefficients into SIMD registers
     // the same coefficients are used for all elements of the vectors
     // so we broadcast them to all elements of the SIMD registers
-    __m512d c_v = _mm512_set1_pd(&c);
-    __m512d s_v = _mm512_set1_pd(&s);
+    __m512d c_v = _mm512_set1_pd(c);
+    __m512d s_v = _mm512_set1_pd(s);
 
     double* x1_ptr = x1;
     double* x2_ptr = x2;
@@ -112,8 +112,8 @@ void rot_nofuse(const idx_t n,
     // Load the Givens coefficients into SIMD registers
     // the same coefficients are used for all elements of the vectors
     // so we broadcast them to all elements of the SIMD registers
-    __m512 c_v = _mm512_set1_ps(&c);
-    __m512 s_v = _mm512_set1_ps(&s);
+    __m512 c_v = _mm512_set1_ps(c);
+    __m512 s_v = _mm512_set1_ps(s);
 
     // Note: the cast here should be safe, as the memory layout of
     // std::complex<float> is guaranteed to be the same as two consecutive
@@ -162,8 +162,8 @@ void rot_nofuse(const idx_t n,
     // Load the Givens coefficients into SIMD registers
     // the same coefficients are used for all elements of the vectors
     // so we broadcast them to all elements of the SIMD registers
-    __m512d c_v = _mm512_set1_pd(&c);
-    __m512d s_v = _mm512_set1_pd(&s);
+    __m512d c_v = _mm512_set1_pd(c);
+    __m512d s_v = _mm512_set1_pd(s);
 
     // Note: the cast here should be safe, as the memory layout of
     // std::complex<double> is guaranteed to be the same as two consecutive
@@ -219,10 +219,10 @@ void rot_fuse2x1(const idx_t n,
     // Load the Givens coefficients into SIMD registers
     // the same coefficients are used for all elements of the vectors
     // so we broadcast them to all elements of the SIMD registers
-    __m512d c1_v = _mm512_set1_pd(&c1);
-    __m512d s1_v = _mm512_set1_pd(&s1);
-    __m512d c2_v = _mm512_set1_pd(&c2);
-    __m512d s2_v = _mm512_set1_pd(&s2);
+    __m512d c1_v = _mm512_set1_pd(c1);
+    __m512d s1_v = _mm512_set1_pd(s1);
+    __m512d c2_v = _mm512_set1_pd(c2);
+    __m512d s2_v = _mm512_set1_pd(s2);
 
     double* x1_ptr = &x1[0];
     double* x2_ptr = &x2[0];
@@ -275,10 +275,10 @@ void rot_fuse2x1(const idx_t n,
     // Load the Givens coefficients into SIMD registers
     // the same coefficients are used for all elements of the vectors
     // so we broadcast them to all elements of the SIMD registers
-    __m512 c1_v = _mm512_set1_ps(&c1);
-    __m512 s1_v = _mm512_set1_ps(&s1);
-    __m512 c2_v = _mm512_set1_ps(&c2);
-    __m512 s2_v = _mm512_set1_ps(&s2);
+    __m512 c1_v = _mm512_set1_ps(c1);
+    __m512 s1_v = _mm512_set1_ps(s1);
+    __m512 c2_v = _mm512_set1_ps(c2);
+    __m512 s2_v = _mm512_set1_ps(s2);
 
     float* x1_ptr = &x1[0];
     float* x2_ptr = &x2[0];
@@ -331,10 +331,10 @@ void rot_fuse2x1(const idx_t n,
     // Load the Givens coefficients into SIMD registers
     // the same coefficients are used for all elements of the vectors
     // so we broadcast them to all elements of the SIMD registers
-    __m512d c1_v = _mm512_set1_pd(&c1);
-    __m512d s1_v = _mm512_set1_pd(&s1);
-    __m512d c2_v = _mm512_set1_pd(&c2);
-    __m512d s2_v = _mm512_set1_pd(&s2);
+    __m512d c1_v = _mm512_set1_pd(c1);
+    __m512d s1_v = _mm512_set1_pd(s1);
+    __m512d c2_v = _mm512_set1_pd(c2);
+    __m512d s2_v = _mm512_set1_pd(s2);
 
     double* x1_ptr = reinterpret_cast<double*>(x1);
     double* x2_ptr = reinterpret_cast<double*>(x2);
@@ -387,10 +387,10 @@ void rot_fuse2x1(const idx_t n,
     // Load the Givens coefficients into SIMD registers
     // the same coefficients are used for all elements of the vectors
     // so we broadcast them to all elements of the SIMD registers
-    __m512 c1_v = _mm512_set1_ps(&c1);
-    __m512 s1_v = _mm512_set1_ps(&s1);
-    __m512 c2_v = _mm512_set1_ps(&c2);
-    __m512 s2_v = _mm512_set1_ps(&s2);
+    __m512 c1_v = _mm512_set1_ps(c1);
+    __m512 s1_v = _mm512_set1_ps(s1);
+    __m512 c2_v = _mm512_set1_ps(c2);
+    __m512 s2_v = _mm512_set1_ps(s2);
 
     float* x1_ptr = reinterpret_cast<float*>(x1);
     float* x2_ptr = reinterpret_cast<float*>(x2);
@@ -447,10 +447,10 @@ void rot_fuse1x2(const idx_t n,
     // Load the Givens coefficients into SIMD registers
     // the same coefficients are used for all elements of the vectors
     // so we broadcast them to all elements of the SIMD registers
-    __m512d c1_v = _mm512_set1_pd(&c1);
-    __m512d s1_v = _mm512_set1_pd(&s1);
-    __m512d c2_v = _mm512_set1_pd(&c2);
-    __m512d s2_v = _mm512_set1_pd(&s2);
+    __m512d c1_v = _mm512_set1_pd(c1);
+    __m512d s1_v = _mm512_set1_pd(s1);
+    __m512d c2_v = _mm512_set1_pd(c2);
+    __m512d s2_v = _mm512_set1_pd(s2);
 
     double* x1_ptr = &x1[0];
     double* x2_ptr = &x2[0];
@@ -505,10 +505,10 @@ void rot_fuse1x2(const idx_t n,
     // Load the Givens coefficients into SIMD registers
     // the same coefficients are used for all elements of the vectors
     // so we broadcast them to all elements of the SIMD registers
-    __m512 c1_v = _mm512_set1_ps(&c1);
-    __m512 s1_v = _mm512_set1_ps(&s1);
-    __m512 c2_v = _mm512_set1_ps(&c2);
-    __m512 s2_v = _mm512_set1_ps(&s2);
+    __m512 c1_v = _mm512_set1_ps(c1);
+    __m512 s1_v = _mm512_set1_ps(s1);
+    __m512 c2_v = _mm512_set1_ps(c2);
+    __m512 s2_v = _mm512_set1_ps(s2);
 
     float* x1_ptr = &x1[0];
     float* x2_ptr = &x2[0];
@@ -561,10 +561,10 @@ void rot_fuse1x2(const idx_t n,
     // Load the Givens coefficients into SIMD registers
     // the same coefficients are used for all elements of the vectors
     // so we broadcast them to all elements of the SIMD registers
-    __m512d c1_v = _mm512_set1_pd(&c1);
-    __m512d s1_v = _mm512_set1_pd(&s1);
-    __m512d c2_v = _mm512_set1_pd(&c2);
-    __m512d s2_v = _mm512_set1_pd(&s2);
+    __m512d c1_v = _mm512_set1_pd(c1);
+    __m512d s1_v = _mm512_set1_pd(s1);
+    __m512d c2_v = _mm512_set1_pd(c2);
+    __m512d s2_v = _mm512_set1_pd(s2);
 
     double* x1_ptr = reinterpret_cast<double*>(x1);
     double* x2_ptr = reinterpret_cast<double*>(x2);
@@ -617,10 +617,10 @@ void rot_fuse1x2(const idx_t n,
     // Load the Givens coefficients into SIMD registers
     // the same coefficients are used for all elements of the vectors
     // so we broadcast them to all elements of the SIMD registers
-    __m512 c1_v = _mm512_set1_ps(&c1);
-    __m512 s1_v = _mm512_set1_ps(&s1);
-    __m512 c2_v = _mm512_set1_ps(&c2);
-    __m512 s2_v = _mm512_set1_ps(&s2);
+    __m512 c1_v = _mm512_set1_ps(c1);
+    __m512 s1_v = _mm512_set1_ps(s1);
+    __m512 c2_v = _mm512_set1_ps(c2);
+    __m512 s2_v = _mm512_set1_ps(s2);
 
     float* x1_ptr = reinterpret_cast<float*>(x1);
     float* x2_ptr = reinterpret_cast<float*>(x2);
@@ -681,14 +681,14 @@ void rot_fuse2x2(const idx_t n,
     // Load the Givens coefficients into SIMD registers
     // the same coefficients are used for all elements of the vectors
     // so we broadcast them to all elements of the SIMD registers
-    __m512d c1_v = _mm512_set1_pd(&c1);
-    __m512d s1_v = _mm512_set1_pd(&s1);
-    __m512d c2_v = _mm512_set1_pd(&c2);
-    __m512d s2_v = _mm512_set1_pd(&s2);
-    __m512d c3_v = _mm512_set1_pd(&c3);
-    __m512d s3_v = _mm512_set1_pd(&s3);
-    __m512d c4_v = _mm512_set1_pd(&c4);
-    __m512d s4_v = _mm512_set1_pd(&s4);
+    __m512d c1_v = _mm512_set1_pd(c1);
+    __m512d s1_v = _mm512_set1_pd(s1);
+    __m512d c2_v = _mm512_set1_pd(c2);
+    __m512d s2_v = _mm512_set1_pd(s2);
+    __m512d c3_v = _mm512_set1_pd(c3);
+    __m512d s3_v = _mm512_set1_pd(s3);
+    __m512d c4_v = _mm512_set1_pd(c4);
+    __m512d s4_v = _mm512_set1_pd(s4);
 
     double* x1_ptr = &x1[0];
     double* x2_ptr = &x2[0];
@@ -759,14 +759,14 @@ void rot_fuse2x2(const idx_t n,
     // Load the Givens coefficients into SIMD registers
     // the same coefficients are used for all elements of the vectors
     // so we broadcast them to all elements of the SIMD registers
-    __m512 c1_v = _mm512_set1_ps(&c1);
-    __m512 s1_v = _mm512_set1_ps(&s1);
-    __m512 c2_v = _mm512_set1_ps(&c2);
-    __m512 s2_v = _mm512_set1_ps(&s2);
-    __m512 c3_v = _mm512_set1_ps(&c3);
-    __m512 s3_v = _mm512_set1_ps(&s3);
-    __m512 c4_v = _mm512_set1_ps(&c4);
-    __m512 s4_v = _mm512_set1_ps(&s4);
+    __m512 c1_v = _mm512_set1_ps(c1);
+    __m512 s1_v = _mm512_set1_ps(s1);
+    __m512 c2_v = _mm512_set1_ps(c2);
+    __m512 s2_v = _mm512_set1_ps(s2);
+    __m512 c3_v = _mm512_set1_ps(c3);
+    __m512 s3_v = _mm512_set1_ps(s3);
+    __m512 c4_v = _mm512_set1_ps(c4);
+    __m512 s4_v = _mm512_set1_ps(s4);
 
     float* x1_ptr = &x1[0];
     float* x2_ptr = &x2[0];
@@ -837,14 +837,14 @@ void rot_fuse2x2(const idx_t n,
     // Load the Givens coefficients into SIMD registers
     // the same coefficients are used for all elements of the vectors
     // so we broadcast them to all elements of the SIMD registers
-    __m512d c1_v = _mm512_set1_pd(&c1);
-    __m512d s1_v = _mm512_set1_pd(&s1);
-    __m512d c2_v = _mm512_set1_pd(&c2);
-    __m512d s2_v = _mm512_set1_pd(&s2);
-    __m512d c3_v = _mm512_set1_pd(&c3);
-    __m512d s3_v = _mm512_set1_pd(&s3);
-    __m512d c4_v = _mm512_set1_pd(&c4);
-    __m512d s4_v = _mm512_set1_pd(&s4);
+    __m512d c1_v = _mm512_set1_pd(c1);
+    __m512d s1_v = _mm512_set1_pd(s1);
+    __m512d c2_v = _mm512_set1_pd(c2);
+    __m512d s2_v = _mm512_set1_pd(s2);
+    __m512d c3_v = _mm512_set1_pd(c3);
+    __m512d s3_v = _mm512_set1_pd(s3);
+    __m512d c4_v = _mm512_set1_pd(c4);
+    __m512d s4_v = _mm512_set1_pd(s4);
 
     double* x1_ptr = reinterpret_cast<double*>(x1);
     double* x2_ptr = reinterpret_cast<double*>(x2);
@@ -915,14 +915,14 @@ void rot_fuse2x2(const idx_t n,
     // Load the Givens coefficients into SIMD registers
     // the same coefficients are used for all elements of the vectors
     // so we broadcast them to all elements of the SIMD registers
-    __m512 c1_v = _mm512_set1_ps(&c1);
-    __m512 s1_v = _mm512_set1_ps(&s1);
-    __m512 c2_v = _mm512_set1_ps(&c2);
-    __m512 s2_v = _mm512_set1_ps(&s2);
-    __m512 c3_v = _mm512_set1_ps(&c3);
-    __m512 s3_v = _mm512_set1_ps(&s3);
-    __m512 c4_v = _mm512_set1_ps(&c4);
-    __m512 s4_v = _mm512_set1_ps(&s4);
+    __m512 c1_v = _mm512_set1_ps(c1);
+    __m512 s1_v = _mm512_set1_ps(s1);
+    __m512 c2_v = _mm512_set1_ps(c2);
+    __m512 s2_v = _mm512_set1_ps(s2);
+    __m512 c3_v = _mm512_set1_ps(c3);
+    __m512 s3_v = _mm512_set1_ps(s3);
+    __m512 c4_v = _mm512_set1_ps(c4);
+    __m512 s4_v = _mm512_set1_ps(s4);
 
     float* x1_ptr = reinterpret_cast<float*>(x1);
     float* x2_ptr = reinterpret_cast<float*>(x2);
