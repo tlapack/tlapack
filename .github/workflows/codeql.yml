@@ -38,6 +38,9 @@ jobs:
       contents: read
       security-events: write
 
+    env:
+      eigen_DIR: "${{github.workspace}}/eigen"
+
     strategy:
       fail-fast: false
       matrix:
@@ -50,6 +53,18 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
+
+    - name: Checkout Eigen
+      run: |
+        git clone https://gitlab.com/libeigen/eigen.git
+        cd eigen
+        git checkout 2873916f1ca24e3282bf6e0150545d34a16b5224 # master in Aug 21, 2023
+
+    - name: Build and install Eigen on Ubuntu
+      working-directory: ${{env.eigen_DIR}}
+      run: |
+        cmake -B build
+        sudo cmake --build build --target install
 
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
@@ -78,6 +93,10 @@ jobs:
     # - run: |
     #     echo "Run, Build Application using script"
     #     ./location_of_script_within_repo/buildscript.sh
+
+    # - name: Disable tests with Eigen3
+    #   run: |
+    #     sudo mv /usr/include/eigen3 /usr/include/eigen3.bak
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@1b1aada464948af03b950897e5eb522f92603cc2 # v3.24.9
