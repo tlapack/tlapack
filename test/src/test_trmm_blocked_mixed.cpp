@@ -25,7 +25,7 @@ using namespace tlapack;
 
 TEMPLATE_TEST_CASE("TRMM blocked mixed works",
                    "[blas][trmm_blocked_mixed][trmm][blocked][mixed]",
-                   (std::pair<float, float>),
+(std::pair<float, float>),
                    (std::pair<double, float>),
                    (std::pair<float, Eigen::bfloat16>))
 {
@@ -48,7 +48,7 @@ TEMPLATE_TEST_CASE("TRMM blocked mixed works",
     MatrixMarket mm;
 
     idx_t n = GENERATE(10000);
-    idx_t k = GENERATE(1);
+    idx_t k = GENERATE(32);
     idx_t nb = 32;
 
     DYNAMIC_SECTION("n = " << n)
