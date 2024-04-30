@@ -18,6 +18,7 @@
 #ifdef TLAPACK_TEST_EIGEN
     #include <tlapack/plugins/eigen.hpp>
     #include <tlapack/plugins/eigen_half.hpp>
+    #include <tlapack/plugins/eigen_bfloat16.hpp>
 #endif
 
 #ifdef TLAPACK_TEST_MDSPAN
