@@ -50,7 +50,7 @@ void trmm_blocked_mixed(
         // constants
         const idx_t m = nrows(B);
         const idx_t n = ncols(B);
-        const idx_t nb = opts.nb;
+        const idx_t nb = min(opts.nb, m);
 
         // check arguments
         tlapack_check_false(side != Side::Left && side != Side::Right);
@@ -85,7 +85,7 @@ void trmm_blocked_mixed(
                         gemm(NO_TRANS, NO_TRANS, alpha, A0i, BiLowPrecision,
                              real_t(1), B0);
 
-                        // Bi = alpha * Aii * Bi
+                        // Bi = alpha * Aii * Bi in mixed precision
                         trmm(side, uplo, trans, diag, alpha, Aii, Bi);
                     }
                 }
