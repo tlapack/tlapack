@@ -203,3 +203,18 @@ else()
   mark_as_advanced( FORCE mdspan_DIR )
   mark_as_advanced( FORCE Eigen3_DIR )
 endif()
+
+# add the example Extreme interoperability
+find_package( Eigen3 QUIET )
+if( Eigen3_FOUND )
+  add_subdirectory( trmm_bfloat16 )
+  add_custom_command(
+    OUTPUT run-all-examples-cmd APPEND
+    COMMAND
+      echo "- example_trmm_mixed ----------------" &&
+      "${CMAKE_CURRENT_BINARY_DIR}/trmm_bfloat16/example_trmm_mixed${CMAKE_EXECUTABLE_SUFFIX}"
+      && echo ""
+  )
+else()
+  mark_as_advanced( FORCE Eigen3_DIR )
+endif()
