@@ -97,7 +97,7 @@ int rot_sequence(
     if (k < 1) return 0;
 
     if constexpr (layout<A_t> == Layout::ColMajor) {
-        if (direction == Direction::Forward) {
+        if (direction == Direction::Backward) {
             if (side == Side::Left) {
                 for (idx_t j = 0; j < n; ++j) {
                     for (idx_t i2 = k; i2 > 0; --i2) {
@@ -148,7 +148,7 @@ int rot_sequence(
                 }
             }
         }
-        else {  // Direction::Backward
+        else {  // Direction::Forward
             if (side == Side::Left) {
                 for (idx_t j = 0; j < n; ++j) {
                     for (idx_t i = 0; i < k; ++i) {
@@ -198,7 +198,7 @@ int rot_sequence(
         }
     }
     else {
-        if (direction == Direction::Forward) {
+        if (direction == Direction::Backward) {
             if (side == Side::Left) {
                 // Manual unrolling of loop, applying 3 rotations at a time
                 // This allows some parts of the vector to remain in register
