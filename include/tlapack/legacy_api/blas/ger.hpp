@@ -76,8 +76,6 @@ namespace legacy {
              TA* A,
              idx_t lda)
     {
-        using internal::create_matrix;
-        using internal::create_rowmajor_matrix;
         using scalar_t = scalar_type<TA, TX, TY>;
 
         // check arguments

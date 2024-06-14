@@ -16,6 +16,7 @@
 #include "tlapack/base/StrongZero.hpp"
 #include "tlapack/base/scalar_type_traits.hpp"
 
+/// Main namespace for \<T\>LAPACK
 namespace tlapack {
 
 // -----------------------------------------------------------------------------
@@ -432,6 +433,10 @@ struct BandAccess {
 // -----------------------------------------------------------------------------
 // Legacy matrix and vector structures
 
+/** Legacy interface
+ *
+ * API that is compatible with BLAS++ and LAPACK++ wrappers to BLAS and LAPACK.
+ */
 namespace legacy {
     /**
      * @brief Describes a row- or column-major matrix
