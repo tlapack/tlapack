@@ -85,9 +85,6 @@ namespace legacy {
               TC* C,
               idx_t ldc)
     {
-        using internal::create_matrix;
-        using internal::create_vector;
-
         // check arguments
         tlapack_check_false(side != Side::Left && side != Side::Right);
         tlapack_check_false(trans != Op::NoTrans && trans != Op::Trans &&
