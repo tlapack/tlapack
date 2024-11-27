@@ -258,6 +258,42 @@ void gemm(Op transA,
 
 #endif
 
+#if defined(TLAPACK_USE_MKL) && defined(EIGEN_BFLOAT16_H)
+    #include <mkl.h>
+    #include <mkl_cblas.h>
+
+template <class idx_t, Layout L>
+void gemm(Op transA,
+          Op transB,
+          float alpha,
+          const tlapack::LegacyMatrix<Eigen::bfloat16 const, idx_t, L>& A,
+          const tlapack::LegacyMatrix<Eigen::bfloat16, idx_t, L>& B,
+          float beta,
+          tlapack::LegacyMatrix<float, idx_t, L>& C)
+{
+    // Legacy objects
+    auto A_ = legacy_matrix(A);
+    auto B_ = legacy_matrix(B);
+    auto C_ = legacy_matrix(C);
+
+    // Constants to forward
+    const CBLAS_LAYOUT layout =
+        (L == Layout::ColMajor) ? CblasColMajor : CblasRowMajor;
+    const auto& m = C_.m;
+    const auto& n = C_.n;
+    const auto& k = (transA == Op::NoTrans) ? A_.n : A_.m;
+
+    assert(transA == Op::NoTrans);
+    assert(transB == Op::NoTrans);
+
+    cblas_gemm_bf16bf16f32(layout, CblasNoTrans, CblasNoTrans, m, n, k, alpha,
+                           reinterpret_cast<const uint16_t*>(A_.ptr), A_.ldim,
+                           reinterpret_cast<const uint16_t*>(B_.ptr), B_.ldim,
+                           beta, C_.ptr, C_.ldim);
+}
+
+#endif
+
 /**
  * General matrix-matrix multiply:
  * \[
