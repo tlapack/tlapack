@@ -105,6 +105,7 @@ add_executable(test_rot_sequence3 test_rot_sequence3.cpp testutils.cpp)
 
 if(TLAPACK_TEST_EIGEN)
   add_executable(test_eigenplugin test_eigenplugin.cpp)
+  add_executable(test_trmm_blocked_mixed test_trmm_blocked_mixed.cpp)
 endif()
 
 if(TLAPACK_TEST_MDSPAN)

@@ -83,6 +83,9 @@ cmake_dependent_option( BUILD_LAPACKPP_TESTS "Use LAPACK++ tests to test <T>LAPA
   OFF # Value when condition is false
 )
 
+# MKL wrappers
+option( TLAPACK_USE_MKL "Use wrappers to MKL. Currently only has mixed-precision GEMM" OFF )
+
 # Examples
 option( BUILD_EXAMPLES "Build examples" ON  )
 
@@ -192,6 +195,16 @@ if( TLAPACK_USE_LAPACKPP )
   find_package( lapackpp 2023.01.00 REQUIRED )
   target_compile_definitions( tlapack INTERFACE TLAPACK_USE_LAPACKPP )
   target_link_libraries( tlapack INTERFACE lapackpp )
+endif()
+
+#-------------------------------------------------------------------------------
+# Search for MKL library if it is needed
+if( TLAPACK_USE_MKL )
+  find_package(MKL CONFIG REQUIRED)
+  target_compile_options(tlapack INTERFACE $<TARGET_PROPERTY:MKL::MKL,INTERFACE_COMPILE_OPTIONS>)
+  target_include_directories(tlapack INTERFACE $<TARGET_PROPERTY:MKL::MKL,INTERFACE_INCLUDE_DIRECTORIES>)
+  target_link_libraries(tlapack INTERFACE $<LINK_ONLY:MKL::MKL>)
+  target_compile_definitions( tlapack INTERFACE TLAPACK_USE_MKL )
 endif()
 
 #-------------------------------------------------------------------------------
