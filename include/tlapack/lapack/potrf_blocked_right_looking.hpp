@@ -13,7 +13,6 @@
 #define TLAPACK_POTRF_BLOCKED_RL_HH
 
 #include "tlapack/base/utils.hpp"
-#include "tlapack/blas/gemm.hpp"
 #include "tlapack/blas/herk.hpp"
 #include "tlapack/blas/trsm.hpp"
 #include "tlapack/lapack/potf2.hpp"
