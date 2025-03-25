@@ -102,6 +102,11 @@ jobs:
         sudo apt install -y gfortran
         sudo apt install -y liblapacke-dev
         sudo apt install -y libmpfrc++-dev
+    
+    - name: Install GCC on MacOS
+      if: ${{ matrix.os == 'macos-latest' }}
+      run: |
+        brew install gcc
 
     - name: Build and install Eigen on Ubuntu
       if: ${{ matrix.os == 'ubuntu-latest' }}
@@ -137,9 +142,9 @@ jobs:
       if: ${{ matrix.os == 'macos-latest' }}
       run: >
         cmake -B build -G Ninja
-        -D CMAKE_C_COMPILER="gcc-11"
-        -D CMAKE_CXX_COMPILER="g++-11"
-        -D CMAKE_Fortran_COMPILER="gfortran-11"
+        -D CMAKE_C_COMPILER="gcc-14"
+        -D CMAKE_CXX_COMPILER="g++-14"
+        -D CMAKE_Fortran_COMPILER="gfortran-14"
         -D TLAPACK_TEST_QUAD=ON
 
     - name: Specific configurations for CMake on Windows

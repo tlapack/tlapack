@@ -36,7 +36,7 @@ class PCG32 {
     PCG32(uint64_t s = 1302) noexcept { seed(s); }
 
     /// Sets the current state of PCG32. Same as PCG32(s).
-    constexpr void seed(uint64_t s) noexcept
+    void seed(uint64_t s) noexcept
     {
         state = 0;
         operator()();
