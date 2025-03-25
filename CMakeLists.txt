@@ -41,7 +41,7 @@ file(READ version.txt version_txt)
 # We require C++17 features like if constexpr
 # If possible, compile with C++20 so we can use concepts
 set (CMAKE_CXX_STANDARD_REQUIRED 17)
-set (CMAKE_CXX_STANDARD 20)
+set (CMAKE_CXX_STANDARD 20 CACHE STRING "C++ standard to use")
 
 #-------------------------------------------------------------------------------
 # <T>LAPACK project

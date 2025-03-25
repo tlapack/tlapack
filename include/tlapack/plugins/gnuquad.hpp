@@ -16,6 +16,8 @@
 #include <limits>
 #include <ostream>
 
+#include "tlapack/base/types.hpp"
+
 namespace std {
 
 constexpr __float128 abs(__float128 x);  // See include/bits/std_abs.h
@@ -157,5 +159,24 @@ constexpr __float128 numeric_limits<__float128>::denorm_min() noexcept
 }
 
 }  // namespace std
+
+namespace tlapack {
+
+namespace traits {
+    // __float128 is a real type that satisfies tlapack::concepts::Real
+    template <>
+    struct real_type_traits<__float128, int> {
+        using type = __float128;
+        constexpr static bool is_real = true;
+    };
+    // The complex type of __float128 is std::complex<__float128>
+    template <>
+    struct complex_type_traits<__float128, int> {
+        using type = std::complex<__float128>;
+        constexpr static bool is_complex = false;
+    };
+}  // namespace traits
+
+}  // namespace tlapack
 
 #endif

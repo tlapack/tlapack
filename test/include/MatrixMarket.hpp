@@ -121,8 +121,8 @@ T rand_helper(Generator& gen)
         typename std::conditional<(is_same_v<real_t, float> ||
                                    is_same_v<real_t, double> ||
                                    is_same_v<real_t, long double>),
-                                  std::normal_distribution<real_t>,
-                                  std::normal_distribution<float> >::type;
+                                  std::uniform_real_distribution<real_t>,
+                                  std::uniform_real_distribution<float> >::type;
 
     dist_t d;
     return rand_helper<T>(gen, d);
