@@ -35,6 +35,9 @@ TEMPLATE_TEST_CASE("Generation of Householder reflectors",
     // Functor
     Create<vector_t> new_vector;
 
+    // Pseudo random number generator
+    PCG32 prng;
+
     // Test parameters
     const idx_t n = GENERATE(10, 19, 30);
     const Direction direction =
@@ -58,8 +61,8 @@ TEMPLATE_TEST_CASE("Generation of Householder reflectors",
     const real_t zero(0);
     const real_t one(1);
     const real_t two(2);
-    const T alpha =
-        (typeAlpha == "Real") ? rand_helper<real_t>() : rand_helper<T>();
+    const T alpha = (typeAlpha == "Real") ? rand_helper<real_t>(prng)
+                                          : rand_helper<T>(prng);
     const idx_t alphaIdx = (direction == Direction::Forward) ? 0 : n - 1;
 
     // Print test parameters
@@ -84,7 +87,7 @@ TEMPLATE_TEST_CASE("Generation of Householder reflectors",
         }
         else {  // initialX == 'R'
             for (idx_t i = 0; i < n; ++i) {
-                v[i] = rand_helper<T>();
+                v[i] = rand_helper<T>(prng);
             }
         }
         v[alphaIdx] = alpha;
@@ -161,6 +164,9 @@ TEMPLATE_TEST_CASE("Application of Householder reflectors",
     Create<vector_t> new_vector;
     Create<matrix_t> new_matrix;
 
+    // MatrixMarket reader
+    MatrixMarket mm;
+
     // Test parameters
     const idx_t m = GENERATE(1, 11, 30);
     const idx_t n = GENERATE(1, 11, 30);
@@ -189,7 +195,7 @@ TEMPLATE_TEST_CASE("Application of Householder reflectors",
 
         // Build v and tau
         for (idx_t i = 0; i < k; ++i)
-            v[i] = rand_helper<T>();
+            v[i] = rand_helper<T>(mm.gen);
         T tau;
         larfg(direction, storeMode, v, tau);
         v[oneIdx] =
@@ -202,9 +208,7 @@ TEMPLATE_TEST_CASE("Application of Householder reflectors",
         // Initialize matrix C
         std::vector<T> C_;
         auto C = new_matrix(C_, m, n);
-        for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = 0; i < m; ++i)
-                C(i, j) = rand_helper<T>();
+        mm.random(C);
 
         // Copy C to C0
         std::vector<T> C0_;

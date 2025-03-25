@@ -99,7 +99,7 @@ TEMPLATE_TEST_CASE("RQ of Hessenberg matrix is accurate",
 
     // MatrixMarket reader
     MatrixMarket mm;
-    rand_generator gen;
+    PCG32 gen;
 
     const idx_t n = GENERATE(2, 3, 4, 5, 10, 13);
 

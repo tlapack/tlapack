@@ -15,7 +15,7 @@ using namespace tlapack;
 
 TEST_CASE("Random generator is consistent if seed is fixed", "[utils]")
 {
-    rand_generator gen;
+    PCG32 gen;
     gen.seed(6845315);
 
     CHECK(gen() == 1225581775);
