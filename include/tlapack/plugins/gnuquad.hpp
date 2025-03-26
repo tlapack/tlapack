@@ -20,7 +20,11 @@
 
 namespace std {
 
+#if !defined(__STRICT_ANSI__) && defined(_GLIBCXX_USE_FLOAT128)
 constexpr __float128 abs(__float128 x);  // See include/bits/std_abs.h
+#else
+constexpr __float128 abs(__float128 x) noexcept { return fabsq(x); }
+#endif
 inline __float128 ceil(__float128 x) noexcept { return ceilq(x); }
 inline __float128 floor(__float128 x) noexcept { return floorq(x); }
 inline bool isinf(__float128 x) noexcept { return isinfq(x); }

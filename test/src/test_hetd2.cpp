@@ -151,7 +151,7 @@ TEMPLATE_TEST_CASE("Tridiagnolization of a symmetric matrix works",
             gemm(NO_TRANS, CONJ_TRANS, one, R, Q, -one, A);
 
             // Check that the error is close to zero
-            CHECK(lange(Norm::Fro, A) / normA < tol);
+            CHECK(lange(Norm::Fro, A) <= tol * normA);
         }
     }
 }

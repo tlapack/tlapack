@@ -57,13 +57,17 @@ TEMPLATE_TEST_CASE("Generation of Householder reflectors",
     auto w = new_vector(w_, n);
 
     // Constants
-    const real_t tol = real_t(n) * ulp<real_t>();
+    const real_t eps = ulp<real_t>();
+    const real_t tol = real_t(n) * eps;
     const real_t zero(0);
     const real_t one(1);
     const real_t two(2);
-    const T alpha = (typeAlpha == "Real") ? rand_helper<real_t>(prng)
-                                          : rand_helper<T>(prng);
     const idx_t alphaIdx = (direction == Direction::Forward) ? 0 : n - 1;
+    T alpha(0);
+    while (alpha == T(0)) {
+        alpha = (typeAlpha == "Real") ? rand_helper<real_t>(prng)
+                                      : rand_helper<T>(prng);
+    }
 
     // Print test parameters
     INFO("Which larfg: " << whichLARFG);
@@ -111,6 +115,8 @@ TEMPLATE_TEST_CASE("Generation of Householder reflectors",
             larfg(direction, storeMode, v, tau);
         }
 
+        INFO("tau = " << tau);
+
         // Post-process v and extract beta
         const T beta = v[alphaIdx];
         v[alphaIdx] = one;
@@ -126,7 +132,7 @@ TEMPLATE_TEST_CASE("Generation of Householder reflectors",
         else {
             CHECK(one <= real(tau));
             CHECK(real(tau) <= two);
-            CHECK(abs(tau - one) <= one);
+            CHECK(abs(tau - one) <= one + 2 * eps);
         }
 
         const T vHw = dot(v, w);

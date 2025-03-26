@@ -77,9 +77,20 @@ TEMPLATE_TEST_CASE("2x2 svd gives correct result",
         h = T(0.);
     }
 
+    INFO("f = " << f);
+    INFO("g = " << g);
+    INFO("h = " << h);
+
     DYNAMIC_SECTION("matrix type = " << matrix_type)
     {
         svd22(f, g, h, ssmin1, ssmax1, csl, snl, csr, snr);
+
+        INFO("ssmin1 = " << ssmin1);
+        INFO("ssmax1 = " << ssmax1);
+        INFO("csl = " << csl);
+        INFO("snl = " << snl);
+        INFO("csr = " << csr);
+        INFO("snr = " << snr);
 
         // Check the decomposition
         std::vector<T> A_;

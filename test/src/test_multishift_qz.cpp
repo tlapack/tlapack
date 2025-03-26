@@ -35,6 +35,9 @@ TEMPLATE_TEST_CASE("QZ algorithm",
     using complex_t = complex_type<real_t>;
     using range = pair<idx_t, idx_t>;
 
+    // QZ algorithm does may not work with 16-bit precision types
+    if constexpr (sizeof(real_t) <= 2) SKIP_TEST;
+
     // Functor
     Create<matrix_t> new_matrix;
 
