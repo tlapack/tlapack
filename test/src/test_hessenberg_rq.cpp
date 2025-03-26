@@ -106,7 +106,7 @@ TEMPLATE_TEST_CASE("RQ of Hessenberg matrix is accurate",
     const idx_t k = n - 1;
 
     const real_t eps = ulp<real_t>();
-    const real_t tol = real_t(k+1) * eps;
+    const real_t tol = real_t(k + 1) * eps;
 
     // Define the matrices and vectors
     std::vector<T> H_;
