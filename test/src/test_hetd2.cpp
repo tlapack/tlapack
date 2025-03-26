@@ -45,6 +45,9 @@ TEMPLATE_TEST_CASE("Tridiagnolization of a symmetric matrix works",
     idx_t n = GENERATE(1, 2, 6, 13, 29);
     const Uplo uplo = GENERATE(Uplo::Lower, Uplo::Upper);
 
+    // MatrixMarket reader
+    MatrixMarket mm;
+
     DYNAMIC_SECTION("n = " << n << " uplo = " << uplo)
     {
         // Constants
@@ -62,9 +65,7 @@ TEMPLATE_TEST_CASE("Tridiagnolization of a symmetric matrix works",
         std::vector<T> tau(n - 1);
 
         // Fill A with random values
-        for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = 0; i < n; ++i)
-                A(i, j) = rand_helper<T>();
+        mm.random(A);
 
         // Compute the norm of A
         real_t normA = lange(Norm::Fro, A);
@@ -150,7 +151,7 @@ TEMPLATE_TEST_CASE("Tridiagnolization of a symmetric matrix works",
             gemm(NO_TRANS, CONJ_TRANS, one, R, Q, -one, A);
 
             // Check that the error is close to zero
-            CHECK(lange(Norm::Fro, A) / normA < tol);
+            CHECK(lange(Norm::Fro, A) <= tol * normA);
         }
     }
 }

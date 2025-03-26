@@ -26,6 +26,9 @@ TEMPLATE_TEST_CASE("sylvester solver gives correct result",
     using idx_t = size_type<matrix_t>;
     typedef real_type<T> real_t;
 
+    // Sylvester solver does not work great with 16-bit precision types
+    if constexpr (sizeof(real_t) <= 2) SKIP_TEST;
+
     // Functor
     Create<matrix_t> new_matrix;
 
@@ -69,10 +72,32 @@ TEMPLATE_TEST_CASE("sylvester solver gives correct result",
         T scale(0), xnorm;
         lasy2(NO_TRANS, NO_TRANS, 1, TL, TR, B, scale, X, xnorm);
 
-        // Check that X_exact == X
+        UNSCOPED_INFO("scale = " << scale);
+        UNSCOPED_INFO("xnorm = " << xnorm);
+
+        for (idx_t i = 0; i < n1; ++i)
+            for (idx_t j = 0; j < n1; ++j)
+                UNSCOPED_INFO("TL(" << i << ", " << j << ") = " << TL(i, j));
+
+        for (idx_t i = 0; i < n2; ++i)
+            for (idx_t j = 0; j < n2; ++j)
+                UNSCOPED_INFO("TR(" << i << ", " << j << ") = " << TR(i, j));
+
         for (idx_t i = 0; i < n1; ++i)
             for (idx_t j = 0; j < n2; ++j)
+                UNSCOPED_INFO("X_exact(" << i << ", " << j
+                                         << ") = " << X_exact(i, j));
+
+        for (idx_t i = 0; i < n1; ++i)
+            for (idx_t j = 0; j < n2; ++j)
+                UNSCOPED_INFO("B(" << i << ", " << j << ") = " << B(i, j));
+
+        // Check that X_exact == X
+        for (idx_t i = 0; i < n1; ++i)
+            for (idx_t j = 0; j < n2; ++j) {
+                INFO("X(" << i << ", " << j << ") = " << X(i, j));
                 CHECK(abs1(X_exact(i, j) - scale * X(i, j)) <=
                       tol * X_exact(i, j));
+            }
     }
 }

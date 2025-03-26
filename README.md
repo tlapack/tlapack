@@ -273,7 +273,7 @@ Here are the \<T\>LAPACK specific options and their default values
 | Project                            | Version       | When                                                 |
 | ---------------------------------- | ------------- | ---------------------------------------------------- |
 | CMake                              | >= v3.14      | Always                                               |
-| ClangFormat                        | 10            | Always                                               |
+| ClangFormat                        | 11            | Always                                               |
 | Catch2                             | >= 3.0.1      | `BUILD_TESTING=ON`                                   |
 | Git                                | -             | `BUILD_BLASPP_TESTS=ON  OR  BUILD_LAPACKPP_TESTS=ON` |
 | github.com/icl-utk-edu/testsweeper | >= 2021.04.00 | `BUILD_BLASPP_TESTS=ON  OR  BUILD_LAPACKPP_TESTS=ON` |

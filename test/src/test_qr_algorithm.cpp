@@ -75,7 +75,7 @@ TEMPLATE_TEST_CASE("QR algorithm",
         SKIP_TEST;
 
     // Random number generator
-    rand_generator gen;
+    PCG32 gen;
     gen.seed(seed);
 
     // Define the matrices

@@ -40,7 +40,7 @@ TEMPLATE_TEST_CASE("Application of rotation sequence is accurate",
 
     // MatrixMarket reader
     MatrixMarket mm;
-    rand_generator gen;
+    PCG32 gen;
 
     const Side side = GENERATE(Side::Left, Side::Right);
     const Direction direction =

@@ -43,9 +43,9 @@ void ladiv(const real_t& a,
            real_t& p,
            real_t& q)
 {
-    // internal function sladiv2
-    auto sladiv2 = [](const real_t& a, const real_t& b, const real_t& c,
-                      const real_t& d, const real_t& r, const real_t& t) {
+    // internal function ladiv2
+    auto ladiv2 = [](const real_t& a, const real_t& b, const real_t& c,
+                     const real_t& d, const real_t& r, const real_t& t) {
         const real_t zero(0);
         if (r != zero) {
             const real_t br = b * r;
@@ -58,13 +58,13 @@ void ladiv(const real_t& a,
             return (a + d * (b / c)) * t;
     };
 
-    // internal function sladiv1
-    auto sladiv1 = [sladiv2](const real_t& a, const real_t& b, const real_t& c,
-                             const real_t& d, real_t& p, real_t& q) {
+    // internal function ladiv1
+    auto ladiv1 = [ladiv2](const real_t& a, const real_t& b, const real_t& c,
+                           const real_t& d, real_t& p, real_t& q) {
         const real_t r = d / c;
         const real_t t = real_t(1) / (c + d * r);
-        p = sladiv2(a, b, c, d, r, t);
-        q = sladiv2(b, -a, c, d, r, t);
+        p = ladiv2(a, b, c, d, r, t);
+        q = ladiv2(b, -a, c, d, r, t);
     };
 
     // constant to control the lower limit of the overflow threshold
@@ -78,6 +78,20 @@ void ladiv(const real_t& a,
     const real_t safeMin = safe_min<real_t>();
     const real_t u = uroundoff<real_t>();
     const real_t be = bs / (u * u);
+
+    // Treat separate cases of c = 0 and d = 0.
+    // It is quicker and prevents the generation of NaNs when doing
+    // `d * (b / c)` in ladiv2.
+    if (d == real_t(0)) {
+        p = a / c;
+        q = b / c;
+        return;
+    }
+    if (c == real_t(0)) {
+        p = b / d;
+        q = -a / d;
+        return;
+    }
 
     // constants
     const real_t ab = max(abs(a), abs(b));
@@ -114,10 +128,10 @@ void ladiv(const real_t& a,
 
     // compute the quotient
     if (abs(d) <= abs(c)) {
-        sladiv1(aa, bb, cc, dd, p, q);
+        ladiv1(aa, bb, cc, dd, p, q);
     }
     else {
-        sladiv1(bb, aa, dd, cc, p, q);
+        ladiv1(bb, aa, dd, cc, p, q);
         q = -q;
     }
 

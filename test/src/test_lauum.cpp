@@ -69,7 +69,7 @@ TEMPLATE_TEST_CASE("LAUUM is stable", "[lauum]", TLAPACK_TYPES_TO_TEST)
             herk(UPPER_TRIANGLE, NO_TRANS, real_t(1), C, real_t(-1), A);
         }
 
-        real_t res = lanhe(MAX_NORM, uplo, A) / normC / normC;
-        CHECK(res <= tol);
+        real_t res = lanhe(MAX_NORM, uplo, A);
+        CHECK(res <= tol * normC * normC);
     }
 }

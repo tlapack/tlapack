@@ -12,6 +12,7 @@
 
 #include <starpu.h>
 
+#include <array>
 #include <iomanip>
 #include <memory>
 #include <ostream>

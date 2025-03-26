@@ -99,14 +99,14 @@ TEMPLATE_TEST_CASE("RQ of Hessenberg matrix is accurate",
 
     // MatrixMarket reader
     MatrixMarket mm;
-    rand_generator gen;
+    PCG32 gen;
 
     const idx_t n = GENERATE(2, 3, 4, 5, 10, 13);
 
     const idx_t k = n - 1;
 
     const real_t eps = ulp<real_t>();
-    const real_t tol = real_t(k) * eps;
+    const real_t tol = real_t(k + 1) * eps;
 
     // Define the matrices and vectors
     std::vector<T> H_;

@@ -273,17 +273,12 @@ namespace starpu {
             cl.cpu_funcs[0] = internal::data_op_value<T, U, op>;
             cl.nbuffers = 1;
             cl.modes[0] = (op == Operation::Assign) ? STARPU_W : STARPU_RW;
-            cl.name = (op == Operation::Assign)
-                          ? "assign_value"
-                          : (op == Operation::Add)
-                                ? "add_value"
-                                : (op == Operation::Subtract)
-                                      ? "subtract_value"
-                                      : (op == Operation::Multiply)
-                                            ? "multiply_value"
-                                            : (op == Operation::Divide)
-                                                  ? "divide_value"
-                                                  : "unknown";
+            cl.name = (op == Operation::Assign)     ? "assign_value"
+                      : (op == Operation::Add)      ? "add_value"
+                      : (op == Operation::Subtract) ? "subtract_value"
+                      : (op == Operation::Multiply) ? "multiply_value"
+                      : (op == Operation::Divide)   ? "divide_value"
+                                                    : "unknown";
 
             // The following lines are needed to make the codelet const
             // See _starpu_codelet_check_deprecated_fields() in StarPU:
@@ -319,17 +314,12 @@ namespace starpu {
             cl.nbuffers = 2;
             cl.modes[0] = (op == Operation::Assign) ? STARPU_W : STARPU_RW;
             cl.modes[1] = STARPU_R;
-            cl.name = (op == Operation::Assign)
-                          ? "assign_data"
-                          : (op == Operation::Add)
-                                ? "add_data"
-                                : (op == Operation::Subtract)
-                                      ? "subtract_data"
-                                      : (op == Operation::Multiply)
-                                            ? "multiply_data"
-                                            : (op == Operation::Divide)
-                                                  ? "divide_data"
-                                                  : "unknown";
+            cl.name = (op == Operation::Assign)     ? "assign_data"
+                      : (op == Operation::Add)      ? "add_data"
+                      : (op == Operation::Subtract) ? "subtract_data"
+                      : (op == Operation::Multiply) ? "multiply_data"
+                      : (op == Operation::Divide)   ? "divide_data"
+                                                    : "unknown";
 
             // The following lines are needed to make the codelet const
             // See _starpu_codelet_check_deprecated_fields() in StarPU:
@@ -364,17 +354,12 @@ namespace starpu {
             cl.cpu_funcs[0] = internal::matrixentry_op_matrixentry<T, op>;
             cl.nbuffers = 1;
             cl.modes[0] = STARPU_RW;
-            cl.name = (op == Operation::Assign)
-                          ? "copy_entry"
-                          : (op == Operation::Add)
-                                ? "add_entry"
-                                : (op == Operation::Subtract)
-                                      ? "subtract_entry"
-                                      : (op == Operation::Multiply)
-                                            ? "multiply_entry"
-                                            : (op == Operation::Divide)
-                                                  ? "divide_entry"
-                                                  : "unknown";
+            cl.name = (op == Operation::Assign)     ? "copy_entry"
+                      : (op == Operation::Add)      ? "add_entry"
+                      : (op == Operation::Subtract) ? "subtract_entry"
+                      : (op == Operation::Multiply) ? "multiply_entry"
+                      : (op == Operation::Divide)   ? "divide_entry"
+                                                    : "unknown";
 
             // The following lines are needed to make the codelet const
             // See _starpu_codelet_check_deprecated_fields() in StarPU:

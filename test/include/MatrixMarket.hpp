@@ -12,85 +12,120 @@
 #ifndef TLAPACK_MATRIXMARKET_HH
 #define TLAPACK_MATRIXMARKET_HH
 
+#include <random>
 #include <tlapack/base/utils.hpp>
+#include <type_traits>
 
 namespace tlapack {
 
 /**
- * @brief Random number generator.
+ * @brief Permuted Congruential Generator
  *
- * This is a simple random number generator that generates a sequence of
- * pseudo-random numbers using a linear congruential generator (LCG).
- *
- * The LCG is defined by the recurrence relation:
- *
- * \[
- *     X_{n+1} = (a X_n + c) \mod m
- * \]
- *
- * where $X_0$ is the seed, $a$ is the multiplier, $c$ is the
- * increment, and $m$ is the modulus.
+ * Defined in https://www.pcg-random.org/pdf/hmc-cs-2014-0905.pdf as PCG-XSL-RR.
+ * Constants taken from https://github.com/imneme/pcg-cpp.
  */
-class rand_generator {
+class PCG32 {
    private:
-    const uint64_t a = 6364136223846793005;  ///< multiplier (64-bit)
-    const uint64_t c = 1442695040888963407;  ///< increment (64-bit)
-    uint64_t state = 1302;                   ///< seed (64-bit)
+    const uint64_t a = 6364136223846793005ULL;  ///< multiplier (64-bit)
+    const uint64_t c = 1442695040888963407ULL;  ///< increment (64-bit)
+    uint64_t state;                             ///< RNG state (64-bit)
 
    public:
+    /// @brief Constructor
+    /// @param s Default is 1302 for no good reason.
+    PCG32(uint64_t s = 1302) noexcept { seed(s); }
+
+    /// Sets the current state of PCG32. Same as PCG32(s).
+    void seed(uint64_t s) noexcept
+    {
+        state = 0;
+        operator()();
+        state += s;
+        operator()();
+    }
+
     static constexpr uint32_t min() noexcept { return 0; }
     static constexpr uint32_t max() noexcept { return UINT32_MAX; }
-    constexpr void seed(uint64_t s) noexcept { state = s; }
 
-    /// Generates a pseudo-random number.
-    constexpr uint32_t operator()()
+    /// Generates a pseudo-random number using PCG's output function (XSH-RR).
+    uint32_t operator()() noexcept
     {
+        // Constants for a 64-bit state and 32-bit output
+        const uint8_t bits = 64;
+        const uint8_t opbits = 5;
+        constexpr uint8_t mask = (1 << opbits) - 1;
+        constexpr uint8_t xshift = (opbits + 32) / 2;
+        constexpr uint8_t bottomspare = (bits - 32) - opbits;
+
+        // Random rotation
+        uint8_t rot = uint8_t(state >> (bits - opbits)) & mask;
+
+        // XOR shift high
+        uint32_t result =
+            static_cast<uint32_t>((state ^ (state >> xshift)) >> bottomspare);
+
+        // Rotate right
+        result = (result >> rot) | (result << ((-rot) & mask));
+
+        // Updates the state
         state = state * a + c;
-        return state >> 32;
+
+        return result;
     }
 };
 
 /**
  * @brief Helper function to generate random numbers.
  * @param[in,out] gen Random number generator.
+ * @param[in,out] d Random distribution.
  */
-template <typename T, enable_if_t<is_real<T>, bool> = true>
-T rand_helper(rand_generator& gen)
+template <class T,
+          class Generator,
+          class Distribution,
+          enable_if_t<is_real<T>, bool> = true>
+T rand_helper(Generator& gen, Distribution& d)
 {
-    return T(static_cast<float>(gen()) / static_cast<float>(gen.max()));
+    return T(d(gen));
 }
 
 /**
- * @overload T rand_helper(rand_generator& gen)
+ * @overload T rand_helper(Generator& gen, Distribution& d)
  */
-template <typename T, enable_if_t<is_complex<T>, bool> = true>
-T rand_helper(rand_generator& gen)
+template <class T,
+          class Generator,
+          class Distribution,
+          enable_if_t<is_complex<T>, bool> = true>
+T rand_helper(Generator& gen, Distribution& d)
 {
     using real_t = real_type<T>;
-    real_t r1(static_cast<float>(gen()) / static_cast<float>(gen.max()));
-    real_t r2(static_cast<float>(gen()) / static_cast<float>(gen.max()));
+    real_t r1(d(gen));
+    real_t r2(d(gen));
     return complex_type<real_t>(r1, r2);
 }
 
 /**
- * @brief Helper function to generate random numbers.
+ * @brief Helper function to generate random numbers using an uniform
+ * distribution in [0,1).
+ *
+ * The type of the uniform distribution is T if real_type<T> is either float,
+ * double or long double. Otherwise, the uniform distribution will be defined
+ * using the type float.
+ *
+ * @param[in,out] gen Random number generator.
  */
-template <typename T, enable_if_t<is_real<T>, bool> = true>
-T rand_helper()
-{
-    return T(static_cast<float>(rand()) / static_cast<float>(RAND_MAX));
-}
-
-/**
- * @overload T rand_helper()
- */
-template <typename T, enable_if_t<is_complex<T>, bool> = true>
-T rand_helper()
+template <class T, class Generator>
+T rand_helper(Generator& gen)
 {
     using real_t = real_type<T>;
-    real_t r1(static_cast<float>(rand()) / static_cast<float>(RAND_MAX));
-    real_t r2(static_cast<float>(rand()) / static_cast<float>(RAND_MAX));
-    return complex_type<real_t>(r1, r2);
+    using dist_t =
+        typename std::conditional<(is_same_v<real_t, float> ||
+                                   is_same_v<real_t, double> ||
+                                   is_same_v<real_t, long double>),
+                                  std::uniform_real_distribution<real_t>,
+                                  std::uniform_real_distribution<float> >::type;
+
+    dist_t d;
+    return rand_helper<T>(gen, d);
 }
 
 /**
@@ -282,7 +317,7 @@ struct MatrixMarket {
         }
     }
 
-    rand_generator gen;
+    PCG32 gen;
 };
 
 }  // namespace tlapack
