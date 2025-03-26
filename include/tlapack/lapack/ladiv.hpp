@@ -45,7 +45,7 @@ void ladiv(const real_t& a,
 {
     // internal function ladiv2
     auto ladiv2 = [](const real_t& a, const real_t& b, const real_t& c,
-                      const real_t& d, const real_t& r, const real_t& t) {
+                     const real_t& d, const real_t& r, const real_t& t) {
         const real_t zero(0);
         if (r != zero) {
             const real_t br = b * r;
@@ -60,7 +60,7 @@ void ladiv(const real_t& a,
 
     // internal function ladiv1
     auto ladiv1 = [ladiv2](const real_t& a, const real_t& b, const real_t& c,
-                             const real_t& d, real_t& p, real_t& q) {
+                           const real_t& d, real_t& p, real_t& q) {
         const real_t r = d / c;
         const real_t t = real_t(1) / (c + d * r);
         p = ladiv2(a, b, c, d, r, t);

@@ -22,7 +22,7 @@
 # ${CLANG_FORMAT_VERSION}") endif()
 
 find_program(CLANG_FORMAT_EXECUTABLE
-             NAMES clang-format-10  # First option will be searched first
+             NAMES clang-format-11  # First option will be searched first
                    clang-format
                    clang-format-7
                    clang-format-6.0
