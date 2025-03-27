@@ -102,6 +102,8 @@ add_executable(test_generalized_aed test_generalized_aed.cpp)
 add_executable(test_multishift_qz test_multishift_qz.cpp)
 add_executable(test_cauchy test_cauchy.cpp)
 add_executable(test_manteuffel test_manteuffel.cpp)
+add_executable(test_hetd2 test_hetd2.cpp testutils.cpp)
+add_executable(test_rot_sequence3 test_rot_sequence3.cpp testutils.cpp)
 
 if(TLAPACK_TEST_EIGEN)
   add_executable(test_eigenplugin test_eigenplugin.cpp)
