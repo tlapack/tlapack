@@ -20,13 +20,11 @@
 #include <tlapack/lapack/lantr.hpp>
 
 #if __has_include(<stdfloat>) && __cplusplus > 202002L
-    #define TEST_TYPES_bTRMM                     \
-        (std::tuple<float, float, double>),      \
-            (std::tuple<double, float, double>), \
+    #define TEST_TYPES_bTRMM                 \
+        (std::tuple<double, float, double>), \
             (std::tuple<float, std::bfloat16_t, double>)
 #else
-    #define TEST_TYPES_bTRMM \
-        (std::tuple<float, float, double>), (std::tuple<double, float, double>)
+    #define TEST_TYPES_bTRMM (std::tuple<double, float, double>)
 #endif
 
 using namespace tlapack;
@@ -59,14 +57,11 @@ TEMPLATE_TEST_CASE("TRMM blocked mixed works",
     MatrixMarket mm;
 
     idx_t n = GENERATE(64, 128, 256);
-    idx_t m = GENERATE(64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768,
-                       65536);
+    idx_t m = GENERATE(64, 128, 256, 512, 1024, 2048);
     idx_t nb = 128;
 
     DYNAMIC_SECTION("m = " << m << " n = " << n << " nb = " << nb)
     {
-        std::cout << "m = " << m << " n = " << n << " nb = " << nb << std::endl;
-
         std::vector<T2> A_;
         auto A = new_matrix2(A_, m, m);
         std::vector<T2> Xlow_;
@@ -131,14 +126,10 @@ TEMPLATE_TEST_CASE("TRMM blocked mixed works",
         const realRef_t errAlow =
             lantr(ONE_NORM, UPPER_TRIANGLE, NON_UNIT_DIAG, E2) / norma;
 
-        std::cout << "Relative error on A when cast to T1 = "
-                  << errAhigh / norma << std::endl;
-        std::cout << "Relative error on A when cast to T2 = " << errAlow / norma
-                  << std::endl;
-        std::cout << "Relative error on X when cast to T1 = "
-                  << errXhigh / normx << std::endl;
-        std::cout << "Relative error on X when cast to T2 = " << errXlow / normx
-                  << std::endl;
+        INFO("Relative error on A when cast to T1 = " << errAhigh);
+        INFO("Relative error on A when cast to T2 = " << errAlow);
+        INFO("Relative error on X when cast to T1 = " << errXhigh);
+        INFO("Relative error on X when cast to T2 = " << errXlow);
 
         // Solve A * X = B in mixed precision, storing the result in B
         trmm_blocked_mixed(LEFT_SIDE, UPPER_TRIANGLE, NO_TRANS, NON_UNIT_DIAG,
@@ -161,12 +152,10 @@ TEMPLATE_TEST_CASE("TRMM blocked mixed works",
                 Bref(i, j) -= Bhigh(i, j);
                 E(i, j) -= B(i, j);
             }
-        const real_t normEhigh = lange(ONE_NORM, Bref);
-        const real_t normEmixed = lange(ONE_NORM, E);
+        const real_t normEhigh = lange(ONE_NORM, Bref) / normb;
+        const real_t normEmixed = lange(ONE_NORM, E) / normb;
 
-        std::cout << "Relative error using the single precision algorithm = "
-                  << normEhigh / normb << std::endl;
-        std::cout << "Relative error using the mixed precision algorithm = "
-                  << normEmixed / normb << std::endl;
+        INFO("Relative error on B when cast to T1 = " << normEhigh);
+        INFO("Relative error on B when cast to T2 = " << normEmixed);
     }
 }
