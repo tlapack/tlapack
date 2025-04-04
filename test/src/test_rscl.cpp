@@ -60,7 +60,7 @@ TEMPLATE_TEST_CASE("reciprocal scaling works on limit cases",
     }
     {
         using T = NaNPropagComplex<real_t>;
-        using trustR = long double;
+        using trustR = double;
         using trustT = NaNPropagComplex<trustR>;
 
         // scaling constants

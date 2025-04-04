@@ -41,7 +41,7 @@ file(READ version.txt version_txt)
 # We require C++17 features like if constexpr
 # If possible, compile with C++20 so we can use concepts
 set (CMAKE_CXX_STANDARD_REQUIRED 17)
-set (CMAKE_CXX_STANDARD 20)
+set (CMAKE_CXX_STANDARD 20 CACHE STRING "C++ standard to use")
 
 #-------------------------------------------------------------------------------
 # <T>LAPACK project
@@ -208,8 +208,8 @@ find_package(Git QUIET)
 find_package(ClangFormat QUIET)
 if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git" AND CLANG_FORMAT_FOUND)
   message(STATUS "ClangFormat found: ${CLANG_FORMAT_EXECUTABLE} (version ${CLANG_FORMAT_VERSION})")
-  if( ${CLANG_FORMAT_MAJOR_VERSION} NOT EQUAL 10 )
-    message( WARNING "Please use ClangFormat version 10" )
+  if( ${CLANG_FORMAT_MAJOR_VERSION} NOT EQUAL 11 )
+    message( WARNING "Please use ClangFormat version 11" )
   else()
     add_custom_target( format-all-hpp-cpp-files
       COMMAND

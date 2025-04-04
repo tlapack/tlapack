@@ -64,9 +64,11 @@ TEMPLATE_TEST_CASE("QL factorization of a general m-by-n matrix",
     GeqlfOpts geqlfOpts;
     geqlfOpts.nb = nb;
 
-    for (idx_t j = 0; j < n; ++j)
-        for (idx_t i = 0; i < m; ++i)
-            A(i, j) = rand_helper<T>();
+    // MatrixMarket reader
+    MatrixMarket mm;
+
+    // Fill A with random values
+    mm.random(A);
 
     lacpy(GENERAL, A, A_copy);
 

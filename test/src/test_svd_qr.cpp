@@ -35,6 +35,9 @@ TEMPLATE_TEST_CASE("svd is backward stable",
     // Functor
     Create<matrix_t> new_matrix;
 
+    // Pseudo random number generator
+    PCG32 prng;
+
     const real_t zero(0);
     const real_t one(1);
 
@@ -59,9 +62,9 @@ TEMPLATE_TEST_CASE("svd is backward stable",
 
     // Generate random bidiagonal matrix
     for (idx_t j = 0; j < n; ++j)
-        d[j] = rand_helper<real_t>();
+        d[j] = rand_helper<real_t>(prng);
     for (idx_t j = 0; j + 1 < n; ++j)
-        e[j] = rand_helper<real_t>();
+        e[j] = rand_helper<real_t>(prng);
 
     copy(d, d_copy);
     copy(e, e_copy);
