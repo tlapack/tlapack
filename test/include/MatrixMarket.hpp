@@ -122,7 +122,7 @@ T rand_helper(Generator& gen)
                                    is_same_v<real_t, double> ||
                                    is_same_v<real_t, long double>),
                                   std::uniform_real_distribution<real_t>,
-                                  std::uniform_real_distribution<float> >::type;
+                                  std::uniform_real_distribution<float>>::type;
 
     dist_t d;
     return rand_helper<T>(gen, d);
@@ -215,15 +215,13 @@ struct MatrixMarket {
      *
      * @param[out] A Matrix.
      */
-    template <TLAPACK_MATRIX matrix_t, class Distribution = typename std::conditional<
-        (
-            is_same_v<type_t<matrix_t>,float> ||
-            is_same_v<type_t<matrix_t>,double> ||
-            is_same_v<type_t<matrix_t>,long double>
-        ),
-        std::normal_distribution<type_t<matrix_t>>,
-        std::normal_distribution<double>>::type
-    >
+    template <TLAPACK_MATRIX matrix_t,
+              class Distribution = typename std::conditional<
+                  (is_same_v<type_t<matrix_t>, float> ||
+                   is_same_v<type_t<matrix_t>, double> ||
+                   is_same_v<type_t<matrix_t>, long double>),
+                  std::normal_distribution<type_t<matrix_t>>,
+                  std::normal_distribution<double>>::type>
     void randn(matrix_t& A)
     {
         using T = type_t<matrix_t>;
@@ -246,15 +244,14 @@ struct MatrixMarket {
      * @param[in] uplo Upper or lower triangular.
      * @param[out] A Matrix.
      */
-    template <TLAPACK_UPLO uplo_t, TLAPACK_MATRIX matrix_t, class Distribution = typename std::conditional<
-        (
-            is_same_v<type_t<matrix_t>,float> ||
-            is_same_v<type_t<matrix_t>,double> ||
-            is_same_v<type_t<matrix_t>,long double>
-        ),
-        std::normal_distribution<type_t<matrix_t>>,
-        std::normal_distribution<double>>::type
-    >
+    template <TLAPACK_UPLO uplo_t,
+              TLAPACK_MATRIX matrix_t,
+              class Distribution = typename std::conditional<
+                  (is_same_v<type_t<matrix_t>, float> ||
+                   is_same_v<type_t<matrix_t>, double> ||
+                   is_same_v<type_t<matrix_t>, long double>),
+                  std::normal_distribution<type_t<matrix_t>>,
+                  std::normal_distribution<double>>::type>
     void randn(uplo_t uplo, matrix_t& A)
     {
         using T = type_t<matrix_t>;

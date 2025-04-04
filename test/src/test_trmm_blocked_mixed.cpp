@@ -20,14 +20,12 @@
 #include <tlapack/lapack/lantr.hpp>
 
 #ifdef __has_include(<stdfloat>)
-    #define TEST_TYPES_bTRMM \
-        (std::pair<float, float>), \
-        (std::pair<double, float>), \
-        (std::tuple<float, std::bfloat16_t, double>)
+    #define TEST_TYPES_bTRMM                                   \
+        (std::pair<float, float>), (std::pair<double, float>), \
+            (std::tuple<float, std::bfloat16_t, double>)
 #else
     #define TEST_TYPES_bTRMM \
-        (std::pair<float, float>), \
-        (std::pair<double, float>)
+        (std::pair<float, float>), (std::pair<double, float>)
 #endif
 
 using namespace tlapack;
