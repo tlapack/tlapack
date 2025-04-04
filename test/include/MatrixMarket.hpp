@@ -233,7 +233,7 @@ struct MatrixMarket {
         Distribution d(0, 1);
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = 0; i < m; ++i)
-                A(i, j) = rand_helper<T>(mt19937gen, d);
+                A(i, j) = rand_helper<T>(gen, d);
     }
 
     /**
@@ -265,7 +265,7 @@ struct MatrixMarket {
             for (idx_t j = 0; j < n; ++j)
                 for (idx_t i = 0; i < m; ++i)
                     if (i <= j)
-                        A(i, j) = rand_helper<T>(mt19937gen, d);
+                        A(i, j) = rand_helper<T>(gen, d);
                     else
                         A(i, j) = T(float(0xCAFEBABE));
         }
@@ -273,7 +273,7 @@ struct MatrixMarket {
             for (idx_t j = 0; j < n; ++j)
                 for (idx_t i = 0; i < m; ++i)
                     if (i >= j)
-                        A(i, j) = rand_helper<T>(mt19937gen, d);
+                        A(i, j) = rand_helper<T>(gen, d);
                     else
                         A(i, j) = T(float(0xCAFEBABE));
         }
