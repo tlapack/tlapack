@@ -258,7 +258,7 @@ void gemm(Op transA,
 
 #endif
 
-#if defined(TLAPACK_USE_MKL) && defined(EIGEN_BFLOAT16_H)
+#if defined(TLAPACK_USE_BF16BF16FP32_GEMM) &&  __has_include(<stdfloat>)
     #include <mkl.h>
     #include <mkl_cblas.h>
 
@@ -266,8 +266,8 @@ template <class idx_t, Layout L>
 void gemm(Op transA,
           Op transB,
           float alpha,
-          const tlapack::LegacyMatrix<Eigen::bfloat16 const, idx_t, L>& A,
-          const tlapack::LegacyMatrix<Eigen::bfloat16, idx_t, L>& B,
+          const tlapack::LegacyMatrix<std::bfloat16_t const, idx_t, L>& A,
+          const tlapack::LegacyMatrix<std::bfloat16_t, idx_t, L>& B,
           float beta,
           tlapack::LegacyMatrix<float, idx_t, L>& C)
 {

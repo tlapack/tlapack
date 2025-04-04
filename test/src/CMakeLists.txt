@@ -102,10 +102,10 @@ add_executable(test_generalized_aed test_generalized_aed.cpp)
 add_executable(test_multishift_qz test_multishift_qz.cpp)
 add_executable(test_hetd2 test_hetd2.cpp testutils.cpp)
 add_executable(test_rot_sequence3 test_rot_sequence3.cpp testutils.cpp)
+add_executable(test_trmm_blocked_mixed test_trmm_blocked_mixed.cpp)
 
 if(TLAPACK_TEST_EIGEN)
   add_executable(test_eigenplugin test_eigenplugin.cpp)
-  add_executable(test_trmm_blocked_mixed test_trmm_blocked_mixed.cpp)
 endif()
 
 if(TLAPACK_TEST_MDSPAN)

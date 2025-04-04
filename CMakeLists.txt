@@ -58,7 +58,6 @@ add_library( tlapack INTERFACE )
 target_include_directories( tlapack
   INTERFACE 
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>
     $<INSTALL_INTERFACE:include> )
 
 #-------------------------------------------------------------------------------
@@ -84,7 +83,7 @@ cmake_dependent_option( BUILD_LAPACKPP_TESTS "Use LAPACK++ tests to test <T>LAPA
 )
 
 # MKL wrappers
-option( TLAPACK_USE_MKL "Use wrappers to MKL. Currently only has mixed-precision GEMM" OFF )
+option( TLAPACK_USE_BF16BF16FP32_GEMM "Use BF16BF16FP32_GEMM from MKL. Only used for C++23 or more recent." OFF )
 
 # Examples
 option( BUILD_EXAMPLES "Build examples" ON  )
@@ -199,12 +198,17 @@ endif()
 
 #-------------------------------------------------------------------------------
 # Search for MKL library if it is needed
-if( TLAPACK_USE_MKL )
+if( TLAPACK_USE_BF16BF16FP32_GEMM )
+  include(CheckCXXSymbolExists)
   find_package(MKL CONFIG REQUIRED)
-  target_compile_options(tlapack INTERFACE $<TARGET_PROPERTY:MKL::MKL,INTERFACE_COMPILE_OPTIONS>)
-  target_include_directories(tlapack INTERFACE $<TARGET_PROPERTY:MKL::MKL,INTERFACE_INCLUDE_DIRECTORIES>)
-  target_link_libraries(tlapack INTERFACE $<LINK_ONLY:MKL::MKL>)
-  target_compile_definitions( tlapack INTERFACE TLAPACK_USE_MKL )
+  if( MKL_VERSION VERSION_GREATER_EQUAL "2023.1" )
+    target_compile_options(tlapack INTERFACE $<TARGET_PROPERTY:MKL::MKL,INTERFACE_COMPILE_OPTIONS>)
+    target_include_directories(tlapack INTERFACE $<TARGET_PROPERTY:MKL::MKL,INTERFACE_INCLUDE_DIRECTORIES>)
+    target_link_libraries(tlapack INTERFACE $<LINK_ONLY:MKL::MKL>)
+    target_compile_definitions( tlapack INTERFACE TLAPACK_USE_BF16BF16FP32_GEMM )
+  else()
+    message(WARNING "cblas_gemm_bf16bf16f32() was not found in the MKL library. This function is available in MKL 2023.1 or more recent. Please check your MKL installation.")
+  endif()
 endif()
 
 #-------------------------------------------------------------------------------
@@ -250,6 +254,7 @@ endif()
 
 if( BUILD_C_WRAPPERS OR BUILD_CBLAS_WRAPPERS OR BUILD_Fortran_WRAPPERS )
   enable_language( C )
+  target_include_directories( tlapack INTERFACE $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include> )
   if( BUILD_Fortran_WRAPPERS )
     set( CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/fortran )
     enable_language( Fortran )
