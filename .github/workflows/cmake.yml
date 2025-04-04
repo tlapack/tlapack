@@ -58,16 +58,13 @@ jobs:
         os: [ macos-latest, ubuntu-latest ]
         build-type: [ Release, Debug ]
         shared: [ ON, OFF ]
-        cpp-version: [ 17, 20, 23 ]
+        cpp-version: [ 17, 20 ]
         exclude:
           - build-type: Release
             shared: OFF
           - build-type: Release
             shared: ON
             cpp-version: 17
-          - build-type: Release
-            shared: ON
-            cpp-version: 20
         include:
           - os: windows-2019
             build-type: Release

@@ -35,9 +35,9 @@ TEMPLATE_TEST_CASE("TRMM blocked mixed works",
                    "[blas][trmm_blocked_mixed][trmm][blocked][mixed]",
                    TEST_TYPES_bTRMM)
 {
-    using T1 = std::tuple_element<0, TestType>::type;
-    using T2 = std::tuple_element<1, TestType>::type;
-    using Tref = std::tuple_element<2, TestType>::type;
+    using T1 = typename std::tuple_element<0, TestType>::type;
+    using T2 = typename std::tuple_element<1, TestType>::type;
+    using Tref = typename std::tuple_element<2, TestType>::type;
 
     using matrix1_t =
         tlapack::LegacyMatrix<T1, std::size_t, tlapack::Layout::ColMajor>;
@@ -142,7 +142,7 @@ TEMPLATE_TEST_CASE("TRMM blocked mixed works",
 
         // Solve A * X = B in mixed precision, storing the result in B
         trmm_blocked_mixed(LEFT_SIDE, UPPER_TRIANGLE, NO_TRANS, NON_UNIT_DIAG,
-                           real_t(1), A, B, W, TrmmBlockedOpts(nb));
+                           real_t(1), A, B, W, TrmmBlockedOpts{nb});
 
         // Solve A * X = B in high precision, storing the result in Bhigh
         trmm(LEFT_SIDE, UPPER_TRIANGLE, NO_TRANS, NON_UNIT_DIAG, real_t(1),
