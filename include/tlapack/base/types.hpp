@@ -14,7 +14,7 @@
 #include <vector>
 
 // blfoat16 and float16 are supported by the C++23 standard
-#if __has_include(<stdfloat>)
+#if __has_include(<stdfloat>) && __cplusplus > 202002L
     #include <stdfloat>
 #endif
 

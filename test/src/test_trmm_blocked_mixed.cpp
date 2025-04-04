@@ -19,13 +19,14 @@
 #include <tlapack/lapack/lacpy.hpp>
 #include <tlapack/lapack/lantr.hpp>
 
-#if __has_include(<stdfloat>)
-    #define TEST_TYPES_bTRMM                                   \
-        (std::pair<float, float>), (std::pair<double, float>), \
+#if __has_include(<stdfloat>) && __cplusplus > 202002L
+    #define TEST_TYPES_bTRMM                     \
+        (std::tuple<float, float, double>),      \
+            (std::tuple<double, float, double>), \
             (std::tuple<float, std::bfloat16_t, double>)
 #else
     #define TEST_TYPES_bTRMM \
-        (std::pair<float, float>), (std::pair<double, float>)
+        (std::tuple<float, float, double>), (std::tuple<double, float, double>)
 #endif
 
 using namespace tlapack;

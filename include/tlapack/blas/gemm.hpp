@@ -258,7 +258,7 @@ void gemm(Op transA,
 
 #endif
 
-#if defined(TLAPACK_USE_BF16BF16FP32_GEMM) && __has_include(<stdfloat>)
+#if defined(TLAPACK_USE_BF16BF16FP32_GEMM) && __has_include(<stdfloat>) && __cplusplus > 202002L
     #include <mkl.h>
     #include <mkl_cblas.h>
 
