@@ -24,6 +24,50 @@ struct TrmmBlockedOpts {
     size_t nb = 32;  ///< Block size
 };
 
+/**
+ * Triangular matrix-matrix multiply using a blocked algorithm.
+ *
+ * In iteration i, the algorithm computes $B_{0i} += \alpha A_{0i,i} B_i$ and
+ * then $B_i := \alpha A_{i,i} B_i$, where i is the block index. See details in
+ * the implementation. $B_i$ is cast to the precision type of `work`, enabling
+ * mixed precision.
+ *
+ * @todo Implement the algorithm for the remaining cases. See what is missing
+ * below.
+ *
+ * @param[in] side
+ *     Whether $op(A)$ is on the left or right of B:
+ *     - Side::Left:  $B = \alpha op(A) B$.
+ *     - Side::Right: $B = \alpha B op(A)$.
+ *
+ * @param[in] uplo
+ *     What part of the matrix A is referenced,
+ *     the opposite triangle being assumed to be zero:
+ *     - Uplo::Lower: A is lower triangular.
+ *     - Uplo::Upper: A is upper triangular.
+ *     - Uplo::General is illegal (see gemm() instead).
+ *
+ * @param[in] trans
+ *     The form of $op(A)$:
+ *     - Op::NoTrans:   $op(A) = A$.
+ *     - Op::Trans:     $op(A) = A^T$.
+ *     - Op::ConjTrans: $op(A) = A^H$.
+ *
+ * @param[in] diag
+ *     Whether A has a unit or non-unit diagonal:
+ *     - Diag::Unit:    A is assumed to be unit triangular.
+ *     - Diag::NonUnit: A is not assumed to be unit triangular.
+ *
+ * @param[in] alpha Scalar.
+ * @param[in] A
+ *     - If side = Left: a m-by-m matrix.
+ *     - If side = Right: a n-by-n matrix.
+ * @param[in,out] B A m-by-n matrix.
+ * @param work nb-by-n workspace that also informs the precision type to case B.
+ * @param[in] opts Options.
+ *
+ * @ingroup blas3
+ */
 template <TLAPACK_SIDE side_t,
           TLAPACK_UPLO uplo_t,
           TLAPACK_OP op_t,

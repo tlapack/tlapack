@@ -262,6 +262,22 @@ void gemm(Op transA,
     #include <mkl.h>
     #include <mkl_cblas.h>
 
+/**
+ * General matrix-matrix multiply.
+ *
+ * Wrapper to the mixed-precision BF16 x BF16 -> FP32 GEMM from Intel MKL.
+ *
+ * @see gemm(
+    Op transA,
+    Op transB,
+    const alpha_t& alpha,
+    const matrixA_t& A,
+    const matrixB_t& B,
+    const beta_t& beta,
+    matrixC_t& C )
+*
+* @ingroup blas3
+*/
 template <class idx_t, Layout L>
 void gemm(Op transA,
           Op transB,

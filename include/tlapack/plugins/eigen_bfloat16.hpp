@@ -37,34 +37,6 @@ inline Eigen::bfloat16 pow(int base, const Eigen::bfloat16& exp)
     return Eigen::bfloat16_impl::pow(Eigen::bfloat16(float(base)), exp);
 }
 
-// // Reimplementation of std::sqrt for Eigen::half. See the discussion at
-// // https://github.com/gcc-mirror/gcc/pull/84
-// inline std::complex<Eigen::half> sqrt(const std::complex<Eigen::half>& z)
-// {
-//     const Eigen::half x = real(z);
-//     const Eigen::half y = imag(z);
-//     const Eigen::half zero(0);
-//     const Eigen::half two(2);
-//     const Eigen::half half(0.5);
-
-//     if (isnan(x) || isnan(y))
-//         return std::numeric_limits<Eigen::half>::quiet_NaN();
-//     else if (isinf(x) || isinf(y))
-//         return std::numeric_limits<Eigen::half>::infinity();
-//     else if (x == zero) {
-//         Eigen::half t = sqrt(half * abs(y));
-//         return std::complex<Eigen::half>(t, (y < zero) ? -t : t);
-//     }
-//     else {
-//         Eigen::half t = sqrt(two * (std::abs(z) + abs(x)));
-//         Eigen::half u = half * t;
-//         return (x > zero)
-//                    ? std::complex<Eigen::half>(u, y / t)
-//                    : std::complex<Eigen::half>(abs(y) / t, (y < zero) ? -u :
-//                    u);
-//     }
-// }
-
 }  // namespace tlapack
 
 inline std::istream& operator>>(std::istream& is, Eigen::bfloat16& x)
