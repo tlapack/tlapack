@@ -122,7 +122,7 @@ T rand_helper(Generator& gen)
                                    is_same_v<real_t, double> ||
                                    is_same_v<real_t, long double>),
                                   std::uniform_real_distribution<real_t>,
-                                  std::uniform_real_distribution<float> >::type;
+                                  std::uniform_real_distribution<float>>::type;
 
     dist_t d;
     return rand_helper<T>(gen, d);
@@ -205,6 +205,75 @@ struct MatrixMarket {
                 for (idx_t i = 0; i < m; ++i)
                     if (i >= j)
                         A(i, j) = rand_helper<T>(gen);
+                    else
+                        A(i, j) = T(float(0xCAFEBABE));
+        }
+    }
+
+    /**
+     * @brief Generate a random dense matrix based on a normal distribution.
+     *
+     * @param[out] A Matrix.
+     */
+    template <TLAPACK_MATRIX matrix_t,
+              class Distribution = typename std::conditional<
+                  (is_same_v<type_t<matrix_t>, float> ||
+                   is_same_v<type_t<matrix_t>, double> ||
+                   is_same_v<type_t<matrix_t>, long double>),
+                  std::normal_distribution<type_t<matrix_t>>,
+                  std::normal_distribution<double>>::type>
+    void randn(matrix_t& A)
+    {
+        using T = type_t<matrix_t>;
+        using idx_t = size_type<matrix_t>;
+
+        const idx_t m = nrows(A);
+        const idx_t n = ncols(A);
+
+        Distribution d(0, 1);
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = 0; i < m; ++i)
+                A(i, j) = rand_helper<T>(gen, d);
+    }
+
+    /**
+     * @brief Generate an upper- or lower-triangular random matrix.
+     *
+     * Put a single garbage value float(0xCAFEBABE) in the opposite triangle.
+     *
+     * @param[in] uplo Upper or lower triangular.
+     * @param[out] A Matrix.
+     */
+    template <TLAPACK_UPLO uplo_t,
+              TLAPACK_MATRIX matrix_t,
+              class Distribution = typename std::conditional<
+                  (is_same_v<type_t<matrix_t>, float> ||
+                   is_same_v<type_t<matrix_t>, double> ||
+                   is_same_v<type_t<matrix_t>, long double>),
+                  std::normal_distribution<type_t<matrix_t>>,
+                  std::normal_distribution<double>>::type>
+    void randn(uplo_t uplo, matrix_t& A)
+    {
+        using T = type_t<matrix_t>;
+        using idx_t = size_type<matrix_t>;
+
+        const idx_t m = nrows(A);
+        const idx_t n = ncols(A);
+
+        Distribution d(0, 1);
+        if (uplo == Uplo::Upper) {
+            for (idx_t j = 0; j < n; ++j)
+                for (idx_t i = 0; i < m; ++i)
+                    if (i <= j)
+                        A(i, j) = rand_helper<T>(gen, d);
+                    else
+                        A(i, j) = T(float(0xCAFEBABE));
+        }
+        else {
+            for (idx_t j = 0; j < n; ++j)
+                for (idx_t i = 0; i < m; ++i)
+                    if (i >= j)
+                        A(i, j) = rand_helper<T>(gen, d);
                     else
                         A(i, j) = T(float(0xCAFEBABE));
         }
