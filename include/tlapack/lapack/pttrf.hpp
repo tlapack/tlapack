@@ -2,7 +2,7 @@
 /// definite tridiagonal matrix A.
 /// @author Hugh M. Kadhem, University of California Berkeley, USA
 //
-// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2025, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under

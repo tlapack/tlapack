@@ -297,7 +297,7 @@ For documentation in C/C++:
 Each file should have the same Copyright information, and this should not be used with Doxygen comments. The text in C/C++ files should be:
 
 ```cpp
-// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2025, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
