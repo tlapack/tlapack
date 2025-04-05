@@ -2,7 +2,7 @@
 /// @author Yuxin Cai, University of Colorado Denver, USA
 /// @brief Test GELQ2 and UNGL2 and output a k-by-n orthogonal matrix Q.
 //
-// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2025, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under

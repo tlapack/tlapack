@@ -339,7 +339,7 @@ To test \<T\>LAPACK, build with `BUILD_TESTING=ON`. Then, run `ctest` inside the
 
 BSD 3-Clause License
 
-Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
+Copyright (c) 2025, University of Colorado Denver. All rights reserved.
 
 Copyright (c) 2017-2021, University of Tennessee. All rights reserved.
 
