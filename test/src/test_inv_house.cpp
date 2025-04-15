@@ -28,7 +28,6 @@ TEMPLATE_TEST_CASE("Inverse householder calculation is correct",
 {
     using matrix_t = TestType;
     using TA = type_t<matrix_t>;
-    using idx_t = size_type<matrix_t>;
     using real_t = real_type<TA>;
 
     // Functor

@@ -34,15 +34,12 @@ TEMPLATE_TEST_CASE("QZ sweep is backward stable",
     using idx_t = size_type<matrix_t>;
     using real_t = real_type<TA>;
     using complex_t = complex_type<real_t>;
-    using range = pair<idx_t, idx_t>;
 
     // Functor
     Create<matrix_t> new_matrix;
 
     // MatrixMarket reader
     MatrixMarket mm;
-
-    using test_tuple_t = std::tuple<std::string, idx_t>;
 
     const idx_t n = GENERATE(12, 30);
     const idx_t ns = GENERATE(2, 4, 6);
