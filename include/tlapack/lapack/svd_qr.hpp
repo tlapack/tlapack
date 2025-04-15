@@ -102,7 +102,7 @@ int svd_qr(Uplo uplo,
     const real_t eps = ulp<real_t>();
     const real_t unfl = safe_min<real_t>();
     const real_t tolmul =
-        max(real_t(10.0), min(real_t(100.0), pow(eps, real_t(-0.125))));
+        max(real_t(10.0), min(real_t(100.0), one / sqrt(sqrt(sqrt(eps)))));
     const real_t tol = tolmul * eps;
 
     // Quick return
