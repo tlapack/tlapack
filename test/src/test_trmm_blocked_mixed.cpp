@@ -33,24 +33,24 @@ TEMPLATE_TEST_CASE("TRMM blocked mixed works",
                    "[blas][trmm_blocked_mixed][trmm][blocked][mixed]",
                    TEST_TYPES_bTRMM)
 {
-    using T1 = typename std::tuple_element<0, TestType>::type;
-    using T2 = typename std::tuple_element<1, TestType>::type;
+    using T = typename std::tuple_element<0, TestType>::type;
+    using Tlow = typename std::tuple_element<1, TestType>::type;
     using Tref = typename std::tuple_element<2, TestType>::type;
 
-    using matrix1_t =
-        tlapack::LegacyMatrix<T1, std::size_t, tlapack::Layout::ColMajor>;
-    using matrix2_t =
-        tlapack::LegacyMatrix<T2, std::size_t, tlapack::Layout::ColMajor>;
+    using matrix_t =
+        tlapack::LegacyMatrix<T, std::size_t, tlapack::Layout::ColMajor>;
+    using matrixLow_t =
+        tlapack::LegacyMatrix<Tlow, std::size_t, tlapack::Layout::ColMajor>;
     using matrixRef_t =
         tlapack::LegacyMatrix<Tref, std::size_t, tlapack::Layout::ColMajor>;
 
-    using idx_t = size_type<matrix1_t>;
-    typedef real_type<T1> real_t;
-    typedef real_type<T1> realRef_t;
+    using idx_t = size_type<matrix_t>;
+    typedef real_type<T> real_t;
+    typedef real_type<Tref> realRef_t;
 
     // Functor
-    Create<matrix1_t> new_matrix1;
-    Create<matrix2_t> new_matrix2;
+    Create<matrix_t> new_matrix;
+    Create<matrixLow_t> new_matrixLow;
     Create<matrixRef_t> new_matrixRef;
 
     // MatrixMarket reader
@@ -60,102 +60,89 @@ TEMPLATE_TEST_CASE("TRMM blocked mixed works",
     idx_t m = GENERATE(64, 128, 256, 512, 1024, 2048);
     idx_t nb = 128;
 
+    const real_t u = uroundoff<real_t>();
+    const real_t delta2m = (2 * real_t(m) * u) / (1 - 2 * real_t(m) * u);
+
     DYNAMIC_SECTION("m = " << m << " n = " << n << " nb = " << nb)
     {
-        std::vector<T2> A_;
-        auto A = new_matrix2(A_, m, m);
-        std::vector<T2> Xlow_;
-        auto Xlow = new_matrix2(Xlow_, m, n);
-        std::vector<T2> W_;
-        auto W = new_matrix2(W_, nb, n);
+        std::vector<Tlow> Alow_;
+        auto Alow = new_matrixLow(Alow_, m, m);
+        std::vector<Tlow> W_;
+        auto W = new_matrixLow(W_, nb, n);
 
-        std::vector<T1> B_;
-        auto B = new_matrix1(B_, m, n);
-        std::vector<T1> Ahigh_;
-        auto Ahigh = new_matrix1(Ahigh_, m, m);
-        std::vector<T1> Bhigh_;
-        auto Bhigh = new_matrix1(Bhigh_, m, n);
+        std::vector<T> A_;
+        auto A = new_matrix(A_, m, m);
+        std::vector<T> B_;
+        auto B = new_matrix(B_, m, n);
+        std::vector<T> C_;
+        auto C = new_matrix(C_, m, n);
+        auto& X = B;
 
         std::vector<Tref> Aref_;
         auto Aref = new_matrixRef(Aref_, m, m);
         std::vector<Tref> Bref_;
         auto Bref = new_matrixRef(Bref_, m, n);
-        std::vector<Tref> E_;
-        auto E = new_matrixRef(E_, m, n);
-        std::vector<Tref> E2_;
-        auto E2 = new_matrixRef(E2_, m, m);
+
+        std::vector<Tref> E0_;
+        auto E0 = new_matrixRef(E0_, m, m);
+        std::vector<Tref> E1_;
+        auto E1 = new_matrixRef(E1_, m, n);
+        auto& E2 = Bref;
 
         // Generate m-by-m upper-triangle random matrix
-        mm.randn(UPPER_TRIANGLE, Aref);
+        mm.randn(UPPER_TRIANGLE, A);
 
-        // Generate m-by-n random matrix in the reference precision
-        mm.randn(Bref);
+        // Generate m-by-n random matrix
+        mm.randn(X);
 
         // Copy matrices
-        lacpy(GENERAL, Aref, A);
-        lacpy(GENERAL, Aref, Ahigh);
-        lacpy(GENERAL, Bref, Bhigh);
-        lacpy(GENERAL, Bref, B);
-        lacpy(GENERAL, Bref, Xlow);
+        lacpy(GENERAL, A, Alow);
+        lacpy(GENERAL, A, Aref);
+        lacpy(GENERAL, X, C);
+        lacpy(GENERAL, X, Bref);
 
-        // Compute the approximation errors in the input
+        // Compute the approximation errors in the input matrix A
 
-        const realRef_t normx = lange(ONE_NORM, Bref);
         const realRef_t norma =
             lantr(ONE_NORM, UPPER_TRIANGLE, NON_UNIT_DIAG, Aref);
 
-        for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = 0; i < m; ++i)
-                E(i, j) = Bref(i, j) - B(i, j);
-        const realRef_t errXhigh = lange(ONE_NORM, E) / normx;
-
-        for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = 0; i < m; ++i)
-                E(i, j) = Bref(i, j) - Xlow(i, j);
-        const realRef_t errXlow = lange(ONE_NORM, E) / normx;
-
         for (idx_t j = 0; j < m; ++j)
             for (idx_t i = 0; i <= j; ++i)
-                E2(i, j) = Aref(i, j) - Ahigh(i, j);
-        const realRef_t errAhigh =
-            lantr(ONE_NORM, UPPER_TRIANGLE, NON_UNIT_DIAG, E2) / norma;
+                E0(i, j) = Aref(i, j) - Alow(i, j);
+        const realRef_t errA =
+            lantr(ONE_NORM, UPPER_TRIANGLE, NON_UNIT_DIAG, E0) / norma;
 
-        for (idx_t j = 0; j < m; ++j)
-            for (idx_t i = 0; i <= j; ++i)
-                E2(i, j) = Aref(i, j) - A(i, j);
-        const realRef_t errAlow =
-            lantr(ONE_NORM, UPPER_TRIANGLE, NON_UNIT_DIAG, E2) / norma;
+        INFO("Relative error on A when cast to Tlow = " << errA);
 
-        INFO("Relative error on A when cast to T1 = " << errAhigh);
-        INFO("Relative error on A when cast to T2 = " << errAlow);
-        INFO("Relative error on X when cast to T1 = " << errXhigh);
-        INFO("Relative error on X when cast to T2 = " << errXlow);
-
-        // Solve A * X = B in mixed precision, storing the result in B
+        // Compute Alow * X in mixed precision, storing the result in C
         trmm_blocked_mixed(LEFT_SIDE, UPPER_TRIANGLE, NO_TRANS, NON_UNIT_DIAG,
-                           real_t(1), A, B, W, TrmmBlockedOpts{nb});
+                           real_t(1), Alow, C, W, TrmmBlockedOpts{nb});
 
-        // Solve A * X = B in high precision, storing the result in Bhigh
-        trmm(LEFT_SIDE, UPPER_TRIANGLE, NO_TRANS, NON_UNIT_DIAG, real_t(1),
-             Ahigh, Bhigh);
+        // Compute A * X in precision T, storing the result in B
+        trmm(LEFT_SIDE, UPPER_TRIANGLE, NO_TRANS, NON_UNIT_DIAG, real_t(1), A,
+             B);
 
-        // Solve A * X = B in the reference precision, storing the result in
-        // Bref
-        trmm(LEFT_SIDE, UPPER_TRIANGLE, NO_TRANS, NON_UNIT_DIAG, real_t(1),
+        // Compute A * X in reference precision, storing the result in Bref
+        trmm(LEFT_SIDE, UPPER_TRIANGLE, NO_TRANS, NON_UNIT_DIAG, realRef_t(1),
              Aref, Bref);
 
-        // Compute the errors
-        lacpy(GENERAL, Bref, E);
+        // Prepare for the error computation
+        // E2 is a reference to Bref
+        lacpy(GENERAL, Bref, E1);
         const real_t normb = lange(ONE_NORM, Bref);
+
+        // Compute the errors
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = 0; i < m; ++i) {
-                Bref(i, j) -= Bhigh(i, j);
-                E(i, j) -= B(i, j);
+                E1(i, j) -= B(i, j);
+                E2(i, j) -= C(i, j);
             }
-        const real_t normEhigh = lange(ONE_NORM, Bref) / normb;
-        const real_t normEmixed = lange(ONE_NORM, E) / normb;
+        const real_t normE1 = lange(ONE_NORM, E1) / normb;
+        const real_t normE2 = lange(ONE_NORM, E2) / normb;
 
-        INFO("Relative error on B when cast to T1 = " << normEhigh);
-        INFO("Relative error on B when cast to T2 = " << normEmixed);
+        INFO("Relative error on B = " << normE1);
+        INFO("Relative error on C (uses mixed precision) = " << normE2);
+
+        CHECK(normE1 <= delta2m);
     }
 }

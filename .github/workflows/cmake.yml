@@ -58,13 +58,16 @@ jobs:
         os: [ macos-latest, ubuntu-latest ]
         build-type: [ Release, Debug ]
         shared: [ ON, OFF ]
-        cpp-version: [ 17, 20 ]
+        cpp-version: [ 17, 20, 23 ]
         exclude:
           - build-type: Release
             shared: OFF
           - build-type: Release
             shared: ON
             cpp-version: 17
+          - build-type: Release
+            shared: ON
+            cpp-version: 20
         include:
           - os: windows-2019
             build-type: Release
@@ -77,7 +80,7 @@ jobs:
       uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
     - name: Checkout mdspan
-      if: ${{ matrix.os == 'ubuntu-latest' }}
+      if: ${{ matrix.os == 'ubuntu-latest' && matrix.cpp-version != 23 }}
       uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       with:
         repository: kokkos/mdspan
@@ -116,7 +119,7 @@ jobs:
         sudo cmake --build build --target install
 
     - name: Build and install mdspan on Ubuntu
-      if: ${{ matrix.os == 'ubuntu-latest' }}
+      if: ${{ matrix.os == 'ubuntu-latest' && matrix.cpp-version != 23 }}
       working-directory: ${{env.mdspan_DIR}}
       run: |
         cmake -B build -G Ninja
@@ -127,9 +130,14 @@ jobs:
       run: >
         cmake -B build -G Ninja
         -D TLAPACK_TEST_EIGEN=ON
-        -D TLAPACK_TEST_MDSPAN=ON
         -D TLAPACK_TEST_MPFR=ON
         -D TLAPACK_TEST_QUAD=ON
+        
+    - name: Specific configurations for CMake on Ubuntu C++ < 23
+      if: ${{ matrix.os == 'ubuntu-latest' && matrix.cpp-version != 23 }}
+      run: >
+        cmake -B build -G Ninja
+        -D TLAPACK_TEST_MDSPAN=ON
         
     - name: Specific configurations for CMake on Ubuntu in Release mode
       if: ${{ matrix.os == 'ubuntu-latest' && matrix.build-type == 'Release' }}
