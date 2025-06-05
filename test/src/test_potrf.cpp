@@ -100,11 +100,10 @@ TEMPLATE_TEST_CASE(
         std::vector<T> E_;
         auto E = new_matrix(E_, n, n);
         if (uplo == Uplo::Lower)
-        {
             mult_llh(C);
-        }
         else
         {
+            // mult_uhu(C);
             // Initialize E with the hermitian upper part of L
             for (idx_t j = 0; j < n; ++j)
             {
