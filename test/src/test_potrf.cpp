@@ -20,7 +20,9 @@
 // Other routines
 #include <tlapack/blas/trmm.hpp>
 #include <tlapack/lapack/mult_llh.hpp>
+#include <tlapack/lapack/mult_uhu.hpp>
 #include <tlapack/lapack/potrf.hpp>
+
 
 using namespace tlapack;
 
@@ -60,8 +62,7 @@ TEMPLATE_TEST_CASE(
                  (variant_t(PotrfVariant::Recursive, 0)),
                  (variant_t(PotrfVariant::Level2, 0)));
     const idx_t n = GENERATE(10, 19, 30);
-    // const Uplo uplo = GENERATE(Uplo::Lower, Uplo::Upper);
-    const Uplo uplo = GENERATE(Uplo::Lower);
+    const Uplo uplo = GENERATE(Uplo::Lower, Uplo::Upper);
 
     DYNAMIC_SECTION("n = " << n << " uplo = " << uplo << " variant = "
                            << (char)variant.first << " nb = " << variant.second)
@@ -102,20 +103,22 @@ TEMPLATE_TEST_CASE(
         if (uplo == Uplo::Lower)
             mult_llh(C);
         else {
-            // mult_uhu(C);
-            // Initialize E with the hermitian upper part of L
-            for (idx_t j = 0; j < n; ++j) {
-                for (idx_t i = 0; i < n; ++i) {
-                    if (i >= j)
-                        E(i, j) = conj(C(j, i));
-                    else
-                        E(i, j) = real_t(0);
-                }
-            }
-
-            // Compute E = C^H*C
-            trmm(RIGHT_SIDE, UPPER_TRIANGLE, NO_TRANS, NON_UNIT_DIAG, real_t(1),
-                 C, E);
+            mult_uhu(C);
+            // for (idx_t j = n; j-- > 0;) {
+            //     real_t real_part_of_cjj;
+            //     real_part_of_cjj = real(C(j, j)) * real(C(j, j));
+            //     for (idx_t k = 0; k < j; ++k) {
+            //         real_part_of_cjj += real(C(k, j)) * real(C(k, j)) +
+            //                             imag(C(k, j)) * imag(C(k, j));
+            //     }
+            //     C(j, j) = real_part_of_cjj;
+            //     for (idx_t i = j; i-- > 0;) {
+            //         C(i, j) = conj(C(i, i)) * C(i, j);
+            //         for (idx_t k = i; k-- > 0;) {
+            //             C(i, j) += conj(C(k, i)) * C(k, j);
+            //         }
+            //     }
+            // }
         }
 
         // Check that the factorization is correct
