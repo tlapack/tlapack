@@ -22,6 +22,16 @@ add_custom_command(
     && echo ""
 )
 
+# add the example potri
+add_subdirectory( potri )
+add_custom_command(
+  OUTPUT run-all-examples-cmd APPEND
+  COMMAND
+    echo "- example_potri ----------------" &&
+    "${CMAKE_CURRENT_BINARY_DIR}/potri/example_potri${CMAKE_EXECUTABLE_SUFFIX}"
+    && echo ""
+)
+
 # add the eigenvalues example
 add_subdirectory( eigenvalues )
 add_custom_command(
