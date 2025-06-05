@@ -74,14 +74,13 @@ TEMPLATE_TEST_CASE(
         auto A = new_matrix(A_, n, n);
         std::vector<T> L_;
         auto L = new_matrix(L_, n, n);
-        std::vector<T> E_;
-        auto E = new_matrix(E_, n, n);
 
         // Update A with random numbers, and make it positive definite
         mm.random(uplo, A);
         for (idx_t j = 0; j < n; ++j)
             A(j, j) += real_t(n);
 
+// TODO: change L to C (optional but would be better)
         lacpy(GENERAL, A, L);
         real_t normA = tlapack::lanhe(tlapack::MAX_NORM, uplo, A);
 
@@ -94,6 +93,63 @@ TEMPLATE_TEST_CASE(
         // Check that the factorization was successful
         REQUIRE(info == 0);
 
+// TODO: BEG :: all this needs to go away
+
+        std::vector<T> E_;
+        auto E = new_matrix(E_, n, n);
+        if (uplo == Uplo::Lower)
+        {
+            // Initialize E with the hermitian lower part of L
+            for (idx_t j = 0; j < n; ++j)
+            {
+                for (idx_t i = 0; i < n; ++i)
+                {
+                    if (i <= j)
+                        E(i, j) = conj(L(j, i));
+                    else
+                        E(i, j) = real_t(0);
+                }
+            }
+
+            // Compute E = L*L^H
+            trmm(LEFT_SIDE, LOWER_TRIANGLE, NO_TRANS, NON_UNIT_DIAG, real_t(1),
+                 L, E);
+        }
+        else
+        {
+            // Initialize E with the hermitian upper part of L
+            for (idx_t j = 0; j < n; ++j)
+            {
+                for (idx_t i = 0; i < n; ++i)
+                {
+                    if (i >= j)
+                        E(i, j) = conj(L(j, i));
+                    else
+                        E(i, j) = real_t(0);
+                }
+            }
+
+            // Compute E = L^H*L
+            trmm(RIGHT_SIDE, UPPER_TRIANGLE, NO_TRANS, NON_UNIT_DIAG, real_t(1),
+                 L, E);
+        }
+
+        // Check that the factorization is correct
+        for (idx_t i = 0; i < n; i++)
+            for (idx_t j = 0; j < n; j++) {
+                if (uplo == Uplo::Lower && i >= j)
+                    E(i, j) -= A(i, j);
+                else if (uplo == Uplo::Upper && i <= j)
+                    E(i, j) -= A(i, j);
+            }
+
+        // Check for relative error: norm(A-cholesky(A))/norm(A)
+        real_t error = tlapack::lanhe(tlapack::MAX_NORM, uplo, E) / normA;
+        CHECK(error <= tol);
+
+        /*
+        std::vector<T> E_;
+        auto E = new_matrix(E_, n, n);
         // Initialize E with the hermitian part of L
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = 0; i < n; ++i) {
@@ -125,5 +181,27 @@ TEMPLATE_TEST_CASE(
         // Check for relative error: norm(A-cholesky(A))/norm(A)
         real_t error = tlapack::lanhe(tlapack::MAX_NORM, uplo, E) / normA;
         CHECK(error <= tol);
+        */
+        
+// TODO: END :: all this needs to go away
+
+        // if (uplo == Uplo::Lower)
+        //     mult_llh( L );
+        // else 
+        //     mult_uhu( L );
+
+        // // Check that the factorization is correct
+        // for (idx_t i = 0; i < n; i++)
+        //     for (idx_t j = 0; j < n; j++) {
+        //         if (uplo == Uplo::Lower && i >= j)
+        //             E(i, j) -= A(i, j);
+        //         else if (uplo == Uplo::Upper && i <= j)
+        //             E(i, j) -= A(i, j);
+        //     }
+
+        // // Check for relative error: norm(A-cholesky(A))/norm(A)
+        // real_t error = tlapack::lanhe(tlapack::MAX_NORM, uplo, E) / normA;
+        // CHECK(error <= tol);
+
     }
 }
