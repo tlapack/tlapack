@@ -19,8 +19,8 @@
 
 // Other routines
 #include <tlapack/blas/trmm.hpp>
-#include <tlapack/lapack/potrf.hpp>
 #include <tlapack/lapack/mult_llh.hpp>
+#include <tlapack/lapack/potrf.hpp>
 
 using namespace tlapack;
 
@@ -82,7 +82,7 @@ TEMPLATE_TEST_CASE(
         for (idx_t j = 0; j < n; ++j)
             A(j, j) += real_t(n);
 
-// TODO: change L to C (optional but would be better)
+        // TODO: change L to C (optional but would be better)
         lacpy(GENERAL, A, C);
         real_t normA = tlapack::lanhe(tlapack::MAX_NORM, uplo, A);
 
@@ -95,20 +95,17 @@ TEMPLATE_TEST_CASE(
         // Check that the factorization was successful
         REQUIRE(info == 0);
 
-// TODO: BEG :: all this needs to go away
+        // TODO: BEG :: all this needs to go away
 
         std::vector<T> E_;
         auto E = new_matrix(E_, n, n);
         if (uplo == Uplo::Lower)
             mult_llh(C);
-        else
-        {
+        else {
             // mult_uhu(C);
             // Initialize E with the hermitian upper part of L
-            for (idx_t j = 0; j < n; ++j)
-            {
-                for (idx_t i = 0; i < n; ++i)
-                {
+            for (idx_t j = 0; j < n; ++j) {
+                for (idx_t i = 0; i < n; ++i) {
                     if (i >= j)
                         E(i, j) = conj(C(j, i));
                     else
@@ -134,11 +131,11 @@ TEMPLATE_TEST_CASE(
         real_t error = tlapack::lanhe(tlapack::MAX_NORM, uplo, C) / normA;
         CHECK(error <= tol);
 
-// TODO: END :: all this needs to go away
+        // TODO: END :: all this needs to go away
 
         // if (uplo == Uplo::Lower)
         //     mult_llh( L );
-        // else 
+        // else
         //     mult_uhu( L );
 
         // // Check that the factorization is correct
@@ -153,6 +150,5 @@ TEMPLATE_TEST_CASE(
         // // Check for relative error: norm(A-cholesky(A))/norm(A)
         // real_t error = tlapack::lanhe(tlapack::MAX_NORM, uplo, E) / normA;
         // CHECK(error <= tol);
-
     }
 }
