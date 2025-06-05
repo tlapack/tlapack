@@ -1,6 +1,6 @@
 /// @file test_lu_mult.cpp
-/// @author Lindsay Slager, University of Colorado Denver, USA
-/// @brief Test LU multiplication
+/// @author Brian Dang, University of Colorado Denver, USA
+/// @brief Test LLH multiplication
 //
 // Copyright (c) 2025, University of Colorado Denver. All rights reserved.
 //
@@ -16,15 +16,13 @@
 #include <tlapack/lapack/lange.hpp>
 
 // Other routines
-#include <tlapack/blas/gemm.hpp>
-#include <tlapack/lapack/mult_llh.hpp>
-#include <tlapack/lapack/potrf.hpp>
 #include <tlapack/lapack/lantr.hpp>
+#include <tlapack/lapack/mult_llh.hpp>
 
 using namespace tlapack;
 
 TEMPLATE_TEST_CASE("llh multiplication is backward stable",
-                   "[llh check][lu][qrt]",
+                   "[llh check]",
                    TLAPACK_TYPES_TO_TEST)
 {
     using matrix_t = TestType;
@@ -63,10 +61,10 @@ TEMPLATE_TEST_CASE("llh multiplication is backward stable",
             lacpy(GENERAL, A, C);
             lacpy(GENERAL, A, B);
 
-            auto subA = slice(A, range(0, n-1), range(1, n));
+            auto subA = slice(A, range(0, n - 1), range(1, n));
             laset(UPPER_TRIANGLE, real_t(0), real_t(0), subA);
 
-            real_t normA = lantr( MAX_NORM, LOWER_TRIANGLE, Diag::NonUnit, A);
+            real_t normA = lantr(MAX_NORM, LOWER_TRIANGLE, Diag::NonUnit, A);
 
             {
                 // Cholesky Factorization to A Matrix
@@ -75,16 +73,17 @@ TEMPLATE_TEST_CASE("llh multiplication is backward stable",
                 // C = A*A^H - C
                 herk(LOWER_TRIANGLE, Op::NoTrans, real_t(1), A, real_t(-1), C);
 
-                // Check 
-                real_t llh_mult_res_norm = lantr( MAX_NORM, LOWER_TRIANGLE, Diag::NonUnit, C);
+                // Check
+                real_t llh_mult_res_norm =
+                    lantr(MAX_NORM, LOWER_TRIANGLE, Diag::NonUnit, C);
                 CHECK(llh_mult_res_norm <= tol * normA);
 
                 real_t sum(0);
                 for (idx_t j = 0; j < n; j++)
                     for (idx_t i = 0; i < j; i++)
-                        sum += abs1(B(i,j) - C(i,j));
+                        sum += abs1(B(i, j) - C(i, j));
 
-                CHECK( sum == real_t(0) );
+                CHECK(sum == real_t(0));
             }
         }
     }

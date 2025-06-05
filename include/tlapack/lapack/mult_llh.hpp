@@ -1,5 +1,5 @@
-/// @file lu_mult.hpp
-/// @author Lindsay Slager, University of Colorado Denver, USA
+/// @file mult_llh.hpp
+/// @author Brian Dang, University of Colorado Denver, USA
 //
 // Copyright (c) 2025, University of Colorado Denver. All rights reserved.
 //
@@ -48,19 +48,18 @@ void mult_llh(matrix_t& C, const LuMultOpts& opts = {})
     tlapack_check(n == ncols(C));
     tlapack_check(opts.nx >= 1);
 
-    if (n <= 1)
-    {
+    if (n <= 1) {
         C(0, 0) = C(0, 0) * conj(C(0, 0));
         return;
     }
 
-    if (n <= opts.nx)
-    {
+    if (n <= opts.nx) {
         for (idx_t i = n; i-- > 0;) {
             real_t sum(0);
             for (idx_t k = 0; k <= i; ++k) {
-                //sum += C(i, k) * std::conj(C(i, k));
-                sum += real(C(i, k)) * real(C(i, k)) + imag(C(i,k)) * imag(C(i,k));
+                // sum += C(i, k) * std::conj(C(i, k));
+                sum += real(C(i, k)) * real(C(i, k)) +
+                       imag(C(i, k)) * imag(C(i, k));
             }
             C(i, i) = sum;
 
@@ -88,7 +87,8 @@ void mult_llh(matrix_t& C, const LuMultOpts& opts = {})
     herk(Uplo::Lower, Op::NoTrans, real_t(1), C10, real_t(1), C11);
 
     // A10 = A10 * A00^H
-    trmm(Side::Right, Uplo::Lower, Op::ConjTrans, Diag::NonUnit, T(1), C00, C10);
+    trmm(Side::Right, Uplo::Lower, Op::ConjTrans, Diag::NonUnit, T(1), C00,
+         C10);
 
     // A00 = A00 * A00^H
     mult_llh(C00, opts);
