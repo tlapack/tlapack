@@ -11,8 +11,11 @@
 // Test utilities and definitions (must come before <T>LAPACK headers)
 #include "testutils.hpp"
 
+// Auxiliary routines
 #include <tlapack/lapack/lacpy.hpp>
 #include <tlapack/lapack/laset.hpp>
+
+// Other routines
 #include <tlapack/lapack/lantr.hpp>
 #include <tlapack/lapack/mult_uhu.hpp>
 
