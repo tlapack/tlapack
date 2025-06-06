@@ -32,6 +32,16 @@ add_custom_command(
     && echo ""
 )
 
+# add the example mult_hehe
+add_subdirectory( example_mult_hehe )
+add_custom_command(
+  OUTPUT run-all-examples-cmd APPEND
+  COMMAND
+    echo "- example_mult_hehe ----------------" &&
+    "${CMAKE_CURRENT_BINARY_DIR}/example_mult_hehe/example_mult_hehe${CMAKE_EXECUTABLE_SUFFIX}"
+    && echo ""
+)
+
 # add the eigenvalues example
 add_subdirectory( eigenvalues )
 add_custom_command(
