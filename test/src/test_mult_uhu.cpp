@@ -1,6 +1,6 @@
-/// @file test_lu_mult.cpp
-/// @author Brian Dang, University of Colorado Denver, USA
-/// @brief Test LLH multiplication
+/// @file test_mult_uhu.cpp
+/// @author Ella Addison-Taylor, University of Colorado Denver, USA
+/// @brief Test UHU multiplication
 //
 // Copyright (c) 2025, University of Colorado Denver. All rights reserved.
 //
@@ -13,16 +13,16 @@
 
 // Auxiliary routines
 #include <tlapack/lapack/lacpy.hpp>
-#include <tlapack/lapack/lange.hpp>
+#include <tlapack/lapack/laset.hpp>
 
 // Other routines
 #include <tlapack/lapack/lantr.hpp>
-#include <tlapack/lapack/mult_llh.hpp>
+#include <tlapack/lapack/mult_uhu.hpp>
 
 using namespace tlapack;
 
-TEMPLATE_TEST_CASE("llh multiplication is backward stable",
-                   "[llh check]",
+TEMPLATE_TEST_CASE("uhu multiplication is backward stable",
+                   "[uhu check]",
                    TLAPACK_TYPES_TO_TEST)
 {
     using matrix_t = TestType;
@@ -61,28 +61,31 @@ TEMPLATE_TEST_CASE("llh multiplication is backward stable",
             lacpy(GENERAL, A, C);
             lacpy(GENERAL, A, B);
 
-            auto subA = slice(A, range(0, n - 1), range(1, n));
-            laset(UPPER_TRIANGLE, real_t(0), real_t(0), subA);
+            auto subA = slice(A, range(1, n), range(0, n - 1));
+            laset(LOWER_TRIANGLE, real_t(0), real_t(0), subA);
 
-            real_t normA = lantr(MAX_NORM, LOWER_TRIANGLE, Diag::NonUnit, A);
+            real_t normA = lantr(MAX_NORM, UPPER_TRIANGLE, Diag::NonUnit, A);
 
             {
-                // // A = C *C^H
-                mult_llh(C);
+                mult_uhu_Opts opts;
 
-                // C = A*A^H - C
-                herk(LOWER_TRIANGLE, Op::NoTrans, real_t(1), A, real_t(-1), C);
+                opts.nx = nx;
+                // A = C^H * C
+                mult_uhu(C, opts);
+
+                // C = A^H*A - C
+                herk(UPPER_TRIANGLE, Op::ConjTrans, real_t(1), A, real_t(-1),
+                     C);
 
                 // Check if residual is 0 with machine accuracy
-                real_t llh_mult_res_norm =
-                    lantr(MAX_NORM, LOWER_TRIANGLE, Diag::NonUnit, C);
-                CHECK(llh_mult_res_norm <= tol * normA);
+                real_t uhu_mult_res_norm =
+                    lantr(MAX_NORM, UPPER_TRIANGLE, Diag::NonUnit, C);
+                CHECK(uhu_mult_res_norm <= tol * normA * normA);
 
                 real_t sum(0);
                 for (idx_t j = 0; j < n; j++)
-                    for (idx_t i = 0; i < j; i++)
-                        sum += abs1(B(i, j) - C(i, j));
-
+                    for (idx_t i = j + 1; i < n; i++)
+                        sum += abs1(C(i, j) - B(i, j));
                 CHECK(sum == real_t(0));
             }
         }

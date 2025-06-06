@@ -20,6 +20,7 @@
 // Other routines
 #include <tlapack/blas/trmm.hpp>
 #include <tlapack/lapack/mult_llh.hpp>
+#include <tlapack/lapack/mult_uhu.hpp>
 #include <tlapack/lapack/potrf.hpp>
 
 using namespace tlapack;
@@ -60,8 +61,7 @@ TEMPLATE_TEST_CASE(
                  (variant_t(PotrfVariant::Recursive, 0)),
                  (variant_t(PotrfVariant::Level2, 0)));
     const idx_t n = GENERATE(10, 19, 30);
-    // const Uplo uplo = GENERATE(Uplo::Lower, Uplo::Upper);
-    const Uplo uplo = GENERATE(Uplo::Lower);
+    const Uplo uplo = GENERATE(Uplo::Lower, Uplo::Upper);
 
     DYNAMIC_SECTION("n = " << n << " uplo = " << uplo << " variant = "
                            << (char)variant.first << " nb = " << variant.second)
@@ -99,24 +99,8 @@ TEMPLATE_TEST_CASE(
 
         std::vector<T> E_;
         auto E = new_matrix(E_, n, n);
-        if (uplo == Uplo::Lower)
-            mult_llh(C);
-        else {
-            // mult_uhu(C);
-            // Initialize E with the hermitian upper part of L
-            for (idx_t j = 0; j < n; ++j) {
-                for (idx_t i = 0; i < n; ++i) {
-                    if (i >= j)
-                        E(i, j) = conj(C(j, i));
-                    else
-                        E(i, j) = real_t(0);
-                }
-            }
 
-            // Compute E = C^H*C
-            trmm(RIGHT_SIDE, UPPER_TRIANGLE, NO_TRANS, NON_UNIT_DIAG, real_t(1),
-                 C, E);
-        }
+        (uplo == Uplo::Lower) ? mult_llh(C) : mult_uhu(C);
 
         // Check that the factorization is correct
         for (idx_t i = 0; i < n; i++)
@@ -130,25 +114,5 @@ TEMPLATE_TEST_CASE(
         // Check for relative error: norm(A-cholesky(A))/norm(A)
         real_t error = tlapack::lanhe(tlapack::MAX_NORM, uplo, C) / normA;
         CHECK(error <= tol);
-
-        // TODO: END :: all this needs to go away
-
-        // if (uplo == Uplo::Lower)
-        //     mult_llh( L );
-        // else
-        //     mult_uhu( L );
-
-        // // Check that the factorization is correct
-        // for (idx_t i = 0; i < n; i++)
-        //     for (idx_t j = 0; j < n; j++) {
-        //         if (uplo == Uplo::Lower && i >= j)
-        //             E(i, j) -= A(i, j);
-        //         else if (uplo == Uplo::Upper && i <= j)
-        //             E(i, j) -= A(i, j);
-        //     }
-
-        // // Check for relative error: norm(A-cholesky(A))/norm(A)
-        // real_t error = tlapack::lanhe(tlapack::MAX_NORM, uplo, E) / normA;
-        // CHECK(error <= tol);
     }
 }
