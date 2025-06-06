@@ -100,26 +100,8 @@ TEMPLATE_TEST_CASE(
 
         std::vector<T> E_;
         auto E = new_matrix(E_, n, n);
-        if (uplo == Uplo::Lower)
-            mult_llh(C);
-        else {
-            mult_uhu(C);
-            // for (idx_t j = n; j-- > 0;) {
-            //     real_t real_part_of_cjj;
-            //     real_part_of_cjj = real(C(j, j)) * real(C(j, j));
-            //     for (idx_t k = 0; k < j; ++k) {
-            //         real_part_of_cjj += real(C(k, j)) * real(C(k, j)) +
-            //                             imag(C(k, j)) * imag(C(k, j));
-            //     }
-            //     C(j, j) = real_part_of_cjj;
-            //     for (idx_t i = j; i-- > 0;) {
-            //         C(i, j) = conj(C(i, i)) * C(i, j);
-            //         for (idx_t k = i; k-- > 0;) {
-            //             C(i, j) += conj(C(k, i)) * C(k, j);
-            //         }
-            //     }
-            // }
-        }
+
+        (uplo == Uplo::Lower) ? mult_llh(C) : mult_uhu(C);
 
         // Check that the factorization is correct
         for (idx_t i = 0; i < n; i++)
@@ -134,24 +116,5 @@ TEMPLATE_TEST_CASE(
         real_t error = tlapack::lanhe(tlapack::MAX_NORM, uplo, C) / normA;
         CHECK(error <= tol);
 
-        // TODO: END :: all this needs to go away
-
-        // if (uplo == Uplo::Lower)
-        //     mult_llh( L );
-        // else
-        //     mult_uhu( L );
-
-        // // Check that the factorization is correct
-        // for (idx_t i = 0; i < n; i++)
-        //     for (idx_t j = 0; j < n; j++) {
-        //         if (uplo == Uplo::Lower && i >= j)
-        //             E(i, j) -= A(i, j);
-        //         else if (uplo == Uplo::Upper && i <= j)
-        //             E(i, j) -= A(i, j);
-        //     }
-
-        // // Check for relative error: norm(A-cholesky(A))/norm(A)
-        // real_t error = tlapack::lanhe(tlapack::MAX_NORM, uplo, E) / normA;
-        // CHECK(error <= tol);
     }
 }
