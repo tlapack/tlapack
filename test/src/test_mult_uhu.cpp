@@ -67,27 +67,21 @@ TEMPLATE_TEST_CASE("uhu multiplication is backward stable",
             real_t normA = lantr(MAX_NORM, UPPER_TRIANGLE, Diag::NonUnit, A);
 
             {
-                // Cholesky Factorization to A Matrix
+                // A = C^H * C
                 mult_uhu(C);
 
                 // C = A^H*A - C
                 herk(UPPER_TRIANGLE, Op::ConjTrans, real_t(1), A, real_t(-1),
                      C);
 
-                // Check
+                // Check if residual is 0 with machine accuracy
                 real_t uhu_mult_res_norm =
                     lantr(MAX_NORM, UPPER_TRIANGLE, Diag::NonUnit, C);
                 CHECK(uhu_mult_res_norm <= tol * normA);
 
-                // real_t sum(0);
-                // for (idx_t j = 0; j < n; j++)
-                //     for (idx_t i = 0; i < j; i++)
-                //         sum += abs1(B(i, j) - C(i, j));
 
                 real_t sum(0);
-                // for (idx_t i = n; i-- > 0;)
-                //     for (idx_t j = n; j-- > 0;)
-                //         sum += abs1(C(i, j) - B(i, j));
+
                 for (idx_t j = 0; j < n; j++)
                     for (idx_t i = j+1; i < n; i++)
                         sum += abs1(C(i, j) - B(i, j));

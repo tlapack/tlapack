@@ -67,13 +67,13 @@ TEMPLATE_TEST_CASE("llh multiplication is backward stable",
             real_t normA = lantr(MAX_NORM, LOWER_TRIANGLE, Diag::NonUnit, A);
 
             {
-                // Cholesky Factorization to A Matrix
+                // // A = C *C^H
                 mult_llh(C);
 
                 // C = A*A^H - C
                 herk(LOWER_TRIANGLE, Op::NoTrans, real_t(1), A, real_t(-1), C);
 
-                // Check
+                // Check if residual is 0 with machine accuracy
                 real_t llh_mult_res_norm =
                     lantr(MAX_NORM, LOWER_TRIANGLE, Diag::NonUnit, C);
                 CHECK(llh_mult_res_norm <= tol * normA);

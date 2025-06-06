@@ -15,7 +15,7 @@
 
 namespace tlapack {
 
-/// @brief Options struct for llh_mult()
+/// @brief Options struct for mult_llh()
 struct mult_llh_Opts {
     /// Optimization parameter. Matrices smaller than nx will not
     /// be multiplied using recursion. Must be at least 1.
@@ -86,11 +86,11 @@ void mult_llh(matrix_t& L, const mult_llh_Opts& opts = {})
     // L11 += L10 * L10^H
     herk(Uplo::Lower, Op::NoTrans, real_t(1), L10, real_t(1), L11);
 
-    // A10 = A10 * A00^H
+    // L10 = L10 * L00^H
     trmm(Side::Right, Uplo::Lower, Op::ConjTrans, Diag::NonUnit, T(1), L00,
          L10);
 
-    // A00 = A00 * A00^H
+    // L00 = L00 * L00^H
     mult_llh(L00, opts);
 
     return;

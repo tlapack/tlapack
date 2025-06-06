@@ -15,7 +15,7 @@
 
 namespace tlapack {
 
-/// @brief Options struct for llh_mult()
+/// @brief Options struct for mult_uhu()
 struct mult_uhu_Opts {
     /// Optimization parameter. Matrices smaller than nx will not
     /// be multiplied using recursion. Must be at least 1.
@@ -56,8 +56,8 @@ void mult_uhu(matrix_t& U, const mult_uhu_Opts& opts = {})
 
     if (n <= opts.nx) {
         for (idx_t j = n; j-- > 0; ) {
-            real_t real_part_of_cjj;
-            real_part_of_cjj = real(U(j, j)) * real(U(j, j));
+            T real_part_of_cjj;
+            real_part_of_cjj = U(j, j) * conj(U(j, j));
             for(idx_t k = 0; k < j; ++k) {
                 real_part_of_cjj += real(U(k, j)) * real(U(k, j)) + imag(U(k, j)) * imag(U(k, j));
             }
@@ -69,45 +69,7 @@ void mult_uhu(matrix_t& U, const mult_uhu_Opts& opts = {})
                 }
             }
         }
-        // for (idx_t i = n; i-- > 0;) {
-        //     real_t sum(0);
-        //     for (idx_t k = 0; k <= i; ++k) {
-        //         // sum += C(i, k) * std::conj(C(i, k));
-        //         sum += real(L(i, k)) * real(L(i, k)) +
-        //                imag(L(i, k)) * imag(L(i, k));
-        //     }
-        //     L(i, i) = sum;
-
-        //     for (idx_t j = i; j-- > 0;) {
-        //         T sum(0);
-        //         for (idx_t k = 0; k <= j; ++k) {
-        //             sum += L(i, k) * conj(L(j, k));
-        //         }
-        //         L(i, j) = sum;
-        //     }
-        // }
     }
-
-    // Recursive case: divide into blocks
-    // const idx_t n0 = n / 2;
-
-    // auto L00 = slice(L, range(0, n0), range(0, n0));
-    // auto L10 = slice(L, range(n0, n), range(0, n0));
-    // auto L11 = slice(L, range(n0, n), range(n0, n));
-
-    // // L11 = L11*L11^H
-    // mult_llh(L11, opts);
-
-    // // L11 += L10 * L10^H
-    // herk(Uplo::Lower, Op::NoTrans, real_t(1), L10, real_t(1), L11);
-
-    // A10 = A10 * A00^H
-    // trmm(Side::Right, Uplo::Lower, Op::ConjTrans, Diag::NonUnit, T(1), L00,
-    //      L10);
-
-    // // A00 = A00 * A00^H
-    // mult_llh(L00, opts);
-
 
     const idx_t n0 = n / 2;
 
@@ -131,4 +93,4 @@ void mult_uhu(matrix_t& U, const mult_uhu_Opts& opts = {})
 
 }  // namespace tlapack
 
-#endif  // TLAPACK_MULT_LLH
+#endif  // TLAPACK_MULT_UHU
