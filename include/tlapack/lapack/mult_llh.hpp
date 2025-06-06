@@ -15,7 +15,7 @@
 
 namespace tlapack {
 
-/// @brief Options struct for mult_llh()
+/// @brief Options struct for llh_mult()
 struct mult_llh_Opts {
     /// Optimization parameter. Matrices smaller than nx will not
     /// be multiplied using recursion. Must be at least 1.
@@ -28,7 +28,7 @@ struct mult_llh_Opts {
  * triangular matrix L^H. This is the recursive variant.
  *
  * @param[in,out] L n-by-n matrix
- *      On entry, the lower triangular matrix L. On exit, L contains the lower
+ * On entry, the lower triangular matrix L. On exit, L contains the lower
  * part of the Hermitian product L*L^H. The upper triangular entries of L are
  * not referenced.
  *
@@ -48,29 +48,30 @@ void mult_llh(matrix_t& L, const mult_llh_Opts& opts = {})
     tlapack_check(n == ncols(L));
     tlapack_check(opts.nx >= 1);
 
-    if (n <= 1) {
-        L(0, 0) = L(0, 0) * conj(L(0, 0));
-        return;
-    }
+    // Quick return
+    if (n == 0) return;
 
     if (n <= opts.nx) {
-        for (idx_t i = n; i-- > 0;) {
-            real_t sum(0);
-            for (idx_t k = 0; k <= i; ++k) {
+        for (idx_t j = n; j-- > 0;) {
+            T real_part_of_ljj;
+            real_part_of_ljj =
+                real(L(j, j)) * real(L(j, j)) + imag(L(j, j)) * imag(L(j, j));
+            for (idx_t k = 0; k < j; ++k) {
                 // sum += C(i, k) * std::conj(C(i, k));
-                sum += real(L(i, k)) * real(L(i, k)) +
-                       imag(L(i, k)) * imag(L(i, k));
+                real_part_of_ljj += real(L(j, k)) * real(L(j, k)) +
+                                    imag(L(j, k)) * imag(L(j, k));
             }
-            L(i, i) = sum;
+            L(j, j) = real_part_of_ljj;
 
-            for (idx_t j = i; j-- > 0;) {
-                T sum(0);
-                for (idx_t k = 0; k <= j; ++k) {
-                    sum += L(i, k) * conj(L(j, k));
+            for (idx_t i = j; i-- > 0;) {
+                L(j, i) = L(j, i) * conj(L(i, i));
+                for (idx_t k = 0; k < i; ++k) {
+                    L(j, i) += L(j, k) * conj(L(i, k));
                 }
-                L(i, j) = sum;
             }
         }
+
+        return;
     }
 
     // Recursive case: divide into blocks
@@ -86,11 +87,11 @@ void mult_llh(matrix_t& L, const mult_llh_Opts& opts = {})
     // L11 += L10 * L10^H
     herk(Uplo::Lower, Op::NoTrans, real_t(1), L10, real_t(1), L11);
 
-    // L10 = L10 * L00^H
+    // A10 = A10 * A00^H
     trmm(Side::Right, Uplo::Lower, Op::ConjTrans, Diag::NonUnit, T(1), L00,
          L10);
 
-    // L00 = L00 * L00^H
+    // A00 = A00 * A00^H
     mult_llh(L00, opts);
 
     return;

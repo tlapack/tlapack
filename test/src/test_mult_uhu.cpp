@@ -11,11 +11,8 @@
 // Test utilities and definitions (must come before <T>LAPACK headers)
 #include "testutils.hpp"
 
-// Auxiliary routines
 #include <tlapack/lapack/lacpy.hpp>
-#include <tlapack/lapack/lange.hpp>
-
-// Other routines
+#include <tlapack/lapack/laset.hpp>
 #include <tlapack/lapack/lantr.hpp>
 #include <tlapack/lapack/mult_uhu.hpp>
 
@@ -67,8 +64,11 @@ TEMPLATE_TEST_CASE("uhu multiplication is backward stable",
             real_t normA = lantr(MAX_NORM, UPPER_TRIANGLE, Diag::NonUnit, A);
 
             {
+                mult_uhu_Opts opts;
+
+                opts.nx = nx;
                 // A = C^H * C
-                mult_uhu(C);
+                mult_uhu(C, opts);
 
                 // C = A^H*A - C
                 herk(UPPER_TRIANGLE, Op::ConjTrans, real_t(1), A, real_t(-1),
@@ -77,15 +77,12 @@ TEMPLATE_TEST_CASE("uhu multiplication is backward stable",
                 // Check if residual is 0 with machine accuracy
                 real_t uhu_mult_res_norm =
                     lantr(MAX_NORM, UPPER_TRIANGLE, Diag::NonUnit, C);
-                CHECK(uhu_mult_res_norm <= tol * normA);
-
+                CHECK(uhu_mult_res_norm <= tol * normA * normA);
 
                 real_t sum(0);
-
                 for (idx_t j = 0; j < n; j++)
-                    for (idx_t i = j+1; i < n; i++)
+                    for (idx_t i = j + 1; i < n; i++)
                         sum += abs1(C(i, j) - B(i, j));
-
                 CHECK(sum == real_t(0));
             }
         }

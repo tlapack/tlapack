@@ -11,6 +11,7 @@
 #define TLAPACK_MULT_UHU
 
 #include "tlapack/base/utils.hpp"
+#include "tlapack/blas/herk.hpp"
 #include "tlapack/blas/trmm.hpp"
 
 namespace tlapack {
@@ -48,27 +49,27 @@ void mult_uhu(matrix_t& U, const mult_uhu_Opts& opts = {})
     tlapack_check(n == ncols(U));
     tlapack_check(opts.nx >= 1);
 
-    if (n <= 1) {
-        // U(0, 0) = real(U(0,0))*real(U(0,0));
-        U(0, 0) = conj(U(0, 0)) * U(0, 0);
-        return;
-    }
+    // quick return
+    if (n == 0) return;
 
     if (n <= opts.nx) {
-        for (idx_t j = n; j-- > 0; ) {
-            T real_part_of_cjj;
-            real_part_of_cjj = U(j, j) * conj(U(j, j));
-            for(idx_t k = 0; k < j; ++k) {
-                real_part_of_cjj += real(U(k, j)) * real(U(k, j)) + imag(U(k, j)) * imag(U(k, j));
+        for (idx_t j = n; j-- > 0;) {
+            T real_part_of_ujj;
+            real_part_of_ujj =
+                real(U(j, j)) * real(U(j, j)) + imag(U(j, j)) * imag(U(j, j));
+            for (idx_t k = 0; k < j; ++k) {
+                real_part_of_ujj += real(U(k, j)) * real(U(k, j)) +
+                                    imag(U(k, j)) * imag(U(k, j));
             }
-            U(j,j) = real_part_of_cjj;
-            for (idx_t i = j; i-- > 0; ) {
+            U(j, j) = real_part_of_ujj;
+            for (idx_t i = j; i-- > 0;) {
                 U(i, j) = conj(U(i, i)) * U(i, j);
-                for (idx_t k = i; k-- > 0; ) {
+                for (idx_t k = i; k-- > 0;) {
                     U(i, j) += conj(U(k, i)) * U(k, j);
                 }
             }
         }
+        return;
     }
 
     const idx_t n0 = n / 2;
@@ -81,13 +82,15 @@ void mult_uhu(matrix_t& U, const mult_uhu_Opts& opts = {})
     mult_uhu(U11, opts);
 
     // U11+= U01^H*U01
-    herk(Uplo::Upper, Op::ConjTrans, real_t(1),  U01, real_t(1), U11);
+    herk(Uplo::Upper, Op::ConjTrans, real_t(1), U01, real_t(1), U11);
 
     // U01 = U00^H*U01
-    trmm(Side::Left, Uplo::Upper, Op::ConjTrans, Diag::NonUnit, real_t(1), U00, U01);
+    trmm(Side::Left, Uplo::Upper, Op::ConjTrans, Diag::NonUnit, real_t(1), U00,
+         U01);
 
     // U00 = U00^H*U00
-    mult_uhu(U00, opts);    
+    mult_uhu(U00, opts);
+
     return;
 }
 
