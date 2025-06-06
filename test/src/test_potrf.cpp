@@ -23,7 +23,6 @@
 #include <tlapack/lapack/mult_uhu.hpp>
 #include <tlapack/lapack/potrf.hpp>
 
-
 using namespace tlapack;
 
 #define TESTUPLO_TYPES_TO_TEST                                          \
@@ -115,6 +114,5 @@ TEMPLATE_TEST_CASE(
         // Check for relative error: norm(A-cholesky(A))/norm(A)
         real_t error = tlapack::lanhe(tlapack::MAX_NORM, uplo, C) / normA;
         CHECK(error <= tol);
-
     }
 }
