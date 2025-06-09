@@ -135,6 +135,12 @@ void mult_hehe_cheat(matrixA_t& A, matrixB_t& B, matrixC_t& C)
 
     return;
 }
+//----------------------------------------------------------------------------------------
+// template<TLAPACK_SMATRIX matrixA_t, TLAPACK_SMATRIX matrixB_t, TLAPACK_SMATRIX matrixC_t>
+// void mult_hehe_ella(matrixA_t& A, matrixB_t& B, matrixC_t& C) 
+// {
+//     mult_hehe()
+// }
 //---------------------------------------------------------
 template<TLAPACK_SMATRIX matrixA_t, TLAPACK_SMATRIX matrixB_t, TLAPACK_SMATRIX matrixC_t>
 void mult_hehe(matrixA_t& A, matrixB_t& B, matrixC_t& C) 
@@ -152,7 +158,7 @@ void mult_hehe(matrixA_t& A, matrixB_t& B, matrixC_t& C)
         return;
 
     if (n <= 1){
-        C(0,0) = real(A(0,0))*real(B(0,0));
+        C(0,0) = real(A(0,0))*real(B(0,0)) + C(0,0);
         return;
     }
     const idx_t n0 = n/2;
@@ -170,16 +176,16 @@ void mult_hehe(matrixA_t& A, matrixB_t& B, matrixC_t& C)
     auto C10 = slice(C, range(n0, n), range(0, n0));
     auto C11 = slice(C, range(n0, n), range(n0, n));
 
-    //A00*B00 = C
+    //A00*B00 = C00
     mult_hehe(A00, B00, C00);
 
-    //A01*B01^H + A00*B00 = C
-    gemm(Op::NoTrans, Op::ConjTrans, real_t(1), A01, B01, real_t(1), C00);
+    //A01*B01^H + (A00*B00 + C00) = C00
+    gemm(Op::NoTrans, Op::ConjTrans, real_t(1), A01, B01, real_t(1), C00); //beta
 
-    //A00*B01 = C
-    hemm(Side::Left, Uplo::Upper, real_t(1), A00, B01, real_t(0), C01);
+    //A00*B01 + C01 = C01
+    hemm(Side::Left, Uplo::Upper, real_t(1), A00, B01, real_t(1), C01);//beta
 
-    //A00*B01 + A01B11 = C
+    //(A00*B01 + C01) + A01B11 = C
     hemm(Side::Right, Uplo::Upper, real_t(1), B11, A01, real_t(1), C01);
 
     //Creating B01^H and A01^H
@@ -196,22 +202,118 @@ void mult_hehe(matrixA_t& A, matrixB_t& B, matrixC_t& C)
             A01H(i, j) = conj(A01(j, i));
         }
 
-    //A11 * B01H
-    hemm(Side::Left, Uplo::Upper, real_t(1), A11, B01H, real_t(0), C10);
+    //A11 * B01H + C10 = C10
+    hemm(Side::Left, Uplo::Upper, real_t(1), A11, B01H, real_t(1), C10); //beta
 
-    // //A01^H * B00 + A11*B01^H
+    // //A01^H * B00 + (A11*B01^H)
     hemm(Side::Right, Uplo::Upper, real_t(1), B00, A01H, real_t(1), C10);
 
     // A11*B11
     mult_hehe(A11, B11, C11);
 
     //A01^H * B01 + A11*B11
-    gemm(Op::ConjTrans, Op::NoTrans, real_t(1), A01, B01, real_t(1), C11);
+    gemm(Op::ConjTrans, Op::NoTrans, real_t(1), A01, B01, real_t(1), C11); //beta
 
     return;
     
 }
 //--------------------------------------------------------------
+// template<TLAPACK_MATRIX matrixA_t,
+//          TLAPACK_MATRIX matrixB_t,
+//           TLAPACK_MATRIX matrixC_t,
+//           TLAPACK_REAL alpha_t,
+//           TLAPACK_REAL beta_t,
+//           enable_if_t<(
+//                           /* Requires: */
+//                           is_real<alpha_t> && is_real<beta_t>),
+//                       int> = 0,
+//           class T = type_t<matrixC_t>,
+//           disable_if_allow_optblas_t<pair<matrixA_t, T>,
+//                                      pair<matrixC_t, T>,
+//                                      pair<alpha_t, real_type<T> >,
+//                                      pair<beta_t, real_type<T> > > = 0>
+// // C <- alpha(AB) + beta(C)
+// void mult_hehe(Uplo uplo, const alpha_t& alpha, matrixA_t& A, matrixB_t& B, const beta_t& beta, matrixC_t& C) 
+// {
+//         using TB = type_t<matrixB_t>;
+//     using TA = type_t<matrixA_t>;
+//     typedef tlapack::real_type<TA> real_t;
+//     using idx_t = tlapack::size_type<matrixA_t>;
+//     using range = pair<idx_t, idx_t>;
+
+//     const idx_t m = nrows(A);
+//     const idx_t n = ncols(A);
+
+//     if (m != n)
+//         return;
+
+//     if (n <= 1){
+//         C(0,0) = alpha * real(A(0,0))*real(B(0,0));
+
+//         return;
+//     }
+//     const idx_t n0 = n/2;
+    
+//     auto A00 = slice(A, range(0, n0), range(0, n0));
+//     auto A01 = slice(A, range(0, n0), range(n0, n));
+//     auto A11 = slice(A, range(n0, n), range(n0, n));
+
+//     auto B00 = slice(B, range(0, n0), range(0, n0));
+//     auto B01 = slice(B, range(0, n0), range(n0, n));
+//     auto B11 = slice(B, range(n0, n), range(n0, n));
+    
+//     auto C00 = slice(C, range(0, n0), range(0, n0));
+//     auto C01 = slice(C, range(0, n0), range(n0, n));
+//     auto C10 = slice(C, range(n0, n), range(0, n0));
+//     auto C11 = slice(C, range(n0, n), range(n0, n));
+
+//     //A00*B00 = C
+//     mult_hehe(A00, B00, C00);
+
+//     //A01*B01^H + A00*B00 = C
+//     gemm(Op::NoTrans, Op::ConjTrans, real_t(1), A01, B01, real_t(1), C00);
+
+//     //A00*B01 = C
+//     hemm(Side::Left, Uplo::Upper, real_t(1), A00, B01, real_t(0), C01);
+
+//     //A00*B01 + A01B11 = C
+//     hemm(Side::Right, Uplo::Upper, real_t(1), B11, A01, real_t(1), C01);
+
+//     //Creating B01^H and A01^H
+//     std::vector<TB> B01H_((n-n0) * n0);
+//     tlapack::LegacyMatrix<TB> B01H(n-n0, n0, &B01H_[0], n-n0);
+
+//     std::vector<TA> A01H_((n-n0) * n0);
+//     tlapack::LegacyMatrix<TA> A01H(n-n0, n0, &A01H_[0], n-n0);
+
+//     std::cout << std::endl;
+//     for (idx_t i = 0; i < n-n0; ++i)
+//         for(idx_t j = 0; j < n0; ++j){
+//             B01H(i, j) = conj(B01(j, i));
+//             A01H(i, j) = conj(A01(j, i));
+//         }
+
+//     //A11 * B01H
+//     hemm(Side::Left, Uplo::Upper, real_t(1), A11, B01H, real_t(0), C10);
+
+//     // //A01^H * B00 + A11*B01^H
+//     hemm(Side::Right, Uplo::Upper, real_t(1), B00, A01H, real_t(1), C10);
+
+//     // A11*B11
+//     mult_hehe(A11, B11, C11);
+
+//     //A01^H * B01 + A11*B11
+//     gemm(Op::ConjTrans, Op::NoTrans, real_t(1), A01, B01, real_t(1), C11);
+
+//     for (idx_t i = 0; i < n; ++i) {
+//         for (idx_t i = 0; i < n; ++i) {
+//         }
+//     }
+
+//     return;
+// }
+//---------------------------------------------------------------------------------
+//Goal: 
 template <typename T>
 void run(size_t n, size_t k)
 {
@@ -246,7 +348,7 @@ void run(size_t n, size_t k)
         D(j, i) = i;
         E(i, j) = i;
         E(j, i) = i;
-        F(i, j) = i;
+        F(i, j) = i + 2;
         F(j, i) = i;
         }
     }
@@ -256,7 +358,13 @@ void run(size_t n, size_t k)
     std::cout << "E =" << std::endl;
     printMatrix(E);
     std::cout << std::endl;
+    std::cout << "F before=:" << std::endl;
+    printMatrix(F);
+    std::cout << std::endl;
 
+    //multiplying two upper triangular hermitian matrices
+    //one function with alpha/beta one without so C <- AB and C <- alpha(AB) + beta(C)
+    //make it work for upper and lower
     mult_hehe(D, E, F);
 
     std::cout << "F =" << std::endl;
@@ -298,122 +406,19 @@ void run(size_t n, size_t k)
         A(j, j) = T(n + static_cast<float>(rand())/static_cast<float>(RAND_MAX));
     }
 
-    for (size_t j = 0; j < k; ++j)
-        for (size_t i = 0; i < n; ++i) {
-            if constexpr (tlapack::is_complex<T>)
-                b(i, j) = T(static_cast<float>(rand())/static_cast<float>(RAND_MAX), static_cast<float>(rand())/static_cast<float>(RAND_MAX));
-            else
-                b(i, j) = T(static_cast<float>(rand()) / static_cast<float>(RAND_MAX));
-        }
+    // for (size_t j = 0; j < k; ++j)
+    //     for (size_t i = 0; i < n; ++i) {
+    //         if constexpr (tlapack::is_complex<T>)
+    //             b(i, j) = T(static_cast<float>(rand())/static_cast<float>(RAND_MAX), static_cast<float>(rand())/static_cast<float>(RAND_MAX));
+    //         else
+    //             b(i, j) = T(static_cast<float>(rand()) / static_cast<float>(RAND_MAX));
+    //     }
 
     if (verbose) {
         std::cout << std::endl << "A = ";
         printMatrix(A);
         std::cout << std::endl;
-    }
-
-    real_t normA;
-
-    normA = tlapack::lanhe(tlapack::FROB_NORM, tlapack::Uplo::Upper, A);
-
-    tlapack::lacpy(tlapack::GENERAL, A, C);
-    tlapack::lacpy(tlapack::GENERAL, b, y);
-
-    info = potrf2(tlapack::UPPER_TRIANGLE, C);
-
-    trtri_recursive(Uplo::Upper,Diag::NonUnit, C);
-
-    lauum_recursive(Uplo::Upper, C);
-
-    std::cout << "The inverse of A is =";
-    printMatrix(C);
-    std::cout << std::endl;
-
-//-------------------------------------------------checking inverse----------------------------------------------------------
-
-    // for (size_t i = 0; i < n; ++i){
-    //     for (size_t j = 0; j < i; ++j) {
-    //         A(i, j) = conj(A(j, i));
-    //         C(i, j) = conj(C(j, i));
-    //     }
-    // }
-
-    // std::cout << "New A =";
-    // std::cout << std::endl;
-    // printMatrix(A);
-    // std::cout << std::endl;
-
-    // std::cout << "New A inverse=";
-    // std::cout << std::endl;
-    // printMatrix(C);
-
-    // std::vector<T> I_(n * n);
-    // tlapack::LegacyMatrix<T> I(n, n, &I_[0], n);
-
-    // for (size_t i = 0; i < n; ++i){
-    //     I(i, i) = real_t(1);
-    // }
-
-    // gemm(Op::NoTrans, Op::NoTrans, real_t(1), A, C, real_t(-1), I);
-
-    // real_t normr;
-    // normr = tlapack::lange(tlapack::FROB_NORM, I);
-
-    // std::cout << std::endl;
-    // std::cout << "Norm of I is= " << normr;
-
-//-------------------------------------------------checking factorization----------------------------------------------------------
-    // std::cout << std::endl;
-    // std::cout << "info = " << info;
-    // std::cout << std::endl;
-
-    //checking factorization
-    // tlapack::trsm(tlapack::Side::Left, tlapack::Uplo::Upper, tlapack::Op::ConjTrans, tlapack::Diag::NonUnit, real_t(1), C, y);
-    // tlapack::trsm(tlapack::Side::Left, tlapack::Uplo::Upper, tlapack::Op::NoTrans, tlapack::Diag::NonUnit, real_t(1), C, y);
-
-
-    // tlapack::hemm(tlapack::Side::Left, tlapack::Uplo::Upper, real_t(-1), A, y, real_t(1), b);
-
-    // real_t normy;
-    // real_t normr;
-
-    // normr = tlapack::lange(tlapack::FROB_NORM, b);
-
-    // normy = tlapack::lange(tlapack::FROB_NORM, y);
-
-    // real_t check;
-
-    // check = normr/(normy * normA);
-
-
-    // real_t normC2;
-    // normC2 =  tlapack::lanhe(tlapack::FROB_NORM, tlapack::Uplo::Upper, C);
-
-    // normC2 *= normC2;
-
-    // // mult_chc(C);
-    // mult_chc_level0(C);
-
-    // std::cout << "check A is = ";
-    // printMatrix(C);
-    // std::cout << std::endl;
-
-    // for(idx_t i = n; i-- >0;){
-    //     for(idx_t j = n; j-- > 0; ){
-    //         C(i, j) -= A(i, j);
-    //     }
-    // }
-
-    // real_t normC;
-    // normC =  tlapack::lanhe(tlapack::FROB_NORM, tlapack::Uplo::Upper, C);
-
-    // // normC = normC/normC2;
-
-    // std::cout << "||U^H U - A||/||U||^2 = " << normC;
-    // std::cout << std::endl;
-
- 
-
+    } 
  }
 
 
@@ -446,13 +451,13 @@ int main(int argc, char** argv)
      run<long double>(n, k);
      printf("-----------------------\n");
 
-     printf("run complex< float >( %d, %d )", n, k);
-     run<std::complex<float> >(n, k);
-     printf("-----------------------\n");
+    //  printf("run complex< float >( %d, %d )", n, k);
+    //  run<std::complex<float> >(n, k);
+    //  printf("-----------------------\n");
 
-     printf("run complex< double >( %d, %d )", n, k);
-     run<std::complex<double> >(n, k);
-     printf("-----------------------\n");
+    //  printf("run complex< double >( %d, %d )", n, k);
+    //  run<std::complex<double> >(n, k);
+    //  printf("-----------------------\n");
 
     return 0;
 }
