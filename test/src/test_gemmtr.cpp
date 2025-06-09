@@ -97,8 +97,10 @@ TEMPLATE_TEST_CASE("check for gemmtr multiplication",
         T alpha, beta;
 
         if constexpr (is_complex<T>) {
-            alpha = T(-2, 5);
-            beta = T(-7, 4);
+            alpha = T(static_cast<float>(0xDEADBEEF),
+                      static_cast<float>(0xDEADBEEF));
+            beta = T(static_cast<float>(0xDEADBEEF),
+                     static_cast<float>(0xDEADBEEF));
         }
         else {
             alpha = T(-3);
