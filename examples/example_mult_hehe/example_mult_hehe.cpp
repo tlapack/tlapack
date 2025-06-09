@@ -142,8 +142,8 @@ void mult_hehe_cheat(matrixA_t& A, matrixB_t& B, matrixC_t& C)
 //     mult_hehe()
 // }
 //---------------------------------------------------------
-template<TLAPACK_SMATRIX matrixA_t, TLAPACK_SMATRIX matrixB_t, TLAPACK_SMATRIX matrixC_t, TLAPACK_SCALAR beta_t>
-void mult_hehe(matrixA_t& A, matrixB_t& B, const beta_t& beta, matrixC_t& C) 
+template<TLAPACK_SMATRIX matrixA_t, TLAPACK_SMATRIX matrixB_t, TLAPACK_SMATRIX matrixC_t, TLAPACK_SCALAR alpha_t, TLAPACK_SCALAR beta_t>
+void mult_hehe(const alpha_t& alpha, matrixA_t& A, matrixB_t& B, const beta_t& beta, matrixC_t& C) 
 {
     using TB = type_t<matrixB_t>;
     using TA = type_t<matrixA_t>;
@@ -158,7 +158,7 @@ void mult_hehe(matrixA_t& A, matrixB_t& B, const beta_t& beta, matrixC_t& C)
         return;
 
     if (n <= 1){
-        C(0,0) = real_t(5) * real(A(0,0))*real(B(0,0)) + beta * C(0, 0);
+        C(0,0) = alpha * real(A(0,0))*real(B(0,0)) + beta * C(0, 0);
         return;
     }
     const idx_t n0 = n/2;
@@ -177,16 +177,16 @@ void mult_hehe(matrixA_t& A, matrixB_t& B, const beta_t& beta, matrixC_t& C)
     auto C11 = slice(C, range(n0, n), range(n0, n));
 
     //A00*B00 = C00
-    mult_hehe(A00, B00, beta, C00);
+    mult_hehe(alpha, A00, B00, beta, C00);
 
     //A01*B01^H + (A00*B00 + C00) = C00
-    gemm(Op::NoTrans, Op::ConjTrans, real_t(5), A01, B01, real_t(1), C00);
+    gemm(Op::NoTrans, Op::ConjTrans, alpha, A01, B01, real_t(1), C00);
 
     //A00*B01 + C01 = C01
-    hemm(Side::Left, Uplo::Upper, real_t(5), A00, B01, beta, C01);//beta
+    hemm(Side::Left, Uplo::Upper, alpha, A00, B01, beta, C01);//beta
 
     //(A00*B01 + C01) + A01B11 = C
-    hemm(Side::Right, Uplo::Upper, real_t(5), B11, A01, real_t(1), C01);
+    hemm(Side::Right, Uplo::Upper, alpha, B11, A01, real_t(1), C01);
 
     //Creating B01^H and A01^H
     std::vector<TB> B01H_((n-n0) * n0);
@@ -203,16 +203,16 @@ void mult_hehe(matrixA_t& A, matrixB_t& B, const beta_t& beta, matrixC_t& C)
         }
 
     //A11 * B01H + C10 = C10
-    hemm(Side::Left, Uplo::Upper, real_t(5), A11, B01H, beta, C10); //beta
+    hemm(Side::Left, Uplo::Upper, alpha, A11, B01H, beta, C10); //beta
 
     // //A01^H * B00 + (A11*B01^H)
-    hemm(Side::Right, Uplo::Upper, real_t(5), B00, A01H, real_t(1), C10);
+    hemm(Side::Right, Uplo::Upper, alpha, B00, A01H, real_t(1), C10);
 
     // A11*B11
-    mult_hehe(A11, B11, beta, C11);
+    mult_hehe(alpha, A11, B11, beta, C11);
 
     //A01^H * B01 + A11*B11
-    gemm(Op::ConjTrans, Op::NoTrans, real_t(5), A01, B01, real_t(1), C11); 
+    gemm(Op::ConjTrans, Op::NoTrans, alpha, A01, B01, real_t(1), C11); 
 
     return;
     
@@ -365,7 +365,7 @@ void run(size_t n, size_t k)
     //multiplying two upper triangular hermitian matrices
     //one function with alpha/beta one without so C <- AB and C <- alpha(AB) + beta(C)
     //make it work for upper and lower
-    mult_hehe(D, E, 10, F);
+    mult_hehe(5, D, E, 10, F);
 
     std::cout << "F =" << std::endl;
     printMatrix(F);
