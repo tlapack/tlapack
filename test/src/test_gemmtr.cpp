@@ -1,6 +1,7 @@
-/// @file test_lu_mult.cpp
-/// @author Lindsay Slager, University of Colorado Denver, USA
-/// @brief Test LU multiplication
+/// @file test_gemmtr.cpp
+/// @author Luis Carlos Gutierrez, Kyle Cunningham, and Henricus Bouwmeester
+/// University of Colorado Denver, USA
+/// @brief Test gemmtr
 //
 // Copyright (c) 2025, University of Colorado Denver. All rights reserved.
 //
@@ -34,30 +35,49 @@ TEMPLATE_TEST_CASE("check for gemmtr multiplication",
 
     // MatrixMarket reader
     MatrixMarket mm;
+    idx_t n, k;
 
-    idx_t n;
-
-    idx_t k;
-
-    // n = GENERATE(1, 2, 6, 9);
-
-    // k = GENERATE(3, 5, 7, 8);
-    n = GENERATE(9);
-
-    k = GENERATE(5);
+    n = GENERATE(1, 2, 6, 9);
+    k = GENERATE(3, 5, 7, 8);
     const Uplo uplo = GENERATE(Uplo::Lower, Uplo::Upper);
     const Op transA = GENERATE(Op::NoTrans, Op::Trans, Op::ConjTrans);
     const Op transB = GENERATE(Op::NoTrans, Op::Trans, Op::ConjTrans);
-    DYNAMIC_SECTION("n = " << n << " k = " << k)
+
+    DYNAMIC_SECTION("n = " << n << " k = " << k << " uplo = " << uplo
+                           << " transA = " << transA << " transB = " << transB)
     {
         const real_t eps = ulp<real_t>();
         const real_t tol = real_t(n + k) * eps;
 
+        idx_t na;
+        idx_t ka;
+        idx_t nb;
+        idx_t kb;
+
+        // Correcting Matrix Dimension when transposed
+        if (transA == Op::NoTrans) {
+            na = n;
+            ka = k;
+        }
+        else {
+            na = k;
+            ka = n;
+        }
+
+        if (transB == Op::NoTrans) {
+            nb = n;
+            kb = k;
+        }
+        else {
+            nb = k;
+            kb = n;
+        }
+
         // Generating Matrices A, B, C0, C1, C2
         std::vector<T> A_;
-        auto A = new_matrix(A_, n, k);
+        auto A = new_matrix(A_, na, ka);
         std::vector<T> B_;
-        auto B = new_matrix(B_, k, n);
+        auto B = new_matrix(B_, kb, nb);
         std::vector<T> C0_;
         auto C0 = new_matrix(C0_, n, n);
         std::vector<T> C1_;
@@ -65,7 +85,7 @@ TEMPLATE_TEST_CASE("check for gemmtr multiplication",
         std::vector<T> C2_;
         auto C2 = new_matrix(C2_, n, n);
 
-        // Generate n-by-n random matrix
+        // Matrix initilaizations
         mm.random(A);
         mm.random(B);
         mm.random(C0);
@@ -73,9 +93,7 @@ TEMPLATE_TEST_CASE("check for gemmtr multiplication",
         lacpy(GENERAL, C0, C1);
         lacpy(GENERAL, C0, C2);
 
-        real_t norma = lange(MAX_NORM, A);
-        real_t normb = lange(MAX_NORM, B);
-
+        // Defining real and complex scalars
         T alpha, beta;
 
         if constexpr (is_complex<T>) {
@@ -87,26 +105,20 @@ TEMPLATE_TEST_CASE("check for gemmtr multiplication",
             beta = T(8);
         }
         {
-            // Calculate residual
-            // Upper, no trans, no trans DONE
-
-            // Uplo uplo = Uplo::Lower;
-            // Op transA = Op::ConjTrans;
-            // Op transB = Op::ConjTrans;
-
-            // Lower, no trans, no trans, IN PROGRESS
-
+            // Calculate residuals
             real_t normc = lantr(MAX_NORM, uplo, NON_UNIT_DIAG, C0);
+            real_t norma = lange(MAX_NORM, A);
+            real_t normb = lange(MAX_NORM, B);
 
+            // Calling gemmtr and gemm
             gemmtr(uplo, transA, transB, alpha, A, B, beta, C1);
 
             gemm(transA, transB, alpha, A, B, beta, C2);
 
+            // Comparing gemmtr vs gemm
             if (uplo == Uplo::Upper) {
-                for (idx_t j = 0; j < n;
-                     j++)  // Check of upper part. iterates to right of row
-                    for (idx_t i = 0; i <= j;
-                         i++)  // Iterates Down columns and touches diagonals
+                for (idx_t j = 0; j < n; j++)  // Check of upper part.
+                    for (idx_t i = 0; i <= j; i++)
                         C1(i, j) -= C2(i, j);
 
                 real_t normres =
@@ -116,18 +128,14 @@ TEMPLATE_TEST_CASE("check for gemmtr multiplication",
 
                 real_t sum = 0;
                 for (idx_t j = 0; j < n; j++)  // Check strictly lower part
-                    for (idx_t i = j + 1; i < n; i++)  //
-                        sum += abs1(
-                            C1(i, j) -
-                            C0(i, j));  // Subtracts all of lower elements
-                                        // element wise then puts them in sum
+                    for (idx_t i = j + 1; i < n; i++)
+                        sum += abs1(C1(i, j) - C0(i, j));
 
-                CHECK(sum == real_t(0));  // Sum should be exactly 0 since
-                                          // elements untouched
+                CHECK(sum == real_t(0));
             }
             else {
-                for (idx_t i = 0; i < n; i++)       // Check of lower part
-                    for (idx_t j = 0; j <= i; j++)  //  Touches diagonals
+                for (idx_t i = 0; i < n; i++)  // Check of lower part
+                    for (idx_t j = 0; j <= i; j++)
                         C1(i, j) -= C2(i, j);
 
                 real_t normres =
@@ -137,15 +145,10 @@ TEMPLATE_TEST_CASE("check for gemmtr multiplication",
 
                 real_t sum = 0;
                 for (idx_t i = 0; i < n; i++)  // Check strictly upper part
-                    for (idx_t j = i + 1; j < n;
-                         j++)  // Does not touch diagonals
-                        sum += abs1(
-                            C1(i, j) -
-                            C0(i, j));  // Subtracts all of upper elements
-                                        // element wise then puts them in sum
+                    for (idx_t j = i + 1; j < n; j++)
+                        sum += abs1(C1(i, j) - C0(i, j));
 
-                CHECK(sum == real_t(0));  // Sum should be exactly 0 since
-                                          // elements untouched
+                CHECK(sum == real_t(0));
             }
         }
     }

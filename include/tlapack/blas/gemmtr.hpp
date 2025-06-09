@@ -1,33 +1,31 @@
 /// @file gemmtr.hpp
-/// @author Luis Carlos Gutierrez and Kyle D. Cunningham
+/// @author Luis Carlos Gutierrez, Kyle D. Cunningham, and Henricus Bouwmeester
 //
-// Copyright (c) 2017-2021, University of Tennessee. All rights reserved.
 // Copyright (c) 2025, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-// #ifndef TLAPACK_BLAS_GEMM_HH
-// #define TLAPACK_BLAS_GEMM_HH
+#ifndef TLAPACK_GEMMTR_HH
+#define TLAPACK_GEMMTR_HH
 
 #include "tlapack/base/utils.hpp"
 
 namespace tlapack {
 
 /**
- * General matrix-matrix multiply:
+ * General triangular matrix-matrix multiply:
  * \[
  *     C := \alpha op(A) \times op(B) + \beta C,
  * \]
  * where $op(X)$ is one of
- *     $op(X) = X$,#ifndef TLAPACK_BLAS_GEMM_HH
-#define TLAPACK_BLAS_GEMM_HHor
+ *     $op(X) = X$,or
  *     $op(X) = X^H$,
  * alpha and beta are scalars, and A, B, and C are matrices, with
  * $op(A)$ an n-by-k matrix, $op(B)$ a k-by-n matrix, and C an n-by-n matrix.
  *
-* @param[in] uplo
+ * @param[in] uplo
  *     What part of the matrix A is referenced,
  *     the opposite triangle being assumed to be zero:
  *     - Uplo::Lower: A is lower triangular.
@@ -50,7 +48,7 @@ namespace tlapack {
  * @param[in] A $op(A)$ is an n-by-k matrix.
  * @param[in] B $op(B)$ is an k-by-n matrix.
  * @param[in] beta Scalar.
- * @param[in,out] C A n-by-n matrix.
+ * @param[in,out] C is an n-by-n matrix.
  *
  * @ingroup blas3
  */
@@ -84,19 +82,20 @@ void gemmtr(Uplo uplo,
     const idx_t k = (transA == Op::NoTrans) ? ncols(A) : nrows(A);
 
     // check arguments
-    tlapack_check_false(
-        uplo != Uplo::Upper &&
-        uplo != Uplo::Lower);  // Function is only called when argument is True
+    tlapack_check_false(uplo != Uplo::Upper && uplo != Uplo::Lower);
     tlapack_check_false(transA != Op::NoTrans && transA != Op::Trans &&
                         transA != Op::ConjTrans);
     tlapack_check_false(transB != Op::NoTrans && transB != Op::Trans &&
                         transB != Op::ConjTrans);
-    // std::cout << ncols(C) << ", " << nrows(C) << std::endl;
-    // tlapack_check_false((idx_t)ncols(C) != n && (idx_t)nrows(C) != n);
+    tlapack_check_false((idx_t)ncols(C) != n && (idx_t)nrows(C) != n);
     tlapack_check_false(
-        (idx_t)((transA == Op::NoTrans) ? ncols(A) : nrows(A)) != k);  
+        (idx_t)((transA == Op::NoTrans) ? ncols(A) : nrows(A)) != k);
     tlapack_check_false(
         (idx_t)((transB == Op::NoTrans) ? nrows(B) : ncols(B)) != k);
+    tlapack_check_false(
+        (idx_t)((transA == Op::NoTrans) ? nrows(A) : ncols(A)) != n);
+    tlapack_check_false(
+        (idx_t)((transB == Op::NoTrans) ? ncols(B) : nrows(B)) != n);
 
     // Upper Triangular
     if (uplo == UPPER_TRIANGLE) {
@@ -104,11 +103,11 @@ void gemmtr(Uplo uplo,
             using scalar_t = scalar_type<alpha_t, TB>;
             if (transB == Op::NoTrans) {
                 for (idx_t j = 0; j < n; ++j) {
-                    for (idx_t i = 0; i <= j; ++i)  // CHANGE; Only goes to and touches diagonal
+                    for (idx_t i = 0; i <= j; ++i)
                         C(i, j) *= beta;
                     for (idx_t l = 0; l < k; ++l) {
                         const scalar_t alphaTimesblj = alpha * B(l, j);
-                        for (idx_t i = 0; i <= j; ++i)  // CHANGE
+                        for (idx_t i = 0; i <= j; ++i)
                             C(i, j) += A(i, l) * alphaTimesblj;
                     }
                 }
@@ -199,8 +198,7 @@ void gemmtr(Uplo uplo,
                     for (idx_t i = 0; i <= j; ++i) {
                         scalar_t sum(0);
                         for (idx_t l = 0; l < k; ++l)
-                            sum +=
-                                A(l, i) * B(j, l);  // little improvement here
+                            sum += A(l, i) * B(j, l);
                         C(i, j) = alpha * conj(sum) + beta * C(i, j);
                     }
                 }
@@ -210,13 +208,13 @@ void gemmtr(Uplo uplo,
     else {  // uplo == Uplo::Lower
         if (transA == Op::NoTrans) {
             using scalar_t = scalar_type<alpha_t, TB>;
-            if (transB == Op::NoTrans){
+            if (transB == Op::NoTrans) {
                 for (idx_t j = 0; j < n; ++j) {
-                    for (idx_t i = j; i < n; ++i)  // CHANGE; Only goes to and touches diagonal
+                    for (idx_t i = j; i < n; ++i)
                         C(i, j) *= beta;
                     for (idx_t l = 0; l < k; ++l) {
                         const scalar_t alphaTimesblj = alpha * B(l, j);
-                        for (idx_t i = j; i < n; ++i)  // CHANGE
+                        for (idx_t i = j; i < n; ++i)
                             C(i, j) += A(i, l) * alphaTimesblj;
                     }
                 }
@@ -307,8 +305,7 @@ void gemmtr(Uplo uplo,
                     for (idx_t i = j; i < n; ++i) {
                         scalar_t sum(0);
                         for (idx_t l = 0; l < k; ++l)
-                            sum +=
-                                A(l, i) * B(j, l);  // little improvement here
+                            sum += A(l, i) * B(j, l);
                         C(i, j) = alpha * conj(sum) + beta * C(i, j);
                     }
                 }
@@ -317,3 +314,5 @@ void gemmtr(Uplo uplo,
     }
 }
 }  // namespace tlapack
+
+#endif  // TLAPACK_GEMMTR_HH
