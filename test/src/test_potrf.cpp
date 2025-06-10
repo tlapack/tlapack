@@ -82,7 +82,6 @@ TEMPLATE_TEST_CASE(
         for (idx_t j = 0; j < n; ++j)
             A(j, j) += real_t(n);
 
-        // TODO: change L to C (optional but would be better)
         lacpy(GENERAL, A, C);
         real_t normA = tlapack::lanhe(tlapack::MAX_NORM, uplo, A);
 
@@ -95,11 +94,7 @@ TEMPLATE_TEST_CASE(
         // Check that the factorization was successful
         REQUIRE(info == 0);
 
-        // TODO: BEG :: all this needs to go away
-
-        std::vector<T> E_;
-        auto E = new_matrix(E_, n, n);
-
+        // Do L*L^H or U^H*U
         (uplo == Uplo::Lower) ? mult_llh(C) : mult_uhu(C);
 
         // Check that the factorization is correct
