@@ -18,6 +18,8 @@
 #include <tlapack/lapack/lange.hpp>
 
 // Other routines
+#include <tlapack/blas/axpy.hpp>
+#include <tlapack/blas/hemm.hpp>
 #include <tlapack/blas/hemm2.hpp>
 
 using namespace tlapack;
@@ -27,6 +29,21 @@ using namespace tlapack;
         (TestUploMatrix<float, size_t, Uplo::Upper, Layout::ColMajor>), \
         (TestUploMatrix<float, size_t, Uplo::Lower, Layout::RowMajor>), \
         (TestUploMatrix<float, size_t, Uplo::Upper, Layout::RowMajor>)
+
+// /// Print matrix A in the standard output
+// template <typename matrix_t>
+// void printMatrix(const matrix_t& A)
+// {
+//     using idx_t = size_type<matrix_t>;
+//     const idx_t m = nrows(A);
+//     const idx_t n = ncols(A);
+
+//     for (idx_t i = 0; i < m; ++i) {
+//         std::cout << std::endl;
+//         for (idx_t j = 0; j < n; ++j)
+//             std::cout << A(i, j) << " ";
+//     }
+// }
 
 TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
                    "[hemm_brian]",
@@ -46,15 +63,23 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
     // MatrixMarket reader
     MatrixMarket mm;
 
-    const idx_t n = GENERATE(5, 10, 20, 23, 30);
-    const idx_t m = GENERATE(2, 17, 18, 20, 26);
+    // const idx_t n = GENERATE(5, 10, 20, 23, 30);
+    // const idx_t m = GENERATE(2, 17, 18, 20, 26);
+
+    const idx_t m = GENERATE(3, 8, 6, 4, 2, 5, 4, 8);
+    const idx_t n = GENERATE(5, 6, 4, 3, 2, 5, 4, 15);
 
     const Side side = GENERATE(Side::Left, Side::Right);
-    const Uplo uplo = GENERATE(Uplo::Lower, Uplo ::Upper);
-    const Op op = GENERATE(Op::NoTrans, Op::Trans, Op::ConjTrans);
+    const Uplo uplo = GENERATE(Uplo::Upper, Uplo::Lower);
+    const Op trans = GENERATE(Op::NoTrans, Op::Trans, Op::ConjTrans);
+    const T alpha = GENERATE(1, 3.2, 22.4, 2, 2.4);
+    const T beta = GENERATE(20.10, 2.11, 4, 5, 2.3);
+
+    bool verbose = false;
 
     DYNAMIC_SECTION("n = " << n << " m = " << m << " side = " << side
-                           << " uplo = " << uplo << " op = " << op)
+                           << " uplo = " << uplo << " op = " << trans
+                           << " alpha = " << alpha << " beta = " << beta)
     {
         // eps is the machine precision, and tol is the tolerance we accept for
         // tests to pass
@@ -65,60 +90,144 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
         std::vector<T> A_;
         auto A = new_matrix(A_, n, n);
 
+        std::vector<T> B_;
+        auto B =
+            (side == Side::Left) ? new_matrix(B_, m, n) : new_matrix(B_, n, m);
+
+        std::vector<T> BT_;
+        auto BT = (side == Side::Left) ? new_matrix(BT_, n, m)
+                                       : new_matrix(BT_, m, n);
+
+        std::vector<T> ansHemm_;
+        auto ansHemm = (side == Side::Left) ? new_matrix(ansHemm_, n, m)
+                                            : new_matrix(ansHemm_, m, n);
+
+        std::vector<T> ansHemm2_;
+        auto ansHemm2 = (side == Side::Left) ? new_matrix(ansHemm2_, n, m)
+                                             : new_matrix(ansHemm2_, m, n);
+
         // Update A with random numbers, and make it positive definite
         mm.random(uplo, A);
-        for (idx_t j = 0; j < n; ++j)
-            A(j, j) += real_t(n);
+        for (idx_t j = 0; j < n; ++j) {
+            if constexpr (is_complex<T>) {
+                A(j, j) = T(real(A(j, j)) + n, 0);
+            }
+            else {
+                A(j, j) += real_t(n);
+            }
+        }
+        if (verbose) {
+            std::cout << "\nA = ";
+            printMatrix(A);
+        }
 
+        // Fill in B with random numbers
         mm.random(B);
+        if (verbose) {
+            std::cout << "\nB = ";
+            printMatrix(B);
+        }
 
-        // std::vector < T B_;
-        // auto B = new_matrix(B_, n, n);
-        // std::vector<T> C_;
-        // auto C = new_matrix(C_, n, n);
+        // Create the B transpose
+        if (side == Side::Left) {
+            for (int i = 0; i < n; i++) {
+                for (int j = 0; j < m; j++) {
+                    if (trans == Op::ConjTrans) {
+                        BT(i, j) = conj(B(j, i));
+                    }
+                    else {
+                        BT(i, j) = B(j, i);
+                    }
+                }
+            }
+        }
+        else {
+            for (int i = 0; i < m; i++) {
+                for (int j = 0; j < n; j++) {
+                    if (trans == Op::ConjTrans) {
+                        BT(i, j) = conj(B(j, i));
+                    }
+                    else {
+                        BT(i, j) = B(j, i);
+                    }
+                }
+            }
+        }
 
-        // if (m <= n) {
-        //     const real_t eps = ulp<real_t>();
-        //     const real_t tol = real_t(n) * eps;
+        if (verbose) {
+            std::cout << "\nBT = ";
+            printMatrix(BT);
+        }
 
-        //     std::vector<T> C_;
-        //     auto C = new_matrix(C_, n, n);
-        //     std::vector<T> A_;
-        //     auto A = new_matrix(A_, n, n);
-        //     std::vector<T> B_;
-        //     auto B = new_matrix(B_, n, n);
+        mm.random(ansHemm);
+        if (verbose) {
+            std::cout << "\nansHemm = ";
+            printMatrix(ansHemm);
+        }
 
-        //     // Generate n-by-n random matrix
-        //     mm.random(A);
+        lacpy(GENERAL, ansHemm, ansHemm2);
+        if (verbose) {
+            std::cout << "\nansHemm2 = ";
+            printMatrix(ansHemm2);
+        }
 
-        //     lacpy(GENERAL, A, C);
-        //     lacpy(GENERAL, A, B);
+        // Fill in zeroes
+        if (uplo == Uplo::Lower) {
+            auto subMatrix = slice(A, range(0, n - 1), range(1, n));
+            laset(UPPER_TRIANGLE, real_t(0), real_t(0), subMatrix);
+        }
+        else {
+            auto subMatrix = slice(A, range(1, n), range(0, n - 1));
+            laset(LOWER_TRIANGLE, real_t(0), real_t(0), subMatrix);
+        }
+        if (verbose) {
+            std::cout << "\nAfter Slice A = ";
+            printMatrix(A);
+        }
 
-        //     auto subA = slice(A, range(0, n - 1), range(1, n));
-        //     laset(UPPER_TRIANGLE, real_t(0), real_t(0), subA);
+        // Do Hemm
+        hemm(side, uplo, alpha, A, BT, beta, ansHemm);
+        real_t normHemm = lange(FROB_NORM, ansHemm);
+        if (verbose) {
+            std::cout << "\nthis is ansHemm";
+            printMatrix(ansHemm);
+            std::cout << std::endl;
+        }
 
-        //     real_t normA = lantr(MAX_NORM, LOWER_TRIANGLE, Diag::NonUnit, A);
+        // Do Hemm2 If No Trans use BT
+        (trans == Op::NoTrans)
+            ? hemm2(side, uplo, trans, alpha, A, BT, beta, ansHemm2)
+            : hemm2(side, uplo, trans, alpha, A, B, beta, ansHemm2);
+        if (verbose) {
+            std::cout << "\nthis is ansHemm2";
+            printMatrix(ansHemm2);
+            std::cout << std::endl;
+        }
 
-        //     {
-        //         // // A = C *C^H
-        //         mult_llh(C);
+        // ansHemm2 -= ansHemm
+        if (side == Side::Left) {
+            for (idx_t i = 0; i < n; i++) {
+                for (idx_t j = 0; j < m; j++) {
+                    ansHemm2(i, j) -= ansHemm(i, j);
+                }
+            }
+        }
+        else {
+            for (idx_t i = 0; i < m; i++) {
+                for (idx_t j = 0; j < n; j++) {
+                    ansHemm2(i, j) -= ansHemm(i, j);
+                }
+            }
+        }
 
-        //         // C = A*A^H - C
-        //         herk(LOWER_TRIANGLE, Op::NoTrans, real_t(1), A, real_t(-1),
-        //         C);
+        if (verbose) {
+            std::cout << "\nThis is the final answer";
+            printMatrix(ansHemm2);
+            std::cout << std::endl;
+        }
 
-        //         // Check if residual is 0 with machine accuracy
-        //         real_t llh_mult_res_norm =
-        //             lantr(MAX_NORM, LOWER_TRIANGLE, Diag::NonUnit, C);
-        //         CHECK(llh_mult_res_norm <= tol * normA);
-
-        //         real_t sum(0);
-        //         for (idx_t j = 0; j < n; j++)
-        //             for (idx_t i = 0; i < j; i++)
-        //                 sum += abs1(B(i, j) - C(i, j));
-
-        //         CHECK(sum == real_t(0));
-        //     }
-        // }
+        // Check for relative error: norm(A-cholesky(A))/norm(A)
+        real_t error = lange(FROB_NORM, ansHemm2) / normHemm;
+        CHECK(error <= tol);
     }
 }

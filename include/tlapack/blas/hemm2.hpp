@@ -14,6 +14,20 @@
 #include "tlapack/base/utils.hpp"
 
 namespace tlapack {
+/// Print matrix A in the standard output
+template <typename matrix_t>
+void printMatrix(const matrix_t& A)
+{
+    using idx_t = size_type<matrix_t>;
+    const idx_t m = nrows(A);
+    const idx_t n = ncols(A);
+
+    for (idx_t i = 0; i < m; ++i) {
+        std::cout << std::endl;
+        for (idx_t j = 0; j < n; ++j)
+            std::cout << A(i, j) << " ";
+    }
+}
 
 template <TLAPACK_MATRIX matrixA_t,
           TLAPACK_MATRIX matrixB_t,
@@ -44,7 +58,7 @@ void hemm2(Side side,
     const idx_t m = nrows(B);
     const idx_t n = ncols(B);
 
-    // check arguments
+    // // check arguments
     // tlapack_check_false(side != Side::Left && side != Side::Right);
     // tlapack_check_false(uplo != Uplo::Lower && uplo != Uplo::Upper &&
     //                     uplo != Uplo::General);
@@ -98,7 +112,7 @@ void hemm2(Side side,
                     for (idx_t k = 0; k < m; k++) {
                         T sum(0);
                         for (idx_t i = 0; i < j; i++) {
-                            sum += A(i, j) * B(k, i);
+                            sum += conj(A(i, j)) * B(k, i);
                         }
                         for (idx_t i = j; i < n; i++) {
                             sum += A(j, i) * B(k, i);
@@ -116,7 +130,7 @@ void hemm2(Side side,
                             sum += A(j, i) * B(k, i);
                         }
                         for (idx_t i = j + 1; i < n; i++) {
-                            sum += A(i, j) * B(k, i);
+                            sum += conj(A(i, j)) * B(k, i);
                         }
                         C(j, k) = alpha * sum + beta * C(j, k);
                     }
@@ -218,7 +232,7 @@ void hemm2(Side side,
                             sum += B(i, j) * A(i, k);
                         }
                         for (idx_t i = k; i < m; i++) {
-                            sum += B(i, j) * A(k, i);
+                            sum += B(i, j) * conj(A(k, i));
                         }
                         C(j, k) = alpha * sum + beta * C(j, k);
                     }
@@ -230,7 +244,7 @@ void hemm2(Side side,
                     for (idx_t k = 0; k < m; k++) {
                         T sum(0);
                         for (idx_t i = 0; i < k; i++) {
-                            sum += B(i, j) * A(k, i);
+                            sum += B(i, j) * conj(A(k, i));
                         }
                         for (idx_t i = k; i < m; i++) {
                             sum += B(i, j) * A(i, k);
