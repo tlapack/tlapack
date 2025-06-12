@@ -8,8 +8,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef TLAPACK_BLAS_HEMM__BRIANHH
-#define TLAPACK_BLAS_HEMM__BRIANHH
+#ifndef TLAPACK_BLAS_HEMM_2_HH
+#define TLAPACK_BLAS_HEMM_2_HH
 
 #include "tlapack/base/utils.hpp"
 
@@ -26,14 +26,14 @@ template <TLAPACK_MATRIX matrixA_t,
                                      pair<matrixC_t, T>,
                                      pair<alpha_t, T>,
                                      pair<beta_t, T> > = 0>
-void hemm_brian(Side side,
-                Uplo uplo,
-                Op trans,
-                const alpha_t& alpha,
-                const matrixA_t& A,
-                const matrixB_t& B,
-                const beta_t& beta,
-                matrixC_t& C)
+void hemm2(Side side,
+           Uplo uplo,
+           Op trans,
+           const alpha_t& alpha,
+           const matrixA_t& A,
+           const matrixB_t& B,
+           const beta_t& beta,
+           matrixC_t& C)
 {
     // data traits
     using TA = type_t<matrixA_t>;
@@ -278,4 +278,4 @@ void hemm_brian(Side side,
 
 }  // namespace tlapack
 
-#endif  //  #ifndef TLAPACK_BLAS_HEMM_BRIAN_HH
+#endif  //  #ifndef TLAPACK_BLAS_HEMM_2_HH
