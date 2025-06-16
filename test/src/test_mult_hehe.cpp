@@ -42,13 +42,27 @@ TEMPLATE_TEST_CASE("uhu multiplication is backward stable",
     T beta;
 
     if constexpr (is_complex<T>) {
-        alpha = T(GENERATE(1, 2, -7, 8.6), GENERATE(1, 0, -7, 8.6));
-        beta = T(GENERATE(1, 2, -4, 6.5), GENERATE(1, 0, -4, 6.5));
+        auto a_real = GENERATE(1, 2, -7, 8.6);
+        auto a_imag = GENERATE(1, 0, -7, 8.6);
+        auto b_real = GENERATE(1, 2, -4, 6.5);
+        auto b_imag = GENERATE(1, 0, -4, 6.5);
+
+        alpha = T(a_real, a_imag);
+        beta = T(b_real, b_imag);
     }
     else {
         alpha = GENERATE(1, 2, -7, 8.6);
         beta = GENERATE(1, 2, -4, 6.5);
     }
+
+    // if constexpr (is_complex<T>) {
+    //     alpha = T(GENERATE(1, 2, -7, 8.6), GENERATE(1, 0, -7, 8.6));
+    //     beta = T(GENERATE(1, 2, -4, 6.5), GENERATE(1, 0, -4, 6.5));
+    // }
+    // else {
+    //     alpha = GENERATE(1, 2, -7, 8.6);
+    //     beta = GENERATE(1, 2, -4, 6.5);
+    // }
 
     n = GENERATE(1, 3, 5, 9);
 

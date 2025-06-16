@@ -36,15 +36,21 @@ namespace tlapack {
  *     - Uplo::Lower: only the lower triangular part of A is referenced.
  *     - Uplo::Upper: only the upper triangular part of A is referenced.
  *
+ * @param[in] transB
+ *     The operation $op(B)$ to be used:
+ *     - Op::NoTrans:   $op(B) = B$.
+ *     - Op::Trans:     $op(B) = B^T$.
+ *     - Op::ConjTrans: $op(B) = B^H$.
+ *
  * @param[in] alpha Scalar.
  *
  * @param[in] A A n-by-n matrix
  *
  * @param[in] B
  *
- *     - If side = Left and trans = NoTrans or side = Right and trans =
+ *     - If side = Left and transB = NoTrans or side = Right and transB =
  * Trans/ConjTrans:  B n-by-m matrix.
- *     - If side = Right and trans = NoTrans or side = Left and trans =
+ *     - If side = Right and transB = NoTrans or side = Left and transB =
  * Trans/ConjTrans: B m-by-n matrix. Imaginary parts of the diagonal
  * elements need not be set, are assumed to be zero on entry, and are set to
  * zero on exit.
@@ -52,9 +58,9 @@ namespace tlapack {
  * @param[in] beta Scalar.
  *
  * @param[in, out] C
- *     - If side = Left and trans = NoTrans or side = Right and trans =
+ *     - If side = Left and transB = NoTrans or side = Right and transB =
  * Trans/ConjTrans:  B n-by-m matrix.
- *     - If side = Right and trans = NoTrans or side = Left and trans =
+ *     - If side = Right and transB = NoTrans or side = Left and transB =
  * Trans/ConjTrans: B m-by-n matrix.
  *
  * @ingroup blas3
@@ -73,7 +79,7 @@ template <TLAPACK_MATRIX matrixA_t,
                                      pair<beta_t, T>> = 0>
 void hemm2(Side side,
            Uplo uplo,
-           Op trans,
+           Op transB,
            const alpha_t& alpha,
            const matrixA_t& A,
            const matrixB_t& B,
@@ -94,15 +100,15 @@ void hemm2(Side side,
     tlapack_check_false(uplo != Uplo::Lower && uplo != Uplo::Upper &&
                         uplo != Uplo::General);
     tlapack_check_false(nrows(A) != ncols(A));
-    if ((side == Side::Left && trans == Op::NoTrans) ||
+    if ((side == Side::Left && transB == Op::NoTrans) ||
         (side == Side::Right &&
-         (trans == Op::Trans || trans == Op::ConjTrans))) {
+         (transB == Op::Trans || transB == Op::ConjTrans))) {
         tlapack_check_false(ncols(A) != m);
     }
     else {
         tlapack_check_false(nrows(A) != n);
     }
-    if (trans == Op::NoTrans) {
+    if (transB == Op::NoTrans) {
         tlapack_check_false(nrows(C) != m);
         tlapack_check_false(ncols(C) != n);
     }
@@ -112,7 +118,7 @@ void hemm2(Side side,
     }
 
     if (side == Side::Left) {
-        if (trans == Op::NoTrans) {
+        if (transB == Op::NoTrans) {
             if (uplo == Uplo::Upper) {
                 // or uplo == Uplo::General
                 for (idx_t j = 0; j < n; ++j) {
@@ -148,7 +154,7 @@ void hemm2(Side side,
                 }
             }
         }
-        else if (trans == Op::Trans) {
+        else if (transB == Op::Trans) {
             // Trans
             if (uplo == Uplo::Upper) {
                 // or uplo == Uplo::General
@@ -218,7 +224,7 @@ void hemm2(Side side,
     else {  // side == Side::Right
         using scalar_t = scalar_type<alpha_t, TA>;
 
-        if (trans == Op::NoTrans) {
+        if (transB == Op::NoTrans) {
             if (uplo != Uplo::Lower) {
                 // uplo == Uplo::Upper or uplo == Uplo::General
                 for (idx_t j = 0; j < n; ++j) {
@@ -264,7 +270,7 @@ void hemm2(Side side,
                 }
             }
         }
-        else if (trans == Op::Trans) {
+        else if (transB == Op::Trans) {
             // Trans
             if (uplo == Uplo::Upper) {
                 // or uplo == Uplo::General
@@ -361,17 +367,17 @@ void hemm2(Side side,
  *
  * @param[in] B
  *
- *     - If side = Left and trans = NoTrans or side = Right and trans =
+ *     - If side = Left and transB = NoTrans or side = Right and transB =
  * Trans/ConjTrans:  B n-by-m matrix.
- *     - If side = Right and trans = NoTrans or side = Left and trans =
+ *     - If side = Right and transB = NoTrans or side = Left and transB =
  * Trans/ConjTrans: B m-by-n matrix. Imaginary parts of the diagonal
  * elements need not be set, are assumed to be zero on entry, and are set to
  * zero on exit.
  *
  * @param[in, out] C
- *     - If side = Left and trans = NoTrans or side = Right and trans =
+ *     - If side = Left and transB = NoTrans or side = Right and transB =
  * Trans/ConjTrans:  B n-by-m matrix.
- *     - If side = Right and trans = NoTrans or side = Left and trans =
+ *     - If side = Right and transB = NoTrans or side = Left and transB =
  * Trans/ConjTrans: B m-by-n matrix.
  *
  * @ingroup blas3
@@ -388,7 +394,7 @@ template <TLAPACK_MATRIX matrixA_t,
                                      pair<alpha_t, T>>>
 void hemm2(Side side,
            Uplo uplo,
-           Op trans,
+           Op transB,
            const alpha_t& alpha,
            const matrixA_t& A,
            const matrixB_t& B,

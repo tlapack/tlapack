@@ -68,14 +68,19 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
 
     const Side side = GENERATE(Side::Left, Side::Right);
     const Uplo uplo = GENERATE(Uplo::Upper, Uplo::Lower);
-    const Op trans = GENERATE(Op::NoTrans, Op::Trans, Op::ConjTrans);
+    const Op transB = GENERATE(Op::NoTrans, Op::Trans, Op::ConjTrans);
 
     T alpha;
     T beta;
 
     if constexpr (is_complex<T>) {
-        alpha = T(GENERATE(1, 2, -7, 8.6), GENERATE(1, 0, -7, 8.6));
-        beta = T(GENERATE(1, 2, -4, 6.5), GENERATE(1, 0, -4, 6.5));
+        auto a_real = GENERATE(1, 2, -7, 8.6);
+        auto a_imag = GENERATE(1, 0, -7, 8.6);
+        auto b_real = GENERATE(1, 2, -4, 6.5);
+        auto b_imag = GENERATE(1, 0, -4, 6.5);
+
+        alpha = T(a_real, a_imag);
+        beta = T(b_real, b_imag);
     }
     else {
         alpha = GENERATE(1, 2, -7, 8.6);
@@ -85,7 +90,7 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
     bool verbose = false;
 
     DYNAMIC_SECTION("n = " << n << " m = " << m << " side = " << side
-                           << " uplo = " << uplo << " op = " << trans
+                           << " uplo = " << uplo << " op = " << transB
                            << " alpha = " << alpha << " beta = " << beta)
     {
         // eps is the machine precision, and tol is the tolerance we accept for
@@ -120,7 +125,7 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
                 A(j, j) = T(real(A(j, j)) + n, 0);
             }
             else {
-                A(j, j) += real_t(n);
+                A(j, j) = A(j, j) + n;
             }
         }
         if (verbose) {
@@ -137,9 +142,9 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
 
         // Create the B transpose
         if (side == Side::Left) {
-            for (int i = 0; i < n; i++) {
-                for (int j = 0; j < m; j++) {
-                    if (trans == Op::ConjTrans) {
+            for (idx_t i = 0; i < n; i++) {
+                for (idx_t j = 0; j < m; j++) {
+                    if (transB == Op::ConjTrans) {
                         BT(i, j) = conj(B(j, i));
                     }
                     else {
@@ -149,9 +154,9 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
             }
         }
         else {
-            for (int i = 0; i < m; i++) {
-                for (int j = 0; j < n; j++) {
-                    if (trans == Op::ConjTrans) {
+            for (idx_t i = 0; i < m; i++) {
+                for (idx_t j = 0; j < n; j++) {
+                    if (transB == Op::ConjTrans) {
                         BT(i, j) = conj(B(j, i));
                     }
                     else {
@@ -202,9 +207,9 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
         }
 
         // Do Hemm2 If No Trans use BT
-        (trans == Op::NoTrans)
-            ? hemm2(side, uplo, trans, alpha, A, BT, beta, ansHemm2)
-            : hemm2(side, uplo, trans, alpha, A, B, beta, ansHemm2);
+        (transB == Op::NoTrans)
+            ? hemm2(side, uplo, transB, alpha, A, BT, beta, ansHemm2)
+            : hemm2(side, uplo, transB, alpha, A, B, beta, ansHemm2);
         if (verbose) {
             std::cout << "\nthis is ansHemm2";
             printMatrix(ansHemm2);

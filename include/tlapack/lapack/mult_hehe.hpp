@@ -58,7 +58,7 @@ void mult_hehe(Uplo uplo,
                const beta_t& beta,
                matrixC_t& C)
 {
-    using TB = type_t<matrixB_t>;
+    // using TB = type_t<matrixB_t>;
     using TA = type_t<matrixA_t>;
     using TC = type_t<matrixC_t>;
     typedef tlapack::real_type<TA> real_t;
