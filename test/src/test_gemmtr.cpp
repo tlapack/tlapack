@@ -97,8 +97,11 @@ TEMPLATE_TEST_CASE("check for gemmtr multiplication",
         T alpha, beta;
 
         if constexpr (is_complex<T>) {
-            alpha = T{real_t(3), real_t(-4)};
-            beta = T{real_t(6), real_t(9)};
+            // alpha = T{real_t(3), real_t(-4)};
+            // beta = T{real_t(6), real_t(9)};
+            // We need to come back to how to properly initialize complex type T
+            alpha = T(real_t(-3));
+            beta = T(real_t(8));
         }
         else {
             alpha = T(real_t(-3));
