@@ -372,9 +372,9 @@ void gemmtr(Uplo uplo,
             "Infs and NaNs in C on input will not propagate to C on output");
 
     return ::blas::gemmtr((::blas::Layout)L, (::blas::Uplo)uplo,
-                        (::blas::Op)transA, (::blas::Op)transB, m, n, k, alpha,
-                        A_.ptr, A_.ldim, B_.ptr, B_.ldim, (T)beta, C_.ptr,
-                        C_.ldim);
+                          (::blas::Op)transA, (::blas::Op)transB, m, n, k,
+                          alpha, A_.ptr, A_.ldim, B_.ptr, B_.ldim, (T)beta,
+                          C_.ptr, C_.ldim);
 }
 
 #endif
