@@ -62,9 +62,9 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
     // MatrixMarket reader
     MatrixMarket mm;
 
-    const idx_t n = GENERATE(5);
+    const idx_t n = GENERATE(5, 6, 10, 12);
 
-    const Uplo uplo = GENERATE(Uplo::Upper);
+    const Uplo uplo = GENERATE(Uplo::Upper, Uplo::Lower);
 
     bool verbose = false;
 
