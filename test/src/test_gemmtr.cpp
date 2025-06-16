@@ -97,12 +97,12 @@ TEMPLATE_TEST_CASE("check for gemmtr multiplication",
         T alpha, beta;
 
         if constexpr (is_complex<T>) {
-            alpha = T(real_t(3), real_t(-4));
-            beta = T(real_t(6), real_t(9));
+            alpha = T{ real_t(3), real_t(-4) };
+            beta = T{ real_t(6), real_t(9)};
         }
         else {
-            alpha = T(-3);
-            beta = T(8);
+            alpha = T(real_t(-3));
+            beta = T(real_t(8));
         }
         {
             // Calculate residuals
