@@ -1,5 +1,5 @@
-/// @file hemm.hpp
-/// @author Weslley S Pereira, University of Colorado Denver, USA
+/// @file hemm2.hpp
+/// @author Brian Dang, University of Colorado Denver, USA
 //
 // Copyright (c) 2017-2021, University of Tennessee. All rights reserved.
 // Copyright (c) 2025, University of Colorado Denver. All rights reserved.
@@ -14,20 +14,51 @@
 #include "tlapack/base/utils.hpp"
 
 namespace tlapack {
-/// Print matrix A in the standard output
-template <typename matrix_t>
-void printMatrix(const matrix_t& A)
-{
-    using idx_t = size_type<matrix_t>;
-    const idx_t m = nrows(A);
-    const idx_t n = ncols(A);
 
-    for (idx_t i = 0; i < m; ++i) {
-        std::cout << std::endl;
-        for (idx_t j = 0; j < n; ++j)
-            std::cout << A(i, j) << " ";
-    }
-}
+/**
+ * Hermitian matrix-Hermitian matrix multiply:
+ * \[
+ *      C := \alpha A B + \beta C,
+ * \]
+ * \[
+ *      C := \alpha B A + \beta C,
+ * \]
+ * where alpha and beta are scalars, A and B are n-by-n Hermitian matrices and C
+ * is an n-by-n matrix
+ *
+ * @param[in] side
+ *      The side the matrix A appears on:
+ *     - Side::Left:  $C = \alpha A B + \beta C$,
+ *     - Side::Right: $C = \alpha B A + \beta C$.
+ *
+ * @param[in] uplo
+ *     What part of the matrix A is referenced:
+ *     - Uplo::Lower: only the lower triangular part of A is referenced.
+ *     - Uplo::Upper: only the upper triangular part of A is referenced.
+ *
+ * @param[in] alpha Scalar.
+ *
+ * @param[in] A A n-by-n matrix
+ *
+ * @param[in] B
+ *
+ *     - If side = Left and trans = NoTrans or side = Right and trans =
+ * Trans/ConjTrans:  B n-by-m matrix.
+ *     - If side = Right and trans = NoTrans or side = Left and trans =
+ * Trans/ConjTrans: B m-by-n matrix. Imaginary parts of the diagonal
+ * elements need not be set, are assumed to be zero on entry, and are set to
+ * zero on exit.
+ *
+ * @param[in] beta Scalar.
+ *
+ * @param[in, out] C
+ *     - If side = Left and trans = NoTrans or side = Right and trans =
+ * Trans/ConjTrans:  B n-by-m matrix.
+ *     - If side = Right and trans = NoTrans or side = Left and trans =
+ * Trans/ConjTrans: B m-by-n matrix.
+ *
+ * @ingroup blas3
+ */
 
 template <TLAPACK_MATRIX matrixA_t,
           TLAPACK_MATRIX matrixB_t,
@@ -39,7 +70,7 @@ template <TLAPACK_MATRIX matrixA_t,
                                      pair<matrixB_t, T>,
                                      pair<matrixC_t, T>,
                                      pair<alpha_t, T>,
-                                     pair<beta_t, T> > = 0>
+                                     pair<beta_t, T>> = 0>
 void hemm2(Side side,
            Uplo uplo,
            Op trans,
@@ -59,13 +90,26 @@ void hemm2(Side side,
     const idx_t n = ncols(B);
 
     // // check arguments
-    // tlapack_check_false(side != Side::Left && side != Side::Right);
-    // tlapack_check_false(uplo != Uplo::Lower && uplo != Uplo::Upper &&
-    //                     uplo != Uplo::General);
-    // tlapack_check_false(nrows(A) != ncols(A));
-    // tlapack_check_false(nrows(A) != ((side == Side::Left) ? m : n));
-    // tlapack_check_false(nrows(C) != m);
-    // tlapack_check_false(ncols(C) != n);
+    tlapack_check_false(side != Side::Left && side != Side::Right);
+    tlapack_check_false(uplo != Uplo::Lower && uplo != Uplo::Upper &&
+                        uplo != Uplo::General);
+    tlapack_check_false(nrows(A) != ncols(A));
+    if ((side == Side::Left && trans == Op::NoTrans) ||
+        (side == Side::Right &&
+         (trans == Op::Trans || trans == Op::ConjTrans))) {
+        tlapack_check_false(ncols(A) != m);
+    }
+    else {
+        tlapack_check_false(nrows(A) != n);
+    }
+    if (trans == Op::NoTrans) {
+        tlapack_check_false(nrows(C) != m);
+        tlapack_check_false(ncols(C) != n);
+    }
+    else {
+        tlapack_check_false(nrows(C) != n);
+        tlapack_check_false(ncols(C) != m);
+    }
 
     if (side == Side::Left) {
         if (trans == Op::NoTrans) {
@@ -172,7 +216,6 @@ void hemm2(Side side,
         }
     }
     else {  // side == Side::Right
-
         using scalar_t = scalar_type<alpha_t, TA>;
 
         if (trans == Op::NoTrans) {
@@ -288,6 +331,70 @@ void hemm2(Side side,
             }
         }
     }
+}
+
+/**
+ * Hermitian matrix-Hermitian matrix multiply:
+ * \[
+ *      C := \alpha A B,
+ * \]
+ * or
+ * \[
+ *      C := \alpha B A,
+ * \]
+ * where alpha is a scalar, A is a n-by-n Hermitian matrix, B and C are n-by-m
+ * or m-by-n matrices.
+ *
+ * @param[in] side
+ *      The side the matrix A appears on:
+ *     - Side::Left:  $C = \alpha A B$,
+ *     - Side::Right: $C = \alpha B A$.
+ *
+ * @param[in] uplo
+ *     What part of the matrix A is referenced:
+ *     - Uplo::Lower: only the lower triangular part of A is referenced.
+ *     - Uplo::Upper: only the upper triangular part of A is referenced.
+ *
+ * @param[in] alpha Scalar.
+ *
+ * @param[in] A A n-by-n matrix
+ *
+ * @param[in] B
+ *
+ *     - If side = Left and trans = NoTrans or side = Right and trans =
+ * Trans/ConjTrans:  B n-by-m matrix.
+ *     - If side = Right and trans = NoTrans or side = Left and trans =
+ * Trans/ConjTrans: B m-by-n matrix. Imaginary parts of the diagonal
+ * elements need not be set, are assumed to be zero on entry, and are set to
+ * zero on exit.
+ *
+ * @param[in, out] C
+ *     - If side = Left and trans = NoTrans or side = Right and trans =
+ * Trans/ConjTrans:  B n-by-m matrix.
+ *     - If side = Right and trans = NoTrans or side = Left and trans =
+ * Trans/ConjTrans: B m-by-n matrix.
+ *
+ * @ingroup blas3
+ */
+
+template <TLAPACK_MATRIX matrixA_t,
+          TLAPACK_MATRIX matrixB_t,
+          TLAPACK_MATRIX matrixC_t,
+          TLAPACK_SCALAR alpha_t,
+          class T = type_t<matrixC_t>,
+          disable_if_allow_optblas_t<pair<matrixA_t, T>,
+                                     pair<matrixB_t, T>,
+                                     pair<matrixC_t, T>,
+                                     pair<alpha_t, T>>>
+void hemm2(Side side,
+           Uplo uplo,
+           Op trans,
+           const alpha_t& alpha,
+           const matrixA_t& A,
+           const matrixB_t& B,
+           matrixC_t& C)
+{
+    return hemm2(side, uplo, alpha, A, B, StrongZero(), C);
 }
 
 }  // namespace tlapack

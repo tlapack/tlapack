@@ -1,4 +1,4 @@
-/// @file test_lu_mult.cpp
+/// @file test_hemm2.cpp
 /// @author Brian Dang, University of Colorado Denver, USA
 /// @brief Test LLH multiplication
 //
@@ -30,23 +30,23 @@ using namespace tlapack;
         (TestUploMatrix<float, size_t, Uplo::Lower, Layout::RowMajor>), \
         (TestUploMatrix<float, size_t, Uplo::Upper, Layout::RowMajor>)
 
-// /// Print matrix A in the standard output
-// template <typename matrix_t>
-// void printMatrix(const matrix_t& A)
-// {
-//     using idx_t = size_type<matrix_t>;
-//     const idx_t m = nrows(A);
-//     const idx_t n = ncols(A);
+/// Print matrix A in the standard output
+template <typename matrix_t>
+void printMatrix(const matrix_t& A)
+{
+    using idx_t = size_type<matrix_t>;
+    const idx_t m = nrows(A);
+    const idx_t n = ncols(A);
 
-//     for (idx_t i = 0; i < m; ++i) {
-//         std::cout << std::endl;
-//         for (idx_t j = 0; j < n; ++j)
-//             std::cout << A(i, j) << " ";
-//     }
-// }
+    for (idx_t i = 0; i < m; ++i) {
+        std::cout << std::endl;
+        for (idx_t j = 0; j < n; ++j)
+            std::cout << A(i, j) << " ";
+    }
+}
 
 TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
-                   "[hemm_brian]",
+                   "[hemm2]",
                    TLAPACK_TYPES_TO_TEST,
                    TESTUPLO_TYPES_TO_TEST)
 
@@ -63,17 +63,24 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
     // MatrixMarket reader
     MatrixMarket mm;
 
-    // const idx_t n = GENERATE(5, 10, 20, 23, 30);
-    // const idx_t m = GENERATE(2, 17, 18, 20, 26);
-
-    const idx_t m = GENERATE(3, 8, 6, 4, 2, 5, 4, 8);
-    const idx_t n = GENERATE(5, 6, 4, 3, 2, 5, 4, 15);
+    const idx_t m = GENERATE(3, 8, 6, 8);
+    const idx_t n = GENERATE(5, 6, 4, 15);
 
     const Side side = GENERATE(Side::Left, Side::Right);
     const Uplo uplo = GENERATE(Uplo::Upper, Uplo::Lower);
     const Op trans = GENERATE(Op::NoTrans, Op::Trans, Op::ConjTrans);
-    const T alpha = GENERATE(1, 3.2, 22.4, 2, 2.4);
-    const T beta = GENERATE(20.10, 2.11, 4, 5, 2.3);
+
+    T alpha;
+    T beta;
+
+    if constexpr (is_complex<T>) {
+        alpha = T(GENERATE(1, 2, -7, 8.6), GENERATE(1, 0, -7, 8.6));
+        beta = T(GENERATE(1, 2, -4, 6.5), GENERATE(1, 0, -4, 6.5));
+    }
+    else {
+        alpha = GENERATE(1, 2, -7, 8.6);
+        beta = GENERATE(1, 2, -4, 6.5);
+    }
 
     bool verbose = false;
 
