@@ -126,12 +126,12 @@ TEMPLATE_TEST_CASE("check for gemmtr multiplication",
                 CHECK(normres <=
                       tol * (abs1(alpha) * norma * normb + abs1(beta) * normc));
 
-                real_t sum = 0;
+                real_t sum(0);
                 for (idx_t j = 0; j < n; j++)  // Check strictly lower part
                     for (idx_t i = j + 1; i < n; i++)
                         sum += abs1(C1(i, j) - C0(i, j));
 
-                CHECK(sum == 0);
+                CHECK(sum == real_t(0));
             }
             else {
                 for (idx_t i = 0; i < n; i++)  // Check of lower part
@@ -143,12 +143,12 @@ TEMPLATE_TEST_CASE("check for gemmtr multiplication",
                 CHECK(normres <=
                       tol * (abs1(alpha) * norma * normb + abs1(beta) * normc));
 
-                real_t sum = 0;
+                real_t sum(0);
                 for (idx_t i = 0; i < n; i++)  // Check strictly upper part
                     for (idx_t j = i + 1; j < n; j++)
                         sum += abs1(C1(i, j) - C0(i, j));
 
-                CHECK(sum == 0);
+                CHECK(sum == real_t(0));
             }
         }
     }
