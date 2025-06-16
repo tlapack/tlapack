@@ -40,9 +40,6 @@ namespace tlapack {
  *
  * @param[in, out] C n-by-n matrix.
  *
- *
- * @return WorkInfo The amount workspace required.
- *
  * @ingroup auxiliary
  */
 

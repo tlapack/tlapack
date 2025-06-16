@@ -361,6 +361,12 @@ void hemm2(Side side,
  *     - Uplo::Lower: only the lower triangular part of A is referenced.
  *     - Uplo::Upper: only the upper triangular part of A is referenced.
  *
+ * @param[in] transB
+ *     The operation $op(B)$ to be used:
+ *     - Op::NoTrans:   $op(B) = B$.
+ *     - Op::Trans:     $op(B) = B^T$.
+ *     - Op::ConjTrans: $op(B) = B^H$.
+ *
  * @param[in] alpha Scalar.
  *
  * @param[in] A A n-by-n matrix
