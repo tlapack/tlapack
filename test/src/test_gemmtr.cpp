@@ -17,7 +17,7 @@
 #include <tlapack/lapack/lange.hpp>
 #include <tlapack/lapack/lantr.hpp>
 // Other routines
-#include <tlapack/blas/gemmtr.hpp>
+#include <tlapack/lapack/gemmtr.hpp>
 
 using namespace tlapack;
 
