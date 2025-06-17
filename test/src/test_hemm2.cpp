@@ -79,8 +79,14 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
         auto b_real = GENERATE(1, 2, -4, 6.5);
         auto b_imag = GENERATE(1, 0, -4, 6.5);
 
-        alpha = T(real(a_real), real(a_imag));
-        beta = T(real(b_real), real(b_imag));
+        a_real = real(a_real);
+        a_imag = real(a_imag);
+
+        b_real = real(b_real);
+        a_imag = real(b_imag);
+
+        alpha = T(a_real, a_imag);
+        beta = T(b_real, b_imag);
     }
     else {
         auto a_real = GENERATE(1, 2, -7, 8.6);
