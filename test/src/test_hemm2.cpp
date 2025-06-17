@@ -70,22 +70,20 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
     const Uplo uplo = GENERATE(Uplo::Upper, Uplo::Lower);
     const Op transB = GENERATE(Op::NoTrans, Op::Trans, Op::ConjTrans);
 
-    T alpha;
-    T beta;
-
     auto a_real = GENERATE(1.0f, -2.0f, 3.5f);
     auto a_imag = GENERATE(0.0f, 4.2f);
     auto b_real = GENERATE(1.0f, 0.5f);
     auto b_imag = GENERATE(-1.5f, 3.3f);
 
+    T alpha, beta;
+
     if constexpr (is_complex<T>) {
-        using real_t = real_type<T>;
-        alpha = T(static_cast<real_t>(a_real), static_cast<real_t>(a_imag));
-        beta = T(static_cast<real_t>(b_real), static_cast<real_t>(b_imag));
+        alpha = T{a_real, a_imag};
+        beta = T{b_real, b_imag};
     }
     else {
-        alpha = static_cast<T>(a_real);
-        beta = static_cast<T>(b_real);
+        alpha = a_real;
+        beta = b_real;
     }
 
     bool verbose = false;
@@ -126,8 +124,7 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
                 A(j, j) = T{real(A(j, j)) + n, 0};
             }
             else {
-                auto v = static_cast<real_t>(real(A(j, j)) + n);
-                A(j, j) = static_cast<T>(v);
+                A(j, j) = real(A(j, j)) + n;
             }
         }
         if (verbose) {
