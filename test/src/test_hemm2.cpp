@@ -70,18 +70,19 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
     const Uplo uplo = GENERATE(Uplo::Upper, Uplo::Lower);
     const Op transB = GENERATE(Op::NoTrans, Op::Trans, Op::ConjTrans);
 
-    auto a_real = GENERATE(1.0f, -2.0f, 3.5f);
-    auto a_imag = GENERATE(0.0f, 4.2f);
-    auto b_real = GENERATE(1.0f, 0.5f);
-    auto b_imag = GENERATE(-1.5f, 3.3f);
-
     T alpha, beta;
 
     if constexpr (is_complex<T>) {
+        auto a_real = GENERATE(1.0f, -2.0f, 3.5f);
+        auto a_imag = GENERATE(0.0f, 4.2f);
+        auto b_real = GENERATE(1.0f, 0.5f);
+        auto b_imag = GENERATE(-1.5f, 3.3f);
         alpha = T{a_real, a_imag};
         beta = T{b_real, b_imag};
     }
     else {
+        auto a_real = GENERATE(1.0f, -2.0f, 3.5f);
+        auto b_real = GENERATE(1.0f, 0.5f);
         alpha = static_cast<T>(a_real);
         beta = static_cast<T>(b_real);
     }
