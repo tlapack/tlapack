@@ -82,8 +82,8 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
         beta = T{b_real, b_imag};
     }
     else {
-        alpha = a_real;
-        beta = b_real;
+        alpha = static_cast<T>(a_real);
+        beta = static_cast<T>(b_real);
     }
 
     bool verbose = false;
@@ -124,7 +124,7 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
                 A(j, j) = T{real(A(j, j)) + n, 0};
             }
             else {
-                A(j, j) = real(A(j, j)) + n;
+                A(j, j) = static_cast<T>(real(A(j, j)) + n);
             }
         }
         if (verbose) {
