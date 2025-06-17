@@ -80,15 +80,13 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
     // std::cout << typeid(alpha).name() << " " << typeid(beta).name()
     //           << std::endl;
 
-    if constexpr (is_complex<T>) {
-        alpha.real(a_real);
-        alpha.imag(a_imag);
-        beta.real(b_real);
-        beta.imag(b_imag);
-    }
-    else {
+    if (is_real<T>) {
         alpha = a_real;
         beta = b_real;
+    }
+    else {
+        alpha = T(a_real, a_imag);
+        beta = T(b_real, b_imag);
     }
 
     bool verbose = false;
@@ -125,12 +123,11 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
         // Update A with random numbers, and make it positive definite
         mm.random(uplo, A);
         for (idx_t j = 0; j < n; ++j) {
-            if constexpr (is_complex<T>) {
-                A(j, j).real(A(j, j).real() + n);
-                A(j, j).imag(0);
+            if (is_real<T>) {
+                A(j, j) = real(A(j, j)) + n;
             }
             else {
-                A(j, j) = real(A(j, j)) + n;
+                A(j, j) = T(real(A(j, j)) + n, 0);
             }
         }
         if (verbose) {
