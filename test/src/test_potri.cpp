@@ -1,6 +1,7 @@
-/// @file test_hemm2.cpp
-/// @author Brian Dang, University of Colorado Denver, USA
-/// @brief Test LLH multiplication
+/// @file test_potri.cpp
+/// @author L. Carlos Gutierrez, Brian Dang, and Henricus Bouwmeester,
+/// University of Colorado Denver, USA
+/// @brief Test Potri Function
 //
 // Copyright (c) 2025, University of Colorado Denver. All rights reserved.
 //
@@ -8,9 +9,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#include "TestUploMatrix.hpp"
-
 // Test utilities and definitions (must come before <T>LAPACK headers)
+#include "TestUploMatrix.hpp"
 #include "testutils.hpp"
 
 // Auxiliary routines
@@ -44,8 +44,8 @@ void printMatrix(const matrix_t& A)
     }
 }
 
-TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
-                   "[hemm2]",
+TEMPLATE_TEST_CASE("compute the inverse of a hermitian matrix",
+                   "[potri]",
                    TLAPACK_TYPES_TO_TEST,
                    TESTUPLO_TYPES_TO_TEST)
 
@@ -154,7 +154,7 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
             }
         }
 
-        real_t error = lange(FROB_NORM, C) / normA * normAIn;
+        real_t error = lange(FROB_NORM, C) / normA / normAIn;
         CHECK(error <= tol);
     }
 }
