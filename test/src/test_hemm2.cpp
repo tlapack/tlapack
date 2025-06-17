@@ -74,19 +74,20 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
     T beta;
 
     if constexpr (is_complex<T>) {
-        auto a_real = GENERATE(1, 2, -7, 8.6);
-        auto a_imag = GENERATE(1, 0, -7, 8.6);
-        auto b_real = GENERATE(1, 2, -4, 6.5);
-        auto b_imag = GENERATE(1, 0, -4, 6.5);
+        auto a_real = real(GENERATE(1, 2, -7, 8.6));
+        auto a_imag = real(GENERATE(1, 0, -7, 8.6));
+        auto b_real = real(GENERATE(1, 2, -4, 6.5));
+        auto b_imag = real(GENERATE(1, 0, -4, 6.5));
 
-        alpha = T{a_real, a_imag};
+        alpha = T{a_real, a_imag};  // Only used when T is std::complex
         beta = T{b_real, b_imag};
     }
     else {
-        auto a_real = GENERATE(1, 2, -7, 8.6);
-        auto b_real = GENERATE(1, 2, -4, 6.5);
-        alpha = T(a_real);
-        beta = T(b_real);
+        auto a_real = real(GENERATE(1, 2, -7, 8.6));
+        auto b_real = real(GENERATE(1, 2, -4, 6.5));
+
+        alpha = a_real;  // or just alpha = a_real;
+        beta = b_real;
     }
 
     bool verbose = false;
@@ -124,10 +125,10 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
         mm.random(uplo, A);
         for (idx_t j = 0; j < n; ++j) {
             if constexpr (is_complex<T>) {
-                A(j, j) = T(real(A(j, j)) + n, 0);
+                A(j, j) = T{real(A(j, j)) + n, 0};
             }
             else {
-                A(j, j) = T(real(A(j, j)) + n);
+                A(j, j) = real(A(j, j)) + n;
             }
         }
         if (verbose) {
