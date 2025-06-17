@@ -79,20 +79,14 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
         auto b_real = GENERATE(1, 2, -4, 6.5);
         auto b_imag = GENERATE(1, 0, -4, 6.5);
 
-        a_real = real(a_real);
-        a_imag = real(a_imag);
-
-        b_real = real(b_real);
-        a_imag = real(b_imag);
-
-        alpha = T(a_real, a_imag);
-        beta = T(b_real, b_imag);
+        alpha = T{a_real, a_imag};
+        beta = T{b_real, b_imag};
     }
     else {
         auto a_real = GENERATE(1, 2, -7, 8.6);
         auto b_real = GENERATE(1, 2, -4, 6.5);
-        alpha = a_real;
-        beta = b_real;
+        alpha = T(a_real);
+        beta = T(b_real);
     }
 
     bool verbose = false;
@@ -133,7 +127,7 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
                 A(j, j) = T(real(A(j, j)) + n, 0);
             }
             else {
-                A(j, j) = A(j, j) + n;
+                A(j, j) = T(A(j, j) + n);
             }
         }
         if (verbose) {
