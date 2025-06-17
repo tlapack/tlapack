@@ -45,6 +45,33 @@ void printMatrix(const matrix_t& A)
     }
 }
 
+// Helper to set alpha and beta safely for both real and complex types
+template <typename T>
+void set_scalars(T& alpha,
+                 T& beta,
+                 real_type<T> a_real,
+                 real_type<T> /*a_imag*/,
+                 real_type<T> b_real,
+                 real_type<T> /*b_imag*/)
+{
+    alpha = a_real;
+    beta = b_real;
+}
+
+template <typename T>
+void set_scalars(std::complex<T>& alpha,
+                 std::complex<T>& beta,
+                 T a_real,
+                 T a_imag,
+                 T b_real,
+                 T b_imag)
+{
+    alpha.real(a_real);
+    alpha.imag(a_imag);
+    beta.real(b_real);
+    beta.imag(b_imag);
+}
+
 TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
                    "[hemm2]",
                    TLAPACK_TYPES_TO_TEST,
@@ -72,22 +99,15 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
 
     T alpha, beta;
 
-    auto a_real = GENERATE(2, 5, 2.4, 2.5);
-    auto a_imag = GENERATE(2, 5, 2.4, 2.5);
-    auto b_real = GENERATE(2, 5, 2.4, 2.5);
-    auto b_imag = GENERATE(2, 5, 2.4, 2.5);
+    real_t a_real = GENERATE(real_t(2), real_t(5), real_t(2.4), real_t(2.5));
+    real_t a_imag = GENERATE(real_t(2), real_t(5), real_t(2.4), real_t(2.5));
+    real_t b_real = GENERATE(real_t(2), real_t(5), real_t(2.4), real_t(2.5));
+    real_t b_imag = GENERATE(real_t(2), real_t(5), real_t(2.4), real_t(2.5));
 
     // std::cout << typeid(alpha).name() << " " << typeid(beta).name()
     //           << std::endl;
 
-    if (is_real<T>) {
-        alpha = a_real;
-        beta = b_real;
-    }
-    else {
-        alpha = T(a_real, a_imag);
-        beta = T(b_real, b_imag);
-    }
+    set_scalars(alpha, beta, a_real, a_imag, b_real, b_imag);
 
     bool verbose = false;
 
@@ -123,12 +143,7 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
         // Update A with random numbers, and make it positive definite
         mm.random(uplo, A);
         for (idx_t j = 0; j < n; ++j) {
-            if (is_real<T>) {
-                A(j, j) = real(A(j, j)) + n;
-            }
-            else {
-                A(j, j) = T(real(A(j, j)) + n, 0);
-            }
+            A(j, j) += T(n);
         }
         if (verbose) {
             std::cout << "\nA = ";
