@@ -73,16 +73,10 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
     T alpha, beta;
 
     if constexpr (is_complex<T>) {
-        auto a_real = GENERATE(1.0f, -2.0f, 3.5f);
-        auto a_imag = GENERATE(0.0f, 4.2f);
-        auto b_real = GENERATE(1.0f, 0.5f);
-        auto b_imag = GENERATE(-1.5f, 3.3f);
-        alpha = T{a_real, a_imag};
-        beta = T{b_real, b_imag};
+        alpha = T(a_real, a_imag);
+        beta = T(b_real, b_imag);
     }
     else {
-        auto a_real = GENERATE(1.0f, -2.0f, 3.5f);
-        auto b_real = GENERATE(1.0f, 0.5f);
         alpha = static_cast<T>(a_real);
         beta = static_cast<T>(b_real);
     }
@@ -122,7 +116,7 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
         mm.random(uplo, A);
         for (idx_t j = 0; j < n; ++j) {
             if constexpr (is_complex<T>) {
-                A(j, j) = T{real(A(j, j)) + n, 0};
+                A(j, j) = T(real(A(j, j)) + n, 0);
             }
             else {
                 A(j, j) = static_cast<T>(real(A(j, j)) + n);
