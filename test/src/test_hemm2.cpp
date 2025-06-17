@@ -66,11 +66,6 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
     const idx_t m = GENERATE(3, 8, 6, 8);
     const idx_t n = GENERATE(5, 6, 4, 15);
 
-    auto a_real = GENERATE(1, 2, -7, 8.6);
-    auto a_imag = GENERATE(1, 0, -7, 8.6);
-    auto b_real = GENERATE(1, 2, -4, 6.5);
-    auto b_imag = GENERATE(1, 0, -4, 6.5);
-
     const Side side = GENERATE(Side::Left, Side::Right);
     const Uplo uplo = GENERATE(Uplo::Upper, Uplo::Lower);
     const Op transB = GENERATE(Op::NoTrans, Op::Trans, Op::ConjTrans);
@@ -78,18 +73,19 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
     T alpha;
     T beta;
 
-    if constexpr (is_complex<T>) {
-        real_t ar = static_cast<real_t>(a_real);
-        real_t ai = static_cast<real_t>(a_imag);
-        real_t br = static_cast<real_t>(b_real);
-        real_t bi = static_cast<real_t>(b_imag);
+    auto a_real = GENERATE(1.0f, -2.0f, 3.5f);
+    auto a_imag = GENERATE(0.0f, 4.2f);
+    auto b_real = GENERATE(1.0f, 0.5f);
+    auto b_imag = GENERATE(-1.5f, 3.3f);
 
-        alpha = T{ar, ai};
-        beta = T{br, bi};
+    if constexpr (is_complex<T>) {
+        using real_t = real_type<T>;
+        alpha = T(static_cast<real_t>(a_real), static_cast<real_t>(a_imag));
+        beta = T(static_cast<real_t>(b_real), static_cast<real_t>(b_imag));
     }
     else {
-        alpha = a_real;  // or just alpha = a_real;
-        beta = b_real;
+        alpha = static_cast<T>(a_real);
+        beta = static_cast<T>(b_real);
     }
 
     bool verbose = false;
@@ -130,7 +126,8 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
                 A(j, j) = T{real(A(j, j)) + n, 0};
             }
             else {
-                A(j, j) = real(A(j, j)) + n;
+                auto v = static_cast<real_t>(real(A(j, j)) + n);
+                A(j, j) = static_cast<T>(v);
             }
         }
         if (verbose) {
