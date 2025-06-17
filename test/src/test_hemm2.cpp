@@ -59,12 +59,12 @@ void setScalar(std::complex<T>& alpha, real_type<T> a_real, real_type<T> a_imag)
     alpha.imag(a_imag);
 }
 
-// Overload for Eigen::half
-template <typename T>
-void setScalar(Eigen::half& alpha, real_type<T> a_real, real_type<T> a_imag)
-{
-    alpha = static_cast<T>(a_real);
-}
+// // Overload for Eigen::half
+// template <typename T>
+// void setScalar(Eigen::half& alpha, real_type<T> a_real, real_type<T> a_imag)
+// {
+//     alpha = static_cast<T>(a_real);
+// }
 
 TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
                    "[hemm2]",
