@@ -127,7 +127,7 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
                 A(j, j) = T(real(A(j, j)) + n, 0);
             }
             else {
-                A(j, j) = T(A(j, j) + n);
+                A(j, j) = T(real(A(j, j)) + n);
             }
         }
         if (verbose) {
