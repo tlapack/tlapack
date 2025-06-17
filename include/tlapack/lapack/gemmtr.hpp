@@ -57,12 +57,7 @@ template <TLAPACK_MATRIX matrixA_t,
           TLAPACK_MATRIX matrixC_t,
           TLAPACK_SCALAR alpha_t,
           TLAPACK_SCALAR beta_t,
-          class T = type_t<matrixC_t>,
-          disable_if_allow_optblas_t<pair<matrixA_t, T>,
-                                     pair<matrixB_t, T>,
-                                     pair<matrixC_t, T>,
-                                     pair<alpha_t, T>,
-                                     pair<beta_t, T> > = 0>
+          class T = type_t<matrixC_t>>
 void gemmtr(Uplo uplo,
             Op transA,
             Op transB,
