@@ -47,22 +47,16 @@ void printMatrix(const matrix_t& A)
 
 // Helper to set alpha and beta safely for both real and complex types
 template <typename T>
-void set_scalars(T& alpha, T& beta, real_type<T> a_real, real_type<T> b_real)
+void setScalar(T& alpha, real_type<T> a_real, real_type<T> a_imag)
 {
     alpha = a_real;
-    beta = b_real;
 }
 
 template <typename T>
-void set_scalars(std::complex<T>& alpha,
-                 std::complex<T>& beta,
-                 T a_real,
-                 T b_real)
+void setScalar(std::complex<T>& alpha, real_type<T> a_real, real_type<T> a_imag)
 {
     alpha.real(a_real);
-    alpha.imag(b_real);
-    beta.real(b_real);
-    beta.imag(a_real);
+    alpha.imag(a_imag);
 }
 
 TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
@@ -97,7 +91,8 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
     real_t b_real = GENERATE(real_t(2), real_t(5), real_t(2.4), real_t(2.5));
     real_t b_imag = GENERATE(real_t(2), real_t(5), real_t(2.4), real_t(2.5));
 
-    set_scalars(alpha, beta, a_real, b_real);
+    setScalar(alpha, a_real, b_real);
+    setScalar(beta, b_real, b_imag);
 
     bool verbose = false;
 
@@ -133,12 +128,7 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
         // Update A with random numbers, and make it positive definite
         mm.random(uplo, A);
         for (idx_t j = 0; j < n; ++j) {
-            if constexpr (is_complex<T>) {
-                A(j, j) = T(n + j, 0);
-            }
-            else {
-                A(j, j) = n + j;
-            }
+            setScalar(A(j, j), n + j, 0);
         }
         if (verbose) {
             std::cout << "\nA = ";
