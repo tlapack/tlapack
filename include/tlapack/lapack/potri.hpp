@@ -11,6 +11,7 @@
 #ifndef TLAPACK_POTRI_HH
 #define TLAPACK_POTRI_HH
 
+#include "tlapack/base/utils.hpp"
 #include "tlapack/lapack/lauum_recursive.hpp"
 #include "tlapack/lapack/potrf2.hpp"
 #include "tlapack/lapack/trtri_recursive.hpp"
