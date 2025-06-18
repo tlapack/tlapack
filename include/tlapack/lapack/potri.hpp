@@ -1,4 +1,4 @@
-/// @file potrfi.hpp Computes the Inverse of a Hermitian positive
+/// @file potri.hpp Computes the Inverse of a Hermitian positive
 /// definite matrix A using recursive algorithms.
 /// @author Eleanor Addison-Taylor, University of Colorado Denver, USA
 //
