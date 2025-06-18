@@ -9,7 +9,6 @@
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
 // Plugins for <T>LAPACK (must come before <T>LAPACK headers)
-#include <tlapack/plugins/eigen.hpp>
 
 #include "TestUploMatrix.hpp"
 
@@ -21,7 +20,6 @@
 #include <tlapack/lapack/lange.hpp>
 
 // Other routines
-#include <Eigen/Dense>  // Include Eigen library
 #include <tlapack/blas/hemm.hpp>
 #include <tlapack/lapack/hemm2.hpp>
 
@@ -60,12 +58,6 @@ void setScalar(std::complex<T>& alpha, real_type<T> a_real, real_type<T> a_imag)
 {
     alpha.real(a_real);
     alpha.imag(a_imag);
-}
-
-template <>
-void setScalar(Eigen::half& alpha, float a_real, float /*a_imag*/)
-{
-    alpha = static_cast<Eigen::half>(a_real);
 }
 
 TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
