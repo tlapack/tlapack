@@ -66,10 +66,10 @@ TEMPLATE_TEST_CASE("uhu multiplication is backward stable",
     // Generate either -1 or 1
     float value = dist(gen) == 0 ? -1.0 : 1.0;
 
-    real_t aReal = value * (float)rand() / (float)RAND_MAX;
-    real_t aImag = value * (float)rand() / (float)RAND_MAX;
-    real_t bReal = value * (float)rand() / (float)RAND_MAX;
-    real_t bImag = value * (float)rand() / (float)RAND_MAX;
+    real_t aReal = real_t(value * (float)rand() / (float)RAND_MAX);
+    real_t aImag = real_t(value * (float)rand() / (float)RAND_MAX);
+    real_t bReal = real_t(value * (float)rand() / (float)RAND_MAX);
+    real_t bImag = real_t(value * (float)rand() / (float)RAND_MAX);
 
     setScalar(alpha, aReal, aImag);
     setScalar(beta, bReal, bImag);

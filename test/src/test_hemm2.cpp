@@ -8,8 +8,6 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-// Plugins for <T>LAPACK (must come before <T>LAPACK headers)
-
 #include "TestUploMatrix.hpp"
 
 // Test utilities and definitions (must come before <T>LAPACK headers)
@@ -99,10 +97,10 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
     // Generate either -1 or 1
     float value = dist(gen) == 0 ? -1.0 : 1.0;
 
-    real_t aReal = value * (float)rand() / (float)RAND_MAX;
-    real_t aImag = value * (float)rand() / (float)RAND_MAX;
-    real_t bReal = value * (float)rand() / (float)RAND_MAX;
-    real_t bImag = value * (float)rand() / (float)RAND_MAX;
+    real_t aReal = real_t(value * (float)rand() / (float)RAND_MAX);
+    real_t aImag = real_t(value * (float)rand() / (float)RAND_MAX);
+    real_t bReal = real_t(value * (float)rand() / (float)RAND_MAX);
+    real_t bImag = real_t(value * (float)rand() / (float)RAND_MAX);
 
     setScalar(alpha, aReal, aImag);
     setScalar(beta, bReal, bImag);

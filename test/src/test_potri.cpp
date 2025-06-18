@@ -11,6 +11,8 @@
 
 // Test utilities and definitions (must come before <T>LAPACK headers)
 #include "TestUploMatrix.hpp"
+
+// Test utilities and definitions (must come before <T>LAPACK headers)
 #include "testutils.hpp"
 
 // Auxiliary routines
@@ -112,11 +114,11 @@ TEMPLATE_TEST_CASE("compute the inverse of a hermitian matrix",
         }
         real_t normA = lange(FROB_NORM, A);
 
-        // Create Identiy
-        for (idx_t j = 0; j < n; j++) {
-            I(j, j) = real_t(1);
-        }
-
+        // Zero out the entire matrix first
+        laset(GENERAL, real_t(0), real_t(0), I);
+        // Set diagonal to 1
+        for (idx_t i = 0; i < n; ++i)
+            I(i, i) = real_t(1);
         if (verbose) {
             std::cout << "\nI = ";
             printMatrix(I);
