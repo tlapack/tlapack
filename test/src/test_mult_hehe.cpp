@@ -22,16 +22,16 @@ using namespace tlapack;
 
 // Helper to set alpha and beta safely for both real and complex types
 template <typename T>
-void setScalar(T& alpha, real_type<T> a_real, real_type<T> a_imag)
+void setScalar(T& alpha, real_type<T> aReal, real_type<T> aImag)
 {
-    alpha = a_real;
+    alpha = aReal;
 }
 
 template <typename T>
-void setScalar(std::complex<T>& alpha, real_type<T> a_real, real_type<T> a_imag)
+void setScalar(std::complex<T>& alpha, real_type<T> aReal, real_type<T> aImag)
 {
-    alpha.real(a_real);
-    alpha.imag(a_imag);
+    alpha.real(aReal);
+    alpha.imag(aImag);
 }
 
 TEMPLATE_TEST_CASE("uhu multiplication is backward stable",
@@ -56,15 +56,15 @@ TEMPLATE_TEST_CASE("uhu multiplication is backward stable",
 
     T alpha, beta;
 
-    real_t a_real = GENERATE(real_t(2), real_t(-5), real_t(-2.4), real_t(8.6));
-    real_t a_imag = GENERATE(real_t(2), real_t(-5), real_t(-2.4), real_t(8.6));
-    real_t b_real = GENERATE(real_t(2), real_t(-5), real_t(-2.4), real_t(6.5));
-    real_t b_imag = GENERATE(real_t(2), real_t(-5), real_t(-2.4), real_t(6.5));
+    real_t aReal = GENERATE(real_t(2), real_t(-5), real_t(-2.4), real_t(8.6));
+    real_t aImag = GENERATE(real_t(2), real_t(-5), real_t(-2.4), real_t(8.6));
+    real_t bReal = GENERATE(real_t(2), real_t(-5), real_t(-2.4), real_t(6.5));
+    real_t bImag = GENERATE(real_t(2), real_t(-5), real_t(-2.4), real_t(6.5));
 
-    setScalar(alpha, a_real, a_imag);
-    setScalar(beta, b_real, b_imag);
+    setScalar(alpha, aReal, aImag);
+    setScalar(beta, bReal, bImag);
 
-    const Uplo uplo = GENERATE(Uplo::Lower, Uplo::Upper);
+    const Uplo uplo = GENERATE(LOWER_TRIANGLE, UPPER_TRIANGLE);
 
     DYNAMIC_SECTION("n = " << n << " alpha = " << alpha << " beta = " << beta
                            << " Uplo" << uplo)
@@ -98,7 +98,7 @@ TEMPLATE_TEST_CASE("uhu multiplication is backward stable",
         lacpy(GENERAL, A, D);
         lacpy(GENERAL, B, E);
         lacpy(GENERAL, C, F);
-        if (uplo == Uplo::Upper) {
+        if (uplo == UPPER_TRIANGLE) {
             for (idx_t i = 0; i < n; i++)
                 for (idx_t j = 0; j < i; ++j) {
                     D(i, j) = conj(D(j, i));
@@ -117,7 +117,7 @@ TEMPLATE_TEST_CASE("uhu multiplication is backward stable",
                 }
         }
 
-        gemm(Op::NoTrans, Op::NoTrans, alpha, D, E, beta, F);
+        gemm(NO_TRANS, NO_TRANS, alpha, D, E, beta, F);
 
         real_t normF = lange(FROB_NORM, F);
 
@@ -134,7 +134,7 @@ TEMPLATE_TEST_CASE("uhu multiplication is backward stable",
 
         // Check if residual is 0 with machine accuracy
         CHECK(normC <= tol);
-        if (uplo == Uplo::Upper) {
+        if (uplo == UPPER_TRIANGLE) {
             real_t sum(0);
             for (idx_t j = 0; j < n; j++)
                 for (idx_t i = j + 1; i < n; i++)

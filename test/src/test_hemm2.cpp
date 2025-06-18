@@ -25,11 +25,11 @@
 
 using namespace tlapack;
 
-#define TESTUPLO_TYPES_TO_TEST                                          \
-    (TestUploMatrix<float, size_t, Uplo::Lower, Layout::ColMajor>),     \
-        (TestUploMatrix<float, size_t, Uplo::Upper, Layout::ColMajor>), \
-        (TestUploMatrix<float, size_t, Uplo::Lower, Layout::RowMajor>), \
-        (TestUploMatrix<float, size_t, Uplo::Upper, Layout::RowMajor>)
+#define TESTUPLO_TYPES_TO_TEST                                             \
+    (TestUploMatrix<float, size_t, LOWER_TRIANGLE, Layout::ColMajor>),     \
+        (TestUploMatrix<float, size_t, UPPER_TRIANGLE, Layout::ColMajor>), \
+        (TestUploMatrix<float, size_t, LOWER_TRIANGLE, Layout::RowMajor>), \
+        (TestUploMatrix<float, size_t, UPPER_TRIANGLE, Layout::RowMajor>)
 
 /// Print matrix A in the standard output
 template <typename matrix_t>
@@ -48,16 +48,16 @@ void printMatrix(const matrix_t& A)
 
 // Helper to set alpha and beta safely for both real and complex types
 template <typename T>
-void setScalar(T& alpha, real_type<T> a_real, real_type<T> a_imag)
+void setScalar(T& alpha, real_type<T> aReal, real_type<T> aImag)
 {
-    alpha = a_real;
+    alpha = aReal;
 }
 
 template <typename T>
-void setScalar(std::complex<T>& alpha, real_type<T> a_real, real_type<T> a_imag)
+void setScalar(std::complex<T>& alpha, real_type<T> aReal, real_type<T> aImag)
 {
-    alpha.real(a_real);
-    alpha.imag(a_imag);
+    alpha.real(aReal);
+    alpha.imag(aImag);
 }
 
 TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
@@ -87,13 +87,13 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
 
     T alpha, beta;
 
-    real_t a_real = GENERATE(real_t(2), real_t(-5), real_t(-2.4), real_t(8.6));
-    real_t a_imag = GENERATE(real_t(2), real_t(-5), real_t(-2.4), real_t(8.6));
-    real_t b_real = GENERATE(real_t(2), real_t(-5), real_t(-2.4), real_t(6.5));
-    real_t b_imag = GENERATE(real_t(2), real_t(-5), real_t(-2.4), real_t(6.5));
+    real_t aReal = GENERATE(real_t(2), real_t(-5), real_t(-2.4), real_t(8.6));
+    real_t aImag = GENERATE(real_t(2), real_t(-5), real_t(-2.4), real_t(8.6));
+    real_t bReal = GENERATE(real_t(2), real_t(-5), real_t(-2.4), real_t(6.5));
+    real_t bImag = GENERATE(real_t(2), real_t(-5), real_t(-2.4), real_t(6.5));
 
-    setScalar(alpha, a_real, a_imag);
-    setScalar(beta, b_real, b_imag);
+    setScalar(alpha, aReal, aImag);
+    setScalar(beta, bReal, bImag);
 
     bool verbose = false;
 
@@ -112,19 +112,19 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
 
         std::vector<T> B_;
         auto B =
-            (side == Side::Left) ? new_matrix(B_, m, n) : new_matrix(B_, n, m);
+            (side == LEFT_SIDE) ? new_matrix(B_, m, n) : new_matrix(B_, n, m);
 
         std::vector<T> BT_;
-        auto BT = (side == Side::Left) ? new_matrix(BT_, n, m)
-                                       : new_matrix(BT_, m, n);
+        auto BT =
+            (side == LEFT_SIDE) ? new_matrix(BT_, n, m) : new_matrix(BT_, m, n);
 
-        std::vector<T> ansHemm_;
-        auto ansHemm = (side == Side::Left) ? new_matrix(ansHemm_, n, m)
-                                            : new_matrix(ansHemm_, m, n);
+        std::vector<T> C_;
+        auto C =
+            (side == LEFT_SIDE) ? new_matrix(C_, n, m) : new_matrix(C_, m, n);
 
-        std::vector<T> ansHemm2_;
-        auto ansHemm2 = (side == Side::Left) ? new_matrix(ansHemm2_, n, m)
-                                             : new_matrix(ansHemm2_, m, n);
+        std::vector<T> D_;
+        auto D =
+            (side == LEFT_SIDE) ? new_matrix(D_, n, m) : new_matrix(D_, m, n);
 
         // Update A with random numbers, and make it positive definite
         mm.random(uplo, A);
@@ -144,10 +144,10 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
         }
 
         // Create the B transpose
-        if (side == Side::Left) {
+        if (side == LEFT_SIDE) {
             for (idx_t i = 0; i < n; i++) {
                 for (idx_t j = 0; j < m; j++) {
-                    if (transB == Op::ConjTrans) {
+                    if (transB == CONJ_TRANS) {
                         BT(i, j) = conj(B(j, i));
                     }
                     else {
@@ -159,7 +159,7 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
         else {
             for (idx_t i = 0; i < m; i++) {
                 for (idx_t j = 0; j < n; j++) {
-                    if (transB == Op::ConjTrans) {
+                    if (transB == CONJ_TRANS) {
                         BT(i, j) = conj(B(j, i));
                     }
                     else {
@@ -175,21 +175,21 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
         }
 
         // Random C value
-        mm.random(ansHemm);
+        mm.random(C);
         if (verbose) {
-            std::cout << "\nansHemm = ";
-            printMatrix(ansHemm);
+            std::cout << "\nC = ";
+            printMatrix(C);
         }
 
         // Copy the C value
-        lacpy(GENERAL, ansHemm, ansHemm2);
+        lacpy(GENERAL, C, D);
         if (verbose) {
-            std::cout << "\nansHemm2 = ";
-            printMatrix(ansHemm2);
+            std::cout << "\nD = ";
+            printMatrix(D);
         }
 
         // Fill in zeroes
-        if (uplo == Uplo::Lower) {
+        if (uplo == LOWER_TRIANGLE) {
             auto subMatrix = slice(A, range(0, n - 1), range(1, n));
             laset(UPPER_TRIANGLE, real_t(0), real_t(0), subMatrix);
         }
@@ -203,48 +203,47 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
         }
 
         // Do Hemm
-        hemm(side, uplo, alpha, A, BT, beta, ansHemm);
-        real_t normHemm = lange(FROB_NORM, ansHemm);
+        hemm(side, uplo, alpha, A, BT, beta, C);
+        real_t normHemm = lange(FROB_NORM, C);
         if (verbose) {
-            std::cout << "\nthis is ansHemm";
-            printMatrix(ansHemm);
+            std::cout << "\nthis is C";
+            printMatrix(C);
             std::cout << std::endl;
         }
 
         // Do Hemm2 If No Trans use BT
-        (transB == Op::NoTrans)
-            ? hemm2(side, uplo, transB, alpha, A, BT, beta, ansHemm2)
-            : hemm2(side, uplo, transB, alpha, A, B, beta, ansHemm2);
+        (transB == NO_TRANS) ? hemm2(side, uplo, transB, alpha, A, BT, beta, D)
+                             : hemm2(side, uplo, transB, alpha, A, B, beta, D);
         if (verbose) {
-            std::cout << "\nthis is ansHemm2";
-            printMatrix(ansHemm2);
+            std::cout << "\nthis is D";
+            printMatrix(D);
             std::cout << std::endl;
         }
 
-        // ansHemm2 -= ansHemm
-        if (side == Side::Left) {
+        // D -= C
+        if (side == LEFT_SIDE) {
             for (idx_t i = 0; i < n; i++) {
                 for (idx_t j = 0; j < m; j++) {
-                    ansHemm2(i, j) -= ansHemm(i, j);
+                    D(i, j) -= C(i, j);
                 }
             }
         }
         else {
             for (idx_t i = 0; i < m; i++) {
                 for (idx_t j = 0; j < n; j++) {
-                    ansHemm2(i, j) -= ansHemm(i, j);
+                    D(i, j) -= C(i, j);
                 }
             }
         }
 
         if (verbose) {
             std::cout << "\nThis is the final answer";
-            printMatrix(ansHemm2);
+            printMatrix(D);
             std::cout << std::endl;
         }
 
         // Check for relative error: norm(A-cholesky(A))/norm(A)
-        real_t error = lange(FROB_NORM, ansHemm2) / normHemm;
+        real_t error = lange(FROB_NORM, D) / normHemm;
         CHECK(error <= tol);
     }
 }

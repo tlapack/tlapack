@@ -23,11 +23,11 @@
 
 using namespace tlapack;
 
-#define TESTUPLO_TYPES_TO_TEST                                          \
-    (TestUploMatrix<float, size_t, Uplo::Lower, Layout::ColMajor>),     \
-        (TestUploMatrix<float, size_t, Uplo::Upper, Layout::ColMajor>), \
-        (TestUploMatrix<float, size_t, Uplo::Lower, Layout::RowMajor>), \
-        (TestUploMatrix<float, size_t, Uplo::Upper, Layout::RowMajor>)
+#define TESTUPLO_TYPES_TO_TEST                                             \
+    (TestUploMatrix<float, size_t, LOWER_TRIANGLE, Layout::ColMajor>),     \
+        (TestUploMatrix<float, size_t, UPPER_TRIANGLE, Layout::ColMajor>), \
+        (TestUploMatrix<float, size_t, LOWER_TRIANGLE, Layout::RowMajor>), \
+        (TestUploMatrix<float, size_t, UPPER_TRIANGLE, Layout::RowMajor>)
 
 /// Print matrix A in the standard output
 template <typename matrix_t>
@@ -64,7 +64,7 @@ TEMPLATE_TEST_CASE("compute the inverse of a hermitian matrix",
 
     const idx_t n = GENERATE(5, 6, 10, 12);
 
-    const Uplo uplo = GENERATE(Uplo::Upper, Uplo::Lower);
+    const Uplo uplo = GENERATE(UPPER_TRIANGLE, LOWER_TRIANGLE);
 
     bool verbose = false;
 
@@ -103,7 +103,7 @@ TEMPLATE_TEST_CASE("compute the inverse of a hermitian matrix",
             printMatrix(A);
         }
         // Fill in zeroes
-        if (uplo == Uplo::Lower) {
+        if (uplo == LOWER_TRIANGLE) {
             auto subMatrix = slice(A, range(0, n - 1), range(1, n));
             laset(UPPER_TRIANGLE, real_t(0), real_t(0), subMatrix);
         }

@@ -28,7 +28,7 @@ namespace tlapack {
  *
  * @param[in] uplo
  *      - Uplo::Upper: Upper triangle of A is referenced;
- *      - Uplo::Lower: Lower triangle of A is referenced.
+ *      - LOWER_TRIANGLE: Lower triangle of A is referenced.
  *
  * @param[in,out] A
  *      On entry, the Hermitian matrix A.
@@ -36,7 +36,7 @@ namespace tlapack {
  *      - If uplo = Uplo::Upper, the strictly lower
  *      triangular part of A is not referenced.
  *
- *      - If uplo = Uplo::Lower, the strictly upper
+ *      - If uplo = LOWER_TRIANGLE, the strictly upper
  *      triangular part of A is not referenced.
  *
  *      - On successful exit, the inverse of U or L.
@@ -46,12 +46,12 @@ namespace tlapack {
 template <TLAPACK_SMATRIX matrix_t>
 void potri(Uplo uplo, matrix_t& A)
 {
-    tlapack_check(uplo == Uplo::Lower || uplo == Uplo::Upper);
+    tlapack_check(uplo == LOWER_TRIANGLE || uplo == UPPER_TRIANGLE);
     tlapack_check(nrows(A) == ncols(A));
 
     potrf2(uplo, A);
 
-    trtri_recursive(uplo, Diag::NonUnit, A);
+    trtri_recursive(uplo, NON_UNIT_DIAG, A);
 
     lauum_recursive(uplo, A);
 }
