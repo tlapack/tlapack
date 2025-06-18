@@ -47,7 +47,6 @@ namespace tlapack {
  * @param[in] A A n-by-n matrix
  *
  * @param[in] B
- *
  *     - If side = Left and transB = NoTrans or side = Right and transB =
  * Trans/ConjTrans:  B n-by-m matrix.
  *     - If side = Right and transB = NoTrans or side = Left and transB =
