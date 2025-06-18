@@ -113,8 +113,8 @@ TEMPLATE_TEST_CASE("uhu multiplication is backward stable",
                 for (idx_t j = 0; j < i; ++j) {
                     D(i, j) = conj(D(j, i));
                     E(i, j) = conj(E(j, i));
-                    A(i, j) = 0;
-                    B(i, j) = 0;
+                    A(i, j) = real_t(0);
+                    B(i, j) = real_t(0);
                 }
         }
         else {
@@ -122,8 +122,8 @@ TEMPLATE_TEST_CASE("uhu multiplication is backward stable",
                 for (idx_t j = i + 1; j < n; ++j) {
                     D(i, j) = conj(D(j, i));
                     E(i, j) = conj(E(j, i));
-                    A(i, j) = 0;
-                    B(i, j) = 0;
+                    A(i, j) = real_t(0);
+                    B(i, j) = real_t(0);
                 }
         }
 

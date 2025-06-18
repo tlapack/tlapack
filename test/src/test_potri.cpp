@@ -117,8 +117,9 @@ TEMPLATE_TEST_CASE("compute the inverse of a hermitian matrix",
         // Zero out the entire matrix first
         laset(GENERAL, real_t(0), real_t(0), I);
         // Set diagonal to 1
-        for (idx_t i = 0; i < n; ++i)
+        for (idx_t i = 0; i < n; ++i) {
             I(i, i) = real_t(1);
+        }
         if (verbose) {
             std::cout << "\nI = ";
             printMatrix(I);
