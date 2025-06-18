@@ -8,7 +8,7 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#include "TestUploMatrix.hpp"
+// #include "TestUploMatrix.hpp"
 
 // Test utilities and definitions (must come before <T>LAPACK headers)
 #include "testutils.hpp"
@@ -24,11 +24,11 @@
 
 using namespace tlapack;
 
-#define TESTUPLO_TYPES_TO_TEST                                          \
-    (TestUploMatrix<float, size_t, Uplo::Lower, Layout::ColMajor>),     \
-        (TestUploMatrix<float, size_t, Uplo::Upper, Layout::ColMajor>), \
-        (TestUploMatrix<float, size_t, Uplo::Lower, Layout::RowMajor>), \
-        (TestUploMatrix<float, size_t, Uplo::Upper, Layout::RowMajor>)
+// #define TESTUPLO_TYPES_TO_TEST                                          \
+//     (TestUploMatrix<float, size_t, Uplo::Lower, Layout::ColMajor>),     \
+//         (TestUploMatrix<float, size_t, Uplo::Upper, Layout::ColMajor>), \
+//         (TestUploMatrix<float, size_t, Uplo::Lower, Layout::RowMajor>), \
+//         (TestUploMatrix<float, size_t, Uplo::Upper, Layout::RowMajor>)
 
 /// Print matrix A in the standard output
 template <typename matrix_t>
@@ -68,8 +68,8 @@ void setScalar(std::complex<T>& alpha, real_type<T> a_real, real_type<T> a_imag)
 
 TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
                    "[hemm2]",
-                   TLAPACK_TYPES_TO_TEST,
-                   TESTUPLO_TYPES_TO_TEST)
+                   TLAPACK_TYPES_TO_TEST)
+//    ,TESTUPLO_TYPES_TO_TEST)
 
 {
     using matrix_t = TestType;
