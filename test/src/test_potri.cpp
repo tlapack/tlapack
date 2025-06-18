@@ -115,7 +115,7 @@ TEMPLATE_TEST_CASE("compute the inverse of a hermitian matrix",
         real_t normA = lange(FROB_NORM, A);
 
         // Zero out the entire matrix first
-        laset(uplo, real_t(0), real_t(1), D);
+        laset(GENERAL, real_t(0), real_t(1), D);
         if (verbose) {
             std::cout << "\nI = ";
             printMatrix(D);
