@@ -87,12 +87,12 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
 
     T alpha, beta;
 
-    real_t a_real = GENERATE(real_t(2), real_t(5), real_t(2.4), real_t(2.5));
-    real_t a_imag = GENERATE(real_t(2), real_t(5), real_t(2.4), real_t(2.5));
-    real_t b_real = GENERATE(real_t(2), real_t(5), real_t(2.4), real_t(2.5));
-    real_t b_imag = GENERATE(real_t(2), real_t(5), real_t(2.4), real_t(2.5));
+    real_t a_real = GENERATE(real_t(2), real_t(-5), real_t(-2.4), real_t(8.6));
+    real_t a_imag = GENERATE(real_t(2), real_t(-5), real_t(-2.4), real_t(8.6));
+    real_t b_real = GENERATE(real_t(2), real_t(-5), real_t(-2.4), real_t(6.5));
+    real_t b_imag = GENERATE(real_t(2), real_t(-5), real_t(-2.4), real_t(6.5));
 
-    setScalar(alpha, a_real, b_real);
+    setScalar(alpha, a_real, a_imag);
     setScalar(beta, b_real, b_imag);
 
     bool verbose = false;

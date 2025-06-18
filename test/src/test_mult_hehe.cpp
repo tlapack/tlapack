@@ -61,7 +61,7 @@ TEMPLATE_TEST_CASE("uhu multiplication is backward stable",
     real_t b_real = GENERATE(real_t(2), real_t(-5), real_t(-2.4), real_t(6.5));
     real_t b_imag = GENERATE(real_t(2), real_t(-5), real_t(-2.4), real_t(6.5));
 
-    setScalar(alpha, a_real, b_real);
+    setScalar(alpha, a_real, a_imag);
     setScalar(beta, b_real, b_imag);
 
     const Uplo uplo = GENERATE(Uplo::Lower, Uplo::Upper);
