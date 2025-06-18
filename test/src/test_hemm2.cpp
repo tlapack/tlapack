@@ -129,7 +129,9 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
         // Update A with random numbers, and make it positive definite
         mm.random(uplo, A);
         for (idx_t j = 0; j < n; ++j) {
-            setScalar(A(j, j), n + j, 0);
+            T temp;
+            setScalar(temp, n + j, 0);
+            A(j, j) = temp;
         }
         if (verbose) {
             std::cout << "\nA = ";
