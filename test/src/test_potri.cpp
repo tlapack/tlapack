@@ -93,7 +93,7 @@ TEMPLATE_TEST_CASE("compute the inverse of a hermitian matrix",
         // Update A with random numbers, and make it positive definite
         mm.random(uplo, A);
         for (idx_t j = 0; j < n; ++j) {
-            A(j, j) = real_t(n + j);
+            A(j, j) = real_t(n + real(A(j, j)));
         }
         if (verbose) {
             std::cout << "\nA = ";
