@@ -56,10 +56,20 @@ TEMPLATE_TEST_CASE("uhu multiplication is backward stable",
 
     srand(3);
 
-    real_t aReal = (float)rand();
-    real_t aImag = (float)rand();
-    real_t bReal = (float)rand();
-    real_t bImag = (float)rand();
+    // Random number engine (seed with a random device)
+    std::random_device rd;
+    std::mt19937 gen(rd());
+
+    // Uniform distribution: 0 or 1
+    std::uniform_int_distribution<> dist(0, 1);
+
+    // Generate either -1 or 1
+    float value = dist(gen) == 0 ? -1.0 : 1.0;
+
+    real_t aReal = value * (float)rand() / (float)RAND_MAX;
+    real_t aImag = value * (float)rand() / (float)RAND_MAX;
+    real_t bReal = value * (float)rand() / (float)RAND_MAX;
+    real_t bImag = value * (float)rand() / (float)RAND_MAX;
 
     setScalar(alpha, aReal, aImag);
     setScalar(beta, bReal, bImag);

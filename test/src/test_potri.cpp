@@ -114,7 +114,7 @@ TEMPLATE_TEST_CASE("compute the inverse of a hermitian matrix",
 
         // Create Identiy
         for (idx_t j = 0; j < n; j++) {
-            I(j, j) = T(1);
+            I(j, j) = real_t(1);
         }
 
         if (verbose) {

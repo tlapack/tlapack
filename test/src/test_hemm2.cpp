@@ -78,8 +78,8 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
     // MatrixMarket reader
     MatrixMarket mm;
 
-    const idx_t m = GENERATE(3, 6);
-    const idx_t n = GENERATE(2, 5);
+    const idx_t m = GENERATE(8, 13);
+    const idx_t n = GENERATE(7, 15);
 
     const Side side = GENERATE(Side::Left, Side::Right);
     const Uplo uplo = GENERATE(Uplo::Upper, Uplo::Lower);
@@ -89,10 +89,20 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
 
     srand(3);
 
-    real_t aReal = (float)rand();
-    real_t aImag = (float)rand();
-    real_t bReal = (float)rand();
-    real_t bImag = (float)rand();
+    // Random number engine (seed with a random device)
+    std::random_device rd;
+    std::mt19937 gen(rd());
+
+    // Uniform distribution: 0 or 1
+    std::uniform_int_distribution<> dist(0, 1);
+
+    // Generate either -1 or 1
+    float value = dist(gen) == 0 ? -1.0 : 1.0;
+
+    real_t aReal = value * (float)rand() / (float)RAND_MAX;
+    real_t aImag = value * (float)rand() / (float)RAND_MAX;
+    real_t bReal = value * (float)rand() / (float)RAND_MAX;
+    real_t bImag = value * (float)rand() / (float)RAND_MAX;
 
     setScalar(alpha, aReal, aImag);
     setScalar(beta, bReal, bImag);
