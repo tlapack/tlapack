@@ -13,7 +13,7 @@
 #include "tlapack/base/utils.hpp"
 #include "tlapack/blas/gemm.hpp"
 #include "tlapack/blas/hemm.hpp"
-#include "tlapack/blas/hemm2.hpp"
+#include "tlapack/lapack/hemm2.hpp"
 
 namespace tlapack {
 

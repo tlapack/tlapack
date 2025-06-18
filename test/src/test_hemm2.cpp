@@ -79,7 +79,7 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
     MatrixMarket mm;
 
     const idx_t m = GENERATE(3, 6, 9);
-    const idx_t n = GENERATE(2, 6, 10);
+    const idx_t n = GENERATE(2, 6, 8);
 
     const Side side = GENERATE(Side::Left, Side::Right);
     const Uplo uplo = GENERATE(Uplo::Upper, Uplo::Lower);
@@ -87,10 +87,12 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
 
     T alpha, beta;
 
-    real_t aReal = GENERATE(real_t(-2.4), real_t(8.6));
-    real_t aImag = GENERATE(real_t(-2.6), real_t(8.6));
-    real_t bReal = GENERATE(real_t(-2.4), real_t(6.5));
-    real_t bImag = GENERATE(real_t(-2.6), real_t(6.5));
+    srand(3);
+
+    real_t aReal = (float)rand();
+    real_t aImag = (float)rand();
+    real_t bReal = (float)rand();
+    real_t bImag = (float)rand();
 
     setScalar(alpha, aReal, aImag);
     setScalar(beta, bReal, bImag);

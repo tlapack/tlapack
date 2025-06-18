@@ -64,7 +64,7 @@ TEMPLATE_TEST_CASE("compute the inverse of a hermitian matrix",
 
     const idx_t n = GENERATE(5, 6, 10, 12);
 
-    const Uplo uplo = GENERATE(UPPER_TRIANGLE, LOWER_TRIANGLE);
+    const Uplo uplo = GENERATE(Uplo::Upper, Uplo::Lower);
 
     bool verbose = false;
 

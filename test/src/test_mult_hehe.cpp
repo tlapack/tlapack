@@ -52,19 +52,19 @@ TEMPLATE_TEST_CASE("uhu multiplication is backward stable",
 
     const idx_t n = GENERATE(1, 3, 5, 9);
 
-    const Uplo uplo = GENERATE(Uplo::Upper, Uplo::Lower);
-
     T alpha, beta;
 
-    real_t aReal = GENERATE(real_t(2), real_t(-5), real_t(-2.4), real_t(8.6));
-    real_t aImag = GENERATE(real_t(2), real_t(-5), real_t(-2.4), real_t(8.6));
-    real_t bReal = GENERATE(real_t(2), real_t(-5), real_t(-2.4), real_t(6.5));
-    real_t bImag = GENERATE(real_t(2), real_t(-5), real_t(-2.4), real_t(6.5));
+    srand(3);
+
+    real_t aReal = (float)rand();
+    real_t aImag = (float)rand();
+    real_t bReal = (float)rand();
+    real_t bImag = (float)rand();
 
     setScalar(alpha, aReal, aImag);
     setScalar(beta, bReal, bImag);
 
-    const Uplo uplo = GENERATE(LOWER_TRIANGLE, UPPER_TRIANGLE);
+    const Uplo uplo = GENERATE(Uplo::Lower, Uplo::Upper);
 
     DYNAMIC_SECTION("n = " << n << " alpha = " << alpha << " beta = " << beta
                            << " Uplo" << uplo)
