@@ -135,7 +135,7 @@ TEMPLATE_TEST_CASE("compute the inverse of a hermitian matrix",
         }
         real_t normAIn = lange(FROB_NORM, B);
 
-        mult_hehe(uplo, real_t(1), A, B, real_t(0), C);
+        mult_hehe(uplo, real_t(1), A, B, StrongZero(0), C);
         if (verbose) {
             std::cout << "\nThis should look like Identity = ";
             printMatrix(C);
