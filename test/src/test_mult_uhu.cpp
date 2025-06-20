@@ -64,7 +64,7 @@ TEMPLATE_TEST_CASE("uhu multiplication is backward stable",
             auto subA = slice(A, range(1, n), range(0, n - 1));
             laset(LOWER_TRIANGLE, real_t(0), real_t(0), subA);
 
-            real_t normA = lantr(MAX_NORM, UPPER_TRIANGLE, Diag::NonUnit, A);
+            real_t normA = lantr(MAX_NORM, UPPER_TRIANGLE, NON_UNIT_DIAG, A);
 
             {
                 mult_uhu_Opts opts;
@@ -74,12 +74,11 @@ TEMPLATE_TEST_CASE("uhu multiplication is backward stable",
                 mult_uhu(C, opts);
 
                 // C = A^H*A - C
-                herk(UPPER_TRIANGLE, Op::ConjTrans, real_t(1), A, real_t(-1),
-                     C);
+                herk(UPPER_TRIANGLE, CONJ_TRANS, real_t(1), A, real_t(-1), C);
 
                 // Check if residual is 0 with machine accuracy
                 real_t uhu_mult_res_norm =
-                    lantr(MAX_NORM, UPPER_TRIANGLE, Diag::NonUnit, C);
+                    lantr(MAX_NORM, UPPER_TRIANGLE, NON_UNIT_DIAG, C);
                 CHECK(uhu_mult_res_norm <= tol * normA * normA);
 
                 real_t sum(0);

@@ -64,18 +64,18 @@ TEMPLATE_TEST_CASE("llh multiplication is backward stable",
             auto subA = slice(A, range(0, n - 1), range(1, n));
             laset(UPPER_TRIANGLE, real_t(0), real_t(0), subA);
 
-            real_t normA = lantr(MAX_NORM, LOWER_TRIANGLE, Diag::NonUnit, A);
+            real_t normA = lantr(MAX_NORM, LOWER_TRIANGLE, NON_UNIT_DIAG, A);
 
             {
                 // // A = C *C^H
                 mult_llh(C);
 
                 // C = A*A^H - C
-                herk(LOWER_TRIANGLE, Op::NoTrans, real_t(1), A, real_t(-1), C);
+                herk(LOWER_TRIANGLE, NO_TRANS, real_t(1), A, real_t(-1), C);
 
                 // Check if residual is 0 with machine accuracy
                 real_t llh_mult_res_norm =
-                    lantr(MAX_NORM, LOWER_TRIANGLE, Diag::NonUnit, C);
+                    lantr(MAX_NORM, LOWER_TRIANGLE, NON_UNIT_DIAG, C);
                 CHECK(llh_mult_res_norm <= tol * normA);
 
                 real_t sum(0);
