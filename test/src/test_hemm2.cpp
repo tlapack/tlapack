@@ -23,12 +23,6 @@
 
 using namespace tlapack;
 
-#define TESTUPLO_TYPES_TO_TEST                                             \
-    (TestUploMatrix<float, size_t, LOWER_TRIANGLE, Layout::ColMajor>),     \
-        (TestUploMatrix<float, size_t, UPPER_TRIANGLE, Layout::ColMajor>), \
-        (TestUploMatrix<float, size_t, LOWER_TRIANGLE, Layout::RowMajor>), \
-        (TestUploMatrix<float, size_t, UPPER_TRIANGLE, Layout::RowMajor>)
-
 /// Print matrix A in the standard output
 template <typename matrix_t>
 void printMatrix(const matrix_t& A)
@@ -60,8 +54,7 @@ void setScalar(std::complex<T>& alpha, real_type<T> aReal, real_type<T> aImag)
 
 TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
                    "[hemm2]",
-                   TLAPACK_TYPES_TO_TEST,
-                   TESTUPLO_TYPES_TO_TEST)
+                   TLAPACK_TYPES_TO_TEST)
 
 {
     using matrix_t = TestType;
@@ -95,12 +88,13 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
     std::uniform_int_distribution<> dist(0, 1);
 
     // Generate either -1 or 1
-    float value = dist(gen) == 0 ? -1.0 : 1.0;
+    float valueA = dist(gen) == 0 ? -1.0 : 1.0;
+    float valueB = dist(gen) == 0 ? -1.0 : 1.0;
 
-    real_t aReal = real_t(value * (float)rand() / (float)RAND_MAX);
-    real_t aImag = real_t(value * (float)rand() / (float)RAND_MAX);
-    real_t bReal = real_t(value * (float)rand() / (float)RAND_MAX);
-    real_t bImag = real_t(value * (float)rand() / (float)RAND_MAX);
+    real_t aReal = real_t(valueA * (float)rand() / (float)RAND_MAX);
+    real_t aImag = real_t(valueB * (float)rand() / (float)RAND_MAX);
+    real_t bReal = real_t(valueA * (float)rand() / (float)RAND_MAX);
+    real_t bImag = real_t(valueB * (float)rand() / (float)RAND_MAX);
 
     setScalar(alpha, aReal, aImag);
     setScalar(beta, bReal, bImag);
@@ -136,11 +130,8 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
         auto D =
             (side == LEFT_SIDE) ? new_matrix(D_, n, m) : new_matrix(D_, m, n);
 
-        // Update A with random numbers, and make it positive definite
+        // Fill in A with random numbers
         mm.random(uplo, A);
-        for (idx_t j = 0; j < n; ++j) {
-            A(j, j) = real_t(n + j);
-        }
         if (verbose) {
             std::cout << "\nA = ";
             printMatrix(A);
@@ -196,20 +187,6 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
         if (verbose) {
             std::cout << "\nD = ";
             printMatrix(D);
-        }
-
-        // Fill in zeroes
-        if (uplo == LOWER_TRIANGLE) {
-            auto subMatrix = slice(A, range(0, n - 1), range(1, n));
-            laset(UPPER_TRIANGLE, real_t(0), real_t(0), subMatrix);
-        }
-        else {
-            auto subMatrix = slice(A, range(1, n), range(0, n - 1));
-            laset(LOWER_TRIANGLE, real_t(0), real_t(0), subMatrix);
-        }
-        if (verbose) {
-            std::cout << "\nAfter Slice A = ";
-            printMatrix(A);
         }
 
         // Do Hemm

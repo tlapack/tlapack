@@ -87,9 +87,6 @@ TEMPLATE_TEST_CASE("compute the inverse of a hermitian matrix",
         std::vector<T> C_;
         auto C = new_matrix(C_, n, n);
 
-        std::vector<T> D_;
-        auto D = new_matrix(D_, n, n);
-
         // Update A with random numbers, and make it positive definite
         mm.random(uplo, A);
         for (idx_t j = 0; j < n; ++j) {
@@ -115,10 +112,10 @@ TEMPLATE_TEST_CASE("compute the inverse of a hermitian matrix",
         real_t normA = lange(FROB_NORM, A);
 
         // Zero out the entire matrix first
-        laset(GENERAL, real_t(0), real_t(1), D);
+        laset(GENERAL, real_t(0), real_t(1), C);
         if (verbose) {
             std::cout << "\nI = ";
-            printMatrix(D);
+            printMatrix(C);
         }
 
         // Copy A into B
@@ -135,17 +132,10 @@ TEMPLATE_TEST_CASE("compute the inverse of a hermitian matrix",
         }
         real_t normAIn = lange(FROB_NORM, B);
 
-        mult_hehe(uplo, real_t(1), A, B, StrongZero(), C);
+        mult_hehe(uplo, real_t(1.), A, B, real_t(-1.), C);
         if (verbose) {
-            std::cout << "\nThis should look like Identity = ";
+            std::cout << "\nThis should look like Zero = ";
             printMatrix(C);
-        }
-
-        // C - A
-        for (idx_t j = 0; j < n; j++) {
-            for (idx_t i = 0; i < n; i++) {
-                C(i, j) -= D(i, j);
-            }
         }
 
         real_t error = lange(FROB_NORM, C) / normA / normAIn;

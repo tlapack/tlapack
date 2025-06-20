@@ -59,6 +59,7 @@ void mult_hehe(Uplo uplo,
 {
     // using TB = type_t<matrixB_t>;
     using TA = type_t<matrixA_t>;
+    using TB = type_t<matrixB_t>;
     using TC = type_t<matrixC_t>;
     typedef tlapack::real_type<TA> real_t;
     using idx_t = tlapack::size_type<matrixA_t>;
@@ -69,212 +70,102 @@ void mult_hehe(Uplo uplo,
 
     if (m != n) return;
 
-    if constexpr (is_complex<TA>) {
-        if (n <= 1) {
-            C(0, 0) = alpha * real(A(0, 0)) * real(B(0, 0)) + beta * C(0, 0);
-            return;
-        }
+    if (n <= 1) {
+        C(0, 0) = alpha * real(A(0, 0)) * real(B(0, 0)) + beta * C(0, 0);
+        return;
+    }
 
+    const idx_t n0 = n / 2;
+
+    if (uplo == UPPER_TRIANGLE) {
         const idx_t n0 = n / 2;
 
-        if (uplo == UPPER_TRIANGLE) {
-            const idx_t n0 = n / 2;
+        auto A00 = slice(A, range(0, n0), range(0, n0));
+        auto A01 = slice(A, range(0, n0), range(n0, n));
+        auto A11 = slice(A, range(n0, n), range(n0, n));
 
-            auto A00 = slice(A, range(0, n0), range(0, n0));
-            auto A01 = slice(A, range(0, n0), range(n0, n));
-            auto A11 = slice(A, range(n0, n), range(n0, n));
+        auto B00 = slice(B, range(0, n0), range(0, n0));
+        auto B01 = slice(B, range(0, n0), range(n0, n));
+        auto B11 = slice(B, range(n0, n), range(n0, n));
 
-            auto B00 = slice(B, range(0, n0), range(0, n0));
-            auto B01 = slice(B, range(0, n0), range(n0, n));
-            auto B11 = slice(B, range(n0, n), range(n0, n));
+        auto C00 = slice(C, range(0, n0), range(0, n0));
+        auto C01 = slice(C, range(0, n0), range(n0, n));
+        auto C10 = slice(C, range(n0, n), range(0, n0));
+        auto C11 = slice(C, range(n0, n), range(n0, n));
 
-            auto C00 = slice(C, range(0, n0), range(0, n0));
-            auto C01 = slice(C, range(0, n0), range(n0, n));
-            auto C10 = slice(C, range(n0, n), range(0, n0));
-            auto C11 = slice(C, range(n0, n), range(n0, n));
+        // A00*B00 = C00
+        mult_hehe(UPPER_TRIANGLE, alpha, A00, B00, beta, C00);
 
-            // A00*B00 = C00
-            mult_hehe(UPPER_TRIANGLE, alpha, A00, B00, beta, C00);
+        // A01*B01^H + A00*B00 + C00 = C00
+        gemm(NO_TRANS, CONJ_TRANS, alpha, A01, B01, TC(1), C00);
 
-            // A01*B01^H + (A00*B00 + C00) = C00
-            gemm(NO_TRANS, CONJ_TRANS, alpha, A01, B01, TC(1), C00);
+        // A00*B01 + C01 = C01
+        hemm2(LEFT_SIDE, UPPER_TRIANGLE, NO_TRANS, alpha, A00, B01, beta, C01);
 
-            // A00*B01 + C01 = C01
-            hemm(LEFT_SIDE, UPPER_TRIANGLE, alpha, A00, B01, beta, C01);
+        // A00*B01 + C01 + A01B11 = C
+        hemm2(RIGHT_SIDE, UPPER_TRIANGLE, NO_TRANS, alpha, B11, A01, TC(1),
+              C01);
 
-            //(A00*B01 + C01) + A01B11 = C
-            hemm(RIGHT_SIDE, UPPER_TRIANGLE, alpha, B11, A01, TC(1), C01);
+        // A11 * B01H + C10 = C10
+        hemm2(LEFT_SIDE, UPPER_TRIANGLE, CONJ_TRANS, alpha, A11, B01, beta,
+              C10);
 
-            // A11 * B01H + C10 = C10
-            hemm2(LEFT_SIDE, UPPER_TRIANGLE, CONJ_TRANS, alpha, A11, B01, beta,
-                  C10);  // beta
+        // A01^H * B00 + A11*B01^H
+        hemm2(RIGHT_SIDE, UPPER_TRIANGLE, CONJ_TRANS, alpha, B00, A01, TC(1),
+              C10);
 
-            // //A01^H * B00 + (A11*B01^H)
-            hemm2(RIGHT_SIDE, UPPER_TRIANGLE, CONJ_TRANS, alpha, B00, A01,
-                  TC(1), C10);
+        // A11*B11
+        mult_hehe(UPPER_TRIANGLE, alpha, A11, B11, beta, C11);
 
-            // A11*B11
-            mult_hehe(UPPER_TRIANGLE, alpha, A11, B11, beta, C11);
+        // A01^H * B01 + A11*B11
+        gemm(CONJ_TRANS, NO_TRANS, alpha, A01, B01, TC(1), C11);
 
-            // A01^H * B01 + A11*B11
-            gemm(CONJ_TRANS, NO_TRANS, alpha, A01, B01, TC(1), C11);
-
-            return;
-        }
-
-        else {
-            auto A00 = slice(A, range(0, n0), range(0, n0));
-            auto A10 = slice(A, range(n0, n), range(0, n0));
-            auto A11 = slice(A, range(n0, n), range(n0, n));
-
-            auto B00 = slice(B, range(0, n0), range(0, n0));
-            auto B10 = slice(B, range(n0, n), range(0, n0));
-            auto B11 = slice(B, range(n0, n), range(n0, n));
-
-            auto C00 = slice(C, range(0, n0), range(0, n0));
-            auto C01 = slice(C, range(0, n0), range(n0, n));
-            auto C10 = slice(C, range(n0, n), range(0, n0));
-            auto C11 = slice(C, range(n0, n), range(n0, n));
-
-            std::cout << std::endl;
-
-            // A00*B00 = C00
-            mult_hehe(LOWER_TRIANGLE, alpha, A00, B00, beta, C00);
-
-            // A01^H*B10 + C00 = C00
-            gemm(CONJ_TRANS, NO_TRANS, alpha, A10, B10, TC(1), C00);
-
-            // A10*B00 + C10 = C10
-            hemm(RIGHT_SIDE, LOWER_TRIANGLE, alpha, B00, A10, beta, C10);
-
-            // A11*B10 + C10 = C10
-            hemm(LEFT_SIDE, LOWER_TRIANGLE, alpha, A11, B10, TC(1), C10);
-
-            // A00*B01^H + C01 = C01
-            hemm2(LEFT_SIDE, LOWER_TRIANGLE, CONJ_TRANS, alpha, A00, B10, beta,
-                  C01);
-
-            // A01^H*B11 + C01 = C01
-            hemm2(RIGHT_SIDE, LOWER_TRIANGLE, CONJ_TRANS, alpha, B11, A10,
-                  TC(1), C01);
-
-            // A11*B11 = C11
-            mult_hehe(LOWER_TRIANGLE, alpha, A11, B11, beta, C11);
-
-            // alpha(A10H*B10^H) + 1(C11) = C11
-            gemm(NO_TRANS, CONJ_TRANS, alpha, A10, B10, TC(1), C11);
-
-            return;
-        }
+        return;
     }
     else {
-        using TB = type_t<matrixB_t>;
-        using TA = type_t<matrixA_t>;
-        typedef tlapack::real_type<TA> real_t;
-        using idx_t = tlapack::size_type<matrixA_t>;
-        using range = pair<idx_t, idx_t>;
+        // uplo == LOWER_TRIANGLE
+        auto A00 = slice(A, range(0, n0), range(0, n0));
+        auto A10 = slice(A, range(n0, n), range(0, n0));
+        auto A11 = slice(A, range(n0, n), range(n0, n));
 
-        const idx_t m = nrows(A);
-        const idx_t n = ncols(A);
+        auto B00 = slice(B, range(0, n0), range(0, n0));
+        auto B10 = slice(B, range(n0, n), range(0, n0));
+        auto B11 = slice(B, range(n0, n), range(n0, n));
 
-        if (m != n) return;
+        auto C00 = slice(C, range(0, n0), range(0, n0));
+        auto C01 = slice(C, range(0, n0), range(n0, n));
+        auto C10 = slice(C, range(n0, n), range(0, n0));
+        auto C11 = slice(C, range(n0, n), range(n0, n));
 
-        if (n <= 1) {
-            C(0, 0) = alpha * real(A(0, 0)) * real(B(0, 0)) + beta * C(0, 0);
-            return;
-        }
+        std::cout << std::endl;
 
-        const idx_t n0 = n / 2;
+        // A00*B00 = C00
+        mult_hehe(LOWER_TRIANGLE, alpha, A00, B00, beta, C00);
 
-        if (uplo == UPPER_TRIANGLE) {
-            const idx_t n0 = n / 2;
+        // A01^H*B10 + C00 = C00
+        gemm(CONJ_TRANS, NO_TRANS, alpha, A10, B10, TC(1), C00);
 
-            auto A00 = slice(A, range(0, n0), range(0, n0));
-            auto A01 = slice(A, range(0, n0), range(n0, n));
-            auto A11 = slice(A, range(n0, n), range(n0, n));
+        // A10*B00 + C10 = C10
+        hemm2(RIGHT_SIDE, LOWER_TRIANGLE, NO_TRANS, alpha, B00, A10, beta, C10);
 
-            auto B00 = slice(B, range(0, n0), range(0, n0));
-            auto B01 = slice(B, range(0, n0), range(n0, n));
-            auto B11 = slice(B, range(n0, n), range(n0, n));
+        // A11*B10 + C10 = C10
+        hemm2(LEFT_SIDE, LOWER_TRIANGLE, NO_TRANS, alpha, A11, B10, TC(1), C10);
 
-            auto C00 = slice(C, range(0, n0), range(0, n0));
-            auto C01 = slice(C, range(0, n0), range(n0, n));
-            auto C10 = slice(C, range(n0, n), range(0, n0));
-            auto C11 = slice(C, range(n0, n), range(n0, n));
+        // A00*B01^H + C01 = C01
+        hemm2(LEFT_SIDE, LOWER_TRIANGLE, CONJ_TRANS, alpha, A00, B10, beta,
+              C01);
 
-            // alpha * A00 * B00 + beta * C00 = C00
-            mult_hehe(UPPER_TRIANGLE, alpha, A00, B00, beta, C00);
+        // A01^H*B11 + C01 = C01
+        hemm2(RIGHT_SIDE, LOWER_TRIANGLE, CONJ_TRANS, alpha, B11, A10, TC(1),
+              C01);
 
-            // alpha * A01 * B01^H + C00 = C00
-            gemm(NO_TRANS, CONJ_TRANS, alpha, A01, B01, real_t(1), C00);
+        // A11*B11 = C11
+        mult_hehe(LOWER_TRIANGLE, alpha, A11, B11, beta, C11);
 
-            // alpha * A00 * B01 + beta * C01 = C01
-            hemm(LEFT_SIDE, UPPER_TRIANGLE, alpha, A00, B01, beta, C01);
+        // A10H*B10^H + C11 = C11
+        gemm(NO_TRANS, CONJ_TRANS, alpha, A10, B10, TC(1), C11);
 
-            // alpha * A01 * B11 + C01 = C01
-            hemm(RIGHT_SIDE, UPPER_TRIANGLE, alpha, B11, A01, real_t(1), C01);
-
-            // alpha * A11 * B01H + beta * C10 = C10
-            hemm2(LEFT_SIDE, UPPER_TRIANGLE, CONJ_TRANS, alpha, A11, B01, beta,
-                  C10);
-
-            // alpha * A01^H * B00 + C10 = C10
-            hemm2(RIGHT_SIDE, UPPER_TRIANGLE, CONJ_TRANS, alpha, B00, A01,
-                  real_t(1), C10);
-
-            // alpha * A11 * B11 + beta * C11 = C11
-            mult_hehe(UPPER_TRIANGLE, alpha, A11, B11, beta, C11);
-
-            // A01^H * B01 + C11 = C11
-            gemm(CONJ_TRANS, NO_TRANS, alpha, A01, B01, real_t(1), C11);
-
-            return;
-        }
-
-        else {
-            auto A00 = slice(A, range(0, n0), range(0, n0));
-            auto A10 = slice(A, range(n0, n), range(0, n0));
-            auto A11 = slice(A, range(n0, n), range(n0, n));
-
-            auto B00 = slice(B, range(0, n0), range(0, n0));
-            auto B10 = slice(B, range(n0, n), range(0, n0));
-            auto B11 = slice(B, range(n0, n), range(n0, n));
-
-            auto C00 = slice(C, range(0, n0), range(0, n0));
-            auto C01 = slice(C, range(0, n0), range(n0, n));
-            auto C10 = slice(C, range(n0, n), range(0, n0));
-            auto C11 = slice(C, range(n0, n), range(n0, n));
-
-            std::cout << std::endl;
-
-            // alpha * A00 * B00 + beta * C00 = C00
-            mult_hehe(LOWER_TRIANGLE, alpha, A00, B00, beta, C00);
-
-            // alpha * A01^H * B10 + C00 = C00
-            gemm(CONJ_TRANS, NO_TRANS, alpha, A10, B10, real_t(1), C00);
-
-            // alpha * A10 * B00 + beta * C10 = C10
-            hemm(RIGHT_SIDE, LOWER_TRIANGLE, alpha, B00, A10, beta, C10);
-
-            // alpha * A11 * B10 + C10 = C10
-            hemm(LEFT_SIDE, LOWER_TRIANGLE, alpha, A11, B10, real_t(1), C10);
-
-            // alpha * A00 * B10^H + C01 = C01
-            hemm2(LEFT_SIDE, LOWER_TRIANGLE, CONJ_TRANS, alpha, A00, B10, beta,
-                  C01);
-
-            // alpha * A10^H * B11 + beta * C01 = C01
-            hemm2(RIGHT_SIDE, LOWER_TRIANGLE, CONJ_TRANS, alpha, B11, A10,
-                  real_t(1), C01);
-
-            // alpha * A11 * B11 + beta * C11 = C11
-            mult_hehe(LOWER_TRIANGLE, alpha, A11, B11, beta, C11);
-
-            // alpha * A10H * B10^H + C11 = C11
-            gemm(NO_TRANS, CONJ_TRANS, alpha, A10, B10, real_t(1), C11);
-
-            return;
-        }
+        return;
     }
 }
 /**
