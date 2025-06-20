@@ -159,7 +159,12 @@ void hemm2(Side side,
                             sum += conj(A(i, j)) * B(k, i);
                         }
                         for (idx_t i = j; i < n; i++) {
-                            sum += A(j, i) * B(k, i);
+                            if (i == j) {
+                                sum += real(A(j, i)) * B(k, i);
+                            }
+                            else {
+                                sum += A(j, i) * B(k, i);
+                            }
                         }
                         C(j, k) = alpha * sum + beta * C(j, k);
                     }
@@ -171,7 +176,12 @@ void hemm2(Side side,
                     for (idx_t k = 0; k < m; k++) {
                         T sum(0);
                         for (idx_t i = 0; i <= j; i++) {
-                            sum += A(j, i) * B(k, i);
+                            if (i == j) {
+                                sum += real(A(j, i)) * B(k, i);
+                            }
+                            else {
+                                sum += A(j, i) * B(k, i);
+                            }
                         }
                         for (idx_t i = j + 1; i < n; i++) {
                             sum += conj(A(i, j)) * B(k, i);
@@ -192,7 +202,12 @@ void hemm2(Side side,
                             sum += conj(A(i, j)) * conj(B(k, i));
                         }
                         for (idx_t i = j; i < n; i++) {
-                            sum += A(j, i) * conj(B(k, i));
+                            if (i == j) {
+                                sum += real(A(j, i)) * conj(B(k, i));
+                            }
+                            else {
+                                sum += A(j, i) * conj(B(k, i));
+                            }
                         }
                         C(j, k) = alpha * sum + beta * C(j, k);
                     }
@@ -204,7 +219,12 @@ void hemm2(Side side,
                     for (idx_t k = 0; k < m; k++) {
                         T sum(0);
                         for (idx_t i = 0; i <= j; i++) {
-                            sum += A(j, i) * conj(B(k, i));
+                            if (i == j) {
+                                sum += real(A(j, i)) * conj(B(k, i));
+                            }
+                            else {
+                                sum += A(j, i) * conj(B(k, i));
+                            }
                         }
                         for (idx_t i = j + 1; i < n; i++) {
                             sum += conj(A(i, j)) * conj(B(k, i));
@@ -275,7 +295,12 @@ void hemm2(Side side,
                             sum += B(i, j) * A(i, k);
                         }
                         for (idx_t i = k; i < m; i++) {
-                            sum += B(i, j) * conj(A(k, i));
+                            if (i == k) {
+                                sum += B(i, j) * real(conj(A(k, i)));
+                            }
+                            else {
+                                sum += B(i, j) * conj(A(k, i));
+                            }
                         }
                         C(j, k) = alpha * sum + beta * C(j, k);
                     }
@@ -290,7 +315,12 @@ void hemm2(Side side,
                             sum += B(i, j) * conj(A(k, i));
                         }
                         for (idx_t i = k; i < m; i++) {
-                            sum += B(i, j) * A(i, k);
+                            if (i == k) {
+                                sum += B(i, j) * real(A(i, k));
+                            }
+                            else {
+                                sum += B(i, j) * A(i, k);
+                            }
                         }
                         C(j, k) = alpha * sum + beta * C(j, k);
                     }
@@ -308,7 +338,12 @@ void hemm2(Side side,
                             sum += conj(B(i, j)) * A(i, k);
                         }
                         for (idx_t i = k; i < m; i++) {
-                            sum += conj(B(i, j)) * conj(A(k, i));
+                            if (i == k) {
+                                sum += conj(B(i, j)) * real(conj(A(k, i)));
+                            }
+                            else {
+                                sum += conj(B(i, j)) * conj(A(k, i));
+                            }
                         }
                         C(j, k) = alpha * sum + beta * C(j, k);
                     }
@@ -323,7 +358,12 @@ void hemm2(Side side,
                             sum += conj(B(i, j)) * conj(A(k, i));
                         }
                         for (idx_t i = k; i < m; i++) {
-                            sum += conj(B(i, j)) * A(i, k);
+                            if (i == k) {
+                                sum += conj(B(i, j)) * real(A(i, k));
+                            }
+                            else {
+                                sum += conj(B(i, j)) * A(i, k);
+                            }
                         }
                         C(j, k) = alpha * sum + beta * C(j, k);
                     }
