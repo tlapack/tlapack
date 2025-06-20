@@ -50,7 +50,7 @@ TEMPLATE_TEST_CASE("uhu multiplication is backward stable",
     // MatrixMarket reader
     MatrixMarket mm;
 
-    const idx_t n = GENERATE(1, 3, 5, 9);
+    const idx_t n = GENERATE(3, 5, 7, 9);
 
     T alpha, beta;
 
@@ -64,12 +64,13 @@ TEMPLATE_TEST_CASE("uhu multiplication is backward stable",
     std::uniform_int_distribution<> dist(0, 1);
 
     // Generate either -1 or 1
-    float value = dist(gen) == 0 ? -1.0 : 1.0;
+    float valueA = dist(gen) == 0 ? -1.0 : 1.0;
+    float valueB = dist(gen) == 0 ? -1.0 : 1.0;
 
-    real_t aReal = real_t(value * (float)rand() / (float)RAND_MAX);
-    real_t aImag = real_t(value * (float)rand() / (float)RAND_MAX);
-    real_t bReal = real_t(value * (float)rand() / (float)RAND_MAX);
-    real_t bImag = real_t(value * (float)rand() / (float)RAND_MAX);
+    real_t aReal = real_t(valueA * (float)rand() / (float)RAND_MAX);
+    real_t aImag = real_t(valueB * (float)rand() / (float)RAND_MAX);
+    real_t bReal = real_t(valueA * (float)rand() / (float)RAND_MAX);
+    real_t bImag = real_t(valueB * (float)rand() / (float)RAND_MAX);
 
     setScalar(alpha, aReal, aImag);
     setScalar(beta, bReal, bImag);
@@ -100,15 +101,16 @@ TEMPLATE_TEST_CASE("uhu multiplication is backward stable",
         mm.random(B);
         mm.random(C);
 
-        for (idx_t i = 0; i < n; i++) {
-            A(i, i) = real(A(i, i));
-            B(i, i) = real(B(i, i));
-        }
+        // for (idx_t i = 0; i < n; i++) {
+        //     A(i, i) = real(A(i, i));
+        //     B(i, i) = real(B(i, i));
+        // }
 
         lacpy(GENERAL, A, D);
         lacpy(GENERAL, B, E);
         lacpy(GENERAL, C, F);
-        if (uplo == UPPER_TRIANGLE) {
+
+                if (uplo == UPPER_TRIANGLE) {
             for (idx_t i = 0; i < n; i++)
                 for (idx_t j = 0; j < i; ++j) {
                     D(i, j) = conj(D(j, i));
@@ -127,6 +129,11 @@ TEMPLATE_TEST_CASE("uhu multiplication is backward stable",
                 }
         }
 
+        for (idx_t i = 0; i < n; i++) {
+            D(i, i) = real(D(i, i));
+            E(i, i) = real(E(i, i));
+        }
+
         gemm(NO_TRANS, NO_TRANS, alpha, D, E, beta, F);
 
         real_t normF = lange(FROB_NORM, F);
@@ -142,7 +149,7 @@ TEMPLATE_TEST_CASE("uhu multiplication is backward stable",
 
         normC = normC / normF;
 
-        // Check if residual is 0 with machine accuracy
+        // Check if the other part of the triangle was touched.
         CHECK(normC <= tol);
         if (uplo == UPPER_TRIANGLE) {
             real_t sum(0);
