@@ -108,6 +108,7 @@ add_executable(test_mult_uhu test_mult_uhu.cpp)
 add_executable(test_mult_hehe test_mult_hehe.cpp)
 add_executable(test_hemm2 test_hemm2.cpp)
 add_executable(test_potri test_potri.cpp)
+add_executable(test_gemmtr test_gemmtr.cpp)
 
 if(TLAPACK_TEST_EIGEN)
   add_executable(test_eigenplugin test_eigenplugin.cpp)
