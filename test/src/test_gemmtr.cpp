@@ -57,6 +57,30 @@ TEMPLATE_TEST_CASE("check for gemmtr multiplication",
     const Op transA = GENERATE(Op::NoTrans, Op::Trans, Op::ConjTrans);
     const Op transB = GENERATE(Op::NoTrans, Op::Trans, Op::ConjTrans);
 
+    // Generate numbers for alpha and beta
+    T alpha, beta;
+
+    srand(3);
+
+    // Random number engine (seed with a random device)
+    std::random_device rd;
+    std::mt19937 gen(rd());
+
+    // Uniform distribution: 0 or 1
+    std::uniform_int_distribution<> dist(0, 1);
+
+    // Generate either -1 or 1
+    float valueA = dist(gen) == 0 ? -1.0 : 1.0;
+    float valueB = dist(gen) == 0 ? -1.0 : 1.0;
+
+    real_t aReal = real_t(valueA * (float)rand() / (float)RAND_MAX);
+    real_t aImag = real_t(valueB * (float)rand() / (float)RAND_MAX);
+    real_t bReal = real_t(valueA * (float)rand() / (float)RAND_MAX);
+    real_t bImag = real_t(valueB * (float)rand() / (float)RAND_MAX);
+
+    setScalar(alpha, aReal, aImag);
+    setScalar(beta, bReal, bImag);
+
     DYNAMIC_SECTION("n = " << n << " k = " << k << " uplo = " << uplo
                            << " transA = " << transA << " transB = " << transB)
     {
@@ -106,30 +130,6 @@ TEMPLATE_TEST_CASE("check for gemmtr multiplication",
 
         lacpy(GENERAL, C0, C1);
         lacpy(GENERAL, C0, C2);
-
-        // Generate numbers for alpha and beta
-        T alpha, beta;
-
-        srand(3);
-
-        // Random number engine (seed with a random device)
-        std::random_device rd;
-        std::mt19937 gen(rd());
-
-        // Uniform distribution: 0 or 1
-        std::uniform_int_distribution<> dist(0, 1);
-
-        // Generate either -1 or 1
-        float valueA = dist(gen) == 0 ? -1.0 : 1.0;
-        float valueB = dist(gen) == 0 ? -1.0 : 1.0;
-
-        real_t aReal = real_t(valueA * (float)rand() / (float)RAND_MAX);
-        real_t aImag = real_t(valueB * (float)rand() / (float)RAND_MAX);
-        real_t bReal = real_t(valueA * (float)rand() / (float)RAND_MAX);
-        real_t bImag = real_t(valueB * (float)rand() / (float)RAND_MAX);
-
-        setScalar(alpha, aReal, aImag);
-        setScalar(beta, bReal, bImag);
 
         {
             // Calculate residuals
