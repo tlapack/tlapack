@@ -101,16 +101,11 @@ TEMPLATE_TEST_CASE("uhu multiplication is backward stable",
         mm.random(B);
         mm.random(C);
 
-        // for (idx_t i = 0; i < n; i++) {
-        //     A(i, i) = real(A(i, i));
-        //     B(i, i) = real(B(i, i));
-        // }
-
         lacpy(GENERAL, A, D);
         lacpy(GENERAL, B, E);
         lacpy(GENERAL, C, F);
 
-                if (uplo == UPPER_TRIANGLE) {
+        if (uplo == UPPER_TRIANGLE) {
             for (idx_t i = 0; i < n; i++)
                 for (idx_t j = 0; j < i; ++j) {
                     D(i, j) = conj(D(j, i));

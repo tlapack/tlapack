@@ -193,14 +193,6 @@ void hemm2(Side side,
                         for (idx_t i = 0; i < j; i++) {
                             sum += conj(A(i, j)) * conj(B(k, i));
                         }
-                        // for (idx_t i = j; i < n; i++) {
-                        //     if (i == j) {
-                        //         sum += real(A(j, i)) * conj(B(k, i));
-                        //     }
-                        //     else {
-                        //         sum += A(j, i) * conj(B(k, i));
-                        //     }
-                        // }
                         sum += real(A(j, j)) * conj(B(k, j));
                         for (idx_t i = j + 1; i < n; i++) {
                             sum += A(j, i) * conj(B(k, i));

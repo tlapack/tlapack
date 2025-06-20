@@ -96,21 +96,21 @@ void mult_hehe(Uplo uplo,
         // A00*B00 = C00
         mult_hehe(UPPER_TRIANGLE, alpha, A00, B00, beta, C00);
 
-        // A01*B01^H + (A00*B00 + C00) = C00
+        // A01*B01^H + A00*B00 + C00 = C00
         gemm(NO_TRANS, CONJ_TRANS, alpha, A01, B01, TC(1), C00);
 
         // A00*B01 + C01 = C01
         hemm2(LEFT_SIDE, UPPER_TRIANGLE, NO_TRANS, alpha, A00, B01, beta, C01);
 
-        //(A00*B01 + C01) + A01B11 = C
+        // A00*B01 + C01 + A01B11 = C
         hemm2(RIGHT_SIDE, UPPER_TRIANGLE, NO_TRANS, alpha, B11, A01, TC(1),
               C01);
 
         // A11 * B01H + C10 = C10
         hemm2(LEFT_SIDE, UPPER_TRIANGLE, CONJ_TRANS, alpha, A11, B01, beta,
-              C10);  // beta
+              C10);
 
-        // //A01^H * B00 + (A11*B01^H)
+        // A01^H * B00 + A11*B01^H
         hemm2(RIGHT_SIDE, UPPER_TRIANGLE, CONJ_TRANS, alpha, B00, A01, TC(1),
               C10);
 
@@ -162,7 +162,7 @@ void mult_hehe(Uplo uplo,
         // A11*B11 = C11
         mult_hehe(LOWER_TRIANGLE, alpha, A11, B11, beta, C11);
 
-        // alpha(A10H*B10^H) + 1(C11) = C11
+        // A10H*B10^H + C11 = C11
         gemm(NO_TRANS, CONJ_TRANS, alpha, A10, B10, TC(1), C11);
 
         return;

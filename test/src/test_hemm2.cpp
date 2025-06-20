@@ -189,20 +189,6 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
             printMatrix(D);
         }
 
-        // // Fill in zeroes
-        // if (uplo == LOWER_TRIANGLE) {
-        //     auto subMatrix = slice(A, range(0, n - 1), range(1, n));
-        //     laset(UPPER_TRIANGLE, real_t(0), real_t(0), subMatrix);
-        // }
-        // else {
-        //     auto subMatrix = slice(A, range(1, n), range(0, n - 1));
-        //     laset(LOWER_TRIANGLE, real_t(0), real_t(0), subMatrix);
-        // }
-        // if (verbose) {
-        //     std::cout << "\nAfter Slice A = ";
-        //     printMatrix(A);
-        // }
-
         // Do Hemm
         hemm(side, uplo, alpha, A, BT, beta, C);
         real_t normHemm = lange(FROB_NORM, C);
