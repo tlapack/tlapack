@@ -25,11 +25,11 @@
 
 using namespace tlapack;
 
-#define TESTUPLO_TYPES_TO_TEST                                          \
-    (TestUploMatrix<float, size_t, Uplo::Lower, Layout::ColMajor>),     \
-        (TestUploMatrix<float, size_t, Uplo::Upper, Layout::ColMajor>), \
-        (TestUploMatrix<float, size_t, Uplo::Lower, Layout::RowMajor>), \
-        (TestUploMatrix<float, size_t, Uplo::Upper, Layout::RowMajor>)
+#define TESTUPLO_TYPES_TO_TEST                                             \
+    (TestUploMatrix<float, size_t, LOWER_TRIANGLE, Layout::ColMajor>),     \
+        (TestUploMatrix<float, size_t, UPPER_TRIANGLE, Layout::ColMajor>), \
+        (TestUploMatrix<float, size_t, LOWER_TRIANGLE, Layout::RowMajor>), \
+        (TestUploMatrix<float, size_t, UPPER_TRIANGLE, Layout::RowMajor>)
 
 TEMPLATE_TEST_CASE(
     "Cholesky factorization of a Hermitian positive-definite matrix",
@@ -61,7 +61,7 @@ TEMPLATE_TEST_CASE(
                  (variant_t(PotrfVariant::Recursive, 0)),
                  (variant_t(PotrfVariant::Level2, 0)));
     const idx_t n = GENERATE(10, 19, 30);
-    const Uplo uplo = GENERATE(Uplo::Lower, Uplo::Upper);
+    const Uplo uplo = GENERATE(Uplo::Upper, Uplo::Lower);
 
     DYNAMIC_SECTION("n = " << n << " uplo = " << uplo << " variant = "
                            << (char)variant.first << " nb = " << variant.second)
@@ -83,7 +83,7 @@ TEMPLATE_TEST_CASE(
             A(j, j) += real_t(n);
 
         lacpy(GENERAL, A, C);
-        real_t normA = tlapack::lanhe(tlapack::MAX_NORM, uplo, A);
+        real_t normA = tlapack::lanhe(MAX_NORM, uplo, A);
 
         // Run the Cholesky factorization
         PotrfOpts opts;
@@ -95,19 +95,19 @@ TEMPLATE_TEST_CASE(
         REQUIRE(info == 0);
 
         // Do L*L^H or U^H*U
-        (uplo == Uplo::Lower) ? mult_llh(C) : mult_uhu(C);
+        (uplo == LOWER_TRIANGLE) ? mult_llh(C) : mult_uhu(C);
 
         // Check that the factorization is correct
         for (idx_t i = 0; i < n; i++)
             for (idx_t j = 0; j < n; j++) {
-                if (uplo == Uplo::Lower && i >= j)
+                if (uplo == LOWER_TRIANGLE && i >= j)
                     C(i, j) -= A(i, j);
-                else if (uplo == Uplo::Upper && i <= j)
+                else if (uplo == UPPER_TRIANGLE && i <= j)
                     C(i, j) -= A(i, j);
             }
 
         // Check for relative error: norm(A-cholesky(A))/norm(A)
-        real_t error = tlapack::lanhe(tlapack::MAX_NORM, uplo, C) / normA;
+        real_t error = tlapack::lanhe(MAX_NORM, uplo, C) / normA;
         CHECK(error <= tol);
     }
 }

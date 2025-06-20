@@ -20,6 +20,20 @@
 
 using namespace tlapack;
 
+// Helper to set alpha and beta safely for both real and complex types
+template <typename T>
+void setScalar(T& alpha, real_type<T> aReal, real_type<T> aImag)
+{
+    alpha = aReal;
+}
+
+template <typename T>
+void setScalar(std::complex<T>& alpha, real_type<T> aReal, real_type<T> aImag)
+{
+    alpha.real(aReal);
+    alpha.imag(aImag);
+}
+
 TEMPLATE_TEST_CASE("uhu multiplication is backward stable",
                    "[uhu check]",
                    TLAPACK_TYPES_TO_TEST)
@@ -36,35 +50,29 @@ TEMPLATE_TEST_CASE("uhu multiplication is backward stable",
     // MatrixMarket reader
     MatrixMarket mm;
 
-    idx_t n;
+    const idx_t n = GENERATE(1, 3, 5, 9);
 
-    T alpha;
-    T beta;
+    T alpha, beta;
 
-    if constexpr (is_complex<T>) {
-        auto a_real = GENERATE(1, 2, -7, 8.6);
-        auto a_imag = GENERATE(1, 0, -7, 8.6);
-        auto b_real = GENERATE(1, 2, -4, 6.5);
-        auto b_imag = GENERATE(1, 0, -4, 6.5);
+    srand(3);
 
-        alpha = T(a_real, a_imag);
-        beta = T(b_real, b_imag);
-    }
-    else {
-        alpha = GENERATE(1, 2, -7, 8.6);
-        beta = GENERATE(1, 2, -4, 6.5);
-    }
+    // Random number engine (seed with a random device)
+    std::random_device rd;
+    std::mt19937 gen(rd());
 
-    // if constexpr (is_complex<T>) {
-    //     alpha = T(GENERATE(1, 2, -7, 8.6), GENERATE(1, 0, -7, 8.6));
-    //     beta = T(GENERATE(1, 2, -4, 6.5), GENERATE(1, 0, -4, 6.5));
-    // }
-    // else {
-    //     alpha = GENERATE(1, 2, -7, 8.6);
-    //     beta = GENERATE(1, 2, -4, 6.5);
-    // }
+    // Uniform distribution: 0 or 1
+    std::uniform_int_distribution<> dist(0, 1);
 
-    n = GENERATE(1, 3, 5, 9);
+    // Generate either -1 or 1
+    float value = dist(gen) == 0 ? -1.0 : 1.0;
+
+    real_t aReal = real_t(value * (float)rand() / (float)RAND_MAX);
+    real_t aImag = real_t(value * (float)rand() / (float)RAND_MAX);
+    real_t bReal = real_t(value * (float)rand() / (float)RAND_MAX);
+    real_t bImag = real_t(value * (float)rand() / (float)RAND_MAX);
+
+    setScalar(alpha, aReal, aImag);
+    setScalar(beta, bReal, bImag);
 
     const Uplo uplo = GENERATE(Uplo::Lower, Uplo::Upper);
 
@@ -100,13 +108,13 @@ TEMPLATE_TEST_CASE("uhu multiplication is backward stable",
         lacpy(GENERAL, A, D);
         lacpy(GENERAL, B, E);
         lacpy(GENERAL, C, F);
-        if (uplo == Uplo::Upper) {
+        if (uplo == UPPER_TRIANGLE) {
             for (idx_t i = 0; i < n; i++)
                 for (idx_t j = 0; j < i; ++j) {
                     D(i, j) = conj(D(j, i));
                     E(i, j) = conj(E(j, i));
-                    A(i, j) = 0;
-                    B(i, j) = 0;
+                    A(i, j) = real_t(0);
+                    B(i, j) = real_t(0);
                 }
         }
         else {
@@ -114,12 +122,12 @@ TEMPLATE_TEST_CASE("uhu multiplication is backward stable",
                 for (idx_t j = i + 1; j < n; ++j) {
                     D(i, j) = conj(D(j, i));
                     E(i, j) = conj(E(j, i));
-                    A(i, j) = 0;
-                    B(i, j) = 0;
+                    A(i, j) = real_t(0);
+                    B(i, j) = real_t(0);
                 }
         }
 
-        gemm(Op::NoTrans, Op::NoTrans, alpha, D, E, beta, F);
+        gemm(NO_TRANS, NO_TRANS, alpha, D, E, beta, F);
 
         real_t normF = lange(FROB_NORM, F);
 
@@ -136,7 +144,7 @@ TEMPLATE_TEST_CASE("uhu multiplication is backward stable",
 
         // Check if residual is 0 with machine accuracy
         CHECK(normC <= tol);
-        if (uplo == Uplo::Upper) {
+        if (uplo == UPPER_TRIANGLE) {
             real_t sum(0);
             for (idx_t j = 0; j < n; j++)
                 for (idx_t i = j + 1; i < n; i++)

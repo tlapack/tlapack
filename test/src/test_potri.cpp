@@ -1,6 +1,7 @@
-/// @file test_hemm2.cpp
-/// @author Brian Dang, University of Colorado Denver, USA
-/// @brief Test LLH multiplication
+/// @file test_potri.cpp
+/// @author L. Carlos Gutierrez, Brian Dang, and Henricus Bouwmeester,
+/// University of Colorado Denver, USA
+/// @brief Test Potri Function
 //
 // Copyright (c) 2025, University of Colorado Denver. All rights reserved.
 //
@@ -8,6 +9,7 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
+// Test utilities and definitions (must come before <T>LAPACK headers)
 #include "TestUploMatrix.hpp"
 
 // Test utilities and definitions (must come before <T>LAPACK headers)
@@ -23,11 +25,11 @@
 
 using namespace tlapack;
 
-#define TESTUPLO_TYPES_TO_TEST                                          \
-    (TestUploMatrix<float, size_t, Uplo::Lower, Layout::ColMajor>),     \
-        (TestUploMatrix<float, size_t, Uplo::Upper, Layout::ColMajor>), \
-        (TestUploMatrix<float, size_t, Uplo::Lower, Layout::RowMajor>), \
-        (TestUploMatrix<float, size_t, Uplo::Upper, Layout::RowMajor>)
+#define TESTUPLO_TYPES_TO_TEST                                             \
+    (TestUploMatrix<float, size_t, LOWER_TRIANGLE, Layout::ColMajor>),     \
+        (TestUploMatrix<float, size_t, UPPER_TRIANGLE, Layout::ColMajor>), \
+        (TestUploMatrix<float, size_t, LOWER_TRIANGLE, Layout::RowMajor>), \
+        (TestUploMatrix<float, size_t, UPPER_TRIANGLE, Layout::RowMajor>)
 
 /// Print matrix A in the standard output
 template <typename matrix_t>
@@ -44,8 +46,8 @@ void printMatrix(const matrix_t& A)
     }
 }
 
-TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
-                   "[hemm2]",
+TEMPLATE_TEST_CASE("compute the inverse of a hermitian matrix",
+                   "[potri]",
                    TLAPACK_TYPES_TO_TEST,
                    TESTUPLO_TYPES_TO_TEST)
 
@@ -85,25 +87,20 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
         std::vector<T> C_;
         auto C = new_matrix(C_, n, n);
 
-        std::vector<T> I_;
-        auto I = new_matrix(I_, n, n);
+        std::vector<T> D_;
+        auto D = new_matrix(D_, n, n);
 
         // Update A with random numbers, and make it positive definite
         mm.random(uplo, A);
         for (idx_t j = 0; j < n; ++j) {
-            if constexpr (is_complex<T>) {
-                A(j, j) = T(real(A(j, j)) + n, 0);
-            }
-            else {
-                A(j, j) = A(j, j) + n;
-            }
+            A(j, j) = real_t(n + real(A(j, j)));
         }
         if (verbose) {
             std::cout << "\nA = ";
             printMatrix(A);
         }
         // Fill in zeroes
-        if (uplo == Uplo::Lower) {
+        if (uplo == LOWER_TRIANGLE) {
             auto subMatrix = slice(A, range(0, n - 1), range(1, n));
             laset(UPPER_TRIANGLE, real_t(0), real_t(0), subMatrix);
         }
@@ -117,14 +114,11 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
         }
         real_t normA = lange(FROB_NORM, A);
 
-        // Create Identiy
-        for (idx_t j = 0; j < n; j++) {
-            I(j, j) = T(1);
-        }
-
+        // Zero out the entire matrix first
+        laset(GENERAL, real_t(0), real_t(1), D);
         if (verbose) {
             std::cout << "\nI = ";
-            printMatrix(I);
+            printMatrix(D);
         }
 
         // Copy A into B
@@ -141,7 +135,7 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
         }
         real_t normAIn = lange(FROB_NORM, B);
 
-        mult_hehe(uplo, real_t(1), A, B, real_t(0), C);
+        mult_hehe(uplo, real_t(1), A, B, StrongZero(), C);
         if (verbose) {
             std::cout << "\nThis should look like Identity = ";
             printMatrix(C);
@@ -150,11 +144,11 @@ TEMPLATE_TEST_CASE("mult a triangular matrix with a rectangular matrix",
         // C - A
         for (idx_t j = 0; j < n; j++) {
             for (idx_t i = 0; i < n; i++) {
-                C(i, j) -= I(i, j);
+                C(i, j) -= D(i, j);
             }
         }
 
-        real_t error = lange(FROB_NORM, C) / normA * normAIn;
+        real_t error = lange(FROB_NORM, C) / normA / normAIn;
         CHECK(error <= tol);
     }
 }

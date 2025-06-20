@@ -28,26 +28,25 @@ namespace tlapack {
  *
  * @param[in] side
  *      The side the matrix A appears on:
- *     - Side::Left:  $C = \alpha A B + \beta C$,
- *     - Side::Right: $C = \alpha B A + \beta C$.
+ *     - LEFT_SIDE:  $C = \alpha A B + \beta C$,
+ *     - RIGHT_SIDE: $C = \alpha B A + \beta C$.
  *
  * @param[in] uplo
  *     What part of the matrix A is referenced:
- *     - Uplo::Lower: only the lower triangular part of A is referenced.
- *     - Uplo::Upper: only the upper triangular part of A is referenced.
+ *     - LOWER_TRIANGLE: only the lower triangular part of A is referenced.
+ *     - UPPER_TRIANGLE: only the upper triangular part of A is referenced.
  *
  * @param[in] transB
  *     The operation $op(B)$ to be used:
- *     - Op::NoTrans:   $op(B) = B$.
- *     - Op::Trans:     $op(B) = B^T$.
- *     - Op::ConjTrans: $op(B) = B^H$.
+ *     - NO_TRANS:   $op(B) = B$.
+ *     - TRANSPOSE:     $op(B) = B^T$.
+ *     - CONJ_TRANS: $op(B) = B^H$.
  *
  * @param[in] alpha Scalar.
  *
  * @param[in] A A n-by-n matrix
  *
  * @param[in] B
- *
  *     - If side = Left and transB = NoTrans or side = Right and transB =
  * Trans/ConjTrans:  B n-by-m matrix.
  *     - If side = Right and transB = NoTrans or side = Left and transB =
@@ -71,12 +70,8 @@ template <TLAPACK_MATRIX matrixA_t,
           TLAPACK_MATRIX matrixC_t,
           TLAPACK_SCALAR alpha_t,
           TLAPACK_SCALAR beta_t,
-          class T = type_t<matrixC_t>,
-          disable_if_allow_optblas_t<pair<matrixA_t, T>,
-                                     pair<matrixB_t, T>,
-                                     pair<matrixC_t, T>,
-                                     pair<alpha_t, T>,
-                                     pair<beta_t, T>> = 0>
+          class T = type_t<matrixC_t>>
+
 void hemm2(Side side,
            Uplo uplo,
            Op transB,
@@ -96,19 +91,18 @@ void hemm2(Side side,
     const idx_t n = ncols(B);
 
     // // check arguments
-    tlapack_check_false(side != Side::Left && side != Side::Right);
-    tlapack_check_false(uplo != Uplo::Lower && uplo != Uplo::Upper &&
-                        uplo != Uplo::General);
+    tlapack_check_false(side != LEFT_SIDE && side != RIGHT_SIDE);
+    tlapack_check_false(uplo != LOWER_TRIANGLE && uplo != UPPER_TRIANGLE &&
+                        uplo != GENERAL);
     tlapack_check_false(nrows(A) != ncols(A));
-    if ((side == Side::Left && transB == Op::NoTrans) ||
-        (side == Side::Right &&
-         (transB == Op::Trans || transB == Op::ConjTrans))) {
+    if ((side == LEFT_SIDE && transB == NO_TRANS) ||
+        (side == RIGHT_SIDE && (transB == TRANSPOSE || transB == CONJ_TRANS))) {
         tlapack_check_false(ncols(A) != m);
     }
     else {
         tlapack_check_false(nrows(A) != n);
     }
-    if (transB == Op::NoTrans) {
+    if (transB == NO_TRANS) {
         tlapack_check_false(nrows(C) != m);
         tlapack_check_false(ncols(C) != n);
     }
@@ -117,9 +111,9 @@ void hemm2(Side side,
         tlapack_check_false(ncols(C) != m);
     }
 
-    if (side == Side::Left) {
-        if (transB == Op::NoTrans) {
-            if (uplo == Uplo::Upper) {
+    if (side == LEFT_SIDE) {
+        if (transB == NO_TRANS) {
+            if (uplo == UPPER_TRIANGLE) {
                 // or uplo == Uplo::General
                 for (idx_t j = 0; j < n; ++j) {
                     for (idx_t i = 0; i < m; ++i) {
@@ -137,7 +131,7 @@ void hemm2(Side side,
                 }
             }
             else {
-                // uplo == Uplo::Lower
+                // uplo == LOWER_TRIANGLE
                 for (idx_t j = 0; j < n; ++j) {
                     for (idx_t i = m - 1; i != idx_t(-1); --i) {
                         const scalar_type<alpha_t, TB> alphaTimesBij =
@@ -154,9 +148,9 @@ void hemm2(Side side,
                 }
             }
         }
-        else if (transB == Op::Trans) {
+        else if (transB == TRANSPOSE) {
             // Trans
-            if (uplo == Uplo::Upper) {
+            if (uplo == UPPER_TRIANGLE) {
                 // or uplo == Uplo::General
                 for (idx_t j = 0; j < n; j++) {
                     for (idx_t k = 0; k < m; k++) {
@@ -172,7 +166,7 @@ void hemm2(Side side,
                 }
             }
             else {
-                // uplo == Uplo::Lower
+                // uplo == LOWER_TRIANGLE
                 for (idx_t j = 0; j < n; j++) {
                     for (idx_t k = 0; k < m; k++) {
                         T sum(0);
@@ -189,7 +183,7 @@ void hemm2(Side side,
         }
         else {
             // TransConj
-            if (uplo == Uplo::Upper) {
+            if (uplo == UPPER_TRIANGLE) {
                 // or uplo == Uplo::General
                 for (idx_t j = 0; j < n; j++) {
                     for (idx_t k = 0; k < m; k++) {
@@ -205,7 +199,7 @@ void hemm2(Side side,
                 }
             }
             else {
-                // uplo == Uplo::Lower
+                // uplo == LOWER_TRIANGLE
                 for (idx_t j = 0; j < n; j++) {
                     for (idx_t k = 0; k < m; k++) {
                         T sum(0);
@@ -221,12 +215,12 @@ void hemm2(Side side,
             }
         }
     }
-    else {  // side == Side::Right
+    else {  // side == RIGHT_SIDE
         using scalar_t = scalar_type<alpha_t, TA>;
 
-        if (transB == Op::NoTrans) {
-            if (uplo != Uplo::Lower) {
-                // uplo == Uplo::Upper or uplo == Uplo::General
+        if (transB == NO_TRANS) {
+            if (uplo != LOWER_TRIANGLE) {
+                // uplo == UPPER_TRIANGLE or uplo == Uplo::General
                 for (idx_t j = 0; j < n; ++j) {
                     {
                         const scalar_t alphaTimesAjj = alpha * real(A(j, j));
@@ -248,7 +242,7 @@ void hemm2(Side side,
                 }
             }
             else {
-                // uplo == Uplo::Lower
+                // uplo == LOWER_TRIANGLE
                 for (idx_t j = 0; j < n; ++j) {
                     {
                         const scalar_t alphaTimesAjj = alpha * real(A(j, j));
@@ -270,9 +264,9 @@ void hemm2(Side side,
                 }
             }
         }
-        else if (transB == Op::Trans) {
+        else if (transB == TRANSPOSE) {
             // Trans
-            if (uplo == Uplo::Upper) {
+            if (uplo == UPPER_TRIANGLE) {
                 // or uplo == Uplo::General
                 for (idx_t j = 0; j < n; j++) {
                     for (idx_t k = 0; k < m; k++) {
@@ -288,7 +282,7 @@ void hemm2(Side side,
                 }
             }
             else {
-                // uplo == Uplo::Lower
+                // uplo == LOWER_TRIANGLE
                 for (idx_t j = 0; j < n; j++) {
                     for (idx_t k = 0; k < m; k++) {
                         T sum(0);
@@ -305,7 +299,7 @@ void hemm2(Side side,
         }
         else {
             // TransConj
-            if (uplo == Uplo::Upper) {
+            if (uplo == UPPER_TRIANGLE) {
                 // or uplo == Uplo::General
                 for (idx_t j = 0; j < n; j++) {
                     for (idx_t k = 0; k < m; k++) {
@@ -321,7 +315,7 @@ void hemm2(Side side,
                 }
             }
             else {
-                // uplo == Uplo::Lower
+                // uplo == LOWER_TRIANGLE
                 for (idx_t j = 0; j < n; j++) {
                     for (idx_t k = 0; k < m; k++) {
                         T sum(0);
@@ -353,19 +347,19 @@ void hemm2(Side side,
  *
  * @param[in] side
  *      The side the matrix A appears on:
- *     - Side::Left:  $C = \alpha A B$,
- *     - Side::Right: $C = \alpha B A$.
+ *     - LEFT_SIDE:  $C = \alpha A B$,
+ *     - RIGHT_SIDE: $C = \alpha B A$.
  *
  * @param[in] uplo
  *     What part of the matrix A is referenced:
- *     - Uplo::Lower: only the lower triangular part of A is referenced.
- *     - Uplo::Upper: only the upper triangular part of A is referenced.
+ *     - LOWER_TRIANGLE: only the lower triangular part of A is referenced.
+ *     - UPPER_TRIANGLE: only the upper triangular part of A is referenced.
  *
  * @param[in] transB
  *     The operation $op(B)$ to be used:
- *     - Op::NoTrans:   $op(B) = B$.
- *     - Op::Trans:     $op(B) = B^T$.
- *     - Op::ConjTrans: $op(B) = B^H$.
+ *     - NO_TRANS:   $op(B) = B$.
+ *     - TRANSPOSE:     $op(B) = B^T$.
+ *     - CONJ_TRANS: $op(B) = B^H$.
  *
  * @param[in] alpha Scalar.
  *
