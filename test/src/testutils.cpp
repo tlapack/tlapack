@@ -16,11 +16,6 @@ namespace catch2 {
 // GDB doesn't handle templates well, so we explicitly define some versions of
 // the functions for common template arguments
 //
-void print_matrix_half(
-    const Eigen::Matrix<Eigen::half, Eigen::Dynamic, Eigen::Dynamic>& A)
-{
-    print_matrix(A);
-}
 void print_matrix_r(const LegacyMatrix<float, size_t, Layout::ColMajor>& A)
 {
     print_matrix(A);

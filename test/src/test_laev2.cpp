@@ -16,7 +16,7 @@
 #include <tlapack/lapack/lae2.hpp>
 #include <tlapack/lapack/laev2.hpp>
 #include <tlapack/lapack/lapy2.hpp>
-#include <tlapack/lapack/singularvalues22.hpp>
+// #include <tlapack/lapack/singularvalues22.hpp>
 
 using namespace tlapack;
 
@@ -30,7 +30,7 @@ TEMPLATE_TEST_CASE("check that laev2 gives correct eigenvalues",
     // MatrixMarket reader
     uint64_t seed = GENERATE(1, 2, 3, 4, 5, 6);
 
-    rand_generator gen;
+    std::mt19937 gen;
     gen.seed(seed);
 
     const real_type<T> eps = ulp<real_type<T>>();
