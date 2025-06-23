@@ -15,7 +15,7 @@
 #include <tlapack/blas/rotg.hpp>
 #include <tlapack/lapack/lae2.hpp>
 #include <tlapack/lapack/lapy2.hpp>
-#include <tlapack/lapack/singularvalues22.hpp>
+// #include <tlapack/lapack/singularvalues22.hpp>
 
 using namespace tlapack;
 
