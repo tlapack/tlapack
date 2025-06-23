@@ -1,7 +1,7 @@
 /// @file test_ladiv.cpp
 /// @author Weslley S Pereira, University of Colorado Denver, USA
 //
-// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2025, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -19,11 +19,45 @@ using namespace tlapack;
 
 TEST_CASE("ladiv works properly", "[aux]")
 {
-    double a, b, c, d, p, q;
+    using real_t = double;
 
-    a = b = c = d = pow(2, DBL_MAX_EXP - 1);
-    ladiv(a, b, c, d, p, q);
+    const real_t M = std::numeric_limits<real_t>::max();
+    const int E = std::numeric_limits<real_t>::max_exponent;
+    const real_t eps = std::numeric_limits<real_t>::epsilon();
 
-    CHECK(p == 1.0);
-    CHECK(q == 0.0);
+    real_t a, b, c, d, p, q;
+
+    {
+        a = b = c = d = pow(2, E - 1);
+        ladiv(a, b, c, d, p, q);
+
+        CHECK(p == 1.0);
+        CHECK(q == 0.0);
+    }
+    {
+        a = b = M;
+        c = eps;
+        d = 0;
+
+        ladiv(a, b, c, d, p, q);
+
+        INFO("p = " << p);
+        INFO("q = " << q);
+
+        CHECK(isinf(p));
+        CHECK(isinf(q));
+    }
+    {
+        a = b = M;
+        c = 0;
+        d = eps;
+
+        ladiv(a, b, c, d, p, q);
+
+        INFO("p = " << p);
+        INFO("q = " << q);
+
+        CHECK(isinf(p));
+        CHECK(isinf(q));
+    }
 }

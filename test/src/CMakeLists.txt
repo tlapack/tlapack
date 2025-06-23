@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
+# Copyright (c) 2025, University of Colorado Denver. All rights reserved.
 #
 # This file is part of <T>LAPACK.
 # <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -105,6 +105,13 @@ add_executable(test_rot_sequence3 test_rot_sequence3.cpp testutils.cpp)
 add_executable(test_lae2 test_lae2.cpp)
 add_executable(test_laev2 test_laev2.cpp)
 add_executable(test_steqr test_steqr.cpp testutils.cpp)
+add_executable(test_trmm_blocked_mixed test_trmm_blocked_mixed.cpp)
+add_executable(test_mult_llh test_mult_llh.cpp)
+add_executable(test_mult_uhu test_mult_uhu.cpp)
+add_executable(test_mult_hehe test_mult_hehe.cpp)
+add_executable(test_hemm2 test_hemm2.cpp)
+add_executable(test_potri test_potri.cpp)
+add_executable(test_gemmtr test_gemmtr.cpp)
 
 if(TLAPACK_TEST_EIGEN)
   add_executable(test_eigenplugin test_eigenplugin.cpp)

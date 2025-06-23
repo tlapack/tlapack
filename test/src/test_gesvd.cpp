@@ -2,7 +2,7 @@
 /// @author Thijs Steel, KU Leuven, Belgium
 /// @brief Test GESVD
 //
-// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2025, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -45,7 +45,7 @@ TEMPLATE_TEST_CASE("svd with small unitary matrix is backward stable",
     idx_t k = min(m, n);
 
     const int seed = GENERATE(2, 3, 4, 5, 6, 7, 8, 9, 10);
-    rand_generator gen;
+    PCG32 gen;
     gen.seed(seed);
 
     const real_t eps = ulp<real_t>();
@@ -140,7 +140,7 @@ TEMPLATE_TEST_CASE("svd with full unitary matrix is backward stable",
     idx_t k = min(m, n);
 
     const int seed = GENERATE(2, 3, 4, 5, 6, 7, 8, 9, 10);
-    rand_generator gen;
+    PCG32 gen;
     gen.seed(seed);
 
     const real_t eps = ulp<real_t>();

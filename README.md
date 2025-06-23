@@ -273,7 +273,7 @@ Here are the \<T\>LAPACK specific options and their default values
 | Project                            | Version       | When                                                 |
 | ---------------------------------- | ------------- | ---------------------------------------------------- |
 | CMake                              | >= v3.14      | Always                                               |
-| ClangFormat                        | 10            | Always                                               |
+| ClangFormat                        | 11            | Always                                               |
 | Catch2                             | >= 3.0.1      | `BUILD_TESTING=ON`                                   |
 | Git                                | -             | `BUILD_BLASPP_TESTS=ON  OR  BUILD_LAPACKPP_TESTS=ON` |
 | github.com/icl-utk-edu/testsweeper | >= 2021.04.00 | `BUILD_BLASPP_TESTS=ON  OR  BUILD_LAPACKPP_TESTS=ON` |
@@ -339,7 +339,7 @@ To test \<T\>LAPACK, build with `BUILD_TESTING=ON`. Then, run `ctest` inside the
 
 BSD 3-Clause License
 
-Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
+Copyright (c) 2025, University of Colorado Denver. All rights reserved.
 
 Copyright (c) 2017-2021, University of Tennessee. All rights reserved.
 

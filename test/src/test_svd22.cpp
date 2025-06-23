@@ -2,7 +2,7 @@
 /// @author Thijs Steel, KU Leuven, Belgium
 /// @brief Test auxiliary routines that calculate svd of 2x2 triangular matrix
 //
-// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2025, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -30,6 +30,9 @@ TEMPLATE_TEST_CASE("2x2 svd gives correct result",
     // Functor
     Create<matrix_t> new_matrix;
 
+    // Pseudo random number generator
+    PCG32 prng;
+
     const T eps = uroundoff<T>();
     const T tol = T(4.0e1) * eps;
 
@@ -39,44 +42,55 @@ TEMPLATE_TEST_CASE("2x2 svd gives correct result",
     T f, g, h, ssmin1, ssmax1, ssmin2, ssmax2, csl, snl, csr, snr;
 
     if (matrix_type == "rand") {
-        f = rand_helper<T>();
-        g = rand_helper<T>();
-        h = rand_helper<T>();
+        f = rand_helper<T>(prng);
+        g = rand_helper<T>(prng);
+        h = rand_helper<T>(prng);
     }
     if (matrix_type == "large f") {
-        f = T(100.) * rand_helper<T>();
-        g = rand_helper<T>();
-        h = rand_helper<T>();
+        f = T(100.) * rand_helper<T>(prng);
+        g = rand_helper<T>(prng);
+        h = rand_helper<T>(prng);
     }
     if (matrix_type == "large g") {
-        f = rand_helper<T>();
-        g = T(100.) * rand_helper<T>();
-        h = rand_helper<T>();
+        f = rand_helper<T>(prng);
+        g = T(100.) * rand_helper<T>(prng);
+        h = rand_helper<T>(prng);
     }
     if (matrix_type == "large h") {
-        f = rand_helper<T>();
-        g = rand_helper<T>();
-        h = T(100.) * rand_helper<T>();
+        f = rand_helper<T>(prng);
+        g = rand_helper<T>(prng);
+        h = T(100.) * rand_helper<T>(prng);
     }
     if (matrix_type == "zero f") {
         f = T(0.);
-        g = rand_helper<T>();
-        h = rand_helper<T>();
+        g = rand_helper<T>(prng);
+        h = rand_helper<T>(prng);
     }
     if (matrix_type == "zero g") {
-        f = rand_helper<T>();
+        f = rand_helper<T>(prng);
         g = T(0.);
-        h = rand_helper<T>();
+        h = rand_helper<T>(prng);
     }
     if (matrix_type == "zero h") {
-        f = rand_helper<T>();
-        g = rand_helper<T>();
+        f = rand_helper<T>(prng);
+        g = rand_helper<T>(prng);
         h = T(0.);
     }
+
+    INFO("f = " << f);
+    INFO("g = " << g);
+    INFO("h = " << h);
 
     DYNAMIC_SECTION("matrix type = " << matrix_type)
     {
         svd22(f, g, h, ssmin1, ssmax1, csl, snl, csr, snr);
+
+        INFO("ssmin1 = " << ssmin1);
+        INFO("ssmax1 = " << ssmax1);
+        INFO("csl = " << csl);
+        INFO("snl = " << snl);
+        INFO("csr = " << csr);
+        INFO("snr = " << snr);
 
         // Check the decomposition
         std::vector<T> A_;

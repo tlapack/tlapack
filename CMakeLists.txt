@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
+# Copyright (c) 2025, University of Colorado Denver. All rights reserved.
 #
 # This file is part of <T>LAPACK.
 # <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -41,7 +41,7 @@ file(READ version.txt version_txt)
 # We require C++17 features like if constexpr
 # If possible, compile with C++20 so we can use concepts
 set (CMAKE_CXX_STANDARD_REQUIRED 17)
-set (CMAKE_CXX_STANDARD 20)
+set (CMAKE_CXX_STANDARD 20 CACHE STRING "C++ standard to use")
 
 #-------------------------------------------------------------------------------
 # <T>LAPACK project
@@ -58,7 +58,6 @@ add_library( tlapack INTERFACE )
 target_include_directories( tlapack
   INTERFACE 
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>
     $<INSTALL_INTERFACE:include> )
 
 #-------------------------------------------------------------------------------
@@ -82,6 +81,9 @@ cmake_dependent_option( BUILD_LAPACKPP_TESTS "Use LAPACK++ tests to test <T>LAPA
   OFF "BUILD_TESTING" # Default value when condition is true
   OFF # Value when condition is false
 )
+
+# MKL wrappers
+option( TLAPACK_USE_BF16BF16FP32_GEMM "Use BF16BF16FP32_GEMM from MKL. Only used for C++23 or more recent." OFF )
 
 # Examples
 option( BUILD_EXAMPLES "Build examples" ON  )
@@ -195,6 +197,21 @@ if( TLAPACK_USE_LAPACKPP )
 endif()
 
 #-------------------------------------------------------------------------------
+# Search for MKL library if it is needed
+if( TLAPACK_USE_BF16BF16FP32_GEMM )
+  include(CheckCXXSymbolExists)
+  find_package(MKL CONFIG REQUIRED)
+  if( MKL_VERSION VERSION_GREATER_EQUAL "2023.1" )
+    target_compile_options(tlapack INTERFACE $<TARGET_PROPERTY:MKL::MKL,INTERFACE_COMPILE_OPTIONS>)
+    target_include_directories(tlapack INTERFACE $<TARGET_PROPERTY:MKL::MKL,INTERFACE_INCLUDE_DIRECTORIES>)
+    target_link_libraries(tlapack INTERFACE $<LINK_ONLY:MKL::MKL>)
+    target_compile_definitions( tlapack INTERFACE TLAPACK_USE_BF16BF16FP32_GEMM )
+  else()
+    message(WARNING "cblas_gemm_bf16bf16f32() was not found in the MKL library. This function is available in MKL 2023.1 or more recent. Please check your MKL installation.")
+  endif()
+endif()
+
+#-------------------------------------------------------------------------------
 # Docs
 add_subdirectory(docs)
 
@@ -208,8 +225,8 @@ find_package(Git QUIET)
 find_package(ClangFormat QUIET)
 if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git" AND CLANG_FORMAT_FOUND)
   message(STATUS "ClangFormat found: ${CLANG_FORMAT_EXECUTABLE} (version ${CLANG_FORMAT_VERSION})")
-  if( ${CLANG_FORMAT_MAJOR_VERSION} NOT EQUAL 10 )
-    message( WARNING "Please use ClangFormat version 10" )
+  if( ${CLANG_FORMAT_MAJOR_VERSION} NOT EQUAL 11 )
+    message( WARNING "Please use ClangFormat version 11" )
   else()
     add_custom_target( format-all-hpp-cpp-files
       COMMAND
@@ -237,6 +254,7 @@ endif()
 
 if( BUILD_C_WRAPPERS OR BUILD_CBLAS_WRAPPERS OR BUILD_Fortran_WRAPPERS )
   enable_language( C )
+  target_include_directories( tlapack INTERFACE $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include> )
   if( BUILD_Fortran_WRAPPERS )
     set( CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/fortran )
     enable_language( Fortran )

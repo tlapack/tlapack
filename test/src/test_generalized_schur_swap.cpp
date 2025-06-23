@@ -2,7 +2,7 @@
 /// @author Thijs Steel, KU Leuven, Belgium
 /// @brief Test 1x1 and 2x2 generalized schur swaps
 //
-// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2025, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -72,8 +72,8 @@ TEMPLATE_TEST_CASE("generalized schur swap gives correct result",
             for (idx_t i = j + 1; i < n; ++i)
                 B(i, j) = zero;
 
-        if (n1 == 2) A(j + 1, j) = rand_helper<T>();
-        if (n2 == 2) A(j + n1 + 1, j + n1) = rand_helper<T>();
+        if (n1 == 2) A(j + 1, j) = rand_helper<T>(mm.gen);
+        if (n2 == 2) A(j + n1 + 1, j + n1) = rand_helper<T>(mm.gen);
 
         lacpy(GENERAL, A, A_copy);
         lacpy(GENERAL, B, B_copy);

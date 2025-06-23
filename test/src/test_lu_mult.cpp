@@ -2,7 +2,7 @@
 /// @author Lindsay Slager, University of Colorado Denver, USA
 /// @brief Test LU multiplication
 //
-// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2025, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -72,8 +72,8 @@ TEMPLATE_TEST_CASE("lu multiplication is backward stable",
 
                 gemm(NO_TRANS, NO_TRANS, real_t(1), L, U, real_t(-1), A);
 
-                real_t lu_mult_res_norm = lange(MAX_NORM, A) / norma;
-                CHECK(lu_mult_res_norm <= tol);
+                real_t lu_mult_res_norm = lange(MAX_NORM, A);
+                CHECK(lu_mult_res_norm <= tol * norma);
             }
         }
     }

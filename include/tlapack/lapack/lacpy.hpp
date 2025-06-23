@@ -3,7 +3,7 @@
 /// @note Adapted from @see
 /// https://github.com/langou/latl/blob/master/include/lacpy.h
 //
-// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2025, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -39,6 +39,7 @@ void lacpy(uplo_t uplo, const matrixA_t& A, matrixB_t& B)
 {
     // data traits
     using idx_t = size_type<matrixA_t>;
+    using TB = type_t<matrixB_t>;
 
     // constants
     const idx_t m = nrows(A);
@@ -53,7 +54,7 @@ void lacpy(uplo_t uplo, const matrixA_t& A, matrixB_t& B)
         for (idx_t j = 0; j < n; ++j) {
             const idx_t M = min(m, j + 1);
             for (idx_t i = 0; i < M; ++i)
-                B(i, j) = A(i, j);
+                B(i, j) = (TB)A(i, j);
         }
     }
     else if (uplo == Uplo::Lower) {
@@ -61,13 +62,13 @@ void lacpy(uplo_t uplo, const matrixA_t& A, matrixB_t& B)
         const idx_t N = min(m, n);
         for (idx_t j = 0; j < N; ++j)
             for (idx_t i = j; i < m; ++i)
-                B(i, j) = A(i, j);
+                B(i, j) = (TB)A(i, j);
     }
     else {
         // Set the whole m-by-n matrix B
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = 0; i < m; ++i)
-                B(i, j) = A(i, j);
+                B(i, j) = (TB)A(i, j);
     }
 }
 

@@ -2,7 +2,7 @@
 /// @author Yuxin Cai, University of Colorado Denver, USA
 /// @brief Test GELQF and UNGL2 and output a k-by-n orthogonal matrix Q.
 //
-// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2025, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -66,9 +66,11 @@ TEMPLATE_TEST_CASE("LQ factorization of a general m-by-n matrix, blocked",
     GelqfOpts gelqfOpts;
     gelqfOpts.nb = nb;
 
-    for (idx_t j = 0; j < n; ++j)
-        for (idx_t i = 0; i < m; ++i)
-            A(i, j) = rand_helper<T>();
+    // MatrixMarket reader
+    MatrixMarket mm;
+
+    // Fill A with random values
+    mm.random(A);
 
     lacpy(GENERAL, A, A_copy);
 

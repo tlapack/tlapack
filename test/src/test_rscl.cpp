@@ -1,7 +1,7 @@
 /// @file test_rscl.cpp Test the reciprocal scaling routine.
 /// @author Weslley S Pereira, University of Colorado Denver, USA
 //
-// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2025, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -60,7 +60,7 @@ TEMPLATE_TEST_CASE("reciprocal scaling works on limit cases",
     }
     {
         using T = NaNPropagComplex<real_t>;
-        using trustR = long double;
+        using trustR = double;
         using trustT = NaNPropagComplex<trustR>;
 
         // scaling constants

@@ -3,7 +3,7 @@
 /// Adapted from @see
 /// https://github.com/Reference-LAPACK/lapack/tree/master/SRC/zbdsqr.f
 //
-// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2025, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -102,7 +102,7 @@ int svd_qr(Uplo uplo,
     const real_t eps = ulp<real_t>();
     const real_t unfl = safe_min<real_t>();
     const real_t tolmul =
-        max(real_t(10.0), min(real_t(100.0), pow(eps, real_t(-0.125))));
+        max(real_t(10.0), min(real_t(100.0), one / sqrt(sqrt(sqrt(eps)))));
     const real_t tol = tolmul * eps;
 
     // Quick return

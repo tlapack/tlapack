@@ -2,7 +2,7 @@
 /// @author Heidi Meier, University of Colorado Denver
 /// @brief Test LAUUM
 //
-// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2025, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -69,7 +69,7 @@ TEMPLATE_TEST_CASE("LAUUM is stable", "[lauum]", TLAPACK_TYPES_TO_TEST)
             herk(UPPER_TRIANGLE, NO_TRANS, real_t(1), C, real_t(-1), A);
         }
 
-        real_t res = lanhe(MAX_NORM, uplo, A) / normC / normC;
-        CHECK(res <= tol);
+        real_t res = lanhe(MAX_NORM, uplo, A);
+        CHECK(res <= tol * normC * normC);
     }
 }

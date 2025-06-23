@@ -2,7 +2,7 @@
 /// @author Thijs Steel, KU Leuven, Belgium
 /// @brief Test implicit QR variation of SVD
 //
-// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2025, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -35,6 +35,9 @@ TEMPLATE_TEST_CASE("svd is backward stable",
     // Functor
     Create<matrix_t> new_matrix;
 
+    // Pseudo random number generator
+    PCG32 prng;
+
     const real_t zero(0);
     const real_t one(1);
 
@@ -59,9 +62,9 @@ TEMPLATE_TEST_CASE("svd is backward stable",
 
     // Generate random bidiagonal matrix
     for (idx_t j = 0; j < n; ++j)
-        d[j] = rand_helper<real_t>();
+        d[j] = rand_helper<real_t>(prng);
     for (idx_t j = 0; j + 1 < n; ++j)
-        e[j] = rand_helper<real_t>();
+        e[j] = rand_helper<real_t>(prng);
 
     copy(d, d_copy);
     copy(e, e_copy);

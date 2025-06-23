@@ -2,7 +2,7 @@
 /// @author Thijs Steel, KU Leuven, Belgium
 /// @brief Test QZ algorithms.
 //
-// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2025, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -34,6 +34,9 @@ TEMPLATE_TEST_CASE("QZ algorithm",
     using real_t = real_type<TA>;
     using complex_t = complex_type<real_t>;
     using range = pair<idx_t, idx_t>;
+
+    // QZ algorithm does may not work with 16-bit precision types
+    if constexpr (sizeof(real_t) <= 2) SKIP_TEST;
 
     // Functor
     Create<matrix_t> new_matrix;

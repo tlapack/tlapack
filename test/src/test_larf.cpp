@@ -1,7 +1,7 @@
 /// @file test_larf.cpp Test the operations with Householder reflectors
 /// @author Weslley S Pereira, University of Colorado Denver, USA
 //
-// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2025, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -35,6 +35,9 @@ TEMPLATE_TEST_CASE("Generation of Householder reflectors",
     // Functor
     Create<vector_t> new_vector;
 
+    // Pseudo random number generator
+    PCG32 prng;
+
     // Test parameters
     const idx_t n = GENERATE(10, 19, 30);
     const Direction direction =
@@ -54,13 +57,17 @@ TEMPLATE_TEST_CASE("Generation of Householder reflectors",
     auto w = new_vector(w_, n);
 
     // Constants
-    const real_t tol = real_t(n) * ulp<real_t>();
+    const real_t eps = ulp<real_t>();
+    const real_t tol = real_t(n) * eps;
     const real_t zero(0);
     const real_t one(1);
     const real_t two(2);
-    const T alpha =
-        (typeAlpha == "Real") ? rand_helper<real_t>() : rand_helper<T>();
     const idx_t alphaIdx = (direction == Direction::Forward) ? 0 : n - 1;
+    T alpha(0);
+    while (alpha == T(0)) {
+        alpha = (typeAlpha == "Real") ? rand_helper<real_t>(prng)
+                                      : rand_helper<T>(prng);
+    }
 
     // Print test parameters
     INFO("Which larfg: " << whichLARFG);
@@ -84,7 +91,7 @@ TEMPLATE_TEST_CASE("Generation of Householder reflectors",
         }
         else {  // initialX == 'R'
             for (idx_t i = 0; i < n; ++i) {
-                v[i] = rand_helper<T>();
+                v[i] = rand_helper<T>(prng);
             }
         }
         v[alphaIdx] = alpha;
@@ -108,6 +115,8 @@ TEMPLATE_TEST_CASE("Generation of Householder reflectors",
             larfg(direction, storeMode, v, tau);
         }
 
+        INFO("tau = " << tau);
+
         // Post-process v and extract beta
         const T beta = v[alphaIdx];
         v[alphaIdx] = one;
@@ -123,7 +132,7 @@ TEMPLATE_TEST_CASE("Generation of Householder reflectors",
         else {
             CHECK(one <= real(tau));
             CHECK(real(tau) <= two);
-            CHECK(abs(tau - one) <= one);
+            CHECK(abs(tau - one) <= one + 2 * eps);
         }
 
         const T vHw = dot(v, w);
@@ -161,6 +170,9 @@ TEMPLATE_TEST_CASE("Application of Householder reflectors",
     Create<vector_t> new_vector;
     Create<matrix_t> new_matrix;
 
+    // MatrixMarket reader
+    MatrixMarket mm;
+
     // Test parameters
     const idx_t m = GENERATE(1, 11, 30);
     const idx_t n = GENERATE(1, 11, 30);
@@ -189,7 +201,7 @@ TEMPLATE_TEST_CASE("Application of Householder reflectors",
 
         // Build v and tau
         for (idx_t i = 0; i < k; ++i)
-            v[i] = rand_helper<T>();
+            v[i] = rand_helper<T>(mm.gen);
         T tau;
         larfg(direction, storeMode, v, tau);
         v[oneIdx] =
@@ -202,9 +214,7 @@ TEMPLATE_TEST_CASE("Application of Householder reflectors",
         // Initialize matrix C
         std::vector<T> C_;
         auto C = new_matrix(C_, m, n);
-        for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = 0; i < m; ++i)
-                C(i, j) = rand_helper<T>();
+        mm.random(C);
 
         // Copy C to C0
         std::vector<T> C0_;

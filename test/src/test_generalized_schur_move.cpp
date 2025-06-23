@@ -2,7 +2,7 @@
 /// @author Thijs Steel, KU Leuven, Belgium
 /// @brief Test moving of multiple blocks in generalized schur form
 //
-// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2025, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -79,20 +79,20 @@ TEMPLATE_TEST_CASE("move of generalized eigenvalue block gives correct results",
 
         if (n1 == 2) {
             if (ifst < n - 1)
-                A(ifst + 1, ifst) = rand_helper<T>();
+                A(ifst + 1, ifst) = rand_helper<T>(mm.gen);
             else
-                A(ifst, ifst - 1) = rand_helper<T>();
+                A(ifst, ifst - 1) = rand_helper<T>(mm.gen);
         }
         if (n2 == 2) {
             if (ilst < n - 1)
-                A(ilst + 1, ilst) = rand_helper<T>();
+                A(ilst + 1, ilst) = rand_helper<T>(mm.gen);
             else
-                A(ilst, ilst - 1) = rand_helper<T>();
+                A(ilst, ilst - 1) = rand_helper<T>(mm.gen);
         }
 
         if (is_real<T>) {
             // Put a 2x2 block in the middle
-            A(5, 4) = rand_helper<T>();
+            A(5, 4) = rand_helper<T>(mm.gen);
         }
 
         lacpy(GENERAL, A, A_copy);

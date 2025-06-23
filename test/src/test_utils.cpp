@@ -2,7 +2,7 @@
 /// @author Weslley S Pereira, University of Colorado Denver, USA
 /// @brief Test utils
 //
-// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2025, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -15,16 +15,16 @@ using namespace tlapack;
 
 TEST_CASE("Random generator is consistent if seed is fixed", "[utils]")
 {
-    rand_generator gen;
+    PCG32 gen;
     gen.seed(6845315);
 
-    CHECK(gen() == 1225581775);
-    CHECK(gen() == 1985311242);
-    CHECK(gen() == 300629471);
-    CHECK(gen() == 2636314308);
-    CHECK(gen() == 1603395911);
-    CHECK(gen() == 393807335);
-    CHECK(gen() == 3641191292);
+    CHECK(gen() == 1769014346);
+    CHECK(gen() == 2707482059);
+    CHECK(gen() == 2875142166);
+    CHECK(gen() == 980837000);
+    CHECK(gen() == 167563027);
+    CHECK(gen() == 4104548500);
+    CHECK(gen() == 2141462913);
 }
 
 TEMPLATE_TEST_CASE("is_matrix works", "[utils]", TLAPACK_TYPES_TO_TEST)

@@ -58,13 +58,16 @@ jobs:
         os: [ macos-latest, ubuntu-latest ]
         build-type: [ Release, Debug ]
         shared: [ ON, OFF ]
-        cpp-version: [ 17, 20 ]
+        cpp-version: [ 17, 20, 23 ]
         exclude:
           - build-type: Release
             shared: OFF
           - build-type: Release
             shared: ON
             cpp-version: 17
+          - build-type: Release
+            shared: ON
+            cpp-version: 20
         include:
           - os: windows-2019
             build-type: Release
@@ -74,11 +77,11 @@ jobs:
     steps:
     
     - name: Checkout <T>LAPACK
-      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
     - name: Checkout mdspan
-      if: ${{ matrix.os == 'ubuntu-latest' }}
-      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      if: ${{ matrix.os == 'ubuntu-latest' && matrix.cpp-version != 23 }}
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       with:
         repository: kokkos/mdspan
         ref: cc9aaea9a7d36c3163523a0e36fab85bba985a66 # v0.4.0
@@ -92,7 +95,7 @@ jobs:
         git checkout 2873916f1ca24e3282bf6e0150545d34a16b5224 # master in Aug 21, 2023
 
     - name: Install ninja-build tool
-      uses: seanmiddleditch/gha-setup-ninja@8b297075da4cd2a5f1fd21fe011b499edf06e9d2 # v4
+      uses: seanmiddleditch/gha-setup-ninja@3b1f8f94a2f8254bd26914c4ab9474d4f0015f67 # v6
     
     - name: Install the Basics
       if: ${{ matrix.os == 'ubuntu-latest' }}
@@ -102,6 +105,11 @@ jobs:
         sudo apt install -y gfortran
         sudo apt install -y liblapacke-dev
         sudo apt install -y libmpfrc++-dev
+    
+    - name: Install GCC on MacOS
+      if: ${{ matrix.os == 'macos-latest' }}
+      run: |
+        brew install gcc
 
     - name: Build and install Eigen on Ubuntu
       if: ${{ matrix.os == 'ubuntu-latest' }}
@@ -111,7 +119,7 @@ jobs:
         sudo cmake --build build --target install
 
     - name: Build and install mdspan on Ubuntu
-      if: ${{ matrix.os == 'ubuntu-latest' }}
+      if: ${{ matrix.os == 'ubuntu-latest' && matrix.cpp-version != 23 }}
       working-directory: ${{env.mdspan_DIR}}
       run: |
         cmake -B build -G Ninja
@@ -122,9 +130,14 @@ jobs:
       run: >
         cmake -B build -G Ninja
         -D TLAPACK_TEST_EIGEN=ON
-        -D TLAPACK_TEST_MDSPAN=ON
         -D TLAPACK_TEST_MPFR=ON
         -D TLAPACK_TEST_QUAD=ON
+        
+    - name: Specific configurations for CMake on Ubuntu C++ < 23
+      if: ${{ matrix.os == 'ubuntu-latest' && matrix.cpp-version != 23 }}
+      run: >
+        cmake -B build -G Ninja
+        -D TLAPACK_TEST_MDSPAN=ON
         
     - name: Specific configurations for CMake on Ubuntu in Release mode
       if: ${{ matrix.os == 'ubuntu-latest' && matrix.build-type == 'Release' }}
@@ -137,9 +150,9 @@ jobs:
       if: ${{ matrix.os == 'macos-latest' }}
       run: >
         cmake -B build -G Ninja
-        -D CMAKE_C_COMPILER="gcc-11"
-        -D CMAKE_CXX_COMPILER="g++-11"
-        -D CMAKE_Fortran_COMPILER="gfortran-11"
+        -D CMAKE_C_COMPILER="gcc-14"
+        -D CMAKE_CXX_COMPILER="g++-14"
+        -D CMAKE_Fortran_COMPILER="gfortran-14"
         -D TLAPACK_TEST_QUAD=ON
 
     - name: Specific configurations for CMake on Windows
@@ -199,24 +212,24 @@ jobs:
     steps:
     
     - name: Checkout <T>LAPACK
-      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
     
     - name: Checkout BLAS++
-      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       with:
         repository: icl-utk-edu/blaspp
         ref: 3c47832f5162b5215b2164c21c4132544c65563d # v2023.11.05
         path: blaspp
     
     - name: Checkout LAPACK++
-      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       with:
         repository: icl-utk-edu/lapackpp
         ref: e3aa0156b873d1e1349d083d7e5b66cfbdf9fb08 # v2023.11.05
         path: lapackpp
 
     - name: Install ninja-build tool
-      uses: seanmiddleditch/gha-setup-ninja@8b297075da4cd2a5f1fd21fe011b499edf06e9d2 # v4
+      uses: seanmiddleditch/gha-setup-ninja@3b1f8f94a2f8254bd26914c4ab9474d4f0015f67 # v6
     
     - name: Install the Basics
       run: |
@@ -297,24 +310,24 @@ jobs:
     steps:
     
     - name: Checkout <T>LAPACK
-      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
     
     - name: Checkout BLAS++
-      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       with:
         repository: icl-utk-edu/blaspp
         ref: 3c47832f5162b5215b2164c21c4132544c65563d # v2023.11.05
         path: blaspp
     
     - name: Checkout LAPACK++
-      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       with:
         repository: icl-utk-edu/lapackpp
         ref: e3aa0156b873d1e1349d083d7e5b66cfbdf9fb08 # v2023.11.05
         path: lapackpp
 
     - name: Install ninja-build tool
-      uses: seanmiddleditch/gha-setup-ninja@8b297075da4cd2a5f1fd21fe011b499edf06e9d2 # v4
+      uses: seanmiddleditch/gha-setup-ninja@3b1f8f94a2f8254bd26914c4ab9474d4f0015f67 # v6
     
     - name: Install the Basics
       run: |
@@ -365,24 +378,24 @@ jobs:
     steps:
     
     - name: Checkout <T>LAPACK
-      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
     
     - name: Checkout BLAS++
-      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       with:
         repository: icl-utk-edu/blaspp
         ref: 3c47832f5162b5215b2164c21c4132544c65563d # v2023.11.05
         path: blaspp
     
     - name: Checkout LAPACK++
-      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       with:
         repository: icl-utk-edu/lapackpp
         ref: e3aa0156b873d1e1349d083d7e5b66cfbdf9fb08 # v2023.11.05
         path: lapackpp
 
     - name: Install ninja-build tool
-      uses: seanmiddleditch/gha-setup-ninja@8b297075da4cd2a5f1fd21fe011b499edf06e9d2 # v4
+      uses: seanmiddleditch/gha-setup-ninja@3b1f8f94a2f8254bd26914c4ab9474d4f0015f67 # v6
 
     - name: Intel Apt repository
       timeout-minutes: 1
@@ -476,31 +489,31 @@ jobs:
     steps:
     
     - name: Checkout <T>LAPACK
-      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
     
     - name: Checkout BLAS++
-      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       with:
         repository: icl-utk-edu/blaspp
         ref: 3c47832f5162b5215b2164c21c4132544c65563d # v2023.11.05
         path: blaspp
     
     - name: Checkout LAPACK++
-      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       with:
         repository: icl-utk-edu/lapackpp
         ref: 993b8cbdcad582496c3f56535c48eaca23dc1f16 # v2023.11.05+
         path: lapackpp
 
     - name: Checkout LAPACK
-      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       with:
         repository: Reference-LAPACK/lapack
         ref: 7866626840f5d5e7e27f027a55182da8b3303872 # v3.11.0
         path: lapack
 
     - name: Install ninja-build tool
-      uses: seanmiddleditch/gha-setup-ninja@8b297075da4cd2a5f1fd21fe011b499edf06e9d2 # v4
+      uses: seanmiddleditch/gha-setup-ninja@3b1f8f94a2f8254bd26914c4ab9474d4f0015f67 # v6
     
     - name: Install the Basics
       run: |
@@ -572,24 +585,24 @@ jobs:
     steps:
     
     - name: Checkout <T>LAPACK
-      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
     
     - name: Checkout BLAS++
-      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       with:
         repository: icl-utk-edu/blaspp
         ref: 3c47832f5162b5215b2164c21c4132544c65563d # v2023.11.05
         path: blaspp
     
     - name: Checkout LAPACK++
-      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       with:
         repository: icl-utk-edu/lapackpp
         ref: e3aa0156b873d1e1349d083d7e5b66cfbdf9fb08 # v2023.11.05
         path: lapackpp
 
     - name: Install ninja-build tool
-      uses: seanmiddleditch/gha-setup-ninja@8b297075da4cd2a5f1fd21fe011b499edf06e9d2 # v4
+      uses: seanmiddleditch/gha-setup-ninja@3b1f8f94a2f8254bd26914c4ab9474d4f0015f67 # v6
     
     - name: Install the Basics
       run: |
@@ -659,10 +672,10 @@ jobs:
     steps:
     
     - name: Checkout <T>LAPACK
-      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
     - name: Checkout mdspan
-      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       with:
         repository: kokkos/mdspan
         ref: cc9aaea9a7d36c3163523a0e36fab85bba985a66 # v0.4.0
@@ -675,7 +688,7 @@ jobs:
         git checkout 2873916f1ca24e3282bf6e0150545d34a16b5224 # master in Aug 21, 2023
 
     - name: Install ninja-build tool
-      uses: seanmiddleditch/gha-setup-ninja@8b297075da4cd2a5f1fd21fe011b499edf06e9d2 # v4
+      uses: seanmiddleditch/gha-setup-ninja@3b1f8f94a2f8254bd26914c4ab9474d4f0015f67 # v6
     
     - name: Install the Basics
       run: |
@@ -763,17 +776,17 @@ jobs:
     steps:
     
     - name: Checkout <T>LAPACK
-      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
     - name: Checkout StarPU
-      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       with:
         repository: starpu-runtime/starpu
         ref: 87155272bc43821a89ae62ba0f6b55a105ccba4c # v1.4.1
         path: starpu
 
     - name: Install ninja-build tool
-      uses: seanmiddleditch/gha-setup-ninja@8b297075da4cd2a5f1fd21fe011b499edf06e9d2 # v4
+      uses: seanmiddleditch/gha-setup-ninja@3b1f8f94a2f8254bd26914c4ab9474d4f0015f67 # v6
     
     - name: Install the Basics
       run: |

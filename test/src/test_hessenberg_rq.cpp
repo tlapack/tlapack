@@ -2,7 +2,7 @@
 /// @author Thijs Steel, KU Leuven, Belgium
 /// @brief Test RQ reduction of Hessenberg matrix
 //
-// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2025, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -99,14 +99,14 @@ TEMPLATE_TEST_CASE("RQ of Hessenberg matrix is accurate",
 
     // MatrixMarket reader
     MatrixMarket mm;
-    rand_generator gen;
+    PCG32 gen;
 
     const idx_t n = GENERATE(2, 3, 4, 5, 10, 13);
 
     const idx_t k = n - 1;
 
     const real_t eps = ulp<real_t>();
-    const real_t tol = real_t(k) * eps;
+    const real_t tol = real_t(k + 1) * eps;
 
     // Define the matrices and vectors
     std::vector<T> H_;

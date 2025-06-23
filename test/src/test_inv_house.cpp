@@ -2,7 +2,7 @@
 /// @author Thijs Steel, KU Leuven, Belgium
 /// @brief Test generation of inverse householder reflector.
 //
-// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2025, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -28,7 +28,6 @@ TEMPLATE_TEST_CASE("Inverse householder calculation is correct",
 {
     using matrix_t = TestType;
     using TA = type_t<matrix_t>;
-    using idx_t = size_type<matrix_t>;
     using real_t = real_type<TA>;
 
     // Functor

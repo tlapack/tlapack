@@ -3,7 +3,7 @@
 /// algorithm.
 /// @author Weslley S Pereira, University of Colorado Denver, USA
 //
-// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2025, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -13,7 +13,6 @@
 #define TLAPACK_POTRF_BLOCKED_RL_HH
 
 #include "tlapack/base/utils.hpp"
-#include "tlapack/blas/gemm.hpp"
 #include "tlapack/blas/herk.hpp"
 #include "tlapack/blas/trsm.hpp"
 #include "tlapack/lapack/potf2.hpp"
