@@ -12,6 +12,8 @@
 #ifndef TLAPACK_LAPY2_HH
 #define TLAPACK_LAPY2_HH
 
+#include "tlapack/base/utils.hpp"
+
 namespace tlapack {
 
 /** Finds $\sqrt{x^2+y^2}$, taking care not to cause unnecessary overflow.

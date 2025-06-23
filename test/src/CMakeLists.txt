@@ -113,10 +113,6 @@ add_executable(test_lae2 test_lae2.cpp)
 add_executable(test_laev2 test_laev2.cpp)
 add_executable(test_steqr test_steqr.cpp testutils.cpp)
 
-find_package(OpenMP REQUIRED)
-target_link_libraries(test_lae2 PRIVATE OpenMP::OpenMP_CXX)
-target_link_libraries(test_laev2 PRIVATE OpenMP::OpenMP_CXX)
-
 if(TLAPACK_TEST_EIGEN)
   add_executable(test_eigenplugin test_eigenplugin.cpp)
 endif()
