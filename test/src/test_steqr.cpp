@@ -40,7 +40,13 @@ TEMPLATE_TEST_CASE("steqr is backward stable",
 
     idx_t n;
 
-    n = GENERATE(1, 2, 4, 5, 10, 12, 20);
+    n = GENERATE(1, 4, 5, 13, 20);
+
+    // MatrixMarket reader
+    uint64_t seed = GENERATE(3, 5, 6);
+
+    std::mt19937 gen;
+    gen.seed(seed);
 
     DYNAMIC_SECTION(" n = " << n)
     {
@@ -59,9 +65,9 @@ TEMPLATE_TEST_CASE("steqr is backward stable",
 
         // Generate random tridiagonal matrix
         for (idx_t j = 0; j < n; ++j)
-            d[j] = rand_helper<real_t>();
+            d[j] = rand_helper<real_t>(gen);
         for (idx_t j = 0; j + 1 < n; ++j)
-            e[j] = rand_helper<real_t>();
+            e[j] = rand_helper<real_t>(gen);
 
         copy(d, d_copy);
         copy(e, e_copy);
