@@ -33,14 +33,10 @@ void printMatrix(const matrix_t& A)
 }
 //------------------------------------------------------------------------------
 // Computes the A = diag(d) + pzz^t
-template <TLAPACK_SMATRIX matrix_t,
-          class d_t,
-          class z_t,
-          class delta_t,
-          typename real_t,
-          typename idx_t>
+template <class d_t, class z_t, class delta_t, class real_t, class idx_t>
 void laed4(
-    real_t n, idx_t i, d_t& d, z_t& z, delta_t& delta, real_t rho, real_t dlam)
+    idx_t n, idx_t i, d_t& d, z_t& z, delta_t& delta, real_t rho, real_t& dlam)
+
 {
     real_t psi, dpsi, phi, dphi, err, eta, a, b, c, w, del, tau, dltlb, dltub;
 
@@ -65,6 +61,7 @@ void laed4(
 
     // The Case if i = n
     if (i == n) {
+        /*
         // Initialize some basic variables
         idx_t ii = n - 1;
         idx_t niter = 1;
@@ -75,7 +72,7 @@ void laed4(
         // If ||Z||_2 is not one, then TEMP should be set to RHO * ||Z||_2^2 /
         // TWO
         for (int j = 0; j < n; j++) {
-            delta[j] = (d[j] - d[i - 1]) - midpt;
+            delta[j] = (d[j] - d[i]) - midpt;
         }
 
         psi = 0;
@@ -84,8 +81,7 @@ void laed4(
         }
 
         c = rhoinv + psi;
-        w = c + z[ii - 1] * z[ii - 1] / delta[ii - 1] +
-            z[n - 1] * z[n - 1] / delta[n - 1];
+        w = c + z[ii] * z[ii] / delta[ii] + z[n - 1] * z[n - 1] / delta[n - 1];
 
         if (w <= 0) {
             real_t temp = z[n - 2] * z[n - 2] / (d[n - 1] - d[n - 2] + rho) +
@@ -130,7 +126,7 @@ void laed4(
         }
 
         for (idx_t j = 0; j < n; j++) {
-            delta[j] = (d[j] - d[i - 1]) - tau;
+            delta[j] = (d[j] - d[i]) - tau;
         }
 
         // Evaluate PSI and the derivative DPSI
@@ -156,7 +152,7 @@ void laed4(
 
         // Test for convergence
         if (abs(w) <= eps * err) {
-            dlam = d[i - 1] + tau;
+            dlam = d[i] + tau;
             return;
         }
 
@@ -243,7 +239,7 @@ void laed4(
         while (niter < maxIt) {
             // Test for convergence
             if (abs(w) <= eps * err) {
-                dlam += d[i - 1] + tau;
+                dlam += d[i] + tau;
                 return;
             }
 
@@ -313,8 +309,9 @@ void laed4(
 
         // Return with INFO = 1, NITER = MAXIT and not converged
         info = 1;
-        dlam = d[i - 1] + tau;
+        dlam = d[i] + tau;
         return;
+        */
     }
     else {
         // The case for i < n
@@ -322,26 +319,24 @@ void laed4(
         idx_t ip1 = i + 1;
 
         // Calculate Inital Guess
-        del = d[ip1 - 1] - d[i - 1];
+        del = d[ip1] - d[i];
         real_t midpt = del / 2;
-
         for (idx_t j = 0; j < n; j++) {
-            delta[j] = (d[j] - d[i - 1]) - midpt;
+            delta[j] = (d[j] - d[i]) - midpt;
         }
 
         psi = 0;
-        for (idx_t j = 0; j < i - 1; j++) {
+        for (idx_t j = 0; j < i; j++) {
             psi += z[j] * z[j] / delta[j];
         }
 
         phi = 0;
-        for (idx_t j = n - 1; j >= i + 1; j--) {
+        for (idx_t j = n - 1; j >= i + 2; j--) {
             phi += z[j] * z[j] / delta[j];
         }
 
         c = rhoinv + psi + phi;
-        w = c + z[i - 1] * z[i - 1] / delta[i - 1] +
-            z[ip1 - 1] * z[ip1 - 1] / delta[ip1 - 1];
+        w = c + z[i] * z[i] / delta[i] + z[ip1] * z[ip1] / delta[ip1];
 
         bool orgati;
 
@@ -349,10 +344,10 @@ void laed4(
             // d(i)< the ith eigenvalue < (d(i)+d(i+1))/2
             // We choose d(i) as origin.
             orgati = true;
-            a = c * del + z[i - 1] * z[i - 1] + z[ip1] * z[ip1];
-            b = z[i - 1] * z[i - 1] * del;
+            a = c * del + z[i] * z[i] + z[ip1] * z[ip1];
+            b = z[i] * z[i] * del;
             if (a > 0) {
-                tau = 2 * b / (a + sqrt(abs(a * a - 4 * b * c))) / (2 * c);
+                tau = 2 * b / (a + sqrt(abs(a * a - 4 * b * c)));
             }
             else {
                 tau = (a - sqrt(abs(a * a - 4 * b * c))) / (2 * c);
@@ -365,8 +360,8 @@ void laed4(
             // (d(i)+d(i+1))/2 <= the ith eigenvalue < d(i+1)
             // We choose d(i+1) as origin.
             orgati = false;
-            a = c * del - z[i - 1] * z[i - 1] - z[ip1 - 1] * z[ip1 - 1];
-            b = z[ip1 - 1] * z[ip1 - 1] * del;
+            a = c * del - z[i] * z[i] - z[ip1] * z[ip1];
+            b = z[ip1] * z[ip1] * del;
             if (a < 0) {
                 tau = 2 * b / (a - sqrt(abs(a * a + 4 * b * c)));
             }
@@ -380,12 +375,12 @@ void laed4(
 
         if (orgati) {
             for (idx_t j = 0; j < n; j++) {
-                delta[j] = (d[j] - d[i - 1]) - tau;
+                delta[j] = (d[j] - d[i]) - tau;
             }
         }
         else {
             for (idx_t j = 0; j < n; j++) {
-                delta[j] = (d[j] - d[ip1 - 1]) - tau;
+                delta[j] = (d[j] - d[ip1]) - tau;
             }
         }
 
@@ -402,7 +397,6 @@ void laed4(
         idx_t iip1 = ii + 1;
 
         // Evaluate PSI and the derivative DPSI
-
         psi = dpsi = err = 0;
         for (idx_t j = 0; j < iim1; j++) {
             real_t temp = z[j] / delta[j];
@@ -442,9 +436,9 @@ void laed4(
             swtch3 = false;
         }
 
-        real_t temp = z[ii - 1] / delta[ii - 1];
+        real_t temp = z[ii] / delta[ii];
         real_t dw = dpsi + dphi + temp * temp;
-        temp = z[ii - 1] * temp;
+        temp = z[ii] * temp;
         w += temp;
         err =
             8 * (phi - psi) + err + 2 * rhoinv + 3 * abs(temp) + abs(tau) * dw;
@@ -452,10 +446,10 @@ void laed4(
         // Test for Convergence
         if (abs(w) <= eps * err) {
             if (orgati) {
-                dlam = d[i - 1] + tau;
+                dlam = d[i] + tau;
             }
             else {
-                dlam = d[ip1 - 1] + tau;
+                dlam = d[ip1] + tau;
             }
             return;
         }
@@ -464,7 +458,7 @@ void laed4(
             dltlb = max(dltlb, tau);
         }
         else {
-            dltub = min(dltub), tau;
+            dltub = min(dltub, tau);
         }
 
         // Calculate the new step
@@ -474,28 +468,25 @@ void laed4(
 
         if (!swtch3) {
             if (orgati) {
-                c = w - delta(ip1) * dw -
-                    (d[i - 1] - d[ip1 - 1]) *
-                        ((z[i - 1] / delta[i - 1]) * (z[i - 1] / delta[i - 1]));
+                c = w - delta[ip1] * dw -
+                    (d[i] - d[ip1]) * ((z[i] / delta[i]) * (z[i] / delta[i]));
             }
             else {
-                c = w - delta[i - 1] * dw -
-                    (d[ip1 - 1] - d[i - 1]) * ((z[ip1 - 1]) / delta[ip1 - 1]) *
-                        ((z[ip1 - 1]) / delta[ip1 - 1]) *
-                        ((z[ip1 - 1]) / delta[ip1 - 1]);
+                c = w - delta[i] * dw -
+                    (d[ip1] - d[i]) * ((z[ip1]) / delta[ip1]) *
+                        ((z[ip1]) / delta[ip1]) * ((z[ip1]) / delta[ip1]);
             }
-            a = (delta(i - 1) + delta[ip1 - 1]) * w -
-                delta(i - 1) * delta(ip1 - 1) * dw;
-            b = delta[i - 1] * delta[ip1 - 1] * w;
+            a = (delta[i] + delta[ip1]) * w - delta[i] * delta[ip1] * dw;
+            b = delta[i] * delta[ip1] * w;
             if (c == 0) {
                 if (a == 0) {
                     if (orgati) {
-                        a = z[i - 1] * z[i - 1] +
-                            delta[ip1 - 1] * delta[ip1 - 1] * (dpsi + dphi);
+                        a = z[i] * z[i] +
+                            delta[ip1] * delta[ip1] * (dpsi + dphi);
                     }
                     else {
-                        a = z[ip1 - 1] * z[ip1 - 1] +
-                            delta[i - 1] * delta[i - 1] * (dpsi + dphi);
+                        a = z[ip1] * z[ip1] +
+                            delta[i] * delta[i] * (dpsi + dphi);
                     }
                 }
                 eta = b / a;
@@ -511,15 +502,14 @@ void laed4(
             // Interpolation using THREE most relevant poles
             temp = rhoinv + psi + phi;
             if (orgati) {
-                real_t temp1 = z[iim1 - 1] / delta[iim1 - 1];
+                real_t temp1 = z[iim1] / delta[iim1];
                 temp1 = temp1 * temp1;
-                c = temp - delta[iip1 - 1] * (dpsi + dphi) -
-                    (d[iim1 - 1] - d[iip1 - 1]) * temp1;
-                zz[0] =
-                    delta[iim1 - 1] * delta[iim1 - 1] * (dpsi + (dphi - temp1));
+                c = temp - delta[iip1] * (dpsi + dphi) -
+                    (d[iim1] - d[iip1]) * temp1;
+                zz[0] = delta[iim1] * delta[iim1] * (dpsi + (dphi - temp1));
                 zz[2] = z[iip1] * z[iip1];
             }
-            zz[1] = z[ii - 1] * z[ii - 1];
+            zz[1] = z[ii] * z[ii];
             // call DLAED6
             if (info == 0) {
                 return;
@@ -571,9 +561,9 @@ void laed4(
             err += phi;
         }
 
-        temp = z[ii - 1] / delta[ii - 1];
+        temp = z[ii] / delta[ii];
         dw = dpsi + dphi + temp * temp;
-        temp = z[ii - 1] * temp;
+        temp = z[ii] * temp;
         w = rhoinv + phi + psi + temp;
         err = 8 * (phi - psi) + err + 2 * rhoinv + 3 * abs(temp) +
               abs(tau + eta) * dw;
@@ -600,10 +590,10 @@ void laed4(
             // Test for convergence
             if (abs(w) <= eps * err) {
                 if (orgati) {
-                    dlam = d[i - 1] + tau;
+                    dlam = d[i] + tau;
                 }
                 else {
-                    dlam = d[ip1 - 1] + tau;
+                    dlam = d[ip1] + tau;
                 }
                 return;
             }
@@ -619,49 +609,45 @@ void laed4(
             if (!swtch3) {
                 if (!swtch) {
                     if (orgati) {
-                        c = w - delta[ip1 - 1] * dw -
-                            (d[i - 1] - d[ip1 - 1]) *
-                                (z[i - 1] / delta[i - 1]) *
-                                (z[i - 1] / delta[i - 1]);
+                        c = w - delta[ip1] * dw -
+                            (d[i] - d[ip1]) * (z[i] / delta[i]) *
+                                (z[i] / delta[i]);
                     }
                     else {
                         c = w - delta[i] * dw -
-                            (d[ip1 - 1] - d[i - 1]) *
-                                (z[ip1 - 1] / delta[ip1 - 1]) *
-                                (z[ip1 - 1] / delta[ip1 - 1]);
+                            (d[ip1] - d[i]) * (z[ip1] / delta[ip1]) *
+                                (z[ip1] / delta[ip1]);
                     }
                 }
                 else {
-                    temp = z[ii - 1] / delta[ii - 1];
+                    temp = z[ii] / delta[ii];
                     if (orgati) {
                         dpsi += temp * temp;
                     }
                     else {
                         dphi += temp * temp;
                     }
-                    c = w - delta[i - 1] * dpsi - delta[ip1 - 1] * dphi;
+                    c = w - delta[i] * dpsi - delta[ip1] * dphi;
                 }
 
-                a = (delta[i - 1] + delta[ip1 - 1]) * w -
-                    delta[i - 1] * delta[ip1 - 1] * dw;
-                b = delta[i - 1] * delta[ip1] * w;
+                a = (delta[i] + delta[ip1]) * w - delta[i] * delta[ip1] * dw;
+                b = delta[i] * delta[ip1] * w;
 
                 if (c == 0) {
                     if (a == 0) {
                         if (!swtch) {
                             if (orgati) {
-                                a = z[i - 1] * z[i - 1] + delta[ip1 - 1] *
-                                                              delta[ip1 - 1] *
-                                                              (dpsi + dphi);
+                                a = z[i] * z[i] +
+                                    delta[ip1] * delta[ip1] * (dpsi + dphi);
                             }
                             else {
-                                a = z[ip1 - 1] * z[ip1 - 1] +
-                                    delta[i - 1] * delta[i - 1] * (dpsi + dphi);
+                                a = z[ip1] * z[ip1] +
+                                    delta[i] * delta[i] * (dpsi + dphi);
                             }
                         }
                         else {
-                            a = delta[i - 1] * delta[i - 1] * dpsi +
-                                delta[ip1 - 1] * delta[ip1 - 1] * dphi;
+                            a = delta[i] * delta[i] * dpsi +
+                                delta[ip1] * delta[ip1] * dphi;
                         }
                     }
 
@@ -678,28 +664,28 @@ void laed4(
                 // Interpolation using THREE most relevant poles
                 temp = rhoinv + psi + phi;
                 if (swtch) {
-                    c = temp - delta[iim1 - 1] * dpsi - delta[iip1 - 1] * dphi;
-                    zz[0] = delta[iim1 - 1] * delta[iim1 - 1] * dpsi;
-                    zz[2] = delta[iip1 - 1] * delta[iip1 - 1] * dphi;
+                    c = temp - delta[iim1] * dpsi - delta[iip1] * dphi;
+                    zz[0] = delta[iim1] * delta[iim1] * dpsi;
+                    zz[2] = delta[iip1] * delta[iip1] * dphi;
                 }
                 else {
                     if (orgati) {
-                        real_t temp1 = z[iim1 - 1] / delta[iim1 - 1];
+                        real_t temp1 = z[iim1] / delta[iim1];
                         temp1 = temp1 * temp1;
-                        c = temp - delta[iip1 - 1] * (dpsi + dphi) -
-                            (d[iim1 - 1] - d[iip1 - 1]) * temp1;
+                        c = temp - delta[iip1] * (dpsi + dphi) -
+                            (d[iim1] - d[iip1]) * temp1;
                         zz[0] = z[iim1] * z[iim1];
-                        zz[2] = delta[iip1 - 1] * delta[iip1 - 1] *
-                                ((dpsi - temp1) + dphi);
+                        zz[2] =
+                            delta[iip1] * delta[iip1] * ((dpsi - temp1) + dphi);
                     }
                     else {
-                        real_t temp1 = z[iip1 - 1] / delta[iip1 - 1];
+                        real_t temp1 = z[iip1] / delta[iip1];
                         temp1 = temp1 * temp1;
-                        c = temp - delta[iim1 - 1] * (dpsi + dphi) -
-                            (d[iip1 - 1] - d[iim1 - 1]) * temp1;
-                        zz[0] = delta[iim1 - 1] * delta[iim1 - 1] *
-                                (dpsi + (dphi - temp1));
-                        zz[2] = z[iip1 - 1] * z[iip1 - 1];
+                        c = temp - delta[iim1] * (dpsi + dphi) -
+                            (d[iip1] - d[iim1]) * temp1;
+                        zz[0] =
+                            delta[iim1] * delta[iim1] * (dpsi + (dphi - temp1));
+                        zz[2] = z[iip1] * z[iip1];
                     }
                 }
                 // Call DLAED6
@@ -735,7 +721,6 @@ void laed4(
             prew = w;
 
             // Evaluate PSI and the derivative DPSI
-
             psi = dpsi = err = 0;
             for (idx_t j = 0; j < iim1; j++) {
                 temp = z[j] / delta[j];
@@ -755,9 +740,9 @@ void laed4(
                 err += phi;
             }
 
-            temp = z[ii - 1] / delta[ii - 1];
+            temp = z[ii] / delta[ii];
             dw = dpsi + dphi + temp * temp;
-            temp = z[ii - 1] * temp;
+            temp = z[ii] * temp;
             w = rhoinv + phi + psi + temp;
             err = 8 * (phi - psi) + err + 2 * rhoinv + 3 * abs(temp) +
                   abs(tau) * dw;
@@ -765,14 +750,16 @@ void laed4(
             if (w * prew > 0 && abs(w) > abs(prew) / 10) {
                 swtch = !swtch;
             }
+
+            iter++;
         }
 
         info = 1;
         if (orgati) {
-            dlam = d[i - 1] + tau;
+            dlam = d[i] + tau;
         }
         else {
-            dlam = d[ip1 - 1] + tau;
+            dlam = d[ip1] + tau;
         }
     }
 }
@@ -794,6 +781,7 @@ void test_laed4(size_t n)
     std::vector<real_t> e(n - 1);
     std::vector<real_t> u(n);
     std::vector<real_t> u_norm(n);
+    std::vector<real_t> workSpace(n);
     std::vector<real_t> tau(n - 1);
 
     std::vector<real_t> A_;
@@ -923,8 +911,13 @@ void test_laed4(size_t n)
         std::cout << ")\n";
     }
 
-    real_t dlam = 0;
-    // laed4(n, 2, d, u, e, rho, dlam);
+    real_t dlam;
+    laed4(n, static_cast<size_t>(1), d, u_norm, workSpace, rho, dlam);
+    std::cout << "This is Lamda 1 :" << dlam << std::endl;
+    laed4(n, static_cast<size_t>(2), d, u_norm, workSpace, rho, dlam);
+    std::cout << "This is Lamda 2 :" << dlam << std::endl;
+    laed4(n, static_cast<size_t>(3), d, u_norm, workSpace, rho, dlam);
+    std::cout << "This is Lamda 3 :" << dlam << std::endl;
 
     // find the eigen and eigen vectors of the Tridiagonal A
     // steqr(false, d, e, A);
@@ -947,7 +940,7 @@ void test_laed4(size_t n)
         f *= rho;
         f += 1;
 
-        std::cout << "lamda:" << lamda[i] << " f:" << f << std::endl;
+        std::cout << "Lamda" << i << ":" << lamda[i] << " f:" << f << std::endl;
     }
 }
 //------------------------------------------------------------------------------
