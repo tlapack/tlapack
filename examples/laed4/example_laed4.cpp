@@ -11,6 +11,8 @@
 #include <tlapack/plugins/legacyArray.hpp>
 
 // Test utilities and definitions (must come before <T>LAPACK headers)
+#include <iomanip>  // for std::setprecision()
+#include <iostream>
 #include <tlapack/lapack/hetd2.hpp>
 #include <tlapack/lapack/steqr.hpp>
 
@@ -38,7 +40,9 @@ void laed4(
     idx_t n, idx_t i, d_t& d, z_t& z, delta_t& delta, real_t rho, real_t& dlam)
 
 {
-    real_t psi, dpsi, phi, dphi, err, eta, a, b, c, w, del, tau, dltlb, dltub;
+    std::cout << std::setprecision(16);
+    real_t psi, dpsi, phi, dphi, err, eta, a, b, c, w, del, tau, dltlb, dltub,
+        temp;
 
     real_t maxIt = 30;
 
@@ -56,8 +60,8 @@ void laed4(
     }
 
     // Compute machine epsilon
-    real_t eps = std::numeric_limits<double>::epsilon();
-    real_t rhoinv = 1 / rho;
+    real_t eps = std::numeric_limits<real_t>::epsilon();
+    real_t rhoinv = real_t(1) / rho;
 
     // The Case if i = n
     if (i == n) {
@@ -314,29 +318,42 @@ void laed4(
         */
     }
     else {
-        // The case for i < n
+        // The case for 0 ≤ i < n
         idx_t niter = 1;
         idx_t ip1 = i + 1;
 
         // Calculate Inital Guess
         del = d[ip1] - d[i];
-        real_t midpt = del / 2;
+        real_t midpt = del / 2.0;
         for (idx_t j = 0; j < n; j++) {
             delta[j] = (d[j] - d[i]) - midpt;
         }
 
-        psi = 0;
+        psi = 0.0;
         for (idx_t j = 0; j < i; j++) {
             psi += z[j] * z[j] / delta[j];
         }
 
-        phi = 0;
+        std::cout << "This is PSI GOOD: " << psi << " from " << i << " "
+                  << __LINE__ << std::endl;
+
+        phi = 0.0;
         for (idx_t j = n - 1; j >= i + 2; j--) {
             phi += z[j] * z[j] / delta[j];
         }
 
+        std::cout << "This is PHI GOOD: " << phi << " from " << i << " "
+                  << __LINE__ << std::endl;
+
         c = rhoinv + psi + phi;
+
+        std::cout << "This is C GOOD: " << c << " from " << i << " " << __LINE__
+                  << std::endl;
+
         w = c + z[i] * z[i] / delta[i] + z[ip1] * z[ip1] / delta[ip1];
+
+        std::cout << "This is W GOOD: " << w << " from " << i << " " << __LINE__
+                  << std::endl;
 
         bool orgati;
 
@@ -345,15 +362,17 @@ void laed4(
             // We choose d(i) as origin.
             orgati = true;
             a = c * del + z[i] * z[i] + z[ip1] * z[ip1];
+
             b = z[i] * z[i] * del;
+
             if (a > 0) {
-                tau = 2 * b / (a + sqrt(abs(a * a - 4 * b * c)));
+                tau = 2.0 * b / (a + sqrt(abs(a * a - 4.0 * b * c)));
             }
             else {
-                tau = (a - sqrt(abs(a * a - 4 * b * c))) / (2 * c);
+                tau = (a - sqrt(abs(a * a - 4.0 * b * c))) / (2.0 * c);
             }
 
-            dltlb = 0;
+            dltlb = 0.0;
             dltub = midpt;
         }
         else {
@@ -363,15 +382,24 @@ void laed4(
             a = c * del - z[i] * z[i] - z[ip1] * z[ip1];
             b = z[ip1] * z[ip1] * del;
             if (a < 0) {
-                tau = 2 * b / (a - sqrt(abs(a * a + 4 * b * c)));
+                tau = 2.0 * b / (a - sqrt(abs(a * a + 4.0 * b * c)));
             }
             else {
-                tau = -(a + sqrt(abs(a * a + 4 * b * c))) / (2 * c);
+                tau = -(a + sqrt(abs(a * a + 4 * b * c))) / (2.0 * c);
             }
 
             dltlb = -midpt;
-            dltub = 0;
+            dltub = 0.0;
         }
+
+        std::cout << "This is A GOOD: " << a << " from " << i << " " << __LINE__
+                  << std::endl;
+
+        std::cout << "This is B GOOD: " << b << " from " << i << " " << __LINE__
+                  << std::endl;
+
+        std::cout << "This is TAU GOOD: " << tau << " from " << i << " "
+                  << __LINE__ << std::endl;
 
         if (orgati) {
             for (idx_t j = 0; j < n; j++) {
@@ -382,6 +410,11 @@ void laed4(
             for (idx_t j = 0; j < n; j++) {
                 delta[j] = (d[j] - d[ip1]) - tau;
             }
+        }
+
+        for (idx_t j = 0; j < n; j++) {
+            std::cout << "This is DELTA[" << j << "] GOOD: " << delta[j]
+                      << " from " << i << " " << __LINE__ << std::endl;
         }
 
         idx_t ii;
@@ -397,25 +430,44 @@ void laed4(
         idx_t iip1 = ii + 1;
 
         // Evaluate PSI and the derivative DPSI
-        psi = dpsi = err = 0;
-        for (idx_t j = 0; j < iim1; j++) {
-            real_t temp = z[j] / delta[j];
-            psi += z[j] * temp;
+        psi = 0.0;
+        dpsi = 0.0;
+        err = 0.0;
+        for (idx_t j = 0; j <= iim1; j++) {
+            temp = z[j] / delta[j];
+            psi = psi + z[j] * temp;
             dpsi += temp * temp;
             err += psi;
         }
         err = abs(err);
 
         // Evaluate PHI and the derivative DPHI
-        phi = dphi = 0;
+        phi = 0.0;
+        dphi = 0.0;
         for (idx_t j = n - 1; j >= ip1; j--) {
-            real_t temp = z[j] / delta[j];
+            temp = z[j] / delta[j];
             phi += z[j] * temp;
             dphi += temp * temp;
             err += phi;
         }
 
         w = rhoinv + phi + psi;
+
+        std::cout << "This is Temp GOOD: " << temp << " from " << i << " "
+                  << __LINE__ << std::endl;
+
+        std::cout << "This is PSI GOOD " << psi << " from " << i << " "
+                  << __LINE__ << std::endl;
+        std::cout << "This is DPSI GOOD: " << dpsi << " from " << i << " "
+                  << __LINE__ << std::endl;
+
+        std::cout << "This is PHI GOOD: " << phi << " from " << i << " "
+                  << __LINE__ << std::endl;
+        std::cout << "This is DPHI GOOD: " << dphi << " from " << i << " "
+                  << __LINE__ << std::endl;
+
+        std::cout << "This is W GOOD: " << w << " from " << i << " " << __LINE__
+                  << std::endl;
 
         // W is the value of the secular function with
         // its ii-th element removed.
@@ -432,16 +484,29 @@ void laed4(
             }
         }
 
-        if (ii == 1 || ii == n) {
+        // if (ii == 1 || ii == n) {
+        if (ii == 0 || ii == n - 1) {
             swtch3 = false;
         }
 
-        real_t temp = z[ii] / delta[ii];
+        temp = z[ii] / delta[ii];
         real_t dw = dpsi + dphi + temp * temp;
         temp = z[ii] * temp;
         w += temp;
-        err =
-            8 * (phi - psi) + err + 2 * rhoinv + 3 * abs(temp) + abs(tau) * dw;
+        err = 8.0 * (phi - psi) + err + 2.0 * rhoinv + 3.0 * abs(temp) +
+              abs(tau) * dw;
+
+        std::cout << "This is TEMP GOOD: " << temp << " from " << i << " "
+                  << __LINE__ << std::endl;
+
+        std::cout << "This is DW GOOD: " << dw << " from " << i << " "
+                  << __LINE__ << std::endl;
+
+        std::cout << "This is W GOOD: " << w << " from " << i << " " << __LINE__
+                  << std::endl;
+
+        std::cout << "This is ERR GOOD: " << err << " from " << i << " "
+                  << __LINE__ << std::endl;
 
         // Test for Convergence
         if (abs(w) <= eps * err) {
@@ -474,7 +539,7 @@ void laed4(
             else {
                 c = w - delta[i] * dw -
                     (d[ip1] - d[i]) * ((z[ip1]) / delta[ip1]) *
-                        ((z[ip1]) / delta[ip1]) * ((z[ip1]) / delta[ip1]);
+                        ((z[ip1]) / delta[ip1]);
             }
             a = (delta[i] + delta[ip1]) * w - delta[i] * delta[ip1] * dw;
             b = delta[i] * delta[ip1] * w;
@@ -492,10 +557,10 @@ void laed4(
                 eta = b / a;
             }
             else if (a <= 0) {
-                eta = (a - sqrt(abs(a * a - 4 * b * c))) / (2 * c);
+                eta = (a - sqrt(abs(a * a - 4.0 * b * c))) / (2.0 * c);
             }
             else {
-                eta = 2 * b / (a + sqrt(abs(a * a - 4 * b * c)));
+                eta = 2.0 * b / (a + sqrt(abs(a * a - 4.0 * b * c)));
             }
         }
         else {
@@ -506,6 +571,14 @@ void laed4(
                 temp1 = temp1 * temp1;
                 c = temp - delta[iip1] * (dpsi + dphi) -
                     (d[iim1] - d[iip1]) * temp1;
+                zz[0] = z[iim1] * z[iim1];
+                zz[2] = delta[iip1] * delta[iip1] * ((dpsi - temp1) + dphi);
+            }
+            else {
+                real_t temp1 = z[iip1] / delta[iip1];
+                temp1 = temp1 * temp1;
+                c = temp - delta[iim1] * (dpsi + dphi) -
+                    (d[iip1] - d[iim1]) * temp1;
                 zz[0] = delta[iim1] * delta[iim1] * (dpsi + (dphi - temp1));
                 zz[2] = z[iip1] * z[iip1];
             }
@@ -544,7 +617,7 @@ void laed4(
         // Evaluate PSI and the derivative DPSI
         psi = dpsi = err = 0;
 
-        for (idx_t j = 0; j < iim1; j++) {
+        for (idx_t j = 0; j <= iim1; j++) {
             temp = z[j] / delta[j];
             psi += z[j] * temp;
             dpsi += temp * temp;
@@ -565,17 +638,17 @@ void laed4(
         dw = dpsi + dphi + temp * temp;
         temp = z[ii] * temp;
         w = rhoinv + phi + psi + temp;
-        err = 8 * (phi - psi) + err + 2 * rhoinv + 3 * abs(temp) +
+        err = 8 * (phi - psi) + err + 2.0 * rhoinv + 3.0 * abs(temp) +
               abs(tau + eta) * dw;
 
         real_t swtch = false;
         if (orgati) {
-            if (-w > abs(prew) / 10) {
+            if (-w > abs(prew) / 10.0) {
                 swtch = true;
             }
         }
         else {
-            if (w > abs(prew) / 10) {
+            if (w > abs(prew) / 10.0) {
                 swtch = true;
             }
         }
@@ -654,10 +727,10 @@ void laed4(
                     eta = b / a;
                 }
                 else if (a < 0) {
-                    eta = (a - sqrt(abs(a * a - 4 * b * c))) / (2 * c);
+                    eta = (a - sqrt(abs(a * a - 4.0 * b * c))) / (2.0 * c);
                 }
                 else {
-                    eta = 2 * b / (a + sqrt(abs(a * a - 4 * b * c)));
+                    eta = 2.0 * b / (a + sqrt(abs(a * a - 4.0 * b * c)));
                 }
             }
             else {
@@ -688,7 +761,6 @@ void laed4(
                         zz[2] = z[iip1] * z[iip1];
                     }
                 }
-                // Call DLAED6
                 if (info == 0) {
                     return;
                 }
@@ -706,10 +778,10 @@ void laed4(
             temp = tau + eta;
             if (temp > dltub || temp < dltlb) {
                 if (w < 0) {
-                    eta = (dltub - tau) / 2;
+                    eta = (dltub - tau) / 2.0;
                 }
                 else {
-                    eta = (dltlb - tau) / 2;
+                    eta = (dltlb - tau) / 2.0;
                 }
             }
 
@@ -722,7 +794,7 @@ void laed4(
 
             // Evaluate PSI and the derivative DPSI
             psi = dpsi = err = 0;
-            for (idx_t j = 0; j < iim1; j++) {
+            for (idx_t j = 0; j <= iim1; j++) {
                 temp = z[j] / delta[j];
                 psi += z[j] * temp;
                 dpsi += temp * temp;
@@ -744,10 +816,10 @@ void laed4(
             dw = dpsi + dphi + temp * temp;
             temp = z[ii] * temp;
             w = rhoinv + phi + psi + temp;
-            err = 8 * (phi - psi) + err + 2 * rhoinv + 3 * abs(temp) +
+            err = 8 * (phi - psi) + err + 2.0 * rhoinv + 3.0 * abs(temp) +
                   abs(tau) * dw;
 
-            if (w * prew > 0 && abs(w) > abs(prew) / 10) {
+            if (w * prew > 0 && abs(w) > abs(prew) / 10.0) {
                 swtch = !swtch;
             }
 
@@ -792,7 +864,7 @@ void test_laed4(size_t n)
     // Turn on for Debugging
     bool verbose = true;
 
-    real_t rho = 2;
+    real_t rho = 0.5;
 
     srand(3);
 
@@ -810,7 +882,7 @@ void test_laed4(size_t n)
 
     // Create Random u
     for (idx_t i = 0; i < n; i++) {
-        u[i] = rand();
+        u[i] = 2 * i + 1;
     }
     if (verbose) {
         std::cout << "\nBefore u Norm = ( ";
@@ -911,13 +983,37 @@ void test_laed4(size_t n)
         std::cout << ")\n";
     }
 
-    real_t dlam;
-    laed4(n, static_cast<size_t>(1), d, u_norm, workSpace, rho, dlam);
-    std::cout << "This is Lamda 1 :" << dlam << std::endl;
+    real_t dlam = 0;
+    // laed4(n, static_cast<size_t>(1), d, u_norm, workSpace, rho, dlam);
+    // real_t f = 0;
+    // for (idx_t j = 0; j < n; j++) {
+    //     f += (u_norm[j] * u_norm[j]) / (d[j] - lamda[1]);
+    // }
+    // f *= rho;
+    // f += 1;
+    // std::cout << std::setprecision(15);
+    // std::cout << "This is Lambda from laed4 1 :" << dlam << " f: " << f
+    //           << std::endl;
+
     laed4(n, static_cast<size_t>(2), d, u_norm, workSpace, rho, dlam);
-    std::cout << "This is Lamda 2 :" << dlam << std::endl;
-    laed4(n, static_cast<size_t>(3), d, u_norm, workSpace, rho, dlam);
-    std::cout << "This is Lamda 3 :" << dlam << std::endl;
+    real_t f = 0;
+    for (idx_t j = 0; j < n; j++) {
+        f += (u_norm[j] * u_norm[j]) / (d[j] - dlam);
+    }
+    f *= rho;
+    f += 1;
+    std::cout << "This is Lambda from laed4 2 :" << dlam << " f: " << f
+              << std::endl;
+
+    // laed4(n, static_cast<size_t>(3), d, u_norm, workSpace, rho, dlam);
+    // f = 0;
+    // for (idx_t j = 0; j < n; j++) {
+    //     f += (u_norm[j] * u_norm[j]) / (d[j] - lamda[2]);
+    // }
+    // f *= rho;
+    // f += 1;
+    // std::cout << "This is Lambda from laed4 3 :" << dlam << " f: " << f
+    //           << std::endl;
 
     // find the eigen and eigen vectors of the Tridiagonal A
     // steqr(false, d, e, A);
@@ -930,8 +1026,8 @@ void test_laed4(size_t n)
         std::cout << ")\n";
     }
 
-    // f(lamda) = 1 + rho [(u_i^2 / (d_1 - lamda)) + (u_i^n / (d_n -
-    // lamda))]
+    // f(lamda) = 1 + rho[(u_i ^ 2 / (d_1 - lamda)) +
+    //                    (u_i ^ n / (d_n - lamda))]
     for (idx_t i = 0; i < n; i++) {
         real_t f = 0;
         for (idx_t j = 0; j < n; j++) {
@@ -940,7 +1036,8 @@ void test_laed4(size_t n)
         f *= rho;
         f += 1;
 
-        std::cout << "Lamda" << i << ":" << lamda[i] << " f:" << f << std::endl;
+        std::cout << "Lamda from steqr" << i << ": " << lamda[i] << " f: " << f
+                  << std::endl;
     }
 }
 //------------------------------------------------------------------------------
@@ -949,7 +1046,7 @@ int main(int argc, char** argv)
     int n;
 
     // Default arguments
-    n = (argc < 2) ? 7 : atoi(argv[1]);
+    n = (argc < 2) ? 5 : atoi(argv[1]);
 
     srand(3);  // Init random seed
 
