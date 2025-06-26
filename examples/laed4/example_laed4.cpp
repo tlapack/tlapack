@@ -334,26 +334,14 @@ void laed4(
             psi += z[j] * z[j] / delta[j];
         }
 
-        std::cout << "This is PSI GOOD: " << psi << " from " << i << " "
-                  << __LINE__ << std::endl;
-
         phi = 0.0;
         for (idx_t j = n - 1; j >= i + 2; j--) {
             phi += z[j] * z[j] / delta[j];
         }
 
-        std::cout << "This is PHI GOOD: " << phi << " from " << i << " "
-                  << __LINE__ << std::endl;
-
         c = rhoinv + psi + phi;
 
-        std::cout << "This is C GOOD: " << c << " from " << i << " " << __LINE__
-                  << std::endl;
-
         w = c + z[i] * z[i] / delta[i] + z[ip1] * z[ip1] / delta[ip1];
-
-        std::cout << "This is W GOOD: " << w << " from " << i << " " << __LINE__
-                  << std::endl;
 
         bool orgati;
 
@@ -392,15 +380,6 @@ void laed4(
             dltub = 0.0;
         }
 
-        std::cout << "This is A GOOD: " << a << " from " << i << " " << __LINE__
-                  << std::endl;
-
-        std::cout << "This is B GOOD: " << b << " from " << i << " " << __LINE__
-                  << std::endl;
-
-        std::cout << "This is TAU GOOD: " << tau << " from " << i << " "
-                  << __LINE__ << std::endl;
-
         if (orgati) {
             for (idx_t j = 0; j < n; j++) {
                 delta[j] = (d[j] - d[i]) - tau;
@@ -410,11 +389,6 @@ void laed4(
             for (idx_t j = 0; j < n; j++) {
                 delta[j] = (d[j] - d[ip1]) - tau;
             }
-        }
-
-        for (idx_t j = 0; j < n; j++) {
-            std::cout << "This is DELTA[" << j << "] GOOD: " << delta[j]
-                      << " from " << i << " " << __LINE__ << std::endl;
         }
 
         idx_t ii;
@@ -453,22 +427,6 @@ void laed4(
 
         w = rhoinv + phi + psi;
 
-        std::cout << "This is Temp GOOD: " << temp << " from " << i << " "
-                  << __LINE__ << std::endl;
-
-        std::cout << "This is PSI GOOD " << psi << " from " << i << " "
-                  << __LINE__ << std::endl;
-        std::cout << "This is DPSI GOOD: " << dpsi << " from " << i << " "
-                  << __LINE__ << std::endl;
-
-        std::cout << "This is PHI GOOD: " << phi << " from " << i << " "
-                  << __LINE__ << std::endl;
-        std::cout << "This is DPHI GOOD: " << dphi << " from " << i << " "
-                  << __LINE__ << std::endl;
-
-        std::cout << "This is W GOOD: " << w << " from " << i << " " << __LINE__
-                  << std::endl;
-
         // W is the value of the secular function with
         // its ii-th element removed.
 
@@ -495,18 +453,6 @@ void laed4(
         w += temp;
         err = 8.0 * (phi - psi) + err + 2.0 * rhoinv + 3.0 * abs(temp) +
               abs(tau) * dw;
-
-        std::cout << "This is TEMP GOOD: " << temp << " from " << i << " "
-                  << __LINE__ << std::endl;
-
-        std::cout << "This is DW GOOD: " << dw << " from " << i << " "
-                  << __LINE__ << std::endl;
-
-        std::cout << "This is W GOOD: " << w << " from " << i << " " << __LINE__
-                  << std::endl;
-
-        std::cout << "This is ERR GOOD: " << err << " from " << i << " "
-                  << __LINE__ << std::endl;
 
         // Test for Convergence
         if (abs(w) <= eps * err) {
@@ -984,19 +930,19 @@ void test_laed4(size_t n)
     }
 
     real_t dlam = 0;
-    // laed4(n, static_cast<size_t>(1), d, u_norm, workSpace, rho, dlam);
-    // real_t f = 0;
-    // for (idx_t j = 0; j < n; j++) {
-    //     f += (u_norm[j] * u_norm[j]) / (d[j] - lamda[1]);
-    // }
-    // f *= rho;
-    // f += 1;
-    // std::cout << std::setprecision(15);
-    // std::cout << "This is Lambda from laed4 1 :" << dlam << " f: " << f
-    //           << std::endl;
+    laed4(n, static_cast<size_t>(1), d, u_norm, workSpace, rho, dlam);
+    real_t f = 0;
+    for (idx_t j = 0; j < n; j++) {
+        f += (u_norm[j] * u_norm[j]) / (d[j] - dlam);
+    }
+    f *= rho;
+    f += 1;
+    std::cout << std::setprecision(15);
+    std::cout << "This is Lambda from laed4 1 :" << dlam << " f: " << f
+              << std::endl;
 
     laed4(n, static_cast<size_t>(2), d, u_norm, workSpace, rho, dlam);
-    real_t f = 0;
+    f = 0;
     for (idx_t j = 0; j < n; j++) {
         f += (u_norm[j] * u_norm[j]) / (d[j] - dlam);
     }
@@ -1005,15 +951,15 @@ void test_laed4(size_t n)
     std::cout << "This is Lambda from laed4 2 :" << dlam << " f: " << f
               << std::endl;
 
-    // laed4(n, static_cast<size_t>(3), d, u_norm, workSpace, rho, dlam);
-    // f = 0;
-    // for (idx_t j = 0; j < n; j++) {
-    //     f += (u_norm[j] * u_norm[j]) / (d[j] - lamda[2]);
-    // }
-    // f *= rho;
-    // f += 1;
-    // std::cout << "This is Lambda from laed4 3 :" << dlam << " f: " << f
-    //           << std::endl;
+    laed4(n, static_cast<size_t>(3), d, u_norm, workSpace, rho, dlam);
+    f = 0;
+    for (idx_t j = 0; j < n; j++) {
+        f += (u_norm[j] * u_norm[j]) / (d[j] - dlam);
+    }
+    f *= rho;
+    f += 1;
+    std::cout << "This is Lambda from laed4 3 :" << dlam << " f: " << f
+              << std::endl;
 
     // find the eigen and eigen vectors of the Tridiagonal A
     // steqr(false, d, e, A);
