@@ -60,18 +60,18 @@ void laed4(
     }
 
     // Compute machine epsilon
-    real_t eps = std::numeric_limits<real_t>::epsilon();
-    real_t rhoinv = real_t(1) / rho;
+    // real_t eps = ulp<real_t>();
+    real_t eps = pow(2.0, -53);
+    real_t rhoinv = 1.0 / rho;
 
     // The Case if i = n
-    if (i == n) {
-        /*
+    if (i == n - 1) {
         // Initialize some basic variables
         idx_t ii = n - 1;
         idx_t niter = 1;
 
         // Calculate Initial Guess
-        real_t midpt = rho / 2;
+        real_t midpt = rho / 2.0;
 
         // If ||Z||_2 is not one, then TEMP should be set to RHO * ||Z||_2^2 /
         // TWO
@@ -85,7 +85,8 @@ void laed4(
         }
 
         c = rhoinv + psi;
-        w = c + z[ii] * z[ii] / delta[ii] + z[n - 1] * z[n - 1] / delta[n - 1];
+        w = c + z[ii - 1] * z[ii - 1] / delta[ii - 1] +
+            z[n - 1] * z[n - 1] / delta[n - 1];
 
         if (w <= 0) {
             real_t temp = z[n - 2] * z[n - 2] / (d[n - 1] - d[n - 2] + rho) +
@@ -100,10 +101,10 @@ void laed4(
                 b = z[n - 1] * z[n - 1] * del;
 
                 if (a < 0) {
-                    tau = 2 * b / (sqrt(a * a + 4 * b * c) - a);
+                    tau = 2 * b / (sqrt(a * a + 4.0 * b * c) - a);
                 }
                 else {
-                    tau = (a + sqrt(a * a + 4 * b * c)) / (2 * c);
+                    tau = (a + sqrt(a * a + 4.0 * b * c)) / (2 * c);
                 }
             }
 
@@ -119,9 +120,9 @@ void laed4(
             b = z[n - 1] * z[n - 1] * del;
 
             if (a < 0)
-                tau = 2 * b / (sqrt(a * a + 4 * b * c) - a);
+                tau = 2 * b / (sqrt(a * a + 4.0 * b * c) - a);
             else
-                tau = (a + sqrt(a * a + 4 * b * c)) / (2 * c);
+                tau = (a + sqrt(a * a + 4.0 * b * c)) / (2.0 * c);
 
             // It can be proved that* D(N) < D(N) + TAU < LAMBDA(N) < D(N) + RHO
             // / 2 dltlb = 0.0;
@@ -185,10 +186,10 @@ void laed4(
             eta = -w / (dpsi + dphi);
         }
         else if (a >= 0) {
-            eta = (a + sqrt(abs(a * a - 4 * b * c))) / (2 * c);
+            eta = (a + sqrt(abs(a * a - 4.0 * b * c))) / (2 * c);
         }
         else {
-            eta = 2 * b / (a - sqrt(abs(a * a - 4 * b * c)));
+            eta = 2 * b / (a - sqrt(abs(a * a - 4.0 * b * c)));
         }
 
         // Note, eta should be positive if w is negative, and
@@ -204,10 +205,10 @@ void laed4(
         temp = tau + eta;
         if (temp > dltub || temp < dltlb) {
             if (w < 0) {
-                eta = (dltub - tau) / 2;
+                eta = (dltub - tau) / 2.0;
             }
             else {
-                eta = (dltlb - tau) / 2;
+                eta = (dltlb - tau) / 2.0;
             }
         }
 
@@ -218,7 +219,9 @@ void laed4(
         tau += eta;
 
         // Evaluate PSI and the derivative DPSI
-        dpsi = psi = err = 0;
+        dpsi = 0;
+        psi = 0;
+        err = 0;
         for (idx_t j = 0; j < ii; j++) {
             temp = z[j] / delta[j];
             psi += z[j] * temp;
@@ -232,18 +235,19 @@ void laed4(
         temp = z[n - 1] / delta[n - 1];
         phi = z[n - 1] * temp;
         dphi = temp * temp;
-        err = 8 * (-phi - psi) + err - phi + rhoinv + abs(tau) * (dpsi + dphi);
+        err =
+            8.0 * (-phi - psi) + err - phi + rhoinv + abs(tau) * (dpsi + dphi);
 
         w = rhoinv + phi + psi;
 
         // Main loop to update the values of the array DELTA
 
-        idx_t iter = niter + 1;
+        niter++;
 
         while (niter < maxIt) {
             // Test for convergence
             if (abs(w) <= eps * err) {
-                dlam += d[i] + tau;
+                dlam = d[i] + tau;
                 return;
             }
 
@@ -261,10 +265,10 @@ void laed4(
             b = delta[n - 2] * delta[n - 1] * w;
 
             if (a >= 0) {
-                eta = (a + sqrt(abs(a * a - 4 * b * c))) / (2 * c);
+                eta = (a + sqrt(abs(a * a - 4.0 * b * c))) / (2.0 * c);
             }
             else {
-                eta = 2 * b / (a - sqrt(abs(a * a - 4 * b * c)));
+                eta = 2.0 * b / (a - sqrt(abs(a * a - 4.0 * b * c)));
             }
 
             // Note, eta should be positive if w is negative, and eta should be
@@ -278,25 +282,27 @@ void laed4(
             temp = tau + eta;
             if (temp > dltub || temp < dltlb) {
                 if (w < 0) {
-                    eta = (dltub - tau) / 2;
+                    eta = (dltub - tau) / 2.0;
                 }
                 else {
-                    eta = (dltlb - tau) / 2;
+                    eta = (dltlb - tau) / 2.0;
                 }
             }
             for (idx_t j = 0; j < n; j++) {
                 delta[j] -= eta;
             }
 
-            tau += eta;
+            tau = tau + eta;
 
             // Evaluate PSI and the derivative DPSI
-            dpsi = psi = err = 0;
+            dpsi = 0;
+            psi = 0;
+            err = 0;
             for (idx_t j = 0; j < ii; j++) {
                 temp = z[j] / delta[j];
-                psi += z[j] / delta[j];
+                psi += z[j] * temp;
                 dpsi += temp * temp;
-                err += psi;
+                err = err + psi;
             }
             err = abs(err);
 
@@ -304,18 +310,17 @@ void laed4(
             temp = z[n - 1] / delta[n - 1];
             phi = z[n - 1] * temp;
             dphi = temp * temp;
-            err = 8 * (-phi - psi) + err - phi + rhoinv +
+            err = 8.0 * (-phi - psi) + err - phi + rhoinv +
                   abs(tau) * (dpsi + dphi);
             w = rhoinv + phi + psi;
 
-            iter++;
+            niter++;
         }
 
         // Return with INFO = 1, NITER = MAXIT and not converged
         info = 1;
         dlam = d[i] + tau;
         return;
-        */
     }
     else {
         // The case for 0 ≤ i < n
@@ -403,6 +408,8 @@ void laed4(
         idx_t iim1 = ii - 1;
         idx_t iip1 = ii + 1;
 
+        //////////////////////////////////////////////////////////////////
+
         // Evaluate PSI and the derivative DPSI
         psi = 0.0;
         dpsi = 0.0;
@@ -415,10 +422,12 @@ void laed4(
         }
         err = abs(err);
 
+        ///////////////////////////////////////////////////////////////////
+
         // Evaluate PHI and the derivative DPHI
         phi = 0.0;
         dphi = 0.0;
-        for (idx_t j = n - 1; j >= ip1; j--) {
+        for (idx_t j = n - 1; j > ip1; j--) {
             temp = z[j] / delta[j];
             phi += z[j] * temp;
             dphi += temp * temp;
@@ -780,6 +789,8 @@ void laed4(
             dlam = d[ip1] + tau;
         }
     }
+
+    return;
 }
 
 //------------------------------------------------------------------------------
@@ -930,8 +941,20 @@ void test_laed4(size_t n)
     }
 
     real_t dlam = 0;
-    laed4(n, static_cast<size_t>(1), d, u_norm, workSpace, rho, dlam);
     real_t f = 0;
+
+    laed4(n, static_cast<size_t>(0), d, u_norm, workSpace, rho, dlam);
+    for (idx_t j = 0; j < n; j++) {
+        f += (u_norm[j] * u_norm[j]) / (d[j] - dlam);
+    }
+    f *= rho;
+    f += 1;
+    std::cout << std::setprecision(15);
+    std::cout << "This is Lambda from laed4 0 :" << dlam << " f: " << f
+              << std::endl;
+
+    laed4(n, static_cast<size_t>(1), d, u_norm, workSpace, rho, dlam);
+    f = 0;
     for (idx_t j = 0; j < n; j++) {
         f += (u_norm[j] * u_norm[j]) / (d[j] - dlam);
     }
@@ -959,6 +982,16 @@ void test_laed4(size_t n)
     f *= rho;
     f += 1;
     std::cout << "This is Lambda from laed4 3 :" << dlam << " f: " << f
+              << std::endl;
+
+    laed4(n, static_cast<size_t>(4), d, u_norm, workSpace, rho, dlam);
+    f = 0;
+    for (idx_t j = 0; j < n; j++) {
+        f += (u_norm[j] * u_norm[j]) / (d[j] - dlam);
+    }
+    f *= rho;
+    f += 1;
+    std::cout << "This is Lambda from laed4 4 :" << dlam << " f: " << f
               << std::endl;
 
     // find the eigen and eigen vectors of the Tridiagonal A
@@ -999,13 +1032,13 @@ int main(int argc, char** argv)
     std::cout.precision(5);
     std::cout << std::scientific << std::showpos;
 
-    printf("test_laed4< float  >( %d, %d )", n, n);
-    test_laed4<float>(n);
-    printf("-----------------------\n");
+    // printf("test_laed4< float  >( %d, %d )", n, n);
+    // test_laed4<float>(n);
+    // printf("-----------------------\n");
 
-    printf("test_laed4< double >( %d, %d )", n, n);
-    test_laed4<double>(n);
-    printf("-----------------------\n");
+    // printf("test_laed4< double >( %d, %d )", n, n);
+    // test_laed4<double>(n);
+    // printf("-----------------------\n");
 
     printf("test_laed4< long double >( %d, %d )", n, n);
     test_laed4<long double>(n);
