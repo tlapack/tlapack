@@ -86,10 +86,7 @@ int steqr(bool want_z, d_t& d, e_t& e, matrix_t& Z)
 
     // Quick return if possible
     if (n == 0) return 0;
-    if (n == 1) {
-        if (want_z) Z(0, 0) = one;
-        return 0;
-    }
+    if (n == 1) return 0;
 
     // Determine the unit roundoff and over/underflow thresholds.
     const real_t eps = ulp<real_t>();
