@@ -41,18 +41,18 @@ namespace tlapack {
  * @param[in] want_z bool
  *            = 'false': Compute eigenvalues only.
  *            = 'true': Compute eigenvalues and eigenvectors of the original
- *              symmetric matrix. On entry, Z must contain the orthogonal 
+ *              symmetric matrix. On entry, Z must contain the orthogonal
  *              matrix used to reduce the original matrix to tridiagonal form
  *              or initialized to the identity matrix. (See description of Z
  *              below.)
  *
  * @param[in,out] d real vector of length n.
- *      On entry, the diagonal elements of the real symmetric  
+ *      On entry, the diagonal elements of the real symmetric
  *      tridiagonal matrix.
  *      On exit, if return = 0, the eigenvalues in ascending order.
  *
  * @param[in,out] e real vector of length n-1.
- *      On entry, the off-diagonal elements of the real symmetric 
+ *      On entry, the off-diagonal elements of the real symmetric
  *      tridiagonal matrix.
  *      On exit, "e" has been destroyed.
  *
@@ -62,7 +62,8 @@ namespace tlapack {
  *      the reduction to tridiagonal form or initialized to the identity matrix.
  *      Z can be either a real orthogonal or complex unitary matrix.
  *      On exit, if return = 0, then Z contains the orthonormal eigenvectors of
- *      the original Hermitian matrix or of the real symmetric tridiagonal matrix.
+ *      the original Hermitian matrix or of the real symmetric tridiagonal
+ *      matrix.
  *
  * @ingroup computational
  */
