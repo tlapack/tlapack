@@ -14,7 +14,8 @@
 #include "tlapack/base/utils.hpp"
 
 //
-#include "tlapack/lapack/laed5.hpp"
+#include <tlapack/lapack/laed5.hpp>
+#include <tlapack/lapack/laed6.hpp>
 
 namespace tlapack {
 
@@ -50,8 +51,14 @@ namespace tlapack {
  * @ingroup auxiliary
  */
 template <class d_t, class z_t, class delta_t, class real_t, class idx_t>
-void laed4(
-    idx_t n, idx_t i, d_t& d, z_t& z, delta_t& delta, real_t rho, real_t& dlam)
+void laed4(idx_t n,
+           idx_t i,
+           d_t& d,
+           z_t& z,
+           delta_t& delta,
+           real_t rho,
+           real_t& dlam,
+           real_t& info)
 
 {
     std::cout << std::setprecision(16);
@@ -59,8 +66,6 @@ void laed4(
         temp;
 
     real_t maxIt = 30;
-
-    real_t info = 0;
 
     if (n == 1) {
         // Presumably, I = 1 upon entry
@@ -74,8 +79,8 @@ void laed4(
     }
 
     // Compute machine epsilon
-    // real_t eps = ulp<real_t>();
-    real_t eps = pow(2.0, -53);
+    real_t eps = ulp<real_t>();
+    // real_t eps = pow(2.0, -53);
     real_t rhoinv = 1.0 / rho;
 
     // The Case if i = n
@@ -532,7 +537,6 @@ void laed4(
         }
         else {
             // Interpolation using THREE most relevant poles
-            std::cout << "PROGRESSING INTO DLAED6" << std::endl;
             temp = rhoinv + psi + phi;
             if (orgati) {
                 real_t temp1 = z[iim1] / delta[iim1];
@@ -551,7 +555,8 @@ void laed4(
                 zz[2] = z[iip1] * z[iip1];
             }
             zz[1] = z[ii] * z[ii];
-            // call DLAED6
+            laed6(niter, orgati, c, delta, zz, w, eta, info);
+
             if (info == 0) {
                 return;
             }

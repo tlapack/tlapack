@@ -51,10 +51,10 @@ TEMPLATE_TEST_CASE("LU factorization of a general m-by-n matrix, blocked",
 
     // m and n represent no. rows and columns of the matrices we will be testing
     // respectively
-    idx_t n = GENERATE(2, 10 /*, 10, 20, 30, 100*/);
+    idx_t n = GENERATE(2, 30);
 
     srand(3);
-    real_t rho = ((float)rand() / (float)RAND_MAX);
+    real_t rho = real_t(10 * (float)rand() / (float)RAND_MAX);
 
     DYNAMIC_SECTION("n = " << n << " rho = " << rho)
     {
@@ -75,9 +75,6 @@ TEMPLATE_TEST_CASE("LU factorization of a general m-by-n matrix, blocked",
         std::vector<real_t> v(n);
         std::vector<real_t> av(n);
 
-        // forming A, a random matrix
-        mm.random(A);
-
         // Create Sorted Random Real d
         for (idx_t i = 0; i < n; i++) {
             d[i] = (i + 1) * 2 + i;
@@ -85,8 +82,9 @@ TEMPLATE_TEST_CASE("LU factorization of a general m-by-n matrix, blocked",
         sort(d.begin(), d.end());
 
         // Create Random Real u
+        srand(3);
         for (idx_t j = 0; j < n; j++) {
-            u[j] = A(j, j);
+            u[j] = rand();
         }
         // Normalize u
         real_t sum = 0;
@@ -100,10 +98,10 @@ TEMPLATE_TEST_CASE("LU factorization of a general m-by-n matrix, blocked",
 
         // Create u*u^T
         for (idx_t j = 0; j < n; j++) {
+            A(j, j) += d[j];
             for (idx_t i = 0; i < n; i++) {
                 A(i, j) = rho * u[i] * u[j];
             }
-            A(j, j) += d[j];
         }
 
         // Turn A into a Tridiagonal
@@ -112,17 +110,19 @@ TEMPLATE_TEST_CASE("LU factorization of a general m-by-n matrix, blocked",
         // Get the Eigenvalues and Eigenvectors
         real_t dlam = 0;
         real_t f = 0;
+        real_t info = 0;
         for (idx_t i = 0; i < n; i++) {
-            laed4(n, i, d, u, delta, rho, dlam);
+            laed4(n, i, d, u, delta, rho, dlam, info);
             f = 0;
             for (idx_t j = 0; j < n; j++) {
                 f += (u[j] * u[j]) / (d[j] - dlam);
             }
             f *= rho;
             f += 1;
-            std::cout << std::setprecision(15);
-            std::cout << "This is Lambda from laed4 " << i << ":" << dlam
-                      << " f: " << f << " type:" << typeid(dlam).name();
+            // std::cout << std::setprecision(15);
+            // std::cout << "This is Lambda from laed4 " << i << ": " << dlam
+            //           << " f: " << f << " type:" << typeid(dlam).name()
+            //           << " rho = " << rho;
 
             // Compute an eigenvector v associated with eigenvalue λ
             for (idx_t j = 0; j < n; j++) {
@@ -140,10 +140,8 @@ TEMPLATE_TEST_CASE("LU factorization of a general m-by-n matrix, blocked",
             for (idx_t j = 0; j < n; j++) {
                 v[j] = dlam * v[j] - d[j] * v[j] - rho * u[j] * utv;
             }
-            std::cout << " VNorm = " << nrm2(v) / nrmv / abs(dlam) << std::endl;
-            //     CHECK(nrm2(v) / nrmv / abs(dlam) <= eps * tol);
+            real_t error = nrm2(v);
+            CHECK(error <= tol * nrmv * abs(dlam));
         }
-
-        std::cout << std::endl;
     }
 }

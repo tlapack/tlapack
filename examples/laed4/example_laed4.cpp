@@ -194,9 +194,9 @@ void test_laed4(size_t n)
 
     real_t dlam = 0;
     real_t f = 0;
-
+    real_t info = 0;
     for (idx_t i = 0; i < n; i++) {
-        laed4(n, i, d, u, workSpace, rho, dlam);
+        laed4(n, i, d, u, workSpace, rho, dlam, info);
         f = 0;
         for (idx_t j = 0; j < n; j++) {
             f += (u[j] * u[j]) / (d[j] - dlam);
