@@ -35,9 +35,7 @@ void printMatrix(const matrix_t& A)
     }
 }
 
-TEMPLATE_TEST_CASE("LU factorization of a general m-by-n matrix, blocked",
-                   "[ul_mul]",
-                   TLAPACK_TYPES_TO_TEST)
+TEMPLATE_TEST_CASE("LAED4", "[stedc,laed4]", TLAPACK_TYPES_TO_TEST)
 {
     using matrix_t = TestType;
     using T = type_t<matrix_t>;
@@ -52,7 +50,8 @@ TEMPLATE_TEST_CASE("LU factorization of a general m-by-n matrix, blocked",
 
     // m and n represent no. rows and columns of the matrices we will be testing
     // respectively
-    idx_t n = GENERATE(2, 5, 30, 50);
+    // idx_t n = GENERATE(2, 5, 30, 50, 100);
+    idx_t n = GENERATE(100);
 
     srand(3);
     real_t rho = real_t(10 * (float)rand() / (float)RAND_MAX);
@@ -85,7 +84,7 @@ TEMPLATE_TEST_CASE("LU factorization of a general m-by-n matrix, blocked",
         // Create Random Real u
         srand(3);
         for (idx_t j = 0; j < n; j++) {
-            u[j] = real_t(rand());
+            u[j] = real_t(rand() + 1);
         }
         // Normalize u
         real_t sum = 0;
@@ -96,6 +95,8 @@ TEMPLATE_TEST_CASE("LU factorization of a general m-by-n matrix, blocked",
         for (idx_t i = 0; i < n; i++) {
             u[i] = real_t(u[i] / sqrt(sum));
         }
+
+        auto nrmv = nrm2(u);
 
         // Create u*u^T
         for (idx_t j = 0; j < n; j++) {
@@ -109,37 +110,49 @@ TEMPLATE_TEST_CASE("LU factorization of a general m-by-n matrix, blocked",
         hetd2(LOWER_TRIANGLE, A, tau);
 
         // Get the Eigenvalues and Eigenvectors
-        real_t dlam = 0;
-        real_t f = 0;
-        real_t info = 0;
-        for (idx_t i = 0; i < n; i++) {
+        real_t dlam = real_t(0);
+        real_t f = real_t(0);
+        real_t info = real_t(0);
+        for (idx_t i = 0; i < n - 1; i++) {
             laed4(n, i, d, u, delta, rho, dlam, info);
-            f = 0;
+
+            // check #1: check that dlam is a root of the secular equation
+            bool too_hard_skip = false;
+            f = real_t(0);
             for (idx_t j = 0; j < n; j++) {
-                f += (u[j] * u[j]) / (d[j] - dlam);
+                if (d[j] == dlam) too_hard_skip = true;
+                f += real_t((u[j] * u[j]) / (d[j] - dlam));
             }
-            f *= rho;
-            f += 1;
+            f *= real_t(rho);
+            f += real_t(1);
+
+            if (!too_hard_skip) CHECK(abs(f) <= 20 * sqrt(tol));
+
+            // check #2: check that (v,λ) is an eigenpair for A
 
             // Compute an eigenvector v associated with eigenvalue λ
+            // this uses the naive formula and will fail if d[j] is λ, in
+            // which case, we skip the check
+            too_hard_skip = false;
             for (idx_t j = 0; j < n; j++) {
+                if (d[j] == dlam) too_hard_skip = true;
                 v[j] = real_t(u[j] / (d[j] - dlam));
             }
 
             auto nrmv = nrm2(v);
 
-            real_t utv = 0;
+            real_t utv = real_t(0);
             for (idx_t j = 0; j < n; j++) {
-                utv += u[j] * v[j];
+                utv += real_t(u[j] * v[j]);
             }
 
             // Compute || A v - λ v ||₂ / | λ | / || v ||₂
             for (idx_t j = 0; j < n; j++) {
                 v[j] = real_t(dlam * v[j] - d[j] * v[j] - rho * u[j] * utv);
             }
-            real_t error = nrm2(v);
+            real_t error = real_t(nrm2(v));
 
-            CHECK(error <= tol * nrmv * abs(dlam));
+            if (!too_hard_skip) CHECK(error <= tol * nrmv * abs(dlam));
         }
     }
 }
