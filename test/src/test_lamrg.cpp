@@ -12,6 +12,7 @@
 #include "testutils.hpp"
 
 // Auxiliary routines
+#include <algorithm>
 
 // Other routines
 #include <tlapack/lapack/lamrg.hpp>
