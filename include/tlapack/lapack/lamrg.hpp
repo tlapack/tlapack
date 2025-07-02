@@ -15,7 +15,7 @@
 namespace tlapack {
 
 /** DLAMRG creates a permutation list to merge the entries of two independently
-/** sorted sets into a single set sorted in ascending order.
+ *sorted sets into a single set sorted in ascending order.
  *
  * \verbatim
  *      DLAMRG will create a permutation list which will merge the elements
@@ -49,12 +49,11 @@ namespace tlapack {
  *      sorted in ascending order.
  *
  * \verbatim
-*       INDEX is INTEGER array, dimension (N1+N2)
-*       On exit this array will contain a permutation such that
-*       if B( I ) = A( INDEX( I ) ) for I=1,N1+N2, then B will be
-*       sorted in ascending order.
-* \endverbatim
-
+ *       INDEX is INTEGER array, dimension (N1+N2)
+ *       On exit this array will contain a permutation such that
+ *       if B( I ) = A( INDEX( I ) ) for I=1,N1+N2, then B will be
+ *       sorted in ascending order.
+ * \endverbatim
  *
  * @ingroup lamrg
  */
