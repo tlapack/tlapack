@@ -11,13 +11,16 @@
 #include <tlapack/plugins/legacyArray.hpp>
 
 // Test utilities and definitions (must come before <T>LAPACK headers)
-#include <iomanip>  // for std::setprecision()
-#include <iostream>
 #include <tlapack/lapack/getrf.hpp>
 #include <tlapack/lapack/hetd2.hpp>
 #include <tlapack/lapack/lacpy.hpp>
 #include <tlapack/lapack/laed4.hpp>
 #include <tlapack/lapack/steqr.hpp>
+
+//
+#include <algorithm>
+#include <iomanip>  // for std::setprecision()
+#include <iostream>
 
 using namespace tlapack;
 
