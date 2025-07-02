@@ -104,7 +104,7 @@ TEMPLATE_TEST_CASE("LU factorization of a general m-by-n matrix, blocked",
         lamrg(n1Size, n2Size, dlambda, real_t(sign1), real_t(sign2), indexq);
 
         for (idx_t i = 1; i < n; i++) {
-            CHECK(dlambda[indexq[i - 1]] <= dlambda[indexq[i]]);
+            CHECK(dlambda[idx_t(indexq[i - 1])] <= dlambda[idx_t(indexq[i])]);
         }
     }
 }
