@@ -1,3 +1,14 @@
+/// @file tik_svd.hpp Solves a tikhonov regularized least squares problem using
+/// SVD decompisition.
+/// @author L. Carlos Gutierrez, Julien Langou, University of Colorado Denver,
+/// USA
+//
+// Copyright (c) 2025, University of Colorado Denver. All rights reserved.
+//
+// This file is part of <T>LAPACK.
+// <T>LAPACK is free software: you can redistribute it and/or modify it under
+// the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
+
 #ifndef TLAPACK_TIK_SVD
 #define TLAPACK_TIK_SVD
 
@@ -7,6 +18,17 @@
 #include <tlapack/lapack/svd_qr.hpp>
 #include <tlapack/lapack/ungbr.hpp>
 #include <tlapack/lapack/unmqr.hpp>
+
+/**
+ * @param[in] A is an m-by-n matrix where m >= n.
+ * @param[in,out] b
+ *      On entry, b is a m-by-k matrix
+ *
+ *      On exit, by is an m-by-k matrix that stores the solution x in the first
+ *      n rows.
+ * @param[in] lambda scalar
+ *
+ */
 
 using namespace tlapack;
 

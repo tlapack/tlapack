@@ -1,5 +1,5 @@
-/// @file tik_bidiag_elden.hpp Solves the least squares problem for a tikhonov
-/// regularized matrix using Eldén's bidiagonalization algorithm.
+/// @file tik_bidiag_elden.hpp  Solves a tikhonov regularized least squares
+/// problem using Eldén's bidiagonalization algorithm.
 /// @author L. Carlos Gutierrez, Julien Langou, University of Colorado Denver,
 /// USA
 //
@@ -24,9 +24,19 @@
 
 /**
  * @brief This function solves the least squares problem for a Tikhonov
- * regularized matrix using Eldén's bidiagonalization algorithm. See: L. Eldén.
- * Algorithms for the regularization of ill-conditioned least square problems.
- * BIT, 17:134–145, 1977
+ * regularized matrix using Eldén's bidiagonalization algorithm.
+ *
+ * See: L. Eldén. Algorithms for the regularization of ill-conditioned least
+ * square problems. BIT, 17:134–145, 1977
+ *
+ * @param[in] A is an m-by-n matrix where m >= n.
+ * @param[in,out] b
+ *      On entry, b is a m-by-k matrix
+ *
+ *      On exit, by is an m-by-k matrix that stores the solution x in the first
+ *      n rows.
+ * @param[in] lambda scalar
+ *
  */
 
 using namespace tlapack;

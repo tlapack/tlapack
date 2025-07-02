@@ -1,3 +1,14 @@
+/// @file tik_qr.hpp  Solves a tikhonov regularized least squares problem using
+/// QR factorization.
+/// @author L. Carlos Gutierrez, Julien Langou, University of Colorado Denver,
+/// USA
+//
+// Copyright (c) 2025, University of Colorado Denver. All rights reserved.
+//
+// This file is part of <T>LAPACK.
+// <T>LAPACK is free software: you can redistribute it and/or modify it under
+// the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
+
 #ifndef TLAPACK_TIK_QR_HH
 #define TLAPACK_TIK_QR_HH
 
@@ -5,6 +16,17 @@
 #include <tlapack/lapack/geqrf.hpp>
 #include <tlapack/lapack/laset.hpp>
 #include <tlapack/lapack/unmqr.hpp>
+
+/**
+ * @param[in] A is an m-by-n matrix where m >= n.
+ * @param[in,out] b
+ *      On entry, b is a m-by-k matrix
+ *
+ *      On exit, by is an m-by-k matrix that stores the solution x in the first
+ *      n rows.
+ * @param[in] lambda scalar
+ *
+ */
 
 using namespace tlapack;
 

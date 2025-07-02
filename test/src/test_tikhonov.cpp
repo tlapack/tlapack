@@ -1,3 +1,13 @@
+/// @file test_tikhonov.cpp Test if tikhonov regularized least squares problem
+/// is successfully solved
+/// @author L. Carlos Gutierrez, University of Colorado Denver, USA
+//
+// Copyright (c) 2025, University of Colorado Denver. All rights reserved.
+//
+// This file is part of <T>LAPACK.
+// <T>LAPACK is free software: you can redistribute it and/or modify it under
+// the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
+
 #include "testutils.hpp"
 //
 #include <tlapack/lapack/tik_bidiag_elden.hpp>
@@ -37,12 +47,8 @@ TEMPLATE_TEST_CASE("Testing all cases of Tikhonov",
             // eps is the machine precision, and tol is the tolerance we accept
             // for tests to pass
 
-            real_t tol;
             const real_t eps = ulp<real_t>();
-            if constexpr (is_complex<T>)
-                tol = 1 * real_t(max(m, k)) * eps;
-            else
-                tol = 1 * real_t(max(m, k)) * eps;
+            const real_t tol = real_t(max(m, k)) * eps;
 
             // Declare matrices
             std::vector<T> A_;
@@ -57,14 +63,6 @@ TEMPLATE_TEST_CASE("Testing all cases of Tikhonov",
             auto x = new_matrix(x_, n, k);
             std::vector<T> y_;
             auto y = new_matrix(y_, n, k);
-
-            // Initializing matrices randomly            std::cout << "\nnormr =
-            // " << normr;
-
-            // tik_qr(A, b, lambda);
-            // tik_bidiag_elden(A, b, lambda);
-            // tik_qr failed all 8 test cases
-            // tik_svd(A, b, lambda);
 
             TikOpts opts;
             opts.variant = variant;

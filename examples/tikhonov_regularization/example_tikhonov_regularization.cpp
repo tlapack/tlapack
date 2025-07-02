@@ -1,3 +1,12 @@
+/// @file example_tikhonov_regularization.cpp
+/// @author L. Carlos Gutierrez, University of Colorado Denver, USA
+//
+// Copyright (c) 2025, University of Colorado Denver. All rights reserved.
+//
+// This file is part of <T>LAPACK.
+// <T>LAPACK is free software: you can redistribute it and/or modify it under
+// the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
+
 #include <tlapack/plugins/legacyArray.hpp>
 
 #include "../../test/include/MatrixMarket.hpp"
@@ -89,6 +98,7 @@ void run(size_t m, size_t n, size_t k)
     }
     else if (method == "Tikhonov Cholesky") {
         tik_chol(A, b, lambda, x);
+        // Solution for check is stored in first n rows of b
         lacpy(GENERAL, x, b);
     }
     // Conducts check for least squares problem
@@ -113,22 +123,22 @@ int main(int argc, char** argv)
     std::cout << std::scientific << std::showpos;
 
     // Execute run for different variable types
-    // printf("----------------------------------------------------------\n");
-    // printf("run< float  >( %d, %d, %d )", m, n, k);
-    // run<float>(m, n, k);
-    // printf("----------------------------------------------------------\n");
+    printf("----------------------------------------------------------\n");
+    printf("run< float  >( %d, %d, %d )", m, n, k);
+    run<float>(m, n, k);
+    printf("----------------------------------------------------------\n");
 
     printf("run< double >( %d, %d, %d )", m, n, k);
     run<double>(m, n, k);
     printf("----------------------------------------------------------\n");
 
-    // printf("run< long double >( %d, %d, %d )", m, n, k);
-    // run<long double>(m, n, k);
-    // printf("----------------------------------------------------------\n");
+    printf("run< long double >( %d, %d, %d )", m, n, k);
+    run<long double>(m, n, k);
+    printf("----------------------------------------------------------\n");
 
-    // printf("run< complex<float> >( %d, %d, %d )", m, n, k);
-    // run<std::complex<float>>(m, n, k);
-    // printf("----------------------------------------------------------\n");
+    printf("run< complex<float> >( %d, %d, %d )", m, n, k);
+    run<std::complex<float>>(m, n, k);
+    printf("----------------------------------------------------------\n");
 
     printf("run< complex<double> >( %d, %d, %d )", m, n, k);
     run<std::complex<double>>(m, n, k);
