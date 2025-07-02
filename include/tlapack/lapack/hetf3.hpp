@@ -25,7 +25,7 @@
 namespace tlapack {
 /// @brief Options struct for hetrf_blocked()
 struct BlockedLDLOpts : public EcOpts {
-    constexpr BlockedLDLOpts(const EcOpts& opts = {}) : EcOpts(opts) {};
+    constexpr BlockedLDLOpts(const EcOpts& opts = {}) : EcOpts(opts){};
 
     size_t nb = 32;  ///< Block size
     Op invariant = Op::Trans;
