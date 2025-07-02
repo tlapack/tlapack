@@ -255,8 +255,8 @@ void test_laed4(size_t n)
         f *= rho;
         f += 1;
 
-        std::cout << "Lamda from steqr" << i << ": " << lambda[i] << " f: " << f
-                  << std::endl;
+        std::cout << "Lambda from steqr" << i << ": " << lambda[i]
+                  << " f: " << f << std::endl;
     }
 
     // // Create D Matrix
