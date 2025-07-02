@@ -1,7 +1,7 @@
 /// @file lamrg.hpp
-/// @author Thijs Steel, KU Leuven, Belgium
+/// @author Brian Dang, University of Colorado Denver, USA
 //
-// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2025, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -10,43 +10,53 @@
 #ifndef TLAPACK_LAMRG_HH
 #define TLAPACK_LAMRG_HH
 
-//
 #include "tlapack/base/utils.hpp"
-
-//
 
 namespace tlapack {
 
-/** Computes the eigenvalues of a real symmetric 2x2 matrix A
- *  [ a b ]
- *  [ b c ]
- *
- * @param[in] a
- *      Element (0,0) of A.
- * @param[in] b
- *      Element (0,1) and (1,0) of A.
- * @param[in] c
- *      Element (1,1) of A.
- * @param[out] s1
- *      The eigenvalue of A with the largest absolute value.
- * @param[out] s2
- *      The eigenvalue of A with the smallest absolute value.
+/** DLAMRG creates a permutation list to merge the entries of two independently
+/** sorted sets into a single set sorted in ascending order.
  *
  * \verbatim
- *  s1 is accurate to a few ulps barring over/underflow.
- *
- *  s2 may be inaccurate if there is massive cancellation in the
- *  determinant a*c-b*b; higher precision or correctly rounded or
- *  correctly truncated arithmetic would be needed to compute s2
- *  accurately in all cases.
- *
- *  Overflow is possible only if s1 is within a factor of 5 of overflow.
- *  Underflow is harmless if the input data is 0 or exceeds
- *     underflow_threshold / macheps.
+ *      DLAMRG will create a permutation list which will merge the elements
+ *      of A (which is composed of two independently sorted sets) into a
+ *      single set which is sorted in ascending order.
  * \endverbatim
  *
+ * @param[in] n1
+ *      N2 is INTEGER
+ * @param[in] n2
+ *      N2 is INTEGER
+ *      These arguments contain the respective lengths of the two
+ *      sorted lists to be merged.
+ * @param[in] a
+ *      A is DOUBLE PRECISION array, dimension (N1+N2)
+ *      The first N1 elements of A contain a list of numbers which
+ *      are sorted in either ascending or descending order. Likewise
+ *      for the final N2 elements.
+ * @param[in] dtrd1
+ *      DTRD1 is INTEGER
+ * @param[in] dtrd2
+ *      DTRD2 is INTEGER
+ *      These are the strides to be taken through the array A.
+ *      Allowable strides are 1 and -1.  They indicate whether a
+ *      subset of a is sorted in ascending (DTRDx = 1) or descending
+ *      (DTRDx = -1) order.
+ * @param[out] index
+ *      INDEX is INTEGER array, dimension (N1+N2)
+ *      On exit this array will contain a permutation such that
+ *      if B( I ) = A( INDEX( I ) ) for I=1,N1+N2, then B will be
+ *      sorted in ascending order.
  *
- * @ingroup auxiliary
+ * \verbatim
+*       INDEX is INTEGER array, dimension (N1+N2)
+*       On exit this array will contain a permutation such that
+*       if B( I ) = A( INDEX( I ) ) for I=1,N1+N2, then B will be
+*       sorted in ascending order.
+* \endverbatim
+
+ *
+ * @ingroup lamrg
  */
 template <class real_t, class idx_t, class a_t, class index_t>
 void lamrg(

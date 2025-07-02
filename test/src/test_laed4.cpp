@@ -1,6 +1,6 @@
-/// @file test_ul_mult.cpp
-/// @author Ali Lotfi, University of Colorado Denver, USA
-/// @brief Test UL multiplication.
+/// @file test_laed4.cpp
+/// @author Brian Dang, University of Colorado Denver, USA
+/// @brief Test LAED4.
 //
 // Copyright (c) 2025, University of Colorado Denver. All rights reserved.
 //
@@ -119,10 +119,6 @@ TEMPLATE_TEST_CASE("LU factorization of a general m-by-n matrix, blocked",
             }
             f *= rho;
             f += 1;
-            // std::cout << std::setprecision(15);
-            // std::cout << "This is Lambda from laed4 " << i << ": " << dlam
-            //           << " f: " << f << " type:" << typeid(dlam).name()
-            //           << " rho = " << rho;
 
             // Compute an eigenvector v associated with eigenvalue λ
             for (idx_t j = 0; j < n; j++) {

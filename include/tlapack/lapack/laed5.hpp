@@ -1,7 +1,7 @@
 /// @file laed5.hpp
-/// @author Thijs Steel, KU Leuven, Belgium
+/// @author Brian Dang, University of Colorado Denver, USA
 //
-// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2025, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -14,36 +14,43 @@
 
 namespace tlapack {
 
-/** Computes the eigenvalues of a real symmetric 2x2 matrix A
- *  [ a b ]
- *  [ b c ]
+/** DLAED5 used by DSTEDC. Solves the 2-by-2 secular equation.
+ *  \verbatim
  *
- * @param[in] a
- *      Element (0,0) of A.
- * @param[in] b
- *      Element (0,1) and (1,0) of A.
- * @param[in] c
- *      Element (1,1) of A.
- * @param[out] s1
- *      The eigenvalue of A with the largest absolute value.
- * @param[out] s2
- *      The eigenvalue of A with the smallest absolute value.
+ *      This subroutine computes the I-th eigenvalue of a symmetric rank-one
+ *      modification of a 2-by-2 diagonal matrix
  *
- * \verbatim
- *  s1 is accurate to a few ulps barring over/underflow.
+ *                    diag( D )  +  RHO * Z * transpose(Z) .
  *
- *  s2 may be inaccurate if there is massive cancellation in the
- *  determinant a*c-b*b; higher precision or correctly rounded or
- *  correctly truncated arithmetic would be needed to compute s2
- *  accurately in all cases.
+ *      The diagonal elements in the array D are assumed to satisfy
  *
- *  Overflow is possible only if s1 is within a factor of 5 of overflow.
- *  Underflow is harmless if the input data is 0 or exceeds
- *     underflow_threshold / macheps.
+ *                 D(i) < D(j)  for  i < j .
+ *
+ *      We also assume RHO > 0 and that the Euclidean norm of the vector
+ *      Z is one.
  * \endverbatim
  *
+ * @param[in] i
+ *      I is INTEGER
+ *      The index of the eigenvalue to be computed.  I = 1 or I = 2.
+ * @param[in] d
+ *      D is DOUBLE PRECISION array, dimension (2)
+ *      The original eigenvalues.  We assume D(1) < D(2).
+ * @param[in] z
+ *      Z is DOUBLE PRECISION array, dimension (2)
+ *      The components of the updating vector.
+ * @param[out] delta
+ *      DELTA is DOUBLE PRECISION array, dimension (2)
+ *      The vector DELTA contains the information necessary
+ *      to construct the eigenvectors.
+ * @param[in] rho
+ *      RHO is DOUBLE PRECISION
+ *      The scalar in the symmetric updating formula.
+ * @param[out] dlam
+ *      DLAM is DOUBLE PRECISION
+ *      The computed lambda_I, the I-th updated eigenvalue.
  *
- * @ingroup auxiliary
+ * @ingroup laed5
  */
 template <class d_t, class z_t, class delta_t, class real_t, class idx_t>
 void laed5(idx_t i, d_t& d, z_t& z, delta_t& delta, real_t rho, real_t& dlam)

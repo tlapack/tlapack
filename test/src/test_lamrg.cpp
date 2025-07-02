@@ -1,6 +1,6 @@
-/// @file test_ul_mult.cpp
-/// @author Ali Lotfi, University of Colorado Denver, USA
-/// @brief Test UL multiplication.
+/// @file test_lamrg.cpp
+/// @author Brian Dang, University of Colorado Denver, USA
+/// @brief Test LAMRG.
 //
 // Copyright (c) 2025, University of Colorado Denver. All rights reserved.
 //

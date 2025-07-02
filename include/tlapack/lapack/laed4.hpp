@@ -1,7 +1,7 @@
 /// @file laed4.hpp
-/// @author Thijs Steel, KU Leuven, Belgium
+/// @author Brian Dang, University of Colorado Denver, USA
 //
-// Copyright (c) 2021-2023, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2025 University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
@@ -19,32 +19,68 @@
 
 namespace tlapack {
 
-/** Computes the eigenvalues of a real symmetric 2x2 matrix A
- *  [ a b ]
- *  [ b c ]
- *
- * @param[in] a
- *      Element (0,0) of A.
- * @param[in] b
- *      Element (0,1) and (1,0) of A.
- * @param[in] c
- *      Element (1,1) of A.
- * @param[out] s1
- *      The eigenvalue of A with the largest absolute value.
- * @param[out] s2
- *      The eigenvalue of A with the smallest absolute value.
+/** DLAED4 used by DSTEDC. Finds a single root of the secular equation.
  *
  * \verbatim
- *  s1 is accurate to a few ulps barring over/underflow.
+ *      This subroutine computes the I-th updated eigenvalue of a symmetric
+ *      rank-one modification to a diagonal matrix whose elements are
+ *      given in the array d, and that
  *
- *  s2 may be inaccurate if there is massive cancellation in the
- *  determinant a*c-b*b; higher precision or correctly rounded or
- *  correctly truncated arithmetic would be needed to compute s2
- *  accurately in all cases.
+ *                  D(i) < D(j)  for  i < j
  *
- *  Overflow is possible only if s1 is within a factor of 5 of overflow.
- *  Underflow is harmless if the input data is 0 or exceeds
- *     underflow_threshold / macheps.
+ *      and that RHO > 0.  This is arranged by the calling routine, and is
+ *      no loss in generality.  The rank-one modified system is thus
+ *
+ *                  diag( D )  +  RHO * Z * Z_transpose.
+ *
+ *      where we assume the Euclidean norm of Z is 1.
+ *
+ *      The method consists of approximating the rational functions in the
+ *      secular equation by simpler interpolating rational functions.
+ * \endverbatim
+ *
+ * @param[in] n
+ *      N is INTEGER
+ *      The length of all arrays.
+ * @param[in] i
+ *      I is INTEGER
+ *      The index of the eigenvalue to be computed. 1 <= I <= N.
+ * @param[in] d
+ *      D is DOUBLE PRECISION array, dimension (N)
+ *      The original eigenvalues.  It is assumed that they are in
+ *      order, D(I) < D(J)  for I < J.
+ * @param[in] z
+ *      Z is DOUBLE PRECISION array, dimension (N)
+ *      The components of the updating vector.
+ * @param[out] delta
+ *      DELTA is DOUBLE PRECISION array, dimension (N)
+ *      If N > 2, DELTA contains (D(j) - lambda_I) in its  j-th
+ *      component.  If N = 1, then DELTA(1) = 1. If N = 2, see DLAED5
+ *      for detail. The vector DELTA contains the information necessary
+ *      to construct the eigenvectors by DLAED3 and DLAED9.
+ * @param[in] rho
+ *      RHO is DOUBLE PRECISION
+ *      The scalar in the symmetric updating formula.
+ * @param[out] dlam
+ *      DLAM is DOUBLE PRECISION
+ *      The computed lambda_I, the I-th updated eigenvalue.
+ * @param[out] info
+ *      INFO is INTEGER
+ *       = 0:  successful exit
+ *       > 0:  if INFO = 1, the updating process failed.
+ *
+ * \verbatim
+ *      Logical variable ORGATI (origin-at-i?) is used for distinguishing
+ *      whether D(i) or D(i+1) is treated as the origin.
+ *
+ *                ORGATI = .true.    origin at i
+ *                ORGATI = .false.   origin at i+1
+ *
+ *      Logical variable SWTCH3 (switch-for-3-poles?) is for noting
+ *      if we are working with THREE poles!
+ *
+ *      MAXIT is the maximum number of iterations allowed for each
+ *      eigenvalue.
  * \endverbatim
  *
  *
