@@ -21,7 +21,15 @@ add_custom_command(
     "${CMAKE_CURRENT_BINARY_DIR}/geqr2/example_geqr2${CMAKE_EXECUTABLE_SUFFIX}"
     && echo ""
 )
-
+# add the example tikhonov_regularization
+add_subdirectory( tikhonov_regularization )
+add_custom_command(
+  OUTPUT run-all-examples-cmd APPEND
+  COMMAND
+    echo "- example_tikhonov_regularization ----------------" &&
+    "${CMAKE_CURRENT_BINARY_DIR}/tikhonov_regularization/example_tikhonov_regularization${CMAKE_EXECUTABLE_SUFFIX}"
+    && echo ""
+)
 # add the eigenvalues example
 add_subdirectory( eigenvalues )
 add_custom_command(
