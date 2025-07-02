@@ -1,5 +1,5 @@
-/// @file example_geqr2.cpp
-/// @author Weslley S Pereira, University of Colorado Denver, USA
+/// @file example_laed4.cpp
+/// @author Brian Dang, University of Colorado Denver, USA
 //
 // Copyright (c) 2025, University of Colorado Denver. All rights reserved.
 //
@@ -50,7 +50,7 @@ void test_laed4(size_t n)
 
     // Vectors
     std::vector<real_t> d(n);
-    std::vector<real_t> lamda(n);
+    std::vector<real_t> lambda(n);
     std::vector<real_t> e(n - 1);
     std::vector<real_t> u(n);
     std::vector<real_t> workSpace(n);
@@ -68,8 +68,6 @@ void test_laed4(size_t n)
     auto E = new_matrix(E_, n, n);
     std::vector<real_t> Z_;
     auto Z = new_matrix(Z_, n, n);
-    std::vector<real_t> LU_;
-    auto LU = new_matrix(LU_, n, n);
 
     // Turn on for Debugging
     bool verbose = true;
@@ -172,7 +170,7 @@ void test_laed4(size_t n)
 
     // Get d from A
     for (idx_t i = 0; i < n; i++) {
-        lamda[i] = A(i, i);
+        lambda[i] = A(i, i);
     }
     // Get e from A
     for (idx_t i = 0; i < n - 1; i++) {
@@ -238,26 +236,26 @@ void test_laed4(size_t n)
 
     // find the eigen and eigen vectors of the Tridiagonal A
     // steqr(false, d, e, A);
-    steqr(true, lamda, e, Z);
+    steqr(true, lambda, e, Z);
     if (verbose) {
-        std::cout << "\nlamda after steqr = ( ";
-        for (auto index : lamda) {
+        std::cout << "\nLambda after steqr = ( ";
+        for (auto index : lambda) {
             std::cout << index << " ";
         }
         std::cout << ")\n";
     }
 
-    // f(lamda) = 1 + rho[(u_i ^ 2 / (d_1 - lamda)) +
-    //                    (u_i ^ n / (d_n - lamda))]
+    // f(lambda) = 1 + rho[(u_i ^ 2 / (d_1 - lambda)) +
+    //                    (u_i ^ n / (d_n - lambda))]
     for (idx_t i = 0; i < n; i++) {
         real_t f = 0;
         for (idx_t j = 0; j < n; j++) {
-            f += (u[j] * u[j]) / (d[j] - lamda[i]);
+            f += (u[j] * u[j]) / (d[j] - lambda[i]);
         }
         f *= rho;
         f += 1;
 
-        std::cout << "Lamda from steqr" << i << ": " << lamda[i] << " f: " << f
+        std::cout << "Lamda from steqr" << i << ": " << lambda[i] << " f: " << f
                   << std::endl;
     }
 
