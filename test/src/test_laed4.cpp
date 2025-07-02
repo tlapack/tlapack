@@ -87,7 +87,7 @@ TEMPLATE_TEST_CASE("LAED4", "[stedc,laed4]", TLAPACK_TYPES_TO_TEST)
             u[j] = real_t(rand() + 1);
         }
         // Normalize u
-        real_t sum = 0;
+        real_t sum = real_t(0);
         for (auto num : u) {
             sum += num * num;
         }

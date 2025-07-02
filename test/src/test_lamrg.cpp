@@ -46,8 +46,8 @@ TEMPLATE_TEST_CASE("LU factorization of a general m-by-n matrix, blocked",
     // m and n represent no. rows and columns of the matrices we will be testing
     // respectively
     idx_t n = GENERATE(17);
-    real_t sign1 = GENERATE(-1, 1);
-    real_t sign2 = GENERATE(-1, 1);
+    real_t sign1 = real_t(GENERATE(-1, 1));
+    real_t sign2 = real_t(GENERATE(-1, 1));
 
     std::random_device rd;
     std::mt19937 gen(rd());
