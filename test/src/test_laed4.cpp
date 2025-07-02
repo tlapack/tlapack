@@ -78,14 +78,14 @@ TEMPLATE_TEST_CASE("LU factorization of a general m-by-n matrix, blocked",
 
         // Create Sorted Random Real d
         for (idx_t i = 0; i < n; i++) {
-            d[i] = (i + 1) * 2 + i;
+            d[i] = real_t((i + 1) * 2 + i);
         }
         sort(d.begin(), d.end());
 
         // Create Random Real u
         srand(3);
         for (idx_t j = 0; j < n; j++) {
-            u[j] = rand();
+            u[j] = real_t(rand());
         }
         // Normalize u
         real_t sum = 0;
@@ -94,14 +94,14 @@ TEMPLATE_TEST_CASE("LU factorization of a general m-by-n matrix, blocked",
         }
         // u / sqrt(sum)
         for (idx_t i = 0; i < n; i++) {
-            u[i] = u[i] / sqrt(sum);
+            u[i] = real_t(u[i] / sqrt(sum));
         }
 
         // Create u*u^T
         for (idx_t j = 0; j < n; j++) {
             A(j, j) += d[j];
             for (idx_t i = 0; i < n; i++) {
-                A(i, j) = rho * u[i] * u[j];
+                A(i, j) = real_t(rho * u[i] * u[j]);
             }
         }
 
@@ -123,7 +123,7 @@ TEMPLATE_TEST_CASE("LU factorization of a general m-by-n matrix, blocked",
 
             // Compute an eigenvector v associated with eigenvalue λ
             for (idx_t j = 0; j < n; j++) {
-                v[j] = u[j] / (d[j] - dlam);
+                v[j] = real_t(u[j] / (d[j] - dlam));
             }
 
             auto nrmv = nrm2(v);
@@ -135,7 +135,7 @@ TEMPLATE_TEST_CASE("LU factorization of a general m-by-n matrix, blocked",
 
             // Compute || A v - λ v ||₂ / | λ | / || v ||₂
             for (idx_t j = 0; j < n; j++) {
-                v[j] = dlam * v[j] - d[j] * v[j] - rho * u[j] * utv;
+                v[j] = real_t(dlam * v[j] - d[j] * v[j] - rho * u[j] * utv);
             }
             real_t error = nrm2(v);
 

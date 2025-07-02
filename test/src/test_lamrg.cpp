@@ -60,7 +60,7 @@ TEMPLATE_TEST_CASE("LU factorization of a general m-by-n matrix, blocked",
         vector<real_t> d(n);
         // Fill D with random numbers
         for (idx_t i = 0; i < n; i++) {
-            d[i] = (neg(gen) == 0 ? -1.0 : 1.0) * dis(gen) / 10.0;
+            d[i] = real_t((neg(gen) == 0 ? -1.0 : 1.0) * dis(gen) / 10.0);
         }
 
         idx_t mid = n / 2;
@@ -95,7 +95,7 @@ TEMPLATE_TEST_CASE("LU factorization of a general m-by-n matrix, blocked",
         // Create INDEXQ
         std::vector<real_t> indexq(n);
         for (idx_t i = 0; i < n; i++) {
-            indexq[i] = i;
+            indexq[i] = real_t(i);
         }
 
         // Merge and Sort for Ascending
