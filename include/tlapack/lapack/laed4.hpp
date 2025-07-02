@@ -97,7 +97,6 @@ void laed4(idx_t n,
            real_t& info)
 
 {
-    std::cout << std::setprecision(16);
     real_t psi, dpsi, phi, dphi, err, eta, a, b, c, w, del, tau, dltlb, dltub,
         temp;
 
