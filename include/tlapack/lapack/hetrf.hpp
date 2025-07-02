@@ -23,7 +23,7 @@ enum class HetrfVariant : char {
 
 /// @brief Options struct for hetrf()
 struct HetrfOpts : public BlockedLDLOpts {
-    constexpr HetrfOpts(const EcOpts& opts = {}) : BlockedLDLOpts(opts){};
+    constexpr HetrfOpts(const EcOpts& opts = {}) : BlockedLDLOpts(opts) {};
 
     HetrfVariant variant = HetrfVariant::Blocked;
 };
@@ -32,7 +32,8 @@ struct HetrfOpts : public BlockedLDLOpts {
  * Workspace is provided as an argument.
  * @copydetails hetrf()
  *
- * @param work Workspace. Use the workspace query to determine the size needed.
+ * @param[in] work Workspace. Use the workspace query to determine the size
+ * needed.
  *
  * @ingroup variant_interface
  */
