@@ -21,6 +21,11 @@ namespace tlapack {
  *
  * @param[in] A n-by-n matrix.
  *
+ * @param[in] opts Options.
+ *      Define the behavior of checks for NaNs, and nb for hetrf_blocked.
+ *      - variant:
+ *          - Blocked = 'B'
+ *
  * @return WorkInfo The amount workspace required.
  *
  * @ingroup workspace_query
