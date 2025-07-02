@@ -51,7 +51,7 @@ TEMPLATE_TEST_CASE("LU factorization of a general m-by-n matrix, blocked",
 
     // m and n represent no. rows and columns of the matrices we will be testing
     // respectively
-    idx_t n = GENERATE(2, 30);
+    idx_t n = GENERATE(2, 5, 30, 50);
 
     srand(3);
     real_t rho = real_t(10 * (float)rand() / (float)RAND_MAX);
@@ -141,6 +141,7 @@ TEMPLATE_TEST_CASE("LU factorization of a general m-by-n matrix, blocked",
                 v[j] = dlam * v[j] - d[j] * v[j] - rho * u[j] * utv;
             }
             real_t error = nrm2(v);
+
             CHECK(error <= tol * nrmv * abs(dlam));
         }
     }
