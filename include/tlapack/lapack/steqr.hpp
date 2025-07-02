@@ -25,28 +25,45 @@ namespace tlapack {
 
 /**
  * STEQR computes all eigenvalues and, optionally, eigenvectors of a
- * hermitian tridiagonal matrix using the implicit QL or QR method.
- * The eigenvectors of a full or band hermitian matrix can also be found
- * if SYTRD or SPTRD or SBTRD has been used to reduce this matrix to
- * tridiagonal form.
+ * real symmetric tridiagonal matrix using the implicit QL or QR method.
  *
- * @return  0 if success
+ * The eigenvectors of a full Hermitian matrix can also be found by STEQR if
+ * this matrix has previously been reduced matrix to real symmetric
+ * tridiagonal form, by HETRD for example.
+ *
+ * @return 0, successful exit.
+ * @return i, 0 < i <= n, the algorithm has failed to find all the eigenvalues
+ *            in a total of 30*n iterations; if return = i, then i elements
+ *            of e have not converged to zero; on exit, d and e contain the
+ *            elements of a symmetric tridiagonal matrix which is orthogonally
+ *            similar to the original matrix.
  *
  * @param[in] want_z bool
+ *            = 'false': Compute eigenvalues only.
+ *            = 'true': Compute eigenvalues and eigenvectors of the original
+ *              symmetric matrix. On entry, Z must contain the orthogonal
+ *              matrix used to reduce the original matrix to tridiagonal form
+ *              or initialized to the identity matrix. (See description of Z
+ *              below.)
  *
- * @param[in,out] d Real vector of length n.
- *      On entry, diagonal elements of the bidiagonal matrix B.
- *      On exit, the singular values of B in decreasing order.
+ * @param[in,out] d real vector of length n.
+ *      On entry, the diagonal elements of the real symmetric
+ *      tridiagonal matrix.
+ *      On exit, if return = 0, the eigenvalues in ascending order.
  *
- * @param[in,out] e Real vector of length n-1.
- *      On entry, off-diagonal elements of the bidiagonal matrix B.
- *      On exit, the singular values of B in decreasing order.
+ * @param[in,out] e real vector of length n-1.
+ *      On entry, the off-diagonal elements of the real symmetric
+ *      tridiagonal matrix.
+ *      On exit, "e" has been destroyed.
  *
- * @param[in,out] Z n-by-m matrix.
- *      On entry, the n-by-n unitary matrix used in the reduction
- *      to tridiagonal form.
- *      On exit, if info = 0, and want_z=true then Z contains the
- *      orthonormal eigenvectors of the original Hermitian matrix.
+ * @param[in,out] Z real or complex n-by-n matrix
+ *      if compz = 'false', then Z is not referenced.
+ *      if compz = 'true', on entry, either the n-by-n unitary matrix used in
+ *      the reduction to tridiagonal form or initialized to the identity matrix.
+ *      Z can be either a real orthogonal or complex unitary matrix.
+ *      On exit, if return = 0, then Z contains the orthonormal eigenvectors of
+ *      the original Hermitian matrix or of the real symmetric tridiagonal
+ *      matrix.
  *
  * @ingroup computational
  */
@@ -69,10 +86,7 @@ int steqr(bool want_z, d_t& d, e_t& e, matrix_t& Z)
 
     // Quick return if possible
     if (n == 0) return 0;
-    if (n == 1) {
-        if (want_z) Z(0, 0) = one;
-        return 0;
-    }
+    if (n == 1) return 0;
 
     // Determine the unit roundoff and over/underflow thresholds.
     const real_t eps = ulp<real_t>();
@@ -92,7 +106,7 @@ int steqr(bool want_z, d_t& d, e_t& e, matrix_t& Z)
     idx_t istop_old = -1;
 
     // If true, chase bulges from top to bottom
-    // If false chase bulges from bottom to top
+    // If false, chase bulges from bottom to top
     // This variable is reevaluated for every new subblock
     bool forwarddirection = true;
 
@@ -148,7 +162,7 @@ int steqr(bool want_z, d_t& d, e_t& e, matrix_t& Z)
             continue;
         }
 
-        // Choose betwwen QL and QR iteration
+        // Choose between QL and QR iteration
         if (istart >= istop_old or istop <= istart_old) {
             forwarddirection = abs(d[istart]) > abs(d[istop - 1]);
         }
@@ -228,7 +242,19 @@ int steqr(bool want_z, d_t& d, e_t& e, matrix_t& Z)
     // Order eigenvalues and eigenvectors
     if (!want_z) {
         // Use quick sort
-        // TODO: implement quick sort
+        // TODO: implement quick sort (see LAPACK dlasrt.f for example)
+        //
+        // Use selection sort for now
+        for (idx_t i = 0; i < n - 1; ++i) {
+            idx_t k = i;
+            real_t p = d[i];
+            for (idx_t j = i + 1; j < n; ++j) {
+                if (d[j] < p) {
+                    k = j;
+                    p = d[j];
+                }
+            }
+        }
     }
     else {
         // Use selection sort to minize swaps of eigenvectors
