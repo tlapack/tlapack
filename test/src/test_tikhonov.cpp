@@ -33,7 +33,7 @@ TEMPLATE_TEST_CASE("Testing all cases of Tikhonov",
     const idx_t m = GENERATE(1, 2, 12, 20, 30);
     const idx_t n = GENERATE(1, 2, 3, 7, 8);
     const idx_t k = GENERATE(1, 7, 12, 19);
-    const real_t lambda = GENERATE(1e-6, 7.5, 1e6);
+    const real_t lambda = real_t(GENERATE(1e-6, 7.5, 1e6));
 
     using variant_t = TikVariant;
     const variant_t variant =
