@@ -14,21 +14,19 @@
 
 namespace tlapack {
 
-/** DLAED5 used by DSTEDC. Solves the 2-by-2 secular equation.
- *  \verbatim
+/** LAED5 used by STEDC. Solves the 2-by-2 secular equation.
  *
- *      This subroutine computes the I-th eigenvalue of a symmetric rank-one
- *      modification of a 2-by-2 diagonal matrix
+ * This subroutine computes the I-th eigenvalue of a symmetric rank-one
+ * modification of a 2-by-2 diagonal matrix
  *
- *                    diag( D )  +  RHO * Z * transpose(Z) .
+ *             diag( D )  +  RHO * Z * transpose(Z) .
  *
- *      The diagonal elements in the array D are assumed to satisfy
+ * The diagonal elements in the array D are assumed to satisfy
  *
- *                 D(i) < D(j)  for  i < j .
+ *             D(i) < D(j)  for  i < j .
  *
- *      We also assume RHO > 0 and that the Euclidean norm of the vector
- *      Z is one.
- * \endverbatim
+ * We also assume RHO > 0 and that the Euclidean norm of the vector
+ * Z is one.
  *
  * @param[in] i
  *      I is INTEGER
