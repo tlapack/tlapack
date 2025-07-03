@@ -1,0 +1,62 @@
+name: "Setup Common Dependencies"
+description: "Install common dependencies for TLAPACK builds"
+inputs:
+  os:
+    description: "Operating system (ubuntu-latest, macos-latest, windows-latest)"
+    required: true
+  install-extras:
+    description: "Comma-separated list of extra packages to install (mpfr, openblas, mkl, blis, starpu)"
+    required: false
+    default: ""
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install ninja-build tool
+      uses: seanmiddleditch/gha-setup-ninja@3b1f8f94a2f8254bd26914c4ab9474d4f0015f67 # v6
+
+    - name: Install Ubuntu dependencies
+      if: ${{ inputs.os == 'ubuntu-latest' }}
+      shell: bash
+      run: |
+        sudo apt update
+        sudo apt install -y cmake gfortran liblapacke-dev
+
+        # Install extra packages based on input
+        if [[ "${{ inputs.install-extras }}" == *"mpfr"* ]]; then
+          sudo apt install -y libmpfrc++-dev
+        fi
+        if [[ "${{ inputs.install-extras }}" == *"openblas"* ]]; then
+          sudo apt install -y libopenblas-dev
+        fi
+        if [[ "${{ inputs.install-extras }}" == *"blis"* ]]; then
+          sudo apt install -y libblis-dev
+        fi
+        if [[ "${{ inputs.install-extras }}" == *"starpu"* ]]; then
+          sudo apt install -y pkg-config libtool-bin libhwloc-dev g++ libudev-dev
+        fi
+
+    - name: Install macOS dependencies
+      if: ${{ inputs.os == 'macos-latest' }}
+      shell: bash
+      run: |
+        brew install gcc
+
+    - name: Setup Intel oneAPI (MKL)
+      if: ${{ inputs.install-extras == 'mkl' }}
+      shell: bash
+      run: |
+        # download the key to system keyring
+        wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB | gpg --dearmor | sudo tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null
+        # add signed entry to apt sources and configure the APT client to use Intel repository:
+        echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" | sudo tee /etc/apt/sources.list.d/oneAPI.list
+        sudo apt update
+        sudo apt install -y intel-oneapi-mkl
+        source /opt/intel/oneapi/setvars.sh
+
+        # Export the key MKL environment variables to subsequent steps
+        [[ -n "$MKLROOT" ]] && echo "MKLROOT=$MKLROOT" >> $GITHUB_ENV
+        [[ -n "$LD_LIBRARY_PATH" ]] && echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH" >> $GITHUB_ENV
+        [[ -n "$LIBRARY_PATH" ]] && echo "LIBRARY_PATH=$LIBRARY_PATH" >> $GITHUB_ENV
+        [[ -n "$CPATH" ]] && echo "CPATH=$CPATH" >> $GITHUB_ENV
+        [[ -n "$PKG_CONFIG_PATH" ]] && echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH" >> $GITHUB_ENV
