@@ -46,8 +46,8 @@ TEMPLATE_TEST_CASE("LU factorization of a general m-by-n matrix, blocked",
     // m and n represent no. rows and columns of the matrices we will be testing
     // respectively
     idx_t n = GENERATE(17);
-    real_t sign1 = real_t(GENERATE(-1, 1));
-    real_t sign2 = real_t(GENERATE(-1, 1));
+    int sign1 = GENERATE(-1, 1);
+    int sign2 = GENERATE(-1, 1);
 
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -93,15 +93,15 @@ TEMPLATE_TEST_CASE("LU factorization of a general m-by-n matrix, blocked",
         dlambda.insert(dlambda.begin() + n1.size(), n2.begin(), n2.end());
 
         // Create INDEXQ
-        std::vector<real_t> indexq(n);
+        std::vector<idx_t> indexq(n);
         for (idx_t i = 0; i < n; i++) {
-            indexq[i] = real_t(i);
+            indexq[i] = i;
         }
 
         // Merge and Sort for Ascending
         idx_t n1Size = n1.size();
         idx_t n2Size = n2.size();
-        lamrg(n1Size, n2Size, dlambda, real_t(sign1), real_t(sign2), indexq);
+        lamrg(n1Size, n2Size, dlambda, sign1, sign2, indexq);
 
         for (idx_t i = 1; i < n; i++) {
             CHECK(dlambda[idx_t(indexq[i - 1])] <= dlambda[idx_t(indexq[i])]);

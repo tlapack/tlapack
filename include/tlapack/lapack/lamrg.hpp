@@ -57,40 +57,39 @@ namespace tlapack {
  *
  * @ingroup lamrg
  */
-template <class real_t, class idx_t, class a_t, class index_t>
-void lamrg(
-    idx_t n1, idx_t n2, a_t& a, real_t dtrd1, real_t dtrd2, index_t& index)
+template <class idx_t, class a_t, class idx1_t>
+void lamrg(idx_t n1, idx_t n2, a_t& a, int dtrd1, int dtrd2, idx1_t& index)
 {
     idx_t n1sv = n1;
     idx_t n2sv = n2;
-    real_t ind1;
-    real_t ind2;
+    idx_t ind1;
+    idx_t ind2;
 
     if (dtrd1 > 0) {
-        ind1 = real_t(0);
+        ind1 = 0;
     }
     else {
-        ind1 = real_t(n1 - 1);
+        ind1 = n1 - 1;
     }
 
     if (dtrd2 > 0) {
-        ind2 = real_t(n1);
+        ind2 = n1;
     }
     else {
-        ind2 = real_t(n1 + n2 - 1);
+        ind2 = n1 + n2 - 1;
     }
 
     idx_t i = 0;
 
     while (n1sv > 0 && n2sv > 0) {
-        if (a[idx_t(ind1)] <= a[idx_t(ind2)]) {
-            index[i] = real_t(ind1);
+        if (a[ind1] <= a[ind2]) {
+            index[i] = ind1;
             i = i + 1;
             ind1 = ind1 + dtrd1;
             n1sv = n1sv - 1;
         }
         else {
-            index[i] = real_t(ind2);
+            index[i] = ind2;
             i = i + 1;
             ind2 = ind2 + dtrd2;
             n2sv = n2sv - 1;
@@ -99,14 +98,14 @@ void lamrg(
 
     if (n1sv == 0) {
         for (idx_t j = 0; j < n2sv; j++) {
-            index[i] = real_t(ind2);
+            index[i] = ind2;
             i = i + 1;
             ind2 = ind2 + dtrd2;
         }
     }
     else {
         for (idx_t j = 0; j < n1sv; j++) {
-            index[i] = real_t(ind1);
+            index[i] = ind1;
             i = i + 1;
             ind1 = ind1 + dtrd1;
         }
