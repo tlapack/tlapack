@@ -74,6 +74,7 @@ TEMPLATE_TEST_CASE("steqr is backward stable",
 
         laset(Uplo::General, zero, one, Q);
         int err = steqr(true, d, e, Q);
+        // int err = steqr(false, d, e, Q);
         REQUIRE(err == 0);
 
         // Check that singular values are sorted in ascending

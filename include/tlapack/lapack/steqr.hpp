@@ -20,6 +20,7 @@
 #include "tlapack/lapack/lae2.hpp"
 #include "tlapack/lapack/laev2.hpp"
 #include "tlapack/lapack/lapy2.hpp"
+#include "tlapack/lapack/lasrt.hpp"
 
 namespace tlapack {
 
@@ -245,16 +246,21 @@ int steqr(bool want_z, d_t& d, e_t& e, matrix_t& Z)
         // TODO: implement quick sort (see LAPACK dlasrt.f for example)
         //
         // Use selection sort for now
-        for (idx_t i = 0; i < n - 1; ++i) {
-            idx_t k = i;
-            real_t p = d[i];
-            for (idx_t j = i + 1; j < n; ++j) {
-                if (d[j] < p) {
-                    k = j;
-                    p = d[j];
-                }
-            }
-        }
+        // for (idx_t i = 0; i < n - 1; ++i) {
+        //     idx_t k = i;
+        //     real_t p = d[i];
+        //     for (idx_t j = i + 1; j < n; ++j) {
+        //         if (d[j] < p) {
+        //             k = j;
+        //             p = d[j];
+        //         }
+        //     }
+        //     if (k != i) {
+        //         d[k] = d[i];
+        //         d[i] = p;
+        //     }
+        // }
+        lasrt('I', n, d);
     }
     else {
         // Use selection sort to minize swaps of eigenvectors
