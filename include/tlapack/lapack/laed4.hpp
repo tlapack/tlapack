@@ -19,7 +19,7 @@
 
 namespace tlapack {
 
-/** DLAED4 used by DSTEDC. Finds a single root of the secular equation.
+/** LAED4 used by STEDC. Finds a single root of the secular equation.
  *
  * \verbatim
  *      This subroutine computes the I-th updated eigenvalue of a symmetric
@@ -39,31 +39,31 @@ namespace tlapack {
  *      secular equation by simpler interpolating rational functions.
  * \endverbatim
  *
- * @param[in] n
- *      N is INTEGER
+ * @param[in] n, integer.
  *      The length of all arrays.
- * @param[in] i
- *      I is INTEGER
+ *
+ * @param[in] i, integer.
  *      The index of the eigenvalue to be computed. 1 <= I <= N.
- * @param[in] d
- *      D is DOUBLE PRECISION array, dimension (N)
+ *
+ * @param[in] d, size n real_t vector.
  *      The original eigenvalues.  It is assumed that they are in
  *      order, D(I) < D(J)  for I < J.
- * @param[in] z
- *      Z is DOUBLE PRECISION array, dimension (N)
+ *
+ * @param[in] z, size n real_t vector.
  *      The components of the updating vector.
- * @param[out] delta
- *      DELTA is DOUBLE PRECISION array, dimension (N)
+ *
+ * @param[out] delta, size n real_t vector.
  *      If N > 2, DELTA contains (D(j) - lambda_I) in its  j-th
- *      component.  If N = 1, then DELTA(1) = 1. If N = 2, see DLAED5
+ *      component.  If N = 1, then DELTA(1) = 1. If N = 2, see LAED5
  *      for detail. The vector DELTA contains the information necessary
- *      to construct the eigenvectors by DLAED3 and DLAED9.
- * @param[in] rho
- *      RHO is DOUBLE PRECISION
+ *      to construct the eigenvectors by LAED3 and LAED9.
+ *
+ * @param[in] rho, real_t.
  *      The scalar in the symmetric updating formula.
- * @param[out] dlam
- *      DLAM is DOUBLE PRECISION
+ *
+ * @param[out] dlam, real_t.
  *      The computed lambda_I, the I-th updated eigenvalue.
+ *
  * @param[out] info
  *      INFO is INTEGER
  *       = 0:  successful exit
@@ -82,7 +82,6 @@ namespace tlapack {
  *      MAXIT is the maximum number of iterations allowed for each
  *      eigenvalue.
  * \endverbatim
- *
  *
  * @ingroup auxiliary
  */
@@ -115,7 +114,6 @@ void laed4(idx_t n,
 
     // Compute machine epsilon
     real_t eps = ulp<real_t>();
-    // real_t eps = pow(2.0, -53);
     real_t rhoinv = 1.0 / rho;
 
     // The Case if i = n

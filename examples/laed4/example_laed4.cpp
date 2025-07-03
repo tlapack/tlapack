@@ -56,30 +56,23 @@ void test_laed4(size_t n)
     std::vector<real_t> lambda(n);
     std::vector<real_t> e(n - 1);
     std::vector<real_t> u(n);
-    std::vector<real_t> workSpace(n);
+    std::vector<real_t> work(n);
     std::vector<real_t> tau(n - 1);
 
-    std::vector<real_t> tempLambda(n);
     std::vector<real_t> v(n);
-    std::vector<real_t> av(n);
 
     std::vector<real_t> A_;
     auto A = new_matrix(A_, n, n);
-    std::vector<real_t> D_;
-    auto D = new_matrix(D_, n, n);
-    std::vector<real_t> E_;
-    auto E = new_matrix(E_, n, n);
     std::vector<real_t> Z_;
     auto Z = new_matrix(Z_, n, n);
 
     // Turn on for Debugging
     bool verbose = true;
 
+    // Create a "ρ"
     real_t rho = 0.5;
 
-    srand(3);
-
-    // Create Sorted d
+    // Create a sorted "d"
     for (idx_t i = 0; i < n; i++) {
         d[i] = (i + 1) * 2 + i;
     }
@@ -91,7 +84,7 @@ void test_laed4(size_t n)
         std::cout << ")\n";
     }
 
-    // Create Random u
+    // Create a "u"
     for (idx_t i = 0; i < n; i++) {
         u[i] = 2 * i + 1;
     }
@@ -103,7 +96,7 @@ void test_laed4(size_t n)
         std::cout << ")\n";
     }
 
-    // Normalize u
+    // Normalize "u"
     real_t sum = 0;
     for (auto num : u) {
         sum += num * num;
@@ -141,23 +134,23 @@ void test_laed4(size_t n)
         std::cout << std::endl;
     }
 
-    // Create A Matrix = rho * u*u^T
+    // Create "A" Matrix = ρ * u*u^T
     for (idx_t i = 0; i < n; i++) {
         for (idx_t j = 0; j < n; j++) {
             A(i, j) = rho * A(i, j);
         }
     }
-    // Create A Matrix = D + rho * u*u^T
+    // Create "A" Matrix = D + ρ * u*u^T
     for (idx_t i = 0; i < n; i++) {
         A(i, i) += d[i];
     }
     if (verbose) {
-        std::cout << "\nA Matrix = D + rho * u*u^T";
+        std::cout << "\nA Matrix = D + ρ * u*u^T";
         printMatrix(A);
         std::cout << std::endl;
     }
 
-    // Turn A into a Tridiagonal
+    // reduce "A" to symmetric tridiagonal form 
     hetd2(LOWER_TRIANGLE, A, tau);
     if (verbose) {
         std::cout << "\nA Matrix after hetd2 =";
@@ -171,22 +164,22 @@ void test_laed4(size_t n)
         std::cout << ")\n";
     }
 
-    // Get d from A
+    // Get d_tridiagonal from A
     for (idx_t i = 0; i < n; i++) {
         lambda[i] = A(i, i);
     }
-    // Get e from A
+    // Get e_tridiagonal from A
     for (idx_t i = 0; i < n - 1; i++) {
         e[i] = A(i + 1, i);
     }
     if (verbose) {
-        std::cout << "\nd = ( ";
-        for (auto index : d) {
+        std::cout << "\nd_tridiagonal = ( ";
+        for (auto index : lambda) {
             std::cout << index << " ";
         }
         std::cout << ")\n";
 
-        std::cout << "\ne = ( ";
+        std::cout << "\ne_tridiagonal = ( ";
         for (auto index : e) {
             std::cout << index << " ";
         }
@@ -197,7 +190,7 @@ void test_laed4(size_t n)
     real_t f = 0;
     real_t info = 0;
     for (idx_t i = 0; i < n; i++) {
-        laed4(n, i, d, u, workSpace, rho, dlam, info);
+        laed4(n, i, d, u, work, rho, dlam, info);
         f = 0;
         for (idx_t j = 0; j < n; j++) {
             f += (u[j] * u[j]) / (d[j] - dlam);
@@ -207,8 +200,6 @@ void test_laed4(size_t n)
         std::cout << std::setprecision(15);
         std::cout << "This is Lambda from laed4 " << i << ":" << dlam
                   << " f: " << f << std::endl;
-
-        tempLambda[i] = dlam;
 
         // Compute an eigenvector v associated with eigenvalue λ
         for (idx_t j = 0; j < n; j++) {
@@ -229,15 +220,7 @@ void test_laed4(size_t n)
         std::cout << nrm2(v) / nrmv / abs(dlam) << std::endl;
     }
 
-    if (verbose) {
-        std::cout << "\ntempLambda = ( ";
-        for (auto index : tempLambda) {
-            std::cout << index << " ";
-        }
-        std::cout << ")\n";
-    }
-
-    // find the eigen and eigen vectors of the Tridiagonal A
+    // find the eigenvalues of the symmetric tridiagonal matrix A using steqr
     // steqr(false, d, e, A);
     steqr(true, lambda, e, Z);
     if (verbose) {
@@ -248,8 +231,6 @@ void test_laed4(size_t n)
         std::cout << ")\n";
     }
 
-    // f(lambda) = 1 + rho[(u_i ^ 2 / (d_1 - lambda)) +
-    //                    (u_i ^ n / (d_n - lambda))]
     for (idx_t i = 0; i < n; i++) {
         real_t f = 0;
         for (idx_t j = 0; j < n; j++) {
@@ -262,66 +243,6 @@ void test_laed4(size_t n)
                   << " f: " << f << std::endl;
     }
 
-    // // Create D Matrix
-    // for (idx_t j = 0; j < n; j++) {
-    //     D(j, j) = d[j];
-    // }
-    // if (verbose) {
-    //     std::cout << "\nD Matrix =";
-    //     printMatrix(D);
-    //     std::cout << std::endl;
-    // }
-
-    // // Create Identity Matrix with lambda
-    // for (idx_t j = 0; j < n; j++) {
-    //     E(j, j) = 1;
-    // }
-    // if (verbose) {
-    //     std::cout << "\nE Matrix =";
-    //     printMatrix(E);
-    //     std::cout << std::endl;
-    // }
-
-    // // D - E
-    // for (idx_t j = 0; j < n; j++) {
-    //     for (idx_t i = 0; i < n; i++) {
-    //         D(j, i) = D(j, i) - tempLambda[2] * E(j, i);
-    //     }
-    // }
-    // if (verbose) {
-    //     std::cout << "\nD Matrix - E Matrix =";
-    //     printMatrix(D);
-    //     std::cout << std::endl;
-    // }
-
-    // // D^-1
-    // lacpy(GENERAL, D, LU);
-
-    // // Computing the LU decomposition of LU
-    // int info = getrf(LU, piv);
-    // if (info != 0) {
-    //     std::cerr << "Matrix could not be factorized!" << std::endl;
-    //     return;
-    // }
-
-    // // solve Ly = u
-    // trsm(LEFT_SIDE, LOWER_TRIANGLE, NO_TRANS, UNIT_DIAG, real_t(1), LU, E);
-    // trsm(LEFT_SIDE, UPPER_TRIANGLE, NO_TRANS, NON_UNIT_DIAG, real_t(1), LU,
-    // E);
-
-    // // X <----- U^{-1}L^{-1}P; swapping columns of X according to piv
-    // for (idx_t i = n; i-- > 0;) {
-    //     if (piv[i] != i) {
-    //         auto vect1 = tlapack::col(E, i);
-    //         auto vect2 = tlapack::col(E, piv[i]);
-    //         tlapack::swap(vect1, vect2);
-    //     }
-    // }
-    // if (verbose) {
-    //     std::cout << "\nE Matrix stores Inverse";
-    //     printMatrix(E);
-    //     std::cout << std::endl;
-    // }
 }
 //------------------------------------------------------------------------------
 int main(int argc, char** argv)
@@ -330,8 +251,6 @@ int main(int argc, char** argv)
 
     // Default arguments
     n = (argc < 2) ? 5 : atoi(argv[1]);
-
-    srand(3);  // Init random seed
 
     std::cout.precision(5);
     std::cout << std::scientific << std::showpos;
