@@ -19,25 +19,23 @@
 
 namespace tlapack {
 
-/** DLAED4 used by DSTEDC. Finds a single root of the secular equation.
+/** LAED4 used by STEDC. Finds a single root of the secular equation.
  *
- * \verbatim
- *      This subroutine computes the I-th updated eigenvalue of a symmetric
- *      rank-one modification to a diagonal matrix whose elements are
- *      given in the array d, and that
+ * This subroutine computes the I-th updated eigenvalue of a symmetric
+ * rank-one modification to a diagonal matrix whose elements are
+ * given in the array d, and that
  *
- *                  D(i) < D(j)  for  i < j
+ *             D(i) < D(j)  for  i < j
  *
- *      and that RHO > 0.  This is arranged by the calling routine, and is
- *      no loss in generality.  The rank-one modified system is thus
+ * and that RHO > 0.  This is arranged by the calling routine, and is
+ * no loss in generality.  The rank-one modified system is thus
  *
- *                  diag( D )  +  RHO * Z * Z_transpose.
+ *             diag( D )  +  RHO * Z * Z_transpose.
  *
- *      where we assume the Euclidean norm of Z is 1.
+ * where we assume the Euclidean norm of Z is 1.
  *
- *      The method consists of approximating the rational functions in the
- *      secular equation by simpler interpolating rational functions.
- * \endverbatim
+ * The method consists of approximating the rational functions in the
+ * secular equation by simpler interpolating rational functions.
  *
  * @param[in] n
  *      N is INTEGER
@@ -55,62 +53,55 @@ namespace tlapack {
  * @param[out] delta
  *      DELTA is DOUBLE PRECISION array, dimension (N)
  *      If N > 2, DELTA contains (D(j) - lambda_I) in its  j-th
- *      component.  If N = 1, then DELTA(1) = 1. If N = 2, see DLAED5
+ *      component.  If N = 1, then DELTA(1) = 1. If N = 2, see LAED5
  *      for detail. The vector DELTA contains the information necessary
- *      to construct the eigenvectors by DLAED3 and DLAED9.
+ *      to construct the eigenvectors by LAED3 and LAED9.
  * @param[in] rho
  *      RHO is DOUBLE PRECISION
  *      The scalar in the symmetric updating formula.
  * @param[out] dlam
  *      DLAM is DOUBLE PRECISION
  *      The computed lambda_I, the I-th updated eigenvalue.
- * @param[out] info
+ * @return info
  *      INFO is INTEGER
  *       = 0:  successful exit
  *       > 0:  if INFO = 1, the updating process failed.
  *
- * \verbatim
- *      Logical variable ORGATI (origin-at-i?) is used for distinguishing
- *      whether D(i) or D(i+1) is treated as the origin.
  *
- *                ORGATI = .true.    origin at i
- *                ORGATI = .false.   origin at i+1
+ * Logical variable ORGATI (origin-at-i?) is used for distinguishing
+ * whether D(i) or D(i+1) is treated as the origin.
  *
- *      Logical variable SWTCH3 (switch-for-3-poles?) is for noting
- *      if we are working with THREE poles!
+ *             ORGATI = .true.    origin at i
+ *             ORGATI = .false.   origin at i+1
  *
- *      MAXIT is the maximum number of iterations allowed for each
- *      eigenvalue.
- * \endverbatim
+ * Logical variable SWTCH3 (switch-for-3-poles?) is for noting
+ * if we are working with THREE poles!
  *
+ * MAXIT is the maximum number of iterations allowed for each
+ * eigenvalue.
  *
- * @ingroup auxiliary
+ * @ingroup laed4
  */
 template <class d_t, class z_t, class delta_t, class real_t, class idx_t>
-void laed4(idx_t n,
-           idx_t i,
-           d_t& d,
-           z_t& z,
-           delta_t& delta,
-           real_t rho,
-           real_t& dlam,
-           real_t& info)
+int laed4(
+    idx_t n, idx_t i, d_t& d, z_t& z, delta_t& delta, real_t rho, real_t& dlam)
 
 {
+    int info = 0;
     real_t psi, dpsi, phi, dphi, err, eta, a, b, c, w, del, tau, dltlb, dltub,
         temp;
 
-    real_t maxIt = 30;
+    real_t maxIt = real_t(30);
 
     if (n == 1) {
         // Presumably, I = 1 upon entry
-        dlam = d[0] + rho * z[0] * z[0];
-        delta[0] = 1.0;
-        return;
+        dlam = real_t(d[0] + rho * z[0] * z[0]);
+        delta[0] = real_t(1.0);
+        return info;
     }
     else if (n == 2) {
         laed5(i, d, z, delta, rho, dlam);
-        return;
+        return info;
     }
 
     // Compute machine epsilon
@@ -125,17 +116,17 @@ void laed4(idx_t n,
         idx_t niter = 1;
 
         // Calculate Initial Guess
-        real_t midpt = rho / 2.0;
+        real_t midpt = real_t(rho / 2.0);
 
         // If ||Z||_2 is not one, then TEMP should be set to RHO * ||Z||_2^2 /
         // TWO
         for (int j = 0; j < n; j++) {
-            delta[j] = (d[j] - d[i]) - midpt;
+            delta[j] = real_t((d[j] - d[i]) - midpt);
         }
 
         psi = 0;
         for (int j = 0; j < n - 2; j++) {
-            psi += z[j] * z[j] / delta[j];
+            psi += real_t(z[j] * z[j] / delta[j]);
         }
 
         c = rhoinv + psi;
@@ -212,7 +203,7 @@ void laed4(idx_t n,
         // Test for convergence
         if (abs(w) <= eps * err) {
             dlam = d[i] + tau;
-            return;
+            return info;
         }
 
         if (w <= 0) {
@@ -302,7 +293,7 @@ void laed4(idx_t n,
             // Test for convergence
             if (abs(w) <= eps * err) {
                 dlam = d[i] + tau;
-                return;
+                return info;
             }
 
             if (w <= 0) {
@@ -374,7 +365,7 @@ void laed4(idx_t n,
         // Return with INFO = 1, NITER = MAXIT and not converged
         info = 1;
         dlam = d[i] + tau;
-        return;
+        return info;
     }
     else {
         // The case for 0 ≤ i < n
@@ -523,7 +514,7 @@ void laed4(idx_t n,
             else {
                 dlam = d[ip1] + tau;
             }
-            return;
+            return info;
         }
 
         if (w <= 0) {
@@ -590,10 +581,10 @@ void laed4(idx_t n,
                 zz[2] = z[iip1] * z[iip1];
             }
             zz[1] = z[ii] * z[ii];
-            laed6(niter, orgati, c, delta, zz, w, eta, info);
+            info = laed6(niter, orgati, c, delta, zz, w, eta);
 
             if (info == 0) {
-                return;
+                return info;
             }
         }
 
@@ -676,7 +667,7 @@ void laed4(idx_t n,
                 else {
                     dlam = d[ip1] + tau;
                 }
-                return;
+                return info;
             }
 
             if (w <= 0) {
@@ -770,7 +761,7 @@ void laed4(idx_t n,
                     }
                 }
                 if (info == 0) {
-                    return;
+                    return info;
                 }
             }
 
@@ -843,7 +834,7 @@ void laed4(idx_t n,
         }
     }
 
-    return;
+    return info;
 }
 }  // namespace tlapack
 
