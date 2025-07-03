@@ -53,7 +53,7 @@ runs:
         git checkout 2873916f1ca24e3282bf6e0150545d34a16b5224 # master in Aug 21, 2023
 
     - name: Checkout Reference LAPACK
-      if: ${{ contains(inputs.libraries, 'lapack') }}
+      if: ${{ contains(format(',{0},', inputs.libraries), ',lapack,') }}
       uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       with:
         repository: Reference-LAPACK/lapack
@@ -77,7 +77,7 @@ runs:
         sudo cmake --build build --target install
 
     - name: Build and install Reference LAPACK
-      if: ${{ contains(inputs.libraries, 'lapack') }}
+      if: ${{ contains(format(',{0},', inputs.libraries), ',lapack,') }}
       shell: bash
       working-directory: lapack
       run: |

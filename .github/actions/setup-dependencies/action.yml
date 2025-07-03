@@ -53,4 +53,10 @@ runs:
         sudo apt update
         sudo apt install -y intel-oneapi-mkl
         source /opt/intel/oneapi/setvars.sh
-        printenv >> $GITHUB_ENV
+
+        # Export the key MKL environment variables to subsequent steps
+        [[ -n "$MKLROOT" ]] && echo "MKLROOT=$MKLROOT" >> $GITHUB_ENV
+        [[ -n "$LD_LIBRARY_PATH" ]] && echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH" >> $GITHUB_ENV
+        [[ -n "$LIBRARY_PATH" ]] && echo "LIBRARY_PATH=$LIBRARY_PATH" >> $GITHUB_ENV
+        [[ -n "$CPATH" ]] && echo "CPATH=$CPATH" >> $GITHUB_ENV
+        [[ -n "$PKG_CONFIG_PATH" ]] && echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH" >> $GITHUB_ENV

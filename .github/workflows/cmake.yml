@@ -71,12 +71,12 @@ jobs:
         uses: ./.github/actions/setup-dependencies
         with:
           os: ${{ matrix.os }}
-          install-extras: ${{ matrix.os == 'ubuntu-latest' && 'mpfr' || '' }}
+          install-extras: ${{ (matrix.os == 'ubuntu-latest' && 'mpfr') || '' }}
 
       - name: Setup external libraries
         uses: ./.github/actions/setup-external-libs
         with:
-          libraries: ${{ matrix.os == 'ubuntu-latest' && (matrix.cpp-version != '23' && 'mdspan,eigen' || 'eigen') || '' }}
+          libraries: ${{ (matrix.os == 'ubuntu-latest' && (matrix.cpp-version != '23' && 'mdspan,eigen' || 'eigen')) || '' }}
           cpp-version: ${{ matrix.cpp-version }}
 
       - name: Configure TLAPACK
@@ -85,11 +85,11 @@ jobs:
           build-type: ${{ matrix.build-type }}
           shared-libs: ${{ matrix.shared }}
           cpp-version: ${{ matrix.cpp-version }}
-          compiler-setup: ${{ matrix.os == 'macos-latest' && 'macos' || (matrix.os == 'windows-latest' && 'windows' || 'ubuntu') }}
+          compiler-setup: ${{ (matrix.os == 'macos-latest' && 'macos') || (matrix.os == 'windows-latest' && 'windows') || 'ubuntu' }}
           extra-options: >-
-            ${{ matrix.os == 'ubuntu-latest' && '-D TLAPACK_TEST_EIGEN=ON -D TLAPACK_TEST_MPFR=ON -D TLAPACK_TEST_QUAD=ON' || '' }}
-            ${{ matrix.os == 'ubuntu-latest' && matrix.cpp-version != '23' && ' -D TLAPACK_TEST_MDSPAN=ON' || '' }}
-            ${{ matrix.os == 'ubuntu-latest' && matrix.build-type == 'Release' && ' -D BUILD_BLASPP_TESTS=ON -D BUILD_LAPACKPP_TESTS=ON' || '' }}
+            ${{ (matrix.os == 'ubuntu-latest' && '-D TLAPACK_TEST_EIGEN=ON -D TLAPACK_TEST_MPFR=ON -D TLAPACK_TEST_QUAD=ON') || '' }}
+            ${{ ((matrix.os == 'ubuntu-latest' && matrix.cpp-version != '23') && ' -D TLAPACK_TEST_MDSPAN=ON') || '' }}
+            ${{ ((matrix.os == 'ubuntu-latest' && matrix.build-type == 'Release') && ' -D BUILD_BLASPP_TESTS=ON -D BUILD_LAPACKPP_TESTS=ON') || '' }}
 
       - name: Test TLAPACK
         uses: ./.github/actions/test-tlapack
@@ -143,7 +143,7 @@ jobs:
             -D TLAPACK_USE_LAPACKPP=ON
             -D BUILD_LAPACKPP_TESTS=OFF
             -D BUILD_testBLAS_TESTS=OFF
-            ${{ matrix.extra-libraries && '-D CMAKE_PREFIX_PATH=${{github.workspace}}/lapack' || '' }}
+            ${{ (matrix.extra-libraries && '-D CMAKE_PREFIX_PATH=${{github.workspace}}/lapack') || '' }}
 
       - name: Test TLAPACK
         uses: ./.github/actions/test-tlapack
