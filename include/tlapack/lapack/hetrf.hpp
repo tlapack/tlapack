@@ -32,7 +32,8 @@ struct HetrfOpts : public BlockedLDLOpts {
  * Workspace is provided as an argument.
  * @copydetails hetrf()
  *
- * @param work Workspace. Use the workspace query to determine the size needed.
+ * @param work Workspace. Use the workspace query to determine the size
+ * needed.
  *
  * @ingroup variant_interface
  */
@@ -72,7 +73,7 @@ int hetrf_work(uplo_t uplo,
  * and if opts.invariant = Op::ConjTrans then op=H.
  *
  * If uplo =Upper, then
- * $$U = \prod_{i=n-1}^1 P_iU_i,$$
+ * $$U = prod_{i=n-1}^1 P_iU_i,$$
  * where either $P_i$ is a transposition on rows $i$ and $ipiv[i]$,
  * $U_i$ is the identity plus a strip above the diagonal of column $i$,
  * and $D$ has a 1-by-1 block at diagonal $i$.
