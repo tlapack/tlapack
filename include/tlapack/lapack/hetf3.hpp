@@ -71,7 +71,7 @@ int hetf3(uplo_t uplo,
     const idx_t nb = opts.nb;
     const bool hermitian = Op::ConjTrans == opts.invariant;
     // Initialize ALPHA for use in choosing pivot block size.
-    const real_t alpha = (real_t(1) + std::sqrt(real_t(17))) / real_t(8);
+    const real_t alpha = (real_t(1) + sqrt(real_t(17))) / real_t(8);
 
     // check arguments
     tlapack_check(uplo == Uplo::Lower || uplo == Uplo::Upper);
