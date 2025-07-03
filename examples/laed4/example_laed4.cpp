@@ -150,7 +150,7 @@ void test_laed4(size_t n)
         std::cout << std::endl;
     }
 
-    // reduce "A" to symmetric tridiagonal form 
+    // reduce "A" to symmetric tridiagonal form
     hetd2(LOWER_TRIANGLE, A, tau);
     if (verbose) {
         std::cout << "\nA Matrix after hetd2 =";

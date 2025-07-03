@@ -21,23 +21,21 @@ namespace tlapack {
 
 /** LAED4 used by STEDC. Finds a single root of the secular equation.
  *
- * \verbatim
- *      This subroutine computes the I-th updated eigenvalue of a symmetric
- *      rank-one modification to a diagonal matrix whose elements are
- *      given in the array d, and that
+ *  This subroutine computes the I-th updated eigenvalue of a symmetric
+ *  rank-one modification to a diagonal matrix whose elements are
+ *  given in the array d, and that
  *
  *                  D(i) < D(j)  for  i < j
  *
- *      and that RHO > 0.  This is arranged by the calling routine, and is
- *      no loss in generality.  The rank-one modified system is thus
+ *  and that RHO > 0.  This is arranged by the calling routine, and is
+ *  no loss in generality.  The rank-one modified system is thus
  *
  *                  diag( D )  +  RHO * Z * Z_transpose.
  *
- *      where we assume the Euclidean norm of Z is 1.
+ *  where we assume the Euclidean norm of Z is 1.
  *
- *      The method consists of approximating the rational functions in the
- *      secular equation by simpler interpolating rational functions.
- * \endverbatim
+ *  The method consists of approximating the rational functions in the
+ *  secular equation by simpler interpolating rational functions.
  *
  * @param[in] n, integer.
  *      The length of all arrays.
@@ -69,19 +67,20 @@ namespace tlapack {
  *       = 0:  successful exit
  *       > 0:  if INFO = 1, the updating process failed.
  *
- * \verbatim
- *      Logical variable ORGATI (origin-at-i?) is used for distinguishing
- *      whether D(i) or D(i+1) is treated as the origin.
+ * Notes:
+ * ======
+ *
+ * Logical variable ORGATI (origin-at-i?) is used for distinguishing
+ * whether D(i) or D(i+1) is treated as the origin.
  *
  *                ORGATI = .true.    origin at i
  *                ORGATI = .false.   origin at i+1
  *
- *      Logical variable SWTCH3 (switch-for-3-poles?) is for noting
- *      if we are working with THREE poles!
+ * Logical variable SWTCH3 (switch-for-3-poles?) is for noting
+ * if we are working with THREE poles!
  *
- *      MAXIT is the maximum number of iterations allowed for each
- *      eigenvalue.
- * \endverbatim
+ * MAXIT is the maximum number of iterations allowed for each
+ * eigenvalue.
  *
  * @ingroup auxiliary
  */
