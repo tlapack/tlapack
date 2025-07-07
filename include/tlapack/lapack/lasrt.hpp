@@ -13,9 +13,6 @@
  * Sort the numbers in D in increasing order (if ID = 'I') or
  * in decreasing order (if ID = 'D' ).
  *
- * Use Quick Sort, reverting to Insertion sort on arrays of
- * size <= 20. Dimension of STACK limits N to about 2**32.
- *
  * @param[in] id
  *     ID is CHARACTER*1
  *     = 'I': sort D in increasing order;

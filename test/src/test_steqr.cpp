@@ -62,7 +62,7 @@ TEMPLATE_TEST_CASE("steqr is backward stable",
         std::vector<real_t> d2(n);
         std::vector<real_t> e1(n - 1);
         std::vector<real_t> e2(n - 1);
-        std::vector<real_t> d1_copy(n);
+        std::vector<real_t> d_copy(n);
         std::vector<real_t> e_copy(n - 1);
 
         // Generate random tridiagonal matrix
@@ -71,7 +71,7 @@ TEMPLATE_TEST_CASE("steqr is backward stable",
         for (idx_t j = 0; j + 1 < n; ++j)
             e1[j] = rand_helper<real_t>(gen);
 
-        copy(d1, d1_copy);
+        copy(d1, d_copy);
         copy(d1, d2);
         copy(e1, e_copy);
         copy(e1, e2);
@@ -82,10 +82,16 @@ TEMPLATE_TEST_CASE("steqr is backward stable",
         err = steqr(true, d2, e2, Q);
         REQUIRE(err == 0);
 
+        // Check that eigenvalues of steqr(false...) and steqr(true...) are
+        // bit-by-bit identical
+        for (idx_t i = 0; i < n; ++i) {
+            CHECK(d1[i] == d2[i]);
+        }
+
         // Check that eigenvalues are sorted in ascending
         // order
         for (idx_t i = 0; i < n - 1; ++i) {
-            CHECK((d1[i] == d2[i] && d2[i] <= d2[i + 1]));
+            CHECK(d2[i] <= d2[i + 1]);
         }
 
         // Test for Q's orthogonality
@@ -104,11 +110,11 @@ TEMPLATE_TEST_CASE("steqr is backward stable",
         std::vector<T> A_;
         auto A = new_matrix(A_, n, n);
         laset(Uplo::General, zero, zero, A);
-        A(0, 0) = d1_copy[0];
+        A(0, 0) = d_copy[0];
         for (idx_t j = 1; j < n; ++j) {
             A(j, j - 1) = e_copy[j - 1];
             A(j - 1, j) = e_copy[j - 1];
-            A(j, j) = d1_copy[j];
+            A(j, j) = d_copy[j];
         }
         real_t normA = tlapack::lange(tlapack::Norm::Max, A);
         std::vector<T> K_;
