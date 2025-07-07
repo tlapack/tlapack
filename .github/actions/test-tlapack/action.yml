@@ -1,0 +1,54 @@
+name: "Test TLAPACK"
+description: "Build and test TLAPACK"
+inputs:
+  build-type:
+    description: "Build type"
+    required: true
+  run-examples:
+    description: "Run examples"
+    required: false
+    default: "true"
+  run-tests:
+    description: "Run tests"
+    required: false
+    default: "true"
+  run-standalone-tests:
+    description: "Run standalone tests"
+    required: false
+    default: "true"
+  os:
+    description: "Operating system"
+    required: false
+    default: "ubuntu-latest"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Build TLAPACK
+      shell: bash
+      run: cmake --build build --config ${{ inputs.build-type }}
+
+    - name: Run all examples
+      if: ${{ inputs.run-examples == 'true' }}
+      shell: bash
+      run: cmake --build build --target run-all-examples
+
+    - name: Run tests
+      if: ${{ inputs.run-tests == 'true' }}
+      shell: bash
+      working-directory: build
+      run: ctest -C ${{ inputs.build-type }} --output-on-failure
+
+    - name: Run standalone tests (Unix)
+      if: ${{ inputs.run-standalone-tests == 'true' && inputs.os != 'windows-latest' }}
+      shell: bash
+      run: ./build/test/src/standalone_test_hessenberg < test/src/input/test_hessenberg_float_1.in
+
+    - name: Run standalone tests (Windows)
+      if: ${{ inputs.run-standalone-tests == 'true' && inputs.os == 'windows-latest' }}
+      shell: pwsh
+      run: Get-Content test/src/input/test_hessenberg_float_1.in | ./build/test/src/standalone_test_hessenberg
+
+    - name: Install TLAPACK
+      shell: bash
+      run: cmake --build build --target install

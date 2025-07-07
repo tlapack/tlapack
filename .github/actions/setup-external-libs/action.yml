@@ -1,0 +1,123 @@
+name: "Setup External Libraries"
+description: "Checkout and build external libraries (BLAS++, LAPACK++, mdspan, Eigen)"
+inputs:
+  libraries:
+    description: "Comma-separated list of libraries to setup (blaspp, lapackpp, mdspan, eigen, lapack)"
+    required: true
+  build-type:
+    description: "Build type for libraries"
+    required: false
+    default: "Release"
+  cpp-version:
+    description: "C++ version"
+    required: false
+    default: "17"
+  bla-vendor:
+    description: "BLAS vendor (OpenBLAS, FLAME, etc.)"
+    required: false
+    default: ""
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout BLAS++
+      if: ${{ contains(inputs.libraries, 'blaspp') }}
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      with:
+        repository: icl-utk-edu/blaspp
+        ref: 3c47832f5162b5215b2164c21c4132544c65563d # v2023.11.05
+        path: blaspp
+
+    - name: Checkout LAPACK++
+      if: ${{ contains(inputs.libraries, 'lapackpp') }}
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      with:
+        repository: icl-utk-edu/lapackpp
+        ref: e3aa0156b873d1e1349d083d7e5b66cfbdf9fb08 # v2023.11.05
+        path: lapackpp
+
+    - name: Checkout mdspan
+      if: ${{ contains(inputs.libraries, 'mdspan') && inputs.cpp-version != '23' }}
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      with:
+        repository: kokkos/mdspan
+        ref: cc9aaea9a7d36c3163523a0e36fab85bba985a66 # v0.4.0
+        path: mdspan
+
+    - name: Checkout Eigen
+      if: ${{ contains(inputs.libraries, 'eigen') }}
+      shell: bash
+      run: |
+        git clone https://gitlab.com/libeigen/eigen.git
+        cd eigen
+        git checkout 2873916f1ca24e3282bf6e0150545d34a16b5224 # master in Aug 21, 2023
+
+    - name: Checkout Reference LAPACK
+      if: ${{ contains(format(',{0},', inputs.libraries), ',lapack,') }}
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      with:
+        repository: Reference-LAPACK/lapack
+        ref: 7866626840f5d5e7e27f027a55182da8b3303872 # v3.11.0
+        path: lapack
+
+    - name: Build and install Eigen
+      if: ${{ contains(inputs.libraries, 'eigen') }}
+      shell: bash
+      working-directory: eigen
+      run: |
+        cmake -B build -G Ninja
+        sudo cmake --build build --target install
+
+    - name: Build and install mdspan
+      if: ${{ contains(inputs.libraries, 'mdspan') && inputs.cpp-version != '23' }}
+      shell: bash
+      working-directory: mdspan
+      run: |
+        cmake -B build -G Ninja
+        sudo cmake --build build --target install
+
+    - name: Build and install Reference LAPACK
+      if: ${{ contains(format(',{0},', inputs.libraries), ',lapack,') }}
+      shell: bash
+      working-directory: lapack
+      run: |
+        cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=${{ inputs.build-type }} -D CMAKE_INSTALL_PREFIX=${{github.workspace}}/lapack -D USE_OPTIMIZED_BLAS=ON -D BLA_VENDOR=${{ inputs.bla-vendor }} -D LAPACKE=ON -D CBLAS=ON
+        cmake --build build --target install
+
+    - name: Build and install BLAS++
+      if: ${{ contains(inputs.libraries, 'blaspp') }}
+      shell: bash
+      working-directory: blaspp
+      run: |
+        CMAKE_ARGS="-B build -G Ninja -D CMAKE_BUILD_TYPE=${{ inputs.build-type }} -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/blaspp"
+
+        if [[ -n "${{ inputs.bla-vendor }}" ]]; then
+          CMAKE_ARGS="$CMAKE_ARGS -DBLA_VENDOR=${{ inputs.bla-vendor }}"
+        fi
+
+        if [[ "${{ inputs.bla-vendor }}" == "FLAME" || "${{ inputs.bla-vendor }}" == "OpenBLAS" ]]; then
+          CMAKE_ARGS="$CMAKE_ARGS -D CMAKE_CXX_FLAGS=\"$CXXFLAGS -D LAPACK_FORTRAN_ADD_\""
+          if [[ -f "${{github.workspace}}/lapack/lib/liblapack.a" ]]; then
+            CMAKE_ARGS="$CMAKE_ARGS -D LAPACK_LIBRARIES=\"${{github.workspace}}/lapack/lib/liblapack.a;-lm;-lgfortran\""
+          fi
+        fi
+
+        cmake $CMAKE_ARGS
+        cmake --build build --target install
+
+    - name: Build and install LAPACK++
+      if: ${{ contains(inputs.libraries, 'lapackpp') }}
+      shell: bash
+      working-directory: lapackpp
+      run: |
+        CMAKE_ARGS="-B build -G Ninja -D CMAKE_BUILD_TYPE=${{ inputs.build-type }} -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/lapackpp"
+
+        if [[ "${{ inputs.bla-vendor }}" == "FLAME" || "${{ inputs.bla-vendor }}" == "OpenBLAS" ]]; then
+          CMAKE_ARGS="$CMAKE_ARGS -D CMAKE_CXX_FLAGS=\"$CXXFLAGS -D LAPACK_FORTRAN_ADD_\""
+          if [[ -f "${{github.workspace}}/lapack/lib/liblapack.a" ]]; then
+            CMAKE_ARGS="$CMAKE_ARGS -D LAPACK_LIBRARIES=\"${{github.workspace}}/lapack/lib/liblapack.a;-lm;-lgfortran\""
+          fi
+        fi
+
+        cmake $CMAKE_ARGS
+        cmake --build build --target install
