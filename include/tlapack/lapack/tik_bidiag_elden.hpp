@@ -159,7 +159,7 @@ void tik_bidiag_elden(matrixA_t& A, matrixb_t& b, real_t lambda)
 
     ungbr_p(n, P1, tauw);
     auto x = slice(b, range{0, n}, range{0, k});
-    gemm(CONJ_TRANS, NO_TRANS, real_t(1), P1, xS, real_t(0), x);
+    gemm(CONJ_TRANS, NO_TRANS, real_t(1), P1, xS, x);
 
     // auto x2 = slice(b, range{1, n}, range{0, k});
     // unmlq(LEFT_SIDE, CONJ_TRANS, slice(A, range{1, n}, range{1, n}),

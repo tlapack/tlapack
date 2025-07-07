@@ -108,7 +108,7 @@ void tik_svd(matrixA_t& A, matrixb_t& b, real_t lambda)
     // Apply Q2ᵀ
     std::vector<T> x2_;
     auto x2 = new_matrix(x2_, n, k);
-    gemm(CONJ_TRANS, NO_TRANS, real_t(1), Q2, x, real_t(0), x2);
+    gemm(CONJ_TRANS, NO_TRANS, real_t(1), Q2, x, x2);
 
     // lacpy(GENERAL, x, x2);
 
@@ -123,12 +123,12 @@ void tik_svd(matrixA_t& A, matrixb_t& b, real_t lambda)
     // Apply P2tᵀ
     std::vector<T> x3_;
     auto x3 = new_matrix(x3_, n, k);
-    gemm(CONJ_TRANS, NO_TRANS, real_t(1), P2t, x2, real_t(0), x3);
+    gemm(CONJ_TRANS, NO_TRANS, real_t(1), P2t, x2, x3);
 
     // Apply P1ᵀ
     std::vector<T> x4_;
     auto x4 = new_matrix(x4_, n, k);
-    gemm(CONJ_TRANS, NO_TRANS, real_t(1), P1, x3, real_t(0), x4);
+    gemm(CONJ_TRANS, NO_TRANS, real_t(1), P1, x3, x4);
 
     // Final result
 
