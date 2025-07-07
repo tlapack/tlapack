@@ -116,6 +116,11 @@
 #include "tlapack/lapack/potrs.hpp"
 #include "tlapack/lapack/pttrf.hpp"
 
+// Solution of symmetric systems
+// ----------------
+
+// #include "tlapack/lapack/hetrf.hpp"
+
 // Sylver equation routines
 // ----------------
 
