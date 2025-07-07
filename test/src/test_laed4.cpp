@@ -54,7 +54,7 @@ TEMPLATE_TEST_CASE("LAED4", "[stedc,laed4]", TLAPACK_TYPES_TO_TEST)
     idx_t n = GENERATE(100);
 
     srand(3);
-    real_t rho = real_t(10 * (float)rand() / (float)RAND_MAX);
+    real_t rho = real_t(GENERATE(15.7, 100));
 
     DYNAMIC_SECTION("n = " << n << " rho = " << rho)
     {

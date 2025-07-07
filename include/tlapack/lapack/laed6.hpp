@@ -169,7 +169,7 @@ int laed6(idx_t kniter,
     const real_t base = real_t(2.0);
     const real_t safmin = safe_min<real_t>();
     real_t small1 =
-        real_t(pow(base, idx_t(log(safmin) / log(base) / real_t(3.0))));
+        real_t(pow(base, real_t(floor(log(safmin) / log(base) / real_t(3.0)))));
     real_t sminv1 = real_t(1.0) / small1;
     real_t small2 = small1 * small1;
     real_t sminv2 = sminv1 * sminv1;
