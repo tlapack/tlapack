@@ -21,10 +21,6 @@ using namespace tlapack;
 TEMPLATE_TEST_CASE("Testing all cases of Tikhonov",
                    "[tikhonov check]",
                    TLAPACK_TYPES_TO_TEST)
-//    (tlapack::LegacyMatrix<std::complex<float>,
-//   std::size_t,
-//   tlapack::Layout::ColMajor>))
-// (tlapack::LegacyMatrix<double, std::size_t, tlapack::Layout::ColMajor>))
 {
     using matrix_t = TestType;
     using T = type_t<matrix_t>;
@@ -38,26 +34,16 @@ TEMPLATE_TEST_CASE("Testing all cases of Tikhonov",
     const idx_t n = GENERATE(1, 2, 3, 7, 8);
     const idx_t k = GENERATE(1, 7, 12, 19);
     const real_t lambda = real_t(GENERATE(1e-6, 7.5, 1e6));
-    // const real_t lambda = real_t(GENERATE(1e-2, 7.5, 56, 1e2));
-    // const real_t lambda = real_t(GENERATE(7.5));
-    // const real_t lambda = real_t(GENERATE(1e-2));
-    // idx_t m = 1, n = 1, k = 1;
-    // real_t lambda = 1e-2;
 
-    //
     using variant_t = TikVariant;
     const variant_t variant =
-        // GENERATE((variant_t(TikVariant::QR)), (variant_t(TikVariant::Elden)),
-        //          (variant_t(TikVariant::SVD)));
-        // GENERATE((variant_t(TikVariant::Elden)),
-        // (variant_t(TikVariant::SVD)));
-        GENERATE((variant_t(TikVariant::QR)));
+        GENERATE((variant_t(TikVariant::QR)), (variant_t(TikVariant::Elden)),
+                 (variant_t(TikVariant::SVD)));
+
     DYNAMIC_SECTION(" m = " << m << " n = " << n << " k = " << k << " lambda = "
                             << lambda << " variant = " << (char)variant)
 
     {
-        std::cout.precision(5);
-        std::cout << std::scientific << std::showpos;
         if (m >= n) {
             // eps is the machine precision, and tol is the tolerance we accept
             // for tests to pass
@@ -85,6 +71,8 @@ TEMPLATE_TEST_CASE("Testing all cases of Tikhonov",
 
             real_t normA = lange(FROB_NORM, A);
 
+            // Note: tikqr is unstable when lambda > ||A||. Therefore, the
+            // check will not be applied
             if ((variant != TikVariant::QR) || (lambda < normA)) {
                 lacpy(GENERAL, b, bcopy);
                 lacpy(GENERAL, A, A_copy);
@@ -124,9 +112,6 @@ TEMPLATE_TEST_CASE("Testing all cases of Tikhonov",
                                         abs(lambda) * abs(lambda) * normx)
                               << "\n";
                 }
-
-                // Note: tikqr is unstable when lambda > ||A||. Therefore, the
-                // check will not be applied
 
                 // introduced in Catch2 2.8.0
                 // Catch::StringMaker<real_t>::precision = 15;

@@ -119,7 +119,7 @@ int main(int argc, char** argv)
     srand(3);
 
     // Set output format
-    std::cout.precision(18);
+    std::cout.precision(5);
     std::cout << std::scientific << std::showpos;
 
     // Execute run for different variable types
