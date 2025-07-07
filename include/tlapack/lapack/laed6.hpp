@@ -166,9 +166,9 @@ int laed6(idx_t kniter,
     // SMINV2, EPS are not SAVEd anymore between one call to the
     // others but recomputed at each call
 
-    real_t base = real_t(2.0);
-    real_t safmin = std::numeric_limits<real_t>::min();
-    real_t small1 = std::pow(base, log(safmin) / log(base) / real_t(3.0));
+    double base = 2;
+    double safmin = std::numeric_limits<double>::min();
+    real_t small1 = real_t(pow(base, log(safmin) / log(base) / 3.0));
     real_t sminv1 = real_t(1.0) / small1;
     real_t small2 = small1 * small1;
     real_t sminv2 = sminv1 * sminv1;
