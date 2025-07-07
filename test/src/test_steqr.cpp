@@ -40,7 +40,7 @@ TEMPLATE_TEST_CASE("steqr is backward stable",
 
     idx_t n;
 
-    n = GENERATE(1, 4, 5, 13, 20);
+    n = GENERATE(15, 40);
 
     // MatrixMarket reader
     uint64_t seed = GENERATE(3, 5, 6);
@@ -58,29 +58,34 @@ TEMPLATE_TEST_CASE("steqr is backward stable",
         std::vector<T> Q_;
         auto Q = new_matrix(Q_, n, n);
 
-        std::vector<real_t> d(n);
-        std::vector<real_t> e(n - 1);
-        std::vector<real_t> d_copy(n);
+        std::vector<real_t> d1(n);
+        std::vector<real_t> d2(n);
+        std::vector<real_t> e1(n - 1);
+        std::vector<real_t> e2(n - 1);
+        std::vector<real_t> d1_copy(n);
         std::vector<real_t> e_copy(n - 1);
 
         // Generate random tridiagonal matrix
         for (idx_t j = 0; j < n; ++j)
-            d[j] = rand_helper<real_t>(gen);
+            d1[j] = rand_helper<real_t>(gen);
         for (idx_t j = 0; j + 1 < n; ++j)
-            e[j] = rand_helper<real_t>(gen);
+            e1[j] = rand_helper<real_t>(gen);
 
-        copy(d, d_copy);
-        copy(e, e_copy);
+        copy(d1, d1_copy);
+        copy(d1, d2);
+        copy(e1, e_copy);
+        copy(e1, e2);
 
         laset(Uplo::General, zero, one, Q);
-        int err = steqr(true, d, e, Q);
-        // int err = steqr(false, d, e, Q);
+        int err = steqr(false, d1, e1, Q);
+        REQUIRE(err == 0);
+        err = steqr(true, d2, e2, Q);
         REQUIRE(err == 0);
 
-        // Check that singular values are sorted in ascending
+        // Check that eigenvalues are sorted in ascending
         // order
         for (idx_t i = 0; i < n - 1; ++i) {
-            CHECK(d[i] <= d[i + 1]);
+            CHECK((d1[i] == d2[i] && d2[i] <= d2[i + 1]));
         }
 
         // Test for Q's orthogonality
@@ -94,16 +99,16 @@ TEMPLATE_TEST_CASE("steqr is backward stable",
         auto B = new_matrix(B_, n, n);
         laset(Uplo::General, zero, zero, B);
         for (idx_t j = 0; j < n; ++j) {
-            B(j, j) = d[j];
+            B(j, j) = d1[j];
         }
         std::vector<T> A_;
         auto A = new_matrix(A_, n, n);
         laset(Uplo::General, zero, zero, A);
-        A(0, 0) = d_copy[0];
+        A(0, 0) = d1_copy[0];
         for (idx_t j = 1; j < n; ++j) {
             A(j, j - 1) = e_copy[j - 1];
             A(j - 1, j) = e_copy[j - 1];
-            A(j, j) = d_copy[j];
+            A(j, j) = d1_copy[j];
         }
         real_t normA = tlapack::lange(tlapack::Norm::Max, A);
         std::vector<T> K_;

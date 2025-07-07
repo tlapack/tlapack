@@ -15,7 +15,8 @@
 
 namespace tlapack {
 
-/** LAED6 used by STEDC. Computes one Newton step in solution of the secular
+/**
+ * LAED6 used by STEDC. Computes one Newton step in solution of the secular
  * equation.
  *
  * LAED6 computes the positive or negative root (closest to the origin)
@@ -36,28 +37,35 @@ namespace tlapack {
  * @param[in] kniter
  *      KNITER is INTEGER
  *      Refer to LAED4 for its significance.
+ *
  * @param[in] orgati
  *      ORGATI is LOGICAL
  *      If ORGATI is true, the needed root is between d(2) and
  *      d(3); otherwise it is between d(1) and d(2).  See
  *      LAED4 for further details.
+ *
  * @param[in] rho
  *      RHO is DOUBLE PRECISION
  *      Refer to the equation f(x) above.
+ *
  * @param[out] d
  *      D is DOUBLE PRECISION array, dimension (3)
  *      D satisfies d(1) < d(2) < d(3).
+ *
  * @param[in] z
  *      Z is DOUBLE PRECISION array, dimension (3)
  *      Each of the elements in z must be positive.
+ *
  * @param[in] finit
  *       FINIT is DOUBLE PRECISION
  *       The value of f at 0. It is more accurate than the one
  *       evaluated inside this routine (if someone wants to do
  *       so).
+ *
  * @param[out] tau
  *       TAU is DOUBLE PRECISION
  *       The root of the equation f(x).
+ *
  * @return info
  *      INFO is INTEGER
  *       = 0:  successful exit
@@ -65,6 +73,7 @@ namespace tlapack {
  *
  * @ingroup laed6
  */
+
 template <class d_t, class z_t, class real_t, class idx_t>
 int laed6(idx_t kniter,
           bool& orgati,
@@ -73,7 +82,6 @@ int laed6(idx_t kniter,
           z_t& z,
           real_t& finit,
           real_t& tau)
-
 {
     idx_t niter;
     real_t lbd, ubd, temp, temp1, temp2, temp3, temp4, a, b, c, eta;

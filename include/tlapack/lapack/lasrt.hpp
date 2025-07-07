@@ -9,6 +9,36 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
+/**
+ * Sort the numbers in D in increasing order (if ID = 'I') or
+ * in decreasing order (if ID = 'D' ).
+ *
+ * Use Quick Sort, reverting to Insertion sort on arrays of
+ * size <= 20. Dimension of STACK limits N to about 2**32.
+ *
+ * @param[in] id
+ *     ID is CHARACTER*1
+ *     = 'I': sort D in increasing order;
+ *     = 'D': sort D in decreasing order.
+ *
+ * @param[in] n
+ *     N is INTEGER
+ *     The length of the array D.
+ *
+ * @param[in, out] d
+ *     D is DOUBLE PRECISION array, dimension (N)
+ *     On entry, the array to be sorted.
+ *     On exit, D has been sorted into increasing order
+ *     (D(1) <= ... <= D(N) ) or into decreasing order
+ *     (D(1) >= ... >= D(N) ), depending on ID.
+ *
+ * @return
+ *      = 0:  successful exit
+ *      > 0:  if 1, the updating process failed.
+ *
+ * @ingroup lasrt
+ */
+
 #ifndef TLAPACK_LASRT_HH
 #define TLAPACK_LASRT_HH
 
@@ -24,7 +54,6 @@ template <class idx_t, class d_t>
 int lasrt(char id, idx_t n, d_t& d)
 {
     const idx_t SELECT = 20;
-    int info = 0;
     int dir = -1;
 
     if (id == 'd' || id == 'D')
@@ -36,7 +65,6 @@ int lasrt(char id, idx_t n, d_t& d)
     if (n < 0) return -2;
     if (n <= 1) return 0;
 
-    using T = real_type<decltype(d[0])>;
     std::vector<std::pair<idx_t, idx_t>> stack;
     stack.emplace_back(0, n - 1);
 
@@ -50,7 +78,9 @@ int lasrt(char id, idx_t n, d_t& d)
                 for (idx_t j = i; j > start; --j) {
                     if ((dir == 0 && d[j] > d[j - 1]) ||
                         (dir == 1 && d[j] < d[j - 1])) {
-                        std::swap(d[j], d[j - 1]);
+                        auto temp = d[j];
+                        d[j] = d[j - 1];
+                        d[j - 1] = temp;
                     }
                     else {
                         break;
@@ -60,11 +90,11 @@ int lasrt(char id, idx_t n, d_t& d)
         }
         else if (end - start > SELECT) {
             // Median-of-three pivot
-            int d1 = d[start];
-            int d2 = d[end];
+            auto d1 = d[start];
+            auto d2 = d[end];
             idx_t mid = (start + end) / 2;
-            int d3 = d[mid];
-            int pivot;
+            auto d3 = d[mid];
+            auto pivot = d[start];
 
             if (d1 < d2) {
                 if (d3 < d1)
@@ -94,7 +124,9 @@ int lasrt(char id, idx_t n, d_t& d)
                     --j;
 
                 if (i < j) {
-                    std::swap(d[i], d[j]);
+                    auto temp = d[i];
+                    d[i] = d[j];
+                    d[j] = temp;
                     ++i;
                     --j;
                 }
@@ -114,7 +146,7 @@ int lasrt(char id, idx_t n, d_t& d)
         }
     }
 
-    return info;
+    return 0;
 }
 
 }  // namespace tlapack

@@ -19,7 +19,8 @@
 
 namespace tlapack {
 
-/** LAED4 used by STEDC. Finds a single root of the secular equation.
+/**
+ * LAED4 used by STEDC. Finds a single root of the secular equation.
  *
  * This subroutine computes the I-th updated eigenvalue of a symmetric
  * rank-one modification to a diagonal matrix whose elements are
@@ -40,33 +41,39 @@ namespace tlapack {
  * @param[in] n
  *      N is INTEGER
  *      The length of all arrays.
+ *
  * @param[in] i
  *      I is INTEGER
  *      The index of the eigenvalue to be computed. 1 <= I <= N.
+ *
  * @param[in] d
  *      D is DOUBLE PRECISION array, dimension (N)
  *      The original eigenvalues.  It is assumed that they are in
  *      order, D(I) < D(J)  for I < J.
+ *
  * @param[in] z
  *      Z is DOUBLE PRECISION array, dimension (N)
  *      The components of the updating vector.
+ *
  * @param[out] delta
  *      DELTA is DOUBLE PRECISION array, dimension (N)
  *      If N > 2, DELTA contains (D(j) - lambda_I) in its  j-th
  *      component.  If N = 1, then DELTA(1) = 1. If N = 2, see LAED5
  *      for detail. The vector DELTA contains the information necessary
  *      to construct the eigenvectors by LAED3 and LAED9.
+ *
  * @param[in] rho
  *      RHO is DOUBLE PRECISION
  *      The scalar in the symmetric updating formula.
+ *
  * @param[out] dlam
  *      DLAM is DOUBLE PRECISION
  *      The computed lambda_I, the I-th updated eigenvalue.
+ *
  * @return info
  *      INFO is INTEGER
  *       = 0:  successful exit
  *       > 0:  if INFO = 1, the updating process failed.
- *
  *
  * Logical variable ORGATI (origin-at-i?) is used for distinguishing
  * whether D(i) or D(i+1) is treated as the origin.
@@ -82,6 +89,7 @@ namespace tlapack {
  *
  * @ingroup laed4
  */
+
 template <class d_t, class z_t, class delta_t, class real_t, class idx_t>
 int laed4(
     idx_t n, idx_t i, d_t& d, z_t& z, delta_t& delta, real_t rho, real_t& dlam)
