@@ -62,6 +62,7 @@ void tik_qr(matrixA_t& A, matrixb_t& b, real_t lambda)
     // Initailize R augmented L
     std::vector<T> Raug_;
     auto Raug = new_matrix(Raug_, n + n, n);
+    laset(GENERAL, real_t(0), real_t(0), Raug);
 
     auto lam_view = slice(Raug, range{n, n + n}, range{0, n});
 
