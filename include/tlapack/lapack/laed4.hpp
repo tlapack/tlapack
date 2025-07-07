@@ -93,7 +93,6 @@ namespace tlapack {
 template <class d_t, class z_t, class delta_t, class real_t, class idx_t>
 int laed4(
     idx_t n, idx_t i, d_t& d, z_t& z, delta_t& delta, real_t rho, real_t& dlam)
-
 {
     int info = 0;
     real_t psi, dpsi, phi, dphi, err, eta, a, b, c, w, del, tau, dltlb, dltub,
@@ -103,7 +102,7 @@ int laed4(
 
     if (n == 1) {
         // Presumably, I = 1 upon entry
-        dlam = real_t(d[0] + rho * z[0] * z[0]);
+        dlam = d[0] + rho * z[0] * z[0];
         delta[0] = real_t(1.0);
         return info;
     }
@@ -115,7 +114,7 @@ int laed4(
     // Compute machine epsilon
     real_t eps = ulp<real_t>();
     // real_t eps = pow(2.0, -53);
-    real_t rhoinv = 1.0 / rho;
+    real_t rhoinv = real_t(1.0) / rho;
 
     // The Case if i = n
     if (i == n - 1) {
@@ -124,17 +123,17 @@ int laed4(
         idx_t niter = 1;
 
         // Calculate Initial Guess
-        real_t midpt = real_t(rho / 2.0);
+        real_t midpt = rho / real_t(2.0);
 
         // If ||Z||_2 is not one, then TEMP should be set to RHO * ||Z||_2^2 /
         // TWO
         for (int j = 0; j < n; j++) {
-            delta[j] = real_t((d[j] - d[i]) - midpt);
+            delta[j] = (d[j] - d[i]) - midpt;
         }
 
         psi = 0;
         for (int j = 0; j < n - 2; j++) {
-            psi += real_t(z[j] * z[j] / delta[j]);
+            psi += z[j] * z[j] / delta[j];
         }
 
         c = rhoinv + psi;
@@ -154,10 +153,12 @@ int laed4(
                 b = z[n - 1] * z[n - 1] * del;
 
                 if (a < 0) {
-                    tau = 2 * b / (sqrt(a * a + 4.0 * b * c) - a);
+                    tau = real_t(2.0) * b /
+                          (sqrt(a * a + real_t(4.0) * b * c) - a);
                 }
                 else {
-                    tau = (a + sqrt(a * a + 4.0 * b * c)) / (2 * c);
+                    tau = (a + sqrt(a * a + real_t(4.0) * b * c)) /
+                          (real_t(2.0) * c);
                 }
             }
 
@@ -173,9 +174,10 @@ int laed4(
             b = z[n - 1] * z[n - 1] * del;
 
             if (a < 0)
-                tau = 2 * b / (sqrt(a * a + 4.0 * b * c) - a);
+                tau = real_t(2.0) * b / (sqrt(a * a + real_t(4.0) * b * c) - a);
             else
-                tau = (a + sqrt(a * a + 4.0 * b * c)) / (2.0 * c);
+                tau =
+                    (a + sqrt(a * a + real_t(4.0) * b * c)) / (real_t(2.0) * c);
 
             // It can be proved that* D(N) < D(N) + TAU < LAMBDA(N) < D(N) + RHO
             // / 2 dltlb = 0.0;
@@ -188,8 +190,11 @@ int laed4(
         }
 
         // Evaluate PSI and the derivative DPSI
-        dpsi = 0, phi = 0, dphi = 0, err = 0;
-        psi = 0;
+        dpsi = real_t(0.0);
+        phi = real_t(0.0);
+        dphi = real_t(0.0);
+        err = real_t(0.0);
+        psi = real_t(0.0);
 
         for (int j = 0; j < ii; j++) {
             real_t temp = z[j] / delta[j];
@@ -205,7 +210,8 @@ int laed4(
         phi = z[n - 1] * temp;
         dphi = temp * temp;
 
-        err = 8 * (-phi - psi) + err - phi + rhoinv + abs(tau) * (dpsi + dphi);
+        err = real_t(8.0) * (-phi - psi) + err - phi + rhoinv +
+              abs(tau) * (dpsi + dphi);
         w = rhoinv + phi + psi;
 
         // Test for convergence
@@ -239,10 +245,12 @@ int laed4(
             eta = -w / (dpsi + dphi);
         }
         else if (a >= 0) {
-            eta = (a + sqrt(abs(a * a - 4.0 * b * c))) / (2 * c);
+            eta = (a + sqrt(abs(a * a - real_t(4.0) * b * c))) /
+                  (real_t(2.0) * c);
         }
         else {
-            eta = 2 * b / (a - sqrt(abs(a * a - 4.0 * b * c)));
+            eta =
+                real_t(2.0) * b / (a - sqrt(abs(a * a - real_t(4.0) * b * c)));
         }
 
         // Note, eta should be positive if w is negative, and
@@ -258,10 +266,10 @@ int laed4(
         temp = tau + eta;
         if (temp > dltub || temp < dltlb) {
             if (w < 0) {
-                eta = (dltub - tau) / 2.0;
+                eta = (dltub - tau) / real_t(2.0);
             }
             else {
-                eta = (dltlb - tau) / 2.0;
+                eta = (dltlb - tau) / real_t(2.0);
             }
         }
 
@@ -272,9 +280,9 @@ int laed4(
         tau += eta;
 
         // Evaluate PSI and the derivative DPSI
-        dpsi = 0;
-        psi = 0;
-        err = 0;
+        dpsi = real_t(0.0);
+        psi = real_t(0.0);
+        err = real_t(0.0);
         for (idx_t j = 0; j < ii; j++) {
             temp = z[j] / delta[j];
             psi += z[j] * temp;
@@ -288,8 +296,8 @@ int laed4(
         temp = z[n - 1] / delta[n - 1];
         phi = z[n - 1] * temp;
         dphi = temp * temp;
-        err =
-            8.0 * (-phi - psi) + err - phi + rhoinv + abs(tau) * (dpsi + dphi);
+        err = real_t(8.0) * (-phi - psi) + err - phi + rhoinv +
+              abs(tau) * (dpsi + dphi);
 
         w = rhoinv + phi + psi;
 
@@ -318,10 +326,12 @@ int laed4(
             b = delta[n - 2] * delta[n - 1] * w;
 
             if (a >= 0) {
-                eta = (a + sqrt(abs(a * a - 4.0 * b * c))) / (2.0 * c);
+                eta = (a + sqrt(abs(a * a - real_t(4.0) * b * c))) /
+                      (real_t(2.0) * c);
             }
             else {
-                eta = 2.0 * b / (a - sqrt(abs(a * a - 4.0 * b * c)));
+                eta = real_t(2.0) * b /
+                      (a - sqrt(abs(a * a - real_t(4.0) * b * c)));
             }
 
             // Note, eta should be positive if w is negative, and eta should be
@@ -335,10 +345,10 @@ int laed4(
             temp = tau + eta;
             if (temp > dltub || temp < dltlb) {
                 if (w < 0) {
-                    eta = (dltub - tau) / 2.0;
+                    eta = (dltub - tau) / real_t(2.0);
                 }
                 else {
-                    eta = (dltlb - tau) / 2.0;
+                    eta = (dltlb - tau) / real_t(2.0);
                 }
             }
             for (idx_t j = 0; j < n; j++) {
@@ -348,9 +358,9 @@ int laed4(
             tau = tau + eta;
 
             // Evaluate PSI and the derivative DPSI
-            dpsi = 0;
-            psi = 0;
-            err = 0;
+            dpsi = real_t(0.0);
+            psi = real_t(0.0);
+            err = real_t(0.0);
             for (idx_t j = 0; j < ii; j++) {
                 temp = z[j] / delta[j];
                 psi += z[j] * temp;
@@ -363,7 +373,7 @@ int laed4(
             temp = z[n - 1] / delta[n - 1];
             phi = z[n - 1] * temp;
             dphi = temp * temp;
-            err = 8.0 * (-phi - psi) + err - phi + rhoinv +
+            err = real_t(8.0) * (-phi - psi) + err - phi + rhoinv +
                   abs(tau) * (dpsi + dphi);
             w = rhoinv + phi + psi;
 
@@ -382,17 +392,17 @@ int laed4(
 
         // Calculate Inital Guess
         del = d[ip1] - d[i];
-        real_t midpt = del / 2.0;
+        real_t midpt = del / real_t(2.0);
         for (idx_t j = 0; j < n; j++) {
             delta[j] = (d[j] - d[i]) - midpt;
         }
 
-        psi = 0.0;
+        psi = real_t(0.0);
         for (idx_t j = 0; j < i; j++) {
             psi += z[j] * z[j] / delta[j];
         }
 
-        phi = 0.0;
+        phi = real_t(0.0);
         for (idx_t j = n - 1; j >= i + 2; j--) {
             phi += z[j] * z[j] / delta[j];
         }
@@ -412,13 +422,14 @@ int laed4(
             b = z[i] * z[i] * del;
 
             if (a > 0) {
-                tau = 2.0 * b / (a + sqrt(abs(a * a - 4.0 * b * c)));
+                tau = real_t(2.0) * b /
+                      (a + sqrt(abs(a * a - real_t(4.0) * b * c)));
             }
             else {
-                tau = (a - sqrt(abs(a * a - 4.0 * b * c))) / (2.0 * c);
+                tau = (a - sqrt(abs(a * a - 4.0 * b * c))) / (real_t(2.0) * c);
             }
 
-            dltlb = 0.0;
+            dltlb = real_t(0.0);
             dltub = midpt;
         }
         else {
@@ -428,14 +439,15 @@ int laed4(
             a = c * del - z[i] * z[i] - z[ip1] * z[ip1];
             b = z[ip1] * z[ip1] * del;
             if (a < 0) {
-                tau = 2.0 * b / (a - sqrt(abs(a * a + 4.0 * b * c)));
+                tau = real_t(2.0) * b /
+                      (a - sqrt(abs(a * a + real_t(4.0) * b * c)));
             }
             else {
-                tau = -(a + sqrt(abs(a * a + 4 * b * c))) / (2.0 * c);
+                tau = -(a + sqrt(abs(a * a + 4 * b * c))) / (real_t(2.0) * c);
             }
 
             dltlb = -midpt;
-            dltub = 0.0;
+            dltub = real_t(0.0);
         }
 
         if (orgati) {
@@ -463,10 +475,10 @@ int laed4(
         idx_t iip1 = ii + 1;
 
         // Evaluate PSI and the derivative DPSI
-        psi = 0.0;
-        dpsi = 0.0;
-        err = 0.0;
-        // for (idx_t j = 0; j <= iim1; j++) {
+        psi = real_t(0.0);
+        dpsi = real_t(0.0);
+        err = real_t(0.0);
+
         for (idx_t j = 0; j + 1 <= ii; j++) {
             temp = z[j] / delta[j];
             psi = psi + z[j] * temp;
@@ -476,8 +488,8 @@ int laed4(
         err = abs(err);
 
         // Evaluate PHI and the derivative DPHI
-        phi = 0.0;
-        dphi = 0.0;
+        phi = real_t(0.0);
+        dphi = real_t(0.0);
         for (idx_t j = n - 1; j >= ip1; j--) {
             temp = z[j] / delta[j];
             phi += z[j] * temp;
@@ -511,8 +523,8 @@ int laed4(
         real_t dw = dpsi + dphi + temp * temp;
         temp = z[ii] * temp;
         w += temp;
-        err = 8.0 * (phi - psi) + err + 2.0 * rhoinv + 3.0 * abs(temp) +
-              abs(tau) * dw;
+        err = real_t(8.0) * (phi - psi) + err + real_t(2.0) * rhoinv +
+              real_t(3.0) * abs(temp) + abs(tau) * dw;
 
         // Test for Convergence
         if (abs(w) <= eps * err) {
@@ -563,10 +575,12 @@ int laed4(
                 eta = b / a;
             }
             else if (a <= 0) {
-                eta = (a - sqrt(abs(a * a - 4.0 * b * c))) / (2.0 * c);
+                eta = (a - sqrt(abs(a * a - real_t(4.0) * b * c))) /
+                      (real_t(2.0) * c);
             }
             else {
-                eta = 2.0 * b / (a + sqrt(abs(a * a - 4.0 * b * c)));
+                eta = real_t(2.0) * b /
+                      (a + sqrt(abs(a * a - real_t(4.0) * b * c)));
             }
         }
         else {
@@ -608,10 +622,10 @@ int laed4(
         temp = tau + eta;
         if (temp > dltub || temp < dltlb) {
             if (w < 0) {
-                eta = (dltub - tau) / 2;
+                eta = (dltub - tau) / real_t(2.0);
             }
             else {
-                eta = (dltlb - tau) / 2;
+                eta = (dltlb - tau) / real_t(2.0);
             }
         }
 
@@ -645,17 +659,17 @@ int laed4(
         dw = dpsi + dphi + temp * temp;
         temp = z[ii] * temp;
         w = rhoinv + phi + psi + temp;
-        err = 8 * (phi - psi) + err + 2.0 * rhoinv + 3.0 * abs(temp) +
-              abs(tau + eta) * dw;
+        err = 8 * (phi - psi) + err + real_t(2.0) * rhoinv +
+              real_t(3.0) * abs(temp) + abs(tau + eta) * dw;
 
         real_t swtch = false;
         if (orgati) {
-            if (-w > abs(prew) / 10.0) {
+            if (-w > abs(prew) / real_t(10.0)) {
                 swtch = true;
             }
         }
         else {
-            if (w > abs(prew) / 10.0) {
+            if (w > abs(prew) / real_t(10.0)) {
                 swtch = true;
             }
         }
@@ -734,10 +748,12 @@ int laed4(
                     eta = b / a;
                 }
                 else if (a < 0) {
-                    eta = (a - sqrt(abs(a * a - 4.0 * b * c))) / (2.0 * c);
+                    eta = (a - sqrt(abs(a * a - real_t(4.0) * b * c))) /
+                          (real_t(2.0) * c);
                 }
                 else {
-                    eta = 2.0 * b / (a + sqrt(abs(a * a - 4.0 * b * c)));
+                    eta = real_t(2.0) * b /
+                          (a + sqrt(abs(a * a - real_t(4.0) * b * c)));
                 }
             }
             else {
@@ -785,10 +801,10 @@ int laed4(
             temp = tau + eta;
             if (temp > dltub || temp < dltlb) {
                 if (w < 0) {
-                    eta = (dltub - tau) / 2.0;
+                    eta = (dltub - tau) / real_t(2.0);
                 }
                 else {
-                    eta = (dltlb - tau) / 2.0;
+                    eta = (dltlb - tau) / real_t(2.0);
                 }
             }
 
@@ -823,8 +839,8 @@ int laed4(
             dw = dpsi + dphi + temp * temp;
             temp = z[ii] * temp;
             w = rhoinv + phi + psi + temp;
-            err = 8 * (phi - psi) + err + 2.0 * rhoinv + 3.0 * abs(temp) +
-                  abs(tau) * dw;
+            err = real_t(8.0) * (phi - psi) + err + real_t(2.0) * rhoinv +
+                  real_t(3.0) * abs(temp) + abs(tau) * dw;
 
             if (w * prew > 0 && abs(w) > abs(prew) / 10.0) {
                 swtch = !swtch;

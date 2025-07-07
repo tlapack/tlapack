@@ -112,9 +112,8 @@ TEMPLATE_TEST_CASE("LAED4", "[stedc,laed4]", TLAPACK_TYPES_TO_TEST)
         // Get the Eigenvalues and Eigenvectors
         real_t dlam = real_t(0);
         real_t f = real_t(0);
-        real_t info = real_t(0);
         for (idx_t i = 0; i < n - 1; i++) {
-            laed4(n, i, d, u, delta, rho, dlam, info);
+            laed4(n, i, d, u, delta, rho, dlam);
 
             // check #1: check that dlam is a root of the secular equation
             bool too_hard_skip = false;

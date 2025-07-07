@@ -63,7 +63,7 @@ void laed5(idx_t i, d_t& d, z_t& z, delta_t& delta, real_t rho, real_t& dlam)
     real_t w, b, c, tau, temp;
     real_t del = d[1] - d[0];
     if (i == 0) {
-        w = 1.0 + 2.0 * rho * (z[1] * z[1] - z[0] * z[0]) / del;
+        w = real_t(1.0) + real_t(2.0) * rho * (z[1] * z[1] - z[0] * z[0]) / del;
 
         if (w > 0) {
             b = del + rho * (z[0] * z[0] + z[1] * z[1]);
@@ -71,7 +71,7 @@ void laed5(idx_t i, d_t& d, z_t& z, delta_t& delta, real_t rho, real_t& dlam)
 
             // B > 0, always
 
-            tau = 2.0 * c / (b + sqrt(abs(b * b - 4 * c)));
+            tau = real_t(2.0) * c / (b + sqrt(abs(b * b - real_t(4.0) * c)));
             dlam = d[0] + tau;
             delta[0] = -z[0] / tau;
             delta[1] = z[1] / (del - tau);
@@ -81,10 +81,10 @@ void laed5(idx_t i, d_t& d, z_t& z, delta_t& delta, real_t rho, real_t& dlam)
             c = rho * z[1] * z[1] * del;
 
             if (b > 0) {
-                tau = -2.0 * c / (b + sqrt(b * b + 4 * c));
+                tau = real_t(-2.0) * c / (b + sqrt(b * b + real_t(4.0) * c));
             }
             else {
-                tau = (b - sqrt(b * b + 4 * c)) / 2.0;
+                tau = (b - sqrt(b * b + real_t(4.0) * c)) / real_t(2.0);
             }
 
             dlam = d[1] + tau;
@@ -102,10 +102,10 @@ void laed5(idx_t i, d_t& d, z_t& z, delta_t& delta, real_t rho, real_t& dlam)
         c = rho * z[1] * z[1] * del;
 
         if (b > 0) {
-            tau = (b + sqrt(b * b + 4 * c)) / 2.0;
+            tau = (b + sqrt(b * b + real_t(4.0) * c)) / real_t(2.0);
         }
         else {
-            tau = 2.0 * c / (-b + sqrt(b * b + 4 * c));
+            tau = real_t(2.0) * c / (-b + sqrt(b * b + real_t(4.0) * c));
         }
 
         dlam = d[1] + tau;

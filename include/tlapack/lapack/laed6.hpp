@@ -99,23 +99,23 @@ int laed6(idx_t kniter,
     }
 
     if (finit < 0.0) {
-        lbd = 0.0;
+        lbd = real_t(0.0);
     }
     else {
-        ubd = 0.0;
+        ubd = real_t(0.0);
     }
 
     niter = 1;
-    tau = 0;
+    tau = real_t(0.0);
     if (kniter == 1) {
         if (orgati) {
-            temp = (d[2] - d[1]) / 2.0;
+            temp = (d[2] - d[1]) / real_t(2.0);
             c = rho + z[0] / ((d[0] - d[1]) - temp);
             a = c * (d[1] + d[2]) + z[1] + z[2];
             b = c * d[1] * d[2] + z[1] * d[2] + z[2] * d[1];
         }
         else {
-            temp = (d[0] - d[1]) / 2.0;
+            temp = (d[0] - d[1]) / real_t(2.0);
             c = rho + z[2] / ((d[2] - d[1]) - temp);
             a = c * (d[0] + d[1]) + z[0] + z[1];
             b = c * d[0] * d[2] + z[0] * d[1] + z[1] * d[0];
@@ -127,19 +127,20 @@ int laed6(idx_t kniter,
         if (c == 0) {
             tau = b / a;
         }
-        else if (a <= 0) {
-            tau = (a - sqrt(abs(a * a - 4 * b * c))) / (2.0 * c);
+        else if (a <= 0.0) {
+            tau = (a - sqrt(abs(a * a - 4 * b * c))) / (real_t(2.0) * c);
         }
         else {
-            tau = 2.0 * b / (a + sqrt(abs(a * a - 4 * b * c)));
+            tau =
+                real_t(2.0) * b / (a + sqrt(abs(a * a - real_t(4.0) * b * c)));
         }
 
         if (tau < lbd || tau > ubd) {
-            tau = (lbd + ubd) / 2.0;
+            tau = (lbd + ubd) / real_t(2.0);
         }
 
         if (d[0] == tau || d[1] == tau || d[2] == tau) {
-            tau = 0.0;
+            tau = real_t(0.0);
         }
         else {
             temp = finit + tau * z[0] / (d[0] * (d[0] - tau)) +
@@ -153,7 +154,7 @@ int laed6(idx_t kniter,
                 ubd = tau;
             }
             if (abs(finit) <= abs(temp)) {
-                tau = 0.0;
+                tau = real_t(0.0);
             }
         }
     }
@@ -164,10 +165,10 @@ int laed6(idx_t kniter,
     // SMINV2, EPS are not SAVEd anymore between one call to the
     // others but recomputed at each call
 
-    real_t base = 2.0;
+    real_t base = real_t(2.0);
     real_t safmin = std::numeric_limits<real_t>::min();
-    real_t small1 = pow(base, log(safmin) / log(base) / 3.0);
-    real_t sminv1 = 1.0 / small1;
+    real_t small1 = pow(base, log(safmin) / log(base) / real_t(3.0));
+    real_t sminv1 = real_t(1.0) / small1;
     real_t small2 = small1 * small1;
     real_t sminv2 = sminv1 * sminv1;
     real_t sclfac, sclinv;
@@ -220,7 +221,7 @@ int laed6(idx_t kniter,
     real_t ddf = 0;
 
     for (idx_t i = 0; i < 3; i++) {
-        temp = 1.0 / (dscale[i] - tau);
+        temp = real_t(1.0) / (dscale[i] - tau);
         temp1 = zscale[i] * temp;
         temp2 = temp1 * temp;
         temp3 = temp2 * temp;
@@ -280,10 +281,12 @@ int laed6(idx_t kniter,
             eta = b / a;
         }
         else if (a <= 0.0) {
-            eta = (a - sqrt(abs(a * a - 4 * b * c))) / (2.0 * c);
+            eta = (a - sqrt(abs(a * a - real_t(4.0) * b * c))) /
+                  (real_t(2.0) * c);
         }
         else {
-            eta = 2.0 * b / (a + sqrt(abs(a * a - 4 * b * c)));
+            eta =
+                real_t(2.0) * b / (a + sqrt(abs(a * a - real_t(4.0) * b * c)));
         }
 
         if (f * eta >= 0.0) {
@@ -292,17 +295,17 @@ int laed6(idx_t kniter,
 
         tau = tau + eta;
         if (tau < lbd || tau > ubd) {
-            tau = (lbd + ubd) / 2.0;
+            tau = (lbd + ubd) / real_t(2.0);
         }
 
-        fc = 0;
-        real_t err = 0;
-        df = 0;
-        ddf = 0;
+        fc = real_t(0.0);
+        real_t err = real_t(.00);
+        df = real_t(0.0);
+        ddf = real_t(0);
 
         for (idx_t i = 0; i < 3; i++) {
             if ((dscale[i] - tau) != 0) {
-                temp = 1.0 / (dscale[i] - tau);
+                temp = real_t(1.0) / (dscale[i] - tau);
                 temp1 = zscale[i] * temp;
                 temp2 = temp1 * temp;
                 temp3 = temp2 * temp;
@@ -319,10 +322,10 @@ int laed6(idx_t kniter,
 
         if (!converge) {
             f = finit + tau * fc;
-            err = 8.0 * (abs(finit) + abs(tau) * err) + abs(tau) * df;
+            err = real_t(8.0) * (abs(finit) + abs(tau) * err) + abs(tau) * df;
 
-            if ((abs(f) <= 4.0 * eps * err) ||
-                ((ubd - lbd) <= 4.0 * eps * abs(tau))) {
+            if ((abs(f) <= real_t(4.0) * eps * err) ||
+                ((ubd - lbd) <= real_t(4.0) * eps * abs(tau))) {
                 converge = true;
                 break;
             }
