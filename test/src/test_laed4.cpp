@@ -120,9 +120,9 @@ TEMPLATE_TEST_CASE("LAED4", "[stedc,laed4]", TLAPACK_TYPES_TO_TEST)
             f = real_t(0);
             for (idx_t j = 0; j < n; j++) {
                 if (d[j] == dlam) too_hard_skip = true;
-                f += real_t((u[j] * u[j]) / (d[j] - dlam));
+                f += (u[j] * u[j]) / (d[j] - dlam);
             }
-            f *= real_t(rho);
+            f *= rho;
             f += real_t(1);
 
             // NEED TO SLOVE THIS ISSUE
@@ -136,21 +136,21 @@ TEMPLATE_TEST_CASE("LAED4", "[stedc,laed4]", TLAPACK_TYPES_TO_TEST)
             too_hard_skip = false;
             for (idx_t j = 0; j < n; j++) {
                 if (d[j] == dlam) too_hard_skip = true;
-                v[j] = real_t(u[j] / (d[j] - dlam));
+                v[j] = u[j] / (d[j] - dlam);
             }
 
             auto nrmv = nrm2(v);
 
             real_t utv = real_t(0);
             for (idx_t j = 0; j < n; j++) {
-                utv += real_t(u[j] * v[j]);
+                utv += u[j] * v[j];
             }
 
             // Compute || A v - λ v ||₂ / | λ | / || v ||₂
             for (idx_t j = 0; j < n; j++) {
-                v[j] = real_t(dlam * v[j] - d[j] * v[j] - rho * u[j] * utv);
+                v[j] = dlam * v[j] - d[j] * v[j] - rho * u[j] * utv;
             }
-            real_t error = real_t(nrm2(v));
+            real_t error = nrm2(v);
 
             if (!too_hard_skip) CHECK(error <= tol * nrmv * abs(dlam));
         }

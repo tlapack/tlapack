@@ -636,7 +636,9 @@ int laed4(
         }
 
         // Evaluate PSI and the derivative DPSI
-        psi = dpsi = err = 0;
+        psi = real_t(0.0);
+        dpsi = real_t(0.0);
+        err = real_t(0.0);
 
         for (idx_t j = 0; j + 1 <= ii; j++) {
             temp = z[j] / delta[j];
@@ -647,7 +649,8 @@ int laed4(
         err = abs(err);
 
         // Evaluate PHI and the derivative DPHI
-        phi = dphi = 0;
+        phi = real_t(0.0);
+        dphi = real_t(0.0);
         for (idx_t j = n - 1; j >= iip1; j--) {
             temp = z[j] / delta[j];
             phi += z[j] * temp;
@@ -816,7 +819,9 @@ int laed4(
             prew = w;
 
             // Evaluate PSI and the derivative DPSI
-            psi = dpsi = err = 0;
+            psi = real_t(0.0);
+            dpsi = real_t(0.0);
+            err = real_t(0.0);
             for (idx_t j = 0; j + 1 <= ii; j++) {
                 temp = z[j] / delta[j];
                 psi += z[j] * temp;
@@ -827,7 +832,8 @@ int laed4(
             err = abs(err);
 
             // Evaluate PHI and the derivative DPHI
-            phi = dphi = 0;
+            phi = real_t(0.0);
+            dphi = real_t(0.0);
             for (idx_t j = n - 1; j >= iip1; j--) {
                 temp = z[j] / delta[j];
                 phi += z[j] * temp;
@@ -842,7 +848,7 @@ int laed4(
             err = real_t(8.0) * (phi - psi) + err + real_t(2.0) * rhoinv +
                   real_t(3.0) * abs(temp) + abs(tau) * dw;
 
-            if (w * prew > 0 && abs(w) > abs(prew) / 10.0) {
+            if (w * prew > 0 && abs(w) > abs(prew) / real_t(10.0)) {
                 swtch = !swtch;
             }
 
