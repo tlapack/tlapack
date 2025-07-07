@@ -42,6 +42,16 @@ add_custom_command(
     && echo ""
 )
 
+# add the example trmm_out
+add_subdirectory( trmm_out )
+add_custom_command(
+  OUTPUT run-all-examples-cmd APPEND
+  COMMAND
+    echo "- example_trmm_out ----------------" &&
+    "${CMAKE_CURRENT_BINARY_DIR}/trmm_out/example_trmm_out${CMAKE_EXECUTABLE_SUFFIX}"
+    && echo ""
+)
+
 # add the eigenvalues example
 add_subdirectory( eigenvalues )
 add_custom_command(
