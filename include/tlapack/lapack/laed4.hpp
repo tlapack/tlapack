@@ -131,7 +131,7 @@ int laed4(
             delta[j] = (d[j] - d[i]) - midpt;
         }
 
-        psi = 0;
+        psi = real_t(0.0);
         for (int j = 0; j < n - 2; j++) {
             psi += z[j] * z[j] / delta[j];
         }
@@ -181,7 +181,7 @@ int laed4(
 
             // It can be proved that* D(N) < D(N) + TAU < LAMBDA(N) < D(N) + RHO
             // / 2 dltlb = 0.0;
-            dltlb = 0;
+            dltlb = real_t(0.0);
             dltub = midpt;
         }
 
@@ -426,7 +426,8 @@ int laed4(
                       (a + sqrt(abs(a * a - real_t(4.0) * b * c)));
             }
             else {
-                tau = (a - sqrt(abs(a * a - 4.0 * b * c))) / (real_t(2.0) * c);
+                tau = (a - sqrt(abs(a * a - real_t(4.0) * b * c))) /
+                      (real_t(2.0) * c);
             }
 
             dltlb = real_t(0.0);
@@ -443,7 +444,8 @@ int laed4(
                       (a - sqrt(abs(a * a + real_t(4.0) * b * c)));
             }
             else {
-                tau = -(a + sqrt(abs(a * a + 4 * b * c))) / (real_t(2.0) * c);
+                tau = -(a + sqrt(abs(a * a + real_t(4.0) * b * c))) /
+                      (real_t(2.0) * c);
             }
 
             dltlb = -midpt;
@@ -665,7 +667,7 @@ int laed4(
         err = real_t(8.0) * (phi - psi) + err + real_t(2.0) * rhoinv +
               real_t(3.0) * abs(temp) + abs(tau + eta) * dw;
 
-        real_t swtch = false;
+        bool swtch = false;
         if (orgati) {
             if (-w > abs(prew) / real_t(10.0)) {
                 swtch = true;
@@ -681,7 +683,7 @@ int laed4(
 
         // Main loop to update the values of the array DELTA
 
-        real_t iter = niter + 1;
+        idx_t iter = niter + 1;
 
         while (iter < maxIt) {
             // Test for convergence
