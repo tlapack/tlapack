@@ -659,7 +659,7 @@ int laed4(
         dw = dpsi + dphi + temp * temp;
         temp = z[ii] * temp;
         w = rhoinv + phi + psi + temp;
-        err = 8 * (phi - psi) + err + real_t(2.0) * rhoinv +
+        err = real_t(8.0) * (phi - psi) + err + real_t(2.0) * rhoinv +
               real_t(3.0) * abs(temp) + abs(tau + eta) * dw;
 
         real_t swtch = false;

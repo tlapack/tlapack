@@ -86,7 +86,7 @@ int laed6(idx_t kniter,
     idx_t niter;
     real_t lbd, ubd, temp, temp1, temp2, temp3, temp4, a, b, c, eta;
     real_t eps = ulp<real_t>();
-    real_t maxit = 40;
+    real_t maxit = real_t(40);
     int info = 0;
 
     if (orgati) {
@@ -128,7 +128,8 @@ int laed6(idx_t kniter,
             tau = b / a;
         }
         else if (a <= 0.0) {
-            tau = (a - sqrt(abs(a * a - 4 * b * c))) / (real_t(2.0) * c);
+            tau = (a - sqrt(abs(a * a - real_t(4.0) * b * c))) /
+                  (real_t(2.0) * c);
         }
         else {
             tau =
@@ -216,9 +217,9 @@ int laed6(idx_t kniter,
         }
     }
 
-    real_t fc = 0;
-    real_t df = 0;
-    real_t ddf = 0;
+    real_t fc = real_t(0.0);
+    real_t df = real_t(0.0);
+    real_t ddf = real_t(0.0);
 
     for (idx_t i = 0; i < 3; i++) {
         temp = real_t(1.0) / (dscale[i] - tau);
@@ -299,9 +300,9 @@ int laed6(idx_t kniter,
         }
 
         fc = real_t(0.0);
-        real_t err = real_t(.00);
+        real_t err = real_t(0.0);
         df = real_t(0.0);
-        ddf = real_t(0);
+        ddf = real_t(0.0);
 
         for (idx_t i = 0; i < 3; i++) {
             if ((dscale[i] - tau) != 0) {

@@ -93,7 +93,7 @@ TEMPLATE_TEST_CASE("LAED4", "[stedc,laed4]", TLAPACK_TYPES_TO_TEST)
         }
         // u / sqrt(sum)
         for (idx_t i = 0; i < n; i++) {
-            u[i] = real_t(u[i] / sqrt(sum));
+            u[i] = u[i] / sqrt(sum);
         }
 
         auto nrmv = nrm2(u);
@@ -102,7 +102,7 @@ TEMPLATE_TEST_CASE("LAED4", "[stedc,laed4]", TLAPACK_TYPES_TO_TEST)
         for (idx_t j = 0; j < n; j++) {
             A(j, j) += d[j];
             for (idx_t i = 0; i < n; i++) {
-                A(i, j) = real_t(rho * u[i] * u[j]);
+                A(i, j) = rho * u[i] * u[j];
             }
         }
 
