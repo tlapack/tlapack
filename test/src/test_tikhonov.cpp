@@ -63,7 +63,7 @@ TEMPLATE_TEST_CASE("Testing all cases of Tikhonov",
             // for tests to pass
 
             const real_t eps = ulp<real_t>();
-            const real_t tol = 2 * real_t(max(m, k)) * eps;
+            const real_t tol = real_t(2) * real_t(max(m, k)) * eps;
 
             // Declare matrices
             std::vector<T> A_;
@@ -129,7 +129,7 @@ TEMPLATE_TEST_CASE("Testing all cases of Tikhonov",
                 // check will not be applied
 
                 // introduced in Catch2 2.8.0
-                Catch::StringMaker<real_t>::precision = 15;
+                // Catch::StringMaker<real_t>::precision = 15;
                 CHECK(normr <= tol * (normA * (normb + normA * normx) +
                                       abs(lambda) * abs(lambda) * normx));
             }
