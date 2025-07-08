@@ -605,6 +605,8 @@ int laed4(
                 zz[2] = z[iip1] * z[iip1];
             }
             zz[1] = z[ii] * z[ii];
+            // std::cout << "ENTERED INTO LAED6 1" << std::endl;
+
             info = laed6(niter, orgati, c, delta, zz, w, eta);
 
             if (info == 0) {
@@ -789,6 +791,8 @@ int laed4(
                         zz[2] = z[iip1] * z[iip1];
                     }
                 }
+                // std::cout << "ENTERED INTO LAED6 2" << std::endl;
+
                 info = laed6(niter, orgati, c, delta, zz, w, eta);
                 if (info == 0) {
                     return info;

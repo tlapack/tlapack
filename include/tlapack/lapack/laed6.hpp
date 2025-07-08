@@ -83,7 +83,6 @@ int laed6(idx_t kniter,
           real_t& finit,
           real_t& tau)
 {
-    // std::cout << "ENTERED INTO LAED6" << std::endl;
     idx_t niter;
     real_t lbd, ubd, temp, temp1, temp2, temp3, temp4, a, b, c, eta;
     real_t eps = ulp<real_t>();
@@ -169,8 +168,7 @@ int laed6(idx_t kniter,
 
     const int base = 2;
     const real_t safmin = safe_min<real_t>();
-    real_t small1 =
-        pow(base, real_t(log(safmin) / log(real_t(base)) / real_t(3.0)));
+    real_t small1 = pow(base, log(safmin) / log(real_t(base)) / real_t(3.0));
     real_t sminv1 = real_t(1.0) / small1;
     real_t small2 = small1 * small1;
     real_t sminv2 = sminv1 * sminv1;

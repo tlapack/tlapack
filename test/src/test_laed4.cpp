@@ -54,7 +54,7 @@ TEMPLATE_TEST_CASE("LAED4", "[stedc,laed4]", TLAPACK_TYPES_TO_TEST)
     // m and n represent no. rows and columns of the matrices we will be testing
     // respectively
     // idx_t n = GENERATE(2, 5, 30, 50, 100);
-    idx_t n = GENERATE(2, 10, 50, 100);
+    idx_t n = GENERATE(2, 17, 59, 89);
 
     srand(3);
     // real_t rho = real_t(GENERATE(15.7, 100));
