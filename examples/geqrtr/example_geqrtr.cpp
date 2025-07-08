@@ -1,6 +1,6 @@
 #include <tlapack/plugins/legacyArray.hpp>
 //
-#include <../../tlapack/test/include/MatrixMarket.hpp>
+#include "../test/include/MatrixMarket.hpp"
 
 // <T>LAPACK
 #include <tlapack/blas/herk.hpp>
