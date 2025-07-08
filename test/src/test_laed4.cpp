@@ -116,7 +116,6 @@ TEMPLATE_TEST_CASE("LAED4", "[stedc,laed4]", TLAPACK_TYPES_TO_TEST)
         her(LOWER_TRIANGLE, rho, u2, A);
         for (idx_t i = 0; i < n; i++) {
             A(i, i) += d2[i];
-            A
         }
 
         // Turn A into a Tridiagonal
