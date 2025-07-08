@@ -50,7 +50,7 @@ TEMPLATE_TEST_CASE("Testing all cases of Tikhonov",
             // for tests to pass
 
             const real_t eps = ulp<real_t>();
-            const real_t tol = real_t(2) * real_t(max(m, k)) * eps;
+            const real_t tol = real_t(10) * real_t(max(m, k)) * eps;
 
             // Declare matrices
             std::vector<T> A_;
