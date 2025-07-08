@@ -472,7 +472,6 @@ int laed4(
             ii = i + 1;
         }
 
-        // if (iiml == std::numeric_limits<int>::max())
         idx_t iim1 = ii - 1;
         idx_t iip1 = ii + 1;
 
@@ -492,7 +491,8 @@ int laed4(
         // Evaluate PHI and the derivative DPHI
         phi = real_t(0.0);
         dphi = real_t(0.0);
-        for (idx_t j = n - 1; j >= ip1; j--) {
+
+        for (idx_t j = n - 1; j >= iip1; j--) {
             temp = z[j] / delta[j];
             phi += z[j] * temp;
             dphi += temp * temp;
@@ -789,6 +789,7 @@ int laed4(
                         zz[2] = z[iip1] * z[iip1];
                     }
                 }
+                info = laed6(niter, orgati, c, delta, zz, w, eta);
                 if (info == 0) {
                     return info;
                 }
