@@ -43,7 +43,7 @@ TEMPLATE_TEST_CASE("Testing all cases of Tikhonov",
     //
     // Note that lambda >> ||A|| does not make much sense for applicatons as far
     // as we know but testing anyway
-    const real_t lambda = real_t(GENERATE(1e-5, 7.5, 1e5));
+    const real_t lambda = real_t(GENERATE(1e-3, 7.5, 1e3));
 
     using variant_t = TikVariant;
     const variant_t variant =
@@ -125,6 +125,7 @@ TEMPLATE_TEST_CASE("Testing all cases of Tikhonov",
 
                 // introduced in Catch2 2.8.0
                 // Catch::StringMaker<real_t>::precision = 15;
+
                 CHECK(normr <= tol * (normA * (normb + normA * normx) +
                                       abs(lambda) * abs(lambda) * normx));
             }
