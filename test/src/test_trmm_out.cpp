@@ -108,14 +108,14 @@ TEMPLATE_TEST_CASE("triagular matrix-matrix multiplication is backward stable",
             mc = n;
         }
 
-        std::vector<T> B_(m * n);
-        tlapack::LegacyMatrix<T> B(m, n, &B_[0], m);
+        std::vector<T> B_;
+        auto B = new_matrix(B_, m, n);
 
-        std::vector<T> C_(mc * nc);
-        tlapack::LegacyMatrix<T> C(mc, nc, &C_[0], mc);
+        std::vector<T> C_;
+        auto C = new_matrix(C_, mc, nc);
 
-        std::vector<T> C_copy_(mc * nc);
-        tlapack::LegacyMatrix<T> C_copy(mc, nc, &C_copy_[0], mc);
+        std::vector<T> C_copy_;
+        auto C_copy = new_matrix(C_copy_, mc, nc);
 
         if (side == Side::Right) {
             if (transB == Op::NoTrans) {
@@ -134,11 +134,11 @@ TEMPLATE_TEST_CASE("triagular matrix-matrix multiplication is backward stable",
             }
         }
 
-        std::vector<T> A_(ma * ma);
-        tlapack::LegacyMatrix<T> A(ma, ma, &A_[0], ma);
+        std::vector<T> A_;
+        auto A = new_matrix(A_, ma, ma);
 
-        std::vector<T> A_copy_(ma * ma);
-        tlapack::LegacyMatrix<T> A_copy(ma, ma, &A_copy_[0], ma);
+        std::vector<T> A_copy_;
+        auto A_copy = new_matrix(A_copy_, ma, ma);
 
         MatrixMarket mm;
 
