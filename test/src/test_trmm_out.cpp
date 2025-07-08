@@ -1,6 +1,6 @@
-/// @file test_mult_hehe.cpp
+/// @file test_trmm_out.cpp
 /// @author Ella Addison-Taylor, University of Colorado Denver, USA
-/// @brief Test Hermitian multiplication
+/// @brief Test out-of-place triangular matrix-matrix multiplication.
 //
 // Copyright (c) 2025, University of Colorado Denver. All rights reserved.
 //
@@ -18,25 +18,9 @@
 #include <tlapack/blas/gemm.hpp>
 #include <tlapack/lapack/lacpy.hpp>
 #include <tlapack/lapack/lantr.hpp>
-#include <tlapack/lapack/mult_hehe.hpp>
 #include <tlapack/lapack/trmm_out.hpp>
 
 using namespace tlapack;
-
-template <typename matrix_t>
-void printMatrix(const matrix_t& A)
-{
-    using idx_t = size_type<matrix_t>;
-    const idx_t m = nrows(A);
-    const idx_t n = ncols(A);
-
-    for (idx_t i = 0; i < m; ++i) {
-        std::cout << std::endl;
-        for (idx_t j = 0; j < n; ++j)
-            std::cout << A(i, j) << " ";
-    }
-    std::cout << std::endl;
-}
 
 // Helper to set alpha and beta safely for both real and complex types
 template <typename T>
@@ -52,8 +36,8 @@ void setScalar(std::complex<T>& alpha, real_type<T> aReal, real_type<T> aImag)
     alpha.imag(aImag);
 }
 
-TEMPLATE_TEST_CASE("uhu multiplication is backward stable",
-                   "[uhu check]",
+TEMPLATE_TEST_CASE("triagular matrix-matrix multiplication is backward stable",
+                   "[triangular matrix-matrix check]",
                    TLAPACK_TYPES_TO_TEST)
 {
     using matrix_t = TestType;
@@ -95,16 +79,14 @@ TEMPLATE_TEST_CASE("uhu multiplication is backward stable",
     setScalar(beta, bReal, bImag);
 
     const Uplo uplo = GENERATE(Uplo::Lower, Uplo::Upper);
-    // const Uplo uplo = GENERATE(Uplo::Upper);
-    // const Op transB = GENERATE(Op::NoTrans);
 
-    const Side side = GENERATE(Side::Right);
+    const Side side = GENERATE(Side::Left, Side::Right);
 
     const Op transB = GENERATE(Op::NoTrans, Op::ConjTrans, Op::Trans);
 
-    // const Diag diag = GENERATE(Diag::NonUnit);
-
     const Diag diag = GENERATE(Diag::NonUnit, Diag::Unit);
+
+    const Op transA = GENERATE(Op::NoTrans);
 
     DYNAMIC_SECTION("n = " << n << " m = " << m << " alpha = " << alpha
                            << " beta = " << beta << " Uplo = " << uplo
@@ -120,14 +102,10 @@ TEMPLATE_TEST_CASE("uhu multiplication is backward stable",
         if (transB == Op::NoTrans) {
             nc = n;
             mc = m;
-            std::cout << "nc = n = " << nc << " and mc = m = " << mc
-                      << std::endl;
         }
         else {
             nc = m;
             mc = n;
-            std::cout << "nc = m = " << nc << " and mc = n = " << mc
-                      << std::endl;
         }
 
         std::vector<T> B_(m * n);
@@ -162,20 +140,11 @@ TEMPLATE_TEST_CASE("uhu multiplication is backward stable",
         std::vector<T> A_copy_(ma * ma);
         tlapack::LegacyMatrix<T> A_copy(ma, ma, &A_copy_[0], ma);
 
-        std::cout << "initialized matrices" << std::endl;
-
         MatrixMarket mm;
 
         mm.random(A);
         mm.random(B);
         mm.random(C);
-
-        // std::cout << "B = " << std::endl;
-        // printMatrix(B);
-        // std::cout << "A = " << std::endl;
-        // printMatrix(A);
-        // std::cout << "C = " << std::endl;
-        // printMatrix(C);
 
         for (idx_t j = 0; j < ma; ++j) {
             for (idx_t i = 0; i < ma; ++i) {
@@ -183,7 +152,6 @@ TEMPLATE_TEST_CASE("uhu multiplication is backward stable",
             }
         }
 
-        std::cout << "Acopy to 0" << std::endl;
         lacpy(Uplo::General, C, C_copy);
         lacpy(uplo, A, A_copy);
 
@@ -196,31 +164,21 @@ TEMPLATE_TEST_CASE("uhu multiplication is backward stable",
         real_t normCbefore = lange(Norm::Fro, C_copy);
         real_t normA = lantr(Norm::Fro, uplo, diag, A);
         real_t normB = lange(Norm::Fro, B);
-        std::cout << "norms before" << std::endl;
         
-        std::cout << "nrows and cols of A = " << nrows(A_copy) << ", " << ncols(A_copy) << " nrows/cols of B = " << nrows(B) << ", " << ncols(B) << " nrows/cols of C = " << nrows(C_copy) << ", " << ncols(C_copy) << std::endl;
-
-        trmm_out(side, uplo, Op::NoTrans, diag, transB, alpha,
+        trmm_out(side, uplo, transA, diag, transB, alpha,
                  A, B, beta, C);
-        std::cout << "done trmm" << std::endl;
 
         if (side == Side::Right)
-            gemm(transB, Op::NoTrans, alpha, B, A_copy, beta, C_copy);
+            gemm(transB, transA, alpha, B, A_copy, beta, C_copy);
         else {
-            std::cout << "nrows and cols of A = " << nrows(A_copy) << ", " << ncols(A_copy) << " nrows/cols of B = " << nrows(B) << ", " << ncols(B) << " nrows/cols of C = " << nrows(C_copy) << ", " << ncols(C_copy) << std::endl;
-            gemm(Op::NoTrans, transB, alpha, A_copy, B, beta, C_copy);
+            gemm(transA, transB, alpha, A_copy, B, beta, C_copy);
         }
-
-        std::cout << "done gemm" << std::endl;
 
         for (idx_t j = 0; j < nc; ++j) {
             for (idx_t i = 0; i < mc; ++i) {
                 C(i, j) -= C_copy(i, j);
             }
         }
-
-        std::cout << "done subtraction" << std::endl;
-        printMatrix(C);
 
         real_t normC = lange(Norm::Fro, C);
 
