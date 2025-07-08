@@ -90,7 +90,7 @@ TEMPLATE_TEST_CASE("LAED4", "[stedc,laed4]", TLAPACK_TYPES_TO_TEST)
         real_t sum = real_t(0);
         // Create a u of norm 1
         for (idx_t i = 0; i < n; i++) {
-            u1[i] = 2 * i + 1;
+            u1[i] = real_t(2 * i + 1);
         }
         for (auto num : u1) {
             sum += num * num;
@@ -105,14 +105,14 @@ TEMPLATE_TEST_CASE("LAED4", "[stedc,laed4]", TLAPACK_TYPES_TO_TEST)
             work[i] = real_t(0.0);
         }
 
-        real_t dlam = 0;
+        real_t dlam = real_t(0.0);
         for (idx_t i = 0; i < n; i++) {
             laed4(n, i, d1, u1, work, rho, dlam);
             laed4Lam[i] = dlam;
         }
 
         // Create A Matrix = D + rho * u*u^T
-        laset(GENERAL, real_t(0.), real_t(0.), A);
+        laset(GENERAL, real_t(0.0), real_t(0.0), A);
         her(LOWER_TRIANGLE, rho, u2, A);
         for (idx_t i = 0; i < n; i++) {
             A(i, i) += d2[i];
