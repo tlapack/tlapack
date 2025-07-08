@@ -16,8 +16,6 @@
 
 namespace tlapack {
 /**
- *
-/**
  * Triangular matrix-matrix multiply:
  * \[
  *     C := \alpha A op(B) + \beta C,
