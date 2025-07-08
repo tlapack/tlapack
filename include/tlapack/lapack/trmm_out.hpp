@@ -44,7 +44,7 @@ namespace tlapack {
  *     - Uplo::Lower: A is lower triangular.
  *     - Uplo::Upper: A is upper triangular.
  *     - Uplo::General is illegal (see gemm() instead).
- * 
+ *
  * @param[in] transA
  *     Current functionality only works for:
  *     - Op::NoTrans:   $op(A) = A$.
@@ -59,16 +59,16 @@ namespace tlapack {
  *     - Op::ConjTrans: $op(B) = B^H$.
  *
  * @param[in] alpha Scalar.
- * 
+ *
  * @param[in] A
  *     - If side = Left: a m-by-m matrix.
  *     - If side = Right: a n-by-n matrix.
- * 
+ *
  * @param[in,out] B A m-by-n matrix.
- * 
+ *
  * @param[in] beta Scalar.
- * 
- * @param[in, out] C 
+ *
+ * @param[in, out] C
  *     - If transB = NoTrans: a m-by-n matrix.
  *     - If transB = Trans or transB = ConjTrans: a n-by-m matrix.
  *
@@ -113,8 +113,8 @@ void trmm_out(Side side,
                     idx_t n0 = n / 2;
                     if (n == 1) {
                         for (idx_t i = 0; i < m; ++i) {
-                                C(i, 0) =
-                                    alpha * B(i, 0) * A(0, 0) + beta * C(i, 0);
+                            C(i, 0) =
+                                alpha * B(i, 0) * A(0, 0) + beta * C(i, 0);
                         }
                     }
                     else {
@@ -202,8 +202,7 @@ void trmm_out(Side side,
 
                     if (m == 1) {
                         for (idx_t j = 0; j < n; ++j)
-                            C(0, j) =
-                                alpha * B(0, j) + beta * C(0, j);
+                            C(0, j) = alpha * B(0, j) + beta * C(0, j);
                     }
                     else {
                         auto C0 = slice(C, range(0, m0), range(0, n));
@@ -235,9 +234,8 @@ void trmm_out(Side side,
                     idx_t n0 = n / 2;
                     if (n == 1) {
                         for (idx_t i = 0; i < m; ++i) {
-                                C(i, 0) =
-                                    alpha * B(i, 0) * A(0, 0) + beta * C(i, 0);
-                            
+                            C(i, 0) =
+                                alpha * B(i, 0) * A(0, 0) + beta * C(i, 0);
                         }
                     }
                     else {
@@ -287,8 +285,6 @@ void trmm_out(Side side,
                         trmm_out(side, uplo, transA, diag, transB, alpha, A11,
                                  B1, real_t(1), C1);
                     }
-
-
                 }
             }
             else {
@@ -298,8 +294,7 @@ void trmm_out(Side side,
                     idx_t n0 = n / 2;
                     if (n == 1) {
                         for (idx_t i = 0; i < m; ++i) {
-                                C(i, 0) = alpha * B(i, 0) + beta * C(i, 0);
-                            
+                            C(i, 0) = alpha * B(i, 0) + beta * C(i, 0);
                         }
                     }
                     else {
@@ -327,8 +322,7 @@ void trmm_out(Side side,
 
                     if (m == 1) {
                         for (idx_t j = 0; j < n; ++j)
-                            C(0, j) =
-                                alpha * B(0, j) + beta * C(0, j);
+                            C(0, j) = alpha * B(0, j) + beta * C(0, j);
                     }
                     else {
                         auto C0 = slice(C, range(0, m0), range(0, n));
@@ -361,10 +355,10 @@ void trmm_out(Side side,
 
                     idx_t n0 = n / 2;
                     if (n == 1) {
-                            for (idx_t j = 0; j < m; ++j) {
-                                C(j, 0) = alpha * conj(B(0, j)) * A(0, 0) +
-                                          beta * C(j, 0);
-                            }
+                        for (idx_t j = 0; j < m; ++j) {
+                            C(j, 0) = alpha * conj(B(0, j)) * A(0, 0) +
+                                      beta * C(j, 0);
+                        }
                     }
                     else {
                         auto C0 = slice(C, range(0, m), range(0, n0));
@@ -391,8 +385,8 @@ void trmm_out(Side side,
 
                     if (m == 1) {
                         for (idx_t j = 0; j < n; ++j)
-                            C(0, j) =
-                                alpha * conj(B(j, 0)) * A(0, 0) + beta * C(0, j);
+                            C(0, j) = alpha * conj(B(j, 0)) * A(0, 0) +
+                                      beta * C(0, j);
                     }
                     else {
                         auto C0 = slice(C, range(0, m0), range(0, n));
@@ -421,10 +415,9 @@ void trmm_out(Side side,
 
                     idx_t n0 = n / 2;
                     if (n == 1) {
-                            for (idx_t j = 0; j < m; ++j) {
-                                C(j, 0) =
-                                    alpha * conj(B(0, j)) + beta * C(j, 0);
-                            }
+                        for (idx_t j = 0; j < m; ++j) {
+                            C(j, 0) = alpha * conj(B(0, j)) + beta * C(j, 0);
+                        }
                     }
                     else {
                         auto C0 = slice(C, range(0, m), range(0, n0));
@@ -451,8 +444,7 @@ void trmm_out(Side side,
 
                     if (m == 1) {
                         for (idx_t j = 0; j < n; ++j)
-                            C(0, j) =
-                                alpha * conj(B(j, 0)) + beta * C(0, j);
+                            C(0, j) = alpha * conj(B(j, 0)) + beta * C(0, j);
                     }
                     else {
                         auto C0 = slice(C, range(0, m0), range(0, n));
@@ -483,10 +475,10 @@ void trmm_out(Side side,
 
                     idx_t n0 = n / 2;
                     if (n == 1) {
-                            for (idx_t j = 0; j < m; ++j) {
-                                C(j, 0) = alpha * conj(B(0, j)) * A(0, 0) +
-                                          beta * C(j, 0);
-                            }
+                        for (idx_t j = 0; j < m; ++j) {
+                            C(j, 0) = alpha * conj(B(0, j)) * A(0, 0) +
+                                      beta * C(j, 0);
+                        }
                     }
                     else {
                         auto C0 = slice(C, range(0, m), range(0, n0));
@@ -513,8 +505,8 @@ void trmm_out(Side side,
 
                     if (m == 1) {
                         for (idx_t j = 0; j < n; ++j)
-                            C(0, j) =
-                                alpha * conj(B(j, 0)) * A(0, 0) + beta * C(0, j);
+                            C(0, j) = alpha * conj(B(j, 0)) * A(0, 0) +
+                                      beta * C(0, j);
                     }
                     else {
                         auto C0 = slice(C, range(0, m0), range(0, n));
@@ -543,10 +535,9 @@ void trmm_out(Side side,
 
                     idx_t n0 = n / 2;
                     if (n == 1) {
-                            for (idx_t j = 0; j < m; ++j) {
-                                C(j, 0) =
-                                    alpha * conj(B(0, j)) + beta * C(j, 0);
-                            }
+                        for (idx_t j = 0; j < m; ++j) {
+                            C(j, 0) = alpha * conj(B(0, j)) + beta * C(j, 0);
+                        }
                     }
                     else {
                         auto C0 = slice(C, range(0, m), range(0, n0));
@@ -573,8 +564,7 @@ void trmm_out(Side side,
 
                     if (m == 1) {
                         for (idx_t j = 0; j < n; ++j)
-                            C(0, j) =
-                                alpha * conj(B(j, 0)) + beta * C(0, j);
+                            C(0, j) = alpha * conj(B(j, 0)) + beta * C(0, j);
                     }
                     else {
                         auto C0 = slice(C, range(0, m0), range(0, n));
@@ -607,10 +597,10 @@ void trmm_out(Side side,
 
                     idx_t n0 = n / 2;
                     if (n == 1) {
-                            for (idx_t j = 0; j < m; ++j) {
-                                C(j, 0) =
-                                    alpha * B(0, j) * A(0, 0) + beta * C(j, 0);
-                            }
+                        for (idx_t j = 0; j < m; ++j) {
+                            C(j, 0) =
+                                alpha * B(0, j) * A(0, 0) + beta * C(j, 0);
+                        }
                     }
                     else {
                         auto C0 = slice(C, range(0, m), range(0, n0));
@@ -667,9 +657,9 @@ void trmm_out(Side side,
 
                     idx_t n0 = n / 2;
                     if (n == 1) {
-                            for (idx_t j = 0; j < m; ++j) {
-                                C(j, 0) = alpha * B(0, j) + beta * C(j, 0);
-                            }
+                        for (idx_t j = 0; j < m; ++j) {
+                            C(j, 0) = alpha * B(0, j) + beta * C(j, 0);
+                        }
                     }
                     else {
                         auto C0 = slice(C, range(0, m), range(0, n0));
@@ -696,8 +686,7 @@ void trmm_out(Side side,
 
                     if (m == 1) {
                         for (idx_t j = 0; j < n; ++j)
-                            C(0, j) =
-                                alpha * B(j, 0) + beta * C(0, j);
+                            C(0, j) = alpha * B(j, 0) + beta * C(0, j);
                     }
                     else {
                         auto C0 = slice(C, range(0, m0), range(0, n));
@@ -728,10 +717,10 @@ void trmm_out(Side side,
 
                     idx_t n0 = n / 2;
                     if (n == 1) {
-                            for (idx_t j = 0; j < m; ++j) {
-                                C(j, 0) =
-                                    alpha * B(0, j) * A(0, 0) + beta * C(j, 0);
-                            }
+                        for (idx_t j = 0; j < m; ++j) {
+                            C(j, 0) =
+                                alpha * B(0, j) * A(0, 0) + beta * C(j, 0);
+                        }
                     }
                     else {
                         auto C0 = slice(C, range(0, m), range(0, n0));
@@ -788,9 +777,9 @@ void trmm_out(Side side,
 
                     idx_t n0 = n / 2;
                     if (n == 1) {
-                            for (idx_t j = 0; j < m; ++j) {
-                                C(j, 0) = alpha * B(0, j) + beta * C(j, 0);
-                            }
+                        for (idx_t j = 0; j < m; ++j) {
+                            C(j, 0) = alpha * B(0, j) + beta * C(j, 0);
+                        }
                     }
                     else {
                         auto C0 = slice(C, range(0, m), range(0, n0));
@@ -817,8 +806,7 @@ void trmm_out(Side side,
 
                     if (m == 1) {
                         for (idx_t j = 0; j < n; ++j)
-                            C(0, j) =
-                                alpha * B(j, 0) + beta * C(0, j);
+                            C(0, j) = alpha * B(j, 0) + beta * C(0, j);
                     }
                     else {
                         auto C0 = slice(C, range(0, m0), range(0, n));

@@ -119,7 +119,7 @@ TEMPLATE_TEST_CASE("triagular matrix-matrix multiplication is backward stable",
 
         if (side == Side::Right) {
             if (transB == Op::NoTrans) {
-                 ma = n;
+                ma = n;
             }
             else {
                 ma = m;
@@ -164,9 +164,8 @@ TEMPLATE_TEST_CASE("triagular matrix-matrix multiplication is backward stable",
         real_t normCbefore = lange(Norm::Fro, C_copy);
         real_t normA = lantr(Norm::Fro, uplo, diag, A);
         real_t normB = lange(Norm::Fro, B);
-        
-        trmm_out(side, uplo, transA, diag, transB, alpha,
-                 A, B, beta, C);
+
+        trmm_out(side, uplo, transA, diag, transB, alpha, A, B, beta, C);
 
         if (side == Side::Right)
             gemm(transB, transA, alpha, B, A_copy, beta, C_copy);
