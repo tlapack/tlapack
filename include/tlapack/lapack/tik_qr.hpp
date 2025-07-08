@@ -1,4 +1,4 @@
-/// @file tik_qr.hpp  Solves a tikhonov regularized least squares problem using
+/// @file tik_qr.hpp  Solves a Tikhonov regularized least squares problem using
 /// QR factorization.
 /// @author L. Carlos Gutierrez, Julien Langou, University of Colorado Denver,
 /// USA
@@ -30,7 +30,7 @@
 
 using namespace tlapack;
 
-/// Solves tikhonov regularized least squares using QR factorization
+/// Solves Tikhonov regularized least squares using QR factorization
 template <TLAPACK_MATRIX matrixA_t,
           TLAPACK_MATRIX matrixb_t,
           TLAPACK_REAL real_t>

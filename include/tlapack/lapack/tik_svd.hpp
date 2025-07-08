@@ -1,4 +1,4 @@
-/// @file tik_svd.hpp Solves a tikhonov regularized least squares problem using
+/// @file tik_svd.hpp Solves a Tikhonov regularized least squares problem using
 /// SVD decompisition.
 /// @author L. Carlos Gutierrez, Julien Langou, University of Colorado Denver,
 /// USA
@@ -54,22 +54,15 @@ void tik_svd(matrixA_t& A, matrixb_t& b, real_t lambda)
     // Bidiagonal decomposition
     bidiag(A, tauv, tauw);
 
-    // Apply Q1ᵀ to b using unmqr
+    // Apply Q1ᴴ to b using unmqr
     //
     // Note: it is possible to use b for tmp1 and output x in b,
     // this would remove arrays btmp1 and x. Right now, we chose to have
-    // the same interface for all tikhonov functions
-    std::vector<T> btmp1_;
-    auto btmp1 = new_matrix(btmp1_, m, k);
-    lacpy(GENERAL, b, btmp1);
-    unmqr(LEFT_SIDE, CONJ_TRANS, A, tauv, btmp1);
+    // the same interface for all Tikhonov functions
 
-    // Slice top n rows: Q1ᵀ b
-    // std::vector<T> x_;
-    // auto x = new_matrix(x_, n, k);
+    unmqr(LEFT_SIDE, CONJ_TRANS, A, tauv, b);
+
     auto x = slice(b, range{0, n}, range{0, k});
-
-    lacpy(GENERAL, slice(btmp1, range{0, n}, range{0, k}), x);
 
     // Extract diagonal and superdiagonal
     std::vector<real_t> d(n);
@@ -79,60 +72,41 @@ void tik_svd(matrixA_t& A, matrixb_t& b, real_t lambda)
     for (idx_t j = 0; j < n - 1; ++j)
         e[j] = real(A(j, j + 1));
 
-    // Construct P1
-    // Note: it is possible to store P1 in A
-    std::vector<T> P1_;
-    auto P1 = new_matrix(P1_, n, n);
-    lacpy(UPPER_TRIANGLE, slice(A, range{0, n}, range{0, n}), P1);
-    ungbr_p(n, P1, tauw);
-
-    // Allocate and initialize Q2 and P2t
+    // Allocate and initialize Q2 and P2
     std::vector<T> Q2_;
     auto Q2 = new_matrix(Q2_, n, n);
-    std::vector<T> P2t_;
-    auto P2t = new_matrix(P2t_, n, n);
+    std::vector<T> P2_;
+    auto P2 = new_matrix(P2_, n, n);
     const real_t zero(0);
     const real_t one(1);
     laset(Uplo::General, zero, one, Q2);
-    laset(Uplo::General, zero, one, P2t);
+    laset(Uplo::General, zero, one, P2);
 
-    // Note that it would be better to input "x" which is "Q1ᵀb" instead of
-    // computing "Q2" and then applying "Q2ᵀ". This would be done as follows:
-    //
-    // int err = svd_qr(Uplo::Upper, true, true, d, e, x, P2t);
-    //
-    // this does not work though.
+    int err = svd_qr(Uplo::Upper, true, true, d, e, Q2, P2);
 
-    int err = svd_qr(Uplo::Upper, true, true, d, e, Q2, P2t);
+    // Apply Q2ᴴ
+    std::vector<T> work_;
+    auto work = new_matrix(work_, n, k);
+    gemm(CONJ_TRANS, NO_TRANS, real_t(1), Q2, x, work);
 
-    // Apply Q2ᵀ
-    std::vector<T> x2_;
-    auto x2 = new_matrix(x2_, n, k);
-    gemm(CONJ_TRANS, NO_TRANS, real_t(1), Q2, x, x2);
-
-    // lacpy(GENERAL, x, x2);
-
-    // printMatrix(x2);
-
-    // This is what was changed from least_squares_svd in order to do tik_svd
     for (idx_t j = 0; j < n; ++j)
         for (idx_t i = 0; i < k; ++i)
-            // x2(j, i) /= d[j];
-            x2(j, i) *= (d[j] / ((d[j] * d[j]) + (lambda * lambda)));
+            work(j, i) *= (d[j] / ((d[j] * d[j]) + (lambda * lambda)));
 
-    // Apply P2tᵀ
-    std::vector<T> x3_;
-    auto x3 = new_matrix(x3_, n, k);
-    gemm(CONJ_TRANS, NO_TRANS, real_t(1), P2t, x2, x3);
+    // Apply P2ᴴ
 
-    // Apply P1ᵀ
-    std::vector<T> x4_;
-    auto x4 = new_matrix(x4_, n, k);
-    gemm(CONJ_TRANS, NO_TRANS, real_t(1), P1, x3, x4);
+    gemm(CONJ_TRANS, NO_TRANS, real_t(1), P2, work, x);
+
+    // Apply P1ᴴ
+
+    // Finish solving least squares problem
+    auto x1 = slice(x, range{1, n}, range{0, k});
+    unmlq(LEFT_SIDE, CONJ_TRANS, slice(A, range{0, n - 1}, range{1, n}),
+          slice(tauw, range{0, n - 1}), x1);
 
     // Final result
 
-    lacpy(GENERAL, x4, x);
+    // lacpy(GENERAL, x4, x);
 }
 
 #endif  // TLAPACK_TIK_SVD

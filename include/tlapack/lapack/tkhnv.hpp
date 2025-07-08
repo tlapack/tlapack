@@ -14,7 +14,7 @@ struct TikOpts {
     constexpr TikOpts(TikVariant v = TikVariant::QR) : variant(v) {}
 };
 
-/// Solves tikhonov regularized least squares using QR factorization
+/// Solves Tikhonov regularized least squares using QR factorization
 template <TLAPACK_MATRIX matrixA_t,
           TLAPACK_MATRIX matrixb_t,
           TLAPACK_REAL real_t>

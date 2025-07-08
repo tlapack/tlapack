@@ -61,7 +61,8 @@ void run(size_t m, size_t n, size_t k)
     // Initialize scalars
     real_t lambda(4);
 
-    // Choose method to solve least sqrs problem of tikhonov regularized matrix
+    // Choose method to solve least squares problem of Tikhonov regularized
+    // matrix
     std::string method;
 
     int option = 3;

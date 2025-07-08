@@ -1,4 +1,4 @@
-/// @file tik_bidiag_elden.hpp  Solves a tikhonov regularized least squares
+/// @file tik_bidiag_elden.hpp  Solves a Tikhonov regularized least squares
 /// problem using Eldén's bidiagonalization algorithm.
 /// @author L. Carlos Gutierrez, Julien Langou, University of Colorado Denver,
 /// USA
@@ -16,6 +16,7 @@
 #include <tlapack/lapack/lange.hpp>
 #include <tlapack/lapack/laset.hpp>
 #include <tlapack/lapack/ungbr.hpp>
+#include <tlapack/lapack/unmlq.hpp>
 #include <tlapack/lapack/unmqr.hpp>
 
 #include "tlapack/blas/axpy.hpp"
@@ -41,7 +42,7 @@
 
 using namespace tlapack;
 
-// /// Solves tikhonov regularized least squares using special bidiag method
+// /// Solves Tikhonov regularized least squares using special bidiag method
 template <TLAPACK_MATRIX matrixA_t,
           TLAPACK_MATRIX matrixb_t,
           TLAPACK_REAL real_t>
@@ -81,14 +82,11 @@ void tik_bidiag_elden(matrixA_t& A, matrixb_t& b, real_t lambda)
         e[j] = real(A(j, j + 1));
 
     // Declare and initialize baug
-    std::vector<T> baug_;
-    auto baug = new_matrix(baug_, 2 * n, k);
+    std::vector<T> work_;
+    auto work = new_matrix(work_, n, k);
 
     // Augment zeros onto b
-    auto baug_top = slice(baug, range{0, n}, range{0, k});
-    auto baug_bottom = slice(baug, range{n, n + n}, range{0, k});
-    lacpy(GENERAL, slice(b, range{0, n}, range{0, k}), baug_top);
-    laset(GENERAL, real_t(0), real_t(0), baug_bottom);
+    laset(GENERAL, real_t(0), real_t(0), work);
 
     //////////// Algorithm for eliminating lambda*I /////////////
 
@@ -112,13 +110,13 @@ void tik_bidiag_elden(matrixA_t& A, matrixb_t& b, real_t lambda)
 
         if (i == 0) {
             for (idx_t j = 0; j < k; ++j) {
-                baug(n, j) = -sn * baug(0, j);
-                baug(0, j) = cs * baug(0, j);
+                work(0, j) = -sn * b(0, j);
+                b(0, j) = cs * b(0, j);
             }
         }
         else {
-            auto bv = slice(baug, i, range{0, k});
-            auto cv = slice(baug, n + i, range{0, k});
+            auto bv = slice(b, i, range{0, k});
+            auto cv = slice(work, i, range{0, k});
             rot(bv, cv, cs, sn);
         }
 
@@ -133,8 +131,8 @@ void tik_bidiag_elden(matrixA_t& A, matrixb_t& b, real_t lambda)
             // Step c: update right hand side b
 
             for (idx_t j = 0; j < k; ++j) {
-                baug(n + 1 + i, j) = sn * baug(n + i, j);
-                baug(n + i, j) = cs * baug(n + i, j);
+                work(i + 1, j) = sn * work(i, j);
+                work(i, j) = cs * work(i, j);
             }
         }
     }
@@ -142,28 +140,19 @@ void tik_bidiag_elden(matrixA_t& A, matrixb_t& b, real_t lambda)
     // Solve the least squares problem
 
     // Bidiag solving algorithm
-    auto xS = slice(baug, range{0, n}, range{0, k});
-    auto xS0 = slice(baug, n - 1, range{0, k});
+    auto xS0 = slice(b, n - 1, range{0, k});
     rscl(d[n - 1], xS0);
     for (idx_t i = n - 1; i-- > 0;) {
-        auto xS0 = slice(baug, i, range{0, k});
-        auto xS1 = slice(baug, i + 1, range{0, k});
+        auto xS0 = slice(b, i, range{0, k});
+        auto xS1 = slice(b, i + 1, range{0, k});
         axpy(-e[i], xS1, xS0);
         rscl(d[i], xS0);
     }
 
-    // Finish solving least sqaures problem
-    std::vector<T> P1_;
-    auto P1 = new_matrix(P1_, n, n);
-    lacpy(UPPER_TRIANGLE, slice(A, range{0, n}, range{0, n}), P1);
-
-    ungbr_p(n, P1, tauw);
-    auto x = slice(b, range{0, n}, range{0, k});
-    gemm(CONJ_TRANS, NO_TRANS, real_t(1), P1, xS, x);
-
-    // auto x2 = slice(b, range{1, n}, range{0, k});
-    // unmlq(LEFT_SIDE, CONJ_TRANS, slice(A, range{1, n}, range{1, n}),
-    //       slice(tauw, range{0, n - 1}), x2);
+    // Finish solving least squares problem
+    auto x2 = slice(b, range{1, n}, range{0, k});
+    unmlq(LEFT_SIDE, CONJ_TRANS, slice(A, range{0, n - 1}, range{1, n}),
+          slice(tauw, range{0, n - 1}), x2);
 }
 
 #endif  // TLAPACK_TIK_BIDIAG_ELDEN_HH

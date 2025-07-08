@@ -5,7 +5,7 @@
 
 using namespace tlapack;
 
-/// Solves tikhonov regularized least squares using cholesky method
+/// Solves Tikhonov regularized least squares using cholesky method
 template <TLAPACK_MATRIX matrixA_t,
           TLAPACK_MATRIX matrixb_t,
           TLAPACK_REAL real_t,

@@ -34,16 +34,7 @@ TEMPLATE_TEST_CASE("Testing all cases of Tikhonov",
     const idx_t n = GENERATE(1, 2, 3, 7, 8);
     const idx_t k = GENERATE(1, 7, 12, 19);
 
-    // 1e5 and 1e-5 should not underflow/overflow in half precision (16-bit
-    // arithmetic) since half precision is the lowest precision that we test we
-    // settle on 1e-5 and 1e5
-    //
-    // Note that lambda should be relative to ||A|| be since A is random ||A||
-    // is O(1)
-    //
-    // Note that lambda >> ||A|| does not make much sense for applicatons as far
-    // as we know but testing anyway
-    const real_t lambda = real_t(GENERATE(1e-3, 7.5, 1e3));
+    const real_t lambda = real_t(GENERATE(1e-3, 1e-2, 1e-1, 1, 2));
 
     using variant_t = TikVariant;
     const variant_t variant =
