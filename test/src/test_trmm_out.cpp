@@ -148,7 +148,7 @@ TEMPLATE_TEST_CASE("triagular matrix-matrix multiplication is backward stable",
 
         for (idx_t j = 0; j < ma; ++j) {
             for (idx_t i = 0; i < ma; ++i) {
-                A_copy(i, j) = 0;
+                A_copy(i, j) = T(0);
             }
         }
 
@@ -157,7 +157,7 @@ TEMPLATE_TEST_CASE("triagular matrix-matrix multiplication is backward stable",
 
         if (diag == Diag::Unit) {
             for (idx_t i = 0; i < ma; ++i) {
-                A_copy(i, i) = 1;
+                A_copy(i, i) = T(1);
             }
         }
 
