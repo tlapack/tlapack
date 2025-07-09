@@ -1,4 +1,4 @@
-/// @file example_laed4_brian.cpp
+/// @file example_laed4_gragg.cpp
 /// @author Brian Dang, University of Colorado Denver, USA
 //
 // Copyright (c) 2025, University of Colorado Denver. All rights reserved.
