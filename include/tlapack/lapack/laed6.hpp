@@ -15,7 +15,8 @@
 
 namespace tlapack {
 
-/** LAED6 used by STEDC. Computes one Newton step in solution of the secular
+/**
+ * LAED6 used by STEDC. Computes one Newton step in solution of the secular
  * equation.
  *
  * LAED6 computes the positive or negative root (closest to the origin)
@@ -36,28 +37,35 @@ namespace tlapack {
  * @param[in] kniter
  *      KNITER is INTEGER
  *      Refer to LAED4 for its significance.
+ *
  * @param[in] orgati
  *      ORGATI is LOGICAL
  *      If ORGATI is true, the needed root is between d(2) and
  *      d(3); otherwise it is between d(1) and d(2).  See
  *      LAED4 for further details.
+ *
  * @param[in] rho
  *      RHO is DOUBLE PRECISION
  *      Refer to the equation f(x) above.
+ *
  * @param[out] d
  *      D is DOUBLE PRECISION array, dimension (3)
  *      D satisfies d(1) < d(2) < d(3).
+ *
  * @param[in] z
  *      Z is DOUBLE PRECISION array, dimension (3)
  *      Each of the elements in z must be positive.
+ *
  * @param[in] finit
  *       FINIT is DOUBLE PRECISION
  *       The value of f at 0. It is more accurate than the one
  *       evaluated inside this routine (if someone wants to do
  *       so).
+ *
  * @param[out] tau
  *       TAU is DOUBLE PRECISION
  *       The root of the equation f(x).
+ *
  * @return info
  *      INFO is INTEGER
  *       = 0:  successful exit
@@ -65,6 +73,7 @@ namespace tlapack {
  *
  * @ingroup laed6
  */
+
 template <class d_t, class z_t, class real_t, class idx_t>
 int laed6(idx_t kniter,
           bool& orgati,
@@ -73,12 +82,11 @@ int laed6(idx_t kniter,
           z_t& z,
           real_t& finit,
           real_t& tau)
-
 {
     idx_t niter;
     real_t lbd, ubd, temp, temp1, temp2, temp3, temp4, a, b, c, eta;
     real_t eps = ulp<real_t>();
-    real_t maxit = 40;
+    real_t maxit = real_t(40);
     int info = 0;
 
     if (orgati) {
@@ -90,27 +98,27 @@ int laed6(idx_t kniter,
         ubd = d[1];
     }
 
-    if (finit < 0.0) {
-        lbd = 0.0;
+    if (finit < 0) {
+        lbd = real_t(0.0);
     }
     else {
-        ubd = 0.0;
+        ubd = real_t(0.0);
     }
 
-    niter = 1;
-    tau = 0;
+    niter = 0;
+    tau = real_t(0.0);
     if (kniter == 1) {
         if (orgati) {
-            temp = (d[2] - d[1]) / 2.0;
+            temp = (d[2] - d[1]) / real_t(2.0);
             c = rho + z[0] / ((d[0] - d[1]) - temp);
             a = c * (d[1] + d[2]) + z[1] + z[2];
             b = c * d[1] * d[2] + z[1] * d[2] + z[2] * d[1];
         }
         else {
-            temp = (d[0] - d[1]) / 2.0;
+            temp = (d[0] - d[1]) / real_t(2.0);
             c = rho + z[2] / ((d[2] - d[1]) - temp);
             a = c * (d[0] + d[1]) + z[0] + z[1];
-            b = c * d[0] * d[2] + z[0] * d[1] + z[1] * d[0];
+            b = c * d[0] * d[1] + z[0] * d[1] + z[1] * d[0];
         }
         temp = max(max(abs(a), abs(b)), abs(c));
         a = a / temp;
@@ -119,33 +127,35 @@ int laed6(idx_t kniter,
         if (c == 0) {
             tau = b / a;
         }
-        else if (a <= 0) {
-            tau = (a - sqrt(abs(a * a - 4 * b * c))) / (2.0 * c);
+        else if (a <= 0.0) {
+            tau = (a - sqrt(abs(a * a - real_t(4.0) * b * c))) /
+                  (real_t(2.0) * c);
         }
         else {
-            tau = 2.0 * b / (a + sqrt(abs(a * a - 4 * b * c)));
+            tau =
+                real_t(2.0) * b / (a + sqrt(abs(a * a - real_t(4.0) * b * c)));
         }
 
         if (tau < lbd || tau > ubd) {
-            tau = (lbd + ubd) / 2.0;
+            tau = (lbd + ubd) / real_t(2.0);
         }
 
         if (d[0] == tau || d[1] == tau || d[2] == tau) {
-            tau = 0.0;
+            tau = real_t(0.0);
         }
         else {
             temp = finit + tau * z[0] / (d[0] * (d[0] - tau)) +
                    tau * z[1] / (d[1] * (d[1] - tau)) +
                    tau * z[2] / (d[2] * (d[2] - tau));
 
-            if (temp < 0.0) {
+            if (temp <= 0.0) {
                 lbd = tau;
             }
             else {
                 ubd = tau;
             }
             if (abs(finit) <= abs(temp)) {
-                tau = 0.0;
+                tau = real_t(0.0);
             }
         }
     }
@@ -156,10 +166,10 @@ int laed6(idx_t kniter,
     // SMINV2, EPS are not SAVEd anymore between one call to the
     // others but recomputed at each call
 
-    real_t base = 2.0;
-    real_t safmin = std::numeric_limits<real_t>::min();
-    real_t small1 = pow(base, log(safmin) / log(base) / 3.0);
-    real_t sminv1 = 1.0 / small1;
+    const int base = 2;
+    const real_t safmin = safe_min<real_t>();
+    real_t small1 = pow(base, log(safmin) / log(real_t(base)) / real_t(3.0));
+    real_t sminv1 = real_t(1.0) / small1;
     real_t small2 = small1 * small1;
     real_t sminv2 = sminv1 * sminv1;
     real_t sclfac, sclinv;
@@ -207,12 +217,12 @@ int laed6(idx_t kniter,
         }
     }
 
-    real_t fc = 0;
-    real_t df = 0;
-    real_t ddf = 0;
+    real_t fc = real_t(0.0);
+    real_t df = real_t(0.0);
+    real_t ddf = real_t(0.0);
 
     for (idx_t i = 0; i < 3; i++) {
-        temp = 1.0 / (dscale[i] - tau);
+        temp = real_t(1.0) / (dscale[i] - tau);
         temp1 = zscale[i] * temp;
         temp2 = temp1 * temp;
         temp3 = temp2 * temp;
@@ -227,11 +237,13 @@ int laed6(idx_t kniter,
     if (abs(f) <= 0.0) {
         converge = true;
     }
-    if (f <= 0.0) {
-        lbd = tau;
-    }
-    else {
-        ubd = tau;
+    if (!converge) {
+        if (f <= 0.0) {
+            lbd = tau;
+        }
+        else {
+            ubd = tau;
+        }
     }
 
     // Iteration begins -- Use Gragg-Thornton-Warner cubic convergent scheme
@@ -272,10 +284,12 @@ int laed6(idx_t kniter,
             eta = b / a;
         }
         else if (a <= 0.0) {
-            eta = (a - sqrt(abs(a * a - 4 * b * c))) / (2.0 * c);
+            eta = (a - sqrt(abs(a * a - real_t(4.0) * b * c))) /
+                  (real_t(2.0) * c);
         }
         else {
-            eta = 2.0 * b / (a + sqrt(abs(a * a - 4 * b * c)));
+            eta =
+                real_t(2.0) * b / (a + sqrt(abs(a * a - real_t(4.0) * b * c)));
         }
 
         if (f * eta >= 0.0) {
@@ -284,17 +298,17 @@ int laed6(idx_t kniter,
 
         tau = tau + eta;
         if (tau < lbd || tau > ubd) {
-            tau = (lbd + ubd) / 2.0;
+            tau = (lbd + ubd) / real_t(2.0);
         }
 
-        fc = 0;
-        real_t err = 0;
-        df = 0;
-        ddf = 0;
+        fc = real_t(0.0);
+        real_t err = real_t(0.0);
+        df = real_t(0.0);
+        ddf = real_t(0.0);
 
         for (idx_t i = 0; i < 3; i++) {
             if ((dscale[i] - tau) != 0) {
-                temp = 1.0 / (dscale[i] - tau);
+                temp = real_t(1.0) / (dscale[i] - tau);
                 temp1 = zscale[i] * temp;
                 temp2 = temp1 * temp;
                 temp3 = temp2 * temp;
@@ -306,15 +320,16 @@ int laed6(idx_t kniter,
             }
             else {
                 converge = true;
+                break;
             }
         }
 
         if (!converge) {
             f = finit + tau * fc;
-            err = 8.0 * (abs(finit) + abs(tau) * err) + abs(tau) * df;
+            err = real_t(8.0) * (abs(finit) + abs(tau) * err) + abs(tau) * df;
 
-            if ((abs(f) <= 4.0 * eps * err) ||
-                ((ubd - lbd) <= 4.0 * eps * abs(tau))) {
+            if ((abs(f) <= real_t(4.0) * eps * err) ||
+                ((ubd - lbd) <= real_t(4.0) * eps * abs(tau))) {
                 converge = true;
                 break;
             }
@@ -329,6 +344,8 @@ int laed6(idx_t kniter,
         else {
             break;
         }
+
+        iter++;
     }
 
     if (!converge) {
