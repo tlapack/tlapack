@@ -1,5 +1,6 @@
 /// @file test_trmm_out.cpp
-/// @author Ella Addison-Taylor, Kyle Cunningham, University of Colorado Denver, USA
+/// @author Ella Addison-Taylor, Kyle Cunningham, University of Colorado Denver,
+/// USA
 /// @brief Test banded, Hermitian matrix Cholesky factorization.
 //
 // Copyright (c) 2025, University of Colorado Denver. All rights reserved.
