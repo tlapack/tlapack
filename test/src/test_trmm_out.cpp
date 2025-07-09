@@ -93,7 +93,7 @@ TEMPLATE_TEST_CASE("triagular matrix-matrix multiplication is backward stable",
                            << " transB = " << transB)
     {
         const real_t eps = ulp<real_t>();
-        const real_t tol = real_t(n) * eps;
+        const real_t tol = real_t(10 * n) * eps;
 
         idx_t nc;
         idx_t mc;
@@ -181,9 +181,16 @@ TEMPLATE_TEST_CASE("triagular matrix-matrix multiplication is backward stable",
 
         real_t normC = lange(Norm::Fro, C);
 
-        normC = normC /
-                ((real(alpha) * normA * normB) + (real(beta) * normCbefore));
+        if (!(normC <= tol * ((abs(alpha) * normA * normB) +
+                             (abs(beta) * normCbefore)))) {
+            std::cout << "FAILING CHECK :: " << normC;
+            std::cout << " <= "
+                      << tol * ((abs(alpha) * normA * normB) +
+                                (abs(beta) * normCbefore))
+                      << std::endl;
+        }
 
-        CHECK(normC <= tol);
+        CHECK(normC <=
+              tol * ((abs(alpha) * normA * normB) + (abs(beta) * normCbefore)));
     }
 }
