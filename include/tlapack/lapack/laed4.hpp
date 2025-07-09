@@ -127,12 +127,12 @@ int laed4(
 
         // If ||Z||_2 is not one, then TEMP should be set to RHO * ||Z||_2^2 /
         // TWO
-        for (int j = 0; j < n; j++) {
+        for (idx_t j = 0; j < n; j++) {
             delta[j] = (d[j] - d[i]) - midpt;
         }
 
         psi = real_t(0.0);
-        for (int j = 0; j < n - 2; j++) {
+        for (idx_t j = 0; j < n - 2; j++) {
             psi += z[j] * z[j] / delta[j];
         }
 
@@ -196,7 +196,7 @@ int laed4(
         err = real_t(0.0);
         psi = real_t(0.0);
 
-        for (int j = 0; j < ii; j++) {
+        for (idx_t j = 0; j < ii; j++) {
             real_t temp = z[j] / delta[j];
             psi += z[j] * temp;
             dpsi += temp * temp;
