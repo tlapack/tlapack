@@ -14,7 +14,7 @@
 #include "tlapack/blas/trsm.hpp"
 #include "tlapack/lapack/mult_llh.hpp"
 #include "tlapack/lapack/mult_uhu.hpp"
-#include "tlapack/lapack/potf2.hpp"
+#include "tlapack/lapack/potrf.hpp"
 
 namespace tlapack {
 
@@ -59,21 +59,20 @@ void pbtrf_with_workspace(uplo_t uplo,
     using range = tlapack::pair<idx_t, idx_t>;
     using real_t = tlapack::real_type<T>;
 
+    tlapack_check(uplo == Uplo::Lower || uplo == Uplo::Upper);
+    tlapack_check(nrows(A) == ncols(A));
+    tlapack_check(kd < nrows(A));
+
     tlapack::Create<matrix_t> new_matrix;
 
     const idx_t nb = opts.nb;
 
     idx_t n = nrows(A);
 
-    std::vector<T> work_(nb * nb);
-    for (idx_t ii = 0; ii < nb * nb; ++ii) {
-        if constexpr (tlapack::is_complex<T>) {
-            work_[ii] = T(0, 0);
-        }
-        else
-            work_[ii] = 0;
-    }
+    std::vector<T> work_;
     auto work = new_matrix(work_, nb, nb);
+
+    laset(Uplo::General, real_t(0), real_t(0), work);
 
     if (uplo == tlapack::Uplo::Upper) {
         for (idx_t i = 0; i < n; i += nb) {
@@ -82,7 +81,7 @@ void pbtrf_with_workspace(uplo_t uplo,
             auto A00 = slice(A, range(i, min(ib + i, n)),
                              range(i, std::min(i + ib, n)));
 
-            potf2(tlapack::Uplo::Upper, A00);
+            potrf(uplo, A00);
 
             if (i + ib < n) {
                 // i2 = min(kd - ib, n - i - ib)

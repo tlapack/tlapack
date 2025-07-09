@@ -80,7 +80,7 @@ TEMPLATE_TEST_CASE("triagular matrix-matrix multiplication is backward stable",
             mm.random(A);
 
             for (idx_t i = 0; i < n; ++i) {
-                A(i, i) += n;
+                A(i, i) += real_t(n);
             }
 
             BlockedBandedCholeskyOpts opts;
