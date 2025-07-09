@@ -14,49 +14,52 @@
 
 namespace tlapack {
 
-/** DLAMRG creates a permutation list to merge the entries of two independently
- *sorted sets into a single set sorted in ascending order.
+/**
+ * DLAMRG creates a permutation list to merge the entries of two independently
+ * sorted sets into a single set sorted in ascending order.
  *
- * \verbatim
- *      DLAMRG will create a permutation list which will merge the elements
- *      of A (which is composed of two independently sorted sets) into a
- *      single set which is sorted in ascending order.
- * \endverbatim
+ * DLAMRG will create a permutation list which will merge the elements
+ * of A (which is composed of two independently sorted sets) into a
+ * single set which is sorted in ascending order.
  *
  * @param[in] n1
  *      N2 is INTEGER
+ *
  * @param[in] n2
  *      N2 is INTEGER
  *      These arguments contain the respective lengths of the two
  *      sorted lists to be merged.
+ *
  * @param[in] a
  *      A is DOUBLE PRECISION array, dimension (N1+N2)
  *      The first N1 elements of A contain a list of numbers which
  *      are sorted in either ascending or descending order. Likewise
  *      for the final N2 elements.
+ *
  * @param[in] dtrd1
  *      DTRD1 is INTEGER
+ *
  * @param[in] dtrd2
  *      DTRD2 is INTEGER
  *      These are the strides to be taken through the array A.
  *      Allowable strides are 1 and -1.  They indicate whether a
  *      subset of a is sorted in ascending (DTRDx = 1) or descending
  *      (DTRDx = -1) order.
+ *
  * @param[out] index
  *      INDEX is INTEGER array, dimension (N1+N2)
  *      On exit this array will contain a permutation such that
  *      if B( I ) = A( INDEX( I ) ) for I=1,N1+N2, then B will be
  *      sorted in ascending order.
  *
- * \verbatim
- *       INDEX is INTEGER array, dimension (N1+N2)
- *       On exit this array will contain a permutation such that
- *       if B( I ) = A( INDEX( I ) ) for I=1,N1+N2, then B will be
- *       sorted in ascending order.
- * \endverbatim
+ * INDEX is INTEGER array, dimension (N1+N2)
+ * On exit this array will contain a permutation such that
+ * if B( I ) = A( INDEX( I ) ) for I=1,N1+N2, then B will be
+ * sorted in ascending order.
  *
  * @ingroup lamrg
  */
+
 template <class idx_t, class a_t, class idx1_t>
 void lamrg(idx_t n1, idx_t n2, a_t& a, int dtrd1, int dtrd2, idx1_t& index)
 {

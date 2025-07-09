@@ -13,6 +13,18 @@ if( NOT TARGET tlapack )
   find_package( tlapack REQUIRED )
 endif()
 
-# add the example geqr2
+# add the example example_laed4
 add_executable( example_laed4 example_laed4.cpp )
 target_link_libraries( example_laed4 PRIVATE tlapack )
+
+# add the example example_laed4_brian
+add_executable( example_laed4_brian example_laed4_brian.cpp )
+target_link_libraries( example_laed4_brian PRIVATE tlapack )
+
+# add the example example_laed4_sorensen_tang
+add_executable( example_laed4_sorensen_tang example_laed4_sorensen_tang.cpp )
+target_link_libraries( example_laed4_sorensen_tang PRIVATE tlapack )
+
+# add the example example_laed4_sorensen_tang
+add_executable( example_laed4_gragg example_laed4_gragg.cpp )
+target_link_libraries( example_laed4_gragg PRIVATE tlapack )

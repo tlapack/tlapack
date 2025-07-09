@@ -114,7 +114,7 @@ add_executable(test_trmm_out test_trmm_out.cpp)
 # add_executable(test_lae2 test_lae2.cpp)
 # add_executable(test_laev2 test_laev2.cpp)
 add_executable(test_steqr test_steqr.cpp testutils.cpp)
-# add_executable(test_laed4 test_laed4.cpp) FAILING TEST CASES, NEED TO FIX
+add_executable(test_laed4 test_laed4.cpp)
 add_executable(test_lamrg test_lamrg.cpp)
 
 if(TLAPACK_TEST_EIGEN)

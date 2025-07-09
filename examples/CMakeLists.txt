@@ -32,14 +32,14 @@ add_custom_command(
 )
 
 # add the example laed4
-# add_subdirectory( laed4 )
-# add_custom_command(
-#   OUTPUT run-all-examples-cmd APPEND
-#   COMMAND
-#     echo "- example_laed4 ----------------" &&
-#     "${CMAKE_CURRENT_BINARY_DIR}/laed4/example_laed4${CMAKE_EXECUTABLE_SUFFIX}"
-#     && echo ""
-# )
+add_subdirectory( laed4 )
+add_custom_command(
+  OUTPUT run-all-examples-cmd APPEND
+  COMMAND
+    echo "- example_laed4 ----------------" &&
+    "${CMAKE_CURRENT_BINARY_DIR}/laed4/example_laed4${CMAKE_EXECUTABLE_SUFFIX}"
+    && echo ""
+)
 
 # add the eigenvalues example
 add_subdirectory( eigenvalues )
