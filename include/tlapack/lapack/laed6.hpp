@@ -87,7 +87,7 @@ int laed6(idx_t kniter,
     real_t lbd, ubd, temp, temp1, temp2, temp3, temp4, a, b, c, eta;
     real_t eps = ulp<real_t>();
     real_t maxit = real_t(40);
-    int info = 0;
+    int info = 3;  // NEED TO FIX INFO
 
     if (orgati) {
         lbd = d[1];
@@ -148,7 +148,7 @@ int laed6(idx_t kniter,
                    tau * z[1] / (d[1] * (d[1] - tau)) +
                    tau * z[2] / (d[2] * (d[2] - tau));
 
-            if (temp < 0.0) {
+            if (temp <= 0.0) {
                 lbd = tau;
             }
             else {
@@ -237,11 +237,13 @@ int laed6(idx_t kniter,
     if (abs(f) <= 0.0) {
         converge = true;
     }
-    if (f <= 0.0) {
-        lbd = tau;
-    }
-    else {
-        ubd = tau;
+    if (!converge) {
+        if (f <= 0.0) {
+            lbd = tau;
+        }
+        else {
+            ubd = tau;
+        }
     }
 
     // Iteration begins -- Use Gragg-Thornton-Warner cubic convergent scheme
@@ -318,6 +320,7 @@ int laed6(idx_t kniter,
             }
             else {
                 converge = true;
+                break;
             }
         }
 

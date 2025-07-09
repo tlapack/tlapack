@@ -1,4 +1,4 @@
-/// @file example_laed4.cpp
+/// @file example_laed4_brian.cpp
 /// @author Brian Dang, University of Colorado Denver, USA
 //
 // Copyright (c) 2025, University of Colorado Denver. All rights reserved.
@@ -57,123 +57,84 @@ void run(size_t n)
     // Functors for creating new matrices
     Create<matrix_t> new_matrix;
 
-    // Vectors
-    std::vector<real_t> d(n);
-    std::vector<real_t> lambda(n);
+    std::vector<real_t> d1(n);
+    std::vector<real_t> d2(n);
+    std::vector<real_t> u1(n);
+    std::vector<real_t> u2(n);
+    std::vector<real_t> laed4Lam(n);
+    std::vector<real_t> steqrLam(n);
     std::vector<real_t> e(n - 1);
-    std::vector<real_t> u(n);
     std::vector<real_t> work(n);
     std::vector<real_t> tau(n - 1);
 
-    std::vector<real_t> v(n);
-    std::vector<real_t> av(n);
-
     std::vector<real_t> A_;
     auto A = new_matrix(A_, n, n);
-    std::vector<real_t> Z_;
-    auto Z = new_matrix(Z_, n, n);
 
-    // Create a rho > 0
-    real_t rho = real_t(0.5);
-
-    // Create a sorted d
+    // D = diag(1, 2, . . ., n)
     for (idx_t i = 0; i < n; i++) {
-        d[i] = real_t((i + 1) * 2 + i);
+        d1[i] = real_t(i);
     }
+    sort(d1.begin(), d1.end());
+    d2 = d1;
 
+    // z = (1, 10^-1, . . ., 10^-(n-1))
+    real_t sum = real_t(0);
+    u1[0] = real_t(1);
     // Create a u of norm 1
-    for (idx_t i = 0; i < n; i++) {
-        u[i] = real_t(2 * i + 1);
+    for (idx_t i = 1; i < n; i++) {
+        u1[i] = real_t(1.0 / pow(10.0, -i));
     }
-    rscl(nrm2(u), u);
+    u2 = u1;
 
-    real_t dlam = real_t(0);
-    real_t f = real_t(0);
-    std::cout << std::endl;
     for (idx_t i = 0; i < n; i++) {
-        laed4(n, i, d, u, work, rho, dlam);
-        f = 0;
-        for (idx_t j = 0; j < n; j++) {
-            f += (u[j] * u[j]) / (d[j] - dlam);
-        }
-        f *= rho;
-        f += 1;
-        std::cout << std::setprecision(15);
-        std::cout << "Lambda from laed4 " << i << ": " << dlam << " f: " << f
-                  << " ";
-
-        // Compute an eigenvector v associated with eigenvalue λ
-        for (idx_t j = 0; j < n; j++) {
-            v[j] = u[j] / (d[j] - dlam);
-        }
-
-        auto nrmv = nrm2(v);
-
-        real_t utv = dot(u, v);
-
-        // Compute || A v - λ v ||₂ / | λ | / || v ||₂
-        for (idx_t j = 0; j < n; j++) {
-            v[j] = dlam * v[j] - d[j] * v[j] - rho * u[j] * utv;
-        }
-        std::cout << nrm2(v) / nrmv / abs(dlam) << std::endl;
+        work[i] = real_t(0.0);
     }
 
-    printf("-----------------------\n");
+    real_t rho = real_t(1.0);
+    real_t dlam = real_t(0.0);
+    for (idx_t i = 0; i < n; i++) {
+        laed4(n, i, d1, u1, work, rho, dlam);
+        laed4Lam[i] = dlam;
+    }
 
     // Create A Matrix = D + rho * u*u^T
-    laset(GENERAL, real_t(0.), real_t(0.), A);
-    her(LOWER_TRIANGLE, rho, u, A);
+    laset(GENERAL, real_t(0.0), real_t(0.0), A);
+    her(LOWER_TRIANGLE, rho, u2, A);
     for (idx_t i = 0; i < n; i++) {
-        A(i, i) += d[i];
+        A(i, i) += d2[i];
     }
+    // printMatrix(A);
 
     // Turn A into a Tridiagonal
     hetd2(LOWER_TRIANGLE, A, tau);
 
-    // Extract d from A
+    // Extract diag from A
     for (idx_t i = 0; i < n; i++) {
-        lambda[i] = A(i, i);
+        steqrLam[i] = A(i, i);
     }
     // Extract e from A
     for (idx_t i = 0; i < n - 1; i++) {
         e[i] = A(i + 1, i);
     }
 
-    // find the eigenvalues and eigenvectors of the real symmetric tridiagonal
-    // matrix A using steqr
     ungtr(LOWER_TRIANGLE, A, tau);
-    steqr(true, lambda, e, A);
+    steqr(false, steqrLam, e, A);
 
+    std::cout << std::setprecision(15);
+    std::cout << std::endl;
     for (idx_t i = 0; i < n; i++) {
-        real_t f = real_t(0);
-        for (idx_t j = 0; j < n; j++) {
-            f += (u[j] * u[j]) / (d[j] - lambda[i]);
-        }
-        f *= rho;
-        f += real_t(1);
-
-        std::cout << "Lambda from steqr " << i << ": " << lambda[i]
-                  << " f: " << f << " ";
-
-        auto z = slice(A, range{0, n}, i);
-        auto nrmz = nrm2(z);
-
-        real_t utz = dot(u, z);
-
-        // Compute || A v - λ v ||₂ / | λ | / || v ||₂
-        for (idx_t j = 0; j < n; j++) {
-            z[j] = lambda[i] * z[j] - d[j] * z[j] - rho * u[j] * utz;
-        }
-        std::cout << nrm2(z) / nrmz / abs(lambda[i]) << std::endl;
+        std::cout << "dlam = " << laed4Lam[i] << " steqr = " << steqrLam[i]
+                  << std::endl;
     }
 }
+
 //------------------------------------------------------------------------------
 int main(int argc, char** argv)
 {
     int n;
 
     // Default arguments
-    n = (argc < 2) ? 5 : atoi(argv[1]);
+    n = (argc < 2) ? 100 : atoi(argv[1]);
 
     srand(3);  // Init random seed
 

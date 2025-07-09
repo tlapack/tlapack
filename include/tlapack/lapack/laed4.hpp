@@ -387,7 +387,7 @@ int laed4(
     }
     else {
         // The case for 0 ≤ i < n
-        idx_t niter = 1;
+        idx_t niter = 0;
         idx_t ip1 = i + 1;
 
         // Calculate Inital Guess
@@ -605,9 +605,9 @@ int laed4(
                 zz[2] = z[iip1] * z[iip1];
             }
             zz[1] = z[ii] * z[ii];
-            // std::cout << "ENTERED INTO LAED6 1" << std::endl;
 
-            info = laed6(niter, orgati, c, delta, zz, w, eta);
+            std::vector<real_t> sub(delta.begin() + iim1, delta.end());
+            info = laed6(niter, orgati, c, sub, zz, w, eta);
 
             if (info == 0) {
                 return info;
@@ -791,9 +791,10 @@ int laed4(
                         zz[2] = z[iip1] * z[iip1];
                     }
                 }
-                // std::cout << "ENTERED INTO LAED6 2" << std::endl;
 
-                info = laed6(niter, orgati, c, delta, zz, w, eta);
+                std::vector<real_t> sub(delta.begin() + iim1, delta.end());
+                info = laed6(niter, orgati, c, sub, zz, w, eta);
+
                 if (info == 0) {
                     return info;
                 }
