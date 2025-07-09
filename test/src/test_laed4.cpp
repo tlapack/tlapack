@@ -135,9 +135,15 @@ TEMPLATE_TEST_CASE("LAED4", "[stedc,laed4]", TLAPACK_TYPES_TO_TEST)
 
         real_t maxLam = max(abs(steqrLam[0]), abs(steqrLam[n - 1]));
 
-        std::cout << setprecision(15);
         for (idx_t i = 0; i < n; i++) {
             if ((laed4Lam[i] - steqrLam[i]) * real_t(0) == 0) {
+                // this "if" is to not go in CHECK if we have NaNs
+                // this has happened with bfloat16
+                std::cout << setprecision(15);
+                if (!(abs(laed4Lam[i] - steqrLam[i]) <= tol * maxLam))
+                    std::cout << abs(laed4Lam[i] - steqrLam[i])
+                              << " <= " << tol * maxLam << "is false"
+                              << std::endl;
                 CHECK(abs(laed4Lam[i] - steqrLam[i]) <= tol * maxLam);
             }
         }

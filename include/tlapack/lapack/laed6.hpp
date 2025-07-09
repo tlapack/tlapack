@@ -87,7 +87,7 @@ int laed6(idx_t kniter,
     real_t lbd, ubd, temp, temp1, temp2, temp3, temp4, a, b, c, eta;
     real_t eps = ulp<real_t>();
     real_t maxit = real_t(40);
-    int info = 3;  // NEED TO FIX INFO
+    int info = 0;
 
     if (orgati) {
         lbd = d[1];
