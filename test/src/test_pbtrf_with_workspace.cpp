@@ -53,14 +53,14 @@ TEMPLATE_TEST_CASE("triagular matrix-matrix multiplication is backward stable",
     // MatrixMarket reader
     MatrixMarket mm;
 
-    const idx_t n = GENERATE(13, 20, 25, 45, 131);
-    const idx_t kd = GENERATE(5, 7, 9, 12, 20);
+    const idx_t n = GENERATE(2, 13, 20, 25, 45, 131);
+    const idx_t kd = GENERATE(1, 5, 7, 9, 12, 20);
 
     srand(3);
 
     const Uplo uplo = GENERATE(Uplo::Upper, Uplo::Lower);
 
-    const size_t nb = GENERATE(1, 3, 4, 7, 9, 11);
+    const size_t nb = GENERATE(1, 2, 3, 4, 7, 9, 11);
 
     DYNAMIC_SECTION("n = " << n << " kd = " << kd << " Uplo = " << uplo
                            << " nb = " << nb)
