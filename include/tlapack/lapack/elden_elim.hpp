@@ -1,13 +1,33 @@
-/// @file elden_elim.hpp Uses givens rotations to eliminate lambda from the
-/// bidiagonal L matrix utilized in Eldén's bidiagonalization algorithm. .
-/// @author L. Carlos Gutierrez, Julien Langou, University of Colorado Denver,
-/// USA
-//
-// Copyright (c) 2025, University of Colorado Denver. All rights reserved.
-//
-// This file is part of <T>LAPACK.
-// <T>LAPACK is free software: you can redistribute it and/or modify it under
-// the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
+/**
+ * @file elden_elim.hpp
+ * @brief Uses Givens rotations to eliminate λ from the bidiagonal L matrix
+ *        utilized in Eldén's bidiagonalization algorithm.
+ *
+ * @author L. Carlos Gutierrez
+ * @author Julien Langou
+ * @author University of Colorado Denver, USA
+ *
+ * @copyright
+ * Copyright (c) 2025, University of Colorado Denver. All rights reserved.
+ *
+ * This file is part of <T>LAPACK.
+ * <T>LAPACK> is free software: you can redistribute it and/or modify it under
+ * the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
+ *
+ * @param[in]      lambda  Scalar parameter for the elimination.
+ * @param[in,out]  d       Vector of length n. On entry, contains the diagonal
+ *                         of the bidiagonal matrix; on exit, contains the
+ *                         updated diagonal.
+ * @param[in,out]  e       Vector of length n–1. On entry, contains the
+ *                         superdiagonal; on exit, contains the updated
+ *                         superdiagonal.
+ * @param[in,out]  work    Workspace matrix (n × k). On entry, may be
+ * uninitialized; on exit, used to compute residuals of the full augmented
+ * vector b.
+ * @param[in,out]  b       Matrix of size n × k. On entry, contains the
+ *                         projected vector; on exit, stores the updated
+ *                         vector b after elimination.
+ */
 
 #ifndef TLAPACK_ELDEN_ELIM_HPP
 #define TLAPACK_ELDEN_ELIM_HPP
@@ -17,21 +37,6 @@
 #include "tlapack/blas/rot.hpp"
 #include "tlapack/blas/rotg.hpp"
 
-/**
- *  @param[in]      lambda  Scalar parameter for the elimination.
- * @param[in,out]  d       Vector of length n. On entry, contains the diagonal
- *                         of the bidiagonal matrix; on exit, contains the
- *                         updated diagonal.
- * @param[in,out]  e       Vector of length n–1. On entry, contains the
- *                         superdiagonal; on exit, contains the updated
- *                         superdiagonal.
- * @param[in,out]  work    Workspace matrix (n × k). On entry, may be
- *                         uninitialized; on exit, used to compute residuals of
- *                         the full augmented vector b.
- * @param[in,out]  b       Matrix of size n × k. On entry, contains the
- *                         projected vector; on exit, stores the updated
- *                         vector b after elimination.
- */
 using namespace tlapack;
 
 template <TLAPACK_REAL real_t,
