@@ -1,7 +1,7 @@
-/// @file test_bidiag.cpp
-/// @author Yuxin Cai, University of Colorado Denver, USA
-/// @author Thijs Steel, KU Leuven, Belgium
-/// @brief Test bidiagonal reduction
+/// @file test_trmm_out.cpp
+/// @author Ella Addison-Taylor, Kyle Cunningham, University of Colorado Denver,
+/// USA
+/// @brief Test banded, Hermitian matrix Cholesky factorization.
 //
 // Copyright (c) 2025, University of Colorado Denver. All rights reserved.
 //
@@ -9,123 +9,174 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
+
 // Test utilities and definitions (must come before <T>LAPACK headers)
 #include "testutils.hpp"
 
+
 // Auxiliary routines
 #include <tlapack/lapack/lacpy.hpp>
-#include <tlapack/lapack/lange.hpp>
-#include <tlapack/lapack/laset.hpp>
+
 
 // Other routines
-#include <tlapack/blas/gemm.hpp>
-#include <tlapack/lapack/bidiag.hpp>
-#include <tlapack/lapack/ungbr.hpp>
+#include <iomanip>
+#include <tlapack/lapack/lacpy.hpp>
+#include <tlapack/lapack/pbtrf.hpp>
+
 
 using namespace tlapack;
 
-TEMPLATE_TEST_CASE("bidiagonal reduction is backward stable",
-                   "[bidiagonal][svd]",
-                   TLAPACK_TYPES_TO_TEST)
+
+
+
+TEMPLATE_TEST_CASE("triagular matrix-matrix multiplication is backward stable",
+                  "[triangular matrix-matrix check]",
+                  TLAPACK_TYPES_TO_TEST)
 {
-    using matrix_t = TestType;
-    using T = type_t<matrix_t>;
-    using idx_t = size_type<matrix_t>;
-    using range = pair<idx_t, idx_t>;
-    typedef real_type<T> real_t;
+   using matrix_t = TestType;
+   using T = type_t<matrix_t>;
+   using idx_t = size_type<matrix_t>;
+   typedef real_type<T> real_t;
+   using range = pair<idx_t, idx_t>;
 
-    // Functor
-    Create<matrix_t> new_matrix;
 
-    // MatrixMarket reader
-    MatrixMarket mm;
+   // Functor
+   Create<matrix_t> new_matrix;
 
-    using variant_t = pair<BidiagVariant, idx_t>;
-    const variant_t variant = GENERATE((variant_t(BidiagVariant::Blocked, 1)),
-                                       (variant_t(BidiagVariant::Blocked, 2)),
-                                       (variant_t(BidiagVariant::Blocked, 5)),
-                                       (variant_t(BidiagVariant::Level2, 1)));
-    const idx_t m = GENERATE(1, 4, 5, 10, 15);
-    const idx_t n = GENERATE(1, 4, 5, 10, 12);
-    const idx_t k = min(m, n);
-    const real_t eps = ulp<real_t>();
-    const real_t tol = real_t(10. * max(m, n)) * eps;
 
-    std::vector<T> A_;
-    auto A = new_matrix(A_, m, n);
-    std::vector<T> A_copy_;
-    auto A_copy = new_matrix(A_copy_, m, n);
-    std::vector<T> Q_;
-    auto Q = new_matrix(Q_, m, k);
-    std::vector<T> Z_;
-    auto Z = new_matrix(Z_, k, n);
+   // MatrixMarket reader
+   MatrixMarket mm;
 
-    std::vector<T> tauv(k);
-    std::vector<T> tauw(k);
 
-    // Generate random m-by-n matrix
-    mm.random(A);
+   // const idx_t n = GENERATE(2, 13, 20, 25, 45, 131);
+   const idx_t n = GENERATE(13);
+   // const idx_t kd = GENERATE(1, 5, 7, 9, 12, 20);
+   const idx_t kd = GENERATE(5);
 
-    lacpy(GENERAL, A, A_copy);
-    real_t normA = lange(MAX_NORM, A);
 
-    DYNAMIC_SECTION("m = " << m << " n = " << n << " variant = "
-                           << (char)variant.first << " nb = " << variant.second)
-    {
-        BidiagOpts bidiagOpts;
-        bidiagOpts.variant = variant.first;
-        bidiagOpts.nb = variant.second;
-        bidiag(A, tauv, tauw, bidiagOpts);
+   srand(3);
 
-        // Get bidiagonal B
-        std::vector<T> B_;
-        auto B = new_matrix(B_, k, k);
-        laset(GENERAL, real_t(0), real_t(0), B);
 
-        if (m >= n) {
-            // copy upper bidiagonal matrix
-            B(0, 0) = A(0, 0);
-            for (idx_t j = 1; j < k; ++j) {
-                B(j - 1, j) = A(j - 1, j);
-                B(j, j) = A(j, j);
-            }
-        }
-        else {
-            // copy lower bidiagonal matrix
-            B(0, 0) = A(0, 0);
-            for (idx_t j = 1; j < k; ++j) {
-                B(j, j - 1) = A(j, j - 1);
-                B(j, j) = A(j, j);
-            }
-        }
+   // const Uplo uplo = GENERATE(Uplo::Upper, Uplo::Lower);
+   const Uplo uplo = GENERATE(Uplo::Upper);
 
-        // Generate m-by-k unitary matrix Q
-        UngbrOpts ungbrOpts;
-        ungbrOpts.nb = variant.second;
-        lacpy(LOWER_TRIANGLE, slice(A, range{0, m}, range{0, k}), Q);
-        ungbr_q(n, Q, tauv, ungbrOpts);
 
-        // Test for Q's orthogonality
-        std::vector<T> Wq_;
-        auto Wq = new_matrix(Wq_, k, k);
-        auto orth_Q = check_orthogonality(Q, Wq);
-        CHECK(orth_Q <= tol);
+   // const size_t nb = GENERATE(1, 2, 3, 4, 7, 9, 11);
+   const size_t nb = GENERATE(3);
 
-        lacpy(UPPER_TRIANGLE, slice(A, range{0, k}, range{0, n}), Z);
-        ungbr_p(m, Z, tauw, ungbrOpts);
 
-        // Test for Z's orthogonality
-        std::vector<T> Wz_;
-        auto Wz = new_matrix(Wz_, k, k);
-        auto orth_Z = check_orthogonality(Z, Wz);
-        CHECK(orth_Z <= tol);
+   DYNAMIC_SECTION("n = " << n << " kd = " << kd << " Uplo = " << uplo
+                          << " nb = " << nb)
+   {
+       if (nb <= kd && kd < n) {
+           const real_t eps = ulp<real_t>();
+           const real_t tol = real_t(n) * eps;
 
-        // Test Q * B * Z^H = A
-        std::vector<T> K_;
-        auto K = new_matrix(K_, m, k);
-        gemm(NO_TRANS, NO_TRANS, real_t(1.), Q, B, K);
-        gemm(NO_TRANS, NO_TRANS, real_t(1.), K, Z, real_t(-1.), A_copy);
-        real_t repres = lange(MAX_NORM, A_copy);
-        CHECK(repres <= tol * normA);
-    }
+
+           std::vector<T> A_;
+           auto A = new_matrix(A_, n, n);
+
+
+           std::vector<T> A_orig_;
+           auto A_orig = new_matrix(A_orig_, n, n);
+
+
+           MatrixMarket mm;
+
+
+           mm.random(A);
+
+
+           for (idx_t i = 0; i < n; ++i) {
+               A(i, i) += real_t(n);
+           }
+
+
+           BlockedAndBandedCholeskyOpts opts;
+           opts.nb = nb;
+
+
+           lacpy(Uplo::General, A, A_orig);
+
+
+           pbtrf(uplo, A, kd, opts);
+
+
+           if (uplo == Uplo::Upper) {
+               real_t sum(0);
+               for (idx_t j = 0; j < n; j++)
+                   for (idx_t i = j + 1; i < n; i++)
+                       sum += abs1(A(i, j) - A_orig(i, j));
+
+
+               for (idx_t j = 0; j < n - kd; j++)
+                   for (idx_t i = kd + 1 + j; i < n; ++i)
+                       sum += abs1(A(j, i) - A_orig(j, i));
+
+
+               CHECK(sum == real_t(0));
+
+
+               auto temp2 = slice(A, range(0, n - kd), range(kd + 1, n));
+               laset(uplo, T(0), T(0), temp2);
+
+
+               for (idx_t j = 0; j < n; j++)
+                   for (idx_t i = j + 1; i < n; i++)
+                       A_orig(i, j) = T(0);
+
+
+               for (idx_t j = 0; j < n - kd; j++)
+                   for (idx_t i = kd + 1 + j; i < n; ++i)
+                       A_orig(j, i) = T(0);
+
+
+               mult_uhu(A);
+           }
+           else {
+               real_t sum(0);
+               for (idx_t j = 0; j < n; j++)
+                   for (idx_t i = 0; i < j; i++)
+                       sum += abs1(A(i, j) - A_orig(i, j));
+
+
+               for (idx_t j = 0; j < n - kd; j++)
+                   for (idx_t i = kd + 1 + j; i < n; ++i)
+                       sum += abs1(A(i, j) - A_orig(i, j));
+
+
+               CHECK(sum == real_t(0));
+               auto temp2 = slice(A, range(kd + 1, n), range(0, n - kd));
+               laset(uplo, T(0), T(0), temp2);
+
+
+               for (idx_t j = 0; j < n; j++)
+                   for (idx_t i = 0; i < j; i++)
+                       A_orig(i, j) = T(0);
+
+
+               for (idx_t j = 0; j < n - kd; j++)
+                   for (idx_t i = kd + 1 + j; i < n; ++i)
+                       A_orig(i, j) = T(0);
+               mult_llh(A);
+           }
+
+
+           real_t normAbefore = lanhe(Norm::Fro, uplo, A_orig);
+
+
+           for (idx_t i = 0; i < n; ++i) {
+               for (idx_t j = 0; j < n; ++j) {
+                   A(i, j) -= A_orig(i, j);
+               }
+           }
+
+
+           real_t normA = lanhe(Norm::Fro, uplo, A);
+
+
+           CHECK(normA <= tol * normAbefore);
+       }
+   }
 }
+

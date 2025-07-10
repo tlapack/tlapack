@@ -16,6 +16,7 @@
 #include "tlapack/lapack/mult_uhu.hpp"
 #include "tlapack/lapack/potrf.hpp"
 #include "tlapack/lapack/trmm_out.hpp"
+#include "tlapack/lapack/trsm_tri.hpp"
 
 namespace tlapack {
 
@@ -133,21 +134,73 @@ void pbtrf(uplo_t uplo,
                         for (idx_t ii = jj; ii < ib; ++ii)
                             work02(ii, jj) = A02(ii, jj);
 
-                    std::cout << "work = " << std::endl;
-                    printMatrix(work02);
+                    // trsm(tlapack::Side::Left, tlapack::Uplo::Upper,
+                    //      tlapack::Op::ConjTrans, tlapack::Diag::NonUnit,
+                    //      real_t(1), A00, work02);
 
-                    std::cout << "A02 = " << std::endl;
-                    printMatrix(A02);
+                    /**/
+                    std::vector<T> temp2_;
+                    auto temp2 = new_matrix(temp2_, ib - i3, i3);
 
-                    trsm(tlapack::Side::Left, tlapack::Uplo::Upper,
-                         tlapack::Op::ConjTrans, tlapack::Diag::NonUnit,
-                         real_t(1), A00, work02);
+                    auto A00_00 = slice(A00, range(0, i3), range(0, i3));
 
-                    
+                    auto A00_10 = slice(A00, range(0, i3), range(i3, ib));
 
+                    for (idx_t j = 0; j < i3; ++j) {
+                        for (idx_t i = 0;
+                             i < static_cast<int>(ib) - static_cast<int>(i3);
+                             ++i) {
+                            temp2(i, j) = conj(A00_10(j, i));
+                        }
+                    }
+                    std::cout << "done transpose" << std::endl;
+
+                    auto A00_11 = slice(A00, range(i3, ib), range(i3, ib));
+                    /**/
                     auto work02_0 = slice(work02, range(0, i3), range(0, i3));
 
                     auto work02_1 = slice(work02, range(i3, ib), range(0, i3));
+
+                    /**/
+                    // trsm_tri(Side::Left, Uplo::Lower, Op::ConjTrans,
+                    //          Diag::NonUnit, real_t(1), A00_00, A02_0);
+
+                    // trmm_out(Side::Right, Uplo::Lower, Op::NoTrans,
+                    //          Diag::NonUnit, Op::ConjTrans, real_t(-1), A02_0,
+                    //          A00_10, real_t(1), A02_1);
+
+                    // trsm(Side::Left, Uplo::Upper, Op::ConjTrans,
+                    // Diag::NonUnit,
+                    //      real_t(1), A00_00, work02_0);
+                    trsm_tri(Side::Left, Uplo::Lower, Op::ConjTrans,
+                             Diag::NonUnit, real_t(1), A00_00, A02_0);
+
+                    trmm_out(Side::Right, Uplo::Lower, Op::NoTrans,
+                             Diag::NonUnit, Op::ConjTrans, real_t(-1), A02_0,
+                             A00_10, real_t(1), A02_1);
+                    // trmm_out(Side::Right, Uplo::Lower, Op::NoTrans,
+                    // Diag::NonUnit, Op::NoTrans, real_t(-1), work02_0, temp2,
+                    // real_t(1), work02_1);
+                    trsm(Side::Left, Uplo::Upper, Op::ConjTrans, Diag::NonUnit,
+                         real_t(1), A00_11, A02_1);
+
+                         
+                    for (idx_t j = 0; j < i3; ++j)
+                        for (idx_t i = j; i < i3; ++i)
+                            work02_0(i, j) = A02_0(i, j);
+                    for (idx_t j = 0; j < i3; ++j)
+                        for (idx_t i = 0; i < static_cast<int>(ib) - static_cast<int>(i3); ++i)
+                            work02_1(i, j) = A02_1(i, j);
+
+
+                    // for (idx_t j = 0; j < i3; ++j) {
+                    //     for (idx_t i = 0;
+                    //          i < static_cast<int>(ib) - static_cast<int>(i3);
+                    //          ++i) {
+                    //         A00_10(j, i) = conj(temp2(i, j));
+                    //     }
+                    // } (:
+                    /**/
 
                     auto A12 = slice(A, range(i + ib, i + kd),
                                      range(i + kd, std::min(i + kd + i3, n)));
@@ -159,8 +212,8 @@ void pbtrf(uplo_t uplo,
 
                     auto A01_1 = slice(A01, range(i3, ib), range(0, i2));
 
-                    std::vector<T> temp_;
-                    auto temp = new_matrix(temp_, i2, i3);
+                    // std::vector<T> temp_;
+                    // auto temp = new_matrix(temp_, i2, i3);
 
                     // lacpy(Uplo::General, A12, temp);
 
@@ -168,7 +221,7 @@ void pbtrf(uplo_t uplo,
                          real_t(-1), A01_0, work02_0, real_t(1), A12);
 
                     gemm(tlapack::Op::ConjTrans, tlapack::Op::NoTrans,
-                         real_t(-1), A01_1, A02_1, real_t(1), A12);
+                         real_t(-1), A01_1, work02_1, real_t(1), A12);
 
                     // std::cout << "temp = " << std::endl;
                     // printMatrix(temp);
@@ -177,7 +230,8 @@ void pbtrf(uplo_t uplo,
                     //          Diag::NonUnit, Op::ConjTrans, real_t(-1), A02_0,
                     //          A01_0, real_t(1), A12);
 
-                    // gemm(Op::ConjTrans, Op::NoTrans, real_t(-1), A01_1, A02_1,
+                    // gemm(Op::ConjTrans, Op::NoTrans, real_t(-1), A01_1,
+                    // A02_1,
                     //      real_t(1), A12);
 
                     // std::cout << "A12 = " << std::endl;
