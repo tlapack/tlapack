@@ -11,6 +11,14 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
+#ifndef TLAPACK_ELDEN_ELIM_HPP
+#define TLAPACK_ELDEN_ELIM_HPP
+
+#include "tlapack/base/utils.hpp"
+#include "tlapack/blas/axpy.hpp"
+#include "tlapack/blas/rot.hpp"
+#include "tlapack/blas/rotg.hpp"
+
 /**
  * @param[in]      lambda  Scalar parameter for the elimination.
  * @param[in,out]  d       Vector of length n. On entry, contains the diagonal
@@ -19,21 +27,13 @@
  * @param[in,out]  e       Vector of length n–1. On entry, contains the
  *                         superdiagonal; on exit, contains the updated
  *                         superdiagonal.
- * @param[in,out]  work    Workspace matrix (n × k). On entry, may be
- * uninitialized; on exit, used to compute residuals of the full augmented
- * vector b.
  * @param[in,out]  b       Matrix of size n × k. On entry, contains the
  *                         projected vector; on exit, stores the updated
  *                         vector b after elimination.
+ * @param[in,out]  work    Workspace matrix (n × k). On entry, may be
+ * uninitialized; on exit, used to compute residuals of the full augmented
+ * vector b.
  */
-
-#ifndef TLAPACK_ELDEN_ELIM_HPP
-#define TLAPACK_ELDEN_ELIM_HPP
-
-#include "tlapack/base/utils.hpp"
-#include "tlapack/blas/axpy.hpp"
-#include "tlapack/blas/rot.hpp"
-#include "tlapack/blas/rotg.hpp"
 
 using namespace tlapack;
 
@@ -43,7 +43,7 @@ template <TLAPACK_REAL real_t,
           TLAPACK_WORKSPACE work_t,
           TLAPACK_SMATRIX matrix_t>
 void elden_elim(
-    real_t lambda, vectord_t& d, vectore_t& e, work_t& work, matrix_t& b)
+    real_t lambda, vectord_t& d, vectore_t& e, matrix_t& b, work_t& work)
 {
     tlapack_check(size(d) == size(e) + 1);
     tlapack_check(size(d) == nrows(b));

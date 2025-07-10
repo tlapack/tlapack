@@ -87,7 +87,7 @@ void run(size_t m, size_t n, size_t k)
     for (idx_t j = 0; j < n - 1; ++j)
         e[j] = real(A(j, j + 1));
 
-    elden_elim(lambda, d, e, work, x);
+    elden_elim(lambda, d, e, x, work);
 
     normx_inside = lange(FROB_NORM, x);
 
@@ -129,7 +129,7 @@ void run(size_t m, size_t n, size_t k)
     for (idx_t j = 0; j < n - 1; ++j)
         e[j] = real(A(j, j + 1));
 
-    elden_elim(lambda, d, e, work, x);
+    elden_elim(lambda, d, e, x, work);
 
     normx_inside = lange(FROB_NORM, x);
 

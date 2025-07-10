@@ -85,7 +85,7 @@ void tik_bidiag_elden(matrixA_t& A, matrixb_t& b, real_t lambda)
     for (idx_t j = 0; j < n - 1; ++j)
         e[j] = real(A(j, j + 1));
 
-    elden_elim(lambda, d, e, work, x_view_b);
+    elden_elim(lambda, d, e, x_view_b, work);
 
     // Solve for x without constructing P1 using views
     auto view_b = slice(b, range{1, n}, range{0, k});
