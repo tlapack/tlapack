@@ -18,31 +18,20 @@
 #include "tlapack/blas/rotg.hpp"
 
 /**
- * @param[in] lambda scalar.
- * @param[in, out] d
- *      -On entry, d is vector of size(n) that contains the diagonal of a
- *      bidiagonal matrix.
- *
- *      -On exit, d contains the updated diagonal of the elimination algorithm.
- * @param[in, out] e
- *      -On entry, e is vector of size(n - 1) that contains the super diagonal
- *      of a bidiagonal matrix.
- *
- *      -On exit, e is the updated super diagonal of the elimination algorithm.
- * @param[in, out] work
- *      -On entry, work is an n-by-k matrix that is a workspace filled with
- *      junk.
- *
- *      -On exit, work is used to compute the residual of the full augmented
- *      vector b
- * @param[in, out] b
- *      -On entry, b is a matrix of size n-by-k which stores the projected
- *      vector .b
- *
- *      -On exit, b is a matrix that stores the updated vector b after the
- *      elimination algorithm.
+ *  @param[in]      lambda  Scalar parameter for the elimination.
+ * @param[in,out]  d       Vector of length n. On entry, contains the diagonal
+ *                         of the bidiagonal matrix; on exit, contains the
+ *                         updated diagonal.
+ * @param[in,out]  e       Vector of length n–1. On entry, contains the
+ *                         superdiagonal; on exit, contains the updated
+ *                         superdiagonal.
+ * @param[in,out]  work    Workspace matrix (n × k). On entry, may be
+ *                         uninitialized; on exit, used to compute residuals of
+ *                         the full augmented vector b.
+ * @param[in,out]  b       Matrix of size n × k. On entry, contains the
+ *                         projected vector; on exit, stores the updated
+ *                         vector b after elimination.
  */
-
 using namespace tlapack;
 
 template <TLAPACK_REAL real_t,
