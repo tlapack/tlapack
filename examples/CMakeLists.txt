@@ -60,15 +60,7 @@ add_custom_command(
     "${CMAKE_CURRENT_BINARY_DIR}/eigenvalues/example_eigenvalues${CMAKE_EXECUTABLE_SUFFIX}"
     && echo ""
 )
-# add the trsm_tri example
-add_subdirectory( trsm_tri )
-add_custom_command(
-  OUTPUT run-all-examples-cmd APPEND
-  COMMAND
-    echo "- example_trsm_tri ----------------" &&
-    "${CMAKE_CURRENT_BINARY_DIR}/trsm_tri/example_trsm_tri${CMAKE_EXECUTABLE_SUFFIX}"
-    && echo ""
-)
+
 
 # add the debug example
 add_subdirectory( cpp_visualizer )
