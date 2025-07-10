@@ -25,19 +25,19 @@
 #include "tlapack/lapack/elden_elim.hpp"
 
 /**
- * @brief This function solves the least squares problem for a Tikhonov
- * regularized matrix using Eldén's bidiagonalization algorithm.
+ * @brief This function solves the standard Tikhonov regularized least squares
+ * problem using Eldén's bidiagonalization algorithm.
  *
  * See: L. Eldén. Algorithms for the regularization of ill-conditioned least
  * square problems. BIT, 17:134–145, 1977
  *
- * @param[in] A is an m-by-n matrix where m >= n.
+ * @param[in,out] A is an m-by-n matrix where m >= n.
+ *      On exit, A is trashed.
  * @param[in,out] b
  *      On entry, b is a m-by-k matrix
- *
- *      On exit, b is an m-by-k matrix that stores the solution x in the first
- *      n rows.
+ *      On exit, b stores the solution x in the first n rows.
  * @param[in] lambda scalar
+ *      The famous Tikhonov regularization parameter
  *
  */
 
@@ -86,10 +86,6 @@ void tik_bidiag_elden(matrixA_t& A, matrixb_t& b, real_t lambda)
         e[j] = real(A(j, j + 1));
 
     elden_elim(lambda, d, e, work, x_view_b);
-    // std::cout << "\nnrows(b) = " << nrows(b) << std::endl;
-    // std::cout << "\nnrows(work) = " << nrows(work) << std::endl;
-    // std::cout << "\nnrows(b) = " << nrows(b) << std::endl;
-    // std::cout << "\nnrows(work) = " << nrows(work) << std::endl;
 
     // Solve for x without constructing P1 using views
     auto view_b = slice(b, range{1, n}, range{0, k});

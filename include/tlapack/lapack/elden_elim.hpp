@@ -1,19 +1,17 @@
+/// @file tik_elim.hpp
+/// @brief Solves a Tikhonov regularized least squares problem using Eldén's
+/// bidiagonalization algorithm.
+/// @author L. Carlos Gutierrez, University of Colorado Denver, USA
+/// @author Julien Langou, University of Colorado Denver, USA
+//
+/// @copyright
+/// Copyright (c) 2025, University of Colorado Denver. All rights reserved.
+//
+// This file is part of <T>LAPACK.
+// <T>LAPACK is free software: you can redistribute it and/or modify it under
+// the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
+
 /**
- * @file elden_elim.hpp
- * @brief Uses Givens rotations to eliminate λ from the bidiagonal L matrix
- *        utilized in Eldén's bidiagonalization algorithm.
- *
- * @author L. Carlos Gutierrez
- * @author Julien Langou
- * @author University of Colorado Denver, USA
- *
- * @copyright
- * Copyright (c) 2025, University of Colorado Denver. All rights reserved.
- *
- * This file is part of <T>LAPACK.
- * <T>LAPACK> is free software: you can redistribute it and/or modify it under
- * the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
- *
  * @param[in]      lambda  Scalar parameter for the elimination.
  * @param[in,out]  d       Vector of length n. On entry, contains the diagonal
  *                         of the bidiagonal matrix; on exit, contains the
