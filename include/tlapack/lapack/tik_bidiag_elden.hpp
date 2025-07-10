@@ -86,6 +86,10 @@ void tik_bidiag_elden(matrixA_t& A, matrixb_t& b, real_t lambda)
         e[j] = real(A(j, j + 1));
 
     elden_elim(lambda, d, e, work, x_view_b);
+    // std::cout << "\nnrows(b) = " << nrows(b) << std::endl;
+    // std::cout << "\nnrows(work) = " << nrows(work) << std::endl;
+    // std::cout << "\nnrows(b) = " << nrows(b) << std::endl;
+    // std::cout << "\nnrows(work) = " << nrows(work) << std::endl;
 
     // Solve for x without constructing P1 using views
     auto view_b = slice(b, range{1, n}, range{0, k});

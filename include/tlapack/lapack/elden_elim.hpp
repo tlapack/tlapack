@@ -20,25 +20,26 @@
 /**
  * @param[in] lambda scalar.
  * @param[in, out] d
- *      On entry, d is vector of size(n) that contains the diagonal of a
+ *      -On entry, d is vector of size(n) that contains the diagonal of a
  *      bidiagonal matrix.
  *
- *      On exit, d contains the updated diagonal of the elimination algorithm.
+ *      -On exit, d contains the updated diagonal of the elimination algorithm.
  * @param[in, out] e
- *      On entry, e is vector of size(n - 1) that contains the super diagonal of
- *      a bidiagonal matrix.
+ *      -On entry, e is vector of size(n - 1) that contains the super diagonal
+ *      of a bidiagonal matrix.
  *
- *      On exit, e is the updated super diagonal of the elimination algorithm.
+ *      -On exit, e is the updated super diagonal of the elimination algorithm.
  * @param[in, out] work
- *      On entry, work is an n-by-k matrix that is a workspace filled with junk.
+ *      -On entry, work is an n-by-k matrix that is a workspace filled with
+ *      junk.
  *
- *      On exit, work is used to compute the residual of the full augmented
+ *      -On exit, work is used to compute the residual of the full augmented
  *      vector b
  * @param[in, out] b
- *      On entry, b is a matrix of size n-by-k which stores the projected vector
- *      .b
+ *      -On entry, b is a matrix of size n-by-k which stores the projected
+ *      vector .b
  *
- *      On exit, b is a matrix that stores the updated vector b after the
+ *      -On exit, b is a matrix that stores the updated vector b after the
  *      elimination algorithm.
  */
 
@@ -54,7 +55,7 @@ void elden_elim(
 {
     tlapack_check(size(d) == size(e) + 1);
     tlapack_check(size(d) == nrows(b));
-    tlapack_check((nrows(b) == nrows(work)) && (ncols(b) == nrows(work)));
+    tlapack_check((nrows(b) == nrows(work)) && (ncols(b) == ncols(work)));
 
     using idx_t = size_type<matrix_t>;
     using range = pair<idx_t, idx_t>;
