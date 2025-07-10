@@ -22,6 +22,7 @@
 #include "tlapack/blas/axpy.hpp"
 #include "tlapack/blas/rot.hpp"
 #include "tlapack/blas/rotg.hpp"
+#include "tlapack/lapack/elden_elim.hpp"
 
 /**
  * @brief This function solves the least squares problem for a Tikhonov
@@ -34,7 +35,7 @@
  * @param[in,out] b
  *      On entry, b is a m-by-k matrix
  *
- *      On exit, by is an m-by-k matrix that stores the solution x in the first
+ *      On exit, b is an m-by-k matrix that stores the solution x in the first
  *      n rows.
  * @param[in] lambda scalar
  *
@@ -42,7 +43,6 @@
 
 using namespace tlapack;
 
-// /// Solves Tikhonov regularized least squares using special bidiag method
 template <TLAPACK_MATRIX matrixA_t,
           TLAPACK_MATRIX matrixb_t,
           TLAPACK_REAL real_t>
@@ -50,6 +50,7 @@ void tik_bidiag_elden(matrixA_t& A, matrixb_t& b, real_t lambda)
 {
     // check arguments
     tlapack_check(nrows(A) >= ncols(A));
+    tlapack_check(nrows(b) == nrows(A));
 
     // Initliazation for basic utilities
     using T = type_t<matrixA_t>;
@@ -63,96 +64,35 @@ void tik_bidiag_elden(matrixA_t& A, matrixb_t& b, real_t lambda)
     const idx_t n = ncols(A);
     const idx_t k = ncols(b);
 
-    // Bidiagonal decomposition
+    std::vector<T> work_;
+    auto work = new_matrix(work_, n, k);
+
     std::vector<T> tauv(n);
     std::vector<T> tauw(n);
-
-    bidiag(A, tauv, tauw);
-    unmqr(LEFT_SIDE, CONJ_TRANS, A, tauv, b);
-
-    // Initializiations for bidiag specialized decomposition
-
-    // Extract diagonal diagonal d and super diagonal e from decomposed A
     std::vector<real_t> d(n);
     std::vector<real_t> e(n - 1);
 
+    // x is a view of b
+    auto x_view_b = slice(b, range{0, n}, range{0, k});
+
+    bidiag(A, tauv, tauw);
+
+    unmqr(LEFT_SIDE, CONJ_TRANS, A, tauv, b);
+
+    // Extract diagonal diagonal d and super diagonal e from decomposed A
     for (idx_t j = 0; j < n; ++j)
         d[j] = real(A(j, j));
     for (idx_t j = 0; j < n - 1; ++j)
         e[j] = real(A(j, j + 1));
 
-    // Declare and initialize baug
-    std::vector<T> work_;
-    auto work = new_matrix(work_, n, k);
+    elden_elim(lambda, d, e, work, x_view_b);
 
-    // Augment zeros onto b
-    laset(GENERAL, real_t(0), real_t(0), work);
+    // Solve for x without constructing P1 using views
+    auto view_b = slice(b, range{1, n}, range{0, k});
 
-    //////////// Algorithm for eliminating lambda*I /////////////
-
-    real_t low_d = lambda;
-    real_t low_e;
-    real_t cs, sn;
-
-    for (idx_t i = 0; i < n; i++) {
-        ///////// Eliminate lambdas on diagonal /////////
-
-        // Step a: generate rotation
-
-        rotg(d[i], low_d, cs, sn);
-
-        // Step b: apply to next column in A
-        if (i < n - 1) {
-            low_e = -sn * e[i];
-            e[i] = cs * e[i];
-        }
-        // Step c: update right hand side b
-
-        if (i == 0) {
-            for (idx_t j = 0; j < k; ++j) {
-                work(0, j) = -sn * b(0, j);
-                b(0, j) = cs * b(0, j);
-            }
-        }
-        else {
-            auto bv = slice(b, i, range{0, k});
-            auto cv = slice(work, i, range{0, k});
-            rot(bv, cv, cs, sn);
-        }
-
-        ////////// Elimate byproducts /////////////
-
-        if (i < n - 1) {
-            // Step a: generate rotation
-
-            low_d = lambda;
-            rotg(low_d, low_e, cs, sn);
-
-            // Step c: update right hand side b
-
-            for (idx_t j = 0; j < k; ++j) {
-                work(i + 1, j) = sn * work(i, j);
-                work(i, j) = cs * work(i, j);
-            }
-        }
-    }
-
-    // Solve the least squares problem
-
-    // Bidiag solving algorithm
-    auto xS0 = slice(b, n - 1, range{0, k});
-    rscl(d[n - 1], xS0);
-    for (idx_t i = n - 1; i-- > 0;) {
-        auto xS0 = slice(b, i, range{0, k});
-        auto xS1 = slice(b, i + 1, range{0, k});
-        axpy(-e[i], xS1, xS0);
-        rscl(d[i], xS0);
-    }
-
-    // Finish solving least squares problem
-    auto x2 = slice(b, range{1, n}, range{0, k});
+    // Note: x stored in the upper part of b
     unmlq(LEFT_SIDE, CONJ_TRANS, slice(A, range{0, n - 1}, range{1, n}),
-          slice(tauw, range{0, n - 1}), x2);
+          slice(tauw, range{0, n - 1}), view_b);
 }
 
 #endif  // TLAPACK_TIK_BIDIAG_ELDEN_HH

@@ -60,12 +60,13 @@ void run(size_t m, size_t n, size_t k)
 
     // Initialize scalars
     real_t lambda(4);
+    real_t normr, check;
 
     // Choose method to solve least squares problem of Tikhonov regularized
     // matrix
     std::string method;
 
-    int option = 3;
+    int option = 2;
 
     switch (option) {
         case 1:
@@ -104,7 +105,10 @@ void run(size_t m, size_t n, size_t k)
     }
     // Conducts check for least squares problem
     lacpy(GENERAL, slice(b, range{0, n}, range{0, k}), x);
-    tik_check(A_copy, bcopy, lambda, x);
+    tik_check(A_copy, bcopy, lambda, x, &normr, &check);
+
+    std::cout << "\n(||A.H*(b - bHat) - (lambda^2)*x||_F) / (||A||_F) = "
+              << check << std::endl;
 }
 //------------------------------------------------------------------
 int main(int argc, char** argv)

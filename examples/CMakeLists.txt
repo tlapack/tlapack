@@ -31,7 +31,7 @@ add_custom_command(
     && echo ""
 )
 
-# add the example tikhonov_regularization
+# add the example tikhonov_regularization 
 add_subdirectory( tikhonov_regularization )
 add_custom_command(
   OUTPUT run-all-examples-cmd APPEND
@@ -40,6 +40,7 @@ add_custom_command(
     "${CMAKE_CURRENT_BINARY_DIR}/tikhonov_regularization/example_tikhonov_regularization${CMAKE_EXECUTABLE_SUFFIX}"
     && echo ""
 )
+
 
 # add the example laed4
 add_subdirectory( laed4 )
