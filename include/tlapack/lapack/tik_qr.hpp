@@ -38,9 +38,6 @@ void tik_qr(matrixA_t& A, matrixb_t& b, real_t lambda)
 {
     tlapack_check(nrows(A) >= ncols(A));
     tlapack_check(nrows(b) == nrows(A));
-    // Check lambda <= ||A|| to avoid stability issues.
-    real_t normA = lange(FROB_NORM, A);
-    tlapack_check(lambda <= normA);
 
     // Initliazation for basic utilities
     using T = type_t<matrixA_t>;

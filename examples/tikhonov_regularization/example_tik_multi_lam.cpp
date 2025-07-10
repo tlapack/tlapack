@@ -39,7 +39,7 @@ void run(size_t m, size_t n, size_t k)
 
     std::vector<T> x_;
     auto x = new_matrix(x_, n, k);
-    auto x2 = slice(x, range{1, n}, range{0, k});
+    auto view_x = slice(x, range{1, n}, range{0, k});
 
     real_t lambda;
 
@@ -98,7 +98,7 @@ void run(size_t m, size_t n, size_t k)
              lambda * lambda * normx_inside * normx_inside);
 
     unmlq(LEFT_SIDE, CONJ_TRANS, slice(A, range{0, n - 1}, range{1, n}),
-          slice(tauw, range{0, n - 1}), x2);
+          slice(tauw, range{0, n - 1}), view_x);
 
     tik_check(A_copy, bcopy, lambda, x, &normr_outside, &check_tikhonov);
 
@@ -120,7 +120,7 @@ void run(size_t m, size_t n, size_t k)
 
     ///////////////////////////////////////////////////////////////////////////////
 
-    lambda = 1e-2;
+    lambda = 1e-4;
 
     lacpy(GENERAL, slice(b, range{0, n}, range{0, k}), x);
 
@@ -140,7 +140,7 @@ void run(size_t m, size_t n, size_t k)
              lambda * lambda * normx_inside * normx_inside);
 
     unmlq(LEFT_SIDE, CONJ_TRANS, slice(A, range{0, n - 1}, range{1, n}),
-          slice(tauw, range{0, n - 1}), x2);
+          slice(tauw, range{0, n - 1}), view_x);
 
     tik_check(A_copy, bcopy, lambda, x, &normr_outside, &check_tikhonov);
 
