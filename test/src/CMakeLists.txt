@@ -113,6 +113,7 @@ add_executable(test_potri test_potri.cpp)
 add_executable(test_gemmtr test_gemmtr.cpp)
 add_executable(test_trmm_out test_trmm_out.cpp)
 add_executable(test_pbtrf_with_workspace test_pbtrf_with_workspace.cpp)
+add_executable(test_trsm_tri test_trsm_tri.cpp)
 
 # add_executable(test_lae2 test_lae2.cpp)
 # add_executable(test_laev2 test_laev2.cpp)
