@@ -1,3 +1,21 @@
+//
+// Example on how to solve a Tikhonov regularized least squares problem with
+// multiple λ's using Eldén's bidiagonalization algorithm. The problem is
+// first "pushed" to bidiagonal form. Then a λ is tried. After this we have
+// access to ||x||₂ and ||b-Ax||₂ and can decide on a new λ. And repeat
+// until a suitable λ is found. Once a suitable λ is found, a last
+// transformation is done on x to "pop" the solution to the original problem
+// (the one not in bidiagonal form).
+//
+// We use Eldén's Tikhonov regularized least squares problem for bidiagonal
+// matrix algorithm.
+//
+// Other methods would be
+// (*) Normal Equations (and Cholesky) which is unstable;
+// (*) QR factorization which requires many more computations for each λ;
+// (*) SVD, which is great once you have it, and enable to quickly go over many
+// λ's but is more expensive than bidiagonalization to obtain.
+
 #include <tlapack/plugins/legacyArray.hpp>
 //
 #include <tlapack/lapack/bidiag.hpp>
@@ -7,7 +25,6 @@
 #include <tlapack/lapack/unmqr.hpp>
 
 #include "../../test/include/MatrixMarket.hpp"
-// Check function created for the example
 #include "tik_check.hpp"
 
 using namespace tlapack;
@@ -43,6 +60,13 @@ void run(size_t m, size_t n, size_t k)
 
     real_t lambda;
 
+    real_t normr_outside;
+    real_t check_tikhonov;
+    real_t normx_inside;
+    real_t normr_inside1;
+    real_t normr_inside;
+    real_t normx_outside;
+
     // Initializing matrices randomly
     MatrixMarket mm;
     mm.random(A);
@@ -58,25 +82,16 @@ void run(size_t m, size_t n, size_t k)
     std::vector<real_t> d(n);
     std::vector<real_t> e(n - 1);
 
-    // Bidiagonal decomposition
+    // push A and b to bidiagonal world
     bidiag(A, tauv, tauw);
-
-    // Apply to b
 
     unmqr(LEFT_SIDE, CONJ_TRANS, A, tauv, b);
 
+    // will be useful to compute ||b-Ax||₂ later on
     real_t normr_inside0 = lange(FROB_NORM, slice(b, range{n, m}, range{0, k}));
-    real_t normr_outside;
-    real_t check_tikhonov;
-
-    real_t normx_inside;
-
-    real_t normr_inside1;
-
-    real_t normr_inside;
-    real_t normx_outside;
 
     ///////////////////////////////////////////////////////////////////////////////
+    // try a first λ
 
     lambda = 1e-2;
 
@@ -97,6 +112,11 @@ void run(size_t m, size_t n, size_t k)
         sqrt(normr_inside0 * normr_inside0 + normr_inside1 * normr_inside1 -
              lambda * lambda * normx_inside * normx_inside);
 
+    // at this point we have ||b-Ax||₂ and ||x||₂ and can decide for a new
+    // λ the following lines are not needed and should not be used in
+    // general, these are checks, please resume at "trying a new λ"
+
+    // ↓↓↓ checks -- omit in real-life applications ↓↓↓
     unmlq(LEFT_SIDE, CONJ_TRANS, slice(A, range{0, n - 1}, range{1, n}),
           slice(tauw, range{0, n - 1}), view_x);
 
@@ -106,7 +126,7 @@ void run(size_t m, size_t n, size_t k)
 
     std::cout << std::endl;
 
-    std::cout << "lambda = " << lambda << std::endl;
+    std::cout << "λ = " << lambda << std::endl;
 
     std::cout << "check_tikhonov = " << check_tikhonov << std::endl;
 
@@ -117,8 +137,10 @@ void run(size_t m, size_t n, size_t k)
     std::cout << "normx = ||x||_F     == (outside) " << normx_outside
               << " == (inside) " << normx_inside << " == (diff) "
               << abs(normx_outside - normx_inside) << std::endl;
+    // ↑↑↑ checks -- omit in real-life applications ↑↑↑
 
     ///////////////////////////////////////////////////////////////////////////////
+    // trying a new λ
 
     lambda = 1e-4;
 
@@ -139,16 +161,21 @@ void run(size_t m, size_t n, size_t k)
         sqrt(normr_inside0 * normr_inside0 + normr_inside1 * normr_inside1 -
              lambda * lambda * normx_inside * normx_inside);
 
+    // at this point we have ||b-Ax||₂ and ||x||₂ and we can decide for a new
+    // λ we assume that we are satisfied with our λ and our "x", so
+    // the next line is needed to "pop" back x to the non-bidiagonal world.
+
     unmlq(LEFT_SIDE, CONJ_TRANS, slice(A, range{0, n - 1}, range{1, n}),
           slice(tauw, range{0, n - 1}), view_x);
 
+    // ↓↓↓ checks -- omit in real-life applications ↓↓↓
     tik_check(A_copy, bcopy, lambda, x, &normr_outside, &check_tikhonov);
 
     normx_outside = lange(FROB_NORM, x);
 
     std::cout << std::endl;
 
-    std::cout << "lambda = " << lambda << std::endl;
+    std::cout << "λ = " << lambda << std::endl;
 
     std::cout << "check_tikhonov = " << check_tikhonov << std::endl;
 
@@ -159,6 +186,7 @@ void run(size_t m, size_t n, size_t k)
     std::cout << "normx = ||x||_F     == (outside) " << normx_outside
               << " == (inside) " << normx_inside << " == (diff) "
               << abs(normx_outside - normx_inside) << std::endl;
+    // ↑↑↑ checks -- omit in real-life applications ↑↑↑
 }
 //------------------------------------------------------------------
 int main(int argc, char** argv)

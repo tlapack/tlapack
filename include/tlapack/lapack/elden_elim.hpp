@@ -1,6 +1,7 @@
-/// @file tik_elim.hpp
-/// @brief Solves a Tikhonov regularized least squares problem using Eldén's
-/// bidiagonalization algorithm.
+/// @file elden_elim.hpp
+/// @brief Solves a Tikhonov regularized least squares problem in bidiagonal
+/// form using Eldén's bidiagonalization algorithm. Input matrix needs to be
+/// bidiagonal.
 /// @author L. Carlos Gutierrez, University of Colorado Denver, USA
 /// @author Julien Langou, University of Colorado Denver, USA
 //
@@ -28,11 +29,11 @@
  *                         superdiagonal; on exit, contains the updated
  *                         superdiagonal.
  * @param[in,out]  b       Matrix of size n × k. On entry, contains the
- *                         projected vector; on exit, stores the updated
- *                         vector b after elimination.
+ *                         projected vector; on exit, contains x the solution of
+ *                         the Tikhonov regularized least squares problem.
  * @param[in,out]  work    Workspace matrix (n × k). On entry, may be
- * uninitialized; on exit, used to compute residuals of the full augmented
- * vector b.
+ * uninitialized; on exit, the 2-norm of each column is the 2-norm of the
+ * Tikhonov resildual.
  */
 
 using namespace tlapack;
