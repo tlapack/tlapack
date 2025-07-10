@@ -217,6 +217,8 @@ void pbtrf(uplo_t uplo,
 
                     // lacpy(Uplo::General, A12, temp);
 
+
+                    // needs to be trmm out plz kyle
                     gemm(tlapack::Op::ConjTrans, tlapack::Op::NoTrans,
                          real_t(-1), A01_0, work02_0, real_t(1), A12);
 
