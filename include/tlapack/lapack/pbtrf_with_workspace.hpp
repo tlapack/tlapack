@@ -62,7 +62,9 @@ void pbtrf_with_workspace(uplo_t uplo,
     tlapack_check(uplo == Uplo::Lower || uplo == Uplo::Upper);
     tlapack_check(nrows(A) == ncols(A));
     tlapack_check(kd < nrows(A));
-    tlapack_check(kd >= 0); // maybe?
+    
+    // maybe
+    tlapack_check(kd >= 0);
 
     tlapack::Create<matrix_t> new_matrix;
 

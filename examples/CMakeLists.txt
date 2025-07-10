@@ -61,7 +61,6 @@ add_custom_command(
     && echo ""
 )
 
-
 # add the debug example
 add_subdirectory( cpp_visualizer )
 
