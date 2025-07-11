@@ -11,6 +11,7 @@
 #define TLAPACK_TRGE_QR2_HH
 
 #include "tlapack/base/utils.hpp"
+#include "tlapack/lapack/larfg.hpp"
 
 using namespace tlapack;
 

@@ -45,7 +45,7 @@ if(TLAPACK_TEST_QUAD)
 endif()
 
 # Testers
-
+add_executable(test_trge_qr test_trge_qr.cpp)
 add_executable(test_lasy2 test_lasy2.cpp)
 add_executable(test_schur_move test_schur_move.cpp)
 add_executable(test_transpose test_transpose.cpp)
