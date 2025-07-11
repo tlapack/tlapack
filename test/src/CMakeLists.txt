@@ -114,12 +114,13 @@ add_executable(test_gemmtr test_gemmtr.cpp)
 add_executable(test_trmm_out test_trmm_out.cpp)
 add_executable(test_pbtrf_with_workspace test_pbtrf_with_workspace.cpp)
 add_executable(test_trsm_tri test_trsm_tri.cpp)
-
 # add_executable(test_lae2 test_lae2.cpp)
 # add_executable(test_laev2 test_laev2.cpp)
 add_executable(test_steqr test_steqr.cpp testutils.cpp)
+# add_executable(test_laed2 test_laed2.cpp) LAED2 IS WIP
 add_executable(test_laed4 test_laed4.cpp)
 add_executable(test_lamrg test_lamrg.cpp)
+
 
 if(TLAPACK_TEST_EIGEN)
   add_executable(test_eigenplugin test_eigenplugin.cpp)
