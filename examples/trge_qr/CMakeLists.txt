@@ -16,3 +16,4 @@ endif()
 # add the example trge_qr
 add_executable( example_trge_qr example_trge_qr.cpp )
 target_link_libraries( example_trge_qr PRIVATE tlapack )
+

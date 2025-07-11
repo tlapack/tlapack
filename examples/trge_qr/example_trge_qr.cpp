@@ -36,10 +36,19 @@ void run(size_t m, size_t n, size_t k)
     // Declare Matrices
     std::vector<T> A_;
     auto A = new_matrix(A_, n + m, n);
+    std::vector<T> A0_;
+    auto A0 = new_matrix(A0_, n + m, n);
+    std::vector<T> A1_;
+    auto A1 = new_matrix(A1_, n + m, n);
     std::vector<T> R_;
     auto R = new_matrix(R_, n, n);
     std::vector<T> Q_;
     auto Q = new_matrix(Q_, n + m, k);
+
+    // std::vector<T> Q0_;
+    // auto Q0 = new_matrix(Q0_, n, k);
+    // std::vector<T> Q1_;
+    // auto Q1 = new_matrix(Q1_, m, k);
 
     // Randomly initialize matrices
     MatrixMarket mm;
@@ -48,14 +57,23 @@ void run(size_t m, size_t n, size_t k)
     mm.random(Q);
     mm.random(R);
 
-    auto Q1 = slice(Q, range{0, m + n}, range{0, n});
-    lacpy(GENERAL, A, Q1);
+    auto Qthin = slice(Q, range{0, m + n}, range{0, n});
+    lacpy(GENERAL, A, Qthin);
 
-    trge_qr2(Q1, tau);
+    auto Qthin0 = slice(Qthin, range{0, n}, range{0, n});
+    auto Qthin1 = slice(Qthin, range{n, n + m}, range{0, n});
 
-    lacpy(UPPER_TRIANGLE, slice(Q1, range{0, n}, range{0, n}), R);
+    trge_qr2(Qthin0, Qthin1, tau);
 
-    trge_ung2r(Q, tau);
+    lacpy(UPPER_TRIANGLE, slice(Qthin, range{0, n}, range{0, n}), R);
+
+    ///////////////////////////////////////////////////////////////////////////////
+
+    auto Q0 = slice(Q, range{0, n}, range{0, k});
+    auto Q1 = slice(Q, range{n, n + m}, range{0, k});
+
+    // trge_ung2r(Q, tau);
+    trge_ung2r(Q0, Q1, tau);
 
     // Put zeros below Upper Triangle R in A
     for (idx_t j = 0; j < n - 1; j++)
@@ -99,8 +117,8 @@ void run(size_t m, size_t n, size_t k)
             for (size_t i = 0; i < m + n; ++i)
                 work(i, j) = static_cast<float>(0xABADBABE);
 
-        // Copy Q1 to work
-        lacpy(GENERAL, Q1, work);
+        // Copy Qthin to work
+        lacpy(GENERAL, Qthin, work);
 
         trmm(Side::Right, Uplo::Upper, Op::NoTrans, Diag::NonUnit, real_t(1.0),
              R, work);
