@@ -12,6 +12,7 @@
 #define TLAPACK_PBTRF_HH
 
 #include "tlapack/blas/trsm.hpp"
+#include "tlapack/lapack/mult_lhl_oop.hpp"
 #include "tlapack/lapack/mult_llh.hpp"
 #include "tlapack/lapack/mult_uhu.hpp"
 #include "tlapack/lapack/potrf.hpp"
@@ -23,7 +24,7 @@ namespace tlapack {
 /// @brief Options struct for pbtrf_with_workspace()
 struct BlockedAndBandedCholeskyOpts : public EcOpts {
     constexpr BlockedAndBandedCholeskyOpts(const EcOpts& opts = {})
-        : EcOpts(opts) {};
+        : EcOpts(opts){};
 
     size_t nb = 32;  // Block size
 };
@@ -128,81 +129,23 @@ void pbtrf(uplo_t uplo,
                     auto A02_0 = slice(A02, range(0, i3), range(0, i3));
                     auto A02_1 = slice(A02, range(i3, ib), range(0, i3));
 
-                    auto work02 = slice(work, range(0, ib), range(0, i3));
-
-                    for (idx_t jj = 0; jj < i3; jj++)
-                        for (idx_t ii = jj; ii < ib; ++ii)
-                            work02(ii, jj) = A02(ii, jj);
-
-                    // trsm(tlapack::Side::Left, tlapack::Uplo::Upper,
-                    //      tlapack::Op::ConjTrans, tlapack::Diag::NonUnit,
-                    //      real_t(1), A00, work02);
-
-                    /**/
-                    std::vector<T> temp2_;
-                    auto temp2 = new_matrix(temp2_, ib - i3, i3);
-
                     auto A00_00 = slice(A00, range(0, i3), range(0, i3));
 
                     auto A00_10 = slice(A00, range(0, i3), range(i3, ib));
 
-                    for (idx_t j = 0; j < i3; ++j) {
-                        for (idx_t i = 0;
-                             i < static_cast<int>(ib) - static_cast<int>(i3);
-                             ++i) {
-                            temp2(i, j) = conj(A00_10(j, i));
-                        }
-                    }
-                    std::cout << "done transpose" << std::endl;
-
                     auto A00_11 = slice(A00, range(i3, ib), range(i3, ib));
-                    /**/
-                    auto work02_0 = slice(work02, range(0, i3), range(0, i3));
 
-                    auto work02_1 = slice(work02, range(i3, ib), range(0, i3));
-
-                    /**/
-                    // trsm_tri(Side::Left, Uplo::Lower, Op::ConjTrans,
-                    //          Diag::NonUnit, real_t(1), A00_00, A02_0);
-
-                    // trmm_out(Side::Right, Uplo::Lower, Op::NoTrans,
-                    //          Diag::NonUnit, Op::ConjTrans, real_t(-1), A02_0,
-                    //          A00_10, real_t(1), A02_1);
-
-                    // trsm(Side::Left, Uplo::Upper, Op::ConjTrans,
-                    // Diag::NonUnit,
-                    //      real_t(1), A00_00, work02_0);
                     trsm_tri(Side::Left, Uplo::Lower, Op::ConjTrans,
                              Diag::NonUnit, real_t(1), A00_00, A02_0);
 
                     trmm_out(Side::Right, Uplo::Lower, Op::NoTrans,
                              Diag::NonUnit, Op::ConjTrans, real_t(-1), A02_0,
                              A00_10, real_t(1), A02_1);
-                    // trmm_out(Side::Right, Uplo::Lower, Op::NoTrans,
-                    // Diag::NonUnit, Op::NoTrans, real_t(-1), work02_0, temp2,
-                    // real_t(1), work02_1);
+
                     trsm(Side::Left, Uplo::Upper, Op::ConjTrans, Diag::NonUnit,
                          real_t(1), A00_11, A02_1);
 
-                         
-                    for (idx_t j = 0; j < i3; ++j)
-                        for (idx_t i = j; i < i3; ++i)
-                            work02_0(i, j) = A02_0(i, j);
-                    for (idx_t j = 0; j < i3; ++j)
-                        for (idx_t i = 0; i < static_cast<int>(ib) - static_cast<int>(i3); ++i)
-                            work02_1(i, j) = A02_1(i, j);
-
-
-                    // for (idx_t j = 0; j < i3; ++j) {
-                    //     for (idx_t i = 0;
-                    //          i < static_cast<int>(ib) - static_cast<int>(i3);
-                    //          ++i) {
-                    //         A00_10(j, i) = conj(temp2(i, j));
-                    //     }
-                    // } (:
-                    /**/
-
-                    auto A12 = slice(A, range(i + ib, i + kd),
+                    auto A12 = slice(A, range(i + ib, std::min(i + kd, n)),
                                      range(i + kd, std::min(i + kd + i3, n)));
 
                     auto A01 = slice(A, range(i, ib + i),
@@ -212,44 +155,24 @@ void pbtrf(uplo_t uplo,
 
                     auto A01_1 = slice(A01, range(i3, ib), range(0, i2));
 
-                    // std::vector<T> temp_;
-                    // auto temp = new_matrix(temp_, i2, i3);
-
-                    // lacpy(Uplo::General, A12, temp);
-
-
-                    // needs to be trmm out plz kyle
-                    gemm(tlapack::Op::ConjTrans, tlapack::Op::NoTrans,
-                         real_t(-1), A01_0, work02_0, real_t(1), A12);
+                    trmm_out(Side::Right, Uplo::Lower, Op::NoTrans,
+                             Diag::NonUnit, Op::ConjTrans, real_t(-1), A02_0,
+                             A01_0, real_t(1), A12);
 
                     gemm(tlapack::Op::ConjTrans, tlapack::Op::NoTrans,
-                         real_t(-1), A01_1, work02_1, real_t(1), A12);
-
-                    // std::cout << "temp = " << std::endl;
-                    // printMatrix(temp);
-
-                    // trmm_out(Side::Right, Uplo::Lower, Op::NoTrans,
-                    //          Diag::NonUnit, Op::ConjTrans, real_t(-1), A02_0,
-                    //          A01_0, real_t(1), A12);
-
-                    // gemm(Op::ConjTrans, Op::NoTrans, real_t(-1), A01_1,
-                    // A02_1,
-                    //      real_t(1), A12);
-
-                    // std::cout << "A12 = " << std::endl;
-                    // printMatrix(A12);
+                         real_t(-1), A01_1, A02_1, real_t(1), A12);
 
                     auto A22 = slice(A, range(i + kd, std::min(i + kd + i3, n)),
                                      range(i + kd, std::min(i + kd + i3, n)));
 
-                    herk(tlapack::Uplo::Upper, tlapack::Op::ConjTrans,
-                         real_t(-1), work02, real_t(1), A22);
+                    // is this min useful? it feels like i+kd+i3 is good enough,
+                    // i3 is of the good size. I think we are guaranteed that
+                    // the block A22 that i3-by-3 does not go beyond n.
 
-                    for (idx_t jj = 0; jj < i3; ++jj) {
-                        for (idx_t ii = jj; ii < ib; ++ii) {
-                            A02(ii, jj) = work02(ii, jj);
-                        }
-                    }
+                    mult_lhl_oop(A02_0, A22);
+
+                    herk(tlapack::Uplo::Upper, tlapack::Op::ConjTrans,
+                         real_t(-1), A02_1, real_t(1), A22);
                 }
             }
         }

@@ -139,21 +139,17 @@ TEMPLATE_TEST_CASE("triagular matrix-matrix multiplication is backward stable",
                    for (idx_t i = 0; i < j; i++)
                        sum += abs1(A(i, j) - A_orig(i, j));
 
-
                for (idx_t j = 0; j < n - kd; j++)
                    for (idx_t i = kd + 1 + j; i < n; ++i)
                        sum += abs1(A(i, j) - A_orig(i, j));
-
 
                CHECK(sum == real_t(0));
                auto temp2 = slice(A, range(kd + 1, n), range(0, n - kd));
                laset(uplo, T(0), T(0), temp2);
 
-
                for (idx_t j = 0; j < n; j++)
                    for (idx_t i = 0; i < j; i++)
                        A_orig(i, j) = T(0);
-
 
                for (idx_t j = 0; j < n - kd; j++)
                    for (idx_t i = kd + 1 + j; i < n; ++i)
@@ -161,9 +157,7 @@ TEMPLATE_TEST_CASE("triagular matrix-matrix multiplication is backward stable",
                mult_llh(A);
            }
 
-
            real_t normAbefore = lanhe(Norm::Fro, uplo, A_orig);
-
 
            for (idx_t i = 0; i < n; ++i) {
                for (idx_t j = 0; j < n; ++j) {
