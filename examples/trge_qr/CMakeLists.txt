@@ -6,13 +6,14 @@
 
 cmake_minimum_required(VERSION 3.5)
 
-project( geqrtr CXX )
+project( trge_qr CXX )
 
 # Load <T>LAPACK
 if( NOT TARGET tlapack )
   find_package( tlapack REQUIRED )
 endif()
 
-# add the example geqrtr
-add_executable( example_geqrtr example_geqrtr.cpp )
-target_link_libraries( example_geqrtr PRIVATE tlapack )
+# add the example trge_qr
+add_executable( example_trge_qr example_trge_qr.cpp )
+target_link_libraries( example_trge_qr PRIVATE tlapack )
+
